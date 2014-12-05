@@ -9,9 +9,13 @@
 				var pre  = document.createElement("pre");
 				
 				pre.textContent = WebGLTestUtils.readFile("conditionals.test");
-				body.appendChild(pre);
 				
-				console.log(WebGLShaderLibrary.myLittleFunction());
+				pre.textContent = WebGLTestUtils.loadTextFileAsync("conditionals.test", function(success, content) {
+				
+					body.appendChild(pre);
+				
+				});
+				
 				
 			}, false );
 		</script>
