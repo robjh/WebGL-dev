@@ -1,0 +1,22 @@
+<html>
+	<head>
+		<title>test</title>
+		<script src="../../../../conformance/resources/webgl-test-utils.js"></script>
+		<script>
+			document.addEventListener('DOMContentLoaded', function() {
+
+				var body = document.getElementsByTagName("body")[0];
+				var pre  = document.createElement("pre");
+				
+				pre.textContent = WebGLTestUtils.readFile("conditionals.test");
+				body.appendChild(pre);
+				
+				console.log(WebGLShaderLibrary.myLittleFunction());
+				
+			}, false );
+		</script>
+	</head>
+	<body>
+		
+	</body>
+</html>
