@@ -20,3 +20,29 @@
 		
 	</body>
 </html>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>WebGL vertexAttrib Conformance Tests</title>
+<link rel="stylesheet" href="../../../../resources/js-test-style.css"/>
+<script src="../../../../resources/js-test-pre.js"></script>
+<script src="../../../../conformance/resources/webgl-test.js"></script>
+<script src="../../../../conformance/resources/webgl-test-utils.js"></script>
+</head>
+<body>
+<div id="description"></div>
+<div id="console"></div>
+<canvas id="canvas" width="2" height="2"> </canvas>
+<script>
+description("This test ensures we can download a file from the internet.");
+var body = document.getElementsByTagName("body")[0];
+var pre = document.createElement("pre");
+pre.textContent = WebGLTestUtils.readFile("conditionals.test");
+body.appendChild(pre);
+successfullyParsed = true;
+</script>
+<script src="../../../../resources/js-test-post.js"></script>
+</body>
+</html>
