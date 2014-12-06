@@ -21,7 +21,7 @@
 ** MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 */
 var shaderLibrary = (function() {
-"use strict";
+'use strict';
 
 function generateTestCases() {
 	stateMachine.getState().testCases = stateMachine.getState().testFile.match(/[^\r\n]+/g);

@@ -21,15 +21,15 @@
 ** MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 */
 var shaderLibraryCase = (function() {
-	"use strict";
+	'use strict';
 
 var runTestCases = function() {
 	var state = stateMachine.getState();
 	if (!state.index)
 		state.index = 0;
 
-	var pre = document.createElement("pre");
-	pre.textContent = "Line " + state.index + state.testCases[state.index];
+	var pre = document.createElement('pre');
+	pre.textContent = 'Line ' + state.index + state.testCases[state.index];
 	document.body.appendChild(pre);
 
 	++state.index;
