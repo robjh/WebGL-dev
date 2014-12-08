@@ -21,22 +21,23 @@
 ** MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 */
 var shaderLibrary = (function() {
-'use strict';
+	'use strict';
 
-function generateTestCases() {
-	stateMachine.getState().testCases = stateMachine.getState().testFile.match(/[^\r\n]+/g);
-	return true;
-}
+	function generateTestCases() {
+		stateMachine.getState().testCases = stateMachine.getState().testFile.match(/[^\r\n]+/g);
+		return true;
+	}
 
-function processTestFile() {
-	if (generateTestCases())
-		stateMachine.runCallback(shaderLibraryCase.runTestCases);
-	else
-		terminate(false);
-}
+	function processTestFile() {
+		if (generateTestCases()) {
+			stateMachine.runCallback(shaderLibraryCase.runTestCases);
+		} else {
+			terminate(false);
+		}
+	}
 
-return {
-	processTestFile: processTestFile
-};
+	return {
+		processTestFile: processTestFile
+	};
 
 }());

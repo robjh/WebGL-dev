@@ -23,24 +23,36 @@
 var shaderLibraryCase = (function() {
 	'use strict';
 
-var runTestCases = function() {
-	var state = stateMachine.getState();
-	if (!state.index)
-		state.index = 0;
+	var runTestCases = function() {
+		var state = stateMachine.getState();
+		if (!state.index)
+			state.index = 0;
 
-	var pre = document.createElement('pre');
-	pre.textContent = 'Line ' + state.index + state.testCases[state.index];
-	document.body.appendChild(pre);
+		var pre = state.pre;
+		if (!pre) {
+			pre = state.pre = document.createElement('pre');
+			document.body.appendChild(pre);
+		}
+	
+		var line = document.createElement('div');
+		var text = document.createTextNode(state.testCases[state.index]);
+		var decl = document.createElement('span');
+		decl.className = "line_num";
+		decl.textContent = 'Line ' + (state.index + 1);
+	
+		line.appendChild(decl);
+		line.appendChild(text);
+		pre.appendChild(line);
 
-	++state.index;
-	if (state.index < state.testCases.length)
-		stateMachine.runCallback(runTestCases);
-	else
-		stateMachine.terminate(true);
-};
+		++state.index;
+		if (state.index < state.testCases.length)
+			stateMachine.runCallback(runTestCases);
+		else
+			stateMachine.terminate(true);
+	};
 
-return {
-	runTestCases: runTestCases
-};
+	return {
+		runTestCases: runTestCases
+	};
 
 }());
