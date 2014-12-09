@@ -78,7 +78,8 @@ var shaderLibrary = (function() {
 			return str
 				.substr(1, index_end - 1)
 				.replace("\\n", '\n')
-				.replace("\\t", '\t');
+				.replace("\\t", '\t')
+				.replace(/\\/g, '');
 			
 		};
 		var parseShaderSource  = function(str) {

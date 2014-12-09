@@ -85,10 +85,10 @@
 			return true;
 		},
 		function() {
-			var result = parser.priv.parseStringLiteral("\"hello world\\\"extra\"");
+			var result = parser.priv.parseStringLiteral("\"\\\"\\\"\\\"\"");
 			test_result(
-				"Checking string parser. Passing \"\"hello world\\\"extra\"\". Expecting \"hello world\"extra\"",
-				result == "hello world\"extra", result
+				"Checking string parser. Passing \"\"\\\"\\\"\\\"\"\". Expecting \"\"\"\"\"",
+				result == "\"\"\"", result
 			);
 			return true;
 		},
