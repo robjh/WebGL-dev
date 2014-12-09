@@ -298,16 +298,16 @@ var runTestCases = function() {
 	stateMachine.terminate(true);
 	return;
 
-	++state.index;
-	if (state.index < state.testCases.length)
-		stateMachine.runCallback(runTestCases);
-	else
-		stateMachine.terminate(true);
-};
+		++state.index;
+		if (state.index < state.testCases.length)
+			stateMachine.runCallback(runTestCases);
+		else
+			stateMachine.terminate(true);
+	};
 
-return {
-	runTestCases: runTestCases
-};
+	return {
+		runTestCases: runTestCases
+	};
 
 }());
 

@@ -17,44 +17,47 @@
 <div id="console"></div>
 <canvas id="canvas" width="2" height="2"> </canvas>
 <script>
-testName = "conditionals"
+testName = "conditionals";
 description("Shader test: " + testName + ".");
 
 successfullyParsed = true;
 
 
 var stateMachine = (function() {
-"use strict";
-var state = {};
-/* TODO: maybe we should have a queue of callbacks instead */
-var userCallback;
+	"use strict";
+	var state = [{}];
 
-var getState = function() {
-	return state;
-};
+	var getState = function() {
+		return state[state.length - 1];
+	};
+	
+	// TODO: make it clone the previous state on push
+	var pushState = function() {
+		state.push({});
+	};
+	
+	var popState = function() {
+		state.pop();
+	};
 
-var runCallback = function(callback) {
-	userCallback = callback;
-	setTimeout(callbackRunner, 0);
-};
+	var runCallback = function(callback) {
+		setTimeout(callback.bind(this), 0);
+	};
 
-var callbackRunner = function() {
-	userCallback();
-};
-
-var terminate = function(successful) {
+	var terminate = function(successful) {
 		successfullyParsed = successfullyParsed && successful;
 		var testPost = document.createElement('script');
 		testPost.src = "../../../../resources/js-test-post.js";
 		document.body.appendChild(testPost);
-};
+	};
 
-return {
-	runCallback: runCallback,
-	getState: getState,
-	terminate: terminate,
-	none: false
-};
+	return {
+		runCallback: runCallback,
+		getState: getState,
+		terminate: terminate,
+		none: false
+	};
+	
 }());
 
 
@@ -63,10 +66,10 @@ WebGLTestUtils.loadTextFileAsync(testName + ".test", function(success, content) 
 	if (success) {
 		stateMachine.getState().testFile = content;
 		stateMachine.runCallback(shaderLibrary.processTestFile);
-	} else
+	} else {
 		stateMachine.terminate(false);
 	}
-);
+});
 
 </script>
 </body>
