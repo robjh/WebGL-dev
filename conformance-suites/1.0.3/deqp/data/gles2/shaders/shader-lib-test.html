@@ -14,10 +14,145 @@
 <body>
 <div id="description"></div>
 <div id="console"></div>
-<canvas id="canvas" width="2" height="2"> </canvas>
 <script>
-	var parser = new shaderLibrary.Parser();
-	console.log(parser.priv.parseStringLiteral("\"abcd\\\"efg\\thijk\\nlmnop\""));
+	
+	description("Testing the .test parser components.");
+	
+	var wtu                = WebGLTestUtils;
+	var successfullyParsed = false;
+	var parser             = new shaderLibrary.Parser();
+	
+	
+	// this array of functions is processed sequentially.
+	// returning false will abort
+	var tests = [
+	
+		function() {
+			// looking for private access to the parser object
+			var result = (typeof parser.priv != 'undefined');
+			test_result("looking for private member access", result, result);
+			return result;
+		},
+		
+		function() {
+			var result = parser.priv.parseIntLiteral("42");
+			test_result(
+				"Checking int parser. Passing \"42\". Expecting 42",
+				result == 42, result
+			);
+			return true;
+		},
+		function() {
+			var result = parser.priv.parseIntLiteral("-5");
+			test_result(
+				"Checking int parser. Passing \"-5\". Expecting -5",
+				result == -5, result
+			);
+			return true;
+		},
+		function() {
+			var result = parser.priv.parseIntLiteral("42.9");
+			test_result(
+				"Checking int parser. Passing \"42.9\". Expecting 42",
+				result == 42, result
+			);
+			return true;
+		},
+		function() {
+			var result = parser.priv.parseFloatLiteral("42.9");
+			test_result(
+				"Checking float parser. Passing \"42.9\". Expecting 42.9",
+				result == 42.9, result
+			);
+			return true;
+		},
+		
+		
+		function() {
+			var result = parser.priv.parseStringLiteral("\"hello world\"");
+			test_result(
+				"Checking string parser. Passing \"\"hello world\"\". Expecting \"hello world\"",
+				result == "hello world", result
+			);
+			return true;
+		},
+		function() {
+			var result = parser.priv.parseStringLiteral("\"hello world\"extra");
+			test_result(
+				"Checking string parser. Passing \"\"hello world\"extra\". Expecting \"hello world\"",
+				result == "hello world", result
+			);
+			return true;
+		},
+		function() {
+			var result = parser.priv.parseStringLiteral("\"hello world\\\"extra\"");
+			test_result(
+				"Checking string parser. Passing \"\"hello world\\\"extra\"\". Expecting \"hello world\"extra\"",
+				result == "hello world\"extra", result
+			);
+			return true;
+		},
+		function() {
+			var result = parser.priv.parseStringLiteral("\"newline test\\nnewline test\"");
+			test_result(
+				"Checking string parser. Passing \"\"newline test\\nnewline test\"\". Expecting \"newline test\nnewline test\"",
+				result == "newline test\nnewline test", result
+			);
+			return true;
+		},
+		function() {
+			var result = parser.priv.parseStringLiteral("\"tab test\\ttab test\"");
+			test_result(
+				"Checking string parser. Passing \"\"tab test\\ttab test\"\". Expecting \"tab test\ttab test\"",
+				result == "tab test\ttab test", result
+			);
+			return true;
+		},
+		
+		function() {
+			successfullyParsed = true;
+			return true;
+		},
+		
+	];
+	
+	var current = 0;
+	
+	function test_result(description, result, additional) {
+		switch (typeof(additional)) {
+		 case "undefined":
+			break;
+		 case "string":
+		 	description += ": \"" + additional + "\"";
+		 	break;
+		 default:
+			description += ": " + additional;
+			break;
+		}
+		if (result) {
+			testPassed(description);
+		} else {
+			testFailed(description);
+		}
+	}
+	
+	function do_next() {
+		if (tests[current]() && tests.length > ++current) {
+			setTimeout(do_next, 0);
+		} else {
+			on_complete();
+		}
+	}
+	
+	function on_complete() {
+		var testPost = document.createElement('script');
+		testPost.src = "../../../../resources/js-test-post.js";
+		document.body.appendChild(testPost);
+	}
+	
+	do_next();
+	
+//	
 </script>
 </body>
 </html>
