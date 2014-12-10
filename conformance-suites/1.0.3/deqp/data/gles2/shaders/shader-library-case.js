@@ -22,10 +22,19 @@
 */
 
 var shaderCase = {
-	value: {
+	value : {
 		STORAGE_INPUT: "STORAGE_INPUT",
 		STORAGE_OUTPUT: "STORAGE_OUTPUT"
 	}
+};
+
+/**
+ * Shader type enum
+ * @enum
+ */
+var shaderType = {
+	SHADERTYPE_VERTEX: 1,
+	SHADERTYPE_FRAGMENT: 2
 };
 
 
@@ -250,6 +259,137 @@ var genFragmentShader = function(valueBlock) {
 	return shader;
 };
 
+var injectExtensionRequirements = function(baseCode, shaderType, requirements) {
+	/* TODO: implement */
+	return baseCode;
+}
+
+// Specialize a shader for the vertex shader test case.
+var specializeVertexShader = function(src, valueBlock) {
+	var	decl = "";
+	var	setup = "";
+	var	output = "";
+	var state = stateMachine.getState();
+	var		usesInout	= usesShaderInoutQualifiers(state.targetVersion);
+	var		vtxIn		= usesInout ? "in"	: "attribute";
+	var		vtxOut		= usesInout ? "out"	: "varying";
+
+	// Output (write out position).
+	output += "gl_Position = dEQP_Position;\n";
+
+	// Declarations (position + attribute for each input, varying for each output).
+	decl += vtxIn + " highp vec4 dEQP_Position;\n";
+	for (var ndx = 0; ndx < valueBlock.values.length; ndx++) {
+		var val = valueBlock.values[ndx];
+		var	valueName		= val.valueName;
+		var	floatType		= shaderUtils.getDataTypeFloatScalars(val.dataType);
+
+		if (val.storageType === shaderCase.value.STORAGE_INPUT)
+		{
+			if (shaderUtils.getDataTypeScalarType(val.dataType) === "float")
+			{
+				decl += vtxIn + " " + floatType + " " + valueName + ";\n";
+			}
+			else
+			{
+				decl += vtxIn + " " + floatType + " a_" + valueName + ";\n";
+				setup += val.dataType + " " + valueName + " = " + val.dataType + "(a_" + valueName + ");\n";
+			}
+		}
+		else if (val.storageType === shaderCase.value.STORAGE_OUTPUT)
+		{
+			if (shaderUtils.getDataTypeScalarType(val.dataType) === "float")
+				decl += vtxOut + " " + floatType + " " + valueName + ";\n";
+			else
+			{
+				decl += vtxOut + " " + floatType + " v_" + valueName + ";\n";
+				decl += val.dataType + " " + valueName + ";\n";
+
+				output += "v_" + valueName + " = " + floatType + "(" + valueName + ");\n";
+			}
+		}
+	}
+
+	var baseSrc = src
+					.replace("${DECLARATIONS}", decl)
+					.replace("${SETUP}", setup)
+					.replace("${OUTPUT}", output)
+					.replace("${POSITION_FRAG_COLOR}", "gl_Position");
+
+	var	withExt	= injectExtensionRequirements(baseSrc, shaderType.SHADERTYPE_VERTEX, state.programs[0].spec.requirements);
+
+	return withExt;
+}
+
+var specializeFragmentShader = function(src, valueBlock) {
+	var	decl = "";
+	var	setup = "";
+	var	output = "";
+
+	var state = stateMachine.getState();
+
+	var		usesInout		= usesShaderInoutQualifiers(state.targetVersion);
+	var		customColorOut	= usesInout;
+	var		fragIn			= usesInout			? "in"				: "varying";
+	var		fragColor		= customColorOut	? "dEQP_FragColor"	: "gl_FragColor";
+
+	decl += genCompareFunctions(valueBlock, false);
+	output += genCompareOp(fragColor, valueBlock, "", null);
+
+	if (customColorOut)
+		decl += "layout(location = 0) out mediump vec4 dEQP_FragColor;\n";
+
+	for (var ndx = 0; ndx < valueBlock.values.length; ndx++) {
+		var val = valueBlock.values[ndx];
+		var					valueName		= val.valueName;
+		var					floatType		= shaderUtils.getDataTypeFloatScalars(val.dataType);
+
+		if (val.storageType === shaderCase.value.STORAGE_INPUT)
+		{
+			if (shaderUtils.getDataTypeScalarType(val.dataType) === "float")
+				decl += fragIn + " " + floatType + " " + valueName + ";\n";
+			else
+			{
+				decl += fragIn + " " + floatType + " v_" + valueName + ";\n";
+				var offset = shaderUtils.isDataTypeIntOrIVec(val.dataType) ? " * 1.0025" : ""; // \todo [petri] bit of a hack to avoid errors in chop() due to varying interpolation
+				setup += val.dataType + " " + valueName + " = " + val.dataType + "(v_" + valueName + offset + ");\n";
+			}
+		}
+		else if (val.storageType === shaderCase.value.STORAGE_OUTPUT)
+		{
+			decl += "uniform " + val.dataType + " ref_" + valueName + ";\n";
+			decl += val.dataType + " " + valueName + ";\n";
+		}
+	}
+
+	/* \todo [2010-04-01 petri] Check all outputs. */
+
+	var baseSrc = src
+					.replace("${DECLARATIONS}", decl)
+					.replace("${SETUP}", setup)
+					.replace("${OUTPUT}", output)
+					.replace("${POSITION_FRAG_COLOR}", fragColor);
+
+	var withExt	= injectExtensionRequirements(baseSrc, shaderType.SHADERTYPE_FRAGMENT, state.programs[0].spec.requirements);
+
+	return withExt;
+}
+
+var draw = function() {
+	var wtu = WebGLTestUtils;
+	var gl = wtu.create3DContext("canvas");
+	gl.viewport(0, 0, canvas.width, canvas.height);
+	gl.clearColor(1, 0, 0, 1);
+	gl.clear(gl.COLOR_BUFFER_BIT);
+	gl.viewport(canvas.width/4, canvas.height/4, canvas.width/2, canvas.height/2);
+		
+	wtu.setupSimpleColorProgram(gl);
+	wtu.setupUnitQuad(gl);
+	wtu.setFloatDrawColor(gl,[ 0, 1, 0, 1]);
+	wtu.drawUnitQuad(gl);
+	
+};
+
 var runTestCases = function() {
 	var state = stateMachine.getState();
 	if (!state.index)
@@ -258,6 +398,13 @@ var runTestCases = function() {
 
 	var pre = document.createElement('pre');
 	state.targetVersion = "300 es";
+	state.programs = [
+		{
+			spec: {
+				requirements: null
+			}
+		}
+		];
 	var valueBlock = {
 		values : [
 			{
@@ -291,10 +438,27 @@ var runTestCases = function() {
 				valueName: "myInt"
 			}
 		]
-	}; 
+	};
+	var shaderSrc =
+			'precision mediump float;' +
+			'${DECLARATIONS}' +
+			'void main()' +
+			'{' +
+			'	out0 = 0.0;' +
+			'	if (in0 >= 1.0)' +
+			'		out0 = 1.0;' +
+			'	${OUTPUT}' +
+			'}';
 	pre.textContent = genVertexShader(valueBlock);
+	pre.textContent += "\n**********************************************\n";
 	pre.textContent += genFragmentShader(valueBlock);
+	pre.textContent += "\n**********************************************\n";
+	pre.textContent += specializeVertexShader(shaderSrc, valueBlock);
+	pre.textContent += "\n**********************************************\n";
+	pre.textContent += specializeFragmentShader(shaderSrc, valueBlock);
+	
 	document.body.appendChild(pre);
+	//draw();
 	stateMachine.terminate(true);
 	return;
 

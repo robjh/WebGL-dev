@@ -75,9 +75,26 @@ var getDataTypeScalarType = function(dataType) {
     };
     return scalarTypes[dataType];
 }
+/**
+ * @param {string} Shader datatype 
+ * @return {bool} Is dataType integer or integer vector
+ */
+var isDataTypeIntOrIVec = function(dataType) {
+	/** @bool */ var retVal = false;
+	switch (dataType) {
+	case "int":
+	case "ivec2":
+	case "ivec3":
+	case "ivec4":
+		retVal = true;
+	};
+
+	return retVal;
+}
 
 return {
 	getDataTypeFloatScalars: getDataTypeFloatScalars,
-	getDataTypeScalarType: getDataTypeScalarType
+	getDataTypeScalarType: getDataTypeScalarType,
+	isDataTypeIntOrIVec: isDataTypeIntOrIVec
 };
 } ());
