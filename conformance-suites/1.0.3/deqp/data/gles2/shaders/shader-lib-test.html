@@ -26,7 +26,58 @@
 	// this array of functions is processed sequentially.
 	// returning false will abort
 	var tests = [
-	
+		
+		
+		function() {
+			var result = shaderLibrary.isWhitespace(" ");
+			test_result(
+				"Checking isWhitespace. Passing \" \". Expecting true",
+				result === true, result
+			);
+			return true;
+		},
+		function() {
+			var result = shaderLibrary.isWhitespace("q");
+			test_result(
+				"Checking isWhitespace. Passing \"q\". Expecting false",
+				result === false, result
+			);
+			return true;
+		},
+		function() {
+			var result = shaderLibrary.isWhitespace(" \r\n\t");
+			test_result(
+				"Checking isWhitespace. Passing \" \\r\\n\\t\". Expecting true",
+				result === true, result
+			);
+			return true;
+		},
+		function() {
+			var result = shaderLibrary.isWhitespace(" \r\n\tq");
+			test_result(
+				"Checking isWhitespace. Passing \" \\r\\n\\tq\". Expecting false",
+				result === false, result
+			);
+			return true;
+		},
+		
+		function() {
+			var result = shaderLibrary.removeExtraIndentation(
+				"\t\t\taaaa\n\t    \t\tbbbb\n\t\t\tcccc\r\n\t\t\tdddd"
+			);
+			
+			test_result(
+				"Checking removeExtraIndentation. \
+				Passing \"\t\t\taaaa\n\t    \t\tbbbb\n\t\t\tcccc\r\n\t\t\tdddd\". \
+				Expecting \"aaaa\n\tbbbb\ncccc\ndddd\"",
+				result === "aaaa\n\tbbbb\ncccc\ndddd",
+				result
+			);
+			return true;
+		},
+		
+		
+		
 		function() {
 			// looking for private access to the parser object
 			var result = (typeof parser.priv != 'undefined');
@@ -38,7 +89,7 @@
 			var result = parser.priv.parseIntLiteral("42");
 			test_result(
 				"Checking int parser. Passing \"42\". Expecting 42",
-				result == 42, result
+				result === 42, result
 			);
 			return true;
 		},
@@ -46,7 +97,7 @@
 			var result = parser.priv.parseIntLiteral("-5");
 			test_result(
 				"Checking int parser. Passing \"-5\". Expecting -5",
-				result == -5, result
+				result === -5, result
 			);
 			return true;
 		},
@@ -54,7 +105,7 @@
 			var result = parser.priv.parseIntLiteral("42.9");
 			test_result(
 				"Checking int parser. Passing \"42.9\". Expecting 42",
-				result == 42, result
+				result === 42, result
 			);
 			return true;
 		},
@@ -62,7 +113,7 @@
 			var result = parser.priv.parseFloatLiteral("42.9");
 			test_result(
 				"Checking float parser. Passing \"42.9\". Expecting 42.9",
-				result == 42.9, result
+				result === 42.9, result
 			);
 			return true;
 		},
@@ -85,9 +136,9 @@
 			return true;
 		},
 		function() {
-			var result = parser.priv.parseStringLiteral("\"\\\"\\\"\\\"\"");
+			var result = parser.priv.parseStringLiteral("\"\\\"\\\"\\\"\"\\\"\"");
 			test_result(
-				"Checking string parser. Passing \"\"\\\"\\\"\\\"\"\". Expecting \"\"\"\"\"",
+				"Checking string parser. Passing \"\"\\\"\\\"\\\"\"\\\"\"\". Expecting \"\"\"\"\"",
 				result == "\"\"\"", result
 			);
 			return true;
@@ -137,7 +188,7 @@
 	}
 	
 	function do_next() {
-		if (tests[current]() && tests.length > ++current) {
+		if (tests[current]() !== false && tests.length > ++current) {
 			setTimeout(do_next, 0);
 		} else {
 			on_complete();

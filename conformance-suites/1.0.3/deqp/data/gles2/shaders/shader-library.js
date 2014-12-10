@@ -37,6 +37,51 @@ var shaderLibrary = (function() {
 		}
 	};
 
+	var isWhitespace = function(char) {
+		return /^[ \t\r\n]+$/.test(char);
+	};
+	var isEOL = function(char) {
+		return /^[\r\n]+$/.test(char);
+	};
+
+	// removes however many indents there are on the first line from all lines.
+	var removeExtraIndentation = function(str) {
+
+		return removeExtraIndentationArray(
+			str.split(/\r\n|\r|\n/)
+		).join('\n');
+		
+	};
+	
+	var removeExtraIndentationArray = function(arr) {
+		var output = [];
+		
+		if (arr.length) {
+			
+			var numIndentChars = 0;
+			for (var i = 0 ; i < arr[0].length && isWhitespace(arr[0].charAt(i)) ; ++i) {
+				numIndentChars += arr[0].charAt(i) == '\t' ? 4 : 1;
+			}
+			
+			for (var i = 0 ; i < arr.length ; ++i) {
+				var removed = 0;
+				var j;
+				for (j = 0 ; removed < numIndentChars && j < arr[i].length ; ++j) {
+					removed += (arr[i].charAt(j) == '\t' ? 4 : 1);
+				}
+				
+				output.push(arr[i].substr(j, arr[i].length - j));
+			}
+			
+		}
+		
+		return output;
+	};
+	
+	// similar to parse literal, except needs to account for lines
+	var parseShaderSource = function(src) {
+	
+	};
 
 	
 	/* Parser class */
@@ -63,8 +108,8 @@ var shaderLibrary = (function() {
 			return parseInt(str);
 		};
 		var parseStringLiteral = function(str) {
-		
-			// strip quotes, replace \n and \t with nl and tabs respectively
+			
+			// isolate the string
 			var endchar = str.substr(0,1);
 			var index_end = 0;
 			do {
@@ -75,6 +120,7 @@ var shaderLibrary = (function() {
 				index_end = str.length;
 			}
 			
+			// strip quotes, replace \n and \t with nl and tabs respectively
 			return str
 				.substr(1, index_end - 1)
 				.replace("\\n", '\n')
@@ -137,8 +183,10 @@ var shaderLibrary = (function() {
 
 
 	return {
-		Parser:          Parser,
-		processTestFile: processTestFile
+		Parser:                 Parser,
+		isWhitespace:           isWhitespace,
+		removeExtraIndentation: removeExtraIndentation,
+		processTestFile:        processTestFile
 	};
 
 }());
