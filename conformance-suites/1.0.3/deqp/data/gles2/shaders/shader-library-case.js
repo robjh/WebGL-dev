@@ -22,10 +22,22 @@
 */
 
 /**
- * Shader type enum
- * @enum
+ * Shader compilation expected result enum
+ * @enum {number}
  */
- var shaderType = {
+var expectResult = {
+	EXPECT_PASS: 0,
+	EXPECT_COMPILE_FAIL: 1,
+	EXPECT_LINK_FAIL: 2,
+	EXPECT_COMPILE_LINK_FAIL: 3,
+	EXPECT_VALIDATION_FAIL: 4
+}
+
+/**
+ * Shader type enum
+ * @enum {number}
+ */
+var shaderType = {
 	VERTEX: 0,
 	FRAGMENT: 1
 };
@@ -119,6 +131,11 @@ var Program = function(gl, programID) {
 		gl.attachShader(this.program, shader);
 		assertMsg(gl.getError() == gl.NO_ERROR, "gl.attachShader()");
 	};
+
+	this.bindAttribLocation = function(location, name) {
+		gl.bindAttribLocation(this.program, location, name);
+		assertMsg(gl.getError() == gl.NO_ERROR, "gl.bindAttribLocation()");
+	};
 	
 	this.link = function() {
 		this.info.linkOk		= false;
@@ -164,14 +181,14 @@ var ShaderProgram = function(gl, programSources) {
 		}
 		
 		if (shadersOK) {
-			for (var i = 0; i < this.shaders.length; i++) {
+			for (var i = 0; i < this.shaders.length; i++)
 				this.program.attachShader(this.shaders[i].getShader());
-			}
+			
+			for (var attrib in programSources.attribLocationBindings)
+				this.program.bindAttribLocation(programSources.attribLocationBindings[attrib], attrib);
+
 			/* TODO: Port */
 			/*
-			for (std::vector<AttribLocationBinding>::const_iterator binding = sources.attribLocationBindings.begin(); binding != sources.attribLocationBindings.end(); ++binding)
-				m_program.bindAttribLocation(binding->location, binding->name.c_str());
-
 			DE_ASSERT((sources.transformFeedbackBufferMode == GL_NONE) == sources.transformFeedbackVaryings.empty());
 			if (sources.transformFeedbackBufferMode != GL_NONE)
 			{
@@ -185,9 +202,6 @@ var ShaderProgram = function(gl, programSources) {
 			if (sources.separable)
 				m_program.setSeparable(true);
 			*/
-			/* TODO: remove this line */
-			gl.bindAttribLocation(this.program.program, 0, 'vPosition');
-			assertMsg(gl.getError() == gl.NO_ERROR, "gl.bindAttribLocation");
 
 			this.program.link();
 			
@@ -684,60 +698,60 @@ var execute = function()
 		}
 		*/
 	}
-/*
-	switch (m_expectResult)
+
+	switch (state.expectResult)
 	{
-		case EXPECT_PASS:
-		case EXPECT_VALIDATION_FAIL:
+		case expectResult.EXPECT_PASS:
+		case expectResult.EXPECT_VALIDATION_FAIL:
 			if (!allCompilesOk)
 				failReason = "expected shaders to compile and link properly, but failed to compile.";
 			else if (!allLinksOk)
 				failReason = "expected shaders to compile and link properly, but failed to link.";
 			break;
 
-		case EXPECT_COMPILE_FAIL:
+		case expectResult.EXPECT_COMPILE_FAIL:
 			if (allCompilesOk && !allLinksOk)
 				failReason = "expected compilation to fail, but shaders compiled and link failed.";
 			else if (allCompilesOk)
 				failReason = "expected compilation to fail, but shaders compiled correctly.";
 			break;
 
-		case EXPECT_LINK_FAIL:
+		case expectResult.EXPECT_LINK_FAIL:
 			if (!allCompilesOk)
 				failReason = "expected linking to fail, but unable to compile.";
 			else if (allLinksOk)
 				failReason = "expected linking to fail, but passed.";
 			break;
 
-		case EXPECT_COMPILE_LINK_FAIL:
+		case expectResult.EXPECT_COMPILE_LINK_FAIL:
 			if (allCompilesOk && allLinksOk)
 				failReason = "expected compile or link to fail, but passed.";
 			break;
 
 		default:
-			DE_ASSERT(false);
+			testFailed("Unknown expected result");
 			return false;
 	}
 
-	if (failReason != DE_NULL)
+	if (failReason != null)
 	{
 		// \todo [2010-06-07 petri] These should be handled in the test case?
-		log << TestLog::Message << "ERROR: " << failReason << TestLog::EndMessage;
+		_logToConsole("ERROR: " + failReason);
 
 		// If implementation parses shader at link time, report it as quality warning.
-		if (m_expectResult == EXPECT_COMPILE_FAIL && allCompilesOk && !allLinksOk)
-			m_testCtx.setTestResult(QP_TEST_RESULT_QUALITY_WARNING, failReason);
-		else
-			m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, failReason);
+		if (state.expectResult === expectResult.EXPECT_COMPILE_FAIL && allCompilesOk && !allLinksOk)
+			_logToConsole("Quality warning: implementation parses shader at link time");
+
+		testFailed(failReason);
 		return false;
 	}
 
 	// Return if compile/link expected to fail.
-	if (m_expectResult == EXPECT_COMPILE_FAIL		||
-		m_expectResult == EXPECT_COMPILE_LINK_FAIL	||
-		m_expectResult == EXPECT_LINK_FAIL)
-		return (failReason == DE_NULL);
-	*/
+	if (state.expectResult === expectResult.EXPECT_COMPILE_FAIL		||
+		state.expectResult === expectResult.EXPECT_COMPILE_LINK_FAIL	||
+		state.expectResult === expectResult.EXPECT_LINK_FAIL)
+		return (failReason === null);
+	
 	// Setup viewport.
 	gl.viewport(viewportX, viewportY, width, height);
 
@@ -781,15 +795,15 @@ var execute = function()
 		wtu.drawUnitQuad(gl);
 	}
 
-	/*
-	// Fetch location for positions positions.
-	int positionLoc = gl.getAttribLocation(vertexProgramID, "dEQP_Position");
-	if (positionLoc == -1)
-	{
-		string errStr = string("no location found for attribute 'dEQP_Position'");
-		TCU_FAIL(errStr.c_str());
-	}
 
+	// Fetch location for positions positions.
+	var positionLoc = gl.getAttribLocation(vertexProgramID, "dEQP_Position");
+	if (positionLoc === -1)	{
+		testFailed("no location found for attribute 'dEQP_Position'");
+		/* TODO" uncomment */
+		/* return false; */
+	}
+	/*
 	// Iterate all value blocks.
 	for (int blockNdx = 0; blockNdx < (int)m_valueBlocks.size(); blockNdx++)
 	{
@@ -1012,13 +1026,13 @@ var execute = function()
 				DE_ASSERT(false);
 		}
 	}
-
-	gl.useProgram(0);
-	if (m_separatePrograms)
+	*/
+	gl.useProgram(null);
+	if (state.separatePrograms)
 		gl.bindProgramPipeline(0);
 
-	GLU_EXPECT_NO_ERROR(gl.getError(), "ShaderCase::execute(): end");
-	*/
+	assertMsg(gl.getError() === gl.NO_ERROR, "ShaderCase::execute(): end");
+	
 	return true;
 };
 
@@ -1052,6 +1066,7 @@ var simpleColorFragmentShader = [
   '    gl_FragData[0] = u_color;',
   '}'].join('\n');
 
+	state.expectResult = expectResult.EXPECT_PASS;
 	state.programs = [
 		{
 			spec: {
@@ -1067,7 +1082,10 @@ var simpleColorFragmentShader = [
 						type: shaderType.FRAGMENT,
 						source: simpleColorFragmentShader
 					}
-				]
+				],
+				attribLocationBindings : {
+					"vPosition" : 0
+				}
 			}
 		}
 		];
@@ -1105,6 +1123,7 @@ var simpleColorFragmentShader = [
 			}
 		]
 	};
+	
 	var shaderSrc =
 			'precision mediump float;' +
 			'${DECLARATIONS}' +
