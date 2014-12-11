@@ -77,7 +77,6 @@
 		},
 		
 		
-		
 		function() {
 			// looking for private access to the parser object
 			var result = (typeof parser.priv != 'undefined');
@@ -159,6 +158,22 @@
 			);
 			return true;
 		},
+		
+		function() {
+			var result = parser.priv.parseShaderSource(
+				"\"\"\t\t\taaaa\n\t    \t\tbbbb\n\t\t\tcccc\r\n\t\t\tdddd\"\""
+			);
+			
+			test_result(
+				"Checking parseShaderSource. \
+				Passing \"\"\"\t\t\taaaa\n\t    \t\tbbbb\n\t\t\tcccc\r\n\t\t\tdddd\"\"\". \
+				Expecting \"aaaa\n\tbbbb\ncccc\ndddd\"",
+				result === "aaaa\n\tbbbb\ncccc\ndddd",
+				result
+			);
+			return true;
+		},
+		
 		
 		function() {
 			successfullyParsed = true;
