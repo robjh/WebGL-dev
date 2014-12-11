@@ -21,6 +21,180 @@
 ** MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 */
 
+/**
+ * Shader type enum
+ * @enum
+ */
+ var shaderType = {
+	VERTEX: 0,
+	FRAGMENT: 1
+};
+
+/**
+ * Get GL shader type from shaderType
+ * @param gl WebGL context
+ * @param {shaderType} type Shader Type
+ * @return GL shader type
+ */
+var getGLShaderType = function(gl, type) {
+	var _glShaderType;
+	switch (type) {
+	case shaderType.VERTEX: _glShaderType = gl.VERTEX_SHADER; break;
+	case shaderType.FRAGMENT: _glShaderType = gl.FRAGMENT_SHADER; break;
+	default:
+		testFailed("Unknown shader type " + type);
+	}
+	
+	return _glShaderType;
+}
+
+var ShaderInfo = function() {
+	this.type;			/** Shader type. */
+	this.source;			/** Shader source. */
+	this.infoLog;		/** Compile info log. */
+	this.compileOk = false;		/** Did compilation succeed? */
+	this.compileTimeUs = 0;	/** Compile time in microseconds (us). */
+};
+
+var Shader = function(gl, type) {
+	this.gl = gl;
+	this.info = new ShaderInfo();		/** Client-side clone of state for debug / perf reasons. */
+	this.info.type = type;
+	this.shader	= gl.createShader(getGLShaderType(gl, type));
+	assertMsg(gl.getError() == gl.NO_ERROR, "glCreateShader()");
+
+	this.setSources = function(source) {
+		gl.shaderSource(this.shader, source);
+		assertMsg(gl.getError() == gl.NO_ERROR, "glshaderSource()");
+		this.info.source = source;
+	};
+	
+	this.getCompileStatus = function() {
+		return this.info.compileOk;
+	};
+	
+	this.compile = function() {
+		this.info.compileOk		= false;
+		this.info.compileTimeUs	= 0;
+		this.info.infoLog = "";
+
+		
+		var compileStart = new Date();
+		gl.compileShader(this.shader);
+		var compileEnd = new Date();
+		this.info.compileTimeUs = 1000 * (compileEnd.getTime() - compileStart.getTime());
+
+		assertMsg(gl.getError() == gl.NO_ERROR, "glCompileShader()");
+
+		var compileStatus = gl.getShaderParameter(this.shader, gl.COMPILE_STATUS);
+		assertMsg(gl.getError() == gl.NO_ERROR, "glGetShaderParameter()");
+
+		this.info.compileOk = (compileStatus != gl.FALSE);
+		this.info.infoLog = gl.getShaderInfoLog(this.shader);
+	};
+	
+	this.getShader = function() {
+		return this.shader;
+	};
+	
+};
+
+var ProgramInfo = function() {
+	/** @type {string} */ var				infoLog;
+	/** @type {bool} */ var		linkOk = false;
+	/** @type {number} */ var	linkTimeUs = 0;	
+};
+
+var Program = function(gl, programID) {
+	this.gl = gl;
+	this.program = programID;
+	this.info = new ProgramInfo();
+	
+	if (programID == null) {
+		this.program = gl.createProgram();
+		assertMsg(gl.getError() == gl.NO_ERROR, "glCreateProgram()");
+	}
+	
+	this.attachShader = function(shader) {
+		gl.attachShader(this.program, shader);
+		assertMsg(gl.getError() == gl.NO_ERROR, "gl.attachShader()");
+	};
+	
+	this.link = function() {
+		this.info.linkOk		= false;
+		this.info.linkTimeUs	= 0;
+		this.info.infoLog = "";
+
+		var linkStart = new Date();
+		gl.linkProgram(this.program);
+		var linkEnd = new Date();
+		this.info.linkTimeUs = 1000 *(linkEnd.getTime() - linkStart.getTime());
+		
+		assertMsg(gl.getError() == gl.NO_ERROR, "glLinkProgram()");
+
+		var linkStatus = gl.getProgramParameter(this.program, gl.LINK_STATUS);
+		assertMsg(gl.getError() == gl.NO_ERROR, "gl.getProgramParameter()");
+		this.info.linkOk	= (linkStatus != gl.FALSE);
+		this.info.infoLog	= gl.getProgramInfoLog(this.program);
+	};
+};
+
+var ShaderProgram = function(gl, programSources) {
+	this.gl = gl;
+	this.programSources = programSources;
+	this.shaders = []
+	this.program = new Program(gl);
+
+	this.getProgram = function() {
+		return this.program.program;
+		};
+	
+	this.getProgramInfo = function() {
+		return this.program.info;
+	};
+
+	/** @type {bool} */ var shadersOK = true;
+
+		for (var i = 0; i < programSources.sources.length; i++) {
+			var shader = new Shader(gl, programSources.sources[i].type);
+			shader.setSources(programSources.sources[i].source);
+			shader.compile();
+			this.shaders.push(shader);
+			shadersOK = shadersOK && shader.getCompileStatus();
+		}
+		
+		if (shadersOK) {
+			for (var i = 0; i < this.shaders.length; i++) {
+				this.program.attachShader(this.shaders[i].getShader());
+			}
+			/* TODO: Port */
+			/*
+			for (std::vector<AttribLocationBinding>::const_iterator binding = sources.attribLocationBindings.begin(); binding != sources.attribLocationBindings.end(); ++binding)
+				m_program.bindAttribLocation(binding->location, binding->name.c_str());
+
+			DE_ASSERT((sources.transformFeedbackBufferMode == GL_NONE) == sources.transformFeedbackVaryings.empty());
+			if (sources.transformFeedbackBufferMode != GL_NONE)
+			{
+				std::vector<const char*> tfVaryings(sources.transformFeedbackVaryings.size());
+				for (int ndx = 0; ndx < (int)tfVaryings.size(); ndx++)
+					tfVaryings[ndx] = sources.transformFeedbackVaryings[ndx].c_str();
+
+				m_program.transformFeedbackVaryings((int)tfVaryings.size(), &tfVaryings[0], sources.transformFeedbackBufferMode);
+			}
+
+			if (sources.separable)
+				m_program.setSeparable(true);
+			*/
+			/* TODO: remove this line */
+			gl.bindAttribLocation(this.program.program, 0, 'vPosition');
+			assertMsg(gl.getError() == gl.NO_ERROR, "gl.bindAttribLocation");
+
+			this.program.link();
+			
+		}
+
+};
+
 var shaderCase = {
 	value : {
 		STORAGE_INPUT: "STORAGE_INPUT",
@@ -28,18 +202,11 @@ var shaderCase = {
 	}
 };
 
-/**
- * Shader type enum
- * @enum
- */
-var shaderType = {
-	SHADERTYPE_VERTEX: 1,
-	SHADERTYPE_FRAGMENT: 2
-};
-
-
 var shaderLibraryCase = (function() {
 	'use strict';
+	
+	/** @const */ var VIEWPORT_WIDTH		= 128;
+	/** @const */ var VIEWPORT_HEIGHT		= 128;
 
 var usesShaderInoutQualifiers = function(version) {
 	switch (version) {
@@ -316,7 +483,7 @@ var specializeVertexShader = function(src, valueBlock) {
 					.replace("${OUTPUT}", output)
 					.replace("${POSITION_FRAG_COLOR}", "gl_Position");
 
-	var	withExt	= injectExtensionRequirements(baseSrc, shaderType.SHADERTYPE_VERTEX, state.programs[0].spec.requirements);
+	var	withExt	= injectExtensionRequirements(baseSrc, shaderType.VERTEX, state.programs[0].spec.requirements);
 
 	return withExt;
 }
@@ -370,7 +537,7 @@ var specializeFragmentShader = function(src, valueBlock) {
 					.replace("${OUTPUT}", output)
 					.replace("${POSITION_FRAG_COLOR}", fragColor);
 
-	var withExt	= injectExtensionRequirements(baseSrc, shaderType.SHADERTYPE_FRAGMENT, state.programs[0].spec.requirements);
+	var withExt	= injectExtensionRequirements(baseSrc, shaderType.FRAGMENT, state.programs[0].spec.requirements);
 
 	return withExt;
 }
@@ -390,6 +557,472 @@ var draw = function() {
 	
 };
 
+/**
+ * Is tessellation present
+ *
+ * @return {bool} True if tessellation is present
+ */
+var isTessellationPresent = function() {
+	/* TODO: implement */
+	return false;
+};
+
+/**
+ * Execute a test case
+ * @return {bool} True if test case passed
+ */
+var execute = function()
+{
+	/** @const @type {number} */	var	quadSize			= 1.0;
+	/** @const @type {number} */
+	var								s_positions = [
+		-quadSize, -quadSize, 0.0, 1.0,
+		-quadSize, +quadSize, 0.0, 1.0,
+		+quadSize, -quadSize, 0.0, 1.0,
+		+quadSize, +quadSize, 0.0, 1.0
+	];
+
+	/** @const @type {number} */
+	var						s_indices = [
+		0, 1, 2,
+		1, 3, 2
+	];
+
+	var wtu = WebGLTestUtils;
+	var gl = wtu.create3DContext("canvas");
+	var state = stateMachine.getState();
+
+	// Compute viewport.
+	/* TODO: original code used random number generator to compute viewport, we use full whole canvas */
+	/** @const */ var								width				= Math.min(canvas.width,	VIEWPORT_WIDTH);
+	/** @const */ var								height				= Math.min(canvas.heigth,	VIEWPORT_HEIGHT);
+	/** @const */ var								viewportX			= 0;
+	/** @const */ var								viewportY			= 0;
+	/** @const */ var								numVerticesPerDraw	= 4;
+	/** @const */ var								tessellationPresent	= isTessellationPresent();
+
+	/** @type {bool} */ var							allCompilesOk		= true;
+	/** @type {bool} */	var							allLinksOk			= true;
+	/** @type {string} */ var				failReason			= null;
+
+	/** @type {number} */ var										vertexProgramID		= -1;
+	var							pipelineProgramIDs = [];
+	var	programs = [];
+	var				programPipeline;
+
+	assertMsg(gl.getError() === gl.NO_ERROR, "ShaderCase::execute(): start");
+
+	if (!state.separatePrograms)
+	{
+		var	program	= 	new ShaderProgram(gl, state.programs[0].programSources);
+
+		vertexProgramID = program.getProgram();
+		pipelineProgramIDs.push(program.getProgram());
+		programs.push(program);
+
+		// Check that compile/link results are what we expect.
+
+
+		for (var i = 0; i < program.shaders.length; i++) {
+			_logToConsole(program.shaders[i].info);
+			if (!program.shaders[i].info.compileOk)
+				allCompilesOk = false;
+		}
+		
+		if (!program.getProgramInfo().linkOk)
+			allLinksOk = false;
+		
+		_logToConsole(program);
+		
+	}
+	else
+	{
+		/* TODO: Port the code below */
+		/*
+		// Separate programs
+		for (int programNdx = 0; programNdx < (int)m_programs.size(); ++programNdx)
+		{
+			de::SharedPtr<glu::ShaderProgram> program(new glu::ShaderProgram(m_renderCtx, m_programs[programNdx].programSources));
+
+			if (m_programs[programNdx].spec.activeStageBits & (1 << glu::SHADERTYPE_VERTEX))
+				vertexProgramID = program->getProgram();
+
+			pipelineProgramIDs.push_back(program->getProgram());
+			programs.push_back(program);
+
+			// Check that compile/link results are what we expect.
+
+			DE_STATIC_ASSERT(glu::SHADERTYPE_VERTEX == 0);
+			for (int stage = glu::SHADERTYPE_VERTEX; stage < glu::SHADERTYPE_LAST; ++stage)
+				if (program->hasShader((glu::ShaderType)stage) && !program->getShaderInfo((glu::ShaderType)stage).compileOk)
+					allCompilesOk = false;
+
+			if (!program->getProgramInfo().linkOk)
+				allLinksOk = false;
+
+			// Log program and active stages
+			{
+				const tcu::ScopedLogSection	section		(log, "Program", "Program " + de::toString(programNdx+1));
+				tcu::MessageBuilder			builder		(&log);
+				bool						firstStage	= true;
+
+				builder << "Pipeline uses stages: ";
+				for (int stage = glu::SHADERTYPE_VERTEX; stage < glu::SHADERTYPE_LAST; ++stage)
+				{
+					if (m_programs[programNdx].spec.activeStageBits & (1 << stage))
+					{
+						if (!firstStage)
+							builder << ", ";
+						builder << glu::getShaderTypeName((glu::ShaderType)stage);
+						firstStage = true;
+					}
+				}
+				builder << tcu::TestLog::EndMessage;
+
+				log << *program;
+			}
+		}
+		*/
+	}
+/*
+	switch (m_expectResult)
+	{
+		case EXPECT_PASS:
+		case EXPECT_VALIDATION_FAIL:
+			if (!allCompilesOk)
+				failReason = "expected shaders to compile and link properly, but failed to compile.";
+			else if (!allLinksOk)
+				failReason = "expected shaders to compile and link properly, but failed to link.";
+			break;
+
+		case EXPECT_COMPILE_FAIL:
+			if (allCompilesOk && !allLinksOk)
+				failReason = "expected compilation to fail, but shaders compiled and link failed.";
+			else if (allCompilesOk)
+				failReason = "expected compilation to fail, but shaders compiled correctly.";
+			break;
+
+		case EXPECT_LINK_FAIL:
+			if (!allCompilesOk)
+				failReason = "expected linking to fail, but unable to compile.";
+			else if (allLinksOk)
+				failReason = "expected linking to fail, but passed.";
+			break;
+
+		case EXPECT_COMPILE_LINK_FAIL:
+			if (allCompilesOk && allLinksOk)
+				failReason = "expected compile or link to fail, but passed.";
+			break;
+
+		default:
+			DE_ASSERT(false);
+			return false;
+	}
+
+	if (failReason != DE_NULL)
+	{
+		// \todo [2010-06-07 petri] These should be handled in the test case?
+		log << TestLog::Message << "ERROR: " << failReason << TestLog::EndMessage;
+
+		// If implementation parses shader at link time, report it as quality warning.
+		if (m_expectResult == EXPECT_COMPILE_FAIL && allCompilesOk && !allLinksOk)
+			m_testCtx.setTestResult(QP_TEST_RESULT_QUALITY_WARNING, failReason);
+		else
+			m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, failReason);
+		return false;
+	}
+
+	// Return if compile/link expected to fail.
+	if (m_expectResult == EXPECT_COMPILE_FAIL		||
+		m_expectResult == EXPECT_COMPILE_LINK_FAIL	||
+		m_expectResult == EXPECT_LINK_FAIL)
+		return (failReason == DE_NULL);
+	*/
+	// Setup viewport.
+	gl.viewport(viewportX, viewportY, width, height);
+
+	if (state.separatePrograms)
+	{
+		/*
+		programPipeline = de::SharedPtr<glu::ProgramPipeline>(new glu::ProgramPipeline(m_renderCtx));
+
+		// Setup pipeline
+		gl.bindProgramPipeline(programPipeline->getPipeline());
+		for (int programNdx = 0; programNdx < (int)m_programs.size(); ++programNdx)
+		{
+			deUint32 shaderFlags = 0;
+			for (int stage = glu::SHADERTYPE_VERTEX; stage < glu::SHADERTYPE_LAST; ++stage)
+				if (m_programs[programNdx].spec.activeStageBits & (1 << stage))
+					shaderFlags |= glu::getGLShaderTypeBit((glu::ShaderType)stage);
+
+			programPipeline->useProgramStages(shaderFlags, pipelineProgramIDs[programNdx]);
+		}
+
+		programPipeline->activeShaderProgram(vertexProgramID);
+		GLU_EXPECT_NO_ERROR(gl.getError(), "setup pipeline");
+		*/
+	}
+	else
+	{
+		// Start using program
+		gl.useProgram(vertexProgramID);
+		assertMsg(gl.getError() === gl.NO_ERROR, "glUseProgram()");
+	}
+
+
+	/* TODO: remove this block of code */
+	{
+		gl.viewport(0, 0, canvas.width, canvas.height);
+		gl.clearColor(1, 0, 0, 1);
+		gl.clear(gl.COLOR_BUFFER_BIT);
+		gl.viewport(canvas.width/4, canvas.height/4, canvas.width/2, canvas.height/2);
+		wtu.setupUnitQuad(gl);
+		wtu.setFloatDrawColor(gl,[ 0, 1, 0, 1]);
+		wtu.drawUnitQuad(gl);
+	}
+
+	/*
+	// Fetch location for positions positions.
+	int positionLoc = gl.getAttribLocation(vertexProgramID, "dEQP_Position");
+	if (positionLoc == -1)
+	{
+		string errStr = string("no location found for attribute 'dEQP_Position'");
+		TCU_FAIL(errStr.c_str());
+	}
+
+	// Iterate all value blocks.
+	for (int blockNdx = 0; blockNdx < (int)m_valueBlocks.size(); blockNdx++)
+	{
+		const ValueBlock&	valueBlock		= m_valueBlocks[blockNdx];
+
+		// always render at least one pass even if there is no input/output data
+		const int			numRenderPasses	= (valueBlock.arrayLength == 0) ? (1) : (valueBlock.arrayLength);
+
+		// Iterate all array sub-cases.
+		for (int arrayNdx = 0; arrayNdx < numRenderPasses; arrayNdx++)
+		{
+			int							numValues			= (int)valueBlock.values.size();
+			vector<VertexArrayBinding>	vertexArrays;
+			int							attribValueNdx		= 0;
+			vector<vector<float> >		attribValues		(numValues);
+			glw::GLenum					postDrawError;
+			BeforeDrawValidator			beforeDrawValidator	(gl,
+															 (m_separatePrograms) ? (programPipeline->getPipeline())			: (vertexProgramID),
+															 (m_separatePrograms) ? (BeforeDrawValidator::TARGETTYPE_PIPELINE)	: (BeforeDrawValidator::TARGETTYPE_PROGRAM));
+
+			vertexArrays.push_back(va::Float(positionLoc, 4, numVerticesPerDraw, 0, &s_positions[0]));
+
+			// Collect VA pointer for inputs
+			for (int valNdx = 0; valNdx < numValues; valNdx++)
+			{
+				const ShaderCase::Value&	val			= valueBlock.values[valNdx];
+				const char* const			valueName	= val.valueName.c_str();
+				const DataType				dataType	= val.dataType;
+				const int					scalarSize	= getDataTypeScalarSize(val.dataType);
+
+				if (val.storageType == ShaderCase::Value::STORAGE_INPUT)
+				{
+					// Replicate values four times.
+					std::vector<float>& scalars = attribValues[attribValueNdx++];
+					scalars.resize(numVerticesPerDraw * scalarSize);
+					if (isDataTypeFloatOrVec(dataType) || isDataTypeMatrix(dataType))
+					{
+						for (int repNdx = 0; repNdx < numVerticesPerDraw; repNdx++)
+							for (int ndx = 0; ndx < scalarSize; ndx++)
+								scalars[repNdx*scalarSize + ndx] = val.elements[arrayNdx*scalarSize + ndx].float32;
+					}
+					else
+					{
+						// convert to floats.
+						for (int repNdx = 0; repNdx < numVerticesPerDraw; repNdx++)
+						{
+							for (int ndx = 0; ndx < scalarSize; ndx++)
+							{
+								float v = (float)val.elements[arrayNdx*scalarSize + ndx].int32;
+								DE_ASSERT(val.elements[arrayNdx*scalarSize + ndx].int32 == (int)v);
+								scalars[repNdx*scalarSize + ndx] = v;
+							}
+						}
+					}
+
+					// Attribute name prefix.
+					string attribPrefix = "";
+					// \todo [2010-05-27 petri] Should latter condition only apply for vertex cases (or actually non-fragment cases)?
+					if ((m_caseType == CASETYPE_FRAGMENT_ONLY) || (getDataTypeScalarType(dataType) != TYPE_FLOAT))
+						attribPrefix = "a_";
+
+					// Input always given as attribute.
+					string attribName = attribPrefix + valueName;
+					int attribLoc = gl.getAttribLocation(vertexProgramID, attribName.c_str());
+					if (attribLoc == -1)
+					{
+						log << TestLog::Message << "Warning: no location found for attribute '" << attribName << "'" << TestLog::EndMessage;
+						continue;
+					}
+
+					if (isDataTypeMatrix(dataType))
+					{
+						int numCols = getDataTypeMatrixNumColumns(dataType);
+						int numRows = getDataTypeMatrixNumRows(dataType);
+						DE_ASSERT(scalarSize == numCols*numRows);
+
+						for (int i = 0; i < numCols; i++)
+							vertexArrays.push_back(va::Float(attribLoc + i, numRows, numVerticesPerDraw, scalarSize*sizeof(float), &scalars[i * numRows]));
+					}
+					else
+					{
+						DE_ASSERT(isDataTypeFloatOrVec(dataType) || isDataTypeIntOrIVec(dataType) || isDataTypeUintOrUVec(dataType) || isDataTypeBoolOrBVec(dataType));
+						vertexArrays.push_back(va::Float(attribLoc, scalarSize, numVerticesPerDraw, 0, &scalars[0]));
+					}
+
+					GLU_EXPECT_NO_ERROR(gl.getError(), "set vertex attrib array");
+				}
+			}
+
+			GLU_EXPECT_NO_ERROR(gl.getError(), "before set uniforms");
+
+			// set uniform values for outputs (refs).
+			for (int valNdx = 0; valNdx < numValues; valNdx++)
+			{
+				const ShaderCase::Value&	val			= valueBlock.values[valNdx];
+				const char* const			valueName	= val.valueName.c_str();
+
+				if (val.storageType == ShaderCase::Value::STORAGE_OUTPUT)
+				{
+					// Set reference value.
+					string refName = string("ref_") + valueName;
+					setUniformValue(gl, pipelineProgramIDs, refName, val, arrayNdx, m_testCtx.getLog());
+					GLU_EXPECT_NO_ERROR(gl.getError(), "set reference uniforms");
+				}
+				else if (val.storageType == ShaderCase::Value::STORAGE_UNIFORM)
+				{
+					setUniformValue(gl, pipelineProgramIDs, valueName, val, arrayNdx, m_testCtx.getLog());
+					GLU_EXPECT_NO_ERROR(gl.getError(), "set uniforms");
+				}
+			}
+
+			// Clear.
+			gl.clearColor(0.125f, 0.25f, 0.5f, 1.0f);
+			gl.clear(GL_COLOR_BUFFER_BIT);
+			GLU_EXPECT_NO_ERROR(gl.getError(), "clear buffer");
+
+			// Use program or pipeline
+			if (m_separatePrograms)
+				gl.useProgram(0);
+			else
+				gl.useProgram(vertexProgramID);
+
+			// Draw.
+			if (tessellationPresent)
+			{
+				gl.patchParameteri(GL_PATCH_VERTICES, 3);
+				GLU_EXPECT_NO_ERROR(gl.getError(), "set patchParameteri(PATCH_VERTICES, 3)");
+			}
+
+			draw(m_renderCtx,
+				 vertexProgramID,
+				 (int)vertexArrays.size(),
+				 &vertexArrays[0],
+				 (tessellationPresent) ?
+					(pr::Patches(DE_LENGTH_OF_ARRAY(s_indices), &s_indices[0])) :
+					(pr::Triangles(DE_LENGTH_OF_ARRAY(s_indices), &s_indices[0])),
+				 (m_expectResult == EXPECT_VALIDATION_FAIL) ?
+					(&beforeDrawValidator) :
+					(DE_NULL));
+
+			postDrawError = gl.getError();
+
+			if (m_expectResult == EXPECT_PASS)
+			{
+				// Read back results.
+				Surface			surface			(width, height);
+				const float		w				= s_positions[3];
+				const int		minY			= deCeilFloatToInt32 (((-quadSize / w) * 0.5f + 0.5f) * height + 1.0f);
+				const int		maxY			= deFloorFloatToInt32(((+quadSize / w) * 0.5f + 0.5f) * height - 0.5f);
+				const int		minX			= deCeilFloatToInt32 (((-quadSize / w) * 0.5f + 0.5f) * width + 1.0f);
+				const int		maxX			= deFloorFloatToInt32(((+quadSize / w) * 0.5f + 0.5f) * width - 0.5f);
+
+				GLU_EXPECT_NO_ERROR(postDrawError, "draw");
+
+				glu::readPixels(m_renderCtx, viewportX, viewportY, surface.getAccess());
+				GLU_EXPECT_NO_ERROR(gl.getError(), "read pixels");
+
+				if (!checkPixels(surface, minX, maxX, minY, maxY))
+				{
+					log << TestLog::Message << "INCORRECT RESULT for (value block " << (blockNdx+1) << " of " <<  (int)m_valueBlocks.size()
+											<< ", sub-case " << arrayNdx+1 << " of " << valueBlock.arrayLength << "):"
+						<< TestLog::EndMessage;
+
+					log << TestLog::Message << "Failing shader input/output values:" << TestLog::EndMessage;
+					dumpValues(valueBlock, arrayNdx);
+
+					// Dump image on failure.
+					log << TestLog::Image("Result", "Rendered result image", surface);
+
+					gl.useProgram(0);
+					m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, "Image comparison failed");
+					return false;
+				}
+			}
+			else if (m_expectResult == EXPECT_VALIDATION_FAIL)
+			{
+				log	<< TestLog::Message
+					<< "Draw call generated error: "
+					<< glu::getErrorStr(postDrawError) << " "
+					<< ((postDrawError == GL_INVALID_OPERATION) ? ("(expected)") : ("(unexpected)")) << "\n"
+					<< "Validate status: "
+					<< glu::getBooleanStr(beforeDrawValidator.getValidateStatus()) << " "
+					<< ((beforeDrawValidator.getValidateStatus() == GL_FALSE) ? ("(expected)") : ("(unexpected)")) << "\n"
+					<< "Info log: "
+					<< ((beforeDrawValidator.getInfoLog().empty()) ? ("[empty string]") : (beforeDrawValidator.getInfoLog())) << "\n"
+					<< TestLog::EndMessage;
+
+				// test result
+
+				if (postDrawError != GL_NO_ERROR && postDrawError != GL_INVALID_OPERATION)
+				{
+					m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, ("Draw: got unexpected error: " + de::toString(glu::getErrorStr(postDrawError))).c_str());
+					return false;
+				}
+
+				if (beforeDrawValidator.getValidateStatus() == GL_TRUE)
+				{
+					if (postDrawError == GL_NO_ERROR)
+						m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, "expected validation and rendering to fail but validation and rendering succeeded");
+					else if (postDrawError == GL_INVALID_OPERATION)
+						m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, "expected validation and rendering to fail but validation succeeded (rendering failed as expected)");
+					else
+						DE_ASSERT(false);
+					return false;
+				}
+				else if (beforeDrawValidator.getValidateStatus() == GL_FALSE && postDrawError == GL_NO_ERROR)
+				{
+					m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, "expected validation and rendering to fail but rendering succeeded (validation failed as expected)");
+					return false;
+				}
+				else if (beforeDrawValidator.getValidateStatus() == GL_FALSE && postDrawError == GL_INVALID_OPERATION)
+				{
+					// Validation does not depend on input values, no need to test all values
+					return true;
+				}
+				else
+					DE_ASSERT(false);
+			}
+			else
+				DE_ASSERT(false);
+		}
+	}
+
+	gl.useProgram(0);
+	if (m_separatePrograms)
+		gl.bindProgramPipeline(0);
+
+	GLU_EXPECT_NO_ERROR(gl.getError(), "ShaderCase::execute(): end");
+	*/
+	return true;
+};
+
+
 var runTestCases = function() {
 	var state = stateMachine.getState();
 	if (!state.index)
@@ -398,10 +1031,43 @@ var runTestCases = function() {
 
 	var pre = document.createElement('pre');
 	state.targetVersion = "300 es";
+	/**
+ * A vertex shader for a uniform color.
+ * @type {string}
+ */
+var simpleColorVertexShader = [
+  'attribute vec4 vPosition;',
+  'void main() {',
+  '    gl_Position = vPosition;',
+  '}'].join('\n');
+
+/**
+ * A fragment shader for a uniform color.
+ * @type {string}
+ */
+var simpleColorFragmentShader = [
+  'precision mediump float;',
+  'uniform vec4 u_color;',
+  'void main() {',
+  '    gl_FragData[0] = u_color;',
+  '}'].join('\n');
+
 	state.programs = [
 		{
 			spec: {
 				requirements: null
+			},
+			programSources: {
+				sources : [
+					{
+						type: shaderType.VERTEX,
+						source: simpleColorVertexShader
+					},
+					{
+						type: shaderType.FRAGMENT,
+						source: simpleColorFragmentShader
+					}
+				]
 			}
 		}
 		];
@@ -449,6 +1115,7 @@ var runTestCases = function() {
 			'		out0 = 1.0;' +
 			'	${OUTPUT}' +
 			'}';
+	/*
 	pre.textContent = genVertexShader(valueBlock);
 	pre.textContent += "\n**********************************************\n";
 	pre.textContent += genFragmentShader(valueBlock);
@@ -458,7 +1125,9 @@ var runTestCases = function() {
 	pre.textContent += specializeFragmentShader(shaderSrc, valueBlock);
 	
 	document.body.appendChild(pre);
+	*/
 	//draw();
+	execute();
 	stateMachine.terminate(true);
 	return;
 
