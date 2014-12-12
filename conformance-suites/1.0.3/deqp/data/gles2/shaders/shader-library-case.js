@@ -209,10 +209,26 @@ var ShaderProgram = function(gl, programSources) {
 
 };
 
+var BeforeDrawValidator = function() {
+	/* TODO : implement */
+};
+
+/**
+ * BeforeDrawValidator target type enum
+ * @enum
+ */
+ 
+var targetType = {
+	PROGRAM: 0,
+	PIPELINE: 1
+};
+
+
 var shaderCase = {
 	value : {
-		STORAGE_INPUT: "STORAGE_INPUT",
-		STORAGE_OUTPUT: "STORAGE_OUTPUT"
+		STORAGE_INPUT: 0,
+		STORAGE_OUTPUT: 1,
+		STORAGE_UNIFORM: 2
 	}
 };
 
@@ -581,6 +597,70 @@ var isTessellationPresent = function() {
 	return false;
 };
 
+/* TODO: val.elements format changed from an 1-dim array in C++ to any-dim array in JS - double check that everything works fine */
+var setUniformValue = function(gl, pipelinePrograms, name, val, arrayNdx) {
+	/** @type {bool} */ var foundAnyMatch = false;
+
+	for (var programNdx = 0; programNdx < pipelinePrograms.length; ++programNdx)
+	{
+		/** @const @type {WebGLUniformLocation} */ var loc			= gl.getUniformLocation(pipelinePrograms[programNdx], name);
+
+		if (!loc)
+			continue;
+
+		foundAnyMatch = true;
+
+		gl.useProgram(pipelinePrograms[programNdx]);
+
+		var element = val.elements[arrayNdx];
+		switch (val.dataType)
+		{
+			case "float":		gl.uniform1fv(loc, 1, element);						break;
+			case "vec2":		gl.uniform2fv(loc, 1, element);						break;
+			case "vec3":		gl.uniform3fv(loc, 1, element);						break;
+			case "vec4":		gl.uniform4fv(loc, new Float32Array(element));						break;
+			/* TODO: Implement remaining types */
+			/*
+			case TYPE_FLOAT_VEC2:	gl.uniform2fv(loc, 1, &val.elements[elemNdx].float32);						break;
+			case TYPE_FLOAT_VEC3:	gl.uniform3fv(loc, 1, &val.elements[elemNdx].float32);						break;
+			case TYPE_FLOAT_VEC4:	gl.uniform4fv(loc, 1, &val.elements[elemNdx].float32);						break;
+			case TYPE_FLOAT_MAT2:	gl.uniformMatrix2fv(loc, 1, GL_FALSE, &val.elements[elemNdx].float32);		break;
+			case TYPE_FLOAT_MAT3:	gl.uniformMatrix3fv(loc, 1, GL_FALSE, &val.elements[elemNdx].float32);		break;
+			case TYPE_FLOAT_MAT4:	gl.uniformMatrix4fv(loc, 1, GL_FALSE, &val.elements[elemNdx].float32);		break;
+			case TYPE_INT:			gl.uniform1iv(loc, 1, &val.elements[elemNdx].int32);						break;
+			case TYPE_INT_VEC2:		gl.uniform2iv(loc, 1, &val.elements[elemNdx].int32);						break;
+			case TYPE_INT_VEC3:		gl.uniform3iv(loc, 1, &val.elements[elemNdx].int32);						break;
+			case TYPE_INT_VEC4:		gl.uniform4iv(loc, 1, &val.elements[elemNdx].int32);						break;
+			case TYPE_BOOL:			gl.uniform1iv(loc, 1, &val.elements[elemNdx].int32);						break;
+			case TYPE_BOOL_VEC2:	gl.uniform2iv(loc, 1, &val.elements[elemNdx].int32);						break;
+			case TYPE_BOOL_VEC3:	gl.uniform3iv(loc, 1, &val.elements[elemNdx].int32);						break;
+			case TYPE_BOOL_VEC4:	gl.uniform4iv(loc, 1, &val.elements[elemNdx].int32);						break;
+			case TYPE_UINT:			gl.uniform1uiv(loc, 1, (const deUint32*)&val.elements[elemNdx].int32);		break;
+			case TYPE_UINT_VEC2:	gl.uniform2uiv(loc, 1, (const deUint32*)&val.elements[elemNdx].int32);		break;
+			case TYPE_UINT_VEC3:	gl.uniform3uiv(loc, 1, (const deUint32*)&val.elements[elemNdx].int32);		break;
+			case TYPE_UINT_VEC4:	gl.uniform4uiv(loc, 1, (const deUint32*)&val.elements[elemNdx].int32);		break;
+			case TYPE_FLOAT_MAT2X3:	gl.uniformMatrix2x3fv(loc, 1, GL_FALSE, &val.elements[elemNdx].float32);	break;
+			case TYPE_FLOAT_MAT2X4:	gl.uniformMatrix2x4fv(loc, 1, GL_FALSE, &val.elements[elemNdx].float32);	break;
+			case TYPE_FLOAT_MAT3X2:	gl.uniformMatrix3x2fv(loc, 1, GL_FALSE, &val.elements[elemNdx].float32);	break;
+			case TYPE_FLOAT_MAT3X4:	gl.uniformMatrix3x4fv(loc, 1, GL_FALSE, &val.elements[elemNdx].float32);	break;
+			case TYPE_FLOAT_MAT4X2:	gl.uniformMatrix4x2fv(loc, 1, GL_FALSE, &val.elements[elemNdx].float32);	break;
+			case TYPE_FLOAT_MAT4X3:	gl.uniformMatrix4x3fv(loc, 1, GL_FALSE, &val.elements[elemNdx].float32);	break;
+			*/
+			
+			case gl.SAMPLER_2D:
+			case gl.SAMPLER_CUBE:
+				testFailed("implement!");
+				break;
+
+			default:
+				testFailed("Unknown data type " + val.dataType);
+		}
+	}
+
+	if (!foundAnyMatch)
+		_logToConsole("WARNING // Uniform \"" + name + "\" location is not valid, location = -1. Cannot set value to the uniform.");
+};
+
 /**
  * Execute a test case
  * @return {bool} True if test case passed
@@ -783,19 +863,6 @@ var execute = function()
 		assertMsg(gl.getError() === gl.NO_ERROR, "glUseProgram()");
 	}
 
-
-	/* TODO: remove this block of code */
-	{
-		gl.viewport(0, 0, canvas.width, canvas.height);
-		gl.clearColor(1, 0, 0, 1);
-		gl.clear(gl.COLOR_BUFFER_BIT);
-		gl.viewport(canvas.width/4, canvas.height/4, canvas.width/2, canvas.height/2);
-		wtu.setupUnitQuad(gl);
-		wtu.setFloatDrawColor(gl,[ 0, 1, 0, 1]);
-		wtu.drawUnitQuad(gl);
-	}
-
-
 	// Fetch location for positions positions.
 	var positionLoc = gl.getAttribLocation(vertexProgramID, "dEQP_Position");
 	if (positionLoc === -1)	{
@@ -803,33 +870,35 @@ var execute = function()
 		/* TODO" uncomment */
 		/* return false; */
 	}
-	/*
+	
 	// Iterate all value blocks.
-	for (int blockNdx = 0; blockNdx < (int)m_valueBlocks.size(); blockNdx++)
+	
+	for (var blockNdx = 0; blockNdx < state.valueBlocks.length; blockNdx++)
 	{
-		const ValueBlock&	valueBlock		= m_valueBlocks[blockNdx];
+		var	block		= state.valueBlocks[blockNdx];
 
 		// always render at least one pass even if there is no input/output data
-		const int			numRenderPasses	= (valueBlock.arrayLength == 0) ? (1) : (valueBlock.arrayLength);
+		/** @const @type {number} */ var	numRenderPasses	= Math.max(block.values.length, 1);
 
 		// Iterate all array sub-cases.
-		for (int arrayNdx = 0; arrayNdx < numRenderPasses; arrayNdx++)
+		for (var arrayNdx = 0; arrayNdx < numRenderPasses; arrayNdx++)
 		{
-			int							numValues			= (int)valueBlock.values.size();
-			vector<VertexArrayBinding>	vertexArrays;
-			int							attribValueNdx		= 0;
-			vector<vector<float> >		attribValues		(numValues);
-			glw::GLenum					postDrawError;
-			BeforeDrawValidator			beforeDrawValidator	(gl,
-															 (m_separatePrograms) ? (programPipeline->getPipeline())			: (vertexProgramID),
-															 (m_separatePrograms) ? (BeforeDrawValidator::TARGETTYPE_PIPELINE)	: (BeforeDrawValidator::TARGETTYPE_PROGRAM));
+			/* @const @type {number} */ var	numValues			= block.values.length;
+			var	vertexArrays = [];
+			var							attribValueNdx		= 0;
+			var		attribValues = [];
+			/** @type {gl.enum} */ var	postDrawError;
+			var beforeDrawValidator	= new BeforeDrawValidator(gl,
+															 (state.separatePrograms) ? (programPipeline.getPipeline())			: (vertexProgramID),
+															 (state.separatePrograms) ? (targetType.PIPELINE)	: (targetType.PROGRAM));
 
-			vertexArrays.push_back(va::Float(positionLoc, 4, numVerticesPerDraw, 0, &s_positions[0]));
+			vertexArrays.push(new VertexArrayBinding(gl.FLOAT, positionLoc, 4, numVerticesPerDraw, s_positions));			
 
 			// Collect VA pointer for inputs
+			/*
 			for (int valNdx = 0; valNdx < numValues; valNdx++)
 			{
-				const ShaderCase::Value&	val			= valueBlock.values[valNdx];
+				const ShaderCase::Value&	val			= block.values[valNdx];
 				const char* const			valueName	= val.valueName.c_str();
 				const DataType				dataType	= val.dataType;
 				const int					scalarSize	= getDataTypeScalarSize(val.dataType);
@@ -892,36 +961,36 @@ var execute = function()
 					GLU_EXPECT_NO_ERROR(gl.getError(), "set vertex attrib array");
 				}
 			}
+			*/
 
-			GLU_EXPECT_NO_ERROR(gl.getError(), "before set uniforms");
+			assertMsg(gl.getError() === gl.NO_ERROR, "before set uniforms");
 
 			// set uniform values for outputs (refs).
-			for (int valNdx = 0; valNdx < numValues; valNdx++)
+			for (var valNdx = 0; valNdx < numValues; valNdx++)
 			{
-				const ShaderCase::Value&	val			= valueBlock.values[valNdx];
-				const char* const			valueName	= val.valueName.c_str();
+				var	val			= block.values[valNdx];
+				var	valueName	= val.valueName;
 
-				if (val.storageType == ShaderCase::Value::STORAGE_OUTPUT)
+				if (val.storageType === shaderCase.value.STORAGE_OUTPUT)
 				{
 					// Set reference value.
-					string refName = string("ref_") + valueName;
-					setUniformValue(gl, pipelineProgramIDs, refName, val, arrayNdx, m_testCtx.getLog());
-					GLU_EXPECT_NO_ERROR(gl.getError(), "set reference uniforms");
+					setUniformValue(gl, pipelineProgramIDs, "ref_" + valueName, val, arrayNdx);
+					assertMsg(gl.getError() === gl.NO_ERROR, "set reference uniforms");
 				}
-				else if (val.storageType == ShaderCase::Value::STORAGE_UNIFORM)
+				else if (val.storageType === shaderCase.value.STORAGE_UNIFORM)
 				{
-					setUniformValue(gl, pipelineProgramIDs, valueName, val, arrayNdx, m_testCtx.getLog());
-					GLU_EXPECT_NO_ERROR(gl.getError(), "set uniforms");
+					setUniformValue(gl, pipelineProgramIDs, valueName, val, arrayNdx);
+					assertMsg(gl.getError() === gl.NO_ERROR, "set uniforms");
 				}
 			}
-
+			
 			// Clear.
-			gl.clearColor(0.125f, 0.25f, 0.5f, 1.0f);
-			gl.clear(GL_COLOR_BUFFER_BIT);
-			GLU_EXPECT_NO_ERROR(gl.getError(), "clear buffer");
+			gl.clearColor(0.125, 0.25, 0.5, 1);
+			gl.clear(gl.COLOR_BUFFER_BIT);
+			assertMsg(gl.getError() === gl.NO_ERROR, "clear buffer");
 
 			// Use program or pipeline
-			if (m_separatePrograms)
+			if (state.separatePrograms)
 				gl.useProgram(0);
 			else
 				gl.useProgram(vertexProgramID);
@@ -930,22 +999,23 @@ var execute = function()
 			if (tessellationPresent)
 			{
 				gl.patchParameteri(GL_PATCH_VERTICES, 3);
-				GLU_EXPECT_NO_ERROR(gl.getError(), "set patchParameteri(PATCH_VERTICES, 3)");
+				assertMsg(gl.getError() === gl.NO_ERROR, "set patchParameteri(PATCH_VERTICES, 3)");
 			}
 
-			draw(m_renderCtx,
+			gl.viewport(canvas.width/4, canvas.height/4, canvas.width/2, canvas.height/2);
+
+			gluDraw.draw(gl,
 				 vertexProgramID,
-				 (int)vertexArrays.size(),
-				 &vertexArrays[0],
+				 vertexArrays,
 				 (tessellationPresent) ?
-					(pr::Patches(DE_LENGTH_OF_ARRAY(s_indices), &s_indices[0])) :
-					(pr::Triangles(DE_LENGTH_OF_ARRAY(s_indices), &s_indices[0])),
-				 (m_expectResult == EXPECT_VALIDATION_FAIL) ?
-					(&beforeDrawValidator) :
-					(DE_NULL));
-
+					(gluDraw.patches(s_indices)) :
+					(gluDraw.triangles(s_indices)),
+				 (state.expectResult === expectResult.EXPECT_VALIDATION_FAIL) ?
+					(beforeDrawValidator) :
+					(null));
+			/*
 			postDrawError = gl.getError();
-
+			
 			if (m_expectResult == EXPECT_PASS)
 			{
 				// Read back results.
@@ -964,11 +1034,11 @@ var execute = function()
 				if (!checkPixels(surface, minX, maxX, minY, maxY))
 				{
 					log << TestLog::Message << "INCORRECT RESULT for (value block " << (blockNdx+1) << " of " <<  (int)m_valueBlocks.size()
-											<< ", sub-case " << arrayNdx+1 << " of " << valueBlock.arrayLength << "):"
+											<< ", sub-case " << arrayNdx+1 << " of " << block.arrayLength << "):"
 						<< TestLog::EndMessage;
 
 					log << TestLog::Message << "Failing shader input/output values:" << TestLog::EndMessage;
-					dumpValues(valueBlock, arrayNdx);
+					dumpValues(block, arrayNdx);
 
 					// Dump image on failure.
 					log << TestLog::Image("Result", "Rendered result image", surface);
@@ -1024,9 +1094,9 @@ var execute = function()
 			}
 			else
 				DE_ASSERT(false);
+			*/
 		}
 	}
-	*/
 	gl.useProgram(null);
 	if (state.separatePrograms)
 		gl.bindProgramPipeline(0);
@@ -1050,9 +1120,9 @@ var runTestCases = function() {
  * @type {string}
  */
 var simpleColorVertexShader = [
-  'attribute vec4 vPosition;',
+  'attribute vec4 dEQP_Position;',
   'void main() {',
-  '    gl_Position = vPosition;',
+  '    gl_Position = dEQP_Position;',
   '}'].join('\n');
 
 /**
@@ -1088,7 +1158,20 @@ var simpleColorFragmentShader = [
 				}
 			}
 		}
-		];
+	];
+	state.valueBlocks = [
+		{
+			values: [
+				{
+				storageType: shaderCase.value.STORAGE_UNIFORM,
+				dataType: "vec4",
+				valueName: "u_color",
+				elements: [ [1, 1, 0, 1] ]
+				},
+			]
+		}
+	];
+	
 	var valueBlock = {
 		values : [
 			{

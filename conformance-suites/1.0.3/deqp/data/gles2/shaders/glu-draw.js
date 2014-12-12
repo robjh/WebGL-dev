@@ -1,0 +1,166 @@
+
+
+/**
+ * Description of a vertex array binding
+ * @param type GL Type of data
+ * @param {string|number} location Binding location
+ * @param {number} components Number of components per vertex
+ * @param {number} elements Number of elements in the array
+ * @param data Source data
+ */
+var VertexArrayBinding = function(type, location, components, elements, data) {
+	this.type = type;
+	this.location = location;
+	this.components = components;
+	this.elements = elements;
+	this.data = data;
+};
+
+var gluDraw = (function() {
+
+/**
+ *
+ * @param {primitiveList} primitives Primitives to draw
+ */
+var draw = function(gl, program, vertexArrays, primitives, callback) {
+	/* TODO: finish implementation */
+	  var objects = [];
+
+	for (var i = 0; i < vertexArrays.length; i++) {
+		var buffer = vertexBuffer(gl,vertexArrays[i]);
+		objects.push(buffer);
+	}
+
+	if (primitives.indices) {
+		var elemBuffer = indexBuffer(gl, primitives);
+		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, elemBuffer);
+
+		if (callback)
+			callback.beforeDrawCall();
+
+		drawIndexed(gl, primitives, 0);
+
+		if (callback)
+			callback.afterDrawCall();
+
+		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, 0);
+	} else {
+	/* TODO: implement */
+	/*
+				if (callback)
+				callback->beforeDrawCall();
+
+			drawNonIndexed(gl, primitives.type, primitives.numElements);
+
+			if (callback)
+				callback->afterDrawCall();
+	*/
+	}
+
+  assertMsg(gl.getError() === gl.NO_ERROR, "drawArrays");
+	for (var i = 0; i < vertexArrays.length; i++) {
+		gl.disableVertexAttribArray(vertexArrays[i].location);
+	}
+  gl.bindBuffer(gl.ARRAY_BUFFER, null);
+};
+
+var drawIndexed = function(gl, primitives, offset)
+{
+	var	mode = getPrimitiveGLType(gl, primitives.type);
+	/* TODO: C++ implementation supports different index types, we use only int16.
+		Could it cause any issues?
+		
+		deUint32	indexGLType	= getIndexGLType(primitives.indexType);
+	*/
+
+	gl.drawElements(mode, primitives.indices.length, gl.UNSIGNED_SHORT, offset);
+}
+
+
+/**
+ * @enum
+ */
+var primitiveType = {
+	TRIANGLES: 0,
+	TRIANGLE_STRIP: 1,
+	TRIANGLE_FAN: 2,
+
+	LINES: 3,
+	LINE_STRIP: 4,
+	LINE_LOOP: 5,
+
+	POINTS: 6,
+
+	PATCHES: 7
+};
+
+/**
+ * get GL type from primitive type
+ * @param {primitiveType} type PrimitiveType
+ */
+var getPrimitiveGLType = function(gl, type) {
+	switch (type) {
+		case primitiveType.TRIANGLES:		return gl.TRIANGLES;
+		case primitiveType.TRIANGLE_STRIP:	return gl.TRIANGLE_STRIP;
+		case primitiveType.TRIANGLE_FAN:	return gl.TRIANGLE_FAN;
+		case primitiveType.LINES:			return gl.LINES;
+		case primitiveType.LINE_STRIP:		return gl.LINE_STRIP;
+		case primitiveType.LINE_LOOP:		return gl.LINE_LOOP;
+		case primitiveType.POINTS:			return gl.POINTS;
+		case primitiveType.PATCHES:			return gl.PATCHES;
+		default:
+			testFailed("Unknown primitive type " + type);
+			return undefined;
+	}
+};
+
+
+var triangles = function(indices) {
+	return new PrimitiveList(primitiveType.TRIANGLES, indices);
+};
+var patches = function(indices) {
+	return new PrimitiveList(primitiveType.PATCHES, indices);
+};
+
+var PrimitiveList = function(type, indices) {
+	this.type = type;
+	this.indices = indices;
+};
+
+/**
+ * Create Element Array Buffer
+ * @param {PrimitiveList} primitives Primitives to construct the buffer from
+ */
+var indexBuffer = function(gl, primitives) {
+	var indexObject = gl.createBuffer();
+	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexObject);
+	assertMsg(gl.getError() === gl.NO_ERROR, "bindBuffer");
+	gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(primitives.indices), gl.STATIC_DRAW);
+	assertMsg(gl.getError() === gl.NO_ERROR, "bufferData");
+	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+	return indexObject;
+};
+
+/**
+ * Create Array Buffer
+ * @param {VertexArrayBinding} primitives Array buffer descriptor
+ */
+var vertexBuffer = function(gl, vertexArray) {
+	var buffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+	assertMsg(gl.getError() === gl.NO_ERROR, "bindBuffer");
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexArray.data), gl.STATIC_DRAW);
+	assertMsg(gl.getError() === gl.NO_ERROR, "bufferData");
+	gl.enableVertexAttribArray(vertexArray.location);
+	assertMsg(gl.getError() === gl.NO_ERROR, "enableVertexAttribArray");
+	gl.vertexAttribPointer(vertexArray.location, vertexArray.components, vertexArray.type, false, 0, 0);
+	assertMsg(gl.getError() === gl.NO_ERROR, "vertexAttribPointer");
+	return buffer;
+};
+
+return {
+	draw: draw,
+	triangles: triangles,
+	patches: patches
+};
+}());
