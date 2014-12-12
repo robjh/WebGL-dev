@@ -107,75 +107,6 @@ var shaderLibrary = (function() {
 		
 	};
 	
-	var Token = {
-		TOKEN_INVALID:        0,
-		TOKEN_EOF:            1,
-		TOKEN_STRING:         2,
-		TOKEN_SHADER_SOURCE:  3,
-		
-		TOKEN_INT_LITERAL:    4,
-		TOKEN_FLOAT_LITERAL:  5,
-		
-		// identifiers
-		TOKEN_IDENTIFIER:     6,
-		TOKEN_TRUE:           7,
-		TOKEN_FALSE:          8,
-		TOKEN_DESC:           9,
-		TOKEN_EXPECT:        10,
-		TOKEN_GROUP:         11,
-		TOKEN_CASE:          12,
-		TOKEN_END:           13,
-		TOKEN_VALUES:        14,
-		TOKEN_BOTH:          15,
-		TOKEN_VERTEX:        26,
-		TOKEN_FRAGMENT:      17,
-		TOKEN_UNIFORM:       18,
-		TOKEN_INPUT:         19,
-		TOKEN_OUTPUT:        20,
-		TOKEN_FLOAT:         21,
-		TOKEN_FLOAT_VEC2:    22,
-		TOKEN_FLOAT_VEC3:    23,
-		TOKEN_FLOAT_VEC4:    24,
-		TOKEN_FLOAT_MAT2:    25,
-		TOKEN_FLOAT_MAT2X3:  26,
-		TOKEN_FLOAT_MAT2X4:  27,
-		TOKEN_FLOAT_MAT3X2:  28,
-		TOKEN_FLOAT_MAT3:    29,
-		TOKEN_FLOAT_MAT3X4:  30,
-		TOKEN_FLOAT_MAT4X2:  31,
-		TOKEN_FLOAT_MAT4X3:  32,
-		TOKEN_FLOAT_MAT4:    33,
-		TOKEN_INT:           34,
-		TOKEN_INT_VEC2:      35,
-		TOKEN_INT_VEC3:      36,
-		TOKEN_INT_VEC4:      37,
-		TOKEN_UINT:          38,
-		TOKEN_UINT_VEC2:     39,
-		TOKEN_UINT_VEC3:     40,
-		TOKEN_UINT_VEC4:     41,
-		TOKEN_BOOL:          42,
-		TOKEN_BOOL_VEC2:     43,
-		TOKEN_BOOL_VEC3:     44,
-		TOKEN_BOOL_VEC4:     45,
-		TOKEN_VERSION:       46,
-		
-		// symbols
-		TOKEN_ASSIGN:        47,
-		TOKEN_PLUS:          48,
-		TOKEN_MINUS:         49,
-		TOKEN_COMMA:         50,
-		TOKEN_VERTICAL_BAR:  51,
-		TOKEN_SEMI_COLON:    52,
-		TOKEN_LEFT_PAREN:    53,
-		TOKEN_RIGHT_PAREN:   54,
-		TOKEN_LEFT_BRACKET:  55,
-		TOKEN_RIGHT_BRACKET: 56,
-		TOKEN_LEFT_BRACE:    57,
-		TOKEN_RIGHT_BRACE:   58,
-		
-		TOKEN_LAST:          59
-	}
-	
 	/**
 	 * Parser class
 	 * @constructor
@@ -268,6 +199,13 @@ var shaderLibrary = (function() {
 			TOKEN_LAST:          59
 		}
 		
+		var resolveTokenName   = function(id) {
+			for (var name in Token) {
+				if (Token[name] == id) return name;
+			}
+			return "TOKEN_UNKNOWN";
+		};
+		
 		var parseError         = function(errorStr) {
 			// throws an exception
 //			throw "Parser error: " + errorStr + " near " + m_curPtr.substr(0, 80);
@@ -289,7 +227,9 @@ var shaderLibrary = (function() {
 				parseStringLiteralHelper(str, '""')
 			);
 		};
-		var advanceToken       = function() {
+		
+		
+		var advanceTokenWorker = function() {
 			
 			// Skip old token
 			m_curPtr += m_curTokenStr.length;
@@ -329,9 +269,10 @@ var shaderLibrary = (function() {
 					++end
 				);
 				
-				m_curTokenStr = m_input.substr(m_curPos, end - m_curPos);
+				m_curTokenStr = m_input.substr(m_curPtr, end - m_curPtr);
 				
 				m_curToken = (function() {
+					// consider reimplementing with a binary search
 					switch (m_curTokenStr) {
 						case "true":       return Token.TOKEN_TRUE;
 						case "false":      return Token.TOKEN_FALSE;
@@ -375,14 +316,122 @@ var shaderLibrary = (function() {
 						case "version":    return Token.TOKEN_VERSION;
 						default:           return Token.TOKEN_IDENTIFIER;
 					}
-				})();
+				}());
+				
+			} else if (isNumeric(m_input.charAt(m_curPtr))) {
+			
+				var p = m_curPtr;
+				while (isNumeric(m_input.charAt(p))) ++p;
+				
+				if (m_input.charAt(p) == '.') { // float
+					
+					++p;
+					while (isNumeric(m_input.charAt(p))) ++p;
+					
+					if (m_input.charAt(p) == 'e' || m_input.charAt(p) == 'E') {
+						
+						++p;
+						if (m_input.charAt(p) == '+' || m_input.charAt(p) == '-') ++p;
+						
+						// assert(isNumeric(m_input.charAt(p)));
+						while (isNumeric(m_input.charAt(p))) ++p;
+						
+					}
+					
+					m_curToken = Token.TOKEN_FLOAT_LITERAL;
+					m_curTokenStr = m_input.substr(m_curPtr, p - m_curPtr);
+					
+				} else {
+				
+					m_curToken = Token.TOKEN_INT_LITERAL;
+					m_curTokenStr = m_input.substr(m_curPtr, p - m_curPtr);
+					
+				}
+			
+			} else if (m_input.charAt(m_curPtr) == '"' && m_input.charAt(m_curPtr + 1) == '"') { // shader source
+			
+				var p = m_curPtr + 2;
+				
+				while (m_input.charAt(p) != '"' || m_input.charAt(p + 1) != '"') {
+					// DE_ASSERT(*p);
+					if (m_input.charAt(p) == '\\') {
+						DE_ASSERT(p[1] != 0);
+						p += 2;
+					} else {
+						++p;
+					}
+				}
+				p += 2;
+				
+				m_curToken = Token.TOKEN_SHADER_SOURCE;
+				m_cutTokenStr = m_curTokenStr = m_input.substr(m_curPtr, p - m_curPtr);
+				
+			} else if (m_input.charAt(m_curPtr) == '"' || m_input.charAt(m_curPtr) == "'") {
+				
+				var delimitor = m_input.charAt(m_curPtr);
+				var p = m_curPtr + 1;
+				
+				while (m_input.charAt(p) != delimitor) {
+					
+				//	DE_ASSERT(*p);
+					if (m_input.charAt(p) == '\\') {
+					//	DE_ASSERT(m_input.charAt(p + 1) != '\0'); // end of input test
+						p += 2;
+					} else {
+						++p;
+					}
+					
+				}
+				++p;
+				
+				m_curToken = Token.TOKEN_STRING;
+				m_cutTokenStr = m_curTokenStr = m_input.substr(m_curPtr, p - m_curPtr);
+
+			} else {
+			
+				m_curTokenStr = m_input.charAt(m_curPtr);
+				m_curToken = (function() {
+					// consider reimplementing with a binary search
+					switch (m_curTokenStr) {
+						case "=": return Token.TOKEN_ASSIGN;
+						case "+": return Token.TOKEN_PLUS;
+						case "-": return Token.TOKEN_MINUS;
+						case ",": return Token.TOKEN_COMMA;
+						case "|": return Token.TOKEN_VERTICAL_BAR;
+						case ";": return Token.TOKEN_SEMI_COLON;
+						case "(": return Token.TOKEN_LEFT_PAREN;
+						case ")": return Token.TOKEN_RIGHT_PAREN;
+						case "[": return Token.TOKEN_LEFT_BRACKET;
+						case "]": return Token.TOKEN_RIGHT_BRACKET;
+						case "{": return Token.TOKEN_LEFT_BRACE;
+						case "}": return Token.TOKEN_RIGHT_BRACE;
+						
+						default:  return Token.TOKEN_INVALID;
+					}
+				}());
 				
 			}
 			
 		};
-	//	var advanceToken       = function(tokenAssumed) {
-	//		
-	//	};
+		
+		var advanceTokenTester = function(input, current_index) {
+			m_input = input;
+			m_curPtr = current_index;
+			m_curTokenStr = "";
+			advanceTokenWorker();
+			return {
+				idType: m_curToken,
+				name:   resolveTokenName(m_curToken),
+				value:  m_curTokenStr
+			};
+		};
+		
+		var advanceToken       = function(tokenAssumed) {
+			if (typeof(tokenAssumed) == "undefined") {
+				assumeToken(tokenAssumed);
+			}
+			advanceTokenWorker();
+		};
 		var assumeToken        = function(token) {
 			
 		};
@@ -409,7 +458,7 @@ var shaderLibrary = (function() {
 				parseIntLiteral:    parseIntLiteral,
 				parseStringLiteral: parseStringLiteral,
 				parseShaderSource:  parseShaderSource,
-				advanceToken:       advanceToken,
+				advanceTokenTester: advanceTokenTester,
 				assumeToken:        assumeToken,
 				mapDataTypeToken:   mapDataTypeToken,
 				getTokenName:       getTokenName,

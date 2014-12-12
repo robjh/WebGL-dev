@@ -174,6 +174,13 @@
 			return true;
 		},
 		
+		function() {
+			var result = parser.priv.advanceTokenTester("vec3 myvec;", 0);
+			console.log(result);
+			test_result(
+				"Checking parseShaderSource. Passing \"vec3 myvec;\", 0.", true, result
+			);
+		},
 		
 		function() {
 			successfullyParsed = true;
