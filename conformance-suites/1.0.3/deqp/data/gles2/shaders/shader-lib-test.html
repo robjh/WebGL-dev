@@ -175,10 +175,87 @@
 		},
 		
 		function() {
-			var result = parser.priv.advanceTokenTester("vec3 myvec;", 0);
+			var result = parser.priv.advanceTokenTester("bool value = true;", 0);
 			console.log(result);
 			test_result(
-				"Checking parseShaderSource. Passing \"vec3 myvec;\", 0.", true, result
+				"Checking advanceToken. Passing \"bool value = true;\", 0",
+				result.idType == parser.priv.Token.TOKEN_BOOL && result.value == "bool",
+				result.name + ": " + result.value
+			);
+		},
+		
+		function() {
+			var result = parser.priv.advanceTokenTester("bool value = true;", 4);
+			console.log(result);
+			test_result(
+				"Checking advanceToken. Passing \"bool value = true;\", 4",
+				result.idType == parser.priv.Token.TOKEN_IDENTIFIER && result.value == "value",
+				result.name + ": " + result.value
+			);
+		},
+		//*
+		function() {
+			var result = parser.priv.advanceTokenTester("bool value = true;", 11);
+			console.log(result);
+			test_result(
+				"Checking advanceToken. Passing \"bool value = true;\", 11",
+				result.idType == parser.priv.Token.TOKEN_ASSIGN,
+				result.name + ": " + result.value
+			);
+		},
+		//*/
+		function() {
+			var result = parser.priv.advanceTokenTester("bool value = true;", 12);
+			console.log(result);
+			test_result(
+				"Checking advanceToken. Passing \"bool value = true;\", 12",
+				result.idType == parser.priv.Token.TOKEN_TRUE && result.value == "true",
+				result.name + ": " + result.value
+			);
+		},
+		function() {
+			var result = parser.priv.advanceTokenTester("bool value = true;", 17);
+			console.log(result);
+			test_result(
+				"Checking advanceToken. Passing \"bool value = true;\", 17",
+				result.idType == parser.priv.Token.TOKEN_SEMI_COLON && result.value == ";",
+				result.name + ": " + result.value
+			);
+		},
+		function() {
+			var result = parser.priv.advanceTokenTester("\"\"shader source\"\";", 0);
+			console.log(result);
+			test_result(
+				"Checking advanceToken. Passing \"\"\"shader source\"\";\", 0",
+				result.idType == parser.priv.Token.TOKEN_SHADER_SOURCE && result.value == "\"\"shader source\"\"",
+				result.name + ": " + result.value
+			);
+		},
+		function() {
+			var result = parser.priv.advanceTokenTester("\"string\";", 0);
+			console.log(result);
+			test_result(
+				"Checking advanceToken. Passing \"\"string\";\", 0",
+				result.idType == parser.priv.Token.TOKEN_STRING && result.value == "\"string\"",
+				result.name + ": " + result.value
+			);
+		},
+		function() {
+			var result = parser.priv.advanceTokenTester("\'string\';", 0);
+			console.log(result);
+			test_result(
+				"Checking advanceToken. Passing \"\'string\';\", 0",
+				result.idType == parser.priv.Token.TOKEN_STRING && result.value == "\'string\'",
+				result.name + ": " + result.value
+			);
+		},
+		function() {
+			var result = parser.priv.advanceTokenTester("\'string\";", 0);
+			console.log(result);
+			test_result(
+				"Checking advanceToken. Passing \"\'string\';\", 0",
+				result.idType == parser.priv.Token.TOKEN_STRING && result.value == "\'string\'",
+				result.name + ": " + result.value
 			);
 		},
 		

@@ -46,6 +46,9 @@ var shaderLibrary = (function() {
 	var isAlpha = function(char) {
 		return /^[a-zA-Z]$/.test(char);
 	};
+	var isNumeric = function(char) {
+		return /^[0-9]$/.test(char);
+	};
 	var isCaseNameChar = function(char) {
 		return /^[a-zA-Z0-9_\-\.]$/.test(char);
 	};
@@ -364,7 +367,7 @@ var shaderLibrary = (function() {
 				p += 2;
 				
 				m_curToken = Token.TOKEN_SHADER_SOURCE;
-				m_cutTokenStr = m_curTokenStr = m_input.substr(m_curPtr, p - m_curPtr);
+				m_curTokenStr = m_input.substr(m_curPtr, p - m_curPtr);
 				
 			} else if (m_input.charAt(m_curPtr) == '"' || m_input.charAt(m_curPtr) == "'") {
 				
@@ -385,7 +388,7 @@ var shaderLibrary = (function() {
 				++p;
 				
 				m_curToken = Token.TOKEN_STRING;
-				m_cutTokenStr = m_curTokenStr = m_input.substr(m_curPtr, p - m_curPtr);
+				m_curTokenStr = m_input.substr(m_curPtr, p - m_curPtr);
 
 			} else {
 			
@@ -462,6 +465,8 @@ var shaderLibrary = (function() {
 				assumeToken:        assumeToken,
 				mapDataTypeToken:   mapDataTypeToken,
 				getTokenName:       getTokenName,
+				
+				Token:              Token,
 				
 //				parseValueElement:  parseValueElement,
 //				parseValue:         parseValue,
