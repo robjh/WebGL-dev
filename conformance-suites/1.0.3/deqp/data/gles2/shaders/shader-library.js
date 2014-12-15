@@ -84,6 +84,13 @@ var shaderLibrary = (function() {
 	};
 	
 	
+	var de_assert = function(condition) {
+		if (!condition) {
+			throw Error();
+		}
+	};
+	
+	
 	/**
 	 * @private
 	 */
@@ -354,9 +361,9 @@ var shaderLibrary = (function() {
 				var p = m_curPtr + 2;
 				
 				while (m_input.charAt(p) != '"' || m_input.charAt(p + 1) != '"') {
-					// DE_ASSERT(*p);
+					de_assert(p < m_input.length);
 					if (m_input.charAt(p) == '\\') {
-						DE_ASSERT(p[1] != 0);
+					//	DE_ASSERT(p[1] != 0);
 						p += 2;
 					} else {
 						++p;
@@ -374,9 +381,10 @@ var shaderLibrary = (function() {
 				
 				while (m_input.charAt(p) != delimitor) {
 					
-				//	DE_ASSERT(*p);
+					de_assert(p < m_input.length);
 					if (m_input.charAt(p) == '\\') {
 					//	DE_ASSERT(m_input.charAt(p + 1) != '\0'); // end of input test
+						
 						p += 2;
 					} else {
 						++p;

@@ -62,9 +62,13 @@
 		},
 		
 		function() {
-			var result = shaderLibrary.removeExtraIndentation(
-				"\t\t\taaaa\n\t    \t\tbbbb\n\t\t\tcccc\r\n\t\t\tdddd"
-			);
+			try {
+				var result = shaderLibrary.removeExtraIndentation(
+					"\t\t\taaaa\n\t    \t\tbbbb\n\t\t\tcccc\r\n\t\t\tdddd"
+				);
+			} catch (err) {
+				result = "aborted";
+			}
 			
 			test_result(
 				"Checking removeExtraIndentation. \
@@ -85,7 +89,11 @@
 		},
 		
 		function() {
-			var result = parser.priv.parseIntLiteral("42");
+			try {
+				var result = parser.priv.parseIntLiteral("42");
+			} catch (err) {
+				result = "aborted";
+			}
 			test_result(
 				"Checking int parser. Passing \"42\". Expecting 42",
 				result === 42, result
@@ -93,7 +101,11 @@
 			return true;
 		},
 		function() {
-			var result = parser.priv.parseIntLiteral("-5");
+			try {
+				var result = parser.priv.parseIntLiteral("-5");
+			} catch (err) {
+				result = "aborted";
+			}
 			test_result(
 				"Checking int parser. Passing \"-5\". Expecting -5",
 				result === -5, result
@@ -101,7 +113,11 @@
 			return true;
 		},
 		function() {
-			var result = parser.priv.parseIntLiteral("42.9");
+			try {
+				var result = parser.priv.parseIntLiteral("42.9");
+			} catch (err) {
+				result = "aborted";
+			}
 			test_result(
 				"Checking int parser. Passing \"42.9\". Expecting 42",
 				result === 42, result
@@ -109,7 +125,11 @@
 			return true;
 		},
 		function() {
-			var result = parser.priv.parseFloatLiteral("42.9");
+			try {
+				var result = parser.priv.parseFloatLiteral("42.9");
+			} catch (err) {
+				result = "aborted";
+			}
 			test_result(
 				"Checking float parser. Passing \"42.9\". Expecting 42.9",
 				result === 42.9, result
@@ -119,7 +139,11 @@
 		
 		
 		function() {
-			var result = parser.priv.parseStringLiteral("\"hello world\"");
+			try {
+				var result = parser.priv.parseStringLiteral("\"hello world\"");
+			} catch (err) {
+				result = "aborted";
+			}
 			test_result(
 				"Checking string parser. Passing \"\"hello world\"\". Expecting \"hello world\"",
 				result == "hello world", result
@@ -127,7 +151,11 @@
 			return true;
 		},
 		function() {
-			var result = parser.priv.parseStringLiteral("\"hello world\"extra");
+			try {
+				var result = parser.priv.parseStringLiteral("\"hello world\"extra");
+			} catch (err) {
+				result = "aborted";
+			}
 			test_result(
 				"Checking string parser. Passing \"\"hello world\"extra\". Expecting \"hello world\"",
 				result == "hello world", result
@@ -135,7 +163,11 @@
 			return true;
 		},
 		function() {
-			var result = parser.priv.parseStringLiteral("\"\\\"\\\"\\\"\"\\\"\"");
+			try {
+				var result = parser.priv.parseStringLiteral("\"\\\"\\\"\\\"\"\\\"\"");
+			} catch (err) {
+				result = "aborted";
+			}
 			test_result(
 				"Checking string parser. Passing \"\"\\\"\\\"\\\"\"\\\"\"\". Expecting \"\"\"\"\"",
 				result == "\"\"\"", result
@@ -143,7 +175,11 @@
 			return true;
 		},
 		function() {
-			var result = parser.priv.parseStringLiteral("\"newline test\\nnewline test\"");
+			try {
+				var result = parser.priv.parseStringLiteral("\"newline test\\nnewline test\"");
+			} catch (err) {
+				result = "aborted";
+			}
 			test_result(
 				"Checking string parser. Passing \"\"newline test\\nnewline test\"\". Expecting \"newline test\nnewline test\"",
 				result == "newline test\nnewline test", result
@@ -151,7 +187,11 @@
 			return true;
 		},
 		function() {
-			var result = parser.priv.parseStringLiteral("\"tab test\\ttab test\"");
+			try {
+				var result = parser.priv.parseStringLiteral("\"tab test\\ttab test\"");
+			} catch (err) {
+				result = "aborted";
+			}
 			test_result(
 				"Checking string parser. Passing \"\"tab test\\ttab test\"\". Expecting \"tab test\ttab test\"",
 				result == "tab test\ttab test", result
@@ -160,9 +200,13 @@
 		},
 		
 		function() {
-			var result = parser.priv.parseShaderSource(
-				"\"\"\t\t\taaaa\n\t    \t\tbbbb\n\t\t\tcccc\r\n\t\t\tdddd\"\""
-			);
+			try {
+				var result = parser.priv.parseShaderSource(
+					"\"\"\t\t\taaaa\n\t    \t\tbbbb\n\t\t\tcccc\r\n\t\t\tdddd\"\""
+				);
+			} catch (err) {
+				result = "aborted";
+			}
 			
 			test_result(
 				"Checking parseShaderSource. \
@@ -175,8 +219,11 @@
 		},
 		
 		function() {
-			var result = parser.priv.advanceTokenTester("bool value = true;", 0);
-			console.log(result);
+			try {
+				var result = parser.priv.advanceTokenTester("bool value = true;", 0);
+			} catch (err) {
+				result = "aborted";
+			}
 			test_result(
 				"Checking advanceToken. Passing \"bool value = true;\", 0",
 				result.idType == parser.priv.Token.TOKEN_BOOL && result.value == "bool",
@@ -185,8 +232,11 @@
 		},
 		
 		function() {
-			var result = parser.priv.advanceTokenTester("bool value = true;", 4);
-			console.log(result);
+			try {
+				var result = parser.priv.advanceTokenTester("bool value = true;", 4);
+			} catch (err) {
+				result = "aborted";
+			}
 			test_result(
 				"Checking advanceToken. Passing \"bool value = true;\", 4",
 				result.idType == parser.priv.Token.TOKEN_IDENTIFIER && result.value == "value",
@@ -195,8 +245,11 @@
 		},
 		//*
 		function() {
-			var result = parser.priv.advanceTokenTester("bool value = true;", 11);
-			console.log(result);
+			try {
+				var result = parser.priv.advanceTokenTester("bool value = true;", 11);
+			} catch (err) {
+				result = "aborted";
+			}
 			test_result(
 				"Checking advanceToken. Passing \"bool value = true;\", 11",
 				result.idType == parser.priv.Token.TOKEN_ASSIGN,
@@ -205,8 +258,11 @@
 		},
 		//*/
 		function() {
-			var result = parser.priv.advanceTokenTester("bool value = true;", 12);
-			console.log(result);
+			try {
+				var result = parser.priv.advanceTokenTester("bool value = true;", 12);
+			} catch (err) {
+				result = "aborted";
+			}
 			test_result(
 				"Checking advanceToken. Passing \"bool value = true;\", 12",
 				result.idType == parser.priv.Token.TOKEN_TRUE && result.value == "true",
@@ -214,8 +270,11 @@
 			);
 		},
 		function() {
-			var result = parser.priv.advanceTokenTester("bool value = true;", 17);
-			console.log(result);
+			try {
+				var result = parser.priv.advanceTokenTester("bool value = true;", 17);
+			} catch (err) {
+				result = "aborted";
+			}
 			test_result(
 				"Checking advanceToken. Passing \"bool value = true;\", 17",
 				result.idType == parser.priv.Token.TOKEN_SEMI_COLON && result.value == ";",
@@ -223,8 +282,47 @@
 			);
 		},
 		function() {
-			var result = parser.priv.advanceTokenTester("\"\"shader source\"\";", 0);
-			console.log(result);
+			try {
+				var result = parser.priv.advanceTokenTester("-7", 0);
+			} catch (err) {
+				result = "aborted";
+			}
+			test_result(
+				"Checking advanceToken. Passing \"-7\", 0",
+				result.idType == parser.priv.Token.TOKEN_MINUS && result.value == "-",
+				result.name + ": " + result.value
+			);
+		},
+		function() {
+			try {
+				var result = parser.priv.advanceTokenTester("-7", 1);
+			} catch (err) {
+				result = "aborted";
+			}
+			test_result(
+				"Checking advanceToken. Passing \"-7\", 1",
+				result.idType == parser.priv.Token.TOKEN_INT_LITERAL && result.value == "7",
+				result.name + ": " + result.value
+			);
+		},
+		function() {
+			try {
+				var result = parser.priv.advanceTokenTester("3.145", 0);
+			} catch (err) {
+				result = "aborted";
+			}
+			test_result(
+				"Checking advanceToken. Passing \"3.145\", 0",
+				result.idType == parser.priv.Token.TOKEN_FLOAT_LITERAL && result.value == "3.145",
+				result.name + ": " + result.value
+			);
+		},
+		function() {
+			try {
+				var result = parser.priv.advanceTokenTester("\"\"shader source\"\";", 0);
+			} catch (err) {
+				result = "aborted";
+			}
 			test_result(
 				"Checking advanceToken. Passing \"\"\"shader source\"\";\", 0",
 				result.idType == parser.priv.Token.TOKEN_SHADER_SOURCE && result.value == "\"\"shader source\"\"",
@@ -232,8 +330,11 @@
 			);
 		},
 		function() {
-			var result = parser.priv.advanceTokenTester("\"string\";", 0);
-			console.log(result);
+			try {
+				var result = parser.priv.advanceTokenTester("\"string\";", 0);
+			} catch (err) {
+				result = "aborted";
+			}
 			test_result(
 				"Checking advanceToken. Passing \"\"string\";\", 0",
 				result.idType == parser.priv.Token.TOKEN_STRING && result.value == "\"string\"",
@@ -241,8 +342,11 @@
 			);
 		},
 		function() {
-			var result = parser.priv.advanceTokenTester("\'string\';", 0);
-			console.log(result);
+			try {
+				var result = parser.priv.advanceTokenTester("\'string\';", 0);
+			} catch (err) {
+				result = "aborted";
+			}
 			test_result(
 				"Checking advanceToken. Passing \"\'string\';\", 0",
 				result.idType == parser.priv.Token.TOKEN_STRING && result.value == "\'string\'",
@@ -250,12 +354,15 @@
 			);
 		},
 		function() {
-			var result = parser.priv.advanceTokenTester("\'string\";", 0);
-			console.log(result);
+			try {
+				var result = parser.priv.advanceTokenTester("\'string\";", 0);
+			} catch (err) {
+				result = "aborted";
+			}
 			test_result(
-				"Checking advanceToken. Passing \"\'string\';\", 0",
-				result.idType == parser.priv.Token.TOKEN_STRING && result.value == "\'string\'",
-				result.name + ": " + result.value
+				"Checking advanceToken. Passing \"\'string\";\", 0",
+				result === "aborted",
+				result
 			);
 		},
 		
