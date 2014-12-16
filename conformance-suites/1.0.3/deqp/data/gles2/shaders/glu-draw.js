@@ -32,6 +32,7 @@ var VertexArrayBinding = function(type, location, components, elements, data) {
 	this.components = components;
 	this.elements = elements;
 	this.data = data;
+	_logToConsole(this);
 };
 
 var gluDraw = (function() {
@@ -173,6 +174,7 @@ var vertexBuffer = function(gl, vertexArray) {
 	assertMsg(gl.getError() === gl.NO_ERROR, "enableVertexAttribArray");
 	gl.vertexAttribPointer(vertexArray.location, vertexArray.components, vertexArray.type, false, 0, 0);
 	assertMsg(gl.getError() === gl.NO_ERROR, "vertexAttribPointer");
+	_logToConsole(vertexArray);
 	return buffer;
 };
 

@@ -31,6 +31,17 @@ var expectResult = {
 }
 
 /**
+ * Test case type
+ * @enum {number}
+ */
+var caseType = {
+	CASETYPE_COMPLETE: 0,		//!< Has all shaders specified separately.
+	CASETYPE_VERTEX_ONLY: 1,		//!< "Both" case, vertex shader sub case.
+	CASETYPE_FRAGMENT_ONLY: 2		//!< "Both" case, fragment shader sub case.
+};
+
+
+/**
  * Shader type enum
  * @enum {number}
  */
@@ -594,13 +605,14 @@ var isTessellationPresent = function() {
 	return false;
 };
 
-/* TODO: val.elements format changed from an 1-dim array in C++ to any-dim array in JS - double check that everything works fine */
 var setUniformValue = function(gl, pipelinePrograms, name, val, arrayNdx) {
 	/** @type {bool} */ var foundAnyMatch = false;
 
 	for (var programNdx = 0; programNdx < pipelinePrograms.length; ++programNdx)
 	{
 		/** @const @type {WebGLUniformLocation} */ var loc			= gl.getUniformLocation(pipelinePrograms[programNdx], name);
+		/** @const */ var scalarSize	= shaderUtils.getDataTypeScalarSize(val.dataType);
+		/** @const */ var elemNdx		= (val.arrayLength === 1) ? (0) : (arrayNdx * scalarSize);
 
 		if (!loc)
 			continue;
@@ -609,12 +621,12 @@ var setUniformValue = function(gl, pipelinePrograms, name, val, arrayNdx) {
 
 		gl.useProgram(pipelinePrograms[programNdx]);
 
-		var element = val.elements[arrayNdx];
+		var element = val.elements.slice(arrayNdx, arrayNdx + scalarSize);
 		switch (val.dataType)
 		{
-			case "float":		gl.uniform1fv(loc, 1, element);						break;
-			case "vec2":		gl.uniform2fv(loc, 1, element);						break;
-			case "vec3":		gl.uniform3fv(loc, 1, element);						break;
+			case "float":		gl.uniform1fv(loc, new Float32Array(element));						break;
+			case "vec2":		gl.uniform2fv(loc, new Float32Array(element));						break;
+			case "vec3":		gl.uniform3fv(loc, new Float32Array(element));						break;
 			case "vec4":		gl.uniform4fv(loc, new Float32Array(element));						break;
 			/* TODO: Implement remaining types */
 			/*
@@ -875,7 +887,7 @@ var execute = function()
 		var	block		= state.valueBlocks[blockNdx];
 
 		// always render at least one pass even if there is no input/output data
-		/** @const @type {number} */ var	numRenderPasses	= Math.max(block.values.length, 1);
+		/** @const @type {number} */ var	numRenderPasses	= Math.max(block.arrayLength, 1);
 
 		// Iterate all array sub-cases.
 		for (var arrayNdx = 0; arrayNdx < numRenderPasses; arrayNdx++)
@@ -883,7 +895,6 @@ var execute = function()
 			/* @const @type {number} */ var	numValues			= block.values.length;
 			var	vertexArrays = [];
 			var							attribValueNdx		= 0;
-			var		attribValues = [];
 			/** @type {gl.enum} */ var	postDrawError;
 			var beforeDrawValidator	= new BeforeDrawValidator(gl,
 															 (state.separatePrograms) ? (programPipeline.getPipeline())			: (vertexProgramID),
@@ -892,73 +903,52 @@ var execute = function()
 			vertexArrays.push(new VertexArrayBinding(gl.FLOAT, positionLoc, 4, numVerticesPerDraw, s_positions));			
 
 			// Collect VA pointer for inputs
-			/*
-			for (int valNdx = 0; valNdx < numValues; valNdx++)
-			{
-				const ShaderCase::Value&	val			= block.values[valNdx];
-				const char* const			valueName	= val.valueName.c_str();
-				const DataType				dataType	= val.dataType;
-				const int					scalarSize	= getDataTypeScalarSize(val.dataType);
-
-				if (val.storageType == ShaderCase::Value::STORAGE_INPUT)
+			for (var valNdx = 0; valNdx < numValues; valNdx++) {
+				/** @const */ var	val			= block.values[valNdx];
+				/** @const */ var	valueName	= val.valueName;
+				/** @const */ var	dataType	= val.dataType;
+				/** @const */ var	scalarSize	= shaderUtils.getDataTypeScalarSize(val.dataType);
+				
+				if (val.storageType === shaderCase.value.STORAGE_INPUT)
 				{
 					// Replicate values four times.
-					std::vector<float>& scalars = attribValues[attribValueNdx++];
-					scalars.resize(numVerticesPerDraw * scalarSize);
-					if (isDataTypeFloatOrVec(dataType) || isDataTypeMatrix(dataType))
-					{
-						for (int repNdx = 0; repNdx < numVerticesPerDraw; repNdx++)
-							for (int ndx = 0; ndx < scalarSize; ndx++)
-								scalars[repNdx*scalarSize + ndx] = val.elements[arrayNdx*scalarSize + ndx].float32;
-					}
-					else
-					{
-						// convert to floats.
-						for (int repNdx = 0; repNdx < numVerticesPerDraw; repNdx++)
-						{
-							for (int ndx = 0; ndx < scalarSize; ndx++)
-							{
-								float v = (float)val.elements[arrayNdx*scalarSize + ndx].int32;
-								DE_ASSERT(val.elements[arrayNdx*scalarSize + ndx].int32 == (int)v);
-								scalars[repNdx*scalarSize + ndx] = v;
-							}
-						}
-					}
+					var scalars = [];
+					for (var repNdx = 0; repNdx < numVerticesPerDraw; repNdx++)
+						for (var ndx = 0; ndx < scalarSize; ndx++)
+							scalars[repNdx*scalarSize + ndx] = val.elements[arrayNdx*scalarSize + ndx];
 
-					// Attribute name prefix.
-					string attribPrefix = "";
+								// Attribute name prefix.
+					var attribPrefix = "";
 					// \todo [2010-05-27 petri] Should latter condition only apply for vertex cases (or actually non-fragment cases)?
-					if ((m_caseType == CASETYPE_FRAGMENT_ONLY) || (getDataTypeScalarType(dataType) != TYPE_FLOAT))
+					if ((state.caseType === caseType.CASETYPE_FRAGMENT_ONLY) || (shaderUtils.getDataTypeScalarType(dataType) !== "float"))
 						attribPrefix = "a_";
 
 					// Input always given as attribute.
-					string attribName = attribPrefix + valueName;
-					int attribLoc = gl.getAttribLocation(vertexProgramID, attribName.c_str());
-					if (attribLoc == -1)
+					var attribName = attribPrefix + valueName;
+					var attribLoc = gl.getAttribLocation(vertexProgramID, attribName);
+					if (attribLoc === -1)
 					{
-						log << TestLog::Message << "Warning: no location found for attribute '" << attribName << "'" << TestLog::EndMessage;
+						_logToConsole("Warning: no location found for attribute '" + attribName + "'");
 						continue;
 					}
 
-					if (isDataTypeMatrix(dataType))
+					if (shaderUtils.isDataTypeMatrix(dataType))
 					{
-						int numCols = getDataTypeMatrixNumColumns(dataType);
-						int numRows = getDataTypeMatrixNumRows(dataType);
-						DE_ASSERT(scalarSize == numCols*numRows);
+						var numCols = shaderUtils.getDataTypeMatrixNumColumns(dataType);
+						var numRows = shaderUtils.getDataTypeMatrixNumRows(dataType);
+						assertMsg(scalarSize === numCols * numRows, "Matrix size sanity check");
 
-						for (int i = 0; i < numCols; i++)
-							vertexArrays.push_back(va::Float(attribLoc + i, numRows, numVerticesPerDraw, scalarSize*sizeof(float), &scalars[i * numRows]));
+						for (var i = 0; i < numCols; i++) {
+							var colData = scalars.slice(i * numRows, i * numRows + scalarSize);
+							vertexArrays.push(new VertexArrayBinding(gl.FLOAT, attribLoc + i, numRows, numVerticesPerDraw, colData));			
+						}
 					}
 					else
-					{
-						DE_ASSERT(isDataTypeFloatOrVec(dataType) || isDataTypeIntOrIVec(dataType) || isDataTypeUintOrUVec(dataType) || isDataTypeBoolOrBVec(dataType));
-						vertexArrays.push_back(va::Float(attribLoc, scalarSize, numVerticesPerDraw, 0, &scalars[0]));
-					}
+							vertexArrays.push(new VertexArrayBinding(gl.FLOAT, attribLoc, scalarSize, numVerticesPerDraw, scalars));			
 
-					GLU_EXPECT_NO_ERROR(gl.getError(), "set vertex attrib array");
+					assertMsg(gl.getError() === gl.NO_ERROR, "set vertex attrib array");
 				}
 			}
-			*/
 
 			assertMsg(gl.getError() === gl.NO_ERROR, "before set uniforms");
 
@@ -1010,9 +1000,10 @@ var execute = function()
 				 (state.expectResult === expectResult.EXPECT_VALIDATION_FAIL) ?
 					(beforeDrawValidator) :
 					(null));
-			/*
+			
 			postDrawError = gl.getError();
 			
+			/*
 			if (m_expectResult == EXPECT_PASS)
 			{
 				// Read back results.
@@ -1118,8 +1109,14 @@ var runTestCases = function() {
  */
 var simpleColorVertexShader = [
   'attribute vec4 dEQP_Position;',
+  'attribute float test1;',
+  'attribute vec4 test2;',
+  'varying float vtest1;',
+  'varying vec4 vtest2;',
   'void main() {',
   '    gl_Position = dEQP_Position;',
+  '    vtest1 = test1;',
+  '    vtest2 = test2;',
   '}'].join('\n');
 
 /**
@@ -1129,10 +1126,14 @@ var simpleColorVertexShader = [
 var simpleColorFragmentShader = [
   'precision mediump float;',
   'uniform vec4 u_color;',
+  'varying float vtest1;',
+  'varying vec4 vtest2;',
   'void main() {',
   '    gl_FragData[0] = u_color;',
-  '}'].join('\n');
-
+  '    gl_FragData[0].r = vtest1;',
+  '    gl_FragData[0].b = vtest2.b;',
+ '}'].join('\n');
+	
 	state.expectResult = expectResult.EXPECT_PASS;
 	state.programs = [
 		{
@@ -1156,15 +1157,32 @@ var simpleColorFragmentShader = [
 			}
 		}
 	];
+	/* TODO: could 'elements' be an array of arrays rather than a flat array */
 	state.valueBlocks = [
 		{
+			arrayLength: 1,
 			values: [
 				{
 				storageType: shaderCase.value.STORAGE_UNIFORM,
 				dataType: "vec4",
 				valueName: "u_color",
-				elements: [ [1, 1, 0, 1] ]
+				arrayLength: 1,
+				elements: [1, 1, 0, 1]
 				},
+				{
+				storageType: shaderCase.value.STORAGE_INPUT,
+				dataType: "float",
+				valueName: "test1",
+				arrayLength: 1,
+				elements: [0]
+				},
+				{
+				storageType: shaderCase.value.STORAGE_INPUT,
+				dataType: "vec4",
+				valueName: "test2",
+				arrayLength: 1,
+				elements: [0.11, 0.12, 0.13, 0.14]
+			},
 			]
 		}
 	];
