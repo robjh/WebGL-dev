@@ -178,9 +178,53 @@ var vertexBuffer = function(gl, vertexArray) {
 	return buffer;
 };
 
+var Pixel = function(rgba) {
+	this.rgba = rgba;
+};
+
+Pixel.prototype.getRed = function() {
+	return this.rgba[0];
+};
+Pixel.prototype.getGreen = function() {
+	return this.rgba[1];
+};
+Pixel.prototype.getBlue = function() {
+	return this.rgba[2];
+};
+Pixel.prototype.getAlpha = function() {
+	return this.rgba[4];
+};
+
+var Surface = function() {
+};
+
+Surface.prototype.readSurface = function(gl, x, y, width, height) {
+	this.buffer = new Uint8Array(width * height * 4);
+	gl.readPixels(x, y, width, height, gl.RGBA, gl.UNSIGNED_BYTE, this.buffer);
+	this.x = x;
+	this.y = y;
+	this.width = width;
+	this.height = height;
+	return this.buffer;
+};
+
+Surface.prototype.getPixel = function(x, y) {
+	/** @type {numbe} */ var base = (x + y * this.height) * 4;
+	/** @type Array.<number> */
+	var rgba = [
+		this.buffer[base],
+		this.buffer[base + 1],
+		this.buffer[base + 2],
+		this.buffer[base + 3]
+		];
+	return new Pixel(rgba);
+};
+
+
 return {
 	draw: draw,
 	triangles: triangles,
-	patches: patches
+	patches: patches,
+	Surface: Surface
 };
 }());

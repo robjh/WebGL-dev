@@ -670,6 +670,39 @@ var setUniformValue = function(gl, pipelinePrograms, name, val, arrayNdx) {
 		_logToConsole("WARNING // Uniform \"" + name + "\" location is not valid, location = -1. Cannot set value to the uniform.");
 };
 
+var checkPixels = function(surface, minX, maxX, minY, maxY) {
+	/** type {bool} */ var		allWhite		= true;
+	/** type {bool} */ var		allBlack		= true;
+	/** type {bool} */ var		anyUnexpected	= false;
+
+	assertMsg((maxX > minX) && (maxY > minY), "checkPixels sanity check");
+
+	for (var y = minY; y <= maxY; y++) {
+		for (var x = minX; x <= maxX; x++) {
+			/** type {Pixel} */ var		pixel		 = surface.getPixel(x, y);
+			// Note: we really do not want to involve alpha in the check comparison
+			// \todo [2010-09-22 kalle] Do we know that alpha would be one? If yes, could use color constants white and black.
+			/** type {bool} */ var		isWhite		 = (pixel.getRed() == 255) && (pixel.getGreen() == 255) && (pixel.getBlue() == 255);
+			/** type {bool} */ var		isBlack		 = (pixel.getRed() == 0) && (pixel.getGreen() == 0) && (pixel.getBlue() == 0);
+
+			allWhite		= allWhite && isWhite;
+			allBlack		= allBlack && isBlack;
+			anyUnexpected	= anyUnexpected || (!isWhite && !isBlack);
+		}
+	}
+
+	if (!allWhite) {
+		if (anyUnexpected)
+			testFailed("WARNING: expecting all rendered pixels to be white or black, but got other colors as well!");
+		else if (!allBlack)
+			testFailed("WARNING: got inconsistent results over the image, when all pixels should be the same color!");
+
+		return false;
+	}
+	return true;
+};
+
+
 /**
  * Execute a test case
  * @return {bool} True if test case passed
@@ -698,7 +731,7 @@ var execute = function()
 	// Compute viewport.
 	/* TODO: original code used random number generator to compute viewport, we use full whole canvas */
 	/** @const */ var								width				= Math.min(canvas.width,	VIEWPORT_WIDTH);
-	/** @const */ var								height				= Math.min(canvas.heigth,	VIEWPORT_HEIGHT);
+	/** @const */ var								height				= Math.min(canvas.height,	VIEWPORT_HEIGHT);
 	/** @const */ var								viewportX			= 0;
 	/** @const */ var								viewportY			= 0;
 	/** @const */ var								numVerticesPerDraw	= 4;
@@ -989,8 +1022,6 @@ var execute = function()
 				assertMsg(gl.getError() === gl.NO_ERROR, "set patchParameteri(PATCH_VERTICES, 3)");
 			}
 
-			gl.viewport(canvas.width/4, canvas.height/4, canvas.width/2, canvas.height/2);
-
 			gluDraw.draw(gl,
 				 vertexProgramID,
 				 vertexArrays,
@@ -1002,86 +1033,68 @@ var execute = function()
 					(null));
 			
 			postDrawError = gl.getError();
-			
-			/*
-			if (m_expectResult == EXPECT_PASS)
-			{
-				// Read back results.
-				Surface			surface			(width, height);
-				const float		w				= s_positions[3];
-				const int		minY			= deCeilFloatToInt32 (((-quadSize / w) * 0.5f + 0.5f) * height + 1.0f);
-				const int		maxY			= deFloorFloatToInt32(((+quadSize / w) * 0.5f + 0.5f) * height - 0.5f);
-				const int		minX			= deCeilFloatToInt32 (((-quadSize / w) * 0.5f + 0.5f) * width + 1.0f);
-				const int		maxX			= deFloorFloatToInt32(((+quadSize / w) * 0.5f + 0.5f) * width - 0.5f);
+						
+			if (state.expectResult === expectResult.EXPECT_PASS) {
+				/** @type {gluDraw.Surface} */	var surface = new gluDraw.Surface();
+				/** @const */ var		w				= s_positions[3];
+				/** @const */ var		minY			= Math.ceil (((-quadSize / w) * 0.5 + 0.5) * height + 1.0);
+				/** @const */ var		maxY			= Math.floor(((+quadSize / w) * 0.5 + 0.5) * height - 0.5);
+				/** @const */ var		minX			= Math.ceil (((-quadSize / w) * 0.5 + 0.5) * width + 1.0);
+				/** @const */ var		maxX			= Math.floor(((+quadSize / w) * 0.5 + 0.5) * width - 0.5);
 
-				GLU_EXPECT_NO_ERROR(postDrawError, "draw");
+				assertMsg(postDrawError === gl.NO_ERROR, "draw");
 
-				glu::readPixels(m_renderCtx, viewportX, viewportY, surface.getAccess());
-				GLU_EXPECT_NO_ERROR(gl.getError(), "read pixels");
+				surface.readSurface(gl, viewportX, viewportY, width, height);
+				assertMsg(gl.getError() === gl.NO_ERROR, "read pixels");
 
-				if (!checkPixels(surface, minX, maxX, minY, maxY))
-				{
-					log << TestLog::Message << "INCORRECT RESULT for (value block " << (blockNdx+1) << " of " <<  (int)m_valueBlocks.size()
-											<< ", sub-case " << arrayNdx+1 << " of " << block.arrayLength << "):"
-						<< TestLog::EndMessage;
+				if (!checkPixels(surface, minX, maxX, minY, maxY)) {
+					testFailed("INCORRECT RESULT for (value block " + (blockNdx+1) + " of " +  state.valueBlocks.length
+											+ ", sub-case " + (arrayNdx+1) + " of " + block.arrayLength + "):");
 
+					/* TODO: Port */
+					/*
 					log << TestLog::Message << "Failing shader input/output values:" << TestLog::EndMessage;
 					dumpValues(block, arrayNdx);
 
 					// Dump image on failure.
 					log << TestLog::Image("Result", "Rendered result image", surface);
 
-					gl.useProgram(0);
-					m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, "Image comparison failed");
+					*/
+					gl.useProgram(null);
+
 					return false;
 				}
-			}
-			else if (m_expectResult == EXPECT_VALIDATION_FAIL)
-			{
-				log	<< TestLog::Message
-					<< "Draw call generated error: "
-					<< glu::getErrorStr(postDrawError) << " "
-					<< ((postDrawError == GL_INVALID_OPERATION) ? ("(expected)") : ("(unexpected)")) << "\n"
-					<< "Validate status: "
-					<< glu::getBooleanStr(beforeDrawValidator.getValidateStatus()) << " "
-					<< ((beforeDrawValidator.getValidateStatus() == GL_FALSE) ? ("(expected)") : ("(unexpected)")) << "\n"
-					<< "Info log: "
-					<< ((beforeDrawValidator.getInfoLog().empty()) ? ("[empty string]") : (beforeDrawValidator.getInfoLog())) << "\n"
-					<< TestLog::EndMessage;
+			} /* else if (m_expectResult === expectResult.EXPECT_VALIDATION_FAIL) {
+				_logToConsole("Draw call generated error: "
+					+ glu::getErrorStr(postDrawError) + " "
+					+ ((postDrawError === gl.INVALID_OPERATION) ? ("(expected)") : ("(unexpected)")) + "\n"
+					+ "Validate status: "
+					+ glu::getBooleanStr(beforeDrawValidator.getValidateStatus()) + " "
+					+ ((beforeDrawValidator.getValidateStatus() == gl.FALSE) ? ("(expected)") : ("(unexpected)")) + "\n"
+					+ "Info log: "
+					+ ((beforeDrawValidator.getInfoLog().empty()) ? ("[empty string]") : (beforeDrawValidator.getInfoLog())) + "\n");
 
 				// test result
 
-				if (postDrawError != GL_NO_ERROR && postDrawError != GL_INVALID_OPERATION)
-				{
-					m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, ("Draw: got unexpected error: " + de::toString(glu::getErrorStr(postDrawError))).c_str());
+				if (postDrawError !== gl.NO_ERROR && postDrawError !== gl.INVALID_OPERATION) {
+					testFailed("Draw: got unexpected error: " + postDrawError);
 					return false;
 				}
 
-				if (beforeDrawValidator.getValidateStatus() == GL_TRUE)
-				{
-					if (postDrawError == GL_NO_ERROR)
-						m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, "expected validation and rendering to fail but validation and rendering succeeded");
-					else if (postDrawError == GL_INVALID_OPERATION)
-						m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, "expected validation and rendering to fail but validation succeeded (rendering failed as expected)");
-					else
-						DE_ASSERT(false);
+				if (beforeDrawValidator.getValidateStatus() === gl.TRUE) {
+					if (postDrawError === gl.NO_ERROR)
+						testFailed("expected validation and rendering to fail but validation and rendering succeeded");
+					else if (postDrawError === gl.INVALID_OPERATION)
+						testFailed("expected validation and rendering to fail but validation succeeded (rendering failed as expected)");
 					return false;
-				}
-				else if (beforeDrawValidator.getValidateStatus() == GL_FALSE && postDrawError == GL_NO_ERROR)
-				{
-					m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, "expected validation and rendering to fail but rendering succeeded (validation failed as expected)");
+				} else if (beforeDrawValidator.getValidateStatus() === gl.FALSE && postDrawError === gl.NO_ERROR) {
+					testFailed("expected validation and rendering to fail but rendering succeeded (validation failed as expected)");
 					return false;
-				}
-				else if (beforeDrawValidator.getValidateStatus() == GL_FALSE && postDrawError == GL_INVALID_OPERATION)
-				{
+				} else if (beforeDrawValidator.getValidateStatus() === gl.FALSE && postDrawError === gl.INVALID_OPERATION) {
 					// Validation does not depend on input values, no need to test all values
 					return true;
 				}
-				else
-					DE_ASSERT(false);
 			}
-			else
-				DE_ASSERT(false);
 			*/
 		}
 	}
@@ -1132,6 +1145,7 @@ var simpleColorFragmentShader = [
   '    gl_FragData[0] = u_color;',
   '    gl_FragData[0].r = vtest1;',
   '    gl_FragData[0].b = vtest2.b;',
+  '    gl_FragData[0] = vec4(1,1,1,1);',
  '}'].join('\n');
 	
 	state.expectResult = expectResult.EXPECT_PASS;
