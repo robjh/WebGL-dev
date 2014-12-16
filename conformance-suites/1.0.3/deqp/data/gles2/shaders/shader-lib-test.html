@@ -8,6 +8,7 @@
 <script src="../../../../resources/js-test-pre.js"></script>
 <script src="../../../../conformance/resources/webgl-test.js"></script>
 <script src="../../../../conformance/resources/webgl-test-utils.js"></script>
+<script src="shader-utils.js"></script>
 <script src="shader-library.js"></script>
 <script src="shader-library-case.js"></script>
 </head>
@@ -398,6 +399,18 @@
 			test_result(
 				"Checking advanceToken. Passing \"\'string\\\", 0",
 				result === "aborted",
+				result
+			);
+		},
+		function() {
+			try {
+				var result = parser.priv.mapDataTypeToken(parser.priv.Token.TOKEN_INT);
+			} catch (err) {
+				var result = "aborted";
+			}
+			test_result(
+				"Checking advanceToken. Passing parser.priv.Token.TOKEN_INT",
+				result === shaderUtils.DataType.TYPE_INT,
 				result
 			);
 		},

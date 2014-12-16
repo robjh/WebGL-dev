@@ -21,22 +21,81 @@
 var shaderUtils = (function() {
 	"use strict";
 
+/**
+ * The Token constants
+ * @enum {number}
+ */
+var DataType = {
+	"TYPE_INVALID":                   0,
+	
+	"TYPE_FLOAT":                     1,
+	"TYPE_FLOAT_VEC2":                2,
+	"TYPE_FLOAT_VEC3":                3,
+	"TYPE_FLOAT_VEC4":                4,
+	"TYPE_FLOAT_MAT2":                5,
+	"TYPE_FLOAT_MAT2X3":              6,
+	"TYPE_FLOAT_MAT2X4":              7,
+	"TYPE_FLOAT_MAT3X2":              8,
+	"TYPE_FLOAT_MAT3":                9,
+	"TYPE_FLOAT_MAT3X4":             10,
+	"TYPE_FLOAT_MAT4X2":             11,
+	"TYPE_FLOAT_MAT4X3":             12,
+	"TYPE_FLOAT_MAT4":               13,
+
+	"TYPE_INT":                      14,
+	"TYPE_INT_VEC2":                 15,
+	"TYPE_INT_VEC3":                 16,
+	"TYPE_INT_VEC4":                 17,
+
+	"TYPE_UINT":                     18,
+	"TYPE_UINT_VEC2":                19,
+	"TYPE_UINT_VEC3":                20,
+	"TYPE_UINT_VEC4":                21,
+
+	"TYPE_BOOL":                     22,
+	"TYPE_BOOL_VEC2":                23,
+	"TYPE_BOOL_VEC3":                24,
+	"TYPE_BOOL_VEC4":                25,
+
+	"TYPE_SAMPLER_2D":               26,
+	"TYPE_SAMPLER_CUBE":             27,
+	"TYPE_SAMPLER_2D_ARRAY":         28,
+	"TYPE_SAMPLER_3D":               29,
+
+	"TYPE_SAMPLER_2D_SHADOW":        30,
+	"TYPE_SAMPLER_CUBE_SHADOW":      31,
+	"TYPE_SAMPLER_2D_ARRAY_SHADOW":  32,
+
+	"TYPE_INT_SAMPLER_2D":           33,
+	"TYPE_INT_SAMPLER_CUBE":         34,
+	"TYPE_INT_SAMPLER_2D_ARRAY":     35,
+	"TYPE_INT_SAMPLER_3D":           36,
+
+	"TYPE_UINT_SAMPLER_2D":          37,
+	"TYPE_UINT_SAMPLER_CUBE":        38,
+	"TYPE_UINT_SAMPLER_2D_ARRAY":    39,
+	"TYPE_UINT_SAMPLER_3D":          40,
+
+	"TYPE_LAST":                     41
+};
+
+
 var getDataTypeFloatScalars = function(dataType) {
-    var floatTypes =     {
-        "float": "float",
-        "vec2" : "vec2",
-        "vec3" : "vec3",
-        "vec4" : "vec4",
-        "mat2" : "mat2",
-        "mat2x3": "mat2x3",
-        "mat2x4": "mat2x4",
-        "mat3x2": "mat3x2",
-        "mat3" : "mat3",
-        "mat3x4": "mat3x4",
-        "mat4x2": "mat4x2",
-        "mat4x3": "mat4x3",
-        "mat4" : "mat4",
-        "int": "float",
+	var floatTypes =	 {
+		"float": "float",
+		"vec2" : "vec2",
+		"vec3" : "vec3",
+		"vec4" : "vec4",
+		"mat2" : "mat2",
+		"mat2x3": "mat2x3",
+		"mat2x4": "mat2x4",
+		"mat3x2": "mat3x2",
+		"mat3" : "mat3",
+		"mat3x4": "mat3x4",
+		"mat4x2": "mat4x2",
+		"mat4x3": "mat4x3",
+		"mat4" : "mat4",
+		"int": "float",
 		"ivec2": "vec2",
 		"ivec3": "vec3",
 		"ivec4": "vec4",
@@ -48,25 +107,25 @@ var getDataTypeFloatScalars = function(dataType) {
 		"bvec2": "vec2",
 		"bvec3": "vec3",
 		"bvec4": "vec4",
-    };
-    return floatTypes[dataType];
+	};
+	return floatTypes[dataType];
 };
 var getDataTypeScalarType = function(dataType) {
-    var scalarTypes = {
-        "float": "float",
-        "vec2" : "float",
-        "vec3" : "float",
-        "vec4" : "float",
-        "mat2" : "float",
-        "mat2x3": "float",
-        "mat2x4": "float",
-        "mat3x2": "float",
-        "mat3" : "float",
-        "mat3x4": "float",
-        "mat4x2": "float",
-        "mat4x3": "float",
-        "mat4" : "float",
-        "int": "int",
+	var scalarTypes = {
+		"float": "float",
+		"vec2" : "float",
+		"vec3" : "float",
+		"vec4" : "float",
+		"mat2" : "float",
+		"mat2x3": "float",
+		"mat2x4": "float",
+		"mat3x2": "float",
+		"mat3" : "float",
+		"mat3x4": "float",
+		"mat4x2": "float",
+		"mat4x3": "float",
+		"mat4" : "float",
+		"int": "int",
 		"ivec2": "int",
 		"ivec3": "int",
 		"ivec4": "int",
@@ -93,8 +152,8 @@ var getDataTypeScalarType = function(dataType) {
 		"usamplerCube": "usamplerCube",
 		"usampler2DArray": "usampler2DArray",
 		"usampler3D": "usampler3D"
-    };
-    return scalarTypes[dataType];
+	};
+	return scalarTypes[dataType];
 }
 /**
  * @param {string} Shader datatype 
@@ -114,21 +173,21 @@ var isDataTypeIntOrIVec = function(dataType) {
 }
 
 var getDataTypeScalarSize = function(dataType) {
-    var scalarSizes = {
-        "float": 1,
-        "vec2" : 2,
-        "vec3" : 3,
-        "vec4" : 4,
-        "mat2" : 4,
-        "mat2x3": 6,
-        "mat2x4": 8,
-        "mat3x2": 6,
-        "mat3" : 9,
-        "mat3x4": 12,
-        "mat4x2": 8,
-        "mat4x3": 12,
-        "mat4" : 16,
-        "int": 1,
+	var scalarSizes = {
+		"float": 1,
+		"vec2" : 2,
+		"vec3" : 3,
+		"vec4" : 4,
+		"mat2" : 4,
+		"mat2x3": 6,
+		"mat2x4": 8,
+		"mat3x2": 6,
+		"mat3" : 9,
+		"mat3x4": 12,
+		"mat4x2": 8,
+		"mat4x3": 12,
+		"mat4" : 16,
+		"int": 1,
 		"ivec2": 2,
 		"ivec3": 3,
 		"ivec4": 4,
@@ -155,8 +214,8 @@ var getDataTypeScalarSize = function(dataType) {
 		"usamplerCube": 1,
 		"usampler2DArray": 1,
 		"usampler3D": 1
-    };
-    return scalarSizes[dataType];
+	};
+	return scalarSizes[dataType];
 };
 
 var isDataTypeMatrix = function(dataType) {
@@ -177,15 +236,15 @@ var isDataTypeMatrix = function(dataType) {
 
 var getDataTypeMatrixNumColumns = function(dataType) {
 	var columns = {
-        "mat2" : 2,
-        "mat2x3": 3,
-        "mat2x4": 4,
-        "mat3x2": 2,
-        "mat3" : 3,
-        "mat3x4": 4,
-        "mat4x2": 2,
-        "mat4x3": 3,
-        "mat4" : 4
+		"mat2" : 2,
+		"mat2x3": 3,
+		"mat2x4": 4,
+		"mat3x2": 2,
+		"mat3" : 3,
+		"mat3x4": 4,
+		"mat4x2": 2,
+		"mat4x3": 3,
+		"mat4" : 4
 	};
 
 	return columns[dataType];
@@ -193,21 +252,22 @@ var getDataTypeMatrixNumColumns = function(dataType) {
 
 var getDataTypeMatrixNumRows = function(dataType) {
 	var rows = {
-        "mat2" : 2,
-        "mat2x3": 2,
-        "mat2x4": 2,
-        "mat3x2": 3,
-        "mat3" : 3,
-        "mat3x4": 3,
-        "mat4x2": 4,
-        "mat4x3": 4,
-        "mat4" : 4
+		"mat2" : 2,
+		"mat2x3": 2,
+		"mat2x4": 2,
+		"mat3x2": 3,
+		"mat3" : 3,
+		"mat3x4": 3,
+		"mat4x2": 4,
+		"mat4x3": 4,
+		"mat4" : 4
 	};
 
 	return rows[dataType];
 };
 
 return {
+	DataType: DataType,
 	getDataTypeFloatScalars: getDataTypeFloatScalars,
 	getDataTypeScalarType: getDataTypeScalarType,
 	isDataTypeIntOrIVec: isDataTypeIntOrIVec,

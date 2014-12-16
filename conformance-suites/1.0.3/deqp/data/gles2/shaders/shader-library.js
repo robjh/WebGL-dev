@@ -442,14 +442,108 @@ var shaderLibrary = (function() {
 		};
 		var assumeToken        = function(token) {
 			if (m_curToken != token) {
-				
+				// parse error
+				var msg = "unexpected token '" + m_cutTokenStr + "', expecting '" + getTokenName(token) + "'"
+				throw Error("Parse Error. " + msg + " near " + c_curPtr + " ...");
 			}
 		};
 		var mapDataTypeToken   = function(token) {
-			
+			switch (token) {
+				case Token.TOKEN_FLOAT:           return shaderUtils.DataType.TYPE_FLOAT;
+				case Token.TOKEN_FLOAT_VEC2:      return shaderUtils.DataType.TYPE_FLOAT_VEC2;
+				case Token.TOKEN_FLOAT_VEC3:      return shaderUtils.DataType.TYPE_FLOAT_VEC3;
+				case Token.TOKEN_FLOAT_VEC4:      return shaderUtils.DataType.TYPE_FLOAT_VEC4;
+				case Token.TOKEN_FLOAT_MAT2:      return shaderUtils.DataType.TYPE_FLOAT_MAT2;
+				case Token.TOKEN_FLOAT_MAT2X3:    return shaderUtils.DataType.TYPE_FLOAT_MAT2X3;
+				case Token.TOKEN_FLOAT_MAT2X4:    return shaderUtils.DataType.TYPE_FLOAT_MAT2X4;
+				case Token.TOKEN_FLOAT_MAT3X2:    return shaderUtils.DataType.TYPE_FLOAT_MAT3X2;
+				case Token.TOKEN_FLOAT_MAT3:      return shaderUtils.DataType.TYPE_FLOAT_MAT3;
+				case Token.TOKEN_FLOAT_MAT3X4:    return shaderUtils.DataType.TYPE_FLOAT_MAT3X4;
+				case Token.TOKEN_FLOAT_MAT4X2:    return shaderUtils.DataType.TYPE_FLOAT_MAT4X2;
+				case Token.TOKEN_FLOAT_MAT4X3:    return shaderUtils.DataType.TYPE_FLOAT_MAT4X3;
+				case Token.TOKEN_FLOAT_MAT4:      return shaderUtils.DataType.TYPE_FLOAT_MAT4;
+				case Token.TOKEN_INT:             return shaderUtils.DataType.TYPE_INT;
+				case Token.TOKEN_INT_VEC2:        return shaderUtils.DataType.TYPE_INT_VEC2;
+				case Token.TOKEN_INT_VEC3:        return shaderUtils.DataType.TYPE_INT_VEC3;
+				case Token.TOKEN_INT_VEC4:        return shaderUtils.DataType.TYPE_INT_VEC4;
+				case Token.TOKEN_UINT:            return shaderUtils.DataType.TYPE_UINT;
+				case Token.TOKEN_UINT_VEC2:       return shaderUtils.DataType.TYPE_UINT_VEC2;
+				case Token.TOKEN_UINT_VEC3:       return shaderUtils.DataType.TYPE_UINT_VEC3;
+				case Token.TOKEN_UINT_VEC4:       return shaderUtils.DataType.TYPE_UINT_VEC4;
+				case Token.TOKEN_BOOL:            return shaderUtils.DataType.TYPE_BOOL;
+				case Token.TOKEN_BOOL_VEC2:       return shaderUtils.DataType.TYPE_BOOL_VEC2;
+				case Token.TOKEN_BOOL_VEC3:       return shaderUtils.DataType.TYPE_BOOL_VEC3;
+				case Token.TOKEN_BOOL_VEC4:       return shaderUtils.DataType.TYPE_BOOL_VEC4;
+				default:                          return shaderUtils.DataType.TYPE_INVALID;
+			}
 		};
 		var getTokenName       = function(token) {
-			
+			switch (token) {
+				case Token.TOKEN_INVALID:         return "<invalid>";
+				case Token.TOKEN_EOF:             return "<eof>";
+				case Token.TOKEN_STRING:          return "<string>";
+				case Token.TOKEN_SHADER_SOURCE:   return "source";
+				
+				case Token.TOKEN_INT_LITERAL:     return "<int>";
+				case Token.TOKEN_FLOAT_LITERAL:   return "<float>";
+				
+				// identifiers
+				case Token.TOKEN_IDENTIFIER:      return "<identifier>";
+				case Token.TOKEN_TRUE:            return "true";
+				case Token.TOKEN_FALSE:           return "false";
+				case Token.TOKEN_DESC:            return "desc";
+				case Token.TOKEN_EXPECT:          return "expect";
+				case Token.TOKEN_GROUP:           return "group";
+				case Token.TOKEN_CASE:            return "case";
+				case Token.TOKEN_END:             return "end";
+				case Token.TOKEN_VALUES:          return "values";
+				case Token.TOKEN_BOTH:            return "both";
+				case Token.TOKEN_VERTEX:          return "vertex";
+				case Token.TOKEN_FRAGMENT:        return "fragment";
+				case Token.TOKEN_UNIFORM:         return "uniform";
+				case Token.TOKEN_INPUT:           return "input";
+				case Token.TOKEN_OUTPUT:          return "output";
+				case Token.TOKEN_FLOAT:           return "float";
+				case Token.TOKEN_FLOAT_VEC2:      return "vec2";
+				case Token.TOKEN_FLOAT_VEC3:      return "vec3";
+				case Token.TOKEN_FLOAT_VEC4:      return "vec4";
+				case Token.TOKEN_FLOAT_MAT2:      return "mat2";
+				case Token.TOKEN_FLOAT_MAT2X3:    return "mat2x3";
+				case Token.TOKEN_FLOAT_MAT2X4:    return "mat2x4";
+				case Token.TOKEN_FLOAT_MAT3X2:    return "mat3x2";
+				case Token.TOKEN_FLOAT_MAT3:      return "mat3";
+				case Token.TOKEN_FLOAT_MAT3X4:    return "mat3x4";
+				case Token.TOKEN_FLOAT_MAT4X2:    return "mat4x2";
+				case Token.TOKEN_FLOAT_MAT4X3:    return "mat4x3";
+				case Token.TOKEN_FLOAT_MAT4:      return "mat4";
+				case Token.TOKEN_INT:             return "int";
+				case Token.TOKEN_INT_VEC2:        return "ivec2";
+				case Token.TOKEN_INT_VEC3:        return "ivec3";
+				case Token.TOKEN_INT_VEC4:        return "ivec4";
+				case Token.TOKEN_UINT:            return "uint";
+				case Token.TOKEN_UINT_VEC2:       return "uvec2";
+				case Token.TOKEN_UINT_VEC3:       return "uvec3";
+				case Token.TOKEN_UINT_VEC4:       return "uvec4";
+				case Token.TOKEN_BOOL:            return "bool";
+				case Token.TOKEN_BOOL_VEC2:       return "bvec2";
+				case Token.TOKEN_BOOL_VEC3:       return "bvec3";
+				case Token.TOKEN_BOOL_VEC4:       return "bvec4";
+				
+				case Token.TOKEN_ASSIGN:          return "=";
+				case Token.TOKEN_PLUS:            return "+";
+				case Token.TOKEN_MINUS:           return "-";
+				case Token.TOKEN_COMMA:           return ",";
+				case Token.TOKEN_VERTICAL_BAR:    return "|";
+				case Token.TOKEN_SEMI_COLON:      return ";";
+				case Token.TOKEN_LEFT_PAREN:      return "(";
+				case Token.TOKEN_RIGHT_PAREN:     return ")";
+				case Token.TOKEN_LEFT_BRACKET:    return "[";
+				case Token.TOKEN_RIGHT_BRACKET:   return "]";
+				case Token.TOKEN_LEFT_BRACE:      return "{";
+				case Token.TOKEN_RIGHT_BRACE:     return "}";
+				
+				default:                          return "<unknown>";
+			}
 		};
 		
 //		var parseValueElement  = function(DataType dataType, ShaderCase::Value& result);
