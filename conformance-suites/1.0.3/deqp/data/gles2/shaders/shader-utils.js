@@ -20,6 +20,7 @@
  
 var shaderUtils = (function() {
 	"use strict";
+
 var getDataTypeFloatScalars = function(dataType) {
     var floatTypes =     {
         "float": "float",
@@ -112,9 +113,108 @@ var isDataTypeIntOrIVec = function(dataType) {
 	return retVal;
 }
 
+var getDataTypeScalarSize = function(dataType) {
+    var scalarSizes = {
+        "float": 1,
+        "vec2" : 2,
+        "vec3" : 3,
+        "vec4" : 4,
+        "mat2" : 4,
+        "mat2x3": 6,
+        "mat2x4": 8,
+        "mat3x2": 6,
+        "mat3" : 9,
+        "mat3x4": 12,
+        "mat4x2": 8,
+        "mat4x3": 12,
+        "mat4" : 16,
+        "int": 1,
+		"ivec2": 2,
+		"ivec3": 3,
+		"ivec4": 4,
+		"uint": 1,
+		"uvec2": 2,
+		"uvec3": 3,
+		"uvec4": 4,
+		"bool": 1,
+		"bvec2": 2,
+		"bvec3": 3,
+		"bvec4": 4,
+		"sampler2D": 1,
+		"samplerCube": 1,
+		"sampler2DArray": 1,
+		"sampler3D": 1,
+		"sampler2DShadow": 1,
+		"samplerCubeShadow": 1,
+		"sampler2DArrayShadow": 1,
+		"isampler2D": 1,
+		"isamplerCube": 1,
+		"isampler2DArray": 1,
+		"isampler3D": 1,
+		"usampler2D": 1,
+		"usamplerCube": 1,
+		"usampler2DArray": 1,
+		"usampler3D": 1
+    };
+    return scalarSizes[dataType];
+};
+
+var isDataTypeMatrix = function(dataType) {
+	switch(dataType) {
+	case "mat2" : 
+	case "mat2x3":
+	case "mat2x4":
+	case "mat3x2":
+	case "mat3" :
+	case "mat3x4":
+	case "mat4x2":
+	case "mat4x3":
+	case "mat4" :
+		return true;
+	}
+	return false;
+};
+
+var getDataTypeMatrixNumColumns = function(dataType) {
+	var columns = {
+        "mat2" : 2,
+        "mat2x3": 3,
+        "mat2x4": 4,
+        "mat3x2": 2,
+        "mat3" : 3,
+        "mat3x4": 4,
+        "mat4x2": 2,
+        "mat4x3": 3,
+        "mat4" : 4
+	};
+
+	return columns[dataType];
+};
+
+var getDataTypeMatrixNumRows = function(dataType) {
+	var rows = {
+        "mat2" : 2,
+        "mat2x3": 2,
+        "mat2x4": 2,
+        "mat3x2": 3,
+        "mat3" : 3,
+        "mat3x4": 3,
+        "mat4x2": 4,
+        "mat4x3": 4,
+        "mat4" : 4
+	};
+
+	return rows[dataType];
+};
+
 return {
 	getDataTypeFloatScalars: getDataTypeFloatScalars,
 	getDataTypeScalarType: getDataTypeScalarType,
-	isDataTypeIntOrIVec: isDataTypeIntOrIVec
+	isDataTypeIntOrIVec: isDataTypeIntOrIVec,
+	getDataTypeScalarSize: getDataTypeScalarSize,
+	isDataTypeMatrix: isDataTypeMatrix,
+	getDataTypeMatrixNumColumns: getDataTypeMatrixNumColumns,
+	getDataTypeMatrixNumRows: getDataTypeMatrixNumRows
 };
+
 } ());
