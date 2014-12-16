@@ -341,7 +341,7 @@ var shaderLibrary = (function() {
 						++p;
 						if (m_input.charAt(p) == '+' || m_input.charAt(p) == '-') ++p;
 						
-						// assert(isNumeric(m_input.charAt(p)));
+						de_assert(p < m_input.length && isNumeric(m_input.charAt(p)));
 						while (isNumeric(m_input.charAt(p))) ++p;
 						
 					}
@@ -363,7 +363,7 @@ var shaderLibrary = (function() {
 				while (m_input.charAt(p) != '"' || m_input.charAt(p + 1) != '"') {
 					de_assert(p < m_input.length);
 					if (m_input.charAt(p) == '\\') {
-					//	DE_ASSERT(p[1] != 0);
+						de_assert(p+1 < m_input.length);
 						p += 2;
 					} else {
 						++p;
@@ -383,8 +383,7 @@ var shaderLibrary = (function() {
 					
 					de_assert(p < m_input.length);
 					if (m_input.charAt(p) == '\\') {
-					//	DE_ASSERT(m_input.charAt(p + 1) != '\0'); // end of input test
-						
+						de_assert(p+1 < m_input.length);
 						p += 2;
 					} else {
 						++p;
@@ -442,7 +441,9 @@ var shaderLibrary = (function() {
 			advanceTokenWorker();
 		};
 		var assumeToken        = function(token) {
-			
+			if (m_curToken != token) {
+				
+			}
 		};
 		var mapDataTypeToken   = function(token) {
 			

@@ -319,6 +319,30 @@
 		},
 		function() {
 			try {
+				var result = parser.priv.advanceTokenTester("1.0e+10", 0);
+			} catch (err) {
+				result = "aborted";
+			}
+			test_result(
+				"Checking advanceToken. Passing \"1.0e+10\", 0",
+				result.idType == parser.priv.Token.TOKEN_FLOAT_LITERAL && result.value == "1.0e+10",
+				result.name + ": " + result.value
+			);
+		},
+		function() {
+			try {
+				var result = parser.priv.advanceTokenTester("1.0e", 0);
+			} catch (err) {
+				result = "aborted";
+			}
+			test_result(
+				"Checking advanceToken. Passing \"1.0e\", 0",
+				result === "aborted",
+				result
+			);
+		},
+		function() {
+			try {
 				var result = parser.priv.advanceTokenTester("\"\"shader source\"\";", 0);
 			} catch (err) {
 				result = "aborted";
@@ -361,6 +385,18 @@
 			}
 			test_result(
 				"Checking advanceToken. Passing \"\'string\";\", 0",
+				result === "aborted",
+				result
+			);
+		},
+		function() {
+			try {
+				var result = parser.priv.advanceTokenTester("\'string\\", 0);
+			} catch (err) {
+				result = "aborted";
+			}
+			test_result(
+				"Checking advanceToken. Passing \"\'string\\\", 0",
 				result === "aborted",
 				result
 			);
