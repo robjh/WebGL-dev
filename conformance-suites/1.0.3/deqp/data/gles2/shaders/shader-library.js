@@ -546,7 +546,36 @@ var shaderLibrary = (function() {
 			}
 		};
 		
-//		var parseValueElement  = function(DataType dataType, ShaderCase::Value& result);
+		var parseValueElement  = function(expectedDataType, result) {
+			
+			var scalarType = shaderUtils.getDataTypeScalarType(expectedDataType);
+			var scalarSize = shaderUtils.getDataTypeScalarSize(expectedDataType);
+			
+			var elems = [];
+			
+			if (scalarSize > 1) {
+				de_assert(mapDataTypeToken(m_curToken) == expectedDataType);
+				advanceToken(); // data type(float, vec2, etc.)
+				advanceToken(Token.TOKEN_LEFT_PAREN);
+			}
+			
+			for (var i = 0 ; i < scalarSize ; ++i) {
+				if (scalarType == "float") {
+				
+					var signMult = 1.0;
+					if (m_curToken = Token.TOKEN_MINUS) {
+						signMult = -1.0;
+						advanceToken();
+					}
+					
+					assumeToken(Token.TOKEN_FLOAT_LITERAL);
+					elems.push(signMult * parseFloatLiteral(m_curTokenStr));
+					advanceToken(Token.TOKEN_FLOAT_LITERAL)
+				}
+			}
+			
+		};
+		
 //		var parseValue         = function(ShaderCase::ValueBlock& valueBlock);
 //		var parseValueBlock    = function(ShaderCase::ValueBlock& valueBlock);
 //		var parseShaderCase    = function(vector<tcu::TestNode*>& shaderNodeList);
@@ -569,7 +598,7 @@ var shaderLibrary = (function() {
 				
 				Token:              Token,
 				
-//				parseValueElement:  parseValueElement,
+				parseValueElement:  parseValueElement,
 //				parseValue:         parseValue,
 //				parseValueBlock:    parseValueBlock,
 //				parseShaderCase:    parseShaderCase,

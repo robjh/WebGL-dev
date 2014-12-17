@@ -22,7 +22,7 @@ var shaderUtils = (function() {
 	"use strict";
 
 /**
- * The Token constants
+ * The Type constants
  * @enum {number}
  */
 var DataType = {
