@@ -988,18 +988,18 @@ var execute = function()
 			// set uniform values for outputs (refs).
 			for (var valNdx = 0; valNdx < numValues; valNdx++)
 			{
-				var	val			= block.values[valNdx];
-				var	valueName	= val.valueName;
+				var	val1			= block.values[valNdx];
+				var	valueName1	= val1.valueName;
 
-				if (val.storageType === shaderCase.value.STORAGE_OUTPUT)
+				if (val1.storageType === shaderCase.value.STORAGE_OUTPUT)
 				{
 					// Set reference value.
-					setUniformValue(gl, pipelineProgramIDs, "ref_" + valueName, val, arrayNdx);
+					setUniformValue(gl, pipelineProgramIDs, "ref_" + valueName1, val1, arrayNdx);
 					assertMsg(gl.getError() === gl.NO_ERROR, "set reference uniforms");
 				}
-				else if (val.storageType === shaderCase.value.STORAGE_UNIFORM)
+				else if (val1.storageType === shaderCase.value.STORAGE_UNIFORM)
 				{
-					setUniformValue(gl, pipelineProgramIDs, valueName, val, arrayNdx);
+					setUniformValue(gl, pipelineProgramIDs, valueName1, val1, arrayNdx);
 					assertMsg(gl.getError() === gl.NO_ERROR, "set uniforms");
 				}
 			}
