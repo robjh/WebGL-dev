@@ -35,20 +35,20 @@ var shaderLibrary = (function() {
 		}
 	};
 
-	var isWhitespace = function(char) {
-		return /^[ \t\r\n]+$/.test(char);
+	var isWhitespace = function(value) {
+		return /^[ \t\r\n]+$/.test(value);
 	};
-	var isEOL = function(char) {
-		return /^[\r\n]+$/.test(char);
+	var isEOL = function(value) {
+		return /^[\r\n]+$/.test(value);
 	};
-	var isAlpha = function(char) {
-		return /^[a-zA-Z]$/.test(char);
+	var isAlpha = function(value) {
+		return /^[a-zA-Z]$/.test(value);
 	};
-	var isNumeric = function(char) {
-		return /^[0-9]$/.test(char);
+	var isNumeric = function(value) {
+		return /^[0-9]$/.test(value);
 	};
-	var isCaseNameChar = function(char) {
-		return /^[a-zA-Z0-9_\-\.]$/.test(char);
+	var isCaseNameChar = function(value) {
+		return /^[a-zA-Z0-9_\-\.]$/.test(value);
 	};
 
 	// removes however many indents there are on the first line from all lines.
