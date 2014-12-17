@@ -106,7 +106,7 @@ var getDataTypeFloatScalars = function(dataType) {
 		"bool": "float",
 		"bvec2": "vec2",
 		"bvec3": "vec3",
-		"bvec4": "vec4",
+		"bvec4": "vec4"
 	};
 	return floatTypes[dataType];
 };
