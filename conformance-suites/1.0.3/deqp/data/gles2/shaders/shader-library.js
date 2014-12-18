@@ -270,12 +270,9 @@ var shaderLibrary = (function() {
 				m_curTokenStr = "<EOF>";
 				
 			} else if (isAlpha(m_input.charAt(m_curPtr))) {
-				
-				for (
-					var end = m_curPtr + 1;
-					isCaseNameChar(m_input.charAt(end));
-					++end
-				);
+			
+				var end = m_curPtr + 1;
+				while (isCaseNameChar(m_input.charAt(end))) ++end;
 				
 				m_curTokenStr = m_input.substr(m_curPtr, end - m_curPtr);
 				
@@ -394,7 +391,7 @@ var shaderLibrary = (function() {
 				
 				m_curToken = Token.TOKEN_STRING;
 				m_curTokenStr = m_input.substr(m_curPtr, p - m_curPtr);
-
+				
 			} else {
 			
 				m_curTokenStr = m_input.charAt(m_curPtr);
@@ -571,12 +568,117 @@ var shaderLibrary = (function() {
 					assumeToken(Token.TOKEN_FLOAT_LITERAL);
 					elems.push(signMult * parseFloatLiteral(m_curTokenStr));
 					advanceToken(Token.TOKEN_FLOAT_LITERAL)
+					
+				} else if (scalarType == "int" || scalarType == "uint") {
+				
+					var signMult = 1;
+					if (m_curToken = Token.TOKEN_MINUS) {
+						signMult = -1;
+						advanceToken();
+					}
+					
+					assumeToken(Token.TOKEN_INT_LITERAL);
+					elems.push(signMult * parseIntLiteral(m_curTokenStr));
+					advanceToken(Token.TOKEN_INT_LITERAL)
+				
+				} else {
+				
+					de_assert(scalarType == "bool");
+					elems.push(m_curToken == Token.TOKEN_TRUE);
+					if (m_curToken != Token.TOKEN_TRUE && m_curToken != Token.TOKEN_FALSE) {
+						throw Error("unexpected token, expecting bool: " + m_curTokenStr);
+					}
+					advanceToken(); // true/false
+				
+				}
+				
+				if (i != (scalarSize - 1)) {
+					advanceToken(Token.TOKEN_COMMA);
 				}
 			}
 			
+			if (scalarSize > 1) {
+				advanceToken(Token.TOKEN_RIGHT_PAREN);
+			}
+			
+			result.elements = elems;
+			
 		};
 		
-//		var parseValue         = function(ShaderCase::ValueBlock& valueBlock);
+		var parseValue         = function(valueBlock) {
+		
+			var result = {
+				dataType:    null,
+				storageType: null,
+				valueName:   null,
+			};
+			
+			// parse storage
+			switch (m_curToken) {
+			 case Token.TOKEN_UNIFORM:
+				result.storageType = shaderCase.value.STORAGE_UNIFORM;
+				break;
+			 case Token.TOKEN_INPUT:
+				result.storageType = shaderCase.value.STORAGE_INPUT;
+				break;
+			 case Token.TOKEN_OUTPUT:
+				result.storageType = shaderCase.value.STORAGE_OUTPUT;
+				break;
+			 default:
+				throw Error("unexpected token encountered when parsing value classifier");
+				break;
+			}
+			advanceToken();
+			
+			// parse data type
+			result.dataType = mapDataTypeToken(m_curToken);
+			if (result.dataType == shaderUtils.DataType.TYPE_INVALID) {
+				throw Error("unexpected token when parsing value data type: " + m_curTokenStr);
+			}
+			advanceToken();
+			
+			// parse value name
+			if (m_curToken == Token.TOKEN_IDENTIFIER) {
+				result.valueName = m_curTokenStr;
+			} else if (m_curToken == Token.TOKEN_STRING) {
+				result.valueName = parseStringLiteral(m_curTokenStr);
+			} else {
+				throw Error("unexpected token when parsing value name: " + m_curTokenStr);
+			}
+			advanceToken();
+			
+			// parse assignment operator.
+			advanceToken(Token.TOKEN_ASSIGN);
+			
+			// parse actual value
+			if (m_curToken(Token.TOKEN_LEFT_BRACKET)) { // value list
+				advanceToken(Token.TOKEN_LEFT_BRACKET);
+				
+				for (;;) {
+					parseValueElement(result.dataType, result);
+					
+					if (m_curToken == Token.TOKEN_RIGHT_BRACKET) {
+						break;
+					} else if (m_curToken == Token.TOKEN_VERTICAL_BAR) { // pipe?
+						advanceToken();
+						continue;
+					} else {
+						throw Error("unexpected token in value element array: " + m_curTokenStr);
+					}
+				}
+				
+				advanceToken(Token.TOKEN_RIGHT_BRACKET);
+				
+			} else { // arrays, single elements
+				parseValueElement(result.dataType, result);
+			}
+			
+			advanceToken(Token.TOKEN_SEMI_COLON);
+			
+			valueBlock.values.push(result)
+			
+		};
+		
 //		var parseValueBlock    = function(ShaderCase::ValueBlock& valueBlock);
 //		var parseShaderCase    = function(vector<tcu::TestNode*>& shaderNodeList);
 //		var parseShaderGroup   = function(vector<tcu::TestNode*>& shaderNodeList);
@@ -599,7 +701,7 @@ var shaderLibrary = (function() {
 				Token:              Token,
 				
 				parseValueElement:  parseValueElement,
-//				parseValue:         parseValue,
+				parseValue:         parseValue,
 //				parseValueBlock:    parseValueBlock,
 //				parseShaderCase:    parseShaderCase,
 //				parseShaderGroup:   parseShaderGroup,
