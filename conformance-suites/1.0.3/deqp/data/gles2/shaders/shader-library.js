@@ -610,7 +610,7 @@ var shaderLibrary = (function() {
 			var result = {
 				dataType:    null,
 				storageType: null,
-				valueName:   null,
+				valueName:   null
 			};
 			
 			// parse storage
