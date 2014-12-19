@@ -122,40 +122,9 @@ var shaderLibrary = (function() {
 	var Parser = function() {
 		
 		
-	/* public members */
-		this.parse = function() {
-			
-			// initialise parser
-			m_input       = input;
-			m_curPtr      = 0;
-			m_curToken    = Token.TOKEN_INVALID;
-			m_curTokenStr = "";
-			advanceToken();
-			
-			var nodeList = [];
-			
-			for (;;) {
-				
-				if (m_curToken == Token.TOKEN_CASE) {
-					parseShaderCase(nodeList);
-				} else if (m_curToken == Token.TOKEN_GROUP) {
-					parseShaderGroup(nodeList);
-				} else if (m_curToken == Token.TOKEN_EOF) {
-					break;
-				} else {
-					 throw Error("invalid token encountered at main level: '" + m_curTokenStr + "'");
-				}
-				
-			}
-			
-		};
+	
 		
-	/* private members */
-		
-		var m_input;
-		var m_curPtr;
-		var m_curToken;
-		var m_curTokenStr;
+	/* data members */
 		
 		/**
 		 * The Token constants
@@ -229,6 +198,42 @@ var shaderLibrary = (function() {
 		
 			TOKEN_LAST:          59
 		}
+		
+		var m_input       = "";
+		var m_curPtr      = 0;
+		var m_curToken   ;// = Token.TOKEN_INVALID;
+		var m_curTokenStr = "";
+		
+		
+		/* function members */
+		this.parse = function() {
+		
+			// initialise parser
+			m_input       = input;
+			m_curPtr      = 0;
+			m_curToken    = Token.TOKEN_INVALID;
+			m_curTokenStr = "";
+			advanceToken();
+			
+			var nodeList = [];
+			
+			for (;;) {
+				
+				if (m_curToken == Token.TOKEN_CASE) {
+					parseShaderCase(nodeList);
+				} else if (m_curToken == Token.TOKEN_GROUP) {
+					parseShaderGroup(nodeList);
+				} else if (m_curToken == Token.TOKEN_EOF) {
+					break;
+				} else {
+					 throw Error("invalid token encountered at main level: '" + m_curTokenStr + "'");
+				}
+				
+			}
+			
+			return nodeList;
+			
+		};
 		
 		var resolveTokenName   = function(id) {
 			for (var name in Token) {
@@ -461,10 +466,11 @@ var shaderLibrary = (function() {
 			advanceTokenWorker();
 		};
 		var assumeToken        = function(token) {
+		
 			if (m_curToken != token) {
 				// parse error
-				var msg = "unexpected token '" + m_cutTokenStr + "', expecting '" + getTokenName(token) + "'"
-				throw Error("Parse Error. " + msg + " near " + c_curPtr + " ...");
+				var msg = "unexpected token '" + m_curTokenStr + "', expecting '" + getTokenName(token) + "'"
+				throw Error("Parse Error. " + msg + " near " + m_curPtr + " ...");
 			}
 		};
 		var mapDataTypeToken   = function(token) {
@@ -829,23 +835,23 @@ var shaderLibrary = (function() {
 						advanceToken();
 					}
 					
-					/* TODO: need to fix these, we dont have glu
-					if      (versionNum == 100 && postfix == "es")  version = glu::GLSL_VERSION_100_ES;
-					else if (versionNum == 300 && postfix == "es")  version = glu::GLSL_VERSION_300_ES;
-					else if (versionNum == 310 && postfix == "es")  version = glu::GLSL_VERSION_310_ES;
-					else if (versionNum == 130)                     version = glu::GLSL_VERSION_130;
-					else if (versionNum == 140)                     version = glu::GLSL_VERSION_140;
-					else if (versionNum == 150)                     version = glu::GLSL_VERSION_150;
-					else if (versionNum == 330)                     version = glu::GLSL_VERSION_330;
-					else if (versionNum == 400)                     version = glu::GLSL_VERSION_400;
-					else if (versionNum == 410)                     version = glu::GLSL_VERSION_410;
-					else if (versionNum == 420)                     version = glu::GLSL_VERSION_420;
-					else if (versionNum == 430)                     version = glu::GLSL_VERSION_430;
-					else if (versionNum == 440)                     version = glu::GLSL_VERSION_440;
-					else if (versionNum == 450)                     version = glu::GLSL_VERSION_450;
+					// TODO: need to fix these constants, we dont have glu
+					if      (versionNum == 100 && postfix == "es")  version = "GLSL_VERSION_100_ES";
+					else if (versionNum == 300 && postfix == "es")  version = "GLSL_VERSION_300_ES";
+					else if (versionNum == 310 && postfix == "es")  version = "GLSL_VERSION_310_ES";
+					else if (versionNum == 130)                     version = "GLSL_VERSION_130";
+					else if (versionNum == 140)                     version = "GLSL_VERSION_140";
+					else if (versionNum == 150)                     version = "GLSL_VERSION_150";
+					else if (versionNum == 330)                     version = "GLSL_VERSION_330";
+					else if (versionNum == 400)                     version = "GLSL_VERSION_400";
+					else if (versionNum == 410)                     version = "GLSL_VERSION_410";
+					else if (versionNum == 420)                     version = "GLSL_VERSION_420";
+					else if (versionNum == 430)                     version = "GLSL_VERSION_430";
+					else if (versionNum == 440)                     version = "GLSL_VERSION_440";
+					else if (versionNum == 450)                     version = "GLSL_VERSION_450";
 					else
 						throw Error("Unknown GLSL version");
-					//*/
+					
 					
 				} else {
 					
@@ -857,6 +863,21 @@ var shaderLibrary = (function() {
 			
 			advanceToken(Token.TOKEN_END); // case end
 			
+			// no ShaderCase yet?
+			var getCleanShaderCase = function(vert, frag) {
+				return {
+					testCtx:        m_testCtx,
+					renderCtx:      m_renderCtx,
+					name:           caseName,
+					description:    description,
+					expectResult:   expectResult,
+					valueBlockList: valueBlockList,
+					version:        version,
+					vertexSource:   vert,
+					fragmentSource: frag
+				};
+			}.bind(this);
+			
 			if (bothSource.length) {
 				
 				de_assert(vertexSource.length   == 0);
@@ -864,42 +885,14 @@ var shaderLibrary = (function() {
 				
 				var vertName = caseName + "_vertex";
 				var fragName = caseName + "_fragment";
-				shaderNodeList.push(new ShaderCase( // this class doesnt exist yet?
-					m_testCtx,
-					m_renderCtx,
-					caseName,
-					description,
-					expectResult,
-					valueBlockList,
-					version,
-					bothSource,
-					null
-				));
-				shaderNodeList.push(new ShaderCase(
-					m_testCtx,
-					m_renderCtx,
-					caseName,
-					description,
-					expectResult,
-					valueBlockList,
-					version,
-					null,
-					bothSource
-				));
+				shaderNodeList.push(getCleanShaderCase(bothSource, null));
+				shaderNodeList.push(getCleanShaderCase(null, bothSource));
 				
 			} else {
 				
-				shaderNodeList.push(new ShaderCase(
-					m_testCtx,
-					m_renderCtx,
-					caseName,
-					description,
-					expectResult,
-					valueBlockList,
-					version,
-					vertexSource,
-					fragmentSource
-				));
+				shaderNodeList.push(
+					getCleanShaderCase(vertexSource,fragmentSource)
+				);
 				
 			}
 			
@@ -941,7 +934,7 @@ var shaderLibrary = (function() {
 			// TODO: this class also does not exist yet
 //			var groupNode = new TestCaseGroup(m_testctx, name, description, children);
 //			shaderNodeList.push(groupNode);
-		}
+		};
 		
 		// uncomment to expose private functions
 		(function(obj) {
