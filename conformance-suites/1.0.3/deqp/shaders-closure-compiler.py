@@ -92,7 +92,7 @@ def callClosureCompiler(listJsLink, compilationLevel, outputFormat, outputInfo):
     conn.close()
 
 
-# Closure compiler is called as many time as javascripts in /deqp/data/gles2/shaders/
+# Closure compiler is called as many times as javascripts in /deqp/data/gles2/shaders/
 for Element in listJs:
     callClosureCompiler(Element, compilationLevel, outputFormat, outputInfo)
 
