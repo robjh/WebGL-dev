@@ -23,10 +23,18 @@ var shaderLibrary = (function() {
 	
 	
 	var generateTestCases = function() {
-		stateMachine.getState().testCases = stateMachine.getState().testFile.match(/[^\r\n]+/g);
+		var parser = new Parser();
+		try {
+			var tree = parser.parse(stateMachine.getState().testFile);
+			stateMachine.getState().testCases = tree;
+		}
+		catch (err) {
+			_logToConsole(err);
+			return false;
+		}
 		return true;
 	};
-
+	
 	var processTestFile = function() {
 		if (generateTestCases()) {
 			stateMachine.runCallback(shaderLibraryCase.runTestCases);
@@ -206,7 +214,7 @@ var shaderLibrary = (function() {
 		
 		
 		/* function members */
-		this.parse = function() {
+		this.parse = function(input) {
 		
 			// initialise parser
 			m_input       = input;
@@ -231,7 +239,7 @@ var shaderLibrary = (function() {
 				
 			}
 			
-			return nodeList;
+			return deqpTest.newTest("Shader test", "Top level", nodeList);
 			
 		};
 		
@@ -460,7 +468,7 @@ var shaderLibrary = (function() {
 		};
 		
 		var advanceToken       = function(tokenAssumed) {
-			if (typeof(tokenAssumed) == "undefined") {
+			if (typeof(tokenAssumed) !== "undefined") {
 				assumeToken(tokenAssumed);
 			}
 			advanceTokenWorker();
@@ -589,7 +597,7 @@ var shaderLibrary = (function() {
 				if (scalarType == "float") {
 				
 					var signMult = 1.0;
-					if (m_curToken = Token.TOKEN_MINUS) {
+					if (m_curToken === Token.TOKEN_MINUS) {
 						signMult = -1.0;
 						advanceToken();
 					}
@@ -630,7 +638,8 @@ var shaderLibrary = (function() {
 				advanceToken(Token.TOKEN_RIGHT_PAREN);
 			}
 			
-			result.elements = elems;
+			for (var i = 0; i < elems.length; i++)
+				result.elements.push(elems[i]);
 			
 		};
 		
@@ -639,19 +648,20 @@ var shaderLibrary = (function() {
 			var result = {
 				dataType:    null,
 				storageType: null,
-				valueName:   null
+				valueName:   null,
+				elements: []
 			};
 			
 			// parse storage
 			switch (m_curToken) {
 			 case Token.TOKEN_UNIFORM:
-				result.storageType = shaderCase.value.STORAGE_UNIFORM;
+				result.storageType = shaderLibraryCase.shaderCase.value.STORAGE_UNIFORM;
 				break;
 			 case Token.TOKEN_INPUT:
-				result.storageType = shaderCase.value.STORAGE_INPUT;
+				result.storageType = shaderLibraryCase.shaderCase.value.STORAGE_INPUT;
 				break;
 			 case Token.TOKEN_OUTPUT:
-				result.storageType = shaderCase.value.STORAGE_OUTPUT;
+				result.storageType = shaderLibraryCase.shaderCase.value.STORAGE_OUTPUT;
 				break;
 			 default:
 				throw Error("unexpected token encountered when parsing value classifier");
@@ -680,11 +690,13 @@ var shaderLibrary = (function() {
 			advanceToken(Token.TOKEN_ASSIGN);
 			
 			// parse actual value
-			if (m_curToken(Token.TOKEN_LEFT_BRACKET)) { // value list
+			if (m_curToken === Token.TOKEN_LEFT_BRACKET) { // value list
 				advanceToken(Token.TOKEN_LEFT_BRACKET);
+				result.arrayLength = 0;
 				
 				for (;;) {
 					parseValueElement(result.dataType, result);
+					result.arrayLength += 1;
 					
 					if (m_curToken == Token.TOKEN_RIGHT_BRACKET) {
 						break;
@@ -700,6 +712,7 @@ var shaderLibrary = (function() {
 				
 			} else { // arrays, single elements
 				parseValueElement(result.dataType, result);
+				result.arrayLength = 1;
 			}
 			
 			advanceToken(Token.TOKEN_SEMI_COLON);
@@ -732,9 +745,9 @@ var shaderLibrary = (function() {
 			// compute combined array length of value block.
 			var arrayLength = 1;
 			for (var i = 0; i < valueBlock.values.length ; ++i) {
-				if (valueBlock.values[i].array.length > 1) {
-					de_assert(arrayLength == 1 || arrayLength == valueBlock.values[i].array.length);
-					arrayLength = valueBlock.values[i].array.length;
+				if (valueBlock.values[i].arrayLength > 1) {
+					de_assert(arrayLength == 1 || arrayLength == valueBlock.values[i].arrayLength);
+					arrayLength = valueBlock.values[i].arrayLength;
 				}
 			}
 			
@@ -754,8 +767,9 @@ var shaderLibrary = (function() {
 			// setup case
 			var valueBlockList = [];
 			
-//			var version  = DEFAULT_GLSL_VERSION; // TODO: where is this defined?
-			var expectResult = expectResult.EXPECT_PASS;
+			/** TODO: Should the default version be defined elsewhere? */
+			var version  = "100";
+			var expectResult = shaderLibraryCase.expectResult.EXPECT_PASS;
 			var description;
 			var bothSource;
 			var vertexSource;
@@ -782,9 +796,9 @@ var shaderLibrary = (function() {
 					
 					expectResult = (function(token) {
 						switch (token) {
-							case "pass":         return expectResult.EXPECT_PASS;
-							case "compile_fail": return expectResult.EXPECT_COMPILE_FAIL;
-							case "link_fail":    return expectResult.EXPECT_LINK_FAIL;
+							case "pass":         return shaderLibraryCase.expectResult.EXPECT_PASS;
+							case "compile_fail": return shaderLibraryCase.expectResult.EXPECT_COMPILE_FAIL;
+							case "link_fail":    return shaderLibraryCase.expectResult.EXPECT_LINK_FAIL;
 							default: throw Error("invalid expected result value: " + m_curTokenStr);
 						}
 					}(m_curTokenStr));
@@ -793,14 +807,14 @@ var shaderLibrary = (function() {
 					
 				} else if (m_curToken == Token.TOKEN_VALUES) {
 					
-					var block = {}; // ShaderCase::ValueBlock
+					var block = shaderLibraryCase.genValueBlock();
 					parseValueBlock(block);
 					valueBlockList.push(block);
 					
 				} else if (
-					m_curToken == TOKEN_BOTH ||
-					m_curToken == TOKEN_VERTEX ||
-					m_curToken == TOKEN_FRAGMENT
+					m_curToken == Token.TOKEN_BOTH ||
+					m_curToken == Token.TOKEN_VERTEX ||
+					m_curToken == Token.TOKEN_FRAGMENT
 				) {
 					
 					var token = m_curToken;
@@ -852,7 +866,6 @@ var shaderLibrary = (function() {
 					else
 						throw Error("Unknown GLSL version");
 					
-					
 				} else {
 					
 					throw Error("unexpected token while parsing shader case: " + m_curTokenStr);
@@ -862,17 +875,13 @@ var shaderLibrary = (function() {
 			}
 			
 			advanceToken(Token.TOKEN_END); // case end
-			
 			// no ShaderCase yet?
-			var getCleanShaderCase = function(vert, frag) {
+			var getShaderSpec = function(vert, frag, type) {
 				return {
-					testCtx:        m_testCtx,
-					renderCtx:      m_renderCtx,
-					name:           caseName,
-					description:    description,
 					expectResult:   expectResult,
+					caseType: type,
 					valueBlockList: valueBlockList,
-					version:        version,
+					targetVersion: version,
 					vertexSource:   vert,
 					fragmentSource: frag
 				};
@@ -880,22 +889,18 @@ var shaderLibrary = (function() {
 			
 			if (bothSource.length) {
 				
-				de_assert(vertexSource.length   == 0);
-				de_assert(fragmentSource.length == 0);
+				de_assert(!vertexSource);
+				de_assert(!fragmentSource);
 				
-				var vertName = caseName + "_vertex";
-				var fragName = caseName + "_fragment";
-				shaderNodeList.push(getCleanShaderCase(bothSource, null));
-				shaderNodeList.push(getCleanShaderCase(null, bothSource));
+				
+				shaderNodeList.push(deqpTest.newTest(caseName + "_vertex", description, getShaderSpec(bothSource, null,
+					shaderLibraryCase.caseType.CASETYPE_VERTEX_ONLY)));
+				shaderNodeList.push(deqpTest.newTest(caseName + "_fragment", description, getShaderSpec(null, bothSource,
+					shaderLibraryCase.caseType.CASETYPE_FRAGMENT_ONLY)));
 				
 			} else {
-				
-				shaderNodeList.push(
-					getCleanShaderCase(vertexSource,fragmentSource)
-				);
-				
+				/** TODO: CASETYPE_COMPLETE is not supported yet */
 			}
-			
 		};
 		
 		var parseShaderGroup   = function(shaderNodeList) {
@@ -932,8 +937,9 @@ var shaderLibrary = (function() {
 			
 			// Create group node.
 			// TODO: this class also does not exist yet
-//			var groupNode = new TestCaseGroup(m_testctx, name, description, children);
-//			shaderNodeList.push(groupNode);
+			var groupNode = deqpTest.newTest(name, description, children);
+			shaderNodeList.push(groupNode);
+			
 		};
 		
 		// uncomment to expose private functions

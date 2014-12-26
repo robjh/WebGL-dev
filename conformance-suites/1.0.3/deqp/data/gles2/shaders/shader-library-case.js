@@ -18,28 +18,9 @@
  *
  */
  
-/**
- * Shader compilation expected result enum
- * @enum {number}
- */
-var expectResult = {
-	EXPECT_PASS: 0,
-	EXPECT_COMPILE_FAIL: 1,
-	EXPECT_LINK_FAIL: 2,
-	EXPECT_COMPILE_LINK_FAIL: 3,
-	EXPECT_VALIDATION_FAIL: 4
-}
 
-/**
- * Test case type
- * @enum {number}
- */
-var caseType = {
-	CASETYPE_COMPLETE: 0,		//!< Has all shaders specified separately.
-	CASETYPE_VERTEX_ONLY: 1,		//!< "Both" case, vertex shader sub case.
-	CASETYPE_FRAGMENT_ONLY: 2		//!< "Both" case, fragment shader sub case.
-};
 
+var shadingProgram = (function() {
 
 /**
  * Shader type enum
@@ -66,7 +47,7 @@ var getGLShaderType = function(gl, type) {
 	}
 	
 	return _glShaderType;
-}
+};
 
 var ShaderInfo = function() {
 	this.type;			/** Shader type. */
@@ -74,6 +55,20 @@ var ShaderInfo = function() {
 	this.infoLog;		/** Compile info log. */
 	this.compileOk = false;		/** Did compilation succeed? */
 	this.compileTimeUs = 0;	/** Compile time in microseconds (us). */
+};
+
+var genVertexSource = function(source) {
+	var shader = new ShaderInfo();
+	shader.source = source;
+	shader.type = shaderType.VERTEX;
+	return shader;
+};
+
+var genFragmentSource = function(source) {
+	var shader = new ShaderInfo();
+	shader.source = source;
+	shader.type = shaderType.FRAGMENT;
+	return shader;
 };
 
 var Shader = function(gl, type) {
@@ -84,8 +79,8 @@ var Shader = function(gl, type) {
 	assertMsg(gl.getError() == gl.NO_ERROR, "glCreateShader()");
 
 	this.setSources = function(source) {
-		gl.shaderSource(this.shader, source);
-		assertMsg(gl.getError() == gl.NO_ERROR, "glshaderSource()");
+		this.gl.shaderSource(this.shader, source);
+		assertMsg(this.gl.getError() == this.gl.NO_ERROR, "glshaderSource()");
 		this.info.source = source;
 	};
 	
@@ -100,17 +95,17 @@ var Shader = function(gl, type) {
 
 		
 		var compileStart = new Date();
-		gl.compileShader(this.shader);
+		this.gl.compileShader(this.shader);
 		var compileEnd = new Date();
 		this.info.compileTimeUs = 1000 * (compileEnd.getTime() - compileStart.getTime());
 
-		assertMsg(gl.getError() == gl.NO_ERROR, "glCompileShader()");
+		assertMsg(this.gl.getError() == this.gl.NO_ERROR, "glCompileShader()");
 
-		var compileStatus = gl.getShaderParameter(this.shader, gl.COMPILE_STATUS);
-		assertMsg(gl.getError() == gl.NO_ERROR, "glGetShaderParameter()");
+		var compileStatus = this.gl.getShaderParameter(this.shader, this.gl.COMPILE_STATUS);
+		assertMsg(this.gl.getError() == this.gl.NO_ERROR, "glGetShaderParameter()");
 
-		this.info.compileOk = (compileStatus != gl.FALSE);
-		this.info.infoLog = gl.getShaderInfoLog(this.shader);
+		this.info.compileOk = compileStatus;
+		this.info.infoLog = this.gl.getShaderInfoLog(this.shader);
 	};
 	
 	this.getShader = function() {
@@ -136,13 +131,13 @@ var Program = function(gl, programID) {
 	}
 	
 	this.attachShader = function(shader) {
-		gl.attachShader(this.program, shader);
-		assertMsg(gl.getError() == gl.NO_ERROR, "gl.attachShader()");
+		this.gl.attachShader(this.program, shader);
+		assertMsg(this.gl.getError() == this.gl.NO_ERROR, "gl.attachShader()");
 	};
 
 	this.bindAttribLocation = function(location, name) {
-		gl.bindAttribLocation(this.program, location, name);
-		assertMsg(gl.getError() == gl.NO_ERROR, "gl.bindAttribLocation()");
+		this.gl.bindAttribLocation(this.program, location, name);
+		assertMsg(this.gl.getError() == this.gl.NO_ERROR, "gl.bindAttribLocation()");
 	};
 	
 	this.link = function() {
@@ -151,16 +146,21 @@ var Program = function(gl, programID) {
 		this.info.infoLog = "";
 
 		var linkStart = new Date();
-		gl.linkProgram(this.program);
+		this.gl.linkProgram(this.program);
 		var linkEnd = new Date();
 		this.info.linkTimeUs = 1000 *(linkEnd.getTime() - linkStart.getTime());
 		
-		assertMsg(gl.getError() == gl.NO_ERROR, "glLinkProgram()");
+		assertMsg(this.gl.getError() == this.gl.NO_ERROR, "glLinkProgram()");
 
-		var linkStatus = gl.getProgramParameter(this.program, gl.LINK_STATUS);
-		assertMsg(gl.getError() == gl.NO_ERROR, "gl.getProgramParameter()");
-		this.info.linkOk	= (linkStatus != gl.FALSE);
-		this.info.infoLog	= gl.getProgramInfoLog(this.program);
+		var linkStatus = this.gl.getProgramParameter(this.program, this.gl.LINK_STATUS);
+		assertMsg(this.gl.getError() == this.gl.NO_ERROR, "gl.getProgramParameter()");
+		this.info.linkOk	= linkStatus;
+		this.info.infoLog	= this.gl.getProgramInfoLog(this.program);
+	};
+	
+	this.transformFeedbackVaryings = function(varyings, bufferMode) {
+		this.gl.transformFeedbackVaryings(this.program, varyings, bufferMode);
+		assertMsg(this.gl.getError() == this.gl.NO_ERROR, "gl.transformFeedbackVaryings()");
 	};
 };
 
@@ -195,21 +195,13 @@ var ShaderProgram = function(gl, programSources) {
 			for (var attrib in programSources.attribLocationBindings)
 				this.program.bindAttribLocation(programSources.attribLocationBindings[attrib], attrib);
 
-			/* TODO: Port */
-			/*
-			DE_ASSERT((sources.transformFeedbackBufferMode == GL_NONE) == sources.transformFeedbackVaryings.empty());
-			if (sources.transformFeedbackBufferMode != GL_NONE)
-			{
-				std::vector<const char*> tfVaryings(sources.transformFeedbackVaryings.size());
-				for (int ndx = 0; ndx < (int)tfVaryings.size(); ndx++)
-					tfVaryings[ndx] = sources.transformFeedbackVaryings[ndx].c_str();
+			if (programSources.transformFeedbackBufferMode)
+				if (programSources.transformFeedbackBufferMode === gl.NONE)
+					assertMsg(programSources.transformFeedbackVaryings.length === 0, "Transform feedback sanity check");
+				else
+					this.program.transformFeedbackVaryings(programSources.transformFeedbackVaryings, programSources.transformFeedbackBufferMode);
 
-				m_program.transformFeedbackVaryings((int)tfVaryings.size(), &tfVaryings[0], sources.transformFeedbackBufferMode);
-			}
-
-			if (sources.separable)
-				m_program.setSeparable(true);
-			*/
+			/* TODO: GLES 3.1: set separable flag */
 
 			this.program.link();
 			
@@ -217,8 +209,45 @@ var ShaderProgram = function(gl, programSources) {
 
 };
 
+return {
+	ShaderProgram: ShaderProgram,
+	shaderType: shaderType,
+	genVertexSource: genVertexSource,
+	genFragmentSource: genFragmentSource
+};
+
+}());
+
+var shaderLibraryCase = (function() {
+	'use strict';
+	
+	/** @const */ var VIEWPORT_WIDTH		= 128;
+	/** @const */ var VIEWPORT_HEIGHT		= 128;
+
+/**
+ * Shader compilation expected result enum
+ * @enum {number}
+ */
+var expectResult = {
+	EXPECT_PASS: 0,
+	EXPECT_COMPILE_FAIL: 1,
+	EXPECT_LINK_FAIL: 2,
+	EXPECT_COMPILE_LINK_FAIL: 3,
+	EXPECT_VALIDATION_FAIL: 4
+};
+
+/**
+ * Test case type
+ * @enum {number}
+ */
+var caseType = {
+	CASETYPE_COMPLETE: 0,		//!< Has all shaders specified separately.
+	CASETYPE_VERTEX_ONLY: 1,		//!< "Both" case, vertex shader sub case.
+	CASETYPE_FRAGMENT_ONLY: 2		//!< "Both" case, fragment shader sub case.
+};
+
 var BeforeDrawValidator = function() {
-	/* TODO : implement */
+	/* TODO : GLES 3.1: implement */
 };
 
 /**
@@ -240,15 +269,9 @@ var shaderCase = {
 	}
 };
 
-var shaderLibraryCase = (function() {
-	'use strict';
-	
-	/** @const */ var VIEWPORT_WIDTH		= 128;
-	/** @const */ var VIEWPORT_HEIGHT		= 128;
-
 var usesShaderInoutQualifiers = function(version) {
 	switch (version) {
-		case "100 es":
+		case "100":
 		case "130":
 		case "140":
 		case "150":
@@ -259,7 +282,7 @@ var usesShaderInoutQualifiers = function(version) {
 	}
 };
 var supportsFragmentHighp = function(version) {
-	return version !== "100 es";
+	return version !== "100";
 }
 
 // This functions builds a matching vertex shader for a 'both' case, when
@@ -268,11 +291,11 @@ var supportsFragmentHighp = function(version) {
 var genVertexShader = function(valueBlock) {
 	var res = "";
 	var state = stateMachine.getState();
-	var		usesInout	= usesShaderInoutQualifiers(state.targetVersion);
+	var		usesInout	= usesShaderInoutQualifiers(state.currentTest.spec.targetVersion);
 	var		vtxIn		= usesInout ? "in"	: "attribute";
 	var		vtxOut		= usesInout ? "out"	: "varying";
 
-	res += "#version " + state.targetVersion + ";\n";
+	res += "#version " + state.currentTest.spec.targetVersion + "\n";
 	res += "precision highp float;\n";
 	res += "precision highp int;\n";
 	res += "\n";
@@ -320,7 +343,7 @@ var	genCompareFunctions = function(valueBlock, useFloatTypes) {
 	for (var ndx = 0; ndx < valueBlock.values.length; ndx++) {
 		var val = valueBlock.values[ndx];
 		if (val.storageType === shaderCase.value.STORAGE_OUTPUT)
-			cmpTypeFound[val.dataType] = true;
+			cmpTypeFound[shaderUtils.getDataTypeName(val.dataType)] = true;
 			
 	}
 	if (useFloatTypes)
@@ -414,14 +437,14 @@ var	genCompareOp = function(dstVec4Var, valueBlock, nonFloatNamePrefix, checkVar
 var genFragmentShader = function(valueBlock) {
 	var shader = "";
 	var state = stateMachine.getState();
-	var		usesInout	= usesShaderInoutQualifiers(state.targetVersion);
+	var		usesInout	= usesShaderInoutQualifiers(state.currentTest.spec.targetVersion);
 	var		vtxIn		= usesInout ? "in"	: "attribute";
 	var		vtxOut		= usesInout ? "out"	: "varying";
 	var		customColorOut	= usesInout;
 	var		fragIn			= usesInout ? "in" : "varying";
-	var		prec			= supportsFragmentHighp(state.targetVersion) ? "highp" : "mediump";
+	var		prec			= supportsFragmentHighp(state.currentTest.spec.targetVersion) ? "highp" : "mediump";
 
-	shader += "#version " + state.targetVersion + ";\n";
+	shader += "#version " + state.currentTest.spec.targetVersion + "\n";
 
 
 	shader += "precision " + prec + " float;\n";
@@ -441,6 +464,7 @@ var genFragmentShader = function(valueBlock) {
 	for (var ndx = 0; ndx < valueBlock.values.length; ndx++) {
 		var val = valueBlock.values[ndx];
 		var	floatType		= shaderUtils.getDataTypeFloatScalars(val.dataType);
+		var refType = shaderUtils.getDataTypeName(val.dataType);
 
 		if (val.storageType == shaderCase.value.STORAGE_OUTPUT)
 		{
@@ -449,7 +473,7 @@ var genFragmentShader = function(valueBlock) {
 			else
 				shader += fragIn + " " + floatType + " v_" + val.valueName + ";\n";
 
-			shader += "uniform " + val.dataType + " ref_" + val.valueName + ";\n";
+			shader += "uniform " + refType + " ref_" + val.valueName + ";\n";
 		}
 	}
 
@@ -464,9 +488,98 @@ var genFragmentShader = function(valueBlock) {
 	return shader;
 };
 
+var caseRequirement = ( function() {
+
+var CaseRequirement = function() {
+	
+	
+
+	this.isAffected = function(shaderType) {
+		for (var i = 0; i < this.shaderTypes.length; i++)
+			if (this.shaderTypes[i] === shaderType)
+				return true;
+		return false;
+	};
+
+	this.checkRequirements = function(gl) {
+		/* TODO: implement */
+	};
+
+	this.getSupportedExtension = function() {
+		/* TODO: finish implementation */
+		return this.requirements;
+	};
+	
+};
+
+var createAnyExtensionRequirement = function(requirements, shaderTypes) {
+	var cr = new CaseRequirement();
+	cr.type = requirementType.EXTENSION;
+	cr.requirements = requirements;
+	cr.shaderTypes = shaderTypes;
+	return cr;
+};
+
+var createLimitRequirement = function(enumName, ref) {
+	var cr = new CaseRequirement();
+	cr.type = requirementType.IMPLEMENTATION_LIMIT;
+	cr.enumName = enumName;
+	cr.referenceValue = ref;
+};
+
+/**
+ * @enum {number}
+ */
+var requirementType = {
+	EXTENSION: 0,
+	IMPLEMENTATION_LIMIT: 1
+};
+
+return {
+	createAnyExtensionRequirement: createAnyExtensionRequirement,
+	createLimitRequirement: createLimitRequirement,
+	requirementType: requirementType
+};
+
+}());
+
+
+
 var injectExtensionRequirements = function(baseCode, shaderType, requirements) {
-	/* TODO: implement */
-	return baseCode;
+	var generateExtensionStatements = function(requirements, shaderType) {
+		var buf = "";
+
+		if (requirements)
+			for (var ndx = 0; ndx < requirements.length; ndx++)
+				if (requirements[ndx].type === caseRequirement.requirementType.EXTENSION &&
+					requirements[ndx].isAffected(shaderType))
+					buf += "#extension " + requirements[ndx].getSupportedExtension() + " : require\n";
+			
+		return buf;
+	};
+
+	var extensions = generateExtensionStatements(requirements, shaderType);
+
+	if (extensions.length === 0)
+		return baseCode;
+
+	var splitLines = baseCode.split('\n');
+	/** @type {bool} */ var firstNonPreprocessorLine = true;
+	var resultBuf = ""
+	
+	for (var i = 0; i < splitLines.length; i++) {
+		/** @const @type{bool} */ var isPreprocessorDirective = (splitLines[i].match(/^\s*#/) !== null);
+
+		if (!isPreprocessorDirective && firstNonPreprocessorLine)
+		{
+			firstNonPreprocessorLine = false;
+			resultBuf += extensions;
+		}
+		
+		resultBuf += splitLines[i] + "\n";
+	}
+
+	return resultBuf;
 }
 
 // Specialize a shader for the vertex shader test case.
@@ -475,7 +588,7 @@ var specializeVertexShader = function(src, valueBlock) {
 	var	setup = "";
 	var	output = "";
 	var state = stateMachine.getState();
-	var		usesInout	= usesShaderInoutQualifiers(state.targetVersion);
+	var		usesInout	= usesShaderInoutQualifiers(state.currentTest.spec.targetVersion);
 	var		vtxIn		= usesInout ? "in"	: "attribute";
 	var		vtxOut		= usesInout ? "out"	: "varying";
 
@@ -521,7 +634,8 @@ var specializeVertexShader = function(src, valueBlock) {
 					.replace("${OUTPUT}", output)
 					.replace("${POSITION_FRAG_COLOR}", "gl_Position");
 
-	var	withExt	= injectExtensionRequirements(baseSrc, shaderType.VERTEX, state.programs[0].spec.requirements);
+	
+	var	withExt	= injectExtensionRequirements(baseSrc, shadingProgram.shaderType.VERTEX, state.currentTest.spec.requirements);
 
 	return withExt;
 }
@@ -533,7 +647,7 @@ var specializeFragmentShader = function(src, valueBlock) {
 
 	var state = stateMachine.getState();
 
-	var		usesInout		= usesShaderInoutQualifiers(state.targetVersion);
+	var		usesInout		= usesShaderInoutQualifiers(state.currentTest.spec.targetVersion);
 	var		customColorOut	= usesInout;
 	var		fragIn			= usesInout			? "in"				: "varying";
 	var		fragColor		= customColorOut	? "dEQP_FragColor"	: "gl_FragColor";
@@ -548,6 +662,7 @@ var specializeFragmentShader = function(src, valueBlock) {
 		var val = valueBlock.values[ndx];
 		var					valueName		= val.valueName;
 		var					floatType		= shaderUtils.getDataTypeFloatScalars(val.dataType);
+		var refType = shaderUtils.getDataTypeName(val.dataType);
 
 		if (val.storageType === shaderCase.value.STORAGE_INPUT)
 		{
@@ -557,13 +672,13 @@ var specializeFragmentShader = function(src, valueBlock) {
 			{
 				decl += fragIn + " " + floatType + " v_" + valueName + ";\n";
 				var offset = shaderUtils.isDataTypeIntOrIVec(val.dataType) ? " * 1.0025" : ""; // \todo [petri] bit of a hack to avoid errors in chop() due to varying interpolation
-				setup += val.dataType + " " + valueName + " = " + val.dataType + "(v_" + valueName + offset + ");\n";
+				setup += refType + " " + valueName + " = " + refType + "(v_" + valueName + offset + ");\n";
 			}
 		}
 		else if (val.storageType === shaderCase.value.STORAGE_OUTPUT)
 		{
-			decl += "uniform " + val.dataType + " ref_" + valueName + ";\n";
-			decl += val.dataType + " " + valueName + ";\n";
+			decl += "uniform " + refType + " ref_" + valueName + ";\n";
+			decl += refType + " " + valueName + ";\n";
 		}
 	}
 
@@ -575,25 +690,10 @@ var specializeFragmentShader = function(src, valueBlock) {
 					.replace("${OUTPUT}", output)
 					.replace("${POSITION_FRAG_COLOR}", fragColor);
 
-	var withExt	= injectExtensionRequirements(baseSrc, shaderType.FRAGMENT, state.programs[0].spec.requirements);
+	var withExt	= injectExtensionRequirements(baseSrc, shadingProgram.shaderType.FRAGMENT, state.currentTest.spec.requirements);
 
 	return withExt;
 }
-
-var draw = function() {
-	var wtu = WebGLTestUtils;
-	var gl = wtu.create3DContext("canvas");
-	gl.viewport(0, 0, canvas.width, canvas.height);
-	gl.clearColor(1, 0, 0, 1);
-	gl.clear(gl.COLOR_BUFFER_BIT);
-	gl.viewport(canvas.width/4, canvas.height/4, canvas.width/2, canvas.height/2);
-		
-	wtu.setupSimpleColorProgram(gl);
-	wtu.setupUnitQuad(gl);
-	wtu.setFloatDrawColor(gl,[ 0, 1, 0, 1]);
-	wtu.drawUnitQuad(gl);
-	
-};
 
 /**
  * Is tessellation present
@@ -601,7 +701,7 @@ var draw = function() {
  * @return {bool} True if tessellation is present
  */
 var isTessellationPresent = function() {
-	/* TODO: implement */
+	/* TODO: GLES 3.1: implement */
 	return false;
 };
 
@@ -624,42 +724,34 @@ var setUniformValue = function(gl, pipelinePrograms, name, val, arrayNdx) {
 		var element = val.elements.slice(arrayNdx, arrayNdx + scalarSize);
 		switch (val.dataType)
 		{
-			case "float":		gl.uniform1fv(loc, new Float32Array(element));						break;
-			case "vec2":		gl.uniform2fv(loc, new Float32Array(element));						break;
-			case "vec3":		gl.uniform3fv(loc, new Float32Array(element));						break;
-			case "vec4":		gl.uniform4fv(loc, new Float32Array(element));						break;
-			/* TODO: Implement remaining types */
-			/*
-			case TYPE_FLOAT_VEC2:	gl.uniform2fv(loc, 1, &val.elements[elemNdx].float32);						break;
-			case TYPE_FLOAT_VEC3:	gl.uniform3fv(loc, 1, &val.elements[elemNdx].float32);						break;
-			case TYPE_FLOAT_VEC4:	gl.uniform4fv(loc, 1, &val.elements[elemNdx].float32);						break;
-			case TYPE_FLOAT_MAT2:	gl.uniformMatrix2fv(loc, 1, GL_FALSE, &val.elements[elemNdx].float32);		break;
-			case TYPE_FLOAT_MAT3:	gl.uniformMatrix3fv(loc, 1, GL_FALSE, &val.elements[elemNdx].float32);		break;
-			case TYPE_FLOAT_MAT4:	gl.uniformMatrix4fv(loc, 1, GL_FALSE, &val.elements[elemNdx].float32);		break;
-			case TYPE_INT:			gl.uniform1iv(loc, 1, &val.elements[elemNdx].int32);						break;
-			case TYPE_INT_VEC2:		gl.uniform2iv(loc, 1, &val.elements[elemNdx].int32);						break;
-			case TYPE_INT_VEC3:		gl.uniform3iv(loc, 1, &val.elements[elemNdx].int32);						break;
-			case TYPE_INT_VEC4:		gl.uniform4iv(loc, 1, &val.elements[elemNdx].int32);						break;
-			case TYPE_BOOL:			gl.uniform1iv(loc, 1, &val.elements[elemNdx].int32);						break;
-			case TYPE_BOOL_VEC2:	gl.uniform2iv(loc, 1, &val.elements[elemNdx].int32);						break;
-			case TYPE_BOOL_VEC3:	gl.uniform3iv(loc, 1, &val.elements[elemNdx].int32);						break;
-			case TYPE_BOOL_VEC4:	gl.uniform4iv(loc, 1, &val.elements[elemNdx].int32);						break;
-			case TYPE_UINT:			gl.uniform1uiv(loc, 1, (const deUint32*)&val.elements[elemNdx].int32);		break;
-			case TYPE_UINT_VEC2:	gl.uniform2uiv(loc, 1, (const deUint32*)&val.elements[elemNdx].int32);		break;
-			case TYPE_UINT_VEC3:	gl.uniform3uiv(loc, 1, (const deUint32*)&val.elements[elemNdx].int32);		break;
-			case TYPE_UINT_VEC4:	gl.uniform4uiv(loc, 1, (const deUint32*)&val.elements[elemNdx].int32);		break;
-			case TYPE_FLOAT_MAT2X3:	gl.uniformMatrix2x3fv(loc, 1, GL_FALSE, &val.elements[elemNdx].float32);	break;
-			case TYPE_FLOAT_MAT2X4:	gl.uniformMatrix2x4fv(loc, 1, GL_FALSE, &val.elements[elemNdx].float32);	break;
-			case TYPE_FLOAT_MAT3X2:	gl.uniformMatrix3x2fv(loc, 1, GL_FALSE, &val.elements[elemNdx].float32);	break;
-			case TYPE_FLOAT_MAT3X4:	gl.uniformMatrix3x4fv(loc, 1, GL_FALSE, &val.elements[elemNdx].float32);	break;
-			case TYPE_FLOAT_MAT4X2:	gl.uniformMatrix4x2fv(loc, 1, GL_FALSE, &val.elements[elemNdx].float32);	break;
-			case TYPE_FLOAT_MAT4X3:	gl.uniformMatrix4x3fv(loc, 1, GL_FALSE, &val.elements[elemNdx].float32);	break;
-			*/
-			
-			case gl.SAMPLER_2D:
-			case gl.SAMPLER_CUBE:
-				testFailed("implement!");
-				break;
+			case shaderUtils.DataType.TYPE_FLOAT:		gl.uniform1fv(loc, new Float32Array(element));						break;
+			case shaderUtils.DataType.TYPE_VEC2:		gl.uniform2fv(loc, new Float32Array(element));						break;
+			case shaderUtils.DataType.TYPE_VEC3:		gl.uniform3fv(loc, new Float32Array(element));						break;
+			case shaderUtils.DataType.TYPE_VEC4:		gl.uniform4fv(loc, new Float32Array(element));						break;
+			case shaderUtils.DataType.TYPE_FLOAT_MAT2:	gl.uniformMatrix2fv(loc, gl.FALSE, new Float32Array(element));		break;
+			case shaderUtils.DataType.TYPE_FLOAT_MAT3:	gl.uniformMatrix3fv(loc, gl.FALSE, new Float32Array(element));		break;
+			case shaderUtils.DataType.TYPE_FLOAT_MAT4:	gl.uniformMatrix4fv(loc, gl.FALSE, new Float32Array(element));		break;
+			case shaderUtils.DataType.TYPE_INT:			gl.uniform1iv(loc, new Int32Array(element));						break;
+			case shaderUtils.DataType.TYPE_INT_VEC2:		gl.uniform2iv(loc, new Int32Array(element));						break;
+			case shaderUtils.DataType.TYPE_INT_VEC3:		gl.uniform3iv(loc, new Int32Array(element));						break;
+			case shaderUtils.DataType.TYPE_INT_VEC4:		gl.uniform4iv(loc, new Int32Array(element));						break;
+
+			/** TODO: What type should be used for bool uniforms? */
+			case shaderUtils.DataType.TYPE_BOOL:			gl.uniform1iv(loc, new Int32Array(element));						break;
+			case shaderUtils.DataType.TYPE_BOOL_VEC2:	gl.uniform2iv(loc, new Int32Array(element));						break;
+			case shaderUtils.DataType.TYPE_BOOL_VEC3:	gl.uniform3iv(loc, new Int32Array(element));						break;
+			case shaderUtils.DataType.TYPE_BOOL_VEC4:	gl.uniform4iv(loc, new Int32Array(element));						break;
+
+			case shaderUtils.DataType.TYPE_UINT:			gl.uniform1uiv(loc, new Uint32Array(element));		break;
+			case shaderUtils.DataType.TYPE_UINT_VEC2:	gl.uniform2uiv(loc, new Uint32Array(element));		break;
+			case shaderUtils.DataType.TYPE_UINT_VEC3:	gl.uniform3uiv(loc, new Uint32Array(element));		break;
+			case shaderUtils.DataType.TYPE_UINT_VEC4:	gl.uniform4uiv(loc, new Uint32Array(element));		break;
+			case shaderUtils.DataType.TYPE_FLOAT_MAT2X3:	gl.uniformMatrix2x3fv(loc, gl.FALSE, new Float32Array(element));	break;
+			case shaderUtils.DataType.TYPE_FLOAT_MAT2X4:	gl.uniformMatrix2x4fv(loc, gl.FALSE, new Float32Array(element));	break;
+			case shaderUtils.DataType.TYPE_FLOAT_MAT3X2:	gl.uniformMatrix3x2fv(loc, gl.FALSE, new Float32Array(element));	break;
+			case shaderUtils.DataType.TYPE_FLOAT_MAT3X4:	gl.uniformMatrix3x4fv(loc, gl.FALSE, new Float32Array(element));	break;
+			case shaderUtils.DataType.TYPE_FLOAT_MAT4X2:	gl.uniformMatrix4x2fv(loc, gl.FALSE, new Float32Array(element));	break;
+			case shaderUtils.DataType.TYPE_FLOAT_MAT4X3:	gl.uniformMatrix4x3fv(loc, gl.FALSE, new Float32Array(element));	break;
 
 			default:
 				testFailed("Unknown data type " + val.dataType);
@@ -702,6 +794,43 @@ var checkPixels = function(surface, minX, maxX, minY, maxY) {
 	return true;
 };
 
+/**
+ * Initialize a test case
+ */
+var init = function() {
+	var state = stateMachine.getState();
+	var test = state.currentTest;
+
+	_logToConsole("Processing " + test.fullName());
+
+	if (!test.spec.valueBlockList.length)
+		test.spec.valueBlockList.push(genValueBlock());
+	var valueBlock = test.spec.valueBlockList[0];
+
+	
+	var sources = [];
+	
+	if (test.spec.caseType === caseType.CASETYPE_COMPLETE) {
+		testFailed("Unsupported test type " + test.spec.caseType);
+	} else if (test.spec.caseType === caseType.CASETYPE_VERTEX_ONLY) {
+		sources.push(shadingProgram.genVertexSource(specializeVertexShader(test.spec.vertexSource, valueBlock)));
+		sources.push(shadingProgram.genFragmentSource(genFragmentShader(valueBlock)));		
+	} else if (test.spec.caseType === caseType.CASETYPE_FRAGMENT_ONLY) {
+		sources.push(shadingProgram.genVertexSource(genVertexShader(valueBlock)));
+		sources.push(shadingProgram.genFragmentSource(specializeFragmentShader(test.spec.fragmentSource, valueBlock)));
+	}
+	
+	test.programs = [];
+	test.programs.push(
+		{
+			programSources:  {
+				sources: sources
+			}
+		}
+		);
+	
+	
+};
 
 /**
  * Execute a test case
@@ -727,9 +856,11 @@ var execute = function()
 	var wtu = WebGLTestUtils;
 	var gl = wtu.create3DContext("canvas");
 	var state = stateMachine.getState();
+	var test = state.currentTest;
+	var spec = test.spec;
 
 	// Compute viewport.
-	/* TODO: original code used random number generator to compute viewport, we use full whole canvas */
+	/* TODO: original code used random number generator to compute viewport, we use whole canvas */
 	/** @const */ var								width				= Math.min(canvas.width,	VIEWPORT_WIDTH);
 	/** @const */ var								height				= Math.min(canvas.height,	VIEWPORT_HEIGHT);
 	/** @const */ var								viewportX			= 0;
@@ -746,11 +877,11 @@ var execute = function()
 	var	programs = [];
 	var				programPipeline;
 
-	assertMsg(gl.getError() === gl.NO_ERROR, "ShaderCase::execute(): start");
+	assertMsg(gl.getError() === gl.NO_ERROR, "Start testcase: " + test.fullName());
 
-	if (!state.separatePrograms)
+	if (!test.separatePrograms)
 	{
-		var	program	= 	new ShaderProgram(gl, state.programs[0].programSources);
+		var	program	= 	new shadingProgram.ShaderProgram(gl, test.programs[0].programSources);
 
 		vertexProgramID = program.getProgram();
 		pipelineProgramIDs.push(program.getProgram());
@@ -773,55 +904,10 @@ var execute = function()
 	}
 	else
 	{
-		/* TODO: Port the code below */
-		/*
-		// Separate programs
-		for (int programNdx = 0; programNdx < (int)m_programs.size(); ++programNdx)
-		{
-			de::SharedPtr<glu::ShaderProgram> program(new glu::ShaderProgram(m_renderCtx, m_programs[programNdx].programSources));
-
-			if (m_programs[programNdx].spec.activeStageBits & (1 << glu::SHADERTYPE_VERTEX))
-				vertexProgramID = program->getProgram();
-
-			pipelineProgramIDs.push_back(program->getProgram());
-			programs.push_back(program);
-
-			// Check that compile/link results are what we expect.
-
-			DE_STATIC_ASSERT(glu::SHADERTYPE_VERTEX == 0);
-			for (int stage = glu::SHADERTYPE_VERTEX; stage < glu::SHADERTYPE_LAST; ++stage)
-				if (program->hasShader((glu::ShaderType)stage) && !program->getShaderInfo((glu::ShaderType)stage).compileOk)
-					allCompilesOk = false;
-
-			if (!program->getProgramInfo().linkOk)
-				allLinksOk = false;
-
-			// Log program and active stages
-			{
-				const tcu::ScopedLogSection	section		(log, "Program", "Program " + de::toString(programNdx+1));
-				tcu::MessageBuilder			builder		(&log);
-				bool						firstStage	= true;
-
-				builder << "Pipeline uses stages: ";
-				for (int stage = glu::SHADERTYPE_VERTEX; stage < glu::SHADERTYPE_LAST; ++stage)
-				{
-					if (m_programs[programNdx].spec.activeStageBits & (1 << stage))
-					{
-						if (!firstStage)
-							builder << ", ";
-						builder << glu::getShaderTypeName((glu::ShaderType)stage);
-						firstStage = true;
-					}
-				}
-				builder << tcu::TestLog::EndMessage;
-
-				log << *program;
-			}
-		}
-		*/
+		/* TODO: GLES 3.1: Port program pipeline code */
 	}
 
-	switch (state.expectResult)
+	switch (spec.expectResult)
 	{
 		case expectResult.EXPECT_PASS:
 		case expectResult.EXPECT_VALIDATION_FAIL:
@@ -861,7 +947,7 @@ var execute = function()
 		_logToConsole("ERROR: " + failReason);
 
 		// If implementation parses shader at link time, report it as quality warning.
-		if (state.expectResult === expectResult.EXPECT_COMPILE_FAIL && allCompilesOk && !allLinksOk)
+		if (spec.expectResult === expectResult.EXPECT_COMPILE_FAIL && allCompilesOk && !allLinksOk)
 			_logToConsole("Quality warning: implementation parses shader at link time");
 
 		testFailed(failReason);
@@ -869,34 +955,17 @@ var execute = function()
 	}
 
 	// Return if compile/link expected to fail.
-	if (state.expectResult === expectResult.EXPECT_COMPILE_FAIL		||
-		state.expectResult === expectResult.EXPECT_COMPILE_LINK_FAIL	||
-		state.expectResult === expectResult.EXPECT_LINK_FAIL)
+	if (spec.expectResult === expectResult.EXPECT_COMPILE_FAIL		||
+		spec.expectResult === expectResult.EXPECT_COMPILE_LINK_FAIL	||
+		spec.expectResult === expectResult.EXPECT_LINK_FAIL)
 		return (failReason === null);
 	
 	// Setup viewport.
 	gl.viewport(viewportX, viewportY, width, height);
 
-	if (state.separatePrograms)
+	if (spec.separatePrograms)
 	{
-		/*
-		programPipeline = de::SharedPtr<glu::ProgramPipeline>(new glu::ProgramPipeline(m_renderCtx));
-
-		// Setup pipeline
-		gl.bindProgramPipeline(programPipeline->getPipeline());
-		for (int programNdx = 0; programNdx < (int)m_programs.size(); ++programNdx)
-		{
-			deUint32 shaderFlags = 0;
-			for (int stage = glu::SHADERTYPE_VERTEX; stage < glu::SHADERTYPE_LAST; ++stage)
-				if (m_programs[programNdx].spec.activeStageBits & (1 << stage))
-					shaderFlags |= glu::getGLShaderTypeBit((glu::ShaderType)stage);
-
-			programPipeline->useProgramStages(shaderFlags, pipelineProgramIDs[programNdx]);
-		}
-
-		programPipeline->activeShaderProgram(vertexProgramID);
-		GLU_EXPECT_NO_ERROR(gl.getError(), "setup pipeline");
-		*/
+		/** TODO: GLES 3.1 implement */
 	}
 	else
 	{
@@ -909,15 +978,14 @@ var execute = function()
 	var positionLoc = gl.getAttribLocation(vertexProgramID, "dEQP_Position");
 	if (positionLoc === -1)	{
 		testFailed("no location found for attribute 'dEQP_Position'");
-		/* TODO" uncomment */
-		/* return false; */
+		return false;
 	}
 	
 	// Iterate all value blocks.
 	
-	for (var blockNdx = 0; blockNdx < state.valueBlocks.length; blockNdx++)
+	for (var blockNdx = 0; blockNdx < spec.valueBlockList.length; blockNdx++)
 	{
-		var	block		= state.valueBlocks[blockNdx];
+		var	block		= spec.valueBlockList[blockNdx];
 
 		// always render at least one pass even if there is no input/output data
 		/** @const @type {number} */ var	numRenderPasses	= Math.max(block.arrayLength, 1);
@@ -930,8 +998,8 @@ var execute = function()
 			var							attribValueNdx		= 0;
 			/** @type {gl.enum} */ var	postDrawError;
 			var beforeDrawValidator	= new BeforeDrawValidator(gl,
-															 (state.separatePrograms) ? (programPipeline.getPipeline())			: (vertexProgramID),
-															 (state.separatePrograms) ? (targetType.PIPELINE)	: (targetType.PROGRAM));
+															 (spec.separatePrograms) ? (programPipeline.getPipeline())			: (vertexProgramID),
+															 (spec.separatePrograms) ? (targetType.PIPELINE)	: (targetType.PROGRAM));
 
 			vertexArrays.push(new VertexArrayBinding(gl.FLOAT, positionLoc, 4, numVerticesPerDraw, s_positions));			
 
@@ -953,7 +1021,7 @@ var execute = function()
 								// Attribute name prefix.
 					var attribPrefix = "";
 					// \todo [2010-05-27 petri] Should latter condition only apply for vertex cases (or actually non-fragment cases)?
-					if ((state.caseType === caseType.CASETYPE_FRAGMENT_ONLY) || (shaderUtils.getDataTypeScalarType(dataType) !== "float"))
+					if ((spec.caseType === caseType.CASETYPE_FRAGMENT_ONLY) || (shaderUtils.getDataTypeScalarType(dataType) !== "float"))
 						attribPrefix = "a_";
 
 					// Input always given as attribute.
@@ -1010,7 +1078,7 @@ var execute = function()
 			assertMsg(gl.getError() === gl.NO_ERROR, "clear buffer");
 
 			// Use program or pipeline
-			if (state.separatePrograms)
+			if (spec.separatePrograms)
 				gl.useProgram(0);
 			else
 				gl.useProgram(vertexProgramID);
@@ -1028,13 +1096,13 @@ var execute = function()
 				 (tessellationPresent) ?
 					(gluDraw.patches(s_indices)) :
 					(gluDraw.triangles(s_indices)),
-				 (state.expectResult === expectResult.EXPECT_VALIDATION_FAIL) ?
+				 (spec.expectResult === expectResult.EXPECT_VALIDATION_FAIL) ?
 					(beforeDrawValidator) :
 					(null));
 			
 			postDrawError = gl.getError();
 						
-			if (state.expectResult === expectResult.EXPECT_PASS) {
+			if (spec.expectResult === expectResult.EXPECT_PASS) {
 				/** @type {gluDraw.Surface} */	var surface = new gluDraw.Surface();
 				/** @const */ var		w				= s_positions[3];
 				/** @const */ var		minY			= Math.ceil (((-quadSize / w) * 0.5 + 0.5) * height + 1.0);
@@ -1048,7 +1116,7 @@ var execute = function()
 				assertMsg(gl.getError() === gl.NO_ERROR, "read pixels");
 
 				if (!checkPixels(surface, minX, maxX, minY, maxY)) {
-					testFailed("INCORRECT RESULT for (value block " + (blockNdx+1) + " of " +  state.valueBlocks.length
+					testFailed("INCORRECT RESULT for (value block " + (blockNdx+1) + " of " +  spec.valueBlocks.length
 											+ ", sub-case " + (arrayNdx+1) + " of " + block.arrayLength + "):");
 
 					/* TODO: Port */
@@ -1064,42 +1132,14 @@ var execute = function()
 
 					return false;
 				}
-			} /* else if (m_expectResult === expectResult.EXPECT_VALIDATION_FAIL) {
-				_logToConsole("Draw call generated error: "
-					+ glu::getErrorStr(postDrawError) + " "
-					+ ((postDrawError === gl.INVALID_OPERATION) ? ("(expected)") : ("(unexpected)")) + "\n"
-					+ "Validate status: "
-					+ glu::getBooleanStr(beforeDrawValidator.getValidateStatus()) + " "
-					+ ((beforeDrawValidator.getValidateStatus() == gl.FALSE) ? ("(expected)") : ("(unexpected)")) + "\n"
-					+ "Info log: "
-					+ ((beforeDrawValidator.getInfoLog().empty()) ? ("[empty string]") : (beforeDrawValidator.getInfoLog())) + "\n");
-
-				// test result
-
-				if (postDrawError !== gl.NO_ERROR && postDrawError !== gl.INVALID_OPERATION) {
-					testFailed("Draw: got unexpected error: " + postDrawError);
-					return false;
-				}
-
-				if (beforeDrawValidator.getValidateStatus() === gl.TRUE) {
-					if (postDrawError === gl.NO_ERROR)
-						testFailed("expected validation and rendering to fail but validation and rendering succeeded");
-					else if (postDrawError === gl.INVALID_OPERATION)
-						testFailed("expected validation and rendering to fail but validation succeeded (rendering failed as expected)");
-					return false;
-				} else if (beforeDrawValidator.getValidateStatus() === gl.FALSE && postDrawError === gl.NO_ERROR) {
-					testFailed("expected validation and rendering to fail but rendering succeeded (validation failed as expected)");
-					return false;
-				} else if (beforeDrawValidator.getValidateStatus() === gl.FALSE && postDrawError === gl.INVALID_OPERATION) {
-					// Validation does not depend on input values, no need to test all values
-					return true;
-				}
+			}  else if (spec.expectResult === expectResult.EXPECT_VALIDATION_FAIL) {
+				/** TODO: GLES 3.1: Implement */
+				testFailed("Unsupported test case");
 			}
-			*/
 		}
 	}
 	gl.useProgram(null);
-	if (state.separatePrograms)
+	if (spec.separatePrograms)
 		gl.bindProgramPipeline(0);
 
 	assertMsg(gl.getError() === gl.NO_ERROR, "ShaderCase::execute(): end");
@@ -1107,170 +1147,35 @@ var execute = function()
 	return true;
 };
 
-
 var runTestCases = function() {
 	var state = stateMachine.getState();
-	if (!state.index)
-		state.index = 0;
-	
-
-	var pre = document.createElement('pre');
-	state.targetVersion = "300 es";
-	/**
- * A vertex shader for a uniform color.
- * @type {string}
- */
-var simpleColorVertexShader = [
-  'attribute vec4 dEQP_Position;',
-  'attribute float test1;',
-  'attribute vec4 test2;',
-  'varying float vtest1;',
-  'varying vec4 vtest2;',
-  'void main() {',
-  '    gl_Position = dEQP_Position;',
-  '    vtest1 = test1;',
-  '    vtest2 = test2;',
-  '}'].join('\n');
-
-/**
- * A fragment shader for a uniform color.
- * @type {string}
- */
-var simpleColorFragmentShader = [
-  'precision mediump float;',
-  'uniform vec4 u_color;',
-  'varying float vtest1;',
-  'varying vec4 vtest2;',
-  'void main() {',
-  '    gl_FragData[0] = u_color;',
-  '    gl_FragData[0].r = vtest1;',
-  '    gl_FragData[0].b = vtest2.b;',
-  '    gl_FragData[0] = vec4(1,1,1,1);',
- '}'].join('\n');
-	
-	state.expectResult = expectResult.EXPECT_PASS;
-	state.programs = [
-		{
-			spec: {
-				requirements: null
-			},
-			programSources: {
-				sources : [
-					{
-						type: shaderType.VERTEX,
-						source: simpleColorVertexShader
-					},
-					{
-						type: shaderType.FRAGMENT,
-						source: simpleColorFragmentShader
-					}
-				],
-				attribLocationBindings : {
-					"vPosition" : 0
-				}
-			}
+	state.currentTest = state.testCases.next();
+	if (state.currentTest) {
+		try {
+			init();
+			execute();
+		} catch (err) {
+			_logToConsole(err);
 		}
-	];
-	/* TODO: could 'elements' be an array of arrays rather than a flat array */
-	state.valueBlocks = [
-		{
-			arrayLength: 1,
-			values: [
-				{
-				storageType: shaderCase.value.STORAGE_UNIFORM,
-				dataType: "vec4",
-				valueName: "u_color",
-				arrayLength: 1,
-				elements: [1, 1, 0, 1]
-				},
-				{
-				storageType: shaderCase.value.STORAGE_INPUT,
-				dataType: "float",
-				valueName: "test1",
-				arrayLength: 1,
-				elements: [0]
-				},
-				{
-				storageType: shaderCase.value.STORAGE_INPUT,
-				dataType: "vec4",
-				valueName: "test2",
-				arrayLength: 1,
-				elements: [0.11, 0.12, 0.13, 0.14]
-			}
-			]
-		}
-	];
-	
-	var valueBlock = {
-		values : [
-			{
-				storageType: shaderCase.value.STORAGE_INPUT,
-				dataType: "vec2",
-				valueName: "myVector"
-			},
-			{
-				storageType: shaderCase.value.STORAGE_INPUT,
-				dataType: "float",
-				valueName: "myFloat"
-			},
-						{
-				storageType: shaderCase.value.STORAGE_INPUT,
-				dataType: "int",
-				valueName: "myInt"
-			},
-			{
-				storageType: shaderCase.value.STORAGE_OUTPUT,
-				dataType: "vec2",
-				valueName: "myVector"
-			},
-			{
-				storageType: shaderCase.value.STORAGE_OUTPUT,
-				dataType: "float",
-				valueName: "myFloat"
-			},
-						{
-				storageType: shaderCase.value.STORAGE_OUTPUT,
-				dataType: "int",
-				valueName: "myInt"
-			}
-		]
-	};
-	
-	var shaderSrc =
-			'precision mediump float;' +
-			'${DECLARATIONS}' +
-			'void main()' +
-			'{' +
-			'	out0 = 0.0;' +
-			'	if (in0 >= 1.0)' +
-			'		out0 = 1.0;' +
-			'	${OUTPUT}' +
-			'}';
-	/*
-	pre.textContent = genVertexShader(valueBlock);
-	pre.textContent += "\n**********************************************\n";
-	pre.textContent += genFragmentShader(valueBlock);
-	pre.textContent += "\n**********************************************\n";
-	pre.textContent += specializeVertexShader(shaderSrc, valueBlock);
-	pre.textContent += "\n**********************************************\n";
-	pre.textContent += specializeFragmentShader(shaderSrc, valueBlock);
-	
-	document.body.appendChild(pre);
-	*/
-	//draw();
-	execute();
-	stateMachine.terminate(true);
-	return;
+		stateMachine.runCallback(runTestCases);
+	} else
+		stateMachine.terminate(true);
 
-		++state.index;
-		if (state.index < state.testCases.length)
-			stateMachine.runCallback(runTestCases);
-		else
-			stateMachine.terminate(true);
+};
+
+var genValueBlock = function() {
+	return {
+		values: [],
+		arrayLength: 0
 	};
+};
 
 	return {
-		runTestCases: runTestCases
+		runTestCases: runTestCases,
+		expectResult: expectResult,
+		caseType: caseType,
+		shaderCase: shaderCase,
+		genValueBlock: genValueBlock
 	};
 
 }());

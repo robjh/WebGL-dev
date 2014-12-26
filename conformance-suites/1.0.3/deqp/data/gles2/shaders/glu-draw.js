@@ -209,7 +209,7 @@ Surface.prototype.readSurface = function(gl, x, y, width, height) {
 };
 
 Surface.prototype.getPixel = function(x, y) {
-	/** @type {numbe} */ var base = (x + y * this.height) * 4;
+	/** @type {number} */ var base = (x + y * this.height) * 4;
 	/** @type Array.<number> */
 	var rgba = [
 		this.buffer[base],
