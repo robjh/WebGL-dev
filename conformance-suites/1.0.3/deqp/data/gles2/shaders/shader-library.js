@@ -25,8 +25,9 @@ var shaderLibrary = (function() {
 	var generateTestCases = function() {
 		var parser = new Parser();
 		try {
-			var tree = parser.parse(stateMachine.getState().testFile);
-			stateMachine.getState().testCases = tree;
+			var state = stateMachine.getState();
+			var tree = parser.parse(state.testFile);
+			state.testCases = deqpTest.newTest(state.testName, "Top level", tree);
 		}
 		catch (err) {
 			_logToConsole(err);
@@ -239,7 +240,7 @@ var shaderLibrary = (function() {
 				
 			}
 			
-			return deqpTest.newTest("Shader test", "Top level", nodeList);
+			return nodeList;
 			
 		};
 		
@@ -850,19 +851,19 @@ var shaderLibrary = (function() {
 					}
 					
 					// TODO: need to fix these constants, we dont have glu
-					if      (versionNum == 100 && postfix == "es")  version = "GLSL_VERSION_100_ES";
-					else if (versionNum == 300 && postfix == "es")  version = "GLSL_VERSION_300_ES";
-					else if (versionNum == 310 && postfix == "es")  version = "GLSL_VERSION_310_ES";
-					else if (versionNum == 130)                     version = "GLSL_VERSION_130";
-					else if (versionNum == 140)                     version = "GLSL_VERSION_140";
-					else if (versionNum == 150)                     version = "GLSL_VERSION_150";
-					else if (versionNum == 330)                     version = "GLSL_VERSION_330";
-					else if (versionNum == 400)                     version = "GLSL_VERSION_400";
-					else if (versionNum == 410)                     version = "GLSL_VERSION_410";
-					else if (versionNum == 420)                     version = "GLSL_VERSION_420";
-					else if (versionNum == 430)                     version = "GLSL_VERSION_430";
-					else if (versionNum == 440)                     version = "GLSL_VERSION_440";
-					else if (versionNum == 450)                     version = "GLSL_VERSION_450";
+					if      (versionNum == 100 && postfix == "es")  version = "100";
+					else if (versionNum == 300 && postfix == "es")  version = "300 es";
+					else if (versionNum == 310 && postfix == "es")  version = "310 es";
+					else if (versionNum == 130)                     version = "130";
+					else if (versionNum == 140)                     version = "140";
+					else if (versionNum == 150)                     version = "150";
+					else if (versionNum == 330)                     version = "330";
+					else if (versionNum == 400)                     version = "400";
+					else if (versionNum == 410)                     version = "410";
+					else if (versionNum == 420)                     version = "420";
+					else if (versionNum == 430)                     version = "430";
+					else if (versionNum == 440)                     version = "440";
+					else if (versionNum == 450)                     version = "450";
 					else
 						throw Error("Unknown GLSL version");
 					

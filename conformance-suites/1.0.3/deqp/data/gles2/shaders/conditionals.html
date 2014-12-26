@@ -67,6 +67,7 @@ var stateMachine = (function() {
 WebGLTestUtils.loadTextFileAsync(testName + ".test", function(success, content) {
 	if (success) {
 		stateMachine.getState().testFile = content;
+		stateMachine.getState().testName = testName;
 		stateMachine.runCallback(shaderLibrary.processTestFile);
 	} else {
 		stateMachine.terminate(false);

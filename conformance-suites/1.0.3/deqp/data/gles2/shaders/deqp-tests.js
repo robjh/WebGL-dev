@@ -68,6 +68,36 @@ var DeqpTest = function(name, description, spec) {
 				return parentName + '.' + this.name;
 		return this.name;
 	};
+	
+	/**
+	 * Find a test with a matching name
+	 * Fast-forwards to a test whose full name matches the given pattern
+	 *
+	 * @param pattern Regular expression to search for
+	 * @return {Object} Found test or null.
+	 */
+	this.find = function(pattern) {
+		var test = null;
+		while(true) {
+			test = this.next();
+			if (!test)
+				break;
+			if (test.fullName().match(pattern))
+				break;
+		}
+		return test;
+	};
+	
+	/**
+	 * Reset the iterator.
+	 */
+	 this.reset = function() {
+		this.currentTest = 0;
+		
+		if (this.spec.length)
+			for (var i = 0; i < this.spec.length; i++)
+				this.spec[i].reset();
+	 };
 };
 
 /**
