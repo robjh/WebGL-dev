@@ -816,34 +816,34 @@ var setUniformValue = function(gl, pipelinePrograms, name, val, arrayNdx) {
 		var element = val.elements.slice(arrayNdx, arrayNdx + scalarSize);
 		switch (val.dataType)
 		{
-			case shaderUtils.DataType.TYPE_FLOAT:		gl.uniform1fv(loc, new Float32Array(element));						break;
-			case shaderUtils.DataType.TYPE_FLOAT_VEC2:		gl.uniform2fv(loc, new Float32Array(element));						break;
-			case shaderUtils.DataType.TYPE_FLOAT_VEC3:		gl.uniform3fv(loc, new Float32Array(element));						break;
-			case shaderUtils.DataType.TYPE_FLOAT_VEC4:		gl.uniform4fv(loc, new Float32Array(element));						break;
-			case shaderUtils.DataType.TYPE_FLOAT_MAT2:	gl.uniformMatrix2fv(loc, gl.FALSE, new Float32Array(element));		break;
-			case shaderUtils.DataType.TYPE_FLOAT_MAT3:	gl.uniformMatrix3fv(loc, gl.FALSE, new Float32Array(element));		break;
-			case shaderUtils.DataType.TYPE_FLOAT_MAT4:	gl.uniformMatrix4fv(loc, gl.FALSE, new Float32Array(element));		break;
-			case shaderUtils.DataType.TYPE_INT:			gl.uniform1iv(loc, new Int32Array(element));						break;
-			case shaderUtils.DataType.TYPE_INT_VEC2:		gl.uniform2iv(loc, new Int32Array(element));						break;
-			case shaderUtils.DataType.TYPE_INT_VEC3:		gl.uniform3iv(loc, new Int32Array(element));						break;
-			case shaderUtils.DataType.TYPE_INT_VEC4:		gl.uniform4iv(loc, new Int32Array(element));						break;
+			case shaderUtils.DataType.FLOAT:		gl.uniform1fv(loc, new Float32Array(element));						break;
+			case shaderUtils.DataType.FLOAT_VEC2:		gl.uniform2fv(loc, new Float32Array(element));						break;
+			case shaderUtils.DataType.FLOAT_VEC3:		gl.uniform3fv(loc, new Float32Array(element));						break;
+			case shaderUtils.DataType.FLOAT_VEC4:		gl.uniform4fv(loc, new Float32Array(element));						break;
+			case shaderUtils.DataType.FLOAT_MAT2:	gl.uniformMatrix2fv(loc, gl.FALSE, new Float32Array(element));		break;
+			case shaderUtils.DataType.FLOAT_MAT3:	gl.uniformMatrix3fv(loc, gl.FALSE, new Float32Array(element));		break;
+			case shaderUtils.DataType.FLOAT_MAT4:	gl.uniformMatrix4fv(loc, gl.FALSE, new Float32Array(element));		break;
+			case shaderUtils.DataType.INT:			gl.uniform1iv(loc, new Int32Array(element));						break;
+			case shaderUtils.DataType.INT_VEC2:		gl.uniform2iv(loc, new Int32Array(element));						break;
+			case shaderUtils.DataType.INT_VEC3:		gl.uniform3iv(loc, new Int32Array(element));						break;
+			case shaderUtils.DataType.INT_VEC4:		gl.uniform4iv(loc, new Int32Array(element));						break;
 
 			/** TODO: What type should be used for bool uniforms? */
-			case shaderUtils.DataType.TYPE_BOOL:			gl.uniform1iv(loc, new Int32Array(element));						break;
-			case shaderUtils.DataType.TYPE_BOOL_VEC2:	gl.uniform2iv(loc, new Int32Array(element));						break;
-			case shaderUtils.DataType.TYPE_BOOL_VEC3:	gl.uniform3iv(loc, new Int32Array(element));						break;
-			case shaderUtils.DataType.TYPE_BOOL_VEC4:	gl.uniform4iv(loc, new Int32Array(element));						break;
+			case shaderUtils.DataType.BOOL:			gl.uniform1iv(loc, new Int32Array(element));						break;
+			case shaderUtils.DataType.BOOL_VEC2:	gl.uniform2iv(loc, new Int32Array(element));						break;
+			case shaderUtils.DataType.BOOL_VEC3:	gl.uniform3iv(loc, new Int32Array(element));						break;
+			case shaderUtils.DataType.BOOL_VEC4:	gl.uniform4iv(loc, new Int32Array(element));						break;
 
-			case shaderUtils.DataType.TYPE_UINT:			gl.uniform1uiv(loc, new Uint32Array(element));		break;
-			case shaderUtils.DataType.TYPE_UINT_VEC2:	gl.uniform2uiv(loc, new Uint32Array(element));		break;
-			case shaderUtils.DataType.TYPE_UINT_VEC3:	gl.uniform3uiv(loc, new Uint32Array(element));		break;
-			case shaderUtils.DataType.TYPE_UINT_VEC4:	gl.uniform4uiv(loc, new Uint32Array(element));		break;
-			case shaderUtils.DataType.TYPE_FLOAT_MAT2X3:	gl.uniformMatrix2x3fv(loc, gl.FALSE, new Float32Array(element));	break;
-			case shaderUtils.DataType.TYPE_FLOAT_MAT2X4:	gl.uniformMatrix2x4fv(loc, gl.FALSE, new Float32Array(element));	break;
-			case shaderUtils.DataType.TYPE_FLOAT_MAT3X2:	gl.uniformMatrix3x2fv(loc, gl.FALSE, new Float32Array(element));	break;
-			case shaderUtils.DataType.TYPE_FLOAT_MAT3X4:	gl.uniformMatrix3x4fv(loc, gl.FALSE, new Float32Array(element));	break;
-			case shaderUtils.DataType.TYPE_FLOAT_MAT4X2:	gl.uniformMatrix4x2fv(loc, gl.FALSE, new Float32Array(element));	break;
-			case shaderUtils.DataType.TYPE_FLOAT_MAT4X3:	gl.uniformMatrix4x3fv(loc, gl.FALSE, new Float32Array(element));	break;
+			case shaderUtils.DataType.UINT:			gl.uniform1uiv(loc, new Uint32Array(element));		break;
+			case shaderUtils.DataType.UINT_VEC2:	gl.uniform2uiv(loc, new Uint32Array(element));		break;
+			case shaderUtils.DataType.UINT_VEC3:	gl.uniform3uiv(loc, new Uint32Array(element));		break;
+			case shaderUtils.DataType.UINT_VEC4:	gl.uniform4uiv(loc, new Uint32Array(element));		break;
+			case shaderUtils.DataType.FLOAT_MAT2X3:	gl.uniformMatrix2x3fv(loc, gl.FALSE, new Float32Array(element));	break;
+			case shaderUtils.DataType.FLOAT_MAT2X4:	gl.uniformMatrix2x4fv(loc, gl.FALSE, new Float32Array(element));	break;
+			case shaderUtils.DataType.FLOAT_MAT3X2:	gl.uniformMatrix3x2fv(loc, gl.FALSE, new Float32Array(element));	break;
+			case shaderUtils.DataType.FLOAT_MAT3X4:	gl.uniformMatrix3x4fv(loc, gl.FALSE, new Float32Array(element));	break;
+			case shaderUtils.DataType.FLOAT_MAT4X2:	gl.uniformMatrix4x2fv(loc, gl.FALSE, new Float32Array(element));	break;
+			case shaderUtils.DataType.FLOAT_MAT4X3:	gl.uniformMatrix4x3fv(loc, gl.FALSE, new Float32Array(element));	break;
 
 			default:
 				testFailed("Unknown data type " + val.dataType);
@@ -1096,7 +1096,7 @@ var execute = function()
 															 (spec.separatePrograms) ? (programPipeline.getPipeline())			: (vertexProgramID),
 															 (spec.separatePrograms) ? (targetType.PIPELINE)	: (targetType.PROGRAM));
 
-			vertexArrays.push(new VertexArrayBinding(gl.FLOAT, positionLoc, 4, numVerticesPerDraw, s_positions));			
+			vertexArrays.push(new gluDraw.VertexArrayBinding(gl.FLOAT, positionLoc, 4, numVerticesPerDraw, s_positions));			
 
 			// Collect VA pointer for inputs
 			for (var valNdx = 0; valNdx < numValues; valNdx++) {
@@ -1136,11 +1136,11 @@ var execute = function()
 
 						for (var i = 0; i < numCols; i++) {
 							var colData = scalars.slice(i * numRows, i * numRows + scalarSize);
-							vertexArrays.push(new VertexArrayBinding(gl.FLOAT, attribLoc + i, numRows, numVerticesPerDraw, colData));			
+							vertexArrays.push(new gluDraw.VertexArrayBinding(gl.FLOAT, attribLoc + i, numRows, numVerticesPerDraw, colData));			
 						}
 					}
 					else
-							vertexArrays.push(new VertexArrayBinding(gl.FLOAT, attribLoc, scalarSize, numVerticesPerDraw, scalars));			
+							vertexArrays.push(new gluDraw.VertexArrayBinding(gl.FLOAT, attribLoc, scalarSize, numVerticesPerDraw, scalars));			
 
 					assertMsg(gl.getError() === gl.NO_ERROR, "set vertex attrib array");
 				}

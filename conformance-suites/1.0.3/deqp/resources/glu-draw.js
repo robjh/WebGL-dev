@@ -18,6 +18,9 @@
  *
  */
 
+
+var gluDraw = (function() {
+
 /**
  * Description of a vertex array binding
  * @param type GL Type of data
@@ -32,10 +35,7 @@ var VertexArrayBinding = function(type, location, components, elements, data) {
 	this.components = components;
 	this.elements = elements;
 	this.data = data;
-	_logToConsole(this);
 };
-
-var gluDraw = (function() {
 
 /**
  *
@@ -225,6 +225,7 @@ return {
 	draw: draw,
 	triangles: triangles,
 	patches: patches,
-	Surface: Surface
+	Surface: Surface,
+	VertexArrayBinding: VertexArrayBinding
 };
 }());
