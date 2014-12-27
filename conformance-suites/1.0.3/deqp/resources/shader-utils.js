@@ -235,13 +235,13 @@ var isDataTypeMatrix = function(dataType) {
 	case DataType.FLOAT_MAT3X4:
 	case DataType.FLOAT_MAT4X2:
 	case DataType.FLOAT_MAT4X3:
-	case DataType.FLOAT_MAT3 :
+	case DataType.FLOAT_MAT4 :
 		return true;
 	}
 	return false;
 };
 
-var getDataTypeMatrixNumColumns = function(dataType) {
+var getDataTypeMatrixNumRows = function(dataType) {
 	switch(dataType) {
 	case DataType.FLOAT_MAT2 : return 2;
 	case DataType.FLOAT_MAT2X3: return 3;
@@ -251,12 +251,12 @@ var getDataTypeMatrixNumColumns = function(dataType) {
 	case DataType.FLOAT_MAT3X4: return 4;
 	case DataType.FLOAT_MAT4X2: return 2;
 	case DataType.FLOAT_MAT4X3: return 3;
-	case DataType.FLOAT_MAT3 : return 4;
+	case DataType.FLOAT_MAT4 : return 4;
 	}
 	throw Error("Unrecognized dataType " + dataType);
 };
 
-var getDataTypeMatrixNumRows = function(dataType) {
+var getDataTypeMatrixNumColumns = function(dataType) {
 	switch(dataType) {
 	case DataType.FLOAT_MAT2 : return 2;
 	case DataType.FLOAT_MAT2X3: return 2;
@@ -266,7 +266,7 @@ var getDataTypeMatrixNumRows = function(dataType) {
 	case DataType.FLOAT_MAT3X4: return 3;
 	case DataType.FLOAT_MAT4X2: return 4;
 	case DataType.FLOAT_MAT4X3: return 4;
-	case DataType.FLOAT_MAT3 : return 4;
+	case DataType.FLOAT_MAT4 : return 4;
 	}
 	throw Error("Unrecognized dataType " + dataType);
 };

@@ -74,14 +74,14 @@ var shaderLibrary = (function() {
 			
 			var numIndentChars = 0;
 			for (var i = 0 ; i < arr[0].length && isWhitespace(arr[0].charAt(i)) ; ++i) {
-				numIndentChars += arr[0].charAt(i) == '\t' ? 4 : 1;
+				numIndentChars += arr[0].charAt(i) === '\t' ? 4 : 1;
 			}
 			
 			for (var i = 0 ; i < arr.length ; ++i) {
 				var removed = 0;
 				var j;
 				for (j = 0 ; removed < numIndentChars && j < arr[i].length ; ++j) {
-					removed += (arr[i].charAt(j) == '\t' ? 4 : 1);
+					removed += (arr[i].charAt(j) === '\t' ? 4 : 1);
 				}
 				
 				output.push(arr[i].substr(j, arr[i].length - j));
@@ -109,7 +109,7 @@ var shaderLibrary = (function() {
 		var index_end = 0;
 		do {
 			index_end = str.indexOf(endstr, index_end + 1);
-		} while(index_end >= 0 && str.charAt(index_end - 1) == '\\');
+		} while(index_end >= 0 && str.charAt(index_end - 1) === '\\');
 		
 		if (index_end <= 0) {
 			index_end = str.length;
@@ -228,11 +228,11 @@ var shaderLibrary = (function() {
 			
 			for (;;) {
 				
-				if (m_curToken == Token.TOKEN_CASE) {
+				if (m_curToken === Token.TOKEN_CASE) {
 					parseShaderCase(nodeList);
-				} else if (m_curToken == Token.TOKEN_GROUP) {
+				} else if (m_curToken === Token.TOKEN_GROUP) {
 					parseShaderGroup(nodeList);
-				} else if (m_curToken == Token.TOKEN_EOF) {
+				} else if (m_curToken === Token.TOKEN_EOF) {
 					break;
 				} else {
 					 throw Error("invalid token encountered at main level: '" + m_curTokenStr + "'");
@@ -246,7 +246,7 @@ var shaderLibrary = (function() {
 		
 		var resolveTokenName   = function(id) {
 			for (var name in Token) {
-				if (Token[name] == id) return name;
+				if (Token[name] === id) return name;
 			}
 			return "TOKEN_UNKNOWN";
 		};
@@ -289,7 +289,7 @@ var shaderLibrary = (function() {
 				while (isWhitespace(m_input.charAt(m_curPtr))) ++m_curPtr;
 				
 				// check for EOL comment
-				if (m_input.charAt(m_curPtr) == "#") {
+				if (m_input.charAt(m_curPtr) === "#") {
 					// if m_input is to be an array of lines then this probably wont work very well
 					while (
 						m_curPtr < m_input.length &&
@@ -365,15 +365,15 @@ var shaderLibrary = (function() {
 				var p = m_curPtr;
 				while (isNumeric(m_input.charAt(p))) ++p;
 				
-				if (m_input.charAt(p) == '.') { // float
+				if (m_input.charAt(p) === '.') { // float
 					
 					++p;
 					while (isNumeric(m_input.charAt(p))) ++p;
 					
-					if (m_input.charAt(p) == 'e' || m_input.charAt(p) == 'E') {
+					if (m_input.charAt(p) === 'e' || m_input.charAt(p) === 'E') {
 						
 						++p;
-						if (m_input.charAt(p) == '+' || m_input.charAt(p) == '-') ++p;
+						if (m_input.charAt(p) === '+' || m_input.charAt(p) === '-') ++p;
 						
 						de_assert(p < m_input.length && isNumeric(m_input.charAt(p)));
 						while (isNumeric(m_input.charAt(p))) ++p;
@@ -390,13 +390,13 @@ var shaderLibrary = (function() {
 					
 				}
 			
-			} else if (m_input.charAt(m_curPtr) == '"' && m_input.charAt(m_curPtr + 1) == '"') { // shader source
+			} else if (m_input.charAt(m_curPtr) === '"' && m_input.charAt(m_curPtr + 1) === '"') { // shader source
 			
 				var p = m_curPtr + 2;
 				
 				while (m_input.charAt(p) != '"' || m_input.charAt(p + 1) != '"') {
 					de_assert(p < m_input.length);
-					if (m_input.charAt(p) == '\\') {
+					if (m_input.charAt(p) === '\\') {
 						de_assert(p+1 < m_input.length);
 						p += 2;
 					} else {
@@ -408,7 +408,7 @@ var shaderLibrary = (function() {
 				m_curToken = Token.TOKEN_SHADER_SOURCE;
 				m_curTokenStr = m_input.substr(m_curPtr, p - m_curPtr);
 				
-			} else if (m_input.charAt(m_curPtr) == '"' || m_input.charAt(m_curPtr) == "'") {
+			} else if (m_input.charAt(m_curPtr) === '"' || m_input.charAt(m_curPtr) === "'") {
 				
 				var delimitor = m_input.charAt(m_curPtr);
 				var p = m_curPtr + 1;
@@ -416,7 +416,7 @@ var shaderLibrary = (function() {
 				while (m_input.charAt(p) != delimitor) {
 					
 					de_assert(p < m_input.length);
-					if (m_input.charAt(p) == '\\') {
+					if (m_input.charAt(p) === '\\') {
 						de_assert(p+1 < m_input.length);
 						p += 2;
 					} else {
@@ -484,32 +484,32 @@ var shaderLibrary = (function() {
 		};
 		var mapDataTypeToken   = function(token) {
 			switch (token) {
-				case Token.TOKEN_FLOAT:           return shaderUtils.DataType.TYPE_FLOAT;
-				case Token.TOKEN_FLOAT_VEC2:      return shaderUtils.DataType.TYPE_FLOAT_VEC2;
-				case Token.TOKEN_FLOAT_VEC3:      return shaderUtils.DataType.TYPE_FLOAT_VEC3;
-				case Token.TOKEN_FLOAT_VEC4:      return shaderUtils.DataType.TYPE_FLOAT_VEC4;
-				case Token.TOKEN_FLOAT_MAT2:      return shaderUtils.DataType.TYPE_FLOAT_MAT2;
-				case Token.TOKEN_FLOAT_MAT2X3:    return shaderUtils.DataType.TYPE_FLOAT_MAT2X3;
-				case Token.TOKEN_FLOAT_MAT2X4:    return shaderUtils.DataType.TYPE_FLOAT_MAT2X4;
-				case Token.TOKEN_FLOAT_MAT3X2:    return shaderUtils.DataType.TYPE_FLOAT_MAT3X2;
-				case Token.TOKEN_FLOAT_MAT3:      return shaderUtils.DataType.TYPE_FLOAT_MAT3;
-				case Token.TOKEN_FLOAT_MAT3X4:    return shaderUtils.DataType.TYPE_FLOAT_MAT3X4;
-				case Token.TOKEN_FLOAT_MAT4X2:    return shaderUtils.DataType.TYPE_FLOAT_MAT4X2;
-				case Token.TOKEN_FLOAT_MAT4X3:    return shaderUtils.DataType.TYPE_FLOAT_MAT4X3;
-				case Token.TOKEN_FLOAT_MAT4:      return shaderUtils.DataType.TYPE_FLOAT_MAT4;
-				case Token.TOKEN_INT:             return shaderUtils.DataType.TYPE_INT;
-				case Token.TOKEN_INT_VEC2:        return shaderUtils.DataType.TYPE_INT_VEC2;
-				case Token.TOKEN_INT_VEC3:        return shaderUtils.DataType.TYPE_INT_VEC3;
-				case Token.TOKEN_INT_VEC4:        return shaderUtils.DataType.TYPE_INT_VEC4;
-				case Token.TOKEN_UINT:            return shaderUtils.DataType.TYPE_UINT;
-				case Token.TOKEN_UINT_VEC2:       return shaderUtils.DataType.TYPE_UINT_VEC2;
-				case Token.TOKEN_UINT_VEC3:       return shaderUtils.DataType.TYPE_UINT_VEC3;
-				case Token.TOKEN_UINT_VEC4:       return shaderUtils.DataType.TYPE_UINT_VEC4;
-				case Token.TOKEN_BOOL:            return shaderUtils.DataType.TYPE_BOOL;
-				case Token.TOKEN_BOOL_VEC2:       return shaderUtils.DataType.TYPE_BOOL_VEC2;
-				case Token.TOKEN_BOOL_VEC3:       return shaderUtils.DataType.TYPE_BOOL_VEC3;
-				case Token.TOKEN_BOOL_VEC4:       return shaderUtils.DataType.TYPE_BOOL_VEC4;
-				default:                          return shaderUtils.DataType.TYPE_INVALID;
+				case Token.TOKEN_FLOAT:           return shaderUtils.DataType.FLOAT;
+				case Token.TOKEN_FLOAT_VEC2:      return shaderUtils.DataType.FLOAT_VEC2;
+				case Token.TOKEN_FLOAT_VEC3:      return shaderUtils.DataType.FLOAT_VEC3;
+				case Token.TOKEN_FLOAT_VEC4:      return shaderUtils.DataType.FLOAT_VEC4;
+				case Token.TOKEN_FLOAT_MAT2:      return shaderUtils.DataType.FLOAT_MAT2;
+				case Token.TOKEN_FLOAT_MAT2X3:    return shaderUtils.DataType.FLOAT_MAT2X3;
+				case Token.TOKEN_FLOAT_MAT2X4:    return shaderUtils.DataType.FLOAT_MAT2X4;
+				case Token.TOKEN_FLOAT_MAT3X2:    return shaderUtils.DataType.FLOAT_MAT3X2;
+				case Token.TOKEN_FLOAT_MAT3:      return shaderUtils.DataType.FLOAT_MAT3;
+				case Token.TOKEN_FLOAT_MAT3X4:    return shaderUtils.DataType.FLOAT_MAT3X4;
+				case Token.TOKEN_FLOAT_MAT4X2:    return shaderUtils.DataType.FLOAT_MAT4X2;
+				case Token.TOKEN_FLOAT_MAT4X3:    return shaderUtils.DataType.FLOAT_MAT4X3;
+				case Token.TOKEN_FLOAT_MAT4:      return shaderUtils.DataType.FLOAT_MAT4;
+				case Token.TOKEN_INT:             return shaderUtils.DataType.INT;
+				case Token.TOKEN_INT_VEC2:        return shaderUtils.DataType.INT_VEC2;
+				case Token.TOKEN_INT_VEC3:        return shaderUtils.DataType.INT_VEC3;
+				case Token.TOKEN_INT_VEC4:        return shaderUtils.DataType.INT_VEC4;
+				case Token.TOKEN_UINT:            return shaderUtils.DataType.UINT;
+				case Token.TOKEN_UINT_VEC2:       return shaderUtils.DataType.UINT_VEC2;
+				case Token.TOKEN_UINT_VEC3:       return shaderUtils.DataType.UINT_VEC3;
+				case Token.TOKEN_UINT_VEC4:       return shaderUtils.DataType.UINT_VEC4;
+				case Token.TOKEN_BOOL:            return shaderUtils.DataType.BOOL;
+				case Token.TOKEN_BOOL_VEC2:       return shaderUtils.DataType.BOOL_VEC2;
+				case Token.TOKEN_BOOL_VEC3:       return shaderUtils.DataType.BOOL_VEC3;
+				case Token.TOKEN_BOOL_VEC4:       return shaderUtils.DataType.BOOL_VEC4;
+				default:                          return shaderUtils.DataType.INVALID;
 			}
 		};
 		var getTokenName       = function(token) {
@@ -589,13 +589,13 @@ var shaderLibrary = (function() {
 			var elems = [];
 			
 			if (scalarSize > 1) {
-				de_assert(mapDataTypeToken(m_curToken) == expectedDataType);
+				de_assert(mapDataTypeToken(m_curToken) === expectedDataType);
 				advanceToken(); // data type(float, vec2, etc.)
 				advanceToken(Token.TOKEN_LEFT_PAREN);
 			}
 			
 			for (var i = 0 ; i < scalarSize ; ++i) {
-				if (scalarType == "float") {
+				if (scalarType === "float") {
 				
 					var signMult = 1.0;
 					if (m_curToken === Token.TOKEN_MINUS) {
@@ -607,7 +607,7 @@ var shaderLibrary = (function() {
 					elems.push(signMult * parseFloatLiteral(m_curTokenStr));
 					advanceToken(Token.TOKEN_FLOAT_LITERAL)
 					
-				} else if (scalarType == "int" || scalarType == "uint") {
+				} else if (scalarType === "int" || scalarType === "uint") {
 				
 					var signMult = 1;
 					if (m_curToken === Token.TOKEN_MINUS) {
@@ -621,8 +621,8 @@ var shaderLibrary = (function() {
 				
 				} else {
 				
-					de_assert(scalarType == "bool");
-					elems.push(m_curToken == Token.TOKEN_TRUE);
+					de_assert(scalarType === "bool");
+					elems.push(m_curToken === Token.TOKEN_TRUE);
 					if (m_curToken != Token.TOKEN_TRUE && m_curToken != Token.TOKEN_FALSE) {
 						throw Error("unexpected token, expecting bool: " + m_curTokenStr);
 					}
@@ -672,15 +672,15 @@ var shaderLibrary = (function() {
 			
 			// parse data type
 			result.dataType = mapDataTypeToken(m_curToken);
-			if (result.dataType == shaderUtils.DataType.TYPE_INVALID) {
+			if (result.dataType === shaderUtils.DataType.INVALID) {
 				throw Error("unexpected token when parsing value data type: " + m_curTokenStr);
 			}
 			advanceToken();
 			
 			// parse value name
-			if (m_curToken == Token.TOKEN_IDENTIFIER) {
+			if (m_curToken === Token.TOKEN_IDENTIFIER) {
 				result.valueName = m_curTokenStr;
-			} else if (m_curToken == Token.TOKEN_STRING) {
+			} else if (m_curToken === Token.TOKEN_STRING) {
 				result.valueName = parseStringLiteral(m_curTokenStr);
 			} else {
 				throw Error("unexpected token when parsing value name: " + m_curTokenStr);
@@ -699,9 +699,9 @@ var shaderLibrary = (function() {
 					parseValueElement(result.dataType, result);
 					result.arrayLength += 1;
 					
-					if (m_curToken == Token.TOKEN_RIGHT_BRACKET) {
+					if (m_curToken === Token.TOKEN_RIGHT_BRACKET) {
 						break;
-					} else if (m_curToken == Token.TOKEN_VERTICAL_BAR) { // pipe?
+					} else if (m_curToken === Token.TOKEN_VERTICAL_BAR) { // pipe?
 						advanceToken();
 						continue;
 					} else {
@@ -729,12 +729,12 @@ var shaderLibrary = (function() {
 			
 			for (;;) {
 				if (
-					m_curToken == Token.TOKEN_UNIFORM || 
-					m_curToken == Token.TOKEN_INPUT || 
-					m_curToken == Token.TOKEN_OUTPUT
+					m_curToken === Token.TOKEN_UNIFORM || 
+					m_curToken === Token.TOKEN_INPUT || 
+					m_curToken === Token.TOKEN_OUTPUT
 				) {
 					parseValue(valueBlock);
-				} else if (m_curToken == Token.TOKEN_RIGHT_BRACE) {
+				} else if (m_curToken === Token.TOKEN_RIGHT_BRACE) {
 					break;
 				} else {
 					throw Error("unexpected( token when parsing a value block: " + m_curTokenStr);
@@ -747,7 +747,7 @@ var shaderLibrary = (function() {
 			var arrayLength = 1;
 			for (var i = 0; i < valueBlock.values.length ; ++i) {
 				if (valueBlock.values[i].arrayLength > 1) {
-					de_assert(arrayLength == 1 || arrayLength == valueBlock.values[i].arrayLength);
+					de_assert(arrayLength === 1 || arrayLength === valueBlock.values[i].arrayLength);
 					arrayLength = valueBlock.values[i].arrayLength;
 				}
 			}
@@ -778,11 +778,11 @@ var shaderLibrary = (function() {
 			
 			for (;;) {
 			
-				if (m_curToken == Token.TOKEN_END) {
+				if (m_curToken === Token.TOKEN_END) {
 					
 					break;
 					
-				} else if (m_curToken == Token.TOKEN_DESC) {
+				} else if (m_curToken === Token.TOKEN_DESC) {
 				
 					advanceToken();
 					assumeToken(Token.TOKEN_STRING);
@@ -790,7 +790,7 @@ var shaderLibrary = (function() {
 					description = parseStringLiteral(m_curTokenStr);
 					advanceToken();
 				
-				} else if (m_curToken == Token.TOKEN_EXPECT) {
+				} else if (m_curToken === Token.TOKEN_EXPECT) {
 					
 					advanceToken();
 					assumeToken(Token.TOKEN_IDENTIFIER);
@@ -806,16 +806,16 @@ var shaderLibrary = (function() {
 					
 					advanceToken();
 					
-				} else if (m_curToken == Token.TOKEN_VALUES) {
+				} else if (m_curToken === Token.TOKEN_VALUES) {
 					
 					var block = shaderLibraryCase.genValueBlock();
 					parseValueBlock(block);
 					valueBlockList.push(block);
 					
 				} else if (
-					m_curToken == Token.TOKEN_BOTH ||
-					m_curToken == Token.TOKEN_VERTEX ||
-					m_curToken == Token.TOKEN_FRAGMENT
+					m_curToken === Token.TOKEN_BOTH ||
+					m_curToken === Token.TOKEN_VERTEX ||
+					m_curToken === Token.TOKEN_FRAGMENT
 				) {
 					
 					var token = m_curToken;
@@ -834,7 +834,7 @@ var shaderLibrary = (function() {
 						default: de_assert(false);                          break;
 					}
 					
-				} else if (m_curToken == Token.TOKEN_VERSION) {
+				} else if (m_curToken === Token.TOKEN_VERSION) {
 					
 					advanceToken();
 					
@@ -845,25 +845,25 @@ var shaderLibrary = (function() {
 					versionNum = parseIntLiteral(m_curTokenStr);
 					advanceToken();
 					
-					if (m_curToken == Token.TOKEN_IDENTIFIER) {
+					if (m_curToken === Token.TOKEN_IDENTIFIER) {
 						postfix = m_curTokenStr;
 						advanceToken();
 					}
 					
 					// TODO: need to fix these constants, we dont have glu
-					if      (versionNum == 100 && postfix == "es")  version = "100";
-					else if (versionNum == 300 && postfix == "es")  version = "300 es";
-					else if (versionNum == 310 && postfix == "es")  version = "310 es";
-					else if (versionNum == 130)                     version = "130";
-					else if (versionNum == 140)                     version = "140";
-					else if (versionNum == 150)                     version = "150";
-					else if (versionNum == 330)                     version = "330";
-					else if (versionNum == 400)                     version = "400";
-					else if (versionNum == 410)                     version = "410";
-					else if (versionNum == 420)                     version = "420";
-					else if (versionNum == 430)                     version = "430";
-					else if (versionNum == 440)                     version = "440";
-					else if (versionNum == 450)                     version = "450";
+					if      (versionNum === 100 && postfix === "es")  version = "100";
+					else if (versionNum === 300 && postfix === "es")  version = "300 es";
+					else if (versionNum === 310 && postfix === "es")  version = "310 es";
+					else if (versionNum === 130)                     version = "130";
+					else if (versionNum === 140)                     version = "140";
+					else if (versionNum === 150)                     version = "150";
+					else if (versionNum === 330)                     version = "330";
+					else if (versionNum === 400)                     version = "400";
+					else if (versionNum === 410)                     version = "410";
+					else if (versionNum === 420)                     version = "420";
+					else if (versionNum === 430)                     version = "430";
+					else if (versionNum === 440)                     version = "440";
+					else if (versionNum === 450)                     version = "450";
 					else
 						throw Error("Unknown GLSL version");
 					
@@ -926,11 +926,11 @@ var shaderLibrary = (function() {
 			
 			for (;;) {
 				
-				if (m_curToken == Token.TOKEN_END) {
+				if (m_curToken === Token.TOKEN_END) {
 					break;
-				} else if (m_curToken == Token.TOKEN_GROUP) {
+				} else if (m_curToken === Token.TOKEN_GROUP) {
 					parseShaderGroup(children);
-				} else if (m_curToken == Token.TOKEN_CASE) {
+				} else if (m_curToken === Token.TOKEN_CASE) {
 					parseShaderCase(children);
 				} else {
 					throw Error("unexpected token while parsing shader group: " + m_curTokenStr);

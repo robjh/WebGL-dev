@@ -599,6 +599,7 @@ var specializeVertexShader = function(src, valueBlock) {
 		var val = valueBlock.values[ndx];
 		var	valueName		= val.valueName;
 		var	floatType		= shaderUtils.getDataTypeFloatScalars(val.dataType);
+		var dataTypeName = shaderUtils.getDataTypeName(val.dataType);
 
 		if (val.storageType === shaderCase.value.STORAGE_INPUT)
 		{
@@ -609,7 +610,7 @@ var specializeVertexShader = function(src, valueBlock) {
 			else
 			{
 				decl += vtxIn + " " + floatType + " a_" + valueName + ";\n";
-				setup += val.dataType + " " + valueName + " = " + val.dataType + "(a_" + valueName + ");\n";
+				setup += dataTypeName + " " + valueName + " = " + dataTypeName + "(a_" + valueName + ");\n";
 			}
 		}
 		else if (val.storageType === shaderCase.value.STORAGE_OUTPUT)
@@ -619,7 +620,7 @@ var specializeVertexShader = function(src, valueBlock) {
 			else
 			{
 				decl += vtxOut + " " + floatType + " v_" + valueName + ";\n";
-				decl += val.dataType + " " + valueName + ";\n";
+				decl += dataTypeName + " " + valueName + ";\n";
 
 				output += "v_" + valueName + " = " + floatType + "(" + valueName + ");\n";
 			}
@@ -627,11 +628,11 @@ var specializeVertexShader = function(src, valueBlock) {
 	}
 
 	var baseSrc = src
-					.replace("${DECLARATIONS}", decl)
-					.replace("${DECLARATIONS:single-line}", decl.replace("\n", " "))
-					.replace("${SETUP}", setup)
-					.replace("${OUTPUT}", output)
-					.replace("${POSITION_FRAG_COLOR}", "gl_Position");
+					.replace(/\$\{DECLARATIONS\}/g, decl)
+					.replace(/\$\{DECLARATIONS:single-line\}/g, decl.replace(/\n/g, " "))
+					.replace(/\$\{SETUP\}/g, setup)
+					.replace(/\$\{OUTPUT\}/g, output)
+					.replace(/\$\{POSITION_FRAG_COLOR\}/g, "gl_Position");
 
 	
 	var	withExt	= injectExtensionRequirements(baseSrc, shadingProgram.shaderType.VERTEX, state.currentTest.spec.requirements);
@@ -662,7 +663,7 @@ var specializeVertexOnly = function(src, valueBlock) {
 		{
 			if (shaderUtils.getDataTypeScalarType(val.dataType) === "float")
 			{
-				decl += vtxIn + " " + typeStr + " " + valueName + ";\n";
+				decl += vtxIn + " " + type + " " + valueName + ";\n";
 			}
 			else
 			{
@@ -673,15 +674,15 @@ var specializeVertexOnly = function(src, valueBlock) {
 			}
 		}
 		else if (val.storageType === shaderCase.value.STORAGE_UNIFORM &&
-					!val.valueName.match('.'))
+					!val.valueName.match('\\.'))
 			decl += "uniform " + type + " " + valueName + ";\n";
 	}
 
 	var baseSrc = src
-					.replace("${VERTEX_DECLARATIONS}", decl)
-					.replace("${VERTEX_DECLARATIONS:single-line}", decl.replace("\n", " "))
-					.replace("${VERTEX_SETUP}", setup)
-					.replace("${FRAGMENT_OUTPUT}", output);
+					.replace(/\$\{VERTEX_DECLARATIONS\}/g, decl)
+					.replace(/\$\{VERTEX_DECLARATIONS:single-line\}/g, decl.replace(/\n/g, " "))
+					.replace(/\$\{VERTEX_SETUP\}/g, setup)
+					.replace(/\$\{VERTEX_OUTPUT\}/g, output);
 
 	var withExt	= injectExtensionRequirements(baseSrc, shadingProgram.shaderType.VERTEX, state.currentTest.spec.requirements);
 
@@ -734,11 +735,11 @@ var specializeFragmentShader = function(src, valueBlock) {
 	/* \todo [2010-04-01 petri] Check all outputs. */
 
 	var baseSrc = src
-					.replace("${DECLARATIONS}", decl)
-					.replace("${DECLARATIONS:single-line}", decl.replace("\n", " "))
-					.replace("${SETUP}", setup)
-					.replace("${OUTPUT}", output)
-					.replace("${POSITION_FRAG_COLOR}", fragColor);
+					.replace(/\$\{DECLARATIONS\}/g, decl)
+					.replace(/\$\{DECLARATIONS:single-line\}/g, decl.replace(/\n/g, " "))
+					.replace(/\$\{SETUP\}/g, setup)
+					.replace(/\$\{OUTPUT\}/g, output)
+					.replace(/\$\{POSITION_FRAG_COLOR\}/g, fragColor);
 
 	var withExt	= injectExtensionRequirements(baseSrc, shadingProgram.shaderType.FRAGMENT, state.currentTest.spec.requirements);
 
@@ -772,15 +773,15 @@ var specializeFragmentOnly = function(src, valueBlock) {
 			decl += "uniform " + refType + " ref_" + valueName + ";\n";
 			decl += refType + " " + valueName + ";\n";
 		} else if (val.storageType === shaderCase.value.STORAGE_UNIFORM &&
-					!valueName.match('.'))
+					!valueName.match('\\.'))
 			decl += "uniform " + refType + " " + valueName + ";\n";
 	}
 
 	var baseSrc = src
-					.replace("${FRAGMENT_DECLARATIONS}", decl)
-					.replace("${FRAGMENT_DECLARATIONS:single-line}", decl.replace("\n", " "))
-					.replace("${FRAGMENT_OUTPUT}", output)
-					.replace("${FRAG_COLOR}", fragColor);
+					.replace(/\$\{FRAGMENT_DECLARATIONS\}/g, decl)
+					.replace(/\$\{FRAGMENT_DECLARATIONS:single-line\}/g, decl.replace(/\n/g, " "))
+					.replace(/\$\{FRAGMENT_OUTPUT\}/g, output)
+					.replace(/\$\{FRAG_COLOR\}/g, fragColor);
 
 	var withExt	= injectExtensionRequirements(baseSrc, shadingProgram.shaderType.FRAGMENT, state.currentTest.spec.requirements);
 
@@ -813,7 +814,7 @@ var setUniformValue = function(gl, pipelinePrograms, name, val, arrayNdx) {
 
 		gl.useProgram(pipelinePrograms[programNdx]);
 
-		var element = val.elements.slice(arrayNdx, arrayNdx + scalarSize);
+		var element = val.elements.slice(elemNdx, elemNdx + scalarSize);
 		switch (val.dataType)
 		{
 			case shaderUtils.DataType.FLOAT:		gl.uniform1fv(loc, new Float32Array(element));						break;
@@ -1109,10 +1110,19 @@ var execute = function()
 				{
 					// Replicate values four times.
 					var scalars = [];
-					for (var repNdx = 0; repNdx < numVerticesPerDraw; repNdx++)
-						for (var ndx = 0; ndx < scalarSize; ndx++)
-							scalars[repNdx*scalarSize + ndx] = val.elements[arrayNdx*scalarSize + ndx];
-
+					
+					if (shaderUtils.isDataTypeMatrix(dataType)) {
+						var numCols = shaderUtils.getDataTypeMatrixNumColumns(dataType);
+						var numRows = shaderUtils.getDataTypeMatrixNumRows(dataType);
+						for (var repNdx = 0; repNdx < numVerticesPerDraw; repNdx++)
+							for (var i = 0; i < numCols; i++)
+								for (var j = 0; j < numRows; j++)
+									scalars[repNdx*numCols + i*numRows*numVerticesPerDraw + j] = val.elements[arrayNdx*scalarSize + i*numRows + j]
+					} else
+						for (var repNdx = 0; repNdx < numVerticesPerDraw; repNdx++)
+							for (var ndx = 0; ndx < scalarSize; ndx++)
+								scalars[repNdx*scalarSize + ndx] = val.elements[arrayNdx*scalarSize + ndx];
+					
 								// Attribute name prefix.
 					var attribPrefix = "";
 					// \todo [2010-05-27 petri] Should latter condition only apply for vertex cases (or actually non-fragment cases)?
@@ -1134,8 +1144,9 @@ var execute = function()
 						var numRows = shaderUtils.getDataTypeMatrixNumRows(dataType);
 						assertMsg(scalarSize === numCols * numRows, "Matrix size sanity check");
 
+						var colSize = numRows * numVerticesPerDraw;
 						for (var i = 0; i < numCols; i++) {
-							var colData = scalars.slice(i * numRows, i * numRows + scalarSize);
+							var colData = scalars.slice(i * colSize, (i + 1) * colSize);
 							vertexArrays.push(new gluDraw.VertexArrayBinding(gl.FLOAT, attribLoc + i, numRows, numVerticesPerDraw, colData));			
 						}
 					}
@@ -1211,7 +1222,7 @@ var execute = function()
 				assertMsg(gl.getError() === gl.NO_ERROR, "read pixels");
 
 				if (!checkPixels(surface, minX, maxX, minY, maxY)) {
-					testFailed("INCORRECT RESULT for (value block " + (blockNdx+1) + " of " +  spec.valueBlocks.length
+					testFailed("INCORRECT RESULT for (value block " + (blockNdx+1) + " of " +  spec.valueBlockList.length
 											+ ", sub-case " + (arrayNdx+1) + " of " + block.arrayLength + "):");
 
 					/* TODO: Port */
@@ -1245,7 +1256,7 @@ var execute = function()
 var runTestCases = function() {
 	var state = stateMachine.getState();
 	state.currentTest = state.testCases.next();
-	//state.currentTest = state.testCases.find('const_float_assign_varying');
+	//state.currentTest = state.testCases.find('conversions.scalar_to_vector.float_to_vec2_vertex');
 	if (state.currentTest) {
 		try {
 			init();
