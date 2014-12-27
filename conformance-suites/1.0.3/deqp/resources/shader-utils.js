@@ -85,32 +85,32 @@ var getDataTypeFloatScalars = function(dataType) {
 	
 	switch (dataType) {
 		case DataType.TYPE_FLOAT: return "float";
-		case DataType.TYPE_VEC2 : return "vec2";
-		case DataType.TYPE_VEC3 : return "vec3";
-		case DataType.TYPE_VEC4 : return "vec4";
-		case DataType.TYPE_MAT2 : return "mat2";
-		case DataType.TYPE_MAT2X3: return "mat2x3";
-		case DataType.TYPE_MAT2X4: return "mat2x4";
-		case DataType.TYPE_MAT3X2: return "mat3x2";
-		case DataType.TYPE_MAT3 : return "mat3";
-		case DataType.TYPE_MAT3X4: return "mat3x4";
-		case DataType.TYPE_MAT4X2: return "mat4x2";
-		case DataType.TYPE_MAT4X3: return "mat4x3";
-		case DataType.TYPE_MAT4 : return "mat4";
+		case DataType.TYPE_FLOAT_VEC2 : return "vec2";
+		case DataType.TYPE_FLOAT_VEC3 : return "vec3";
+		case DataType.TYPE_FLOAT_VEC4 : return "vec4";
+		case DataType.TYPE_FLOAT_MAT2 : return "mat2";
+		case DataType.TYPE_FLOAT_MAT2X3: return "mat2x3";
+		case DataType.TYPE_FLOAT_MAT2X4: return "mat2x4";
+		case DataType.TYPE_FLOAT_MAT3X2: return "mat3x2";
+		case DataType.TYPE_FLOAT_MAT3 : return "mat3";
+		case DataType.TYPE_FLOAT_MAT3X4: return "mat3x4";
+		case DataType.TYPE_FLOAT_MAT4X2: return "mat4x2";
+		case DataType.TYPE_FLOAT_MAT4X3: return "mat4x3";
+		case DataType.TYPE_FLOAT_MAT4 : return "mat4";
 		case DataType.TYPE_INT: return "float";
-		case DataType.TYPE_IVEC2: return "vec2";
-		case DataType.TYPE_IVEC3: return "vec3";
-		case DataType.TYPE_IVEC4: return "vec4";
+		case DataType.TYPE_INT_VEC2: return "vec2";
+		case DataType.TYPE_INT_VEC3: return "vec3";
+		case DataType.TYPE_INT_VEC4: return "vec4";
 		case DataType.TYPE_UINT: return "float";
-		case DataType.TYPE_UVEC2: return "vec2";
-		case DataType.TYPE_UVEC3: return "vec3";
-		case DataType.TYPE_UVEC4: return "vec4";
+		case DataType.TYPE_UINT_VEC2: return "vec2";
+		case DataType.TYPE_UINT_VEC3: return "vec3";
+		case DataType.TYPE_UINT_VEC4: return "vec4";
 		case DataType.TYPE_BOOL: return "float";
-		case DataType.TYPE_BVEC2: return "vec2";
-		case DataType.TYPE_BVEC3: return "vec3";
-		case DataType.TYPE_BVEC4: return "vec4";
+		case DataType.TYPE_BOOL_VEC2: return "vec2";
+		case DataType.TYPE_BOOL_VEC3: return "vec3";
+		case DataType.TYPE_BOOL_VEC4: return "vec4";
 	};
-	testFailed("Unrecognized dataType " + dataType);
+	throw Error("Unrecognized dataType " + dataType);
 };
 
 /**
@@ -120,30 +120,30 @@ var getDataTypeFloatScalars = function(dataType) {
 var getDataTypeScalarType = function(dataType) {
 	switch (dataType) {
 		case DataType.TYPE_FLOAT: return "float";
-		case DataType.TYPE_VEC2 : return "float";
-		case DataType.TYPE_VEC3 : return "float";
-		case DataType.TYPE_VEC4 : return "float";
-		case DataType.TYPE_MAT2 : return "float";
-		case DataType.TYPE_MAT2X3: return "float";
-		case DataType.TYPE_MAT2X4: return "float";
-		case DataType.TYPE_MAT3X2: return "float";
-		case DataType.TYPE_MAT3 : return "float";
-		case DataType.TYPE_MAT3X4: return "float";
-		case DataType.TYPE_MAT4X2: return "float";
-		case DataType.TYPE_MAT4X3: return "float";
-		case DataType.TYPE_MAT4 : return "float";
+		case DataType.TYPE_FLOAT_VEC2 : return "float";
+		case DataType.TYPE_FLOAT_VEC3 : return "float";
+		case DataType.TYPE_FLOAT_VEC4 : return "float";
+		case DataType.TYPE_FLOAT_MAT2 : return "float";
+		case DataType.TYPE_FLOAT_MAT2X3: return "float";
+		case DataType.TYPE_FLOAT_MAT2X4: return "float";
+		case DataType.TYPE_FLOAT_MAT3X2: return "float";
+		case DataType.TYPE_FLOAT_MAT3 : return "float";
+		case DataType.TYPE_FLOAT_MAT3X4: return "float";
+		case DataType.TYPE_FLOAT_MAT4X2: return "float";
+		case DataType.TYPE_FLOAT_MAT4X3: return "float";
+		case DataType.TYPE_FLOAT_MAT4 : return "float";
 		case DataType.TYPE_INT: return "int";
-		case DataType.TYPE_IVEC2: return "int";
-		case DataType.TYPE_IVEC3: return "int";
-		case DataType.TYPE_IVEC4: return "int";
+		case DataType.TYPE_INT_VEC2: return "int";
+		case DataType.TYPE_INT_VEC3: return "int";
+		case DataType.TYPE_INT_VEC4: return "int";
 		case DataType.TYPE_UINT: return "uint";
-		case DataType.TYPE_UVEC2: return "uint";
-		case DataType.TYPE_UVEC3: return "uint";
-		case DataType.TYPE_UVEC4: return "uint";
+		case DataType.TYPE_UINT_VEC2: return "uint";
+		case DataType.TYPE_UINT_VEC3: return "uint";
+		case DataType.TYPE_UINT_VEC4: return "uint";
 		case DataType.TYPE_BOOL: return "bool";
-		case DataType.TYPE_BVEC2: return "bool";
-		case DataType.TYPE_BVEC3: return "bool";
-		case DataType.TYPE_BVEC4: return "bool";
+		case DataType.TYPE_BOOL_VEC2: return "bool";
+		case DataType.TYPE_BOOL_VEC3: return "bool";
+		case DataType.TYPE_BOOL_VEC4: return "bool";
 		case DataType.TYPE_SAMPLER_2D: return "sampler2D";
 		case DataType.TYPE_SAMPLER_CUBE: return "samplerCube";
 		case DataType.TYPE_SAMPLER_2D_ARRAY: return "sampler2DArray";
@@ -160,7 +160,7 @@ var getDataTypeScalarType = function(dataType) {
 		case DataType.TYPE_UINT_SAMPLER_2D_ARRAY: "usampler2DArray";
 		case DataType.TYPE_UINT_SAMPLER_3D: return "usampler3D";
 	};
-	testFailed("Unrecognized dataType " + dataType);
+	throw Error("Unrecognized dataType " + dataType);
 }
 /**
  * @param {string} Shader datatype 
@@ -170,9 +170,9 @@ var isDataTypeIntOrIVec = function(dataType) {
 	/** @bool */ var retVal = false;
 	switch (dataType) {
 	case DataType.TYPE_INT:
-	case DataType.TYPE_IVEC2:
-	case DataType.TYPE_IVEC3:
-	case DataType.TYPE_IVEC4:
+	case DataType.TYPE_INT_VEC2:
+	case DataType.TYPE_INT_VEC3:
+	case DataType.TYPE_INT_VEC4:
 		retVal = true;
 	};
 
@@ -182,30 +182,30 @@ var isDataTypeIntOrIVec = function(dataType) {
 var getDataTypeScalarSize = function(dataType) {
 	switch (dataType) {
 		case DataType.TYPE_FLOAT: return 1;
-		case DataType.TYPE_VEC2 : return 2;
-		case DataType.TYPE_VEC3 : return 3;
-		case DataType.TYPE_VEC4 : return 4;
-		case DataType.TYPE_MAT2 : return 4;
-		case DataType.TYPE_MAT2X3: return 6;
-		case DataType.TYPE_MAT2X4: return 8;
-		case DataType.TYPE_MAT3X2: return 6;
-		case DataType.TYPE_MAT3 : return 9;
-		case DataType.TYPE_MAT3X4: return 12;
-		case DataType.TYPE_MAT4X2: return 8;
-		case DataType.TYPE_MAT4X3: return 12;
-		case DataType.TYPE_MAT4 : return 16;
+		case DataType.TYPE_FLOAT_VEC2 : return 2;
+		case DataType.TYPE_FLOAT_VEC3 : return 3;
+		case DataType.TYPE_FLOAT_VEC4 : return 4;
+		case DataType.TYPE_FLOAT_MAT2 : return 4;
+		case DataType.TYPE_FLOAT_MAT2X3: return 6;
+		case DataType.TYPE_FLOAT_MAT2X4: return 8;
+		case DataType.TYPE_FLOAT_MAT3X2: return 6;
+		case DataType.TYPE_FLOAT_MAT3 : return 9;
+		case DataType.TYPE_FLOAT_MAT3X4: return 12;
+		case DataType.TYPE_FLOAT_MAT4X2: return 8;
+		case DataType.TYPE_FLOAT_MAT4X3: return 12;
+		case DataType.TYPE_FLOAT_MAT4 : return 16;
 		case DataType.TYPE_INT: return 1;
-		case DataType.TYPE_IVEC2: return 2;
-		case DataType.TYPE_IVEC3: return 3;
-		case DataType.TYPE_IVEC4: return 4;
+		case DataType.TYPE_INT_VEC2: return 2;
+		case DataType.TYPE_INT_VEC3: return 3;
+		case DataType.TYPE_INT_VEC4: return 4;
 		case DataType.TYPE_UINT: return 1;
-		case DataType.TYPE_UVEC2: return 2;
-		case DataType.TYPE_UVEC3: return 3;
-		case DataType.TYPE_UVEC4: return 4;
+		case DataType.TYPE_UINT_VEC2: return 2;
+		case DataType.TYPE_UINT_VEC3: return 3;
+		case DataType.TYPE_UINT_VEC4: return 4;
 		case DataType.TYPE_BOOL: return 1;
-		case DataType.TYPE_BVEC2: return 2;
-		case DataType.TYPE_BVEC3: return 3;
-		case DataType.TYPE_BVEC4: return 4;
+		case DataType.TYPE_BOOL_VEC2: return 2;
+		case DataType.TYPE_BOOL_VEC3: return 3;
+		case DataType.TYPE_BOOL_VEC4: return 4;
 		case DataType.TYPE_SAMPLER_2D: return 1;
 		case DataType.TYPE_SAMPLER_CUBE: return 1;
 		case DataType.TYPE_SAMPLER_2D_ARRAY: return 1;
@@ -222,20 +222,20 @@ var getDataTypeScalarSize = function(dataType) {
 		case DataType.TYPE_UINT_SAMPLER_2D_ARRAY: return  1;
 		case DataType.TYPE_UINT_SAMPLER_3D: return 1;
 	};
-	testFailed("Unrecognized dataType " + dataType);
+	throw Error("Unrecognized dataType " + dataType);
 };
 
 var isDataTypeMatrix = function(dataType) {
 	switch(dataType) {
-	case DataType.TYPE_MAT2 : 
-	case DataType.TYPE_MAT2X3:
-	case DataType.TYPE_MAT2X4:
-	case DataType.TYPE_MAT3X2:
-	case DataType.TYPE_MAT3 :
-	case DataType.TYPE_MAT3X4:
-	case DataType.TYPE_MAT4X2:
-	case DataType.TYPE_MAT4X3:
-	case DataType.TYPE_MAT3 :
+	case DataType.TYPE_FLOAT_MAT2 : 
+	case DataType.TYPE_FLOAT_MAT2X3:
+	case DataType.TYPE_FLOAT_MAT2X4:
+	case DataType.TYPE_FLOAT_MAT3X2:
+	case DataType.TYPE_FLOAT_MAT3 :
+	case DataType.TYPE_FLOAT_MAT3X4:
+	case DataType.TYPE_FLOAT_MAT4X2:
+	case DataType.TYPE_FLOAT_MAT4X3:
+	case DataType.TYPE_FLOAT_MAT3 :
 		return true;
 	}
 	return false;
@@ -243,32 +243,32 @@ var isDataTypeMatrix = function(dataType) {
 
 var getDataTypeMatrixNumColumns = function(dataType) {
 	switch(dataType) {
-	case DataType.TYPE_MAT2 : return 2;
-	case DataType.TYPE_MAT2X3: return 3;
-	case DataType.TYPE_MAT2X4: return 4;
-	case DataType.TYPE_MAT3X2: return 2;
-	case DataType.TYPE_MAT3 : return 3;
-	case DataType.TYPE_MAT3X4: return 4;
-	case DataType.TYPE_MAT4X2: return 2;
-	case DataType.TYPE_MAT4X3: return 3;
-	case DataType.TYPE_MAT3 : return 4;
+	case DataType.TYPE_FLOAT_MAT2 : return 2;
+	case DataType.TYPE_FLOAT_MAT2X3: return 3;
+	case DataType.TYPE_FLOAT_MAT2X4: return 4;
+	case DataType.TYPE_FLOAT_MAT3X2: return 2;
+	case DataType.TYPE_FLOAT_MAT3 : return 3;
+	case DataType.TYPE_FLOAT_MAT3X4: return 4;
+	case DataType.TYPE_FLOAT_MAT4X2: return 2;
+	case DataType.TYPE_FLOAT_MAT4X3: return 3;
+	case DataType.TYPE_FLOAT_MAT3 : return 4;
 	}
-	testFailed("Unrecognized dataType " + dataType);
+	throw Error("Unrecognized dataType " + dataType);
 };
 
 var getDataTypeMatrixNumRows = function(dataType) {
 	switch(dataType) {
-	case DataType.TYPE_MAT2 : return 2;
-	case DataType.TYPE_MAT2X3: return 2;
-	case DataType.TYPE_MAT2X4: return 2;
-	case DataType.TYPE_MAT3X2: return 3;
-	case DataType.TYPE_MAT3 : return 3;
-	case DataType.TYPE_MAT3X4: return 3;
-	case DataType.TYPE_MAT4X2: return 4;
-	case DataType.TYPE_MAT4X3: return 4;
-	case DataType.TYPE_MAT3 : return 4;
+	case DataType.TYPE_FLOAT_MAT2 : return 2;
+	case DataType.TYPE_FLOAT_MAT2X3: return 2;
+	case DataType.TYPE_FLOAT_MAT2X4: return 2;
+	case DataType.TYPE_FLOAT_MAT3X2: return 3;
+	case DataType.TYPE_FLOAT_MAT3 : return 3;
+	case DataType.TYPE_FLOAT_MAT3X4: return 3;
+	case DataType.TYPE_FLOAT_MAT4X2: return 4;
+	case DataType.TYPE_FLOAT_MAT4X3: return 4;
+	case DataType.TYPE_FLOAT_MAT3 : return 4;
 	}
-	testFailed("Unrecognized dataType " + dataType);
+	throw Error("Unrecognized dataType " + dataType);
 };
 
 var getDataTypeName = function(dataType)  {
@@ -323,7 +323,7 @@ var getDataTypeName = function(dataType)  {
 	case DataType.TYPE_UINT_SAMPLER_2D_ARRAY: return "usampler2DArray";
 	case DataType.TYPE_UINT_SAMPLER_3D: return "usampler3D";
 	}
-	testFailed("Unrecognized dataType " + dataType);
+	throw Error("Unrecognized dataType " + dataType);
 };
 
 return {

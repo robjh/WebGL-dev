@@ -543,8 +543,6 @@ return {
 
 }());
 
-
-
 var injectExtensionRequirements = function(baseCode, shaderType, requirements) {
 	var generateExtensionStatements = function(requirements, shaderType) {
 		var buf = "";
@@ -630,6 +628,7 @@ var specializeVertexShader = function(src, valueBlock) {
 
 	var baseSrc = src
 					.replace("${DECLARATIONS}", decl)
+					.replace("${DECLARATIONS:single-line}", decl.replace("\n", " "))
 					.replace("${SETUP}", setup)
 					.replace("${OUTPUT}", output)
 					.replace("${POSITION_FRAG_COLOR}", "gl_Position");
@@ -638,7 +637,57 @@ var specializeVertexShader = function(src, valueBlock) {
 	var	withExt	= injectExtensionRequirements(baseSrc, shadingProgram.shaderType.VERTEX, state.currentTest.spec.requirements);
 
 	return withExt;
+};
+
+var specializeVertexOnly = function(src, valueBlock) {
+	var	decl = "";
+	var	setup = "";
+	var	output = "";
+	var state = stateMachine.getState();
+	var		usesInout	= usesShaderInoutQualifiers(state.currentTest.spec.targetVersion);
+	var		vtxIn		= usesInout ? "in"	: "attribute";
+
+	// Output (write out position).
+	output += "gl_Position = dEQP_Position;\n";
+
+	// Declarations (position + attribute for each input, varying for each output).
+	decl += vtxIn + " highp vec4 dEQP_Position;\n";
+
+	for (var ndx = 0; ndx < valueBlock.values.length; ndx++) {
+		var val = valueBlock.values[ndx];
+		var	valueName		= val.valueName;
+		var	type	= shaderUtils.getDataTypeName(val.dataType);
+
+		if (val.storageType === shaderCase.value.STORAGE_INPUT)
+		{
+			if (shaderUtils.getDataTypeScalarType(val.dataType) === "float")
+			{
+				decl += vtxIn + " " + typeStr + " " + valueName + ";\n";
+			}
+			else
+			{
+				var	floatType		= shaderUtils.getDataTypeFloatScalars(val.dataType);
+
+				decl += vtxIn + " " + floatType + " a_" + valueName + ";\n";
+				setup += type + " " + valueName + " = " + type + "(a_" + valueName + ");\n";
+			}
+		}
+		else if (val.storageType === shaderCase.value.STORAGE_UNIFORM &&
+					!val.valueName.match('.'))
+			decl += "uniform " + type + " " + valueName + ";\n";
+	}
+
+	var baseSrc = src
+					.replace("${VERTEX_DECLARATIONS}", decl)
+					.replace("${VERTEX_DECLARATIONS:single-line}", decl.replace("\n", " "))
+					.replace("${VERTEX_SETUP}", setup)
+					.replace("${FRAGMENT_OUTPUT}", output);
+
+	var withExt	= injectExtensionRequirements(baseSrc, shadingProgram.shaderType.VERTEX, state.currentTest.spec.requirements);
+
+	return withExt;
 }
+
 
 var specializeFragmentShader = function(src, valueBlock) {
 	var	decl = "";
@@ -686,6 +735,7 @@ var specializeFragmentShader = function(src, valueBlock) {
 
 	var baseSrc = src
 					.replace("${DECLARATIONS}", decl)
+					.replace("${DECLARATIONS:single-line}", decl.replace("\n", " "))
 					.replace("${SETUP}", setup)
 					.replace("${OUTPUT}", output)
 					.replace("${POSITION_FRAG_COLOR}", fragColor);
@@ -693,7 +743,49 @@ var specializeFragmentShader = function(src, valueBlock) {
 	var withExt	= injectExtensionRequirements(baseSrc, shadingProgram.shaderType.FRAGMENT, state.currentTest.spec.requirements);
 
 	return withExt;
-}
+};
+
+var specializeFragmentOnly = function(src, valueBlock) {
+	var	decl = "";
+	var	output = "";
+
+	var state = stateMachine.getState();
+
+	var		usesInout		= usesShaderInoutQualifiers(state.currentTest.spec.targetVersion);
+	var		customColorOut	= usesInout;
+	var		fragIn			= usesInout			? "in"				: "varying";
+	var		fragColor		= customColorOut	? "dEQP_FragColor"	: "gl_FragColor";
+
+	decl += genCompareFunctions(valueBlock, false);
+	output += genCompareOp(fragColor, valueBlock, "", null);
+
+	if (customColorOut)
+		decl += "layout(location = 0) out mediump vec4 dEQP_FragColor;\n";
+
+	for (var ndx = 0; ndx < valueBlock.values.length; ndx++) {
+		var val = valueBlock.values[ndx];
+		var					valueName		= val.valueName;
+		var					floatType		= shaderUtils.getDataTypeFloatScalars(val.dataType);
+		var refType = shaderUtils.getDataTypeName(val.dataType);
+
+		if (val.storageType === shaderCase.value.STORAGE_OUTPUT) {
+			decl += "uniform " + refType + " ref_" + valueName + ";\n";
+			decl += refType + " " + valueName + ";\n";
+		} else if (val.storageType === shaderCase.value.STORAGE_UNIFORM &&
+					!valueName.match('.'))
+			decl += "uniform " + refType + " " + valueName + ";\n";
+	}
+
+	var baseSrc = src
+					.replace("${FRAGMENT_DECLARATIONS}", decl)
+					.replace("${FRAGMENT_DECLARATIONS:single-line}", decl.replace("\n", " "))
+					.replace("${FRAGMENT_OUTPUT}", output)
+					.replace("${FRAG_COLOR}", fragColor);
+
+	var withExt	= injectExtensionRequirements(baseSrc, shadingProgram.shaderType.FRAGMENT, state.currentTest.spec.requirements);
+
+	return withExt;
+};
 
 /**
  * Is tessellation present
@@ -725,9 +817,9 @@ var setUniformValue = function(gl, pipelinePrograms, name, val, arrayNdx) {
 		switch (val.dataType)
 		{
 			case shaderUtils.DataType.TYPE_FLOAT:		gl.uniform1fv(loc, new Float32Array(element));						break;
-			case shaderUtils.DataType.TYPE_VEC2:		gl.uniform2fv(loc, new Float32Array(element));						break;
-			case shaderUtils.DataType.TYPE_VEC3:		gl.uniform3fv(loc, new Float32Array(element));						break;
-			case shaderUtils.DataType.TYPE_VEC4:		gl.uniform4fv(loc, new Float32Array(element));						break;
+			case shaderUtils.DataType.TYPE_FLOAT_VEC2:		gl.uniform2fv(loc, new Float32Array(element));						break;
+			case shaderUtils.DataType.TYPE_FLOAT_VEC3:		gl.uniform3fv(loc, new Float32Array(element));						break;
+			case shaderUtils.DataType.TYPE_FLOAT_VEC4:		gl.uniform4fv(loc, new Float32Array(element));						break;
 			case shaderUtils.DataType.TYPE_FLOAT_MAT2:	gl.uniformMatrix2fv(loc, gl.FALSE, new Float32Array(element));		break;
 			case shaderUtils.DataType.TYPE_FLOAT_MAT3:	gl.uniformMatrix3fv(loc, gl.FALSE, new Float32Array(element));		break;
 			case shaderUtils.DataType.TYPE_FLOAT_MAT4:	gl.uniformMatrix4fv(loc, gl.FALSE, new Float32Array(element));		break;
@@ -811,7 +903,10 @@ var init = function() {
 	var sources = [];
 	
 	if (test.spec.caseType === caseType.CASETYPE_COMPLETE) {
-		testFailed("Unsupported test type " + test.spec.caseType);
+		var vertex = specializeVertexOnly(test.spec.vertexSource, valueBlock);
+		var fragment = specializeFragmentOnly(test.spec.fragmentSource, valueBlock);
+		sources.push(shadingProgram.genVertexSource(vertex));
+		sources.push(shadingProgram.genFragmentSource(fragment));
 	} else if (test.spec.caseType === caseType.CASETYPE_VERTEX_ONLY) {
 		sources.push(shadingProgram.genVertexSource(specializeVertexShader(test.spec.vertexSource, valueBlock)));
 		sources.push(shadingProgram.genFragmentSource(genFragmentShader(valueBlock)));		
@@ -1150,6 +1245,7 @@ var execute = function()
 var runTestCases = function() {
 	var state = stateMachine.getState();
 	state.currentTest = state.testCases.next();
+	//state.currentTest = state.testCases.find('const_float_assign_varying');
 	if (state.currentTest) {
 		try {
 			init();

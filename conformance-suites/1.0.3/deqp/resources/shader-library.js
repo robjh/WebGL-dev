@@ -610,7 +610,7 @@ var shaderLibrary = (function() {
 				} else if (scalarType == "int" || scalarType == "uint") {
 				
 					var signMult = 1;
-					if (m_curToken = Token.TOKEN_MINUS) {
+					if (m_curToken === Token.TOKEN_MINUS) {
 						signMult = -1;
 						advanceToken();
 					}
@@ -772,9 +772,9 @@ var shaderLibrary = (function() {
 			var version  = "100";
 			var expectResult = shaderLibraryCase.expectResult.EXPECT_PASS;
 			var description;
-			var bothSource;
-			var vertexSource;
-			var fragmentSource;
+			var bothSource = "";
+			var vertexSource = "";
+			var fragmentSource = "";
 			
 			for (;;) {
 			
@@ -900,8 +900,12 @@ var shaderLibrary = (function() {
 					shaderLibraryCase.caseType.CASETYPE_FRAGMENT_ONLY)));
 				
 			} else {
-				/** TODO: CASETYPE_COMPLETE is not supported yet */
-			}
+				de_assert(vertexSource);
+				de_assert(fragmentSource);
+				
+				shaderNodeList.push(deqpTest.newTest(caseName, description, getShaderSpec(vertexSource, fragmentSource,
+					shaderLibraryCase.caseType.CASETYPE_COMPLETE)));
+				}
 		};
 		
 		var parseShaderGroup   = function(shaderNodeList) {
