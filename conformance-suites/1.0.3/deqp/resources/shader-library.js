@@ -941,7 +941,6 @@ var shaderLibrary = (function() {
 			advanceToken(Token.TOKEN_END); // group end
 			
 			// Create group node.
-			// TODO: this class also does not exist yet
 			var groupNode = deqpTests.newTest(name, description, children);
 			shaderNodeList.push(groupNode);
 			

@@ -42,7 +42,7 @@ var VertexArrayBinding = function(type, location, components, elements, data) {
  * @param {primitiveList} primitives Primitives to draw
  */
 var draw = function(gl, program, vertexArrays, primitives, callback) {
-	/* TODO: finish implementation */
+	/** TODO: finish implementation */
 	  var objects = [];
 
 	for (var i = 0; i < vertexArrays.length; i++) {
@@ -64,16 +64,7 @@ var draw = function(gl, program, vertexArrays, primitives, callback) {
 
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
 	} else {
-	/* TODO: implement */
-	/*
-				if (callback)
-				callback->beforeDrawCall();
-
-			drawNonIndexed(gl, primitives.type, primitives.numElements);
-
-			if (callback)
-				callback->afterDrawCall();
-	*/
+	/** TODO: implement */
 	}
 
   assertMsg(gl.getError() === gl.NO_ERROR, "drawArrays");
@@ -86,7 +77,7 @@ var draw = function(gl, program, vertexArrays, primitives, callback) {
 var drawIndexed = function(gl, primitives, offset)
 {
 	var	mode = getPrimitiveGLType(gl, primitives.type);
-	/* TODO: C++ implementation supports different index types, we use only int16.
+	/** TODO: C++ implementation supports different index types, we use only int16.
 		Could it cause any issues?
 		
 		deUint32	indexGLType	= getIndexGLType(primitives.indexType);

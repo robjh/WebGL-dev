@@ -292,8 +292,6 @@ var caseRequirement = ( function() {
 
 var CaseRequirement = function() {
 	
-	
-
 	this.isAffected = function(shaderType) {
 		for (var i = 0; i < this.shaderTypes.length; i++)
 			if (this.shaderTypes[i] === shaderType)
@@ -302,12 +300,29 @@ var CaseRequirement = function() {
 	};
 
 	this.checkRequirements = function(gl) {
-		/* TODO: implement */
+		if (this.type === requirementType.EXTENSION) {
+			var extns = gl.getSupportedExtensions();
+			for (var i = 0; i < extns.length; i++)
+				for (var j = 0; j < this.requirements.length; j++)
+					if (extns[i] === this.requirements[j]) {
+						this.supportedExtension = this.requirements[j];
+						return true;
+					}
+			if (this.requirements.length === 1)
+				throw Error("Test requires extension of " + this.requirements[0])
+			else
+				throw Error("Test requires any extension of " + this.requirements);
+		} else if (this.type === requirementType.IMPLEMENTATION_LIMIT) {
+			var value = gl.getParameter(this.enumName);
+			assertMsg(gl.getError() === gl.NO_ERROR, "Failed to read parameter " + this.enumName);
+			
+			if (!(value > this.referenceValue))
+				throw Error("Test requires " + this.enumName + " (" + value + ") > " + this.referenceValue);
+		}
 	};
 
 	this.getSupportedExtension = function() {
-		/* TODO: finish implementation */
-		return this.requirements;
+		return this.supportedExtension;
 	};
 	
 };
@@ -700,6 +715,9 @@ var init = function() {
 		test.spec.valueBlockList.push(genValueBlock());
 	var valueBlock = test.spec.valueBlockList[0];
 
+	if (test.spec.requirements)
+		for (var ndx = 0; ndx < test.spec.requirements.length; ++ndx)
+			test.spec.requirements[ndx].checkRequirements();
 	
 	var sources = [];
 	
