@@ -18,7 +18,7 @@
  *
  */
 
-var shaderUtils = (function() {
+var deqpUtils = (function() {
 	"use strict";
 
 /**

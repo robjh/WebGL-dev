@@ -22,7 +22,52 @@
  * This class allows one to create a hierarchy of tests and iterate over them.
  * It replaces TestCase and TestCaseGroup classes.
  */
-var deqpTest = (function() {
+var deqpTests = (function() {
+"use strict";
+
+/**
+ * A simple state machine.
+ * The purpose of this this object is to break
+ * long tests into small chunks that won't cause a timeout
+ */
+var stateMachine = (function() {
+"use strict";
+
+/**
+ * A general purpose bucket for string current execution state
+ * stateMachine doesn't modify this container.
+ */
+var state = {};
+
+/**
+ * Returns the state
+ */
+var getState = function() {
+	return state;
+};
+
+/**
+ * Schedule the callback to be run ASAP
+ * @param {function()} callback Callback to schedule
+ */
+var runCallback = function(callback) {
+	setTimeout(callback.bind(this), 0);
+};
+
+/**
+ * Call this function at the end of the test
+ */
+var terminate = function() {
+	finishTest();
+};
+
+return {
+	runCallback: runCallback,
+	getState: getState,
+	terminate: terminate,
+	none: false
+};
+}());
 
 var DeqpTest = function(name, description, spec) {
 	this.name = name;
@@ -121,6 +166,7 @@ var newTest = function(name, description, spec) {
 }
 
 return {
+	runner: stateMachine,
 	newTest: newTest
 };
 

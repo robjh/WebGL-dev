@@ -19,7 +19,7 @@
  */
 
 
-var gluDraw = (function() {
+var deqpDraw = (function() {
 
 /**
  * Description of a vertex array binding

@@ -25,9 +25,9 @@ var shaderLibrary = (function() {
 	var generateTestCases = function() {
 		var parser = new Parser();
 		try {
-			var state = stateMachine.getState();
+			var state = deqpTests.runner.getState();
 			var tree = parser.parse(state.testFile);
-			state.testCases = deqpTest.newTest(state.testName, "Top level", tree);
+			state.testCases = deqpTests.newTest(state.testName, "Top level", tree);
 		}
 		catch (err) {
 			_logToConsole(err);
@@ -38,9 +38,9 @@ var shaderLibrary = (function() {
 	
 	var processTestFile = function() {
 		if (generateTestCases()) {
-			stateMachine.runCallback(shaderLibraryCase.runTestCases);
+			deqpTests.runner.runCallback(shaderLibraryCase.runTestCases);
 		} else {
-			terminate(false);
+			terminate();
 		}
 	};
 
@@ -484,32 +484,32 @@ var shaderLibrary = (function() {
 		};
 		var mapDataTypeToken   = function(token) {
 			switch (token) {
-				case Token.TOKEN_FLOAT:           return shaderUtils.DataType.FLOAT;
-				case Token.TOKEN_FLOAT_VEC2:      return shaderUtils.DataType.FLOAT_VEC2;
-				case Token.TOKEN_FLOAT_VEC3:      return shaderUtils.DataType.FLOAT_VEC3;
-				case Token.TOKEN_FLOAT_VEC4:      return shaderUtils.DataType.FLOAT_VEC4;
-				case Token.TOKEN_FLOAT_MAT2:      return shaderUtils.DataType.FLOAT_MAT2;
-				case Token.TOKEN_FLOAT_MAT2X3:    return shaderUtils.DataType.FLOAT_MAT2X3;
-				case Token.TOKEN_FLOAT_MAT2X4:    return shaderUtils.DataType.FLOAT_MAT2X4;
-				case Token.TOKEN_FLOAT_MAT3X2:    return shaderUtils.DataType.FLOAT_MAT3X2;
-				case Token.TOKEN_FLOAT_MAT3:      return shaderUtils.DataType.FLOAT_MAT3;
-				case Token.TOKEN_FLOAT_MAT3X4:    return shaderUtils.DataType.FLOAT_MAT3X4;
-				case Token.TOKEN_FLOAT_MAT4X2:    return shaderUtils.DataType.FLOAT_MAT4X2;
-				case Token.TOKEN_FLOAT_MAT4X3:    return shaderUtils.DataType.FLOAT_MAT4X3;
-				case Token.TOKEN_FLOAT_MAT4:      return shaderUtils.DataType.FLOAT_MAT4;
-				case Token.TOKEN_INT:             return shaderUtils.DataType.INT;
-				case Token.TOKEN_INT_VEC2:        return shaderUtils.DataType.INT_VEC2;
-				case Token.TOKEN_INT_VEC3:        return shaderUtils.DataType.INT_VEC3;
-				case Token.TOKEN_INT_VEC4:        return shaderUtils.DataType.INT_VEC4;
-				case Token.TOKEN_UINT:            return shaderUtils.DataType.UINT;
-				case Token.TOKEN_UINT_VEC2:       return shaderUtils.DataType.UINT_VEC2;
-				case Token.TOKEN_UINT_VEC3:       return shaderUtils.DataType.UINT_VEC3;
-				case Token.TOKEN_UINT_VEC4:       return shaderUtils.DataType.UINT_VEC4;
-				case Token.TOKEN_BOOL:            return shaderUtils.DataType.BOOL;
-				case Token.TOKEN_BOOL_VEC2:       return shaderUtils.DataType.BOOL_VEC2;
-				case Token.TOKEN_BOOL_VEC3:       return shaderUtils.DataType.BOOL_VEC3;
-				case Token.TOKEN_BOOL_VEC4:       return shaderUtils.DataType.BOOL_VEC4;
-				default:                          return shaderUtils.DataType.INVALID;
+				case Token.TOKEN_FLOAT:           return deqpUtils.DataType.FLOAT;
+				case Token.TOKEN_FLOAT_VEC2:      return deqpUtils.DataType.FLOAT_VEC2;
+				case Token.TOKEN_FLOAT_VEC3:      return deqpUtils.DataType.FLOAT_VEC3;
+				case Token.TOKEN_FLOAT_VEC4:      return deqpUtils.DataType.FLOAT_VEC4;
+				case Token.TOKEN_FLOAT_MAT2:      return deqpUtils.DataType.FLOAT_MAT2;
+				case Token.TOKEN_FLOAT_MAT2X3:    return deqpUtils.DataType.FLOAT_MAT2X3;
+				case Token.TOKEN_FLOAT_MAT2X4:    return deqpUtils.DataType.FLOAT_MAT2X4;
+				case Token.TOKEN_FLOAT_MAT3X2:    return deqpUtils.DataType.FLOAT_MAT3X2;
+				case Token.TOKEN_FLOAT_MAT3:      return deqpUtils.DataType.FLOAT_MAT3;
+				case Token.TOKEN_FLOAT_MAT3X4:    return deqpUtils.DataType.FLOAT_MAT3X4;
+				case Token.TOKEN_FLOAT_MAT4X2:    return deqpUtils.DataType.FLOAT_MAT4X2;
+				case Token.TOKEN_FLOAT_MAT4X3:    return deqpUtils.DataType.FLOAT_MAT4X3;
+				case Token.TOKEN_FLOAT_MAT4:      return deqpUtils.DataType.FLOAT_MAT4;
+				case Token.TOKEN_INT:             return deqpUtils.DataType.INT;
+				case Token.TOKEN_INT_VEC2:        return deqpUtils.DataType.INT_VEC2;
+				case Token.TOKEN_INT_VEC3:        return deqpUtils.DataType.INT_VEC3;
+				case Token.TOKEN_INT_VEC4:        return deqpUtils.DataType.INT_VEC4;
+				case Token.TOKEN_UINT:            return deqpUtils.DataType.UINT;
+				case Token.TOKEN_UINT_VEC2:       return deqpUtils.DataType.UINT_VEC2;
+				case Token.TOKEN_UINT_VEC3:       return deqpUtils.DataType.UINT_VEC3;
+				case Token.TOKEN_UINT_VEC4:       return deqpUtils.DataType.UINT_VEC4;
+				case Token.TOKEN_BOOL:            return deqpUtils.DataType.BOOL;
+				case Token.TOKEN_BOOL_VEC2:       return deqpUtils.DataType.BOOL_VEC2;
+				case Token.TOKEN_BOOL_VEC3:       return deqpUtils.DataType.BOOL_VEC3;
+				case Token.TOKEN_BOOL_VEC4:       return deqpUtils.DataType.BOOL_VEC4;
+				default:                          return deqpUtils.DataType.INVALID;
 			}
 		};
 		var getTokenName       = function(token) {
@@ -583,8 +583,8 @@ var shaderLibrary = (function() {
 		
 		var parseValueElement  = function(expectedDataType, result) {
 			
-			var scalarType = shaderUtils.getDataTypeScalarType(expectedDataType);
-			var scalarSize = shaderUtils.getDataTypeScalarSize(expectedDataType);
+			var scalarType = deqpUtils.getDataTypeScalarType(expectedDataType);
+			var scalarSize = deqpUtils.getDataTypeScalarSize(expectedDataType);
 			
 			var elems = [];
 			
@@ -672,7 +672,7 @@ var shaderLibrary = (function() {
 			
 			// parse data type
 			result.dataType = mapDataTypeToken(m_curToken);
-			if (result.dataType === shaderUtils.DataType.INVALID) {
+			if (result.dataType === deqpUtils.DataType.INVALID) {
 				throw Error("unexpected token when parsing value data type: " + m_curTokenStr);
 			}
 			advanceToken();
@@ -894,16 +894,16 @@ var shaderLibrary = (function() {
 				de_assert(!fragmentSource);
 				
 				
-				shaderNodeList.push(deqpTest.newTest(caseName + "_vertex", description, getShaderSpec(bothSource, null,
+				shaderNodeList.push(deqpTests.newTest(caseName + "_vertex", description, getShaderSpec(bothSource, null,
 					shaderLibraryCase.caseType.CASETYPE_VERTEX_ONLY)));
-				shaderNodeList.push(deqpTest.newTest(caseName + "_fragment", description, getShaderSpec(null, bothSource,
+				shaderNodeList.push(deqpTests.newTest(caseName + "_fragment", description, getShaderSpec(null, bothSource,
 					shaderLibraryCase.caseType.CASETYPE_FRAGMENT_ONLY)));
 				
 			} else {
 				de_assert(vertexSource);
 				de_assert(fragmentSource);
 				
-				shaderNodeList.push(deqpTest.newTest(caseName, description, getShaderSpec(vertexSource, fragmentSource,
+				shaderNodeList.push(deqpTests.newTest(caseName, description, getShaderSpec(vertexSource, fragmentSource,
 					shaderLibraryCase.caseType.CASETYPE_COMPLETE)));
 				}
 		};
@@ -942,7 +942,7 @@ var shaderLibrary = (function() {
 			
 			// Create group node.
 			// TODO: this class also does not exist yet
-			var groupNode = deqpTest.newTest(name, description, children);
+			var groupNode = deqpTests.newTest(name, description, children);
 			shaderNodeList.push(groupNode);
 			
 		};
@@ -976,13 +976,28 @@ var shaderLibrary = (function() {
 		//*/
 	};
 	
-	
-	
-	return {
-		Parser:                 Parser,
-		isWhitespace:           isWhitespace,
-		removeExtraIndentation: removeExtraIndentation,
-		processTestFile:        processTestFile
-	};
+
+/**
+ * Parse the test file and execute the test cases
+ * @param {string} testName Name of the test file (without extension)
+ * @param {string} filter Optional filter
+ */
+var run = function(testName, filter) {
+	WebGLTestUtils.loadTextFileAsync(testName + ".test", function(success, content) {
+		if (success) {
+			deqpTests.runner.getState().testFile = content;
+			deqpTests.runner.getState().testName = testName;
+			deqpTests.runner.getState().filter = filter;
+			deqpTests.runner.runCallback(processTestFile);
+		} else {
+			testFailed("Failed to load test file: " + testName);
+			deqpTests.runner.terminate();
+		}
+	});
+};
+
+return {
+	run: run
+};
 
 }());
