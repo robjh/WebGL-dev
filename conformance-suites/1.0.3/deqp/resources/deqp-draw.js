@@ -20,6 +20,7 @@
 
 
 var deqpDraw = (function() {
+'use strict';
 
 /**
  * Description of a vertex array binding

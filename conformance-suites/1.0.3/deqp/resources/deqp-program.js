@@ -19,6 +19,7 @@
  */
 
  var deqpProgram = (function() {
+'use strict';
 
 /**
  * Shader type enum
