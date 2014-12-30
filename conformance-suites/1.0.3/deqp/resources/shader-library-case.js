@@ -1073,10 +1073,7 @@ var execute = function()
 
 var runTestCases = function() {
 	var state = deqpTests.runner.getState();
-	if (state.filter)
-		state.currentTest = state.testCases.find(state.filter);
-	else
-		state.currentTest = state.testCases.next();
+	state.currentTest = state.testCases.next(state.filter);
 	if (state.currentTest) {
 		try {
 			init();

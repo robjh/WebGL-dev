@@ -75,74 +75,78 @@ var DeqpTest = function(name, description, spec) {
 	this.spec = spec;
 	this.currentTest = 0;
 	this.parentTest = null;
+};
 	
-	/**
-	 * Returns the next 'leaf' test in the hierarchy of tests
-	 *
-	 * @return {Object} Test specification
-	 */
-	this.next = function() {
-		var test = null;
-		
-		if (this.spec.length) {
-			while (!test) {
-				if (this.currentTest < this.spec.length) {
-					test = this.spec[this.currentTest].next();
-					if (!test)
-						this.currentTest += 1;
-				} else
-					break;
-			}
-			
-		} else if (this.currentTest === 0) {
-			this.currentTest += 1;
-			test = this;
-		}
-		return test;
-	};
+/**
+ * Returns the next 'leaf' test in the hierarchy of tests
+ * 
+ * @param {string} pattern Optional pattern to search for
+ * @return {Object} Test specification
+ */
+ DeqpTest.prototype.next = function(pattern) {
+	if (pattern)
+		return this.find(pattern);
+
+	var test = null;
 	
-	/**
-	 * Returns the full name of the test
-	 *
-	 * @return {string} Full test name.
-	 */
-	this.fullName = function() {
-		if (this.parentTest)
-			var parentName = this.parentTest.fullName();
-			if (parentName)
-				return parentName + '.' + this.name;
-		return this.name;
-	};
-	
-	/**
-	 * Find a test with a matching name
-	 * Fast-forwards to a test whose full name matches the given pattern
-	 *
-	 * @param pattern Regular expression to search for
-	 * @return {Object} Found test or null.
-	 */
-	this.find = function(pattern) {
-		var test = null;
-		while(true) {
-			test = this.next();
-			if (!test)
-				break;
-			if (test.fullName().match(pattern))
+	if (this.spec.length) {
+		while (!test) {
+			if (this.currentTest < this.spec.length) {
+				test = this.spec[this.currentTest].next();
+				if (!test)
+					this.currentTest += 1;
+			} else
 				break;
 		}
-		return test;
-	};
-	
-	/**
-	 * Reset the iterator.
-	 */
-	 this.reset = function() {
-		this.currentTest = 0;
 		
-		if (this.spec.length)
-			for (var i = 0; i < this.spec.length; i++)
-				this.spec[i].reset();
-	 };
+	} else if (this.currentTest === 0) {
+		this.currentTest += 1;
+		test = this;
+	}
+	return test;
+};
+
+/**
+ * Returns the full name of the test
+ *
+ * @return {string} Full test name.
+ */
+DeqpTest.prototype.fullName = function() {
+	if (this.parentTest)
+		var parentName = this.parentTest.fullName();
+		if (parentName)
+			return parentName + '.' + this.name;
+	return this.name;
+};
+
+/**
+ * Find a test with a matching name
+ * Fast-forwards to a test whose full name matches the given pattern
+ *
+ * @param pattern Regular expression to search for
+ * @return {Object} Found test or null.
+ */
+DeqpTest.prototype.find = function(pattern) {
+	var test = null;
+	while(true) {
+		test = this.next();
+		if (!test)
+			break;
+		if (test.fullName().match(pattern))
+			break;
+	}
+	return test;
+};
+
+/**
+ * Reset the iterator.
+ */
+ DeqpTest.prototype.reset = function() {
+	this.currentTest = 0;
+	
+	if (this.spec.length)
+		for (var i = 0; i < this.spec.length; i++)
+			this.spec[i].reset();
 };
 
 /**
