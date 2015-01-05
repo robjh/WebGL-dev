@@ -74,7 +74,7 @@ var DataType = {
 	UINT_SAMPLER_2D:          37,
 	UINT_SAMPLER_CUBE:        38,
 	UINT_SAMPLER_2D_ARRAY:    39,
-	UINT_SAMPLER_3D:          40,
+	UINT_SAMPLER_3D:          40
 };
 
 /**
