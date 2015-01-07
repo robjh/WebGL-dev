@@ -2,6 +2,8 @@
 // other lines are assumed to be .html files
 
 deqp/data/gles2/shaders/00_test_list.txt
+deqp/data/gles3/shaders/00_test_list.txt
 conformance/00_test_list.txt
 conformance/more/00_test_list.txt
+
 
