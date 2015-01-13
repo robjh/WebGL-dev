@@ -9,12 +9,11 @@ Created on 23 Dec 2014
 Python Script TO COMPILE JAVASCRIPTS WITH closure.jar locally in the selected directory
 
 STEPS:
-- paste this script in the folder where the JavaScripts are contained
 - paste a copy of the compiler.jar found on https://developers.google.com/closure/compiler/docs/gettingstarted_app
-- execute this script
+- execute/paste this script in the folder where the JavaScripts are contained
 
 FEATURES:
-1) By Default, this script compiles each JavaScript contained in the folder with the 3 different Closure Compiler levels available
+1) By Default, this script compiles each JavaScript contained in the current folder with the 3 different Closure Compiler levels available
 WHITESPACE_ONLY, SIMPLE_OPTIMIZATIONS and ADVANCED_OPTIMIZATIONS
 
 These compilations levels are represented in the main program as:
@@ -40,7 +39,7 @@ import subprocess
 import threading 
 from sys import stdout, stderr
 
-#simpleCompilationCmdInput= "java -jar compiler.jar --compilation_level SIMPLE --js glu-draw.js --js_output_file gluDrawCompiled.js --warning_level VERBOSE"
+#simpleCompilationCmdInput= "java -jar compiler.jar --compilation_level SIMPLE --js glu-draw.js --js_output_file gluDrawCompiled.js --externs js-test-pre.js --warning_level VERBOSE"
 
 def getShadersJavaScript(whitespaceCompilation, simpleCompilation, advancedCompilation):
     
@@ -52,7 +51,7 @@ def getShadersJavaScript(whitespaceCompilation, simpleCompilation, advancedCompi
                 
 
 def compileJavaScript(file, whitespaceCompilation, simpleCompilation, advancedCompilation):
-    print("RUNNING CLOSURE COMPILER OUTPUT for " +file)
+    print("RUNNING CLOSURE COMPILER OUTPUT for " +file+" ...")
 
     outputCompilerFile= file.strip()[0:-3]
     outputCompilerFile= outputCompilerFile +".txt"
@@ -110,4 +109,4 @@ whitespace= True
 simple= True
 advanced= True
 getShadersJavaScript(whitespace, simple, advanced)
-print("------ END EXECUTION Python script: compiler-shaders-local.py ------")
+print("------ END EXECUTION Python script: compiler-shaders-local.py ------" + "\n")
