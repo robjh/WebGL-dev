@@ -48,6 +48,9 @@ var getGLShaderType = function(gl, type) {
 	return _glShaderType;
 };
 
+/**
+ * Declares shader information
+ */
 var ShaderInfo = function() {
 	this.type;			/** Shader type. */
 	this.source;			/** Shader source. */
@@ -56,6 +59,11 @@ var ShaderInfo = function() {
 	this.compileTimeUs = 0;	/** Compile time in microseconds (us). */
 };
 
+/**
+ * Generates vertex shader info from source 
+ * @param source 
+ * @return vertex shader info
+ */
 var genVertexSource = function(source) {
 	var shader = new ShaderInfo();
 	shader.source = source;
@@ -63,6 +71,11 @@ var genVertexSource = function(source) {
 	return shader;
 };
 
+/**
+ * Generates fragment shader info from source 
+ * @param source 
+ * @return fragment shader info
+ */
 var genFragmentSource = function(source) {
 	var shader = new ShaderInfo();
 	shader.source = source;
@@ -70,6 +83,11 @@ var genFragmentSource = function(source) {
 	return shader;
 };
 
+/**
+ * Generates shader from WebGL context and type
+ * @param gl WebGL context
+ * @param {shaderType} type Shader Type
+ */
 var Shader = function(gl, type) {
 	this.gl = gl;
 	this.info = new ShaderInfo();		/** Client-side clone of state for debug / perf reasons. */
@@ -119,6 +137,12 @@ var ProgramInfo = function() {
 	/** @type {number} */ var	linkTimeUs = 0;	
 };
 
+/**
+ * Creates program.
+ * Inner methods: attach shaders, bind attributes location, link program and transform Feedback Varyings
+ * @param gl WebGL context
+ * @param programID
+ */
 var Program = function(gl, programID) {
 	this.gl = gl;
 	this.program = programID;
@@ -163,6 +187,11 @@ var Program = function(gl, programID) {
 	};
 };
 
+/**
+ * Assigns gl WebGL context and programSources. Declares array of shaders and new program()
+ * @param gl WebGL context
+ * @param programSources
+ */
 var ShaderProgram = function(gl, programSources) {
 	this.gl = gl;
 	this.programSources = programSources;
