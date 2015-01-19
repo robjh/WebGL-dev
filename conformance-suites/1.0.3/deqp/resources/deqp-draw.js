@@ -39,8 +39,12 @@ var VertexArrayBinding = function(type, location, components, elements, data) {
 };
 
 /**
- *
+ * Creates vertex buffer, binds it and draws elements
+ * @param gl WebGL context
+ * @param {vertexProgramID} program ID
+ * @param vertexArrays
  * @param {primitiveList} primitives Primitives to draw
+ * @param callback
  */
 var draw = function(gl, program, vertexArrays, primitives, callback) {
 	/** TODO: finish implementation */
@@ -75,6 +79,12 @@ var draw = function(gl, program, vertexArrays, primitives, callback) {
   gl.bindBuffer(gl.ARRAY_BUFFER, null);
 };
 
+/**
+ * Creates vertex buffer, binds it and draws elements
+ * @param gl WebGL context
+ * @param {primitiveList} primitives Primitives to draw
+ * @param offset
+ */
 var drawIndexed = function(gl, primitives, offset)
 {
 	var	mode = getPrimitiveGLType(gl, primitives.type);
@@ -89,6 +99,7 @@ var drawIndexed = function(gl, primitives, offset)
 
 
 /**
+ * Enums for primitive types
  * @enum
  */
 var primitiveType = {
@@ -107,7 +118,9 @@ var primitiveType = {
 
 /**
  * get GL type from primitive type
+ * @param gl WebGL context
  * @param {primitiveType} type PrimitiveType
+ * @return GL primitive type
  */
 var getPrimitiveGLType = function(gl, type) {
 	switch (type) {
@@ -129,6 +142,7 @@ var getPrimitiveGLType = function(gl, type) {
 var triangles = function(indices) {
 	return new PrimitiveList(primitiveType.TRIANGLES, indices);
 };
+
 var patches = function(indices) {
 	return new PrimitiveList(primitiveType.PATCHES, indices);
 };
@@ -140,7 +154,9 @@ var PrimitiveList = function(type, indices) {
 
 /**
  * Create Element Array Buffer
+ * get GL type from primitive type
  * @param {PrimitiveList} primitives Primitives to construct the buffer from
+ * @return index buffer with elements
  */
 var indexBuffer = function(gl, primitives) {
 	var indexObject = gl.createBuffer();
@@ -155,6 +171,7 @@ var indexBuffer = function(gl, primitives) {
 /**
  * Create Array Buffer
  * @param {VertexArrayBinding} primitives Array buffer descriptor
+ * @return buffer of vertices
  */
 var vertexBuffer = function(gl, vertexArray) {
 	var buffer = gl.createBuffer();
