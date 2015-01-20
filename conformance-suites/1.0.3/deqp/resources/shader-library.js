@@ -40,7 +40,7 @@ var shaderLibrary = (function() {
 		if (generateTestCases()) {
 			deqpTests.runner.runCallback(shaderLibraryCase.runTestCases);
 		} else {
-			terminate();
+			deqpTests.runner.terminate();
 		}
 	};
 
@@ -95,7 +95,8 @@ var shaderLibrary = (function() {
 	
 	var de_assert = function(condition) {
 		if (!condition) {
-			throw Error();
+			//throw Error();
+			deqpTests.runner.terminate();
 		}
 	};
 	
@@ -235,7 +236,9 @@ var shaderLibrary = (function() {
 				} else if (m_curToken === Token.TOKEN_EOF) {
 					break;
 				} else {
-					 throw Error("invalid token encountered at main level: '" + m_curTokenStr + "'");
+				//	throw Error("invalid token encountered at main level: '" + m_curTokenStr + "'");
+					testFailed("invalid token encountered at main level: '" + m_curTokenStr + "'");
+					deqpTests.runner.terminate();
 				}
 				
 			}
@@ -252,8 +255,10 @@ var shaderLibrary = (function() {
 		};
 		
 		var parseError         = function(errorStr) {
-			// throws an exception
+			// abort
 //			throw "Parser error: " + errorStr + " near " + m_curPtr.substr(0, 80);
+			testFailed("Parser error: " + errorStr + " near " + m_curPtr.substr(0, 80));
+			deqpTests.runner.terminate();
 		};
 		var parseFloatLiteral  = function(str) {
 			return parseFloat(str);
@@ -479,7 +484,10 @@ var shaderLibrary = (function() {
 			if (m_curToken != token) {
 				// parse error
 				var msg = "unexpected token '" + m_curTokenStr + "', expecting '" + getTokenName(token) + "'"
-				throw Error("Parse Error. " + msg + " near " + m_curPtr + " ...");
+			//	throw Error("Parse Error. " + msg + " near " + m_curPtr + " ...");
+				testFailed("Parse Error. " + msg + " near " + m_curPtr + " ...");
+				deqpTests.runner.terminate();
+				
 			}
 		};
 		var mapDataTypeToken   = function(token) {
@@ -624,7 +632,9 @@ var shaderLibrary = (function() {
 					de_assert(scalarType === "bool");
 					elems.push(m_curToken === Token.TOKEN_TRUE);
 					if (m_curToken != Token.TOKEN_TRUE && m_curToken != Token.TOKEN_FALSE) {
-						throw Error("unexpected token, expecting bool: " + m_curTokenStr);
+					//	throw Error("unexpected token, expecting bool: " + m_curTokenStr);
+						testFailed("unexpected token, expecting bool: " + m_curTokenStr);
+						deqpTests.runner.terminate();
 					}
 					advanceToken(); // true/false
 				
@@ -665,7 +675,9 @@ var shaderLibrary = (function() {
 				result.storageType = shaderLibraryCase.shaderCase.value.STORAGE_OUTPUT;
 				break;
 			 default:
-				throw Error("unexpected token encountered when parsing value classifier");
+			//	throw Error("unexpected token encountered when parsing value classifier");
+				testFailed("unexpected token encountered when parsing value classifier");
+				deqpTests.runner.terminate();
 				break;
 			}
 			advanceToken();
@@ -673,7 +685,9 @@ var shaderLibrary = (function() {
 			// parse data type
 			result.dataType = mapDataTypeToken(m_curToken);
 			if (result.dataType === deqpUtils.DataType.INVALID) {
-				throw Error("unexpected token when parsing value data type: " + m_curTokenStr);
+			//	throw Error("unexpected token when parsing value data type: " + m_curTokenStr);
+				testFailed("unexpected token when parsing value data type: " + m_curTokenStr);
+				deqpTests.runner.terminate();
 			}
 			advanceToken();
 			
@@ -683,7 +697,9 @@ var shaderLibrary = (function() {
 			} else if (m_curToken === Token.TOKEN_STRING) {
 				result.valueName = parseStringLiteral(m_curTokenStr);
 			} else {
-				throw Error("unexpected token when parsing value name: " + m_curTokenStr);
+			//	throw Error("unexpected token when parsing value name: " + m_curTokenStr);
+				testFailed("unexpected token when parsing value name: " + m_curTokenStr);
+				deqpTests.runner.terminate();
 			}
 			advanceToken();
 			
@@ -705,7 +721,9 @@ var shaderLibrary = (function() {
 						advanceToken();
 						continue;
 					} else {
-						throw Error("unexpected token in value element array: " + m_curTokenStr);
+					//	throw Error("unexpected token in value element array: " + m_curTokenStr);
+						testFailed("unexpected token in value element array: " + m_curTokenStr);
+						deqpTests.runner.terminate();
 					}
 				}
 				
@@ -737,7 +755,9 @@ var shaderLibrary = (function() {
 				} else if (m_curToken === Token.TOKEN_RIGHT_BRACE) {
 					break;
 				} else {
-					throw Error("unexpected( token when parsing a value block: " + m_curTokenStr);
+				//	throw Error("unexpected( token when parsing a value block: " + m_curTokenStr);
+					testFailed("unexpected( token when parsing a value block: " + m_curTokenStr);
+					deqpTests.runner.terminate();
 				}
 			}
 			
@@ -797,10 +817,14 @@ var shaderLibrary = (function() {
 					
 					expectResult = (function(token) {
 						switch (token) {
-							case "pass":         return shaderLibraryCase.expectResult.EXPECT_PASS;
-							case "compile_fail": return shaderLibraryCase.expectResult.EXPECT_COMPILE_FAIL;
-							case "link_fail":    return shaderLibraryCase.expectResult.EXPECT_LINK_FAIL;
-							default: throw Error("invalid expected result value: " + m_curTokenStr);
+							case "pass":                 return shaderLibraryCase.expectResult.EXPECT_PASS;
+							case "compile_fail":         return shaderLibraryCase.expectResult.EXPECT_COMPILE_FAIL;
+							case "link_fail":            return shaderLibraryCase.expectResult.EXPECT_LINK_FAIL;
+							case "compile_or_link_fail": return shaderLibraryCase.expectResult.EXPECT_COMPILE_OR_LINK_FAIL;
+							default: 
+							//	throw Error("invalid expected result value: " + m_curTokenStr);
+								testFailed("unexpected( token when parsing a value block: " + m_curTokenStr);
+								deqpTests.runner.terminate();
 						}
 					}(m_curTokenStr));
 					
@@ -864,12 +888,17 @@ var shaderLibrary = (function() {
 					else if (versionNum === 430)                     version = "430";
 					else if (versionNum === 440)                     version = "440";
 					else if (versionNum === 450)                     version = "450";
-					else
-						throw Error("Unknown GLSL version");
+					else {
+					//	throw Error("Unknown GLSL version");
+						testFailed("Unknown GLSL version");
+						deqpTests.runner.terminate();
+					}
 					
 				} else {
 					
-					throw Error("unexpected token while parsing shader case: " + m_curTokenStr);
+				//	throw Error("unexpected token while parsing shader case: " + m_curTokenStr);
+					testFailed("unexpected token while parsing shader case: " + m_curTokenStr);
+					deqpTests.runner.terminate();
 					
 				}
 				
@@ -933,7 +962,8 @@ var shaderLibrary = (function() {
 				} else if (m_curToken === Token.TOKEN_CASE) {
 					parseShaderCase(children);
 				} else {
-					throw Error("unexpected token while parsing shader group: " + m_curTokenStr);
+					testFailed("unexpected token while parsing shader group: " + m_curTokenStr);
+					deqpTests.runner.terminate();
 				}
 				
 			}
