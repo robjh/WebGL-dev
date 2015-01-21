@@ -314,7 +314,7 @@ var CaseRequirement = function() {
 				throw Error("Test requires any extension of " + this.requirements);
 		} else if (this.type === requirementType.IMPLEMENTATION_LIMIT) {
 			var value = gl.getParameter(this.enumName);
-			assertMsg(gl.getError() === gl.NO_ERROR, "Failed to read parameter " + this.enumName);
+			assertMsgOptions(gl.getError() === gl.NO_ERROR, "Failed to read parameter " + this.enumName, false, true);
 			
 			if (!(value > this.referenceValue))
 				throw Error("Test requires " + this.enumName + " (" + value + ") > " + this.referenceValue);
@@ -675,7 +675,7 @@ var checkPixels = function(surface, minX, maxX, minY, maxY) {
 	/** type {bool} */ var		allBlack		= true;
 	/** type {bool} */ var		anyUnexpected	= false;
 
-	assertMsg((maxX > minX) && (maxY > minY), "checkPixels sanity check");
+	assertMsgOptions((maxX > minX) && (maxY > minY), "checkPixels sanity check", false, true);
 
 	for (var y = minY; y <= maxY; y++) {
 		for (var x = minX; x <= maxX; x++) {
@@ -791,7 +791,10 @@ var execute = function()
 	var	programs = [];
 	var				programPipeline;
 
-	assertMsg(gl.getError() === gl.NO_ERROR, "Start testcase: " + test.fullName());
+    // Set the name of the current test so testFailedOptions/testPassedOptions can use it.
+	setCurrentTestName(test.fullName());
+	debug("Start testcase: " + test.fullName());
+	assertMsgOptions(gl.getError() === gl.NO_ERROR, "Start testcase: " + test.fullName(), false, true);
 
 	if (!test.separatePrograms)
 	{
@@ -851,7 +854,7 @@ var execute = function()
 			break;
 
 		default:
-			testFailed("Unknown expected result");
+			testFailedOptions("Unknown expected result", true);
 			return false;
 	}
 
@@ -864,15 +867,18 @@ var execute = function()
 		if (spec.expectResult === expectResult.EXPECT_COMPILE_FAIL && allCompilesOk && !allLinksOk)
 			_logToConsole("Quality warning: implementation parses shader at link time");
 
-		testFailed(failReason);
+		testFailedOptions(failReason, true);
 		return false;
 	}
 
 	// Return if compile/link expected to fail.
 	if (spec.expectResult === expectResult.EXPECT_COMPILE_FAIL		||
 		spec.expectResult === expectResult.EXPECT_COMPILE_LINK_FAIL	||
-		spec.expectResult === expectResult.EXPECT_LINK_FAIL)
+		spec.expectResult === expectResult.EXPECT_LINK_FAIL) {
+		debug(" ( Skipping test case, compile/link is expected to fail ) ");
+		setCurrentTestName("");
 		return (failReason === null);
+	}
 	
 	// Setup viewport.
 	gl.viewport(viewportX, viewportY, width, height);
@@ -885,13 +891,13 @@ var execute = function()
 	{
 		// Start using program
 		gl.useProgram(vertexProgramID);
-		assertMsg(gl.getError() === gl.NO_ERROR, "glUseProgram()");
+		assertMsgOptions(gl.getError() === gl.NO_ERROR, "glUseProgram()", false, true);
 	}
 
 	// Fetch location for positions positions.
 	var positionLoc = gl.getAttribLocation(vertexProgramID, "dEQP_Position");
 	if (positionLoc === -1)	{
-		testFailed("no location found for attribute 'dEQP_Position'");
+		testFailedOptions("no location found for attribute 'dEQP_Position'", true);
 		return false;
 	}
 	
@@ -960,7 +966,7 @@ var execute = function()
 					{
 						var numCols = deqpUtils.getDataTypeMatrixNumColumns(dataType);
 						var numRows = deqpUtils.getDataTypeMatrixNumRows(dataType);
-						assertMsg(scalarSize === numCols * numRows, "Matrix size sanity check");
+						assertMsgOptions(scalarSize === numCols * numRows, "Matrix size sanity check", false, true);
 
 						var colSize = numRows * numVerticesPerDraw;
 						for (var i = 0; i < numCols; i++) {
@@ -971,11 +977,11 @@ var execute = function()
 					else
 							vertexArrays.push(new deqpDraw.VertexArrayBinding(gl.FLOAT, attribLoc, scalarSize, numVerticesPerDraw, scalars));			
 
-					assertMsg(gl.getError() === gl.NO_ERROR, "set vertex attrib array");
+					assertMsgOptions(gl.getError() === gl.NO_ERROR, "set vertex attrib array", false, true);
 				}
 			}
 
-			assertMsg(gl.getError() === gl.NO_ERROR, "before set uniforms");
+			assertMsgOptions(gl.getError() === gl.NO_ERROR, "before set uniforms", false, true);
 
 			// set uniform values for outputs (refs).
 			for (var valNdx = 0; valNdx < numValues; valNdx++)
@@ -987,19 +993,19 @@ var execute = function()
 				{
 					// Set reference value.
 					setUniformValue(gl, pipelineProgramIDs, "ref_" + valueName1, val1, arrayNdx);
-					assertMsg(gl.getError() === gl.NO_ERROR, "set reference uniforms");
+					assertMsgOptions(gl.getError() === gl.NO_ERROR, "set reference uniforms", false, true);
 				}
 				else if (val1.storageType === shaderCase.value.STORAGE_UNIFORM)
 				{
 					setUniformValue(gl, pipelineProgramIDs, valueName1, val1, arrayNdx);
-					assertMsg(gl.getError() === gl.NO_ERROR, "set uniforms");
+					assertMsgOptions(gl.getError() === gl.NO_ERROR, "set uniforms", false, true);
 				}
 			}
 			
 			// Clear.
 			gl.clearColor(0.125, 0.25, 0.5, 1);
 			gl.clear(gl.COLOR_BUFFER_BIT);
-			assertMsg(gl.getError() === gl.NO_ERROR, "clear buffer");
+			assertMsgOptions(gl.getError() === gl.NO_ERROR, "clear buffer", false, true);
 
 			// Use program or pipeline
 			if (spec.separatePrograms)
@@ -1011,7 +1017,7 @@ var execute = function()
 			if (tessellationPresent)
 			{
 				gl.patchParameteri(GL_PATCH_VERTICES, 3);
-				assertMsg(gl.getError() === gl.NO_ERROR, "set patchParameteri(PATCH_VERTICES, 3)");
+				assertMsgOptions(gl.getError() === gl.NO_ERROR, "set patchParameteri(PATCH_VERTICES, 3)", false, true);
 			}
 
 			deqpDraw.draw(gl,
@@ -1034,14 +1040,14 @@ var execute = function()
 				/** @const */ var		minX			= Math.ceil (((-quadSize / w) * 0.5 + 0.5) * width + 1.0);
 				/** @const */ var		maxX			= Math.floor(((+quadSize / w) * 0.5 + 0.5) * width - 0.5);
 
-				assertMsg(postDrawError === gl.NO_ERROR, "draw");
+				assertMsgOptions(postDrawError === gl.NO_ERROR, "draw", false, true);
 
 				surface.readSurface(gl, viewportX, viewportY, width, height);
-				assertMsg(gl.getError() === gl.NO_ERROR, "read pixels");
+				assertMsgOptions(gl.getError() === gl.NO_ERROR, "read pixels", false, true);
 
 				if (!checkPixels(surface, minX, maxX, minY, maxY)) {
-					testFailed("INCORRECT RESULT for (value block " + (blockNdx+1) + " of " +  spec.valueBlockList.length
-											+ ", sub-case " + (arrayNdx+1) + " of " + block.arrayLength + "):");
+					testFailedOptions("INCORRECT RESULT for (value block " + (blockNdx+1) + " of " +  spec.valueBlockList.length
+											+ ", sub-case " + (arrayNdx+1) + " of " + block.arrayLength + "):", true);
 
 					/* TODO: Port */
 					/*
@@ -1058,7 +1064,7 @@ var execute = function()
 				}
 			}  else if (spec.expectResult === expectResult.EXPECT_VALIDATION_FAIL) {
 				/** TODO: GLES 3.1: Implement */
-				testFailed("Unsupported test case");
+				testFailedOptions("Unsupported test case", true);
 			}
 		}
 	}
@@ -1066,7 +1072,8 @@ var execute = function()
 	if (spec.separatePrograms)
 		gl.bindProgramPipeline(0);
 
-	assertMsg(gl.getError() === gl.NO_ERROR, "ShaderCase::execute(): end");
+	assertMsgOptions(gl.getError() === gl.NO_ERROR, "", true, true);
+	setCurrentTestName("");
 	
 	return true;
 };

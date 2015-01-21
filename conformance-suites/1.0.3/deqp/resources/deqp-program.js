@@ -42,7 +42,7 @@ var getGLShaderType = function(gl, type) {
 	case shaderType.VERTEX: _glShaderType = gl.VERTEX_SHADER; break;
 	case shaderType.FRAGMENT: _glShaderType = gl.FRAGMENT_SHADER; break;
 	default:
-		testFailed("Unknown shader type " + type);
+		testFailedOptions("Unknown shader type " + type, true);
 	}
 	
 	return _glShaderType;
@@ -93,11 +93,11 @@ var Shader = function(gl, type) {
 	this.info = new ShaderInfo();		/** Client-side clone of state for debug / perf reasons. */
 	this.info.type = type;
 	this.shader	= gl.createShader(getGLShaderType(gl, type));
-	assertMsg(gl.getError() == gl.NO_ERROR, "glCreateShader()");
+	assertMsgOptions(gl.getError() == gl.NO_ERROR, "glCreateShader()", false, true);
 
 	this.setSources = function(source) {
 		this.gl.shaderSource(this.shader, source);
-		assertMsg(this.gl.getError() == this.gl.NO_ERROR, "glshaderSource()");
+		assertMsgOptions(this.gl.getError() == this.gl.NO_ERROR, "glshaderSource()", false, true);
 		this.info.source = source;
 	};
 	
@@ -116,10 +116,10 @@ var Shader = function(gl, type) {
 		var compileEnd = new Date();
 		this.info.compileTimeUs = 1000 * (compileEnd.getTime() - compileStart.getTime());
 
-		assertMsg(this.gl.getError() == this.gl.NO_ERROR, "glCompileShader()");
+		assertMsgOptions(this.gl.getError() == this.gl.NO_ERROR, "glCompileShader()", false, true);
 
 		var compileStatus = this.gl.getShaderParameter(this.shader, this.gl.COMPILE_STATUS);
-		assertMsg(this.gl.getError() == this.gl.NO_ERROR, "glGetShaderParameter()");
+		assertMsgOptions(this.gl.getError() == this.gl.NO_ERROR, "glGetShaderParameter()", false, true);
 
 		this.info.compileOk = compileStatus;
 		this.info.infoLog = this.gl.getShaderInfoLog(this.shader);
@@ -150,17 +150,17 @@ var Program = function(gl, programID) {
 	
 	if (programID == null) {
 		this.program = gl.createProgram();
-		assertMsg(gl.getError() == gl.NO_ERROR, "glCreateProgram()");
+		assertMsgOptions(gl.getError() == gl.NO_ERROR, "glCreateProgram()", false, true);
 	}
 	
 	this.attachShader = function(shader) {
 		this.gl.attachShader(this.program, shader);
-		assertMsg(this.gl.getError() == this.gl.NO_ERROR, "gl.attachShader()");
+		assertMsgOptions(this.gl.getError() == this.gl.NO_ERROR, "gl.attachShader()", false, true);
 	};
 
 	this.bindAttribLocation = function(location, name) {
 		this.gl.bindAttribLocation(this.program, location, name);
-		assertMsg(this.gl.getError() == this.gl.NO_ERROR, "gl.bindAttribLocation()");
+		assertMsgOptions(this.gl.getError() == this.gl.NO_ERROR, "gl.bindAttribLocation()", false, true);
 	};
 	
 	this.link = function() {
@@ -173,17 +173,17 @@ var Program = function(gl, programID) {
 		var linkEnd = new Date();
 		this.info.linkTimeUs = 1000 *(linkEnd.getTime() - linkStart.getTime());
 		
-		assertMsg(this.gl.getError() == this.gl.NO_ERROR, "glLinkProgram()");
+		assertMsgOptions(this.gl.getError() == this.gl.NO_ERROR, "glLinkProgram()", false, true);
 
 		var linkStatus = this.gl.getProgramParameter(this.program, this.gl.LINK_STATUS);
-		assertMsg(this.gl.getError() == this.gl.NO_ERROR, "gl.getProgramParameter()");
+		assertMsgOptions(this.gl.getError() == this.gl.NO_ERROR, "gl.getProgramParameter()", false, true);
 		this.info.linkOk	= linkStatus;
 		this.info.infoLog	= this.gl.getProgramInfoLog(this.program);
 	};
 	
 	this.transformFeedbackVaryings = function(varyings, bufferMode) {
 		this.gl.transformFeedbackVaryings(this.program, varyings, bufferMode);
-		assertMsg(this.gl.getError() == this.gl.NO_ERROR, "gl.transformFeedbackVaryings()");
+		assertMsgOptions(this.gl.getError() == this.gl.NO_ERROR, "gl.transformFeedbackVaryings()", false, true);
 	};
 };
 
@@ -225,7 +225,7 @@ var ShaderProgram = function(gl, programSources) {
 
 			if (programSources.transformFeedbackBufferMode)
 				if (programSources.transformFeedbackBufferMode === gl.NONE)
-					assertMsg(programSources.transformFeedbackVaryings.length === 0, "Transform feedback sanity check");
+					assertMsgOptions(programSources.transformFeedbackVaryings.length === 0, "Transform feedback sanity check", false, true);
 				else
 					this.program.transformFeedbackVaryings(programSources.transformFeedbackVaryings, programSources.transformFeedbackBufferMode);
 

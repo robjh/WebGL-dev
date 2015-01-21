@@ -68,7 +68,7 @@ var draw = function(gl, program, vertexArrays, primitives, callback) {
 	/** TODO: implement */
 	}
 
-  assertMsg(gl.getError() === gl.NO_ERROR, "drawArrays");
+  assertMsgOptions(gl.getError() === gl.NO_ERROR, "drawArrays", false, true);
 	for (var i = 0; i < vertexArrays.length; i++) {
 		gl.disableVertexAttribArray(vertexArrays[i].location);
 	}
@@ -120,7 +120,7 @@ var getPrimitiveGLType = function(gl, type) {
 		case primitiveType.POINTS:			return gl.POINTS;
 		case primitiveType.PATCHES:			return gl.PATCHES;
 		default:
-			testFailed("Unknown primitive type " + type);
+			testFailedOptions("Unknown primitive type " + type, true);
 			return undefined;
 	}
 };
@@ -145,9 +145,9 @@ var PrimitiveList = function(type, indices) {
 var indexBuffer = function(gl, primitives) {
 	var indexObject = gl.createBuffer();
 	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexObject);
-	assertMsg(gl.getError() === gl.NO_ERROR, "bindBuffer");
+	assertMsgOptions(gl.getError() === gl.NO_ERROR, "bindBuffer", false, true);
 	gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(primitives.indices), gl.STATIC_DRAW);
-	assertMsg(gl.getError() === gl.NO_ERROR, "bufferData");
+	assertMsgOptions(gl.getError() === gl.NO_ERROR, "bufferData", false, true);
 	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
 	return indexObject;
 };
@@ -159,13 +159,13 @@ var indexBuffer = function(gl, primitives) {
 var vertexBuffer = function(gl, vertexArray) {
 	var buffer = gl.createBuffer();
 	gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-	assertMsg(gl.getError() === gl.NO_ERROR, "bindBuffer");
+	assertMsgOptions(gl.getError() === gl.NO_ERROR, "bindBuffer", false, true);
 	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexArray.data), gl.STATIC_DRAW);
-	assertMsg(gl.getError() === gl.NO_ERROR, "bufferData");
+	assertMsgOptions(gl.getError() === gl.NO_ERROR, "bufferData", false, true);
 	gl.enableVertexAttribArray(vertexArray.location);
-	assertMsg(gl.getError() === gl.NO_ERROR, "enableVertexAttribArray");
+	assertMsgOptions(gl.getError() === gl.NO_ERROR, "enableVertexAttribArray", false, true);
 	gl.vertexAttribPointer(vertexArray.location, vertexArray.components, vertexArray.type, false, 0, 0);
-	assertMsg(gl.getError() === gl.NO_ERROR, "vertexAttribPointer");
+	assertMsgOptions(gl.getError() === gl.NO_ERROR, "vertexAttribPointer", false, true);
 	_logToConsole(vertexArray);
 	return buffer;
 };
