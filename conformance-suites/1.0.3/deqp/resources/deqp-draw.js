@@ -39,20 +39,24 @@ var VertexArrayBinding = function(type, location, components, elements, data) {
 };
 
 /**
- *
- * @param {primitiveList} primitives Primitives to draw
+ * Creates vertex buffer, binds it and draws elements
+ * @param gl WebGL context
+ * @param {number} program ID, vertexProgramID
+ * @param {Array.<number>} vertexArrays
+ * @param {PrimitiveList} primitives to draw
+ * @param {function()} callback
  */
 var draw = function(gl, program, vertexArrays, primitives, callback) {
 	/** TODO: finish implementation */
-	  var objects = [];
+	/** @type {Array.<WebGLBuffer>} */ var objects = [];
 
 	for (var i = 0; i < vertexArrays.length; i++) {
-		var buffer = vertexBuffer(gl,vertexArrays[i]);
+		/** @type {WebGLBuffer} */ var buffer = vertexBuffer(gl,vertexArrays[i]);
 		objects.push(buffer);
 	}
 
 	if (primitives.indices) {
-		var elemBuffer = indexBuffer(gl, primitives);
+		/** @type {WebGLBuffer} */ var elemBuffer = indexBuffer(gl, primitives);
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, elemBuffer);
 
 		if (callback)
@@ -75,6 +79,12 @@ var draw = function(gl, program, vertexArrays, primitives, callback) {
   gl.bindBuffer(gl.ARRAY_BUFFER, null);
 };
 
+/**
+ * Creates vertex buffer, binds it and draws elements
+ * @param gl WebGL context
+ * @param {PrimitiveList} primitives Primitives to draw
+ * @param {number} offset
+ */
 var drawIndexed = function(gl, primitives, offset)
 {
 	var	mode = getPrimitiveGLType(gl, primitives.type);
@@ -89,6 +99,7 @@ var drawIndexed = function(gl, primitives, offset)
 
 
 /**
+ * Enums for primitive types
  * @enum
  */
 var primitiveType = {
@@ -107,7 +118,9 @@ var primitiveType = {
 
 /**
  * get GL type from primitive type
- * @param {primitiveType} type PrimitiveType
+ * @param gl WebGL context
+ * @param {primitiveType} type primitiveType
+ * @return GL primitive type
  */
 var getPrimitiveGLType = function(gl, type) {
 	switch (type) {
@@ -125,14 +138,27 @@ var getPrimitiveGLType = function(gl, type) {
 	}
 };
 
-
+/**
+ * Calls PrimitiveList() to create primitive list for Triangles
+ * @param {number} indices
+ */
 var triangles = function(indices) {
 	return new PrimitiveList(primitiveType.TRIANGLES, indices);
 };
+
+/**
+ * Calls PrimitiveList() to create primitive list for Patches
+ * @param {number} indices
+ */
 var patches = function(indices) {
 	return new PrimitiveList(primitiveType.PATCHES, indices);
 };
 
+/**
+ * Creates primitive list for Triangles or Patches, depending on type
+ * @param {primitiveType} type primitiveType
+ * @param {number} indices
+ */
 var PrimitiveList = function(type, indices) {
 	this.type = type;
 	this.indices = indices;
@@ -140,10 +166,12 @@ var PrimitiveList = function(type, indices) {
 
 /**
  * Create Element Array Buffer
- * @param {PrimitiveList} primitives Primitives to construct the buffer from
+ * get GL type from primitive type
+ * @param {PrimitiveList} primitives to construct the buffer from
+ * @return {WebGLBuffer} indexObject buffer with elements
  */
 var indexBuffer = function(gl, primitives) {
-	var indexObject = gl.createBuffer();
+	/** @type {WebGLBuffer} */ var indexObject = gl.createBuffer();
 	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexObject);
 	assertMsgOptions(gl.getError() === gl.NO_ERROR, "bindBuffer", false, true);
 	gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(primitives.indices), gl.STATIC_DRAW);
@@ -154,10 +182,12 @@ var indexBuffer = function(gl, primitives) {
 
 /**
  * Create Array Buffer
- * @param {VertexArrayBinding} primitives Array buffer descriptor
+ * @param gl WebGL context
+ * @param {VertexArrayBinding} vertexArray primitives, Array buffer descriptor
+ * @return {WebGLBuffer} buffer of vertices
  */
 var vertexBuffer = function(gl, vertexArray) {
-	var buffer = gl.createBuffer();
+	/** @type {WebGLBuffer} */ var buffer = gl.createBuffer();
 	gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
 	assertMsgOptions(gl.getError() === gl.NO_ERROR, "bindBuffer", false, true);
 	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexArray.data), gl.STATIC_DRAW);
@@ -202,7 +232,7 @@ Surface.prototype.readSurface = function(gl, x, y, width, height) {
 
 Surface.prototype.getPixel = function(x, y) {
 	/** @type {number} */ var base = (x + y * this.height) * 4;
-	/** @type Array.<number> */
+	/** @type {Array.<number>} */
 	var rgba = [
 		this.buffer[base],
 		this.buffer[base + 1],

@@ -80,6 +80,7 @@ var DataType = {
 /**
  *
  * @param {DataType} dataType
+ * @return {string} type of float scalar
  */
 var getDataTypeFloatScalars = function(dataType) {
 	
@@ -114,8 +115,9 @@ var getDataTypeFloatScalars = function(dataType) {
 };
 
 /**
- *
- * @param {DataType} dataType
+ * 
+ * @param {DataType} dataType shader
+ * @return {string} type of scalar type
  */
 var getDataTypeScalarType = function(dataType) {
 	switch (dataType) {
@@ -157,17 +159,18 @@ var getDataTypeScalarType = function(dataType) {
 		case DataType.INT_SAMPLER_3D: return "isampler3D";
 		case DataType.UINT_SAMPLER_2D: return "usampler2D";
 		case DataType.UINT_SAMPLER_CUBE: return "usamplerCube";
-		case DataType.UINT_SAMPLER_2D_ARRAY: "usampler2DArray";
+		case DataType.UINT_SAMPLER_2D_ARRAY: return "usampler2DArray";
 		case DataType.UINT_SAMPLER_3D: return "usampler3D";
 	};
 	throw Error("Unrecognized dataType " + dataType);
 }
+
 /**
- * @param {string} Shader datatype 
- * @return {bool} Is dataType integer or integer vector
+ * @param {DataType} dataType shader
+ * @return {boolean} Is dataType integer or integer vector
  */
 var isDataTypeIntOrIVec = function(dataType) {
-	/** @bool */ var retVal = false;
+	/** @type {boolean} */ var retVal = false;
 	switch (dataType) {
 	case DataType.INT:
 	case DataType.INT_VEC2:
@@ -179,6 +182,11 @@ var isDataTypeIntOrIVec = function(dataType) {
 	return retVal;
 }
 
+/**
+* Returns type of scalar size
+* @param {DataType} dataType shader
+* @return {number} with size of the type of scalar
+*/
 var getDataTypeScalarSize = function(dataType) {
 	switch (dataType) {
 		case DataType.FLOAT: return 1;
@@ -225,6 +233,11 @@ var getDataTypeScalarSize = function(dataType) {
 	throw Error("Unrecognized dataType " + dataType);
 };
 
+/**
+ * Checks if dataType is a matrix
+ * @param {DataType} dataType shader
+ * @return {boolean} Is dataType matrix or not
+ */
 var isDataTypeMatrix = function(dataType) {
 	switch(dataType) {
 	case DataType.FLOAT_MAT2 : 
@@ -241,6 +254,11 @@ var isDataTypeMatrix = function(dataType) {
 	return false;
 };
 
+/**
+* Returns number of rows of a DataType Matrix
+* @param {DataType} dataType shader
+* @return {number} with number of rows depending on DataType Matrix
+*/
 var getDataTypeMatrixNumRows = function(dataType) {
 	switch(dataType) {
 	case DataType.FLOAT_MAT2 : return 2;
@@ -256,6 +274,11 @@ var getDataTypeMatrixNumRows = function(dataType) {
 	throw Error("Unrecognized dataType " + dataType);
 };
 
+/**
+* Returns number of columns of a DataType Matrix
+* @param {DataType} dataType shader
+* @return {number} with number of columns depending on DataType Matrix
+*/
 var getDataTypeMatrixNumColumns = function(dataType) {
 	switch(dataType) {
 	case DataType.FLOAT_MAT2 : return 2;
@@ -271,6 +294,11 @@ var getDataTypeMatrixNumColumns = function(dataType) {
 	throw Error("Unrecognized dataType " + dataType);
 };
 
+/**
+ * 
+ * @param {DataType} dataType shader
+ * @return {string} dataType name
+ */
 var getDataTypeName = function(dataType)  {
 	switch(dataType) {
 	case DataType.INVALID: return "invalid";
