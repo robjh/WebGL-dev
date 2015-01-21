@@ -805,7 +805,6 @@ var execute = function()
 
 
 		for (var i = 0; i < program.shaders.length; i++) {
-			_logToConsole(program.shaders[i].info);
 			if (!program.shaders[i].info.compileOk)
 				allCompilesOk = false;
 		}
@@ -813,7 +812,6 @@ var execute = function()
 		if (!program.getProgramInfo().linkOk)
 			allLinksOk = false;
 		
-		_logToConsole(program);
 		
 	}
 	else

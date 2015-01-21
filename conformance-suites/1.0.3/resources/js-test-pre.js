@@ -90,6 +90,8 @@ function _logToConsole(msg)
 {
     if (window.console)
       window.console.log(msg);
+    if (typeof msg.compileOk == "boolean")
+      throw Error();
 }
 
 var _jsTestPreVerboseLogging = false;
