@@ -92,8 +92,8 @@ var genVertexShader = function(valueBlock) {
     var res = '';
     var state = deqpTests.runner.getState();
     var usesInout = usesShaderInoutQualifiers(state.currentTest.spec.targetVersion);
-    var vtxIn     = usesInout ? 'in'  : 'attribute';
-    var vtxOut    = usesInout ? 'out' : 'varying';
+    var vtxIn = usesInout ? 'in' : 'attribute';
+    var vtxOut = usesInout ? 'out' : 'varying';
 
     res += '#version ' + state.currentTest.spec.targetVersion + '\n';
     res += 'precision highp float;\n';
@@ -104,7 +104,7 @@ var genVertexShader = function(valueBlock) {
     for (var ndx = 0; ndx < valueBlock.values.length; ndx++) {
         var val = valueBlock.values[ndx];
         if (val.storageType === shaderCase.value.STORAGE_INPUT) {
-            var floatType   = deqpUtils.getDataTypeFloatScalars(val.dataType);
+            var floatType = deqpUtils.getDataTypeFloatScalars(val.dataType);
             res += vtxIn + ' ' + floatType + ' a_' + val.valueName + ';\n';
 
             if (deqpUtils.getDataTypeScalarType(val.dataType) === 'float')
@@ -148,33 +148,33 @@ var genCompareFunctions = function(valueBlock, useFloatTypes) {
     }
     if (useFloatTypes)
     {
-        if (cmpTypeFound['bool'])   stream += 'bool isOk (float a, bool b) { return ((a > 0.5) == b); }\n';
-        if (cmpTypeFound['bvec2'])  stream += 'bool isOk (vec2 a, bvec2 b) { return (greaterThan(a, vec2(0.5)) == b); }\n';
-        if (cmpTypeFound['bvec3'])  stream += 'bool isOk (vec3 a, bvec3 b) { return (greaterThan(a, vec3(0.5)) == b); }\n';
-        if (cmpTypeFound['bvec4'])  stream += 'bool isOk (vec4 a, bvec4 b) { return (greaterThan(a, vec4(0.5)) == b); }\n';
-        if (cmpTypeFound['int'])    stream += 'bool isOk (float a, int b)  { float atemp = a+0.5; return (float(b) <= atemp && atemp <= float(b+1)); }\n';
-        if (cmpTypeFound['ivec2'])  stream += 'bool isOk (vec2 a, ivec2 b) { return (ivec2(floor(a + 0.5)) == b); }\n';
-        if (cmpTypeFound['ivec3'])  stream += 'bool isOk (vec3 a, ivec3 b) { return (ivec3(floor(a + 0.5)) == b); }\n';
-        if (cmpTypeFound['ivec4'])  stream += 'bool isOk (vec4 a, ivec4 b) { return (ivec4(floor(a + 0.5)) == b); }\n';
-        if (cmpTypeFound['uint'])   stream += 'bool isOk (float a, uint b) { float atemp = a+0.5; return (float(b) <= atemp && atemp <= float(b+1u)); }\n';
-        if (cmpTypeFound['uvec2'])  stream += 'bool isOk (vec2 a, uvec2 b) { return (uvec2(floor(a + 0.5)) == b); }\n';
-        if (cmpTypeFound['uvec3'])  stream += 'bool isOk (vec3 a, uvec3 b) { return (uvec3(floor(a + 0.5)) == b); }\n';
-        if (cmpTypeFound['uvec4'])  stream += 'bool isOk (vec4 a, uvec4 b) { return (uvec4(floor(a + 0.5)) == b); }\n';
+        if (cmpTypeFound['bool']) stream += 'bool isOk (float a, bool b) { return ((a > 0.5) == b); }\n';
+        if (cmpTypeFound['bvec2']) stream += 'bool isOk (vec2 a, bvec2 b) { return (greaterThan(a, vec2(0.5)) == b); }\n';
+        if (cmpTypeFound['bvec3']) stream += 'bool isOk (vec3 a, bvec3 b) { return (greaterThan(a, vec3(0.5)) == b); }\n';
+        if (cmpTypeFound['bvec4']) stream += 'bool isOk (vec4 a, bvec4 b) { return (greaterThan(a, vec4(0.5)) == b); }\n';
+        if (cmpTypeFound['int']) stream += 'bool isOk (float a, int b)  { float atemp = a+0.5; return (float(b) <= atemp && atemp <= float(b+1)); }\n';
+        if (cmpTypeFound['ivec2']) stream += 'bool isOk (vec2 a, ivec2 b) { return (ivec2(floor(a + 0.5)) == b); }\n';
+        if (cmpTypeFound['ivec3']) stream += 'bool isOk (vec3 a, ivec3 b) { return (ivec3(floor(a + 0.5)) == b); }\n';
+        if (cmpTypeFound['ivec4']) stream += 'bool isOk (vec4 a, ivec4 b) { return (ivec4(floor(a + 0.5)) == b); }\n';
+        if (cmpTypeFound['uint']) stream += 'bool isOk (float a, uint b) { float atemp = a+0.5; return (float(b) <= atemp && atemp <= float(b+1u)); }\n';
+        if (cmpTypeFound['uvec2']) stream += 'bool isOk (vec2 a, uvec2 b) { return (uvec2(floor(a + 0.5)) == b); }\n';
+        if (cmpTypeFound['uvec3']) stream += 'bool isOk (vec3 a, uvec3 b) { return (uvec3(floor(a + 0.5)) == b); }\n';
+        if (cmpTypeFound['uvec4']) stream += 'bool isOk (vec4 a, uvec4 b) { return (uvec4(floor(a + 0.5)) == b); }\n';
     }
     else
     {
-        if (cmpTypeFound['bool'])   stream += 'bool isOk (bool a, bool b)   { return (a == b); }\n';
-        if (cmpTypeFound['bvec2'])  stream += 'bool isOk (bvec2 a, bvec2 b) { return (a == b); }\n';
-        if (cmpTypeFound['bvec3'])  stream += 'bool isOk (bvec3 a, bvec3 b) { return (a == b); }\n';
-        if (cmpTypeFound['bvec4'])  stream += 'bool isOk (bvec4 a, bvec4 b) { return (a == b); }\n';
-        if (cmpTypeFound['int'])    stream += 'bool isOk (int a, int b)     { return (a == b); }\n';
-        if (cmpTypeFound['ivec2'])  stream += 'bool isOk (ivec2 a, ivec2 b) { return (a == b); }\n';
-        if (cmpTypeFound['ivec3'])  stream += 'bool isOk (ivec3 a, ivec3 b) { return (a == b); }\n';
-        if (cmpTypeFound['ivec4'])  stream += 'bool isOk (ivec4 a, ivec4 b) { return (a == b); }\n';
-        if (cmpTypeFound['uint'])   stream += 'bool isOk (uint a, uint b)   { return (a == b); }\n';
-        if (cmpTypeFound['uvec2'])  stream += 'bool isOk (uvec2 a, uvec2 b) { return (a == b); }\n';
-        if (cmpTypeFound['uvec3'])  stream += 'bool isOk (uvec3 a, uvec3 b) { return (a == b); }\n';
-        if (cmpTypeFound['uvec4'])  stream += 'bool isOk (uvec4 a, uvec4 b) { return (a == b); }\n';
+        if (cmpTypeFound['bool']) stream += 'bool isOk (bool a, bool b)   { return (a == b); }\n';
+        if (cmpTypeFound['bvec2']) stream += 'bool isOk (bvec2 a, bvec2 b) { return (a == b); }\n';
+        if (cmpTypeFound['bvec3']) stream += 'bool isOk (bvec3 a, bvec3 b) { return (a == b); }\n';
+        if (cmpTypeFound['bvec4']) stream += 'bool isOk (bvec4 a, bvec4 b) { return (a == b); }\n';
+        if (cmpTypeFound['int']) stream += 'bool isOk (int a, int b)     { return (a == b); }\n';
+        if (cmpTypeFound['ivec2']) stream += 'bool isOk (ivec2 a, ivec2 b) { return (a == b); }\n';
+        if (cmpTypeFound['ivec3']) stream += 'bool isOk (ivec3 a, ivec3 b) { return (a == b); }\n';
+        if (cmpTypeFound['ivec4']) stream += 'bool isOk (ivec4 a, ivec4 b) { return (a == b); }\n';
+        if (cmpTypeFound['uint']) stream += 'bool isOk (uint a, uint b)   { return (a == b); }\n';
+        if (cmpTypeFound['uvec2']) stream += 'bool isOk (uvec2 a, uvec2 b) { return (a == b); }\n';
+        if (cmpTypeFound['uvec3']) stream += 'bool isOk (uvec3 a, uvec3 b) { return (a == b); }\n';
+        if (cmpTypeFound['uvec4']) stream += 'bool isOk (uvec4 a, uvec4 b) { return (a == b); }\n';
     }
 
     if (cmpTypeFound['float'])
@@ -251,11 +251,11 @@ var genFragmentShader = function(valueBlock) {
     var shader = '';
     var state = deqpTests.runner.getState();
     var usesInout = usesShaderInoutQualifiers(state.currentTest.spec.targetVersion);
-    var vtxIn     = usesInout ? 'in'   : 'attribute';
-    var vtxOut    = usesInout ? 'out'  : 'varying';
+    var vtxIn = usesInout ? 'in' : 'attribute';
+    var vtxOut = usesInout ? 'out' : 'varying';
     var customColorOut = usesInout;
-    var fragIn    = usesInout ? 'in' : 'varying';
-    var prec      = supportsFragmentHighp(state.currentTest.spec.targetVersion) ? 'highp' : 'mediump';
+    var fragIn = usesInout ? 'in' : 'varying';
+    var prec = supportsFragmentHighp(state.currentTest.spec.targetVersion) ? 'highp' : 'mediump';
 
     shader += '#version ' + state.currentTest.spec.targetVersion + '\n';
 
@@ -415,8 +415,8 @@ var specializeVertexShader = function(src, valueBlock) {
     var output = '';
     var state = deqpTests.runner.getState();
     var usesInout = usesShaderInoutQualifiers(state.currentTest.spec.targetVersion);
-    var vtxIn  = usesInout ? 'in'   : 'attribute';
-    var vtxOut = usesInout ? 'out'  : 'varying';
+    var vtxIn = usesInout ? 'in' : 'attribute';
+    var vtxOut = usesInout ? 'out' : 'varying';
 
     // Output (write out position).
     output += 'gl_Position = dEQP_Position;\n';
@@ -645,34 +645,34 @@ var setUniformValue = function(gl, pipelinePrograms, name, val, arrayNdx) {
         var element = val.elements.slice(elemNdx, elemNdx + scalarSize);
         switch (val.dataType)
         {
-            case deqpUtils.DataType.FLOAT:      gl.uniform1fv(loc, new Float32Array(element));                  break;
-            case deqpUtils.DataType.FLOAT_VEC2: gl.uniform2fv(loc, new Float32Array(element));                  break;
-            case deqpUtils.DataType.FLOAT_VEC3: gl.uniform3fv(loc, new Float32Array(element));                  break;
-            case deqpUtils.DataType.FLOAT_VEC4: gl.uniform4fv(loc, new Float32Array(element));                  break;
-            case deqpUtils.DataType.FLOAT_MAT2: gl.uniformMatrix2fv(loc, gl.FALSE, new Float32Array(element));  break;
-            case deqpUtils.DataType.FLOAT_MAT3: gl.uniformMatrix3fv(loc, gl.FALSE, new Float32Array(element));  break;
-            case deqpUtils.DataType.FLOAT_MAT4: gl.uniformMatrix4fv(loc, gl.FALSE, new Float32Array(element));  break;
-            case deqpUtils.DataType.INT:        gl.uniform1iv(loc, new Int32Array(element));                    break;
-            case deqpUtils.DataType.INT_VEC2:   gl.uniform2iv(loc, new Int32Array(element));                    break;
-            case deqpUtils.DataType.INT_VEC3:   gl.uniform3iv(loc, new Int32Array(element));                    break;
-            case deqpUtils.DataType.INT_VEC4:   gl.uniform4iv(loc, new Int32Array(element));                    break;
+            case deqpUtils.DataType.FLOAT: gl.uniform1fv(loc, new Float32Array(element)); break;
+            case deqpUtils.DataType.FLOAT_VEC2: gl.uniform2fv(loc, new Float32Array(element)); break;
+            case deqpUtils.DataType.FLOAT_VEC3: gl.uniform3fv(loc, new Float32Array(element)); break;
+            case deqpUtils.DataType.FLOAT_VEC4: gl.uniform4fv(loc, new Float32Array(element)); break;
+            case deqpUtils.DataType.FLOAT_MAT2: gl.uniformMatrix2fv(loc, gl.FALSE, new Float32Array(element)); break;
+            case deqpUtils.DataType.FLOAT_MAT3: gl.uniformMatrix3fv(loc, gl.FALSE, new Float32Array(element)); break;
+            case deqpUtils.DataType.FLOAT_MAT4: gl.uniformMatrix4fv(loc, gl.FALSE, new Float32Array(element)); break;
+            case deqpUtils.DataType.INT: gl.uniform1iv(loc, new Int32Array(element)); break;
+            case deqpUtils.DataType.INT_VEC2: gl.uniform2iv(loc, new Int32Array(element)); break;
+            case deqpUtils.DataType.INT_VEC3: gl.uniform3iv(loc, new Int32Array(element)); break;
+            case deqpUtils.DataType.INT_VEC4: gl.uniform4iv(loc, new Int32Array(element)); break;
 
             /** TODO: What type should be used for bool uniforms? */
-            case deqpUtils.DataType.BOOL:       gl.uniform1iv(loc, new Int32Array(element));  break;
-            case deqpUtils.DataType.BOOL_VEC2:  gl.uniform2iv(loc, new Int32Array(element));  break;
-            case deqpUtils.DataType.BOOL_VEC3:  gl.uniform3iv(loc, new Int32Array(element));  break;
-            case deqpUtils.DataType.BOOL_VEC4:  gl.uniform4iv(loc, new Int32Array(element));  break;
+            case deqpUtils.DataType.BOOL: gl.uniform1iv(loc, new Int32Array(element)); break;
+            case deqpUtils.DataType.BOOL_VEC2: gl.uniform2iv(loc, new Int32Array(element)); break;
+            case deqpUtils.DataType.BOOL_VEC3: gl.uniform3iv(loc, new Int32Array(element)); break;
+            case deqpUtils.DataType.BOOL_VEC4: gl.uniform4iv(loc, new Int32Array(element)); break;
 
-            case deqpUtils.DataType.UINT:          gl.uniform1uiv(loc, new Uint32Array(element));                    break;
-            case deqpUtils.DataType.UINT_VEC2:     gl.uniform2uiv(loc, new Uint32Array(element));                    break;
-            case deqpUtils.DataType.UINT_VEC3:     gl.uniform3uiv(loc, new Uint32Array(element));                    break;
-            case deqpUtils.DataType.UINT_VEC4:     gl.uniform4uiv(loc, new Uint32Array(element));                    break;
-            case deqpUtils.DataType.FLOAT_MAT2X3:  gl.uniformMatrix2x3fv(loc, gl.FALSE, new Float32Array(element));  break;
-            case deqpUtils.DataType.FLOAT_MAT2X4:  gl.uniformMatrix2x4fv(loc, gl.FALSE, new Float32Array(element));  break;
-            case deqpUtils.DataType.FLOAT_MAT3X2:  gl.uniformMatrix3x2fv(loc, gl.FALSE, new Float32Array(element));  break;
-            case deqpUtils.DataType.FLOAT_MAT3X4:  gl.uniformMatrix3x4fv(loc, gl.FALSE, new Float32Array(element));  break;
-            case deqpUtils.DataType.FLOAT_MAT4X2:  gl.uniformMatrix4x2fv(loc, gl.FALSE, new Float32Array(element));  break;
-            case deqpUtils.DataType.FLOAT_MAT4X3:  gl.uniformMatrix4x3fv(loc, gl.FALSE, new Float32Array(element));  break;
+            case deqpUtils.DataType.UINT: gl.uniform1uiv(loc, new Uint32Array(element)); break;
+            case deqpUtils.DataType.UINT_VEC2: gl.uniform2uiv(loc, new Uint32Array(element)); break;
+            case deqpUtils.DataType.UINT_VEC3: gl.uniform3uiv(loc, new Uint32Array(element)); break;
+            case deqpUtils.DataType.UINT_VEC4: gl.uniform4uiv(loc, new Uint32Array(element)); break;
+            case deqpUtils.DataType.FLOAT_MAT2X3: gl.uniformMatrix2x3fv(loc, gl.FALSE, new Float32Array(element)); break;
+            case deqpUtils.DataType.FLOAT_MAT2X4: gl.uniformMatrix2x4fv(loc, gl.FALSE, new Float32Array(element)); break;
+            case deqpUtils.DataType.FLOAT_MAT3X2: gl.uniformMatrix3x2fv(loc, gl.FALSE, new Float32Array(element)); break;
+            case deqpUtils.DataType.FLOAT_MAT3X4: gl.uniformMatrix3x4fv(loc, gl.FALSE, new Float32Array(element)); break;
+            case deqpUtils.DataType.FLOAT_MAT4X2: gl.uniformMatrix4x2fv(loc, gl.FALSE, new Float32Array(element)); break;
+            case deqpUtils.DataType.FLOAT_MAT4X3: gl.uniformMatrix4x3fv(loc, gl.FALSE, new Float32Array(element)); break;
 
             default:
                 testFailed('Unknown data type ' + val.dataType);
@@ -684,8 +684,8 @@ var setUniformValue = function(gl, pipelinePrograms, name, val, arrayNdx) {
 };
 
 var checkPixels = function(surface, minX, maxX, minY, maxY) {
-    /** type {bool} */ var allWhite      = true;
-    /** type {bool} */ var allBlack      = true;
+    /** type {bool} */ var allWhite = true;
+    /** type {bool} */ var allBlack = true;
     /** type {bool} */ var anyUnexpected = false;
 
     assertMsgOptions((maxX > minX) && (maxY > minY), 'checkPixels sanity check', false, true);
@@ -698,8 +698,8 @@ var checkPixels = function(surface, minX, maxX, minY, maxY) {
             /** type {bool} */ var isWhite = (pixel.getRed() == 255) && (pixel.getGreen() == 255) && (pixel.getBlue() == 255);
             /** type {bool} */ var isBlack = (pixel.getRed() == 0) && (pixel.getGreen() == 0) && (pixel.getBlue() == 0);
 
-            allWhite      = allWhite && isWhite;
-            allBlack      = allBlack && isBlack;
+            allWhite = allWhite && isWhite;
+            allBlack = allBlack && isBlack;
             anyUnexpected = anyUnexpected || (!isWhite && !isBlack);
         }
     }
@@ -788,16 +788,16 @@ var execute = function()
 
     // Compute viewport.
     /* TODO: original code used random number generator to compute viewport, we use whole canvas */
-    /** @const */ var width      = Math.min(canvas.width,  VIEWPORT_WIDTH);
-    /** @const */ var height     = Math.min(canvas.height, VIEWPORT_HEIGHT);
-    /** @const */ var viewportX  = 0;
-    /** @const */ var viewportY  = 0;
-    /** @const */ var numVerticesPerDraw  = 4;
+    /** @const */ var width = Math.min(canvas.width, VIEWPORT_WIDTH);
+    /** @const */ var height = Math.min(canvas.height, VIEWPORT_HEIGHT);
+    /** @const */ var viewportX = 0;
+    /** @const */ var viewportY = 0;
+    /** @const */ var numVerticesPerDraw = 4;
     /** @const */ var tessellationPresent = isTessellationPresent();
 
-    /** @type {bool} */   var allCompilesOk   = true;
-    /** @type {bool} */   var allLinksOk      = true;
-    /** @type {string} */ var failReason      = null;
+    /** @type {bool} */ var allCompilesOk = true;
+    /** @type {bool} */ var allLinksOk = true;
+    /** @type {string} */ var failReason = null;
 
     /** @type {number} */ var vertexProgramID = -1;
     var pipelineProgramIDs = [];
@@ -883,8 +883,8 @@ var execute = function()
     }
 
     // Return if compile/link expected to fail.
-    if (spec.expectResult === expectResult.EXPECT_COMPILE_FAIL    ||
-        spec.expectResult === expectResult.EXPECT_COMPILE_LINK_FAIL    ||
+    if (spec.expectResult === expectResult.EXPECT_COMPILE_FAIL ||
+        spec.expectResult === expectResult.EXPECT_COMPILE_LINK_FAIL ||
         spec.expectResult === expectResult.EXPECT_LINK_FAIL) {
         debug(' ( Skipping test case, compile/link is expected to fail ) ');
         setCurrentTestName('');
@@ -940,9 +940,9 @@ var execute = function()
 
             // Collect VA pointer for inputs
             for (var valNdx = 0; valNdx < numValues; valNdx++) {
-                /** @const */ var val        = block.values[valNdx];
-                /** @const */ var valueName  = val.valueName;
-                /** @const */ var dataType   = val.dataType;
+                /** @const */ var val = block.values[valNdx];
+                /** @const */ var valueName = val.valueName;
+                /** @const */ var dataType = val.dataType;
                 /** @const */ var scalarSize = deqpUtils.getDataTypeScalarSize(val.dataType);
 
                 if (val.storageType === shaderCase.value.STORAGE_INPUT)
@@ -1049,7 +1049,7 @@ var execute = function()
 
             if (spec.expectResult === expectResult.EXPECT_PASS) {
                 /** @type {deqpDraw.Surface} */ var surface = new deqpDraw.Surface();
-                /** @const */ var w    = s_positions[3];
+                /** @const */ var w = s_positions[3];
                 /** @const */ var minY = Math.ceil(((-quadSize / w) * 0.5 + 0.5) * height + 1.0);
                 /** @const */ var maxY = Math.floor(((+quadSize / w) * 0.5 + 0.5) * height - 0.5);
                 /** @const */ var minX = Math.ceil(((-quadSize / w) * 0.5 + 0.5) * width + 1.0);
@@ -1061,10 +1061,11 @@ var execute = function()
                 assertMsgOptions(gl.getError() === gl.NO_ERROR, 'read pixels', false, true);
 
                 if (!checkPixels(surface, minX, maxX, minY, maxY)) {
-                    testFailedOptions(
-                        'INCORRECT RESULT for (value block ' + (blockNdx + 1) + ' of ' + spec.valueBlockList.length
-                        + ', sub-case ' + (arrayNdx + 1) + ' of ' + block.arrayLength + '):', true
-                    );
+                    testFailedOptions((
+                        'INCORRECT RESULT for (value block ' + (blockNdx + 1) +
+                        ' of ' + spec.valueBlockList.length + ', sub-case ' +
+                        (arrayNdx + 1) + ' of ' + block.arrayLength + '):'
+                    ), true);
 
                     /* TODO: Port */
                     /*
