@@ -133,7 +133,7 @@ var Shader = function(gl, type) {
 
 var ProgramInfo = function() {
 	/** @type {string} */ var				infoLog;
-	/** @type {bool} */ var		linkOk = false;
+	/** @type {boolean} */ var		linkOk = false;
 	/** @type {number} */ var	linkTimeUs = 0;	
 };
 
@@ -206,7 +206,7 @@ var ShaderProgram = function(gl, programSources) {
 		return this.program.info;
 	};
 
-	/** @type {bool} */ var shadersOK = true;
+	/** @type {boolean} */ var shadersOK = true;
 
 		for (var i = 0; i < programSources.sources.length; i++) {
 			var shader = new Shader(gl, programSources.sources[i].type);
