@@ -102,7 +102,7 @@ var supportsFragmentHighp = function(version) {
 // the fragment shader is being tested.
 // We need to build attributes and varyings for each 'input'.
 var genVertexShader = function(valueBlock) {
-	/** @type {string} */ var res = '';
+    /** @type {string} */ var res = '';
     var state = deqpTests.runner.getState();
     /** @type {boolean} */ var usesInout = usesShaderInoutQualifiers(state.currentTest.spec.targetVersion);
     /** @type {string} */ var vtxIn = usesInout ? 'in' : 'attribute';
@@ -117,7 +117,7 @@ var genVertexShader = function(valueBlock) {
     for (var ndx = 0; ndx < valueBlock.values.length; ndx++) {
         var val = valueBlock.values[ndx];
         if (val.storageType === shaderCase.value.STORAGE_INPUT) {
-        	/** @type {string} */ var floatType = deqpUtils.getDataTypeFloatScalars(val.dataType);
+            /** @type {string} */ var floatType = deqpUtils.getDataTypeFloatScalars(val.dataType);
             res += vtxIn + ' ' + floatType + ' a_' + val.valueName + ';\n';
 
             if (deqpUtils.getDataTypeScalarType(val.dataType) === 'float')
@@ -222,7 +222,7 @@ var genCompareFunctions = function(valueBlock, useFloatTypes) {
 };
 
 var genCompareOp = function(dstVec4Var, valueBlock, nonFloatNamePrefix, checkVarName) {
-	/** @type {boolean} */var isFirstOutput = true;
+    /** @type {boolean} */var isFirstOutput = true;
     /** @type {string} */ var output = '';
 
     for (var ndx = 0; ndx < valueBlock.values.length; ndx++) {
@@ -261,7 +261,7 @@ var genCompareOp = function(dstVec4Var, valueBlock, nonFloatNamePrefix, checkVar
 };
 
 var genFragmentShader = function(valueBlock) {
-	/** @type {string} */ var shader = '';
+    /** @type {string} */ var shader = '';
     var state = deqpTests.runner.getState();
     /** @type {boolean} */ var usesInout = usesShaderInoutQualifiers(state.currentTest.spec.targetVersion);
     /** @type {string} */ var vtxIn = usesInout ? 'in' : 'attribute';
@@ -386,7 +386,7 @@ return {
 
 var injectExtensionRequirements = function(baseCode, shaderType, requirements) {
     var generateExtensionStatements = function(requirements, shaderType) {
-    	/** @type {string} */ var buf = '';
+        /** @type {string} */ var buf = '';
 
         if (requirements)
             for (var ndx = 0; ndx < requirements.length; ndx++)
@@ -423,9 +423,9 @@ var injectExtensionRequirements = function(baseCode, shaderType, requirements) {
 
 // Specialize a shader for the vertex shader test case.
 var specializeVertexShader = function(src, valueBlock) {
-	/** @type {string} */ var decl = '';
-	/** @type {string} */ var setup = '';
-	/** @type {string} */ var output = '';
+    /** @type {string} */ var decl = '';
+    /** @type {string} */ var setup = '';
+    /** @type {string} */ var output = '';
     var state = deqpTests.runner.getState();
     /** @type {boolean} */ var usesInout = usesShaderInoutQualifiers(state.currentTest.spec.targetVersion);
     /** @type {string} */ var vtxIn = usesInout ? 'in' : 'attribute';
@@ -482,9 +482,9 @@ var specializeVertexShader = function(src, valueBlock) {
 };
 
 var specializeVertexOnly = function(src, valueBlock) {
-	/** @type {string} */ var decl = '';
-	/** @type {string} */ var setup = '';
-	/** @type {string} */ var output = '';
+    /** @type {string} */ var decl = '';
+    /** @type {string} */ var setup = '';
+    /** @type {string} */ var output = '';
     var state = deqpTests.runner.getState();
     /** @type {boolean} */ var usesInout = usesShaderInoutQualifiers(state.currentTest.spec.targetVersion);
     /** @type {string} */ var vtxIn = usesInout ? 'in' : 'attribute';
@@ -508,7 +508,7 @@ var specializeVertexOnly = function(src, valueBlock) {
             }
             else
             {
-            	/** @type {string} */ var floatType = deqpUtils.getDataTypeFloatScalars(val.dataType);
+                /** @type {string} */ var floatType = deqpUtils.getDataTypeFloatScalars(val.dataType);
 
                 decl += vtxIn + ' ' + floatType + ' a_' + valueName + ';\n';
                 setup += type + ' ' + valueName + ' = ' + type + '(a_' + valueName + ');\n';
@@ -532,9 +532,9 @@ var specializeVertexOnly = function(src, valueBlock) {
 
 
 var specializeFragmentShader = function(src, valueBlock) {
-	/** @type {string} */ var decl = '';
-	/** @type {string} */ var setup = '';
-	/** @type {string} */ var output = '';
+    /** @type {string} */ var decl = '';
+    /** @type {string} */ var setup = '';
+    /** @type {string} */ var output = '';
 
     var state = deqpTests.runner.getState();
 
@@ -588,8 +588,8 @@ var specializeFragmentShader = function(src, valueBlock) {
 };
 
 var specializeFragmentOnly = function(src, valueBlock) {
-	/** @type {string} */ var decl = '';
-	/** @type {string} */ var output = '';
+    /** @type {string} */ var decl = '';
+    /** @type {string} */ var output = '';
 
     var state = deqpTests.runner.getState();
 
@@ -963,8 +963,8 @@ var execute = function()
                     var scalars = [];
 
                     if (deqpUtils.isDataTypeMatrix(dataType)) {
-                    	/** @type {number} */ var numCols = deqpUtils.getDataTypeMatrixNumColumns(dataType);
-                    	/** @type {number} */ var numRows = deqpUtils.getDataTypeMatrixNumRows(dataType);
+                        /** @type {number} */ var numCols = deqpUtils.getDataTypeMatrixNumColumns(dataType);
+                        /** @type {number} */ var numRows = deqpUtils.getDataTypeMatrixNumRows(dataType);
                         for (var repNdx = 0; repNdx < numVerticesPerDraw; repNdx++)
                             for (var i = 0; i < numCols; i++)
                                 for (var j = 0; j < numRows; j++)
@@ -991,8 +991,8 @@ var execute = function()
 
                     if (deqpUtils.isDataTypeMatrix(dataType))
                     {
-                    	/** @type {number} */ var numCols = deqpUtils.getDataTypeMatrixNumColumns(dataType);
-                    	/** @type {number} */ var numRows = deqpUtils.getDataTypeMatrixNumRows(dataType);
+                        /** @type {number} */ var numCols = deqpUtils.getDataTypeMatrixNumColumns(dataType);
+                        /** @type {number} */ var numRows = deqpUtils.getDataTypeMatrixNumRows(dataType);
                         assertMsgOptions(scalarSize === numCols * numRows, 'Matrix size sanity check', false, true);
 
                         /** @type {number} */ var colSize = numRows * numVerticesPerDraw;
