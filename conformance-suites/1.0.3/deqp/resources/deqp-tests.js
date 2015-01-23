@@ -23,7 +23,7 @@
  * It replaces TestCase and TestCaseGroup classes.
  */
 var deqpTests = (function() {
-"use strict";
+'use strict';
 
 /**
  * A simple state machine.
@@ -31,7 +31,7 @@ var deqpTests = (function() {
  * long tests into small chunks that won't cause a timeout
  */
 var stateMachine = (function() {
-"use strict";
+'use strict';
 
 /**
  * A general purpose bucket for string current execution state
@@ -43,7 +43,7 @@ var state = {};
  * Returns the state
  */
 var getState = function() {
-	return state;
+    return state;
 };
 
 /**
@@ -51,59 +51,59 @@ var getState = function() {
  * @param {function()} callback Callback to schedule
  */
 var runCallback = function(callback) {
-	setTimeout(callback.bind(this), 0);
+    setTimeout(callback.bind(this), 0);
 };
 
 /**
  * Call this function at the end of the test
  */
 var terminate = function() {
-	finishTest();
+    finishTest();
 };
 
 return {
-	runCallback: runCallback,
-	getState: getState,
-	terminate: terminate,
-	none: false
+    runCallback: runCallback,
+    getState: getState,
+    terminate: terminate,
+    none: false
 };
 }());
 
 var DeqpTest = function(name, description, spec) {
-	this.name = name;
-	this.description = description;
-	this.spec = spec;
-	this.currentTest = 0;
-	this.parentTest = null;
+    this.name = name;
+    this.description = description;
+    this.spec = spec;
+    this.currentTest = 0;
+    this.parentTest = null;
 };
-	
+
 /**
  * Returns the next 'leaf' test in the hierarchy of tests
- * 
+ *
  * @param {string} pattern Optional pattern to search for
  * @return {Object} Test specification
  */
  DeqpTest.prototype.next = function(pattern) {
-	if (pattern)
-		return this.find(pattern);
+    if (pattern)
+        return this.find(pattern);
 
-	var test = null;
-	
-	if (this.spec.length) {
-		while (!test) {
-			if (this.currentTest < this.spec.length) {
-				test = this.spec[this.currentTest].next();
-				if (!test)
-					this.currentTest += 1;
-			} else
-				break;
-		}
-		
-	} else if (this.currentTest === 0) {
-		this.currentTest += 1;
-		test = this;
-	}
-	return test;
+    var test = null;
+
+    if (this.spec.length) {
+        while (!test) {
+            if (this.currentTest < this.spec.length) {
+                test = this.spec[this.currentTest].next();
+                if (!test)
+                    this.currentTest += 1;
+            } else
+                break;
+        }
+
+    } else if (this.currentTest === 0) {
+        this.currentTest += 1;
+        test = this;
+    }
+    return test;
 };
 
 /**
@@ -112,11 +112,11 @@ var DeqpTest = function(name, description, spec) {
  * @return {string} Full test name.
  */
 DeqpTest.prototype.fullName = function() {
-	if (this.parentTest)
-		var parentName = this.parentTest.fullName();
-		if (parentName)
-			return parentName + '.' + this.name;
-	return this.name;
+    if (this.parentTest)
+        var parentName = this.parentTest.fullName();
+        if (parentName)
+            return parentName + '.' + this.name;
+    return this.name;
 };
 
 /**
@@ -127,26 +127,26 @@ DeqpTest.prototype.fullName = function() {
  * @return {Object} Found test or null.
  */
 DeqpTest.prototype.find = function(pattern) {
-	var test = null;
-	while(true) {
-		test = this.next();
-		if (!test)
-			break;
-		if (test.fullName().match(pattern))
-			break;
-	}
-	return test;
+    var test = null;
+    while (true) {
+        test = this.next();
+        if (!test)
+            break;
+        if (test.fullName().match(pattern))
+            break;
+    }
+    return test;
 };
 
 /**
  * Reset the iterator.
  */
  DeqpTest.prototype.reset = function() {
-	this.currentTest = 0;
-	
-	if (this.spec.length)
-		for (var i = 0; i < this.spec.length; i++)
-			this.spec[i].reset();
+    this.currentTest = 0;
+
+    if (this.spec.length)
+        for (var i = 0; i < this.spec.length; i++)
+            this.spec[i].reset();
 };
 
 /**
@@ -159,19 +159,19 @@ DeqpTest.prototype.find = function(pattern) {
  * @return {DeqpTest} The new test
  */
 var newTest = function(name, description, spec) {
-	var test = new DeqpTest(name, description, spec);
+    var test = new DeqpTest(name, description, spec);
 
-	if (spec.length) {
-		for (var i = 0; i < spec.length; i++)
-			spec[i].parentTest = test;
-	}
-	
-	return test;
-}
+    if (spec.length) {
+        for (var i = 0; i < spec.length; i++)
+            spec[i].parentTest = test;
+    }
+
+    return test;
+};
 
 return {
-	runner: stateMachine,
-	newTest: newTest
+    runner: stateMachine,
+    newTest: newTest
 };
 
 }());
