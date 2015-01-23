@@ -21,8 +21,8 @@
 var shaderLibraryCase = (function() {
     'use strict';
 
-    /** @const */ var VIEWPORT_WIDTH = 128;
-    /** @const */ var VIEWPORT_HEIGHT = 128;
+    /** @const @type {number} */ var VIEWPORT_WIDTH = 128;
+    /** @const @type {number} */ var VIEWPORT_HEIGHT = 128;
 
 /**
  * Shader compilation expected result enum
@@ -52,15 +52,17 @@ var BeforeDrawValidator = function() {
 
 /**
  * BeforeDrawValidator target type enum
- * @enum
+ * @enum {number}
  */
-
 var targetType = {
     PROGRAM: 0,
     PIPELINE: 1
 };
 
-
+/**
+ * Shader case type enum
+ * @enum {number}
+ */
 var shaderCase = {
     value: {
         STORAGE_INPUT: 0,
@@ -69,6 +71,11 @@ var shaderCase = {
     }
 };
 
+/**
+ * Checks if shader uses in/out qualifiers depending on the version
+ * @param {number} version
+ * @return {boolean} version
+ */
 var usesShaderInoutQualifiers = function(version) {
     switch (version) {
         case '100':
@@ -81,6 +88,12 @@ var usesShaderInoutQualifiers = function(version) {
             return true;
     }
 };
+
+/**
+ * Checks if version supports fragment highp precision
+ * @param {number} version
+ * @return {boolean} version ,True when is different from version 100
+ */
 var supportsFragmentHighp = function(version) {
     return version !== '100';
 };
@@ -277,7 +290,7 @@ var genFragmentShader = function(valueBlock) {
     for (var ndx = 0; ndx < valueBlock.values.length; ndx++) {
         var val = valueBlock.values[ndx];
         var floatType = deqpUtils.getDataTypeFloatScalars(val.dataType);
-        var refType = deqpUtils.getDataTypeName(val.dataType);
+        /** @type {string} */ var refType = deqpUtils.getDataTypeName(val.dataType);
 
         if (val.storageType == shaderCase.value.STORAGE_OUTPUT)
         {
@@ -390,11 +403,11 @@ var injectExtensionRequirements = function(baseCode, shaderType, requirements) {
         return baseCode;
 
     var splitLines = baseCode.split('\n');
-    /** @type {bool} */ var firstNonPreprocessorLine = true;
+    /** @type {boolean} */ var firstNonPreprocessorLine = true;
     var resultBuf = '';
 
     for (var i = 0; i < splitLines.length; i++) {
-        /** @const @type {bool} */ var isPreprocessorDirective = (splitLines[i].match(/^\s*#/) !== null);
+        /** @const @type {boolean} */ var isPreprocessorDirective = (splitLines[i].match(/^\s*#/) !== null);
 
         if (!isPreprocessorDirective && firstNonPreprocessorLine)
         {
@@ -427,7 +440,7 @@ var specializeVertexShader = function(src, valueBlock) {
         var val = valueBlock.values[ndx];
         var valueName = val.valueName;
         var floatType = deqpUtils.getDataTypeFloatScalars(val.dataType);
-        var dataTypeName = deqpUtils.getDataTypeName(val.dataType);
+        /** @type {string} */ var dataTypeName = deqpUtils.getDataTypeName(val.dataType);
 
         if (val.storageType === shaderCase.value.STORAGE_INPUT)
         {
@@ -485,7 +498,7 @@ var specializeVertexOnly = function(src, valueBlock) {
     for (var ndx = 0; ndx < valueBlock.values.length; ndx++) {
         var val = valueBlock.values[ndx];
         var valueName = val.valueName;
-        var type = deqpUtils.getDataTypeName(val.dataType);
+        /** @type {string} */ var type = deqpUtils.getDataTypeName(val.dataType);
 
         if (val.storageType === shaderCase.value.STORAGE_INPUT)
         {
@@ -540,7 +553,7 @@ var specializeFragmentShader = function(src, valueBlock) {
         var val = valueBlock.values[ndx];
         var valueName = val.valueName;
         var floatType = deqpUtils.getDataTypeFloatScalars(val.dataType);
-        var refType = deqpUtils.getDataTypeName(val.dataType);
+        /** @type {string} */ var refType = deqpUtils.getDataTypeName(val.dataType);
 
         if (val.storageType === shaderCase.value.STORAGE_INPUT)
         {
@@ -595,7 +608,7 @@ var specializeFragmentOnly = function(src, valueBlock) {
         var val = valueBlock.values[ndx];
         var valueName = val.valueName;
         var floatType = deqpUtils.getDataTypeFloatScalars(val.dataType);
-        var refType = deqpUtils.getDataTypeName(val.dataType);
+        /** @type {string} */ var refType = deqpUtils.getDataTypeName(val.dataType);
 
         if (val.storageType === shaderCase.value.STORAGE_OUTPUT) {
             decl += 'uniform ' + refType + ' ref_' + valueName + ';\n';
@@ -619,7 +632,7 @@ var specializeFragmentOnly = function(src, valueBlock) {
 /**
  * Is tessellation present
  *
- * @return {bool} True if tessellation is present
+ * @return {boolean} True if tessellation is present
  */
 var isTessellationPresent = function() {
     /* TODO: GLES 3.1: implement */
@@ -627,13 +640,13 @@ var isTessellationPresent = function() {
 };
 
 var setUniformValue = function(gl, pipelinePrograms, name, val, arrayNdx) {
-    /** @type {bool} */ var foundAnyMatch = false;
+    /** @type {boolean} */ var foundAnyMatch = false;
 
     for (var programNdx = 0; programNdx < pipelinePrograms.length; ++programNdx)
     {
         /** @const @type {WebGLUniformLocation} */ var loc = gl.getUniformLocation(pipelinePrograms[programNdx], name);
-        /** @const */ var scalarSize = deqpUtils.getDataTypeScalarSize(val.dataType);
-        /** @const */ var elemNdx = (val.arrayLength === 1) ? (0) : (arrayNdx * scalarSize);
+        /** @const @type {number} */ var scalarSize = deqpUtils.getDataTypeScalarSize(val.dataType);
+        /** @const @type {number} */ var elemNdx = (val.arrayLength === 1) ? (0) : (arrayNdx * scalarSize);
 
         if (!loc)
             continue;
@@ -684,9 +697,9 @@ var setUniformValue = function(gl, pipelinePrograms, name, val, arrayNdx) {
 };
 
 var checkPixels = function(surface, minX, maxX, minY, maxY) {
-    /** type {bool} */ var allWhite = true;
-    /** type {bool} */ var allBlack = true;
-    /** type {bool} */ var anyUnexpected = false;
+    /** type {boolean} */ var allWhite = true;
+    /** type {boolean} */ var allBlack = true;
+    /** type {boolean} */ var anyUnexpected = false;
 
     assertMsgOptions((maxX > minX) && (maxY > minY), 'checkPixels sanity check', false, true);
 
@@ -695,8 +708,8 @@ var checkPixels = function(surface, minX, maxX, minY, maxY) {
             /** type {Pixel} */ var pixel = surface.getPixel(x, y);
             // Note: we really do not want to involve alpha in the check comparison
             // \todo [2010-09-22 kalle] Do we know that alpha would be one? If yes, could use color constants white and black.
-            /** type {bool} */ var isWhite = (pixel.getRed() == 255) && (pixel.getGreen() == 255) && (pixel.getBlue() == 255);
-            /** type {bool} */ var isBlack = (pixel.getRed() == 0) && (pixel.getGreen() == 0) && (pixel.getBlue() == 0);
+            /** type {boolean} */ var isWhite = (pixel.getRed() == 255) && (pixel.getGreen() == 255) && (pixel.getBlue() == 255);
+            /** type {boolean} */ var isBlack = (pixel.getRed() == 0) && (pixel.getGreen() == 0) && (pixel.getBlue() == 0);
 
             allWhite = allWhite && isWhite;
             allBlack = allBlack && isBlack;
@@ -761,7 +774,7 @@ var init = function() {
 
 /**
  * Execute a test case
- * @return {bool} True if test case passed
+ * @return {boolean} True if test case passed
  */
 var execute = function()
 {
@@ -788,15 +801,15 @@ var execute = function()
 
     // Compute viewport.
     /* TODO: original code used random number generator to compute viewport, we use whole canvas */
-    /** @const */ var width = Math.min(canvas.width, VIEWPORT_WIDTH);
-    /** @const */ var height = Math.min(canvas.height, VIEWPORT_HEIGHT);
-    /** @const */ var viewportX = 0;
-    /** @const */ var viewportY = 0;
-    /** @const */ var numVerticesPerDraw = 4;
-    /** @const */ var tessellationPresent = isTessellationPresent();
+    /** @const @type {number} */ var width = Math.min(canvas.width, VIEWPORT_WIDTH);
+    /** @const @type {number} */ var height = Math.min(canvas.height, VIEWPORT_HEIGHT);
+    /** @const @type {number} */ var viewportX = 0;
+    /** @const @type {number} */ var viewportY = 0;
+    /** @const @type {number} */ var numVerticesPerDraw = 4;
+    /** @const @type {boolean} */ var tessellationPresent = isTessellationPresent();
 
-    /** @type {bool} */ var allCompilesOk = true;
-    /** @type {bool} */ var allLinksOk = true;
+    /** @type {boolean} */ var allCompilesOk = true;
+    /** @type {boolean} */ var allLinksOk = true;
     /** @type {string} */ var failReason = null;
 
     /** @type {number} */ var vertexProgramID = -1;
@@ -913,7 +926,6 @@ var execute = function()
     }
 
     // Iterate all value blocks.
-
     for (var blockNdx = 0; blockNdx < spec.valueBlockList.length; blockNdx++)
     {
         var block = spec.valueBlockList[blockNdx];
