@@ -32,7 +32,7 @@ the .txt file generated.
 5) By executing this Python script, NONE .js output files are generated, to avoid compilation of generated js in the local directory while running this script
 
 '''
-
+#!python3
 import re
 import os
 import subprocess
