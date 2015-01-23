@@ -69,6 +69,12 @@ return {
 };
 }());
 
+/**
+ * Assigns name, description and specification to test
+ * @param {string} name
+ * @param {string} description
+ * @param {string} spec
+ */
 var DeqpTest = function(name, description, spec) {
     this.name = name;
     this.description = description;
@@ -123,7 +129,7 @@ DeqpTest.prototype.fullName = function() {
  * Find a test with a matching name
  * Fast-forwards to a test whose full name matches the given pattern
  *
- * @param pattern Regular expression to search for
+ * @param {string} pattern Regular expression to search for
  * @return {Object} Found test or null.
  */
 DeqpTest.prototype.find = function(pattern) {
