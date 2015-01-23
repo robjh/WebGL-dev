@@ -73,7 +73,7 @@ var shaderCase = {
 
 /**
  * Checks if shader uses in/out qualifiers depending on the version
- * @param {number} version
+ * @param {string} version
  * @return {boolean} version
  */
 var usesShaderInoutQualifiers = function(version) {
@@ -91,7 +91,7 @@ var usesShaderInoutQualifiers = function(version) {
 
 /**
  * Checks if version supports fragment highp precision
- * @param {number} version
+ * @param {string} version
  * @return {boolean} version ,True when is different from version 100
  */
 var supportsFragmentHighp = function(version) {
@@ -102,11 +102,11 @@ var supportsFragmentHighp = function(version) {
 // the fragment shader is being tested.
 // We need to build attributes and varyings for each 'input'.
 var genVertexShader = function(valueBlock) {
-    var res = '';
+	/** @type {string} */ var res = '';
     var state = deqpTests.runner.getState();
-    var usesInout = usesShaderInoutQualifiers(state.currentTest.spec.targetVersion);
-    var vtxIn = usesInout ? 'in' : 'attribute';
-    var vtxOut = usesInout ? 'out' : 'varying';
+    /** @type {boolean} */ var usesInout = usesShaderInoutQualifiers(state.currentTest.spec.targetVersion);
+    /** @type {string} */ var vtxIn = usesInout ? 'in' : 'attribute';
+    /** @type {string} */ var vtxOut = usesInout ? 'out' : 'varying';
 
     res += '#version ' + state.currentTest.spec.targetVersion + '\n';
     res += 'precision highp float;\n';
@@ -117,7 +117,7 @@ var genVertexShader = function(valueBlock) {
     for (var ndx = 0; ndx < valueBlock.values.length; ndx++) {
         var val = valueBlock.values[ndx];
         if (val.storageType === shaderCase.value.STORAGE_INPUT) {
-            var floatType = deqpUtils.getDataTypeFloatScalars(val.dataType);
+        	/** @type {string} */ var floatType = deqpUtils.getDataTypeFloatScalars(val.dataType);
             res += vtxIn + ' ' + floatType + ' a_' + val.valueName + ';\n';
 
             if (deqpUtils.getDataTypeScalarType(val.dataType) === 'float')
@@ -151,7 +151,7 @@ var genVertexShader = function(valueBlock) {
 
 var genCompareFunctions = function(valueBlock, useFloatTypes) {
     var cmpTypeFound = {};
-    var stream = '';
+    /** @type {string} */ var stream = '';
 
     for (var ndx = 0; ndx < valueBlock.values.length; ndx++) {
         var val = valueBlock.values[ndx];
@@ -222,8 +222,8 @@ var genCompareFunctions = function(valueBlock, useFloatTypes) {
 };
 
 var genCompareOp = function(dstVec4Var, valueBlock, nonFloatNamePrefix, checkVarName) {
-    var isFirstOutput = true;
-    var output = '';
+	/** @type {boolean} */var isFirstOutput = true;
+    /** @type {string} */ var output = '';
 
     for (var ndx = 0; ndx < valueBlock.values.length; ndx++) {
         var val = valueBlock.values[ndx];
@@ -261,14 +261,14 @@ var genCompareOp = function(dstVec4Var, valueBlock, nonFloatNamePrefix, checkVar
 };
 
 var genFragmentShader = function(valueBlock) {
-    var shader = '';
+	/** @type {string} */ var shader = '';
     var state = deqpTests.runner.getState();
-    var usesInout = usesShaderInoutQualifiers(state.currentTest.spec.targetVersion);
-    var vtxIn = usesInout ? 'in' : 'attribute';
-    var vtxOut = usesInout ? 'out' : 'varying';
-    var customColorOut = usesInout;
-    var fragIn = usesInout ? 'in' : 'varying';
-    var prec = supportsFragmentHighp(state.currentTest.spec.targetVersion) ? 'highp' : 'mediump';
+    /** @type {boolean} */ var usesInout = usesShaderInoutQualifiers(state.currentTest.spec.targetVersion);
+    /** @type {string} */ var vtxIn = usesInout ? 'in' : 'attribute';
+    /** @type {string} */ var vtxOut = usesInout ? 'out' : 'varying';
+    /** @type {boolean} */ var customColorOut = usesInout;
+    /** @type {string} */ var fragIn = usesInout ? 'in' : 'varying';
+    /** @type {string} */ var prec = supportsFragmentHighp(state.currentTest.spec.targetVersion) ? 'highp' : 'mediump';
 
     shader += '#version ' + state.currentTest.spec.targetVersion + '\n';
 
@@ -289,7 +289,7 @@ var genFragmentShader = function(valueBlock) {
     // Declarations (varying, reference for each output).
     for (var ndx = 0; ndx < valueBlock.values.length; ndx++) {
         var val = valueBlock.values[ndx];
-        var floatType = deqpUtils.getDataTypeFloatScalars(val.dataType);
+        /** @type {string} */ var floatType = deqpUtils.getDataTypeFloatScalars(val.dataType);
         /** @type {string} */ var refType = deqpUtils.getDataTypeName(val.dataType);
 
         if (val.storageType == shaderCase.value.STORAGE_OUTPUT)
@@ -386,7 +386,7 @@ return {
 
 var injectExtensionRequirements = function(baseCode, shaderType, requirements) {
     var generateExtensionStatements = function(requirements, shaderType) {
-        var buf = '';
+    	/** @type {string} */ var buf = '';
 
         if (requirements)
             for (var ndx = 0; ndx < requirements.length; ndx++)
@@ -404,7 +404,7 @@ var injectExtensionRequirements = function(baseCode, shaderType, requirements) {
 
     var splitLines = baseCode.split('\n');
     /** @type {boolean} */ var firstNonPreprocessorLine = true;
-    var resultBuf = '';
+    /** @type {string} */ var resultBuf = '';
 
     for (var i = 0; i < splitLines.length; i++) {
         /** @const @type {boolean} */ var isPreprocessorDirective = (splitLines[i].match(/^\s*#/) !== null);
@@ -423,13 +423,13 @@ var injectExtensionRequirements = function(baseCode, shaderType, requirements) {
 
 // Specialize a shader for the vertex shader test case.
 var specializeVertexShader = function(src, valueBlock) {
-    var decl = '';
-    var setup = '';
-    var output = '';
+	/** @type {string} */ var decl = '';
+	/** @type {string} */ var setup = '';
+	/** @type {string} */ var output = '';
     var state = deqpTests.runner.getState();
-    var usesInout = usesShaderInoutQualifiers(state.currentTest.spec.targetVersion);
-    var vtxIn = usesInout ? 'in' : 'attribute';
-    var vtxOut = usesInout ? 'out' : 'varying';
+    /** @type {boolean} */ var usesInout = usesShaderInoutQualifiers(state.currentTest.spec.targetVersion);
+    /** @type {string} */ var vtxIn = usesInout ? 'in' : 'attribute';
+    /** @type {string} */ var vtxOut = usesInout ? 'out' : 'varying';
 
     // Output (write out position).
     output += 'gl_Position = dEQP_Position;\n';
@@ -439,7 +439,7 @@ var specializeVertexShader = function(src, valueBlock) {
     for (var ndx = 0; ndx < valueBlock.values.length; ndx++) {
         var val = valueBlock.values[ndx];
         var valueName = val.valueName;
-        var floatType = deqpUtils.getDataTypeFloatScalars(val.dataType);
+        /** @type {string} */ var floatType = deqpUtils.getDataTypeFloatScalars(val.dataType);
         /** @type {string} */ var dataTypeName = deqpUtils.getDataTypeName(val.dataType);
 
         if (val.storageType === shaderCase.value.STORAGE_INPUT)
@@ -482,12 +482,12 @@ var specializeVertexShader = function(src, valueBlock) {
 };
 
 var specializeVertexOnly = function(src, valueBlock) {
-    var decl = '';
-    var setup = '';
-    var output = '';
+	/** @type {string} */ var decl = '';
+	/** @type {string} */ var setup = '';
+	/** @type {string} */ var output = '';
     var state = deqpTests.runner.getState();
-    var usesInout = usesShaderInoutQualifiers(state.currentTest.spec.targetVersion);
-    var vtxIn = usesInout ? 'in' : 'attribute';
+    /** @type {boolean} */ var usesInout = usesShaderInoutQualifiers(state.currentTest.spec.targetVersion);
+    /** @type {string} */ var vtxIn = usesInout ? 'in' : 'attribute';
 
     // Output (write out position).
     output += 'gl_Position = dEQP_Position;\n';
@@ -508,7 +508,7 @@ var specializeVertexOnly = function(src, valueBlock) {
             }
             else
             {
-                var floatType = deqpUtils.getDataTypeFloatScalars(val.dataType);
+            	/** @type {string} */ var floatType = deqpUtils.getDataTypeFloatScalars(val.dataType);
 
                 decl += vtxIn + ' ' + floatType + ' a_' + valueName + ';\n';
                 setup += type + ' ' + valueName + ' = ' + type + '(a_' + valueName + ');\n';
@@ -532,16 +532,16 @@ var specializeVertexOnly = function(src, valueBlock) {
 
 
 var specializeFragmentShader = function(src, valueBlock) {
-    var decl = '';
-    var setup = '';
-    var output = '';
+	/** @type {string} */ var decl = '';
+	/** @type {string} */ var setup = '';
+	/** @type {string} */ var output = '';
 
     var state = deqpTests.runner.getState();
 
-    var usesInout = usesShaderInoutQualifiers(state.currentTest.spec.targetVersion);
-    var customColorOut = usesInout;
-    var fragIn = usesInout ? 'in' : 'varying';
-    var fragColor = customColorOut ? 'dEQP_FragColor' : 'gl_FragColor';
+    /** @type {boolean} */ var usesInout = usesShaderInoutQualifiers(state.currentTest.spec.targetVersion);
+    /** @type {boolean} */ var customColorOut = usesInout;
+    /** @type {string} */ var fragIn = usesInout ? 'in' : 'varying';
+    /** @type {string} */ var fragColor = customColorOut ? 'dEQP_FragColor' : 'gl_FragColor';
 
     decl += genCompareFunctions(valueBlock, false);
     output += genCompareOp(fragColor, valueBlock, '', null);
@@ -552,7 +552,7 @@ var specializeFragmentShader = function(src, valueBlock) {
     for (var ndx = 0; ndx < valueBlock.values.length; ndx++) {
         var val = valueBlock.values[ndx];
         var valueName = val.valueName;
-        var floatType = deqpUtils.getDataTypeFloatScalars(val.dataType);
+        /** @type {string} */ var floatType = deqpUtils.getDataTypeFloatScalars(val.dataType);
         /** @type {string} */ var refType = deqpUtils.getDataTypeName(val.dataType);
 
         if (val.storageType === shaderCase.value.STORAGE_INPUT)
@@ -588,15 +588,15 @@ var specializeFragmentShader = function(src, valueBlock) {
 };
 
 var specializeFragmentOnly = function(src, valueBlock) {
-    var decl = '';
-    var output = '';
+	/** @type {string} */ var decl = '';
+	/** @type {string} */ var output = '';
 
     var state = deqpTests.runner.getState();
 
-    var usesInout = usesShaderInoutQualifiers(state.currentTest.spec.targetVersion);
-    var customColorOut = usesInout;
-    var fragIn = usesInout ? 'in' : 'varying';
-    var fragColor = customColorOut ? 'dEQP_FragColor' : 'gl_FragColor';
+    /** @type {boolean} */ var usesInout = usesShaderInoutQualifiers(state.currentTest.spec.targetVersion);
+    /** @type {boolean} */ var customColorOut = usesInout;
+    /** @type {string} */ var fragIn = usesInout ? 'in' : 'varying';
+    /** @type {string} */ var fragColor = customColorOut ? 'dEQP_FragColor' : 'gl_FragColor';
 
     decl += genCompareFunctions(valueBlock, false);
     output += genCompareOp(fragColor, valueBlock, '', null);
@@ -607,7 +607,7 @@ var specializeFragmentOnly = function(src, valueBlock) {
     for (var ndx = 0; ndx < valueBlock.values.length; ndx++) {
         var val = valueBlock.values[ndx];
         var valueName = val.valueName;
-        var floatType = deqpUtils.getDataTypeFloatScalars(val.dataType);
+        /** @type {string} */ var floatType = deqpUtils.getDataTypeFloatScalars(val.dataType);
         /** @type {string} */ var refType = deqpUtils.getDataTypeName(val.dataType);
 
         if (val.storageType === shaderCase.value.STORAGE_OUTPUT) {
@@ -779,7 +779,7 @@ var init = function() {
 var execute = function()
 {
     /** @const @type {number} */ var quadSize = 1.0;
-    /** @const @type {number} */
+    /** @const @type {Array.<number>} */
     var s_positions = [
         -quadSize, -quadSize, 0.0, 1.0,
         -quadSize, +quadSize, 0.0, 1.0,
@@ -787,7 +787,7 @@ var execute = function()
         +quadSize, +quadSize, 0.0, 1.0
     ];
 
-    /** @const @type {number} */
+    /** @const @type {Array.<number>} */
     var s_indices = [
         0, 1, 2,
         1, 3, 2
@@ -810,7 +810,7 @@ var execute = function()
 
     /** @type {boolean} */ var allCompilesOk = true;
     /** @type {boolean} */ var allLinksOk = true;
-    /** @type {string} */ var failReason = null;
+    var failReason = null;
 
     /** @type {number} */ var vertexProgramID = -1;
     var pipelineProgramIDs = [];
@@ -936,9 +936,9 @@ var execute = function()
         // Iterate all array sub-cases.
         for (var arrayNdx = 0; arrayNdx < numRenderPasses; arrayNdx++)
         {
-            /* @const @type {number} */ var numValues = block.values.length;
+            /** @const @type {number} */ var numValues = block.values.length;
             var vertexArrays = [];
-            var attribValueNdx = 0;
+            /** @type {number} */ var attribValueNdx = 0;
             /** @type {gl.enum} */ var postDrawError;
             var beforeDrawValidator = (
                 new BeforeDrawValidator(
@@ -953,7 +953,7 @@ var execute = function()
             // Collect VA pointer for inputs
             for (var valNdx = 0; valNdx < numValues; valNdx++) {
                 /** @const */ var val = block.values[valNdx];
-                /** @const */ var valueName = val.valueName;
+                /** @const @type {string}*/ var valueName = val.valueName;
                 /** @const */ var dataType = val.dataType;
                 /** @const */ var scalarSize = deqpUtils.getDataTypeScalarSize(val.dataType);
 
@@ -963,8 +963,8 @@ var execute = function()
                     var scalars = [];
 
                     if (deqpUtils.isDataTypeMatrix(dataType)) {
-                        var numCols = deqpUtils.getDataTypeMatrixNumColumns(dataType);
-                        var numRows = deqpUtils.getDataTypeMatrixNumRows(dataType);
+                    	/** @type {number} */ var numCols = deqpUtils.getDataTypeMatrixNumColumns(dataType);
+                    	/** @type {number} */ var numRows = deqpUtils.getDataTypeMatrixNumRows(dataType);
                         for (var repNdx = 0; repNdx < numVerticesPerDraw; repNdx++)
                             for (var i = 0; i < numCols; i++)
                                 for (var j = 0; j < numRows; j++)
@@ -975,13 +975,13 @@ var execute = function()
                                 scalars[repNdx * scalarSize + ndx] = val.elements[arrayNdx * scalarSize + ndx];
 
                                 // Attribute name prefix.
-                    var attribPrefix = '';
+                    /** @type {string} */ var attribPrefix = '';
                     // \todo [2010-05-27 petri] Should latter condition only apply for vertex cases (or actually non-fragment cases)?
                     if ((spec.caseType === caseType.CASETYPE_FRAGMENT_ONLY) || (deqpUtils.getDataTypeScalarType(dataType) !== 'float'))
                         attribPrefix = 'a_';
 
                     // Input always given as attribute.
-                    var attribName = attribPrefix + valueName;
+                    /** @type {string} */ var attribName = attribPrefix + valueName;
                     var attribLoc = gl.getAttribLocation(vertexProgramID, attribName);
                     if (attribLoc === -1)
                     {
@@ -991,11 +991,11 @@ var execute = function()
 
                     if (deqpUtils.isDataTypeMatrix(dataType))
                     {
-                        var numCols = deqpUtils.getDataTypeMatrixNumColumns(dataType);
-                        var numRows = deqpUtils.getDataTypeMatrixNumRows(dataType);
+                    	/** @type {number} */ var numCols = deqpUtils.getDataTypeMatrixNumColumns(dataType);
+                    	/** @type {number} */ var numRows = deqpUtils.getDataTypeMatrixNumRows(dataType);
                         assertMsgOptions(scalarSize === numCols * numRows, 'Matrix size sanity check', false, true);
 
-                        var colSize = numRows * numVerticesPerDraw;
+                        /** @type {number} */ var colSize = numRows * numVerticesPerDraw;
                         for (var i = 0; i < numCols; i++) {
                             var colData = scalars.slice(i * colSize, (i + 1) * colSize);
                             vertexArrays.push(new deqpDraw.VertexArrayBinding(gl.FLOAT, attribLoc + i, numRows, numVerticesPerDraw, colData));
