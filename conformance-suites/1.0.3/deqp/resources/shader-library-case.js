@@ -222,6 +222,7 @@ var genCompareFunctions = function(valueBlock, useFloatTypes) {
 };
 
 var genCompareOp = function(dstVec4Var, valueBlock, nonFloatNamePrefix, checkVarName) {
+
     /** @type {boolean} */var isFirstOutput = true;
     /** @type {string} */ var output = '';
 
@@ -983,16 +984,15 @@ var execute = function()
                     // Input always given as attribute.
                     /** @type {string} */ var attribName = attribPrefix + valueName;
                     var attribLoc = gl.getAttribLocation(vertexProgramID, attribName);
-                    if (attribLoc === -1)
-                    {
+                    if (attribLoc === -1) {
                         _logToConsole("Warning: no location found for attribute '" + attribName + "'");
                         continue;
                     }
 
-                    if (deqpUtils.isDataTypeMatrix(dataType))
-                    {
+                    if (deqpUtils.isDataTypeMatrix(dataType)) {
                         /** @type {number} */ var numCols = deqpUtils.getDataTypeMatrixNumColumns(dataType);
                         /** @type {number} */ var numRows = deqpUtils.getDataTypeMatrixNumRows(dataType);
+
                         assertMsgOptions(scalarSize === numCols * numRows, 'Matrix size sanity check', false, true);
 
                         /** @type {number} */ var colSize = numRows * numVerticesPerDraw;
