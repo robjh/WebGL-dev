@@ -26,8 +26,8 @@
  * @enum {number}
  */
 var shaderType = {
-	VERTEX: 0,
-	FRAGMENT: 1
+    VERTEX: 0,
+    FRAGMENT: 1
 };
 
 /**
@@ -37,50 +37,50 @@ var shaderType = {
  * @return GL shader type
  */
 var getGLShaderType = function(gl, type) {
-	var _glShaderType;
-	switch (type) {
-	case shaderType.VERTEX: _glShaderType = gl.VERTEX_SHADER; break;
-	case shaderType.FRAGMENT: _glShaderType = gl.FRAGMENT_SHADER; break;
-	default:
-		testFailedOptions("Unknown shader type " + type, true);
-	}
-	
-	return _glShaderType;
+    var _glShaderType;
+    switch (type) {
+    case shaderType.VERTEX: _glShaderType = gl.VERTEX_SHADER; break;
+    case shaderType.FRAGMENT: _glShaderType = gl.FRAGMENT_SHADER; break;
+    default:
+        testFailedOptions('Unknown shader type ' + type, true);
+    }
+
+    return _glShaderType;
 };
 
 /**
  * Declares shader information
  */
 var ShaderInfo = function() {
-	this.type;			/** Shader type. */
-	this.source;			/** Shader source. */
-	this.infoLog;		/** Compile info log. */
-	this.compileOk = false;		/** Did compilation succeed? */
-	this.compileTimeUs = 0;	/** Compile time in microseconds (us). */
+    this.type;               /** Shader type. */
+    this.source;             /** Shader source. */
+    this.infoLog;            /** Compile info log. */
+    this.compileOk = false;  /** Did compilation succeed? */
+    this.compileTimeUs = 0;  /** Compile time in microseconds (us). */
 };
 
 /**
- * Generates vertex shader info from source 
- * @param source 
+ * Generates vertex shader info from source
+ * @param source
  * @return vertex shader info
  */
 var genVertexSource = function(source) {
-	var shader = new ShaderInfo();
-	shader.source = source;
-	shader.type = shaderType.VERTEX;
-	return shader;
+    var shader = new ShaderInfo();
+    shader.source = source;
+    shader.type = shaderType.VERTEX;
+    return shader;
 };
 
 /**
- * Generates fragment shader info from source 
- * @param source 
+ * Generates fragment shader info from source
+ * @param source
  * @return fragment shader info
  */
 var genFragmentSource = function(source) {
-	var shader = new ShaderInfo();
-	shader.source = source;
-	shader.type = shaderType.FRAGMENT;
-	return shader;
+    var shader = new ShaderInfo();
+    shader.source = source;
+    shader.type = shaderType.FRAGMENT;
+    return shader;
 };
 
 /**
@@ -89,52 +89,52 @@ var genFragmentSource = function(source) {
  * @param {shaderType} type Shader Type
  */
 var Shader = function(gl, type) {
-	this.gl = gl;
-	this.info = new ShaderInfo();		/** Client-side clone of state for debug / perf reasons. */
-	this.info.type = type;
-	this.shader	= gl.createShader(getGLShaderType(gl, type));
-	assertMsgOptions(gl.getError() == gl.NO_ERROR, "glCreateShader()", false, true);
+    this.gl = gl;
+    this.info = new ShaderInfo();  /** Client-side clone of state for debug / perf reasons. */
+    this.info.type = type;
+    this.shader = gl.createShader(getGLShaderType(gl, type));
+    assertMsgOptions(gl.getError() == gl.NO_ERROR, 'glCreateShader()', false, true);
 
-	this.setSources = function(source) {
-		this.gl.shaderSource(this.shader, source);
-		assertMsgOptions(this.gl.getError() == this.gl.NO_ERROR, "glshaderSource()", false, true);
-		this.info.source = source;
-	};
-	
-	this.getCompileStatus = function() {
-		return this.info.compileOk;
-	};
-	
-	this.compile = function() {
-		this.info.compileOk		= false;
-		this.info.compileTimeUs	= 0;
-		this.info.infoLog = "";
+    this.setSources = function(source) {
+        this.gl.shaderSource(this.shader, source);
+        assertMsgOptions(this.gl.getError() == this.gl.NO_ERROR, 'glshaderSource()', false, true);
+        this.info.source = source;
+    };
 
-		
-		var compileStart = new Date();
-		this.gl.compileShader(this.shader);
-		var compileEnd = new Date();
-		this.info.compileTimeUs = 1000 * (compileEnd.getTime() - compileStart.getTime());
+    this.getCompileStatus = function() {
+        return this.info.compileOk;
+    };
 
-		assertMsgOptions(this.gl.getError() == this.gl.NO_ERROR, "glCompileShader()", false, true);
+    this.compile = function() {
+        this.info.compileOk     = false;
+        this.info.compileTimeUs = 0;
+        this.info.infoLog       = '';
 
-		var compileStatus = this.gl.getShaderParameter(this.shader, this.gl.COMPILE_STATUS);
-		assertMsgOptions(this.gl.getError() == this.gl.NO_ERROR, "glGetShaderParameter()", false, true);
 
-		this.info.compileOk = compileStatus;
-		this.info.infoLog = this.gl.getShaderInfoLog(this.shader);
-	};
-	
-	this.getShader = function() {
-		return this.shader;
-	};
-	
+        var compileStart = new Date();
+        this.gl.compileShader(this.shader);
+        var compileEnd = new Date();
+        this.info.compileTimeUs = 1000 * (compileEnd.getTime() - compileStart.getTime());
+
+        assertMsgOptions(this.gl.getError() == this.gl.NO_ERROR, 'glCompileShader()', false, true);
+
+        var compileStatus = this.gl.getShaderParameter(this.shader, this.gl.COMPILE_STATUS);
+        assertMsgOptions(this.gl.getError() == this.gl.NO_ERROR, 'glGetShaderParameter()', false, true);
+
+        this.info.compileOk = compileStatus;
+        this.info.infoLog = this.gl.getShaderInfoLog(this.shader);
+    };
+
+    this.getShader = function() {
+        return this.shader;
+    };
+
 };
 
 var ProgramInfo = function() {
-	/** @type {string} */ var				infoLog;
-	/** @type {boolean} */ var		linkOk = false;
-	/** @type {number} */ var	linkTimeUs = 0;	
+    /** @type {string} */  var infoLog;
+    /** @type {boolean} */ var linkOk = false;
+    /** @type {number} */  var linkTimeUs = 0;
 };
 
 /**
@@ -144,47 +144,47 @@ var ProgramInfo = function() {
  * @param programID
  */
 var Program = function(gl, programID) {
-	this.gl = gl;
-	this.program = programID;
-	this.info = new ProgramInfo();
-	
-	if (programID == null) {
-		this.program = gl.createProgram();
-		assertMsgOptions(gl.getError() == gl.NO_ERROR, "glCreateProgram()", false, true);
-	}
-	
-	this.attachShader = function(shader) {
-		this.gl.attachShader(this.program, shader);
-		assertMsgOptions(this.gl.getError() == this.gl.NO_ERROR, "gl.attachShader()", false, true);
-	};
+    this.gl = gl;
+    this.program = programID;
+    this.info = new ProgramInfo();
 
-	this.bindAttribLocation = function(location, name) {
-		this.gl.bindAttribLocation(this.program, location, name);
-		assertMsgOptions(this.gl.getError() == this.gl.NO_ERROR, "gl.bindAttribLocation()", false, true);
-	};
-	
-	this.link = function() {
-		this.info.linkOk		= false;
-		this.info.linkTimeUs	= 0;
-		this.info.infoLog = "";
+    if (programID == null) {
+        this.program = gl.createProgram();
+        assertMsgOptions(gl.getError() == gl.NO_ERROR, 'glCreateProgram()', false, true);
+    }
 
-		var linkStart = new Date();
-		this.gl.linkProgram(this.program);
-		var linkEnd = new Date();
-		this.info.linkTimeUs = 1000 *(linkEnd.getTime() - linkStart.getTime());
-		
-		assertMsgOptions(this.gl.getError() == this.gl.NO_ERROR, "glLinkProgram()", false, true);
+    this.attachShader = function(shader) {
+        this.gl.attachShader(this.program, shader);
+        assertMsgOptions(this.gl.getError() == this.gl.NO_ERROR, 'gl.attachShader()', false, true);
+    };
 
-		var linkStatus = this.gl.getProgramParameter(this.program, this.gl.LINK_STATUS);
-		assertMsgOptions(this.gl.getError() == this.gl.NO_ERROR, "gl.getProgramParameter()", false, true);
-		this.info.linkOk	= linkStatus;
-		this.info.infoLog	= this.gl.getProgramInfoLog(this.program);
-	};
-	
-	this.transformFeedbackVaryings = function(varyings, bufferMode) {
-		this.gl.transformFeedbackVaryings(this.program, varyings, bufferMode);
-		assertMsgOptions(this.gl.getError() == this.gl.NO_ERROR, "gl.transformFeedbackVaryings()", false, true);
-	};
+    this.bindAttribLocation = function(location, name) {
+        this.gl.bindAttribLocation(this.program, location, name);
+        assertMsgOptions(this.gl.getError() == this.gl.NO_ERROR, 'gl.bindAttribLocation()', false, true);
+    };
+
+    this.link = function() {
+        this.info.linkOk     = false;
+        this.info.linkTimeUs = 0;
+        this.info.infoLog    = '';
+
+        var linkStart = new Date();
+        this.gl.linkProgram(this.program);
+        var linkEnd = new Date();
+        this.info.linkTimeUs = 1000 *(linkEnd.getTime() - linkStart.getTime());
+
+        assertMsgOptions(this.gl.getError() == this.gl.NO_ERROR, 'glLinkProgram()', false, true);
+
+        var linkStatus = this.gl.getProgramParameter(this.program, this.gl.LINK_STATUS);
+        assertMsgOptions(this.gl.getError() == this.gl.NO_ERROR, 'gl.getProgramParameter()', false, true);
+        this.info.linkOk  = linkStatus;
+        this.info.infoLog = this.gl.getProgramInfoLog(this.program);
+    };
+
+    this.transformFeedbackVaryings = function(varyings, bufferMode) {
+        this.gl.transformFeedbackVaryings(this.program, varyings, bufferMode);
+        assertMsgOptions(this.gl.getError() == this.gl.NO_ERROR, 'gl.transformFeedbackVaryings()', false, true);
+    };
 };
 
 /**
@@ -193,55 +193,55 @@ var Program = function(gl, programID) {
  * @param programSources
  */
 var ShaderProgram = function(gl, programSources) {
-	this.gl = gl;
-	this.programSources = programSources;
-	this.shaders = []
-	this.program = new Program(gl);
+    this.gl = gl;
+    this.programSources = programSources;
+    this.shaders = []
+    this.program = new Program(gl);
 
-	this.getProgram = function() {
-		return this.program.program;
-		};
-	
-	this.getProgramInfo = function() {
-		return this.program.info;
-	};
+    this.getProgram = function() {
+        return this.program.program;
+        };
 
-	/** @type {boolean} */ var shadersOK = true;
+    this.getProgramInfo = function() {
+        return this.program.info;
+    };
 
-		for (var i = 0; i < programSources.sources.length; i++) {
-			var shader = new Shader(gl, programSources.sources[i].type);
-			shader.setSources(programSources.sources[i].source);
-			shader.compile();
-			this.shaders.push(shader);
-			shadersOK = shadersOK && shader.getCompileStatus();
-		}
-		
-		if (shadersOK) {
-			for (var i = 0; i < this.shaders.length; i++)
-				this.program.attachShader(this.shaders[i].getShader());
-			
-			for (var attrib in programSources.attribLocationBindings)
-				this.program.bindAttribLocation(programSources.attribLocationBindings[attrib], attrib);
+    /** @type {boolean} */ var shadersOK = true;
 
-			if (programSources.transformFeedbackBufferMode)
-				if (programSources.transformFeedbackBufferMode === gl.NONE)
-					assertMsgOptions(programSources.transformFeedbackVaryings.length === 0, "Transform feedback sanity check", false, true);
-				else
-					this.program.transformFeedbackVaryings(programSources.transformFeedbackVaryings, programSources.transformFeedbackBufferMode);
+        for (var i = 0; i < programSources.sources.length; i++) {
+            var shader = new Shader(gl, programSources.sources[i].type);
+            shader.setSources(programSources.sources[i].source);
+            shader.compile();
+            this.shaders.push(shader);
+            shadersOK = shadersOK && shader.getCompileStatus();
+        }
 
-			/* TODO: GLES 3.1: set separable flag */
+        if (shadersOK) {
+            for (var i = 0; i < this.shaders.length; i++)
+                this.program.attachShader(this.shaders[i].getShader());
 
-			this.program.link();
-			
-		}
+            for (var attrib in programSources.attribLocationBindings)
+                this.program.bindAttribLocation(programSources.attribLocationBindings[attrib], attrib);
+
+            if (programSources.transformFeedbackBufferMode)
+                if (programSources.transformFeedbackBufferMode === gl.NONE)
+                    assertMsgOptions(programSources.transformFeedbackVaryings.length === 0, 'Transform feedback sanity check', false, true);
+                else
+                    this.program.transformFeedbackVaryings(programSources.transformFeedbackVaryings, programSources.transformFeedbackBufferMode);
+
+            /* TODO: GLES 3.1: set separable flag */
+
+            this.program.link();
+
+        }
 
 };
 
 return {
-	ShaderProgram: ShaderProgram,
-	shaderType: shaderType,
-	genVertexSource: genVertexSource,
-	genFragmentSource: genFragmentSource
+    ShaderProgram: ShaderProgram,
+    shaderType: shaderType,
+    genVertexSource: genVertexSource,
+    genFragmentSource: genFragmentSource
 };
 
 }());
