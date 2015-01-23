@@ -73,7 +73,7 @@ var shaderCase = {
 
 /**
  * Checks if shader uses in/out qualifiers depending on the version
- * @param {number} version
+ * @param {string} version
  * @return {boolean} version
  */
 var usesShaderInoutQualifiers = function(version) {
@@ -91,7 +91,7 @@ var usesShaderInoutQualifiers = function(version) {
 
 /**
  * Checks if version supports fragment highp precision
- * @param {number} version
+ * @param {string} version
  * @return {boolean} version ,True when is different from version 100
  */
 var supportsFragmentHighp = function(version) {
@@ -779,7 +779,7 @@ var init = function() {
 var execute = function()
 {
     /** @const @type {number} */ var quadSize = 1.0;
-    /** @const @type {number} */
+    /** @const @type {Array.<number>} */
     var s_positions = [
         -quadSize, -quadSize, 0.0, 1.0,
         -quadSize, +quadSize, 0.0, 1.0,
@@ -787,7 +787,7 @@ var execute = function()
         +quadSize, +quadSize, 0.0, 1.0
     ];
 
-    /** @const @type {number} */
+    /** @const @type {Array.<number>} */
     var s_indices = [
         0, 1, 2,
         1, 3, 2
@@ -810,7 +810,7 @@ var execute = function()
 
     /** @type {boolean} */ var allCompilesOk = true;
     /** @type {boolean} */ var allLinksOk = true;
-    /** @type {string} */ var failReason = null;
+    var failReason = null;
 
     /** @type {number} */ var vertexProgramID = -1;
     var pipelineProgramIDs = [];
