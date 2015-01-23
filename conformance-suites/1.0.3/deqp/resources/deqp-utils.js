@@ -19,66 +19,66 @@
  */
 
 var deqpUtils = (function() {
-    "use strict";
+    'use strict';
 
 /**
  * The Type constants
  * @enum {number}
  */
 var DataType = {
-    INVALID:                   0,
+    INVALID: 0,
 
-    FLOAT:                     1,
-    FLOAT_VEC2:                2,
-    FLOAT_VEC3:                3,
-    FLOAT_VEC4:                4,
-    FLOAT_MAT2:                5,
-    FLOAT_MAT2X3:              6,
-    FLOAT_MAT2X4:              7,
-    FLOAT_MAT3X2:              8,
-    FLOAT_MAT3:                9,
-    FLOAT_MAT3X4:             10,
-    FLOAT_MAT4X2:             11,
-    FLOAT_MAT4X3:             12,
-    FLOAT_MAT4:               13,
+    FLOAT: 1,
+    FLOAT_VEC2: 2,
+    FLOAT_VEC3: 3,
+    FLOAT_VEC4: 4,
+    FLOAT_MAT2: 5,
+    FLOAT_MAT2X3: 6,
+    FLOAT_MAT2X4: 7,
+    FLOAT_MAT3X2: 8,
+    FLOAT_MAT3: 9,
+    FLOAT_MAT3X4: 10,
+    FLOAT_MAT4X2: 11,
+    FLOAT_MAT4X3: 12,
+    FLOAT_MAT4: 13,
 
-    INT:                      14,
-    INT_VEC2:                 15,
-    INT_VEC3:                 16,
-    INT_VEC4:                 17,
+    INT: 14,
+    INT_VEC2: 15,
+    INT_VEC3: 16,
+    INT_VEC4: 17,
 
-    UINT:                     18,
-    UINT_VEC2:                19,
-    UINT_VEC3:                20,
-    UINT_VEC4:                21,
+    UINT: 18,
+    UINT_VEC2: 19,
+    UINT_VEC3: 20,
+    UINT_VEC4: 21,
 
-    BOOL:                     22,
-    BOOL_VEC2:                23,
-    BOOL_VEC3:                24,
-    BOOL_VEC4:                25,
+    BOOL: 22,
+    BOOL_VEC2: 23,
+    BOOL_VEC3: 24,
+    BOOL_VEC4: 25,
 
-    SAMPLER_2D:               26,
-    SAMPLER_CUBE:             27,
-    SAMPLER_2D_ARRAY:         28,
-    SAMPLER_3D:               29,
+    SAMPLER_2D: 26,
+    SAMPLER_CUBE: 27,
+    SAMPLER_2D_ARRAY: 28,
+    SAMPLER_3D: 29,
 
-    SAMPLER_2D_SHADOW:        30,
-    SAMPLER_CUBE_SHADOW:      31,
-    SAMPLER_2D_ARRAY_SHADOW:  32,
+    SAMPLER_2D_SHADOW: 30,
+    SAMPLER_CUBE_SHADOW: 31,
+    SAMPLER_2D_ARRAY_SHADOW: 32,
 
-    INT_SAMPLER_2D:           33,
-    INT_SAMPLER_CUBE:         34,
-    INT_SAMPLER_2D_ARRAY:     35,
-    INT_SAMPLER_3D:           36,
+    INT_SAMPLER_2D: 33,
+    INT_SAMPLER_CUBE: 34,
+    INT_SAMPLER_2D_ARRAY: 35,
+    INT_SAMPLER_3D: 36,
 
-    UINT_SAMPLER_2D:          37,
-    UINT_SAMPLER_CUBE:        38,
-    UINT_SAMPLER_2D_ARRAY:    39,
-    UINT_SAMPLER_3D:          40
+    UINT_SAMPLER_2D: 37,
+    UINT_SAMPLER_CUBE: 38,
+    UINT_SAMPLER_2D_ARRAY: 39,
+    UINT_SAMPLER_3D: 40
 };
 
 /**
- *
+ * Returns type of float scalars
  * @param {DataType} dataType
  * @return {string} type of float scalar
  */
@@ -115,7 +115,7 @@ var getDataTypeFloatScalars = function(dataType) {
 };
 
 /**
- *
+ * Returns type of scalar
  * @param {DataType} dataType shader
  * @return {string} type of scalar type
  */
@@ -166,6 +166,7 @@ var getDataTypeScalarType = function(dataType) {
 };
 
 /**
+ * Checks if dataType is integer or vectors of integers
  * @param {DataType} dataType shader
  * @return {boolean} Is dataType integer or integer vector
  */
@@ -295,7 +296,7 @@ var getDataTypeMatrixNumColumns = function(dataType) {
 };
 
 /**
- *
+ * Returns name of the dataType
  * @param {DataType} dataType shader
  * @return {string} dataType name
  */
