@@ -24,11 +24,11 @@ var deqpDraw = (function() {
 
 /**
  * Description of a vertex array binding
- * @param type GL Type of data
+ * @param {WebGLRenderingContext.GLEnum} type GL Type of data
  * @param {string|number} location Binding location
  * @param {number} components Number of components per vertex
  * @param {number} elements Number of elements in the array
- * @param data Source data
+ * @param {Array.<number>} data Source data
  */
 var VertexArrayBinding = function(type, location, components, elements, data) {
     this.type = type;
@@ -40,7 +40,7 @@ var VertexArrayBinding = function(type, location, components, elements, data) {
 
 /**
  * Creates vertex buffer, binds it and draws elements
- * @param gl WebGL context
+ * @param {WebGLRenderingContext} gl WebGL context
  * @param {number} program ID, vertexProgramID
  * @param {Array.<number>} vertexArrays
  * @param {PrimitiveList} primitives to draw
@@ -81,12 +81,12 @@ var draw = function(gl, program, vertexArrays, primitives, callback) {
 
 /**
  * Creates vertex buffer, binds it and draws elements
- * @param gl WebGL context
+ * @param {WebGLRenderingContext} gl WebGL context
  * @param {PrimitiveList} primitives Primitives to draw
  * @param {number} offset
  */
 var drawIndexed = function(gl, primitives, offset) {
-    var mode = getPrimitiveGLType(gl, primitives.type);
+/** @type {WebGLRenderingContext.GLEnum} */ var mode = getPrimitiveGLType(gl, primitives.type);
     /** TODO: C++ implementation supports different index types, we use only int16.
         Could it cause any issues?
 
@@ -117,20 +117,20 @@ var primitiveType = {
 
 /**
  * get GL type from primitive type
- * @param gl WebGL context
+ * @param {WebGLRenderingContext} gl WebGL context
  * @param {primitiveType} type primitiveType
- * @return GL primitive type
+ * @return {WebGLRenderingContext.GLEnum} GL primitive type
  */
 var getPrimitiveGLType = function(gl, type) {
     switch (type) {
-        case primitiveType.TRIANGLES:       return gl.TRIANGLES;
-        case primitiveType.TRIANGLE_STRIP:  return gl.TRIANGLE_STRIP;
-        case primitiveType.TRIANGLE_FAN:    return gl.TRIANGLE_FAN;
-        case primitiveType.LINES:           return gl.LINES;
-        case primitiveType.LINE_STRIP:      return gl.LINE_STRIP;
-        case primitiveType.LINE_LOOP:       return gl.LINE_LOOP;
-        case primitiveType.POINTS:          return gl.POINTS;
-        case primitiveType.PATCHES:         return gl.PATCHES;
+        case primitiveType.TRIANGLES: return gl.TRIANGLES;
+        case primitiveType.TRIANGLE_STRIP: return gl.TRIANGLE_STRIP;
+        case primitiveType.TRIANGLE_FAN: return gl.TRIANGLE_FAN;
+        case primitiveType.LINES: return gl.LINES;
+        case primitiveType.LINE_STRIP: return gl.LINE_STRIP;
+        case primitiveType.LINE_LOOP: return gl.LINE_LOOP;
+        case primitiveType.POINTS: return gl.POINTS;
+        case primitiveType.PATCHES: return gl.PATCHES;
         default:
             testFailedOptions('Unknown primitive type ' + type, true);
             return undefined;
@@ -165,7 +165,7 @@ var PrimitiveList = function(type, indices) {
 
 /**
  * Create Element Array Buffer
- * get GL type from primitive type
+ * @param {WebGLRenderingContext} gl WebGL context
  * @param {PrimitiveList} primitives to construct the buffer from
  * @return {WebGLBuffer} indexObject buffer with elements
  */
@@ -181,7 +181,7 @@ var indexBuffer = function(gl, primitives) {
 
 /**
  * Create Array Buffer
- * @param gl WebGL context
+ * @param {WebGLRenderingContext} gl WebGL context
  * @param {VertexArrayBinding} vertexArray primitives, Array buffer descriptor
  * @return {WebGLBuffer} buffer of vertices
  */

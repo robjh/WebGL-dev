@@ -32,9 +32,9 @@ var shaderType = {
 
 /**
  * Get GL shader type from shaderType
- * @param gl WebGL context
+ * @param {WebGLRenderingContext} gl WebGL context
  * @param {shaderType} type Shader Type
- * @return GL shader type
+ * @return {WebGLRenderingContext.GLEnum} GL shader type
  */
 var getGLShaderType = function(gl, type) {
     var _glShaderType;
@@ -85,7 +85,7 @@ var genFragmentSource = function(source) {
 
 /**
  * Generates shader from WebGL context and type
- * @param gl WebGL context
+ * @param {WebGLRenderingContext} gl WebGL context
  * @param {shaderType} type Shader Type
  */
 var Shader = function(gl, type) {
@@ -140,7 +140,7 @@ var ProgramInfo = function() {
 /**
  * Creates program.
  * Inner methods: attach shaders, bind attributes location, link program and transform Feedback Varyings
- * @param gl WebGL context
+ * @param {WebGLRenderingContext} gl WebGL context
  * @param programID
  */
 var Program = function(gl, programID) {
@@ -189,7 +189,7 @@ var Program = function(gl, programID) {
 
 /**
  * Assigns gl WebGL context and programSources. Declares array of shaders and new program()
- * @param gl WebGL context
+ * @param {WebGLRenderingContext} gl WebGL context
  * @param programSources
  */
 var ShaderProgram = function(gl, programSources) {
