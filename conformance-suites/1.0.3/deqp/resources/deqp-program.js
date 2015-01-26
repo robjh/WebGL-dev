@@ -61,11 +61,11 @@ var ShaderInfo = function() {
 
 /**
  * Generates vertex shader info from source
- * @param source
- * @return vertex shader info
+ * @param {string} source
+ * @return {ShaderInfo} vertex shader info
  */
 var genVertexSource = function(source) {
-    var shader = new ShaderInfo();
+/** @type {ShaderInfo} */ var shader = new ShaderInfo();
     shader.source = source;
     shader.type = shaderType.VERTEX;
     return shader;
@@ -73,11 +73,11 @@ var genVertexSource = function(source) {
 
 /**
  * Generates fragment shader info from source
- * @param source
- * @return fragment shader info
+ * @param {string} source
+ * @return {ShaderInfo} fragment shader info
  */
 var genFragmentSource = function(source) {
-    var shader = new ShaderInfo();
+/** @type {ShaderInfo} */ var shader = new ShaderInfo();
     shader.source = source;
     shader.type = shaderType.FRAGMENT;
     return shader;
@@ -106,14 +106,14 @@ var Shader = function(gl, type) {
     };
 
     this.compile = function() {
-        this.info.compileOk     = false;
+        this.info.compileOk = false;
         this.info.compileTimeUs = 0;
-        this.info.infoLog       = '';
+        this.info.infoLog = '';
 
 
-        var compileStart = new Date();
+        /** @type {Date} */ var compileStart = new Date();
         this.gl.compileShader(this.shader);
-        var compileEnd = new Date();
+        /** @type {Date} */ var compileEnd = new Date();
         this.info.compileTimeUs = 1000 * (compileEnd.getTime() - compileStart.getTime());
 
         assertMsgOptions(this.gl.getError() == this.gl.NO_ERROR, 'glCompileShader()', false, true);
@@ -132,9 +132,9 @@ var Shader = function(gl, type) {
 };
 
 var ProgramInfo = function() {
-    /** @type {string} */  var infoLog;
+    /** @type {string} */ var infoLog;
     /** @type {boolean} */ var linkOk = false;
-    /** @type {number} */  var linkTimeUs = 0;
+    /** @type {number} */ var linkTimeUs = 0;
 };
 
 /**
@@ -164,20 +164,20 @@ var Program = function(gl, programID) {
     };
 
     this.link = function() {
-        this.info.linkOk     = false;
+        this.info.linkOk = false;
         this.info.linkTimeUs = 0;
-        this.info.infoLog    = '';
+        this.info.infoLog = '';
 
-        var linkStart = new Date();
+        /** @type {Date} */ var linkStart = new Date();
         this.gl.linkProgram(this.program);
-        var linkEnd = new Date();
-        this.info.linkTimeUs = 1000 *(linkEnd.getTime() - linkStart.getTime());
+        /** @type {Date} */ var linkEnd = new Date();
+        this.info.linkTimeUs = 1000 * (linkEnd.getTime() - linkStart.getTime());
 
         assertMsgOptions(this.gl.getError() == this.gl.NO_ERROR, 'glLinkProgram()', false, true);
 
         var linkStatus = this.gl.getProgramParameter(this.program, this.gl.LINK_STATUS);
         assertMsgOptions(this.gl.getError() == this.gl.NO_ERROR, 'gl.getProgramParameter()', false, true);
-        this.info.linkOk  = linkStatus;
+        this.info.linkOk = linkStatus;
         this.info.infoLog = this.gl.getProgramInfoLog(this.program);
     };
 
@@ -195,7 +195,7 @@ var Program = function(gl, programID) {
 var ShaderProgram = function(gl, programSources) {
     this.gl = gl;
     this.programSources = programSources;
-    this.shaders = []
+    this.shaders = [];
     this.program = new Program(gl);
 
     this.getProgram = function() {
@@ -209,7 +209,7 @@ var ShaderProgram = function(gl, programSources) {
     /** @type {boolean} */ var shadersOK = true;
 
         for (var i = 0; i < programSources.sources.length; i++) {
-            var shader = new Shader(gl, programSources.sources[i].type);
+        /** @type {Shader} */ var shader = new Shader(gl, programSources.sources[i].type);
             shader.setSources(programSources.sources[i].source);
             shader.compile();
             this.shaders.push(shader);
