@@ -98,9 +98,14 @@ var supportsFragmentHighp = function(version) {
     return version !== '100';
 };
 
-// This functions builds a matching vertex shader for a 'both' case, when
-// the fragment shader is being tested.
-// We need to build attributes and varyings for each 'input'.
+
+/**
+ * This functions builds a matching vertex shader for a 'both' case, when
+ * the fragment shader is being tested.
+ * We need to build attributes and varyings for each 'input'.
+ * @param {Array.<Object>} valueBlock
+ * @return {string} res
+ */
 var genVertexShader = function(valueBlock) {
     /** @type {string} */ var res = '';
     var state = deqpTests.runner.getState();
@@ -137,7 +142,7 @@ var genVertexShader = function(valueBlock) {
     for (var ndx = 0; ndx < valueBlock.values.length; ndx++) {
         var val = valueBlock.values[ndx];
         if (val.storageType === shaderCase.value.STORAGE_INPUT) {
-            var name = val.valueName;
+        /** @type {string} */ var name = val.valueName;
             if (deqpUtils.getDataTypeScalarType(val.dataType) === 'float')
                 res += '\t' + name + ' = a_' + name + ';\n';
             else
@@ -149,6 +154,11 @@ var genVertexShader = function(valueBlock) {
     return res;
 };
 
+/**
+ * @param {Array.<Object>} valueBlock
+ * @param {boolean} useFloatTypes
+ * @return {string} stream
+ */
 var genCompareFunctions = function(valueBlock, useFloatTypes) {
     var cmpTypeFound = {};
     /** @type {string} */ var stream = '';
@@ -221,14 +231,21 @@ var genCompareFunctions = function(valueBlock, useFloatTypes) {
     return stream;
 };
 
+/**
+ * @param {string} dstVec4Var
+ * @param {Array.<Object>} valueBlock
+ * @param {string} nonFloatNamePrefix
+ * @param {string} checkVarName
+ * @return {string} output
+ */
 var genCompareOp = function(dstVec4Var, valueBlock, nonFloatNamePrefix, checkVarName) {
 
-    /** @type {boolean} */var isFirstOutput = true;
+    /** @type {boolean} */ var isFirstOutput = true;
     /** @type {string} */ var output = '';
 
     for (var ndx = 0; ndx < valueBlock.values.length; ndx++) {
         var val = valueBlock.values[ndx];
-        var valueName = val.valueName;
+        /** @type {string} */ var valueName = val.valueName;
 
         if (val.storageType === shaderCase.value.STORAGE_OUTPUT) {
             // Check if we're only interested in one variable (then skip if not the right one).
@@ -261,6 +278,10 @@ var genCompareOp = function(dstVec4Var, valueBlock, nonFloatNamePrefix, checkVar
     return output;
 };
 
+/**
+ * @param {Array.<Object>} valueBlock
+ * @return {string} shader
+ */
 var genFragmentShader = function(valueBlock) {
     /** @type {string} */ var shader = '';
     var state = deqpTests.runner.getState();
@@ -319,6 +340,10 @@ var caseRequirement = (function() {
 
 var CaseRequirement = function() {
 
+/**
+ * @param {number} shaderType
+ * @return {boolean}
+ */
     this.isAffected = function(shaderType) {
         for (var i = 0; i < this.shaderTypes.length; i++)
             if (this.shaderTypes[i] === shaderType)
@@ -385,7 +410,18 @@ return {
 
 }());
 
+/** Specialize a shader only for the vertex test case.
+ * @param {string} baseCode
+ * @param {number} shaderType
+ * @param {Array.<Object>} requirements
+ * @return {string} resultBuf
+ */
 var injectExtensionRequirements = function(baseCode, shaderType, requirements) {
+/**
+ * @param {Array.<Object>} requirements
+ * @param {number} shaderType
+ * @return {string} buf
+ */
     var generateExtensionStatements = function(requirements, shaderType) {
         /** @type {string} */ var buf = '';
 
@@ -398,12 +434,12 @@ var injectExtensionRequirements = function(baseCode, shaderType, requirements) {
         return buf;
     };
 
-    var extensions = generateExtensionStatements(requirements, shaderType);
+    /** @type {string} */ var extensions = generateExtensionStatements(requirements, shaderType);
 
     if (extensions.length === 0)
         return baseCode;
 
-    var splitLines = baseCode.split('\n');
+    /** @type {string} */ var splitLines = baseCode.split('\n');
     /** @type {boolean} */ var firstNonPreprocessorLine = true;
     /** @type {string} */ var resultBuf = '';
 
@@ -422,7 +458,12 @@ var injectExtensionRequirements = function(baseCode, shaderType, requirements) {
     return resultBuf;
 };
 
-// Specialize a shader for the vertex shader test case.
+
+/** Specialize a shader for the vertex shader test case.
+ * @param {string} src
+ * @param {Array.<Object>} valueBlock
+ * @return {string} withExt
+ */
 var specializeVertexShader = function(src, valueBlock) {
     /** @type {string} */ var decl = '';
     /** @type {string} */ var setup = '';
@@ -439,7 +480,7 @@ var specializeVertexShader = function(src, valueBlock) {
     decl += vtxIn + ' highp vec4 dEQP_Position;\n';
     for (var ndx = 0; ndx < valueBlock.values.length; ndx++) {
         var val = valueBlock.values[ndx];
-        var valueName = val.valueName;
+        /** @type {string} */ var valueName = val.valueName;
         /** @type {string} */ var floatType = deqpUtils.getDataTypeFloatScalars(val.dataType);
         /** @type {string} */ var dataTypeName = deqpUtils.getDataTypeName(val.dataType);
 
@@ -469,6 +510,7 @@ var specializeVertexShader = function(src, valueBlock) {
         }
     }
 
+    /** @type {string} */
     var baseSrc = src
                     .replace(/\$\{DECLARATIONS\}/g, decl)
                     .replace(/\$\{DECLARATIONS:single-line\}/g, decl.replace(/\n/g, ' '))
@@ -476,12 +518,17 @@ var specializeVertexShader = function(src, valueBlock) {
                     .replace(/\$\{OUTPUT\}/g, output)
                     .replace(/\$\{POSITION_FRAG_COLOR\}/g, 'gl_Position');
 
-
+    /** @type {string} */
     var withExt = injectExtensionRequirements(baseSrc, deqpProgram.shaderType.VERTEX, state.currentTest.spec.requirements);
 
     return withExt;
 };
 
+/** Specialize a shader only for the vertex test case.
+ * @param {string} src
+ * @param {Array.<Object>} valueBlock
+ * @return {string} withExt
+ */
 var specializeVertexOnly = function(src, valueBlock) {
     /** @type {string} */ var decl = '';
     /** @type {string} */ var setup = '';
@@ -498,7 +545,7 @@ var specializeVertexOnly = function(src, valueBlock) {
 
     for (var ndx = 0; ndx < valueBlock.values.length; ndx++) {
         var val = valueBlock.values[ndx];
-        var valueName = val.valueName;
+        /** @type {string} */ var valueName = val.valueName;
         /** @type {string} */ var type = deqpUtils.getDataTypeName(val.dataType);
 
         if (val.storageType === shaderCase.value.STORAGE_INPUT)
@@ -520,18 +567,24 @@ var specializeVertexOnly = function(src, valueBlock) {
             decl += 'uniform ' + type + ' ' + valueName + ';\n';
     }
 
+    /** @type {string} */
     var baseSrc = src
                     .replace(/\$\{VERTEX_DECLARATIONS\}/g, decl)
                     .replace(/\$\{VERTEX_DECLARATIONS:single-line\}/g, decl.replace(/\n/g, ' '))
                     .replace(/\$\{VERTEX_SETUP\}/g, setup)
                     .replace(/\$\{VERTEX_OUTPUT\}/g, output);
 
+    /** @type {string} */
     var withExt = injectExtensionRequirements(baseSrc, deqpProgram.shaderType.VERTEX, state.currentTest.spec.requirements);
 
     return withExt;
 };
 
-
+/** Specialize a shader for the fragment shader test case.
+ * @param {string} src
+ * @param {Array.<Object>} valueBlock
+ * @return {string} withExt
+ */
 var specializeFragmentShader = function(src, valueBlock) {
     /** @type {string} */ var decl = '';
     /** @type {string} */ var setup = '';
@@ -552,7 +605,7 @@ var specializeFragmentShader = function(src, valueBlock) {
 
     for (var ndx = 0; ndx < valueBlock.values.length; ndx++) {
         var val = valueBlock.values[ndx];
-        var valueName = val.valueName;
+        /** @type {string} */ var valueName = val.valueName;
         /** @type {string} */ var floatType = deqpUtils.getDataTypeFloatScalars(val.dataType);
         /** @type {string} */ var refType = deqpUtils.getDataTypeName(val.dataType);
 
@@ -576,6 +629,7 @@ var specializeFragmentShader = function(src, valueBlock) {
 
     /* \todo [2010-04-01 petri] Check all outputs. */
 
+    /** @type {string} */
     var baseSrc = src
                     .replace(/\$\{DECLARATIONS\}/g, decl)
                     .replace(/\$\{DECLARATIONS:single-line\}/g, decl.replace(/\n/g, ' '))
@@ -583,11 +637,17 @@ var specializeFragmentShader = function(src, valueBlock) {
                     .replace(/\$\{OUTPUT\}/g, output)
                     .replace(/\$\{POSITION_FRAG_COLOR\}/g, fragColor);
 
+    /** @type {string} */
     var withExt = injectExtensionRequirements(baseSrc, deqpProgram.shaderType.FRAGMENT, state.currentTest.spec.requirements);
 
     return withExt;
 };
 
+/** Specialize a shader only for the fragment test case.
+ * @param {string} src
+ * @param {Array.<Object>} valueBlock
+ * @return {string} withExt
+ */
 var specializeFragmentOnly = function(src, valueBlock) {
     /** @type {string} */ var decl = '';
     /** @type {string} */ var output = '';
@@ -607,7 +667,7 @@ var specializeFragmentOnly = function(src, valueBlock) {
 
     for (var ndx = 0; ndx < valueBlock.values.length; ndx++) {
         var val = valueBlock.values[ndx];
-        var valueName = val.valueName;
+        /** @type {string} */ var valueName = val.valueName;
         /** @type {string} */ var floatType = deqpUtils.getDataTypeFloatScalars(val.dataType);
         /** @type {string} */ var refType = deqpUtils.getDataTypeName(val.dataType);
 
@@ -619,12 +679,14 @@ var specializeFragmentOnly = function(src, valueBlock) {
             decl += 'uniform ' + refType + ' ' + valueName + ';\n';
     }
 
+    /** @type {string} */
     var baseSrc = src
                      .replace(/\$\{FRAGMENT_DECLARATIONS\}/g, decl)
                      .replace(/\$\{FRAGMENT_DECLARATIONS:single-line\}/g, decl.replace(/\n/g, ' '))
                      .replace(/\$\{FRAGMENT_OUTPUT\}/g, output)
                      .replace(/\$\{FRAG_COLOR\}/g, fragColor);
 
+    /** @type {string} */
     var withExt = injectExtensionRequirements(baseSrc, deqpProgram.shaderType.FRAGMENT, state.currentTest.spec.requirements);
 
     return withExt;
@@ -632,7 +694,6 @@ var specializeFragmentOnly = function(src, valueBlock) {
 
 /**
  * Is tessellation present
- *
  * @return {boolean} True if tessellation is present
  */
 var isTessellationPresent = function() {
@@ -656,7 +717,7 @@ var setUniformValue = function(gl, pipelinePrograms, name, val, arrayNdx) {
 
         gl.useProgram(pipelinePrograms[programNdx]);
 
-        var element = val.elements.slice(elemNdx, elemNdx + scalarSize);
+        /** @type {string} */ var element = val.elements.slice(elemNdx, elemNdx + scalarSize);
         switch (val.dataType)
         {
             case deqpUtils.DataType.FLOAT: gl.uniform1fv(loc, new Float32Array(element)); break;
@@ -740,7 +801,7 @@ var init = function() {
 
     if (!test.spec.valueBlockList.length)
         test.spec.valueBlockList.push(genValueBlock());
-    var valueBlock = test.spec.valueBlockList[0];
+    /** {Array.<Object>} */ var valueBlock = test.spec.valueBlockList[0];
 
     if (test.spec.requirements)
         for (var ndx = 0; ndx < test.spec.requirements.length; ++ndx)
@@ -749,8 +810,8 @@ var init = function() {
     var sources = [];
 
     if (test.spec.caseType === caseType.CASETYPE_COMPLETE) {
-        var vertex = specializeVertexOnly(test.spec.vertexSource, valueBlock);
-        var fragment = specializeFragmentOnly(test.spec.fragmentSource, valueBlock);
+    /** @type {string} */ var vertex = specializeVertexOnly(test.spec.vertexSource, valueBlock);
+    /** @type {string} */ var fragment = specializeFragmentOnly(test.spec.fragmentSource, valueBlock);
         sources.push(deqpProgram.genVertexSource(vertex));
         sources.push(deqpProgram.genFragmentSource(fragment));
     } else if (test.spec.caseType === caseType.CASETYPE_VERTEX_ONLY) {
@@ -900,7 +961,7 @@ var execute = function()
     if (spec.expectResult === expectResult.EXPECT_COMPILE_FAIL ||
         spec.expectResult === expectResult.EXPECT_COMPILE_LINK_FAIL ||
         spec.expectResult === expectResult.EXPECT_LINK_FAIL) {
-        testPassedOptions('Compile/link is expected to fail', true);
+    	testPassedOptions('Compile/link is expected to fail', true);
         setCurrentTestName('');
         return (failReason === null);
     }
@@ -929,7 +990,7 @@ var execute = function()
     // Iterate all value blocks.
     for (var blockNdx = 0; blockNdx < spec.valueBlockList.length; blockNdx++)
     {
-        var block = spec.valueBlockList[blockNdx];
+    /** {Array.<Object>} */ var block = spec.valueBlockList[blockNdx];
 
         // always render at least one pass even if there is no input/output data
         /** @const @type {number} */ var numRenderPasses = Math.max(block.arrayLength, 1);
@@ -955,8 +1016,8 @@ var execute = function()
             for (var valNdx = 0; valNdx < numValues; valNdx++) {
                 /** @const */ var val = block.values[valNdx];
                 /** @const @type {string}*/ var valueName = val.valueName;
-                /** @const */ var dataType = val.dataType;
-                /** @const */ var scalarSize = deqpUtils.getDataTypeScalarSize(val.dataType);
+                /** @const @type {string} */ var dataType = val.dataType;
+                /** @const @type {number} */ var scalarSize = deqpUtils.getDataTypeScalarSize(val.dataType);
 
                 if (val.storageType === shaderCase.value.STORAGE_INPUT)
                 {
@@ -1014,7 +1075,7 @@ var execute = function()
             for (var valNdx = 0; valNdx < numValues; valNdx++)
             {
                 var val1 = block.values[valNdx];
-                var valueName1 = val1.valueName;
+                /** @type {string} */ var valueName1 = val1.valueName;
 
                 if (val1.storageType === shaderCase.value.STORAGE_OUTPUT)
                 {
