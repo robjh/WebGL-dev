@@ -3,6 +3,7 @@
 
 deqp/data/gles2/shaders/00_test_list.txt
 deqp/data/gles3/shaders/00_test_list.txt
+deqp/functional/gles3/00_test_list.txt
 conformance/00_test_list.txt
 conformance/more/00_test_list.txt
 

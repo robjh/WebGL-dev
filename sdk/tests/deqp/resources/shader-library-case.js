@@ -900,7 +900,7 @@ var execute = function()
     if (spec.expectResult === expectResult.EXPECT_COMPILE_FAIL ||
         spec.expectResult === expectResult.EXPECT_COMPILE_LINK_FAIL ||
         spec.expectResult === expectResult.EXPECT_LINK_FAIL) {
-        debug(' ( Skipping test case, compile/link is expected to fail ) ');
+        testPassedOptions('Compile/link is expected to fail', true);
         setCurrentTestName('');
         return (failReason === null);
     }

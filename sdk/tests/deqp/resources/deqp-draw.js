@@ -213,7 +213,7 @@ Pixel.prototype.getBlue = function() {
     return this.rgba[2];
 };
 Pixel.prototype.getAlpha = function() {
-    return this.rgba[4];
+    return this.rgba[3];
 };
 
 var Surface = function() {
