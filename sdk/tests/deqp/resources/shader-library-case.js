@@ -108,7 +108,7 @@ var supportsFragmentHighp = function(version) {
  */
 var genVertexShader = function(valueBlock) {
     /** @type {string} */ var res = '';
-    var state = deqpTests.runner.getState();
+    /** @type {Object} */ var state = deqpTests.runner.getState();
     /** @type {boolean} */ var usesInout = usesShaderInoutQualifiers(state.currentTest.spec.targetVersion);
     /** @type {string} */ var vtxIn = usesInout ? 'in' : 'attribute';
     /** @type {string} */ var vtxOut = usesInout ? 'out' : 'varying';
@@ -120,7 +120,7 @@ var genVertexShader = function(valueBlock) {
     res += vtxIn + ' highp vec4 dEQP_Position;\n';
 
     for (var ndx = 0; ndx < valueBlock.values.length; ndx++) {
-        var val = valueBlock.values[ndx];
+    /** @type {Array} */ var val = valueBlock.values[ndx];
         if (val.storageType === shaderCase.value.STORAGE_INPUT) {
             /** @type {string} */ var floatType = deqpUtils.getDataTypeFloatScalars(val.dataType);
             res += vtxIn + ' ' + floatType + ' a_' + val.valueName + ';\n';
@@ -140,7 +140,7 @@ var genVertexShader = function(valueBlock) {
     res += '{\n';
     res += '\tgl_Position = dEQP_Position;\n';
     for (var ndx = 0; ndx < valueBlock.values.length; ndx++) {
-        var val = valueBlock.values[ndx];
+    /** @type {Array} */ var val = valueBlock.values[ndx];
         if (val.storageType === shaderCase.value.STORAGE_INPUT) {
         /** @type {string} */ var name = val.valueName;
             if (deqpUtils.getDataTypeScalarType(val.dataType) === 'float')
@@ -164,7 +164,7 @@ var genCompareFunctions = function(valueBlock, useFloatTypes) {
     /** @type {string} */ var stream = '';
 
     for (var ndx = 0; ndx < valueBlock.values.length; ndx++) {
-        var val = valueBlock.values[ndx];
+    /** @type {Array} */ var val = valueBlock.values[ndx];
         if (val.storageType === shaderCase.value.STORAGE_OUTPUT)
             cmpTypeFound[deqpUtils.getDataTypeName(val.dataType)] = true;
 
@@ -244,8 +244,8 @@ var genCompareOp = function(dstVec4Var, valueBlock, nonFloatNamePrefix, checkVar
     /** @type {string} */ var output = '';
 
     for (var ndx = 0; ndx < valueBlock.values.length; ndx++) {
-        var val = valueBlock.values[ndx];
-        /** @type {string} */ var valueName = val.valueName;
+    /** @type {Array} */ var val = valueBlock.values[ndx];
+    /** @type {string} */ var valueName = val.valueName;
 
         if (val.storageType === shaderCase.value.STORAGE_OUTPUT) {
             // Check if we're only interested in one variable (then skip if not the right one).
@@ -284,7 +284,7 @@ var genCompareOp = function(dstVec4Var, valueBlock, nonFloatNamePrefix, checkVar
  */
 var genFragmentShader = function(valueBlock) {
     /** @type {string} */ var shader = '';
-    var state = deqpTests.runner.getState();
+    /** @type {Object} */ var state = deqpTests.runner.getState();
     /** @type {boolean} */ var usesInout = usesShaderInoutQualifiers(state.currentTest.spec.targetVersion);
     /** @type {string} */ var vtxIn = usesInout ? 'in' : 'attribute';
     /** @type {string} */ var vtxOut = usesInout ? 'out' : 'varying';
@@ -310,9 +310,9 @@ var genFragmentShader = function(valueBlock) {
 
     // Declarations (varying, reference for each output).
     for (var ndx = 0; ndx < valueBlock.values.length; ndx++) {
-        var val = valueBlock.values[ndx];
-        /** @type {string} */ var floatType = deqpUtils.getDataTypeFloatScalars(val.dataType);
-        /** @type {string} */ var refType = deqpUtils.getDataTypeName(val.dataType);
+    /** @type {Array} */ var val = valueBlock.values[ndx];
+    /** @type {string} */ var floatType = deqpUtils.getDataTypeFloatScalars(val.dataType);
+    /** @type {string} */ var refType = deqpUtils.getDataTypeName(val.dataType);
 
         if (val.storageType == shaderCase.value.STORAGE_OUTPUT)
         {
@@ -468,7 +468,7 @@ var specializeVertexShader = function(src, valueBlock) {
     /** @type {string} */ var decl = '';
     /** @type {string} */ var setup = '';
     /** @type {string} */ var output = '';
-    var state = deqpTests.runner.getState();
+    /** @type {Object} */ var state = deqpTests.runner.getState();
     /** @type {boolean} */ var usesInout = usesShaderInoutQualifiers(state.currentTest.spec.targetVersion);
     /** @type {string} */ var vtxIn = usesInout ? 'in' : 'attribute';
     /** @type {string} */ var vtxOut = usesInout ? 'out' : 'varying';
@@ -479,10 +479,10 @@ var specializeVertexShader = function(src, valueBlock) {
     // Declarations (position + attribute for each input, varying for each output).
     decl += vtxIn + ' highp vec4 dEQP_Position;\n';
     for (var ndx = 0; ndx < valueBlock.values.length; ndx++) {
-        var val = valueBlock.values[ndx];
-        /** @type {string} */ var valueName = val.valueName;
-        /** @type {string} */ var floatType = deqpUtils.getDataTypeFloatScalars(val.dataType);
-        /** @type {string} */ var dataTypeName = deqpUtils.getDataTypeName(val.dataType);
+    /** @type {Array} */ var val = valueBlock.values[ndx];
+    /** @type {string} */ var valueName = val.valueName;
+    /** @type {string} */ var floatType = deqpUtils.getDataTypeFloatScalars(val.dataType);
+    /** @type {string} */ var dataTypeName = deqpUtils.getDataTypeName(val.dataType);
 
         if (val.storageType === shaderCase.value.STORAGE_INPUT)
         {
@@ -533,7 +533,7 @@ var specializeVertexOnly = function(src, valueBlock) {
     /** @type {string} */ var decl = '';
     /** @type {string} */ var setup = '';
     /** @type {string} */ var output = '';
-    var state = deqpTests.runner.getState();
+    /** @type {Object} */ var state = deqpTests.runner.getState();
     /** @type {boolean} */ var usesInout = usesShaderInoutQualifiers(state.currentTest.spec.targetVersion);
     /** @type {string} */ var vtxIn = usesInout ? 'in' : 'attribute';
 
@@ -544,9 +544,9 @@ var specializeVertexOnly = function(src, valueBlock) {
     decl += vtxIn + ' highp vec4 dEQP_Position;\n';
 
     for (var ndx = 0; ndx < valueBlock.values.length; ndx++) {
-        var val = valueBlock.values[ndx];
-        /** @type {string} */ var valueName = val.valueName;
-        /** @type {string} */ var type = deqpUtils.getDataTypeName(val.dataType);
+    /** @type {Array} */ var val = valueBlock.values[ndx];
+    /** @type {string} */ var valueName = val.valueName;
+    /** @type {string} */ var type = deqpUtils.getDataTypeName(val.dataType);
 
         if (val.storageType === shaderCase.value.STORAGE_INPUT)
         {
@@ -590,7 +590,7 @@ var specializeFragmentShader = function(src, valueBlock) {
     /** @type {string} */ var setup = '';
     /** @type {string} */ var output = '';
 
-    var state = deqpTests.runner.getState();
+    /** @type {Object} */ var state = deqpTests.runner.getState();
 
     /** @type {boolean} */ var usesInout = usesShaderInoutQualifiers(state.currentTest.spec.targetVersion);
     /** @type {boolean} */ var customColorOut = usesInout;
@@ -604,10 +604,10 @@ var specializeFragmentShader = function(src, valueBlock) {
         decl += 'layout(location = 0) out mediump vec4 dEQP_FragColor;\n';
 
     for (var ndx = 0; ndx < valueBlock.values.length; ndx++) {
-        var val = valueBlock.values[ndx];
-        /** @type {string} */ var valueName = val.valueName;
-        /** @type {string} */ var floatType = deqpUtils.getDataTypeFloatScalars(val.dataType);
-        /** @type {string} */ var refType = deqpUtils.getDataTypeName(val.dataType);
+    /** @type {Array} */ var val = valueBlock.values[ndx];
+    /** @type {string} */ var valueName = val.valueName;
+    /** @type {string} */ var floatType = deqpUtils.getDataTypeFloatScalars(val.dataType);
+    /** @type {string} */ var refType = deqpUtils.getDataTypeName(val.dataType);
 
         if (val.storageType === shaderCase.value.STORAGE_INPUT)
         {
@@ -651,9 +651,7 @@ var specializeFragmentShader = function(src, valueBlock) {
 var specializeFragmentOnly = function(src, valueBlock) {
     /** @type {string} */ var decl = '';
     /** @type {string} */ var output = '';
-
-    var state = deqpTests.runner.getState();
-
+    /** @type {Object} */ var state = deqpTests.runner.getState();
     /** @type {boolean} */ var usesInout = usesShaderInoutQualifiers(state.currentTest.spec.targetVersion);
     /** @type {boolean} */ var customColorOut = usesInout;
     /** @type {string} */ var fragIn = usesInout ? 'in' : 'varying';
@@ -666,10 +664,10 @@ var specializeFragmentOnly = function(src, valueBlock) {
         decl += 'layout(location = 0) out mediump vec4 dEQP_FragColor;\n';
 
     for (var ndx = 0; ndx < valueBlock.values.length; ndx++) {
-        var val = valueBlock.values[ndx];
-        /** @type {string} */ var valueName = val.valueName;
-        /** @type {string} */ var floatType = deqpUtils.getDataTypeFloatScalars(val.dataType);
-        /** @type {string} */ var refType = deqpUtils.getDataTypeName(val.dataType);
+    /** @type {Array} */ var val = valueBlock.values[ndx];
+    /** @type {string} */ var valueName = val.valueName;
+    /** @type {string} */ var floatType = deqpUtils.getDataTypeFloatScalars(val.dataType);
+    /** @type {string} */ var refType = deqpUtils.getDataTypeName(val.dataType);
 
         if (val.storageType === shaderCase.value.STORAGE_OUTPUT) {
             decl += 'uniform ' + refType + ' ref_' + valueName + ';\n';
@@ -758,6 +756,15 @@ var setUniformValue = function(gl, pipelinePrograms, name, val, arrayNdx) {
     _bufferedLogToConsole('WARNING // Uniform \"' + name + '\" location is not valid, location = -1. Cannot set value to the uniform.');
 };
 
+/**
+ * Evaluates pixels, if they are white, black or there is any unexpected result
+ * @param {deqpDraw.Surface} surface
+ * @param {number} minX
+ * @param {number} maxX
+ * @param {number} minY
+ * @param {number} maxY
+ * @return {boolean} True if tessellation is present
+ */
 var checkPixels = function(surface, minX, maxX, minY, maxY) {
     /** type {boolean} */ var allWhite = true;
     /** type {boolean} */ var allBlack = true;
@@ -794,20 +801,20 @@ var checkPixels = function(surface, minX, maxX, minY, maxY) {
  * Initialize a test case
  */
 var init = function() {
-    var state = deqpTests.runner.getState();
-    var test = state.currentTest;
+/** @type {Object} */ var state = deqpTests.runner.getState();
+/** @type {Object} */ var test = state.currentTest;
 
     _bufferedLogToConsole('Processing ' + test.fullName());
 
     if (!test.spec.valueBlockList.length)
         test.spec.valueBlockList.push(genValueBlock());
-    /** {Array.<Object>} */ var valueBlock = test.spec.valueBlockList[0];
+    /** @type {Array.<Object>} */ var valueBlock = test.spec.valueBlockList[0];
 
     if (test.spec.requirements)
         for (var ndx = 0; ndx < test.spec.requirements.length; ++ndx)
             test.spec.requirements[ndx].checkRequirements();
 
-    var sources = [];
+    /** @type {Array.<deqpProgram.ShaderInfo>} */ var sources = [];
 
     if (test.spec.caseType === caseType.CASETYPE_COMPLETE) {
     /** @type {string} */ var vertex = specializeVertexOnly(test.spec.vertexSource, valueBlock);
@@ -856,10 +863,10 @@ var execute = function()
     ];
 
     var wtu = WebGLTestUtils;
-    var gl = wtu.create3DContext('canvas');
-    var state = deqpTests.runner.getState();
-    var test = state.currentTest;
-    var spec = test.spec;
+    /** @type {WebGLRenderingContext}c */ var gl = wtu.create3DContext('canvas');
+    /** @type {Object} */ var state = deqpTests.runner.getState();
+    /** @type {Object} */ var test = state.currentTest;
+    /** @type {Object} */ var spec = test.spec;
 
     // Compute viewport.
     /* TODO: original code used random number generator to compute viewport, we use whole canvas */
@@ -872,11 +879,11 @@ var execute = function()
 
     /** @type {boolean} */ var allCompilesOk = true;
     /** @type {boolean} */ var allLinksOk = true;
-    var failReason = null;
+    /** @type {string} */ var failReason = null;
 
     /** @type {number} */ var vertexProgramID = -1;
-    var pipelineProgramIDs = [];
-    var programs = [];
+    /** @type {Array.<deqpProgram.Program.program>} */ var pipelineProgramIDs = [];
+    /** @type {Array.<deqpProgram.ShaderProgram>} */ var programs = [];
     var programPipeline;
 
     // Set the name of the current test so testFailedOptions/testPassedOptions can use it.
@@ -886,7 +893,7 @@ var execute = function()
 
     if (!test.separatePrograms)
     {
-        var program = new deqpProgram.ShaderProgram(gl, test.programs[0].programSources);
+    /** @type {deqpProgram.ShaderProgram} */ var program = new deqpProgram.ShaderProgram(gl, test.programs[0].programSources);
 
         vertexProgramID = program.getProgram();
         pipelineProgramIDs.push(program.getProgram());
@@ -981,7 +988,7 @@ var execute = function()
     }
 
     // Fetch location for positions positions.
-    var positionLoc = gl.getAttribLocation(vertexProgramID, 'dEQP_Position');
+    /** @type {number} */ var positionLoc = gl.getAttribLocation(vertexProgramID, 'dEQP_Position');
     if (positionLoc === -1) {
         testFailedOptions("no location found for attribute 'dEQP_Position'", true);
         return false;
@@ -999,7 +1006,7 @@ var execute = function()
         for (var arrayNdx = 0; arrayNdx < numRenderPasses; arrayNdx++)
         {
             /** @const @type {number} */ var numValues = block.values.length;
-            var vertexArrays = [];
+            /** @type {deqpDraw.VertexArrayBinding} */ var vertexArrays = [];
             /** @type {number} */ var attribValueNdx = 0;
             /** @type {gl.enum} */ var postDrawError;
             var beforeDrawValidator = (
@@ -1014,7 +1021,7 @@ var execute = function()
 
             // Collect VA pointer for inputs
             for (var valNdx = 0; valNdx < numValues; valNdx++) {
-                /** @const */ var val = block.values[valNdx];
+                /** @const @type {Array} */ var val = block.values[valNdx];
                 /** @const @type {string} */ var valueName = val.valueName;
                 /** @const @type {string} */ var dataType = val.dataType;
                 /** @const @type {number} */ var scalarSize = deqpUtils.getDataTypeScalarSize(val.dataType);
@@ -1022,7 +1029,7 @@ var execute = function()
                 if (val.storageType === shaderCase.value.STORAGE_INPUT)
                 {
                     // Replicate values four times.
-                    var scalars = [];
+                /** @type {Array} */ var scalars = [];
 
                     if (deqpUtils.isDataTypeMatrix(dataType)) {
                         /** @type {number} */ var numCols = deqpUtils.getDataTypeMatrixNumColumns(dataType);
@@ -1044,7 +1051,7 @@ var execute = function()
 
                     // Input always given as attribute.
                     /** @type {string} */ var attribName = attribPrefix + valueName;
-                    var attribLoc = gl.getAttribLocation(vertexProgramID, attribName);
+                    /** @type {number} */ var attribLoc = gl.getAttribLocation(vertexProgramID, attribName);
                     if (attribLoc === -1) {
                     _bufferedLogToConsole("Warning: no location found for attribute '" + attribName + "'");
                         continue;
@@ -1058,7 +1065,7 @@ var execute = function()
 
                         /** @type {number} */ var colSize = numRows * numVerticesPerDraw;
                         for (var i = 0; i < numCols; i++) {
-                            var colData = scalars.slice(i * colSize, (i + 1) * colSize);
+                        /** @type {Array} */ var colData = scalars.slice(i * colSize, (i + 1) * colSize);
                             vertexArrays.push(new deqpDraw.VertexArrayBinding(gl.FLOAT, attribLoc + i, numRows, numVerticesPerDraw, colData));
                         }
                     }
@@ -1074,8 +1081,8 @@ var execute = function()
             // set uniform values for outputs (refs).
             for (var valNdx = 0; valNdx < numValues; valNdx++)
             {
-                var val1 = block.values[valNdx];
-                /** @type {string} */ var valueName1 = val1.valueName;
+            /** @type {Array} */ var val1 = block.values[valNdx];
+            /** @type {string} */ var valueName1 = val1.valueName;
 
                 if (val1.storageType === shaderCase.value.STORAGE_OUTPUT)
                 {
@@ -1122,11 +1129,11 @@ var execute = function()
 
             if (spec.expectResult === expectResult.EXPECT_PASS) {
                 /** @type {deqpDraw.Surface} */ var surface = new deqpDraw.Surface();
-                /** @const */ var w = s_positions[3];
-                /** @const */ var minY = Math.ceil(((-quadSize / w) * 0.5 + 0.5) * height + 1.0);
-                /** @const */ var maxY = Math.floor(((+quadSize / w) * 0.5 + 0.5) * height - 0.5);
-                /** @const */ var minX = Math.ceil(((-quadSize / w) * 0.5 + 0.5) * width + 1.0);
-                /** @const */ var maxX = Math.floor(((+quadSize / w) * 0.5 + 0.5) * width - 0.5);
+                /** @const @type {number} */ var w = s_positions[3];
+                /** @const @type {number} */ var minY = Math.ceil(((-quadSize / w) * 0.5 + 0.5) * height + 1.0);
+                /** @const @type {number} */ var maxY = Math.floor(((+quadSize / w) * 0.5 + 0.5) * height - 0.5);
+                /** @const @type {number} */ var minX = Math.ceil(((-quadSize / w) * 0.5 + 0.5) * width + 1.0);
+                /** @const @type {number} */ var maxX = Math.floor(((+quadSize / w) * 0.5 + 0.5) * width - 0.5);
 
                 assertMsgOptions(postDrawError === gl.NO_ERROR, 'draw', false, true);
 
@@ -1170,7 +1177,7 @@ var execute = function()
 };
 
 var runTestCases = function() {
-    var state = deqpTests.runner.getState();
+/** @type {Object} */ var state = deqpTests.runner.getState();
     state.currentTest = state.testCases.next(state.filter);
     if (state.currentTest) {
         try {
@@ -1187,8 +1194,8 @@ var runTestCases = function() {
 
 var genValueBlock = function() {
     return {
-        values: [],
-        arrayLength: 0
+    /** @type {Array} */ values: [],
+    /** @type {number} */ arrayLength: 0
     };
 };
 
