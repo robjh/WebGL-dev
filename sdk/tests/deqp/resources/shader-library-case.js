@@ -766,19 +766,19 @@ var setUniformValue = function(gl, pipelinePrograms, name, val, arrayNdx) {
  * @return {boolean} True if tessellation is present
  */
 var checkPixels = function(surface, minX, maxX, minY, maxY) {
-    /** type {boolean} */ var allWhite = true;
-    /** type {boolean} */ var allBlack = true;
-    /** type {boolean} */ var anyUnexpected = false;
+    /** @type {boolean} */ var allWhite = true;
+    /** @type {boolean} */ var allBlack = true;
+    /** @type {boolean} */ var anyUnexpected = false;
 
     assertMsgOptions((maxX > minX) && (maxY > minY), 'checkPixels sanity check', false, true);
 
     for (var y = minY; y <= maxY; y++) {
         for (var x = minX; x <= maxX; x++) {
-            /** type {Pixel} */ var pixel = surface.getPixel(x, y);
+            /** @type {Pixel} */ var pixel = surface.getPixel(x, y);
             // Note: we really do not want to involve alpha in the check comparison
             // \todo [2010-09-22 kalle] Do we know that alpha would be one? If yes, could use color constants white and black.
-            /** type {boolean} */ var isWhite = (pixel.getRed() == 255) && (pixel.getGreen() == 255) && (pixel.getBlue() == 255);
-            /** type {boolean} */ var isBlack = (pixel.getRed() == 0) && (pixel.getGreen() == 0) && (pixel.getBlue() == 0);
+            /** @type {boolean} */ var isWhite = (pixel.getRed() == 255) && (pixel.getGreen() == 255) && (pixel.getBlue() == 255);
+            /** @type {boolean} */ var isBlack = (pixel.getRed() == 0) && (pixel.getGreen() == 0) && (pixel.getBlue() == 0);
 
             allWhite = allWhite && isWhite;
             allBlack = allBlack && isBlack;

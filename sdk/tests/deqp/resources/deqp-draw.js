@@ -28,7 +28,7 @@ var deqpDraw = (function() {
  * @param {string|number} location Binding location
  * @param {number} components Number of components per vertex
  * @param {number} elements Number of elements in the array
- * @param {Array.<number>} data Source data
+ * @param {Array} data Source data
  */
 var VertexArrayBinding = function(type, location, components, elements, data) {
     this.type = type;
