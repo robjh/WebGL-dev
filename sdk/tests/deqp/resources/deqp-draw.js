@@ -46,13 +46,13 @@ var VertexArrayBinding = function(type, location, components, elements, data) {
  * @param {Array} outputArray, Array with the lowered locations
  */
 var namedBindingsToProgramLocations = function(gl, program, inputArray, outputArray) {
-    if (typeof outputArray === "undefined")
+    if (typeof outputArray === 'undefined')
         outputArray = [];
 
-    for (var i=0; i<inputArray.length; i++)
+    for (var i = 0; i < inputArray.length; i++)
     {
         var cur = inputArray[i];
-        if(typeof cur.location === "string")
+        if (typeof cur.location === 'string')
         {
             //assert(binding.location >= 0);
             var location = gl.getAttribLocation(program.getProgram(), cur.location);
@@ -297,7 +297,7 @@ Pixel.prototype.equals = function(otherPixel) {
            this.rgba[1] == otherPixel.rgba[1] &&
            this.rgba[2] == otherPixel.rgba[2] &&
            this.rgba[3] == otherPixel.rgba[3];
-}
+};
 
 var Surface = function() {
 };
