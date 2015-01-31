@@ -372,7 +372,7 @@ function shouldEvaluateTo(actual, expected) {
   } else if (typeof expected == "function") {
     // All this fuss is to avoid the string-arg warning from shouldBe().
     try {
-      actualValue = eval(actual);
+      var actualValue = eval(actual);
     } catch (e) {
       testFailed("Evaluating " + actual + ": Threw exception " + e);
       return;

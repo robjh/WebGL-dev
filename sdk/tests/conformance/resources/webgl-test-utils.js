@@ -526,14 +526,14 @@ var setupUnitQuadWithTexCoords = function(
     positionLocation: opt_positionLocation || 0,
     texcoordLocation: opt_texcoordLocation || 1,
     lowerLeftTexCoords: lowerLeftTexCoords,
-    upperRightTexCoords: upperRightTexCoords,
+    upperRightTexCoords: upperRightTexCoords
   });
 };
 
 /**
  * Makes a quad with various options.
  * @param {!WebGLRenderingContext} gl The WebGLRenderingContext to use.
- * @param {!Object} options.
+ * @param {!Object} options
  *
  * scale: scale to multiple unit quad values by. default 1.0.
  * positionLocation: attribute location for position.
@@ -558,7 +558,7 @@ var setupQuad = function(gl, options) {
       -1.0 * scale , -1.0 * scale,
        1.0 * scale ,  1.0 * scale,
       -1.0 * scale , -1.0 * scale,
-       1.0 * scale , -1.0 * scale,]), gl.STATIC_DRAW);
+       1.0 * scale , -1.0 * scale]), gl.STATIC_DRAW);
   gl.enableVertexAttribArray(positionLocation);
   gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
   objects.push(vertexObject);
@@ -569,7 +569,7 @@ var setupQuad = function(gl, options) {
     var urx = options.upperRightTexCoords[0];
     var ury = options.upperRightTexCoords[1];
 
-    var vertexObject = gl.createBuffer();
+    vertexObject = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, vertexObject);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
         urx, ury,
@@ -673,7 +673,7 @@ var setupIndexedQuad = function (
 /**
  * Creates a quad with various options.
  * @param {!WebGLRenderingContext} gl The WebGLRenderingContext to use.
- * @param {!Object) options The options. See below.
+ * @param {!Object} options The options. See below.
  * @return {!Array.<WebGLBuffer>} The created buffers.
  *     [positions, <colors>, indices]
  *
@@ -736,7 +736,7 @@ var setupIndexedQuadWithOptions = function (gl, options) {
       }
     }
 
-    var buf = gl.createBuffer();
+    buf = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, buf);
     gl.bufferData(gl.ARRAY_BUFFER, colors, gl.STATIC_DRAW);
     gl.enableVertexAttribArray(options.colorLocation);
@@ -765,7 +765,7 @@ var setupIndexedQuadWithOptions = function (gl, options) {
     }
   }
 
-  var buf = gl.createBuffer();
+  buf = gl.createBuffer();
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buf);
   gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
   objects.push(buf);
@@ -931,7 +931,7 @@ var ubyteColorToFloatColor = function(color) {
 /**
  * Sets the "u_color" uniform of the current program to color.
  * @param {!WebGLRenderingContext} gl The WebGLRenderingContext to use.
- * @param {!Array.<number> color 4 element array of 0-1 color
+ * @param {!Array.<number>} color 4 element array of 0-1 color
  *      components.
  */
 var setFloatDrawColor = function(gl, color) {
@@ -943,7 +943,7 @@ var setFloatDrawColor = function(gl, color) {
 /**
  * Sets the "u_color" uniform of the current program to color.
  * @param {!WebGLRenderingContext} gl The WebGLRenderingContext to use.
- * @param {!Array.<number> color 4 element array of 0-255 color
+ * @param {!Array.<number>} color 4 element array of 0-255 color
  *      components.
  */
 var setUByteDrawColor = function(gl, color) {
@@ -1037,7 +1037,7 @@ var clearAndDrawIndexedQuad = function(gl, gridRes, opt_color) {
  * @param {number} extent extent of range
  * @param {number} min min.
  * @param {number} max max.
- * @return {!{value:number,extent:number} The clipped value.
+ * @return {!{value:number,extent:number}} The clipped value.
  */
 var clipToRange = function(value, extent, min, max) {
   if (value < min) {
@@ -1272,7 +1272,7 @@ var checkTextureSize = function(gl, width, height, opt_format, opt_type) {
 
 /**
  * Makes a shallow copy of an object.
- * @param {!Object) src Object to copy
+ * @param {!Object} src Object to copy
  * @return {!Object} The copy of src.
  */
 var shallowCopyObject = function(src) {
@@ -1287,7 +1287,7 @@ var shallowCopyObject = function(src) {
 
 /**
  * Checks if an attribute exists on an object case insensitive.
- * @param {!Object) obj Object to check
+ * @param {!Object} obj Object to check
  * @param {string} attr Name of attribute to look for.
  * @return {string?} The name of the attribute if it exists,
  *         undefined if not.
@@ -1380,7 +1380,7 @@ var create3DContext = function(opt_canvas, opt_attributes, opt_version) {
  * an error.
  * @param {!WebGLRenderingContext} gl The WebGLRenderingContext to use.
  * @param {string} fname Name of function to wrap.
- * @return {function} The wrapped function.
+ * @return {function()} The wrapped function.
  */
 var createGLErrorWrapper = function(context, fname) {
   return function() {
@@ -1469,7 +1469,7 @@ var glErrorShouldBe = function(gl, glErrors, opt_msg) {
  * Links a WebGL program, throws if there are errors.
  * @param {!WebGLRenderingContext} gl The WebGLRenderingContext to use.
  * @param {!WebGLProgram} program The WebGLProgram to link.
- * @param {function(string): void) opt_errorCallback callback for errors. 
+ * @param {function(string): void} opt_errorCallback callback for errors. 
  */
 var linkProgram = function(gl, program, opt_errorCallback) {
   var errFn = opt_errorCallback || testFailed;
@@ -1530,7 +1530,7 @@ var loadTextFileAsync = function(url, callback) {
       callback(false, '');
     };
     request.send(null);
-  } catch (e) {
+  } catch (err) {
     log("failed to load: " + url + " with exception " + err.message);
     callback(false, '');
   }
@@ -1573,7 +1573,7 @@ var getFileListAsync = function(url, callback) {
                 str[0] != ";" &&
                 str.substr(0, 2) != "//") {
               var names = str.split(/ +/);
-              new_url = prefix + str;
+              var new_url = prefix + str;
               if (names.length == 1) {
                 new_url = prefix + str;
                 ++count;
@@ -1665,7 +1665,7 @@ var readFileList = function(url) {
           str.substr(0, 2) != "//") {
         var names = str.split(/ +/);
         if (names.length == 1) {
-          new_url = prefix + str;
+          var new_url = prefix + str;
           files = files.concat(readFileList(new_url));
         } else {
           var s = "";
@@ -1689,7 +1689,7 @@ var readFileList = function(url) {
  * @param {!WebGLRenderingContext} gl The WebGLRenderingContext to use.
  * @param {string} shaderSource The shader source.
  * @param {number} shaderType The type of shader. 
- * @param {function(string): void) opt_errorCallback callback for errors. 
+ * @param {function(string): void} opt_errorCallback callback for errors. 
  * @param {boolean} opt_logShaders Whether to log shader source.
  * @param {string} opt_shaderLabel Label that identifies the shader source in
  *     the log.
@@ -1747,7 +1747,7 @@ var loadShader = function(
  * @param {!WebGLRenderingContext} gl The WebGLRenderingContext to use.
  * @param {file} file The URL of the shader source.
  * @param {number} type The type of shader.
- * @param {function(string): void) opt_errorCallback callback for errors. 
+ * @param {function(string): void} opt_errorCallback callback for errors. 
  * @param {boolean} opt_logShaders Whether to log shader source.
  * @return {!WebGLShader} The created shader.
  */
@@ -1777,7 +1777,7 @@ var getScript = function(scriptId) {
  * @param {string} scriptId The id of the script tag.
  * @param {number} opt_shaderType The type of shader. If not passed in it will
  *     be derived from the type of the script tag.
- * @param {function(string): void) opt_errorCallback callback for errors. 
+ * @param {function(string): void} opt_errorCallback callback for errors. 
  * @param {boolean} opt_logShaders Whether to log shader source.
  * @return {!WebGLShader} The created shader.
  */
@@ -1820,7 +1820,7 @@ var loadStandardProgram = function(gl) {
  * @param {!WebGLRenderingContext} gl The WebGLRenderingContext to use.
  * @param {string} vertexShaderPath The URL of the vertex shader.
  * @param {string} fragmentShaderPath The URL of the fragment shader.
- * @param {function(string): void) opt_errorCallback callback for errors. 
+ * @param {function(string): void} opt_errorCallback callback for errors. 
  * @return {!WebGLProgram} The created program.
  */
 var loadProgramFromFile = function(
@@ -1852,7 +1852,7 @@ var loadProgramFromFile = function(
  *        vertex shader.
  * @param {string} fragmentScriptId The id of the script tag that contains the
  *        fragment shader.
- * @param {function(string): void) opt_errorCallback callback for errors. 
+ * @param {function(string): void} opt_errorCallback callback for errors. 
  * @return {!WebGLProgram} The created program.
  */
 var loadProgramFromScript = function loadProgramFromScript(
@@ -1876,7 +1876,7 @@ var loadProgramFromScript = function loadProgramFromScript(
  * @param {!WebGLRenderingContext} gl The WebGLRenderingContext to use.
  * @param {!WebGLShader} vertexShader The vertex shader.
  * @param {!WebGLShader} fragmentShader The fragment shader.
- * @param {function(string): void) opt_errorCallback callback for errors.
+ * @param {function(string): void} opt_errorCallback callback for errors.
  * @return {!WebGLProgram} The created program.
  */
 var createProgram = function(gl, vertexShader, fragmentShader, opt_errorCallback) {
@@ -1893,7 +1893,7 @@ var createProgram = function(gl, vertexShader, fragmentShader, opt_errorCallback
  * @param {!WebGLRenderingContext} gl The WebGLRenderingContext to use.
  * @param {string} vertexShader The vertex shader source.
  * @param {string} fragmentShader The fragment shader source.
- * @param {function(string): void) opt_errorCallback callback for errors. 
+ * @param {function(string): void} opt_errorCallback callback for errors. 
  * @param {boolean} opt_logShaders Whether to log shader source.
  * @return {!WebGLProgram} The created program.
  */
@@ -2075,7 +2075,7 @@ var loadImageAsync = function(url, callback) {
 /**
  * Loads an array of images.
  * @param {!Array.<string>} urls URLs of images to load.
- * @param {!function(!{string, img}): void} callback. Callback
+ * @param {!function(!{string, img}): void} callback Callback
  *     that gets passed map of urls to img tags.
  */
 var loadImagesAsync = function(urls, callback) {
@@ -2132,8 +2132,8 @@ var getUrlArguments = function() {
 /**
  * Makes an image from a src.
  * @param {string} src Image source URL.
- * @param {function} onload Callback to call when the image has finised loading.
- * @param {function} onerror Callback to call when an error occurs.
+ * @param {function()} onload Callback to call when the image has finised loading.
+ * @param {function()} onerror Callback to call when an error occurs.
  * @return {!Image} The created image.
  */
 var makeImage = function(src, onload, onerror) {
@@ -2157,7 +2157,7 @@ var makeImage = function(src, onload, onerror) {
 /**
  * Makes an image element from a canvas.
  * @param {!HTMLCanvas} canvas Canvas to make image from.
- * @param {function} onload Callback to call when the image has finised loading.
+ * @param {function()} onload Callback to call when the image has finised loading.
  * @param {string} imageFormat Image format to be passed to toDataUrl().
  * @return {!Image} The created image.
  */
@@ -2168,7 +2168,7 @@ var makeImageFromCanvas = function(canvas, onload, imageFormat) {
 /**
  * Makes a video element from a src.
  * @param {string} src Video source URL.
- * @param {function} onerror Callback to call when an error occurs.
+ * @param {function()} onerror Callback to call when an error occurs.
  * @return {!Video} The created video.
  */
 var makeVideo = function(src, onerror) {
@@ -2190,7 +2190,7 @@ var makeVideo = function(src, onerror) {
  * Inserts an image with a caption into 'element'.
  * @param {!HTMLElement} element Element to append image to.
  * @param {string} caption caption to associate with image.
- * @param {!Image) img image to insert.
+ * @param {!Image} img image to insert.
  */
 var insertImage = function(element, caption, img) {
   var div = document.createElement("div");
@@ -2491,7 +2491,7 @@ var fullScreenStateName;
 (function() {
   var fullScreenStateNames = [
     "isFullScreen",
-    "fullScreen",
+    "fullScreen"
   ];
   for (var ii = 0; ii < fullScreenStateNames.length; ++ii) {
     var propertyName = fullScreenStateNames[ii];
@@ -2593,7 +2593,7 @@ var waitForComposite = function(callback) {
 /**
  * Runs an array of functions, yielding to the browser between each step.
  * If you want to know when all the steps are finished add a last step.
- * @param {!Array.<function(): void>} steps. Array of functions.
+ * @param {!Array.<function(): void>} steps Array of functions.
  */
 var runSteps = function(steps) {
   if (!steps.length) {
@@ -2615,7 +2615,7 @@ var runSteps = function(steps) {
 /**
  * Starts playing a video and waits for it to be consumable.
  * @param {!HTMLVideoElement} video An HTML5 Video element.
- * @param {!function(!HTMLVideoElement): void>} callback Function to call when
+ * @param {!function(!HTMLVideoElement): void} callback Function to call when
  *        video is ready.
  */
 var startPlayingAndWaitForVideo = function(video, callback) {
