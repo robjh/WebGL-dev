@@ -18,7 +18,7 @@
  *
  */
 
-define(['framework/common/tcuTestCase', 'framework/opengl/gluShaderProgram', 'framework/opengl/gluShaderUtil', 'framework/opengl/gluDrawUtil'], function(deqpTests, deqpProgram, deqpUtils, deqpDraw) {
+define(["framework/common/tcuTestCase", "framework/opengl/gluShaderProgram", "framework/opengl/gluShaderUtil", "framework/opengl/gluDrawUtil"], function(deqpTests, deqpProgram, deqpUtils, deqpDraw) {
     'use strict';
 
     /** @const @type {number} */ var VIEWPORT_WIDTH = 128;
