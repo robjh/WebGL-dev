@@ -18,7 +18,7 @@
  *
  */
 
-define(["framework/common/tcuTestCase", "framework/opengl/gluShaderProgram", "framework/opengl/gluShaderUtil", "framework/opengl/gluDrawUtil"], function(deqpTests, deqpProgram, deqpUtils, deqpDraw) {
+define(['framework/common/tcuTestCase', 'framework/opengl/gluShaderProgram', 'framework/opengl/gluShaderUtil', 'framework/opengl/gluDrawUtil'], function(deqpTests, deqpProgram, deqpUtils, deqpDraw) {
     'use strict';
 
     /** @const */ var VIEWPORT_WIDTH = 128;
@@ -92,8 +92,7 @@ var checkLayoutBounds = function(layout) {
 
     for (var uniformNdx = 0; uniformNdx < numUniforms; uniformNdx++)
     {
-        /** @type {UniformLayoutEntry}*/ var uniform = 
-            layout.uniforms[uniformNdx];
+        /** @type {UniformLayoutEntry}*/ var uniform = layout.uniforms[uniformNdx];
 
         if (uniform.blockNdx < 0)
             continue;
@@ -178,8 +177,8 @@ var render = function(program) {
         -1.0, 1.0, 0.0, 1.0,
         1.0, -1.0, 0.0, 1.0,
         1.0, 1.0, 0.0, 1.0
-    ];
-    var indices = [0, 1, 2, 2 , 1 , 3];
+        ];
+    var indices = [0, 1, 2, 2, 1, 3];
 
     gl.viewport(viewportX, viewportY, viewportW, viewportH);
 
@@ -263,7 +262,7 @@ var init = function() {
     var vsource = deqpProgram.genVertexSource(getShaderSource('shader-vs'));
     var fsource = deqpProgram.genFragmentSource(getShaderSource('shader-fs'));
 
-    var programSources = { sources: [vsource, fsource] };
+    var programSources = {sources: [vsource, fsource]};
 
     program = new deqpProgram.ShaderProgram(gl, programSources);
     gl.useProgram(program.getProgram());
