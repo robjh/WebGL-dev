@@ -1,3 +1,58 @@
+/*-------------------------------------------------------------------------
+ * drawElements Quality Program OpenGL ES Utilities
+ * ------------------------------------------------
+ *
+ * Copyright 2014 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
+define(['framework/opengl/gluDrawUtil'], function(deqpDraw) {
+    'use strict';
+
+/** @const @type {number} */ var VIEWPORT_WIDTH = 128;
+/** @const @type {number} */ var VIEWPORT_HEIGHT = 128;
+/** @const @type {number} */ var BUFFER_GUARD_MULTIPLIER = 2;
+
+/**
+ * Enums for interpolation
+ * @enum {number}
+ */
+var interpolation = {
+
+INTERPOLATION_SMOOTH: 0,
+INTERPOLATION_FLAT,
+INTERPOLATION_CENTROID,
+INTERPOLATION_LAST
+
+};
+
+/**
+ * Returns interpolation name: smooth, flat or centroid
+ * @param {number} interpol interpolation enum value
+ * @return {string}
+ */
+var getInterpolationName = function(interpol) {
+
+switch (interpol) {
+    case INTERPOLATION_SMOOTH: return 'smooth';
+    case INTERPOLATION_FLAT: return 'flat';
+    case INTERPOLATION_CENTROID: return 'centroid';
+   }throw Error('Unrecognized interpolation name ' + interpol);
+
+};
+
 
 // it's a struct, invoked in the C version as a function
 var Varying = (function(name, type, interpolation) {
@@ -8,9 +63,9 @@ var Varying = (function(name, type, interpolation) {
 	});
 	
 	if (
-		typeof(name) !== "undefined" &&
-		typeof(type) !== "undefined" &&
-		typeof(interpolation) !== "undefined"
+		typeof(name) !== 'undefined' &&
+		typeof(type) !== 'undefined' &&
+		typeof(interpolation) !== 'undefined'
 	) {
 		container.name = name;
 		container.type = type;
@@ -56,7 +111,7 @@ var ProgramSpec = (function() {
 	
 	this.isPointSizeUsed() = function() {
 		for (var i = 0 ; i < m_transformFeedbackVaryings.length ; ++i) {
-			if (m_transformFeedbackVaryings[i] == "gl_PointSize") return true;
+			if (m_transformFeedbackVaryings[i] == 'gl_PointSize') return true;
 		}
 		return false;
 	};
@@ -156,5 +211,27 @@ var isProgramSupported = function(gl, spec, tfMode) {
 
 	return true;
 	
-}
+};
 
+/**
+ *
+ * @param {primitiveType}
+ * @param {number} numElements
+ * @return {number}
+ */
+var getTransformFeedbackOutputCount = function(primitiveType, numElements) {
+
+switch (primitiveType) {
+    case deqpDraw.primitiveType.TRIANGLES: return numElements - numElements % 3;
+    case deqpDraw.primitiveType.TRIANGLE_STRIP: return numElements; // TODO
+    case deqpDraw.primitiveType.TRIANGLE_FAN: return numElements; // TODO
+    case deqpDraw.primitiveType.LINES: return numElements - numElements % 2;
+    case deqpDraw.primitiveType.LINES_STRIP: return numElements; // TODO
+    case deqpDraw.primitiveType.LINE_LOOP: return numElements > 1 ? numElements * 2 : 0;
+    case deqpDraw.primitiveType.POINTS: return numElements;
+   }throw Error('Unrecognized primitiveType' + primitiveType);
+
+};
+
+
+});
