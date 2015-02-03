@@ -30,22 +30,22 @@ define(["framework/common/tcuTestCase", "framework/opengl/gluShaderProgram", "fr
 
 var BlockLayoutEntry = function() {
     return {
-    /** @type {number} */ size : 0,
-    /** @type {string} */ name : "",
-    /** @type {Array} */ activeUniformIndices : []
+    /** @type {number} */ size: 0,
+    /** @type {string} */ name: '',
+    /** @type {Array} */ activeUniformIndices: []
     };
 };
 
 var UniformLayoutEntry = function() {
     return {
-    /** @type {string} */ name : "",
-    /** @type {deqpUtils.DataType} */ type : deqpUtils.DataType.INVALID,
-    /** @type {number} */ size : 0,
-    /** @type {number} */ blockNdx : -1,
-    /** @type {number} */ offset : -1,
-    /** @type {number} */ arrayStride : -1,
-    /** @type {number} */ matrixStride : -1,
-    /** @type {number} */ isRowMajor : false
+    /** @type {string} */ name: '',
+    /** @type {deqpUtils.DataType} */ type: deqpUtils.DataType.INVALID,
+    /** @type {number} */ size: 0,
+    /** @type {number} */ blockNdx: -1,
+    /** @type {number} */ offset: -1,
+    /** @type {number} */ arrayStride: -1,
+    /** @type {number} */ matrixStride: -1,
+    /** @type {number} */ isRowMajor: false
     };
 };
 
@@ -58,7 +58,7 @@ var UniformLayout = function() {
      * @param {string} name
      * @return {number} uniform's index
      */
-    this.getUniformIndex = function(name){
+    this.getUniformIndex = function(name) {
         for (var ndx = 0; ndx < this.uniforms.length; ndx++)
         {
             if (this.uniforms[ndx].name == name)
@@ -72,7 +72,7 @@ var UniformLayout = function() {
      * @param {string} name the name of the block
      * @return {number} block's index
      **/
-    this.getBlockIndex = function(name){
+    this.getBlockIndex = function(name) {
         for (var ndx = 0; ndx < this.blocks.length; ndx++)
         {
             if (this.blocks[ndx].name == name)
@@ -87,40 +87,41 @@ var UniformLayout = function() {
 * @return {boolean} true if all is within bounds
 **/
 var checkLayoutBounds = function(layout) {
-    /** @type {number} */ var numUniforms    = layout.uniforms.length;
-    /** @type {boolean}*/ var isOk           = true;
+    /** @type {number} */ var numUniforms = layout.uniforms.length;
+    /** @type {boolean}*/ var isOk = true;
 
     for (var uniformNdx = 0; uniformNdx < numUniforms; uniformNdx++)
     {
-        /** @type {UniformLayoutEntry}*/ var uniform = layout.uniforms[uniformNdx];
+        /** @type {UniformLayoutEntry}*/ var uniform = 
+            layout.uniforms[uniformNdx];
 
         if (uniform.blockNdx < 0)
             continue;
 
-        /** @type {BlockLayoutEntry}*/ var block  = layout.blocks[uniform.blockNdx];
-        /** @type {boolean}*/ var isMatrix        = deqpUtils.isDataTypeMatrix(uniform.type);
-        /** @type {number}*/ var numVecs          = isMatrix ? (uniform.isRowMajor ? deqpUtils.getDataTypeMatrixNumRows(uniform.type) : deqpUtils.getDataTypeMatrixNumColumns(uniform.type)) : 1;
-        /** @type {number}*/ var numComps         = isMatrix ? (uniform.isRowMajor ? deqpUtils.getDataTypeMatrixNumColumns(uniform.type) : deqpUtils.getDataTypeMatrixNumRows(uniform.type)) : deqpUtils.getDataTypeScalarSize(uniform.type);
-        /** @type {number}*/ var numElements      = uniform.size;
-        /** @type {number}*/ var compSize         = 4; // TODO: check how to safely represent sizeof(deUint32);
-        /** @type {number}*/ var vecSize          = numComps*compSize;
+        /** @type {BlockLayoutEntry}*/ var block = layout.blocks[uniform.blockNdx];
+        /** @type {boolean}*/ var isMatrix = deqpUtils.isDataTypeMatrix(uniform.type);
+        /** @type {number}*/ var numVecs = isMatrix ? (uniform.isRowMajor ? deqpUtils.getDataTypeMatrixNumRows(uniform.type) : deqpUtils.getDataTypeMatrixNumColumns(uniform.type)) : 1;
+        /** @type {number}*/ var numComps = isMatrix ? (uniform.isRowMajor ? deqpUtils.getDataTypeMatrixNumColumns(uniform.type) : deqpUtils.getDataTypeMatrixNumRows(uniform.type)) : deqpUtils.getDataTypeScalarSize(uniform.type);
+        /** @type {number}*/ var numElements = uniform.size;
+        /** @type {number}*/ var compSize = 4; // TODO: check how to safely represent sizeof(deUint32);
+        /** @type {number}*/ var vecSize = numComps * compSize;
 
-        /** @type {number}*/ var minOffset        = 0;
-        /** @type {number}*/ var maxOffset        = 0;
+        /** @type {number}*/ var minOffset = 0;
+        /** @type {number}*/ var maxOffset = 0;
 
         // For negative strides.
-        minOffset    = Math.min(minOffset, (numVecs-1)*uniform.matrixStride);
-        minOffset    = Math.min(minOffset, (numElements-1)*uniform.arrayStride);
-        minOffset    = Math.min(minOffset, (numElements-1)*uniform.arrayStride + (numVecs-1)*uniform.matrixStride);
+        minOffset = Math.min(minOffset, (numVecs - 1) * uniform.matrixStride);
+        minOffset = Math.min(minOffset, (numElements - 1) * uniform.arrayStride);
+        minOffset = Math.min(minOffset, (numElements - 1) * uniform.arrayStride + (numVecs - 1) * uniform.matrixStride);
 
-        maxOffset    = Math.max(maxOffset, vecSize);
-        maxOffset    = Math.max(maxOffset, (numVecs-1)*uniform.matrixStride + vecSize);
-        maxOffset    = Math.max(maxOffset, (numElements-1)*uniform.arrayStride + vecSize);
-        maxOffset    = Math.max(maxOffset, (numElements-1)*uniform.arrayStride + (numVecs-1)*uniform.matrixStride + vecSize);
+        maxOffset = Math.max(maxOffset, vecSize);
+        maxOffset = Math.max(maxOffset, (numVecs - 1) * uniform.matrixStride + vecSize);
+        maxOffset = Math.max(maxOffset, (numElements - 1) * uniform.arrayStride + vecSize);
+        maxOffset = Math.max(maxOffset, (numElements - 1) * uniform.arrayStride + (numVecs - 1) * uniform.matrixStride + vecSize);
 
-        if (uniform.offset+minOffset < 0 || uniform.offset+maxOffset > block.size)
+        if (uniform.offset + minOffset < 0 || uniform.offset + maxOffset > block.size)
         {
-            bufferedLogToConsole("Error: Uniform '" + uniform.name + "' out of block bounds" );
+            bufferedLogToConsole("Error: Uniform '" + uniform.name + "' out of block bounds");
             isOk = false;
         }
     }
@@ -145,11 +146,11 @@ var checkIndexQueries = function(program, layout) {
 
         if (queriedNdx != blockNdx)
         {
-            bufferedLogToConsole("ERROR: glGetUniformBlockIndex(" + block.name + ") returned " + queriedNdx + ", expected " + blockNdx + "!");
+            bufferedLogToConsole('ERROR: glGetUniformBlockIndex(' + block.name + ') returned ' + queriedNdx + ', expected ' + blockNdx + '!');
             allOk = false;
         }
 
-        assertMsgOptions(gl.getError() === gl.NO_ERROR, "glGetUniformBlockIndex()", true, true);
+        assertMsgOptions(gl.getError() === gl.NO_ERROR, 'glGetUniformBlockIndex()', true, true);
     }
 
     return allOk;
@@ -169,7 +170,7 @@ var render = function(program) {
     /** @const */ var viewportY = 0;
 
     gl.clearColor(0.125, 0.25, 0.5, 1.0);
-    gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT|gl.STENCIL_BUFFER_BIT);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
 
     //Draw
     var position = [
@@ -177,14 +178,14 @@ var render = function(program) {
         -1.0, 1.0, 0.0, 1.0,
         1.0, -1.0, 0.0, 1.0,
         1.0, 1.0, 0.0, 1.0
-	];
-    var indices = [ 0, 1, 2, 2 ,1 ,3 ];
+    ];
+    var indices = [0, 1, 2, 2 , 1 , 3];
 
     gl.viewport(viewportX, viewportY, viewportW, viewportH);
 
-    var posArray = [ new deqpDraw.VertexArrayBinding(gl.FLOAT, "a_position", 4, 4, position) ];
+    var posArray = [new deqpDraw.VertexArrayBinding(gl.FLOAT, 'a_position', 4, 4, position)];
     deqpDraw.drawFromBuffers(gl, program, posArray, deqpDraw.triangles(indices));
-    assertMsgOptions(gl.getError() === gl.NO_ERROR, "Drawing");
+    assertMsgOptions(gl.getError() === gl.NO_ERROR, 'Drawing');
 
     // Verify that all pixels are white.
     {
@@ -192,9 +193,9 @@ var render = function(program) {
         var numFailedPixels = 0;
 
         var buffer = pixels.readSurface(gl, viewportX, viewportY, viewportW, viewportH);
-        assertMsgOptions(gl.getError() === gl.NO_ERROR, "Reading pixels");
+        assertMsgOptions(gl.getError() === gl.NO_ERROR, 'Reading pixels');
 
-        var whitePixel = new deqpDraw.Pixel( [255.0, 255.0, 255.0, 255.0] );
+        var whitePixel = new deqpDraw.Pixel([255.0, 255.0, 255.0, 255.0]);
         for (var y = 0; y < viewportH; y++)
         {
             for (var x = 0; x < viewportW; x++)
@@ -206,7 +207,7 @@ var render = function(program) {
 
         if (numFailedPixels > 0)
         {
-            bufferedLogToConsole("Image comparison failed, got " + numFailedPixels + " non-white pixels.");
+            bufferedLogToConsole('Image comparison failed, got ' + numFailedPixels + ' non-white pixels.');
         }
 
         return numFailedPixels == 0;
@@ -221,27 +222,27 @@ var render = function(program) {
 **/
 var getShaderSource = function(id) {
   var shaderScript = document.getElementById(id);
-  
+
   // Didn't find an element with the specified ID; abort.
-  
+
   if (!shaderScript) {
     return null;
   }
-  
+
   // Walk through the source element's children, building the
   // shader source string.
-  
-  var theSource = "";
+
+  var theSource = '';
   var currentChild = shaderScript.firstChild;
-  
-  while(currentChild) {
+
+  while (currentChild) {
     if (currentChild.nodeType == 3) {
       theSource += currentChild.textContent;
     }
-    
+
     currentChild = currentChild.nextSibling;
   }
-  
+
   return theSource;
 };
 
@@ -252,17 +253,17 @@ var init = function() {
     // Init context
     var wtu = WebGLTestUtils;
     gl = wtu.create3DContext('canvas', {preserveDrawingBuffer: true});
-	canvas = document.getElementById('canvas');
+    canvas = document.getElementById('canvas');
 
     if (!gl)
     {
-        testFailed("Not able to create context", true);
+        testFailed('Not able to create context', true);
     }
     // Create shaders
     var vsource = deqpProgram.genVertexSource(getShaderSource('shader-vs'));
     var fsource = deqpProgram.genFragmentSource(getShaderSource('shader-fs'));
 
-    var programSources = { sources : [ vsource, fsource ] };
+    var programSources = { sources: [vsource, fsource] };
 
     program = new deqpProgram.ShaderProgram(gl, programSources);
     gl.useProgram(program.getProgram());
@@ -274,28 +275,28 @@ var init = function() {
  */
 var execute = function()
 {
-    assertMsgOptions(render(program),"Verify pixels", true, true);
+    assertMsgOptions(render(program), 'Verify pixels', true, true);
 
     // Code for testing
     var layout = new UniformLayout();
     var block = new BlockLayoutEntry();
-    block.name = "one";
+    block.name = 'one';
     layout.blocks.push(block);
     block = new BlockLayoutEntry();
-    block.name = "two";
+    block.name = 'two';
     layout.blocks.push(block);
 
-    var blockndx = layout.getBlockIndex("two");
+    var blockndx = layout.getBlockIndex('two');
     alert(blockndx);
 
     var uniform = new UniformLayoutEntry();
-    uniform.name = "one";
+    uniform.name = 'one';
     layout.uniforms.push(uniform);
     uniform = new UniformLayoutEntry();
-    uniform.name = "two";
+    uniform.name = 'two';
     layout.uniforms.push(uniform);
 
-    var uniformndx = layout.getUniformIndex("one");
+    var uniformndx = layout.getUniformIndex('one');
     alert(uniformndx);
 };
 
