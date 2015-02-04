@@ -13,13 +13,11 @@ STEPS:
 - execute/paste this script in the folder where the JavaScripts are contained
 
 FEATURES:
-1) By Default, this script compiles each JavaScript contained in the current folder with the 3 different Closure Compiler levels available
-WHITESPACE_ONLY, SIMPLE_OPTIMIZATIONS and ADVANCED_OPTIMIZATIONS
+1) By Default, this script compiles each JavaScript contained in the current folder with the Closure Compiler levels:
 
-These compilations levels are represented in the main program as:
-- whitespace= True (True when this compilation level is undertaken)
-- simple= True (True when this compilation level is undertaken)
-- advanced= True (True when this compilation level is undertaken)
+- WHITESPACE_ONLY= True (this compilation level is undertaken)
+- SIMPLE_OPTIMIZATIONS= True (this compilation level is undertaken)
+- ADVANCED_OPTIMIZATIONS= False (this compilation level is NOT undertaken)
 
 2) Each JavaScript compiled generates a .txt file with the corresponding output from the Closure Compiler.
 
@@ -31,6 +29,8 @@ the .txt file generated.
 
 5) By executing this Python script, NONE .js output files are generated, to avoid compilation of generated js in the local directory while running this script
 
+6) to modify the --warning_level output and its flags in Closure compiler check: https://code.google.com/p/closure-compiler/wiki/Warnings
+
 '''
 #!python3
 import re
@@ -38,8 +38,6 @@ import os
 import subprocess
 import threading 
 from sys import stdout, stderr
-
-#simpleCompilationCmdInput= "java -jar compiler.jar --compilation_level SIMPLE --js glu-draw.js --js_output_file gluDrawCompiled.js --externs js-test-pre.js --warning_level VERBOSE"
 
 def getShadersJavaScript(whitespaceCompilation, simpleCompilation, advancedCompilation):
     
@@ -72,6 +70,9 @@ def compileJavaScript(file, whitespaceCompilation, simpleCompilation, advancedCo
     
     if simpleCompilation==True:
         cmdInput= "java -jar compiler.jar --compilation_level SIMPLE_OPTIMIZATIONS --js "+file+" --warning_level VERBOSE"
+        # HINT: cmdInput must be the one below with require.js in the same folder
+        # in order to eliminate "ERROR - variable define is undeclared" when RequireJs is added in the JavaScripts
+        # cmdInput= "java -jar compiler.jar --compilation_level SIMPLE_OPTIMIZATIONS --js "+file+" --externs require.js --jscomp_off=externsValidation --warning_level VERBOSE"
         with open(outputCompilerFile, "a") as out_file:
             out_file.write("\n"+"\n"+ "------------------------------------------" + "\n")
             out_file.write("COMPILATION LEVEL: SIMPLE_OPTIMIZATIONS" + "\n")
@@ -105,8 +106,8 @@ def writeOutputAmendFile(outputCompilerFile, cmdInput):
 
 
 #main program
-whitespace= True
-simple= True
-advanced= True
+whitespace= True # WHITESPACE_ONLY
+simple= True # SIMPLE_OPTIMIZATIONS
+advanced= False # ADVANCED_OPTIMIZATIONS
 getShadersJavaScript(whitespace, simple, advanced)
 print("------ END EXECUTION Python script: compiler-shaders-local.py ------" + "\n")
