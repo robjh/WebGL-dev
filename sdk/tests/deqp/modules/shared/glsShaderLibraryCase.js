@@ -863,7 +863,7 @@ var execute = function()
     ];
 
     var wtu = WebGLTestUtils;
-    /** @type {WebGLRenderingContext}c */ var gl = wtu.create3DContext('canvas');
+    /** @type {WebGLRenderingContext} */ var gl = wtu.create3DContext('canvas');
     /** @type {Object} */ var state = deqpTests.runner.getState();
     /** @type {Object} */ var test = state.currentTest;
     /** @type {Object} */ var spec = test.spec;
