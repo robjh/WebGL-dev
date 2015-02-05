@@ -215,19 +215,19 @@ define(['framework/opengl/gluDrawUtil'], function(deqpDraw) {
 
 	var getAttributeName = function(varyingName, path) {
 		
-		var str = "a_" + varyingName.substr(deStrBeginsWith(varyingName, "v_") ? 2 : 0);
+		var str = 'a_' + varyingName.substr(deStrBeginsWith(varyingName, 'v_') ? 2 : 0);
 		
 		for (var i = 0 ; i < path.length ; ++i) {
 			var prefix;
 			
 			// TODO: this enum doesnt exist yet.
 			switch (path[i].type) {
-				case glu.VarTypeComponent.STRUCT_MEMBER:     prefix = "_m"; break;
-				case glu.VarTypeComponent.ARRAY_ELEMENT:     prefix = "_e"; break;
-				case glu.VarTypeComponent.MATRIX_COLUMN:     prefix = "_c"; break;
-				case glu.VarTypeComponent.VECTOR_COMPONENT:  prefix = "_s"; break;
+				case glu.VarTypeComponent.STRUCT_MEMBER:     prefix = '_m'; break;
+				case glu.VarTypeComponent.ARRAY_ELEMENT:     prefix = '_e'; break;
+				case glu.VarTypeComponent.MATRIX_COLUMN:     prefix = '_c'; break;
+				case glu.VarTypeComponent.VECTOR_COMPONENT:  prefix = '_s'; break;
 				default:
-					throw Error("invalid type in the component path.");
+					throw Error('invalid type in the component path.');
 			}
 			
 			str += prefix + path[i].index;
@@ -255,7 +255,7 @@ define(['framework/opengl/gluDrawUtil'], function(deqpDraw) {
 		         + 'uniform highp vec4 u_bias;\n';
 		
 		if (addPointSize) {
-			vtx += "in highp float a_pointSize;\n";
+			vtx += 'in highp float a_pointSize;\n';
 		}
 
 		// Declare attributes.
@@ -267,28 +267,28 @@ define(['framework/opengl/gluDrawUtil'], function(deqpDraw) {
 				var attribType = glu.getVarType(type, type[j].getPath);
 				var attribName = getattributeName(name, type[j].getPath);
 				
-				vtx.str += "in " + glu.declare(attribType, attribName) + ";\n";
+				vtx.str += 'in ' + glu.declare(attribType, attribName) + ';\n';
 			}
 		}
 		
 		// Declare vayrings.
 		for (var ndx = 0; ndx < 2; ++ndx) {
-			var inout  = ndx ? "in" : "out";
+			var inout  = ndx ? 'in' : 'out';
 			var shader = ndx ? frag : vtx;
 			
 			for (var i = 0 ; i < spec.getStructs().length ; ++i) {
 				var struct = spec.getStructs()[i];
 				if (struct.hasTypeName()) {
-					str += glu.declare(struct) + ";\n";
+					str += glu.declare(struct) + ';\n';
 				}
 			}
 			
 			var varyings = spec.getVaryings();
 			for (var i = 0 ; i < varyings.length ; ++i) {
 				shader.str += getInterpolationName(varyings->interpolation)
-					       +  " " + inout + " " + 
+					       +  ' ' + inout + ' ' + 
 					       +  glu.declare(varyings->type, varyings->name)
-					       +  ";\n";
+					       +  ';\n';
 			}
 		}
 		
@@ -343,21 +343,101 @@ define(['framework/opengl/gluDrawUtil'], function(deqpDraw) {
 	
 	
 	/**
-	 *
+	 * @param {WebGLRenderingContext} gl WebGL context
 	 * @param {primitiveType}
 	 * @param {number} numElements
 	 * @return {number}
 	 */
-	var getTransformFeedbackOutputCount = function(primitiveType, numElements) {
+	var getTransformFeedlllbackOutputCount = function(gl, primitiveType, numElements) {
 
 	switch (primitiveType) {
-		case deqpDraw.primitiveType.TRIANGLES: return numElements - numElements % 3;
-		case deqpDraw.primitiveType.TRIANGLE_STRIP: return numElements; // TODO
-		case deqpDraw.primitiveType.TRIANGLE_FAN: return numElements; // TODO
-		case deqpDraw.primitiveType.LINES: return numElements - numElements % 2;
-		case deqpDraw.primitiveType.LINES_STRIP: return numElements; // TODO
-		case deqpDraw.primitiveType.LINE_LOOP: return numElements > 1 ? numElements * 2 : 0;
-		case deqpDraw.primitiveType.POINTS: return numElements;
+	    case gl.TRIANGLES: return numElements - numElements % 3;
+	    case gl.TRIANGLE_STRIP: return numElements; // TODO: implement
+	    case gl.TRIANGLE_FAN: return numElements; // TODO: implement
+	    case gl.LINES: return numElements - numElements % 2;
+	    case gl.LINE_STRIP: return numElements; // TODO: implement
+	    case gl.LINE_LOOP: return numElements > 1 ? numElements * 2 : 0;
+	    case gl.POINTS: return numElements;
+	   }throw Error('Unrecognized primitiveType' + primitiveType);
+
+	};
+
+	/**
+	 * @param {WebGLRenderingContext} gl WebGL context
+	 * @param {primitiveType}
+	 * @param {number} numElements
+	 * @return {number}
+	 */
+	var getTransformFeedbackPrimitiveCount = function(gl, primitiveType, numElements) {
+
+	switch (primitiveType) {
+	    case gl.TRIANGLES: return numElements - numElements / 3;
+	    case gl.TRIANGLE_STRIP: return numElements; // TODO: implement
+	    case gl.TRIANGLE_FAN: return numElements; // TODO: implement
+	    case gl.LINES: return numElements - numElements / 2;
+	    case gl.LINE_STRIP: return numElements; // TODO: implement
+	    case gl.LINE_LOOP: return numElements > 1 ? numElements : 0;
+	    case gl.POINTS: return numElements;
+	   }throw Error('Unrecognized primitiveType' + primitiveType);
+
+	};
+
+	/**
+	 * @param {WebGLRenderingContext} gl WebGL context
+	 * @param {primitiveType}
+	 * @return {primitiveType}
+	 */
+	var getTransformFeedbackPrimitiveMode = function(gl, primitiveType) {
+
+	switch (primitiveType) {
+	    case gl.TRIANGLES:
+	    case gl.TRIANGLE_STRIP:
+	    case gl.TRIANGLE_FAN:
+	    	return gl.TRIANGLES;
+
+	    case gl.LINES:
+	    case gl.LINE_STRIP
+	    case gl.LINE_LOOP:
+	    	return gl.LINES;
+
+	    case gl.POINTS:
+	    	return gl.POINTS;
+	   }throw Error('Unrecognized primitiveType' + primitiveType);
+
+	};
+
+	/**
+	 * @param {WebGLRenderingContext} gl WebGL context
+	 * @param {primitiveType}
+	 * @return {primitiveType}
+	 */
+	var getAttributeIndex = function(gl, primitiveType, numInputs, outNdx) {
+
+	switch (primitiveType) {
+		
+		case gl.TRIANGLES:			return outNdx;
+		case gl.LINES:				return outNdx;
+		case gl.POINTS:				return outNdx;
+
+		case gl.TRIANGLE_STRIP:
+		{
+			/** @type {number} */ var triNdx = outNdx / 3;
+			/** @type {number} */ var vtxNdx = outNdx % 3;
+			return (triNdx % 2 != 0 && vtxNdx < 2) ? (triNdx + 1 - vtxNdx) : (triNdx + vtxNdx);
+		}
+
+		case gl.TRIANGLE_FAN:
+			return (outNdx % 3 != 0) ? (outNdx / 3 + outNdx % 3) : 0;
+
+		case gl.LINE_STRIP:
+			return outNdx / 2 + outNdx % 2;
+
+		case gl.LINE_LOOP:
+		{
+			var inNdx = outNdx / 2 + outNdx % 2;
+			return inNdx < numInputs ? inNdx : 0;
+		}
+
 	   }throw Error('Unrecognized primitiveType' + primitiveType);
 
 	};
