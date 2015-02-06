@@ -19,7 +19,7 @@
  */
 
 
-define(['framework/opengl/gluDrawUtil'], function(deqpDraw) {
+define(['framework/opengl/gluShaderUtil.js'], function(deqpUtils) {
     'use strict';
 
 	/** @const @type {number} */ var VIEWPORT_WIDTH = 128;
@@ -32,10 +32,9 @@ define(['framework/opengl/gluDrawUtil'], function(deqpDraw) {
 	 */
 	var interpolation = {
 
-	INTERPOLATION_SMOOTH: 0,
-	INTERPOLATION_FLAT,
-	INTERPOLATION_CENTROID,
-	INTERPOLATION_LAST
+	SMOOTH: 0,
+	FLAT: 1,
+	CENTROID: 2
 
 	};
 
@@ -46,10 +45,10 @@ define(['framework/opengl/gluDrawUtil'], function(deqpDraw) {
 	 */
 	var getInterpolationName = function(interpol) {
 
-	switch (interpol) {
-		case INTERPOLATION_SMOOTH: return 'smooth';
-		case INTERPOLATION_FLAT: return 'flat';
-		case INTERPOLATION_CENTROID: return 'centroid';
+		switch (interpol) {
+		case interpolation.SMOOTH: return 'smooth';
+		case interpolation.FLAT: return 'flat';
+		case interpolation.CENTROID: return 'centroid';
 	   }throw Error('Unrecognized interpolation name ' + interpol);
 
 	};
@@ -266,7 +265,7 @@ define(['framework/opengl/gluDrawUtil'], function(deqpDraw) {
 			
 			for (var j = 0 ; j < type.count ; ++j) {
 				var attribType = glu.getVarType(type, type[j].getPath);
-				var attribName = getattributeName(name, type[j].getPath);
+				var attribName = getAttributeName(name, type[j].getPath);
 				
 				vtx.str += 'in ' + glu.declare(attribType, attribName) + ';\n';
 			}
@@ -345,7 +344,7 @@ define(['framework/opengl/gluDrawUtil'], function(deqpDraw) {
 	var createVertexCaptureProgram = function(context, spec, bufferMode, primitiveType) {
 		
 		var source = genShaderSources(spec, primitiveType == GL_POINTS /* Is point size required? */);
-		
+
 		var programSources = new ProgramSources();
 		programSources.add(new glu.VertexSource(source.vertSource))
 		              .add(new glu.FragmentSource(source.fragSource))
@@ -355,22 +354,22 @@ define(['framework/opengl/gluDrawUtil'], function(deqpDraw) {
 		return new glu.ShaderProgram(context, programSources);
 		
 	}
-	
-	
+
 	/**
+	 * Returns the number of outputs with the count for the Primitives in the Transform Feedback.
 	 * @param {WebGLRenderingContext} gl WebGL context
-	 * @param {primitiveType}
+	 * @param {GLenum} primitiveType specifies what kind of primitive
 	 * @param {number} numElements
 	 * @return {number}
 	 */
-	var getTransformFeedlllbackOutputCount = function(gl, primitiveType, numElements) {
+	var getTransformFeedbackOutputCount = function(gl, primitiveType, numElements) {
 
 	switch (primitiveType) {
 	    case gl.TRIANGLES: return numElements - numElements % 3;
-	    case gl.TRIANGLE_STRIP: return numElements; // TODO: implement
-	    case gl.TRIANGLE_FAN: return numElements; // TODO: implement
+	    case gl.TRIANGLE_STRIP: return 0 >= numElements - 2 ? 0 : (numElements - 2) * 3; // obtained from de::max in deDefs.hpp(deqp repo)
+	    case gl.TRIANGLE_FAN: return 0 >= numElements - 2 ? 0 : (numElements - 2) * 3;
 	    case gl.LINES: return numElements - numElements % 2;
-	    case gl.LINE_STRIP: return numElements; // TODO: implement
+	    case gl.LINE_STRIP: return 0 >= numElements - 1 ? 0 : (numElements - 1) * 2;
 	    case gl.LINE_LOOP: return numElements > 1 ? numElements * 2 : 0;
 	    case gl.POINTS: return numElements;
 	   }throw Error('Unrecognized primitiveType' + primitiveType);
@@ -378,8 +377,9 @@ define(['framework/opengl/gluDrawUtil'], function(deqpDraw) {
 	};
 
 	/**
+	 * Returns a number with the count for the Primitives in the Transform Feedback.
 	 * @param {WebGLRenderingContext} gl WebGL context
-	 * @param {primitiveType}
+	 * @param {GLenum} primitiveType specifies what kind of primitive
 	 * @param {number} numElements
 	 * @return {number}
 	 */
@@ -387,20 +387,21 @@ define(['framework/opengl/gluDrawUtil'], function(deqpDraw) {
 
 	switch (primitiveType) {
 	    case gl.TRIANGLES: return numElements - numElements / 3;
-	    case gl.TRIANGLE_STRIP: return numElements; // TODO: implement
-	    case gl.TRIANGLE_FAN: return numElements; // TODO: implement
+	    case gl.TRIANGLE_STRIP: return 0 >= numElements - 2 ? 0 : numElements - 2; // obtained from de::max in deDefs.hpp(deqp repo)
+	    case gl.TRIANGLE_FAN: return 0 >= numElements - 2 ? 0 : numElements - 2;
 	    case gl.LINES: return numElements - numElements / 2;
-	    case gl.LINE_STRIP: return numElements; // TODO: implement
+	    case gl.LINE_STRIP: return 0 >= numElements - 1 ? 0 : numElements - 1;
 	    case gl.LINE_LOOP: return numElements > 1 ? numElements : 0;
 	    case gl.POINTS: return numElements;
 	   }throw Error('Unrecognized primitiveType' + primitiveType);
 
 	};
 
-	/**
+	/** 
+	 * Returns the type of Primitive Mode: Triangles for all Triangle Primitive's type and same for Line and Points.
 	 * @param {WebGLRenderingContext} gl WebGL context
-	 * @param {primitiveType}
-	 * @return {primitiveType}
+	 * @param {GLenum} primitiveType specifies what kind of primitive
+	 * @return {GLenum} primitiveType
 	 */
 	var getTransformFeedbackPrimitiveMode = function(gl, primitiveType) {
 
@@ -422,17 +423,20 @@ define(['framework/opengl/gluDrawUtil'], function(deqpDraw) {
 	};
 
 	/**
+	 * Returns the attribute index for a certain primitive type.
 	 * @param {WebGLRenderingContext} gl WebGL context
-	 * @param {primitiveType}
-	 * @return {primitiveType}
+	 * @param {GLenum} primitiveType specifies what kind of primitive
+	 * @param {number} numInputs
+	 * @param {number} outNdx
+	 * @return {number}
 	 */
 	var getAttributeIndex = function(gl, primitiveType, numInputs, outNdx) {
 
 	switch (primitiveType) {
 		
-		case gl.TRIANGLES:  return outNdx;
-		case gl.LINES:      return outNdx;
-		case gl.POINTS:     return outNdx;
+		case gl.TRIANGLES: return outNdx;
+		case gl.LINES: return outNdx;
+		case gl.POINTS: return outNdx;
 
 		case gl.TRIANGLE_STRIP:
 		{
@@ -456,6 +460,81 @@ define(['framework/opengl/gluDrawUtil'], function(deqpDraw) {
 	   }throw Error('Unrecognized primitiveType' + primitiveType);
 
 	};
+
+	/**
+	 * Returns an object type DrawCall.
+	 * Contains the number of elements as well as whether the Transform Feedback is enabled or not.
+	 * It's a struct, but as occurs in Varying, is invoked in the C++ version as a function.
+	 * @param {number} numElements
+	 * @param {boolean} tfEnabled is Transform Feedback enabled or not
+	 * @return {Object.<number, boolean>} content for the DrawCall object
+	 */
+	var DrawCall = (function(numElements, tfEnabled) {
+
+		var content = Object.clone({
+		/** @type {number} */ numElements: null,
+		/** @type {boolean} */ transformFeedbackEnabled: null
+		});
+
+		if (numElements === null || tfEnabled === null) {
+			content.numElements = 0;
+			content.transformFeedbackEnabled = false;
+		} else {
+			content.numElements = numElements;
+			content.transformFeedbackEnabled = tfEnabled;
+		}
+
+		return content;
+	});
+
+	/**
+	 * Returns (for all the draw calls) the type of Primitive Mode, as it calls "getTransformFeedbackPrimitiveCount".
+	 * @param {WebGLRenderingContext} gl WebGL context
+	 * @param {GLenum} primitiveType specifies what kind of primitive
+	 * @param {Object.<number, boolean>} first DrawCall object
+	 * @param {Object.<number, boolean>} end DrawCall object
+	 * @return {number} primCount
+	 */
+	var computeTransformFeedbackPrimitiveCount= function(gl, primitiveType, first, end) {
+
+	/** @type {number} */ var primCount = 0;
+
+		for (var callElements= first.numElements; callElements != end.numElements; ++ callElements) {
+			primCount += getTransformFeedbackPrimitiveCount(gl, primitiveType, callElements);
+		}
+
+		return primCount;
+	};
+
+	/**
+	 * Returns an object type Attribute.
+	 * Contains the number of elements and if the Transform Feedback is enabled or not.
+	 * It's a struct, but as occurs in Varying, is invoked in the C++ version as a function.
+	 * @param {string} name
+	 * @param {deqpUtils.DataType} type
+	 * @param {number} offset
+	 * @return {Object.<string, type, number>} container for the type Attribute object
+	 */
+	var Attribute = (function(name, type, offset) {
+		var container = Object.clone({
+		/** @type {string} */ name: null,
+		/** @type {deqpUtils.DataType} */ type: null,
+		/** @type {number} */ offset: null
+		});
+
+		if (
+			typeof(name) !== 'undefined' &&
+			typeof(type) !== 'undefined' &&
+			typeof(offset) !== 'undefined'
+		) {
+			container.name = name;
+			container.type = type;
+			container.offset = offset;
+		}
+
+		return container;
+
+	});
 
 
 });
