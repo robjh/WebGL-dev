@@ -18,6 +18,7 @@
  *
  */
 
+
 define(['framework/opengl/gluDrawUtil'], function(deqpDraw) {
     'use strict';
 
@@ -337,9 +338,23 @@ define(['framework/opengl/gluDrawUtil'], function(deqpDraw) {
 		
 		return {
 			vertSource: vrt.str,
-			fragSourcr: frag.str
+			fragSource: frag.str
 		};
 	};
+	
+	var createVertexCaptureProgram = function(context, spec, bufferMode, primitiveType) {
+		
+		var source = genShaderSources(spec, primitiveType == GL_POINTS /* Is point size required? */);
+		
+		var programSources = new ProgramSources();
+		programSources.add(new glu.VertexSource(source.vertSource))
+		              .add(new glu.FragmentSource(source.fragSource))
+		              .add(new glu.TransformFeedbackVaryings(spec.getTransformFeedbackVaryings())
+		              .add(new glu.TransformFeedbackMode(bufferMode));
+		
+		return new glu.ShaderProgram(context, programSources);
+		
+	}
 	
 	
 	/**
@@ -415,9 +430,9 @@ define(['framework/opengl/gluDrawUtil'], function(deqpDraw) {
 
 	switch (primitiveType) {
 		
-		case gl.TRIANGLES:			return outNdx;
-		case gl.LINES:				return outNdx;
-		case gl.POINTS:				return outNdx;
+		case gl.TRIANGLES:  return outNdx;
+		case gl.LINES:      return outNdx;
+		case gl.POINTS:     return outNdx;
 
 		case gl.TRIANGLE_STRIP:
 		{
