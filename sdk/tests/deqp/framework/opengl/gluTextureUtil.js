@@ -104,7 +104,7 @@ var getTransferFormat = function(/*tcu::TextureFormat*/ texFormat) {
 
 	/* TODO: Implement TransferFormat */
 	return TransferFormat(format, type);
-}
+};
 
 /*--------------------------------------------------------------------*//*!
  * \brief Map tcu::TextureFormat to GL internal sized format.
@@ -119,7 +119,7 @@ var getInternalFormat = function(/*tcu::TextureFormat*/ texFormat)
 {
 
 	var stringify = function(order, type) {
-		return "" + order + " " + type;
+		return '' + order + ' ' + type;
 	};
 
 	switch (stringify(texFormat.order, texFormat.type))
@@ -261,7 +261,7 @@ deUint32 getGLFormat (tcu::CompressedTexture::Format format)
 }
 */
 
-/*
+/**
  *
  * @return {textureFormat.ChannelType}
  */
@@ -288,7 +288,7 @@ var mapGLChannelType = function(/*deUint32*/ dataType, /*bool*/ normalized) {
 		case gl.UNSIGNED_INT_5_9_9_9_REV:		return textureFormat.ChannelType.UNSIGNED_INT_999_E5_REV;
 
 		default:
-			throw new Error('Unsupported dataType ' + dataType)
+			throw new Error('Unsupported dataType ' + dataType);
 	}
 };
 
@@ -301,7 +301,7 @@ var mapGLChannelType = function(/*deUint32*/ dataType, /*bool*/ normalized) {
  * \param dataType	GL data type.
  * \return Generic texture format.
  *//*--------------------------------------------------------------------*/
-/*
+/**
  * @return {textureFormat.TextureFormat}
 */
 var mapGLTransferFormat = function(/*deUint32*/ format, /*deUint32*/ dataType)
@@ -337,13 +337,13 @@ var mapGLTransferFormat = function(/*deUint32*/ format, /*deUint32*/ dataType)
  * \param internalFormat Sized internal format.
  * \return Generic texture format.
  *//*--------------------------------------------------------------------*/
-/*
+/**
  * @return {textureFormat.TextureFormat}
 */
 var mapGLInternalFormat = function(/*deUint32*/ internalFormat)
 {
 	if (internalFormat === undefined)
-		throw new Error("internalformat is undefined");
+		throw new Error('internalformat is undefined');
 
 	switch (internalFormat)
 	{
@@ -419,11 +419,11 @@ var mapGLInternalFormat = function(/*deUint32*/ internalFormat)
 		case gl.DEPTH24_STENCIL8:	return new textureFormat.TextureFormat( textureFormat.ChannelOrder.DS,	 textureFormat.ChannelType.UNSIGNED_INT_24_8);
 
 		default:
-			throw new Error("Can't map GL sized internal format (" + internalFormat.toString(16) + ") to texture format");
+			throw new Error("Can't map GL sized internal format (" + internalFormat.toString(16) + ') to texture format');
 	}
-}
+};
 
-/*
+/**
  * @return {bool}
  */
 var isGLInternalColorFormatFilterable = function(/*deUint32*/ format)
@@ -484,9 +484,9 @@ var isGLInternalColorFormatFilterable = function(/*deUint32*/ format)
 			return false;
 
 		default:
-			throw new Error("Unrecognized format " + format);
+			throw new Error('Unrecognized format ' + format);
 	}
-}
+};
 
 
 /* TODO: Port the code below */
