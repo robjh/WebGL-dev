@@ -76,6 +76,27 @@ define(['framework/opengl/gluDrawUtil'], function(deqpDraw) {
 		return container;
 	
 	});
+	// it's a struct, invoked in the C version as a function
+	var Attribute = (function(name, type, offset) {
+		var container = Object.clone({
+			name: null,
+			type: null,
+			offset: 0
+		});
+	
+		if (
+			typeof(name) !== 'undefined' &&
+			typeof(type) !== 'undefined' &&
+			typeof(interpolation) !== 'undefined'
+		) {
+			container.name = name;
+			container.type = type;
+			container.offset = offset;
+		}
+	
+		return container;
+	
+	});
 
 	// it's a class
 	var ProgramSpec = (function() {
