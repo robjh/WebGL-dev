@@ -21,6 +21,7 @@
 define(function() {
     'use strict';
 
+/** @const */ var deUint32_size = 4; //To replace all sizeof calls
 /**
  * The Type constants
  * @enum {number}
@@ -112,6 +113,41 @@ var getDataTypeFloatScalars = function(dataType) {
         case DataType.BOOL_VEC4: return 'vec4';
     }
     throw Error('Unrecognized dataType ' + dataType);
+};
+
+/**
+ * TODO: getDataTypeVector
+ * @param {DataType} scalarType
+ * @param {number} size
+ * @return {DataType}
+ */
+// var getDataTypeVector = function(scalarType, size)
+// {
+//     DE_ASSERT(deInRange32(size, 1, 4));
+//     switch (scalarType)
+//     {
+//         case TYPE_FLOAT:
+//         case TYPE_INT:
+//         case TYPE_UINT:
+//         case TYPE_BOOL:
+//             return (DataType)((int)scalarType + size - 1);
+//         default:
+//             return TYPE_INVALID;
+//     }
+// }
+//
+// DataType getDataTypeFloatVec (int vecSize)
+// {
+//     return getDataTypeVector(TYPE_FLOAT, vecSize);
+// }
+
+/**
+ * TODO: isDataTypeBoolOrBVec
+ * @param {DataType} dataType
+ * @return {boolean}
+ */
+var isDataTypeBoolOrBVec = function(dataType) {
+    return (dataType >= DataType.BOOL) && (dataType <= DataType.BOOL_VEC4);
 };
 
 /**
@@ -360,6 +396,7 @@ return {
     getDataTypeFloatScalars: getDataTypeFloatScalars,
     getDataTypeScalarType: getDataTypeScalarType,
     isDataTypeIntOrIVec: isDataTypeIntOrIVec,
+    isDataTypeBoolOrBVec: isDataTypeBoolOrBVec,
     getDataTypeScalarSize: getDataTypeScalarSize,
     isDataTypeMatrix: isDataTypeMatrix,
     getDataTypeMatrixNumColumns: getDataTypeMatrixNumColumns,

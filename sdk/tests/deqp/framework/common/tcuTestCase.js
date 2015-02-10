@@ -34,6 +34,14 @@ var stateMachine = (function() {
 'use strict';
 
 /**
+ * Indicates the state of an iteration operation.
+ */
+var IterateResult = {
+    STOP: 0,
+    CONTINUE: 1
+};
+
+/**
  * A general purpose bucket for string current execution state
  * stateMachine doesn't modify this container.
  */
@@ -82,6 +90,22 @@ var DeqpTest = function(name, description, spec) {
     this.currentTest = 0;
     this.parentTest = null;
 };
+
+ DeqpTest.prototype.addChild = function(test) {
+    test.parentTest = this;
+
+    if (!this.spec)
+    {
+        this.spec = [];
+    }
+
+    if (this.spec.length === undefined)
+    {
+        testFailedOptions('The spec object contains something besides an array', true);
+    }
+
+    this.spec.push(test);
+ };
 
 /**
  * Returns the next 'leaf' test in the hierarchy of tests
@@ -167,7 +191,7 @@ DeqpTest.prototype.find = function(pattern) {
 var newTest = function(name, description, spec) {
     var test = new DeqpTest(name, description, spec);
 
-    if (spec.length) {
+    if (spec && spec.length) {
         for (var i = 0; i < spec.length; i++)
             spec[i].parentTest = test;
     }

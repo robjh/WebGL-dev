@@ -38,9 +38,9 @@
     }
 
     if (window.layoutTestController) {
-      layoutTestController.overridePreference("WebKitWebGLEnabled", "1");
-      layoutTestController.dumpAsText();
-      layoutTestController.waitUntilDone();
+      window.layoutTestController.overridePreference("WebKitWebGLEnabled", "1");
+      window.layoutTestController.dumpAsText();
+      window.layoutTestController.waitUntilDone();
     }
     if (window.internals) {
       // The WebKit testing system compares console output.
@@ -67,7 +67,7 @@
 function nonKhronosFrameworkNotifyDone() {
   // WebKit Specific code. Add your code here.
   if (window.layoutTestController) {
-    layoutTestController.notifyDone();
+    window.layoutTestController.notifyDone();
   }
 }
 
@@ -125,7 +125,7 @@ function enableJSTestPreVerboseLogging()
 
 function description(msg)
 {
-    initTestingHarness();
+    this.initTestingHarness();
     if (msg === undefined) {
       msg = document.title;
     }
