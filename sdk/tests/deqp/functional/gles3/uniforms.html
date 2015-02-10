@@ -27,7 +27,6 @@
       }
     </script>
 <script>
-alert('hello');
 testName = 'uniform.buffer.objects';
 setCurrentTestName(testName);
 description("Shader test: " + testName + ".");
@@ -45,9 +44,11 @@ requirejs.config({
     baseUrl: "../../"
     });
 
-requirejs(["modules/shared/glsUniformBlockCase"], function(uniformBlockCase) {
+requirejs(["functional/gles3/es3fUniformBlockTests"], function(uniformBlockTests) {
+    //TODO: Remove
+    alert('uniformBlockTests');
     try{
-        uniformBlockCase.runTestCases();
+        uniformBlockTests.run(getFilter());
     }
     catch(err)
     {
