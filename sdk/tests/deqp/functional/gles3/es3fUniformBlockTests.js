@@ -125,11 +125,13 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
         ];
 
         // ubo.single_basic_type
+        /** @type {deqpTests.DeqpTest} */
         var singleBasicTypeGroup = deqpTests.newTest('single_basic_type', 'Single basic variable in single buffer');
 
         testGroup.addChild(singleBasicTypeGroup);
 
-        for (var layoutFlagNdx = 0; layoutFlagNdx < layoutFlags.length; layoutFlagNdx++) {
+        for (var layoutFlagNdx = 0; layoutFlagNdx < layoutFlags.length; layoutFlagNdx++)
+        {
             /** @type {deqpTests.deqpTest} */
             var layoutGroup = new deqpTests.newTest(layoutFlags[layoutFlagNdx].name, '', null);
             singleBasicTypeGroup.addChild(layoutGroup);
@@ -140,12 +142,12 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
                 /** @type {string} */ var typeName = deqpUtils.getDataTypeName(type);
 
                 if (deqpUtils.isDataTypeBoolOrBVec(type))
-                    createBlockBasicTypeCases(layoutGroup, typeName, new glsUniformBC.VarType(type, 0), layoutFlags[layoutFlagNdx].flags);
+                    createBlockBasicTypeCases(layoutGroup, typeName, new glsUniformBC.VarType().VarTypeBasic(type, 0), layoutFlags[layoutFlagNdx].flags);
                 else
                 {
                     for (var precNdx = 0; precNdx < precisionFlags.length; precNdx++)
-                    createBlockBasicTypeCases(layoutGroup, precisionFlags[precNdx].name + '_' + typeName,
-                    new glsUniformBC.VarType(type, precisionFlags[precNdx].flags), layoutFlags[layoutFlagNdx].flags);
+                        createBlockBasicTypeCases(layoutGroup, precisionFlags[precNdx].name + '_' + typeName,
+                        new glsUniformBC.VarType().VarTypeBasic(type, precisionFlags[precNdx].flags), layoutFlags[layoutFlagNdx].flags);
                 }
 
                 if (deqpUtils.isDataTypeMatrix(type))
@@ -154,13 +156,46 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
                     {
                         for (var precNdx = 0; precNdx < precisionFlags.length; precNdx++)
                             createBlockBasicTypeCases(layoutGroup, matrixFlags[matFlagNdx].name + '_' + precisionFlags[precNdx].name + '_' + typeName,
-                            new glsUniformBC.VarType(type, precisionFlags[precNdx].flags), layoutFlags[layoutFlagNdx].flags | matrixFlags[matFlagNdx].flags);
+                            new glsUniformBC.VarType().VarTypeBasic(type, precisionFlags[precNdx].flags), layoutFlags[layoutFlagNdx].flags | matrixFlags[matFlagNdx].flags);
                     }
                 }
             }
         }
         //TODO: Remove
         alert('ubo.single_basic_type FINISHED!');
+
+        // ubo.single_basic_array
+        /** @type {deqpTests.DeqpTest} */
+        var singleBasicArrayGroup = deqpTests.newTest('single_basic_array', 'Single basic array variable in single buffer');
+        testGroup.addChild(singleBasicArrayGroup);
+
+        for (var layoutFlagNdx = 0; layoutFlagNdx < layoutFlags.length; layoutFlagNdx++)
+        {
+            /** @type {deqpTests.deqpTest} */
+            var layoutGroup = new deqpTests.newTest(layoutFlags[layoutFlagNdx].name, '', null);
+            singleBasicArrayGroup.addChild(layoutGroup);
+
+            for (var basicTypeNdx = 0; basicTypeNdx < basicTypes.length; basicTypeNdx++)
+            {
+                /** @type {deqpUtils.DataType} */ var type = basicTypes[basicTypeNdx];
+                /** @type {string} */ var typeName = deqpUtils.getDataTypeName(type);
+                /** @type {number} */ var arraySize = 3;
+
+                createBlockBasicTypeCases(layoutGroup, typeName,
+                    new glsUniformBC.VarType().VarTypeArray(new glsUniformBC.VarType().VarTypeBasic(type, deqpUtils.isDataTypeBoolOrBVec(type) ? 0 : glsUniformBC.UniformFlags.PRECISION_HIGH), arraySize),
+                    layoutFlags[layoutFlagNdx].flags);
+
+                if (deqpUtils.isDataTypeMatrix(type))
+                {
+                    for (var matFlagNdx = 0; matFlagNdx < matrixFlags.length; matFlagNdx++)
+                        createBlockBasicTypeCases(layoutGroup, matrixFlags[matFlagNdx].name + '_' + typeName,
+                            new glsUniformBC.VarType().VarTypeArray(new glsUniformBC.VarType().VarTypeBasic(type, glsUniformBC.UniformFlags.PRECISION_HIGH), arraySize),
+                            layoutFlags[layoutFlagNdx].flags | matrixFlags[matFlagNdx].flags);
+                }
+            }
+        }
+        //TODO: Remove
+        alert('ubo.single_basic_array FINISHED!');
     };
 
     /**

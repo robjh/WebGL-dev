@@ -117,58 +117,89 @@ UniformLayout.prototype.getBlockIndex = function(name) {
 };
 
 /**
- * VarType
- * @param {VarType.Type} basicType
- * @param {deInt32.deUint32} flags
+ * VarType types enum
+ * @enum {number}
  */
-var VarType = function(basicType, flags) {
-    /**
-     * VarType types enum
-     * @enum {number}
-     */
-    var Type = {
-        TYPE_BASIC: 0,
-        TYPE_ARRAY: 1,
-        TYPE_STRUCT: 2
-    };
+var Type = {
+    TYPE_BASIC: 0,
+    TYPE_ARRAY: 1,
+    TYPE_STRUCT: 2
+};
 
-    Type.TYPE_LAST = Object.keys(Type).length;
+Type.TYPE_LAST = Object.keys(Type).length;
 
-    var typeArray = function() {
-        /** @type {VarType} */ var elementType = undefined;
-        /** @type {number} */ var size = 0;
-    };
+/**
+ * TypeArray struct
+ * @param {VarType} elementType
+ * @param {number} arraySize
+ */
+var TypeArray = function(elementType, arraySize) {
+    /** @type {VarType} */ this.elementType = elementType;
+    /** @type {number} */ this.size = arraySize;
+};
 
-    /** @type {Type} */ this.m_type = basicType;
-    /** @type {deInt32.deUint32} */ this.m_flags = flags;
+/**
+ * VarType class
+ */
+var VarType = function() {
+    /** @type {Type} */ this.m_type = Type.TYPE_LAST;
+    /** @type {deInt32.deUint32} */ this.m_flags = 0;
 
     /*
      * m_data used to be a 'Data' union in C++. Using a var is enough here.
      * it will contain any necessary value.
      */
-    /** @type {(deqpUtils.DataType|typeArray|StructType)} */
+    /** @type {(deqpUtils.DataType|TypeArray|StructType)} */
     this.m_data = undefined;
+};
+
+/**
+ * Creates a basic type VarType. Use this after the constructor call.
+ * @param {deqpUtils.DataType} basicType
+ * @param {deInt32.deUint32} flags
+ * @return {VarType} The currently modified object
+ */
+VarType.prototype.VarTypeBasic = function(basicType, flags) {
+    this.m_type = Type.TYPE_BASIC;
+    this.m_flags = flags;
+    this.m_data = basicType;
+
+    return this;
+};
+
+/**
+ * Creates an array type VarType. Use this after the constructor call.
+ * @param {VarType} elementType
+ * @param {number} arraySize
+ * @return {VarType} The currently modified object
+ */
+VarType.prototype.VarTypeArray = function(elementType, arraySize) {
+    this.m_type = Type.TYPE_ARRAY;
+    this.m_flags = 0;
+    this.m_data = new TypeArray(elementType, arraySize);
+
+    return this;
 };
 
 /** isBasicType
 * @return {boolean} true if the VarType represents a basic type.
 **/
 VarType.prototype.isBasicType = function() {
-    return this.m_type == VarType.Type.TYPE_BASIC;
+    return this.m_type == Type.TYPE_BASIC;
 };
 
 /** isArrayType
 * @return {boolean} true if the VarType represents an array.
 **/
 VarType.prototype.isArrayType = function() {
-    return this.m_type == VarType.Type.TYPE_ARRAY;
+    return this.m_type == Type.TYPE_ARRAY;
 };
 
 /** isStructType
 * @return {boolean} true if the VarType represents a struct.
 **/
 VarType.prototype.isStructType = function() {
-    return this.m_type == VarType.Type.TYPE_STRUCT;
+    return this.m_type == Type.TYPE_STRUCT;
 };
 
 /** getFlags
