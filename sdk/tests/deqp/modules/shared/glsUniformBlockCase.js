@@ -181,6 +181,19 @@ VarType.prototype.VarTypeArray = function(elementType, arraySize) {
     return this;
 };
 
+/**
+ * Creates an array type VarType. Use this after the constructor call.
+ * @param {StructType} structPtr
+ * @return {VarType} The currently modified object
+ */
+VarType.prototype.VarTypeStruct = function(structPtr) {
+    this.m_type = Type.TYPE_STRUCT;
+    this.m_flags = 0;
+    this.m_data = structPtr;
+
+    return this;
+};
+
 /** isBasicType
 * @return {boolean} true if the VarType represents a basic type.
 **/
@@ -525,7 +538,7 @@ ShaderInterface.prototype.getUniformBlock = function(ndx) {
 
 var UniformBlockCase = function(name, description, bufferMode) {
     /** @type {string} */ this.m_name = name;
-    /** @type {string} */ this.m_description = description;
+    /** @type {string} */ this.m_description = description;
     //glu::GLSLVersion m_glslVersion;
     /** @type {BufferMode} */ this.m_bufferMode = bufferMode;
     /** @type {ShaderInterface} */ this.m_interface = new ShaderInterface();

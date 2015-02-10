@@ -18,7 +18,7 @@
  *
  */
 /*'framework/opengl/gluDrawUtil', ... deqpDraw, */
-define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 'framework/common/tcuTestCase', 'framework/delibs/debase/deInt32'], function(deqpUtils, glsUniformBC, deqpTests, deInt32) {
+define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 'framework/common/tcuTestCase', 'framework/delibs/debase/deInt32'], function(deqpUtils, glsUBC, deqpTests, deInt32) {
     'use strict';
 
     /** @const @type {number} */ var VIEWPORT_WIDTH = 128;
@@ -30,14 +30,14 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
      * BlockBasicTypeCase constructor
      * @param {string} name The name of the test
      * @param {string} description The description of the test
-     * @param {glsUniformBC.VarType} type The type of the block
-     * @param {glsUniformBC.UniformLayout} layoutFlags
+     * @param {glsUBC.VarType} type The type of the block
+     * @param {glsUBC.UniformLayout} layoutFlags
      * @param {number} numInstances
      */
     var BlockBasicTypeCase = function(name, description, type, layoutFlags, numInstances) {
-        glsUniformBC.UniformBlockCase.call(this, name, description, glsUniformBC.BufferMode.BUFFERMODE_PER_BLOCK);
-        /** @type {glsUniformBC.UniformBlock}*/ var block = this.m_interface.allocBlock('Block');
-        block.addUniform(new glsUniformBC.Uniform('var', type, 0));
+        glsUBC.UniformBlockCase.call(this, name, description, glsUBC.BufferMode.BUFFERMODE_PER_BLOCK);
+        /** @type {glsUBC.UniformBlock}*/ var block = this.m_interface.allocBlock('Block');
+        block.addUniform(new glsUBC.Uniform('var', type, 0));
         block.setFlags(layoutFlags);
 
         if (numInstances > 0)
@@ -47,16 +47,16 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
         }
     };
 
-    BlockBasicTypeCase.prototype = Object.create(glsUniformBC.UniformBlockCase.prototype);
+    BlockBasicTypeCase.prototype = Object.create(glsUBC.UniformBlockCase.prototype);
     BlockBasicTypeCase.prototype.constructor = BlockBasicTypeCase;
 
     var createBlockBasicTypeCases = function(group, name, type, layoutFlags, numInstances) {
-        group.addChild(new BlockBasicTypeCase(name + '_vertex', '', type, layoutFlags | glsUniformBC.UniformFlags.DECLARE_VERTEX, numInstances));
-        group.addChild(new BlockBasicTypeCase(name + '_fragment', '', type, layoutFlags | glsUniformBC.UniformFlags.DECLARE_FRAGMENT, numInstances));
+        group.addChild(new BlockBasicTypeCase(name + '_vertex', '', type, layoutFlags | glsUBC.UniformFlags.DECLARE_VERTEX, numInstances));
+        group.addChild(new BlockBasicTypeCase(name + '_fragment', '', type, layoutFlags | glsUBC.UniformFlags.DECLARE_FRAGMENT, numInstances));
 
         //alert(group.spec[0].m_instance);
-        if (!(layoutFlags & glsUniformBC.UniformFlags.LAYOUT_PACKED))
-            group.addChild(new BlockBasicTypeCase(name + '_both', '', type, layoutFlags | glsUniformBC.UniformFlags.DECLARE_VERTEX | glsUniformBC.UniformFlags.DECLARE_FRAGMENT, numInstances));
+        if (!(layoutFlags & glsUBC.UniformFlags.LAYOUT_PACKED))
+            group.addChild(new BlockBasicTypeCase(name + '_both', '', type, layoutFlags | glsUBC.UniformFlags.DECLARE_VERTEX | glsUBC.UniformFlags.DECLARE_FRAGMENT, numInstances));
     };
 
     /**
@@ -64,26 +64,62 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
      * @param {string} name The name of the test
      * @param {string} description The description of the test
      * @param {deInt32.deUint32} layoutFlags
-     * @param {glsUniformBC.BufferMode} bufferMode
+     * @param {glsUBC.BufferMode} bufferMode
      * @param {number} numInstances
      */
     var BlockSingleStructCase = function(name, description, layoutFlags, bufferMode, numInstances) {
-        glsUniformBC.UniformBlockCase.call(this, name, description, bufferMode);
+        glsUBC.UniformBlockCase.call(this, name, description, bufferMode);
         this.m_layoutFlags = layoutFlags;
         this.m_numInstances = numInstances;
     };
 
-    BlockSingleStructCase.prototype = Object.create(glsUniformBC.UniformBlockCase.prototype);
+    BlockSingleStructCase.prototype = Object.create(glsUBC.UniformBlockCase.prototype);
     BlockSingleStructCase.prototype.constructor = BlockSingleStructCase;
 
     BlockSingleStructCase.prototype.init = function() {
-        /**@type {glsUniformBC.StructType}*/ var typeS = this.m_interface.allocStruct('S');
-        typeS.addMember('a', new glsUniformBC.VarType().VarTypeBasic(deqpUtils.DataType.INT_VEC3, glsUniformBC.UniformFlags.PRECISION_HIGH), glsUniformBC.UniformFlags.UNUSED_BOTH); // First member is unused.
-        typeS.addMember('b', new glsUniformBC.VarType().VarTypeArray(new glsUniformBC.VarType().VarTypeBasic(deqpUtils.DataType.FLOAT_MAT3, glsUniformBC.UniformFlags.PRECISION_MEDIUM), 4));
-        typeS.addMember('c', new glsUniformBC.VarType().VarTypeBasic(deqpUtils.DataType.FLOAT_VEC4, glsUniformBC.UniformFlags.PRECISION_HIGH));
+        /**@type {glsUBC.StructType}*/ var typeS = this.m_interface.allocStruct('S');
+        typeS.addMember('a', new glsUBC.VarType().VarTypeBasic(deqpUtils.DataType.INT_VEC3, glsUBC.UniformFlags.PRECISION_HIGH), glsUBC.UniformFlags.UNUSED_BOTH); // First member is unused.
+        typeS.addMember('b', new glsUBC.VarType().VarTypeArray(new glsUBC.VarType().VarTypeBasic(deqpUtils.DataType.FLOAT_MAT3, glsUBC.UniformFlags.PRECISION_MEDIUM), 4));
+        typeS.addMember('c', new glsUBC.VarType().VarTypeBasic(deqpUtils.DataType.FLOAT_VEC4, glsUBC.UniformFlags.PRECISION_HIGH));
 
-        /** @type {glsUniformBC.UniformBlock} */ var block = this.m_interface.allocBlock('Block');
-        block.addUniform(new glsUniformBC.Uniform('s', typeS, 0));
+        /** @type {glsUBC.UniformBlock} */ var block = this.m_interface.allocBlock('Block');
+        block.addUniform(new glsUBC.Uniform('s', typeS, 0));
+        block.setFlags(this.m_layoutFlags);
+
+        if (this.m_numInstances > 0)
+        {
+            block.setInstanceName('block');
+            block.setArraySize(this.m_numInstances);
+        }
+    };
+
+    /**
+     * BlockSingleStructArrayCase constructor
+     * @param {string} name The name of the test
+     * @param {string} description The description of the test
+     * @param {deInt32.deUint32} layoutFlags
+     * @param {glsUBC.BufferMode} bufferMode
+     * @param {number} numInstances
+     */
+    var BlockSingleStructArrayCase = function(name, description, layoutFlags, bufferMode, numInstances) {
+        glsUBC.UniformBlockCase.call(this, name, description, bufferMode);
+        this.m_layoutFlags = layoutFlags;
+        this.m_numInstances = numInstances;
+    };
+
+    BlockSingleStructArrayCase.prototype = Object.create(glsUBC.UniformBlockCase.prototype);
+    BlockSingleStructArrayCase.prototype.constructor = BlockSingleStructArrayCase;
+
+    BlockSingleStructArrayCase.prototype.init = function() {
+        /**@type {glsUBC.StructType}*/ var typeS = this.m_interface.allocStruct('S');
+        typeS.addMember('a', new glsUBC.VarType().VarTypeBasic(deqpUtils.DataType.INT_VEC3, glsUBC.UniformFlags.PRECISION_HIGH), glsUBC.UniformFlags.UNUSED_BOTH); // First member is unused.
+        typeS.addMember('b', new glsUBC.VarType().VarTypeArray(new glsUBC.VarType().VarTypeBasic(deqpUtils.DataType.FLOAT_MAT3, glsUBC.UniformFlags.PRECISION_MEDIUM), 4));
+        typeS.addMember('c', new glsUBC.VarType().VarTypeBasic(deqpUtils.DataType.FLOAT_VEC4, glsUBC.UniformFlags.PRECISION_HIGH));
+
+        /** @type {glsUBC.UniformBlock} */ var block = this.m_interface.allocBlock('Block');
+        block.addUniform(new glsUBC.Uniform('u', new glsUBC.VarType().VarTypeBasic(deqpUtils.DataType.UINT, glsUBC.UniformFlags.PRECISION_LOW)));
+        block.addUniform(new glsUBC.Uniform('s', new glsUBC.VarType().VarTypeArray(new glsUBC.VarType().VarTypeStruct(typeS), 3)));
+        block.addUniform(new glsUBC.Uniform('v', new glsUBC.VarType().VarTypeBasic(deqpUtils.DataType.FLOAT_VEC4, glsUBC.UniformFlags.PRECISION_MEDIUM)));
         block.setFlags(this.m_layoutFlags);
 
         if (this.m_numInstances > 0)
@@ -127,30 +163,30 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
             deqpUtils.DataType.FLOAT_MAT4X3
         ];
 
-        /** @type {Array.<string, glsUniformBC.UniformFlags>} */
+        /** @type {Array.<string, glsUBC.UniformFlags>} */
         var precisionFlags = [
-            { name: 'lowp', flags: glsUniformBC.UniformFlags.PRECISION_LOW },
-            { name: 'mediump', flags: glsUniformBC.UniformFlags.PRECISION_MEDIUM },
-            { name: 'highp', flags: glsUniformBC.UniformFlags.PRECISION_HIGH }
+            { name: 'lowp', flags: glsUBC.UniformFlags.PRECISION_LOW },
+            { name: 'mediump', flags: glsUBC.UniformFlags.PRECISION_MEDIUM },
+            { name: 'highp', flags: glsUBC.UniformFlags.PRECISION_HIGH }
         ];
 
-        /** @type {Array.<string, glsUniformBC.UniformFlags>} */
+        /** @type {Array.<string, glsUBC.UniformFlags>} */
         var layoutFlags = [
-            { name: 'shared', flags: glsUniformBC.UniformFlags.PRECISION_LOW },
-            { name: 'packed', flags: glsUniformBC.UniformFlags.PRECISION_MEDIUM },
-            { name: 'std140', flags: glsUniformBC.UniformFlags.PRECISION_HIGH }
+            { name: 'shared', flags: glsUBC.UniformFlags.PRECISION_LOW },
+            { name: 'packed', flags: glsUBC.UniformFlags.PRECISION_MEDIUM },
+            { name: 'std140', flags: glsUBC.UniformFlags.PRECISION_HIGH }
         ];
 
-        /** @type {Array.<string, glsUniformBC.UniformFlags>} */
+        /** @type {Array.<string, glsUBC.UniformFlags>} */
         var matrixFlags = [
-            { name: 'row_major', flags: glsUniformBC.UniformFlags.LAYOUT_ROW_MAJOR },
-            { name: 'column_major', flags: glsUniformBC.UniformFlags.LAYOUT_COLUMN_MAJOR }
+            { name: 'row_major', flags: glsUBC.UniformFlags.LAYOUT_ROW_MAJOR },
+            { name: 'column_major', flags: glsUBC.UniformFlags.LAYOUT_COLUMN_MAJOR }
         ];
 
-        /** @type {Array.<string, glsUniformBC.BufferMode>} */
+        /** @type {Array.<string, glsUBC.BufferMode>} */
         var bufferModes = [
-            { name: 'per_block_buffer', mode: glsUniformBC.BufferMode.BUFFERMODE_PER_BLOCK },
-            { name: 'single_buffer', mode: glsUniformBC.BufferMode.BUFFERMODE_SINGLE }
+            { name: 'per_block_buffer', mode: glsUBC.BufferMode.BUFFERMODE_PER_BLOCK },
+            { name: 'single_buffer', mode: glsUBC.BufferMode.BUFFERMODE_SINGLE }
         ];
 
         // ubo.single_basic_type
@@ -171,12 +207,12 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
                 /** @type {string} */ var typeName = deqpUtils.getDataTypeName(type);
 
                 if (deqpUtils.isDataTypeBoolOrBVec(type))
-                    createBlockBasicTypeCases(layoutGroup, typeName, new glsUniformBC.VarType().VarTypeBasic(type, 0), layoutFlags[layoutFlagNdx].flags);
+                    createBlockBasicTypeCases(layoutGroup, typeName, new glsUBC.VarType().VarTypeBasic(type, 0), layoutFlags[layoutFlagNdx].flags);
                 else
                 {
                     for (var precNdx = 0; precNdx < precisionFlags.length; precNdx++)
                         createBlockBasicTypeCases(layoutGroup, precisionFlags[precNdx].name + '_' + typeName,
-                            new glsUniformBC.VarType().VarTypeBasic(type, precisionFlags[precNdx].flags), layoutFlags[layoutFlagNdx].flags);
+                            new glsUBC.VarType().VarTypeBasic(type, precisionFlags[precNdx].flags), layoutFlags[layoutFlagNdx].flags);
                 }
 
                 if (deqpUtils.isDataTypeMatrix(type))
@@ -185,7 +221,7 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
                     {
                         for (var precNdx = 0; precNdx < precisionFlags.length; precNdx++)
                             createBlockBasicTypeCases(layoutGroup, matrixFlags[matFlagNdx].name + '_' + precisionFlags[precNdx].name + '_' + typeName,
-                                new glsUniformBC.VarType().VarTypeBasic(type, precisionFlags[precNdx].flags), layoutFlags[layoutFlagNdx].flags | matrixFlags[matFlagNdx].flags);
+                                new glsUBC.VarType().VarTypeBasic(type, precisionFlags[precNdx].flags), layoutFlags[layoutFlagNdx].flags | matrixFlags[matFlagNdx].flags);
                     }
                 }
             }
@@ -211,14 +247,14 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
                 /** @type {number} */ var arraySize = 3;
 
                 createBlockBasicTypeCases(layoutGroup, typeName,
-                    new glsUniformBC.VarType().VarTypeArray(new glsUniformBC.VarType().VarTypeBasic(type, deqpUtils.isDataTypeBoolOrBVec(type) ? 0 : glsUniformBC.UniformFlags.PRECISION_HIGH), arraySize),
+                    new glsUBC.VarType().VarTypeArray(new glsUBC.VarType().VarTypeBasic(type, deqpUtils.isDataTypeBoolOrBVec(type) ? 0 : glsUBC.UniformFlags.PRECISION_HIGH), arraySize),
                     layoutFlags[layoutFlagNdx].flags);
 
                 if (deqpUtils.isDataTypeMatrix(type))
                 {
                     for (var matFlagNdx = 0; matFlagNdx < matrixFlags.length; matFlagNdx++)
                         createBlockBasicTypeCases(layoutGroup, matrixFlags[matFlagNdx].name + '_' + typeName,
-                            new glsUniformBC.VarType().VarTypeArray(new glsUniformBC.VarType().VarTypeBasic(type, glsUniformBC.UniformFlags.PRECISION_HIGH), arraySize),
+                            new glsUBC.VarType().VarTypeArray(new glsUBC.VarType().VarTypeBasic(type, glsUBC.UniformFlags.PRECISION_HIGH), arraySize),
                             layoutFlags[layoutFlagNdx].flags | matrixFlags[matFlagNdx].flags);
                 }
             }
@@ -244,22 +280,57 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
                     /** @type {string} */ var baseName = layoutFlags[layoutFlagNdx].name;
                     /** @type {deInt32.deUint32} */ var baseFlags = layoutFlags[layoutFlagNdx].flags;
 
-                    if (bufferModes[modeNdx].mode == glsUniformBC.BufferMode.BUFFERMODE_SINGLE && isArray == 0)
+                    if (bufferModes[modeNdx].mode == glsUBC.BufferMode.BUFFERMODE_SINGLE && isArray == 0)
                         continue; // Doesn't make sense to add this variant.
 
                     if (isArray)
                         baseName += '_instance_array';
 
-                    modeGroup.addChild(new BlockSingleStructCase(baseName + '_vertex', '', baseFlags | glsUniformBC.UniformFlags.DECLARE_VERTEX, bufferModes[modeNdx].mode, isArray ? 3 : 0));
-                    modeGroup.addChild(new BlockSingleStructCase(baseName + '_fragment', '', baseFlags | glsUniformBC.UniformFlags.DECLARE_FRAGMENT, bufferModes[modeNdx].mode, isArray ? 3 : 0));
+                    modeGroup.addChild(new BlockSingleStructCase(baseName + '_vertex', '', baseFlags | glsUBC.UniformFlags.DECLARE_VERTEX, bufferModes[modeNdx].mode, isArray ? 3 : 0));
+                    modeGroup.addChild(new BlockSingleStructCase(baseName + '_fragment', '', baseFlags | glsUBC.UniformFlags.DECLARE_FRAGMENT, bufferModes[modeNdx].mode, isArray ? 3 : 0));
 
-                    if (!(baseFlags & glsUniformBC.UniformFlags.LAYOUT_PACKED))
-                        modeGroup.addChild(new BlockSingleStructCase(baseName + '_both', '', baseFlags | glsUniformBC.UniformFlags.DECLARE_VERTEX | glsUniformBC.UniformFlags.DECLARE_FRAGMENT, bufferModes[modeNdx].mode, isArray ? 3 : 0));
+                    if (!(baseFlags & glsUBC.UniformFlags.LAYOUT_PACKED))
+                        modeGroup.addChild(new BlockSingleStructCase(baseName + '_both', '', baseFlags | glsUBC.UniformFlags.DECLARE_VERTEX | glsUBC.UniformFlags.DECLARE_FRAGMENT, bufferModes[modeNdx].mode, isArray ? 3 : 0));
                 }
             }
         }
         //TODO: Remove
         testPassedOptions('Init ubo.single_struct', true);
+
+        // ubo.single_struct_array
+        /** @type {deqpTests.DeqpTest} */
+        var singleStructArrayGroup = deqpTests.newTest('single_struct_array', 'Struct array in one uniform block');
+        testGroup.addChild(singleStructArrayGroup);
+
+        for (var modeNdx = 0; modeNdx < bufferModes.length; modeNdx++)
+        {
+            /** @type {deqpTests.deqpTest} */
+            var modeGroup = new deqpTests.newTest(bufferModes[modeNdx].name, '');
+            singleStructArrayGroup.addChild(modeGroup);
+
+            for (var layoutFlagNdx = 0; layoutFlagNdx < layoutFlags.length; layoutFlagNdx++)
+            {
+                for (var isArray = 0; isArray < 2; isArray++)
+                {
+                    /** @type {string} */ var baseName = layoutFlags[layoutFlagNdx].name;
+                    /** @type {deInt32.deUint32} */ var baseFlags = layoutFlags[layoutFlagNdx].flags;
+
+                    if (bufferModes[modeNdx].mode == glsUBC.BufferMode.BUFFERMODE_SINGLE && isArray == 0)
+                        continue; // Doesn't make sense to add this variant.
+
+                    if (isArray)
+                        baseName += '_instance_array';
+
+                    modeGroup.addChild(new BlockSingleStructArrayCase(baseName + '_vertex', '', baseFlags | glsUBC.UniformFlags.DECLARE_VERTEX, bufferModes[modeNdx].mode, isArray ? 3 : 0));
+                    modeGroup.addChild(new BlockSingleStructArrayCase(baseName + '_fragment', '', baseFlags | glsUBC.UniformFlags.DECLARE_FRAGMENT, bufferModes[modeNdx].mode, isArray ? 3 : 0));
+
+                    if (!(baseFlags & glsUBC.UniformFlags.LAYOUT_PACKED))
+                        modeGroup.addChild(new BlockSingleStructArrayCase(baseName + '_both', '', baseFlags | glsUBC.UniformFlags.DECLARE_VERTEX | glsUBC.UniformFlags.DECLARE_FRAGMENT, bufferModes[modeNdx].mode, isArray ? 3 : 0));
+                }
+            }
+        }
+        //TODO: Remove
+        testPassedOptions('Init ubo.single_struct_array', true);
     };
 
     /**
@@ -268,7 +339,7 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
      */
     var run = function(filter) {
         init(filter);
-        alert('finished!');
+        deqpTests.runner.terminate();
         /*WebGLTestUtils.loadTextFileAsync(testName + '.test', function(success, content) {
             if (success) {
                 deqpTests.runner.getState().testFile = content;
