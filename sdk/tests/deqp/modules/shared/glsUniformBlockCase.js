@@ -238,16 +238,16 @@ VarType.prototype.getStruct = function() {
     return this.m_data;
 };
 
-/** StructMember TODO: Check if we have to use deqpUtils.deUint32
+/** StructMember TODO: Check if we have to use deInt32.deUint32
  * in the JSDoc annotations or if a number would do.
- * @param {string} struct_name
- * @param {VarType} struct_type
- * @param {deqpUtils.deUint32} struct_flags
+ * @param {string} name
+ * @param {VarType} type
+ * @param {deInt32.deUint32} flags
 **/
-var StructMember = function(struct_name, struct_type, struct_flags) {
-    /** @type {string} */ var m_name = struct_name;
-    /** @type {VarType} */ var m_type = struct_type;
-    /** @type {deqpUtils.deUint32} */ var m_flags = struct_flags;
+var StructMember = function(name, type, flags) {
+    /** @type {string} */ this.m_name = name;
+    /** @type {VarType} */ this.m_type = type;
+    /** @type {deInt32.deUint32} */ this.m_flags = flags;
 };
 
 /** getName
@@ -261,7 +261,7 @@ StructMember.prototype.getName = function() { return this.m_name; };
 StructMember.prototype.getType = function() { return this.m_type; };
 
 /** getFlags
-* @return {deqpUtils.deUint32} the flags in the member
+* @return {deInt32.deUint32} the flags in the member
 **/
 StructMember.prototype.getFlags = function() { return this.m_flags; };
 
@@ -270,8 +270,8 @@ StructMember.prototype.getFlags = function() { return this.m_flags; };
 **/
 var StructType = function(typeName) {
 //private:
-    /** @type {string}*/ var m_typeName = typeName;
-    /** @type {Array.<StructMember>} */ var m_members = [];
+    /** @type {string}*/ this.m_typeName = typeName;
+    /** @type {Array.<StructMember>} */ this.m_members = [];
 };
 
 /** getTypeName
@@ -315,7 +315,7 @@ StructType.prototype.getSize = function() {
 /** addMember
 * @param {string} member_name
 * @param {VarType} member_type
-* @param {deqpUtils.deUint32} member_flags
+* @param {deInt32.deUint32} member_flags
 **/
 StructType.prototype.addMember = function(member_name, member_type, member_flags) {
     var member = new StructMember(member_name, member_type, member_flags);
@@ -326,12 +326,12 @@ StructType.prototype.addMember = function(member_name, member_type, member_flags
 /** Uniform
  * @param {string} name
  * @param {VarType} type
- * @param {deqpUtils.deUint32} flags
+ * @param {deInt32.deUint32} flags
 **/
 var Uniform = function(name, type, flags) {
     /** @type {string} */ this.m_name = name;
     /** @type {VarType} */ this.m_type = type;
-    /** @type {deqpUtils.deUint32} */ this.m_flags = flags;
+    /** @type {deInt32.deUint32} */ this.m_flags = flags;
 };
 
 /** getName
@@ -349,7 +349,7 @@ Uniform.prototype.getType = function() {
 };
 
 /** getFlags
-* @return {deqpUtils.deUint32}
+* @return {deInt32.deUint32}
 **/
 Uniform.prototype.getFlags = function() {
     return this.m_flags;
@@ -363,7 +363,7 @@ var UniformBlock = function(blockName) {
     /** @type {string} */ this.m_instanceName;
     /** @type {Array.<Uniform>} */ this.m_uniforms = [];
     /** @type {number} */ this.m_arraySize = 0; //!< Array size or 0 if not interface block array.
-    /** @type {deqpUtils.deUint32} */ this.m_flags = 0;
+    /** @type {deInt32.deUint32} */ this.m_flags = 0;
 };
 
 /** getBlockName
@@ -395,7 +395,7 @@ UniformBlock.prototype.getArraySize = function() {
 };
 
 /** getFlags
-* @return {deqpUtils.deUint32}
+* @return {deInt32.deUint32}
 **/
 UniformBlock.prototype.getFlags = function() {
     return this.m_flags;
@@ -409,7 +409,7 @@ UniformBlock.prototype.setInstanceName = function(name) {
 };
 
 /** setFlags
-* @param {deqpUtils.deUint32} flags
+* @param {deInt32.deUint32} flags
 **/
 UniformBlock.prototype.setFlags = function(flags) {
     this.m_flags = flags;
@@ -523,10 +523,11 @@ ShaderInterface.prototype.getUniformBlock = function(ndx) {
     return this.m_uniformBlocks[ndx];
 };
 
-var UniformBlockCase = function(bufferMode) {
-    /** @type {WebGLRenderingContext} */ this.m_renderCtx;
+var UniformBlockCase = function(name, description, bufferMode) {
+    /** @type {string} */ this.m_name = name;
+    /** @type {string} */ this.m_description = description;
     //glu::GLSLVersion m_glslVersion;
-    /** @type {BufferMode} */ this.m_bufferMode;
+    /** @type {BufferMode} */ this.m_bufferMode = bufferMode;
     /** @type {ShaderInterface} */ this.m_interface = new ShaderInterface();
 };
 
@@ -646,7 +647,7 @@ UniformBlockCase.prototype.getGLUniformLayout = function(gl, layout, program) {
  * @return {number}
  */
 UniformBlockCase.prototype.getDataTypeByteSize = function(type) {
-    return deqpUtils.getDataTypeScalarSize(type) * deqpUtils.deUint32_size;
+    return deqpUtils.getDataTypeScalarSize(type) * deInt32.deUint32_size;
 };
 
 /**
@@ -658,7 +659,7 @@ UniformBlockCase.prototype.getDataTypeArrayStride = function(type) {
     assertMsgOptions(!deqpUtils.isDataTypeMatrix(type), 'Must not be a Matrix type', false, true);
 
     /** @type {number} */ var baseStride = this.getDataTypeByteSize(type);
-    /** @type {number} */ var vec4Alignment = deqpUtils.deUint32_size * 4;
+    /** @type {number} */ var vec4Alignment = deInt32.deUint32_size * 4;
 
     assertMsgOptions(baseStride <= vec4Alignment, 'Checking alignment is correct', false, true);
     return Math.max(baseStride, vec4Alignment); // Really? See rule 4.
@@ -683,7 +684,7 @@ UniformBlockCase.prototype.deRoundUp32 = function(a, b)
 //  * @return {number}
 //  */
 // var computeStd140BaseAlignment = function(type) {
-//     /** @type {number} */ var vec4Alignment = deqpUtils.deUint32_size;
+//     /** @type {number} */ var vec4Alignment = deInt32.deUint32_size;
 //
 //     if (type.isBasicType())
 //     {
@@ -1485,7 +1486,6 @@ var execute = function()
     block.activeUniformIndices.push(1);
     layout.blocks.push(block);
 
-
     var blockndx = layout.getBlockIndex('two');
     alert(blockndx);
 
@@ -1505,10 +1505,6 @@ var execute = function()
     alert('Indices are ' + (correctLayout ? 'correct!' : 'incorrect :('));
 };
 
-var newUniformBlockCase = function(bufferMode) {
-    return new UniformBlockCase(bufferMode);
-};
-
 var runTestCases = function() {
     try {
         init();
@@ -1520,7 +1516,6 @@ var runTestCases = function() {
 };
 
 return {
-    newUniformBlockCase: newUniformBlockCase,
     UniformBlockCase: UniformBlockCase,
     ShaderInterface: ShaderInterface,
     UniformBlock: UniformBlock,
@@ -1533,8 +1528,6 @@ return {
     BlockLayoutEntry: BlockLayoutEntry,
     UniformFlags: UniformFlags,
     BufferMode: BufferMode
-
-    //,runTestCases: runTestCases
 };
 
 });
