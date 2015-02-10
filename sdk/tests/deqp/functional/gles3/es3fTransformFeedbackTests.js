@@ -557,5 +557,152 @@ define(['framework/opengl/gluShaderUtil.js'], function(deqpUtils) {
 
 	});
 
+	var TransformFeedbackCase = (function(context, name, desc, bufferMode, primitiveType) {
+		
+		var parent = {
+			_construct: this._construct,
+		}
+		
+		this._construct = function(context, name, desc, bufferMode, primitiveType) {
+			if (
+				typeof(context)       !== 'undefined' &&
+				typeof(name)          !== 'undefined' &&
+				typeof(desc)          !== 'undefined' &&
+				typeof(bufferMode)    !== 'undefined' &&
+				typeof(primitiveType) !== 'undefined'
+			) {
+				parent._construct(context, name, desc);
+				m_bufferMode    = bufferMode
+				m_primitiveType = primitiveType;
+			}
+		};
+		
+		this.init = function() {
+			var log = m_testCtx.getLog(); // TestLog&
+			var gl  = m_context.getRenderContext().getFunctions(); // const glw::Functions&
+			
+			if (m_program != null) { throw Error("m_program isnt null."); }
+			m_program = createVertexCaptureProgram(
+				m_context.getRenderContext(),
+				m_progSpec,
+				m_bufferMode,
+				m_primitiveType
+			);
+			
+			log.log(m_program);
+			
+			if (!m_program->isOk()) {
+				
+				var linkFail = m_program->getShaderInfo(glu.SHADERTYPE_VERTEX).compileOk &&
+				               m_program->getShaderInfo(glu.SHADERTYPE_FRAGMENT).compileOk &&
+				               !m_program->getProgramInfo().linkOk;
+				
+				if (linkFail) {
+					if (!isPorgramSupported(gl, m_proSpec, m_bufferMode)) {
+						throw new Error("Not Supported. Implementation limits exceeded.");
+					} else if (hasArraysInTFVaryings(m_progSpec)) {
+						throw new Error("Capturing arrays is not supported (undefined in specification)");
+					} else {
+						throw new Error("Link failed");
+					}
+				} else {
+					throw new Error ("Compile failed");
+				}
+			}
+			
+			// TODO: TestLog static members
+			log.log(
+				TestLog.Message +
+				"Transform feedback varyings: " +
+				tcu.formatArray(m_progSpec.getTransformFeedbackVaryings()) +
+				TestLog.EndMessage
+			);
+			
+			// Print out transform feedback points reported by GL.
+			log.log(TestLog.Message + "Transform feedback varyings reported by compiler:" + TestLog.EndMessage);
+			logTransformFeedbackVaryings(log, gl, m_program.getProgram());
+			
+			// Compute input specification.
+			computeInputLayout(m_attributes, m_inputStride, m_progSpec.getVaryings(), m_progSpec.isPointSizeUsed());
+			
+			// Build list of varyings used in transform feedback.
+			computeTransformFeedbackOutputs(
+				m_transformFeedbackOutputs, // TODO: make sure this param is working as intended
+				m_attributes,
+				m_progSpec.getVaryings(),
+				m_progSpec.getTransformFeedbackVaryings(),
+				m_bufferMode
+			);
+			if (!m_transformFeedbackOutputs.length) {
+				throw new Error("transformFeedbackOutputs cannot be empty.");
+			}
+			
+			// Buffer strides.
+			if (!m_bufferStrides.length) {
+				throw new Error("bufferStrides cannot be empty.");
+			}
+			if (m_bufferMode == GL.SEPARATE_ATTRIBS) {
+				for (var i = 0 ; i < m_transformFeedbackOutputs.length ; ++i) {
+					m_bufferStrides.push(m_transformFeedbackOutputs[i].type.getScalarSize() * 4 /*sizeof(deUint32)*/);
+				}
+			} else {
+				var totalSize = 0;
+				for (var i = 0 ; i < m_transformFeedbackOutputs.length ; ++i) {
+					totalSize += m_transformFeedbackOutputs[i].type.getScalarSize() * 4 /*sizeof(deUint32)*/;
+				}
+				m_bufferStrides.push(totalSize);
+			}
+			
+			// \note Actual storage is allocated in iterate().
+		//	m_outputBuffers.resize(m_bufferStrides.size()); //                  <-- not needed in JS
+		//	gl.genBuffers(m_outputBuffers.length, m_outputBuffers); // TODO:    <-- rework
+
+			DE_ASSERT(!m_transformFeedback);
+			if (m_transformFeedback != null) {
+				throw new Error("transformFeedback is already set.");
+			}
+			m_transformFeedback = new glu.TransformFeedback(m_context.getRenderContext());
+
+			GLU_EXPECT_NO_ERROR(gl.getError(), "init");
+
+			m_iterNdx = 0;
+			m_testCtx.setTestResult(QP_TEST_RESULT_PASS, "Pass");
+			
+		};
+		this.deinit = function() {
+		};
+		this.iterate = function() {
+		};
+		
+		/* protected */
+		this.m_progSpec      = null;
+		this.m_bufferMode    = null;
+		this.m_primitiveType = null;
+		
+		/* private */
+		var assign = function(/*const*/ other) {
+		};
+		var runTest = function(array, seed) {
+		};
+		
+		// Derived from ProgramSpec in init()
+		var m_inputStride               = 0;
+		var m_attributes                = [];    // vector<Attribute>
+		var m_transformFeedbackOutputs  = [];    // vector<Output>
+		var m_bufferStrides             = [];    // vector<int>
+		
+		// GL state.
+		var m_program                   = null;  // glu::ShaderProgram
+		var m_transformFeedback         = null;  // glu::TransformFeedback
+		var m_outputBuffers             = [];    // vector<deUint32>
+		
+		var m_iterNdx                   = 0;     // int
+		
+		this._construct(context, name, desc, bufferMode, primitiveType);
+		
+	});
+
+	// TODO: find TestCase
+	TransformFeedbackCase.prototype = new TestCase();
 
 });
