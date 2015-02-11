@@ -507,6 +507,205 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
         }
         //TODO: Remove
         testPassedOptions('Init ubo.single_struct_array', true);
+
+        // ubo.single_nested_struct
+        /** @type {deqpTests.DeqpTest} */
+        var singleNestedStructGroup = deqpTests.newTest('single_nested_struct', 'Nested struct in one uniform block');
+        testGroup.addChild(singleNestedStructGroup);
+
+        for (var modeNdx = 0; modeNdx < bufferModes.length; modeNdx++)
+        {
+            /** @type {deqpTests.deqpTest} */
+            var modeGroup = new deqpTests.newTest(bufferModes[modeNdx].name, '');
+            singleNestedStructGroup.addChild(modeGroup);
+
+            for (var layoutFlagNdx = 0; layoutFlagNdx < layoutFlags.length; layoutFlagNdx++)
+            {
+                for (var isArray = 0; isArray < 2; isArray++)
+                {
+                    /** @type {string} */ var baseName = layoutFlags[layoutFlagNdx].name;
+                    /** @type {deInt32.deUint32} */ var baseFlags = layoutFlags[layoutFlagNdx].flags;
+
+                    if (bufferModes[modeNdx].mode == glsUBC.BufferMode.BUFFERMODE_SINGLE && isArray == 0)
+                        continue; // Doesn't make sense to add this variant.
+
+                    if (isArray)
+                        baseName += '_instance_array';
+
+                    modeGroup.addChild(new BlockSingleNestedStructCase(baseName + '_vertex', '', baseFlags | glsUBC.UniformFlags.DECLARE_VERTEX, bufferModes[modeNdx].mode, isArray ? 3 : 0));
+                    modeGroup.addChild(new BlockSingleNestedStructCase(baseName + '_fragment', '', baseFlags | glsUBC.UniformFlags.DECLARE_FRAGMENT, bufferModes[modeNdx].mode, isArray ? 3 : 0));
+
+                    if (!(baseFlags & glsUBC.UniformFlags.LAYOUT_PACKED))
+                        modeGroup.addChild(new BlockSingleNestedStructCase(baseName + '_both', '', baseFlags | glsUBC.UniformFlags.DECLARE_VERTEX | glsUBC.UniformFlags.DECLARE_FRAGMENT, bufferModes[modeNdx].mode, isArray ? 3 : 0));
+                }
+            }
+        }
+        //TODO: Remove
+        testPassedOptions('Init ubo.single_nested_struct', true);
+
+        // ubo.single_nested_struct_array
+        /** @type {deqpTests.DeqpTest} */
+        var singleNestedStructArrayGroup = deqpTests.newTest('single_nested_struct_array', 'Nested struct array in one uniform block');
+        testGroup.addChild(singleNestedStructArrayGroup);
+
+        for (var modeNdx = 0; modeNdx < bufferModes.length; modeNdx++)
+        {
+            /** @type {deqpTests.deqpTest} */
+            var modeGroup = new deqpTests.newTest(bufferModes[modeNdx].name, '');
+            singleNestedStructArrayGroup.addChild(modeGroup);
+
+            for (var layoutFlagNdx = 0; layoutFlagNdx < layoutFlags.length; layoutFlagNdx++)
+            {
+                for (var isArray = 0; isArray < 2; isArray++)
+                {
+                    /** @type {string} */ var baseName = layoutFlags[layoutFlagNdx].name;
+                    /** @type {deInt32.deUint32} */ var baseFlags = layoutFlags[layoutFlagNdx].flags;
+
+                    if (bufferModes[modeNdx].mode == glsUBC.BufferMode.BUFFERMODE_SINGLE && isArray == 0)
+                        continue; // Doesn't make sense to add this variant.
+
+                    if (isArray)
+                        baseName += '_instance_array';
+
+                    modeGroup.addChild(new BlockSingleNestedStructArrayCase(baseName + '_vertex', '', baseFlags | glsUBC.UniformFlags.DECLARE_VERTEX, bufferModes[modeNdx].mode, isArray ? 3 : 0));
+                    modeGroup.addChild(new BlockSingleNestedStructArrayCase(baseName + '_fragment', '', baseFlags | glsUBC.UniformFlags.DECLARE_FRAGMENT, bufferModes[modeNdx].mode, isArray ? 3 : 0));
+
+                    if (!(baseFlags & glsUBC.UniformFlags.LAYOUT_PACKED))
+                        modeGroup.addChild(new BlockSingleNestedStructArrayCase(baseName + '_both', '', baseFlags | glsUBC.UniformFlags.DECLARE_VERTEX | glsUBC.UniformFlags.DECLARE_FRAGMENT, bufferModes[modeNdx].mode, isArray ? 3 : 0));
+                }
+            }
+        }
+        //TODO: Remove
+        testPassedOptions('Init ubo.single_nested_struct_array', true);
+
+        // ubo.instance_array_basic_type
+        /** @type {deqpTests.DeqpTest} */
+        var instanceArrayBasicTypeGroup = deqpTests.newTest('instance_array_basic_type', 'Single basic variable in instance array');
+        testGroup.addChild(instanceArrayBasicTypeGroup);
+
+        for (var layoutFlagNdx = 0; layoutFlagNdx < layoutFlags.length; layoutFlagNdx++)
+        {
+            /** @type {deqpTests.deqpTest} */
+            var layoutGroup = new deqpTests.newTest(layoutFlags[layoutFlagNdx].name, '');
+            instanceArrayBasicTypeGroup.addChild(layoutGroup);
+
+            for (var basicTypeNdx = 0; basicTypeNdx < basicTypes.length; basicTypeNdx++)
+            {
+                /** @type {deqpUtils.DataType} */ var type = basicTypes[basicTypeNdx];
+                /** @type {string} */ var typeName = deqpUtils.getDataTypeName(type);
+                /** @type {number} */ var numInstances = 3;
+
+                createBlockBasicTypeCases(layoutGroup, typeName,
+                    new glsUBC.VarType().VarTypeBasic(type, deqpUtils.isDataTypeBoolOrBVec(type) ? 0 : glsUBC.UniformFlags.PRECISION_HIGH),
+                    layoutFlags[layoutFlagNdx].flags, numInstances);
+
+                if (deqpUtils.isDataTypeMatrix(type))
+                {
+                    for (var matFlagNdx = 0; matFlagNdx < matrixFlags.length; matFlagNdx++)
+                        createBlockBasicTypeCases(layoutGroup, matrixFlags[matFlagNdx].name + '_' + typeName,
+                            new glsUBC.VarType().VarTypeBasic(type, glsUBC.UniformFlags.PRECISION_HIGH), layoutFlags[layoutFlagNdx].flags | matrixFlags[matFlagNdx].flags,
+                            numInstances);
+                }
+            }
+        }
+        //TODO: Remove
+        testPassedOptions('Init ubo.instance_array_basic_type', true);
+
+        // ubo.multi_basic_types
+        /** @type {deqpTests.DeqpTest} */
+        var multiBasicTypesGroup = deqpTests.newTest('multi_basic_types', 'Multiple buffers with basic types');
+        testGroup.addChild(multiBasicTypesGroup);
+
+        for (var modeNdx = 0; modeNdx < bufferModes.length; modeNdx++)
+        {
+            /** @type {deqpTests.deqpTest} */
+            var modeGroup = new deqpTests.newTest(bufferModes[modeNdx].name, '');
+            multiBasicTypesGroup.addChild(modeGroup);
+
+            for (var layoutFlagNdx = 0; layoutFlagNdx < layoutFlags.length; layoutFlagNdx++)
+            {
+                for (var isArray = 0; isArray < 2; isArray++)
+                {
+                    /** @type {string} */ var baseName = layoutFlags[layoutFlagNdx].name;
+                    /** @type {deInt32.deUint32} */ var baseFlags = layoutFlags[layoutFlagNdx].flags;
+
+                    if (isArray)
+                        baseName += '_instance_array';
+
+                    modeGroup.addChild(new BlockMultiBasicTypesCase(baseName + '_vertex', '', baseFlags | glsUBC.UniformFlags.DECLARE_VERTEX, baseFlags | glsUBC.UniformFlags.DECLARE_VERTEX, bufferModes[modeNdx].mode, isArray ? 3 : 0));
+                    modeGroup.addChild(new BlockMultiBasicTypesCase(baseName + '_fragment', '', baseFlags | glsUBC.UniformFlags.DECLARE_FRAGMENT, baseFlags | glsUBC.UniformFlags.DECLARE_FRAGMENT, bufferModes[modeNdx].mode, isArray ? 3 : 0));
+
+                    if (!(baseFlags & glsUBC.UniformFlags.LAYOUT_PACKED))
+                        modeGroup.addChild(new BlockMultiBasicTypesCase(baseName + '_both', '', baseFlags | glsUBC.UniformFlags.DECLARE_VERTEX | glsUBC.UniformFlags.DECLARE_FRAGMENT, baseFlags | glsUBC.UniformFlags.DECLARE_VERTEX | glsUBC.UniformFlags.DECLARE_FRAGMENT, bufferModes[modeNdx].mode, isArray ? 3 : 0));
+
+                    modeGroup.addChild(new BlockMultiBasicTypesCase(baseName + '_mixed', '', baseFlags | glsUBC.UniformFlags.DECLARE_VERTEX, baseFlags | glsUBC.UniformFlags.DECLARE_FRAGMENT, bufferModes[modeNdx].mode, isArray ? 3 : 0));
+                }
+            }
+        }
+        //TODO: Remove
+        testPassedOptions('Init ubo.multi_basic_types', true);
+
+        // ubo.multi_nested_struct
+        /** @type {deqpTests.DeqpTest} */
+        var multiNestedStructGroup = deqpTests.newTest('multi_nested_struct', 'Multiple buffers with basic types');
+        testGroup.addChild(multiNestedStructGroup);
+
+        for (var modeNdx = 0; modeNdx < bufferModes.length; modeNdx++)
+        {
+            /** @type {deqpTests.deqpTest} */
+            var modeGroup = new deqpTests.newTest(bufferModes[modeNdx].name, '');
+            multiNestedStructGroup.addChild(modeGroup);
+
+            for (var layoutFlagNdx = 0; layoutFlagNdx < layoutFlags.length; layoutFlagNdx++)
+            {
+                for (var isArray = 0; isArray < 2; isArray++)
+                {
+                    /** @type {string} */ var baseName = layoutFlags[layoutFlagNdx].name;
+                    /** @type {deInt32.deUint32} */ var baseFlags = layoutFlags[layoutFlagNdx].flags;
+
+                    if (isArray)
+                        baseName += '_instance_array';
+
+                    modeGroup.addChild(new BlockMultiNestedStructCase(baseName + '_vertex', '', baseFlags | glsUBC.UniformFlags.DECLARE_VERTEX, baseFlags | glsUBC.UniformFlags.DECLARE_VERTEX, bufferModes[modeNdx].mode, isArray ? 3 : 0));
+                    modeGroup.addChild(new BlockMultiNestedStructCase(baseName + '_fragment', '', baseFlags | glsUBC.UniformFlags.DECLARE_FRAGMENT, baseFlags | glsUBC.UniformFlags.DECLARE_FRAGMENT, bufferModes[modeNdx].mode, isArray ? 3 : 0));
+
+                    if (!(baseFlags & glsUBC.UniformFlags.LAYOUT_PACKED))
+                        modeGroup.addChild(new BlockMultiNestedStructCase(baseName + '_both', '', baseFlags | glsUBC.UniformFlags.DECLARE_VERTEX | glsUBC.UniformFlags.DECLARE_FRAGMENT, baseFlags | glsUBC.UniformFlags.DECLARE_VERTEX | glsUBC.UniformFlags.DECLARE_FRAGMENT, bufferModes[modeNdx].mode, isArray ? 3 : 0));
+
+                    modeGroup.addChild(new BlockMultiNestedStructCase(baseName + '_mixed', '', baseFlags | glsUBC.UniformFlags.DECLARE_VERTEX, baseFlags | glsUBC.UniformFlags.DECLARE_FRAGMENT, bufferModes[modeNdx].mode, isArray ? 3 : 0));
+                }
+            }
+        }
+        //TODO: Remove
+        testPassedOptions('Init ubo.multi_nested_struct', true);
+
+        // TODO: ubo.random
+        // {
+//             /** @type {deInt32.deUint32} */ var allShaders = FEATURE_VERTEX_BLOCKS|FEATURE_FRAGMENT_BLOCKS|FEATURE_SHARED_BLOCKS;
+//             /** @type {deInt32.deUint32} */ var allLayouts = FEATURE_PACKED_LAYOUT|FEATURE_SHARED_LAYOUT|FEATURE_STD140_LAYOUT;
+//             /** @type {deInt32.deUint32} */ var allBasicTypes = FEATURE_VECTORS|FEATURE_MATRICES;
+//             /** @type {deInt32.deUint32} */ var unused = FEATURE_UNUSED_MEMBERS|FEATURE_UNUSED_UNIFORMS;
+//             /** @type {deInt32.deUint32} */ var matFlags = FEATURE_MATRIX_LAYOUT;
+//             /** @type {deInt32.deUint32} */ var allFeatures = ~FEATURE_ARRAYS_OF_ARRAYS;
+//
+//             tcu::TestCaseGroup* randomGroup = new tcu::TestCaseGroup(m_testCtx, "random", "Random Uniform Block cases");
+//             addChild(randomGroup);
+//
+//             // Basic types.
+//             createRandomCaseGroup(randomGroup, m_context, "scalar_types",    "Scalar types only, per-block buffers",                UniformBlockCase::BUFFERMODE_PER_BLOCK,    allShaders|allLayouts|unused,                                        25, 0);
+//             createRandomCaseGroup(randomGroup, m_context, "vector_types",    "Scalar and vector types only, per-block buffers",    UniformBlockCase::BUFFERMODE_PER_BLOCK,    allShaders|allLayouts|unused|FEATURE_VECTORS,                        25, 25);
+//             createRandomCaseGroup(randomGroup, m_context, "basic_types",    "All basic types, per-block buffers",                UniformBlockCase::BUFFERMODE_PER_BLOCK, allShaders|allLayouts|unused|allBasicTypes|matFlags,                25, 50);
+//             createRandomCaseGroup(randomGroup, m_context, "basic_arrays",    "Arrays, per-block buffers",                        UniformBlockCase::BUFFERMODE_PER_BLOCK,    allShaders|allLayouts|unused|allBasicTypes|matFlags|FEATURE_ARRAYS,    25, 50);
+//
+//             createRandomCaseGroup(randomGroup, m_context, "basic_instance_arrays",                    "Basic instance arrays, per-block buffers",                UniformBlockCase::BUFFERMODE_PER_BLOCK,    allShaders|allLayouts|unused|allBasicTypes|matFlags|FEATURE_INSTANCE_ARRAYS,                                25, 75);
+//             createRandomCaseGroup(randomGroup, m_context, "nested_structs",                            "Nested structs, per-block buffers",                    UniformBlockCase::BUFFERMODE_PER_BLOCK,    allShaders|allLayouts|unused|allBasicTypes|matFlags|FEATURE_STRUCTS,                                        25, 100);
+//             createRandomCaseGroup(randomGroup, m_context, "nested_structs_arrays",                    "Nested structs, arrays, per-block buffers",            UniformBlockCase::BUFFERMODE_PER_BLOCK,    allShaders|allLayouts|unused|allBasicTypes|matFlags|FEATURE_STRUCTS|FEATURE_ARRAYS,                            25, 150);
+//             createRandomCaseGroup(randomGroup, m_context, "nested_structs_instance_arrays",            "Nested structs, instance arrays, per-block buffers",    UniformBlockCase::BUFFERMODE_PER_BLOCK,    allShaders|allLayouts|unused|allBasicTypes|matFlags|FEATURE_STRUCTS|FEATURE_INSTANCE_ARRAYS,                25, 125);
+//             createRandomCaseGroup(randomGroup, m_context, "nested_structs_arrays_instance_arrays",    "Nested structs, instance arrays, per-block buffers",    UniformBlockCase::BUFFERMODE_PER_BLOCK,    allShaders|allLayouts|unused|allBasicTypes|matFlags|FEATURE_STRUCTS|FEATURE_ARRAYS|FEATURE_INSTANCE_ARRAYS,    25, 175);
+//
+//             createRandomCaseGroup(randomGroup, m_context, "all_per_block_buffers",    "All random features, per-block buffers",    UniformBlockCase::BUFFERMODE_PER_BLOCK,    allFeatures,    50, 200);
+//             createRandomCaseGroup(randomGroup, m_context, "all_shared_buffer",        "All random features, shared buffer",        UniformBlockCase::BUFFERMODE_SINGLE,    allFeatures,    50, 250);
+//         }
     };
 
     /**
