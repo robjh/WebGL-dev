@@ -572,7 +572,7 @@ define(['framework/opengl/gluShaderUtil.js'], function(deqpUtils) {
 				typeof(primitiveType) !== 'undefined'
 			) {
 				parent._construct(context, name, desc);
-				m_bufferMode    = bufferMode
+				m_bufferMode    = bufferMode;
 				m_primitiveType = primitiveType;
 			}
 		};
@@ -581,7 +581,7 @@ define(['framework/opengl/gluShaderUtil.js'], function(deqpUtils) {
 			var log = m_testCtx.getLog(); // TestLog&
 			var gl  = m_context.getRenderContext().getFunctions(); // const glw::Functions&
 			
-			if (m_program != null) { throw Error("m_program isnt null."); }
+			if (m_program != null) { throw Error('m_program isnt null.'); }
 			m_program = createVertexCaptureProgram(
 				m_context.getRenderContext(),
 				m_progSpec,
@@ -599,32 +599,32 @@ define(['framework/opengl/gluShaderUtil.js'], function(deqpUtils) {
 				
 				if (linkFail) {
 					if (!isPorgramSupported(gl, m_proSpec, m_bufferMode)) {
-						throw new Error("Not Supported. Implementation limits exceeded.");
+						throw new Error('Not Supported. Implementation limits exceeded.');
 					} else if (hasArraysInTFVaryings(m_progSpec)) {
-						throw new Error("Capturing arrays is not supported (undefined in specification)");
+						throw new Error('Capturing arrays is not supported (undefined in specification)');
 					} else {
-						throw new Error("Link failed");
+						throw new Error('Link failed');
 					}
 				} else {
-					throw new Error ("Compile failed");
+					throw new Error ('Compile failed');
 				}
 			}
-			
+
 			// TODO: TestLog static members
 			log.log(
 				TestLog.Message +
-				"Transform feedback varyings: " +
+				'Transform feedback varyings: ' +
 				tcu.formatArray(m_progSpec.getTransformFeedbackVaryings()) +
 				TestLog.EndMessage
 			);
-			
+
 			// Print out transform feedback points reported by GL.
-			log.log(TestLog.Message + "Transform feedback varyings reported by compiler:" + TestLog.EndMessage);
+			log.log(TestLog.Message + 'Transform feedback varyings reported by compiler:' + TestLog.EndMessage);
 			logTransformFeedbackVaryings(log, gl, m_program.getProgram());
-			
+
 			// Compute input specification.
 			computeInputLayout(m_attributes, m_inputStride, m_progSpec.getVaryings(), m_progSpec.isPointSizeUsed());
-			
+
 			// Build list of varyings used in transform feedback.
 			computeTransformFeedbackOutputs(
 				m_transformFeedbackOutputs, // TODO: make sure this param is working as intended
@@ -634,12 +634,12 @@ define(['framework/opengl/gluShaderUtil.js'], function(deqpUtils) {
 				m_bufferMode
 			);
 			if (!m_transformFeedbackOutputs.length) {
-				throw new Error("transformFeedbackOutputs cannot be empty.");
+				throw new Error('transformFeedbackOutputs cannot be empty.');
 			}
-			
+
 			// Buffer strides.
 			if (!m_bufferStrides.length) {
-				throw new Error("bufferStrides cannot be empty.");
+				throw new Error('bufferStrides cannot be empty.');
 			}
 			if (m_bufferMode == GL.SEPARATE_ATTRIBS) {
 				for (var i = 0 ; i < m_transformFeedbackOutputs.length ; ++i) {
@@ -652,57 +652,204 @@ define(['framework/opengl/gluShaderUtil.js'], function(deqpUtils) {
 				}
 				m_bufferStrides.push(totalSize);
 			}
-			
+
 			// \note Actual storage is allocated in iterate().
 		//	m_outputBuffers.resize(m_bufferStrides.size()); //                  <-- not needed in JS
 		//	gl.genBuffers(m_outputBuffers.length, m_outputBuffers); // TODO:    <-- rework
 
 			DE_ASSERT(!m_transformFeedback);
 			if (m_transformFeedback != null) {
-				throw new Error("transformFeedback is already set.");
+				throw new Error('transformFeedback is already set.');
 			}
 			m_transformFeedback = new glu.TransformFeedback(m_context.getRenderContext());
 
-			GLU_EXPECT_NO_ERROR(gl.getError(), "init");
+			GLU_EXPECT_NO_ERROR(gl.getError(), 'init');
 
 			m_iterNdx = 0;
-			m_testCtx.setTestResult(QP_TEST_RESULT_PASS, "Pass");
-			
+			m_testCtx.setTestResult(QP_TEST_RESULT_PASS, 'Pass');
+
 		};
 		this.deinit = function() {
 		};
 		this.iterate = function() {
 		};
-		
+
 		/* protected */
 		this.m_progSpec      = null;
 		this.m_bufferMode    = null;
 		this.m_primitiveType = null;
-		
+
 		/* private */
 		var assign = function(/*const*/ other) {
 		};
 		var runTest = function(array, seed) {
 		};
-		
+
 		// Derived from ProgramSpec in init()
 		var m_inputStride               = 0;
 		var m_attributes                = [];    // vector<Attribute>
 		var m_transformFeedbackOutputs  = [];    // vector<Output>
 		var m_bufferStrides             = [];    // vector<int>
-		
+
 		// GL state.
 		var m_program                   = null;  // glu::ShaderProgram
 		var m_transformFeedback         = null;  // glu::TransformFeedback
 		var m_outputBuffers             = [];    // vector<deUint32>
-		
+
 		var m_iterNdx                   = 0;     // int
-		
+
 		this._construct(context, name, desc, bufferMode, primitiveType);
-		
+
 	});
 
 	// TODO: find TestCase
 	TransformFeedbackCase.prototype = new TestCase();
+
+	/**
+	 * Returns an object type Output.
+	 * @return {Object} content for the Output object
+	 */
+	var Output = function() {
+
+	return{
+	/** @type {number} */ bufferNdx: 0,
+	/** @type {number} */ offset: 0,
+	/** @type {string} */ name: null,
+	/** @type {deqpUtils.DataType} */ type: null,
+	/** @type {Array.<Attribute>} */ inputs: null
+	};
+
+	};
+
+	/**
+	 * @param {Array.<Attribute>} attributes
+	 * @param {number} inputStride
+	 * @param {Array.<Varying>} varyings
+	 * @param {boolean} usePointSize
+	 */
+	var computeInputLayout = function(attributes, inputStride, varyings, usePointSize) {
+
+		inputStride = 0;
+
+		// Add position.
+		attributes.push(new Attribute('a_position', deqpUtils.getDataTypeScalarSize(FLOAT_VEC4), inputStride));
+		inputStride += 4 * 4;
+
+		if (usePointSize)
+		{
+			attributes.push(new Attribute('a_pointSize', deqpUtils.getDataTypeScalarSize(FLOAT), inputStride));
+			inputStride += 1 * 4;
+		}
+
+		for (var i = 0; i < varyings.length; i++)
+		{
+			// TODO: check loop's conditions
+			for (var vecIter = varyings[i].type; vecIter < varyings[varyings.length].type; vecIter++)
+			{
+				var	type = vecIter;
+				var name = getAttributeName(varyings[i].name, vecIter.getPath);
+
+				attributes.push(new Attribute(name, type, inputStride));
+				inputStride += deqpUtils.getDataTypeScalarSize(type) * 4;
+			}
+		}
+	};
+
+	/**
+	 * @param {Array.<Output>} transformFeedbackOutputs
+	 * @param {Array.<Attribute>} attributes
+	 * @param {Array.<Varying>} varyings
+	 * @param {Array.<string>} transformFeedbackVaryings
+	 * @param {number} bufferMode
+	 */
+	var computeTransformFeedbackOutputs = function(transformFeedbackOutputs, attributes, varyings, transformFeedbackVaryings, bufferMode) {
+
+	/** @type {number} */ var accumulatedSize = 0;
+
+		// transformFeedbackOutputs.resize(transformFeedbackVaryings.size());
+		for (var varNdx = 0; varNdx < transformFeedbackVaryings.length; varNdx++)
+		{
+		/** @type {string} */ var name = transformFeedbackVaryings[varNdx];
+		/** @type {number} */ var bufNdx = (bufferMode === 'separate' ? varNdx : 0); // TODO: bufferModes[] {GL_SEPARATE_ATTRIBS: 'separate'}
+		/** @type {number} */ var offset = (bufferMode === 'separate' ? 0 : accumulatedSize); // TODO: bufferModes[] {GL_SEPARATE_ATTRIBS: 'separate'}
+		/** @type {Output} */ var output = transformFeedbackOutputs[varNdx];
+
+			output.name	= name;
+			output.bufferNdx = bufNdx;
+			output.offset = offset;
+
+			if (name === 'gl_Position')
+			{
+			/** @type {Attribute} */ var posIn = findAttributeNameEquals (attributes, 'a_position');
+				output.type = posIn.type;
+				output.inputs.push (posIn);
+			}
+			else if (name === 'gl_PointSize')
+			{
+			/** @type {Attribute} */ var sizeIn = findAttributeNameEquals (attributes, 'a_pointSize');
+				output.type = sizeIn.type;
+				output.inputs.push(sizeIn);
+			}
+			else
+			{
+				// TODO: not sure line below string varName = glu::parseVariableName(name.c_str()); see "gluVarTypeUtil.cpp"
+				/** @type {string} */ var varName = name;
+				/** @type {Varying} */ var varying = findAttributeNameEquals(varyings, varName);
+
+				/** TODO: see gluVarTypeUtil.cpp and .hpp DEQP repository within \framework\opengl
+				 * glu::TypeComponentVector,  glu::parseTypePath and glu::getVarType
+
+				 	glu::TypeComponentVector varPath;
+				 	glu::parseTypePath(name.c_str(), varying.type, varPath);
+				 	output.type = glu::getVarType(varying.type, varPath);
+
+				 */
+
+				// Add all vectorized attributes as inputs.
+				// TODO: check loop's conditions, not sure of this
+				for (var iter = transformFeedbackOutputs[varNdx].type; iter < transformFeedbackOutputs[transformFeedbackOutputs.length].type; iter++)
+				{
+				/** TODO: implement Full path. See gluVarTypeUtil.cpp and .hpp DEQP repository within \framework\opengl 
+					 * glu::TypeComponentVector,  glu::parseTypePath and glu::getVarType
+
+					glu::TypeComponentVector fullPath(varPath.size() + iter.getPath().size());
+					std::copy(varPath.begin(), varPath.end(), fullPath.begin());
+					std::copy(iter.getPath().begin(), iter.getPath().end(), fullPath.begin()+varPath.size());
+
+				*/
+
+					/** @type {string} */ var attribName = getAttributeName(varName, fullPath);
+					/** @type {Attribute} */ var attrib	= findAttributeNameEquals(attributes, attribName);
+					output.inputs.push(attrib);
+				}
+			}
+
+			// TODO: implement getScalarSize(). See gluVarType.cpp and .hpp DEQP repository within \framework\opengl
+			accumulatedSize += output.type.getScalarSize() * 4;
+		}
+	};
+
+	/**
+	 * Returns an Attribute or Varying object which matches its name with the passed string value in the function
+	 * @param {Array.<Attribute> || Array.<Varying>} array
+	 * @param {string} name
+	 * @return {Attribute || Varying}
+	 */
+	var findAttributeNameEquals = function(array, name) {
+
+	/** @type {boolean} */ var attributeNameFound = false;
+		for (var pos = 0; pos < array.length; pos++)
+		{
+			if (array[pos].name === name) {
+
+				attributeNameFound = true;
+				return array[pos];
+			}
+		}
+		// TODO: I don't know if this error is necessary ??
+		if (attributeNameFound === false)
+		throw Error('Attribute or Varying name: ' + name + ', has not been found in the array');
+	};
+
 
 });
