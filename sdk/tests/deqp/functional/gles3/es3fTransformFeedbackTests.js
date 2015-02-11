@@ -670,8 +670,62 @@ define(['framework/opengl/gluShaderUtil.js'], function(deqpUtils) {
 
 		};
 		this.deinit = function() {
+		
+			var gl = m_context.getRenderContext().getFunctions();
+
+			if (!m_outputBuffers.empty()) {
+			//	gl.deleteBuffers((glw::GLsizei)m_outputBuffers.size(), &m_outputBuffers[0]); // TODO: rework
+				m_outputBuffers.clear();
+			}
+
+		//	delete m_transformFeedback;
+			m_transformFeedback = null;
+
+		//	delete m_program;
+			m_program = null;
+
+			// Clean up state.
+			m_attributes.clear();
+			m_transformFeedbackOutputs.clear();
+			m_bufferStrides.clear();
+			m_inputStride = 0;
+		
 		};
+		
 		this.iterate = function() {
+			
+			// static vars
+			var s = TransformFeedbackCase.s_iterate;
+			
+			var log  = m_textCtx.getLog();
+			var isOk = true;
+			var seed = deStringHash(getName()) ^ deInt32Hash(m_iterNdx);
+			var numIterations = TransformFeedbackCase.s_iterate.iterations.length;
+			// first and end ignored.
+			
+			var sectionName = 'Iteration'  + (m_iterNdx+1);
+			var sectionDesc = 'Iteration ' + (m_iterNdx+1) + ' / ' + numIterations;
+//			var section; // something weird.
+
+			log.log(
+				TestLog.Message +
+				'Testing ' +
+				s.testCases[ s.iterations[m_iterNdx] ].length +
+				' draw calls, (element count, TF state): ' +
+				tcu.formatArray(s.testCases[ s.iterations[m_iterNdx] ]) +
+				TestLog.EndMessage
+			);
+			
+			isOk = runTest(s.testCases[ s.iterations[m_iterNdx] ], seed);
+			
+			if (!isOk) {
+				m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, "Result comparison failed"); // TODO: find QP_TEST_RESULT_FAIL
+			}
+			
+			m_iterNdx += 1;
+			
+			return(isOk && m_iterNdx < numIterations) ? CONTINUE : STOP; // TODO: find CONFINUTE, find STOP
+			
 		};
 
 		/* protected */
@@ -701,6 +755,31 @@ define(['framework/opengl/gluShaderUtil.js'], function(deqpUtils) {
 		this._construct(context, name, desc, bufferMode, primitiveType);
 
 	});
+	// static data
+	TransformFeedbackCase.s_iterate = {
+		testCases: {
+			elemCount1:	  [ DrawCall(  1, true) ],
+			elemCount2:   [ DrawCall(  2, true) ],
+			elemCount3:   [ DrawCall(  3, true) ],
+			elemCount4:   [ DrawCall(  4, true) ],
+			elemCount123: [ DrawCall(123, true) ],
+			basicPause1:  [ DrawCall( 64, true),  DrawCall( 64, false), DrawCall( 64, true) ],
+			basicPause2:  [ DrawCall( 13, true),  DrawCall(  5, true),  DrawCall( 17, false),
+				            DrawCall(  3, true),  DrawCall(  7, false) ],
+			startPaused:  [ DrawCall(123, false), DrawCall(123, true)  ],
+			random1:      [ DrawCall( 65, true),  DrawCall(135, false), DrawCall( 74, true),
+				            DrawCall( 16, false), DrawCall(226, false), DrawCall(  9, true),
+				            DrawCall(174, false) ],
+			random2:      [ DrawCall(217, true),  DrawCall(171, true),  DrawCall(147, true),
+				            DrawCall(152, false), DrawCall( 55, true) ],
+		},
+		iterations = [
+			'elemCount1',  'elemCount2',  'elemCount3', 'elemCount4', 'elemCount1234',
+			'basicPause1', 'basicPause2', 'startPaused',
+			'random1',     'random2'
+		]
+	};
+	
 
 	// TODO: find TestCase
 	TransformFeedbackCase.prototype = new TestCase();
