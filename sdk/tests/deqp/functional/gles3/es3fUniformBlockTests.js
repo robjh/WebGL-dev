@@ -130,6 +130,182 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
     };
 
     /**
+     * BlockSingleNestedStructCase constructor
+     * @param {string} name The name of the test
+     * @param {string} description The description of the test
+     * @param {deInt32.deUint32} layoutFlags
+     * @param {glsUBC.BufferMode} bufferMode
+     * @param {number} numInstances
+     */
+    var BlockSingleNestedStructCase = function(name, description, layoutFlags, bufferMode, numInstances) {
+        glsUBC.UniformBlockCase.call(this, name, description, bufferMode);
+        this.m_layoutFlags = layoutFlags;
+        this.m_numInstances = numInstances;
+    };
+
+    BlockSingleNestedStructCase.prototype = Object.create(glsUBC.UniformBlockCase.prototype);
+    BlockSingleNestedStructCase.prototype.constructor = BlockSingleNestedStructCase;
+
+    BlockSingleNestedStructCase.prototype.init = function() {
+        /**@type {glsUBC.StructType}*/ var typeS = this.m_interface.allocStruct('S');
+        typeS.addMember('a', new glsUBC.VarType().VarTypeBasic(deqpUtils.DataType.INT_VEC3, glsUBC.UniformFlags.PRECISION_HIGH));
+        typeS.addMember('b', new glsUBC.VarType().VarTypeArray(new glsUBC.VarType().VarTypeBasic(deqpUtils.DataType.FLOAT_MAT3, glsUBC.UniformFlags.PRECISION_MEDIUM), 4));
+        typeS.addMember('c', new glsUBC.VarType().VarTypeBasic(deqpUtils.DataType.FLOAT_VEC4, glsUBC.UniformFlags.PRECISION_HIGH), glsUBC.UniformFlags.UNUSED_BOTH);
+
+        /**@type {glsUBC.StructType}*/ var typeT = this.m_interface.allocStruct('T');
+        typeT.addMember('a', new glsUBC.VarType().VarTypeBasic(deqpUtils.DataType.FLOAT_MAT3, glsUBC.UniformFlags.PRECISION_MEDIUM));
+        typeT.addMember('b', new glsUBC.VarType().VarTypeStruct(typeS));
+
+        /** @type {glsUBC.UniformBlock} */ var block = this.m_interface.allocBlock('Block');
+        block.addUniform(new glsUBC.Uniform('s', new glsUBC.VarType().VarTypeStruct(typeS), 0));
+        block.addUniform(new glsUBC.Uniform('v', new glsUBC.VarType().VarTypeBasic(deqpUtils.DataType.FLOAT_VEC2, glsUBC.UniformFlags.PRECISION_LOW), glsUBC.UniformFlags.UNUSED_BOTH));
+        block.addUniform(new glsUBC.Uniform('t', new glsUBC.VarType().VarTypeStruct(typeT), 0));
+        block.addUniform(new glsUBC.Uniform('u', new glsUBC.VarType().VarTypeBasic(deqpUtils.DataType.UINT, glsUBC.UniformFlags.PRECISION_HIGH), 0));
+        block.setFlags(this.m_layoutFlags);
+
+        if (this.m_numInstances > 0)
+        {
+            block.setInstanceName('block');
+            block.setArraySize(this.m_numInstances);
+        }
+    };
+
+    /**
+     * BlockSingleNestedStructArrayCase constructor
+     * @param {string} name The name of the test
+     * @param {string} description The description of the test
+     * @param {deInt32.deUint32} layoutFlags
+     * @param {glsUBC.BufferMode} bufferMode
+     * @param {number} numInstances
+     */
+    var BlockSingleNestedStructArrayCase = function(name, description, layoutFlags, bufferMode, numInstances) {
+        glsUBC.UniformBlockCase.call(this, name, description, bufferMode);
+        this.m_layoutFlags = layoutFlags;
+        this.m_numInstances = numInstances;
+    };
+
+    BlockSingleNestedStructArrayCase.prototype = Object.create(glsUBC.UniformBlockCase.prototype);
+    BlockSingleNestedStructArrayCase.prototype.constructor = BlockSingleNestedStructArrayCase;
+
+    BlockSingleNestedStructArrayCase.prototype.init = function() {
+        /**@type {glsUBC.StructType}*/ var typeS = this.m_interface.allocStruct('S');
+        typeS.addMember('a', new glsUBC.VarType().VarTypeBasic(deqpUtils.DataType.INT_VEC3, glsUBC.UniformFlags.PRECISION_HIGH));
+        typeS.addMember('b', new glsUBC.VarType().VarTypeArray(new glsUBC.VarType().VarTypeBasic(deqpUtils.DataType.INT_VEC2, glsUBC.UniformFlags.PRECISION_MEDIUM), 4));
+        typeS.addMember('c', new glsUBC.VarType().VarTypeBasic(deqpUtils.DataType.FLOAT_VEC4, glsUBC.UniformFlags.PRECISION_HIGH), glsUBC.UniformFlags.UNUSED_BOTH);
+
+        /**@type {glsUBC.StructType}*/ var typeT = this.m_interface.allocStruct('T');
+        typeT.addMember('a', new glsUBC.VarType().VarTypeBasic(deqpUtils.DataType.FLOAT_MAT3, glsUBC.UniformFlags.PRECISION_MEDIUM));
+        typeT.addMember('b', new glsUBC.VarType().VarTypeArray(new glsUBC.VarType().VarTypeStruct(typeS), 3));
+
+        /** @type {glsUBC.UniformBlock} */ var block = this.m_interface.allocBlock('Block');
+        block.addUniform(new glsUBC.Uniform('s', new glsUBC.VarType().VarTypeStruct(typeS), 0));
+        block.addUniform(new glsUBC.Uniform('v', new glsUBC.VarType().VarTypeBasic(deqpUtils.DataType.FLOAT_VEC2, glsUBC.UniformFlags.PRECISION_LOW), glsUBC.UniformFlags.UNUSED_BOTH));
+        block.addUniform(new glsUBC.Uniform('t', new glsUBC.VarType().VarTypeArray(new glsUBC.VarType().VarTypeStruct(typeT), 2), 0));
+        block.addUniform(new glsUBC.Uniform('u', new glsUBC.VarType().VarTypeBasic(deqpUtils.DataType.UINT, glsUBC.UniformFlags.PRECISION_HIGH), 0));
+        block.setFlags(this.m_layoutFlags);
+
+        if (this.m_numInstances > 0)
+        {
+            block.setInstanceName('block');
+            block.setArraySize(this.m_numInstances);
+        }
+    };
+
+    /**
+     * BlockMultiBasicTypesCase constructor
+     * @param {string} name The name of the test
+     * @param {string} description The description of the test
+     * @param {deInt32.deUint32} flagsA
+     * @param {deInt32.deUint32} flagsB
+     * @param {glsUBC.BufferMode} bufferMode
+     * @param {number} numInstances
+     */
+    var BlockMultiBasicTypesCase = function(name, description, flagsA, flagsB, bufferMode, numInstances) {
+        glsUBC.UniformBlockCase.call(this, name, description, bufferMode);
+        this.m_flagsA = flagsA;
+        this.m_flagsB = flagsB;
+        this.m_numInstances = numInstances;
+    };
+
+    BlockMultiBasicTypesCase.prototype = Object.create(glsUBC.UniformBlockCase.prototype);
+    BlockMultiBasicTypesCase.prototype.constructor = BlockMultiBasicTypesCase;
+
+    BlockMultiBasicTypesCase.prototype.init = function() {
+        /** @type {glsUBC.UniformBlock} */ var blockA = this.m_interface.allocBlock('BlockA');
+        blockA.addUniform(new glsUBC.Uniform('a', new glsUBC.VarType().VarTypeBasic(deqpUtils.DataType.FLOAT, glsUBC.UniformFlags.PRECISION_HIGH)));
+        blockA.addUniform(new glsUBC.Uniform('b', new glsUBC.VarType().VarTypeBasic(deqpUtils.DataType.UINT_VEC3, glsUBC.UniformFlags.PRECISION_LOW), glsUBC.UniformFlags.UNUSED_BOTH));
+        blockA.addUniform(new glsUBC.Uniform('c', new glsUBC.VarType().VarTypeBasic(deqpUtils.DataType.FLOAT_MAT2, glsUBC.UniformFlags.PRECISION_MEDIUM)));
+        blockA.setInstanceName('blockA');
+        blockA.setFlags(this.m_flagsA);
+
+        /** @type {glsUBC.UniformBlock} */ var blockB = this.m_interface.allocBlock('BlockB');
+        blockB.addUniform(new glsUBC.Uniform('a', new glsUBC.VarType().VarTypeBasic(deqpUtils.DataType.FLOAT_MAT3, glsUBC.UniformFlags.PRECISION_MEDIUM)));
+        blockB.addUniform(new glsUBC.Uniform('b', new glsUBC.VarType().VarTypeBasic(deqpUtils.DataType.INT_VEC2, glsUBC.UniformFlags.PRECISION_LOW)));
+        blockB.addUniform(new glsUBC.Uniform('c', new glsUBC.VarType().VarTypeBasic(deqpUtils.DataType.FLOAT_VEC4, glsUBC.UniformFlags.PRECISION_HIGH), glsUBC.UniformFlags.UNUSED_BOTH));
+        blockB.addUniform(new glsUBC.Uniform('d', new glsUBC.VarType().VarTypeBasic(deqpUtils.DataType.BOOL, 0)));
+        blockB.setInstanceName('blockB');
+        blockB.setFlags(this.m_flagsB);
+
+        if (this.m_numInstances > 0)
+        {
+            blockA.setArraySize(this.m_numInstances);
+            blockB.setArraySize(this.m_numInstances);
+        }
+    };
+
+    /**
+     * BlockMultiNestedStructCase constructor
+     * @param {string} name The name of the test
+     * @param {string} description The description of the test
+     * @param {deInt32.deUint32} flagsA
+     * @param {deInt32.deUint32} flagsB
+     * @param {glsUBC.BufferMode} bufferMode
+     * @param {number} numInstances
+     */
+    var BlockMultiNestedStructCase = function(name, description, flagsA, flagsB, bufferMode, numInstances) {
+        glsUBC.UniformBlockCase.call(this, name, description, bufferMode);
+        this.m_flagsA = flagsA;
+        this.m_flagsB = flagsB;
+        this.m_numInstances = numInstances;
+    };
+
+    BlockMultiNestedStructCase.prototype = Object.create(glsUBC.UniformBlockCase.prototype);
+    BlockMultiNestedStructCase.prototype.constructor = BlockMultiNestedStructCase;
+
+    BlockMultiNestedStructCase.prototype.init = function() {
+        /**@type {glsUBC.StructType}*/ var typeS = this.m_interface.allocStruct('S');
+        typeS.addMember('a', new glsUBC.VarType().VarTypeBasic(deqpUtils.DataType.FLOAT_MAT3, glsUBC.UniformFlags.PRECISION_LOW));
+        typeS.addMember('b', new glsUBC.VarType().VarTypeArray(new glsUBC.VarType().VarTypeBasic(deqpUtils.DataType.INT_VEC2, glsUBC.UniformFlags.PRECISION_MEDIUM), 4));
+        typeS.addMember('c', new glsUBC.VarType().VarTypeBasic(deqpUtils.DataType.FLOAT_VEC4, glsUBC.UniformFlags.PRECISION_HIGH));
+
+        /**@type {glsUBC.StructType}*/ var typeT = this.m_interface.allocStruct('T');
+        typeT.addMember('a', new glsUBC.VarType().VarTypeBasic(deqpUtils.DataType.UINT, glsUBC.UniformFlags.PRECISION_MEDIUM), glsUBC.UniformFlags.UNUSED_BOTH);
+        typeT.addMember('b', new glsUBC.VarType().VarTypeStruct(typeS));
+        typeT.addMember('c', new glsUBC.VarType().VarTypeBasic(deqpUtils.DataType.BOOL_VEC4, 0));
+
+        /** @type {glsUBC.UniformBlock} */ var blockA = this.m_interface.allocBlock('BlockA');
+        blockA.addUniform(new glsUBC.Uniform('a', new glsUBC.VarType().VarTypeBasic(deqpUtils.DataType.FLOAT, glsUBC.UniformFlags.PRECISION_HIGH)));
+        blockA.addUniform(new glsUBC.Uniform('b', new glsUBC.VarType().VarTypeStruct(typeS)));
+        blockA.addUniform(new glsUBC.Uniform('c', new glsUBC.VarType().VarTypeBasic(deqpUtils.DataType.UINT_VEC3, glsUBC.UniformFlags.PRECISION_LOW), glsUBC.UniformFlags.UNUSED_BOTH));
+        blockA.setInstanceName('blockA');
+        blockA.setFlags(this.m_flagsA);
+
+        /** @type {glsUBC.UniformBlock} */ var blockB = this.m_interface.allocBlock('BlockB');
+        blockB.addUniform(new glsUBC.Uniform('a', new glsUBC.VarType().VarTypeBasic(deqpUtils.DataType.FLOAT_MAT2, glsUBC.UniformFlags.PRECISION_MEDIUM)));
+        blockB.addUniform(new glsUBC.Uniform('b', new glsUBC.VarType().VarTypeStruct(typeT)));
+        blockB.addUniform(new glsUBC.Uniform('c', new glsUBC.VarType().VarTypeBasic(deqpUtils.DataType.BOOL_VEC4, 0), glsUBC.UniformFlags.UNUSED_BOTH));
+        blockB.addUniform(new glsUBC.Uniform('d', new glsUBC.VarType().VarTypeBasic(deqpUtils.DataType.BOOL, 0)));
+        blockB.setInstanceName('blockB');
+        blockB.setFlags(this.m_flagsB);
+
+        if (this.m_numInstances > 0)
+        {
+            blockA.setArraySize(this.m_numInstances);
+            blockB.setArraySize(this.m_numInstances);
+        }
+    };
+
+    /**
      * Creates the test hierarchy to be executed.
      * @param {string} filter A filter to select particular tests.
      **/
