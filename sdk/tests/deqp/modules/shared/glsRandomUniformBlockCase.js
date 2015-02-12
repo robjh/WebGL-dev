@@ -18,7 +18,7 @@
  *
  */
 
-define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 'framework/common/tcuTestCase', 'framework/delibs/debase/deInt32', 'framework/delibs/debase/deRandom'], function(deqpUtils, glsUBC, deqpTests, deInt32, deRandom) {
+define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 'modules/shared/glsVarType', 'framework/common/tcuTestCase', 'framework/delibs/debase/deInt32', 'framework/delibs/debase/deRandom'], function(deqpUtils, glsUBC, glsVT, deqpTests, deInt32, deRandom) {
     'use strict';
 
     var FeatureBits = {
@@ -73,7 +73,7 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
      * @param {deRandom.Random} rnd
      * @param {number} typeDepth
      * @param {boolean} arrayOk
-     * @return {glsUBC.VarType}
+     * @return {glsVT.VarType}
      */
     RandomUniformBlockCase.prototype.generateType = function(rnd, typeDepth, arrayOk)
     {
@@ -85,7 +85,7 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
             /** @type {number} */ var unusedVtxWeight = 0.15;
             /** @type {number} */ var unusedFragWeight = 0.15;
             /** @type {boolean} */ var unusedOk = (this.m_features & FeatureBits.FEATURE_UNUSED_MEMBERS) != 0;
-            /** @type {Array.<glsUBC.VarType>} */ var memberTypes = [];
+            /** @type {Array.<glsVT.VarType>} */ var memberTypes = [];
             /** @type {number} */ var numMembers = rnd.getInt(1, this.m_maxStructMembers);
 
             // Generate members first so nested struct declarations are in correct order.
@@ -106,14 +106,14 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
                 structType.addMember('m' + ('A'.charCodeAt(0) + ndx), memberTypes[ndx], flags);
             }
 
-            return new glsUBC.VarType().VarTypeStruct(structType);
+            return glsVT.newTypeStruct(structType);
         }
         else if (this.m_maxArrayLength > 0 && arrayOk && rnd.getFloat() < arrayWeight)
         {
             /** @type {boolean} */ var arraysOfArraysOk = (this.m_features & FeatureBits.FEATURE_ARRAYS_OF_ARRAYS) != 0;
             /** @type {number} */ var arrayLength = rnd.getInt(1, this.m_maxArrayLength);
             /** @type {glsUB.VarType} */ var elementType = this.generateType(rnd, typeDepth, arraysOfArraysOk);
-            return new glsUBC.VarType().VarTypeArray(elementType, arrayLength);
+            return glsVT.newTypeArray(elementType, arrayLength);
         }
         else
         {
@@ -162,7 +162,7 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
                 flags |= rnd.choose(precisionCandidates)[0];
             }
 
-            return new glsUBC.VarType().VarTypeBasic(type, flags);
+            return glsVT.newTypeBasic(type, flags);
         }
     };
 
@@ -202,7 +202,7 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
         /** @type {boolean} */ var unusedOk = (this.m_features & FeatureBits.FEATURE_UNUSED_UNIFORMS) != 0;
         /** @type {deInt32.deUint32} */ var flags = 0;
         /** @type {string} */ var name = this.genName('a'.charCodeAt(0), 'z'.charCodeAt(0), this.m_uniformNdx);
-        /** @type {glsUBC.VarType} */ var type = this.generateType(rnd, 0, true); //TODO: implement this.
+        /** @type {glsVT.VarType} */ var type = this.generateType(rnd, 0, true); //TODO: implement this.
 
         flags |= (unusedOk && rnd.getFloat() < unusedVtxWeight) ? glsUBC.UniformFlags.UNUSED_VERTEX : 0;
         flags |= (unusedOk && rnd.getFloat() < unusedFragWeight) ? glsUBC.UniformFlags.UNUSED_FRAGMENT : 0;

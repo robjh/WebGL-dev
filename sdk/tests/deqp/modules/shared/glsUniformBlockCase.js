@@ -19,7 +19,7 @@
  */
 
 
-define(['framework/common/tcuTestCase', 'framework/opengl/gluShaderProgram', 'framework/opengl/gluShaderUtil', 'framework/opengl/gluDrawUtil', 'framework/delibs/debase/deInt32'], function(deqpTests, deqpProgram, deqpUtils, deqpDraw, deInt32) {
+define(['framework/common/tcuTestCase', 'framework/opengl/gluShaderProgram', 'framework/opengl/gluShaderUtil', 'framework/opengl/gluDrawUtil', 'framework/delibs/debase/deInt32', 'modules/shared/glsVarType'], function(deqpTests, deqpProgram, deqpUtils, deqpDraw, deInt32, glsVT) {
     'use strict';
 
     /** @const */ var VIEWPORT_WIDTH = 128;
@@ -117,150 +117,15 @@ UniformLayout.prototype.getBlockIndex = function(name) {
     return -1;
 };
 
-/**
- * VarType types enum
- * @enum {number}
- */
-var Type = {
-    TYPE_BASIC: 0,
-    TYPE_ARRAY: 1,
-    TYPE_STRUCT: 2
-};
-
-Type.TYPE_LAST = Object.keys(Type).length;
-
-/**
- * TypeArray struct
- * @param {VarType} elementType
- * @param {number} arraySize
- */
-var TypeArray = function(elementType, arraySize) {
-    /** @type {VarType} */ this.elementType = elementType;
-    /** @type {number} */ this.size = arraySize;
-};
-
-/**
- * VarType class
- */
-var VarType = function() {
-    /** @type {Type} */ this.m_type = Type.TYPE_LAST;
-    /** @type {deInt32.deUint32} */ this.m_flags = 0;
-
-    /*
-     * m_data used to be a 'Data' union in C++. Using a var is enough here.
-     * it will contain any necessary value.
-     */
-    /** @type {(deqpUtils.DataType|TypeArray|StructType)} */
-    this.m_data = undefined;
-};
-
-/**
- * Creates a basic type VarType. Use this after the constructor call.
- * @param {deqpUtils.DataType} basicType
- * @param {deInt32.deUint32} flags
- * @return {VarType} The currently modified object
- */
-VarType.prototype.VarTypeBasic = function(basicType, flags) {
-    this.m_type = Type.TYPE_BASIC;
-    this.m_flags = flags;
-    this.m_data = basicType;
-
-    return this;
-};
-
-/**
- * Creates an array type VarType. Use this after the constructor call.
- * @param {VarType} elementType
- * @param {number} arraySize
- * @return {VarType} The currently modified object
- */
-VarType.prototype.VarTypeArray = function(elementType, arraySize) {
-    this.m_type = Type.TYPE_ARRAY;
-    this.m_flags = 0;
-    this.m_data = new TypeArray(elementType, arraySize);
-
-    return this;
-};
-
-/**
- * Creates an array type VarType. Use this after the constructor call.
- * @param {StructType} structPtr
- * @return {VarType} The currently modified object
- */
-VarType.prototype.VarTypeStruct = function(structPtr) {
-    this.m_type = Type.TYPE_STRUCT;
-    this.m_flags = 0;
-    this.m_data = structPtr;
-
-    return this;
-};
-
-/** isBasicType
-* @return {boolean} true if the VarType represents a basic type.
-**/
-VarType.prototype.isBasicType = function() {
-    return this.m_type == Type.TYPE_BASIC;
-};
-
-/** isArrayType
-* @return {boolean} true if the VarType represents an array.
-**/
-VarType.prototype.isArrayType = function() {
-    return this.m_type == Type.TYPE_ARRAY;
-};
-
-/** isStructType
-* @return {boolean} true if the VarType represents a struct.
-**/
-VarType.prototype.isStructType = function() {
-    return this.m_type == Type.TYPE_STRUCT;
-};
-
-/** getFlags
-* @return {deUint32} returns the flags of the VarType.
-**/
-VarType.prototype.getFlags = function() {
-    return this.m_flags;
-};
-
-/** getBasicType
-* @return {deqpUtils.DataType} returns the basic data type of the VarType.
-**/
-VarType.prototype.getBasicType = function() {
-    return this.m_data;
-};
-
-/** getElementType
-* @return {VarType} returns the VarType of the element in case of an Array.
-**/
-VarType.prototype.getElementType = function() {
-    return this.m_data.elementType;
-};
-
-/** getArraySize
-* (not to be confused with a javascript array)
-* @return {number} returns the size of the array in case it is an array.
-**/
-VarType.prototype.getArraySize = function() {
-    return this.m_data.size;
-};
-
-/** getStruct
-* @return {StructType} returns the structure when it is a StructType.
-**/
-VarType.prototype.getStruct = function() {
-    return this.m_data;
-};
-
 /** StructMember TODO: Check if we have to use deInt32.deUint32
  * in the JSDoc annotations or if a number would do.
  * @param {string} name
- * @param {VarType} type
+ * @param {glsVT.VarType} type
  * @param {deInt32.deUint32} flags
 **/
 var StructMember = function(name, type, flags) {
     /** @type {string} */ this.m_name = name;
-    /** @type {VarType} */ this.m_type = type;
+    /** @type {glsVT.VarType} */ this.m_type = type;
     /** @type {deInt32.deUint32} */ this.m_flags = flags;
 };
 
@@ -270,7 +135,7 @@ var StructMember = function(name, type, flags) {
 StructMember.prototype.getName = function() { return this.m_name; };
 
 /** getType
-* @return {VarType} the type of the member
+* @return {glsVT.VarType} the type of the member
 **/
 StructMember.prototype.getType = function() { return this.m_type; };
 
@@ -328,7 +193,7 @@ StructType.prototype.getSize = function() {
 
 /** addMember
 * @param {string} member_name
-* @param {VarType} member_type
+* @param {glsVT.VarType} member_type
 * @param {deInt32.deUint32} member_flags
 **/
 StructType.prototype.addMember = function(member_name, member_type, member_flags) {
@@ -339,12 +204,12 @@ StructType.prototype.addMember = function(member_name, member_type, member_flags
 
 /** Uniform
  * @param {string} name
- * @param {VarType} type
+ * @param {glsVT.VarType} type
  * @param {deInt32.deUint32} flags
 **/
 var Uniform = function(name, type, flags) {
     /** @type {string} */ this.m_name = name;
-    /** @type {VarType} */ this.m_type = type;
+    /** @type {glsVT.VarType} */ this.m_type = type;
     /** @type {deInt32.deUint32} */ this.m_flags = flags;
 };
 
@@ -356,7 +221,7 @@ Uniform.prototype.getName = function() {
 };
 
 /** getType
- * @return {VarType}
+ * @return {glsVT.VarType}
  */
 Uniform.prototype.getType = function() {
     return this.m_type;
@@ -698,7 +563,7 @@ UniformBlockCase.prototype.deRoundUp32 = function(a, b)
 
 // /**
 //  * TODO: computeStd140BaseAlignment
-//  * @param {VarType} type
+//  * @param {glsVT.VarType} type
 //  * @return {number}
 //  */
 // var computeStd140BaseAlignment = function(type) {
@@ -745,7 +610,7 @@ UniformBlockCase.prototype.deRoundUp32 = function(a, b)
 //  * @param {number} offset
 //  * @param
 //  */
-// var computeStd140Layout_B = function(UniformLayout& layout, int& curOffset, int curBlockNdx, const std::string& curPrefix, const VarType& type, deUint32 layoutFlags)
+// var computeStd140Layout_B = function(UniformLayout& layout, int& curOffset, int curBlockNdx, const std::string& curPrefix, const glsVT.VarType& type, deUint32 layoutFlags)
 // {
 //     // \todo [2012-01-23 pyry] Uniforms in default block.
 //
@@ -1542,7 +1407,6 @@ return {
     Uniform: Uniform,
     StructType: StructType,
     StructMember: StructMember,
-    VarType: VarType,
     UniformLayout: UniformLayout,
     UniformLayoutEntry: UniformLayoutEntry,
     BlockLayoutEntry: BlockLayoutEntry,
