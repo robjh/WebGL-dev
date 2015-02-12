@@ -106,16 +106,15 @@ var deRandom_getBool = function(rnd)
 /**
  * TODO Function to choose random items from a list
  * @param {deRandom} rnd Initialised array of random numbers
- * @param {Iterator} first Start of array 
- * @param {Iterator} last End of array
- * @param {Iterator} resultOut Result output
- * @param {int} num Number of items
- * @return {Iterator} Result output
+ * @param {Array.<Object>} elements Array segment already defined
+ * @param {Array.<Object>} resultOut Array where to store the elements in. If undefined, default to array of (num) elements.
+ * @param {number} num Number of items to store in resultOut. If undefined, default to 1.
+ * @return {Array.<Object>} Even though result is stored in resultOut, return it here as well.
  */
-var choose = function(rnd, first, last, resultOut, num) 
+var choose = function(rnd, elements, resultOut, num) 
 {
-	throw new Error("Function not yet implemented");
-
+    //TODO: This is a temporary implementation for tests.
+	return [elements[0]];
 }
 
 /**
@@ -182,14 +181,12 @@ Random.prototype.getFloat = function (min, max){ return deRandom_getFloat(this.m
 Random.prototype.getInt = function (min, max){return deRandom_getInt(this.m_rnd, [min,max])};
 /**
  * TODO Function to choose random items from a list
- * @param {deRandom} rnd Initialised array of random numbers
- * @param {Iterator} first Start of array 
- * @param {Iterator} last End of array
- * @param {Iterator} resultOut Result output
- * @param {int} num Number of items
- * @return {Iterator} Result output
+ * @param {Array.<Object>} elements Array segment already defined
+ * @param {Array.<Object>} resultOut Array where to store the elements in. If undefined, default to array of (num) elements.
+ * @param {number} num Number of items to store in resultOut. If undefined, default to 1.
+ * @return {Array.<Object>} Even though result is stored in resultOut, return it here as well.
  */
-Random.prototype.choose = function(first, last, resultOut, num) {return choose(this.m_rnd, first, last, resultOut, num)};
+Random.prototype.choose = function(elements, resultOut, num) {return choose(this.m_rnd, elements, resultOut, num)};
 /**
  * TODO Function to choose weighted random items from a list
  * @param {deRandom} rnd initialised array of random numbers
