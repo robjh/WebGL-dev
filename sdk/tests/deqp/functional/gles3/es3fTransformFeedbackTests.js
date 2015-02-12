@@ -734,9 +734,61 @@ define(['framework/opengl/gluShaderUtil.js'], function(deqpUtils) {
 		this.m_primitiveType = null;
 
 		/* private */
-		var assign = function(/*const*/ other) {
-		};
-		var runTest = function(array, seed) {
+	//	var assign = function(/*const*/ other) { }; // defined but not implemented?
+		var runTest = function(calls, seed) {
+		
+			var _min = function(x,y) { return x < y ? x : y; };
+		
+			var log             = m_testCtx.getLog();
+			var gl              = m_context.getRenderContext().getFunctions();
+			var rnd             = new de.Random(seed);
+			var numInputs       = 0;
+			var numOutputs      = 0;
+			var width           = m_context.getRenderContext().getRenderTarget().getWidth();
+			var height          = m_context.getRenderContext().getRenderTarget().getHeight();
+			var viewportW       = _min(VIEWPORT_WIDTH,  width);
+			var viewportH       = _min(VIEWPORT_HEIGHT, height);
+			var viewportX       = rnd.getInt(0, width-viewportW);
+			var viewportY       = rnd.getInt(0, height-viewportH);
+			var frameWithTf     = new tcu.Surface(viewportW, viewportH); // tcu::Surface
+			var frameWithoutTf  = new tcu.Surface(viewportW, viewportH); // tcu::Surface
+			var primitiveQuery  = new glu.Query(m_context.getRenderContext()); // glu::Query
+			var outputsOk       = true;
+			var imagesOk        = true;
+			var queryOk         = true;
+			
+			// Compute totals.
+			for (var i = 0 ; i < calls.length ; ++i) {
+				var call = calls[i];
+				numInputs	+= call.numElements;
+				numOutputs	+= call.transformFeedbackEnabled ? getTransformFeedbackOutputCount(m_primitiveType, call.numElements) : 0;
+			}
+			
+			// Input data.
+			var inputData = genInputData(m_attributes, numInputs, m_inputStride, rnd);
+
+			gl.bindTransformFeedback(GL_TRANSFORM_FEEDBACK, m_transformFeedback->get());
+			GLU_EXPECT_NO_ERROR(gl.getError(), "glBindTransformFeedback()");
+			
+			// Allocate storage for transform feedback output buffers and bind to targets.
+			for (int bufNdx = 0; bufNdx < (int)m_outputBuffers.size(); bufNdx++)
+			{
+				deUint32		buffer		= m_outputBuffers[bufNdx];
+				int				stride		= m_bufferStrides[bufNdx];
+				int				target		= bufNdx;
+				int				size		= stride*numOutputs;
+				int				guardSize	= stride*BUFFER_GUARD_MULTIPLIER;
+				const deUint32	usage		= GL_DYNAMIC_READ;
+
+				gl.bindBuffer(GL_TRANSFORM_FEEDBACK_BUFFER, buffer);
+				gl.bufferData(GL_TRANSFORM_FEEDBACK_BUFFER, size+guardSize, DE_NULL, usage);
+				writeBufferGuard(gl, GL_TRANSFORM_FEEDBACK_BUFFER, size, guardSize);
+
+				// \todo [2012-07-30 pyry] glBindBufferRange()?
+				gl.bindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, target, buffer);
+
+				GLU_EXPECT_NO_ERROR(gl.getError(), "transform feedback buffer setup");
+			}
 		};
 
 		// Derived from ProgramSpec in init()
