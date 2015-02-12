@@ -19,7 +19,7 @@
  */
 
 
-define(['framework/opengl/gluShaderUtil.js'], function(deqpUtils) {
+define(['framework/opengl/gluShaderUtil.js', 'framework/opengl/gluDrawUtil', 'modules/shared/glsUniformBlockCase'], function(deqpUtils, deqpDraw, glsUBC) {
     'use strict';
 
 	/** @const @type {number} */ var VIEWPORT_WIDTH = 128;
@@ -54,7 +54,13 @@ define(['framework/opengl/gluShaderUtil.js'], function(deqpUtils) {
 	};
 
 
-	// it's a struct, invoked in the C version as a function
+	/**
+	 * Returns a Varying object, it's a struct, invoked in the C version as a function
+	 * @param {string} name
+	 * @param {glsUBC.VarType} type
+	 * @param {number} interpolation
+	 * @return {Object}
+	 */
 	var Varying = (function(name, type, interpolation) {
 		var container = Object.clone({
 			name: null,
@@ -75,7 +81,14 @@ define(['framework/opengl/gluShaderUtil.js'], function(deqpUtils) {
 		return container;
 	
 	});
-	// it's a struct, invoked in the C version as a function
+	
+	/**
+	 * Returns an Attribute object, it's a struct, invoked in the C version as a function
+	 * @param {string} name
+	 * @param {glsUBC.VarType} type
+	 * @param {number} offset
+	 * @return {Object}
+	 */
 	var Attribute = (function(name, type, offset) {
 		var container = Object.clone({
 			name: null,
@@ -100,9 +113,9 @@ define(['framework/opengl/gluShaderUtil.js'], function(deqpUtils) {
 	// it's a class
 	var ProgramSpec = (function() {
 	
-		var m_structs = [];
-		var m_varyings = [];
-		var m_transformFeedbackVaryings = [];
+	/** @type {Array} */ var m_structs = [];
+	/** @type {Array} */ var m_varyings = [];
+	/** @type {Array.<string>} */ var m_transformFeedbackVaryings = [];
 	
 		this.createStruct = function(name) {
 			var struct = new Object;
@@ -111,9 +124,7 @@ define(['framework/opengl/gluShaderUtil.js'], function(deqpUtils) {
 		};
 	
 		this.addVarying = function(name, type, interp) {
-			m_varyings.push({
-				Varying(name, type, interp)
-			});
+			m_varyings.push(new Varying(name, type, interp));
 		};
 	
 		this.addTransformFeedbackVarying = function(name) {
@@ -160,22 +171,27 @@ define(['framework/opengl/gluShaderUtil.js'], function(deqpUtils) {
 	
 	});
 
-
+	/** Returns if the program is spported or not
+	 * @param {WebGLRenderingContext} gl WebGL context
+	 * @param {ProgramSpec} spec
+	 * @param {number} tfMode
+	 * @return {boolean}
+	 */
 	var isProgramSupported = function(gl, spec, tfMode) {
 
 		// all ints
-		var maxVertexAttribs            = 0;
-		var maxTfInterleavedComponents  = 0;
-		var maxTfSeparateAttribs        = 0;
-		var maxTfSeparateComponents     = 0;
+	/** @type {number} */ var maxVertexAttribs = 0;
+	/** @type {number} */ var maxTfInterleavedComponents = 0;
+	/** @type {number} */ var maxTfSeparateAttribs = 0;
+	/** @type {number} */ var maxTfSeparateComponents = 0;
 	
-		maxVertexAttribs           = gl.getParameter(GL_MAX_VERTEX_ATTRIBS);
+		maxVertexAttribs = gl.getParameter(GL_MAX_VERTEX_ATTRIBS);
 		maxTfInterleavedComponents = gl.getParameter(GL_MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS);
-		maxTfSeparateAttribs       = gl.getParameter(GL_MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS);
-		maxTfSeparateComponents    = gl.getParameter(GL_MAX_TRANSFORM_FEEDBACK_SEPARATE_COMPONENTS);
+		maxTfSeparateAttribs = gl.getParameter(GL_MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS);
+		maxTfSeparateComponents = gl.getParameter(GL_MAX_TRANSFORM_FEEDBACK_SEPARATE_COMPONENTS);
 	
 		// Check vertex attribs.
-		var totalVertexAttribs = 1 /* a_position */ + (spec.isPointSizeUsed() ? 1 : 0);
+	/** @type {number} */ var totalVertexAttribs = 1 /* a_position */ + (spec.isPointSizeUsed() ? 1 : 0);
 	
 		for (var i = 0; iter < spec.getVaryings().length; ++i) {
 			totalVertexAttribs += spec.getTransformFeedbackVaryings()[i].length;
@@ -186,22 +202,22 @@ define(['framework/opengl/gluShaderUtil.js'], function(deqpUtils) {
 	
 		// check varyings
 		// also ints
-		var totalTfComponents  = 0;
-		var totalTfAttribs     = 0;
-		var presetNumComponents = {
+		/** @type {number} */ var totalTfComponents = 0;
+		/** @type {number} */var totalTfAttribs = 0;
+		/** @type {Object.<number, number>} */ var presetNumComponents = {
 			gl_Position:  4,
 			gl_PointSize: 1,
 		};
 		for (var i = 0 ; i < spec.getTransformFeedbackVaryings().length; ++i) {
-			var name = spec.getTransformFeedbackVaryings()[i];
-			var numComponents = 0;
+			/** @type {Array.<string>} */ var name = spec.getTransformFeedbackVaryings()[i];
+			/** @type {number} */ var numComponents = 0;
 		
 			if (typeof(presetNumComponents[name]) != 'undefined') {
 				numComponents = presetNumComponents[name];
 			} else {
 				glu::parseVariableName(name);
 				// find the varying called varName
-				var varying = (function(varyings) {
+			/** @type {Varying} */ var varying = (function(varyings) {
 					for (var i = 0 ; i < varyings.length ; ++i ) {
 						if (varyings[i].name == varName) {
 							return varyings[i];
@@ -234,19 +250,24 @@ define(['framework/opengl/gluShaderUtil.js'], function(deqpUtils) {
 	
 	};
 
+	/**
+	 * @param {string} varyingName
+	 * @param {Array.<string>} path
+	 * @return {string}
+	 */
 	var getAttributeName = function(varyingName, path) {
 		
-		var str = 'a_' + varyingName.substr(deStrBeginsWith(varyingName, 'v_') ? 2 : 0);
+	/** @type {string} */ var str = 'a_' + varyingName.substr(deStrBeginsWith(varyingName, 'v_') ? 2 : 0);
 		
 		for (var i = 0 ; i < path.length ; ++i) {
-			var prefix;
+		/** @type {string} */ var prefix;
 			
 			// TODO: this enum doesnt exist yet.
 			switch (path[i].type) {
-				case glu.VarTypeComponent.STRUCT_MEMBER:     prefix = '_m'; break;
-				case glu.VarTypeComponent.ARRAY_ELEMENT:     prefix = '_e'; break;
-				case glu.VarTypeComponent.MATRIX_COLUMN:     prefix = '_c'; break;
-				case glu.VarTypeComponent.VECTOR_COMPONENT:  prefix = '_s'; break;
+				case glu.VarTypeComponent.STRUCT_MEMBER: prefix = '_m'; break;
+				case glu.VarTypeComponent.ARRAY_ELEMENT: prefix = '_e'; break;
+				case glu.VarTypeComponent.MATRIX_COLUMN: prefix = '_c'; break;
+				case glu.VarTypeComponent.VECTOR_COMPONENT: prefix = '_s'; break;
 				default:
 					throw Error('invalid type in the component path.');
 			}
@@ -259,9 +280,15 @@ define(['framework/opengl/gluShaderUtil.js'], function(deqpUtils) {
 		
 	};
 	
-	// original definition:
-	// static void genShaderSources (const ProgramSpec& spec, std::string& vertSource, std::string& fragSource, bool pointSizeRequired)
-	// in place of the std::string references, this function returns those params in an object
+	/**
+	 * original definition:
+	 * static void genShaderSources (const ProgramSpec& spec, std::string& vertSource, std::string& fragSource, bool pointSizeRequired)
+	 * in place of the std::string references, this function returns those params in an object
+	 * 
+	 * @param {ProgramSpec} spec
+	 * @param {boolean} pointSizeRequired
+	 * @return {Object.<string, string>}
+	 */
 	var genShaderSources = function(spec, pointSizeRequired) {
 		
 		var vtx  = { str: null };
@@ -294,7 +321,7 @@ define(['framework/opengl/gluShaderUtil.js'], function(deqpUtils) {
 		
 		// Declare vayrings.
 		for (var ndx = 0; ndx < 2; ++ndx) {
-			var inout  = ndx ? 'in' : 'out';
+		/** @type {string} */ var inout  = ndx ? 'in' : 'out';
 			var shader = ndx ? frag : vtx;
 			
 			for (var i = 0 ; i < spec.getStructs().length ; ++i) {
@@ -329,7 +356,7 @@ define(['framework/opengl/gluShaderUtil.js'], function(deqpUtils) {
 			var type = spec.getVaryings()[i].type;
 			
 			for (var j = 0 ; j < type.count ; ++j) {
-				var subType    = glu.getVarType(type, type[i].getPath());
+				var subType = glu.getVarType(type, type[i].getPath());
 				var attribName = getAttributeName(name, type[i].getPath());
 				
 				if (!(
@@ -374,12 +401,12 @@ define(['framework/opengl/gluShaderUtil.js'], function(deqpUtils) {
 		
 		return new glu.ShaderProgram(context, programSources);
 		
-	}
+	};
 
 	/**
 	 * Returns the number of outputs with the count for the Primitives in the Transform Feedback.
 	 * @param {WebGLRenderingContext} gl WebGL context
-	 * @param {GLenum} primitiveType specifies what kind of primitive
+	 * @param {deqpDraw.primitiveType} primitiveType GLenum that specifies what kind of primitive is
 	 * @param {number} numElements
 	 * @return {number}
 	 */
@@ -400,7 +427,7 @@ define(['framework/opengl/gluShaderUtil.js'], function(deqpUtils) {
 	/**
 	 * Returns a number with the count for the Primitives in the Transform Feedback.
 	 * @param {WebGLRenderingContext} gl WebGL context
-	 * @param {GLenum} primitiveType specifies what kind of primitive
+	 * @param {deqpDraw.primitiveType} primitiveType GLenum that specifies what kind of primitive is
 	 * @param {number} numElements
 	 * @return {number}
 	 */
@@ -421,8 +448,8 @@ define(['framework/opengl/gluShaderUtil.js'], function(deqpUtils) {
 	/** 
 	 * Returns the type of Primitive Mode: Triangles for all Triangle Primitive's type and same for Line and Points.
 	 * @param {WebGLRenderingContext} gl WebGL context
-	 * @param {GLenum} primitiveType specifies what kind of primitive
-	 * @return {GLenum} primitiveType
+	 * @param {deqpDraw.primitiveType} primitiveType GLenum that specifies what kind of primitive is
+	 * @return {deqpDraw.primitiveType} primitiveType
 	 */
 	var getTransformFeedbackPrimitiveMode = function(gl, primitiveType) {
 
@@ -446,7 +473,7 @@ define(['framework/opengl/gluShaderUtil.js'], function(deqpUtils) {
 	/**
 	 * Returns the attribute index for a certain primitive type.
 	 * @param {WebGLRenderingContext} gl WebGL context
-	 * @param {GLenum} primitiveType specifies what kind of primitive
+	 * @param {deqpDraw.primitiveType} primitiveType GLenum that specifies what kind of primitive is
 	 * @param {number} numInputs
 	 * @param {number} outNdx
 	 * @return {number}
@@ -511,7 +538,7 @@ define(['framework/opengl/gluShaderUtil.js'], function(deqpUtils) {
 	/**
 	 * Returns (for all the draw calls) the type of Primitive Mode, as it calls "getTransformFeedbackPrimitiveCount".
 	 * @param {WebGLRenderingContext} gl WebGL context
-	 * @param {GLenum} primitiveType specifies what kind of primitive
+	 * @param {deqpDraw.primitiveType} primitiveType GLenum that specifies what kind of primitive is
 	 * @param {Object.<number, boolean>} first DrawCall object
 	 * @param {Object.<number, boolean>} end DrawCall object
 	 * @return {number} primCount
@@ -693,16 +720,16 @@ define(['framework/opengl/gluShaderUtil.js'], function(deqpUtils) {
 		};
 		
 		this.iterate = function() {
-			
+
 			// static vars
 			var s = TransformFeedbackCase.s_iterate;
-			
+
 			var log  = m_textCtx.getLog();
 			var isOk = true;
 			var seed = deStringHash(getName()) ^ deInt32Hash(m_iterNdx);
 			var numIterations = TransformFeedbackCase.s_iterate.iterations.length;
 			// first and end ignored.
-			
+
 			var sectionName = 'Iteration'  + (m_iterNdx+1);
 			var sectionDesc = 'Iteration ' + (m_iterNdx+1) + ' / ' + numIterations;
 //			var section; // something weird.
@@ -715,17 +742,17 @@ define(['framework/opengl/gluShaderUtil.js'], function(deqpUtils) {
 				tcu.formatArray(s.testCases[ s.iterations[m_iterNdx] ]) +
 				TestLog.EndMessage
 			);
-			
-			isOk = runTest(s.testCases[ s.iterations[m_iterNdx] ], seed);
-			
+
+			isOk = runTest(s.testCases[s.iterations[m_iterNdx]], seed);
+
 			if (!isOk) {
-				m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, "Result comparison failed"); // TODO: find QP_TEST_RESULT_FAIL
+				m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, 'Result comparison failed'); // TODO: find QP_TEST_RESULT_FAIL
 			}
-			
+
 			m_iterNdx += 1;
-			
+
 			return(isOk && m_iterNdx < numIterations) ? CONTINUE : STOP; // TODO: find CONFINUTE, find STOP
-			
+
 		};
 
 		/* protected */
@@ -736,9 +763,9 @@ define(['framework/opengl/gluShaderUtil.js'], function(deqpUtils) {
 		/* private */
 	//	var assign = function(/*const*/ other) { }; // defined but not implemented?
 		var runTest = function(calls, seed) {
-		
+
 			var _min = function(x,y) { return x < y ? x : y; };
-		
+
 			var log             = m_testCtx.getLog();
 			var gl              = m_context.getRenderContext().getFunctions();
 			var rnd             = new de.Random(seed);
@@ -756,53 +783,53 @@ define(['framework/opengl/gluShaderUtil.js'], function(deqpUtils) {
 			var outputsOk       = true;
 			var imagesOk        = true;
 			var queryOk         = true;
-			
+
 			// Compute totals.
-			for (var i = 0 ; i < calls.length ; ++i) {
+			for (var i = 0 ;i < calls.length ;++i) {
 				var call = calls[i];
 				numInputs	+= call.numElements;
 				numOutputs	+= call.transformFeedbackEnabled ? getTransformFeedbackOutputCount(m_primitiveType, call.numElements) : 0;
 			}
-			
+
 			// Input data.
 			var inputData = genInputData(m_attributes, numInputs, m_inputStride, rnd);
 
 			gl.bindTransformFeedback(GL_TRANSFORM_FEEDBACK, m_transformFeedback->get());
 			GLU_EXPECT_NO_ERROR(gl.getError(), "glBindTransformFeedback()");
-			
+
 			// Allocate storage for transform feedback output buffers and bind to targets.
 			for (int bufNdx = 0; bufNdx < (int)m_outputBuffers.size(); bufNdx++)
 			{
-				deUint32		buffer		= m_outputBuffers[bufNdx];
-				int				stride		= m_bufferStrides[bufNdx];
-				int				target		= bufNdx;
-				int				size		= stride*numOutputs;
-				int				guardSize	= stride*BUFFER_GUARD_MULTIPLIER;
-				const deUint32	usage		= GL_DYNAMIC_READ;
+				deUint32 buffer = m_outputBuffers[bufNdx];
+				int	stride = m_bufferStrides[bufNdx];
+				int	target = bufNdx;
+				int	size = stride * numOutputs;
+				int	guardSize = stride*BUFFER_GUARD_MULTIPLIER;
+				const deUint32	usage = GL_DYNAMIC_READ;
 
 				gl.bindBuffer(GL_TRANSFORM_FEEDBACK_BUFFER, buffer);
-				gl.bufferData(GL_TRANSFORM_FEEDBACK_BUFFER, size+guardSize, DE_NULL, usage);
+				gl.bufferData(GL_TRANSFORM_FEEDBACK_BUFFER, size + guardSize, DE_NULL, usage);
 				writeBufferGuard(gl, GL_TRANSFORM_FEEDBACK_BUFFER, size, guardSize);
 
 				// \todo [2012-07-30 pyry] glBindBufferRange()?
 				gl.bindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, target, buffer);
 
-				GLU_EXPECT_NO_ERROR(gl.getError(), "transform feedback buffer setup");
+				GLU_EXPECT_NO_ERROR(gl.getError(), 'transform feedback buffer setup');
 			}
 		};
 
 		// Derived from ProgramSpec in init()
-		var m_inputStride               = 0;
-		var m_attributes                = [];    // vector<Attribute>
-		var m_transformFeedbackOutputs  = [];    // vector<Output>
-		var m_bufferStrides             = [];    // vector<int>
+		var m_inputStride = 0;
+		var m_attributes = [];    // vector<Attribute>
+		var m_transformFeedbackOutputs = [];    // vector<Output>
+		var m_bufferStrides = [];    // vector<int>
 
 		// GL state.
-		var m_program                   = null;  // glu::ShaderProgram
-		var m_transformFeedback         = null;  // glu::TransformFeedback
-		var m_outputBuffers             = [];    // vector<deUint32>
+		var m_program = null;  // glu::ShaderProgram
+		var m_transformFeedback = null;  // glu::TransformFeedback
+		var m_outputBuffers = [];    // vector<deUint32>
 
-		var m_iterNdx                   = 0;     // int
+		var m_iterNdx = 0;     // int
 
 		this._construct(context, name, desc, bufferMode, primitiveType);
 
@@ -810,35 +837,34 @@ define(['framework/opengl/gluShaderUtil.js'], function(deqpUtils) {
 	// static data
 	TransformFeedbackCase.s_iterate = {
 		testCases: {
-			elemCount1:	  [ DrawCall(  1, true) ],
-			elemCount2:   [ DrawCall(  2, true) ],
-			elemCount3:   [ DrawCall(  3, true) ],
-			elemCount4:   [ DrawCall(  4, true) ],
-			elemCount123: [ DrawCall(123, true) ],
-			basicPause1:  [ DrawCall( 64, true),  DrawCall( 64, false), DrawCall( 64, true) ],
-			basicPause2:  [ DrawCall( 13, true),  DrawCall(  5, true),  DrawCall( 17, false),
-				            DrawCall(  3, true),  DrawCall(  7, false) ],
-			startPaused:  [ DrawCall(123, false), DrawCall(123, true)  ],
-			random1:      [ DrawCall( 65, true),  DrawCall(135, false), DrawCall( 74, true),
+			elemCount1: [DrawCall(1, true)],
+			elemCount2: [DrawCall(2, true)],
+			elemCount3: [DrawCall(3, true)],
+			elemCount4: [DrawCall(4, true)],
+			elemCount123: [DrawCall(123, true)],
+			basicPause1: [DrawCall(64, true),  DrawCall(64, false), DrawCall(64, true)],
+			basicPause2: [DrawCall(13, true),  DrawCall(5, true),  DrawCall(17, false),
+				            DrawCall(3, true),  DrawCall(7, false)],
+			startPaused: [DrawCall(123, false), DrawCall(123, true)],
+			random1: [DrawCall(65, true),  DrawCall(135, false), DrawCall( 74, true),
 				            DrawCall( 16, false), DrawCall(226, false), DrawCall(  9, true),
-				            DrawCall(174, false) ],
-			random2:      [ DrawCall(217, true),  DrawCall(171, true),  DrawCall(147, true),
-				            DrawCall(152, false), DrawCall( 55, true) ],
+				            DrawCall(174, false)],
+			random2: [DrawCall(217, true),  DrawCall(171, true),  DrawCall(147, true),
+				            DrawCall(152, false), DrawCall(55, true)],
 		},
 		iterations = [
 			'elemCount1',  'elemCount2',  'elemCount3', 'elemCount4', 'elemCount1234',
 			'basicPause1', 'basicPause2', 'startPaused',
-			'random1',     'random2'
+			'random1', 'random2'
 		]
 	};
-	
 
 	// TODO: find TestCase
 	TransformFeedbackCase.prototype = new TestCase();
 
 	/**
-	 * Returns an object type Output.
-	 * @return {Object} content for the Output object
+	 * Returns an Output object
+	 * @return {Object}
 	 */
 	var Output = function() {
 
@@ -846,7 +872,7 @@ define(['framework/opengl/gluShaderUtil.js'], function(deqpUtils) {
 	/** @type {number} */ bufferNdx: 0,
 	/** @type {number} */ offset: 0,
 	/** @type {string} */ name: null,
-	/** @type {deqpUtils.DataType} */ type: null,
+	/** @type {glsUBC.VarType} */ type: null,
 	/** @type {Array.<Attribute>} */ inputs: null
 	};
 
@@ -862,14 +888,16 @@ define(['framework/opengl/gluShaderUtil.js'], function(deqpUtils) {
 
 		inputStride = 0;
 
-		// Add position.
-		attributes.push(new Attribute('a_position', deqpUtils.getDataTypeScalarSize(FLOAT_VEC4), inputStride));
-		inputStride += 4 * 4;
+		// Add position
+		var dataTypeVec4 = new glsUBC.VarType().VarTypeBasic(deqpUtils.DataType.FLOAT_VEC4, glsUBC.UniformFlags.PRECISION_HIGHP);
+		attributes.push(new Attribute('a_position', dataTypeVec4, inputStride));
+		inputStride += 4 * 4; /*sizeof(deUint32)*/
 
 		if (usePointSize)
 		{
-			attributes.push(new Attribute('a_pointSize', deqpUtils.getDataTypeScalarSize(FLOAT), inputStride));
-			inputStride += 1 * 4;
+			var dataTypeFloat = new glsUBC.VarType().VarTypeBasic(deqpUtils.DataType.FLOAT, glsUBC.UniformFlags.PRECISION_HIGHP);
+			attributes.push(new Attribute('a_pointSize', dataTypeFloat, inputStride));
+			inputStride += 1 * 4; /*sizeof(deUint32)*/
 		}
 
 		for (var i = 0; i < varyings.length; i++)
@@ -881,7 +909,7 @@ define(['framework/opengl/gluShaderUtil.js'], function(deqpUtils) {
 				var name = getAttributeName(varyings[i].name, vecIter.getPath);
 
 				attributes.push(new Attribute(name, type, inputStride));
-				inputStride += deqpUtils.getDataTypeScalarSize(type) * 4;
+				inputStride += deqpUtils.getDataTypeScalarSize(type) * 4; /*sizeof(deUint32)*/
 			}
 		}
 	};
@@ -911,13 +939,13 @@ define(['framework/opengl/gluShaderUtil.js'], function(deqpUtils) {
 
 			if (name === 'gl_Position')
 			{
-			/** @type {Attribute} */ var posIn = findAttributeNameEquals (attributes, 'a_position');
+			/** @type {Attribute} */ var posIn = findAttributeNameEquals(attributes, 'a_position');
 				output.type = posIn.type;
-				output.inputs.push (posIn);
+				output.inputs.push(posIn);
 			}
 			else if (name === 'gl_PointSize')
 			{
-			/** @type {Attribute} */ var sizeIn = findAttributeNameEquals (attributes, 'a_pointSize');
+			/** @type {Attribute} */ var sizeIn = findAttributeNameEquals(attributes, 'a_pointSize');
 				output.type = sizeIn.type;
 				output.inputs.push(sizeIn);
 			}
@@ -940,7 +968,7 @@ define(['framework/opengl/gluShaderUtil.js'], function(deqpUtils) {
 				// TODO: check loop's conditions, not sure of this
 				for (var iter = transformFeedbackOutputs[varNdx].type; iter < transformFeedbackOutputs[transformFeedbackOutputs.length].type; iter++)
 				{
-				/** TODO: implement Full path. See gluVarTypeUtil.cpp and .hpp DEQP repository within \framework\opengl 
+				/** TODO: implement Full path. See gluVarTypeUtil.cpp and .hpp DEQP repository within \framework\opengl
 					 * glu::TypeComponentVector,  glu::parseTypePath and glu::getVarType
 
 					glu::TypeComponentVector fullPath(varPath.size() + iter.getPath().size());
@@ -956,7 +984,7 @@ define(['framework/opengl/gluShaderUtil.js'], function(deqpUtils) {
 			}
 
 			// TODO: implement getScalarSize(). See gluVarType.cpp and .hpp DEQP repository within \framework\opengl
-			accumulatedSize += output.type.getScalarSize() * 4;
+			accumulatedSize += output.type.getScalarSize() * 4; /*sizeof(deUint32)*/
 		}
 	};
 
@@ -980,6 +1008,104 @@ define(['framework/opengl/gluShaderUtil.js'], function(deqpUtils) {
 		// TODO: I don't know if this error is necessary ??
 		if (attributeNameFound === false)
 		throw Error('Attribute or Varying name: ' + name + ', has not been found in the array');
+	};
+
+	/**
+	 * Enums for Precision
+	 * @enum {number}
+	 */
+	var Precision = {
+
+	LOWP: 0,
+	MEDIUMP: 1,
+	HIGHP: 2
+
+	};
+
+	/**
+	 * @param {deqpDraw.primitiveType} primitiveType type number in deqpDraw.primitiveType
+	 * @param {Output} output
+	 * @param {number} numInputs
+	 * @param {number} inBasePtr
+	 * @param {number} inStride
+	 * @param {number} outBasePtr
+	 * @param {number} outStride
+	 * @return {boolean} isOk
+	 */
+	var compareTransformFeedbackOutput = function(primitiveType, output, numInputs, inBasePtr, inStride, outBasePtr, outStride) {
+
+	/** @type {boolean} */ var isOk	= true;
+	/** @type {number} */ var outOffset	= output.offset;
+
+		for (var attrNdx = 0; attrNdx < output.inputs.length; attrNdx++)
+		{
+		/** @type {Attribute} */ var attribute = output.inputs[attrNdx];
+		/** @type {deqpUtils.DataType} */ var type	= attribute.type;
+		/** @type {number} */ var numComponents	= deqpUtils.getDataTypeScalarSize(type);
+			glu::Precision precision = attribute.type.getPrecision(); // TODO: see "gluVarType.hpp" for getPrecision()
+		/** @type {string} */ var scalarType = deqpUtils.getDataTypeScalarType(type);
+		/** @type {number} */ var numOutputs = getTransformFeedbackOutputCount(primitiveType, numInputs);
+
+			for (var outNdx = 0; outNdx < numOutputs; outNdx++)
+			{
+			/** @type {number} */ var inNdx = getAttributeIndex(primitiveType, numInputs, outNdx);
+
+				for (var compNdx = 0; compNdx < numComponents; compNdx++)
+				{
+				/** @type {number} */ var inPtr	= inBasePtr + inStride * inNdx + attribute.offset + compNdx * 4; /*sizeof(deUint32)*/
+				/** @type {number} */ var outPtr = outBasePtr + outStride * outNdx + outOffset + compNdx * 4; /*sizeof(deUint32)*/
+				/** @type {boolean} */ var isEqual	= false;
+				/** @type {number} */ var difInOut = inPtr - outPtr;
+
+					if (scalarType === 'float')
+					{
+						// ULP comparison is used for highp and mediump. Lowp uses threshold-comparison.
+						switch (precision)
+						{
+							case Precision.HIGHP: // or case glsUBC.UniformFlags.PRECISION_HIGHP:
+							{
+								isEqual = (difInOut < 0 ? - difInOut : difInOut) < 2;
+								break;
+							}
+
+							case Precision.MEDIUMP: // or case glsUBC.UniformFlags.PRECISION_MEDIUMP:
+							{
+								isEqual = (difInOut < 0 ? - difInOut : difInOut) < 2 + (1 << 13);
+								break;
+							}
+
+							case Precision.LOWP: // or case glsUBC.UniformFlags.PRECISION_LOWP:
+							{
+								// TODO: check? casts for floats removed
+								isEqual = (difInOut < 0 ? - difInOut : difInOut) < 0.1;
+								break;
+							}
+							default:
+								// TODO: DE_ASSERT(false);
+						}
+					}
+					else
+						isEqual = (inPtr === outPtr); // Bit-exact match required for integer types.
+
+					if (!isEqual)
+					{
+						bufferedLogToConsole('Mismatch in ' + output.name + ' (' + attribute.name + '), output = ' + outNdx + ', input = ' + inNdx + ', component = ' + compNdx);
+						isOk = false;
+						break;
+					}
+				}
+
+				if (!isOk)
+					break;
+			}
+
+			if (!isOk)
+				break;
+
+			outOffset += numComponents * 4; /*sizeof(deUint32)*/
+		}
+
+		return isOk;
 	};
 
 
