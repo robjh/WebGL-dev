@@ -17,14 +17,36 @@
  * limitations under the License.
  *
  */
-/*'framework/opengl/gluDrawUtil', ... deqpDraw, */
-define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 'framework/common/tcuTestCase', 'framework/delibs/debase/deInt32'], function(deqpUtils, glsUBC, deqpTests, deInt32) {
+
+
+define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 'modules/shared/glsRandomUniformBlockCase', 'framework/common/tcuTestCase', 'framework/delibs/debase/deInt32', 'framework/delibs/debase/deRandom'], function(deqpUtils, glsUBC, glsRUBC, deqpTests, deInt32, deRandom) {
     'use strict';
 
     /** @const @type {number} */ var VIEWPORT_WIDTH = 128;
     /** @const @type {number} */ var VIEWPORT_HEIGHT = 128;
 
     /** @const @type {deqpTests.DeqpTest} */ var testGroup = deqpTests.newTest('ubo', 'Uniform Block tests', null);
+
+    /**
+     * createRandomCaseGroup
+     * @param {deqpTests.DeqpTest} parentGroup
+     * @param {string} groupName
+     * @param {string} description
+     * @param {glsUBC.BufferMode} bufferMode
+     * @param {deInt32.deUint32} features
+     * @param {number} numCases
+     * @param {deInt32.deUint32} baseSeed
+     */
+    var createRandomCaseGroup = function(parentGroup, groupName, description, bufferMode, features, numCases, baseSeed) {
+        /** @type {deqpTests.DeqpTest} */
+        var group = new deqpTests.newTest(groupName, description);
+        parentGroup.addChild(group);
+
+        baseSeed += Math.floor(Math.random() * 100); //Replacing getBaseSeed from original implementation. This will be just a seed to a different random generator.
+
+        for (var ndx = 0; ndx < numCases; ndx++)
+            group.addChild(new glsRUBC.RandomUniformBlockCase('' + ndx, '', bufferMode, features, ndx + baseSeed));
+    };
 
     /**
      * BlockBasicTypeCase constructor
@@ -680,32 +702,35 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
         testPassedOptions('Init ubo.multi_nested_struct', true);
 
         // TODO: ubo.random
-        // {
-//             /** @type {deInt32.deUint32} */ var allShaders = FEATURE_VERTEX_BLOCKS|FEATURE_FRAGMENT_BLOCKS|FEATURE_SHARED_BLOCKS;
-//             /** @type {deInt32.deUint32} */ var allLayouts = FEATURE_PACKED_LAYOUT|FEATURE_SHARED_LAYOUT|FEATURE_STD140_LAYOUT;
-//             /** @type {deInt32.deUint32} */ var allBasicTypes = FEATURE_VECTORS|FEATURE_MATRICES;
-//             /** @type {deInt32.deUint32} */ var unused = FEATURE_UNUSED_MEMBERS|FEATURE_UNUSED_UNIFORMS;
-//             /** @type {deInt32.deUint32} */ var matFlags = FEATURE_MATRIX_LAYOUT;
-//             /** @type {deInt32.deUint32} */ var allFeatures = ~FEATURE_ARRAYS_OF_ARRAYS;
-//
-//             tcu::TestCaseGroup* randomGroup = new tcu::TestCaseGroup(m_testCtx, "random", "Random Uniform Block cases");
-//             addChild(randomGroup);
-//
-//             // Basic types.
-//             createRandomCaseGroup(randomGroup, m_context, "scalar_types",    "Scalar types only, per-block buffers",                UniformBlockCase::BUFFERMODE_PER_BLOCK,    allShaders|allLayouts|unused,                                        25, 0);
-//             createRandomCaseGroup(randomGroup, m_context, "vector_types",    "Scalar and vector types only, per-block buffers",    UniformBlockCase::BUFFERMODE_PER_BLOCK,    allShaders|allLayouts|unused|FEATURE_VECTORS,                        25, 25);
-//             createRandomCaseGroup(randomGroup, m_context, "basic_types",    "All basic types, per-block buffers",                UniformBlockCase::BUFFERMODE_PER_BLOCK, allShaders|allLayouts|unused|allBasicTypes|matFlags,                25, 50);
-//             createRandomCaseGroup(randomGroup, m_context, "basic_arrays",    "Arrays, per-block buffers",                        UniformBlockCase::BUFFERMODE_PER_BLOCK,    allShaders|allLayouts|unused|allBasicTypes|matFlags|FEATURE_ARRAYS,    25, 50);
-//
-//             createRandomCaseGroup(randomGroup, m_context, "basic_instance_arrays",                    "Basic instance arrays, per-block buffers",                UniformBlockCase::BUFFERMODE_PER_BLOCK,    allShaders|allLayouts|unused|allBasicTypes|matFlags|FEATURE_INSTANCE_ARRAYS,                                25, 75);
-//             createRandomCaseGroup(randomGroup, m_context, "nested_structs",                            "Nested structs, per-block buffers",                    UniformBlockCase::BUFFERMODE_PER_BLOCK,    allShaders|allLayouts|unused|allBasicTypes|matFlags|FEATURE_STRUCTS,                                        25, 100);
-//             createRandomCaseGroup(randomGroup, m_context, "nested_structs_arrays",                    "Nested structs, arrays, per-block buffers",            UniformBlockCase::BUFFERMODE_PER_BLOCK,    allShaders|allLayouts|unused|allBasicTypes|matFlags|FEATURE_STRUCTS|FEATURE_ARRAYS,                            25, 150);
-//             createRandomCaseGroup(randomGroup, m_context, "nested_structs_instance_arrays",            "Nested structs, instance arrays, per-block buffers",    UniformBlockCase::BUFFERMODE_PER_BLOCK,    allShaders|allLayouts|unused|allBasicTypes|matFlags|FEATURE_STRUCTS|FEATURE_INSTANCE_ARRAYS,                25, 125);
-//             createRandomCaseGroup(randomGroup, m_context, "nested_structs_arrays_instance_arrays",    "Nested structs, instance arrays, per-block buffers",    UniformBlockCase::BUFFERMODE_PER_BLOCK,    allShaders|allLayouts|unused|allBasicTypes|matFlags|FEATURE_STRUCTS|FEATURE_ARRAYS|FEATURE_INSTANCE_ARRAYS,    25, 175);
-//
-//             createRandomCaseGroup(randomGroup, m_context, "all_per_block_buffers",    "All random features, per-block buffers",    UniformBlockCase::BUFFERMODE_PER_BLOCK,    allFeatures,    50, 200);
-//             createRandomCaseGroup(randomGroup, m_context, "all_shared_buffer",        "All random features, shared buffer",        UniformBlockCase::BUFFERMODE_SINGLE,    allFeatures,    50, 250);
-//         }
+        {
+             /** @type {deInt32.deUint32} */ var allShaders = glsRUBC.FeatureBits.FEATURE_VERTEX_BLOCKS | glsRUBC.FeatureBits.FEATURE_FRAGMENT_BLOCKS | glsRUBC.FeatureBits.FEATURE_SHARED_BLOCKS;
+             /** @type {deInt32.deUint32} */ var allLayouts = glsRUBC.FeatureBits.FEATURE_PACKED_LAYOUT | glsRUBC.FeatureBits.FEATURE_SHARED_LAYOUT | glsRUBC.FeatureBits.FEATURE_STD140_LAYOUT;
+             /** @type {deInt32.deUint32} */ var allBasicTypes = glsRUBC.FeatureBits.FEATURE_VECTORS | glsRUBC.FeatureBits.FEATURE_MATRICES;
+             /** @type {deInt32.deUint32} */ var unused = glsRUBC.FeatureBits.FEATURE_UNUSED_MEMBERS | glsRUBC.FeatureBits.FEATURE_UNUSED_UNIFORMS;
+             /** @type {deInt32.deUint32} */ var matFlags = glsRUBC.FeatureBits.FEATURE_MATRIX_LAYOUT;
+             /** @type {deInt32.deUint32} */ var allFeatures = (~glsRUBC.FeatureBits.FEATURE_ARRAYS_OF_ARRAYS & 0xFFFF);
+
+             /** @type {deqpTests.DeqpTest} */
+             var randomGroup = new deqpTests.newTest('random', 'Random Uniform Block cases');
+             testGroup.addChild(randomGroup);
+
+             // Basic types.
+             createRandomCaseGroup(randomGroup, 'scalar_types', 'Scalar types only, per-block buffers', glsUBC.BufferMode.BUFFERMODE_PER_BLOCK, allShaders | allLayouts | unused, 25, 0);
+             createRandomCaseGroup(randomGroup, 'vector_types', 'Scalar and vector types only, per-block buffers', glsUBC.BufferMode.BUFFERMODE_PER_BLOCK, allShaders | allLayouts | unused | glsRUBC.FeatureBits.FEATURE_VECTORS, 25, 25);
+             createRandomCaseGroup(randomGroup, 'basic_types', 'All basic types, per-block buffers', glsUBC.BufferMode.BUFFERMODE_PER_BLOCK, allShaders | allLayouts | unused | allBasicTypes | matFlags, 25, 50);
+             createRandomCaseGroup(randomGroup, 'basic_arrays', 'Arrays, per-block buffers', glsUBC.BufferMode.BUFFERMODE_PER_BLOCK, allShaders | allLayouts | unused | allBasicTypes | matFlags | glsRUBC.FeatureBits.FEATURE_ARRAYS, 25, 50);
+
+             createRandomCaseGroup(randomGroup, 'basic_instance_arrays', 'Basic instance arrays, per-block buffers', glsUBC.BufferMode.BUFFERMODE_PER_BLOCK, allShaders | allLayouts | unused | allBasicTypes | matFlags | glsRUBC.FeatureBits.FEATURE_INSTANCE_ARRAYS, 25, 75);
+             createRandomCaseGroup(randomGroup, 'nested_structs', 'Nested structs, per-block buffers', glsUBC.BufferMode.BUFFERMODE_PER_BLOCK, allShaders | allLayouts | unused | allBasicTypes | matFlags | glsRUBC.FeatureBits.FEATURE_STRUCTS, 25, 100);
+             createRandomCaseGroup(randomGroup, 'nested_structs_arrays', 'Nested structs, arrays, per-block buffers', glsUBC.BufferMode.BUFFERMODE_PER_BLOCK, allShaders | allLayouts | unused | allBasicTypes | matFlags | glsRUBC.FeatureBits.FEATURE_STRUCTS | glsRUBC.FeatureBits.FEATURE_ARRAYS, 25, 150);
+             createRandomCaseGroup(randomGroup, 'nested_structs_instance_arrays', 'Nested structs, instance arrays, per-block buffers', glsUBC.BufferMode.BUFFERMODE_PER_BLOCK, allShaders | allLayouts | unused | allBasicTypes | matFlags | glsRUBC.FeatureBits.FEATURE_STRUCTS | glsRUBC.FeatureBits.FEATURE_INSTANCE_ARRAYS, 25, 125);
+             createRandomCaseGroup(randomGroup, 'nested_structs_arrays_instance_arrays', 'Nested structs, instance arrays, per-block buffers', glsUBC.BufferMode.BUFFERMODE_PER_BLOCK, allShaders | allLayouts | unused | allBasicTypes | matFlags | glsRUBC.FeatureBits.FEATURE_STRUCTS | glsRUBC.FeatureBits.FEATURE_ARRAYS | glsRUBC.FeatureBits.FEATURE_INSTANCE_ARRAYS, 25, 175);
+
+             createRandomCaseGroup(randomGroup, 'all_per_block_buffers', 'All random features, per-block buffers', glsUBC.BufferMode.BUFFERMODE_PER_BLOCK, allFeatures, 50, 200);
+             createRandomCaseGroup(randomGroup, 'all_shared_buffer', 'All random features, shared buffer', glsUBC.BufferMode.BUFFERMODE_SINGLE, allFeatures, 50, 250);
+         }
+         //TODO: Remove
+         testPassedOptions('Init ubo.random', true);
     };
 
     /**
