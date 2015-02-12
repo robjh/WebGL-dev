@@ -25,8 +25,6 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
     /** @const @type {number} */ var VIEWPORT_WIDTH = 128;
     /** @const @type {number} */ var VIEWPORT_HEIGHT = 128;
 
-    /** @const @type {deqpTests.DeqpTest} */ var testGroup = deqpTests.newTest('ubo', 'Uniform Block tests', null);
-
     /**
      * createRandomCaseGroup
      * @param {deqpTests.DeqpTest} parentGroup
@@ -331,7 +329,9 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
      * Creates the test hierarchy to be executed.
      * @param {string} filter A filter to select particular tests.
      **/
-    var init = function(filter) {
+    var init = function() {
+        /** @const @type {deqpTests.DeqpTest} */ var testGroup = deqpTests.runner.getState().testCases;
+
         /** @type {deqpUtils.DataType} */
         var basicTypes = [
             deqpUtils.DataType.FLOAT,
@@ -424,8 +424,7 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
                 }
             }
         }
-        //TODO: Remove
-        testPassedOptions('Init ubo.single_basic_type', true);
+        bufferedLogToConsole('ubo.single_basic_type: Tests created');
 
         // ubo.single_basic_array
         /** @type {deqpTests.DeqpTest} */
@@ -457,8 +456,7 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
                 }
             }
         }
-        //TODO: Remove
-        testPassedOptions('Init ubo.single_basic_array', true);
+        bufferedLogToConsole('ubo.single_basic_array: Tests created');
 
         // ubo.single_struct
         /** @type {deqpTests.DeqpTest} */
@@ -492,8 +490,7 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
                 }
             }
         }
-        //TODO: Remove
-        testPassedOptions('Init ubo.single_struct', true);
+        bufferedLogToConsole('ubo.single_struct: Tests created');
 
         // ubo.single_struct_array
         /** @type {deqpTests.DeqpTest} */
@@ -527,8 +524,7 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
                 }
             }
         }
-        //TODO: Remove
-        testPassedOptions('Init ubo.single_struct_array', true);
+        bufferedLogToConsole('ubo.single_struct_array: Tests created');
 
         // ubo.single_nested_struct
         /** @type {deqpTests.DeqpTest} */
@@ -562,8 +558,7 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
                 }
             }
         }
-        //TODO: Remove
-        testPassedOptions('Init ubo.single_nested_struct', true);
+        bufferedLogToConsole('ubo.single_nested_struct: Tests created');
 
         // ubo.single_nested_struct_array
         /** @type {deqpTests.DeqpTest} */
@@ -597,8 +592,7 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
                 }
             }
         }
-        //TODO: Remove
-        testPassedOptions('Init ubo.single_nested_struct_array', true);
+        bufferedLogToConsole('ubo.single_nested_struct_array: Tests created');
 
         // ubo.instance_array_basic_type
         /** @type {deqpTests.DeqpTest} */
@@ -630,8 +624,7 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
                 }
             }
         }
-        //TODO: Remove
-        testPassedOptions('Init ubo.instance_array_basic_type', true);
+        bufferedLogToConsole('ubo.instance_array_basic_type: Tests created');
 
         // ubo.multi_basic_types
         /** @type {deqpTests.DeqpTest} */
@@ -664,8 +657,7 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
                 }
             }
         }
-        //TODO: Remove
-        testPassedOptions('Init ubo.multi_basic_types', true);
+        bufferedLogToConsole('ubo.multi_basic_types: Tests created');
 
         // ubo.multi_nested_struct
         /** @type {deqpTests.DeqpTest} */
@@ -698,10 +690,9 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
                 }
             }
         }
-        //TODO: Remove
-        testPassedOptions('Init ubo.multi_nested_struct', true);
+        bufferedLogToConsole('ubo.multi_nested_struct: Tests created');
 
-        // TODO: ubo.random
+        // ubo.random
         {
              /** @type {deInt32.deUint32} */ var allShaders = glsRUBC.FeatureBits.FEATURE_VERTEX_BLOCKS | glsRUBC.FeatureBits.FEATURE_FRAGMENT_BLOCKS | glsRUBC.FeatureBits.FEATURE_SHARED_BLOCKS;
              /** @type {deInt32.deUint32} */ var allLayouts = glsRUBC.FeatureBits.FEATURE_PACKED_LAYOUT | glsRUBC.FeatureBits.FEATURE_SHARED_LAYOUT | glsRUBC.FeatureBits.FEATURE_STD140_LAYOUT;
@@ -729,8 +720,37 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
              createRandomCaseGroup(randomGroup, 'all_per_block_buffers', 'All random features, per-block buffers', glsUBC.BufferMode.BUFFERMODE_PER_BLOCK, allFeatures, 50, 200);
              createRandomCaseGroup(randomGroup, 'all_shared_buffer', 'All random features, shared buffer', glsUBC.BufferMode.BUFFERMODE_SINGLE, allFeatures, 50, 250);
          }
-         //TODO: Remove
-         testPassedOptions('Init ubo.random', true);
+         bufferedLogToConsole('ubo.random: Tests created');
+    };
+
+    /**
+     * Run through the test cases giving time to system operation.
+     */
+    var runTestCases = function() {
+        var state = deqpTests.runner.getState();
+        state.currentTest = state.testCases.next(state.filter);
+        if (state.currentTest) {
+            try {
+                //Update current test name
+                var fullTestName = state.currentTest.fullName();
+                setCurrentTestName(fullTestName);
+                debug('Start testcase: ' + fullTestName);
+
+                //Initialize particular test if it exposes an init method
+                if (state.currentTest.init !== undefined)
+                    state.currentTest.init();
+
+                //Run the test
+                state.currentTest.iterate();
+            } catch (err) {
+                //If the exception was not thrown by a test check, log it, but don't throw it again
+                if (!(err instanceof TestFailedException))
+                    testFailedOptions(err, false);
+                bufferedLogToConsole(err);
+            }
+            deqpTests.runner.runCallback(runTestCases);
+        } else
+            deqpTests.runner.terminate();
     };
 
     /**
@@ -738,19 +758,29 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
      * @param {string} filter Optional filter
      */
     var run = function(filter) {
-        init(filter);
-        deqpTests.runner.terminate();
-        /*WebGLTestUtils.loadTextFileAsync(testName + '.test', function(success, content) {
-            if (success) {
-                deqpTests.runner.getState().testFile = content;
-                deqpTests.runner.getState().testName = testName;
-                deqpTests.runner.getState().filter = filter;
-                deqpTests.runner.runCallback(processTestFile);
-            } else {
-                testFailed('Failed to load test file: ' + testName);
-                deqpTests.runner.terminate();
-            }
-        });*/
+        //Set up Test Root parameters
+        var testName = 'ubo';
+        var testDescription = 'Uniform Block Tests';
+        var state = deqpTests.runner.getState();
+
+        state.testName = testName;
+        state.filter = filter;
+        state.testCases = deqpTests.newTest(testName, testDescription, null);
+
+        //Set up name and description of this test series.
+        setCurrentTestName(testName);
+        description(testDescription);
+
+        try {
+            //Create test cases
+            init();
+            //Run test cases
+            runTestCases();
+        }
+        catch (err) {
+            testFailedOptions('Failed to run tests', false);
+            deqpTests.runner.terminate();
+        }
     };
 
     return {

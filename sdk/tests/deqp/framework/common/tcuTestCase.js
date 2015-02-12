@@ -119,7 +119,7 @@ var DeqpTest = function(name, description, spec) {
 
     var test = null;
 
-    if (this.spec.length) {
+    if (this.spec && this.spec.length) {
         while (!test) {
             if (this.currentTest < this.spec.length) {
                 test = this.spec[this.currentTest].next();
@@ -174,7 +174,7 @@ DeqpTest.prototype.find = function(pattern) {
  DeqpTest.prototype.reset = function() {
     this.currentTest = 0;
 
-    if (this.spec.length)
+    if (this.spec && this.spec.length)
         for (var i = 0; i < this.spec.length; i++)
             this.spec[i].reset();
 };
@@ -200,6 +200,7 @@ var newTest = function(name, description, spec) {
 };
 
 return {
+    DeqpTest: DeqpTest,
     runner: stateMachine,
     newTest: newTest
 };

@@ -538,12 +538,16 @@ ShaderInterface.prototype.getUniformBlock = function(ndx) {
 };
 
 var UniformBlockCase = function(name, description, bufferMode) {
+    deqpTests.DeqpTest.call(this, name, description);
     /** @type {string} */ this.m_name = name;
     /** @type {string} */ this.m_description = description;
     //glu::GLSLVersion m_glslVersion;
     /** @type {BufferMode} */ this.m_bufferMode = bufferMode;
     /** @type {ShaderInterface} */ this.m_interface = new ShaderInterface();
 };
+
+UniformBlockCase.prototype = Object.create(deqpTests.DeqpTest.prototype);
+UniformBlockCase.prototype.constructor = UniformBlockCase;
 
 /**
  * TODO: test getGLUniformLayout Gets the uniform blocks and uniforms in the program.
@@ -846,11 +850,13 @@ UniformBlockCase.prototype.deRoundUp32 = function(a, b)
 //     }
 // };
 //
-// /**
-//  * TODO: iterate
-//  * @return {IterateResult}
-//  */
-// var iterate = function() {
+ /**
+  * TODO: iterate
+  * @return {IterateResult}
+  */
+ UniformBlockCase.prototype.iterate = function() {
+     testPassedOptions('', true);
+ };
 //     /** @type {UniformLayout} */ var refLayout; //!< std140 layout.
 //     /** @type {number} */ var data; //!< Data (vector<deUint8>).
 //     /** @typedef blockPointer

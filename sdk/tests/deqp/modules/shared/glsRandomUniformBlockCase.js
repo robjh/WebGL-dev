@@ -106,14 +106,14 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
                 structType.addMember('m' + ('A'.charCodeAt(0) + ndx), memberTypes[ndx], flags);
             }
 
-            return new glsUBC.VarTypeStruct(structType);
+            return new glsUBC.VarType().VarTypeStruct(structType);
         }
         else if (this.m_maxArrayLength > 0 && arrayOk && rnd.getFloat() < arrayWeight)
         {
             /** @type {boolean} */ var arraysOfArraysOk = (this.m_features & FeatureBits.FEATURE_ARRAYS_OF_ARRAYS) != 0;
             /** @type {number} */ var arrayLength = rnd.getInt(1, this.m_maxArrayLength);
             /** @type {glsUB.VarType} */ var elementType = this.generateType(rnd, typeDepth, arraysOfArraysOk);
-            return new glsUBC.VarTypeArray(elementType, arrayLength);
+            return new glsUBC.VarType().VarTypeArray(elementType, arrayLength);
         }
         else
         {
@@ -162,7 +162,7 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
                 flags |= rnd.choose(precisionCandidates)[0];
             }
 
-            return new glsUBC.VarTypeBasic(type, flags);
+            return new glsUBC.VarType().VarTypeBasic(type, flags);
         }
     };
 
