@@ -751,7 +751,7 @@ define(['framework/opengl/gluShaderUtil.js', 'framework/opengl/gluDrawUtil', 'mo
 
 			m_iterNdx += 1;
 
-			return(isOk && m_iterNdx < numIterations) ? CONTINUE : STOP; // TODO: find CONFINUTE, find STOP
+			return(isOk && m_iterNdx < numIterations) ? CONTINUE : STOP; // TODO: find CONTINUTE, find STOP
 
 		};
 
@@ -798,38 +798,173 @@ define(['framework/opengl/gluShaderUtil.js', 'framework/opengl/gluDrawUtil', 'mo
 			GLU_EXPECT_NO_ERROR(gl.getError(), "glBindTransformFeedback()");
 
 			// Allocate storage for transform feedback output buffers and bind to targets.
-			for (int bufNdx = 0; bufNdx < (int)m_outputBuffers.size(); bufNdx++)
-			{
-				deUint32 buffer = m_outputBuffers[bufNdx];
-				int	stride = m_bufferStrides[bufNdx];
-				int	target = bufNdx;
-				int	size = stride * numOutputs;
-				int	guardSize = stride*BUFFER_GUARD_MULTIPLIER;
-				const deUint32	usage = GL_DYNAMIC_READ;
+			for (var bufNdx = 0 ; bufNdx < m_outputBuffers.length; ++bufNdx) {
+				var buffer = m_outputBuffers[bufNdx]; // deUint32
+				var stride = m_bufferStrides[bufNdx]; // int
+				var	target = bufNdx; // int
+				var	size = stride * numOutputs; // int
+				var	guardSize = stride*BUFFER_GUARD_MULTIPLIER; // int
+				var usage = GL_DYNAMIC_READ; // const deUint32
 
-				gl.bindBuffer(GL_TRANSFORM_FEEDBACK_BUFFER, buffer);
-				gl.bufferData(GL_TRANSFORM_FEEDBACK_BUFFER, size + guardSize, DE_NULL, usage);
-				writeBufferGuard(gl, GL_TRANSFORM_FEEDBACK_BUFFER, size, guardSize);
+				gl.bindBuffer(gl.TRANSFORM_FEEDBACK_BUFFER, buffer);
+				gl.bufferData(gl.TRANSFORM_FEEDBACK_BUFFER, size + guardSize, DE_NULL, usage);
+				writeBufferGuard(gl, gl.TRANSFORM_FEEDBACK_BUFFER, size, guardSize);
 
 				// \todo [2012-07-30 pyry] glBindBufferRange()?
-				gl.bindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, target, buffer);
+				gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, target, buffer);
 
 				GLU_EXPECT_NO_ERROR(gl.getError(), 'transform feedback buffer setup');
+			}
+			
+			// Setup attributes.
+			for (var i = 0 ; i < m_attributes.length ; ++i) {
+				var loc           = gl.getAttribLocation(m_program->getProgram(), attrib->name);
+				var scalarType    = glu::getDataTypeScalarType(attrib->type.getBasicType());
+				var numComponents = glu::getDataTypeScalarSize(attrib->type.getBasicType());
+				
+				if (loc >= 0) {
+					gl.enableVertexAttribArray(loc);
+					var type = null;
+					switch (scalarType){
+						case glu.TYPE_FLOAT: type = gl.FLOAT;        break;
+						case glu.TYPE_INT:   type = gl.INT;          break;
+						case glu.TYPE_UINT:  type = gl.UNSIGNED_INT; break;
+					}
+					if (type !== null) {
+						gl.vertexAttribPointer (loc, numComponents, type, GL_FALSE, m_inputStride, ptr);
+					}
+				}
+			}
+			
+			// Setup viewport.
+			gl.viewport(viewportX, viewportY, viewportW, viewportH);
+
+			// Setup program.
+			gl.useProgram(m_program->getProgram());
+
+			gl.uniform4fv(
+				gl.getUniformLocation(m_program->getProgram(), "u_scale"),
+				1, tcu.Vec4(0.01)
+			);
+			gl.uniform4fv(
+				gl.getUniformLocation(m_program->getProgram(), "u_bias"),
+				1, tcu.Vec4(0.5)
+			);
+			
+			// Enable query.
+			gl.beginQuery(gl.TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN, primitiveQuery);
+			GLU_EXPECT_NO_ERROR(gl.getError(), "glBeginQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN)");
+			
+			// Draw
+			{
+				var offset     = 0;
+				var tfEnabled  = true;
+				
+				gl.clear(gl.COLOR_BUFFER_BIT);
+				
+				gl.beginTransformFeedback(getTransformFeedbackPrimitiveMode(m_primitiveType));
+				
+				for (var i = 0 ; i < calls.length ; ++i) {
+					var call = calls[i];
+					
+					// Pause or resume transform feedback if necessary.
+					if (call.transformFeedbackEnabled != tfEnabled)
+					{
+						if (call.transformFeedbackEnabled)
+							gl.resumeTransformFeedback();
+						else
+							gl.pauseTransformFeedback();
+						tfEnabled = call.transformFeedbackEnabled;
+					}
+
+					gl.drawArrays(m_primitiveType, offset, call.numElements);
+					offset += call.numElements;
+				}
+				
+				// Resume feedback before finishing it.
+				if (!tfEnabled)
+					gl.resumeTransformFeedback();
+
+				gl.endTransformFeedback();
+				GLU_EXPECT_NO_ERROR(gl.getError(), "render");
+			}
+			
+			gl.endQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN);
+			GLU_EXPECT_NO_ERROR(gl.getError(), "glEndQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN)");
+			
+			// Check and log query status right after submit
+			{
+				deUint32 available = GL_FALSE;
+				gl.getQueryParameter(primitiveQuery, gl.QUERY_RESULT_AVAILABLE, available);
+				GLU_EXPECT_NO_ERROR(gl.getError(), "glGetQueryObjectuiv()");
+
+				log.log(
+					TestLog.Message +
+					'GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN status after submit: ' +
+					(available != GL_FALSE ? 'GL_TRUE' : 'GL_FALSE') +
+					TestLog.EndMessage
+				);
+			}
+			
+			// Compare result buffers.
+			for (var bufferNdx = 0 ; bufferNdx < m_outputBuffers.length ; ++bufferNdx) {
+				var buffer     = m_outputBuffers[bufferNdx];        // deUint32
+				var stride     = m_bufferStrides[bufferNdx];        // int
+				var size       = stride * numOutputs;               // int
+				var guardSize  = stride * BUFFER_GUARD_MULTIPLIER;  // int
+				var buffer     = new ArrayBuffer(size+guardSize);   // const void*
+				
+				// Bind buffer for reading.
+				gl.bindBuffer(gl.TRANSFORM_FEEDBACK_BUFFER, buffer);
+				
+				gl.getBufferSubData(gl.TRANSFORM_FEEDBACK_BUFFER, 0, buffer); // (spec says to use ArrayBufferData)
+				GLU_EXPECT_NO_ERROR(gl.getError(), "mapping buffer");
+				
+				// Verify all output variables that are written to this buffer.
+				for (var i = 0 ; i < m_transformFeedbackOutputs.length ; ++i) {
+					var out = m_transformFeedbackOutputs[i];
+					
+					if (out.bufferNdx != bufferNdx)
+						continue;
+					
+					var inputOffset   = 0;
+					var	outputOffset  = 0;
+					
+					// Process all draw calls and check ones with transform feedback enabled
+					for (var callNdx = 0 ; callNdx < calls.length ; ++callNdx) {
+						var call = calls[callNdx];
+						
+						if (call.transformFeedbackEnabled) {
+							var inputPtr  = &inputData[0] + inputOffset*m_inputStride; // const deUint8*
+							var outputPtr = (const deUint8*)bufPtr + outputOffset*stride; // const deUint8*
+
+							if (!compareTransformFeedbackOutput(log, m_primitiveType, *out, call->numElements, inputPtr, m_inputStride, outputPtr, stride)) {
+								outputsOk = false;
+								break;
+							}
+						}
+
+						inputOffset   += call->numElements;
+						outputOffset  += call->transformFeedbackEnabled ? getTransformFeedbackOutputCount(m_primitiveType, call->numElements) : 0;
+						
+					}
+				}
+	
 			}
 		};
 
 		// Derived from ProgramSpec in init()
-		var m_inputStride = 0;
-		var m_attributes = [];    // vector<Attribute>
-		var m_transformFeedbackOutputs = [];    // vector<Output>
-		var m_bufferStrides = [];    // vector<int>
+		var m_inputStride       = 0;
+		var m_attributes        = [];    // vector<Attribute>
+		var m_transformFeedbackOutputs = []; // vector<Output>
+		var m_bufferStrides     = [];    // vector<int>
 
 		// GL state.
-		var m_program = null;  // glu::ShaderProgram
+		var m_program           = null;  // glu::ShaderProgram
 		var m_transformFeedback = null;  // glu::TransformFeedback
-		var m_outputBuffers = [];    // vector<deUint32>
+		var m_outputBuffers     = [];    // vector<deUint32>
 
-		var m_iterNdx = 0;     // int
+		var m_iterNdx           = 0;     // int
 
 		this._construct(context, name, desc, bufferMode, primitiveType);
 
@@ -837,25 +972,25 @@ define(['framework/opengl/gluShaderUtil.js', 'framework/opengl/gluDrawUtil', 'mo
 	// static data
 	TransformFeedbackCase.s_iterate = {
 		testCases: {
-			elemCount1: [DrawCall(1, true)],
-			elemCount2: [DrawCall(2, true)],
-			elemCount3: [DrawCall(3, true)],
-			elemCount4: [DrawCall(4, true)],
+			elemCount1:   [DrawCall(  1, true)],
+			elemCount2:   [DrawCall(  2, true)],
+			elemCount3:   [DrawCall(  3, true)],
+			elemCount4:   [DrawCall(  4, true)],
 			elemCount123: [DrawCall(123, true)],
-			basicPause1: [DrawCall(64, true),  DrawCall(64, false), DrawCall(64, true)],
-			basicPause2: [DrawCall(13, true),  DrawCall(5, true),  DrawCall(17, false),
-				            DrawCall(3, true),  DrawCall(7, false)],
-			startPaused: [DrawCall(123, false), DrawCall(123, true)],
-			random1: [DrawCall(65, true),  DrawCall(135, false), DrawCall( 74, true),
-				            DrawCall( 16, false), DrawCall(226, false), DrawCall(  9, true),
-				            DrawCall(174, false)],
-			random2: [DrawCall(217, true),  DrawCall(171, true),  DrawCall(147, true),
-				            DrawCall(152, false), DrawCall(55, true)],
+			basicPause1:  [DrawCall( 64, true),  DrawCall( 64, false), DrawCall( 64, true)],
+			basicPause2:  [DrawCall( 13, true),  DrawCall(  5, true),  DrawCall( 17, false),
+			               DrawCall(  3, true),  DrawCall(  7, false)],
+			startPaused:  [DrawCall(123, false), DrawCall(123, true)],
+			random1:      [DrawCall( 65, true),  DrawCall(135, false), DrawCall( 74, true),
+			               DrawCall( 16, false), DrawCall(226, false), DrawCall(  9, true),
+			               DrawCall(174, false)],
+			random2:      [DrawCall(217, true),  DrawCall(171, true),  DrawCall(147, true),
+			               DrawCall(152, false), DrawCall( 55, true)],
 		},
 		iterations = [
 			'elemCount1',  'elemCount2',  'elemCount3', 'elemCount4', 'elemCount1234',
 			'basicPause1', 'basicPause2', 'startPaused',
-			'random1', 'random2'
+			'random1',     'random2'
 		]
 	};
 
