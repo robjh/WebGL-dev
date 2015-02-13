@@ -19,7 +19,7 @@
  */
 
 
-define(function() {
+define(['framework/opengl/gluShaderUtil.js'], function(deqpUtils) {
     'use strict';
 
     /**
@@ -58,6 +58,65 @@ define(function() {
        /** @type {(deqpUtils.DataType|TypeArray|StructType)} */
        this.m_data = undefined;
     };
+
+    /**
+     * StructMember class
+     */
+     var StructMember = function() {
+        /** @type {VarType} */ this.m_type = undefined;
+        /** @type {string} */ this.m_name = '';
+     };
+
+     /**
+      * Creates a StructMember. Use this after the constructor call.
+      * @param {string} name
+      * @param {VarType} type
+      * @return {StructMember} The currently modified object
+      */
+      StructMember.prototype.Constructor = function(name, type) {
+         this.m_type = type;
+         this.m_name = name;
+
+         return this;
+      };
+
+     /**
+      * StructType class
+      */
+      var StructType = function() {
+         /** @type {string} */ this.m_typeName = undefined;
+         /** @type {Array.<StructMember>} */ this.m_members = [];
+
+         this.hasTypeName = function() {
+        	 return (this.m_typeName !== 'undefined');
+         };
+
+         this.setTypeName = function(name) {
+        	 return this.m_typeName = name;
+         };
+
+         this.addMember = function(name, type) {
+        	 return this.m_members.push(newStructMember(name, type));
+
+         };
+
+         this.addStructMember = function(structMember) {
+        	 return this.m_members.push(structMember);
+         };
+      };
+
+    /**
+     * Creates a StructType. Use this after the constructor call.
+     * @param {string} name
+     * @param {StructMember} structMember
+     * @return {StructType} The currently modified object
+     */
+      StructType.prototype.Constructor = function(name, structMember) {
+        this.m_typeName = StructType.setTypeName(name);
+        this.m_members = StructType.addStructMember(structMember);
+
+        return this;
+     };
 
     /**
     * Creates a basic type VarType. Use this after the constructor call.
@@ -157,6 +216,56 @@ define(function() {
        return this.m_data;
     };
 
+    /** getPrecision
+     * @return {StructType} returns the precision flag name.
+     **/
+     VarType.prototype.getPrecision = function() {
+        return this.m_flags;
+     };
+
+    /**
+     * getScalarSize
+     * @return {number} size of the scalar
+     */
+    VarType.prototype.getScalarSize = function() {
+    	switch (this.m_type)
+    	{
+    		case Type.TYPE_BASIC:	return deqpUtils.getDataTypeScalarSize(m_data.basic.type);
+
+    		// TODO: check implementation below: return m_data.array.elementType->getScalarSize()*m_data.array.size;
+    		case Type.TYPE_ARRAY:	return m_data.getElementType().getScalarSize() * m_data.getArraySize();
+
+    		case Type.TYPE_STRUCT:
+    		{
+    			var size = 0;
+
+    			// TODO: check loop conditions below
+    			// for (StructType::ConstIterator iter = m_data.structPtr->begin(); iter != m_data.structPtr->end(); iter++)
+    			for (var iter = 0; this.m_data.m_members[iter] < this.m_data.m_members.length; iter++)
+    				size += this.m_data.m_members[iter].getType().getScalarSize();
+    			return size;
+    		}
+
+    		default:
+    			// DE_ASSERT(false);
+    			return 0;
+    	}
+    };
+
+    /** getName
+     * @return {string} name of the StructMember object.
+     **/
+    StructMember.prototype.getName = function() {
+        return this.m_name;
+     };
+
+     /** getType
+      * @return {string} type of the StructMember object.
+      **/
+     StructMember.prototype.getType = function() {
+         return this.m_type;
+      };
+
     /**
      * Creates a basic type VarType.
      * @param {deqpUtils.DataType} basicType
@@ -186,12 +295,34 @@ define(function() {
         return new VarType().VarTypeStruct(structPtr);
     };
 
+    /**
+     * Creates a StructMember.
+     * @param {string} name
+     * @param {VarType} type
+     * @return {StructMember}
+     */
+     var newStructMember = function(name, type) {
+         return new StructMember().Constructor(name, type);
+     };
+
+     /**
+      * Creates a StructType.
+      * @param {string} name
+      * @param {StructMember} structMember
+      * @return {StructType}
+      */
+      var newStructType = function(name, structMember) {
+          return new StructType.Constructor(name, structMember);
+      };
+
 
     return {
         Type: Type,
         VarType: VarType,
         newTypeBasic: newTypeBasic,
         newTypeArray: newTypeArray,
-        newTypeStruct: newTypeStruct
+        newTypeStruct: newTypeStruct,
+        newStructMember: newStructMember,
+        newStructType: newStructType
     };
 });
