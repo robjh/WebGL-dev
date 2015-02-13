@@ -27,8 +27,13 @@
  * \param texFormat Generic texture format.
  * \return GL pixel transfer format.
  *//*--------------------------------------------------------------------*/
-define(['../common/tcuTexture.js'], function(textureFormat)
+define(['../common/tcuTexture'], function(textureFormat)
 {
+
+var TransferFormat = function(format, dataType) {
+	this.format = format;		//!< Pixel format.
+	this.dataType = dataType;	//!< Data type.
+};
 
 var getTransferFormat = function(/*tcu::TextureFormat*/ texFormat) {
 	var	format	= gl.NONE;
@@ -102,8 +107,7 @@ var getTransferFormat = function(/*tcu::TextureFormat*/ texFormat) {
 			throw new Error("Can't map texture format to GL transfer format " + textureFormat.type);
 	}
 
-	/* TODO: Implement TransferFormat */
-	return TransferFormat(format, type);
+	return new TransferFormat(format, type);
 };
 
 /*--------------------------------------------------------------------*//*!
@@ -1011,7 +1015,8 @@ var isGLInternalColorFormatFilterable = function(/*deUint32*/ format)
 // }
 
 return {
-	mapGLInternalFormat: mapGLInternalFormat
+	mapGLInternalFormat: mapGLInternalFormat,
+	getTransferFormat: getTransferFormat
 };
 
 });

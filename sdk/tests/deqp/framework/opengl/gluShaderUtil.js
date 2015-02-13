@@ -21,6 +21,25 @@
 define(function() {
     'use strict';
 
+/**
+ * @enum
+ */
+var precision = {
+    PRECISION_LOWP: 0,
+    PRECISION_MEDIUMP: 1,
+    PRECISION_HIGHP: 2
+};
+
+var getPrecisionName = function(prec) {
+    var s_names = [
+        "lowp",
+        "mediump",
+        "highp"
+    ];
+
+    return s_names[prec];
+};
+
 /** @const */ var deUint32_size = 4; //To replace all sizeof calls
 /**
  * The Type constants
@@ -392,6 +411,8 @@ var getDataTypeName = function(dataType)  {
 };
 
 return {
+    precision: precision,
+    getPrecisionName, getPrecisionName,
     DataType: DataType,
     getDataTypeFloatScalars: getDataTypeFloatScalars,
     getDataTypeScalarType: getDataTypeScalarType,

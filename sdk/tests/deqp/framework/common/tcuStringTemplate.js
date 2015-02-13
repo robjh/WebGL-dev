@@ -21,33 +21,22 @@
 define(function() {
 'use strict';
 
-    /* Dummy type. TODO: check if it will be necessary */
-    var deUint32 = function() {};
+var escapeRegExp = function(string) {
+    return string.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1");
+};
 
-    var deInRange32 = function(a, mn, mx) {
-        return (a >= mn) && (a <= mx);
-    };
-
-    var deInBounds32 = function(a, mn, mx) {
-        return (a >= mn) && (a < mx);
-    };
-/*--------------------------------------------------------------------*//*!
- * \brief Check if a value is a power-of-two.
- * \param a Input value.
- * \return True if input is a power-of-two value, false otherwise.
- *
- * \note Also returns true for zero.
- *//*--------------------------------------------------------------------*/
-var deIsPowerOfTwo32 = function(a)
-{
-    return ((a & (a - 1)) == 0);
+var specialize = function(str, params) {
+	var dst = str;
+	for (var [key, value] of params) {
+		var re = new RegExp(escapeRegExp('\$\{' + key + '\}'), 'g');
+		dst = dst.replace(re, value);
+	}
+	return dst;
 };
 
 
-    return {
-        deInRange32: deInRange32,
-        deInBounds32: deInBounds32,
-        deIsPowerOfTwo32: deIsPowerOfTwo32
-    };
-});
+return {
+	specialize: specialize
+};
 
+})
