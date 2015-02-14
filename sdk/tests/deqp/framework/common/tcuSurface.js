@@ -40,8 +40,7 @@ var Surface = function(width, heigth) {
 	this.m_width = width;
 	this.m_height = heigth;
 	if (width * heigth > 0) {
-		this.m_pixels = new ArrayBuffer(width * heigth);
-		this.m_view = new Int8Array(this.m_pixels);
+		this.m_pixels = new Uint8Array(4 * width * heigth);
 	}
 };
 
@@ -50,8 +49,7 @@ Surface.prototype.setSize = function(width, height) {
 	this.m_width = width;
 	this.m_height = heigth;
 	if (width * heigth > 0) {
-		this.m_pixels = new ArrayBuffer(width * heigth);
-		this.m_view = new Int8Array(this.m_pixels);
+		this.m_pixels = new Uint8Array(4 * width * heigth);
 	}
 };
 
@@ -62,24 +60,24 @@ Surface.prototype.getHeight	= function() { return this.m_height; }
  * @param color Vec4 color
  */
 Surface.prototype.setPixel	= function(x, y, color) {
-	DE_ASSERT(deInt32deInBounds32(x, 0, this.m_width));
-	DE_ASSERT(deInt32deInBounds32(y, 0, this.m_height));
+	DE_ASSERT(deInt32.deInBounds32(x, 0, this.m_width));
+	DE_ASSERT(deInt32.deInBounds32(y, 0, this.m_height));
 
-	var offset = x + y * this.m_width;
+	var offset = 4*(x + y * this.m_width);
 	for (var i = 0; i < 4; i++)
-		this.m_view[i] = color[i];
+		this.m_pixels[offset + i] = color[i];
 };
 
 Surface.prototype.getPixel	= function(x, y) {
-	DE_ASSERT(deInt32deInBounds32(x, 0, this.m_width));
-	DE_ASSERT(deInt32deInBounds32(y, 0, this.m_height));
+	DE_ASSERT(deInt32.deInBounds32(x, 0, this.m_width));
+	DE_ASSERT(deInt32.deInBounds32(y, 0, this.m_height));
 
 	var color = [];
 	color.length = 4;
 
-	var offset = x + y * this.m_width;
+	var offset = 4*(x + y * this.m_width);
 	for (var i = 0; i < 4; i++)
-		color[i] = this.m_view[i];
+		color[i] = this.m_pixels[offset + i];
 
 	return color;
 };
@@ -88,7 +86,7 @@ Surface.prototype.getPixel	= function(x, y) {
  * @return {PixelBufferAccess} Pixel Buffer Access object
  */
 Surface.prototype.getAccess	= function() {
-	return new PixelBufferAccess({
+	return new tcuTexture.PixelBufferAccess({
 					format: new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.UNORM_INT8),
 					width: this.m_width,
 					height: this.m_heigth,

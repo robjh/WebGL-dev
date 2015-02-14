@@ -117,7 +117,11 @@ Texture2DFormatCase.prototype.iterate = function() {
 	renderParams.flags.log_uniforms = true;
 
 	renderParams.samplerType	= glsTextureTestUtil.getSamplerType(this.m_texture.getRefTexture().getFormat());
-	// renderParams.sampler		= Sampler(Sampler::CLAMP_TO_EDGE, Sampler::CLAMP_TO_EDGE, Sampler::CLAMP_TO_EDGE, Sampler::NEAREST, Sampler::NEAREST);
+	console.log('Sampler');
+	console.log(tcuTexture.Sampler);
+	renderParams.sampler		= new tcuTexture.Sampler(tcuTexture.WrapMode.CLAMP_TO_EDGE, tcuTexture.WrapMode.CLAMP_TO_EDGE, tcuTexture.WrapMode.CLAMP_TO_EDGE,
+	 tcuTexture.FilterMode.NEAREST, tcuTexture.FilterMode.NEAREST);
+	console.log(renderParams.sampler);
 	// renderParams.colorScale		= spec.lookupScale;
 	// renderParams.colorBias		= spec.lookupBias;
 
@@ -163,15 +167,23 @@ Texture2DFormatCase.prototype.iterate = function() {
 	}
 
 	// // Draw.
-	gl.clearColor(1, 0, 0, 1);
-	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
-		gl.generateMipmap(gl.TEXTURE_2D);
 	this.m_renderer.renderQuad(0, texCoord, renderParams);
-	// glu::readPixels(m_renderCtx, viewport.x, viewport.y, renderedFrame.getAccess());
-	// GLU_EXPECT_NO_ERROR(gl.getError(), "glReadPixels()");
+	gl.readPixels(viewport.x, viewport.y, viewport.width, viewport.height, gl.RGBA, gl.UNSIGNED_BYTE, renderedFrame.getAccess().getDataPtr());
+	GLU_EXPECT_NO_ERROR(gl.getError(), "glReadPixels()");
 
 	// // Compute reference.
-	// sampleTexture(SurfaceAccess(referenceFrame, m_renderCtx.getRenderTarget().getPixelFormat()), m_texture->getRefTexture(), &texCoord[0], renderParams);
+	glsTextureTestUtil.sampleTexture2D(new glsTextureTestUtil.SurfaceAccess(referenceFrame, undefined /*m_renderCtx.getRenderTarget().getPixelFormat()*/),
+		this.m_texture.getRefTexture(), texCoord, renderParams);
+
+	{
+		for (var y = 0; y < referenceFrame.getHeight(); y+=18) {
+			for (var x = 0; x < referenceFrame.getWidth(); x+=18) {
+				var p = referenceFrame.getPixel(x, y);
+	    		var output = '(' + x + ',' + y + ') = (' + p[0] + ',' + p[1] + ',' + p[2] +')';
+	    		console.log(output);
+			}
+		}
+	}
 
 	// // Compare and log.
 	// bool isOk = compareImages(log, referenceFrame, renderedFrame, threshold);

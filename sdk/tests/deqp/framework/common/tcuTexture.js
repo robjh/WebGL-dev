@@ -92,6 +92,10 @@ define(['framework/delibs/debase/deInt32'], function(deInt32)  {
 		this.type = type;
 	};
 
+var isSRGB = function(/*TextureFormat*/ format) {
+	return format.order == ChannelOrder.sRGB || format.order == ChannelOrder.sRGBA;
+};
+
 /**
  * Get TypedArray type that can be used to access texture.
  * @param {ChannelType} type
@@ -373,6 +377,129 @@ var getNumUsedChannels = function(order)
 	}
 };
 
+/**
+ * @enum
+ */
+var WrapMode = {
+	CLAMP_TO_EDGE: 0,	//! Clamp to edge
+	CLAMP_TO_BORDER: 1,	//! Use border color at edge
+	REPEAT_GL: 2,			//! Repeat with OpenGL semantics
+	REPEAT_CL: 3,			//! Repeat with OpenCL semantics
+	MIRRORED_REPEAT_GL: 4,	//! Mirrored repeat with OpenGL semantics
+	MIRRORED_REPEAT_CL: 5 //! Mirrored repeat with OpenCL semantics
+};
+
+/**
+ * @enum
+ */
+var FilterMode = {
+	NEAREST: 0,
+	LINEAR: 1,
+
+	NEAREST_MIPMAP_NEAREST: 2,
+	NEAREST_MIPMAP_LINEAR: 3,
+	LINEAR_MIPMAP_NEAREST: 4,
+	LINEAR_MIPMAP_LINEAR: 5
+};
+
+/**
+ * @enum
+ */
+var CompareMode = {
+	COMPAREMODE_NONE: 0,
+	COMPAREMODE_LESS: 1,
+	COMPAREMODE_LESS_OR_EQUAL: 2,
+	COMPAREMODE_GREATER: 3,
+	COMPAREMODE_GREATER_OR_EQUAL: 4,
+	COMPAREMODE_EQUAL: 5,
+	COMPAREMODE_NOT_EQUAL: 6,
+	COMPAREMODE_ALWAYS: 7,
+	COMPAREMODE_NEVER: 8
+};
+
+var Sampler = function(wrapS, wrapT, wrapR, minFilter, magFilter, lodThreshold, normalizedCoords, compare, compareChannel, borderColor, seamlessCubeMap) {
+	this.wrapS = wrapS;
+	this.wrapT = wrapT;
+	this.wrapR = wrapR;
+	this.minFilter = minFilter;
+	this.magFilter = magFilter;
+	this.lodThreshold = lodThreshold || 0;
+	this.normalizedCoords = normalizedCoords || true;
+	this.compare = compare || CompareMode.COMPAREMODE_NONE;
+	this.compareChannel = compareChannel || 0;
+	this.borderColor = borderColor || [0, 0, 0, 0];
+	this.seamlessCubeMap = seamlessCubeMap || false;
+};
+
+// Special unnormalization for REPEAT_CL and MIRRORED_REPEAT_CL wrap modes; otherwise ordinary unnormalization.
+var unnormalize = function(/*Sampler::WrapMode*/ mode, c, /*int*/ size) {
+	switch (mode)
+	{
+		case WrapMode.CLAMP_TO_EDGE:
+		case WrapMode.CLAMP_TO_BORDER:
+		case WrapMode.REPEAT_GL:
+		case WrapMode.MIRRORED_REPEAT_GL: // Fall-through (ordinary case).
+			return size * c;
+
+		case WrapMode.REPEAT_CL:
+			return size * (c - Math.floor(c));
+
+		case WrapMode.MIRRORED_REPEAT_CL:
+			return size * Math.abs(c - 2 * Math.rint(0.5 * c));
+	}
+	throw new Error('Unrecognized wrap mode ' + mode);
+};
+
+var wrap = function(/*Sampler::WrapMode*/ mode, /*int*/ c, /*int*/ size) {
+	switch (mode)
+	{
+		case WrapMode.CLAMP_TO_BORDER:
+			return c.clamp(-1, size);
+
+		case WrapMode.CLAMP_TO_EDGE:
+			return c.clamp(0, size-1);
+
+		case WrapMode.REPEAT_GL:
+			return c.imod(size);
+
+		case WrapMode.REPEAT_CL:
+			return c.imod(size);
+
+		case WrapMode.MIRRORED_REPEAT_GL:
+			return (size - 1) - (c.imod(2*size) - size).mirror();
+
+		case WrapMode.MIRRORED_REPEAT_CL:
+			return c.clamp(0, size-1); // \note Actual mirroring done already in unnormalization function.
+	}
+	throw new Error('Unrecognized wrap mode ' + mode);
+};
+
+// Texel lookup with color conversion.
+var lookup = function(/*const ConstPixelBufferAccess&*/ access, i, j, k) {
+	var p = access.getPixel(i, j, k);
+	// console.log('Lookup at ' + i + ' ' + j + ' ' + k);
+	// console.log(p);
+	return isSRGB(access.getFormat()) ? sRGBToLinear(p) : p;
+};
+
+var sampleNearest2D = function (/*const ConstPixelBufferAccess&*/ access, /*const Sampler&*/ sampler, u, v, /*int*/ depth) {
+	var width	= access.getWidth();
+	var height	= access.getHeight();
+
+	var x = Math.round(Math.floor(u));
+	var y = Math.round(Math.floor(v));
+
+	// Check for CLAMP_TO_BORDER.
+	if ((sampler.wrapS == WrapMode.CLAMP_TO_BORDER && !deInt32.deInBounds32(x, 0, width)) ||
+		(sampler.wrapT == WrapMode.CLAMP_TO_BORDER && !deInt32.deInBounds32(y, 0, height)))
+		return sampler.borderColor;
+
+	var i = wrap(sampler.wrapS, x, width);
+	var j = wrap(sampler.wrapT, y, height);
+
+	return lookup(access, i, j, depth);
+};
+
 /*--------------------------------------------------------------------*//*!
  * \brief Read-only pixel data access
  *
@@ -411,7 +538,7 @@ var  ConstPixelBufferAccess = function(descriptor) {
 			var arrayType = getTypedArray(this.m_format.type);
  			return new arrayType(this.m_data);
  	};
- 	
+
 	ConstPixelBufferAccess.prototype.getRowPitch = function() { return this.m_rowPitch;	};
 	ConstPixelBufferAccess.prototype.getWidth = function() { return this.m_width;	};
 	ConstPixelBufferAccess.prototype.getHeight = function() { return this.m_height;	};
@@ -497,6 +624,30 @@ var  ConstPixelBufferAccess = function(descriptor) {
 	return result;
 };
 
+ConstPixelBufferAccess.prototype.sample2D = function(/*const Sampler&*/ sampler, /*Sampler::FilterMode*/ filter, s, t, /*int*/ depth) {
+	DE_ASSERT(deInt32.deInBounds32(depth, 0, this.m_depth));
+
+	// Non-normalized coordinates.
+	var u = s;
+	var v = t;
+
+	if (sampler.normalizedCoords) {
+		u = unnormalize(sampler.wrapS, s, this.m_width);
+		v = unnormalize(sampler.wrapT, t, this.m_height);
+	}
+
+	switch (filter)
+	{
+		case FilterMode.NEAREST:	return sampleNearest2D(this, sampler, u, v, depth);
+		// case Sampler::LINEAR:	return sampleLinear2D	(*this, sampler, u, v, depth);
+		// default:
+		// 	DE_ASSERT(DE_FALSE);
+		// 	return Vec4(0.0f);
+	}
+	throw new Error('Unimplemented');
+};
+
+
 	/* TODO: do we need any of these? */
 	{
 		// template<typename T>
@@ -506,7 +657,6 @@ var  ConstPixelBufferAccess = function(descriptor) {
 		// int						getPixStencil				(int x, int y, int z = 0) const;
 
 		// Vec4					sample1D					(const Sampler& sampler, Sampler::FilterMode filter, float s, int level) const;
-		// Vec4					sample2D					(const Sampler& sampler, Sampler::FilterMode filter, float s, float t, int depth) const;
 		// Vec4					sample3D					(const Sampler& sampler, Sampler::FilterMode filter, float s, float t, float r) const;
 
 		// Vec4					sample1DOffset				(const Sampler& sampler, Sampler::FilterMode filter, float s, const IVec2& offset) const;
@@ -734,13 +884,54 @@ var TextureLevelPyramid = function(format, numLevels) {
 		throw new Error('Not implemented');
 	};
 
+var sampleLevelArray2D = function(/*const ConstPixelBufferAccess* */ levels, /*int*/ numLevels, /*const Sampler&*/ sampler, s, t, /*int*/ depth, lod) {
+	var					magnified	= lod <= sampler.lodThreshold;
+	var		filterMode	= magnified ? sampler.magFilter : sampler.minFilter;
+
+	switch (filterMode)
+	{
+		case FilterMode.NEAREST:	return levels[0].sample2D(sampler, filterMode, s, t, depth);
+		/* TODO: Implement other filters */
+		// case Sampler::LINEAR:	return levels[0].sample2D(sampler, filterMode, s, t, depth);
+
+		// case Sampler::NEAREST_MIPMAP_NEAREST:
+		// case Sampler::LINEAR_MIPMAP_NEAREST:
+		// {
+		// 	int					maxLevel	= (int)numLevels-1;
+		// 	int					level		= deClamp32((int)deFloatCeil(lod + 0.5f) - 1, 0, maxLevel);
+		// 	Sampler::FilterMode	levelFilter	= (filterMode == Sampler::LINEAR_MIPMAP_NEAREST) ? Sampler::LINEAR : Sampler::NEAREST;
+
+		// 	return levels[level].sample2D(sampler, levelFilter, s, t, depth);
+		// }
+
+		// case Sampler::NEAREST_MIPMAP_LINEAR:
+		// case Sampler::LINEAR_MIPMAP_LINEAR:
+		// {
+		// 	int					maxLevel	= (int)numLevels-1;
+		// 	int					level0		= deClamp32((int)deFloatFloor(lod), 0, maxLevel);
+		// 	int					level1		= de::min(maxLevel, level0 + 1);
+		// 	Sampler::FilterMode	levelFilter	= (filterMode == Sampler::LINEAR_MIPMAP_LINEAR) ? Sampler::LINEAR : Sampler::NEAREST;
+		// 	float				f			= deFloatFrac(lod);
+		// 	tcu::Vec4			t0			= levels[level0].sample2D(sampler, levelFilter, s, t, depth);
+		// 	tcu::Vec4			t1			= levels[level1].sample2D(sampler, levelFilter, s, t, depth);
+
+		// 	return t0*(1.0f - f) + t1*f;
+		// }
+
+		// default:
+		// 	DE_ASSERT(DE_FALSE);
+		// 	return Vec4(0.0f);
+	}
+	throw new Error('Unimplemented');
+};
+
 /*--------------------------------------------------------------------*//*!
  * \brief 2D Texture View
  *//*--------------------------------------------------------------------*/
  /* TODO: Port */
 var Texture2DView = function(numLevels, levels) {
 	this.m_numLevels = numLevels;
-	this.levels = levels;
+	this.m_levels = levels;
 };
 
 	Texture2DView.prototype.getNumLevels = function()	{ return this.m_numLevels;										};
@@ -748,6 +939,17 @@ var Texture2DView = function(numLevels, levels) {
 	Texture2DView.prototype.getHeight = function() { return this.m_numLevels > 0 ? this.m_levels[0].getHeight()	: 0;	};
 	/*const ConstPixelBufferAccess&*/ Texture2DView.prototype.getLevel	= function(ndx) { DE_ASSERT(deInt32.deInBounds32(ndx, 0, this.m_numLevels)); return this.m_levels[ndx];	};
 	/*const ConstPixelBufferAccess**/ Texture2DView.prototype.getLevels	= function() { return this.m_levels;											};
+
+Texture2DView.prototype.getSubView = function(baseLevel, maxLevel) {
+	var	clampedBase	= baseLevel.clamp(0, this.m_numLevels-1);
+	var	clampedMax	= maxLevel.clamp(clampedBase, this.m_numLevels-1);
+	var	numLevels	= clampedMax-clampedBase+1;
+	return new Texture2DView(numLevels, this.m_levels.slice(clampedBase,numLevels));
+};
+
+Texture2DView.prototype.sample = function(/*const Sampler&*/ sampler, s,t, lod) {
+	return sampleLevelArray2D(this.m_levels, this.m_numLevels, sampler, s, t, 0 /* depth */, lod);
+};
 
 	/* TODO: Port
 	Vec4							sample				(const Sampler& sampler, float s, float t, float lod) const;
@@ -780,6 +982,7 @@ var Texture2D = function(format, width, height) {
 Texture2D.prototype = Object.create(TextureLevelPyramid.prototype);
 Texture2D.prototype.constructor = Texture2D;
 
+Texture2D.prototype.getSubView = function(baseLevel, maxLevel) { return this.m_view.getSubView(baseLevel, maxLevel); }
 Texture2D.prototype.allocLevel = function(levelNdx) {
 	console.log('In Texture 2D allocLevel'  + this.m_format);
 	DE_ASSERT(deInt32.deInBounds32(levelNdx, 0, this.getNumLevels()));
@@ -800,5 +1003,8 @@ Texture2D.prototype.allocLevel = function(levelNdx) {
 		ConstPixelBufferAccess: ConstPixelBufferAccess,
 		PixelBufferAccess: PixelBufferAccess,
 		Texture2D: Texture2D,
+		WrapMode: WrapMode,
+		FilterMode: FilterMode,
+		Sampler: Sampler
 	};
 });

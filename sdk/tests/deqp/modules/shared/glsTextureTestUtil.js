@@ -654,12 +654,127 @@ TextureRenderer.prototype.renderQuad = function(texUnit, texCoord, params) {
 // 	ProgramLibrary				m_programLibrary;
 // };
 
+var SurfaceAccess = function(/*tcu::Surface&*/ surface, /*const tcu::PixelFormat&*/ colorFmt, /*int*/ x, /*int*/ y, /*int*/ width, /*int*/ height) {
+	this.m_surface = surface;
+	this.colorMask = undefined; /*TODO*/
+	this.m_x = x || 0;
+	this.m_y = y || 0;
+	this.m_width = width || surface.getWidth();
+	this.m_height = height || surface.getHeight();
+};
+
+SurfaceAccess.prototype.getWidth = function() { return this.m_width;	}
+SurfaceAccess.prototype.getHeight = function() { return this.m_height;	}
+SurfaceAccess.prototype.setPixel = function(/*const tcu::Vec4&*/ color, x, y) {
+	/* TODO: Apply color mask */
+	var c = color;
+	for (var i = 0; i < c.length; i++)
+		c[i] = Math.round(color[i] * 255).clamp(0, 255);
+	this.m_surface.setPixel(x, y, c);
+};
+
+var computeLodFromDerivates = function(/*LodMode*/ mode, dudx, dvdx, dudy, dvdy)
+{
+	var p = 0;
+	switch (mode)
+	{
+		case lodMode.EXACT:
+			p = Math.max(Math.sqrt(dudx*dudx + dvdx*dvdx), Math.sqrt(dudy*dudy + dvdy*dvdy));
+			break;
+
+		case lodMode.MIN_BOUND:
+		case lodMode.MAX_BOUND:
+		{
+			var mu = Math.max(Math.abs(dudx), Math.abs(dudy));
+			var mv = Math.max(Math.abs(dvdx), Math.abs(dvdy));
+
+			p = (mode == lodMode.MIN_BOUND) ? Math.max(mu, mv) : mu + mv;
+			break;
+		}
+
+		default:
+			DE_ASSERT(DE_FALSE);
+	}
+
+	return Math.round(Math.log2(p));
+};
+
+var computeNonProjectedTriLod = function(/*LodMode*/ mode, /*const tcu::IVec2&*/ dstSize, /*const tcu::IVec2&*/ srcSize, /*const tcu::Vec3&*/ sq, /*const tcu::Vec3&*/ tq)
+{
+	var dux	= (sq[2] - sq[0]) * srcSize[0];
+	var duy	= (sq[1] - sq[0]) * srcSize[0];
+	var dvx	= (tq[2] - tq[0]) * srcSize[1];
+	var dvy	= (tq[1] - tq[0]) * srcSize[1];
+	var dx	= dstSize[0];
+	var dy	= dstSize[1];
+
+	return computeLodFromDerivates(mode, dux/dx, dvx/dx, duy/dy, dvy/dy);
+}
+
+var triangleInterpolate = function(v0, v1, v2, x, y) {
+	return v0 + (v2-v0)*x + (v1-v0)*y;
+};
+
+var execSample = function(/*const tcu::Texture2DView&*/ src, /*const ReferenceParams&*/ params, s, t, lod)
+{
+	if (params.samplerType == samplerType.SAMPLERTYPE_SHADOW)
+		return [src.sampleCompare(params.sampler, params.ref, s, t, lod), 0, 0, 1];
+	else
+		return src.sample(params.sampler, s, t, lod);
+};
+
+var sampleTextureNonProjected2D = function(/*const SurfaceAccess&*/ dst, /*const tcu::Texture2DView&*/ src, /*const tcu::Vec4&*/ sq, /*const tcu::Vec4&*/ tq, /*const ReferenceParams&*/ params) {
+	var		lodBias		= params.flags.use_bias ? params.bias : 0;
+
+	var	dstSize		= [ dst.getWidth(), dst.getHeight() ];
+	var	srcSize		= [ src.getWidth(), src.getHeight() ];
+
+	// Coordinates and lod per triangle.
+	var	triS		= [ sq.swizzle([0, 1, 2]), sq.swizzle([3, 2, 1]) ];
+	var	triT		= [ tq.swizzle([0, 1, 2]), tq.swizzle([3, 2, 1]) ];
+	var	triLod	= [ (computeNonProjectedTriLod(params.lodMode, dstSize, srcSize, triS[0], triT[0]) + lodBias).clamp(params.minLod, params.maxLod),
+					(computeNonProjectedTriLod(params.lodMode, dstSize, srcSize, triS[1], triT[1]) + lodBias).clamp(params.minLod, params.maxLod) ];
+
+	for (var y = 0; y < dst.getHeight(); y++)
+	{
+		for (var x = 0; x < dst.getWidth(); x++)
+		{
+			var	yf		= (y + 0.5) / dst.getHeight();
+			var	xf		= (x + 0.5) / dst.getWidth();
+
+			var		triNdx	= xf + yf >= 1 ? 1 : 0; // Top left fill rule.
+			var	triX	= triNdx ? 1 - xf : xf;
+			var	triY	= triNdx ? 1 - yf : yf;
+
+			var	s		= triangleInterpolate(triS[triNdx][0], triS[triNdx][1], triS[triNdx][2], triX, triY);
+			var	t		= triangleInterpolate(triT[triNdx][0], triT[triNdx][1], triT[triNdx][2], triX, triY);
+			var	lod		= triLod[triNdx];
+
+			dst.setPixel(execSample(src, params, s, t, lod).multiply(params.colorScale).add(params.colorBias), x, y);
+		}
+	}
+};
+
+var sampleTexture2D = function(/*const SurfaceAccess&*/ dst, /*const tcu::Texture2DView&*/ src, /*const float*  */ texCoord, /*const ReferenceParams& */ params) {
+	/*const tcu::Texture2DView*/ var	view	= src.getSubView(params.baseLevel, params.maxLevel);
+	var				sq		= [texCoord[0+0], texCoord[2+0], texCoord[4+0], texCoord[6+0] ];
+	var				tq		= [texCoord[0+1], texCoord[2+1], texCoord[4+1], texCoord[6+1] ];
+
+	if (params.flags.projected)
+		sampleTextureProjected(dst, view, sq, tq, params);
+	else
+		sampleTextureNonProjected2D(dst, view, sq, tq, params);
+};
+
 return {
 	RandomViewport: RandomViewport,
 	ReferenceParams: ReferenceParams,
 	textureType: textureType,
 	getSamplerType: getSamplerType,
 	computeQuadTexCoord2D: computeQuadTexCoord2D,
-	TextureRenderer: TextureRenderer
+	TextureRenderer: TextureRenderer,
+	sampleTexture2D: sampleTexture2D,
+	SurfaceAccess, SurfaceAccess,
+	sampleTexture2D, sampleTexture2D
 };
 });
