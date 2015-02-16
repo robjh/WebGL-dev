@@ -894,9 +894,9 @@ define(['framework/opengl/gluShaderUtil.js', 'framework/opengl/gluDrawUtil', 'mo
 			
 			// Check and log query status right after submit
 			{
-				deUint32 available = GL_FALSE;
-				gl.getQueryParameter(primitiveQuery, gl.QUERY_RESULT_AVAILABLE, available);
-				GLU_EXPECT_NO_ERROR(gl.getError(), 'glGetQueryObjectuiv()');
+				var available = gl.FALSE; // deUint32
+				available = gl.getQueryParameter(primitiveQuery, gl.QUERY_RESULT_AVAILABLE);
+				GLU_EXPECT_NO_ERROR(gl.getError(), 'getQueryParameter()'); // formerly glGetQueryObjectuiv()
 
 				log.log(
 					TestLog.Message +
@@ -949,9 +949,110 @@ define(['framework/opengl/gluShaderUtil.js', 'framework/opengl/gluDrawUtil', 'mo
 						
 					}
 				}
+				
+				// Verify guardband.
+				if (!verifyGuard(buffer) {
+					log.log(
+						TestLog.Message +
+						"Error: Transform feedback buffer overrun detected" + 
+						TestLog.EndMessage
+					);
+					outputsOk = false;
+				}
+
+			//	Javascript, and lazy memory management
+			//	gl.unmapBuffer(GL_TRANSFORM_FEEDBACK_BUFFER);
 	
 			}
-		};
+			
+			// Check status after mapping buffers.
+			{
+				
+				var mustBeReady    = m_outputBuffers.length > 0; // Mapping buffer forces synchronization. // const bool
+				var expectedCount  = computeTransformFeedbackPrimitiveCount(gl, m_primitiveType, calls); // const int
+				var available      = gl.FALSE; // deUint32
+				var numPrimitives  = 0; // deUint32
+				
+				available     = gl.getQueryParameter(primitiveQuery, GL_QUERY_RESULT_AVAILABLE);
+				numPrimitives = gl.getQueryParameter(primitiveQuery, GL_QUERY_RESULT);
+				GLU_EXPECT_NO_ERROR(gl.getError(), 'getQueryParameter()'); // formerly getQueryObjectuiv()
+
+				if (!mustBeReady && available == gl.FALSE) {
+					
+					log.log(
+						TestLog.Message +
+						'ERROR: GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN result not available after mapping buffers!' + 
+						TestLog.EndMessage
+					);
+					queryOk = false;
+				}
+
+				log.log(
+					TestLog.Message +
+					'GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN = ' + 
+					numPrimitives +
+					TestLog.EndMessage
+				);
+
+				if ((int)numPrimitives != expectedCount)
+				{
+					log.log(
+						TestLog.Message +
+						'ERROR: Expected ' + 
+						expectedCount + 
+						' primitives!' +
+						TestLog.EndMessage
+					);
+					queryOk = false;
+				}
+			}
+			
+			// Clear transform feedback state.
+			gl.bindTransformFeedback(GL_TRANSFORM_FEEDBACK, 0);
+			for (int bufNdx = 0; bufNdx < (int)m_outputBuffers.size(); bufNdx++) {
+				gl.bindBuffer		(GL_TRANSFORM_FEEDBACK_BUFFER, 0);
+				gl.bindBufferBase	(GL_TRANSFORM_FEEDBACK_BUFFER, bufNdx, 0);
+			}
+			
+			// Read back rendered image.
+			glu.readPixels(m_context.getRenderContext(), viewportX, viewportY, frameWithTf.getAccess());
+			
+			// Render without transform feedback.
+			{
+				var offset = 0; // int
+
+				gl.clear(gl.COLOR_BUFFER_BIT);
+
+				for (var i = 0 ;i < calls.length ;++i) {
+					var call = calls[i];
+					gl.drawArrays(m_primitiveType, offset, call.numElements);
+					offset += call.numElements;
+				}
+
+				GLU_EXPECT_NO_ERROR(gl.getError(), "render");
+				glu.readPixels(m_context.getRenderContext(), viewportX, viewportY, frameWithoutTf.getAccess());
+			}
+
+			// Compare images with and without transform feedback.
+			imagesOk = tcu.pixelThresholdCompare(log, "Result", "Image comparison result", frameWithoutTf, frameWithTf, tcu.RGBA(1, 1, 1, 1), tcu.COMPARE_LOG_ON_ERROR);
+
+			if (imagesOk) {
+				log.log(
+					TestLog.Message +
+					'Rendering result comparison between TF enabled and TF disabled passed.' +
+					TestLog.EndMessage
+				);
+			} else {
+				log.log(
+					TestLog.Message +
+					'"ERROR: Rendering result comparison between TF enabled and TF disabled failed!"' +
+					TestLog.EndMessage
+				);
+			}
+			
+			return outputsOk && imagesOk && queryOk;
+			
+		}; // runTest();
 
 		// Derived from ProgramSpec in init()
 		var m_inputStride       = 0;
@@ -972,20 +1073,20 @@ define(['framework/opengl/gluShaderUtil.js', 'framework/opengl/gluDrawUtil', 'mo
 	// static data
 	TransformFeedbackCase.s_iterate = {
 		testCases: {
-			elemCount1:   [DrawCall(  1, true)],
-			elemCount2:   [DrawCall(  2, true)],
-			elemCount3:   [DrawCall(  3, true)],
-			elemCount4:   [DrawCall(  4, true)],
-			elemCount123: [DrawCall(123, true)],
-			basicPause1:  [DrawCall( 64, true),  DrawCall( 64, false), DrawCall( 64, true)],
-			basicPause2:  [DrawCall( 13, true),  DrawCall(  5, true),  DrawCall( 17, false),
-			               DrawCall(  3, true),  DrawCall(  7, false)],
-			startPaused:  [DrawCall(123, false), DrawCall(123, true)],
-			random1:      [DrawCall( 65, true),  DrawCall(135, false), DrawCall( 74, true),
+			elemCount1:   [DrawCall(  1, true )],
+			elemCount2:   [DrawCall(  2, true )],
+			elemCount3:   [DrawCall(  3, true )],
+			elemCount4:   [DrawCall(  4, true )],
+			elemCount123: [DrawCall(123, true )],
+			basicPause1:  [DrawCall( 64, true ), DrawCall( 64, false), DrawCall( 64, true)],
+			basicPause2:  [DrawCall( 13, true ), DrawCall(  5, true ), DrawCall( 17, false),
+			               DrawCall(  3, true ), DrawCall(  7, false)],
+			startPaused:  [DrawCall(123, false), DrawCall(123, true )],
+			random1:      [DrawCall( 65, true ), DrawCall(135, false), DrawCall( 74, true),
 			               DrawCall( 16, false), DrawCall(226, false), DrawCall(  9, true),
 			               DrawCall(174, false)],
-			random2:      [DrawCall(217, true),  DrawCall(171, true),  DrawCall(147, true),
-			               DrawCall(152, false), DrawCall( 55, true)],
+			random2:      [DrawCall(217, true ), DrawCall(171, true ), DrawCall(147, true),
+			               DrawCall(152, false), DrawCall( 55, true )],
 		},
 		iterations = [
 			'elemCount1',  'elemCount2',  'elemCount3', 'elemCount4', 'elemCount1234',
