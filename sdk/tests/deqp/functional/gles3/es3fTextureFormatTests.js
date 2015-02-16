@@ -17,8 +17,8 @@
  * limitations under the License.
  *
  */
-define(['framework/opengl/gluShaderUtil', 'framework/common/tcuTestCase', 'framework/common/tcuSurface',  'framework/opengl/gluTexture', 'framework/opengl/gluTextureUtil', 'framework/common/tcuTexture', 'modules/shared/glsTextureTestUtil'],
-	 function(gluShaderUtil, deqpTests, tcuSurface, gluTexture, gluTextureUtil, tcuTexture, glsTextureTestUtil) {
+define(['framework/opengl/gluShaderUtil', 'framework/common/tcuTestCase', 'framework/common/tcuSurface',  'framework/opengl/gluTexture', 'framework/opengl/gluTextureUtil', 'framework/common/tcuTexture', 'modules/shared/glsTextureTestUtil', 'framework/common/tcuTextureUtil'],
+	 function(gluShaderUtil, deqpTests, tcuSurface, gluTexture, gluTextureUtil, tcuTexture, glsTextureTestUtil, tcuTextureUtil) {
     'use strict';
 
 var	GLU_EXPECT_NO_ERROR = function(error, message) {
@@ -38,9 +38,10 @@ var Texture2DFormatCase = function(name, description, descriptor){
 
 Texture2DFormatCase.prototype.init = function() {
 	/*tcu::TextureFormat*/ var		fmt		= this.m_dataType ? gluTextureUtil.mapGLTransferFormat(this.m_format, this.m_dataType) : gluTextureUtil.mapGLInternalFormat(this.m_format);
+	/*tcu::TextureFormatInfo*/ var	spec	= tcuTextureUtil.getTextureFormatInfo(fmt);
+	console.log(spec);
 	/* TODO : Port
 	
-	tcu::TextureFormatInfo	spec	= tcu::getTextureFormatInfo(fmt);
 	std::ostringstream		fmtName;
 
 	if (m_dataType)
@@ -54,16 +55,15 @@ Texture2DFormatCase.prototype.init = function() {
 	*/
 
 	this.m_texture = this.m_dataType
-			  ? gluTexture.constructFromFormat(gl, this.m_format, this.m_dataType, this.m_width, this.m_height)	// Implicit internal format.
-			  : gluTexture.constructFromInternalFormat(gl, this.m_format, this.m_width, this.m_height);				// Explicit internal format.
+			  ? gluTexture.texture2DFromFormat(gl, this.m_format, this.m_dataType, this.m_width, this.m_height)	// Implicit internal format.
+			  : gluTexture.texture2DFromInternalFormat(gl, this.m_format, this.m_width, this.m_height);				// Explicit internal format.
 
 	// Fill level 0.
 	this.m_texture.getRefTexture().allocLevel(0);
-	/* TODO: Port 
-	tcu::fillWithComponentGradients(m_texture->getRefTexture().getLevel(0), spec.valueMin, spec.valueMax);
-	*/
+	tcuTextureUtil.fillWithComponentGradients(this.m_texture.getRefTexture().getLevel(0), spec.valueMin, spec.valueMax);
+	
 	/* TODO: remove the block below */
-	{
+	if (0) {
 		var data = this.m_texture.getRefTexture().getLevel(0).m_data;
 			var a = this.m_texture.getRefTexture().getLevel(0);
 		for (var y = 0; y < this.m_height; y++) {
@@ -153,46 +153,122 @@ Texture2DFormatCase.prototype.iterate = function() {
 
 	GLU_EXPECT_NO_ERROR(gl.getError(), "Set texturing state");
 
-	/* TODO: remove */
-	if (0) {
-		var wtu = WebGLTestUtils;
-		gl.generateMipmap(gl.TEXTURE_2D);
-		wtu.setupUnitQuad(gl);
-	GLU_EXPECT_NO_ERROR(gl.getError(), "setup unit quad");
-		wtu.setupNoTexCoordTextureProgram(gl);
-	GLU_EXPECT_NO_ERROR(gl.getError(), "Setup programs");
-		wtu.drawUnitQuad(gl);
-	GLU_EXPECT_NO_ERROR(gl.getError(), "draw unit quad");
-
-	}
-
 	// // Draw.
 	this.m_renderer.renderQuad(0, texCoord, renderParams);
+	if (0) {
+		var p = new Uint8Array(4 * viewport.width * viewport.height);
+		gl.readPixels(viewport.x, viewport.y, viewport.width, viewport.height, gl.RGBA, gl.UNSIGNED_BYTE, p);
+		GLU_EXPECT_NO_ERROR(gl.getError(), "glReadPixels()");
+		console.log('Dumping array length: ' + p.length);
+		console.log(p);
+		for (var y = 0; y < viewport.height; y+=18) {
+			for (var x = 0; x < viewport.width; x+=18) {
+				var offset = 4 * (x + y * viewport.width);
+				// p[1] = 0;
+				// referenceFrame.setPixel(x, y, p);
+	    		var output = '(' + x + ',' + y + ') = (' + p[offset + 0] + ',' + p[offset +1] + ',' + p[offset + 2] +')';
+	    		console.log(output);
+			}
+		}
+
+	}
 	gl.readPixels(viewport.x, viewport.y, viewport.width, viewport.height, gl.RGBA, gl.UNSIGNED_BYTE, renderedFrame.getAccess().getDataPtr());
+
 	GLU_EXPECT_NO_ERROR(gl.getError(), "glReadPixels()");
 
-	// // Compute reference.
-	glsTextureTestUtil.sampleTexture2D(new glsTextureTestUtil.SurfaceAccess(referenceFrame, undefined /*m_renderCtx.getRenderTarget().getPixelFormat()*/),
-		this.m_texture.getRefTexture(), texCoord, renderParams);
-
-	{
-		for (var y = 0; y < referenceFrame.getHeight(); y+=18) {
-			for (var x = 0; x < referenceFrame.getWidth(); x+=18) {
-				var p = referenceFrame.getPixel(x, y);
+	if (1) {
+		console.log('Dumping array length: ' + renderedFrame.getAccess().getDataPtr().length);
+		console.log(renderedFrame.getAccess().getDataPtr());
+		console.log(renderedFrame.getAccess());
+		for (var y = 0; y < renderedFrame.getHeight(); y+=37) {
+			for (var x = 0; x < renderedFrame.getWidth(); x+=37) {
+				var p = renderedFrame.getPixel(x, y);
+				// p[1] = 0;
+				// referenceFrame.setPixel(x, y, p);
 	    		var output = '(' + x + ',' + y + ') = (' + p[0] + ',' + p[1] + ',' + p[2] +')';
 	    		console.log(output);
 			}
 		}
 	}
 
-	// // Compare and log.
-	// bool isOk = compareImages(log, referenceFrame, renderedFrame, threshold);
+	// // Compute reference.
+	glsTextureTestUtil.sampleTexture2D(new glsTextureTestUtil.SurfaceAccess(referenceFrame, undefined /*m_renderCtx.getRenderTarget().getPixelFormat()*/),
+		this.m_texture.getRefTexture(), texCoord, renderParams);
 
-	// m_testCtx.setTestResult(isOk ? QP_TEST_RESULT_PASS	: QP_TEST_RESULT_FAIL,
-	// 						isOk ? "Pass"				: "Image comparison failed");
+	if (0) {
+		for (var y = 0; y < referenceFrame.getHeight(); y+=37) {
+			for (var x = 0; x < referenceFrame.getWidth(); x+=37) {
+				var p = referenceFrame.getPixel(x, y);
+				p[1] += 4;
+				referenceFrame.setPixel(x, y, p);
+	    		var output = '(' + x + ',' + y + ') = (' + p[0] + ',' + p[1] + ',' + p[2] +')';
+	    		console.log(output);
+			}
+		}
+	}
 
-	// return STOP;
+	// Compare and log.
+	var isOk = glsTextureTestUtil.compareImages(referenceFrame, renderedFrame, threshold);
 
+	assertMsgOptions(isOk, 'Image comparison', true, true);
+};
+
+var Texture2DCubeFormatCase = function(name, description, descriptor){
+	this.m_name = name;
+	this.m_description = description;
+	this.m_format = descriptor.format;
+	this.m_dataType = descriptor.dataType;
+	this.m_width = descriptor.width;
+	this.m_height = descriptor.height;
+	this.m_renderer = new glsTextureTestUtil.TextureRenderer("100 es", gluShaderUtil.precision.PRECISION_HIGHP);
+	DE_ASSERT(this.m_width == this.m_height);
+};
+
+Texture2DCubeFormatCase.prototype.init = function() {
+	/*tcu::TextureFormat*/ var		fmt		= this.m_dataType ? gluTextureUtil.mapGLTransferFormat(this.m_format, this.m_dataType) : gluTextureUtil.mapGLInternalFormat(this.m_format);
+	/*tcu::TextureFormatInfo*/ var	spec	= tcuTextureUtil.getTextureFormatInfo(fmt);
+	console.log(spec);
+	/* TODO : Port
+	
+	std::ostringstream		fmtName;
+
+	if (m_dataType)
+		fmtName << glu::getPixelFormatStr(m_format) << ", " << glu::getTypeStr(m_dataType);
+	else
+		fmtName << glu::getPixelFormatStr(m_format);
+
+	log << TestLog::Message << "2D texture, " << fmtName.str() << ", " << m_width << "x" << m_height
+							<< ",\n  fill with " << formatGradient(&spec.valueMin, &spec.valueMax) << " gradient"
+		<< TestLog::EndMessage;
+	*/
+
+	this.m_texture = this.m_dataType
+			  ? gluTexture.construccubeFromFormattFromFormat(gl, this.m_format, this.m_dataType, this.m_width)	// Implicit internal format.
+			  : gluTexture.cubeFromInternalFormat(gl, this.m_format, this.m_width);				// Explicit internal format.
+
+	// Fill level 0.
+	for (var i = 0; i < tcuTexture.CubeFace.length; i++)
+	{
+		var face = tcuTexture.CubeFace[i];
+		var gMin = null;
+		var gMax = null;
+
+		switch (face)
+		{
+			case 0: gMin = spec.valueMin.swizzle(0, 1, 2, 3); gMax = spec.valueMax.swizzle(0, 1, 2, 3); break;
+			case 1: gMin = spec.valueMin.swizzle(2, 1, 0, 3); gMax = spec.valueMax.swizzle(2, 1, 0, 3); break;
+			case 2: gMin = spec.valueMin.swizzle(1, 2, 0, 3); gMax = spec.valueMax.swizzle(1, 2, 0, 3); break;
+			case 3: gMin = spec.valueMax.swizzle(0, 1, 2, 3); gMax = spec.valueMin.swizzle(0, 1, 2, 3); break;
+			case 4: gMin = spec.valueMax.swizzle(2, 1, 0, 3); gMax = spec.valueMin.swizzle(2, 1, 0, 3); break;
+			case 5: gMin = spec.valueMax.swizzle(1, 2, 0, 3); gMax = spec.valueMin.swizzle(1, 2, 0, 3); break;
+			default:
+				DE_ASSERT(false);
+		}
+
+		this.m_texture.getRefTexture().allocLevel(face, 0);
+		tcuTextureUtil.fillWithComponentGradients(this.m_texture.getRefTexture().getLevelFace(0, face), gMin, gMax);
+	
+	}	/* TODO: remove the block below */
 };
 
 var init = function(filter) {

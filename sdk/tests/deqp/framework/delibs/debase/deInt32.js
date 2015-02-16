@@ -85,6 +85,66 @@ Array.prototype.add = function(a) {
     return dst;
 };
 
+/**
+ * @return {Array} abs(diff(this - a))
+ */
+Array.prototype.absDiff = function(a) {
+    if (this.length != a.length)
+        throw new Error('Arrays must have the same size');
+    var dst = [];
+    for (var i = 0; i < this.length; i++)
+        dst.push(Math.abs(this[i] - a[i]));
+    return dst;
+};
+
+Array.prototype.lessThanEqual = function(a) {
+    if (this.length != a.length)
+        throw new Error('Arrays must have the same size');
+    var dst = [];
+    for (var i = 0; i < this.length; i++)
+        dst.push(this[i] <= a[i]);
+    return dst;
+};
+
+Array.prototype.boolAll = function() {
+    for (var i = 0; i < this.length; i++)
+        if (this[i] == false)
+            return false;
+    return true;
+};
+
+Array.prototype.max = function(a) {
+    if (this.length != a.length)
+        throw new Error('Arrays must have the same size');
+    var dst = [];
+    for (var i = 0; i < this.length; i++)
+        dst.push(Math.max(this[i], a[i]));
+    return dst;
+};
+
+Array.prototype.x = function() {
+    if (this.length < 1)
+        throw new Error('Array too small');
+    return this[0];
+};
+
+Array.prototype.y = function() {
+    if (this.length < 2)
+        throw new Error('Array too small');
+    return this[1];
+};
+
+Array.prototype.z = function() {
+    if (this.length < 3)
+        throw new Error('Array too small');
+    return this[2];
+};
+
+Array.prototype.w = function() {
+    if (this.length < 4)
+        throw new Error('Array too small');
+    return this[3];
+};
 
 // Nearest-even rounding in case of tie (fractional part 0.5), otherwise ordinary rounding.
 Math.rint = function(a) {

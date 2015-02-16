@@ -18,8 +18,8 @@
  *
  */
 
-define(['framework/opengl/gluDrawUtil', 'framework/opengl/gluShaderProgram', 'framework/common/tcuTexture', 'framework/opengl/gluShaderUtil', 'framework/common/tcuStringTemplate', 'framework/delibs/debase/deInt32'], 
-	function(deqpDraw, gluShaderProgram, tcuTexture, gluShaderUtil, tcuStringTemplate, deInt32) {
+define(['framework/opengl/gluDrawUtil', 'framework/opengl/gluShaderProgram', 'framework/common/tcuTexture', 'framework/opengl/gluShaderUtil', 'framework/common/tcuStringTemplate', 'framework/delibs/debase/deInt32', 'framework/common/tcuImageCompare'], 
+	function(deqpDraw, gluShaderProgram, tcuTexture, gluShaderUtil, tcuStringTemplate, deInt32, tcuImageCompare) {
 	'use strict';
 var DE_ASSERT = function(x) {
 	if (!x)
@@ -766,6 +766,13 @@ var sampleTexture2D = function(/*const SurfaceAccess&*/ dst, /*const tcu::Textur
 		sampleTextureNonProjected2D(dst, view, sq, tq, params);
 };
 
+/**
+ * @return {bool}
+ */
+var compareImages = function(/*const tcu::Surface&*/ reference, /*const tcu::Surface&*/ rendered, /*tcu::RGBA*/ threshold) {
+	return tcuImageCompare.pixelThresholdCompare("Result", "Image comparison result", reference, rendered, threshold, undefined /*tcu::COMPARE_LOG_RESULT*/);
+};
+
 return {
 	RandomViewport: RandomViewport,
 	ReferenceParams: ReferenceParams,
@@ -774,7 +781,8 @@ return {
 	computeQuadTexCoord2D: computeQuadTexCoord2D,
 	TextureRenderer: TextureRenderer,
 	sampleTexture2D: sampleTexture2D,
-	SurfaceAccess, SurfaceAccess,
-	sampleTexture2D, sampleTexture2D
+	SurfaceAccess: SurfaceAccess,
+	sampleTexture2D: sampleTexture2D,
+	compareImages: compareImages
 };
 });

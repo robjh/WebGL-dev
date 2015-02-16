@@ -36,20 +36,22 @@ var DE_FALSE = false;
  * PixelBufferAccess (see tcuTexture.h) provides much more flexible API
  * for handling various pixel formats. This is mainly a convinience class.
  *//*--------------------------------------------------------------------*/
-var Surface = function(width, heigth) {
+var Surface = function(width, height) {
 	this.m_width = width;
-	this.m_height = heigth;
-	if (width * heigth > 0) {
-		this.m_pixels = new Uint8Array(4 * width * heigth);
+	this.m_height = height;
+	if (width * height > 0) { 
+		this.m_data = new ArrayBuffer(4 * width * height);
+		this.m_pixels = new Uint8Array(this.m_data);
 	}
 };
 
 Surface.prototype.setSize = function(width, height) {
 	/* TODO: Duplicated code from constructor */
 	this.m_width = width;
-	this.m_height = heigth;
-	if (width * heigth > 0) {
-		this.m_pixels = new Uint8Array(4 * width * heigth);
+	this.m_height = height;
+	if (width * height > 0) { 
+		this.m_data = new ArrayBuffer(4 * width * height);
+		this.m_pixels = new Uint8Array(this.m_data);
 	}
 };
 
@@ -89,13 +91,13 @@ Surface.prototype.getAccess	= function() {
 	return new tcuTexture.PixelBufferAccess({
 					format: new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.UNORM_INT8),
 					width: this.m_width,
-					height: this.m_heigth,
-					data: this.m_pixels
+					height: this.m_height,
+					data: this.m_data
 				});
 
 };
 
-Surface.prototype.getSubAccess	= function(x, y, width, heigth) {
+Surface.prototype.getSubAccess	= function(x, y, width, height) {
 	/* TODO: Implement. the deqp getSubAccess() looks broken. It will probably fail if
 	 * x != 0 or width != m_width
 	 */

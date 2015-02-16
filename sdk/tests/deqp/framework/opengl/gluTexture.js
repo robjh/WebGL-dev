@@ -43,10 +43,11 @@ Texture2D.prototype.getGLTexture = function() {
 	return this.m_glTexture;
 };
 
-var constructFromInternalFormat = function(gl, internalFormat, width, height) {
+var texture2DFromInternalFormat = function(gl, internalFormat, width, height) {
 	var tex = new Texture2D(gl, internalFormat, false, new tcuTexture.Texture2D(gluTextureUtil.mapGLInternalFormat(internalFormat), width, height));
 	return tex;
 };
+
 
 var computePixelStore = function(/*const tcu::TextureFormat&*/ format)
 {
@@ -85,8 +86,28 @@ Texture2D.prototype.upload = function() {
 	assertMsgOptions(gl.getError() === gl.NO_ERROR, "Texture upload failed", false, true);
 };
 
+var TextureCube = function(gl, format, isCompressed, refTexture) {
+	Texture2D.prototype.call(this, gl, format, isCompressed, refTexture)
+};
+
+TextureCube.prototype = Object.create(Texture2D.prototype);
+TextureCube.prototype.constructor = TextureCube;
+
+TextureCube.prototype.upload = function() {
+	/* TODO: Implement */
+	throw new Error('Unimplemented');
+};
+
+var cubeFromInternalFormat = function(gl, internalFormat, size) {
+	var tex = new TextureCube(gl, internalFormat, false, new tcuTexture.TextureCube(gluTextureUtil.mapGLInternalFormat(internalFormat), size));
+	return tex;
+};
+
 return {
 	Texture2D: Texture2D,
-	constructFromInternalFormat: constructFromInternalFormat
-}
+	TextureCube: TextureCube,
+	texture2DFromInternalFormat: texture2DFromInternalFormat,
+	cubeFromInternalFormat, cubeFromInternalFormat
+};
+
 });

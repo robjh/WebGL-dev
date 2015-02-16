@@ -92,8 +92,12 @@ define(['framework/delibs/debase/deInt32'], function(deInt32)  {
 		this.type = type;
 	};
 
+	TextureFormat.prototype.isEqual = function(format) {
+		return this.order === format.order && this.type === format.type;
+	};
+
 var isSRGB = function(/*TextureFormat*/ format) {
-	return format.order == ChannelOrder.sRGB || format.order == ChannelOrder.sRGBA;
+	return format.order === ChannelOrder.sRGB || format.order === ChannelOrder.sRGBA;
 };
 
 /**
@@ -217,6 +221,18 @@ TextureFormat.prototype.getPixelSize = function() {
 
 		return numChannels*channelSize;
 	}
+};
+
+/**
+ * @enum
+ */
+var CubeFace = {
+	CUBEFACE_NEGATIVE_X: 0,
+	CUBEFACE_POSITIVE_X: 1,
+	CUBEFACE_NEGATIVE_Y: 2,
+	CUBEFACE_POSITIVE_Y: 3,
+	CUBEFACE_NEGATIVE_Z: 4,
+	CUBEFACE_POSITIVE_Z: 5,
 };
 
 /*
@@ -348,6 +364,17 @@ var channelToFloat = function(value, /*ChannelType*/ type)
 		default:
 			DE_ASSERT(DE_FALSE);
 			return 0;
+	}
+};
+
+var channelToInt = function(value, /*ChannelType*/ type)
+{
+	switch (type)
+	{
+		case ChannelType.HALF_FLOAT:			return Math.round(deFloat16To32(value)); /*TODO: Implement */
+		case ChannelType.FLOAT:				return Math.round(value);
+		default:
+			return value;
 	}
 };
 
@@ -542,6 +569,7 @@ var  ConstPixelBufferAccess = function(descriptor) {
 	ConstPixelBufferAccess.prototype.getRowPitch = function() { return this.m_rowPitch;	};
 	ConstPixelBufferAccess.prototype.getWidth = function() { return this.m_width;	};
 	ConstPixelBufferAccess.prototype.getHeight = function() { return this.m_height;	};
+	ConstPixelBufferAccess.prototype.getDepth = function() { return this.m_depth;	};
 	ConstPixelBufferAccess.prototype.getFormat = function() { return this.m_format;	};
 
 	ConstPixelBufferAccess.prototype.getPixel = function(x, y, z) {
@@ -623,6 +651,84 @@ var  ConstPixelBufferAccess = function(descriptor) {
 
 	return result;
 };
+
+	ConstPixelBufferAccess.prototype.getPixelInt = function(x, y, z) {
+		if (z == null)
+			z = 0;
+	DE_ASSERT(deInt32.deInBounds32(x, 0, this.m_width));
+	DE_ASSERT(deInt32.deInBounds32(y, 0, this.m_height));
+	DE_ASSERT(deInt32.deInBounds32(z, 0, this.m_depth));
+
+	var				pixelSize		= this.m_format.getPixelSize();
+	var arrayType = getTypedArray(this.m_format.type);
+	var offset = z * this.m_slicePitch + y * this.m_rowPitch + x * pixelSize;
+	var pixelPtr = new arrayType(this.m_data, z * this.m_slicePitch + y * this.m_rowPitch + x * pixelSize);
+
+	var ub = function(pixel, offset, count) {
+		return (pixel >> offset) & ((1 << count) - 1);
+	};
+
+	var pixel = pixelPtr[0];
+
+	// Packed formats.
+	switch (this.m_format.type)
+	{
+		case ChannelType.UNORM_SHORT_565:			return Vec4(ub(pixel, 11,  5), ub(pixel,  5,  6), ub(pixel,  0,  5), 1);
+		case ChannelType.UNORM_SHORT_555:			return Vec4(ub(pixel, 10,  5), ub(pixel,  5,  5), ub(pixel,  0,  5), 1);
+		case ChannelType.UNORM_SHORT_4444:			return Vec4(ub(pixel, 12,  4), ub(pixel,  8,  4), ub(pixel,  4,  4), ub(pixel,  0, 4));
+		case ChannelType.UNORM_SHORT_5551:			return Vec4(ub(pixel, 11,  5), ub(pixel,  6,  5), ub(pixel,  1,  5), ub(pixel,  0, 1));
+		case ChannelType.UNORM_INT_101010:			return Vec4(ub(pixel, 22, 10), ub(pixel, 12, 10), ub(pixel,  2, 10), 1);
+		case ChannelType.UNORM_INT_1010102_REV:		return Vec4(ub(pixel,  0, 10), ub(pixel, 10, 10), ub(pixel, 20, 10), ub(pixel, 30, 2));
+		case ChannelType.UNSIGNED_INT_1010102_REV:	return UVec4(ub(pixel, 0, 10), ub(pixel, 10, 10), ub(pixel, 20, 10), ub(pixel, 30, 2));
+		case ChannelType.UNSIGNED_INT_999_E5_REV:	return undefined; /* TODO: Port unpackRGB999E5(*((const deUint32*)pixelPtr));  */
+
+		case ChannelType.UNSIGNED_INT_24_8:
+			switch (this.m_format.order)
+			{
+				// \note Stencil is always ignored.
+				case ChannelType.D:	return Vec4(ub(pixel, 8, 24), 0, 0, 1);
+				case ChannelType.DS:	return Vec4(ub(pixel, 8, 24), 0, 0, 1 /* (float)ub(0, 8) */);
+				default:
+					DE_ASSERT(false);
+			}
+
+		case ChannelType.FLOAT_UNSIGNED_INT_24_8_REV:
+		{
+			DE_ASSERT(this.m_format.order == ChannelType.DS);
+			// \note Stencil is ignored.
+			return Vec4(pixel, 0, 0, 1);
+		}
+
+		case ChannelType.UNSIGNED_INT_11F_11F_10F_REV:
+			return undefined;
+			/* TODO: Implement
+			return Vec4(Float11(ub(pixel, 0, 11)).asFloat(), Float11(ub(pixel, 11, 11)).asFloat(), Float10(ub(pixel, 22, 10)).asFloat(), 1);
+			*/
+
+		default:
+			break;
+	}
+
+	// Generic path.
+	var			result  = [];
+	result.length = 4;
+	var	channelMap	= getChannelReadMap(this.m_format.order);
+	var				channelSize	= getChannelSize(this.m_format.type);
+
+	for (var c = 0; c < 4; c++)
+	{
+		var map = channelMap[c];
+		if (map == channelMap.ZERO)
+			result[c] = 0;
+		else if (map == channelMap.ONE)
+			result[c] = 1;
+		else
+			result[c] = channelToInt(pixelPtr[map], this.m_format.type);
+	}
+
+	return result;
+};
+
 
 ConstPixelBufferAccess.prototype.sample2D = function(/*const Sampler&*/ sampler, /*Sampler::FilterMode*/ filter, s, t, /*int*/ depth) {
 	DE_ASSERT(deInt32.deInBounds32(depth, 0, this.m_depth));
@@ -850,7 +956,6 @@ var TextureLevelPyramid = function(format, numLevels) {
 		this.m_data.push(new DeqpArrayBuffer());
 	/* PixelBufferAccess */ this.m_access = [];
 	this.m_access.length = numLevels;
-	console.log('In Pyramid constructor' + this.m_format);
 };
 /*
  * @return {bool}
@@ -993,10 +1098,35 @@ Texture2D.prototype.allocLevel = function(levelNdx) {
 	console.log('w ' + width + ' h ' + height);
 	TextureLevelPyramid.prototype.allocLevel.call(this, levelNdx, width, height, 1);
 };
+
+var TextureCube = function(format, size) {
+	/* TODO: Implement */
+	// this.m_format = format;
+	// this.m_size = size;
+	// this.m_data = [];
+	// this.m_data.length = CubeFace.length;
+	// this.m_access = [];
+	// this.m_access.length = CubeFace.length;
+
+	// var						numLevels		= computeMipPyramidLevels(this.m_size);
+	// var	levels = [];
+
+	// for (var face =  0; face < CubeFace.length; face++) {
+	// 	this.m_data[face] = [];
+	// 	this.m_data[face].length = numLevels;
+	// 	this.m_access[face] = [];
+	// 	this.m_access[face].length = numLevels;
+	// 	levels[face] = &m_access[face][0];
+	// }
+
+	// m_view = TextureCubeView(numLevels, levels);};
+};
+
 	return {
 		TextureFormat: TextureFormat,
 		ChannelType: ChannelType,
 		ChannelOrder: ChannelOrder,
+		CubeFace: CubeFace,
 		DeqpArrayBuffer: DeqpArrayBuffer,
 		/* TODO: remove - it shouldn't be exported */
 		TextureLevelPyramid: TextureLevelPyramid,
