@@ -19,7 +19,7 @@
  */
 
 
-define(['framework/common/tcuTestCase', 'framework/opengl/gluShaderProgram', 'framework/opengl/gluShaderUtil', 'framework/opengl/gluDrawUtil', 'framework/delibs/debase/deInt32', 'framework/delibs/debase/deRandom', 'modules/shared/glsVarType'], function(deqpTests, deqpProgram, deqpUtils, deqpDraw, deInt32, deRandom, glsVT) {
+define(['framework/common/tcuTestCase', 'framework/opengl/gluShaderProgram', 'framework/opengl/gluShaderUtil', 'framework/opengl/gluDrawUtil', 'framework/delibs/debase/deInt32', 'framework/delibs/debase/deRandom'], function(deqpTests, deqpProgram, deqpUtils, deqpDraw, deInt32, deRandom) {
     'use strict';
 
 /** @const */ var VIEWPORT_WIDTH = 128;
@@ -65,13 +65,6 @@ BlockPointers.prototype.resize = function(newsize) {
     this.data = new ArrayBuffer(newsize);
 };
 
-var BufferMode = {
-    BUFFERMODE_SINGLE: 0, //!< Single buffer shared between uniform blocks.
-    BUFFERMODE_PER_BLOCK: 1 //!< Per-block buffers
-};
-
-BufferMode.BUFFERMODE_LAST = Object.keys(BufferMode).length;
-
 var UniformFlags = {
     PRECISION_LOW: (1 << 0),
     PRECISION_MEDIUM: (1 << 1),
@@ -99,70 +92,195 @@ UniformFlags.LAYOUT_MASK = UniformFlags.LAYOUT_SHARED | UniformFlags.LAYOUT_PACK
 UniformFlags.DECLARE_BOTH = UniformFlags.DECLARE_VERTEX | UniformFlags.DECLARE_FRAGMENT;
 UniformFlags.UNUSED_BOTH = UniformFlags.UNUSED_VERTEX | UniformFlags.UNUSED_FRAGMENT;
 
-var BlockLayoutEntry = function() {
-    return {
-    /** @type {number} */ size: 0,
-    /** @type {string} */ name: '',
-    /** @type {Array.<number>} */ activeUniformIndices: []
-    };
+/**
+* VarType types enum
+* @enum {number}
+*/
+var Type = {
+   TYPE_BASIC: 0,
+   TYPE_ARRAY: 1,
+   TYPE_STRUCT: 2
 };
 
-var UniformLayoutEntry = function() {
-    return {
-    /** @type {string} */ name: '',
-    /** @type {deqpUtils.DataType} */ type: deqpUtils.DataType.INVALID,
-    /** @type {number} */ size: 0,
-    /** @type {number} */ blockNdx: -1,
-    /** @type {number} */ offset: -1,
-    /** @type {number} */ arrayStride: -1,
-    /** @type {number} */ matrixStride: -1,
-    /** @type {number} */ isRowMajor: false
-    };
+Type.TYPE_LAST = Object.keys(Type).length;
+
+/**
+* TypeArray struct
+* @param {VarType} elementType
+* @param {number} arraySize
+*/
+var TypeArray = function(elementType, arraySize) {
+   /** @type {VarType} */ this.elementType = elementType;
+   /** @type {number} */ this.size = arraySize;
 };
 
-var UniformLayout = function() {
-    /** @type {Array.<BlockLayoutEntry>}*/ this.blocks = [];
-    /** @type {Array.<UniformLayoutEntry>}*/ this.uniforms = [];
+/**
+* VarType class
+*/
+var VarType = function() {
+   /** @type {Type} */ this.m_type = Type.TYPE_LAST;
+   /** @type {deInt32.deUint32} */ this.m_flags = 0;
+
+   /*
+    * m_data used to be a 'Data' union in C++. Using a var is enough here.
+    * it will contain any necessary value.
+    */
+   /** @type {(deqpUtils.DataType|TypeArray|StructType)} */
+   this.m_data = undefined;
 };
 
-/** getUniformIndex, returns a uniform index number in the layout,
- * given the uniform's name.
- * @param {string} name
- * @return {number} uniform's index
+/**
+* Creates a basic type VarType. Use this after the constructor call.
+* @param {deqpUtils.DataType} basicType
+* @param {deInt32.deUint32} flags
+* @return {VarType} The currently modified object
+*/
+VarType.prototype.VarTypeBasic = function(basicType, flags) {
+   this.m_type = Type.TYPE_BASIC;
+   this.m_flags = flags;
+   this.m_data = basicType;
+
+   return this;
+};
+
+/**
+* Creates an array type VarType. Use this after the constructor call.
+* @param {VarType} elementType
+* @param {number} arraySize
+* @return {VarType} The currently modified object
+*/
+VarType.prototype.VarTypeArray = function(elementType, arraySize) {
+   this.m_type = Type.TYPE_ARRAY;
+   this.m_flags = 0;
+   this.m_data = new TypeArray(elementType, arraySize);
+
+   return this;
+};
+
+/**
+* Creates a struct type VarType. Use this after the constructor call.
+* @param {StructType} structPtr
+* @return {VarType} The currently modified object
+*/
+VarType.prototype.VarTypeStruct = function(structPtr) {
+   this.m_type = Type.TYPE_STRUCT;
+   this.m_flags = 0;
+   this.m_data = structPtr;
+
+   return this;
+};
+
+/** isBasicType
+* @return {boolean} true if the VarType represents a basic type.
+**/
+VarType.prototype.isBasicType = function() {
+   return this.m_type == Type.TYPE_BASIC;
+};
+
+/** isArrayType
+* @return {boolean} true if the VarType represents an array.
+**/
+VarType.prototype.isArrayType = function() {
+   return this.m_type == Type.TYPE_ARRAY;
+};
+
+/** isStructType
+* @return {boolean} true if the VarType represents a struct.
+**/
+VarType.prototype.isStructType = function() {
+   return this.m_type == Type.TYPE_STRUCT;
+};
+
+/** getFlags
+* @return {deUint32} returns the flags of the VarType.
+**/
+VarType.prototype.getFlags = function() {
+   return this.m_flags;
+};
+
+/** getBasicType
+* @return {deqpUtils.DataType} returns the basic data type of the VarType.
+**/
+VarType.prototype.getBasicType = function() {
+   return this.m_data;
+};
+
+/** getElementType
+* @return {VarType} returns the VarType of the element in case of an Array.
+**/
+VarType.prototype.getElementType = function() {
+   return this.m_data.elementType;
+};
+
+/** getArraySize
+* (not to be confused with a javascript array)
+* @return {number} returns the size of the array in case it is an array.
+**/
+VarType.prototype.getArraySize = function() {
+   return this.m_data.size;
+};
+
+/** getStruct
+* @return {StructType} returns the structure when it is a StructType.
+**/
+VarType.prototype.getStruct = function() {
+   return this.m_data;
+};
+
+/**
+ * Creates a basic type VarType.
+ * @param {deqpUtils.DataType} basicType
+ * @param {deInt32.deUint32} flags
+ * @return {VarType}
  */
-UniformLayout.prototype.getUniformIndex = function(name) {
-    for (var ndx = 0; ndx < this.uniforms.length; ndx++)
-    {
-        if (this.uniforms[ndx].name == name)
-            return ndx;
-    }
-    return -1;
+var newVarTypeBasic = function(basicType, flags) {
+   return new VarType().VarTypeBasic(basicType, flags);
 };
 
-/** getBlockIndex, returns a block index number in the layout,
- * given the block's name.
- * @param {string} name the name of the block
- * @return {number} block's index
- */
-UniformLayout.prototype.getBlockIndex = function(name) {
-    for (var ndx = 0; ndx < this.blocks.length; ndx++)
-    {
-        if (this.blocks[ndx].name == name)
-            return ndx;
-    }
-    return -1;
+/**
+* Creates an array type VarType.
+* @param {VarType} elementType
+* @param {number} arraySize
+* @return {VarType}
+*/
+var newVarTypeArray = function(elementType, arraySize) {
+   return new VarType().VarTypeArray(elementType, arraySize);
+};
+
+/**
+* Creates a struct type VarType.
+* @param {StructType} structPtr
+* @return {VarType}
+*/
+var newVarTypeStruct = function(structPtr) {
+    return new VarType().VarTypeStruct(structPtr);
 };
 
 /** StructMember TODO: Check if we have to use deInt32.deUint32
  * in the JSDoc annotations or if a number would do.
  * @param {string} name
- * @param {glsVT.VarType} type
+ * @param {VarType} type
  * @param {deInt32.deUint32} flags
 **/
-var StructMember = function(name, type, flags) {
-    /** @type {string} */ this.m_name = name;
-    /** @type {glsVT.VarType} */ this.m_type = type;
-    /** @type {deInt32.deUint32} */ this.m_flags = flags;
+var StructMember = function() {
+    /** @type {string} */ this.m_name;
+    /** @type {VarType} */ this.m_type;
+    /** @type {deInt32.deUint32} */ this.m_flags = 0;
+};
+
+/**
+ * Creates a StructMember. Use this after the constructor call.
+ * @param {string} name
+ * @param {VarType} type
+ * @param {deInt32.deUint32} flags
+ * @return {StructMember} The currently modified object
+ */
+StructMember.prototype.Constructor = function(name, type, flags) {
+    this.m_type = type;
+    this.m_name = name;
+    this.m_flags = flags;
+
+    return this;
 };
 
 /** getName
@@ -171,7 +289,7 @@ var StructMember = function(name, type, flags) {
 StructMember.prototype.getName = function() { return this.m_name; };
 
 /** getType
-* @return {glsVT.VarType} the type of the member
+* @return {VarType} the type of the member
 **/
 StructMember.prototype.getType = function() { return this.m_type; };
 
@@ -180,13 +298,31 @@ StructMember.prototype.getType = function() { return this.m_type; };
 **/
 StructMember.prototype.getFlags = function() { return this.m_flags; };
 
+/**
+ * Creates a StructMember with name, type and flags.
+ * @param {string} name
+ * @param {VarType} type
+ * @return {StructMember}
+ */
+ var newStructMember = function(name, type, flags) {
+     return new StructMember().Constructor(name, type, flags);
+ };
+
 /** StructType
  * @param {string} typeName
 **/
-var StructType = function(typeName) {
-//private:
-    /** @type {string}*/ this.m_typeName = typeName;
+var StructType = function() {
+    /** @type {string}*/ this.m_typeName;
     /** @type {Array.<StructMember>} */ this.m_members = [];
+};
+
+/** StructType
+ * @param {string} typeName
+ * @return {StructType} The currently modified object.
+ */
+StructType.prototype.Constructor = function(typeName) {
+    /** @type {string}*/ this.m_typeName = typeName;
+    return this;
 };
 
 /** getTypeName
@@ -229,23 +365,32 @@ StructType.prototype.getSize = function() {
 
 /** addMember
 * @param {string} member_name
-* @param {glsVT.VarType} member_type
+* @param {VarType} member_type
 * @param {deInt32.deUint32} member_flags
 **/
 StructType.prototype.addMember = function(member_name, member_type, member_flags) {
-    var member = new StructMember(member_name, member_type, member_flags);
+    var member = newStructMember(member_name, member_type, member_flags);
 
     this.m_members.push(member);
 };
 
+/**
+ * Creates a StructType.
+ * @param {string} name
+ * @return {StructType}
+ */
+var newStructType = function(name) {
+    return new StructType().Constructor(name);
+};
+
 /** Uniform
  * @param {string} name
- * @param {glsVT.VarType} type
+ * @param {VarType} type
  * @param {deInt32.deUint32} flags
 **/
 var Uniform = function(name, type, flags) {
     /** @type {string} */ this.m_name = name;
-    /** @type {glsVT.VarType} */ this.m_type = type;
+    /** @type {VarType} */ this.m_type = type;
     /** @type {deInt32.deUint32} */ this.m_flags = (typeof flags === 'undefined') ? 0 : flags;
 };
 
@@ -257,7 +402,7 @@ Uniform.prototype.getName = function() {
 };
 
 /** getType
- * @return {glsVT.VarType}
+ * @return {VarType}
  */
 Uniform.prototype.getType = function() {
     return this.m_type;
@@ -388,7 +533,7 @@ var ShaderInterface = function() {
 **/
 ShaderInterface.prototype.allocStruct = function(name) {
     //m_structs.reserve(m_structs.length + 1);
-    this.m_structs.push(new StructType(name));
+    this.m_structs.push(newStructType(name));
     return this.m_structs[this.m_structs.length - 1];
 };
 
@@ -437,6 +582,67 @@ ShaderInterface.prototype.getNumUniformBlocks = function() {
 ShaderInterface.prototype.getUniformBlock = function(ndx) {
     return this.m_uniformBlocks[ndx];
 };
+
+var BlockLayoutEntry = function() {
+    return {
+    /** @type {number} */ size: 0,
+    /** @type {string} */ name: '',
+    /** @type {Array.<number>} */ activeUniformIndices: []
+    };
+};
+
+var UniformLayoutEntry = function() {
+    return {
+    /** @type {string} */ name: '',
+    /** @type {deqpUtils.DataType} */ type: deqpUtils.DataType.INVALID,
+    /** @type {number} */ size: 0,
+    /** @type {number} */ blockNdx: -1,
+    /** @type {number} */ offset: -1,
+    /** @type {number} */ arrayStride: -1,
+    /** @type {number} */ matrixStride: -1,
+    /** @type {number} */ isRowMajor: false
+    };
+};
+
+var UniformLayout = function() {
+    /** @type {Array.<BlockLayoutEntry>}*/ this.blocks = [];
+    /** @type {Array.<UniformLayoutEntry>}*/ this.uniforms = [];
+};
+
+/** getUniformIndex, returns a uniform index number in the layout,
+ * given the uniform's name.
+ * @param {string} name
+ * @return {number} uniform's index
+ */
+UniformLayout.prototype.getUniformIndex = function(name) {
+    for (var ndx = 0; ndx < this.uniforms.length; ndx++)
+    {
+        if (this.uniforms[ndx].name == name)
+            return ndx;
+    }
+    return -1;
+};
+
+/** getBlockIndex, returns a block index number in the layout,
+ * given the block's name.
+ * @param {string} name the name of the block
+ * @return {number} block's index
+ */
+UniformLayout.prototype.getBlockIndex = function(name) {
+    for (var ndx = 0; ndx < this.blocks.length; ndx++)
+    {
+        if (this.blocks[ndx].name == name)
+            return ndx;
+    }
+    return -1;
+};
+
+var BufferMode = {
+    BUFFERMODE_SINGLE: 0, //!< Single buffer shared between uniform blocks.
+    BUFFERMODE_PER_BLOCK: 1 //!< Per-block buffers
+};
+
+BufferMode.BUFFERMODE_LAST = Object.keys(BufferMode).length;
 
 var UniformBlockCase = function(name, description, bufferMode) {
     deqpTests.DeqpTest.call(this, name, description);
@@ -634,7 +840,7 @@ var deRoundUp32 = function(a, b)
 
 /**
  * TODO: computeStd140BaseAlignment
- * @param {glsVT.VarType} type
+ * @param {VarType} type
  * @return {number}
  */
 var computeStd140BaseAlignment = function(type) {
@@ -701,7 +907,7 @@ var mergeLayoutFlags = function(prevFlags, newFlags)
  * @param {number} curOffset
  * @param {number} curBlockNdx
  * @param {string} curPrefix
- * @param {glsVT.VarType} type
+ * @param {VarType} type
  * @param {deInt32.deUint32} layoutFlags
  */
 var computeStd140Layout_B = function(layout, curOffset, curBlockNdx, curPrefix, type, layoutFlags)
@@ -750,7 +956,7 @@ var computeStd140Layout_B = function(layout, curOffset, curBlockNdx, curPrefix, 
     }
     else if (type.isArrayType())
     {
-        /** @type {glsVT.VarType} */ var elemType = type.getElementType();
+        /** @type {VarType} */ var elemType = type.getElementType();
 
         if (elemType.isBasicType() && !deqpUtils.isDataTypeMatrix(elemType.getBasicType()))
         {
@@ -1518,41 +1724,41 @@ UniformBlockCase.prototype.render = function(program) {
     }
 };
 
-/** getShaderSource
-* Reads a shader program's source by scouring the current document,
-* looking for a script with the specified ID.
-* @param {string} id ID of the shader code in the DOM
-* @return {string} shader's source code.
-**/
-var getShaderSource = function(id) {
-  var shaderScript = document.getElementById(id);
-
-  // Didn't find an element with the specified ID; abort.
-
-  if (!shaderScript) {
-    return null;
-  }
-
-  // Walk through the source element's children, building the
-  // shader source string.
-
-  var theSource = '';
-  var currentChild = shaderScript.firstChild;
-
-  while (currentChild) {
-    if (currentChild.nodeType == 3) {
-      theSource += currentChild.textContent;
-    }
-
-    currentChild = currentChild.nextSibling;
-  }
-
-  return theSource;
-};
-
-/** TODO: Substitute init, execute and runTestCases for the proper methods.
- * Initialize a test case
- */
+// /** getShaderSource
+// * Reads a shader program's source by scouring the current document,
+// * looking for a script with the specified ID.
+// * @param {string} id ID of the shader code in the DOM
+// * @return {string} shader's source code.
+// **/
+// var getShaderSource = function(id) {
+//   var shaderScript = document.getElementById(id);
+//
+//   // Didn't find an element with the specified ID; abort.
+//
+//   if (!shaderScript) {
+//     return null;
+//   }
+//
+//   // Walk through the source element's children, building the
+//   // shader source string.
+//
+//   var theSource = '';
+//   var currentChild = shaderScript.firstChild;
+//
+//   while (currentChild) {
+//     if (currentChild.nodeType == 3) {
+//       theSource += currentChild.textContent;
+//     }
+//
+//     currentChild = currentChild.nextSibling;
+//   }
+//
+//   return theSource;
+// };
+//
+// /** TODO: Substitute init, execute and runTestCases for the proper methods.
+//  * Initialize a test case
+//  */
 // var init = function() {
 //     // Init context
 //     var wtu = WebGLTestUtils;
@@ -1629,8 +1835,14 @@ return {
     ShaderInterface: ShaderInterface,
     UniformBlock: UniformBlock,
     Uniform: Uniform,
+    VarType: VarType,
+    newVarTypeBasic: newVarTypeBasic,
+    newVarTypeArray: newVarTypeArray,
+    newVarTypeStruct: newVarTypeStruct,
     StructType: StructType,
+    newStructType: newStructType,
     StructMember: StructMember,
+    newStructMember: newStructMember,
     UniformLayout: UniformLayout,
     UniformLayoutEntry: UniformLayoutEntry,
     BlockLayoutEntry: BlockLayoutEntry,

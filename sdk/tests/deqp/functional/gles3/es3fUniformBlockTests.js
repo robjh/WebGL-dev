@@ -19,7 +19,7 @@
  */
 
 
-define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 'modules/shared/glsVarType', 'modules/shared/glsRandomUniformBlockCase', 'framework/common/tcuTestCase', 'framework/delibs/debase/deInt32', 'framework/delibs/debase/deRandom'], function(deqpUtils, glsUBC, glsVT, glsRUBC, deqpTests, deInt32, deRandom) {
+define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 'modules/shared/glsRandomUniformBlockCase', 'framework/common/tcuTestCase', 'framework/delibs/debase/deInt32', 'framework/delibs/debase/deRandom'], function(deqpUtils, glsUBC, glsRUBC, deqpTests, deInt32, deRandom) {
     'use strict';
 
     /** @const @type {number} */ var VIEWPORT_WIDTH = 128;
@@ -50,7 +50,7 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
      * BlockBasicTypeCase constructor
      * @param {string} name The name of the test
      * @param {string} description The description of the test
-     * @param {glsVT.VarType} type The type of the block
+     * @param {glsUBC.VarType} type The type of the block
      * @param {glsUBC.UniformLayout} layoutFlags
      * @param {number} numInstances
      */
@@ -98,12 +98,12 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
 
     BlockSingleStructCase.prototype.init = function() {
         /**@type {glsUBC.StructType}*/ var typeS = this.m_interface.allocStruct('S');
-        typeS.addMember('a', glsVT.newTypeBasic(deqpUtils.DataType.INT_VEC3, glsUBC.UniformFlags.PRECISION_HIGH), glsUBC.UniformFlags.UNUSED_BOTH); // First member is unused.
-        typeS.addMember('b', glsVT.newTypeArray(glsVT.newTypeBasic(deqpUtils.DataType.FLOAT_MAT3, glsUBC.UniformFlags.PRECISION_MEDIUM), 4));
-        typeS.addMember('c', glsVT.newTypeBasic(deqpUtils.DataType.FLOAT_VEC4, glsUBC.UniformFlags.PRECISION_HIGH));
+        typeS.addMember('a', glsUBC.newVarTypeBasic(deqpUtils.DataType.INT_VEC3, glsUBC.UniformFlags.PRECISION_HIGH), glsUBC.UniformFlags.UNUSED_BOTH); // First member is unused.
+        typeS.addMember('b', glsUBC.newVarTypeArray(glsUBC.newVarTypeBasic(deqpUtils.DataType.FLOAT_MAT3, glsUBC.UniformFlags.PRECISION_MEDIUM), 4));
+        typeS.addMember('c', glsUBC.newVarTypeBasic(deqpUtils.DataType.FLOAT_VEC4, glsUBC.UniformFlags.PRECISION_HIGH));
 
         /** @type {glsUBC.UniformBlock} */ var block = this.m_interface.allocBlock('Block');
-        block.addUniform(new glsUBC.Uniform('s', glsVT.newTypeStruct(typeS), 0));
+        block.addUniform(new glsUBC.Uniform('s', glsUBC.newVarTypeStruct(typeS), 0));
         block.setFlags(this.m_layoutFlags);
 
         if (this.m_numInstances > 0)
@@ -132,14 +132,14 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
 
     BlockSingleStructArrayCase.prototype.init = function() {
         /**@type {glsUBC.StructType}*/ var typeS = this.m_interface.allocStruct('S');
-        typeS.addMember('a', glsVT.newTypeBasic(deqpUtils.DataType.INT_VEC3, glsUBC.UniformFlags.PRECISION_HIGH), glsUBC.UniformFlags.UNUSED_BOTH); // First member is unused.
-        typeS.addMember('b', glsVT.newTypeArray(glsVT.newTypeBasic(deqpUtils.DataType.FLOAT_MAT3, glsUBC.UniformFlags.PRECISION_MEDIUM), 4));
-        typeS.addMember('c', glsVT.newTypeBasic(deqpUtils.DataType.FLOAT_VEC4, glsUBC.UniformFlags.PRECISION_HIGH));
+        typeS.addMember('a', glsUBC.newVarTypeBasic(deqpUtils.DataType.INT_VEC3, glsUBC.UniformFlags.PRECISION_HIGH), glsUBC.UniformFlags.UNUSED_BOTH); // First member is unused.
+        typeS.addMember('b', glsUBC.newVarTypeArray(glsUBC.newVarTypeBasic(deqpUtils.DataType.FLOAT_MAT3, glsUBC.UniformFlags.PRECISION_MEDIUM), 4));
+        typeS.addMember('c', glsUBC.newVarTypeBasic(deqpUtils.DataType.FLOAT_VEC4, glsUBC.UniformFlags.PRECISION_HIGH));
 
         /** @type {glsUBC.UniformBlock} */ var block = this.m_interface.allocBlock('Block');
-        block.addUniform(new glsUBC.Uniform('u', glsVT.newTypeBasic(deqpUtils.DataType.UINT, glsUBC.UniformFlags.PRECISION_LOW)));
-        block.addUniform(new glsUBC.Uniform('s', glsVT.newTypeArray(glsVT.newTypeStruct(typeS), 3)));
-        block.addUniform(new glsUBC.Uniform('v', glsVT.newTypeBasic(deqpUtils.DataType.FLOAT_VEC4, glsUBC.UniformFlags.PRECISION_MEDIUM)));
+        block.addUniform(new glsUBC.Uniform('u', glsUBC.newVarTypeBasic(deqpUtils.DataType.UINT, glsUBC.UniformFlags.PRECISION_LOW)));
+        block.addUniform(new glsUBC.Uniform('s', glsUBC.newVarTypeArray(glsUBC.newVarTypeStruct(typeS), 3)));
+        block.addUniform(new glsUBC.Uniform('v', glsUBC.newVarTypeBasic(deqpUtils.DataType.FLOAT_VEC4, glsUBC.UniformFlags.PRECISION_MEDIUM)));
         block.setFlags(this.m_layoutFlags);
 
         if (this.m_numInstances > 0)
@@ -168,19 +168,19 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
 
     BlockSingleNestedStructCase.prototype.init = function() {
         /**@type {glsUBC.StructType}*/ var typeS = this.m_interface.allocStruct('S');
-        typeS.addMember('a', glsVT.newTypeBasic(deqpUtils.DataType.INT_VEC3, glsUBC.UniformFlags.PRECISION_HIGH));
-        typeS.addMember('b', glsVT.newTypeArray(glsVT.newTypeBasic(deqpUtils.DataType.FLOAT_MAT3, glsUBC.UniformFlags.PRECISION_MEDIUM), 4));
-        typeS.addMember('c', glsVT.newTypeBasic(deqpUtils.DataType.FLOAT_VEC4, glsUBC.UniformFlags.PRECISION_HIGH), glsUBC.UniformFlags.UNUSED_BOTH);
+        typeS.addMember('a', glsUBC.newVarTypeBasic(deqpUtils.DataType.INT_VEC3, glsUBC.UniformFlags.PRECISION_HIGH));
+        typeS.addMember('b', glsUBC.newVarTypeArray(glsUBC.newVarTypeBasic(deqpUtils.DataType.FLOAT_MAT3, glsUBC.UniformFlags.PRECISION_MEDIUM), 4));
+        typeS.addMember('c', glsUBC.newVarTypeBasic(deqpUtils.DataType.FLOAT_VEC4, glsUBC.UniformFlags.PRECISION_HIGH), glsUBC.UniformFlags.UNUSED_BOTH);
 
         /**@type {glsUBC.StructType}*/ var typeT = this.m_interface.allocStruct('T');
-        typeT.addMember('a', glsVT.newTypeBasic(deqpUtils.DataType.FLOAT_MAT3, glsUBC.UniformFlags.PRECISION_MEDIUM));
-        typeT.addMember('b', glsVT.newTypeStruct(typeS));
+        typeT.addMember('a', glsUBC.newVarTypeBasic(deqpUtils.DataType.FLOAT_MAT3, glsUBC.UniformFlags.PRECISION_MEDIUM));
+        typeT.addMember('b', glsUBC.newVarTypeStruct(typeS));
 
         /** @type {glsUBC.UniformBlock} */ var block = this.m_interface.allocBlock('Block');
-        block.addUniform(new glsUBC.Uniform('s', glsVT.newTypeStruct(typeS), 0));
-        block.addUniform(new glsUBC.Uniform('v', glsVT.newTypeBasic(deqpUtils.DataType.FLOAT_VEC2, glsUBC.UniformFlags.PRECISION_LOW), glsUBC.UniformFlags.UNUSED_BOTH));
-        block.addUniform(new glsUBC.Uniform('t', glsVT.newTypeStruct(typeT), 0));
-        block.addUniform(new glsUBC.Uniform('u', glsVT.newTypeBasic(deqpUtils.DataType.UINT, glsUBC.UniformFlags.PRECISION_HIGH), 0));
+        block.addUniform(new glsUBC.Uniform('s', glsUBC.newVarTypeStruct(typeS), 0));
+        block.addUniform(new glsUBC.Uniform('v', glsUBC.newVarTypeBasic(deqpUtils.DataType.FLOAT_VEC2, glsUBC.UniformFlags.PRECISION_LOW), glsUBC.UniformFlags.UNUSED_BOTH));
+        block.addUniform(new glsUBC.Uniform('t', glsUBC.newVarTypeStruct(typeT), 0));
+        block.addUniform(new glsUBC.Uniform('u', glsUBC.newVarTypeBasic(deqpUtils.DataType.UINT, glsUBC.UniformFlags.PRECISION_HIGH), 0));
         block.setFlags(this.m_layoutFlags);
 
         if (this.m_numInstances > 0)
@@ -209,19 +209,19 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
 
     BlockSingleNestedStructArrayCase.prototype.init = function() {
         /**@type {glsUBC.StructType}*/ var typeS = this.m_interface.allocStruct('S');
-        typeS.addMember('a', glsVT.newTypeBasic(deqpUtils.DataType.INT_VEC3, glsUBC.UniformFlags.PRECISION_HIGH));
-        typeS.addMember('b', glsVT.newTypeArray(glsVT.newTypeBasic(deqpUtils.DataType.INT_VEC2, glsUBC.UniformFlags.PRECISION_MEDIUM), 4));
-        typeS.addMember('c', glsVT.newTypeBasic(deqpUtils.DataType.FLOAT_VEC4, glsUBC.UniformFlags.PRECISION_HIGH), glsUBC.UniformFlags.UNUSED_BOTH);
+        typeS.addMember('a', glsUBC.newVarTypeBasic(deqpUtils.DataType.INT_VEC3, glsUBC.UniformFlags.PRECISION_HIGH));
+        typeS.addMember('b', glsUBC.newVarTypeArray(glsUBC.newVarTypeBasic(deqpUtils.DataType.INT_VEC2, glsUBC.UniformFlags.PRECISION_MEDIUM), 4));
+        typeS.addMember('c', glsUBC.newVarTypeBasic(deqpUtils.DataType.FLOAT_VEC4, glsUBC.UniformFlags.PRECISION_HIGH), glsUBC.UniformFlags.UNUSED_BOTH);
 
         /**@type {glsUBC.StructType}*/ var typeT = this.m_interface.allocStruct('T');
-        typeT.addMember('a', glsVT.newTypeBasic(deqpUtils.DataType.FLOAT_MAT3, glsUBC.UniformFlags.PRECISION_MEDIUM));
-        typeT.addMember('b', glsVT.newTypeArray(glsVT.newTypeStruct(typeS), 3));
+        typeT.addMember('a', glsUBC.newVarTypeBasic(deqpUtils.DataType.FLOAT_MAT3, glsUBC.UniformFlags.PRECISION_MEDIUM));
+        typeT.addMember('b', glsUBC.newVarTypeArray(glsUBC.newVarTypeStruct(typeS), 3));
 
         /** @type {glsUBC.UniformBlock} */ var block = this.m_interface.allocBlock('Block');
-        block.addUniform(new glsUBC.Uniform('s', glsVT.newTypeStruct(typeS), 0));
-        block.addUniform(new glsUBC.Uniform('v', glsVT.newTypeBasic(deqpUtils.DataType.FLOAT_VEC2, glsUBC.UniformFlags.PRECISION_LOW), glsUBC.UniformFlags.UNUSED_BOTH));
-        block.addUniform(new glsUBC.Uniform('t', glsVT.newTypeArray(glsVT.newTypeStruct(typeT), 2), 0));
-        block.addUniform(new glsUBC.Uniform('u', glsVT.newTypeBasic(deqpUtils.DataType.UINT, glsUBC.UniformFlags.PRECISION_HIGH), 0));
+        block.addUniform(new glsUBC.Uniform('s', glsUBC.newVarTypeStruct(typeS), 0));
+        block.addUniform(new glsUBC.Uniform('v', glsUBC.newVarTypeBasic(deqpUtils.DataType.FLOAT_VEC2, glsUBC.UniformFlags.PRECISION_LOW), glsUBC.UniformFlags.UNUSED_BOTH));
+        block.addUniform(new glsUBC.Uniform('t', glsUBC.newVarTypeArray(glsUBC.newVarTypeStruct(typeT), 2), 0));
+        block.addUniform(new glsUBC.Uniform('u', glsUBC.newVarTypeBasic(deqpUtils.DataType.UINT, glsUBC.UniformFlags.PRECISION_HIGH), 0));
         block.setFlags(this.m_layoutFlags);
 
         if (this.m_numInstances > 0)
@@ -252,17 +252,17 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
 
     BlockMultiBasicTypesCase.prototype.init = function() {
         /** @type {glsUBC.UniformBlock} */ var blockA = this.m_interface.allocBlock('BlockA');
-        blockA.addUniform(new glsUBC.Uniform('a', glsVT.newTypeBasic(deqpUtils.DataType.FLOAT, glsUBC.UniformFlags.PRECISION_HIGH)));
-        blockA.addUniform(new glsUBC.Uniform('b', glsVT.newTypeBasic(deqpUtils.DataType.UINT_VEC3, glsUBC.UniformFlags.PRECISION_LOW), glsUBC.UniformFlags.UNUSED_BOTH));
-        blockA.addUniform(new glsUBC.Uniform('c', glsVT.newTypeBasic(deqpUtils.DataType.FLOAT_MAT2, glsUBC.UniformFlags.PRECISION_MEDIUM)));
+        blockA.addUniform(new glsUBC.Uniform('a', glsUBC.newVarTypeBasic(deqpUtils.DataType.FLOAT, glsUBC.UniformFlags.PRECISION_HIGH)));
+        blockA.addUniform(new glsUBC.Uniform('b', glsUBC.newVarTypeBasic(deqpUtils.DataType.UINT_VEC3, glsUBC.UniformFlags.PRECISION_LOW), glsUBC.UniformFlags.UNUSED_BOTH));
+        blockA.addUniform(new glsUBC.Uniform('c', glsUBC.newVarTypeBasic(deqpUtils.DataType.FLOAT_MAT2, glsUBC.UniformFlags.PRECISION_MEDIUM)));
         blockA.setInstanceName('blockA');
         blockA.setFlags(this.m_flagsA);
 
         /** @type {glsUBC.UniformBlock} */ var blockB = this.m_interface.allocBlock('BlockB');
-        blockB.addUniform(new glsUBC.Uniform('a', glsVT.newTypeBasic(deqpUtils.DataType.FLOAT_MAT3, glsUBC.UniformFlags.PRECISION_MEDIUM)));
-        blockB.addUniform(new glsUBC.Uniform('b', glsVT.newTypeBasic(deqpUtils.DataType.INT_VEC2, glsUBC.UniformFlags.PRECISION_LOW)));
-        blockB.addUniform(new glsUBC.Uniform('c', glsVT.newTypeBasic(deqpUtils.DataType.FLOAT_VEC4, glsUBC.UniformFlags.PRECISION_HIGH), glsUBC.UniformFlags.UNUSED_BOTH));
-        blockB.addUniform(new glsUBC.Uniform('d', glsVT.newTypeBasic(deqpUtils.DataType.BOOL, 0)));
+        blockB.addUniform(new glsUBC.Uniform('a', glsUBC.newVarTypeBasic(deqpUtils.DataType.FLOAT_MAT3, glsUBC.UniformFlags.PRECISION_MEDIUM)));
+        blockB.addUniform(new glsUBC.Uniform('b', glsUBC.newVarTypeBasic(deqpUtils.DataType.INT_VEC2, glsUBC.UniformFlags.PRECISION_LOW)));
+        blockB.addUniform(new glsUBC.Uniform('c', glsUBC.newVarTypeBasic(deqpUtils.DataType.FLOAT_VEC4, glsUBC.UniformFlags.PRECISION_HIGH), glsUBC.UniformFlags.UNUSED_BOTH));
+        blockB.addUniform(new glsUBC.Uniform('d', glsUBC.newVarTypeBasic(deqpUtils.DataType.BOOL, 0)));
         blockB.setInstanceName('blockB');
         blockB.setFlags(this.m_flagsB);
 
@@ -294,27 +294,27 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
 
     BlockMultiNestedStructCase.prototype.init = function() {
         /**@type {glsUBC.StructType}*/ var typeS = this.m_interface.allocStruct('S');
-        typeS.addMember('a', glsVT.newTypeBasic(deqpUtils.DataType.FLOAT_MAT3, glsUBC.UniformFlags.PRECISION_LOW));
-        typeS.addMember('b', glsVT.newTypeArray(glsVT.newTypeBasic(deqpUtils.DataType.INT_VEC2, glsUBC.UniformFlags.PRECISION_MEDIUM), 4));
-        typeS.addMember('c', glsVT.newTypeBasic(deqpUtils.DataType.FLOAT_VEC4, glsUBC.UniformFlags.PRECISION_HIGH));
+        typeS.addMember('a', glsUBC.newVarTypeBasic(deqpUtils.DataType.FLOAT_MAT3, glsUBC.UniformFlags.PRECISION_LOW));
+        typeS.addMember('b', glsUBC.newVarTypeArray(glsUBC.newVarTypeBasic(deqpUtils.DataType.INT_VEC2, glsUBC.UniformFlags.PRECISION_MEDIUM), 4));
+        typeS.addMember('c', glsUBC.newVarTypeBasic(deqpUtils.DataType.FLOAT_VEC4, glsUBC.UniformFlags.PRECISION_HIGH));
 
         /**@type {glsUBC.StructType}*/ var typeT = this.m_interface.allocStruct('T');
-        typeT.addMember('a', glsVT.newTypeBasic(deqpUtils.DataType.UINT, glsUBC.UniformFlags.PRECISION_MEDIUM), glsUBC.UniformFlags.UNUSED_BOTH);
-        typeT.addMember('b', glsVT.newTypeStruct(typeS));
-        typeT.addMember('c', glsVT.newTypeBasic(deqpUtils.DataType.BOOL_VEC4, 0));
+        typeT.addMember('a', glsUBC.newVarTypeBasic(deqpUtils.DataType.UINT, glsUBC.UniformFlags.PRECISION_MEDIUM), glsUBC.UniformFlags.UNUSED_BOTH);
+        typeT.addMember('b', glsUBC.newVarTypeStruct(typeS));
+        typeT.addMember('c', glsUBC.newVarTypeBasic(deqpUtils.DataType.BOOL_VEC4, 0));
 
         /** @type {glsUBC.UniformBlock} */ var blockA = this.m_interface.allocBlock('BlockA');
-        blockA.addUniform(new glsUBC.Uniform('a', glsVT.newTypeBasic(deqpUtils.DataType.FLOAT, glsUBC.UniformFlags.PRECISION_HIGH)));
-        blockA.addUniform(new glsUBC.Uniform('b', glsVT.newTypeStruct(typeS)));
-        blockA.addUniform(new glsUBC.Uniform('c', glsVT.newTypeBasic(deqpUtils.DataType.UINT_VEC3, glsUBC.UniformFlags.PRECISION_LOW), glsUBC.UniformFlags.UNUSED_BOTH));
+        blockA.addUniform(new glsUBC.Uniform('a', glsUBC.newVarTypeBasic(deqpUtils.DataType.FLOAT, glsUBC.UniformFlags.PRECISION_HIGH)));
+        blockA.addUniform(new glsUBC.Uniform('b', glsUBC.newVarTypeStruct(typeS)));
+        blockA.addUniform(new glsUBC.Uniform('c', glsUBC.newVarTypeBasic(deqpUtils.DataType.UINT_VEC3, glsUBC.UniformFlags.PRECISION_LOW), glsUBC.UniformFlags.UNUSED_BOTH));
         blockA.setInstanceName('blockA');
         blockA.setFlags(this.m_flagsA);
 
         /** @type {glsUBC.UniformBlock} */ var blockB = this.m_interface.allocBlock('BlockB');
-        blockB.addUniform(new glsUBC.Uniform('a', glsVT.newTypeBasic(deqpUtils.DataType.FLOAT_MAT2, glsUBC.UniformFlags.PRECISION_MEDIUM)));
-        blockB.addUniform(new glsUBC.Uniform('b', glsVT.newTypeStruct(typeT)));
-        blockB.addUniform(new glsUBC.Uniform('c', glsVT.newTypeBasic(deqpUtils.DataType.BOOL_VEC4, 0), glsUBC.UniformFlags.UNUSED_BOTH));
-        blockB.addUniform(new glsUBC.Uniform('d', glsVT.newTypeBasic(deqpUtils.DataType.BOOL, 0)));
+        blockB.addUniform(new glsUBC.Uniform('a', glsUBC.newVarTypeBasic(deqpUtils.DataType.FLOAT_MAT2, glsUBC.UniformFlags.PRECISION_MEDIUM)));
+        blockB.addUniform(new glsUBC.Uniform('b', glsUBC.newVarTypeStruct(typeT)));
+        blockB.addUniform(new glsUBC.Uniform('c', glsUBC.newVarTypeBasic(deqpUtils.DataType.BOOL_VEC4, 0), glsUBC.UniformFlags.UNUSED_BOTH));
+        blockB.addUniform(new glsUBC.Uniform('d', glsUBC.newVarTypeBasic(deqpUtils.DataType.BOOL, 0)));
         blockB.setInstanceName('blockB');
         blockB.setFlags(this.m_flagsB);
 
@@ -405,12 +405,12 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
                 /** @type {string} */ var typeName = deqpUtils.getDataTypeName(type);
 
                 if (deqpUtils.isDataTypeBoolOrBVec(type))
-                    createBlockBasicTypeCases(layoutGroup, typeName, glsVT.newTypeBasic(type, 0), layoutFlags[layoutFlagNdx].flags);
+                    createBlockBasicTypeCases(layoutGroup, typeName, glsUBC.newVarTypeBasic(type, 0), layoutFlags[layoutFlagNdx].flags);
                 else
                 {
                     for (var precNdx = 0; precNdx < precisionFlags.length; precNdx++)
                         createBlockBasicTypeCases(layoutGroup, precisionFlags[precNdx].name + '_' + typeName,
-                            glsVT.newTypeBasic(type, precisionFlags[precNdx].flags), layoutFlags[layoutFlagNdx].flags);
+                            glsUBC.newVarTypeBasic(type, precisionFlags[precNdx].flags), layoutFlags[layoutFlagNdx].flags);
                 }
 
                 if (deqpUtils.isDataTypeMatrix(type))
@@ -419,7 +419,7 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
                     {
                         for (var precNdx = 0; precNdx < precisionFlags.length; precNdx++)
                             createBlockBasicTypeCases(layoutGroup, matrixFlags[matFlagNdx].name + '_' + precisionFlags[precNdx].name + '_' + typeName,
-                                glsVT.newTypeBasic(type, precisionFlags[precNdx].flags), layoutFlags[layoutFlagNdx].flags | matrixFlags[matFlagNdx].flags);
+                                glsUBC.newVarTypeBasic(type, precisionFlags[precNdx].flags), layoutFlags[layoutFlagNdx].flags | matrixFlags[matFlagNdx].flags);
                     }
                 }
             }
@@ -444,14 +444,14 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
                 /** @type {number} */ var arraySize = 3;
 
                 createBlockBasicTypeCases(layoutGroup, typeName,
-                    glsVT.newTypeArray(glsVT.newTypeBasic(type, deqpUtils.isDataTypeBoolOrBVec(type) ? 0 : glsUBC.UniformFlags.PRECISION_HIGH), arraySize),
+                    glsUBC.newVarTypeArray(glsUBC.newVarTypeBasic(type, deqpUtils.isDataTypeBoolOrBVec(type) ? 0 : glsUBC.UniformFlags.PRECISION_HIGH), arraySize),
                     layoutFlags[layoutFlagNdx].flags);
 
                 if (deqpUtils.isDataTypeMatrix(type))
                 {
                     for (var matFlagNdx = 0; matFlagNdx < matrixFlags.length; matFlagNdx++)
                         createBlockBasicTypeCases(layoutGroup, matrixFlags[matFlagNdx].name + '_' + typeName,
-                            glsVT.newTypeArray(glsVT.newTypeBasic(type, glsUBC.UniformFlags.PRECISION_HIGH), arraySize),
+                            glsUBC.newVarTypeArray(glsUBC.newVarTypeBasic(type, glsUBC.UniformFlags.PRECISION_HIGH), arraySize),
                             layoutFlags[layoutFlagNdx].flags | matrixFlags[matFlagNdx].flags);
                 }
             }
@@ -612,14 +612,14 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
                 /** @type {number} */ var numInstances = 3;
 
                 createBlockBasicTypeCases(layoutGroup, typeName,
-                    glsVT.newTypeBasic(type, deqpUtils.isDataTypeBoolOrBVec(type) ? 0 : glsUBC.UniformFlags.PRECISION_HIGH),
+                    glsUBC.newVarTypeBasic(type, deqpUtils.isDataTypeBoolOrBVec(type) ? 0 : glsUBC.UniformFlags.PRECISION_HIGH),
                     layoutFlags[layoutFlagNdx].flags, numInstances);
 
                 if (deqpUtils.isDataTypeMatrix(type))
                 {
                     for (var matFlagNdx = 0; matFlagNdx < matrixFlags.length; matFlagNdx++)
                         createBlockBasicTypeCases(layoutGroup, matrixFlags[matFlagNdx].name + '_' + typeName,
-                            glsVT.newTypeBasic(type, glsUBC.UniformFlags.PRECISION_HIGH), layoutFlags[layoutFlagNdx].flags | matrixFlags[matFlagNdx].flags,
+                            glsUBC.newVarTypeBasic(type, glsUBC.UniformFlags.PRECISION_HIGH), layoutFlags[layoutFlagNdx].flags | matrixFlags[matFlagNdx].flags,
                             numInstances);
                 }
             }
