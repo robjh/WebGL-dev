@@ -233,6 +233,7 @@ var CubeFace = {
 	CUBEFACE_POSITIVE_Y: 3,
 	CUBEFACE_NEGATIVE_Z: 4,
 	CUBEFACE_POSITIVE_Z: 5,
+	TOTAL_FACES: 6
 };
 
 /*
@@ -575,6 +576,9 @@ var  ConstPixelBufferAccess = function(descriptor) {
 	ConstPixelBufferAccess.prototype.getPixel = function(x, y, z) {
 		if (z == null)
 			z = 0;
+	console.log(this);
+	console.log('(' + x + ',' + y + ',' + z + ')');
+
 	DE_ASSERT(deInt32.deInBounds32(x, 0, this.m_width));
 	DE_ASSERT(deInt32.deInBounds32(y, 0, this.m_height));
 	DE_ASSERT(deInt32.deInBounds32(z, 0, this.m_depth));
@@ -1030,6 +1034,12 @@ var sampleLevelArray2D = function(/*const ConstPixelBufferAccess* */ levels, /*i
 	throw new Error('Unimplemented');
 };
 
+var CubeFaceCoords = function(face, coords) {
+	this.face = face;
+	this.s = coords[0];
+	this.t = coords[1];
+};
+
 /*--------------------------------------------------------------------*//*!
  * \brief 2D Texture View
  *//*--------------------------------------------------------------------*/
@@ -1052,8 +1062,8 @@ Texture2DView.prototype.getSubView = function(baseLevel, maxLevel) {
 	return new Texture2DView(numLevels, this.m_levels.slice(clampedBase,numLevels));
 };
 
-Texture2DView.prototype.sample = function(/*const Sampler&*/ sampler, s,t, lod) {
-	return sampleLevelArray2D(this.m_levels, this.m_numLevels, sampler, s, t, 0 /* depth */, lod);
+Texture2DView.prototype.sample = function(/*const Sampler&*/ sampler, texCoord, lod) {
+	return sampleLevelArray2D(this.m_levels, this.m_numLevels, sampler, texCoords[0], texCoords[1], 0 /* depth */, lod);
 };
 
 	/* TODO: Port
@@ -1067,13 +1077,19 @@ Texture2DView.prototype.sample = function(/*const Sampler&*/ sampler, s,t, lod) 
 	*/
 
 var computeMipPyramidLevels = function(width, height) {
-	return Math.floor(Math.log2(Math.max(width, height))) + 1;
+	var h = height || width;
+	return Math.floor(Math.log2(Math.max(width, h))) + 1;
 };
 
 var getMipPyramidLevelSize = function(baseLevelSize, levelNdx) {
 	return Math.max(baseLevelSize >> levelNdx, 1);
 };
 
+
+/*CubeFaceCoords*/ var getCubeFaceCoords = function(/*const Vec3&*/ coords) {
+	/*const CubeFace*/ var face = selectCubeFace(coords);
+	return new CubeFaceCoords(face, projectToFace(face, coords));
+}
 
 var Texture2D = function(format, width, height) {
 	console.log('In Texture 2D constructor');
@@ -1099,27 +1115,159 @@ Texture2D.prototype.allocLevel = function(levelNdx) {
 	TextureLevelPyramid.prototype.allocLevel.call(this, levelNdx, width, height, 1);
 };
 
+var TextureCubeView = function(numLevels, levels) {
+	this.m_numLevels = numLevels;
+	this.m_levels = levels;
+};
+
+TextureCubeView.prototype.sample = function(/*const Sampler&*/ sampler, texCoord, lod) {
+	DE_ASSERT(sampler.compare == CompareMode.COMPAREMODE_NONE);
+
+	// Computes (face, s, t).
+	/*const CubeFaceCoords*/ var coords = getCubeFaceCoords(texCoord);
+	console.log('In TextureCubeView.prototype.sample');
+	console.log(coords);
+	if (sampler.seamlessCubeMap)
+		return sampleLevelArrayCubeSeamless(this.m_levels, this.m_numLevels, coords.face, sampler, coords.s, coords.t, 0 /* depth */, lod);
+	else
+		return sampleLevelArray2D(this.m_levels[coords.face], this.m_numLevels, sampler, coords.s, coords.t, 0 /* depth */, lod);
+};
+
+TextureCubeView.prototype.getFaceLevels	= function(/*CubeFace*/ face) { return this.m_levels[face];					};
+TextureCubeView.prototype.getSize = function() { return this.m_numLevels > 0 ? this.m_levels[0][0].getWidth() : 0;	};
+TextureCubeView.prototype.getSubView = function(baseLevel, maxLevel) {
+	var	clampedBase	= baseLevel.clamp(0, this.m_numLevels-1);
+	var	clampedMax	= maxLevel.clamp(clampedBase, this.m_numLevels-1);
+	var	numLevels	= clampedMax-clampedBase+1;
+	var levels = [];
+	for (var face = 0; face < CubeFace.TOTAL_FACES; face++)
+		levels.push(this.getFaceLevels(face).slice(clampedBase, numLevels));
+
+	return new TextureCubeView(numLevels, levels);
+};
+
 var TextureCube = function(format, size) {
-	/* TODO: Implement */
-	// this.m_format = format;
-	// this.m_size = size;
-	// this.m_data = [];
-	// this.m_data.length = CubeFace.length;
-	// this.m_access = [];
-	// this.m_access.length = CubeFace.length;
+	this.m_format = format;
+	this.m_size = size;
+	this.m_data = [];
+	this.m_data.length = CubeFace.TOTAL_FACES;
+	this.m_access = [];
+	this.m_access.length = CubeFace.TOTAL_FACES;
 
-	// var						numLevels		= computeMipPyramidLevels(this.m_size);
-	// var	levels = [];
+	var						numLevels		= computeMipPyramidLevels(this.m_size);
+	var	levels = [];
+	levels.length = CubeFace.TOTAL_FACES;
 
-	// for (var face =  0; face < CubeFace.length; face++) {
-	// 	this.m_data[face] = [];
-	// 	this.m_data[face].length = numLevels;
-	// 	this.m_access[face] = [];
-	// 	this.m_access[face].length = numLevels;
-	// 	levels[face] = &m_access[face][0];
-	// }
+	for (var face =  0; face < CubeFace.TOTAL_FACES; face++) {
+		this.m_data[face] = [];
+		for (var i = 0; i < numLevels; i++)
+			this.m_data[face].push(new DeqpArrayBuffer());
+		this.m_access[face] = [];
+		this.m_access[face].length = numLevels;
+		levels[face] = this.m_access[face];
+	}
 
-	// m_view = TextureCubeView(numLevels, levels);};
+	this.m_view = new TextureCubeView(numLevels, levels);
+};
+
+TextureCube.prototype.getFormat	= function() { return this.m_format;	};
+TextureCube.prototype.getSize = function() { return this.m_size;	};
+TextureCube.prototype.getLevelFace = function(/*int */ndx, /*CubeFace*/ face)		{ return this.m_access[face][ndx];		};
+TextureCube.prototype.getNumLevels = function() { return this.m_access[0].length;	};
+TextureCube.prototype.sample = function(/*const Sampler&*/ sampler, texCoord, lod) {
+	this.m_view.sample(sampler, texCoord, lod);
+};
+TextureCube.prototype.getSubView = function(baseLevel, maxLevel) { return this.m_view.getSubView(baseLevel, maxLevel); }
+
+TextureCube.prototype.isLevelEmpty		= function(/*CubeFace*/ face, /*int*/ levelNdx) {
+	console.log(this.m_data);
+ return this.m_data[face][levelNdx].empty();	};
+
+TextureCube.prototype.allocLevel  = function(/*tcu::CubeFace*/ face, /*int*/ levelNdx) {
+	/*const int*/ var	size		= getMipPyramidLevelSize(this.m_size, levelNdx);
+	/*const int*/ var	dataSize	= this.m_format.getPixelSize()*size*size;
+	DE_ASSERT(this.isLevelEmpty(face, levelNdx));
+
+	this.m_data[face][levelNdx].setStorage(dataSize);
+	this.m_access[face][levelNdx] = new PixelBufferAccess({
+		format: this.m_format,
+		width: size,
+		height: size,
+		depth: 1,
+		data: this.m_data[face][levelNdx].m_ptr
+	});
+};
+
+/**
+ * @return {CubeFace}
+ */
+var selectCubeFace = function(/*const Vec3&*/ coords) {
+	var	x	= coords.x();
+	var	y	= coords.y();
+	var	z	= coords.z();
+	var	ax	= Math.abs(x);
+	var	ay	= Math.abs(y);
+	var	az	= Math.abs(z);
+
+	if (ay < ax && az < ax)
+		return x >= 0 ? CubeFace.CUBEFACE_POSITIVE_X : CubeFace.CUBEFACE_NEGATIVE_X;
+	else if (ax < ay && az < ay)
+		return y >= 0 ? CubeFace.CUBEFACE_POSITIVE_Y : CubeFace.CUBEFACE_NEGATIVE_Y;
+	else if (ax < az && ay < az)
+		return z >= 0 ? CubeFace.CUBEFACE_POSITIVE_Z : CubeFace.CUBEFACE_NEGATIVE_Z;
+	else
+	{
+		// Some of the components are equal. Use tie-breaking rule.
+		if (ax == ay)
+		{
+			if (ax < az)
+				return z >= 0 ? CubeFace.CUBEFACE_POSITIVE_Z : CubeFace.CUBEFACE_NEGATIVE_Z;
+			else
+				return x >= 0 ? CubeFace.CUBEFACE_POSITIVE_X : CubeFace.CUBEFACE_NEGATIVE_X;
+		}
+		else if (ax == az)
+		{
+			if (az < ay)
+				return y >= 0 ? CubeFace.CUBEFACE_POSITIVE_Y : CubeFace.CUBEFACE_NEGATIVE_Y;
+			else
+				return z >= 0 ? CubeFace.CUBEFACE_POSITIVE_Z : CubeFace.CUBEFACE_NEGATIVE_Z;
+		}
+		else if (ay == az)
+		{
+			if (ay < ax)
+				return x >= 0 ? CubeFace.CUBEFACE_POSITIVE_X : CubeFace.CUBEFACE_NEGATIVE_X;
+			else
+				return y >= 0 ? CubeFace.CUBEFACE_POSITIVE_Y : CubeFace.CUBEFACE_NEGATIVE_Y;
+		}
+		else
+			return x >= 0 ? CubeFace.CUBEFACE_POSITIVE_X : CubeFace.CUBEFACE_NEGATIVE_X;
+	}
+};
+
+var projectToFace = function(/*CubeFace*/ face, /*const Vec3&*/ coord) {
+	var	rx		= coord.x();
+	var	ry		= coord.y();
+	var	rz		= coord.z();
+	var	sc		= 0;
+	var	tc		= 0;
+	var	ma		= 0;
+
+	switch (face) {
+		case CubeFace.CUBEFACE_NEGATIVE_X: sc = +rz; tc = -ry; ma = -rx; break;
+		case CubeFace.CUBEFACE_POSITIVE_X: sc = -rz; tc = -ry; ma = +rx; break;
+		case CubeFace.CUBEFACE_NEGATIVE_Y: sc = +rx; tc = -rz; ma = -ry; break;
+		case CubeFace.CUBEFACE_POSITIVE_Y: sc = +rx; tc = +rz; ma = +ry; break;
+		case CubeFace.CUBEFACE_NEGATIVE_Z: sc = -rx; tc = -ry; ma = -rz; break;
+		case CubeFace.CUBEFACE_POSITIVE_Z: sc = +rx; tc = -ry; ma = +rz; break;
+		default:
+			throw new Error('Unrecognized face ' + face);
+	}
+
+	// Compute s, t
+	var s = ((sc / ma) + 1) / 2;
+	var t = ((tc / ma) + 1) / 2;
+
+	return [s, t];
 };
 
 	return {
@@ -1133,8 +1281,10 @@ var TextureCube = function(format, size) {
 		ConstPixelBufferAccess: ConstPixelBufferAccess,
 		PixelBufferAccess: PixelBufferAccess,
 		Texture2D: Texture2D,
+		TextureCube: TextureCube,
 		WrapMode: WrapMode,
 		FilterMode: FilterMode,
-		Sampler: Sampler
+		Sampler: Sampler,
+		selectCubeFace: selectCubeFace
 	};
 });

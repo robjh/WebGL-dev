@@ -25,6 +25,10 @@ var	GLU_EXPECT_NO_ERROR = function(error, message) {
 	assertMsgOptions(error === gl.NONE, message, false, true);
 };
 
+var DE_ASSERT = function(x) {
+	if (!x)
+		throw new Error('Assert failed');
+};
 
 var Texture2DFormatCase = function(name, description, descriptor){
 	this.m_name = name;
@@ -96,8 +100,7 @@ Texture2DFormatCase.prototype.deinit = function() {
 Texture2DFormatCase.prototype.iterate = function() {
 	/* TODO: Implement */	
 
-	// var viewport	= new glsTextureTestUtil.RandomViewport(canvas, this.m_width, this.m_height/*, deStringHash(getName())*/);
-	var viewport	= new glsTextureTestUtil.RandomViewport(canvas, 200, 200/*, deStringHash(getName())*/);
+	var viewport	= new glsTextureTestUtil.RandomViewport(canvas, this.m_width, this.m_height/*, deStringHash(getName())*/);
 
 	/* tcu::Surface	 */	var	renderedFrame	= new tcuSurface.Surface(viewport.width, viewport.height);
 	/* tcu::Surface	 */	var	referenceFrame	= new tcuSurface.Surface(viewport.width, viewport.height);
@@ -107,7 +110,7 @@ Texture2DFormatCase.prototype.iterate = function() {
 	var threshold = [3, 3, 3, 3];
 	var renderParams = new glsTextureTestUtil.ReferenceParams(glsTextureTestUtil.textureType.TEXTURETYPE_2D);
 
-	// tcu::TextureFormatInfo	spec				= tcu::getTextureFormatInfo(m_texture->getRefTexture().getFormat());
+	/* tcu::TextureFormatInfo*/ var	spec				= tcuTextureUtil.getTextureFormatInfo(this.m_texture.getRefTexture().getFormat());
 	/* @const */ var			wrapS				= gl.CLAMP_TO_EDGE;
 	/* @const */ var			wrapT				= gl.CLAMP_TO_EDGE;
 	/* @const */ var			minFilter			= gl.NEAREST;
@@ -122,8 +125,8 @@ Texture2DFormatCase.prototype.iterate = function() {
 	renderParams.sampler		= new tcuTexture.Sampler(tcuTexture.WrapMode.CLAMP_TO_EDGE, tcuTexture.WrapMode.CLAMP_TO_EDGE, tcuTexture.WrapMode.CLAMP_TO_EDGE,
 	 tcuTexture.FilterMode.NEAREST, tcuTexture.FilterMode.NEAREST);
 	console.log(renderParams.sampler);
-	// renderParams.colorScale		= spec.lookupScale;
-	// renderParams.colorBias		= spec.lookupBias;
+	renderParams.colorScale		= spec.lookupScale;
+	renderParams.colorBias		= spec.lookupBias;
 
 	var texCoord = glsTextureTestUtil.computeQuadTexCoord2D([0, 0], [1, 1]);
 
@@ -213,7 +216,7 @@ Texture2DFormatCase.prototype.iterate = function() {
 	assertMsgOptions(isOk, 'Image comparison', true, true);
 };
 
-var Texture2DCubeFormatCase = function(name, description, descriptor){
+var TextureCubeFormatCase = function(name, description, descriptor){
 	this.m_name = name;
 	this.m_description = description;
 	this.m_format = descriptor.format;
@@ -224,7 +227,7 @@ var Texture2DCubeFormatCase = function(name, description, descriptor){
 	DE_ASSERT(this.m_width == this.m_height);
 };
 
-Texture2DCubeFormatCase.prototype.init = function() {
+TextureCubeFormatCase.prototype.init = function() {
 	/*tcu::TextureFormat*/ var		fmt		= this.m_dataType ? gluTextureUtil.mapGLTransferFormat(this.m_format, this.m_dataType) : gluTextureUtil.mapGLInternalFormat(this.m_format);
 	/*tcu::TextureFormatInfo*/ var	spec	= tcuTextureUtil.getTextureFormatInfo(fmt);
 	console.log(spec);
@@ -243,43 +246,195 @@ Texture2DCubeFormatCase.prototype.init = function() {
 	*/
 
 	this.m_texture = this.m_dataType
-			  ? gluTexture.construccubeFromFormattFromFormat(gl, this.m_format, this.m_dataType, this.m_width)	// Implicit internal format.
+			  ? gluTexture.cubeFromFormat(gl, this.m_format, this.m_dataType, this.m_width)	// Implicit internal format.
 			  : gluTexture.cubeFromInternalFormat(gl, this.m_format, this.m_width);				// Explicit internal format.
 
 	// Fill level 0.
-	for (var i = 0; i < tcuTexture.CubeFace.length; i++)
-	{
-		var face = tcuTexture.CubeFace[i];
+	for (var face = 0; face < tcuTexture.CubeFace.TOTAL_FACES; face++) {
 		var gMin = null;
 		var gMax = null;
 
-		switch (face)
-		{
-			case 0: gMin = spec.valueMin.swizzle(0, 1, 2, 3); gMax = spec.valueMax.swizzle(0, 1, 2, 3); break;
-			case 1: gMin = spec.valueMin.swizzle(2, 1, 0, 3); gMax = spec.valueMax.swizzle(2, 1, 0, 3); break;
-			case 2: gMin = spec.valueMin.swizzle(1, 2, 0, 3); gMax = spec.valueMax.swizzle(1, 2, 0, 3); break;
-			case 3: gMin = spec.valueMax.swizzle(0, 1, 2, 3); gMax = spec.valueMin.swizzle(0, 1, 2, 3); break;
-			case 4: gMin = spec.valueMax.swizzle(2, 1, 0, 3); gMax = spec.valueMin.swizzle(2, 1, 0, 3); break;
-			case 5: gMin = spec.valueMax.swizzle(1, 2, 0, 3); gMax = spec.valueMin.swizzle(1, 2, 0, 3); break;
+		switch (face) {
+			case 0: gMin = spec.valueMin.swizzle([0, 1, 2, 3]); gMax = spec.valueMax.swizzle([0, 1, 2, 3]); break;
+			case 1: gMin = spec.valueMin.swizzle([2, 1, 0, 3]); gMax = spec.valueMax.swizzle([2, 1, 0, 3]); break;
+			case 2: gMin = spec.valueMin.swizzle([1, 2, 0, 3]); gMax = spec.valueMax.swizzle([1, 2, 0, 3]); break;
+			case 3: gMin = spec.valueMax.swizzle([0, 1, 2, 3]); gMax = spec.valueMin.swizzle([0, 1, 2, 3]); break;
+			case 4: gMin = spec.valueMax.swizzle([2, 1, 0, 3]); gMax = spec.valueMin.swizzle([2, 1, 0, 3]); break;
+			case 5: gMin = spec.valueMax.swizzle([1, 2, 0, 3]); gMax = spec.valueMin.swizzle([1, 2, 0, 3]); break;
 			default:
 				DE_ASSERT(false);
 		}
 
 		this.m_texture.getRefTexture().allocLevel(face, 0);
 		tcuTextureUtil.fillWithComponentGradients(this.m_texture.getRefTexture().getLevelFace(0, face), gMin, gMax);
-	
-	}	/* TODO: remove the block below */
+	}
+
+	this.m_texture.upload();
+	this.m_curFace = 0;
+	this.m_isOk = true;
+};
+
+TextureCubeFormatCase.prototype.testFace = function(face) {
+	/* TODO: Implement */	
+
+	// var viewport	= new glsTextureTestUtil.RandomViewport(canvas, this.m_width, this.m_height/*, deStringHash(getName())*/);
+	var viewport	= new glsTextureTestUtil.RandomViewport(canvas, 200, 200/*, deStringHash(getName())*/);
+
+	/* tcu::Surface	 */	var	renderedFrame	= new tcuSurface.Surface(viewport.width, viewport.height);
+	/* tcu::Surface	 */	var	referenceFrame	= new tcuSurface.Surface(viewport.width, viewport.height);
+	/* TODO: Implement
+	// tcu::RGBA				threshold			= m_renderCtx.getRenderTarget().getPixelFormat().getColorThreshold() + tcu::RGBA(1,1,1,1);
+	*/
+	var threshold = [3, 3, 3, 3];
+	var renderParams = new glsTextureTestUtil.ReferenceParams(glsTextureTestUtil.textureType.TEXTURETYPE_CUBE);
+
+	/* tcu::TextureFormatInfo*/ var	spec				= tcuTextureUtil.getTextureFormatInfo(this.m_texture.getRefTexture().getFormat());
+	/* @const */ var			wrapS				= gl.CLAMP_TO_EDGE;
+	/* @const */ var			wrapT				= gl.CLAMP_TO_EDGE;
+	/* @const */ var			minFilter			= gl.NEAREST;
+	/* @const */ var			magFilter			= gl.NEAREST;
+
+	renderParams.flags.log_programs = true;
+	renderParams.flags.log_uniforms = true;
+
+	renderParams.samplerType	= glsTextureTestUtil.getSamplerType(this.m_texture.getRefTexture().getFormat());
+	console.log('Sampler');
+	console.log(tcuTexture.Sampler);
+	renderParams.sampler		= new tcuTexture.Sampler(tcuTexture.WrapMode.CLAMP_TO_EDGE, tcuTexture.WrapMode.CLAMP_TO_EDGE, tcuTexture.WrapMode.CLAMP_TO_EDGE,
+	 tcuTexture.FilterMode.NEAREST, tcuTexture.FilterMode.NEAREST);
+	console.log(renderParams.sampler);
+	renderParams.colorScale		= spec.lookupScale;
+	renderParams.colorBias		= spec.lookupBias;
+
+	// Log render info on first face.
+	if (face === tcuTexture.CubeFace.CUBEFACE_NEGATIVE_X) {
+		renderParams.flags.log_programs = true;
+		renderParams.flags.log_uniforms = true;
+	}
+
+	var texCoord = glsTextureTestUtil.computeQuadTexCoordCube(face);
+
+	// log << TestLog::Message << "Texture parameters:"
+	// 						<< "\n  WRAP_S = " << glu::getTextureParameterValueStr(GL_TEXTURE_WRAP_S, wrapS)
+	// 						<< "\n  WRAP_T = " << glu::getTextureParameterValueStr(GL_TEXTURE_WRAP_T, wrapT)
+	// 						<< "\n  MIN_FILTER = " << glu::getTextureParameterValueStr(GL_TEXTURE_MIN_FILTER, minFilter)
+	// 						<< "\n  MAG_FILTER = " << glu::getTextureParameterValueStr(GL_TEXTURE_MAG_FILTER, magFilter)
+	// 	<< TestLog::EndMessage;
+
+	// Setup base viewport.
+	console.log(viewport);
+	gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height);
+
+	// Bind to unit 0.
+	gl.activeTexture(gl.TEXTURE0);
+	gl.bindTexture(gl.TEXTURE_CUBE_MAP, this.m_texture.getGLTexture());
+
+	// Setup nearest neighbor filtering and clamp-to-edge.
+	gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, wrapS);
+	gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, wrapT);
+	gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, minFilter);
+	gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, magFilter);
+
+	GLU_EXPECT_NO_ERROR(gl.getError(), "Set texturing state");
+
+	// // Draw.
+	this.m_renderer.renderQuad(0, texCoord, renderParams);
+	if (0) {
+		var p = new Uint8Array(4 * viewport.width * viewport.height);
+		gl.readPixels(viewport.x, viewport.y, viewport.width, viewport.height, gl.RGBA, gl.UNSIGNED_BYTE, p);
+		GLU_EXPECT_NO_ERROR(gl.getError(), "glReadPixels()");
+		console.log('Dumping array length: ' + p.length);
+		console.log(p);
+		for (var y = 0; y < viewport.height; y+=18) {
+			for (var x = 0; x < viewport.width; x+=18) {
+				var offset = 4 * (x + y * viewport.width);
+				// p[1] = 0;
+				// referenceFrame.setPixel(x, y, p);
+	    		var output = '(' + x + ',' + y + ') = (' + p[offset + 0] + ',' + p[offset +1] + ',' + p[offset + 2] +')';
+	    		console.log(output);
+			}
+		}
+
+	}
+	gl.readPixels(viewport.x, viewport.y, viewport.width, viewport.height, gl.RGBA, gl.UNSIGNED_BYTE, renderedFrame.getAccess().getDataPtr());
+
+	GLU_EXPECT_NO_ERROR(gl.getError(), "glReadPixels()");
+
+	if (1) {
+		console.log('Dumping array length: ' + renderedFrame.getAccess().getDataPtr().length);
+		console.log(renderedFrame.getAccess().getDataPtr());
+		console.log(renderedFrame.getAccess());
+		for (var y = 0; y < renderedFrame.getHeight(); y+=37) {
+			for (var x = 0; x < renderedFrame.getWidth(); x+=37) {
+				var p = renderedFrame.getPixel(x, y);
+				// p[1] = 0;
+				// referenceFrame.setPixel(x, y, p);
+	    		var output = '(' + x + ',' + y + ') = (' + p[0] + ',' + p[1] + ',' + p[2] +')';
+	    		console.log(output);
+			}
+		}
+	}
+
+	// // Compute reference.
+	glsTextureTestUtil.sampleTextureCube(new glsTextureTestUtil.SurfaceAccess(referenceFrame, undefined /*m_renderCtx.getRenderTarget().getPixelFormat()*/),
+		this.m_texture.getRefTexture(), texCoord, renderParams);
+
+	if (1) {
+		for (var y = 0; y < referenceFrame.getHeight(); y+=37) {
+			for (var x = 0; x < referenceFrame.getWidth(); x+=37) {
+				var p = referenceFrame.getPixel(x, y);
+				// p[1] += 4;
+				// referenceFrame.setPixel(x, y, p);
+	    		var output = '(' + x + ',' + y + ') = (' + p[0] + ',' + p[1] + ',' + p[2] +')';
+	    		console.log(output);
+			}
+		}
+	}
+
+	// Compare and log.
+	var isOk = glsTextureTestUtil.compareImages(referenceFrame, renderedFrame, threshold);
+
+	assertMsgOptions(isOk, 'Image comparison', true, true);
+};
+
+TextureCubeFormatCase.prototype.iterate = function() {
+	// Execute test for all faces.
+	if (!this.testFace(this.m_curFace))
+		this.m_isOk = false;
+
+	this.m_curFace += 1;
+
+	if (this.m_curFace == tcuTexture.CubeFace.TOTAL_FACES)
+	{
+		assertMsgOptions(this.m_isOk, 'Image comparison', true, true);
+		return true;
+	}
+	else
+		return false;
 };
 
 var init = function(filter) {
-	var test = new Texture2DFormatCase('Test', 'description', {
-		format: gl.RGB565,
-		width: 128,
-		height: 128,
-	});
-	console.log(test);
-	test.init();
-	test.iterate();
+	if (0) {
+		var test = new Texture2DFormatCase('Test', 'description', {
+			format: gl.RGB565,
+			width: 128,
+			height: 128,
+		});
+		console.log(test);
+		test.init();
+		test.iterate();
+	}
+
+	{
+		var test = new TextureCubeFormatCase('Test', 'description', {
+			format: gl.RGB565,
+			width: 128,
+			height: 128,
+		});
+		console.log(test);
+		test.init();
+		test.iterate();
+	}
 };
     /**
      * Create and execute the test cases

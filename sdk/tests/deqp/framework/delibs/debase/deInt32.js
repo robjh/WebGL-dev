@@ -67,6 +67,8 @@ Number.prototype.mirror = function() {
  * @return {Array.<Number>}
  */
 Array.prototype.swizzle = function(indices) {
+    if (!indices.lenth)
+        throw new Error('Argument must be an array');
     var dst = [];
     for (var i = 0; i < indices.length; i++)
         dst.push(this[indices[i]]);

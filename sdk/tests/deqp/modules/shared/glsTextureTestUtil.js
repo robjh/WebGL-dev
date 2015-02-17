@@ -160,6 +160,55 @@ var computeQuadTexCoord2D = function(bottomLeft,topRight)
 	return dst;
 };
 
+var computeQuadTexCoordCube = function(/*tcu::CubeFace*/ face) {
+	var texCoordNegX = [
+		-1,  1, -1,
+		-1, -1, -1,
+		-1,  1,  1,
+		-1, -1,  1
+	];
+	var texCoordPosX = [
+		+1,  1,  1,
+		+1, -1,  1,
+		+1,  1, -1,
+		+1, -1, -1
+	];
+	var texCoordNegY = [
+		-1, -1,  1,
+		-1, -1, -1,
+		 1, -1,  1,
+		 1, -1, -1
+	];
+	var texCoordPosY = [
+		-1, +1, -1,
+		-1, +1,  1,
+		 1, +1, -1,
+		 1, +1,  1
+	];
+	var texCoordNegZ = [
+		 1,  1, -1,
+		 1, -1, -1,
+		-1,  1, -1,
+		-1, -1, -1
+	];
+	var texCoordPosZ = [
+		-1,  1, +1,
+		-1, -1, +1,
+		 1,  1, +1,
+		 1, -1, +1
+	];
+
+	switch (face) {
+		case tcuTexture.CubeFace.CUBEFACE_NEGATIVE_X: return texCoordNegX;
+		case tcuTexture.CubeFace.CUBEFACE_POSITIVE_X: return texCoordPosX;
+		case tcuTexture.CubeFace.CUBEFACE_NEGATIVE_Y: return texCoordNegY;
+		case tcuTexture.CubeFace.CUBEFACE_POSITIVE_Y: return texCoordPosY;
+		case tcuTexture.CubeFace.CUBEFACE_NEGATIVE_Z: return texCoordNegZ;
+		case tcuTexture.CubeFace.CUBEFACE_POSITIVE_Z: return texCoordPosZ;
+	}
+	throw new Error('Unrecognized face ' + face);
+};
+
 /**
  * @enum
  */
@@ -711,16 +760,32 @@ var computeNonProjectedTriLod = function(/*LodMode*/ mode, /*const tcu::IVec2&*/
 	return computeLodFromDerivates(mode, dux/dx, dvx/dx, duy/dy, dvy/dy);
 }
 
-var triangleInterpolate = function(v0, v1, v2, x, y) {
-	return v0 + (v2-v0)*x + (v1-v0)*y;
+/**
+ * @param {Array<Number>} v
+ */
+var triangleInterpolate = function(v, x, y) {
+	return v[0] + (v[2]-v[0])*x + (v[1]-v[0])*y;
 };
 
-var execSample = function(/*const tcu::Texture2DView&*/ src, /*const ReferenceParams&*/ params, s, t, lod)
+var triDerivateX = function(/*const tcu::Vec3&*/ s, /*const tcu::Vec3&*/ w, wx, width, ny) {
+	var d = w[1]*w[2]*(width*(ny - 1) + wx) - w[0]*(w[2]*width*ny + w[1]*wx);
+	return (w[0]*w[1]*w[2]*width * (w[1]*(s[0] - s[2])*(ny - 1) + ny*(w[2]*(s[1] - s[0]) + w[0]*(s[2] - s[1])))) / (d*d);
+};
+
+var triDerivateY  = function(/*const tcu::Vec3&*/ s, /*const tcu::Vec3&*/ w, wy, height, nx) {
+	var d = w[1]*w[2]*(height*(nx - 1) + wy) - w[0]*(w[1]*height*nx + w[2]*wy);
+	return (w[0]*w[1]*w[2]*height * (w[2]*(s[0] - s[1])*(nx - 1) + nx*(w[0]*(s[1] - s[2]) + w[1]*(s[2] - s[0])))) / (d*d);
+};
+
+/**
+ * @param {Array<Number>} texCoord Texture coordinates
+ */
+var execSample = function(/*const tcu::Texture2DView&*/ src, /*const ReferenceParams&*/ params, texCoord, lod)
 {
 	if (params.samplerType == samplerType.SAMPLERTYPE_SHADOW)
-		return [src.sampleCompare(params.sampler, params.ref, s, t, lod), 0, 0, 1];
+		return [src.sampleCompare(params.sampler, params.ref, texCoord, lod), 0, 0, 1];
 	else
-		return src.sample(params.sampler, s, t, lod);
+		return src.sample(params.sampler, texCoord, lod);
 };
 
 var sampleTextureNonProjected2D = function(/*const SurfaceAccess&*/ dst, /*const tcu::Texture2DView&*/ src, /*const tcu::Vec4&*/ sq, /*const tcu::Vec4&*/ tq, /*const ReferenceParams&*/ params) {
@@ -746,11 +811,11 @@ var sampleTextureNonProjected2D = function(/*const SurfaceAccess&*/ dst, /*const
 			var	triX	= triNdx ? 1 - xf : xf;
 			var	triY	= triNdx ? 1 - yf : yf;
 
-			var	s		= triangleInterpolate(triS[triNdx][0], triS[triNdx][1], triS[triNdx][2], triX, triY);
-			var	t		= triangleInterpolate(triT[triNdx][0], triT[triNdx][1], triT[triNdx][2], triX, triY);
+			var	s		= triangleInterpolate(triS[triNdx], triX, triY);
+			var	t		= triangleInterpolate(triT[triNdx], triX, triY);
 			var	lod		= triLod[triNdx];
 
-			dst.setPixel(execSample(src, params, s, t, lod).multiply(params.colorScale).add(params.colorBias), x, y);
+			dst.setPixel(execSample(src, params, [s, t], lod).multiply(params.colorScale).add(params.colorBias), x, y);
 		}
 	}
 };
@@ -766,6 +831,93 @@ var sampleTexture2D = function(/*const SurfaceAccess&*/ dst, /*const tcu::Textur
 		sampleTextureNonProjected2D(dst, view, sq, tq, params);
 };
 
+var computeCubeLodFromDerivates = function(/*LodMode*/ lodMode, /*const tcu::Vec3&*/ coord, /*const tcu::Vec3&*/ coordDx, /*const tcu::Vec3&*/ coordDy, /*const int*/ faceSize)
+{
+	/*const tcu::CubeFace*/ var	face	= tcuTexture.selectCubeFace(coord);
+	var					maNdx	= 0;
+	var					sNdx	= 0;
+	var					tNdx	= 0;
+
+	// \note Derivate signs don't matter when computing lod
+	switch (face) {
+		case tcuTexture.CubeFace.CUBEFACE_NEGATIVE_X:
+		case tcuTexture.CubeFace.CUBEFACE_POSITIVE_X: maNdx = 0; sNdx = 2; tNdx = 1; break;
+		case tcuTexture.CubeFace.CUBEFACE_NEGATIVE_Y:
+		case tcuTexture.CubeFace.CUBEFACE_POSITIVE_Y: maNdx = 1; sNdx = 0; tNdx = 2; break;
+		case tcuTexture.CubeFace.CUBEFACE_NEGATIVE_Z:
+		case tcuTexture.CubeFace.CUBEFACE_POSITIVE_Z: maNdx = 2; sNdx = 0; tNdx = 1; break;
+		default:
+			throw new Error('Unrecognized face ' + face);
+	}
+
+	{
+		var	sc		= coord[sNdx];
+		var	tc		= coord[tNdx];
+		var	ma		= Math.abs(coord[maNdx]);
+		var	scdx	= coordDx[sNdx];
+		var	tcdx	= coordDx[tNdx];
+		var	madx	= Math.abs(coordDx[maNdx]);
+		var	scdy	= coordDy[sNdx];
+		var	tcdy	= coordDy[tNdx];
+		var	mady	= Math.abs(coordDy[maNdx]);
+		var	dudx	= faceSize * 0.5 * (scdx*ma - sc*madx) / (ma*ma);
+		var	dvdx	= faceSize * 0.5 * (tcdx*ma - tc*madx) / (ma*ma);
+		var	dudy	= faceSize * 0.5 * (scdy*ma - sc*mady) / (ma*ma);
+		var	dvdy	= faceSize * 0.5 * (tcdy*ma - tc*mady) / (ma*ma);
+		return computeLodFromDerivates(lodMode, dudx, dvdx, dudy, dvdy);
+	}
+};
+
+var sampleTextureCube_str = function(/*const SurfaceAccess&*/ dst, /*const tcu::TextureCubeView&*/ src, /*const tcu::Vec4&*/ sq, /*const tcu::Vec4&*/ tq, /*const tcu::Vec4&*/ rq, /*const ReferenceParams&*/ params) {
+	var	dstSize			= [dst.getWidth(), dst.getHeight()];
+	var			dstW			= dstSize.x();
+	var			dstH			= dstSize.y();
+	var	srcSize			= src.getSize();
+
+	// Coordinates per triangle.
+	var		triS			= [ sq.swizzle([0, 1, 2]), sq.swizzle([3, 2, 1]) ];
+	var		triT			= [ tq.swizzle([0, 1, 2]), tq.swizzle([3, 2, 1]) ];
+	var		triR			= [ rq.swizzle([0, 1, 2]), rq.swizzle([3, 2, 1]) ];
+	var		triW			= [ params.w.swizzle([0, 1, 2]), params.w.swizzle([3, 2, 1]) ];
+
+	var			lodBias		= (params.flags.use_bias ? params.bias : 0);
+
+	for (var py = 0; py < dst.getHeight(); py++) {
+		for (var px = 0; px < dst.getWidth(); px++)	{
+			var		wx		= px + 0.5;
+			var		wy		= py + 0.5;
+			var		nx		= wx / dstW;
+			var		ny		= wy / dstH;
+			var     triNdx	= nx + ny >= 1 ? 1 : 0;
+			var		triNx	= triNdx ? 1 - nx : nx;
+			var		triNy	= triNdx ? 1 - ny : ny;
+
+			var	coord		= [triangleInterpolate(triS[triNdx], triNx, triNy),
+										 triangleInterpolate(triT[triNdx], triNx, triNy),
+										 triangleInterpolate(triR[triNdx], triNx, triNy)];
+			var	coordDx		= [triDerivateX(triS[triNdx], triW[triNdx], wx, dstW, triNy),
+										 triDerivateX(triT[triNdx], triW[triNdx], wx, dstW, triNy),
+										 triDerivateX(triR[triNdx], triW[triNdx], wx, dstW, triNy)];
+			var	coordDy		= [triDerivateY(triS[triNdx], triW[triNdx], wy, dstH, triNx),
+										 triDerivateY(triT[triNdx], triW[triNdx], wy, dstH, triNx),
+										 triDerivateY(triR[triNdx], triW[triNdx], wy, dstH, triNx)];
+
+			var		lod		= (computeCubeLodFromDerivates(params.lodMode, coord, coordDx, coordDy, srcSize) + lodBias).clamp(params.minLod, params.maxLod);
+
+			dst.setPixel(execSample(src, params, [coord.x(), coord.y(), coord.z()], lod).multiply(params.colorScale).add(params.colorBias), px, py);
+		}
+	}
+};
+
+var sampleTextureCube = function(/*const SurfaceAccess&*/ dst, /*const tcu::TextureCubeView&*/ src, /*const float**/ texCoord, /*const ReferenceParams&*/ params) {
+	/*const tcu::TextureCubeView*/ var	view	= src.getSubView(params.baseLevel, params.maxLevel);
+	var				sq		= [texCoord[0+0], texCoord[3+0], texCoord[6+0], texCoord[9+0]];
+	var				tq		= [texCoord[0+1], texCoord[3+1], texCoord[6+1], texCoord[9+1]];
+	var				rq		= [texCoord[0+2], texCoord[3+2], texCoord[6+2], texCoord[9+2]];
+
+	return sampleTextureCube_str(dst, view, sq, tq, rq, params);
+};
+
 /**
  * @return {bool}
  */
@@ -779,10 +931,12 @@ return {
 	textureType: textureType,
 	getSamplerType: getSamplerType,
 	computeQuadTexCoord2D: computeQuadTexCoord2D,
+	computeQuadTexCoordCube: computeQuadTexCoordCube,
 	TextureRenderer: TextureRenderer,
 	sampleTexture2D: sampleTexture2D,
 	SurfaceAccess: SurfaceAccess,
 	sampleTexture2D: sampleTexture2D,
+	sampleTextureCube: sampleTextureCube,
 	compareImages: compareImages
 };
 });
