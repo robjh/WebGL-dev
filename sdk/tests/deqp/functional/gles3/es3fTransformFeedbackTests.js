@@ -140,9 +140,9 @@ define(['framework/opengl/gluShaderUtil.js', 'framework/opengl/gluDrawUtil', 'mo
 		this.getTransformFeedbackVaryings = function() {
 			return m_transformFeedbackVaryings;
 		};
-	
-		this.isPointSizeUsed() = function() {
-			for (var i = 0 ; i < m_transformFeedbackVaryings.length ; ++i) {
+
+		this.isPointSizeUsed = function() {
+			for (var i = 0; i < m_transformFeedbackVaryings.length; ++i) {
 				if (m_transformFeedbackVaryings[i] == 'gl_PointSize') return true;
 			}
 			return false;
@@ -168,7 +168,7 @@ define(['framework/opengl/gluShaderUtil.js', 'framework/opengl/gluDrawUtil', 'mo
 			m_varyings
 			,_transformFeedbackVaryings;
 		*/
-	
+
 	});
 
 	/** Returns if the program is spported or not
@@ -205,8 +205,8 @@ define(['framework/opengl/gluShaderUtil.js', 'framework/opengl/gluDrawUtil', 'mo
 		/** @type {number} */ var totalTfComponents = 0;
 		/** @type {number} */var totalTfAttribs = 0;
 		/** @type {Object.<number, number>} */ var presetNumComponents = {
-			gl_Position:  4,
-			gl_PointSize: 1,
+			gl_Position: 4,
+			gl_PointSize: 1
 		};
 		for (var i = 0 ; i < spec.getTransformFeedbackVaryings().length; ++i) {
 			/** @type {Array.<string>} */ var name = spec.getTransformFeedbackVaryings()[i];
@@ -311,6 +311,9 @@ define(['framework/opengl/gluShaderUtil.js', 'framework/opengl/gluDrawUtil', 'mo
 			var name = spec.getVaryings()[i].name;
 			var type = spec.getVaryings()[i].type;
 			
+			// TODO: check this loop
+			// original code:
+			// for (glu::VectorTypeIterator vecIter = glu::VectorTypeIterator::begin(&type); vecIter != glu::VectorTypeIterator::end(&type); vecIter++)
 			for (var j = 0 ; j < type.count ; ++j) {
 				var attribType = glu.getVarType(type, type[j].getPath);
 				var attribName = getAttributeName(name, type[j].getPath);
@@ -355,6 +358,9 @@ define(['framework/opengl/gluShaderUtil.js', 'framework/opengl/gluDrawUtil', 'mo
 			var name = spec.getVaryings()[i].name;
 			var type = spec.getVaryings()[i].type;
 			
+			// TODO: check this loop
+			// original code:
+			// for (glu::VectorTypeIterator vecIter = glu::VectorTypeIterator::begin(&type); vecIter != glu::VectorTypeIterator::end(&type); vecIter++)
 			for (var j = 0 ; j < type.count ; ++j) {
 				var subType = glu.getVarType(type, type[i].getPath());
 				var attribName = getAttributeName(name, type[i].getPath());
@@ -539,16 +545,17 @@ define(['framework/opengl/gluShaderUtil.js', 'framework/opengl/gluDrawUtil', 'mo
 	 * Returns (for all the draw calls) the type of Primitive Mode, as it calls "getTransformFeedbackPrimitiveCount".
 	 * @param {WebGLRenderingContext} gl WebGL context
 	 * @param {deqpDraw.primitiveType} primitiveType GLenum that specifies what kind of primitive is
-	 * @param {Object.<number, boolean>} first DrawCall object
-	 * @param {Object.<number, boolean>} end DrawCall object
+	 * @param {Object.<number, boolean>} array DrawCall object
 	 * @return {number} primCount
 	 */
-	var computeTransformFeedbackPrimitiveCount= function(gl, primitiveType, first, end) {
+	var computeTransformFeedbackPrimitiveCount= function(gl, primitiveType, array) {
 
 	/** @type {number} */ var primCount = 0;
 
-		for (var callElements= first.numElements; callElements != end.numElements; ++ callElements) {
-			primCount += getTransformFeedbackPrimitiveCount(gl, primitiveType, callElements);
+		for (var i=0; i < array.length; ++ i) {
+			
+			if(array.transformFeedbackEnabled)
+			primCount += getTransformFeedbackPrimitiveCount(gl, primitiveType, array.numElements);
 		}
 
 		return primCount;
@@ -587,7 +594,7 @@ define(['framework/opengl/gluShaderUtil.js', 'framework/opengl/gluDrawUtil', 'mo
 	var TransformFeedbackCase = (function(context, name, desc, bufferMode, primitiveType) {
 		
 		var parent = {
-			_construct: this._construct,
+			_construct: this._construct
 		}
 		
 		this._construct = function(context, name, desc, bufferMode, primitiveType) {
@@ -918,7 +925,7 @@ define(['framework/opengl/gluShaderUtil.js', 'framework/opengl/gluDrawUtil', 'mo
 				gl.bindBuffer(gl.TRANSFORM_FEEDBACK_BUFFER, buffer);
 				
 				gl.getBufferSubData(gl.TRANSFORM_FEEDBACK_BUFFER, 0, buffer); // (spec says to use ArrayBufferData)
-				GLU_EXPECT_NO_ERROR(gl.getError(), "mapping buffer");
+				GLU_EXPECT_NO_ERROR(gl.getError(), 'mapping buffer');
 				
 				// Verify all output variables that are written to this buffer.
 				for (var i = 0 ; i < m_transformFeedbackOutputs.length ; ++i) {
@@ -954,7 +961,7 @@ define(['framework/opengl/gluShaderUtil.js', 'framework/opengl/gluDrawUtil', 'mo
 				if (!verifyGuard(buffer) {
 					log.log(
 						TestLog.Message +
-						"Error: Transform feedback buffer overrun detected" + 
+						'Error: Transform feedback buffer overrun detected' + 
 						TestLog.EndMessage
 					);
 					outputsOk = false;
@@ -1029,12 +1036,12 @@ define(['framework/opengl/gluShaderUtil.js', 'framework/opengl/gluDrawUtil', 'mo
 					offset += call.numElements;
 				}
 
-				GLU_EXPECT_NO_ERROR(gl.getError(), "render");
+				GLU_EXPECT_NO_ERROR(gl.getError(), 'render');
 				glu.readPixels(m_context.getRenderContext(), viewportX, viewportY, frameWithoutTf.getAccess());
 			}
 
 			// Compare images with and without transform feedback.
-			imagesOk = tcu.pixelThresholdCompare(log, "Result", "Image comparison result", frameWithoutTf, frameWithTf, tcu.RGBA(1, 1, 1, 1), tcu.COMPARE_LOG_ON_ERROR);
+			imagesOk = tcu.pixelThresholdCompare(log, 'Result', 'Image comparison result', frameWithoutTf, frameWithTf, tcu.RGBA(1, 1, 1, 1), tcu.COMPARE_LOG_ON_ERROR);
 
 			if (imagesOk) {
 				log.log(
@@ -1086,7 +1093,7 @@ define(['framework/opengl/gluShaderUtil.js', 'framework/opengl/gluDrawUtil', 'mo
 			               DrawCall( 16, false), DrawCall(226, false), DrawCall(  9, true),
 			               DrawCall(174, false)],
 			random2:      [DrawCall(217, true ), DrawCall(171, true ), DrawCall(147, true),
-			               DrawCall(152, false), DrawCall( 55, true )],
+			               DrawCall(152, false), DrawCall( 55, true )]
 		},
 		iterations = [
 			'elemCount1',  'elemCount2',  'elemCount3', 'elemCount4', 'elemCount1234',
@@ -1139,10 +1146,12 @@ define(['framework/opengl/gluShaderUtil.js', 'framework/opengl/gluDrawUtil', 'mo
 		for (var i = 0; i < varyings.length; i++)
 		{
 			// TODO: check loop's conditions
+			// original code: 
+			// for (glu::VectorTypeIterator vecIter = glu::VectorTypeIterator::begin(&var->type); vecIter != glu::VectorTypeIterator::end(&var->type); vecIter++)
 			for (var vecIter = varyings[i].type; vecIter < varyings[varyings.length].type; vecIter++)
 			{
-				var	type = vecIter;
-				var name = getAttributeName(varyings[i].name, vecIter.getPath);
+				var	type = vecIter.getType(); // originally getType() in getVarType() within gluVARTypeUtil.hpp.
+				var name = getAttributeName(varyings[i].name, vecIter.getPath); // TODO: getPath(), originally in gluVARTypeUtil.hpp
 
 				attributes.push(new Attribute(name, type, inputStride));
 				inputStride += deqpUtils.getDataTypeScalarSize(type) * 4; /*sizeof(deUint32)*/
@@ -1201,7 +1210,9 @@ define(['framework/opengl/gluShaderUtil.js', 'framework/opengl/gluDrawUtil', 'mo
 				 */
 
 				// Add all vectorized attributes as inputs.
-				// TODO: check loop's conditions, not sure of this
+				// TODO: check loop's conditions
+				// original code:
+				// for (glu::VectorTypeIterator iter = glu::VectorTypeIterator::begin(&output.type); iter != glu::VectorTypeIterator::end(&output.type); iter++)
 				for (var iter = transformFeedbackOutputs[varNdx].type; iter < transformFeedbackOutputs[transformFeedbackOutputs.length].type; iter++)
 				{
 				/** TODO: implement Full path. See gluVarTypeUtil.cpp and .hpp DEQP repository within \framework\opengl
@@ -1219,7 +1230,7 @@ define(['framework/opengl/gluShaderUtil.js', 'framework/opengl/gluDrawUtil', 'mo
 				}
 			}
 
-			// TODO: implement getScalarSize(). See gluVarType.cpp and .hpp DEQP repository within \framework\opengl
+			// TODO: getScalarSize() called correctly? already implemented in glsVarType.js
 			accumulatedSize += output.type.getScalarSize() * 4; /*sizeof(deUint32)*/
 		}
 	};
