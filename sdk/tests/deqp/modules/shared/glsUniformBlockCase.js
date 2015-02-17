@@ -19,15 +19,51 @@
  */
 
 
-define(['framework/common/tcuTestCase', 'framework/opengl/gluShaderProgram', 'framework/opengl/gluShaderUtil', 'framework/opengl/gluDrawUtil', 'framework/delibs/debase/deInt32', 'modules/shared/glsVarType'], function(deqpTests, deqpProgram, deqpUtils, deqpDraw, deInt32, glsVT) {
+define(['framework/common/tcuTestCase', 'framework/opengl/gluShaderProgram', 'framework/opengl/gluShaderUtil', 'framework/opengl/gluDrawUtil', 'framework/delibs/debase/deInt32', 'framework/delibs/debase/deRandom', 'modules/shared/glsVarType'], function(deqpTests, deqpProgram, deqpUtils, deqpDraw, deInt32, deRandom, glsVT) {
     'use strict';
 
-    /** @const */ var VIEWPORT_WIDTH = 128;
-    /** @const */ var VIEWPORT_HEIGHT = 128;
+/** @const */ var VIEWPORT_WIDTH = 128;
+/** @const */ var VIEWPORT_HEIGHT = 128;
 
-    var program;
-    var gl;
-    var canvas;
+var program;
+var gl;
+var canvas;
+
+/**
+ * Class to implement some pointers functionality.
+ */
+var BlockPointers = function() {
+    /** @type {ArrayBuffer} */ this.data = 0; //!< Data (vector<deUint8>).
+    /** @type {Array.<number>} */ this.offsets = []; //!< Reference block pointers (map<int, void*>).
+    /** @type {Array.<number>} */ this.sizes = [];
+};
+
+/**
+ * push - Adds an offset/size pair to the collection
+ * @param {number} offset Offset of the element to refer.
+ * @param {number} size Size of the referred element.
+ */
+BlockPointers.prototype.push = function(offset, size) {
+    this.offsets.push(offset);
+    this.sizes.push(size);
+};
+
+/**
+ * find - Finds and maps the data at the given offset, and returns a Uint8Array
+ * @param {number} index of the element to find.
+ */
+BlockPointers.prototype.find = function(index) {
+    return new Uint8Array(this.data, this.offsets[index], this.sizes[index]);
+};
+
+/**
+ * resize - Replaces resize of a vector in C++. Sets the size of the data buffer.
+ * NOTE: In this case however, if you resize, the data is lost.
+ * @param {number} newsize The new size of the data buffer.
+ */
+BlockPointers.prototype.resize = function(newsize) {
+    this.data = new ArrayBuffer(newsize);
+};
 
 var BufferMode = {
     BUFFERMODE_SINGLE: 0, //!< Single buffer shared between uniform blocks.
@@ -210,7 +246,7 @@ StructType.prototype.addMember = function(member_name, member_type, member_flags
 var Uniform = function(name, type, flags) {
     /** @type {string} */ this.m_name = name;
     /** @type {glsVT.VarType} */ this.m_type = type;
-    /** @type {deInt32.deUint32} */ this.m_flags = flags;
+    /** @type {deInt32.deUint32} */ this.m_flags = (typeof flags === 'undefined') ? 0 : flags;
 };
 
 /** getName
@@ -529,8 +565,43 @@ UniformBlockCase.prototype.getGLUniformLayout = function(gl, layout, program) {
  * @param {deqpUtils.DataType} type
  * @return {number}
  */
-UniformBlockCase.prototype.getDataTypeByteSize = function(type) {
-    return deqpUtils.getDataTypeScalarSize(type) * deInt32.deUint32_size;
+var getDataTypeByteSize = function(type) {
+    return deqpUtils.getDataTypeScalarSize(type) * deqpUtils.deUint32_size;
+};
+
+/**
+ * getDataTypeByteAlignment
+ * @param {deqpUtils.DataType} type
+ * @return {number}
+ */
+var getDataTypeByteAlignment = function(type)
+{
+    switch (type)
+    {
+        case deqpUtils.DataType.FLOAT:
+        case deqpUtils.DataType.INT:
+        case deqpUtils.DataType.UINT:
+        case deqpUtils.DataType.BOOL: return 1 * deqpUtils.deUint32_size;
+
+        case deqpUtils.DataType.FLOAT_VEC2:
+        case deqpUtils.DataType.INT_VEC2:
+        case deqpUtils.DataType.UINT_VEC2:
+        case deqpUtils.DataType.BOOL_VEC2: return 2 * deqpUtils.deUint32_size;
+
+        case deqpUtils.DataType.FLOAT_VEC3:
+        case deqpUtils.DataType.INT_VEC3:
+        case deqpUtils.DataType.UINT_VEC3:
+        case deqpUtils.DataType.BOOL_VEC3:    // Fall-through to vec4
+
+        case deqpUtils.DataType.FLOAT_VEC4:
+        case deqpUtils.DataType.INT_VEC4:
+        case deqpUtils.DataType.UINT_VEC4:
+        case deqpUtils.DataType.BOOL_VEC4: return 4 * deqpUtils.deUint32_size;
+
+        default:
+            testFailedOptions('', false);
+            return 0;
+    }
 };
 
 /**
@@ -538,11 +609,11 @@ UniformBlockCase.prototype.getDataTypeByteSize = function(type) {
  * @param {deqpUtils.DataType} type
  * @return {number}
  */
-UniformBlockCase.prototype.getDataTypeArrayStride = function(type) {
+var getDataTypeArrayStride = function(type) {
     assertMsgOptions(!deqpUtils.isDataTypeMatrix(type), 'Must not be a Matrix type', false, true);
 
-    /** @type {number} */ var baseStride = this.getDataTypeByteSize(type);
-    /** @type {number} */ var vec4Alignment = deInt32.deUint32_size * 4;
+    /** @type {number} */ var baseStride = getDataTypeByteSize(type);
+    /** @type {number} */ var vec4Alignment = deqpUtils.deUint32_size * 4;
 
     assertMsgOptions(baseStride <= vec4Alignment, 'Checking alignment is correct', false, true);
     return Math.max(baseStride, vec4Alignment); // Really? See rule 4.
@@ -555,207 +626,360 @@ UniformBlockCase.prototype.getDataTypeArrayStride = function(type) {
  * @param {number} b
  * @return {number}
  */
-UniformBlockCase.prototype.deRoundUp32 = function(a, b)
+var deRoundUp32 = function(a, b)
 {
     var d = Math.trunc(a / b);
     return d * b == a ? a : (d + 1) * b;
 };
 
-// /**
-//  * TODO: computeStd140BaseAlignment
-//  * @param {glsVT.VarType} type
-//  * @return {number}
-//  */
-// var computeStd140BaseAlignment = function(type) {
-//     /** @type {number} */ var vec4Alignment = deInt32.deUint32_size;
-//
-//     if (type.isBasicType())
-//     {
-//         /** @type {deqpUtils.DataType} */ var basicType = type.getBasicType();
-//
-//         if (deqpUtils.isDataTypeMatrix(basicType))
-//         {
-//             /** @type {boolean} */ var isRowMajor = !!(type.getFlags() & UniformFlags.LAYOUT_ROW_MAJOR);
-//             /** @type {boolean} */ var vecSize = isRowMajor ? deqpUtils.getDataTypeMatrixNumColumns(basicType)
-//                                              : deqpUtils.getDataTypeMatrixNumRows(basicType);
-//
-//             return getDataTypeArrayStride(deqpUtils.getDataTypeFloatVec(vecSize));
-//         }
-//         else
-//             return getDataTypeByteAlignment(basicType);
-//     }
-//     else if (type.isArrayType())
-//     {
-//         int elemAlignment = computeStd140BaseAlignment(type.getElementType());
-//
-//         // Round up to alignment of vec4
-//         return deRoundUp32(elemAlignment, vec4Alignment);
-//     }
-//     else
-//     {
-//         DE_ASSERT(type.isStructType());
-//
-//         int maxBaseAlignment = 0;
-//
-//         for (StructType::ConstIterator memberIter = type.getStruct().begin(); memberIter != type.getStruct().end(); memberIter++)
-//             maxBaseAlignment = de::max(maxBaseAlignment, computeStd140BaseAlignment(memberIter->getType()));
-//
-//         return deRoundUp32(maxBaseAlignment, vec4Alignment);
-//     }
-// };
-//
-// /**
-//  * TODO: computeStd140Layout_B
-//  * @param {UniformLayout} layout
-//  * @param {number} offset
-//  * @param
-//  */
-// var computeStd140Layout_B = function(UniformLayout& layout, int& curOffset, int curBlockNdx, const std::string& curPrefix, const glsVT.VarType& type, deUint32 layoutFlags)
-// {
-//     // \todo [2012-01-23 pyry] Uniforms in default block.
-//
-//     var numUniformBlocks = interface.getNumUniformBlocks();
-//
-//     for (var blockNdx = 0; blockNdx < numUniformBlocks; blockNdx++)
-//     {
-//         /** @type {UniformBlock} */ var block = interface.getUniformBlock(blockNdx);
-//         /** @type {boolean} */ var hasInstanceName = block.getInstanceName() != undefined;
-//         /** @type {string} */ var blockPrefix = hasInstanceName ? (block.getBlockName() + '.') : '';
-//         /** @type {number} */ var curOffset = 0;
-//         /** @type {number} */ var activeBlockNdx = layout.blocks.length;
-//         /** @type {number} */ var firstUniformNdx = layout.uniforms.length;
-//
-//         for (var ubNdx = 0; ubNdx < block.countUniforms(); ubNdx++)
-//         {
-//             /** @type {Uniform} */ var uniform = block.getUniform(ubNdx);
-//             computeStd140Layout(layout, );
-//         }
-//         for (UniformBlock::ConstIterator uniformIter = block.begin(); uniformIter != block.end(); uniformIter++)
-//         {
-//             const Uniform& uniform = *uniformIter;
-//             computeStd140Layout(layout, curOffset, activeBlockNdx, blockPrefix + uniform.getName(), uniform.getType(), mergeLayoutFlags(block.getFlags(), uniform.getFlags()));
-//         }
-//
-//         int    uniformIndicesEnd    = (int)layout.uniforms.size();
-//         int    blockSize            = curOffset;
-//         int    numInstances        = block.isArray() ? block.getArraySize() : 1;
-//
-//         // Create block layout entries for each instance.
-//         for (int instanceNdx = 0; instanceNdx < numInstances; instanceNdx++)
-//         {
-//             // Allocate entry for instance.
-//             layout.blocks.push_back(BlockLayoutEntry());
-//             BlockLayoutEntry& blockEntry = layout.blocks.back();
-//
-//             blockEntry.name = block.getBlockName();
-//             blockEntry.size = blockSize;
-//
-//             // Compute active uniform set for block.
-//             for (int uniformNdx = firstUniformNdx; uniformNdx < uniformIndicesEnd; uniformNdx++)
-//                 blockEntry.activeUniformIndices.push_back(uniformNdx);
-//
-//             if (block.isArray())
-//                 blockEntry.name += "[" + de::toString(instanceNdx) + "]";
-//         }
-//     }
-// };
-//
-// /**
-//  * TODO: computeStd140Layout
-//  * @param {UniformLayout} layout
-//  * @param {ShaderInterface} interface
-//  */
-// var computeStd140Layout = function(layout, interface)
-// {
-//     // \todo [2012-01-23 pyry] Uniforms in default block.
-//
-//     var numUniformBlocks = interface.getNumUniformBlocks();
-//
-//     for (var blockNdx = 0; blockNdx < numUniformBlocks; blockNdx++)
-//     {
-//         /** @type {UniformBlock} */ var block = interface.getUniformBlock(blockNdx);
-//         /** @type {boolean} */ var hasInstanceName = block.getInstanceName() != undefined;
-//         /** @type {string} */ var blockPrefix = hasInstanceName ? (block.getBlockName() + '.') : '';
-//         /** @type {number} */ var curOffset = 0;
-//         /** @type {number} */ var activeBlockNdx = layout.blocks.length;
-//         /** @type {number} */ var firstUniformNdx = layout.uniforms.length;
-//
-//         for (var ubNdx = 0; ubNdx < block.countUniforms(); ubNdx++)
-//         {
-//             /** @type {Uniform} */ var uniform = block.getUniform(ubNdx);
-//             computeStd140Layout(layout, )
-//         }
-//         for (UniformBlock::ConstIterator uniformIter = block.begin(); uniformIter != block.end(); uniformIter++)
-//         {
-//             const Uniform& uniform = *uniformIter;
-//             computeStd140Layout(layout, curOffset, activeBlockNdx, blockPrefix + uniform.getName(), uniform.getType(), mergeLayoutFlags(block.getFlags(), uniform.getFlags()));
-//         }
-//
-//         int    uniformIndicesEnd    = (int)layout.uniforms.size();
-//         int    blockSize            = curOffset;
-//         int    numInstances        = block.isArray() ? block.getArraySize() : 1;
-//
-//         // Create block layout entries for each instance.
-//         for (int instanceNdx = 0; instanceNdx < numInstances; instanceNdx++)
-//         {
-//             // Allocate entry for instance.
-//             layout.blocks.push_back(BlockLayoutEntry());
-//             BlockLayoutEntry& blockEntry = layout.blocks.back();
-//
-//             blockEntry.name = block.getBlockName();
-//             blockEntry.size = blockSize;
-//
-//             // Compute active uniform set for block.
-//             for (int uniformNdx = firstUniformNdx; uniformNdx < uniformIndicesEnd; uniformNdx++)
-//                 blockEntry.activeUniformIndices.push_back(uniformNdx);
-//
-//             if (block.isArray())
-//                 blockEntry.name += "[" + de::toString(instanceNdx) + "]";
-//         }
-//     }
-// };
-//
+/**
+ * TODO: computeStd140BaseAlignment
+ * @param {glsVT.VarType} type
+ * @return {number}
+ */
+var computeStd140BaseAlignment = function(type) {
+    /** @type {number} */ var vec4Alignment = deqpUtils.deUint32_size;
+
+    if (type.isBasicType())
+    {
+        /** @type {deqpUtils.DataType} */ var basicType = type.getBasicType();
+
+        if (deqpUtils.isDataTypeMatrix(basicType))
+        {
+            /** @type {boolean} */ var isRowMajor = !!(type.getFlags() & UniformFlags.LAYOUT_ROW_MAJOR);
+            /** @type {boolean} */ var vecSize = isRowMajor ? deqpUtils.getDataTypeMatrixNumColumns(basicType) :
+                deqpUtils.getDataTypeMatrixNumRows(basicType);
+
+            return getDataTypeArrayStride(deqpUtils.getDataTypeFloatVec(vecSize));
+        }
+        else
+            return getDataTypeByteAlignment(basicType);
+    }
+    else if (type.isArrayType())
+    {
+        /** @type {number} */ var elemAlignment = computeStd140BaseAlignment(type.getElementType());
+
+        // Round up to alignment of vec4
+        return deRoundUp32(elemAlignment, vec4Alignment);
+    }
+    else
+    {
+        assertMsgOptions(type.isStructType(), 'computeStd140BaseAlignment: Checking that the type is a structure', false, true);
+
+        /** @type {number} */ var maxBaseAlignment = 0;
+
+        for (var memberNdx = 0; memberNdx < type.getStruct().getSize(); memberNdx++)
+            /** @type {StructMember} */ var memberIter = type.getStruct().getMember(memberNdx);
+            maxBaseAlignment = Math.max(maxBaseAlignment, computeStd140BaseAlignment(memberIter.getType()));
+
+        return deRoundUp32(maxBaseAlignment, vec4Alignment);
+    }
+};
+
+/**
+ * mergeLayoutflags
+ * @param {deInt32.deUint32} prevFlags
+ * @param {deInt32.deUint32} newFlags
+ * @return {deInt32.deUint32}
+ */
+var mergeLayoutFlags = function(prevFlags, newFlags)
+{
+    /** @type {deInt32.deUint32} */ var packingMask = UniformLayout.LAYOUT_PACKED | UniformLayout.LAYOUT_SHARED | UniformLayout.LAYOUT_STD140;
+    /** @type {deInt32.deUint32} */ var matrixMask = UniformLayout.LAYOUT_ROW_MAJOR | UniformLayout.LAYOUT_COLUMN_MAJOR;
+
+    /** @type {deInt32.deUint32} */ var mergedFlags = 0;
+
+    mergedFlags |= ((newFlags & packingMask) ? newFlags : prevFlags) & packingMask;
+    mergedFlags |= ((newFlags & matrixMask) ? newFlags : prevFlags) & matrixMask;
+
+    return mergedFlags;
+};
+
+/**
+ * computeStd140Layout_B
+ * @param {UniformLayout} layout
+ * @param {number} curOffset
+ * @param {number} curBlockNdx
+ * @param {string} curPrefix
+ * @param {glsVT.VarType} type
+ * @param {deInt32.deUint32} layoutFlags
+ */
+var computeStd140Layout_B = function(layout, curOffset, curBlockNdx, curPrefix, type, layoutFlags)
+{
+    /** @type {number} */ var baseAlignment = computeStd140BaseAlignment(type);
+
+    curOffset = deInt32.deAlign32(curOffset, baseAlignment);
+
+    if (type.isBasicType())
+    {
+        /** @type {deqpUtils.DataType} */ var basicType = type.getBasicType();
+        /** @type {UniformLayoutEntry} */ var entry = new UniformLayoutEntry();
+
+        entry.name = curPrefix;
+        entry.type = basicType;
+        entry.size = 1;
+        entry.arrayStride = 0;
+        entry.matrixStride = 0;
+        entry.blockNdx = curBlockNdx;
+
+        if (deqpUtils.isDataTypeMatrix(basicType))
+        {
+            // Array of vectors as specified in rules 5 & 7.
+            /** @type {boolean} */ var isRowMajor = !!(layoutFlags & UniformFlags.LAYOUT_ROW_MAJOR);
+            /** @type {number} */ var vecSize = isRowMajor ? deqpUtils.getDataTypeMatrixNumColumns(basicType) :
+                                             deqpUtils.getDataTypeMatrixNumRows(basicType);
+            /** @type {number} */ var numVecs = isRowMajor ? deqpUtils.getDataTypeMatrixNumRows(basicType) :
+                                             deqpUtils.getDataTypeMatrixNumColumns(basicType);
+            /** @type {number} */ var stride = getDataTypeArrayStride(deqpUtils.getDataTypeFloatVec(vecSize));
+
+            entry.offset = curOffset;
+            entry.matrixStride = stride;
+            entry.isRowMajor = isRowMajor;
+
+            curOffset += numVecs * stride;
+        }
+        else
+        {
+            // Scalar or vector.
+            entry.offset = curOffset;
+
+            curOffset += getDataTypeByteSize(basicType);
+        }
+
+        layout.uniforms.push(entry);
+    }
+    else if (type.isArrayType())
+    {
+        /** @type {glsVT.VarType} */ var elemType = type.getElementType();
+
+        if (elemType.isBasicType() && !deqpUtils.isDataTypeMatrix(elemType.getBasicType()))
+        {
+            // Array of scalars or vectors.
+            /** @type {deqpUtils.DataType} */ var elemBasicType = elemType.getBasicType();
+            /** @type {UniformLayoutEntry} */ var entry = new UniformLayoutEntry();
+            /** @type {number} */ var stride = getDataTypeArrayStride(elemBasicType);
+
+            entry.name = curPrefix + '[0]'; // Array uniforms are always postfixed with [0]
+            entry.type = elemBasicType;
+            entry.blockNdx = curBlockNdx;
+            entry.offset = curOffset;
+            entry.size = type.getArraySize();
+            entry.arrayStride = stride;
+            entry.matrixStride = 0;
+
+            curOffset += stride * type.getArraySize();
+
+            layout.uniforms.push(entry);
+        }
+        else if (elemType.isBasicType() && deqpUtils.isDataTypeMatrix(elemType.getBasicType()))
+        {
+            // Array of matrices.
+            /** @type {deqpUtils.DataType} */ var elemBasicType = elemType.getBasicType();
+            /** @type {boolean} */ var isRowMajor = !!(layoutFlags & UniformFlags.LAYOUT_ROW_MAJOR);
+            /** @type {number} */ var vecSize = isRowMajor ? deqpUtils.getDataTypeMatrixNumColumns(elemBasicType) :
+                                                                      deqpUtils.getDataTypeMatrixNumRows(elemBasicType);
+            /** @type {number} */ var numVecs = isRowMajor ? deqpUtils.getDataTypeMatrixNumRows(elemBasicType) :
+                                                                      deqpUtils.getDataTypeMatrixNumColumns(elemBasicType);
+            /** @type {number} */ var stride = getDataTypeArrayStride(deqpUtils.getDataTypeFloatVec(vecSize));
+            /** @type {UniformLayoutEntry} */ var entry = new UniformLayoutEntry();
+
+            entry.name = curPrefix + '[0]'; // Array uniforms are always postfixed with [0]
+            entry.type = elemBasicType;
+            entry.blockNdx = curBlockNdx;
+            entry.offset = curOffset;
+            entry.size = type.getArraySize();
+            entry.arrayStride = stride * numVecs;
+            entry.matrixStride = stride;
+            entry.isRowMajor = isRowMajor;
+
+            curOffset += numVecs * type.getArraySize() * stride;
+
+            layout.uniforms.push(entry);
+        }
+        else
+        {
+            assertMsgOptions(elemType.isStructType() || elemType.isArrayType(), 'computeStd140Layout_B: Checking that the type is a structure or an array', false, true);
+
+            for (var elemNdx = 0; elemNdx < type.getArraySize(); elemNdx++)
+                computeStd140Layout_B(layout, curOffset, curBlockNdx, curPrefix + '[' + elemNdx + ']', type.getElementType(), layoutFlags);
+        }
+    }
+    else
+    {
+        assertMsgOptions(type.isStructType(), 'computeStd140Layout_B: Checking that the type is a structure', false, true);
+
+        for (var memberNdx = 0; memberNdx < type.getStruct().getSize(); memberNdx++) {
+            /** @type {StructMember} */ var memberIter = type.getStruct().getMember(memberNdx);
+            computeStd140Layout_B(layout, curOffset, curBlockNdx, curPrefix + '.' + memberIter.getName(), memberIter.getType(), layoutFlags);
+        }
+
+        curOffset = deInt32.deAlign32(curOffset, baseAlignment);
+    }
+};
+
+/**
+ * computeStd140Layout
+ * @param {UniformLayout} layout
+ * @param {ShaderInterface} sinterface
+ */
+var computeStd140Layout = function(layout, sinterface)
+{
+    // \todo [2012-01-23 pyry] Uniforms in default block.
+
+    /** @type {number} */ var numUniformBlocks = sinterface.getNumUniformBlocks();
+
+    for (var blockNdx = 0; blockNdx < numUniformBlocks; blockNdx++)
+    {
+        /** @type {UniformBlock} */ var block = sinterface.getUniformBlock(blockNdx);
+        /** @type {boolean} */ var hasInstanceName = block.getInstanceName() !== undefined;
+        /** @type {string} */ var blockPrefix = hasInstanceName ? (block.getBlockName() + '.') : '';
+        /** @type {number} */ var curOffset = 0;
+        /** @type {number} */ var activeBlockNdx = layout.blocks.length;
+        /** @type {number} */ var firstUniformNdx = layout.uniforms.length;
+
+        for (var ubNdx = 0; ubNdx < block.countUniforms(); ubNdx++)
+        {
+            /** @type {Uniform} */ var uniform = block.getUniform(ubNdx);
+            computeStd140Layout_B(layout, curOffset, activeBlockNdx, blockPrefix + uniform.getName(), uniform.getType(), mergeLayoutFlags(block.getFlags(), uniform.getFlags()));
+        }
+
+        /** @type {number} */ var uniformIndicesEnd = layout.uniforms.length;
+        /** @type {number} */ var blockSize = curOffset;
+        /** @type {number} */ var numInstances = block.isArray() ? block.getArraySize() : 1;
+
+        // Create block layout entries for each instance.
+        for (var instanceNdx = 0; instanceNdx < numInstances; instanceNdx++)
+        {
+            // Allocate entry for instance.
+            layout.blocks.push(BlockLayoutEntry());
+            /** @type {BlockLayoutEntry} */ var blockEntry = layout.blocks[layout.blocks.length - 1];
+
+            blockEntry.name = block.getBlockName();
+            blockEntry.size = blockSize;
+
+            // Compute active uniform set for block.
+            for (var uniformNdx = firstUniformNdx; uniformNdx < uniformIndicesEnd; uniformNdx++)
+                blockEntry.activeUniformIndices.push(uniformNdx);
+
+            if (block.isArray())
+                blockEntry.name += '[' + instanceNdx + ']';
+        }
+    }
+};
+
+/**
+ * generateValue - Value generator
+ * @param {UniformLayoutEntry} entry
+ * @param {Uint8Array} basePtr
+ * @param {deRandom.Random} rnd
+ */
+var generateValue = function(entry, basePtr, rnd)
+{
+    /** @type {deqpUtils.DataType}*/ var scalarType = deqpUtils.getDataTypeScalarType(entry.type);
+    /** @type {number} */ var scalarSize = deqpUtils.getDataTypeScalarSize(entry.type);
+    /** @type {boolean} */ var isMatrix = deqpUtils.isDataTypeMatrix(entry.type);
+    /** @type {number} */ var numVecs = isMatrix ? (entry.isRowMajor ? deqpUtils.getDataTypeMatrixNumRows(entry.type) : deqpUtils.getDataTypeMatrixNumColumns(entry.type)) : 1;
+    /** @type {number} */ var vecSize = scalarSize / numVecs;
+    /** @type {boolean} */ var isArray = entry.size > 1;
+    /** @type {number} */ var compSize = deqpUtils.deUint32_size;
+
+    assertMsgOptions(scalarSize % numVecs == 0, 'generateValue: Checking that the scalar size is coherent with the vectors', false, true);
+
+    for (var elemNdx = 0; elemNdx < entry.size; elemNdx++)
+    {
+        /** @type {Uint8Array} */ var elemPtr = basePtr.subset(entry.offset + (isArray ? elemNdx * entry.arrayStride : 0)); //(deUint8*)basePtr + entry.offset + (isArray ? elemNdx*entry.arrayStride : 0);
+
+        for (var vecNdx = 0; vecNdx < numVecs; vecNdx++)
+        {
+            /** @type {Uint8Array} */ var vecPtr = elemPtr.subset(isMatrix ? vecNdx * entry.matrixStride : 0);
+
+            for (var compNdx = 0; compNdx < vecSize; compNdx++)
+            {
+                /** @type {Uint8Array} */ var compPtr = vecPtr.subset(compSize * compNdx);
+                /** @type {number} */ var _random;
+
+                switch (scalarType)
+                {
+                    case deqpUtils.FLOAT: _random = rnd.getInt(-9, 9); break;
+                    case deqpUtils.INT: _random = rnd.getInt(-9, 9); break;
+                    case deqpUtils.UINT: _random = rnd.getInt(0, 9); break;
+                    // \note Random bit pattern is used for true values. Spec states that all non-zero values are
+                    //       interpreted as true but some implementations fail this.
+                    case deqpUtils.BOOL: _random = rnd.getBool() ? 1 : 0; break;
+                    default:
+                        testFailedOptions('generateValue: Invalid type', true);
+                }
+
+                //Copy the random data byte per byte.
+                var _size = deqpUtils.getDataTypeScalarSize(scalarType);
+                for (var compNdx = 0; compNdx < _size; compNdx++)
+                    compPtr[compNdx] = (_random >> (8 * compNdx)) & 0xF;
+            }
+        }
+    }
+};
+
+/**
+ * generateValues
+ * @param {UniformLayout} layout
+ * @param {BlockPointers} blockPointers
+ * @param {deInt32.deUint32} seed
+ */
+var generateValues = function(layout, blockPointers, seed)
+{
+    /** @type  {deRandom.Random} */ var rnd = new deRandom.Random(seed);
+    /** @type  {number} */ var numBlocks = layout.blocks.length;
+
+    for (var blockNdx = 0; blockNdx < numBlocks; blockNdx++)
+    {
+        /** @type {Uint8Array} */ var basePtr = blockPointers.find(blockNdx);
+        /** @type  {number} */ var numEntries = layout.blocks[blockNdx].activeUniformIndices.length;
+
+        for (var entryNdx = 0; entryNdx < numEntries; entryNdx++)
+        {
+            /** @type {UniformLayoutEntry} */ var entry = layout.uniforms[layout.blocks[blockNdx].activeUniformIndices[entryNdx]];
+            generateValue(entry, basePtr, rnd);
+        }
+    }
+};
+
  /**
   * TODO: iterate
   * @return {IterateResult}
   */
  UniformBlockCase.prototype.iterate = function() {
-     testPassedOptions('', true);
- };
-//     /** @type {UniformLayout} */ var refLayout; //!< std140 layout.
-//     /** @type {number} */ var data; //!< Data (vector<deUint8>).
-//     /** @typedef blockPointer
-//       * @type {object}
-//       * @property {number} key
-//       * @property {BlockLayout} value
-//       */
-//     /** @type {Array.<blockPointer>} */ var blockPointers = []; //!< Reference block pointers (map<int, void*>).
-//
-//     // Initialize result to pass. TODO: Check how this works already in JS
-//     //m_testCtx.setTestResult(UniformFlags.QP_TEST_RESULT_PASS, "Pass");
-//
-//     // Compute reference layout.
-//     computeStd140Layout(refLayout, m_interface);
-//
-//     // Assign storage for reference values.
-//     {
-//         int totalSize = 0;
-//         for (vector<BlockLayoutEntry>::const_iterator blockIter = refLayout.blocks.begin(); blockIter != refLayout.blocks.end(); blockIter++)
-//             totalSize += blockIter->size;
-//         data.resize(totalSize);
-//
-//         // Pointers for each block.
-//         int curOffset = 0;
-//         for (int blockNdx = 0; blockNdx < (int)refLayout.blocks.size(); blockNdx++)
-//         {
-//             blockPointers[blockNdx] = &data[0] + curOffset;
-//             curOffset += refLayout.blocks[blockNdx].size;
-//         }
-//     }
-//
-//     // Generate values.
-//     generateValues(refLayout, blockPointers, 1 /* seed */);
-//
+    /** @type {UniformLayout} */ var refLayout = new UniformLayout(); //!< std140 layout.
+    /** @type {BlockPointers} */ var blockPointers = new BlockPointers();
+
+    // Initialize result to pass. TODO: Check how this works already in JS
+    //m_testCtx.setTestResult(UniformFlags.QP_TEST_RESULT_PASS, "Pass");
+
+    // Compute reference layout.
+    computeStd140Layout(refLayout, this.m_interface);
+
+    // Assign storage for reference values.
+    {
+        /** @type {number} */ var totalSize = 0;
+        for (var blockNdx = 0; blockNdx < refLayout.blocks.length; blockNdx++) // BlockLayoutEntrvector<BlockLayoutEntry>::const_iterator blockIter = refLayout.blocks.begin(); blockIter != refLayout.blocks.end(); blockIter++)
+        {
+            /** @type {BlockLayoutEntry} */ var blockIter = refLayout.blocks[blockNdx];
+            totalSize += blockIter.size;
+        }
+        blockPointers.resize(totalSize);
+
+        // Pointers for each block.
+        var curOffset = 0;
+        for (var blockNdx = 0; blockNdx < refLayout.blocks.length; blockNdx++)
+        {
+            var size = refLayout.blocks[blockNdx].size;
+            blockPointers.push(curOffset, size);
+            curOffset += size;
+        }
+    }
+
+    // // Generate values.
+    // generateValues(refLayout, blockPointers, 1 /* seed */);
+};
 //     // Generate shaders and build program.
 //     std::ostringstream vtxSrc;
 //     std::ostringstream fragSrc;
@@ -1273,7 +1497,7 @@ UniformBlockCase.prototype.render = function(program) {
         var numFailedPixels = 0;
 
         var buffer = pixels.readSurface(gl, viewportX, viewportY, viewportW, viewportH);
-        assertMsgOptions(gl.getError() === gl.NO_ERROR, 'Reading pixels');
+        assertMsgOptions(gl.getError() === gl.NO_ERROR, 'Reading pixels', false, true);
 
         var whitePixel = new deqpDraw.Pixel([255.0, 255.0, 255.0, 255.0]);
         for (var y = 0; y < viewportH; y++)
@@ -1329,76 +1553,76 @@ var getShaderSource = function(id) {
 /** TODO: Substitute init, execute and runTestCases for the proper methods.
  * Initialize a test case
  */
-var init = function() {
-    // Init context
-    var wtu = WebGLTestUtils;
-    gl = wtu.create3DContext('canvas', {preserveDrawingBuffer: true});
-
-    canvas = document.getElementById('canvas');
-
-    if (!gl)
-    {
-        testFailed('Not able to create context', true);
-    }
-    // Create shaders
-    var vsource = deqpProgram.genVertexSource(getShaderSource('shader-vs'));
-    var fsource = deqpProgram.genFragmentSource(getShaderSource('shader-fs'));
-
-    var programSources = {sources: [vsource, fsource]};
-
-    program = new deqpProgram.ShaderProgram(gl, programSources);
-    gl.useProgram(program.getProgram());
-};
-
-/**
- * Execute a test case
- * @return {bool} True if test case passed
- */
-var execute = function()
-{
-    //assertMsgOptions(render(program), 'Verify pixels', true, true);
-
-    // Code for testing TODO: Remove it
-    var layout = new UniformLayout();
-    var block = new BlockLayoutEntry();
-    block.name = 'one';
-    block.activeUniformIndices.push(1);
-    block.activeUniformIndices.push(0);
-    layout.blocks.push(block);
-    block = new BlockLayoutEntry();
-    block.name = 'two';
-    block.activeUniformIndices.push(0);
-    block.activeUniformIndices.push(1);
-    layout.blocks.push(block);
-
-    var blockndx = layout.getBlockIndex('two');
-    alert(blockndx);
-
-    var uniform = new UniformLayoutEntry();
-    uniform.name = 'one';
-    uniform.blockNdx = 1;
-    layout.uniforms.push(uniform);
-    uniform = new UniformLayoutEntry();
-    uniform.name = 'two';
-    uniform.blockNdx = 0;
-    layout.uniforms.push(uniform);
-
-    var uniformndx = layout.getUniformIndex('one');
-    alert(uniformndx);
-
-    var correctLayout = this.checkLayoutIndices(layout);
-    alert('Indices are ' + (correctLayout ? 'correct!' : 'incorrect :('));
-};
-
-var runTestCases = function() {
-    try {
-        init();
-        execute();
-    } catch (err) {
-        bufferedLogToConsole(err);
-    }
-    deqpTests.runner.terminate();
-};
+// var init = function() {
+//     // Init context
+//     var wtu = WebGLTestUtils;
+//     gl = wtu.create3DContext('canvas', {preserveDrawingBuffer: true});
+//
+//     canvas = document.getElementById('canvas');
+//
+//     if (!gl)
+//     {
+//         testFailed('Not able to create context', true);
+//     }
+//     // Create shaders
+//     var vsource = deqpProgram.genVertexSource(getShaderSource('shader-vs'));
+//     var fsource = deqpProgram.genFragmentSource(getShaderSource('shader-fs'));
+//
+//     var programSources = {sources: [vsource, fsource]};
+//
+//     program = new deqpProgram.ShaderProgram(gl, programSources);
+//     gl.useProgram(program.getProgram());
+// };
+//
+// /**
+//  * Execute a test case
+//  * @return {bool} True if test case passed
+//  */
+// var execute = function()
+// {
+//     //assertMsgOptions(render(program), 'Verify pixels', true, true);
+//
+//     // Code for testing TODO: Remove it
+//     var layout = new UniformLayout();
+//     var block = new BlockLayoutEntry();
+//     block.name = 'one';
+//     block.activeUniformIndices.push(1);
+//     block.activeUniformIndices.push(0);
+//     layout.blocks.push(block);
+//     block = new BlockLayoutEntry();
+//     block.name = 'two';
+//     block.activeUniformIndices.push(0);
+//     block.activeUniformIndices.push(1);
+//     layout.blocks.push(block);
+//
+//     var blockndx = layout.getBlockIndex('two');
+//     alert(blockndx);
+//
+//     var uniform = new UniformLayoutEntry();
+//     uniform.name = 'one';
+//     uniform.blockNdx = 1;
+//     layout.uniforms.push(uniform);
+//     uniform = new UniformLayoutEntry();
+//     uniform.name = 'two';
+//     uniform.blockNdx = 0;
+//     layout.uniforms.push(uniform);
+//
+//     var uniformndx = layout.getUniformIndex('one');
+//     alert(uniformndx);
+//
+//     var correctLayout = this.checkLayoutIndices(layout);
+//     alert('Indices are ' + (correctLayout ? 'correct!' : 'incorrect :('));
+// };
+//
+// var runTestCases = function() {
+//     try {
+//         init();
+//         execute();
+//     } catch (err) {
+//         bufferedLogToConsole(err);
+//     }
+//     deqpTests.runner.terminate();
+// };
 
 return {
     UniformBlockCase: UniformBlockCase,

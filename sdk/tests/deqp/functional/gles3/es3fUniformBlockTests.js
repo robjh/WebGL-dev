@@ -103,7 +103,7 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
         typeS.addMember('c', glsVT.newTypeBasic(deqpUtils.DataType.FLOAT_VEC4, glsUBC.UniformFlags.PRECISION_HIGH));
 
         /** @type {glsUBC.UniformBlock} */ var block = this.m_interface.allocBlock('Block');
-        block.addUniform(new glsUBC.Uniform('s', typeS, 0));
+        block.addUniform(new glsUBC.Uniform('s', glsVT.newTypeStruct(typeS), 0));
         block.setFlags(this.m_layoutFlags);
 
         if (this.m_numInstances > 0)
@@ -745,7 +745,7 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
             } catch (err) {
                 //If the exception was not thrown by a test check, log it, but don't throw it again
                 if (!(err instanceof TestFailedException))
-                    testFailedOptions(err, false);
+                    testFailedOptions(err.message, false);
                 bufferedLogToConsole(err);
             }
             deqpTests.runner.runCallback(runTestCases);

@@ -140,28 +140,33 @@ var getDataTypeFloatScalars = function(dataType) {
  * @param {number} size
  * @return {DataType}
  */
-// var getDataTypeVector = function(scalarType, size)
-// {
-//     DE_ASSERT(deInRange32(size, 1, 4));
-//     switch (scalarType)
-//     {
-//         case TYPE_FLOAT:
-//         case TYPE_INT:
-//         case TYPE_UINT:
-//         case TYPE_BOOL:
-//             return (DataType)((int)scalarType + size - 1);
-//         default:
-//             return TYPE_INVALID;
-//     }
-// }
-//
-// DataType getDataTypeFloatVec (int vecSize)
-// {
-//     return getDataTypeVector(TYPE_FLOAT, vecSize);
-// }
+var getDataTypeVector = function(scalarType, size)
+{
+    //DE_ASSERT(deInRange32(size, 1, 4));
+    switch (scalarType)
+    {
+        case DataType.FLOAT:
+        case DataType.INT:
+        case DataType.UINT:
+        case DataType.BOOL:
+            return scalarType + size - 1;
+        default:
+            return DataType.INVALID;
+    }
+}
+
+/*
+ * getDataTypeFloatVec
+ * @param {number} vecSize
+ * @return {DataType}
+ */
+var getDataTypeFloatVec = function(vecSize)
+{
+    return getDataTypeVector(DataType.FLOAT, vecSize);
+}
 
 /**
- * TODO: isDataTypeBoolOrBVec
+ * isDataTypeBoolOrBVec
  * @param {DataType} dataType
  * @return {boolean}
  */
@@ -412,11 +417,14 @@ var getDataTypeName = function(dataType)  {
 
 return {
     precision: precision,
-    getPrecisionName, getPrecisionName,
+    getPrecisionName: getPrecisionName,
+    deUint32_size: deUint32_size,
     DataType: DataType,
     getDataTypeFloatScalars: getDataTypeFloatScalars,
     getDataTypeScalarType: getDataTypeScalarType,
     isDataTypeIntOrIVec: isDataTypeIntOrIVec,
+    getDataTypeVector: getDataTypeVector,
+    getDataTypeFloatVec: getDataTypeFloatVec,
     isDataTypeBoolOrBVec: isDataTypeBoolOrBVec,
     getDataTypeScalarSize: getDataTypeScalarSize,
     isDataTypeMatrix: isDataTypeMatrix,

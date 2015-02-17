@@ -31,6 +31,7 @@ define(function() {
     var deInBounds32 = function(a, mn, mx) {
         return (a >= mn) && (a < mx);
     };
+
 /*--------------------------------------------------------------------*//*!
  * \brief Check if a value is a power-of-two.
  * \param a Input value.
@@ -41,6 +42,11 @@ define(function() {
 var deIsPowerOfTwo32 = function(a)
 {
     return ((a & (a - 1)) == 0);
+};
+
+var deAlign32 = function(val, align) {
+    //assertMessageOptions(deIsPowerOfTwo32(align), 'Checking if value is power of two', false, true);
+    return ((val + align - 1) & ~(align - 1)) & 0xFFFF; //0xFFFF make sure it returns a 32 bit calculation in 64 bit browsers.
 };
 
 Number.prototype.clamp = function(min, max) {
@@ -162,6 +168,7 @@ Math.rint = function(a) {
     return {
         deInRange32: deInRange32,
         deInBounds32: deInBounds32,
+        deAlign32: deAlign32,
         deIsPowerOfTwo32: deIsPowerOfTwo32
     };
 });

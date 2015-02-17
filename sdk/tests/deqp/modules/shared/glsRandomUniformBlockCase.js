@@ -207,7 +207,7 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
         flags |= (unusedOk && rnd.getFloat() < unusedVtxWeight) ? glsUBC.UniformFlags.UNUSED_VERTEX : 0;
         flags |= (unusedOk && rnd.getFloat() < unusedFragWeight) ? glsUBC.UniformFlags.UNUSED_FRAGMENT : 0;
 
-        block.addUniform(glsUBC.Uniform(name, type, flags));
+        block.addUniform(new glsUBC.Uniform(name, type, flags));
 
         this.m_uniformNdx += 1;
     };
