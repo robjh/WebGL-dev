@@ -909,6 +909,7 @@ var mergeLayoutFlags = function(prevFlags, newFlags)
  * @param {string} curPrefix
  * @param {VarType} type
  * @param {deInt32.deUint32} layoutFlags
+ * @return {number} //This is what would return in the curOffset output parameter in the original C++ project.
  */
 var computeStd140Layout_B = function(layout, curOffset, curBlockNdx, curPrefix, type, layoutFlags)
 {
@@ -1007,7 +1008,7 @@ var computeStd140Layout_B = function(layout, curOffset, curBlockNdx, curPrefix, 
             assertMsgOptions(elemType.isStructType() || elemType.isArrayType(), 'computeStd140Layout_B: Checking that the type is a structure or an array', false, true);
 
             for (var elemNdx = 0; elemNdx < type.getArraySize(); elemNdx++)
-                computeStd140Layout_B(layout, curOffset, curBlockNdx, curPrefix + '[' + elemNdx + ']', type.getElementType(), layoutFlags);
+                curOffset = computeStd140Layout_B(layout, curOffset, curBlockNdx, curPrefix + '[' + elemNdx + ']', type.getElementType(), layoutFlags);
         }
     }
     else
@@ -1016,11 +1017,13 @@ var computeStd140Layout_B = function(layout, curOffset, curBlockNdx, curPrefix, 
 
         for (var memberNdx = 0; memberNdx < type.getStruct().getSize(); memberNdx++) {
             /** @type {StructMember} */ var memberIter = type.getStruct().getMember(memberNdx);
-            computeStd140Layout_B(layout, curOffset, curBlockNdx, curPrefix + '.' + memberIter.getName(), memberIter.getType(), layoutFlags);
+            curOffset = computeStd140Layout_B(layout, curOffset, curBlockNdx, curPrefix + '.' + memberIter.getName(), memberIter.getType(), layoutFlags);
         }
 
         curOffset = deInt32.deAlign32(curOffset, baseAlignment);
     }
+
+    return curOffset;
 };
 
 /**
@@ -1046,7 +1049,7 @@ var computeStd140Layout = function(layout, sinterface)
         for (var ubNdx = 0; ubNdx < block.countUniforms(); ubNdx++)
         {
             /** @type {Uniform} */ var uniform = block.getUniform(ubNdx);
-            computeStd140Layout_B(layout, curOffset, activeBlockNdx, blockPrefix + uniform.getName(), uniform.getType(), mergeLayoutFlags(block.getFlags(), uniform.getFlags()));
+            curOffset = computeStd140Layout_B(layout, curOffset, activeBlockNdx, blockPrefix + uniform.getName(), uniform.getType(), mergeLayoutFlags(block.getFlags(), uniform.getFlags()));
         }
 
         /** @type {number} */ var uniformIndicesEnd = layout.uniforms.length;
@@ -1081,7 +1084,7 @@ var computeStd140Layout = function(layout, sinterface)
  */
 var generateValue = function(entry, basePtr, rnd)
 {
-    /** @type {deqpUtils.DataType}*/ var scalarType = deqpUtils.getDataTypeScalarType(entry.type);
+    /** @type {deqpUtils.DataType}*/ var scalarType = deqpUtils.getDataTypeScalarTypeAsDataType(entry.type); //Using a more appropriate function in this case.
     /** @type {number} */ var scalarSize = deqpUtils.getDataTypeScalarSize(entry.type);
     /** @type {boolean} */ var isMatrix = deqpUtils.isDataTypeMatrix(entry.type);
     /** @type {number} */ var numVecs = isMatrix ? (entry.isRowMajor ? deqpUtils.getDataTypeMatrixNumRows(entry.type) : deqpUtils.getDataTypeMatrixNumColumns(entry.type)) : 1;
@@ -1093,33 +1096,33 @@ var generateValue = function(entry, basePtr, rnd)
 
     for (var elemNdx = 0; elemNdx < entry.size; elemNdx++)
     {
-        /** @type {Uint8Array} */ var elemPtr = basePtr.subset(entry.offset + (isArray ? elemNdx * entry.arrayStride : 0)); //(deUint8*)basePtr + entry.offset + (isArray ? elemNdx*entry.arrayStride : 0);
+        /** @type {Uint8Array} */ var elemPtr = basePtr.subarray(entry.offset + (isArray ? elemNdx * entry.arrayStride : 0)); //(deUint8*)basePtr + entry.offset + (isArray ? elemNdx*entry.arrayStride : 0);
 
         for (var vecNdx = 0; vecNdx < numVecs; vecNdx++)
         {
-            /** @type {Uint8Array} */ var vecPtr = elemPtr.subset(isMatrix ? vecNdx * entry.matrixStride : 0);
+            /** @type {Uint8Array} */ var vecPtr = elemPtr.subarray(isMatrix ? vecNdx * entry.matrixStride : 0);
 
             for (var compNdx = 0; compNdx < vecSize; compNdx++)
             {
-                /** @type {Uint8Array} */ var compPtr = vecPtr.subset(compSize * compNdx);
+                /** @type {Uint8Array} */ var compPtr = vecPtr.subarray(compSize * compNdx);
                 /** @type {number} */ var _random;
 
                 switch (scalarType)
                 {
-                    case deqpUtils.FLOAT: _random = rnd.getInt(-9, 9); break;
-                    case deqpUtils.INT: _random = rnd.getInt(-9, 9); break;
-                    case deqpUtils.UINT: _random = rnd.getInt(0, 9); break;
+                    case deqpUtils.DataType.FLOAT: _random = rnd.getInt(-9, 9); break;
+                    case deqpUtils.DataType.INT: _random = rnd.getInt(-9, 9); break;
+                    case deqpUtils.DataType.UINT: _random = rnd.getInt(0, 9); break;
                     // \note Random bit pattern is used for true values. Spec states that all non-zero values are
                     //       interpreted as true but some implementations fail this.
-                    case deqpUtils.BOOL: _random = rnd.getBool() ? 1 : 0; break;
+                    case deqpUtils.DataType.BOOL: _random = rnd.getBool() ? 1 : 0; break;
                     default:
                         testFailedOptions('generateValue: Invalid type', true);
                 }
 
-                //Copy the random data byte per byte.
-                var _size = deqpUtils.getDataTypeScalarSize(scalarType);
-                for (var compNdx = 0; compNdx < _size; compNdx++)
-                    compPtr[compNdx] = (_random >> (8 * compNdx)) & 0xF;
+                //Copy the random data byte per byte, little endian way.
+                var _size = getDataTypeByteSize(scalarType);
+                for (var byteNdx = 0; byteNdx < _size; byteNdx++)
+                    compPtr[byteNdx] = (_random >> (8 * byteNdx)) & 0xFF; //0xFF limit to 8 LS bits.
             }
         }
     }
@@ -1183,9 +1186,9 @@ var generateValues = function(layout, blockPointers, seed)
         }
     }
 
-    // // Generate values.
-    // generateValues(refLayout, blockPointers, 1 /* seed */);
-};
+    // Generate values.
+    generateValues(refLayout, blockPointers, 1 /* seed */);
+
 //     // Generate shaders and build program.
 //     std::ostringstream vtxSrc;
 //     std::ostringstream fragSrc;
@@ -1333,7 +1336,7 @@ var generateValues = function(layout, blockPointers, seed)
 //         m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, "Image compare failed");
 //
 //     return STOP;
-// };
+};
 
 /**
 * compareStd140Blocks

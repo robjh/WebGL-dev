@@ -46,7 +46,7 @@ var deIsPowerOfTwo32 = function(a)
 
 var deAlign32 = function(val, align) {
     //assertMessageOptions(deIsPowerOfTwo32(align), 'Checking if value is power of two', false, true);
-    return ((val + align - 1) & ~(align - 1)) & 0xFFFF; //0xFFFF make sure it returns a 32 bit calculation in 64 bit browsers.
+    return ((val + align - 1) & ~(align - 1)) & 0xFFFFFFFF; //0xFFFFFFFF make sure it returns a 32 bit calculation in 64 bit browsers.
 };
 
 Number.prototype.clamp = function(min, max) {
