@@ -1167,22 +1167,43 @@ var generateValue = function(entry, basePtr, rnd)
                 /** @type {Uint8Array} */ var compPtr = vecPtr.subarray(compSize * compNdx);
                 /** @type {number} */ var _random;
 
+                //Copy the random data byte per byte
+                var _size = getDataTypeByteSize(scalarType);
+
+                var nbuffer = new ArrayBuffer(_size);
+                var nview = new DataView(nbuffer);
+
                 switch (scalarType)
                 {
-                    case deqpUtils.DataType.FLOAT: _random = rnd.getInt(-9, 9); break;
-                    case deqpUtils.DataType.INT: _random = rnd.getInt(-9, 9); break;
-                    case deqpUtils.DataType.UINT: _random = rnd.getInt(0, 9); break;
+                    case deqpUtils.DataType.FLOAT:
+                        _random = rnd.getInt(-9, 9);
+                        nview.setFloat32(0, _random);
+                        break;
+                    case deqpUtils.DataType.INT:
+                        _random = rnd.getInt(-9, 9);
+                        nview.setInt32(0, _random);
+                        break;
+                    case deqpUtils.DataType.UINT:
+                        _random = rnd.getInt(0, 9);
+                        nview.setUint32(0, _random);
+                        break;
                     // \note Random bit pattern is used for true values. Spec states that all non-zero values are
                     //       interpreted as true but some implementations fail this.
-                    case deqpUtils.DataType.BOOL: _random = rnd.getBool() ? 1 : 0; break;
+                    case deqpUtils.DataType.BOOL:
+                        _random = rnd.getBool() ? 1 : 0;
+                        nview.setUint32(0, _random);
+                        break;
                     default:
                         testFailedOptions('generateValue: Invalid type', true);
                 }
 
-                //Copy the random data byte per byte, little endian way.
-                var _size = getDataTypeByteSize(scalarType);
-                for (var byteNdx = 0; byteNdx < _size; byteNdx++)
-                    compPtr[byteNdx] = (_random >> (8 * byteNdx)) & 0xFF; //0xFF limit to 8 LS bits.
+                for (var i = 0; i < _size; i++)
+                {
+                    compPtr[i] = nview.getUint8(i);
+                }
+
+                //TODO: Remove
+                //assertMsgOptions(true,'Generated value: ' + _random + ', as corresponding type: (not really)' + nview.getUint32(0) + ', converted back: (not really)' + nview.getFloat32(0), true, false);
             }
         }
     }
@@ -1548,6 +1569,220 @@ var generateDeclaration = function(block) {
 };
 
 /**
+ * newArrayBufferFromView - Creates a new buffer copying data from a given view
+ * @param {ViewType} view
+ * @return {ArrayBuffer} The newly created buffer
+ */
+var newArrayBufferFromView = function(view) {
+    var buffer = new ArrayBuffer(view.length * view.BYTES_PER_ELEMENT);
+    var copyview;
+    switch (view.BYTES_PER_ELEMENT)
+    {
+        case 1:
+            copyview = new Uint8Array(buffer); break;
+        case 2:
+            copyview = new Uint16Array(buffer); break;
+        case 4:
+            copyview = new Uint32Array(buffer); break;
+        default:
+            assertMsgOptions(false, 'Unexpected value for BYTES_PER_ELEMENT in view', false, true);
+    }
+    for (var i = 0; i < view.length; i++)
+        copyview[i] = view[i];
+
+    //var newview = new Uint32Array(buffer);
+    return buffer;
+};
+/**
+ * generateValueSrc
+ * @return {string} Used to be an output parameter in C++ project
+ * @param {UniformLayoutEntry} entry
+ * @param {Uint8Array} basePtr
+ * @param {number} elementNdx
+ */
+var generateValueSrc = function(entry, basePtr, elementNdx) {
+    /** @type {string} */ var src = '';
+    /** @type {deqpUtils.DataType} */ var scalarType = deqpUtils.getDataTypeScalarTypeAsDataType(entry.type);
+    /** @type {number} */ var scalarSize = deqpUtils.getDataTypeScalarSize(entry.type);
+    /** @type {boolean} */ var isArray = entry.size > 1;
+    /** @type {Uint8Array} */ var elemPtr = basePtr.subarray(entry.offset + (isArray ? elementNdx * entry.arrayStride : 0));
+    /** @type {number} */ var compSize = deqpUtils.deUint32_size;
+
+    if (scalarSize > 1)
+        src += deqpUtils.getDataTypeName(entry.type) + '(';
+
+    if (deqpUtils.isDataTypeMatrix(entry.type))
+    {
+        /** @type {number} */ var numRows = deqpUtils.getDataTypeMatrixNumRows(entry.type);
+        /** @type {number} */ var numCols = deqpUtils.getDataTypeMatrixNumColumns(entry.type);
+
+        assertMsgOptions(scalarType == deqpUtils.DataType.FLOAT, 'Checking that the salar is a float', false, true);
+
+        // Constructed in column-wise order.
+        for (var colNdx = 0; colNdx < numCols; colNdx++)
+        {
+            for (var rowNdx = 0; rowNdx < numRows; rowNdx++)
+            {
+                /** @type {Uint8Array} */ var compPtr = elemPtr.subarray(entry.isRowMajor ? rowNdx * entry.matrixStride + colNdx * compSize :
+                                                                      colNdx * entry.matrixStride + rowNdx * compSize);
+
+                if (colNdx > 0 || rowNdx > 0)
+                    src += ', ';
+
+                src += new Uint32Array(compPtr.subarray(0, 4))[0]; //TODO: Add formatting for decimals
+            }
+        }
+    }
+    else
+    {
+        for (var scalarNdx = 0; scalarNdx < scalarSize; scalarNdx++)
+        {
+            /** @type {Uint8Array} */ var compPtr = elemPtr.subarray(scalarNdx * compSize);
+
+            if (scalarNdx > 0)
+                src += ', ';
+
+            var newbuffer = newArrayBufferFromView(compPtr.subarray(0, 4));
+            var newview = new DataView(newbuffer);
+
+            switch (scalarType)
+            {
+                case deqpUtils.DataType.FLOAT: src += parseFloat(newview.getFloat32(0) * 100 / 100).toFixed(1); break;
+                case deqpUtils.DataType.INT: src += newview.getInt32(0); break;
+                case deqpUtils.DataType.UINT: src += newview.getUint32(0) + 'u'; break;
+                case deqpUtils.DataType.BOOL: src += (newview.getUint32(0) != 0 ? 'true' : 'false'); break;
+                default:
+                    assertMsgOptions(false, 'Invalid data type', false, true);
+            }
+        }
+    }
+
+    if (scalarSize > 1)
+        src += ')';
+
+    return src;
+};
+
+/**
+ * generateCompareSrc_A
+ * @return {string} Used to be an output parameter in C++ project
+ * @param {string} resultVar
+ * @param {VarType} type
+ * @param {string} srcName
+ * @param {string} apiName
+ * @param {UniformLayout} layout
+ * @param {Uint8Array} basePtr
+ * @param {deInt32.deUint32} unusedMask
+ */
+var generateCompareSrc_A = function(resultVar, type, srcName, apiName, layout, basePtr, unusedMask) {
+    /** @type {string} */ var src = '';
+
+    if (type.isBasicType() || (type.isArrayType() && type.getElementType().isBasicType()))
+    {
+        // Basic type or array of basic types.
+        /** @type {boolean} */ var isArray = type.isArrayType();
+        /** @type {deqpUtils.DataType} */ var elementType = isArray ? type.getElementType().getBasicType() : type.getBasicType();
+        /** @type {string} */ var typeName = deqpUtils.getDataTypeName(elementType);
+        /** @type {string} */ var fullApiName = apiName + (isArray ? '[0]' : ''); // Arrays are always postfixed with [0]
+        /** @type {number} */ var uniformNdx = layout.getUniformIndex(fullApiName);
+        /** @type {UniformLayoutentry} */ var entry = layout.uniforms[uniformNdx];
+
+        if (isArray)
+        {
+            for (var elemNdx = 0; elemNdx < type.getArraySize(); elemNdx++)
+            {
+                src += '\tresult *= compare_' + typeName + '(' + srcName + '[' + elemNdx + '], ';
+                src += generateValueSrc(entry, basePtr, elemNdx);
+                src += ');\n';
+            }
+        }
+        else
+        {
+            src += '\tresult *= compare_' + typeName + '(' + srcName + ', ';
+            src += generateValueSrc(entry, basePtr, 0);
+            src += ');\n';
+        }
+    }
+    else if (type.isArrayType())
+    {
+        /** @type {VarType} */ var elementType = type.getElementType();
+
+        for (var elementNdx = 0; elementNdx < type.getArraySize(); elementNdx++)
+        {
+            /** @type {string} */ var op = '[' + elementNdx + ']';
+            src += generateCompareSrc_A(resultVar, elementType, srcName + op, apiName + op, layout, basePtr, unusedMask);
+        }
+    }
+    else
+    {
+        assertMsgOptions(type.isStructType(), 'Checking if it is a struct type', false, true);
+
+        /** @type {StructType} */ var stype = type.getStruct();
+        for (var memberNdx = 0; memberNdx < stype.getSize(); memberNdx++)//StructType::ConstIterator memberIter = type.getStruct().begin(); memberIter != type.getStruct().end(); memberIter++)
+        {
+            /** @type {StructMember} */ var memberIter = stype.getMember(memberNdx);
+            if (memberIter.getFlags() & unusedMask)
+                continue; // Skip member.
+
+            /** @type {string} */ var op = '.' + memberIter.getName();
+            src += generateCompareSrc_A(resultVar, memberIter.getType(), srcName + op, apiName + op, layout, basePtr, unusedMask);
+        }
+    }
+
+    return src;
+};
+
+/**
+ * generateCompareSrc
+ * @return {string} Used to be an output parameter in C++ project
+ * @param {string} resultVar
+ * @param {ShaderInterface} sinterface
+ * @param {UniformLayout} layout
+ * @param {BlockPointers} blockPointers
+ * @param {boolean} isVertex
+ */
+var generateCompareSrc = function(resultVar, sinterface, layout, blockPointers, isVertex) {
+    /** @type {string} */ var src = '';
+    /** @type {deInt32.deUint32} */ var unusedMask = isVertex ? UniformFlags.UNUSED_VERTEX : UniformFlags.UNUSED_FRAGMENT;
+
+    for (var blockNdx = 0; blockNdx < sinterface.getNumUniformBlocks(); blockNdx++)
+    {
+        /** @type {UniformBlock} */ var block = sinterface.getUniformBlock(blockNdx);
+
+        if ((block.getFlags() & (isVertex ? UniformFlags.DECLARE_VERTEX : UniformFlags.DECLARE_FRAGMENT)) == 0)
+            continue; // Skip.
+
+        /** @type {boolean} */ var hasInstanceName = block.getInstanceName() !== undefined;
+        /** @type {boolean} */ var isArray = block.isArray();
+        /** @type {number} */ var numInstances = isArray ? block.getArraySize() : 1;
+        /** @type {string} */ var apiPrefix = hasInstanceName ? block.getBlockName() + '.' : '';
+
+        assertMsgOptions(!isArray || hasInstanceName, 'Check if it is not an array or it does not haven instance name', false, true);
+
+        for (var instanceNdx = 0; instanceNdx < numInstances; instanceNdx++)
+        {
+            /** @type {string} */ var instancePostfix = isArray ? '[' + instanceNdx + ']' : '';
+            /** @type {string} */ var blockInstanceName = block.getBlockName() + instancePostfix;
+            /** @type {string} */ var srcPrefix = hasInstanceName ? block.getInstanceName() + instancePostfix + '.' : '';
+            /** @type {number} */ var activeBlockNdx = layout.getBlockIndex(blockInstanceName);
+            /** @type {Uint8Array} */ var basePtr = blockPointers.find(activeBlockNdx);
+
+            for (var uniformNdx = 0; uniformNdx < block.countUniforms(); uniformNdx++) //UniformBlock::ConstIterator uniformIter = block.begin(); uniformIter != block.end(); uniformIter++)
+            {
+                /** @type {Uniform} */ var uniform = block.getUniform(uniformNdx);
+
+                if (uniform.getFlags() & unusedMask)
+                    continue; // Don't read from that uniform.
+
+                src += generateCompareSrc_A(resultVar, uniform.getType(), srcPrefix + uniform.getName(), apiPrefix + uniform.getName(), layout, basePtr, unusedMask);
+            }
+        }
+    }
+
+    return src;
+};
+
+/**
  * generateVertexShader //TODO: Implement generateCompareSrc functions
  * @return {string} src
  * @param {ShaderInterface} sinterface
@@ -1586,7 +1821,7 @@ var generateVertexShader = function(sinterface, layout, blockPointers) {
            '    mediump float result = 1.0;\n';
 
     // Value compare.
-    //generateCompareSrc(src, "result", sinterface, layout, blockPointers, true);
+    src += generateCompareSrc('result', sinterface, layout, blockPointers, true);
 
     src += '    v_vtxResult = result;\n' +
            '}\n';
