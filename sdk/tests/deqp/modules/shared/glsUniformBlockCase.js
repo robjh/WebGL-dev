@@ -65,6 +65,18 @@ BlockPointers.prototype.resize = function(newsize) {
     this.data = new ArrayBuffer(newsize);
 };
 
+/**
+ * Add a push_unique function to Array. Will insert only if there is no equal element.
+ * @param {Object} newobject Any object
+ */
+var pushUniqueToArray = function(array, object) {
+    //Simplest implementation
+    for (var i = 0; i < array.length; i++)
+        if (object === array[i])
+            return undefined;
+    array.push(object);
+};
+
 var UniformFlags = {
     PRECISION_LOW: (1 << 0),
     PRECISION_MEDIUM: (1 << 1),
@@ -705,242 +717,6 @@ var LayoutFlagsFmt = function(flags_) {
 };
 
 /**
- * Indent - Prints level_ number of tab chars
- * @param {number} level_
- * @return {string}
- */
-var Indent = function(level_) {
-    var str = '';
-    for (var i = 0; i < level_; i++)
-        str += '\t';
-
-    return str;
-};
-
-/**
- * generateDeclaration_C
- * @return {string} src
- * @param {StructType} structType
- * @param {number} indentLevel
- */
-var generateDeclaration_C = function(structType, indentLevel) {
-    /** @type {string} */ var src = '';
-
-    assertMsgOptions(structType.getTypeName() !== undefined, 'Checking the struct typename is not undefined', false, true);
-    src += generateFullDeclaration(structType, indentLevel);
-    src += ';\n';
-
-    return src;
-};
-
-/**
- * generateFullDeclaration
- * @return {string} src
- * @param {StructType} structType
- * @param {number} indentLevel
- */
-var generateFullDeclaration = function(structType, indentLevel) {
-    var src = 'struct';
-    if (structType.getTypeName())
-        src += ' ' + structType.getTypeName();
-    src += '\n' + Indent(indentLevel) + '{\n';
-
-    for (var memberNdx = 0; memberNdx < structType.getSize(); memberNdx++) //StructType::ConstIterator memberIter = structType.begin(); memberIter != structType.end(); memberIter++)
-    {
-        src += Indent(indentLevel + 1);
-        /** @type {StructMember} */ var memberIter = structType.getMember(memberNdx);
-        src += generateDeclaration_B(memberIter.getType(), memberIter.getName(), indentLevel + 1, memberIter.getFlags() & UniformFlags.UNUSED_BOTH);
-    }
-
-    src += Indent(indentLevel) + '}';
-
-    return src;
-};
-
-/**
- * generateLocalDeclaration
- * @return {string} src
- * @param {StructType} structType
- * @param {number} indentLevel
- */
-var generateLocalDeclaration = function(structType, indentLevel) {
-    /** @type {string} */ var src = '';
-
-    if (structType.getTypeName() === undefined)
-        src += generateFullDeclaration(structType, indentLevel);
-    else
-        src += structType.getTypeName();
-
-    return src;
-};
-
-/**
- * generateDeclaration_B
- * @return {string} src
- * @param {VarType} type
- * @param {string} name
- * @param {number} indentLevel
- * @param {deInt32.deUint32} unusedHints
- */
-var generateDeclaration_B = function(type, name, indentLevel, unusedHints) {
-    /** @type {string} */ var src = '';
-    /** @type {deInt32.deUint32} */ var flags = type.getFlags();
-
-    if ((flags & UniformFlags.LAYOUT_MASK) != 0)
-        src += 'layout(' + LayoutFlagsFmt(flags & UniformFlags.LAYOUT_MASK) + ') ';
-
-    if ((flags & UniformFlags.PRECISION_MASK) != 0)
-        src += PrecisionFlagsFmt(flags & UniformFlags.PRECISION_MASK) + ' ';
-
-    if (type.isBasicType())
-        src += deqpUtils.getDataTypeName(type.getBasicType()) + ' ' + name;
-    else if (type.isArrayType())
-    {
-        /** @type {number} */ var arraySizes = [];
-        /** @type {VarType} */ var curType = type;
-        while (curType.isArrayType())
-        {
-            arraySizes.push(curType.getArraySize());
-            curType = curType.getElementType();
-        }
-
-        if (curType.isBasicType())
-        {
-            if ((curType.getFlags() & UniformFlags.PRECISION_MASK) != 0)
-                src += PrecisionFlagsFmt(curType.getFlags() & UniformFlags.PRECISION_MASK) + ' ';
-            src += deqpUtils.getDataTypeName(curType.getBasicType());
-        }
-        else
-        {
-            assertMsgOptions(curType.isStructType(), 'Checking if curType is a struct type', false, true);
-            src += generateLocalDeclaration(curType.getStruct(), indentLevel + 1);
-        }
-
-        src += ' ' + name;
-
-        for (var sizeNdx; sizeNdx < arraySizes.length; sizeNdx++) //std::vector<int>::const_iterator sizeIter = arraySizes.begin(); sizeIter != arraySizes.end(); sizeIter++)
-            src += '[' + arraySizes[sizeNdx] + ']';
-    }
-    else
-    {
-        src += generateLocalDeclaration(type.getStruct(), indentLevel + 1);
-        src += ' ' + name;
-    }
-
-    src += ';';
-
-    // Print out unused hints.
-    if (unusedHints != 0)
-        src += ' // unused in ' + (unusedHints == UniformFlags.UNUSED_BOTH ? 'both shaders' :
-                                    unusedHints == UniformFlags.UNUSED_VERTEX ? 'vertex shader' :
-                                    unusedHints == UniformFlags.UNUSED_FRAGMENT ? 'fragment shader' : '???');
-
-    src += '\n';
-
-    return src;
-};
-
-/**
- * generateDeclaration_A
- * @return {string} src
- * @param {Uniform} uniform
- * @param {number} indentLevel
- */
-var generateDeclaration_A = function(uniform, indentLevel) {
-    /** @type {string} */ var src = '';
-
-    if ((uniform.getFlags() & UniformFlags.LAYOUT_MASK) != 0)
-        src += 'layout(' + LayoutFlagsFmt(uniform.getFlags() & UniformFlags.LAYOUT_MASK) + ') ';
-
-    src += generateDeclaration_B(uniform.getType(), uniform.getName(), indentLevel, uniform.getFlags() & UniformFlags.UNUSED_BOTH);
-
-    return src;
-};
-
-/**
- * generateDeclaration
- * @return {string} src
- * @param {UniformBlock} block
- */
-var generateDeclaration = function(block) {
-    /** @type {string} */ var src = '';
-
-    if ((block.getFlags() & UniformFlags.LAYOUT_MASK) != 0)
-        src += 'layout(' + LayoutFlagsFmt(block.getFlags() & UniformLayout.LAYOUT_MASK) + ') ';
-
-    src += 'uniform ' + block.getBlockName();
-    src += '\n{\n';
-
-    for (var uniformNdx = 0; uniformNdx < block.countUniforms(); uniformNdx++) //UniformBlock::ConstIterator uniformIter = block.begin(); uniformIter != block.end(); uniformIter++)
-    {
-        src += Indent(1);
-        src += generateDeclaration_A(block.getUniform(uniformNdx), 1 /* indent level */);
-    }
-
-    src += '}';
-
-    if (block.getInstanceName() !== undefined)
-    {
-        src += ' ' + block.getInstanceName();
-        if (block.isArray())
-            src += '[' + block.getArraySize() + ']';
-    }
-    else
-        assertMsgOptions(!block.isArray(), 'Checking if block is not an array', false, true);
-
-    src += ';\n';
-
-    return src;
-};
-
-/**
- * generateVertexShader //TODO: Implement generateCompareFuncs, generateCompareSrc functions
- * @return {string} src
- * @param {ShaderInterface} sinterface
- * @param {UniformLayout} layout
- * @param {BlockPointers} blockPointers
- */
-var generateVertexShader = function(sinterface, layout, blockPointers) {
-    /** @type {string} */ var src = '';
-    //assertMsgOptions(isSupportedGLSLVersion(glslVersion), 'Checking if GLSL version is supported', false, true);
-
-    //TODO: src += glu::getGLSLVersionDeclaration(glslVersion) << "\n";
-    src += 'in highp vec4 a_position;\n';
-    src += 'out mediump float v_vtxResult;\n';
-    src += '\n';
-
-    /** @type {Array.<StructType>} */ var namedStructs = [];
-    sinterface.getNamedStructs(namedStructs);
-    for (var structNdx = 0; structNdx < namedStructs.length; structNdx++) //std::vector<const StructType*>::const_iterator structIter = namedStructs.begin(); structIter != namedStructs.end(); structIter++)
-        src += generateDeclaration_C(namedStructs[structNdx], 0);
-
-    for (var blockNdx = 0; blockNdx < sinterface.getNumUniformBlocks(); blockNdx++)
-    {
-        /** @type {UniformBlock} */ var block = sinterface.getUniformBlock(blockNdx);
-        if (block.getFlags() & UniformFlags.DECLARE_VERTEX)
-            src += generateDeclaration(block);
-    }
-
-    // Comparison utilities.
-    src += '\n';
-    //generateCompareFuncs(src, sinterface);
-
-    src += '\n' +
-           'void main (void)\n' +
-           '{\n' +
-           '    gl_Position = a_position;\n' +
-           '    mediump float result = 1.0;\n';
-
-    // Value compare.
-    //generateCompareSrc(src, "result", sinterface, layout, blockPointers, true);
-
-    src += '    v_vtxResult = result;\n' +
-           '}\n';
-
-    return src;
-};
-
-/**
  * TODO: test getGLUniformLayout Gets the uniform blocks and uniforms in the program.
  * @param {WebGLRenderingContext} gl
  * @param {UniformLayout} layout To store the layout described in program.
@@ -1434,6 +1210,388 @@ var generateValues = function(layout, blockPointers, seed)
             generateValue(entry, basePtr, rnd);
         }
     }
+};
+
+// Shader generator.
+
+/**
+ * getCompareFuncForType
+ * @param {deqpUtils.DataType} type
+ * @return {string}
+ */
+var getCompareFuncForType = function(type) {
+    switch (type)
+    {
+        case deqpUtils.DataType.FLOAT: return 'mediump float compare_float    (highp float a, highp float b)  { return abs(a - b) < 0.05 ? 1.0 : 0.0; }\n';
+        case deqpUtils.DataType.FLOAT_VEC2: return 'mediump float compare_vec2     (highp vec2 a, highp vec2 b)    { return compare_float(a.x, b.x)*compare_float(a.y, b.y); }\n';
+        case deqpUtils.DataType.FLOAT_VEC3: return 'mediump float compare_vec3     (highp vec3 a, highp vec3 b)    { return compare_float(a.x, b.x)*compare_float(a.y, b.y)*compare_float(a.z, b.z); }\n';
+        case deqpUtils.DataType.FLOAT_VEC4: return 'mediump float compare_vec4     (highp vec4 a, highp vec4 b)    { return compare_float(a.x, b.x)*compare_float(a.y, b.y)*compare_float(a.z, b.z)*compare_float(a.w, b.w); }\n';
+        case deqpUtils.DataType.FLOAT_MAT2: return 'mediump float compare_mat2     (highp mat2 a, highp mat2 b)    { return compare_vec2(a[0], b[0])*compare_vec2(a[1], b[1]); }\n';
+        case deqpUtils.DataType.FLOAT_MAT2X3: return 'mediump float compare_mat2x3   (highp mat2x3 a, highp mat2x3 b){ return compare_vec3(a[0], b[0])*compare_vec3(a[1], b[1]); }\n';
+        case deqpUtils.DataType.FLOAT_MAT2X4: return 'mediump float compare_mat2x4   (highp mat2x4 a, highp mat2x4 b){ return compare_vec4(a[0], b[0])*compare_vec4(a[1], b[1]); }\n';
+        case deqpUtils.DataType.FLOAT_MAT3X2: return 'mediump float compare_mat3x2   (highp mat3x2 a, highp mat3x2 b){ return compare_vec2(a[0], b[0])*compare_vec2(a[1], b[1])*compare_vec2(a[2], b[2]); }\n';
+        case deqpUtils.DataType.FLOAT_MAT3: return 'mediump float compare_mat3     (highp mat3 a, highp mat3 b)    { return compare_vec3(a[0], b[0])*compare_vec3(a[1], b[1])*compare_vec3(a[2], b[2]); }\n';
+        case deqpUtils.DataType.FLOAT_MAT3X4: return 'mediump float compare_mat3x4   (highp mat3x4 a, highp mat3x4 b){ return compare_vec4(a[0], b[0])*compare_vec4(a[1], b[1])*compare_vec4(a[2], b[2]); }\n';
+        case deqpUtils.DataType.FLOAT_MAT4X2: return 'mediump float compare_mat4x2   (highp mat4x2 a, highp mat4x2 b){ return compare_vec2(a[0], b[0])*compare_vec2(a[1], b[1])*compare_vec2(a[2], b[2])*compare_vec2(a[3], b[3]); }\n';
+        case deqpUtils.DataType.FLOAT_MAT4X3: return 'mediump float compare_mat4x3   (highp mat4x3 a, highp mat4x3 b){ return compare_vec3(a[0], b[0])*compare_vec3(a[1], b[1])*compare_vec3(a[2], b[2])*compare_vec3(a[3], b[3]); }\n';
+        case deqpUtils.DataType.FLOAT_MAT4: return 'mediump float compare_mat4     (highp mat4 a, highp mat4 b)    { return compare_vec4(a[0], b[0])*compare_vec4(a[1], b[1])*compare_vec4(a[2], b[2])*compare_vec4(a[3], b[3]); }\n';
+        case deqpUtils.DataType.INT: return 'mediump float compare_int      (highp int a, highp int b)      { return a == b ? 1.0 : 0.0; }\n';
+        case deqpUtils.DataType.INT_VEC2: return 'mediump float compare_ivec2    (highp ivec2 a, highp ivec2 b)  { return a == b ? 1.0 : 0.0; }\n';
+        case deqpUtils.DataType.INT_VEC3: return 'mediump float compare_ivec3    (highp ivec3 a, highp ivec3 b)  { return a == b ? 1.0 : 0.0; }\n';
+        case deqpUtils.DataType.INT_VEC4: return 'mediump float compare_ivec4    (highp ivec4 a, highp ivec4 b)  { return a == b ? 1.0 : 0.0; }\n';
+        case deqpUtils.DataType.UINT: return 'mediump float compare_uint     (highp uint a, highp uint b)    { return a == b ? 1.0 : 0.0; }\n';
+        case deqpUtils.DataType.UINT_VEC2: return 'mediump float compare_uvec2    (highp uvec2 a, highp uvec2 b)  { return a == b ? 1.0 : 0.0; }\n';
+        case deqpUtils.DataType.UINT_VEC3: return 'mediump float compare_uvec3    (highp uvec3 a, highp uvec3 b)  { return a == b ? 1.0 : 0.0; }\n';
+        case deqpUtils.DataType.UINT_VEC4: return 'mediump float compare_uvec4    (highp uvec4 a, highp uvec4 b)  { return a == b ? 1.0 : 0.0; }\n';
+        case deqpUtils.DataType.BOOL: return 'mediump float compare_bool     (bool a, bool b)                { return a == b ? 1.0 : 0.0; }\n';
+        case deqpUtils.DataType.BOOL_VEC2: return 'mediump float compare_bvec2    (bvec2 a, bvec2 b)              { return a == b ? 1.0 : 0.0; }\n';
+        case deqpUtils.DataType.BOOL_VEC3: return 'mediump float compare_bvec3    (bvec3 a, bvec3 b)              { return a == b ? 1.0 : 0.0; }\n';
+        case deqpUtils.DataType.BOOL_VEC4: return 'mediump float compare_bvec4    (bvec4 a, bvec4 b)              { return a == b ? 1.0 : 0.0; }\n';
+        default:
+            assertMsgOptions(false, 'getCompareCuncForType: Invalid type', false, true);
+            return undefined;
+    }
+};
+
+/**
+ * getCompareDependencies
+ * @param {Array.<deqpUtils.DataType>} compareFuncs Should contain unique elements
+ * @param {deqpUtils.DataType} basicType
+ */
+var getCompareDependencies = function(compareFuncs, basicType) {
+    switch (basicType)
+    {
+        case deqpUtils.DataType.FLOAT_VEC2:
+        case deqpUtils.DataType.FLOAT_VEC3:
+        case deqpUtils.DataType.FLOAT_VEC4:
+            pushUniqueToArray(compareFuncs, deqpUtils.DataType.FLOAT);
+            pushUniqueToArray(compareFuncs, basicType);
+            break;
+
+        case deqpUtils.DataType.FLOAT_MAT2:
+        case deqpUtils.DataType.FLOAT_MAT2X3:
+        case deqpUtils.DataType.FLOAT_MAT2X4:
+        case deqpUtils.DataType.FLOAT_MAT3X2:
+        case deqpUtils.DataType.FLOAT_MAT3:
+        case deqpUtils.DataType.FLOAT_MAT3X4:
+        case deqpUtils.DataType.FLOAT_MAT4X2:
+        case deqpUtils.DataType.FLOAT_MAT4X3:
+        case deqpUtils.DataType.FLOAT_MAT4:
+            pushUniqueToArray(compareFuncs, deqpUtils.DataType.FLOAT);
+            pushUniqueToArray(compareFuncs, deqpUtils.getDataTypeFloatVec(deqpUtils.getDataTypeMatrixNumRows(basicType)));
+            pushUniqueToArray(compareFuncs, basicType);
+            break;
+
+        default:
+            pushUniqueToArray(compareFuncs, basicType);
+            break;
+    }
+};
+
+/**
+ * collectUniqueBasicTypes_B
+ * @param {Array.<deqpUtils.DataType>} basicTypes Should contain unique elements
+ * @param {VarType} type
+ */
+var collectUniqueBasicTypes_B = function(basicTypes, type) {
+    if (type.isStructType())
+    {
+        /** @type {StructType} */ var stype = type.getStruct();
+        for (var memberNdx = 0; memberNdx < stype.getSize(); memberNdx++)//StructType::ConstIterator iter = type.getStruct().begin(); iter != type.getStruct().end(); ++iter)
+            collectUniqueBasicTypes_B(basicTypes, stype.getMember(memberNdx).getType());
+    }
+    else if (type.isArrayType())
+        collectUniqueBasicTypes_B(basicTypes, type.getElementType());
+    else
+    {
+        assertMsgOptions(type.isBasicType(), 'Type should be basic', false, true);
+        pushUniqueToArray(basicTypes, type.getBasicType());
+    }
+};
+
+/**
+ * collectUniqueBasicTypes_A
+ * @param {Array.<deqpUtils.DataType>} basicTypes Should contain unique elements
+ * @param {UniformBlock} uniformBlock
+ */
+var collectUniqueBasicTypes_A = function(basicTypes, uniformBlock) {
+    for (var uniformNdx = 0; uniformNdx < uniformBlock.countUniforms(); uniformNdx++) //UniformBlock::ConstIterator iter = uniformBlock.begin(); iter != uniformBlock.end(); ++iter)
+        collectUniqueBasicTypes_B(basicTypes, uniformBlock.getUniform(uniformNdx).getType());
+};
+
+/**
+ * collectUniqueBasicTypes
+ * @param {Array.<deqpUtils.DataType>} basicTypes Should contain unique elements
+ * @param {ShaderInterface} sinterface
+ */
+var collectUniqueBasicTypes = function(basicTypes, sinterface) {
+    for (var ndx = 0; ndx < sinterface.getNumUniformBlocks(); ++ndx)
+        collectUniqueBasicTypes_A(basicTypes, sinterface.getUniformBlock(ndx));
+};
+
+/**
+ * collectUniqueBasicTypes
+ * @return {string} Was originally an output parameter. As it is a basic type, we have to return it instead.
+ * @param {ShaderInterface} sinterface
+ */
+var generateCompareFuncs = function(sinterface)
+{
+    /** @type {string} */ var str = '';
+    /** @type {Array.<deqpUtils.DataType>} */ var types = []; //Will contain unique elements.
+    /** @type {Array.<deqpUtils.DataType>} */ var compareFuncs = []; //Will contain unique elements.
+
+    // Collect unique basic types
+    collectUniqueBasicTypes(types, sinterface);
+
+    // Set of compare functions required
+    for (var typeNdx = 0; typeNdx < types.length; typeNdx++) //std::set<glu::DataType>::const_iterator iter = types.begin(); iter != types.end(); ++iter)
+    {
+        getCompareDependencies(compareFuncs, types[typeNdx]);
+    }
+
+    for (var type = 0; type < deqpUtils.DataType.LAST; ++type)
+    {
+        if (compareFuncs.indexOf(type) > -1)
+            str += getCompareFuncForType(type);
+    }
+
+    return str;
+};
+
+/**
+ * Indent - Prints level_ number of tab chars
+ * @param {number} level_
+ * @return {string}
+ */
+var Indent = function(level_) {
+    var str = '';
+    for (var i = 0; i < level_; i++)
+        str += '\t';
+
+    return str;
+};
+
+/**
+ * generateDeclaration_C
+ * @return {string} src
+ * @param {StructType} structType
+ * @param {number} indentLevel
+ */
+var generateDeclaration_C = function(structType, indentLevel) {
+    /** @type {string} */ var src = '';
+
+    assertMsgOptions(structType.getTypeName() !== undefined, 'Checking the struct typename is not undefined', false, true);
+    src += generateFullDeclaration(structType, indentLevel);
+    src += ';\n';
+
+    return src;
+};
+
+/**
+ * generateFullDeclaration
+ * @return {string} src
+ * @param {StructType} structType
+ * @param {number} indentLevel
+ */
+var generateFullDeclaration = function(structType, indentLevel) {
+    var src = 'struct';
+    if (structType.getTypeName())
+        src += ' ' + structType.getTypeName();
+    src += '\n' + Indent(indentLevel) + '{\n';
+
+    for (var memberNdx = 0; memberNdx < structType.getSize(); memberNdx++) //StructType::ConstIterator memberIter = structType.begin(); memberIter != structType.end(); memberIter++)
+    {
+        src += Indent(indentLevel + 1);
+        /** @type {StructMember} */ var memberIter = structType.getMember(memberNdx);
+        src += generateDeclaration_B(memberIter.getType(), memberIter.getName(), indentLevel + 1, memberIter.getFlags() & UniformFlags.UNUSED_BOTH);
+    }
+
+    src += Indent(indentLevel) + '}';
+
+    return src;
+};
+
+/**
+ * generateLocalDeclaration
+ * @return {string} src
+ * @param {StructType} structType
+ * @param {number} indentLevel
+ */
+var generateLocalDeclaration = function(structType, indentLevel) {
+    /** @type {string} */ var src = '';
+
+    if (structType.getTypeName() === undefined)
+        src += generateFullDeclaration(structType, indentLevel);
+    else
+        src += structType.getTypeName();
+
+    return src;
+};
+
+/**
+ * generateDeclaration_B
+ * @return {string} src
+ * @param {VarType} type
+ * @param {string} name
+ * @param {number} indentLevel
+ * @param {deInt32.deUint32} unusedHints
+ */
+var generateDeclaration_B = function(type, name, indentLevel, unusedHints) {
+    /** @type {string} */ var src = '';
+    /** @type {deInt32.deUint32} */ var flags = type.getFlags();
+
+    if ((flags & UniformFlags.LAYOUT_MASK) != 0)
+        src += 'layout(' + LayoutFlagsFmt(flags & UniformFlags.LAYOUT_MASK) + ') ';
+
+    if ((flags & UniformFlags.PRECISION_MASK) != 0)
+        src += PrecisionFlagsFmt(flags & UniformFlags.PRECISION_MASK) + ' ';
+
+    if (type.isBasicType())
+        src += deqpUtils.getDataTypeName(type.getBasicType()) + ' ' + name;
+    else if (type.isArrayType())
+    {
+        /** @type {number} */ var arraySizes = [];
+        /** @type {VarType} */ var curType = type;
+        while (curType.isArrayType())
+        {
+            arraySizes.push(curType.getArraySize());
+            curType = curType.getElementType();
+        }
+
+        if (curType.isBasicType())
+        {
+            if ((curType.getFlags() & UniformFlags.PRECISION_MASK) != 0)
+                src += PrecisionFlagsFmt(curType.getFlags() & UniformFlags.PRECISION_MASK) + ' ';
+            src += deqpUtils.getDataTypeName(curType.getBasicType());
+        }
+        else
+        {
+            assertMsgOptions(curType.isStructType(), 'Checking if curType is a struct type', false, true);
+            src += generateLocalDeclaration(curType.getStruct(), indentLevel + 1);
+        }
+
+        src += ' ' + name;
+
+        for (var sizeNdx; sizeNdx < arraySizes.length; sizeNdx++) //std::vector<int>::const_iterator sizeIter = arraySizes.begin(); sizeIter != arraySizes.end(); sizeIter++)
+            src += '[' + arraySizes[sizeNdx] + ']';
+    }
+    else
+    {
+        src += generateLocalDeclaration(type.getStruct(), indentLevel + 1);
+        src += ' ' + name;
+    }
+
+    src += ';';
+
+    // Print out unused hints.
+    if (unusedHints != 0)
+        src += ' // unused in ' + (unusedHints == UniformFlags.UNUSED_BOTH ? 'both shaders' :
+                                    unusedHints == UniformFlags.UNUSED_VERTEX ? 'vertex shader' :
+                                    unusedHints == UniformFlags.UNUSED_FRAGMENT ? 'fragment shader' : '???');
+
+    src += '\n';
+
+    return src;
+};
+
+/**
+ * generateDeclaration_A
+ * @return {string} src
+ * @param {Uniform} uniform
+ * @param {number} indentLevel
+ */
+var generateDeclaration_A = function(uniform, indentLevel) {
+    /** @type {string} */ var src = '';
+
+    if ((uniform.getFlags() & UniformFlags.LAYOUT_MASK) != 0)
+        src += 'layout(' + LayoutFlagsFmt(uniform.getFlags() & UniformFlags.LAYOUT_MASK) + ') ';
+
+    src += generateDeclaration_B(uniform.getType(), uniform.getName(), indentLevel, uniform.getFlags() & UniformFlags.UNUSED_BOTH);
+
+    return src;
+};
+
+/**
+ * generateDeclaration
+ * @return {string} src
+ * @param {UniformBlock} block
+ */
+var generateDeclaration = function(block) {
+    /** @type {string} */ var src = '';
+
+    if ((block.getFlags() & UniformFlags.LAYOUT_MASK) != 0)
+        src += 'layout(' + LayoutFlagsFmt(block.getFlags() & UniformLayout.LAYOUT_MASK) + ') ';
+
+    src += 'uniform ' + block.getBlockName();
+    src += '\n{\n';
+
+    for (var uniformNdx = 0; uniformNdx < block.countUniforms(); uniformNdx++) //UniformBlock::ConstIterator uniformIter = block.begin(); uniformIter != block.end(); uniformIter++)
+    {
+        src += Indent(1);
+        src += generateDeclaration_A(block.getUniform(uniformNdx), 1 /* indent level */);
+    }
+
+    src += '}';
+
+    if (block.getInstanceName() !== undefined)
+    {
+        src += ' ' + block.getInstanceName();
+        if (block.isArray())
+            src += '[' + block.getArraySize() + ']';
+    }
+    else
+        assertMsgOptions(!block.isArray(), 'Checking if block is not an array', false, true);
+
+    src += ';\n';
+
+    return src;
+};
+
+/**
+ * generateVertexShader //TODO: Implement generateCompareSrc functions
+ * @return {string} src
+ * @param {ShaderInterface} sinterface
+ * @param {UniformLayout} layout
+ * @param {BlockPointers} blockPointers
+ */
+var generateVertexShader = function(sinterface, layout, blockPointers) {
+    /** @type {string} */ var src = '';
+    //assertMsgOptions(isSupportedGLSLVersion(glslVersion), 'Checking if GLSL version is supported', false, true);
+
+    //TODO: src += glu::getGLSLVersionDeclaration(glslVersion) << "\n";
+    src += 'in highp vec4 a_position;\n';
+    src += 'out mediump float v_vtxResult;\n';
+    src += '\n';
+
+    /** @type {Array.<StructType>} */ var namedStructs = [];
+    sinterface.getNamedStructs(namedStructs);
+    for (var structNdx = 0; structNdx < namedStructs.length; structNdx++) //std::vector<const StructType*>::const_iterator structIter = namedStructs.begin(); structIter != namedStructs.end(); structIter++)
+        src += generateDeclaration_C(namedStructs[structNdx], 0);
+
+    for (var blockNdx = 0; blockNdx < sinterface.getNumUniformBlocks(); blockNdx++)
+    {
+        /** @type {UniformBlock} */ var block = sinterface.getUniformBlock(blockNdx);
+        if (block.getFlags() & UniformFlags.DECLARE_VERTEX)
+            src += generateDeclaration(block);
+    }
+
+    // Comparison utilities.
+    src += '\n';
+    src += generateCompareFuncs(sinterface);
+
+    src += '\n' +
+           'void main (void)\n' +
+           '{\n' +
+           '    gl_Position = a_position;\n' +
+           '    mediump float result = 1.0;\n';
+
+    // Value compare.
+    //generateCompareSrc(src, "result", sinterface, layout, blockPointers, true);
+
+    src += '    v_vtxResult = result;\n' +
+           '}\n';
+
+    return src;
 };
 
  /**

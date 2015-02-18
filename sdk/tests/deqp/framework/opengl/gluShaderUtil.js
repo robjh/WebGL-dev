@@ -32,9 +32,9 @@ var precision = {
 
 var getPrecisionName = function(prec) {
     var s_names = [
-        "lowp",
-        "mediump",
-        "highp"
+        'lowp',
+        'mediump',
+        'highp'
     ];
 
     return s_names[prec];
@@ -97,6 +97,8 @@ var DataType = {
     UINT_SAMPLER_3D: 40
 };
 
+DataType.LAST = Object.keys(DataType).length;
+
 /**
  * Returns type of float scalars
  * @param {DataType} dataType
@@ -153,7 +155,7 @@ var getDataTypeVector = function(scalarType, size)
         default:
             return DataType.INVALID;
     }
-}
+};
 
 /*
  * getDataTypeFloatVec
@@ -163,7 +165,7 @@ var getDataTypeVector = function(scalarType, size)
 var getDataTypeFloatVec = function(vecSize)
 {
     return getDataTypeVector(DataType.FLOAT, vecSize);
-}
+};
 
 /**
  * isDataTypeBoolOrBVec
