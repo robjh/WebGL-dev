@@ -46,6 +46,25 @@ var fillWithComponentGradients2D = function(/*const PixelBufferAccess&*/ access,
 	}
 };
 
+var fillWithComponentGradients3D = function(/*const PixelBufferAccess&*/ dst, /*const Vec4&*/ minVal, /*const Vec4&*/ maxVal) {
+	for (var z = 0; z < dst.getDepth(); z++) {
+		for (var y = 0; y < dst.getHeight(); y++) {
+			for (var x = 0; x < dst.getWidth(); x++) {
+				var s = (x + 0.5) / dst.getWidth();
+				var t = (y + 0.5) / dst.getHeight();
+				var p = (z + 0.5) / dst.getDepth();
+
+				var r = linearInterpolate(s,						minVal.x(), maxVal.x());
+				var g = linearInterpolate(t,						minVal.y(), maxVal.y());
+				var b = linearInterpolate(p,						minVal.z(), maxVal.z());
+				var a = linearInterpolate(1 - (s+t+p)/3,	minVal.w(), maxVal.w());
+				dst.setPixel([r, g, b, a], x, y, z);
+			}
+		}
+	}
+};
+
+
 var fillWithComponentGradients = function(/*const PixelBufferAccess&*/ access, /*const Vec4&*/ minVal, /*const Vec4&*/ maxVal) {
 	if (access.getHeight() == 1 && access.getDepth() == 1)
 		fillWithComponentGradients1D(access, minVal, maxVal);

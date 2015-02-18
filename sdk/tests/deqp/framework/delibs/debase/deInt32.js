@@ -46,7 +46,7 @@ var deIsPowerOfTwo32 = function(a)
 
 var deAlign32 = function(val, align) {
     //assertMessageOptions(deIsPowerOfTwo32(align), 'Checking if value is power of two', false, true);
-    return ((val + align - 1) & ~(align - 1)) & 0xFFFF; //0xFFFF make sure it returns a 32 bit calculation in 64 bit browsers.
+    return ((val + align - 1) & ~(align - 1)) & 0xFFFFFFFF; //0xFFFFFFFF make sure it returns a 32 bit calculation in 64 bit browsers.
 };
 
 Number.prototype.clamp = function(min, max) {
@@ -67,6 +67,8 @@ Number.prototype.mirror = function() {
  * @return {Array.<Number>}
  */
 Array.prototype.swizzle = function(indices) {
+    if (!indices.length)
+        throw new Error('Argument must be an array');
     var dst = [];
     for (var i = 0; i < indices.length; i++)
         dst.push(this[indices[i]]);
@@ -88,6 +90,15 @@ Array.prototype.add = function(a) {
     var dst = [];
     for (var i = 0; i < this.length; i++)
         dst.push(this[i] + a[i]);
+    return dst;
+};
+
+Array.prototype.subtract = function(a) {
+    if (this.length != a.length)
+        throw new Error('Arrays must have the same size');
+    var dst = [];
+    for (var i = 0; i < this.length; i++)
+        dst.push(this[i] - a[i]);
     return dst;
 };
 

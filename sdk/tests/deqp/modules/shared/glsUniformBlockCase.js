@@ -19,7 +19,7 @@
  */
 
 
-define(['framework/common/tcuTestCase', 'framework/opengl/gluShaderProgram', 'framework/opengl/gluShaderUtil', 'framework/opengl/gluDrawUtil', 'framework/delibs/debase/deInt32', 'framework/delibs/debase/deRandom', 'modules/shared/glsVarType'], function(deqpTests, deqpProgram, deqpUtils, deqpDraw, deInt32, deRandom, glsVT) {
+define(['framework/common/tcuTestCase', 'framework/opengl/gluShaderProgram', 'framework/opengl/gluShaderUtil', 'framework/opengl/gluDrawUtil', 'framework/delibs/debase/deInt32', 'framework/delibs/debase/deRandom'], function(deqpTests, deqpProgram, deqpUtils, deqpDraw, deInt32, deRandom) {
     'use strict';
 
 /** @const */ var VIEWPORT_WIDTH = 128;
@@ -65,12 +65,17 @@ BlockPointers.prototype.resize = function(newsize) {
     this.data = new ArrayBuffer(newsize);
 };
 
-var BufferMode = {
-    BUFFERMODE_SINGLE: 0, //!< Single buffer shared between uniform blocks.
-    BUFFERMODE_PER_BLOCK: 1 //!< Per-block buffers
+/**
+ * Add a push_unique function to Array. Will insert only if there is no equal element.
+ * @param {Object} newobject Any object
+ */
+var pushUniqueToArray = function(array, object) {
+    //Simplest implementation
+    for (var i = 0; i < array.length; i++)
+        if (object === array[i])
+            return undefined;
+    array.push(object);
 };
-
-BufferMode.BUFFERMODE_LAST = Object.keys(BufferMode).length;
 
 var UniformFlags = {
     PRECISION_LOW: (1 << 0),
@@ -99,70 +104,195 @@ UniformFlags.LAYOUT_MASK = UniformFlags.LAYOUT_SHARED | UniformFlags.LAYOUT_PACK
 UniformFlags.DECLARE_BOTH = UniformFlags.DECLARE_VERTEX | UniformFlags.DECLARE_FRAGMENT;
 UniformFlags.UNUSED_BOTH = UniformFlags.UNUSED_VERTEX | UniformFlags.UNUSED_FRAGMENT;
 
-var BlockLayoutEntry = function() {
-    return {
-    /** @type {number} */ size: 0,
-    /** @type {string} */ name: '',
-    /** @type {Array.<number>} */ activeUniformIndices: []
-    };
+/**
+* VarType types enum
+* @enum {number}
+*/
+var Type = {
+   TYPE_BASIC: 0,
+   TYPE_ARRAY: 1,
+   TYPE_STRUCT: 2
 };
 
-var UniformLayoutEntry = function() {
-    return {
-    /** @type {string} */ name: '',
-    /** @type {deqpUtils.DataType} */ type: deqpUtils.DataType.INVALID,
-    /** @type {number} */ size: 0,
-    /** @type {number} */ blockNdx: -1,
-    /** @type {number} */ offset: -1,
-    /** @type {number} */ arrayStride: -1,
-    /** @type {number} */ matrixStride: -1,
-    /** @type {number} */ isRowMajor: false
-    };
+Type.TYPE_LAST = Object.keys(Type).length;
+
+/**
+* TypeArray struct
+* @param {VarType} elementType
+* @param {number} arraySize
+*/
+var TypeArray = function(elementType, arraySize) {
+   /** @type {VarType} */ this.elementType = elementType;
+   /** @type {number} */ this.size = arraySize;
 };
 
-var UniformLayout = function() {
-    /** @type {Array.<BlockLayoutEntry>}*/ this.blocks = [];
-    /** @type {Array.<UniformLayoutEntry>}*/ this.uniforms = [];
+/**
+* VarType class
+*/
+var VarType = function() {
+   /** @type {Type} */ this.m_type = Type.TYPE_LAST;
+   /** @type {deInt32.deUint32} */ this.m_flags = 0;
+
+   /*
+    * m_data used to be a 'Data' union in C++. Using a var is enough here.
+    * it will contain any necessary value.
+    */
+   /** @type {(deqpUtils.DataType|TypeArray|StructType)} */
+   this.m_data = undefined;
 };
 
-/** getUniformIndex, returns a uniform index number in the layout,
- * given the uniform's name.
- * @param {string} name
- * @return {number} uniform's index
+/**
+* Creates a basic type VarType. Use this after the constructor call.
+* @param {deqpUtils.DataType} basicType
+* @param {deInt32.deUint32} flags
+* @return {VarType} The currently modified object
+*/
+VarType.prototype.VarTypeBasic = function(basicType, flags) {
+   this.m_type = Type.TYPE_BASIC;
+   this.m_flags = flags;
+   this.m_data = basicType;
+
+   return this;
+};
+
+/**
+* Creates an array type VarType. Use this after the constructor call.
+* @param {VarType} elementType
+* @param {number} arraySize
+* @return {VarType} The currently modified object
+*/
+VarType.prototype.VarTypeArray = function(elementType, arraySize) {
+   this.m_type = Type.TYPE_ARRAY;
+   this.m_flags = 0;
+   this.m_data = new TypeArray(elementType, arraySize);
+
+   return this;
+};
+
+/**
+* Creates a struct type VarType. Use this after the constructor call.
+* @param {StructType} structPtr
+* @return {VarType} The currently modified object
+*/
+VarType.prototype.VarTypeStruct = function(structPtr) {
+   this.m_type = Type.TYPE_STRUCT;
+   this.m_flags = 0;
+   this.m_data = structPtr;
+
+   return this;
+};
+
+/** isBasicType
+* @return {boolean} true if the VarType represents a basic type.
+**/
+VarType.prototype.isBasicType = function() {
+   return this.m_type == Type.TYPE_BASIC;
+};
+
+/** isArrayType
+* @return {boolean} true if the VarType represents an array.
+**/
+VarType.prototype.isArrayType = function() {
+   return this.m_type == Type.TYPE_ARRAY;
+};
+
+/** isStructType
+* @return {boolean} true if the VarType represents a struct.
+**/
+VarType.prototype.isStructType = function() {
+   return this.m_type == Type.TYPE_STRUCT;
+};
+
+/** getFlags
+* @return {deUint32} returns the flags of the VarType.
+**/
+VarType.prototype.getFlags = function() {
+   return this.m_flags;
+};
+
+/** getBasicType
+* @return {deqpUtils.DataType} returns the basic data type of the VarType.
+**/
+VarType.prototype.getBasicType = function() {
+   return this.m_data;
+};
+
+/** getElementType
+* @return {VarType} returns the VarType of the element in case of an Array.
+**/
+VarType.prototype.getElementType = function() {
+   return this.m_data.elementType;
+};
+
+/** getArraySize
+* (not to be confused with a javascript array)
+* @return {number} returns the size of the array in case it is an array.
+**/
+VarType.prototype.getArraySize = function() {
+   return this.m_data.size;
+};
+
+/** getStruct
+* @return {StructType} returns the structure when it is a StructType.
+**/
+VarType.prototype.getStruct = function() {
+   return this.m_data;
+};
+
+/**
+ * Creates a basic type VarType.
+ * @param {deqpUtils.DataType} basicType
+ * @param {deInt32.deUint32} flags
+ * @return {VarType}
  */
-UniformLayout.prototype.getUniformIndex = function(name) {
-    for (var ndx = 0; ndx < this.uniforms.length; ndx++)
-    {
-        if (this.uniforms[ndx].name == name)
-            return ndx;
-    }
-    return -1;
+var newVarTypeBasic = function(basicType, flags) {
+   return new VarType().VarTypeBasic(basicType, flags);
 };
 
-/** getBlockIndex, returns a block index number in the layout,
- * given the block's name.
- * @param {string} name the name of the block
- * @return {number} block's index
- */
-UniformLayout.prototype.getBlockIndex = function(name) {
-    for (var ndx = 0; ndx < this.blocks.length; ndx++)
-    {
-        if (this.blocks[ndx].name == name)
-            return ndx;
-    }
-    return -1;
+/**
+* Creates an array type VarType.
+* @param {VarType} elementType
+* @param {number} arraySize
+* @return {VarType}
+*/
+var newVarTypeArray = function(elementType, arraySize) {
+   return new VarType().VarTypeArray(elementType, arraySize);
+};
+
+/**
+* Creates a struct type VarType.
+* @param {StructType} structPtr
+* @return {VarType}
+*/
+var newVarTypeStruct = function(structPtr) {
+    return new VarType().VarTypeStruct(structPtr);
 };
 
 /** StructMember TODO: Check if we have to use deInt32.deUint32
  * in the JSDoc annotations or if a number would do.
  * @param {string} name
- * @param {glsVT.VarType} type
+ * @param {VarType} type
  * @param {deInt32.deUint32} flags
 **/
-var StructMember = function(name, type, flags) {
-    /** @type {string} */ this.m_name = name;
-    /** @type {glsVT.VarType} */ this.m_type = type;
-    /** @type {deInt32.deUint32} */ this.m_flags = flags;
+var StructMember = function() {
+    /** @type {string} */ this.m_name;
+    /** @type {VarType} */ this.m_type;
+    /** @type {deInt32.deUint32} */ this.m_flags = 0;
+};
+
+/**
+ * Creates a StructMember. Use this after the constructor call.
+ * @param {string} name
+ * @param {VarType} type
+ * @param {deInt32.deUint32} flags
+ * @return {StructMember} The currently modified object
+ */
+StructMember.prototype.Constructor = function(name, type, flags) {
+    this.m_type = type;
+    this.m_name = name;
+    this.m_flags = flags;
+
+    return this;
 };
 
 /** getName
@@ -171,7 +301,7 @@ var StructMember = function(name, type, flags) {
 StructMember.prototype.getName = function() { return this.m_name; };
 
 /** getType
-* @return {glsVT.VarType} the type of the member
+* @return {VarType} the type of the member
 **/
 StructMember.prototype.getType = function() { return this.m_type; };
 
@@ -180,13 +310,31 @@ StructMember.prototype.getType = function() { return this.m_type; };
 **/
 StructMember.prototype.getFlags = function() { return this.m_flags; };
 
+/**
+ * Creates a StructMember with name, type and flags.
+ * @param {string} name
+ * @param {VarType} type
+ * @return {StructMember}
+ */
+ var newStructMember = function(name, type, flags) {
+     return new StructMember().Constructor(name, type, flags);
+ };
+
 /** StructType
  * @param {string} typeName
 **/
-var StructType = function(typeName) {
-//private:
-    /** @type {string}*/ this.m_typeName = typeName;
+var StructType = function() {
+    /** @type {string}*/ this.m_typeName;
     /** @type {Array.<StructMember>} */ this.m_members = [];
+};
+
+/** StructType
+ * @param {string} typeName
+ * @return {StructType} The currently modified object.
+ */
+StructType.prototype.Constructor = function(typeName) {
+    /** @type {string}*/ this.m_typeName = typeName;
+    return this;
 };
 
 /** getTypeName
@@ -229,23 +377,32 @@ StructType.prototype.getSize = function() {
 
 /** addMember
 * @param {string} member_name
-* @param {glsVT.VarType} member_type
+* @param {VarType} member_type
 * @param {deInt32.deUint32} member_flags
 **/
 StructType.prototype.addMember = function(member_name, member_type, member_flags) {
-    var member = new StructMember(member_name, member_type, member_flags);
+    var member = newStructMember(member_name, member_type, member_flags);
 
     this.m_members.push(member);
 };
 
+/**
+ * Creates a StructType.
+ * @param {string} name
+ * @return {StructType}
+ */
+var newStructType = function(name) {
+    return new StructType().Constructor(name);
+};
+
 /** Uniform
  * @param {string} name
- * @param {glsVT.VarType} type
+ * @param {VarType} type
  * @param {deInt32.deUint32} flags
 **/
 var Uniform = function(name, type, flags) {
     /** @type {string} */ this.m_name = name;
-    /** @type {glsVT.VarType} */ this.m_type = type;
+    /** @type {VarType} */ this.m_type = type;
     /** @type {deInt32.deUint32} */ this.m_flags = (typeof flags === 'undefined') ? 0 : flags;
 };
 
@@ -257,7 +414,7 @@ Uniform.prototype.getName = function() {
 };
 
 /** getType
- * @return {glsVT.VarType}
+ * @return {VarType}
  */
 Uniform.prototype.getType = function() {
     return this.m_type;
@@ -388,7 +545,7 @@ var ShaderInterface = function() {
 **/
 ShaderInterface.prototype.allocStruct = function(name) {
     //m_structs.reserve(m_structs.length + 1);
-    this.m_structs.push(new StructType(name));
+    this.m_structs.push(newStructType(name));
     return this.m_structs[this.m_structs.length - 1];
 };
 
@@ -438,6 +595,67 @@ ShaderInterface.prototype.getUniformBlock = function(ndx) {
     return this.m_uniformBlocks[ndx];
 };
 
+var BlockLayoutEntry = function() {
+    return {
+    /** @type {number} */ size: 0,
+    /** @type {string} */ name: '',
+    /** @type {Array.<number>} */ activeUniformIndices: []
+    };
+};
+
+var UniformLayoutEntry = function() {
+    return {
+    /** @type {string} */ name: '',
+    /** @type {deqpUtils.DataType} */ type: deqpUtils.DataType.INVALID,
+    /** @type {number} */ size: 0,
+    /** @type {number} */ blockNdx: -1,
+    /** @type {number} */ offset: -1,
+    /** @type {number} */ arrayStride: -1,
+    /** @type {number} */ matrixStride: -1,
+    /** @type {number} */ isRowMajor: false
+    };
+};
+
+var UniformLayout = function() {
+    /** @type {Array.<BlockLayoutEntry>}*/ this.blocks = [];
+    /** @type {Array.<UniformLayoutEntry>}*/ this.uniforms = [];
+};
+
+/** getUniformIndex, returns a uniform index number in the layout,
+ * given the uniform's name.
+ * @param {string} name
+ * @return {number} uniform's index
+ */
+UniformLayout.prototype.getUniformIndex = function(name) {
+    for (var ndx = 0; ndx < this.uniforms.length; ndx++)
+    {
+        if (this.uniforms[ndx].name == name)
+            return ndx;
+    }
+    return -1;
+};
+
+/** getBlockIndex, returns a block index number in the layout,
+ * given the block's name.
+ * @param {string} name the name of the block
+ * @return {number} block's index
+ */
+UniformLayout.prototype.getBlockIndex = function(name) {
+    for (var ndx = 0; ndx < this.blocks.length; ndx++)
+    {
+        if (this.blocks[ndx].name == name)
+            return ndx;
+    }
+    return -1;
+};
+
+var BufferMode = {
+    BUFFERMODE_SINGLE: 0, //!< Single buffer shared between uniform blocks.
+    BUFFERMODE_PER_BLOCK: 1 //!< Per-block buffers
+};
+
+BufferMode.BUFFERMODE_LAST = Object.keys(BufferMode).length;
+
 var UniformBlockCase = function(name, description, bufferMode) {
     deqpTests.DeqpTest.call(this, name, description);
     /** @type {string} */ this.m_name = name;
@@ -449,6 +667,54 @@ var UniformBlockCase = function(name, description, bufferMode) {
 
 UniformBlockCase.prototype = Object.create(deqpTests.DeqpTest.prototype);
 UniformBlockCase.prototype.constructor = UniformBlockCase;
+
+/**
+ * PrecisionFlagsFmt TODO: Implement dePop32 function
+ * @param {deInt32.deUint32} flags
+ * @return {string}
+ */
+var PrecisionFlagsFmt = function(flags) {
+    // Precision.
+    //assertMsgOptions(deInt32.dePop32(fmt.flags & (UniformFlags.PRECISION_LOW|UniformFlags.PRECISION_MEDIUM|UniformFlags.PRECISION_HIGH)) <= 1, 'Checking that flags are valid', false, true);
+    var str = '';
+    str += (flags & UniformFlags.PRECISION_LOW ? 'lowp' :
+            flags & UniformFlags.PRECISION_MEDIUM ? 'mediump' :
+            flags & UniformFlags.PRECISION_HIGH ? 'highp' : '');
+
+    return str;
+};
+
+/**
+ * LayoutFlagsFmt
+ * @param {deInt32.deUint32} flags
+ * @return {string}
+ */
+var LayoutFlagsFmt = function(flags_) {
+    var str = '';
+    var bitDesc =
+    [
+        { bit: UniformFlags.LAYOUT_SHARED, token: 'shared' },
+        { bit: UniformFlags.LAYOUT_PACKED, token: 'packed' },
+        { bit: UniformFlags.LAYOUT_STD140, token: 'std140' },
+        { bit: UniformFlags.LAYOUT_ROW_MAJOR, token: 'row_major' },
+        { bit: UniformFlags.LAYOUT_COLUMN_MAJOR, token: 'column_major' }
+    ];
+
+    /** @type {deInt32.deUint32} */ var remBits = flags_;
+    for (var descNdx = 0; descNdx < bitDesc.length; descNdx++)
+    {
+        if (remBits & bitDesc[descNdx].bit)
+        {
+            if (remBits != flags_)
+                str += ', ';
+            str += bitDesc[descNdx].token;
+            remBits &= (~bitDesc[descNdx].bit) & 0xFFFF; //0xFFFF limit to 32 bit value
+        }
+    }
+    assertMsgOptions(remBits == 0, 'Checking that remBits is zero', false, true);
+
+    return str;
+};
 
 /**
  * TODO: test getGLUniformLayout Gets the uniform blocks and uniforms in the program.
@@ -634,7 +900,7 @@ var deRoundUp32 = function(a, b)
 
 /**
  * TODO: computeStd140BaseAlignment
- * @param {glsVT.VarType} type
+ * @param {VarType} type
  * @return {number}
  */
 var computeStd140BaseAlignment = function(type) {
@@ -701,8 +967,9 @@ var mergeLayoutFlags = function(prevFlags, newFlags)
  * @param {number} curOffset
  * @param {number} curBlockNdx
  * @param {string} curPrefix
- * @param {glsVT.VarType} type
+ * @param {VarType} type
  * @param {deInt32.deUint32} layoutFlags
+ * @return {number} //This is what would return in the curOffset output parameter in the original C++ project.
  */
 var computeStd140Layout_B = function(layout, curOffset, curBlockNdx, curPrefix, type, layoutFlags)
 {
@@ -750,7 +1017,7 @@ var computeStd140Layout_B = function(layout, curOffset, curBlockNdx, curPrefix, 
     }
     else if (type.isArrayType())
     {
-        /** @type {glsVT.VarType} */ var elemType = type.getElementType();
+        /** @type {VarType} */ var elemType = type.getElementType();
 
         if (elemType.isBasicType() && !deqpUtils.isDataTypeMatrix(elemType.getBasicType()))
         {
@@ -801,7 +1068,7 @@ var computeStd140Layout_B = function(layout, curOffset, curBlockNdx, curPrefix, 
             assertMsgOptions(elemType.isStructType() || elemType.isArrayType(), 'computeStd140Layout_B: Checking that the type is a structure or an array', false, true);
 
             for (var elemNdx = 0; elemNdx < type.getArraySize(); elemNdx++)
-                computeStd140Layout_B(layout, curOffset, curBlockNdx, curPrefix + '[' + elemNdx + ']', type.getElementType(), layoutFlags);
+                curOffset = computeStd140Layout_B(layout, curOffset, curBlockNdx, curPrefix + '[' + elemNdx + ']', type.getElementType(), layoutFlags);
         }
     }
     else
@@ -810,11 +1077,13 @@ var computeStd140Layout_B = function(layout, curOffset, curBlockNdx, curPrefix, 
 
         for (var memberNdx = 0; memberNdx < type.getStruct().getSize(); memberNdx++) {
             /** @type {StructMember} */ var memberIter = type.getStruct().getMember(memberNdx);
-            computeStd140Layout_B(layout, curOffset, curBlockNdx, curPrefix + '.' + memberIter.getName(), memberIter.getType(), layoutFlags);
+            curOffset = computeStd140Layout_B(layout, curOffset, curBlockNdx, curPrefix + '.' + memberIter.getName(), memberIter.getType(), layoutFlags);
         }
 
         curOffset = deInt32.deAlign32(curOffset, baseAlignment);
     }
+
+    return curOffset;
 };
 
 /**
@@ -840,7 +1109,7 @@ var computeStd140Layout = function(layout, sinterface)
         for (var ubNdx = 0; ubNdx < block.countUniforms(); ubNdx++)
         {
             /** @type {Uniform} */ var uniform = block.getUniform(ubNdx);
-            computeStd140Layout_B(layout, curOffset, activeBlockNdx, blockPrefix + uniform.getName(), uniform.getType(), mergeLayoutFlags(block.getFlags(), uniform.getFlags()));
+            curOffset = computeStd140Layout_B(layout, curOffset, activeBlockNdx, blockPrefix + uniform.getName(), uniform.getType(), mergeLayoutFlags(block.getFlags(), uniform.getFlags()));
         }
 
         /** @type {number} */ var uniformIndicesEnd = layout.uniforms.length;
@@ -875,7 +1144,7 @@ var computeStd140Layout = function(layout, sinterface)
  */
 var generateValue = function(entry, basePtr, rnd)
 {
-    /** @type {deqpUtils.DataType}*/ var scalarType = deqpUtils.getDataTypeScalarType(entry.type);
+    /** @type {deqpUtils.DataType}*/ var scalarType = deqpUtils.getDataTypeScalarTypeAsDataType(entry.type); //Using a more appropriate function in this case.
     /** @type {number} */ var scalarSize = deqpUtils.getDataTypeScalarSize(entry.type);
     /** @type {boolean} */ var isMatrix = deqpUtils.isDataTypeMatrix(entry.type);
     /** @type {number} */ var numVecs = isMatrix ? (entry.isRowMajor ? deqpUtils.getDataTypeMatrixNumRows(entry.type) : deqpUtils.getDataTypeMatrixNumColumns(entry.type)) : 1;
@@ -887,33 +1156,33 @@ var generateValue = function(entry, basePtr, rnd)
 
     for (var elemNdx = 0; elemNdx < entry.size; elemNdx++)
     {
-        /** @type {Uint8Array} */ var elemPtr = basePtr.subset(entry.offset + (isArray ? elemNdx * entry.arrayStride : 0)); //(deUint8*)basePtr + entry.offset + (isArray ? elemNdx*entry.arrayStride : 0);
+        /** @type {Uint8Array} */ var elemPtr = basePtr.subarray(entry.offset + (isArray ? elemNdx * entry.arrayStride : 0)); //(deUint8*)basePtr + entry.offset + (isArray ? elemNdx*entry.arrayStride : 0);
 
         for (var vecNdx = 0; vecNdx < numVecs; vecNdx++)
         {
-            /** @type {Uint8Array} */ var vecPtr = elemPtr.subset(isMatrix ? vecNdx * entry.matrixStride : 0);
+            /** @type {Uint8Array} */ var vecPtr = elemPtr.subarray(isMatrix ? vecNdx * entry.matrixStride : 0);
 
             for (var compNdx = 0; compNdx < vecSize; compNdx++)
             {
-                /** @type {Uint8Array} */ var compPtr = vecPtr.subset(compSize * compNdx);
+                /** @type {Uint8Array} */ var compPtr = vecPtr.subarray(compSize * compNdx);
                 /** @type {number} */ var _random;
 
                 switch (scalarType)
                 {
-                    case deqpUtils.FLOAT: _random = rnd.getInt(-9, 9); break;
-                    case deqpUtils.INT: _random = rnd.getInt(-9, 9); break;
-                    case deqpUtils.UINT: _random = rnd.getInt(0, 9); break;
+                    case deqpUtils.DataType.FLOAT: _random = rnd.getInt(-9, 9); break;
+                    case deqpUtils.DataType.INT: _random = rnd.getInt(-9, 9); break;
+                    case deqpUtils.DataType.UINT: _random = rnd.getInt(0, 9); break;
                     // \note Random bit pattern is used for true values. Spec states that all non-zero values are
                     //       interpreted as true but some implementations fail this.
-                    case deqpUtils.BOOL: _random = rnd.getBool() ? 1 : 0; break;
+                    case deqpUtils.DataType.BOOL: _random = rnd.getBool() ? 1 : 0; break;
                     default:
                         testFailedOptions('generateValue: Invalid type', true);
                 }
 
-                //Copy the random data byte per byte.
-                var _size = deqpUtils.getDataTypeScalarSize(scalarType);
-                for (var compNdx = 0; compNdx < _size; compNdx++)
-                    compPtr[compNdx] = (_random >> (8 * compNdx)) & 0xF;
+                //Copy the random data byte per byte, little endian way.
+                var _size = getDataTypeByteSize(scalarType);
+                for (var byteNdx = 0; byteNdx < _size; byteNdx++)
+                    compPtr[byteNdx] = (_random >> (8 * byteNdx)) & 0xFF; //0xFF limit to 8 LS bits.
             }
         }
     }
@@ -941,6 +1210,388 @@ var generateValues = function(layout, blockPointers, seed)
             generateValue(entry, basePtr, rnd);
         }
     }
+};
+
+// Shader generator.
+
+/**
+ * getCompareFuncForType
+ * @param {deqpUtils.DataType} type
+ * @return {string}
+ */
+var getCompareFuncForType = function(type) {
+    switch (type)
+    {
+        case deqpUtils.DataType.FLOAT: return 'mediump float compare_float    (highp float a, highp float b)  { return abs(a - b) < 0.05 ? 1.0 : 0.0; }\n';
+        case deqpUtils.DataType.FLOAT_VEC2: return 'mediump float compare_vec2     (highp vec2 a, highp vec2 b)    { return compare_float(a.x, b.x)*compare_float(a.y, b.y); }\n';
+        case deqpUtils.DataType.FLOAT_VEC3: return 'mediump float compare_vec3     (highp vec3 a, highp vec3 b)    { return compare_float(a.x, b.x)*compare_float(a.y, b.y)*compare_float(a.z, b.z); }\n';
+        case deqpUtils.DataType.FLOAT_VEC4: return 'mediump float compare_vec4     (highp vec4 a, highp vec4 b)    { return compare_float(a.x, b.x)*compare_float(a.y, b.y)*compare_float(a.z, b.z)*compare_float(a.w, b.w); }\n';
+        case deqpUtils.DataType.FLOAT_MAT2: return 'mediump float compare_mat2     (highp mat2 a, highp mat2 b)    { return compare_vec2(a[0], b[0])*compare_vec2(a[1], b[1]); }\n';
+        case deqpUtils.DataType.FLOAT_MAT2X3: return 'mediump float compare_mat2x3   (highp mat2x3 a, highp mat2x3 b){ return compare_vec3(a[0], b[0])*compare_vec3(a[1], b[1]); }\n';
+        case deqpUtils.DataType.FLOAT_MAT2X4: return 'mediump float compare_mat2x4   (highp mat2x4 a, highp mat2x4 b){ return compare_vec4(a[0], b[0])*compare_vec4(a[1], b[1]); }\n';
+        case deqpUtils.DataType.FLOAT_MAT3X2: return 'mediump float compare_mat3x2   (highp mat3x2 a, highp mat3x2 b){ return compare_vec2(a[0], b[0])*compare_vec2(a[1], b[1])*compare_vec2(a[2], b[2]); }\n';
+        case deqpUtils.DataType.FLOAT_MAT3: return 'mediump float compare_mat3     (highp mat3 a, highp mat3 b)    { return compare_vec3(a[0], b[0])*compare_vec3(a[1], b[1])*compare_vec3(a[2], b[2]); }\n';
+        case deqpUtils.DataType.FLOAT_MAT3X4: return 'mediump float compare_mat3x4   (highp mat3x4 a, highp mat3x4 b){ return compare_vec4(a[0], b[0])*compare_vec4(a[1], b[1])*compare_vec4(a[2], b[2]); }\n';
+        case deqpUtils.DataType.FLOAT_MAT4X2: return 'mediump float compare_mat4x2   (highp mat4x2 a, highp mat4x2 b){ return compare_vec2(a[0], b[0])*compare_vec2(a[1], b[1])*compare_vec2(a[2], b[2])*compare_vec2(a[3], b[3]); }\n';
+        case deqpUtils.DataType.FLOAT_MAT4X3: return 'mediump float compare_mat4x3   (highp mat4x3 a, highp mat4x3 b){ return compare_vec3(a[0], b[0])*compare_vec3(a[1], b[1])*compare_vec3(a[2], b[2])*compare_vec3(a[3], b[3]); }\n';
+        case deqpUtils.DataType.FLOAT_MAT4: return 'mediump float compare_mat4     (highp mat4 a, highp mat4 b)    { return compare_vec4(a[0], b[0])*compare_vec4(a[1], b[1])*compare_vec4(a[2], b[2])*compare_vec4(a[3], b[3]); }\n';
+        case deqpUtils.DataType.INT: return 'mediump float compare_int      (highp int a, highp int b)      { return a == b ? 1.0 : 0.0; }\n';
+        case deqpUtils.DataType.INT_VEC2: return 'mediump float compare_ivec2    (highp ivec2 a, highp ivec2 b)  { return a == b ? 1.0 : 0.0; }\n';
+        case deqpUtils.DataType.INT_VEC3: return 'mediump float compare_ivec3    (highp ivec3 a, highp ivec3 b)  { return a == b ? 1.0 : 0.0; }\n';
+        case deqpUtils.DataType.INT_VEC4: return 'mediump float compare_ivec4    (highp ivec4 a, highp ivec4 b)  { return a == b ? 1.0 : 0.0; }\n';
+        case deqpUtils.DataType.UINT: return 'mediump float compare_uint     (highp uint a, highp uint b)    { return a == b ? 1.0 : 0.0; }\n';
+        case deqpUtils.DataType.UINT_VEC2: return 'mediump float compare_uvec2    (highp uvec2 a, highp uvec2 b)  { return a == b ? 1.0 : 0.0; }\n';
+        case deqpUtils.DataType.UINT_VEC3: return 'mediump float compare_uvec3    (highp uvec3 a, highp uvec3 b)  { return a == b ? 1.0 : 0.0; }\n';
+        case deqpUtils.DataType.UINT_VEC4: return 'mediump float compare_uvec4    (highp uvec4 a, highp uvec4 b)  { return a == b ? 1.0 : 0.0; }\n';
+        case deqpUtils.DataType.BOOL: return 'mediump float compare_bool     (bool a, bool b)                { return a == b ? 1.0 : 0.0; }\n';
+        case deqpUtils.DataType.BOOL_VEC2: return 'mediump float compare_bvec2    (bvec2 a, bvec2 b)              { return a == b ? 1.0 : 0.0; }\n';
+        case deqpUtils.DataType.BOOL_VEC3: return 'mediump float compare_bvec3    (bvec3 a, bvec3 b)              { return a == b ? 1.0 : 0.0; }\n';
+        case deqpUtils.DataType.BOOL_VEC4: return 'mediump float compare_bvec4    (bvec4 a, bvec4 b)              { return a == b ? 1.0 : 0.0; }\n';
+        default:
+            assertMsgOptions(false, 'getCompareCuncForType: Invalid type', false, true);
+            return undefined;
+    }
+};
+
+/**
+ * getCompareDependencies
+ * @param {Array.<deqpUtils.DataType>} compareFuncs Should contain unique elements
+ * @param {deqpUtils.DataType} basicType
+ */
+var getCompareDependencies = function(compareFuncs, basicType) {
+    switch (basicType)
+    {
+        case deqpUtils.DataType.FLOAT_VEC2:
+        case deqpUtils.DataType.FLOAT_VEC3:
+        case deqpUtils.DataType.FLOAT_VEC4:
+            pushUniqueToArray(compareFuncs, deqpUtils.DataType.FLOAT);
+            pushUniqueToArray(compareFuncs, basicType);
+            break;
+
+        case deqpUtils.DataType.FLOAT_MAT2:
+        case deqpUtils.DataType.FLOAT_MAT2X3:
+        case deqpUtils.DataType.FLOAT_MAT2X4:
+        case deqpUtils.DataType.FLOAT_MAT3X2:
+        case deqpUtils.DataType.FLOAT_MAT3:
+        case deqpUtils.DataType.FLOAT_MAT3X4:
+        case deqpUtils.DataType.FLOAT_MAT4X2:
+        case deqpUtils.DataType.FLOAT_MAT4X3:
+        case deqpUtils.DataType.FLOAT_MAT4:
+            pushUniqueToArray(compareFuncs, deqpUtils.DataType.FLOAT);
+            pushUniqueToArray(compareFuncs, deqpUtils.getDataTypeFloatVec(deqpUtils.getDataTypeMatrixNumRows(basicType)));
+            pushUniqueToArray(compareFuncs, basicType);
+            break;
+
+        default:
+            pushUniqueToArray(compareFuncs, basicType);
+            break;
+    }
+};
+
+/**
+ * collectUniqueBasicTypes_B
+ * @param {Array.<deqpUtils.DataType>} basicTypes Should contain unique elements
+ * @param {VarType} type
+ */
+var collectUniqueBasicTypes_B = function(basicTypes, type) {
+    if (type.isStructType())
+    {
+        /** @type {StructType} */ var stype = type.getStruct();
+        for (var memberNdx = 0; memberNdx < stype.getSize(); memberNdx++)//StructType::ConstIterator iter = type.getStruct().begin(); iter != type.getStruct().end(); ++iter)
+            collectUniqueBasicTypes_B(basicTypes, stype.getMember(memberNdx).getType());
+    }
+    else if (type.isArrayType())
+        collectUniqueBasicTypes_B(basicTypes, type.getElementType());
+    else
+    {
+        assertMsgOptions(type.isBasicType(), 'Type should be basic', false, true);
+        pushUniqueToArray(basicTypes, type.getBasicType());
+    }
+};
+
+/**
+ * collectUniqueBasicTypes_A
+ * @param {Array.<deqpUtils.DataType>} basicTypes Should contain unique elements
+ * @param {UniformBlock} uniformBlock
+ */
+var collectUniqueBasicTypes_A = function(basicTypes, uniformBlock) {
+    for (var uniformNdx = 0; uniformNdx < uniformBlock.countUniforms(); uniformNdx++) //UniformBlock::ConstIterator iter = uniformBlock.begin(); iter != uniformBlock.end(); ++iter)
+        collectUniqueBasicTypes_B(basicTypes, uniformBlock.getUniform(uniformNdx).getType());
+};
+
+/**
+ * collectUniqueBasicTypes
+ * @param {Array.<deqpUtils.DataType>} basicTypes Should contain unique elements
+ * @param {ShaderInterface} sinterface
+ */
+var collectUniqueBasicTypes = function(basicTypes, sinterface) {
+    for (var ndx = 0; ndx < sinterface.getNumUniformBlocks(); ++ndx)
+        collectUniqueBasicTypes_A(basicTypes, sinterface.getUniformBlock(ndx));
+};
+
+/**
+ * collectUniqueBasicTypes
+ * @return {string} Was originally an output parameter. As it is a basic type, we have to return it instead.
+ * @param {ShaderInterface} sinterface
+ */
+var generateCompareFuncs = function(sinterface)
+{
+    /** @type {string} */ var str = '';
+    /** @type {Array.<deqpUtils.DataType>} */ var types = []; //Will contain unique elements.
+    /** @type {Array.<deqpUtils.DataType>} */ var compareFuncs = []; //Will contain unique elements.
+
+    // Collect unique basic types
+    collectUniqueBasicTypes(types, sinterface);
+
+    // Set of compare functions required
+    for (var typeNdx = 0; typeNdx < types.length; typeNdx++) //std::set<glu::DataType>::const_iterator iter = types.begin(); iter != types.end(); ++iter)
+    {
+        getCompareDependencies(compareFuncs, types[typeNdx]);
+    }
+
+    for (var type = 0; type < deqpUtils.DataType.LAST; ++type)
+    {
+        if (compareFuncs.indexOf(type) > -1)
+            str += getCompareFuncForType(type);
+    }
+
+    return str;
+};
+
+/**
+ * Indent - Prints level_ number of tab chars
+ * @param {number} level_
+ * @return {string}
+ */
+var Indent = function(level_) {
+    var str = '';
+    for (var i = 0; i < level_; i++)
+        str += '\t';
+
+    return str;
+};
+
+/**
+ * generateDeclaration_C
+ * @return {string} src
+ * @param {StructType} structType
+ * @param {number} indentLevel
+ */
+var generateDeclaration_C = function(structType, indentLevel) {
+    /** @type {string} */ var src = '';
+
+    assertMsgOptions(structType.getTypeName() !== undefined, 'Checking the struct typename is not undefined', false, true);
+    src += generateFullDeclaration(structType, indentLevel);
+    src += ';\n';
+
+    return src;
+};
+
+/**
+ * generateFullDeclaration
+ * @return {string} src
+ * @param {StructType} structType
+ * @param {number} indentLevel
+ */
+var generateFullDeclaration = function(structType, indentLevel) {
+    var src = 'struct';
+    if (structType.getTypeName())
+        src += ' ' + structType.getTypeName();
+    src += '\n' + Indent(indentLevel) + '{\n';
+
+    for (var memberNdx = 0; memberNdx < structType.getSize(); memberNdx++) //StructType::ConstIterator memberIter = structType.begin(); memberIter != structType.end(); memberIter++)
+    {
+        src += Indent(indentLevel + 1);
+        /** @type {StructMember} */ var memberIter = structType.getMember(memberNdx);
+        src += generateDeclaration_B(memberIter.getType(), memberIter.getName(), indentLevel + 1, memberIter.getFlags() & UniformFlags.UNUSED_BOTH);
+    }
+
+    src += Indent(indentLevel) + '}';
+
+    return src;
+};
+
+/**
+ * generateLocalDeclaration
+ * @return {string} src
+ * @param {StructType} structType
+ * @param {number} indentLevel
+ */
+var generateLocalDeclaration = function(structType, indentLevel) {
+    /** @type {string} */ var src = '';
+
+    if (structType.getTypeName() === undefined)
+        src += generateFullDeclaration(structType, indentLevel);
+    else
+        src += structType.getTypeName();
+
+    return src;
+};
+
+/**
+ * generateDeclaration_B
+ * @return {string} src
+ * @param {VarType} type
+ * @param {string} name
+ * @param {number} indentLevel
+ * @param {deInt32.deUint32} unusedHints
+ */
+var generateDeclaration_B = function(type, name, indentLevel, unusedHints) {
+    /** @type {string} */ var src = '';
+    /** @type {deInt32.deUint32} */ var flags = type.getFlags();
+
+    if ((flags & UniformFlags.LAYOUT_MASK) != 0)
+        src += 'layout(' + LayoutFlagsFmt(flags & UniformFlags.LAYOUT_MASK) + ') ';
+
+    if ((flags & UniformFlags.PRECISION_MASK) != 0)
+        src += PrecisionFlagsFmt(flags & UniformFlags.PRECISION_MASK) + ' ';
+
+    if (type.isBasicType())
+        src += deqpUtils.getDataTypeName(type.getBasicType()) + ' ' + name;
+    else if (type.isArrayType())
+    {
+        /** @type {number} */ var arraySizes = [];
+        /** @type {VarType} */ var curType = type;
+        while (curType.isArrayType())
+        {
+            arraySizes.push(curType.getArraySize());
+            curType = curType.getElementType();
+        }
+
+        if (curType.isBasicType())
+        {
+            if ((curType.getFlags() & UniformFlags.PRECISION_MASK) != 0)
+                src += PrecisionFlagsFmt(curType.getFlags() & UniformFlags.PRECISION_MASK) + ' ';
+            src += deqpUtils.getDataTypeName(curType.getBasicType());
+        }
+        else
+        {
+            assertMsgOptions(curType.isStructType(), 'Checking if curType is a struct type', false, true);
+            src += generateLocalDeclaration(curType.getStruct(), indentLevel + 1);
+        }
+
+        src += ' ' + name;
+
+        for (var sizeNdx; sizeNdx < arraySizes.length; sizeNdx++) //std::vector<int>::const_iterator sizeIter = arraySizes.begin(); sizeIter != arraySizes.end(); sizeIter++)
+            src += '[' + arraySizes[sizeNdx] + ']';
+    }
+    else
+    {
+        src += generateLocalDeclaration(type.getStruct(), indentLevel + 1);
+        src += ' ' + name;
+    }
+
+    src += ';';
+
+    // Print out unused hints.
+    if (unusedHints != 0)
+        src += ' // unused in ' + (unusedHints == UniformFlags.UNUSED_BOTH ? 'both shaders' :
+                                    unusedHints == UniformFlags.UNUSED_VERTEX ? 'vertex shader' :
+                                    unusedHints == UniformFlags.UNUSED_FRAGMENT ? 'fragment shader' : '???');
+
+    src += '\n';
+
+    return src;
+};
+
+/**
+ * generateDeclaration_A
+ * @return {string} src
+ * @param {Uniform} uniform
+ * @param {number} indentLevel
+ */
+var generateDeclaration_A = function(uniform, indentLevel) {
+    /** @type {string} */ var src = '';
+
+    if ((uniform.getFlags() & UniformFlags.LAYOUT_MASK) != 0)
+        src += 'layout(' + LayoutFlagsFmt(uniform.getFlags() & UniformFlags.LAYOUT_MASK) + ') ';
+
+    src += generateDeclaration_B(uniform.getType(), uniform.getName(), indentLevel, uniform.getFlags() & UniformFlags.UNUSED_BOTH);
+
+    return src;
+};
+
+/**
+ * generateDeclaration
+ * @return {string} src
+ * @param {UniformBlock} block
+ */
+var generateDeclaration = function(block) {
+    /** @type {string} */ var src = '';
+
+    if ((block.getFlags() & UniformFlags.LAYOUT_MASK) != 0)
+        src += 'layout(' + LayoutFlagsFmt(block.getFlags() & UniformLayout.LAYOUT_MASK) + ') ';
+
+    src += 'uniform ' + block.getBlockName();
+    src += '\n{\n';
+
+    for (var uniformNdx = 0; uniformNdx < block.countUniforms(); uniformNdx++) //UniformBlock::ConstIterator uniformIter = block.begin(); uniformIter != block.end(); uniformIter++)
+    {
+        src += Indent(1);
+        src += generateDeclaration_A(block.getUniform(uniformNdx), 1 /* indent level */);
+    }
+
+    src += '}';
+
+    if (block.getInstanceName() !== undefined)
+    {
+        src += ' ' + block.getInstanceName();
+        if (block.isArray())
+            src += '[' + block.getArraySize() + ']';
+    }
+    else
+        assertMsgOptions(!block.isArray(), 'Checking if block is not an array', false, true);
+
+    src += ';\n';
+
+    return src;
+};
+
+/**
+ * generateVertexShader //TODO: Implement generateCompareSrc functions
+ * @return {string} src
+ * @param {ShaderInterface} sinterface
+ * @param {UniformLayout} layout
+ * @param {BlockPointers} blockPointers
+ */
+var generateVertexShader = function(sinterface, layout, blockPointers) {
+    /** @type {string} */ var src = '';
+    //assertMsgOptions(isSupportedGLSLVersion(glslVersion), 'Checking if GLSL version is supported', false, true);
+
+    //TODO: src += glu::getGLSLVersionDeclaration(glslVersion) << "\n";
+    src += 'in highp vec4 a_position;\n';
+    src += 'out mediump float v_vtxResult;\n';
+    src += '\n';
+
+    /** @type {Array.<StructType>} */ var namedStructs = [];
+    sinterface.getNamedStructs(namedStructs);
+    for (var structNdx = 0; structNdx < namedStructs.length; structNdx++) //std::vector<const StructType*>::const_iterator structIter = namedStructs.begin(); structIter != namedStructs.end(); structIter++)
+        src += generateDeclaration_C(namedStructs[structNdx], 0);
+
+    for (var blockNdx = 0; blockNdx < sinterface.getNumUniformBlocks(); blockNdx++)
+    {
+        /** @type {UniformBlock} */ var block = sinterface.getUniformBlock(blockNdx);
+        if (block.getFlags() & UniformFlags.DECLARE_VERTEX)
+            src += generateDeclaration(block);
+    }
+
+    // Comparison utilities.
+    src += '\n';
+    src += generateCompareFuncs(sinterface);
+
+    src += '\n' +
+           'void main (void)\n' +
+           '{\n' +
+           '    gl_Position = a_position;\n' +
+           '    mediump float result = 1.0;\n';
+
+    // Value compare.
+    //generateCompareSrc(src, "result", sinterface, layout, blockPointers, true);
+
+    src += '    v_vtxResult = result;\n' +
+           '}\n';
+
+    return src;
 };
 
  /**
@@ -977,14 +1628,14 @@ var generateValues = function(layout, blockPointers, seed)
         }
     }
 
-    // // Generate values.
-    // generateValues(refLayout, blockPointers, 1 /* seed */);
-};
-//     // Generate shaders and build program.
-//     std::ostringstream vtxSrc;
-//     std::ostringstream fragSrc;
-//
-//     generateVertexShader(vtxSrc, m_glslVersion, m_interface, refLayout, blockPointers);
+    // Generate values.
+    generateValues(refLayout, blockPointers, 1 /* seed */);
+
+    // Generate shaders and build program.
+    /** @type {string} */ var vtxSrc = generateVertexShader(this.m_interface, refLayout, blockPointers);
+    assertMsgOptions(true, '\n\n' + vtxSrc, true, true);
+    ///** @type {string} */ var fragSrc = '';
+
 //     generateFragmentShader(fragSrc, m_glslVersion, m_interface, refLayout, blockPointers);
 //
 //     glu::ShaderProgram program(m_renderCtx, glu::makeVtxFragSources(vtxSrc.str(), fragSrc.str()));
@@ -1127,7 +1778,7 @@ var generateValues = function(layout, blockPointers, seed)
 //         m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, "Image compare failed");
 //
 //     return STOP;
-// };
+};
 
 /**
 * compareStd140Blocks
@@ -1518,41 +2169,41 @@ UniformBlockCase.prototype.render = function(program) {
     }
 };
 
-/** getShaderSource
-* Reads a shader program's source by scouring the current document,
-* looking for a script with the specified ID.
-* @param {string} id ID of the shader code in the DOM
-* @return {string} shader's source code.
-**/
-var getShaderSource = function(id) {
-  var shaderScript = document.getElementById(id);
-
-  // Didn't find an element with the specified ID; abort.
-
-  if (!shaderScript) {
-    return null;
-  }
-
-  // Walk through the source element's children, building the
-  // shader source string.
-
-  var theSource = '';
-  var currentChild = shaderScript.firstChild;
-
-  while (currentChild) {
-    if (currentChild.nodeType == 3) {
-      theSource += currentChild.textContent;
-    }
-
-    currentChild = currentChild.nextSibling;
-  }
-
-  return theSource;
-};
-
-/** TODO: Substitute init, execute and runTestCases for the proper methods.
- * Initialize a test case
- */
+// /** getShaderSource
+// * Reads a shader program's source by scouring the current document,
+// * looking for a script with the specified ID.
+// * @param {string} id ID of the shader code in the DOM
+// * @return {string} shader's source code.
+// **/
+// var getShaderSource = function(id) {
+//   var shaderScript = document.getElementById(id);
+//
+//   // Didn't find an element with the specified ID; abort.
+//
+//   if (!shaderScript) {
+//     return null;
+//   }
+//
+//   // Walk through the source element's children, building the
+//   // shader source string.
+//
+//   var theSource = '';
+//   var currentChild = shaderScript.firstChild;
+//
+//   while (currentChild) {
+//     if (currentChild.nodeType == 3) {
+//       theSource += currentChild.textContent;
+//     }
+//
+//     currentChild = currentChild.nextSibling;
+//   }
+//
+//   return theSource;
+// };
+//
+// /** TODO: Substitute init, execute and runTestCases for the proper methods.
+//  * Initialize a test case
+//  */
 // var init = function() {
 //     // Init context
 //     var wtu = WebGLTestUtils;
@@ -1629,8 +2280,14 @@ return {
     ShaderInterface: ShaderInterface,
     UniformBlock: UniformBlock,
     Uniform: Uniform,
+    VarType: VarType,
+    newVarTypeBasic: newVarTypeBasic,
+    newVarTypeArray: newVarTypeArray,
+    newVarTypeStruct: newVarTypeStruct,
     StructType: StructType,
+    newStructType: newStructType,
     StructMember: StructMember,
+    newStructMember: newStructMember,
     UniformLayout: UniformLayout,
     UniformLayoutEntry: UniformLayoutEntry,
     BlockLayoutEntry: BlockLayoutEntry,

@@ -87,21 +87,25 @@ define(['framework/opengl/gluShaderUtil.js'], function(deqpUtils) {
          /** @type {string} */ this.m_typeName = undefined;
          /** @type {Array.<StructMember>} */ this.m_members = [];
 
+         // TODO: prototype style
          this.hasTypeName = function() {
         	 return (this.m_typeName !== 'undefined');
          };
 
+         // TODO: prototype style
          this.setTypeName = function(name) {
         	 return this.m_typeName = name;
          };
 
+         // TODO: prototype style
          this.addMember = function(name, type) {
-        	 return this.m_members.push(newStructMember(name, type));
-
+        	 var member = newStructMember(name, type);
+        	 this.m_members.push(member);
          };
 
+         // TODO: prototype style
          this.addStructMember = function(structMember) {
-        	 return this.m_members.push(structMember);
+        	 this.m_members.push(structMember);
          };
       };
 

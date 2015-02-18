@@ -20,6 +20,34 @@
 
 define(function() {
 
+var addCanvas = function(id, width, height) {
+	var elem = document.getElementById(id);
+	var canvas = document.createElement("canvas");
+	elem.appendChild(canvas);
+	canvas.width = width;
+	canvas.height = height;
+	var ctx = canvas.getContext('2d');
+	return ctx;
+};
+
+var displayImage = function(/*const ConstPixelBufferAccess&*/ image) {
+	var w = image.getWidth();
+	var h = image.getHeight();
+	var ctx = addCanvas('console', w, h);
+	var imgData = ctx.createImageData(w, h);
+	var index = 0;
+	for (var y = 0; y < h; y++) {
+		for (var x = 0; x < w; x++)	{	
+			var	pixel = image.getPixelInt(x, y, 0);
+			for (var i = 0; i < 4; i++) {
+				imgData.data[index] = pixel[i]; 
+				index = index + 1;
+			}
+		}
+	}
+	ctx.putImageData(imgData, 0, 0);
+};
+
 /*--------------------------------------------------------------------*//*!
  * \brief Per-pixel threshold-based comparison
  *
@@ -54,6 +82,7 @@ var intThresholdCompare = function(/*const char* */imageSetName, /*const char* *
 	assertMsgOptions(result.getWidth() == width && result.getHeight() == height && result.getDepth() == depth,
 		'Reference and result images have different dimension', false, true);
 
+	
 	for (var z = 0; z < depth; z++)	{
 		for (var y = 0; y < height; y++) {
 			for (var x = 0; x < width; x++)	{	
@@ -63,6 +92,7 @@ var intThresholdCompare = function(/*const char* */imageSetName, /*const char* *
 				var	diff		= refPix.absDiff(cmpPix);
 				var	isOk		= diff.lessThanEqual(threshold).boolAll();
 
+
 				maxDiff = maxDiff.max(diff);
 
 				// errorMask.setPixel(isOk ? IVec4(0, 0xff, 0, 0xff) : IVec4(0xff, 0, 0, 0xff), x, y, z);
@@ -71,6 +101,14 @@ var intThresholdCompare = function(/*const char* */imageSetName, /*const char* *
 	}
 
 	var compareOk = maxDiff.lessThanEqual(threshold).boolAll();
+
+	if (!compareOk) {
+		debug('Result image');
+		displayImage(result);
+		debug('<br>Reference image');
+		displayImage(reference);
+		debug('<br>Images differ');
+	}
 
 	// if (!compareOk || logMode == COMPARE_LOG_EVERYTHING)
 	// {

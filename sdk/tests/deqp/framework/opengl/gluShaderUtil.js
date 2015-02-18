@@ -32,9 +32,9 @@ var precision = {
 
 var getPrecisionName = function(prec) {
     var s_names = [
-        "lowp",
-        "mediump",
-        "highp"
+        'lowp',
+        'mediump',
+        'highp'
     ];
 
     return s_names[prec];
@@ -97,6 +97,8 @@ var DataType = {
     UINT_SAMPLER_3D: 40
 };
 
+DataType.LAST = Object.keys(DataType).length;
+
 /**
  * Returns type of float scalars
  * @param {DataType} dataType
@@ -153,7 +155,7 @@ var getDataTypeVector = function(scalarType, size)
         default:
             return DataType.INVALID;
     }
-}
+};
 
 /*
  * getDataTypeFloatVec
@@ -163,7 +165,7 @@ var getDataTypeVector = function(scalarType, size)
 var getDataTypeFloatVec = function(vecSize)
 {
     return getDataTypeVector(DataType.FLOAT, vecSize);
-}
+};
 
 /**
  * isDataTypeBoolOrBVec
@@ -221,6 +223,58 @@ var getDataTypeScalarType = function(dataType) {
         case DataType.UINT_SAMPLER_CUBE: return 'usamplerCube';
         case DataType.UINT_SAMPLER_2D_ARRAY: return 'usampler2DArray';
         case DataType.UINT_SAMPLER_3D: return 'usampler3D';
+    }
+    throw Error('Unrecognized dataType ' + dataType);
+};
+
+/**
+ * Returns type of scalar
+ * @param {DataType} dataType shader
+ * @return {string} type of scalar type
+ */
+var getDataTypeScalarTypeAsDataType = function(dataType) {
+    switch (dataType) {
+        case DataType.FLOAT: return DataType.FLOAT;
+        case DataType.FLOAT_VEC2: return DataType.FLOAT;
+        case DataType.FLOAT_VEC3: return DataType.FLOAT;
+        case DataType.FLOAT_VEC4: return DataType.FLOAT;
+        case DataType.FLOAT_MAT2: return DataType.FLOAT;
+        case DataType.FLOAT_MAT2X3: return DataType.FLOAT;
+        case DataType.FLOAT_MAT2X4: return DataType.FLOAT;
+        case DataType.FLOAT_MAT3X2: return DataType.FLOAT;
+        case DataType.FLOAT_MAT3: return DataType.FLOAT;
+        case DataType.FLOAT_MAT3X4: return DataType.FLOAT;
+        case DataType.FLOAT_MAT4X2: return DataType.FLOAT;
+        case DataType.FLOAT_MAT4X3: return DataType.FLOAT;
+        case DataType.FLOAT_MAT4: return DataType.FLOAT;
+        case DataType.INT: return DataType.INT;
+        case DataType.INT_VEC2: return DataType.INT;
+        case DataType.INT_VEC3: return DataType.INT;
+        case DataType.INT_VEC4: return DataType.INT;
+        case DataType.UINT: return DataType.UINT;
+        case DataType.UINT_VEC2: return DataType.UINT;
+        case DataType.UINT_VEC3: return DataType.UINT;
+        case DataType.UINT_VEC4: return DataType.UINT;
+        case DataType.BOOL: return DataType.BOOL;
+        case DataType.BOOL_VEC2: return DataType.BOOL;
+        case DataType.BOOL_VEC3: return DataType.BOOL;
+        case DataType.BOOL_VEC4: return DataType.BOOL;
+        case DataType.SAMPLER_2D:
+        case DataType.SAMPLER_CUBE:
+        case DataType.SAMPLER_2D_ARRAY:
+        case DataType.SAMPLER_3D:
+        case DataType.SAMPLER_2D_SHADOW:
+        case DataType.SAMPLER_CUBE_SHADOW:
+        case DataType.SAMPLER_2D_ARRAY_SHADOW:
+        case DataType.INT_SAMPLER_2D:
+        case DataType.INT_SAMPLER_CUBE:
+        case DataType.INT_SAMPLER_2D_ARRAY:
+        case DataType.INT_SAMPLER_3D:
+        case DataType.UINT_SAMPLER_2D:
+        case DataType.UINT_SAMPLER_CUBE:
+        case DataType.UINT_SAMPLER_2D_ARRAY:
+        case DataType.UINT_SAMPLER_3D:
+            return dataType;
     }
     throw Error('Unrecognized dataType ' + dataType);
 };
@@ -422,6 +476,7 @@ return {
     DataType: DataType,
     getDataTypeFloatScalars: getDataTypeFloatScalars,
     getDataTypeScalarType: getDataTypeScalarType,
+    getDataTypeScalarTypeAsDataType: getDataTypeScalarTypeAsDataType,
     isDataTypeIntOrIVec: isDataTypeIntOrIVec,
     getDataTypeVector: getDataTypeVector,
     getDataTypeFloatVec: getDataTypeFloatVec,

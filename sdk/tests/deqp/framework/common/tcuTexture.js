@@ -233,6 +233,7 @@ var CubeFace = {
 	CUBEFACE_POSITIVE_Y: 3,
 	CUBEFACE_NEGATIVE_Z: 4,
 	CUBEFACE_POSITIVE_Z: 5,
+	TOTAL_FACES: 6
 };
 
 /*
@@ -527,6 +528,28 @@ var sampleNearest2D = function (/*const ConstPixelBufferAccess&*/ access, /*cons
 	return lookup(access, i, j, depth);
 };
 
+var sampleNearest3D = function(/*const ConstPixelBufferAccess&*/ access, /*const Sampler&*/ sampler, u, v, w) {
+	var width	= access.getWidth();
+	var height	= access.getHeight();
+	var depth	= access.getDepth();
+
+	var x = Math.round(Math.floor(u));
+	var y = Math.round(Math.floor(v));
+	var z = Math.round(Math.floor(w));
+
+	// Check for CLAMP_TO_BORDER.
+	if ((sampler.wrapS == WrapMode.CLAMP_TO_BORDER && !deInt32.deInBounds32(x, 0, width))	||
+		(sampler.wrapT == WrapMode.CLAMP_TO_BORDER && !deInt32.deInBounds32(y, 0, height))	||
+		(sampler.wrapR == WrapMode.CLAMP_TO_BORDER && !deInt32.deInBounds32(z, 0, depth)))
+		return sampler.borderColor;
+
+	var i = wrap(sampler.wrapS, x, width);
+	var j = wrap(sampler.wrapT, y, height);
+	var k = wrap(sampler.wrapR, z, depth);
+
+	return lookup(access, i, j, k);
+};
+
 /*--------------------------------------------------------------------*//*!
  * \brief Read-only pixel data access
  *
@@ -575,6 +598,9 @@ var  ConstPixelBufferAccess = function(descriptor) {
 	ConstPixelBufferAccess.prototype.getPixel = function(x, y, z) {
 		if (z == null)
 			z = 0;
+	// console.log(this);
+	// console.log('(' + x + ',' + y + ',' + z + ')');
+
 	DE_ASSERT(deInt32.deInBounds32(x, 0, this.m_width));
 	DE_ASSERT(deInt32.deInBounds32(y, 0, this.m_height));
 	DE_ASSERT(deInt32.deInBounds32(z, 0, this.m_depth));
@@ -753,6 +779,28 @@ ConstPixelBufferAccess.prototype.sample2D = function(/*const Sampler&*/ sampler,
 	throw new Error('Unimplemented');
 };
 
+ConstPixelBufferAccess.prototype.sample3D = function(/*const Sampler&*/ sampler, /*Sampler::FilterMode*/ filter, s, t, r) {
+	// Non-normalized coordinates.
+	var u = s;
+	var v = t;
+	var w = r;
+
+	if (sampler.normalizedCoords) {
+		u = unnormalize(sampler.wrapS, s, this.m_width);
+		v = unnormalize(sampler.wrapT, t, this.m_height);
+		w = unnormalize(sampler.wrapR, r, this.m_depth);
+	}
+
+	switch (filter) {
+		case FilterMode.NEAREST:	return sampleNearest3D(this, sampler, u, v, w);
+		// case Sampler::LINEAR:	return sampleLinear3D	(*this, sampler, u, v, w);
+		// default:
+		// 	DE_ASSERT(DE_FALSE);
+		// 	return Vec4(0.0f);
+	}
+	throw new Error('Unimplemented');
+}
+
 
 	/* TODO: do we need any of these? */
 	{
@@ -921,7 +969,7 @@ PixelBufferAccess.prototype.setPixel = function(color, x, y, z) {
 			var	map			= getChannelWriteMap(this.m_format.order);
 
 			for (var c = 0; c < numChannels; c++)
-				floatToChannel(pixelPtr[c], color[map[c]], this.m_format.type);
+				pixelPtr[c] = floatToChannel(color[map[c]], this.m_format.type);
 		}
 	}
 };
@@ -1030,10 +1078,54 @@ var sampleLevelArray2D = function(/*const ConstPixelBufferAccess* */ levels, /*i
 	throw new Error('Unimplemented');
 };
 
+var sampleLevelArray3D = function(/*const ConstPixelBufferAccess**/ levels, /*int*/ numLevels, /*const Sampler&*/ sampler, s, t, r, lod) {
+	var					magnified	= lod <= sampler.lodThreshold;
+	var		filterMode	= magnified ? sampler.magFilter : sampler.minFilter;
+
+	switch (filterMode) {
+		case FilterMode.NEAREST:	return levels[0].sample3D(sampler, filterMode, s, t, r);
+		// case Sampler::LINEAR:	return levels[0].sample3D(sampler, filterMode, s, t, r);
+
+		// case Sampler::NEAREST_MIPMAP_NEAREST:
+		// case Sampler::LINEAR_MIPMAP_NEAREST:
+		// {
+		// 	int					maxLevel	= (int)numLevels-1;
+		// 	int					level		= deClamp32((int)deFloatCeil(lod + 0.5f) - 1, 0, maxLevel);
+		// 	Sampler::FilterMode	levelFilter	= (filterMode == Sampler::LINEAR_MIPMAP_NEAREST) ? Sampler::LINEAR : Sampler::NEAREST;
+
+		// 	return levels[level].sample3D(sampler, levelFilter, s, t, r);
+		// }
+
+		// case Sampler::NEAREST_MIPMAP_LINEAR:
+		// case Sampler::LINEAR_MIPMAP_LINEAR:
+		// {
+		// 	int					maxLevel	= (int)numLevels-1;
+		// 	int					level0		= deClamp32((int)deFloatFloor(lod), 0, maxLevel);
+		// 	int					level1		= de::min(maxLevel, level0 + 1);
+		// 	Sampler::FilterMode	levelFilter	= (filterMode == Sampler::LINEAR_MIPMAP_LINEAR) ? Sampler::LINEAR : Sampler::NEAREST;
+		// 	float				f			= deFloatFrac(lod);
+		// 	tcu::Vec4			t0			= levels[level0].sample3D(sampler, levelFilter, s, t, r);
+		// 	tcu::Vec4			t1			= levels[level1].sample3D(sampler, levelFilter, s, t, r);
+
+		// 	return t0*(1.0f - f) + t1*f;
+		// }
+
+		// default:
+		// 	DE_ASSERT(DE_FALSE);
+		// 	return Vec4(0.0f);
+	}
+	throw new Error('Unimplemented');
+};
+
+var CubeFaceCoords = function(face, coords) {
+	this.face = face;
+	this.s = coords[0];
+	this.t = coords[1];
+};
+
 /*--------------------------------------------------------------------*//*!
  * \brief 2D Texture View
  *//*--------------------------------------------------------------------*/
- /* TODO: Port */
 var Texture2DView = function(numLevels, levels) {
 	this.m_numLevels = numLevels;
 	this.m_levels = levels;
@@ -1052,8 +1144,8 @@ Texture2DView.prototype.getSubView = function(baseLevel, maxLevel) {
 	return new Texture2DView(numLevels, this.m_levels.slice(clampedBase,numLevels));
 };
 
-Texture2DView.prototype.sample = function(/*const Sampler&*/ sampler, s,t, lod) {
-	return sampleLevelArray2D(this.m_levels, this.m_numLevels, sampler, s, t, 0 /* depth */, lod);
+Texture2DView.prototype.sample = function(/*const Sampler&*/ sampler, texCoord, lod) {
+	return sampleLevelArray2D(this.m_levels, this.m_numLevels, sampler, texCoord[0], texCoord[1], 0 /* depth */, lod);
 };
 
 	/* TODO: Port
@@ -1066,14 +1158,66 @@ Texture2DView.prototype.sample = function(/*const Sampler&*/ sampler, s,t, lod) 
 	Vec4							gatherOffsetsCompare(const Sampler& sampler, float ref, float s, float t, const IVec2 (&offsets)[4]) const;
 	*/
 
+var Texture2DArrayView = function(numLevels, levels) {
+	this.m_numLevels = numLevels;
+	this.m_levels = levels;
+};
+
+	Texture2DArrayView.prototype.getNumLevels = function()	{ return this.m_numLevels;										};
+	Texture2DArrayView.prototype.getWidth = function() 	{ return this.m_numLevels > 0 ? this.m_levels[0].getWidth()	: 0;	};
+	Texture2DArrayView.prototype.getHeight = function() { return this.m_numLevels > 0 ? this.m_levels[0].getHeight()	: 0;	};
+	Texture2DArrayView.prototype.getNumLayers = function() { return this.m_numLevels > 0 ? this.m_levels[0].getDepth()	: 0;	};
+	/*const ConstPixelBufferAccess&*/ Texture2DArrayView.prototype.getLevel	= function(ndx) { DE_ASSERT(deInt32.deInBounds32(ndx, 0, this.m_numLevels)); return this.m_levels[ndx];	};
+	/*const ConstPixelBufferAccess**/ Texture2DArrayView.prototype.getLevels	= function() { return this.m_levels;											};
+
+Texture2DArrayView.prototype.selectLayer = function(r) {
+	DE_ASSERT(this.m_numLevels > 0 && this.m_levels);
+	return Math.round(r).clamp(0, this.m_levels[0].getDepth()-1);
+};
+
+Texture2DArrayView.prototype.sample = function(/*const Sampler&*/ sampler, texCoord, lod) {
+	return sampleLevelArray2D(this.m_levels, this.m_numLevels, sampler, texCoord[0], texCoord[1], this.selectLayer(texCoord[2]), lod);
+};
+
+
+var Texture3DView = function(numLevels, levels) {
+	this.m_numLevels = numLevels;
+	this.m_levels = levels;
+};
+
+	Texture3DView.prototype.getNumLevels = function()	{ return this.m_numLevels;										};
+	Texture3DView.prototype.getWidth = function() 	{ return this.m_numLevels > 0 ? this.m_levels[0].getWidth()	: 0;	};
+	Texture3DView.prototype.getHeight = function() { return this.m_numLevels > 0 ? this.m_levels[0].getHeight()	: 0;	};
+	Texture3DView.prototype.getDepth = function() { return this.m_numLevels > 0 ? this.m_levels[0].getDepth()	: 0;	};
+	/*const ConstPixelBufferAccess&*/ Texture3DView.prototype.getLevel	= function(ndx) { DE_ASSERT(deInt32.deInBounds32(ndx, 0, this.m_numLevels)); return this.m_levels[ndx];	};
+	/*const ConstPixelBufferAccess**/ Texture3DView.prototype.getLevels	= function() { return this.m_levels;											};
+
+Texture3DView.prototype.getSubView = function(baseLevel, maxLevel) {
+	var	clampedBase	= baseLevel.clamp(0, this.m_numLevels-1);
+	var	clampedMax	= maxLevel.clamp(clampedBase, this.m_numLevels-1);
+	var	numLevels	= clampedMax-clampedBase+1;
+	return new Texture3DView(numLevels, this.m_levels.slice(clampedBase,numLevels));
+};
+
+Texture3DView.prototype.sample = function(/*const Sampler&*/ sampler, texCoord, lod) {
+	return sampleLevelArray3D(this.m_levels, this.m_numLevels, sampler, texCoord[0], texCoord[1], texCoord[2], lod);
+};
+
+
 var computeMipPyramidLevels = function(width, height) {
-	return Math.floor(Math.log2(Math.max(width, height))) + 1;
+	var h = height || width;
+	return Math.floor(Math.log2(Math.max(width, h))) + 1;
 };
 
 var getMipPyramidLevelSize = function(baseLevelSize, levelNdx) {
 	return Math.max(baseLevelSize >> levelNdx, 1);
 };
 
+
+/*CubeFaceCoords*/ var getCubeFaceCoords = function(/*const Vec3&*/ coords) {
+	/*const CubeFace*/ var face = selectCubeFace(coords);
+	return new CubeFaceCoords(face, projectToFace(face, coords));
+}
 
 var Texture2D = function(format, width, height) {
 	console.log('In Texture 2D constructor');
@@ -1099,27 +1243,203 @@ Texture2D.prototype.allocLevel = function(levelNdx) {
 	TextureLevelPyramid.prototype.allocLevel.call(this, levelNdx, width, height, 1);
 };
 
+var Texture2DArray = function(format, width, height, numLayers) {
+	TextureLevelPyramid.call(this, format, computeMipPyramidLevels(width, height));
+	this.m_width = width;
+	this.m_height = height;
+	this.m_numLayers = numLayers;
+	this.m_view = new Texture2DArrayView(this.getNumLevels(), this.getLevels());
+};
+
+Texture2DArray.prototype = Object.create(TextureLevelPyramid.prototype);
+Texture2DArray.prototype.constructor = Texture2DArray;
+Texture2DArray.prototype.getView = function() { return this.m_view;	};
+
+Texture2DArray.prototype.allocLevel = function(levelNdx) {
+	DE_ASSERT(deInt32.deInBounds32(levelNdx, 0, this.getNumLevels()));
+
+	var	width	= getMipPyramidLevelSize(this.m_width, levelNdx);
+	var height	= getMipPyramidLevelSize(this.m_height, levelNdx);
+
+	TextureLevelPyramid.prototype.allocLevel.call(this, levelNdx, width, height, this.m_numLayers);
+};
+
+var Texture3D = function(format, width, height, depth) {
+	TextureLevelPyramid.call(this, format, computeMipPyramidLevels(width, height));
+	this.m_width = width;
+	this.m_height = height;
+	this.m_depth = depth;
+	this.m_view = new Texture3DView(this.getNumLevels(), this.getLevels());
+};
+
+Texture3D.prototype = Object.create(TextureLevelPyramid.prototype);
+Texture3D.prototype.constructor = Texture3D;
+Texture3D.prototype.getSubView = function(baseLevel, maxLevel) { return this.m_view.getSubView(baseLevel, maxLevel); }
+
+Texture3D.prototype.allocLevel = function(levelNdx) {
+	DE_ASSERT(deInt32.deInBounds32(levelNdx, 0, this.getNumLevels()));
+
+	var width	= getMipPyramidLevelSize(this.m_width,	levelNdx);
+	var height	= getMipPyramidLevelSize(this.m_height,	levelNdx);
+	var depth	= getMipPyramidLevelSize(this.m_depth,	levelNdx);
+
+	TextureLevelPyramid.prototype.allocLevel.call(this, levelNdx, width, height, depth);
+};
+
+
+var TextureCubeView = function(numLevels, levels) {
+	this.m_numLevels = numLevels;
+	this.m_levels = levels;
+};
+
+TextureCubeView.prototype.sample = function(/*const Sampler&*/ sampler, texCoord, lod) {
+	DE_ASSERT(sampler.compare == CompareMode.COMPAREMODE_NONE);
+
+	// Computes (face, s, t).
+	/*const CubeFaceCoords*/ var coords = getCubeFaceCoords(texCoord);
+	if (sampler.seamlessCubeMap)
+		return sampleLevelArrayCubeSeamless(this.m_levels, this.m_numLevels, coords.face, sampler, coords.s, coords.t, 0 /* depth */, lod);
+	else
+		return sampleLevelArray2D(this.m_levels[coords.face], this.m_numLevels, sampler, coords.s, coords.t, 0 /* depth */, lod);
+};
+
+TextureCubeView.prototype.getFaceLevels	= function(/*CubeFace*/ face) { return this.m_levels[face];					};
+TextureCubeView.prototype.getSize = function() { return this.m_numLevels > 0 ? this.m_levels[0][0].getWidth() : 0;	};
+TextureCubeView.prototype.getSubView = function(baseLevel, maxLevel) {
+	var	clampedBase	= baseLevel.clamp(0, this.m_numLevels-1);
+	var	clampedMax	= maxLevel.clamp(clampedBase, this.m_numLevels-1);
+	var	numLevels	= clampedMax-clampedBase+1;
+	var levels = [];
+	for (var face = 0; face < CubeFace.TOTAL_FACES; face++)
+		levels.push(this.getFaceLevels(face).slice(clampedBase, numLevels));
+
+	return new TextureCubeView(numLevels, levels);
+};
+
 var TextureCube = function(format, size) {
-	/* TODO: Implement */
-	// this.m_format = format;
-	// this.m_size = size;
-	// this.m_data = [];
-	// this.m_data.length = CubeFace.length;
-	// this.m_access = [];
-	// this.m_access.length = CubeFace.length;
+	this.m_format = format;
+	this.m_size = size;
+	this.m_data = [];
+	this.m_data.length = CubeFace.TOTAL_FACES;
+	this.m_access = [];
+	this.m_access.length = CubeFace.TOTAL_FACES;
 
-	// var						numLevels		= computeMipPyramidLevels(this.m_size);
-	// var	levels = [];
+	var						numLevels		= computeMipPyramidLevels(this.m_size);
+	var	levels = [];
+	levels.length = CubeFace.TOTAL_FACES;
 
-	// for (var face =  0; face < CubeFace.length; face++) {
-	// 	this.m_data[face] = [];
-	// 	this.m_data[face].length = numLevels;
-	// 	this.m_access[face] = [];
-	// 	this.m_access[face].length = numLevels;
-	// 	levels[face] = &m_access[face][0];
-	// }
+	for (var face =  0; face < CubeFace.TOTAL_FACES; face++) {
+		this.m_data[face] = [];
+		for (var i = 0; i < numLevels; i++)
+			this.m_data[face].push(new DeqpArrayBuffer());
+		this.m_access[face] = [];
+		this.m_access[face].length = numLevels;
+		levels[face] = this.m_access[face];
+	}
 
-	// m_view = TextureCubeView(numLevels, levels);};
+	this.m_view = new TextureCubeView(numLevels, levels);
+};
+
+TextureCube.prototype.getFormat	= function() { return this.m_format;	};
+TextureCube.prototype.getSize = function() { return this.m_size;	};
+TextureCube.prototype.getLevelFace = function(/*int */ndx, /*CubeFace*/ face)		{ return this.m_access[face][ndx];		};
+TextureCube.prototype.getNumLevels = function() { return this.m_access[0].length;	};
+TextureCube.prototype.sample = function(/*const Sampler&*/ sampler, texCoord, lod) {
+	this.m_view.sample(sampler, texCoord, lod);
+};
+TextureCube.prototype.getSubView = function(baseLevel, maxLevel) { return this.m_view.getSubView(baseLevel, maxLevel); }
+
+TextureCube.prototype.isLevelEmpty		= function(/*CubeFace*/ face, /*int*/ levelNdx) {
+	console.log(this.m_data);
+ return this.m_data[face][levelNdx].empty();	};
+
+TextureCube.prototype.allocLevel  = function(/*tcu::CubeFace*/ face, /*int*/ levelNdx) {
+	/*const int*/ var	size		= getMipPyramidLevelSize(this.m_size, levelNdx);
+	/*const int*/ var	dataSize	= this.m_format.getPixelSize()*size*size;
+	DE_ASSERT(this.isLevelEmpty(face, levelNdx));
+
+	this.m_data[face][levelNdx].setStorage(dataSize);
+	this.m_access[face][levelNdx] = new PixelBufferAccess({
+		format: this.m_format,
+		width: size,
+		height: size,
+		depth: 1,
+		data: this.m_data[face][levelNdx].m_ptr
+	});
+};
+
+
+
+/**
+ * @return {CubeFace}
+ */
+var selectCubeFace = function(/*const Vec3&*/ coords) {
+	var	x	= coords.x();
+	var	y	= coords.y();
+	var	z	= coords.z();
+	var	ax	= Math.abs(x);
+	var	ay	= Math.abs(y);
+	var	az	= Math.abs(z);
+
+	if (ay < ax && az < ax)
+		return x >= 0 ? CubeFace.CUBEFACE_POSITIVE_X : CubeFace.CUBEFACE_NEGATIVE_X;
+	else if (ax < ay && az < ay)
+		return y >= 0 ? CubeFace.CUBEFACE_POSITIVE_Y : CubeFace.CUBEFACE_NEGATIVE_Y;
+	else if (ax < az && ay < az)
+		return z >= 0 ? CubeFace.CUBEFACE_POSITIVE_Z : CubeFace.CUBEFACE_NEGATIVE_Z;
+	else
+	{
+		// Some of the components are equal. Use tie-breaking rule.
+		if (ax == ay)
+		{
+			if (ax < az)
+				return z >= 0 ? CubeFace.CUBEFACE_POSITIVE_Z : CubeFace.CUBEFACE_NEGATIVE_Z;
+			else
+				return x >= 0 ? CubeFace.CUBEFACE_POSITIVE_X : CubeFace.CUBEFACE_NEGATIVE_X;
+		}
+		else if (ax == az)
+		{
+			if (az < ay)
+				return y >= 0 ? CubeFace.CUBEFACE_POSITIVE_Y : CubeFace.CUBEFACE_NEGATIVE_Y;
+			else
+				return z >= 0 ? CubeFace.CUBEFACE_POSITIVE_Z : CubeFace.CUBEFACE_NEGATIVE_Z;
+		}
+		else if (ay == az)
+		{
+			if (ay < ax)
+				return x >= 0 ? CubeFace.CUBEFACE_POSITIVE_X : CubeFace.CUBEFACE_NEGATIVE_X;
+			else
+				return y >= 0 ? CubeFace.CUBEFACE_POSITIVE_Y : CubeFace.CUBEFACE_NEGATIVE_Y;
+		}
+		else
+			return x >= 0 ? CubeFace.CUBEFACE_POSITIVE_X : CubeFace.CUBEFACE_NEGATIVE_X;
+	}
+};
+
+var projectToFace = function(/*CubeFace*/ face, /*const Vec3&*/ coord) {
+	var	rx		= coord.x();
+	var	ry		= coord.y();
+	var	rz		= coord.z();
+	var	sc		= 0;
+	var	tc		= 0;
+	var	ma		= 0;
+
+	switch (face) {
+		case CubeFace.CUBEFACE_NEGATIVE_X: sc = +rz; tc = -ry; ma = -rx; break;
+		case CubeFace.CUBEFACE_POSITIVE_X: sc = -rz; tc = -ry; ma = +rx; break;
+		case CubeFace.CUBEFACE_NEGATIVE_Y: sc = +rx; tc = -rz; ma = -ry; break;
+		case CubeFace.CUBEFACE_POSITIVE_Y: sc = +rx; tc = +rz; ma = +ry; break;
+		case CubeFace.CUBEFACE_NEGATIVE_Z: sc = -rx; tc = -ry; ma = -rz; break;
+		case CubeFace.CUBEFACE_POSITIVE_Z: sc = +rx; tc = -ry; ma = +rz; break;
+		default:
+			throw new Error('Unrecognized face ' + face);
+	}
+
+	// Compute s, t
+	var s = ((sc / ma) + 1) / 2;
+	var t = ((tc / ma) + 1) / 2;
+
+	return [s, t];
 };
 
 	return {
@@ -1133,8 +1453,12 @@ var TextureCube = function(format, size) {
 		ConstPixelBufferAccess: ConstPixelBufferAccess,
 		PixelBufferAccess: PixelBufferAccess,
 		Texture2D: Texture2D,
+		TextureCube: TextureCube,
+		Texture2DArray: Texture2DArray,
+		Texture3D: Texture3D,
 		WrapMode: WrapMode,
 		FilterMode: FilterMode,
-		Sampler: Sampler
+		Sampler: Sampler,
+		selectCubeFace: selectCubeFace
 	};
 });
