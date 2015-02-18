@@ -67,7 +67,7 @@ Number.prototype.mirror = function() {
  * @return {Array.<Number>}
  */
 Array.prototype.swizzle = function(indices) {
-    if (!indices.lenth)
+    if (!indices.length)
         throw new Error('Argument must be an array');
     var dst = [];
     for (var i = 0; i < indices.length; i++)
@@ -90,6 +90,15 @@ Array.prototype.add = function(a) {
     var dst = [];
     for (var i = 0; i < this.length; i++)
         dst.push(this[i] + a[i]);
+    return dst;
+};
+
+Array.prototype.subtract = function(a) {
+    if (this.length != a.length)
+        throw new Error('Arrays must have the same size');
+    var dst = [];
+    for (var i = 0; i < this.length; i++)
+        dst.push(this[i] - a[i]);
     return dst;
 };
 

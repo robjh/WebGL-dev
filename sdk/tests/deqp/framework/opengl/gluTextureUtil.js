@@ -310,8 +310,7 @@ var mapGLChannelType = function(/*deUint32*/ dataType, /*bool*/ normalized) {
 */
 var mapGLTransferFormat = function(/*deUint32*/ format, /*deUint32*/ dataType)
 {
-	switch (format)
-	{
+	switch (format) {
 		case gl.ALPHA:				return new textureFormat.TextureFormat( textureFormat.ChannelOrder.A,		mapGLChannelType(dataType, true));
 		case gl.LUMINANCE:			return new textureFormat.TextureFormat( textureFormat.ChannelOrder.L,		mapGLChannelType(dataType, true));
 		case gl.LUMINANCE_ALPHA:	return new textureFormat.TextureFormat( textureFormat.ChannelOrder.LA,		mapGLChannelType(dataType, true));
@@ -1016,6 +1015,7 @@ var isGLInternalColorFormatFilterable = function(/*deUint32*/ format)
 
 return {
 	mapGLInternalFormat: mapGLInternalFormat,
+	mapGLTransferFormat: mapGLTransferFormat,
 	getTransferFormat: getTransferFormat
 };
 

@@ -43,6 +43,11 @@ Texture2D.prototype.getGLTexture = function() {
 	return this.m_glTexture;
 };
 
+var texture2DFromFormat = function(gl, format, dataType, width, height) {
+	var tex = new Texture2D(gl, format, false, new tcuTexture.Texture2D(gluTextureUtil.mapGLTransferFormat(format, dataType), width, height));
+	return tex;
+};
+
 var texture2DFromInternalFormat = function(gl, internalFormat, width, height) {
 	var tex = new Texture2D(gl, internalFormat, false, new tcuTexture.Texture2D(gluTextureUtil.mapGLInternalFormat(internalFormat), width, height));
 	return tex;
@@ -140,11 +145,87 @@ var cubeFromInternalFormat = function(gl, internalFormat, size) {
 	return tex;
 };
 
+var Texture2DArray = function(gl, format, isCompressed, refTexture) {
+	Texture2D.call(this, gl, format, isCompressed, refTexture);
+};
+
+Texture2DArray.prototype = Object.create(Texture2D.prototype);
+Texture2DArray.prototype.constructor = Texture2DArray;
+
+Texture2DArray.prototype.upload = function() {
+	if (!gl.texImage3D)
+		throw new Error("gl.TexImage3D() is not supported");
+
+	gl.bindTexture(gl.TEXTURE_2D_ARRAY, m_glTexture);
+	gl.pixelStorei(gl.UNPACK_ALIGNMENT, computePixelStore(this.m_refTexture.getFormat()));
+	GLU_EXPECT_NO_ERROR(gl.getError(), "Texture upload failed");
+
+	var transferFormat = gluTextureUtil.getTransferFormat(this.m_refTexture.getFormat());
+
+	for (var levelNdx = 0; levelNdx < this.m_refTexture.getNumLevels(); levelNdx++)	{
+		if (this.m_refTexture.isLevelEmpty(levelNdx))
+			continue; // Don't upload.
+
+		/*tcu::ConstPixelBufferAccess*/ var access = this.m_refTexture.getLevel(levelNdx);
+		DE_ASSERT(access.getRowPitch() == access.getFormat().getPixelSize()*access.getWidth());
+		DE_ASSERT(access.getSlicePitch() == access.getFormat().getPixelSize()*access.getWidth()*access.getHeight());
+		gl.texImage3D(gl.TEXTURE_2D_ARRAY, levelNdx, this.m_format, access.getWidth(), access.getHeight(), access.getDepth(), 0 /* border */, transferFormat.format, transferFormat.dataType, access.getDataPtr());
+	}
+
+	assertMsgOptions(gl.getError() === gl.NO_ERROR, "Texture upload failed", false, true);
+};
+
+var texture2DArrayFromInternalFormat = function(gl, internalFormat, width, height, numLayers) {
+	var tex = new Texture2DArray(gl, internalFormat, false, new tcuTexture.Texture2DArray(gluTextureUtil.mapGLInternalFormat(internalFormat), width, height, numLayers));
+	return tex;
+};
+
+var Texture3D = function(gl, format, isCompressed, refTexture) {
+	Texture2D.call(this, gl, format, isCompressed, refTexture);
+};
+
+Texture3D.prototype = Object.create(Texture2D.prototype);
+Texture3D.prototype.constructor = Texture3D;
+
+Texture3D.prototype.upload = function() {
+	if (!gl.texImage3D)
+		throw new Error("gl.TexImage3D() is not supported");
+
+	gl.bindTexture(gl.TEXTURE_3D, m_glTexture);
+	gl.pixelStorei(gl.UNPACK_ALIGNMENT, computePixelStore(this.m_refTexture.getFormat()));
+	GLU_EXPECT_NO_ERROR(gl.getError(), "Texture upload failed");
+
+	var transferFormat = gluTextureUtil.getTransferFormat(this.m_refTexture.getFormat());
+
+	for (var levelNdx = 0; levelNdx < this.m_refTexture.getNumLevels(); levelNdx++)	{
+		if (this.m_refTexture.isLevelEmpty(levelNdx))
+			continue; // Don't upload.
+
+		/*tcu::ConstPixelBufferAccess*/ var access = this.m_refTexture.getLevel(levelNdx);
+		DE_ASSERT(access.getRowPitch() == access.getFormat().getPixelSize()*access.getWidth());
+		DE_ASSERT(access.getSlicePitch() == access.getFormat().getPixelSize()*access.getWidth()*access.getHeight());
+		gl.texImage3D(gl.TEXTURE_3D, levelNdx, this.m_format, access.getWidth(), access.getHeight(), access.getDepth(), 0 /* border */, transferFormat.format, transferFormat.dataType, access.getDataPtr());
+	}
+
+	assertMsgOptions(gl.getError() === gl.NO_ERROR, "Texture upload failed", false, true);
+};
+
+var texture3DFromInternalFormat = function(gl, internalFormat, width, height, depth) {
+	var tex = new Texture3D(gl, internalFormat, false, new tcuTexture.Texture3D(gluTextureUtil.mapGLInternalFormat(internalFormat), width, height, depth));
+	return tex;
+};
+
+
 return {
 	Texture2D: Texture2D,
 	TextureCube: TextureCube,
+	Texture2DArray: Texture2DArray,
+	Texture3D: Texture3D,
+	texture2DFromFormat: texture2DFromFormat,
 	texture2DFromInternalFormat: texture2DFromInternalFormat,
-	cubeFromInternalFormat, cubeFromInternalFormat
+	cubeFromInternalFormat, cubeFromInternalFormat,
+	texture2DArrayFromInternalFormat: texture2DArrayFromInternalFormat,
+	texture3DFromInternalFormat: texture3DFromInternalFormat
 };
 
 });
