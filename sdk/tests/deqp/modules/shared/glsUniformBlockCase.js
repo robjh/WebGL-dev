@@ -1793,7 +1793,7 @@ var generateVertexShader = function(sinterface, layout, blockPointers) {
     /** @type {string} */ var src = '';
     //assertMsgOptions(isSupportedGLSLVersion(glslVersion), 'Checking if GLSL version is supported', false, true);
 
-    //TODO: src += glu::getGLSLVersionDeclaration(glslVersion) << "\n";
+    //TODO: src += glu::getGLSLVersionDeclaration(glslVersion) + "\n";
     src += 'in highp vec4 a_position;\n';
     src += 'out mediump float v_vtxResult;\n';
     src += '\n';
@@ -1824,6 +1824,52 @@ var generateVertexShader = function(sinterface, layout, blockPointers) {
     src += generateCompareSrc('result', sinterface, layout, blockPointers, true);
 
     src += '    v_vtxResult = result;\n' +
+           '}\n';
+
+    return src;
+};
+
+/**
+ * generateFragmentShader
+ * @return {string} Used to be an output parameter
+ * @param {ShaderInterface} sinterface
+ * @param {UniformLayout} layout
+ * @param {BlockPointers} blockPointers
+ */
+var generateFragmentShader = function(sinterface, layout, blockPointers) {
+    /** @type {string} */ var src = '';
+    //assertMsgOptions(isSupportedGLSLVersion(glslVersion),'Checking if GLSL version is supported', false, true);
+
+    //TODO: src += glu::getGLSLVersionDeclaration(glslVersion) + "\n";
+    src += 'in mediump float v_vtxResult;\n';
+    src += 'layout(location = 0) out mediump vec4 dEQP_FragColor;\n';
+    src += '\n';
+
+    /** @type {Array.<StructType>} */ var namedStructs = [];
+    sinterface.getNamedStructs(namedStructs);
+    for (var structNdx = 0; structNdx < namedStructs.length; structNdx++) //std::vector<const StructType*>::const_iterator structIter = namedStructs.begin(); structIter != namedStructs.end(); structIter++)
+        src += generateDeclaration_C(namedStructs[structNdx], 0);
+
+    for (var blockNdx = 0; blockNdx < sinterface.getNumUniformBlocks(); blockNdx++)
+    {
+        /** @type {UniformBlock} */ var block = sinterface.getUniformBlock(blockNdx);
+        if (block.getFlags() & UniformFlags.DECLARE_FRAGMENT)
+            src += generateDeclaration(block);
+    }
+
+    // Comparison utilities.
+    src += '\n';
+    src += generateCompareFuncs(sinterface);
+
+    src += '\n' +
+           'void main (void)\n' +
+           '{\n' +
+           '    mediump float result = 1.0;\n';
+
+    // Value compare.
+    src += generateCompareSrc('result', sinterface, layout, blockPointers, false);
+
+    src += '    dEQP_FragColor = vec4(1.0, v_vtxResult, result, 1.0);\n' +
            '}\n';
 
     return src;
@@ -1868,10 +1914,9 @@ var generateVertexShader = function(sinterface, layout, blockPointers) {
 
     // Generate shaders and build program.
     /** @type {string} */ var vtxSrc = generateVertexShader(this.m_interface, refLayout, blockPointers);
-    assertMsgOptions(true, '\n\n' + vtxSrc, true, true);
-    ///** @type {string} */ var fragSrc = '';
+    /** @type {string} */ var fragSrc = generateFragmentShader(this.m_interface, refLayout, blockPointers);
 
-//     generateFragmentShader(fragSrc, m_glslVersion, m_interface, refLayout, blockPointers);
+    assertMsgOptions(true, '\n\n' + vtxSrc + '\n\n' + fragSrc, true, true);
 //
 //     glu::ShaderProgram program(m_renderCtx, glu::makeVtxFragSources(vtxSrc.str(), fragSrc.str()));
 //     log << program;
