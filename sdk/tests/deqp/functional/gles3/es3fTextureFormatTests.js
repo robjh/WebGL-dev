@@ -156,14 +156,14 @@ Texture2DFormatCase.prototype.iterate = function() {
 
 	GLU_EXPECT_NO_ERROR(gl.getError(), "glReadPixels()");
 
-	if (1) {
-		console.log('Dumping array length: ' + renderedFrame.getAccess().getDataPtr().length);
+	if (0) {
+		console.log('Dumping result array length: ' + renderedFrame.getAccess().getDataPtr().length);
 		console.log(renderedFrame.getAccess().getDataPtr());
 		console.log(renderedFrame.getAccess());
 		for (var y = 0; y < renderedFrame.getHeight(); y+=37) {
 			for (var x = 0; x < renderedFrame.getWidth(); x+=37) {
 				var p = renderedFrame.getPixel(x, y);
-	    		var output = '(' + x + ',' + y + ') = (' + p[0] + ',' + p[1] + ',' + p[2] +')';
+	    		var output = '(' + x + ',' + y + ') = (' + p[0] + ',' + p[1] + ',' + p[2] + ',' + p[3] +')';
 	    		console.log(output);
 			}
 		}
@@ -174,12 +174,13 @@ Texture2DFormatCase.prototype.iterate = function() {
 		this.m_texture.getRefTexture(), texCoord, renderParams);
 
 	if (0) {
+		console.log('Dumping reference array length: ' + referenceFrame.getAccess().getDataPtr().length);
 		for (var y = 0; y < referenceFrame.getHeight(); y+=37) {
 			for (var x = 0; x < referenceFrame.getWidth(); x+=37) {
 				var p = referenceFrame.getPixel(x, y);
-				p[1] += 4;
+				// p[1] += 4;
 				referenceFrame.setPixel(x, y, p);
-	    		var output = '(' + x + ',' + y + ') = (' + p[0] + ',' + p[1] + ',' + p[2] +')';
+	    		var output = '(' + x + ',' + y + ') = (' + p[0] + ',' + p[1] + ',' + p[2] + ',' + p[3] + ')';
 	    		console.log(output);
 			}
 		}
@@ -251,8 +252,7 @@ TextureCubeFormatCase.prototype.init = function() {
 TextureCubeFormatCase.prototype.testFace = function(face) {
 	/* TODO: Implement */	
 
-	// var viewport	= new glsTextureTestUtil.RandomViewport(canvas, this.m_width, this.m_height/*, deStringHash(getName())*/);
-	var viewport	= new glsTextureTestUtil.RandomViewport(canvas, 200, 200/*, deStringHash(getName())*/);
+	var viewport	= new glsTextureTestUtil.RandomViewport(canvas, this.m_width, this.m_height/*, deStringHash(getName())*/);
 
 	/* tcu::Surface	 */	var	renderedFrame	= new tcuSurface.Surface(viewport.width, viewport.height);
 	/* tcu::Surface	 */	var	referenceFrame	= new tcuSurface.Surface(viewport.width, viewport.height);
@@ -334,7 +334,7 @@ TextureCubeFormatCase.prototype.testFace = function(face) {
 
 	GLU_EXPECT_NO_ERROR(gl.getError(), "glReadPixels()");
 
-	if (1) {
+	if (0) {
 		console.log('Dumping array length: ' + renderedFrame.getAccess().getDataPtr().length);
 		console.log(renderedFrame.getAccess().getDataPtr());
 		console.log(renderedFrame.getAccess());
@@ -353,7 +353,7 @@ TextureCubeFormatCase.prototype.testFace = function(face) {
 	glsTextureTestUtil.sampleTextureCube(new glsTextureTestUtil.SurfaceAccess(referenceFrame, undefined /*m_renderCtx.getRenderTarget().getPixelFormat()*/),
 		this.m_texture.getRefTexture(), texCoord, renderParams);
 
-	if (1) {
+	if (0) {
 		for (var y = 0; y < referenceFrame.getHeight(); y+=37) {
 			for (var x = 0; x < referenceFrame.getWidth(); x+=37) {
 				var p = referenceFrame.getPixel(x, y);
@@ -366,7 +366,7 @@ TextureCubeFormatCase.prototype.testFace = function(face) {
 	// Compare and log.
 	var isOk = glsTextureTestUtil.compareImages(referenceFrame, renderedFrame, threshold);
 
-	assertMsgOptions(isOk, 'Image comparison', true, true);
+	assertMsgOptions(isOk, 'Face: ' + this.m_curFace + ' ' + testDescription(), true, true);
 	return isOk;
 };
 
@@ -379,10 +379,7 @@ TextureCubeFormatCase.prototype.iterate = function() {
 	this.m_curFace += 1;
 
 	if (this.m_curFace == tcuTexture.CubeFace.TOTAL_FACES)
-	{
-		assertMsgOptions(this.m_isOk, 'Image comparison', true, true);
 		return true;
-	}
 	else
 		return false;
 };
@@ -428,8 +425,7 @@ Texture2DArrayFormatCase.prototype.init = function() {
 Texture2DArrayFormatCase.prototype.testLayer = function(layerNdx) {
 	/* TODO: Implement */	
 
-	// var viewport	= new glsTextureTestUtil.RandomViewport(canvas, this.m_width, this.m_height/*, deStringHash(getName())*/);
-	var viewport	= new glsTextureTestUtil.RandomViewport(canvas, 200, 200/*, deStringHash(getName())*/);
+	var viewport	= new glsTextureTestUtil.RandomViewport(canvas, this.m_width, this.m_height/*, deStringHash(getName())*/);
 
 	/* tcu::Surface	 */	var	renderedFrame	= new tcuSurface.Surface(viewport.width, viewport.height);
 	/* tcu::Surface	 */	var	referenceFrame	= new tcuSurface.Surface(viewport.width, viewport.height);
@@ -508,7 +504,7 @@ Texture2DArrayFormatCase.prototype.testLayer = function(layerNdx) {
 
 	GLU_EXPECT_NO_ERROR(gl.getError(), "glReadPixels()");
 
-	if (1) {
+	if (0) {
 		console.log('Dumping array length: ' + renderedFrame.getAccess().getDataPtr().length);
 		console.log(renderedFrame.getAccess().getDataPtr());
 		console.log(renderedFrame.getAccess());
@@ -527,7 +523,7 @@ Texture2DArrayFormatCase.prototype.testLayer = function(layerNdx) {
 	glsTextureTestUtil.sampleTexture2DArray(new glsTextureTestUtil.SurfaceAccess(referenceFrame, undefined /*m_renderCtx.getRenderTarget().getPixelFormat()*/),
 		this.m_texture.getRefTexture(), texCoord, renderParams);
 
-	if (1) {
+	if (0) {
 		for (var y = 0; y < referenceFrame.getHeight(); y+=37) {
 			for (var x = 0; x < referenceFrame.getWidth(); x+=37) {
 				var p = referenceFrame.getPixel(x, y);
@@ -540,7 +536,7 @@ Texture2DArrayFormatCase.prototype.testLayer = function(layerNdx) {
 	// Compare and log.
 	var isOk = glsTextureTestUtil.compareImages(referenceFrame, renderedFrame, threshold);
 
-	assertMsgOptions(isOk, 'Image comparison', true, true);
+	assertMsgOptions(isOk, 'Layer: ' + this.m_curLayer + ' ' + testDescription, true, true);
 	return isOk;
 };
 
@@ -553,10 +549,7 @@ Texture2DArrayFormatCase.prototype.iterate = function() {
 	this.m_curLayer += 1;
 
 	if (this.m_curLayer == this.m_numLayers)
-	{
-		assertMsgOptions(this.m_isOk, 'Image comparison', true, true);
 		return true;
-	}
 	else
 		return false;
 };
@@ -602,8 +595,7 @@ Texture3DFormatCase.prototype.init = function() {
 Texture3DFormatCase.prototype.testSlice = function(sliceNdx) {
 	/* TODO: Implement */	
 
-	// var viewport	= new glsTextureTestUtil.RandomViewport(canvas, this.m_width, this.m_height/*, deStringHash(getName())*/);
-	var viewport	= new glsTextureTestUtil.RandomViewport(canvas, 200, 200/*, deStringHash(getName())*/);
+	var viewport	= new glsTextureTestUtil.RandomViewport(canvas, this.m_width, this.m_height/*, deStringHash(getName())*/);
 
 	/* tcu::Surface	 */	var	renderedFrame	= new tcuSurface.Surface(viewport.width, viewport.height);
 	/* tcu::Surface	 */	var	referenceFrame	= new tcuSurface.Surface(viewport.width, viewport.height);
@@ -683,7 +675,7 @@ Texture3DFormatCase.prototype.testSlice = function(sliceNdx) {
 
 	GLU_EXPECT_NO_ERROR(gl.getError(), "glReadPixels()");
 
-	if (1) {
+	if (0) {
 		console.log('Dumping array length: ' + renderedFrame.getAccess().getDataPtr().length);
 		console.log(renderedFrame.getAccess().getDataPtr());
 		console.log(renderedFrame.getAccess());
@@ -702,7 +694,7 @@ Texture3DFormatCase.prototype.testSlice = function(sliceNdx) {
 	glsTextureTestUtil.sampleTexture3D(new glsTextureTestUtil.SurfaceAccess(referenceFrame, undefined /*m_renderCtx.getRenderTarget().getPixelFormat()*/),
 		this.m_texture.getRefTexture(), texCoord, renderParams);
 
-	if (1) {
+	if (0) {
 		for (var y = 0; y < referenceFrame.getHeight(); y+=37) {
 			for (var x = 0; x < referenceFrame.getWidth(); x+=37) {
 				var p = referenceFrame.getPixel(x, y);
@@ -715,7 +707,7 @@ Texture3DFormatCase.prototype.testSlice = function(sliceNdx) {
 	// Compare and log.
 	var isOk = glsTextureTestUtil.compareImages(referenceFrame, renderedFrame, threshold);
 
-	assertMsgOptions(isOk, 'Image comparison', true, true);
+	assertMsgOptions(isOk, 'Slice: ' + this.m_curSlice + ' ' + testDescription(), true, true);
 	return isOk;
 };
 
@@ -728,10 +720,7 @@ Texture3DFormatCase.prototype.iterate = function() {
 	this.m_curSlice += 1;
 
 	if (this.m_curSlice >= this.m_depth)
-	{
-		assertMsgOptions(this.m_isOk, 'Image comparison', true, true);
 		return true;
-	}
 	else
 		return false;
 };
@@ -741,6 +730,16 @@ var genTestCases = function(filter) {
 	state.filter = filter;
 	state.testCases = deqpTests.newTest(state.testName, 'Top level');
 	var unsizedGroup = deqpTests.newTest('unsized', 'Unsized formats');
+	var sizedGroup	= deqpTests.newTest("sized",		"Sized formats");
+	var sized2DGroup	= deqpTests.newTest("2d",		"Sized formats (2D)");
+	var sizedCubeGroup	= deqpTests.newTest("cube",		"Sized formats (Cubemap)");
+	var sized2DArrayGroup	= deqpTests.newTest("2d_array",		"Sized formats (2D Array)");
+	var sized3DGroup	= deqpTests.newTest("3d",		"Sized formats (3D)");
+
+	sizedGroup.addChild(sized2DGroup);
+	sizedGroup.addChild(sizedCubeGroup);
+	sizedGroup.addChild(sized2DArrayGroup);
+	sizedGroup.addChild(sized3DGroup);
 
 	var texFormats = [
 		[ "alpha",							gl.ALPHA,			gl.UNSIGNED_BYTE ],
@@ -793,9 +792,177 @@ var genTestCases = function(filter) {
 														height: 57,
 													})
 		));
+		unsizedGroup.addChild(deqpTests.newTest(nameBase + '_2d_array_pot',
+												descriptionBase + ' gl.TEXTURE_2D_ARRAY',
+												new Texture2DArrayFormatCase({
+														format: format,
+														dataType: dataType,
+														width: 64,
+														height: 64,
+														numLayers: 8 
+													})
+		));
+		unsizedGroup.addChild(deqpTests.newTest(nameBase + '_2d_array_npot',
+												descriptionBase + ' gl.TEXTURE_2D_ARRAY',
+												new Texture2DArrayFormatCase({
+														format: format,
+														dataType: dataType,
+														width: 63,
+														height: 57,
+														numLayers: 7
+													})
+		));
+		unsizedGroup.addChild(deqpTests.newTest(nameBase + '_3d_pot',
+												descriptionBase + ' gl.TEXTURE_3D',
+												new Texture3DFormatCase({
+														format: format,
+														dataType: dataType,
+														width: 8,
+														height: 32,
+														depth: 16,
+													})
+		));
+		unsizedGroup.addChild(deqpTests.newTest(nameBase + '_3d_npot',
+												descriptionBase + ' gl.TEXTURE_3D',
+												new Texture3DFormatCase({
+														format: format,
+														dataType: dataType,
+														width: 11,
+														height: 31,
+														depth: 7
+													})
+		));
+	});
+
+	var sizedColorFormats = [
+		[ "rgba32f",			gl.RGBA32F,			],
+		[ "rgba32i",			gl.RGBA32I,			],
+		[ "rgba32ui",			gl.RGBA32UI,		],
+		[ "rgba16f",			gl.RGBA16F,			],
+		[ "rgba16i",			gl.RGBA16I,			],
+		[ "rgba16ui",			gl.RGBA16UI,		],
+		[ "rgba8",				gl.RGBA8,			],
+		[ "rgba8i",				gl.RGBA8I,			],
+		[ "rgba8ui",			gl.RGBA8UI,			],
+		[ "srgb8_alpha8",		gl.SRGB8_ALPHA8,	],
+		[ "rgb10_a2",			gl.RGB10_A2,		],
+		[ "rgb10_a2ui",			gl.RGB10_A2UI,		],
+		[ "rgba4",				gl.RGBA4,			],
+		[ "rgb5_a1",			gl.RGB5_A1,			],
+		[ "rgba8_snorm",		gl.RGBA8_SNORM,		],
+		[ "rgb8",				gl.RGB8,			],
+		[ "rgb565",				gl.RGB565,			],
+		[ "r11f_g11f_b10f",		gl.R11F_G11F_B10F,	],
+		[ "rgb32f",				gl.RGB32F,			],
+		[ "rgb32i",				gl.RGB32I,			],
+		[ "rgb32ui",			gl.RGB32UI,			],
+		[ "rgb16f",				gl.RGB16F,			],
+		[ "rgb16i",				gl.RGB16I,			],
+		[ "rgb16ui",			gl.RGB16UI,			],
+		[ "rgb8_snorm",			gl.RGB8_SNORM,		],
+		[ "rgb8i",				gl.RGB8I,			],
+		[ "rgb8ui",				gl.RGB8UI,			],
+		[ "srgb8",				gl.SRGB8,			],
+		[ "rgb9_e5",			gl.RGB9_E5,			],
+		[ "rg32f",				gl.RG32F,			],
+		[ "rg32i",				gl.RG32I,			],
+		[ "rg32ui",				gl.RG32UI,			],
+		[ "rg16f",				gl.RG16F,			],
+		[ "rg16i",				gl.RG16I,			],
+		[ "rg16ui",				gl.RG16UI,			],
+		[ "rg8",				gl.RG8,				],
+		[ "rg8i",				gl.RG8I,			],
+		[ "rg8ui",				gl.RG8UI,			],
+		[ "rg8_snorm",			gl.RG8_SNORM,		],
+		[ "r32f",				gl.R32F,			],
+		[ "r32i",				gl.R32I,			],
+		[ "r32ui",				gl.R32UI,			],
+		[ "r16f",				gl.R16F,			],
+		[ "r16i",				gl.R16I,			],
+		[ "r16ui",				gl.R16UI,			],
+		[ "r8",					gl.R8,				],
+		[ "r8i",				gl.R8I,				],
+		[ "r8ui",				gl.R8UI,			],
+		[ "r8_snorm",			gl.R8_SNORM,		]
+	];
+
+	sizedColorFormats.forEach(function(elem) {
+		var internalFormat = elem[1];
+		var nameBase = elem[0];
+		var descriptionBase = gluStrUtil.getPixelFormatName(internalFormat);
+		sized2DGroup.addChild(deqpTests.newTest(nameBase + '_pot',
+												descriptionBase + ' gl.TEXTURE_2D',
+												new Texture2DFormatCase({
+														format: internalFormat,
+														width: 128,
+														height: 128,
+													})
+		));
+		sized2DGroup.addChild(deqpTests.newTest(nameBase + '_npot',
+												descriptionBase + ' gl.TEXTURE_2D',
+												new Texture2DFormatCase({
+														format: internalFormat,
+														width: 63,
+														height: 112,
+													})
+		));
+		sizedCubeGroup.addChild(deqpTests.newTest(nameBase + '_pot',
+												descriptionBase + ' gl.TEXTURE_CUBE_MAP',
+												new TextureCubeFormatCase({
+														format: internalFormat,
+														width: 64,
+														height: 64,
+													})
+		));
+		sizedCubeGroup.addChild(deqpTests.newTest(nameBase + '_npot',
+												descriptionBase + ' gl.TEXTURE_CUBE_MAP',
+												new TextureCubeFormatCase({
+														format: internalFormat,
+														width: 57,
+														height: 57,
+													})
+		));
+		sized2DArrayGroup.addChild(deqpTests.newTest(nameBase + '_pot',
+												descriptionBase + ' gl.TEXTURE_2D_ARRAY',
+												new Texture2DArrayFormatCase({
+														format: internalFormat,
+														width: 64,
+														height: 64,
+														numLayers: 8 
+													})
+		));
+		sized2DArrayGroup.addChild(deqpTests.newTest(nameBase + '_npot',
+												descriptionBase + ' gl.TEXTURE_2D_ARRAY',
+												new Texture2DArrayFormatCase({
+														format: internalFormat,
+														width: 63,
+														height: 57,
+														numLayers: 7
+													})
+		));
+		sized3DGroup.addChild(deqpTests.newTest(nameBase + '_pot',
+												descriptionBase + ' gl.TEXTURE_3D',
+												new Texture3DFormatCase({
+														format: internalFormat,
+														width: 8,
+														height: 32,
+														depth: 16,
+													})
+		));
+		sized3DGroup.addChild(deqpTests.newTest(nameBase + '_npot',
+												descriptionBase + ' gl.TEXTURE_3D',
+												new Texture3DFormatCase({
+														format: internalFormat,
+														width: 11,
+														height: 31,
+														depth: 7
+													})
+		));
+
 	});
 
 	state.testCases.addChild(unsizedGroup);
+	state.testCases.addChild(sizedGroup);
 };
 
 var runTestCases = function() {

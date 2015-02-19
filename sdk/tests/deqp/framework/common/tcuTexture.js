@@ -667,9 +667,9 @@ var  ConstPixelBufferAccess = function(descriptor) {
 	for (var c = 0; c < 4; c++)
 	{
 		var map = channelMap[c];
-		if (map == channelMap.ZERO)
+		if (map == channel.ZERO)
 			result[c] = 0;
-		else if (map == channelMap.ONE)
+		else if (map == channel.ONE)
 			result[c] = 1;
 		else
 			result[c] = channelToFloat(pixelPtr[map], this.m_format.type);
@@ -744,9 +744,9 @@ var  ConstPixelBufferAccess = function(descriptor) {
 	for (var c = 0; c < 4; c++)
 	{
 		var map = channelMap[c];
-		if (map == channelMap.ZERO)
+		if (map == channel.ZERO)
 			result[c] = 0;
-		else if (map == channelMap.ONE)
+		else if (map == channel.ONE)
 			result[c] = 1;
 		else
 			result[c] = channelToInt(pixelPtr[map], this.m_format.type);

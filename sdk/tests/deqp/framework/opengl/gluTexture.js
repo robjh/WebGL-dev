@@ -140,6 +140,11 @@ TextureCube.prototype.upload = function() {
 	assertMsgOptions(gl.getError() === gl.NO_ERROR, "Texture upload failed", false, true);
 };
 
+var cubeFromFormat = function(gl, format, dataType, size) {
+	var tex = new TextureCube(gl, format, false, new tcuTexture.TextureCube(gluTextureUtil.mapGLTransferFormat(format, dataType), size));
+	return tex;
+};
+
 var cubeFromInternalFormat = function(gl, internalFormat, size) {
 	var tex = new TextureCube(gl, internalFormat, false, new tcuTexture.TextureCube(gluTextureUtil.mapGLInternalFormat(internalFormat), size));
 	return tex;
@@ -173,6 +178,11 @@ Texture2DArray.prototype.upload = function() {
 	}
 
 	assertMsgOptions(gl.getError() === gl.NO_ERROR, "Texture upload failed", false, true);
+};
+
+var texture2DArrayFromFormat = function(gl, format, dataType, width, height, numLayers) {
+	var tex = new Texture2DArray(gl, format, false, new tcuTexture.Texture2DArray(gluTextureUtil.mapGLTransferFormat(format, dataType), width, height, numLayers));
+	return tex;
 };
 
 var texture2DArrayFromInternalFormat = function(gl, internalFormat, width, height, numLayers) {
@@ -210,6 +220,11 @@ Texture3D.prototype.upload = function() {
 	assertMsgOptions(gl.getError() === gl.NO_ERROR, "Texture upload failed", false, true);
 };
 
+var texture3DFromFormat = function(gl, format, dataType, width, height, depth) {
+	var tex = new Texture3D(gl, format, false, new tcuTexture.Texture3D(gluTextureUtil.mapGLTransferFormat(format, dataType), width, height, depth));
+	return tex;
+};
+
 var texture3DFromInternalFormat = function(gl, internalFormat, width, height, depth) {
 	var tex = new Texture3D(gl, internalFormat, false, new tcuTexture.Texture3D(gluTextureUtil.mapGLInternalFormat(internalFormat), width, height, depth));
 	return tex;
@@ -223,8 +238,11 @@ return {
 	Texture3D: Texture3D,
 	texture2DFromFormat: texture2DFromFormat,
 	texture2DFromInternalFormat: texture2DFromInternalFormat,
+	cubeFromFormat: cubeFromFormat,
 	cubeFromInternalFormat, cubeFromInternalFormat,
+	texture2DArrayFromFormat: texture2DArrayFromFormat,
 	texture2DArrayFromInternalFormat: texture2DArrayFromInternalFormat,
+	texture3DFromFormat: texture3DFromFormat,
 	texture3DFromInternalFormat: texture3DFromInternalFormat
 };
 
