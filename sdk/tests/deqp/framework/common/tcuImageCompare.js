@@ -18,34 +18,52 @@
  *
  */
 
-define(function() {
+define(['framework/common/tcuSurface'], function(tcuSurface) {
 
-var addCanvas = function(id, width, height) {
+var displayResultPane = function(id, width, height) {
+	displayResultPane.counter = displayResultPane.counter || 0;
+	var i = displayResultPane.counter++;
 	var elem = document.getElementById(id);
-	var canvas = document.createElement("canvas");
-	elem.appendChild(canvas);
-	canvas.width = width;
-	canvas.height = height;
-	var ctx = canvas.getContext('2d');
-	return ctx;
+	var span = document.createElement("span");
+	elem.appendChild(span);
+	span.innerHTML = '<table><tr><td>Result</td><td>Reference</td><td>Error mask</td></tr>' + 
+							'<tr><td><canvas id="result' + i + '" width=' + width + ' height=' + height +'</td><td><canvas id="reference' + i +'" width=' + width + ' height=' + height +'</td><td><canvas id="diff' + i +'" width=' + width + ' height=' + height +'</td>' +
+					 '</table>';
+	var canvasResult = document.getElementById('result' + i);
+	var ctxResult = canvasResult.getContext('2d');
+	var canvasRef = document.getElementById('reference' + i);
+	var ctxRef = canvasRef.getContext('2d');
+	var canvasDiff = document.getElementById('diff' + i);
+	var ctxDiff = canvasDiff.getContext('2d');
+	return [ctxResult, ctxRef, ctxDiff];
 };
 
-var displayImage = function(/*const ConstPixelBufferAccess&*/ image) {
-	var w = image.getWidth();
-	var h = image.getHeight();
-	var ctx = addCanvas('console', w, h);
-	var imgData = ctx.createImageData(w, h);
-	var index = 0;
-	for (var y = 0; y < h; y++) {
-		for (var x = 0; x < w; x++)	{	
-			var	pixel = image.getPixelInt(x, y, 0);
-			for (var i = 0; i < 4; i++) {
-				imgData.data[index] = pixel[i]; 
-				index = index + 1;
+var displayImages = function(result, reference, diff) {
+	var createImage = function(ctx, src) {
+		var w = src.getWidth();
+		var h = src.getHeight();
+		// var ctx = addCanvas('console', w, h);
+		var imgData = ctx.createImageData(w, h);
+		var index = 0;
+		for (var y = 0; y < h; y++) {
+			for (var x = 0; x < w; x++)	{	
+				var	pixel = src.getPixelInt(x, y, 0);
+				for (var i = 0; i < 4; i++) {
+					imgData.data[index] = pixel[i]; 
+					index = index + 1;
+				}
 			}
 		}
-	}
-	ctx.putImageData(imgData, 0, 0);
+		return imgData;
+	};
+	var w = result.getWidth();
+	var h = result.getHeight();
+
+	var contexts = displayResultPane('console', w, h);
+	contexts[0].putImageData(createImage(contexts[0], result), 0, 0);
+	contexts[1].putImageData(createImage(contexts[1], reference), 0, 0);
+	if (diff)
+		contexts[2].putImageData(createImage(contexts[2], diff), 0, 0);
 };
 
 /*--------------------------------------------------------------------*//*!
@@ -73,14 +91,14 @@ var intThresholdCompare = function(/*const char* */imageSetName, /*const char* *
 	var					width				= reference.getWidth();
 	var					height				= reference.getHeight();
 	var					depth				= reference.getDepth();
-	// TextureLevel		errorMaskStorage	(TextureFormat(TextureFormat::RGB, TextureFormat::UNORM_INT8), width, height, depth);
-	// PixelBufferAccess	errorMask			= errorMaskStorage.getAccess();
+	var errorMask = new tcuSurface.Surface(width, height);
+
 	var				maxDiff				= [0, 0, 0, 0];
 	var				pixelBias			= [0, 0, 0, 0];
 	var				pixelScale			= [1, 1, 1, 1];
 
 	assertMsgOptions(result.getWidth() == width && result.getHeight() == height && result.getDepth() == depth,
-		'Reference and result images have different dimension', false, true);
+		'Reference and result images have different dimensions', false, true);
 
 	
 	for (var z = 0; z < depth; z++)	{
@@ -94,8 +112,10 @@ var intThresholdCompare = function(/*const char* */imageSetName, /*const char* *
 
 
 				maxDiff = maxDiff.max(diff);
-
-				// errorMask.setPixel(isOk ? IVec4(0, 0xff, 0, 0xff) : IVec4(0xff, 0, 0, 0xff), x, y, z);
+				var color = [0, 255, 0, 255];
+				if (!isOk)
+					color = [255, 0, 0, 255];
+				errorMask.setPixel(x, y, color);
 			}
 		}
 	}
@@ -103,41 +123,9 @@ var intThresholdCompare = function(/*const char* */imageSetName, /*const char* *
 	var compareOk = maxDiff.lessThanEqual(threshold).boolAll();
 
 	if (!compareOk) {
-		debug('Result image');
-		displayImage(result);
-		debug('<br>Reference image');
-		displayImage(reference);
-		debug('<br>Images differ');
+		debug("Image comparison failed: max difference = " + maxDiff + ", threshold = " + threshold);
+		displayImages(result, reference, errorMask.getAccess());
 	}
-
-	// if (!compareOk || logMode == COMPARE_LOG_EVERYTHING)
-	// {
-	// 	// All formats except normalized unsigned fixed point ones need remapping in order to fit into unorm channels in logged images.
-	// 	if (tcu::getTextureChannelClass(reference.getFormat().type)	!= tcu::TEXTURECHANNELCLASS_UNSIGNED_FIXED_POINT ||
-	// 		tcu::getTextureChannelClass(result.getFormat().type)	!= tcu::TEXTURECHANNELCLASS_UNSIGNED_FIXED_POINT)
-	// 	{
-	// 		computeScaleAndBias(reference, result, pixelScale, pixelBias);
-	// 		log << TestLog::Message << "Result and reference images are normalized with formula p * " << pixelScale << " + " << pixelBias << TestLog::EndMessage;
-	// 	}
-
-	// 	if (!compareOk)
-	// 		log << TestLog::Message << "Image comparison failed: max difference = " << maxDiff << ", threshold = " << threshold << TestLog::EndMessage;
-
-	// 	log << TestLog::ImageSet(imageSetName, imageSetDesc)
-	// 		<< TestLog::Image("Result",		"Result",		result,		pixelScale, pixelBias)
-	// 		<< TestLog::Image("Reference",	"Reference",	reference,	pixelScale, pixelBias)
-	// 		<< TestLog::Image("ErrorMask",	"Error mask",	errorMask)
-	// 		<< TestLog::EndImageSet;
-	// }
-	// else if (logMode == COMPARE_LOG_RESULT)
-	// {
-	// 	if (result.getFormat() != TextureFormat(TextureFormat::RGBA, TextureFormat::UNORM_INT8))
-	// 		computePixelScaleBias(result, pixelScale, pixelBias);
-
-	// 	log << TestLog::ImageSet(imageSetName, imageSetDesc)
-	// 		<< TestLog::Image("Result",		"Result",		result,		pixelScale, pixelBias)
-	// 		<< TestLog::EndImageSet;
-	// }
 
 	return compareOk;
 };
