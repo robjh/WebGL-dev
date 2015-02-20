@@ -21,6 +21,11 @@
 define(function() {
     'use strict';
 
+var DE_ASSERT = function(x) {
+    if (!x)
+        throw new Error('Assert failed');
+};
+
 /**
  * ShadingLanguageVersion
  * @enum
@@ -31,6 +36,39 @@ var GLSLVersion = {
 };
 
 GLSLVersion.V_LAST = Object.keys(GLSLVersion).length;
+
+/**
+ * getGLSLVersion - Returns a GLSLVersion based on a given webgl context.
+ * @param {WebGLRenderingContext} gl
+ * @return {GLSLVersion}
+ */
+var getGLSLVersion = function(gl) {
+    var webglversion = gl.getParameter(gl.VERSION);
+    switch (webglversion)
+    {
+        case 'WebGL 1.0': return GLSLVersion.V100_ES;
+        case 'WebGL 2.0': return GLSLVersion.V300_ES;
+        default: DE_ASSERT(false);
+    }
+};
+
+/**
+ * getGLSLVersionDeclaration - Returns a string declaration for the glsl version in a shader.
+ * @param {GLSLVersion} version
+ * @return {string}
+ */
+var getGLSLVersionDeclaration = function(version) {
+    /** @type {Array.<string>} */ var s_decl =
+    [
+        '#version 100',
+        '#version 300 es'
+    ];
+
+    if (version > s_decl.length - 1)
+        DE_ASSERT(false);
+
+    return s_decl[version];
+};
 
 /**
  * @enum
@@ -481,6 +519,9 @@ var getDataTypeName = function(dataType)  {
 };
 
 return {
+    GLSLVersion: GLSLVersion,
+    getGLSLVersion: getGLSLVersion,
+    getGLSLVersionDeclaration: getGLSLVersionDeclaration,
     precision: precision,
     getPrecisionName: getPrecisionName,
     deUint32_size: deUint32_size,
