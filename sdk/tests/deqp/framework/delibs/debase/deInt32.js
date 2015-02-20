@@ -49,122 +49,141 @@ var deAlign32 = function(val, align) {
     return ((val + align - 1) & ~(align - 1)) & 0xFFFFFFFF; //0xFFFFFFFF make sure it returns a 32 bit calculation in 64 bit browsers.
 };
 
-Number.prototype.clamp = function(min, max) {
-    return Math.max(min, Math.min(this, max));
+var clamp = function(val, min, max) {
+    return Math.max(min, Math.min(val, max));
 };
 
-Number.prototype.imod = function(b) {
-    var m = this % b;
+var imod = function(a, b) {
+    var m = a % b;
     return m < 0 ? m + b : m;
 };
 
-Number.prototype.mirror = function() {
-    return this >= 0 ? this : -(1 + this);
+var mirror = function(a) {
+    return a >= 0 ? a : -(1 + a);
 };
 
 /**
- * @param {Array.<Number>} indices
- * @return {Array.<Number>}
+ * @param {Array<Number} a Source array
+ * @param {Array<Number>} indices
+ * @return {Array<Number>} Swizzled array
  */
-Array.prototype.swizzle = function(indices) {
+var swizzle = function(a, indices) {
     if (!indices.length)
         throw new Error('Argument must be an array');
     var dst = [];
     for (var i = 0; i < indices.length; i++)
-        dst.push(this[indices[i]]);
-    return dst;
-};
-
-Array.prototype.multiply = function(a) {
-    if (this.length != a.length)
-        throw new Error('Arrays must have the same size');
-    var dst = [];
-    for (var i = 0; i < this.length; i++)
-        dst.push(this[i] * a[i]);
-    return dst;
-};
-
-Array.prototype.add = function(a) {
-    if (this.length != a.length)
-        throw new Error('Arrays must have the same size');
-    var dst = [];
-    for (var i = 0; i < this.length; i++)
-        dst.push(this[i] + a[i]);
-    return dst;
-};
-
-Array.prototype.subtract = function(a) {
-    if (this.length != a.length)
-        throw new Error('Arrays must have the same size');
-    var dst = [];
-    for (var i = 0; i < this.length; i++)
-        dst.push(this[i] - a[i]);
+        dst.push(a[indices[i]]);
     return dst;
 };
 
 /**
- * @return {Array} abs(diff(this - a))
+ * Multiply two vectors, element by element
+ * @param {Array<Number} a
+ * @param {Array<Number} b
+ * @return {Array<Number>} Result array
  */
-Array.prototype.absDiff = function(a) {
-    if (this.length != a.length)
+
+var multiply = function(a, b) {
+    if (a.length != b.length)
         throw new Error('Arrays must have the same size');
     var dst = [];
-    for (var i = 0; i < this.length; i++)
-        dst.push(Math.abs(this[i] - a[i]));
+    for (var i = 0; i < a.length; i++)
+        dst.push(a[i] * b[i]);
     return dst;
 };
 
-Array.prototype.lessThanEqual = function(a) {
-    if (this.length != a.length)
+/**
+ * Add two vectors, element by element
+ * @param {Array<Number} a
+ * @param {Array<Number} b
+ * @return {Array<Number>} Result array
+ */
+
+var add = function(a, b) {
+    if (a.length != b.length)
         throw new Error('Arrays must have the same size');
     var dst = [];
-    for (var i = 0; i < this.length; i++)
-        dst.push(this[i] <= a[i]);
+    for (var i = 0; i < a.length; i++)
+        dst.push(a[i] + b[i]);
     return dst;
 };
 
-Array.prototype.boolAll = function() {
-    for (var i = 0; i < this.length; i++)
-        if (this[i] == false)
+/**
+ * Subtract two vectors, element by element
+ * @param {Array<Number} a
+ * @param {Array<Number} b
+ * @return {Array<Number>} Result array
+ */
+
+var subtract = function(a, b) {
+    if (a.length != b.length)
+        throw new Error('Arrays must have the same size');
+    var dst = [];
+    for (var i = 0; i < a.length; i++)
+        dst.push(a[i] - b[i]);
+    return dst;
+};
+
+/**
+ * Calculate absolute difference between two vectors
+ * @param {Array<Number} a
+ * @param {Array<Number} b
+ * @return {Array<Number>} abs(diff(a - b))
+ */
+var absDiff = function(a, b) {
+    if (a.length != b.length)
+        throw new Error('Arrays must have the same size');
+    var dst = [];
+    for (var i = 0; i < a.length; i++)
+        dst.push(Math.abs(a[i] - b[i]));
+    return dst;
+};
+
+/**
+ * Is a <= b (element by element)?
+ * @param {Array<Number} a
+ * @param {Array<Number} b
+ * @return {Array<boolean>} Result array of booleans
+ */
+var lessThanEqual = function(a, b) {
+    if (a.length != b.length)
+        throw new Error('Arrays must have the same size');
+    var dst = [];
+    for (var i = 0; i < a.length; i++)
+        dst.push(a[i] <= b[i]);
+    return dst;
+};
+
+/**
+ * Are all values in the array true?
+ * @param {Array<Number} a
+ * @return {boolean}
+ */
+
+var boolAll = function(a) {
+    for (var i = 0; i < a.length; i++)
+        if (a[i] == false)
             return false;
     return true;
 };
 
-Array.prototype.max = function(a) {
-    if (this.length != a.length)
+/**
+ * max(a, b) element by element
+ * @param {Array<Number} a
+ * @param {Array<Number} b
+ * @return {Array<Number>}
+ */
+var max = function(a, b) {
+    if (a.length != b.length)
         throw new Error('Arrays must have the same size');
     var dst = [];
-    for (var i = 0; i < this.length; i++)
-        dst.push(Math.max(this[i], a[i]));
+    for (var i = 0; i < a.length; i++)
+        dst.push(Math.max(a[i], b[i]));
     return dst;
 };
 
-Array.prototype.x = function() {
-    if (this.length < 1)
-        throw new Error('Array too small');
-    return this[0];
-};
-
-Array.prototype.y = function() {
-    if (this.length < 2)
-        throw new Error('Array too small');
-    return this[1];
-};
-
-Array.prototype.z = function() {
-    if (this.length < 3)
-        throw new Error('Array too small');
-    return this[2];
-};
-
-Array.prototype.w = function() {
-    if (this.length < 4)
-        throw new Error('Array too small');
-    return this[3];
-};
-
 // Nearest-even rounding in case of tie (fractional part 0.5), otherwise ordinary rounding.
-Math.rint = function(a) {
+var rint = function(a) {
     var floorVal = Math.floor(a);
     var fracVal = a - floorVal;
 
@@ -180,7 +199,19 @@ Math.rint = function(a) {
         deInRange32: deInRange32,
         deInBounds32: deInBounds32,
         deAlign32: deAlign32,
-        deIsPowerOfTwo32: deIsPowerOfTwo32
+        deIsPowerOfTwo32: deIsPowerOfTwo32,
+        clamp: clamp,
+        imod: imod,
+        mirror: mirror,
+        swizzle:swizzle,
+        multiply: multiply,
+        add: add,
+        subtract: subtract,
+        absDiff: absDiff,
+        lessThanEqual: lessThanEqual,
+        boolAll: boolAll,
+        max: max,
+        rint: rint
     };
 });
 

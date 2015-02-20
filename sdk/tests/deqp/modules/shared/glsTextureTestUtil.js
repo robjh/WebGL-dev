@@ -213,32 +213,45 @@ var computeQuadTexCoord2DArray = function(/*int*/ layerNdx, /*const tcu::Vec2&*/
 	var dst = [];
 	dst.length = 4*3;
 
-	dst[0] = bottomLeft.x();	dst[ 1] = bottomLeft.y();	dst[ 2] = layerNdx;
-	dst[3] = bottomLeft.x();	dst[ 4] = topRight.y();		dst[ 5] = layerNdx;
-	dst[6] = topRight.x();		dst[ 7] = bottomLeft.y();	dst[ 8] = layerNdx;
-	dst[9] = topRight.x();		dst[10] = topRight.y();		dst[11] = layerNdx;
+	dst[0] = bottomLeft[0];	dst[ 1] = bottomLeft[1];	dst[ 2] = layerNdx;
+	dst[3] = bottomLeft[0];	dst[ 4] = topRight[1];		dst[ 5] = layerNdx;
+	dst[6] = topRight[0];		dst[ 7] = bottomLeft[1];	dst[ 8] = layerNdx;
+	dst[9] = topRight[0];		dst[10] = topRight[1];		dst[11] = layerNdx;
 
 	return dst;
+};
+
+/**
+ * @param {Array<Number>} a
+ * @param {Array<Number>} b
+ * @param {Array<Number>} c
+ * @return {Array<Number>} a + (b - a) * c
+ */
+var selectCoords = function(a, b, c) {
+	var x1 = deInt32.subtract(b, a);
+	var x2 = deInt32.multiply(x1, c);
+	var x3 = deInt32.add(a, x2);
+	return x3;
 };
 
 var computeQuadTexCoord3D = function(/*const tcu::Vec3&*/ p0, /*const tcu::Vec3&*/ p1, /*const tcu::IVec3&*/ dirSwz) {
 	var dst = [];
 	dst.length = 4*3;
 
-	var f0 = ([0, 0, 0]).swizzle([dirSwz[0], dirSwz[1], dirSwz[2]]);
-	var f1 = ([0, 1, 0]).swizzle([dirSwz[0], dirSwz[1], dirSwz[2]]);
-	var f2 = ([1, 0, 0]).swizzle([dirSwz[0], dirSwz[1], dirSwz[2]]);
-	var f3 = ([1, 1, 0]).swizzle([dirSwz[0], dirSwz[1], dirSwz[2]]);
+	var f0 = deInt32.swizzle(([0, 0, 0]), [dirSwz[0], dirSwz[1], dirSwz[2]]);
+	var f1 = deInt32.swizzle(([0, 1, 0]), [dirSwz[0], dirSwz[1], dirSwz[2]]);
+	var f2 = deInt32.swizzle(([1, 0, 0]), [dirSwz[0], dirSwz[1], dirSwz[2]]);
+	var f3 = deInt32.swizzle(([1, 1, 0]), [dirSwz[0], dirSwz[1], dirSwz[2]]);
 
-	var v0 = p0.add((p1.subtract(p0)).multiply(f0));
-	var v1 = p0.add((p1.subtract(p0)).multiply(f1));
-	var v2 = p0.add((p1.subtract(p0)).multiply(f2));
-	var v3 = p0.add((p1.subtract(p0)).multiply(f3));
+	var v0 = selectCoords(p0, p1, f0);
+	var v1 = selectCoords(p0, p1, f1);
+	var v2 = selectCoords(p0, p1, f2);
+	var v3 = selectCoords(p0, p1, f3);
 
-	dst[0] = v0.x(); dst[ 1] = v0.y(); dst[ 2] = v0.z();
-	dst[3] = v1.x(); dst[ 4] = v1.y(); dst[ 5] = v1.z();
-	dst[6] = v2.x(); dst[ 7] = v2.y(); dst[ 8] = v2.z();
-	dst[9] = v3.x(); dst[10] = v3.y(); dst[11] = v3.z();
+	dst[0] = v0[0]; dst[ 1] = v0[1]; dst[ 2] = v0[2];
+	dst[3] = v1[0]; dst[ 4] = v1[1]; dst[ 5] = v1[2];
+	dst[6] = v2[0]; dst[ 7] = v2[1]; dst[ 8] = v2[2];
+	dst[9] = v3[0]; dst[10] = v3[1]; dst[11] = v3[2];
 
 	return dst;
 };
@@ -752,7 +765,7 @@ SurfaceAccess.prototype.setPixel = function(/*const tcu::Vec4&*/ color, x, y) {
 	/* TODO: Apply color mask */
 	var c = color;
 	for (var i = 0; i < c.length; i++)
-		c[i] = Math.round(color[i] * 255).clamp(0, 255);
+		c[i] = deInt32.clamp(Math.round(color[i] * 255), 0, 255);
 	this.m_surface.setPixel(x, y, c);
 };
 
@@ -829,6 +842,12 @@ var execSample = function(/*const tcu::Texture2DView&*/ src, /*const ReferencePa
 		return src.sample(params.sampler, texCoord, lod);
 };
 
+var applyScaleAndBias = function(pixel, scale, bias) {
+	var pixel1 = deInt32.multiply(pixel, scale);
+	var pixel2 = deInt32.add(pixel1, bias);
+	return pixel2;
+};
+
 var sampleTextureNonProjected2D = function(/*const SurfaceAccess&*/ dst, /*const tcu::Texture2DView&*/ src, /*const tcu::Vec4&*/ sq, /*const tcu::Vec4&*/ tq, /*const ReferenceParams&*/ params) {
 	var		lodBias		= params.flags.use_bias ? params.bias : 0;
 
@@ -836,10 +855,10 @@ var sampleTextureNonProjected2D = function(/*const SurfaceAccess&*/ dst, /*const
 	var	srcSize		= [ src.getWidth(), src.getHeight() ];
 
 	// Coordinates and lod per triangle.
-	var	triS		= [ sq.swizzle([0, 1, 2]), sq.swizzle([3, 2, 1]) ];
-	var	triT		= [ tq.swizzle([0, 1, 2]), tq.swizzle([3, 2, 1]) ];
-	var	triLod	= [ (computeNonProjectedTriLod(params.lodMode, dstSize, srcSize, triS[0], triT[0]) + lodBias).clamp(params.minLod, params.maxLod),
-					(computeNonProjectedTriLod(params.lodMode, dstSize, srcSize, triS[1], triT[1]) + lodBias).clamp(params.minLod, params.maxLod) ];
+	var	triS		= [ deInt32.swizzle(sq, [0, 1, 2]), deInt32.swizzle(sq, [3, 2, 1]) ];
+	var	triT		= [ deInt32.swizzle(tq, [0, 1, 2]), deInt32.swizzle(tq, [3, 2, 1]) ];
+	var	triLod	= [ deInt32.clamp((computeNonProjectedTriLod(params.lodMode, dstSize, srcSize, triS[0], triT[0]) + lodBias), params.minLod, params.maxLod),
+					deInt32.clamp((computeNonProjectedTriLod(params.lodMode, dstSize, srcSize, triS[1], triT[1]) + lodBias), params.minLod, params.maxLod) ];
 
 	for (var y = 0; y < dst.getHeight(); y++)
 	{
@@ -856,7 +875,8 @@ var sampleTextureNonProjected2D = function(/*const SurfaceAccess&*/ dst, /*const
 			var	t		= triangleInterpolate(triT[triNdx], triX, triY);
 			var	lod		= triLod[triNdx];
 
-			dst.setPixel(execSample(src, params, [s, t], lod).multiply(params.colorScale).add(params.colorBias), x, y);
+			var pixel  = execSample(src, params, [s, t], lod);
+			dst.setPixel(applyScaleAndBias(pixel, params.colorScale, params.colorBias), x, y);
 		}
 	}
 };
@@ -868,9 +888,9 @@ var sampleTextureNonProjected2DArray = function(/*const SurfaceAccess&*/ dst, /*
 	var	srcSize		= [src.getWidth(), src.getHeight()];
 
 	// Coordinates and lod per triangle.
-	var	triS		= [ sq.swizzle([0, 1, 2]), sq.swizzle([3, 2, 1]) ];
-	var	triT		= [ tq.swizzle([0, 1, 2]), tq.swizzle([3, 2, 1]) ];
-	var	triR		= [ rq.swizzle([0, 1, 2]), rq.swizzle([3, 2, 1]) ];
+	var	triS		= [ deInt32.swizzle(sq, [0, 1, 2]), deInt32.swizzle(sq, [3, 2, 1]) ];
+	var	triT		= [ deInt32.swizzle(tq, [0, 1, 2]), deInt32.swizzle(tq, [3, 2, 1]) ];
+	var	triR		= [ deInt32.swizzle(rq, [0, 1, 2]), deInt32.swizzle(rq, [3, 2, 1]) ];
 	var		triLod	= [ computeNonProjectedTriLod(params.lodMode, dstSize, srcSize, triS[0], triT[0]) + lodBias,
 								computeNonProjectedTriLod(params.lodMode, dstSize, srcSize, triS[1], triT[1]) + lodBias];
 
@@ -888,7 +908,8 @@ var sampleTextureNonProjected2DArray = function(/*const SurfaceAccess&*/ dst, /*
 			var	r		= triangleInterpolate(triR[triNdx], triX, triY);
 			var	lod		= triLod[triNdx];
 
-			dst.setPixel(execSample(src, params, [s, t, r], lod).multiply(params.colorScale).add(params.colorBias), x, y);
+			var pixel  = execSample(src, params, [s, t, r], lod);
+			dst.setPixel(applyScaleAndBias(pixel, params.colorScale, params.colorBias), x, y);
 		}
 	}
 }
@@ -943,15 +964,15 @@ var computeCubeLodFromDerivates = function(/*LodMode*/ lodMode, /*const tcu::Vec
 
 var sampleTextureCube_str = function(/*const SurfaceAccess&*/ dst, /*const tcu::TextureCubeView&*/ src, /*const tcu::Vec4&*/ sq, /*const tcu::Vec4&*/ tq, /*const tcu::Vec4&*/ rq, /*const ReferenceParams&*/ params) {
 	var	dstSize			= [dst.getWidth(), dst.getHeight()];
-	var			dstW			= dstSize.x();
-	var			dstH			= dstSize.y();
+	var			dstW			= dstSize[0];
+	var			dstH			= dstSize[1];
 	var	srcSize			= src.getSize();
 
 	// Coordinates per triangle.
-	var		triS			= [ sq.swizzle([0, 1, 2]), sq.swizzle([3, 2, 1]) ];
-	var		triT			= [ tq.swizzle([0, 1, 2]), tq.swizzle([3, 2, 1]) ];
-	var		triR			= [ rq.swizzle([0, 1, 2]), rq.swizzle([3, 2, 1]) ];
-	var		triW			= [ params.w.swizzle([0, 1, 2]), params.w.swizzle([3, 2, 1]) ];
+	var		triS			= [ deInt32.swizzle(sq, [0, 1, 2]), deInt32.swizzle(sq, [3, 2, 1]) ];
+	var		triT			= [ deInt32.swizzle(tq, [0, 1, 2]), deInt32.swizzle(tq, [3, 2, 1]) ];
+	var		triR			= [ deInt32.swizzle(rq, [0, 1, 2]), deInt32.swizzle(rq, [3, 2, 1]) ];
+	var		triW			= [ deInt32.swizzle(params.w, [0, 1, 2]), deInt32.swizzle(params.w, [3, 2, 1]) ];
 
 	var			lodBias		= (params.flags.use_bias ? params.bias : 0);
 
@@ -975,9 +996,10 @@ var sampleTextureCube_str = function(/*const SurfaceAccess&*/ dst, /*const tcu::
 										 triDerivateY(triT[triNdx], triW[triNdx], wy, dstH, triNx),
 										 triDerivateY(triR[triNdx], triW[triNdx], wy, dstH, triNx)];
 
-			var		lod		= (computeCubeLodFromDerivates(params.lodMode, coord, coordDx, coordDy, srcSize) + lodBias).clamp(params.minLod, params.maxLod);
+			var		lod		= deInt32.clamp((computeCubeLodFromDerivates(params.lodMode, coord, coordDx, coordDy, srcSize) + lodBias), params.minLod, params.maxLod);
 
-			dst.setPixel(execSample(src, params, [coord.x(), coord.y(), coord.z()], lod).multiply(params.colorScale).add(params.colorBias), px, py);
+			var pixel  = execSample(src, params, coord, lod);
+			dst.setPixel(applyScaleAndBias(pixel, params.colorScale, params.colorBias), px, py);
 		}
 	}
 };
@@ -1008,11 +1030,11 @@ var sampleTextureNonProjected3D = function(/*const SurfaceAccess&*/ dst, /*const
 	var	srcSize		= [src.getWidth(), src.getHeight(), src.getDepth()];
 
 	// Coordinates and lod per triangle.
-	var	triS		= [ sq.swizzle([0, 1, 2]), sq.swizzle([3, 2, 1]) ];
-	var	triT		= [ tq.swizzle([0, 1, 2]), tq.swizzle([3, 2, 1]) ];
-	var	triR		= [ rq.swizzle([0, 1, 2]), rq.swizzle([3, 2, 1]) ];
-	var triLod	= [ (computeNonProjectedTriLod(params.lodMode, dstSize, srcSize, triS[0], triT[0], triR[0]) + lodBias).clamp(params.minLod, params.maxLod),
-								(computeNonProjectedTriLod(params.lodMode, dstSize, srcSize, triS[1], triT[1], triR[1]) + lodBias).clamp(params.minLod, params.maxLod) ];
+	var	triS		= [ deInt32.swizzle(sq, [0, 1, 2]), deInt32.swizzle(sq, [3, 2, 1]) ];
+	var	triT		= [ deInt32.swizzle(tq, [0, 1, 2]), deInt32.swizzle(tq, [3, 2, 1]) ];
+	var	triR		= [ deInt32.swizzle(rq, [0, 1, 2]), deInt32.swizzle(rq, [3, 2, 1]) ];
+	var triLod	= [ deInt32.clamp((computeNonProjectedTriLod(params.lodMode, dstSize, srcSize, triS[0], triT[0], triR[0]) + lodBias), params.minLod, params.maxLod),
+								deInt32.clamp((computeNonProjectedTriLod(params.lodMode, dstSize, srcSize, triS[1], triT[1], triR[1]) + lodBias), params.minLod, params.maxLod) ];
 
 	for (var y = 0; y < dst.getHeight(); y++) {
 		for (var x = 0; x < dst.getWidth(); x++) {
@@ -1028,7 +1050,8 @@ var sampleTextureNonProjected3D = function(/*const SurfaceAccess&*/ dst, /*const
 			var	r		= triangleInterpolate(triR[triNdx], triX, triY);
 			var	lod		= triLod[triNdx];
 
-			dst.setPixel(src.sample(params.sampler, [s, t, r], lod).multiply(params.colorScale).add(params.colorBias), x, y);
+			var pixel  = src.sample(params.sampler, [s, t, r], lod);
+			dst.setPixel(applyScaleAndBias(pixel, params.colorScale, params.colorBias), x, y);
 		}
 	}
 };

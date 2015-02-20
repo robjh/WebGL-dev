@@ -18,7 +18,7 @@
  *
  */
 
-define(['framework/common/tcuSurface'], function(tcuSurface) {
+define(['framework/common/tcuSurface', 'framework/delibs/debase/deInt32' ], function(tcuSurface, deInt32) {
 
 var displayResultPane = function(id, width, height) {
 	displayResultPane.counter = displayResultPane.counter || 0;
@@ -42,7 +42,6 @@ var displayImages = function(result, reference, diff) {
 	var createImage = function(ctx, src) {
 		var w = src.getWidth();
 		var h = src.getHeight();
-		// var ctx = addCanvas('console', w, h);
 		var imgData = ctx.createImageData(w, h);
 		var index = 0;
 		for (var y = 0; y < h; y++) {
@@ -107,11 +106,11 @@ var intThresholdCompare = function(/*const char* */imageSetName, /*const char* *
 			var	refPix		= reference.getPixelInt(x, y, z);
 				var	cmpPix		= result.getPixelInt(x, y, z);
 
-				var	diff		= refPix.absDiff(cmpPix);
-				var	isOk		= diff.lessThanEqual(threshold).boolAll();
+				var	diff		= deInt32.absDiff(refPix, cmpPix);
+				var	isOk		= deInt32.boolAll(deInt32.lessThanEqual(diff, threshold));
 
 
-				maxDiff = maxDiff.max(diff);
+				maxDiff = deInt32.max(maxDiff, diff);
 				var color = [0, 255, 0, 255];
 				if (!isOk)
 					color = [255, 0, 0, 255];
@@ -120,7 +119,7 @@ var intThresholdCompare = function(/*const char* */imageSetName, /*const char* *
 		}
 	}
 
-	var compareOk = maxDiff.lessThanEqual(threshold).boolAll();
+	var compareOk = deInt32.boolAll(deInt32.lessThanEqual(maxDiff, threshold));
 
 	if (!compareOk) {
 		debug("Image comparison failed: max difference = " + maxDiff + ", threshold = " + threshold);

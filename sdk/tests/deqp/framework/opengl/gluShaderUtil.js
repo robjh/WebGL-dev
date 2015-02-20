@@ -22,6 +22,17 @@ define(function() {
     'use strict';
 
 /**
+ * ShadingLanguageVersion
+ * @enum
+ */
+var GLSLVersion = {
+    V100_ES: 0, //!< GLSL ES 1.0
+    V300_ES: 1 //!< GLSL ES 3.0
+};
+
+GLSLVersion.V_LAST = Object.keys(GLSLVersion).length;
+
+/**
  * @enum
  */
 var precision = {
@@ -137,7 +148,7 @@ var getDataTypeFloatScalars = function(dataType) {
 };
 
 /**
- * TODO: getDataTypeVector
+ * getDataTypeVector
  * @param {DataType} scalarType
  * @param {number} size
  * @return {DataType}
@@ -157,7 +168,7 @@ var getDataTypeVector = function(scalarType, size)
     }
 };
 
-/*
+/**
  * getDataTypeFloatVec
  * @param {number} vecSize
  * @return {DataType}

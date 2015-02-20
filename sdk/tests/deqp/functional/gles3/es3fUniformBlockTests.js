@@ -22,9 +22,6 @@
 define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 'modules/shared/glsRandomUniformBlockCase', 'framework/common/tcuTestCase', 'framework/delibs/debase/deInt32', 'framework/delibs/debase/deRandom'], function(deqpUtils, glsUBC, glsRUBC, deqpTests, deInt32, deRandom) {
     'use strict';
 
-    /** @const @type {number} */ var VIEWPORT_WIDTH = 128;
-    /** @const @type {number} */ var VIEWPORT_HEIGHT = 128;
-
     /**
      * createRandomCaseGroup
      * @param {deqpTests.DeqpTest} parentGroup

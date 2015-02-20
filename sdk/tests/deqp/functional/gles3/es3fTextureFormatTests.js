@@ -17,8 +17,8 @@
  * limitations under the License.
  *
  */
-define(['framework/opengl/gluShaderUtil', 'framework/common/tcuTestCase', 'framework/common/tcuSurface',  'framework/opengl/gluTexture', 'framework/opengl/gluTextureUtil', 'framework/common/tcuTexture', 'modules/shared/glsTextureTestUtil', 'framework/common/tcuTextureUtil', 'framework/opengl/gluStrUtil'],
-	 function(gluShaderUtil, deqpTests, tcuSurface, gluTexture, gluTextureUtil, tcuTexture, glsTextureTestUtil, tcuTextureUtil, gluStrUtil) {
+define(['framework/opengl/gluShaderUtil', 'framework/common/tcuTestCase', 'framework/common/tcuSurface',  'framework/opengl/gluTexture', 'framework/opengl/gluTextureUtil', 'framework/common/tcuTexture', 'modules/shared/glsTextureTestUtil', 'framework/common/tcuTextureUtil', 'framework/opengl/gluStrUtil', 'framework/delibs/debase/deInt32'],
+	 function(gluShaderUtil, deqpTests, tcuSurface, gluTexture, gluTextureUtil, tcuTexture, glsTextureTestUtil, tcuTextureUtil, gluStrUtil, deInt32) {
     'use strict';
 
 var	GLU_EXPECT_NO_ERROR = function(error, message) {
@@ -32,7 +32,7 @@ var DE_ASSERT = function(x) {
 
 var testDescription = function() {
 	var test = deqpTests.runner.getState().currentTest;
-	return test.name + ' ' + test.description;
+	return test.description;
 };
 
 var Texture2DFormatCase = function(descriptor){
@@ -98,7 +98,7 @@ Texture2DFormatCase.prototype.iterate = function() {
 
 	renderParams.samplerType	= glsTextureTestUtil.getSamplerType(this.m_texture.getRefTexture().getFormat());
 	console.log('Sampler');
-	console.log(tcuTexture.Sampler);
+	console.log(renderParams.samplerType)
 	renderParams.sampler		= new tcuTexture.Sampler(tcuTexture.WrapMode.CLAMP_TO_EDGE, tcuTexture.WrapMode.CLAMP_TO_EDGE, tcuTexture.WrapMode.CLAMP_TO_EDGE,
 	 tcuTexture.FilterMode.NEAREST, tcuTexture.FilterMode.NEAREST);
 	console.log(renderParams.sampler);
@@ -230,12 +230,12 @@ TextureCubeFormatCase.prototype.init = function() {
 		var gMax = null;
 
 		switch (face) {
-			case 0: gMin = spec.valueMin.swizzle([0, 1, 2, 3]); gMax = spec.valueMax.swizzle([0, 1, 2, 3]); break;
-			case 1: gMin = spec.valueMin.swizzle([2, 1, 0, 3]); gMax = spec.valueMax.swizzle([2, 1, 0, 3]); break;
-			case 2: gMin = spec.valueMin.swizzle([1, 2, 0, 3]); gMax = spec.valueMax.swizzle([1, 2, 0, 3]); break;
-			case 3: gMin = spec.valueMax.swizzle([0, 1, 2, 3]); gMax = spec.valueMin.swizzle([0, 1, 2, 3]); break;
-			case 4: gMin = spec.valueMax.swizzle([2, 1, 0, 3]); gMax = spec.valueMin.swizzle([2, 1, 0, 3]); break;
-			case 5: gMin = spec.valueMax.swizzle([1, 2, 0, 3]); gMax = spec.valueMin.swizzle([1, 2, 0, 3]); break;
+			case 0: gMin = deInt32.swizzle(spec.valueMin, [0, 1, 2, 3]); gMax = deInt32.swizzle(spec.valueMax, [0, 1, 2, 3]); break;
+			case 1: gMin = deInt32.swizzle(spec.valueMin, [2, 1, 0, 3]); gMax = deInt32.swizzle(spec.valueMax, [2, 1, 0, 3]); break;
+			case 2: gMin = deInt32.swizzle(spec.valueMin, [1, 2, 0, 3]); gMax = deInt32.swizzle(spec.valueMax, [1, 2, 0, 3]); break;
+			case 3: gMin = deInt32.swizzle(spec.valueMax, [0, 1, 2, 3]); gMax = deInt32.swizzle(spec.valueMin, [0, 1, 2, 3]); break;
+			case 4: gMin = deInt32.swizzle(spec.valueMax, [2, 1, 0, 3]); gMax = deInt32.swizzle(spec.valueMin, [2, 1, 0, 3]); break;
+			case 5: gMin = deInt32.swizzle(spec.valueMax, [1, 2, 0, 3]); gMax = deInt32.swizzle(spec.valueMin, [1, 2, 0, 3]); break;
 			default:
 				DE_ASSERT(false);
 		}
@@ -273,7 +273,7 @@ TextureCubeFormatCase.prototype.testFace = function(face) {
 
 	renderParams.samplerType	= glsTextureTestUtil.getSamplerType(this.m_texture.getRefTexture().getFormat());
 	console.log('Sampler');
-	console.log(tcuTexture.Sampler);
+	console.log(renderParams.samplerType)
 	renderParams.sampler		= new tcuTexture.Sampler(tcuTexture.WrapMode.CLAMP_TO_EDGE, tcuTexture.WrapMode.CLAMP_TO_EDGE, tcuTexture.WrapMode.CLAMP_TO_EDGE,
 	 tcuTexture.FilterMode.NEAREST, tcuTexture.FilterMode.NEAREST);
 	console.log(renderParams.sampler);
@@ -446,7 +446,7 @@ Texture2DArrayFormatCase.prototype.testLayer = function(layerNdx) {
 
 	renderParams.samplerType	= glsTextureTestUtil.getSamplerType(this.m_texture.getRefTexture().getFormat());
 	console.log('Sampler');
-	console.log(tcuTexture.Sampler);
+	console.log(renderParams.samplerType)
 	renderParams.sampler		= new tcuTexture.Sampler(tcuTexture.WrapMode.CLAMP_TO_EDGE, tcuTexture.WrapMode.CLAMP_TO_EDGE, tcuTexture.WrapMode.CLAMP_TO_EDGE,
 	 tcuTexture.FilterMode.NEAREST, tcuTexture.FilterMode.NEAREST);
 	console.log(renderParams.sampler);
@@ -467,42 +467,42 @@ Texture2DArrayFormatCase.prototype.testLayer = function(layerNdx) {
 	console.log(viewport);
 	gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height);
 
-	this.m_texture.upload();
+	// this.m_texture.upload();
 
-	// Bind to unit 0.
-	gl.activeTexture(gl.TEXTURE0);
-	gl.bindTexture(gl.TEXTURE_2D_ARRAY, this.m_texture.getGLTexture());
+	// // Bind to unit 0.
+	// gl.activeTexture(gl.TEXTURE0);
+	// gl.bindTexture(gl.TEXTURE_2D_ARRAY, this.m_texture.getGLTexture());
 
-	// Setup nearest neighbor filtering and clamp-to-edge.
-	gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_S, wrapS);
-	gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_T, wrapT);
-	gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, minFilter);
-	gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER, magFilter);
+	// // Setup nearest neighbor filtering and clamp-to-edge.
+	// gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_S, wrapS);
+	// gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_T, wrapT);
+	// gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, minFilter);
+	// gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER, magFilter);
 
-	GLU_EXPECT_NO_ERROR(gl.getError(), "Set texturing state");
+	// GLU_EXPECT_NO_ERROR(gl.getError(), "Set texturing state");
 
-	// // Draw.
-	this.m_renderer.renderQuad(0, texCoord, renderParams);
-	if (0) {
-		var p = new Uint8Array(4 * viewport.width * viewport.height);
-		gl.readPixels(viewport.x, viewport.y, viewport.width, viewport.height, gl.RGBA, gl.UNSIGNED_BYTE, p);
-		GLU_EXPECT_NO_ERROR(gl.getError(), "glReadPixels()");
-		console.log('Dumping array length: ' + p.length);
-		console.log(p);
-		for (var y = 0; y < viewport.height; y+=18) {
-			for (var x = 0; x < viewport.width; x+=18) {
-				var offset = 4 * (x + y * viewport.width);
-				// p[1] = 0;
-				// referenceFrame.setPixel(x, y, p);
-	    		var output = '(' + x + ',' + y + ') = (' + p[offset + 0] + ',' + p[offset +1] + ',' + p[offset + 2] +')';
-	    		console.log(output);
-			}
-		}
+	// // // Draw.
+	// this.m_renderer.renderQuad(0, texCoord, renderParams);
+	// if (0) {
+	// 	var p = new Uint8Array(4 * viewport.width * viewport.height);
+	// 	gl.readPixels(viewport.x, viewport.y, viewport.width, viewport.height, gl.RGBA, gl.UNSIGNED_BYTE, p);
+	// 	GLU_EXPECT_NO_ERROR(gl.getError(), "glReadPixels()");
+	// 	console.log('Dumping array length: ' + p.length);
+	// 	console.log(p);
+	// 	for (var y = 0; y < viewport.height; y+=18) {
+	// 		for (var x = 0; x < viewport.width; x+=18) {
+	// 			var offset = 4 * (x + y * viewport.width);
+	// 			// p[1] = 0;
+	// 			// referenceFrame.setPixel(x, y, p);
+	//     		var output = '(' + x + ',' + y + ') = (' + p[offset + 0] + ',' + p[offset +1] + ',' + p[offset + 2] +')';
+	//     		console.log(output);
+	// 		}
+	// 	}
 
-	}
-	gl.readPixels(viewport.x, viewport.y, viewport.width, viewport.height, gl.RGBA, gl.UNSIGNED_BYTE, renderedFrame.getAccess().getDataPtr());
+	// }
+	// gl.readPixels(viewport.x, viewport.y, viewport.width, viewport.height, gl.RGBA, gl.UNSIGNED_BYTE, renderedFrame.getAccess().getDataPtr());
 
-	GLU_EXPECT_NO_ERROR(gl.getError(), "glReadPixels()");
+	// GLU_EXPECT_NO_ERROR(gl.getError(), "glReadPixels()");
 
 	if (0) {
 		console.log('Dumping array length: ' + renderedFrame.getAccess().getDataPtr().length);
@@ -536,7 +536,7 @@ Texture2DArrayFormatCase.prototype.testLayer = function(layerNdx) {
 	// Compare and log.
 	var isOk = glsTextureTestUtil.compareImages(referenceFrame, renderedFrame, threshold);
 
-	assertMsgOptions(isOk, 'Layer: ' + this.m_curLayer + ' ' + testDescription, true, true);
+	assertMsgOptions(isOk, 'Layer: ' + this.m_curLayer + ' ' + testDescription(), true, true);
 	return isOk;
 };
 
@@ -617,7 +617,7 @@ Texture3DFormatCase.prototype.testSlice = function(sliceNdx) {
 
 	renderParams.samplerType	= glsTextureTestUtil.getSamplerType(this.m_texture.getRefTexture().getFormat());
 	console.log('Sampler');
-	console.log(tcuTexture.Sampler);
+	console.log(renderParams.samplerType)
 	renderParams.sampler		= new tcuTexture.Sampler(tcuTexture.WrapMode.CLAMP_TO_EDGE, tcuTexture.WrapMode.CLAMP_TO_EDGE, tcuTexture.WrapMode.CLAMP_TO_EDGE,
 	 tcuTexture.FilterMode.NEAREST, tcuTexture.FilterMode.NEAREST);
 	console.log(renderParams.sampler);
@@ -638,42 +638,42 @@ Texture3DFormatCase.prototype.testSlice = function(sliceNdx) {
 	console.log(viewport);
 	gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height);
 
-	this.m_texture.upload();
+	// this.m_texture.upload();
 
-	// Bind to unit 0.
-	gl.activeTexture(gl.TEXTURE0);
-	gl.bindTexture(gl.TEXTURE_3D, this.m_texture.getGLTexture());
+	// // Bind to unit 0.
+	// gl.activeTexture(gl.TEXTURE0);
+	// gl.bindTexture(gl.TEXTURE_3D, this.m_texture.getGLTexture());
 
-	// Setup nearest neighbor filtering and clamp-to-edge.
-	gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_S, wrapS);
-	gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_T, wrapT);
-	gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, minFilter);
-	gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, magFilter);
+	// // Setup nearest neighbor filtering and clamp-to-edge.
+	// gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_S, wrapS);
+	// gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_T, wrapT);
+	// gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, minFilter);
+	// gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, magFilter);
 
-	GLU_EXPECT_NO_ERROR(gl.getError(), "Set texturing state");
+	// GLU_EXPECT_NO_ERROR(gl.getError(), "Set texturing state");
 
-	// // Draw.
-	this.m_renderer.renderQuad(0, texCoord, renderParams);
-	if (0) {
-		var p = new Uint8Array(4 * viewport.width * viewport.height);
-		gl.readPixels(viewport.x, viewport.y, viewport.width, viewport.height, gl.RGBA, gl.UNSIGNED_BYTE, p);
-		GLU_EXPECT_NO_ERROR(gl.getError(), "glReadPixels()");
-		console.log('Dumping array length: ' + p.length);
-		console.log(p);
-		for (var y = 0; y < viewport.height; y+=18) {
-			for (var x = 0; x < viewport.width; x+=18) {
-				var offset = 4 * (x + y * viewport.width);
-				// p[1] = 0;
-				// referenceFrame.setPixel(x, y, p);
-	    		var output = '(' + x + ',' + y + ') = (' + p[offset + 0] + ',' + p[offset +1] + ',' + p[offset + 2] +')';
-	    		console.log(output);
-			}
-		}
+	// // // Draw.
+	// this.m_renderer.renderQuad(0, texCoord, renderParams);
+	// if (0) {
+	// 	var p = new Uint8Array(4 * viewport.width * viewport.height);
+	// 	gl.readPixels(viewport.x, viewport.y, viewport.width, viewport.height, gl.RGBA, gl.UNSIGNED_BYTE, p);
+	// 	GLU_EXPECT_NO_ERROR(gl.getError(), "glReadPixels()");
+	// 	console.log('Dumping array length: ' + p.length);
+	// 	console.log(p);
+	// 	for (var y = 0; y < viewport.height; y+=18) {
+	// 		for (var x = 0; x < viewport.width; x+=18) {
+	// 			var offset = 4 * (x + y * viewport.width);
+	// 			// p[1] = 0;
+	// 			// referenceFrame.setPixel(x, y, p);
+	//     		var output = '(' + x + ',' + y + ') = (' + p[offset + 0] + ',' + p[offset +1] + ',' + p[offset + 2] +')';
+	//     		console.log(output);
+	// 		}
+	// 	}
 
-	}
-	gl.readPixels(viewport.x, viewport.y, viewport.width, viewport.height, gl.RGBA, gl.UNSIGNED_BYTE, renderedFrame.getAccess().getDataPtr());
+	// }
+	// gl.readPixels(viewport.x, viewport.y, viewport.width, viewport.height, gl.RGBA, gl.UNSIGNED_BYTE, renderedFrame.getAccess().getDataPtr());
 
-	GLU_EXPECT_NO_ERROR(gl.getError(), "glReadPixels()");
+	// GLU_EXPECT_NO_ERROR(gl.getError(), "glReadPixels()");
 
 	if (0) {
 		console.log('Dumping array length: ' + renderedFrame.getAccess().getDataPtr().length);
@@ -958,8 +958,72 @@ var genTestCases = function(filter) {
 														depth: 7
 													})
 		));
-
 	});
+
+	var sizedDepthStencilFormats = [
+		// Depth and stencil formats
+		[ "depth_component32f",	gl.DEPTH_COMPONENT32F	],
+		[ "depth_component24",	gl.DEPTH_COMPONENT24	],
+		[ "depth_component16",	gl.DEPTH_COMPONENT16	],
+		[ "depth32f_stencil8",	gl.DEPTH32F_STENCIL8	],
+		[ "depth24_stencil8",	gl.DEPTH24_STENCIL8		]
+	];
+	sizedDepthStencilFormats.forEach(function(elem) {
+		var internalFormat = elem[1];
+		var nameBase = elem[0];
+		var descriptionBase = gluStrUtil.getPixelFormatName(internalFormat);
+		sized2DGroup.addChild(deqpTests.newTest(nameBase + '_pot',
+												descriptionBase + ' gl.TEXTURE_2D',
+												new Texture2DFormatCase({
+														format: internalFormat,
+														width: 128,
+														height: 128,
+													})
+		));
+		sized2DGroup.addChild(deqpTests.newTest(nameBase + '_npot',
+												descriptionBase + ' gl.TEXTURE_2D',
+												new Texture2DFormatCase({
+														format: internalFormat,
+														width: 63,
+														height: 112,
+													})
+		));
+		sizedCubeGroup.addChild(deqpTests.newTest(nameBase + '_pot',
+												descriptionBase + ' gl.TEXTURE_CUBE_MAP',
+												new TextureCubeFormatCase({
+														format: internalFormat,
+														width: 64,
+														height: 64,
+													})
+		));
+		sizedCubeGroup.addChild(deqpTests.newTest(nameBase + '_npot',
+												descriptionBase + ' gl.TEXTURE_CUBE_MAP',
+												new TextureCubeFormatCase({
+														format: internalFormat,
+														width: 57,
+														height: 57,
+													})
+		));
+		sized2DArrayGroup.addChild(deqpTests.newTest(nameBase + '_pot',
+												descriptionBase + ' gl.TEXTURE_2D_ARRAY',
+												new Texture2DArrayFormatCase({
+														format: internalFormat,
+														width: 64,
+														height: 64,
+														numLayers: 8 
+													})
+		));
+		sized2DArrayGroup.addChild(deqpTests.newTest(nameBase + '_npot',
+												descriptionBase + ' gl.TEXTURE_2D_ARRAY',
+												new Texture2DArrayFormatCase({
+														format: internalFormat,
+														width: 63,
+														height: 57,
+														numLayers: 7
+													})
+		));
+	});
+
 
 	state.testCases.addChild(unsizedGroup);
 	state.testCases.addChild(sizedGroup);
@@ -971,11 +1035,14 @@ var runTestCases = function() {
     if (state.currentTest) {
     	try {
 	    	debug("Running: " + state.currentTest.name + ' ' + state.currentTest.description);
+	    	setCurrentTestName(state.currentTest.name);
 	    	state.currentTest.spec.init();
 	    	while(!state.currentTest.spec.iterate());
 	    } catch(err) {
-	    	bufferedLogToConsole(err);
-	    	testFailed('Exception thrown');
+	    	if (err.name !== "TestFailedException" ) {
+		    	bufferedLogToConsole(err);
+	    		testFailedOptions('Exception thrown', false);
+	    	};
 	    };
 	    deqpTests.runner.runCallback(runTestCases);
     } else
