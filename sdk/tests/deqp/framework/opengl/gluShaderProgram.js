@@ -30,6 +30,8 @@ var shaderType = {
     FRAGMENT: 1
 };
 
+shaderType.LAST = Object.keys(shaderType).length;
+
 /**
  * Get GL shader type from shaderType
  * @param {WebGLRenderingContext} gl WebGL context
@@ -206,17 +208,17 @@ var ShaderProgram = function(gl, programSources) {
         return this.program.info;
     };
 
-    /** @type {boolean} */ var shadersOK = true;
+    /** @type {boolean} */ this.shadersOK = true;
 
         for (var i = 0; i < programSources.sources.length; i++) {
         /** @type {Shader} */ var shader = new Shader(gl, programSources.sources[i].type);
             shader.setSources(programSources.sources[i].source);
             shader.compile();
             this.shaders.push(shader);
-            shadersOK = shadersOK && shader.getCompileStatus();
+            this.shadersOK = this.shadersOK && shader.getCompileStatus();
         }
 
-        if (shadersOK) {
+        if (this.shadersOK) {
             for (var i = 0; i < this.shaders.length; i++)
                 this.program.attachShader(this.shaders[i].getShader());
 
@@ -235,6 +237,10 @@ var ShaderProgram = function(gl, programSources) {
 
         }
 
+};
+
+ShaderProgram.prototype.isOk = function() {
+    return this.shadersOK;
 };
 
 var containerTypes = {
@@ -311,7 +317,7 @@ var FragmentSource = function(str) {
 };
 
 var ProgramSources = function() {
-	this.sources = [];
+	/** @type {Array.<ShaderInfo>} */ this.sources = [];
 	this.attribLocalBindings = [];
 	this.transformFeedbackVaryings = [];
 	this.transformFeedbackBufferMode = 0;
@@ -369,6 +375,18 @@ var ProgramSources = function() {
 	};
 };
 
+/**
+ * //! Helper for constructing vertex-fragment source pair.
+ * @param {string} vertexSrc
+ * @param {string} fragmentSrc
+ * @return {ProgramSources}
+ */
+var makeVtxFragSources = function(vertexSrc, fragmentSrc) {
+    /** @type {ProgramSources} */ var sources = new ProgramSources();
+    sources.sources.push(genVertexSource(vertexSrc));
+    sources.sources.push(genFragmentSource(fragmentSrc));
+    return sources;
+};
 
 return {
     ShaderProgram: ShaderProgram,
@@ -384,7 +402,8 @@ return {
 	VertexSource: VertexSource,
 	FragmentSource: FragmentSource,
 	ProgramSeparable: ProgramSeparable,
-	ProgramSources: ProgramSources
+	ProgramSources: ProgramSources,
+    makeVtxFragSources: makeVtxFragSources
 };
 
 });

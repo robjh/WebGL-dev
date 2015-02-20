@@ -22,13 +22,6 @@
 define(['framework/common/tcuTestCase', 'framework/opengl/gluShaderProgram', 'framework/opengl/gluShaderUtil', 'framework/opengl/gluDrawUtil', 'framework/delibs/debase/deInt32', 'framework/delibs/debase/deRandom'], function(deqpTests, deqpProgram, deqpUtils, deqpDraw, deInt32, deRandom) {
     'use strict';
 
-/** @const */ var VIEWPORT_WIDTH = 128;
-/** @const */ var VIEWPORT_HEIGHT = 128;
-
-var program;
-var gl;
-var canvas;
-
 /**
  * Class to implement some pointers functionality.
  */
@@ -51,6 +44,7 @@ BlockPointers.prototype.push = function(offset, size) {
 /**
  * find - Finds and maps the data at the given offset, and returns a Uint8Array
  * @param {number} index of the element to find.
+ * @return {Uint8Array}
  */
 BlockPointers.prototype.find = function(index) {
     return new Uint8Array(this.data, this.offsets[index], this.sizes[index]);
@@ -67,7 +61,8 @@ BlockPointers.prototype.resize = function(newsize) {
 
 /**
  * Add a push_unique function to Array. Will insert only if there is no equal element.
- * @param {Object} newobject Any object
+ * @param {Array} array Any array
+ * @param {Object} object Any object
  */
 var pushUniqueToArray = function(array, object) {
     //Simplest implementation
@@ -75,6 +70,15 @@ var pushUniqueToArray = function(array, object) {
         if (object === array[i])
             return undefined;
     array.push(object);
+};
+
+/**
+ * isSupportedGLSLVersion
+ * @param {deqpUtils.GLSLVersion} version
+ * @return {boolean}
+ */
+var isSupportedGLSLVersion = function(version) {
+    return version >= deqpUtils.GLSLVersion.V_300_ES;
 };
 
 var UniformFlags = {
@@ -656,18 +660,6 @@ var BufferMode = {
 
 BufferMode.BUFFERMODE_LAST = Object.keys(BufferMode).length;
 
-var UniformBlockCase = function(name, description, bufferMode) {
-    deqpTests.DeqpTest.call(this, name, description);
-    /** @type {string} */ this.m_name = name;
-    /** @type {string} */ this.m_description = description;
-    //glu::GLSLVersion m_glslVersion;
-    /** @type {BufferMode} */ this.m_bufferMode = bufferMode;
-    /** @type {ShaderInterface} */ this.m_interface = new ShaderInterface();
-};
-
-UniformBlockCase.prototype = Object.create(deqpTests.DeqpTest.prototype);
-UniformBlockCase.prototype.constructor = UniformBlockCase;
-
 /**
  * PrecisionFlagsFmt TODO: Implement dePop32 function
  * @param {deInt32.deUint32} flags
@@ -716,115 +708,35 @@ var LayoutFlagsFmt = function(flags_) {
     return str;
 };
 
-/**
- * TODO: test getGLUniformLayout Gets the uniform blocks and uniforms in the program.
- * @param {WebGLRenderingContext} gl
- * @param {UniformLayout} layout To store the layout described in program.
- * @param {number} program id
- */
-UniformBlockCase.prototype.getGLUniformLayout = function(gl, layout, program) {
-    /** @type {number} */ var numActiveUniforms = 0;
-    /** @type {number} */ var numActiveBlocks = 0;
-
-    numActiveUniforms = gl.getProgramParameter(program, gl.GL_ACTIVE_UNIFORMS);
-    numActiveBlocks = gl.getProgramParameter(program, gl.GL_ACTIVE_UNIFORM_BLOCKS);
-
-    assertMsgOptions(gl.getError() != gl.NO_ERROR, 'Getting number of uniforms and uniform blocks', false, true);
-
-    // Block entries.
-    //No need to allocate these beforehand: layout.blocks.resize(numActiveBlocks);
-    for (var blockNdx = 0; blockNdx < numActiveBlocks; blockNdx++)
-    {
-        /** @type {BlockLayoutEntry} */ var entry = new BlockLayoutEntry();
-        /** @type {number} */ var size;
-        /** @type {number} */ var nameLen;
-        /** @type {number} */ var numBlockUniforms;
-
-        size = gl.getActiveUniformBlockParameter(program, blockNdx, gl.GL_UNIFORM_BLOCK_DATA_SIZE);
-        nameLen = gl.getActiveUniformBlockParameter(program, blockNdx, gl.GL_UNIFORM_BLOCK_NAME_LENGTH);
-        numBlockUniforms = gl.getActiveUniformBlockParameter(program, blockNdx, gl.GL_UNIFORM_BLOCK_ACTIVE_UNIFORMS);
-
-        assertMsgOptions(gl.getError() != gl.NO_ERROR, 'Uniform block query failed', false, true);
-
-        /** @type {string} */ var nameBuf;
-        nameBuf = gl.getActiveUniformBlockName(program, blockNdx);
-
-        entry.name = nameBuf;
-        entry.size = size;
-        //entry.activeUniformIndices.resize(numBlockUniforms);
-
-        if (numBlockUniforms > 0)
-            entry.activeUniformIndices = gl.getActiveUniformBlockParameter(program, blockNdx, gl.GL_UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES);
-
-        assertMsgOptions(gl.getError() != gl.NO_ERROR, 'Uniform block query', false, true);
-
-        layout.blocks.push(entry); //Pushing the block into the array here.
-    }
-
-    if (numActiveUniforms > 0)
-    {
-        // Uniform entries.
-        /** @type {Array.<number>} */ var uniformIndices = [];
-        for (var i = 0; i < numActiveUniforms; i++)
-            uniformIndices.push(i);
-
-        /** @type {Array.<number>} */ var types = [];
-        /** @type {Array.<number>} */ var sizes = [];
-        /** @type {Array.<number>} */ var nameLengths = [];
-        /** @type {Array.<number>} */ var blockIndices = [];
-        /** @type {Array.<number>} */ var offsets = [];
-        /** @type {Array.<number>} */ var arrayStrides = [];
-        /** @type {Array.<number>} */ var matrixStrides = [];
-        /** @type {Array.<number>} */ var rowMajorFlags = [];
-
-        // Execute queries.
-        types = gl.getActiveUniforms(program, uniformIndices, gl.GL_UNIFORM_TYPE);
-        sizes = gl.getActiveUniforms(program, uniformIndices, gl.GL_UNIFORM_SIZE);
-        nameLengths = gl.getActiveUniforms(program, uniformIndices, gl.GL_UNIFORM_NAME_LENGTH);
-        blockIndices = gl.getActiveUniforms(program, uniformIndices, gl.GL_UNIFORM_BLOCK_INDEX);
-        offsets = gl.getActiveUniforms(program, uniformIndices, gl.GL_UNIFORM_OFFSET);
-        arrayStrides = gl.getActiveUniforms(program, uniformIndices, gl.GL_UNIFORM_ARRAY_STRIDE);
-        matrixStrides = gl.getActiveUniforms(program, uniformIndices, gl.GL_UNIFORM_MATRIX_STRIDE);
-        rowMajorFlags = gl.getActiveUniforms(program, uniformIndices, gl.GL_UNIFORM_IS_ROW_MAJOR);
-
-        assertMsgOptions(gl.getError() != gl.NO_ERROR, 'Active uniform query', false, true);
-
-        // Translate to LayoutEntries
-        // No resize needed. Will push them: layout.uniforms.resize(numActiveUniforms);
-        for (var uniformNdx = 0; uniformNdx < numActiveUniforms; uniformNdx++)
-        {
-            /** @type {UniformLayoutEntry} */ var entry = new UniformLayoutEntry();
-            /** @type {string} */ var nameBuf;
-            /** @type {number} */ var nameLen = 0;
-            /** @type {number} */ var size = 0;
-            /** @type {number} */ var type = gl.GL_NONE;
-
-            var uniform = gl.getActiveUniform(program, uniformNdx);
-            nameBuf = uniform.name;
-            nameLen = nameBuf.length;
-            size = uniform.size;
-            type = uniform.type;
-
-            assertMsgOptions(gl.getError() != gl.NO_ERROR, 'Uniform name query failed', false, true);
-
-            if (nameLen != nameLengths[uniformNdx] ||
-                size != sizes[uniformNdx] ||
-                type != types[uniformNdx])
-                testFailedOptions("Values returned by gl.getActiveUniform() don't match with values queried with gl.getActiveUniforms().", true);
-
-            entry.name = nameBuf;
-            entry.type = deqpUtils.getDataTypeFromGLType(types[uniformNdx]);
-            entry.size = sizes[uniformNdx];
-            entry.blockNdx = blockIndices[uniformNdx];
-            entry.offset = offsets[uniformNdx];
-            entry.arrayStride = arrayStrides[uniformNdx];
-            entry.matrixStride = matrixStrides[uniformNdx];
-            entry.isRowMajor = rowMajorFlags[uniformNdx] != gl.GL_FALSE;
-
-            layout.uniforms.push(entry); //Pushing this uniform in the end.
-        }
-    }
+var UniformBufferManager = function(renderCtx) {
+    this.m_renderCtx = renderCtx;
+    /** @type {deInt32.deUint32} */ this.m_buffers = [];
 };
+
+/**
+ * allocBuffer
+ * @return {deInt32.deUint32}
+ */
+UniformBufferManager.prototype.allocBuffer = function() {
+    /** @type {deInt32.deUint32} */ var buf = this.m_renderCtx.createBuffer();
+
+    this.m_buffers.push(buf);
+    assertMsgOptions(this.m_renderCtx.getError() != this.m_renderCtx.NO_ERROR, 'Failed to allocate uniform buffer', false, true);
+
+    return buf;
+};
+
+var UniformBlockCase = function(name, description, bufferMode) {
+    deqpTests.DeqpTest.call(this, name, description);
+    /** @type {string} */ this.m_name = name;
+    /** @type {string} */ this.m_description = description;
+    //glu::GLSLVersion m_glslVersion;
+    /** @type {BufferMode} */ this.m_bufferMode = bufferMode;
+    /** @type {ShaderInterface} */ this.m_interface = new ShaderInterface();
+};
+
+UniformBlockCase.prototype = Object.create(deqpTests.DeqpTest.prototype);
+UniformBlockCase.prototype.constructor = UniformBlockCase;
 
 /**
  * getDataTypeByteSize
@@ -1593,6 +1505,7 @@ var newArrayBufferFromView = function(view) {
     //var newview = new Uint32Array(buffer);
     return buffer;
 };
+
 /**
  * generateValueSrc
  * @return {string} Used to be an output parameter in C++ project
@@ -1875,9 +1788,207 @@ var generateFragmentShader = function(sinterface, layout, blockPointers) {
     return src;
 };
 
+/**
+ * TODO: test getGLUniformLayout Gets the uniform blocks and uniforms in the program.
+ * @param {WebGLRenderingContext} gl
+ * @param {UniformLayout} layout To store the layout described in program.
+ * @param {number} program id
+ */
+var getGLUniformLayout = function(gl, layout, program) {
+    /** @type {number} */ var numActiveUniforms = 0;
+    /** @type {number} */ var numActiveBlocks = 0;
+
+    numActiveUniforms = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
+    numActiveBlocks = gl.getProgramParameter(program, gl.ACTIVE_UNIFORM_BLOCKS);
+
+    assertMsgOptions(gl.getError() != gl.NO_ERROR, 'Getting number of uniforms and uniform blocks', false, true);
+
+    // Block entries.
+    //No need to allocate these beforehand: layout.blocks.resize(numActiveBlocks);
+    for (var blockNdx = 0; blockNdx < numActiveBlocks; blockNdx++)
+    {
+        /** @type {BlockLayoutEntry} */ var entry = new BlockLayoutEntry();
+        /** @type {number} */ var size;
+        /** @type {number} */ var nameLen;
+        /** @type {number} */ var numBlockUniforms;
+
+        size = gl.getActiveUniformBlockParameter(program, blockNdx, gl.UNIFORM_BLOCK_DATA_SIZE);
+        nameLen = gl.getActiveUniformBlockParameter(program, blockNdx, gl.UNIFORM_BLOCK_NAME_LENGTH);
+        numBlockUniforms = gl.getActiveUniformBlockParameter(program, blockNdx, gl.UNIFORM_BLOCK_ACTIVE_UNIFORMS);
+
+        assertMsgOptions(gl.getError() != gl.NO_ERROR, 'Uniform block query failed', false, true);
+
+        /** @type {string} */ var nameBuf;
+        nameBuf = gl.getActiveUniformBlockName(program, blockNdx);
+
+        entry.name = nameBuf;
+        entry.size = size;
+        //entry.activeUniformIndices.resize(numBlockUniforms);
+
+        if (numBlockUniforms > 0)
+            entry.activeUniformIndices = gl.getActiveUniformBlockParameter(program, blockNdx, gl.UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES);
+
+        assertMsgOptions(gl.getError() != gl.NO_ERROR, 'Uniform block query', false, true);
+
+        layout.blocks.push(entry); //Pushing the block into the array here.
+    }
+
+    if (numActiveUniforms > 0)
+    {
+        // Uniform entries.
+        /** @type {Array.<number>} */ var uniformIndices = [];
+        for (var i = 0; i < numActiveUniforms; i++)
+            uniformIndices.push(i);
+
+        /** @type {Array.<number>} */ var types = [];
+        /** @type {Array.<number>} */ var sizes = [];
+        /** @type {Array.<number>} */ var nameLengths = [];
+        /** @type {Array.<number>} */ var blockIndices = [];
+        /** @type {Array.<number>} */ var offsets = [];
+        /** @type {Array.<number>} */ var arrayStrides = [];
+        /** @type {Array.<number>} */ var matrixStrides = [];
+        /** @type {Array.<number>} */ var rowMajorFlags = [];
+
+        // Execute queries.
+        types = gl.getActiveUniforms(program, uniformIndices, gl.UNIFORM_TYPE);
+        sizes = gl.getActiveUniforms(program, uniformIndices, gl.UNIFORM_SIZE);
+        nameLengths = gl.getActiveUniforms(program, uniformIndices, gl.UNIFORM_NAME_LENGTH);
+        blockIndices = gl.getActiveUniforms(program, uniformIndices, gl.UNIFORM_BLOCK_INDEX);
+        offsets = gl.getActiveUniforms(program, uniformIndices, gl.UNIFORM_OFFSET);
+        arrayStrides = gl.getActiveUniforms(program, uniformIndices, gl.UNIFORM_ARRAY_STRIDE);
+        matrixStrides = gl.getActiveUniforms(program, uniformIndices, gl.UNIFORM_MATRIX_STRIDE);
+        rowMajorFlags = gl.getActiveUniforms(program, uniformIndices, gl.UNIFORM_IS_ROW_MAJOR);
+
+        assertMsgOptions(gl.getError() != gl.NO_ERROR, 'Active uniform query', false, true);
+
+        // Translate to LayoutEntries
+        // No resize needed. Will push them: layout.uniforms.resize(numActiveUniforms);
+        for (var uniformNdx = 0; uniformNdx < numActiveUniforms; uniformNdx++)
+        {
+            /** @type {UniformLayoutEntry} */ var entry = new UniformLayoutEntry();
+            /** @type {string} */ var nameBuf;
+            /** @type {number} */ var nameLen = 0;
+            /** @type {number} */ var size = 0;
+            /** @type {number} */ var type = gl.NONE;
+
+            var uniform = gl.getActiveUniform(program, uniformNdx);
+            nameBuf = uniform.name;
+            nameLen = nameBuf.length;
+            size = uniform.size;
+            type = uniform.type;
+
+            assertMsgOptions(gl.getError() != gl.NO_ERROR, 'Uniform name query failed', false, true);
+
+            if (nameLen != nameLengths[uniformNdx] ||
+                size != sizes[uniformNdx] ||
+                type != types[uniformNdx])
+                testFailedOptions("Values returned by gl.getActiveUniform() don't match with values queried with gl.getActiveUniforms().", true);
+
+            entry.name = nameBuf;
+            entry.type = deqpUtils.getDataTypeFromGLType(types[uniformNdx]);
+            entry.size = sizes[uniformNdx];
+            entry.blockNdx = blockIndices[uniformNdx];
+            entry.offset = offsets[uniformNdx];
+            entry.arrayStride = arrayStrides[uniformNdx];
+            entry.matrixStride = matrixStrides[uniformNdx];
+            entry.isRowMajor = rowMajorFlags[uniformNdx] != gl.FALSE;
+
+            layout.uniforms.push(entry); //Pushing this uniform in the end.
+        }
+    }
+};
+
+
+/**
+ * copyUniformData_A - Copies a source uniform buffer segment to a destination uniform buffer segment.
+ * @param {UniformLayoutEntry} dstEntry
+ * @param {Uint8Array} dsrBlockPtr
+ * @param {UniformLayoutentry} srcEntry
+ * @param {Uint8Array} srcBlockPtr
+ */
+var copyUniformData_A = function(dstEntry, dstBlockPtr, srcEntry, srcBlockPtr) {
+    /** @type {Uint8Array} */ var dstBasePtr = dstBlockPtr.subarray(dstEntry.offset);
+    /** @type {Uint8Array} */ var srcBasePtr = srcBlockPtr.subarray(srcEntry.offset);
+
+    assertMsgOptions(dstEntry.size <= srcEntry.size, 'Dst entry size should be the same or smaller', false, true);
+    assertMsgOptions(dstEntry.type == srcEntry.type, 'Entry types should be the same', false, true);
+
+    /** @type {number} */ var scalarSize = deqpUtils.getDataTypeScalarSize(dstEntry.type);
+    /** @type {boolean} */ var isMatrix = deqpUtils.isDataTypeMatrix(dstEntry.type);
+    /** @type {number} */ var compSize = deqpUtils.deUin32_size;
+
+    for (var elementNdx = 0; elementNdx < dstEntry.size; elementNdx++)
+    {
+        /** @type {Uint8Array} */ var dstElemPtr = dstBasePtr.subarray(elementNdx * dstEntry.arrayStride);
+        /** @type {Uint8Array} */ var srcElemPtr = srcBasePtr.subarray(elementNdx * srcEntry.arrayStride);
+
+        if (isMatrix)
+        {
+            /** @type {number} */ var numRows = deqpUtils.getDataTypeMatrixNumRows(dstEntry.type);
+            /** @type {number} */ var numCols = deqpUtils.getDataTypeMatrixNumColumns(dstEntry.type);
+
+            for (var colNdx = 0; colNdx < numCols; colNdx++)
+            {
+                for (var rowNdx = 0; rowNdx < numRows; rowNdx++)
+                {
+                    var srcoffset = dstEntry.isRowMajor ? rowNdx * dstEntry.matrixStride + colNdx * compSize :
+                                    colNdx * dstEntry.matrixStride + rowNdx * compSize;
+                    /** @type {Uint8Array} */ var dstCompPtr = dstElemPtr.subarray(srcoffset, srcoffset + compSize);
+                    var dstoffset = srcEntry.isRowMajor ? rowNdx * srcEntry.matrixStride + colNdx * compSize :
+                                    colNdx * srcEntry.matrixStride + rowNdx * compSize;
+                    /** @type {Uint8Array} */ var srcCompPtr = srcElemPtr.subarray(dstoffset, dstoffset + compSize);
+
+                    //Copy byte per byte
+                    for (var i = 0; i < compSize; i++)
+                        dstCompPtr[i] = srcCompPtr[i];
+                }
+            }
+        }
+        else
+            //Copy byte per byte
+            for (var i = 0; i < scalarSize * compSize; i++)
+                dstCompPtr[i] = srcCompPtr[i];
+    }
+};
+
+/**
+ * copyUniformData - Copies a source uniform buffer to a destination uniform buffer.
+ * @param {UniformLayout} dstLayout
+ * @param {BlockPointers} dstBlockPointers
+ * @param {UniformLayout} srcLayout
+ * @param {BlockPointers} srcBlockPointers
+ */
+var copyUniformData = function(dstLayout, dstBlockPointers, srcLayout, srcBlockPointers) {
+    // \note Src layout is used as reference in case of activeUniforms happens to be incorrect in dstLayout blocks.
+    /** @type {number} */ var numBlocks = srcLayout.blocks.length;
+
+    for (var srcBlockNdx = 0; srcBlockNdx < numBlocks; srcBlockNdx++)
+    {
+        /** @type {BlockLayoutEntry} */ var srcBlock = srcLayout.blocks[srcBlockNdx];
+        /** @type {Uint8Array} */ var srcBlockPtr = srcBlockPointers.find(srcBlockNdx);
+        /** @type {number} */ var dstBlockNdx = dstLayout.getBlockIndex(srcBlock.name);
+        /** @type {Uint8Array} */ var dstBlockPtr = dstBlockNdx >= 0 ? dstBlockPointers.find(dstBlockNdx) : undefined;
+
+        if (dstBlockNdx < 0)
+            continue;
+
+        for (var srcUniformNdx = 0; srcUniformNdx < srcBlock.activeUniformIndices.length; srcUniformNdx++)/*vector<int>::const_iterator srcUniformNdxIter = srcBlock.activeUniformIndices.begin(); srcUniformNdxIter != srcBlock.activeUniformIndices.end(); srcUniformNdxIter++*/
+        {
+            /** @type {number} */ var srcUniformNdxIter = srcBlock.activeUniformIndices[srcUniformNdx];
+            /** @type {UniformLayoutEntry} */ var srcEntry = srcLayout.uniforms[srcUniformNdxIter];
+            /** @type {number} */ var dstUniformNdx = dstLayout.getUniformIndex(srcEntry.name);
+
+            if (dstUniformNdx < 0)
+                continue;
+
+            copyUniformData_A(dstLayout.uniforms[dstUniformNdx], dstBlockPtr, srcEntry, srcBlockPtr);
+        }
+    }
+};
+
  /**
-  * TODO: iterate
-  * @return {IterateResult}
+  * iterate - The actual execution of the test.
+  * @return {deqpTest.IterateResult}
   */
  UniformBlockCase.prototype.iterate = function() {
     /** @type {UniformLayout} */ var refLayout = new UniformLayout(); //!< std140 layout.
@@ -1916,148 +2027,155 @@ var generateFragmentShader = function(sinterface, layout, blockPointers) {
     /** @type {string} */ var vtxSrc = generateVertexShader(this.m_interface, refLayout, blockPointers);
     /** @type {string} */ var fragSrc = generateFragmentShader(this.m_interface, refLayout, blockPointers);
 
-    assertMsgOptions(true, '\n\n' + vtxSrc + '\n\n' + fragSrc, true, true);
-//
-//     glu::ShaderProgram program(m_renderCtx, glu::makeVtxFragSources(vtxSrc.str(), fragSrc.str()));
-//     log << program;
-//
-//     if (!program.isOk())
-//     {
-//         // Compile failed.
-//         m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, "Compile failed");
-//         return STOP;
-//     }
-//
-//     // Query layout from GL.
-//     UniformLayout glLayout;
-//     getGLUniformLayout(gl, glLayout, program.getProgram());
-//
-//     // Print layout to log.
-//     log << TestLog::Section("ActiveUniformBlocks", "Active Uniform Blocks");
-//     for (int blockNdx = 0; blockNdx < (int)glLayout.blocks.size(); blockNdx++)
-//         log << TestLog::Message << blockNdx << ": " << glLayout.blocks[blockNdx] << TestLog::EndMessage;
-//     log << TestLog::EndSection;
-//
+    //TODO: Remove
+    assertMsgOptions(true, '\n========================================================VERTEX SHADER========================================================\n' + vtxSrc +
+                            '\n========================================================FRAGMENT SHADER========================================================\n' + fragSrc, true, true);
+
+    /** @type {deqpProgram.ShaderProgram}*/ var program = new deqpProgram.ShaderProgram(gl, deqpProgram.makeVtxFragSources(vtxSrc, fragSrc));
+    bufferedLogToConsole(program);
+
+    if (!program.isOk())
+    {
+        // Compile failed.
+        testFailedOptions('Compile failed', true);
+        return deqpTests.IterateResult.STOP;
+    }
+
+    // Query layout from GL.
+    /** @type {UniformLayout} */ var glLayout = new UniformLayout();
+    getGLUniformLayout(gl, glLayout, program.getProgram());
+
+    // Print layout to log.
+    // TODO: Should we port TestLog class?)
+    bufferedLogToConsole('Active Uniform Blocks');
+//    log << TestLog::Section("ActiveUniformBlocks", "Active Uniform Blocks");
+    for (var blockNdx = 0; blockNdx < glLayout.blocks.length; blockNdx++)
+        bufferedLogToConsole(blockNdx + ': ' + glLayout.blocks[blockNdx]);
+//        log << TestLog::Message << blockNdx << ": " << glLayout.blocks[blockNdx] << TestLog::EndMessage;
+    //log << TestLog::EndSection;
+
+    bufferedLogToConsole('Active Uniforms');
 //     log << TestLog::Section("ActiveUniforms", "Active Uniforms");
-//     for (int uniformNdx = 0; uniformNdx < (int)glLayout.uniforms.size(); uniformNdx++)
+     for (var uniformNdx = 0; uniformNdx < glLayout.uniforms.length; uniformNdx++)
+         bufferedLogToConsole(uniformNdx + ': ' + glLayout.uniforms[uniformNdx]);
 //         log << TestLog::Message << uniformNdx << ": " << glLayout.uniforms[uniformNdx] << TestLog::EndMessage;
 //     log << TestLog::EndSection;
-//
-//     // Check that we can even try rendering with given layout.
-//     if (!checkLayoutIndices(glLayout) || !checkLayoutBounds(glLayout) || !compareTypes(refLayout, glLayout))
-//     {
-//         m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, "Invalid layout");
-//         return STOP; // It is not safe to use the given layout.
-//     }
-//
-//     // Verify all std140 blocks.
-//     if (!compareStd140Blocks(refLayout, glLayout))
-//         m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, "Invalid std140 layout");
-//
-//     // Verify all shared blocks - all uniforms should be active, and certain properties match.
-//     if (!compareSharedBlocks(refLayout, glLayout))
-//         m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, "Invalid shared layout");
-//
-//     // Check consistency with index queries
-//     if (!checkIndexQueries(program.getProgram(), glLayout))
-//         m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, "Inconsintent block index query results");
-//
-//     // Use program.
-//     gl.useProgram(program.getProgram());
-//
-//     // Assign binding points to all active uniform blocks.
-//     for (int blockNdx = 0; blockNdx < (int)glLayout.blocks.size(); blockNdx++)
-//     {
-//         deUint32 binding = (deUint32)blockNdx; // \todo [2012-01-25 pyry] Randomize order?
-//         gl.uniformBlockBinding(program.getProgram(), (deUint32)blockNdx, binding);
-//     }
-//
-//     GLU_EXPECT_NO_ERROR(gl.getError(), "Failed to set uniform block bindings");
-//
-//     // Allocate buffers, write data and bind to targets.
-//     UniformBufferManager bufferManager(m_renderCtx);
-//     if (m_bufferMode == BUFFERMODE_PER_BLOCK)
-//     {
-//         int                            numBlocks            = (int)glLayout.blocks.size();
-//         vector<vector<deUint8> >    glData                (numBlocks);
-//         map<int, void*>                glBlockPointers;
-//
-//         for (int blockNdx = 0; blockNdx < numBlocks; blockNdx++)
-//         {
-//             glData[blockNdx].resize(glLayout.blocks[blockNdx].size);
-//             glBlockPointers[blockNdx] = &glData[blockNdx][0];
-//         }
-//
-//         copyUniformData(glLayout, glBlockPointers, refLayout, blockPointers);
-//
-//         for (int blockNdx = 0; blockNdx < numBlocks; blockNdx++)
-//         {
-//             deUint32    buffer    = bufferManager.allocBuffer();
-//             deUint32    binding    = (deUint32)blockNdx;
-//
-//             gl.bindBuffer(GL_UNIFORM_BUFFER, buffer);
-//             gl.bufferData(GL_UNIFORM_BUFFER, (glw::GLsizeiptr)glData[blockNdx].size(), &glData[blockNdx][0], GL_STATIC_DRAW);
-//             GLU_EXPECT_NO_ERROR(gl.getError(), "Failed to upload uniform buffer data");
-//
-//             gl.bindBufferBase(GL_UNIFORM_BUFFER, binding, buffer);
-//             GLU_EXPECT_NO_ERROR(gl.getError(), "glBindBufferBase(GL_UNIFORM_BUFFER) failed");
-//         }
-//     }
-//     else
-//     {
-//         DE_ASSERT(m_bufferMode == BUFFERMODE_SINGLE);
-//
-//         int                totalSize            = 0;
-//         int                curOffset            = 0;
-//         int                numBlocks            = (int)glLayout.blocks.size();
-//         int                bindingAlignment    = 0;
-//         map<int, int>    glBlockOffsets;
-//
-//         gl.getIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &bindingAlignment);
-//
-//         // Compute total size and offsets.
-//         curOffset = 0;
-//         for (int blockNdx = 0; blockNdx < numBlocks; blockNdx++)
-//         {
-//             if (bindingAlignment > 0)
-//                 curOffset = deRoundUp32(curOffset, bindingAlignment);
-//             glBlockOffsets[blockNdx] = curOffset;
-//             curOffset += glLayout.blocks[blockNdx].size;
-//         }
-//         totalSize = curOffset;
-//
-//         // Assign block pointers.
-//         vector<deUint8>    glData(totalSize);
-//         map<int, void*>    glBlockPointers;
-//
-//         for (int blockNdx = 0; blockNdx < numBlocks; blockNdx++)
-//             glBlockPointers[blockNdx] = &glData[glBlockOffsets[blockNdx]];
-//
-//         // Copy to gl format.
-//         copyUniformData(glLayout, glBlockPointers, refLayout, blockPointers);
-//
-//         // Allocate buffer and upload data.
-//         deUint32 buffer = bufferManager.allocBuffer();
-//         gl.bindBuffer(GL_UNIFORM_BUFFER, buffer);
-//         if (!glData.empty())
-//             gl.bufferData(GL_UNIFORM_BUFFER, (glw::GLsizeiptr)glData.size(), &glData[0], GL_STATIC_DRAW);
-//
-//         GLU_EXPECT_NO_ERROR(gl.getError(), "Failed to upload uniform buffer data");
-//
-//         // Bind ranges to binding points.
-//         for (int blockNdx = 0; blockNdx < numBlocks; blockNdx++)
-//         {
-//             deUint32 binding = (deUint32)blockNdx;
-//             gl.bindBufferRange(GL_UNIFORM_BUFFER, binding, buffer, (glw::GLintptr)glBlockOffsets[blockNdx], (glw::GLsizeiptr)glLayout.blocks[blockNdx].size);
-//             GLU_EXPECT_NO_ERROR(gl.getError(), "glBindBufferRange(GL_UNIFORM_BUFFER) failed");
-//         }
-//     }
-//
-//     bool renderOk = render(program.getProgram());
-//     if (!renderOk)
-//         m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, "Image compare failed");
-//
-//     return STOP;
+
+    // Check that we can even try rendering with given layout.
+    if (!this.checkLayoutIndices(glLayout) || !this.checkLayoutBounds(glLayout) || !this.compareTypes(refLayout, glLayout))
+    {
+        testFailedOptions('Invalid layout', true);
+        return deqpTests.IterateResult.STOP; // It is not safe to use the given layout.
+    }
+
+    // Verify all std140 blocks.
+    if (!this.compareStd140Blocks(refLayout, glLayout))
+        testFailedOptions('Invalid std140 layout', false);
+
+    // Verify all shared blocks - all uniforms should be active, and certain properties match.
+    if (!this.compareSharedBlocks(refLayout, glLayout))
+        testFailedOptions('Invalid shared layout', false);
+
+    // Check consistency with index queries
+    if (!this.checkIndexQueries(program.getProgram(), glLayout))
+        testFailedOptions('Inconsintent block index query results', false);
+
+    // Use program.
+    gl.useProgram(program.getProgram());
+
+    // Assign binding points to all active uniform blocks.
+    for (var blockNdx = 0; blockNdx < glLayout.blocks.length; blockNdx++)
+    {
+        /** @type {deInt32.deUint32} */ var binding = blockNdx; // \todo [2012-01-25 pyry] Randomize order?
+        gl.uniformBlockBinding(program.getProgram(), blockNdx, binding);
+    }
+
+    assertMsgOptions(gl.getError() != gl.NO_ERROR, 'Failed to set uniform block bindings', false, true);
+
+    // Allocate buffers, write data and bind to targets.
+    /** @type {UniformBufferManager} */ var bufferManager = new UniformBufferManager(gl);
+    if (this.m_bufferMode == BufferMode.BUFFERMODE_PER_BLOCK)
+    {
+        /** @type {number} */ var numBlocks = glLayout.blocks.length;
+        /** @type {BlockPointers} */ var glBlockPointers = new BlockPointers();
+
+        var totalsize = 0;
+        for (var blockNdx = 0; blockNdx < numBlocks; blockNdx++)
+            totalsize += glLayout.blocks[blockNdx].size;
+
+        glBlockPointers.resize(totalsize);
+
+        var offset = 0;
+        for (var blockNdx = 0; blockNdx < numBlocks; blockNdx++)
+        {
+            glBlockPointers.push(offset, glLayout.blocks[blockNdx].size);
+            offset += glLayout.blocks[blockNdx].size;
+        }
+
+        copyUniformData(glLayout, glBlockPointers, refLayout, blockPointers);
+
+        for (var blockNdx = 0; blockNdx < numBlocks; blockNdx++)
+        {
+            /** @type {deInt32.deUint32} */ var buffer = bufferManager.allocBuffer();
+            /** @type {deInt32.deUint32} */ var binding = blockNdx;
+
+            gl.bindBuffer(gl.UNIFORM_BUFFER, buffer);
+            gl.bufferData(gl.UNIFORM_BUFFER, glBlockPointers.find(blockNdx) /*(glw::GLsizeiptr)glData[blockNdx].size(), &glData[blockNdx][0]*/, gl.STATIC_DRAW);
+            assertMsgOptions(gl.getError() != gl.NO_ERROR, 'Failed to upload uniform buffer data', false, true);
+
+            gl.bindBufferBase(gl.UNIFORM_BUFFER, binding, buffer); //TODO: What's this?
+            assertMsgOptions(gl.getError() != gl.NO_ERROR, 'glBindBufferBase(gl.UNIFORM_BUFFER) failed', false, true);
+        }
+    }
+    else
+    {
+        assertMsgOptions(this.m_bufferMode == BufferMode.BUFFERMODE_SINGLE, 'Buffer mode should be single', false, true);
+
+        totalSize = 0;
+        curOffset = 0;
+        /** @type {number} */ var numBlocks = glLayout.blocks.length;
+        /** @type {number} */ var bindingAlignment = 0;
+        /** @type {BlockPointers} */ var glBlockPointers = new BlockPointers();
+
+        bindingAlignment = gl.getParameter(gl.UNIFORM_BUFFER_OFFSET_ALIGNMENT);
+
+        // Compute total size and offsets.
+        curOffset = 0;
+        for (var blockNdx = 0; blockNdx < numBlocks; blockNdx++)
+        {
+            if (bindingAlignment > 0)
+                curOffset = deInt32.deRoundUp32(curOffset, bindingAlignment);
+            glBlockPointers.push(curOffset, glLayout.blocks[blockNdx].size);
+            curOffset += glLayout.blocks[blockNdx].size;
+        }
+        totalSize = curOffset;
+        glBlockPointers.resize(totalSize);
+
+        // Copy to gl format.
+        copyUniformData(glLayout, glBlockPointers, refLayout, blockPointers);
+
+        // Allocate buffer and upload data.
+        /** @type {deInt32.deUint32} */ var buffer = bufferManager.allocBuffer();
+        gl.bindBuffer(gl.UNIFORM_BUFFER, buffer);
+        if (glBlockPointers.data.length > 0 /*!glData.empty()*/)
+            gl.bufferData(gl.UNIFORM_BUFFER, glBlockPointers.find(blockNdx) /*(glw::GLsizeiptr)glData.size(), &glData[0]*/, gl.STATIC_DRAW);
+
+        assertMsgOptions(gl.getError() != gl.NO_ERROR, 'Failed to upload uniform buffer data', false, true);
+
+        // Bind ranges to binding points.
+        for (var blockNdx = 0; blockNdx < numBlocks; blockNdx++)
+        {
+            /** @type {deInt32.deUint32} */ var binding = blockNdx;
+            gl.bindBufferRange(gl.UNIFORM_BUFFER, binding, buffer, glBlockPointers.offsets[blockNdx], glLayout.blocks[blockNdx].size);
+            assertMsgOptions(gl.getError() != gl.NO_ERROR, 'glBindBufferRange(gl.UNIFORM_BUFFER) failed', false, true);
+        }
+    }
+
+    /** @type {boolean} */ var renderOk = this.render(program.getProgram());
+    if (!renderOk)
+        testFailedOptions('Image compare failed', true);
+
+    return deqpTests.IterateResult.STOP;
 };
 
 /**
@@ -2391,6 +2509,9 @@ UniformBlockCase.prototype.checkIndexQueries = function(program, layout) {
     return allOk;
 };
 
+/** @const @type {number} */ var VIEWPORT_WIDTH = 128;
+/** @const @type {number} */ var VIEWPORT_HEIGHT = 128;
+
 /** Renders a white square, and then tests all pixels are
 * effectively white in the color buffer.
 * @param {deqpProgram.ShaderProgram} program The shader program to use.
@@ -2399,8 +2520,8 @@ UniformBlockCase.prototype.checkIndexQueries = function(program, layout) {
 UniformBlockCase.prototype.render = function(program) {
     // Compute viewport.
     /* TODO: original code used random number generator to compute viewport, we use whole canvas */
-    /** @const */ var viewportW = Math.min(canvas.width, VIEWPORT_WIDTH);
-    /** @const */ var viewportH = Math.min(canvas.height, VIEWPORT_HEIGHT);
+    /** @const */ var viewportW = Math.min(gl.canvas.width, VIEWPORT_WIDTH);
+    /** @const */ var viewportH = Math.min(gl.canvas.height, VIEWPORT_HEIGHT);
     /** @const */ var viewportX = 0;
     /** @const */ var viewportY = 0;
 
@@ -2449,112 +2570,6 @@ UniformBlockCase.prototype.render = function(program) {
     }
 };
 
-// /** getShaderSource
-// * Reads a shader program's source by scouring the current document,
-// * looking for a script with the specified ID.
-// * @param {string} id ID of the shader code in the DOM
-// * @return {string} shader's source code.
-// **/
-// var getShaderSource = function(id) {
-//   var shaderScript = document.getElementById(id);
-//
-//   // Didn't find an element with the specified ID; abort.
-//
-//   if (!shaderScript) {
-//     return null;
-//   }
-//
-//   // Walk through the source element's children, building the
-//   // shader source string.
-//
-//   var theSource = '';
-//   var currentChild = shaderScript.firstChild;
-//
-//   while (currentChild) {
-//     if (currentChild.nodeType == 3) {
-//       theSource += currentChild.textContent;
-//     }
-//
-//     currentChild = currentChild.nextSibling;
-//   }
-//
-//   return theSource;
-// };
-//
-// /** TODO: Substitute init, execute and runTestCases for the proper methods.
-//  * Initialize a test case
-//  */
-// var init = function() {
-//     // Init context
-//     var wtu = WebGLTestUtils;
-//     gl = wtu.create3DContext('canvas', {preserveDrawingBuffer: true});
-//
-//     canvas = document.getElementById('canvas');
-//
-//     if (!gl)
-//     {
-//         testFailed('Not able to create context', true);
-//     }
-//     // Create shaders
-//     var vsource = deqpProgram.genVertexSource(getShaderSource('shader-vs'));
-//     var fsource = deqpProgram.genFragmentSource(getShaderSource('shader-fs'));
-//
-//     var programSources = {sources: [vsource, fsource]};
-//
-//     program = new deqpProgram.ShaderProgram(gl, programSources);
-//     gl.useProgram(program.getProgram());
-// };
-//
-// /**
-//  * Execute a test case
-//  * @return {bool} True if test case passed
-//  */
-// var execute = function()
-// {
-//     //assertMsgOptions(render(program), 'Verify pixels', true, true);
-//
-//     // Code for testing TODO: Remove it
-//     var layout = new UniformLayout();
-//     var block = new BlockLayoutEntry();
-//     block.name = 'one';
-//     block.activeUniformIndices.push(1);
-//     block.activeUniformIndices.push(0);
-//     layout.blocks.push(block);
-//     block = new BlockLayoutEntry();
-//     block.name = 'two';
-//     block.activeUniformIndices.push(0);
-//     block.activeUniformIndices.push(1);
-//     layout.blocks.push(block);
-//
-//     var blockndx = layout.getBlockIndex('two');
-//     alert(blockndx);
-//
-//     var uniform = new UniformLayoutEntry();
-//     uniform.name = 'one';
-//     uniform.blockNdx = 1;
-//     layout.uniforms.push(uniform);
-//     uniform = new UniformLayoutEntry();
-//     uniform.name = 'two';
-//     uniform.blockNdx = 0;
-//     layout.uniforms.push(uniform);
-//
-//     var uniformndx = layout.getUniformIndex('one');
-//     alert(uniformndx);
-//
-//     var correctLayout = this.checkLayoutIndices(layout);
-//     alert('Indices are ' + (correctLayout ? 'correct!' : 'incorrect :('));
-// };
-//
-// var runTestCases = function() {
-//     try {
-//         init();
-//         execute();
-//     } catch (err) {
-//         bufferedLogToConsole(err);
-//     }
-//     deqpTests.runner.terminate();
-// };
-
 return {
     UniformBlockCase: UniformBlockCase,
     ShaderInterface: ShaderInterface,
@@ -2576,5 +2591,4 @@ return {
 };
 
 });
-
 
