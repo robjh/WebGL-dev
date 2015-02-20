@@ -36,10 +36,10 @@ var fillWithComponentGradients2D = function(/*const PixelBufferAccess&*/ access,
 			var s	= (x + 0.5) / access.getWidth();
 			var t	= (y + 0.5) / access.getHeight();
 
-			var r	= linearInterpolate((      s  +       t) *0.5, minVal.x(), maxVal.x());
-			var g = linearInterpolate((      s  + (1-t))*0.5, minVal.y(), maxVal.y());
-			var b = linearInterpolate(((1-s) +       t) *0.5, minVal.z(), maxVal.z());
-			var a = linearInterpolate(((1-s) + (1-t))*0.5, minVal.w(), maxVal.w());
+			var r	= linearInterpolate((      s  +       t) *0.5, minVal[0], maxVal[0]);
+			var g = linearInterpolate((      s  + (1-t))*0.5, minVal[1], maxVal[1]);
+			var b = linearInterpolate(((1-s) +       t) *0.5, minVal[2], maxVal[2]);
+			var a = linearInterpolate(((1-s) + (1-t))*0.5, minVal[3], maxVal[3]);
 
 			access.setPixel([r, g, b, a], x, y);
 		}
@@ -54,10 +54,10 @@ var fillWithComponentGradients3D = function(/*const PixelBufferAccess&*/ dst, /*
 				var t = (y + 0.5) / dst.getHeight();
 				var p = (z + 0.5) / dst.getDepth();
 
-				var r = linearInterpolate(s,						minVal.x(), maxVal.x());
-				var g = linearInterpolate(t,						minVal.y(), maxVal.y());
-				var b = linearInterpolate(p,						minVal.z(), maxVal.z());
-				var a = linearInterpolate(1 - (s+t+p)/3,	minVal.w(), maxVal.w());
+				var r = linearInterpolate(s,						minVal[0], maxVal[0]);
+				var g = linearInterpolate(t,						minVal[1], maxVal[1]);
+				var b = linearInterpolate(p,						minVal[2], maxVal[2]);
+				var a = linearInterpolate(1 - (s+t+p)/3,	minVal[3], maxVal[3]);
 				dst.setPixel([r, g, b, a], x, y, z);
 			}
 		}

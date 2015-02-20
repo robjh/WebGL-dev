@@ -473,7 +473,7 @@ var unnormalize = function(/*Sampler::WrapMode*/ mode, c, /*int*/ size) {
 			return size * (c - Math.floor(c));
 
 		case WrapMode.MIRRORED_REPEAT_CL:
-			return size * Math.abs(c - 2 * Math.rint(0.5 * c));
+			return size * Math.abs(c - 2 * deInt32.rint(0.5 * c));
 	}
 	throw new Error('Unrecognized wrap mode ' + mode);
 };
@@ -482,22 +482,22 @@ var wrap = function(/*Sampler::WrapMode*/ mode, /*int*/ c, /*int*/ size) {
 	switch (mode)
 	{
 		case WrapMode.CLAMP_TO_BORDER:
-			return c.clamp(-1, size);
+			return deInt32.clamp(c, -1, size);
 
 		case WrapMode.CLAMP_TO_EDGE:
-			return c.clamp(0, size-1);
+			return deInt32.clamp(c, 0, size-1);
 
 		case WrapMode.REPEAT_GL:
-			return c.imod(size);
+			return deInt32.imod(c, size);
 
 		case WrapMode.REPEAT_CL:
-			return c.imod(size);
+			return deInt32.imod(c, size);
 
 		case WrapMode.MIRRORED_REPEAT_GL:
-			return (size - 1) - (c.imod(2*size) - size).mirror();
+			return (size - 1) - deInt32.mirror(deInt32.imod(c, 2*size) - size);
 
 		case WrapMode.MIRRORED_REPEAT_CL:
-			return c.clamp(0, size-1); // \note Actual mirroring done already in unnormalization function.
+			return deInt32.clamp(c, 0, size-1); // \note Actual mirroring done already in unnormalization function.
 	}
 	throw new Error('Unrecognized wrap mode ' + mode);
 };
@@ -1138,8 +1138,8 @@ var Texture2DView = function(numLevels, levels) {
 	/*const ConstPixelBufferAccess**/ Texture2DView.prototype.getLevels	= function() { return this.m_levels;											};
 
 Texture2DView.prototype.getSubView = function(baseLevel, maxLevel) {
-	var	clampedBase	= baseLevel.clamp(0, this.m_numLevels-1);
-	var	clampedMax	= maxLevel.clamp(clampedBase, this.m_numLevels-1);
+	var	clampedBase	= deInt32.clamp(baseLevel, 0, this.m_numLevels-1);
+	var	clampedMax	= deInt32.clamp(maxLevel, clampedBase, this.m_numLevels-1);
 	var	numLevels	= clampedMax-clampedBase+1;
 	return new Texture2DView(numLevels, this.m_levels.slice(clampedBase,numLevels));
 };
@@ -1172,7 +1172,7 @@ var Texture2DArrayView = function(numLevels, levels) {
 
 Texture2DArrayView.prototype.selectLayer = function(r) {
 	DE_ASSERT(this.m_numLevels > 0 && this.m_levels);
-	return Math.round(r).clamp(0, this.m_levels[0].getDepth()-1);
+	return deInt32.clamp(Math.round(r), 0, this.m_levels[0].getDepth()-1);
 };
 
 Texture2DArrayView.prototype.sample = function(/*const Sampler&*/ sampler, texCoord, lod) {
@@ -1193,8 +1193,8 @@ var Texture3DView = function(numLevels, levels) {
 	/*const ConstPixelBufferAccess**/ Texture3DView.prototype.getLevels	= function() { return this.m_levels;											};
 
 Texture3DView.prototype.getSubView = function(baseLevel, maxLevel) {
-	var	clampedBase	= baseLevel.clamp(0, this.m_numLevels-1);
-	var	clampedMax	= maxLevel.clamp(clampedBase, this.m_numLevels-1);
+	var	clampedBase	= deInt32.clamp(baseLevel, 0, this.m_numLevels-1);
+	var	clampedMax	= deInt32.clamp(maxLevel, clampedBase, this.m_numLevels-1);
 	var	numLevels	= clampedMax-clampedBase+1;
 	return new Texture3DView(numLevels, this.m_levels.slice(clampedBase,numLevels));
 };
@@ -1306,8 +1306,8 @@ TextureCubeView.prototype.sample = function(/*const Sampler&*/ sampler, texCoord
 TextureCubeView.prototype.getFaceLevels	= function(/*CubeFace*/ face) { return this.m_levels[face];					};
 TextureCubeView.prototype.getSize = function() { return this.m_numLevels > 0 ? this.m_levels[0][0].getWidth() : 0;	};
 TextureCubeView.prototype.getSubView = function(baseLevel, maxLevel) {
-	var	clampedBase	= baseLevel.clamp(0, this.m_numLevels-1);
-	var	clampedMax	= maxLevel.clamp(clampedBase, this.m_numLevels-1);
+	var	clampedBase	= deInt32.clamp(baseLevel, 0, this.m_numLevels-1);
+	var	clampedMax	= deInt32.clamp(maxLevel, clampedBase, this.m_numLevels-1);
 	var	numLevels	= clampedMax-clampedBase+1;
 	var levels = [];
 	for (var face = 0; face < CubeFace.TOTAL_FACES; face++)
@@ -1374,9 +1374,9 @@ TextureCube.prototype.allocLevel  = function(/*tcu::CubeFace*/ face, /*int*/ lev
  * @return {CubeFace}
  */
 var selectCubeFace = function(/*const Vec3&*/ coords) {
-	var	x	= coords.x();
-	var	y	= coords.y();
-	var	z	= coords.z();
+	var	x	= coords[0];
+	var	y	= coords[1];
+	var	z	= coords[2];
 	var	ax	= Math.abs(x);
 	var	ay	= Math.abs(y);
 	var	az	= Math.abs(z);
@@ -1417,9 +1417,9 @@ var selectCubeFace = function(/*const Vec3&*/ coords) {
 };
 
 var projectToFace = function(/*CubeFace*/ face, /*const Vec3&*/ coord) {
-	var	rx		= coord.x();
-	var	ry		= coord.y();
-	var	rz		= coord.z();
+	var	rx		= coord[0];
+	var	ry		= coord[1];
+	var	rz		= coord[2];
 	var	sc		= 0;
 	var	tc		= 0;
 	var	ma		= 0;
