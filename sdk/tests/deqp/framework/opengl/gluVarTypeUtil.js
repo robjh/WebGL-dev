@@ -1,14 +1,34 @@
-define([], function() {
+/*-------------------------------------------------------------------------
+ * drawElements Quality Program OpenGL ES Utilities
+ * ------------------------------------------------
+ *
+ * Copyright 2014 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
+define(['framework/opengl/gluVarType.js'], function(gluVarType) {
     'use strict';
 	
 	// VarType subtype path utilities.
 	var VarTypeComponent = (function(type_, index_) {
 		
 		this.type  = null;
-		this.index = 4;
+		this.index = VarTypeComponent.s_Type.length;
 		
 		if (typeof(type_) != 'undefined' && typeof(index) != 'undefined') {
-			this.type =  type_;
+			this.type  = type_;
 			this.index = index_;
 		}
 		
@@ -28,52 +48,6 @@ define([], function() {
 
 	
 	
-	template <typename Iterator>
-	VarType getVarType (const VarType& type, Iterator begin, Iterator end)
-	{
-		TCU_CHECK(isValidTypePath(type, begin, end));
-
-		const VarType*	curType		= &type;
-		Iterator		pathIter	= begin;
-
-		// Process struct member and array element parts of path.
-		while (pathIter != end)
-		{
-			if (pathIter->type == VarTypeComponent::STRUCT_MEMBER)
-				curType = &curType->getStructPtr()->getMember(pathIter->index).getType();
-			else if (pathIter->type == VarTypeComponent::ARRAY_ELEMENT)
-				curType = &curType->getElementType();
-			else
-				break;
-
-			++pathIter;
-		}
-
-		if (pathIter != end)
-		{
-			DataType	basicType	= curType->getBasicType();
-			Precision	precision	= curType->getPrecision();
-
-			if (pathIter->type == VarTypeComponent::MATRIX_COLUMN)
-			{
-				basicType = getDataTypeFloatVec(getDataTypeMatrixNumRows(basicType));
-				++pathIter;
-			}
-
-			if (pathIter != end && pathIter->type == VarTypeComponent::VECTOR_COMPONENT)
-			{
-				basicType = getDataTypeScalarType(basicType);
-				++pathIter;
-			}
-
-			DE_ASSERT(pathIter == end);
-			return VarType(basicType, precision);
-		}
-		else
-			return VarType(*curType);
-	}
-	
-	
 	// basic usage:
 	// 	for (var i = new BasicTypeIterator(type) ; !i.end() ; i.next()) {
 	// 		var j = i.getType();
@@ -81,17 +55,20 @@ define([], function() {
 	
 	var SubTypeIterator = (function() {
 		
-		var m_type; // const VarType*
-		var m_path = []; // TypeComponentVector
+		var m_type = null;  // const VarType*
+		var m_path = [];    // TypeComponentVector
 		
 		this.__construct = (function(type) {
-		
+			if (type) {
+				m_type = type;
+				this.findNext();
+			}
 		});
 		
 		var removeTraversed = (function() {
 			
 			while (m_path.length) {
-				var curComp     = this.m_path[this.m_path.length - 1]; // VarTypeComponent&
+				var curComp     = m_path[m_path.length - 1]; // VarTypeComponent&
 				var parentType  = getVarType(m_type, m_path, 0, m_path.length-1); // VarType // TODO: getVarType
 				
 				if (curComp.type == VarTypeComponent.s_Type.MATRIX_COLUMN) {
@@ -128,13 +105,54 @@ define([], function() {
 						
 				}
 
-				this.m_path.pop();
+				m_path.pop();
 				
 			}
 			
 		});
 		
 		var findNext = (function() {
+			
+			if (m_path.length) {
+				// Increment child counter in current level.
+				var curComp = m_path[m_path.length - 1]; // VarTypeComponent&
+				curComp.index += 1;
+			}
+			
+			for (;;) {
+				
+				var curType = getVarType(m_type, m_path); // VarType
+
+				if (this.IsExpanded(curType))
+					break;
+
+				// Recurse into child type.
+				if (curType.isBasicType()) {
+					var basicType = curType.getBasicType(); // DataType
+
+					if (isDataTypeMatrix(basicType)) {
+						m_path.push(VarTypeComponent(VarTypeComponent.s_Type.MATRIX_COLUMN, 0));
+						
+					} else if (isDataTypeVector(basicType)) {
+						m_path.push(VarTypeComponent(VarTypeComponent.s_Type.VECTOR_COMPONENT, 0));
+						
+					} else {
+						throw new Error("Can't expand scalars - IsExpanded() is buggy.");
+						
+					}
+					
+				} else if (curType.isArrayType()) {
+					m_path.push(VarTypeComponent(VarTypeComponent.s_Type.ARRAY_ELEMENT, 0));
+					
+				} else if (curType.isStructType()) {
+					m_path.push(VarTypeComponent(VarTypeComponent.s_Type.STRUCT_MEMBER, 0));
+					
+				} else {
+					throw new Error();
+					
+				}
+			}
+			
 			
 		});
 		
@@ -189,17 +207,94 @@ define([], function() {
 	ScalarTypeIterator.prototype = new SubTypeIterator();
 	
 	
-	// TODO: find VarType
-	var getVarType = (function(var type, array, start, end) { 
-		
-		if (typeof(start) == 'undefined') {
-			start = 0;
+	var inBounds = (function(x,a,b) { return a <= x && x < b; });
+	
+	var isValidTypePath = (function(type, array, begin, end) {
+	
+		if (typeof(begin) == 'undefined') { begin = 0;            }
+		if (typeof(end)   == 'undefined') { begin = array.length; }
+	
+		var curType  = type; // const VarType*
+		var pathIter = begin; // Iterator
+
+		// Process struct member and array element parts of path.
+		while (pathIter != end) {
+			var element = array[pathIter];
+			
+			if (element.type == VarTypeComponent.s_Type.STRUCT_MEMBER) {
+			
+				if (!curType.isStructType() || !inBounds(element.index, 0, curType.getStruct().getNumMembers())) {
+					return false;
+				}
+
+				curType = curType.getStruct().getMember(element.index).getType();
+			
+			
+			} else if (element.type == VarTypeComponent.s_Type.ARRAY_ELEMENT) {
+				if (
+					!curType.isArrayType() ||
+					(
+						curType.getArraySize() != gluVarType.UNSIZED_ARRAY &&
+						inBounds(element.index, 0, curType->getArraySize())
+					)
+				) {
+					return false;
+				}
+
+				curType = curType.getElementType();
+			} else {
+				break;
+			}
+
+			++pathIter;
 		}
-		if (typeof(end) == 'undefined') {
-			end = array.length;
+
+		if (pathIter != end) {
+			if (!(
+				pathIter->type == VarTypeComponent.s_Type.MATRIX_COLUMN ||
+				pathIter->type == VarTypeComponent.s_Type.VECTOR_COMPONENT
+			)) {
+				throw new Error("Not a matrix or a vector");
+			}
+
+			// Current type should be basic type.
+			if (!curType.isBasicType()) {
+				return false;
+			}
+
+			var basicType = curType.getBasicType(); // DataType
+
+			if (array[pathIter].type == VarTypeComponent.s_Type.MATRIX_COLUMN)
+			{
+				if (!isDataTypeMatrix(basicType)) {
+					return false;
+				}
+
+				basicType = getDataTypeFloatVec(getDataTypeMatrixNumRows(basicType));
+				++pathIter;
+			}
+
+			if (pathIter != end && array[pathIter].type == VarTypeComponent.s_Type.VECTOR_COMPONENT)
+			{
+				if (!isDataTypeVector(basicType))
+					return false;
+
+				basicType = getDataTypeScalarType(basicType);
+				++pathIter;
+			}
 		}
+
+		return pathIter == end;
+	});
+	
+	
+	
+	var getVarType = (function(type, array, start, end) {
 		
-		if (!isValidTypePath(type, begin, end)) {
+		if (typeof(start) == 'undefined') { start = 0;            }
+		if (typeof(end)   == 'undefined') { end   = array.length; }
+		
+		if (!isValidTypePath(type, array, start, end)) {
 			throw new Error("Type is invalid");
 		}
 		
@@ -242,10 +337,9 @@ define([], function() {
 				throw new Error();
 			}
 			return VarType(basicType, precision);
-		}
-		else
+		} else {
 			return new VarType(curType);
-		
+		}
 	});
 	
 	return {
