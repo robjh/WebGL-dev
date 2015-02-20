@@ -152,7 +152,7 @@ var Type = {
 Type.TYPE_LAST = Object.keys(Type).length;
 
 /**
-* TypeArray struct
+* TypeArray struct (nothing to do with JS's TypedArrays)
 * @param {VarType} elementType
 * @param {number} arraySize
 */
@@ -396,7 +396,7 @@ StructType.prototype.getMember = function(memberNdx) {
     if (memberNdx >= 0 && memberNdx < this.m_members.length)
         return this.m_members[memberNdx];
     else {
-        bufferedLogToConsole("Error: Invalid member index for StructType's members");
+        DE_ASSERT(false); // "Error: Invalid member index for StructType's members"
         return undefined;
     }
 };
@@ -1095,7 +1095,7 @@ var generateValue = function(entry, basePtr, rnd)
 
     for (var elemNdx = 0; elemNdx < entry.size; elemNdx++)
     {
-        /** @type {Uint8Array} */ var elemPtr = basePtr.subarray(entry.offset + (isArray ? elemNdx * entry.arrayStride : 0)); //(deUint8*)basePtr + entry.offset + (isArray ? elemNdx*entry.arrayStride : 0);
+        /** @type {Uint8Array} */ var elemPtr = basePtr.subarray(entry.offset + (isArray ? elemNdx * entry.arrayStride : 0));
 
         for (var vecNdx = 0; vecNdx < numVecs; vecNdx++)
         {
@@ -1480,7 +1480,7 @@ var generateDeclaration = function(block) {
     src += 'uniform ' + block.getBlockName();
     src += '\n{\n';
 
-    for (var uniformNdx = 0; uniformNdx < block.countUniforms(); uniformNdx++) //UniformBlock::ConstIterator uniformIter = block.begin(); uniformIter != block.end(); uniformIter++)
+    for (var uniformNdx = 0; uniformNdx < block.countUniforms(); uniformNdx++)
     {
         src += Indent(1);
         src += generateDeclaration_A(block.getUniform(uniformNdx), 1 /* indent level */);
@@ -1735,7 +1735,7 @@ var generateVertexShader = function(sinterface, layout, blockPointers) {
 
     /** @type {Array.<StructType>} */ var namedStructs = [];
     sinterface.getNamedStructs(namedStructs);
-    for (var structNdx = 0; structNdx < namedStructs.length; structNdx++) //std::vector<const StructType*>::const_iterator structIter = namedStructs.begin(); structIter != namedStructs.end(); structIter++)
+    for (var structNdx = 0; structNdx < namedStructs.length; structNdx++)
         src += generateDeclaration_C(namedStructs[structNdx], 0);
 
     for (var blockNdx = 0; blockNdx < sinterface.getNumUniformBlocks(); blockNdx++)
@@ -1782,7 +1782,7 @@ var generateFragmentShader = function(sinterface, layout, blockPointers) {
 
     /** @type {Array.<StructType>} */ var namedStructs = [];
     sinterface.getNamedStructs(namedStructs);
-    for (var structNdx = 0; structNdx < namedStructs.length; structNdx++) //std::vector<const StructType*>::const_iterator structIter = namedStructs.begin(); structIter != namedStructs.end(); structIter++)
+    for (var structNdx = 0; structNdx < namedStructs.length; structNdx++)
         src += generateDeclaration_C(namedStructs[structNdx], 0);
 
     for (var blockNdx = 0; blockNdx < sinterface.getNumUniformBlocks(); blockNdx++)
@@ -1995,7 +1995,7 @@ var copyUniformData = function(dstLayout, dstBlockPointers, srcLayout, srcBlockP
         if (dstBlockNdx < 0)
             continue;
 
-        for (var srcUniformNdx = 0; srcUniformNdx < srcBlock.activeUniformIndices.length; srcUniformNdx++)/*vector<int>::const_iterator srcUniformNdxIter = srcBlock.activeUniformIndices.begin(); srcUniformNdxIter != srcBlock.activeUniformIndices.end(); srcUniformNdxIter++*/
+        for (var srcUniformNdx = 0; srcUniformNdx < srcBlock.activeUniformIndices.length; srcUniformNdx++)
         {
             /** @type {number} */ var srcUniformNdxIter = srcBlock.activeUniformIndices[srcUniformNdx];
             /** @type {UniformLayoutEntry} */ var srcEntry = srcLayout.uniforms[srcUniformNdxIter];
@@ -2023,7 +2023,7 @@ var copyUniformData = function(dstLayout, dstBlockPointers, srcLayout, srcBlockP
     // Assign storage for reference values.
     {
         /** @type {number} */ var totalSize = 0;
-        for (var blockNdx = 0; blockNdx < refLayout.blocks.length; blockNdx++) // BlockLayoutEntrvector<BlockLayoutEntry>::const_iterator blockIter = refLayout.blocks.begin(); blockIter != refLayout.blocks.end(); blockIter++)
+        for (var blockNdx = 0; blockNdx < refLayout.blocks.length; blockNdx++)
         {
             /** @type {BlockLayoutEntry} */ var blockIter = refLayout.blocks[blockNdx];
             totalSize += blockIter.size;

@@ -1,1 +1,1 @@
-uniforms.html
+uniformbuffers.html
