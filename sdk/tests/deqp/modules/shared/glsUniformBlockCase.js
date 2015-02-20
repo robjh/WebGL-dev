@@ -27,7 +27,7 @@ define([
     'framework/delibs/debase/deInt32',
     'framework/delibs/debase/deRandom',
     'framework/delibs/debase/deString'
-], 
+],
 function(
     deqpTests, 
     deqpProgram, 
@@ -382,7 +382,7 @@ StructType.prototype.getTypeName = function() {
     return this.m_typeName;
 };
 
-/* 
+/*
  * Instead of iterators, we'll add
  * a getter for a specific element (getMember),
  * and current members amount (getSize).

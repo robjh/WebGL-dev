@@ -37,7 +37,7 @@ var deInBounds32 = function(a, mn, mx) {
     return (a >= mn) && (a < mx);
 };
 
-/*
+/**
  * Check if a value is a power-of-two.
  * @param {number} a Input value.
  * @return {boolean} return True if input is a power-of-two value, false otherwise.
@@ -79,8 +79,7 @@ var dePop32 = function(a) {
     return t;
 };
 
-
-Number.prototype.clamp = function(min, max) {
+var clamp = function(min, max) {
     return Math.max(min, Math.min(this, max));
 };
 
@@ -94,9 +93,9 @@ var mirror = function(a) {
 };
 
 /**
- * @param {Array<Number} a Source array
- * @param {Array<Number>} indices
- * @return {Array<Number>} Swizzled array
+ * @param {Array.<number>} a Source array
+ * @param {Array.<number>} indices
+ * @return {Array.<number>} Swizzled array
  */
 var swizzle = function(a, indices) {
     if (!indices.length)
@@ -109,9 +108,9 @@ var swizzle = function(a, indices) {
 
 /**
  * Multiply two vectors, element by element
- * @param {Array<Number} a
- * @param {Array<Number} b
- * @return {Array<Number>} Result array
+ * @param {Array.<number>} a
+ * @param {Array.<number>} b
+ * @return {Array.<number>} Result array
  */
 
 var multiply = function(a, b) {
@@ -125,9 +124,9 @@ var multiply = function(a, b) {
 
 /**
  * Add two vectors, element by element
- * @param {Array<Number} a
- * @param {Array<Number} b
- * @return {Array<Number>} Result array
+ * @param {Array.<number>} a
+ * @param {Array.<number>} b
+ * @return {Array.<number>} Result array
  */
 
 var add = function(a, b) {
@@ -141,9 +140,9 @@ var add = function(a, b) {
 
 /**
  * Subtract two vectors, element by element
- * @param {Array<Number} a
- * @param {Array<Number} b
- * @return {Array<Number>} Result array
+ * @param {Array.<number>} a
+ * @param {Array.<number>} b
+ * @return {Array.<number>} Result array
  */
 
 var subtract = function(a, b) {
@@ -157,9 +156,9 @@ var subtract = function(a, b) {
 
 /**
  * Calculate absolute difference between two vectors
- * @param {Array<Number} a
- * @param {Array<Number} b
- * @return {Array<Number>} abs(diff(a - b))
+ * @param {Array.<number>} a
+ * @param {Array.<number>} b
+ * @return {Array.<number>} abs(diff(a - b))
  */
 var absDiff = function(a, b) {
     if (a.length != b.length)
@@ -172,9 +171,9 @@ var absDiff = function(a, b) {
 
 /**
  * Is a <= b (element by element)?
- * @param {Array<Number} a
- * @param {Array<Number} b
- * @return {Array<boolean>} Result array of booleans
+ * @param {Array.<number>} a
+ * @param {Array.<number>} b
+ * @return {Array.<boolean>} Result array of booleans
  */
 var lessThanEqual = function(a, b) {
     if (a.length != b.length)
@@ -187,7 +186,7 @@ var lessThanEqual = function(a, b) {
 
 /**
  * Are all values in the array true?
- * @param {Array<Number} a
+ * @param {Array.<number>} a
  * @return {boolean}
  */
 
@@ -200,9 +199,9 @@ var boolAll = function(a) {
 
 /**
  * max(a, b) element by element
- * @param {Array<Number} a
- * @param {Array<Number} b
- * @return {Array<Number>}
+ * @param {Array.<number>} a
+ * @param {Array.<number>} b
+ * @return {Array.<number>}
  */
 var max = function(a, b) {
     if (a.length != b.length)
@@ -235,7 +234,7 @@ var rint = function(a) {
         clamp: clamp,
         imod: imod,
         mirror: mirror,
-        swizzle:swizzle,
+        swizzle: swizzle,
         multiply: multiply,
         add: add,
         subtract: subtract,
@@ -246,4 +245,5 @@ var rint = function(a) {
         rint: rint
     };
 });
+
 
