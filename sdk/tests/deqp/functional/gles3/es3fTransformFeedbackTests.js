@@ -19,7 +19,13 @@
  */
 
 
-define(['framework/opengl/gluShaderUtil.js', 'framework/opengl/gluDrawUtil', 'modules/shared/glsUniformBlockCase', 'modules/shared/glsVarType'], function(deqpUtils, deqpDraw, glsUBC, glsVT) {
+define([
+	'framework/opengl/gluShaderUtil.js',
+	'framework/opengl/gluDrawUtil',
+	'modules/shared/glsUniformBlockCase',
+	'modules/shared/glsVarType',
+	'framework/opengl/gluVarTypeUtil'
+], function(deqpUtils, deqpDraw, glsUBC, glsVT, glsVTU) {
     'use strict';
 
 	/** @const @type {number} */ var VIEWPORT_WIDTH = 128;
@@ -32,9 +38,9 @@ define(['framework/opengl/gluShaderUtil.js', 'framework/opengl/gluDrawUtil', 'mo
 	 */
 	var interpolation = {
 
-	SMOOTH: 0,
-	FLAT: 1,
-	CENTROID: 2
+		SMOOTH:   0,
+		FLAT:     1,
+		CENTROID: 2
 
 	};
 
@@ -1111,13 +1117,13 @@ define(['framework/opengl/gluShaderUtil.js', 'framework/opengl/gluDrawUtil', 'mo
 	 */
 	var Output = function() {
 
-	return{
-	/** @type {number} */ bufferNdx: 0,
-	/** @type {number} */ offset: 0,
-	/** @type {string} */ name: null,
-	/** @type {glsVT.VarType} */ type: null,
-	/** @type {Array.<Attribute>} */ inputs: null
-	};
+		return{
+		/** @type {number} */ bufferNdx: 0,
+		/** @type {number} */ offset: 0,
+		/** @type {string} */ name: null,
+		/** @type {glsVT.VarType} */ type: null,
+		/** @type {Array.<Attribute>} */ inputs: null
+		};
 
 	};
 
