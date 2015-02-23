@@ -19,15 +19,13 @@
  */
 
 
-define([
-	'framework/opengl/gluShaderUtil.js',
-	'framework/opengl/gluDrawUtil',
-	'modules/shared/glsUniformBlockCase',
-	'framework/opengl/gluVarType',
-	'framework/opengl/gluVarTypeUtil'
-	'framework/opengl/gluShaderProgram',
-	'framework/delibs/debase/deRandom'
-], function(deqpUtils, deqpDraw, glsUBC, gluVT, gluVTU, deqpProgram, deRandom) {
+define(['framework/opengl/gluShaderUtil.js',
+        'framework/opengl/gluDrawUtil',
+        'modules/shared/glsUniformBlockCase',
+        'framework/opengl/gluVarType',
+        'framework/opengl/gluShaderProgram',
+        '/framework/delibs/debase/deRandom'],
+        function(deqpUtils, deqpDraw, glsUBC, gluVT, deqpProgram, deRandom) {
     'use strict';
 
 	/** @const @type {number} */ var VIEWPORT_WIDTH = 128;
@@ -40,9 +38,9 @@ define([
 	 */
 	var interpolation = {
 
-		SMOOTH:   0,
-		FLAT:     1,
-		CENTROID: 2
+	SMOOTH: 0,
+	FLAT: 1,
+	CENTROID: 2
 
 	};
 
@@ -128,9 +126,10 @@ define([
 				return array[pos];
 			}
 		}
-		// TODO: I don't know if this error is necessary ??
 		if (attributeNameFound === false)
-		throw Error('Attribute or Varying name: ' + name + ', has not been found in the array');
+		bufferedLogToConsole('Attribute or Varying name: ' + name + ', has not been found in the array');
+		// TODO: I don't know if the error below is necessary ??
+		// throw Error('Attribute or Varying name: ' + name + ', has not been found in the array');
 	};
 
 	/**
@@ -625,7 +624,53 @@ define([
 	 * @param {deRandom} rnd
 	 */
 	var genAttributeData = function(attrib, basePtr, stride, numElements, rnd) {
-		//TODO: implement
+
+		/** @type {number} */ var elementSize = 4; /*sizeof(deUint32)*/
+		/** @type {boolean} */ var isFloat = deqpUtils.isDataTypeFloatOrVec(attrib.type.getBasicType());
+		/** @type {boolean} */ var isInt = deqpUtils.isDataTypeIntOrIVec(attrib.type.getBasicType());
+
+		// TODO: below type glsUBC.UniformFlags ?
+		/** @type {deqpUtils.precision} */ var precision = attribute.type.getPrecision(); // TODO: getPrecision() called correctly? implemented in glsVarType.js
+
+		/** @type {number} */ var numComps	= deqpUtils.getDataTypeScalarSize(attrib.type.getBasicType());
+
+		for (var elemNdx = 0; elemNdx < numElements; elemNdx++)
+		{
+			for (var compNdx = 0; compNdx < numComps; compNdx++)
+			{
+				/** @type {number} */ var offset = attrib.offset + elemNdx * stride + compNdx * elementSize;
+				if (isFloat)
+				{
+					/** @type {number} */ var comp = basePtr + offset;
+					switch (precision)
+					{
+						case deqpUtils.precision.PRECISION_LOWP:
+							comp = 0.25 * rnd.getInt(0, 4);
+							break;
+						case deqpUtils.precision.PRECISION_MEDIUMP:
+							comp = rnd.getFloat(-1e3, 1e3);
+							break;
+						case deqpUtils.precision.PRECISION_HIGHP:
+							comp = rnd.getFloat(-1e5, 1e5);
+							break;
+						default:
+							// TODO: DE_ASSERT(false);
+					}
+				}
+				else if (isInt)
+				{
+					/** @type {number} */ var comp = basePtr + offset;
+					switch (precision)
+					{
+					// TODO: case deqpUtils.precision.PRECISION_LOWP: comp = rnd.getUint32() & 0xff << 24 >> 24;	break;
+					// TODO: case deqpUtils.precision.PRECISION_MEDIUMP:	comp = rnd.getUint32() & 0xffff << 16 >> 16; break;
+					// TODO: case deqpUtils.precision.PRECISION_HIGHP: comp = rnd.getUint32(); break;
+						default:
+							// TODO: DE_ASSERT(false);
+					}
+				}
+			}
+		}
 	};
 
 	/**
@@ -636,9 +681,19 @@ define([
 	 * @param {deRandom} rnd
 	 */
 	var genInputData = function(attributes, numInputs, inputStride, inputBasePtr, rnd) {
-		//TODO: implement
+
+		// TODO: two first loops have been omitted
+		// is declared 'ptr' --> deUint8* ptr = inputBasePtr + position.offset + inputStride*ndx;
+		// and only used within these two loops
+		
+		// Random data for rest of components.
+		for (var i=0; i < attributes.length; i++)
+		{
+			if (attributes[i].name != 'a_position' && attributes[i].name != 'a_pointSize')
+				genAttributeData(attrib, inputBasePtr, inputStride, numInputs, rnd);
+		}
 	};
-	
+
 	/**
 	 * Returns the number of outputs with the count for the Primitives in the Transform Feedback.
 	 * @param {WebGLRenderingContext} gl WebGL context
@@ -767,7 +822,7 @@ define([
 		/** @type {number} */ var numComponents	= deqpUtils.getDataTypeScalarSize(type);
 		
 		// TODO: below type glsUBC.UniformFlags ?
-		/** @type {deqpUtils.precision} */ var precision = attribute.type.getPrecision(); // TODO: getPrecision() called correctly? implemented in glsVarType.js
+		/** @type {deqpUtils.precision} */ var precision = attribute.type.getPrecision(); // TODO: getPrecision() called correctly? implemented in gluVarType.js
 
 		/** @type {string} */ var scalarType = deqpUtils.getDataTypeScalarType(type);
 		/** @type {number} */ var numOutputs = getTransformFeedbackOutputCount(primitiveType, numInputs);
@@ -1347,7 +1402,7 @@ define([
 			} else {
 				log.log(
 					TestLog.Message +
-					'"ERROR: Rendering result comparison between TF enabled and TF disabled failed!"' +
+					'ERROR: Rendering result comparison between TF enabled and TF disabled failed!' +
 					TestLog.EndMessage
 				);
 			}
@@ -1396,6 +1451,8 @@ define([
 			'random1',     'random2'
 		]
 	};
+
+	// TODO: find TestCase
 	TransformFeedbackCase.prototype = new TestCase();
 
 	/** PositionCase
@@ -1407,9 +1464,14 @@ define([
 	 * @param {deqpDraw.primitiveType} primitiveType GLenum that specifies what kind of primitive is
 	 */
 	var PositionCase = (function(context, name, desc, bufferMode, primitiveType) {
+
 		this._construct(context, name, desc, bufferMode, primitiveType);
 		this.m_progSpec.addTransformFeedbackVarying('gl_Position');
+		
+		// this.init(); //TODO: call init()?
+
 	});
+	
 	PositionCase.prototype = new TransformFeedbackCase();
 
 	/** PointSizeCase
@@ -1422,13 +1484,13 @@ define([
 	 */
 	var PointSizeCase = (function(context, name, desc, bufferMode, primitiveType) {
 
-		this.container = new TransformFeedbackCase(context, name, desc, bufferMode, primitiveType);
-		container._construct(context, name, desc, bufferMode, primitiveType);
-
-		container.m_progSpec.addTransformFeedbackVarying('gl_PointSize');
-		container.init(); //TODO: call init()?
+		this._construct(context, name, desc, bufferMode, primitiveType);
+		this.m_progSpec.addTransformFeedbackVarying('gl_PointSize');
+		// this.init(); //TODO: call init()?
 
 	});
+	
+	PointSizeCase.prototype = new TransformFeedbackCase();
 
 	/** BasicTypeCase
 	 * It is a child class of TransformFeedbackCase
@@ -1443,17 +1505,18 @@ define([
 	 */
 	var BasicTypeCase = (function(context, name, desc, bufferMode, primitiveType, type, precision, interpolation) {
 
-		this.container = new TransformFeedbackCase(context, name, desc, bufferMode, primitiveType);
-		container._construct(context, name, desc, bufferMode, primitiveType);
+		this._construct(context, name, desc, bufferMode, primitiveType);
 
-		container.m_progSpec.addVarying('v_varA', gluVT.newTypeBasic(type, precision), interpolation);
-		container.m_progSpec.('v_varB', gluVT.newTypeBasic(type, precision), interpolation);
+		this.m_progSpec.addVarying('v_varA', gluVT.newTypeBasic(type, precision), interpolation);
+		this.m_progSpec.('v_varB', gluVT.newTypeBasic(type, precision), interpolation);
 
-		container.m_progSpec.addTransformFeedbackVarying('v_varA');
-		container.m_progSpec.addTransformFeedbackVarying('v_varB');
-		container.init(); //TODO: call init()?
+		this.m_progSpec.addTransformFeedbackVarying('v_varA');
+		this.m_progSpec.addTransformFeedbackVarying('v_varB');
+		// this.init(); //TODO: call init()?
 
 	});
+	
+	BasicTypeCase.prototype = new TransformFeedbackCase();
 
 	/** BasicArrayCase
 	 * It is a child class of TransformFeedbackCase
@@ -1468,28 +1531,29 @@ define([
 	 */
 	var BasicArrayCase = (function(context, name, desc, bufferMode, primitiveType, type, precision, interpolation) {
 
-		this.container = new TransformFeedbackCase(context, name, desc, bufferMode, primitiveType);
-		container._construct(context, name, desc, bufferMode, primitiveType);
+		this._construct(context, name, desc, bufferMode, primitiveType);
 
-		if (isDataTypeMatrix.isDataTypeMatrix(type) || container.m_bufferMode === GL_SEPARATE_ATTRIBS)
+		if (deqpUtils.isDataTypeMatrix(type) || this.m_bufferMode === GL_SEPARATE_ATTRIBS)
 		{
 			// note For matrix types we need to use reduced array sizes or otherwise we will exceed maximum attribute (16)
 			// or transform feedback component count (64).
 			// On separate attribs mode maximum component count per varying is 4.
-			container.m_progSpec.addVarying('v_varA', gluVT.newTypeArray(gluVT.newTypeBasic(type, precision), 1), interpolation);
-			container.m_progSpec.addVarying('v_varB', gluVT.newTypeArray(gluVT.newTypeBasic(type, precision), 2), interpolation);
+			this.m_progSpec.addVarying('v_varA', gluVT.newTypeArray(gluVT.newTypeBasic(type, precision), 1), interpolation);
+			this.m_progSpec.addVarying('v_varB', gluVT.newTypeArray(gluVT.newTypeBasic(type, precision), 2), interpolation);
 		}
 		else
 		{
-			container.m_progSpec.addVarying('v_varA', gluVT.newTypeArray(gluVT.newTypeBasic(type, precision), 3), interpolation);
-			container.m_progSpec.addVarying('v_varB', gluVT.newTypeArray(gluVT.newTypeBasic(type, precision), 4), interpolation);
+			this.m_progSpec.addVarying('v_varA', gluVT.newTypeArray(gluVT.newTypeBasic(type, precision), 3), interpolation);
+			this.m_progSpec.addVarying('v_varB', gluVT.newTypeArray(gluVT.newTypeBasic(type, precision), 4), interpolation);
 		}
 
-		container.m_progSpec.addTransformFeedbackVarying('v_varA');
-		container.m_progSpec.addTransformFeedbackVarying('v_varB');
-		container.init(); //TODO: call init()?
+		this.m_progSpec.addTransformFeedbackVarying('v_varA');
+		this.m_progSpec.addTransformFeedbackVarying('v_varB');
+		// this.init(); //TODO: call init()?
 
 	});
+	
+	BasicArrayCase.prototype = new TransformFeedbackCase();
 
 	/** ArrayElementCase
 	 * It is a child class of TransformFeedbackCase
@@ -1504,21 +1568,22 @@ define([
 	 */
 	var ArrayElementCase = (function(context, name, desc, bufferMode, primitiveType, type, precision, interpolation) {
 
-		this.container = new TransformFeedbackCase(context, name, desc, bufferMode, primitiveType);
-		container._construct(context, name, desc, bufferMode, primitiveType);
+		this._construct(context, name, desc, bufferMode, primitiveType);
 
-		container.m_progSpec.addVarying('v_varA', gluVT.newTypeBasic(type, precision), interpolation);
-		container.m_progSpec.('v_varB', gluVT.newTypeBasic(type, precision), interpolation);
+		this.m_progSpec.addVarying('v_varA', gluVT.newTypeBasic(type, precision), interpolation);
+		this.m_progSpec.('v_varB', gluVT.newTypeBasic(type, precision), interpolation);
 
-		container.m_progSpec.addTransformFeedbackVarying('v_varA[1]');
-		container.m_progSpec.addTransformFeedbackVarying('v_varB[0]');
-		container.m_progSpec.addTransformFeedbackVarying('v_varB[3]');
+		this.m_progSpec.addTransformFeedbackVarying('v_varA[1]');
+		this.m_progSpec.addTransformFeedbackVarying('v_varB[0]');
+		this.m_progSpec.addTransformFeedbackVarying('v_varB[3]');
 
-		container.init(); //TODO: call init()?
+		// this.init(); //TODO: call init()?
 
 	});
+	
+	ArrayElementCase.prototype = new TransformFeedbackCase();
 
-	/** ArrayElementCase
+	/** RandomCase
 	 * It is a child class of TransformFeedbackCase
 	 * @param {WebGLRenderingContext} context gl WebGL context
 	 * @param {string} name
@@ -1529,12 +1594,10 @@ define([
 	 */
 	var RandomCase = (function(context, name, desc, bufferType, primitiveType, seed) {
 
-		this.container = new TransformFeedbackCase(context, name, desc, bufferMode, primitiveType);
-		container._construct(context, name, desc, bufferMode, primitiveType);
-		container.init();
+		this._construct(context, name, desc, bufferMode, primitiveType);
 
 		// TODO: unfinished, same implementation in TransformFeedbackCase.iterate
-		// var seed = container.iterate.seed; // TODO: possible solution as a local attribute?
+		// var seed = this.iterate.seed; // TODO: possible solution as a local attribute?
 		/** @type {number} */ var seed = deStringHash(getName()) ^ deInt32Hash(m_iterNdx);
 
 		/** @type {Array.<deqpUtils.DataType>} */
@@ -1565,12 +1628,17 @@ define([
             deqpUtils.DataType.FLOAT_MAT4
         ];
 
-     // TODO: create enum Precision in deqpUtils instead of glsUBC ???
-        /** @type {Array.<glsUBC.UniformFlags>} */
+        // TODO: could we use /** @type {Array.<glsUBC.UniformFlags>} */ instead ???
+        /** @type {Array.<deqpUtils.precision>} */
         var precisions = [
-            glsUBC.UniformFlags.PRECISION_LOW,
-            glsUBC.UniformFlags.PRECISION_MEDIUM,
-            glsUBC.UniformFlags.PRECISION_HIGH
+
+            deqpUtils.precision.PRECISION_LOWP,
+            deqpUtils.precision.PRECISION_MEDIUMP,
+            deqpUtils.precision.PRECISION_HIGHP
+
+            // glsUBC.UniformFlags.PRECISION_LOW,
+            // glsUBC.UniformFlags.PRECISION_MEDIUM,
+            // glsUBC.UniformFlags.PRECISION_HIGH
         ];
 
         /** @type {Array.<string, interpolation>} */
@@ -1590,10 +1658,9 @@ define([
         /** @type {number} */ var captureFullArrayWeight = 0.5;
 
         /** @type {deRandom.deRandom} */ var rnd = new deRandom.Random(seed);
-		/** @type {boolean} */ var usePosition = deRandom.getFloat(rnd) < positionWeight;
-		/** @type {boolean} */ var usePointSize	= deRandom.getFloat(rnd) < pointSizeWeight;
-		/** @type {Array.<number>} */ var opts = [1, maxAttributeVectors - 1/*position*/ - (usePointSize ? 1 : 0)];
-		/** @type {number} */ var numAttribVectorsToUse	= deRandom.getInt(rnd, opts);
+		/** @type {boolean} */ var usePosition = rnd.getFloat() < positionWeight;
+		/** @type {boolean} */ var usePointSize	= rnd.getFloat() < pointSizeWeight;
+		/** @type {number} */ var numAttribVectorsToUse	= rnd.getInt(rnd, 1, maxAttributeVectors - 1/*position*/ - (usePointSize ? 1 : 0));
 
 		/** @type {number} */ var numAttributeVectors = 0;
 		/** @type {number} */ var varNdx = 0;
@@ -1609,67 +1676,69 @@ define([
 																maxVecs >= 3 ? 18 :
 																maxVecs >= 2 ? (isSeparateMode ? 13 : 15) : 12);
 			/** @type {deqpUtils.DataType} */ var end = typeCandidates[endCandidates];
-
-			/**
-			glu::DataType			type		= rnd.choose<glu::DataType>(begin, end);
-			glu::Precision			precision	= rnd.choose<glu::Precision>(&precisions[0], &precisions[0]+DE_LENGTH_OF_ARRAY(precisions));
-			Interpolation			interp		= glu::getDataTypeScalarType(type) == glu::TYPE_FLOAT
+			
+			/** @type {deqpUtils.DataType} */ var type = rnd.choose<glu::DataType>(begin, end); // TODO: implement
+			/** @type {glsUBC.UniformFlags | deqpUtils.precision} */
+			var precision = rnd.choose<glu::Precision>(&precisions[0], &precisions[0]+DE_LENGTH_OF_ARRAY(precisions)); // TODO: implement
+			/** @type {interpolation} */ var interp = deqpUtils.getDataTypeScalarType(type) === deqpUtils.DataType.FLOAT
 												? rnd.choose<Interpolation>(&interpModes[0], &interpModes[0]+DE_LENGTH_OF_ARRAY(interpModes))
-												: INTERPOLATION_FLAT;
-			int						numVecs		= glu::isDataTypeMatrix(type) ? glu::getDataTypeMatrixNumColumns(type) : 1;
-			int						numComps	= glu::getDataTypeScalarSize(type);
-			int						maxArrayLen	= de::max(1, isSeparateMode ? 4/numComps : maxVecs/numVecs);
-			bool					useArray	= rnd.getFloat() < arrayWeight;
-			int						arrayLen	= useArray ? rnd.getInt(1, maxArrayLen) : 1;
-			std::string				name		= "v_var" + de::toString(varNdx);
+												: interpolation.FLAT; // TODO: implement
+			/** @type {number} */ var numVecs = deqpUtils.isDataTypeMatrix(type) ? deqpUtils.getDataTypeMatrixNumColumns(type) : 1;
+			/** @type {number} */ var numComps = deqpUtils.getDataTypeScalarSize(type);
+			/** @type {number} */ var maxArrayLen = deMax(1, isSeparateMode ? 4 / numComps : maxVecs / numVecs);
+			/** @type {boolean} */ var useArray	= rnd.getFloat() < arrayWeight;
+			/** @type {number} */ var arrayLen = useArray ? rnd.getInt(1, maxArrayLen) : 1;
+			/** @type {string} */ var name = 'v_var' + varNdx; // TODO: check varNdx.toString() omitted?
 
 			if (useArray)
-				m_progSpec.addVarying(name.c_str(), glu::VarType(glu::VarType(type, precision), arrayLen), interp);
+				this.m_progSpec.addVarying(name, gluVT.newTypeArray(gluVT.newTypeBasic(type, precision), arrayLen), interp);
 			else
-				m_progSpec.addVarying(name.c_str(), glu::VarType(type, precision), interp);
+				this.m_progSpec.addVarying(name, gluVT.newTypeBasic(type, precision), interp);
 
-			numAttributeVectors	+= arrayLen*numVecs;
-			varNdx				+= 1;
+			numAttributeVectors	+= arrayLen * numVecs;
+			varNdx += 1;
 		}
 		
-		
 		// Generate transform feedback candidate set.
-		vector<string> tfCandidates;
+		/** @type {Array.<string>} */ var tfCandidates =[];
 
-		if (usePosition)	tfCandidates.push_back("gl_Position");
-		if (usePointSize)	tfCandidates.push_back("gl_PointSize");
+		if (usePosition) tfCandidates.push('gl_Position');
+		if (usePointSize) tfCandidates.push('gl_PointSize');
 
-		for (int ndx = 0; ndx < varNdx; ndx++)
+		for (var ndx = 0; ndx < varNdx; ndx++)
 		{
-			const Varying& var = m_progSpec.getVaryings()[ndx];
+		/** @type {Varying} */ var varying = this.m_progSpec.getVaryings()[ndx];
 
-			if (var.type.isArrayType())
+			if (varying.type.isArrayType())
 			{
-				const bool captureFull = rnd.getFloat() < captureFullArrayWeight;
+				/** @type {boolean} */ var captureFull = rnd.getFloat() < captureFullArrayWeight;
 
 				if (captureFull)
-					tfCandidates.push_back(var.name);
+					tfCandidates.push(varying.name);
 				else
 				{
-					const int numElem = var.type.getArraySize();
-					for (int elemNdx = 0; elemNdx < numElem; elemNdx++)
-						tfCandidates.push_back(var.name + "[" + de::toString(elemNdx) + "]");
+					/** @type {number} */ var numElem = varying.type.getArraySize();
+					for (var elemNdx = 0; elemNdx < numElem; elemNdx++)
+						tfCandidates.push(varying.name + '[' + elemNdx + ']'); // TODO: check elemNdx.toString() omitted?
 				}
 			}
 			else
-				tfCandidates.push_back(var.name);
+				tfCandidates.push(varying.name);
 		}
 
 		// Pick random selection.
-		vector<string> tfVaryings(de::min((int)tfCandidates.size(), maxTransformFeedbackVars));
-		rnd.choose(tfCandidates.begin(), tfCandidates.end(), tfVaryings.begin(), (int)tfVaryings.size());
-		rnd.shuffle(tfVaryings.begin(), tfVaryings.end());
+		vector<string> tfVaryings(deMin(tfCandidates.length, maxTransformFeedbackVars)); // TODO: implement
+		rnd.choose(tfCandidates.begin(), tfCandidates.end(), tfVaryings.begin(), (int)tfVaryings.size()); // TODO: implement
+		rnd.shuffle(tfVaryings.begin(), tfVaryings.end()); // TODO: implement
 
-		for (vector<string>::const_iterator var = tfVaryings.begin(); var != tfVaryings.end(); var++)
-			m_progSpec.addTransformFeedbackVarying(var->c_str());
+		for (vector<string>::const_iterator vary = tfVaryings.begin(); vary != tfVaryings.end(); vary++)
+			this.m_progSpec.addTransformFeedbackVarying(vary.c_str());
 
-		*/
+		// this.init();
+		
 	};
+	
+	RandomCase.prototype = new TransformFeedbackCase();
 
 	 /**
      * Creates the test in order to be executed
@@ -1680,14 +1749,14 @@ define([
 
 	/** @type {Array.<string, number>} */
         var bufferModes = [
-            {name: 'separate',    mode: GL_SEPARATE_ATTRIBS}, // TODO: implement GL_SEPARATE_ATTRIBS
+            {name: 'separate', mode: GL_SEPARATE_ATTRIBS}, // TODO: implement GL_SEPARATE_ATTRIBS
             {name: 'interleaved', mode: GL_INTERLEAVED_ATTRIBS} // TODO: implement GL_INTERLEAVED_ATTRIBS
         ];
 
      /** @type {Array.<string, deqpDraw.primitiveType>} */
         var primitiveTypes = [
-            {name: 'points',    type: deqpDraw.primitiveType.POINTS},
-            {name: 'lines',     type: deqpDraw.primitiveType.LINES},
+            {name: 'points', type: deqpDraw.primitiveType.POINTS},
+            {name: 'lines', type: deqpDraw.primitiveType.LINES},
             {name: 'triangles', type: deqpDraw.primitiveType.TRIANGLES}
         ];
 
@@ -1716,12 +1785,17 @@ define([
             deqpUtils.DataType.UINT_VEC4
         ];
 
-        // TODO: create enum Precision in deqpUtils instead of glsUBC ???
-        /** @type {Array.<glsUBC.UniformFlags>} */
+        // TODO: could we use /** @type {Array.<glsUBC.UniformFlags>} */ instead ???
+        /** @type {Array.<deqpUtils.precision>} */
         var precisions = [
-            glsUBC.UniformFlags.PRECISION_LOW,
-            glsUBC.UniformFlags.PRECISION_MEDIUM,
-            glsUBC.UniformFlags.PRECISION_HIGH
+
+            deqpUtils.precision.PRECISION_LOWP,
+            deqpUtils.precision.PRECISION_MEDIUMP,
+            deqpUtils.precision.PRECISION_HIGHP
+
+            // glsUBC.UniformFlags.PRECISION_LOW,
+            // glsUBC.UniformFlags.PRECISION_MEDIUM,
+            // glsUBC.UniformFlags.PRECISION_HIGH
         ];
 
         /** @type {Array.<string, interpolation>} */

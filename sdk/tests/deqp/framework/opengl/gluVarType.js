@@ -385,6 +385,6 @@ define(['framework/opengl/gluShaderUtil.js'], function(deqpUtils) {
         newTypeStruct: newTypeStruct,
         newStructMember: newStructMember,
         newStructType: newStructType,
-        UNSIZED_ARRAY: -1, //!< Array length for unsized arrays.
+        UNSIZED_ARRAY: -1 //!< Array length for unsized arrays.
     };
 });

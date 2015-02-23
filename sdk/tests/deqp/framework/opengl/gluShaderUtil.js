@@ -398,6 +398,22 @@ var getDataTypeScalarSize = function(dataType) {
 };
 
 /**
+ * Checks if dataType is float or vector
+ * @param {DataType} dataType shader
+ * @return {boolean} Is dataType float or vector
+ */
+var isDataTypeFloatOrVec = function(dataType) {
+    switch (dataType) {
+        case DataType.FLOAT:
+        case DataType.FLOAT_VEC2:
+        case DataType.FLOAT_VEC3:
+        case DataType.FLOAT_VEC4:
+            return true;
+    }
+    return false;
+};
+
+/**
  * Checks if dataType is a matrix
  * @param {DataType} dataType shader
  * @return {boolean} Is dataType matrix or not
@@ -413,6 +429,71 @@ var isDataTypeMatrix = function(dataType) {
         case DataType.FLOAT_MAT4X2:
         case DataType.FLOAT_MAT4X3:
         case DataType.FLOAT_MAT4:
+            return true;
+    }
+    return false;
+};
+
+/**
+ * Checks if dataType is a vector
+ * @param {DataType} dataType shader
+ * @return {boolean} Is dataType vector or not
+ */
+var isDataTypeScalar = function(dataType) {
+    switch (dataType) {
+        case DataType.FLOAT:
+        case DataType.INT:
+        case DataType.UINT:
+        case DataType.BOOL:
+            return true;
+    }
+    return false;
+};
+
+/**
+ * Checks if dataType is a vector
+ * @param {DataType} dataType shader
+ * @return {boolean} Is dataType vector or not
+ */
+var isDataTypeVector = function(dataType) {
+    switch (dataType) {
+        case DataType.FLOAT_VEC2:
+        case DataType.FLOAT_VEC3:
+        case DataType.FLOAT_VEC4:
+        case DataType.INT_VEC2:
+        case DataType.INT_VEC3:
+        case DataType.INT_VEC4:
+        case DataType.UINT_VEC2:
+        case DataType.UINT_VEC3:
+        case DataType.UINT_VEC4:
+        case DataType.BOOL_VEC2:
+        case DataType.BOOL_VEC3:
+        case DataType.BOOL_VEC4:
+            return true;
+    }
+    return false;
+};
+
+/**
+ * Checks if dataType is a vector
+ * @param {DataType} dataType shader
+ * @return {boolean} Is dataType vector or not
+ */
+var isDataTypeScalarOrVector = function(dataType) {
+    switch (dataType) {
+    	case DataType.FLOAT:
+        case DataType.FLOAT_VEC2:
+        case DataType.FLOAT_VEC3:
+        case DataType.FLOAT_VEC4:
+        case DataType.INT_VEC2:
+        case DataType.INT_VEC3:
+        case DataType.INT_VEC4:
+        case DataType.UINT_VEC2:
+        case DataType.UINT_VEC3:
+        case DataType.UINT_VEC4:
+        case DataType.BOOL_VEC2:
+        case DataType.BOOL_VEC3:
+        case DataType.BOOL_VEC4:
             return true;
     }
     return false;
@@ -534,7 +615,11 @@ return {
     getDataTypeFloatVec: getDataTypeFloatVec,
     isDataTypeBoolOrBVec: isDataTypeBoolOrBVec,
     getDataTypeScalarSize: getDataTypeScalarSize,
+    isDataTypeFloatOrVec: isDataTypeFloatOrVec,
     isDataTypeMatrix: isDataTypeMatrix,
+    isDataTypeScalar: isDataTypeScalar,
+    isDataTypeVector: isDataTypeVector,
+    isDataTypeScalarOrVector: isDataTypeScalarOrVector,
     getDataTypeMatrixNumColumns: getDataTypeMatrixNumColumns,
     getDataTypeMatrixNumRows: getDataTypeMatrixNumRows,
     getDataTypeName: getDataTypeName
