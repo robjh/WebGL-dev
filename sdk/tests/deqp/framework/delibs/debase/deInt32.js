@@ -225,6 +225,21 @@ var rint = function(a) {
     return floorVal + (roundUp ? 1 : 0);
 };
 
+/** deInt32Hash
+ * @param {number} a
+ * @return {number}
+ */
+
+var deInt32Hash = function(a) {
+    var key = a;
+    key = (key ^ 61) ^ (key >> 16);
+    key = key + (key << 3);
+    key = key ^ (key >> 4);
+    key = key * 0x27d4eb2d; /* prime/odd constant */
+    key = key ^ (key >> 15);
+    return key;
+};
+
     return {
         deInRange32: deInRange32,
         deInBounds32: deInBounds32,
@@ -242,7 +257,8 @@ var rint = function(a) {
         lessThanEqual: lessThanEqual,
         boolAll: boolAll,
         max: max,
-        rint: rint
+        rint: rint,
+        deInt32Hash: deInt32Hash
     };
 });
 
