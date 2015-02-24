@@ -77,7 +77,9 @@ define(['framework/opengl/gluShaderUtil.js',
 		case interpolation.SMOOTH: return 'smooth';
 		case interpolation.FLAT: return 'flat';
 		case interpolation.CENTROID: return 'centroid';
-	   }throw Error('Unrecognized interpolation name ' + interpol);
+		default:
+		    throw Error('Unrecognized interpolation name ' + interpol);
+	   }
 
 	};
 
@@ -712,7 +714,9 @@ define(['framework/opengl/gluShaderUtil.js',
 	    case gl.LINE_STRIP: return deMax(0, numElements - 1) * 2;
 	    case gl.LINE_LOOP: return numElements > 1 ? numElements * 2 : 0;
 	    case gl.POINTS: return numElements;
-	   }throw Error('Unrecognized primitiveType' + primitiveType);
+	    default:
+	        throw Error('Unrecognized interpolation name ' + interpol);
+	   }
 
 	};
 
@@ -733,7 +737,9 @@ define(['framework/opengl/gluShaderUtil.js',
 	    case gl.LINE_STRIP: return deMax(0, numElements - 1);
 	    case gl.LINE_LOOP: return numElements > 1 ? numElements : 0;
 	    case gl.POINTS: return numElements;
-	   }throw Error('Unrecognized primitiveType' + primitiveType);
+	    default:
+            throw Error('Unrecognized interpolation name ' + interpol);
+	   }
 
 	};
 
@@ -752,13 +758,16 @@ define(['framework/opengl/gluShaderUtil.js',
 	    	return gl.TRIANGLES;
 
 	    case gl.LINES:
-	    case gl.LINE_STRIP
+	    case gl.LINE_STRIP:
 	    case gl.LINE_LOOP:
 	    	return gl.LINES;
 
 	    case gl.POINTS:
 	    	return gl.POINTS;
-	   }throw Error('Unrecognized primitiveType' + primitiveType);
+
+	    default:
+            throw Error('Unrecognized interpolation name ' + interpol);
+	   }
 
 	};
 
@@ -797,7 +806,9 @@ define(['framework/opengl/gluShaderUtil.js',
 			return inNdx < numInputs ? inNdx : 0;
 		}
 
-	   }throw Error('Unrecognized primitiveType' + primitiveType);
+		default:
+            throw Error('Unrecognized interpolation name ' + interpol);
+	   }
 
 	};
 
@@ -1509,7 +1520,7 @@ define(['framework/opengl/gluShaderUtil.js',
 		this._construct(context, name, desc, bufferMode, primitiveType);
 
 		this.m_progSpec.addVarying('v_varA', gluVT.newTypeBasic(type, precision), interpolation);
-		this.m_progSpec.('v_varB', gluVT.newTypeBasic(type, precision), interpolation);
+		this.m_progSpec.addVarying('v_varB', gluVT.newTypeBasic(type, precision), interpolation);
 
 		this.m_progSpec.addTransformFeedbackVarying('v_varA');
 		this.m_progSpec.addTransformFeedbackVarying('v_varB');
@@ -1572,7 +1583,7 @@ define(['framework/opengl/gluShaderUtil.js',
 		this._construct(context, name, desc, bufferMode, primitiveType);
 
 		this.m_progSpec.addVarying('v_varA', gluVT.newTypeBasic(type, precision), interpolation);
-		this.m_progSpec.('v_varB', gluVT.newTypeBasic(type, precision), interpolation);
+		this.m_progSpec.addVarying('v_varB', gluVT.newTypeBasic(type, precision), interpolation);
 
 		this.m_progSpec.addTransformFeedbackVarying('v_varA[1]');
 		this.m_progSpec.addTransformFeedbackVarying('v_varB[0]');
@@ -1746,15 +1757,15 @@ define(['framework/opengl/gluShaderUtil.js',
      **/
 	var init = function() {
 
-	/** @const @type {deqpTests.DeqpTest} */ var testGroup = deqpTests.runner.getState().testCases;
+    /** @const @type {deqpTests.DeqpTest} */ var testGroup = deqpTests.runner.getState().testCases;
 
-	/** @type {Array.<string, number>} */
+    /** @type {Array.<string, number>} */
         var bufferModes = [
             {name: 'separate', mode: GL_SEPARATE_ATTRIBS}, // TODO: implement GL_SEPARATE_ATTRIBS
             {name: 'interleaved', mode: GL_INTERLEAVED_ATTRIBS} // TODO: implement GL_INTERLEAVED_ATTRIBS
         ];
 
-     /** @type {Array.<string, deqpDraw.primitiveType>} */
+        /** @type {Array.<string, deqpDraw.primitiveType>} */
         var primitiveTypes = [
             {name: 'points', type: deqpDraw.primitiveType.POINTS},
             {name: 'lines', type: deqpDraw.primitiveType.LINES},
@@ -1807,33 +1818,179 @@ define(['framework/opengl/gluShaderUtil.js',
         ];
 
         // .position
-		/** @type {deqpTests.DeqpTest} */
-        var positionGroup = deqpTests.newTest('position', 'gl_Position capture using transform feedback');
+        /** @type {deqpTests.DeqpTest} */ var positionGroup = deqpTests.newTest('position', 'gl_Position capture using transform feedback');
         testGroup.addChild(positionGroup);
 
-		for (var primitiveType = 0; primitiveType < primitiveTypes.length; primitiveType++)
-		{
-			for (var bufferMode = 0; bufferMode < bufferModes.length; bufferMode++)
-			{
-				var name = primitiveTypes[primitiveType].name + '_' + bufferModes[bufferMode].name;
-				positionGroup.addChild(new PositionCase(m_context, name, '', bufferModes[bufferMode].mode, primitiveTypes[primitiveType].type));
-			}
-		}
+        for (var primitiveType = 0; primitiveType < primitiveTypes.length; primitiveType++)
+        {
+            for (var bufferMode = 0; bufferMode < bufferModes.length; bufferMode++)
+            {
+            /** @type {string} */ var name = primitiveTypes[primitiveType].name + '_' + bufferModes[bufferMode].name;
+                // TODO: new needed below?
+                positionGroup.addChild(new PositionCase(m_context, name, '', bufferModes[bufferMode].mode, primitiveTypes[primitiveType].type));
+            }
+        }
 
-		// .point_size
-		/** @type {deqpTests.DeqpTest} */
-        var pointSizeGroup = deqpTests.newTest('point_size', 'gl_PointSize capture using transform feedback');
+        // .point_size
+        /** @type {deqpTests.DeqpTest} */ var pointSizeGroup = deqpTests.newTest('point_size', 'gl_PointSize capture using transform feedback');
         testGroup.addChild(pointSizeGroup);
 
-		for (var primitiveType = 0; primitiveType < primitiveTypes.length; primitiveType++)
-		{
-			for (var bufferMode = 0; bufferMode < bufferModes.length; bufferMode++)
-			{
-				var name = primitiveTypes[primitiveType].name + '_' + bufferModes[bufferMode].name;
-				pointSizeGroup.addChild(new PointSizeCase(m_context, name, '', bufferModes[bufferMode].mode, primitiveTypes[primitiveType].type));
-			}
-		}
+        for (var primitiveType = 0; primitiveType < primitiveTypes.length; primitiveType++)
+        {
+            for (var bufferMode = 0; bufferMode < bufferModes.length; bufferMode++)
+            {
+            /** @type {string} */ var name = primitiveTypes[primitiveType].name + '_' + bufferModes[bufferMode].name;
+                // TODO: new needed below?
+                pointSizeGroup.addChild(new PointSizeCase(m_context, name, '', bufferModes[bufferMode].mode, primitiveTypes[primitiveType].type));
+            }
+        }
 
+        // .basic_type
+        /** @type {deqpTests.DeqpTest} */ var basicTypeGroup = deqpTests.newTest('basic_types', 'Basic types in transform feedback');
+        testGroup.addChild(basicTypeGroup);
+
+        for (var bufferModeNdx = 0; bufferModeNdx < bufferModes.length; bufferModeNdx++)
+        {
+        /** @type {deqpTests.DeqpTest} */ var modeGroup = deqpTests.newTest(bufferModes[bufferModeNdx].name, '');
+        /** @type {number} */ var bufferMode = bufferModes[bufferModeNdx].mode;
+            basicTypeGroup.addChild(modeGroup);
+
+            for (var primitiveTypeNdx = 0; primitiveTypeNdx < primitiveTypes.length; primitiveTypeNdx++)
+            {
+            /** @type {deqpTests.DeqpTest} */ var primitiveGroup = deqpTests.newTest(primitiveTypes[primitiveTypeNdx].name, '');
+            /** @type {number} */ var primitiveType    = primitiveTypes[primitiveTypeNdx].type;
+                modeGroup.addChild(primitiveGroup);
+
+                for (var typeNdx = 0; typeNdx < basicTypes.length; typeNdx++)
+                {
+                /** @type {deqpUtils.DataType} */ var type = basicTypes[typeNdx];
+                /** @type {boolean} */ var isFloat = deqpUtils.getDataTypeScalarType(type) == deqpUtils.DataType.FLOAT;
+
+                    for (var precNdx = 0; precNdx < precisions.length; precNdx++)
+                    {
+                    /** @type {deqpUtils.precision} */ var precision = precisions[precNdx];
+                    /** @type {string} */ var name = deqpUtils.getPrecisionName(precision) + '_' + deqpUtils.getDataTypeName(type);
+                        // TODO: new needed below?
+                        primitiveGroup.addChild(new BasicTypeCase(m_context, name, '', bufferMode, primitiveType, type, precision, isFloat ? interpolation.SMOOTH : interpolation.FLAT));
+                    }
+                }
+            }
+        }
+
+        // .array
+        /** @type {deqpTests.DeqpTest} */ var arrayGroup = deqpTests.newTest('array', 'Capturing whole array in TF');
+        testGroup.addChild(arrayGroup);
+
+        for (var bufferModeNdx = 0; bufferModeNdx < bufferModes.length; bufferModeNdx++)
+        {
+        /** @type {deqpTests.DeqpTest} */ var modeGroup = deqpTests.newTest(bufferModes[bufferModeNdx].name, '');
+        /** @type {number} */ var bufferMode = bufferModes[bufferModeNdx].mode;
+            arrayGroup.addChild(modeGroup);
+
+            for (var primitiveTypeNdx = 0; primitiveTypeNdx < primitiveTypes.length; primitiveTypeNdx++)
+            {
+            /** @type {deqpTests.DeqpTest} */ var primitiveGroup = deqpTests.newTest(primitiveTypes[primitiveTypeNdx].name, '');
+            /** @type {number} */ var primitiveType    = primitiveTypes[primitiveTypeNdx].type;
+                modeGroup.addChild(primitiveGroup);
+
+                for (var typeNdx = 0; typeNdx < basicTypes.length; typeNdx++)
+                {
+                /** @type {deqpUtils.DataType} */ var type = basicTypes[typeNdx];
+                /** @type {boolean} */ var isFloat = deqpUtils.getDataTypeScalarType(type) == deqpUtils.DataType.FLOAT;
+
+                    for (var precNdx = 0; precNdx < precisions.length; precNdx++)
+                    {
+                    /** @type {deqpUtils.precision} */ var precision = precisions[precNdx];
+                    /** @type {string} */ var name = deqpUtils.getPrecisionName(precision) + '_' + deqpUtils.getDataTypeName(type);
+                        // TODO: new needed below?
+                        primitiveGroup.addChild(new BasicArrayCase(m_context, name, '', bufferMode, primitiveType, type, precision, isFloat ? interpolation.SMOOTH : interpolation.FLAT));
+                    }
+                }
+            }
+        }
+
+        // .array_element
+        /** @type {deqpTests.DeqpTest} */ var arrayElemGroup = deqpTests.newTest('array_element', 'Capturing single array element in TF');
+        testGroup.addChild(arrayElemGroup);
+
+        for (var bufferModeNdx = 0; bufferModeNdx < bufferModes.length; bufferModeNdx++)
+        {
+        /** @type {deqpTests.DeqpTest} */ var modeGroup = deqpTests.newTest(bufferModes[bufferModeNdx].name, '');
+        /** @type {number} */ var bufferMode = bufferModes[bufferModeNdx].mode;
+            arrayElemGroup.addChild(modeGroup);
+
+            for (var primitiveTypeNdx = 0; primitiveTypeNdx < primitiveTypes.length; primitiveTypeNdx++)
+            {
+            /** @type {deqpTests.DeqpTest} */ var primitiveGroup = deqpTests.newTest(primitiveTypes[primitiveTypeNdx].name, '');
+            /** @type {number} */ var primitiveType    = primitiveTypes[primitiveTypeNdx].type;
+                modeGroup.addChild(primitiveGroup);
+
+                for (var typeNdx = 0; typeNdx < basicTypes.length; typeNdx++)
+                {
+                /** @type {deqpUtils.DataType} */ var type = basicTypes[typeNdx];
+                /** @type {boolean} */ var isFloat = deqpUtils.getDataTypeScalarType(type) == deqpUtils.DataType.FLOAT;
+
+                    for (var precNdx = 0; precNdx < precisions.length; precNdx++)
+                    {
+                    /** @type {deqpUtils.precision} */ var precision = precisions[precNdx];
+                    /** @type {string} */ var name = deqpUtils.getPrecisionName(precision) + '_' + deqpUtils.getDataTypeName(type);
+                        // TODO: new needed below?
+                        primitiveGroup.addChild(new ArrayElementCase(m_context, name, '', bufferMode, primitiveType, type, precision, isFloat ? interpolation.SMOOTH : interpolation.FLAT));
+                    }
+                }
+            }
+        }
+
+        // .interpolation
+        /** @type {deqpTests.DeqpTest} */ var interpolationGroup = deqpTests.newTest('interpolation', 'Different interpolation modes in transform feedback varyings');
+        testGroup.addChild(interpolationGroup);
+
+        for (var modeNdx = 0; modeNdx < interpModes.length; modeNdx++)
+        {
+        /** @type {interpolation} */ var interp = interpModes[modeNdx].interp;
+        /** @type {deqpTests.DeqpTest} */ var modeGroup = deqpTests.newTest(interpModes[modeNdx].name, '');
+            interpolationGroup.addChild(modeGroup);
+
+            for (var precNdx = 0; precNdx < precisions.length; precNdx++)
+            {
+            /** @type {deqpUtils.precision} */ var precision = precisions[precNdx];
+
+                for (var primitiveType = 0; primitiveType < primitiveTypes.length; primitiveType++)
+                {
+                    for (var bufferMode = 0; bufferMode < bufferModes.length; bufferMode++)
+                    {
+                    /** @type {string} */ var name = deqpUtils.getPrecisionName(precision) + '_vec4_' + primitiveTypes[primitiveType].name + '_' + bufferModes[bufferMode].name;
+                        // TODO: new needed below?
+                        modeGroup.addChild(new BasicTypeCase(m_context, name, '', bufferModes[bufferMode].mode, primitiveTypes[primitiveType].type, deqpUtils.DataType.FLOAT_VEC4, precision, interp));
+                    }
+                }
+            }
+        }
+
+        // .random
+        /** @type {deqpTests.DeqpTest} */ var randomGroup = deqpTests.newTest('random', 'Randomized transform feedback cases');
+        testGroup.addChild(randomGroup);
+
+        for (var bufferModeNdx = 0; bufferModeNdx < bufferModes.length; bufferModeNdx++)
+        {
+        /** @type {deqpTests.DeqpTest} */ var modeGroup = deqpTests.newTest(bufferModes[bufferModeNdx].name, '');
+        /** @type {number} */ var  bufferMode = bufferModes[bufferModeNdx].mode;
+            randomGroup.addChild(modeGroup);
+
+            for (var primitiveTypeNdx = 0; primitiveTypeNdx < primitiveTypes.length; primitiveTypeNdx++)
+            {
+            /** @type {deqpTests.DeqpTest} */ var primitiveGroup = deqpTests.newTest(primitiveTypes[primitiveTypeNdx].name, '');
+            /** @type {number} */ var  primitiveType = primitiveTypes[primitiveTypeNdx].type;
+                modeGroup.addChild(primitiveGroup);
+
+                for (var ndx = 0; ndx < 10; ndx++)
+                {
+                /** @type {number} */ var seed = deInt32.deInt32Hash(bufferMode) ^ deInt32.deInt32Hash(primitiveType) ^ deInt32.deInt32Hash(ndx);
+                // TODO: new needed below?
+                    primitiveGroup.addChild(new RandomCase(m_context, (ndx + 1).toString(), "", bufferMode, primitiveType, seed)); // TODO: check, toString() omitted?
+                }
+            }
+        }
 
 	};
 
