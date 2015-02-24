@@ -21,36 +21,66 @@
 define(function() {
 'use strict';
 
-    /* Dummy type. TODO: check if it will be necessary */
-    var deUint32 = function() {};
+var DE_ASSERT = function(x) {
+    if (!x)
+        throw new Error('Assert failed');
+};
 
-    var deInRange32 = function(a, mn, mx) {
-        return (a >= mn) && (a <= mx);
-    };
+/* Dummy type */
+var deUint32 = function() {};
 
-    var deInBounds32 = function(a, mn, mx) {
-        return (a >= mn) && (a < mx);
-    };
+var deInRange32 = function(a, mn, mx) {
+    return (a >= mn) && (a <= mx);
+};
 
-/*--------------------------------------------------------------------*//*!
- * \brief Check if a value is a power-of-two.
- * \param a Input value.
- * \return True if input is a power-of-two value, false otherwise.
- *
- * \note Also returns true for zero.
- *//*--------------------------------------------------------------------*/
+var deInBounds32 = function(a, mn, mx) {
+    return (a >= mn) && (a < mx);
+};
+
+/**
+ * Check if a value is a power-of-two.
+ * @param {number} a Input value.
+ * @return {boolean} return True if input is a power-of-two value, false otherwise.
+ * (Also returns true for zero).
+ */
 var deIsPowerOfTwo32 = function(a)
 {
     return ((a & (a - 1)) == 0);
 };
 
+/**
+ * Align an integer to given power-of-two size.
+ * @param {number} val The number to align.
+ * @param {number} align The size to align to.
+ * @return {number} The aligned value
+ */
 var deAlign32 = function(val, align) {
-    //assertMessageOptions(deIsPowerOfTwo32(align), 'Checking if value is power of two', false, true);
+    DE_ASSERT(deIsPowerOfTwo32(align));
     return ((val + align - 1) & ~(align - 1)) & 0xFFFFFFFF; //0xFFFFFFFF make sure it returns a 32 bit calculation in 64 bit browsers.
 };
 
-var clamp = function(val, min, max) {
-    return Math.max(min, Math.min(val, max));
+/**
+ * Compute the bit population count of an integer.
+ * @param {number} a
+ * @return {number} The number of one bits in
+ */
+var dePop32 = function(a) {
+    /** @type {deUint32} */ var mask0 = 0x55555555; /* 1-bit values. */
+    /** @type {deUint32} */ var mask1 = 0x33333333; /* 2-bit values. */
+    /** @type {deUint32} */ var mask2 = 0x0f0f0f0f; /* 4-bit values. */
+    /** @type {deUint32} */ var mask3 = 0x00ff00ff; /* 8-bit values. */
+    /** @type {deUint32} */ var mask4 = 0x0000ffff; /* 16-bit values. */
+    /** @type {deUint32} */ var t = a & 0xFFFFFFFF; /* Crop to 32-bit value */
+    t = (t & mask0) + ((t >> 1) & mask0);
+    t = (t & mask1) + ((t >> 2) & mask1);
+    t = (t & mask2) + ((t >> 4) & mask2);
+    t = (t & mask3) + ((t >> 8) & mask3);
+    t = (t & mask4) + (t >> 16);
+    return t;
+};
+
+var clamp = function(min, max) {
+    return Math.max(min, Math.min(this, max));
 };
 
 var imod = function(a, b) {
@@ -63,9 +93,9 @@ var mirror = function(a) {
 };
 
 /**
- * @param {Array<Number} a Source array
- * @param {Array<Number>} indices
- * @return {Array<Number>} Swizzled array
+ * @param {Array.<number>} a Source array
+ * @param {Array.<number>} indices
+ * @return {Array.<number>} Swizzled array
  */
 var swizzle = function(a, indices) {
     if (!indices.length)
@@ -78,9 +108,9 @@ var swizzle = function(a, indices) {
 
 /**
  * Multiply two vectors, element by element
- * @param {Array<Number} a
- * @param {Array<Number} b
- * @return {Array<Number>} Result array
+ * @param {Array.<number>} a
+ * @param {Array.<number>} b
+ * @return {Array.<number>} Result array
  */
 
 var multiply = function(a, b) {
@@ -94,9 +124,9 @@ var multiply = function(a, b) {
 
 /**
  * Add two vectors, element by element
- * @param {Array<Number} a
- * @param {Array<Number} b
- * @return {Array<Number>} Result array
+ * @param {Array.<number>} a
+ * @param {Array.<number>} b
+ * @return {Array.<number>} Result array
  */
 
 var add = function(a, b) {
@@ -110,9 +140,9 @@ var add = function(a, b) {
 
 /**
  * Subtract two vectors, element by element
- * @param {Array<Number} a
- * @param {Array<Number} b
- * @return {Array<Number>} Result array
+ * @param {Array.<number>} a
+ * @param {Array.<number>} b
+ * @return {Array.<number>} Result array
  */
 
 var subtract = function(a, b) {
@@ -126,9 +156,9 @@ var subtract = function(a, b) {
 
 /**
  * Calculate absolute difference between two vectors
- * @param {Array<Number} a
- * @param {Array<Number} b
- * @return {Array<Number>} abs(diff(a - b))
+ * @param {Array.<number>} a
+ * @param {Array.<number>} b
+ * @return {Array.<number>} abs(diff(a - b))
  */
 var absDiff = function(a, b) {
     if (a.length != b.length)
@@ -141,9 +171,9 @@ var absDiff = function(a, b) {
 
 /**
  * Is a <= b (element by element)?
- * @param {Array<Number} a
- * @param {Array<Number} b
- * @return {Array<boolean>} Result array of booleans
+ * @param {Array.<number>} a
+ * @param {Array.<number>} b
+ * @return {Array.<boolean>} Result array of booleans
  */
 var lessThanEqual = function(a, b) {
     if (a.length != b.length)
@@ -156,7 +186,7 @@ var lessThanEqual = function(a, b) {
 
 /**
  * Are all values in the array true?
- * @param {Array<Number} a
+ * @param {Array.<number>} a
  * @return {boolean}
  */
 
@@ -169,9 +199,9 @@ var boolAll = function(a) {
 
 /**
  * max(a, b) element by element
- * @param {Array<Number} a
- * @param {Array<Number} b
- * @return {Array<Number>}
+ * @param {Array.<number>} a
+ * @param {Array.<number>} b
+ * @return {Array.<number>}
  */
 var max = function(a, b) {
     if (a.length != b.length)
@@ -190,20 +220,36 @@ var rint = function(a) {
     if (fracVal != 0.5)
         return Math.round(a); // Ordinary case.
 
-    var    roundUp = (floorVal % 2) != 0;
+    var roundUp = (floorVal % 2) != 0;
 
     return floorVal + (roundUp ? 1 : 0);
+};
+
+/** deInt32Hash
+ * @param {number} a
+ * @return {number}
+ */
+
+var deInt32Hash = function(a) {
+    var key = a;
+    key = (key ^ 61) ^ (key >> 16);
+    key = key + (key << 3);
+    key = key ^ (key >> 4);
+    key = key * 0x27d4eb2d; /* prime/odd constant */
+    key = key ^ (key >> 15);
+    return key;
 };
 
     return {
         deInRange32: deInRange32,
         deInBounds32: deInBounds32,
         deAlign32: deAlign32,
+        dePop32: dePop32,
         deIsPowerOfTwo32: deIsPowerOfTwo32,
         clamp: clamp,
         imod: imod,
         mirror: mirror,
-        swizzle:swizzle,
+        swizzle: swizzle,
         multiply: multiply,
         add: add,
         subtract: subtract,
@@ -211,7 +257,8 @@ var rint = function(a) {
         lessThanEqual: lessThanEqual,
         boolAll: boolAll,
         max: max,
-        rint: rint
+        rint: rint,
+        deInt32Hash: deInt32Hash
     };
 });
 

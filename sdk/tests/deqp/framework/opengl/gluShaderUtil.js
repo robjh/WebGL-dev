@@ -21,6 +21,11 @@
 define(function() {
     'use strict';
 
+var DE_ASSERT = function(x) {
+    if (!x)
+        throw new Error('Assert failed');
+};
+
 /**
  * ShadingLanguageVersion
  * @enum
@@ -31,6 +36,39 @@ var GLSLVersion = {
 };
 
 GLSLVersion.V_LAST = Object.keys(GLSLVersion).length;
+
+/**
+ * getGLSLVersion - Returns a GLSLVersion based on a given webgl context.
+ * @param {WebGLRenderingContext} gl
+ * @return {GLSLVersion}
+ */
+var getGLSLVersion = function(gl) {
+    var webglversion = gl.getParameter(gl.VERSION);
+    switch (webglversion)
+    {
+        case 'WebGL 1.0': return GLSLVersion.V100_ES;
+        case 'WebGL 2.0': return GLSLVersion.V300_ES;
+        default: DE_ASSERT(false);
+    }
+};
+
+/**
+ * getGLSLVersionDeclaration - Returns a string declaration for the glsl version in a shader.
+ * @param {GLSLVersion} version
+ * @return {string}
+ */
+var getGLSLVersionDeclaration = function(version) {
+    /** @type {Array.<string>} */ var s_decl =
+    [
+        '#version 100',
+        '#version 300 es'
+    ];
+
+    if (version > s_decl.length - 1)
+        DE_ASSERT(false);
+
+    return s_decl[version];
+};
 
 /**
  * @enum
@@ -360,6 +398,22 @@ var getDataTypeScalarSize = function(dataType) {
 };
 
 /**
+ * Checks if dataType is float or vector
+ * @param {DataType} dataType shader
+ * @return {boolean} Is dataType float or vector
+ */
+var isDataTypeFloatOrVec = function(dataType) {
+    switch (dataType) {
+        case DataType.FLOAT:
+        case DataType.FLOAT_VEC2:
+        case DataType.FLOAT_VEC3:
+        case DataType.FLOAT_VEC4:
+            return true;
+    }
+    return false;
+};
+
+/**
  * Checks if dataType is a matrix
  * @param {DataType} dataType shader
  * @return {boolean} Is dataType matrix or not
@@ -375,6 +429,71 @@ var isDataTypeMatrix = function(dataType) {
         case DataType.FLOAT_MAT4X2:
         case DataType.FLOAT_MAT4X3:
         case DataType.FLOAT_MAT4:
+            return true;
+    }
+    return false;
+};
+
+/**
+ * Checks if dataType is a vector
+ * @param {DataType} dataType shader
+ * @return {boolean} Is dataType vector or not
+ */
+var isDataTypeScalar = function(dataType) {
+    switch (dataType) {
+        case DataType.FLOAT:
+        case DataType.INT:
+        case DataType.UINT:
+        case DataType.BOOL:
+            return true;
+    }
+    return false;
+};
+
+/**
+ * Checks if dataType is a vector
+ * @param {DataType} dataType shader
+ * @return {boolean} Is dataType vector or not
+ */
+var isDataTypeVector = function(dataType) {
+    switch (dataType) {
+        case DataType.FLOAT_VEC2:
+        case DataType.FLOAT_VEC3:
+        case DataType.FLOAT_VEC4:
+        case DataType.INT_VEC2:
+        case DataType.INT_VEC3:
+        case DataType.INT_VEC4:
+        case DataType.UINT_VEC2:
+        case DataType.UINT_VEC3:
+        case DataType.UINT_VEC4:
+        case DataType.BOOL_VEC2:
+        case DataType.BOOL_VEC3:
+        case DataType.BOOL_VEC4:
+            return true;
+    }
+    return false;
+};
+
+/**
+ * Checks if dataType is a vector
+ * @param {DataType} dataType shader
+ * @return {boolean} Is dataType vector or not
+ */
+var isDataTypeScalarOrVector = function(dataType) {
+    switch (dataType) {
+    	case DataType.FLOAT:
+        case DataType.FLOAT_VEC2:
+        case DataType.FLOAT_VEC3:
+        case DataType.FLOAT_VEC4:
+        case DataType.INT_VEC2:
+        case DataType.INT_VEC3:
+        case DataType.INT_VEC4:
+        case DataType.UINT_VEC2:
+        case DataType.UINT_VEC3:
+        case DataType.UINT_VEC4:
+        case DataType.BOOL_VEC2:
+        case DataType.BOOL_VEC3:
+        case DataType.BOOL_VEC4:
             return true;
     }
     return false;
@@ -481,6 +600,9 @@ var getDataTypeName = function(dataType)  {
 };
 
 return {
+    GLSLVersion: GLSLVersion,
+    getGLSLVersion: getGLSLVersion,
+    getGLSLVersionDeclaration: getGLSLVersionDeclaration,
     precision: precision,
     getPrecisionName: getPrecisionName,
     deUint32_size: deUint32_size,
@@ -493,7 +615,11 @@ return {
     getDataTypeFloatVec: getDataTypeFloatVec,
     isDataTypeBoolOrBVec: isDataTypeBoolOrBVec,
     getDataTypeScalarSize: getDataTypeScalarSize,
+    isDataTypeFloatOrVec: isDataTypeFloatOrVec,
     isDataTypeMatrix: isDataTypeMatrix,
+    isDataTypeScalar: isDataTypeScalar,
+    isDataTypeVector: isDataTypeVector,
+    isDataTypeScalarOrVector: isDataTypeScalarOrVector,
     getDataTypeMatrixNumColumns: getDataTypeMatrixNumColumns,
     getDataTypeMatrixNumRows: getDataTypeMatrixNumRows,
     getDataTypeName: getDataTypeName

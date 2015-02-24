@@ -19,8 +19,15 @@
  */
 
 
-define(['framework/opengl/gluShaderUtil.js', 'framework/opengl/gluDrawUtil', 'modules/shared/glsUniformBlockCase', 'framework/opengl/gluVarType', 'framework/opengl/gluShaderProgram', '/framework/delibs/debase/deRandom'], function(deqpUtils, deqpDraw, glsUBC, gluVT, deqpProgram, deRandom) {
-    'use strict';
+define(['framework/opengl/gluShaderUtil.js',
+        'framework/opengl/gluDrawUtil',
+        'modules/shared/glsUniformBlockCase',
+        'framework/opengl/gluVarType',
+        'framework/opengl/gluVarTypeUtil',
+        'framework/opengl/gluShaderProgram',
+        '/framework/delibs/debase/deRandom'],
+        function(deqpUtils, deqpDraw, glsUBC, gluVT, gluVTU, deqpProgram, deRandom) {
+	'use strict';
 
 	/** @const @type {number} */ var VIEWPORT_WIDTH = 128;
 	/** @const @type {number} */ var VIEWPORT_HEIGHT = 128;
@@ -70,7 +77,9 @@ define(['framework/opengl/gluShaderUtil.js', 'framework/opengl/gluDrawUtil', 'mo
 		case interpolation.SMOOTH: return 'smooth';
 		case interpolation.FLAT: return 'flat';
 		case interpolation.CENTROID: return 'centroid';
-	   }throw Error('Unrecognized interpolation name ' + interpol);
+		default:
+		    throw Error('Unrecognized interpolation name ' + interpol);
+	   }
 
 	};
 
@@ -120,9 +129,10 @@ define(['framework/opengl/gluShaderUtil.js', 'framework/opengl/gluDrawUtil', 'mo
 				return array[pos];
 			}
 		}
-		// TODO: I don't know if this error is necessary ??
 		if (attributeNameFound === false)
-		throw Error('Attribute or Varying name: ' + name + ', has not been found in the array');
+		bufferedLogToConsole('Attribute or Varying name: ' + name + ', has not been found in the array');
+		// TODO: I don't know if the error below is necessary ??
+		// throw Error('Attribute or Varying name: ' + name + ', has not been found in the array');
 	};
 
 	/**
@@ -277,7 +287,9 @@ define(['framework/opengl/gluShaderUtil.js', 'framework/opengl/gluDrawUtil', 'mo
 	/** @type {number} */ var totalVertexAttribs = 1 /* a_position */ + (spec.isPointSizeUsed() ? 1 : 0);
 
 		for (var i = 0; iter < spec.getVaryings().length; ++i) {
-			totalVertexAttribs += spec.getTransformFeedbackVaryings()[i].length;
+			for (var v_iter = gluVTU.VectorTypeIterator(spec.getVaryings()[i]) ; !v_iter.end() ; v_iter.next()) {
+				totalVertexAttribs += 1;
+			}
 		}
 
 		if (totalVertexAttribs > maxVertexAttribs)
@@ -510,20 +522,18 @@ define(['framework/opengl/gluShaderUtil.js', 'framework/opengl/gluDrawUtil', 'mo
 		attributes.push(new Attribute('a_position', dataTypeVec4, inputStride));
 		inputStride += 4 * 4; /*sizeof(deUint32)*/
 
-		if (usePointSize)
-		{
+		if (usePointSize) {
 			var dataTypeFloat = gluVT.newTypeBasic(deqpUtils.DataType.FLOAT, glsUBC.UniformFlags.PRECISION_HIGHP);
 			attributes.push(new Attribute('a_pointSize', dataTypeFloat, inputStride));
 			inputStride += 1 * 4; /*sizeof(deUint32)*/
 		}
 
-		for (var i = 0; i < varyings.length; i++)
-		{
+		for (var i = 0; i < varyings.length; i++) {
 			// TODO: check loop's conditions
 			// original code: 
 			// for (glu::VectorTypeIterator vecIter = glu::VectorTypeIterator::begin(&var->type); vecIter != glu::VectorTypeIterator::end(&var->type); vecIter++)
-			for (var vecIter = varyings[i].type; vecIter < varyings[varyings.length].type; vecIter++)
-			{
+			
+			for (var vecIter = gluVTU.VectorTypeIterator(varyings[i].type) ; !vecIter.end() ; vecIter.next()) {
 				var	type = vecIter.getType(); // originally getType() in getVarType() within gluVARTypeUtil.hpp.
 				var name = getAttributeName(varyings[i].name, vecIter.getPath); // TODO: getPath(), originally in gluVARTypeUtil.hpp
 
@@ -571,7 +581,7 @@ define(['framework/opengl/gluShaderUtil.js', 'framework/opengl/gluDrawUtil', 'mo
 			else
 			{
 				// TODO: not sure line below string varName = glu::parseVariableName(name.c_str()); see "gluVarTypeUtil.cpp"
-				/** @type {string} */ var varName = name;
+				/** @type {string} */ var varName = gluVTY.parseVariableName(name);
 				/** @type {Varying} */ var varying = findAttributeNameEquals(varyings, varName);
 
 				/** TODO: see gluVarTypeUtil.cpp and .hpp DEQP repository within \framework\opengl
@@ -617,7 +627,53 @@ define(['framework/opengl/gluShaderUtil.js', 'framework/opengl/gluDrawUtil', 'mo
 	 * @param {deRandom} rnd
 	 */
 	var genAttributeData = function(attrib, basePtr, stride, numElements, rnd) {
-		//TODO: implement
+
+		/** @type {number} */ var elementSize = 4; /*sizeof(deUint32)*/
+		/** @type {boolean} */ var isFloat = deqpUtils.isDataTypeFloatOrVec(attrib.type.getBasicType());
+		/** @type {boolean} */ var isInt = deqpUtils.isDataTypeIntOrIVec(attrib.type.getBasicType());
+
+		// TODO: below type glsUBC.UniformFlags ?
+		/** @type {deqpUtils.precision} */ var precision = attribute.type.getPrecision(); // TODO: getPrecision() called correctly? implemented in glsVarType.js
+
+		/** @type {number} */ var numComps	= deqpUtils.getDataTypeScalarSize(attrib.type.getBasicType());
+
+		for (var elemNdx = 0; elemNdx < numElements; elemNdx++)
+		{
+			for (var compNdx = 0; compNdx < numComps; compNdx++)
+			{
+				/** @type {number} */ var offset = attrib.offset + elemNdx * stride + compNdx * elementSize;
+				if (isFloat)
+				{
+					/** @type {number} */ var comp = basePtr + offset;
+					switch (precision)
+					{
+						case deqpUtils.precision.PRECISION_LOWP:
+							comp = 0.25 * rnd.getInt(0, 4);
+							break;
+						case deqpUtils.precision.PRECISION_MEDIUMP:
+							comp = rnd.getFloat(-1e3, 1e3);
+							break;
+						case deqpUtils.precision.PRECISION_HIGHP:
+							comp = rnd.getFloat(-1e5, 1e5);
+							break;
+						default:
+							// TODO: DE_ASSERT(false);
+					}
+				}
+				else if (isInt)
+				{
+					/** @type {number} */ var comp = basePtr + offset;
+					switch (precision)
+					{
+					// TODO: case deqpUtils.precision.PRECISION_LOWP: comp = rnd.getUint32() & 0xff << 24 >> 24;	break;
+					// TODO: case deqpUtils.precision.PRECISION_MEDIUMP:	comp = rnd.getUint32() & 0xffff << 16 >> 16; break;
+					// TODO: case deqpUtils.precision.PRECISION_HIGHP: comp = rnd.getUint32(); break;
+						default:
+							// TODO: DE_ASSERT(false);
+					}
+				}
+			}
+		}
 	};
 
 	/**
@@ -628,9 +684,19 @@ define(['framework/opengl/gluShaderUtil.js', 'framework/opengl/gluDrawUtil', 'mo
 	 * @param {deRandom} rnd
 	 */
 	var genInputData = function(attributes, numInputs, inputStride, inputBasePtr, rnd) {
-		//TODO: implement
+
+		// TODO: two first loops have been omitted
+		// is declared 'ptr' --> deUint8* ptr = inputBasePtr + position.offset + inputStride*ndx;
+		// and only used within these two loops
+		
+		// Random data for rest of components.
+		for (var i=0; i < attributes.length; i++)
+		{
+			if (attributes[i].name != 'a_position' && attributes[i].name != 'a_pointSize')
+				genAttributeData(attrib, inputBasePtr, inputStride, numInputs, rnd);
+		}
 	};
-	
+
 	/**
 	 * Returns the number of outputs with the count for the Primitives in the Transform Feedback.
 	 * @param {WebGLRenderingContext} gl WebGL context
@@ -648,7 +714,9 @@ define(['framework/opengl/gluShaderUtil.js', 'framework/opengl/gluDrawUtil', 'mo
 	    case gl.LINE_STRIP: return deMax(0, numElements - 1) * 2;
 	    case gl.LINE_LOOP: return numElements > 1 ? numElements * 2 : 0;
 	    case gl.POINTS: return numElements;
-	   }throw Error('Unrecognized primitiveType' + primitiveType);
+	    default:
+	        throw Error('Unrecognized interpolation name ' + interpol);
+	   }
 
 	};
 
@@ -669,7 +737,9 @@ define(['framework/opengl/gluShaderUtil.js', 'framework/opengl/gluDrawUtil', 'mo
 	    case gl.LINE_STRIP: return deMax(0, numElements - 1);
 	    case gl.LINE_LOOP: return numElements > 1 ? numElements : 0;
 	    case gl.POINTS: return numElements;
-	   }throw Error('Unrecognized primitiveType' + primitiveType);
+	    default:
+            throw Error('Unrecognized interpolation name ' + interpol);
+	   }
 
 	};
 
@@ -688,13 +758,16 @@ define(['framework/opengl/gluShaderUtil.js', 'framework/opengl/gluDrawUtil', 'mo
 	    	return gl.TRIANGLES;
 
 	    case gl.LINES:
-	    case gl.LINE_STRIP
+	    case gl.LINE_STRIP:
 	    case gl.LINE_LOOP:
 	    	return gl.LINES;
 
 	    case gl.POINTS:
 	    	return gl.POINTS;
-	   }throw Error('Unrecognized primitiveType' + primitiveType);
+
+	    default:
+            throw Error('Unrecognized interpolation name ' + interpol);
+	   }
 
 	};
 
@@ -733,7 +806,9 @@ define(['framework/opengl/gluShaderUtil.js', 'framework/opengl/gluDrawUtil', 'mo
 			return inNdx < numInputs ? inNdx : 0;
 		}
 
-	   }throw Error('Unrecognized primitiveType' + primitiveType);
+		default:
+            throw Error('Unrecognized interpolation name ' + interpol);
+	   }
 
 	};
 
@@ -759,7 +834,7 @@ define(['framework/opengl/gluShaderUtil.js', 'framework/opengl/gluDrawUtil', 'mo
 		/** @type {number} */ var numComponents	= deqpUtils.getDataTypeScalarSize(type);
 		
 		// TODO: below type glsUBC.UniformFlags ?
-		/** @type {deqpUtils.precision} */ var precision = attribute.type.getPrecision(); // TODO: getPrecision() called correctly? implemented in glsVarType.js
+		/** @type {deqpUtils.precision} */ var precision = attribute.type.getPrecision(); // TODO: getPrecision() called correctly? implemented in gluVarType.js
 
 		/** @type {string} */ var scalarType = deqpUtils.getDataTypeScalarType(type);
 		/** @type {number} */ var numOutputs = getTransformFeedbackOutputCount(primitiveType, numInputs);
@@ -1339,7 +1414,7 @@ define(['framework/opengl/gluShaderUtil.js', 'framework/opengl/gluDrawUtil', 'mo
 			} else {
 				log.log(
 					TestLog.Message +
-					'"ERROR: Rendering result comparison between TF enabled and TF disabled failed!"' +
+					'ERROR: Rendering result comparison between TF enabled and TF disabled failed!' +
 					TestLog.EndMessage
 				);
 			}
@@ -1402,13 +1477,14 @@ define(['framework/opengl/gluShaderUtil.js', 'framework/opengl/gluDrawUtil', 'mo
 	 */
 	var PositionCase = (function(context, name, desc, bufferMode, primitiveType) {
 
-		this.container = new TransformFeedbackCase(context, name, desc, bufferMode, primitiveType);
-		container._construct(context, name, desc, bufferMode, primitiveType);
-
-		container.m_progSpec.addTransformFeedbackVarying('gl_Position');
-		container.init(); //TODO: call init()?
+		this._construct(context, name, desc, bufferMode, primitiveType);
+		this.m_progSpec.addTransformFeedbackVarying('gl_Position');
+		
+		// this.init(); //TODO: call init()?
 
 	});
+	
+	PositionCase.prototype = new TransformFeedbackCase();
 
 	/** PointSizeCase
 	 * It is a child class of TransformFeedbackCase
@@ -1420,13 +1496,13 @@ define(['framework/opengl/gluShaderUtil.js', 'framework/opengl/gluDrawUtil', 'mo
 	 */
 	var PointSizeCase = (function(context, name, desc, bufferMode, primitiveType) {
 
-		this.container = new TransformFeedbackCase(context, name, desc, bufferMode, primitiveType);
-		container._construct(context, name, desc, bufferMode, primitiveType);
-
-		container.m_progSpec.addTransformFeedbackVarying('gl_PointSize');
-		container.init(); //TODO: call init()?
+		this._construct(context, name, desc, bufferMode, primitiveType);
+		this.m_progSpec.addTransformFeedbackVarying('gl_PointSize');
+		// this.init(); //TODO: call init()?
 
 	});
+	
+	PointSizeCase.prototype = new TransformFeedbackCase();
 
 	/** BasicTypeCase
 	 * It is a child class of TransformFeedbackCase
@@ -1441,17 +1517,18 @@ define(['framework/opengl/gluShaderUtil.js', 'framework/opengl/gluDrawUtil', 'mo
 	 */
 	var BasicTypeCase = (function(context, name, desc, bufferMode, primitiveType, type, precision, interpolation) {
 
-		this.container = new TransformFeedbackCase(context, name, desc, bufferMode, primitiveType);
-		container._construct(context, name, desc, bufferMode, primitiveType);
+		this._construct(context, name, desc, bufferMode, primitiveType);
 
-		container.m_progSpec.addVarying('v_varA', gluVT.newTypeBasic(type, precision), interpolation);
-		container.m_progSpec.('v_varB', gluVT.newTypeBasic(type, precision), interpolation);
+		this.m_progSpec.addVarying('v_varA', gluVT.newTypeBasic(type, precision), interpolation);
+		this.m_progSpec.addVarying('v_varB', gluVT.newTypeBasic(type, precision), interpolation);
 
-		container.m_progSpec.addTransformFeedbackVarying('v_varA');
-		container.m_progSpec.addTransformFeedbackVarying('v_varB');
-		container.init(); //TODO: call init()?
+		this.m_progSpec.addTransformFeedbackVarying('v_varA');
+		this.m_progSpec.addTransformFeedbackVarying('v_varB');
+		// this.init(); //TODO: call init()?
 
 	});
+	
+	BasicTypeCase.prototype = new TransformFeedbackCase();
 
 	/** BasicArrayCase
 	 * It is a child class of TransformFeedbackCase
@@ -1466,28 +1543,29 @@ define(['framework/opengl/gluShaderUtil.js', 'framework/opengl/gluDrawUtil', 'mo
 	 */
 	var BasicArrayCase = (function(context, name, desc, bufferMode, primitiveType, type, precision, interpolation) {
 
-		this.container = new TransformFeedbackCase(context, name, desc, bufferMode, primitiveType);
-		container._construct(context, name, desc, bufferMode, primitiveType);
+		this._construct(context, name, desc, bufferMode, primitiveType);
 
-		if (isDataTypeMatrix.isDataTypeMatrix(type) || container.m_bufferMode === GL_SEPARATE_ATTRIBS)
+		if (deqpUtils.isDataTypeMatrix(type) || this.m_bufferMode === GL_SEPARATE_ATTRIBS)
 		{
 			// note For matrix types we need to use reduced array sizes or otherwise we will exceed maximum attribute (16)
 			// or transform feedback component count (64).
 			// On separate attribs mode maximum component count per varying is 4.
-			container.m_progSpec.addVarying('v_varA', gluVT.newTypeArray(gluVT.newTypeBasic(type, precision), 1), interpolation);
-			container.m_progSpec.addVarying('v_varB', gluVT.newTypeArray(gluVT.newTypeBasic(type, precision), 2), interpolation);
+			this.m_progSpec.addVarying('v_varA', gluVT.newTypeArray(gluVT.newTypeBasic(type, precision), 1), interpolation);
+			this.m_progSpec.addVarying('v_varB', gluVT.newTypeArray(gluVT.newTypeBasic(type, precision), 2), interpolation);
 		}
 		else
 		{
-			container.m_progSpec.addVarying('v_varA', gluVT.newTypeArray(gluVT.newTypeBasic(type, precision), 3), interpolation);
-			container.m_progSpec.addVarying('v_varB', gluVT.newTypeArray(gluVT.newTypeBasic(type, precision), 4), interpolation);
+			this.m_progSpec.addVarying('v_varA', gluVT.newTypeArray(gluVT.newTypeBasic(type, precision), 3), interpolation);
+			this.m_progSpec.addVarying('v_varB', gluVT.newTypeArray(gluVT.newTypeBasic(type, precision), 4), interpolation);
 		}
 
-		container.m_progSpec.addTransformFeedbackVarying('v_varA');
-		container.m_progSpec.addTransformFeedbackVarying('v_varB');
-		container.init(); //TODO: call init()?
+		this.m_progSpec.addTransformFeedbackVarying('v_varA');
+		this.m_progSpec.addTransformFeedbackVarying('v_varB');
+		// this.init(); //TODO: call init()?
 
 	});
+	
+	BasicArrayCase.prototype = new TransformFeedbackCase();
 
 	/** ArrayElementCase
 	 * It is a child class of TransformFeedbackCase
@@ -1502,21 +1580,22 @@ define(['framework/opengl/gluShaderUtil.js', 'framework/opengl/gluDrawUtil', 'mo
 	 */
 	var ArrayElementCase = (function(context, name, desc, bufferMode, primitiveType, type, precision, interpolation) {
 
-		this.container = new TransformFeedbackCase(context, name, desc, bufferMode, primitiveType);
-		container._construct(context, name, desc, bufferMode, primitiveType);
+		this._construct(context, name, desc, bufferMode, primitiveType);
 
-		container.m_progSpec.addVarying('v_varA', gluVT.newTypeBasic(type, precision), interpolation);
-		container.m_progSpec.('v_varB', gluVT.newTypeBasic(type, precision), interpolation);
+		this.m_progSpec.addVarying('v_varA', gluVT.newTypeBasic(type, precision), interpolation);
+		this.m_progSpec.addVarying('v_varB', gluVT.newTypeBasic(type, precision), interpolation);
 
-		container.m_progSpec.addTransformFeedbackVarying('v_varA[1]');
-		container.m_progSpec.addTransformFeedbackVarying('v_varB[0]');
-		container.m_progSpec.addTransformFeedbackVarying('v_varB[3]');
+		this.m_progSpec.addTransformFeedbackVarying('v_varA[1]');
+		this.m_progSpec.addTransformFeedbackVarying('v_varB[0]');
+		this.m_progSpec.addTransformFeedbackVarying('v_varB[3]');
 
-		container.init(); //TODO: call init()?
+		// this.init(); //TODO: call init()?
 
 	});
+	
+	ArrayElementCase.prototype = new TransformFeedbackCase();
 
-	/** ArrayElementCase
+	/** RandomCase
 	 * It is a child class of TransformFeedbackCase
 	 * @param {WebGLRenderingContext} context gl WebGL context
 	 * @param {string} name
@@ -1527,12 +1606,10 @@ define(['framework/opengl/gluShaderUtil.js', 'framework/opengl/gluDrawUtil', 'mo
 	 */
 	var RandomCase = (function(context, name, desc, bufferType, primitiveType, seed) {
 
-		this.container = new TransformFeedbackCase(context, name, desc, bufferMode, primitiveType);
-		container._construct(context, name, desc, bufferMode, primitiveType);
-		container.init();
+		this._construct(context, name, desc, bufferMode, primitiveType);
 
 		// TODO: unfinished, same implementation in TransformFeedbackCase.iterate
-		// var seed = container.iterate.seed; // TODO: possible solution as a local attribute?
+		// var seed = this.iterate.seed; // TODO: possible solution as a local attribute?
 		/** @type {number} */ var seed = deStringHash(getName()) ^ deInt32Hash(m_iterNdx);
 
 		/** @type {Array.<deqpUtils.DataType>} */
@@ -1563,12 +1640,17 @@ define(['framework/opengl/gluShaderUtil.js', 'framework/opengl/gluDrawUtil', 'mo
             deqpUtils.DataType.FLOAT_MAT4
         ];
 
-     // TODO: create enum Precision in deqpUtils instead of glsUBC ???
-        /** @type {Array.<glsUBC.UniformFlags>} */
+        // TODO: could we use /** @type {Array.<glsUBC.UniformFlags>} */ instead ???
+        /** @type {Array.<deqpUtils.precision>} */
         var precisions = [
-            glsUBC.UniformFlags.PRECISION_LOW,
-            glsUBC.UniformFlags.PRECISION_MEDIUM,
-            glsUBC.UniformFlags.PRECISION_HIGH
+
+            deqpUtils.precision.PRECISION_LOWP,
+            deqpUtils.precision.PRECISION_MEDIUMP,
+            deqpUtils.precision.PRECISION_HIGHP
+
+            // glsUBC.UniformFlags.PRECISION_LOW,
+            // glsUBC.UniformFlags.PRECISION_MEDIUM,
+            // glsUBC.UniformFlags.PRECISION_HIGH
         ];
 
         /** @type {Array.<string, interpolation>} */
@@ -1588,10 +1670,9 @@ define(['framework/opengl/gluShaderUtil.js', 'framework/opengl/gluDrawUtil', 'mo
         /** @type {number} */ var captureFullArrayWeight = 0.5;
 
         /** @type {deRandom.deRandom} */ var rnd = new deRandom.Random(seed);
-		/** @type {boolean} */ var usePosition = deRandom.getFloat(rnd) < positionWeight;
-		/** @type {boolean} */ var usePointSize	= deRandom.getFloat(rnd) < pointSizeWeight;
-		/** @type {Array.<number>} */ var opts = [1, maxAttributeVectors - 1/*position*/ - (usePointSize ? 1 : 0)];
-		/** @type {number} */ var numAttribVectorsToUse	= deRandom.getInt(rnd, opts);
+		/** @type {boolean} */ var usePosition = rnd.getFloat() < positionWeight;
+		/** @type {boolean} */ var usePointSize	= rnd.getFloat() < pointSizeWeight;
+		/** @type {number} */ var numAttribVectorsToUse	= rnd.getInt(rnd, 1, maxAttributeVectors - 1/*position*/ - (usePointSize ? 1 : 0));
 
 		/** @type {number} */ var numAttributeVectors = 0;
 		/** @type {number} */ var varNdx = 0;
@@ -1607,82 +1688,84 @@ define(['framework/opengl/gluShaderUtil.js', 'framework/opengl/gluDrawUtil', 'mo
 																maxVecs >= 3 ? 18 :
 																maxVecs >= 2 ? (isSeparateMode ? 13 : 15) : 12);
 			/** @type {deqpUtils.DataType} */ var end = typeCandidates[endCandidates];
-
-			/**
-			glu::DataType			type		= rnd.choose<glu::DataType>(begin, end);
-			glu::Precision			precision	= rnd.choose<glu::Precision>(&precisions[0], &precisions[0]+DE_LENGTH_OF_ARRAY(precisions));
-			Interpolation			interp		= glu::getDataTypeScalarType(type) == glu::TYPE_FLOAT
+			
+			/** @type {deqpUtils.DataType} */ var type = rnd.choose<glu::DataType>(begin, end); // TODO: implement
+			/** @type {glsUBC.UniformFlags | deqpUtils.precision} */
+			var precision = rnd.choose<glu::Precision>(&precisions[0], &precisions[0]+DE_LENGTH_OF_ARRAY(precisions)); // TODO: implement
+			/** @type {interpolation} */ var interp = deqpUtils.getDataTypeScalarType(type) === deqpUtils.DataType.FLOAT
 												? rnd.choose<Interpolation>(&interpModes[0], &interpModes[0]+DE_LENGTH_OF_ARRAY(interpModes))
-												: INTERPOLATION_FLAT;
-			int						numVecs		= glu::isDataTypeMatrix(type) ? glu::getDataTypeMatrixNumColumns(type) : 1;
-			int						numComps	= glu::getDataTypeScalarSize(type);
-			int						maxArrayLen	= de::max(1, isSeparateMode ? 4/numComps : maxVecs/numVecs);
-			bool					useArray	= rnd.getFloat() < arrayWeight;
-			int						arrayLen	= useArray ? rnd.getInt(1, maxArrayLen) : 1;
-			std::string				name		= "v_var" + de::toString(varNdx);
+												: interpolation.FLAT; // TODO: implement
+			/** @type {number} */ var numVecs = deqpUtils.isDataTypeMatrix(type) ? deqpUtils.getDataTypeMatrixNumColumns(type) : 1;
+			/** @type {number} */ var numComps = deqpUtils.getDataTypeScalarSize(type);
+			/** @type {number} */ var maxArrayLen = deMax(1, isSeparateMode ? 4 / numComps : maxVecs / numVecs);
+			/** @type {boolean} */ var useArray	= rnd.getFloat() < arrayWeight;
+			/** @type {number} */ var arrayLen = useArray ? rnd.getInt(1, maxArrayLen) : 1;
+			/** @type {string} */ var name = 'v_var' + varNdx; // TODO: check varNdx.toString() omitted?
 
 			if (useArray)
-				m_progSpec.addVarying(name.c_str(), glu::VarType(glu::VarType(type, precision), arrayLen), interp);
+				this.m_progSpec.addVarying(name, gluVT.newTypeArray(gluVT.newTypeBasic(type, precision), arrayLen), interp);
 			else
-				m_progSpec.addVarying(name.c_str(), glu::VarType(type, precision), interp);
+				this.m_progSpec.addVarying(name, gluVT.newTypeBasic(type, precision), interp);
 
-			numAttributeVectors	+= arrayLen*numVecs;
-			varNdx				+= 1;
+			numAttributeVectors	+= arrayLen * numVecs;
+			varNdx += 1;
 		}
 		
-		
 		// Generate transform feedback candidate set.
-		vector<string> tfCandidates;
+		/** @type {Array.<string>} */ var tfCandidates =[];
 
-		if (usePosition)	tfCandidates.push_back("gl_Position");
-		if (usePointSize)	tfCandidates.push_back("gl_PointSize");
+		if (usePosition) tfCandidates.push('gl_Position');
+		if (usePointSize) tfCandidates.push('gl_PointSize');
 
-		for (int ndx = 0; ndx < varNdx; ndx++)
+		for (var ndx = 0; ndx < varNdx; ndx++)
 		{
-			const Varying& var = m_progSpec.getVaryings()[ndx];
+		/** @type {Varying} */ var varying = this.m_progSpec.getVaryings()[ndx];
 
-			if (var.type.isArrayType())
+			if (varying.type.isArrayType())
 			{
-				const bool captureFull = rnd.getFloat() < captureFullArrayWeight;
+				/** @type {boolean} */ var captureFull = rnd.getFloat() < captureFullArrayWeight;
 
 				if (captureFull)
-					tfCandidates.push_back(var.name);
+					tfCandidates.push(varying.name);
 				else
 				{
-					const int numElem = var.type.getArraySize();
-					for (int elemNdx = 0; elemNdx < numElem; elemNdx++)
-						tfCandidates.push_back(var.name + "[" + de::toString(elemNdx) + "]");
+					/** @type {number} */ var numElem = varying.type.getArraySize();
+					for (var elemNdx = 0; elemNdx < numElem; elemNdx++)
+						tfCandidates.push(varying.name + '[' + elemNdx + ']'); // TODO: check elemNdx.toString() omitted?
 				}
 			}
 			else
-				tfCandidates.push_back(var.name);
+				tfCandidates.push(varying.name);
 		}
 
 		// Pick random selection.
-		vector<string> tfVaryings(de::min((int)tfCandidates.size(), maxTransformFeedbackVars));
-		rnd.choose(tfCandidates.begin(), tfCandidates.end(), tfVaryings.begin(), (int)tfVaryings.size());
-		rnd.shuffle(tfVaryings.begin(), tfVaryings.end());
+		vector<string> tfVaryings(deMin(tfCandidates.length, maxTransformFeedbackVars)); // TODO: implement
+		rnd.choose(tfCandidates.begin(), tfCandidates.end(), tfVaryings.begin(), (int)tfVaryings.size()); // TODO: implement
+		rnd.shuffle(tfVaryings.begin(), tfVaryings.end()); // TODO: implement
 
-		for (vector<string>::const_iterator var = tfVaryings.begin(); var != tfVaryings.end(); var++)
-			m_progSpec.addTransformFeedbackVarying(var->c_str());
+		for (vector<string>::const_iterator vary = tfVaryings.begin(); vary != tfVaryings.end(); vary++)
+			this.m_progSpec.addTransformFeedbackVarying(vary.c_str());
 
-		*/
+		// this.init();
+		
 	};
+	
+	RandomCase.prototype = new TransformFeedbackCase();
 
 	 /**
      * Creates the test in order to be executed
      **/
 	var init = function() {
 
-	/** @const @type {deqpTests.DeqpTest} */ var testGroup = deqpTests.runner.getState().testCases;
+    /** @const @type {deqpTests.DeqpTest} */ var testGroup = deqpTests.runner.getState().testCases;
 
-	/** @type {Array.<string, number>} */
+    /** @type {Array.<string, number>} */
         var bufferModes = [
             {name: 'separate', mode: GL_SEPARATE_ATTRIBS}, // TODO: implement GL_SEPARATE_ATTRIBS
             {name: 'interleaved', mode: GL_INTERLEAVED_ATTRIBS} // TODO: implement GL_INTERLEAVED_ATTRIBS
         ];
 
-     /** @type {Array.<string, deqpDraw.primitiveType>} */
+        /** @type {Array.<string, deqpDraw.primitiveType>} */
         var primitiveTypes = [
             {name: 'points', type: deqpDraw.primitiveType.POINTS},
             {name: 'lines', type: deqpDraw.primitiveType.LINES},
@@ -1714,12 +1797,17 @@ define(['framework/opengl/gluShaderUtil.js', 'framework/opengl/gluDrawUtil', 'mo
             deqpUtils.DataType.UINT_VEC4
         ];
 
-        // TODO: create enum Precision in deqpUtils instead of glsUBC ???
-        /** @type {Array.<glsUBC.UniformFlags>} */
+        // TODO: could we use /** @type {Array.<glsUBC.UniformFlags>} */ instead ???
+        /** @type {Array.<deqpUtils.precision>} */
         var precisions = [
-            glsUBC.UniformFlags.PRECISION_LOW,
-            glsUBC.UniformFlags.PRECISION_MEDIUM,
-            glsUBC.UniformFlags.PRECISION_HIGH
+
+            deqpUtils.precision.PRECISION_LOWP,
+            deqpUtils.precision.PRECISION_MEDIUMP,
+            deqpUtils.precision.PRECISION_HIGHP
+
+            // glsUBC.UniformFlags.PRECISION_LOW,
+            // glsUBC.UniformFlags.PRECISION_MEDIUM,
+            // glsUBC.UniformFlags.PRECISION_HIGH
         ];
 
         /** @type {Array.<string, interpolation>} */
@@ -1730,33 +1818,179 @@ define(['framework/opengl/gluShaderUtil.js', 'framework/opengl/gluDrawUtil', 'mo
         ];
 
         // .position
-		/** @type {deqpTests.DeqpTest} */
-        var positionGroup = deqpTests.newTest('position', 'gl_Position capture using transform feedback');
+        /** @type {deqpTests.DeqpTest} */ var positionGroup = deqpTests.newTest('position', 'gl_Position capture using transform feedback');
         testGroup.addChild(positionGroup);
 
-		for (var primitiveType = 0; primitiveType < primitiveTypes.length; primitiveType++)
-		{
-			for (var bufferMode = 0; bufferMode < bufferModes.length; bufferMode++)
-			{
-				var name = primitiveTypes[primitiveType].name + '_' + bufferModes[bufferMode].name;
-				positionGroup.addChild(new PositionCase(m_context, name, '', bufferModes[bufferMode].mode, primitiveTypes[primitiveType].type));
-			}
-		}
+        for (var primitiveType = 0; primitiveType < primitiveTypes.length; primitiveType++)
+        {
+            for (var bufferMode = 0; bufferMode < bufferModes.length; bufferMode++)
+            {
+            /** @type {string} */ var name = primitiveTypes[primitiveType].name + '_' + bufferModes[bufferMode].name;
+                // TODO: new needed below?
+                positionGroup.addChild(new PositionCase(m_context, name, '', bufferModes[bufferMode].mode, primitiveTypes[primitiveType].type));
+            }
+        }
 
-		// .point_size
-		/** @type {deqpTests.DeqpTest} */
-        var pointSizeGroup = deqpTests.newTest('point_size', 'gl_PointSize capture using transform feedback');
+        // .point_size
+        /** @type {deqpTests.DeqpTest} */ var pointSizeGroup = deqpTests.newTest('point_size', 'gl_PointSize capture using transform feedback');
         testGroup.addChild(pointSizeGroup);
 
-		for (var primitiveType = 0; primitiveType < primitiveTypes.length; primitiveType++)
-		{
-			for (var bufferMode = 0; bufferMode < bufferModes.length; bufferMode++)
-			{
-				var name = primitiveTypes[primitiveType].name + '_' + bufferModes[bufferMode].name;
-				pointSizeGroup.addChild(new PointSizeCase(m_context, name, '', bufferModes[bufferMode].mode, primitiveTypes[primitiveType].type));
-			}
-		}
+        for (var primitiveType = 0; primitiveType < primitiveTypes.length; primitiveType++)
+        {
+            for (var bufferMode = 0; bufferMode < bufferModes.length; bufferMode++)
+            {
+            /** @type {string} */ var name = primitiveTypes[primitiveType].name + '_' + bufferModes[bufferMode].name;
+                // TODO: new needed below?
+                pointSizeGroup.addChild(new PointSizeCase(m_context, name, '', bufferModes[bufferMode].mode, primitiveTypes[primitiveType].type));
+            }
+        }
 
+        // .basic_type
+        /** @type {deqpTests.DeqpTest} */ var basicTypeGroup = deqpTests.newTest('basic_types', 'Basic types in transform feedback');
+        testGroup.addChild(basicTypeGroup);
+
+        for (var bufferModeNdx = 0; bufferModeNdx < bufferModes.length; bufferModeNdx++)
+        {
+        /** @type {deqpTests.DeqpTest} */ var modeGroup = deqpTests.newTest(bufferModes[bufferModeNdx].name, '');
+        /** @type {number} */ var bufferMode = bufferModes[bufferModeNdx].mode;
+            basicTypeGroup.addChild(modeGroup);
+
+            for (var primitiveTypeNdx = 0; primitiveTypeNdx < primitiveTypes.length; primitiveTypeNdx++)
+            {
+            /** @type {deqpTests.DeqpTest} */ var primitiveGroup = deqpTests.newTest(primitiveTypes[primitiveTypeNdx].name, '');
+            /** @type {number} */ var primitiveType    = primitiveTypes[primitiveTypeNdx].type;
+                modeGroup.addChild(primitiveGroup);
+
+                for (var typeNdx = 0; typeNdx < basicTypes.length; typeNdx++)
+                {
+                /** @type {deqpUtils.DataType} */ var type = basicTypes[typeNdx];
+                /** @type {boolean} */ var isFloat = deqpUtils.getDataTypeScalarType(type) == deqpUtils.DataType.FLOAT;
+
+                    for (var precNdx = 0; precNdx < precisions.length; precNdx++)
+                    {
+                    /** @type {deqpUtils.precision} */ var precision = precisions[precNdx];
+                    /** @type {string} */ var name = deqpUtils.getPrecisionName(precision) + '_' + deqpUtils.getDataTypeName(type);
+                        // TODO: new needed below?
+                        primitiveGroup.addChild(new BasicTypeCase(m_context, name, '', bufferMode, primitiveType, type, precision, isFloat ? interpolation.SMOOTH : interpolation.FLAT));
+                    }
+                }
+            }
+        }
+
+        // .array
+        /** @type {deqpTests.DeqpTest} */ var arrayGroup = deqpTests.newTest('array', 'Capturing whole array in TF');
+        testGroup.addChild(arrayGroup);
+
+        for (var bufferModeNdx = 0; bufferModeNdx < bufferModes.length; bufferModeNdx++)
+        {
+        /** @type {deqpTests.DeqpTest} */ var modeGroup = deqpTests.newTest(bufferModes[bufferModeNdx].name, '');
+        /** @type {number} */ var bufferMode = bufferModes[bufferModeNdx].mode;
+            arrayGroup.addChild(modeGroup);
+
+            for (var primitiveTypeNdx = 0; primitiveTypeNdx < primitiveTypes.length; primitiveTypeNdx++)
+            {
+            /** @type {deqpTests.DeqpTest} */ var primitiveGroup = deqpTests.newTest(primitiveTypes[primitiveTypeNdx].name, '');
+            /** @type {number} */ var primitiveType    = primitiveTypes[primitiveTypeNdx].type;
+                modeGroup.addChild(primitiveGroup);
+
+                for (var typeNdx = 0; typeNdx < basicTypes.length; typeNdx++)
+                {
+                /** @type {deqpUtils.DataType} */ var type = basicTypes[typeNdx];
+                /** @type {boolean} */ var isFloat = deqpUtils.getDataTypeScalarType(type) == deqpUtils.DataType.FLOAT;
+
+                    for (var precNdx = 0; precNdx < precisions.length; precNdx++)
+                    {
+                    /** @type {deqpUtils.precision} */ var precision = precisions[precNdx];
+                    /** @type {string} */ var name = deqpUtils.getPrecisionName(precision) + '_' + deqpUtils.getDataTypeName(type);
+                        // TODO: new needed below?
+                        primitiveGroup.addChild(new BasicArrayCase(m_context, name, '', bufferMode, primitiveType, type, precision, isFloat ? interpolation.SMOOTH : interpolation.FLAT));
+                    }
+                }
+            }
+        }
+
+        // .array_element
+        /** @type {deqpTests.DeqpTest} */ var arrayElemGroup = deqpTests.newTest('array_element', 'Capturing single array element in TF');
+        testGroup.addChild(arrayElemGroup);
+
+        for (var bufferModeNdx = 0; bufferModeNdx < bufferModes.length; bufferModeNdx++)
+        {
+        /** @type {deqpTests.DeqpTest} */ var modeGroup = deqpTests.newTest(bufferModes[bufferModeNdx].name, '');
+        /** @type {number} */ var bufferMode = bufferModes[bufferModeNdx].mode;
+            arrayElemGroup.addChild(modeGroup);
+
+            for (var primitiveTypeNdx = 0; primitiveTypeNdx < primitiveTypes.length; primitiveTypeNdx++)
+            {
+            /** @type {deqpTests.DeqpTest} */ var primitiveGroup = deqpTests.newTest(primitiveTypes[primitiveTypeNdx].name, '');
+            /** @type {number} */ var primitiveType    = primitiveTypes[primitiveTypeNdx].type;
+                modeGroup.addChild(primitiveGroup);
+
+                for (var typeNdx = 0; typeNdx < basicTypes.length; typeNdx++)
+                {
+                /** @type {deqpUtils.DataType} */ var type = basicTypes[typeNdx];
+                /** @type {boolean} */ var isFloat = deqpUtils.getDataTypeScalarType(type) == deqpUtils.DataType.FLOAT;
+
+                    for (var precNdx = 0; precNdx < precisions.length; precNdx++)
+                    {
+                    /** @type {deqpUtils.precision} */ var precision = precisions[precNdx];
+                    /** @type {string} */ var name = deqpUtils.getPrecisionName(precision) + '_' + deqpUtils.getDataTypeName(type);
+                        // TODO: new needed below?
+                        primitiveGroup.addChild(new ArrayElementCase(m_context, name, '', bufferMode, primitiveType, type, precision, isFloat ? interpolation.SMOOTH : interpolation.FLAT));
+                    }
+                }
+            }
+        }
+
+        // .interpolation
+        /** @type {deqpTests.DeqpTest} */ var interpolationGroup = deqpTests.newTest('interpolation', 'Different interpolation modes in transform feedback varyings');
+        testGroup.addChild(interpolationGroup);
+
+        for (var modeNdx = 0; modeNdx < interpModes.length; modeNdx++)
+        {
+        /** @type {interpolation} */ var interp = interpModes[modeNdx].interp;
+        /** @type {deqpTests.DeqpTest} */ var modeGroup = deqpTests.newTest(interpModes[modeNdx].name, '');
+            interpolationGroup.addChild(modeGroup);
+
+            for (var precNdx = 0; precNdx < precisions.length; precNdx++)
+            {
+            /** @type {deqpUtils.precision} */ var precision = precisions[precNdx];
+
+                for (var primitiveType = 0; primitiveType < primitiveTypes.length; primitiveType++)
+                {
+                    for (var bufferMode = 0; bufferMode < bufferModes.length; bufferMode++)
+                    {
+                    /** @type {string} */ var name = deqpUtils.getPrecisionName(precision) + '_vec4_' + primitiveTypes[primitiveType].name + '_' + bufferModes[bufferMode].name;
+                        // TODO: new needed below?
+                        modeGroup.addChild(new BasicTypeCase(m_context, name, '', bufferModes[bufferMode].mode, primitiveTypes[primitiveType].type, deqpUtils.DataType.FLOAT_VEC4, precision, interp));
+                    }
+                }
+            }
+        }
+
+        // .random
+        /** @type {deqpTests.DeqpTest} */ var randomGroup = deqpTests.newTest('random', 'Randomized transform feedback cases');
+        testGroup.addChild(randomGroup);
+
+        for (var bufferModeNdx = 0; bufferModeNdx < bufferModes.length; bufferModeNdx++)
+        {
+        /** @type {deqpTests.DeqpTest} */ var modeGroup = deqpTests.newTest(bufferModes[bufferModeNdx].name, '');
+        /** @type {number} */ var  bufferMode = bufferModes[bufferModeNdx].mode;
+            randomGroup.addChild(modeGroup);
+
+            for (var primitiveTypeNdx = 0; primitiveTypeNdx < primitiveTypes.length; primitiveTypeNdx++)
+            {
+            /** @type {deqpTests.DeqpTest} */ var primitiveGroup = deqpTests.newTest(primitiveTypes[primitiveTypeNdx].name, '');
+            /** @type {number} */ var  primitiveType = primitiveTypes[primitiveTypeNdx].type;
+                modeGroup.addChild(primitiveGroup);
+
+                for (var ndx = 0; ndx < 10; ndx++)
+                {
+                /** @type {number} */ var seed = deInt32.deInt32Hash(bufferMode) ^ deInt32.deInt32Hash(primitiveType) ^ deInt32.deInt32Hash(ndx);
+                // TODO: new needed below?
+                    primitiveGroup.addChild(new RandomCase(m_context, (ndx + 1).toString(), "", bufferMode, primitiveType, seed)); // TODO: check, toString() omitted?
+                }
+            }
+        }
 
 	};
 
