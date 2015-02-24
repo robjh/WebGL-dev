@@ -108,8 +108,8 @@ var isSRGB = function(/*TextureFormat*/ format) {
 var getTypedArray = function(type) {
 	switch(type) {
 		case ChannelType.SNORM_INT8: return  Int8Array;
-		case ChannelType.SNORM_INT16: return  Uint16Array;
-		case ChannelType.SNORM_INT32: return  Uint32Array;
+		case ChannelType.SNORM_INT16: return  Int16Array;
+		case ChannelType.SNORM_INT32: return  Int32Array;
 		case ChannelType.UNORM_INT8: return  Uint8Array;
 		case ChannelType.UNORM_INT16: return  Uint16Array;
 		case ChannelType.UNORM_INT32: return  Uint32Array;
@@ -505,8 +505,7 @@ var wrap = function(/*Sampler::WrapMode*/ mode, /*int*/ c, /*int*/ size) {
 // Texel lookup with color conversion.
 var lookup = function(/*const ConstPixelBufferAccess&*/ access, i, j, k) {
 	var p = access.getPixel(i, j, k);
-	// console.log('Lookup at ' + i + ' ' + j + ' ' + k);
-	// console.log(p);
+	// console.log('Lookup at ' + i + ' ' + j + ' ' + k + ' ' + p);	
 	return isSRGB(access.getFormat()) ? sRGBToLinear(p) : p;
 };
 

@@ -18,7 +18,7 @@
  *
  */
 
-define(['framework/opengl/gluTextureUtil' , 'framework/common/tcuTexture', 'framework/delibs/debase/deInt32' ], function(gluTextureUtil, tcuTexture, deInt32) {
+define(['framework/opengl/gluTextureUtil' , 'framework/common/tcuTexture', 'framework/common/tcuCompressedTexture', 'framework/delibs/debase/deInt32' ], function(gluTextureUtil, tcuTexture, tcuCompressedTexture, deInt32) {
 	'use strict';
 
 var DE_ASSERT = function(x) {
@@ -230,6 +230,35 @@ var texture3DFromInternalFormat = function(gl, internalFormat, width, height, de
 	return tex;
 };
 
+var Compressed2D = function(gl, format, isCompressed, refTexture) {
+	Texture2D.call(this, gl, format, isCompressed, refTexture);
+};
+
+Compressed2D.prototype = Object.create(Texture2D.prototype);
+Compressed2D.prototype.constructor = Compressed2D;
+
+Compressed2D.prototype.upload = function(level, source) {
+	DE_ASSERT(this.m_isCompressed);
+
+	if (this.m_glTexture == null)
+		testFailedOptions('Failed to create GL texture', true);
+
+	gl.bindTexture(gl.TEXTURE_2D, this.m_glTexture);
+
+	gl.compressedTexImage2D(gl.TEXTURE_2D, level, this.m_format, source.width, source.height, 0 /* border */, new Uint8Array(source.data));
+	/* TODO: enable */
+	// assertMsgOptions(gl.getError() === gl.NO_ERROR, "Texture upload failed", false, true);
+};
+
+var compressed2DFromInternalFormat = function(gl, format, width, height, source) {
+	var compressed = new tcuCompressedTexture.CompressedTexture(format, width, height);
+	compressed.m_data.set(source.data);
+	var tex = new Compressed2D(gl, gluTextureUtil.getGLFormat(format), true, new tcuTexture.Texture2D(compressed.getUncompressedFormat(), width, height));
+	tex.m_refTexture.allocLevel(0);
+	compressed.decompress(tex.m_refTexture.getLevel(0));
+	tex.upload(0, source);
+	return tex;
+};
 
 return {
 	Texture2D: Texture2D,
@@ -243,7 +272,8 @@ return {
 	texture2DArrayFromFormat: texture2DArrayFromFormat,
 	texture2DArrayFromInternalFormat: texture2DArrayFromInternalFormat,
 	texture3DFromFormat: texture3DFromFormat,
-	texture3DFromInternalFormat: texture3DFromInternalFormat
+	texture3DFromInternalFormat: texture3DFromInternalFormat,
+	compressed2DFromInternalFormat: compressed2DFromInternalFormat
 };
 
 });

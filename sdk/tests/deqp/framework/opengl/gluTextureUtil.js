@@ -27,7 +27,7 @@
  * \param texFormat Generic texture format.
  * \return GL pixel transfer format.
  *//*--------------------------------------------------------------------*/
-define(['../common/tcuTexture'], function(textureFormat)
+define(['framework/common/tcuTexture', 'framework/common/tcuCompressedTexture'], function(textureFormat, tcuCompressedTexture)
 {
 
 var TransferFormat = function(format, dataType) {
@@ -213,57 +213,55 @@ var getInternalFormat = function(/*tcu::TextureFormat*/ texFormat)
  * \param format Generic compressed format.
  * \return GL compressed texture format.
  *//*--------------------------------------------------------------------*/
- /*TODO: implement 
-deUint32 getGLFormat (tcu::CompressedTexture::Format format)
-{
-	switch (format)
-	{
-		case tcu::CompressedTexture::ETC1_RGB8:							return gl.ETC1_RGB8_OES;
-		case tcu::CompressedTexture::EAC_R11:							return gl.COMPRESSED_R11_EAC;
-		case tcu::CompressedTexture::EAC_SIGNED_R11:					return gl.COMPRESSED_SIGNED_R11_EAC;
-		case tcu::CompressedTexture::EAC_RG11:							return gl.COMPRESSED_RG11_EAC;
-		case tcu::CompressedTexture::EAC_SIGNED_RG11:					return gl.COMPRESSED_SIGNED_RG11_EAC;
-		case tcu::CompressedTexture::ETC2_RGB8:							return gl.COMPRESSED_RGB8_ETC2;
-		case tcu::CompressedTexture::ETC2_SRGB8:						return gl.COMPRESSED_SRGB8_ETC2;
-		case tcu::CompressedTexture::ETC2_RGB8_PUNCHTHROUGH_ALPHA1:		return gl.COMPRESSED_RGB8_PUNCHTHROUGH_ALPHA1_ETC2;
-		case tcu::CompressedTexture::ETC2_SRGB8_PUNCHTHROUGH_ALPHA1:	return gl.COMPRESSED_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2;
-		case tcu::CompressedTexture::ETC2_EAC_RGBA8:					return gl.COMPRESSED_RGBA8_ETC2_EAC;
-		case tcu::CompressedTexture::ETC2_EAC_SRGB8_ALPHA8:				return gl.COMPRESSED_SRGB8_ALPHA8_ETC2_EAC;
+ 
+var getGLFormat = function(/*tcu::CompressedTexture::Format*/ format) {
+	switch (format) {
+		case tcuCompressedTexture.Format.ETC1_RGB8:							return gl.ETC1_RGB8_OES;
+		case tcuCompressedTexture.Format.EAC_R11:							return gl.COMPRESSED_R11_EAC;
+		case tcuCompressedTexture.Format.EAC_SIGNED_R11:					return gl.COMPRESSED_SIGNED_R11_EAC;
+		case tcuCompressedTexture.Format.EAC_RG11:							return gl.COMPRESSED_RG11_EAC;
+		case tcuCompressedTexture.Format.EAC_SIGNED_RG11:					return gl.COMPRESSED_SIGNED_RG11_EAC;
+		case tcuCompressedTexture.Format.ETC2_RGB8:							return gl.COMPRESSED_RGB8_ETC2;
+		case tcuCompressedTexture.Format.ETC2_SRGB8:						return gl.COMPRESSED_SRGB8_ETC2;
+		case tcuCompressedTexture.Format.ETC2_RGB8_PUNCHTHROUGH_ALPHA1:		return gl.COMPRESSED_RGB8_PUNCHTHROUGH_ALPHA1_ETC2;
+		case tcuCompressedTexture.Format.ETC2_SRGB8_PUNCHTHROUGH_ALPHA1:	return gl.COMPRESSED_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2;
+		case tcuCompressedTexture.Format.ETC2_EAC_RGBA8:					return gl.COMPRESSED_RGBA8_ETC2_EAC;
+		case tcuCompressedTexture.Format.ETC2_EAC_SRGB8_ALPHA8:				return gl.COMPRESSED_SRGB8_ALPHA8_ETC2_EAC;
 
-		case tcu::CompressedTexture::ASTC_4x4_RGBA:						return gl.COMPRESSED_RGBA_ASTC_4x4_KHR;
-		case tcu::CompressedTexture::ASTC_5x4_RGBA:						return gl.COMPRESSED_RGBA_ASTC_5x4_KHR;
-		case tcu::CompressedTexture::ASTC_5x5_RGBA:						return gl.COMPRESSED_RGBA_ASTC_5x5_KHR;
-		case tcu::CompressedTexture::ASTC_6x5_RGBA:						return gl.COMPRESSED_RGBA_ASTC_6x5_KHR;
-		case tcu::CompressedTexture::ASTC_6x6_RGBA:						return gl.COMPRESSED_RGBA_ASTC_6x6_KHR;
-		case tcu::CompressedTexture::ASTC_8x5_RGBA:						return gl.COMPRESSED_RGBA_ASTC_8x5_KHR;
-		case tcu::CompressedTexture::ASTC_8x6_RGBA:						return gl.COMPRESSED_RGBA_ASTC_8x6_KHR;
-		case tcu::CompressedTexture::ASTC_8x8_RGBA:						return gl.COMPRESSED_RGBA_ASTC_8x8_KHR;
-		case tcu::CompressedTexture::ASTC_10x5_RGBA:					return gl.COMPRESSED_RGBA_ASTC_10x5_KHR;
-		case tcu::CompressedTexture::ASTC_10x6_RGBA:					return gl.COMPRESSED_RGBA_ASTC_10x6_KHR;
-		case tcu::CompressedTexture::ASTC_10x8_RGBA:					return gl.COMPRESSED_RGBA_ASTC_10x8_KHR;
-		case tcu::CompressedTexture::ASTC_10x10_RGBA:					return gl.COMPRESSED_RGBA_ASTC_10x10_KHR;
-		case tcu::CompressedTexture::ASTC_12x10_RGBA:					return gl.COMPRESSED_RGBA_ASTC_12x10_KHR;
-		case tcu::CompressedTexture::ASTC_12x12_RGBA:					return gl.COMPRESSED_RGBA_ASTC_12x12_KHR;
-		case tcu::CompressedTexture::ASTC_4x4_SRGB8_ALPHA8:				return gl.COMPRESSED_SRGB8_ALPHA8_ASTC_4x4_KHR;
-		case tcu::CompressedTexture::ASTC_5x4_SRGB8_ALPHA8:				return gl.COMPRESSED_SRGB8_ALPHA8_ASTC_5x4_KHR;
-		case tcu::CompressedTexture::ASTC_5x5_SRGB8_ALPHA8:				return gl.COMPRESSED_SRGB8_ALPHA8_ASTC_5x5_KHR;
-		case tcu::CompressedTexture::ASTC_6x5_SRGB8_ALPHA8:				return gl.COMPRESSED_SRGB8_ALPHA8_ASTC_6x5_KHR;
-		case tcu::CompressedTexture::ASTC_6x6_SRGB8_ALPHA8:				return gl.COMPRESSED_SRGB8_ALPHA8_ASTC_6x6_KHR;
-		case tcu::CompressedTexture::ASTC_8x5_SRGB8_ALPHA8:				return gl.COMPRESSED_SRGB8_ALPHA8_ASTC_8x5_KHR;
-		case tcu::CompressedTexture::ASTC_8x6_SRGB8_ALPHA8:				return gl.COMPRESSED_SRGB8_ALPHA8_ASTC_8x6_KHR;
-		case tcu::CompressedTexture::ASTC_8x8_SRGB8_ALPHA8:				return gl.COMPRESSED_SRGB8_ALPHA8_ASTC_8x8_KHR;
-		case tcu::CompressedTexture::ASTC_10x5_SRGB8_ALPHA8:			return gl.COMPRESSED_SRGB8_ALPHA8_ASTC_10x5_KHR;
-		case tcu::CompressedTexture::ASTC_10x6_SRGB8_ALPHA8:			return gl.COMPRESSED_SRGB8_ALPHA8_ASTC_10x6_KHR;
-		case tcu::CompressedTexture::ASTC_10x8_SRGB8_ALPHA8:			return gl.COMPRESSED_SRGB8_ALPHA8_ASTC_10x8_KHR;
-		case tcu::CompressedTexture::ASTC_10x10_SRGB8_ALPHA8:			return gl.COMPRESSED_SRGB8_ALPHA8_ASTC_10x10_KHR;
-		case tcu::CompressedTexture::ASTC_12x10_SRGB8_ALPHA8:			return gl.COMPRESSED_SRGB8_ALPHA8_ASTC_12x10_KHR;
-		case tcu::CompressedTexture::ASTC_12x12_SRGB8_ALPHA8:			return gl.COMPRESSED_SRGB8_ALPHA8_ASTC_12x12_KHR;
+		case tcuCompressedTexture.Format.ASTC_4x4_RGBA:						return gl.COMPRESSED_RGBA_ASTC_4x4_KHR;
+		case tcuCompressedTexture.Format.ASTC_5x4_RGBA:						return gl.COMPRESSED_RGBA_ASTC_5x4_KHR;
+		case tcuCompressedTexture.Format.ASTC_5x5_RGBA:						return gl.COMPRESSED_RGBA_ASTC_5x5_KHR;
+		case tcuCompressedTexture.Format.ASTC_6x5_RGBA:						return gl.COMPRESSED_RGBA_ASTC_6x5_KHR;
+		case tcuCompressedTexture.Format.ASTC_6x6_RGBA:						return gl.COMPRESSED_RGBA_ASTC_6x6_KHR;
+		case tcuCompressedTexture.Format.ASTC_8x5_RGBA:						return gl.COMPRESSED_RGBA_ASTC_8x5_KHR;
+		case tcuCompressedTexture.Format.ASTC_8x6_RGBA:						return gl.COMPRESSED_RGBA_ASTC_8x6_KHR;
+		case tcuCompressedTexture.Format.ASTC_8x8_RGBA:						return gl.COMPRESSED_RGBA_ASTC_8x8_KHR;
+		case tcuCompressedTexture.Format.ASTC_10x5_RGBA:					return gl.COMPRESSED_RGBA_ASTC_10x5_KHR;
+		case tcuCompressedTexture.Format.ASTC_10x6_RGBA:					return gl.COMPRESSED_RGBA_ASTC_10x6_KHR;
+		case tcuCompressedTexture.Format.ASTC_10x8_RGBA:					return gl.COMPRESSED_RGBA_ASTC_10x8_KHR;
+		case tcuCompressedTexture.Format.ASTC_10x10_RGBA:					return gl.COMPRESSED_RGBA_ASTC_10x10_KHR;
+		case tcuCompressedTexture.Format.ASTC_12x10_RGBA:					return gl.COMPRESSED_RGBA_ASTC_12x10_KHR;
+		case tcuCompressedTexture.Format.ASTC_12x12_RGBA:					return gl.COMPRESSED_RGBA_ASTC_12x12_KHR;
+		case tcuCompressedTexture.Format.ASTC_4x4_SRGB8_ALPHA8:				return gl.COMPRESSED_SRGB8_ALPHA8_ASTC_4x4_KHR;
+		case tcuCompressedTexture.Format.ASTC_5x4_SRGB8_ALPHA8:				return gl.COMPRESSED_SRGB8_ALPHA8_ASTC_5x4_KHR;
+		case tcuCompressedTexture.Format.ASTC_5x5_SRGB8_ALPHA8:				return gl.COMPRESSED_SRGB8_ALPHA8_ASTC_5x5_KHR;
+		case tcuCompressedTexture.Format.ASTC_6x5_SRGB8_ALPHA8:				return gl.COMPRESSED_SRGB8_ALPHA8_ASTC_6x5_KHR;
+		case tcuCompressedTexture.Format.ASTC_6x6_SRGB8_ALPHA8:				return gl.COMPRESSED_SRGB8_ALPHA8_ASTC_6x6_KHR;
+		case tcuCompressedTexture.Format.ASTC_8x5_SRGB8_ALPHA8:				return gl.COMPRESSED_SRGB8_ALPHA8_ASTC_8x5_KHR;
+		case tcuCompressedTexture.Format.ASTC_8x6_SRGB8_ALPHA8:				return gl.COMPRESSED_SRGB8_ALPHA8_ASTC_8x6_KHR;
+		case tcuCompressedTexture.Format.ASTC_8x8_SRGB8_ALPHA8:				return gl.COMPRESSED_SRGB8_ALPHA8_ASTC_8x8_KHR;
+		case tcuCompressedTexture.Format.ASTC_10x5_SRGB8_ALPHA8:			return gl.COMPRESSED_SRGB8_ALPHA8_ASTC_10x5_KHR;
+		case tcuCompressedTexture.Format.ASTC_10x6_SRGB8_ALPHA8:			return gl.COMPRESSED_SRGB8_ALPHA8_ASTC_10x6_KHR;
+		case tcuCompressedTexture.Format.ASTC_10x8_SRGB8_ALPHA8:			return gl.COMPRESSED_SRGB8_ALPHA8_ASTC_10x8_KHR;
+		case tcuCompressedTexture.Format.ASTC_10x10_SRGB8_ALPHA8:			return gl.COMPRESSED_SRGB8_ALPHA8_ASTC_10x10_KHR;
+		case tcuCompressedTexture.Format.ASTC_12x10_SRGB8_ALPHA8:			return gl.COMPRESSED_SRGB8_ALPHA8_ASTC_12x10_KHR;
+		case tcuCompressedTexture.Format.ASTC_12x12_SRGB8_ALPHA8:			return gl.COMPRESSED_SRGB8_ALPHA8_ASTC_12x12_KHR;
 
 		default:
-			throw tcu::InternalError("Can't map compressed format to GL format");
+			throw new Error("Can't map compressed format to GL format");
 	}
-}
-*/
+};
+
 
 /**
  *
@@ -1016,7 +1014,8 @@ var isGLInternalColorFormatFilterable = function(/*deUint32*/ format)
 return {
 	mapGLInternalFormat: mapGLInternalFormat,
 	mapGLTransferFormat: mapGLTransferFormat,
-	getTransferFormat: getTransferFormat
+	getTransferFormat: getTransferFormat,
+	getGLFormat: getGLFormat
 };
 
 });
