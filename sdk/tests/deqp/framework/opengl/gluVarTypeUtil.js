@@ -18,10 +18,80 @@
  *
  */
 
-define(['framework/opengl/gluVarType.js',
-        'framework/opengl/gluShaderUtil'],
-        function(gluVarType, deqpUtils) {
+define([
+	'framework/opengl/gluVarType.js',
+	'framework/opengl/gluShaderUtil'
+], function(gluVarType, deqpUtils) {
     'use strict';
+
+	var isNum            = function (char c) { return /^[0-9]$/       .test(c); }
+	var isAlpha          = function (char c) { return /^[a-zA-Z]$/    .test(c); }
+	var isIdentifierChar = function (char c) { return /^[a-zA-Z0-9_]$/.test(c); }
+
+	var VarTokenizer = (function(str) {
+		
+		var m_str        = str;
+		var m_token      = VarTokenizer.s_Token.length;
+		var m_tokenStart = 0;
+		var m_tokenLen   = 0;
+		
+		this.getToken                     = (function() { return m_token; });
+		this.getIdentifier                = (function() { return m_str.substr(m_tokenStart, m_tokenLen)});
+		this.getNumber                    = (function() { return parseInt(this.getIdentifier()) });
+		this.getCurrentTokenStartLocation = (function() { return m_tokenStart; });
+		this.getCurrentTokenEndLocation   = (function() { return m_tokenStart + m_tokenLen; });
+		
+		this.advance = (function() {
+
+			if (m_token == VarTokenizer.s_Token.END) {
+				throw new Error('No more tokens.');
+			}
+			
+			m_tokenStart  += m_tokenLen;
+			m_token        = VarTokenizer.s_Token.LAST;
+			m_tokenLen     = 1;
+
+			if (m_tokenStart >= m_str.length) {
+				m_token = VarTokenizer.s_Token.END;
+				
+			} else if (m_str[m_tokenStart] == '[') {
+				m_token = VarTokenizer.s_Token.LEFT_BRACKET;
+				
+			} else if (m_str[m_tokenStart] == ']') {
+				m_token = VarTokenizer.s_Token.RIGHT_BRACKET;
+				
+			} else if (m_str[m_tokenStart] == '.') {
+				m_token = VarTokenizer.s_Token.PERIOD;
+				
+			} else if (isNum(m_str[m_tokenStart])) {
+				m_token = TOKEN_NUMBER;
+				while (isNum(m_str[m_tokenStart+m_tokenLen])) {
+					m_tokenLen += 1;
+				}
+					
+			} else if (isIdentifierChar(m_str[m_tokenStart])) {
+				m_token = TOKEN_IDENTIFIER;
+				while (isIdentifierChar(m_str[m_tokenStart+m_tokenLen])) {
+					m_tokenLen += 1;
+				}
+				
+			} else {
+				throw new Error('Unexpected character');
+			}
+			
+		});
+		
+		this.advance();
+		
+	});
+	VarTokenizer.s_Token = {
+		IDENTIFIER:     0,
+		LEFT_BRACKET:   1,
+		RIGHT_BRACKET:  2,
+		PERIOD:         3,
+		NUMBER:         4,
+		END:            5
+	};
 
 	// VarType subtype path utilities.
 	var VarTypeComponent = (function(type_, index_) {
@@ -335,12 +405,102 @@ define(['framework/opengl/gluVarType.js',
 		}
 	});
 
+	var parseVariableName = (function(nameWithPath) {
+		var tokenizer = new VarTokenizer(nameWithPath);
+		if (tokenizer.getToken() != VarTokenizer.s_Token.IDENTIFIER) {
+			throw new Error('Not an identifier.');
+		}
+		return tokenizer.getIdentifier();
+	});
+	
+	// returns an array (TypeComponentVector& path)
+	// params: const char*, const VarType&
+	var parseTypePath = (function( nameWithPath, type) {
+		
+		var tokenizer = new VarTokenizer(nameWithPath);
+
+		if (tokenizer.getToken() == VarTokenizer.s_Token.IDENTIFIER) {
+			tokenizer.advance();
+		}
+
+		var path = [];
+
+		while (tokenizer.getToken() !=  VarTokenizer.s_Token.END) {
+		
+			var curType = getVarType(type, path);
+
+			if (tokenizer.getToken() == VarTokenizer.s_Token.PERIOD) {
+			
+				tokenizer.advance();
+				if(tokenizer.getToken() != VarTokenizer.s_Token.IDENTIFIER) {
+					throw new Error();
+				}
+				if(!curType.isStructType()) {
+					throw new Error('Invalid field selector');
+				}
+
+				// Find member.
+				var memberName = tokenizer.getIdentifier();
+				var ndx        = 0;
+				for (; ndx < curType.getStruct().getSize(); ++ndx) {
+				
+					if (memberName == curType.getStruct().getMember(ndx).getName()) {
+						break;
+					}
+					
+				}
+				if(ndx >= curType.getStruct().getSize()) {
+					throw new Error("Member not found in type: "+memberName);
+				}
+
+				path.push(VarTypeComponent(VarTypeComponent.s_Type.STRUCT_MEMBER, ndx));
+				tokenizer.advance();
+				
+			} else if (tokenizer.getToken() == VarTokenizer.s_Token.LEFT_BRACKET) {
+			
+				tokenizer.advance();
+				if(tokenizer.getToken() != VarTokenizer.s_Token.TOKEN_NUMBER) {
+					throw new Error();
+				}
+
+				int ndx = tokenizer.getNumber();
+
+				if (curType.isArrayType()) {
+					if (!inBounds(ndx, 0, curType.getArraySize())) throw new Error;
+					path.push(VarTypeComponent(VarTypeComponent.s_Type.ARRAY_ELEMENT, ndx));
+					
+				} else if (curType.isBasicType() && isDataTypeMatrix(curType.getBasicType())) {
+					if (!inBounds(ndx, 0, getDataTypeMatrixNumColumns(curType.getBasicType()))) throw new Error;
+					path.push(VarTypeComponent(VarTypeComponent.s_Type.MATRIX_COLUMN, ndx));
+					
+				} else if (curType.isBasicType() && isDataTypeVector(curType.getBasicType())) {
+					if (!inBounds(ndx, 0, getDataTypeScalarSize(curType.getBasicType()))) throw new Error;
+					path.push(VarTypeComponent(VarTypeComponent.s_Type.VECTOR_COMPONENT, ndx));
+					
+				} else {
+					//TCU_FAIL
+					throw new Error('Invalid subscript');
+				}
+
+				tokenizer.advance();
+				TCU_CHECK(tokenizer.getToken() == VarTokenizer::TOKEN_RIGHT_BRACKET);
+				tokenizer.advance();
+				
+			} else {
+				// TCU_FAIL
+				throw new Error('Unexpected token');
+			}
+		}
+		
+	});
+
 	return {
 		BasicTypeIterator: BasicTypeIterator,
 		VectorTypeIterator: VectorTypeIterator,
 		ScalarTypeIterator: ScalarTypeIterator,
 
-		getVarType: getVarType
+		getVarType: getVarType,
+		parseVariableName: parseVariableName
 	};
 
 });

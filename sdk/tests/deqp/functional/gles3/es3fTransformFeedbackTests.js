@@ -23,10 +23,11 @@ define(['framework/opengl/gluShaderUtil.js',
         'framework/opengl/gluDrawUtil',
         'modules/shared/glsUniformBlockCase',
         'framework/opengl/gluVarType',
+        'framework/opengl/gluVarTypeUtil',
         'framework/opengl/gluShaderProgram',
         '/framework/delibs/debase/deRandom'],
-        function(deqpUtils, deqpDraw, glsUBC, gluVT, deqpProgram, deRandom) {
-    'use strict';
+        function(deqpUtils, deqpDraw, glsUBC, gluVT, gluVTU, deqpProgram, deRandom) {
+	'use strict';
 
 	/** @const @type {number} */ var VIEWPORT_WIDTH = 128;
 	/** @const @type {number} */ var VIEWPORT_HEIGHT = 128;
@@ -284,7 +285,9 @@ define(['framework/opengl/gluShaderUtil.js',
 	/** @type {number} */ var totalVertexAttribs = 1 /* a_position */ + (spec.isPointSizeUsed() ? 1 : 0);
 
 		for (var i = 0; iter < spec.getVaryings().length; ++i) {
-			totalVertexAttribs += spec.getTransformFeedbackVaryings()[i].length;
+			for (var v_iter = gluVTU.VectorTypeIterator(spec.getVaryings()[i]) ; !v_iter.end() ; v_iter.next()) {
+				totalVertexAttribs += 1;
+			}
 		}
 
 		if (totalVertexAttribs > maxVertexAttribs)
@@ -517,20 +520,18 @@ define(['framework/opengl/gluShaderUtil.js',
 		attributes.push(new Attribute('a_position', dataTypeVec4, inputStride));
 		inputStride += 4 * 4; /*sizeof(deUint32)*/
 
-		if (usePointSize)
-		{
+		if (usePointSize) {
 			var dataTypeFloat = gluVT.newTypeBasic(deqpUtils.DataType.FLOAT, glsUBC.UniformFlags.PRECISION_HIGHP);
 			attributes.push(new Attribute('a_pointSize', dataTypeFloat, inputStride));
 			inputStride += 1 * 4; /*sizeof(deUint32)*/
 		}
 
-		for (var i = 0; i < varyings.length; i++)
-		{
+		for (var i = 0; i < varyings.length; i++) {
 			// TODO: check loop's conditions
 			// original code: 
 			// for (glu::VectorTypeIterator vecIter = glu::VectorTypeIterator::begin(&var->type); vecIter != glu::VectorTypeIterator::end(&var->type); vecIter++)
-			for (var vecIter = varyings[i].type; vecIter < varyings[varyings.length].type; vecIter++)
-			{
+			
+			for (var vecIter = gluVTU.VectorTypeIterator(varyings[i].type) ; !vecIter.end() ; vecIter.next()) {
 				var	type = vecIter.getType(); // originally getType() in getVarType() within gluVARTypeUtil.hpp.
 				var name = getAttributeName(varyings[i].name, vecIter.getPath); // TODO: getPath(), originally in gluVARTypeUtil.hpp
 
@@ -578,7 +579,7 @@ define(['framework/opengl/gluShaderUtil.js',
 			else
 			{
 				// TODO: not sure line below string varName = glu::parseVariableName(name.c_str()); see "gluVarTypeUtil.cpp"
-				/** @type {string} */ var varName = name;
+				/** @type {string} */ var varName = gluVTY.parseVariableName(name);
 				/** @type {Varying} */ var varying = findAttributeNameEquals(varyings, varName);
 
 				/** TODO: see gluVarTypeUtil.cpp and .hpp DEQP repository within \framework\opengl
