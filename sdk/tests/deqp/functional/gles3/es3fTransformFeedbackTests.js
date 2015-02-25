@@ -241,26 +241,6 @@ define(['framework/opengl/gluShaderUtil.js',
 			return false;
 		};
 
-		/*
-		member functions
-			*constructor*
-			*destructor*
-			createStruct
-			addVarying
-			addTransformFeedbackVarying
-			getStructs
-			getVaryings
-			getTransformFeedbackVaryings
-			isPointSizeUsed
-		
-			*copy constructor*
-			*assignmant operator*
-
-		data members
-			m_structs
-			m_varyings
-			,_transformFeedbackVaryings;
-		*/
 
 	});
 

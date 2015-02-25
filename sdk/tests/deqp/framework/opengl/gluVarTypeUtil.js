@@ -24,10 +24,22 @@ define([
 ], function(gluVarType, deqpUtils) {
     'use strict';
 
-	var isNum            = function (char c) { return /^[0-9]$/       .test(c); }
-	var isAlpha          = function (char c) { return /^[a-zA-Z]$/    .test(c); }
-	var isIdentifierChar = function (char c) { return /^[a-zA-Z0-9_]$/.test(c); }
+	var isNum            = (function (c) { return /^[0-9]$/       .test(c); });
+	var isAlpha          = (function (c) { return /^[a-zA-Z]$/    .test(c); });
+	var isIdentifierChar = (function (c) { return /^[a-zA-Z0-9_]$/.test(c); });
+	var array_op_equivalent = (function(arr1, arr2) {
+		if (arr1.length != arr2.length) return false;
+		for (var i = 0 ; i < arr1.length ; ++i) {
+			if (arr1[i].isnt(arr2[1])) return false;
+		}
+		return true;
+	});
 
+	/**
+	 * VarTokenizer class.
+	 * @param {string} str
+	 * @return {Object}
+	 */
 	var VarTokenizer = (function(str) {
 		
 		var m_str        = str;
@@ -35,11 +47,11 @@ define([
 		var m_tokenStart = 0;
 		var m_tokenLen   = 0;
 		
-		this.getToken                     = (function() { return m_token; });
-		this.getIdentifier                = (function() { return m_str.substr(m_tokenStart, m_tokenLen)});
-		this.getNumber                    = (function() { return parseInt(this.getIdentifier()) });
-		this.getCurrentTokenStartLocation = (function() { return m_tokenStart; });
-		this.getCurrentTokenEndLocation   = (function() { return m_tokenStart + m_tokenLen; });
+		this.getToken                     = (function() { return m_token;                                });
+		this.getIdentifier                = (function() { return m_str.substr(m_tokenStart, m_tokenLen); });
+		this.getNumber                    = (function() { return parseInt(this.getIdentifier());         });
+		this.getCurrentTokenStartLocation = (function() { return m_tokenStart;                           });
+		this.getCurrentTokenEndLocation   = (function() { return m_tokenStart + m_tokenLen;              });
 		
 		this.advance = (function() {
 
@@ -64,13 +76,13 @@ define([
 				m_token = VarTokenizer.s_Token.PERIOD;
 				
 			} else if (isNum(m_str[m_tokenStart])) {
-				m_token = TOKEN_NUMBER;
+				m_token = VarTokenizer.s_Token.NUMBER;
 				while (isNum(m_str[m_tokenStart+m_tokenLen])) {
 					m_tokenLen += 1;
 				}
-					
+				
 			} else if (isIdentifierChar(m_str[m_tokenStart])) {
-				m_token = TOKEN_IDENTIFIER;
+				m_token = VarTokenizer.s_Token.IDENTIFIER;
 				while (isIdentifierChar(m_str[m_tokenStart+m_tokenLen])) {
 					m_tokenLen += 1;
 				}
@@ -93,7 +105,13 @@ define([
 		END:            5
 	};
 
-	// VarType subtype path utilities.
+
+	/**
+	 * VarType subtype path utilities class.
+	 * @param {VarTypeComponent.s_Type} type_
+	 * @param {number} index_
+	 * @return {Object}
+	 */
 	var VarTypeComponent = (function(type_, index_) {
 
 		this.type = null;
@@ -112,17 +130,84 @@ define([
 		});
 	});
 	VarTypeComponent.s_Type = {
-		STRUCT_MEMBER: 0,
-		ARRAY_ELEMENT: 1,
-		MATRIX_COLUMN: 2,
-		VECTOR_COMPONENT: 3
+		STRUCT_MEMBER:     0,
+		ARRAY_ELEMENT:     1,
+		MATRIX_COLUMN:     2,
+		VECTOR_COMPONENT:  3
 	};
-
-	// basic usage:
-	// 	for (var i = new BasicTypeIterator(type) ; !i.end() ; i.next()) {
-	// 		var j = i.getType();
-	// 	}
-
+	
+	
+	/**
+	 * Type path formatter.
+	 * @param {VarType} type_
+	 * @param {VarTypeComponent[]} path_
+	 * @return {Object}
+	 */
+	var TypeAccessFormat = (function(type_, path_) {
+		this.type = type_;
+		this.path = path_;
+	});
+	
+	
+	
+	// Subtype path builder.
+	var SubTypeAccess = (function(type) {
+		
+		this.m_type; // VarType
+		this.m_path; // TypeComponentVector
+		
+		var helper = (function(type, ndx) {
+			this.m_path.push(new VarTypeComponent(type, ndx));
+			if (!isValid()) {
+				throw new Error;
+			}
+			return this;
+		});
+		
+		this.member    = (function(ndx) { return helper(VarTypeComponent.s_Type.STRUCT_MEMBER);    });
+		this.element   = (function(ndx) { return helper(VarTypeComponent.s_Type.ARRAY_ELEMENT);    });
+		this.column    = (function(ndx) { return helper(VarTypeComponent.s_Type.MATRIX_COLUMN);    });
+		this.component = (function(ndx) { return helper(VarTypeComponent.s_Type.VECTOR_COMPONENT); });
+		this.parent    = (function() {
+			if (this.m_path.empty()) {
+				throw new Error;
+			}
+			this.m_path.pop();
+			return this;
+		});
+		
+		this.isValid = (function() { return isValidTypePath(this.m_type, this.m_path); });
+		this.getType = (function() { return getVarType(this.m_type, this.m_path); });
+		this.getPath = (function() { return this.m_path; });
+		this.empty   = (function() { return this.m_path.empty(); });
+		this.is      = (function(other) {
+			return (
+				array_op_equivalent(this.m_path, other.m_path) &&
+				this.m_type.is(other.m_type);
+			);
+		});
+		this.isnt    = (function(other) {
+			return (
+				!array_op_equivalent(this.m_path, other.m_path) ||
+				this.m_type.isnt(other.m_type);
+			);
+		});
+	
+		
+	});
+	
+	
+	
+	/**
+	 * Subtype iterator parent class.
+	 * basic usage for all child classes:
+	 * 	for (var i = new BasicTypeIterator(type) ; !i.end() ; i.next()) {
+	 * 		var j = i.getType();
+	 * 	}
+	 * To inherit from this base class, use this outside the child's definition:
+	 * 	ChildClass.prototype = new SubTypeIterator();
+	 * @return {Object}
+	 */
 	var SubTypeIterator = (function() {
 
 		var m_type = null;  // const VarType*

@@ -202,6 +202,41 @@ define(['framework/opengl/gluShaderUtil.js'], function(deqpUtils) {
     			return 0;
     	}
     };
+    
+    /**
+    * is
+    * @return {bool} returns true if the current object is equivalent to other.
+    */
+    VarType.prototype.is = function(other) {
+    	if (this.m_type != other.m_type)
+			return false;
+
+		switch (this.m_type)
+		{
+			case Type.TYPE_BASIC:
+				return this.m_data.type        == other.m_data.type &&
+				       this.m_data.precision   == other.m_data.precision;
+
+			case Type.TYPE_ARRAY:
+				return this.m_data.elementType == other.m_data.elementType &&
+				       this.m_data.size        == other.m_data.size;
+
+			case Type.TYPE_STRUCT:
+				return this.m_data === other.m_data;
+
+			default:
+			//	DE_ASSERT(false);
+				return false;
+		}
+    };
+    
+    /**
+    * isnt
+    * @return {bool} returns true if the current object is not equivalent to other.
+    */
+    VarType.prototype.isnt = function(other) {
+    	return !(this.is(other));
+    };
 
     /**
      * Creates a basic type VarType.
