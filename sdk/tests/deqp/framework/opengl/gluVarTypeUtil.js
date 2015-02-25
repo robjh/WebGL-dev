@@ -19,7 +19,7 @@
  */
 
 define([
-	'framework/opengl/gluVarType.js',
+	'framework/opengl/gluVarType',
 	'framework/opengl/gluShaderUtil'
 ], function(gluVarType, deqpUtils) {
     'use strict';
@@ -139,8 +139,8 @@ define([
 	
 	/**
 	 * Type path formatter.
-	 * @param {VarType} type_
-	 * @param {VarTypeComponent[]} path_
+	 * @param {gluVarType.VarType} type_
+	 * @param {Array.<VarTypeComponent>} path_
 	 * @return {Object}
 	 */
 	var TypeAccessFormat = (function(type_, path_) {
@@ -148,9 +148,10 @@ define([
 		this.path = path_;
 	});
 	
-	
-	
-	// Subtype path builder.
+	/** SubTypeAccess
+     * @param {gluVarType.VarType} type
+     * @return {SubTypeAccess | array_op_equivalent | boolean}
+     */
 	var SubTypeAccess = (function(type) {
 		
 		this.m_type; // VarType
@@ -333,6 +334,10 @@ define([
 
 	});
 
+	/** BasicTypeIterator
+     * @param {gluVarType.VarType} type
+     * @return {gluVarType.Type | }
+     */
 	var BasicTypeIterator = (function(type) {
 		this.isExpanded = (function() {
 			return type.isBasicType();
@@ -341,6 +346,10 @@ define([
 	});
 	BasicTypeIterator.prototype = new SubTypeIterator();
 
+	/** VectorTypeIterator
+     * @param {gluVarType.VarType} type
+     * @return {gluVarType.Type}
+     */
 	var VectorTypeIterator = (function(type) {
 		this.isExpanded = (function() {
 			return type.isBasicType() && deqpUtils.isDataTypeScalarOrVector(type.getBasicType());
@@ -349,6 +358,10 @@ define([
 	});
 	VectorTypeIterator.prototype = new SubTypeIterator();
 
+	/** ScalarTypeIterator
+     * @param {gluVarType.VarType} type
+     * @return {gluVarType.Type}
+     */
 	var ScalarTypeIterator = (function(type) {
 		this.isExpanded = (function() {
 			return type.isBasicType() && deqpUtils.isDataTypeScalar(type.getBasicType());
@@ -360,6 +373,13 @@ define([
 
 	var inBounds = (function(x, a, b) { return a <= x && x < b; });
 
+	/** isValidTypePath
+     * @param {gluVarType.VarType} type
+     * @param {Array.<VarTypeComponent>} array
+     * @param {number} begin
+     * @param {number} end
+     * @return {boolean}
+     */
 	var isValidTypePath = (function(type, array, begin, end) {
 
 		if (typeof(begin) == 'undefined') {begin = 0;}
@@ -437,6 +457,13 @@ define([
 		return pathIter == end;
 	});
 
+	/** getVarType
+     * @param {gluVarType.VarType} type
+     * @param {Array.<VarTypeComponent>} array
+     * @param {number} start
+     * @param {number} end
+     * @return {gluVarType.VarType}
+     */
 	var getVarType = (function(type, array, start, end) {
 
 		if (typeof(start) == 'undefined') {start = 0;}
@@ -535,7 +562,7 @@ define([
 					
 				}
 				if(ndx >= curType.getStruct().getSize()) {
-					throw new Error("Member not found in type: "+memberName);
+					throw new Error('Member not found in type: ' + memberName);
 				}
 
 				path.push(VarTypeComponent(VarTypeComponent.s_Type.STRUCT_MEMBER, ndx));

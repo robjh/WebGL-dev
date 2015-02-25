@@ -19,14 +19,16 @@
  */
 
 
-define(['framework/opengl/gluShaderUtil.js',
+define(['framework/opengl/gluShaderUtil',
         'framework/opengl/gluDrawUtil',
         'modules/shared/glsUniformBlockCase',
         'framework/opengl/gluVarType',
         'framework/opengl/gluVarTypeUtil',
         'framework/opengl/gluShaderProgram',
-        '/framework/delibs/debase/deRandom'],
-        function(deqpUtils, deqpDraw, glsUBC, gluVT, gluVTU, deqpProgram, deRandom) {
+        '/framework/delibs/debase/deRandom',
+        '/framework/delibs/debase/deInt32',
+        '/framework/delibs/debase/deString'],
+        function(deqpUtils, deqpDraw, glsUBC, gluVT, gluVTU, deqpProgram, deRandom, deInt32, deString) {
 	'use strict';
 
 	/** @const @type {number} */ var VIEWPORT_WIDTH = 128;
@@ -65,7 +67,7 @@ define(['framework/opengl/gluShaderUtil.js',
 	var deMax = function(x, y) {
 		return x >= y ? x : y;
 	};
-	
+
 	/**
 	 * Returns interpolation name: smooth, flat or centroid
 	 * @param {number} interpol interpolation enum value
@@ -93,7 +95,7 @@ define(['framework/opengl/gluShaderUtil.js',
 	var Varying = (function(name, type, interpolation) {
 		var container = Object.clone({
 			name: null,
-			type: null,
+			/** @type {gluVT.VarType} */type: null,
 			interpolation: null
 		});
 
@@ -108,7 +110,7 @@ define(['framework/opengl/gluShaderUtil.js',
 		}
 
 		return container;
-	
+
 	});
 
 	/** findAttributeNameEquals 
@@ -203,127 +205,125 @@ define(['framework/opengl/gluShaderUtil.js',
 		return content;
 	});
 
-	// it's a class
-	var ProgramSpec = (function() {
+    // it's a class
+    var ProgramSpec = (function() {
 
-	/** @type {Array} */ var m_structs = [];
-	/** @type {Array} */ var m_varyings = [];
-	/** @type {Array.<string>} */ var m_transformFeedbackVaryings = [];
+    /** @type {Array} */ var m_structs = [];
+    /** @type {Array.<Varying>} */ var m_varyings = [];
+    /** @type {Array.<string>} */ var m_transformFeedbackVaryings = [];
 
-		this.createStruct = function(name) {
-			var struct = new Object;
-			m_structs.push(struct);
-			return struct;
-		};
+        this.createStruct = function(name) {
+            var struct = new Object;
+            m_structs.push(struct);
+            return struct;
+        };
 
-		this.addVarying = function(name, type, interp) {
-			m_varyings.push(new Varying(name, type, interp));
-		};
+        this.addVarying = function(name, type, interp) {
+            m_varyings.push(new Varying(name, type, interp));
+        };
 
-		this.addTransformFeedbackVarying = function(name) {
-			m_transformFeedbackVaryings.push(name);
-		};
+        this.addTransformFeedbackVarying = function(name) {
+            m_transformFeedbackVaryings.push(name);
+        };
 
-		this.getStructs = function() {
-			return m_structs;
-		};
-		this.getVaryings = function() {
-			return m_varyings;
-		};
-		this.getTransformFeedbackVaryings = function() {
-			return m_transformFeedbackVaryings;
-		};
+        this.getStructs = function() {
+            return m_structs;
+        };
+        this.getVaryings = function() {
+            return m_varyings;
+        };
+        this.getTransformFeedbackVaryings = function() {
+            return m_transformFeedbackVaryings;
+        };
 
-		this.isPointSizeUsed = function() {
-			for (var i = 0; i < m_transformFeedbackVaryings.length; ++i) {
-				if (m_transformFeedbackVaryings[i] == 'gl_PointSize') return true;
-			}
-			return false;
-		};
+        this.isPointSizeUsed = function() {
+            for (var i = 0; i < m_transformFeedbackVaryings.length; ++i) {
+                if (m_transformFeedbackVaryings[i] == 'gl_PointSize') return true;
+            }
+            return false;
+        };
 
+    });
 
-	});
+    /** Returns if the program is supported or not
+     * @param {WebGLRenderingContext} gl WebGL context
+     * @param {ProgramSpec} spec
+     * @param {number} tfMode
+     * @return {boolean}
+     */
+    var isProgramSupported = function(gl, spec, tfMode) {
 
-	/** Returns if the program is spported or not
-	 * @param {WebGLRenderingContext} gl WebGL context
-	 * @param {ProgramSpec} spec
-	 * @param {number} tfMode
-	 * @return {boolean}
-	 */
-	var isProgramSupported = function(gl, spec, tfMode) {
+        // all ints
+    /** @type {number} */ var maxVertexAttribs = 0;
+    /** @type {number} */ var maxTfInterleavedComponents = 0;
+    /** @type {number} */ var maxTfSeparateAttribs = 0;
+    /** @type {number} */ var maxTfSeparateComponents = 0;
 
-		// all ints
-	/** @type {number} */ var maxVertexAttribs = 0;
-	/** @type {number} */ var maxTfInterleavedComponents = 0;
-	/** @type {number} */ var maxTfSeparateAttribs = 0;
-	/** @type {number} */ var maxTfSeparateComponents = 0;
+        maxVertexAttribs = gl.getParameter(GL_MAX_VERTEX_ATTRIBS);
+        maxTfInterleavedComponents = gl.getParameter(GL_MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS);
+        maxTfSeparateAttribs = gl.getParameter(GL_MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS);
+        maxTfSeparateComponents = gl.getParameter(GL_MAX_TRANSFORM_FEEDBACK_SEPARATE_COMPONENTS);
 
-		maxVertexAttribs = gl.getParameter(GL_MAX_VERTEX_ATTRIBS);
-		maxTfInterleavedComponents = gl.getParameter(GL_MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS);
-		maxTfSeparateAttribs = gl.getParameter(GL_MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS);
-		maxTfSeparateComponents = gl.getParameter(GL_MAX_TRANSFORM_FEEDBACK_SEPARATE_COMPONENTS);
+        // Check vertex attribs.
+    /** @type {number} */ var totalVertexAttribs = 1 /* a_position */ + (spec.isPointSizeUsed() ? 1 : 0);
 
-		// Check vertex attribs.
-	/** @type {number} */ var totalVertexAttribs = 1 /* a_position */ + (spec.isPointSizeUsed() ? 1 : 0);
+        for (var i = 0; iter < spec.getVaryings().length; ++i) {
+            for (var v_iter = gluVTU.VectorTypeIterator(spec.getVaryings()[i]) ; !v_iter.end() ; v_iter.next()) {
+                totalVertexAttribs += 1;
+            }
+        }
 
-		for (var i = 0; iter < spec.getVaryings().length; ++i) {
-			for (var v_iter = gluVTU.VectorTypeIterator(spec.getVaryings()[i]) ; !v_iter.end() ; v_iter.next()) {
-				totalVertexAttribs += 1;
-			}
-		}
+        if (totalVertexAttribs > maxVertexAttribs)
+            return false; // Vertex attribute count exceeded.
 
-		if (totalVertexAttribs > maxVertexAttribs)
-			return false; // Vertex attribute count exceeded.
+        // check varyings
+        // also ints
+        /** @type {number} */ var totalTfComponents = 0;
+        /** @type {number} */ var totalTfAttribs = 0;
+        /** @type {Object.<number, number>} */ var presetNumComponents = {
+            gl_Position: 4,
+            gl_PointSize: 1
+        };
+        for (var i = 0 ; i < spec.getTransformFeedbackVaryings().length; ++i) {
+            /** @type {Array.<string>} */ var name = spec.getTransformFeedbackVaryings()[i];
+            /** @type {number} */ var numComponents = 0;
+        
+            if (typeof(presetNumComponents[name]) != 'undefined') {
+                numComponents = presetNumComponents[name];
+            } else {
+                glu::parseVariableName(name); // TODO: implement parseVariableName in gluVarTypeUtil.js
+            // find the varying called varName
+            /** @type {Varying} */ var varying = (function(varyings) {
+                    for (var i = 0 ; i < varyings.length ; ++i ) {
+                        if (varyings[i].name == varName) {
+                            return varyings[i];
+                        }
+                    }
+                    return null;
+                }(spec.getVaryings()));
+            
+                // glu::TypeComponentVector
+                var varPath;
+                glu::parseTypePath(name, varying.type, varPath); // TODO: implement parseTypePath in gluVarTypeUtil.js
+                numComponents = gluVTU.getVarType(varying.type, varPath).getScalarSize();
+            }
+            
+            if (tfMode == gl.SEPARATE_ATTRIBS && numComponents > maxTfSeparateComponents)
+                return false; // Per-attribute component count exceeded.
+            
+            totalTfComponents += numComponents;
+            totalTfAttribs += 1;
+        }
+    
+        if (tfMode == GL_SEPARATE_ATTRIBS && totalTfAttribs > maxTfSeparateAttribs)
+            return false;
 
-		// check varyings
-		// also ints
-		/** @type {number} */ var totalTfComponents = 0;
-		/** @type {number} */var totalTfAttribs = 0;
-		/** @type {Object.<number, number>} */ var presetNumComponents = {
-			gl_Position: 4,
-			gl_PointSize: 1
-		};
-		for (var i = 0 ; i < spec.getTransformFeedbackVaryings().length; ++i) {
-			/** @type {Array.<string>} */ var name = spec.getTransformFeedbackVaryings()[i];
-			/** @type {number} */ var numComponents = 0;
-		
-			if (typeof(presetNumComponents[name]) != 'undefined') {
-				numComponents = presetNumComponents[name];
-			} else {
-				glu::parseVariableName(name);
-				// find the varying called varName
-			/** @type {Varying} */ var varying = (function(varyings) {
-					for (var i = 0 ; i < varyings.length ; ++i ) {
-						if (varyings[i].name == varName) {
-							return varyings[i];
-						}
-					}
-					return null;
-				}(spec.getVaryings()));
-			
-				// glu::TypeComponentVector
-				var varPath;
-			
-				glu::parseTypePath(name, varying.type, varPath);
-				numComponents = glu::getVarType(varying.type, varPath).getScalarSize();
-			}
-			
-			if (tfMode == gl.SEPARATE_ATTRIBS && numComponents > maxTfSeparateComponents)
-				return false; // Per-attribute component count exceeded.
-			
-			totalTfComponents	+= numComponents;
-			totalTfAttribs		+= 1;
-		}
-	
-		if (tfMode == GL_SEPARATE_ATTRIBS && totalTfAttribs > maxTfSeparateAttribs)
-			return false;
+        if (tfMode == GL_INTERLEAVED_ATTRIBS && totalTfComponents > maxTfInterleavedComponents)
+            return false;
 
-		if (tfMode == GL_INTERLEAVED_ATTRIBS && totalTfComponents > maxTfInterleavedComponents)
-			return false;
+        return true;
 
-		return true;
-
-	};
+    };
 
 	/**
 	 * @param {string} varyingName
@@ -361,11 +361,11 @@ define(['framework/opengl/gluShaderUtil.js',
 	 */
 	var genShaderSources = function(spec, pointSizeRequired) {
 
-		var vtx  = { str: null };
+		var vtx = { str: null };
 		var frag = { str: null };
 		var addPointSize = spec.isPointSizeUsed();
 
-		vtx.str  = '#version 300 es\n'
+		vtx.str = '#version 300 es\n'
 		         + 'in highp vec4 a_position;\n';
 		frag.str = '#version 300 es\n'
 		         + 'layout(location = 0) out mediump vec4 o_color;\n'
@@ -378,37 +378,37 @@ define(['framework/opengl/gluShaderUtil.js',
 
 		// Declare attributes.
 		for (var i = 0 ; i < spec.getVaryings().length ; ++i) {
-			var name = spec.getVaryings()[i].name;
-			var type = spec.getVaryings()[i].type;
 
-			// TODO: check this loop
-			// original code:
-			// for (glu::VectorTypeIterator vecIter = glu::VectorTypeIterator::begin(&type); vecIter != glu::VectorTypeIterator::end(&type); vecIter++)
-			for (var j = 0 ; j < type.count ; ++j) {
-				var attribType = glu.getVarType(type, type[j].getPath);
-				var attribName = getAttributeName(name, type[j].getPath);
+		/** @type {string} */ var name = spec.getVaryings()[i].name;
+        /** @type {gluVarType.VarType} */ var type = spec.getVaryings()[i].type;
 
-				vtx.str += 'in ' + glu.declare(attribType, attribName) + ';\n';
+            // TODO: check loop, original code:
+            // for (glu::VectorTypeIterator vecIter = glu::VectorTypeIterator::begin(&type); vecIter != glu::VectorTypeIterator::end(&type); vecIter++)
+			for (var vecIter = gluVTU.VectorTypeIterator(type); !vecIter.end(); vecIter.next()) {
+
+			/** @type {gluVarType.VarType} */ var attribType = gluVTU.getVarType(type, type[j].getPath);
+            /** @type {string} */ var attribName = getAttributeName(name, type[j].getPath);
+				vtx.str += 'in ' + glu.declare(attribType, attribName) + ';\n'; // TODO: only strings are needed for attribType, attribName
 			}
 		}
 
 		// Declare vayrings.
 		for (var ndx = 0; ndx < 2; ++ndx) {
 		/** @type {string} */ var inout  = ndx ? 'in' : 'out';
-			var shader = ndx ? frag : vtx;
+        /** @type {string} */ var shader = ndx ? frag : vtx;
 
 			for (var i = 0 ; i < spec.getStructs().length ; ++i) {
 				var struct = spec.getStructs()[i];
 				if (struct.hasTypeName()) {
-					str += glu.declare(struct) + ';\n';
+					str += glu.declare(struct) + ';\n'; // TODO: only a string is needed for struct
 				}
 			}
 
-			var varyings = spec.getVaryings();
-			for (var i = 0 ; i < varyings.length ; ++i) {
-				shader.str += getInterpolationName(varyings->interpolation)
+			/** @type {Array.<Varying>} */ var varyings = spec.getVaryings();
+			for (var i = 0; i < varyings.length; ++i) {
+				shader.str += getInterpolationName(varyings.interpolation)
 					       +  ' ' + inout + ' ' + 
-					       +  glu.declare(varyings->type, varyings->name)
+					       +  glu.declare(varyings.type, varyings.name) // TODO: only strings are needed for varyings.type and varyings.name
 					       +  ';\n';
 			}
 		}
@@ -424,27 +424,26 @@ define(['framework/opengl/gluShaderUtil.js',
 			vtx.str += '\tgl_PointSize = 1.0;\n';
 		}
 
-		for (var i = 0 i < spec.getVaryings().length ; ++i) {
-			var name = spec.getVaryings()[i].name;
-			var type = spec.getVaryings()[i].type;
+		for (var i = 0; i < spec.getVaryings().length ; ++i) {
+        /** @type {string} */ var name = spec.getVaryings()[i].name;
+        /** @type {gluVarType.VarType} */ var type = spec.getVaryings()[i].type;
 
-			// TODO: check this loop
-			// original code:
-			// for (glu::VectorTypeIterator vecIter = glu::VectorTypeIterator::begin(&type); vecIter != glu::VectorTypeIterator::end(&type); vecIter++)
-			for (var j = 0 ; j < type.count ; ++j) {
-				var subType = glu.getVarType(type, type[i].getPath());
-				var attribName = getAttributeName(name, type[i].getPath());
+            // TODO: check this loop, original code:
+            // for (glu::VectorTypeIterator vecIter = glu::VectorTypeIterator::begin(&type); vecIter != glu::VectorTypeIterator::end(&type); vecIter++)
+            for (var vecIter = gluVTU.VectorTypeIterator(type); !vecIter.end(); vecIter.next()) {
+            /** @type {gluVarType.VarType} */var subType = gluVTU.getVarType(type, type[i].getPath());
+            /** @type {string} */ var attribName = getAttributeName(name, type[i].getPath());
 				
 				if (!(
-					subType.isBasicType &&
-					glu.isDataTypeScalarOrVector(subType.getBasicType)
+				    subType.isBasicType() &&
+				    deqpUtils.isDataTypeScalarOrVector(subType.getBasicType)
 				)) throw Error('Not a scalar or vector.');
-				
-				// Vertex: assign from attribute.
-				vtx.str += '\t' + name + type[i] + ' = ' + attribName + ';\n';
-				
+
+                // Vertex: assign from attribute.
+                vtx.str += '\t' + name + type[i] + ' = ' + attribName + ';\n';
+            
 				// Fragment: add to res variable.
-				var scalarSize = glu.getDataTypeScalarSize(subType.getBasicType());
+				var scalarSize = deqpUtils.getDataTypeScalarSize(subType.getBasicType());
 				
 				frag.str << '\tres += ';
 				if (scalarSize == 1)       frag.str += 'vec4(' + name + vecIter + ')';
@@ -538,8 +537,8 @@ define(['framework/opengl/gluShaderUtil.js',
 		for (var varNdx = 0; varNdx < transformFeedbackVaryings.length; varNdx++)
 		{
 		/** @type {string} */ var name = transformFeedbackVaryings[varNdx];
-		/** @type {number} */ var bufNdx = (bufferMode === 'separate' ? varNdx : 0); // TODO: bufferModes[] {GL_SEPARATE_ATTRIBS: 'separate'}
-		/** @type {number} */ var offset = (bufferMode === 'separate' ? 0 : accumulatedSize); // TODO: bufferModes[] {GL_SEPARATE_ATTRIBS: 'separate'}
+		/** @type {number} */ var bufNdx = (bufferMode === GL_SEPARATE_ATTRIBS ? varNdx : 0);
+		/** @type {number} */ var offset = (bufferMode === GL_SEPARATE_ATTRIBS ? 0 : accumulatedSize);
 		/** @type {Output} */ var output = transformFeedbackOutputs[varNdx];
 
 			output.name	= name;
@@ -564,28 +563,19 @@ define(['framework/opengl/gluShaderUtil.js',
 				/** @type {string} */ var varName = gluVTY.parseVariableName(name);
 				/** @type {Varying} */ var varying = findAttributeNameEquals(varyings, varName);
 
-				/** TODO: see gluVarTypeUtil.cpp and .hpp DEQP repository within \framework\opengl
-				 * glu::TypeComponentVector,  glu::parseTypePath and glu::getVarType
-
-				 	glu::TypeComponentVector varPath;
-				 	glu::parseTypePath(name.c_str(), varying.type, varPath);
-				 	output.type = glu::getVarType(varying.type, varPath);
-
-				 */
+                var varPath;
+                glu::parseTypePath(name, varying.type, varPath); // TODO: implement parseTypePath in gluVarTypeUtil.js
+                output.type = gluVTU.getVarType(varying.type, varPath);
 
 				// Add all vectorized attributes as inputs.
-				// TODO: check loop's conditions
-				// original code:
+				// TODO: check loop, original code:
 				// for (glu::VectorTypeIterator iter = glu::VectorTypeIterator::begin(&output.type); iter != glu::VectorTypeIterator::end(&output.type); iter++)
-				for (var iter = transformFeedbackOutputs[varNdx].type; iter < transformFeedbackOutputs[transformFeedbackOutputs.length].type; iter++)
+				for (var iter = gluVTU.VectorTypeIterator(output[i].type); !iter.end(); iter.next())
 				{
-				/** TODO: implement Full path. See gluVarTypeUtil.cpp and .hpp DEQP repository within \framework\opengl
-					 * glu::TypeComponentVector,  glu::parseTypePath and glu::getVarType
-
+				/** TODO:
 					glu::TypeComponentVector fullPath(varPath.size() + iter.getPath().size());
 					std::copy(varPath.begin(), varPath.end(), fullPath.begin());
 					std::copy(iter.getPath().begin(), iter.getPath().end(), fullPath.begin()+varPath.size());
-
 				*/
 
 					/** @type {string} */ var attribName = getAttributeName(varName, fullPath);
@@ -1075,7 +1065,7 @@ define(['framework/opengl/gluShaderUtil.js',
 
 			var log  = m_textCtx.getLog();
 			var isOk = true;
-			var seed = deStringHash(getName()) ^ deInt32Hash(m_iterNdx);
+			var seed = deString.deStringHash(getName()) ^ deInt32.deInt32Hash(m_iterNdx);
 			var numIterations = TransformFeedbackCase.s_iterate.iterations.length;
 			// first and end ignored.
 
@@ -1590,7 +1580,7 @@ define(['framework/opengl/gluShaderUtil.js',
 
 		// TODO: unfinished, same implementation in TransformFeedbackCase.iterate
 		// var seed = this.iterate.seed; // TODO: possible solution as a local attribute?
-		/** @type {number} */ var seed = deStringHash(getName()) ^ deInt32Hash(m_iterNdx);
+		/** @type {number} */ var seed = deString.deStringHash(getName()) ^ deInt32.deInt32Hash(m_iterNdx);
 
 		/** @type {Array.<deqpUtils.DataType>} */
         var typeCandidates = [
@@ -1967,7 +1957,7 @@ define(['framework/opengl/gluShaderUtil.js',
                 {
                 /** @type {number} */ var seed = deInt32.deInt32Hash(bufferMode) ^ deInt32.deInt32Hash(primitiveType) ^ deInt32.deInt32Hash(ndx);
                 // TODO: new needed below?
-                    primitiveGroup.addChild(new RandomCase(m_context, (ndx + 1).toString(), "", bufferMode, primitiveType, seed)); // TODO: check, toString() omitted?
+                    primitiveGroup.addChild(new RandomCase(m_context, (ndx + 1).toString(), '', bufferMode, primitiveType, seed)); // TODO: check, toString() omitted?
                 }
             }
         }
