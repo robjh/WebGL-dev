@@ -285,6 +285,8 @@ var getChannelReadMap = function(order) {
 	case ChannelOrder.RGBA: return  [ 0,		1,		2,		3	];
 	case ChannelOrder.BGRA: return  [ 2,		1,		0,		3	];
 	case ChannelOrder.ARGB: return  [ 1,		2,		3,		0	];
+	case ChannelOrder.sRGB: return  [ 0,		1,		2,		channel.ONE	];
+	case ChannelOrder.sRGBA: return  [ 0,		1,		2,		3	];
 	case ChannelOrder.D: return  [ 0,		channel.ZERO,	channel.ZERO,	channel.ONE	];
 	case ChannelOrder.S: return  [ channel.ZERO,	channel.ZERO,	channel.ZERO,	0	];
 	case ChannelOrder.DS: return  [ 0,		channel.ZERO,	channel.ZERO,	1	];
@@ -502,6 +504,23 @@ var wrap = function(/*Sampler::WrapMode*/ mode, /*int*/ c, /*int*/ size) {
 	throw new Error('Unrecognized wrap mode ' + mode);
 };
 
+var sRGBChannelToLinear = function(cs) {
+	if (cs <= 0.04045)
+		return cs / 12.92;
+	else
+		return Math.pow((cs + 0.055) / 1.055, 2.4);
+};
+
+//! Convert sRGB to linear colorspace
+var sRGBToLinear = function(cs)
+{
+	return [
+		sRGBChannelToLinear(cs[0]),
+		sRGBChannelToLinear(cs[1]),
+		sRGBChannelToLinear(cs[2]),
+		cs[3]
+		];
+}
 // Texel lookup with color conversion.
 var lookup = function(/*const ConstPixelBufferAccess&*/ access, i, j, k) {
 	var p = access.getPixel(i, j, k);

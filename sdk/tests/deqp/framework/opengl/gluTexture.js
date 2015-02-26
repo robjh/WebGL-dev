@@ -245,18 +245,55 @@ Compressed2D.prototype.upload = function(level, source) {
 
 	gl.bindTexture(gl.TEXTURE_2D, this.m_glTexture);
 
-	gl.compressedTexImage2D(gl.TEXTURE_2D, level, this.m_format, source.width, source.height, 0 /* border */, new Uint8Array(source.data));
+	gl.compressedTexImage2D(gl.TEXTURE_2D, level, this.m_format, source.m_width, source.m_height, 0 /* border */, source.m_data);
 	/* TODO: enable */
 	// assertMsgOptions(gl.getError() === gl.NO_ERROR, "Texture upload failed", false, true);
 };
 
-var compressed2DFromInternalFormat = function(gl, format, width, height, source) {
-	var compressed = new tcuCompressedTexture.CompressedTexture(format, width, height);
-	compressed.m_data.set(source.data);
+var CompressedCube = function(gl, format, isCompressed, refTexture) {
+	Texture2D.call(this, gl, format, isCompressed, refTexture);
+};
+
+CompressedCube.prototype = Object.create(Texture2D.prototype);
+CompressedCube.prototype.constructor = CompressedCube;
+
+CompressedCube.prototype.upload = function(level, source) {
+	DE_ASSERT(this.m_isCompressed);
+
+	if (this.m_glTexture == null)
+		testFailedOptions('Failed to create GL texture', true);
+
+	gl.bindTexture(gl.TEXTURE_CUBE_MAP, this.m_glTexture);
+
+	for (var face = 0; face < tcuTexture.CubeFace.TOTAL_FACES; face++) {
+
+		// Upload to GL texture in compressed form.
+		gl.compressedTexImage2D(cubeFaceToGLFace(face), 0, this.m_format,
+								source.m_width, source.m_height, 0 /* border */, source.m_data);
+		/* TODO: enable */
+		// assertMsgOptions(gl.getError() === gl.NO_ERROR, "Texture upload failed", false, true);
+	}
+
+};
+
+var compressed2DFromInternalFormat = function(gl, format, width, height, compressed) {
 	var tex = new Compressed2D(gl, gluTextureUtil.getGLFormat(format), true, new tcuTexture.Texture2D(compressed.getUncompressedFormat(), width, height));
 	tex.m_refTexture.allocLevel(0);
 	compressed.decompress(tex.m_refTexture.getLevel(0));
-	tex.upload(0, source);
+	tex.upload(0, compressed);
+	return tex;
+};
+
+var compressedCubeFromInternalFormat = function(gl, format, size, compressed) {
+	var tex = new CompressedCube(gl, gluTextureUtil.getGLFormat(format), true, new tcuTexture.TextureCube(compressed.getUncompressedFormat(), size));
+	for (var face = 0; face < tcuTexture.CubeFace.TOTAL_FACES; face++) {
+		tex.m_refTexture.allocLevel(face, 0);
+
+		/*tcu::ConstPixelBufferAccess*/ var access = tex.m_refTexture.getLevelFace(0, face);
+		DE_ASSERT(access.getRowPitch() == access.getFormat().getPixelSize()*access.getWidth());
+		compressed.decompress(access);
+	}
+	tex.upload(0, compressed);
 	return tex;
 };
 
@@ -273,7 +310,8 @@ return {
 	texture2DArrayFromInternalFormat: texture2DArrayFromInternalFormat,
 	texture3DFromFormat: texture3DFromFormat,
 	texture3DFromInternalFormat: texture3DFromInternalFormat,
-	compressed2DFromInternalFormat: compressed2DFromInternalFormat
+	compressed2DFromInternalFormat: compressed2DFromInternalFormat,
+	compressedCubeFromInternalFormat: compressedCubeFromInternalFormat
 };
 
 });

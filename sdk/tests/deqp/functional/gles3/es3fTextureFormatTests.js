@@ -17,16 +17,8 @@
  * limitations under the License.
  *
  */
-define(['framework/opengl/gluShaderUtil', 'framework/common/tcuTestCase', 'framework/common/tcuSurface',  'framework/opengl/gluTexture', 'framework/opengl/gluTextureUtil', 'framework/common/tcuTexture', 'modules/shared/glsTextureTestUtil', 'framework/common/tcuTextureUtil', 'framework/opengl/gluStrUtil', 'framework/delibs/debase/deInt32',
-	'data/gles3/textures/eac_signed_r11_2d_pot-src-128-64', 'data/gles3/textures/eac_signed_r11_2d_pot-dst-128-64', 'framework/common/tcuCompressedTexture',
-	'data/gles3/textures/eac_r11_2d_pot-src-128-64', 'data/gles3/textures/eac_r11_2d_pot-dst-128-64',
-	'data/gles3/textures/eac_rg11_2d_pot-src-128-64', 'data/gles3/textures/eac_rg11_2d_pot-dst-128-64',
-	'data/gles3/textures/eac_signed_rg11_2d_pot-src-128-64', 'data/gles3/textures/eac_signed_rg11_2d_pot-dst-128-64'],
-	 function(gluShaderUtil, deqpTests, tcuSurface, gluTexture, gluTextureUtil, tcuTexture, glsTextureTestUtil, tcuTextureUtil, gluStrUtil, deInt32,
-	 	eac_signed_r11_2d_pot_src_128_64, eac_signed_r11_2d_pot_dst_128_64, tcuCompressedTexture,
-	 	eac_r11_2d_pot_src_128_64, eac_r11_2d_pot_dst_128_64,
-	 	eac_rg11_2d_pot_src_128_64, eac_rg11_2d_pot_dst_128_64,
-	 	eac_signed_rg11_2d_pot_src_128_64, eac_signed_rg11_2d_pot_dst_128_64) {
+define(['framework/opengl/gluShaderUtil', 'framework/delibs/debase/deRandom','framework/common/tcuTestCase', 'framework/common/tcuSurface',  'framework/opengl/gluTexture', 'framework/opengl/gluTextureUtil', 'framework/common/tcuTexture', 'modules/shared/glsTextureTestUtil', 'framework/common/tcuTextureUtil', 'framework/opengl/gluStrUtil', 'framework/delibs/debase/deInt32',	'framework/common/tcuCompressedTexture' ],
+	 function(gluShaderUtil, deRandom, deqpTests, tcuSurface, gluTexture, gluTextureUtil, tcuTexture, glsTextureTestUtil, tcuTextureUtil, gluStrUtil, deInt32, tcuCompressedTexture) {
     'use strict';
 
 var	GLU_EXPECT_NO_ERROR = function(error, message) {
@@ -38,6 +30,8 @@ var DE_ASSERT = function(x) {
 		throw new Error('Assert failed');
 };
 
+var version = "300 es";
+
 var testDescription = function() {
 	var test = deqpTests.runner.getState().currentTest;
 	return test.description;
@@ -48,7 +42,7 @@ var Texture2DFormatCase = function(descriptor){
 	this.m_dataType = descriptor.dataType;
 	this.m_width = descriptor.width;
 	this.m_height = descriptor.height;
-	this.m_renderer = new glsTextureTestUtil.TextureRenderer("100 es", gluShaderUtil.precision.PRECISION_HIGHP);
+	this.m_renderer = new glsTextureTestUtil.TextureRenderer(version, gluShaderUtil.precision.PRECISION_HIGHP);
 };
 
 Texture2DFormatCase.prototype.init = function() {
@@ -143,56 +137,14 @@ Texture2DFormatCase.prototype.iterate = function() {
 
 	// // Draw.
 	this.m_renderer.renderQuad(0, texCoord, renderParams);
-	if (0) {
-		var p = new Uint8Array(4 * viewport.width * viewport.height);
-		gl.readPixels(viewport.x, viewport.y, viewport.width, viewport.height, gl.RGBA, gl.UNSIGNED_BYTE, p);
-		GLU_EXPECT_NO_ERROR(gl.getError(), "glReadPixels()");
-		console.log('Dumping array length: ' + p.length);
-		console.log(p);
-		for (var y = 0; y < viewport.height; y+=18) {
-			for (var x = 0; x < viewport.width; x+=18) {
-				var offset = 4 * (x + y * viewport.width);
-				// p[1] = 0;
-				// referenceFrame.setPixel(x, y, p);
-	    		var output = '(' + x + ',' + y + ') = (' + p[offset + 0] + ',' + p[offset +1] + ',' + p[offset + 2] +')';
-	    		console.log(output);
-			}
-		}
-
-	}
 	gl.readPixels(viewport.x, viewport.y, viewport.width, viewport.height, gl.RGBA, gl.UNSIGNED_BYTE, renderedFrame.getAccess().getDataPtr());
 
 	GLU_EXPECT_NO_ERROR(gl.getError(), "glReadPixels()");
-
-	if (0) {
-		console.log('Dumping result array length: ' + renderedFrame.getAccess().getDataPtr().length);
-		console.log(renderedFrame.getAccess().getDataPtr());
-		console.log(renderedFrame.getAccess());
-		for (var y = 0; y < renderedFrame.getHeight(); y+=37) {
-			for (var x = 0; x < renderedFrame.getWidth(); x+=37) {
-				var p = renderedFrame.getPixel(x, y);
-	    		var output = '(' + x + ',' + y + ') = (' + p[0] + ',' + p[1] + ',' + p[2] + ',' + p[3] +')';
-	    		console.log(output);
-			}
-		}
-	}
 
 	// // Compute reference.
 	glsTextureTestUtil.sampleTexture2D(new glsTextureTestUtil.SurfaceAccess(referenceFrame, undefined /*m_renderCtx.getRenderTarget().getPixelFormat()*/),
 		this.m_texture.getRefTexture(), texCoord, renderParams);
 
-	if (0) {
-		console.log('Dumping reference array length: ' + referenceFrame.getAccess().getDataPtr().length);
-		for (var y = 0; y < referenceFrame.getHeight(); y+=37) {
-			for (var x = 0; x < referenceFrame.getWidth(); x+=37) {
-				var p = referenceFrame.getPixel(x, y);
-				// p[1] += 4;
-				referenceFrame.setPixel(x, y, p);
-	    		var output = '(' + x + ',' + y + ') = (' + p[0] + ',' + p[1] + ',' + p[2] + ',' + p[3] + ')';
-	    		console.log(output);
-			}
-		}
-	}
 
 	// Compare and log.
 	var isOk = glsTextureTestUtil.compareImages(referenceFrame, renderedFrame, threshold);
@@ -206,7 +158,7 @@ var TextureCubeFormatCase = function(descriptor){
 	this.m_dataType = descriptor.dataType;
 	this.m_width = descriptor.width;
 	this.m_height = descriptor.height;
-	this.m_renderer = new glsTextureTestUtil.TextureRenderer("100 es", gluShaderUtil.precision.PRECISION_HIGHP);
+	this.m_renderer = new glsTextureTestUtil.TextureRenderer(version, gluShaderUtil.precision.PRECISION_HIGHP);
 	DE_ASSERT(this.m_width == this.m_height);
 };
 
@@ -321,55 +273,14 @@ TextureCubeFormatCase.prototype.testFace = function(face) {
 
 	// // Draw.
 	this.m_renderer.renderQuad(0, texCoord, renderParams);
-	if (0) {
-		var p = new Uint8Array(4 * viewport.width * viewport.height);
-		gl.readPixels(viewport.x, viewport.y, viewport.width, viewport.height, gl.RGBA, gl.UNSIGNED_BYTE, p);
-		GLU_EXPECT_NO_ERROR(gl.getError(), "glReadPixels()");
-		console.log('Dumping array length: ' + p.length);
-		console.log(p);
-		for (var y = 0; y < viewport.height; y+=18) {
-			for (var x = 0; x < viewport.width; x+=18) {
-				var offset = 4 * (x + y * viewport.width);
-				// p[1] = 0;
-				// referenceFrame.setPixel(x, y, p);
-	    		var output = '(' + x + ',' + y + ') = (' + p[offset + 0] + ',' + p[offset +1] + ',' + p[offset + 2] +')';
-	    		console.log(output);
-			}
-		}
-
-	}
 	gl.readPixels(viewport.x, viewport.y, viewport.width, viewport.height, gl.RGBA, gl.UNSIGNED_BYTE, renderedFrame.getAccess().getDataPtr());
 
 	GLU_EXPECT_NO_ERROR(gl.getError(), "glReadPixels()");
 
-	if (0) {
-		console.log('Dumping array length: ' + renderedFrame.getAccess().getDataPtr().length);
-		console.log(renderedFrame.getAccess().getDataPtr());
-		console.log(renderedFrame.getAccess());
-		for (var y = 0; y < renderedFrame.getHeight(); y+=37) {
-			for (var x = 0; x < renderedFrame.getWidth(); x+=37) {
-				var p = renderedFrame.getPixel(x, y);
-				// p[1] = 0;
-				// referenceFrame.setPixel(x, y, p);
-	    		var output = '(' + x + ',' + y + ') = (' + p[0] + ',' + p[1] + ',' + p[2] +')';
-	    		console.log(output);
-			}
-		}
-	}
 
 	// // Compute reference.
 	glsTextureTestUtil.sampleTextureCube(new glsTextureTestUtil.SurfaceAccess(referenceFrame, undefined /*m_renderCtx.getRenderTarget().getPixelFormat()*/),
 		this.m_texture.getRefTexture(), texCoord, renderParams);
-
-	if (0) {
-		for (var y = 0; y < referenceFrame.getHeight(); y+=37) {
-			for (var x = 0; x < referenceFrame.getWidth(); x+=37) {
-				var p = referenceFrame.getPixel(x, y);
-	    		var output = '(' + x + ',' + y + ') = (' + p[0] + ',' + p[1] + ',' + p[2] +')';
-	    		console.log(output);
-			}
-		}
-	}
 
 	// Compare and log.
 	var isOk = glsTextureTestUtil.compareImages(referenceFrame, renderedFrame, threshold);
@@ -398,7 +309,7 @@ var Texture2DArrayFormatCase = function(descriptor){
 	this.m_width = descriptor.width;
 	this.m_height = descriptor.height;
 	this.m_numLayers = descriptor.numLayers;
-	this.m_renderer = new glsTextureTestUtil.TextureRenderer("100 es", gluShaderUtil.precision.PRECISION_HIGHP);
+	this.m_renderer = new glsTextureTestUtil.TextureRenderer(version, gluShaderUtil.precision.PRECISION_HIGHP);
 };
 
 Texture2DArrayFormatCase.prototype.init = function() {
@@ -475,71 +386,31 @@ Texture2DArrayFormatCase.prototype.testLayer = function(layerNdx) {
 	console.log(viewport);
 	gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height);
 
-	// this.m_texture.upload();
+	this.m_texture.upload();
 
-	// // Bind to unit 0.
-	// gl.activeTexture(gl.TEXTURE0);
-	// gl.bindTexture(gl.TEXTURE_2D_ARRAY, this.m_texture.getGLTexture());
+	// Bind to unit 0.
+	gl.activeTexture(gl.TEXTURE0);
+	gl.bindTexture(gl.TEXTURE_2D_ARRAY, this.m_texture.getGLTexture());
 
-	// // Setup nearest neighbor filtering and clamp-to-edge.
-	// gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_S, wrapS);
-	// gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_T, wrapT);
-	// gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, minFilter);
-	// gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER, magFilter);
+	// Setup nearest neighbor filtering and clamp-to-edge.
+	gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_S, wrapS);
+	gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_T, wrapT);
+	gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, minFilter);
+	gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER, magFilter);
 
-	// GLU_EXPECT_NO_ERROR(gl.getError(), "Set texturing state");
+	GLU_EXPECT_NO_ERROR(gl.getError(), "Set texturing state");
 
-	// // // Draw.
-	// this.m_renderer.renderQuad(0, texCoord, renderParams);
-	// if (0) {
-	// 	var p = new Uint8Array(4 * viewport.width * viewport.height);
-	// 	gl.readPixels(viewport.x, viewport.y, viewport.width, viewport.height, gl.RGBA, gl.UNSIGNED_BYTE, p);
-	// 	GLU_EXPECT_NO_ERROR(gl.getError(), "glReadPixels()");
-	// 	console.log('Dumping array length: ' + p.length);
-	// 	console.log(p);
-	// 	for (var y = 0; y < viewport.height; y+=18) {
-	// 		for (var x = 0; x < viewport.width; x+=18) {
-	// 			var offset = 4 * (x + y * viewport.width);
-	// 			// p[1] = 0;
-	// 			// referenceFrame.setPixel(x, y, p);
-	//     		var output = '(' + x + ',' + y + ') = (' + p[offset + 0] + ',' + p[offset +1] + ',' + p[offset + 2] +')';
-	//     		console.log(output);
-	// 		}
-	// 	}
+	// // Draw.
+	this.m_renderer.renderQuad(0, texCoord, renderParams);
+	gl.readPixels(viewport.x, viewport.y, viewport.width, viewport.height, gl.RGBA, gl.UNSIGNED_BYTE, renderedFrame.getAccess().getDataPtr());
 
-	// }
-	// gl.readPixels(viewport.x, viewport.y, viewport.width, viewport.height, gl.RGBA, gl.UNSIGNED_BYTE, renderedFrame.getAccess().getDataPtr());
+	GLU_EXPECT_NO_ERROR(gl.getError(), "glReadPixels()");
 
-	// GLU_EXPECT_NO_ERROR(gl.getError(), "glReadPixels()");
-
-	if (0) {
-		console.log('Dumping array length: ' + renderedFrame.getAccess().getDataPtr().length);
-		console.log(renderedFrame.getAccess().getDataPtr());
-		console.log(renderedFrame.getAccess());
-		for (var y = 0; y < renderedFrame.getHeight(); y+=37) {
-			for (var x = 0; x < renderedFrame.getWidth(); x+=37) {
-				var p = renderedFrame.getPixel(x, y);
-				// p[1] = 0;
-				// referenceFrame.setPixel(x, y, p);
-	    		var output = '(' + x + ',' + y + ') = (' + p[0] + ',' + p[1] + ',' + p[2] +')';
-	    		console.log(output);
-			}
-		}
-	}
 
 	// // Compute reference.
 	glsTextureTestUtil.sampleTexture2DArray(new glsTextureTestUtil.SurfaceAccess(referenceFrame, undefined /*m_renderCtx.getRenderTarget().getPixelFormat()*/),
 		this.m_texture.getRefTexture(), texCoord, renderParams);
 
-	if (0) {
-		for (var y = 0; y < referenceFrame.getHeight(); y+=37) {
-			for (var x = 0; x < referenceFrame.getWidth(); x+=37) {
-				var p = referenceFrame.getPixel(x, y);
-	    		var output = '(' + x + ',' + y + ') = (' + p[0] + ',' + p[1] + ',' + p[2] +')';
-	    		console.log(output);
-			}
-		}
-	}
 
 	// Compare and log.
 	var isOk = glsTextureTestUtil.compareImages(referenceFrame, renderedFrame, threshold);
@@ -568,7 +439,7 @@ var Texture3DFormatCase = function(descriptor){
 	this.m_width = descriptor.width;
 	this.m_height = descriptor.height;
 	this.m_depth = descriptor.depth;
-	this.m_renderer = new glsTextureTestUtil.TextureRenderer("100 es", gluShaderUtil.precision.PRECISION_HIGHP);
+	this.m_renderer = new glsTextureTestUtil.TextureRenderer(version, gluShaderUtil.precision.PRECISION_HIGHP);
 };
 
 Texture3DFormatCase.prototype.init = function() {
@@ -646,71 +517,31 @@ Texture3DFormatCase.prototype.testSlice = function(sliceNdx) {
 	console.log(viewport);
 	gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height);
 
-	// this.m_texture.upload();
+	this.m_texture.upload();
 
-	// // Bind to unit 0.
-	// gl.activeTexture(gl.TEXTURE0);
-	// gl.bindTexture(gl.TEXTURE_3D, this.m_texture.getGLTexture());
+	// Bind to unit 0.
+	gl.activeTexture(gl.TEXTURE0);
+	gl.bindTexture(gl.TEXTURE_3D, this.m_texture.getGLTexture());
 
-	// // Setup nearest neighbor filtering and clamp-to-edge.
-	// gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_S, wrapS);
-	// gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_T, wrapT);
-	// gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, minFilter);
-	// gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, magFilter);
+	// Setup nearest neighbor filtering and clamp-to-edge.
+	gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_S, wrapS);
+	gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_T, wrapT);
+	gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, minFilter);
+	gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, magFilter);
 
-	// GLU_EXPECT_NO_ERROR(gl.getError(), "Set texturing state");
+	GLU_EXPECT_NO_ERROR(gl.getError(), "Set texturing state");
 
-	// // // Draw.
-	// this.m_renderer.renderQuad(0, texCoord, renderParams);
-	// if (0) {
-	// 	var p = new Uint8Array(4 * viewport.width * viewport.height);
-	// 	gl.readPixels(viewport.x, viewport.y, viewport.width, viewport.height, gl.RGBA, gl.UNSIGNED_BYTE, p);
-	// 	GLU_EXPECT_NO_ERROR(gl.getError(), "glReadPixels()");
-	// 	console.log('Dumping array length: ' + p.length);
-	// 	console.log(p);
-	// 	for (var y = 0; y < viewport.height; y+=18) {
-	// 		for (var x = 0; x < viewport.width; x+=18) {
-	// 			var offset = 4 * (x + y * viewport.width);
-	// 			// p[1] = 0;
-	// 			// referenceFrame.setPixel(x, y, p);
-	//     		var output = '(' + x + ',' + y + ') = (' + p[offset + 0] + ',' + p[offset +1] + ',' + p[offset + 2] +')';
-	//     		console.log(output);
-	// 		}
-	// 	}
+	// // Draw.
+	this.m_renderer.renderQuad(0, texCoord, renderParams);
+	gl.readPixels(viewport.x, viewport.y, viewport.width, viewport.height, gl.RGBA, gl.UNSIGNED_BYTE, renderedFrame.getAccess().getDataPtr());
 
-	// }
-	// gl.readPixels(viewport.x, viewport.y, viewport.width, viewport.height, gl.RGBA, gl.UNSIGNED_BYTE, renderedFrame.getAccess().getDataPtr());
+	GLU_EXPECT_NO_ERROR(gl.getError(), "glReadPixels()");
 
-	// GLU_EXPECT_NO_ERROR(gl.getError(), "glReadPixels()");
-
-	if (0) {
-		console.log('Dumping array length: ' + renderedFrame.getAccess().getDataPtr().length);
-		console.log(renderedFrame.getAccess().getDataPtr());
-		console.log(renderedFrame.getAccess());
-		for (var y = 0; y < renderedFrame.getHeight(); y+=37) {
-			for (var x = 0; x < renderedFrame.getWidth(); x+=37) {
-				var p = renderedFrame.getPixel(x, y);
-				// p[1] = 0;
-				// referenceFrame.setPixel(x, y, p);
-	    		var output = '(' + x + ',' + y + ') = (' + p[0] + ',' + p[1] + ',' + p[2] +')';
-	    		console.log(output);
-			}
-		}
-	}
 
 	// // Compute reference.
 	glsTextureTestUtil.sampleTexture3D(new glsTextureTestUtil.SurfaceAccess(referenceFrame, undefined /*m_renderCtx.getRenderTarget().getPixelFormat()*/),
 		this.m_texture.getRefTexture(), texCoord, renderParams);
 
-	if (0) {
-		for (var y = 0; y < referenceFrame.getHeight(); y+=37) {
-			for (var x = 0; x < referenceFrame.getWidth(); x+=37) {
-				var p = referenceFrame.getPixel(x, y);
-	    		var output = '(' + x + ',' + y + ') = (' + p[0] + ',' + p[1] + ',' + p[2] +')';
-	    		console.log(output);
-			}
-		}
-	}
 
 	// Compare and log.
 	var isOk = glsTextureTestUtil.compareImages(referenceFrame, renderedFrame, threshold);
@@ -733,25 +564,28 @@ Texture3DFormatCase.prototype.iterate = function() {
 		return false;
 };
 
-var Compressed2DFileCase = function(descriptor){
+var Compressed2DFormatCase = function(descriptor){
 	this.m_format = descriptor.format;
 	this.m_dataType = descriptor.dataType;
 	this.m_width = descriptor.width;
 	this.m_height = descriptor.height;
-	this.m_source = descriptor.source;
-	this.m_reference = descriptor.reference;
-	this.m_renderer = new glsTextureTestUtil.TextureRenderer("100 es", gluShaderUtil.precision.PRECISION_HIGHP);
+	this.m_renderer = new glsTextureTestUtil.TextureRenderer(version, gluShaderUtil.precision.PRECISION_HIGHP);
 };
 
-Compressed2DFileCase.prototype.init = function() {
-	this.m_texture = gluTexture.compressed2DFromInternalFormat(gl, this.m_format, this.m_width, this.m_height, this.m_source);
+Compressed2DFormatCase.prototype.init = function() {
+	var compressed = new tcuCompressedTexture.CompressedTexture(this.m_format, this.m_width, this.m_height);
+	var rand = new deRandom.Random(0);
+	for (var i = 0; i < compressed.m_data.length; i++) {
+		compressed.m_data[i] = rand.getInt(0, 255);
+	}
+	this.m_texture = gluTexture.compressed2DFromInternalFormat(gl, this.m_format, this.m_width, this.m_height, compressed);
 };
 
-Compressed2DFileCase.prototype.deinit = function() {
+Compressed2DFormatCase.prototype.deinit = function() {
 	/* TODO: Implement */
 };
 
-Compressed2DFileCase.prototype.iterate = function() {
+Compressed2DFormatCase.prototype.iterate = function() {
 	/* TODO: Implement */	
 
 	var viewport	= new glsTextureTestUtil.RandomViewport(canvas, this.m_width, this.m_height/*, deStringHash(getName())*/);
@@ -795,84 +629,145 @@ Compressed2DFileCase.prototype.iterate = function() {
 	console.log(viewport);
 	gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height);
 
-	// // Bind to unit 0.
-	// gl.activeTexture(gl.TEXTURE0);
-	// gl.bindTexture(gl.TEXTURE_2D, this.m_texture.getGLTexture());
+	// Bind to unit 0.
+	gl.activeTexture(gl.TEXTURE0);
+	gl.bindTexture(gl.TEXTURE_2D, this.m_texture.getGLTexture());
 
-	// // Setup nearest neighbor filtering and clamp-to-edge.
-	// gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, wrapS);
-	// gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, wrapT);
-	// gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, minFilter);
-	// gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, magFilter);
+	// Setup nearest neighbor filtering and clamp-to-edge.
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, wrapS);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, wrapT);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, minFilter);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, magFilter);
 
-	// GLU_EXPECT_NO_ERROR(gl.getError(), "Set texturing state");
+	GLU_EXPECT_NO_ERROR(gl.getError(), "Set texturing state");
 
-	// // // Draw.
-	// this.m_renderer.renderQuad(0, texCoord, renderParams);
-	// GLU_EXPECT_NO_ERROR(gl.getError(), "Render");
-	// if (0) {
-	// 	var p = new Uint8Array(4 * viewport.width * viewport.height);
-	// 	gl.readPixels(viewport.x, viewport.y, viewport.width, viewport.height, gl.RGBA, gl.UNSIGNED_BYTE, p);
-	// 	GLU_EXPECT_NO_ERROR(gl.getError(), "glReadPixels()");
-	// 	console.log('Dumping array length: ' + p.length);
-	// 	console.log(p);
-	// 	for (var y = 0; y < viewport.height; y+=18) {
-	// 		for (var x = 0; x < viewport.width; x+=18) {
-	// 			var offset = 4 * (x + y * viewport.width);
-	// 			// p[1] = 0;
-	// 			// referenceFrame.setPixel(x, y, p);
-	//     		var output = '(' + x + ',' + y + ') = (' + p[offset + 0] + ',' + p[offset +1] + ',' + p[offset + 2] +')';
-	//     		console.log(output);
-	// 		}
-	// 	}
+	// // Draw.
+	this.m_renderer.renderQuad(0, texCoord, renderParams);
+	GLU_EXPECT_NO_ERROR(gl.getError(), "Render");
+	gl.readPixels(viewport.x, viewport.y, viewport.width, viewport.height, gl.RGBA, gl.UNSIGNED_BYTE, renderedFrame.getAccess().getDataPtr());
 
-	// }
-	// gl.readPixels(viewport.x, viewport.y, viewport.width, viewport.height, gl.RGBA, gl.UNSIGNED_BYTE, renderedFrame.getAccess().getDataPtr());
+	GLU_EXPECT_NO_ERROR(gl.getError(), "glReadPixels()");
 
-	// GLU_EXPECT_NO_ERROR(gl.getError(), "glReadPixels()");
-
-	if (0) {
-		console.log('Dumping result array length: ' + renderedFrame.getAccess().getDataPtr().length);
-		console.log(renderedFrame.getAccess().getDataPtr());
-		console.log(renderedFrame.getAccess());
-		for (var y = 0; y < renderedFrame.getHeight(); y+=37) {
-			for (var x = 0; x < renderedFrame.getWidth(); x+=37) {
-				var p = renderedFrame.getPixel(x, y);
-	    		var output = '(' + x + ',' + y + ') = (' + p[0] + ',' + p[1] + ',' + p[2] + ',' + p[3] +')';
-	    		console.log(output);
-			}
-		}
-	}
 
 	// // Compute reference.
 	glsTextureTestUtil.sampleTexture2D(new glsTextureTestUtil.SurfaceAccess(referenceFrame, undefined /*m_renderCtx.getRenderTarget().getPixelFormat()*/),
 		this.m_texture.getRefTexture(), texCoord, renderParams);
-
-	if (1) {
-		console.log('Dumping reference array length: ' + referenceFrame.getAccess().getDataPtr().length);
-		for (var y = 0; y < referenceFrame.getHeight(); y+=1) {
-			for (var x = 0; x < referenceFrame.getWidth(); x+=1) {
-				var p = referenceFrame.getPixel(x, y);
-				// p[1] += 4;
-				referenceFrame.setPixel(x, y, p);
-				var index = (y * this.m_width + x) * 4;
-				var file = this.m_reference.data.slice(index, index + 4);
-				var	diff		= deInt32.absDiff(p, file);
-				var	isOk		= deInt32.boolAll(deInt32.lessThanEqual(diff, [3, 3, 3, 3]));
-				if (!isOk) {
-		    		var output = '(' + x + ',' + y + ') = (' + p[0] + ',' + p[1] + ',' + p[2] + ',' + p[3] + ')';
-		    		console.log(output + ' ' + file);
-		    		throw new Error('Pixels are not identical.');
-		    	}
-			}
-		}
-	}
 
 	// Compare and log.
 	var isOk = glsTextureTestUtil.compareImages(referenceFrame, renderedFrame, threshold);
 
 	assertMsgOptions(isOk, testDescription(), true, true);
 	return true;
+};
+
+var CompressedCubeFormatCase = function(descriptor){
+	this.m_format = descriptor.format;
+	this.m_dataType = descriptor.dataType;
+	this.m_width = descriptor.width;
+	this.m_height = descriptor.height;
+	this.m_renderer = new glsTextureTestUtil.TextureRenderer(version, gluShaderUtil.precision.PRECISION_HIGHP);
+	this.m_curFace = 0;
+	this.m_isOk = true;
+	DE_ASSERT(this.m_width == this.m_height);
+};
+
+CompressedCubeFormatCase.prototype.init = function() {
+	var compressed = new tcuCompressedTexture.CompressedTexture(this.m_format, this.m_width, this.m_height);
+	var rand = new deRandom.Random(0);
+	for (var i = 0; i < compressed.m_data.length; i++) {
+		compressed.m_data[i] = rand.getInt(0, 255);
+	}
+	this.m_texture = gluTexture.compressedCubeFromInternalFormat(gl, this.m_format, this.m_width, compressed);
+};
+
+CompressedCubeFormatCase.prototype.testFace = function(face) {
+	/* TODO: Implement */	
+
+	var viewport	= new glsTextureTestUtil.RandomViewport(canvas, this.m_width, this.m_height/*, deStringHash(getName())*/);
+
+	/* tcu::Surface	 */	var	renderedFrame	= new tcuSurface.Surface(viewport.width, viewport.height);
+	/* tcu::Surface	 */	var	referenceFrame	= new tcuSurface.Surface(viewport.width, viewport.height);
+	/* TODO: Implement
+	// tcu::RGBA				threshold			= m_renderCtx.getRenderTarget().getPixelFormat().getColorThreshold() + tcu::RGBA(1,1,1,1);
+	*/
+	var threshold = [3, 3, 3, 3];
+	var renderParams = new glsTextureTestUtil.ReferenceParams(glsTextureTestUtil.textureType.TEXTURETYPE_CUBE);
+
+	/* @const */ var			wrapS				= gl.CLAMP_TO_EDGE;
+	/* @const */ var			wrapT				= gl.CLAMP_TO_EDGE;
+	/* @const */ var			minFilter			= gl.NEAREST;
+	/* @const */ var			magFilter			= gl.NEAREST;
+
+	renderParams.flags.log_programs = true;
+	renderParams.flags.log_uniforms = true;
+
+	renderParams.samplerType	= glsTextureTestUtil.getSamplerType(this.m_texture.getRefTexture().getFormat());
+	console.log('Sampler');
+	console.log(renderParams.samplerType)
+	renderParams.sampler		= new tcuTexture.Sampler(tcuTexture.WrapMode.CLAMP_TO_EDGE, tcuTexture.WrapMode.CLAMP_TO_EDGE, tcuTexture.WrapMode.CLAMP_TO_EDGE,
+	 tcuTexture.FilterMode.NEAREST, tcuTexture.FilterMode.NEAREST);
+	console.log(renderParams.sampler);
+
+	// Log render info on first face.
+	if (face === tcuTexture.CubeFace.CUBEFACE_NEGATIVE_X) {
+		renderParams.flags.log_programs = true;
+		renderParams.flags.log_uniforms = true;
+	}
+
+	var texCoord = glsTextureTestUtil.computeQuadTexCoordCube(face);
+
+	// log << TestLog::Message << "Texture parameters:"
+	// 						<< "\n  WRAP_S = " << glu::getTextureParameterValueStr(GL_TEXTURE_WRAP_S, wrapS)
+	// 						<< "\n  WRAP_T = " << glu::getTextureParameterValueStr(GL_TEXTURE_WRAP_T, wrapT)
+	// 						<< "\n  MIN_FILTER = " << glu::getTextureParameterValueStr(GL_TEXTURE_MIN_FILTER, minFilter)
+	// 						<< "\n  MAG_FILTER = " << glu::getTextureParameterValueStr(GL_TEXTURE_MAG_FILTER, magFilter)
+	// 	<< TestLog::EndMessage;
+
+	// Setup base viewport.
+	console.log(viewport);
+	gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height);
+
+	// Bind to unit 0.
+	gl.activeTexture(gl.TEXTURE0);
+	gl.bindTexture(gl.TEXTURE_CUBE_MAP, this.m_texture.getGLTexture());
+
+	// Setup nearest neighbor filtering and clamp-to-edge.
+	gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, wrapS);
+	gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, wrapT);
+	gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, minFilter);
+	gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, magFilter);
+
+	GLU_EXPECT_NO_ERROR(gl.getError(), "Set texturing state");
+
+	// // Draw.
+	this.m_renderer.renderQuad(0, texCoord, renderParams);
+	gl.readPixels(viewport.x, viewport.y, viewport.width, viewport.height, gl.RGBA, gl.UNSIGNED_BYTE, renderedFrame.getAccess().getDataPtr());
+
+	GLU_EXPECT_NO_ERROR(gl.getError(), "glReadPixels()");
+
+	// // Compute reference.
+	glsTextureTestUtil.sampleTextureCube(new glsTextureTestUtil.SurfaceAccess(referenceFrame, undefined /*m_renderCtx.getRenderTarget().getPixelFormat()*/),
+		this.m_texture.getRefTexture(), texCoord, renderParams);
+
+	// Compare and log.
+	var isOk = glsTextureTestUtil.compareImages(referenceFrame, renderedFrame, threshold);
+
+	assertMsgOptions(isOk, 'Face: ' + this.m_curFace + ' ' + testDescription(), true, true);
+	return isOk;
+};
+
+CompressedCubeFormatCase.prototype.iterate = function() {
+	debug('Testing face ' + this.m_curFace);
+	// Execute test for all faces.
+	if (!this.testFace(this.m_curFace))
+		this.m_isOk = false;
+
+	this.m_curFace += 1;
+
+	if (this.m_curFace == tcuTexture.CubeFace.TOTAL_FACES)
+		return true;
+	else
+		return false;
 };
 
 var genTestCases = function(filter) {
@@ -885,6 +780,7 @@ var genTestCases = function(filter) {
 	var sizedCubeGroup	= deqpTests.newTest("cube",		"Sized formats (Cubemap)");
 	var sized2DArrayGroup	= deqpTests.newTest("2d_array",		"Sized formats (2D Array)");
 	var sized3DGroup	= deqpTests.newTest("3d",		"Sized formats (3D)");
+	var compressedGroup	= deqpTests.newTest("compressed",	"Compressed formats");
 
 	sizedGroup.addChild(sized2DGroup);
 	sizedGroup.addChild(sizedCubeGroup);
@@ -1174,43 +1070,56 @@ var genTestCases = function(filter) {
 		));
 	});
 
+	var etc2Formats = [
+		[ "GL_COMPRESSED_R11_EAC",							"eac_r11",							tcuCompressedTexture.Format.EAC_R11						],
+		[ "GL_COMPRESSED_SIGNED_R11_EAC",					"eac_signed_r11",					tcuCompressedTexture.Format.EAC_SIGNED_R11					],
+		[ "GL_COMPRESSED_RG11_EAC",							"eac_rg11",							tcuCompressedTexture.Format.EAC_RG11						],
+		[ "GL_COMPRESSED_SIGNED_RG11_EAC",					"eac_signed_rg11",					tcuCompressedTexture.Format.EAC_SIGNED_RG11				],
+		[ "GL_COMPRESSED_RGB8_ETC2",						"etc2_rgb8",						tcuCompressedTexture.Format.ETC2_RGB8					],
+		[ "GL_COMPRESSED_SRGB8_ETC2",						"etc2_srgb8",						tcuCompressedTexture.Format.ETC2_SRGB8					],
+		[ "GL_COMPRESSED_RGB8_PUNCHTHROUGH_ALPHA1_ETC2",	"etc2_rgb8_punchthrough_alpha1",	tcuCompressedTexture.Format.ETC2_RGB8_PUNCHTHROUGH_ALPHA1	],
+		[ "GL_COMPRESSED_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2",	"etc2_srgb8_punchthrough_alpha1",	tcuCompressedTexture.Format.ETC2_SRGB8_PUNCHTHROUGH_ALPHA1	],
+		[ "GL_COMPRESSED_RGBA8_ETC2_EAC",					"etc2_eac_rgba8",					tcuCompressedTexture.Format.ETC2_EAC_RGBA8				],
+		[ "GL_COMPRESSED_SRGB8_ALPHA8_ETC2_EAC",			"etc2_eac_srgb8_alpha8",			tcuCompressedTexture.Format.ETC2_EAC_SRGB8_ALPHA8			]
+	];
+	etc2Formats.forEach(function(elem)	{
+		var nameBase = elem[1];
+		var descriptionBase = elem[0];
+		var format = elem[2];
+		compressedGroup.addChild(deqpTests.newTest(nameBase + '_2d_pot', descriptionBase+ ', GL_TEXTURE_2D',
+											new Compressed2DFormatCase({
+												format: format,
+												width: 128,
+												height: 64,
+											})
+								));
+		compressedGroup.addChild(deqpTests.newTest(nameBase + '_cube_pot', descriptionBase+ ', GL_TEXTURE_CUBE_MAP',
+											new Compressed2DFormatCase({
+												format: format,
+												width: 64,
+												height: 64,
+											})
+								));
+		compressedGroup.addChild(deqpTests.newTest(nameBase + '_2d_pot', descriptionBase+ ', GL_TEXTURE_2D',
+											new Compressed2DFormatCase({
+												format: format,
+												width: 128,
+												height: 64,
+											})
+								));
+		compressedGroup.addChild(deqpTests.newTest(nameBase + '_cube_npot', descriptionBase+ ', GL_TEXTURE_CUBE_MAP',
+											new Compressed2DFormatCase({
+												format: format,
+												width: 51,
+												height: 51,
+											})
+								));
+	});
 
 	state.testCases.addChild(unsizedGroup);
 	state.testCases.addChild(sizedGroup);
-
-	state.testCases.addChild(deqpTests.newTest('eac_signed_r11', 'description',
-		new Compressed2DFileCase({
-			format: tcuCompressedTexture.Format.EAC_SIGNED_R11,
-			width: 128,
-			height: 64,
-			source: eac_signed_r11_2d_pot_src_128_64,
-			reference: eac_signed_r11_2d_pot_dst_128_64,
-		})));
-	state.testCases.addChild(deqpTests.newTest('eac_r11', 'description',
-		new Compressed2DFileCase({
-			format: tcuCompressedTexture.Format.EAC_R11,
-			width: 128,
-			height: 64,
-			source: eac_r11_2d_pot_src_128_64,
-			reference: eac_r11_2d_pot_dst_128_64,
-		})));
-	state.testCases.addChild(deqpTests.newTest('eac_rg11', 'description',
-		new Compressed2DFileCase({
-			format: tcuCompressedTexture.Format.EAC_RG11,
-			width: 128,
-			height: 64,
-			source: eac_rg11_2d_pot_src_128_64,
-			reference: eac_rg11_2d_pot_dst_128_64,
-		})));
-	state.testCases.addChild(deqpTests.newTest('eac_signed_rg11', 'description',
-		new Compressed2DFileCase({
-			format: tcuCompressedTexture.Format.EAC_SIGNED_RG11,
-			width: 128,
-			height: 64,
-			source: eac_signed_rg11_2d_pot_src_128_64,
-			reference: eac_signed_rg11_2d_pot_dst_128_64,
-		})));
-};
+	state.testCases.addChild(compressedGroup);
+}
 
 var runTestCases = function() {
 /** @type {Object} */ var state = deqpTests.runner.getState();
