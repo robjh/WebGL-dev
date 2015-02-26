@@ -161,7 +161,7 @@ define(['framework/opengl/gluShaderUtil.js'], function(deqpUtils) {
     * @return {StructType} returns the precision flag name.
     */
     VarType.prototype.getPrecision = function() {
-    	return this.m_flags;
+        return this.m_flags;
      };
 
     /**
@@ -169,73 +169,73 @@ define(['framework/opengl/gluShaderUtil.js'], function(deqpUtils) {
     * @return {number} size of the scalar
     */
     VarType.prototype.getScalarSize = function() {
-    	switch (this.m_type)
-    	{
-    		case Type.TYPE_BASIC:
-    		{
-    			/** @type {deqpUtils.DataType} */ var m_data = this.m_data;
-    			return deqpUtils.getDataTypeScalarSize(m_data.basic.type);
-    		}
+        switch (this.m_type)
+        {
+            case Type.TYPE_BASIC:
+            {
+                /** @type {deqpUtils.DataType} */ var m_data = this.m_data;
+                return deqpUtils.getDataTypeScalarSize(m_data.basic.type);
+            }
 
-    		// TODO: check implementation below: return m_data.array.elementType->getScalarSize()*m_data.array.size;
-    		case Type.TYPE_ARRAY:
-    		{
-    			/** @type {TypeArray} */ var m_data = this.m_data;
-    			return m_data.getElementType().getScalarSize() * m_data.getArraySize();
-    		}
+            // TODO: check implementation below: return m_data.array.elementType->getScalarSize()*m_data.array.size;
+            case Type.TYPE_ARRAY:
+            {
+                /** @type {TypeArray} */ var m_data = this.m_data;
+                return m_data.getElementType().getScalarSize() * m_data.getArraySize();
+            }
 
-    		case Type.TYPE_STRUCT:
-    		{
-    			var size = 0;
+            case Type.TYPE_STRUCT:
+            {
+                var size = 0;
 
-    			/** @type {StructType} */ var struct = this.m_data;
+                /** @type {StructType} */ var struct = this.m_data;
 
-    			// TODO: check loop conditions below
-    			// for (StructType::ConstIterator iter = m_data.structPtr->begin(); iter != m_data.structPtr->end(); iter++)
-    			for (var iter = 0; struct.m_members[iter] < struct.getSize; iter++)
-    				size += struct.getMember(iter).m_type.getScalarSize();
-    			return size;
-    		}
+                // TODO: check loop conditions below
+                // for (StructType::ConstIterator iter = m_data.structPtr->begin(); iter != m_data.structPtr->end(); iter++)
+                for (var iter = 0; struct.m_members[iter] < struct.getSize; iter++)
+                    size += struct.getMember(iter).m_type.getScalarSize();
+                return size;
+            }
 
-    		default:
-    			// DE_ASSERT(false);
-    			return 0;
-    	}
+            default:
+                // DE_ASSERT(false);
+                return 0;
+        }
     };
-    
+
     /**
     * is
     * @return {bool} returns true if the current object is equivalent to other.
     */
     VarType.prototype.is = function(other) {
-    	if (this.m_type != other.m_type)
-			return false;
+        if (this.m_type != other.m_type)
+            return false;
 
-		switch (this.m_type)
-		{
-			case Type.TYPE_BASIC:
-				return this.m_data.type        == other.m_data.type &&
-				       this.m_data.precision   == other.m_data.precision;
+        switch (this.m_type)
+        {
+            case Type.TYPE_BASIC:
+                return this.m_data.type == other.m_data.type &&
+                       this.m_data.precision == other.m_data.precision;
 
-			case Type.TYPE_ARRAY:
-				return this.m_data.elementType == other.m_data.elementType &&
-				       this.m_data.size        == other.m_data.size;
+            case Type.TYPE_ARRAY:
+                return this.m_data.elementType == other.m_data.elementType &&
+                       this.m_data.size == other.m_data.size;
 
-			case Type.TYPE_STRUCT:
-				return this.m_data === other.m_data;
+            case Type.TYPE_STRUCT:
+                return this.m_data === other.m_data;
 
-			default:
-			//	DE_ASSERT(false);
-				return false;
-		}
+            default:
+            //    DE_ASSERT(false);
+                return false;
+        }
     };
-    
+
     /**
     * isnt
     * @return {bool} returns true if the current object is not equivalent to other.
     */
     VarType.prototype.isnt = function(other) {
-    	return !(this.is(other));
+        return !(this.is(other));
     };
 
     /**
@@ -330,14 +330,11 @@ define(['framework/opengl/gluShaderUtil.js'], function(deqpUtils) {
     /**
      * Creates a StructType. Use this after the constructor call.
      * @param {string} name
-     * @param {StructMember} structMember
      * @return {StructType} The currently modified object
      */
-      StructType.prototype.Constructor = function(name, structMember) {
-        this.m_typeName = StructType.setTypeName(name);
-        this.m_members = StructType.addStructMember(structMember);
-
-        return this;
+      StructType.prototype.Constructor = function(name) {
+          /** @type {string}*/ this.m_typeName = StructType.setTypeName(name);
+          return this;
      };
 
      /** hasTypeName
@@ -345,7 +342,7 @@ define(['framework/opengl/gluShaderUtil.js'], function(deqpUtils) {
       * @return {boolean}
       **/
       StructType.prototype.hasTypeName = function() {
-    	 return (this.m_typeName !== 'undefined');
+         return (this.m_typeName !== 'undefined');
      };
 
      /** setTypeName
@@ -353,7 +350,7 @@ define(['framework/opengl/gluShaderUtil.js'], function(deqpUtils) {
       * @return {string} returns StructType.m_typeName
       **/
       StructType.prototype.setTypeName = function(name) {
-    	 return this.m_typeName = name;
+         return this.m_typeName = name;
      };
 
      /** getTypeName
@@ -371,7 +368,7 @@ define(['framework/opengl/gluShaderUtil.js'], function(deqpUtils) {
          if (memberNdx >= 0 && memberNdx < this.m_members.length)
              return this.m_members[memberNdx];
          else {
-             bufferedLogToConsole("Error: Invalid member index for StructType's members");
+             bufferedLogToConsole('Error: Invalid member index for StructTypes members');
              return undefined;
          }
      };
@@ -383,31 +380,22 @@ define(['framework/opengl/gluShaderUtil.js'], function(deqpUtils) {
          return this.m_members.length;
      };
 
-     /** addStructMember
-      * Adds directly a StructMember object m_members
-      * @param {StructMember} structMember
-      **/
-     StructType.prototype.addStructMember = function(structMember) {
-    	 this.m_members.push(structMember);
-     };
-
      /** addMember
      * @param {string} name
      * @param {VarType} type
      **/
      StructType.prototype.addMember = function(name, type) {
-    	 var member = newStructMember(name, type);
-    	 this.m_members.push(member);
+        var member = newStructMember(name, type);
+         this.m_members.push(member);
      };
 
      /**
       * Creates a StructType.
       * @param {string} name
-      * @param {StructMember} structMember
       * @return {StructType}
       */
-      var newStructType = function(name, structMember) {
-          return new StructType.Constructor(name, structMember);
+      var newStructType = function(name) {
+          return new StructType().Constructor(name);
       };
 
     return {
