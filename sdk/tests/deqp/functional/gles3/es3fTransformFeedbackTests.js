@@ -78,7 +78,7 @@ define(['framework/opengl/gluShaderUtil.js',
 		case interpolation.FLAT: return 'flat';
 		case interpolation.CENTROID: return 'centroid';
 		default:
-		    throw Error('Unrecognized interpolation name ' + interpol);
+		    throw new Error('Unrecognized interpolation name ' + interpol);
 	   }
 
 	};
@@ -132,7 +132,7 @@ define(['framework/opengl/gluShaderUtil.js',
 		if (attributeNameFound === false)
 		bufferedLogToConsole('Attribute or Varying name: ' + name + ', has not been found in the array');
 		// TODO: I don't know if the error below is necessary ??
-		// throw Error('Attribute or Varying name: ' + name + ', has not been found in the array');
+		// throw new Error('Attribute or Varying name: ' + name + ', has not been found in the array');
 	};
 
 	/**
@@ -343,7 +343,7 @@ define(['framework/opengl/gluShaderUtil.js',
 				case glu.VarTypeComponent.MATRIX_COLUMN: prefix = '_c'; break;
 				case glu.VarTypeComponent.VECTOR_COMPONENT: prefix = '_s'; break;
 				default:
-					throw Error('invalid type in the component path.');
+					throw new Error('invalid type in the component path.');
 			}
 			str += prefix + path[i].index;
 		}
@@ -438,7 +438,7 @@ define(['framework/opengl/gluShaderUtil.js',
 				if (!(
 					subType.isBasicType &&
 					glu.isDataTypeScalarOrVector(subType.getBasicType)
-				)) throw Error('Not a scalar or vector.');
+				)) throw new Error('Not a scalar or vector.');
 				
 				// Vertex: assign from attribute.
 				vtx.str += '\t' + name + type[i] + ' = ' + attribName + ';\n';
@@ -695,7 +695,7 @@ define(['framework/opengl/gluShaderUtil.js',
 	    case gl.LINE_LOOP: return numElements > 1 ? numElements * 2 : 0;
 	    case gl.POINTS: return numElements;
 	    default:
-	        throw Error('Unrecognized interpolation name ' + interpol);
+	        throw new Error('Unrecognized interpolation name ' + interpol);
 	   }
 
 	};
@@ -718,7 +718,7 @@ define(['framework/opengl/gluShaderUtil.js',
 	    case gl.LINE_LOOP: return numElements > 1 ? numElements : 0;
 	    case gl.POINTS: return numElements;
 	    default:
-            throw Error('Unrecognized interpolation name ' + interpol);
+            throw new Error('Unrecognized interpolation name ' + interpol);
 	   }
 
 	};
@@ -746,7 +746,7 @@ define(['framework/opengl/gluShaderUtil.js',
 	    	return gl.POINTS;
 
 	    default:
-            throw Error('Unrecognized interpolation name ' + interpol);
+            throw new Error('Unrecognized interpolation name ' + interpol);
 	   }
 
 	};
@@ -787,7 +787,7 @@ define(['framework/opengl/gluShaderUtil.js',
 		}
 
 		default:
-            throw Error('Unrecognized interpolation name ' + interpol);
+            throw new Error('Unrecognized interpolation name ' + interpol);
 	   }
 
 	};
@@ -957,7 +957,7 @@ define(['framework/opengl/gluShaderUtil.js',
 			var log = m_testCtx.getLog(); // TestLog&
 			var gl  = m_context.getRenderContext().getFunctions(); // const glw::Functions&
 			
-			if (m_program != null) { throw Error('m_program isnt null.'); }
+			if (m_program != null) { throw new Error('m_program isnt null.'); }
 			m_program = createVertexCaptureProgram(
 				m_context.getRenderContext(),
 				m_progSpec,
