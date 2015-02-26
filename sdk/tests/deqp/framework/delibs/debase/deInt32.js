@@ -79,8 +79,8 @@ var dePop32 = function(a) {
     return t;
 };
 
-var clamp = function(min, max) {
-    return Math.max(min, Math.min(this, max));
+var clamp = function(val, min, max) {
+    return Math.max(min, Math.min(val, max));
 };
 
 var imod = function(a, b) {
