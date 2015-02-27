@@ -184,13 +184,13 @@ define([
 		this.is      = (function(other) {
 			return (
 				array_op_equivalent(this.m_path, other.m_path) &&
-				this.m_type.is(other.m_type);
+				this.m_type.is(other.m_type)
 			);
 		});
 		this.isnt    = (function(other) {
 			return (
 				!array_op_equivalent(this.m_path, other.m_path) ||
-				this.m_type.isnt(other.m_type);
+				this.m_type.isnt(other.m_type)
 			);
 		});
 	
@@ -225,7 +225,7 @@ define([
 
 			while (m_path.length) {
 				var curComp = m_path[m_path.length - 1]; // VarTypeComponent&
-				var parentType = getVarType(m_type, m_path, 0, m_path.length - 1); // VarType // TODO: getVarType
+				var parentType = getVarType(m_type, m_path, 0, m_path.length - 1); // VarType
 
 				if (curComp.type == VarTypeComponent.s_Type.MATRIX_COLUMN) {
 					if (!deqpUtils.isDataTypeMatrix(parentType.getBasicType())) {
@@ -527,7 +527,7 @@ define([
 	
 	// returns an array (TypeComponentVector& path)
 	// params: const char*, const VarType&
-	var parseTypePath = (function( nameWithPath, type) {
+	var parseTypePath = (function(nameWithPath, type) {
 		
 		var tokenizer = new VarTokenizer(nameWithPath);
 
@@ -575,7 +575,7 @@ define([
 					throw new Error();
 				}
 
-				int ndx = tokenizer.getNumber();
+				var ndx = tokenizer.getNumber();
 
 				if (curType.isArrayType()) {
 					if (!inBounds(ndx, 0, curType.getArraySize())) throw new Error;
@@ -595,7 +595,9 @@ define([
 				}
 
 				tokenizer.advance();
-				TCU_CHECK(tokenizer.getToken() == VarTokenizer::TOKEN_RIGHT_BRACKET);
+				if (tokenizer.getToken() != VarTokenizer.s_Token.RIGHT_BRACKET) {
+					throw new Error('Expected token RIGHT_BRACKET');
+				}
 				tokenizer.advance();
 				
 			} else {
@@ -603,6 +605,8 @@ define([
 				throw new Error('Unexpected token');
 			}
 		}
+		
+		return path;
 		
 	});
 
@@ -612,7 +616,8 @@ define([
 		ScalarTypeIterator: ScalarTypeIterator,
 
 		getVarType: getVarType,
-		parseVariableName: parseVariableName
+		parseVariableName: parseVariableName,
+		VarTokenizer: VarTokenizer,
 	};
 
 });

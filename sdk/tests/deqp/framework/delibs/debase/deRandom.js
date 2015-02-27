@@ -81,7 +81,7 @@ var deRandom_getInt = function(rnd, opts)
  * @return {float} Random float
  */
 var deRandom_getFloat = function(rnd, opts)
-{	
+{
 	if (opts != undefined && opts[0] != undefined && opts[1] != undefined ){
 		if (opts[0]<= opts[1]) {
 			return opts[0] + (opts[1]-opts[0])*deRandom_getFloat(rnd);

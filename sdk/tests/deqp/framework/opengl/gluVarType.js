@@ -19,7 +19,7 @@
  */
 
 
-define(['framework/opengl/gluShaderUtil.js'], function(deqpUtils) {
+define(['framework/opengl/gluShaderUtil'], function(deqpUtils) {
     'use strict';
 
     /**
