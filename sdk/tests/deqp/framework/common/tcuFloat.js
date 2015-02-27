@@ -26,33 +26,13 @@ var DE_ASSERT = function(x) {
         throw new Error('Assert failed');
 };
 
-var EndianType = function() {
-    return {
-        LITTLE: 0,
-        BIG: 1
-    };
-};
-
-var checkEndianness = function() {
-    var a = new ArrayBuffer(2);
-    var b = new Uint8Array(a);
-    var c = new Uint16Array(a);
-    b[0] = 0xa1;
-    b[1] = 0xb2;
-    if (c[0] == 0xb2a1) return EndianType.LITTLE;
-    if (c[0] == 0xa1b2) return EndianType.BIG;
-    else throw new Error('Something crazy just happened');
-};
-
-var Endianness = checkEndianness();
-
 /**
  * Converts a byte array to a number
  * @param {Uint8Array} array
  * @return {number}
  */
 var arrayToNumber = function(array) {
-    var result = 0;
+    /** @type {number} */ var result = 0;
 
     for (var ndx = 0; ndx < array.length; ndx++)
     {
@@ -70,27 +50,34 @@ var arrayToNumber = function(array) {
 var numberToArray = function(array, number) {
     for (var byteNdx = 0; byteNdx < array.length; byteNdx++)
     {
-        var acumzndx = !byteNdx ? number : Math.floor(number / Math.pow(256, byteNdx));
+        /** @type {number} */ var acumzndx = !byteNdx ? number : Math.floor(number / Math.pow(256, byteNdx));
         array[byteNdx] = acumzndx & 0xFF;
     }
 };
 
+/**
+ * Obtains the bit fragment from an array in a number
+ * @param {Uint8Array} array
+ * @param {number} firstNdx
+ * @param {number} lastNdx
+ * @return {number}
+ */
 var getBitRange = function(array, firstNdx, lastNdx) {
-    var bitSize = lastNdx - firstNdx;
-    var byteSize = Math.floor(bitSize / 8) + ((bitSize % 8) > 0 ? 1 : 0);
+    /** @type {number} */ var bitSize = lastNdx - firstNdx;
+    /** @type {number} */ var byteSize = Math.floor(bitSize / 8) + ((bitSize % 8) > 0 ? 1 : 0);
 
-    var buffer = new ArrayBuffer(byteSize);
-    var outArray = new Uint8Array(buffer);
+    /** @type {ArrayBuffer} */ var buffer = new ArrayBuffer(byteSize);
+    /** @type {Uint8Array} */ var outArray = new Uint8Array(buffer);
 
     for (var bitNdx = firstNdx; bitNdx < lastNdx; bitNdx++)
     {
-        var sourceByte = Math.floor(bitNdx / 8);
-        var sourceBit = Math.floor(bitNdx % 8);
+        /** @type {number} */ var sourceByte = Math.floor(bitNdx / 8);
+        /** @type {number} */ var sourceBit = Math.floor(bitNdx % 8);
 
-        var destByte = Math.floor((bitNdx - firstNdx) / 8);
-        var destBit = Math.floor((bitNdx - firstNdx) % 8);
+        /** @type {number} */ var destByte = Math.floor((bitNdx - firstNdx) / 8);
+        /** @type {number} */ var destBit = Math.floor((bitNdx - firstNdx) % 8);
 
-        var sourceBitValue = (array[sourceByte] & Math.pow(2, sourceBit)) != 0 ? 1 : 0;
+        /** @type {number} */ var sourceBitValue = (array[sourceByte] & Math.pow(2, sourceBit)) != 0 ? 1 : 0;
 
         outArray[destByte] = outArray[destByte] | (Math.pow(2, destBit) * sourceBitValue);
     }
@@ -98,11 +85,20 @@ var getBitRange = function(array, firstNdx, lastNdx) {
     return arrayToNumber(outArray);
 };
 
+//Bit operations with the help of arrays
+
 var BinaryOp = {
     AND: 0,
     OR: 1
 };
 
+/**
+ * Performs a normal (native) binary operation
+ * @param {number} valueA First operand
+ * @param {number} valueB Second operand
+ * @param {BinaryOp} operation The desired operation to perform
+ * @return {number}
+ */
 var doNativeBinaryOp = function(valueA, valueB, operation) {
     switch (operation)
     {
@@ -113,31 +109,41 @@ var doNativeBinaryOp = function(valueA, valueB, operation) {
     }
 };
 
+/**
+ * Performs a binary operation between two operands
+ * with the help of arrays to avoid losing the internal binary representation.
+ * If the operation is safe to perform in a native way, it will do that.
+ * @param {number} valueA First operand
+ * @param {number} valueB Second operand
+ * @param {BinaryOp} operation The desired operation to perform
+ * @return {number}
+ */
 var binaryOp = function(valueA, valueB, binaryOp) {
-    var valueABitSize = Math.floor(Math.log2(valueA) + 1);
-    var valueBBitSize = Math.floor(Math.log2(valueB) + 1);
-    var bitsSize = Math.max(valueABitSize, valueBBitSize);
+    /** @type {number} */ var valueABitSize = Math.floor(Math.log2(valueA) + 1);
+    /** @type {number} */ var valueBBitSize = Math.floor(Math.log2(valueB) + 1);
+    /** @type {number} */ var bitsSize = Math.max(valueABitSize, valueBBitSize);
 
     if (bitsSize <= 32)
         return doNativeBinaryOp(valueA, valueB, binaryOp);
 
-    var valueAByteSize = Math.floor(valueABitSize / 8) + ((valueABitSize % 8) > 0 ? 1 : 0);
-    var valueBByteSize = Math.floor(valueBBitSize / 8) + ((valueBBitSize % 8) > 0 ? 1 : 0);
-    var byteSize = Math.floor(bitsSize / 8) + ((bitsSize % 8) > 0 ? 1 : 0);
+    /** @type {number} */ var valueAByteSize = Math.floor(valueABitSize / 8) + ((valueABitSize % 8) > 0 ? 1 : 0);
+    /** @type {number} */ var valueBByteSize = Math.floor(valueBBitSize / 8) + ((valueBBitSize % 8) > 0 ? 1 : 0);
+    /** @type {number} */ var byteSize = Math.floor(bitsSize / 8) + ((bitsSize % 8) > 0 ? 1 : 0);
 
-    var valueABuffer = new ArrayBuffer(valueAByteSize);
-    var valueBBuffer = new ArrayBuffer(valueBByteSize);
-    var buffer = new ArrayBuffer(byteSize);
+    /** @type {ArrayBuffer} */ var valueABuffer = new ArrayBuffer(valueAByteSize);
+    /** @type {ArrayBuffer} */ var valueBBuffer = new ArrayBuffer(valueBByteSize);
+    /** @type {ArrayBuffer} */ var buffer = new ArrayBuffer(byteSize);
 
-    var inArrayA = new Uint8Array(valueABuffer);
-    var inArrayB = new Uint8Array(valueBBuffer);
-    var outArray = new Uint8Array(buffer);
+    /** @type {Uint8Array} */ var inArrayA = new Uint8Array(valueABuffer);
+    /** @type {Uint8Array} */ var inArrayB = new Uint8Array(valueBBuffer);
+    /** @type {Uint8Array} */ var outArray = new Uint8Array(buffer);
 
     numberToArray(inArrayA, valueA);
     numberToArray(inArrayB, valueB);
-    var largestArray = inArrayA.length > inArrayB.length ? inArrayA : inArrayB;
 
-    var minLength = Math.min(inArrayA.length, inArrayB.length);
+    /** @type {Uint8Array} */ var largestArray = inArrayA.length > inArrayB.length ? inArrayA : inArrayB;
+
+    /** @type {number} */ var minLength = Math.min(inArrayA.length, inArrayB.length);
 
     for (var byteNdx = 0; byteNdx < minLength; byteNdx++)
     {
@@ -153,19 +159,26 @@ var binaryOp = function(valueA, valueB, binaryOp) {
     return arrayToNumber(outArray);
 };
 
+/**
+ * Performs a binary NOT operation in an operand
+ * with the help of arrays.
+ * @param {number} value Operand
+ * @return {number}
+ */
 var binaryNot = function(value) {
-    var bitsSize = Math.floor(Math.log2(value) + 1);
+    /** @type {number} */ var bitsSize = Math.floor(Math.log2(value) + 1);
 
+    //This is not reliable. But left here commented as a warning.
     /*if (bitsSize <= 32)
         return ~value;*/
 
-    var byteSize = Math.floor(bitsSize / 8) + ((bitsSize % 8) > 0 ? 1 : 0);
+    /** @type {number} */ var byteSize = Math.floor(bitsSize / 8) + ((bitsSize % 8) > 0 ? 1 : 0);
 
-    var inBuffer = new ArrayBuffer(byteSize);
-    var inArray = new Uint8Array(inBuffer);
+    /** @type {ArrayBuffer} */ var inBuffer = new ArrayBuffer(byteSize);
+    /** @type {Uint8Array} */ var inArray = new Uint8Array(inBuffer);
 
-    var buffer = new ArrayBuffer(byteSize);
-    var outArray = new Uint8Array(buffer);
+    /** @type {ArrayBuffer} */ var buffer = new ArrayBuffer(byteSize);
+    /** @type {Uint8Array} */ var outArray = new Uint8Array(buffer);
 
     numberToArray(inArray, value);
 
@@ -178,55 +191,16 @@ var binaryNot = function(value) {
 };
 
 /**
- * Shifts the given value steps bits to the left
- * This function should be used if the expected value will be wider than 64-bits
- * Instead of returning a value, as the widest in Javascript is 64 bits, it fills a byte buffer
+ * Shifts the given value 'steps' bits to the left. Replaces << operator
+ * This function should be used if the expected value will be wider than 32-bits.
+ * If safe, it will perform a normal << operation
  * @param {number} value
  * @param {number} steps
- * @param {ArrayBuffer} storageBuffer The output will be written here.
- */
-var shiftLeftArray = function(value, steps, storageBuffer)
-{
-    var totalBitsRequired = Math.floor(Math.log2(value) + 1) + steps;
-
-    if (totalBitsRequired < 32)
-        return value << steps;
-
-    var totalBytesRequired = Math.floor(totalBitsRequired / 8) + ((totalBitsRequired % 8) > 0 ? 1 : 0);
-
-    DE_ASSERT(storageBuffer.length >= totalBytesRequired);
-
-    var inBuffer = new ArrayBuffer(totalBytesRequired);
-    var inArray = new Uint8Array(inBuffer);
-
-    var buffer = storageBuffer;
-    var outArray = new Uint8Array(buffer);
-
-    numberToArray(inArray, value);
-
-    for (var bitNdx = 0; bitNdx < totalBitsRequired; bitNdx++)
-    {
-        var sourceByte = Math.floor(bitNdx / 8);
-        var sourceBit = Math.floor(bitNdx % 8);
-        var newbitNdx = bitNdx + steps;
-        var correspondingByte = Math.floor(newbitNdx / 8);
-        var correspondingBit = Math.floor(newbitNdx % 8);
-        var bitValue = (inArray[sourceByte] & Math.pow(2, sourceBit)) != 0 ? 1 : 0;
-        outArray[correspondingByte] = outArray[correspondingByte] | (Math.pow(2, correspondingBit) * bitValue);
-    }
-};
-
-/**
- * Shifts the given value steps bits to the left
- * This function should be used if the expected value will be wider than 64-bits
- * Instead of returning a value, as the widest in Javascript is 64 bits, it fills a byte buffer
- * @param {number} value
- * @param {number} steps
- * @param {ArrayBuffer} storageBuffer The output will be written here.
+ * @return {number}
  */
 var shiftLeft = function(value, steps)
 {
-    var totalBitsRequired = Math.floor(Math.log2(value) + 1) + steps;
+    /** @type {number} */ var totalBitsRequired = Math.floor(Math.log2(value) + 1) + steps;
 
 
     if (totalBitsRequired < 32)
@@ -234,24 +208,24 @@ var shiftLeft = function(value, steps)
 
     totalBitsRequired = totalBitsRequired > 64 ? 64 : totalBitsRequired; //No more than 64-bits
 
-    var totalBytesRequired = Math.floor(totalBitsRequired / 8) + ((totalBitsRequired % 8) > 0 ? 1 : 0);
+    /** @type {number} */ var totalBytesRequired = Math.floor(totalBitsRequired / 8) + ((totalBitsRequired % 8) > 0 ? 1 : 0);
 
-    var inBuffer = new ArrayBuffer(totalBytesRequired);
-    var inArray = new Uint8Array(inBuffer);
+    /** @type {ArrayBuffer} */ var inBuffer = new ArrayBuffer(totalBytesRequired);
+    /** @type {Uint8Array} */ var inArray = new Uint8Array(inBuffer);
 
-    var buffer = new ArrayBuffer(totalBytesRequired);
-    var outArray = new Uint8Array(buffer);
+    /** @type {ArrayBuffer} */ var buffer = new ArrayBuffer(totalBytesRequired);
+    /** @type {Uint8Array} */ var outArray = new Uint8Array(buffer);
 
     numberToArray(inArray, value);
 
     for (var bitNdx = 0; bitNdx < totalBitsRequired; bitNdx++)
     {
-        var sourceByte = Math.floor(bitNdx / 8);
-        var sourceBit = Math.floor(bitNdx % 8);
-        var newbitNdx = bitNdx + steps;
-        var correspondingByte = Math.floor(newbitNdx / 8);
-        var correspondingBit = Math.floor(newbitNdx % 8);
-        var bitValue = (inArray[sourceByte] & Math.pow(2, sourceBit)) != 0 ? 1 : 0;
+        /** @type {number} */ var sourceByte = Math.floor(bitNdx / 8);
+        /** @type {number} */ var sourceBit = Math.floor(bitNdx % 8);
+        /** @type {number} */ var newbitNdx = bitNdx + steps;
+        /** @type {number} */ var correspondingByte = Math.floor(newbitNdx / 8);
+        /** @type {number} */ var correspondingBit = Math.floor(newbitNdx % 8);
+        /** @type {number} */ var bitValue = (inArray[sourceByte] & Math.pow(2, sourceBit)) != 0 ? 1 : 0;
         outArray[correspondingByte] = outArray[correspondingByte] | (Math.pow(2, correspondingBit) * bitValue);
     }
 
@@ -259,39 +233,38 @@ var shiftLeft = function(value, steps)
 };
 
 /**
- * Shifts the given value steps bits to the right
- * If the shift operation exceeds 64 bits, overflown bits are lost.
- * The reason for this function is, JS will automatically
- * convert numbers to 32 bits after shift operations.
+ * Shifts the given value 'steps' bits to the right. Replaces >> operator
+ * This function should be used if the expected value will be wider than 32-bits
+ * If safe, it will perform a normal >> operation
  * @param {number} value
  * @param {number} steps
- * @return {number} 64 bit binary value
+ * @return {number}
  */
 var shiftRight = function(value, steps)
 {
-    var totalBitsRequired = Math.floor(Math.log2(value) + 1); //additional bits not needed (will be 0) + steps;
+    /** @type {number} */ var totalBitsRequired = Math.floor(Math.log2(value) + 1); //additional bits not needed (will be 0) + steps;
 
     if (totalBitsRequired < 32)
         return value >> steps;
 
-    var totalBytesRequired = Math.floor(totalBitsRequired / 8) + ((totalBitsRequired % 8) > 0 ? 1 : 0);
+    /** @type {number} */ var totalBytesRequired = Math.floor(totalBitsRequired / 8) + ((totalBitsRequired % 8) > 0 ? 1 : 0);
 
-    var inBuffer = new ArrayBuffer(totalBytesRequired);
-    var inArray = new Uint8Array(inBuffer);
+    /** @type {ArrayBuffer} */ var inBuffer = new ArrayBuffer(totalBytesRequired);
+    /** @type {Uint8Array} */ var inArray = new Uint8Array(inBuffer);
 
-    var buffer = new ArrayBuffer(totalBytesRequired);
-    var outArray = new Uint8Array(buffer);
+    /** @type {ArrayBuffer} */ var buffer = new ArrayBuffer(totalBytesRequired);
+    /** @type {Uint8Array} */ var outArray = new Uint8Array(buffer);
 
     numberToArray(inArray, value);
 
     for (var bitNdx = totalBitsRequired - 1; bitNdx >= steps; bitNdx--)
     {
-        var sourceByte = Math.floor(bitNdx / 8);
-        var sourceBit = Math.floor(bitNdx % 8);
-        var newbitNdx = bitNdx - steps;
-        var correspondingByte = Math.floor(newbitNdx / 8);
-        var correspondingBit = Math.floor(newbitNdx % 8);
-        var bitValue = (inArray[sourceByte] & Math.pow(2, sourceBit)) != 0 ? 1 : 0;
+        /** @type {number} */ var sourceByte = Math.floor(bitNdx / 8);
+        /** @type {number} */ var sourceBit = Math.floor(bitNdx % 8);
+        /** @type {number} */ var newbitNdx = bitNdx - steps;
+        /** @type {number} */ var correspondingByte = Math.floor(newbitNdx / 8);
+        /** @type {number} */ var correspondingBit = Math.floor(newbitNdx % 8);
+        /** @type {number} */ var bitValue = (inArray[sourceByte] & Math.pow(2, sourceBit)) != 0 ? 1 : 0;
         outArray[correspondingByte] = outArray[correspondingByte] | (Math.pow(2, correspondingBit) * bitValue);
     }
 
@@ -303,6 +276,10 @@ var FloatFlags = {
     FLOAT_SUPPORT_DENORM: (1 << 1)
 };
 
+/**
+ * Defines a FloatDescription object, which is an essential part of the deFloat type.
+ * Holds the information that shapes the deFloat.
+ */
 var FloatDescription = function(exponentBits, mantissaBits, exponentBias, flags) {
     this.ExponentBits = exponentBits;
     this.MantissaBits = mantissaBits;
@@ -314,6 +291,7 @@ var FloatDescription = function(exponentBits, mantissaBits, exponentBias, flags)
 };
 
 /**
+ * Builds a zero float of the current binary description.
  * @param {number} sign
  * @return {deFloat}
  */
@@ -325,6 +303,7 @@ FloatDescription.prototype.zero = function(sign) {
 };
 
 /**
+ * Builds an infinity float representation of the current binary description.
  * @param {number} sign
  * @return {deFloat}
  */
@@ -336,6 +315,7 @@ FloatDescription.prototype.inf = function(sign) {
 };
 
 /**
+ * Builds a NaN float representation of the current binary description.
  * @return {deFloat}
  */
 FloatDescription.prototype.nan = function() {
@@ -344,6 +324,14 @@ FloatDescription.prototype.nan = function() {
     );
 };
 
+/**
+ * Builds a deFloat number based on the description and the given
+ * sign, exponent and mantissa values.
+ * @param {number} sign
+ * @param {number} exponent
+ * @param {number} mantissa
+ * @return {deFloat}
+ */
 FloatDescription.prototype.construct = function(sign, exponent, mantissa) {
     // Repurpose this otherwise invalid input as a shorthand notation for zero (no need for caller to care about internal representation)
     /** @type {boolean} */ var isShorthandZero = exponent == 0 && mantissa == 0;
@@ -377,6 +365,14 @@ FloatDescription.prototype.construct = function(sign, exponent, mantissa) {
     );
 };
 
+/**
+ * Builds a deFloat number based on the description and the given
+ * sign, exponent and binary mantissa values.
+ * @param {number} sign
+ * @param {number} exponent
+ * @param {number} mantissaBits The raw binary representation.
+ * @return {deFloat}
+ */
 FloatDescription.prototype.constructBits = function(sign, exponent, mantissaBits) {
     /** @type {number} */ var signBit = sign < 0 ? 1 : 0;
     /** @type {number} */ var exponentBits = exponent + this.ExponentBias;
@@ -403,14 +399,16 @@ FloatDescription.prototype.constructBits = function(sign, exponent, mantissaBits
 };
 
 /**
+ * Converts a deFloat from it's own format description into the format described
+ * by this description.
  * @param {deFloat} other Other float to convert to this format description.
  * @return {deFloat} converted deFloat
  */
 FloatDescription.prototype.convert = function(other) {
-    var otherExponentBits = other.description.ExponentBits;
-    var otherMantissaBits = other.description.MantissaBits;
-    var otherExponentBias = other.description.ExponentBias;
-    var otherFlags = other.description.Flags;
+    /** @type {number} */ var otherExponentBits = other.description.ExponentBits;
+    /** @type {number} */ var otherMantissaBits = other.description.MantissaBits;
+    /** @type {number} */ var otherExponentBias = other.description.ExponentBias;
+    /** @type {number} */ var otherFlags = other.description.Flags;
 
     if (!(this.Flags & FloatFlags.FLOAT_HAS_SIGN) && other.sign() < 0)
     {
@@ -544,6 +542,7 @@ var deFloat = function() {
  * deFloatNumber - To be used immediately after constructor
  * Builds a 32-bit deFloat based on a 64-bit JS number.
  * @param {number} jsnumber
+ * @return {deFloat}
  */
 deFloat.prototype.deFloatNumber = function(jsnumber) {
     var view32 = new DataView(this.buffer);
@@ -553,15 +552,23 @@ deFloat.prototype.deFloatNumber = function(jsnumber) {
     return this;
 };
 
+/**
+ * Convenience function to build a 32-bit deFloat based on a 64-bit JS number
+ * Builds a 32-bit deFloat based on a 64-bit JS number.
+ * @param {number} jsnumber
+ * @return {deFloat}
+ */
 var newDeFloatFromNumber = function(jsnumber) {
     return new deFloat().deFloatNumber(jsnumber);
 };
 
 /**
  * deFloatBuffer - To be used immediately after constructor
- * Builds a 32-bit or less deFloat based on a buffer with parameters.
+ * Builds a deFloat based on a buffer and a format description.
+ * The buffer is assumed to contain data of the given description.
  * @param {ArrayBuffer} buffer
  * @param {FloatDescription} description
+ * @return {deFloat}
  */
 deFloat.prototype.deFloatBuffer = function(buffer, description) {
     this.buffer = buffer;
@@ -572,14 +579,21 @@ deFloat.prototype.deFloatBuffer = function(buffer, description) {
     return this;
 };
 
+/**
+ * Convenience function to build a deFloat based on a buffer and a format description
+ * The buffer is assumed to contain data of the given description.
+ * @param {number} jsnumber
+ * @return {deFloat}
+ */
 var newDeFloatFromBuffer = function(buffer, description) {
     return new deFloat().deFloatBuffer(buffer, description);
 };
 
 /**
  * Initializes a deFloat from the given number,
- * with the specified format parameters as description.
- * It does not perform any conversion.
+ * with the specified format description.
+ * It does not perform any conversion, it assumes the number contains a
+ * binary representation of the given description.
  * @param {number} jsnumber
  * @param {Floatdescription} description
  * @return {deFloat}
@@ -596,47 +610,98 @@ deFloat.prototype.deFloatParameters = function(jsnumber, description) {
     return this;
 };
 
+/**
+ * Convenience function to create a deFloat from the given number,
+ * with the specified format description.
+ * It does not perform any conversion, it assumes the number contains a
+ * binary representation of the given description.
+ * @param {number} jsnumber
+ * @param {FloatDescription} description
+ * @return {deFloat}
+ **/
 var newDeFloatFromParameters = function(jsnumber, description) {
     return new deFloat().deFloatParameters(jsnumber, description);
 };
 
+/**
+ * Returns the raw binary representation value of the deFloat
+ * @return {number}
+ */
 deFloat.prototype.bits = function() {return arrayToNumber(this.array);};
-/** @return {number} */
+
+/**
+ * Returns the raw binary sign bit
+ * @return {number}
+ */
 deFloat.prototype.signBit = function() {
     return getBitRange(this.array, this.description.totalBitSize - 1, this.description.totalBitSize);
-    //return (this.m_value >> (this.description.ExponentBits + this.description.MantissaBits)) & 1;
 };
-/** @return {number} */
+
+/**
+ * Returns the raw binary exponent bits
+ * @return {number}
+ */
 deFloat.prototype.exponentBits = function() {
     return getBitRange(this.array, this.description.MantissaBits, this.description.MantissaBits + this.description.ExponentBits);
-    //return (this.m_value >> this.description.MantissaBits) & ((1 << this.description.ExponentBits) - 1);
 };
-/** @return {number} */
+
+/**
+ * Returns the raw binary mantissa bits
+ * @return {number}
+ */
 deFloat.prototype.mantissaBits = function() {
     return getBitRange(this.array, 0, this.description.MantissaBits);
-    //return this.m_value & ((1 << this.description.MantissaBits) - 1);
 };
-/** @return {number} */
+
+/**
+ * Returns the sign as a factor (-1 or 1)
+ * @return {number}
+ */
 deFloat.prototype.sign = function() {
     var sign = this.signBit();
     var signvalue = sign ? -1 : 1;
     return signvalue;
-    //return this.signBit() ? -1 : 1;
 };
-/** @return {number} */
+
+/**
+ * Returns the real exponent, checking if it's a denorm or zero number or not
+ * @return {number}
+ */
 deFloat.prototype.exponent = function() {return this.isDenorm() ? 1 - this.description.ExponentBias : this.exponentBits() - this.description.ExponentBias;};
-/** @return {number} */
+
+/**
+ * Returns the (still raw) mantissa, checking if it's a denorm or zero number or not
+ * Makes the normally implicit bit explicit.
+ * @return {number}
+ */
 deFloat.prototype.mantissa = function() {return this.isZero() || this.isDenorm() ? this.mantissaBits() : binaryOp(this.mantissaBits(), shiftLeft(1, this.description.MantissaBits), BinaryOp.OR);};
-/** @return {boolean} */
+
+/**
+ * Returns if the number is infinity or not.
+ * @return {boolean}
+ */
 deFloat.prototype.isInf = function() {return this.exponentBits() == ((1 << this.description.ExponentBits) - 1) && this.mantissaBits() == 0;};
-/** @return {boolean} */
+
+/**
+ * Returns if the number is NaN or not.
+ * @return {boolean}
+ */
 deFloat.prototype.isNaN = function() {return this.exponentBits() == ((1 << this.description.ExponentBits) - 1) && this.mantissaBits() != 0;};
-/** @return {boolean} */
+
+/**
+ * Returns if the number is zero or not.
+ * @return {boolean}
+ */
 deFloat.prototype.isZero = function() {return this.exponentBits() == 0 && this.mantissaBits() == 0;};
-/** @return {boolean} */
+
+/**
+ * Returns if the number is denormalized or not.
+ * @return {boolean}
+ */
 deFloat.prototype.isDenorm = function() {return this.exponentBits() == 0 && this.mantissaBits() != 0;};
 
 /**
+ * Builds a zero float of the current binary description.
  * @param {number} sign
  * @return {deFloat}
  */
@@ -645,6 +710,7 @@ deFloat.prototype.zero = function(sign) {
 };
 
 /**
+ * Builds an infinity float representation of the current binary description.
  * @param {number} sign
  * @return {deFloat}
  */
@@ -653,26 +719,47 @@ deFloat.prototype.inf = function(sign) {
 };
 
 /**
+ * Builds a NaN float representation of the current binary description.
  * @return {deFloat}
  */
 deFloat.prototype.nan = function() {
     return this.description.nan();
 };
 
+/**
+ * Builds a float of the current binary description.
+ * Given a sign, exponent and mantissa.
+ * @param {number} sign
+ * @param {number} exponent
+ * @param {number} mantissa
+ * @return {deFloat}
+ */
 deFloat.prototype.construct = function(sign, exponent, mantissa) {
     return this.description.construct(sign, exponent, mantissa);
 };
 
+/**
+ * Builds a float of the current binary description.
+ * Given a sign, exponent and a raw binary mantissa.
+ * @param {number} sign
+ * @param {number} exponent
+ * @param {number} mantissaBits Raw binary mantissa.
+ * @return {deFloat}
+ */
 deFloat.prototype.constructBits = function(sign, exponent, mantissaBits) {
     return this.description.constructBits(sign, exponent, mantissaBits);
 };
 
+/**
+ * Calculates the JS float number from the internal representation.
+ * @return {number} The JS float value represented by this deFloat.
+ */
 deFloat.prototype.getValue = function() {
-    var mymantissa = this.mantissa();
-    var myexponent = this.exponent();
-    var sign = this.sign();
+    /**@type {number} */ var mymantissa = this.mantissa();
+    /**@type {number} */ var myexponent = this.exponent();
+    /**@type {number} */ var sign = this.sign();
 
-    var value = mymantissa / Math.pow(2, this.description.MantissaBits) * Math.pow(2, myexponent);
+    /**@type {number} */ var value = mymantissa / Math.pow(2, this.description.MantissaBits) * Math.pow(2, myexponent);
 
     if (this.description.Flags | FloatFlags.FLOAT_HAS_SIGN != 0)
         value = value * sign;
@@ -680,39 +767,73 @@ deFloat.prototype.getValue = function() {
     return value;
 };
 
+/**
+ * Builds a 10 bit deFloat
+ * @param {number} value (64-bit JS float)
+ * @return {deFloat}
+ */
 var newFloat10 = function(value) {
-    var other32 = new deFloat().deFloatNumber(value);
-    var description10 = new FloatDescription(5, 5, 15, 0);
+    /**@type {deFloat} */ var other32 = new deFloat().deFloatNumber(value);
+    /**@type {FloatDescription} */ var description10 = new FloatDescription(5, 5, 15, 0);
     return description10.convert(other32);
 };
 
+/**
+ * Builds a 11 bit deFloat
+ * @param {number} value (64-bit JS float)
+ * @return {deFloat}
+ */
 var newFloat11 = function(value) {
-    var other32 = new deFloat().deFloatNumber(value);
-    var description11 = new FloatDescription(5, 6, 15, 0);
+    /**@type {deFloat} */ var other32 = new deFloat().deFloatNumber(value);
+    /**@type {FloatDescription} */ var description11 = new FloatDescription(5, 6, 15, 0);
     return description11.convert(other32);
 };
 
+/**
+ * Builds a 16 bit deFloat
+ * @param {number} value (64-bit JS float)
+ * @return {deFloat}
+ */
 var newFloat16 = function(value) {
-    var other32 = new deFloat().deFloatNumber(value);
-    var description16 = new FloatDescription(5, 10, 15, FloatFlags.FLOAT_HAS_SIGN | FloatFlags.FLOAT_SUPPORT_DENORM);
+    /**@type {deFloat} */ var other32 = new deFloat().deFloatNumber(value);
+    /**@type {FloatDescription} */ var description16 = new FloatDescription(5, 10, 15, FloatFlags.FLOAT_HAS_SIGN | FloatFlags.FLOAT_SUPPORT_DENORM);
     return description16.convert(other32);
 };
 
+/**
+ * Builds a 32 bit deFloat
+ * @param {number} value (64-bit JS float)
+ * @return {deFloat}
+ */
 var newFloat32 = function(value) {
     return new deFloat().deFloatNumber(value);
 };
 
+var numberToFloat11 = function(value) {
+    return newFloat11(value).bits();
+};
+
+var float11ToNumber = function(float11) {
+    var description11 = new FloatDescription(5, 6, 15, 0);
+    var x = newDeFloatFromParameters(float11, description11);
+    return x.getValue();
+};
+
+var numberToFloat10 = function(value) {
+    return newFloat10(value).bits();
+};
+
+var float10ToNumber = function(float10) {
+    var description10 = new FloatDescription(5, 5, 15, 0);
+    var x = newDeFloatFromParameters(float10, description10);
+    return x.getValue();
+};
+
 return {
-    FloatFlags: FloatFlags,
-    FloatDescription: FloatDescription,
-    deFloat: deFloat,
-    newDeFloatFromNumber: newDeFloatFromNumber,
-    newDeFloatFromBuffer: newDeFloatFromBuffer,
-    newDeFloatFromParameters: newDeFloatFromParameters,
-    newFloat10: newFloat10,
-    newFloat11: newFloat11,
-    newFloat16: newFloat16,
-    newFloat32: newFloat32
+    numberToFloat11: numberToFloat11,
+    float11ToNumber: float11ToNumber,
+    numberToFloat10: numberToFloat10,
+    float10ToNumber: float10ToNumber
 };
 
 });
