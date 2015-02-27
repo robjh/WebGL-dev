@@ -132,7 +132,7 @@ Texture2DFormatCase.prototype.iterate = function() {
     console.log(viewport);
     gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height);
 
-    Upload texture data to GL.
+    // Upload texture data to GL.
     this.m_texture.upload();
 
     // Bind to unit 0.
