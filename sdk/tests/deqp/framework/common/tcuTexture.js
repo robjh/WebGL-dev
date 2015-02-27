@@ -569,18 +569,18 @@ var packRGB999E5 = function(color) {
 	/* @const */ var	eMax	= (1<<eBits)-1;
 	/* @const */ var	maxVal	=(((1<<mBits) - 1) * (1<<(eMax-eBias))) / (1<<mBits);
 
-	var rc		= deInt32.clamp(color[0], 0, maxVal);
-	var gc		= deInt32.clamp(color[1], 0, maxVal);
-	var bc		= deInt32.clamp(color[2], 0, maxVal);
+	var rc		= deMath.clamp(color[0], 0, maxVal);
+	var gc		= deMath.clamp(color[1], 0, maxVal);
+	var bc		= deMath.clamp(color[2], 0, maxVal);
 	var maxc	= Math.max(rc, gc, bc);
 	var expp	= Math.max(-eBias - 1, Math.floor(Math.log2(maxc))) + 1 + eBias;
 	var e		= Math.pow(2, expp-eBias-mBits);
 	var maxs	= Math.floor(maxc / e + 0.5);
 
 	var	exps	= maxs == (1<<mBits) ? expp+1 : expp;
-	var	rs		= deInt32.clamp(Math.floor(rc / e + 0.5), 0, (1<<9)-1);
-	var	gs		= deInt32.clamp(Math.floor(gc / e + 0.5), 0, (1<<9)-1);
-	var	bs		= deInt32.clamp(Math.floor(bc / e + 0.5), 0, (1<<9)-1);
+	var	rs		= deMath.clamp(Math.floor(rc / e + 0.5), 0, (1<<9)-1);
+	var	gs		= deMath.clamp(Math.floor(gc / e + 0.5), 0, (1<<9)-1);
+	var	bs		= deMath.clamp(Math.floor(bc / e + 0.5), 0, (1<<9)-1);
 
 	DE_ASSERT((exps & ~((1<<5)-1)) == 0);
 	DE_ASSERT((rs & ~((1<<9)-1)) == 0);

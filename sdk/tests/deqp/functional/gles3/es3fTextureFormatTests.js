@@ -17,7 +17,7 @@
  * limitations under the License.
  *
  */
-define(['framework/opengl/gluShaderUtil', 'framework/delibs/debase/deRandom', 'framework/common/tcuTestCase', 'framework/common/tcuSurface', 'framework/opengl/gluTexture', 'framework/opengl/gluTextureUtil', 'framework/common/tcuTexture', 'modules/shared/glsTextureTestUtil', 'framework/common/tcuTextureUtil', 'framework/opengl/gluStrUtil', 'framework/delibs/debase/deInt32', 'framework/common/tcuCompressedTexture'],
+define(['framework/opengl/gluShaderUtil', 'framework/delibs/debase/deRandom', 'framework/common/tcuTestCase', 'framework/common/tcuSurface', 'framework/opengl/gluTexture', 'framework/opengl/gluTextureUtil', 'framework/common/tcuTexture', 'modules/shared/glsTextureTestUtil', 'framework/common/tcuTextureUtil', 'framework/opengl/gluStrUtil', 'framework/delibs/debase/deMath', 'framework/common/tcuCompressedTexture'],
      function(gluShaderUtil, deRandom, deqpTests, tcuSurface, gluTexture, gluTextureUtil, tcuTexture, glsTextureTestUtil, tcuTextureUtil, gluStrUtil, deMath, tcuCompressedTexture) {
     'use strict';
 
@@ -209,12 +209,12 @@ TextureCubeFormatCase.prototype.init = function() {
         var gMax = null;
 
         switch (face) {
-            case 0: gMin = deInt32.swizzle(spec.valueMin, [0, 1, 2, 3]); gMax = deInt32.swizzle(spec.valueMax, [0, 1, 2, 3]); break;
-            case 1: gMin = deInt32.swizzle(spec.valueMin, [2, 1, 0, 3]); gMax = deInt32.swizzle(spec.valueMax, [2, 1, 0, 3]); break;
-            case 2: gMin = deInt32.swizzle(spec.valueMin, [1, 2, 0, 3]); gMax = deInt32.swizzle(spec.valueMax, [1, 2, 0, 3]); break;
-            case 3: gMin = deInt32.swizzle(spec.valueMax, [0, 1, 2, 3]); gMax = deInt32.swizzle(spec.valueMin, [0, 1, 2, 3]); break;
-            case 4: gMin = deInt32.swizzle(spec.valueMax, [2, 1, 0, 3]); gMax = deInt32.swizzle(spec.valueMin, [2, 1, 0, 3]); break;
-            case 5: gMin = deInt32.swizzle(spec.valueMax, [1, 2, 0, 3]); gMax = deInt32.swizzle(spec.valueMin, [1, 2, 0, 3]); break;
+            case 0: gMin = deMath.swizzle(spec.valueMin, [0, 1, 2, 3]); gMax = deMath.swizzle(spec.valueMax, [0, 1, 2, 3]); break;
+            case 1: gMin = deMath.swizzle(spec.valueMin, [2, 1, 0, 3]); gMax = deMath.swizzle(spec.valueMax, [2, 1, 0, 3]); break;
+            case 2: gMin = deMath.swizzle(spec.valueMin, [1, 2, 0, 3]); gMax = deMath.swizzle(spec.valueMax, [1, 2, 0, 3]); break;
+            case 3: gMin = deMath.swizzle(spec.valueMax, [0, 1, 2, 3]); gMax = deMath.swizzle(spec.valueMin, [0, 1, 2, 3]); break;
+            case 4: gMin = deMath.swizzle(spec.valueMax, [2, 1, 0, 3]); gMax = deMath.swizzle(spec.valueMin, [2, 1, 0, 3]); break;
+            case 5: gMin = deMath.swizzle(spec.valueMax, [1, 2, 0, 3]); gMax = deMath.swizzle(spec.valueMin, [1, 2, 0, 3]); break;
             default:
                 DE_ASSERT(false);
         }
