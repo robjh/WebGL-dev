@@ -809,6 +809,10 @@ var newFloat32 = function(value) {
     return new deFloat().deFloatNumber(value);
 };
 
+var numberToFloat11 = function(value) {
+    return newFloat11(value).bits();
+};
+
 var float11ToNumber = function(float11) {
     var description11 = new FloatDescription(5, 6, 15, 0);
     var x = newDeFloatFromParameters(float11, description11);
@@ -819,7 +823,7 @@ var numberToFloat10 = function(value) {
     return newFloat10(value).bits();
 };
 
-var float11ToNumber = function(float11) {
+var float10ToNumber = function(float10) {
     var description10 = new FloatDescription(5, 5, 15, 0);
     var x = newDeFloatFromParameters(float10, description10);
     return x.getValue();
