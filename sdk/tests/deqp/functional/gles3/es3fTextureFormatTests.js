@@ -37,13 +37,21 @@ var testDescription = function() {
 	return test.description;
 };
 
+var setParentClass = function(child, parent) {
+	child.prototype = Object.create(parent.prototype);
+	child.prototype.constructor = child;
+};
+
 var Texture2DFormatCase = function(descriptor){
+    deqpTests.DeqpTest.call(this, descriptor.name, descriptor.description);
 	this.m_format = descriptor.format;
 	this.m_dataType = descriptor.dataType;
 	this.m_width = descriptor.width;
 	this.m_height = descriptor.height;
 	this.m_renderer = new glsTextureTestUtil.TextureRenderer(version, gluShaderUtil.precision.PRECISION_HIGHP);
 };
+
+setParentClass(Texture2DFormatCase, deqpTests.DeqpTest);
 
 Texture2DFormatCase.prototype.init = function() {
 	/*tcu::TextureFormat*/ var		fmt		= this.m_dataType ? gluTextureUtil.mapGLTransferFormat(this.m_format, this.m_dataType) : gluTextureUtil.mapGLInternalFormat(this.m_format);
@@ -154,13 +162,16 @@ Texture2DFormatCase.prototype.iterate = function() {
 };
 
 var TextureCubeFormatCase = function(descriptor){
-	this.m_format = descriptor.format;
+    deqpTests.DeqpTest.call(this, descriptor.name, descriptor.description);
+    this.m_format = descriptor.format;
 	this.m_dataType = descriptor.dataType;
 	this.m_width = descriptor.width;
 	this.m_height = descriptor.height;
 	this.m_renderer = new glsTextureTestUtil.TextureRenderer(version, gluShaderUtil.precision.PRECISION_HIGHP);
 	DE_ASSERT(this.m_width == this.m_height);
 };
+
+setParentClass(TextureCubeFormatCase, deqpTests.DeqpTest);
 
 TextureCubeFormatCase.prototype.init = function() {
 	/*tcu::TextureFormat*/ var		fmt		= this.m_dataType ? gluTextureUtil.mapGLTransferFormat(this.m_format, this.m_dataType) : gluTextureUtil.mapGLInternalFormat(this.m_format);
@@ -304,6 +315,7 @@ TextureCubeFormatCase.prototype.iterate = function() {
 };
 
 var Texture2DArrayFormatCase = function(descriptor){
+    deqpTests.DeqpTest.call(this, descriptor.name, descriptor.description);
 	this.m_format = descriptor.format;
 	this.m_dataType = descriptor.dataType;
 	this.m_width = descriptor.width;
@@ -311,6 +323,8 @@ var Texture2DArrayFormatCase = function(descriptor){
 	this.m_numLayers = descriptor.numLayers;
 	this.m_renderer = new glsTextureTestUtil.TextureRenderer(version, gluShaderUtil.precision.PRECISION_HIGHP);
 };
+
+setParentClass(Texture2DArrayFormatCase, deqpTests.DeqpTest);
 
 Texture2DArrayFormatCase.prototype.init = function() {
 	/*tcu::TextureFormat*/ var		fmt		= this.m_dataType ? gluTextureUtil.mapGLTransferFormat(this.m_format, this.m_dataType) : gluTextureUtil.mapGLInternalFormat(this.m_format);
@@ -434,6 +448,7 @@ Texture2DArrayFormatCase.prototype.iterate = function() {
 };
 
 var Texture3DFormatCase = function(descriptor){
+    deqpTests.DeqpTest.call(this, descriptor.name, descriptor.description);
 	this.m_format = descriptor.format;
 	this.m_dataType = descriptor.dataType;
 	this.m_width = descriptor.width;
@@ -441,6 +456,8 @@ var Texture3DFormatCase = function(descriptor){
 	this.m_depth = descriptor.depth;
 	this.m_renderer = new glsTextureTestUtil.TextureRenderer(version, gluShaderUtil.precision.PRECISION_HIGHP);
 };
+
+setParentClass(Texture3DFormatCase, deqpTests.DeqpTest);
 
 Texture3DFormatCase.prototype.init = function() {
 	/*tcu::TextureFormat*/ var		fmt		= this.m_dataType ? gluTextureUtil.mapGLTransferFormat(this.m_format, this.m_dataType) : gluTextureUtil.mapGLInternalFormat(this.m_format);
@@ -565,12 +582,15 @@ Texture3DFormatCase.prototype.iterate = function() {
 };
 
 var Compressed2DFormatCase = function(descriptor){
+    deqpTests.DeqpTest.call(this, descriptor.name, descriptor.description);
 	this.m_format = descriptor.format;
 	this.m_dataType = descriptor.dataType;
 	this.m_width = descriptor.width;
 	this.m_height = descriptor.height;
 	this.m_renderer = new glsTextureTestUtil.TextureRenderer(version, gluShaderUtil.precision.PRECISION_HIGHP);
 };
+
+setParentClass(Compressed2DFormatCase, deqpTests.DeqpTest);
 
 Compressed2DFormatCase.prototype.init = function() {
 	var compressed = new tcuCompressedTexture.CompressedTexture(this.m_format, this.m_width, this.m_height);
@@ -661,6 +681,7 @@ Compressed2DFormatCase.prototype.iterate = function() {
 };
 
 var CompressedCubeFormatCase = function(descriptor){
+    deqpTests.DeqpTest.call(this, descriptor.name, descriptor.description);
 	this.m_format = descriptor.format;
 	this.m_dataType = descriptor.dataType;
 	this.m_width = descriptor.width;
@@ -670,6 +691,8 @@ var CompressedCubeFormatCase = function(descriptor){
 	this.m_isOk = true;
 	DE_ASSERT(this.m_width == this.m_height);
 };
+
+setParentClass(CompressedCubeFormatCase, deqpTests.DeqpTest);
 
 CompressedCubeFormatCase.prototype.init = function() {
 	var compressed = new tcuCompressedTexture.CompressedTexture(this.m_format, this.m_width, this.m_height);
@@ -802,82 +825,77 @@ var genTestCases = function(filter) {
 		var	dataType		= elem[2];
 		var	nameBase		= elem[0];
 		var	descriptionBase	= gluStrUtil.getPixelFormatName(format) + ", " + gluStrUtil.getTypeName(dataType);
-		unsizedGroup.addChild(deqpTests.newTest(nameBase + '_2d_pot',
-												descriptionBase + ' gl.TEXTURE_2D',
-												new Texture2DFormatCase({
-														format: format,
-														dataType: dataType,
-														width: 128,
-														height: 128,
-													})
-		));
-		unsizedGroup.addChild(deqpTests.newTest(nameBase + '_2d_npot',
-												descriptionBase + ' gl.TEXTURE_2D',
-												new Texture2DFormatCase({
+		unsizedGroup.addChild(new Texture2DFormatCase({
+									name: nameBase + '_2d_pot',
+									description: descriptionBase + ' gl.TEXTURE_2D',
+									format: format,
+									dataType: dataType,
+									width: 128,
+									height: 128,
+								})
+		);
+		unsizedGroup.addChild(new Texture2DFormatCase({
+												name: nameBase + '_2d_npot',
+												description: descriptionBase + ' gl.TEXTURE_2D',
 														format: format,
 														dataType: dataType,
 														width: 63,
 														height: 112,
 													})
-		));
-		unsizedGroup.addChild(deqpTests.newTest(nameBase + '_cube_pot',
-												descriptionBase + ' gl.TEXTURE_CUBE_MAP',
-												new TextureCubeFormatCase({
+		);
+		unsizedGroup.addChild(new TextureCubeFormatCase({
+												name: nameBase + '_cube_pot',
+												description: descriptionBase + ' gl.TEXTURE_CUBE_MAP',
 														format: format,
 														dataType: dataType,
 														width: 64,
 														height: 64,
 													})
-		));
-		unsizedGroup.addChild(deqpTests.newTest(nameBase + '_cube_npot',
-												descriptionBase + ' gl.TEXTURE_CUBE_MAP',
-												new TextureCubeFormatCase({
+		);
+		unsizedGroup.addChild(new TextureCubeFormatCase({name: nameBase + '_cube_npot',
+												description: descriptionBase + ' gl.TEXTURE_CUBE_MAP',
 														format: format,
 														dataType: dataType,
 														width: 57,
 														height: 57,
 													})
-		));
-		unsizedGroup.addChild(deqpTests.newTest(nameBase + '_2d_array_pot',
-												descriptionBase + ' gl.TEXTURE_2D_ARRAY',
-												new Texture2DArrayFormatCase({
+		);
+		unsizedGroup.addChild(new Texture2DArrayFormatCase({name: nameBase + '_2d_array_pot',
+												description: descriptionBase + ' gl.TEXTURE_2D_ARRAY',
 														format: format,
 														dataType: dataType,
 														width: 64,
 														height: 64,
 														numLayers: 8 
 													})
-		));
-		unsizedGroup.addChild(deqpTests.newTest(nameBase + '_2d_array_npot',
-												descriptionBase + ' gl.TEXTURE_2D_ARRAY',
-												new Texture2DArrayFormatCase({
+		);
+		unsizedGroup.addChild(new Texture2DArrayFormatCase({name: nameBase + '_2d_array_npot',
+												description: descriptionBase + ' gl.TEXTURE_2D_ARRAY',
 														format: format,
 														dataType: dataType,
 														width: 63,
 														height: 57,
 														numLayers: 7
 													})
-		));
-		unsizedGroup.addChild(deqpTests.newTest(nameBase + '_3d_pot',
-												descriptionBase + ' gl.TEXTURE_3D',
-												new Texture3DFormatCase({
+		);
+		unsizedGroup.addChild(new Texture3DFormatCase({name: nameBase + '_3d_pot',
+												description: descriptionBase + ' gl.TEXTURE_3D',
 														format: format,
 														dataType: dataType,
 														width: 8,
 														height: 32,
 														depth: 16,
 													})
-		));
-		unsizedGroup.addChild(deqpTests.newTest(nameBase + '_3d_npot',
-												descriptionBase + ' gl.TEXTURE_3D',
-												new Texture3DFormatCase({
+		);
+		unsizedGroup.addChild(new Texture3DFormatCase({name: nameBase + '_3d_npot',
+												description: descriptionBase + ' gl.TEXTURE_3D',
 														format: format,
 														dataType: dataType,
 														width: 11,
 														height: 31,
 														depth: 7
 													})
-		));
+		);
 	});
 
 	var sizedColorFormats = [
@@ -936,74 +954,66 @@ var genTestCases = function(filter) {
 		var internalFormat = elem[1];
 		var nameBase = elem[0];
 		var descriptionBase = gluStrUtil.getPixelFormatName(internalFormat);
-		sized2DGroup.addChild(deqpTests.newTest(nameBase + '_pot',
-												descriptionBase + ' gl.TEXTURE_2D',
-												new Texture2DFormatCase({
+		sized2DGroup.addChild(new Texture2DFormatCase({name: nameBase + '_pot',
+												description: descriptionBase + ' gl.TEXTURE_2D',
 														format: internalFormat,
 														width: 128,
 														height: 128,
 													})
-		));
-		sized2DGroup.addChild(deqpTests.newTest(nameBase + '_npot',
-												descriptionBase + ' gl.TEXTURE_2D',
-												new Texture2DFormatCase({
+		);
+		sized2DGroup.addChild(new Texture2DFormatCase({name: nameBase + '_npot',
+												description: descriptionBase + ' gl.TEXTURE_2D',
 														format: internalFormat,
 														width: 63,
 														height: 112,
 													})
-		));
-		sizedCubeGroup.addChild(deqpTests.newTest(nameBase + '_pot',
-												descriptionBase + ' gl.TEXTURE_CUBE_MAP',
-												new TextureCubeFormatCase({
+		);
+		sizedCubeGroup.addChild(new TextureCubeFormatCase({name: nameBase + '_pot',
+												description: descriptionBase + ' gl.TEXTURE_CUBE_MAP',
 														format: internalFormat,
 														width: 64,
 														height: 64,
 													})
-		));
-		sizedCubeGroup.addChild(deqpTests.newTest(nameBase + '_npot',
-												descriptionBase + ' gl.TEXTURE_CUBE_MAP',
-												new TextureCubeFormatCase({
+		);
+		sizedCubeGroup.addChild(new TextureCubeFormatCase({name: nameBase + '_npot',
+												description: descriptionBase + ' gl.TEXTURE_CUBE_MAP',
 														format: internalFormat,
 														width: 57,
 														height: 57,
 													})
-		));
-		sized2DArrayGroup.addChild(deqpTests.newTest(nameBase + '_pot',
-												descriptionBase + ' gl.TEXTURE_2D_ARRAY',
-												new Texture2DArrayFormatCase({
+		);
+		sized2DArrayGroup.addChild(new Texture2DArrayFormatCase({name: nameBase + '_pot',
+												description: descriptionBase + ' gl.TEXTURE_2D_ARRAY',
 														format: internalFormat,
 														width: 64,
 														height: 64,
 														numLayers: 8 
 													})
-		));
-		sized2DArrayGroup.addChild(deqpTests.newTest(nameBase + '_npot',
-												descriptionBase + ' gl.TEXTURE_2D_ARRAY',
-												new Texture2DArrayFormatCase({
+		);
+		sized2DArrayGroup.addChild(new Texture2DArrayFormatCase({name: nameBase + '_npot',
+												description: descriptionBase + ' gl.TEXTURE_2D_ARRAY',
 														format: internalFormat,
 														width: 63,
 														height: 57,
 														numLayers: 7
 													})
-		));
-		sized3DGroup.addChild(deqpTests.newTest(nameBase + '_pot',
-												descriptionBase + ' gl.TEXTURE_3D',
-												new Texture3DFormatCase({
+		);
+		sized3DGroup.addChild(new Texture3DFormatCase({name: nameBase + '_pot',
+												description: descriptionBase + ' gl.TEXTURE_3D',
 														format: internalFormat,
 														width: 8,
 														height: 32,
 														depth: 16,
 													})
-		));
-		sized3DGroup.addChild(deqpTests.newTest(nameBase + '_npot',
-												descriptionBase + ' gl.TEXTURE_3D',
-												new Texture3DFormatCase({
+		);
+		sized3DGroup.addChild(new Texture3DFormatCase({name: nameBase + '_npot',
+												description: descriptionBase + ' gl.TEXTURE_3D',
 														format: internalFormat,
 														width: 11,
 														height: 31,
 														depth: 7
 													})
-		));
+		);
 	});
 
 	var sizedDepthStencilFormats = [
@@ -1018,56 +1028,50 @@ var genTestCases = function(filter) {
 		var internalFormat = elem[1];
 		var nameBase = elem[0];
 		var descriptionBase = gluStrUtil.getPixelFormatName(internalFormat);
-		sized2DGroup.addChild(deqpTests.newTest(nameBase + '_pot',
-												descriptionBase + ' gl.TEXTURE_2D',
-												new Texture2DFormatCase({
+		sized2DGroup.addChild(new Texture2DFormatCase({name: nameBase + '_pot',
+												description: descriptionBase + ' gl.TEXTURE_2D',
 														format: internalFormat,
 														width: 128,
 														height: 128,
 													})
-		));
-		sized2DGroup.addChild(deqpTests.newTest(nameBase + '_npot',
-												descriptionBase + ' gl.TEXTURE_2D',
-												new Texture2DFormatCase({
+		);
+		sized2DGroup.addChild(new Texture2DFormatCase({name: nameBase + '_npot',
+												description: descriptionBase + ' gl.TEXTURE_2D',
 														format: internalFormat,
 														width: 63,
 														height: 112,
 													})
-		));
-		sizedCubeGroup.addChild(deqpTests.newTest(nameBase + '_pot',
-												descriptionBase + ' gl.TEXTURE_CUBE_MAP',
-												new TextureCubeFormatCase({
+		);
+		sizedCubeGroup.addChild(new TextureCubeFormatCase({name: nameBase + '_pot',
+												description: descriptionBase + ' gl.TEXTURE_CUBE_MAP',
 														format: internalFormat,
 														width: 64,
 														height: 64,
 													})
-		));
-		sizedCubeGroup.addChild(deqpTests.newTest(nameBase + '_npot',
-												descriptionBase + ' gl.TEXTURE_CUBE_MAP',
-												new TextureCubeFormatCase({
+		);
+		sizedCubeGroup.addChild(new TextureCubeFormatCase({name: nameBase + '_npot',
+												description: descriptionBase + ' gl.TEXTURE_CUBE_MAP',
 														format: internalFormat,
 														width: 57,
 														height: 57,
 													})
-		));
-		sized2DArrayGroup.addChild(deqpTests.newTest(nameBase + '_pot',
-												descriptionBase + ' gl.TEXTURE_2D_ARRAY',
-												new Texture2DArrayFormatCase({
+		);
+		sized2DArrayGroup.addChild(new Texture2DArrayFormatCase({name: nameBase + '_pot',
+												description: descriptionBase + ' gl.TEXTURE_2D_ARRAY',
 														format: internalFormat,
 														width: 64,
 														height: 64,
 														numLayers: 8 
 													})
-		));
-		sized2DArrayGroup.addChild(deqpTests.newTest(nameBase + '_npot',
-												descriptionBase + ' gl.TEXTURE_2D_ARRAY',
-												new Texture2DArrayFormatCase({
+		);
+		sized2DArrayGroup.addChild(new Texture2DArrayFormatCase({name: nameBase + '_npot',
+												description: descriptionBase + ' gl.TEXTURE_2D_ARRAY',
 														format: internalFormat,
 														width: 63,
 														height: 57,
 														numLayers: 7
 													})
-		));
+		);
 	});
 
 	var etc2Formats = [
@@ -1086,34 +1090,30 @@ var genTestCases = function(filter) {
 		var nameBase = elem[1];
 		var descriptionBase = elem[0];
 		var format = elem[2];
-		compressedGroup.addChild(deqpTests.newTest(nameBase + '_2d_pot', descriptionBase+ ', GL_TEXTURE_2D',
-											new Compressed2DFormatCase({
+		compressedGroup.addChild(new Compressed2DFormatCase({name: nameBase + '_2d_pot', description: descriptionBase+ ', GL_TEXTURE_2D',
 												format: format,
 												width: 128,
 												height: 64,
 											})
-								));
-		compressedGroup.addChild(deqpTests.newTest(nameBase + '_cube_pot', descriptionBase+ ', GL_TEXTURE_CUBE_MAP',
-											new Compressed2DFormatCase({
+								);
+		compressedGroup.addChild(new CompressedCubeFormatCase({name: nameBase + '_cube_pot', description: descriptionBase+ ', GL_TEXTURE_CUBE_MAP',
 												format: format,
 												width: 64,
 												height: 64,
 											})
-								));
-		compressedGroup.addChild(deqpTests.newTest(nameBase + '_2d_pot', descriptionBase+ ', GL_TEXTURE_2D',
-											new Compressed2DFormatCase({
+								);
+		compressedGroup.addChild(new Compressed2DFormatCase({name: nameBase + '_2d_pot', description: descriptionBase+ ', GL_TEXTURE_2D',
 												format: format,
 												width: 128,
 												height: 64,
 											})
-								));
-		compressedGroup.addChild(deqpTests.newTest(nameBase + '_cube_npot', descriptionBase+ ', GL_TEXTURE_CUBE_MAP',
-											new Compressed2DFormatCase({
+								);
+		compressedGroup.addChild(new CompressedCubeFormatCase({name: nameBase + '_cube_npot', description: descriptionBase+ ', GL_TEXTURE_CUBE_MAP',
 												format: format,
 												width: 51,
 												height: 51,
 											})
-								));
+								);
 	});
 
 	state.testCases.addChild(unsizedGroup);
@@ -1128,8 +1128,8 @@ var runTestCases = function() {
     	try {
 	    	debug("Running: " + state.currentTest.name + ' ' + state.currentTest.description);
 	    	setCurrentTestName(state.currentTest.name);
-	    	state.currentTest.spec.init();
-	    	while(!state.currentTest.spec.iterate());
+	    	state.currentTest.init();
+	    	while(!state.currentTest.iterate());
 	    } catch(err) {
 	    	if (err.name !== "TestFailedException" ) {
 		    	bufferedLogToConsole(err);
