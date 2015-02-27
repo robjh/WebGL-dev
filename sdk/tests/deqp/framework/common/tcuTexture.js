@@ -18,7 +18,7 @@
  *
  */
 
-define(['framework/delibs/debase/deInt32', 'framework/delibs/debase/deRandom'], function(deInt32, deRandom)  {
+define(['framework/delibs/debase/deInt32', 'framework/common/tcuFloat'], function(deInt32, tcuFloat)  {
 'use strict';
 
 	var DE_ASSERT = function(x) {
@@ -26,16 +26,6 @@ define(['framework/delibs/debase/deInt32', 'framework/delibs/debase/deRandom'], 
 			throw new Error('Assert failed');
 	};
 	var DE_FALSE = false;
-
-	/* TODO: It's not really a class.
-	 * The code should be refactored to use an array directly
-	 */
-	var Vec4 = function(a, b, c, d) {
-		return [a, b, c, d];
-	};
-	var UVec4 = function(a, b, c, d) {
-		return [a, b, c, d];
-	};
 
 
 	var ChannelOrder = {
@@ -350,19 +340,19 @@ var channelToFloat = function(value, /*ChannelType*/ type)
 {
 	switch (type)
 	{
-		case ChannelType.SNORM_INT8:			return Math.max(-1, value / 127);
+		case ChannelType.SNORM_INT8:		return Math.max(-1, value / 127);
 		case ChannelType.SNORM_INT16:		return Math.max(-1, value / 32767);
 		case ChannelType.SNORM_INT32:		return Math.max(-1, value / 2147483647);
-		case ChannelType.UNORM_INT8:			return value / 255;
+		case ChannelType.UNORM_INT8:		return value / 255;
 		case ChannelType.UNORM_INT16:		return value / 65535;
 		case ChannelType.UNORM_INT32:		return value / 4294967295;
 		case ChannelType.SIGNED_INT8:		return value;
 		case ChannelType.SIGNED_INT16:		return value;
 		case ChannelType.SIGNED_INT32:		return value;
 		case ChannelType.UNSIGNED_INT8:		return value;
-		case ChannelType.UNSIGNED_INT16:		return value;
-		case ChannelType.UNSIGNED_INT32:		return value;
-		case ChannelType.HALF_FLOAT:			return deFloat16To32(value); /*TODO: Implement */
+		case ChannelType.UNSIGNED_INT16:	return value;
+		case ChannelType.UNSIGNED_INT32:	return value;
+		case ChannelType.HALF_FLOAT:		return tcuFloat.halfFloatToNumber(value);
 		case ChannelType.FLOAT:				return value;
 		default:
 			DE_ASSERT(DE_FALSE);
@@ -374,7 +364,7 @@ var channelToInt = function(value, /*ChannelType*/ type)
 {
 	switch (type)
 	{
-		case ChannelType.HALF_FLOAT:			return Math.round(deFloat16To32(value)); /*TODO: Implement */
+		case ChannelType.HALF_FLOAT:			return Math.round(tcuFloat.halfFloatToNumber(value));
 		case ChannelType.FLOAT:				return Math.round(value);
 		default:
 			return value;
@@ -621,7 +611,6 @@ var unpackRGB999E5 = function(color) {
 	return [r, g, b, 1];
 };
 
-
 /*--------------------------------------------------------------------*//*!
  * \brief Read-only pixel data access
  *
@@ -692,39 +681,40 @@ var  ConstPixelBufferAccess = function(descriptor) {
 	var pixel = pixelPtr[0];
 
 	// Packed formats.
-	switch (this.m_format.type)
-	{
-		case ChannelType.UNORM_SHORT_565:			return Vec4(nb(pixel, 11,  5), nb(pixel,  5,  6), nb(pixel,  0,  5), 1);
-		case ChannelType.UNORM_SHORT_555:			return Vec4(nb(pixel, 10,  5), nb(pixel,  5,  5), nb(pixel,  0,  5), 1);
-		case ChannelType.UNORM_SHORT_4444:			return Vec4(nb(pixel, 12,  4), nb(pixel,  8,  4), nb(pixel,  4,  4), nb(pixel,  0, 4));
-		case ChannelType.UNORM_SHORT_5551:			return Vec4(nb(pixel, 11,  5), nb(pixel,  6,  5), nb(pixel,  1,  5), nb(pixel,  0, 1));
-		case ChannelType.UNORM_INT_101010:			return Vec4(nb(pixel, 22, 10), nb(pixel, 12, 10), nb(pixel,  2, 10), 1);
-		case ChannelType.UNORM_INT_1010102_REV:		return Vec4(nb(pixel,  0, 10), nb(pixel, 10, 10), nb(pixel, 20, 10), nb(pixel, 30, 2));
-		case ChannelType.UNSIGNED_INT_1010102_REV:	return UVec4(ub(pixel, 0, 10), ub(pixel, 10, 10), ub(pixel, 20, 10), ub(pixel, 30, 2));
+	switch (this.m_format.type) {
+		case ChannelType.UNORM_SHORT_565:			return [nb(pixel, 11,  5), nb(pixel,  5,  6), nb(pixel,  0,  5), 1];
+		case ChannelType.UNORM_SHORT_555:			return [nb(pixel, 10,  5), nb(pixel,  5,  5), nb(pixel,  0,  5), 1];
+		case ChannelType.UNORM_SHORT_4444:			return [nb(pixel, 12,  4), nb(pixel,  8,  4), nb(pixel,  4,  4), nb(pixel,  0, 4)];
+		case ChannelType.UNORM_SHORT_5551:			return [nb(pixel, 11,  5), nb(pixel,  6,  5), nb(pixel,  1,  5), nb(pixel,  0, 1)];
+		case ChannelType.UNORM_INT_101010:			return [nb(pixel, 22, 10), nb(pixel, 12, 10), nb(pixel,  2, 10), 1];
+		case ChannelType.UNORM_INT_1010102_REV:		return [nb(pixel,  0, 10), nb(pixel, 10, 10), nb(pixel, 20, 10), nb(pixel, 30, 2)];
+		case ChannelType.UNSIGNED_INT_1010102_REV:	return [ub(pixel, 0, 10), ub(pixel, 10, 10), ub(pixel, 20, 10), ub(pixel, 30, 2)];
 		case ChannelType.UNSIGNED_INT_999_E5_REV:	return unpackRGB999E5(pixel);
 
 		case ChannelType.UNSIGNED_INT_24_8:
-			switch (this.m_format.order)
-			{
+			switch (this.m_format.order) {
 				// \note Stencil is always ignored.
-				case ChannelType.D:	return Vec4(nb(pixel, 8, 24), 0, 0, 1);
-				case ChannelType.DS:	return Vec4(nb(pixel, 8, 24), 0, 0, 1 /* (float)ub(0, 8) */);
+				case ChannelType.D:	return [nb(pixel, 8, 24), 0, 0, 1];
+				case ChannelType.DS:	return [nb(pixel, 8, 24), 0, 0, 1 /* (float)ub(0, 8) */];
 				default:
 					DE_ASSERT(false);
 			}
 
-		case ChannelType.FLOAT_UNSIGNED_INT_24_8_REV:
-		{
+		case ChannelType.FLOAT_UNSIGNED_INT_24_8_REV: {
 			DE_ASSERT(this.m_format.order == ChannelType.DS);
 			// \note Stencil is ignored.
-			return Vec4(pixel, 0, 0, 1);
+			return [pixel, 0, 0, 1];
 		}
 
-		case ChannelType.UNSIGNED_INT_11F_11F_10F_REV:
-			return undefined;
-			/* TODO: Implement
-			return Vec4(Float11(ub(pixel, 0, 11)).asFloat(), Float11(ub(pixel, 11, 11)).asFloat(), Float10(ub(pixel, 22, 10)).asFloat(), 1);
-			*/
+		case ChannelType.UNSIGNED_INT_11F_11F_10F_REV: {
+			var f11 = function(value) {
+				return tcuFloat.float11ToNumber(value);
+			};
+			var f10 = function(value) {
+				return tcuFloat.float10ToNumber(value);
+			};
+			return [f11(ub(pixel, 0, 11)), f11(ub(pixel, 11, 11)), f10(ub(pixel, 22, 10)), 1];
+		}
 
 		default:
 			break;
@@ -771,20 +761,20 @@ var  ConstPixelBufferAccess = function(descriptor) {
 	// Packed formats.
 	switch (this.m_format.type)
 	{
-		case ChannelType.UNORM_SHORT_565:			return Vec4(ub(pixel, 11,  5), ub(pixel,  5,  6), ub(pixel,  0,  5), 1);
-		case ChannelType.UNORM_SHORT_555:			return Vec4(ub(pixel, 10,  5), ub(pixel,  5,  5), ub(pixel,  0,  5), 1);
-		case ChannelType.UNORM_SHORT_4444:			return Vec4(ub(pixel, 12,  4), ub(pixel,  8,  4), ub(pixel,  4,  4), ub(pixel,  0, 4));
-		case ChannelType.UNORM_SHORT_5551:			return Vec4(ub(pixel, 11,  5), ub(pixel,  6,  5), ub(pixel,  1,  5), ub(pixel,  0, 1));
-		case ChannelType.UNORM_INT_101010:			return Vec4(ub(pixel, 22, 10), ub(pixel, 12, 10), ub(pixel,  2, 10), 1);
-		case ChannelType.UNORM_INT_1010102_REV:		return Vec4(ub(pixel,  0, 10), ub(pixel, 10, 10), ub(pixel, 20, 10), ub(pixel, 30, 2));
-		case ChannelType.UNSIGNED_INT_1010102_REV:	return UVec4(ub(pixel, 0, 10), ub(pixel, 10, 10), ub(pixel, 20, 10), ub(pixel, 30, 2));
+		case ChannelType.UNORM_SHORT_565:			return [ub(pixel, 11,  5), ub(pixel,  5,  6), ub(pixel,  0,  5), 1];
+		case ChannelType.UNORM_SHORT_555:			return [ub(pixel, 10,  5), ub(pixel,  5,  5), ub(pixel,  0,  5), 1];
+		case ChannelType.UNORM_SHORT_4444:			return [ub(pixel, 12,  4), ub(pixel,  8,  4), ub(pixel,  4,  4), ub(pixel,  0, 4)];
+		case ChannelType.UNORM_SHORT_5551:			return [ub(pixel, 11,  5), ub(pixel,  6,  5), ub(pixel,  1,  5), ub(pixel,  0, 1)];
+		case ChannelType.UNORM_INT_101010:			return [ub(pixel, 22, 10), ub(pixel, 12, 10), ub(pixel,  2, 10), 1];
+		case ChannelType.UNORM_INT_1010102_REV:		return [ub(pixel,  0, 10), ub(pixel, 10, 10), ub(pixel, 20, 10), ub(pixel, 30, 2)];
+		case ChannelType.UNSIGNED_INT_1010102_REV:	return [ub(pixel, 0, 10), ub(pixel, 10, 10), ub(pixel, 20, 10), ub(pixel, 30, 2)];
 
 		case ChannelType.UNSIGNED_INT_24_8:
 			switch (this.m_format.order)
 			{
 				// \note Stencil is always ignored.
-				case ChannelType.D:	return Vec4(ub(pixel, 8, 24), 0, 0, 1);
-				case ChannelType.DS:	return Vec4(ub(pixel, 8, 24), 0, 0, 1 /* (float)ub(0, 8) */);
+				case ChannelType.D:	return [ub(pixel, 8, 24), 0, 0, 1];
+				case ChannelType.DS:	return [ub(pixel, 8, 24), 0, 0, 1 /* (float)ub(0, 8) */];
 				default:
 					DE_ASSERT(false);
 			}
@@ -793,7 +783,7 @@ var  ConstPixelBufferAccess = function(descriptor) {
 		{
 			DE_ASSERT(this.m_format.order == ChannelType.DS);
 			// \note Stencil is ignored.
-			return Vec4(pixel, 0, 0, 1);
+			return [pixel, 0, 0, 1];
 		}
 
 		default:
@@ -942,7 +932,7 @@ var floatToChannel = function(src, type) {
 		case ChannelType.UNSIGNED_INT8: return convertSatRte(deTypes.deUint8, src);
 		case ChannelType.UNSIGNED_INT16: return convertSatRte(deTypes.deUint16, src);
 		case ChannelType.UNSIGNED_INT32: return convertSatRte(deTypes.deUint32, src);
-		case ChannelType.HALF_FLOAT: return deFloat32To16(src); /* TODO: Port */
+		case ChannelType.HALF_FLOAT: return tcuFloat.numberToHalfFloat(src);
 		case ChannelType.FLOAT: return src;
 	}
 	throw new Error('Unrecognized type ' + type);
@@ -1014,8 +1004,15 @@ PixelBufferAccess.prototype.setPixel = function(color, x, y, z) {
 		}
 
 		case ChannelType.UNSIGNED_INT_11F_11F_10F_REV: {
-			/*TODO: Port */
-			throw new Error('Unimplemented');
+			var f11 = function(value) {
+				return tcuFloat.numberToFloat11(value);
+			};
+			var f10 = function(value) {
+				return tcuFloat.numberToFloat10(value);
+			};
+
+			pixelPtr[0] = f11(color[0]) | (f11(color[1]) << 11) | (f10(color[2]) << 22);
+			break;
 		}
 		case ChannelType.FLOAT:
 			if (this.m_format.order == ChannelOrder.D) {
@@ -1412,7 +1409,6 @@ TextureCube.prototype.sample = function(/*const Sampler&*/ sampler, texCoord, lo
 TextureCube.prototype.getSubView = function(baseLevel, maxLevel) { return this.m_view.getSubView(baseLevel, maxLevel); }
 
 TextureCube.prototype.isLevelEmpty		= function(/*CubeFace*/ face, /*int*/ levelNdx) {
-	console.log(this.m_data);
  return this.m_data[face][levelNdx].empty();	};
 
 TextureCube.prototype.allocLevel  = function(/*tcu::CubeFace*/ face, /*int*/ levelNdx) {

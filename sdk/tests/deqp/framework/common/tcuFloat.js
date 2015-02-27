@@ -829,11 +829,23 @@ var float10ToNumber = function(float10) {
     return x.getValue();
 };
 
+var numberToHalfFloat = function(value) {
+    return newFloat16(value).bits();
+};
+
+var halfFloatToNumber = function(half) {
+    var description16 = new FloatDescription(5, 10, 15, FloatFlags.FLOAT_HAS_SIGN | FloatFlags.FLOAT_SUPPORT_DENORM);
+    var x = newDeFloatFromParameters(half, description16);
+    return x.getValue();
+};
+
 return {
     numberToFloat11: numberToFloat11,
     float11ToNumber: float11ToNumber,
     numberToFloat10: numberToFloat10,
-    float10ToNumber: float10ToNumber
+    float10ToNumber: float10ToNumber,
+    numberToHalfFloat: numberToHalfFloat,
+    halfFloatToNumber: halfFloatToNumber
 };
 
 });
