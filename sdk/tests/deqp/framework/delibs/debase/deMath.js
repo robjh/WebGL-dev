@@ -225,12 +225,12 @@ var rint = function(a) {
     return floorVal + (roundUp ? 1 : 0);
 };
 
-/** deInt32Hash
+/** deMathHash
  * @param {number} a
  * @return {number}
  */
 
-var deInt32Hash = function(a) {
+var deMathHash = function(a) {
     var key = a;
     key = (key ^ 61) ^ (key >> 16);
     key = key + (key << 3);
@@ -258,7 +258,7 @@ var deInt32Hash = function(a) {
         boolAll: boolAll,
         max: max,
         rint: rint,
-        deInt32Hash: deInt32Hash
+        deMathHash: deMathHash
     };
 });
 

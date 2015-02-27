@@ -18,7 +18,7 @@
  *
  */
 
-define(['framework/common/tcuSurface', 'framework/delibs/debase/deInt32' ], function(tcuSurface, deInt32) {
+define(['framework/common/tcuSurface', 'framework/delibs/debase/deMath' ], function(tcuSurface, deMath) {
 
 var displayResultPane = function(id, width, height) {
 	displayResultPane.counter = displayResultPane.counter || 0;
@@ -106,11 +106,11 @@ var intThresholdCompare = function(/*const char* */imageSetName, /*const char* *
 			var	refPix		= reference.getPixelInt(x, y, z);
 				var	cmpPix		= result.getPixelInt(x, y, z);
 
-				var	diff		= deInt32.absDiff(refPix, cmpPix);
-				var	isOk		= deInt32.boolAll(deInt32.lessThanEqual(diff, threshold));
+				var	diff		= deMath.absDiff(refPix, cmpPix);
+				var	isOk		= deMath.boolAll(deMath.lessThanEqual(diff, threshold));
 
 
-				maxDiff = deInt32.max(maxDiff, diff);
+				maxDiff = deMath.max(maxDiff, diff);
 				var color = [0, 255, 0, 255];
 				if (!isOk)
 					color = [255, 0, 0, 255];
@@ -119,7 +119,7 @@ var intThresholdCompare = function(/*const char* */imageSetName, /*const char* *
 		}
 	}
 
-	var compareOk = deInt32.boolAll(deInt32.lessThanEqual(maxDiff, threshold));
+	var compareOk = deMath.boolAll(deMath.lessThanEqual(maxDiff, threshold));
 
 	if (!compareOk) {
 		debug("Image comparison failed: max difference = " + maxDiff + ", threshold = " + threshold);

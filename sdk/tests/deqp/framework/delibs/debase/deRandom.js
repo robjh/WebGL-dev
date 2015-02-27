@@ -104,6 +104,15 @@ var deRandom_getBool = function(rnd)
 };
 
 /**
+ * Function to get a common base seed
+ * @return {number} constant
+ */
+var getBaseSeed = function() 
+{
+    return 42;
+};
+
+/**
  * TODO Function to choose random items from a list
  * @param {deRandom} rnd Initialised array of random numbers
  * @param {Array.<Object>} elements Array segment already defined
@@ -205,8 +214,16 @@ Random.prototype.chooseWeighted = function(first, last, weight) {return chooseWe
  */
 Random.prototype.shuffle = function(rnd, first, last) {return shuffle(this.m_rnd, first, last)};
 
+/**
+ * Function to get a common base seed
+ * @return {number} constant
+ */
+Random.prototype.getBaseSeed = function() {
+    return getBaseSeed();
+};
+
 return {
-    Random: Random
+    Random: Random,
 };
 
 });

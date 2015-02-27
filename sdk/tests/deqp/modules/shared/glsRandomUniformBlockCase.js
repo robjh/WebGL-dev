@@ -18,7 +18,7 @@
  *
  */
 
-define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 'framework/common/tcuTestCase', 'framework/delibs/debase/deInt32', 'framework/delibs/debase/deRandom'], function(deqpUtils, glsUBC, deqpTests, deInt32, deRandom) {
+define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 'framework/common/tcuTestCase', 'framework/delibs/debase/deMath', 'framework/delibs/debase/deRandom'], function(deqpUtils, glsUBC, deqpTests, deMath, deRandom) {
     'use strict';
 
     var FeatureBits = {
@@ -45,8 +45,8 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
      * @param {string} name
      * @param {string} description
      * @param {glsUBC.BufferMode} bufferMode
-     * @param {deInt32.deUint32} features
-     * @param {deInt32.deUint32} seed
+     * @param {deMath.deUint32} features
+     * @param {deMath.deUint32} seed
      */
     var RandomUniformBlockCase = function(name, description, bufferMode, features, seed) {
         glsUBC.UniformBlockCase.call(this, name, description, bufferMode);
@@ -98,7 +98,7 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
             assertMsgOptions(this.m_blockNdx <= 'Z'.charCodeAt(0) - 'A'.charCodeAt(0), 'generateType', false, true);
             for (var ndx = 0; ndx < numMembers; ndx++)
             {
-                /** @type {deInt32.deUint32} */ var flags = 0;
+                /** @type {deMath.deUint32} */ var flags = 0;
 
                 flags |= (unusedOk && rnd.getFloat() < unusedVtxWeight) ? glsUBC.UniformFlags.UNUSED_VERTEX : 0;
                 flags |= (unusedOk && rnd.getFloat() < unusedFragWeight) ? glsUBC.UniformFlags.UNUSED_FRAGMENT : 0;
@@ -153,12 +153,12 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
             }
 
             /** @type {deqpUtils.DataType} */ var type = rnd.choose(typeCandidates)[0];
-            /** @type {deInt32.deUint32} */ var flags = 0;
+            /** @type {deMath.deUint32} */ var flags = 0;
 
             if (!deqpUtils.isDataTypeBoolOrBVec(type))
             {
                 // Precision.
-                /** @type {Array.<deInt32.deUint32>} */ var precisionCandidates = [glsUBC.UniformFlags.PRECISION_LOW, glsUBC.UniformFlags.PRECISION_MEDIUM, glsUBC.UniformFlags.PRECISION_HIGH];
+                /** @type {Array.<deMath.deUint32>} */ var precisionCandidates = [glsUBC.UniformFlags.PRECISION_LOW, glsUBC.UniformFlags.PRECISION_MEDIUM, glsUBC.UniformFlags.PRECISION_HIGH];
                 flags |= rnd.choose(precisionCandidates)[0];
             }
 
@@ -200,7 +200,7 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
         /** @type {number} */ var unusedVtxWeight = 0.15;
         /** @type {number} */ var unusedFragWeight = 0.15;
         /** @type {boolean} */ var unusedOk = (this.m_features & FeatureBits.FEATURE_UNUSED_UNIFORMS) != 0;
-        /** @type {deInt32.deUint32} */ var flags = 0;
+        /** @type {deMath.deUint32} */ var flags = 0;
         /** @type {string} */ var name = this.genName('a'.charCodeAt(0), 'z'.charCodeAt(0), this.m_uniformNdx);
         /** @type {glsUBC.VarType} */ var type = this.generateType(rnd, 0, true); //TODO: implement this.
 
@@ -215,7 +215,7 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
     /**
      * generateBlock
      * @param {deRandom.Random} rnd
-     * @param {deInt32.deUint32} layoutFlags
+     * @param {deMath.deUint32} layoutFlags
      */
     RandomUniformBlockCase.prototype.generateBlock = function(rnd, layoutFlags) {
         assertMsgOptions(this.m_blockNdx <= 'z'.charCodeAt(0) - 'a'.charCodeAt(0), 'generateBlock', false, true);
@@ -232,7 +232,7 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
             block.setInstanceName('block' + String.fromCharCode('A'.charCodeAt(0) + this.m_blockNdx));
 
         // Layout flag candidates.
-        /** @type {Array.<deInt32.deUint32>} */ var layoutFlagCandidates = [];
+        /** @type {Array.<deMath.deUint32>} */ var layoutFlagCandidates = [];
         layoutFlagCandidates.push(0);
         if (this.m_features & FeatureBits.FEATURE_PACKED_LAYOUT)
             layoutFlagCandidates.push(glsUBC.UniformFlags.LAYOUT_SHARED);
@@ -245,7 +245,7 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
 
         if (this.m_features & FeatureBits.FEATURE_MATRIX_LAYOUT)
         {
-            /** @type {Array.<deInt32.deUint32>}*/ var matrixCandidates = [0, glsUBC.UniformFlags.LAYOUT_ROW_MAJOR, glsUBC.UniformFlags.LAYOUT_COLUMN_MAJOR];
+            /** @type {Array.<deMath.deUint32>}*/ var matrixCandidates = [0, glsUBC.UniformFlags.LAYOUT_ROW_MAJOR, glsUBC.UniformFlags.LAYOUT_COLUMN_MAJOR];
             layoutFlags |= rnd.choose(matrixCandidates)[0];
         }
 

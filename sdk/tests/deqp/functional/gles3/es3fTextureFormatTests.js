@@ -17,8 +17,8 @@
  * limitations under the License.
  *
  */
-define(['framework/opengl/gluShaderUtil', 'framework/delibs/debase/deRandom','framework/common/tcuTestCase', 'framework/common/tcuSurface',  'framework/opengl/gluTexture', 'framework/opengl/gluTextureUtil', 'framework/common/tcuTexture', 'modules/shared/glsTextureTestUtil', 'framework/common/tcuTextureUtil', 'framework/opengl/gluStrUtil', 'framework/delibs/debase/deInt32',	'framework/common/tcuCompressedTexture' ],
-	 function(gluShaderUtil, deRandom, deqpTests, tcuSurface, gluTexture, gluTextureUtil, tcuTexture, glsTextureTestUtil, tcuTextureUtil, gluStrUtil, deInt32, tcuCompressedTexture) {
+define(['framework/opengl/gluShaderUtil', 'framework/delibs/debase/deRandom','framework/common/tcuTestCase', 'framework/common/tcuSurface',  'framework/opengl/gluTexture', 'framework/opengl/gluTextureUtil', 'framework/common/tcuTexture', 'modules/shared/glsTextureTestUtil', 'framework/common/tcuTextureUtil', 'framework/opengl/gluStrUtil', 'framework/delibs/debase/deMath',	'framework/common/tcuCompressedTexture' ],
+	 function(gluShaderUtil, deRandom, deqpTests, tcuSurface, gluTexture, gluTextureUtil, tcuTexture, glsTextureTestUtil, tcuTextureUtil, gluStrUtil, deMath, tcuCompressedTexture) {
     'use strict';
 
 var	GLU_EXPECT_NO_ERROR = function(error, message) {
@@ -30,7 +30,7 @@ var DE_ASSERT = function(x) {
 		throw new Error('Assert failed');
 };
 
-var version = "300 es";
+var version = "100 es";
 
 var testDescription = function() {
 	var test = deqpTests.runner.getState().currentTest;
@@ -150,7 +150,7 @@ Texture2DFormatCase.prototype.iterate = function() {
 	var isOk = glsTextureTestUtil.compareImages(referenceFrame, renderedFrame, threshold);
 
 	assertMsgOptions(isOk, testDescription(), true, true);
-	return true;
+	return deqpTests.runner.IterateResult.STOP;
 };
 
 var TextureCubeFormatCase = function(descriptor){
@@ -190,12 +190,12 @@ TextureCubeFormatCase.prototype.init = function() {
 		var gMax = null;
 
 		switch (face) {
-			case 0: gMin = deInt32.swizzle(spec.valueMin, [0, 1, 2, 3]); gMax = deInt32.swizzle(spec.valueMax, [0, 1, 2, 3]); break;
-			case 1: gMin = deInt32.swizzle(spec.valueMin, [2, 1, 0, 3]); gMax = deInt32.swizzle(spec.valueMax, [2, 1, 0, 3]); break;
-			case 2: gMin = deInt32.swizzle(spec.valueMin, [1, 2, 0, 3]); gMax = deInt32.swizzle(spec.valueMax, [1, 2, 0, 3]); break;
-			case 3: gMin = deInt32.swizzle(spec.valueMax, [0, 1, 2, 3]); gMax = deInt32.swizzle(spec.valueMin, [0, 1, 2, 3]); break;
-			case 4: gMin = deInt32.swizzle(spec.valueMax, [2, 1, 0, 3]); gMax = deInt32.swizzle(spec.valueMin, [2, 1, 0, 3]); break;
-			case 5: gMin = deInt32.swizzle(spec.valueMax, [1, 2, 0, 3]); gMax = deInt32.swizzle(spec.valueMin, [1, 2, 0, 3]); break;
+			case 0: gMin = deMath.swizzle(spec.valueMin, [0, 1, 2, 3]); gMax = deMath.swizzle(spec.valueMax, [0, 1, 2, 3]); break;
+			case 1: gMin = deMath.swizzle(spec.valueMin, [2, 1, 0, 3]); gMax = deMath.swizzle(spec.valueMax, [2, 1, 0, 3]); break;
+			case 2: gMin = deMath.swizzle(spec.valueMin, [1, 2, 0, 3]); gMax = deMath.swizzle(spec.valueMax, [1, 2, 0, 3]); break;
+			case 3: gMin = deMath.swizzle(spec.valueMax, [0, 1, 2, 3]); gMax = deMath.swizzle(spec.valueMin, [0, 1, 2, 3]); break;
+			case 4: gMin = deMath.swizzle(spec.valueMax, [2, 1, 0, 3]); gMax = deMath.swizzle(spec.valueMin, [2, 1, 0, 3]); break;
+			case 5: gMin = deMath.swizzle(spec.valueMax, [1, 2, 0, 3]); gMax = deMath.swizzle(spec.valueMin, [1, 2, 0, 3]); break;
 			default:
 				DE_ASSERT(false);
 		}
@@ -298,9 +298,9 @@ TextureCubeFormatCase.prototype.iterate = function() {
 	this.m_curFace += 1;
 
 	if (this.m_curFace == tcuTexture.CubeFace.TOTAL_FACES)
-		return true;
+		return deqpTests.runner.IterateResult.STOP;
 	else
-		return false;
+		return deqpTests.runner.IterateResult.CONTINUE;
 };
 
 var Texture2DArrayFormatCase = function(descriptor){
@@ -428,9 +428,9 @@ Texture2DArrayFormatCase.prototype.iterate = function() {
 	this.m_curLayer += 1;
 
 	if (this.m_curLayer == this.m_numLayers)
-		return true;
+		return deqpTests.runner.IterateResult.STOP;
 	else
-		return false;
+		return deqpTests.runner.IterateResult.CONTINUE;
 };
 
 var Texture3DFormatCase = function(descriptor){
@@ -559,9 +559,9 @@ Texture3DFormatCase.prototype.iterate = function() {
 	this.m_curSlice += 1;
 
 	if (this.m_curSlice >= this.m_depth)
-		return true;
+		return deqpTests.runner.IterateResult.STOP;
 	else
-		return false;
+		return deqpTests.runner.IterateResult.CONTINUE;
 };
 
 var Compressed2DFormatCase = function(descriptor){
@@ -657,7 +657,7 @@ Compressed2DFormatCase.prototype.iterate = function() {
 	var isOk = glsTextureTestUtil.compareImages(referenceFrame, renderedFrame, threshold);
 
 	assertMsgOptions(isOk, testDescription(), true, true);
-	return true;
+	return deqpTests.runner.IterateResult.STOP;
 };
 
 var CompressedCubeFormatCase = function(descriptor){
@@ -765,9 +765,9 @@ CompressedCubeFormatCase.prototype.iterate = function() {
 	this.m_curFace += 1;
 
 	if (this.m_curFace == tcuTexture.CubeFace.TOTAL_FACES)
-		return true;
+		return deqpTests.runner.IterateResult.STOP;
 	else
-		return false;
+		return deqpTests.runner.IterateResult.CONTINUE;
 };
 
 var genTestCases = function(filter) {
@@ -1121,26 +1121,6 @@ var genTestCases = function(filter) {
 	state.testCases.addChild(compressedGroup);
 }
 
-var runTestCases = function() {
-/** @type {Object} */ var state = deqpTests.runner.getState();
-    state.currentTest = state.testCases.next(state.filter);
-    if (state.currentTest) {
-    	try {
-	    	debug("Running: " + state.currentTest.name + ' ' + state.currentTest.description);
-	    	setCurrentTestName(state.currentTest.name);
-	    	state.currentTest.spec.init();
-	    	while(!state.currentTest.spec.iterate());
-	    } catch(err) {
-	    	if (err.name !== "TestFailedException" ) {
-		    	bufferedLogToConsole(err);
-	    		testFailedOptions('Exception thrown', false);
-	    	};
-	    };
-	    deqpTests.runner.runCallback(runTestCases);
-    } else
-        deqpTests.runner.terminate();
-};
-
 /**
  * Create and execute the test cases
  * @param {string} filter Optional filter
@@ -1148,7 +1128,7 @@ var runTestCases = function() {
 var run = function(filter) {
 	try {
     	genTestCases(filter);
-    	deqpTests.runner.runCallback(runTestCases);
+    	deqpTests.runner.runCallback(deqpTests.runTestCases);
     } catch (err) {
     	bufferedLogToConsole(err);
     	deqpTests.runner.terminate();

@@ -26,9 +26,9 @@ define(['framework/opengl/gluShaderUtil',
         'framework/opengl/gluVarTypeUtil',
         'framework/opengl/gluShaderProgram',
         'framework/delibs/debase/deRandom',
-        'framework/delibs/debase/deInt32',
+        'framework/delibs/debase/deMath',
         'framework/delibs/debase/deString'],
-        function(deqpUtils, deqpDraw, glsUBC, gluVT, gluVTU, deqpProgram, deRandom, deInt32, deString) {
+        function(deqpUtils, deqpDraw, glsUBC, gluVT, gluVTU, deqpProgram, deRandom, deMath, deString) {
     'use strict';
 
     /** @const @type {number} */ var VIEWPORT_WIDTH = 128;
@@ -1039,7 +1039,7 @@ define(['framework/opengl/gluShaderUtil',
 
             var log  = m_textCtx.getLog();
             var isOk = true;
-            var seed = deString.deStringHash(getName()) ^ deInt32.deInt32Hash(m_iterNdx);
+            var seed = deString.deStringHash(getName()) ^ deMath.deMathHash(m_iterNdx);
             var numIterations = TransformFeedbackCase.s_iterate.iterations.length;
             // first and end ignored.
 
@@ -1519,7 +1519,7 @@ define(['framework/opengl/gluShaderUtil',
 
         // TODO: unfinished, same implementation in TransformFeedbackCase.iterate
         // var seed = this.iterate.seed; // TODO: possible solution as a local attribute?
-        /** @type {number} */ var seed = deString.deStringHash(getName()) ^ deInt32.deInt32Hash(m_iterNdx);
+        /** @type {number} */ var seed = deString.deStringHash(getName()) ^ deMath.deMathHash(m_iterNdx);
 
         /** @type {Array.<deqpUtils.DataType>} */
         var typeCandidates = [
@@ -1896,7 +1896,7 @@ define(['framework/opengl/gluShaderUtil',
 
                 for (var ndx = 0; ndx < 10; ndx++)
                 {
-                /** @type {number} */ var seed = deInt32.deInt32Hash(bufferMode) ^ deInt32.deInt32Hash(primitiveType) ^ deInt32.deInt32Hash(ndx);
+                /** @type {number} */ var seed = deMath.deMathHash(bufferMode) ^ deMath.deMathHash(primitiveType) ^ deMath.deMathHash(ndx);
                 // TODO: new needed below?
                     primitiveGroup.addChild(new RandomCase(m_context, (ndx + 1).toString(), '', bufferMode, primitiveType, seed)); // TODO: check, toString() omitted?
                 }

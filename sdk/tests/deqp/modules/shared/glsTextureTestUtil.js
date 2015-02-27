@@ -18,8 +18,8 @@
  *
  */
 
-define(['framework/opengl/gluDrawUtil', 'framework/opengl/gluShaderProgram', 'framework/common/tcuTexture', 'framework/opengl/gluShaderUtil', 'framework/common/tcuStringTemplate', 'framework/delibs/debase/deInt32', 'framework/common/tcuImageCompare'], 
-	function(deqpDraw, gluShaderProgram, tcuTexture, gluShaderUtil, tcuStringTemplate, deInt32, tcuImageCompare) {
+define(['framework/opengl/gluDrawUtil', 'framework/opengl/gluShaderProgram', 'framework/common/tcuTexture', 'framework/opengl/gluShaderUtil', 'framework/common/tcuStringTemplate', 'framework/delibs/debase/deMath', 'framework/common/tcuImageCompare'], 
+	function(deqpDraw, gluShaderProgram, tcuTexture, gluShaderUtil, tcuStringTemplate, deMath, tcuImageCompare) {
 	'use strict';
 var DE_ASSERT = function(x) {
 	if (!x)
@@ -228,9 +228,9 @@ var computeQuadTexCoord2DArray = function(/*int*/ layerNdx, /*const tcu::Vec2&*/
  * @return {Array<Number>} a + (b - a) * c
  */
 var selectCoords = function(a, b, c) {
-	var x1 = deInt32.subtract(b, a);
-	var x2 = deInt32.multiply(x1, c);
-	var x3 = deInt32.add(a, x2);
+	var x1 = deMath.subtract(b, a);
+	var x2 = deMath.multiply(x1, c);
+	var x3 = deMath.add(a, x2);
 	return x3;
 };
 
@@ -238,10 +238,10 @@ var computeQuadTexCoord3D = function(/*const tcu::Vec3&*/ p0, /*const tcu::Vec3&
 	var dst = [];
 	dst.length = 4*3;
 
-	var f0 = deInt32.swizzle(([0, 0, 0]), [dirSwz[0], dirSwz[1], dirSwz[2]]);
-	var f1 = deInt32.swizzle(([0, 1, 0]), [dirSwz[0], dirSwz[1], dirSwz[2]]);
-	var f2 = deInt32.swizzle(([1, 0, 0]), [dirSwz[0], dirSwz[1], dirSwz[2]]);
-	var f3 = deInt32.swizzle(([1, 1, 0]), [dirSwz[0], dirSwz[1], dirSwz[2]]);
+	var f0 = deMath.swizzle(([0, 0, 0]), [dirSwz[0], dirSwz[1], dirSwz[2]]);
+	var f1 = deMath.swizzle(([0, 1, 0]), [dirSwz[0], dirSwz[1], dirSwz[2]]);
+	var f2 = deMath.swizzle(([1, 0, 0]), [dirSwz[0], dirSwz[1], dirSwz[2]]);
+	var f3 = deMath.swizzle(([1, 1, 0]), [dirSwz[0], dirSwz[1], dirSwz[2]]);
 
 	var v0 = selectCoords(p0, p1, f0);
 	var v1 = selectCoords(p0, p1, f1);
@@ -355,20 +355,20 @@ ProgramLibrary.prototype.getProgram = function(/* programType */ program) {
 
 	var params = new Map();
 
-	var	isCube		= deInt32.deInRange32(program, programType.PROGRAM_CUBE_FLOAT, programType.PROGRAM_CUBE_SHADOW_BIAS);
-	var	isArray		= deInt32.deInRange32(program, programType.PROGRAM_2D_ARRAY_FLOAT, programType.PROGRAM_2D_ARRAY_SHADOW)
-							|| deInt32.deInRange32(program, programType.PROGRAM_1D_ARRAY_FLOAT, programType.PROGRAM_1D_ARRAY_SHADOW);
+	var	isCube		= deMath.deInRange32(program, programType.PROGRAM_CUBE_FLOAT, programType.PROGRAM_CUBE_SHADOW_BIAS);
+	var	isArray		= deMath.deInRange32(program, programType.PROGRAM_2D_ARRAY_FLOAT, programType.PROGRAM_2D_ARRAY_SHADOW)
+							|| deMath.deInRange32(program, programType.PROGRAM_1D_ARRAY_FLOAT, programType.PROGRAM_1D_ARRAY_SHADOW);
 
-	var	is1D		= deInt32.deInRange32(program, programType.PROGRAM_1D_FLOAT, programType.PROGRAM_1D_UINT_BIAS)
-							|| deInt32.deInRange32(program, programType.PROGRAM_1D_ARRAY_FLOAT, programType.PROGRAM_1D_ARRAY_SHADOW)
-							|| deInt32.deInRange32(program, programType.PROGRAM_BUFFER_FLOAT, programType.PROGRAM_BUFFER_UINT);
+	var	is1D		= deMath.deInRange32(program, programType.PROGRAM_1D_FLOAT, programType.PROGRAM_1D_UINT_BIAS)
+							|| deMath.deInRange32(program, programType.PROGRAM_1D_ARRAY_FLOAT, programType.PROGRAM_1D_ARRAY_SHADOW)
+							|| deMath.deInRange32(program, programType.PROGRAM_BUFFER_FLOAT, programType.PROGRAM_BUFFER_UINT);
 
-	var	is2D		= deInt32.deInRange32(program, programType.PROGRAM_2D_FLOAT, programType.PROGRAM_2D_UINT_BIAS)
-							|| deInt32.deInRange32(program, programType.PROGRAM_2D_ARRAY_FLOAT, programType.PROGRAM_2D_ARRAY_SHADOW);
+	var	is2D		= deMath.deInRange32(program, programType.PROGRAM_2D_FLOAT, programType.PROGRAM_2D_UINT_BIAS)
+							|| deMath.deInRange32(program, programType.PROGRAM_2D_ARRAY_FLOAT, programType.PROGRAM_2D_ARRAY_SHADOW);
 
-	var	is3D		= deInt32.deInRange32(program, programType.PROGRAM_3D_FLOAT, programType.PROGRAM_3D_UINT_BIAS);
-	var	isCubeArray	= deInt32.deInRange32(program, programType.PROGRAM_CUBE_ARRAY_FLOAT, programType.PROGRAM_CUBE_ARRAY_SHADOW);
-	var	isBuffer	= deInt32.deInRange32(program, programType.PROGRAM_BUFFER_FLOAT, programType.PROGRAM_BUFFER_UINT);
+	var	is3D		= deMath.deInRange32(program, programType.PROGRAM_3D_FLOAT, programType.PROGRAM_3D_UINT_BIAS);
+	var	isCubeArray	= deMath.deInRange32(program, programType.PROGRAM_CUBE_ARRAY_FLOAT, programType.PROGRAM_CUBE_ARRAY_SHADOW);
+	var	isBuffer	= deMath.deInRange32(program, programType.PROGRAM_BUFFER_FLOAT, programType.PROGRAM_BUFFER_UINT);
 
 	if (this.m_glslVersion == "100 es")
 	{
@@ -765,7 +765,7 @@ SurfaceAccess.prototype.setPixel = function(/*const tcu::Vec4&*/ color, x, y) {
 	/* TODO: Apply color mask */
 	var c = color;
 	for (var i = 0; i < c.length; i++)
-		c[i] = deInt32.clamp(Math.round(color[i] * 255), 0, 255);
+		c[i] = deMath.clamp(Math.round(color[i] * 255), 0, 255);
 	this.m_surface.setPixel(x, y, c);
 };
 
@@ -843,8 +843,8 @@ var execSample = function(/*const tcu::Texture2DView&*/ src, /*const ReferencePa
 };
 
 var applyScaleAndBias = function(pixel, scale, bias) {
-	var pixel1 = deInt32.multiply(pixel, scale);
-	var pixel2 = deInt32.add(pixel1, bias);
+	var pixel1 = deMath.multiply(pixel, scale);
+	var pixel2 = deMath.add(pixel1, bias);
 	return pixel2;
 };
 
@@ -855,10 +855,10 @@ var sampleTextureNonProjected2D = function(/*const SurfaceAccess&*/ dst, /*const
 	var	srcSize		= [ src.getWidth(), src.getHeight() ];
 
 	// Coordinates and lod per triangle.
-	var	triS		= [ deInt32.swizzle(sq, [0, 1, 2]), deInt32.swizzle(sq, [3, 2, 1]) ];
-	var	triT		= [ deInt32.swizzle(tq, [0, 1, 2]), deInt32.swizzle(tq, [3, 2, 1]) ];
-	var	triLod	= [ deInt32.clamp((computeNonProjectedTriLod(params.lodMode, dstSize, srcSize, triS[0], triT[0]) + lodBias), params.minLod, params.maxLod),
-					deInt32.clamp((computeNonProjectedTriLod(params.lodMode, dstSize, srcSize, triS[1], triT[1]) + lodBias), params.minLod, params.maxLod) ];
+	var	triS		= [ deMath.swizzle(sq, [0, 1, 2]), deMath.swizzle(sq, [3, 2, 1]) ];
+	var	triT		= [ deMath.swizzle(tq, [0, 1, 2]), deMath.swizzle(tq, [3, 2, 1]) ];
+	var	triLod	= [ deMath.clamp((computeNonProjectedTriLod(params.lodMode, dstSize, srcSize, triS[0], triT[0]) + lodBias), params.minLod, params.maxLod),
+					deMath.clamp((computeNonProjectedTriLod(params.lodMode, dstSize, srcSize, triS[1], triT[1]) + lodBias), params.minLod, params.maxLod) ];
 
 	for (var y = 0; y < dst.getHeight(); y++)
 	{
@@ -888,9 +888,9 @@ var sampleTextureNonProjected2DArray = function(/*const SurfaceAccess&*/ dst, /*
 	var	srcSize		= [src.getWidth(), src.getHeight()];
 
 	// Coordinates and lod per triangle.
-	var	triS		= [ deInt32.swizzle(sq, [0, 1, 2]), deInt32.swizzle(sq, [3, 2, 1]) ];
-	var	triT		= [ deInt32.swizzle(tq, [0, 1, 2]), deInt32.swizzle(tq, [3, 2, 1]) ];
-	var	triR		= [ deInt32.swizzle(rq, [0, 1, 2]), deInt32.swizzle(rq, [3, 2, 1]) ];
+	var	triS		= [ deMath.swizzle(sq, [0, 1, 2]), deMath.swizzle(sq, [3, 2, 1]) ];
+	var	triT		= [ deMath.swizzle(tq, [0, 1, 2]), deMath.swizzle(tq, [3, 2, 1]) ];
+	var	triR		= [ deMath.swizzle(rq, [0, 1, 2]), deMath.swizzle(rq, [3, 2, 1]) ];
 	var		triLod	= [ computeNonProjectedTriLod(params.lodMode, dstSize, srcSize, triS[0], triT[0]) + lodBias,
 								computeNonProjectedTriLod(params.lodMode, dstSize, srcSize, triS[1], triT[1]) + lodBias];
 
@@ -969,10 +969,10 @@ var sampleTextureCube_str = function(/*const SurfaceAccess&*/ dst, /*const tcu::
 	var	srcSize			= src.getSize();
 
 	// Coordinates per triangle.
-	var		triS			= [ deInt32.swizzle(sq, [0, 1, 2]), deInt32.swizzle(sq, [3, 2, 1]) ];
-	var		triT			= [ deInt32.swizzle(tq, [0, 1, 2]), deInt32.swizzle(tq, [3, 2, 1]) ];
-	var		triR			= [ deInt32.swizzle(rq, [0, 1, 2]), deInt32.swizzle(rq, [3, 2, 1]) ];
-	var		triW			= [ deInt32.swizzle(params.w, [0, 1, 2]), deInt32.swizzle(params.w, [3, 2, 1]) ];
+	var		triS			= [ deMath.swizzle(sq, [0, 1, 2]), deMath.swizzle(sq, [3, 2, 1]) ];
+	var		triT			= [ deMath.swizzle(tq, [0, 1, 2]), deMath.swizzle(tq, [3, 2, 1]) ];
+	var		triR			= [ deMath.swizzle(rq, [0, 1, 2]), deMath.swizzle(rq, [3, 2, 1]) ];
+	var		triW			= [ deMath.swizzle(params.w, [0, 1, 2]), deMath.swizzle(params.w, [3, 2, 1]) ];
 
 	var			lodBias		= (params.flags.use_bias ? params.bias : 0);
 
@@ -996,7 +996,7 @@ var sampleTextureCube_str = function(/*const SurfaceAccess&*/ dst, /*const tcu::
 										 triDerivateY(triT[triNdx], triW[triNdx], wy, dstH, triNx),
 										 triDerivateY(triR[triNdx], triW[triNdx], wy, dstH, triNx)];
 
-			var		lod		= deInt32.clamp((computeCubeLodFromDerivates(params.lodMode, coord, coordDx, coordDy, srcSize) + lodBias), params.minLod, params.maxLod);
+			var		lod		= deMath.clamp((computeCubeLodFromDerivates(params.lodMode, coord, coordDx, coordDy, srcSize) + lodBias), params.minLod, params.maxLod);
 
 			var pixel  = execSample(src, params, coord, lod);
 			dst.setPixel(applyScaleAndBias(pixel, params.colorScale, params.colorBias), px, py);
@@ -1030,11 +1030,11 @@ var sampleTextureNonProjected3D = function(/*const SurfaceAccess&*/ dst, /*const
 	var	srcSize		= [src.getWidth(), src.getHeight(), src.getDepth()];
 
 	// Coordinates and lod per triangle.
-	var	triS		= [ deInt32.swizzle(sq, [0, 1, 2]), deInt32.swizzle(sq, [3, 2, 1]) ];
-	var	triT		= [ deInt32.swizzle(tq, [0, 1, 2]), deInt32.swizzle(tq, [3, 2, 1]) ];
-	var	triR		= [ deInt32.swizzle(rq, [0, 1, 2]), deInt32.swizzle(rq, [3, 2, 1]) ];
-	var triLod	= [ deInt32.clamp((computeNonProjectedTriLod(params.lodMode, dstSize, srcSize, triS[0], triT[0], triR[0]) + lodBias), params.minLod, params.maxLod),
-								deInt32.clamp((computeNonProjectedTriLod(params.lodMode, dstSize, srcSize, triS[1], triT[1], triR[1]) + lodBias), params.minLod, params.maxLod) ];
+	var	triS		= [ deMath.swizzle(sq, [0, 1, 2]), deMath.swizzle(sq, [3, 2, 1]) ];
+	var	triT		= [ deMath.swizzle(tq, [0, 1, 2]), deMath.swizzle(tq, [3, 2, 1]) ];
+	var	triR		= [ deMath.swizzle(rq, [0, 1, 2]), deMath.swizzle(rq, [3, 2, 1]) ];
+	var triLod	= [ deMath.clamp((computeNonProjectedTriLod(params.lodMode, dstSize, srcSize, triS[0], triT[0], triR[0]) + lodBias), params.minLod, params.maxLod),
+								deMath.clamp((computeNonProjectedTriLod(params.lodMode, dstSize, srcSize, triS[1], triT[1], triR[1]) + lodBias), params.minLod, params.maxLod) ];
 
 	for (var y = 0; y < dst.getHeight(); y++) {
 		for (var x = 0; x < dst.getWidth(); x++) {

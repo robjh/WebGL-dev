@@ -24,7 +24,7 @@ define([
     'framework/opengl/gluShaderProgram',
     'framework/opengl/gluShaderUtil',
     'framework/opengl/gluDrawUtil',
-    'framework/delibs/debase/deInt32',
+    'framework/delibs/debase/deMath',
     'framework/delibs/debase/deRandom',
     'framework/delibs/debase/deString'
 ],
@@ -33,7 +33,7 @@ function(
     deqpProgram, 
     deqpUtils, 
     deqpDraw, 
-    deInt32, 
+    deMath, 
     deRandom, 
     deString
 ) {
@@ -166,7 +166,7 @@ var TypeArray = function(elementType, arraySize) {
 */
 var VarType = function() {
     /** @type {Type} */ this.m_type = Type.TYPE_LAST;
-    /** @type {deInt32.deUint32} */ this.m_flags = 0;
+    /** @type {deMath.deUint32} */ this.m_flags = 0;
 
     /*
      * m_data used to be a 'Data' union in C++. Using a var is enough here.
@@ -180,7 +180,7 @@ var VarType = function() {
 /**
 * Creates a basic type VarType. Use this after the constructor call.
 * @param {deqpUtils.DataType} basicType
-* @param {deInt32.deUint32} flags
+* @param {deMath.deUint32} flags
 * @return {VarType} The currently modified object
 */
 VarType.prototype.VarTypeBasic = function(basicType, flags) {
@@ -278,7 +278,7 @@ VarType.prototype.getStruct = function() {
 /**
  * Creates a basic type VarType.
  * @param {deqpUtils.DataType} basicType
- * @param {deInt32.deUint32} flags
+ * @param {deMath.deUint32} flags
  * @return {VarType}
  */
 var newVarTypeBasic = function(basicType, flags) {
@@ -308,19 +308,19 @@ var newVarTypeStruct = function(structPtr) {
  * in the JSDoc annotations or if a number would do.
  * @param {string} name
  * @param {VarType} type
- * @param {deInt32.deUint32} flags
+ * @param {deMath.deUint32} flags
 **/
 var StructMember = function() {
     /** @type {string} */ this.m_name;
     /** @type {VarType} */ this.m_type;
-    /** @type {deInt32.deUint32} */ this.m_flags = 0;
+    /** @type {deMath.deUint32} */ this.m_flags = 0;
 };
 
 /**
  * Creates a StructMember. Use this after the constructor call.
  * @param {string} name
  * @param {VarType} type
- * @param {deInt32.deUint32} flags
+ * @param {deMath.deUint32} flags
  * @return {StructMember} The currently modified object
  */
 StructMember.prototype.Constructor = function(name, type, flags) {
@@ -342,7 +342,7 @@ StructMember.prototype.getName = function() { return this.m_name; };
 StructMember.prototype.getType = function() { return this.m_type; };
 
 /** getFlags
-* @return {deInt32.deUint32} the flags in the member
+* @return {deMath.deUint32} the flags in the member
 **/
 StructMember.prototype.getFlags = function() { return this.m_flags; };
 
@@ -411,7 +411,7 @@ StructType.prototype.getSize = function() {
 /** addMember
 * @param {string} member_name
 * @param {VarType} member_type
-* @param {deInt32.deUint32} member_flags
+* @param {deMath.deUint32} member_flags
 **/
 StructType.prototype.addMember = function(member_name, member_type, member_flags) {
     var member = newStructMember(member_name, member_type, member_flags);
@@ -431,12 +431,12 @@ var newStructType = function(name) {
 /** Uniform
  * @param {string} name
  * @param {VarType} type
- * @param {deInt32.deUint32} flags
+ * @param {deMath.deUint32} flags
 **/
 var Uniform = function(name, type, flags) {
     /** @type {string} */ this.m_name = name;
     /** @type {VarType} */ this.m_type = type;
-    /** @type {deInt32.deUint32} */ this.m_flags = (typeof flags === 'undefined') ? 0 : flags;
+    /** @type {deMath.deUint32} */ this.m_flags = (typeof flags === 'undefined') ? 0 : flags;
 };
 
 /** getName
@@ -454,7 +454,7 @@ Uniform.prototype.getType = function() {
 };
 
 /** getFlags
-* @return {deInt32.deUint32}
+* @return {deMath.deUint32}
 **/
 Uniform.prototype.getFlags = function() {
     return this.m_flags;
@@ -468,7 +468,7 @@ var UniformBlock = function(blockName) {
     /** @type {string} */ this.m_instanceName;
     /** @type {Array.<Uniform>} */ this.m_uniforms = [];
     /** @type {number} */ this.m_arraySize = 0; //!< Array size or 0 if not interface block array.
-    /** @type {deInt32.deUint32} */ this.m_flags = 0;
+    /** @type {deMath.deUint32} */ this.m_flags = 0;
 };
 
 /** getBlockName
@@ -500,7 +500,7 @@ UniformBlock.prototype.getArraySize = function() {
 };
 
 /** getFlags
-* @return {deInt32.deUint32}
+* @return {deMath.deUint32}
 **/
 UniformBlock.prototype.getFlags = function() {
     return this.m_flags;
@@ -514,7 +514,7 @@ UniformBlock.prototype.setInstanceName = function(name) {
 };
 
 /** setFlags
-* @param {deInt32.deUint32} flags
+* @param {deMath.deUint32} flags
 **/
 UniformBlock.prototype.setFlags = function(flags) {
     this.m_flags = flags;
@@ -689,12 +689,12 @@ BufferMode.BUFFERMODE_LAST = Object.keys(BufferMode).length;
 
 /**
  * PrecisionFlagsFmt
- * @param {deInt32.deUint32} flags
+ * @param {deMath.deUint32} flags
  * @return {string}
  */
 var PrecisionFlagsFmt = function(flags) {
     // Precision.
-    DE_ASSERT(deInt32.dePop32(flags & (UniformFlags.PRECISION_LOW | UniformFlags.PRECISION_MEDIUM | UniformFlags.PRECISION_HIGH)) <= 1);
+    DE_ASSERT(deMath.dePop32(flags & (UniformFlags.PRECISION_LOW | UniformFlags.PRECISION_MEDIUM | UniformFlags.PRECISION_HIGH)) <= 1);
     var str = '';
     str += (flags & UniformFlags.PRECISION_LOW ? 'lowp' :
             flags & UniformFlags.PRECISION_MEDIUM ? 'mediump' :
@@ -705,7 +705,7 @@ var PrecisionFlagsFmt = function(flags) {
 
 /**
  * LayoutFlagsFmt
- * @param {deInt32.deUint32} flags
+ * @param {deMath.deUint32} flags
  * @return {string}
  */
 var LayoutFlagsFmt = function(flags_) {
@@ -719,7 +719,7 @@ var LayoutFlagsFmt = function(flags_) {
         { bit: UniformFlags.LAYOUT_COLUMN_MAJOR, token: 'column_major' }
     ];
 
-    /** @type {deInt32.deUint32} */ var remBits = flags_;
+    /** @type {deMath.deUint32} */ var remBits = flags_;
     for (var descNdx = 0; descNdx < bitDesc.length; descNdx++)
     {
         if (remBits & bitDesc[descNdx].bit)
@@ -737,15 +737,15 @@ var LayoutFlagsFmt = function(flags_) {
 
 var UniformBufferManager = function(renderCtx) {
     this.m_renderCtx = renderCtx;
-    /** @type {deInt32.deUint32} */ this.m_buffers = [];
+    /** @type {deMath.deUint32} */ this.m_buffers = [];
 };
 
 /**
  * allocBuffer
- * @return {deInt32.deUint32}
+ * @return {deMath.deUint32}
  */
 UniformBufferManager.prototype.allocBuffer = function() {
-    /** @type {deInt32.deUint32} */ var buf = this.m_renderCtx.createBuffer();
+    /** @type {deMath.deUint32} */ var buf = this.m_renderCtx.createBuffer();
 
     this.m_buffers.push(buf);
     GLU_EXPECT_NO_ERROR(this.m_renderCtx.getError(), 'Failed to allocate uniform buffer');
@@ -883,16 +883,16 @@ var computeStd140BaseAlignment = function(type) {
 
 /**
  * mergeLayoutflags
- * @param {deInt32.deUint32} prevFlags
- * @param {deInt32.deUint32} newFlags
- * @return {deInt32.deUint32}
+ * @param {deMath.deUint32} prevFlags
+ * @param {deMath.deUint32} newFlags
+ * @return {deMath.deUint32}
  */
 var mergeLayoutFlags = function(prevFlags, newFlags)
 {
-    /** @type {deInt32.deUint32} */ var packingMask = UniformLayout.LAYOUT_PACKED | UniformLayout.LAYOUT_SHARED | UniformLayout.LAYOUT_STD140;
-    /** @type {deInt32.deUint32} */ var matrixMask = UniformLayout.LAYOUT_ROW_MAJOR | UniformLayout.LAYOUT_COLUMN_MAJOR;
+    /** @type {deMath.deUint32} */ var packingMask = UniformLayout.LAYOUT_PACKED | UniformLayout.LAYOUT_SHARED | UniformLayout.LAYOUT_STD140;
+    /** @type {deMath.deUint32} */ var matrixMask = UniformLayout.LAYOUT_ROW_MAJOR | UniformLayout.LAYOUT_COLUMN_MAJOR;
 
-    /** @type {deInt32.deUint32} */ var mergedFlags = 0;
+    /** @type {deMath.deUint32} */ var mergedFlags = 0;
 
     mergedFlags |= ((newFlags & packingMask) ? newFlags : prevFlags) & packingMask;
     mergedFlags |= ((newFlags & matrixMask) ? newFlags : prevFlags) & matrixMask;
@@ -907,14 +907,14 @@ var mergeLayoutFlags = function(prevFlags, newFlags)
  * @param {number} curBlockNdx
  * @param {string} curPrefix
  * @param {VarType} type
- * @param {deInt32.deUint32} layoutFlags
+ * @param {deMath.deUint32} layoutFlags
  * @return {number} //This is what would return in the curOffset output parameter in the original C++ project.
  */
 var computeStd140Layout_B = function(layout, curOffset, curBlockNdx, curPrefix, type, layoutFlags)
 {
     /** @type {number} */ var baseAlignment = computeStd140BaseAlignment(type);
 
-    curOffset = deInt32.deAlign32(curOffset, baseAlignment);
+    curOffset = deMath.deAlign32(curOffset, baseAlignment);
 
     if (type.isBasicType())
     {
@@ -1019,7 +1019,7 @@ var computeStd140Layout_B = function(layout, curOffset, curBlockNdx, curPrefix, 
             curOffset = computeStd140Layout_B(layout, curOffset, curBlockNdx, curPrefix + '.' + memberIter.getName(), memberIter.getType(), layoutFlags);
         }
 
-        curOffset = deInt32.deAlign32(curOffset, baseAlignment);
+        curOffset = deMath.deAlign32(curOffset, baseAlignment);
     }
 
     return curOffset;
@@ -1149,7 +1149,7 @@ var generateValue = function(entry, basePtr, rnd)
  * generateValues
  * @param {UniformLayout} layout
  * @param {BlockPointers} blockPointers
- * @param {deInt32.deUint32} seed
+ * @param {deMath.deUint32} seed
  */
 var generateValues = function(layout, blockPointers, seed)
 {
@@ -1389,11 +1389,11 @@ var generateLocalDeclaration = function(structType, indentLevel) {
  * @param {VarType} type
  * @param {string} name
  * @param {number} indentLevel
- * @param {deInt32.deUint32} unusedHints
+ * @param {deMath.deUint32} unusedHints
  */
 var generateDeclaration_B = function(type, name, indentLevel, unusedHints) {
     /** @type {string} */ var src = '';
-    /** @type {deInt32.deUint32} */ var flags = type.getFlags();
+    /** @type {deMath.deUint32} */ var flags = type.getFlags();
 
     if ((flags & UniformFlags.LAYOUT_MASK) != 0)
         src += 'layout(' + LayoutFlagsFmt(flags & UniformFlags.LAYOUT_MASK) + ') ';
@@ -1606,7 +1606,7 @@ var generateValueSrc = function(entry, basePtr, elementNdx) {
  * @param {string} apiName
  * @param {UniformLayout} layout
  * @param {Uint8Array} basePtr
- * @param {deInt32.deUint32} unusedMask
+ * @param {deMath.deUint32} unusedMask
  */
 var generateCompareSrc_A = function(resultVar, type, srcName, apiName, layout, basePtr, unusedMask) {
     /** @type {string} */ var src = '';
@@ -1677,7 +1677,7 @@ var generateCompareSrc_A = function(resultVar, type, srcName, apiName, layout, b
  */
 var generateCompareSrc = function(resultVar, sinterface, layout, blockPointers, isVertex) {
     /** @type {string} */ var src = '';
-    /** @type {deInt32.deUint32} */ var unusedMask = isVertex ? UniformFlags.UNUSED_VERTEX : UniformFlags.UNUSED_FRAGMENT;
+    /** @type {deMath.deUint32} */ var unusedMask = isVertex ? UniformFlags.UNUSED_VERTEX : UniformFlags.UNUSED_FRAGMENT;
 
     for (var blockNdx = 0; blockNdx < sinterface.getNumUniformBlocks(); blockNdx++)
     {
@@ -2010,6 +2010,7 @@ var copyUniformData = function(dstLayout, dstBlockPointers, srcLayout, srcBlockP
 };
 
  /**
+  * TODO: Test with an actual WebGL 2.0 context
   * iterate - The actual execution of the test.
   * @return {deqpTest.IterateResult}
   */
@@ -2053,8 +2054,8 @@ var copyUniformData = function(dstLayout, dstBlockPointers, srcLayout, srcBlockP
     if (!program.isOk())
     {
         // Compile failed.
-        testFailedOptions('Compile failed', true);
-        return deqpTests.IterateResult.STOP;
+        testFailedOptions('Compile failed', false);
+        return deqpTests.runner.IterateResult.STOP;
     }
 
     // Query layout from GL.
@@ -2073,8 +2074,8 @@ var copyUniformData = function(dstLayout, dstBlockPointers, srcLayout, srcBlockP
     // Check that we can even try rendering with given layout.
     if (!this.checkLayoutIndices(glLayout) || !this.checkLayoutBounds(glLayout) || !this.compareTypes(refLayout, glLayout))
     {
-        testFailedOptions('Invalid layout', true);
-        return deqpTests.IterateResult.STOP; // It is not safe to use the given layout.
+        testFailedOptions('Invalid layout', false);
+        return deqpTests.runner.IterateResult.STOP; // It is not safe to use the given layout.
     }
 
     // Verify all std140 blocks.
@@ -2095,7 +2096,7 @@ var copyUniformData = function(dstLayout, dstBlockPointers, srcLayout, srcBlockP
     // Assign binding points to all active uniform blocks.
     for (var blockNdx = 0; blockNdx < glLayout.blocks.length; blockNdx++)
     {
-        /** @type {deInt32.deUint32} */ var binding = blockNdx; // \todo [2012-01-25 pyry] Randomize order?
+        /** @type {deMath.deUint32} */ var binding = blockNdx; // \todo [2012-01-25 pyry] Randomize order?
         gl.uniformBlockBinding(program.getProgram(), blockNdx, binding);
     }
 
@@ -2125,8 +2126,8 @@ var copyUniformData = function(dstLayout, dstBlockPointers, srcLayout, srcBlockP
 
         for (var blockNdx = 0; blockNdx < numBlocks; blockNdx++)
         {
-            /** @type {deInt32.deUint32} */ var buffer = bufferManager.allocBuffer();
-            /** @type {deInt32.deUint32} */ var binding = blockNdx;
+            /** @type {deMath.deUint32} */ var buffer = bufferManager.allocBuffer();
+            /** @type {deMath.deUint32} */ var binding = blockNdx;
 
             gl.bindBuffer(gl.UNIFORM_BUFFER, buffer);
             gl.bufferData(gl.UNIFORM_BUFFER, glBlockPointers.find(blockNdx) /*(glw::GLsizeiptr)glData[blockNdx].size(), &glData[blockNdx][0]*/, gl.STATIC_DRAW);
@@ -2153,7 +2154,7 @@ var copyUniformData = function(dstLayout, dstBlockPointers, srcLayout, srcBlockP
         for (var blockNdx = 0; blockNdx < numBlocks; blockNdx++)
         {
             if (bindingAlignment > 0)
-                curOffset = deInt32.deRoundUp32(curOffset, bindingAlignment);
+                curOffset = deMath.deRoundUp32(curOffset, bindingAlignment);
             glBlockPointers.push(curOffset, glLayout.blocks[blockNdx].size);
             curOffset += glLayout.blocks[blockNdx].size;
         }
@@ -2164,7 +2165,7 @@ var copyUniformData = function(dstLayout, dstBlockPointers, srcLayout, srcBlockP
         copyUniformData(glLayout, glBlockPointers, refLayout, blockPointers);
 
         // Allocate buffer and upload data.
-        /** @type {deInt32.deUint32} */ var buffer = bufferManager.allocBuffer();
+        /** @type {deMath.deUint32} */ var buffer = bufferManager.allocBuffer();
         gl.bindBuffer(gl.UNIFORM_BUFFER, buffer);
         if (glBlockPointers.data.length > 0 /*!glData.empty()*/)
             gl.bufferData(gl.UNIFORM_BUFFER, glBlockPointers.find(blockNdx) /*(glw::GLsizeiptr)glData.size(), &glData[0]*/, gl.STATIC_DRAW);
@@ -2174,7 +2175,7 @@ var copyUniformData = function(dstLayout, dstBlockPointers, srcLayout, srcBlockP
         // Bind ranges to binding points.
         for (var blockNdx = 0; blockNdx < numBlocks; blockNdx++)
         {
-            /** @type {deInt32.deUint32} */ var binding = blockNdx;
+            /** @type {deMath.deUint32} */ var binding = blockNdx;
             gl.bindBufferRange(gl.UNIFORM_BUFFER, binding, buffer, glBlockPointers.offsets[blockNdx], glLayout.blocks[blockNdx].size);
             GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindBufferRange(GL_UNIFORM_BUFFER) failed');
         }
@@ -2182,9 +2183,9 @@ var copyUniformData = function(dstLayout, dstBlockPointers, srcLayout, srcBlockP
 
     /** @type {boolean} */ var renderOk = this.render(program.getProgram());
     if (!renderOk)
-        testFailedOptions('Image compare failed', true);
+        testFailedOptions('Image compare failed', false);
 
-    return deqpTests.IterateResult.STOP;
+    return deqpTests.runner.IterateResult.STOP;
 };
 
 /**
@@ -2420,7 +2421,7 @@ UniformBlockCase.prototype.checkLayoutIndices = function(layout) {
     {
         /** @type {UniformLayoutEntry} */ var uniform = layout.uniforms[uniformNdx];
 
-        if (uniform.blockNdx < 0 || !deInt32.deInBounds32(uniform.blockNdx, 0, numBlocks))
+        if (uniform.blockNdx < 0 || !deMath.deInBounds32(uniform.blockNdx, 0, numBlocks))
         {
             bufferedLogToConsole("Error: Invalid block index in uniform '" + uniform.name + "'");
             isOk = false;
@@ -2435,7 +2436,7 @@ UniformBlockCase.prototype.checkLayoutIndices = function(layout) {
         for (var uniformNdx = 0; uniformNdx < block.activeUniformIndices.length; uniformNdx++)
         {
             /** @type {UniformLayoutEntry} */ var activeUniformNdx = block.activeUniformIndices[uniformNdx];
-            if (!deInt32.deInBounds32(activeUniformNdx, 0, numUniforms))
+            if (!deMath.deInBounds32(activeUniformNdx, 0, numUniforms))
             {
                 bufferedLogToConsole('Error: Invalid active uniform index ' + activeUniformNdx + " in block '" + block.name);
                 isOk = false;

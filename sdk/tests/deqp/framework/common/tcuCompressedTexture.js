@@ -27,7 +27,7 @@
  * \param texFormat Generic texture format.
  * \return GL pixel transfer format.
  *//*--------------------------------------------------------------------*/
-define(['framework/common/tcuTexture', 'framework/delibs/debase/deInt32'], function(tcuTexture, deInt32) {
+define(['framework/common/tcuTexture', 'framework/delibs/debase/deMath'], function(tcuTexture, deMath) {
 
 	var DE_ASSERT = function(x) {
 		if (!x)
@@ -265,14 +265,14 @@ var decompressEAC11Block = function(dst, src, signedMode)
 
 			if (signedMode)	{
 				if (multiplier != 0)
-					dst[dstOffset] = deInt32.clamp(baseCodeword*8 + multiplier*modifier*8, -1023, 1023);
+					dst[dstOffset] = deMath.clamp(baseCodeword*8 + multiplier*modifier*8, -1023, 1023);
 				else
-					dst[dstOffset] = deInt32.clamp(baseCodeword*8 + modifier, -1023, 1023);
+					dst[dstOffset] = deMath.clamp(baseCodeword*8 + modifier, -1023, 1023);
 			} else {
 				if (multiplier != 0)
-					dst[dstOffset] =deInt32.clamp(baseCodeword*8 + 4 + multiplier*modifier*8, 0, 2047);
+					dst[dstOffset] =deMath.clamp(baseCodeword*8 + 4 + multiplier*modifier*8, 0, 2047);
 				else
-					dst[dstOffset] = deInt32.clamp(baseCodeword*8 + 4 + modifier, 0, 2047);
+					dst[dstOffset] = deMath.clamp(baseCodeword*8 + 4 + modifier, 0, 2047);
 			}
 			pixelNdx++;
 		}
@@ -413,11 +413,11 @@ var decompressETC2Block = function(dst, src, alphaDst, alphaMode) {
 
 	if (!alphaMode && diffOpaqueBit == 0)
 		mode = Etc2Mode.MODE_INDIVIDUAL;
-	else if (!deInt32.deInRange32(selBR + selDR, 0, 31))
+	else if (!deMath.deInRange32(selBR + selDR, 0, 31))
 		mode = Etc2Mode.MODE_T;
-	else if (!deInt32.deInRange32(selBG + selDG, 0, 31))
+	else if (!deMath.deInRange32(selBG + selDG, 0, 31))
 		mode = Etc2Mode.MODE_H;
-	else if (!deInt32.deInRange32(selBB + selDB, 0, 31))
+	else if (!deMath.deInRange32(selBB + selDB, 0, 31))
 		mode = Etc2Mode.MODE_PLANAR;
 	else
 		mode = Etc2Mode.MODE_DIFFERENTIAL;
@@ -487,9 +487,9 @@ var decompressETC2Block = function(dst, src, alphaDst, alphaMode) {
 					else
 						modifier = modifierTable[tableNdx][modifierNdx];
 
-					dst[dstOffset+0] = deInt32.clamp(baseR[subBlock] + modifier, 0, 255);
-					dst[dstOffset+1] = deInt32.clamp(baseG[subBlock] + modifier, 0, 255);
-					dst[dstOffset+2] = deInt32.clamp(baseB[subBlock] + modifier, 0, 255);
+					dst[dstOffset+0] = deMath.clamp(baseR[subBlock] + modifier, 0, 255);
+					dst[dstOffset+1] = deMath.clamp(baseG[subBlock] + modifier, 0, 255);
+					dst[dstOffset+2] = deMath.clamp(baseB[subBlock] + modifier, 0, 255);
 
 					if (alphaMode)
 						alphaDst[alphaDstOffset] = 255;
@@ -522,12 +522,12 @@ var decompressETC2Block = function(dst, src, alphaDst, alphaMode) {
 			paintR[2] = extend4To8(R2);
 			paintG[2] = extend4To8(G2);
 			paintB[2] = extend4To8(B2);
-			paintR[1] = deInt32.clamp(paintR[2] + dist, 0, 255);
-			paintG[1] = deInt32.clamp(paintG[2] + dist, 0, 255);
-			paintB[1] = deInt32.clamp(paintB[2] + dist, 0, 255);
-			paintR[3] = deInt32.clamp(paintR[2] - dist, 0, 255);
-			paintG[3] = deInt32.clamp(paintG[2] - dist, 0, 255);
-			paintB[3] = deInt32.clamp(paintB[2] - dist, 0, 255);
+			paintR[1] = deMath.clamp(paintR[2] + dist, 0, 255);
+			paintG[1] = deMath.clamp(paintG[2] + dist, 0, 255);
+			paintB[1] = deMath.clamp(paintB[2] + dist, 0, 255);
+			paintR[3] = deMath.clamp(paintR[2] - dist, 0, 255);
+			paintG[3] = deMath.clamp(paintG[2] - dist, 0, 255);
+			paintB[3] = deMath.clamp(paintB[2] - dist, 0, 255);
 		}
 		else
 		{
@@ -560,18 +560,18 @@ var decompressETC2Block = function(dst, src, alphaDst, alphaMode) {
 				distNdx += 1;
 			dist			= distTable[distNdx];
 
-			paintR[0]		= deInt32.clamp(baseR[0] + dist, 0, 255);
-			paintG[0]		= deInt32.clamp(baseG[0] + dist, 0, 255);
-			paintB[0]		= deInt32.clamp(baseB[0] + dist, 0, 255);
-			paintR[1]		= deInt32.clamp(baseR[0] - dist, 0, 255);
-			paintG[1]		= deInt32.clamp(baseG[0] - dist, 0, 255);
-			paintB[1]		= deInt32.clamp(baseB[0] - dist, 0, 255);
-			paintR[2]		= deInt32.clamp(baseR[1] + dist, 0, 255);
-			paintG[2]		= deInt32.clamp(baseG[1] + dist, 0, 255);
-			paintB[2]		= deInt32.clamp(baseB[1] + dist, 0, 255);
-			paintR[3]		= deInt32.clamp(baseR[1] - dist, 0, 255);
-			paintG[3]		= deInt32.clamp(baseG[1] - dist, 0, 255);
-			paintB[3]		= deInt32.clamp(baseB[1] - dist, 0, 255);
+			paintR[0]		= deMath.clamp(baseR[0] + dist, 0, 255);
+			paintG[0]		= deMath.clamp(baseG[0] + dist, 0, 255);
+			paintB[0]		= deMath.clamp(baseB[0] + dist, 0, 255);
+			paintR[1]		= deMath.clamp(baseR[0] - dist, 0, 255);
+			paintG[1]		= deMath.clamp(baseG[0] - dist, 0, 255);
+			paintB[1]		= deMath.clamp(baseB[0] - dist, 0, 255);
+			paintR[2]		= deMath.clamp(baseR[1] + dist, 0, 255);
+			paintG[2]		= deMath.clamp(baseG[1] + dist, 0, 255);
+			paintB[2]		= deMath.clamp(baseB[1] + dist, 0, 255);
+			paintR[3]		= deMath.clamp(baseR[1] - dist, 0, 255);
+			paintG[3]		= deMath.clamp(baseG[1] - dist, 0, 255);
+			paintB[3]		= deMath.clamp(baseB[1] - dist, 0, 255);
 		}
 
 		// Write final pixels for T or H mode.
@@ -588,9 +588,9 @@ var decompressETC2Block = function(dst, src, alphaDst, alphaMode) {
 					dst[dstOffset+2]			= 0;
 					alphaDst[alphaDstOffset]	= 0;
 				} else {
-					dst[dstOffset+0] = deInt32.clamp(paintR[paintNdx], 0, 255);
-					dst[dstOffset+1] = deInt32.clamp(paintG[paintNdx], 0, 255);
-					dst[dstOffset+2] = deInt32.clamp(paintB[paintNdx], 0, 255);
+					dst[dstOffset+0] = deMath.clamp(paintR[paintNdx], 0, 255);
+					dst[dstOffset+1] = deMath.clamp(paintG[paintNdx], 0, 255);
+					dst[dstOffset+2] = deMath.clamp(paintB[paintNdx], 0, 255);
 
 					if (alphaMode)
 						alphaDst[alphaDstOffset] = 255;
@@ -629,9 +629,9 @@ var decompressETC2Block = function(dst, src, alphaDst, alphaMode) {
 				 var unclampedB		= (x * (BH-BO) + y * (BV-BO) + 4*BO + 2) / 4;
 				 var alphaDstOffset	= (y*ETC2_BLOCK_WIDTH + x)*ETC2_UNCOMPRESSED_PIXEL_SIZE_A8; // Only needed for PUNCHTHROUGH version.
 
-				dst[dstOffset+0] = deInt32.clamp(unclampedR, 0, 255);
-				dst[dstOffset+1] = deInt32.clamp(unclampedG, 0, 255);
-				dst[dstOffset+2] = deInt32.clamp(unclampedB, 0, 255);
+				dst[dstOffset+0] = deMath.clamp(unclampedR, 0, 255);
+				dst[dstOffset+1] = deMath.clamp(unclampedG, 0, 255);
+				dst[dstOffset+2] = deMath.clamp(unclampedB, 0, 255);
 
 				if (alphaMode)
 					alphaDst[alphaDstOffset] = 255;
@@ -672,7 +672,7 @@ var decompressEAC8Block = function(dst, src) {
 			var	modifierNdx		= (getBit64(src, pixelBitNdx + 2) << 2) | (getBit64(src, pixelBitNdx + 1) << 1) | getBit64(src, pixelBitNdx);
 			var	modifier		= modifierTable[tableNdx][modifierNdx];
 
-			dst[dstOffset] = deInt32.clamp(baseCodeword + multiplier*modifier, 0, 255);
+			dst[dstOffset] = deMath.clamp(baseCodeword + multiplier*modifier, 0, 255);
 		}
 	}
 };

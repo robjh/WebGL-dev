@@ -73,6 +73,7 @@ return {
     runCallback: runCallback,
     getState: getState,
     terminate: terminate,
+    IterateResult: IterateResult,
     none: false
 };
 }());
@@ -90,6 +91,8 @@ var DeqpTest = function(name, description, spec) {
     this.currentTest = 0;
     this.parentTest = null;
 };
+
+/** @type {stateMachine.IterateResult} static property */ DeqpTest.lastResult = stateMachine.IterateResult.STOP;
 
  DeqpTest.prototype.addChild = function(test) {
     test.parentTest = this;
@@ -199,10 +202,71 @@ var newTest = function(name, description, spec) {
     return test;
 };
 
+/**
+ * Reads the filter parameter from the URL to filter tests.
+ */
+var getFilter = function() {
+    var queryVars = window.location.search.substring(1).split('&');
+
+    for (var i = 0; i < queryVars.length; i++) {
+        var value = queryVars[i].split('=');
+        if (decodeURIComponent(value[0]) === 'filter')
+            return decodeURIComponent(value[1]);
+    }
+}
+
+/**
+ * Run through the test cases giving time to system operation.
+ */
+var runTestCases = function() {
+    var state = stateMachine.getState();
+
+    //Should we proceed with the next test?
+    state.currentTest = DeqpTest.lastResult == stateMachine.IterateResult.STOP ? state.testCases.next(state.filter) : state.currentTest;
+    if (state.currentTest) {
+        try
+        {
+            //If proceeding with the next test, prepare it.
+            if (DeqpTest.lastResult == stateMachine.IterateResult.STOP)
+            {
+                //Update current test name
+                var fullTestName = state.currentTest.fullName();
+                setCurrentTestName(fullTestName);
+                debug('Start testcase: ' + fullTestName);
+
+                //TODO: Improve this
+                //Initialize particular test if it exposes an init method
+                if (state.currentTest.init !== undefined)
+                    state.currentTest.init();
+                else if (state.currentTest.spec !== undefined && state.currentTest.spec.init !== undefined)
+                    state.currentTest.spec.init();
+            }
+
+            //TODO: Improve this
+            //Run the test, save the result.
+            if (state.currentTest.iterate !== undefined)
+                DeqpTest.lastResult = state.currentTest.iterate();
+            else if (state.currentTest.spec !== undefined && state.currentTest.spec.iterate !== undefined)
+                DeqpTest.lastResult = state.currentTest.spec.iterate();
+        } 
+        catch (err)
+        {
+            //If the exception was not thrown by a test check, log it, but don't throw it again
+            if (!(err instanceof TestFailedException))
+                testFailedOptions(err.message, false);
+            bufferedLogToConsole(err);
+        }
+        stateMachine.runCallback(runTestCases);
+    } else
+        stateMachine.terminate();
+};
+
 return {
     DeqpTest: DeqpTest,
     runner: stateMachine,
-    newTest: newTest
+    newTest: newTest,
+    getFilter: getFilter,
+    runTestCases: runTestCases
 };
 
 });

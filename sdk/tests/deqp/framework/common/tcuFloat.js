@@ -18,7 +18,7 @@
  *
  */
 
-define(['framework/delibs/debase/deInt32'], function(deInt32)  {
+define(['framework/delibs/debase/deMath'], function(deMath)  {
 'use strict';
 
 var DE_ASSERT = function(x) {
@@ -502,7 +502,7 @@ FloatDescription.prototype.convert = function(other) {
             }
             else
             {
-                DE_ASSERT(deInt32.deInRange32(e, eMin, eMax));
+                DE_ASSERT(deMath.deInRange32(e, eMin, eMax));
                 DE_ASSERT(binaryOp((e + this.ExponentBias), binaryNot(shiftLeft(1, this.ExponentBits) - 1), BinaryOp.AND) == 0);
                 DE_ASSERT(binaryOp(m, binaryNot(shiftLeft(1, this.MantissaBits) - 1), BinaryOp.AND) == 0);
 

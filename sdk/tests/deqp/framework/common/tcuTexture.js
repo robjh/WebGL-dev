@@ -18,7 +18,7 @@
  *
  */
 
-define(['framework/delibs/debase/deInt32'], function(deInt32)  {
+define(['framework/delibs/debase/deMath'], function(deMath)  {
 'use strict';
 
 	var DE_ASSERT = function(x) {
@@ -475,7 +475,7 @@ var unnormalize = function(/*Sampler::WrapMode*/ mode, c, /*int*/ size) {
 			return size * (c - Math.floor(c));
 
 		case WrapMode.MIRRORED_REPEAT_CL:
-			return size * Math.abs(c - 2 * deInt32.rint(0.5 * c));
+			return size * Math.abs(c - 2 * deMath.rint(0.5 * c));
 	}
 	throw new Error('Unrecognized wrap mode ' + mode);
 };
@@ -484,22 +484,22 @@ var wrap = function(/*Sampler::WrapMode*/ mode, /*int*/ c, /*int*/ size) {
 	switch (mode)
 	{
 		case WrapMode.CLAMP_TO_BORDER:
-			return deInt32.clamp(c, -1, size);
+			return deMath.clamp(c, -1, size);
 
 		case WrapMode.CLAMP_TO_EDGE:
-			return deInt32.clamp(c, 0, size-1);
+			return deMath.clamp(c, 0, size-1);
 
 		case WrapMode.REPEAT_GL:
-			return deInt32.imod(c, size);
+			return deMath.imod(c, size);
 
 		case WrapMode.REPEAT_CL:
-			return deInt32.imod(c, size);
+			return deMath.imod(c, size);
 
 		case WrapMode.MIRRORED_REPEAT_GL:
-			return (size - 1) - deInt32.mirror(deInt32.imod(c, 2*size) - size);
+			return (size - 1) - deMath.mirror(deMath.imod(c, 2*size) - size);
 
 		case WrapMode.MIRRORED_REPEAT_CL:
-			return deInt32.clamp(c, 0, size-1); // \note Actual mirroring done already in unnormalization function.
+			return deMath.clamp(c, 0, size-1); // \note Actual mirroring done already in unnormalization function.
 	}
 	throw new Error('Unrecognized wrap mode ' + mode);
 };
@@ -536,8 +536,8 @@ var sampleNearest2D = function (/*const ConstPixelBufferAccess&*/ access, /*cons
 	var y = Math.round(Math.floor(v));
 
 	// Check for CLAMP_TO_BORDER.
-	if ((sampler.wrapS == WrapMode.CLAMP_TO_BORDER && !deInt32.deInBounds32(x, 0, width)) ||
-		(sampler.wrapT == WrapMode.CLAMP_TO_BORDER && !deInt32.deInBounds32(y, 0, height)))
+	if ((sampler.wrapS == WrapMode.CLAMP_TO_BORDER && !deMath.deInBounds32(x, 0, width)) ||
+		(sampler.wrapT == WrapMode.CLAMP_TO_BORDER && !deMath.deInBounds32(y, 0, height)))
 		return sampler.borderColor;
 
 	var i = wrap(sampler.wrapS, x, width);
@@ -556,9 +556,9 @@ var sampleNearest3D = function(/*const ConstPixelBufferAccess&*/ access, /*const
 	var z = Math.round(Math.floor(w));
 
 	// Check for CLAMP_TO_BORDER.
-	if ((sampler.wrapS == WrapMode.CLAMP_TO_BORDER && !deInt32.deInBounds32(x, 0, width))	||
-		(sampler.wrapT == WrapMode.CLAMP_TO_BORDER && !deInt32.deInBounds32(y, 0, height))	||
-		(sampler.wrapR == WrapMode.CLAMP_TO_BORDER && !deInt32.deInBounds32(z, 0, depth)))
+	if ((sampler.wrapS == WrapMode.CLAMP_TO_BORDER && !deMath.deInBounds32(x, 0, width))	||
+		(sampler.wrapT == WrapMode.CLAMP_TO_BORDER && !deMath.deInBounds32(y, 0, height))	||
+		(sampler.wrapR == WrapMode.CLAMP_TO_BORDER && !deMath.deInBounds32(z, 0, depth)))
 		return sampler.borderColor;
 
 	var i = wrap(sampler.wrapS, x, width);
@@ -619,9 +619,9 @@ var  ConstPixelBufferAccess = function(descriptor) {
 	// console.log(this);
 	// console.log('(' + x + ',' + y + ',' + z + ')');
 
-	DE_ASSERT(deInt32.deInBounds32(x, 0, this.m_width));
-	DE_ASSERT(deInt32.deInBounds32(y, 0, this.m_height));
-	DE_ASSERT(deInt32.deInBounds32(z, 0, this.m_depth));
+	DE_ASSERT(deMath.deInBounds32(x, 0, this.m_width));
+	DE_ASSERT(deMath.deInBounds32(y, 0, this.m_height));
+	DE_ASSERT(deMath.deInBounds32(z, 0, this.m_depth));
 
 	var				pixelSize		= this.m_format.getPixelSize();
 	var arrayType = getTypedArray(this.m_format.type);
@@ -699,9 +699,9 @@ var  ConstPixelBufferAccess = function(descriptor) {
 	ConstPixelBufferAccess.prototype.getPixelInt = function(x, y, z) {
 		if (z == null)
 			z = 0;
-	DE_ASSERT(deInt32.deInBounds32(x, 0, this.m_width));
-	DE_ASSERT(deInt32.deInBounds32(y, 0, this.m_height));
-	DE_ASSERT(deInt32.deInBounds32(z, 0, this.m_depth));
+	DE_ASSERT(deMath.deInBounds32(x, 0, this.m_width));
+	DE_ASSERT(deMath.deInBounds32(y, 0, this.m_height));
+	DE_ASSERT(deMath.deInBounds32(z, 0, this.m_depth));
 
 	var				pixelSize		= this.m_format.getPixelSize();
 	var arrayType = getTypedArray(this.m_format.type);
@@ -775,7 +775,7 @@ var  ConstPixelBufferAccess = function(descriptor) {
 
 
 ConstPixelBufferAccess.prototype.sample2D = function(/*const Sampler&*/ sampler, /*Sampler::FilterMode*/ filter, s, t, /*int*/ depth) {
-	DE_ASSERT(deInt32.deInBounds32(depth, 0, this.m_depth));
+	DE_ASSERT(deMath.deInBounds32(depth, 0, this.m_depth));
 
 	// Non-normalized coordinates.
 	var u = s;
@@ -843,7 +843,7 @@ ConstPixelBufferAccess.prototype.sample3D = function(/*const Sampler&*/ sampler,
 var deTypes = {
 	deInt8: {min: -(1<<7), max: (1<<7) - 1},
 	deInt16: {min: -(1<<15), max: (1<<15) - 1},
-	deInt32: {min: -(1<<31), max: (1<<31) - 1},
+	deMath: {min: -(1<<31), max: (1<<31) - 1},
 	deUint8: {min: 0, max: (1<<8) - 1},
 	deUint16: {min: 0, max: (1<<16) - 1},
 	deUint32: {min: 0, max: 4294967295}
@@ -885,13 +885,13 @@ var floatToChannel = function(src, type) {
 	{
 		case ChannelType.SNORM_INT8: return convertSatRte(deTypes.deInt8, src * 127);
 		case ChannelType.SNORM_INT16: return convertSatRte(deTypes.deInt16, src * 32767);
-		case ChannelType.SNORM_INT32: return convertSatRte(deTypes.deInt32, src * 2147483647);
+		case ChannelType.SNORM_INT32: return convertSatRte(deTypes.deMath, src * 2147483647);
 		case ChannelType.UNORM_INT8: return convertSatRte(deTypes.deUint8, src * 255);
 		case ChannelType.UNORM_INT16: return convertSatRte(deTypes.deUint16, src * 65535);
 		case ChannelType.UNORM_INT32: return convertSatRte(deTypes.deUint32, src * 4294967295);
 		case ChannelType.SIGNED_INT8: return convertSatRte(deTypes.deInt8, src);
 		case ChannelType.SIGNED_INT16: return convertSatRte(deTypes.deInt16, src);
-		case ChannelType.SIGNED_INT32: return convertSatRte(deTypes.deInt32, src);
+		case ChannelType.SIGNED_INT32: return convertSatRte(deTypes.deMath, src);
 		case ChannelType.UNSIGNED_INT8: return convertSatRte(deTypes.deUint8, src);
 		case ChannelType.UNSIGNED_INT16: return convertSatRte(deTypes.deUint16, src);
 		case ChannelType.UNSIGNED_INT32: return convertSatRte(deTypes.deUint32, src);
@@ -920,9 +920,9 @@ PixelBufferAccess.prototype.constructor = PixelBufferAccess;
 PixelBufferAccess.prototype.setPixel = function(color, x, y, z) {
 		if (z == null)
 			z = 0;
-	DE_ASSERT(deInt32.deInBounds32(x, 0, this.m_width));
-	DE_ASSERT(deInt32.deInBounds32(y, 0, this.m_height));
-	DE_ASSERT(deInt32.deInBounds32(z, 0, this.m_depth));
+	DE_ASSERT(deMath.deInBounds32(x, 0, this.m_width));
+	DE_ASSERT(deMath.deInBounds32(y, 0, this.m_height));
+	DE_ASSERT(deMath.deInBounds32(z, 0, this.m_depth));
 
 	var				pixelSize		= this.m_format.getPixelSize();
 	var arrayType = getTypedArray(this.m_format.type);
@@ -1152,12 +1152,12 @@ var Texture2DView = function(numLevels, levels) {
 	Texture2DView.prototype.getNumLevels = function()	{ return this.m_numLevels;										};
 	Texture2DView.prototype.getWidth = function() 	{ return this.m_numLevels > 0 ? this.m_levels[0].getWidth()	: 0;	};
 	Texture2DView.prototype.getHeight = function() { return this.m_numLevels > 0 ? this.m_levels[0].getHeight()	: 0;	};
-	/*const ConstPixelBufferAccess&*/ Texture2DView.prototype.getLevel	= function(ndx) { DE_ASSERT(deInt32.deInBounds32(ndx, 0, this.m_numLevels)); return this.m_levels[ndx];	};
+	/*const ConstPixelBufferAccess&*/ Texture2DView.prototype.getLevel	= function(ndx) { DE_ASSERT(deMath.deInBounds32(ndx, 0, this.m_numLevels)); return this.m_levels[ndx];	};
 	/*const ConstPixelBufferAccess**/ Texture2DView.prototype.getLevels	= function() { return this.m_levels;											};
 
 Texture2DView.prototype.getSubView = function(baseLevel, maxLevel) {
-	var	clampedBase	= deInt32.clamp(baseLevel, 0, this.m_numLevels-1);
-	var	clampedMax	= deInt32.clamp(maxLevel, clampedBase, this.m_numLevels-1);
+	var	clampedBase	= deMath.clamp(baseLevel, 0, this.m_numLevels-1);
+	var	clampedMax	= deMath.clamp(maxLevel, clampedBase, this.m_numLevels-1);
 	var	numLevels	= clampedMax-clampedBase+1;
 	return new Texture2DView(numLevels, this.m_levels.slice(clampedBase,numLevels));
 };
@@ -1185,12 +1185,12 @@ var Texture2DArrayView = function(numLevels, levels) {
 	Texture2DArrayView.prototype.getWidth = function() 	{ return this.m_numLevels > 0 ? this.m_levels[0].getWidth()	: 0;	};
 	Texture2DArrayView.prototype.getHeight = function() { return this.m_numLevels > 0 ? this.m_levels[0].getHeight()	: 0;	};
 	Texture2DArrayView.prototype.getNumLayers = function() { return this.m_numLevels > 0 ? this.m_levels[0].getDepth()	: 0;	};
-	/*const ConstPixelBufferAccess&*/ Texture2DArrayView.prototype.getLevel	= function(ndx) { DE_ASSERT(deInt32.deInBounds32(ndx, 0, this.m_numLevels)); return this.m_levels[ndx];	};
+	/*const ConstPixelBufferAccess&*/ Texture2DArrayView.prototype.getLevel	= function(ndx) { DE_ASSERT(deMath.deInBounds32(ndx, 0, this.m_numLevels)); return this.m_levels[ndx];	};
 	/*const ConstPixelBufferAccess**/ Texture2DArrayView.prototype.getLevels	= function() { return this.m_levels;											};
 
 Texture2DArrayView.prototype.selectLayer = function(r) {
 	DE_ASSERT(this.m_numLevels > 0 && this.m_levels);
-	return deInt32.clamp(Math.round(r), 0, this.m_levels[0].getDepth()-1);
+	return deMath.clamp(Math.round(r), 0, this.m_levels[0].getDepth()-1);
 };
 
 Texture2DArrayView.prototype.sample = function(/*const Sampler&*/ sampler, texCoord, lod) {
@@ -1207,12 +1207,12 @@ var Texture3DView = function(numLevels, levels) {
 	Texture3DView.prototype.getWidth = function() 	{ return this.m_numLevels > 0 ? this.m_levels[0].getWidth()	: 0;	};
 	Texture3DView.prototype.getHeight = function() { return this.m_numLevels > 0 ? this.m_levels[0].getHeight()	: 0;	};
 	Texture3DView.prototype.getDepth = function() { return this.m_numLevels > 0 ? this.m_levels[0].getDepth()	: 0;	};
-	/*const ConstPixelBufferAccess&*/ Texture3DView.prototype.getLevel	= function(ndx) { DE_ASSERT(deInt32.deInBounds32(ndx, 0, this.m_numLevels)); return this.m_levels[ndx];	};
+	/*const ConstPixelBufferAccess&*/ Texture3DView.prototype.getLevel	= function(ndx) { DE_ASSERT(deMath.deInBounds32(ndx, 0, this.m_numLevels)); return this.m_levels[ndx];	};
 	/*const ConstPixelBufferAccess**/ Texture3DView.prototype.getLevels	= function() { return this.m_levels;											};
 
 Texture3DView.prototype.getSubView = function(baseLevel, maxLevel) {
-	var	clampedBase	= deInt32.clamp(baseLevel, 0, this.m_numLevels-1);
-	var	clampedMax	= deInt32.clamp(maxLevel, clampedBase, this.m_numLevels-1);
+	var	clampedBase	= deMath.clamp(baseLevel, 0, this.m_numLevels-1);
+	var	clampedMax	= deMath.clamp(maxLevel, clampedBase, this.m_numLevels-1);
 	var	numLevels	= clampedMax-clampedBase+1;
 	return new Texture3DView(numLevels, this.m_levels.slice(clampedBase,numLevels));
 };
@@ -1252,7 +1252,7 @@ Texture2D.prototype.constructor = Texture2D;
 Texture2D.prototype.getSubView = function(baseLevel, maxLevel) { return this.m_view.getSubView(baseLevel, maxLevel); }
 Texture2D.prototype.allocLevel = function(levelNdx) {
 	console.log('In Texture 2D allocLevel'  + this.m_format);
-	DE_ASSERT(deInt32.deInBounds32(levelNdx, 0, this.getNumLevels()));
+	DE_ASSERT(deMath.deInBounds32(levelNdx, 0, this.getNumLevels()));
 
 	var	width	= getMipPyramidLevelSize(this.m_width, levelNdx);
 	var height	= getMipPyramidLevelSize(this.m_height, levelNdx);
@@ -1274,7 +1274,7 @@ Texture2DArray.prototype.constructor = Texture2DArray;
 Texture2DArray.prototype.getView = function() { return this.m_view;	};
 
 Texture2DArray.prototype.allocLevel = function(levelNdx) {
-	DE_ASSERT(deInt32.deInBounds32(levelNdx, 0, this.getNumLevels()));
+	DE_ASSERT(deMath.deInBounds32(levelNdx, 0, this.getNumLevels()));
 
 	var	width	= getMipPyramidLevelSize(this.m_width, levelNdx);
 	var height	= getMipPyramidLevelSize(this.m_height, levelNdx);
@@ -1295,7 +1295,7 @@ Texture3D.prototype.constructor = Texture3D;
 Texture3D.prototype.getSubView = function(baseLevel, maxLevel) { return this.m_view.getSubView(baseLevel, maxLevel); }
 
 Texture3D.prototype.allocLevel = function(levelNdx) {
-	DE_ASSERT(deInt32.deInBounds32(levelNdx, 0, this.getNumLevels()));
+	DE_ASSERT(deMath.deInBounds32(levelNdx, 0, this.getNumLevels()));
 
 	var width	= getMipPyramidLevelSize(this.m_width,	levelNdx);
 	var height	= getMipPyramidLevelSize(this.m_height,	levelNdx);
@@ -1324,8 +1324,8 @@ TextureCubeView.prototype.sample = function(/*const Sampler&*/ sampler, texCoord
 TextureCubeView.prototype.getFaceLevels	= function(/*CubeFace*/ face) { return this.m_levels[face];					};
 TextureCubeView.prototype.getSize = function() { return this.m_numLevels > 0 ? this.m_levels[0][0].getWidth() : 0;	};
 TextureCubeView.prototype.getSubView = function(baseLevel, maxLevel) {
-	var	clampedBase	= deInt32.clamp(baseLevel, 0, this.m_numLevels-1);
-	var	clampedMax	= deInt32.clamp(maxLevel, clampedBase, this.m_numLevels-1);
+	var	clampedBase	= deMath.clamp(baseLevel, 0, this.m_numLevels-1);
+	var	clampedMax	= deMath.clamp(maxLevel, clampedBase, this.m_numLevels-1);
 	var	numLevels	= clampedMax-clampedBase+1;
 	var levels = [];
 	for (var face = 0; face < CubeFace.TOTAL_FACES; face++)

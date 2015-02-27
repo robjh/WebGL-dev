@@ -18,7 +18,7 @@
  *
  */
 
-define(['framework/opengl/gluTextureUtil' , 'framework/common/tcuTexture', 'framework/common/tcuCompressedTexture', 'framework/delibs/debase/deInt32' ], function(gluTextureUtil, tcuTexture, tcuCompressedTexture, deInt32) {
+define(['framework/opengl/gluTextureUtil' , 'framework/common/tcuTexture', 'framework/common/tcuCompressedTexture', 'framework/delibs/debase/deMath' ], function(gluTextureUtil, tcuTexture, tcuCompressedTexture, deMath) {
 	'use strict';
 
 var DE_ASSERT = function(x) {
@@ -57,7 +57,7 @@ var texture2DFromInternalFormat = function(gl, internalFormat, width, height) {
 var computePixelStore = function(/*const tcu::TextureFormat&*/ format)
 {
 	var pixelSize = format.getPixelSize();
-	if (deInt32.deIsPowerOfTwo32(pixelSize))
+	if (deMath.deIsPowerOfTwo32(pixelSize))
 		return Math.min(pixelSize, 8);
 	else
 		return 1;
