@@ -823,9 +823,8 @@ if (!gl.R11F_G11F_B10F)
 if (!gl.RGB16F)
 	gl.RGB16F = 0x881A;
 
-var genTestCases = function(filter) {
+var genTestCases = function() {
     var state = deqpTests.runner.getState();
-    state.filter = filter;
     state.testCases = deqpTests.newTest(state.testName, 'Top level');
     var unsizedGroup = deqpTests.newTest('unsized', 'Unsized formats');
     var sizedGroup = deqpTests.newTest('sized', 'Sized formats');
@@ -1153,12 +1152,11 @@ var genTestCases = function(filter) {
 
 /**
  * Create and execute the test cases
- * @param {string} filter Optional filter
  */
-var run = function(filter) {
+var run = function() {
 	try {
-    	genTestCases(filter);
-    	deqpTests.runner.runCallback(deqpTests.runTestCases);
+        genTestCases();
+        deqpTests.runner.runCallback(deqpTests.runTestCases);
     } catch (err) {
     	bufferedLogToConsole(err);
     	deqpTests.runner.terminate();

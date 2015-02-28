@@ -721,24 +721,15 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
     };
 
     /**
-     * Run through the test cases giving time to system operation.
-     */
-    var runTestCases = function() {
-        deqpTests.runTestCases();
-    };
-
-    /**
      * Create and execute the test cases
-     * @param {string} filter Optional filter
      */
-    var run = function(filter) {
+    var run = function() {
         //Set up Test Root parameters
         var testName = 'ubo';
         var testDescription = 'Uniform Block Tests';
         var state = deqpTests.runner.getState();
 
         state.testName = testName;
-        state.filter = filter;
         state.testCases = deqpTests.newTest(testName, testDescription, null);
 
         //Set up name and description of this test series.
@@ -749,7 +740,7 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
             //Create test cases
             init();
             //Run test cases
-            runTestCases();
+            deqpTests.runTestCases();
         }
         catch (err) {
             testFailedOptions('Failed to run tests', false);

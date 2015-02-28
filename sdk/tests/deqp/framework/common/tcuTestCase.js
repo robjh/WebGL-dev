@@ -213,6 +213,7 @@ var getFilter = function() {
         if (decodeURIComponent(value[0]) === 'filter')
             return decodeURIComponent(value[1]);
     }
+    return null;
 }
 
 /**
@@ -220,6 +221,8 @@ var getFilter = function() {
  */
 var runTestCases = function() {
     var state = stateMachine.getState();
+    if (state.filter === undefined)
+        state.filter = getFilter();
 
     //Should we proceed with the next test?
     state.currentTest = DeqpTest.lastResult == stateMachine.IterateResult.STOP ? state.testCases.next(state.filter) : state.currentTest;
@@ -265,7 +268,6 @@ return {
     DeqpTest: DeqpTest,
     runner: stateMachine,
     newTest: newTest,
-    getFilter: getFilter,
     runTestCases: runTestCases
 };
 
