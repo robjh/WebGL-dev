@@ -279,7 +279,7 @@ var getDataTypeScalarType = function(dataType) {
 /**
  * Returns type of scalar
  * @param {DataType} dataType shader
- * @return {string} type of scalar type
+ * @return {DataType} type of scalar type
  */
 var getDataTypeScalarTypeAsDataType = function(dataType) {
     switch (dataType) {

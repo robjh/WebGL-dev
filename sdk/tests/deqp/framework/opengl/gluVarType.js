@@ -49,7 +49,7 @@ define(['framework/opengl/gluShaderUtil'], function(deqpUtils) {
     */
     var VarType = function() {
        /** @type {Type} */ this.m_type = Type.TYPE_LAST;
-       /** @type {deInt32.deUint32} */ this.m_flags = 0;
+       /** @type {deMath.deUint32} */ this.m_flags = 0;
 
        /*
         * m_data used to be a 'Data' union in C++. Using a var is enough here.
@@ -62,7 +62,7 @@ define(['framework/opengl/gluShaderUtil'], function(deqpUtils) {
     /**
     * Creates a basic type VarType. Use this after the constructor call.
     * @param {deqpUtils.DataType} basicType
-    * @param {deInt32.deUint32} flags
+    * @param {deMath.deUint32} flags
     * @return {VarType} The currently modified object
     */
     VarType.prototype.VarTypeBasic = function(basicType, flags) {
@@ -241,7 +241,7 @@ define(['framework/opengl/gluShaderUtil'], function(deqpUtils) {
     /**
      * Creates a basic type VarType.
      * @param {deqpUtils.DataType} basicType
-     * @param {deInt32.deUint32} flags
+     * @param {deMath.deUint32} flags
      * @return {VarType}
      */
     var newTypeBasic = function(basicType, flags) {
@@ -273,7 +273,7 @@ define(['framework/opengl/gluShaderUtil'], function(deqpUtils) {
      var StructMember = function() {
         /** @type {string} */ this.m_name;
         /** @type {VarType} */ this.m_type;
-        /** @type {deInt32.deUint32} */ // this.m_flags = 0; // only in glsUniformBlockCase
+        /** @type {deMath.deUint32} */ // this.m_flags = 0; // only in glsUniformBlockCase
      };
 
      /**
@@ -305,7 +305,7 @@ define(['framework/opengl/gluShaderUtil'], function(deqpUtils) {
         };
 
       /**  only in glsUniformBlockCase! getFlags
-      * @return {deInt32.deUint32} the flags in the member
+      * @return {deMath.deUint32} the flags in the member
       */
       StructMember.prototype.getFlags = function() { return this.m_flags; };
 

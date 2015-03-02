@@ -21,7 +21,7 @@
 /**
  * This class allows one to create a random integer, floating point number or boolean (TODO, choose random items from a list and shuffle an array)
  */
-define(['framework/delibs/debase/deInt32'], function(deInt32) {
+define(['framework/delibs/debase/deMath'], function(deMath) {
 'use strict';
 
     var DE_ASSERT = function(x) {
@@ -32,14 +32,14 @@ define(['framework/delibs/debase/deInt32'], function(deInt32) {
     /**
      * Compute hash from string.
      * @param {string} str String to compute hash value for.
-     * @return {deInt32.deUint32} Computed hash value.
+     * @return {deMath.deUint32} Computed hash value.
      */
     var deStringHash = function(str) {
         /* \note [pyry] This hash is used in DT_GNU_HASH and is proven
         to be robust for symbol hashing. */
         /* \see http://sources.redhat.com/ml/binutils/2006-06/msg00418.html */
-        /** @type {deInt32.deUint32} */ var hash = 5381;
-        /** @type {deInt32.deUint32} */ var c;
+        /** @type {deMath.deUint32} */ var hash = 5381;
+        /** @type {deMath.deUint32} */ var c;
 
         DE_ASSERT(str != undefined);
         var i = 0;

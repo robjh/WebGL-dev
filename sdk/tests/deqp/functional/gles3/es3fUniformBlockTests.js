@@ -19,7 +19,7 @@
  */
 
 
-define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 'modules/shared/glsRandomUniformBlockCase', 'framework/common/tcuTestCase', 'framework/delibs/debase/deInt32', 'framework/delibs/debase/deRandom'], function(deqpUtils, glsUBC, glsRUBC, deqpTests, deInt32, deRandom) {
+define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 'modules/shared/glsRandomUniformBlockCase', 'framework/common/tcuTestCase', 'framework/delibs/debase/deMath', 'framework/delibs/debase/deRandom'], function(deqpUtils, glsUBC, glsRUBC, deqpTests, deMath, deRandom) {
     'use strict';
 
     /**
@@ -28,16 +28,16 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
      * @param {string} groupName
      * @param {string} description
      * @param {glsUBC.BufferMode} bufferMode
-     * @param {deInt32.deUint32} features
+     * @param {deMath.deUint32} features
      * @param {number} numCases
-     * @param {deInt32.deUint32} baseSeed
+     * @param {deMath.deUint32} baseSeed
      */
     var createRandomCaseGroup = function(parentGroup, groupName, description, bufferMode, features, numCases, baseSeed) {
         /** @type {deqpTests.DeqpTest} */
         var group = new deqpTests.newTest(groupName, description);
         parentGroup.addChild(group);
 
-        baseSeed += Math.floor(Math.random() * 100); //Replacing getBaseSeed from original implementation. This will be just a seed to a different random generator.
+        baseSeed += (new deRandom.Random()).getBaseSeed();
 
         for (var ndx = 0; ndx < numCases; ndx++)
             group.addChild(new glsRUBC.RandomUniformBlockCase('' + ndx, '', bufferMode, features, ndx + baseSeed));
@@ -80,7 +80,7 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
      * BlockSingleStructCase constructor
      * @param {string} name The name of the test
      * @param {string} description The description of the test
-     * @param {deInt32.deUint32} layoutFlags
+     * @param {deMath.deUint32} layoutFlags
      * @param {glsUBC.BufferMode} bufferMode
      * @param {number} numInstances
      */
@@ -114,7 +114,7 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
      * BlockSingleStructArrayCase constructor
      * @param {string} name The name of the test
      * @param {string} description The description of the test
-     * @param {deInt32.deUint32} layoutFlags
+     * @param {deMath.deUint32} layoutFlags
      * @param {glsUBC.BufferMode} bufferMode
      * @param {number} numInstances
      */
@@ -150,7 +150,7 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
      * BlockSingleNestedStructCase constructor
      * @param {string} name The name of the test
      * @param {string} description The description of the test
-     * @param {deInt32.deUint32} layoutFlags
+     * @param {deMath.deUint32} layoutFlags
      * @param {glsUBC.BufferMode} bufferMode
      * @param {number} numInstances
      */
@@ -191,7 +191,7 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
      * BlockSingleNestedStructArrayCase constructor
      * @param {string} name The name of the test
      * @param {string} description The description of the test
-     * @param {deInt32.deUint32} layoutFlags
+     * @param {deMath.deUint32} layoutFlags
      * @param {glsUBC.BufferMode} bufferMode
      * @param {number} numInstances
      */
@@ -232,8 +232,8 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
      * BlockMultiBasicTypesCase constructor
      * @param {string} name The name of the test
      * @param {string} description The description of the test
-     * @param {deInt32.deUint32} flagsA
-     * @param {deInt32.deUint32} flagsB
+     * @param {deMath.deUint32} flagsA
+     * @param {deMath.deUint32} flagsB
      * @param {glsUBC.BufferMode} bufferMode
      * @param {number} numInstances
      */
@@ -274,8 +274,8 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
      * BlockMultiNestedStructCase constructor
      * @param {string} name The name of the test
      * @param {string} description The description of the test
-     * @param {deInt32.deUint32} flagsA
-     * @param {deInt32.deUint32} flagsB
+     * @param {deMath.deUint32} flagsA
+     * @param {deMath.deUint32} flagsB
      * @param {glsUBC.BufferMode} bufferMode
      * @param {number} numInstances
      */
@@ -471,7 +471,7 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
                 for (var isArray = 0; isArray < 2; isArray++)
                 {
                     /** @type {string} */ var baseName = layoutFlags[layoutFlagNdx].name;
-                    /** @type {deInt32.deUint32} */ var baseFlags = layoutFlags[layoutFlagNdx].flags;
+                    /** @type {deMath.deUint32} */ var baseFlags = layoutFlags[layoutFlagNdx].flags;
 
                     if (bufferModes[modeNdx].mode == glsUBC.BufferMode.BUFFERMODE_SINGLE && isArray == 0)
                         continue; // Doesn't make sense to add this variant.
@@ -505,7 +505,7 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
                 for (var isArray = 0; isArray < 2; isArray++)
                 {
                     /** @type {string} */ var baseName = layoutFlags[layoutFlagNdx].name;
-                    /** @type {deInt32.deUint32} */ var baseFlags = layoutFlags[layoutFlagNdx].flags;
+                    /** @type {deMath.deUint32} */ var baseFlags = layoutFlags[layoutFlagNdx].flags;
 
                     if (bufferModes[modeNdx].mode == glsUBC.BufferMode.BUFFERMODE_SINGLE && isArray == 0)
                         continue; // Doesn't make sense to add this variant.
@@ -539,7 +539,7 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
                 for (var isArray = 0; isArray < 2; isArray++)
                 {
                     /** @type {string} */ var baseName = layoutFlags[layoutFlagNdx].name;
-                    /** @type {deInt32.deUint32} */ var baseFlags = layoutFlags[layoutFlagNdx].flags;
+                    /** @type {deMath.deUint32} */ var baseFlags = layoutFlags[layoutFlagNdx].flags;
 
                     if (bufferModes[modeNdx].mode == glsUBC.BufferMode.BUFFERMODE_SINGLE && isArray == 0)
                         continue; // Doesn't make sense to add this variant.
@@ -573,7 +573,7 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
                 for (var isArray = 0; isArray < 2; isArray++)
                 {
                     /** @type {string} */ var baseName = layoutFlags[layoutFlagNdx].name;
-                    /** @type {deInt32.deUint32} */ var baseFlags = layoutFlags[layoutFlagNdx].flags;
+                    /** @type {deMath.deUint32} */ var baseFlags = layoutFlags[layoutFlagNdx].flags;
 
                     if (bufferModes[modeNdx].mode == glsUBC.BufferMode.BUFFERMODE_SINGLE && isArray == 0)
                         continue; // Doesn't make sense to add this variant.
@@ -639,7 +639,7 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
                 for (var isArray = 0; isArray < 2; isArray++)
                 {
                     /** @type {string} */ var baseName = layoutFlags[layoutFlagNdx].name;
-                    /** @type {deInt32.deUint32} */ var baseFlags = layoutFlags[layoutFlagNdx].flags;
+                    /** @type {deMath.deUint32} */ var baseFlags = layoutFlags[layoutFlagNdx].flags;
 
                     if (isArray)
                         baseName += '_instance_array';
@@ -672,7 +672,7 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
                 for (var isArray = 0; isArray < 2; isArray++)
                 {
                     /** @type {string} */ var baseName = layoutFlags[layoutFlagNdx].name;
-                    /** @type {deInt32.deUint32} */ var baseFlags = layoutFlags[layoutFlagNdx].flags;
+                    /** @type {deMath.deUint32} */ var baseFlags = layoutFlags[layoutFlagNdx].flags;
 
                     if (isArray)
                         baseName += '_instance_array';
@@ -691,12 +691,12 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
 
         // ubo.random
         {
-             /** @type {deInt32.deUint32} */ var allShaders = glsRUBC.FeatureBits.FEATURE_VERTEX_BLOCKS | glsRUBC.FeatureBits.FEATURE_FRAGMENT_BLOCKS | glsRUBC.FeatureBits.FEATURE_SHARED_BLOCKS;
-             /** @type {deInt32.deUint32} */ var allLayouts = glsRUBC.FeatureBits.FEATURE_PACKED_LAYOUT | glsRUBC.FeatureBits.FEATURE_SHARED_LAYOUT | glsRUBC.FeatureBits.FEATURE_STD140_LAYOUT;
-             /** @type {deInt32.deUint32} */ var allBasicTypes = glsRUBC.FeatureBits.FEATURE_VECTORS | glsRUBC.FeatureBits.FEATURE_MATRICES;
-             /** @type {deInt32.deUint32} */ var unused = glsRUBC.FeatureBits.FEATURE_UNUSED_MEMBERS | glsRUBC.FeatureBits.FEATURE_UNUSED_UNIFORMS;
-             /** @type {deInt32.deUint32} */ var matFlags = glsRUBC.FeatureBits.FEATURE_MATRIX_LAYOUT;
-             /** @type {deInt32.deUint32} */ var allFeatures = (~glsRUBC.FeatureBits.FEATURE_ARRAYS_OF_ARRAYS & 0xFFFF);
+             /** @type {deMath.deUint32} */ var allShaders = glsRUBC.FeatureBits.FEATURE_VERTEX_BLOCKS | glsRUBC.FeatureBits.FEATURE_FRAGMENT_BLOCKS | glsRUBC.FeatureBits.FEATURE_SHARED_BLOCKS;
+             /** @type {deMath.deUint32} */ var allLayouts = glsRUBC.FeatureBits.FEATURE_PACKED_LAYOUT | glsRUBC.FeatureBits.FEATURE_SHARED_LAYOUT | glsRUBC.FeatureBits.FEATURE_STD140_LAYOUT;
+             /** @type {deMath.deUint32} */ var allBasicTypes = glsRUBC.FeatureBits.FEATURE_VECTORS | glsRUBC.FeatureBits.FEATURE_MATRICES;
+             /** @type {deMath.deUint32} */ var unused = glsRUBC.FeatureBits.FEATURE_UNUSED_MEMBERS | glsRUBC.FeatureBits.FEATURE_UNUSED_UNIFORMS;
+             /** @type {deMath.deUint32} */ var matFlags = glsRUBC.FeatureBits.FEATURE_MATRIX_LAYOUT;
+             /** @type {deMath.deUint32} */ var allFeatures = (~glsRUBC.FeatureBits.FEATURE_ARRAYS_OF_ARRAYS & 0xFFFF);
 
              /** @type {deqpTests.DeqpTest} */
              var randomGroup = new deqpTests.newTest('random', 'Random Uniform Block cases');
@@ -721,47 +721,15 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
     };
 
     /**
-     * Run through the test cases giving time to system operation.
-     */
-    var runTestCases = function() {
-        var state = deqpTests.runner.getState();
-        state.currentTest = state.testCases.next(state.filter);
-        if (state.currentTest) {
-            try {
-                //Update current test name
-                var fullTestName = state.currentTest.fullName();
-                setCurrentTestName(fullTestName);
-                debug('Start testcase: ' + fullTestName);
-
-                //Initialize particular test if it exposes an init method
-                if (state.currentTest.init !== undefined)
-                    state.currentTest.init();
-
-                //Run the test
-                state.currentTest.iterate();
-            } catch (err) {
-                //If the exception was not thrown by a test check, log it, but don't throw it again
-                if (!(err instanceof TestFailedException))
-                    testFailedOptions(err.message, false);
-                bufferedLogToConsole(err);
-            }
-            deqpTests.runner.runCallback(runTestCases);
-        } else
-            deqpTests.runner.terminate();
-    };
-
-    /**
      * Create and execute the test cases
-     * @param {string} filter Optional filter
      */
-    var run = function(filter) {
+    var run = function() {
         //Set up Test Root parameters
         var testName = 'ubo';
         var testDescription = 'Uniform Block Tests';
         var state = deqpTests.runner.getState();
 
         state.testName = testName;
-        state.filter = filter;
         state.testCases = deqpTests.newTest(testName, testDescription, null);
 
         //Set up name and description of this test series.
@@ -772,7 +740,7 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
             //Create test cases
             init();
             //Run test cases
-            runTestCases();
+            deqpTests.runTestCases();
         }
         catch (err) {
             testFailedOptions('Failed to run tests', false);

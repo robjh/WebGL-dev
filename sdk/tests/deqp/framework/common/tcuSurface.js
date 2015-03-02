@@ -18,7 +18,7 @@
  *
  */
 
-define(['framework/common/tcuTexture', 'framework/delibs/debase/deInt32'], function(tcuTexture, deInt32) {
+define(['framework/common/tcuTexture', 'framework/delibs/debase/deMath'], function(tcuTexture, deMath) {
 	'use strict';
 
 var DE_ASSERT = function(x) {
@@ -62,8 +62,8 @@ Surface.prototype.getHeight	= function() { return this.m_height; }
  * @param color Vec4 color
  */
 Surface.prototype.setPixel	= function(x, y, color) {
-	DE_ASSERT(deInt32.deInBounds32(x, 0, this.m_width));
-	DE_ASSERT(deInt32.deInBounds32(y, 0, this.m_height));
+	DE_ASSERT(deMath.deInBounds32(x, 0, this.m_width));
+	DE_ASSERT(deMath.deInBounds32(y, 0, this.m_height));
 
 	var offset = 4*(x + y * this.m_width);
 	for (var i = 0; i < 4; i++)
@@ -71,8 +71,8 @@ Surface.prototype.setPixel	= function(x, y, color) {
 };
 
 Surface.prototype.getPixel	= function(x, y) {
-	DE_ASSERT(deInt32.deInBounds32(x, 0, this.m_width));
-	DE_ASSERT(deInt32.deInBounds32(y, 0, this.m_height));
+	DE_ASSERT(deMath.deInBounds32(x, 0, this.m_width));
+	DE_ASSERT(deMath.deInBounds32(y, 0, this.m_height));
 
 	var color = [];
 	color.length = 4;

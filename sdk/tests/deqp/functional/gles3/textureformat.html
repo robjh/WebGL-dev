@@ -19,25 +19,16 @@ testName = 'texture_formats';
 setCurrentTestName(testName);
 description("Functional test: " + testName + ".");
 
-var getFilter = function() {
-    var queryVars = window.location.search.substring(1).split('&');
-
-    for (var i = 0; i < queryVars.length; i++) {
-        var value = queryVars[i].split('=');
-        if (decodeURIComponent(value[0]) === 'filter')
-            return decodeURIComponent(value[1]);
-    }
-}
 requirejs.config({
     baseUrl: "../../"
     });
 var wtu = WebGLTestUtils;
-/** @type {WebGLRenderingContext} */ var gl = wtu.create3DContext('canvas', {preserveDrawingBuffer: true});
+/** @type {WebGLRenderingContext} */ var gl = wtu.create3DContext('canvas', {preserveDrawingBuffer: true}, 2);
 gl.RGB8 = 0x8051;
 
 requirejs(["functional/gles3/es3fTextureFormatTests"], function(textureFormatTests) {
     try{
-        textureFormatTests.run(getFilter());
+        textureFormatTests.run();
     }
     catch(err)
     {
