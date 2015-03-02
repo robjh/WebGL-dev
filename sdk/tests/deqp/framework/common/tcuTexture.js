@@ -989,11 +989,11 @@ PixelBufferAccess.prototype.setPixel = function(color, x, y, z) {
 		case ChannelType.UNSIGNED_INT_24_8:
 			switch (this.m_format.order) {
 				// \note Stencil is always ignored.
-				case ChannelType.D:	pixelPtr[0] = pn(color[0], 8, 24);
-				case ChannelType.S:	pixelPtr[0] = pn(color[3], 8, 24);
-				case ChannelType.DS:	pixelPtr[0] = pn(color[0], 8, 24) | pu(color[3], 0, 8);
+				case ChannelOrder.D:	pixelPtr[0] = pn(color[0], 8, 24); break;
+				case ChannelOrder.S:	pixelPtr[0] = pn(color[3], 8, 24); break;
+				case ChannelOrder.DS:	pixelPtr[0] = pn(color[0], 8, 24) | pu(color[3], 0, 8); break;
 				default:
-					DE_ASSERT(false);
+					throw new Error('Unsupported channel order ' + this.m_format.order);
 			}
 			break;
 

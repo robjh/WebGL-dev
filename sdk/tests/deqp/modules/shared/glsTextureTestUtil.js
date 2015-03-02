@@ -82,7 +82,7 @@ var getSamplerType = function(/*tcu::TextureFormat*/ format)
 		// Texture formats used in depth/stencil textures.
 		case tcuTexture.ChannelType.UNSIGNED_INT16:
 		case tcuTexture.ChannelType.UNSIGNED_INT_24_8:
-			return (format.order == tcuTexture.ChannelOrder.D || format.order == tcuTexture.ChannelOrder.DS) ? SAMPLERTYPE_FLOAT : SAMPLERTYPE_UINT;
+			return (format.order == tcuTexture.ChannelOrder.D || format.order == tcuTexture.ChannelOrder.DS) ? samplerType.SAMPLERTYPE_FLOAT : samplerType.SAMPLERTYPE_UINT;
 
 		default:
 			return samplerType.SAMPLERTYPE_FLOAT;
