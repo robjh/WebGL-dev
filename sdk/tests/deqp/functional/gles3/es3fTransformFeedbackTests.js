@@ -27,8 +27,9 @@ define(['framework/opengl/gluShaderUtil',
         'framework/opengl/gluShaderProgram',
         'framework/delibs/debase/deRandom',
         'framework/delibs/debase/deInt32',
-        'framework/delibs/debase/deString'],
-        function(deqpUtils, deqpDraw, glsUBC, gluVT, gluVTU, deqpProgram, deRandom, deInt32, deString) {
+        'framework/delibs/debase/deString',
+        'framework/common/tcuTestCase'],
+        function(deqpUtils, deqpDraw, glsUBC, gluVT, gluVTU, deqpProgram, deRandom, deInt32, deString, tcuTestCase) {
     'use strict';
 
     /** @const @type {number} */ var VIEWPORT_WIDTH = 128;
@@ -72,11 +73,11 @@ define(['framework/opengl/gluShaderUtil',
      * @return {Object}
      */
     var Varying = (function(name, type, interpolation) {
-        var container = Object.clone({
+        var container = {
             /** @type {string}        */  name:           null,
             /** @type {gluVT.VarType} */  type:           null,
             /** @type {number}        */  interpolation:  null
-        });
+        };
 
         if (
             typeof(name) !== 'undefined' &&
@@ -124,15 +125,15 @@ define(['framework/opengl/gluShaderUtil',
      * @return {Object}
      */
     var Attribute = (function(name, type, offset) {
-        var container = Object.clone({
-        /** @type {string}        */ name: null,
-        /** @type {gluVT.VarType} */ type: null,
-        /** @type {number}        */ offset: 0
-        });
+        var container = {
+            /** @type {string}        */ name: null,
+            /** @type {gluVT.VarType} */ type: null,
+            /** @type {number}        */ offset: 0
+        };
 
         if (
-            typeof(name) !== 'undefined' &&
-            typeof(type) !== 'undefined' &&
+            typeof(name)          !== 'undefined' &&
+            typeof(type)          !== 'undefined' &&
             typeof(interpolation) !== 'undefined'
         ) {
             container.name = name;
@@ -149,14 +150,13 @@ define(['framework/opengl/gluShaderUtil',
      * @return {Object}
      */
     var Output = (function() {
-        var container = Object.clone({
-        /** @type {number}            */ bufferNdx:  0,
-        /** @type {number}            */ offset:     0,
-        /** @type {string}            */ name:       null,
-        /** @type {gluVT.VarType}     */ type:       null,
-        /** @type {Array.<Attribute>} */ inputs:     null
-        });
-        return container;
+        return {
+            /** @type {number}            */ bufferNdx:  0,
+            /** @type {number}            */ offset:     0,
+            /** @type {string}            */ name:       null,
+            /** @type {gluVT.VarType}     */ type:       null,
+            /** @type {Array.<Attribute>} */ inputs:     null
+        };
     });
 
     /**
@@ -167,17 +167,17 @@ define(['framework/opengl/gluShaderUtil',
      * @param {boolean} tfEnabled is Transform Feedback enabled or not
      * @return {Object.<number, boolean>} content for the DrawCall object
      */
-    var drawCall = (function(numElements, tfEnabled) {
+    var DrawCall = (function(numElements, tfEnabled) {
 
-        var content = Object.clone({
-        /** @type {number}  */ numElements: null,
-        /** @type {boolean} */ transformFeedbackEnabled: null
-        });
+        var content = {
+            /** @type {number}  */ numElements: 0,
+            /** @type {boolean} */ transformFeedbackEnabled: false
+        };
 
-        if (numElements === null || tfEnabled === null) {
-            content.numElements = 0;
-            content.transformFeedbackEnabled = false;
-        } else {
+        if (
+            typeof(numElements) !== 'undefined' &&
+            typeof(tfEnabled)   !== 'undefined'
+        ) {
             content.numElements = numElements;
             content.transformFeedbackEnabled = tfEnabled;
         }
@@ -1350,20 +1350,20 @@ define(['framework/opengl/gluShaderUtil',
     // static data
     TransformFeedbackCase.s_iterate = {
         testCases: {
-            elemCount1:   [drawCall(  1, true )],
-            elemCount2:   [drawCall(  2, true )],
-            elemCount3:   [drawCall(  3, true )],
-            elemCount4:   [drawCall(  4, true )],
-            elemCount123: [drawCall(123, true )],
-            basicPause1:  [drawCall( 64, true ), drawCall( 64, false), drawCall( 64, true)],
-            basicPause2:  [drawCall( 13, true ), drawCall(  5, true ), drawCall( 17, false),
-                           drawCall(  3, true ), drawCall(  7, false)],
-            startPaused:  [drawCall(123, false), drawCall(123, true )],
-            random1:      [drawCall( 65, true ), drawCall(135, false), drawCall( 74, true),
-                           drawCall( 16, false), drawCall(226, false), drawCall(  9, true),
-                           drawCall(174, false)],
-            random2:      [drawCall(217, true ), drawCall(171, true ), drawCall(147, true),
-                           drawCall(152, false), drawCall( 55, true )]
+            elemCount1:   [DrawCall(  1, true )],
+            elemCount2:   [DrawCall(  2, true )],
+            elemCount3:   [DrawCall(  3, true )],
+            elemCount4:   [DrawCall(  4, true )],
+            elemCount123: [DrawCall(123, true )],
+            basicPause1:  [DrawCall( 64, true ), DrawCall( 64, false), DrawCall( 64, true)],
+            basicPause2:  [DrawCall( 13, true ), DrawCall(  5, true ), DrawCall( 17, false),
+                           DrawCall(  3, true ), DrawCall(  7, false)],
+            startPaused:  [DrawCall(123, false), DrawCall(123, true )],
+            random1:      [DrawCall( 65, true ), DrawCall(135, false), DrawCall( 74, true),
+                           DrawCall( 16, false), DrawCall(226, false), DrawCall(  9, true),
+                           DrawCall(174, false)],
+            random2:      [DrawCall(217, true ), DrawCall(171, true ), DrawCall(147, true),
+                           DrawCall(152, false), DrawCall( 55, true )]
         },
         iterations: [
             'elemCount1',  'elemCount2',  'elemCount3', 'elemCount4', 'elemCount1234',
@@ -1373,7 +1373,7 @@ define(['framework/opengl/gluShaderUtil',
     };
 
     // TODO: find TestCase
-    TransformFeedbackCase.prototype = new TestCase();
+    TransformFeedbackCase.prototype = new tcuTestCase.DeqpTest();
 
     /** PositionCase
      * It is a child class of TransformFeedbackCase
@@ -1902,6 +1902,53 @@ define(['framework/opengl/gluShaderUtil',
                 }
             }
         }
+
+    };
+
+    return {
+        
+        VIEWPORT_WIDTH:             VIEWPORT_WIDTH,
+        VIEWPORT_HEIGHT:            VIEWPORT_HEIGHT,
+        BUFFER_GUARD_MULTIPLIER:    BUFFER_GUARD_MULTIPLIER,
+        
+        interpolation:              interpolation,
+        getInterpolationName:       getInterpolationName,
+        Varying:                    Varying,
+        findAttributeNameEquals:    findAttributeNameEquals,
+        Attribute:                  Attribute,
+        Output:                     Output,
+        DrawCall:                   DrawCall,
+        ProgramSpec:                ProgramSpec,
+        isProgramSupported:         isProgramSupported,
+        getAttributeName:           getAttributeName,
+        genShaderSources:           genShaderSources,
+        createVertexCaptureProgram: createVertexCaptureProgram,
+        computeInputLayout:         computeInputLayout,
+        computeTransformFeedbackOutputs:
+                                    computeTransformFeedbackOutputs,
+        genAttributeData:           genAttributeData,
+        genInputData:               genInputData,
+        getTransformFeedbackOutputCount:
+                                    getTransformFeedbackOutputCount,
+        getTransformFeedbackPrimitiveCount:
+                                    getTransformFeedbackPrimitiveCount,
+        getTransformFeedbackPrimitiveMode:
+                                    getTransformFeedbackPrimitiveMode,
+        getAttributeIndex:          getAttributeIndex,
+        compareTransformFeedbackOutput:
+                                    compareTransformFeedbackOutput,
+        computeTransformFeedbackPrimitiveCount:
+                                    computeTransformFeedbackPrimitiveCount,
+        writeBufferGuard:           writeBufferGuard,
+        verifyGuard:                verifyGuard,
+        TransformFeedbackCase:      TransformFeedbackCase,
+        PositionCase:               PositionCase,
+        PointSizeCase:              PointSizeCase,
+        BasicTypeCase:              BasicTypeCase,
+        BasicArrayCase:             BasicArrayCase,
+        ArrayElementCase:           ArrayElementCase,
+        RandomCase:                 RandomCase,
+        init:                       init
 
     };
 
