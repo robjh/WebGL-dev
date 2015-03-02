@@ -392,7 +392,7 @@ ProgramLibrary.prototype.getProgram = function(/* programType */ program) {
 		if (ext)
 			extension = "\n#extension " + ext + " : require";
 
-		params.set("FRAG_HEADER",  this.m_glslVersion + extension + "\nlayout(location = 0) out mediump vec4 dEQP_FragColor;\n");
+		params.set("FRAG_HEADER",  "#version " + this.m_glslVersion + extension + "\nlayout(location = 0) out mediump vec4 dEQP_FragColor;\n");
 		params.set("VTX_HEADER",  "#version " + this.m_glslVersion + "\n");
 		params.set("VTX_IN",  "in");
 		params.set("VTX_OUT",  "out");

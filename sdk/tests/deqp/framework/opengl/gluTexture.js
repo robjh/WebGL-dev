@@ -161,9 +161,9 @@ Texture2DArray.prototype.upload = function() {
 	if (!gl.texImage3D)
 		throw new Error("gl.TexImage3D() is not supported");
 
-	gl.bindTexture(gl.TEXTURE_2D_ARRAY, m_glTexture);
+	gl.bindTexture(gl.TEXTURE_2D_ARRAY, this.m_glTexture);
 	gl.pixelStorei(gl.UNPACK_ALIGNMENT, computePixelStore(this.m_refTexture.getFormat()));
-	GLU_EXPECT_NO_ERROR(gl.getError(), "Texture upload failed");
+	assertMsgOptions(gl.getError() === gl.NO_ERROR, "Texture upload failed", false, true);
 
 	var transferFormat = gluTextureUtil.getTransferFormat(this.m_refTexture.getFormat());
 
@@ -201,9 +201,9 @@ Texture3D.prototype.upload = function() {
 	if (!gl.texImage3D)
 		throw new Error("gl.TexImage3D() is not supported");
 
-	gl.bindTexture(gl.TEXTURE_3D, m_glTexture);
+	gl.bindTexture(gl.TEXTURE_3D, this.m_glTexture);
 	gl.pixelStorei(gl.UNPACK_ALIGNMENT, computePixelStore(this.m_refTexture.getFormat()));
-	GLU_EXPECT_NO_ERROR(gl.getError(), "Texture upload failed");
+	assertMsgOptions(gl.getError() === gl.NO_ERROR, "Texture upload failed", false, true);
 
 	var transferFormat = gluTextureUtil.getTransferFormat(this.m_refTexture.getFormat());
 
@@ -246,8 +246,7 @@ Compressed2D.prototype.upload = function(level, source) {
 	gl.bindTexture(gl.TEXTURE_2D, this.m_glTexture);
 
 	gl.compressedTexImage2D(gl.TEXTURE_2D, level, this.m_format, source.m_width, source.m_height, 0 /* border */, source.m_data);
-	/* TODO: enable */
-	// assertMsgOptions(gl.getError() === gl.NO_ERROR, "Texture upload failed", false, true);
+	assertMsgOptions(gl.getError() === gl.NO_ERROR, "Texture upload failed", false, true);
 };
 
 var CompressedCube = function(gl, format, isCompressed, refTexture) {
@@ -270,8 +269,7 @@ CompressedCube.prototype.upload = function(level, source) {
 		// Upload to GL texture in compressed form.
 		gl.compressedTexImage2D(cubeFaceToGLFace(face), 0, this.m_format,
 								source.m_width, source.m_height, 0 /* border */, source.m_data);
-		/* TODO: enable */
-		// assertMsgOptions(gl.getError() === gl.NO_ERROR, "Texture upload failed", false, true);
+		assertMsgOptions(gl.getError() === gl.NO_ERROR, "Texture upload failed", false, true);
 	}
 
 };
@@ -315,3 +313,4 @@ return {
 };
 
 });
+

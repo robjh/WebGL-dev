@@ -654,6 +654,7 @@ var  ConstPixelBufferAccess = function(descriptor) {
 	ConstPixelBufferAccess.prototype.getWidth = function() { return this.m_width;	};
 	ConstPixelBufferAccess.prototype.getHeight = function() { return this.m_height;	};
 	ConstPixelBufferAccess.prototype.getDepth = function() { return this.m_depth;	};
+	ConstPixelBufferAccess.prototype.getSlicePitch = function() { return this.m_slicePitch;	};
 	ConstPixelBufferAccess.prototype.getFormat = function() { return this.m_format;	};
 
 	ConstPixelBufferAccess.prototype.getPixel = function(x, y, z) {
