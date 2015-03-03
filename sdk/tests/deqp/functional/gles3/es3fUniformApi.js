@@ -345,14 +345,6 @@ define([
     var UniformCollection = function() {
         /** @type {Array.{Uniform}} */ this.m_uniforms = [];
         /** @type {Array.<gluVT.StructType>} */ this.m_structTypes = [];
-        
-
-    private:
-        // \note Copying these would be cumbersome, since deep-copying both m_uniforms and m_structTypes
-        // would mean that we'd need to update pointers from uniforms to point to the new structTypes.
-        // When the same UniformCollection is needed in several places, a SharedPtr is used instead.
-                                    UniformCollection    (const UniformCollection&); // Not allowed.
-        UniformCollection&            operator=            (const UniformCollection&); // Not allowed.
     };
 
     /**
@@ -612,8 +604,8 @@ define([
      */
     UniformCollection.prototype.random = function(seed) {
         /** @type {deRandom.Random} */ var rnd = new deRandom.Random(seed);
-        /** @type {number} */ var numUniforms    = rnd.getInt(1, 5);
-        /** @type {number} */ var structIdx    = 0;
+        /** @type {number} */ var numUniforms = rnd.getInt(1, 5);
+        /** @type {number} */ var structIdx = 0;
         /** @type {UniformCollection} */ var res = new UniformCollection();
 
         for (var i = 0; i < numUniforms; i++)
@@ -625,7 +617,7 @@ define([
             do
             {
                 structTypes.clear();
-                uniform.type = (("u_var" + i, generateRandomType(3, structIdx, structTypes, rnd));
+                uniform.type = "u_var" + i, generateRandomType(3, structIdx, structTypes, rnd);
             } while (res.getNumSamplers() + getNumSamplersInType(uniform.type) > MAX_NUM_SAMPLER_UNIFORMS);
 
             res.addUniform(uniform);
@@ -634,6 +626,399 @@ define([
         }
 
         return res;
+    };
+
+    /**
+     * @param {VarValue} sampler
+     * @return {VarValue}
+     */
+    var getSamplerFillValue = function(sampler) {
+        DE_ASSERT(deqpUtils.isDataTypeSampler(sampler.type));
+
+        /** @type {VarValue} */ var result = new VarValue();
+        result.type = getSamplerLookupReturnType(sampler.type);
+
+        switch (result.type)
+        {
+            case deqpUtils.DataType.FLOAT_VEC4:
+                for (var i = 0; i < 4; i++)
+                    result.val.floatV[i] = sampler.val.samplerV.fillColor.floatV[i];
+                break;
+            case deqpUtils.DataType.UINT_VEC4:
+                for (var i = 0; i < 4; i++)
+                    result.val.uintV[i] = sampler.val.samplerV.fillColor.uintV[i];
+                break;
+            case deqpUtils.DataType.INT_VEC4:
+                for (var i = 0; i < 4; i++)
+                    result.val.intV[i] = sampler.val.samplerV.fillColor.intV[i];
+                break;
+            case deqpUtils.DataType.FLOAT:
+                result.val.floatV[0] = sampler.val.samplerV.fillColor.floatV[0];
+                break;
+            default:
+                DE_ASSERT(false);
+        }
+
+        return result;
+    };
+
+    /**
+     * @param {VarValue} sampler
+     * @return {VarValue}
+     */
+    var getSamplerUnitValue = function(sampler) {
+        DE_ASSERT(deqpUtils.isDataTypeSampler(sampler.type));
+
+        /** @type {VarValue} */ var result;
+        result.type = deqpUtils.DataType.INT;
+        result.val.intV[0] = sampler.val.samplerV.unit;
+
+        return result;
+    };
+
+    /**
+     * @param {deqpUtils.DataType} original
+     * @return {deqpUtils.DataType}
+     */
+    var getDataTypeTransposedMatrix = function(original) {
+        return deqpUtils.getDataTypeMatrix(deqpUtils.getDataTypeMatrixNumRows(original), deqpUtils.getDataTypeMatrixNumColumns(original));
+    };
+
+    /**
+     * @param {VarValue} original
+     * @return {VarValue}
+     */
+    var getTransposeMatrix = function(original) {
+        DE_ASSERT(deqpUtils.isDataTypeMatrix(original.type));
+
+        /** @type {number} */ var rows = deqpUtils.getDataTypeMatrixNumRows(original.type);
+        /** @type {number} */ var cols = deqpUtils.getDataTypeMatrixNumColumns(original.type);
+        /** @type {VarValue} */ var result;
+        result.type = getDataTypeTransposedMatrix(original.type);
+
+        for (var i = 0; i < rows; i++)
+        for (var j = 0; j < cols; j++)
+            result.val.floatV[i*cols + j] = original.val.floatV[j*rows + i];
+
+        return result;
+    };
+
+    /**
+     * @param {VarValue} value
+     * @return {string}
+     */
+    var shaderVarValueStr = function(value) {
+        /** @type {number} */ var numElems = deqpUtils.getDataTypeScalarSize(value.type);
+        /** @type {string} */ var result;
+
+        if (numElems > 1)
+            result += deqpUtils.getDataTypeName(value.type) + "(";
+
+        for (var i = 0; i < numElems; i++)
+        {
+            if (i > 0)
+                result += ", ";
+
+            if (deqpUtils.isDataTypeFloatOrVec(value.type) || deqpUtils.isDataTypeMatrix(value.type))
+                result += value.val.floatV[i].toFixed(2);
+            else if (deqpUtils.isDataTypeIntOrIVec((value.type)))
+                result += value.val.intV[i];
+            else if (deqpUtils.isDataTypeUintOrUVec((value.type)))
+                result += value.val.uintV[i] + "u";
+            else if (deqpUtils.isDataTypeBoolOrBVec((value.type)))
+                result += value.val.boolV[i] ? "true" : "false";
+            else if (deqpUtils.isDataTypeSampler((value.type)))
+                result += shaderVarValueStr(getSamplerFillValue(value));
+            else
+                DE_ASSERT(false);
+        }
+
+        if (numElems > 1)
+            result += ")";
+
+        return result;
+    };
+
+    /**
+     * @param {VarValue} value
+     * @return {string}
+     */
+    var apiVarValueStr = function(value) {
+        /** @type {number} */ var numElems = deqpUtils.getDataTypeScalarSize(value.type);
+        /** @type {string} */ var result;
+
+        if (numElems > 1)
+            result += "(";
+
+        for (int i = 0; i < numElems; i++)
+        {
+            if (i > 0)
+                result += ", ";
+
+            if (deqpUtils.isDataTypeFloatOrVec(value.type) || deqpUtils.isDataTypeMatrix(value.type))
+                result += value.val.floatV[i].toFixed(2);
+            else if (deqpUtils.isDataTypeIntOrIVec((value.type)))
+                result += value.val.intV[i];
+            else if (deqpUtils.isDataTypeUintOrUVec((value.type)))
+                result += value.val.uintV[i];
+            else if (deqpUtils.isDataTypeBoolOrBVec((value.type)))
+                result += value.val.boolV[i] ? "true" : "false";
+            else if (deqpUtils.isDataTypeSampler((value.type)))
+                result += value.val.samplerV.unit;
+            else
+                DE_ASSERT(false);
+        }
+
+        if (numElems > 1)
+            result += ")";
+
+        return result;
+    }
+
+    /**
+     * @param {deqpUtils.DataType} type
+     * @param {deRandom.Random} rnd
+     * @param {number} samplerUnit
+     * @return {VarValue}
+     */
+    var generateRandomVarValue = function(type, rnd, samplerUnit /* Used if type is a sampler type. \note Samplers' unit numbers are not randomized. */) {
+        if (samplerUnit === undefined) samplerUnit = -1;
+        /** @type {number} */ var numElems = deqpUtils.getDataTypeScalarSize(type);
+        /** @type {VarValue} */ var result = new VarValue();
+        result.type = type;
+
+        DE_ASSERT((samplerUnit >= 0) == (deqpUtils.isDataTypeSampler(type)));
+
+        if (deqpUtils.isDataTypeFloatOrVec(type) || deqpUtils.isDataTypeMatrix(type))
+        {
+            for (var i = 0; i < numElems; i++)
+                result.val.floatV[i] = rnd.getFloat(-10.0, 10.0);
+        }
+        else if (deqpUtils.isDataTypeIntOrIVec(type))
+        {
+            for (var i = 0; i < numElems; i++)
+                result.val.intV[i] = rnd.getInt(-10, 10);
+        }
+        else if (deqpUtils.isDataTypeUintOrUVec(type))
+        {
+            for (var i = 0; i < numElems; i++)
+                result.val.uintV[i] = (deUint32)rnd.getInt(0, 10);
+        }
+        else if (deqpUtils.isDataTypeBoolOrBVec(type))
+        {
+            for (var i = 0; i < numElems; i++)
+                result.val.boolV[i] = rnd.getBool();
+        }
+        else if (deqpUtils.isDataTypeSampler(type))
+        {
+            /** @type {deqpUtils.DataType} */ var texResultType = getSamplerLookupReturnType(type);
+            /** @type {deqpUtils.DataType} */ var texResultScalarType = deqpUtils.getDataTypeScalarType(texResultType);
+            /** @type {number} */ var texResultNumDims = deqpUtils.getDataTypeScalarSize(texResultType);
+
+            result.val.samplerV.unit = samplerUnit;
+
+            for (var i = 0; i < texResultNumDims; i++)
+            {
+                switch (texResultScalarType)
+                {
+                    case deqpUtils.DataType.FLOAT: result.val.samplerV.fillColor.floatV[i] = rnd.getFloat(0.0, 1.0); break;
+                    case deqpUtils.DataType.INT: result.val.samplerV.fillColor.intV[i] = rnd.getInt(-10, 10); break;
+                    case deqpUtils.DataType.UINT: result.val.samplerV.fillColor.uintV[i] = (deUint32)rnd.getInt(0, 10); break;
+                    default:
+                        DE_ASSERT(false);
+                }
+            }
+        }
+        else
+            DE_ASSERT(false);
+
+        return result;
+    }
+
+    /**
+     * @param {deqpUtils.DataType} type
+     * @return {VarValue}
+     */
+    var generateZeroVarValue = function(type) {
+        /** @type {number} */ var numElems = deqpUtils.getDataTypeScalarSize(type);
+        /** @type {VarValue} */ var result;
+        result.type = type;
+
+        if (deqpUtils.isDataTypeFloatOrVec(type) || deqpUtils.isDataTypeMatrix(type))
+        {
+            for (var i = 0; i < numElems; i++)
+                result.val.floatV[i] = 0.0;
+        }
+        else if (deqpUtils.isDataTypeIntOrIVec(type))
+        {
+            for (var i = 0; i < numElems; i++)
+                result.val.intV[i] = 0;
+        }
+        else if (deqpUtils.isDataTypeUintOrUVec(type))
+        {
+            for (var i = 0; i < numElems; i++)
+                result.val.uintV[i] = 0;
+        }
+        else if (deqpUtils.isDataTypeBoolOrBVec(type))
+        {
+            for (var i = 0; i < numElems; i++)
+                result.val.boolV[i] = false;
+        }
+        else if (deqpUtils.isDataTypeSampler(type))
+        {
+            /* @type {deqpUtils.DataType} */ var texResultType = getSamplerLookupReturnType(type);
+            /* @type {deqpUtils.DataType} */ var texResultScalarType = deqpUtils.getDataTypeScalarType(texResultType);
+            /* @type {number} */ var texResultNumDims    = deqpUtils.getDataTypeScalarSize(texResultType);
+
+            result.val.samplerV.unit = 0;
+
+            for (var i = 0; i < texResultNumDims; i++)
+            {
+                switch (texResultScalarType)
+                {
+                    case deqpUtils.DataType.FLOAT: result.val.samplerV.fillColor.floatV[i] = 0.12 * i; break;
+                    case deqpUtils.DataType.INT: result.val.samplerV.fillColor.intV[i] = -2 + i; break;
+                    case deqpUtils.DataType.UINT: result.val.samplerV.fillColor.uintV[i] = 4 + i; break;
+                    default:
+                        DE_ASSERT(false);
+                }
+            }
+        }
+        else
+            DE_ASSERT(false);
+
+        return result;
+    };
+
+    /**
+     * @param {VarValue} a
+     * @param {VarValue} b
+     * @return {boolean}
+     */
+    var apiVarValueEquals = function(a, b) {
+        /* @type {number} */ var size            = deqpUtils.getDataTypeScalarSize(a.type);
+        /* @type {number} */ var floatThreshold    = 0.05;
+
+        DE_ASSERT(a.type == b.type);
+
+        if (deqpUtils.isDataTypeFloatOrVec(a.type) || deqpUtils.isDataTypeMatrix(a.type))
+        {
+            for (var i = 0; i < size; i++)
+                if (Math.abs(a.val.floatV[i] - b.val.floatV[i]) >= floatThreshold)
+                    return false;
+        }
+        else if (deqpUtils.isDataTypeIntOrIVec(a.type))
+        {
+            for (var i = 0; i < size; i++)
+                if (a.val.intV[i] != b.val.intV[i])
+                    return false;
+        }
+        else if (deqpUtils.isDataTypeUintOrUVec(a.type))
+        {
+            for (var i = 0; i < size; i++)
+                if (a.val.uintV[i] != b.val.uintV[i])
+                    return false;
+        }
+        else if (deqpUtils.isDataTypeBoolOrBVec(a.type))
+        {
+            for (var i = 0; i < size; i++)
+                if (a.val.boolV[i] != b.val.boolV[i])
+                    return false;
+        }
+        else if (deqpUtils.isDataTypeSampler(a.type))
+        {
+            if (a.val.samplerV.unit != b.val.samplerV.unit)
+                return false;
+        }
+        else
+            DE_ASSERT(false);
+
+        return true;
+    };
+
+    /**
+     * @param {VarValue} boolValue
+     * @param {deqpUtils.DataType} targetScalarType
+     * @param {deRandom.Random} rnd
+     * @return {VarValue}
+     */
+    var getRandomBoolRepresentation = function(boolValue, targetScalarType, rnd) {
+        DE_ASSERT(deqpUtils.isDataTypeBoolOrBVec(boolValue.type));
+
+        /* @type {number} */ var size = deqpUtils.getDataTypeScalarSize(boolValue.type);
+        /* @type {deqpUtils.DataType} */ var targetType    = size == 1 ? targetScalarType : deqpUtils.getDataTypeVector(targetScalarType, size);
+        /* @type {VarValue} */ var result = VarValue();
+        result.type = targetType;
+
+        switch (targetScalarType)
+        {
+            case deqpUtils.DataType.INT:
+                for (var i = 0; i < size; i++)
+                {
+                    if (boolValue.val.boolV[i])
+                    {
+                        result.val.intV[i] = rnd.getInt(-10, 10);
+                        if (result.val.intV[i] == 0)
+                            result.val.intV[i] = 1;
+                    }
+                    else
+                        result.val.intV[i] = 0;
+                }
+                break;
+
+            case deqpUtils.DataType.UINT:
+                for (var i = 0; i < size; i++)
+                {
+                    if (boolValue.val.boolV[i])
+                        result.val.uintV[i] = rnd.getInt(1, 10);
+                    else
+                        result.val.uintV[i] = 0;
+                }
+                break;
+
+            case deqpUtils.DataType.FLOAT:
+                for (var i = 0; i < size; i++)
+                {
+                    if (boolValue.val.boolV[i])
+                    {
+                        result.val.floatV[i] = rnd.getFloat(-10.0, 10.0);
+                        if (result.val.floatV[i] == 0.0)
+                            result.val.floatV[i] = 1.0;
+                    }
+                    else
+                        result.val.floatV[i] = 0;
+                }
+                break;
+
+            default:
+                DE_ASSERT(false);
+        }
+
+        return result;
+    };
+
+    /**
+     * @param {CaseShaderType} type
+     * @return {string}
+     */
+    var getCaseShaderTypeName = function(type) {
+        switch (type)
+        {
+            case CaseShaderType.CASESHADERTYPE_VERTEX: return "vertex";
+            case CaseShaderType.CASESHADERTYPE_FRAGMENT: return "fragment";
+            case CaseShaderType.CASESHADERTYPE_BOTH: return "both";
+            default:
+                DE_ASSERT(false);
+                return DE_NULL;
+        }
+    };
+
+    /**
+     * @param {deMath.deUint32} seed
+     * @return {CaseShaderType}
+     */
+    var randomCaseShaderType = function(seed) {
+        return (new deRandom.Random(seed)).getInt(0, CaseShaderType.CASESHADERTYPE_LAST-1);
     };
 
     /**

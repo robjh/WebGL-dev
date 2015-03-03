@@ -214,7 +214,7 @@ var getFilter = function() {
             return decodeURIComponent(value[1]);
     }
     return null;
-}
+};
 
 /**
  * Run through the test cases giving time to system operation.
