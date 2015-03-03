@@ -34,18 +34,29 @@ define([
         deRandom) {
     'use strict';
 
+    var DE_ASSERT = function(x) {
+        if (!x)
+            throw new Error('Assert failed');
+    };
+
+    var DE_STATIC_ASSERT = function(x) {
+        if (!x)
+            throw new Error('Assert failed');
+    };
+
+    var DE_NULL = null;
+
     /** @callback dataTypePredicate
-     * @param {deqpUtils.DataType}
+     * @param {deqpUtils.DataType} type
      * @return {boolean}
      */
-    var dataTypePredicate;
+    var dataTypePredicate = function(type){};
 
     /** @type {number} */ var MAX_RENDER_WIDTH = 32;
     /** @type {number} */ var MAX_RENDER_HEIGHT = 32;
     /** @type {number} */ var MAX_NUM_SAMPLER_UNIFORMS = 16;
 
-    /** @type {Array.<deqpUtils.DataType>} */ var s_testDataTypes =
-    [
+    /** @type {Array.<deqpUtils.DataType>} */ var s_testDataTypes = [
         deqpUtils.DataType.FLOAT,
         deqpUtils.DataType.FLOAT_VEC2,
         deqpUtils.DataType.FLOAT_VEC3,
@@ -175,9 +186,10 @@ define([
 
     /**
      * @param {deqpUtils.DataType} t
+     * @param {number} N Row number. Used to be a template parameter
      * @return {boolean}
      */
-    var dataTypeIsMatrixWithNRows = function(t) {
+    var dataTypeIsMatrixWithNRows = function(t, N) {
         return deqpUtils.isDataTypeMatrix(t) && deqpUtils.getDataTypeMatrixNumRows(t) == N;
     };
 
@@ -343,7 +355,7 @@ define([
      * class UniformCollection
      */
     var UniformCollection = function() {
-        /** @type {Array.{Uniform}} */ this.m_uniforms = [];
+        /** @type {Array.<Uniform>} */ this.m_uniforms = [];
         /** @type {Array.<gluVT.StructType>} */ this.m_structTypes = [];
     };
 
@@ -425,7 +437,7 @@ define([
      * @return {boolean}
      */
     UniformCollection.prototype.containsSeveralSamplerTypes = function() {
-        return getSamplerTypes().length > 1;
+        return this.getSamplerTypes().length > 1;
     };
 
     /**
@@ -477,7 +489,7 @@ define([
         /** @type {deqpUtils.precision} */ var prec0 = deqpUtils.isDataTypeBoolOrBVec(type0) ? deqpUtils.precision.PRECISION_LAST : deqpUtils.precision.PRECISION_MEDIUMP;
         /** @type {deqpUtils.precision} */ var prec1 = deqpUtils.isDataTypeBoolOrBVec(type1) ? deqpUtils.precision.PRECISION_LAST : deqpUtils.precision.PRECISION_MEDIUMP;
 
-        /** @type {gluVT.StructType} */ var structType = new StructType("structType" + nameSuffix);
+        /** @type {gluVT.StructType} */ var structType = new gluVT.StructType("structType" + nameSuffix);
         structType.addMember("m0", gluVT.newTypeBasic(type0, prec0));
         structType.addMember("m1", gluVT.newTypeBasic(type1, prec1));
         if (containsArrays)
@@ -501,7 +513,7 @@ define([
      */
     UniformCollection.prototype.structInArray = function(type0, type1, containsArrays, nameSuffix) {
         if (nameSuffix === undefined) nameSuffix = '';
-        /** @type {UniformCollection} */ var res = basicStruct(type0, type1, containsArrays, nameSuffix);
+        /** @type {UniformCollection} */ var res = this.basicStruct(type0, type1, containsArrays, nameSuffix);
         res.getUniform(0).type = gluVT.newTypeArray(res.getUniform(0).type, 3);
         return res;
     };
@@ -552,7 +564,7 @@ define([
 
         for (var i = 0; i < types.length; i++)
         {
-            /** @type {UniformCollection} */ var sub = basic(types[i], ("_" + i + nameSuffix);
+            /** @type {UniformCollection} */ var sub = this.basic(types[i], "_" + i + nameSuffix);
             sub.moveContents(res);
         }
 
@@ -570,7 +582,7 @@ define([
 
         for (var i = 0; i < types.length; i++)
         {
-            /** @type {UniformCollection} */ var sub = basicArray(types[i], "_" + i + nameSuffix);
+            /** @type {UniformCollection} */ var sub = this.basicArray(types[i], "_" + i + nameSuffix);
             sub.moveContents(res);
         }
 
@@ -587,11 +599,11 @@ define([
         /** @type {Array.<deqpUtils.DataType>} */ var types1 = [deqpUtils.DataType.FLOAT_VEC4, deqpUtils.DataType.INT_VEC4, deqpUtils.DataType.BOOL];
         /** @type {UniformCollection} */ var res = new UniformCollection();
 
-        DE_STATIC_ASSERT(types0.length) == types1.length);
+        DE_STATIC_ASSERT(types0.length == types1.length);
 
         for (var i = 0; i < types0.length; i++)
         {
-            /** @type {UniformCollection} */ var sub = nestedArraysStructs(types0[i], types1[i], "_" + i + nameSuffix);
+            /** @type {UniformCollection} */ var sub = this.nestedArraysStructs(types0[i], types1[i], "_" + i + nameSuffix);
             sub.moveContents(res);
         }
 
@@ -750,7 +762,7 @@ define([
         if (numElems > 1)
             result += "(";
 
-        for (int i = 0; i < numElems; i++)
+        for (var i = 0; i < numElems; i++)
         {
             if (i > 0)
                 result += ", ";
@@ -773,7 +785,7 @@ define([
             result += ")";
 
         return result;
-    }
+    };
 
     /**
      * @param {deqpUtils.DataType} type
@@ -802,7 +814,7 @@ define([
         else if (deqpUtils.isDataTypeUintOrUVec(type))
         {
             for (var i = 0; i < numElems; i++)
-                result.val.uintV[i] = (deUint32)rnd.getInt(0, 10);
+                result.val.uintV[i] = rnd.getInt(0, 10);
         }
         else if (deqpUtils.isDataTypeBoolOrBVec(type))
         {
@@ -823,7 +835,7 @@ define([
                 {
                     case deqpUtils.DataType.FLOAT: result.val.samplerV.fillColor.floatV[i] = rnd.getFloat(0.0, 1.0); break;
                     case deqpUtils.DataType.INT: result.val.samplerV.fillColor.intV[i] = rnd.getInt(-10, 10); break;
-                    case deqpUtils.DataType.UINT: result.val.samplerV.fillColor.uintV[i] = (deUint32)rnd.getInt(0, 10); break;
+                    case deqpUtils.DataType.UINT: result.val.samplerV.fillColor.uintV[i] = rnd.getInt(0, 10); break;
                     default:
                         DE_ASSERT(false);
                 }
@@ -833,7 +845,7 @@ define([
             DE_ASSERT(false);
 
         return result;
-    }
+    };
 
     /**
      * @param {deqpUtils.DataType} type
@@ -866,9 +878,9 @@ define([
         }
         else if (deqpUtils.isDataTypeSampler(type))
         {
-            /* @type {deqpUtils.DataType} */ var texResultType = getSamplerLookupReturnType(type);
-            /* @type {deqpUtils.DataType} */ var texResultScalarType = deqpUtils.getDataTypeScalarType(texResultType);
-            /* @type {number} */ var texResultNumDims    = deqpUtils.getDataTypeScalarSize(texResultType);
+            /** @type {deqpUtils.DataType} */ var texResultType = getSamplerLookupReturnType(type);
+            /** @type {deqpUtils.DataType} */ var texResultScalarType = deqpUtils.getDataTypeScalarType(texResultType);
+            /** @type {number} */ var texResultNumDims    = deqpUtils.getDataTypeScalarSize(texResultType);
 
             result.val.samplerV.unit = 0;
 
@@ -896,8 +908,8 @@ define([
      * @return {boolean}
      */
     var apiVarValueEquals = function(a, b) {
-        /* @type {number} */ var size            = deqpUtils.getDataTypeScalarSize(a.type);
-        /* @type {number} */ var floatThreshold    = 0.05;
+        /** @type {number} */ var size            = deqpUtils.getDataTypeScalarSize(a.type);
+        /** @type {number} */ var floatThreshold    = 0.05;
 
         DE_ASSERT(a.type == b.type);
 
@@ -945,9 +957,9 @@ define([
     var getRandomBoolRepresentation = function(boolValue, targetScalarType, rnd) {
         DE_ASSERT(deqpUtils.isDataTypeBoolOrBVec(boolValue.type));
 
-        /* @type {number} */ var size = deqpUtils.getDataTypeScalarSize(boolValue.type);
-        /* @type {deqpUtils.DataType} */ var targetType    = size == 1 ? targetScalarType : deqpUtils.getDataTypeVector(targetScalarType, size);
-        /* @type {VarValue} */ var result = VarValue();
+        /** @type {number} */ var size = deqpUtils.getDataTypeScalarSize(boolValue.type);
+        /** @type {deqpUtils.DataType} */ var targetType    = size == 1 ? targetScalarType : deqpUtils.getDataTypeVector(targetScalarType, size);
+        /** @type {VarValue} */ var result = new VarValue();
         result.type = targetType;
 
         switch (targetScalarType)
@@ -1020,6 +1032,10 @@ define([
     var randomCaseShaderType = function(seed) {
         return (new deRandom.Random(seed)).getInt(0, CaseShaderType.CASESHADERTYPE_LAST-1);
     };
+
+    /**
+     */
+    var init = function(){};
 
     /**
      * Create and execute the test cases
