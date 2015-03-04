@@ -325,6 +325,13 @@ define([
             }
         });
 
+        this.getType = (function () {
+            return getVarType(m_type, m_path);
+        });
+        this.getPath = (function () {
+            return m_path;
+        });
+
         this.isExpanded = null;
 
     });
