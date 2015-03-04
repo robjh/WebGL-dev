@@ -491,8 +491,8 @@ ProgramLibrary.prototype.getProgram = function(/* programType */ program) {
 
     var vertSrc = tcuStringTemplate.specialize(vertShaderTemplate, params);
     var fragSrc = tcuStringTemplate.specialize(fragShaderTemplate, params);
-    console.log(fragSrc);
-    console.log(vertSrc);
+    // console.log(fragSrc);
+    // console.log(vertSrc);
     var sources = [];
     sources.push(gluShaderProgram.genVertexSource(vertSrc));
     sources.push(gluShaderProgram.genFragmentSource(fragSrc));
@@ -712,8 +712,8 @@ TextureRenderer.prototype.renderQuad = function(texUnit, texCoord, params) {
 
     {
         var vertexArrays = [];
-        console.log(position);
-        console.log(texCoord);
+        // console.log(position);
+        // console.log(texCoord);
 
         var posLoc = gl.getAttribLocation(prog, 'a_position');
         if (posLoc === -1) {

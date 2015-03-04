@@ -29,7 +29,6 @@ define(['framework/common/tcuTestCase', './glsShaderLibraryCase', 'framework/ope
             state.testCases = deqpTests.newTest(state.testName, 'Top level', tree);
         }
         catch (err) {
-            console.log(err);
             bufferedLogToConsole(err);
             return false;
         }

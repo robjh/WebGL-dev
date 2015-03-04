@@ -1054,7 +1054,6 @@ PixelBufferAccess.prototype.setPixel = function(color, x, y, z) {
  * @param {TextureFormat} format
  */
 var TextureLevelPyramid = function(format, numLevels) {
-    console.log('In Pyramid constructor');
     /* TextureFormat */this.m_format = format;
     /* LevelData */ this.m_data = [];
     for (var i = 0; i < numLevels; i++)
@@ -1072,8 +1071,6 @@ var TextureLevelPyramid = function(format, numLevels) {
     TextureLevelPyramid.prototype.getLevel = function(ndx)             { return this.m_access[ndx]; };
     TextureLevelPyramid.prototype.getLevels = function()            { return this.m_access; };
     TextureLevelPyramid.prototype.allocLevel = function(levelNdx, width, height, depth) {
-    console.log('In Pyramid allocLevel 1' + this);
-    console.log('In Pyramid allocLevel 2' + this.m_format);
     /*const int*/ var size = this.m_format.getPixelSize() * width * height * depth;
 
     DE_ASSERT(this.isLevelEmpty(levelNdx));
@@ -1274,12 +1271,10 @@ var getMipPyramidLevelSize = function(baseLevelSize, levelNdx) {
 };
 
 var Texture2D = function(format, width, height) {
-    console.log('In Texture 2D constructor');
     TextureLevelPyramid.call(this, format, computeMipPyramidLevels(width, height));
     this.m_width = width;
     this.m_height = height;
     this.m_view = new Texture2DView(this.getNumLevels(), this.getLevels());
-    console.log('In Texture2D constructor' + this.m_format);
 };
 
 Texture2D.prototype = Object.create(TextureLevelPyramid.prototype);
@@ -1287,13 +1282,12 @@ Texture2D.prototype.constructor = Texture2D;
 
 Texture2D.prototype.getSubView = function(baseLevel, maxLevel) { return this.m_view.getSubView(baseLevel, maxLevel); };
 Texture2D.prototype.allocLevel = function(levelNdx) {
-    console.log('In Texture 2D allocLevel' + this.m_format);
     DE_ASSERT(deMath.deInBounds32(levelNdx, 0, this.getNumLevels()));
 
     var width = getMipPyramidLevelSize(this.m_width, levelNdx);
     var height = getMipPyramidLevelSize(this.m_height, levelNdx);
 
-    console.log('w ' + width + ' h ' + height);
+    // console.log('w ' + width + ' h ' + height);
     TextureLevelPyramid.prototype.allocLevel.call(this, levelNdx, width, height, 1);
 };
 

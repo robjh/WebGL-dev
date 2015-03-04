@@ -96,8 +96,8 @@ Texture2D.prototype.upload = function() {
         var access = this.m_refTexture.getLevel(levelNdx);
         DE_ASSERT(access.getRowPitch() == access.getFormat().getPixelSize() * access.getWidth());
         var data = access.getDataPtr();
-        console.log(data);
-        console.log('Level ' + levelNdx + ' format ' + this.m_format.toString(16) + ' transfer Format ' + transferFormat.format.toString(16) + ' datatype ' + transferFormat.dataType.toString(16));
+        // console.log(data);
+        // console.log('Level ' + levelNdx + ' format ' + this.m_format.toString(16) + ' transfer Format ' + transferFormat.format.toString(16) + ' datatype ' + transferFormat.dataType.toString(16));
         gl.texImage2D(gl.TEXTURE_2D, levelNdx, this.m_format, access.getWidth(), access.getHeight(), 0 /* border */, transferFormat.format, transferFormat.dataType, access.getDataPtr());
     }
 

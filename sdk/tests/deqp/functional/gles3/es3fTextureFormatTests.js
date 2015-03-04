@@ -60,7 +60,6 @@ setParentClass(Texture2DFormatCase, deqpTests.DeqpTest);
 Texture2DFormatCase.prototype.init = function() {
     /*tcu::TextureFormat*/ var fmt = this.m_dataType ? gluTextureUtil.mapGLTransferFormat(this.m_format, this.m_dataType) : gluTextureUtil.mapGLInternalFormat(this.m_format);
     /*tcu::TextureFormatInfo*/ var spec = tcuTextureUtil.getTextureFormatInfo(fmt);
-    console.log(spec);
     /* TODO : Port
 
     std::ostringstream fmtName;
@@ -111,11 +110,8 @@ Texture2DFormatCase.prototype.iterate = function() {
     renderParams.flags.log_uniforms = true;
 
     renderParams.samplerType = glsTextureTestUtil.getSamplerType(this.m_texture.getRefTexture().getFormat());
-    console.log('Sampler');
-    console.log(renderParams.samplerType);
     renderParams.sampler = new tcuTexture.Sampler(tcuTexture.WrapMode.CLAMP_TO_EDGE, tcuTexture.WrapMode.CLAMP_TO_EDGE, tcuTexture.WrapMode.CLAMP_TO_EDGE,
      tcuTexture.FilterMode.NEAREST, tcuTexture.FilterMode.NEAREST);
-    console.log(renderParams.sampler);
     renderParams.colorScale = spec.lookupScale;
     renderParams.colorBias = spec.lookupBias;
 
@@ -129,7 +125,6 @@ Texture2DFormatCase.prototype.iterate = function() {
     // << TestLog::EndMessage;
 
     // Setup base viewport.
-    console.log(viewport);
     gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height);
 
     // Upload texture data to GL.
@@ -183,7 +178,6 @@ setParentClass(TextureCubeFormatCase, deqpTests.DeqpTest);
 TextureCubeFormatCase.prototype.init = function() {
     /*tcu::TextureFormat*/ var fmt = this.m_dataType ? gluTextureUtil.mapGLTransferFormat(this.m_format, this.m_dataType) : gluTextureUtil.mapGLInternalFormat(this.m_format);
     /*tcu::TextureFormatInfo*/ var spec = tcuTextureUtil.getTextureFormatInfo(fmt);
-    console.log(spec);
     /* TODO : Port
 
     std::ostringstream fmtName;
@@ -250,11 +244,8 @@ TextureCubeFormatCase.prototype.testFace = function(face) {
     renderParams.flags.log_uniforms = true;
 
     renderParams.samplerType = glsTextureTestUtil.getSamplerType(this.m_texture.getRefTexture().getFormat());
-    console.log('Sampler');
-    console.log(renderParams.samplerType);
     renderParams.sampler = new tcuTexture.Sampler(tcuTexture.WrapMode.CLAMP_TO_EDGE, tcuTexture.WrapMode.CLAMP_TO_EDGE, tcuTexture.WrapMode.CLAMP_TO_EDGE,
      tcuTexture.FilterMode.NEAREST, tcuTexture.FilterMode.NEAREST);
-    console.log(renderParams.sampler);
     renderParams.colorScale = spec.lookupScale;
     renderParams.colorBias = spec.lookupBias;
 
@@ -274,7 +265,6 @@ TextureCubeFormatCase.prototype.testFace = function(face) {
     // << TestLog::EndMessage;
 
     // Setup base viewport.
-    console.log(viewport);
     gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height);
 
     // Bind to unit 0.
@@ -339,7 +329,6 @@ setParentClass(Texture2DArrayFormatCase, deqpTests.DeqpTest);
 Texture2DArrayFormatCase.prototype.init = function() {
     /*tcu::TextureFormat*/ var fmt = this.m_dataType ? gluTextureUtil.mapGLTransferFormat(this.m_format, this.m_dataType) : gluTextureUtil.mapGLInternalFormat(this.m_format);
     /*tcu::TextureFormatInfo*/ var spec = tcuTextureUtil.getTextureFormatInfo(fmt);
-    console.log(spec);
     /* TODO : Port
 
     std::ostringstream fmtName;
@@ -388,11 +377,8 @@ Texture2DArrayFormatCase.prototype.testLayer = function(layerNdx) {
     renderParams.flags.log_uniforms = true;
 
     renderParams.samplerType = glsTextureTestUtil.getSamplerType(this.m_texture.getRefTexture().getFormat());
-    console.log('Sampler');
-    console.log(renderParams.samplerType);
     renderParams.sampler = new tcuTexture.Sampler(tcuTexture.WrapMode.CLAMP_TO_EDGE, tcuTexture.WrapMode.CLAMP_TO_EDGE, tcuTexture.WrapMode.CLAMP_TO_EDGE,
      tcuTexture.FilterMode.NEAREST, tcuTexture.FilterMode.NEAREST);
-    console.log(renderParams.sampler);
     renderParams.colorScale = spec.lookupScale;
     renderParams.colorBias = spec.lookupBias;
 
@@ -406,7 +392,6 @@ Texture2DArrayFormatCase.prototype.testLayer = function(layerNdx) {
     // << TestLog::EndMessage;
 
     // Setup base viewport.
-    console.log(viewport);
     gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height);
 
     this.m_texture.upload();
@@ -473,7 +458,6 @@ setParentClass(Texture3DFormatCase, deqpTests.DeqpTest);
 Texture3DFormatCase.prototype.init = function() {
     /*tcu::TextureFormat*/ var fmt = this.m_dataType ? gluTextureUtil.mapGLTransferFormat(this.m_format, this.m_dataType) : gluTextureUtil.mapGLInternalFormat(this.m_format);
     /*tcu::TextureFormatInfo*/ var spec = tcuTextureUtil.getTextureFormatInfo(fmt);
-    console.log(spec);
     /* TODO : Port
 
     std::ostringstream fmtName;
@@ -523,11 +507,8 @@ Texture3DFormatCase.prototype.testSlice = function(sliceNdx) {
     renderParams.flags.log_uniforms = true;
 
     renderParams.samplerType = glsTextureTestUtil.getSamplerType(this.m_texture.getRefTexture().getFormat());
-    console.log('Sampler');
-    console.log(renderParams.samplerType);
     renderParams.sampler = new tcuTexture.Sampler(tcuTexture.WrapMode.CLAMP_TO_EDGE, tcuTexture.WrapMode.CLAMP_TO_EDGE, tcuTexture.WrapMode.CLAMP_TO_EDGE,
      tcuTexture.FilterMode.NEAREST, tcuTexture.FilterMode.NEAREST);
-    console.log(renderParams.sampler);
     renderParams.colorScale = spec.lookupScale;
     renderParams.colorBias = spec.lookupBias;
 
@@ -541,7 +522,6 @@ Texture3DFormatCase.prototype.testSlice = function(sliceNdx) {
     // << TestLog::EndMessage;
 
     // Setup base viewport.
-    console.log(viewport);
     gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height);
 
     this.m_texture.upload();
@@ -640,11 +620,8 @@ Compressed2DFormatCase.prototype.iterate = function() {
     renderParams.flags.log_uniforms = true;
 
     renderParams.samplerType = glsTextureTestUtil.getSamplerType(this.m_texture.getRefTexture().getFormat());
-    console.log('Sampler');
-    console.log(renderParams.samplerType);
     renderParams.sampler = new tcuTexture.Sampler(tcuTexture.WrapMode.CLAMP_TO_EDGE, tcuTexture.WrapMode.CLAMP_TO_EDGE, tcuTexture.WrapMode.CLAMP_TO_EDGE,
      tcuTexture.FilterMode.NEAREST, tcuTexture.FilterMode.NEAREST);
-    console.log(renderParams.sampler);
     renderParams.colorScale = spec.lookupScale;
     renderParams.colorBias = spec.lookupBias;
 
@@ -658,7 +635,6 @@ Compressed2DFormatCase.prototype.iterate = function() {
     // << TestLog::EndMessage;
 
     // Setup base viewport.
-    console.log(viewport);
     gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height);
 
     // Bind to unit 0.
@@ -740,11 +716,8 @@ CompressedCubeFormatCase.prototype.testFace = function(face) {
     renderParams.flags.log_uniforms = true;
 
     renderParams.samplerType = glsTextureTestUtil.getSamplerType(this.m_texture.getRefTexture().getFormat());
-    console.log('Sampler');
-    console.log(renderParams.samplerType);
     renderParams.sampler = new tcuTexture.Sampler(tcuTexture.WrapMode.CLAMP_TO_EDGE, tcuTexture.WrapMode.CLAMP_TO_EDGE, tcuTexture.WrapMode.CLAMP_TO_EDGE,
      tcuTexture.FilterMode.NEAREST, tcuTexture.FilterMode.NEAREST);
-    console.log(renderParams.sampler);
 
     // Log render info on first face.
     if (face === tcuTexture.CubeFace.CUBEFACE_NEGATIVE_X) {
@@ -762,7 +735,6 @@ CompressedCubeFormatCase.prototype.testFace = function(face) {
     // << TestLog::EndMessage;
 
     // Setup base viewport.
-    console.log(viewport);
     gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height);
 
     // Bind to unit 0.
