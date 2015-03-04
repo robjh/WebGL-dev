@@ -142,7 +142,7 @@ var ProgramInfo = function() {
  * Creates program.
  * Inner methods: attach shaders, bind attributes location, link program and transform Feedback Varyings
  * @param {WebGLRenderingContext} gl WebGL context
- * @param programID
+ * @param {WebGLProgram} programID
  */
 var Program = function(gl, programID) {
     this.gl = gl;
@@ -191,7 +191,7 @@ var Program = function(gl, programID) {
 /**
  * Assigns gl WebGL context and programSources. Declares array of shaders and new program()
  * @param {WebGLRenderingContext} gl WebGL context
- * @param programSources
+ * @param {ProgramSources} programSources
  */
 var ShaderProgram = function(gl, programSources) {
     this.gl = gl;

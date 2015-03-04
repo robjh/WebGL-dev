@@ -99,9 +99,8 @@ var getTransferFormat = function(/*tcu::TextureFormat*/ texFormat) {
         case textureFormat.ChannelType.UNSIGNED_INT_999_E5_REV: type = gl.UNSIGNED_INT_5_9_9_9_REV; break;
         case textureFormat.ChannelType.HALF_FLOAT: type = gl.HALF_FLOAT; break;
         case textureFormat.ChannelType.FLOAT_UNSIGNED_INT_24_8_REV: type = gl.FLOAT_32_UNSIGNED_INT_24_8_REV; break;
-        case textureFormat.ChannelType.UNSIGNED_INT_24_8: type = texFormat.order == textureFormat.ChannelType.D
-                                                                 ? gl.UNSIGNED_INT
-                                                                 : gl.UNSIGNED_INT_24_8; break;
+        case textureFormat.ChannelType.UNSIGNED_INT_24_8: type = texFormat.order == textureFormat.ChannelType.D ?
+                                                                 gl.UNSIGNED_INT : gl.UNSIGNED_INT_24_8; break;
 
         default:
             throw new Error("Can't map texture format to GL transfer format " + textureFormat.type);

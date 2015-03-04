@@ -59,7 +59,7 @@ Surface.prototype.getWidth = function() { return this.m_width; };
 Surface.prototype.getHeight = function() { return this.m_height; };
 
 /**
- * @param color Vec4 color
+ * @param {Array<Number>} color Vec4 color
  */
 Surface.prototype.setPixel = function(x, y, color) {
     DE_ASSERT(deMath.deInBounds32(x, 0, this.m_width));
