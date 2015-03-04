@@ -408,7 +408,7 @@ var decompressETC2Block = function(dst, src, alphaDst, alphaMode) {
 	var	selDR			= extendSigned3To8(getBits64(src, 56, 58)); // 3 bits.
 	var	selDG			= extendSigned3To8(getBits64(src, 48, 50));
 	var	selDB			= extendSigned3To8(getBits64(src, 40, 42));
-	
+
 	var		mode;
 
 	if (!alphaMode && diffOpaqueBit == 0)

@@ -514,7 +514,7 @@ var sRGBToLinear = function(cs)
 // Texel lookup with color conversion.
 var lookup = function(/*const ConstPixelBufferAccess&*/ access, i, j, k) {
 	var p = access.getPixel(i, j, k);
-	// console.log('Lookup at ' + i + ' ' + j + ' ' + k + ' ' + p);	
+	// console.log('Lookup at ' + i + ' ' + j + ' ' + k + ' ' + p);
 	return isSRGB(access.getFormat()) ? sRGBToLinear(p) : p;
 };
 

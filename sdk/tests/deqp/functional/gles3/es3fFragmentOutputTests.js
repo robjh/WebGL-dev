@@ -117,14 +117,14 @@ define(['framework/opengl/gluShaderUtil', 'framework/delibs/debase/deRandom', 'f
 
     FragmentOutputCase.prototype = Object.create(deqpTests.DeqpTest.prototype);
     FragmentOutputCase.prototype.constructor = FragmentOutputCase;
-    
+
     /** Creates Program
      */
     var createProgram = function() {
- 
+
         var vtx = '';
         var frag = '';
-       
+
         vtx.str = '#version 300 es\n'
                  + 'in highp vec4 a_position;\n';
         frag.str = '#version 300 es\n';
@@ -187,7 +187,7 @@ define(['framework/opengl/gluShaderUtil', 'framework/delibs/debase/deRandom', 'f
         vtx << "}\n";
         frag << "}\n";
         */
-        
+
       //  return /** @type {deqpProgram.ShaderProgram}*/ var program = new deqpProgram.ShaderProgram(gl, deqpProgram.makeVtxFragSources(vtxSrc, fragSrc));
     };
 

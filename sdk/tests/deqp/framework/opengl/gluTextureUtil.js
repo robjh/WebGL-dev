@@ -213,7 +213,7 @@ var getInternalFormat = function(/*tcu::TextureFormat*/ texFormat)
  * \param format Generic compressed format.
  * \return GL compressed texture format.
  *//*--------------------------------------------------------------------*/
- 
+
 var getGLFormat = function(/*tcu::CompressedTexture::Format*/ format) {
 	switch (format) {
 		case tcuCompressedTexture.Format.ETC1_RGB8:							return gl.ETC1_RGB8_OES;

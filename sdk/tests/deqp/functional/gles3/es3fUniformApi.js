@@ -311,12 +311,12 @@ define([
             }
 
             structTypesDst.push(structType);
-            return isArray ? 
-            { 
-                type: gluVT.newTypeArray(gluVT.newTypeStruct(structType), rnd.getInt(1, 5)), 
+            return isArray ?
+            {
+                type: gluVT.newTypeArray(gluVT.newTypeStruct(structType), rnd.getInt(1, 5)),
                 ndx: curStructIdx
             }
-            : 
+            :
             {
                 type: gluVT.newTypeStruct(structType),
                 ndx: curStructIdx
@@ -326,7 +326,7 @@ define([
         {
             /** @type {deqpUtils.DataType} */ var basicType = s_testDataTypes[rnd.getInt(0, s_testDataTypes.length-1)];
             /** @type {deqpUtils.precision} */ var precision = deqpUtils.isDataTypeBoolOrBVec(basicType) ? deqpUtils.precision.PRECISION_LAST : deqpUtils.precision.PRECISION_MEDIUMP;
-            return isArray ? 
+            return isArray ?
             {
                 type: gluVT.newTypeArray(gluVT.newTypeBasic(basicType, precision), rnd.getInt(1, 5)),
                 ndx: curStructIdx
@@ -1151,10 +1151,10 @@ define([
     BasicUniformReportRef.prototype.constructor_A = function(name_, minS, maxS, type_, used) {
         this.name = name_;
         this.minSize = minS;
-        this.maxSize = maxS; 
+        this.maxSize = maxS;
         this.type = type_;
         this.isUsedInShader = used;
-        DE_ASSERT(minSize <= maxSize); 
+        DE_ASSERT(minSize <= maxSize);
     };
 
     // Info that is actually reported by glGetActiveUniform() or glGetActiveUniformsiv().
@@ -1199,7 +1199,7 @@ define([
 
         /** @type {deMath.deUint32} */ this.m_features = randomFeatures(seed);
         /** @type {UniformCollection} (SharedPtr) */ this.m_uniformCollection = UniformCollection.random(seed);
-        
+
         /** @type {CaseShaderType} */ this.m_caseShaderType = randomCaseShaderType(seed);
 
         /** @type {gluTexture.Texture2D} */ this.m_textures2d = new gluTexture.Texture2D();

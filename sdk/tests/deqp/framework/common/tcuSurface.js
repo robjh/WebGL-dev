@@ -39,7 +39,7 @@ var DE_FALSE = false;
 var Surface = function(width, height) {
 	this.m_width = width;
 	this.m_height = height;
-	if (width * height > 0) { 
+	if (width * height > 0) {
 		this.m_data = new ArrayBuffer(4 * width * height);
 		this.m_pixels = new Uint8Array(this.m_data);
 	}
@@ -49,7 +49,7 @@ Surface.prototype.setSize = function(width, height) {
 	/* TODO: Duplicated code from constructor */
 	this.m_width = width;
 	this.m_height = height;
-	if (width * height > 0) { 
+	if (width * height > 0) {
 		this.m_data = new ArrayBuffer(4 * width * height);
 		this.m_pixels = new Uint8Array(this.m_data);
 	}

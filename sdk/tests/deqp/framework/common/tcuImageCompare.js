@@ -26,7 +26,7 @@ var displayResultPane = function(id, width, height) {
 	var elem = document.getElementById(id);
 	var span = document.createElement("span");
 	elem.appendChild(span);
-	span.innerHTML = '<table><tr><td>Result</td><td>Reference</td><td>Error mask</td></tr>' + 
+	span.innerHTML = '<table><tr><td>Result</td><td>Reference</td><td>Error mask</td></tr>' +
 							'<tr><td><canvas id="result' + i + '" width=' + width + ' height=' + height +'</td><td><canvas id="reference' + i +'" width=' + width + ' height=' + height +'</td><td><canvas id="diff' + i +'" width=' + width + ' height=' + height +'</td>' +
 					 '</table>';
 	var canvasResult = document.getElementById('result' + i);
@@ -45,10 +45,10 @@ var displayImages = function(result, reference, diff) {
 		var imgData = ctx.createImageData(w, h);
 		var index = 0;
 		for (var y = 0; y < h; y++) {
-			for (var x = 0; x < w; x++)	{	
+			for (var x = 0; x < w; x++)	{
 				var	pixel = src.getPixelInt(x, y, 0);
 				for (var i = 0; i < 4; i++) {
-					imgData.data[index] = pixel[i]; 
+					imgData.data[index] = pixel[i];
 					index = index + 1;
 				}
 			}
@@ -99,10 +99,10 @@ var intThresholdCompare = function(/*const char* */imageSetName, /*const char* *
 	assertMsgOptions(result.getWidth() == width && result.getHeight() == height && result.getDepth() == depth,
 		'Reference and result images have different dimensions', false, true);
 
-	
+
 	for (var z = 0; z < depth; z++)	{
 		for (var y = 0; y < height; y++) {
-			for (var x = 0; x < width; x++)	{	
+			for (var x = 0; x < width; x++)	{
 			var	refPix		= reference.getPixelInt(x, y, z);
 				var	cmpPix		= result.getPixelInt(x, y, z);
 

@@ -120,7 +120,7 @@ var TextureFormatInfo = function(valueMin, valueMax, lookupScale, lookupBias) {
 /*
  * Creates an array by choosing between 'a' and 'b' based on 'cond' array.
  * @param {Array<boolean>} cond Condtions
- * @return {Array} 
+ * @return {Array}
  */
 var select = function(a, b, cond) {
 	var dst = [];
@@ -129,7 +129,7 @@ var select = function(a, b, cond) {
 			dst.push(a);
 		else
 			dst.push(b);
-	return dst;	
+	return dst;
 };
 
 /*--------------------------------------------------------------------*//*!

@@ -55,7 +55,7 @@ var deRandom_init = function(rnd, seed)
  * @return {int} Random int
  */
 var deRandom_getInt = function(rnd, opts)
-{	
+{
 	if (opts != undefined && opts[0] != undefined && opts[1] != undefined ){
 		if (opts[0] == 0x80000000 && opts[1] == 0x7fffffff) {
 			return deRandom_getInt(rnd);
@@ -107,7 +107,7 @@ var deRandom_getBool = function(rnd)
  * Function to get a common base seed
  * @return {number} constant
  */
-var getBaseSeed = function() 
+var getBaseSeed = function()
 {
     return 42;
 };
@@ -120,7 +120,7 @@ var getBaseSeed = function()
  * @param {number} num Number of items to store in resultOut. If undefined, default to 1.
  * @return {Array.<Object>} Even though result is stored in resultOut, return it here as well.
  */
-var choose = function(rnd, elements, resultOut, num) 
+var choose = function(rnd, elements, resultOut, num)
 {
     //TODO: This is a temporary implementation for tests.
 	return [elements[0]];
@@ -129,7 +129,7 @@ var choose = function(rnd, elements, resultOut, num)
 /**
  * TODO Function to choose weighted random items from a list
  * @param {deRandom} rnd Initialised array of random numbers
- * @param {Iterator} first Start of array 
+ * @param {Iterator} first Start of array
  * @param {Iterator} last End of array
  * @param {Iterator} weight Weight
  * @return {Iterator} Result output
@@ -142,7 +142,7 @@ var chooseWeighted = function(rnd, first, last, weight)
 /**
  * TODO Function to shuffle an array
  * @param {deRandom} rnd Initialised array of random numbers
- * @param {Iterator} first Start of array 
+ * @param {Iterator} first Start of array
  * @param {Iterator} last End of array
  * @return {Iterator} Shuffled array
  */
@@ -154,8 +154,8 @@ var shuffle = function(rnd, first, last)
 
 /**
  * This function is used to create the Random object and
- * initialise the random number with a seed. 
- * It contains functions for generating random numbers in a variety of formats 
+ * initialise the random number with a seed.
+ * It contains functions for generating random numbers in a variety of formats
  * @param {number} seed Number to use as a seed
  */
 var Random = function(seed) {
@@ -163,7 +163,7 @@ var Random = function(seed) {
 	 * Instance of array of pseudo random numbers based on seeds
 	*/
 	this.m_rnd = new deRandom;
-	
+
 	//initialise the random numbers based on seed
 	deRandom_init(this.m_rnd, seed);
 };
@@ -199,7 +199,7 @@ Random.prototype.choose = function(elements, resultOut, num) {return choose(this
 /**
  * TODO Function to choose weighted random items from a list
  * @param {deRandom} rnd initialised array of random numbers
- * @param {Iterator} first Start of array 
+ * @param {Iterator} first Start of array
  * @param {Iterator} last End of array
  * @param {Iterator} weight Weight
  * @return {Iterator} Result output
@@ -208,7 +208,7 @@ Random.prototype.chooseWeighted = function(first, last, weight) {return chooseWe
 /**
  * TODO Function to shuffle an array
  * @param {deRandom} rnd Initialised array of random numbers
- * @param {Iterator} first Start of array 
+ * @param {Iterator} first Start of array
  * @param {Iterator} last End of array
  * @return {Iterator} Shuffled array
  */

@@ -18,7 +18,7 @@
  *
  */
 
-define(['framework/opengl/gluDrawUtil', 'framework/opengl/gluShaderProgram', 'framework/common/tcuTexture', 'framework/opengl/gluShaderUtil', 'framework/common/tcuStringTemplate', 'framework/delibs/debase/deMath', 'framework/common/tcuImageCompare'], 
+define(['framework/opengl/gluDrawUtil', 'framework/opengl/gluShaderProgram', 'framework/common/tcuTexture', 'framework/opengl/gluShaderUtil', 'framework/common/tcuStringTemplate', 'framework/delibs/debase/deMath', 'framework/common/tcuImageCompare'],
 	function(deqpDraw, gluShaderProgram, tcuTexture, gluShaderUtil, tcuStringTemplate, deMath, tcuImageCompare) {
 	'use strict';
 var DE_ASSERT = function(x) {

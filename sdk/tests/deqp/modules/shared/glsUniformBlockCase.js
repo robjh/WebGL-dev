@@ -29,12 +29,12 @@ define([
     'framework/delibs/debase/deString'
 ],
 function(
-    deqpTests, 
-    deqpProgram, 
-    deqpUtils, 
-    deqpDraw, 
-    deMath, 
-    deRandom, 
+    deqpTests,
+    deqpProgram,
+    deqpUtils,
+    deqpDraw,
+    deMath,
+    deRandom,
     deString
 ) {
     'use strict';
