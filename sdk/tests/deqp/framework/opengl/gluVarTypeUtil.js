@@ -152,12 +152,12 @@ define([
      */
     var SubTypeAccess = (function(type) {
 
-        this.m_type; // VarType
-        this.m_path; // TypeComponentVector
+        this.m_type = null; // VarType
+        this.m_path = [];   // TypeComponentVector
 
         var helper = (function(type, ndx) {
             this.m_path.push(new VarTypeComponent(type, ndx));
-            if (!isValid()) {
+            if (!this.isValid()) {
                 throw new Error;
             }
             return this;
@@ -318,7 +318,7 @@ define([
                 else
                     m_type = null; // Unset type to signal end.
             } else {
-                if (!IsExpanded(getVarType(m_type, m_path))) {
+                if (!this.IsExpanded(getVarType(m_type, m_path))) {
                     throw new Error('First type was already expanded.');
                 }
                 m_type = null;
@@ -331,7 +331,7 @@ define([
 
     /** BasicTypeIterator
      * @param {gluVarType.VarType} type
-     * @return {gluVarType.Type | }
+     * @return {gluVarType.Type}
      */
     var BasicTypeIterator = (function(type) {
         this.isExpanded = (function() {
@@ -575,12 +575,12 @@ define([
                     if (!inBounds(ndx, 0, curType.getArraySize())) throw new Error;
                     path.push(VarTypeComponent(VarTypeComponent.s_Type.ARRAY_ELEMENT, ndx));
 
-                } else if (curType.isBasicType() && isDataTypeMatrix(curType.getBasicType())) {
-                    if (!inBounds(ndx, 0, getDataTypeMatrixNumColumns(curType.getBasicType()))) throw new Error;
+                } else if (curType.isBasicType() && deqpUtils.isDataTypeMatrix(curType.getBasicType())) {
+                    if (!inBounds(ndx, 0, deqpUtils.getDataTypeMatrixNumColumns(curType.getBasicType()))) throw new Error;
                     path.push(VarTypeComponent(VarTypeComponent.s_Type.MATRIX_COLUMN, ndx));
 
-                } else if (curType.isBasicType() && isDataTypeVector(curType.getBasicType())) {
-                    if (!inBounds(ndx, 0, getDataTypeScalarSize(curType.getBasicType()))) throw new Error;
+                } else if (curType.isBasicType() && deqpUtils.isDataTypeVector(curType.getBasicType())) {
+                    if (!inBounds(ndx, 0, deqpUtils.getDataTypeScalarSize(curType.getBasicType()))) throw new Error;
                     path.push(VarTypeComponent(VarTypeComponent.s_Type.VECTOR_COMPONENT, ndx));
 
                 } else {
