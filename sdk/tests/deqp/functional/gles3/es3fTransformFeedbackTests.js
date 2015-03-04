@@ -239,10 +239,10 @@ define(['framework/opengl/gluShaderUtil',
     /** @type {number} */ var maxTfSeparateAttribs = 0;
     /** @type {number} */ var maxTfSeparateComponents = 0;
 
-        maxVertexAttribs = gl.getParameter(GL_MAX_VERTEX_ATTRIBS);
-        maxTfInterleavedComponents = gl.getParameter(GL_MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS);
-        maxTfSeparateAttribs = gl.getParameter(GL_MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS);
-        maxTfSeparateComponents = gl.getParameter(GL_MAX_TRANSFORM_FEEDBACK_SEPARATE_COMPONENTS);
+        maxVertexAttribs           = gl.getParameter(gl.MAX_VERTEX_ATTRIBS);
+        maxTfInterleavedComponents = gl.getParameter(gl.MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS);
+        maxTfSeparateAttribs       = gl.getParameter(gl.MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS);
+        maxTfSeparateComponents    = gl.getParameter(gl.MAX_TRANSFORM_FEEDBACK_SEPARATE_COMPONENTS);
 
         // Check vertex attribs.
         /** @type {number} */ var totalVertexAttribs = (
@@ -295,10 +295,10 @@ define(['framework/opengl/gluShaderUtil',
             totalTfAttribs += 1;
         }
     
-        if (tfMode == GL_SEPARATE_ATTRIBS && totalTfAttribs > maxTfSeparateAttribs)
+        if (tfMode == gl.SEPARATE_ATTRIBS && totalTfAttribs > maxTfSeparateAttribs)
             return false;
 
-        if (tfMode == GL_INTERLEAVED_ATTRIBS && totalTfComponents > maxTfInterleavedComponents)
+        if (tfMode == gl.INTERLEAVED_ATTRIBS && totalTfComponents > maxTfInterleavedComponents)
             return false;
 
         return true;
@@ -453,7 +453,7 @@ define(['framework/opengl/gluShaderUtil',
      */
     var createVertexCaptureProgram = function(context, spec, bufferMode, primitiveType) {
 
-    /** @type {Object.<string, string>} */ var source = genShaderSources(spec, primitiveType == GL_POINTS /* Is point size required? */);
+    /** @type {Object.<string, string>} */ var source = genShaderSources(spec, primitiveType == gl.POINTS /* Is point size required? */);
 
     /** @type {deqpProgram.ShaderProgram} */ var programSources = new deqpProgram.ProgramSources();
         programSources.add(new glu.VertexSource(source.vertSource))
@@ -516,8 +516,8 @@ define(['framework/opengl/gluShaderUtil',
         for (var varNdx = 0; varNdx < transformFeedbackVaryings.length; varNdx++)
         {
         /** @type {string} */ var name = transformFeedbackVaryings[varNdx];
-        /** @type {number} */ var bufNdx = (bufferMode === GL_SEPARATE_ATTRIBS ? varNdx : 0);
-        /** @type {number} */ var offset = (bufferMode === GL_SEPARATE_ATTRIBS ? 0 : accumulatedSize);
+        /** @type {number} */ var bufNdx = (bufferMode === gl.SEPARATE_ATTRIBS ? varNdx : 0);
+        /** @type {number} */ var offset = (bufferMode === gl.SEPARATE_ATTRIBS ? 0 : accumulatedSize);
         /** @type {Output} */ var output = transformFeedbackOutputs[varNdx];
 
             output.name    = name;
@@ -1103,7 +1103,7 @@ define(['framework/opengl/gluShaderUtil',
             // Input data.
             var inputData = genInputData(m_attributes, numInputs, m_inputStride, rnd);
 
-            gl.bindTransformFeedback(GL_TRANSFORM_FEEDBACK, m_transformFeedback.get());
+            gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, m_transformFeedback.get());
             GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTransformFeedback()');
 
             // Allocate storage for transform feedback output buffers and bind to targets.
@@ -1113,7 +1113,7 @@ define(['framework/opengl/gluShaderUtil',
                 var target = bufNdx; // int
                 var size = stride * numOutputs; // int
                 var guardSize = stride*BUFFER_GUARD_MULTIPLIER; // int
-                var usage = GL_DYNAMIC_READ; // const deUint32
+                var usage = gl.DYNAMIC_READ; // const deUint32
 
                 gl.bindBuffer(gl.TRANSFORM_FEEDBACK_BUFFER, buffer);
                 gl.bufferData(gl.TRANSFORM_FEEDBACK_BUFFER, size + guardSize, DE_NULL, usage);
@@ -1140,7 +1140,7 @@ define(['framework/opengl/gluShaderUtil',
                         case glu.TYPE_UINT:  type = gl.UNSIGNED_INT; break;
                     }
                     if (type !== null) {
-                        gl.vertexAttribPointer (loc, numComponents, type, GL_FALSE, m_inputStride, ptr);
+                        gl.vertexAttribPointer (loc, numComponents, type, gl.FALSE, m_inputStride, ptr);
                     }
                 }
             }
@@ -1198,7 +1198,7 @@ define(['framework/opengl/gluShaderUtil',
                 GLU_EXPECT_NO_ERROR(gl.getError(), 'render');
             }
             
-            gl.endQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN);
+            gl.endQuery(gl.TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN);
             GLU_EXPECT_NO_ERROR(gl.getError(), 'glEndQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN)');
             
             // Check and log query status right after submit
@@ -1208,7 +1208,7 @@ define(['framework/opengl/gluShaderUtil',
                 GLU_EXPECT_NO_ERROR(gl.getError(), 'getQueryParameter()'); // formerly glGetQueryObjectuiv()
 
                 bufferedLogToConsole('GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN status after submit: ' +
-                    (available != GL_FALSE ? 'GL_TRUE' : 'GL_FALSE'));
+                    (available != gl.FALSE ? 'GL_TRUE' : 'GL_FALSE'));
             }
             
             // Compare result buffers.
@@ -1372,7 +1372,6 @@ define(['framework/opengl/gluShaderUtil',
         ]
     };
 
-    // TODO: find TestCase
     TransformFeedbackCase.prototype = new tcuTestCase.DeqpTest();
 
     /** PositionCase
@@ -1453,7 +1452,7 @@ define(['framework/opengl/gluShaderUtil',
 
         this._construct(context, name, desc, bufferMode, primitiveType);
 
-        if (deqpUtils.isDataTypeMatrix(type) || this.m_bufferMode === GL_SEPARATE_ATTRIBS)
+        if (deqpUtils.isDataTypeMatrix(type) || this.m_bufferMode === gl.SEPARATE_ATTRIBS)
         {
             // note For matrix types we need to use reduced array sizes or otherwise we will exceed maximum attribute (16)
             // or transform feedback component count (64).
@@ -1571,7 +1570,7 @@ define(['framework/opengl/gluShaderUtil',
 
         /** @type {number} */ var maxAttributeVectors = 16;
         // /** @type {number} */ var maxTransformFeedbackComponents    = 64; // note It is enough to limit attribute set size.
-        /** @type {boolean} */ var isSeparateMode = m_bufferMode === GL_SEPARATE_ATTRIBS;
+        /** @type {boolean} */ var isSeparateMode = m_bufferMode === gl.SEPARATE_ATTRIBS;
         /** @type {number} */ var maxTransformFeedbackVars = isSeparateMode ? 4 : maxAttributeVectors;
         /** @type {number} */ var arrayWeight = 0.3;
         /** @type {number} */ var positionWeight = 0.7;
@@ -1669,8 +1668,8 @@ define(['framework/opengl/gluShaderUtil',
 
     /** @type {Array.<string, number>} */
         var bufferModes = [
-            {name: 'separate', mode: GL_SEPARATE_ATTRIBS}, // TODO: implement GL_SEPARATE_ATTRIBS
-            {name: 'interleaved', mode: GL_INTERLEAVED_ATTRIBS} // TODO: implement GL_INTERLEAVED_ATTRIBS
+            {name: 'separate', mode: gl.SEPARATE_ATTRIBS}, // TODO: implement GL_SEPARATE_ATTRIBS
+            {name: 'interleaved', mode: gl.INTERLEAVED_ATTRIBS} // TODO: implement GL_INTERLEAVED_ATTRIBS
         ];
 
         /** @type {Array.<string, deqpDraw.primitiveType>} */
@@ -1906,11 +1905,11 @@ define(['framework/opengl/gluShaderUtil',
     };
 
     return {
-        
+
         VIEWPORT_WIDTH:             VIEWPORT_WIDTH,
         VIEWPORT_HEIGHT:            VIEWPORT_HEIGHT,
         BUFFER_GUARD_MULTIPLIER:    BUFFER_GUARD_MULTIPLIER,
-        
+
         interpolation:              interpolation,
         getInterpolationName:       getInterpolationName,
         Varying:                    Varying,
