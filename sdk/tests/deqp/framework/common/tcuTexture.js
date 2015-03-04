@@ -27,7 +27,6 @@ define(['framework/delibs/debase/deMath', 'framework/common/tcuFloat'], function
 	};
 	var DE_FALSE = false;
 
-
 	var ChannelOrder = {
 		R: 0,
 		A: 1,
@@ -811,7 +810,6 @@ var  ConstPixelBufferAccess = function(descriptor) {
 	return result;
 };
 
-
 ConstPixelBufferAccess.prototype.sample2D = function(/*const Sampler&*/ sampler, /*Sampler::FilterMode*/ filter, s, t, /*int*/ depth) {
 	DE_ASSERT(deMath.deInBounds32(depth, 0, this.m_depth));
 
@@ -856,7 +854,6 @@ ConstPixelBufferAccess.prototype.sample3D = function(/*const Sampler&*/ sampler,
 	}
 	throw new Error('Unimplemented');
 }
-
 
 	/* TODO: do we need any of these? */
 	{
@@ -1239,7 +1236,6 @@ Texture2DArrayView.prototype.sample = function(/*const Sampler&*/ sampler, texCo
 	return sampleLevelArray2D(this.m_levels, this.m_numLevels, sampler, texCoord[0], texCoord[1], this.selectLayer(texCoord[2]), lod);
 };
 
-
 var Texture3DView = function(numLevels, levels) {
 	this.m_numLevels = numLevels;
 	this.m_levels = levels;
@@ -1263,7 +1259,6 @@ Texture3DView.prototype.sample = function(/*const Sampler&*/ sampler, texCoord, 
 	return sampleLevelArray3D(this.m_levels, this.m_numLevels, sampler, texCoord[0], texCoord[1], texCoord[2], lod);
 };
 
-
 var computeMipPyramidLevels = function(width, height) {
 	var h = height || width;
 	return Math.floor(Math.log2(Math.max(width, h))) + 1;
@@ -1272,7 +1267,6 @@ var computeMipPyramidLevels = function(width, height) {
 var getMipPyramidLevelSize = function(baseLevelSize, levelNdx) {
 	return Math.max(baseLevelSize >> levelNdx, 1);
 };
-
 
 /*CubeFaceCoords*/ var getCubeFaceCoords = function(/*const Vec3&*/ coords) {
 	/*const CubeFace*/ var face = selectCubeFace(coords);
@@ -1345,7 +1339,6 @@ Texture3D.prototype.allocLevel = function(levelNdx) {
 
 	TextureLevelPyramid.prototype.allocLevel.call(this, levelNdx, width, height, depth);
 };
-
 
 var TextureCubeView = function(numLevels, levels) {
 	this.m_numLevels = numLevels;
@@ -1426,8 +1419,6 @@ TextureCube.prototype.allocLevel  = function(/*tcu::CubeFace*/ face, /*int*/ lev
 		data: this.m_data[face][levelNdx].m_ptr
 	});
 };
-
-
 
 /**
  * @return {CubeFace}

@@ -157,7 +157,6 @@ Texture2DFormatCase.prototype.iterate = function() {
     glsTextureTestUtil.sampleTexture2D(new glsTextureTestUtil.SurfaceAccess(referenceFrame, undefined /*m_renderCtx.getRenderTarget().getPixelFormat()*/),
         this.m_texture.getRefTexture(), texCoord, renderParams);
 
-
     // Compare and log.
     var isOk = glsTextureTestUtil.compareImages(referenceFrame, renderedFrame, threshold);
 
@@ -296,7 +295,6 @@ TextureCubeFormatCase.prototype.testFace = function(face) {
 
     GLU_EXPECT_NO_ERROR(gl.getError(), 'glReadPixels()');
 
-
     // // Compute reference.
     glsTextureTestUtil.sampleTextureCube(new glsTextureTestUtil.SurfaceAccess(referenceFrame, undefined /*m_renderCtx.getRenderTarget().getPixelFormat()*/),
         this.m_texture.getRefTexture(), texCoord, renderParams);
@@ -398,7 +396,6 @@ Texture2DArrayFormatCase.prototype.testLayer = function(layerNdx) {
     renderParams.colorScale = spec.lookupScale;
     renderParams.colorBias = spec.lookupBias;
 
-
     var texCoord = glsTextureTestUtil.computeQuadTexCoord2DArray(layerNdx, [0, 0], [1, 1]);
 
     // log << TestLog::Message << "Texture parameters:"
@@ -432,11 +429,9 @@ Texture2DArrayFormatCase.prototype.testLayer = function(layerNdx) {
 
     GLU_EXPECT_NO_ERROR(gl.getError(), 'glReadPixels()');
 
-
     // // Compute reference.
     glsTextureTestUtil.sampleTexture2DArray(new glsTextureTestUtil.SurfaceAccess(referenceFrame, undefined /*m_renderCtx.getRenderTarget().getPixelFormat()*/),
         this.m_texture.getRefTexture(), texCoord, renderParams);
-
 
     // Compare and log.
     var isOk = glsTextureTestUtil.compareImages(referenceFrame, renderedFrame, threshold);
@@ -536,7 +531,6 @@ Texture3DFormatCase.prototype.testSlice = function(sliceNdx) {
     renderParams.colorScale = spec.lookupScale;
     renderParams.colorBias = spec.lookupBias;
 
-
     var texCoord = glsTextureTestUtil.computeQuadTexCoord3D([0, 0, r], [1, 1, r], [0, 1, 2]);
 
     // log << TestLog::Message << "Texture parameters:"
@@ -570,11 +564,9 @@ Texture3DFormatCase.prototype.testSlice = function(sliceNdx) {
 
     GLU_EXPECT_NO_ERROR(gl.getError(), 'glReadPixels()');
 
-
     // // Compute reference.
     glsTextureTestUtil.sampleTexture3D(new glsTextureTestUtil.SurfaceAccess(referenceFrame, undefined /*m_renderCtx.getRenderTarget().getPixelFormat()*/),
         this.m_texture.getRefTexture(), texCoord, renderParams);
-
 
     // Compare and log.
     var isOk = glsTextureTestUtil.compareImages(referenceFrame, renderedFrame, threshold);
@@ -687,7 +679,6 @@ Compressed2DFormatCase.prototype.iterate = function() {
     gl.readPixels(viewport.x, viewport.y, viewport.width, viewport.height, gl.RGBA, gl.UNSIGNED_BYTE, renderedFrame.getAccess().getDataPtr());
 
     GLU_EXPECT_NO_ERROR(gl.getError(), 'glReadPixels()');
-
 
     // // Compute reference.
     glsTextureTestUtil.sampleTexture2D(new glsTextureTestUtil.SurfaceAccess(referenceFrame, undefined /*m_renderCtx.getRenderTarget().getPixelFormat()*/),

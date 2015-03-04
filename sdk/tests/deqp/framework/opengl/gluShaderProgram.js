@@ -112,7 +112,6 @@ var Shader = function(gl, type) {
         this.info.compileTimeUs = 0;
         this.info.infoLog = '';
 
-
         /** @type {Date} */ var compileStart = new Date();
         this.gl.compileShader(this.shader);
         /** @type {Date} */ var compileEnd = new Date();

@@ -133,7 +133,6 @@ var getTypeName = function(value) {
 	}
 };
 
-
 return {
 	getPixelFormatName: getPixelFormatName,
 	getTypeName: getTypeName

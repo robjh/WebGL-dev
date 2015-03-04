@@ -30,7 +30,6 @@ var	GLU_EXPECT_NO_ERROR = function(error, message) {
 	assertMsgOptions(error === gl.NONE, message, false, true);
 };
 
-
 /**
  * @enum
  */
@@ -145,7 +144,6 @@ var ReferenceParams = function(texType, sampler, lodMode_) {
 
 ReferenceParams.prototype = Object.create(RenderParams.prototype);
 ReferenceParams.prototype.constructor = ReferenceParams;
-
 
 var computeQuadTexCoord2D = function(bottomLeft,topRight)
 {
@@ -519,7 +517,6 @@ ProgramLibrary.prototype.getProgram = function(/* programType */ program) {
 
 	return progObj;
 };
-
 
 // public:
 // 											ProgramLibrary			(const glu::RenderContext& context, tcu::TestContext& testCtx, glu::GLSLVersion glslVersion, glu::Precision texCoordPrecision);
@@ -1064,7 +1061,6 @@ var sampleTexture3D = function(/*const SurfaceAccess&*/ dst, /*const tcu::Textur
 
 	return sampleTextureNonProjected3D(dst, view, sq, tq, rq, params);
 };
-
 
 /**
  * @return {bool}

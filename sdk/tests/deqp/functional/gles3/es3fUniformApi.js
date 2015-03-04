@@ -18,7 +18,6 @@
  *
  */
 
-
 define([
     'framework/opengl/gluShaderUtil',
     'framework/opengl/gluTexture',

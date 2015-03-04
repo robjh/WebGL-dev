@@ -34,7 +34,6 @@ var specialize = function(str, params) {
 	return dst;
 };
 
-
 return {
 	specialize: specialize
 };

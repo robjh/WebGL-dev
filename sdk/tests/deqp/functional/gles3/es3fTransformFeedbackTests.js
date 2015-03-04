@@ -18,7 +18,6 @@
  *
  */
 
-
 define(['framework/opengl/gluShaderUtil',
         'framework/opengl/gluDrawUtil',
         'modules/shared/glsUniformBlockCase',
@@ -868,7 +867,6 @@ define(['framework/opengl/gluShaderUtil',
 
         return primCount;
     };
-
 
     /**
      * @param {WebGLRenderingContext} context gl WebGL context

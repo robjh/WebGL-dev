@@ -64,7 +64,6 @@ var fillWithComponentGradients3D = function(/*const PixelBufferAccess&*/ dst, /*
 	}
 };
 
-
 var fillWithComponentGradients = function(/*const PixelBufferAccess&*/ access, /*const Vec4&*/ minVal, /*const Vec4&*/ maxVal) {
 	if (access.getHeight() == 1 && access.getDepth() == 1)
 		fillWithComponentGradients1D(access, minVal, maxVal);
@@ -185,7 +184,6 @@ var select = function(a, b, cond) {
 							 select(scale,		1, chnMask),
 							 select(bias,		0, chnMask));
 };
-
 
 return {
 	fillWithComponentGradients: fillWithComponentGradients,

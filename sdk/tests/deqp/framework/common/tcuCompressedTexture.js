@@ -105,7 +105,6 @@ var isEtcFormat = function(fmt) {
 	}
 };
 
-
 var etcDecompressInternal = function() {
 
 var ETC2_BLOCK_WIDTH					= 4;
@@ -162,7 +161,6 @@ var mask8 = function(src, low, high) {
 	};
 };
 
-
 var getBits64 = function(src, low, high) {
 	var result = 0;
 	var bits = 0;
@@ -204,7 +202,6 @@ var extend6To8 = function(src) {
 var extend7To8 = function(src) {
 	return src *  255 / 127;
 };
-
 
 var extend11To16 = function(src) {
 	return src *  32.015144;
@@ -279,7 +276,6 @@ var decompressEAC11Block = function(dst, src, signedMode)
 	}
 };
 
-
 var decompressEAC_R11= function(/*const tcu::PixelBufferAccess&*/ dst, width, height, src, signedMode) {
 	/* @const */ var		numBlocksX		= divRoundUp(width, 4);
 	/* @const */ var numBlocksY		= divRoundUp(height, 4);
@@ -326,7 +322,6 @@ var decompressEAC_R11= function(/*const tcu::PixelBufferAccess&*/ dst, width, he
 		}
 	}
 };
-
 
 var decompressEAC_RG11= function(/*const tcu::PixelBufferAccess&*/ dst, width, height, src, signedMode) {
 	/* @const */ var		numBlocksX		= divRoundUp(width, 4);

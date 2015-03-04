@@ -53,7 +53,6 @@ var texture2DFromInternalFormat = function(gl, internalFormat, width, height) {
 	return tex;
 };
 
-
 var computePixelStore = function(/*const tcu::TextureFormat&*/ format)
 {
 	var pixelSize = format.getPixelSize();

@@ -101,13 +101,11 @@ define(['framework/common/tcuTestCase', './glsShaderLibraryCase', 'framework/ope
         return output;
     };
 
-
     var de_assert = function(condition) {
         if (!condition) {
             throw Error();
         }
     };
-
 
     /**
      * @param {string} str
@@ -141,9 +139,6 @@ define(['framework/common/tcuTestCase', './glsShaderLibraryCase', 'framework/ope
      * @constructor
      */
     var Parser = function() {
-
-
-
 
     /* data members */
 
@@ -224,7 +219,6 @@ define(['framework/common/tcuTestCase', './glsShaderLibraryCase', 'framework/ope
         /** @type {number} */ var m_curPtr = 0;
         /** @type {number} */ var m_curToken;// = Token.TOKEN_INVALID;
         /** @type {string} */ var m_curTokenStr = '';
-
 
         /* function members */
         this.parse = function(input) {
@@ -311,7 +305,6 @@ define(['framework/common/tcuTestCase', './glsShaderLibraryCase', 'framework/ope
                 parseStringLiteralHelper(str, '""')
             );
         };
-
 
         var advanceTokenWorker = function() {
 
@@ -972,7 +965,6 @@ define(['framework/common/tcuTestCase', './glsShaderLibraryCase', 'framework/ope
                 de_assert(!vertexSource);
                 de_assert(!fragmentSource);
 
-
                 shaderNodeList.push(deqpTests.newTest(caseName + '_vertex', description, getShaderSpec(bothSource, null,
                     shaderLibraryCase.caseType.CASETYPE_VERTEX_ONLY)));
                 shaderNodeList.push(deqpTests.newTest(caseName + '_fragment', description, getShaderSpec(null, bothSource,
@@ -1059,7 +1051,6 @@ define(['framework/common/tcuTestCase', './glsShaderLibraryCase', 'framework/ope
         }(this));
         //*/
     };
-
 
 /**
  * Parse the test file and execute the test cases

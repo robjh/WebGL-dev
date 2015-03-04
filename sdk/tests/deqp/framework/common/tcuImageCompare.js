@@ -99,7 +99,6 @@ var intThresholdCompare = function(/*const char* */imageSetName, /*const char* *
 	assertMsgOptions(result.getWidth() == width && result.getHeight() == height && result.getDepth() == depth,
 		'Reference and result images have different dimensions', false, true);
 
-
 	for (var z = 0; z < depth; z++)	{
 		for (var y = 0; y < height; y++) {
 			for (var x = 0; x < width; x++)	{
@@ -108,7 +107,6 @@ var intThresholdCompare = function(/*const char* */imageSetName, /*const char* *
 
 				var	diff		= deMath.absDiff(refPix, cmpPix);
 				var	isOk		= deMath.boolAll(deMath.lessThanEqual(diff, threshold));
-
 
 				maxDiff = deMath.max(maxDiff, diff);
 				var color = [0, 255, 0, 255];

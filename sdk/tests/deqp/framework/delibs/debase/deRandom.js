@@ -151,7 +151,6 @@ var shuffle = function(rnd, first, last)
 	throw new Error("Function not yet implemented");
 }
 
-
 /**
  * This function is used to create the Random object and
  * initialise the random number with a seed.

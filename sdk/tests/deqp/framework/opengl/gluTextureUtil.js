@@ -262,7 +262,6 @@ var getGLFormat = function(/*tcu::CompressedTexture::Format*/ format) {
 	}
 };
 
-
 /**
  *
  * @return {textureFormat.ChannelType}
@@ -488,7 +487,6 @@ var isGLInternalColorFormatFilterable = function(/*deUint32*/ format)
 			throw new Error('Unrecognized format ' + format);
 	}
 };
-
 
 /* TODO: Port the code below */
 

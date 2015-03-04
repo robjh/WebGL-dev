@@ -18,7 +18,6 @@
  *
  */
 
-
 define(function() {
 'use strict';
 
@@ -173,7 +172,6 @@ var drawIndexed = function(gl, primitives, offset) {
     gl.drawElements(mode, primitives.indices.length, gl.UNSIGNED_SHORT, offset);
 };
 
-
 /**
  * Enums for primitive types
  * @enum
@@ -324,7 +322,6 @@ Surface.prototype.getPixel = function(x, y) {
         ];
     return new Pixel(rgba);
 };
-
 
 return {
     namedBindingsToProgramLocations: namedBindingsToProgramLocations,

@@ -105,7 +105,6 @@ define([
 		END:            5
 	};
 
-
 	/**
 	 * VarType subtype path utilities class.
 	 * @param {VarTypeComponent.s_Type} type_
@@ -135,7 +134,6 @@ define([
 		MATRIX_COLUMN:     2,
 		VECTOR_COMPONENT:  3
 	};
-
 
 	/**
 	 * Type path formatter.
@@ -194,10 +192,7 @@ define([
 			);
 		});
 
-
 	});
-
-
 
 	/**
 	 * Subtype iterator parent class.
@@ -369,7 +364,6 @@ define([
 		this.__construct(type);
 	});
 	ScalarTypeIterator.prototype = new SubTypeIterator();
-
 
 	var inBounds = (function(x, a, b) { return a <= x && x < b; });
 
