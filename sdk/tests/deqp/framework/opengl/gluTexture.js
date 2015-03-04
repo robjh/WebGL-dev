@@ -18,7 +18,7 @@
  *
  */
 
-define(['framework/opengl/gluTextureUtil' , 'framework/common/tcuTexture', 'framework/common/tcuCompressedTexture', 'framework/delibs/debase/deMath' ], function(gluTextureUtil, tcuTexture, tcuCompressedTexture, deMath) {
+define(['framework/opengl/gluTextureUtil' , 'framework/common/tcuTexture', 'framework/common/tcuCompressedTexture', 'framework/delibs/debase/deMath'], function(gluTextureUtil, tcuTexture, tcuCompressedTexture, deMath) {
     'use strict';
 
 var DE_ASSERT = function(x) {
@@ -60,7 +60,7 @@ var computePixelStore = function(/*const tcu::TextureFormat&*/ format)
         return Math.min(pixelSize, 8);
     else
         return 1;
-}
+};
 
 var cubeFaceToGLFace = function(/*tcu::CubeFace*/ face)
 {
@@ -84,7 +84,7 @@ Texture2D.prototype.upload = function() {
 
     gl.bindTexture(gl.TEXTURE_2D, this.m_glTexture);
     gl.pixelStorei(gl.UNPACK_ALIGNMENT, computePixelStore(this.m_refTexture.getFormat()));
-    assertMsgOptions(gl.getError() === gl.NO_ERROR, "Setting pixel store failed", false, true);
+    assertMsgOptions(gl.getError() === gl.NO_ERROR, 'Setting pixel store failed', false, true);
 
     var transferFormat = gluTextureUtil.getTransferFormat(this.m_refTexture.getFormat());
 
@@ -94,14 +94,14 @@ Texture2D.prototype.upload = function() {
             continue; // Don't upload.
 
         var access = this.m_refTexture.getLevel(levelNdx);
-        DE_ASSERT(access.getRowPitch() == access.getFormat().getPixelSize()*access.getWidth());
+        DE_ASSERT(access.getRowPitch() == access.getFormat().getPixelSize() * access.getWidth());
         var data = access.getDataPtr();
         console.log(data);
         console.log('Level ' + levelNdx + ' format ' + this.m_format.toString(16) + ' transfer Format ' + transferFormat.format.toString(16) + ' datatype ' + transferFormat.dataType.toString(16));
         gl.texImage2D(gl.TEXTURE_2D, levelNdx, this.m_format, access.getWidth(), access.getHeight(), 0 /* border */, transferFormat.format, transferFormat.dataType, access.getDataPtr());
     }
 
-    assertMsgOptions(gl.getError() === gl.NO_ERROR, "Texture upload failed", false, true);
+    assertMsgOptions(gl.getError() === gl.NO_ERROR, 'Texture upload failed', false, true);
 };
 
 var TextureCube = function(gl, format, isCompressed, refTexture) {
@@ -119,7 +119,7 @@ TextureCube.prototype.upload = function() {
 
     gl.bindTexture(gl.TEXTURE_CUBE_MAP, this.m_glTexture);
     gl.pixelStorei(gl.UNPACK_ALIGNMENT, computePixelStore(this.m_refTexture.getFormat()));
-    assertMsgOptions(gl.getError() === gl.NO_ERROR, "Setting pixel store failed", false, true);
+    assertMsgOptions(gl.getError() === gl.NO_ERROR, 'Setting pixel store failed', false, true);
 
     var transferFormat = gluTextureUtil.getTransferFormat(this.m_refTexture.getFormat());
 
@@ -131,12 +131,12 @@ TextureCube.prototype.upload = function() {
                 continue; // Don't upload.
 
             /*tcu::ConstPixelBufferAccess*/ var access = this.m_refTexture.getLevelFace(levelNdx, face);
-            DE_ASSERT(access.getRowPitch() == access.getFormat().getPixelSize()*access.getWidth());
+            DE_ASSERT(access.getRowPitch() == access.getFormat().getPixelSize() * access.getWidth());
             gl.texImage2D(cubeFaceToGLFace(face), levelNdx, this.m_format, access.getWidth(), access.getHeight(), 0 /* border */, transferFormat.format, transferFormat.dataType, access.getDataPtr());
         }
     }
 
-    assertMsgOptions(gl.getError() === gl.NO_ERROR, "Texture upload failed", false, true);
+    assertMsgOptions(gl.getError() === gl.NO_ERROR, 'Texture upload failed', false, true);
 };
 
 var cubeFromFormat = function(gl, format, dataType, size) {
@@ -158,25 +158,25 @@ Texture2DArray.prototype.constructor = Texture2DArray;
 
 Texture2DArray.prototype.upload = function() {
     if (!gl.texImage3D)
-        throw new Error("gl.TexImage3D() is not supported");
+        throw new Error('gl.TexImage3D() is not supported');
 
     gl.bindTexture(gl.TEXTURE_2D_ARRAY, this.m_glTexture);
     gl.pixelStorei(gl.UNPACK_ALIGNMENT, computePixelStore(this.m_refTexture.getFormat()));
-    assertMsgOptions(gl.getError() === gl.NO_ERROR, "Texture upload failed", false, true);
+    assertMsgOptions(gl.getError() === gl.NO_ERROR, 'Texture upload failed', false, true);
 
     var transferFormat = gluTextureUtil.getTransferFormat(this.m_refTexture.getFormat());
 
-    for (var levelNdx = 0; levelNdx < this.m_refTexture.getNumLevels(); levelNdx++)    {
+    for (var levelNdx = 0; levelNdx < this.m_refTexture.getNumLevels(); levelNdx++) {
         if (this.m_refTexture.isLevelEmpty(levelNdx))
             continue; // Don't upload.
 
         /*tcu::ConstPixelBufferAccess*/ var access = this.m_refTexture.getLevel(levelNdx);
-        DE_ASSERT(access.getRowPitch() == access.getFormat().getPixelSize()*access.getWidth());
-        DE_ASSERT(access.getSlicePitch() == access.getFormat().getPixelSize()*access.getWidth()*access.getHeight());
+        DE_ASSERT(access.getRowPitch() == access.getFormat().getPixelSize() * access.getWidth());
+        DE_ASSERT(access.getSlicePitch() == access.getFormat().getPixelSize() * access.getWidth() * access.getHeight());
         gl.texImage3D(gl.TEXTURE_2D_ARRAY, levelNdx, this.m_format, access.getWidth(), access.getHeight(), access.getDepth(), 0 /* border */, transferFormat.format, transferFormat.dataType, access.getDataPtr());
     }
 
-    assertMsgOptions(gl.getError() === gl.NO_ERROR, "Texture upload failed", false, true);
+    assertMsgOptions(gl.getError() === gl.NO_ERROR, 'Texture upload failed', false, true);
 };
 
 var texture2DArrayFromFormat = function(gl, format, dataType, width, height, numLayers) {
@@ -198,25 +198,25 @@ Texture3D.prototype.constructor = Texture3D;
 
 Texture3D.prototype.upload = function() {
     if (!gl.texImage3D)
-        throw new Error("gl.TexImage3D() is not supported");
+        throw new Error('gl.TexImage3D() is not supported');
 
     gl.bindTexture(gl.TEXTURE_3D, this.m_glTexture);
     gl.pixelStorei(gl.UNPACK_ALIGNMENT, computePixelStore(this.m_refTexture.getFormat()));
-    assertMsgOptions(gl.getError() === gl.NO_ERROR, "Texture upload failed", false, true);
+    assertMsgOptions(gl.getError() === gl.NO_ERROR, 'Texture upload failed', false, true);
 
     var transferFormat = gluTextureUtil.getTransferFormat(this.m_refTexture.getFormat());
 
-    for (var levelNdx = 0; levelNdx < this.m_refTexture.getNumLevels(); levelNdx++)    {
+    for (var levelNdx = 0; levelNdx < this.m_refTexture.getNumLevels(); levelNdx++) {
         if (this.m_refTexture.isLevelEmpty(levelNdx))
             continue; // Don't upload.
 
         /*tcu::ConstPixelBufferAccess*/ var access = this.m_refTexture.getLevel(levelNdx);
-        DE_ASSERT(access.getRowPitch() == access.getFormat().getPixelSize()*access.getWidth());
-        DE_ASSERT(access.getSlicePitch() == access.getFormat().getPixelSize()*access.getWidth()*access.getHeight());
+        DE_ASSERT(access.getRowPitch() == access.getFormat().getPixelSize() * access.getWidth());
+        DE_ASSERT(access.getSlicePitch() == access.getFormat().getPixelSize() * access.getWidth() * access.getHeight());
         gl.texImage3D(gl.TEXTURE_3D, levelNdx, this.m_format, access.getWidth(), access.getHeight(), access.getDepth(), 0 /* border */, transferFormat.format, transferFormat.dataType, access.getDataPtr());
     }
 
-    assertMsgOptions(gl.getError() === gl.NO_ERROR, "Texture upload failed", false, true);
+    assertMsgOptions(gl.getError() === gl.NO_ERROR, 'Texture upload failed', false, true);
 };
 
 var texture3DFromFormat = function(gl, format, dataType, width, height, depth) {
@@ -245,7 +245,7 @@ Compressed2D.prototype.upload = function(level, source) {
     gl.bindTexture(gl.TEXTURE_2D, this.m_glTexture);
 
     gl.compressedTexImage2D(gl.TEXTURE_2D, level, this.m_format, source.m_width, source.m_height, 0 /* border */, source.m_data);
-    assertMsgOptions(gl.getError() === gl.NO_ERROR, "Texture upload failed", false, true);
+    assertMsgOptions(gl.getError() === gl.NO_ERROR, 'Texture upload failed', false, true);
 };
 
 var CompressedCube = function(gl, format, isCompressed, refTexture) {
@@ -268,7 +268,7 @@ CompressedCube.prototype.upload = function(level, source) {
         // Upload to GL texture in compressed form.
         gl.compressedTexImage2D(cubeFaceToGLFace(face), 0, this.m_format,
                                 source.m_width, source.m_height, 0 /* border */, source.m_data);
-        assertMsgOptions(gl.getError() === gl.NO_ERROR, "Texture upload failed", false, true);
+        assertMsgOptions(gl.getError() === gl.NO_ERROR, 'Texture upload failed', false, true);
     }
 
 };
@@ -287,7 +287,7 @@ var compressedCubeFromInternalFormat = function(gl, format, size, compressed) {
         tex.m_refTexture.allocLevel(face, 0);
 
         /*tcu::ConstPixelBufferAccess*/ var access = tex.m_refTexture.getLevelFace(0, face);
-        DE_ASSERT(access.getRowPitch() == access.getFormat().getPixelSize()*access.getWidth());
+        DE_ASSERT(access.getRowPitch() == access.getFormat().getPixelSize() * access.getWidth());
         compressed.decompress(access);
     }
     tex.upload(0, compressed);

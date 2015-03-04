@@ -24,12 +24,12 @@ define([
 ], function(gluVarType, deqpUtils) {
     'use strict';
 
-    var isNum            = (function (c) { return /^[0-9]$/       .test(c); });
-    var isAlpha          = (function (c) { return /^[a-zA-Z]$/    .test(c); });
-    var isIdentifierChar = (function (c) { return /^[a-zA-Z0-9_]$/.test(c); });
+    var isNum = (function(c) { return /^[0-9]$/ .test(c); });
+    var isAlpha = (function(c) { return /^[a-zA-Z]$/ .test(c); });
+    var isIdentifierChar = (function(c) { return /^[a-zA-Z0-9_]$/.test(c); });
     var array_op_equivalent = (function(arr1, arr2) {
         if (arr1.length != arr2.length) return false;
-        for (var i = 0 ; i < arr1.length ; ++i) {
+        for (var i = 0; i < arr1.length; ++i) {
             if (arr1[i].isnt(arr2[1])) return false;
         }
         return true;
@@ -42,16 +42,16 @@ define([
      */
     var VarTokenizer = (function(str) {
 
-        var m_str        = str;
-        var m_token      = VarTokenizer.s_Token.length;
+        var m_str = str;
+        var m_token = VarTokenizer.s_Token.length;
         var m_tokenStart = 0;
-        var m_tokenLen   = 0;
+        var m_tokenLen = 0;
 
-        this.getToken                     = (function() { return m_token;                                });
-        this.getIdentifier                = (function() { return m_str.substr(m_tokenStart, m_tokenLen); });
-        this.getNumber                    = (function() { return parseInt(this.getIdentifier());         });
-        this.getCurrentTokenStartLocation = (function() { return m_tokenStart;                           });
-        this.getCurrentTokenEndLocation   = (function() { return m_tokenStart + m_tokenLen;              });
+        this.getToken = (function() { return m_token; });
+        this.getIdentifier = (function() { return m_str.substr(m_tokenStart, m_tokenLen); });
+        this.getNumber = (function() { return parseInt(this.getIdentifier()); });
+        this.getCurrentTokenStartLocation = (function() { return m_tokenStart; });
+        this.getCurrentTokenEndLocation = (function() { return m_tokenStart + m_tokenLen; });
 
         this.advance = (function() {
 
@@ -59,9 +59,9 @@ define([
                 throw new Error('No more tokens.');
             }
 
-            m_tokenStart  += m_tokenLen;
-            m_token        = VarTokenizer.s_Token.LAST;
-            m_tokenLen     = 1;
+            m_tokenStart += m_tokenLen;
+            m_token = VarTokenizer.s_Token.LAST;
+            m_tokenLen = 1;
 
             if (m_tokenStart >= m_str.length) {
                 m_token = VarTokenizer.s_Token.END;
@@ -77,13 +77,13 @@ define([
 
             } else if (isNum(m_str[m_tokenStart])) {
                 m_token = VarTokenizer.s_Token.NUMBER;
-                while (isNum(m_str[m_tokenStart+m_tokenLen])) {
+                while (isNum(m_str[m_tokenStart + m_tokenLen])) {
                     m_tokenLen += 1;
                 }
 
             } else if (isIdentifierChar(m_str[m_tokenStart])) {
                 m_token = VarTokenizer.s_Token.IDENTIFIER;
-                while (isIdentifierChar(m_str[m_tokenStart+m_tokenLen])) {
+                while (isIdentifierChar(m_str[m_tokenStart + m_tokenLen])) {
                     m_tokenLen += 1;
                 }
 
@@ -97,12 +97,12 @@ define([
 
     });
     VarTokenizer.s_Token = {
-        IDENTIFIER:     0,
-        LEFT_BRACKET:   1,
-        RIGHT_BRACKET:  2,
-        PERIOD:         3,
-        NUMBER:         4,
-        END:            5
+        IDENTIFIER: 0,
+        LEFT_BRACKET: 1,
+        RIGHT_BRACKET: 2,
+        PERIOD: 3,
+        NUMBER: 4,
+        END: 5
     };
 
     /**
@@ -129,10 +129,10 @@ define([
         });
     });
     VarTypeComponent.s_Type = {
-        STRUCT_MEMBER:     0,
-        ARRAY_ELEMENT:     1,
-        MATRIX_COLUMN:     2,
-        VECTOR_COMPONENT:  3
+        STRUCT_MEMBER: 0,
+        ARRAY_ELEMENT: 1,
+        MATRIX_COLUMN: 2,
+        VECTOR_COMPONENT: 3
     };
 
     /**
@@ -163,11 +163,11 @@ define([
             return this;
         });
 
-        this.member    = (function(ndx) { return helper(VarTypeComponent.s_Type.STRUCT_MEMBER);    });
-        this.element   = (function(ndx) { return helper(VarTypeComponent.s_Type.ARRAY_ELEMENT);    });
-        this.column    = (function(ndx) { return helper(VarTypeComponent.s_Type.MATRIX_COLUMN);    });
+        this.member = (function(ndx) { return helper(VarTypeComponent.s_Type.STRUCT_MEMBER); });
+        this.element = (function(ndx) { return helper(VarTypeComponent.s_Type.ARRAY_ELEMENT); });
+        this.column = (function(ndx) { return helper(VarTypeComponent.s_Type.MATRIX_COLUMN); });
         this.component = (function(ndx) { return helper(VarTypeComponent.s_Type.VECTOR_COMPONENT); });
-        this.parent    = (function() {
+        this.parent = (function() {
             if (this.m_path.empty()) {
                 throw new Error;
             }
@@ -178,14 +178,14 @@ define([
         this.isValid = (function() { return isValidTypePath(this.m_type, this.m_path); });
         this.getType = (function() { return getVarType(this.m_type, this.m_path); });
         this.getPath = (function() { return this.m_path; });
-        this.empty   = (function() { return this.m_path.empty(); });
-        this.is      = (function(other) {
+        this.empty = (function() { return this.m_path.empty(); });
+        this.is = (function(other) {
             return (
                 array_op_equivalent(this.m_path, other.m_path) &&
                 this.m_type.is(other.m_type)
             );
         });
-        this.isnt    = (function(other) {
+        this.isnt = (function(other) {
             return (
                 !array_op_equivalent(this.m_path, other.m_path) ||
                 this.m_type.isnt(other.m_type)
@@ -531,23 +531,23 @@ define([
 
         var path = [];
 
-        while (tokenizer.getToken() !=  VarTokenizer.s_Token.END) {
+        while (tokenizer.getToken() != VarTokenizer.s_Token.END) {
 
             var curType = getVarType(type, path);
 
             if (tokenizer.getToken() == VarTokenizer.s_Token.PERIOD) {
 
                 tokenizer.advance();
-                if(tokenizer.getToken() != VarTokenizer.s_Token.IDENTIFIER) {
+                if (tokenizer.getToken() != VarTokenizer.s_Token.IDENTIFIER) {
                     throw new Error();
                 }
-                if(!curType.isStructType()) {
+                if (!curType.isStructType()) {
                     throw new Error('Invalid field selector');
                 }
 
                 // Find member.
                 var memberName = tokenizer.getIdentifier();
-                var ndx        = 0;
+                var ndx = 0;
                 for (; ndx < curType.getStruct().getSize(); ++ndx) {
 
                     if (memberName == curType.getStruct().getMember(ndx).getName()) {
@@ -555,7 +555,7 @@ define([
                     }
 
                 }
-                if(ndx >= curType.getStruct().getSize()) {
+                if (ndx >= curType.getStruct().getSize()) {
                     throw new Error('Member not found in type: ' + memberName);
                 }
 
@@ -565,7 +565,7 @@ define([
             } else if (tokenizer.getToken() == VarTokenizer.s_Token.LEFT_BRACKET) {
 
                 tokenizer.advance();
-                if(tokenizer.getToken() != VarTokenizer.s_Token.TOKEN_NUMBER) {
+                if (tokenizer.getToken() != VarTokenizer.s_Token.TOKEN_NUMBER) {
                     throw new Error();
                 }
 
@@ -611,7 +611,7 @@ define([
 
         getVarType: getVarType,
         parseVariableName: parseVariableName,
-        VarTokenizer: VarTokenizer,
+        VarTokenizer: VarTokenizer
     };
 
 });

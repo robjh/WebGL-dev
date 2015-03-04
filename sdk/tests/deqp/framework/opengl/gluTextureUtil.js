@@ -36,9 +36,9 @@ var TransferFormat = function(format, dataType) {
 };
 
 var getTransferFormat = function(/*tcu::TextureFormat*/ texFormat) {
-    var    format    = gl.NONE;
-    var    type    = gl.NONE;
-    /*bool*/ var    isInt    = false;
+    var format = gl.NONE;
+    var type = gl.NONE;
+    /*bool*/ var isInt = false;
 
     switch (texFormat.type)
     {
@@ -59,18 +59,18 @@ var getTransferFormat = function(/*tcu::TextureFormat*/ texFormat) {
 
     switch (texFormat.order)
     {
-        case  textureFormat.ChannelOrder.A:        format = gl.ALPHA;                                break;
-        case  textureFormat.ChannelOrder.L:        format = gl.LUMINANCE;                            break;
-        case  textureFormat.ChannelOrder.LA:        format = gl.LUMINANCE_ALPHA;                    break;
-        case  textureFormat.ChannelOrder.R:        format = isInt ? gl.RED_INTEGER        : gl.RED;    break;
-        case  textureFormat.ChannelOrder.RG:        format = isInt ? gl.RG_INTEGER        : gl.RG;    break;
-        case  textureFormat.ChannelOrder.RGB:    format = isInt ? gl.RGB_INTEGER        : gl.RGB;    break;
-        case  textureFormat.ChannelOrder.RGBA:    format = isInt ? gl.RGBA_INTEGER    : gl.RGBA;    break;
-        case  textureFormat.ChannelOrder.sRGB:    format = gl.RGB;                                break;
-        case  textureFormat.ChannelOrder.sRGBA:    format = gl.RGBA;                                break;
-        case  textureFormat.ChannelOrder.D:        format = gl.DEPTH_COMPONENT;                    break;
-        case  textureFormat.ChannelOrder.DS:        format = gl.DEPTH_STENCIL;                        break;
-        case  textureFormat.ChannelOrder.S:        format = gl.STENCIL_INDEX;                        break;
+        case textureFormat.ChannelOrder.A: format = gl.ALPHA; break;
+        case textureFormat.ChannelOrder.L: format = gl.LUMINANCE; break;
+        case textureFormat.ChannelOrder.LA: format = gl.LUMINANCE_ALPHA; break;
+        case textureFormat.ChannelOrder.R: format = isInt ? gl.RED_INTEGER : gl.RED; break;
+        case textureFormat.ChannelOrder.RG: format = isInt ? gl.RG_INTEGER : gl.RG; break;
+        case textureFormat.ChannelOrder.RGB: format = isInt ? gl.RGB_INTEGER : gl.RGB; break;
+        case textureFormat.ChannelOrder.RGBA: format = isInt ? gl.RGBA_INTEGER : gl.RGBA; break;
+        case textureFormat.ChannelOrder.sRGB: format = gl.RGB; break;
+        case textureFormat.ChannelOrder.sRGBA: format = gl.RGBA; break;
+        case textureFormat.ChannelOrder.D: format = gl.DEPTH_COMPONENT; break;
+        case textureFormat.ChannelOrder.DS: format = gl.DEPTH_STENCIL; break;
+        case textureFormat.ChannelOrder.S: format = gl.STENCIL_INDEX; break;
 
         default:
             throw new Error('Unknown ChannelOrder ' + texFormat.order);
@@ -78,30 +78,30 @@ var getTransferFormat = function(/*tcu::TextureFormat*/ texFormat) {
 
     switch (texFormat.type)
     {
-        case textureFormat.ChannelType.SNORM_INT8:                        type = gl.BYTE;                                break;
-        case textureFormat.ChannelType.SNORM_INT16:                    type = gl.SHORT;                            break;
-        case textureFormat.ChannelType.UNORM_INT8:                        type = gl.UNSIGNED_BYTE;                    break;
-        case textureFormat.ChannelType.UNORM_INT16:                    type = gl.UNSIGNED_SHORT;                    break;
-        case textureFormat.ChannelType.UNORM_SHORT_565:                type = gl.UNSIGNED_SHORT_5_6_5;                break;
-        case textureFormat.ChannelType.UNORM_SHORT_4444:                type = gl.UNSIGNED_SHORT_4_4_4_4;            break;
-        case textureFormat.ChannelType.UNORM_SHORT_5551:                type = gl.UNSIGNED_SHORT_5_5_5_1;            break;
-        case textureFormat.ChannelType.SIGNED_INT8:                    type = gl.BYTE;                                break;
-        case textureFormat.ChannelType.SIGNED_INT16:                    type = gl.SHORT;                            break;
-        case textureFormat.ChannelType.SIGNED_INT32:                    type = gl.INT;                                break;
-        case textureFormat.ChannelType.UNSIGNED_INT8:                    type = gl.UNSIGNED_BYTE;                    break;
-        case textureFormat.ChannelType.UNSIGNED_INT16:                    type = gl.UNSIGNED_SHORT;                    break;
-        case textureFormat.ChannelType.UNSIGNED_INT32:                    type = gl.UNSIGNED_INT;                        break;
-        case textureFormat.ChannelType.FLOAT:                            type = gl.FLOAT;                            break;
-        case textureFormat.ChannelType.UNORM_INT_101010:                type = gl.UNSIGNED_INT_2_10_10_10_REV;        break;
-        case textureFormat.ChannelType.UNORM_INT_1010102_REV:            type = gl.UNSIGNED_INT_2_10_10_10_REV;        break;
-        case textureFormat.ChannelType.UNSIGNED_INT_1010102_REV:        type = gl.UNSIGNED_INT_2_10_10_10_REV;        break;
-        case textureFormat.ChannelType.UNSIGNED_INT_11F_11F_10F_REV:    type = gl.UNSIGNED_INT_10F_11F_11F_REV;        break;
-        case textureFormat.ChannelType.UNSIGNED_INT_999_E5_REV:        type = gl.UNSIGNED_INT_5_9_9_9_REV;            break;
-        case textureFormat.ChannelType.HALF_FLOAT:                        type = gl.HALF_FLOAT;                        break;
-        case textureFormat.ChannelType.FLOAT_UNSIGNED_INT_24_8_REV:    type = gl.FLOAT_32_UNSIGNED_INT_24_8_REV;    break;
-        case textureFormat.ChannelType.UNSIGNED_INT_24_8:                type = texFormat.order == textureFormat.ChannelType.D
+        case textureFormat.ChannelType.SNORM_INT8: type = gl.BYTE; break;
+        case textureFormat.ChannelType.SNORM_INT16: type = gl.SHORT; break;
+        case textureFormat.ChannelType.UNORM_INT8: type = gl.UNSIGNED_BYTE; break;
+        case textureFormat.ChannelType.UNORM_INT16: type = gl.UNSIGNED_SHORT; break;
+        case textureFormat.ChannelType.UNORM_SHORT_565: type = gl.UNSIGNED_SHORT_5_6_5; break;
+        case textureFormat.ChannelType.UNORM_SHORT_4444: type = gl.UNSIGNED_SHORT_4_4_4_4; break;
+        case textureFormat.ChannelType.UNORM_SHORT_5551: type = gl.UNSIGNED_SHORT_5_5_5_1; break;
+        case textureFormat.ChannelType.SIGNED_INT8: type = gl.BYTE; break;
+        case textureFormat.ChannelType.SIGNED_INT16: type = gl.SHORT; break;
+        case textureFormat.ChannelType.SIGNED_INT32: type = gl.INT; break;
+        case textureFormat.ChannelType.UNSIGNED_INT8: type = gl.UNSIGNED_BYTE; break;
+        case textureFormat.ChannelType.UNSIGNED_INT16: type = gl.UNSIGNED_SHORT; break;
+        case textureFormat.ChannelType.UNSIGNED_INT32: type = gl.UNSIGNED_INT; break;
+        case textureFormat.ChannelType.FLOAT: type = gl.FLOAT; break;
+        case textureFormat.ChannelType.UNORM_INT_101010: type = gl.UNSIGNED_INT_2_10_10_10_REV; break;
+        case textureFormat.ChannelType.UNORM_INT_1010102_REV: type = gl.UNSIGNED_INT_2_10_10_10_REV; break;
+        case textureFormat.ChannelType.UNSIGNED_INT_1010102_REV: type = gl.UNSIGNED_INT_2_10_10_10_REV; break;
+        case textureFormat.ChannelType.UNSIGNED_INT_11F_11F_10F_REV: type = gl.UNSIGNED_INT_10F_11F_11F_REV; break;
+        case textureFormat.ChannelType.UNSIGNED_INT_999_E5_REV: type = gl.UNSIGNED_INT_5_9_9_9_REV; break;
+        case textureFormat.ChannelType.HALF_FLOAT: type = gl.HALF_FLOAT; break;
+        case textureFormat.ChannelType.FLOAT_UNSIGNED_INT_24_8_REV: type = gl.FLOAT_32_UNSIGNED_INT_24_8_REV; break;
+        case textureFormat.ChannelType.UNSIGNED_INT_24_8: type = texFormat.order == textureFormat.ChannelType.D
                                                                  ? gl.UNSIGNED_INT
-                                                                 : gl.UNSIGNED_INT_24_8;                break;
+                                                                 : gl.UNSIGNED_INT_24_8; break;
 
         default:
             throw new Error("Can't map texture format to GL transfer format " + textureFormat.type);
@@ -128,76 +128,76 @@ var getInternalFormat = function(/*tcu::TextureFormat*/ texFormat)
 
     switch (stringify(texFormat.order, texFormat.type))
     {
-        case stringify(texFormat.ChannelOrder.RGBA, texFormat.ChannelType.UNORM_SHORT_5551):                return gl.RGB5_A1;
-        case stringify(texFormat.ChannelOrder.RGBA, texFormat.ChannelType.UNORM_SHORT_4444):                return gl.RGBA4;
-        case stringify(texFormat.ChannelOrder.RGB, texFormat.ChannelType.UNORM_SHORT_565):                return gl.RGB565;
-        case stringify(texFormat.ChannelOrder.D, texFormat.ChannelType.UNORM_INT16):                    return gl.DEPTH_COMPONENT16;
-        case stringify(texFormat.ChannelOrder.S, texFormat.ChannelType.UNSIGNED_INT8):                    return gl.STENCIL_INDEX8;
+        case stringify(texFormat.ChannelOrder.RGBA, texFormat.ChannelType.UNORM_SHORT_5551): return gl.RGB5_A1;
+        case stringify(texFormat.ChannelOrder.RGBA, texFormat.ChannelType.UNORM_SHORT_4444): return gl.RGBA4;
+        case stringify(texFormat.ChannelOrder.RGB, texFormat.ChannelType.UNORM_SHORT_565): return gl.RGB565;
+        case stringify(texFormat.ChannelOrder.D, texFormat.ChannelType.UNORM_INT16): return gl.DEPTH_COMPONENT16;
+        case stringify(texFormat.ChannelOrder.S, texFormat.ChannelType.UNSIGNED_INT8): return gl.STENCIL_INDEX8;
 
-        case stringify(texFormat.ChannelOrder.RGBA, texFormat.ChannelType.FLOAT):                            return gl.RGBA32F;
-        case stringify(texFormat.ChannelOrder.RGBA, texFormat.ChannelType.SIGNED_INT32):                    return gl.RGBA32I;
-        case stringify(texFormat.ChannelOrder.RGBA, texFormat.ChannelType.UNSIGNED_INT32):                return gl.RGBA32UI;
-        case stringify(texFormat.ChannelOrder.RGBA, texFormat.ChannelType.UNORM_INT16):                    return gl.RGBA16;
-        case stringify(texFormat.ChannelOrder.RGBA, texFormat.ChannelType.SNORM_INT16):                    return gl.RGBA16_SNORM;
-        case stringify(texFormat.ChannelOrder.RGBA, texFormat.ChannelType.HALF_FLOAT):                    return gl.RGBA16F;
-        case stringify(texFormat.ChannelOrder.RGBA, texFormat.ChannelType.SIGNED_INT16):                    return gl.RGBA16I;
-        case stringify(texFormat.ChannelOrder.RGBA, texFormat.ChannelType.UNSIGNED_INT16):                return gl.RGBA16UI;
-        case stringify(texFormat.ChannelOrder.RGBA, texFormat.ChannelType.UNORM_INT8):                    return gl.RGBA8;
-        case stringify(texFormat.ChannelOrder.RGBA, texFormat.ChannelType.SIGNED_INT8):                    return gl.RGBA8I;
-        case stringify(texFormat.ChannelOrder.RGBA, texFormat.ChannelType.UNSIGNED_INT8):                    return gl.RGBA8UI;
-        case stringify(texFormat.ChannelOrder.sRGBA, texFormat.ChannelType.UNORM_INT8):                    return gl.SRGB8_ALPHA8;
-        case stringify(texFormat.ChannelOrder.RGBA, texFormat.ChannelType.UNORM_INT_1010102_REV):            return gl.RGB10_A2;
-        case stringify(texFormat.ChannelOrder.RGBA, texFormat.ChannelType.UNSIGNED_INT_1010102_REV):        return gl.RGB10_A2UI;
-        case stringify(texFormat.ChannelOrder.RGBA, texFormat.ChannelType.SNORM_INT8):                    return gl.RGBA8_SNORM;
+        case stringify(texFormat.ChannelOrder.RGBA, texFormat.ChannelType.FLOAT): return gl.RGBA32F;
+        case stringify(texFormat.ChannelOrder.RGBA, texFormat.ChannelType.SIGNED_INT32): return gl.RGBA32I;
+        case stringify(texFormat.ChannelOrder.RGBA, texFormat.ChannelType.UNSIGNED_INT32): return gl.RGBA32UI;
+        case stringify(texFormat.ChannelOrder.RGBA, texFormat.ChannelType.UNORM_INT16): return gl.RGBA16;
+        case stringify(texFormat.ChannelOrder.RGBA, texFormat.ChannelType.SNORM_INT16): return gl.RGBA16_SNORM;
+        case stringify(texFormat.ChannelOrder.RGBA, texFormat.ChannelType.HALF_FLOAT): return gl.RGBA16F;
+        case stringify(texFormat.ChannelOrder.RGBA, texFormat.ChannelType.SIGNED_INT16): return gl.RGBA16I;
+        case stringify(texFormat.ChannelOrder.RGBA, texFormat.ChannelType.UNSIGNED_INT16): return gl.RGBA16UI;
+        case stringify(texFormat.ChannelOrder.RGBA, texFormat.ChannelType.UNORM_INT8): return gl.RGBA8;
+        case stringify(texFormat.ChannelOrder.RGBA, texFormat.ChannelType.SIGNED_INT8): return gl.RGBA8I;
+        case stringify(texFormat.ChannelOrder.RGBA, texFormat.ChannelType.UNSIGNED_INT8): return gl.RGBA8UI;
+        case stringify(texFormat.ChannelOrder.sRGBA, texFormat.ChannelType.UNORM_INT8): return gl.SRGB8_ALPHA8;
+        case stringify(texFormat.ChannelOrder.RGBA, texFormat.ChannelType.UNORM_INT_1010102_REV): return gl.RGB10_A2;
+        case stringify(texFormat.ChannelOrder.RGBA, texFormat.ChannelType.UNSIGNED_INT_1010102_REV): return gl.RGB10_A2UI;
+        case stringify(texFormat.ChannelOrder.RGBA, texFormat.ChannelType.SNORM_INT8): return gl.RGBA8_SNORM;
 
-        case stringify(texFormat.ChannelOrder.RGB, texFormat.ChannelType.UNORM_INT8):                    return gl.RGB8;
-        case stringify(texFormat.ChannelOrder.RGB, texFormat.ChannelType.UNSIGNED_INT_11F_11F_10F_REV):    return gl.R11F_G11F_B10F;
-        case stringify(texFormat.ChannelOrder.RGB, texFormat.ChannelType.FLOAT):                            return gl.RGB32F;
-        case stringify(texFormat.ChannelOrder.RGB, texFormat.ChannelType.SIGNED_INT32):                    return gl.RGB32I;
-        case stringify(texFormat.ChannelOrder.RGB, texFormat.ChannelType.UNSIGNED_INT32):                return gl.RGB32UI;
-        case stringify(texFormat.ChannelOrder.RGB, texFormat.ChannelType.UNORM_INT16):                    return gl.RGB16;
-        case stringify(texFormat.ChannelOrder.RGB, texFormat.ChannelType.SNORM_INT16):                    return gl.RGB16_SNORM;
-        case stringify(texFormat.ChannelOrder.RGB, texFormat.ChannelType.HALF_FLOAT):                    return gl.RGB16F;
-        case stringify(texFormat.ChannelOrder.RGB, texFormat.ChannelType.SIGNED_INT16):                    return gl.RGB16I;
-        case stringify(texFormat.ChannelOrder.RGB, texFormat.ChannelType.UNSIGNED_INT16):                return gl.RGB16UI;
-        case stringify(texFormat.ChannelOrder.RGB, texFormat.ChannelType.SNORM_INT8):                    return gl.RGB8_SNORM;
-        case stringify(texFormat.ChannelOrder.RGB, texFormat.ChannelType.SIGNED_INT8):                    return gl.RGB8I;
-        case stringify(texFormat.ChannelOrder.RGB, texFormat.ChannelType.UNSIGNED_INT8):                    return gl.RGB8UI;
-        case stringify(texFormat.ChannelOrder.sRGB, texFormat.ChannelType.UNORM_INT8):                    return gl.SRGB8;
-        case stringify(texFormat.ChannelOrder.RGB, texFormat.ChannelType.UNSIGNED_INT_999_E5_REV):        return gl.RGB9_E5;
-        case stringify(texFormat.ChannelOrder.RGB, texFormat.ChannelType.UNORM_INT_1010102_REV):            return gl.RGB10;
+        case stringify(texFormat.ChannelOrder.RGB, texFormat.ChannelType.UNORM_INT8): return gl.RGB8;
+        case stringify(texFormat.ChannelOrder.RGB, texFormat.ChannelType.UNSIGNED_INT_11F_11F_10F_REV): return gl.R11F_G11F_B10F;
+        case stringify(texFormat.ChannelOrder.RGB, texFormat.ChannelType.FLOAT): return gl.RGB32F;
+        case stringify(texFormat.ChannelOrder.RGB, texFormat.ChannelType.SIGNED_INT32): return gl.RGB32I;
+        case stringify(texFormat.ChannelOrder.RGB, texFormat.ChannelType.UNSIGNED_INT32): return gl.RGB32UI;
+        case stringify(texFormat.ChannelOrder.RGB, texFormat.ChannelType.UNORM_INT16): return gl.RGB16;
+        case stringify(texFormat.ChannelOrder.RGB, texFormat.ChannelType.SNORM_INT16): return gl.RGB16_SNORM;
+        case stringify(texFormat.ChannelOrder.RGB, texFormat.ChannelType.HALF_FLOAT): return gl.RGB16F;
+        case stringify(texFormat.ChannelOrder.RGB, texFormat.ChannelType.SIGNED_INT16): return gl.RGB16I;
+        case stringify(texFormat.ChannelOrder.RGB, texFormat.ChannelType.UNSIGNED_INT16): return gl.RGB16UI;
+        case stringify(texFormat.ChannelOrder.RGB, texFormat.ChannelType.SNORM_INT8): return gl.RGB8_SNORM;
+        case stringify(texFormat.ChannelOrder.RGB, texFormat.ChannelType.SIGNED_INT8): return gl.RGB8I;
+        case stringify(texFormat.ChannelOrder.RGB, texFormat.ChannelType.UNSIGNED_INT8): return gl.RGB8UI;
+        case stringify(texFormat.ChannelOrder.sRGB, texFormat.ChannelType.UNORM_INT8): return gl.SRGB8;
+        case stringify(texFormat.ChannelOrder.RGB, texFormat.ChannelType.UNSIGNED_INT_999_E5_REV): return gl.RGB9_E5;
+        case stringify(texFormat.ChannelOrder.RGB, texFormat.ChannelType.UNORM_INT_1010102_REV): return gl.RGB10;
 
-        case stringify(texFormat.ChannelOrder.RG, texFormat.ChannelType.FLOAT):                            return gl.RG32F;
-        case stringify(texFormat.ChannelOrder.RG, texFormat.ChannelType.SIGNED_INT32):                    return gl.RG32I;
-        case stringify(texFormat.ChannelOrder.RG, texFormat.ChannelType.UNSIGNED_INT32):                return gl.RG32UI;
-        case stringify(texFormat.ChannelOrder.RG, texFormat.ChannelType.UNORM_INT16):                    return gl.RG16;
-        case stringify(texFormat.ChannelOrder.RG, texFormat.ChannelType.SNORM_INT16):                    return gl.RG16_SNORM;
-        case stringify(texFormat.ChannelOrder.RG, texFormat.ChannelType.HALF_FLOAT):                    return gl.RG16F;
-        case stringify(texFormat.ChannelOrder.RG, texFormat.ChannelType.SIGNED_INT16):                    return gl.RG16I;
-        case stringify(texFormat.ChannelOrder.RG, texFormat.ChannelType.UNSIGNED_INT16):                return gl.RG16UI;
-        case stringify(texFormat.ChannelOrder.RG, texFormat.ChannelType.UNORM_INT8):                    return gl.RG8;
-        case stringify(texFormat.ChannelOrder.RG, texFormat.ChannelType.SIGNED_INT8):                    return gl.RG8I;
-        case stringify(texFormat.ChannelOrder.RG, texFormat.ChannelType.UNSIGNED_INT8):                    return gl.RG8UI;
-        case stringify(texFormat.ChannelOrder.RG, texFormat.ChannelType.SNORM_INT8):                    return gl.RG8_SNORM;
+        case stringify(texFormat.ChannelOrder.RG, texFormat.ChannelType.FLOAT): return gl.RG32F;
+        case stringify(texFormat.ChannelOrder.RG, texFormat.ChannelType.SIGNED_INT32): return gl.RG32I;
+        case stringify(texFormat.ChannelOrder.RG, texFormat.ChannelType.UNSIGNED_INT32): return gl.RG32UI;
+        case stringify(texFormat.ChannelOrder.RG, texFormat.ChannelType.UNORM_INT16): return gl.RG16;
+        case stringify(texFormat.ChannelOrder.RG, texFormat.ChannelType.SNORM_INT16): return gl.RG16_SNORM;
+        case stringify(texFormat.ChannelOrder.RG, texFormat.ChannelType.HALF_FLOAT): return gl.RG16F;
+        case stringify(texFormat.ChannelOrder.RG, texFormat.ChannelType.SIGNED_INT16): return gl.RG16I;
+        case stringify(texFormat.ChannelOrder.RG, texFormat.ChannelType.UNSIGNED_INT16): return gl.RG16UI;
+        case stringify(texFormat.ChannelOrder.RG, texFormat.ChannelType.UNORM_INT8): return gl.RG8;
+        case stringify(texFormat.ChannelOrder.RG, texFormat.ChannelType.SIGNED_INT8): return gl.RG8I;
+        case stringify(texFormat.ChannelOrder.RG, texFormat.ChannelType.UNSIGNED_INT8): return gl.RG8UI;
+        case stringify(texFormat.ChannelOrder.RG, texFormat.ChannelType.SNORM_INT8): return gl.RG8_SNORM;
 
-        case stringify(texFormat.ChannelOrder.R, texFormat.ChannelType.FLOAT):                            return gl.R32F;
-        case stringify(texFormat.ChannelOrder.R, texFormat.ChannelType.SIGNED_INT32):                    return gl.R32I;
-        case stringify(texFormat.ChannelOrder.R, texFormat.ChannelType.UNSIGNED_INT32):                return gl.R32UI;
-        case stringify(texFormat.ChannelOrder.R, texFormat.ChannelType.UNORM_INT16):                    return gl.R16;
-        case stringify(texFormat.ChannelOrder.R, texFormat.ChannelType.SNORM_INT16):                    return gl.R16_SNORM;
-        case stringify(texFormat.ChannelOrder.R, texFormat.ChannelType.HALF_FLOAT):                    return gl.R16F;
-        case stringify(texFormat.ChannelOrder.R, texFormat.ChannelType.SIGNED_INT16):                    return gl.R16I;
-        case stringify(texFormat.ChannelOrder.R, texFormat.ChannelType.UNSIGNED_INT16):                return gl.R16UI;
-        case stringify(texFormat.ChannelOrder.R, texFormat.ChannelType.UNORM_INT8):                    return gl.R8;
-        case stringify(texFormat.ChannelOrder.R, texFormat.ChannelType.SIGNED_INT8):                    return gl.R8I;
-        case stringify(texFormat.ChannelOrder.R, texFormat.ChannelType.UNSIGNED_INT8):                    return gl.R8UI;
-        case stringify(texFormat.ChannelOrder.R, texFormat.ChannelType.SNORM_INT8):                    return gl.R8_SNORM;
+        case stringify(texFormat.ChannelOrder.R, texFormat.ChannelType.FLOAT): return gl.R32F;
+        case stringify(texFormat.ChannelOrder.R, texFormat.ChannelType.SIGNED_INT32): return gl.R32I;
+        case stringify(texFormat.ChannelOrder.R, texFormat.ChannelType.UNSIGNED_INT32): return gl.R32UI;
+        case stringify(texFormat.ChannelOrder.R, texFormat.ChannelType.UNORM_INT16): return gl.R16;
+        case stringify(texFormat.ChannelOrder.R, texFormat.ChannelType.SNORM_INT16): return gl.R16_SNORM;
+        case stringify(texFormat.ChannelOrder.R, texFormat.ChannelType.HALF_FLOAT): return gl.R16F;
+        case stringify(texFormat.ChannelOrder.R, texFormat.ChannelType.SIGNED_INT16): return gl.R16I;
+        case stringify(texFormat.ChannelOrder.R, texFormat.ChannelType.UNSIGNED_INT16): return gl.R16UI;
+        case stringify(texFormat.ChannelOrder.R, texFormat.ChannelType.UNORM_INT8): return gl.R8;
+        case stringify(texFormat.ChannelOrder.R, texFormat.ChannelType.SIGNED_INT8): return gl.R8I;
+        case stringify(texFormat.ChannelOrder.R, texFormat.ChannelType.UNSIGNED_INT8): return gl.R8UI;
+        case stringify(texFormat.ChannelOrder.R, texFormat.ChannelType.SNORM_INT8): return gl.R8_SNORM;
 
-        case stringify(texFormat.ChannelOrder.D, texFormat.ChannelType.FLOAT):                            return gl.DEPTH_COMPONENT32F;
-        case stringify(texFormat.ChannelOrder.D, texFormat.ChannelType.UNSIGNED_INT_24_8):                return gl.DEPTH_COMPONENT24;
-        case stringify(texFormat.ChannelOrder.D, texFormat.ChannelType.UNSIGNED_INT32):                return gl.DEPTH_COMPONENT32;
-        case stringify(texFormat.ChannelOrder.DS, texFormat.ChannelType.FLOAT_UNSIGNED_INT_24_8_REV):    return gl.DEPTH32F_STENCIL8;
-        case stringify(texFormat.ChannelOrder.DS, texFormat.ChannelType.UNSIGNED_INT_24_8):                return gl.DEPTH24_STENCIL8;
+        case stringify(texFormat.ChannelOrder.D, texFormat.ChannelType.FLOAT): return gl.DEPTH_COMPONENT32F;
+        case stringify(texFormat.ChannelOrder.D, texFormat.ChannelType.UNSIGNED_INT_24_8): return gl.DEPTH_COMPONENT24;
+        case stringify(texFormat.ChannelOrder.D, texFormat.ChannelType.UNSIGNED_INT32): return gl.DEPTH_COMPONENT32;
+        case stringify(texFormat.ChannelOrder.DS, texFormat.ChannelType.FLOAT_UNSIGNED_INT_24_8_REV): return gl.DEPTH32F_STENCIL8;
+        case stringify(texFormat.ChannelOrder.DS, texFormat.ChannelType.UNSIGNED_INT_24_8): return gl.DEPTH24_STENCIL8;
 
         default:
             throw new Error("Can't map texture format to GL internal format");
@@ -216,46 +216,46 @@ var getInternalFormat = function(/*tcu::TextureFormat*/ texFormat)
 
 var getGLFormat = function(/*tcu::CompressedTexture::Format*/ format) {
     switch (format) {
-        case tcuCompressedTexture.Format.ETC1_RGB8:                            return gl.ETC1_RGB8_OES;
-        case tcuCompressedTexture.Format.EAC_R11:                            return gl.COMPRESSED_R11_EAC;
-        case tcuCompressedTexture.Format.EAC_SIGNED_R11:                    return gl.COMPRESSED_SIGNED_R11_EAC;
-        case tcuCompressedTexture.Format.EAC_RG11:                            return gl.COMPRESSED_RG11_EAC;
-        case tcuCompressedTexture.Format.EAC_SIGNED_RG11:                    return gl.COMPRESSED_SIGNED_RG11_EAC;
-        case tcuCompressedTexture.Format.ETC2_RGB8:                            return gl.COMPRESSED_RGB8_ETC2;
-        case tcuCompressedTexture.Format.ETC2_SRGB8:                        return gl.COMPRESSED_SRGB8_ETC2;
-        case tcuCompressedTexture.Format.ETC2_RGB8_PUNCHTHROUGH_ALPHA1:        return gl.COMPRESSED_RGB8_PUNCHTHROUGH_ALPHA1_ETC2;
-        case tcuCompressedTexture.Format.ETC2_SRGB8_PUNCHTHROUGH_ALPHA1:    return gl.COMPRESSED_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2;
-        case tcuCompressedTexture.Format.ETC2_EAC_RGBA8:                    return gl.COMPRESSED_RGBA8_ETC2_EAC;
-        case tcuCompressedTexture.Format.ETC2_EAC_SRGB8_ALPHA8:                return gl.COMPRESSED_SRGB8_ALPHA8_ETC2_EAC;
+        case tcuCompressedTexture.Format.ETC1_RGB8: return gl.ETC1_RGB8_OES;
+        case tcuCompressedTexture.Format.EAC_R11: return gl.COMPRESSED_R11_EAC;
+        case tcuCompressedTexture.Format.EAC_SIGNED_R11: return gl.COMPRESSED_SIGNED_R11_EAC;
+        case tcuCompressedTexture.Format.EAC_RG11: return gl.COMPRESSED_RG11_EAC;
+        case tcuCompressedTexture.Format.EAC_SIGNED_RG11: return gl.COMPRESSED_SIGNED_RG11_EAC;
+        case tcuCompressedTexture.Format.ETC2_RGB8: return gl.COMPRESSED_RGB8_ETC2;
+        case tcuCompressedTexture.Format.ETC2_SRGB8: return gl.COMPRESSED_SRGB8_ETC2;
+        case tcuCompressedTexture.Format.ETC2_RGB8_PUNCHTHROUGH_ALPHA1: return gl.COMPRESSED_RGB8_PUNCHTHROUGH_ALPHA1_ETC2;
+        case tcuCompressedTexture.Format.ETC2_SRGB8_PUNCHTHROUGH_ALPHA1: return gl.COMPRESSED_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2;
+        case tcuCompressedTexture.Format.ETC2_EAC_RGBA8: return gl.COMPRESSED_RGBA8_ETC2_EAC;
+        case tcuCompressedTexture.Format.ETC2_EAC_SRGB8_ALPHA8: return gl.COMPRESSED_SRGB8_ALPHA8_ETC2_EAC;
 
-        case tcuCompressedTexture.Format.ASTC_4x4_RGBA:                        return gl.COMPRESSED_RGBA_ASTC_4x4_KHR;
-        case tcuCompressedTexture.Format.ASTC_5x4_RGBA:                        return gl.COMPRESSED_RGBA_ASTC_5x4_KHR;
-        case tcuCompressedTexture.Format.ASTC_5x5_RGBA:                        return gl.COMPRESSED_RGBA_ASTC_5x5_KHR;
-        case tcuCompressedTexture.Format.ASTC_6x5_RGBA:                        return gl.COMPRESSED_RGBA_ASTC_6x5_KHR;
-        case tcuCompressedTexture.Format.ASTC_6x6_RGBA:                        return gl.COMPRESSED_RGBA_ASTC_6x6_KHR;
-        case tcuCompressedTexture.Format.ASTC_8x5_RGBA:                        return gl.COMPRESSED_RGBA_ASTC_8x5_KHR;
-        case tcuCompressedTexture.Format.ASTC_8x6_RGBA:                        return gl.COMPRESSED_RGBA_ASTC_8x6_KHR;
-        case tcuCompressedTexture.Format.ASTC_8x8_RGBA:                        return gl.COMPRESSED_RGBA_ASTC_8x8_KHR;
-        case tcuCompressedTexture.Format.ASTC_10x5_RGBA:                    return gl.COMPRESSED_RGBA_ASTC_10x5_KHR;
-        case tcuCompressedTexture.Format.ASTC_10x6_RGBA:                    return gl.COMPRESSED_RGBA_ASTC_10x6_KHR;
-        case tcuCompressedTexture.Format.ASTC_10x8_RGBA:                    return gl.COMPRESSED_RGBA_ASTC_10x8_KHR;
-        case tcuCompressedTexture.Format.ASTC_10x10_RGBA:                    return gl.COMPRESSED_RGBA_ASTC_10x10_KHR;
-        case tcuCompressedTexture.Format.ASTC_12x10_RGBA:                    return gl.COMPRESSED_RGBA_ASTC_12x10_KHR;
-        case tcuCompressedTexture.Format.ASTC_12x12_RGBA:                    return gl.COMPRESSED_RGBA_ASTC_12x12_KHR;
-        case tcuCompressedTexture.Format.ASTC_4x4_SRGB8_ALPHA8:                return gl.COMPRESSED_SRGB8_ALPHA8_ASTC_4x4_KHR;
-        case tcuCompressedTexture.Format.ASTC_5x4_SRGB8_ALPHA8:                return gl.COMPRESSED_SRGB8_ALPHA8_ASTC_5x4_KHR;
-        case tcuCompressedTexture.Format.ASTC_5x5_SRGB8_ALPHA8:                return gl.COMPRESSED_SRGB8_ALPHA8_ASTC_5x5_KHR;
-        case tcuCompressedTexture.Format.ASTC_6x5_SRGB8_ALPHA8:                return gl.COMPRESSED_SRGB8_ALPHA8_ASTC_6x5_KHR;
-        case tcuCompressedTexture.Format.ASTC_6x6_SRGB8_ALPHA8:                return gl.COMPRESSED_SRGB8_ALPHA8_ASTC_6x6_KHR;
-        case tcuCompressedTexture.Format.ASTC_8x5_SRGB8_ALPHA8:                return gl.COMPRESSED_SRGB8_ALPHA8_ASTC_8x5_KHR;
-        case tcuCompressedTexture.Format.ASTC_8x6_SRGB8_ALPHA8:                return gl.COMPRESSED_SRGB8_ALPHA8_ASTC_8x6_KHR;
-        case tcuCompressedTexture.Format.ASTC_8x8_SRGB8_ALPHA8:                return gl.COMPRESSED_SRGB8_ALPHA8_ASTC_8x8_KHR;
-        case tcuCompressedTexture.Format.ASTC_10x5_SRGB8_ALPHA8:            return gl.COMPRESSED_SRGB8_ALPHA8_ASTC_10x5_KHR;
-        case tcuCompressedTexture.Format.ASTC_10x6_SRGB8_ALPHA8:            return gl.COMPRESSED_SRGB8_ALPHA8_ASTC_10x6_KHR;
-        case tcuCompressedTexture.Format.ASTC_10x8_SRGB8_ALPHA8:            return gl.COMPRESSED_SRGB8_ALPHA8_ASTC_10x8_KHR;
-        case tcuCompressedTexture.Format.ASTC_10x10_SRGB8_ALPHA8:            return gl.COMPRESSED_SRGB8_ALPHA8_ASTC_10x10_KHR;
-        case tcuCompressedTexture.Format.ASTC_12x10_SRGB8_ALPHA8:            return gl.COMPRESSED_SRGB8_ALPHA8_ASTC_12x10_KHR;
-        case tcuCompressedTexture.Format.ASTC_12x12_SRGB8_ALPHA8:            return gl.COMPRESSED_SRGB8_ALPHA8_ASTC_12x12_KHR;
+        case tcuCompressedTexture.Format.ASTC_4x4_RGBA: return gl.COMPRESSED_RGBA_ASTC_4x4_KHR;
+        case tcuCompressedTexture.Format.ASTC_5x4_RGBA: return gl.COMPRESSED_RGBA_ASTC_5x4_KHR;
+        case tcuCompressedTexture.Format.ASTC_5x5_RGBA: return gl.COMPRESSED_RGBA_ASTC_5x5_KHR;
+        case tcuCompressedTexture.Format.ASTC_6x5_RGBA: return gl.COMPRESSED_RGBA_ASTC_6x5_KHR;
+        case tcuCompressedTexture.Format.ASTC_6x6_RGBA: return gl.COMPRESSED_RGBA_ASTC_6x6_KHR;
+        case tcuCompressedTexture.Format.ASTC_8x5_RGBA: return gl.COMPRESSED_RGBA_ASTC_8x5_KHR;
+        case tcuCompressedTexture.Format.ASTC_8x6_RGBA: return gl.COMPRESSED_RGBA_ASTC_8x6_KHR;
+        case tcuCompressedTexture.Format.ASTC_8x8_RGBA: return gl.COMPRESSED_RGBA_ASTC_8x8_KHR;
+        case tcuCompressedTexture.Format.ASTC_10x5_RGBA: return gl.COMPRESSED_RGBA_ASTC_10x5_KHR;
+        case tcuCompressedTexture.Format.ASTC_10x6_RGBA: return gl.COMPRESSED_RGBA_ASTC_10x6_KHR;
+        case tcuCompressedTexture.Format.ASTC_10x8_RGBA: return gl.COMPRESSED_RGBA_ASTC_10x8_KHR;
+        case tcuCompressedTexture.Format.ASTC_10x10_RGBA: return gl.COMPRESSED_RGBA_ASTC_10x10_KHR;
+        case tcuCompressedTexture.Format.ASTC_12x10_RGBA: return gl.COMPRESSED_RGBA_ASTC_12x10_KHR;
+        case tcuCompressedTexture.Format.ASTC_12x12_RGBA: return gl.COMPRESSED_RGBA_ASTC_12x12_KHR;
+        case tcuCompressedTexture.Format.ASTC_4x4_SRGB8_ALPHA8: return gl.COMPRESSED_SRGB8_ALPHA8_ASTC_4x4_KHR;
+        case tcuCompressedTexture.Format.ASTC_5x4_SRGB8_ALPHA8: return gl.COMPRESSED_SRGB8_ALPHA8_ASTC_5x4_KHR;
+        case tcuCompressedTexture.Format.ASTC_5x5_SRGB8_ALPHA8: return gl.COMPRESSED_SRGB8_ALPHA8_ASTC_5x5_KHR;
+        case tcuCompressedTexture.Format.ASTC_6x5_SRGB8_ALPHA8: return gl.COMPRESSED_SRGB8_ALPHA8_ASTC_6x5_KHR;
+        case tcuCompressedTexture.Format.ASTC_6x6_SRGB8_ALPHA8: return gl.COMPRESSED_SRGB8_ALPHA8_ASTC_6x6_KHR;
+        case tcuCompressedTexture.Format.ASTC_8x5_SRGB8_ALPHA8: return gl.COMPRESSED_SRGB8_ALPHA8_ASTC_8x5_KHR;
+        case tcuCompressedTexture.Format.ASTC_8x6_SRGB8_ALPHA8: return gl.COMPRESSED_SRGB8_ALPHA8_ASTC_8x6_KHR;
+        case tcuCompressedTexture.Format.ASTC_8x8_SRGB8_ALPHA8: return gl.COMPRESSED_SRGB8_ALPHA8_ASTC_8x8_KHR;
+        case tcuCompressedTexture.Format.ASTC_10x5_SRGB8_ALPHA8: return gl.COMPRESSED_SRGB8_ALPHA8_ASTC_10x5_KHR;
+        case tcuCompressedTexture.Format.ASTC_10x6_SRGB8_ALPHA8: return gl.COMPRESSED_SRGB8_ALPHA8_ASTC_10x6_KHR;
+        case tcuCompressedTexture.Format.ASTC_10x8_SRGB8_ALPHA8: return gl.COMPRESSED_SRGB8_ALPHA8_ASTC_10x8_KHR;
+        case tcuCompressedTexture.Format.ASTC_10x10_SRGB8_ALPHA8: return gl.COMPRESSED_SRGB8_ALPHA8_ASTC_10x10_KHR;
+        case tcuCompressedTexture.Format.ASTC_12x10_SRGB8_ALPHA8: return gl.COMPRESSED_SRGB8_ALPHA8_ASTC_12x10_KHR;
+        case tcuCompressedTexture.Format.ASTC_12x12_SRGB8_ALPHA8: return gl.COMPRESSED_SRGB8_ALPHA8_ASTC_12x12_KHR;
 
         default:
             throw new Error("Can't map compressed format to GL format");
@@ -271,22 +271,22 @@ var mapGLChannelType = function(/*deUint32*/ dataType, /*bool*/ normalized) {
 
     switch (dataType)
     {
-        case gl.UNSIGNED_BYTE:                    return normalized ? textureFormat.ChannelType.UNORM_INT8    : textureFormat.ChannelType.UNSIGNED_INT8;
-        case gl.BYTE:                            return normalized ? textureFormat.ChannelType.SNORM_INT8    : textureFormat.ChannelType.SIGNED_INT8;
-        case gl.UNSIGNED_SHORT:                    return normalized ? textureFormat.ChannelType.UNORM_INT16    : textureFormat.ChannelType.UNSIGNED_INT16;
-        case gl.SHORT:                            return normalized ? textureFormat.ChannelType.SNORM_INT16    : textureFormat.ChannelType.SIGNED_INT16;
-        case gl.UNSIGNED_INT:                    return normalized ? textureFormat.ChannelType.UNORM_INT32    : textureFormat.ChannelType.UNSIGNED_INT32;
-        case gl.INT:                            return normalized ? textureFormat.ChannelType.SNORM_INT32    : textureFormat.ChannelType.SIGNED_INT32;
-        case gl.FLOAT:                            return textureFormat.ChannelType.FLOAT;
-        case gl.UNSIGNED_SHORT_4_4_4_4:            return textureFormat.ChannelType.UNORM_SHORT_4444;
-        case gl.UNSIGNED_SHORT_5_5_5_1:            return textureFormat.ChannelType.UNORM_SHORT_5551;
-        case gl.UNSIGNED_SHORT_5_6_5:            return textureFormat.ChannelType.UNORM_SHORT_565;
-        case gl.HALF_FLOAT:                        return textureFormat.ChannelType.HALF_FLOAT;
-        case gl.UNSIGNED_INT_2_10_10_10_REV:    return normalized ? textureFormat.ChannelType.UNORM_INT_1010102_REV : textureFormat.ChannelType.UNSIGNED_INT_1010102_REV;
-        case gl.UNSIGNED_INT_10F_11F_11F_REV:    return textureFormat.ChannelType.UNSIGNED_INT_11F_11F_10F_REV;
-        case gl.UNSIGNED_INT_24_8:                return textureFormat.ChannelType.UNSIGNED_INT_24_8;
-        case gl.FLOAT_32_UNSIGNED_INT_24_8_REV:    return textureFormat.ChannelType.FLOAT_UNSIGNED_INT_24_8_REV;
-        case gl.UNSIGNED_INT_5_9_9_9_REV:        return textureFormat.ChannelType.UNSIGNED_INT_999_E5_REV;
+        case gl.UNSIGNED_BYTE: return normalized ? textureFormat.ChannelType.UNORM_INT8 : textureFormat.ChannelType.UNSIGNED_INT8;
+        case gl.BYTE: return normalized ? textureFormat.ChannelType.SNORM_INT8 : textureFormat.ChannelType.SIGNED_INT8;
+        case gl.UNSIGNED_SHORT: return normalized ? textureFormat.ChannelType.UNORM_INT16 : textureFormat.ChannelType.UNSIGNED_INT16;
+        case gl.SHORT: return normalized ? textureFormat.ChannelType.SNORM_INT16 : textureFormat.ChannelType.SIGNED_INT16;
+        case gl.UNSIGNED_INT: return normalized ? textureFormat.ChannelType.UNORM_INT32 : textureFormat.ChannelType.UNSIGNED_INT32;
+        case gl.INT: return normalized ? textureFormat.ChannelType.SNORM_INT32 : textureFormat.ChannelType.SIGNED_INT32;
+        case gl.FLOAT: return textureFormat.ChannelType.FLOAT;
+        case gl.UNSIGNED_SHORT_4_4_4_4: return textureFormat.ChannelType.UNORM_SHORT_4444;
+        case gl.UNSIGNED_SHORT_5_5_5_1: return textureFormat.ChannelType.UNORM_SHORT_5551;
+        case gl.UNSIGNED_SHORT_5_6_5: return textureFormat.ChannelType.UNORM_SHORT_565;
+        case gl.HALF_FLOAT: return textureFormat.ChannelType.HALF_FLOAT;
+        case gl.UNSIGNED_INT_2_10_10_10_REV: return normalized ? textureFormat.ChannelType.UNORM_INT_1010102_REV : textureFormat.ChannelType.UNSIGNED_INT_1010102_REV;
+        case gl.UNSIGNED_INT_10F_11F_11F_REV: return textureFormat.ChannelType.UNSIGNED_INT_11F_11F_10F_REV;
+        case gl.UNSIGNED_INT_24_8: return textureFormat.ChannelType.UNSIGNED_INT_24_8;
+        case gl.FLOAT_32_UNSIGNED_INT_24_8_REV: return textureFormat.ChannelType.FLOAT_UNSIGNED_INT_24_8_REV;
+        case gl.UNSIGNED_INT_5_9_9_9_REV: return textureFormat.ChannelType.UNSIGNED_INT_999_E5_REV;
 
         default:
             throw new Error('Unsupported dataType ' + dataType);
@@ -308,24 +308,24 @@ var mapGLChannelType = function(/*deUint32*/ dataType, /*bool*/ normalized) {
 var mapGLTransferFormat = function(/*deUint32*/ format, /*deUint32*/ dataType)
 {
     switch (format) {
-        case gl.ALPHA:                return new textureFormat.TextureFormat( textureFormat.ChannelOrder.A,        mapGLChannelType(dataType, true));
-        case gl.LUMINANCE:            return new textureFormat.TextureFormat( textureFormat.ChannelOrder.L,        mapGLChannelType(dataType, true));
-        case gl.LUMINANCE_ALPHA:    return new textureFormat.TextureFormat( textureFormat.ChannelOrder.LA,        mapGLChannelType(dataType, true));
-        case gl.RGB:                return new textureFormat.TextureFormat( textureFormat.ChannelOrder.RGB,    mapGLChannelType(dataType, true));
-        case gl.RGBA:                return new textureFormat.TextureFormat( textureFormat.ChannelOrder.RGBA,    mapGLChannelType(dataType, true));
-        case gl.BGRA:                return new textureFormat.TextureFormat( textureFormat.ChannelOrder.BGRA,    mapGLChannelType(dataType, true));
-        case gl.RG:                    return new textureFormat.TextureFormat( textureFormat.ChannelOrder.RG,        mapGLChannelType(dataType, true));
-        case gl.RED:                return new textureFormat.TextureFormat( textureFormat.ChannelOrder.R,        mapGLChannelType(dataType, true));
-        case gl.RGBA_INTEGER:        return new textureFormat.TextureFormat( textureFormat.ChannelOrder.RGBA,    mapGLChannelType(dataType, false));
-        case gl.RGB_INTEGER:        return new textureFormat.TextureFormat( textureFormat.ChannelOrder.RGB,    mapGLChannelType(dataType, false));
-        case gl.RG_INTEGER:            return new textureFormat.TextureFormat( textureFormat.ChannelOrder.RG,        mapGLChannelType(dataType, false));
-        case gl.RED_INTEGER:        return new textureFormat.TextureFormat( textureFormat.ChannelOrder.R,        mapGLChannelType(dataType, false));
+        case gl.ALPHA: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.A, mapGLChannelType(dataType, true));
+        case gl.LUMINANCE: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.L, mapGLChannelType(dataType, true));
+        case gl.LUMINANCE_ALPHA: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.LA, mapGLChannelType(dataType, true));
+        case gl.RGB: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.RGB, mapGLChannelType(dataType, true));
+        case gl.RGBA: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.RGBA, mapGLChannelType(dataType, true));
+        case gl.BGRA: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.BGRA, mapGLChannelType(dataType, true));
+        case gl.RG: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.RG, mapGLChannelType(dataType, true));
+        case gl.RED: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.R, mapGLChannelType(dataType, true));
+        case gl.RGBA_INTEGER: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.RGBA, mapGLChannelType(dataType, false));
+        case gl.RGB_INTEGER: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.RGB, mapGLChannelType(dataType, false));
+        case gl.RG_INTEGER: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.RG, mapGLChannelType(dataType, false));
+        case gl.RED_INTEGER: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.R, mapGLChannelType(dataType, false));
 
-        case gl.DEPTH_COMPONENT:    return new textureFormat.TextureFormat( textureFormat.ChannelOrder.D,        mapGLChannelType(dataType, true));
-        case gl.DEPTH_STENCIL:        return new textureFormat.TextureFormat( textureFormat.ChannelOrder.DS,        mapGLChannelType(dataType, true));
+        case gl.DEPTH_COMPONENT: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.D, mapGLChannelType(dataType, true));
+        case gl.DEPTH_STENCIL: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.DS, mapGLChannelType(dataType, true));
 
         default:
-            throw new Error("Can't map GL pixel format (" + format + ", " + dataType.toString(16) + ") to texture format");
+            throw new Error("Can't map GL pixel format (" + format + ', ' + dataType.toString(16) + ') to texture format');
     }
 };
 
@@ -347,76 +347,76 @@ var mapGLInternalFormat = function(/*deUint32*/ internalFormat)
 
     switch (internalFormat)
     {
-        case gl.RGB5_A1:            return new textureFormat.TextureFormat( textureFormat.ChannelOrder.RGBA, textureFormat.ChannelType.UNORM_SHORT_5551);
-        case gl.RGBA4:                return new textureFormat.TextureFormat( textureFormat.ChannelOrder.RGBA, textureFormat.ChannelType.UNORM_SHORT_4444);
-        case gl.RGB565:                return new textureFormat.TextureFormat( textureFormat.ChannelOrder.RGB, textureFormat.ChannelType.UNORM_SHORT_565);
-        case gl.DEPTH_COMPONENT16:    return new textureFormat.TextureFormat( textureFormat.ChannelOrder.D,     textureFormat.ChannelType.UNORM_INT16);
-        case gl.STENCIL_INDEX8:        return new textureFormat.TextureFormat( textureFormat.ChannelOrder.S,     textureFormat.ChannelType.UNSIGNED_INT8);
+        case gl.RGB5_A1: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.RGBA, textureFormat.ChannelType.UNORM_SHORT_5551);
+        case gl.RGBA4: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.RGBA, textureFormat.ChannelType.UNORM_SHORT_4444);
+        case gl.RGB565: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.RGB, textureFormat.ChannelType.UNORM_SHORT_565);
+        case gl.DEPTH_COMPONENT16: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.D, textureFormat.ChannelType.UNORM_INT16);
+        case gl.STENCIL_INDEX8: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.S, textureFormat.ChannelType.UNSIGNED_INT8);
 
-        case gl.RGBA32F:            return new textureFormat.TextureFormat( textureFormat.ChannelOrder.RGBA, textureFormat.ChannelType.FLOAT);
-        case gl.RGBA32I:            return new textureFormat.TextureFormat( textureFormat.ChannelOrder.RGBA, textureFormat.ChannelType.SIGNED_INT32);
-        case gl.RGBA32UI:            return new textureFormat.TextureFormat( textureFormat.ChannelOrder.RGBA, textureFormat.ChannelType.UNSIGNED_INT32);
-        case gl.RGBA16:                return new textureFormat.TextureFormat( textureFormat.ChannelOrder.RGBA, textureFormat.ChannelType.UNORM_INT16);
-        case gl.RGBA16_SNORM:        return new textureFormat.TextureFormat( textureFormat.ChannelOrder.RGBA, textureFormat.ChannelType.SNORM_INT16);
-        case gl.RGBA16F:            return new textureFormat.TextureFormat( textureFormat.ChannelOrder.RGBA, textureFormat.ChannelType.HALF_FLOAT);
-        case gl.RGBA16I:            return new textureFormat.TextureFormat( textureFormat.ChannelOrder.RGBA, textureFormat.ChannelType.SIGNED_INT16);
-        case gl.RGBA16UI:            return new textureFormat.TextureFormat( textureFormat.ChannelOrder.RGBA, textureFormat.ChannelType.UNSIGNED_INT16);
-        case gl.RGBA8:                return new textureFormat.TextureFormat( textureFormat.ChannelOrder.RGBA, textureFormat.ChannelType.UNORM_INT8);
-        case gl.RGBA8I:                return new textureFormat.TextureFormat( textureFormat.ChannelOrder.RGBA, textureFormat.ChannelType.SIGNED_INT8);
-        case gl.RGBA8UI:            return new textureFormat.TextureFormat( textureFormat.ChannelOrder.RGBA, textureFormat.ChannelType.UNSIGNED_INT8);
-        case gl.SRGB8_ALPHA8:        return new textureFormat.TextureFormat( textureFormat.ChannelOrder.sRGBA, textureFormat.ChannelType.UNORM_INT8);
-        case gl.RGB10_A2:            return new textureFormat.TextureFormat( textureFormat.ChannelOrder.RGBA, textureFormat.ChannelType.UNORM_INT_1010102_REV);
-        case gl.RGB10_A2UI:            return new textureFormat.TextureFormat( textureFormat.ChannelOrder.RGBA, textureFormat.ChannelType.UNSIGNED_INT_1010102_REV);
-        case gl.RGBA8_SNORM:        return new textureFormat.TextureFormat( textureFormat.ChannelOrder.RGBA, textureFormat.ChannelType.SNORM_INT8);
+        case gl.RGBA32F: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.RGBA, textureFormat.ChannelType.FLOAT);
+        case gl.RGBA32I: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.RGBA, textureFormat.ChannelType.SIGNED_INT32);
+        case gl.RGBA32UI: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.RGBA, textureFormat.ChannelType.UNSIGNED_INT32);
+        case gl.RGBA16: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.RGBA, textureFormat.ChannelType.UNORM_INT16);
+        case gl.RGBA16_SNORM: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.RGBA, textureFormat.ChannelType.SNORM_INT16);
+        case gl.RGBA16F: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.RGBA, textureFormat.ChannelType.HALF_FLOAT);
+        case gl.RGBA16I: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.RGBA, textureFormat.ChannelType.SIGNED_INT16);
+        case gl.RGBA16UI: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.RGBA, textureFormat.ChannelType.UNSIGNED_INT16);
+        case gl.RGBA8: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.RGBA, textureFormat.ChannelType.UNORM_INT8);
+        case gl.RGBA8I: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.RGBA, textureFormat.ChannelType.SIGNED_INT8);
+        case gl.RGBA8UI: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.RGBA, textureFormat.ChannelType.UNSIGNED_INT8);
+        case gl.SRGB8_ALPHA8: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.sRGBA, textureFormat.ChannelType.UNORM_INT8);
+        case gl.RGB10_A2: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.RGBA, textureFormat.ChannelType.UNORM_INT_1010102_REV);
+        case gl.RGB10_A2UI: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.RGBA, textureFormat.ChannelType.UNSIGNED_INT_1010102_REV);
+        case gl.RGBA8_SNORM: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.RGBA, textureFormat.ChannelType.SNORM_INT8);
 
-        case gl.RGB8:                return new textureFormat.TextureFormat( textureFormat.ChannelOrder.RGB, textureFormat.ChannelType.UNORM_INT8);
-        case gl.R11F_G11F_B10F:        return new textureFormat.TextureFormat( textureFormat.ChannelOrder.RGB, textureFormat.ChannelType.UNSIGNED_INT_11F_11F_10F_REV);
-        case gl.RGB32F:                return new textureFormat.TextureFormat( textureFormat.ChannelOrder.RGB, textureFormat.ChannelType.FLOAT);
-        case gl.RGB32I:                return new textureFormat.TextureFormat( textureFormat.ChannelOrder.RGB, textureFormat.ChannelType.SIGNED_INT32);
-        case gl.RGB32UI:            return new textureFormat.TextureFormat( textureFormat.ChannelOrder.RGB, textureFormat.ChannelType.UNSIGNED_INT32);
-        case gl.RGB16:                return new textureFormat.TextureFormat( textureFormat.ChannelOrder.RGB, textureFormat.ChannelType.UNORM_INT16);
-        case gl.RGB16_SNORM:        return new textureFormat.TextureFormat( textureFormat.ChannelOrder.RGB, textureFormat.ChannelType.SNORM_INT16);
-        case gl.RGB16F:                return new textureFormat.TextureFormat( textureFormat.ChannelOrder.RGB, textureFormat.ChannelType.HALF_FLOAT);
-        case gl.RGB16I:                return new textureFormat.TextureFormat( textureFormat.ChannelOrder.RGB, textureFormat.ChannelType.SIGNED_INT16);
-        case gl.RGB16UI:            return new textureFormat.TextureFormat( textureFormat.ChannelOrder.RGB, textureFormat.ChannelType.UNSIGNED_INT16);
-        case gl.RGB8_SNORM:            return new textureFormat.TextureFormat( textureFormat.ChannelOrder.RGB, textureFormat.ChannelType.SNORM_INT8);
-        case gl.RGB8I:                return new textureFormat.TextureFormat( textureFormat.ChannelOrder.RGB, textureFormat.ChannelType.SIGNED_INT8);
-        case gl.RGB8UI:                return new textureFormat.TextureFormat( textureFormat.ChannelOrder.RGB, textureFormat.ChannelType.UNSIGNED_INT8);
-        case gl.SRGB8:                return new textureFormat.TextureFormat( textureFormat.ChannelOrder.sRGB, textureFormat.ChannelType.UNORM_INT8);
-        case gl.RGB9_E5:            return new textureFormat.TextureFormat( textureFormat.ChannelOrder.RGB, textureFormat.ChannelType.UNSIGNED_INT_999_E5_REV);
-        case gl.RGB10:                return new textureFormat.TextureFormat( textureFormat.ChannelOrder.RGB, textureFormat.ChannelType.UNORM_INT_1010102_REV);
+        case gl.RGB8: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.RGB, textureFormat.ChannelType.UNORM_INT8);
+        case gl.R11F_G11F_B10F: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.RGB, textureFormat.ChannelType.UNSIGNED_INT_11F_11F_10F_REV);
+        case gl.RGB32F: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.RGB, textureFormat.ChannelType.FLOAT);
+        case gl.RGB32I: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.RGB, textureFormat.ChannelType.SIGNED_INT32);
+        case gl.RGB32UI: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.RGB, textureFormat.ChannelType.UNSIGNED_INT32);
+        case gl.RGB16: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.RGB, textureFormat.ChannelType.UNORM_INT16);
+        case gl.RGB16_SNORM: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.RGB, textureFormat.ChannelType.SNORM_INT16);
+        case gl.RGB16F: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.RGB, textureFormat.ChannelType.HALF_FLOAT);
+        case gl.RGB16I: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.RGB, textureFormat.ChannelType.SIGNED_INT16);
+        case gl.RGB16UI: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.RGB, textureFormat.ChannelType.UNSIGNED_INT16);
+        case gl.RGB8_SNORM: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.RGB, textureFormat.ChannelType.SNORM_INT8);
+        case gl.RGB8I: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.RGB, textureFormat.ChannelType.SIGNED_INT8);
+        case gl.RGB8UI: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.RGB, textureFormat.ChannelType.UNSIGNED_INT8);
+        case gl.SRGB8: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.sRGB, textureFormat.ChannelType.UNORM_INT8);
+        case gl.RGB9_E5: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.RGB, textureFormat.ChannelType.UNSIGNED_INT_999_E5_REV);
+        case gl.RGB10: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.RGB, textureFormat.ChannelType.UNORM_INT_1010102_REV);
 
-        case gl.RG32F:                return new textureFormat.TextureFormat( textureFormat.ChannelOrder.RG,     textureFormat.ChannelType.FLOAT);
-        case gl.RG32I:                return new textureFormat.TextureFormat( textureFormat.ChannelOrder.RG,     textureFormat.ChannelType.SIGNED_INT32);
-        case gl.RG32UI:                return new textureFormat.TextureFormat( textureFormat.ChannelOrder.RG,     textureFormat.ChannelType.UNSIGNED_INT32);
-        case gl.RG16:                return new textureFormat.TextureFormat( textureFormat.ChannelOrder.RG,     textureFormat.ChannelType.UNORM_INT16);
-        case gl.RG16_SNORM:            return new textureFormat.TextureFormat( textureFormat.ChannelOrder.RG,     textureFormat.ChannelType.SNORM_INT16);
-        case gl.RG16F:                return new textureFormat.TextureFormat( textureFormat.ChannelOrder.RG,     textureFormat.ChannelType.HALF_FLOAT);
-        case gl.RG16I:                return new textureFormat.TextureFormat( textureFormat.ChannelOrder.RG,     textureFormat.ChannelType.SIGNED_INT16);
-        case gl.RG16UI:                return new textureFormat.TextureFormat( textureFormat.ChannelOrder.RG,     textureFormat.ChannelType.UNSIGNED_INT16);
-        case gl.RG8:                return new textureFormat.TextureFormat( textureFormat.ChannelOrder.RG,     textureFormat.ChannelType.UNORM_INT8);
-        case gl.RG8I:                return new textureFormat.TextureFormat( textureFormat.ChannelOrder.RG,     textureFormat.ChannelType.SIGNED_INT8);
-        case gl.RG8UI:                return new textureFormat.TextureFormat( textureFormat.ChannelOrder.RG,     textureFormat.ChannelType.UNSIGNED_INT8);
-        case gl.RG8_SNORM:            return new textureFormat.TextureFormat( textureFormat.ChannelOrder.RG,     textureFormat.ChannelType.SNORM_INT8);
+        case gl.RG32F: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.RG, textureFormat.ChannelType.FLOAT);
+        case gl.RG32I: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.RG, textureFormat.ChannelType.SIGNED_INT32);
+        case gl.RG32UI: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.RG, textureFormat.ChannelType.UNSIGNED_INT32);
+        case gl.RG16: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.RG, textureFormat.ChannelType.UNORM_INT16);
+        case gl.RG16_SNORM: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.RG, textureFormat.ChannelType.SNORM_INT16);
+        case gl.RG16F: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.RG, textureFormat.ChannelType.HALF_FLOAT);
+        case gl.RG16I: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.RG, textureFormat.ChannelType.SIGNED_INT16);
+        case gl.RG16UI: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.RG, textureFormat.ChannelType.UNSIGNED_INT16);
+        case gl.RG8: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.RG, textureFormat.ChannelType.UNORM_INT8);
+        case gl.RG8I: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.RG, textureFormat.ChannelType.SIGNED_INT8);
+        case gl.RG8UI: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.RG, textureFormat.ChannelType.UNSIGNED_INT8);
+        case gl.RG8_SNORM: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.RG, textureFormat.ChannelType.SNORM_INT8);
 
-        case gl.R32F:                return new textureFormat.TextureFormat( textureFormat.ChannelOrder.R,     textureFormat.ChannelType.FLOAT);
-        case gl.R32I:                return new textureFormat.TextureFormat( textureFormat.ChannelOrder.R,     textureFormat.ChannelType.SIGNED_INT32);
-        case gl.R32UI:                return new textureFormat.TextureFormat( textureFormat.ChannelOrder.R,     textureFormat.ChannelType.UNSIGNED_INT32);
-        case gl.R16:                return new textureFormat.TextureFormat( textureFormat.ChannelOrder.R,     textureFormat.ChannelType.UNORM_INT16);
-        case gl.R16_SNORM:            return new textureFormat.TextureFormat( textureFormat.ChannelOrder.R,     textureFormat.ChannelType.SNORM_INT16);
-        case gl.R16F:                return new textureFormat.TextureFormat( textureFormat.ChannelOrder.R,     textureFormat.ChannelType.HALF_FLOAT);
-        case gl.R16I:                return new textureFormat.TextureFormat( textureFormat.ChannelOrder.R,     textureFormat.ChannelType.SIGNED_INT16);
-        case gl.R16UI:                return new textureFormat.TextureFormat( textureFormat.ChannelOrder.R,     textureFormat.ChannelType.UNSIGNED_INT16);
-        case gl.R8:                    return new textureFormat.TextureFormat( textureFormat.ChannelOrder.R,     textureFormat.ChannelType.UNORM_INT8);
-        case gl.R8I:                return new textureFormat.TextureFormat( textureFormat.ChannelOrder.R,     textureFormat.ChannelType.SIGNED_INT8);
-        case gl.R8UI:                return new textureFormat.TextureFormat( textureFormat.ChannelOrder.R,     textureFormat.ChannelType.UNSIGNED_INT8);
-        case gl.R8_SNORM:            return new textureFormat.TextureFormat( textureFormat.ChannelOrder.R,     textureFormat.ChannelType.SNORM_INT8);
+        case gl.R32F: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.R, textureFormat.ChannelType.FLOAT);
+        case gl.R32I: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.R, textureFormat.ChannelType.SIGNED_INT32);
+        case gl.R32UI: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.R, textureFormat.ChannelType.UNSIGNED_INT32);
+        case gl.R16: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.R, textureFormat.ChannelType.UNORM_INT16);
+        case gl.R16_SNORM: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.R, textureFormat.ChannelType.SNORM_INT16);
+        case gl.R16F: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.R, textureFormat.ChannelType.HALF_FLOAT);
+        case gl.R16I: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.R, textureFormat.ChannelType.SIGNED_INT16);
+        case gl.R16UI: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.R, textureFormat.ChannelType.UNSIGNED_INT16);
+        case gl.R8: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.R, textureFormat.ChannelType.UNORM_INT8);
+        case gl.R8I: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.R, textureFormat.ChannelType.SIGNED_INT8);
+        case gl.R8UI: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.R, textureFormat.ChannelType.UNSIGNED_INT8);
+        case gl.R8_SNORM: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.R, textureFormat.ChannelType.SNORM_INT8);
 
-        case gl.DEPTH_COMPONENT32F:    return new textureFormat.TextureFormat( textureFormat.ChannelOrder.D,     textureFormat.ChannelType.FLOAT);
-        case gl.DEPTH_COMPONENT24:    return new textureFormat.TextureFormat( textureFormat.ChannelOrder.D,     textureFormat.ChannelType.UNSIGNED_INT_24_8);
-        case gl.DEPTH_COMPONENT32:    return new textureFormat.TextureFormat( textureFormat.ChannelOrder.D,     textureFormat.ChannelType.UNSIGNED_INT32);
-        case gl.DEPTH32F_STENCIL8:    return new textureFormat.TextureFormat( textureFormat.ChannelOrder.DS,     textureFormat.ChannelType.FLOAT_UNSIGNED_INT_24_8_REV);
-        case gl.DEPTH24_STENCIL8:    return new textureFormat.TextureFormat( textureFormat.ChannelOrder.DS,     textureFormat.ChannelType.UNSIGNED_INT_24_8);
+        case gl.DEPTH_COMPONENT32F: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.D, textureFormat.ChannelType.FLOAT);
+        case gl.DEPTH_COMPONENT24: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.D, textureFormat.ChannelType.UNSIGNED_INT_24_8);
+        case gl.DEPTH_COMPONENT32: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.D, textureFormat.ChannelType.UNSIGNED_INT32);
+        case gl.DEPTH32F_STENCIL8: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.DS, textureFormat.ChannelType.FLOAT_UNSIGNED_INT_24_8_REV);
+        case gl.DEPTH24_STENCIL8: return new textureFormat.TextureFormat(textureFormat.ChannelOrder.DS, textureFormat.ChannelType.UNSIGNED_INT_24_8);
 
         default:
             throw new Error("Can't map GL sized internal format (" + internalFormat.toString(16) + ') to texture format');

@@ -300,13 +300,13 @@ define([
         if (isStruct)
         {
             /** @type {number} */ var numMembers = rnd.getInt(1, 5);
-            /** @type {gluVT.StructType} */ var structType = gluVT.StructType("structType" + curStructIdx++);
+            /** @type {gluVT.StructType} */ var structType = gluVT.StructType('structType' + curStructIdx++);
 
             for (var i = 0; i < numMembers; i++)
             {
-                /** @type {VarTypeWithIndex} */ var typeWithIndex = generateRandomType(maxDepth-1, curStructIdx, structTypesDst, rnd);
+                /** @type {VarTypeWithIndex} */ var typeWithIndex = generateRandomType(maxDepth - 1, curStructIdx, structTypesDst, rnd);
                 curStructIdx = typeWithIndex.ndx;
-                structType.addMember("m" + i, typeWithIndex.type);
+                structType.addMember('m' + i, typeWithIndex.type);
             }
 
             structTypesDst.push(structType);
@@ -323,7 +323,7 @@ define([
         }
         else
         {
-            /** @type {deqpUtils.DataType} */ var basicType = s_testDataTypes[rnd.getInt(0, s_testDataTypes.length-1)];
+            /** @type {deqpUtils.DataType} */ var basicType = s_testDataTypes[rnd.getInt(0, s_testDataTypes.length - 1)];
             /** @type {deqpUtils.precision} */ var precision = deqpUtils.isDataTypeBoolOrBVec(basicType) ? deqpUtils.precision.PRECISION_LAST : deqpUtils.precision.PRECISION_MEDIUMP;
             return isArray ?
             {
@@ -349,7 +349,7 @@ define([
      */
     var VarValue = function() {
         /** @type {deqpUtils.DataType} */ this.type = -1;
-        /** @type {Array.<number|boolean> | SamplerV} */ this.val = [];
+        /** @type  {Array.<number|boolean> | SamplerV} */ this.val = [];
     };
 
     /**
@@ -483,7 +483,7 @@ define([
         if (nameSuffix === undefined) nameSuffix = '';
         /** @type {UniformCollection} */ var res = new UniformCollection();
         /** @type {deqpUtils.precision} */ var prec = deqpUtils.isDataTypeBoolOrBVec(type) ? deqpUtils.precision.PRECISION_LAST : deqpUtils.precision.PRECISION_MEDIUMP;
-        res.m_uniforms.push(new Uniform("u_var" + nameSuffix, gluVT.newTypeBasic(type, prec)));
+        res.m_uniforms.push(new Uniform('u_var' + nameSuffix, gluVT.newTypeBasic(type, prec)));
         return res;
     };
 
@@ -496,7 +496,7 @@ define([
         if (nameSuffix === undefined) nameSuffix = '';
         /** @type {UniformCollection} */ var res = new UniformCollection();
         /** @type {deqpUtils.precision} */ var prec = deqpUtils.isDataTypeBoolOrBVec(type) ? deqpUtils.precision.PRECISION_LAST : deqpUtils.precision.PRECISION_MEDIUMP;
-        res.m_uniforms.push(new Uniform("u_var" + nameSuffix, gluVT.newTypeAray(gluVT.newTypeBasic(type, prec), 3)));
+        res.m_uniforms.push(new Uniform('u_var' + nameSuffix, gluVT.newTypeAray(gluVT.newTypeBasic(type, prec), 3)));
         return res;
     };
 
@@ -513,17 +513,17 @@ define([
         /** @type {deqpUtils.precision} */ var prec0 = deqpUtils.isDataTypeBoolOrBVec(type0) ? deqpUtils.precision.PRECISION_LAST : deqpUtils.precision.PRECISION_MEDIUMP;
         /** @type {deqpUtils.precision} */ var prec1 = deqpUtils.isDataTypeBoolOrBVec(type1) ? deqpUtils.precision.PRECISION_LAST : deqpUtils.precision.PRECISION_MEDIUMP;
 
-        /** @type {gluVT.StructType} */ var structType = new gluVT.StructType("structType" + nameSuffix);
-        structType.addMember("m0", gluVT.newTypeBasic(type0, prec0));
-        structType.addMember("m1", gluVT.newTypeBasic(type1, prec1));
+        /** @type {gluVT.StructType} */ var structType = new gluVT.StructType('structType' + nameSuffix);
+        structType.addMember('m0', gluVT.newTypeBasic(type0, prec0));
+        structType.addMember('m1', gluVT.newTypeBasic(type1, prec1));
         if (containsArrays)
         {
-            structType.addMember("m2", gluVT.newTypeArray(gluVT.newTypeBasic(type0, prec0), 3));
-            structType.addMember("m3", gluVT.newTypeArray(gluVT.newTypeBasic(type1, prec1), 3));
+            structType.addMember('m2', gluVT.newTypeArray(gluVT.newTypeBasic(type0, prec0), 3));
+            structType.addMember('m3', gluVT.newTypeArray(gluVT.newTypeBasic(type1, prec1), 3));
         }
 
         res.addStructType(structType);
-        res.addUniform(new Uniform("u_var" + nameSuffix, gluVT.newTypeStruct(structType)));
+        res.addUniform(new Uniform('u_var' + nameSuffix, gluVT.newTypeStruct(structType)));
 
         return res;
     };
@@ -553,26 +553,26 @@ define([
         /** @type {UniformCollection} */ var res = new UniformCollection();
         /** @type {deqpUtils.precision} */ var prec0 = deqpUtils.isDataTypeBoolOrBVec(type0) ? deqpUtils.precision.PRECISION_LAST : deqpUtils.precision.PRECISION_MEDIUMP;
         /** @type {deqpUtils.precision} */ var prec1 = deqpUtils.isDataTypeBoolOrBVec(type1) ? deqpUtils.precision.PRECISION_LAST : deqpUtils.precision.PRECISION_MEDIUMP;
-        /** @type {gluVT.StructType} */ var structType = new gluVT.StructType("structType" + nameSuffix);
-        /** @type {gluVT.StructType} */ var subStructType = new gluVT.StructType("subStructType" + nameSuffix);
-        /** @type {gluVT.StructType} */ var subSubStructType = new gluVT.StructType("subSubStructType" + nameSuffix);
+        /** @type {gluVT.StructType} */ var structType = new gluVT.StructType('structType' + nameSuffix);
+        /** @type {gluVT.StructType} */ var subStructType = new gluVT.StructType('subStructType' + nameSuffix);
+        /** @type {gluVT.StructType} */ var subSubStructType = new gluVT.StructType('subSubStructType' + nameSuffix);
 
-        subSubStructType.addMember("mss0", gluVT.newTypeBasic(type0, prec0));
-        subSubStructType.addMember("mss1", gluVT.newTypeBasic(type1, prec1));
+        subSubStructType.addMember('mss0', gluVT.newTypeBasic(type0, prec0));
+        subSubStructType.addMember('mss1', gluVT.newTypeBasic(type1, prec1));
 
-        subStructType.addMember("ms0", gluVT.newTypeBasic(type1, prec1));
-        subStructType.addMember("ms1", gluVT.newTypeArray(gluVT.newTypeBasic(type0, prec0), 2));
-        subStructType.addMember("ms2", gluVT.newTypeArray(gluVT.newTypeStruct(subSubStructType), 2));
+        subStructType.addMember('ms0', gluVT.newTypeBasic(type1, prec1));
+        subStructType.addMember('ms1', gluVT.newTypeArray(gluVT.newTypeBasic(type0, prec0), 2));
+        subStructType.addMember('ms2', gluVT.newTypeArray(gluVT.newTypeStruct(subSubStructType), 2));
 
-        structType.addMember("m0", gluVT.newTypeBasic(type0, prec0));
-        structType.addMember("m1", gluVT.newTypeStruct(subStructType));
-        structType.addMember("m2", gluVT.newTypeBasic(type1, prec1));
+        structType.addMember('m0', gluVT.newTypeBasic(type0, prec0));
+        structType.addMember('m1', gluVT.newTypeStruct(subStructType));
+        structType.addMember('m2', gluVT.newTypeBasic(type1, prec1));
 
         res.addStructType(subSubStructType);
         res.addStructType(subStructType);
         res.addStructType(structType);
 
-        res.addUniform(new Uniform("u_var" + nameSuffix, gluVT.newTypeStruct(structType)));
+        res.addUniform(new Uniform('u_var' + nameSuffix, gluVT.newTypeStruct(structType)));
 
         return res;
     };
@@ -588,7 +588,7 @@ define([
 
         for (var i = 0; i < types.length; i++)
         {
-            /** @type {UniformCollection} */ var sub = this.basic(types[i], "_" + i + nameSuffix);
+            /** @type {UniformCollection} */ var sub = this.basic(types[i], '_' + i + nameSuffix);
             sub.moveContents(res);
         }
 
@@ -606,7 +606,7 @@ define([
 
         for (var i = 0; i < types.length; i++)
         {
-            /** @type {UniformCollection} */ var sub = this.basicArray(types[i], "_" + i + nameSuffix);
+            /** @type {UniformCollection} */ var sub = this.basicArray(types[i], '_' + i + nameSuffix);
             sub.moveContents(res);
         }
 
@@ -627,7 +627,7 @@ define([
 
         for (var i = 0; i < types0.length; i++)
         {
-            /** @type {UniformCollection} */ var sub = this.nestedArraysStructs(types0[i], types1[i], "_" + i + nameSuffix);
+            /** @type {UniformCollection} */ var sub = this.nestedArraysStructs(types0[i], types1[i], '_' + i + nameSuffix);
             sub.moveContents(res);
         }
 
@@ -647,13 +647,13 @@ define([
         for (var i = 0; i < numUniforms; i++)
         {
             /** @type {Array.<gluVT.StructType>} */ var structTypes = [];
-            /** @type {Uniform} */ var uniform = new Uniform("u_var" + i, deqpUtils.VarType());
+            /** @type {Uniform} */ var uniform = new Uniform('u_var' + i, deqpUtils.VarType());
 
             // \note Discard uniforms that would cause number of samplers to exceed MAX_NUM_SAMPLER_UNIFORMS.
             do
             {
                 structTypes.clear();
-                uniform.type = "u_var" + i, generateRandomType(3, structIdx, structTypes, rnd);
+                uniform.type = 'u_var' + i, generateRandomType(3, structIdx, structTypes, rnd);
             } while (res.getNumSamplers() + getNumSamplersInType(uniform.type) > MAX_NUM_SAMPLER_UNIFORMS);
 
             res.addUniform(uniform);
@@ -734,7 +734,7 @@ define([
 
         for (var i = 0; i < rows; i++)
         for (var j = 0; j < cols; j++)
-            result.val.floatV[i*cols + j] = original.val.floatV[j*rows + i];
+            result.val.floatV[i * cols + j] = original.val.floatV[j * rows + i];
 
         return result;
     };
@@ -748,21 +748,21 @@ define([
         /** @type {string} */ var result;
 
         if (numElems > 1)
-            result += deqpUtils.getDataTypeName(value.type) + "(";
+            result += deqpUtils.getDataTypeName(value.type) + '(';
 
         for (var i = 0; i < numElems; i++)
         {
             if (i > 0)
-                result += ", ";
+                result += ', ';
 
             if (deqpUtils.isDataTypeFloatOrVec(value.type) || deqpUtils.isDataTypeMatrix(value.type))
                 result += value.val.floatV[i].toFixed(2);
             else if (deqpUtils.isDataTypeIntOrIVec((value.type)))
                 result += value.val.intV[i];
             else if (deqpUtils.isDataTypeUintOrUVec((value.type)))
-                result += value.val.uintV[i] + "u";
+                result += value.val.uintV[i] + 'u';
             else if (deqpUtils.isDataTypeBoolOrBVec((value.type)))
-                result += value.val.boolV[i] ? "true" : "false";
+                result += value.val.boolV[i] ? 'true' : 'false';
             else if (deqpUtils.isDataTypeSampler((value.type)))
                 result += shaderVarValueStr(getSamplerFillValue(value));
             else
@@ -770,7 +770,7 @@ define([
         }
 
         if (numElems > 1)
-            result += ")";
+            result += ')';
 
         return result;
     };
@@ -784,12 +784,12 @@ define([
         /** @type {string} */ var result;
 
         if (numElems > 1)
-            result += "(";
+            result += '(';
 
         for (var i = 0; i < numElems; i++)
         {
             if (i > 0)
-                result += ", ";
+                result += ', ';
 
             if (deqpUtils.isDataTypeFloatOrVec(value.type) || deqpUtils.isDataTypeMatrix(value.type))
                 result += value.val.floatV[i].toFixed(2);
@@ -798,7 +798,7 @@ define([
             else if (deqpUtils.isDataTypeUintOrUVec((value.type)))
                 result += value.val.uintV[i];
             else if (deqpUtils.isDataTypeBoolOrBVec((value.type)))
-                result += value.val.boolV[i] ? "true" : "false";
+                result += value.val.boolV[i] ? 'true' : 'false';
             else if (deqpUtils.isDataTypeSampler((value.type)))
                 result += value.val.samplerV.unit;
             else
@@ -806,7 +806,7 @@ define([
         }
 
         if (numElems > 1)
-            result += ")";
+            result += ')';
 
         return result;
     };
@@ -904,7 +904,7 @@ define([
         {
             /** @type {deqpUtils.DataType} */ var texResultType = getSamplerLookupReturnType(type);
             /** @type {deqpUtils.DataType} */ var texResultScalarType = deqpUtils.getDataTypeScalarType(texResultType);
-            /** @type {number} */ var texResultNumDims    = deqpUtils.getDataTypeScalarSize(texResultType);
+            /** @type {number} */ var texResultNumDims = deqpUtils.getDataTypeScalarSize(texResultType);
 
             result.val.samplerV.unit = 0;
 
@@ -932,8 +932,8 @@ define([
      * @return {boolean}
      */
     var apiVarValueEquals = function(a, b) {
-        /** @type {number} */ var size            = deqpUtils.getDataTypeScalarSize(a.type);
-        /** @type {number} */ var floatThreshold    = 0.05;
+        /** @type {number} */ var size = deqpUtils.getDataTypeScalarSize(a.type);
+        /** @type {number} */ var floatThreshold = 0.05;
 
         DE_ASSERT(a.type == b.type);
 
@@ -982,7 +982,7 @@ define([
         DE_ASSERT(deqpUtils.isDataTypeBoolOrBVec(boolValue.type));
 
         /** @type {number} */ var size = deqpUtils.getDataTypeScalarSize(boolValue.type);
-        /** @type {deqpUtils.DataType} */ var targetType    = size == 1 ? targetScalarType : deqpUtils.getDataTypeVector(targetScalarType, size);
+        /** @type {deqpUtils.DataType} */ var targetType = size == 1 ? targetScalarType : deqpUtils.getDataTypeVector(targetScalarType, size);
         /** @type {VarValue} */ var result = new VarValue();
         result.type = targetType;
 
@@ -1040,9 +1040,9 @@ define([
     var getCaseShaderTypeName = function(type) {
         switch (type)
         {
-            case CaseShaderType.CASESHADERTYPE_VERTEX: return "vertex";
-            case CaseShaderType.CASESHADERTYPE_FRAGMENT: return "fragment";
-            case CaseShaderType.CASESHADERTYPE_BOTH: return "both";
+            case CaseShaderType.CASESHADERTYPE_VERTEX: return 'vertex';
+            case CaseShaderType.CASESHADERTYPE_FRAGMENT: return 'fragment';
+            case CaseShaderType.CASESHADERTYPE_BOTH: return 'both';
             default:
                 DE_ASSERT(false);
                 return DE_NULL;
@@ -1054,7 +1054,7 @@ define([
      * @return {CaseShaderType}
      */
     var randomCaseShaderType = function(seed) {
-        return (new deRandom.Random(seed)).getInt(0, CaseShaderType.CASESHADERTYPE_LAST-1);
+        return (new deRandom.Random(seed)).getInt(0, CaseShaderType.CASESHADERTYPE_LAST - 1);
     };
 
     //UniformCase definitions
@@ -1064,30 +1064,30 @@ define([
      */
     var Feature = {
         // ARRAYUSAGE_ONLY_MIDDLE_INDEX: only middle index of each array is used in shader. If not given, use all indices.
-        ARRAYUSAGE_ONLY_MIDDLE_INDEX: 1<<0,
+        ARRAYUSAGE_ONLY_MIDDLE_INDEX: 1 << 0,
 
         // UNIFORMFUNC_VALUE: use pass-by-value versions of uniform assignment funcs, e.g. glUniform1f(), where possible. If not given, use pass-by-pointer versions.
-        UNIFORMFUNC_VALUE: 1<<1,
+        UNIFORMFUNC_VALUE: 1 << 1,
 
         // MATRIXMODE_ROWMAJOR: pass matrices to GL in row major form. If not given, use column major.
-        MATRIXMODE_ROWMAJOR: 1<<2,
+        MATRIXMODE_ROWMAJOR: 1 << 2,
 
         // ARRAYASSIGN: how basic-type arrays are assigned with glUniform*(). If none given, assign each element of an array separately.
-        ARRAYASSIGN_FULL: 1<<3, //!< Assign all elements of an array with one glUniform*().
-        ARRAYASSIGN_BLOCKS_OF_TWO: 1<<4, //!< Assign two elements per one glUniform*().
+        ARRAYASSIGN_FULL: 1 << 3, //!< Assign all elements of an array with one glUniform*().
+        ARRAYASSIGN_BLOCKS_OF_TWO: 1 << 4, //!< Assign two elements per one glUniform*().
 
         // UNIFORMUSAGE_EVERY_OTHER: use about half of the uniforms. If not given, use all uniforms (except that some array indices may be omitted according to ARRAYUSAGE).
-        UNIFORMUSAGE_EVERY_OTHER: 1<<5,
+        UNIFORMUSAGE_EVERY_OTHER: 1 << 5,
 
         // BOOLEANAPITYPE: type used to pass booleans to and from GL api. If none given, use float.
-        BOOLEANAPITYPE_INT: 1<<6,
-        BOOLEANAPITYPE_UINT: 1<<7,
+        BOOLEANAPITYPE_INT: 1 << 6,
+        BOOLEANAPITYPE_UINT: 1 << 7,
 
         // UNIFORMVALUE_ZERO: use zero-valued uniforms. If not given, use random uniform values.
-        UNIFORMVALUE_ZERO: 1<<8,
+        UNIFORMVALUE_ZERO: 1 << 8,
 
         // ARRAY_FIRST_ELEM_NAME_NO_INDEX: in certain API functions, when referring to the first element of an array, use just the array name without [0] at the end.
-        ARRAY_FIRST_ELEM_NAME_NO_INDEX: 1<<9
+        ARRAY_FIRST_ELEM_NAME_NO_INDEX: 1 << 9
     };
 
     // A basic uniform is a uniform (possibly struct or array member) whose type is a basic type (e.g. float, ivec4, sampler2d).
@@ -1184,7 +1184,7 @@ define([
                 return vec[i];
         }
         return undefined;
-    }
+    };
 
     /**
      * UniformCase class, inherits from TestCase class
@@ -1261,7 +1261,7 @@ define([
 
         /** @type {deMath.deUint32} */ var result = 0;
 
-        var ARRAY_CHOICE = function(ARR) {ARR[rnd.getInt(0, ARR.length-1)];};
+        var ARRAY_CHOICE = function(ARR) {ARR[rnd.getInt(0, ARR.length - 1)];};
 
         result |= ARRAY_CHOICE(UniformCase.arrayUsageChoices);
         result |= ARRAY_CHOICE(UniformCase.uniformFuncChoices);
@@ -1289,11 +1289,11 @@ define([
         DE_ASSERT(numSamplerUniforms <= MAX_NUM_SAMPLER_UNIFORMS);
 
         if (vertexTexUnitsRequired > vertexTexUnitsSupported)
-            testFailedOptions('' + vertexTexUnitsRequired + " vertex texture units required, " + vertexTexUnitsSupported + " supported", true);
+            testFailedOptions('' + vertexTexUnitsRequired + ' vertex texture units required, ' + vertexTexUnitsSupported + ' supported', true);
         if (fragmentTexUnitsRequired > fragmentTexUnitsSupported)
-            testFailedOptions('' + fragmentTexUnitsRequired + " fragment texture units required, " + fragmentTexUnitsSupported + " supported", true);
+            testFailedOptions('' + fragmentTexUnitsRequired + ' fragment texture units required, ' + fragmentTexUnitsSupported + ' supported', true);
         if (combinedTexUnitsRequired > combinedTexUnitsSupported)
-            testFailedOptions('' + combinedTexUnitsRequired + " combined texture units required, " + combinedTexUnitsSupported + " supported", true);
+            testFailedOptions('' + combinedTexUnitsRequired + ' combined texture units required, ' + combinedTexUnitsSupported + ' supported', true);
     };
 
     /**
@@ -1319,23 +1319,23 @@ define([
         }
         else if (varType.isArrayType())
         {
-            /** @type {number} */ var size            = varType.getArraySize();
-            /** @type {string} */ var arrayRootName    = '' + varName + '[0]';
+            /** @type {number} */ var size = varType.getArraySize();
+            /** @type {string} */ var arrayRootName = '' + varName + '[0]';
             /** @type {Array.<boolean>} */ var isElemActive;
 
             for (var elemNdx = 0; elemNdx < varType.getArraySize(); elemNdx++)
             {
-                /** @type {boolean} */ var indexedName = '' + varName + "[" + elemNdx + "]";
+                /** @type {boolean} */ var indexedName = '' + varName + '[' + elemNdx + ']';
                 /** @type {boolean} */ var isCurElemActive = isParentActive &&
                                                   (this.m_features & Feature.UNIFORMUSAGE_EVERY_OTHER ? basicUniformsDst.size() % 2 == 0 : true) &&
-                                                  (this.m_features & Feature.ARRAYUSAGE_ONLY_MIDDLE_INDEX ? elemNdx == Math.floor(size/2) : true);
+                                                  (this.m_features & Feature.ARRAYUSAGE_ONLY_MIDDLE_INDEX ? elemNdx == Math.floor(size / 2) : true);
 
                 isElemActive.push(isCurElemActive);
 
                 if (varType.getElementType().isBasicType())
                 {
                     // \note We don't want separate entries in basicUniformReportsDst for elements of basic-type arrays.
-                    /** @type {deqpUtils.DataType} */ var elemBasicType    = varType.getElementType().getBasicType();
+                    /** @type {deqpUtils.DataType} */ var elemBasicType = varType.getElementType().getBasicType();
                     /** @type {VarValue} */ var value = this.m_features & Feature.UNIFORMVALUE_ZERO ? generateZeroVarValue(elemBasicType)
                                                         : deqpUtils.isDataTypeSampler(elemBasicType) ? generateRandomVarValue(elemBasicType, rnd, samplerUnitCounter++)
                                                         : generateRandomVarValue(elemBasicType, rnd);
@@ -1349,7 +1349,7 @@ define([
             if (varType.getElementType().isBasicType())
             {
                 /** @type {number} */ var minSize;
-                for (minSize = varType.getArraySize(); minSize > 0 && !isElemActive[minSize-1]; minSize--);
+                for (minSize = varType.getArraySize(); minSize > 0 && !isElemActive[minSize - 1]; minSize--);
 
                 basicUniformReportsDst.push(new BasicUniformReportRef(arrayRootName, minSize, size, varType.getElementType().getBasicType(), isParentActive && minSize > 0));
             }
@@ -1363,7 +1363,7 @@ define([
             for (int i = 0; i < structType.getNumMembers(); i++)
             {
                 /** @type {gluVT.StructMember} */ var member = structType.getMember(i);
-                /** @type {string} */ var memberFullName = '' + varName + "." + member.getName();
+                /** @type {string} */ var memberFullName = '' + varName + '.' + member.getName();
 
                 generateBasicUniforms(basicUniformsDst, basicUniformReportsDst, member.getType(), memberFullName, isParentActive, samplerUnitCounter, rnd);
             }
@@ -1376,42 +1376,42 @@ define([
      */
     UniformCase.prototype.writeUniformDefinitions = function(dst) {
         for (var i = 0; i < this.m_uniformCollection.getNumStructTypes(); i++)
-            dst += deqpUtils.declare(this.holam_uniformCollection->getStructType(i)) << ";\n";
+            dst += deqpUtils.declare(this.holam_uniformCollection - > getStructType(i)) << ';\n';
 
         for (var i = 0; i < this.m_uniformCollection.getNumUniforms(); i++)
-            dst += "uniform " + deqpUtils.declare(this.m_uniformCollection.getUniform(i).type, this.m_uniformCollection.getUniform(i).name) + ";\n";
+            dst += 'uniform ' + deqpUtils.declare(this.m_uniformCollection.getUniform(i).type, this.m_uniformCollection.getUniform(i).name) + ';\n';
 
-        dst += "\n";
+        dst += '\n';
 
         {
             //TODO: Check if new operator is needed in dataTypeEquals
             var compareFuncs =
             [
-                { requiringTypes: [deqpUtils.isDataTypeFloatOrVec, deqpUtils.isDataTypeMatrix], definition: "mediump float compare_float    (mediump float a, mediump float b)  { return abs(a - b) < 0.05 ? 1.0 : 0.0; }"},
-                { requiringTypes: [dataTypeEquals(deqpUtils.DataType.FLOAT_VEC2).exec, dataTypeIsMatrixWithNRows(2).exec], definition: "mediump float compare_vec2     (mediump vec2 a, mediump vec2 b)    { return compare_float(a.x, b.x)*compare_float(a.y, b.y); }"},
-                { requiringTypes: [dataTypeEquals(deqpUtils.DataType.FLOAT_VEC3).exec, dataTypeIsMatrixWithNRows(3).exec], definition: "mediump float compare_vec3     (mediump vec3 a, mediump vec3 b)    { return compare_float(a.x, b.x)*compare_float(a.y, b.y)*compare_float(a.z, b.z); }"},
-                { requiringTypes: [dataTypeEquals(deqpUtils.DataType.FLOAT_VEC4).exec, dataTypeIsMatrixWithNRows(4).exec], definition: "mediump float compare_vec4     (mediump vec4 a, mediump vec4 b)    { return compare_float(a.x, b.x)*compare_float(a.y, b.y)*compare_float(a.z, b.z)*compare_float(a.w, b.w); }"},
-                { requiringTypes: [dataTypeEquals(deqpUtils.DataType.FLOAT_MAT2).exec, dataTypeEquals(deqpUtils.DataType.INVALID).exec], definition: "mediump float compare_mat2     (mediump mat2 a, mediump mat2 b)    { return compare_vec2(a[0], b[0])*compare_vec2(a[1], b[1]); }"},
-                { requiringTypes: [dataTypeEquals(deqpUtils.DataType.FLOAT_MAT2X3).exec, dataTypeEquals(deqpUtils.DataType.INVALID).exec], definition: "mediump float compare_mat2x3   (mediump mat2x3 a, mediump mat2x3 b){ return compare_vec3(a[0], b[0])*compare_vec3(a[1], b[1]); }"},
-                { requiringTypes: [dataTypeEquals(deqpUtils.DataType.FLOAT_MAT2X4).exec, dataTypeEquals(deqpUtils.DataType.INVALID).exec], definition: "mediump float compare_mat2x4   (mediump mat2x4 a, mediump mat2x4 b){ return compare_vec4(a[0], b[0])*compare_vec4(a[1], b[1]); }"},
-                { requiringTypes: [dataTypeEquals(deqpUtils.DataType.FLOAT_MAT3X2).exec, dataTypeEquals(deqpUtils.DataType.INVALID).exec], definition: "mediump float compare_mat3x2   (mediump mat3x2 a, mediump mat3x2 b){ return compare_vec2(a[0], b[0])*compare_vec2(a[1], b[1])*compare_vec2(a[2], b[2]); }"},
-                { requiringTypes: [dataTypeEquals(deqpUtils.DataType.FLOAT_MAT3).exec, dataTypeEquals(deqpUtils.DataType.INVALID).exec], definition: "mediump float compare_mat3     (mediump mat3 a, mediump mat3 b)    { return compare_vec3(a[0], b[0])*compare_vec3(a[1], b[1])*compare_vec3(a[2], b[2]); }"},
-                { requiringTypes: [dataTypeEquals(deqpUtils.DataType.FLOAT_MAT3X4.exec), dataTypeEquals(deqpUtils.DataType.INVALID).exec], definition: "mediump float compare_mat3x4   (mediump mat3x4 a, mediump mat3x4 b){ return compare_vec4(a[0], b[0])*compare_vec4(a[1], b[1])*compare_vec4(a[2], b[2]); }"},
-                { requiringTypes: [dataTypeEquals(deqpUtils.DataType.FLOAT_MAT4X2).exec, dataTypeEquals(deqpUtils.DataType.INVALID).exec], definition: "mediump float compare_mat4x2   (mediump mat4x2 a, mediump mat4x2 b){ return compare_vec2(a[0], b[0])*compare_vec2(a[1], b[1])*compare_vec2(a[2], b[2])*compare_vec2(a[3], b[3]); }"},
-                { requiringTypes: [dataTypeEquals(deqpUtils.DataType.FLOAT_MAT4X3).exec, dataTypeEquals(deqpUtils.DataType.INVALID).exec], definition: "mediump float compare_mat4x3   (mediump mat4x3 a, mediump mat4x3 b){ return compare_vec3(a[0], b[0])*compare_vec3(a[1], b[1])*compare_vec3(a[2], b[2])*compare_vec3(a[3], b[3]); }"},
-                { requiringTypes: [dataTypeEquals(deqpUtils.DataType.FLOAT_MAT4).exec, dataTypeEquals(deqpUtils.DataType.INVALID).exec], definition: "mediump float compare_mat4     (mediump mat4 a, mediump mat4 b)    { return compare_vec4(a[0], b[0])*compare_vec4(a[1], b[1])*compare_vec4(a[2], b[2])*compare_vec4(a[3], b[3]); }"},
-                { requiringTypes: [dataTypeEquals(deqpUtils.DataType.INT).exec, dataTypeEquals(deqpUtils.DataType.INVALID).exec], definition: "mediump float compare_int      (mediump int a, mediump int b)      { return a == b ? 1.0 : 0.0; }"},
-                { requiringTypes: [dataTypeEquals(deqpUtils.DataType.INT_VEC2).exec, dataTypeEquals(deqpUtils.DataType.INVALID).exec], definition: "mediump float compare_ivec2    (mediump ivec2 a, mediump ivec2 b)  { return a == b ? 1.0 : 0.0; }"},
-                { requiringTypes: [dataTypeEquals(deqpUtils.DataType.INT_VEC3).exec, dataTypeEquals(deqpUtils.DataType.INVALID).exec], definition: "mediump float compare_ivec3    (mediump ivec3 a, mediump ivec3 b)  { return a == b ? 1.0 : 0.0; }"},
-                { requiringTypes: [dataTypeEquals(deqpUtils.DataType.INT_VEC4).exec, dataTypeEquals(deqpUtils.DataType.INVALID).exec], definition: "mediump float compare_ivec4    (mediump ivec4 a, mediump ivec4 b)  { return a == b ? 1.0 : 0.0; }"},
-                { requiringTypes: [dataTypeEquals(deqpUtils.DataType.UINT).exec, dataTypeEquals(deqpUtils.DataType.INVALID).exec], definition: "mediump float compare_uint     (mediump uint a, mediump uint b)    { return a == b ? 1.0 : 0.0; }"},
-                { requiringTypes: [dataTypeEquals(deqpUtils.DataType.UINT_VEC2).exec, dataTypeEquals(deqpUtils.DataType.INVALID).exec], definition: "mediump float compare_uvec2    (mediump uvec2 a, mediump uvec2 b)  { return a == b ? 1.0 : 0.0; }"},
-                { requiringTypes: [dataTypeEquals(deqpUtils.DataType.UINT_VEC3).exec, dataTypeEquals(deqpUtils.DataType.INVALID).exec], definition: "mediump float compare_uvec3    (mediump uvec3 a, mediump uvec3 b)  { return a == b ? 1.0 : 0.0; }"},
-                { requiringTypes: [dataTypeEquals(deqpUtils.DataType.UINT_VEC4).exec, dataTypeEquals(deqpUtils.DataType.INVALID).exec], definition: "mediump float compare_uvec4    (mediump uvec4 a, mediump uvec4 b)  { return a == b ? 1.0 : 0.0; }"},
-                { requiringTypes: [dataTypeEquals(deqpUtils.DataType.BOOL).exec, dataTypeEquals(deqpUtils.DataType.INVALID).exec], definition: "mediump float compare_bool     (bool a, bool b)                    { return a == b ? 1.0 : 0.0; }"},
-                { requiringTypes: [dataTypeEquals(deqpUtils.DataType.BOOL_VEC2).exec, dataTypeEquals(deqpUtils.DataType.INVALID).exec], definition: "mediump float compare_bvec2    (bvec2 a, bvec2 b)                  { return a == b ? 1.0 : 0.0; }"},
-                { requiringTypes: [dataTypeEquals(deqpUtils.DataType.BOOL_VEC3).exec, dataTypeEquals(deqpUtils.DataType.INVALID).exec], definition: "mediump float compare_bvec3    (bvec3 a, bvec3 b)                  { return a == b ? 1.0 : 0.0; }"},
-                { requiringTypes: [dataTypeEquals(deqpUtils.DataType.BOOL_VEC4).exec, dataTypeEquals(deqpUtils.DataType.INVALID).exec], definition: "mediump float compare_bvec4    (bvec4 a, bvec4 b)                  { return a == b ? 1.0 : 0.0; }"}
+                { requiringTypes: [deqpUtils.isDataTypeFloatOrVec, deqpUtils.isDataTypeMatrix], definition: 'mediump float compare_float    (mediump float a, mediump float b)  { return abs(a - b) < 0.05 ? 1.0 : 0.0; }'},
+                { requiringTypes: [dataTypeEquals(deqpUtils.DataType.FLOAT_VEC2).exec, dataTypeIsMatrixWithNRows(2).exec], definition: 'mediump float compare_vec2     (mediump vec2 a, mediump vec2 b)    { return compare_float(a.x, b.x)*compare_float(a.y, b.y); }'},
+                { requiringTypes: [dataTypeEquals(deqpUtils.DataType.FLOAT_VEC3).exec, dataTypeIsMatrixWithNRows(3).exec], definition: 'mediump float compare_vec3     (mediump vec3 a, mediump vec3 b)    { return compare_float(a.x, b.x)*compare_float(a.y, b.y)*compare_float(a.z, b.z); }'},
+                { requiringTypes: [dataTypeEquals(deqpUtils.DataType.FLOAT_VEC4).exec, dataTypeIsMatrixWithNRows(4).exec], definition: 'mediump float compare_vec4     (mediump vec4 a, mediump vec4 b)    { return compare_float(a.x, b.x)*compare_float(a.y, b.y)*compare_float(a.z, b.z)*compare_float(a.w, b.w); }'},
+                { requiringTypes: [dataTypeEquals(deqpUtils.DataType.FLOAT_MAT2).exec, dataTypeEquals(deqpUtils.DataType.INVALID).exec], definition: 'mediump float compare_mat2     (mediump mat2 a, mediump mat2 b)    { return compare_vec2(a[0], b[0])*compare_vec2(a[1], b[1]); }'},
+                { requiringTypes: [dataTypeEquals(deqpUtils.DataType.FLOAT_MAT2X3).exec, dataTypeEquals(deqpUtils.DataType.INVALID).exec], definition: 'mediump float compare_mat2x3   (mediump mat2x3 a, mediump mat2x3 b){ return compare_vec3(a[0], b[0])*compare_vec3(a[1], b[1]); }'},
+                { requiringTypes: [dataTypeEquals(deqpUtils.DataType.FLOAT_MAT2X4).exec, dataTypeEquals(deqpUtils.DataType.INVALID).exec], definition: 'mediump float compare_mat2x4   (mediump mat2x4 a, mediump mat2x4 b){ return compare_vec4(a[0], b[0])*compare_vec4(a[1], b[1]); }'},
+                { requiringTypes: [dataTypeEquals(deqpUtils.DataType.FLOAT_MAT3X2).exec, dataTypeEquals(deqpUtils.DataType.INVALID).exec], definition: 'mediump float compare_mat3x2   (mediump mat3x2 a, mediump mat3x2 b){ return compare_vec2(a[0], b[0])*compare_vec2(a[1], b[1])*compare_vec2(a[2], b[2]); }'},
+                { requiringTypes: [dataTypeEquals(deqpUtils.DataType.FLOAT_MAT3).exec, dataTypeEquals(deqpUtils.DataType.INVALID).exec], definition: 'mediump float compare_mat3     (mediump mat3 a, mediump mat3 b)    { return compare_vec3(a[0], b[0])*compare_vec3(a[1], b[1])*compare_vec3(a[2], b[2]); }'},
+                { requiringTypes: [dataTypeEquals(deqpUtils.DataType.FLOAT_MAT3X4.exec), dataTypeEquals(deqpUtils.DataType.INVALID).exec], definition: 'mediump float compare_mat3x4   (mediump mat3x4 a, mediump mat3x4 b){ return compare_vec4(a[0], b[0])*compare_vec4(a[1], b[1])*compare_vec4(a[2], b[2]); }'},
+                { requiringTypes: [dataTypeEquals(deqpUtils.DataType.FLOAT_MAT4X2).exec, dataTypeEquals(deqpUtils.DataType.INVALID).exec], definition: 'mediump float compare_mat4x2   (mediump mat4x2 a, mediump mat4x2 b){ return compare_vec2(a[0], b[0])*compare_vec2(a[1], b[1])*compare_vec2(a[2], b[2])*compare_vec2(a[3], b[3]); }'},
+                { requiringTypes: [dataTypeEquals(deqpUtils.DataType.FLOAT_MAT4X3).exec, dataTypeEquals(deqpUtils.DataType.INVALID).exec], definition: 'mediump float compare_mat4x3   (mediump mat4x3 a, mediump mat4x3 b){ return compare_vec3(a[0], b[0])*compare_vec3(a[1], b[1])*compare_vec3(a[2], b[2])*compare_vec3(a[3], b[3]); }'},
+                { requiringTypes: [dataTypeEquals(deqpUtils.DataType.FLOAT_MAT4).exec, dataTypeEquals(deqpUtils.DataType.INVALID).exec], definition: 'mediump float compare_mat4     (mediump mat4 a, mediump mat4 b)    { return compare_vec4(a[0], b[0])*compare_vec4(a[1], b[1])*compare_vec4(a[2], b[2])*compare_vec4(a[3], b[3]); }'},
+                { requiringTypes: [dataTypeEquals(deqpUtils.DataType.INT).exec, dataTypeEquals(deqpUtils.DataType.INVALID).exec], definition: 'mediump float compare_int      (mediump int a, mediump int b)      { return a == b ? 1.0 : 0.0; }'},
+                { requiringTypes: [dataTypeEquals(deqpUtils.DataType.INT_VEC2).exec, dataTypeEquals(deqpUtils.DataType.INVALID).exec], definition: 'mediump float compare_ivec2    (mediump ivec2 a, mediump ivec2 b)  { return a == b ? 1.0 : 0.0; }'},
+                { requiringTypes: [dataTypeEquals(deqpUtils.DataType.INT_VEC3).exec, dataTypeEquals(deqpUtils.DataType.INVALID).exec], definition: 'mediump float compare_ivec3    (mediump ivec3 a, mediump ivec3 b)  { return a == b ? 1.0 : 0.0; }'},
+                { requiringTypes: [dataTypeEquals(deqpUtils.DataType.INT_VEC4).exec, dataTypeEquals(deqpUtils.DataType.INVALID).exec], definition: 'mediump float compare_ivec4    (mediump ivec4 a, mediump ivec4 b)  { return a == b ? 1.0 : 0.0; }'},
+                { requiringTypes: [dataTypeEquals(deqpUtils.DataType.UINT).exec, dataTypeEquals(deqpUtils.DataType.INVALID).exec], definition: 'mediump float compare_uint     (mediump uint a, mediump uint b)    { return a == b ? 1.0 : 0.0; }'},
+                { requiringTypes: [dataTypeEquals(deqpUtils.DataType.UINT_VEC2).exec, dataTypeEquals(deqpUtils.DataType.INVALID).exec], definition: 'mediump float compare_uvec2    (mediump uvec2 a, mediump uvec2 b)  { return a == b ? 1.0 : 0.0; }'},
+                { requiringTypes: [dataTypeEquals(deqpUtils.DataType.UINT_VEC3).exec, dataTypeEquals(deqpUtils.DataType.INVALID).exec], definition: 'mediump float compare_uvec3    (mediump uvec3 a, mediump uvec3 b)  { return a == b ? 1.0 : 0.0; }'},
+                { requiringTypes: [dataTypeEquals(deqpUtils.DataType.UINT_VEC4).exec, dataTypeEquals(deqpUtils.DataType.INVALID).exec], definition: 'mediump float compare_uvec4    (mediump uvec4 a, mediump uvec4 b)  { return a == b ? 1.0 : 0.0; }'},
+                { requiringTypes: [dataTypeEquals(deqpUtils.DataType.BOOL).exec, dataTypeEquals(deqpUtils.DataType.INVALID).exec], definition: 'mediump float compare_bool     (bool a, bool b)                    { return a == b ? 1.0 : 0.0; }'},
+                { requiringTypes: [dataTypeEquals(deqpUtils.DataType.BOOL_VEC2).exec, dataTypeEquals(deqpUtils.DataType.INVALID).exec], definition: 'mediump float compare_bvec2    (bvec2 a, bvec2 b)                  { return a == b ? 1.0 : 0.0; }'},
+                { requiringTypes: [dataTypeEquals(deqpUtils.DataType.BOOL_VEC3).exec, dataTypeEquals(deqpUtils.DataType.INVALID).exec], definition: 'mediump float compare_bvec3    (bvec3 a, bvec3 b)                  { return a == b ? 1.0 : 0.0; }'},
+                { requiringTypes: [dataTypeEquals(deqpUtils.DataType.BOOL_VEC4).exec, dataTypeEquals(deqpUtils.DataType.INVALID).exec], definition: 'mediump float compare_bvec4    (bvec4 a, bvec4 b)                  { return a == b ? 1.0 : 0.0; }'}
             ];
 
             /** @type {Array.<deqpUtils.DataType>} */ var samplerTypes = this.m_uniformCollection.getSamplerTypes();
@@ -1435,7 +1435,7 @@ define([
                 }
 
                 if (containsTypeSampler || this.m_uniformCollection.containsMatchingBasicType(typeReq[0]) || this.m_uniformCollection.containsMatchingBasicType(typeReq[1]))
-                    dst += compareFuncs[compFuncNdx].definition + "\n";
+                    dst += compareFuncs[compFuncNdx].definition + '\n';
             }
         }
 
@@ -2310,7 +2310,7 @@ define([
 
     /**
      */
-    var init = function(){};
+    var init = function() {};
 
     /**
      * Create and execute the test cases

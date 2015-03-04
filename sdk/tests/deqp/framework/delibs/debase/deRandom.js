@@ -21,13 +21,13 @@
 /**
  * This class allows one to create a random integer, floating point number or boolean (TODO, choose random items from a list and shuffle an array)
  */
-define (function() {
-'use strict'
+define(function() {
+'use strict';
 
 /**
 * Array of pseudo random numbers based on seed
 */
-var deRandom =  function (){
+var deRandom = function() {
     var x;
     var y;
     var z;
@@ -56,11 +56,11 @@ var deRandom_init = function(rnd, seed)
  */
 var deRandom_getInt = function(rnd, opts)
 {
-    if (opts != undefined && opts[0] != undefined && opts[1] != undefined ){
+    if (opts != undefined && opts[0] != undefined && opts[1] != undefined) {
         if (opts[0] == 0x80000000 && opts[1] == 0x7fffffff) {
             return deRandom_getInt(rnd);
         } else {
-            return opts[0] + (deRandom_getInt(rnd) % (opts[1]-opts[0]+1));
+            return opts[0] + (deRandom_getInt(rnd) % (opts[1] - opts[0] + 1));
         }
     }
     var w = rnd.w;
@@ -82,12 +82,12 @@ var deRandom_getInt = function(rnd, opts)
  */
 var deRandom_getFloat = function(rnd, opts)
 {
-    if (opts != undefined && opts[0] != undefined && opts[1] != undefined ){
-        if (opts[0]<= opts[1]) {
-            return opts[0] + (opts[1]-opts[0])*deRandom_getFloat(rnd);
+    if (opts != undefined && opts[0] != undefined && opts[1] != undefined) {
+        if (opts[0] <= opts[1]) {
+            return opts[0] + (opts[1] - opts[0]) * deRandom_getFloat(rnd);
         }
     } else {
-        return (deRandom_getInt(rnd) & 0xFFFFFFF) / (0xFFFFFFF+1);
+        return (deRandom_getInt(rnd) & 0xFFFFFFF) / (0xFFFFFFF + 1);
     }
 };
 
@@ -124,7 +124,7 @@ var choose = function(rnd, elements, resultOut, num)
 {
     //TODO: This is a temporary implementation for tests.
     return [elements[0]];
-}
+};
 
 /**
  * TODO Function to choose weighted random items from a list
@@ -136,8 +136,8 @@ var choose = function(rnd, elements, resultOut, num)
  */
 var chooseWeighted = function(rnd, first, last, weight)
 {
-    throw new Error("Function not yet implemented");
-}
+    throw new Error('Function not yet implemented');
+};
 
 /**
  * TODO Function to shuffle an array
@@ -148,8 +148,8 @@ var chooseWeighted = function(rnd, first, last, weight)
  */
 var shuffle = function(rnd, first, last)
 {
-    throw new Error("Function not yet implemented");
-}
+    throw new Error('Function not yet implemented');
+};
 
 /**
  * This function is used to create the Random object and
@@ -172,21 +172,21 @@ var Random = function(seed) {
  * @param {deRandom} rnd Initialised array of random numbers
  * @return {boolean} Random boolean
  */
-Random.prototype.getBool = function()  { return deRandom_getBool(this.m_rnd) == true;    }
+Random.prototype.getBool = function()  { return deRandom_getBool(this.m_rnd) == true; };
 /**
  * Function to get random float
  * @param {deRandom} rnd Initialised array of random numbers
  * @param {array} opts Min and max for range
  * @return {float} Random float
  */
-Random.prototype.getFloat = function (min, max){ return deRandom_getFloat(this.m_rnd, [min, max]) };
+Random.prototype.getFloat = function(min, max) { return deRandom_getFloat(this.m_rnd, [min, max]) };
 /**
  * Function to get random int
  * @param {deRandom} rnd Initialised array of random numbers
  * @param {array} opts Min and max for range
  * @return {int} Random int
  */
-Random.prototype.getInt = function (min, max){return deRandom_getInt(this.m_rnd, [min,max])};
+Random.prototype.getInt = function(min, max) {return deRandom_getInt(this.m_rnd, [min, max])};
 /**
  * TODO Function to choose random items from a list
  * @param {Array.<Object>} elements Array segment already defined
@@ -222,7 +222,7 @@ Random.prototype.getBaseSeed = function() {
 };
 
 return {
-    Random: Random,
+    Random: Random
 };
 
 });

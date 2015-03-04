@@ -26,7 +26,7 @@ var DE_ASSERT = function(x) {
         throw new Error('Assert failed');
 };
 var DE_FALSE = false;
-var    GLU_EXPECT_NO_ERROR = function(error, message) {
+var GLU_EXPECT_NO_ERROR = function(error, message) {
     assertMsgOptions(error === gl.NONE, message, false, true);
 };
 
@@ -55,7 +55,7 @@ var samplerType = {
 
     SAMPLERTYPE_FETCH_FLOAT: 4,
     SAMPLERTYPE_FETCH_INT: 5,
-    SAMPLERTYPE_FETCH_UINT: 6,
+    SAMPLERTYPE_FETCH_UINT: 6
 };
 
 /**
@@ -121,7 +121,7 @@ var RenderParams = function(texType) {
 var lodMode = {
     EXACT: 0,        //!< Ideal lod computation.
     MIN_BOUND: 1,        //!< Use estimation range minimum bound.
-    MAX_BOUND: 2,        //!< Use estimation range maximum bound.
+    MAX_BOUND: 2        //!< Use estimation range maximum bound.
 
 };
 
@@ -145,54 +145,54 @@ var ReferenceParams = function(texType, sampler, lodMode_) {
 ReferenceParams.prototype = Object.create(RenderParams.prototype);
 ReferenceParams.prototype.constructor = ReferenceParams;
 
-var computeQuadTexCoord2D = function(bottomLeft,topRight)
+var computeQuadTexCoord2D = function(bottomLeft, topRight)
 {
     var dst = [];
-    dst.length = 4*2;
+    dst.length = 4 * 2;
 
-    dst[0] =  bottomLeft[0];    dst[1] =  bottomLeft[1];
-    dst[2] =  bottomLeft[0];    dst[3] =  topRight[1];
-    dst[4] =  topRight[0];        dst[5] =  bottomLeft[1];
-    dst[6] =  topRight[0];        dst[7] =  topRight[1];
+    dst[0] = bottomLeft[0]; dst[1] = bottomLeft[1];
+    dst[2] = bottomLeft[0]; dst[3] = topRight[1];
+    dst[4] = topRight[0]; dst[5] = bottomLeft[1];
+    dst[6] = topRight[0]; dst[7] = topRight[1];
 
     return dst;
 };
 
 var computeQuadTexCoordCube = function(/*tcu::CubeFace*/ face) {
     var texCoordNegX = [
-        -1,  1, -1,
+        -1, 1, -1,
         -1, -1, -1,
-        -1,  1,  1,
-        -1, -1,  1
+        -1, 1, 1,
+        -1, -1, 1
     ];
     var texCoordPosX = [
-        +1,  1,  1,
-        +1, -1,  1,
-        +1,  1, -1,
+        +1, 1, 1,
+        +1, -1, 1,
+        +1, 1, -1,
         +1, -1, -1
     ];
     var texCoordNegY = [
-        -1, -1,  1,
+        -1, -1, 1,
         -1, -1, -1,
-         1, -1,  1,
+         1, -1, 1,
          1, -1, -1
     ];
     var texCoordPosY = [
         -1, +1, -1,
-        -1, +1,  1,
+        -1, +1, 1,
          1, +1, -1,
-         1, +1,  1
+         1, +1, 1
     ];
     var texCoordNegZ = [
-         1,  1, -1,
+         1, 1, -1,
          1, -1, -1,
-        -1,  1, -1,
+        -1, 1, -1,
         -1, -1, -1
     ];
     var texCoordPosZ = [
-        -1,  1, +1,
+        -1, 1, +1,
         -1, -1, +1,
-         1,  1, +1,
+         1, 1, +1,
          1, -1, +1
     ];
 
@@ -209,12 +209,12 @@ var computeQuadTexCoordCube = function(/*tcu::CubeFace*/ face) {
 
 var computeQuadTexCoord2DArray = function(/*int*/ layerNdx, /*const tcu::Vec2&*/ bottomLeft, /*const tcu::Vec2&*/ topRight) {
     var dst = [];
-    dst.length = 4*3;
+    dst.length = 4 * 3;
 
-    dst[0] = bottomLeft[0];    dst[ 1] = bottomLeft[1];    dst[ 2] = layerNdx;
-    dst[3] = bottomLeft[0];    dst[ 4] = topRight[1];        dst[ 5] = layerNdx;
-    dst[6] = topRight[0];        dst[ 7] = bottomLeft[1];    dst[ 8] = layerNdx;
-    dst[9] = topRight[0];        dst[10] = topRight[1];        dst[11] = layerNdx;
+    dst[0] = bottomLeft[0]; dst[1] = bottomLeft[1]; dst[2] = layerNdx;
+    dst[3] = bottomLeft[0]; dst[4] = topRight[1]; dst[5] = layerNdx;
+    dst[6] = topRight[0]; dst[7] = bottomLeft[1]; dst[8] = layerNdx;
+    dst[9] = topRight[0]; dst[10] = topRight[1]; dst[11] = layerNdx;
 
     return dst;
 };
@@ -234,7 +234,7 @@ var selectCoords = function(a, b, c) {
 
 var computeQuadTexCoord3D = function(/*const tcu::Vec3&*/ p0, /*const tcu::Vec3&*/ p1, /*const tcu::IVec3&*/ dirSwz) {
     var dst = [];
-    dst.length = 4*3;
+    dst.length = 4 * 3;
 
     var f0 = deMath.swizzle(([0, 0, 0]), [dirSwz[0], dirSwz[1], dirSwz[2]]);
     var f1 = deMath.swizzle(([0, 1, 0]), [dirSwz[0], dirSwz[1], dirSwz[2]]);
@@ -246,9 +246,9 @@ var computeQuadTexCoord3D = function(/*const tcu::Vec3&*/ p0, /*const tcu::Vec3&
     var v2 = selectCoords(p0, p1, f2);
     var v3 = selectCoords(p0, p1, f3);
 
-    dst[0] = v0[0]; dst[ 1] = v0[1]; dst[ 2] = v0[2];
-    dst[3] = v1[0]; dst[ 4] = v1[1]; dst[ 5] = v1[2];
-    dst[6] = v2[0]; dst[ 7] = v2[1]; dst[ 8] = v2[2];
+    dst[0] = v0[0]; dst[1] = v0[1]; dst[2] = v0[2];
+    dst[3] = v1[0]; dst[4] = v1[1]; dst[5] = v1[2];
+    dst[6] = v2[0]; dst[7] = v2[1]; dst[8] = v2[2];
     dst[9] = v3[0]; dst[10] = v3[1]; dst[11] = v3[2];
 
     return dst;
@@ -327,59 +327,59 @@ ProgramLibrary.prototype.getProgram = function(/* programType */ program) {
     //     return m_programs[program]; // Return from cache.
 
     var vertShaderTemplate =
-        "${VTX_HEADER}" +
-        "${VTX_IN} highp vec4 a_position;\n" +
-        "${VTX_IN} ${PRECISION} ${TEXCOORD_TYPE} a_texCoord;\n" +
-        "${VTX_OUT} ${PRECISION} ${TEXCOORD_TYPE} v_texCoord;\n" +
-        "\n" +
-        "void main (void)\n" +
-        "{\n" +
-        "    gl_Position = a_position;\n" +
-        "    v_texCoord = a_texCoord;\n" +
-        "}\n";
+        '${VTX_HEADER}' +
+        '${VTX_IN} highp vec4 a_position;\n' +
+        '${VTX_IN} ${PRECISION} ${TEXCOORD_TYPE} a_texCoord;\n' +
+        '${VTX_OUT} ${PRECISION} ${TEXCOORD_TYPE} v_texCoord;\n' +
+        '\n' +
+        'void main (void)\n' +
+        '{\n' +
+        '    gl_Position = a_position;\n' +
+        '    v_texCoord = a_texCoord;\n' +
+        '}\n';
     var fragShaderTemplate =
-        "${FRAG_HEADER}" +
-        "${FRAG_IN} ${PRECISION} ${TEXCOORD_TYPE} v_texCoord;\n" +
-        "uniform ${PRECISION} float u_bias;\n" +
-        "uniform ${PRECISION} float u_ref;\n" +
-        "uniform ${PRECISION} vec4 u_colorScale;\n" +
-        "uniform ${PRECISION} vec4 u_colorBias;\n" +
-        "uniform ${PRECISION} ${SAMPLER_TYPE} u_sampler;\n" +
-        "\n" +
-        "void main (void)\n" +
-        "{\n" +
-        "    ${FRAG_COLOR} = ${LOOKUP} * u_colorScale + u_colorBias;\n" +
-        "}\n";
+        '${FRAG_HEADER}' +
+        '${FRAG_IN} ${PRECISION} ${TEXCOORD_TYPE} v_texCoord;\n' +
+        'uniform ${PRECISION} float u_bias;\n' +
+        'uniform ${PRECISION} float u_ref;\n' +
+        'uniform ${PRECISION} vec4 u_colorScale;\n' +
+        'uniform ${PRECISION} vec4 u_colorBias;\n' +
+        'uniform ${PRECISION} ${SAMPLER_TYPE} u_sampler;\n' +
+        '\n' +
+        'void main (void)\n' +
+        '{\n' +
+        '    ${FRAG_COLOR} = ${LOOKUP} * u_colorScale + u_colorBias;\n' +
+        '}\n';
 
     var params = new Map();
 
-    var    isCube        = deMath.deInRange32(program, programType.PROGRAM_CUBE_FLOAT, programType.PROGRAM_CUBE_SHADOW_BIAS);
-    var    isArray        = deMath.deInRange32(program, programType.PROGRAM_2D_ARRAY_FLOAT, programType.PROGRAM_2D_ARRAY_SHADOW)
+    var isCube = deMath.deInRange32(program, programType.PROGRAM_CUBE_FLOAT, programType.PROGRAM_CUBE_SHADOW_BIAS);
+    var isArray = deMath.deInRange32(program, programType.PROGRAM_2D_ARRAY_FLOAT, programType.PROGRAM_2D_ARRAY_SHADOW)
                             || deMath.deInRange32(program, programType.PROGRAM_1D_ARRAY_FLOAT, programType.PROGRAM_1D_ARRAY_SHADOW);
 
-    var    is1D        = deMath.deInRange32(program, programType.PROGRAM_1D_FLOAT, programType.PROGRAM_1D_UINT_BIAS)
+    var is1D = deMath.deInRange32(program, programType.PROGRAM_1D_FLOAT, programType.PROGRAM_1D_UINT_BIAS)
                             || deMath.deInRange32(program, programType.PROGRAM_1D_ARRAY_FLOAT, programType.PROGRAM_1D_ARRAY_SHADOW)
                             || deMath.deInRange32(program, programType.PROGRAM_BUFFER_FLOAT, programType.PROGRAM_BUFFER_UINT);
 
-    var    is2D        = deMath.deInRange32(program, programType.PROGRAM_2D_FLOAT, programType.PROGRAM_2D_UINT_BIAS)
+    var is2D = deMath.deInRange32(program, programType.PROGRAM_2D_FLOAT, programType.PROGRAM_2D_UINT_BIAS)
                             || deMath.deInRange32(program, programType.PROGRAM_2D_ARRAY_FLOAT, programType.PROGRAM_2D_ARRAY_SHADOW);
 
-    var    is3D        = deMath.deInRange32(program, programType.PROGRAM_3D_FLOAT, programType.PROGRAM_3D_UINT_BIAS);
-    var    isCubeArray    = deMath.deInRange32(program, programType.PROGRAM_CUBE_ARRAY_FLOAT, programType.PROGRAM_CUBE_ARRAY_SHADOW);
-    var    isBuffer    = deMath.deInRange32(program, programType.PROGRAM_BUFFER_FLOAT, programType.PROGRAM_BUFFER_UINT);
+    var is3D = deMath.deInRange32(program, programType.PROGRAM_3D_FLOAT, programType.PROGRAM_3D_UINT_BIAS);
+    var isCubeArray = deMath.deInRange32(program, programType.PROGRAM_CUBE_ARRAY_FLOAT, programType.PROGRAM_CUBE_ARRAY_SHADOW);
+    var isBuffer = deMath.deInRange32(program, programType.PROGRAM_BUFFER_FLOAT, programType.PROGRAM_BUFFER_UINT);
 
-    if (this.m_glslVersion == "100 es")
+    if (this.m_glslVersion == '100 es')
     {
-        params.set("FRAG_HEADER",  "");
-        params.set("VTX_HEADER",  "");
-        params.set("VTX_IN",  "attribute");
-        params.set("VTX_OUT",  "varying");
-        params.set("FRAG_IN",  "varying");
-        params.set("FRAG_COLOR",  "gl_FragColor");
+        params.set('FRAG_HEADER', '');
+        params.set('VTX_HEADER', '');
+        params.set('VTX_IN', 'attribute');
+        params.set('VTX_OUT', 'varying');
+        params.set('FRAG_IN', 'varying');
+        params.set('FRAG_COLOR', 'gl_FragColor');
     }
-    else if (this.m_glslVersion == "300 es" || this.m_glslVersion == "310 es" || this.m_glslVersion == "330")
+    else if (this.m_glslVersion == '300 es' || this.m_glslVersion == '310 es' || this.m_glslVersion == '330')
     {
-        var        ext        = null;
+        var ext = null;
 
         // if (isCubeArray && glu::glslVersionIsES(m_glslVersion))
         //     ext = "GL_EXT_texture_cube_map_array";
@@ -388,106 +388,106 @@ ProgramLibrary.prototype.getProgram = function(/* programType */ program) {
 
         var extension = '';
         if (ext)
-            extension = "\n#extension " + ext + " : require";
+            extension = '\n#extension ' + ext + ' : require';
 
-        params.set("FRAG_HEADER",  "#version " + this.m_glslVersion + extension + "\nlayout(location = 0) out mediump vec4 dEQP_FragColor;\n");
-        params.set("VTX_HEADER",  "#version " + this.m_glslVersion + "\n");
-        params.set("VTX_IN",  "in");
-        params.set("VTX_OUT",  "out");
-        params.set("FRAG_IN",  "in");
-        params.set("FRAG_COLOR",  "dEQP_FragColor");
+        params.set('FRAG_HEADER', '#version ' + this.m_glslVersion + extension + '\nlayout(location = 0) out mediump vec4 dEQP_FragColor;\n');
+        params.set('VTX_HEADER', '#version ' + this.m_glslVersion + '\n');
+        params.set('VTX_IN', 'in');
+        params.set('VTX_OUT', 'out');
+        params.set('FRAG_IN', 'in');
+        params.set('FRAG_COLOR', 'dEQP_FragColor');
     }
     else
-        throw new Error("Unsupported version: " + this.m_glslVersion);
+        throw new Error('Unsupported version: ' + this.m_glslVersion);
 
-    params.set("PRECISION",  gluShaderUtil.getPrecisionName(this.m_texCoordPrecision));
+    params.set('PRECISION', gluShaderUtil.getPrecisionName(this.m_texCoordPrecision));
 
     if (isCubeArray)
-        params.set("TEXCOORD_TYPE",  "vec4");
+        params.set('TEXCOORD_TYPE', 'vec4');
     else if (isCube || (is2D && isArray) || is3D)
-        params.set("TEXCOORD_TYPE",  "vec3");
+        params.set('TEXCOORD_TYPE', 'vec3');
     else if ((is1D && isArray) || is2D)
-        params.set("TEXCOORD_TYPE",  "vec2");
+        params.set('TEXCOORD_TYPE', 'vec2');
     else if (is1D)
-        params.set("TEXCOORD_TYPE",  "float");
+        params.set('TEXCOORD_TYPE', 'float');
     else
         DE_ASSERT(DE_FALSE);
 
-    var    sampler    = null;
-    var    lookup    = null;
+    var sampler = null;
+    var lookup = null;
 
-    if (this.m_glslVersion == "300 es" || this.m_glslVersion == "310 es" || this.m_glslVersion == "330")
+    if (this.m_glslVersion == '300 es' || this.m_glslVersion == '310 es' || this.m_glslVersion == '330')
     {
         switch (program)
         {
-            case programType.PROGRAM_2D_FLOAT:            sampler = "sampler2D";                lookup = "texture(u_sampler, v_texCoord)";                                                break;
-            case programType.PROGRAM_2D_INT:            sampler = "isampler2D";                lookup = "vec4(texture(u_sampler, v_texCoord))";                                        break;
-            case programType.PROGRAM_2D_UINT:            sampler = "usampler2D";                lookup = "vec4(texture(u_sampler, v_texCoord))";                                        break;
-            case programType.PROGRAM_2D_SHADOW:            sampler = "sampler2DShadow";        lookup = "vec4(texture(u_sampler, vec3(v_texCoord, u_ref)), 0.0, 0.0, 1.0)";            break;
-            case programType.PROGRAM_2D_FLOAT_BIAS:        sampler = "sampler2D";                lookup = "texture(u_sampler, v_texCoord, u_bias)";                                        break;
-            case programType.PROGRAM_2D_INT_BIAS:        sampler = "isampler2D";                lookup = "vec4(texture(u_sampler, v_texCoord, u_bias))";                                break;
-            case programType.PROGRAM_2D_UINT_BIAS:        sampler = "usampler2D";                lookup = "vec4(texture(u_sampler, v_texCoord, u_bias))";                                break;
-            case programType.PROGRAM_2D_SHADOW_BIAS:    sampler = "sampler2DShadow";        lookup = "vec4(texture(u_sampler, vec3(v_texCoord, u_ref), u_bias), 0.0, 0.0, 1.0)";    break;
-            case programType.PROGRAM_1D_FLOAT:            sampler = "sampler1D";                lookup = "texture(u_sampler, v_texCoord)";                                                break;
-            case programType.PROGRAM_1D_INT:            sampler = "isampler1D";                lookup = "vec4(texture(u_sampler, v_texCoord))";                                        break;
-            case programType.PROGRAM_1D_UINT:            sampler = "usampler1D";                lookup = "vec4(texture(u_sampler, v_texCoord))";                                        break;
-            case programType.PROGRAM_1D_SHADOW:            sampler = "sampler1DShadow";        lookup = "vec4(texture(u_sampler, vec3(v_texCoord, u_ref)), 0.0, 0.0, 1.0)";            break;
-            case programType.PROGRAM_1D_FLOAT_BIAS:        sampler = "sampler1D";                lookup = "texture(u_sampler, v_texCoord, u_bias)";                                        break;
-            case programType.PROGRAM_1D_INT_BIAS:        sampler = "isampler1D";                lookup = "vec4(texture(u_sampler, v_texCoord, u_bias))";                                break;
-            case programType.PROGRAM_1D_UINT_BIAS:        sampler = "usampler1D";                lookup = "vec4(texture(u_sampler, v_texCoord, u_bias))";                                break;
-            case programType.PROGRAM_1D_SHADOW_BIAS:    sampler = "sampler1DShadow";        lookup = "vec4(texture(u_sampler, vec3(v_texCoord, u_ref), u_bias), 0.0, 0.0, 1.0)";    break;
-            case programType.PROGRAM_CUBE_FLOAT:        sampler = "samplerCube";            lookup = "texture(u_sampler, v_texCoord)";                                                break;
-            case programType.PROGRAM_CUBE_INT:            sampler = "isamplerCube";            lookup = "vec4(texture(u_sampler, v_texCoord))";                                        break;
-            case programType.PROGRAM_CUBE_UINT:            sampler = "usamplerCube";            lookup = "vec4(texture(u_sampler, v_texCoord))";                                        break;
-            case programType.PROGRAM_CUBE_SHADOW:        sampler = "samplerCubeShadow";        lookup = "vec4(texture(u_sampler, vec4(v_texCoord, u_ref)), 0.0, 0.0, 1.0)";            break;
-            case programType.PROGRAM_CUBE_FLOAT_BIAS:    sampler = "samplerCube";            lookup = "texture(u_sampler, v_texCoord, u_bias)";                                        break;
-            case programType.PROGRAM_CUBE_INT_BIAS:        sampler = "isamplerCube";            lookup = "vec4(texture(u_sampler, v_texCoord, u_bias))";                                break;
-            case programType.PROGRAM_CUBE_UINT_BIAS:    sampler = "usamplerCube";            lookup = "vec4(texture(u_sampler, v_texCoord, u_bias))";                                break;
-            case programType.PROGRAM_CUBE_SHADOW_BIAS:    sampler = "samplerCubeShadow";        lookup = "vec4(texture(u_sampler, vec4(v_texCoord, u_ref), u_bias), 0.0, 0.0, 1.0)";    break;
-            case programType.PROGRAM_2D_ARRAY_FLOAT:    sampler = "sampler2DArray";            lookup = "texture(u_sampler, v_texCoord)";                                                break;
-            case programType.PROGRAM_2D_ARRAY_INT:        sampler = "isampler2DArray";        lookup = "vec4(texture(u_sampler, v_texCoord))";                                        break;
-            case programType.PROGRAM_2D_ARRAY_UINT:        sampler = "usampler2DArray";        lookup = "vec4(texture(u_sampler, v_texCoord))";                                        break;
-            case programType.PROGRAM_2D_ARRAY_SHADOW:    sampler = "sampler2DArrayShadow";    lookup = "vec4(texture(u_sampler, vec4(v_texCoord, u_ref)), 0.0, 0.0, 1.0)";            break;
-            case programType.PROGRAM_3D_FLOAT:            sampler = "sampler3D";                lookup = "texture(u_sampler, v_texCoord)";                                                break;
-            case programType.PROGRAM_3D_INT:            sampler = "isampler3D";                lookup = "vec4(texture(u_sampler, v_texCoord))";                                        break;
-            case programType.PROGRAM_3D_UINT:            sampler =" usampler3D";                lookup = "vec4(texture(u_sampler, v_texCoord))";                                        break;
-            case programType.PROGRAM_3D_FLOAT_BIAS:        sampler = "sampler3D";                lookup = "texture(u_sampler, v_texCoord, u_bias)";                                        break;
-            case programType.PROGRAM_3D_INT_BIAS:        sampler = "isampler3D";                lookup = "vec4(texture(u_sampler, v_texCoord, u_bias))";                                break;
-            case programType.PROGRAM_3D_UINT_BIAS:        sampler =" usampler3D";                lookup = "vec4(texture(u_sampler, v_texCoord, u_bias))";                                break;
-            case programType.PROGRAM_CUBE_ARRAY_FLOAT:    sampler = "samplerCubeArray";        lookup = "texture(u_sampler, v_texCoord)";                                                break;
-            case programType.PROGRAM_CUBE_ARRAY_INT:    sampler = "isamplerCubeArray";        lookup = "vec4(texture(u_sampler, v_texCoord))";                                        break;
-            case programType.PROGRAM_CUBE_ARRAY_UINT:    sampler = "usamplerCubeArray";        lookup = "vec4(texture(u_sampler, v_texCoord))";                                        break;
-            case programType.PROGRAM_CUBE_ARRAY_SHADOW:    sampler = "samplerCubeArrayShadow";    lookup = "vec4(texture(u_sampler, vec4(v_texCoord, u_ref)), 0.0, 0.0, 1.0)";            break;
-            case programType.PROGRAM_1D_ARRAY_FLOAT:    sampler = "sampler1DArray";            lookup = "texture(u_sampler, v_texCoord)";                                                break;
-            case programType.PROGRAM_1D_ARRAY_INT:        sampler = "isampler1DArray";        lookup = "vec4(texture(u_sampler, v_texCoord))";                                        break;
-            case programType.PROGRAM_1D_ARRAY_UINT:        sampler = "usampler1DArray";        lookup = "vec4(texture(u_sampler, v_texCoord))";                                        break;
-            case programType.PROGRAM_1D_ARRAY_SHADOW:    sampler = "sampler1DArrayShadow";    lookup = "vec4(texture(u_sampler, vec4(v_texCoord, u_ref)), 0.0, 0.0, 1.0)";            break;
-            case programType.PROGRAM_BUFFER_FLOAT:        sampler = "samplerBuffer";            lookup = "texelFetch(u_sampler, int(v_texCoord))";                                        break;
-            case programType.PROGRAM_BUFFER_INT:        sampler = "isamplerBuffer";            lookup = "vec4(texelFetch(u_sampler, int(v_texCoord)))";                                break;
-            case programType.PROGRAM_BUFFER_UINT:        sampler = "usamplerBuffer";            lookup = "vec4(texelFetch(u_sampler, int(v_texCoord)))";                                break;
+            case programType.PROGRAM_2D_FLOAT: sampler = 'sampler2D'; lookup = 'texture(u_sampler, v_texCoord)'; break;
+            case programType.PROGRAM_2D_INT: sampler = 'isampler2D'; lookup = 'vec4(texture(u_sampler, v_texCoord))'; break;
+            case programType.PROGRAM_2D_UINT: sampler = 'usampler2D'; lookup = 'vec4(texture(u_sampler, v_texCoord))'; break;
+            case programType.PROGRAM_2D_SHADOW: sampler = 'sampler2DShadow'; lookup = 'vec4(texture(u_sampler, vec3(v_texCoord, u_ref)), 0.0, 0.0, 1.0)'; break;
+            case programType.PROGRAM_2D_FLOAT_BIAS: sampler = 'sampler2D'; lookup = 'texture(u_sampler, v_texCoord, u_bias)'; break;
+            case programType.PROGRAM_2D_INT_BIAS: sampler = 'isampler2D'; lookup = 'vec4(texture(u_sampler, v_texCoord, u_bias))'; break;
+            case programType.PROGRAM_2D_UINT_BIAS: sampler = 'usampler2D'; lookup = 'vec4(texture(u_sampler, v_texCoord, u_bias))'; break;
+            case programType.PROGRAM_2D_SHADOW_BIAS: sampler = 'sampler2DShadow'; lookup = 'vec4(texture(u_sampler, vec3(v_texCoord, u_ref), u_bias), 0.0, 0.0, 1.0)'; break;
+            case programType.PROGRAM_1D_FLOAT: sampler = 'sampler1D'; lookup = 'texture(u_sampler, v_texCoord)'; break;
+            case programType.PROGRAM_1D_INT: sampler = 'isampler1D'; lookup = 'vec4(texture(u_sampler, v_texCoord))'; break;
+            case programType.PROGRAM_1D_UINT: sampler = 'usampler1D'; lookup = 'vec4(texture(u_sampler, v_texCoord))'; break;
+            case programType.PROGRAM_1D_SHADOW: sampler = 'sampler1DShadow'; lookup = 'vec4(texture(u_sampler, vec3(v_texCoord, u_ref)), 0.0, 0.0, 1.0)'; break;
+            case programType.PROGRAM_1D_FLOAT_BIAS: sampler = 'sampler1D'; lookup = 'texture(u_sampler, v_texCoord, u_bias)'; break;
+            case programType.PROGRAM_1D_INT_BIAS: sampler = 'isampler1D'; lookup = 'vec4(texture(u_sampler, v_texCoord, u_bias))'; break;
+            case programType.PROGRAM_1D_UINT_BIAS: sampler = 'usampler1D'; lookup = 'vec4(texture(u_sampler, v_texCoord, u_bias))'; break;
+            case programType.PROGRAM_1D_SHADOW_BIAS: sampler = 'sampler1DShadow'; lookup = 'vec4(texture(u_sampler, vec3(v_texCoord, u_ref), u_bias), 0.0, 0.0, 1.0)'; break;
+            case programType.PROGRAM_CUBE_FLOAT: sampler = 'samplerCube'; lookup = 'texture(u_sampler, v_texCoord)'; break;
+            case programType.PROGRAM_CUBE_INT: sampler = 'isamplerCube'; lookup = 'vec4(texture(u_sampler, v_texCoord))'; break;
+            case programType.PROGRAM_CUBE_UINT: sampler = 'usamplerCube'; lookup = 'vec4(texture(u_sampler, v_texCoord))'; break;
+            case programType.PROGRAM_CUBE_SHADOW: sampler = 'samplerCubeShadow'; lookup = 'vec4(texture(u_sampler, vec4(v_texCoord, u_ref)), 0.0, 0.0, 1.0)'; break;
+            case programType.PROGRAM_CUBE_FLOAT_BIAS: sampler = 'samplerCube'; lookup = 'texture(u_sampler, v_texCoord, u_bias)'; break;
+            case programType.PROGRAM_CUBE_INT_BIAS: sampler = 'isamplerCube'; lookup = 'vec4(texture(u_sampler, v_texCoord, u_bias))'; break;
+            case programType.PROGRAM_CUBE_UINT_BIAS: sampler = 'usamplerCube'; lookup = 'vec4(texture(u_sampler, v_texCoord, u_bias))'; break;
+            case programType.PROGRAM_CUBE_SHADOW_BIAS: sampler = 'samplerCubeShadow'; lookup = 'vec4(texture(u_sampler, vec4(v_texCoord, u_ref), u_bias), 0.0, 0.0, 1.0)'; break;
+            case programType.PROGRAM_2D_ARRAY_FLOAT: sampler = 'sampler2DArray'; lookup = 'texture(u_sampler, v_texCoord)'; break;
+            case programType.PROGRAM_2D_ARRAY_INT: sampler = 'isampler2DArray'; lookup = 'vec4(texture(u_sampler, v_texCoord))'; break;
+            case programType.PROGRAM_2D_ARRAY_UINT: sampler = 'usampler2DArray'; lookup = 'vec4(texture(u_sampler, v_texCoord))'; break;
+            case programType.PROGRAM_2D_ARRAY_SHADOW: sampler = 'sampler2DArrayShadow'; lookup = 'vec4(texture(u_sampler, vec4(v_texCoord, u_ref)), 0.0, 0.0, 1.0)'; break;
+            case programType.PROGRAM_3D_FLOAT: sampler = 'sampler3D'; lookup = 'texture(u_sampler, v_texCoord)'; break;
+            case programType.PROGRAM_3D_INT: sampler = 'isampler3D'; lookup = 'vec4(texture(u_sampler, v_texCoord))'; break;
+            case programType.PROGRAM_3D_UINT: sampler = ' usampler3D'; lookup = 'vec4(texture(u_sampler, v_texCoord))'; break;
+            case programType.PROGRAM_3D_FLOAT_BIAS: sampler = 'sampler3D'; lookup = 'texture(u_sampler, v_texCoord, u_bias)'; break;
+            case programType.PROGRAM_3D_INT_BIAS: sampler = 'isampler3D'; lookup = 'vec4(texture(u_sampler, v_texCoord, u_bias))'; break;
+            case programType.PROGRAM_3D_UINT_BIAS: sampler = ' usampler3D'; lookup = 'vec4(texture(u_sampler, v_texCoord, u_bias))'; break;
+            case programType.PROGRAM_CUBE_ARRAY_FLOAT: sampler = 'samplerCubeArray'; lookup = 'texture(u_sampler, v_texCoord)'; break;
+            case programType.PROGRAM_CUBE_ARRAY_INT: sampler = 'isamplerCubeArray'; lookup = 'vec4(texture(u_sampler, v_texCoord))'; break;
+            case programType.PROGRAM_CUBE_ARRAY_UINT: sampler = 'usamplerCubeArray'; lookup = 'vec4(texture(u_sampler, v_texCoord))'; break;
+            case programType.PROGRAM_CUBE_ARRAY_SHADOW: sampler = 'samplerCubeArrayShadow'; lookup = 'vec4(texture(u_sampler, vec4(v_texCoord, u_ref)), 0.0, 0.0, 1.0)'; break;
+            case programType.PROGRAM_1D_ARRAY_FLOAT: sampler = 'sampler1DArray'; lookup = 'texture(u_sampler, v_texCoord)'; break;
+            case programType.PROGRAM_1D_ARRAY_INT: sampler = 'isampler1DArray'; lookup = 'vec4(texture(u_sampler, v_texCoord))'; break;
+            case programType.PROGRAM_1D_ARRAY_UINT: sampler = 'usampler1DArray'; lookup = 'vec4(texture(u_sampler, v_texCoord))'; break;
+            case programType.PROGRAM_1D_ARRAY_SHADOW: sampler = 'sampler1DArrayShadow'; lookup = 'vec4(texture(u_sampler, vec4(v_texCoord, u_ref)), 0.0, 0.0, 1.0)'; break;
+            case programType.PROGRAM_BUFFER_FLOAT: sampler = 'samplerBuffer'; lookup = 'texelFetch(u_sampler, int(v_texCoord))'; break;
+            case programType.PROGRAM_BUFFER_INT: sampler = 'isamplerBuffer'; lookup = 'vec4(texelFetch(u_sampler, int(v_texCoord)))'; break;
+            case programType.PROGRAM_BUFFER_UINT: sampler = 'usamplerBuffer'; lookup = 'vec4(texelFetch(u_sampler, int(v_texCoord)))'; break;
             default:
                 DE_ASSERT(false);
         }
     }
-    else if (this.m_glslVersion == "100 es")
+    else if (this.m_glslVersion == '100 es')
     {
-        sampler = isCube ? "samplerCube" : "sampler2D";
+        sampler = isCube ? 'samplerCube' : 'sampler2D';
 
         switch (program)
         {
-            case programType.PROGRAM_2D_FLOAT:            lookup = "texture2D(u_sampler, v_texCoord)";            break;
-            case programType.PROGRAM_2D_FLOAT_BIAS:        lookup = "texture2D(u_sampler, v_texCoord, u_bias)";    break;
-            case programType.PROGRAM_CUBE_FLOAT:        lookup = "textureCube(u_sampler, v_texCoord)";            break;
-            case programType.PROGRAM_CUBE_FLOAT_BIAS:    lookup = "textureCube(u_sampler, v_texCoord, u_bias)";    break;
+            case programType.PROGRAM_2D_FLOAT: lookup = 'texture2D(u_sampler, v_texCoord)'; break;
+            case programType.PROGRAM_2D_FLOAT_BIAS: lookup = 'texture2D(u_sampler, v_texCoord, u_bias)'; break;
+            case programType.PROGRAM_CUBE_FLOAT: lookup = 'textureCube(u_sampler, v_texCoord)'; break;
+            case programType.PROGRAM_CUBE_FLOAT_BIAS: lookup = 'textureCube(u_sampler, v_texCoord, u_bias)'; break;
             default:
                 DE_ASSERT(false);
         }
     }
     else
-        DE_ASSERT(!"Unsupported version");
+        DE_ASSERT(!'Unsupported version');
 
-    params.set("SAMPLER_TYPE",  sampler);
-    params.set("LOOKUP",  lookup);
+    params.set('SAMPLER_TYPE', sampler);
+    params.set('LOOKUP', lookup);
 
     var vertSrc = tcuStringTemplate.specialize(vertShaderTemplate, params);
     var fragSrc = tcuStringTemplate.specialize(fragShaderTemplate, params);
@@ -541,33 +541,33 @@ var TextureRenderer = function(version,  precision) {
 };
 
 TextureRenderer.prototype.renderQuad = function(texUnit, texCoord, params) {
-    var                wCoord        = params.flags.projected ? params.w : [1, 1, 1, 1];
-    var                    useBias        = params.flags.use_bias;
-    var                    logUniforms    = params.flags.log_uniforms;
+    var wCoord = params.flags.projected ? params.w : [1, 1, 1, 1];
+    var useBias = params.flags.use_bias;
+    var logUniforms = params.flags.log_uniforms;
 
     // Render quad with texture.
     var position =
     [
-        -1*wCoord[0], -1*wCoord[0], 0, wCoord[0],
-        -1*wCoord[1], +1*wCoord[1], 0, wCoord[1],
-        +1*wCoord[2], -1*wCoord[2], 0, wCoord[2],
-        +1*wCoord[3], +1*wCoord[3], 0, wCoord[3]
+        -1 * wCoord[0], -1 * wCoord[0], 0, wCoord[0],
+        -1 * wCoord[1], +1 * wCoord[1], 0, wCoord[1],
+        +1 * wCoord[2], -1 * wCoord[2], 0, wCoord[2],
+        +1 * wCoord[3], +1 * wCoord[3], 0, wCoord[3]
     ];
-    /* @const */ var indices = [ 0, 1, 2, 2, 1, 3 ];
+    /* @const */ var indices = [0, 1, 2, 2, 1, 3];
 
-    /* @type {Program} */ var progSpec    = undefined;
-    var        numComps    = 0;
+    /* @type {Program} */ var progSpec = undefined;
+    var numComps = 0;
     if (params.texType == textureType.TEXTURETYPE_2D)
     {
         numComps = 2;
 
         switch (params.samplerType)
         {
-            case samplerType.SAMPLERTYPE_FLOAT:        progSpec = useBias ? programType.PROGRAM_2D_FLOAT_BIAS    : programType.PROGRAM_2D_FLOAT;        break;
-            case samplerType.SAMPLERTYPE_INT:        progSpec = useBias ? programType.PROGRAM_2D_INT_BIAS    : programType.PROGRAM_2D_INT;        break;
-            case samplerType.SAMPLERTYPE_UINT:        progSpec = useBias ? programType.PROGRAM_2D_UINT_BIAS    : programType.PROGRAM_2D_UINT;        break;
-            case samplerType.SAMPLERTYPE_SHADOW:    progSpec = useBias ? programType.PROGRAM_2D_SHADOW_BIAS    : programType.PROGRAM_2D_SHADOW;    break;
-            default:                    DE_ASSERT(false);
+            case samplerType.SAMPLERTYPE_FLOAT: progSpec = useBias ? programType.PROGRAM_2D_FLOAT_BIAS : programType.PROGRAM_2D_FLOAT; break;
+            case samplerType.SAMPLERTYPE_INT: progSpec = useBias ? programType.PROGRAM_2D_INT_BIAS : programType.PROGRAM_2D_INT; break;
+            case samplerType.SAMPLERTYPE_UINT: progSpec = useBias ? programType.PROGRAM_2D_UINT_BIAS : programType.PROGRAM_2D_UINT; break;
+            case samplerType.SAMPLERTYPE_SHADOW: progSpec = useBias ? programType.PROGRAM_2D_SHADOW_BIAS : programType.PROGRAM_2D_SHADOW; break;
+            default: DE_ASSERT(false);
         }
     }
     else if (params.texType == textureType.TEXTURETYPE_1D)
@@ -576,11 +576,11 @@ TextureRenderer.prototype.renderQuad = function(texUnit, texCoord, params) {
 
         switch (params.samplerType)
         {
-            case samplerType.SAMPLERTYPE_FLOAT:        progSpec = useBias ? programType.PROGRAM_1D_FLOAT_BIAS    : programType.PROGRAM_1D_FLOAT;        break;
-            case samplerType.SAMPLERTYPE_INT:        progSpec = useBias ? programType.PROGRAM_1D_INT_BIAS    : programType.PROGRAM_1D_INT;        break;
-            case samplerType.SAMPLERTYPE_UINT:        progSpec = useBias ? programType.PROGRAM_1D_UINT_BIAS    : programType.PROGRAM_1D_UINT;        break;
-            case samplerType.SAMPLERTYPE_SHADOW:    progSpec = useBias ? programType.PROGRAM_1D_SHADOW_BIAS    : programType.PROGRAM_1D_SHADOW;    break;
-            default:                    DE_ASSERT(false);
+            case samplerType.SAMPLERTYPE_FLOAT: progSpec = useBias ? programType.PROGRAM_1D_FLOAT_BIAS : programType.PROGRAM_1D_FLOAT; break;
+            case samplerType.SAMPLERTYPE_INT: progSpec = useBias ? programType.PROGRAM_1D_INT_BIAS : programType.PROGRAM_1D_INT; break;
+            case samplerType.SAMPLERTYPE_UINT: progSpec = useBias ? programType.PROGRAM_1D_UINT_BIAS : programType.PROGRAM_1D_UINT; break;
+            case samplerType.SAMPLERTYPE_SHADOW: progSpec = useBias ? programType.PROGRAM_1D_SHADOW_BIAS : programType.PROGRAM_1D_SHADOW; break;
+            default: DE_ASSERT(false);
         }
     }
     else if (params.texType == textureType.TEXTURETYPE_CUBE)
@@ -589,11 +589,11 @@ TextureRenderer.prototype.renderQuad = function(texUnit, texCoord, params) {
 
         switch (params.samplerType)
         {
-            case samplerType.SAMPLERTYPE_FLOAT:        progSpec = useBias ? programType.PROGRAM_CUBE_FLOAT_BIAS    : programType.PROGRAM_CUBE_FLOAT;    break;
-            case samplerType.SAMPLERTYPE_INT:        progSpec = useBias ? programType.PROGRAM_CUBE_INT_BIAS        : programType.PROGRAM_CUBE_INT;        break;
-            case samplerType.SAMPLERTYPE_UINT:        progSpec = useBias ? programType.PROGRAM_CUBE_UINT_BIAS        : programType.PROGRAM_CUBE_UINT;    break;
-            case samplerType.SAMPLERTYPE_SHADOW:    progSpec = useBias ? programType.PROGRAM_CUBE_SHADOW_BIAS    : programType.PROGRAM_CUBE_SHADOW;    break;
-            default:                    DE_ASSERT(false);
+            case samplerType.SAMPLERTYPE_FLOAT: progSpec = useBias ? programType.PROGRAM_CUBE_FLOAT_BIAS : programType.PROGRAM_CUBE_FLOAT; break;
+            case samplerType.SAMPLERTYPE_INT: progSpec = useBias ? programType.PROGRAM_CUBE_INT_BIAS : programType.PROGRAM_CUBE_INT; break;
+            case samplerType.SAMPLERTYPE_UINT: progSpec = useBias ? programType.PROGRAM_CUBE_UINT_BIAS : programType.PROGRAM_CUBE_UINT; break;
+            case samplerType.SAMPLERTYPE_SHADOW: progSpec = useBias ? programType.PROGRAM_CUBE_SHADOW_BIAS : programType.PROGRAM_CUBE_SHADOW; break;
+            default: DE_ASSERT(false);
         }
     }
     else if (params.texType == textureType.TEXTURETYPE_3D)
@@ -602,10 +602,10 @@ TextureRenderer.prototype.renderQuad = function(texUnit, texCoord, params) {
 
         switch (params.samplerType)
         {
-            case samplerType.SAMPLERTYPE_FLOAT:        progSpec = useBias ? programType.PROGRAM_3D_FLOAT_BIAS    : programType.PROGRAM_3D_FLOAT;        break;
-            case samplerType.SAMPLERTYPE_INT:        progSpec = useBias ? programType.PROGRAM_3D_INT_BIAS    : programType.PROGRAM_3D_INT;        break;
-            case samplerType.SAMPLERTYPE_UINT:        progSpec = useBias ? programType.PROGRAM_3D_UINT_BIAS    : programType.PROGRAM_3D_UINT;        break;
-            default:                    DE_ASSERT(false);
+            case samplerType.SAMPLERTYPE_FLOAT: progSpec = useBias ? programType.PROGRAM_3D_FLOAT_BIAS : programType.PROGRAM_3D_FLOAT; break;
+            case samplerType.SAMPLERTYPE_INT: progSpec = useBias ? programType.PROGRAM_3D_INT_BIAS : programType.PROGRAM_3D_INT; break;
+            case samplerType.SAMPLERTYPE_UINT: progSpec = useBias ? programType.PROGRAM_3D_UINT_BIAS : programType.PROGRAM_3D_UINT; break;
+            default: DE_ASSERT(false);
         }
     }
     else if (params.texType == textureType.TEXTURETYPE_2D_ARRAY)
@@ -616,11 +616,11 @@ TextureRenderer.prototype.renderQuad = function(texUnit, texCoord, params) {
 
         switch (params.samplerType)
         {
-            case samplerType.SAMPLERTYPE_FLOAT:        progSpec = programType.PROGRAM_2D_ARRAY_FLOAT;    break;
-            case samplerType.SAMPLERTYPE_INT:        progSpec = programType.PROGRAM_2D_ARRAY_INT;    break;
-            case samplerType.SAMPLERTYPE_UINT:        progSpec = programType.PROGRAM_2D_ARRAY_UINT;    break;
-            case samplerType.SAMPLERTYPE_SHADOW:    progSpec = programType.PROGRAM_2D_ARRAY_SHADOW;    break;
-            default:                    DE_ASSERT(false);
+            case samplerType.SAMPLERTYPE_FLOAT: progSpec = programType.PROGRAM_2D_ARRAY_FLOAT; break;
+            case samplerType.SAMPLERTYPE_INT: progSpec = programType.PROGRAM_2D_ARRAY_INT; break;
+            case samplerType.SAMPLERTYPE_UINT: progSpec = programType.PROGRAM_2D_ARRAY_UINT; break;
+            case samplerType.SAMPLERTYPE_SHADOW: progSpec = programType.PROGRAM_2D_ARRAY_SHADOW; break;
+            default: DE_ASSERT(false);
         }
     }
     else if (params.texType == textureType.TEXTURETYPE_CUBE_ARRAY)
@@ -631,11 +631,11 @@ TextureRenderer.prototype.renderQuad = function(texUnit, texCoord, params) {
 
         switch (params.samplerType)
         {
-            case samplerType.SAMPLERTYPE_FLOAT:        progSpec = programType.PROGRAM_CUBE_ARRAY_FLOAT;    break;
-            case samplerType.SAMPLERTYPE_INT:        progSpec = programType.PROGRAM_CUBE_ARRAY_INT;        break;
-            case samplerType.SAMPLERTYPE_UINT:        progSpec = programType.PROGRAM_CUBE_ARRAY_UINT;        break;
-            case samplerType.SAMPLERTYPE_SHADOW:    progSpec = programType.PROGRAM_CUBE_ARRAY_SHADOW;    break;
-            default:                    DE_ASSERT(false);
+            case samplerType.SAMPLERTYPE_FLOAT: progSpec = programType.PROGRAM_CUBE_ARRAY_FLOAT; break;
+            case samplerType.SAMPLERTYPE_INT: progSpec = programType.PROGRAM_CUBE_ARRAY_INT; break;
+            case samplerType.SAMPLERTYPE_UINT: progSpec = programType.PROGRAM_CUBE_ARRAY_UINT; break;
+            case samplerType.SAMPLERTYPE_SHADOW: progSpec = programType.PROGRAM_CUBE_ARRAY_SHADOW; break;
+            default: DE_ASSERT(false);
         }
     }
     else if (params.texType == textureType.TEXTURETYPE_1D_ARRAY)
@@ -646,11 +646,11 @@ TextureRenderer.prototype.renderQuad = function(texUnit, texCoord, params) {
 
         switch (params.samplerType)
         {
-            case samplerType.SAMPLERTYPE_FLOAT:        progSpec = programType.PROGRAM_1D_ARRAY_FLOAT;    break;
-            case samplerType.SAMPLERTYPE_INT:        progSpec = programType.PROGRAM_1D_ARRAY_INT;    break;
-            case samplerType.SAMPLERTYPE_UINT:        progSpec = programType.PROGRAM_1D_ARRAY_UINT;    break;
-            case samplerType.SAMPLERTYPE_SHADOW:    progSpec = programType.PROGRAM_1D_ARRAY_SHADOW;    break;
-            default:                    DE_ASSERT(false);
+            case samplerType.SAMPLERTYPE_FLOAT: progSpec = programType.PROGRAM_1D_ARRAY_FLOAT; break;
+            case samplerType.SAMPLERTYPE_INT: progSpec = programType.PROGRAM_1D_ARRAY_INT; break;
+            case samplerType.SAMPLERTYPE_UINT: progSpec = programType.PROGRAM_1D_ARRAY_UINT; break;
+            case samplerType.SAMPLERTYPE_SHADOW: progSpec = programType.PROGRAM_1D_ARRAY_SHADOW; break;
+            default: DE_ASSERT(false);
         }
     }
     else if (params.texType == textureType.TEXTURETYPE_BUFFER)
@@ -659,10 +659,10 @@ TextureRenderer.prototype.renderQuad = function(texUnit, texCoord, params) {
 
         switch (params.samplerType)
         {
-            case samplerType.SAMPLERTYPE_FETCH_FLOAT:    progSpec = programType.PROGRAM_BUFFER_FLOAT;    break;
-            case samplerType.SAMPLERTYPE_FETCH_INT:        progSpec = programType.PROGRAM_BUFFER_INT;        break;
-            case samplerType.SAMPLERTYPE_FETCH_UINT:    progSpec = programType.PROGRAM_BUFFER_UINT;        break;
-            default:                        DE_ASSERT(false);
+            case samplerType.SAMPLERTYPE_FETCH_FLOAT: progSpec = programType.PROGRAM_BUFFER_FLOAT; break;
+            case samplerType.SAMPLERTYPE_FETCH_INT: progSpec = programType.PROGRAM_BUFFER_INT; break;
+            case samplerType.SAMPLERTYPE_FETCH_UINT: progSpec = programType.PROGRAM_BUFFER_UINT; break;
+            default: DE_ASSERT(false);
         }
     }
     else
@@ -675,32 +675,32 @@ TextureRenderer.prototype.renderQuad = function(texUnit, texCoord, params) {
     if (params.flags.log_programs)
         log << *program;
     */
-    GLU_EXPECT_NO_ERROR(gl.getError(), "Set vertex attributes");
+    GLU_EXPECT_NO_ERROR(gl.getError(), 'Set vertex attributes');
 
     // Program and uniforms.
     var prog = program.getProgram();
     gl.useProgram(prog);
 
-    gl.uniform1i(gl.getUniformLocation(prog, "u_sampler"), texUnit);
+    gl.uniform1i(gl.getUniformLocation(prog, 'u_sampler'), texUnit);
     // if (logUniforms)
     //     log << TestLog::Message << "u_sampler = " << texUnit << TestLog::EndMessage;
 
     if (useBias)
     {
-        gl.uniform1f(gl.getUniformLocation(prog, "u_bias"), params.bias);
+        gl.uniform1f(gl.getUniformLocation(prog, 'u_bias'), params.bias);
         // if (logUniforms)
         //     log << TestLog::Message << "u_bias = " << params.bias << TestLog::EndMessage;
     }
 
     if (params.samplerType == samplerType.SAMPLERTYPE_SHADOW)
     {
-        gl.uniform1f(gl.getUniformLocation(prog, "u_ref"), params.ref);
+        gl.uniform1f(gl.getUniformLocation(prog, 'u_ref'), params.ref);
         // if (logUniforms)
         //     log << TestLog::Message << "u_ref = " << params.ref << TestLog::EndMessage;
     }
 
-    gl.uniform4fv(gl.getUniformLocation(prog, "u_colorScale"),    params.colorScale);
-    gl.uniform4fv(gl.getUniformLocation(prog, "u_colorBias"),    params.colorBias);
+    gl.uniform4fv(gl.getUniformLocation(prog, 'u_colorScale'), params.colorScale);
+    gl.uniform4fv(gl.getUniformLocation(prog, 'u_colorBias'), params.colorBias);
 
     // if (logUniforms)
     // {
@@ -708,7 +708,7 @@ TextureRenderer.prototype.renderQuad = function(texUnit, texCoord, params) {
     //     log << TestLog::Message << "u_colorBias = " << params.colorBias << TestLog::EndMessage;
     // }
 
-    GLU_EXPECT_NO_ERROR(gl.getError(), "Set program state");
+    GLU_EXPECT_NO_ERROR(gl.getError(), 'Set program state');
 
     {
         var vertexArrays = [];
@@ -756,8 +756,8 @@ var SurfaceAccess = function(/*tcu::Surface&*/ surface, /*const tcu::PixelFormat
     this.m_height = height || surface.getHeight();
 };
 
-SurfaceAccess.prototype.getWidth = function() { return this.m_width;    }
-SurfaceAccess.prototype.getHeight = function() { return this.m_height;    }
+SurfaceAccess.prototype.getWidth = function() { return this.m_width; };
+SurfaceAccess.prototype.getHeight = function() { return this.m_height; };
 SurfaceAccess.prototype.setPixel = function(/*const tcu::Vec4&*/ color, x, y) {
     /* TODO: Apply color mask */
     var c = color;
@@ -772,7 +772,7 @@ var computeLodFromDerivates = function(/*LodMode*/ mode, dudx, dvdx, dwdx, dudy,
     switch (mode)
     {
         case lodMode.EXACT:
-            p = Math.max(Math.sqrt(dudx*dudx + dvdx*dvdx + dwdx*dwdx), Math.sqrt(dudy*dudy + dvdy*dvdy + dwdy*dwdy));
+            p = Math.max(Math.sqrt(dudx * dudx + dvdx * dvdx + dwdx * dwdx), Math.sqrt(dudy * dudy + dvdy * dvdy + dwdy * dwdy));
             break;
 
         case lodMode.MIN_BOUND:
@@ -795,37 +795,37 @@ var computeLodFromDerivates = function(/*LodMode*/ mode, dudx, dvdx, dwdx, dudy,
 
 var computeNonProjectedTriLod = function(/*LodMode*/ mode, /*const tcu::IVec2&*/ dstSize, /*const tcu::IVec2&*/ srcSize, /*const tcu::Vec3&*/ sq, /*const tcu::Vec3&*/ tq, /*const tcu::Vec3&*/ rq)
 {
-    var dux    = (sq[2] - sq[0]) * srcSize[0];
-    var duy    = (sq[1] - sq[0]) * srcSize[0];
-    var dvx    = (tq[2] - tq[0]) * srcSize[1];
-    var dvy    = (tq[1] - tq[0]) * srcSize[1];
+    var dux = (sq[2] - sq[0]) * srcSize[0];
+    var duy = (sq[1] - sq[0]) * srcSize[0];
+    var dvx = (tq[2] - tq[0]) * srcSize[1];
+    var dvy = (tq[1] - tq[0]) * srcSize[1];
     var dwx = 0;
     var dwy = 0;
     if (rq) {
-        dwx    = (rq[2] - rq[0]) * srcSize[2];
-        dwy    = (rq[1] - rq[0]) * srcSize[2];
+        dwx = (rq[2] - rq[0]) * srcSize[2];
+        dwy = (rq[1] - rq[0]) * srcSize[2];
     }
-    var dx    = dstSize[0];
-    var dy    = dstSize[1];
+    var dx = dstSize[0];
+    var dy = dstSize[1];
 
-    return computeLodFromDerivates(mode, dux/dx, dvx/dx, dwx/dx, duy/dy, dvy/dy, dwy/dy);
-}
+    return computeLodFromDerivates(mode, dux / dx, dvx / dx, dwx / dx, duy / dy, dvy / dy, dwy / dy);
+};
 
 /**
  * @param {Array<Number>} v
  */
 var triangleInterpolate = function(v, x, y) {
-    return v[0] + (v[2]-v[0])*x + (v[1]-v[0])*y;
+    return v[0] + (v[2] - v[0]) * x + (v[1] - v[0]) * y;
 };
 
 var triDerivateX = function(/*const tcu::Vec3&*/ s, /*const tcu::Vec3&*/ w, wx, width, ny) {
-    var d = w[1]*w[2]*(width*(ny - 1) + wx) - w[0]*(w[2]*width*ny + w[1]*wx);
-    return (w[0]*w[1]*w[2]*width * (w[1]*(s[0] - s[2])*(ny - 1) + ny*(w[2]*(s[1] - s[0]) + w[0]*(s[2] - s[1])))) / (d*d);
+    var d = w[1] * w[2] * (width * (ny - 1) + wx) - w[0] * (w[2] * width * ny + w[1] * wx);
+    return (w[0] * w[1] * w[2] * width * (w[1] * (s[0] - s[2]) * (ny - 1) + ny * (w[2] * (s[1] - s[0]) + w[0] * (s[2] - s[1])))) / (d * d);
 };
 
-var triDerivateY  = function(/*const tcu::Vec3&*/ s, /*const tcu::Vec3&*/ w, wy, height, nx) {
-    var d = w[1]*w[2]*(height*(nx - 1) + wy) - w[0]*(w[1]*height*nx + w[2]*wy);
-    return (w[0]*w[1]*w[2]*height * (w[2]*(s[0] - s[1])*(nx - 1) + nx*(w[0]*(s[1] - s[2]) + w[1]*(s[2] - s[0])))) / (d*d);
+var triDerivateY = function(/*const tcu::Vec3&*/ s, /*const tcu::Vec3&*/ w, wy, height, nx) {
+    var d = w[1] * w[2] * (height * (nx - 1) + wy) - w[0] * (w[1] * height * nx + w[2] * wy);
+    return (w[0] * w[1] * w[2] * height * (w[2] * (s[0] - s[1]) * (nx - 1) + nx * (w[0] * (s[1] - s[2]) + w[1] * (s[2] - s[0])))) / (d * d);
 };
 
 /**
@@ -846,75 +846,75 @@ var applyScaleAndBias = function(pixel, scale, bias) {
 };
 
 var sampleTextureNonProjected2D = function(/*const SurfaceAccess&*/ dst, /*const tcu::Texture2DView&*/ src, /*const tcu::Vec4&*/ sq, /*const tcu::Vec4&*/ tq, /*const ReferenceParams&*/ params) {
-    var        lodBias        = params.flags.use_bias ? params.bias : 0;
+    var lodBias = params.flags.use_bias ? params.bias : 0;
 
-    var    dstSize        = [ dst.getWidth(), dst.getHeight() ];
-    var    srcSize        = [ src.getWidth(), src.getHeight() ];
+    var dstSize = [dst.getWidth(), dst.getHeight()];
+    var srcSize = [src.getWidth(), src.getHeight()];
 
     // Coordinates and lod per triangle.
-    var    triS        = [ deMath.swizzle(sq, [0, 1, 2]), deMath.swizzle(sq, [3, 2, 1]) ];
-    var    triT        = [ deMath.swizzle(tq, [0, 1, 2]), deMath.swizzle(tq, [3, 2, 1]) ];
-    var    triLod    = [ deMath.clamp((computeNonProjectedTriLod(params.lodMode, dstSize, srcSize, triS[0], triT[0]) + lodBias), params.minLod, params.maxLod),
-                    deMath.clamp((computeNonProjectedTriLod(params.lodMode, dstSize, srcSize, triS[1], triT[1]) + lodBias), params.minLod, params.maxLod) ];
+    var triS = [deMath.swizzle(sq, [0, 1, 2]), deMath.swizzle(sq, [3, 2, 1])];
+    var triT = [deMath.swizzle(tq, [0, 1, 2]), deMath.swizzle(tq, [3, 2, 1])];
+    var triLod = [deMath.clamp((computeNonProjectedTriLod(params.lodMode, dstSize, srcSize, triS[0], triT[0]) + lodBias), params.minLod, params.maxLod),
+                    deMath.clamp((computeNonProjectedTriLod(params.lodMode, dstSize, srcSize, triS[1], triT[1]) + lodBias), params.minLod, params.maxLod)];
 
     for (var y = 0; y < dst.getHeight(); y++)
     {
         for (var x = 0; x < dst.getWidth(); x++)
         {
-            var    yf        = (y + 0.5) / dst.getHeight();
-            var    xf        = (x + 0.5) / dst.getWidth();
+            var yf = (y + 0.5) / dst.getHeight();
+            var xf = (x + 0.5) / dst.getWidth();
 
-            var        triNdx    = xf + yf >= 1 ? 1 : 0; // Top left fill rule.
-            var    triX    = triNdx ? 1 - xf : xf;
-            var    triY    = triNdx ? 1 - yf : yf;
+            var triNdx = xf + yf >= 1 ? 1 : 0; // Top left fill rule.
+            var triX = triNdx ? 1 - xf : xf;
+            var triY = triNdx ? 1 - yf : yf;
 
-            var    s        = triangleInterpolate(triS[triNdx], triX, triY);
-            var    t        = triangleInterpolate(triT[triNdx], triX, triY);
-            var    lod        = triLod[triNdx];
+            var s = triangleInterpolate(triS[triNdx], triX, triY);
+            var t = triangleInterpolate(triT[triNdx], triX, triY);
+            var lod = triLod[triNdx];
 
-            var pixel  = execSample(src, params, [s, t], lod);
+            var pixel = execSample(src, params, [s, t], lod);
             dst.setPixel(applyScaleAndBias(pixel, params.colorScale, params.colorBias), x, y);
         }
     }
 };
 
 var sampleTextureNonProjected2DArray = function(/*const SurfaceAccess&*/ dst, /*const tcu::Texture2DArrayView&*/ src, /*const tcu::Vec4&*/ sq, /*const tcu::Vec4&*/ tq, /*const tcu::Vec4&*/ rq, /*const ReferenceParams&*/ params) {
-    var        lodBias        = (params.flags.use_bias) ? params.bias : 0;
+    var lodBias = (params.flags.use_bias) ? params.bias : 0;
 
-    var    dstSize        = [dst.getWidth(), dst.getHeight()];
-    var    srcSize        = [src.getWidth(), src.getHeight()];
+    var dstSize = [dst.getWidth(), dst.getHeight()];
+    var srcSize = [src.getWidth(), src.getHeight()];
 
     // Coordinates and lod per triangle.
-    var    triS        = [ deMath.swizzle(sq, [0, 1, 2]), deMath.swizzle(sq, [3, 2, 1]) ];
-    var    triT        = [ deMath.swizzle(tq, [0, 1, 2]), deMath.swizzle(tq, [3, 2, 1]) ];
-    var    triR        = [ deMath.swizzle(rq, [0, 1, 2]), deMath.swizzle(rq, [3, 2, 1]) ];
-    var        triLod    = [ computeNonProjectedTriLod(params.lodMode, dstSize, srcSize, triS[0], triT[0]) + lodBias,
+    var triS = [deMath.swizzle(sq, [0, 1, 2]), deMath.swizzle(sq, [3, 2, 1])];
+    var triT = [deMath.swizzle(tq, [0, 1, 2]), deMath.swizzle(tq, [3, 2, 1])];
+    var triR = [deMath.swizzle(rq, [0, 1, 2]), deMath.swizzle(rq, [3, 2, 1])];
+    var triLod = [computeNonProjectedTriLod(params.lodMode, dstSize, srcSize, triS[0], triT[0]) + lodBias,
                                 computeNonProjectedTriLod(params.lodMode, dstSize, srcSize, triS[1], triT[1]) + lodBias];
 
     for (var y = 0; y < dst.getHeight(); y++) {
         for (var x = 0; x < dst.getWidth(); x++) {
-            var    yf        = (y + 0.5) / dst.getHeight();
-            var    xf        = (x + 0.5) / dst.getWidth();
+            var yf = (y + 0.5) / dst.getHeight();
+            var xf = (x + 0.5) / dst.getWidth();
 
-            var        triNdx    = xf + yf >= 1 ? 1 : 0; // Top left fill rule.
-            var    triX    = triNdx ? 1-xf : xf;
-            var    triY    = triNdx ? 1-yf : yf;
+            var triNdx = xf + yf >= 1 ? 1 : 0; // Top left fill rule.
+            var triX = triNdx ? 1 - xf : xf;
+            var triY = triNdx ? 1 - yf : yf;
 
-            var    s        = triangleInterpolate(triS[triNdx], triX, triY);
-            var    t        = triangleInterpolate(triT[triNdx], triX, triY);
-            var    r        = triangleInterpolate(triR[triNdx], triX, triY);
-            var    lod        = triLod[triNdx];
+            var s = triangleInterpolate(triS[triNdx], triX, triY);
+            var t = triangleInterpolate(triT[triNdx], triX, triY);
+            var r = triangleInterpolate(triR[triNdx], triX, triY);
+            var lod = triLod[triNdx];
 
-            var pixel  = execSample(src, params, [s, t, r], lod);
+            var pixel = execSample(src, params, [s, t, r], lod);
             dst.setPixel(applyScaleAndBias(pixel, params.colorScale, params.colorBias), x, y);
         }
     }
-}
+};
 
 var sampleTexture2D = function(/*const SurfaceAccess&*/ dst, /*const tcu::Texture2DView&*/ src, /*const float*  */ texCoord, /*const ReferenceParams& */ params) {
-    /*const tcu::Texture2DView*/ var    view    = src.getSubView(params.baseLevel, params.maxLevel);
-    var                sq        = [texCoord[0+0], texCoord[2+0], texCoord[4+0], texCoord[6+0] ];
-    var                tq        = [texCoord[0+1], texCoord[2+1], texCoord[4+1], texCoord[6+1] ];
+    /*const tcu::Texture2DView*/ var view = src.getSubView(params.baseLevel, params.maxLevel);
+    var sq = [texCoord[0 + 0], texCoord[2 + 0], texCoord[4 + 0], texCoord[6 + 0]];
+    var tq = [texCoord[0 + 1], texCoord[2 + 1], texCoord[4 + 1], texCoord[6 + 1]];
 
     if (params.flags.projected)
         sampleTextureProjected(dst, view, sq, tq, params);
@@ -924,10 +924,10 @@ var sampleTexture2D = function(/*const SurfaceAccess&*/ dst, /*const tcu::Textur
 
 var computeCubeLodFromDerivates = function(/*LodMode*/ lodMode, /*const tcu::Vec3&*/ coord, /*const tcu::Vec3&*/ coordDx, /*const tcu::Vec3&*/ coordDy, /*const int*/ faceSize)
 {
-    /*const tcu::CubeFace*/ var    face    = tcuTexture.selectCubeFace(coord);
-    var                    maNdx    = 0;
-    var                    sNdx    = 0;
-    var                    tNdx    = 0;
+    /*const tcu::CubeFace*/ var face = tcuTexture.selectCubeFace(coord);
+    var maNdx = 0;
+    var sNdx = 0;
+    var tNdx = 0;
 
     // \note Derivate signs don't matter when computing lod
     switch (face) {
@@ -942,19 +942,19 @@ var computeCubeLodFromDerivates = function(/*LodMode*/ lodMode, /*const tcu::Vec
     }
 
     {
-        var    sc        = coord[sNdx];
-        var    tc        = coord[tNdx];
-        var    ma        = Math.abs(coord[maNdx]);
-        var    scdx    = coordDx[sNdx];
-        var    tcdx    = coordDx[tNdx];
-        var    madx    = Math.abs(coordDx[maNdx]);
-        var    scdy    = coordDy[sNdx];
-        var    tcdy    = coordDy[tNdx];
-        var    mady    = Math.abs(coordDy[maNdx]);
-        var    dudx    = faceSize * 0.5 * (scdx*ma - sc*madx) / (ma*ma);
-        var    dvdx    = faceSize * 0.5 * (tcdx*ma - tc*madx) / (ma*ma);
-        var    dudy    = faceSize * 0.5 * (scdy*ma - sc*mady) / (ma*ma);
-        var    dvdy    = faceSize * 0.5 * (tcdy*ma - tc*mady) / (ma*ma);
+        var sc = coord[sNdx];
+        var tc = coord[tNdx];
+        var ma = Math.abs(coord[maNdx]);
+        var scdx = coordDx[sNdx];
+        var tcdx = coordDx[tNdx];
+        var madx = Math.abs(coordDx[maNdx]);
+        var scdy = coordDy[sNdx];
+        var tcdy = coordDy[tNdx];
+        var mady = Math.abs(coordDy[maNdx]);
+        var dudx = faceSize * 0.5 * (scdx * ma - sc * madx) / (ma * ma);
+        var dvdx = faceSize * 0.5 * (tcdx * ma - tc * madx) / (ma * ma);
+        var dudy = faceSize * 0.5 * (scdy * ma - sc * mady) / (ma * ma);
+        var dvdy = faceSize * 0.5 * (tcdy * ma - tc * mady) / (ma * ma);
         return computeLodFromDerivates(lodMode, dudx, dvdx, dudy, dvdy);
     }
 };

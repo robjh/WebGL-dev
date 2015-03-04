@@ -381,7 +381,7 @@ var ProgramSources = function() {
  * @return {ProgramSources}
  */
 var makeVtxFragSources = function(vertexSrc, fragmentSrc) {
-    /** @type {ProgramSources} */ var sources = new ProgramSources();
+    /** @type  {ProgramSources} */ var sources = new ProgramSources();
     sources.sources.push(genVertexSource(vertexSrc));
     sources.sources.push(genFragmentSource(fragmentSrc));
     return sources;

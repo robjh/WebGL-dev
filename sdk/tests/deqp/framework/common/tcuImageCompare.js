@@ -18,16 +18,16 @@
  *
  */
 
-define(['framework/common/tcuSurface', 'framework/delibs/debase/deMath' ], function(tcuSurface, deMath) {
+define(['framework/common/tcuSurface', 'framework/delibs/debase/deMath'], function(tcuSurface, deMath) {
 
 var displayResultPane = function(id, width, height) {
     displayResultPane.counter = displayResultPane.counter || 0;
     var i = displayResultPane.counter++;
     var elem = document.getElementById(id);
-    var span = document.createElement("span");
+    var span = document.createElement('span');
     elem.appendChild(span);
     span.innerHTML = '<table><tr><td>Result</td><td>Reference</td><td>Error mask</td></tr>' +
-                            '<tr><td><canvas id="result' + i + '" width=' + width + ' height=' + height +'</td><td><canvas id="reference' + i +'" width=' + width + ' height=' + height +'</td><td><canvas id="diff' + i +'" width=' + width + ' height=' + height +'</td>' +
+                            '<tr><td><canvas id="result' + i + '" width=' + width + ' height=' + height + '</td><td><canvas id="reference' + i + '" width=' + width + ' height=' + height + '</td><td><canvas id="diff' + i + '" width=' + width + ' height=' + height + '</td>' +
                      '</table>';
     var canvasResult = document.getElementById('result' + i);
     var ctxResult = canvasResult.getContext('2d');
@@ -45,8 +45,8 @@ var displayImages = function(result, reference, diff) {
         var imgData = ctx.createImageData(w, h);
         var index = 0;
         for (var y = 0; y < h; y++) {
-            for (var x = 0; x < w; x++)    {
-                var    pixel = src.getPixelInt(x, y, 0);
+            for (var x = 0; x < w; x++) {
+                var pixel = src.getPixelInt(x, y, 0);
                 for (var i = 0; i < 4; i++) {
                     imgData.data[index] = pixel[i];
                     index = index + 1;
@@ -87,26 +87,26 @@ var displayImages = function(result, reference, diff) {
  * \return true if comparison passes, false otherwise
  *//*--------------------------------------------------------------------*/
 var intThresholdCompare = function(/*const char* */imageSetName, /*const char* */imageSetDesc, /*const ConstPixelBufferAccess&*/ reference, /*const ConstPixelBufferAccess&*/ result, /*const UVec4&*/ threshold, /*CompareLogMode*/ logMode) {
-    var                    width                = reference.getWidth();
-    var                    height                = reference.getHeight();
-    var                    depth                = reference.getDepth();
+    var width = reference.getWidth();
+    var height = reference.getHeight();
+    var depth = reference.getDepth();
     var errorMask = new tcuSurface.Surface(width, height);
 
-    var                maxDiff                = [0, 0, 0, 0];
-    var                pixelBias            = [0, 0, 0, 0];
-    var                pixelScale            = [1, 1, 1, 1];
+    var maxDiff = [0, 0, 0, 0];
+    var pixelBias = [0, 0, 0, 0];
+    var pixelScale = [1, 1, 1, 1];
 
     assertMsgOptions(result.getWidth() == width && result.getHeight() == height && result.getDepth() == depth,
         'Reference and result images have different dimensions', false, true);
 
-    for (var z = 0; z < depth; z++)    {
+    for (var z = 0; z < depth; z++) {
         for (var y = 0; y < height; y++) {
-            for (var x = 0; x < width; x++)    {
-            var    refPix        = reference.getPixelInt(x, y, z);
-                var    cmpPix        = result.getPixelInt(x, y, z);
+            for (var x = 0; x < width; x++) {
+            var refPix = reference.getPixelInt(x, y, z);
+                var cmpPix = result.getPixelInt(x, y, z);
 
-                var    diff        = deMath.absDiff(refPix, cmpPix);
-                var    isOk        = deMath.boolAll(deMath.lessThanEqual(diff, threshold));
+                var diff = deMath.absDiff(refPix, cmpPix);
+                var isOk = deMath.boolAll(deMath.lessThanEqual(diff, threshold));
 
                 maxDiff = deMath.max(maxDiff, diff);
                 var color = [0, 255, 0, 255];
@@ -120,7 +120,7 @@ var intThresholdCompare = function(/*const char* */imageSetName, /*const char* *
     var compareOk = deMath.boolAll(deMath.lessThanEqual(maxDiff, threshold));
 
     if (!compareOk) {
-        debug("Image comparison failed: max difference = " + maxDiff + ", threshold = " + threshold);
+        debug('Image comparison failed: max difference = ' + maxDiff + ', threshold = ' + threshold);
         displayImages(result, reference, errorMask.getAccess());
     }
 

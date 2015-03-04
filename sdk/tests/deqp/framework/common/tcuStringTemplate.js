@@ -22,7 +22,7 @@ define(function() {
 'use strict';
 
 var escapeRegExp = function(string) {
-    return string.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1");
+    return string.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, '\\$1');
 };
 
 var specialize = function(str, params) {
@@ -38,4 +38,4 @@ return {
     specialize: specialize
 };
 
-})
+});

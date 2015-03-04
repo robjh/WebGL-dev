@@ -55,29 +55,29 @@ Surface.prototype.setSize = function(width, height) {
     }
 };
 
-Surface.prototype.getWidth    = function() { return this.m_width;  }
-Surface.prototype.getHeight    = function() { return this.m_height; }
+Surface.prototype.getWidth = function() { return this.m_width; };
+Surface.prototype.getHeight = function() { return this.m_height; };
 
 /**
  * @param color Vec4 color
  */
-Surface.prototype.setPixel    = function(x, y, color) {
+Surface.prototype.setPixel = function(x, y, color) {
     DE_ASSERT(deMath.deInBounds32(x, 0, this.m_width));
     DE_ASSERT(deMath.deInBounds32(y, 0, this.m_height));
 
-    var offset = 4*(x + y * this.m_width);
+    var offset = 4 * (x + y * this.m_width);
     for (var i = 0; i < 4; i++)
         this.m_pixels[offset + i] = color[i];
 };
 
-Surface.prototype.getPixel    = function(x, y) {
+Surface.prototype.getPixel = function(x, y) {
     DE_ASSERT(deMath.deInBounds32(x, 0, this.m_width));
     DE_ASSERT(deMath.deInBounds32(y, 0, this.m_height));
 
     var color = [];
     color.length = 4;
 
-    var offset = 4*(x + y * this.m_width);
+    var offset = 4 * (x + y * this.m_width);
     for (var i = 0; i < 4; i++)
         color[i] = this.m_pixels[offset + i];
 
@@ -87,7 +87,7 @@ Surface.prototype.getPixel    = function(x, y) {
 /**
  * @return {PixelBufferAccess} Pixel Buffer Access object
  */
-Surface.prototype.getAccess    = function() {
+Surface.prototype.getAccess = function() {
     return new tcuTexture.PixelBufferAccess({
                     format: new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.UNORM_INT8),
                     width: this.m_width,
@@ -97,7 +97,7 @@ Surface.prototype.getAccess    = function() {
 
 };
 
-Surface.prototype.getSubAccess    = function(x, y, width, height) {
+Surface.prototype.getSubAccess = function(x, y, width, height) {
     /* TODO: Implement. the deqp getSubAccess() looks broken. It will probably fail if
      * x != 0 or width != m_width
      */
