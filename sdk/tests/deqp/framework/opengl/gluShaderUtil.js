@@ -481,7 +481,7 @@ var isDataTypeVector = function(dataType) {
  */
 var isDataTypeScalarOrVector = function(dataType) {
     switch (dataType) {
-    	case DataType.FLOAT:
+        case DataType.FLOAT:
         case DataType.FLOAT_VEC2:
         case DataType.FLOAT_VEC3:
         case DataType.FLOAT_VEC4:

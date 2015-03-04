@@ -98,7 +98,6 @@ var supportsFragmentHighp = function(version) {
     return version !== '100';
 };
 
-
 /**
  * This functions builds a matching vertex shader for a 'both' case, when
  * the fragment shader is being tested.
@@ -294,7 +293,6 @@ var genFragmentShader = function(valueBlock) {
 
     shader += '#version ' + state.currentTest.spec.targetVersion + '\n';
 
-
     shader += 'precision ' + prec + ' float;\n';
     shader += 'precision ' + prec + ' int;\n';
     shader += '\n';
@@ -457,7 +455,6 @@ var injectExtensionRequirements = function(baseCode, shaderType, requirements) {
 
     return resultBuf;
 };
-
 
 /** Specialize a shader for the vertex shader test case.
  * @param {string} src
@@ -838,7 +835,6 @@ var init = function() {
         }
     );
 
-
 };
 
 /**
@@ -901,7 +897,6 @@ var execute = function()
 
         // Check that compile/link results are what we expect.
 
-
         for (var i = 0; i < program.shaders.length; i++) {
             if (!program.shaders[i].info.compileOk)
                 allCompilesOk = false;
@@ -909,7 +904,6 @@ var execute = function()
 
         if (!program.getProgramInfo().linkOk)
             allLinksOk = false;
-
 
     }
     else
@@ -1208,5 +1202,4 @@ return {
 };
 
 });
-
 

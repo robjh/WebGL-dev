@@ -18,7 +18,6 @@
  *
  */
 
-
 define(function() {
 'use strict';
 
@@ -173,7 +172,6 @@ var drawIndexed = function(gl, primitives, offset) {
     gl.drawElements(mode, primitives.indices.length, gl.UNSIGNED_SHORT, offset);
 };
 
-
 /**
  * Enums for primitive types
  * @enum
@@ -263,7 +261,6 @@ var indexBuffer = function(gl, primitives) {
  * @return {WebGLBuffer} buffer of vertices
  */
 var vertexBuffer = function(gl, vertexArray) {
-    console.log(vertexArray);
     /** @type {WebGLBuffer} */ var buffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
     assertMsgOptions(gl.getError() === gl.NO_ERROR, 'bindBuffer', false, true);
@@ -324,7 +321,6 @@ Surface.prototype.getPixel = function(x, y) {
         ];
     return new Pixel(rgba);
 };
-
 
 return {
     namedBindingsToProgramLocations: namedBindingsToProgramLocations,

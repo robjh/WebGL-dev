@@ -60,7 +60,6 @@ setParentClass(Texture2DFormatCase, deqpTests.DeqpTest);
 Texture2DFormatCase.prototype.init = function() {
     /*tcu::TextureFormat*/ var fmt = this.m_dataType ? gluTextureUtil.mapGLTransferFormat(this.m_format, this.m_dataType) : gluTextureUtil.mapGLInternalFormat(this.m_format);
     /*tcu::TextureFormatInfo*/ var spec = tcuTextureUtil.getTextureFormatInfo(fmt);
-    console.log(spec);
     /* TODO : Port
 
     std::ostringstream fmtName;
@@ -111,11 +110,8 @@ Texture2DFormatCase.prototype.iterate = function() {
     renderParams.flags.log_uniforms = true;
 
     renderParams.samplerType = glsTextureTestUtil.getSamplerType(this.m_texture.getRefTexture().getFormat());
-    console.log('Sampler');
-    console.log(renderParams.samplerType);
     renderParams.sampler = new tcuTexture.Sampler(tcuTexture.WrapMode.CLAMP_TO_EDGE, tcuTexture.WrapMode.CLAMP_TO_EDGE, tcuTexture.WrapMode.CLAMP_TO_EDGE,
      tcuTexture.FilterMode.NEAREST, tcuTexture.FilterMode.NEAREST);
-    console.log(renderParams.sampler);
     renderParams.colorScale = spec.lookupScale;
     renderParams.colorBias = spec.lookupBias;
 
@@ -129,7 +125,6 @@ Texture2DFormatCase.prototype.iterate = function() {
     // << TestLog::EndMessage;
 
     // Setup base viewport.
-    console.log(viewport);
     gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height);
 
     // Upload texture data to GL.
@@ -157,12 +152,11 @@ Texture2DFormatCase.prototype.iterate = function() {
     glsTextureTestUtil.sampleTexture2D(new glsTextureTestUtil.SurfaceAccess(referenceFrame, undefined /*m_renderCtx.getRenderTarget().getPixelFormat()*/),
         this.m_texture.getRefTexture(), texCoord, renderParams);
 
-
     // Compare and log.
     var isOk = glsTextureTestUtil.compareImages(referenceFrame, renderedFrame, threshold);
 
-	assertMsgOptions(isOk, testDescription(), true, true);
-	return deqpTests.runner.IterateResult.STOP;
+    assertMsgOptions(isOk, testDescription(), true, true);
+    return deqpTests.runner.IterateResult.STOP;
 };
 
 /**
@@ -184,7 +178,6 @@ setParentClass(TextureCubeFormatCase, deqpTests.DeqpTest);
 TextureCubeFormatCase.prototype.init = function() {
     /*tcu::TextureFormat*/ var fmt = this.m_dataType ? gluTextureUtil.mapGLTransferFormat(this.m_format, this.m_dataType) : gluTextureUtil.mapGLInternalFormat(this.m_format);
     /*tcu::TextureFormatInfo*/ var spec = tcuTextureUtil.getTextureFormatInfo(fmt);
-    console.log(spec);
     /* TODO : Port
 
     std::ostringstream fmtName;
@@ -251,11 +244,8 @@ TextureCubeFormatCase.prototype.testFace = function(face) {
     renderParams.flags.log_uniforms = true;
 
     renderParams.samplerType = glsTextureTestUtil.getSamplerType(this.m_texture.getRefTexture().getFormat());
-    console.log('Sampler');
-    console.log(renderParams.samplerType);
     renderParams.sampler = new tcuTexture.Sampler(tcuTexture.WrapMode.CLAMP_TO_EDGE, tcuTexture.WrapMode.CLAMP_TO_EDGE, tcuTexture.WrapMode.CLAMP_TO_EDGE,
      tcuTexture.FilterMode.NEAREST, tcuTexture.FilterMode.NEAREST);
-    console.log(renderParams.sampler);
     renderParams.colorScale = spec.lookupScale;
     renderParams.colorBias = spec.lookupBias;
 
@@ -275,7 +265,6 @@ TextureCubeFormatCase.prototype.testFace = function(face) {
     // << TestLog::EndMessage;
 
     // Setup base viewport.
-    console.log(viewport);
     gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height);
 
     // Bind to unit 0.
@@ -296,7 +285,6 @@ TextureCubeFormatCase.prototype.testFace = function(face) {
 
     GLU_EXPECT_NO_ERROR(gl.getError(), 'glReadPixels()');
 
-
     // // Compute reference.
     glsTextureTestUtil.sampleTextureCube(new glsTextureTestUtil.SurfaceAccess(referenceFrame, undefined /*m_renderCtx.getRenderTarget().getPixelFormat()*/),
         this.m_texture.getRefTexture(), texCoord, renderParams);
@@ -316,10 +304,10 @@ TextureCubeFormatCase.prototype.iterate = function() {
 
     this.m_curFace += 1;
 
-	if (this.m_curFace == tcuTexture.CubeFace.TOTAL_FACES)
-		return deqpTests.runner.IterateResult.STOP;
-	else
-		return deqpTests.runner.IterateResult.CONTINUE;
+    if (this.m_curFace == tcuTexture.CubeFace.TOTAL_FACES)
+        return deqpTests.runner.IterateResult.STOP;
+    else
+        return deqpTests.runner.IterateResult.CONTINUE;
 };
 
 /**
@@ -341,7 +329,6 @@ setParentClass(Texture2DArrayFormatCase, deqpTests.DeqpTest);
 Texture2DArrayFormatCase.prototype.init = function() {
     /*tcu::TextureFormat*/ var fmt = this.m_dataType ? gluTextureUtil.mapGLTransferFormat(this.m_format, this.m_dataType) : gluTextureUtil.mapGLInternalFormat(this.m_format);
     /*tcu::TextureFormatInfo*/ var spec = tcuTextureUtil.getTextureFormatInfo(fmt);
-    console.log(spec);
     /* TODO : Port
 
     std::ostringstream fmtName;
@@ -390,14 +377,10 @@ Texture2DArrayFormatCase.prototype.testLayer = function(layerNdx) {
     renderParams.flags.log_uniforms = true;
 
     renderParams.samplerType = glsTextureTestUtil.getSamplerType(this.m_texture.getRefTexture().getFormat());
-    console.log('Sampler');
-    console.log(renderParams.samplerType);
     renderParams.sampler = new tcuTexture.Sampler(tcuTexture.WrapMode.CLAMP_TO_EDGE, tcuTexture.WrapMode.CLAMP_TO_EDGE, tcuTexture.WrapMode.CLAMP_TO_EDGE,
      tcuTexture.FilterMode.NEAREST, tcuTexture.FilterMode.NEAREST);
-    console.log(renderParams.sampler);
     renderParams.colorScale = spec.lookupScale;
     renderParams.colorBias = spec.lookupBias;
-
 
     var texCoord = glsTextureTestUtil.computeQuadTexCoord2DArray(layerNdx, [0, 0], [1, 1]);
 
@@ -409,7 +392,6 @@ Texture2DArrayFormatCase.prototype.testLayer = function(layerNdx) {
     // << TestLog::EndMessage;
 
     // Setup base viewport.
-    console.log(viewport);
     gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height);
 
     this.m_texture.upload();
@@ -432,11 +414,9 @@ Texture2DArrayFormatCase.prototype.testLayer = function(layerNdx) {
 
     GLU_EXPECT_NO_ERROR(gl.getError(), 'glReadPixels()');
 
-
     // // Compute reference.
     glsTextureTestUtil.sampleTexture2DArray(new glsTextureTestUtil.SurfaceAccess(referenceFrame, undefined /*m_renderCtx.getRenderTarget().getPixelFormat()*/),
         this.m_texture.getRefTexture(), texCoord, renderParams);
-
 
     // Compare and log.
     var isOk = glsTextureTestUtil.compareImages(referenceFrame, renderedFrame, threshold);
@@ -453,10 +433,10 @@ Texture2DArrayFormatCase.prototype.iterate = function() {
 
     this.m_curLayer += 1;
 
-	if (this.m_curLayer == this.m_numLayers)
-		return deqpTests.runner.IterateResult.STOP;
-	else
-		return deqpTests.runner.IterateResult.CONTINUE;
+    if (this.m_curLayer == this.m_numLayers)
+        return deqpTests.runner.IterateResult.STOP;
+    else
+        return deqpTests.runner.IterateResult.CONTINUE;
 };
 
 /**
@@ -478,7 +458,6 @@ setParentClass(Texture3DFormatCase, deqpTests.DeqpTest);
 Texture3DFormatCase.prototype.init = function() {
     /*tcu::TextureFormat*/ var fmt = this.m_dataType ? gluTextureUtil.mapGLTransferFormat(this.m_format, this.m_dataType) : gluTextureUtil.mapGLInternalFormat(this.m_format);
     /*tcu::TextureFormatInfo*/ var spec = tcuTextureUtil.getTextureFormatInfo(fmt);
-    console.log(spec);
     /* TODO : Port
 
     std::ostringstream fmtName;
@@ -528,14 +507,10 @@ Texture3DFormatCase.prototype.testSlice = function(sliceNdx) {
     renderParams.flags.log_uniforms = true;
 
     renderParams.samplerType = glsTextureTestUtil.getSamplerType(this.m_texture.getRefTexture().getFormat());
-    console.log('Sampler');
-    console.log(renderParams.samplerType);
     renderParams.sampler = new tcuTexture.Sampler(tcuTexture.WrapMode.CLAMP_TO_EDGE, tcuTexture.WrapMode.CLAMP_TO_EDGE, tcuTexture.WrapMode.CLAMP_TO_EDGE,
      tcuTexture.FilterMode.NEAREST, tcuTexture.FilterMode.NEAREST);
-    console.log(renderParams.sampler);
     renderParams.colorScale = spec.lookupScale;
     renderParams.colorBias = spec.lookupBias;
-
 
     var texCoord = glsTextureTestUtil.computeQuadTexCoord3D([0, 0, r], [1, 1, r], [0, 1, 2]);
 
@@ -547,7 +522,6 @@ Texture3DFormatCase.prototype.testSlice = function(sliceNdx) {
     // << TestLog::EndMessage;
 
     // Setup base viewport.
-    console.log(viewport);
     gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height);
 
     this.m_texture.upload();
@@ -570,11 +544,9 @@ Texture3DFormatCase.prototype.testSlice = function(sliceNdx) {
 
     GLU_EXPECT_NO_ERROR(gl.getError(), 'glReadPixels()');
 
-
     // // Compute reference.
     glsTextureTestUtil.sampleTexture3D(new glsTextureTestUtil.SurfaceAccess(referenceFrame, undefined /*m_renderCtx.getRenderTarget().getPixelFormat()*/),
         this.m_texture.getRefTexture(), texCoord, renderParams);
-
 
     // Compare and log.
     var isOk = glsTextureTestUtil.compareImages(referenceFrame, renderedFrame, threshold);
@@ -591,10 +563,10 @@ Texture3DFormatCase.prototype.iterate = function() {
 
     this.m_curSlice += 1;
 
-	if (this.m_curSlice >= this.m_depth)
-		return deqpTests.runner.IterateResult.STOP;
-	else
-		return deqpTests.runner.IterateResult.CONTINUE;
+    if (this.m_curSlice >= this.m_depth)
+        return deqpTests.runner.IterateResult.STOP;
+    else
+        return deqpTests.runner.IterateResult.CONTINUE;
 };
 
 /**
@@ -648,11 +620,8 @@ Compressed2DFormatCase.prototype.iterate = function() {
     renderParams.flags.log_uniforms = true;
 
     renderParams.samplerType = glsTextureTestUtil.getSamplerType(this.m_texture.getRefTexture().getFormat());
-    console.log('Sampler');
-    console.log(renderParams.samplerType);
     renderParams.sampler = new tcuTexture.Sampler(tcuTexture.WrapMode.CLAMP_TO_EDGE, tcuTexture.WrapMode.CLAMP_TO_EDGE, tcuTexture.WrapMode.CLAMP_TO_EDGE,
      tcuTexture.FilterMode.NEAREST, tcuTexture.FilterMode.NEAREST);
-    console.log(renderParams.sampler);
     renderParams.colorScale = spec.lookupScale;
     renderParams.colorBias = spec.lookupBias;
 
@@ -666,7 +635,6 @@ Compressed2DFormatCase.prototype.iterate = function() {
     // << TestLog::EndMessage;
 
     // Setup base viewport.
-    console.log(viewport);
     gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height);
 
     // Bind to unit 0.
@@ -688,7 +656,6 @@ Compressed2DFormatCase.prototype.iterate = function() {
 
     GLU_EXPECT_NO_ERROR(gl.getError(), 'glReadPixels()');
 
-
     // // Compute reference.
     glsTextureTestUtil.sampleTexture2D(new glsTextureTestUtil.SurfaceAccess(referenceFrame, undefined /*m_renderCtx.getRenderTarget().getPixelFormat()*/),
         this.m_texture.getRefTexture(), texCoord, renderParams);
@@ -696,8 +663,8 @@ Compressed2DFormatCase.prototype.iterate = function() {
     // Compare and log.
     var isOk = glsTextureTestUtil.compareImages(referenceFrame, renderedFrame, threshold);
 
-	assertMsgOptions(isOk, testDescription(), true, true);
-	return deqpTests.runner.IterateResult.STOP;
+    assertMsgOptions(isOk, testDescription(), true, true);
+    return deqpTests.runner.IterateResult.STOP;
 };
 
 /**
@@ -749,11 +716,8 @@ CompressedCubeFormatCase.prototype.testFace = function(face) {
     renderParams.flags.log_uniforms = true;
 
     renderParams.samplerType = glsTextureTestUtil.getSamplerType(this.m_texture.getRefTexture().getFormat());
-    console.log('Sampler');
-    console.log(renderParams.samplerType);
     renderParams.sampler = new tcuTexture.Sampler(tcuTexture.WrapMode.CLAMP_TO_EDGE, tcuTexture.WrapMode.CLAMP_TO_EDGE, tcuTexture.WrapMode.CLAMP_TO_EDGE,
      tcuTexture.FilterMode.NEAREST, tcuTexture.FilterMode.NEAREST);
-    console.log(renderParams.sampler);
 
     // Log render info on first face.
     if (face === tcuTexture.CubeFace.CUBEFACE_NEGATIVE_X) {
@@ -771,7 +735,6 @@ CompressedCubeFormatCase.prototype.testFace = function(face) {
     // << TestLog::EndMessage;
 
     // Setup base viewport.
-    console.log(viewport);
     gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height);
 
     // Bind to unit 0.
@@ -811,17 +774,17 @@ CompressedCubeFormatCase.prototype.iterate = function() {
 
     this.m_curFace += 1;
 
-	if (this.m_curFace == tcuTexture.CubeFace.TOTAL_FACES)
-		return deqpTests.runner.IterateResult.STOP;
-	else
-		return deqpTests.runner.IterateResult.CONTINUE;
+    if (this.m_curFace == tcuTexture.CubeFace.TOTAL_FACES)
+        return deqpTests.runner.IterateResult.STOP;
+    else
+        return deqpTests.runner.IterateResult.CONTINUE;
 };
 
 /*TODO: remove */
 if (!gl.R11F_G11F_B10F)
-	gl.R11F_G11F_B10F = 0x8C3A;
+    gl.R11F_G11F_B10F = 0x8C3A;
 if (!gl.RGB16F)
-	gl.RGB16F = 0x881A;
+    gl.RGB16F = 0x881A;
 
 var genTestCases = function() {
     var state = deqpTests.runner.getState();
@@ -1154,12 +1117,12 @@ var genTestCases = function() {
  * Create and execute the test cases
  */
 var run = function() {
-	try {
+    try {
         genTestCases();
         deqpTests.runner.runCallback(deqpTests.runTestCases);
     } catch (err) {
-    	bufferedLogToConsole(err);
-    	deqpTests.runner.terminate();
+        bufferedLogToConsole(err);
+        deqpTests.runner.terminate();
     }
 
 };

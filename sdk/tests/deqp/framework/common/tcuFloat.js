@@ -202,7 +202,6 @@ var shiftLeft = function(value, steps)
 {
     /** @type {number} */ var totalBitsRequired = Math.floor(Math.log2(value) + 1) + steps;
 
-
     if (totalBitsRequired < 32)
         return value << steps;
 

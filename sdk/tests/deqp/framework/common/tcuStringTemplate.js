@@ -22,21 +22,20 @@ define(function() {
 'use strict';
 
 var escapeRegExp = function(string) {
-    return string.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1");
+    return string.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, '\\$1');
 };
 
 var specialize = function(str, params) {
-	var dst = str;
-	for (var [key, value] of params) {
-		var re = new RegExp(escapeRegExp('\$\{' + key + '\}'), 'g');
-		dst = dst.replace(re, value);
-	}
-	return dst;
+    var dst = str;
+    for (var [key, value] of params) {
+        var re = new RegExp(escapeRegExp('\$\{' + key + '\}'), 'g');
+        dst = dst.replace(re, value);
+    }
+    return dst;
 };
-
 
 return {
-	specialize: specialize
+    specialize: specialize
 };
 
-})
+});

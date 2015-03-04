@@ -18,7 +18,6 @@
  *
  */
 
-
 define([
     'framework/common/tcuTestCase',
     'framework/opengl/gluShaderProgram',
@@ -29,12 +28,12 @@ define([
     'framework/delibs/debase/deString'
 ],
 function(
-    deqpTests, 
-    deqpProgram, 
-    deqpUtils, 
-    deqpDraw, 
-    deMath, 
-    deRandom, 
+    deqpTests,
+    deqpProgram,
+    deqpUtils,
+    deqpDraw,
+    deMath,
+    deRandom,
     deString
 ) {
     'use strict';
@@ -117,17 +116,14 @@ var UniformFlags = {
     PRECISION_MEDIUM: (1 << 1),
     PRECISION_HIGH: (1 << 2),
 
-
     LAYOUT_SHARED: (1 << 3),
     LAYOUT_PACKED: (1 << 4),
     LAYOUT_STD140: (1 << 5),
     LAYOUT_ROW_MAJOR: (1 << 6),
     LAYOUT_COLUMN_MAJOR: (1 << 7),    //!< \note Lack of both flags means column-major matrix.
 
-
     DECLARE_VERTEX: (1 << 8),
     DECLARE_FRAGMENT: (1 << 9),
-
 
     UNUSED_VERTEX: (1 << 10),    //!< Uniform or struct member is not read in vertex shader.
     UNUSED_FRAGMENT: (1 << 11)    //!< Uniform or struct member is not read in fragment shader.
@@ -1920,7 +1916,6 @@ var getGLUniformLayout = function(gl, layout, program) {
         }
     }
 };
-
 
 /**
  * copyUniformData_A - Copies a source uniform buffer segment to a destination uniform buffer segment.

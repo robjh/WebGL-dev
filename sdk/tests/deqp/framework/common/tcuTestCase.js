@@ -214,7 +214,7 @@ var getFilter = function() {
             return decodeURIComponent(value[1]);
     }
     return null;
-}
+};
 
 /**
  * Run through the test cases giving time to system operation.
@@ -251,7 +251,7 @@ var runTestCases = function() {
                 DeqpTest.lastResult = state.currentTest.iterate();
             else if (state.currentTest.spec !== undefined && state.currentTest.spec.iterate !== undefined)
                 DeqpTest.lastResult = state.currentTest.spec.iterate();
-        } 
+        }
         catch (err)
         {
             //If the exception was not thrown by a test check, log it, but don't throw it again
