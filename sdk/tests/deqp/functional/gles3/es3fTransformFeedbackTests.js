@@ -248,7 +248,7 @@ define(['framework/opengl/gluShaderUtil',
             1 /* a_position */ + (spec.isPointSizeUsed() ? 1 : 0)
         );
 
-        for (var i = 0; iter < spec.getVaryings().length; ++i) {
+        for (var i = 0; i < spec.getVaryings().length; ++i) {
             for (var v_iter = gluVTU.VectorTypeIterator(spec.getVaryings()[i]); !v_iter.end(); v_iter.next()) {
                 totalVertexAttribs += 1;
             }
