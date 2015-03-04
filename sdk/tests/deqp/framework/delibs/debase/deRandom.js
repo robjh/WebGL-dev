@@ -28,10 +28,10 @@ define (function() {
 * Array of pseudo random numbers based on seed
 */
 var deRandom =  function (){
-	var x;
-	var y;
-	var z;
-	var w;
+    var x;
+    var y;
+    var z;
+    var w;
 };
 
 /**
@@ -41,10 +41,10 @@ var deRandom =  function (){
  */
 var deRandom_init = function(rnd, seed)
 {
-	rnd.x = (-seed ^ 123456789);
-	rnd.y = (362436069 * seed);
-	rnd.z = (521288629 ^ (seed >> 7));
-	rnd.w = (88675123 ^ (seed << 3));
+    rnd.x = (-seed ^ 123456789);
+    rnd.y = (362436069 * seed);
+    rnd.z = (521288629 ^ (seed >> 7));
+    rnd.w = (88675123 ^ (seed << 3));
 
 };
 
@@ -56,22 +56,22 @@ var deRandom_init = function(rnd, seed)
  */
 var deRandom_getInt = function(rnd, opts)
 {
-	if (opts != undefined && opts[0] != undefined && opts[1] != undefined ){
-		if (opts[0] == 0x80000000 && opts[1] == 0x7fffffff) {
-			return deRandom_getInt(rnd);
-		} else {
-			return opts[0] + (deRandom_getInt(rnd) % (opts[1]-opts[0]+1));
-		}
-	}
-	var w = rnd.w;
-	var t;
+    if (opts != undefined && opts[0] != undefined && opts[1] != undefined ){
+        if (opts[0] == 0x80000000 && opts[1] == 0x7fffffff) {
+            return deRandom_getInt(rnd);
+        } else {
+            return opts[0] + (deRandom_getInt(rnd) % (opts[1]-opts[0]+1));
+        }
+    }
+    var w = rnd.w;
+    var t;
 
-	t = rnd.x ^ (rnd.x << 11);
-	rnd.x = rnd.y;
-	rnd.y = rnd.z;
-	rnd.z = w;
-	rnd.w = w = (w ^ (w >> 19)) ^ (t ^ (t >> 8));
-	return w;
+    t = rnd.x ^ (rnd.x << 11);
+    rnd.x = rnd.y;
+    rnd.y = rnd.z;
+    rnd.z = w;
+    rnd.w = w = (w ^ (w >> 19)) ^ (t ^ (t >> 8));
+    return w;
 };
 
 /**
@@ -82,13 +82,13 @@ var deRandom_getInt = function(rnd, opts)
  */
 var deRandom_getFloat = function(rnd, opts)
 {
-	if (opts != undefined && opts[0] != undefined && opts[1] != undefined ){
-		if (opts[0]<= opts[1]) {
-			return opts[0] + (opts[1]-opts[0])*deRandom_getFloat(rnd);
-		}
-	} else {
-		return (deRandom_getInt(rnd) & 0xFFFFFFF) / (0xFFFFFFF+1);
-	}
+    if (opts != undefined && opts[0] != undefined && opts[1] != undefined ){
+        if (opts[0]<= opts[1]) {
+            return opts[0] + (opts[1]-opts[0])*deRandom_getFloat(rnd);
+        }
+    } else {
+        return (deRandom_getInt(rnd) & 0xFFFFFFF) / (0xFFFFFFF+1);
+    }
 };
 
 /**
@@ -98,9 +98,9 @@ var deRandom_getFloat = function(rnd, opts)
  */
 var deRandom_getBool = function(rnd)
 {
-	var val;
-	val = deRandom_getInt(rnd);
-	return ((val & 0xFFFFFF) < 0x800000);
+    var val;
+    val = deRandom_getInt(rnd);
+    return ((val & 0xFFFFFF) < 0x800000);
 };
 
 /**
@@ -123,7 +123,7 @@ var getBaseSeed = function()
 var choose = function(rnd, elements, resultOut, num)
 {
     //TODO: This is a temporary implementation for tests.
-	return [elements[0]];
+    return [elements[0]];
 }
 
 /**
@@ -136,7 +136,7 @@ var choose = function(rnd, elements, resultOut, num)
  */
 var chooseWeighted = function(rnd, first, last, weight)
 {
-	throw new Error("Function not yet implemented");
+    throw new Error("Function not yet implemented");
 }
 
 /**
@@ -148,7 +148,7 @@ var chooseWeighted = function(rnd, first, last, weight)
  */
 var shuffle = function(rnd, first, last)
 {
-	throw new Error("Function not yet implemented");
+    throw new Error("Function not yet implemented");
 }
 
 /**
@@ -158,13 +158,13 @@ var shuffle = function(rnd, first, last)
  * @param {number} seed Number to use as a seed
  */
 var Random = function(seed) {
-	/**
-	 * Instance of array of pseudo random numbers based on seeds
-	*/
-	this.m_rnd = new deRandom;
+    /**
+     * Instance of array of pseudo random numbers based on seeds
+    */
+    this.m_rnd = new deRandom;
 
-	//initialise the random numbers based on seed
-	deRandom_init(this.m_rnd, seed);
+    //initialise the random numbers based on seed
+    deRandom_init(this.m_rnd, seed);
 };
 
 /**
@@ -172,7 +172,7 @@ var Random = function(seed) {
  * @param {deRandom} rnd Initialised array of random numbers
  * @return {boolean} Random boolean
  */
-Random.prototype.getBool = function()  { return deRandom_getBool(this.m_rnd) == true;	}
+Random.prototype.getBool = function()  { return deRandom_getBool(this.m_rnd) == true;    }
 /**
  * Function to get random float
  * @param {deRandom} rnd Initialised array of random numbers

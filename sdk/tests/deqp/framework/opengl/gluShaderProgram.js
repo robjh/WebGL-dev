@@ -243,135 +243,135 @@ ShaderProgram.prototype.isOk = function() {
 };
 
 var containerTypes = {
-	ATTRIB_LOCATION_BINDING: 0,
-	TRANSFORM_FEEDBACK_MODE: 1,
-	TRANSFORM_FEEDBACK_VARYING: 2,
-	TRANSFORM_FEEDBACK_VARYINGS: 3,
-	SHADER_SOURCE: 4,
-	PROGRAM_SEPARABLE: 5,
-	PROGRAM_SOURCES: 6,
+    ATTRIB_LOCATION_BINDING: 0,
+    TRANSFORM_FEEDBACK_MODE: 1,
+    TRANSFORM_FEEDBACK_VARYING: 2,
+    TRANSFORM_FEEDBACK_VARYINGS: 3,
+    SHADER_SOURCE: 4,
+    PROGRAM_SEPARABLE: 5,
+    PROGRAM_SOURCES: 6,
 
-	CONTAINER_TYPE_LAST: 7,
-	ATTACHABLE_BEGIN: 0,     // ATTRIB_LOCATION_BINDING
-	ATTACHABLE_END: 5 + 1 // PROGRAM_SEPARABLE + 1
+    CONTAINER_TYPE_LAST: 7,
+    ATTACHABLE_BEGIN: 0,     // ATTRIB_LOCATION_BINDING
+    ATTACHABLE_END: 5 + 1 // PROGRAM_SEPARABLE + 1
 };
 
 var AttribLocationBinding = function(name, location) {
-	this.name = name;
-	this.location = location;
+    this.name = name;
+    this.location = location;
 
-	this.getContainerType = function() {
-		return containerTypes.ATTRIB_LOCATION_BINDING;
-	};
+    this.getContainerType = function() {
+        return containerTypes.ATTRIB_LOCATION_BINDING;
+    };
 };
 
 var TransformFeedbackMode = function(mode) {
-	this.mode = mode;
+    this.mode = mode;
 
-	this.getContainerType = function() {
-		return containerTypes.TRANSFORM_FEEDBACK_MODE;
-	};
+    this.getContainerType = function() {
+        return containerTypes.TRANSFORM_FEEDBACK_MODE;
+    };
 };
 
 var TransformFeedbackVarying = function(name) {
-	this.name = name;
+    this.name = name;
 
-	this.getContainerType = function() {
-		return containerTypes.TRANSFORM_FEEDBACK_VARYING;
-	};
+    this.getContainerType = function() {
+        return containerTypes.TRANSFORM_FEEDBACK_VARYING;
+    };
 };
 
 var TransformFeedbackVaryings = function(array) {
-	this.array = array;
+    this.array = array;
 
-	this.getContainerType = function() {
-		return containerTypes.TRANSFORM_FEEDBACK_VARYINGS;
-	};
+    this.getContainerType = function() {
+        return containerTypes.TRANSFORM_FEEDBACK_VARYINGS;
+    };
 };
 
 var ProgramSeparable = function(separable) {
-	this.separable = separable;
+    this.separable = separable;
 
-	this.getContainerType = function() {
-		return containerTypes.PROGRAM_SEPARABLE;
-	};
+    this.getContainerType = function() {
+        return containerTypes.PROGRAM_SEPARABLE;
+    };
 };
 
 var VertexSource = function(str) {
-	this.shaderType = shaderType.VERTEX;
-	this.source = str;
+    this.shaderType = shaderType.VERTEX;
+    this.source = str;
 
-	this.getContainerType = function() {
-		return containerTypes.SHADER_SOURCE;
-	};
+    this.getContainerType = function() {
+        return containerTypes.SHADER_SOURCE;
+    };
 };
 
 var FragmentSource = function(str) {
-	this.shaderType = shaderType.FRAGMENT;
-	this.source = str;
+    this.shaderType = shaderType.FRAGMENT;
+    this.source = str;
 
-	this.getContainerType = function() {
-		return containerTypes.SHADER_SOURCE;
-	};
+    this.getContainerType = function() {
+        return containerTypes.SHADER_SOURCE;
+    };
 };
 
 var ProgramSources = function() {
-	/** @type {Array.<ShaderInfo>} */ this.sources = [];
-	this.attribLocalBindings = [];
-	this.transformFeedbackVaryings = [];
-	this.transformFeedbackBufferMode = 0;
-	this.separable = false;
+    /** @type {Array.<ShaderInfo>} */ this.sources = [];
+    this.attribLocalBindings = [];
+    this.transformFeedbackVaryings = [];
+    this.transformFeedbackBufferMode = 0;
+    this.separable = false;
 
-	this.getContainerType = function() {
-		return containerTypes.PROGRAM_SOURCES;
-	};
+    this.getContainerType = function() {
+        return containerTypes.PROGRAM_SOURCES;
+    };
 
-	this.add = function(item) {
+    this.add = function(item) {
 
-		var type = 'undefined';
-		if (typeof(item.getContainerType) == 'function') {
-			type = item.getContainerType();
-			if (
-				typeof(type) != 'number' ||
-				type < containerTypes.ATTACHABLE_BEGIN ||
-				type >= containerTypes.ATTACHABLE_END
-			) {
-				type = 'undefined';
-			}
-		}
+        var type = 'undefined';
+        if (typeof(item.getContainerType) == 'function') {
+            type = item.getContainerType();
+            if (
+                typeof(type) != 'number' ||
+                type < containerTypes.ATTACHABLE_BEGIN ||
+                type >= containerTypes.ATTACHABLE_END
+            ) {
+                type = 'undefined';
+            }
+        }
 
-		switch (type) {
-			case containerTypes.ATTRIB_LOCATION_BINDING:
-				this.attribLocationBindings.push(item);
-				break;
+        switch (type) {
+            case containerTypes.ATTRIB_LOCATION_BINDING:
+                this.attribLocationBindings.push(item);
+                break;
 
-			case containerTypes.TRANSFORM_FEEDBACK_MODE:
-				this.transformFeedbackBufferMode = mode.mode;
-				break;
+            case containerTypes.TRANSFORM_FEEDBACK_MODE:
+                this.transformFeedbackBufferMode = mode.mode;
+                break;
 
-			case containerTypes.TRANSFORM_FEEDBACK_VARYING:
-				this.transformFeedbackVaryings.push(item);
-				break;
+            case containerTypes.TRANSFORM_FEEDBACK_VARYING:
+                this.transformFeedbackVaryings.push(item);
+                break;
 
-			case containerTypes.TRANSFORM_FEEDBACK_VARYINGS:
-				this.transformFeedbackVaryings.concat(item);
-				break;
+            case containerTypes.TRANSFORM_FEEDBACK_VARYINGS:
+                this.transformFeedbackVaryings.concat(item);
+                break;
 
-			case containerTypes.SHADER_SOURCE:
-				this.sources[item.shaderType].push(item.source);
-				break;
+            case containerTypes.SHADER_SOURCE:
+                this.sources[item.shaderType].push(item.source);
+                break;
 
-			case containerTypes.PROGRAM_SEPARABLE:
-				this.separable = item.separable;
-				break;
+            case containerTypes.PROGRAM_SEPARABLE:
+                this.separable = item.separable;
+                break;
 
-			default:
-				throw Error('Type \"' + type + '\" cannot be added to ProgramSources.');
-				break;
-		}
+            default:
+                throw Error('Type \"' + type + '\" cannot be added to ProgramSources.');
+                break;
+        }
 
-		return this;
-	};
+        return this;
+    };
 };
 
 /**
@@ -395,13 +395,13 @@ return {
 
     containerTypes: containerTypes,
     AttribLocationBinding: AttribLocationBinding,
-	TransformFeedbackMode: TransformFeedbackMode,
-	TransformFeedbackVarying: TransformFeedbackVarying,
-	TransformFeedbackVaryings: TransformFeedbackVaryings,
-	VertexSource: VertexSource,
-	FragmentSource: FragmentSource,
-	ProgramSeparable: ProgramSeparable,
-	ProgramSources: ProgramSources,
+    TransformFeedbackMode: TransformFeedbackMode,
+    TransformFeedbackVarying: TransformFeedbackVarying,
+    TransformFeedbackVaryings: TransformFeedbackVaryings,
+    VertexSource: VertexSource,
+    FragmentSource: FragmentSource,
+    ProgramSeparable: ProgramSeparable,
+    ProgramSources: ProgramSources,
     makeVtxFragSources: makeVtxFragSources
 };
 

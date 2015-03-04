@@ -160,8 +160,8 @@ Texture2DFormatCase.prototype.iterate = function() {
     // Compare and log.
     var isOk = glsTextureTestUtil.compareImages(referenceFrame, renderedFrame, threshold);
 
-	assertMsgOptions(isOk, testDescription(), true, true);
-	return deqpTests.runner.IterateResult.STOP;
+    assertMsgOptions(isOk, testDescription(), true, true);
+    return deqpTests.runner.IterateResult.STOP;
 };
 
 /**
@@ -314,10 +314,10 @@ TextureCubeFormatCase.prototype.iterate = function() {
 
     this.m_curFace += 1;
 
-	if (this.m_curFace == tcuTexture.CubeFace.TOTAL_FACES)
-		return deqpTests.runner.IterateResult.STOP;
-	else
-		return deqpTests.runner.IterateResult.CONTINUE;
+    if (this.m_curFace == tcuTexture.CubeFace.TOTAL_FACES)
+        return deqpTests.runner.IterateResult.STOP;
+    else
+        return deqpTests.runner.IterateResult.CONTINUE;
 };
 
 /**
@@ -448,10 +448,10 @@ Texture2DArrayFormatCase.prototype.iterate = function() {
 
     this.m_curLayer += 1;
 
-	if (this.m_curLayer == this.m_numLayers)
-		return deqpTests.runner.IterateResult.STOP;
-	else
-		return deqpTests.runner.IterateResult.CONTINUE;
+    if (this.m_curLayer == this.m_numLayers)
+        return deqpTests.runner.IterateResult.STOP;
+    else
+        return deqpTests.runner.IterateResult.CONTINUE;
 };
 
 /**
@@ -583,10 +583,10 @@ Texture3DFormatCase.prototype.iterate = function() {
 
     this.m_curSlice += 1;
 
-	if (this.m_curSlice >= this.m_depth)
-		return deqpTests.runner.IterateResult.STOP;
-	else
-		return deqpTests.runner.IterateResult.CONTINUE;
+    if (this.m_curSlice >= this.m_depth)
+        return deqpTests.runner.IterateResult.STOP;
+    else
+        return deqpTests.runner.IterateResult.CONTINUE;
 };
 
 /**
@@ -687,8 +687,8 @@ Compressed2DFormatCase.prototype.iterate = function() {
     // Compare and log.
     var isOk = glsTextureTestUtil.compareImages(referenceFrame, renderedFrame, threshold);
 
-	assertMsgOptions(isOk, testDescription(), true, true);
-	return deqpTests.runner.IterateResult.STOP;
+    assertMsgOptions(isOk, testDescription(), true, true);
+    return deqpTests.runner.IterateResult.STOP;
 };
 
 /**
@@ -802,17 +802,17 @@ CompressedCubeFormatCase.prototype.iterate = function() {
 
     this.m_curFace += 1;
 
-	if (this.m_curFace == tcuTexture.CubeFace.TOTAL_FACES)
-		return deqpTests.runner.IterateResult.STOP;
-	else
-		return deqpTests.runner.IterateResult.CONTINUE;
+    if (this.m_curFace == tcuTexture.CubeFace.TOTAL_FACES)
+        return deqpTests.runner.IterateResult.STOP;
+    else
+        return deqpTests.runner.IterateResult.CONTINUE;
 };
 
 /*TODO: remove */
 if (!gl.R11F_G11F_B10F)
-	gl.R11F_G11F_B10F = 0x8C3A;
+    gl.R11F_G11F_B10F = 0x8C3A;
 if (!gl.RGB16F)
-	gl.RGB16F = 0x881A;
+    gl.RGB16F = 0x881A;
 
 var genTestCases = function() {
     var state = deqpTests.runner.getState();
@@ -1145,12 +1145,12 @@ var genTestCases = function() {
  * Create and execute the test cases
  */
 var run = function() {
-	try {
+    try {
         genTestCases();
         deqpTests.runner.runCallback(deqpTests.runTestCases);
     } catch (err) {
-    	bufferedLogToConsole(err);
-    	deqpTests.runner.terminate();
+        bufferedLogToConsole(err);
+        deqpTests.runner.terminate();
     }
 
 };
