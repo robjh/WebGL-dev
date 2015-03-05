@@ -19,6 +19,7 @@
  */
 
 define([
+    'framework/opengl/gluDefs',
     'framework/opengl/gluShaderUtil',
     'framework/opengl/gluTexture',
     'framework/opengl/gluVarType',
@@ -26,6 +27,7 @@ define([
     'framework/common/tcuTexture',
     'framework/delibs/debase/deMath',
     'framework/delibs/debase/deRandom'], function(
+        gluDefs,
         deqpUtils,
         gluTexture,
         gluVT,
@@ -791,16 +793,15 @@ define([
             if (i > 0)
                 result += ', ';
 
+            var preresult = value.val.length !== undefined ? value.val[i] : value.val;
             if (deqpUtils.isDataTypeFloatOrVec(value.type) || deqpUtils.isDataTypeMatrix(value.type))
-                result += value.val.floatV[i].toFixed(2);
-            else if (deqpUtils.isDataTypeIntOrIVec((value.type)))
-                result += value.val.intV[i];
-            else if (deqpUtils.isDataTypeUintOrUVec((value.type)))
-                result += value.val.uintV[i];
-            else if (deqpUtils.isDataTypeBoolOrBVec((value.type)))
-                result += value.val.boolV[i] ? 'true' : 'false';
-            else if (deqpUtils.isDataTypeSampler((value.type)))
-                result += value.val.samplerV.unit;
+                result += preresult.toFixed(2);
+            else if (deqpUtils.isDataTypeIntOrIVec(value.type) ||
+                deqpUtils.isDataTypeUintOrUVec(value.type) ||
+                deqpUtils.isDataTypeSampler(value.type))
+                result += preresult;
+            else if (deqpUtils.isDataTypeBoolOrBVec(value.type))
+                result += preresult ? 'true' : 'false';
             else
                 DE_ASSERT(false);
         }
@@ -1177,7 +1178,7 @@ define([
      * @param {string} name
      * @return {Array.<BasicUniformReportGL>}
      */
-    BasicUniformReportGL.prototype.findWithName = function(vec, name) {
+    BasicUniformReportGL.findWithName = function(vec, name) {
         for (var i = 0; i < vec.length; i++) //vector<BasicUniformReportGL>::const_iterator it = vec.begin(); it != vec.end(); it++)
         {
             if (vec[i].name == name)
@@ -1442,73 +1443,92 @@ define([
         return dst;
     };
 
-    /*void UniformCase::writeUniformCompareExpr (std::ostringstream& dst, const BasicUniform& uniform) const
-    {
+    /**
+     * @param {string} dst
+     * @param {BasicUniform} uniform
+     * @return {string} Used to write the string in the output parameter
+     */
+    UniformCase.prototype.writeUniformCompareExpr = function(dst, uniform) {
         if (deqpUtils.isDataTypeSampler(uniform.type))
-            dst << "compare_" << deqpUtils.getDataTypeName(getSamplerLookupReturnType(uniform.type)) << "(texture(" << uniform.name << ", vec" << getSamplerNumLookupDimensions(uniform.type) << "(0.0))";
+            dst += "compare_" + deqpUtils.getDataTypeName(getSamplerLookupReturnType(uniform.type)) + "(texture(" + uniform.name + ", vec" + getSamplerNumLookupDimensions(uniform.type) + "(0.0))";
         else
-            dst << "compare_" << deqpUtils.getDataTypeName(uniform.type) << "(" << uniform.name;
+            dst += "compare_" + deqpUtils.getDataTypeName(uniform.type) + "(" + uniform.name;
 
-        dst << ", " << shaderVarValueStr(uniform.finalValue) << ")";
-    }
+        dst += ", " + shaderVarValueStr(uniform.finalValue) + ")";
 
-    void UniformCase::writeUniformComparisons (std::ostringstream& dst, const vector<BasicUniform>& basicUniforms, const char* const variableName) const
-    {
-        for (int i = 0; i < (int)basicUniforms.size(); i++)
+        return dst;
+    };
+
+    /**
+     * @param {string} dst
+     * @param {Array.<BasicUniform>} basicUniforms
+     * @param {string} variableName
+     * @return {string} Used to write the string in the output parameter
+     */
+    UniformCase.prototype.writeUniformComparisons = function(dst, basicUniforms, variableName) {
+        for (var i = 0; i < basicUniforms.length; i++)
         {
-            const BasicUniform& unif = basicUniforms[i];
+            /** @type {BasicUniform} */ var unif = basicUniforms[i];
 
             if (unif.isUsedInShader)
             {
-                dst << "\t" << variableName << " *= ";
+                dst += "\t" + variableName + " *= ";
                 writeUniformCompareExpr(dst, basicUniforms[i]);
-                dst << ";\n";
+                dst += ";\n";
             }
             else
-                dst << "\t// UNUSED: " << basicUniforms[i].name << "\n";
+                dst += "\t// UNUSED: " + basicUniforms[i].name + "\n";
         }
+
+        return dst;
     }
 
-    string UniformCase::generateVertexSource (const vector<BasicUniform>& basicUniforms) const
-    {
-        const bool            isVertexCase = m_caseShaderType == CASESHADERTYPE_VERTEX || m_caseShaderType == CASESHADERTYPE_BOTH;
-        std::ostringstream    result;
+    /**
+     * @param {Array.<BasicUniform>} basicUniforms
+     * @return {string}
+     */
+    UniformCase.prototype.generateVertexSource = function(basicUniforms) {
+        /** @type {boolean} */ var isVertexCase = this.m_caseShaderType == CaseShaderType.CASESHADERTYPE_VERTEX || this.m_caseShaderType == CaseShaderType.CASESHADERTYPE_BOTH;
+        /** @type {string} */ var result;
 
-        result << "#version 300 es\n"
+        result += "#version 300 es\n"
                   "in highp vec4 a_position;\n"
                   "out mediump float v_vtxOut;\n"
                   "\n";
 
         if (isVertexCase)
-            writeUniformDefinitions(result);
+            result = writeUniformDefinitions(result);
 
-        result << "\n"
+        result += "\n"
                   "void main (void)\n"
                   "{\n"
                   "    gl_Position = a_position;\n"
                   "    v_vtxOut = 1.0;\n";
 
         if (isVertexCase)
-            writeUniformComparisons(result, basicUniforms, "v_vtxOut");
+            result = writeUniformComparisons(result, basicUniforms, "v_vtxOut");
 
-        result << "}\n";
+        result += "}\n";
 
-        return result.str();
-    }
+        return result;
+    };
 
-    string UniformCase::generateFragmentSource (const vector<BasicUniform>& basicUniforms) const
-    {
-        const bool            isFragmentCase = m_caseShaderType == CASESHADERTYPE_FRAGMENT || m_caseShaderType == CASESHADERTYPE_BOTH;
-        std::ostringstream    result;
+    /**
+     * @param {Array.<BasicUniform>} basicUniforms
+     * @return {string}
+     */
+    UniformCase.prototype.generateFragmentSource = function(basicUniforms) {
+        /**@type {boolean} */ var isFragmentCase = this.m_caseShaderType == CaseShaderType.CASESHADERTYPE_FRAGMENT || this.m_caseShaderType == CaseShaderType.CASESHADERTYPE_BOTH;
+        /**@type {string} */ var result;
 
-        result << "#version 300 es\n"
+        result += "#version 300 es\n"
                   "in mediump float v_vtxOut;\n"
                   "\n";
 
         if (isFragmentCase)
-            writeUniformDefinitions(result);
+            result = writeUniformDefinitions(result);
 
-        result << "\n"
+        result += "\n"
                   "layout(location = 0) out mediump vec4 dEQP_FragColor;\n"
                   "\n"
                   "void main (void)\n"
@@ -1516,148 +1536,141 @@ define([
                   "    mediump float result = v_vtxOut;\n";
 
         if (isFragmentCase)
-            writeUniformComparisons(result, basicUniforms, "result");
+            result = writeUniformComparisons(result, basicUniforms, "result");
 
-        result << "    dEQP_FragColor = vec4(result, result, result, 1.0);\n"
+        result += "    dEQP_FragColor = vec4(result, result, result, 1.0);\n"
                   "}\n";
 
-        return result.str();
-    }
+        return result;
+    };
 
-    void UniformCase::setupTexture (const VarValue& value)
-    {
+    /**
+     * @param {VarValue} value
+     */
+    UniformCase.prototype.setupTexture = function(value) {
         // \note No handling for samplers other than 2D or cube.
-
-        enableLogging(false);
 
         DE_ASSERT(getSamplerLookupReturnType(value.type) == deqpUtils.DataType.FLOAT_VEC4);
 
-        const int                        width            = 32;
-        const int                        height            = 32;
-        const tcu::Vec4                    color            = vec4FromPtr(&value.val.samplerV.fillColor.floatV[0]);
+        /** @type {number} */ var width            = 32;
+        /** @type {number} */ var height            = 32;
+        /** @type {Array.<number>} */ var color            = value.val.samplerV.fillColor.floatV[0];
 
         if (value.type == deqpUtils.DataType.SAMPLER_2D)
         {
-            deqpUtils.Texture2D* texture        = new deqpUtils.Texture2D(m_context.getRenderContext(), GL_RGBA, GL_UNSIGNED_BYTE, width, height);
-            tcu::Texture2D& refTexture    = texture->getRefTexture();
-            m_textures2d.push_back(texture);
+            /** @type {gluTexture.Texture2D} */ var texture = gluTexture.texture2DFromFormat(gl, gl.RGBA, gl.UNSIGNED_BYTE, width, height);
+            /** @type {tcuTexture.Texture2D} */ var refTexture    = texture.getRefTexture();
+            this.m_textures2d.push(texture);
 
             refTexture.allocLevel(0);
             fillWithColor(refTexture.getLevel(0), color);
 
-            GLU_CHECK_CALL(glActiveTexture(GL_TEXTURE0 + value.val.samplerV.unit));
-            m_filledTextureUnits.push_back(value.val.samplerV.unit);
-            texture->upload();
-            GLU_CHECK_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
-            GLU_CHECK_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
-            GLU_CHECK_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
-            GLU_CHECK_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
+            gluDefs.GLU_CHECK_CALL(function(){gl.ActiveTexture(gl.TEXTURE0 + value.val.samplerV.unit);});
+            this.m_filledTextureUnits.push(value.val.samplerV.unit);
+            texture.upload();
+            gluDefs.GLU_CHECK_CALL(function(){gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);});
+            gluDefs.GLU_CHECK_CALL(function(){gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);});
+            gluDefs.GLU_CHECK_CALL(function(){gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);});
+            gluDefs.GLU_CHECK_CALL(function(){gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);});
         }
         else if (value.type == deqpUtils.DataType.SAMPLER_CUBE)
         {
             DE_ASSERT(width == height);
 
-            deqpUtils.TextureCube* texture        = new deqpUtils.TextureCube(m_context.getRenderContext(), GL_RGBA, GL_UNSIGNED_BYTE, width);
-            tcu::TextureCube& refTexture    = texture->getRefTexture();
-            m_texturesCube.push_back(texture);
+            /** @type {gluTexture.TextureCube} */ var texture        = gluTexture.TextureCube(gl, gl.RGBA, gl.UNSIGNED_BYTE, width);
+            /** @type {tcuTexture.TextureCube} */ var refTexture    = texture.getRefTexture();
+            this.m_texturesCube.push(texture);
 
-            for (int face = 0; face < (int)tcu::CUBEFACE_LAST; face++)
+            for (var face = 0; face < tcuTexture.CubeFace.TOTAL_FACES; face++)
             {
-                refTexture.allocLevel((tcu::CubeFace)face, 0);
-                fillWithColor(refTexture.getLevelFace(0, (tcu::CubeFace)face), color);
+                refTexture.allocLevel(face, 0);
+                fillWithColor(refTexture.getLevelFace(0, face), color);
             }
 
-            GLU_CHECK_CALL(glActiveTexture(GL_TEXTURE0 + value.val.samplerV.unit));
-            m_filledTextureUnits.push_back(value.val.samplerV.unit);
-            texture->upload();
-            GLU_CHECK_CALL(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
-            GLU_CHECK_CALL(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
-            GLU_CHECK_CALL(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
-            GLU_CHECK_CALL(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
-
+            gluDefs.GLU_CHECK_CALL(function(){gl.activeTexture(gl.TEXTURE0 + value.val.samplerV.unit);});
+            this.m_filledTextureUnits.push(value.val.samplerV.unit);
+            texture.upload();
+            gluDefs.GLU_CHECK_CALL(function(){gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);});
+            gluDefs.GLU_CHECK_CALL(function(){gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);});
+            gluDefs.GLU_CHECK_CALL(function(){gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.NEAREST);});
+            gluDefs.GLU_CHECK_CALL(function(){gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.NEAREST);});
         }
         else
             DE_ASSERT(false);
+    };
 
-        enableLogging(true);
-    }
+    /*
+     * @param {Array.<BasicUniformReportGL>} basicUniformReportsDst
+     * @param {Array.<BasicUniformReportRef>} basicUniformReportsRef
+     * @param {deMath.deUint32} programGL
+     * @return {boolean}
+     */
+    UniformCase.prototype.getActiveUniforms = function(basicUniformReportsDst, basicUniformReportsRef, programGL) {
+        /** @type {number} (GLint)*/ var numActiveUniforms        = 0;
+        /** @type {boolean} */ var success                    = true;
 
-    bool UniformCase::getActiveUniforms (vector<BasicUniformReportGL>& basicUniformReportsDst, const vector<BasicUniformReportRef>& basicUniformReportsRef, const deUint32 programGL)
-    {
-        TestLog&            log                        = m_testCtx.getLog();
-        GLint                numActiveUniforms        = 0;
-        GLint                uniformMaxNameLength    = 0;
-        vector<char>        nameBuffer;
-        bool                success                    = true;
+        gluDefs.GLU_CHECK_CALL(function(){numActiveUniforms = gl.getProgramParameter(programGL, gl.ACTIVE_UNIFORMS);});
+        bufferedLogToConsole("// Number of active uniforms reported: " + numActiveUniforms);
 
-        GLU_CHECK_CALL(glGetProgramiv(programGL, GL_ACTIVE_UNIFORMS, &numActiveUniforms));
-        log << TestLog::Message << "// Number of active uniforms reported: " << numActiveUniforms << TestLog::EndMessage;
-        GLU_CHECK_CALL(glGetProgramiv(programGL, GL_ACTIVE_UNIFORM_MAX_LENGTH, &uniformMaxNameLength));
-        log << TestLog::Message << "// Maximum uniform name length reported: " << uniformMaxNameLength << TestLog::EndMessage;
-        nameBuffer.resize(uniformMaxNameLength);
-
-        for (int unifNdx = 0; unifNdx < numActiveUniforms; unifNdx++)
+        for (var unifNdx = 0; unifNdx < numActiveUniforms; unifNdx++)
         {
-            GLsizei                    reportedNameLength    = 0;
-            GLint                    reportedSize        = -1;
-            GLenum                    reportedTypeGL        = GL_NONE;
+            /** @type {number} (GLint)*/ var reportedSize        = -1;
+            /** @type {number} (GLenum)*/ var reportedTypeGL        = gl.NONE;
+            /** @type {deqpUtils.DataType} */ var reportedType;
+            /** @type {string} */ var reportedNameStr;
+            /** @type {WebGLActiveInfo} */ var activeInfo;
 
-            GLU_CHECK_CALL(glGetActiveUniform(programGL, (GLuint)unifNdx, (GLsizei)uniformMaxNameLength, &reportedNameLength, &reportedSize, &reportedTypeGL, &nameBuffer[0]));
+            gluDefs.GLU_CHECK_CALL(function(){activeInfo = gl.getActiveUniform(programGL, unifNdx);});
 
-            const deqpUtils.DataType        reportedType        = deqpUtils.getDataTypeFromGLType(reportedTypeGL);
-            const string            reportedNameStr        (&nameBuffer[0]);
+            reportedNameStr = activeInfo.name;
+            reportedTypeGL = activeInfo.type;
+            reportedSize = activeInfo.size;
 
-            TCU_CHECK_MSG(reportedType != deqpUtils.DataType.LAST, "Invalid uniform type");
+            reportedType = deqpUtils.getDataTypeFromGLType(reportedTypeGL);
 
-            log << TestLog::Message << "// Got name = " << reportedNameStr << ", name length = " << reportedNameLength << ", size = " << reportedSize << ", type = " << deqpUtils.getDataTypeName(reportedType) << TestLog::EndMessage;
+            //TODO: TCU_CHECK_MSG(reportedType != deqpUtils.DataType.LAST, "Invalid uniform type");
 
-            if ((GLsizei)reportedNameStr.length() != reportedNameLength)
+            bufferedLogToConsole("// Got name = " + reportedNameStr + ", size = " + reportedSize + ", type = " + deqpUtils.getDataTypeName(reportedType));
+
+            if (reportedNameStr.indexOf("gl_") != 0) // Ignore built-in uniforms.
             {
-                log << TestLog::Message << "// FAILURE: wrong name length reported, should be " << reportedNameStr.length() << TestLog::EndMessage;
-                success = false;
-            }
-
-            if (!deStringBeginsWith(reportedNameStr.c_str(), "gl_")) // Ignore built-in uniforms.
-            {
-                int referenceNdx;
-                for (referenceNdx = 0; referenceNdx < (int)basicUniformReportsRef.size(); referenceNdx++)
+                /** @type {number} */ var referenceNdx;
+                for (referenceNdx = 0; referenceNdx < basicUniformReportsRef.lenght; referenceNdx++)
                 {
                     if (basicUniformReportsRef[referenceNdx].name == reportedNameStr)
                         break;
                 }
 
-                if (referenceNdx >= (int)basicUniformReportsRef.size())
+                if (referenceNdx >= basicUniformReportsRef.length)
                 {
-                    log << TestLog::Message << "// FAILURE: invalid non-built-in uniform name reported" << TestLog::EndMessage;
+                    bufferedLogToConsole("// FAILURE: invalid non-built-in uniform name reported");
                     success = false;
                 }
                 else
                 {
-                    const BasicUniformReportRef& reference = basicUniformReportsRef[referenceNdx];
+                    /** @type {BasicUniformReportRef} */ var reference = basicUniformReportsRef[referenceNdx];
 
                     DE_ASSERT(reference.type != deqpUtils.DataType.LAST);
                     DE_ASSERT(reference.minSize >= 1 || (reference.minSize == 0 && !reference.isUsedInShader));
                     DE_ASSERT(reference.minSize <= reference.maxSize);
 
-                    if (BasicUniformReportGL::findWithName(basicUniformReportsDst, reportedNameStr.c_str()) != basicUniformReportsDst.end())
+                    if (BasicUniformReportGL.findWithName(basicUniformReportsDst, reportedNameStr) != basicUniformReportsDst[basicUniformReportsDst.length - 1])
                     {
-                        log << TestLog::Message << "// FAILURE: same uniform name reported twice" << TestLog::EndMessage;
+                        bufferedLogToConsole("// FAILURE: same uniform name reported twice");
                         success = false;
                     }
 
-                    basicUniformReportsDst.push_back(BasicUniformReportGL(reportedNameStr.c_str(), reportedNameLength, reportedSize, reportedType, unifNdx));
+                    basicUniformReportsDst.push(new BasicUniformReportGL(reportedNameStr, reportedNameStr.length, reportedSize, reportedType, unifNdx));
 
                     if (reportedType != reference.type)
                     {
-                        log << TestLog::Message << "// FAILURE: wrong type reported, should be " << deqpUtils.getDataTypeName(reference.type) << TestLog::EndMessage;
+                        bufferedLogToConsole("// FAILURE: wrong type reported, should be " + deqpUtils.getDataTypeName(reference.type));
                         success = false;
                     }
                     if (reportedSize < reference.minSize || reportedSize > reference.maxSize)
                     {
-                        log << TestLog::Message
-                            << "// FAILURE: wrong size reported, should be "
-                            << (reference.minSize == reference.maxSize ? de::toString(reference.minSize) : "in the range [" + de::toString(reference.minSize) + ", " + de::toString(reference.maxSize) + "]")
-                            << TestLog::EndMessage;
+                        bufferedLogToConsole("// FAILURE: wrong size reported, should be " +
+                            (reference.minSize == reference.maxSize ? reference.minSize : "in the range [" + reference.minSize + ", " + reference.maxSize + "]"));
 
                         success = false;
                     }
@@ -1665,108 +1678,101 @@ define([
             }
         }
 
-        for (int i = 0; i < (int)basicUniformReportsRef.size(); i++)
+        for (var i = 0; i < basicUniformReportsRef.; i++)
         {
-            const BasicUniformReportRef& expected = basicUniformReportsRef[i];
-            if (expected.isUsedInShader && BasicUniformReportGL::findWithName(basicUniformReportsDst, expected.name.c_str()) == basicUniformReportsDst.end())
+            /** @type {BasicUniformReportRef} */ var expected = basicUniformReportsRef[i];
+            if (expected.isUsedInShader && BasicUniformReportGL.findWithName(basicUniformReportsDst, expected.name) == basicUniformReportsDst[basicUniformReportsDst.length - 1])
             {
-                log << TestLog::Message << "// FAILURE: uniform with name " << expected.name << " was not reported by GL" << TestLog::EndMessage;
+                bufferedLogToConsole("// FAILURE: uniform with name " + expected.name + " was not reported by GL");
                 success = false;
             }
         }
 
         return success;
-    }
+    };
 
-    bool UniformCase::getActiveUniformsiv (vector<BasicUniformReportGL>& basicUniformReportsDst, const vector<BasicUniformReportRef>& basicUniformReportsRef, const deUint32 programGL)
-    {
-        TestLog&                log                = m_testCtx.getLog();
-        vector<string>            queryNames        (basicUniformReportsRef.size());
-        vector<const char*>        queryNamesC        (basicUniformReportsRef.size());
-        vector<GLuint>            uniformIndices    (basicUniformReportsRef.size());
-        vector<deUint32>        validUniformIndices; // This shall have the same contents, and in same order, as uniformIndices, but with GL_INVALID_INDEX entries removed.
-        bool                    success            = true;
+    /*
+     * @param {Array.<BasicUniformReportGL>} basicUniformReportsDst
+     * @param {Array.<BasicUniformReportRef>} basicUniformReportsRef
+     * @param {deMath.deUint32} programGL
+     * @return {boolean}
+     */
+    UniformCase.prototype.getActiveUniforms = function(basicUniformReportsDst, basicUniformReportsRef, programGL) {
+        /** @type {Array.<string>} */ var queryNames = new Array(basicUniformReportsRef.length);
+        /** @type {Array.<string>} */ var queryNamesC = new Array(basicUniformReportsRef.length);
+        /** @type {Array.<number>} (GLuint) */ var uniformIndices = new Array(basicUniformReportsRef.length);
+        /** @type {Array.<deMath.deUint32>} */ var validUniformIndices = []; // This shall have the same contents, and in same order, as uniformIndices, but with gl.INVALID_INDEX entries removed.
+        /** @type {boolean} */ var success = true;
 
-        for (int i = 0; i < (int)basicUniformReportsRef.size(); i++)
+        for (var i = 0; i < basicUniformReportsRef.length; i++)
         {
-            const string& name = basicUniformReportsRef[i].name;
-            queryNames[i]    = m_features & Feature.ARRAY_FIRST_ELEM_NAME_NO_INDEX && name[name.size()-1] == ']' ? beforeLast(name, '[') : name;
-            queryNamesC[i]    = queryNames[i].c_str();
+            /** @type {string} */ var name = basicUniformReportsRef[i].name;
+            queryNames[i] = this.m_features & Feature.ARRAY_FIRST_ELEM_NAME_NO_INDEX && name[name.length - 1] == ']' ? beforeLast(name, '[') : name;
+            queryNamesC[i] = queryNames[i];
         }
 
-        GLU_CHECK_CALL(glGetUniformIndices(programGL, (GLsizei)basicUniformReportsRef.size(), &queryNamesC[0], &uniformIndices[0]));
+        gluDefs.GLU_CHECK_CALL(function(){uniformIndices = gl.getUniformIndices(programGL, queryNamesC);});
 
-        for (int i = 0; i < (int)uniformIndices.size(); i++)
+        for (var i = 0; i < uniformIndices.length; i++)
         {
-            if (uniformIndices[i] != GL_INVALID_INDEX)
-                validUniformIndices.push_back(uniformIndices[i]);
+            if (uniformIndices[i] != gl.INVALID_INDEX)
+                validUniformIndices.push(uniformIndices[i]);
             else
             {
                 if (basicUniformReportsRef[i].isUsedInShader)
                 {
-                    log << TestLog::Message << "// FAILURE: uniform with name " << basicUniformReportsRef[i].name << " received GL_INVALID_INDEX" << TestLog::EndMessage;
+                    bufferedLogToConsole("// FAILURE: uniform with name " + basicUniformReportsRef[i].name + " received gl.INVALID_INDEX");
                     success = false;
                 }
             }
         }
 
-        if (!validUniformIndices.empty())
+        if (validUniformIndices.length > 0)
         {
-            vector<GLint> uniformNameLengthBuf    (validUniformIndices.size());
-            vector<GLint> uniformSizeBuf        (validUniformIndices.size());
-            vector<GLint> uniformTypeBuf        (validUniformIndices.size());
+            /** @type {Array.<string>} */ var uniformNameBuf = new Array(validUniformIndices.length);
+            /** @type {Array.<number> (GLint) } */ var uniformSizeBuf = new Array(validUniformIndices.length);
+            /** @type {Array.<number> (GLint) } */ var uniformTypeBuf = new Array(validUniformIndices.length);
 
-            GLU_CHECK_CALL(glGetActiveUniformsiv(programGL, (GLsizei)validUniformIndices.size(), &validUniformIndices[0], GL_UNIFORM_NAME_LENGTH,    &uniformNameLengthBuf[0]));
-            GLU_CHECK_CALL(glGetActiveUniformsiv(programGL, (GLsizei)validUniformIndices.size(), &validUniformIndices[0], GL_UNIFORM_SIZE,            &uniformSizeBuf[0]));
-            GLU_CHECK_CALL(glGetActiveUniformsiv(programGL, (GLsizei)validUniformIndices.size(), &validUniformIndices[0], GL_UNIFORM_TYPE,            &uniformTypeBuf[0]));
+            gluDefs.GLU_CHECK_CALL(function(){uniformNameBuf = gl.getActiveUniformsiv(programGL, validUniformIndices, gl.UNIFORM_NAME_LENGTH);});
+            gluDefs.GLU_CHECK_CALL(function(){uniformSizeBuf = gl.getActiveUniformsiv(programGL, validUniformIndices, gl.UNIFORM_SIZE);});
+            gluDefs.GLU_CHECK_CALL(function(){uniformTypeBuf = gl.getActiveUniformsiv(programGL, validUniformIndices, gl.UNIFORM_TYPE);});
 
             {
-                int validNdx = -1; // Keeps the corresponding index to validUniformIndices while unifNdx is the index to uniformIndices.
-                for (int unifNdx = 0; unifNdx < (int)uniformIndices.size(); unifNdx++)
+                /** @type {number} */ var validNdx = -1; // Keeps the corresponding index to validUniformIndices while unifNdx is the index to uniformIndices.
+                for (var unifNdx = 0; unifNdx < uniformIndices.length; unifNdx++)
                 {
-                    if (uniformIndices[unifNdx] == GL_INVALID_INDEX)
+                    if (uniformIndices[unifNdx] == gl.INVALID_INDEX)
                         continue;
 
                     validNdx++;
 
-                    const BasicUniformReportRef&    reference            = basicUniformReportsRef[unifNdx];
-                    const int                        reportedIndex        = validUniformIndices[validNdx];
-                    const int                        reportedNameLength    = (int)uniformNameLengthBuf[validNdx];
-                    const int                        reportedSize        = (int)uniformSizeBuf[validNdx];
-                    const deqpUtils.DataType                reportedType        = deqpUtils.getDataTypeFromGLType((deUint32)uniformTypeBuf[validNdx]);
+                    /** @type {BasicUniformReportRef} */ var reference = basicUniformReportsRef[unifNdx];
+                    /** @type {number} */ var reportedIndex = validUniformIndices[validNdx];
+                    /** @type {number} */ var reportedNameLength = uniformNameBuf[validNdx].length;
+                    /** @type {number} */ var reportedSize = uniformSizeBuf[validNdx];
+                    /** @type {deqpUtils.DataType} */ var reportedType = deqpUtils.getDataTypeFromGLType(uniformTypeBuf[validNdx]);
 
-                    TCU_CHECK_MSG(reportedType != deqpUtils.DataType.LAST, "Invalid uniform type");
+                    //TODO: TCU_CHECK_MSG(reportedType != deqpUtils.DataType.LAST, "Invalid uniform type");
 
-                    log << TestLog::Message
-                        << "// Got name length = " << reportedNameLength
-                        << ", size = " << reportedSize
-                        << ", type = " << deqpUtils.getDataTypeName(reportedType)
-                        << " for the uniform at index " << reportedIndex << " (" << reference.name << ")"
-                        << TestLog::EndMessage;
+                    bufferedLogToConsole("// Got name size = " + reportedSize +
+                        ", type = " + deqpUtils.getDataTypeName(reportedType) +
+                        " for the uniform at index " + reportedIndex + " (" + reference.name + ")");
 
                     DE_ASSERT(reference.type != deqpUtils.DataType.LAST);
                     DE_ASSERT(reference.minSize >= 1 || (reference.minSize == 0 && !reference.isUsedInShader));
                     DE_ASSERT(reference.minSize <= reference.maxSize);
-                    basicUniformReportsDst.push_back(BasicUniformReportGL(reference.name.c_str(), reportedNameLength, reportedSize, reportedType, reportedIndex));
-
-                    if (reportedNameLength != (int)reference.name.length() + 1)
-                    {
-                        log << TestLog::Message << "// FAILURE: wrong name length reported, should be " << reference.name.length() + 1 << TestLog::EndMessage;
-                        success = false;
-                    }
+                    basicUniformReportsDst.push(new BasicUniformReportGL(reference.name, reportedNameLength, reportedSize, reportedType, reportedIndex));
 
                     if (reportedType != reference.type)
                     {
-                        log << TestLog::Message << "// FAILURE: wrong type reported, should be " << deqpUtils.getDataTypeName(reference.type) << TestLog::EndMessage;
+                        bufferedLogToConsole("// FAILURE: wrong type reported, should be " + deqpUtils.getDataTypeName(reference.type));
                         success = false;
                     }
 
                     if (reportedSize < reference.minSize || reportedSize > reference.maxSize)
                     {
-                        log << TestLog::Message
-                            << "// FAILURE: wrong size reported, should be "
-                            << (reference.minSize == reference.maxSize ? de::toString(reference.minSize) : "in the range [" + de::toString(reference.minSize) + ", " + de::toString(reference.maxSize) + "]")
-                            << TestLog::EndMessage;
+                        bufferedLogToConsole("// FAILURE: wrong size reported, should be " +
+                            (reference.minSize == reference.maxSize ? reference.minSize : "in the range [" + reference.minSize + ", " + reference.maxSize + "]"));
 
                         success = false;
                     }
@@ -1775,147 +1781,113 @@ define([
         }
 
         return success;
-    }
+    };
 
-    bool UniformCase::uniformVsUniformsivComparison (const vector<BasicUniformReportGL>& uniformResults, const vector<BasicUniformReportGL>& uniformsivResults)
-    {
-        TestLog&    log            = m_testCtx.getLog();
-        bool        success        = true;
+    /*
+     * @param {Array.<BasicUniformReportGL>} basicUniformReportsDst
+     * @param {Array.<BasicUniformReportGL>} basicUniformReportsRef
+     * @return {boolean}
+     */
+    UniformCase.prototype.uniformVsUniformsComparison = function(BasicUniformReportGL>& uniformResults, const vector<BasicUniformReportGL>& uniformsResults) {
+        /** @type {boolean} */ var success = true;
 
-        for (int uniformResultNdx = 0; uniformResultNdx < (int)uniformResults.size(); uniformResultNdx++)
+        for (var uniformResultNdx = 0; uniformResultNdx < uniformResults.length; uniformResultNdx++)
         {
-            const BasicUniformReportGL&                            uniformResult        = uniformResults[uniformResultNdx];
-            const string&                                        uniformName            = uniformResult.name;
-            const vector<BasicUniformReportGL>::const_iterator    uniformsivResultIt    = BasicUniformReportGL::findWithName(uniformsivResults, uniformName.c_str());
+            /** @type {BasicUniformReportGL} */ var uniformResult = uniformResults[uniformResultNdx];
+            /** @type {sting} */ var uniformName = uniformResult.name;
+            /** @type {BasicUniformReportGL} */ var uniformsResult = BasicUniformReportGL.findWithName(uniformsResults, uniformName);
 
-            if (uniformsivResultIt != uniformsivResults.end())
+            if (uniformsResult !== undefined)
             {
-                const BasicUniformReportGL& uniformsivResult = *uniformsivResultIt;
-
-                log << TestLog::Message << "// Checking uniform " << uniformName << TestLog::EndMessage;
+                bufferedLogToConsole("// Checking uniform " + uniformName);
 
                 if (uniformResult.index != uniformsivResult.index)
                 {
-                    log << TestLog::Message << "// FAILURE: glGetActiveUniform() and glGetUniformIndices() gave different indices for uniform " << uniformName << TestLog::EndMessage;
+                    bufferedLogToConsole("// FAILURE: glGetActiveUniform() and glGetUniformIndices() gave different indices for uniform " + uniformName);
                     success = false;
                 }
                 if (uniformResult.nameLength + 1 != uniformsivResult.nameLength)
                 {
-                    log << TestLog::Message << "// FAILURE: glGetActiveUniform() and glGetActiveUniformsiv() gave incompatible name lengths for uniform " << uniformName << TestLog::EndMessage;
+                    bufferedLogToConsole("// FAILURE: glGetActiveUniform() and glGetActiveUniformsiv() gave incompatible name lengths for uniform " + uniformName);
                     success = false;
                 }
                 if (uniformResult.size != uniformsivResult.size)
                 {
-                    log << TestLog::Message << "// FAILURE: glGetActiveUniform() and glGetActiveUniformsiv() gave different sizes for uniform " << uniformName << TestLog::EndMessage;
+                    bufferedLogToConsole("// FAILURE: glGetActiveUniform() and glGetActiveUniformsiv() gave different sizes for uniform " + uniformName);
                     success = false;
                 }
                 if (uniformResult.type != uniformsivResult.type)
                 {
-                    log << TestLog::Message << "// FAILURE: glGetActiveUniform() and glGetActiveUniformsiv() gave different types for uniform " << uniformName << TestLog::EndMessage;
+                    bufferedLogToConsole("// FAILURE: glGetActiveUniform() and glGetActiveUniformsiv() gave different types for uniform " + uniformName);
                     success = false;
                 }
             }
             else
             {
-                log << TestLog::Message << "// FAILURE: uniform " << uniformName << " was reported active by glGetActiveUniform() but not by glGetUniformIndices()" << TestLog::EndMessage;
+                bufferedLogToConsole("// FAILURE: uniform " + uniformName + " was reported active by glGetActiveUniform() but not by glGetUniformIndices()");
                 success = false;
             }
         }
 
-        for (int uniformsivResultNdx = 0; uniformsivResultNdx < (int)uniformsivResults.size(); uniformsivResultNdx++)
+        for (var uniformsResultNdx = 0; uniformsResultNdx < uniformsResults.length; uniformsResultNdx++)
         {
-            const BasicUniformReportGL&                            uniformsivResult    = uniformsivResults[uniformsivResultNdx];
-            const string&                                        uniformsivName        = uniformsivResult.name;
-            const vector<BasicUniformReportGL>::const_iterator    uniformsResultIt    = BasicUniformReportGL::findWithName(uniformsivResults, uniformsivName.c_str());
+            /** @type {BasicUniformReportGL} */ var uniformsResult = uniformsResults[uniformsResultNdx];
+            /** @type {sting} */ var uniformsName = uniformsResult.name;
+            /** @type {BasicUniformReportGL} */ var uniformsResultIt = BasicUniformReportGL.findWithName(uniformsResults, uniformsName);
 
-            if (uniformsResultIt == uniformsivResults.end())
+            if (uniformsResultIt !== undefined)
             {
-                log << TestLog::Message << "// FAILURE: uniform " << uniformsivName << " was reported active by glGetUniformIndices() but not by glGetActiveUniform()" << TestLog::EndMessage;
+                bufferedLogToConsole("// FAILURE: uniform " + uniformsName + " was reported active by glGetUniformIndices() but not by glGetActiveUniform()");
                 success = false;
             }
         }
 
         return success;
-    }
+    };
 
-    bool UniformCase::getUniforms (vector<VarValue>& valuesDst, const vector<BasicUniform>& basicUniforms, const deUint32 programGL)
-    {
-        TestLog&    log            = m_testCtx.getLog();
-        bool        success        = true;
+    /*
+     * @param {Array.<VarValue>} valuesDst
+     * @param {Array.<BasicUniform>} basicUniforms
+     * @param {deMath.deUint32} programGL
+     * @return {boolean}
+     */
+    UniformCase.prototype.getUniforms = function(valuesDst, basicUniforms, programGL) {
+        /** @type {boolean} */ var success = true;
 
-        for (int unifNdx = 0; unifNdx < (int)basicUniforms.size(); unifNdx++)
+        for (var unifNdx = 0; unifNdx < basicUniforms.length; unifNdx++)
         {
-            const BasicUniform&        uniform        = basicUniforms[unifNdx];
-            const string            queryName    = m_features & Feature.ARRAY_FIRST_ELEM_NAME_NO_INDEX && uniform.elemNdx == 0 ? beforeLast(uniform.name, '[') : uniform.name;
-            const int                location    = glGetUniformLocation(programGL, queryName.c_str());
-            const int                size        = deqpUtils.getDataTypeScalarSize(uniform.type);
-            VarValue                value;
+            /** @type {BasicUniform} */ var uniform = basicUniforms[unifNdx];
+            /** @type {string} */ var queryName    = this.m_features & Feature.ARRAY_FIRST_ELEM_NAME_NO_INDEX && uniform.elemNdx == 0 ? beforeLast(uniform.name, '[') : uniform.name;
+            /** @type {number} */ var location    = gl.getUniformLocation(programGL, queryName);
+            /** @type {number} */ var size        = deqpUtils.getDataTypeScalarSize(uniform.type);
+            /** @type {VarValue} */ var value;
 
-            deMemset(&value, 0xcd, sizeof(value)); // Initialize to known garbage.
+            //TODO: deMemset(&value, 0xcd, sizeof(value)); // Initialize to known garbage.
 
             if (location == -1)
             {
                 value.type = deqpUtils.DataType.INVALID;
-                valuesDst.push_back(value);
+                valuesDst.push(value);
                 if (uniform.isUsedInShader)
                 {
-                    log << TestLog::Message << "// FAILURE: " << uniform.name << " was used in shader, but has location -1" << TestLog::EndMessage;
+                    bufferedLogToConsole("// FAILURE: " + uniform.name + " was used in shader, but has location -1");
                     success = false;
                 }
                 continue;
             }
 
             value.type = uniform.type;
+            gluDefs.GLU_CHECK_CALL(function(){value.val = gl.getUniform(programGL, location);});
 
-            DE_STATIC_ASSERT(sizeof(GLint) == sizeof(value.val.intV[0]));
-            DE_STATIC_ASSERT(sizeof(GLuint) == sizeof(value.val.uintV[0]));
-            DE_STATIC_ASSERT(sizeof(GLfloat) == sizeof(value.val.floatV[0]));
+            valuesDst.push(value);
 
-            if (deqpUtils.isDataTypeFloatOrVec(uniform.type) || deqpUtils.isDataTypeMatrix(uniform.type))
-                GLU_CHECK_CALL(glGetUniformfv(programGL, location, &value.val.floatV[0]));
-            else if (deqpUtils.isDataTypeIntOrIVec(uniform.type))
-                GLU_CHECK_CALL(glGetUniformiv(programGL, location, &value.val.intV[0]));
-            else if (deqpUtils.isDataTypeUintOrUVec(uniform.type))
-                GLU_CHECK_CALL(glGetUniformuiv(programGL, location, &value.val.uintV[0]));
-            else if (deqpUtils.isDataTypeBoolOrBVec(uniform.type))
-            {
-                if (m_features & Feature.BOOLEANAPITYPE_INT)
-                {
-                    GLU_CHECK_CALL(glGetUniformiv(programGL, location, &value.val.intV[0]));
-                    for (int i = 0; i < size; i++)
-                        value.val.boolV[i] = value.val.intV[i] != 0;
-                }
-                else if (m_features & Feature.BOOLEANAPITYPE_UINT)
-                {
-                    GLU_CHECK_CALL(glGetUniformuiv(programGL, location, &value.val.uintV[0]));
-                    for (int i = 0; i < size; i++)
-                        value.val.boolV[i] = value.val.uintV[i] != 0;
-                }
-                else // Default: use float.
-                {
-                    GLU_CHECK_CALL(glGetUniformfv(programGL, location, &value.val.floatV[0]));
-                    for (int i = 0; i < size; i++)
-                        value.val.boolV[i] = value.val.floatV[i] != 0.0f;
-                }
-            }
-            else if (deqpUtils.isDataTypeSampler(uniform.type))
-            {
-                GLint unit = -1;
-                GLU_CHECK_CALL(glGetUniformiv(programGL, location, &unit));
-                value.val.samplerV.unit = unit;
-            }
-            else
-                DE_ASSERT(false);
-
-            valuesDst.push_back(value);
-
-            log << TestLog::Message << "// Got " << uniform.name << " value " << apiVarValueStr(value) << TestLog::EndMessage;
+            bufferedLogToConsole("// Got " + uniform.name + " value " + apiVarValueStr(value));
         }
 
         return success;
-    }
+    };
 
-    bool UniformCase::checkUniformDefaultValues (const vector<VarValue>& values, const vector<BasicUniform>& basicUniforms)
+    /*bool UniformCase::checkUniformDefaultValues (const vector<VarValue>& values, const vector<BasicUniform>& basicUniforms)
     {
         TestLog&    log            = m_testCtx.getLog();
         bool        success        = true;
@@ -1975,7 +1947,7 @@ define([
     {
         TestLog&                log                = m_testCtx.getLog();
         const bool                transpose        = (m_features & Feature.MATRIXMODE_ROWMAJOR) != 0;
-        const GLboolean            transposeGL        = transpose ? GL_TRUE : GL_FALSE;
+        const GLboolean            transposeGL        = transpose ? gl.TRUE : gl.FALSE;
         const deqpUtils.DataType        boolApiType        = m_features & Feature.BOOLEANAPITYPE_INT    ? deqpUtils.DataType.INT
                                                 : m_features & Feature.BOOLEANAPITYPE_UINT    ? deqpUtils.DataType.UINT
                                                 :                                              deqpUtils.DataType.FLOAT;
@@ -2245,8 +2217,8 @@ define([
 
             const int posLoc = glGetAttribLocation(program.getProgram(), "a_position");
             glEnableVertexAttribArray(posLoc);
-            glVertexAttribPointer(posLoc, 4, GL_FLOAT, GL_FALSE, 0, &position[0]);
-            GLU_CHECK_CALL(glDrawElements(GL_TRIANGLES, DE_LENGTH_OF_ARRAY(indices), GL_UNSIGNED_SHORT, &indices[0]));
+            glVertexAttribPointer(posLoc, 4, gl.FLOAT, gl.FALSE, 0, &position[0]);
+            GLU_CHECK_CALL(glDrawElements(gl.TRIANGLES, DE_LENGTH_OF_ARRAY(indices), gl.UNSIGNED_SHORT, &indices[0]));
         }
 
         deqpUtils.readPixels(m_context.getRenderContext(), viewportX, viewportY, renderedImg.getAccess());
