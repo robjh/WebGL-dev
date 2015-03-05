@@ -28,7 +28,7 @@ define(['framework/opengl/gluShaderUtil',
         'framework/delibs/debase/deMath',
         'framework/delibs/debase/deString',
         'framework/common/tcuTestCase'],
-        function(deqpUtils, deqpDraw, glsUBC, gluVT, gluVTU, deqpProgram, deRandom, deMath, deString, tcuTestCase) {
+        function(deqpUtils, deqpDraw, glsUBC, gluVT, gluVTU, deqpProgram, deRandom, deMath, deString, deqpTests) {
     'use strict';
 
     /** @const @type {number} */ var VIEWPORT_WIDTH = 128;
@@ -41,9 +41,9 @@ define(['framework/opengl/gluShaderUtil',
      */
     var interpolation = {
 
-    SMOOTH: 0,
-    FLAT: 1,
-    CENTROID: 2
+        SMOOTH: 0,
+        FLAT: 1,
+        CENTROID: 2
 
     };
 
@@ -101,7 +101,7 @@ define(['framework/opengl/gluShaderUtil',
      */
     var findAttributeNameEquals = function(array, name) {
 
-    /** @type {boolean} */ var attributeNameFound = false;
+        /** @type {boolean} */ var attributeNameFound = false;
         for (var pos = 0; pos < array.length; pos++)
         {
             if (array[pos].name === name) {
@@ -397,10 +397,10 @@ define(['framework/opengl/gluShaderUtil',
             }
         }
 
-        vtx.str += '\nvoid main (void)\n{\n'
-                 + '\tgl_Position = a_position;\n';
+        vtx.str  += '\nvoid main (void)\n{\n'
+                 +  '\tgl_Position = a_position;\n';
         frag.str += '\nvoid main (void)\n{\n'
-                 + '\thighg vec4 res = vec4(0.0);\n';
+                 +  '\thighg vec4 res = vec4(0.0);\n';
 
         if (addPointSize) {
             vtx.str += '\tgl_PointSize = a_pointSize;\n';
@@ -921,35 +921,35 @@ define(['framework/opengl/gluShaderUtil',
                 typeof(primitiveType) !== 'undefined'
             ) {
                 parent._construct(context, name, desc);
-                m_bufferMode = bufferMode;
-                m_primitiveType = primitiveType;
+                this.m_bufferMode = bufferMode;
+                this.m_primitiveType = primitiveType;
             }
         };
 
         this.init = function() {
-            var log = m_testCtx.getLog(); // TestLog&
-            var gl = m_context.getRenderContext().getFunctions(); // const glw::Functions&
+        //  var log = this.m_testCtx.getLog(); // TestLog&
+            var gl = this.m_context.getRenderContext().getFunctions(); // const glw::Functions&
 
-            if (m_program != null) { throw new Error('m_program isnt null.'); }
-            m_program = createVertexCaptureProgram(
-                m_context.getRenderContext(),
-                m_progSpec,
-                m_bufferMode,
-                m_primitiveType
+            if (this.m_program != null) { throw new Error('this.m_program isnt null.'); }
+            this.m_program = createVertexCaptureProgram(
+                this.m_context.getRenderContext(),
+                this.m_progSpec,
+                this.m_bufferMode,
+                this.m_primitiveType
             );
 
-            log.log(m_program);
+            log.log(this.m_program);
 
-            if (!m_program.isOk()) {
+            if (!this.m_program.isOk()) {
 
-                var linkFail = m_program.getShaderInfo(glu.SHADERTYPE_VERTEX).compileOk &&
-                               m_program.getShaderInfo(glu.SHADERTYPE_FRAGMENT).compileOk &&
-                               !m_program.getProgramInfo().linkOk;
+                var linkFail = this.m_program.getShaderInfo(glu.SHADERTYPE_VERTEX).compileOk &&
+                               this.m_program.getShaderInfo(glu.SHADERTYPE_FRAGMENT).compileOk &&
+                               !this.m_program.getProgramInfo().linkOk;
 
                 if (linkFail) {
-                    if (!isPorgramSupported(gl, m_proSpec, m_bufferMode)) {
+                    if (!isPorgramSupported(gl, this.m_proSpec, this.m_bufferMode)) {
                         throw new Error('Not Supported. Implementation limits exceeded.');
-                    } else if (hasArraysInTFVaryings(m_progSpec)) {
+                    } else if (hasArraysInTFVaryings(this.m_progSpec)) {
                         throw new Error('Capturing arrays is not supported (undefined in specification)');
                     } else {
                         throw new Error('Link failed');
@@ -960,57 +960,57 @@ define(['framework/opengl/gluShaderUtil',
             }
 
             // TODO: TestLog static members
-            bufferedLogToConsole('Transform feedback varyings: ' + tcu.formatArray(m_progSpec.getTransformFeedbackVaryings()));
+            bufferedLogToConsole('Transform feedback varyings: ' + tcu.formatArray(this.m_progSpec.getTransformFeedbackVaryings()));
 
             // Print out transform feedback points reported by GL.
             bufferedLogToConsole('Transform feedback varyings reported by compiler:');
-            logTransformFeedbackVaryings(log, gl, m_program.getProgram());
+            //logTransformFeedbackVaryings(log, gl, this.m_program.getProgram());
 
             // Compute input specification.
-            computeInputLayout(m_attributes, m_inputStride, m_progSpec.getVaryings(), m_progSpec.isPointSizeUsed());
+            computeInputLayout(this.m_attributes, this.m_inputStride, this.m_progSpec.getVaryings(), this.m_progSpec.isPointSizeUsed());
 
             // Build list of varyings used in transform feedback.
             computeTransformFeedbackOutputs(
-                m_transformFeedbackOutputs, // TODO: make sure this param is working as intended
-                m_attributes,
-                m_progSpec.getVaryings(),
-                m_progSpec.getTransformFeedbackVaryings(),
-                m_bufferMode
+                this.m_transformFeedbackOutputs, // TODO: make sure this param is working as intended
+                this.m_attributes,
+                this.m_progSpec.getVaryings(),
+                this.m_progSpec.getTransformFeedbackVaryings(),
+                this.m_bufferMode
             );
-            if (!m_transformFeedbackOutputs.length) {
+            if (!this.m_transformFeedbackOutputs.length) {
                 throw new Error('transformFeedbackOutputs cannot be empty.');
             }
 
             // Buffer strides.
-            if (!m_bufferStrides.length) {
+            if (!this.m_bufferStrides.length) {
                 throw new Error('bufferStrides cannot be empty.');
             }
-            if (m_bufferMode == GL.SEPARATE_ATTRIBS) {
-                for (var i = 0; i < m_transformFeedbackOutputs.length; ++i) {
-                    m_bufferStrides.push(m_transformFeedbackOutputs[i].type.getScalarSize() * 4 /*sizeof(deUint32)*/);
+            if (this.m_bufferMode == GL.SEPARATE_ATTRIBS) {
+                for (var i = 0; i < this.m_transformFeedbackOutputs.length; ++i) {
+                    this.m_bufferStrides.push(this.m_transformFeedbackOutputs[i].type.getScalarSize() * 4 /*sizeof(deUint32)*/);
                 }
             } else {
                 var totalSize = 0;
-                for (var i = 0; i < m_transformFeedbackOutputs.length; ++i) {
-                    totalSize += m_transformFeedbackOutputs[i].type.getScalarSize() * 4 /*sizeof(deUint32)*/;
+                for (var i = 0; i < this.m_transformFeedbackOutputs.length; ++i) {
+                    totalSize += this.m_transformFeedbackOutputs[i].type.getScalarSize() * 4 /*sizeof(deUint32)*/;
                 }
-                m_bufferStrides.push(totalSize);
+                this.m_bufferStrides.push(totalSize);
             }
 
             // \note Actual storage is allocated in iterate().
-        //    m_outputBuffers.resize(m_bufferStrides.size()); //                  <-- not needed in JS
-        //    gl.genBuffers(m_outputBuffers.length, m_outputBuffers); // TODO:    <-- rework
+        //    this.m_outputBuffers.resize(this.m_bufferStrides.size()); //                  <-- not needed in JS
+        //    gl.genBuffers(this.m_outputBuffers.length, this.m_outputBuffers); // TODO:    <-- rework
 
-            DE_ASSERT(!m_transformFeedback);
-            if (m_transformFeedback != null) {
+            DE_ASSERT(!this.m_transformFeedback);
+            if (this.m_transformFeedback != null) {
                 throw new Error('transformFeedback is already set.');
             }
-            m_transformFeedback = new glu.TransformFeedback(m_context.getRenderContext());
+            this.m_transformFeedback = new glu.TransformFeedback(this.m_context.getRenderContext());
 
             GLU_EXPECT_NO_ERROR(gl.getError(), 'init');
 
-            m_iterNdx = 0;
-            m_testCtx.setTestResult(QP_TEST_RESULT_PASS, 'Pass');
+            this.m_iterNdx = 0;
+            this.m_testCtx.setTestResult(QP_TEST_RESULT_PASS, 'Pass');
 
         };
         this.deinit = function() {
@@ -1018,21 +1018,21 @@ define(['framework/opengl/gluShaderUtil',
             var gl = m_context.getRenderContext().getFunctions();
 
             if (!m_outputBuffers.empty()) {
-            //    gl.deleteBuffers((glw::GLsizei)m_outputBuffers.size(), &m_outputBuffers[0]); // TODO: rework
+            //    gl.deleteBuffers((glw::GLsizei)this.m_outputBuffers.size(), &this.m_outputBuffers[0]); // TODO: rework
                 m_outputBuffers.clear();
             }
 
-        //    delete m_transformFeedback;
-            m_transformFeedback = null;
+        //    delete this.m_transformFeedback;
+            this.m_transformFeedback = null;
 
-        //    delete m_program;
-            m_program = null;
+        //    delete this.m_program;
+            this.m_program = null;
 
             // Clean up state.
-            m_attributes.clear();
-            m_transformFeedbackOutputs.clear();
-            m_bufferStrides.clear();
-            m_inputStride = 0;
+            this.m_attributes.clear();
+            this.m_transformFeedbackOutputs.clear();
+            this.m_bufferStrides.clear();
+            this.m_inputStride = 0;
 
         };
 
@@ -1041,30 +1041,32 @@ define(['framework/opengl/gluShaderUtil',
             // static vars
             var s = TransformFeedbackCase.s_iterate;
 
-            var log = m_textCtx.getLog();
+            var log = this.m_textCtx.getLog();
             var isOk = true;
             var seed = deString.deStringHash(getName()) ^ deMath.deMathHash(m_iterNdx);
             var numIterations = TransformFeedbackCase.s_iterate.iterations.length;
             // first and end ignored.
 
-            var sectionName = 'Iteration' + (m_iterNdx + 1);
-            var sectionDesc = 'Iteration ' + (m_iterNdx + 1) + ' / ' + numIterations;
+            var sectionName = 'Iteration' + (this.m_iterNdx + 1);
+            var sectionDesc = 'Iteration ' + (this.m_iterNdx + 1) + ' / ' + numIterations;
 //            var section; // something weird.
 
             log.log('Testing ' +
-                s.testCases[s.iterations[m_iterNdx]].length +
+                s.testCases[s.iterations[this.m_iterNdx]].length +
                 ' draw calls, (element count, TF state): ' +
-                tcu.formatArray(s.testCases[s.iterations[m_iterNdx]]));
+                tcu.formatArray(s.testCases[s.iterations[this.m_iterNdx]]));
 
-            isOk = runTest(s.testCases[s.iterations[m_iterNdx]], seed);
+            isOk = runTest(s.testCases[s.iterations[this.m_iterNdx]], seed);
 
             if (!isOk) {
-                m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, 'Result comparison failed'); // TODO: find QP_TEST_RESULT_FAIL
+                this.m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, 'Result comparison failed'); // TODO: find QP_TEST_RESULT_FAIL
             }
 
-            m_iterNdx += 1;
+            this.m_iterNdx += 1;
 
-            return (isOk && m_iterNdx < numIterations) ? CONTINUE : STOP; // TODO: find CONTINUTE, find STOP
+            return (isOk && this.m_iterNdx < numIterations)
+                   ? deqpTests.runner.IterateResult.CONTINUE
+                   : deqpTests.runner.IterateResult.STOP;
 
         };
 
@@ -1079,20 +1081,20 @@ define(['framework/opengl/gluShaderUtil',
 
             var _min = function(x, y) { return x < y ? x : y; };
 
-        // var log = m_testCtx.getLog();
-            var gl = m_context.getRenderContext().getFunctions();
+        // var log = this.m_testCtx.getLog();
+            var gl = this.m_context.getRenderContext().getFunctions();
             var rnd = new deRandom.Random(seed);
             var numInputs = 0;
             var numOutputs = 0;
-            var width = m_context.getRenderContext().getRenderTarget().getWidth();
-            var height = m_context.getRenderContext().getRenderTarget().getHeight();
+            var width = this.m_context.getRenderContext().getRenderTarget().getWidth();
+            var height = this.m_context.getRenderContext().getRenderTarget().getHeight();
             var viewportW = _min(VIEWPORT_WIDTH, width);
             var viewportH = _min(VIEWPORT_HEIGHT, height);
             var viewportX = rnd.getInt(0, width - viewportW);
             var viewportY = rnd.getInt(0, height - viewportH);
             var frameWithTf = new tcu.Surface(viewportW, viewportH); // tcu::Surface
             var frameWithoutTf = new tcu.Surface(viewportW, viewportH); // tcu::Surface
-            var primitiveQuery = new glu.Query(m_context.getRenderContext()); // glu::Query
+            var primitiveQuery = new glu.Query(this.m_context.getRenderContext()); // glu::Query
             var outputsOk = true;
             var imagesOk = true;
             var queryOk = true;
@@ -1101,26 +1103,26 @@ define(['framework/opengl/gluShaderUtil',
             for (var i = 0; i < calls.length; ++i) {
                 var call = calls[i];
                 numInputs += call.numElements;
-                numOutputs += call.transformFeedbackEnabled ? getTransformFeedbackOutputCount(m_primitiveType, call.numElements) : 0;
+                numOutputs += call.transformFeedbackEnabled ? getTransformFeedbackOutputCount(this.m_primitiveType, call.numElements) : 0;
             }
 
             // Input data.
-            var inputData = genInputData(m_attributes, numInputs, m_inputStride, rnd);
+            var inputData = genInputData(this.m_attributes, numInputs, this.m_inputStride, rnd);
 
-            gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, m_transformFeedback.get());
+            gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, this.m_transformFeedback.get());
             GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTransformFeedback()');
 
             // Allocate storage for transform feedback output buffers and bind to targets.
-            for (var bufNdx = 0; bufNdx < m_outputBuffers.length; ++bufNdx) {
-                var buffer    = m_outputBuffers[bufNdx]; // deUint32
-                var stride    = m_bufferStrides[bufNdx]; // int
+            for (var bufNdx = 0; bufNdx < this.m_outputBuffers.length; ++bufNdx) {
+                var buffer    = this.m_outputBuffers[bufNdx]; // deUint32
+                var stride    = this.m_bufferStrides[bufNdx]; // int
                 var target    = bufNdx; // int
                 var size      = stride * numOutputs; // int
                 var guardSize = stride * BUFFER_GUARD_MULTIPLIER; // int
                 var usage     = gl.DYNAMIC_READ; // const deUint32
 
                 gl.bindBuffer(gl.TRANSFORM_FEEDBACK_BUFFER, buffer);
-                gl.bufferData(gl.TRANSFORM_FEEDBACK_BUFFER, size + guardSize, DE_NULL, usage);
+                gl.bufferData(gl.TRANSFORM_FEEDBACK_BUFFER, size + guardSize, 0, usage);
                 writeBufferGuard(gl, gl.TRANSFORM_FEEDBACK_BUFFER, size, guardSize);
 
                 // \todo [2012-07-30 pyry] glBindBufferRange()?
@@ -1130,10 +1132,12 @@ define(['framework/opengl/gluShaderUtil',
             }
 
             // Setup attributes.
-            for (var i = 0; i < m_attributes.length; ++i) {
-                var loc = gl.getAttribLocation(m_program.getProgram(), attrib.name);
-                /** @type {string} */ var scalarType = deqpUitls.getDataTypeScalarType(attrib.type.getBasicType());
-                /** @type {number} */ var numComponents = deqpUitls.getDataTypeScalarSize(attrib.type.getBasicType());
+            for (var i = 0; i < this.m_attributes.length; ++i) {
+                var loc = gl.getAttribLocation(this.m_program.getProgram(), attrib.name);
+                /** @type {string} */
+                var scalarType = deqpUtils.getDataTypeScalarType(attrib.type.getBasicType());
+                /** @type {number} */
+                var numComponents = deqpUtils.getDataTypeScalarSize(attrib.type.getBasicType());
 
                 if (loc >= 0) {
                     gl.enableVertexAttribArray(loc);
@@ -1144,7 +1148,7 @@ define(['framework/opengl/gluShaderUtil',
                         case glu.TYPE_UINT: type = gl.UNSIGNED_INT; break;
                     }
                     if (type !== null) {
-                        gl.vertexAttribPointer(loc, numComponents, type, gl.FALSE, m_inputStride, ptr);
+                        gl.vertexAttribPointer(loc, numComponents, type, gl.FALSE, this.m_inputStride, attrib.offset());
                     }
                 }
             }
@@ -1153,14 +1157,14 @@ define(['framework/opengl/gluShaderUtil',
             gl.viewport(viewportX, viewportY, viewportW, viewportH);
 
             // Setup program.
-            gl.useProgram(m_program.getProgram());
+            gl.useProgram(this.m_program.getProgram());
 
             gl.uniform4fv(
-                gl.getUniformLocation(m_program.getProgram(), 'u_scale'),
+                gl.getUniformLocation(this.m_program.getProgram(), 'u_scale'),
                 1, tcu.Vec4(0.01)
             );
             gl.uniform4fv(
-                gl.getUniformLocation(m_program.getProgram(), 'u_bias'),
+                gl.getUniformLocation(this.m_program.getProgram(), 'u_bias'),
                 1, tcu.Vec4(0.5)
             );
 
@@ -1175,7 +1179,7 @@ define(['framework/opengl/gluShaderUtil',
 
                 gl.clear(gl.COLOR_BUFFER_BIT);
 
-                gl.beginTransformFeedback(getTransformFeedbackPrimitiveMode(m_primitiveType));
+                gl.beginTransformFeedback(getTransformFeedbackPrimitiveMode(this.m_primitiveType));
 
                 for (var i = 0; i < calls.length; ++i) {
                     var call = calls[i];
@@ -1190,7 +1194,7 @@ define(['framework/opengl/gluShaderUtil',
                         tfEnabled = call.transformFeedbackEnabled;
                     }
 
-                    gl.drawArrays(m_primitiveType, offset, call.numElements);
+                    gl.drawArrays(this.m_primitiveType, offset, call.numElements);
                     offset += call.numElements;
                 }
 
@@ -1216,21 +1220,21 @@ define(['framework/opengl/gluShaderUtil',
             })();
 
             // Compare result buffers.
-            for (var bufferNdx = 0; bufferNdx < m_outputBuffers.length; ++bufferNdx) {
-                var stride    = m_bufferStrides[bufferNdx];        // int
+            for (var bufferNdx = 0; bufferNdx < this.m_outputBuffers.length; ++bufferNdx) {
+                var stride    = this.m_bufferStrides[bufferNdx];        // int
                 var size      = stride * numOutputs;               // int
                 var guardSize = stride * BUFFER_GUARD_MULTIPLIER;  // int
                 var buffer    = new ArrayBuffer(size + guardSize); // const void*
 
                 // Bind buffer for reading.
-                gl.bindBuffer(gl.TRANSFORM_FEEDBACK_BUFFER, m_outputBuffers[bufferNdx]);
+                gl.bindBuffer(gl.TRANSFORM_FEEDBACK_BUFFER, this.m_outputBuffers[bufferNdx]);
 
                 gl.getBufferSubData(gl.TRANSFORM_FEEDBACK_BUFFER, 0, buffer); // (spec says to use ArrayBufferData)
                 GLU_EXPECT_NO_ERROR(gl.getError(), 'mapping buffer');
 
                 // Verify all output variables that are written to this buffer.
-                for (var i = 0; i < m_transformFeedbackOutputs.length; ++i) {
-                    var out = m_transformFeedbackOutputs[i];
+                for (var i = 0; i < this.m_transformFeedbackOutputs.length; ++i) {
+                    var out = this.m_transformFeedbackOutputs[i];
 
                     if (out.bufferNdx != bufferNdx)
                         continue;
@@ -1243,17 +1247,17 @@ define(['framework/opengl/gluShaderUtil',
                         var call = calls[callNdx];
 
                         if (call.transformFeedbackEnabled) {
-                            var inputPtr = inputData[0] + inputOffset * m_inputStride; // const deUint8*
+                            var inputPtr = inputData[0] + inputOffset * this.m_inputStride; // const deUint8*
                             var outputPtr = outputOffset * stride; // const deUint8*
 
-                            if (!compareTransformFeedbackOutput(log, m_primitiveType, out, call.numElements, inputPtr, m_inputStride, outputPtr, stride)) {
+                            if (!compareTransformFeedbackOutput(log, this.m_primitiveType, out, call.numElements, inputPtr, this.m_inputStride, outputPtr, stride)) {
                                 outputsOk = false;
                                 break;
                             }
                         }
 
                         inputOffset += call.numElements;
-                        outputOffset += call.transformFeedbackEnabled ? getTransformFeedbackOutputCount(m_primitiveType, call.numElements) : 0;
+                        outputOffset += call.transformFeedbackEnabled ? getTransformFeedbackOutputCount(this.m_primitiveType, call.numElements) : 0;
 
                     }
                 }
@@ -1272,8 +1276,8 @@ define(['framework/opengl/gluShaderUtil',
             // Check status after mapping buffers.
             (function() {
 
-                var mustBeReady = m_outputBuffers.length > 0; // Mapping buffer forces synchronization. // const bool
-                var expectedCount = computeTransformFeedbackPrimitiveCount(gl, m_primitiveType, calls); // const int
+                var mustBeReady = this.m_outputBuffers.length > 0; // Mapping buffer forces synchronization. // const bool
+                var expectedCount = computeTransformFeedbackPrimitiveCount(gl, this.m_primitiveType, calls); // const int
                 var available = gl.FALSE; // deUint32
                 var numPrimitives = 0; // deUint32
 
@@ -1297,13 +1301,13 @@ define(['framework/opengl/gluShaderUtil',
 
             // Clear transform feedback state.
             gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, 0);
-            for (var bufNdx = 0; bufNdx < m_outputBuffers.length; ++bufNdx) {
+            for (var bufNdx = 0; bufNdx < this.m_outputBuffers.length; ++bufNdx) {
                 gl.bindBuffer(gl.TRANSFORM_FEEDBACK_BUFFER, 0);
                 gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, bufNdx, 0);
             }
 
             // Read back rendered image.
-            glu.readPixels(m_context.getRenderContext(), viewportX, viewportY, frameWithTf.getAccess());
+            glu.readPixels(this.m_context.getRenderContext(), viewportX, viewportY, frameWithTf.getAccess());
 
             // Render without transform feedback.
             (function (){
@@ -1313,12 +1317,12 @@ define(['framework/opengl/gluShaderUtil',
 
                 for (var i = 0; i < calls.length; ++i) {
                     var call = calls[i];
-                    gl.drawArrays(m_primitiveType, offset, call.numElements);
+                    gl.drawArrays(this.m_primitiveType, offset, call.numElements);
                     offset += call.numElements;
                 }
 
                 GLU_EXPECT_NO_ERROR(gl.getError(), 'render');
-                glu.readPixels(m_context.getRenderContext(), viewportX, viewportY, frameWithoutTf.getAccess());
+                glu.readPixels(this.m_context.getRenderContext(), viewportX, viewportY, frameWithoutTf.getAccess());
             })();
 
             // Compare images with and without transform feedback.
@@ -1335,17 +1339,17 @@ define(['framework/opengl/gluShaderUtil',
         }; // runTest();
 
         // Derived from ProgramSpec in init()
-        var m_inputStride       = 0;
-        var m_attributes        = [];    // vector<Attribute>
-        var m_transformFeedbackOutputs = []; // vector<Output>
-        var m_bufferStrides     = [];    // vector<int>
+        this.m_inputStride       = 0;
+        this.m_attributes        = [];    // vector<Attribute>
+        this.m_transformFeedbackOutputs = []; // vector<Output>
+        this.m_bufferStrides     = [];    // vector<int>
 
         // GL state.
-        var m_program           = null;  // glu::ShaderProgram
-        var m_transformFeedback = null;  // glu::TransformFeedback
-        var m_outputBuffers     = [];    // vector<deUint32>
+        this.m_program           = null;  // glu::ShaderProgram
+        this.m_transformFeedback = null;  // glu::TransformFeedback
+        this.m_outputBuffers     = [];    // vector<deUint32>
 
-        var m_iterNdx           = 0;     // int
+        this.m_iterNdx           = 0;     // int
 
         this._construct(context, name, desc, bufferMode, primitiveType);
 
@@ -1375,7 +1379,7 @@ define(['framework/opengl/gluShaderUtil',
         ]
     };
 
-    TransformFeedbackCase.prototype = new tcuTestCase.DeqpTest();
+    TransformFeedbackCase.prototype = new deqpTests.DeqpTest();
 
     /** PositionCase
      * It is a child class of TransformFeedbackCase
@@ -1510,18 +1514,19 @@ define(['framework/opengl/gluShaderUtil',
      * @param {WebGLRenderingContext} context gl WebGL context
      * @param {string} name
      * @param {string} desc
-     * @param {number} bufferType
+     * @param {number} bufferMode
      * @param {deqpDraw.primitiveType} primitiveType GLenum that specifies what kind of primitive is
      * @param {number} seed
      */
 
-    var RandomCase = (function(context, name, desc, bufferType, primitiveType, seed) {
+    var RandomCase = (function(context, name, desc, bufferMode, primitiveType, seed) {
 
         this._construct(context, name, desc, bufferMode, primitiveType);
 
         // TODO: unfinished, same implementation in TransformFeedbackCase.iterate
         // var seed = this.iterate.seed; // TODO: possible solution as a local attribute?
-        /** @type {number} */ var seed = deString.deStringHash(getName()) ^ deMath.deMathHash(m_iterNdx);
+        /** @type {number} */
+        var seed = deString.deStringHash(getName()) ^ deMath.deMathHash(this.m_iterNdx);
 
         /** @type {Array.<deqpUtils.DataType>} */
         var typeCandidates = [
@@ -1571,53 +1576,74 @@ define(['framework/opengl/gluShaderUtil',
             {name: 'centroid', interp: interpolation.CENTROID}
         ];
 
-        /** @type {number} */ var maxAttributeVectors = 16;
-        // /** @type {number} */ var maxTransformFeedbackComponents    = 64; // note It is enough to limit attribute set size.
-        /** @type {boolean} */ var isSeparateMode = m_bufferMode === gl.SEPARATE_ATTRIBS;
-        /** @type {number} */ var maxTransformFeedbackVars = isSeparateMode ? 4 : maxAttributeVectors;
-        /** @type {number} */ var arrayWeight = 0.3;
-        /** @type {number} */ var positionWeight = 0.7;
-        /** @type {number} */ var pointSizeWeight = 0.1;
-        /** @type {number} */ var captureFullArrayWeight = 0.5;
+        /** @type {number} */  var maxAttributeVectors      = 16;
+       //** @type {number} */  var maxTransformFeedbackComponents    = 64; // note It is enough to limit attribute set size.
+        /** @type {boolean} */ var isSeparateMode           = (this.m_bufferMode === gl.SEPARATE_ATTRIBS);
+        /** @type {number} */  var maxTransformFeedbackVars = isSeparateMode ? 4 : maxAttributeVectors;
+        /** @type {number} */  var arrayWeight              = 0.3;
+        /** @type {number} */  var positionWeight           = 0.7;
+        /** @type {number} */  var pointSizeWeight          = 0.1;
+        /** @type {number} */  var captureFullArrayWeight   = 0.5;
 
-        /** @type {deRandom.deRandom} */ var rnd = new deRandom.Random(seed);
-        /** @type {boolean} */ var usePosition = rnd.getFloat() < positionWeight;
-        /** @type {boolean} */ var usePointSize    = rnd.getFloat() < pointSizeWeight;
-        /** @type {number} */ var numAttribVectorsToUse    = rnd.getInt(rnd, 1, maxAttributeVectors - 1/*position*/ - (usePointSize ? 1 : 0));
+        /** @type {deRandom.deRandom} */
+                               var rnd                      = new deRandom.Random(seed);
+        /** @type {boolean} */ var usePosition              = rnd.getFloat() < positionWeight;
+        /** @type {boolean} */ var usePointSize             = rnd.getFloat() < pointSizeWeight;
+        /** @type {number} */  var numAttribVectorsToUse    = rnd.getInt(
+            rnd, 1, maxAttributeVectors - 1/*position*/ - (usePointSize ? 1 : 0)
+        );
 
-        /** @type {number} */ var numAttributeVectors = 0;
-        /** @type {number} */ var varNdx = 0;
+        /** @type {number} */  var numAttributeVectors      = 0;
+        /** @type {number} */  var varNdx                   = 0;
 
         // Generate varyings.
         while (numAttributeVectors < numAttribVectorsToUse)
         {
             /** @type {number} */
             var maxVecs = isSeparateMode ? Math.min(2 /*at most 2*mat2*/, numAttribVectorsToUse - numAttributeVectors) : numAttribVectorsToUse - numAttributeVectors;
-            /** @type {deqpUtils.DataType} */ var begin    = typeCandidates[0];
-            /** @type {number} */ var endCandidates = begin + (maxVecs >= 4 ? 21 :
-                                                                maxVecs >= 3 ? 18 :
-                                                                maxVecs >= 2 ? (isSeparateMode ? 13 : 15) : 12);
-            /** @type {deqpUtils.DataType} */ var end = typeCandidates[endCandidates];
+            /** @type {deqpUtils.DataType} */
+            var begin   = typeCandidates[0];
+            /** @type {number} */
+            var endCandidates = begin + (
+                maxVecs >= 4 ? 21 : (
+                    maxVecs >= 3 ? 18 : (
+                        maxVecs >= 2 ? (isSeparateMode ? 13 : 15) : 12
+                    )
+                )
+            );
+            /** @type {deqpUtils.DataType} */
+            var end = typeCandidates[endCandidates];
 
-//            /** @type {deqpUtils.DataType} */ var type = rnd.choose<glu::DataType>(begin, end); // TODO: implement
+            /** @type {deqpUtils.DataType} */
+            var type = rnd.choose(typeCandidates);
+            
             /** @type {glsUBC.UniformFlags | deqpUtils.precision} */
-//            var precision = rnd.choose<glu::Precision>(&precisions[0], &precisions[0]+DE_LENGTH_OF_ARRAY(precisions)); // TODO: implement
-//            /** @type {interpolation} */ var interp = deqpUtils.getDataTypeScalarType(type) === deqpUtils.DataType.FLOAT
-//                                                ? rnd.choose<Interpolation>(&interpModes[0], &interpModes[0]+DE_LENGTH_OF_ARRAY(interpModes))
-//                                                : interpolation.FLAT; // TODO: implement
-            /** @type {number} */ var numVecs = deqpUtils.isDataTypeMatrix(type) ? deqpUtils.getDataTypeMatrixNumColumns(type) : 1;
-            /** @type {number} */ var numComps = deqpUtils.getDataTypeScalarSize(type);
-            /** @type {number} */ var maxArrayLen = Math.max(1, isSeparateMode ? 4 / numComps : maxVecs / numVecs);
-            /** @type {boolean} */ var useArray    = rnd.getFloat() < arrayWeight;
-            /** @type {number} */ var arrayLen = useArray ? rnd.getInt(1, maxArrayLen) : 1;
-            /** @type {string} */ var name = 'v_var' + varNdx; // TODO: check varNdx.toString() omitted?
+            var precision = rnd.choose(precisions);
+            
+            /** @type {interpolation} */ // TODO: implement
+            var interp = deqpUtils.getDataTypeScalarType(type) === deqpUtils.DataType.FLOAT
+                       ? rnd.choose(interpModes)
+                       : interpolation.FLAT; 
+            
+            /** @type {number} */
+            var numVecs     = deqpUtils.isDataTypeMatrix(type) ? deqpUtils.getDataTypeMatrixNumColumns(type) : 1;
+            /** @type {number} */
+            var numComps    = deqpUtils.getDataTypeScalarSize(type);
+            /** @type {number} */
+            var maxArrayLen = Math.max(1, isSeparateMode ? 4 / numComps : maxVecs / numVecs);
+            /** @type {boolean} */
+            var useArray    = rnd.getFloat() < arrayWeight;
+            /** @type {number} */
+            var arrayLen    = useArray ? rnd.getInt(1, maxArrayLen) : 1;
+            /** @type {string} */
+            var name        = 'v_var' + varNdx; // TODO: check varNdx.toString() omitted?
 
             if (useArray)
                 this.m_progSpec.addVarying(name, gluVT.newTypeArray(gluVT.newTypeBasic(type, precision), arrayLen), interp);
             else
                 this.m_progSpec.addVarying(name, gluVT.newTypeBasic(type, precision), interp);
 
-            numAttributeVectors    += arrayLen * numVecs;
+            numAttributeVectors += arrayLen * numVecs;
             varNdx += 1;
         }
 
@@ -1629,17 +1655,22 @@ define(['framework/opengl/gluShaderUtil',
 
         for (var ndx = 0; ndx < varNdx; ndx++)
         {
-        /** @type {Varying} */ var varying = this.m_progSpec.getVaryings()[ndx];
+            /** @type {Varying} */
+            var varying = this.m_progSpec.getVaryings()[ndx];
 
             if (varying.type.isArrayType())
             {
-                /** @type {boolean} */ var captureFull = rnd.getFloat() < captureFullArrayWeight;
+                /** @type {boolean} */
+                var captureFull = rnd.getFloat() < captureFullArrayWeight;
 
                 if (captureFull)
+                {
                     tfCandidates.push(varying.name);
+                }
                 else
                 {
-                    /** @type {number} */ var numElem = varying.type.getArraySize();
+                    /** @type {number} */
+                    var numElem = varying.type.getArraySize();
                     for (var elemNdx = 0; elemNdx < numElem; elemNdx++)
                         tfCandidates.push(varying.name + '[' + elemNdx + ']'); // TODO: check elemNdx.toString() omitted?
                 }
@@ -1662,14 +1693,15 @@ define(['framework/opengl/gluShaderUtil',
 
     RandomCase.prototype = new TransformFeedbackCase();
 
-     /**
+    /**
      * Creates the test in order to be executed
-     **/
+    **/
     var init = function() {
 
-    /** @const @type {deqpTests.DeqpTest} */ var testGroup = deqpTests.runner.getState().testCases;
+        /** @const @type {deqpTests.DeqpTest} */
+        var testGroup = deqpTests.runner.getState().testCases;
 
-    /** @type {Array.<string, number>} */
+        /** @type {Array.<string, number>} */
         var bufferModes = [
             {name: 'separate', mode: gl.SEPARATE_ATTRIBS}, // TODO: implement GL_SEPARATE_ATTRIBS
             {name: 'interleaved', mode: gl.INTERLEAVED_ATTRIBS} // TODO: implement GL_INTERLEAVED_ATTRIBS
@@ -1728,16 +1760,24 @@ define(['framework/opengl/gluShaderUtil',
         ];
 
         // .position
-        /** @type {deqpTests.DeqpTest} */ var positionGroup = deqpTests.newTest('position', 'gl_Position capture using transform feedback');
+        /** @type {deqpTests.DeqpTest} */
+        var positionGroup = deqpTests.newTest('position', 'gl_Position capture using transform feedback');
         testGroup.addChild(positionGroup);
 
         for (var primitiveType = 0; primitiveType < primitiveTypes.length; primitiveType++)
         {
             for (var bufferMode = 0; bufferMode < bufferModes.length; bufferMode++)
             {
-            /** @type {string} */ var name = primitiveTypes[primitiveType].name + '_' + bufferModes[bufferMode].name;
-                // TODO: new needed below?
-                positionGroup.addChild(new PositionCase(m_context, name, '', bufferModes[bufferMode].mode, primitiveTypes[primitiveType].type));
+                /** @type {string} */
+                var name = primitiveTypes[primitiveType].name + '_' + bufferModes[bufferMode].name;
+                
+                positionGroup.addChild(new PositionCase(
+                    m_context,
+                    name,
+                    '',
+                    bufferModes[bufferMode].mode,
+                    primitiveTypes[primitiveType].type
+                ));
             }
         }
 
@@ -1749,39 +1789,64 @@ define(['framework/opengl/gluShaderUtil',
         {
             for (var bufferMode = 0; bufferMode < bufferModes.length; bufferMode++)
             {
-            /** @type {string} */ var name = primitiveTypes[primitiveType].name + '_' + bufferModes[bufferMode].name;
-                // TODO: new needed below?
-                pointSizeGroup.addChild(new PointSizeCase(m_context, name, '', bufferModes[bufferMode].mode, primitiveTypes[primitiveType].type));
+                /** @type {string} */
+                var name = primitiveTypes[primitiveType].name + '_' + bufferModes[bufferMode].name;
+                
+                pointSizeGroup.addChild(new PointSizeCase(
+                    m_context,
+                    name,
+                    '',
+                    bufferModes[bufferMode].mode,
+                    primitiveTypes[primitiveType].type
+                ));
             }
         }
 
         // .basic_type
-        /** @type {deqpTests.DeqpTest} */ var basicTypeGroup = deqpTests.newTest('basic_types', 'Basic types in transform feedback');
+        /** @type {deqpTests.DeqpTest} */
+        var basicTypeGroup = deqpTests.newTest('basic_types', 'Basic types in transform feedback');
         testGroup.addChild(basicTypeGroup);
 
         for (var bufferModeNdx = 0; bufferModeNdx < bufferModes.length; bufferModeNdx++)
         {
-        /** @type {deqpTests.DeqpTest} */ var modeGroup = deqpTests.newTest(bufferModes[bufferModeNdx].name, '');
-        /** @type {number} */ var bufferMode = bufferModes[bufferModeNdx].mode;
+            /** @type {deqpTests.DeqpTest} */
+            var modeGroup = deqpTests.newTest(bufferModes[bufferModeNdx].name, '');
+            /** @type {number} */
+            var bufferMode = bufferModes[bufferModeNdx].mode;
             basicTypeGroup.addChild(modeGroup);
 
             for (var primitiveTypeNdx = 0; primitiveTypeNdx < primitiveTypes.length; primitiveTypeNdx++)
             {
-            /** @type {deqpTests.DeqpTest} */ var primitiveGroup = deqpTests.newTest(primitiveTypes[primitiveTypeNdx].name, '');
-            /** @type {number} */ var primitiveType    = primitiveTypes[primitiveTypeNdx].type;
+                /** @type {deqpTests.DeqpTest} */
+                var primitiveGroup = deqpTests.newTest(primitiveTypes[primitiveTypeNdx].name, '');
+                /** @type {number} */
+                var primitiveType    = primitiveTypes[primitiveTypeNdx].type;
                 modeGroup.addChild(primitiveGroup);
 
                 for (var typeNdx = 0; typeNdx < basicTypes.length; typeNdx++)
                 {
-                /** @type {deqpUtils.DataType} */ var type = basicTypes[typeNdx];
-                /** @type {boolean} */ var isFloat = deqpUtils.getDataTypeScalarType(type) == deqpUtils.DataType.FLOAT;
+                    /** @type {deqpUtils.DataType} */
+                    var type = basicTypes[typeNdx];
+                    /** @type {boolean} */
+                    var isFloat = deqpUtils.getDataTypeScalarType(type) == deqpUtils.DataType.FLOAT;
 
                     for (var precNdx = 0; precNdx < precisions.length; precNdx++)
                     {
-                    /** @type {deqpUtils.precision} */ var precision = precisions[precNdx];
-                    /** @type {string} */ var name = deqpUtils.getPrecisionName(precision) + '_' + deqpUtils.getDataTypeName(type);
-                        // TODO: new needed below?
-                        primitiveGroup.addChild(new BasicTypeCase(m_context, name, '', bufferMode, primitiveType, type, precision, isFloat ? interpolation.SMOOTH : interpolation.FLAT));
+                        /** @type {deqpUtils.precision} */
+                        var precision = precisions[precNdx];
+                        /** @type {string} */
+                        var name = deqpUtils.getPrecisionName(precision) + '_' + deqpUtils.getDataTypeName(type);
+                        
+                        primitiveGroup.addChild(new BasicTypeCase(
+                            m_context,
+                            name,
+                            '',
+                            bufferMode,
+                            primitiveType,
+                            type,
+                            precision,
+                            isFloat ? interpolation.SMOOTH : interpolation.FLAT
+                        ));
                     }
                 }
             }
@@ -1793,66 +1858,102 @@ define(['framework/opengl/gluShaderUtil',
 
         for (var bufferModeNdx = 0; bufferModeNdx < bufferModes.length; bufferModeNdx++)
         {
-        /** @type {deqpTests.DeqpTest} */ var modeGroup = deqpTests.newTest(bufferModes[bufferModeNdx].name, '');
-        /** @type {number} */ var bufferMode = bufferModes[bufferModeNdx].mode;
+            /** @type {deqpTests.DeqpTest} */ var modeGroup = deqpTests.newTest(bufferModes[bufferModeNdx].name, '');
+            /** @type {number} */ var bufferMode = bufferModes[bufferModeNdx].mode;
             arrayGroup.addChild(modeGroup);
 
             for (var primitiveTypeNdx = 0; primitiveTypeNdx < primitiveTypes.length; primitiveTypeNdx++)
             {
-            /** @type {deqpTests.DeqpTest} */ var primitiveGroup = deqpTests.newTest(primitiveTypes[primitiveTypeNdx].name, '');
-            /** @type {number} */ var primitiveType    = primitiveTypes[primitiveTypeNdx].type;
+                /** @type {deqpTests.DeqpTest} */
+                var primitiveGroup = deqpTests.newTest(primitiveTypes[primitiveTypeNdx].name, '');
+                /** @type {number} */
+                var primitiveType  = primitiveTypes[primitiveTypeNdx].type;
                 modeGroup.addChild(primitiveGroup);
 
                 for (var typeNdx = 0; typeNdx < basicTypes.length; typeNdx++)
                 {
-                /** @type {deqpUtils.DataType} */ var type = basicTypes[typeNdx];
-                /** @type {boolean} */ var isFloat = deqpUtils.getDataTypeScalarType(type) == deqpUtils.DataType.FLOAT;
+                    /** @type {deqpUtils.DataType} */
+                    var type = basicTypes[typeNdx];
+                    /** @type {boolean} */
+                    var isFloat = deqpUtils.getDataTypeScalarType(type) == deqpUtils.DataType.FLOAT;
 
                     for (var precNdx = 0; precNdx < precisions.length; precNdx++)
                     {
-                    /** @type {deqpUtils.precision} */ var precision = precisions[precNdx];
-                    /** @type {string} */ var name = deqpUtils.getPrecisionName(precision) + '_' + deqpUtils.getDataTypeName(type);
-                        // TODO: new needed below?
-                        primitiveGroup.addChild(new BasicArrayCase(m_context, name, '', bufferMode, primitiveType, type, precision, isFloat ? interpolation.SMOOTH : interpolation.FLAT));
+                        /** @type {deqpUtils.precision} */
+                        var precision = precisions[precNdx];
+                        /** @type {string} */
+                        var name = deqpUtils.getPrecisionName(precision) + '_' + deqpUtils.getDataTypeName(type);
+
+                        primitiveGroup.addChild(new BasicArrayCase(
+                            m_context,
+                            name,
+                            '',
+                            bufferMode,
+                            primitiveType,
+                            type,
+                            precision,
+                            isFloat ? interpolation.SMOOTH : interpolation.FLAT
+                        ));
                     }
                 }
             }
         }
 
         // .array_element
-        /** @type {deqpTests.DeqpTest} */ var arrayElemGroup = deqpTests.newTest('array_element', 'Capturing single array element in TF');
+        /** @type {deqpTests.DeqpTest} */
+        var arrayElemGroup = deqpTests.newTest('array_element', 'Capturing single array element in TF');
         testGroup.addChild(arrayElemGroup);
 
         for (var bufferModeNdx = 0; bufferModeNdx < bufferModes.length; bufferModeNdx++)
         {
-        /** @type {deqpTests.DeqpTest} */ var modeGroup = deqpTests.newTest(bufferModes[bufferModeNdx].name, '');
-        /** @type {number} */ var bufferMode = bufferModes[bufferModeNdx].mode;
+            /** @type {deqpTests.DeqpTest} */
+            var modeGroup  = deqpTests.newTest(bufferModes[bufferModeNdx].name, '');
+            /** @type {number} */
+            var bufferMode = bufferModes[bufferModeNdx].mode;
             arrayElemGroup.addChild(modeGroup);
 
             for (var primitiveTypeNdx = 0; primitiveTypeNdx < primitiveTypes.length; primitiveTypeNdx++)
             {
-            /** @type {deqpTests.DeqpTest} */ var primitiveGroup = deqpTests.newTest(primitiveTypes[primitiveTypeNdx].name, '');
-            /** @type {number} */ var primitiveType    = primitiveTypes[primitiveTypeNdx].type;
+                /** @type {deqpTests.DeqpTest} */
+                var primitiveGroup = deqpTests.newTest(primitiveTypes[primitiveTypeNdx].name, '');
+                /** @type {number} */
+                var primitiveType  = primitiveTypes[primitiveTypeNdx].type;
                 modeGroup.addChild(primitiveGroup);
 
                 for (var typeNdx = 0; typeNdx < basicTypes.length; typeNdx++)
                 {
-                /** @type {deqpUtils.DataType} */ var type = basicTypes[typeNdx];
-                /** @type {boolean} */ var isFloat = deqpUtils.getDataTypeScalarType(type) == deqpUtils.DataType.FLOAT;
+                    /** @type {deqpUtils.DataType} */
+                    var type = basicTypes[typeNdx];
+                    /** @type {boolean} */
+                    var isFloat = deqpUtils.getDataTypeScalarType(type) == deqpUtils.DataType.FLOAT;
 
                     for (var precNdx = 0; precNdx < precisions.length; precNdx++)
                     {
-                    /** @type {deqpUtils.precision} */ var precision = precisions[precNdx];
-                    /** @type {string} */ var name = deqpUtils.getPrecisionName(precision) + '_' + deqpUtils.getDataTypeName(type);
-                        // TODO: new needed below?
-                        primitiveGroup.addChild(new ArrayElementCase(m_context, name, '', bufferMode, primitiveType, type, precision, isFloat ? interpolation.SMOOTH : interpolation.FLAT));
+                        /** @type {deqpUtils.precision} */
+                        var precision = precisions[precNdx];
+                        /** @type {string} */
+                        var name = deqpUtils.getPrecisionName(precision) + '_' + deqpUtils.getDataTypeName(type);
+                        
+                        primitiveGroup.addChild(new ArrayElementCase(
+                            m_context,
+                            name,
+                            '',
+                            bufferMode,
+                            primitiveType,
+                            type,
+                            precision,
+                            isFloat ? interpolation.SMOOTH : interpolation.FLAT
+                        ));
                     }
                 }
             }
         }
 
         // .interpolation
-        /** @type {deqpTests.DeqpTest} */ var interpolationGroup = deqpTests.newTest('interpolation', 'Different interpolation modes in transform feedback varyings');
+        /** @type {deqpTests.DeqpTest} */
+        var interpolationGroup = deqpTests.newTest(
+            'interpolation', 'Different interpolation modes in transform feedback varyings'
+        );
         testGroup.addChild(interpolationGroup);
 
         for (var modeNdx = 0; modeNdx < interpModes.length; modeNdx++)
@@ -1866,41 +1967,69 @@ define(['framework/opengl/gluShaderUtil',
 
             for (var precNdx = 0; precNdx < precisions.length; precNdx++)
             {
-            /** @type {deqpUtils.precision} */ var precision = precisions[precNdx];
+                /** @type {deqpUtils.precision} */
+                var precision = precisions[precNdx];
 
                 for (var primitiveType = 0; primitiveType < primitiveTypes.length; primitiveType++)
                 {
                     for (var bufferMode = 0; bufferMode < bufferModes.length; bufferMode++)
                     {
-                    /** @type {string} */ var name = deqpUtils.getPrecisionName(precision) + '_vec4_' + primitiveTypes[primitiveType].name + '_' + bufferModes[bufferMode].name;
-                        // TODO: new needed below?
-                        modeGroup.addChild(new BasicTypeCase(m_context, name, '', bufferModes[bufferMode].mode, primitiveTypes[primitiveType].type, deqpUtils.DataType.FLOAT_VEC4, precision, interp));
+                        /** @type {string} */
+                        var name = (
+                            deqpUtils.getPrecisionName(precision)         +
+                            '_vec4_' + primitiveTypes[primitiveType].name +
+                            '_'      + bufferModes[bufferMode].name
+                        );
+                        
+                        modeGroup.addChild(new BasicTypeCase(
+                            m_context,
+                            name,
+                            '',
+                            bufferModes[bufferMode].mode,
+                            primitiveTypes[primitiveType].type,
+                            deqpUtils.DataType.FLOAT_VEC4,
+                            precision,
+                            interp
+                        ));
                     }
                 }
             }
         }
 
         // .random
-        /** @type {deqpTests.DeqpTest} */ var randomGroup = deqpTests.newTest('random', 'Randomized transform feedback cases');
+        /** @type {deqpTests.DeqpTest} */
+        var randomGroup = deqpTests.newTest('random', 'Randomized transform feedback cases');
         testGroup.addChild(randomGroup);
 
         for (var bufferModeNdx = 0; bufferModeNdx < bufferModes.length; bufferModeNdx++)
         {
-        /** @type {deqpTests.DeqpTest} */ var modeGroup = deqpTests.newTest(bufferModes[bufferModeNdx].name, '');
-        /** @type {number} */ var  bufferMode = bufferModes[bufferModeNdx].mode;
+            /** @type {deqpTests.DeqpTest} */
+            var modeGroup  = deqpTests.newTest(bufferModes[bufferModeNdx].name, '');
+            /** @type {number} */
+            var bufferMode = bufferModes[bufferModeNdx].mode;
             randomGroup.addChild(modeGroup);
 
             for (var primitiveTypeNdx = 0; primitiveTypeNdx < primitiveTypes.length; primitiveTypeNdx++)
             {
-            /** @type {deqpTests.DeqpTest} */ var primitiveGroup = deqpTests.newTest(primitiveTypes[primitiveTypeNdx].name, '');
-            /** @type {number} */ var  primitiveType = primitiveTypes[primitiveTypeNdx].type;
+                /** @type {deqpTests.DeqpTest} */
+                var primitiveGroup = deqpTests.newTest(primitiveTypes[primitiveTypeNdx].name, '');
+                /** @type {number} */
+                var  primitiveType = primitiveTypes[primitiveTypeNdx].type;
                 modeGroup.addChild(primitiveGroup);
 
                 for (var ndx = 0; ndx < 10; ndx++)
                 {
-                /** @type {number} */ var seed = deMath.deMathHash(bufferMode) ^ deMath.deMathHash(primitiveType) ^ deMath.deMathHash(ndx);
-                // TODO: new needed below?
-                    primitiveGroup.addChild(new RandomCase(m_context, (ndx + 1).toString(), '', bufferMode, primitiveType, seed)); // TODO: check, toString() omitted?
+                    /** @type {number} */
+                    var seed = deMath.deMathHash(bufferMode) ^ deMath.deMathHash(primitiveType) ^ deMath.deMathHash(ndx);
+                    
+                    primitiveGroup.addChild(new RandomCase(
+                        m_context,
+                        (ndx + 1).toString(),
+                        '',
+                        bufferMode,
+                        primitiveType,
+                        seed
+                    )); // TODO: check, toString() omitted?
                 }
             }
         }

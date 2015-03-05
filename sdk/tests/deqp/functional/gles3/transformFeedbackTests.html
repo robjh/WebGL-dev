@@ -1,121 +1,44 @@
-<!DOCTYPE html>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <title>WebGL Shader Conformance Tests</title>
-<script src="../deqp/require.js"></script>
-<script src="../resources/js-test-pre.js"></script>
+<link rel="stylesheet" href="../../../resources/js-test-style.css"/>
+<script src="../../../resources/js-test-pre.js"></script>
+<script src="../../../conformance/resources/webgl-test-utils.js"></script>
+<script src="../../require.js"></script>
 <style>
 body { background: #333; color: #ddf; font-size: 1.2em; }
-canvas { border: solid 1px #000; }
+canvas { border: solid 1px #009; }
 </style>
 </head>
 <body>
-<canvas id="glpane" width="480" height="360"></canvas>
+<div id="description"></div>
+<div id="console"></div>
+<canvas id="glpane" width="320" height="240"></canvas>
 <script>
-    
-    var bufferedLogToConsole = function(a) { console.log("unbuffered",a); };
-    
-	requirejs.config({
-		baseUrl: "../deqp/"
-	});
 
+    requirejs.config({
+        baseUrl: "../../"
+    });
 
-    function initWebGL(canvas) {
-        var gl = null;
-        
+    requirejs([
+        "functional/gles3/es3fTransformFeedbackTests"
+    ], function(tft) {
+
+        var wtu = WebGLTestUtils;
+        var gl = wtu.create3DContext('glpane', {preserveDrawingBuffer: true}, 2);
+
         try {
-            // Try to grab the standard context. If it fails, fallback to experimental.
-            gl = canvas.getContext("webgl2") || canvas.getContext("experimental-webgl2");
-            if (!gl) {
-                console.log("webgl2 failed. using webgl");
-                gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
-            }
+            tft.init();
+            console.log("hi");
         }
-        catch(e) {}
-      
-        // If we don't have a GL context, give up now
-        if (!gl) {
-            alert("Unable to initialize WebGL. Your browser may not support it.");
-            gl = null;
+        catch(err) {
+            bufferedLogToConsole(err);
         }
-      
-        return gl;
-    }
 
-	requirejs([
-		"functional/gles3/es3fTransformFeedbackTests",
-		"framework/opengl/gluVarTypeUtil",
-		"framework/delibs/debase/deRandom"
-	], function(
-		tft,
-		gluVarTypeUtil,
-		deRandom
-	) {
-	
-	    var gl;
-	
-	    if (!(gl = initWebGL(document.getElementById("glpane")))) {
-	        return;
-	    }
-	
-	    console.log(gl);
-	    gl.clearColor(0.0, 0.0, 0.0, 1.0);                      // Set clear color to black, fully opaque
-        gl.enable(gl.DEPTH_TEST);                               // Enable depth testing
-        gl.depthFunc(gl.LEQUAL);                                // Near things obscure far things
-        gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);      // Clear the color as well as the depth buffer.
-	    
-	    var spec = new tft.ProgramSpec();
-	    
-	    
-	    console.log(gl.MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS)
-	    /** Returns if the program is supported or not
-     * @param {WebGLRenderingContext} gl WebGL context
-     * @param {ProgramSpec} spec
-     * @param {number} tfMode
-     * @return {boolean}
-     */
-    
-	    tft.isProgramSupported(gl, spec, 0);
-	    
-	//	console.log(gluShaderUtil.GLSLVersion);
-	//	var rand = new deRandom.Random();
-	//	for (var i = 0 ; i < 10 ; ++i) {
-	//		console.log (rand.getBool());
-	//	}
-	//	var tokeniser = new gluVarTypeUtil.VarTokenizer("testing");
-		
-/*
-	    var getobj = function(offset) {
-			if (offset===undefined) offset = 0;
-			return {
-				a: offset + 1,
-				b: offset + 2,
-				c: offset + 3,
-			};
-		};
-
-		var test1 = getobj();
-		var test2 = getobj(3);
-		
-		
-		
-		console.log(test1, test2);
-//*/
-
-    /** findAttributeNameEquals 
-     * Replaces original implementation of "VaryingNameEquals" and "AttributeNameEquals" in the C++ version
-     * Returns an Attribute or Varying object which matches its name with the passed string value in the function
-     * @param {Array.<Attribute> || Array.<Varying>} array
-     * @param {string} name
-     * @return {Attribute || Varying}
-     */
- //   var findAttributeNameEquals = function(array, name) {
-    
-    
-   //     var drawcalls = [new tft.DrawCall(1,2), tft.DrawCall(3,4)];
-   //     console.log(tft.findAttributeNameEquals([],"name"));
-	});
+    });
 </script>
 </body>
 </html>
