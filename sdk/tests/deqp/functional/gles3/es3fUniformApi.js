@@ -20,18 +20,24 @@
 
 define([
     'framework/opengl/gluDefs',
+    'framework/opengl/gluDrawUtil',
     'framework/opengl/gluShaderUtil',
+    'framework/opengl/gluShaderProgram',
     'framework/opengl/gluTexture',
     'framework/opengl/gluVarType',
     'framework/common/tcuTestCase',
+    'framework/common/tcuSurface',
     'framework/common/tcuTexture',
     'framework/delibs/debase/deMath',
     'framework/delibs/debase/deRandom'], function(
         gluDefs,
+        gluDrawUtil,
         deqpUtils,
+        gluSP,
         gluTexture,
         gluVT,
         deqpTests,
+        tcuSurface,
         tcuTexture,
         deMath,
         deRandom) {
@@ -1117,7 +1123,7 @@ define([
      * @param {string} name
      * @return {Array.<BasicUniform>}
      */
-    BasicUniform.prototype.findWithName = function(vec, name) {
+    BasicUniform.findWithName = function(vec, name) {
         for (var i = 0; i < vec.length; i++) //vector<BasicUniform>::const_iterator it = vec.begin(); it != vec.end(); it++)
         {
             if (vec[i].name == name)
@@ -1887,153 +1893,150 @@ define([
         return success;
     };
 
-    /*bool UniformCase::checkUniformDefaultValues (const vector<VarValue>& values, const vector<BasicUniform>& basicUniforms)
-    {
-        TestLog&    log            = m_testCtx.getLog();
-        bool        success        = true;
+    /*
+     * @param {Array.<VarValue>} values
+     * @param {Array.<BasicUniform>} basicUniforms
+     * @return {boolean}
+     */
+    UniformCase.prototype.checkUniformDefaultValues = function(values, basicUniforms) {
+        /** @type {boolean} */ var success = true;
 
-        DE_ASSERT(values.size() == basicUniforms.size());
+        DE_ASSERT(values.length == basicUniforms.length);
 
-        for (int unifNdx = 0; unifNdx < (int)basicUniforms.size(); unifNdx++)
+        for (var unifNdx = 0; unifNdx < basicUniforms.length; unifNdx++)
         {
-            const BasicUniform&        uniform        = basicUniforms[unifNdx];
-            const VarValue&            unifValue    = values[unifNdx];
-            const int                valSize        = deqpUtils.getDataTypeScalarSize(uniform.type);
+            /** @type {BasicUniform} */ var uniform        = basicUniforms[unifNdx];
+            /** @type {VarValue} */ var unifValue    = values[unifNdx];
+            /** @type {number} */ var valSize        = deqpUtils.getDataTypeScalarSize(uniform.type);
 
-            log << TestLog::Message << "// Checking uniform " << uniform.name << TestLog::EndMessage;
+            bufferedLogToConsole("// Checking uniform " + uniform.name);
 
             if (unifValue.type == deqpUtils.DataType.INVALID) // This happens when glGetUniformLocation() returned -1.
                 continue;
 
-    #define CHECK_UNIFORM(VAR_VALUE_MEMBER, ZERO)                                                                                                \
-        do                                                                                                                                        \
-        {                                                                                                                                        \
-            for (int i = 0; i < valSize; i++)                                                                                                    \
-            {                                                                                                                                    \
-                if (unifValue.val.VAR_VALUE_MEMBER[i] != ZERO)                                                                                    \
-                {                                                                                                                                \
-                    log << TestLog::Message << "// FAILURE: uniform " << uniform.name << " has non-zero initial value" << TestLog::EndMessage;    \
-                    success = false;                                                                                                            \
-                }                                                                                                                                \
-            }                                                                                                                                    \
-        } while (false)
+            var CHECK_UNIFORM = function(ZERO) {
+                do
+                {
+                    for (var i = 0; i < valSize; i++)
+                    {
+                        var prevalue = unifValue.val.length !== undefined ? unifValue.val[i] : unifValue.val;
+                        if (prevalue != ZERO)
+                        {
+                            bufferedLogToConsole("// FAILURE: uniform " + uniform.name + " has non-zero initial value");
+                            success = false;
+                        }
+                    }
+                } while (false)
+            };
 
             if (deqpUtils.isDataTypeFloatOrVec(uniform.type) || deqpUtils.isDataTypeMatrix(uniform.type))
-                CHECK_UNIFORM(floatV, 0.0f);
+                CHECK_UNIFORM(0.0);
             else if (deqpUtils.isDataTypeIntOrIVec(uniform.type))
-                CHECK_UNIFORM(intV, 0);
+                CHECK_UNIFORM(0);
             else if (deqpUtils.isDataTypeUintOrUVec(uniform.type))
-                CHECK_UNIFORM(uintV, 0);
+                CHECK_UNIFORM(0);
             else if (deqpUtils.isDataTypeBoolOrBVec(uniform.type))
-                CHECK_UNIFORM(boolV, false);
+                CHECK_UNIFORM(false);
             else if (deqpUtils.isDataTypeSampler(uniform.type))
-            {
-                if (unifValue.val.samplerV.unit != 0)
-                {
-                    log << TestLog::Message << "// FAILURE: uniform " << uniform.name << " has non-zero initial value" << TestLog::EndMessage;
-                    success = false;
-                }
-            }
+                CHECK_UNIFORM(0);
             else
                 DE_ASSERT(false);
-
-    #undef CHECK_UNIFORM
         }
 
         return success;
-    }
+    };
 
-    void UniformCase::assignUniforms (const vector<BasicUniform>& basicUniforms, deUint32 programGL, Random& rnd)
-    {
-        TestLog&                log                = m_testCtx.getLog();
-        const bool                transpose        = (m_features & Feature.MATRIXMODE_ROWMAJOR) != 0;
-        const GLboolean            transposeGL        = transpose ? gl.TRUE : gl.FALSE;
-        const deqpUtils.DataType        boolApiType        = m_features & Feature.BOOLEANAPITYPE_INT    ? deqpUtils.DataType.INT
-                                                : m_features & Feature.BOOLEANAPITYPE_UINT    ? deqpUtils.DataType.UINT
-                                                :                                              deqpUtils.DataType.FLOAT;
+    /*
+     * @param {Array.<BasicUniform>} basicUniforms
+     * @param {deMath.deUint32} programGL
+     * @param {deRandom.Random} rnd
+     */
+    UniformCase.prototype.assignUniforms = function(basicUniforms, programGL, rnd) {
+        /** @type {boolean} */ var transpose = (this.m_features & Feature.MATRIXMODE_ROWMAJOR) != 0;
+        /** @type {boolean} (GLboolean) */ var transposeGL = transpose ? gl.TRUE : gl.FALSE;
+        /** @type {deqpUtils.DataType} */ var boolApiType = this.m_features & Feature.BOOLEANAPITYPE_INT ? deqpUtils.DataType.INT
+                                                : this.m_features & Feature.BOOLEANAPITYPE_UINT ? deqpUtils.DataType.UINT
+                                                : deqpUtils.DataType.FLOAT;
 
-        for (int unifNdx = 0; unifNdx < (int)basicUniforms.size(); unifNdx++)
+        for (var unifNdx = 0; unifNdx < basicUniforms.length; unifNdx++)
         {
-            const BasicUniform&        uniform                = basicUniforms[unifNdx];
-            const bool                isArrayMember        = uniform.elemNdx >= 0;
-            const string            queryName            = m_features & Feature.ARRAY_FIRST_ELEM_NAME_NO_INDEX && uniform.elemNdx == 0 ? beforeLast(uniform.name, '[') : uniform.name;
-            const int                numValuesToAssign    = !isArrayMember                                    ? 1
-                                                        : m_features & Feature.ARRAYASSIGN_FULL                ? (uniform.elemNdx == 0            ? uniform.rootSize    : 0)
-                                                        : m_features & Feature.ARRAYASSIGN_BLOCKS_OF_TWO    ? (uniform.elemNdx % 2 == 0        ? 2                    : 0)
-                                                        : /* Default: assign array elements separately */      /*1;
+            /** @type {BasicUniform} */ var uniform = basicUniforms[unifNdx];
+            /** @type {boolean} */ var isArrayMember = uniform.elemNdx >= 0;
+            /** @type {string} */ var queryName = this.m_features & Feature.ARRAY_FIRST_ELEM_NAME_NO_INDEX && uniform.elemNdx == 0 ? beforeLast(uniform.name, '[') : uniform.name;
+            /** @type {number} */ var numValuesToAssign = !isArrayMember ? 1
+                                                        : this.m_features & Feature.ARRAYASSIGN_FULL ? (uniform.elemNdx == 0 ? uniform.rootSize : 0)
+                                                        : this.m_features & Feature.ARRAYASSIGN_BLOCKS_OF_TWO ? (uniform.elemNdx % 2 == 0 ? 2 : 0)
+                                                        : /* Default: assign array elements separately */ 1;
 
             DE_ASSERT(numValuesToAssign >= 0);
             DE_ASSERT(numValuesToAssign == 1 || isArrayMember);
 
             if (numValuesToAssign == 0)
             {
-                log << TestLog::Message << "// Uniform " << uniform.name << " is covered by another glUniform*v() call to the same array" << TestLog::EndMessage;
+                bufferedLogToConsole("// Uniform " + uniform.name + " is covered by another glUniform*v() call to the same array");
                 continue;
             }
 
-            const int            location            = glGetUniformLocation(programGL, queryName.c_str());
-            const int            typeSize            = deqpUtils.getDataTypeScalarSize(uniform.type);
-            const bool            assignByValue        = m_features & Feature.UNIFORMFUNC_VALUE && !deqpUtils.isDataTypeMatrix(uniform.type) && numValuesToAssign == 1;
-            vector<VarValue>    valuesToAssign;
+            /** @type {number} */ var location = gl.getUniformLocation(programGL, queryName);
+            /** @type {number} */ var typeSize = deqpUtils.getDataTypeScalarSize(uniform.type);
+            /** @type {boolean} */ var assignByValue = this.m_features & Feature.UNIFORMFUNC_VALUE && !deqpUtils.isDataTypeMatrix(uniform.type) && numValuesToAssign == 1;
+            /** @type {Array.<VarValue>} */ var valuesToAssign = [];
 
-            for (int i = 0; i < numValuesToAssign; i++)
+            for (var i = 0; i < numValuesToAssign; i++)
             {
-                const string    curName = isArrayMember ? beforeLast(uniform.rootName, '[') + "[" + de::toString(uniform.elemNdx+i) + "]" : uniform.name;
-                VarValue        unifValue;
+                /** @type {string} */ var curName = isArrayMember ? beforeLast(uniform.rootName, '[') + "[" + uniform.elemNdx+i + "]" : uniform.name;
+                /** @type {VarValue} */ var unifValue = new VarValue;
 
                 if (isArrayMember)
                 {
-                    const vector<BasicUniform>::const_iterator elemUnif = BasicUniform::findWithName(basicUniforms, curName.c_str());
-                    if (elemUnif == basicUniforms.end())
+                    /** @type {BasicUniform} */ var elemUnif = BasicUniform.findWithName(basicUniforms, curName);
+                    if (elemUnif == basicUniforms[basicUniforms.length - 1])
                         continue;
-                    unifValue = elemUnif->finalValue;
+                    unifValue = elemUnif.finalValue;
                 }
                 else
                     unifValue = uniform.finalValue;
 
-                const VarValue apiValue = deqpUtils.isDataTypeBoolOrBVec(unifValue.type)    ? getRandomBoolRepresentation(unifValue, boolApiType, rnd)
-                                        : deqpUtils.isDataTypeSampler(unifValue.type)    ? getSamplerUnitValue(unifValue)
+                /** @type {VarValue} */ var apiValue = deqpUtils.isDataTypeBoolOrBVec(unifValue.type) ? getRandomBoolRepresentation(unifValue, boolApiType, rnd)
+                                        : deqpUtils.isDataTypeSampler(unifValue.type) ? getSamplerUnitValue(unifValue)
                                         : unifValue;
 
-                valuesToAssign.push_back(deqpUtils.isDataTypeMatrix(apiValue.type) && transpose ? getTransposeMatrix(apiValue) : apiValue);
+                valuesToAssign.push(deqpUtils.isDataTypeMatrix(apiValue.type) && transpose ? getTransposeMatrix(apiValue) : apiValue);
 
                 if (deqpUtils.isDataTypeBoolOrBVec(uniform.type))
-                    log << TestLog::Message << "// Using type " << deqpUtils.getDataTypeName(boolApiType) << " to set boolean value " << apiVarValueStr(unifValue) << " for " << curName << TestLog::EndMessage;
+                    bufferedLogToConsole("// Using type " + deqpUtils.getDataTypeName(boolApiType) + " to set boolean value " + apiVarValueStr(unifValue) + " for " + curName);
                 else if (deqpUtils.isDataTypeSampler(uniform.type))
-                    log << TestLog::Message << "// Texture for the sampler uniform " << curName << " will be filled with color " << apiVarValueStr(getSamplerFillValue(uniform.finalValue)) << TestLog::EndMessage;
+                    bufferedLogToConsole("// Texture for the sampler uniform " + curName + " will be filled with color " + apiVarValueStr(getSamplerFillValue(uniform.finalValue)));
             }
 
-            DE_ASSERT(!valuesToAssign.empty());
+            DE_ASSERT(valuesToAssign.length > 0);
 
             if (deqpUtils.isDataTypeFloatOrVec(valuesToAssign[0].type))
             {
                 if (assignByValue)
                 {
-                    const float* const ptr = &valuesToAssign[0].val.floatV[0];
-
                     switch (typeSize)
                     {
-                        case 1: GLU_CHECK_CALL(glUniform1f(location, ptr[0]));                            break;
-                        case 2: GLU_CHECK_CALL(glUniform2f(location, ptr[0], ptr[1]));                    break;
-                        case 3: GLU_CHECK_CALL(glUniform3f(location, ptr[0], ptr[1], ptr[2]));            break;
-                        case 4: GLU_CHECK_CALL(glUniform4f(location, ptr[0], ptr[1], ptr[2], ptr[3]));    break;
+                        case 1: gluDefs.GLU_CHECK_CALL(function(){gl.uniform1f(location, valuesToAssign[0].val[0]);}); break;
+                        case 2: gluDefs.GLU_CHECK_CALL(function(){gl.uniform2f(location, valuesToAssign[0].val[0], valuesToAssign[0].val[1]);}); break;
+                        case 3: gluDefs.GLU_CHECK_CALL(function(){gl.uniform3f(location, valuesToAssign[0].val[0], valuesToAssign[0].val[1],valuesToAssign[0].val[2]);}); break;
+                        case 4: gluDefs.GLU_CHECK_CALL(function(){gl.uniform4f(location, valuesToAssign[0].val[0], valuesToAssign[0].val[1],valuesToAssign[0].val[2],valuesToAssign[0].val[3]);}); break;
                         default:
                             DE_ASSERT(false);
                     }
                 }
                 else
                 {
-                    vector<float> buffer(valuesToAssign.size() * typeSize);
-                    for (int i = 0; i < (int)buffer.size(); i++)
-                        buffer[i] = valuesToAssign[i / typeSize].val.floatV[i % typeSize];
+                    /** @type {Array.<number>} */ var buffer = new Array(valuesToAssign.length * typeSize);
+                    for (var i = 0; i < buffer.length; i++)
+                        buffer[i] = valuesToAssign[Math.floor(i / typeSize)].val[i % typeSize];
 
-                    DE_STATIC_ASSERT(sizeof(GLfloat) == sizeof(buffer[0]));
                     switch (typeSize)
                     {
-                        case 1: GLU_CHECK_CALL(glUniform1fv(location, (GLsizei)valuesToAssign.size(), &buffer[0])); break;
-                        case 2: GLU_CHECK_CALL(glUniform2fv(location, (GLsizei)valuesToAssign.size(), &buffer[0])); break;
-                        case 3: GLU_CHECK_CALL(glUniform3fv(location, (GLsizei)valuesToAssign.size(), &buffer[0])); break;
-                        case 4: GLU_CHECK_CALL(glUniform4fv(location, (GLsizei)valuesToAssign.size(), &buffer[0])); break;
+                        case 1: gluDefs.GLU_CHECK_CALL(function(){gl.uniform1fv(location, buffer);}); break;
+                        case 2: gluDefs.GLU_CHECK_CALL(function(){gl.uniform2fv(location, buffer);}); break;
+                        case 3: gluDefs.GLU_CHECK_CALL(function(){gl.uniform3fv(location, buffer);}); break;
+                        case 4: gluDefs.GLU_CHECK_CALL(function(){gl.uniform4fv(location, buffer);}); break;
                         default:
                             DE_ASSERT(false);
                     }
@@ -2043,22 +2046,21 @@ define([
             {
                 DE_ASSERT(!assignByValue);
 
-                vector<float> buffer(valuesToAssign.size() * typeSize);
-                for (int i = 0; i < (int)buffer.size(); i++)
-                    buffer[i] = valuesToAssign[i / typeSize].val.floatV[i % typeSize];
+                /** @type {Array.<number>} */ var buffer = new Array(valuesToAssign.length * typeSize);
+                for (var i = 0; i < buffer.length; i++)
+                    buffer[i] = valuesToAssign[Math.floor(i / typeSize)].val[i % typeSize];
 
-                DE_STATIC_ASSERT(sizeof(GLfloat) == sizeof(buffer[0]));
                 switch (uniform.type)
                 {
-                    case deqpUtils.DataType.FLOAT_MAT2:        GLU_CHECK_CALL(glUniformMatrix2fv    (location, (GLsizei)valuesToAssign.size(), transposeGL, &buffer[0])); break;
-                    case deqpUtils.DataType.FLOAT_MAT3:        GLU_CHECK_CALL(glUniformMatrix3fv    (location, (GLsizei)valuesToAssign.size(), transposeGL, &buffer[0])); break;
-                    case deqpUtils.DataType.FLOAT_MAT4:        GLU_CHECK_CALL(glUniformMatrix4fv    (location, (GLsizei)valuesToAssign.size(), transposeGL, &buffer[0])); break;
-                    case deqpUtils.DataType.FLOAT_MAT2X3:    GLU_CHECK_CALL(glUniformMatrix2x3fv    (location, (GLsizei)valuesToAssign.size(), transposeGL, &buffer[0])); break;
-                    case deqpUtils.DataType.FLOAT_MAT2X4:    GLU_CHECK_CALL(glUniformMatrix2x4fv    (location, (GLsizei)valuesToAssign.size(), transposeGL, &buffer[0])); break;
-                    case deqpUtils.DataType.FLOAT_MAT3X2:    GLU_CHECK_CALL(glUniformMatrix3x2fv    (location, (GLsizei)valuesToAssign.size(), transposeGL, &buffer[0])); break;
-                    case deqpUtils.DataType.FLOAT_MAT3X4:    GLU_CHECK_CALL(glUniformMatrix3x4fv    (location, (GLsizei)valuesToAssign.size(), transposeGL, &buffer[0])); break;
-                    case deqpUtils.DataType.FLOAT_MAT4X2:    GLU_CHECK_CALL(glUniformMatrix4x2fv    (location, (GLsizei)valuesToAssign.size(), transposeGL, &buffer[0])); break;
-                    case deqpUtils.DataType.FLOAT_MAT4X3:    GLU_CHECK_CALL(glUniformMatrix4x3fv    (location, (GLsizei)valuesToAssign.size(), transposeGL, &buffer[0])); break;
+                    case deqpUtils.DataType.FLOAT_MAT2: gluDefs.GLU_CHECK_CALL(function(){gl.uniformMatrix2fv(location, transposeGL, buffer);}); break;
+                    case deqpUtils.DataType.FLOAT_MAT3: gluDefs.GLU_CHECK_CALL(function(){gl.uniformMatrix3fv(location, transposeGL, buffer);}); break;
+                    case deqpUtils.DataType.FLOAT_MAT4: gluDefs.GLU_CHECK_CALL(function(){gl.uniformMatrix4fv(location, transposeGL, buffer);}); break;
+                    case deqpUtils.DataType.FLOAT_MAT2X3: gluDefs.GLU_CHECK_CALL(function(){gl.uniformMatrix2x3fv(location, transposeGL, buffer);}); break;
+                    case deqpUtils.DataType.FLOAT_MAT2X4: gluDefs.GLU_CHECK_CALL(function(){gl.uniformMatrix2x4fv(location, transposeGL, buffer);}); break;
+                    case deqpUtils.DataType.FLOAT_MAT3X2: gluDefs.GLU_CHECK_CALL(function(){gl.uniformMatrix3x2fv(location, transposeGL, buffer);}); break;
+                    case deqpUtils.DataType.FLOAT_MAT3X4: gluDefs.GLU_CHECK_CALL(function(){gl.uniformMatrix3x4fv(location, transposeGL, buffer);}); break;
+                    case deqpUtils.DataType.FLOAT_MAT4X2: gluDefs.GLU_CHECK_CALL(function(){gl.uniformMatrix4x2fv(location, transposeGL, buffer);}); break;
+                    case deqpUtils.DataType.FLOAT_MAT4X3: gluDefs.GLU_CHECK_CALL(function(){gl.uniformMatrix4x3fv(location, transposeGL, buffer);}); break;
                     default:
                         DE_ASSERT(false);
                 }
@@ -2067,31 +2069,28 @@ define([
             {
                 if (assignByValue)
                 {
-                    const deInt32* const ptr = &valuesToAssign[0].val.intV[0];
-
                     switch (typeSize)
                     {
-                        case 1: GLU_CHECK_CALL(glUniform1i(location, ptr[0]));                            break;
-                        case 2: GLU_CHECK_CALL(glUniform2i(location, ptr[0], ptr[1]));                    break;
-                        case 3: GLU_CHECK_CALL(glUniform3i(location, ptr[0], ptr[1], ptr[2]));            break;
-                        case 4: GLU_CHECK_CALL(glUniform4i(location, ptr[0], ptr[1], ptr[2], ptr[3]));    break;
+                        case 1: gluDefs.GLU_CHECK_CALL(function(){gl.uniform1i(location, valuesToAssign[0].val[0]);});                            break;
+                        case 2: gluDefs.GLU_CHECK_CALL(function(){gl.uniform2i(location, valuesToAssign[0].val[0], valuesToAssign[0].val[1]);});                    break;
+                        case 3: gluDefs.GLU_CHECK_CALL(function(){gl.uniform3i(location, valuesToAssign[0].val[0], valuesToAssign[0].val[1], valuesToAssign[0].val[2]);});            break;
+                        case 4: gluDefs.GLU_CHECK_CALL(function(){gl.uniform4i(location, valuesToAssign[0].val[0], valuesToAssign[0].val[1], valuesToAssign[0].val[2], valuesToAssign[0].val[3]);});    break;
                         default:
                             DE_ASSERT(false);
                     }
                 }
                 else
                 {
-                    vector<deInt32> buffer(valuesToAssign.size() * typeSize);
-                    for (int i = 0; i < (int)buffer.size(); i++)
-                        buffer[i] = valuesToAssign[i / typeSize].val.intV[i % typeSize];
+                    /** @type {Array.<number>} */ var buffer = new Array(valuesToAssign.length * typeSize);
+                    for (var i = 0; i < buffer.length; i++)
+                        buffer[i] = valuesToAssign[Math.floor(i / typeSize)].val[i % typeSize];
 
-                    DE_STATIC_ASSERT(sizeof(GLint) == sizeof(buffer[0]));
                     switch (typeSize)
                     {
-                        case 1: GLU_CHECK_CALL(glUniform1iv(location, (GLsizei)valuesToAssign.size(), &buffer[0])); break;
-                        case 2: GLU_CHECK_CALL(glUniform2iv(location, (GLsizei)valuesToAssign.size(), &buffer[0])); break;
-                        case 3: GLU_CHECK_CALL(glUniform3iv(location, (GLsizei)valuesToAssign.size(), &buffer[0])); break;
-                        case 4: GLU_CHECK_CALL(glUniform4iv(location, (GLsizei)valuesToAssign.size(), &buffer[0])); break;
+                        case 1: gluDefs.GLU_CHECK_CALL(function(){gl.uniform1iv(location, buffer);}); break;
+                        case 2: gluDefs.GLU_CHECK_CALL(function(){gl.uniform2iv(location, buffer);}); break;
+                        case 3: gluDefs.GLU_CHECK_CALL(function(){gl.uniform3iv(location, buffer);}); break;
+                        case 4: gluDefs.GLU_CHECK_CALL(function(){gl.uniform4iv(location, buffer);}); break;
                         default:
                             DE_ASSERT(false);
                     }
@@ -2101,31 +2100,28 @@ define([
             {
                 if (assignByValue)
                 {
-                    const deUint32* const ptr = &valuesToAssign[0].val.uintV[0];
-
                     switch (typeSize)
                     {
-                        case 1: GLU_CHECK_CALL(glUniform1ui(location, ptr[0]));                            break;
-                        case 2: GLU_CHECK_CALL(glUniform2ui(location, ptr[0], ptr[1]));                    break;
-                        case 3: GLU_CHECK_CALL(glUniform3ui(location, ptr[0], ptr[1], ptr[2]));            break;
-                        case 4: GLU_CHECK_CALL(glUniform4ui(location, ptr[0], ptr[1], ptr[2], ptr[3]));    break;
+                        case 1: gluDefs.GLU_CHECK_CALL(function(){gl.uniform1ui(location, valuesToAssign[0].val[0]);});                            break;
+                        case 2: gluDefs.GLU_CHECK_CALL(function(){gl.uniform2ui(location, valuesToAssign[0].val[0], valuesToAssign[0].val[1]);});                    break;
+                        case 3: gluDefs.GLU_CHECK_CALL(function(){gl.uniform3ui(location, valuesToAssign[0].val[0], valuesToAssign[0].val[1], valuesToAssign[0].val[2]);});            break;
+                        case 4: gluDefs.GLU_CHECK_CALL(function(){gl.uniform4ui(location, valuesToAssign[0].val[0], valuesToAssign[0].val[1], valuesToAssign[0].val[2], valuesToAssign[0].val[3]);});    break;
                         default:
                             DE_ASSERT(false);
                     }
                 }
                 else
                 {
-                    vector<deUint32> buffer(valuesToAssign.size() * typeSize);
-                    for (int i = 0; i < (int)buffer.size(); i++)
-                        buffer[i] = valuesToAssign[i / typeSize].val.intV[i % typeSize];
+                    /** @type {Array.<number>} */ var buffer = new Array(valuesToAssign.length * typeSize);
+                    for (var i = 0; i < buffer.length; i++)
+                        buffer[i] = valuesToAssign[Math.floor(i / typeSize)].val[i % typeSize];
 
-                    DE_STATIC_ASSERT(sizeof(GLuint) == sizeof(buffer[0]));
                     switch (typeSize)
                     {
-                        case 1: GLU_CHECK_CALL(glUniform1uiv(location, (GLsizei)valuesToAssign.size(), &buffer[0])); break;
-                        case 2: GLU_CHECK_CALL(glUniform2uiv(location, (GLsizei)valuesToAssign.size(), &buffer[0])); break;
-                        case 3: GLU_CHECK_CALL(glUniform3uiv(location, (GLsizei)valuesToAssign.size(), &buffer[0])); break;
-                        case 4: GLU_CHECK_CALL(glUniform4uiv(location, (GLsizei)valuesToAssign.size(), &buffer[0])); break;
+                        case 1: gluDefs.GLU_CHECK_CALL(function(){gl.uniform1uiv(location, buffer);}); break;
+                        case 2: gluDefs.GLU_CHECK_CALL(function(){gl.uniform2uiv(location, buffer);}); break;
+                        case 3: gluDefs.GLU_CHECK_CALL(function(){gl.uniform3uiv(location, buffer);}); break;
+                        case 4: gluDefs.GLU_CHECK_CALL(function(){gl.uniform4uiv(location, buffer);}); break;
                         default:
                             DE_ASSERT(false);
                     }
@@ -2134,155 +2130,168 @@ define([
             else if (deqpUtils.isDataTypeSampler(valuesToAssign[0].type))
             {
                 if (assignByValue)
-                    GLU_CHECK_CALL(glUniform1i(location, uniform.finalValue.val.samplerV.unit));
+                    gluDefs.GLU_CHECK_CALL(function(){gl.uniform1i(location, uniform.finalValue.val);});
                 else
                 {
-                    const GLint unit = uniform.finalValue.val.samplerV.unit;
-                    GLU_CHECK_CALL(glUniform1iv(location, (GLsizei)valuesToAssign.size(), &unit));
+                    /** @type {number} (GLint) */ var unit = uniform.finalValue.val;
+                    gluDefs.GLU_CHECK_CALL(function(){gl.uniform1iv(location, unit);});
                 }
             }
             else
                 DE_ASSERT(false);
         }
-    }
+    };
 
-    bool UniformCase::compareUniformValues (const vector<VarValue>& values, const vector<BasicUniform>& basicUniforms)
-    {
-        TestLog&    log            = m_testCtx.getLog();
-        bool        success        = true;
+    /*
+     * @param {Array.<VarValue>} values
+     * @param {Array.<BasicUniform>} basicUniforms
+     * @return {boolean}
+     */
+    UniformCase.prototype.compareUniformValues = function(values, basicUniforms) {
+        /** @type {boolean} */ var success = true;
 
-        for (int unifNdx = 0; unifNdx < (int)basicUniforms.size(); unifNdx++)
+        for (var unifNdx = 0; unifNdx < basicUniforms.length; unifNdx++)
         {
-            const BasicUniform&        uniform        = basicUniforms[unifNdx];
-            const VarValue&            unifValue    = values[unifNdx];
+            /** @type {BasicUniform} */ var uniform = basicUniforms[unifNdx];
+            /** @type {VarValue} */ var unifValue = values[unifNdx];
 
-            log << TestLog::Message << "// Checking uniform " << uniform.name << TestLog::EndMessage;
+            bufferedLogToConsole("// Checking uniform " + uniform.name);
 
             if (unifValue.type == deqpUtils.DataType.INVALID) // This happens when glGetUniformLocation() returned -1.
                 continue;
 
             if (!apiVarValueEquals(unifValue, uniform.finalValue))
             {
-                log << TestLog::Message << "// FAILURE: value obtained with glGetUniform*() for uniform " << uniform.name << " differs from value set with glUniform*()" << TestLog::EndMessage;
+                bufferedLogToConsole("// FAILURE: value obtained with glGetUniform*() for uniform " + uniform.name + " differs from value set with glUniform*()");
                 success = false;
             }
         }
 
         return success;
-    }
+    };
 
-    bool UniformCase::renderTest (const vector<BasicUniform>& basicUniforms, const ShaderProgram& program, Random& rnd)
-    {
-        TestLog&                    log                = m_testCtx.getLog();
-        const tcu::RenderTarget&    renderTarget    = m_context.getRenderTarget();
-        const int                    viewportW        = de::min(renderTarget.getWidth(),    MAX_RENDER_WIDTH);
-        const int                    viewportH        = de::min(renderTarget.getHeight(),    MAX_RENDER_HEIGHT);
-        const int                    viewportX        = rnd.getInt(0, renderTarget.getWidth()        - viewportW);
-        const int                    viewportY        = rnd.getInt(0, renderTarget.getHeight()    - viewportH);
-        tcu::Surface                renderedImg        (viewportW, viewportH);
+    /*
+     * @param {Array.<BasicUniform>} basicUniforms
+     * @param {gluSP.ShaderProgram} program
+     * @param {deRandom.Random} rnd
+     * @return {boolean}
+     */
+    UniformCase.prototype.renderTest = function(basicUniforms, program, rnd) {
+        //const tcu::RenderTarget&    renderTarget    = m_context.getRenderTarget();
+        /** @const */ var viewportW = Math.min(gl.canvas.width, VIEWPORT_WIDTH);
+        /** @const */ var viewportH = Math.min(gl.canvas.height, VIEWPORT_HEIGHT);
+        /** @const */ var viewportX = rnd.getInt(0, gl.canvas.width);
+        /** @const */ var viewportY = rnd.getInt(0, gl.canvas.height);
+        /** @type {tcuSurface.Surface} */ var renderedImg = new tcuSurface.Surface(viewportW, viewportH);
 
         // Assert that no two samplers of different types have the same texture unit - this is an error in GL.
-        for (int i = 0; i < (int)basicUniforms.size(); i++)
+        for (var i = 0; i < basicUniforms.length; i++)
         {
             if (deqpUtils.isDataTypeSampler(basicUniforms[i].type))
             {
-                for (int j = 0; j < i; j++)
+                for (var j = 0; j < i; j++)
                 {
                     if (deqpUtils.isDataTypeSampler(basicUniforms[j].type) && basicUniforms[i].type != basicUniforms[j].type)
-                        DE_ASSERT(basicUniforms[i].finalValue.val.samplerV.unit != basicUniforms[j].finalValue.val.samplerV.unit);
+                        DE_ASSERT(basicUniforms[i].finalValue.val != basicUniforms[j].finalValue.val);
                 }
             }
         }
 
-        for (int i = 0; i < (int)basicUniforms.size(); i++)
+        for (var i = 0; i < basicUniforms.length; i++)
         {
-            if (deqpUtils.isDataTypeSampler(basicUniforms[i].type) && std::find(m_filledTextureUnits.begin(), m_filledTextureUnits.end(), basicUniforms[i].finalValue.val.samplerV.unit) == m_filledTextureUnits.end())
+            if (deqpUtils.isDataTypeSampler(basicUniforms[i].type) && this.m_filledTextureUnits.indexOf(basicUniforms[i].finalValue.val) == -1)
             {
-                log << TestLog::Message << "// Filling texture at unit " << apiVarValueStr(basicUniforms[i].finalValue) << " with color " << shaderVarValueStr(basicUniforms[i].finalValue) << TestLog::EndMessage;
+                bufferedLogToConsole("// Filling texture at unit " + apiVarValueStr(basicUniforms[i].finalValue) + " with color " + shaderVarValueStr(basicUniforms[i].finalValue));
                 setupTexture(basicUniforms[i].finalValue);
             }
         }
 
-        GLU_CHECK_CALL(glViewport(viewportX, viewportY, viewportW, viewportH));
+        gluDefs.GLU_CHECK_CALL(function(){gl.viewport(viewportX, viewportY, viewportW, viewportH);});
 
         {
-            static const float position[] =
-            {
-                -1.0f, -1.0f, 0.0f, 1.0f,
-                -1.0f, +1.0f, 0.0f, 1.0f,
-                +1.0f, -1.0f, 0.0f, 1.0f,
-                +1.0f, +1.0f, 0.0f, 1.0f
-            };
-            static const deUint16 indices[] = { 0, 1, 2, 2, 1, 3 };
+            /** @type {Array.<number>} */ var position =
+            [
+                -1.0, -1.0, 0.0, 1.0,
+                -1.0, 1.0, 0.0, 1.0,
+                1.0, -1.0, 0.0, 1.0,
+                1.0, 1.0, 0.0, 1.0
+            ];
+            /** @type {deMath.deUint16} TODO: deUint16 not yet declared. Necessary? */ var indices = [ 0, 1, 2, 2, 1, 3 ];
 
-            const int posLoc = glGetAttribLocation(program.getProgram(), "a_position");
-            glEnableVertexAttribArray(posLoc);
-            glVertexAttribPointer(posLoc, 4, gl.FLOAT, gl.FALSE, 0, &position[0]);
-            GLU_CHECK_CALL(glDrawElements(gl.TRIANGLES, DE_LENGTH_OF_ARRAY(indices), gl.UNSIGNED_SHORT, &indices[0]));
+            /** @type {number} */ var posLoc = gl.getAttribLocation(program.getProgram(), "a_position");
+            gl.enableVertexAttribArray(posLoc);
+            gl.vertexAttribPointer(posLoc, 4, gl.FLOAT, gl.FALSE, 0, position);
+            gluDefs.GLU_CHECK_CALL(function(){gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, indices);});
         }
 
-        deqpUtils.readPixels(m_context.getRenderContext(), viewportX, viewportY, renderedImg.getAccess());
+        gl.readPixels(viewportX, viewportY, viewportW, viewportH, gl.RGBA, gl.UNSIGNED_BYTE, renderedImg.getAccess().getDataPtr());
 
-        int numFailedPixels = 0;
-        for (int y = 0; y < renderedImg.getHeight(); y++)
+        /** @type {number} */ var numFailedPixels = 0;
+        var whitePixel = new gluDrawUtil.Pixel([255.0, 255.0, 255.0, 255.0]);
+        for (var y = 0; y < renderedImg.getHeight(); y++)
         {
-            for (int x = 0; x < renderedImg.getWidth(); x++)
+            for (var x = 0; x < renderedImg.getWidth(); x++)
             {
-                if (renderedImg.getPixel(x, y) != tcu::RGBA::white)
+                if (renderedImg.getPixel(x, y) != whitePixel)
                     numFailedPixels += 1;
             }
         }
 
         if (numFailedPixels > 0)
         {
-            log << TestLog::Image("RenderedImage", "Rendered image", renderedImg);
-            log << TestLog::Message << "FAILURE: image comparison failed, got " << numFailedPixels << " non-white pixels" << TestLog::EndMessage;
+            //TODO: log << TestLog::Image("RenderedImage", "Rendered image", renderedImg);
+            bufferedLogToConsole("FAILURE: image comparison failed, got " + numFailedPixels + " non-white pixels");
             return false;
         }
         else
         {
-            log << TestLog::Message << "Success: got all-white pixels (all uniforms have correct values)" << TestLog::EndMessage;
+            bufferedLogToConsole("Success: got all-white pixels (all uniforms have correct values)");
             return true;
         }
-    }
+    };
 
-    UniformCase::IterateResult UniformCase::iterate (void)
-    {
-        Random                            rnd                (deStringHash(getName()) ^ (deUint32)m_context.getTestContext().getCommandLine().getBaseSeed());
-        TestLog&                        log                = m_testCtx.getLog();
-        vector<BasicUniform>            basicUniforms;
-        vector<BasicUniformReportRef>    basicUniformReportsRef;
+    /*
+     * @return {deqpTests.stateMachine.IterateResult}
+     */
+    UniformCase.prototype.iterate = function() {
+        /** @type {deRandom.Random} */ var rnd = new deRandom.Random(deString.deStringHash(this.name) ^ deRandom.getBaseSeed());
+        /** @type {Array.<BasicUniform>} */ var basicUniforms = [];
+        /** @type {Array.<BasicUniformReportRef>} */ var basicUniformReportsRef = [];
 
         {
-            int samplerUnitCounter = 0;
-            for (int i = 0; i < (int)m_uniformCollection->getNumUniforms(); i++)
-                generateBasicUniforms(basicUniforms, basicUniformReportsRef, m_uniformCollection->getUniform(i).type, m_uniformCollection->getUniform(i).name.c_str(), true, samplerUnitCounter, rnd);
+            /** @type {number} */ var samplerUnitCounter = 0;
+            for (var i = 0; i < this.m_uniformCollection.getNumUniforms(); i++)
+                generateBasicUniforms(basicUniforms, basicUniformReportsRef, this.m_uniformCollection.getUniform(i).type, this.m_uniformCollection.getUniform(i).name, true, samplerUnitCounter, rnd);
         }
 
-        const string                    vertexSource    = generateVertexSource(basicUniforms);
-        const string                    fragmentSource    = generateFragmentSource(basicUniforms);
-        const ShaderProgram                program            (m_context.getRenderContext(), deqpUtils.makeVtxFragSources(vertexSource, fragmentSource));
+        /** @type {string} */ var vertexSource = generateVertexSource(basicUniforms);
+        /** @type {string} */ var fragmentSource = generateFragmentSource(basicUniforms);
+        /** @type {gluSP.ShaderProgram} */ var program = new gluSP.ShaderProgram(gl, gluSP.makeVtxFragSources(vertexSource, fragmentSource));
 
-        log << program;
+        bufferedLogToConsole(program);
 
         if (!program.isOk())
         {
-            m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, "Compile failed");
-            return tcuTestCase.stateMachine.IterateResult.STOP;
+            testFailedOptions("Compile failed", false);
+            return deqpTests.stateMachine.IterateResult.STOP;
         }
 
-        GLU_CHECK_CALL(glUseProgram(program.getProgram()));
+        gluDefs.GLU_CHECK_CALL(function(){gl.useProgram(program.getProgram());});
 
-        const bool success = test(basicUniforms, basicUniformReportsRef, program, rnd);
-        m_testCtx.setTestResult(success ? QP_TEST_RESULT_PASS    : QP_TEST_RESULT_FAIL,
-                                success ? "Passed"                : "Failed");
+        /** @type {boolean} */ var success = this.test(basicUniforms, basicUniformReportsRef, program, rnd);
+        assertMsgOptions(success, '', true, false);
 
-        return tcuTestCase.stateMachine.IterateResult.STOP;
+        return deqpTests.stateMachine.IterateResult.STOP;
     };*/
 
     /**
      */
-    var init = function() {};
+    var init = function() {
+        var state = deqpTests.runner.getState();
+        var testGroup = state.testCases;
+
+        testGroup.addChild(new UniformCase('uniform_case', 'Uniform Case', deRandom.getBaseSeed()));
+    };
 
     /**
      * Create and execute the test cases
