@@ -30,6 +30,50 @@ var linearInterpolate = function(t, minVal, maxVal)
     return minVal + (maxVal - minVal) * t;
 };
 
+/**
+ * Enums for TextureChannelClass
+ * @enum {number}
+ */
+var TextureChannelClass = {
+
+        SIGNED_FIXED_POINT: 0,
+        UNSIGNED_FIXED_POINT: 1,
+        SIGNED_INTEGER: 2,
+        UNSIGNED_INTEGER: 3,
+        FLOATING_POINT: 4
+};
+
+var getTextureChannelClass = function(channelType) {
+
+    switch (channelType) {
+
+    case tcuTexture.ChannelType.SNORM_INT8: return TextureChannelClass.SIGNED_FIXED_POINT;
+    case tcuTexture.ChannelType.SNORM_INT16: return TextureChannelClass.SIGNED_FIXED_POINT;
+    case tcuTexture.ChannelType.UNORM_INT8: return TextureChannelClass.UNSIGNED_FIXED_POINT;
+    case tcuTexture.ChannelType.UNORM_INT16: return TextureChannelClass.UNSIGNED_FIXED_POINT;
+    case tcuTexture.ChannelType.UNORM_SHORT_565: return TextureChannelClass.UNSIGNED_FIXED_POINT;
+    case tcuTexture.ChannelType.UNORM_SHORT_555: return TextureChannelClass.UNSIGNED_FIXED_POINT;
+    case tcuTexture.ChannelType.UNORM_SHORT_4444: return TextureChannelClass.UNSIGNED_FIXED_POINT;
+    case tcuTexture.ChannelType.UNORM_SHORT_5551: return TextureChannelClass.UNSIGNED_FIXED_POINT;
+    case tcuTexture.ChannelType.UNORM_INT_101010: return TextureChannelClass.UNSIGNED_FIXED_POINT;
+    case tcuTexture.ChannelType.UNORM_INT_1010102_REV: return TextureChannelClass.UNSIGNED_FIXED_POINT;
+    case tcuTexture.ChannelType.UNSIGNED_INT_1010102_REV: return TextureChannelClass.UNSIGNED_INTEGER;
+    case tcuTexture.ChannelType.UNSIGNED_INT_11F_11F_10F_REV: return TextureChannelClass.FLOATING_POINT;
+    case tcuTexture.ChannelType.UNSIGNED_INT_999_E5_REV: return TextureChannelClass.FLOATING_POINT;
+    case tcuTexture.ChannelType.SIGNED_INT8: return TextureChannelClass.SIGNED_INTEGER;
+    case tcuTexture.ChannelType.SIGNED_INT16: return TextureChannelClass.SIGNED_INTEGER;
+    case tcuTexture.ChannelType.SIGNED_INT32: return TextureChannelClass.SIGNED_INTEGER;
+    case tcuTexture.ChannelType.UNSIGNED_INT8: return TextureChannelClass.UNSIGNED_INTEGER;
+    case tcuTexture.ChannelType.UNSIGNED_INT16: return TextureChannelClass.UNSIGNED_INTEGER;
+    case tcuTexture.ChannelType.UNSIGNED_INT32: return TextureChannelClass.UNSIGNED_INTEGER;
+    case tcuTexture.ChannelType.HALF_FLOAT: return TextureChannelClass.FLOATING_POINT;
+    case tcuTexture.ChannelType.FLOAT: return TextureChannelClass.FLOATING_POINT;
+
+    default: return TextureChannelClass.LAST;
+    }
+
+};
+
 var fillWithComponentGradients2D = function(/*const PixelBufferAccess&*/ access, /*const Vec4&*/ minVal, /*const Vec4&*/ maxVal) {
     for (var y = 0; y < access.getHeight(); y++) {
         for (var x = 0; x < access.getWidth(); x++) {
