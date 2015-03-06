@@ -272,6 +272,7 @@ var deMathHash = function(a) {
         lessThanEqual: lessThanEqual,
         boolAll: boolAll,
         max: max,
+        min: min,
         rint: rint,
         deMathHash: deMathHash
     };
