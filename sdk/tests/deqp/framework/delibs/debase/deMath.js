@@ -212,6 +212,21 @@ var max = function(a, b) {
     return dst;
 };
 
+/**
+ * min(a, b) element by element
+ * @param {Array.<number>} a
+ * @param {Array.<number>} b
+ * @return {Array.<number>}
+ */
+var min = function(a, b) {
+    if (a.length != b.length)
+        throw new Error('Arrays must have the same size');
+    var dst = [];
+    for (var i = 0; i < a.length; i++)
+        dst.push(Math.min(a[i], b[i]));
+    return dst;
+};
+
 // Nearest-even rounding in case of tie (fractional part 0.5), otherwise ordinary rounding.
 var rint = function(a) {
     var floorVal = Math.floor(a);
