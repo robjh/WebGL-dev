@@ -20,6 +20,12 @@
 
 define(['framework/common/tcuSurface', 'framework/delibs/debase/deMath'], function(tcuSurface, deMath) {
 
+var CompareLogMode = {
+    EVERYTHING: 0,
+    RESULT: 1,
+    ON_ERROR: 2
+}
+
 var displayResultPane = function(id, width, height) {
     displayResultPane.counter = displayResultPane.counter || 0;
     var i = displayResultPane.counter++;
@@ -150,6 +156,7 @@ var pixelThresholdCompare = function(/*const char* */imageSetName, /*const char*
 };
 
 return {
+    CompareLogMode: CompareLogMode,
     pixelThresholdCompare: pixelThresholdCompare
 };
 
