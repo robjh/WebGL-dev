@@ -23,7 +23,7 @@ define(['framework/opengl/gluTextureUtil' , 'framework/common/tcuTexture', 'fram
 
     var DE_NULL = null;
 
-    /*
+    /**
      * Might be useful.
      * Constant false.
      */
@@ -31,7 +31,7 @@ define(['framework/opengl/gluTextureUtil' , 'framework/common/tcuTexture', 'fram
         return false;
     };
 
-    /*
+    /**
      * Might be useful.
      * Constant true.
      */
@@ -39,7 +39,7 @@ define(['framework/opengl/gluTextureUtil' , 'framework/common/tcuTexture', 'fram
         return true;
     };
 
-    /*
+    /**
      * @param {string} message
      */
     var OutOfMemoryError = function(message) {
@@ -47,7 +47,7 @@ define(['framework/opengl/gluTextureUtil' , 'framework/common/tcuTexture', 'fram
         this.name = "OutOfMemoryError";
     };
 
-    /*
+    /**
      * @param {number} error
      * @param {string} message
      */
@@ -56,7 +56,7 @@ define(['framework/opengl/gluTextureUtil' , 'framework/common/tcuTexture', 'fram
         this.name = "Error " + error;
     };
 
-    /*
+    /**
      * @param {WebGLRenderingContext} context
      * @param {string} msg
      */
@@ -64,7 +64,7 @@ define(['framework/opengl/gluTextureUtil' , 'framework/common/tcuTexture', 'fram
         checkError(context.getError(), msg);
     };
 
-    /*
+    /**
      * @param {deMath.deUint32} err
      * @param {string} msg
      */
@@ -75,7 +75,7 @@ define(['framework/opengl/gluTextureUtil' , 'framework/common/tcuTexture', 'fram
             if (msg)
                 msgStr += msg + ": ";
 
-            msgStr += "glGetError() returned " + /*getErrorStr*/(err); //TODO: Check if we'll implement getErrorStr(err)
+            msgStr += "gl.getError() returned " + /*getErrorStr*/(err); //TODO: Check if we'll implement getErrorStr(err)
 
             if (err == gl.OUT_OF_MEMORY)
                 throw new OutOfMemoryError(msgStr);
@@ -90,5 +90,5 @@ define(['framework/opengl/gluTextureUtil' , 'framework/common/tcuTexture', 'fram
     var GLU_CHECK_MSG = function(MSG)              {GLU_EXPECT_NO_ERROR(gl.getError, MSG)};
     var GLU_CHECK = function()                     {GLU_CHECK_MSG(DE_NULL)};
     var GLU_CHECK_CALL_ERROR = function(CALL, ERR) {do { CALL(); GLU_EXPECT_NO_ERROR(ERR, CALL.toString()); } while (deGetFalse())};
-    var GLU_CHECK_CALL= function(CALL)             {do { CALL(); GLU_EXPECT_NO_ERROR(glGetError(), CALL.toString()); } while (deGetFalse())};
+    var GLU_CHECK_CALL= function(CALL)             {do { CALL(); GLU_EXPECT_NO_ERROR(gl.getError, CALL.toString()); } while (deGetFalse())};
 });

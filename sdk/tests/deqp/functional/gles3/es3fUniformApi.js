@@ -29,6 +29,7 @@ define([
     'framework/common/tcuSurface',
     'framework/common/tcuTexture',
     'framework/delibs/debase/deMath',
+    'framework/delibs/debase/deString',
     'framework/delibs/debase/deRandom'], function(
         gluDefs,
         gluDrawUtil,
@@ -40,8 +41,11 @@ define([
         tcuSurface,
         tcuTexture,
         deMath,
+        deString,
         deRandom) {
     'use strict';
+
+    var gl = 0;
 
     var DE_ASSERT = function(x) {
         if (!x)
@@ -198,7 +202,7 @@ define([
      */
     var dataTypeEquals = function(T_)
     {
-        this.T = T;
+        this.T = T_;
     };
 
     /**
@@ -206,7 +210,7 @@ define([
      * @return {boolean}
      */
     dataTypeEquals.prototype.exec = function(t) {
-        return t == T;
+        return t == this.T;
     };
 
     /**
@@ -351,13 +355,19 @@ define([
      * @property {number} unit,
      * @property {Array.<number>} fillColor
      */
+    var SamplerV = function() {
+        this.samplerV = {
+            /** @type {number} */ unit: 0,
+            /** @type {Array.<number>} */ fillColor: []
+        };
+    };
 
     /**
      * VarValue class. may contain different types.
      */
     var VarValue = function() {
         /** @type {deqpUtils.DataType} */ this.type = -1;
-        /** @type  {Array.<number|boolean> | SamplerV} */ this.val = [];
+        /** @type {Array.<number | boolean> | SamplerV} */ this.val = [];
     };
 
     /**
@@ -686,18 +696,18 @@ define([
         {
             case deqpUtils.DataType.FLOAT_VEC4:
                 for (var i = 0; i < 4; i++)
-                    result.val.floatV[i] = sampler.val.samplerV.fillColor.floatV[i];
+                    result.val[i] = sampler.val.samplerV.fillColor[i];
                 break;
             case deqpUtils.DataType.UINT_VEC4:
                 for (var i = 0; i < 4; i++)
-                    result.val.uintV[i] = sampler.val.samplerV.fillColor.uintV[i];
+                    result.val[i] = sampler.val.samplerV.fillColor[i];
                 break;
             case deqpUtils.DataType.INT_VEC4:
                 for (var i = 0; i < 4; i++)
-                    result.val.intV[i] = sampler.val.samplerV.fillColor.intV[i];
+                    result.val[i] = sampler.val.samplerV.fillColor[i];
                 break;
             case deqpUtils.DataType.FLOAT:
-                result.val.floatV[0] = sampler.val.samplerV.fillColor.floatV[0];
+                result.val[0] = sampler.val.samplerV.fillColor[0];
                 break;
             default:
                 DE_ASSERT(false);
@@ -715,7 +725,7 @@ define([
 
         /** @type {VarValue} */ var result;
         result.type = deqpUtils.DataType.INT;
-        result.val.intV[0] = sampler.val.samplerV.unit;
+        result.val[0] = sampler.val.samplerV.unit;
 
         return result;
     };
@@ -742,7 +752,7 @@ define([
 
         for (var i = 0; i < rows; i++)
         for (var j = 0; j < cols; j++)
-            result.val.floatV[i * cols + j] = original.val.floatV[j * rows + i];
+            result.val[i * cols + j] = original.val[j * rows + i];
 
         return result;
     };
@@ -764,13 +774,13 @@ define([
                 result += ', ';
 
             if (deqpUtils.isDataTypeFloatOrVec(value.type) || deqpUtils.isDataTypeMatrix(value.type))
-                result += value.val.floatV[i].toFixed(2);
+                result += value.val[i].toFixed(2);
             else if (deqpUtils.isDataTypeIntOrIVec((value.type)))
-                result += value.val.intV[i];
+                result += value.val[i];
             else if (deqpUtils.isDataTypeUintOrUVec((value.type)))
-                result += value.val.uintV[i] + 'u';
+                result += value.val[i] + 'u';
             else if (deqpUtils.isDataTypeBoolOrBVec((value.type)))
-                result += value.val.boolV[i] ? 'true' : 'false';
+                result += value.val[i] ? 'true' : 'false';
             else if (deqpUtils.isDataTypeSampler((value.type)))
                 result += shaderVarValueStr(getSamplerFillValue(value));
             else
@@ -799,15 +809,16 @@ define([
             if (i > 0)
                 result += ', ';
 
-            var preresult = value.val.length !== undefined ? value.val[i] : value.val;
+            var preresult = value.val[i] : value.val;
             if (deqpUtils.isDataTypeFloatOrVec(value.type) || deqpUtils.isDataTypeMatrix(value.type))
-                result += preresult.toFixed(2);
+                result += value.val[i].toFixed(2);
             else if (deqpUtils.isDataTypeIntOrIVec(value.type) ||
-                deqpUtils.isDataTypeUintOrUVec(value.type) ||
-                deqpUtils.isDataTypeSampler(value.type))
-                result += preresult;
+                deqpUtils.isDataTypeUintOrUVec(value.type))
+                result += value.val[i];
             else if (deqpUtils.isDataTypeBoolOrBVec(value.type))
-                result += preresult ? 'true' : 'false';
+                result += value.val[i] ? 'true' : 'false';
+            else if (deqpUtils.isDataTypeSampler(value.type))
+                result += value.val.samplerV.unit;
             else
                 DE_ASSERT(false);
         }
@@ -835,22 +846,22 @@ define([
         if (deqpUtils.isDataTypeFloatOrVec(type) || deqpUtils.isDataTypeMatrix(type))
         {
             for (var i = 0; i < numElems; i++)
-                result.val.floatV[i] = rnd.getFloat(-10.0, 10.0);
+                result.val[i] = rnd.getFloat(-10.0, 10.0);
         }
         else if (deqpUtils.isDataTypeIntOrIVec(type))
         {
             for (var i = 0; i < numElems; i++)
-                result.val.intV[i] = rnd.getInt(-10, 10);
+                result.val[i] = rnd.getInt(-10, 10);
         }
         else if (deqpUtils.isDataTypeUintOrUVec(type))
         {
             for (var i = 0; i < numElems; i++)
-                result.val.uintV[i] = rnd.getInt(0, 10);
+                result.val[i] = rnd.getInt(0, 10);
         }
         else if (deqpUtils.isDataTypeBoolOrBVec(type))
         {
             for (var i = 0; i < numElems; i++)
-                result.val.boolV[i] = rnd.getBool();
+                result.val[i] = rnd.getBool();
         }
         else if (deqpUtils.isDataTypeSampler(type))
         {
@@ -858,15 +869,16 @@ define([
             /** @type {deqpUtils.DataType} */ var texResultScalarType = deqpUtils.getDataTypeScalarType(texResultType);
             /** @type {number} */ var texResultNumDims = deqpUtils.getDataTypeScalarSize(texResultType);
 
+            result.val = new SamplerV();
             result.val.samplerV.unit = samplerUnit;
 
             for (var i = 0; i < texResultNumDims; i++)
             {
                 switch (texResultScalarType)
                 {
-                    case deqpUtils.DataType.FLOAT: result.val.samplerV.fillColor.floatV[i] = rnd.getFloat(0.0, 1.0); break;
-                    case deqpUtils.DataType.INT: result.val.samplerV.fillColor.intV[i] = rnd.getInt(-10, 10); break;
-                    case deqpUtils.DataType.UINT: result.val.samplerV.fillColor.uintV[i] = rnd.getInt(0, 10); break;
+                    case deqpUtils.DataType.FLOAT: result.val.samplerV.fillColor[i] = rnd.getFloat(0.0, 1.0); break;
+                    case deqpUtils.DataType.INT: result.val.samplerV.fillColor[i] = rnd.getInt(-10, 10); break;
+                    case deqpUtils.DataType.UINT: result.val.samplerV.fillColor[i] = rnd.getInt(0, 10); break;
                     default:
                         DE_ASSERT(false);
                 }
@@ -890,22 +902,22 @@ define([
         if (deqpUtils.isDataTypeFloatOrVec(type) || deqpUtils.isDataTypeMatrix(type))
         {
             for (var i = 0; i < numElems; i++)
-                result.val.floatV[i] = 0.0;
+                result.val[i] = 0.0;
         }
         else if (deqpUtils.isDataTypeIntOrIVec(type))
         {
             for (var i = 0; i < numElems; i++)
-                result.val.intV[i] = 0;
+                result.val[i] = 0;
         }
         else if (deqpUtils.isDataTypeUintOrUVec(type))
         {
             for (var i = 0; i < numElems; i++)
-                result.val.uintV[i] = 0;
+                result.val[i] = 0;
         }
         else if (deqpUtils.isDataTypeBoolOrBVec(type))
         {
             for (var i = 0; i < numElems; i++)
-                result.val.boolV[i] = false;
+                result.val[i] = false;
         }
         else if (deqpUtils.isDataTypeSampler(type))
         {
@@ -913,15 +925,16 @@ define([
             /** @type {deqpUtils.DataType} */ var texResultScalarType = deqpUtils.getDataTypeScalarType(texResultType);
             /** @type {number} */ var texResultNumDims = deqpUtils.getDataTypeScalarSize(texResultType);
 
+            result.val = new SamplerV();
             result.val.samplerV.unit = 0;
 
             for (var i = 0; i < texResultNumDims; i++)
             {
                 switch (texResultScalarType)
                 {
-                    case deqpUtils.DataType.FLOAT: result.val.samplerV.fillColor.floatV[i] = 0.12 * i; break;
-                    case deqpUtils.DataType.INT: result.val.samplerV.fillColor.intV[i] = -2 + i; break;
-                    case deqpUtils.DataType.UINT: result.val.samplerV.fillColor.uintV[i] = 4 + i; break;
+                    case deqpUtils.DataType.FLOAT: result.val.samplerV.fillColor[i] = 0.12 * i; break;
+                    case deqpUtils.DataType.INT: result.val.samplerV.fillColor[i] = -2 + i; break;
+                    case deqpUtils.DataType.UINT: result.val.samplerV.fillColor[i] = 4 + i; break;
                     default:
                         DE_ASSERT(false);
                 }
@@ -947,25 +960,25 @@ define([
         if (deqpUtils.isDataTypeFloatOrVec(a.type) || deqpUtils.isDataTypeMatrix(a.type))
         {
             for (var i = 0; i < size; i++)
-                if (Math.abs(a.val.floatV[i] - b.val.floatV[i]) >= floatThreshold)
+                if (Math.abs(a.val[i] - b.val[i]) >= floatThreshold)
                     return false;
         }
         else if (deqpUtils.isDataTypeIntOrIVec(a.type))
         {
             for (var i = 0; i < size; i++)
-                if (a.val.intV[i] != b.val.intV[i])
+                if (a.val[i] != b.val[i])
                     return false;
         }
         else if (deqpUtils.isDataTypeUintOrUVec(a.type))
         {
             for (var i = 0; i < size; i++)
-                if (a.val.uintV[i] != b.val.uintV[i])
+                if (a.val[i] != b.val[i])
                     return false;
         }
         else if (deqpUtils.isDataTypeBoolOrBVec(a.type))
         {
             for (var i = 0; i < size; i++)
-                if (a.val.boolV[i] != b.val.boolV[i])
+                if (a.val[i] != b.val[i])
                     return false;
         }
         else if (deqpUtils.isDataTypeSampler(a.type))
@@ -998,38 +1011,38 @@ define([
             case deqpUtils.DataType.INT:
                 for (var i = 0; i < size; i++)
                 {
-                    if (boolValue.val.boolV[i])
+                    if (boolValue.val[i])
                     {
-                        result.val.intV[i] = rnd.getInt(-10, 10);
-                        if (result.val.intV[i] == 0)
-                            result.val.intV[i] = 1;
+                        result.val[i] = rnd.getInt(-10, 10);
+                        if (result.val[i] == 0)
+                            result.val[i] = 1;
                     }
                     else
-                        result.val.intV[i] = 0;
+                        result.val[i] = 0;
                 }
                 break;
 
             case deqpUtils.DataType.UINT:
                 for (var i = 0; i < size; i++)
                 {
-                    if (boolValue.val.boolV[i])
-                        result.val.uintV[i] = rnd.getInt(1, 10);
+                    if (boolValue.val[i])
+                        result.val[i] = rnd.getInt(1, 10);
                     else
-                        result.val.uintV[i] = 0;
+                        result.val[i] = 0;
                 }
                 break;
 
             case deqpUtils.DataType.FLOAT:
                 for (var i = 0; i < size; i++)
                 {
-                    if (boolValue.val.boolV[i])
+                    if (boolValue.val[i])
                     {
-                        result.val.floatV[i] = rnd.getFloat(-10.0, 10.0);
-                        if (result.val.floatV[i] == 0.0)
-                            result.val.floatV[i] = 1.0;
+                        result.val[i] = rnd.getFloat(-10.0, 10.0);
+                        if (result.val[i] == 0.0)
+                            result.val[i] = 1.0;
                     }
                     else
-                        result.val.floatV[i] = 0;
+                        result.val[i] = 0;
                 }
                 break;
 
@@ -1107,7 +1120,7 @@ define([
      * @param {number} elemNdx_
      * @param {number} rootSize_
      */
-    var BasicUniform = function(type_, isUsedInShader_, finalValue_, rootName_, elemNdx_, rootSize_) {
+    var BasicUniform = function(name_, type_, isUsedInShader_, finalValue_, rootName_, elemNdx_, rootSize_) {
         /** @type {string} */ this.name = name_;
         /** @type {deqpUtils.DataType} */ this.type = type_;
         /** @type {boolean} */ this.isUsedInShader = isUsedInShader_;
@@ -1160,7 +1173,7 @@ define([
         this.maxSize = maxS;
         this.type = type_;
         this.isUsedInShader = used;
-        DE_ASSERT(minSize <= maxSize);
+        DE_ASSERT(this.minSize <= this.maxSize);
     };
 
     // Info that is actually reported by glGetActiveUniform() or glGetActiveUniformsiv().
@@ -1201,9 +1214,9 @@ define([
      * @return {UniformCase}
      */
     var UniformCase = function(name, description, seed) { // \note Randomizes caseType, uniformCollection and features.
-        tcuTestCase.DeqpTest.call(this, name, description);
+        deqpTests.DeqpTest.call(this, name, description);
 
-        /** @type {deMath.deUint32} */ this.m_features = randomFeatures(seed);
+        /** @type {deMath.deUint32} */ this.m_features = this.randomFeatures(seed);
         /** @type {UniformCollection} (SharedPtr) */ this.m_uniformCollection = UniformCollection.random(seed);
 
         /** @type {CaseShaderType} */ this.m_caseShaderType = randomCaseShaderType(seed);
@@ -1213,7 +1226,7 @@ define([
         /** @type {Array.<deMath.deUint32>} */ this.m_filledTextureUnits = [];
     };
 
-    UniformCase.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
+    UniformCase.prototype = Object.create(deqpTests.DeqpTest.prototype);
     UniformCase.prototype.constructor = UniformCase;
 
     /**
@@ -1221,7 +1234,7 @@ define([
      * @param {string} name
      * @param {string} description
      * @param {CaseShaderType} caseShaderType
-     * @param {UniformCollection} description (SharedPtr)
+     * @param {UniformCollection} uniformCollection (SharedPtr)
      * @param {deMath.deUint32} features
      * @return {UniformCase}
      */
@@ -1239,7 +1252,7 @@ define([
      * @param {string} name
      * @param {string} description
      * @param {CaseShaderType} caseShaderType
-     * @param {UniformCollection} description (SharedPtr)
+     * @param {UniformCollection} uniformCollection (SharedPtr)
      * @return {UniformCase}
      */
     UniformCase.new_A = function(name, description, caseShaderType, uniformCollection) {
@@ -1264,11 +1277,11 @@ define([
         /** @type {Array.<deMath.deUint32>} */ UniformCase.booleanApiTypeChoices = [0, Feature.BOOLEANAPITYPE_INT, Feature.BOOLEANAPITYPE_UINT];
         /** @type {Array.<deMath.deUint32>} */ UniformCase.uniformValueChoices = [0, Feature.UNIFORMVALUE_ZERO];
 
-        /** @type {deRandom.Random} */ rnd = new deRandom.Random(seed);
+        /** @type {deRandom.Random} */ var rnd = new deRandom.Random(seed);
 
         /** @type {deMath.deUint32} */ var result = 0;
 
-        var ARRAY_CHOICE = function(ARR) {ARR[rnd.getInt(0, ARR.length - 1)];};
+        var ARRAY_CHOICE = function(ARR) {return ARR[rnd.getInt(0, ARR.length - 1)];};
 
         result |= ARRAY_CHOICE(UniformCase.arrayUsageChoices);
         result |= ARRAY_CHOICE(UniformCase.uniformFuncChoices);
@@ -1350,13 +1363,13 @@ define([
                     basicUniformsDst.push(new BasicUniform(indexedName, elemBasicType, isCurElemActive, value, arrayRootName, elemNdx, size));
                 }
                 else
-                    generateBasicUniforms(basicUniformsDst, basicUniformReportsDst, varType.getElementType(), indexedName, isCurElemActive, samplerUnitCounter, rnd);
+                    this.generateBasicUniforms(basicUniformsDst, basicUniformReportsDst, varType.getElementType(), indexedName, isCurElemActive, samplerUnitCounter, rnd);
             }
 
             if (varType.getElementType().isBasicType())
             {
                 /** @type {number} */ var minSize;
-                for (minSize = varType.getArraySize(); minSize > 0 && !isElemActive[minSize - 1]; minSize--);
+                for (minSize = varType.getArraySize(); minSize > 0 && !isElemActive[minSize - 1]; minSize--){};
 
                 basicUniformReportsDst.push(new BasicUniformReportRef(arrayRootName, minSize, size, varType.getElementType().getBasicType(), isParentActive && minSize > 0));
             }
@@ -1367,12 +1380,12 @@ define([
 
             /** @type {gluVT.StructType} */ var structType = varType.getStructPtr();
 
-            for (int i = 0; i < structType.getNumMembers(); i++)
+            for (var i = 0; i < structType.getNumMembers(); i++)
             {
                 /** @type {gluVT.StructMember} */ var member = structType.getMember(i);
                 /** @type {string} */ var memberFullName = '' + varName + '.' + member.getName();
 
-                generateBasicUniforms(basicUniformsDst, basicUniformReportsDst, member.getType(), memberFullName, isParentActive, samplerUnitCounter, rnd);
+                this.generateBasicUniforms(basicUniformsDst, basicUniformReportsDst, member.getType(), memberFullName, isParentActive, samplerUnitCounter, rnd);
             }
         }
     };
@@ -1383,7 +1396,7 @@ define([
      */
     UniformCase.prototype.writeUniformDefinitions = function(dst) {
         for (var i = 0; i < this.m_uniformCollection.getNumStructTypes(); i++)
-            dst += deqpUtils.declare(this.holam_uniformCollection - > getStructType(i)) << ';\n';
+            dst += deqpUtils.declare(this.m_uniformCollection.getStructType(i)) + ';\n';
 
         for (var i = 0; i < this.m_uniformCollection.getNumUniforms(); i++)
             dst += 'uniform ' + deqpUtils.declare(this.m_uniformCollection.getUniform(i).type, this.m_uniformCollection.getUniform(i).name) + ';\n';
@@ -1479,7 +1492,7 @@ define([
             if (unif.isUsedInShader)
             {
                 dst += "\t" + variableName + " *= ";
-                writeUniformCompareExpr(dst, basicUniforms[i]);
+                this.writeUniformCompareExpr(dst, basicUniforms[i]);
                 dst += ";\n";
             }
             else
@@ -1497,22 +1510,22 @@ define([
         /** @type {boolean} */ var isVertexCase = this.m_caseShaderType == CaseShaderType.CASESHADERTYPE_VERTEX || this.m_caseShaderType == CaseShaderType.CASESHADERTYPE_BOTH;
         /** @type {string} */ var result;
 
-        result += "#version 300 es\n"
-                  "in highp vec4 a_position;\n"
-                  "out mediump float v_vtxOut;\n"
+        result += "#version 300 es\n" +
+                  "in highp vec4 a_position;\n" +
+                  "out mediump float v_vtxOut;\n" +
                   "\n";
 
         if (isVertexCase)
-            result = writeUniformDefinitions(result);
+            result = this.writeUniformDefinitions(result);
 
-        result += "\n"
-                  "void main (void)\n"
-                  "{\n"
-                  "    gl_Position = a_position;\n"
+        result += "\n" +
+                  "void main (void)\n" +
+                  "{\n" +
+                  "    gl_Position = a_position;\n" +
                   "    v_vtxOut = 1.0;\n";
 
         if (isVertexCase)
-            result = writeUniformComparisons(result, basicUniforms, "v_vtxOut");
+            result = this.writeUniformComparisons(result, basicUniforms, "v_vtxOut");
 
         result += "}\n";
 
@@ -1527,24 +1540,24 @@ define([
         /**@type {boolean} */ var isFragmentCase = this.m_caseShaderType == CaseShaderType.CASESHADERTYPE_FRAGMENT || this.m_caseShaderType == CaseShaderType.CASESHADERTYPE_BOTH;
         /**@type {string} */ var result;
 
-        result += "#version 300 es\n"
-                  "in mediump float v_vtxOut;\n"
+        result += "#version 300 es\n" +
+                  "in mediump float v_vtxOut;\n" +
                   "\n";
 
         if (isFragmentCase)
-            result = writeUniformDefinitions(result);
+            result = this.writeUniformDefinitions(result);
 
-        result += "\n"
-                  "layout(location = 0) out mediump vec4 dEQP_FragColor;\n"
-                  "\n"
-                  "void main (void)\n"
-                  "{\n"
+        result += "\n" +
+                  "layout(location = 0) out mediump vec4 dEQP_FragColor;\n" +
+                  "\n" +
+                  "void main (void)\n" +
+                  "{\n" +
                   "    mediump float result = v_vtxOut;\n";
 
         if (isFragmentCase)
-            result = writeUniformComparisons(result, basicUniforms, "result");
+            result = this.writeUniformComparisons(result, basicUniforms, "result");
 
-        result += "    dEQP_FragColor = vec4(result, result, result, 1.0);\n"
+        result += "    dEQP_FragColor = vec4(result, result, result, 1.0);\n" +
                   "}\n";
 
         return result;
@@ -1560,7 +1573,7 @@ define([
 
         /** @type {number} */ var width            = 32;
         /** @type {number} */ var height            = 32;
-        /** @type {Array.<number>} */ var color            = value.val.samplerV.fillColor.floatV[0];
+        /** @type {Array.<number>} */ var color            = value.val.samplerV.fillColor[0];
 
         if (value.type == deqpUtils.DataType.SAMPLER_2D)
         {
@@ -1571,7 +1584,7 @@ define([
             refTexture.allocLevel(0);
             fillWithColor(refTexture.getLevel(0), color);
 
-            gluDefs.GLU_CHECK_CALL(function(){gl.ActiveTexture(gl.TEXTURE0 + value.val.samplerV.unit);});
+            gluDefs.GLU_CHECK_CALL(function(){gl.activeTexture(gl.TEXTURE0 + value.val.samplerV.unit);});
             this.m_filledTextureUnits.push(value.val.samplerV.unit);
             texture.upload();
             gluDefs.GLU_CHECK_CALL(function(){gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);});
@@ -1605,7 +1618,7 @@ define([
             DE_ASSERT(false);
     };
 
-    /*
+    /**
      * @param {Array.<BasicUniformReportGL>} basicUniformReportsDst
      * @param {Array.<BasicUniformReportRef>} basicUniformReportsRef
      * @param {deMath.deUint32} programGL
@@ -1684,7 +1697,7 @@ define([
             }
         }
 
-        for (var i = 0; i < basicUniformReportsRef.; i++)
+        for (var i = 0; i < basicUniformReportsRef.length; i++)
         {
             /** @type {BasicUniformReportRef} */ var expected = basicUniformReportsRef[i];
             if (expected.isUsedInShader && BasicUniformReportGL.findWithName(basicUniformReportsDst, expected.name) == basicUniformReportsDst[basicUniformReportsDst.length - 1])
@@ -1697,7 +1710,7 @@ define([
         return success;
     };
 
-    /*
+    /**
      * @param {Array.<BasicUniformReportGL>} basicUniformReportsDst
      * @param {Array.<BasicUniformReportRef>} basicUniformReportsRef
      * @param {deMath.deUint32} programGL
@@ -1736,8 +1749,8 @@ define([
         if (validUniformIndices.length > 0)
         {
             /** @type {Array.<string>} */ var uniformNameBuf = new Array(validUniformIndices.length);
-            /** @type {Array.<number> (GLint) } */ var uniformSizeBuf = new Array(validUniformIndices.length);
-            /** @type {Array.<number> (GLint) } */ var uniformTypeBuf = new Array(validUniformIndices.length);
+            /** @type {Array.<number>} (GLint) */ var uniformSizeBuf = new Array(validUniformIndices.length);
+            /** @type {Array.<number>} (GLint) */ var uniformTypeBuf = new Array(validUniformIndices.length);
 
             gluDefs.GLU_CHECK_CALL(function(){uniformNameBuf = gl.getActiveUniformsiv(programGL, validUniformIndices, gl.UNIFORM_NAME_LENGTH);});
             gluDefs.GLU_CHECK_CALL(function(){uniformSizeBuf = gl.getActiveUniformsiv(programGL, validUniformIndices, gl.UNIFORM_SIZE);});
@@ -1789,12 +1802,12 @@ define([
         return success;
     };
 
-    /*
-     * @param {Array.<BasicUniformReportGL>} basicUniformReportsDst
-     * @param {Array.<BasicUniformReportGL>} basicUniformReportsRef
+    /**
+     * @param {Array.<BasicUniformReportGL>} uniformResults
+     * @param {Array.<BasicUniformReportGL>} uniformsResults
      * @return {boolean}
      */
-    UniformCase.prototype.uniformVsUniformsComparison = function(BasicUniformReportGL>& uniformResults, const vector<BasicUniformReportGL>& uniformsResults) {
+    UniformCase.prototype.uniformVsUniformsComparison = function(uniformResults, uniformsResults) {
         /** @type {boolean} */ var success = true;
 
         for (var uniformResultNdx = 0; uniformResultNdx < uniformResults.length; uniformResultNdx++)
@@ -1807,22 +1820,22 @@ define([
             {
                 bufferedLogToConsole("// Checking uniform " + uniformName);
 
-                if (uniformResult.index != uniformsivResult.index)
+                if (uniformResult.index != uniformsResult.index)
                 {
                     bufferedLogToConsole("// FAILURE: glGetActiveUniform() and glGetUniformIndices() gave different indices for uniform " + uniformName);
                     success = false;
                 }
-                if (uniformResult.nameLength + 1 != uniformsivResult.nameLength)
+                if (uniformResult.nameLength + 1 != uniformsResult.nameLength)
                 {
                     bufferedLogToConsole("// FAILURE: glGetActiveUniform() and glGetActiveUniformsiv() gave incompatible name lengths for uniform " + uniformName);
                     success = false;
                 }
-                if (uniformResult.size != uniformsivResult.size)
+                if (uniformResult.size != uniformsResult.size)
                 {
                     bufferedLogToConsole("// FAILURE: glGetActiveUniform() and glGetActiveUniformsiv() gave different sizes for uniform " + uniformName);
                     success = false;
                 }
-                if (uniformResult.type != uniformsivResult.type)
+                if (uniformResult.type != uniformsResult.type)
                 {
                     bufferedLogToConsole("// FAILURE: glGetActiveUniform() and glGetActiveUniformsiv() gave different types for uniform " + uniformName);
                     success = false;
@@ -1851,7 +1864,7 @@ define([
         return success;
     };
 
-    /*
+    /**
      * @param {Array.<VarValue>} valuesDst
      * @param {Array.<BasicUniform>} basicUniforms
      * @param {deMath.deUint32} programGL
@@ -1866,7 +1879,7 @@ define([
             /** @type {string} */ var queryName    = this.m_features & Feature.ARRAY_FIRST_ELEM_NAME_NO_INDEX && uniform.elemNdx == 0 ? beforeLast(uniform.name, '[') : uniform.name;
             /** @type {number} */ var location    = gl.getUniformLocation(programGL, queryName);
             /** @type {number} */ var size        = deqpUtils.getDataTypeScalarSize(uniform.type);
-            /** @type {VarValue} */ var value;
+            /** @type {VarValue} */ var value = new VarValue();
 
             //TODO: deMemset(&value, 0xcd, sizeof(value)); // Initialize to known garbage.
 
@@ -1893,7 +1906,7 @@ define([
         return success;
     };
 
-    /*
+    /**
      * @param {Array.<VarValue>} values
      * @param {Array.<BasicUniform>} basicUniforms
      * @return {boolean}
@@ -1919,8 +1932,7 @@ define([
                 {
                     for (var i = 0; i < valSize; i++)
                     {
-                        var prevalue = unifValue.val.length !== undefined ? unifValue.val[i] : unifValue.val;
-                        if (prevalue != ZERO)
+                        if (unifValue.val[i] != ZERO)
                         {
                             bufferedLogToConsole("// FAILURE: uniform " + uniform.name + " has non-zero initial value");
                             success = false;
@@ -1938,7 +1950,11 @@ define([
             else if (deqpUtils.isDataTypeBoolOrBVec(uniform.type))
                 CHECK_UNIFORM(false);
             else if (deqpUtils.isDataTypeSampler(uniform.type))
-                CHECK_UNIFORM(0);
+                if (unifValue.val.samplerV.unit != 0)
+                {
+                    bufferedLogToConsole("// FAILURE: uniform " + uniform.name + " has non-zero initial value");
+                    success = false;
+                }
             else
                 DE_ASSERT(false);
         }
@@ -1946,7 +1962,7 @@ define([
         return success;
     };
 
-    /*
+    /**
      * @param {Array.<BasicUniform>} basicUniforms
      * @param {deMath.deUint32} programGL
      * @param {deRandom.Random} rnd
@@ -2142,7 +2158,7 @@ define([
         }
     };
 
-    /*
+    /**
      * @param {Array.<VarValue>} values
      * @param {Array.<BasicUniform>} basicUniforms
      * @return {boolean}
@@ -2170,7 +2186,10 @@ define([
         return success;
     };
 
-    /*
+    /** @const @type {number} */ var VIEWPORT_WIDTH = 128;
+    /** @const @type {number} */ var VIEWPORT_HEIGHT = 128;
+
+    /**
      * @param {Array.<BasicUniform>} basicUniforms
      * @param {gluSP.ShaderProgram} program
      * @param {deRandom.Random} rnd
@@ -2202,7 +2221,7 @@ define([
             if (deqpUtils.isDataTypeSampler(basicUniforms[i].type) && this.m_filledTextureUnits.indexOf(basicUniforms[i].finalValue.val) == -1)
             {
                 bufferedLogToConsole("// Filling texture at unit " + apiVarValueStr(basicUniforms[i].finalValue) + " with color " + shaderVarValueStr(basicUniforms[i].finalValue));
-                setupTexture(basicUniforms[i].finalValue);
+                this.setupTexture(basicUniforms[i].finalValue);
             }
         }
 
@@ -2250,7 +2269,7 @@ define([
         }
     };
 
-    /*
+    /**
      * @return {deqpTests.stateMachine.IterateResult}
      */
     UniformCase.prototype.iterate = function() {
@@ -2264,8 +2283,8 @@ define([
                 generateBasicUniforms(basicUniforms, basicUniformReportsRef, this.m_uniformCollection.getUniform(i).type, this.m_uniformCollection.getUniform(i).name, true, samplerUnitCounter, rnd);
         }
 
-        /** @type {string} */ var vertexSource = generateVertexSource(basicUniforms);
-        /** @type {string} */ var fragmentSource = generateFragmentSource(basicUniforms);
+        /** @type {string} */ var vertexSource = this.generateVertexSource(basicUniforms);
+        /** @type {string} */ var fragmentSource = this.generateFragmentSource(basicUniforms);
         /** @type {gluSP.ShaderProgram} */ var program = new gluSP.ShaderProgram(gl, gluSP.makeVtxFragSources(vertexSource, fragmentSource));
 
         bufferedLogToConsole(program);
@@ -2282,7 +2301,7 @@ define([
         assertMsgOptions(success, '', true, false);
 
         return deqpTests.stateMachine.IterateResult.STOP;
-    };*/
+    };
 
     /**
      */
