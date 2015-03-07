@@ -79,6 +79,8 @@ var precision = {
     PRECISION_HIGHP: 2
 };
 
+precision.PRECISION_LAST = Object.keys(precision).length;
+
 var getPrecisionName = function(prec) {
     var s_names = [
         'lowp',
@@ -347,6 +349,24 @@ var isDataTypeIntOrIVec = function(dataType) {
 };
 
 /**
+ * Checks if dataType is unsigned integer or vectors of unsigned integers
+ * @param {DataType} dataType shader
+ * @return {boolean} Is dataType unsigned integer or unsigned integer vector
+ */
+var isDataTypeUintOrUVec = function(dataType) {
+    /** @type {boolean} */ var retVal = false;
+    switch (dataType) {
+        case DataType.UINT:
+        case DataType.UINT_VEC2:
+        case DataType.UINT_VEC3:
+        case DataType.UINT_VEC4:
+            retVal = true;
+    }
+
+    return retVal;
+};
+
+/**
 * Returns type of scalar size
 * @param {DataType} dataType shader
 * @return {number} with size of the type of scalar
@@ -475,9 +495,9 @@ var isDataTypeVector = function(dataType) {
 };
 
 /**
- * Checks if dataType is a vector
+ * Checks if dataType is a vector or a scalar type
  * @param {DataType} dataType shader
- * @return {boolean} Is dataType vector or not
+ * @return {boolean} Is dataType vector or scalar or not
  */
 var isDataTypeScalarOrVector = function(dataType) {
     switch (dataType) {
@@ -497,6 +517,15 @@ var isDataTypeScalarOrVector = function(dataType) {
             return true;
     }
     return false;
+};
+
+/**
+ * Checks if dataType is a sampler
+ * @param {DataType} dataType shader
+ * @return {boolean} Is dataType vector or scalar or not
+ */
+var isDataTypeSampler = function(dataType) {
+    return (dataType >= DataType.SAMPLER_2D) && (dataType <= DataType.UINT_SAMPLER_3D);
 };
 
 /**
@@ -611,6 +640,7 @@ return {
     getDataTypeScalarType: getDataTypeScalarType,
     getDataTypeScalarTypeAsDataType: getDataTypeScalarTypeAsDataType,
     isDataTypeIntOrIVec: isDataTypeIntOrIVec,
+    isDataTypeUintOrUVec: isDataTypeUintOrUVec,
     getDataTypeVector: getDataTypeVector,
     getDataTypeFloatVec: getDataTypeFloatVec,
     isDataTypeBoolOrBVec: isDataTypeBoolOrBVec,
@@ -620,6 +650,7 @@ return {
     isDataTypeScalar: isDataTypeScalar,
     isDataTypeVector: isDataTypeVector,
     isDataTypeScalarOrVector: isDataTypeScalarOrVector,
+    isDataTypeSampler: isDataTypeSampler,
     getDataTypeMatrixNumColumns: getDataTypeMatrixNumColumns,
     getDataTypeMatrixNumRows: getDataTypeMatrixNumRows,
     getDataTypeName: getDataTypeName

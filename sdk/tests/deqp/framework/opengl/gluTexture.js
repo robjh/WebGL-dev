@@ -302,7 +302,7 @@ return {
     texture2DFromFormat: texture2DFromFormat,
     texture2DFromInternalFormat: texture2DFromInternalFormat,
     cubeFromFormat: cubeFromFormat,
-    cubeFromInternalFormat, cubeFromInternalFormat,
+    cubeFromInternalFormat: cubeFromInternalFormat,
     texture2DArrayFromFormat: texture2DArrayFromFormat,
     texture2DArrayFromInternalFormat: texture2DArrayFromInternalFormat,
     texture3DFromFormat: texture3DFromFormat,

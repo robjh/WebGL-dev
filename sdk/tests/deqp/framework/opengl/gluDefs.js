@@ -18,7 +18,16 @@
  *
  */
 
-define(['framework/opengl/gluTextureUtil' , 'framework/common/tcuTexture', 'framework/common/tcuCompressedTexture', 'framework/delibs/debase/deMath'], function(gluTextureUtil, tcuTexture, tcuCompressedTexture, deMath) {
+define([
+    'framework/opengl/gluTextureUtil' ,
+    'framework/common/tcuTexture',
+    'framework/common/tcuCompressedTexture',
+    'framework/delibs/debase/deMath'], function(
+        gluTextureUtil, 
+        tcuTexture, 
+        tcuCompressedTexture, 
+        deMath) {
+
     'use strict';
 
     var DE_NULL = null;
@@ -44,7 +53,7 @@ define(['framework/opengl/gluTextureUtil' , 'framework/common/tcuTexture', 'fram
      */
     var OutOfMemoryError = function(message) {
         this.message = message;
-        this.name = "OutOfMemoryError";
+        this.name = 'OutOfMemoryError';
     };
 
     /**
@@ -53,7 +62,7 @@ define(['framework/opengl/gluTextureUtil' , 'framework/common/tcuTexture', 'fram
      */
     var Error = function(error, message) {
         this.message = message;
-        this.name = "Error " + error;
+        this.name = 'Error ' + error;
     };
 
     /**
@@ -61,7 +70,7 @@ define(['framework/opengl/gluTextureUtil' , 'framework/common/tcuTexture', 'fram
      * @param {string} msg
      */
     var checkError = function(context, msg) {
-        checkError(context.getError(), msg);
+        checkErrorCode(context.getError(), msg);
     };
 
     /**
@@ -71,11 +80,11 @@ define(['framework/opengl/gluTextureUtil' , 'framework/common/tcuTexture', 'fram
     var checkErrorCode = function(err, msg) {
         if (err != gl.NO_ERROR)
         {
-            /** @type {string} */ var msgStr;
+            /** @type {string} */ var msgStr = '';
             if (msg)
-                msgStr += msg + ": ";
+                msgStr += msg + ': ';
 
-            msgStr += "gl.getError() returned " + /*getErrorStr*/(err); //TODO: Check if we'll implement getErrorStr(err)
+            msgStr += 'gl.getError() returned ' + /*getErrorStr*/(err); //TODO: Check if we'll implement getErrorStr(err)
 
             if (err == gl.OUT_OF_MEMORY)
                 throw new OutOfMemoryError(msgStr);
@@ -85,10 +94,14 @@ define(['framework/opengl/gluTextureUtil' , 'framework/common/tcuTexture', 'fram
     };
 
     // Functions for checking API errors.
-    var GLU_EXPECT_NO_ERROR = function(ERR, MSG)   {checkError(ERR(), MSG)};
+    var GLU_EXPECT_NO_ERROR = function(ERR, MSG)   {checkErrorCode(ERR(), MSG)};
     var GLU_CHECK_ERROR = function(ERR)            {GLU_EXPECT_NO_ERROR(ERR, DE_NULL)};
-    var GLU_CHECK_MSG = function(MSG)              {GLU_EXPECT_NO_ERROR(gl.getError, MSG)};
+    var GLU_CHECK_MSG = function(MSG)              {GLU_EXPECT_NO_ERROR(function() {return gl.getError();}, MSG)};
     var GLU_CHECK = function()                     {GLU_CHECK_MSG(DE_NULL)};
     var GLU_CHECK_CALL_ERROR = function(CALL, ERR) {do { CALL(); GLU_EXPECT_NO_ERROR(ERR, CALL.toString()); } while (deGetFalse())};
-    var GLU_CHECK_CALL= function(CALL)             {do { CALL(); GLU_EXPECT_NO_ERROR(gl.getError, CALL.toString()); } while (deGetFalse())};
+    var GLU_CHECK_CALL = function(CALL)             {do { CALL(); GLU_EXPECT_NO_ERROR(function() {return gl.getError();}, CALL.toString()); } while (deGetFalse())};
+
+    return {
+        GLU_CHECK_CALL: GLU_CHECK_CALL
+    };
 });

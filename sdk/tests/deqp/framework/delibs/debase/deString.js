@@ -44,8 +44,11 @@ define(['framework/delibs/debase/deMath'], function(deMath) {
         DE_ASSERT(str != undefined);
         var i = 0;
         while (i < str.length) //(c = (unsigned int)*str++) != 0)
+        {
             c = str.charCodeAt(i); //trunc to 8-bit
             hash = (hash << 5) + hash + c;
+            i++;
+        }
 
         return hash;
     };

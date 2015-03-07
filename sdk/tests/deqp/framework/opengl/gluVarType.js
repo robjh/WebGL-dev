@@ -58,6 +58,8 @@ define(['framework/opengl/gluShaderUtil'], function(deqpUtils) {
        this.m_data = undefined;
     };
 
+    VarType.UNIZED_ARRAY = -1;
+
     /**
     * Creates a basic type VarType. Use this after the constructor call.
     * @param {deqpUtils.DataType} basicType
@@ -397,6 +399,95 @@ define(['framework/opengl/gluShaderUtil'], function(deqpUtils) {
           return new StructType().Constructor(name);
       };
 
+      /**
+       * @param {number} level
+       * @return {string}
+       */
+    var indent = function(level) {
+        /** @type {string} */ var str = '';
+        for (var i = 0; i < level; i++)
+            str += '\t';
+        return str;
+    };
+
+    /**
+     * @param {VarType} varType
+     * @param {string} name
+     * @param {number} level
+     * @return {string}
+     */
+    var declareVariable = function(varType, name, level) {
+        /** @type {string} */ var str = '';
+        /** @type {VarType} */ var type = varType;
+        /** @type {VarType} */ var curType = type;
+        /** @type {Array.<number>} */ var arraySizes = [];
+
+        // Handle arrays.
+        while (curType.isArrayType())
+        {
+            arraySizes.push(curType.getArraySize());
+            curType = curType.getElementType();
+        }
+
+        if (curType.isBasicType())
+        {
+            if (curType.getPrecision() != deqpUtils.precision.PRECISION_LAST)
+                str += deqpUtils.getPrecisionName(curType.getPrecision()) + ' ';
+            str += deqpUtils.getDataTypeName(curType.getBasicType());
+        }
+        else if (curType.isStructType())
+        {
+            /** @type {StructType} */ var structPtr = curType.getStructPtr();
+
+            if (structPtr.hasTypeName())
+                str += structPtr.getTypeName();
+            else
+                str += declareStructType(structPtr, level); // Generate inline declaration.
+        }
+        else
+            DE_ASSERT(false);
+
+        str += ' ' + name;
+
+        // Print array sizes.
+        for (var size = 0; size < arraySizes.length; size++)//std::vector<int>::const_iterator sizeIter = arraySizes.begin(); sizeIter != arraySizes.end(); sizeIter++)
+        {
+            /** @type {number} */ var arrSize = arraySizes[size];
+            if (arrSize == VarType.UNSIZED_ARRAY)
+                str += '[]';
+            else
+                str += '[' + arrSize + ']';
+        }
+
+        return str;
+    };
+
+    /**
+     * @param {StructType} structType
+     * @param {number} level
+     * @return {string}
+     */
+    var declareStructType = function(structType, level) {
+        /** @type {string} */ var str = 'struct';
+
+        // Type name is optional.
+        if (structType.hasTypeName())
+            str += ' ' + structType.getTypeName();
+
+        str += '\n' + indent(level) + '{\n';
+
+        for (var memberNdx = 0; memberNdx < structType.getSize(); memberNdx++)//StructType::ConstIterator memberIter = decl.structPtr->begin(); memberIter != decl.structPtr->end(); memberIter++)
+        {
+            /** @type {StructMember} */ var memberIter = structType.getMember(memberNdx);
+            str += indent(level + 1);
+            str += declareVariable(memberIter.getType(), memberIter.getName(), level + 1) + ';\n';
+        }
+
+        str += indent(level) + '}';
+
+        return str;
+    };
+
     return {
         Type: Type,
         VarType: VarType,
@@ -407,6 +498,8 @@ define(['framework/opengl/gluShaderUtil'], function(deqpUtils) {
         newTypeStruct: newTypeStruct,
         newStructMember: newStructMember,
         newStructType: newStructType,
-        UNSIZED_ARRAY: -1 //!< Array length for unsized arrays.
+        declareVariable: declareVariable,
+        declareStructType: declareStructType,
+        UNSIZED_ARRAY: VarType.UNSIZED_ARRAY //!< Array length for unsized arrays.
     };
 });

@@ -222,7 +222,8 @@ Random.prototype.getBaseSeed = function() {
 };
 
 return {
-    Random: Random
+    Random: Random,
+    getBaseSeed: getBaseSeed
 };
 
 });
