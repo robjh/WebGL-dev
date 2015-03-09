@@ -21,78 +21,102 @@
 define(['framework/delibs/debase/deMath', 'framework/common/tcuFloat'], function(deMath, tcuFloat)  {
 'use strict';
 
-    var DE_ASSERT = function(x) {
-        if (!x)
-            throw new Error('Assert failed');
-    };
-    var DE_FALSE = false;
+var DE_ASSERT = function(x) {
+    if (!x)
+        throw new Error('Assert failed');
+};
 
-    var ChannelOrder = {
-        R: 0,
-        A: 1,
-        I: 2,
-        L: 3,
-        LA: 4,
-        RG: 5,
-        RA: 6,
-        RGB: 7,
-        RGBA: 8,
-        ARGB: 9,
-        BGRA: 10,
+/**
+ * Texture channel order
+ * @enum
+ */
+var ChannelOrder = {
+    R: 0,
+    A: 1,
+    I: 2,
+    L: 3,
+    LA: 4,
+    RG: 5,
+    RA: 6,
+    RGB: 7,
+    RGBA: 8,
+    ARGB: 9,
+    BGRA: 10,
 
-        sRGB: 11,
-        sRGBA: 12,
+    sRGB: 11,
+    sRGBA: 12,
 
-        D: 13,
-        S: 14,
-        DS: 15
-    };
+    D: 13,
+    S: 14,
+    DS: 15
+};
 
-    var ChannelType = {
-        SNORM_INT8: 0,
-        SNORM_INT16: 1,
-        SNORM_INT32: 2,
-        UNORM_INT8: 3,
-        UNORM_INT16: 4,
-        UNORM_INT32: 5,
-        UNORM_SHORT_565: 6,
-        UNORM_SHORT_555: 7,
-        UNORM_SHORT_4444: 8,
-        UNORM_SHORT_5551: 9,
-        UNORM_INT_101010: 10,
-        UNORM_INT_1010102_REV: 11,
-        UNSIGNED_INT_1010102_REV: 12,
-        UNSIGNED_INT_11F_11F_10F_REV: 13,
-        UNSIGNED_INT_999_E5_REV: 14,
-        UNSIGNED_INT_24_8: 15,
-        SIGNED_INT8: 16,
-        SIGNED_INT16: 17,
-        SIGNED_INT32: 18,
-        UNSIGNED_INT8: 19,
-        UNSIGNED_INT16: 20,
-        UNSIGNED_INT32: 21,
-        HALF_FLOAT: 22,
-        FLOAT: 23,
-        FLOAT_UNSIGNED_INT_24_8_REV: 24
-    };
+/**
+ * Texture channel type
+ * @enum
+ */
+var ChannelType = {
+    SNORM_INT8: 0,
+    SNORM_INT16: 1,
+    SNORM_INT32: 2,
+    UNORM_INT8: 3,
+    UNORM_INT16: 4,
+    UNORM_INT32: 5,
+    UNORM_SHORT_565: 6,
+    UNORM_SHORT_555: 7,
+    UNORM_SHORT_4444: 8,
+    UNORM_SHORT_5551: 9,
+    UNORM_INT_101010: 10,
+    UNORM_INT_1010102_REV: 11,
+    UNSIGNED_INT_1010102_REV: 12,
+    UNSIGNED_INT_11F_11F_10F_REV: 13,
+    UNSIGNED_INT_999_E5_REV: 14,
+    UNSIGNED_INT_24_8: 15,
+    SIGNED_INT8: 16,
+    SIGNED_INT16: 17,
+    SIGNED_INT32: 18,
+    UNSIGNED_INT8: 19,
+    UNSIGNED_INT16: 20,
+    UNSIGNED_INT32: 21,
+    HALF_FLOAT: 22,
+    FLOAT: 23,
+    FLOAT_UNSIGNED_INT_24_8_REV: 24
+};
 
-    var TextureFormat = function(order, type) {
-        this.order = order;
-        this.type = type;
-    };
+/**
+ * Contruct texture format
+ * @param {ChannelOrder} order
+ * @param {ChannelType} type
+ *
+ * @constructor
+ */ 
+var TextureFormat = function(order, type) {
+    this.order = order;
+    this.type = type;
+};
 
-    TextureFormat.prototype.isEqual = function(format) {
-        return this.order === format.order && this.type === format.type;
-    };
+/**
+ * Compare two formats
+ * @param {TextureFormat} format Format to compare with
+ * @return {boolean}
+ */
+TextureFormat.prototype.isEqual = function(format) {
+    return this.order === format.order && this.type === format.type;
+};
 
-var isSRGB = function(/*TextureFormat*/ format) {
+/**
+ * Is format sRGB?
+ * @param {TextureFormat} format
+ * @return {boolean}
+ */ 
+var isSRGB = function(format) {
     return format.order === ChannelOrder.sRGB || format.order === ChannelOrder.sRGBA;
 };
 
 /**
  * Get TypedArray type that can be used to access texture.
  * @param {ChannelType} type
- * @return {TypedArray}
+ * @return {TypedArray} TypedArray that supports the channel type.
  */
 var getTypedArray = function(type) {
     switch (type) {
@@ -126,6 +150,9 @@ var getTypedArray = function(type) {
     throw new Error('Unrecognized type ' + type);
 };
 
+/**
+ * @return {Number} pixel size in bytes
+ */
 TextureFormat.prototype.getPixelSize = function() {
     if (this.type == null || this.order == null)
     {
@@ -186,7 +213,7 @@ TextureFormat.prototype.getPixelSize = function() {
             case ChannelOrder.D: numChannels = 1; break;
             case ChannelOrder.S: numChannels = 1; break;
             case ChannelOrder.DS: numChannels = 2; break;
-            default: DE_ASSERT(DE_FALSE);
+            default: DE_ASSERT(false);
         }
 
         switch (this.type)
@@ -205,7 +232,7 @@ TextureFormat.prototype.getPixelSize = function() {
             case ChannelType.UNSIGNED_INT32: channelSize = 4; break;
             case ChannelType.HALF_FLOAT: channelSize = 2; break;
             case ChannelType.FLOAT: channelSize = 4; break;
-            default: DE_ASSERT(DE_FALSE);
+            default: DE_ASSERT(false);
         }
 
         return numChannels * channelSize;
@@ -225,30 +252,43 @@ var CubeFace = {
     TOTAL_FACES: 6
 };
 
-/*
+/**
  * Renamed from ArrayBuffer due to name clash
  * Wraps ArrayBuffer.
+ * @constructor
  */
 var DeqpArrayBuffer = function(numElements) {
     if (numElements)
         this.m_ptr = new ArrayBuffer(numElements);
 };
 
+/**
+ * Set array size
+ * @param {Number} numElements Size in bytes
+ */
 DeqpArrayBuffer.prototype.setStorage = function(numElements) {
     this.m_ptr = new ArrayBuffer(numElements);
 };
 
+/**
+ * @return {Number} Buffer size
+ */
 DeqpArrayBuffer.prototype.size = function() {
     if (this.m_ptr)
         return this.m_ptr.byteLength;
 
     return 0;
 };
-    /*bool*/ DeqpArrayBuffer.prototype.empty = function() {
-        if (!this.m_ptr)
-            return true;
-        return this.size() == 0;
-    };
+
+/** 
+ * Is the buffer empty (zero size)?
+ * @return {boolean}
+ */
+DeqpArrayBuffer.prototype.empty = function() {
+    if (!this.m_ptr)
+        return true;
+    return this.size() == 0;
+};
 
 /*
  * @enum
@@ -259,6 +299,10 @@ var channel = {
     ONE: -2
 };
 
+/**
+ * @param {ChannelOrder} order
+ * @return {Array<Number|channel>}
+ */
 var getChannelReadMap = function(order) {
     switch (order) {
     /*static const Channel INV[]    = { channel.ZERO,    channel.ZERO,    channel.ZERO,    channel.ONE }; */
@@ -284,10 +328,12 @@ var getChannelReadMap = function(order) {
     throw new Error('Unrecognized order ' + order);
 };
 
-var getChannelWriteMap = function(order)
-{
-    switch (order)
-    {
+/**
+ * @param {ChannelOrder} order
+ * @return {Array<Number>}
+ */
+var getChannelWriteMap = function(order) {
+    switch (order) {
         case ChannelOrder.R: return [0];
         case ChannelOrder.A: return [3];
         case ChannelOrder.I: return [0];
@@ -308,8 +354,11 @@ var getChannelWriteMap = function(order)
     throw new Error('Unrecognized order ' + order);
 };
 
-var getChannelSize = function(/* ChannelType */ type)
-{
+/**
+ * @param {ChannelType} type
+ * @return {Number}
+ */
+var getChannelSize = function(type) {
     switch (type) {
         case ChannelType.SNORM_INT8: return 1;
         case ChannelType.SNORM_INT16: return 2;
@@ -330,15 +379,23 @@ var getChannelSize = function(/* ChannelType */ type)
     throw new Error('Unrecognized type ' + type);
 };
 
+/**
+ * @param {Number} src Source value
+ * @param {Number} bits Source value size in bits
+ * @return {Number} Normalized value
+ */
 var channelToNormFloat = function(src, bits) {
     var maxVal = (1 << bits) - 1;
     return src / maxVal;
 };
 
-var channelToFloat = function(value, /*ChannelType*/ type)
-{
-    switch (type)
-    {
+/**
+ * @param {Number} value Source value
+ * @param {ChannelType} type
+ * @return {Number} Source value converted to float
+ */
+var channelToFloat = function(value, type) {
+    switch (type) {
         case ChannelType.SNORM_INT8: return Math.max(-1, value / 127);
         case ChannelType.SNORM_INT16: return Math.max(-1, value / 32767);
         case ChannelType.SNORM_INT32: return Math.max(-1, value / 2147483647);
@@ -353,16 +410,17 @@ var channelToFloat = function(value, /*ChannelType*/ type)
         case ChannelType.UNSIGNED_INT32: return value;
         case ChannelType.HALF_FLOAT: return tcuFloat.halfFloatToNumber(value);
         case ChannelType.FLOAT: return value;
-        default:
-            DE_ASSERT(DE_FALSE);
-            return 0;
     }
+    throw new Error('Unrecognized channel type ' + type);
 };
 
-var channelToInt = function(value, /*ChannelType*/ type)
-{
-    switch (type)
-    {
+/**
+ * @param {Number} value Source value
+ * @param {ChannelType} type
+ * @return {Number} Source value converted to int
+ */
+var channelToInt = function(value, type) {
+    switch (type) {
         case ChannelType.HALF_FLOAT: return Math.round(tcuFloat.halfFloatToNumber(value));
         case ChannelType.FLOAT: return Math.round(value);
         default:
@@ -370,10 +428,12 @@ var channelToInt = function(value, /*ChannelType*/ type)
     }
 };
 
-var getNumUsedChannels = function(order)
-{
-    switch (order)
-    {
+/**
+ * @param {ChannelOrder} order
+ * @return {Number}
+ */
+var getNumUsedChannels = function(order) {
+    switch (order) {
         case ChannelOrder.R: return 1;
         case ChannelOrder.A: return 1;
         case ChannelOrder.I: return 1;
@@ -390,10 +450,8 @@ var getNumUsedChannels = function(order)
         case ChannelOrder.D: return 1;
         case ChannelOrder.S: return 1;
         case ChannelOrder.DS: return 2;
-        default:
-            DE_ASSERT(DE_FALSE);
-            return 0;
     }
+    throw new Error('Unrecognized channel order ' + order);
 };
 
 /**
@@ -436,6 +494,20 @@ var CompareMode = {
     COMPAREMODE_NEVER: 8
 };
 
+/**
+ * @constructor
+ * @param {WrapMode} wrapS
+ * @param {WrapMode} wrapT
+ * @param {WrapMode} wrapR
+ * @param {FilterMode} minFilter
+ * @param {FilterMode} magFilter
+ * @param {Number} lodThreshold
+ * @param {boolean} normalizedCoords
+ * @param {CompareMode} compare
+ * @param {Number} compareChannel
+ * @param {Array<Number>} borderColor
+ * @param {boolean} seamlessCubeMap
+ */
 var Sampler = function(wrapS, wrapT, wrapR, minFilter, magFilter, lodThreshold, normalizedCoords, compare, compareChannel, borderColor, seamlessCubeMap) {
     this.wrapS = wrapS;
     this.wrapT = wrapT;
@@ -450,10 +522,15 @@ var Sampler = function(wrapS, wrapT, wrapR, minFilter, magFilter, lodThreshold, 
     this.seamlessCubeMap = seamlessCubeMap || false;
 };
 
-// Special unnormalization for REPEAT_CL and MIRRORED_REPEAT_CL wrap modes; otherwise ordinary unnormalization.
-var unnormalize = function(/*Sampler::WrapMode*/ mode, c, /*int*/ size) {
-    switch (mode)
-    {
+/**
+ * Special unnormalization for REPEAT_CL and MIRRORED_REPEAT_CL wrap modes; otherwise ordinary unnormalization.
+ * @param {WrapMode} mode
+ * @param {Number} c Value to unnormalize
+ * @param {Number} size Unnormalized type size (integer)
+ * @return {Number}
+ */
+var unnormalize = function(mode, c, size) {
+    switch (mode) {
         case WrapMode.CLAMP_TO_EDGE:
         case WrapMode.CLAMP_TO_BORDER:
         case WrapMode.REPEAT_GL:
@@ -469,9 +546,14 @@ var unnormalize = function(/*Sampler::WrapMode*/ mode, c, /*int*/ size) {
     throw new Error('Unrecognized wrap mode ' + mode);
 };
 
-var wrap = function(/*Sampler::WrapMode*/ mode, /*int*/ c, /*int*/ size) {
-    switch (mode)
-    {
+/**
+ * @param {WrapMode} mode
+ * @param {Number} c Source value (integer)
+ * @param {Number} size Type size (integer)
+ * @return {Number}
+ */
+var wrap = function(mode, c, size) {
+    switch (mode) {
         case WrapMode.CLAMP_TO_BORDER:
             return deMath.clamp(c, -1, size);
 
@@ -493,6 +575,10 @@ var wrap = function(/*Sampler::WrapMode*/ mode, /*int*/ c, /*int*/ size) {
     throw new Error('Unrecognized wrap mode ' + mode);
 };
 
+/**
+ * @param {Number} cs
+ * @return {Number}
+ */
 var sRGBChannelToLinear = function(cs) {
     if (cs <= 0.04045)
         return cs / 12.92;
@@ -500,9 +586,12 @@ var sRGBChannelToLinear = function(cs) {
         return Math.pow((cs + 0.055) / 1.055, 2.4);
 };
 
-//! Convert sRGB to linear colorspace
-var sRGBToLinear = function(cs)
-{
+/**
+ * Convert sRGB to linear colorspace
+ * @param {Array<Number>} cs Vec4
+ * @param {Array<Number>} Vec4
+ */
+var sRGBToLinear = function(cs) {
     return [
         sRGBChannelToLinear(cs[0]),
         sRGBChannelToLinear(cs[1]),
@@ -510,17 +599,34 @@ var sRGBToLinear = function(cs)
         cs[3]
         ];
 };
-// Texel lookup with color conversion.
-var lookup = function(/*const ConstPixelBufferAccess&*/ access, i, j, k) {
+
+/**
+ * Texel lookup with color conversion.
+ * @param {ConstPixelBufferAccess} access
+ * @param {Number} i
+ * @param {Number} j
+ * @param {Number} k
+ * @return {Array<Number>} Vec4 pixel color 
+ */
+var lookup = function(access, i, j, k) {
     var p = access.getPixel(i, j, k);
     // console.log('Lookup at ' + i + ' ' + j + ' ' + k + ' ' + p);
     return isSRGB(access.getFormat()) ? sRGBToLinear(p) : p;
 };
 
-var sampleNearest2D = function(/*const ConstPixelBufferAccess&*/ access, /*const Sampler&*/ sampler, u, v, /*int*/ depth) {
+/**
+ * @param {ConstPixelBufferAccess} access
+ * @param {Sampler} sampler
+ * @param {Number} u
+ * @param {Number} v
+ * @param {Number} depth (integer)
+ * @return {Array<Number>} Vec4 pixel color 
+ */
+var sampleNearest2D = function(access, sampler, u, v, depth) {
     var width = access.getWidth();
     var height = access.getHeight();
 
+    /* TODO: Shouldn't it be just Math.round? */
     var x = Math.round(Math.floor(u));
     var y = Math.round(Math.floor(v));
 
@@ -535,7 +641,15 @@ var sampleNearest2D = function(/*const ConstPixelBufferAccess&*/ access, /*const
     return lookup(access, i, j, depth);
 };
 
-var sampleNearest3D = function(/*const ConstPixelBufferAccess&*/ access, /*const Sampler&*/ sampler, u, v, w) {
+/**
+ * @param {ConstPixelBufferAccess} access
+ * @param {Sampler} sampler
+ * @param {Number} u
+ * @param {Number} v
+ * @param {Number} w
+ * @return {Array<Number>} Vec4 pixel color 
+ */
+var sampleNearest3D = function(access, sampler, u, v, w) {
     var width = access.getWidth();
     var height = access.getHeight();
     var depth = access.getDepth();
@@ -562,11 +676,11 @@ var sampleNearest3D = function(/*const ConstPixelBufferAccess&*/ access, /*const
  * @return {Number} The color in packed 32 bit format
  */
 var packRGB999E5 = function(color) {
-    /* @const */ var mBits = 9;
-    /* @const */ var eBits = 5;
-    /* @const */ var eBias = 15;
-    /* @const */ var eMax = (1 << eBits) - 1;
-    /* @const */ var maxVal = (((1 << mBits) - 1) * (1 << (eMax - eBias))) / (1 << mBits);
+    /** @const */ var mBits = 9;
+    /** @const */ var eBits = 5;
+    /** @const */ var eBias = 15;
+    /** @const */ var eMax = (1 << eBits) - 1;
+    /** @const */ var maxVal = (((1 << mBits) - 1) * (1 << (eMax - eBias))) / (1 << mBits);
 
     var rc = deMath.clamp(color[0], 0, maxVal);
     var gc = deMath.clamp(color[1], 0, maxVal);
@@ -590,8 +704,8 @@ var packRGB999E5 = function(color) {
 };
 
 /**
- * @param {Number} color Vec4 color
- * @return {Array<Number>} The color in packed 32 bit format
+ * @param {Number} color Color in packed 32 bit format
+ * @return {Array<Number>} The color in unpacked format
  */
 var unpackRGB999E5 = function(color) {
     var mBits = 9;
@@ -610,7 +724,7 @@ var unpackRGB999E5 = function(color) {
     return [r, g, b, 1];
 };
 
-/*--------------------------------------------------------------------*//*!
+/**
  * \brief Read-only pixel data access
  *
  * ConstPixelBufferAccess encapsulates pixel data pointer along with
@@ -619,7 +733,8 @@ var unpackRGB999E5 = function(color) {
  *
  * Access objects are like iterators or pointers. They can be passed around
  * as values and are valid as long as the storage doesn't change.
- *//*--------------------------------------------------------------------*/
+ * @constructor
+ */
 var ConstPixelBufferAccess = function(descriptor) {
     if (descriptor) {
         this.m_format = descriptor.format;
@@ -643,22 +758,36 @@ var ConstPixelBufferAccess = function(descriptor) {
     }
 };
 
-    ConstPixelBufferAccess.prototype.getDataSize = function() { return this.m_depth * this.m_slicePitch; };
-    ConstPixelBufferAccess.prototype.getDataPtr = function() {
-            var arrayType = getTypedArray(this.m_format.type);
-             return new arrayType(this.m_data);
-     };
+/** @return {Number} */
+ConstPixelBufferAccess.prototype.getDataSize = function() { return this.m_depth * this.m_slicePitch; };
+/** @return {TypedArray} */
+ConstPixelBufferAccess.prototype.getDataPtr = function() {
+        var arrayType = getTypedArray(this.m_format.type);
+         return new arrayType(this.m_data);
+ };
 
-    ConstPixelBufferAccess.prototype.getRowPitch = function() { return this.m_rowPitch; };
-    ConstPixelBufferAccess.prototype.getWidth = function() { return this.m_width; };
-    ConstPixelBufferAccess.prototype.getHeight = function() { return this.m_height; };
-    ConstPixelBufferAccess.prototype.getDepth = function() { return this.m_depth; };
-    ConstPixelBufferAccess.prototype.getSlicePitch = function() { return this.m_slicePitch; };
-    ConstPixelBufferAccess.prototype.getFormat = function() { return this.m_format; };
+/** @return {Number} */
+ConstPixelBufferAccess.prototype.getRowPitch = function() { return this.m_rowPitch; };
+/** @return {Number} */
+ConstPixelBufferAccess.prototype.getWidth = function() { return this.m_width; };
+/** @return {Number} */
+ConstPixelBufferAccess.prototype.getHeight = function() { return this.m_height; };
+/** @return {Number} */
+ConstPixelBufferAccess.prototype.getDepth = function() { return this.m_depth; };
+/** @return {Number} */
+ConstPixelBufferAccess.prototype.getSlicePitch = function() { return this.m_slicePitch; };
+/** @return {TextureFormat} */
+ConstPixelBufferAccess.prototype.getFormat = function() { return this.m_format; };
 
-    ConstPixelBufferAccess.prototype.getPixel = function(x, y, z) {
-        if (z == null)
-            z = 0;
+/**
+ * @param {Number} x
+ * @param {Number} y
+ * @param {Number} z
+ * @return {Array<Number>} Pixel value as Vec4
+ */
+ConstPixelBufferAccess.prototype.getPixel = function(x, y, z) {
+    if (z == null)
+        z = 0;
     // console.log(this);
     // console.log('(' + x + ',' + y + ',' + z + ')');
 
@@ -726,8 +855,7 @@ var ConstPixelBufferAccess = function(descriptor) {
     var channelMap = getChannelReadMap(this.m_format.order);
     var channelSize = getChannelSize(this.m_format.type);
 
-    for (var c = 0; c < 4; c++)
-    {
+    for (var c = 0; c < 4; c++) {
         var map = channelMap[c];
         if (map == channel.ZERO)
             result[c] = 0;
@@ -740,9 +868,15 @@ var ConstPixelBufferAccess = function(descriptor) {
     return result;
 };
 
-    ConstPixelBufferAccess.prototype.getPixelInt = function(x, y, z) {
-        if (z == null)
-            z = 0;
+/**
+ * @param {Number} x
+ * @param {Number} y
+ * @param {Number} z
+ * @return {Array<Number>} Pixel value as Vec4
+ */
+ConstPixelBufferAccess.prototype.getPixelInt = function(x, y, z) {
+    if (z == null)
+        z = 0;
     DE_ASSERT(deMath.deInBounds32(x, 0, this.m_width));
     DE_ASSERT(deMath.deInBounds32(y, 0, this.m_height));
     DE_ASSERT(deMath.deInBounds32(z, 0, this.m_depth));
@@ -759,8 +893,7 @@ var ConstPixelBufferAccess = function(descriptor) {
     var pixel = pixelPtr[0];
 
     // Packed formats.
-    switch (this.m_format.type)
-    {
+    switch (this.m_format.type) {
         case ChannelType.UNORM_SHORT_565: return [ub(pixel, 11, 5), ub(pixel, 5, 6), ub(pixel, 0, 5), 1];
         case ChannelType.UNORM_SHORT_555: return [ub(pixel, 10, 5), ub(pixel, 5, 5), ub(pixel, 0, 5), 1];
         case ChannelType.UNORM_SHORT_4444: return [ub(pixel, 12, 4), ub(pixel, 8, 4), ub(pixel, 4, 4), ub(pixel, 0, 4)];
@@ -770,8 +903,7 @@ var ConstPixelBufferAccess = function(descriptor) {
         case ChannelType.UNSIGNED_INT_1010102_REV: return [ub(pixel, 0, 10), ub(pixel, 10, 10), ub(pixel, 20, 10), ub(pixel, 30, 2)];
 
         case ChannelType.UNSIGNED_INT_24_8:
-            switch (this.m_format.order)
-            {
+            switch (this.m_format.order) {
                 // \note Stencil is always ignored.
                 case ChannelType.D: return [ub(pixel, 8, 24), 0, 0, 1];
                 case ChannelType.DS: return [ub(pixel, 8, 24), 0, 0, 1 /* (float)ub(0, 8) */];
@@ -779,8 +911,7 @@ var ConstPixelBufferAccess = function(descriptor) {
                     DE_ASSERT(false);
             }
 
-        case ChannelType.FLOAT_UNSIGNED_INT_24_8_REV:
-        {
+        case ChannelType.FLOAT_UNSIGNED_INT_24_8_REV: {
             DE_ASSERT(this.m_format.order == ChannelType.DS);
             // \note Stencil is ignored.
             return [pixel, 0, 0, 1];
@@ -796,8 +927,7 @@ var ConstPixelBufferAccess = function(descriptor) {
     var channelMap = getChannelReadMap(this.m_format.order);
     var channelSize = getChannelSize(this.m_format.type);
 
-    for (var c = 0; c < 4; c++)
-    {
+    for (var c = 0; c < 4; c++) {
         var map = channelMap[c];
         if (map == channel.ZERO)
             result[c] = 0;
@@ -810,7 +940,15 @@ var ConstPixelBufferAccess = function(descriptor) {
     return result;
 };
 
-ConstPixelBufferAccess.prototype.sample2D = function(/*const Sampler&*/ sampler, /*Sampler::FilterMode*/ filter, s, t, /*int*/ depth) {
+/**
+ * @param {Sampler} sampler
+ * @param {FilterMode} filter
+ * @param {Number} s
+ * @param {Number} t
+ * @param {Number} depth (integer)
+ * @return {Array<Number>} Sample color
+ */
+ConstPixelBufferAccess.prototype.sample2D = function(sampler, filter, s, t, depth) {
     DE_ASSERT(deMath.deInBounds32(depth, 0, this.m_depth));
 
     // Non-normalized coordinates.
@@ -822,18 +960,25 @@ ConstPixelBufferAccess.prototype.sample2D = function(/*const Sampler&*/ sampler,
         v = unnormalize(sampler.wrapT, t, this.m_height);
     }
 
-    switch (filter)
-    {
+    switch (filter) {
         case FilterMode.NEAREST: return sampleNearest2D(this, sampler, u, v, depth);
         // case Sampler::LINEAR:    return sampleLinear2D    (*this, sampler, u, v, depth);
         // default:
-        //     DE_ASSERT(DE_FALSE);
+        //     DE_ASSERT(false);
         //     return Vec4(0.0f);
     }
     throw new Error('Unimplemented');
 };
 
-ConstPixelBufferAccess.prototype.sample3D = function(/*const Sampler&*/ sampler, /*Sampler::FilterMode*/ filter, s, t, r) {
+/**
+ * @param {Sampler} sampler
+ * @param {FilterMode} filter
+ * @param {Number} s
+ * @param {Number} t
+ * @param {Number} r
+ * @return {Array<Number>} Sample color
+ */
+ConstPixelBufferAccess.prototype.sample3D = function(sampler, filter, s, t, r) {
     // Non-normalized coordinates.
     var u = s;
     var v = t;
@@ -849,7 +994,7 @@ ConstPixelBufferAccess.prototype.sample3D = function(/*const Sampler&*/ sampler,
         case FilterMode.NEAREST: return sampleNearest3D(this, sampler, u, v, w);
         // case Sampler::LINEAR:    return sampleLinear3D    (*this, sampler, u, v, w);
         // default:
-        //     DE_ASSERT(DE_FALSE);
+        //     DE_ASSERT(false);
         //     return Vec4(0.0f);
     }
     throw new Error('Unimplemented');
@@ -884,8 +1029,11 @@ var deTypes = {
     deUint32: {min: 0, max: 4294967295}
 };
 
-/*
+/**
+ * Round to even and saturate
  * @param {deTypes} deType
+ * @param {Number} value
+ * @return {Number}
  */
 var convertSatRte = function(deType, value) {
     var minVal = deType.min;
@@ -901,19 +1049,31 @@ var convertSatRte = function(deType, value) {
     return Math.max(minVal, Math.min(maxVal, floor));
 };
 
+/**
+ * @param {Number} src
+ * @param {Number} bits
+ * @return {Number}
+ */
 var normFloatToChannel = function(src, bits) {
     var maxVal = (1 << bits) - 1;
     var intVal = convertSatRte(deTypes.deUint32, src * maxVal);
     return Math.min(maxVal, intVal);
 };
 
+/**
+ * @param {Number} src
+ * @param {Number} bits
+ * @return {Number}
+ */
 var uintToChannel = function(src, bits) {
     var maxVal = (1 << bits) - 1;
     return Math.min(maxVal, src);
 };
 
-/*
- * @return Converted src color value
+/**
+ * @param {Number} src
+ * @param {ChannelType} type
+ * @return {Number} Converted src color value
  */
 var floatToChannel = function(src, type) {
     switch (type)
@@ -936,7 +1096,7 @@ var floatToChannel = function(src, type) {
     throw new Error('Unrecognized type ' + type);
 };
 
-/*--------------------------------------------------------------------*//*!
+/**
  * \brief Read-write pixel data access
  *
  * This class extends read-only access object by providing write functionality.
@@ -944,7 +1104,10 @@ var floatToChannel = function(src, type) {
  * \note PixelBufferAccess may not have any data members nor add any
  *         virtual functions. It must be possible to reinterpret_cast<>
  *         PixelBufferAccess to ConstPixelBufferAccess.
- *//*--------------------------------------------------------------------*/
+ * @constructor
+ * @extends {ConstPixelBufferAccess}
+ *
+ */
 var PixelBufferAccess = function(descriptor) {
     ConstPixelBufferAccess.call(this, descriptor);
 };
@@ -952,9 +1115,15 @@ var PixelBufferAccess = function(descriptor) {
 PixelBufferAccess.prototype = Object.create(ConstPixelBufferAccess.prototype);
 PixelBufferAccess.prototype.constructor = PixelBufferAccess;
 
+/**
+ * @param {Array<Number>} Vec4 color to set
+ * @param {Number} x
+ * @param {Number} y
+ * @param {Number} z
+ */
 PixelBufferAccess.prototype.setPixel = function(color, x, y, z) {
-        if (z == null)
-            z = 0;
+    if (z == null)
+        z = 0;
     DE_ASSERT(deMath.deInBounds32(x, 0, this.m_width));
     DE_ASSERT(deMath.deInBounds32(y, 0, this.m_height));
     DE_ASSERT(deMath.deInBounds32(z, 0, this.m_depth));
@@ -1050,28 +1219,39 @@ PixelBufferAccess.prototype.setPixel = function(color, x, y, z) {
 //     void                    setPixStencil                (int stencil, int x, int y, int z = 0) const;
 // };
 
-/*
+/**
+ * @constructor
  * @param {TextureFormat} format
+ * @param {Number} numLevels
  */
 var TextureLevelPyramid = function(format, numLevels) {
     /* TextureFormat */this.m_format = format;
     /* LevelData */ this.m_data = [];
     for (var i = 0; i < numLevels; i++)
         this.m_data.push(new DeqpArrayBuffer());
-    /* PixelBufferAccess */ this.m_access = [];
+    /* {Array<PixelBufferAccess>} */ this.m_access = [];
     this.m_access.length = numLevels;
 };
-/*
- * @return {bool}
- */
 
-    TextureLevelPyramid.prototype.isLevelEmpty = function(levelNdx) { return this.m_data[levelNdx].empty(); };
-    TextureLevelPyramid.prototype.getFormat = function()            { return this.m_format; };
-    TextureLevelPyramid.prototype.getNumLevels = function()            { return this.m_access.length; };
-    TextureLevelPyramid.prototype.getLevel = function(ndx)             { return this.m_access[ndx]; };
-    TextureLevelPyramid.prototype.getLevels = function()            { return this.m_access; };
-    TextureLevelPyramid.prototype.allocLevel = function(levelNdx, width, height, depth) {
-    /*const int*/ var size = this.m_format.getPixelSize() * width * height * depth;
+/** @return {bool} */
+TextureLevelPyramid.prototype.isLevelEmpty = function(levelNdx) { return this.m_data[levelNdx].empty(); };
+/** @return {TextureFormat} */
+TextureLevelPyramid.prototype.getFormat = function()            { return this.m_format; };
+/** @return {Number} */
+TextureLevelPyramid.prototype.getNumLevels = function()            { return this.m_access.length; };
+/** @return {PixelBufferAccess} */
+TextureLevelPyramid.prototype.getLevel = function(ndx)             { return this.m_access[ndx]; };
+/** @return {Array<PixelBufferAccess>} */
+TextureLevelPyramid.prototype.getLevels = function()            { return this.m_access; };
+
+/**
+ * @param {Number} levelNdx
+ * @param {Number} width
+ * @param {Number} height
+ * @param {Number} depth
+ */
+TextureLevelPyramid.prototype.allocLevel = function(levelNdx, width, height, depth) {
+    var size = this.m_format.getPixelSize() * width * height * depth;
 
     DE_ASSERT(this.isLevelEmpty(levelNdx));
 
@@ -1083,20 +1263,28 @@ var TextureLevelPyramid = function(format, numLevels) {
         depth: depth,
         data: this.m_data[levelNdx].m_ptr
     });
+};
 
-    };
+TextureLevelPyramid.prototype.clearLevel = function(levelNdx) {
+    /* TODO: Implement */
+    throw new Error('Not implemented');
+};
 
-    TextureLevelPyramid.prototype.clearLevel = function(levelNdx) {
-        /* TODO: Implement */
-        throw new Error('Not implemented');
-    };
-
-var sampleLevelArray2D = function(/*const ConstPixelBufferAccess* */ levels, /*int*/ numLevels, /*const Sampler&*/ sampler, s, t, /*int*/ depth, lod) {
+/**
+ * @param {Array<ConstPixelBufferAccess>} levels
+ * @param {Number} numLevels
+ * @param {Sampler} sampler
+ * @param {Number} s
+ * @param {Number} t
+ * @param {Number} depth (integer)
+ * @param {Number} lod
+ * @return {Array<Number>} Vec4 pixel color 
+ */
+var sampleLevelArray2D = function(levels, numLevels, sampler, s, t, depth, lod) {
     var magnified = lod <= sampler.lodThreshold;
     var filterMode = magnified ? sampler.magFilter : sampler.minFilter;
 
-    switch (filterMode)
-    {
+    switch (filterMode) {
         case FilterMode.NEAREST: return levels[0].sample2D(sampler, filterMode, s, t, depth);
         /* TODO: Implement other filters */
         // case Sampler::LINEAR:    return levels[0].sample2D(sampler, filterMode, s, t, depth);
@@ -1126,13 +1314,23 @@ var sampleLevelArray2D = function(/*const ConstPixelBufferAccess* */ levels, /*i
         // }
 
         // default:
-        //     DE_ASSERT(DE_FALSE);
+        //     DE_ASSERT(false);
         //     return Vec4(0.0f);
     }
     throw new Error('Unimplemented');
 };
 
-var sampleLevelArray3D = function(/*const ConstPixelBufferAccess**/ levels, /*int*/ numLevels, /*const Sampler&*/ sampler, s, t, r, lod) {
+/**
+ * @param {Array<ConstPixelBufferAccess>} levels
+ * @param {Number} numLevels
+ * @param {Sampler} sampler
+ * @param {Number} s
+ * @param {Number} t
+ * @param {Number} r
+ * @param {Number} lod
+ * @return {Array<Number>} Vec4 pixel color 
+ */
+var sampleLevelArray3D = function(levels, numLevels, sampler, s, t, r, lod) {
     var magnified = lod <= sampler.lodThreshold;
     var filterMode = magnified ? sampler.magFilter : sampler.minFilter;
 
@@ -1165,32 +1363,53 @@ var sampleLevelArray3D = function(/*const ConstPixelBufferAccess**/ levels, /*in
         // }
 
         // default:
-        //     DE_ASSERT(DE_FALSE);
+        //     DE_ASSERT(false);
         //     return Vec4(0.0f);
     }
     throw new Error('Unimplemented');
 };
 
+/**
+ * @constructor
+ * @param {CubeFace} face
+ * @param {Array<Number>} Vec2 coordinates
+ */
 var CubeFaceCoords = function(face, coords) {
     this.face = face;
     this.s = coords[0];
     this.t = coords[1];
 };
 
-/*--------------------------------------------------------------------*//*!
+/**
  * \brief 2D Texture View
- *//*--------------------------------------------------------------------*/
+ * @constructor
+ * @param {Number} numLevels
+ * @param {Array<ConstPixelBufferAccess>} levels
+ */
 var Texture2DView = function(numLevels, levels) {
     this.m_numLevels = numLevels;
     this.m_levels = levels;
 };
 
-    Texture2DView.prototype.getNumLevels = function()    { return this.m_numLevels; };
-    Texture2DView.prototype.getWidth = function()     { return this.m_numLevels > 0 ? this.m_levels[0].getWidth() : 0; };
-    Texture2DView.prototype.getHeight = function() { return this.m_numLevels > 0 ? this.m_levels[0].getHeight() : 0; };
-    /*const ConstPixelBufferAccess&*/ Texture2DView.prototype.getLevel = function(ndx) { DE_ASSERT(deMath.deInBounds32(ndx, 0, this.m_numLevels)); return this.m_levels[ndx]; };
-    /*const ConstPixelBufferAccess**/ Texture2DView.prototype.getLevels = function() { return this.m_levels; };
+/** @return {Number} */
+Texture2DView.prototype.getNumLevels = function()    { return this.m_numLevels; };
+/** @return {Number} */
+Texture2DView.prototype.getWidth = function()     { return this.m_numLevels > 0 ? this.m_levels[0].getWidth() : 0; };
+/** @return {Number} */
+Texture2DView.prototype.getHeight = function() { return this.m_numLevels > 0 ? this.m_levels[0].getHeight() : 0; };
+/**
+ * @param {Number} ndx
+ * @return {ConstPixelBufferAccess}
+ */
+Texture2DView.prototype.getLevel = function(ndx) { DE_ASSERT(deMath.deInBounds32(ndx, 0, this.m_numLevels)); return this.m_levels[ndx]; };
+/** @return {Array<ConstPixelBufferAccess>} */
+Texture2DView.prototype.getLevels = function() { return this.m_levels; };
 
+/**
+ * @param {Number} baseLevel
+ * @param {Number} maxLevel
+ * return {Texture2DView}
+ */
 Texture2DView.prototype.getSubView = function(baseLevel, maxLevel) {
     var clampedBase = deMath.clamp(baseLevel, 0, this.m_numLevels - 1);
     var clampedMax = deMath.clamp(maxLevel, clampedBase, this.m_numLevels - 1);
@@ -1198,7 +1417,13 @@ Texture2DView.prototype.getSubView = function(baseLevel, maxLevel) {
     return new Texture2DView(numLevels, this.m_levels.slice(clampedBase, numLevels));
 };
 
-Texture2DView.prototype.sample = function(/*const Sampler&*/ sampler, texCoord, lod) {
+/**
+ * @param {Sampler} sampler
+ * @param {Array<Number>} texCoord
+ * @param {Number} lod
+ * @return {Array<Number>} Pixel color
+ */  
+Texture2DView.prototype.sample = function(sampler, texCoord, lod) {
     return sampleLevelArray2D(this.m_levels, this.m_numLevels, sampler, texCoord[0], texCoord[1], 0 /* depth */, lod);
 };
 
@@ -1212,39 +1437,82 @@ Texture2DView.prototype.sample = function(/*const Sampler&*/ sampler, texCoord, 
     Vec4                            gatherOffsetsCompare(const Sampler& sampler, float ref, float s, float t, const IVec2 (&offsets)[4]) const;
     */
 
+/**
+ * @constructor
+ * @param {Number} numLevels
+ * @param {Array<ConstPixelBufferAccess>} levels
+ */
 var Texture2DArrayView = function(numLevels, levels) {
     this.m_numLevels = numLevels;
     this.m_levels = levels;
 };
 
-    Texture2DArrayView.prototype.getNumLevels = function()    { return this.m_numLevels; };
-    Texture2DArrayView.prototype.getWidth = function()     { return this.m_numLevels > 0 ? this.m_levels[0].getWidth() : 0; };
-    Texture2DArrayView.prototype.getHeight = function() { return this.m_numLevels > 0 ? this.m_levels[0].getHeight() : 0; };
-    Texture2DArrayView.prototype.getNumLayers = function() { return this.m_numLevels > 0 ? this.m_levels[0].getDepth() : 0; };
-    /*const ConstPixelBufferAccess&*/ Texture2DArrayView.prototype.getLevel = function(ndx) { DE_ASSERT(deMath.deInBounds32(ndx, 0, this.m_numLevels)); return this.m_levels[ndx]; };
-    /*const ConstPixelBufferAccess**/ Texture2DArrayView.prototype.getLevels = function() { return this.m_levels; };
+/** @return {Number} */
+Texture2DArrayView.prototype.getNumLevels = function()    { return this.m_numLevels; };
+/** @return {Number} */
+Texture2DArrayView.prototype.getWidth = function()     { return this.m_numLevels > 0 ? this.m_levels[0].getWidth() : 0; };
+/** @return {Number} */
+Texture2DArrayView.prototype.getHeight = function() { return this.m_numLevels > 0 ? this.m_levels[0].getHeight() : 0; };
+/** @return {Number} */
+Texture2DArrayView.prototype.getNumLayers = function() { return this.m_numLevels > 0 ? this.m_levels[0].getDepth() : 0; };
+/**
+ * @param {Number} ndx
+ * @return {ConstPixelBufferAccess}
+ */
+Texture2DArrayView.prototype.getLevel = function(ndx) { DE_ASSERT(deMath.deInBounds32(ndx, 0, this.m_numLevels)); return this.m_levels[ndx]; };
+/** @return {Array<ConstPixelBufferAccess>} */
+Texture2DArrayView.prototype.getLevels = function() { return this.m_levels; };
 
+/**
+ * @param {Number} r
+ * @return {Number} layer corresponding to requested sampling 'r' coordinate
+ */
 Texture2DArrayView.prototype.selectLayer = function(r) {
     DE_ASSERT(this.m_numLevels > 0 && this.m_levels);
     return deMath.clamp(Math.round(r), 0, this.m_levels[0].getDepth() - 1);
 };
 
-Texture2DArrayView.prototype.sample = function(/*const Sampler&*/ sampler, texCoord, lod) {
+/**
+ * @param {Sampler} sampler
+ * @param {Array<Number>} texCoord
+ * @param {Number} lod
+ * @return {Array<Number>} Pixel color
+ */
+Texture2DArrayView.prototype.sample = function(sampler, texCoord, lod) {
     return sampleLevelArray2D(this.m_levels, this.m_numLevels, sampler, texCoord[0], texCoord[1], this.selectLayer(texCoord[2]), lod);
 };
 
+/**
+ * @constructor
+ * @param {Number} numLevels
+ * @param {Array<ConstPixelBufferAccess>} levels
+ */
 var Texture3DView = function(numLevels, levels) {
     this.m_numLevels = numLevels;
     this.m_levels = levels;
 };
 
-    Texture3DView.prototype.getNumLevels = function()    { return this.m_numLevels; };
-    Texture3DView.prototype.getWidth = function()     { return this.m_numLevels > 0 ? this.m_levels[0].getWidth() : 0; };
-    Texture3DView.prototype.getHeight = function() { return this.m_numLevels > 0 ? this.m_levels[0].getHeight() : 0; };
-    Texture3DView.prototype.getDepth = function() { return this.m_numLevels > 0 ? this.m_levels[0].getDepth() : 0; };
-    /*const ConstPixelBufferAccess&*/ Texture3DView.prototype.getLevel = function(ndx) { DE_ASSERT(deMath.deInBounds32(ndx, 0, this.m_numLevels)); return this.m_levels[ndx]; };
-    /*const ConstPixelBufferAccess**/ Texture3DView.prototype.getLevels = function() { return this.m_levels; };
+/** @return {Number} */
+Texture3DView.prototype.getNumLevels = function()    { return this.m_numLevels; };
+/** @return {Number} */
+Texture3DView.prototype.getWidth = function()     { return this.m_numLevels > 0 ? this.m_levels[0].getWidth() : 0; };
+/** @return {Number} */
+Texture3DView.prototype.getHeight = function() { return this.m_numLevels > 0 ? this.m_levels[0].getHeight() : 0; };
+/** @return {Number} */
+Texture3DView.prototype.getDepth = function() { return this.m_numLevels > 0 ? this.m_levels[0].getDepth() : 0; };
+/**
+ * @param {Number} ndx
+ * @return {ConstPixelBufferAccess}
+ */
+Texture3DView.prototype.getLevel = function(ndx) { DE_ASSERT(deMath.deInBounds32(ndx, 0, this.m_numLevels)); return this.m_levels[ndx]; };
+/** @return {Array<ConstPixelBufferAccess>} */
+Texture3DView.prototype.getLevels = function() { return this.m_levels; };
 
+/**
+ * @param {Number} baseLevel
+ * @param {Number} maxLevel
+ * return {Texture3DView}
+ */
 Texture3DView.prototype.getSubView = function(baseLevel, maxLevel) {
     var clampedBase = deMath.clamp(baseLevel, 0, this.m_numLevels - 1);
     var clampedMax = deMath.clamp(maxLevel, clampedBase, this.m_numLevels - 1);
@@ -1252,24 +1520,52 @@ Texture3DView.prototype.getSubView = function(baseLevel, maxLevel) {
     return new Texture3DView(numLevels, this.m_levels.slice(clampedBase, numLevels));
 };
 
-Texture3DView.prototype.sample = function(/*const Sampler&*/ sampler, texCoord, lod) {
+/**
+ * @param {Sampler} sampler
+ * @param {Array<Number>} texCoord
+ * @param {Number} lod
+ * @return {Array<Number>} Pixel color
+ */
+Texture3DView.prototype.sample = function(sampler, texCoord, lod) {
     return sampleLevelArray3D(this.m_levels, this.m_numLevels, sampler, texCoord[0], texCoord[1], texCoord[2], lod);
 };
 
+/* TODO: All view classes are very similar. They should have a common base class */
+
+/**
+ * @param {Number} width
+ * @param {Number} height
+ * @return {Number} Number of pyramid levels
+ */
 var computeMipPyramidLevels = function(width, height) {
     var h = height || width;
     return Math.floor(Math.log2(Math.max(width, h))) + 1;
 };
 
+/**
+ * @param {Number} baseLevelSize
+ * @param {Number} levelNdx
+ */
 var getMipPyramidLevelSize = function(baseLevelSize, levelNdx) {
     return Math.max(baseLevelSize >> levelNdx, 1);
 };
 
-/*CubeFaceCoords*/ var getCubeFaceCoords = function(/*const Vec3&*/ coords) {
-    /*const CubeFace*/ var face = selectCubeFace(coords);
+/**
+ * @param {Array<Number>} coords Vec3 cube coordinates
+ * @return {CubeFaceCoords}
+ */
+var getCubeFaceCoords = function(coords) {
+    var face = selectCubeFace(coords);
     return new CubeFaceCoords(face, projectToFace(face, coords));
 };
 
+/**
+ * @constructor
+ * @extends {TextureLevelPyramid}
+ * @param {TextureFormat} format
+ * @param {Number} width
+ * @param {Number} height
+ */
 var Texture2D = function(format, width, height) {
     TextureLevelPyramid.call(this, format, computeMipPyramidLevels(width, height));
     this.m_width = width;
@@ -1280,7 +1576,16 @@ var Texture2D = function(format, width, height) {
 Texture2D.prototype = Object.create(TextureLevelPyramid.prototype);
 Texture2D.prototype.constructor = Texture2D;
 
+/**
+ * @param {Number} baseLevel
+ * @param {Number} maxLevel
+ * @return {Texture2DView}
+ */
 Texture2D.prototype.getSubView = function(baseLevel, maxLevel) { return this.m_view.getSubView(baseLevel, maxLevel); };
+
+/**
+ * @param {Number} levelNdx
+ */
 Texture2D.prototype.allocLevel = function(levelNdx) {
     DE_ASSERT(deMath.deInBounds32(levelNdx, 0, this.getNumLevels()));
 
@@ -1291,6 +1596,14 @@ Texture2D.prototype.allocLevel = function(levelNdx) {
     TextureLevelPyramid.prototype.allocLevel.call(this, levelNdx, width, height, 1);
 };
 
+/**
+ * @constructor
+ * @extends {TextureLevelPyramid}
+ * @param {TextureFormat} format
+ * @param {Number} width
+ * @param {Number} height
+ * @param {Number} numLayers
+ */
 var Texture2DArray = function(format, width, height, numLayers) {
     TextureLevelPyramid.call(this, format, computeMipPyramidLevels(width, height));
     this.m_width = width;
@@ -1301,8 +1614,12 @@ var Texture2DArray = function(format, width, height, numLayers) {
 
 Texture2DArray.prototype = Object.create(TextureLevelPyramid.prototype);
 Texture2DArray.prototype.constructor = Texture2DArray;
+/** @return {Texture2DArrayView} */
 Texture2DArray.prototype.getView = function() { return this.m_view; };
 
+/**
+ * @param {Number} levelNdx
+ */
 Texture2DArray.prototype.allocLevel = function(levelNdx) {
     DE_ASSERT(deMath.deInBounds32(levelNdx, 0, this.getNumLevels()));
 
@@ -1312,6 +1629,14 @@ Texture2DArray.prototype.allocLevel = function(levelNdx) {
     TextureLevelPyramid.prototype.allocLevel.call(this, levelNdx, width, height, this.m_numLayers);
 };
 
+/**
+ * @constructor
+ * @extends {TextureLevelPyramid}
+ * @param {TextureFormat} format
+ * @param {Number} width
+ * @param {Number} height
+ * @param {Number} depth
+ */
 var Texture3D = function(format, width, height, depth) {
     TextureLevelPyramid.call(this, format, computeMipPyramidLevels(width, height));
     this.m_width = width;
@@ -1322,8 +1647,17 @@ var Texture3D = function(format, width, height, depth) {
 
 Texture3D.prototype = Object.create(TextureLevelPyramid.prototype);
 Texture3D.prototype.constructor = Texture3D;
+
+/**
+ * @param {Number} baseLevel
+ * @param {Number} maxLevel
+ * @return {Texture3DView}
+ */
 Texture3D.prototype.getSubView = function(baseLevel, maxLevel) { return this.m_view.getSubView(baseLevel, maxLevel); };
 
+/**
+ * @param {Number} levelNdx
+ */
 Texture3D.prototype.allocLevel = function(levelNdx) {
     DE_ASSERT(deMath.deInBounds32(levelNdx, 0, this.getNumLevels()));
 
@@ -1334,24 +1668,47 @@ Texture3D.prototype.allocLevel = function(levelNdx) {
     TextureLevelPyramid.prototype.allocLevel.call(this, levelNdx, width, height, depth);
 };
 
+
+/**
+ * @constructor
+ * @param {Number} numLevels
+ * @param {Array<Array<ConstPixelBufferAccess>>} levels
+ */
 var TextureCubeView = function(numLevels, levels) {
     this.m_numLevels = numLevels;
     this.m_levels = levels;
 };
 
-TextureCubeView.prototype.sample = function(/*const Sampler&*/ sampler, texCoord, lod) {
+/**
+ * @param {Sampler} sampler
+ * @param {Array<Number>} texCoord
+ * @param {Number} lod
+ * @return {Array<Number>} Pixel color
+ */
+TextureCubeView.prototype.sample = function(sampler, texCoord, lod) {
     DE_ASSERT(sampler.compare == CompareMode.COMPAREMODE_NONE);
 
     // Computes (face, s, t).
-    /*const CubeFaceCoords*/ var coords = getCubeFaceCoords(texCoord);
+    var coords = getCubeFaceCoords(texCoord);
     if (sampler.seamlessCubeMap)
         return sampleLevelArrayCubeSeamless(this.m_levels, this.m_numLevels, coords.face, sampler, coords.s, coords.t, 0 /* depth */, lod);
     else
         return sampleLevelArray2D(this.m_levels[coords.face], this.m_numLevels, sampler, coords.s, coords.t, 0 /* depth */, lod);
 };
 
-TextureCubeView.prototype.getFaceLevels = function(/*CubeFace*/ face) { return this.m_levels[face]; };
+/**
+ * @param {CubeFace} face
+ * @return {Array<ConstPixelBufferAccess>}
+ */
+TextureCubeView.prototype.getFaceLevels = function(face) { return this.m_levels[face]; };
+/** @return {Number} */
 TextureCubeView.prototype.getSize = function() { return this.m_numLevels > 0 ? this.m_levels[0][0].getWidth() : 0; };
+
+/**
+ * @param {Number} baseLevel
+ * @param {Number} maxLevel
+ * @return {TextureCubeView}
+ */
 TextureCubeView.prototype.getSubView = function(baseLevel, maxLevel) {
     var clampedBase = deMath.clamp(baseLevel, 0, this.m_numLevels - 1);
     var clampedMax = deMath.clamp(maxLevel, clampedBase, this.m_numLevels - 1);
@@ -1363,6 +1720,11 @@ TextureCubeView.prototype.getSubView = function(baseLevel, maxLevel) {
     return new TextureCubeView(numLevels, levels);
 };
 
+/**
+ * @constructor
+ * @param {TextureFormat} format
+ * @param {Number} size
+ */
 var TextureCube = function(format, size) {
     this.m_format = format;
     this.m_size = size;
@@ -1387,21 +1749,52 @@ var TextureCube = function(format, size) {
     this.m_view = new TextureCubeView(numLevels, levels);
 };
 
+/** @return {TextureFormat} */
 TextureCube.prototype.getFormat = function() { return this.m_format; };
+/** @return {Number} */
 TextureCube.prototype.getSize = function() { return this.m_size; };
-TextureCube.prototype.getLevelFace = function(/*int */ndx, /*CubeFace*/ face)        { return this.m_access[face][ndx]; };
+/**
+ * @param {Number} ndx Level index
+ * @param {CubeFace} face
+ * @return {ConstPixelBufferAccess}
+ */
+TextureCube.prototype.getLevelFace = function(ndx, face)        { return this.m_access[face][ndx]; };
+/** @return {Number} */
 TextureCube.prototype.getNumLevels = function() { return this.m_access[0].length; };
-TextureCube.prototype.sample = function(/*const Sampler&*/ sampler, texCoord, lod) {
+
+/**
+ * @param {Sampler} sampler
+ * @param {Array<Number>} texCoord
+ * @param {Number} lod
+ * @return {Array<Number>} Pixel color
+ */
+TextureCube.prototype.sample = function(sampler, texCoord, lod) {
     this.m_view.sample(sampler, texCoord, lod);
 };
+
+/**
+ * @param {Number} baseLevel
+ * @param {Number} maxLevel
+ * @return {TextureCubeView}
+ */
 TextureCube.prototype.getSubView = function(baseLevel, maxLevel) { return this.m_view.getSubView(baseLevel, maxLevel); };
 
-TextureCube.prototype.isLevelEmpty = function(/*CubeFace*/ face, /*int*/ levelNdx) {
- return this.m_data[face][levelNdx].empty(); };
+/**
+ * @param {CubeFace} face
+ * @param {Number} levelNdx
+ * @return {boolean}
+ */
+TextureCube.prototype.isLevelEmpty = function(face, levelNdx) {
+    return this.m_data[face][levelNdx].empty();
+};
 
-TextureCube.prototype.allocLevel = function(/*tcu::CubeFace*/ face, /*int*/ levelNdx) {
-    /*const int*/ var size = getMipPyramidLevelSize(this.m_size, levelNdx);
-    /*const int*/ var dataSize = this.m_format.getPixelSize() * size * size;
+/**
+ * @param {CubeFace} face
+ * @param {Number} levelNdx
+ */
+TextureCube.prototype.allocLevel = function(face, levelNdx) {
+    /** @const */ var size = getMipPyramidLevelSize(this.m_size, levelNdx);
+    /** @const*/ var dataSize = this.m_format.getPixelSize() * size * size;
     DE_ASSERT(this.isLevelEmpty(face, levelNdx));
 
     this.m_data[face][levelNdx].setStorage(dataSize);
@@ -1415,9 +1808,10 @@ TextureCube.prototype.allocLevel = function(/*tcu::CubeFace*/ face, /*int*/ leve
 };
 
 /**
+ * @param {Array<Number>} coords Cube coordinates 
  * @return {CubeFace}
  */
-var selectCubeFace = function(/*const Vec3&*/ coords) {
+var selectCubeFace = function(coords) {
     var x = coords[0];
     var y = coords[1];
     var z = coords[2];
@@ -1431,36 +1825,34 @@ var selectCubeFace = function(/*const Vec3&*/ coords) {
         return y >= 0 ? CubeFace.CUBEFACE_POSITIVE_Y : CubeFace.CUBEFACE_NEGATIVE_Y;
     else if (ax < az && ay < az)
         return z >= 0 ? CubeFace.CUBEFACE_POSITIVE_Z : CubeFace.CUBEFACE_NEGATIVE_Z;
-    else
-    {
+    else {
         // Some of the components are equal. Use tie-breaking rule.
-        if (ax == ay)
-        {
+        if (ax == ay) {
             if (ax < az)
                 return z >= 0 ? CubeFace.CUBEFACE_POSITIVE_Z : CubeFace.CUBEFACE_NEGATIVE_Z;
             else
                 return x >= 0 ? CubeFace.CUBEFACE_POSITIVE_X : CubeFace.CUBEFACE_NEGATIVE_X;
-        }
-        else if (ax == az)
-        {
+        } else if (ax == az) {
             if (az < ay)
                 return y >= 0 ? CubeFace.CUBEFACE_POSITIVE_Y : CubeFace.CUBEFACE_NEGATIVE_Y;
             else
                 return z >= 0 ? CubeFace.CUBEFACE_POSITIVE_Z : CubeFace.CUBEFACE_NEGATIVE_Z;
-        }
-        else if (ay == az)
-        {
+        } else if (ay == az) {
             if (ay < ax)
                 return x >= 0 ? CubeFace.CUBEFACE_POSITIVE_X : CubeFace.CUBEFACE_NEGATIVE_X;
             else
                 return y >= 0 ? CubeFace.CUBEFACE_POSITIVE_Y : CubeFace.CUBEFACE_NEGATIVE_Y;
-        }
-        else
+        } else
             return x >= 0 ? CubeFace.CUBEFACE_POSITIVE_X : CubeFace.CUBEFACE_NEGATIVE_X;
     }
 };
 
-var projectToFace = function(/*CubeFace*/ face, /*const Vec3&*/ coord) {
+/**
+ * @param {CubeFace} face
+ * @param {Array<Number>} coord  Cube coordinates (Vec3)
+ * @return {Array<Number>} face coordinates (Vec2)
+ */
+var projectToFace = function(face, coord) {
     var rx = coord[0];
     var ry = coord[1];
     var rz = coord[2];
@@ -1486,23 +1878,22 @@ var projectToFace = function(/*CubeFace*/ face, /*const Vec3&*/ coord) {
     return [s, t];
 };
 
-    return {
-        TextureFormat: TextureFormat,
-        ChannelType: ChannelType,
-        ChannelOrder: ChannelOrder,
-        CubeFace: CubeFace,
-        DeqpArrayBuffer: DeqpArrayBuffer,
-        /* TODO: remove - it shouldn't be exported */
-        TextureLevelPyramid: TextureLevelPyramid,
-        ConstPixelBufferAccess: ConstPixelBufferAccess,
-        PixelBufferAccess: PixelBufferAccess,
-        Texture2D: Texture2D,
-        TextureCube: TextureCube,
-        Texture2DArray: Texture2DArray,
-        Texture3D: Texture3D,
-        WrapMode: WrapMode,
-        FilterMode: FilterMode,
-        Sampler: Sampler,
-        selectCubeFace: selectCubeFace
-    };
+return {
+    TextureFormat: TextureFormat,
+    ChannelType: ChannelType,
+    ChannelOrder: ChannelOrder,
+    CubeFace: CubeFace,
+    DeqpArrayBuffer: DeqpArrayBuffer,
+    ConstPixelBufferAccess: ConstPixelBufferAccess,
+    PixelBufferAccess: PixelBufferAccess,
+    Texture2D: Texture2D,
+    TextureCube: TextureCube,
+    Texture2DArray: Texture2DArray,
+    Texture3D: Texture3D,
+    WrapMode: WrapMode,
+    FilterMode: FilterMode,
+    Sampler: Sampler,
+    selectCubeFace: selectCubeFace
+};
+
 });

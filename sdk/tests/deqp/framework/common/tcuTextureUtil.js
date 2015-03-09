@@ -160,8 +160,10 @@ var TextureFormatInfo = function(valueMin, valueMax, lookupScale, lookupBias) {
     return [cMin, cMax];
 };
 
-/*
+/**
  * Creates an array by choosing between 'a' and 'b' based on 'cond' array.
+ * @param {Array} a
+ * @param {Array} b
  * @param {Array<boolean>} cond Condtions
  * @return {Array}
  */

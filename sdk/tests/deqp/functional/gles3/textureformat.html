@@ -24,7 +24,6 @@ requirejs.config({
     });
 var wtu = WebGLTestUtils;
 /** @type {WebGLRenderingContext} */ var gl = wtu.create3DContext('canvas', {preserveDrawingBuffer: true}, 2);
-gl.RGB8 = 0x8051;
 
 requirejs(["functional/gles3/es3fTextureFormatTests"], function(textureFormatTests) {
     try{

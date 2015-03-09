@@ -25,7 +25,6 @@ var DE_ASSERT = function(x) {
     if (!x)
         throw new Error('Assert failed');
 };
-var DE_FALSE = false;
 var GLU_EXPECT_NO_ERROR = function(error, message) {
     assertMsgOptions(error === gl.NONE, message, false, true);
 };
@@ -59,15 +58,14 @@ var samplerType = {
 };
 
 /**
+ * @param {tcuTexture.TextureFormat} format
  * @return {samplerType}
  */
-var getSamplerType = function(/*tcu::TextureFormat*/ format)
-{
+var getSamplerType = function(format) {
     if (format == null)
         throw new Error('Missing format information');
 
-    switch (format.type)
-    {
+    switch (format.type) {
         case tcuTexture.ChannelType.SIGNED_INT8:
         case tcuTexture.ChannelType.SIGNED_INT16:
         case tcuTexture.ChannelType.SIGNED_INT32:
@@ -88,6 +86,13 @@ var getSamplerType = function(/*tcu::TextureFormat*/ format)
     }
 };
 
+/**
+ * @constructor
+ * @param {canvas} canvas
+ * @param {Number} preferredWidth
+ * @param {Number} preferredHeight
+ * @param {Number} seed
+ */
 var RandomViewport = function(canvas, preferredWidth, preferredHeight, seed) {
     this.x = 0;
     this.y = 0;
@@ -97,6 +102,7 @@ var RandomViewport = function(canvas, preferredWidth, preferredHeight, seed) {
 };
 
 /**
+ * @constructor
  * @param {textureType} texType
  */
 var RenderParams = function(texType) {
@@ -126,7 +132,11 @@ var lodMode = {
 };
 
 /**
+ * @constructor
  * @extends {RenderParams}
+ * @param {textureType} texType
+ * @param {tcuTexture.Sampler} sampler
+ * @param {lodMode} lodMode_
  */
 var ReferenceParams = function(texType, sampler, lodMode_) {
     RenderParams.call(this, texType);
@@ -145,6 +155,11 @@ var ReferenceParams = function(texType, sampler, lodMode_) {
 ReferenceParams.prototype = Object.create(RenderParams.prototype);
 ReferenceParams.prototype.constructor = ReferenceParams;
 
+/**
+ * @param {Array<Number>} bottomLeft
+ * @param {Array<Number>} topRight
+ * @return {Array<Number>}
+ */
 var computeQuadTexCoord2D = function(bottomLeft, topRight)
 {
     var dst = [];
@@ -158,7 +173,11 @@ var computeQuadTexCoord2D = function(bottomLeft, topRight)
     return dst;
 };
 
-var computeQuadTexCoordCube = function(/*tcu::CubeFace*/ face) {
+/**
+ * @param {tcuTexture.CubeFace} face
+ * @return {Array<Number>}
+ */
+var computeQuadTexCoordCube = function(face) {
     var texCoordNegX = [
         -1, 1, -1,
         -1, -1, -1,
@@ -207,7 +226,13 @@ var computeQuadTexCoordCube = function(/*tcu::CubeFace*/ face) {
     throw new Error('Unrecognized face ' + face);
 };
 
-var computeQuadTexCoord2DArray = function(/*int*/ layerNdx, /*const tcu::Vec2&*/ bottomLeft, /*const tcu::Vec2&*/ topRight) {
+/**
+ * @param {Number} layerNdx
+ * @param {Array<Number>} bottomLeft
+ * @param {Array<Number>} topRight
+ * @return {Array<Number>}
+ */
+var computeQuadTexCoord2DArray = function(layerNdx, bottomLeft, topRight) {
     var dst = [];
     dst.length = 4 * 3;
 
@@ -232,7 +257,13 @@ var selectCoords = function(a, b, c) {
     return x3;
 };
 
-var computeQuadTexCoord3D = function(/*const tcu::Vec3&*/ p0, /*const tcu::Vec3&*/ p1, /*const tcu::IVec3&*/ dirSwz) {
+/**
+ * @param {Array<Number>} p0
+ * @param {Array<Number>} p1
+ * @param {Array<Number>} dirSwz
+ * @return {Array<Number>}
+ */
+var computeQuadTexCoord3D = function(p0, p1, dirSwz) {
     var dst = [];
     dst.length = 4 * 3;
 
@@ -316,12 +347,21 @@ var programType = {
     PROGRAM_BUFFER_UINT: 44
 };
 
+/**
+ * @constructor
+ * @param {string} version GL version
+ * @param {gluShaderUtil.precision} precision
+ */
 var ProgramLibrary = function(version, precision) {
     this.m_glslVersion = version;
     this.m_texCoordPrecision = precision;
 };
 
-ProgramLibrary.prototype.getProgram = function(/* programType */ program) {
+/**
+ * @param {programType} program
+ * @return {gluShaderProgram.ShaderProgram}
+ */
+ProgramLibrary.prototype.getProgram = function(program) {
     /* TODO: Implement */
     // if (m_programs.find(program) != m_programs.end())
     //     return m_programs[program]; // Return from cache.
@@ -368,17 +408,14 @@ ProgramLibrary.prototype.getProgram = function(/* programType */ program) {
     var isCubeArray = deMath.deInRange32(program, programType.PROGRAM_CUBE_ARRAY_FLOAT, programType.PROGRAM_CUBE_ARRAY_SHADOW);
     var isBuffer = deMath.deInRange32(program, programType.PROGRAM_BUFFER_FLOAT, programType.PROGRAM_BUFFER_UINT);
 
-    if (this.m_glslVersion == '100 es')
-    {
+    if (this.m_glslVersion == '100 es') {
         params.set('FRAG_HEADER', '');
         params.set('VTX_HEADER', '');
         params.set('VTX_IN', 'attribute');
         params.set('VTX_OUT', 'varying');
         params.set('FRAG_IN', 'varying');
         params.set('FRAG_COLOR', 'gl_FragColor');
-    }
-    else if (this.m_glslVersion == '300 es' || this.m_glslVersion == '310 es' || this.m_glslVersion == '330')
-    {
+    } else if (this.m_glslVersion == '300 es' || this.m_glslVersion == '310 es' || this.m_glslVersion == '330') {
         var ext = null;
 
         // if (isCubeArray && glu::glslVersionIsES(m_glslVersion))
@@ -396,8 +433,7 @@ ProgramLibrary.prototype.getProgram = function(/* programType */ program) {
         params.set('VTX_OUT', 'out');
         params.set('FRAG_IN', 'in');
         params.set('FRAG_COLOR', 'dEQP_FragColor');
-    }
-    else
+    } else
         throw new Error('Unsupported version: ' + this.m_glslVersion);
 
     params.set('PRECISION', gluShaderUtil.getPrecisionName(this.m_texCoordPrecision));
@@ -411,15 +447,13 @@ ProgramLibrary.prototype.getProgram = function(/* programType */ program) {
     else if (is1D)
         params.set('TEXCOORD_TYPE', 'float');
     else
-        DE_ASSERT(DE_FALSE);
+        DE_ASSERT(false);
 
     var sampler = null;
     var lookup = null;
 
-    if (this.m_glslVersion == '300 es' || this.m_glslVersion == '310 es' || this.m_glslVersion == '330')
-    {
-        switch (program)
-        {
+    if (this.m_glslVersion == '300 es' || this.m_glslVersion == '310 es' || this.m_glslVersion == '330') {
+        switch (program) {
             case programType.PROGRAM_2D_FLOAT: sampler = 'sampler2D'; lookup = 'texture(u_sampler, v_texCoord)'; break;
             case programType.PROGRAM_2D_INT: sampler = 'isampler2D'; lookup = 'vec4(texture(u_sampler, v_texCoord))'; break;
             case programType.PROGRAM_2D_UINT: sampler = 'usampler2D'; lookup = 'vec4(texture(u_sampler, v_texCoord))'; break;
@@ -468,13 +502,10 @@ ProgramLibrary.prototype.getProgram = function(/* programType */ program) {
             default:
                 DE_ASSERT(false);
         }
-    }
-    else if (this.m_glslVersion == '100 es')
-    {
+    } else if (this.m_glslVersion == '100 es') {
         sampler = isCube ? 'samplerCube' : 'sampler2D';
 
-        switch (program)
-        {
+        switch (program) {
             case programType.PROGRAM_2D_FLOAT: lookup = 'texture2D(u_sampler, v_texCoord)'; break;
             case programType.PROGRAM_2D_FLOAT_BIAS: lookup = 'texture2D(u_sampler, v_texCoord, u_bias)'; break;
             case programType.PROGRAM_CUBE_FLOAT: lookup = 'textureCube(u_sampler, v_texCoord)'; break;
@@ -482,8 +513,7 @@ ProgramLibrary.prototype.getProgram = function(/* programType */ program) {
             default:
                 DE_ASSERT(false);
         }
-    }
-    else
+    } else
         DE_ASSERT(!'Unsupported version');
 
     params.set('SAMPLER_TYPE', sampler);
@@ -536,137 +566,123 @@ ProgramLibrary.prototype.getProgram = function(/* programType */ program) {
 //     std::map<Program, glu::ShaderProgram*>    m_programs;
 // };
 
+
+/**
+ * @constructor
+ * @param {string} version GL version
+ * @param {gluShaderUtil.precision} precision
+ */
 var TextureRenderer = function(version,  precision) {
     this.m_programLibrary = new ProgramLibrary(version, precision);
 };
 
+/**
+ * @param {Number} texUnit
+ * @param {Array<Number>} texCoord
+ * @param {RenderParams} params
+ */
 TextureRenderer.prototype.renderQuad = function(texUnit, texCoord, params) {
     var wCoord = params.flags.projected ? params.w : [1, 1, 1, 1];
     var useBias = params.flags.use_bias;
     var logUniforms = params.flags.log_uniforms;
 
     // Render quad with texture.
-    var position =
-    [
+    var position = [
         -1 * wCoord[0], -1 * wCoord[0], 0, wCoord[0],
         -1 * wCoord[1], +1 * wCoord[1], 0, wCoord[1],
         +1 * wCoord[2], -1 * wCoord[2], 0, wCoord[2],
         +1 * wCoord[3], +1 * wCoord[3], 0, wCoord[3]
     ];
-    /* @const */ var indices = [0, 1, 2, 2, 1, 3];
+    /** @const */ var indices = [0, 1, 2, 2, 1, 3];
 
-    /* @type {Program} */ var progSpec = undefined;
+    /** @type {programType} */ var progSpec = undefined;
     var numComps = 0;
-    if (params.texType == textureType.TEXTURETYPE_2D)
-    {
+    if (params.texType == textureType.TEXTURETYPE_2D) {
         numComps = 2;
 
-        switch (params.samplerType)
-        {
+        switch (params.samplerType) {
             case samplerType.SAMPLERTYPE_FLOAT: progSpec = useBias ? programType.PROGRAM_2D_FLOAT_BIAS : programType.PROGRAM_2D_FLOAT; break;
             case samplerType.SAMPLERTYPE_INT: progSpec = useBias ? programType.PROGRAM_2D_INT_BIAS : programType.PROGRAM_2D_INT; break;
             case samplerType.SAMPLERTYPE_UINT: progSpec = useBias ? programType.PROGRAM_2D_UINT_BIAS : programType.PROGRAM_2D_UINT; break;
             case samplerType.SAMPLERTYPE_SHADOW: progSpec = useBias ? programType.PROGRAM_2D_SHADOW_BIAS : programType.PROGRAM_2D_SHADOW; break;
             default: DE_ASSERT(false);
         }
-    }
-    else if (params.texType == textureType.TEXTURETYPE_1D)
-    {
+    } else if (params.texType == textureType.TEXTURETYPE_1D) {
         numComps = 1;
 
-        switch (params.samplerType)
-        {
+        switch (params.samplerType) {
             case samplerType.SAMPLERTYPE_FLOAT: progSpec = useBias ? programType.PROGRAM_1D_FLOAT_BIAS : programType.PROGRAM_1D_FLOAT; break;
             case samplerType.SAMPLERTYPE_INT: progSpec = useBias ? programType.PROGRAM_1D_INT_BIAS : programType.PROGRAM_1D_INT; break;
             case samplerType.SAMPLERTYPE_UINT: progSpec = useBias ? programType.PROGRAM_1D_UINT_BIAS : programType.PROGRAM_1D_UINT; break;
             case samplerType.SAMPLERTYPE_SHADOW: progSpec = useBias ? programType.PROGRAM_1D_SHADOW_BIAS : programType.PROGRAM_1D_SHADOW; break;
             default: DE_ASSERT(false);
         }
-    }
-    else if (params.texType == textureType.TEXTURETYPE_CUBE)
-    {
+    } else if (params.texType == textureType.TEXTURETYPE_CUBE) {
         numComps = 3;
 
-        switch (params.samplerType)
-        {
+        switch (params.samplerType) {
             case samplerType.SAMPLERTYPE_FLOAT: progSpec = useBias ? programType.PROGRAM_CUBE_FLOAT_BIAS : programType.PROGRAM_CUBE_FLOAT; break;
             case samplerType.SAMPLERTYPE_INT: progSpec = useBias ? programType.PROGRAM_CUBE_INT_BIAS : programType.PROGRAM_CUBE_INT; break;
             case samplerType.SAMPLERTYPE_UINT: progSpec = useBias ? programType.PROGRAM_CUBE_UINT_BIAS : programType.PROGRAM_CUBE_UINT; break;
             case samplerType.SAMPLERTYPE_SHADOW: progSpec = useBias ? programType.PROGRAM_CUBE_SHADOW_BIAS : programType.PROGRAM_CUBE_SHADOW; break;
             default: DE_ASSERT(false);
         }
-    }
-    else if (params.texType == textureType.TEXTURETYPE_3D)
-    {
+    } else if (params.texType == textureType.TEXTURETYPE_3D) {
         numComps = 3;
 
-        switch (params.samplerType)
-        {
+        switch (params.samplerType) {
             case samplerType.SAMPLERTYPE_FLOAT: progSpec = useBias ? programType.PROGRAM_3D_FLOAT_BIAS : programType.PROGRAM_3D_FLOAT; break;
             case samplerType.SAMPLERTYPE_INT: progSpec = useBias ? programType.PROGRAM_3D_INT_BIAS : programType.PROGRAM_3D_INT; break;
             case samplerType.SAMPLERTYPE_UINT: progSpec = useBias ? programType.PROGRAM_3D_UINT_BIAS : programType.PROGRAM_3D_UINT; break;
             default: DE_ASSERT(false);
         }
-    }
-    else if (params.texType == textureType.TEXTURETYPE_2D_ARRAY)
-    {
+    } else if (params.texType == textureType.TEXTURETYPE_2D_ARRAY) {
         DE_ASSERT(!useBias); // \todo [2012-02-17 pyry] Support bias.
 
         numComps = 3;
 
-        switch (params.samplerType)
-        {
+        switch (params.samplerType) {
             case samplerType.SAMPLERTYPE_FLOAT: progSpec = programType.PROGRAM_2D_ARRAY_FLOAT; break;
             case samplerType.SAMPLERTYPE_INT: progSpec = programType.PROGRAM_2D_ARRAY_INT; break;
             case samplerType.SAMPLERTYPE_UINT: progSpec = programType.PROGRAM_2D_ARRAY_UINT; break;
             case samplerType.SAMPLERTYPE_SHADOW: progSpec = programType.PROGRAM_2D_ARRAY_SHADOW; break;
             default: DE_ASSERT(false);
         }
-    }
-    else if (params.texType == textureType.TEXTURETYPE_CUBE_ARRAY)
-    {
+    } else if (params.texType == textureType.TEXTURETYPE_CUBE_ARRAY) {
         DE_ASSERT(!useBias);
 
         numComps = 4;
 
-        switch (params.samplerType)
-        {
+        switch (params.samplerType) {
             case samplerType.SAMPLERTYPE_FLOAT: progSpec = programType.PROGRAM_CUBE_ARRAY_FLOAT; break;
             case samplerType.SAMPLERTYPE_INT: progSpec = programType.PROGRAM_CUBE_ARRAY_INT; break;
             case samplerType.SAMPLERTYPE_UINT: progSpec = programType.PROGRAM_CUBE_ARRAY_UINT; break;
             case samplerType.SAMPLERTYPE_SHADOW: progSpec = programType.PROGRAM_CUBE_ARRAY_SHADOW; break;
             default: DE_ASSERT(false);
         }
-    }
-    else if (params.texType == textureType.TEXTURETYPE_1D_ARRAY)
-    {
+    } else if (params.texType == textureType.TEXTURETYPE_1D_ARRAY) {
         DE_ASSERT(!useBias); // \todo [2012-02-17 pyry] Support bias.
 
         numComps = 2;
 
-        switch (params.samplerType)
-        {
+        switch (params.samplerType) {
             case samplerType.SAMPLERTYPE_FLOAT: progSpec = programType.PROGRAM_1D_ARRAY_FLOAT; break;
             case samplerType.SAMPLERTYPE_INT: progSpec = programType.PROGRAM_1D_ARRAY_INT; break;
             case samplerType.SAMPLERTYPE_UINT: progSpec = programType.PROGRAM_1D_ARRAY_UINT; break;
             case samplerType.SAMPLERTYPE_SHADOW: progSpec = programType.PROGRAM_1D_ARRAY_SHADOW; break;
             default: DE_ASSERT(false);
         }
-    }
-    else if (params.texType == textureType.TEXTURETYPE_BUFFER)
-    {
+    } else if (params.texType == textureType.TEXTURETYPE_BUFFER) {
         numComps = 1;
 
-        switch (params.samplerType)
-        {
+        switch (params.samplerType) {
             case samplerType.SAMPLERTYPE_FETCH_FLOAT: progSpec = programType.PROGRAM_BUFFER_FLOAT; break;
             case samplerType.SAMPLERTYPE_FETCH_INT: progSpec = programType.PROGRAM_BUFFER_INT; break;
             case samplerType.SAMPLERTYPE_FETCH_UINT: progSpec = programType.PROGRAM_BUFFER_UINT; break;
             default: DE_ASSERT(false);
         }
-    }
-    else
-        DE_ASSERT(DE_FALSE);
+    } else
+        DE_ASSERT(false);
 
     /* glu::ShaderProgram* */ var program = this.m_programLibrary.getProgram(progSpec);
 
@@ -685,15 +701,13 @@ TextureRenderer.prototype.renderQuad = function(texUnit, texCoord, params) {
     // if (logUniforms)
     //     log << TestLog::Message << "u_sampler = " << texUnit << TestLog::EndMessage;
 
-    if (useBias)
-    {
+    if (useBias) {
         gl.uniform1f(gl.getUniformLocation(prog, 'u_bias'), params.bias);
         // if (logUniforms)
         //     log << TestLog::Message << "u_bias = " << params.bias << TestLog::EndMessage;
     }
 
-    if (params.samplerType == samplerType.SAMPLERTYPE_SHADOW)
-    {
+    if (params.samplerType == samplerType.SAMPLERTYPE_SHADOW) {
         gl.uniform1f(gl.getUniformLocation(prog, 'u_ref'), params.ref);
         // if (logUniforms)
         //     log << TestLog::Message << "u_ref = " << params.ref << TestLog::EndMessage;
@@ -747,7 +761,16 @@ TextureRenderer.prototype.renderQuad = function(texUnit, texCoord, params) {
 //     ProgramLibrary                m_programLibrary;
 // };
 
-var SurfaceAccess = function(/*tcu::Surface&*/ surface, /*const tcu::PixelFormat&*/ colorFmt, /*int*/ x, /*int*/ y, /*int*/ width, /*int*/ height) {
+/**
+ * @constructor
+ * @param {tcuSurface.Surface} surface
+ * @param {PixelFormat} colorFmt
+ * @param {Number} x
+ * @param {Number} y
+ * @param {Number} width
+ * @param {Number} heigth
+ */
+var SurfaceAccess = function(surface, colorFmt, x, y, width, height) {
     this.m_surface = surface;
     this.colorMask = undefined; /*TODO*/
     this.m_x = x || 0;
@@ -756,9 +779,17 @@ var SurfaceAccess = function(/*tcu::Surface&*/ surface, /*const tcu::PixelFormat
     this.m_height = height || surface.getHeight();
 };
 
+/** @return {Number} */
 SurfaceAccess.prototype.getWidth = function() { return this.m_width; };
+/** @return {Number} */
 SurfaceAccess.prototype.getHeight = function() { return this.m_height; };
-SurfaceAccess.prototype.setPixel = function(/*const tcu::Vec4&*/ color, x, y) {
+
+/**
+ * @param {Array<Number>} color
+ * @param {Number} x
+ * @param {Number} y
+ */
+SurfaceAccess.prototype.setPixel = function(color, x, y) {
     /* TODO: Apply color mask */
     var c = color;
     for (var i = 0; i < c.length; i++)
@@ -766,18 +797,25 @@ SurfaceAccess.prototype.setPixel = function(/*const tcu::Vec4&*/ color, x, y) {
     this.m_surface.setPixel(x, y, c);
 };
 
-var computeLodFromDerivates = function(/*LodMode*/ mode, dudx, dvdx, dwdx, dudy, dvdy, dwdy)
-{
+/**
+ * @param {lodMode} mode
+ * @param {Number} dudx
+ * @param {Number} dvdx
+ * @param {Number} dwdx
+ * @param {Number} dudy
+ * @param {Number} dvdy
+ * @param {Number} dwdy
+ * @return {Number}
+ */
+var computeLodFromDerivates = function(/*LodMode*/ mode, dudx, dvdx, dwdx, dudy, dvdy, dwdy) {
     var p = 0;
-    switch (mode)
-    {
+    switch (mode) {
         case lodMode.EXACT:
             p = Math.max(Math.sqrt(dudx * dudx + dvdx * dvdx + dwdx * dwdx), Math.sqrt(dudy * dudy + dvdy * dvdy + dwdy * dwdy));
             break;
 
         case lodMode.MIN_BOUND:
-        case lodMode.MAX_BOUND:
-        {
+        case lodMode.MAX_BOUND: {
             var mu = Math.max(Math.abs(dudx), Math.abs(dudy));
             var mv = Math.max(Math.abs(dvdx), Math.abs(dvdy));
             var mw = Math.max(Math.abs(dwdx), Math.abs(dwdy));
@@ -787,14 +825,22 @@ var computeLodFromDerivates = function(/*LodMode*/ mode, dudx, dvdx, dwdx, dudy,
         }
 
         default:
-            DE_ASSERT(DE_FALSE);
+            DE_ASSERT(false);
     }
 
     return Math.round(Math.log2(p));
 };
 
-var computeNonProjectedTriLod = function(/*LodMode*/ mode, /*const tcu::IVec2&*/ dstSize, /*const tcu::IVec2&*/ srcSize, /*const tcu::Vec3&*/ sq, /*const tcu::Vec3&*/ tq, /*const tcu::Vec3&*/ rq)
-{
+/**
+ * @param {lodMode} mode
+ * @param {Array<Number>} dstSize
+ * @param {Array<Number>} srcSize
+ * @param {Array<Number>} sq
+ * @param {Array<Number>} tq
+ * @param {Array<Number>} rq
+ * @return {Number}
+ */
+var computeNonProjectedTriLod = function(mode, dstSize, srcSize, sq, tq, rq) {
     var dux = (sq[2] - sq[0]) * srcSize[0];
     var duy = (sq[1] - sq[0]) * srcSize[0];
     var dvx = (tq[2] - tq[0]) * srcSize[1];
@@ -813,23 +859,46 @@ var computeNonProjectedTriLod = function(/*LodMode*/ mode, /*const tcu::IVec2&*/
 
 /**
  * @param {Array<Number>} v
+ * @param {Number} x
+ * @param {Number} y
+ * @return {Array<Number>}
  */
 var triangleInterpolate = function(v, x, y) {
     return v[0] + (v[2] - v[0]) * x + (v[1] - v[0]) * y;
 };
 
+/**
+ * @param {Array<Number>} s
+ * @param {Array<Number>} w
+ * @param {Number} wx
+ * @param {Number} width
+ * @param {Number} ny
+ * @return {Number}
+ */ 
 var triDerivateX = function(/*const tcu::Vec3&*/ s, /*const tcu::Vec3&*/ w, wx, width, ny) {
     var d = w[1] * w[2] * (width * (ny - 1) + wx) - w[0] * (w[2] * width * ny + w[1] * wx);
     return (w[0] * w[1] * w[2] * width * (w[1] * (s[0] - s[2]) * (ny - 1) + ny * (w[2] * (s[1] - s[0]) + w[0] * (s[2] - s[1])))) / (d * d);
 };
 
+/**
+ * @param {Array<Number>} s
+ * @param {Array<Number>} w
+ * @param {Number} wy
+ * @param {Number} heigth
+ * @param {Number} nx
+ * @return {Number}
+ */
 var triDerivateY = function(/*const tcu::Vec3&*/ s, /*const tcu::Vec3&*/ w, wy, height, nx) {
     var d = w[1] * w[2] * (height * (nx - 1) + wy) - w[0] * (w[1] * height * nx + w[2] * wy);
     return (w[0] * w[1] * w[2] * height * (w[2] * (s[0] - s[1]) * (nx - 1) + nx * (w[0] * (s[1] - s[2]) + w[1] * (s[2] - s[0])))) / (d * d);
 };
 
 /**
+ * @param {tcuTexture.Texture2DView} src
+ * @param {ReferenceParams} params
  * @param {Array<Number>} texCoord Texture coordinates
+ * @param {Number} lod
+ * @return {Array<Number>} sample
  */
 var execSample = function(/*const tcu::Texture2DView&*/ src, /*const ReferenceParams&*/ params, texCoord, lod)
 {
@@ -839,13 +908,27 @@ var execSample = function(/*const tcu::Texture2DView&*/ src, /*const ReferencePa
         return src.sample(params.sampler, texCoord, lod);
 };
 
+/**
+ * @param {Array<Number>} pixel
+ * @param {Array<Number>} scale
+ * @param {Array<Number>} bias
+ * return {Array<Number>}
+ */
 var applyScaleAndBias = function(pixel, scale, bias) {
     var pixel1 = deMath.multiply(pixel, scale);
     var pixel2 = deMath.add(pixel1, bias);
     return pixel2;
 };
 
-var sampleTextureNonProjected2D = function(/*const SurfaceAccess&*/ dst, /*const tcu::Texture2DView&*/ src, /*const tcu::Vec4&*/ sq, /*const tcu::Vec4&*/ tq, /*const ReferenceParams&*/ params) {
+/**
+ * @param {SurfaceAccess} dst
+ * @param {tcuTexture.Texture2DView} src
+ * @param {Array<Number>} sq
+ * @param {Array<Number>} tq
+ * @param {ReferenceParams} params
+ * @return {Array<Number>} sample
+ */
+var sampleTextureNonProjected2D = function(dst, src, sq, tq, params) {
     var lodBias = params.flags.use_bias ? params.bias : 0;
 
     var dstSize = [dst.getWidth(), dst.getHeight()];
@@ -857,10 +940,8 @@ var sampleTextureNonProjected2D = function(/*const SurfaceAccess&*/ dst, /*const
     var triLod = [deMath.clamp((computeNonProjectedTriLod(params.lodMode, dstSize, srcSize, triS[0], triT[0]) + lodBias), params.minLod, params.maxLod),
                     deMath.clamp((computeNonProjectedTriLod(params.lodMode, dstSize, srcSize, triS[1], triT[1]) + lodBias), params.minLod, params.maxLod)];
 
-    for (var y = 0; y < dst.getHeight(); y++)
-    {
-        for (var x = 0; x < dst.getWidth(); x++)
-        {
+    for (var y = 0; y < dst.getHeight(); y++) {
+        for (var x = 0; x < dst.getWidth(); x++) {
             var yf = (y + 0.5) / dst.getHeight();
             var xf = (x + 0.5) / dst.getWidth();
 
@@ -878,7 +959,16 @@ var sampleTextureNonProjected2D = function(/*const SurfaceAccess&*/ dst, /*const
     }
 };
 
-var sampleTextureNonProjected2DArray = function(/*const SurfaceAccess&*/ dst, /*const tcu::Texture2DArrayView&*/ src, /*const tcu::Vec4&*/ sq, /*const tcu::Vec4&*/ tq, /*const tcu::Vec4&*/ rq, /*const ReferenceParams&*/ params) {
+/**
+ * @param {SurfaceAccess} dst
+ * @param {tcuTexture.Texture2DArrayView} src
+ * @param {Array<Number>} sq
+ * @param {Array<Number>} tq
+ * @param {Array<Number>} rq
+ * @param {ReferenceParams} params
+ * @return {Array<Number>} sample
+ */
+var sampleTextureNonProjected2DArray = function(dst, src, sq, tq, rq, params) {
     var lodBias = (params.flags.use_bias) ? params.bias : 0;
 
     var dstSize = [dst.getWidth(), dst.getHeight()];
@@ -911,8 +1001,15 @@ var sampleTextureNonProjected2DArray = function(/*const SurfaceAccess&*/ dst, /*
     }
 };
 
-var sampleTexture2D = function(/*const SurfaceAccess&*/ dst, /*const tcu::Texture2DView&*/ src, /*const float*  */ texCoord, /*const ReferenceParams& */ params) {
-    /*const tcu::Texture2DView*/ var view = src.getSubView(params.baseLevel, params.maxLevel);
+/**
+ * @param {SurfaceAccess} dst
+ * @param {tcuTexture.Texture2DView} src
+ * @param {Array<Number>} texCoord
+ * @param {ReferenceParams} params
+ * @return {Array<Number>} sample
+ */
+var sampleTexture2D = function(dst, src, texCoord, params) {
+    var view = src.getSubView(params.baseLevel, params.maxLevel);
     var sq = [texCoord[0 + 0], texCoord[2 + 0], texCoord[4 + 0], texCoord[6 + 0]];
     var tq = [texCoord[0 + 1], texCoord[2 + 1], texCoord[4 + 1], texCoord[6 + 1]];
 
@@ -922,9 +1019,16 @@ var sampleTexture2D = function(/*const SurfaceAccess&*/ dst, /*const tcu::Textur
         sampleTextureNonProjected2D(dst, view, sq, tq, params);
 };
 
-var computeCubeLodFromDerivates = function(/*LodMode*/ lodMode, /*const tcu::Vec3&*/ coord, /*const tcu::Vec3&*/ coordDx, /*const tcu::Vec3&*/ coordDy, /*const int*/ faceSize)
-{
-    /*const tcu::CubeFace*/ var face = tcuTexture.selectCubeFace(coord);
+/**
+ * @param {lodMode} lodMode
+ * @param {Array<Number>} coord
+ * @param {Array<Number>} coordDx
+ * @param {Array<Number>} coordDy
+ * @param {Number} faceSize
+ * @return {Number}
+ */
+var computeCubeLodFromDerivates = function(lodMode, coord, coordDx, coordDy, faceSize) {
+    var face = tcuTexture.selectCubeFace(coord);
     var maNdx = 0;
     var sNdx = 0;
     var tNdx = 0;
@@ -959,11 +1063,20 @@ var computeCubeLodFromDerivates = function(/*LodMode*/ lodMode, /*const tcu::Vec
     }
 };
 
-var sampleTextureCube_str = function(/*const SurfaceAccess&*/ dst, /*const tcu::TextureCubeView&*/ src, /*const tcu::Vec4&*/ sq, /*const tcu::Vec4&*/ tq, /*const tcu::Vec4&*/ rq, /*const ReferenceParams&*/ params) {
-    var    dstSize            = [dst.getWidth(), dst.getHeight()];
-    var            dstW            = dstSize[0];
-    var            dstH            = dstSize[1];
-    var    srcSize            = src.getSize();
+/**
+ * @param {SurfaceAccess} dst
+ * @param {tcuTexture.TextureCubeView} src
+ * @param {Array<Number>} sq
+ * @param {Array<Number>} tq
+ * @param {Array<Number>} rq
+ * @param {ReferenceParams} params
+ * @return {Array<Number>} sample
+ */
+var sampleTextureCube_str = function(dst, src, sq, tq, rq, params) {
+    var dstSize = [dst.getWidth(), dst.getHeight()];
+    var dstW = dstSize[0];
+    var dstH = dstSize[1];
+    var srcSize = src.getSize();
 
     // Coordinates per triangle.
     var        triS            = [ deMath.swizzle(sq, [0, 1, 2]), deMath.swizzle(sq, [3, 2, 1]) ];
@@ -974,7 +1087,7 @@ var sampleTextureCube_str = function(/*const SurfaceAccess&*/ dst, /*const tcu::
     var            lodBias        = (params.flags.use_bias ? params.bias : 0);
 
     for (var py = 0; py < dst.getHeight(); py++) {
-        for (var px = 0; px < dst.getWidth(); px++)    {
+        for (var px = 0; px < dst.getWidth(); px++) {
             var        wx        = px + 0.5;
             var        wy        = py + 0.5;
             var        nx        = wx / dstW;
@@ -1001,7 +1114,14 @@ var sampleTextureCube_str = function(/*const SurfaceAccess&*/ dst, /*const tcu::
     }
 };
 
-var sampleTextureCube = function(/*const SurfaceAccess&*/ dst, /*const tcu::TextureCubeView&*/ src, /*const float**/ texCoord, /*const ReferenceParams&*/ params) {
+/**
+ * @param {SurfaceAccess} dst
+ * @param {tcuTexture.TextureCubeView} src
+ * @param {Array<Number>} texCoord
+ * @param {ReferenceParams} params
+ * @return {Array<Number>} sample
+ */
+var sampleTextureCube = function(dst, src, texCoord, params) {
     /*const tcu::TextureCubeView*/ var    view    = src.getSubView(params.baseLevel, params.maxLevel);
     var                sq        = [texCoord[0+0], texCoord[3+0], texCoord[6+0], texCoord[9+0]];
     var                tq        = [texCoord[0+1], texCoord[3+1], texCoord[6+1], texCoord[9+1]];
@@ -1010,7 +1130,14 @@ var sampleTextureCube = function(/*const SurfaceAccess&*/ dst, /*const tcu::Text
     return sampleTextureCube_str(dst, view, sq, tq, rq, params);
 };
 
-var sampleTexture2DArray = function(/*const SurfaceAccess&*/ dst, /*const tcu::Texture2DArrayView&*/ src, /*const float**/ texCoord, /*const ReferenceParams&*/ params) {
+/**
+ * @param {SurfaceAccess} dst
+ * @param {tcuTexture.Texture2DArrayView} src
+ * @param {Array<Number>} texCoord
+ * @param {ReferenceParams} params
+ * @return {Array<Number>} sample
+ */
+var sampleTexture2DArray = function(dst,src, texCoord, params) {
     var sq = [texCoord[0+0], texCoord[3+0], texCoord[6+0], texCoord[9+0]];
     var tq = [texCoord[0+1], texCoord[3+1], texCoord[6+1], texCoord[9+1]];
     var rq = [texCoord[0+2], texCoord[3+2], texCoord[6+2], texCoord[9+2]];
@@ -1019,8 +1146,16 @@ var sampleTexture2DArray = function(/*const SurfaceAccess&*/ dst, /*const tcu::T
     sampleTextureNonProjected2DArray(dst, src.getView(), sq, tq, rq, params);
 };
 
-var sampleTextureNonProjected3D = function(/*const SurfaceAccess&*/ dst, /*const tcu::Texture3DView&*/ src, /*const tcu::Vec4&*/ sq, /*const tcu::Vec4&*/ tq, /*const tcu::Vec4&*/ rq, /*const ReferenceParams&*/ params)
-{
+/**
+ * @param {SurfaceAccess} dst
+ * @param {tcuTexture.Texture3DView} src
+ * @param {Array<Number>} sq
+ * @param {Array<Number>} tq
+ * @param {Array<Number>} rq
+ * @param {ReferenceParams} params
+ * @return {Array<Number>} sample
+ */
+var sampleTextureNonProjected3D = function(dst, src, sq, tq, rq, params) {
     var        lodBias        = params.flags.use_bias ? params.bias : 0;
 
     var    dstSize        = [dst.getWidth(), dst.getHeight()];
@@ -1038,7 +1173,7 @@ var sampleTextureNonProjected3D = function(/*const SurfaceAccess&*/ dst, /*const
             var    yf        = (y + 0.5) / dst.getHeight();
             var    xf        = (x + 0.5) / dst.getWidth();
 
-            var        triNdx    = xf + yf >= 1 ? 1 : 0; // Top left fill rule.
+            var    triNdx    = xf + yf >= 1 ? 1 : 0; // Top left fill rule.
             var    triX    = triNdx ? 1-xf : xf;
             var    triY    = triNdx ? 1-yf : yf;
 
@@ -1053,7 +1188,14 @@ var sampleTextureNonProjected3D = function(/*const SurfaceAccess&*/ dst, /*const
     }
 };
 
-var sampleTexture3D = function(/*const SurfaceAccess&*/ dst, /*const tcu::Texture3DView&*/ src, /*const float**/ texCoord, /*const ReferenceParams&*/ params) {
+/**
+ * @param {SurfaceAccess} dst
+ * @param {tcuTexture.Texture3DView} src
+ * @param {Array<Number>} texCoord
+ * @param {ReferenceParams} params
+ * @return {Array<Number>} sample
+ */
+var sampleTexture3D = function(dst, src, texCoord, params) {
     /*const tcu::TextureCubeView*/ var    view    = src.getSubView(params.baseLevel, params.maxLevel);
     var                sq        = [texCoord[0+0], texCoord[3+0], texCoord[6+0], texCoord[9+0]];
     var                tq        = [texCoord[0+1], texCoord[3+1], texCoord[6+1], texCoord[9+1]];
@@ -1063,6 +1205,10 @@ var sampleTexture3D = function(/*const SurfaceAccess&*/ dst, /*const tcu::Textur
 };
 
 /**
+ * @param {tcuSurface.Surface} reference
+ * @param {tcuSurface.Surface} rendered
+ * @param {Array<Number>} threshold
+ *
  * @return {bool}
  */
 var compareImages = function(/*const tcu::Surface&*/ reference, /*const tcu::Surface&*/ rendered, /*tcu::RGBA*/ threshold) {

@@ -277,8 +277,8 @@ var decompressEAC11Block = function(dst, src, signedMode)
 };
 
 var decompressEAC_R11 = function(/*const tcu::PixelBufferAccess&*/ dst, width, height, src, signedMode) {
-    /* @const */ var numBlocksX = divRoundUp(width, 4);
-    /* @const */ var numBlocksY = divRoundUp(height, 4);
+    /** @const */ var numBlocksX = divRoundUp(width, 4);
+    /** @const */ var numBlocksY = divRoundUp(height, 4);
     var dstPtr;
     var dstRowPitch = dst.getRowPitch();
     var dstPixelSize = ETC2_UNCOMPRESSED_PIXEL_SIZE_R11;
@@ -324,8 +324,8 @@ var decompressEAC_R11 = function(/*const tcu::PixelBufferAccess&*/ dst, width, h
 };
 
 var decompressEAC_RG11 = function(/*const tcu::PixelBufferAccess&*/ dst, width, height, src, signedMode) {
-    /* @const */ var numBlocksX = divRoundUp(width, 4);
-    /* @const */ var numBlocksY = divRoundUp(height, 4);
+    /** @const */ var numBlocksX = divRoundUp(width, 4);
+    /** @const */ var numBlocksY = divRoundUp(height, 4);
     var dstPtr;
     var dstRowPitch = dst.getRowPitch();
     var dstPixelSize = ETC2_UNCOMPRESSED_PIXEL_SIZE_RG11;
