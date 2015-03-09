@@ -24,7 +24,7 @@ requirejs.config({
 
 requirejs(["functional/gles3/es3fFragmentOutputTests"], function(fragmentOutputTests) {
     try {
-        fragmentOutputTests.run();
+        fragmentOutputTests.run(gl);
     }
     catch(err)
     {

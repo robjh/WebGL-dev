@@ -63,6 +63,10 @@ function(
             throw new Error('Assert failed');
     };
 
+    var TCU_FAIL = function(msg) {
+        testFailedOptions(msg, true);
+    };
+
     /** BufferSpec
      * Returns the BufferSpec object, it's originally a struct
      * @param {number} format_
@@ -240,7 +244,7 @@ function(
 
     FragmentOutputCase.prototype.init = function() {
 
-        var gl = this.getRenderContext().getFunctions(); // var gl = m_context.getRenderContext().getFunctions();
+        var gl = this.getRenderContext().getFunctions(); // TODO: check creation of this object
         // TestLog& log = m_testCtx.getLog();
 
         // Check that all attachments are supported
@@ -253,7 +257,7 @@ function(
         }
 
         DE_ASSERT(!m_program);
-        m_program = createProgram(m_context.getRenderContext(), m_outputs);
+        m_program = createProgram(this.getRenderContext(), m_outputs); // TODO: this.getRenderContext()
 
        // log << *m_program;
         if (!m_program.isOk())
@@ -343,7 +347,8 @@ function(
      */
     var getFloatRange = function(precision) {
 
-    /** @type {Array.<Array.<number>>} */ var Vec2 ranges =
+        /** @type {Array.<Array.<number>>} */
+        var ranges = // Vec2
         [
             [-2.0, 2.0],
             [-16000.0, 16000.0],
@@ -352,6 +357,34 @@ function(
         // DE_STATIC_ASSERT(DE_LENGTH_OF_ARRAY(ranges) == glu::PRECISION_LAST);
         // DE_ASSERT(de::inBounds<int>(precision, 0, DE_LENGTH_OF_ARRAY(ranges)));
         return ranges[precision];
+    };
+
+    /** getUintRange
+     * Returns a Uint32Array, in the C++ version called UVec2 object
+     * @param {gluShaderUtil.precision} precision, number
+     * @return {Uint32Array} range
+     */
+    var getUintRange = function(precision) {
+        
+        /** @type {Array.<Uint32Array>} */
+        var ranges = // UVec2
+        [
+            new Uint32Array([0, (1 << 8) - 1]),
+            new Uint32Array([0, (1 << 16) - 1]),
+            new Uint32Array([0, 0xffffffff])
+        ];
+        // DE_STATIC_ASSERT(DE_LENGTH_OF_ARRAY(ranges) == glu::PRECISION_LAST);
+        // DE_ASSERT(de::inBounds<int>(precision, 0, DE_LENGTH_OF_ARRAY(ranges)));
+        return ranges[precision];
+        
+    };
+
+    var renderFloatReference = function() {
+        // TODO: implement
+    };
+
+    var renderIntReference = function() {
+        // TODO: implement
     };
 
     /** s_swizzles
@@ -371,7 +404,7 @@ function(
 
         return mat_swizzles;
     };
-    
+
     /** swizzleVec
      * Returns
      * @param {Array.<number>} vec
@@ -396,8 +429,8 @@ function(
         /** @type {tcuTexture.TextureFormat} */ readFormat: null,
         /** @type {number} */ numWrittenChannels: 0,
         /** @type {gluShaderUtil.Precision} */ outPrecision: null,
-        /** @type {Uint8Array} */ renderedData: [], // TODO: check type, originally vector<deUint8>
-        /** @type {Uint8Array} */ referenceData: [] // TODO: check type, originally vector<deUint8>
+        /** @type {Uint8Array} */ renderedData: [], // new Uint8Array(), // TODO: check type, originally vector<deUint8>
+        /** @type {Uint8Array} */ referenceData: [] // new Uint8Array(), // TODO: check type, originally vector<deUint8>
 
         };
     });
@@ -406,11 +439,11 @@ function(
         // TODO: implement
 
         // TestLog& log  = m_testCtx.getLog();
-        var gl = m_context.getRenderContext().getFunctions();
+        var gl = this.getRenderContext().getFunctions(); // TODO: check creation of this object, originally gl = m_context.getRenderContext().getFunctions();
 
         // Compute grid size & index list.
         /** @type {number} */ var minCellSize = 8;
-        /** @type {Array.<number>} */ var minBufSize = getMinSize(m_fboSpec);
+        /** @type {Array.<number>} */ var minBufSize = getMinSize(m_fboSpec); // IVec2, array of integers, size = 2
         /** @type {number} */ var gridWidth = deMath.clamp(Math.floor(minBufSize[0] / minCellSize), 1, 255) + 1;
         /** @type {number} */ var gridHeight = deMath.clamp(Math.floor(minBufSize[1] / minCellSize), 1, 255) + 1;
         /** @type {number} */ var numVertices = gridWidth * gridHeight; // TODO: don't needed?
@@ -418,23 +451,23 @@ function(
         /** @type {number} */ var numIndices = numQuads * 6;
 
         /** @type {number} */ var numInputVecs = getNumInputVectors(m_outputs);
-        /** @type {Array.<Array.<number>>} */ var inputs = []; // TODO: check, originally vector<vector<deUint32>
-        /** @type {Array.<number>} */ var positions = []; // originally vector<float> 
-        /** @type {Array.<number>} */ var indices  = []; // originally vector<deUint16>
+        /** @type {Array.<Uint32Array>} */ var inputs = []; // TODO: originally vector<vector<deUint32>
+        /** @type {Array.<number>} */ var positions = []; // originally vector<float>
+        /** @type {Uint16Array} */ var indices  = new Uint16Array(numIndices); // originally vector<deUint16>
 
         /** @type {number} */ var readAlignment = 4;
         /** @type {number} */ var viewportW = minBufSize[0];
         /** @type {number} */ var viewportH = minBufSize[1];
         /** @type {number} */ var numAttachments = m_fboSpec.length;
 
-        /** @type {Array.<number>} */ var drawBuffers = []; // TODO: check, originally vector<vector<deUint32>
-        /** @type {Array.<AttachmentData>} */ var  attachments = [];
+        /** @type {Uint32Array} */ var drawBuffers = new Uint32Array(numAttachments); // originally vector<vector<deUint32>
+        /** @type {Array.<AttachmentData>} */ var attachments = [];
 
         // Initialize attachment data.
         for (var ndx = 0; ndx < numAttachments; ndx++)
         {
             /** @type {tcuTexture.TextureFormat} */ var texFmt = gluTextureUtil.mapGLInternalFormat(m_fboSpec[ndx].format);
-            /** @type {tcuTextureUtil.TextureChannelClass} */ var chnClass =  tcuTextureUtil.getTextureChannelClass(texFmt.type);
+            /** @type {tcuTextureUtil.TextureChannelClass} */ var chnClass = tcuTextureUtil.getTextureChannelClass(texFmt.type);
             /** @type {boolean} */ var isFixedPoint = chnClass == tcuTextureUtil.TextureChannelClass.SIGNED_FIXED_POINT ||
                                                               chnClass == tcuTextureUtil.TextureChannelClass.UNSIGNED_FIXED_POINT;
 
@@ -488,7 +521,7 @@ function(
                 /** @type {FragmentOutput} */ var output = m_outputs[outputNdx];
                 /** @type {boolean} */ var isFloat = gluShaderUtil.isDataTypeFloatOrVec(output.type);
                 /** @type {boolean} */ var isInt = gluShaderUtil.isDataTypeIntOrIVec(output.type);
-                /** @type {boolean} */ var isUint = gluShaderUtil.isDataTypeUintOrUVec(output.type); // TODO: implement isDataTypeUintOrUVec in gluShaderUtil
+                /** @type {boolean} */ var isUint = gluShaderUtil.isDataTypeUintOrUVec(output.type);
                 /** @type {number} */ var numVecs = output.arrayLength > 0 ? output.arrayLength : 1;
                 /** @type {number} */ var numScalars = gluShaderUtil.getDataTypeScalarSize(output.type);
 
@@ -503,14 +536,14 @@ function(
 
                     if (isFloat)
                     {
-                     /** @type {Array.<number>} */ var range = getFloatRange(output.precision);
+                     /** @type {Array.<number>} */ var range = getFloatRange(output.precision); // Vec2, array of floats, size = 2
 
                      // Vec4 variables, in tcuVector.hpp see: inline Vector<T, Size>::Vector (T s)
-                     /** @type {Array.<number>} */ var minVal = [range[0], range[0], range[0], range[0]];
-                     /** @type {Array.<number>} */ var maxVal = [range[1], range[1], range[1], range[1]];
+                     /** @type {Array.<number>} */ var minVal = [range[0], range[0], range[0], range[0]]; // Vec4, array of floats, size = 4
+                     /** @type {Array.<number>} */ var maxVal = [range[1], range[1], range[1], range[1]]; // Vec4, array of floats, size = 4
                      // float* dst = (float*)&inputs[curInVec][0]; // a pointer needed in the next loop
 
-                        if (gluVarTypeUtil.inBounds(output.location + vecNdx, 0, attachments.length))
+                        if (deMath.deInBounds32(output.location + vecNdx, 0, attachments.length))
                         {
                         // \note Floating-point precision conversion is not well-defined. For that reason we must
                         // limit value range to intersection of both data type and render target value ranges.
@@ -519,7 +552,7 @@ function(
                             maxVal = deMath.min(maxVal, fmtInfo.valueMax);
                         }
 
-                        // m_testCtx.getLog() << TestLog::Message << "out" << curInVec << " value range: " << minVal << " -> " << maxVal << TestLog::EndMessage;
+                        bufferedLogToConsole('out ' + curInVec + ' value range: ' + minVal + " -> " + maxVal);
 
                         for (var y = 0; y < gridHeight; y++)
                         {
@@ -544,15 +577,18 @@ function(
                     }
                     else if (isInt)
                     {
-                        /** @type {Array.<number>} */ var range = getIntRange(output.precision);
-                        /** @type {Array.<number>} */ var minVal = [range[0], range[0], range[0], range[0]];
-                        /** @type {Array.<number>} */ var maxVal = [range[1], range[1], range[1], range[1]];
+                        /** @type {Array.<number>} */ var range = getIntRange(output.precision); // IVec2, array of integers, size = 2
+                        /** @type {Array.<number>} */ var minVal = [range[0], range[0], range[0], range[0]]; // IVec4, array of integers, size = 4
+                        /** @type {Array.<number>} */ var maxVal = [range[1], range[1], range[1], range[1]]; // IVec4, array of integers, size = 4
 
-                        if (gluVarTypeUtil.inBounds(output.location + vecNdx, 0, attachments.length))
+                        if (deMath.deInBounds32(output.location + vecNdx, 0, attachments.length))
                         {
                             // Limit to range of output format as conversion mode is not specified.
-                            /** @type {Array.<number>} */ var fmtBits = tcuTextureUtil.getTextureFormatBitDepth(attachments[output.location+vecNdx].format); // TODO: implement function in tcuTextureUtil
-                            /** @type {Array.<boolean>} */ var isZero = deMath.lessThanEqual(fmtBits, IVec4(0));
+                            // TODO: implement function getTextureFormatBitDepth in tcuTextureUtil
+                            /** @type {Array.<number>} */
+                            var fmtBits = tcuTextureUtil.getTextureFormatBitDepth(attachments[output.location+vecNdx].format); // IVec4, array of integers, size = 4
+                            /** @type {Array.<boolean>} */
+                            var isZero = deMath.lessThanEqual(fmtBits, [0, 0, 0, 0]); // BVec4, array of booleans, size = 4
                             
                             const IVec4 fmtMinVal = (-(tcu::Vector<deInt64, 4>(1) << (fmtBits -1 ).cast<deInt64>())).asInt(); // TODO:
                             const IVec4 fmtMaxVal = ((tcu::Vector<deInt64, 4>(1) << (fmtBits -1 ).cast<deInt64>()) - deInt64(1)).asInt(); // TODO:
@@ -561,11 +597,12 @@ function(
                             maxVal = tcuTextureUtil.select(maxVal, deMath.min(maxVal, fmtMaxVal), isZero);
                         }
 
-                        // m_testCtx.getLog() << TestLog::Message << "out" << curInVec << " value range: " << minVal << " -> " << maxVal << TestLog::EndMessage;
+                        bufferedLogToConsole('out ' + curInVec + ' value range: ' + minVal + " -> " + maxVal);
 
-                        /** @type {Array.<number>} */ var rangeDiv = swizzleVec([gridWidth, gridHeight, gridWidth, gridHeight] - 1, curInVec);
-                        const IVec4 step = ((maxVal.cast<deInt64>() - minVal.cast<deInt64>()) / (rangeDiv.cast<deInt64>())).asInt();  // TODO:
-                        // deInt32* dst  = (deInt32*)&inputs[curInVec][0]; // a pointer needed in the next loop
+                        /** @type {Array.<number>} */
+                        var rangeDiv = swizzleVec([gridWidth, gridHeight, gridWidth, gridHeight] - 1, curInVec); // IVec4
+                        const IVec4 step = ((maxVal.cast<deInt64>() - minVal.cast<deInt64>()) / (rangeDiv.cast<deInt64>())).asInt();  // TODO: no idea?
+                        // deInt32* dst  = (deInt32*)&inputs[curInVec][0]; // a pointer needed in the next loop in the C++ version
 
                         for (var y = 0; y < gridHeight; y++)
                         {
@@ -573,7 +610,8 @@ function(
                             {
                                 /** @type {number} */ var ix = gridWidth - x - 1;
                                 /** @type {number} */ var iy = gridHeight - y - 1;
-                                /** @type {Array.<number>} */ var c = deMath.add(minVal, deMath.multiply(step, swizzleVec([x, y, ix, iy], curInVec)));
+                                /** @type {Array.<number>} */
+                                var c = deMath.add(minVal, deMath.multiply(step, swizzleVec([x, y, ix, iy], curInVec))); // IVec4
 
                                 // this is a pointer which is incremented, originally dst + (y*gridWidth + x)*numScalars;
                                 // which dst, is a pointer at an array in inputs: float* dst = (float*)&inputs[curInVec][0]
@@ -588,10 +626,10 @@ function(
                     }
                     else if (isUint)
                     {
-                        /** @type {Array.<number>} */ var range  = getUintRange(output.precision);
-                        /** @type {Array.<number>} */ var maxVal = [range[1], range[1], range[1], range[1]];
+                        /** @type {Uint32Array} */ var range  = getUintRange(output.precision); // UVec2, array of Uint32, size = 2
+                        /** @type {Uint32Array} */ var maxVal = new Uint32Array([range[1], range[1], range[1], range[1]]); // UVec4, array of Uint32, size = 4
 
-                        if (gluVarTypeUtil.inBounds(output.location+vecNdx, 0, attachments.size()))
+                        if (deMath.deInBounds32(output.location + vecNdx, 0, attachments.size()))
                         {
                             // Limit to range of output format as conversion mode is not specified.
                             /** @type {Array.<number>} */ var fmtBits = tcuTextureUtil.getTextureFormatBitDepth(attachments[output.location+vecNdx].format); // TODO: implement function in tcuTextureUtil
@@ -602,8 +640,10 @@ function(
 
                         // m_testCtx.getLog() << TestLog::Message << "out" << curInVec << " value range: " << UVec4(0) << " -> " << maxVal << TestLog::EndMessage;
 
-                        /** @type {Array.<number>} */ var rangeDiv = swizzleVec([gridWidth, gridHeight, gridWidth, gridHeight] - 1, curInVec);
-                        const UVec4 step  = maxVal / rangeDiv.asUint();
+                        /** @type {Array.<number>} */
+                        var rangeDiv = swizzleVec([gridWidth, gridHeight, gridWidth, gridHeight] - 1, curInVec); // IVec4
+                        /** @type {Uint32Array} */
+                        const UVec4 step  = maxVal / rangeDiv.asUint(); // TODO: UVec4
                         // deUint32*  dst = &inputs[curInVec][0];
 
                         DE_ASSERT(range[0] == 0);
@@ -614,7 +654,8 @@ function(
                             {
                                 /** @type {number} */ var ix = gridWidth - x - 1;
                                 /** @type {number} */ var iy  = gridHeight - y - 1;
-                                UVec4 c = deMath.multiply(step, swizzleVec([x, y, ix, iy].asUint(), curInVec));
+                                /** @type {Uint32Array} */
+                                UVec4 c = deMath.multiply(step, swizzleVec([x, y, ix, iy].asUint(), curInVec)); // TODO: UVec4
                                 /** @type {number} */ var v  = (y * gridWidth + x) * numScalars;
 
                                 DE_ASSERT(deMath.boolAll(deMath.lessThanEqual(c, maxVal)));
@@ -690,10 +731,10 @@ function(
         for (var ndx = 0; ndx < numAttachments; ndx++)
         {
             /** @type {gluTextureUtil.TransferFormat} */ var transferFmt = gluTextureUtil.getTransferFormat(attachments[ndx].readFormat);
-            // void* dst = &attachments[ndx].renderedData[0];
+            var dst = attachments[ndx].renderedData; // void* dst = &attachments[ndx].renderedData[0]; // originally a pointer
 
-            gl.readBuffer(GL_COLOR_ATTACHMENT0+ndx);
-            gl.readPixels(0, 0, minBufSize.x(), minBufSize.y(), transferFmt.format, transferFmt.dataType, dst);
+            gl.readBuffer(GL_COLOR_ATTACHMENT0 + ndx);
+            gl.readPixels(0, 0, minBufSize[0], minBufSize[1], transferFmt.format, transferFmt.dataType, dst);
         }
 
         // Render reference images.
@@ -714,7 +755,7 @@ function(
                     /** @type {number} */ var location = output.location + vecNdx;
                     // const void* inputData = &inputs[curInNdx][0];
 
-                    DE_ASSERT(gluVarTypeUtil.inBounds(location, 0, m_fboSpec.length));
+                    DE_ASSERT(deMath.deInBounds32(location, 0, m_fboSpec.length));
 
                     /** @type {number} */ var bufW = m_fboSpec[location].width;
                     /** @type {number} */ var bufH  = m_fboSpec[location].height;
@@ -727,12 +768,12 @@ function(
                     };
                     /** @type {tcuTexture.PixelBufferAccess} */ var buf = tcuTexture.PixelBufferAccess(descriptor);
                     // const tcu::PixelBufferAccess
-                    var viewportBuf = tcuTexture.getSubregion(buf, 0, 0, 0, viewportW, viewportH, 1); // TODO: implement
+                    var viewportBuf = tcuTextureUtil.getSubregion(buf, 0, 0, 0, viewportW, viewportH, 1); // TODO: implement getSubregion
 
                     if (isInt || isUint)
-                        renderIntReference(viewportBuf, gridWidth, gridHeight, scalarSize, inputData);
+                        renderIntReference(viewportBuf, gridWidth, gridHeight, scalarSize, inputData); // TODO: renderIntReference
                     else if (isFloat)
-                        renderFloatReference(viewportBuf, gridWidth, gridHeight, scalarSize, inputData);
+                        renderFloatReference(viewportBuf, gridWidth, gridHeight, scalarSize, inputData); // TODO: renderFloatReference
                     else
                         DE_ASSERT(false);
 
@@ -742,37 +783,64 @@ function(
         }
 
         // Compare all images.
-        bool allLevelsOk = true;
-        for (int attachNdx = 0; attachNdx < numAttachments; attachNdx++)
+        /** @type {boolean} */ var allLevelsOk = true;
+        for (var attachNdx = 0; attachNdx < numAttachments; attachNdx++)
         {
-            const int                       attachmentW         = m_fboSpec[attachNdx].width;
-            const int                       attachmentH         = m_fboSpec[attachNdx].height;
-            const int                       numValidChannels    = attachments[attachNdx].numWrittenChannels;
-            const tcu::BVec4                cmpMask             (numValidChannels >= 1, numValidChannels >= 2, numValidChannels >= 3, numValidChannels >= 4);
-            const glu::Precision            outPrecision        = attachments[attachNdx].outPrecision;
-            const tcu::TextureFormat&       format              = attachments[attachNdx].format;
-            tcu::ConstPixelBufferAccess     rendered            (attachments[attachNdx].readFormat, attachmentW, attachmentH, 1, deAlign32(attachments[attachNdx].readFormat.getPixelSize()*attachmentW, readAlignment), 0, &attachments[attachNdx].renderedData[0]);
-            tcu::ConstPixelBufferAccess     reference           (attachments[attachNdx].referenceFormat, attachmentW, attachmentH, 1, &attachments[attachNdx].referenceData[0]);
-            tcu::TextureChannelClass        texClass            = tcu::getTextureChannelClass(format.type);
-            bool                            isOk                = true;
-            const string                    name                = string("Attachment") + de::toString(attachNdx);
-            const string                    desc                = string("Color attachment ") + de::toString(attachNdx);
+            /** @type {number} */ var attachmentW = m_fboSpec[attachNdx].width;
+            /** @type {number} */ var attachmentH  = m_fboSpec[attachNdx].height;
+            /** @type {number} */ var numValidChannels = attachments[attachNdx].numWrittenChannels;
+            /** @type {Array.<boolean>} */ var cmpMask = [numValidChannels >= 1, numValidChannels >= 2, numValidChannels >= 3, numValidChannels >= 4];
+            /** @type {gluShaderUtil.Precision} */ var outPrecision = attachments[attachNdx].outPrecision;
+            /** @type {tcuTexture.TextureFormat} */ var format = attachments[attachNdx].format;
+            /** @type {Object} */
+            var renderedDescriptor = {
+                    // TODO: check attributes of this object for descriptor in tcuTexture.ConstPixelBufferAccess
+                    format: attachments[attachNdx].readFormat,
+                    width: attachmentW,
+                    height: attachmentH,
+                    depth: 1,
+                    rowPitch: deMath.deAlign32(attachments[attachNdx].readFormat.getPixelSize() * attachmentW, readAlignment),
+                    slicePitch: 0,
+                    data: attachments[attachNdx].renderedData
+            };
+            /** @type {tcuTexture.ConstPixelBufferAccess} */ var rendered = tcuTexture.ConstPixelBufferAccess(renderedDescriptor);
 
-            log << TestLog::Message << "Attachment " << attachNdx << ": " << numValidChannels << " channels have defined values and used for comparison" << TestLog::EndMessage;
+            /** @type {Object} */
+            var referenceDescriptor = {
+                    // TODO: check attributes of this object for descriptor in tcuTexture.ConstPixelBufferAccess
+                    format: attachments[attachNdx].referenceFormat,
+                    width: attachmentW,
+                    height: attachmentH,
+                    depth: 1,
+                    data: attachments[attachNdx].referenceData
+            };
+            /** @type {tcuTexture.ConstPixelBufferAccess} */ var reference = tcuTexture.ConstPixelBufferAccess(referenceDescriptor);
+            /** @type {tcuTextureUtil.TextureChannelClass} */ var texClass = tcuTextureUtil.getTextureChannelClass(format.type);
+            /** @type {boolean} */ var isOk = true;
+            /** @type {string} */ var name = 'Attachment ' + attachNdx;
+            /** @type {string} */ var desc = 'Color attachment ' + attachNdx;
+
+            bufferedLogToConsole('Attachment ' + attachNdx + ': ' + numValidChannels + ' channels have defined values and used for comparison');
 
             switch (texClass)
             {
-                case tcu::TEXTURECHANNELCLASS_FLOATING_POINT:
+                case tcuTextureUtil.TextureChannelClass.FLOATING_POINT:
                 {
-                    UVec4       formatThreshold;        //!< Threshold computed based on format.
-                    deUint32    precThreshold   = 0;    //!< Threshold computed based on output type precision
-                    UVec4       finalThreshold;
+                    /** @type {Array.<number>} */ var formatThreshold = []; // UVec4 //!< Threshold computed based on format.
+                    /** @type {number} */ var precThreshold = 0; // deUint32 //!< Threshold computed based on output type precision
+                    /** @type {Array.<number>} */ var finalThreshold = []; // UVec4
 
                     switch (format.type)
                     {
-                        case tcu::TextureFormat::FLOAT:                         formatThreshold = UVec4(4);                                     break;
-                        case tcu::TextureFormat::HALF_FLOAT:                    formatThreshold = UVec4((1<<13) + 4);                           break;
-                        case tcu::TextureFormat::UNSIGNED_INT_11F_11F_10F_REV:  formatThreshold = UVec4((1<<17) + 4, (1<<17)+4, (1<<18)+4, 4);  break;
+                        case tcuTexture.ChannelType.FLOAT: 
+                            formatThreshold = [4, 4, 4, 4]; // UVec4
+                            break;
+                        case tcuTexture.ChannelType.HALF_FLOAT: // UVec4
+                            formatThreshold = [(1 << 13) + 4, (1 << 13) + 4, (1 << 13) + 4, (1 << 13) + 4];
+                            break;
+                        case tcuTexture.ChannelType.UNSIGNED_INT_11F_11F_10F_REV:
+                            formatThreshold = [(1 << 17) + 4, (1 << 17) + 4, (1 << 18) + 4, 4]; // UVec4
+                            break;
                         default:
                             DE_ASSERT(false);
                             break;
@@ -780,20 +848,27 @@ function(
 
                     switch (outPrecision)
                     {
-                        case glu::PRECISION_LOWP:       precThreshold   = (1<<21);  break;
-                        case glu::PRECISION_MEDIUMP:    precThreshold   = (1<<13);  break;
-                        case glu::PRECISION_HIGHP:      precThreshold   = 0;        break;
+                        case gluShaderUtil.Precision.PRECISION_LOWP:
+                            precThreshold = (1 << 21);
+                            break;
+                        case gluShaderUtil.Precision.PRECISION_MEDIUMP:
+                            recThreshold = (1 << 13);
+                            break;
+                        case gluShaderUtil.Precision.PRECISION_HIGHP:
+                            precThreshold = 0;
+                            break;
                         default:
                             DE_ASSERT(false);
                     }
 
                     finalThreshold = select(max(formatThreshold, UVec4(precThreshold)), UVec4(~0u), cmpMask);
 
+                    // TODO: implement floatUlpThresholdCompare, originally in tcuImageCompaRE
                     isOk = tcu::floatUlpThresholdCompare(log, name.c_str(), desc.c_str(), reference, rendered, finalThreshold, tcu::COMPARE_LOG_RESULT);
                     break;
                 }
 
-                case tcu::TEXTURECHANNELCLASS_UNSIGNED_FIXED_POINT:
+                case tcuTextureUtil.TextureChannelClass.UNSIGNED_FIXED_POINT:
                 {
                     // \note glReadPixels() allows only 8 bits to be read. This means that RGB10_A2 will loose some
                     // bits in the process and it must be taken into account when computing threshold.
@@ -805,8 +880,8 @@ function(
                     break;
                 }
 
-                case tcu::TEXTURECHANNELCLASS_SIGNED_INTEGER:
-                case tcu::TEXTURECHANNELCLASS_UNSIGNED_INTEGER:
+                case tcuTextureUtil.TextureChannelClass.SIGNED_INTEGER:
+                case tcuTextureUtil.TextureChannelClass.UNSIGNED_INTEGER:
                 {
                     const tcu::UVec4 threshold = select(UVec4(0u), UVec4(~0u), cmpMask);
                     isOk = tcu::intThresholdCompare(log, name.c_str(), desc.c_str(), reference, rendered, threshold, tcu::COMPARE_LOG_RESULT);
@@ -814,7 +889,7 @@ function(
                 }
 
                 default:
-                    TCU_FAIL("Unsupported comparison");
+                    TCU_FAIL('Unsupported comparison');
                     break;
             }
 
@@ -822,12 +897,10 @@ function(
                 allLevelsOk = false;
         }
 
-        m_testCtx.setTestResult(allLevelsOk ? QP_TEST_RESULT_PASS   : QP_TEST_RESULT_FAIL,
-                                allLevelsOk ? "Pass"                : "Image comparison failed");
-        return STOP;
+        return deqpTests.runner.IterateResult.STOP;;
     };
 
-    var init = function() {
+    var init = function(gl) {
 
       /** @const @type {deqpTests.DeqpTest} */ var testGroup = deqpTests.runner.getState().testCases;
       //Set up Test Root parameters
@@ -940,9 +1013,9 @@ function(
     /**
      * Create and execute the test cases
      */
-    var run = function() {
+    var run = function(gl) {
         try {
-            init();
+            init(gl);
             deqpTests.runner.runCallback(deqpTests.runTestCases);
         } catch (err) {
             bufferedLogToConsole(err);
