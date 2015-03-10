@@ -18,7 +18,7 @@
  *
  */
 
-define(['framework/common/tcuTexture'], function(tcuTexture) {
+define(['framework/common/tcuTexture', 'framework/delibs/debase/deMath'], function(tcuTexture, deMath) {
 
 var DE_ASSERT = function(x) {
     if (!x)
@@ -231,9 +231,86 @@ var select = function(a, b, cond) {
                              select(bias, 0, chnMask));
 };
 
+/** getChannelBitDepth
+ * @param {tcuTexture.ChannelType} channelType
+ * @return {Array.<number>}
+ */
+var getChannelBitDepth = function(channelType) {
+
+    switch (channelType)
+    {
+        case tcuTexture.ChannelType.SNORM_INT8: return [8, 8, 8, 8];
+        case tcuTexture.ChannelType.SNORM_INT16: return [16, 16, 16, 16];
+        case tcuTexture.ChannelType.SNORM_INT32: return [32, 32, 32, 32];
+        case tcuTexture.ChannelType.UNORM_INT8: return [8, 8, 8, 8];
+        case tcuTexture.ChannelType.UNORM_INT16: return [16, 16, 16, 16];
+        case tcuTexture.ChannelType.UNORM_INT32: return [32, 32, 32, 32];
+        case tcuTexture.ChannelType.UNORM_SHORT_565: return [5, 6, 5, 0];
+        case tcuTexture.ChannelType.UNORM_SHORT_4444: return [4, 4, 4, 4];
+        case tcuTexture.ChannelType.UNORM_SHORT_555: return [5, 5, 5, 0];
+        case tcuTexture.ChannelType.UNORM_SHORT_5551: return [5, 5, 5, 1];
+        case tcuTexture.ChannelType.UNORM_INT_101010: return [10, 10, 10, 0];
+        case tcuTexture.ChannelType.UNORM_INT_1010102_REV: return [10, 10, 10, 2];
+        case tcuTexture.ChannelType.SIGNED_INT8: return [8, 8, 8, 8];
+        case tcuTexture.ChannelType.SIGNED_INT16: return [16, 16, 16, 16];
+        case tcuTexture.ChannelType.SIGNED_INT32: return [32, 32, 32, 32];
+        case tcuTexture.ChannelType.UNSIGNED_INT8: return [8, 8, 8, 8];
+        case tcuTexture.ChannelType.UNSIGNED_INT16: return [16, 16, 16, 16];
+        case tcuTexture.ChannelType.UNSIGNED_INT32: return [32, 32, 32, 32];
+        case tcuTexture.ChannelType.UNSIGNED_INT_1010102_REV: return [10, 10, 10, 2];
+        case tcuTexture.ChannelType.UNSIGNED_INT_24_8: return [24, 0, 0, 8];
+        case tcuTexture.ChannelType.HALF_FLOAT: return [16, 16, 16, 16];
+        case tcuTexture.ChannelType.FLOAT: return [32, 32, 32, 32];
+        case tcuTexture.ChannelType.UNSIGNED_INT_11F_11F_10F_REV: return [11, 11, 10, 0];
+        case tcuTexture.ChannelType.UNSIGNED_INT_999_E5_REV: return [9, 9, 9, 0];
+        case tcuTexture.ChannelType.FLOAT_UNSIGNED_INT_24_8_REV: return [32, 0, 0, 8];
+        default:
+            DE_ASSERT(false);
+            return [0, 0, 0, 0];
+    }
+};
+
+/** getTextureFormatBitDepth
+ * @param {tcuTexture.TextureFormat} format
+ * @return {Array.<number>}
+ */
+var getTextureFormatBitDepth = function(format) {
+
+    /** @type {Array.<number>} */ var chnBits = getChannelBitDepth(format.type); // IVec4
+    /** @type {Array.<boolean>} */ var chnMask = [false, false, false, false]; // BVec4
+    /** @type {Array.<number>} */ var chnSwz = [0, 1, 2, 3]; // IVec4
+
+    switch (format.order)
+    {
+        case tcuTexture.ChannelOrder.R: chnMask = [true, false, false, false]; break;
+        case tcuTexture.ChannelOrder.A: chnMask = [false, false, false, true]; break;
+        case tcuTexture.ChannelOrder.RA: chnMask = [true, false, false, true]; break;
+        case tcuTexture.ChannelOrder.L: chnMask = [true, true, true, false]; break;
+        case tcuTexture.ChannelOrder.I: chnMask = [true, true, true, true]; break;
+        case tcuTexture.ChannelOrder.LA: chnMask = [true, true, true, true]; break;
+        case tcuTexture.ChannelOrder.RG: chnMask = [true, true, false, false]; break;
+        case tcuTexture.ChannelOrder.RGB: chnMask = [true, true, true, false]; break;
+        case tcuTexture.ChannelOrder.RGBA: chnMask = [true, true, true, true]; break;
+        case tcuTexture.ChannelOrder.BGRA: chnMask = [true, true, true, true]; chnSwz = [2, 1, 0, 3]; break;
+        case tcuTexture.ChannelOrder.ARGB: chnMask = [true, true, true, true]; chnSwz = [1, 2, 3, 0]; break;
+        case tcuTexture.ChannelOrder.sRGB: chnMask = [true, true, true, false]; break;
+        case tcuTexture.ChannelOrder.sRGBA: chnMask = [true, true, true, true]; break;
+        case tcuTexture.ChannelOrder.D: chnMask = [true, false, false, false]; break;
+        case tcuTexture.ChannelOrder.DS: chnMask = [true, false, false, true]; break;
+        case tcuTexture.ChannelOrder.S: chnMask = [false, false, false, true]; break;
+        default:
+            DE_ASSERT(false);
+    }
+
+    return select(deMath.swizzle(chnBits, [chnSwz[0], chnSwz[1], chnSwz[2], chnSwz[3]]), [0, 0, 0, 0], chnMask);
+
+};
+
 return {
     fillWithComponentGradients: fillWithComponentGradients,
-    getTextureFormatInfo: getTextureFormatInfo
+    getTextureFormatInfo: getTextureFormatInfo,
+    getChannelBitDepth: getChannelBitDepth,
+    getTextureFormatBitDepth: getTextureFormatBitDepth
 };
 
 });
