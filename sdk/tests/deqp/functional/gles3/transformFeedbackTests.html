@@ -31,7 +31,7 @@ canvas { border: solid 1px #009; }
         var gl = wtu.create3DContext('glpane', {preserveDrawingBuffer: true}, 2);
 
         try {
-            tft.init(gl);
+            tft.run(gl);
         }
         catch(err) {
             bufferedLogToConsole(err);

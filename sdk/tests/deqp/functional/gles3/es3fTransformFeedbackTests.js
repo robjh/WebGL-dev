@@ -2082,6 +2082,22 @@ define(['framework/opengl/gluShaderUtil',
 
     };
 
+
+    /**
+     * Create and execute the test cases
+     */
+    var run = function(gl) {
+        try {
+            init(gl);
+            deqpTests.runner.runCallback(deqpTests.runTestCases);
+        } catch (err) {
+            bufferedLogToConsole(err);
+            deqpTests.runner.terminate();
+        }
+
+    };
+
+
     return {
 
         VIEWPORT_WIDTH:             VIEWPORT_WIDTH,
@@ -2125,7 +2141,8 @@ define(['framework/opengl/gluShaderUtil',
         BasicArrayCase:             BasicArrayCase,
         ArrayElementCase:           ArrayElementCase,
         RandomCase:                 RandomCase,
-        init:                       init
+        init:                       init,
+        run:                        run
 
     };
 
