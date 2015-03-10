@@ -26,6 +26,31 @@ var DE_ASSERT = function(x) {
         throw new Error('Assert failed');
 };
 
+/** ToInteger
+ * @param {number} x Input value.
+ * @return {number} x Output value
+ */
+var ToInteger = function(x) {
+    return x < 0 ? Math.ceil(x) : Math.floor(x);
+};
+
+/** modulo
+ * @param {number} a Input value.
+ * @param {number} b Input value.
+ * @return {number} modulo Output value
+ */
+var modulo = function(a, b) {
+    return a - Math.floor(a / b) * b;
+};
+
+/** ToUInt32
+ * @param {number} x Input value.
+ * @return {number} UInt32 output value
+ */
+var ToUInt32 = function(x) {
+    return modulo(ToInteger(x), Math.pow(2, 32));
+};
+
 /* Dummy type */
 var deUint32 = function() {};
 
