@@ -2104,44 +2104,6 @@ define(['framework/opengl/gluShaderUtil',
         VIEWPORT_HEIGHT:            VIEWPORT_HEIGHT,
         BUFFER_GUARD_MULTIPLIER:    BUFFER_GUARD_MULTIPLIER,
 
-        interpolation:              interpolation,
-        getInterpolationName:       getInterpolationName,
-        Varying:                    Varying,
-        findAttributeNameEquals:    findAttributeNameEquals,
-        Attribute:                  Attribute,
-        Output:                     Output,
-        DrawCall:                   DrawCall,
-        ProgramSpec:                ProgramSpec,
-        isProgramSupported:         isProgramSupported,
-        getAttributeName:           getAttributeName,
-        genShaderSources:           genShaderSources,
-        createVertexCaptureProgram: createVertexCaptureProgram,
-        computeInputLayout:         computeInputLayout,
-        computeTransformFeedbackOutputs:
-                                    computeTransformFeedbackOutputs,
-        genAttributeData:           genAttributeData,
-        genInputData:               genInputData,
-        getTransformFeedbackOutputCount:
-                                    getTransformFeedbackOutputCount,
-        getTransformFeedbackPrimitiveCount:
-                                    getTransformFeedbackPrimitiveCount,
-        getTransformFeedbackPrimitiveMode:
-                                    getTransformFeedbackPrimitiveMode,
-        getAttributeIndex:          getAttributeIndex,
-        compareTransformFeedbackOutput:
-                                    compareTransformFeedbackOutput,
-        computeTransformFeedbackPrimitiveCount:
-                                    computeTransformFeedbackPrimitiveCount,
-        writeBufferGuard:           writeBufferGuard,
-        verifyGuard:                verifyGuard,
-        TransformFeedbackCase:      TransformFeedbackCase,
-        PositionCase:               PositionCase,
-        PointSizeCase:              PointSizeCase,
-        BasicTypeCase:              BasicTypeCase,
-        BasicArrayCase:             BasicArrayCase,
-        ArrayElementCase:           ArrayElementCase,
-        RandomCase:                 RandomCase,
-        init:                       init,
         run:                        run
 
     };
