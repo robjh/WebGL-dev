@@ -209,13 +209,6 @@ define([
         var m_type = null;  // const VarType*
         var m_path = [];    // TypeComponentVector
 
-        this.__construct = (function(type) {
-            if (type) {
-                m_type = type;
-                this.findNext();
-            }
-        });
-
         var removeTraversed = (function() {
 
             while (m_path.length) {
@@ -261,7 +254,7 @@ define([
 
         });
 
-        var findNext = (function() {
+        this.findNext = (function() {
 
             if (m_path.length) {
                 // Increment child counter in current level.
@@ -273,7 +266,7 @@ define([
 
                 var curType = getVarType(m_type, m_path); // VarType
 
-                if (this.IsExpanded(curType))
+                if (this.isExpanded(curType))
                     break;
 
                 // Recurse into child type.
@@ -287,7 +280,7 @@ define([
                         m_path.push(VarTypeComponent(VarTypeComponent.s_Type.VECTOR_COMPONENT, 0));
 
                     } else {
-                        throw new Error('Cant expand scalars - IsExpanded() is buggy.');
+                        throw new Error('Cant expand scalars - isExpanded() is buggy.');
                     }
 
                 } else if (curType.isArrayType()) {
@@ -314,11 +307,11 @@ define([
                 removeTraversed();
 
                 if (!m_path.empty())
-                    findNext();
+                    this.findNext();
                 else
                     m_type = null; // Unset type to signal end.
             } else {
-                if (!this.IsExpanded(getVarType(m_type, m_path))) {
+                if (!this.isExpanded(getVarType(m_type, m_path))) {
                     throw new Error('First type was already expanded.');
                 }
                 m_type = null;
@@ -330,6 +323,13 @@ define([
         });
         this.getPath = (function () {
             return m_path;
+        });
+
+        this.__construct = (function(type) {
+            if (type) {
+                m_type = type;
+                this.findNext();
+            }
         });
 
         this.isExpanded = null;

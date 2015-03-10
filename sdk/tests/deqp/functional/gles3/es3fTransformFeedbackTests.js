@@ -170,8 +170,8 @@ define(['framework/opengl/gluShaderUtil',
             /** @type {number}            */ offset: 0,
             /** @type {string}            */ name: null,
             /** @type {gluVT.VarType}     */ type: null,
-            /** @type {Array.<Attribute>} */ inputs: null
-        };
+            /** @type {Array.<Attribute>} */ inputs: []
+            };
     });
 
     /**
@@ -378,7 +378,7 @@ define(['framework/opengl/gluShaderUtil',
 
             // TODO: check loop, original code:
             // for (glu::VectorTypeIterator vecIter = glu::VectorTypeIterator::begin(&type); vecIter != glu::VectorTypeIterator::end(&type); vecIter++)
-            for (var vecIter = gluVTU.VectorTypeIterator(type); !vecIter.end(); vecIter.next()) {
+            for (var vecIter = new gluVTU.VectorTypeIterator(type); !vecIter.end(); vecIter.next()) {
 
                 /** @type {gluVarType.VarType} */
                 var attribType = gluVTU.getVarType(type, vecIter.getPath());
@@ -416,7 +416,7 @@ define(['framework/opengl/gluShaderUtil',
         vtx.str  += '\nvoid main (void)\n{\n'
                  +  '\tgl_Position = a_position;\n';
         frag.str += '\nvoid main (void)\n{\n'
-                 +  '\thighg vec4 res = vec4(0.0);\n';
+                 +  '\thighp vec4 res = vec4(0.0);\n';
 
         if (addPointSize) {
             vtx.str += '\tgl_PointSize = a_pointSize;\n';
@@ -477,12 +477,12 @@ define(['framework/opengl/gluShaderUtil',
     /** @type {Object.<string, string>} */ var source = genShaderSources(spec, primitiveType == gl.POINTS /* Is point size required? */);
 
     /** @type {deqpProgram.ShaderProgram} */ var programSources = new deqpProgram.ProgramSources();
-        programSources.add(new glu.VertexSource(source.vertSource))
-                      .add(new glu.FragmentSource(source.fragSource))
-                      .add(new glu.TransformFeedbackVaryings(spec.getTransformFeedbackVaryings()))
-                      .add(new glu.TransformFeedbackMode(bufferMode));
+        programSources.add(new deqpProgram.VertexSource(source.vertSource))
+                      .add(new deqpProgram.FragmentSource(source.fragSource))
+                      .add(new deqpProgram.TransformFeedbackVaryings(spec.getTransformFeedbackVaryings()))
+                      .add(new deqpProgram.TransformFeedbackMode(bufferMode));
 
-        return new glu.ShaderProgram(gl, programSources);
+        return new deqpProgram.ShaderProgram(gl, programSources);
 
     };
 
@@ -529,7 +529,7 @@ define(['framework/opengl/gluShaderUtil',
      * @param {Array.<string>} transformFeedbackVaryings
      * @param {number} bufferMode
      */
-    var computeTransformFeedbackOutputs = function(transformFeedbackOutputs, attributes, varyings, transformFeedbackVaryings, bufferMode) {
+    var computeTransformFeedbackOutputs = function(gl, transformFeedbackOutputs, attributes, varyings, transformFeedbackVaryings, bufferMode) {
 
     /** @type {number} */ var accumulatedSize = 0;
 
@@ -537,9 +537,9 @@ define(['framework/opengl/gluShaderUtil',
         for (var varNdx = 0; varNdx < transformFeedbackVaryings.length; varNdx++)
         {
         /** @type {string} */ var name = transformFeedbackVaryings[varNdx];
-        /** @type {number} */ var bufNdx = (bufferMode === this.m_gl.SEPARATE_ATTRIBS ? varNdx : 0);
-        /** @type {number} */ var offset = (bufferMode === this.m_ggl.SEPARATE_ATTRIBS ? 0 : accumulatedSize);
-        /** @type {Output} */ var output = transformFeedbackOutputs[varNdx];
+        /** @type {number} */ var bufNdx = (bufferMode === gl.SEPARATE_ATTRIBS ? varNdx : 0);
+        /** @type {number} */ var offset = (bufferMode === gl.SEPARATE_ATTRIBS ? 0 : accumulatedSize);
+        /** @type {Output} */ var output = new Output();
 
             output.name = name;
             output.bufferNdx = bufNdx;
@@ -568,7 +568,7 @@ define(['framework/opengl/gluShaderUtil',
                 // Add all vectorized attributes as inputs.
                 // TODO: check loop, original code:
                 // for (glu::VectorTypeIterator iter = glu::VectorTypeIterator::begin(&output.type); iter != glu::VectorTypeIterator::end(&output.type); iter++)
-                for (var iter = gluVTU.VectorTypeIterator(output.type); !iter.end(); iter.next())
+                for (var iter = new gluVTU.VectorTypeIterator(output.type); !iter.end(); iter.next())
                 {
                     /** @type {array} */     var fullpath   = varPath.concat(iter.getPath());
                     /** @type {string} */    var attribName = getAttributeName(varName, fullpath);
@@ -576,6 +576,7 @@ define(['framework/opengl/gluShaderUtil',
                     output.inputs.push(attrib);
                 }
             }
+            transformFeedbackOutputs.push(output);
 
             // TODO: getScalarSize() called correctly? already implemented in glsVarType.js
             accumulatedSize += output.type.getScalarSize() * 4; /*sizeof(deUint32)*/
@@ -662,21 +663,20 @@ define(['framework/opengl/gluShaderUtil',
 
     /**
      * Returns the number of outputs with the count for the Primitives in the Transform Feedback.
-     * @param {WebGLRenderingContext} gl WebGL context
      * @param {deqpDraw.primitiveType} primitiveType GLenum that specifies what kind of primitive is
      * @param {number} numElements
      * @return {number}
      */
-    var getTransformFeedbackOutputCount = function(gl, primitiveType, numElements) {
+    var getTransformFeedbackOutputCount = function(primitiveType, numElements) {
 
     switch (primitiveType) {
-        case gl.TRIANGLES: return numElements - numElements % 3;
-        case gl.TRIANGLE_STRIP: return Math.max(0, numElements - 2) * 3;
-        case gl.TRIANGLE_FAN: return Math.max(0, numElements - 2) * 3;
-        case gl.LINES: return numElements - numElements % 2;
-        case gl.LINE_STRIP: return Math.max(0, numElements - 1) * 2;
-        case gl.LINE_LOOP: return numElements > 1 ? numElements * 2 : 0;
-        case gl.POINTS: return numElements;
+        case deqpDraw.primitiveType.TRIANGLES: return numElements - numElements % 3;
+        case deqpDraw.primitiveType.TRIANGLE_STRIP: return Math.max(0, numElements - 2) * 3;
+        case deqpDraw.primitiveType.TRIANGLE_FAN: return Math.max(0, numElements - 2) * 3;
+        case deqpDraw.primitiveType.LINES: return numElements - numElements % 2;
+        case deqpDraw.primitiveType.LINE_STRIP: return Math.max(0, numElements - 1) * 2;
+        case deqpDraw.primitiveType.LINE_LOOP: return numElements > 1 ? numElements * 2 : 0;
+        case deqpDraw.primitiveType.POINTS: return numElements;
         default:
             throw new Error('Unrecognized primitiveType ' + primitiveType);
        }
@@ -917,22 +917,6 @@ define(['framework/opengl/gluShaderUtil',
      */
     var TransformFeedbackCase = (function(context, name, desc, bufferMode, primitiveType) {
 
-        var parent = {
-            _construct: this._construct
-        };
-
-        /** for reference, this is DeqpTest's constructor:
-        
-        var DeqpTest = function(name, description, spec) {
-            this.name = name;
-            this.description = description;
-            this.spec = spec;
-            this.currentTest = 0;
-            this.parentTest = null;
-        };
-        
-        //*/
-
         this._construct = function(context, name, desc, bufferMode, primitiveType) {
             if (
                 typeof(context) !== 'undefined' &&
@@ -941,7 +925,7 @@ define(['framework/opengl/gluShaderUtil',
                 typeof(bufferMode) !== 'undefined' &&
                 typeof(primitiveType) !== 'undefined'
             ) {
-                parent._construct(context, name, desc);
+                deqpTests.DeqpTest.call(this, name, description);
                 this.m_gl = context;
                 this.m_bufferMode = bufferMode;
                 this.m_primitiveType = primitiveType;
@@ -964,12 +948,11 @@ define(['framework/opengl/gluShaderUtil',
 
             if (!this.m_program.isOk()) {
 
-                var linkFail = this.m_program.getShaderInfo(glu.SHADERTYPE_VERTEX).compileOk &&
-                               this.m_program.getShaderInfo(glu.SHADERTYPE_FRAGMENT).compileOk &&
+                var linkFail = this.m_program.shadersOK &&
                                !this.m_program.getProgramInfo().linkOk;
 
                 if (linkFail) {
-                    if (!isProgramSupported(gl, this.m_proSpec, this.m_bufferMode)) {
+                    if (!isProgramSupported(gl, this.m_progSpec, this.m_bufferMode)) {
                         throw new Error('Not Supported. Implementation limits exceeded.');
                     } else if (hasArraysInTFVaryings(this.m_progSpec)) {
                         throw new Error('Capturing arrays is not supported (undefined in specification)');
@@ -985,7 +968,7 @@ define(['framework/opengl/gluShaderUtil',
             bufferedLogToConsole('Transform feedback varyings: ' + this.m_progSpec.getTransformFeedbackVaryings());
 
             // Print out transform feedback points reported by GL.
-            bufferedLogToConsole('Transform feedback varyings reported by compiler:');
+    	    // bufferedLogToConsole('Transform feedback varyings reported by compiler:');
             //logTransformFeedbackVaryings(log, gl, this.m_program.getProgram());
 
             // Compute input specification.
@@ -993,6 +976,7 @@ define(['framework/opengl/gluShaderUtil',
 
             // Build list of varyings used in transform feedback.
             computeTransformFeedbackOutputs(
+            	this.m_gl,
                 this.m_transformFeedbackOutputs, // TODO: make sure this param is working as intended
                 this.m_attributes,
                 this.m_progSpec.getVaryings(),
@@ -1003,10 +987,6 @@ define(['framework/opengl/gluShaderUtil',
                 throw new Error('transformFeedbackOutputs cannot be empty.');
             }
 
-            // Buffer strides.
-            if (!this.m_bufferStrides.length) {
-                throw new Error('bufferStrides cannot be empty.');
-            }
             if (this.m_bufferMode == gl.SEPARATE_ATTRIBS) {
                 for (var i = 0; i < this.m_transformFeedbackOutputs.length; ++i) {
                     this.m_bufferStrides.push(this.m_transformFeedbackOutputs[i].type.getScalarSize() * 4 /*sizeof(deUint32)*/);
@@ -1027,7 +1007,7 @@ define(['framework/opengl/gluShaderUtil',
             if (this.m_transformFeedback != null) {
                 throw new Error('transformFeedback is already set.');
             }
-            this.m_transformFeedback = new glu.TransformFeedback(gl);
+            this.m_transformFeedback = gl.createTransformFeedback();
 
             GLU_EXPECT_NO_ERROR(gl, gl.getError(), 'init');
 
@@ -1082,7 +1062,7 @@ define(['framework/opengl/gluShaderUtil',
             //  )
             );
 
-            isOk = runTest(s.testCases[s.iterations[this.m_iterNdx]], seed);
+            isOk = this.runTest(s.testCases[s.iterations[this.m_iterNdx]], seed);
 
             if (!isOk) {
                 // fail the test
@@ -1099,18 +1079,18 @@ define(['framework/opengl/gluShaderUtil',
         };
 
         /* protected */
-        this.m_progSpec = null;
+        this.m_progSpec = new ProgramSpec();
         this.m_bufferMode = null;
         this.m_primitiveType = null;
 
         /* private */
     //    var assign = function(/*const*/ other) { }; // defined but not implemented?
-        var runTest = function(calls, seed) {
+        this.runTest = function(calls, seed) {
 
             var _min = function(x, y) { return x < y ? x : y; };
 
         //  var log = this.m_testCtx.getLog();
-            var gl = this.m_gl;
+        	var gl = this.m_gl;
             var rnd = new deRandom.Random(seed);
             var numInputs = 0;
             var numOutputs = 0;
@@ -1122,7 +1102,7 @@ define(['framework/opengl/gluShaderUtil',
             var viewportY = rnd.getInt(0, height - viewportH);
             var frameWithTf = new tcuSurface.Surface(viewportW, viewportH); // tcu::Surface
             var frameWithoutTf = new tcuSurface.Surface(viewportW, viewportH); // tcu::Surface
-            var primitiveQuery = new glu.Query(gl); // glu::Query
+            var primitiveQuery = gl.createQuery();
             var outputsOk = true;
             var imagesOk = true;
             var queryOk = true;
@@ -1137,7 +1117,7 @@ define(['framework/opengl/gluShaderUtil',
             // Input data.
             var inputData = genInputData(this.m_attributes, numInputs, this.m_inputStride, rnd);
 
-            gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, this.m_transformFeedback.get());
+            gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, this.m_transformFeedback);
             GLU_EXPECT_NO_ERROR(gl, gl.getError(), 'glBindTransformFeedback()');
 
             // Allocate storage for transform feedback output buffers and bind to targets.
@@ -1636,7 +1616,7 @@ define(['framework/opengl/gluShaderUtil',
         /** @type {boolean} */ var usePosition              = rnd.getFloat() < positionWeight;
         /** @type {boolean} */ var usePointSize             = rnd.getFloat() < pointSizeWeight;
         /** @type {number} */  var numAttribVectorsToUse    = rnd.getInt(
-            rnd, 1, maxAttributeVectors - 1/*position*/ - (usePointSize ? 1 : 0)
+            1, maxAttributeVectors - 1/*position*/ - (usePointSize ? 1 : 0)
         );
 
         /** @type {number} */  var numAttributeVectors      = 0;
@@ -1661,10 +1641,10 @@ define(['framework/opengl/gluShaderUtil',
             var end = typeCandidates[endCandidates];
 
             /** @type {deqpUtils.DataType} */
-            var type = rnd.choose(typeCandidates);
+            var type = rnd.choose(typeCandidates)[0];
             
             /** @type {glsUBC.UniformFlags | deqpUtils.precision} */
-            var precision = rnd.choose(precisions);
+            var precision = rnd.choose(precisions)[0];
             
             /** @type {interpolation} */ // TODO: implement
             var interp = deqpUtils.getDataTypeScalarType(type) === deqpUtils.DataType.FLOAT
@@ -2087,10 +2067,21 @@ define(['framework/opengl/gluShaderUtil',
      * Create and execute the test cases
      */
     var run = function(gl) {
+		var testName = 'transform_feedback';
+        var testDescription = 'Transform Feedback Tests';
+        var state = deqpTests.runner.getState();
+
+        state.testName = testName;
+        state.testCases = deqpTests.newTest(testName, testDescription, null);
+
+        //Set up name and description of this test series.
+        setCurrentTestName(testName);
+        description(testDescription);
         try {
             init(gl);
             deqpTests.runner.runCallback(deqpTests.runTestCases);
         } catch (err) {
+        	console.log(err);
             bufferedLogToConsole(err);
             deqpTests.runner.terminate();
         }

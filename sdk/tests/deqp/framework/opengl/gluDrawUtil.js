@@ -323,6 +323,7 @@ Surface.prototype.getPixel = function(x, y) {
 };
 
 return {
+    primitiveType: primitiveType,
     namedBindingsToProgramLocations: namedBindingsToProgramLocations,
     drawFromBuffers: drawFromBuffers,
     draw: draw,
