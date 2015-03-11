@@ -21,6 +21,11 @@
 define(['framework/opengl/gluShaderUtil'], function(deqpUtils) {
     'use strict';
 
+    var DE_ASSERT = function(x) {
+        if (!x)
+            throw new Error('Assert failed');
+    };
+
     /**
     * VarType types enum
     * @enum {number}
@@ -334,7 +339,7 @@ define(['framework/opengl/gluShaderUtil'], function(deqpUtils) {
      * @return {StructType} The currently modified object
      */
       StructType.prototype.Constructor = function(name) {
-          /** @type {string}*/ this.m_typeName = StructType.setTypeName(name);
+          /** @type {string}*/ this.m_typeName = this.setTypeName(name);
           return this;
      };
 
@@ -437,7 +442,7 @@ define(['framework/opengl/gluShaderUtil'], function(deqpUtils) {
         }
         else if (curType.isStructType())
         {
-            /** @type {StructType} */ var structPtr = curType.getStructPtr();
+            /** @type {StructType} */ var structPtr = curType.getStruct();
 
             if (structPtr.hasTypeName())
                 str += structPtr.getTypeName();

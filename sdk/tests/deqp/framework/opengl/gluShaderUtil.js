@@ -628,6 +628,70 @@ var getDataTypeName = function(dataType)  {
     throw Error('Unrecognized dataType ' + dataType);
 };
 
+/*
+ * Returns the DataType from the GL type
+ * @param {deMath.deUint32} glType
+ * @return {DataType}
+ */
+var getDataTypeFromGLType = function(glType) {
+    switch (glType)
+    {
+        case gl.FLOAT: return DataType.FLOAT;
+        case gl.FLOAT_VEC2: return DataType.FLOAT_VEC2;
+        case gl.FLOAT_VEC3: return DataType.FLOAT_VEC3;
+        case gl.FLOAT_VEC4: return DataType.FLOAT_VEC4;
+
+        case gl.FLOAT_MAT2: return DataType.FLOAT_MAT2;
+        case gl.FLOAT_MAT2x3: return DataType.FLOAT_MAT2X3;
+        case gl.FLOAT_MAT2x4: return DataType.FLOAT_MAT2X4;
+
+        case gl.FLOAT_MAT3x2: return DataType.FLOAT_MAT3X2;
+        case gl.FLOAT_MAT3: return DataType.FLOAT_MAT3;
+        case gl.FLOAT_MAT3x4: return DataType.FLOAT_MAT3X4;
+
+        case gl.FLOAT_MAT4x2: return DataType.FLOAT_MAT4X2;
+        case gl.FLOAT_MAT4x3: return DataType.FLOAT_MAT4X3;
+        case gl.FLOAT_MAT4: return DataType.FLOAT_MAT4;
+
+        case gl.INT: return DataType.INT;
+        case gl.INT_VEC2: return DataType.INT_VEC2;
+        case gl.INT_VEC3: return DataType.INT_VEC3;
+        case gl.INT_VEC4: return DataType.INT_VEC4;
+
+        case gl.UNSIGNED_INT: return DataType.UINT;
+        case gl.UNSIGNED_INT_VEC2: return DataType.UINT_VEC2;
+        case gl.UNSIGNED_INT_VEC3: return DataType.UINT_VEC3;
+        case gl.UNSIGNED_INT_VEC4: return DataType.UINT_VEC4;
+
+        case gl.BOOL: return DataType.BOOL;
+        case gl.BOOL_VEC2: return DataType.BOOL_VEC2;
+        case gl.BOOL_VEC3: return DataType.BOOL_VEC3;
+        case gl.BOOL_VEC4: return DataType.BOOL_VEC4;
+
+        case gl.SAMPLER_2D: return DataType.SAMPLER_2D;
+        case gl.SAMPLER_CUBE: return DataType.SAMPLER_CUBE;
+        case gl.SAMPLER_2D_ARRAY: return DataType.SAMPLER_2D_ARRAY;
+        case gl.SAMPLER_3D: return DataType.SAMPLER_3D;
+
+        case gl.SAMPLER_2D_SHADOW: return DataType.SAMPLER_2D_SHADOW;
+        case gl.SAMPLER_CUBE_SHADOW: return DataType.SAMPLER_CUBE_SHADOW;
+        case gl.SAMPLER_2D_ARRAY_SHADOW: return DataType.SAMPLER_2D_ARRAY_SHADOW;
+
+        case gl.INT_SAMPLER_2D: return DataType.INT_SAMPLER_2D;
+        case gl.INT_SAMPLER_CUBE: return DataType.INT_SAMPLER_CUBE;
+        case gl.INT_SAMPLER_2D_ARRAY: return DataType.INT_SAMPLER_2D_ARRAY;
+        case gl.INT_SAMPLER_3D: return DataType.INT_SAMPLER_3D;
+
+        case gl.UNSIGNED_INT_SAMPLER_2D: return DataType.UINT_SAMPLER_2D;
+        case gl.UNSIGNED_INT_SAMPLER_CUBE: return DataType.UINT_SAMPLER_CUBE;
+        case gl.UNSIGNED_INT_SAMPLER_2D_ARRAY: return DataType.UINT_SAMPLER_2D_ARRAY;
+        case gl.UNSIGNED_INT_SAMPLER_3D: return DataType.UINT_SAMPLER_3D;
+
+        default:
+            return DataType.LAST;
+    }
+};
+
 return {
     GLSLVersion: GLSLVersion,
     getGLSLVersion: getGLSLVersion,
@@ -653,7 +717,8 @@ return {
     isDataTypeSampler: isDataTypeSampler,
     getDataTypeMatrixNumColumns: getDataTypeMatrixNumColumns,
     getDataTypeMatrixNumRows: getDataTypeMatrixNumRows,
-    getDataTypeName: getDataTypeName
+    getDataTypeName: getDataTypeName,
+    getDataTypeFromGLType: getDataTypeFromGLType
 };
 
 });
