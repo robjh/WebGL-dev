@@ -101,20 +101,11 @@ define(['framework/opengl/gluShaderUtil',
      * @return {Attribute || Varying}
      */
     var findAttributeNameEquals = function(array, name) {
-
-        /** @type {boolean} */ var attributeNameFound = false;
-        for (var pos = 0; pos < array.length; pos++)
-        {
+        for (var pos = 0; pos < array.length; pos++) {
             if (array[pos].name === name) {
-
-                attributeNameFound = true;
                 return array[pos];
             }
         }
-        if (attributeNameFound === false)
-        bufferedLogToConsole('Attribute or Varying name: ' + name + ', has not been found in the array');
-        // TODO: I don't know if the error below is necessary ??
-        throw Error('Attribute or Varying name: ' + name + ', has not been found in the array');
     };
 
     /**
@@ -428,16 +419,16 @@ define(['framework/opengl/gluShaderUtil',
                 /* TODO: Fix converting type and vecIter to string */
 
                 // Vertex: assign from attribute.
-                vtx.str += '\t' + name + type + ' = ' + attribName + ';\n';
+                vtx.str += '\t' + name + vecIter.toString() + ' = ' + attribName + ';\n';
 
                 // Fragment: add to res variable.
                 var scalarSize = deqpUtils.getDataTypeScalarSize(subType.getBasicType());
 
                 frag.str += '\tres += ';
-                if (scalarSize == 1) frag.str += 'vec4(' + name + vecIter + ')';
-                else if (scalarSize == 2) frag.str += 'vec2(' + name + vecIter + ').xxyy';
-                else if (scalarSize == 3) frag.str += 'vec3(' + name + vecIter + ').xyzx';
-                else if (scalarSize == 4) frag.str += 'vec4(' + name + vecIter + ')';
+                if (scalarSize == 1) frag.str += 'vec4(' + name + vecIter.toString() + ')';
+                else if (scalarSize == 2) frag.str += 'vec2(' + name + vecIter.toString() + ').xxyy';
+                else if (scalarSize == 3) frag.str += 'vec3(' + name + vecIter.toString() + ').xyzx';
+                else if (scalarSize == 4) frag.str += 'vec4(' + name + vecIter.toString() + ')';
 
                 frag.str += ';\n';
             }
@@ -573,16 +564,17 @@ define(['framework/opengl/gluShaderUtil',
 
     /**
      * @param {Attribute} attrib
-     * @param {number} basePtr
+     * @param {ArrayBuffer} buffer
      * @param {number} stride
      * @param {number} numElements
      * @param {deRandom} rnd
      */
-    var genAttributeData = function(attrib, basePtr, stride, numElements, rnd) {
+    var genAttributeData = function(attrib, buffer, stride, numElements, rnd) {
 
         /** @type {number} */ var elementSize = 4; /*sizeof(deUint32)*/
         /** @type {boolean} */ var isFloat = deqpUtils.isDataTypeFloatOrVec(attrib.type.getBasicType());
         /** @type {boolean} */ var isInt = deqpUtils.isDataTypeIntOrIVec(attrib.type.getBasicType());
+        /** @type {boolean} */ var isUint = deqpUtils.isDataTypeUintOrUVec(attrib.type.getBasicType());
 
         // TODO: below type glsUBC.UniformFlags ?
         /** @type {deqpUtils.precision} */ var precision = attrib.type.getPrecision(); // TODO: getPrecision() called correctly? implemented in glsVarType.js
@@ -596,17 +588,17 @@ define(['framework/opengl/gluShaderUtil',
                 /** @type {number} */ var offset = attrib.offset + elemNdx * stride + compNdx * elementSize;
                 if (isFloat)
                 {
-                    /** @type {number} */ var comp = basePtr + offset;
+                    var pos = new Float32Array(buffer, offset, 1);
                     switch (precision)
                     {
                         case deqpUtils.precision.PRECISION_LOWP:
-                            comp = 0.25 * rnd.getInt(0, 4);
+                            pos[0] = 0.25 * rnd.getInt(0, 4);
                             break;
                         case deqpUtils.precision.PRECISION_MEDIUMP:
-                            comp = rnd.getFloat(-1e3, 1e3);
+                            pos[0] = rnd.getFloat(-1e3, 1e3);
                             break;
                         case deqpUtils.precision.PRECISION_HIGHP:
-                            comp = rnd.getFloat(-1e5, 1e5);
+                            pos[0] = rnd.getFloat(-1e5, 1e5);
                             break;
                         default:
                             DE_ASSERT(false);
@@ -614,12 +606,24 @@ define(['framework/opengl/gluShaderUtil',
                 }
                 else if (isInt)
                 {
-                    /** @type {number} */ var comp = basePtr + offset;
+                    var pos = new Int32Array(buffer, offset, 1);
                     switch (precision)
                     {
-                    // TODO: case deqpUtils.precision.PRECISION_LOWP: comp = rnd.getUint32() & 0xff << 24 >> 24;    break;
-                    // TODO: case deqpUtils.precision.PRECISION_MEDIUMP:    comp = rnd.getUint32() & 0xffff << 16 >> 16; break;
-                    // TODO: case deqpUtils.precision.PRECISION_HIGHP: comp = rnd.getUint32(); break;
+                    case deqpUtils.precision.PRECISION_LOWP: pos[0] = rnd.getInt(-128, 127);    break;
+                    case deqpUtils.precision.PRECISION_MEDIUMP:    pos[0] = rnd.getInt(-32768, 32767); break;
+                    case deqpUtils.precision.PRECISION_HIGHP: pos[0] = rnd.getInt(); break;
+                        default:
+                            DE_ASSERT(false);
+                    }
+                }
+                else if (isUint)
+                {
+                    var pos = new Uint32Array(buffer, offset, 1);
+                    switch (precision)
+                    {
+                    case deqpUtils.precision.PRECISION_LOWP: pos[0] = rnd.getInt(0, 255);    break;
+                    case deqpUtils.precision.PRECISION_MEDIUMP:    pos[0] = rnd.getInt(0, 65535); break;
+                    case deqpUtils.precision.PRECISION_HIGHP: pos[0] = Math.abs(rnd.getInt()); break;
                         default:
                             DE_ASSERT(false);
                     }
@@ -632,10 +636,32 @@ define(['framework/opengl/gluShaderUtil',
      * @param {Array.<Attribute>} attributes
      * @param {number} numInputs
      * @param {number} inputStride
-     * @param {number} inputBasePtr
      * @param {deRandom} rnd
+     * @return {ArrayBuffer}
      */
-    var genInputData = function(attributes, numInputs, inputStride, inputBasePtr, rnd) {
+    var genInputData = function(attributes, numInputs, inputStride, rnd) {
+        var buffer = new ArrayBuffer(numInputs * inputStride);
+
+        var position = findAttributeNameEquals(attributes, 'a_position');
+        if (!position)
+            throw new Error('Position attribute not found.');
+
+        console.log("Position: " + position);
+        
+        for (var ndx = 0; ndx < numInputs; ndx++) {
+            var pos = new Float32Array(buffer, position.offset + inputStride * ndx, 4);
+            pos[0] = rnd.getFloat(-1.2, 1.2);
+            pos[1] = rnd.getFloat(-1.2, 1.2);
+            pos[2] = rnd.getFloat(-1.2, 1.2);
+            pos[3] = rnd.getFloat(0.1, 2.0);
+        }
+
+        var pointSizePos = findAttributeNameEquals(attributes, 'a_pointSize');
+        if (pointSizePos)
+            for (var ndx = 0; ndx < numInputs; ndx++) {
+                var pos = new Float32Array(buffer, pointSizePos.offset + inputStride * ndx, 1);
+                pos[0] = rnd.getFloat(1, 8);
+            }
 
         // TODO: two first loops have been omitted
         // is declared 'ptr' --> deUint8* ptr = inputBasePtr + position.offset + inputStride*ndx;
@@ -645,8 +671,10 @@ define(['framework/opengl/gluShaderUtil',
         for (var i = 0; i < attributes.length; i++)
         {
             if (attributes[i].name != 'a_position' && attributes[i].name != 'a_pointSize')
-                genAttributeData(attributes[i], inputBasePtr, inputStride, numInputs, rnd);
+                genAttributeData(attributes[i], buffer, inputStride, numInputs, rnd);
         }
+
+        return buffer;
     };
 
     /**
@@ -767,19 +795,14 @@ define(['framework/opengl/gluShaderUtil',
      * @param {deqpDraw.primitiveType} primitiveType type number in deqpDraw.primitiveType
      * @param {Output} output
      * @param {number} numInputs
-     * @param {number} inBasePtr
-     * @param {number} inStride
-     * @param {number} outBasePtr
-     * @param {number} outStride
+     * @param {Object} buffers
      * @return {boolean} isOk
      */
-    var compareTransformFeedbackOutput = function(primitiveType, output, numInputs, inBasePtr, inStride, outBasePtr, outStride) {
+    var compareTransformFeedbackOutput = function(primitiveType, output, numInputs, buffers) {
+        /** @type {boolean} */ var isOk = true;
+        /** @type {number} */ var outOffset = output.offset;
 
-    /** @type {boolean} */ var isOk = true;
-    /** @type {number} */ var outOffset = output.offset;
-
-        for (var attrNdx = 0; attrNdx < output.inputs.length; attrNdx++)
-        {
+        for (var attrNdx = 0; attrNdx < output.inputs.length; attrNdx++) {
         /** @type {Attribute} */ var attribute = output.inputs[attrNdx];
         /** @type {deqpUtils.DataType} */ var type = attribute.type;
         /** @type {number} */ var numComponents = deqpUtils.getDataTypeScalarSize(type);
@@ -790,48 +813,45 @@ define(['framework/opengl/gluShaderUtil',
         /** @type {string} */ var scalarType = deqpUtils.getDataTypeScalarType(type);
         /** @type {number} */ var numOutputs = getTransformFeedbackOutputCount(primitiveType, numInputs);
 
-            for (var outNdx = 0; outNdx < numOutputs; outNdx++)
-            {
+            for (var outNdx = 0; outNdx < numOutputs; outNdx++) {
             /** @type {number} */ var inNdx = getAttributeIndex(primitiveType, numInputs, outNdx);
 
-                for (var compNdx = 0; compNdx < numComponents; compNdx++)
-                {
+                for (var compNdx = 0; compNdx < numComponents; compNdx++) {
                 /** @type {number} */ var inPtr = inBasePtr + inStride * inNdx + attribute.offset + compNdx * 4; /*sizeof(deUint32)*/
                 /** @type {number} */ var outPtr = outBasePtr + outStride * outNdx + outOffset + compNdx * 4; /*sizeof(deUint32)*/
                 /** @type {boolean} */ var isEqual = false;
                 /** @type {number} */ var difInOut = inPtr - outPtr;
 
-                    if (scalarType === 'float')
-                    {
-                        // ULP comparison is used for highp and mediump. Lowp uses threshold-comparison.
-                        switch (precision)
-                        {
-                            case deqpUtils.precision.PRECISION_HIGHP: // or case glsUBC.UniformFlags.PRECISION_HIGHP: ?
-                            {
-                                isEqual = Math.abs(difInOut) < 2;
+                    if (scalarType === 'float') {
+                        var outBuffer = new Float32Array(buffers.output.buffer, buffers.output.offset + buffers.output.stride * outNdx + outOffset + compNdx * 4, 1);
+                        var inBuffer = new Float32Array(buffers.input.buffer, buffers.input.offset + buffers.input.stride * inNdx + attribute.offset + compNdx * 4, 1);
+                        var difInOut = inBuffer[0] - outBuffer[0];
+                        /* TODO: Original code used ULP comparison for highp and mediump precision. This could cause failures. */
+                        switch (precision) {
+                            case deqpUtils.precision.PRECISION_HIGHP: {
+                                isEqual = Math.abs(difInOut) < 0.1;
                                 break;
                             }
 
-                            case deqpUtils.precision.PRECISION_MEDIUMP: // or case glsUBC.UniformFlags.PRECISION_MEDIUMP: ?
-                            {
-                                isEqual = Math.abs(difInOut) < 2 + (1 << 13);
+                            case deqpUtils.precision.PRECISION_MEDIUMP: {
+                                isEqual = Math.abs(difInOut) < 0.1;
                                 break;
                             }
 
-                            case deqpUtils.precision.PRECISION_LOWP: // or case glsUBC.UniformFlags.PRECISION_LOWP: ?
-                            {
+                            case deqpUtils.precision.PRECISION_LOWP: {
                                 isEqual = Math.abs(difInOut) < 0.1;
                                 break;
                             }
                             default:
                                 DE_ASSERT(false);
                         }
+                    } else {
+                        var outBuffer = new Uint32Array(buffers.output.buffer, buffers.output.offset + buffers.output.stride * outNdx + outOffset + compNdx * 4, 1);
+                        var inBuffer = new Uint32Array(buffers.input.buffer, buffers.input.offset + buffers.input.stride * inNdx + attribute.offset + compNdx * 4, 1);
+                        isEqual = (inBuffer[0] == outBuffer[0]); // Bit-exact match required for integer types.
                     }
-                    else
-                        isEqual = (inPtr === outPtr); // Bit-exact match required for integer types.
 
-                    if (!isEqual)
-                    {
+                    if (!isEqual) {
                         bufferedLogToConsole('Mismatch in ' + output.name + ' (' + attribute.name + '), output = ' + outNdx + ', input = ' + inNdx + ', component = ' + compNdx);
                         isOk = false;
                         break;
@@ -887,12 +907,14 @@ define(['framework/opengl/gluShaderUtil',
      * @return {boolean}
      */
     var verifyGuard = function(buffer) {
-        for (var i = 0; i < buffer.length; i++)
-        {
-            if (buffer[i] != 0xcd)
-                return false;
-        }
+        /* TODO: Implement */
         return true;
+        // for (var i = 0; i < buffer.length; i++)
+        // {
+        //     if (buffer[i] != 0xcd)
+        //         return false;
+        // }
+        // return true;
     };
 
     /**
@@ -988,9 +1010,9 @@ define(['framework/opengl/gluShaderUtil',
                 this.m_bufferStrides.push(totalSize);
             }
 
-            // \note Actual storage is allocated in iterate().
-        //    this.m_outputBuffers.resize(this.m_bufferStrides.size()); //                  <-- not needed in JS
-        //    gl.genBuffers(this.m_outputBuffers.length, this.m_outputBuffers); // TODO:    <-- rework
+            this.m_outputBuffers.length = this.m_bufferStrides.length;
+            for (var i = 0; i < this.m_outputBuffers.length; i++)
+                this.m_outputBuffers[i] = gl.createBuffer();
 
             DE_ASSERT(!this.m_transformFeedback);
             if (this.m_transformFeedback != null) {
@@ -1009,10 +1031,8 @@ define(['framework/opengl/gluShaderUtil',
 
             var gl = this.m_gl;
 
-            if (!this.m_outputBuffers.empty()) {
-            //    gl.deleteBuffers((glw::GLsizei)this.m_outputBuffers.size(), &this.m_outputBuffers[0]); // TODO: rework
-                this.m_outputBuffers.clear();
-            }
+            for (var i = 0; i < this.m_outputBuffers.length; i++)
+                gl.deleteBuffer(this.m_outputBuffers[i]);
 
         //    delete this.m_transformFeedback;
             this.m_transformFeedback = null;
@@ -1118,7 +1138,9 @@ define(['framework/opengl/gluShaderUtil',
                 var usage     = gl.DYNAMIC_READ; // const deUint32
 
                 gl.bindBuffer(gl.TRANSFORM_FEEDBACK_BUFFER, buffer);
-                gl.bufferData(gl.TRANSFORM_FEEDBACK_BUFFER, size + guardSize, 0, usage);
+                GLU_EXPECT_NO_ERROR(gl.getError(), 'bindBuffer');
+                gl.bufferData(gl.TRANSFORM_FEEDBACK_BUFFER, size + guardSize, usage);
+                GLU_EXPECT_NO_ERROR(gl.getError(), 'bufferData');
                 writeBufferGuard(gl, gl.TRANSFORM_FEEDBACK_BUFFER, size, guardSize);
 
                 // \todo [2012-07-30 pyry] glBindBufferRange()?
@@ -1126,6 +1148,11 @@ define(['framework/opengl/gluShaderUtil',
 
                 GLU_EXPECT_NO_ERROR(gl, gl.getError(), 'transform feedback buffer setup');
             }
+
+            var attribBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, attribBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, inputData, gl.STATIC_DRAW);
+            GLU_EXPECT_NO_ERROR(gl, gl.getError(), 'Attributes buffer setup');
 
             // Setup attributes.
             for (var i = 0; i < this.m_attributes.length; ++i) {
@@ -1140,12 +1167,12 @@ define(['framework/opengl/gluShaderUtil',
                     gl.enableVertexAttribArray(loc);
                     var type = null;
                     switch (scalarType) {
-                        case glu.TYPE_FLOAT: type = gl.FLOAT; break;
-                        case glu.TYPE_INT: type = gl.INT;break;
-                        case glu.TYPE_UINT: type = gl.UNSIGNED_INT; break;
-                    }
-                    if (type !== null) {
-                        gl.vertexAttribPointer(loc, numComponents, type, gl.FALSE, this.m_inputStride, attrib.offset());
+                        case glu.TYPE_FLOAT:
+                            gl.vertexAttribPointer(loc, numComponents, gl.FLOAT, gl.FALSE, this.m_inputStride, attrib.offset()); break;
+                        case glu.TYPE_INT:
+                            gl.vertexAttribIPointer(loc, numComponents, gl.INT, gl.FALSE, this.m_inputStride, attrib.offset()); break;
+                        case glu.TYPE_UINT:
+                            gl.vertexAttribPointer(loc, numComponents, gl.UNSIGNED_INT, gl.FALSE, this.m_inputStride, attrib.offset()); break;
                     }
                 }
             }
@@ -1158,11 +1185,11 @@ define(['framework/opengl/gluShaderUtil',
 
             gl.uniform4fv(
                 gl.getUniformLocation(this.m_program.getProgram(), 'u_scale'),
-                1, [0.01, 0.01, 0.01, 0.01]
+                [0.01, 0.01, 0.01, 0.01]
             );
             gl.uniform4fv(
                 gl.getUniformLocation(this.m_program.getProgram(), 'u_bias'),
-                1, [0.5, 0.5, 0.5, 0.5]
+                [0.5, 0.5, 0.5, 0.5]
             );
 
             // Enable query.
@@ -1247,7 +1274,18 @@ define(['framework/opengl/gluShaderUtil',
                             var inputPtr = inputData[0] + inputOffset * this.m_inputStride; // const deUint8*
                             var outputPtr = outputOffset * stride; // const deUint8*
 
-                            if (!compareTransformFeedbackOutput(this.m_primitiveType, out, call.numElements, inputPtr, this.m_inputStride, outputPtr, stride)) {
+                            if (!compareTransformFeedbackOutput(this.m_primitiveType, out, call.numElements, {
+                                     input: {
+                                        buffer: inputData,
+                                        offset: inputOffset * this.m_inputStride,
+                                        stride: this.m_inputStride
+                                    },
+                                    output: {
+                                        buffer: buffer,
+                                        offset: outputOffset * stride,
+                                        stride: stride
+                                    }
+                                })) {
                                 outputsOk = false;
                                 break;
                             }
@@ -1297,14 +1335,18 @@ define(['framework/opengl/gluShaderUtil',
             })();
 
             // Clear transform feedback state.
-            gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, 0);
+            gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK);
             for (var bufNdx = 0; bufNdx < this.m_outputBuffers.length; ++bufNdx) {
-                gl.bindBuffer(gl.TRANSFORM_FEEDBACK_BUFFER, 0);
-                gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, bufNdx, 0);
+                gl.bindBuffer(gl.TRANSFORM_FEEDBACK_BUFFER);
+                gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, bufNdx);
             }
 
+            gl.bindBuffer(gl.ARRAY_BUFFER);
+
             // Read back rendered image.
-            glu.readPixels(gl, viewportX, viewportY, frameWithTf.getAccess());
+            gl.readPixels(viewportX, viewportY, viewportW, viewportH, gl.RGBA, gl.UNSIGNED_BYTE, frameWithTf.getAccess().getDataPtr());
+
+            GLU_EXPECT_NO_ERROR(gl.getError(), 'glReadPixels()');
 
             // Render without transform feedback.
             (function (){
@@ -1319,7 +1361,8 @@ define(['framework/opengl/gluShaderUtil',
                 }
 
                 GLU_EXPECT_NO_ERROR(gl, gl.getError(), 'render');
-                glu.readPixels(gl, viewportX, viewportY, frameWithoutTf.getAccess());
+                gl.readPixels(viewportX, viewportY, viewportW, viewportH, gl.RGBA, gl.UNSIGNED_BYTE, frameWithoutTf.getAccess().getDataPtr());
+                GLU_EXPECT_NO_ERROR(gl.getError(), 'glReadPixels()');
             })();
 
             // Compare images with and without transform feedback.

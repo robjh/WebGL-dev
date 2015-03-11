@@ -150,6 +150,38 @@ define([
         this.path = path_;
     });
 
+    TypeAccessFormat.prototype.toString = function() {
+        var curType = this.type;
+        var str = '';
+
+        for (var i = 0; i < this.path.length; i++) {
+            var iter = this.path[i];
+            switch (iter.type) {
+                case VarTypeComponent.s_Type.ARRAY_ELEMENT:
+                    curType = curType.getElementType(); // Update current type.
+                    // Fall-through.
+
+                case VarTypeComponent.s_Type.MATRIX_COLUMN:
+                case VarTypeComponent.s_Type.VECTOR_COMPONENT:
+                    str += "[" + i + "]";
+                    break;
+
+                case VarTypeComponent.s_Type.STRUCT_MEMBER:
+                {
+                    var member = curType.getStruct().getMember(i);
+                    str += "." + member.getName();
+                    curType = member.getType();
+                    break;
+                }
+
+                default:
+                   throw new Error("Unrecognized type:" + iter.type);
+            }
+        }
+
+        return str;       
+    };
+
     /** SubTypeAccess
      * @param {gluVarType.VarType} type
      * @return {SubTypeAccess | array_op_equivalent | boolean}
@@ -247,7 +279,7 @@ define([
                     if (!parentType.isStructType()) {
                         throw new Error('Isn\'t a struct.');
                     }
-                    if (curComp.index + 1 < parentType.getStructPtr().getNumMembers()) {
+                    if (curComp.index + 1 < parentType.getStruct().getNumMembers()) {
                         break;
                     }
 
@@ -328,6 +360,11 @@ define([
         this.getPath = (function () {
             return m_path;
         });
+
+        this.toString = function() {
+            var x = new TypeAccessFormat(m_type, m_path);
+            return x.toString();
+        };
 
         this.__construct = (function(type) {
             if (type) {

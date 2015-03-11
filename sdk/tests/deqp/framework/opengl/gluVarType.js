@@ -434,7 +434,7 @@ define(['framework/opengl/gluShaderUtil'], function(deqpUtils) {
         }
         else if (curType.isStructType())
         {
-            /** @type {StructType} */ var structPtr = curType.getStructPtr();
+            /** @type {StructType} */ var structPtr = curType.getStruct();
 
             if (structPtr.hasTypeName())
                 str += structPtr.getTypeName();
