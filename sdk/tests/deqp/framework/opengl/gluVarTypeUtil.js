@@ -514,7 +514,8 @@ define([
             }
             return gluVarType.newTypeBasic(basicType, precision);
         } else {
-            return gluVarType.newTypeBasic(curType);
+            /* TODO: Original code created an object copy. We are returning reference to the same object */
+            return curType;
         }
     });
 
