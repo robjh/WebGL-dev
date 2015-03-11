@@ -499,7 +499,7 @@ define([
      * @param {string} nameSuffix
      * @return {UniformCollection}
      */
-    UniformCollection.prototype.basic = function(type, nameSuffix) {
+    UniformCollection.basic = function(type, nameSuffix) {
         if (nameSuffix === undefined) nameSuffix = '';
         /** @type {UniformCollection} */ var res = new UniformCollection();
         /** @type {deqpUtils.precision} */ var prec = deqpUtils.isDataTypeBoolOrBVec(type) ? deqpUtils.precision.PRECISION_LAST : deqpUtils.precision.PRECISION_MEDIUMP;
@@ -512,11 +512,11 @@ define([
      * @param {string} nameSuffix
      * @return {UniformCollection}
      */
-    UniformCollection.prototype.basicArray = function(type, nameSuffix) {
+    UniformCollection.basicArray = function(type, nameSuffix) {
         if (nameSuffix === undefined) nameSuffix = '';
         /** @type {UniformCollection} */ var res = new UniformCollection();
         /** @type {deqpUtils.precision} */ var prec = deqpUtils.isDataTypeBoolOrBVec(type) ? deqpUtils.precision.PRECISION_LAST : deqpUtils.precision.PRECISION_MEDIUMP;
-        res.m_uniforms.push(new Uniform('u_var' + nameSuffix, gluVT.newTypeAray(gluVT.newTypeBasic(type, prec), 3)));
+        res.m_uniforms.push(new Uniform('u_var' + nameSuffix, gluVT.newTypeArray(gluVT.newTypeBasic(type, prec), 3)));
         return res;
     };
 
@@ -527,7 +527,7 @@ define([
      * @param {string} nameSuffix
      * @return {UniformCollection}
      */
-    UniformCollection.prototype.basicStruct = function(type0, type1, containsArrays, nameSuffix) {
+    UniformCollection.basicStruct = function(type0, type1, containsArrays, nameSuffix) {
         if (nameSuffix === undefined) nameSuffix = '';
         /** @type {UniformCollection} */ var res = new UniformCollection();
         /** @type {deqpUtils.precision} */ var prec0 = deqpUtils.isDataTypeBoolOrBVec(type0) ? deqpUtils.precision.PRECISION_LAST : deqpUtils.precision.PRECISION_MEDIUMP;
@@ -555,7 +555,7 @@ define([
      * @param {string} nameSuffix
      * @return {UniformCollection}
      */
-    UniformCollection.prototype.structInArray = function(type0, type1, containsArrays, nameSuffix) {
+    UniformCollection.structInArray = function(type0, type1, containsArrays, nameSuffix) {
         if (nameSuffix === undefined) nameSuffix = '';
         /** @type {UniformCollection} */ var res = this.basicStruct(type0, type1, containsArrays, nameSuffix);
         res.getUniform(0).type = gluVT.newTypeArray(res.getUniform(0).type, 3);
@@ -568,7 +568,7 @@ define([
      * @param {string} nameSuffix
      * @return {UniformCollection}
      */
-    UniformCollection.prototype.nestedArraysStructs = function(type0, type1, nameSuffix) {
+    UniformCollection.nestedArraysStructs = function(type0, type1, nameSuffix) {
         if (nameSuffix === undefined) nameSuffix = '';
         /** @type {UniformCollection} */ var res = new UniformCollection();
         /** @type {deqpUtils.precision} */ var prec0 = deqpUtils.isDataTypeBoolOrBVec(type0) ? deqpUtils.precision.PRECISION_LAST : deqpUtils.precision.PRECISION_MEDIUMP;
@@ -601,7 +601,7 @@ define([
      * @param {string} nameSuffix
      * @return {UniformCollection}
      */
-    UniformCollection.prototype.multipleBasic = function(nameSuffix) {
+    UniformCollection.multipleBasic = function(nameSuffix) {
         if (nameSuffix === undefined) nameSuffix = '';
         /** @type {Array.<deqpUtils.DataType>} */ var types = [deqpUtils.DataType.FLOAT, deqpUtils.DataType.INT_VEC3, deqpUtils.DataType.UINT_VEC4, deqpUtils.DataType.FLOAT_MAT3, deqpUtils.DataType.BOOL_VEC2];
         /** @type {UniformCollection} */ var res = new UniformCollection();
@@ -619,7 +619,7 @@ define([
      * @param {string} nameSuffix
      * @return {UniformCollection}
      */
-    UniformCollection.prototype.multipleBasicArray = function(nameSuffix) {
+    UniformCollection.multipleBasicArray = function(nameSuffix) {
         if (nameSuffix === undefined) nameSuffix = '';
         /** @type {Array.<deqpUtils.DataType>} */ var types = [deqpUtils.DataType.FLOAT, deqpUtils.DataType.INT_VEC3, deqpUtils.DataType.BOOL_VEC2];
         /** @type {UniformCollection} */ var res = new UniformCollection();
@@ -637,7 +637,7 @@ define([
      * @param {string} nameSuffix
      * @return {UniformCollection}
      */
-    UniformCollection.prototype.multipleNestedArraysStructs = function(nameSuffix) {
+    UniformCollection.multipleNestedArraysStructs = function(nameSuffix) {
         if (nameSuffix === undefined) nameSuffix = '';
         /** @type {Array.<deqpUtils.DataType>} */ var types0 = [deqpUtils.DataType.FLOAT, deqpUtils.DataType.INT, deqpUtils.DataType.BOOL_VEC4];
         /** @type {Array.<deqpUtils.DataType>} */ var types1 = [deqpUtils.DataType.FLOAT_VEC4, deqpUtils.DataType.INT_VEC4, deqpUtils.DataType.BOOL];
@@ -1232,7 +1232,22 @@ define([
     UniformCase.prototype.constructor = UniformCase;
 
     /**
-     * UniformCase new_B. Creates a UniformCase
+     * UniformCase new_B. Creates a UniformCase. Use after constructor.
+     * @param {CaseShaderType} caseShaderType
+     * @param {UniformCollection} uniformCollection (SharedPtr)
+     * @param {deMath.deUint32} features
+     * @return {UniformCase}
+     */
+    UniformCase.prototype.newB = function(caseShaderType, uniformCollection, features) {
+        this.m_caseShaderType = caseShaderType;
+        this.m_uniformCollection = uniformCollection;
+        this.m_features = features;
+
+        return this;
+    };
+
+    /**
+     * UniformCase new_B (static). Creates a UniformCase
      * @param {string} name
      * @param {string} description
      * @param {CaseShaderType} caseShaderType
@@ -1241,16 +1256,27 @@ define([
      * @return {UniformCase}
      */
     UniformCase.new_B = function(name, description, caseShaderType, uniformCollection, features) {
-        var uniformCase = new UniformCase(name, description, 0);
-        uniformCase.m_features = features;
-        uniformCase.m_uniformCollection = uniformCollection;
-        uniformCase.m_caseShaderType = caseShaderType;
+        var uniformCase = new UniformCase(name, description, 0).newB(caseShaderType, uniformCollection, features);
 
         return uniformCase;
     };
 
     /**
-     * UniformCase new_A. Creates a UniformCase
+     * UniformCase new_A. Creates a UniformCase. Use after constructor.
+     * @param {CaseShaderType} caseShaderType
+     * @param {UniformCollection} uniformCollection (SharedPtr)
+     * @return {UniformCase}
+     */
+    UniformCase.prototype.newA = function(caseShaderType, uniformCollection) {
+       this.m_caseShaderType = caseShaderType;
+       this.m_uniformCollection = uniformCollection;
+       this.m_features = 0;
+
+       return this;
+    };
+
+    /**
+     * UniformCase new_A (static). Creates a UniformCase
      * @param {string} name
      * @param {string} description
      * @param {CaseShaderType} caseShaderType
@@ -1258,10 +1284,7 @@ define([
      * @return {UniformCase}
      */
     UniformCase.new_A = function(name, description, caseShaderType, uniformCollection) {
-        var uniformCase = new UniformCase(name, description, 0);
-        uniformCase.m_features = 0;
-        uniformCase.m_uniformCollection = uniformCollection;
-        uniformCase.m_caseShaderType = caseShaderType;
+        var uniformCase = new UniformCase(name, description, 0).newA(caseShaderType, uniformCollection);
 
         return uniformCase;
     };
@@ -2305,12 +2328,293 @@ define([
     };
 
     /**
+     * @enum CaseType
+     */
+    var CaseType = {
+        CASETYPE_UNIFORM: 0,            //!< Check info returned by glGetActiveUniform().
+        CASETYPE_INDICES_UNIFORMSIV: 1,    //!< Check info returned by glGetUniformIndices() + glGetActiveUniformsiv().
+        CASETYPE_CONSISTENCY: 2            //!< Query info with both above methods, and check consistency.
+    };
+
+    CaseType.CASETYPE_LAST = Object.keys(CaseType).length;
+
+    /**
+     * UniformInfoQueryCase class
+     * UniformCase
+     */
+    var UniformInfoQueryCase = function(name, description, shaderType, uniformCollection, caseType, additionalFeatures) {
+        UniformCase.call(this, name, description);
+        this.newB(shaderType, uniformCollection, caseType, additionalFeatures);
+        /** @type {CaseType} */ this.m_caseType = caseType;
+    };
+
+    UniformInfoQueryCase.prototype = Object.create(UniformCase.prototype);
+    UniformInfoQueryCase.prototype.constructor = UniformInfoQueryCase;
+
+    /**
+     * @param {CaseType} caseType
+     * @return {string}
+     */
+    UniformInfoQueryCase.getCaseTypeName = function(caseType) {
+        switch (caseType)
+        {
+            case CaseType.CASETYPE_UNIFORM:                return "active_uniform";
+            case CaseType.CASETYPE_INDICES_UNIFORMSIV:    return "indices_active_uniformsiv";
+            case CaseType.CASETYPE_CONSISTENCY:            return "consistency";
+            default:
+                DE_ASSERT(false);
+                return DE_NULL;
+        }
+    };
+
+    /**
+     * @param {CaseType} caseType
+     * @return {string}
+     */
+    UniformInfoQueryCase.getCaseTypeDescription = function(caseType) {
+       switch (caseType)
+       {
+           case CaseType.CASETYPE_UNIFORM:                return "Test glGetActiveUniform()";
+           case CaseType.CASETYPE_INDICES_UNIFORMSIV:    return "Test glGetUniformIndices() along with glGetActiveUniformsiv()";
+           case CaseType.CASETYPE_CONSISTENCY:            return "Check consistency between results from glGetActiveUniform() and glGetUniformIndices() + glGetActiveUniformsiv()";
+           default:
+               DE_ASSERT(false);
+               return DE_NULL;
+       }
+    };
+
+    // \note Although this is only used in UniformApiTest::init, it needs to be defined here as it's used as a template argument.
+    /**
+     * @param {string} name
+     * @param {UniformCollection} uniformCollection_
+     */
+    var UniformCollectionCase = function (name, uniformCollection_) {
+        /** @type {string} */ this.namePrefix = name ? name + '_' : '';
+        /** @type {UniformCollection} (SharedPtr) */ this.uniformCollection = uniformCollection_;
+    };
+
+    /**
+     * @param {Array.<BasicUniform>} basicUniforms
+     * @param {Array.<BasicUniformReportRef>} basicUniformReportsRef
+     * @param {ShaderProgram} program
+     * @param {deRandom.Random} rnd
+     * @return {boolean}
+     */
+    UniformInfoQueryCase.prototype.test = function(basicUniforms, basicUniformReportsRef, program, rnd) {
+        //TODO: DE_UNREF(basicUniforms);
+        //TODO: DE_UNREF(rnd);
+
+        /** @type {deMath.deUint32} */ var programGL = program.getProgram();
+        /** @type {Array.<BasicUniformReportGL>} */ var basicUniformReportsUniform = [];
+        /** @type {Array.<BasicUniformReportGL>} */ var basicUniformReportsUniformsiv = [];
+
+        if (this.m_caseType == CaseType.CASETYPE_UNIFORM || this.m_caseType == CaseType.CASETYPE_CONSISTENCY)
+        {
+            /** @type {boolena} */ var success = false;
+
+            {
+                //TODO:: const ScopedLogSection section(log, "InfoGetActiveUniform", "Uniform information queries with glGetActiveUniform()");
+                success = this.getActiveUniforms(basicUniformReportsUniform, basicUniformReportsRef, programGL);
+            }
+
+            if (!success)
+            {
+                if (this.m_caseType == CaseType.CASETYPE_UNIFORM)
+                    return false;
+                else
+                {
+                    DE_ASSERT(this.m_caseType == CaseType.CASETYPE_CONSISTENCY);
+                    bufferedLogToConsole("// Note: this is a consistency case, so ignoring above failure(s)");
+                }
+            }
+        };
+
+        if (this.m_caseType == CaseType.CASETYPE_INDICES_UNIFORMSIV || this.m_caseType == CaseType.CASETYPE_CONSISTENCY)
+        {
+            /** @type {boolena} */ var success = false;
+
+            {
+                //TODO: const ScopedLogSection section(log, "InfoGetActiveUniformsiv", "Uniform information queries with glGetUniformIndices() and glGetActiveUniformsiv()");
+                success = this.getActiveUniformsiv(basicUniformReportsUniformsiv, basicUniformReportsRef, programGL);
+            }
+
+            if (!success)
+            {
+                if (this.m_caseType == CaseType.CASETYPE_INDICES_UNIFORMSIV)
+                    return false;
+                else
+                {
+                    DE_ASSERT(this.m_caseType == CaseType.CASETYPE_CONSISTENCY);
+                    bufferedLogToConsole("// Note: this is a consistency case, so ignoring above failure(s)");
+                }
+            }
+        };
+
+        if (this.m_caseType == CaseType.CASETYPE_CONSISTENCY)
+        {
+            /** @type {boolena} */ var success = false;
+
+            {
+                //TODO: const ScopedLogSection section(log, "CompareUniformVsUniformsiv", "Comparison of results from glGetActiveUniform() and glGetActiveUniformsiv()");
+                success = this.uniformVsUniformsivComparison(basicUniformReportsUniform, basicUniformReportsUniformsiv);
+            }
+
+            if (!success)
+                return false;
+        }
+
+        return true;
+    };
+
+
+
+    /**
+     * Initializes the tests to be performed.
      */
     var init = function() {
         var state = deqpTests.runner.getState();
         var testGroup = state.testCases;
 
-        testGroup.addChild(new UniformCase('uniform_case', 'Uniform Case', deRandom.getBaseSeed()));
+        // Generate sets of UniformCollections that are used by several cases.
+        /**
+         * @enum
+         */
+        var UniformCollections = {
+            BASIC: 0,
+            BASIC_ARRAY: 1,
+            BASIC_STRUCT: 2,
+            STRUCT_IN_ARRAY: 3,
+            ARRAY_IN_STRUCT: 4,
+            NESTED_STRUCTS_ARRAYS: 5,
+            MULTIPLE_BASIC: 6,
+            MULTIPLE_BASIC_ARRAY: 7,
+            MULTIPLE_NESTED_STRUCTS_ARRAYS: 8
+        };
+
+        UniformCollections.LAST = Object.keys(UniformCollections).length;
+
+        var UniformCollectionGroup = function() {
+            /** @type {string} */ this.name = '';
+            /** @type {Array.<UniformCollectionCase>} */ this.cases = [];
+        };
+
+        /** @type {Array.<UniformCollectionGroup>} */ var defaultUniformCollections = new Array(UniformCollections.LAST);
+        
+        //Initialize
+        for(var i = 0; i < defaultUniformCollections.length; i++) defaultUniformCollections[i] = new UniformCollectionGroup();
+
+        defaultUniformCollections[UniformCollections.BASIC].name                            = "basic";
+        defaultUniformCollections[UniformCollections.BASIC_ARRAY].name                        = "basic_array";
+        defaultUniformCollections[UniformCollections.BASIC_STRUCT].name                        = "basic_struct";
+        defaultUniformCollections[UniformCollections.STRUCT_IN_ARRAY].name                    = "struct_in_array";
+        defaultUniformCollections[UniformCollections.ARRAY_IN_STRUCT].name                    = "array_in_struct";
+        defaultUniformCollections[UniformCollections.NESTED_STRUCTS_ARRAYS].name            = "nested_structs_arrays";
+        defaultUniformCollections[UniformCollections.MULTIPLE_BASIC].name                    = "multiple_basic";
+        defaultUniformCollections[UniformCollections.MULTIPLE_BASIC_ARRAY].name                = "multiple_basic_array";
+        defaultUniformCollections[UniformCollections.MULTIPLE_NESTED_STRUCTS_ARRAYS].name    = "multiple_nested_structs_arrays";
+
+        for (var dataTypeNdx = 0; dataTypeNdx < s_testDataTypes.length; dataTypeNdx++)
+        {
+            /** @type {deqpUtils.DataType} */ var dataType = s_testDataTypes[dataTypeNdx];
+            /** @type {string} */ var typeName    = deqpUtils.getDataTypeName(dataType);
+
+            defaultUniformCollections[UniformCollections.BASIC].cases.push(new UniformCollectionCase(typeName, UniformCollection.basic(dataType)));
+
+            if (deqpUtils.isDataTypeScalar(dataType) ||
+                (deqpUtils.isDataTypeVector(dataType) && deqpUtils.getDataTypeScalarSize(dataType) == 4)    ||
+                dataType == deqpUtils.DataType.FLOAT_MAT4                                                ||
+                dataType == deqpUtils.DataType.SAMPLER_2D)
+                defaultUniformCollections[UniformCollections.BASIC_ARRAY].cases.push(new UniformCollectionCase(typeName, UniformCollection.basicArray(dataType)));
+
+            if (deqpUtils.isDataTypeScalar(dataType)        ||
+                dataType == deqpUtils.DataType.FLOAT_MAT4    ||
+                dataType == deqpUtils.DataType.SAMPLER_2D)
+            {
+                /** @type {deqpUtils.DataType} */ var  secondDataType = deqpUtils.isDataTypeScalar(dataType) ? deqpUtils.getDataTypeVector(dataType, 4) :
+                                                    dataType == deqpUtils.DataType.FLOAT_MAT4 ? deqpUtils.DataType.FLOAT_MAT2 :
+                                                    dataType == deqpUtils.DataType.SAMPLER_2D ? deqpUtils.DataType.SAMPLER_CUBE :
+                                                    deqpUtils.DataType.LAST;
+                DE_ASSERT(secondDataType != deqpUtils.DataType.LAST);
+                /** @type {string} */ var secondTypeName = deqpUtils.getDataTypeName(secondDataType);
+                /** @type {string} */ var name = typeName + "_" + secondTypeName;
+
+                defaultUniformCollections[UniformCollections.BASIC_STRUCT].cases.push(new UniformCollectionCase(name, UniformCollection.basicStruct(dataType, secondDataType, false)));
+                defaultUniformCollections[UniformCollections.ARRAY_IN_STRUCT].cases.push(new UniformCollectionCase(name, UniformCollection.basicStruct(dataType, secondDataType, true)));
+                defaultUniformCollections[UniformCollections.STRUCT_IN_ARRAY].cases.push(new UniformCollectionCase(name, UniformCollection.structInArray(dataType, secondDataType, false)));
+                defaultUniformCollections[UniformCollections.NESTED_STRUCTS_ARRAYS].cases.push(new UniformCollectionCase(name, UniformCollection.nestedArraysStructs(dataType, secondDataType)));
+            }
+        }
+        defaultUniformCollections[UniformCollections.MULTIPLE_BASIC].cases.push(new UniformCollectionCase(DE_NULL, UniformCollection.multipleBasic()));
+        defaultUniformCollections[UniformCollections.MULTIPLE_BASIC_ARRAY].cases.push(new UniformCollectionCase(DE_NULL, UniformCollection.multipleBasicArray()));
+        defaultUniformCollections[UniformCollections.MULTIPLE_NESTED_STRUCTS_ARRAYS].cases.push(new UniformCollectionCase(DE_NULL, UniformCollection.multipleNestedArraysStructs()));
+
+        // Info-query cases (check info returned by e.g. glGetActiveUniforms()).
+
+        {
+            // info_query
+            /** @type {deqpTests.DeqpTest} */
+            var infoQueryGroup = deqpTests.newTest('info_query', 'Test uniform info querying functions');
+            testGroup.addChild(infoQueryGroup);
+            for (var caseTypeI = 0; caseTypeI < CaseType.CASETYPE_LAST; caseTypeI++)
+            {
+                /** @type {CaseType} */ var caseType = caseTypeI;
+                /** @type {deqpTests.DeqpTest} */
+                var caseTypeGroup = deqpTests.newTest(UniformInfoQueryCase.getCaseTypeName(caseType), UniformInfoQueryCase.getCaseTypeDescription(caseType));
+                infoQueryGroup.addChild(caseTypeGroup);
+
+                for (var collectionGroupNdx = 0; collectionGroupNdx < UniformCollections.LAST; collectionGroupNdx++)
+                {
+                    var numArrayFirstElemNameCases = caseType == CaseType.INDICES_UNIFORMSIV && collectionGroupNdx == UniformCollections.BASIC_ARRAY ? 2 : 1;
+
+                    for (var referToFirstArrayElemWithoutIndexI = 0; referToFirstArrayElemWithoutIndexI < numArrayFirstElemNameCases; referToFirstArrayElemWithoutIndexI++)
+                    {
+                        /** @type {UniformCollectionGroup} */ var collectionGroup = defaultUniformCollections[collectionGroupNdx];
+                        /** @type {string} */ var collectionGroupName = collectionGroup.name + (referToFirstArrayElemWithoutIndexI == 0 ? '' : '_first_elem_without_brackets');
+                        /** @type {deqpTests.DeqpTest} */
+                        var collectionTestGroup = deqpTests.newTest(collectionGroupName, '');
+                        caseTypeGroup.addChild(collectionTestGroup);
+
+                        for (var collectionNdx = 0; collectionNdx < collectionGroup.cases.length; collectionNdx++)
+                        {
+                            /** @type {UniformCollectionCase} */ var collectionCase = collectionGroup.cases[collectionNdx];
+
+                            for (var shaderType = 0; shaderType < CaseShaderType.CASESHADERTYPE_LAST; shaderType++)
+                            {
+                                /** @type {string} */ var name = collectionCase.namePrefix + getCaseShaderTypeName(shaderType);
+                                /** @type {UniformCollection} (SharedPtr) */ var uniformCollection = collectionCase.uniformCollection;
+
+                                collectionTestGroup.addChild(new UniformInfoQueryCase(name, '', shaderType, uniformCollection, caseType,
+                                                                                       referToFirstArrayElemWithoutIndexI == 0 ? 0 : Feature.ARRAY_FIRST_ELEM_NAME_NO_INDEX));
+                            }
+                        }
+                    }
+                }
+
+                // Info-querying cases when unused uniforms are present.
+
+                {
+                    /** @type {deqpTests.DeqpTest} */
+                    var unusedUniformsGroup = deqpTests.newTest('unused_uniforms', 'Test with unused uniforms');
+                    caseTypeGroup.addChild(unusedUniformsGroup);
+
+                    /** @type {UniformCollectionGroup} */ var collectionGroup = defaultUniformCollections[UniformCollections.ARRAY_IN_STRUCT];
+
+                    for (var collectionNdx = 0; collectionNdx < collectionGroup.cases.length; collectionNdx++)
+                    {
+                        /** @type {UniformCollectionCase} */ var collectionCase = collectionGroup.cases[collectionNdx];
+                        /** @type {string} */ var collName = collectionCase.namePrefix;
+                        /** @type {UniformCollection} (SharedPtr) */ var uniformCollection = collectionCase.uniformCollection;
+
+                        for (var shaderType = 0; shaderType < CaseShaderType.CASESHADERTYPE_LAST; shaderType++)
+                        {
+                            /** @type {string} */ var name = collName + getCaseShaderTypeName(shaderType);
+                            unusedUniformsGroup.addChild(new UniformInfoQueryCase(name, '', shaderType, uniformCollection, caseType,
+                                                                                   Feature.UNIFORMUSAGE_EVERY_OTHER | Feature.ARRAYUSAGE_ONLY_MIDDLE_INDEX));
+                        }
+                    }
+                }
+            }
+        }
     };
 
     /**
