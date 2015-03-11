@@ -464,8 +464,9 @@ define(['framework/opengl/gluShaderUtil'], function(deqpUtils) {
      * @param {number} level
      * @return {string}
      */
-    var declareStructType = function(structType, level) {
+    var declareStructType = function(structType, level_) {
         /** @type {string} */ var str = 'struct';
+        var level = level_ || 0;
 
         // Type name is optional.
         if (structType.hasTypeName())

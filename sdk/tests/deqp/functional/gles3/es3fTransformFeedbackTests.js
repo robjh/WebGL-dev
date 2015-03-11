@@ -88,24 +88,9 @@ define(['framework/opengl/gluShaderUtil',
      * @return {Object}
      */
     var Varying = (function(name, type, interpolation) {
-        var container = {
-            /** @type {string}        */ name: null,
-            /** @type {gluVT.VarType} */ type: null,
-            /** @type {number}        */ interpolation: null
-        };
-
-        if (
-            typeof(name) !== 'undefined' &&
-            typeof(type) !== 'undefined' &&
-            typeof(interpolation) !== 'undefined'
-        ) {
-            container.name = name;
-            container.type = type;
-            container.interpolation = interpolation;
-        }
-
-        return container;
-
+        this.name = name;
+        this.type = type;
+        this.interpolation = interpolation;
     });
 
     /** findAttributeNameEquals
@@ -214,7 +199,7 @@ define(['framework/opengl/gluShaderUtil',
         };
 
         this.addVarying = function(name, type, interp) {
-            m_varyings.push(Varying(name, type, interp));
+            m_varyings.push(new Varying(name, type, interp));
         };
 
         this.addTransformFeedbackVarying = function(name) {
@@ -367,7 +352,7 @@ define(['framework/opengl/gluShaderUtil',
                  + 'uniform highp vec4 u_bias;\n';
 
         if (addPointSize) {
-            vtx += 'in highp float a_pointSize;\n';
+            vtx.str += 'in highp float a_pointSize;\n';
         }
 
         // Declare attributes.
@@ -387,12 +372,12 @@ define(['framework/opengl/gluShaderUtil',
                 var attribName = getAttributeName(name, vecIter.getPath());
                 
                 // TODO: only strings are needed for attribType, attribName
-                vtx.str += 'in ' + glu.declare(attribType, attribName) + ';\n'; 
+                vtx.str += 'in ' + gluVT.declareVariable(attribType, attribName) + ';\n'; 
                 
             }
         }
 
-        // Declare vayrings.
+        // Declare varyings.
         for (var ndx = 0; ndx < 2; ++ndx) {
         /** @type {string} */ var inout = ndx ? 'in' : 'out';
         /** @type {string} */ var shader = ndx ? frag : vtx;
@@ -400,15 +385,16 @@ define(['framework/opengl/gluShaderUtil',
             for (var i = 0; i < spec.getStructs().length; ++i) {
                 var struct = spec.getStructs()[i];
                 if (struct.hasTypeName()) {
-                    shader += glu.declare(struct) + ';\n'; // TODO: only a string is needed for struct
+                    shader.str += gluVT.declareStructType(struct) + ';\n'; // TODO: only a string is needed for struct
                 }
             }
 
             /** @type {Array.<Varying>} */ var varyings = spec.getVaryings();
             for (var i = 0; i < varyings.length; ++i) {
-                shader.str += getInterpolationName(varyings.interpolation)
-                           + ' ' + inout + ' ' +
-                           + glu.declare(varyings.type, varyings.name) // TODO: only strings are needed for varyings.type and varyings.name
+            	var varying = varyings[i];
+                shader.str += getInterpolationName(varying.interpolation)
+                           + ' ' + inout + ' '
+                           + gluVT.declareVariable(varying.type, varying.name) // TODO: only strings are needed for varyings.type and varyings.name
                            + ';\n';
             }
         }
@@ -430,17 +416,19 @@ define(['framework/opengl/gluShaderUtil',
 
             // TODO: check this loop, original code:
             // for (glu::VectorTypeIterator vecIter = glu::VectorTypeIterator::begin(&type); vecIter != glu::VectorTypeIterator::end(&type); vecIter++)
-            for (var vecIter = gluVTU.VectorTypeIterator(type); !vecIter.end(); vecIter.next()) {
-            /** @type {gluVarType.VarType} */var subType = gluVTU.getVarType(type, type[i].getPath());
-            /** @type {string} */ var attribName = getAttributeName(name, type[i].getPath());
+            for (var vecIter = new gluVTU.VectorTypeIterator(type); !vecIter.end(); vecIter.next()) {
+            /** @type {gluVarType.VarType} */var subType = gluVTU.getVarType(type, vecIter.getPath());
+            /** @type {string} */ var attribName = getAttributeName(name, vecIter.getPath());
 
                 if (!(
                     subType.isBasicType() &&
-                    deqpUtils.isDataTypeScalarOrVector(subType.getBasicType)
+                    deqpUtils.isDataTypeScalarOrVector(subType.getBasicType())
                 )) throw new Error('Not a scalar or vector.');
 
+                /* TODO: Fix converting type and vecIter to string */
+
                 // Vertex: assign from attribute.
-                vtx.str += '\t' + name + type[i] + ' = ' + attribName + ';\n';
+                vtx.str += '\t' + name + type + ' = ' + attribName + ';\n';
 
                 // Fragment: add to res variable.
                 var scalarSize = deqpUtils.getDataTypeScalarSize(subType.getBasicType());
@@ -474,7 +462,7 @@ define(['framework/opengl/gluShaderUtil',
      */
     var createVertexCaptureProgram = function(gl, spec, bufferMode, primitiveType) {
 
-    /** @type {Object.<string, string>} */ var source = genShaderSources(spec, primitiveType == gl.POINTS /* Is point size required? */);
+    /** @type {Object.<string, string>} */ var source = genShaderSources(spec, primitiveType === deqpDraw.primitiveType.POINTS /* Is point size required? */);
 
     /** @type {deqpProgram.ShaderProgram} */ var programSources = new deqpProgram.ProgramSources();
         programSources.add(new deqpProgram.VertexSource(source.vertSource))
@@ -929,6 +917,7 @@ define(['framework/opengl/gluShaderUtil',
                 this.m_gl = context;
                 this.m_bufferMode = bufferMode;
                 this.m_primitiveType = primitiveType;
+		        this.m_progSpec = new ProgramSpec();
             }
         };
 
@@ -1079,7 +1068,6 @@ define(['framework/opengl/gluShaderUtil',
         };
 
         /* protected */
-        this.m_progSpec = new ProgramSpec();
         this.m_bufferMode = null;
         this.m_primitiveType = null;
 
