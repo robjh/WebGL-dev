@@ -43,6 +43,33 @@ var TextureChannelClass = {
         FLOATING_POINT: 4
 };
 
+/** linearChannelToSRGB
+ * @param {number} cl, a float in the C++ version
+ * @return {Array}
+ */
+var linearChannelToSRGB = function(cl) {
+    if (cl <= 0.0)
+        return 0.0;
+    else if (cl < 0.0031308)
+        return 12.92 * cl;
+    else if (cl < 1.0)
+        return 1.055 * Math.pow(cl, 0.41666) - 0.055;
+    else
+        return 1.0;
+};
+
+/** linearToSRGB
+ * @param {Array.<number>} cl
+ * @return {Array.<number>}
+ */
+var linearToSRGB = function(cl) {
+    return [linearChannelToSRGB(cl[0]),
+            linearChannelToSRGB(cl[1]),
+            linearChannelToSRGB(cl[2]),
+            cl[3]
+            ];
+};
+
 var getTextureChannelClass = function(channelType) {
 
     switch (channelType) {
@@ -71,6 +98,33 @@ var getTextureChannelClass = function(channelType) {
 
     default: return TextureChannelClass.LAST;
     }
+
+};
+
+/** getSubregion
+ * @param {tcuTexture.PixelBufferAccess} access
+ * @param {number} x
+ * @param {number} y
+ * @param {number} z
+ * @param {number} width
+ * @param {number} height
+ * @param {number} depth
+ * @return {tcuTexture.PixelBufferAccess}
+ */
+var getSubregion = function(access, x, y, z, width, height, depth) {
+
+    DE_ASSERT(deMath.deInBounds32(x, 0, access.getWidth()) && deMath.deInRange32(x + width, x, access.getWidth()));
+    DE_ASSERT(deMath.deInBounds32(y, 0, access.getHeight()) && deMath.deInRange32(y + height, y, access.getHeight()));
+    DE_ASSERT(deMath.deInBounds32(z, 0, access.getDepth()) && deMath.deInRange32(z + depth, z, access.getDepth()));
+    return new tcuTexture.PixelBufferAccess({
+        format: access.getFormat(),
+        width: width,
+        height: height,
+        depth: depth,
+        rowPitch: access.getRowPitch(),
+        slicePitch: access.getSlicePitch(),
+        data: access.getDataPtr() + access.getFormat().getPixelSize() * x + access.getRowPitch() * y + access.getSlicePitch() * z
+        });
 
 };
 
