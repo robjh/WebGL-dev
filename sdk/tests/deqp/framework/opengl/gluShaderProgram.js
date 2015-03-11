@@ -30,8 +30,6 @@ var shaderType = {
     FRAGMENT: 1
 };
 
-shaderType.LAST = Object.keys(shaderType).length;
-
 /**
  * Get GL shader type from shaderType
  * @param {WebGLRenderingContext} gl WebGL context
@@ -53,9 +51,9 @@ var getGLShaderType = function(gl, type) {
 /**
  * Declares shader information
  */
-var ShaderInfo = function() {
-    this.type;               /** Shader type. */
-    this.source;             /** Shader source. */
+var ShaderInfo = function(type, source) {
+    this.type = type;               /** Shader type. */
+    this.source = source;             /** Shader source. */
     this.infoLog;            /** Compile info log. */
     this.compileOk = false;  /** Did compilation succeed? */
     this.compileTimeUs = 0;  /** Compile time in microseconds (us). */
@@ -211,10 +209,12 @@ var ShaderProgram = function(gl, programSources) {
 
         for (var i = 0; i < programSources.sources.length; i++) {
         /** @type {Shader} */ var shader = new Shader(gl, programSources.sources[i].type);
+            console.log("Shader:\n" + programSources.sources[i].source);
             shader.setSources(programSources.sources[i].source);
             shader.compile();
             this.shaders.push(shader);
             this.shadersOK = this.shadersOK && shader.getCompileStatus();
+            console.log("Compile status: " + shader.getCompileStatus());
         }
 
         if (this.shadersOK) {
@@ -346,7 +346,7 @@ var ProgramSources = function() {
                 break;
 
             case containerTypes.TRANSFORM_FEEDBACK_MODE:
-                this.transformFeedbackBufferMode = mode.mode;
+                this.transformFeedbackBufferMode = item.mode;
                 break;
 
             case containerTypes.TRANSFORM_FEEDBACK_VARYING:
@@ -358,7 +358,7 @@ var ProgramSources = function() {
                 break;
 
             case containerTypes.SHADER_SOURCE:
-                this.sources[item.shaderType].push(item.source);
+                this.sources.push(new ShaderInfo(item.shaderType, item.source));
                 break;
 
             case containerTypes.PROGRAM_SEPARABLE:

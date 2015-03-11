@@ -505,12 +505,15 @@ var isDataTypeScalarOrVector = function(dataType) {
         case DataType.FLOAT_VEC2:
         case DataType.FLOAT_VEC3:
         case DataType.FLOAT_VEC4:
+        case DataType.INT:
         case DataType.INT_VEC2:
         case DataType.INT_VEC3:
         case DataType.INT_VEC4:
+        case DataType.UINT:
         case DataType.UINT_VEC2:
         case DataType.UINT_VEC3:
         case DataType.UINT_VEC4:
+        case DataType.BOOL:
         case DataType.BOOL_VEC2:
         case DataType.BOOL_VEC3:
         case DataType.BOOL_VEC4:

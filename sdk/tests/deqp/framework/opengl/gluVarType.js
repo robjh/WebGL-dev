@@ -36,8 +36,6 @@ define(['framework/opengl/gluShaderUtil'], function(deqpUtils) {
        TYPE_STRUCT: 2
     };
 
-    Type.TYPE_LAST = Object.keys(Type).length;
-
     /**
     * TypeArray struct
     * @param {VarType} elementType
@@ -52,7 +50,7 @@ define(['framework/opengl/gluShaderUtil'], function(deqpUtils) {
     * VarType class
     */
     var VarType = function() {
-       /** @type {Type} */ this.m_type = Type.TYPE_LAST;
+       /** @type {Type} */ this.m_type = undefined;
        /** @type {deMath.deUint32} */ this.m_flags = 0;
 
        /*
@@ -63,7 +61,7 @@ define(['framework/opengl/gluShaderUtil'], function(deqpUtils) {
        this.m_data = undefined;
     };
 
-    VarType.UNIZED_ARRAY = -1;
+    VarType.UNSIZED_ARRAY = -1;
 
     /**
     * Creates a basic type VarType. Use this after the constructor call.
@@ -179,8 +177,7 @@ define(['framework/opengl/gluShaderUtil'], function(deqpUtils) {
         {
             case Type.TYPE_BASIC:
             {
-                /** @type {deqpUtils.DataType} */ var m_data = this.m_data;
-                return deqpUtils.getDataTypeScalarSize(m_data.basic.type);
+                return deqpUtils.getDataTypeScalarSize(this.getBasicType());
             }
 
             // TODO: check implementation below: return m_data.array.elementType->getScalarSize()*m_data.array.size;
@@ -472,8 +469,9 @@ define(['framework/opengl/gluShaderUtil'], function(deqpUtils) {
      * @param {number} level
      * @return {string}
      */
-    var declareStructType = function(structType, level) {
+    var declareStructType = function(structType, level_) {
         /** @type {string} */ var str = 'struct';
+        var level = level_ || 0;
 
         // Type name is optional.
         if (structType.hasTypeName())
