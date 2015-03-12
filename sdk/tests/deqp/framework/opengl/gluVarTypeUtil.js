@@ -104,6 +104,7 @@ define([
         NUMBER: 4,
         END: 5
     };
+    VarTokenizer.s_Token.length = Object.keys(VarTokenizer.s_Token).length;
 
     /**
      * VarType subtype path utilities class.
@@ -138,6 +139,7 @@ define([
         MATRIX_COLUMN: 2,
         VECTOR_COMPONENT: 3
     };
+    VarTypeComponent.s_Type.length = Object.keys(VarTypeComponent.s_Type).length;
 
     /**
      * Type path formatter.

@@ -14,42 +14,73 @@
 <div id="console"></div>
 <canvas id="canvas" width="320" height="240"></canvas>
 <script>
+console.log("hello world");
     requirejs.config({
         baseUrl: "../../"
     });
 
     requirejs([
-        "functional/gles3/es3fTransformFeedbackTests"
-    ], function(tft) {
+        "functional/gles3/es3fTransformFeedbackTests",
+        "framework/opengl/gluVarTypeUtil"
+    ], function(tft, gluVTU) {
 
         var wtu = WebGLTestUtils;
         var gl = wtu.create3DContext('canvas', {preserveDrawingBuffer: true}, 2);
 
-    gl.bindTransformFeedback = function(target, id) {
-        console.log('bindTransformFeedback(' + target + ',' + id + ')');
-    };
-    gl.bufferData = function(target, size, usage) {
-        console.log('bufferData(' + target + ',' + size + ',' + usage +')');
-    };
-    gl.bindBufferBase = function(target, index, buffer) {
-        console.log('bindBufferBase(' + target + ',' + index + ',' + buffer +')');
-    };
-    gl.beginQuery =function(target, primitiveQuery) {
-        console.log('beginQuery(' + target + ',' + primitiveQuery +')');
-    };
-    gl.getError = function() {
-        return gl.NO_ERROR;
-    };
-    gl.getBufferSubData = function(target, offset, returnedData) {
-        console.log('getBufferSubData(' + target + ',' + offset + returnedData +')');
-    };
+//*
+        gl.bindTransformFeedback = function(target, id) {
+            console.log('bindTransformFeedback(' + target + ',' + id + ')');
+        };
+        gl.bufferData = function(target, size, usage) {
+            console.log('bufferData(' + target + ',' + size + ',' + usage +')');
+        };
+        gl.bindBufferBase = function(target, index, buffer) {
+            console.log('bindBufferBase(' + target + ',' + index + ',' + buffer +')');
+        };
+        gl.beginQuery =function(target, primitiveQuery) {
+            console.log('beginQuery(' + target + ',' + primitiveQuery +')');
+        };
+        gl.getError = function() {
+            return gl.NO_ERROR;
+        };
+        gl.getBufferSubData = function(target, offset, returnedData) {
+            console.log('getBufferSubData(' + target + ',' + offset + returnedData +')');
+        };
+//*/
+        
+/*
+        var whitelist = [];
+        var blacklist = [
+            'bindTransformFeedback', 'bufferData', 'bindBufferBase', 'beginQuery', 'getBufferSubData'
+        ];
+        
+        for (var key in gl.__proto__) {
+            if (whitelist.indexOf(key) != -1) continue;
+            if (blacklist.indexOf(key) != -1) {
+                gl[key] = (function() {
+                    console.log("faulty " + key + '(' + arguments + ')');
+                });
+            }
+            else if (typeof(gl.__proto__) == 'function'){
+                gl[key] = (function(func) {
+                    return (function() {
+                        console.log("trying " + key);
+                        func.apply(gl, arguments);
+                    });
+                }(gl[key]));
+            }
+        }
+//*/
+        
         try {
             tft.run(gl);
         }
         catch(err) {
             bufferedLogToConsole(err);
         }
-
+        
+        
+        
     });
 </script>
 </body>
