@@ -88,10 +88,10 @@ define([
         deqpUtils.DataType.INT_VEC3,
         deqpUtils.DataType.INT_VEC4,
 
-        deqpUtils.DataType.UINT,
+        /*TODO: Uncomment this - deqpUtils.DataType.UINT,
         deqpUtils.DataType.UINT_VEC2,
         deqpUtils.DataType.UINT_VEC3,
-        deqpUtils.DataType.UINT_VEC4,
+        deqpUtils.DataType.UINT_VEC4,*/
 
         deqpUtils.DataType.BOOL,
         deqpUtils.DataType.BOOL_VEC2,
@@ -244,8 +244,8 @@ define([
         else
         {
             DE_ASSERT(type.isStructType());
-            /** @type {gluVT.StructType} */ var structType = type.getStructPtr();
-            for (var i = 0; i < structType.getNumMembers(); i++)
+            /** @type {gluVT.StructType} */ var structType = type.getStruct();
+            for (var i = 0; i < structType.getSize(); i++)
                 if (typeContainsMatchingBasicType(structType.getMember(i).getType(), predicate))
                     return true;
             return false;
@@ -268,8 +268,8 @@ define([
         else
         {
             DE_ASSERT(type.isStructType());
-            /** @type {gluVT.StructType} */ var structType = type.getStructPtr();
-            for (var i = 0; i < structType.getNumMembers(); i++)
+            /** @type {gluVT.StructType} */ var structType = type.getStruct();
+            for (var i = 0; i < structType.getSize(); i++)
                 getDistinctSamplerTypes(dst, structType.getMember(i).getType());
         }
     };
@@ -286,9 +286,9 @@ define([
         else
         {
             DE_ASSERT(type.isStructType());
-            /** @type {gluVT.StructType} */ var structType = type.getStructPtr();
+            /** @type {gluVT.StructType} */ var structType = type.getStruct();
             /** @type {number} */ var sum = 0;
-            for (var i = 0; i < structType.getNumMembers(); i++)
+            for (var i = 0; i < structType.getSize(); i++)
                 sum += getNumSamplersInType(structType.getMember(i).getType());
             return sum;
         }
@@ -573,9 +573,9 @@ define([
         /** @type {UniformCollection} */ var res = new UniformCollection();
         /** @type {deqpUtils.precision} */ var prec0 = deqpUtils.isDataTypeBoolOrBVec(type0) ? deqpUtils.precision.PRECISION_LAST : deqpUtils.precision.PRECISION_MEDIUMP;
         /** @type {deqpUtils.precision} */ var prec1 = deqpUtils.isDataTypeBoolOrBVec(type1) ? deqpUtils.precision.PRECISION_LAST : deqpUtils.precision.PRECISION_MEDIUMP;
-        /** @type {gluVT.StructType} */ var structType = new gluVT.StructType('structType' + nameSuffix);
-        /** @type {gluVT.StructType} */ var subStructType = new gluVT.StructType('subStructType' + nameSuffix);
-        /** @type {gluVT.StructType} */ var subSubStructType = new gluVT.StructType('subSubStructType' + nameSuffix);
+        /** @type {gluVT.StructType} */ var structType = gluVT.newStructType('structType' + nameSuffix);
+        /** @type {gluVT.StructType} */ var subStructType = gluVT.newStructType('subStructType' + nameSuffix);
+        /** @type {gluVT.StructType} */ var subSubStructType = gluVT.newStructType('subSubStructType' + nameSuffix);
 
         subSubStructType.addMember('mss0', gluVT.newTypeBasic(type0, prec0));
         subSubStructType.addMember('mss1', gluVT.newTypeBasic(type1, prec1));
@@ -603,7 +603,7 @@ define([
      */
     UniformCollection.multipleBasic = function(nameSuffix) {
         if (nameSuffix === undefined) nameSuffix = '';
-        /** @type {Array.<deqpUtils.DataType>} */ var types = [deqpUtils.DataType.FLOAT, deqpUtils.DataType.INT_VEC3, deqpUtils.DataType.UINT_VEC4, deqpUtils.DataType.FLOAT_MAT3, deqpUtils.DataType.BOOL_VEC2];
+        /** @type {Array.<deqpUtils.DataType>} */ var types = [deqpUtils.DataType.FLOAT, deqpUtils.DataType.INT_VEC3, /*TODO: Uncomment - deqpUtils.DataType.UINT_VEC4,*/ deqpUtils.DataType.FLOAT_MAT3, deqpUtils.DataType.BOOL_VEC2];
         /** @type {UniformCollection} */ var res = new UniformCollection();
 
         for (var i = 0; i < types.length; i++)
@@ -674,7 +674,7 @@ define([
             {
                 var temp = generateRandomType(3, structIdx, structTypes, rnd);
                 structIdx = temp.ndx;
-                uniform.type = (/*'u_var' + i,*/ temp.type);
+                uniform.type = (/*TODO: What's this? 'u_var' + i,*/ temp.type);
             } while (res.getNumSamplers() + getNumSamplersInType(uniform.type) > MAX_NUM_SAMPLER_UNIFORMS);
 
             res.addUniform(uniform);
@@ -1147,7 +1147,7 @@ define([
         return undefined;
     };
 
-    // Reference values for info that is expected to be reported by glGetActiveUniform() or glGetActiveUniformsiv().
+    // Reference values for info that is expected to be reported by glGetActiveUniform() or glGetActiveUniforms().
     /**
      * @param {string} name_
      * @param {deqpUtils.DataType} type_
@@ -1156,29 +1156,27 @@ define([
     var BasicUniformReportRef = function(name_, type_, used) {
         /** @type {string} */ this.name = name_;
         // \note minSize and maxSize are for arrays and can be distinct since implementations are allowed, but not required, to trim the inactive end indices of arrays.
-        /** @type {number} */ this.minSize;
-        /** @type {number} */ this.maxSize;
+        /** @type {number} */ this.minSize = 1;
+        /** @type {number} */ this.maxSize = 1;
         /** @type {deqpUtils.DataType} */ this.type = type_;
         /** @type {boolean} */ this.isUsedInShader = used;
     };
 
     /**
-     * @param {string} name_
+     * To be used after constructor
      * @param {number} minS
      * @param {number} maxS
-     * @param {deqpUtils.DataType} type_
-     * @param {boolean} used
      */
-    BasicUniformReportRef.prototype.constructor_A = function(name_, minS, maxS, type_, used) {
-        this.name = name_;
+    BasicUniformReportRef.prototype.constructor_A = function(minS, maxS) {
         this.minSize = minS;
         this.maxSize = maxS;
-        this.type = type_;
-        this.isUsedInShader = used;
+
         DE_ASSERT(this.minSize <= this.maxSize);
+
+        return this;
     };
 
-    // Info that is actually reported by glGetActiveUniform() or glGetActiveUniformsiv().
+    // Info that is actually reported by glGetActiveUniform() or glGetActiveUniforms().
     /**
      * @param {string} name_
      * @param {number} nameLength_
@@ -1366,7 +1364,7 @@ define([
         {
             /** @type {number} */ var size = varType.getArraySize();
             /** @type {string} */ var arrayRootName = '' + varName + '[0]';
-            /** @type {Array.<boolean>} */ var isElemActive;
+            /** @type {Array.<boolean>} */ var isElemActive = [];
 
             for (var elemNdx = 0; elemNdx < varType.getArraySize(); elemNdx++)
             {
@@ -1396,16 +1394,16 @@ define([
                 /** @type {number} */ var minSize;
                 for (minSize = varType.getArraySize(); minSize > 0 && !isElemActive[minSize - 1]; minSize--) {}
 
-                basicUniformReportsDst.push(new BasicUniformReportRef(arrayRootName, minSize, size, varType.getElementType().getBasicType(), isParentActive && minSize > 0));
+                basicUniformReportsDst.push(new BasicUniformReportRef(arrayRootName, varType.getElementType().getBasicType(), isParentActive && minSize > 0).constructor_A(minSize, size));
             }
         }
         else
         {
             DE_ASSERT(varType.isStructType());
 
-            /** @type {gluVT.StructType} */ var structType = varType.getStructPtr();
+            /** @type {gluVT.StructType} */ var structType = varType.getStruct();
 
-            for (var i = 0; i < structType.getNumMembers(); i++)
+            for (var i = 0; i < structType.getSize(); i++)
             {
                 /** @type {gluVT.StructMember} */ var member = structType.getMember(i);
                 /** @type {string} */ var memberFullName = '' + varName + '.' + member.getName();
@@ -1493,7 +1491,7 @@ define([
      */
     UniformCase.prototype.writeUniformCompareExpr = function(dst, uniform) {
         if (deqpUtils.isDataTypeSampler(uniform.type))
-            dst += 'compare_' + deqpUtils.getDataTypeName(getSamplerLookupReturnType(uniform.type)) + '(texture2D(' + uniform.name + ', vec' + getSamplerNumLookupDimensions(uniform.type) + '(0.0))';
+            dst += 'compare_' + deqpUtils.getDataTypeName(getSamplerLookupReturnType(uniform.type)) + '(texture(' + uniform.name + ', vec' + getSamplerNumLookupDimensions(uniform.type) + '(0.0))'; //WebGL2.0
         else
             dst += 'compare_' + deqpUtils.getDataTypeName(uniform.type) + '(' + uniform.name;
 
@@ -1534,9 +1532,9 @@ define([
         /** @type {boolean} */ var isVertexCase = this.m_caseShaderType == CaseShaderType.CASESHADERTYPE_VERTEX || this.m_caseShaderType == CaseShaderType.CASESHADERTYPE_BOTH;
         /** @type {string} */ var result = '';
 
-        result += '//#version 300 es\n' +
-                  '/*in*/ highp vec4 a_position;\n' +
-                  '/*out*/ mediump float v_vtxOut;\n' +
+        result += '#version 300 es\n' + //WebGL2.0
+                  'in highp vec4 a_position;\n' + //WebGL2.0
+                  'out mediump float v_vtxOut;\n' + //WebGL2.0
                   '\n';
 
         if (isVertexCase)
@@ -1564,15 +1562,15 @@ define([
         /**@type {boolean} */ var isFragmentCase = this.m_caseShaderType == CaseShaderType.CASESHADERTYPE_FRAGMENT || this.m_caseShaderType == CaseShaderType.CASESHADERTYPE_BOTH;
         /**@type {string} */ var result = '';
 
-        result += '//#version 300 es\n' +
-                  '/*in*/ mediump float v_vtxOut;\n' +
+        result += '#version 300 es\n' + //WebGL2.0
+                  'in mediump float v_vtxOut;\n' + //WebGL2.0
                   '\n';
 
         if (isFragmentCase)
             result = this.writeUniformDefinitions(result);
 
         result += '\n' +
-                  '/*layout(location = 0) out*/ mediump vec4 dEQP_FragColor;\n' +
+                  'layout(location = 0) out mediump vec4 dEQP_FragColor;\n' + //WebGL2.0
                   '\n' +
                   'void main (void)\n' +
                   '{\n' +
@@ -1648,7 +1646,7 @@ define([
      * @param {deMath.deUint32} programGL
      * @return {boolean}
      */
-    UniformCase.prototype.getActiveUniforms = function(basicUniformReportsDst, basicUniformReportsRef, programGL) {
+    UniformCase.prototype.getActiveUniformsOneByOne = function(basicUniformReportsDst, basicUniformReportsRef, programGL) {
         /** @type {number} (GLint)*/ var numActiveUniforms = 0;
         /** @type {boolean} */ var success = true;
 
@@ -1675,10 +1673,10 @@ define([
 
             bufferedLogToConsole('// Got name = ' + reportedNameStr + ', size = ' + reportedSize + ', type = ' + deqpUtils.getDataTypeName(reportedType));
 
-            if (reportedNameStr.indexOf('gl_') != 0) // Ignore built-in uniforms.
+            if (reportedNameStr.indexOf('gl_') == -1) // Ignore built-in uniforms.
             {
                 /** @type {number} */ var referenceNdx;
-                for (referenceNdx = 0; referenceNdx < basicUniformReportsRef.lenght; referenceNdx++)
+                for (referenceNdx = 0; referenceNdx < basicUniformReportsRef.length; referenceNdx++)
                 {
                     if (basicUniformReportsRef[referenceNdx].name == reportedNameStr)
                         break;
@@ -1697,7 +1695,7 @@ define([
                     DE_ASSERT(reference.minSize >= 1 || (reference.minSize == 0 && !reference.isUsedInShader));
                     DE_ASSERT(reference.minSize <= reference.maxSize);
 
-                    if (BasicUniformReportGL.findWithName(basicUniformReportsDst, reportedNameStr) != basicUniformReportsDst[basicUniformReportsDst.length - 1])
+                    if (BasicUniformReportGL.findWithName(basicUniformReportsDst, reportedNameStr) !== undefined)
                     {
                         bufferedLogToConsole('// FAILURE: same uniform name reported twice');
                         success = false;
@@ -1724,7 +1722,7 @@ define([
         for (var i = 0; i < basicUniformReportsRef.length; i++)
         {
             /** @type {BasicUniformReportRef} */ var expected = basicUniformReportsRef[i];
-            if (expected.isUsedInShader && BasicUniformReportGL.findWithName(basicUniformReportsDst, expected.name) == basicUniformReportsDst[basicUniformReportsDst.length - 1])
+            if (expected.isUsedInShader && BasicUniformReportGL.findWithName(basicUniformReportsDst, expected.name) === undefined)
             {
                 bufferedLogToConsole('// FAILURE: uniform with name ' + expected.name + ' was not reported by GL');
                 success = false;
@@ -1776,9 +1774,8 @@ define([
             /** @type {Array.<number>} (GLint) */ var uniformSizeBuf = new Array(validUniformIndices.length);
             /** @type {Array.<number>} (GLint) */ var uniformTypeBuf = new Array(validUniformIndices.length);
 
-            gluDefs.GLU_CHECK_CALL(function() {uniformNameBuf = gl.getActiveUniformsiv(programGL, validUniformIndices, gl.UNIFORM_NAME_LENGTH);});
-            gluDefs.GLU_CHECK_CALL(function() {uniformSizeBuf = gl.getActiveUniformsiv(programGL, validUniformIndices, gl.UNIFORM_SIZE);});
-            gluDefs.GLU_CHECK_CALL(function() {uniformTypeBuf = gl.getActiveUniformsiv(programGL, validUniformIndices, gl.UNIFORM_TYPE);});
+            gluDefs.GLU_CHECK_CALL(function() {uniformSizeBuf = gl.getActiveUniforms(programGL, validUniformIndices, gl.UNIFORM_SIZE);});
+            gluDefs.GLU_CHECK_CALL(function() {uniformTypeBuf = gl.getActiveUniforms(programGL, validUniformIndices, gl.UNIFORM_TYPE);});
 
             {
                 /** @type {number} */ var validNdx = -1; // Keeps the corresponding index to validUniformIndices while unifNdx is the index to uniformIndices.
@@ -1791,7 +1788,7 @@ define([
 
                     /** @type {BasicUniformReportRef} */ var reference = basicUniformReportsRef[unifNdx];
                     /** @type {number} */ var reportedIndex = validUniformIndices[validNdx];
-                    /** @type {number} */ var reportedNameLength = uniformNameBuf[validNdx].length;
+                    /** @type {number} */ var reportedNameLength = reference.name.length;
                     /** @type {number} */ var reportedSize = uniformSizeBuf[validNdx];
                     /** @type {deqpUtils.DataType} */ var reportedType = deqpUtils.getDataTypeFromGLType(uniformTypeBuf[validNdx]);
 
@@ -1849,19 +1846,19 @@ define([
                     bufferedLogToConsole("// FAILURE: glGetActiveUniform() and glGetUniformIndices() gave different indices for uniform " + uniformName);
                     success = false;
                 }
-                if (uniformResult.nameLength + 1 != uniformsResult.nameLength)
+                if (uniformResult.nameLength != uniformsResult.nameLength)
                 {
-                    bufferedLogToConsole("// FAILURE: glGetActiveUniform() and glGetActiveUniformsiv() gave incompatible name lengths for uniform " + uniformName);
+                    bufferedLogToConsole("// FAILURE: glGetActiveUniform() and glGetActiveUniforms() gave incompatible name lengths for uniform " + uniformName);
                     success = false;
                 }
                 if (uniformResult.size != uniformsResult.size)
                 {
-                    bufferedLogToConsole("// FAILURE: glGetActiveUniform() and glGetActiveUniformsiv() gave different sizes for uniform " + uniformName);
+                    bufferedLogToConsole("// FAILURE: glGetActiveUniform() and glGetActiveUniforms() gave different sizes for uniform " + uniformName);
                     success = false;
                 }
                 if (uniformResult.type != uniformsResult.type)
                 {
-                    bufferedLogToConsole("// FAILURE: glGetActiveUniform() and glGetActiveUniformsiv() gave different types for uniform " + uniformName);
+                    bufferedLogToConsole("// FAILURE: glGetActiveUniform() and glGetActiveUniforms() gave different types for uniform " + uniformName);
                     success = false;
                 }
             }
@@ -1878,7 +1875,7 @@ define([
             /** @type {sting} */ var uniformsName = uniformsResult.name;
             /** @type {BasicUniformReportGL} */ var uniformsResultIt = BasicUniformReportGL.findWithName(uniformsResults, uniformsName);
 
-            if (uniformsResultIt !== undefined)
+            if (uniformsResultIt === undefined)
             {
                 bufferedLogToConsole("// FAILURE: uniform " + uniformsName + " was reported active by glGetUniformIndices() but not by glGetActiveUniform()");
                 success = false;
@@ -2030,7 +2027,7 @@ define([
                 if (isArrayMember)
                 {
                     /** @type {BasicUniform} */ var elemUnif = BasicUniform.findWithName(basicUniforms, curName);
-                    if (elemUnif == basicUniforms[basicUniforms.length - 1])
+                    if (elemUnif === undefined)
                         continue;
                     unifValue = elemUnif.finalValue;
                 }
@@ -2294,7 +2291,7 @@ define([
     };
 
     /**
-     * @return {deqpTests.stateMachine.IterateResult}
+     * @return {deqpTests.runner.IterateResult}
      */
     UniformCase.prototype.iterate = function() {
         /** @type {deRandom.Random} */ var rnd = new deRandom.Random(deString.deStringHash(this.name) ^ deRandom.getBaseSeed());
@@ -2316,7 +2313,7 @@ define([
         if (!program.isOk())
         {
             testFailedOptions("Compile failed", false);
-            return deqpTests.stateMachine.IterateResult.STOP;
+            return deqpTests.runner.IterateResult.STOP;
         }
 
         gluDefs.GLU_CHECK_CALL(function(){gl.useProgram(program.getProgram());});
@@ -2324,7 +2321,7 @@ define([
         /** @type {boolean} */ var success = this.test(basicUniforms, basicUniformReportsRef, program, rnd);
         assertMsgOptions(success, '', true, false);
 
-        return deqpTests.stateMachine.IterateResult.STOP;
+        return deqpTests.runner.IterateResult.STOP;
     };
 
     /**
@@ -2332,7 +2329,7 @@ define([
      */
     var CaseType = {
         CASETYPE_UNIFORM: 0,            //!< Check info returned by glGetActiveUniform().
-        CASETYPE_INDICES_UNIFORMSIV: 1,    //!< Check info returned by glGetUniformIndices() + glGetActiveUniformsiv().
+        CASETYPE_INDICES_UNIFORMSIV: 1,    //!< Check info returned by glGetUniformIndices() + glGetActiveUniforms(). TODO: Check 'IV' part
         CASETYPE_CONSISTENCY: 2            //!< Query info with both above methods, and check consistency.
     };
 
@@ -2375,8 +2372,8 @@ define([
        switch (caseType)
        {
            case CaseType.CASETYPE_UNIFORM:                return "Test glGetActiveUniform()";
-           case CaseType.CASETYPE_INDICES_UNIFORMSIV:    return "Test glGetUniformIndices() along with glGetActiveUniformsiv()";
-           case CaseType.CASETYPE_CONSISTENCY:            return "Check consistency between results from glGetActiveUniform() and glGetUniformIndices() + glGetActiveUniformsiv()";
+           case CaseType.CASETYPE_INDICES_UNIFORMSIV:    return "Test glGetUniformIndices() along with glGetActiveUniforms()";
+           case CaseType.CASETYPE_CONSISTENCY:            return "Check consistency between results from glGetActiveUniform() and glGetUniformIndices() + glGetActiveUniforms()";
            default:
                DE_ASSERT(false);
                return DE_NULL;
@@ -2406,7 +2403,7 @@ define([
 
         /** @type {deMath.deUint32} */ var programGL = program.getProgram();
         /** @type {Array.<BasicUniformReportGL>} */ var basicUniformReportsUniform = [];
-        /** @type {Array.<BasicUniformReportGL>} */ var basicUniformReportsUniformsiv = [];
+        /** @type {Array.<BasicUniformReportGL>} */ var basicUniformReportsUniforms = [];
 
         if (this.m_caseType == CaseType.CASETYPE_UNIFORM || this.m_caseType == CaseType.CASETYPE_CONSISTENCY)
         {
@@ -2414,7 +2411,7 @@ define([
 
             {
                 //TODO:: const ScopedLogSection section(log, "InfoGetActiveUniform", "Uniform information queries with glGetActiveUniform()");
-                success = this.getActiveUniforms(basicUniformReportsUniform, basicUniformReportsRef, programGL);
+                success = this.getActiveUniformsOneByOne(basicUniformReportsUniform, basicUniformReportsRef, programGL);
             }
 
             if (!success)
@@ -2434,8 +2431,8 @@ define([
             /** @type {boolena} */ var success = false;
 
             {
-                //TODO: const ScopedLogSection section(log, "InfoGetActiveUniformsiv", "Uniform information queries with glGetUniformIndices() and glGetActiveUniformsiv()");
-                success = this.getActiveUniformsiv(basicUniformReportsUniformsiv, basicUniformReportsRef, programGL);
+                //TODO: const ScopedLogSection section(log, "InfoGetActiveUniforms", "Uniform information queries with glGetUniformIndices() and glGetActiveUniforms()");
+                success = this.getActiveUniforms(basicUniformReportsUniforms, basicUniformReportsRef, programGL);
             }
 
             if (!success)
@@ -2455,8 +2452,8 @@ define([
             /** @type {boolena} */ var success = false;
 
             {
-                //TODO: const ScopedLogSection section(log, "CompareUniformVsUniformsiv", "Comparison of results from glGetActiveUniform() and glGetActiveUniformsiv()");
-                success = this.uniformVsUniformsivComparison(basicUniformReportsUniform, basicUniformReportsUniformsiv);
+                //TODO: const ScopedLogSection section(log, "CompareUniformVsUniforms", "Comparison of results from glGetActiveUniform() and glGetActiveUniforms()");
+                success = this.uniformVsUniformsComparison(basicUniformReportsUniform, basicUniformReportsUniforms);
             }
 
             if (!success)

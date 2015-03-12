@@ -21,6 +21,11 @@
 define(['framework/opengl/gluShaderUtil'], function(deqpUtils) {
     'use strict';
 
+    var DE_ASSERT = function(x) {
+        if (!x)
+            throw new Error('Assert failed');
+    };
+
     /**
     * VarType types enum
     * @enum {number}
