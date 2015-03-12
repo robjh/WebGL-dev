@@ -120,10 +120,18 @@ var getBaseSeed = function()
  * @param {number} num Number of items to store in resultOut. If undefined, default to 1.
  * @return {Array.<Object>} Even though result is stored in resultOut, return it here as well.
  */
-var choose = function(rnd, elements, resultOut, num)
-{
-    //TODO: This is a temporary implementation for tests.
-    return [elements[0]];
+var choose = function(rnd, elements, resultOut, num) {
+    var items = num || 1;
+    var temp = elements.slice();
+    if (!resultOut)
+        resultOut = [];
+
+    while (items-- > 0) {
+        var index = deRandom_getInt(rnd, [0, temp.length - 1]);
+        resultOut.push(temp[index]);
+        temp.splice(index, 1);
+    }
+    return resultOut;
 };
 
 /**
@@ -142,13 +150,21 @@ var chooseWeighted = function(rnd, first, last, weight)
 /**
  * TODO Function to shuffle an array
  * @param {deRandom} rnd Initialised array of random numbers
- * @param {Iterator} first Start of array
- * @param {Iterator} last End of array
+ * @param {Array} elements Array to shuffle
  * @return {Iterator} Shuffled array
  */
-var shuffle = function(rnd, first, last)
+var shuffle = function(rnd, elements)
 {
-    throw new Error('Function not yet implemented');
+    var index = elements.length;
+
+    while (index > 0) {
+        var random = deRandom_getInt(rnd, [0, index - 1]);
+        index -= 1;
+        var elem = elements[index];
+        elements[index] = elements[random];
+        elements[random] = elem;
+    }
+    return elements;
 };
 
 /**
@@ -207,11 +223,10 @@ Random.prototype.chooseWeighted = function(first, last, weight) {return chooseWe
 /**
  * TODO Function to shuffle an array
  * @param {deRandom} rnd Initialised array of random numbers
- * @param {Iterator} first Start of array
- * @param {Iterator} last End of array
- * @return {Iterator} Shuffled array
+ * @param {Array} elements Array to shuffle
+ * @return {Array} Shuffled array
  */
-Random.prototype.shuffle = function(rnd, first, last) {return shuffle(this.m_rnd, first, last)};
+Random.prototype.shuffle = function(elements) {return shuffle(this.m_rnd, elements)};
 
 /**
  * Function to get a common base seed

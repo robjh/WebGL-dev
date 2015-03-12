@@ -163,7 +163,7 @@ define([
 
                 case VarTypeComponent.s_Type.MATRIX_COLUMN:
                 case VarTypeComponent.s_Type.VECTOR_COMPONENT:
-                    str += "[" + i + "]";
+                    str += "[" + iter.index + "]";
                     break;
 
                 case VarTypeComponent.s_Type.STRUCT_MEMBER:
@@ -660,6 +660,7 @@ define([
         VarTypeComponent: VarTypeComponent,
         getVarType: getVarType,
         parseVariableName: parseVariableName,
+        parseTypePath: parseTypePath,
         VarTokenizer: VarTokenizer
     };
 

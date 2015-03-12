@@ -20,7 +20,6 @@
 
 define(['framework/opengl/gluShaderUtil',
         'framework/opengl/gluDrawUtil',
-        'modules/shared/glsUniformBlockCase',
         'framework/opengl/gluVarType',
         'framework/opengl/gluVarTypeUtil',
         'framework/opengl/gluShaderProgram',
@@ -30,7 +29,7 @@ define(['framework/opengl/gluShaderUtil',
         'framework/common/tcuTestCase',
         'framework/common/tcuSurface',
         'framework/common/tcuImageCompare'],
-        function(deqpUtils, deqpDraw, glsUBC, gluVT, gluVTU, deqpProgram, deRandom, deMath, deString, deqpTests, tcuSurface, tcuPixelThresholdCompare) {
+        function(deqpUtils, deqpDraw, gluVT, gluVTU, deqpProgram, deRandom, deMath, deString, deqpTests, tcuSurface, tcuPixelThresholdCompare) {
     'use strict';
 
     /** @const @type {number} */ var VIEWPORT_WIDTH = 128;
@@ -109,71 +108,38 @@ define(['framework/opengl/gluShaderUtil',
     };
 
     /**
-     * Returns an Attribute object, it's a struct, invoked in the C version as a function
+     * Constructs an Attribute object, it's a struct, invoked in the C version as a function
      * @param {string} name
      * @param {gluVT.VarType} type
      * @param {number} offset
-     * @return {Object}
      */
     var Attribute = (function(name, type, offset) {
-        var container = {
-            /** @type {string}        */ name: null,
-            /** @type {gluVT.VarType} */ type: null,
-            /** @type {number}        */ offset: 0
-        };
-
-        if (
-            typeof(name) !== 'undefined' &&
-            typeof(type) !== 'undefined' &&
-            typeof(interpolation) !== 'undefined'
-        ) {
-            container.name = name;
-            container.type = type;
-            container.offset = offset;
-        }
-
-        return container;
-
+        this.name = name;
+        this.type = type;
+        this.offset = offset;
     });
 
     /**
-     * Returns an Output object
-     * @return {Object}
+     * Constructs an Output object
      */
     var Output = (function() {
-        return {
-            /** @type {number}            */ bufferNdx: 0,
-            /** @type {number}            */ offset: 0,
-            /** @type {string}            */ name: null,
-            /** @type {gluVT.VarType}     */ type: null,
-            /** @type {Array.<Attribute>} */ inputs: []
-            };
+        /** @type {number}            */ this.bufferNdx = 0;
+        /** @type {number}            */ this.offset = 0;
+        /** @type {string}            */ this.name = null;
+        /** @type {gluVT.VarType}     */ this.type = null;
+        /** @type {Array.<Attribute>} */ this.inputs = [];
     });
 
     /**
-     * Returns an object type DrawCall.
+     * Constructs an object type DrawCall.
      * Contains the number of elements as well as whether the Transform Feedback is enabled or not.
      * It's a struct, but as occurs in Varying, is invoked in the C++ version as a function.
      * @param {number} numElements
      * @param {boolean} tfEnabled is Transform Feedback enabled or not
-     * @return {Object.<number, boolean>} content for the DrawCall object
      */
     var DrawCall = (function(numElements, tfEnabled) {
-
-        var content = {
-            /** @type {number}  */ numElements: 0,
-            /** @type {boolean} */ transformFeedbackEnabled: false
-        };
-
-        if (
-            typeof(numElements) !== 'undefined' &&
-            typeof(tfEnabled) !== 'undefined'
-        ) {
-            content.numElements = numElements;
-            content.transformFeedbackEnabled = tfEnabled;
-        }
-
-        return content;
+        this.numElements = numElements;
+        this.transformFeedbackEnabled = tfEnabled;
     });
 
     // it's a class
@@ -467,21 +433,21 @@ define(['framework/opengl/gluShaderUtil',
 
     /**
      * @param {Array.<Attribute>} attributes
-     * @param {number} inputStride
      * @param {Array.<Varying>} varyings
      * @param {boolean} usePointSize
+     * @return {Number} input stride
      */
-    var computeInputLayout = function(attributes, inputStride, varyings, usePointSize) {
+    var computeInputLayout = function(attributes, varyings, usePointSize) {
 
-        inputStride = 0;
+        var inputStride = 0;
 
         // Add position
-        var dataTypeVec4 = gluVT.newTypeBasic(deqpUtils.DataType.FLOAT_VEC4, glsUBC.UniformFlags.PRECISION_HIGHP);
+        var dataTypeVec4 = gluVT.newTypeBasic(deqpUtils.DataType.FLOAT_VEC4, deqpUtils.precision.PRECISION_HIGHP);
         attributes.push(new Attribute('a_position', dataTypeVec4, inputStride));
         inputStride += 4 * 4; /*sizeof(deUint32)*/
 
         if (usePointSize) {
-            var dataTypeFloat = gluVT.newTypeBasic(deqpUtils.DataType.FLOAT, glsUBC.UniformFlags.PRECISION_HIGHP);
+            var dataTypeFloat = gluVT.newTypeBasic(deqpUtils.DataType.FLOAT, deqpUtils.precision.PRECISION_HIGHP);
             attributes.push(new Attribute('a_pointSize', dataTypeFloat, inputStride));
             inputStride += 1 * 4; /*sizeof(deUint32)*/
         }
@@ -491,14 +457,16 @@ define(['framework/opengl/gluShaderUtil',
             // original code:
             // for (glu::VectorTypeIterator vecIter = glu::VectorTypeIterator::begin(&var->type); vecIter != glu::VectorTypeIterator::end(&var->type); vecIter++)
 
-            for (var vecIter = gluVTU.VectorTypeIterator(varyings[i].type); !vecIter.end(); vecIter.next()) {
+            for (var vecIter = new gluVTU.VectorTypeIterator(varyings[i].type); !vecIter.end(); vecIter.next()) {
                 var type = vecIter.getType(); // originally getType() in getVarType() within gluVARTypeUtil.hpp.
-                var name = getAttributeName(varyings[i].name, vecIter.getPath); // TODO: getPath(), originally in gluVARTypeUtil.hpp
+                var name = getAttributeName(varyings[i].name, vecIter.getPath()); // TODO: getPath(), originally in gluVARTypeUtil.hpp
 
                 attributes.push(new Attribute(name, type, inputStride));
-                inputStride += deqpUtils.getDataTypeScalarSize(type) * 4; /*sizeof(deUint32)*/
+                inputStride += deqpUtils.getDataTypeScalarSize(type.getBasicType()) * 4; /*sizeof(deUint32)*/
             }
         }
+
+        return inputStride;
     };
 
     /**
@@ -762,24 +730,24 @@ define(['framework/opengl/gluShaderUtil',
 
     switch (primitiveType) {
 
-        case gl.TRIANGLES: return outNdx;
-        case gl.LINES: return outNdx;
-        case gl.POINTS: return outNdx;
+        case deqpDraw.primitiveType.TRIANGLES: return outNdx;
+        case deqpDraw.primitiveType.LINES: return outNdx;
+        case deqpDraw.primitiveType.POINTS: return outNdx;
 
-        case gl.TRIANGLE_STRIP:
+        case deqpDraw.primitiveType.TRIANGLE_STRIP:
         {
             /** @type {number} */ var triNdx = outNdx / 3;
             /** @type {number} */ var vtxNdx = outNdx % 3;
             return (triNdx % 2 != 0 && vtxNdx < 2) ? (triNdx + 1 - vtxNdx) : (triNdx + vtxNdx);
         }
 
-        case gl.TRIANGLE_FAN:
+        case deqpDraw.primitiveType.TRIANGLE_FAN:
             return (outNdx % 3 != 0) ? (outNdx / 3 + outNdx % 3) : 0;
 
-        case gl.LINE_STRIP:
+        case deqpDraw.primitiveType.LINE_STRIP:
             return outNdx / 2 + outNdx % 2;
 
-        case gl.LINE_LOOP:
+        case deqpDraw.primitiveType.LINE_LOOP:
         {
             var inNdx = outNdx / 2 + outNdx % 2;
             return inNdx < numInputs ? inNdx : 0;
@@ -804,7 +772,7 @@ define(['framework/opengl/gluShaderUtil',
 
         for (var attrNdx = 0; attrNdx < output.inputs.length; attrNdx++) {
         /** @type {Attribute} */ var attribute = output.inputs[attrNdx];
-        /** @type {deqpUtils.DataType} */ var type = attribute.type;
+        /** @type {deqpUtils.DataType} */ var type = attribute.type.getBasicType();
         /** @type {number} */ var numComponents = deqpUtils.getDataTypeScalarSize(type);
 
         // TODO: below type glsUBC.UniformFlags ?
@@ -817,10 +785,7 @@ define(['framework/opengl/gluShaderUtil',
             /** @type {number} */ var inNdx = getAttributeIndex(primitiveType, numInputs, outNdx);
 
                 for (var compNdx = 0; compNdx < numComponents; compNdx++) {
-                /** @type {number} */ var inPtr = inBasePtr + inStride * inNdx + attribute.offset + compNdx * 4; /*sizeof(deUint32)*/
-                /** @type {number} */ var outPtr = outBasePtr + outStride * outNdx + outOffset + compNdx * 4; /*sizeof(deUint32)*/
                 /** @type {boolean} */ var isEqual = false;
-                /** @type {number} */ var difInOut = inPtr - outPtr;
 
                     if (scalarType === 'float') {
                         var outBuffer = new Float32Array(buffers.output.buffer, buffers.output.offset + buffers.output.stride * outNdx + outOffset + compNdx * 4, 1);
@@ -983,7 +948,7 @@ define(['framework/opengl/gluShaderUtil',
             //logTransformFeedbackVaryings(log, gl, this.m_program.getProgram());
 
             // Compute input specification.
-            computeInputLayout(this.m_attributes, this.m_inputStride, this.m_progSpec.getVaryings(), this.m_progSpec.isPointSizeUsed());
+            this.m_inputStride = computeInputLayout(this.m_attributes, this.m_progSpec.getVaryings(), this.m_progSpec.isPointSizeUsed());
 
             // Build list of varyings used in transform feedback.
             computeTransformFeedbackOutputs(
@@ -1023,7 +988,6 @@ define(['framework/opengl/gluShaderUtil',
             GLU_EXPECT_NO_ERROR(gl, gl.getError(), 'init');
 
             this.m_iterNdx = 0;
-            testPassed("Pass");
 //          this.m_testCtx.setTestResult(QP_TEST_RESULT_PASS, 'Pass');
 
         };
@@ -1138,9 +1102,9 @@ define(['framework/opengl/gluShaderUtil',
                 var usage     = gl.DYNAMIC_READ; // const deUint32
 
                 gl.bindBuffer(gl.TRANSFORM_FEEDBACK_BUFFER, buffer);
-                GLU_EXPECT_NO_ERROR(gl.getError(), 'bindBuffer');
+                GLU_EXPECT_NO_ERROR(gl, gl.getError(), 'bindBuffer');
                 gl.bufferData(gl.TRANSFORM_FEEDBACK_BUFFER, size + guardSize, usage);
-                GLU_EXPECT_NO_ERROR(gl.getError(), 'bufferData');
+                GLU_EXPECT_NO_ERROR(gl, gl.getError(), 'bufferData');
                 writeBufferGuard(gl, gl.TRANSFORM_FEEDBACK_BUFFER, size, guardSize);
 
                 // \todo [2012-07-30 pyry] glBindBufferRange()?
@@ -1165,14 +1129,13 @@ define(['framework/opengl/gluShaderUtil',
 
                 if (loc >= 0) {
                     gl.enableVertexAttribArray(loc);
-                    var type = null;
                     switch (scalarType) {
-                        case glu.TYPE_FLOAT:
-                            gl.vertexAttribPointer(loc, numComponents, gl.FLOAT, gl.FALSE, this.m_inputStride, attrib.offset()); break;
-                        case glu.TYPE_INT:
-                            gl.vertexAttribIPointer(loc, numComponents, gl.INT, gl.FALSE, this.m_inputStride, attrib.offset()); break;
-                        case glu.TYPE_UINT:
-                            gl.vertexAttribPointer(loc, numComponents, gl.UNSIGNED_INT, gl.FALSE, this.m_inputStride, attrib.offset()); break;
+                        case "float":
+                            gl.vertexAttribPointer(loc, numComponents, gl.FLOAT, gl.FALSE, this.m_inputStride, attrib.offset); break;
+                        case "int":
+                            gl.vertexAttribIPointer(loc, numComponents, gl.INT, gl.FALSE, this.m_inputStride, attrib.offset); break;
+                        case "uint":
+                            gl.vertexAttribPointer(loc, numComponents, gl.UNSIGNED_INT, gl.FALSE, this.m_inputStride, attrib.offset); break;
                     }
                 }
             }
@@ -1197,7 +1160,7 @@ define(['framework/opengl/gluShaderUtil',
             GLU_EXPECT_NO_ERROR(gl, gl.getError(), 'glBeginQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN)');
 
             // Draw
-            (function() {
+            {
                 var offset = 0;
                 var tfEnabled = true;
 
@@ -1228,7 +1191,7 @@ define(['framework/opengl/gluShaderUtil',
 
                 gl.endTransformFeedback();
                 GLU_EXPECT_NO_ERROR(gl, gl.getError(), 'render');
-            })();
+            };
             
             gl.endQuery(gl.TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN);
             GLU_EXPECT_NO_ERROR(gl, gl.getError(), 'glEndQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN)');
@@ -1309,7 +1272,7 @@ define(['framework/opengl/gluShaderUtil',
             }
 
             // Check status after mapping buffers.
-            (function() {
+            {
 
                 var mustBeReady = this.m_outputBuffers.length > 0; // Mapping buffer forces synchronization. // const bool
                 var expectedCount = computeTransformFeedbackPrimitiveCount(gl, this.m_primitiveType, calls); // const int
@@ -1332,24 +1295,24 @@ define(['framework/opengl/gluShaderUtil',
                     bufferedLogToConsole('ERROR: Expected ' + expectedCount + ' primitives!');
                     queryOk = false;
                 }
-            })();
+            }
 
             // Clear transform feedback state.
             gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK);
             for (var bufNdx = 0; bufNdx < this.m_outputBuffers.length; ++bufNdx) {
-                gl.bindBuffer(gl.TRANSFORM_FEEDBACK_BUFFER);
-                gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, bufNdx);
+                gl.bindBuffer(gl.TRANSFORM_FEEDBACK_BUFFER, null);
+                gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, bufNdx, null);
             }
 
-            gl.bindBuffer(gl.ARRAY_BUFFER);
+            gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
             // Read back rendered image.
             gl.readPixels(viewportX, viewportY, viewportW, viewportH, gl.RGBA, gl.UNSIGNED_BYTE, frameWithTf.getAccess().getDataPtr());
 
-            GLU_EXPECT_NO_ERROR(gl.getError(), 'glReadPixels()');
+            GLU_EXPECT_NO_ERROR(gl, gl.getError(), 'glReadPixels()');
 
             // Render without transform feedback.
-            (function (){
+            {
                 var offset = 0; // int
 
                 gl.clear(gl.COLOR_BUFFER_BIT);
@@ -1362,8 +1325,8 @@ define(['framework/opengl/gluShaderUtil',
 
                 GLU_EXPECT_NO_ERROR(gl, gl.getError(), 'render');
                 gl.readPixels(viewportX, viewportY, viewportW, viewportH, gl.RGBA, gl.UNSIGNED_BYTE, frameWithoutTf.getAccess().getDataPtr());
-                GLU_EXPECT_NO_ERROR(gl.getError(), 'glReadPixels()');
-            })();
+                GLU_EXPECT_NO_ERROR(gl, gl.getError(), 'glReadPixels()');
+            };
 
             // Compare images with and without transform feedback.
             imagesOk = tcuPixelThresholdCompare.pixelThresholdCompare('Result', 'Image comparison result', frameWithoutTf, frameWithTf, [1,1,1,1], tcuPixelThresholdCompare.CompareLogMode.ON_ERROR);
@@ -1397,23 +1360,29 @@ define(['framework/opengl/gluShaderUtil',
         this._construct(context, name, desc, bufferMode, primitiveType);
 
     });
+
+	var dc = function(numElements, tfEnabled) {
+		return new DrawCall(numElements,tfEnabled);
+	};
+
     // static data
     TransformFeedbackCase.s_iterate = {
+
         testCases: {
-            elemCount1:   [DrawCall(  1, true )],
-            elemCount2:   [DrawCall(  2, true )],
-            elemCount3:   [DrawCall(  3, true )],
-            elemCount4:   [DrawCall(  4, true )],
-            elemCount123: [DrawCall(123, true )],
-            basicPause1:  [DrawCall( 64, true ), DrawCall( 64, false), DrawCall( 64, true)],
-            basicPause2:  [DrawCall( 13, true ), DrawCall(  5, true ), DrawCall( 17, false),
-                           DrawCall(  3, true ), DrawCall(  7, false)],
-            startPaused:  [DrawCall(123, false), DrawCall(123, true )],
-            random1:      [DrawCall( 65, true ), DrawCall(135, false), DrawCall( 74, true),
-                           DrawCall( 16, false), DrawCall(226, false), DrawCall(  9, true),
-                           DrawCall(174, false)],
-            random2:      [DrawCall(217, true ), DrawCall(171, true ), DrawCall(147, true),
-                           DrawCall(152, false), DrawCall( 55, true )]
+            elemCount1:   [dc(  1, true )],
+            elemCount2:   [dc(  2, true )],
+            elemCount3:   [dc(  3, true )],
+            elemCount4:   [dc(  4, true )],
+            elemCount123: [dc(123, true )],
+            basicPause1:  [dc( 64, true ), dc( 64, false), dc( 64, true)],
+            basicPause2:  [dc( 13, true ), dc(  5, true ), dc( 17, false),
+                           dc(  3, true ), dc(  7, false)],
+            startPaused:  [dc(123, false), dc(123, true )],
+            random1:      [dc( 65, true ), dc(135, false), dc( 74, true),
+                           dc( 16, false), dc(226, false), dc(  9, true),
+                           dc(174, false)],
+            random2:      [dc(217, true ), dc(171, true ), dc(147, true),
+                           dc(152, false), dc( 55, true )]
         },
         iterations: [
             'elemCount1',  'elemCount2',  'elemCount3', 'elemCount4', 'elemCount1234',
@@ -1737,12 +1706,11 @@ define(['framework/opengl/gluShaderUtil',
         }
 
         // Pick random selection.
-//        vector<string> tfVaryings(Math.min(tfCandidates.length, maxTransformFeedbackVars)); // TODO: implement
-//        rnd.choose(tfCandidates.begin(), tfCandidates.end(), tfVaryings.begin(), (int)tfVaryings.size()); // TODO: implement
-//        rnd.shuffle(tfVaryings.begin(), tfVaryings.end()); // TODO: implement
-
-//        for (vector<string>::const_iterator vary = tfVaryings.begin(); vary != tfVaryings.end(); vary++)
-//            this.m_progSpec.addTransformFeedbackVarying(vary.c_str());
+        var tfVaryings = [];
+        rnd.choose(tfCandidates, tfVaryings, Math.min(tfCandidates.length, maxTransformFeedbackVars));
+        rnd.shuffle(tfVaryings);
+        for (var i = 0; i < tfVaryings.length; i++)
+            this.m_progSpec.addTransformFeedbackVarying(tfVaryings[i]);
 
         // this.init();
 
@@ -2121,13 +2089,7 @@ define(['framework/opengl/gluShaderUtil',
 
 
     return {
-
-        VIEWPORT_WIDTH:             VIEWPORT_WIDTH,
-        VIEWPORT_HEIGHT:            VIEWPORT_HEIGHT,
-        BUFFER_GUARD_MULTIPLIER:    BUFFER_GUARD_MULTIPLIER,
-
-        run:                        run
-
+        run: run
     };
 
 });

@@ -179,7 +179,7 @@ define(['framework/opengl/gluShaderUtil'], function(deqpUtils) {
             case Type.TYPE_ARRAY:
             {
                 /** @type {TypeArray} */ var m_data = this.m_data;
-                return m_data.getElementType().getScalarSize() * m_data.getArraySize();
+                return m_data.elementType.getScalarSize() * m_data.size;
             }
 
             case Type.TYPE_STRUCT:
@@ -243,6 +243,10 @@ define(['framework/opengl/gluShaderUtil'], function(deqpUtils) {
      * @return {VarType}
      */
     var newTypeBasic = function(basicType, flags) {
+      if (flags === undefined)
+      {
+          throw new Error("wrong flag");
+      }
        return new VarType().VarTypeBasic(basicType, flags);
     };
 
@@ -331,7 +335,7 @@ define(['framework/opengl/gluShaderUtil'], function(deqpUtils) {
      * @return {StructType} The currently modified object
      */
       StructType.prototype.Constructor = function(name) {
-          /** @type {string}*/ this.m_typeName = StructType.setTypeName(name);
+          /** @type {string}*/ this.m_typeName = this.setTypeName(name);
           return this;
      };
 

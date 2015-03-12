@@ -25,6 +25,24 @@
         var wtu = WebGLTestUtils;
         var gl = wtu.create3DContext('canvas', {preserveDrawingBuffer: true}, 2);
 
+    gl.bindTransformFeedback = function(target, id) {
+        console.log('bindTransformFeedback(' + target + ',' + id + ')');
+    };
+    gl.bufferData = function(target, size, usage) {
+        console.log('bufferData(' + target + ',' + size + ',' + usage +')');
+    };
+    gl.bindBufferBase = function(target, index, buffer) {
+        console.log('bindBufferBase(' + target + ',' + index + ',' + buffer +')');
+    };
+    gl.beginQuery =function(target, primitiveQuery) {
+        console.log('beginQuery(' + target + ',' + primitiveQuery +')');
+    };
+    gl.getError = function() {
+        return gl.NO_ERROR;
+    };
+    gl.getBufferSubData = function(target, offset, returnedData) {
+        console.log('getBufferSubData(' + target + ',' + offset + returnedData +')');
+    };
         try {
             tft.run(gl);
         }
