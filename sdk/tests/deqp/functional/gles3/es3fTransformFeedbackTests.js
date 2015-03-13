@@ -1058,7 +1058,6 @@ define(['framework/opengl/gluShaderUtil',
         this.m_primitiveType = null;
 
         /* private */
-    //    var assign = function(/*const*/ other) { }; // defined but not implemented?
         this.runTest = function(calls, seed) {
 
             var _min = function(x, y) { return x < y ? x : y; };
@@ -1422,8 +1421,6 @@ define(['framework/opengl/gluShaderUtil',
         this._construct(context, name, desc, bufferMode, primitiveType);
         this.m_progSpec.addTransformFeedbackVarying('gl_Position');
 
-        // this.init(); //TODO: call init()?
-
     });
 
     PositionCase.prototype = new TransformFeedbackCase();
@@ -1440,7 +1437,6 @@ define(['framework/opengl/gluShaderUtil',
 
         this._construct(context, name, desc, bufferMode, primitiveType);
         this.m_progSpec.addTransformFeedbackVarying('gl_PointSize');
-        // this.init(); //TODO: call init()?
 
     });
 
@@ -1466,7 +1462,6 @@ define(['framework/opengl/gluShaderUtil',
 
         this.m_progSpec.addTransformFeedbackVarying('v_varA');
         this.m_progSpec.addTransformFeedbackVarying('v_varB');
-        // this.init(); //TODO: call init()?
 
     });
 
@@ -1503,7 +1498,6 @@ define(['framework/opengl/gluShaderUtil',
 
         this.m_progSpec.addTransformFeedbackVarying('v_varA');
         this.m_progSpec.addTransformFeedbackVarying('v_varB');
-        // this.init(); //TODO: call init()?
 
     });
 
@@ -1530,8 +1524,6 @@ define(['framework/opengl/gluShaderUtil',
         this.m_progSpec.addTransformFeedbackVarying('v_varA[1]');
         this.m_progSpec.addTransformFeedbackVarying('v_varB[0]');
         this.m_progSpec.addTransformFeedbackVarying('v_varB[3]');
-
-        // this.init(); //TODO: call init()?
 
     });
 
@@ -1664,7 +1656,7 @@ define(['framework/opengl/gluShaderUtil',
             /** @type {number} */
             var arrayLen    = useArray ? rnd.getInt(1, maxArrayLen) : 1;
             /** @type {string} */
-            var name        = 'v_var' + varNdx; // TODO: check varNdx.toString() omitted?
+            var name        = 'v_var' + varNdx;
 
             if (useArray)
                 this.m_progSpec.addVarying(name, gluVT.newTypeArray(gluVT.newTypeBasic(type, precision), arrayLen), interp);
@@ -1700,7 +1692,7 @@ define(['framework/opengl/gluShaderUtil',
                     /** @type {number} */
                     var numElem = varying.type.getArraySize();
                     for (var elemNdx = 0; elemNdx < numElem; elemNdx++)
-                        tfCandidates.push(varying.name + '[' + elemNdx + ']'); // TODO: check elemNdx.toString() omitted?
+                        tfCandidates.push(varying.name + '[' + elemNdx + ']');
                 }
             }
             else
