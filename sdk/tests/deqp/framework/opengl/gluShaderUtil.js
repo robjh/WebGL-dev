@@ -631,7 +631,7 @@ var getDataTypeName = function(dataType)  {
     throw Error('Unrecognized dataType ' + dataType);
 };
 
-/*
+/**
  * Returns the DataType from the GL type
  * @param {deMath.deUint32} glType
  * @return {DataType}
