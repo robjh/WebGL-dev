@@ -14,7 +14,7 @@
 <div id="console"></div>
 <canvas id="canvas" width="320" height="240"></canvas>
 <script>
-console.log("hello world");
+
     requirejs.config({
         baseUrl: "../../"
     });
@@ -46,12 +46,16 @@ console.log("hello world");
         gl.getBufferSubData = function(target, offset, returnedData) {
             console.log('getBufferSubData(' + target + ',' + offset + returnedData +')');
         };
+        gl.linkProgram = function(program) {
+            console.log('linkProgram(' + program +')');
+        };
+        
 //*/
         
 /*
         var whitelist = [];
         var blacklist = [
-            'bindTransformFeedback', 'bufferData', 'bindBufferBase', 'beginQuery', 'getBufferSubData'
+            'bindTransformFeedback', 'bufferData', 'bindBufferBase', 'beginQuery', 'getBufferSubData', 'linkProgram'
         ];
         
         for (var key in gl.__proto__) {

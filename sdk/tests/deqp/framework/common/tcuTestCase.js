@@ -55,11 +55,25 @@ var getState = function() {
 };
 
 /**
+ * Count the number of times runCallback is used.
+ * Useful for debugging.
+ */
+var tests_ran = 0;
+
+/**
  * Schedule the callback to be run ASAP
  * @param {function()} callback Callback to schedule
  */
 var runCallback = function(callback) {
-    setTimeout(callback.bind(this), 0);
+    setTimeout(function(self) {
+        ++tests_ran;
+        /* uncomment this to ease browser cripling debugging.
+        if (tests_ran % 10 == 0) {
+            debugger;
+        }
+        //*/
+        callback();
+    }.bind(this), 0);
 };
 
 /**
@@ -259,7 +273,9 @@ var runTestCases = function() {
                 testFailedOptions(err.message, false);
             bufferedLogToConsole(err);
         }
+
         stateMachine.runCallback(runTestCases);
+
     } else
         stateMachine.terminate();
 };
