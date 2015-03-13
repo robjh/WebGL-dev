@@ -33,7 +33,8 @@ define([
     'framework/opengl/gluStrUtil',
     'framework/delibs/debase/deMath',
     'framework/common/tcuCompressedTexture',
-    'framework/opengl/gluVarTypeUtil'
+    'framework/opengl/gluVarTypeUtil',
+    'framework/common/tcuImageCompare'
 ],
 function(
         deqpProgram,
@@ -50,7 +51,8 @@ function(
         gluStrUtil,
         deMath,
         tcuCompressedTexture,
-        gluVarTypeUtil
+        gluVarTypeUtil,
+        tcuImageCompare
 ) {
     'use strict';
 
@@ -554,7 +556,7 @@ function(
         /** @type {deqpProgram.ShaderProgram} */ var m_program = this.m_program;
         /** @type {number} */ var m_framebuffer = this.m_framebuffer;
         /** @type {WebGLRenderingContext} */ var gl = this.m_gl; // TODO: check creation of this WebGLRenderingContext variable
-        
+
         // Compute grid size & index list.
         /** @type {number} */ var minCellSize = 8;
         /** @type {Array.<number>} */ var minBufSize = getMinSize(m_fboSpec); // IVec2, array of integers, size = 2
@@ -690,18 +692,18 @@ function(
                     }
                     else if (isInt)
                     {
-                        /** @type {Int32Array} */ var range = getIntRange(output.precision); // IVec2, array of integers, size = 2
-                        /** @type {Int32Array} */ var minVal = new Int32Array([range[0], range[0], range[0], range[0]]); // IVec4, array of integers, size = 4
+                        /** @type {Int32Array} */ var range = getIntRange(output.precision); // IVec2
+                        /** @type {Int32Array} */ var minVal = new Int32Array([range[0], range[0], range[0], range[0]]); // IVec4
                         /** @type {Int32Array} */ var maxVal = new Int32Array([range[1], range[1], range[1], range[1]]); // IVec4
 
                         if (deMath.deInBounds32(output.location + vecNdx, 0, attachments.length))
                         {
                             // Limit to range of output format as conversion mode is not specified.
-                            /** @type {Int32Array} */ var fmtBits = tcuTextureUtil.getTextureFormatBitDepth(attachments[output.location + vecNdx].format); // IVec4, array of integers, size = 4
+                            /** @type {Int32Array} */ var fmtBits = tcuTextureUtil.getTextureFormatBitDepth(attachments[output.location + vecNdx].format); // IVec4
                             /** @type {Array.<boolean>} */ var isZero = deMath.lessThanEqual(fmtBits, [0, 0, 0, 0]); // BVec4, array of booleans, size = 4
 
-                            const IVec4 fmtMinVal = (-(tcu::Vector<deInt64, 4>(1) << (fmtBits - 1 ).cast<deInt64>())).asInt(); // IVec4 // TODO:
-                            const IVec4 fmtMaxVal = ((tcu::Vector<deInt64, 4>(1) << (fmtBits - 1 ).cast<deInt64>()) - deInt64(1)).asInt(); // IVec4 // TODO:
+                            const IVec4 fmtMinVal = (-(tcu::Vector<deInt64, 4>(1) << (fmtBits - 1 ).cast<deInt64>())).asInt(); // IVec4 // TODO: how to implement deInt64?
+                            const IVec4 fmtMaxVal = ((tcu::Vector<deInt64, 4>(1) << (fmtBits - 1 ).cast<deInt64>()) - deInt64(1)).asInt(); // IVec4 // TODO: how to implement deInt64?
 
                             minVal = tcuTextureUtil.select(minVal, deMath.max(minVal, fmtMinVal), isZero);
                             maxVal = tcuTextureUtil.select(maxVal, deMath.min(maxVal, fmtMaxVal), isZero);
@@ -711,8 +713,8 @@ function(
 
                         /** @type {Int32Array} */
                         var rangeDiv = swizzleVec(new Int32Array([gridWidth - 1, gridHeight - 1, gridWidth - 1, gridHeight - 1]), curInVec); // IVec4
-                        const IVec4 step = ((maxVal.cast<deInt64>() - minVal.cast<deInt64>()) / (rangeDiv.cast<deInt64>())).asInt();// IVec4 // TODO: no idea?
-                        // deInt32* dst  = (deInt32*)&inputs[curInVec][0]; // a pointer needed in the next loop in the C++ version
+                        const IVec4 step = ((maxVal.cast<deInt64>() - minVal.cast<deInt64>()) / (rangeDiv.cast<deInt64>())).asInt();// IVec4 // TODO: how to implement deInt64?
+                        // deInt32* dst = (deInt32*)&inputs[curInVec][0]; // a pointer needed in the next loop in the C++ version
 
                         for (var y = 0; y < gridHeight; y++)
                         {
@@ -726,7 +728,7 @@ function(
                                 // which dst, is a pointer at an array in inputs: float* dst = (float*)&inputs[curInVec][0]
                                 /** @type {number} */ var pos = (y * gridWidth + x) * numScalars;
 
-                                // TODO: ? DE_ASSERT(deMath.boolAll(logicalAnd(greaterThanEqual(c, minVal), deMath.lessThanEqual(c, maxVal))));
+                                // TODO: DE_ASSERT(deMath.boolAll(logicalAnd(greaterThanEqual(c, minVal), deMath.lessThanEqual(c, maxVal))));
 
                                 for (var ndx = 0; ndx < numScalars; ndx++)
                                     inputs[curInVec][pos] = ToUInt32(c[ndx]); // TODO: validate ToUInt32() conversion, inputs[curInVec][v] is an Uint32, and c[ndx] an Int
@@ -735,14 +737,14 @@ function(
                     }
                     else if (isUint)
                     {
-                        /** @type {Uint32Array} */ var range  = getUintRange(output.precision); // UVec2, array of Uint32, size = 2
-                        /** @type {Uint32Array} */ var maxVal = new Uint32Array([range[1], range[1], range[1], range[1]]); // UVec4, array of Uint32, size = 4
+                        /** @type {Uint32Array} */ var range  = getUintRange(output.precision); // UVec2
+                        /** @type {Uint32Array} */ var maxVal = new Uint32Array([range[1], range[1], range[1], range[1]]); // UVec4
 
                         if (deMath.deInBounds32(output.location + vecNdx, 0, attachments.length))
                         {
                             // Limit to range of output format as conversion mode is not specified.
                             /** @type {Int32Array} */ var fmtBits = tcuTextureUtil.getTextureFormatBitDepth(attachments[output.location + vecNdx].format); // IVec4
-                            const UVec4 fmtMaxVal = ((tcu::Vector<deUint64, 4>(1) << fmtBits.cast<deUint64>()) - deUint64(1)).asUint(); // UVec4 // TODO:
+                            const UVec4 fmtMaxVal = ((tcu::Vector<deUint64, 4>(1) << fmtBits.cast<deUint64>()) - deUint64(1)).asUint(); // UVec4 // TODO: how to implement deUint64?
 
                             maxVal = deMath.min(maxVal, fmtMaxVal);
                         }
@@ -751,13 +753,13 @@ function(
 
                         /** @type {Int32Array} */
                         var rangeDiv = swizzleVec(new Int32Array([gridWidth - 1, gridHeight - 1, gridWidth - 1, gridHeight - 1]), curInVec); // IVec4
-                        
+
                         /** @type {Uint32Array} */ var step = new Uint32Array(maxVal.length); // UVec4
-                        
+
                         for(var stepPos = 0; stepPos < maxVal.length; stepPos++){
-                            step[stepPos] = Math.floor(maxVal[stepPos] / ToUInt32(rangeDiv[stepPos])); // TODO: check conversion rangeDiv ToUInt32()
+                            step[stepPos] = maxVal[stepPos] / ToUInt32(rangeDiv[stepPos]); // TODO: check conversion rangeDiv ToUInt32()
                         }
-                        
+
                         // deUint32*  dst = &inputs[curInVec][0]; // a pointer used in the next loop
 
                         DE_ASSERT(range[0] == 0);
@@ -983,8 +985,7 @@ function(
                                     cmpMask)
                                     );
 
-                    // TODO: implement floatUlpThresholdCompare, originally in tcuImageCompare
-                    isOk = tcu::floatUlpThresholdCompare(name, desc, reference, rendered, finalThreshold /*, tcu::COMPARE_LOG_RESULT*/);
+                    isOk = tcuImageCompare.floatUlpThresholdCompare(name, desc, reference, rendered, finalThreshold /*, tcu::COMPARE_LOG_RESULT*/);
                     break;
                 }
 
@@ -997,13 +998,12 @@ function(
                     /** @type {Float32Array} */ var baseThreshold = new Float32Array(4); // Vec4
                     for(var inc = 0; inc < mbaseThreshold.length; inc++){
                         // TODO: check this operation: baseThreshold = 1.0f / ((IVec4(1) << bits)-1).asFloat();
-                        baseThreshold[inc] = Math.floor(1.0 / ((1 << bits[inc]) - 1));
+                        baseThreshold[inc] = 1.0 / ((1 << bits[inc]) - 1);
                     }
 
                     /** @type {Float32Array} */ var threshold = tcuTextureUtil.select(baseThreshold, new Float32Array([2.0, 2.0, 2.0, 2.0]), cmpMask); // Vec4
 
-                    // TODO: implement floatThresholdCompare, originally in tcuImageCompare
-                    isOk = tcu::floatThresholdCompare(name, desc, reference, rendered, threshold/*, tcu::COMPARE_LOG_RESULT*/);
+                    isOk = tcuImageCompare.floatThresholdCompare(name, desc, reference, rendered, threshold/*, tcu::COMPARE_LOG_RESULT*/);
                     break;
                 }
 
@@ -1017,7 +1017,7 @@ function(
                                     new Uint32Array([1, 1, 1, 1]),
                                     cmpMask
                                     )); // UVec4
-                    isOk = tcu::intThresholdCompare(name, desc, reference, rendered, threshold/*, tcu::COMPARE_LOG_RESULT*/);
+                    isOk = tcuImageCompare.intThresholdCompare(name, desc, reference, rendered, threshold/*, tcu::COMPARE_LOG_RESULT*/);
                     break;
                 }
 
