@@ -27,54 +27,21 @@
         var wtu = WebGLTestUtils;
         var gl = wtu.create3DContext('canvas', {preserveDrawingBuffer: true}, 2);
 
-//*
-        gl.bindTransformFeedback = function(target, id) {
-            console.log('bindTransformFeedback(' + target + ',' + id + ')');
-        };
-        gl.bufferData = function(target, size, usage) {
-            console.log('bufferData(' + target + ',' + size + ',' + usage +')');
-        };
-        gl.bindBufferBase = function(target, index, buffer) {
-            console.log('bindBufferBase(' + target + ',' + index + ',' + buffer +')');
-        };
-        gl.beginQuery =function(target, primitiveQuery) {
-            console.log('beginQuery(' + target + ',' + primitiveQuery +')');
-        };
+        var glhelper = (function(name){
+            return (function() {
+                console.log(name+'(',arguments,')');
+            });
+        });
+        
+        gl.bindTransformFeedback = glhelper('bindTransformFeedback');
+        gl.bufferData            = glhelper('bufferData');
+        gl.bindBufferBase        = glhelper('bindBufferBase');
+        gl.beginQuery            = glhelper('beginQuery');
+        gl.getBufferSubData      = glhelper('getBufferSubData');
+        gl.linkProgram           = glhelper('linkProgram');
         gl.getError = function() {
             return gl.NO_ERROR;
         };
-        gl.getBufferSubData = function(target, offset, returnedData) {
-            console.log('getBufferSubData(' + target + ',' + offset + returnedData +')');
-        };
-        gl.linkProgram = function(program) {
-            console.log('linkProgram(' + program +')');
-        };
-        
-//*/
-        
-/*
-        var whitelist = [];
-        var blacklist = [
-            'bindTransformFeedback', 'bufferData', 'bindBufferBase', 'beginQuery', 'getBufferSubData', 'linkProgram'
-        ];
-        
-        for (var key in gl.__proto__) {
-            if (whitelist.indexOf(key) != -1) continue;
-            if (blacklist.indexOf(key) != -1) {
-                gl[key] = (function() {
-                    console.log("faulty " + key + '(' + arguments + ')');
-                });
-            }
-            else if (typeof(gl.__proto__) == 'function'){
-                gl[key] = (function(func) {
-                    return (function() {
-                        console.log("trying " + key);
-                        func.apply(gl, arguments);
-                    });
-                }(gl[key]));
-            }
-        }
-//*/
         
         try {
             tft.run(gl);
