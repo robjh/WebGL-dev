@@ -1072,127 +1072,131 @@ function(
      * @return {FragmentOutputCase} The currently modified object
      */
     var createRandomCase = function (gl, minRenderTargets, maxRenderTargets, seed) {
-/*
-        static const glu::DataType outputTypes[] =
-        {
-            glu::TYPE_FLOAT,
-            glu::TYPE_FLOAT_VEC2,
-            glu::TYPE_FLOAT_VEC3,
-            glu::TYPE_FLOAT_VEC4,
-            glu::TYPE_INT,
-            glu::TYPE_INT_VEC2,
-            glu::TYPE_INT_VEC3,
-            glu::TYPE_INT_VEC4,
-            glu::TYPE_UINT,
-            glu::TYPE_UINT_VEC2,
-            glu::TYPE_UINT_VEC3,
-            glu::TYPE_UINT_VEC4
-        };
-        static const glu::Precision precisions[] =
-        {
-            glu::PRECISION_LOWP,
-            glu::PRECISION_MEDIUMP,
-            glu::PRECISION_HIGHP
-        };
-        static const deUint32 floatFormats[] =
-        {
-            GL_RGBA32F,
-            GL_RGBA16F,
-            GL_R11F_G11F_B10F,
-            GL_RG32F,
-            GL_RG16F,
-            GL_R32F,
-            GL_R16F,
-            GL_RGBA8,
-            GL_SRGB8_ALPHA8,
-            GL_RGB10_A2,
-            GL_RGBA4,
-            GL_RGB5_A1,
-            GL_RGB8,
-            GL_RGB565,
-            GL_RG8,
-            GL_R8
-        };
-        static const deUint32 intFormats[] =
-        {
-            GL_RGBA32I,
-            GL_RGBA16I,
-            GL_RGBA8I,
-            GL_RG32I,
-            GL_RG16I,
-            GL_RG8I,
-            GL_R32I,
-            GL_R16I,
-            GL_R8I
-        };
-        static const deUint32 uintFormats[] =
-        {
-            GL_RGBA32UI,
-            GL_RGBA16UI,
-            GL_RGBA8UI,
-            GL_RGB10_A2UI,
-            GL_RG32UI,
-            GL_RG16UI,
-            GL_RG8UI,
-            GL_R32UI,
-            GL_R16UI,
-            GL_R8UI
-        };
 
-        de::Random                  rnd         (seed);
-        vector<FragmentOutput>      outputs;
-        vector<BufferSpec>          targets;
-        vector<glu::DataType>       outTypes;
+        /** @type {Array.<gluShaderUtil.DataType>} */
+        var outputTypes = [
+                           gluShaderUtil.DataType.FLOAT,
+                           gluShaderUtil.DataType.FLOAT_VEC2,
+                           gluShaderUtil.DataType.FLOAT_VEC3,
+                           gluShaderUtil.DataType.FLOAT_VEC4,
+                           gluShaderUtil.DataType.INT,
+                           gluShaderUtil.DataType.INT_VEC2,
+                           gluShaderUtil.DataType.INT_VEC3,
+                           gluShaderUtil.DataType.INT_VEC4,
+                           gluShaderUtil.DataType.UINT,
+                           gluShaderUtil.DataType.UINT_VEC2,
+                           gluShaderUtil.DataType.UINT_VEC3,
+                           gluShaderUtil.DataType.UINT_VEC4
+                           ];
 
-        int                         numTargets  = rnd.getInt(minRenderTargets, maxRenderTargets);
-        const int                   width       = 128; // \todo [2012-04-10 pyry] Separate randomized sizes per target?
-        const int                   height      = 64;
-        const int                   samples     = 0;
+        /** @type {Array.<gluShaderUtil.precision>} */
+        var precisions = [
+                          gluShaderUtil.precision.PRECISION_LOWP,
+                          gluShaderUtil.precision.PRECISION_MEDIUMP,
+                          gluShaderUtil.precision.PRECISION_HIGHP
+                          ];
+
+        /** @type {Array.<GLenum>} */
+        var floatFormats = [
+                            gl.RGBA32F,
+                            gl.RGBA16F,
+                            gl.R11F_G11F_B10F,
+                            gl.RG32F,
+                            gl.RG16F,
+                            gl.R32F,
+                            gl.R16F,
+                            gl.RGBA8,
+                            gl.SRGB8_ALPHA8,
+                            gl.RGB10_A2,
+                            gl.RGBA4,
+                            gl.RGB5_A1,
+                            gl.RGB8,
+                            gl.RGB565,
+                            gl.RG8,
+                            gl.R8
+                            ];
+
+        /** @type {Array.<GLenum>} */
+        var intFormats = [
+                            gl.RGBA32I,
+                            gl.RGBA16I,
+                            gl.RGBA8I,
+                            gl.RG32I,
+                            gl.RG16I,
+                            gl.RG8I,
+                            gl.R32I,
+                            gl.R16I,
+                            gl.R8I
+                            ];
+
+        /** @type {Array.<GLenum>} */
+        var uintFormats = [
+                           gl.RGBA32UI,
+                           gl.RGBA16UI,
+                           gl.RGBA8UI,
+                           gl.RGB10_A2UI,
+                           gl.RG32UI,
+                           gl.RG16UI,
+                           gl.RG8UI,
+                           gl.R32UI,
+                           gl.R16UI,
+                           gl.R8UI
+                           ];
+
+        /** @type {Array.<number>} */ var rnd = new deRandom.Random(seed);
+        /** @type {Array.<FragmentOutput>} */ var outputs = [];
+        /** @type {Array.<BufferSpec>} */ var targets = [];
+        /** @type {Array.<gluShaderUtil.DataType>} */ var outTypes = [];
+      
+        /** @type {number} */ var numTargets = rnd.getInt(minRenderTargets, maxRenderTargets);
+        /** @type {number} */ var width = 128; // \todo [2012-04-10 pyry] Separate randomized sizes per target?
+        /** @type {number} */ var height = 64;
+        /** @type {number} */ var samples = 0;
 
         // Compute outputs.
-        int curLoc = 0;
+        /** @type {number} */ var curLoc = 0;
         while (curLoc < numTargets)
         {
-            bool            useArray        = rnd.getFloat() < 0.3f;
-            int             maxArrayLen     = numTargets-curLoc;
-            int             arrayLen        = useArray ? rnd.getInt(1, maxArrayLen) : 0;
-            glu::DataType   basicType       = rnd.choose<glu::DataType>(&outputTypes[0], &outputTypes[0] + DE_LENGTH_OF_ARRAY(outputTypes));
-            glu::Precision  precision       = rnd.choose<glu::Precision>(&precisions[0], &precisions[0] + DE_LENGTH_OF_ARRAY(precisions));
-            int             numLocations    = useArray ? arrayLen : 1;
+            /** @type {boolean} */ var useArray = rnd.getFloat() < 0.3;
+            /** @type {number} */ var maxArrayLen = numTargets - curLoc;
+            /** @type {number} */ var arrayLen = useArray ? rnd.getInt(1, maxArrayLen) : 0;
+            /** @type {Array.<gluShaderUtil.DataType>} */ var basicType = rnd.choose(outputTypes, outputTypes.length); // TODO: check second parameter: &outputTypes[0] + DE_LENGTH_OF_ARRAY(outputTypes)
+            /** @type {Array.<gluShaderUtil.precision>} */ var precision = rnd.choose(precisions, precisions.length); // TODO: check second parameter: &precisions[0] + DE_LENGTH_OF_ARRAY(precisions)
+            /** @type {number} */ var numLocations = useArray ? arrayLen : 1;
 
-            outputs.push_back(FragmentOutput(basicType, precision, curLoc, arrayLen));
+            outputs.push(FragmentOutput(basicType, precision, curLoc, arrayLen));
 
-            for (int ndx = 0; ndx < numLocations; ndx++)
-                outTypes.push_back(basicType);
+            for (var ndx = 0; ndx < numLocations; ndx++)
+                outTypes.push(basicType);
 
             curLoc += numLocations;
         }
         DE_ASSERT(curLoc == numTargets);
-        DE_ASSERT((int)outTypes.size() == numTargets);
+        DE_ASSERT(outTypes.length == numTargets);
 
         // Compute buffers.
-        while ((int)targets.size() < numTargets)
+        while (targets.length < numTargets)
         {
-            glu::DataType   outType     = outTypes[targets.size()];
-            bool            isFloat     = glu::isDataTypeFloatOrVec(outType);
-            bool            isInt       = glu::isDataTypeIntOrIVec(outType);
-            bool            isUint      = glu::isDataTypeUintOrUVec(outType);
-            deUint32        format      = 0;
+            /** @type {Array.<gluShaderUtil.DataType>} */ var outType = outTypes[targets.size()];
+            /** @type {boolean} */ var isFloat = gluShaderUtil.isDataTypeFloatOrVec(outType);
+            /** @type {boolean} */ var isInt = gluShaderUtil.isDataTypeIntOrIVec(outType);
+            /** @type {boolean} */ var isUint = gluShaderUtil.isDataTypeUintOrUVec(outType);
+            /** @type {number} */ var format = 0; // deUint32
 
             if (isFloat)
-                format = rnd.choose<deUint32>(&floatFormats[0], &floatFormats[0] + DE_LENGTH_OF_ARRAY(floatFormats));
+                format = rnd.choose(floatFormats, floatFormats.length); // TODO: check second parameter: &floatFormats[0] + DE_LENGTH_OF_ARRAY(floatFormats)
             else if (isInt)
-                format = rnd.choose<deUint32>(&intFormats[0], &intFormats[0] + DE_LENGTH_OF_ARRAY(intFormats));
+                format = rnd.choose(intFormats, intFormats.length); // TODO: check second parameter: &intFormats[0] + DE_LENGTH_OF_ARRAY(intFormats)
             else if (isUint)
-                format = rnd.choose<deUint32>(&uintFormats[0], &uintFormats[0] + DE_LENGTH_OF_ARRAY(uintFormats));
+                format = rnd.choose(uintFormats, uintFormats.length); // TODO: check second parameter: &uintFormats[0] + DE_LENGTH_OF_ARRAY(uintFormats)
             else
                 DE_ASSERT(false);
 
-            targets.push_back(BufferSpec(format, width, height, samples));
+            targets.push(new BufferSpec(format, width, height, samples));
         }
 
-        return new FragmentOutputCase(context, de::toString(seed).c_str(), "", targets, outputs);
-       */ 
+        return new FragmentOutputCase(gl, seed, '', targets, outputs);
+
     };
     
     var init = function(gl) {
@@ -1288,7 +1292,7 @@ function(
                 /** @type {string} */ var fmtName = fboTestUtil.getFormatName(format);
                 /** @type {Array.<BufferSpec>} */ var fboSpec = [];
 
-                fboSpec.push(BufferSpec(format, width, height, samples));
+                fboSpec.push(new BufferSpec(format, width, height, samples));
 
                 for (var precNdx = 0; precNdx < precisions.length; precNdx++)
                 {
@@ -1312,7 +1316,7 @@ function(
                 /** @type {string} */ var fmtName = fboTestUtil.getFormatName(format);
                 /** @type {Array.<BufferSpec>} */ var fboSpec = [];
     
-                fboSpec.push(BufferSpec(format, width, height, samples));
+                fboSpec.push(new BufferSpec(format, width, height, samples));
     
                 for (var precNdx = 0; precNdx < precisions.length; precNdx++)
                 {
@@ -1335,7 +1339,7 @@ function(
                 /** @type {string} */ var fmtName = fboTestUtil.getFormatName(format);
                 /** @type {Array.<BufferSpec>} */ var fboSpec = [];
     
-                fboSpec.push(BufferSpec(format, width, height, samples));
+                fboSpec.push(new BufferSpec(format, width, height, samples));
     
                 for (var precNdx = 0; precNdx < precisions.length; precNdx++)
                 {
@@ -1358,7 +1362,7 @@ function(
                 /** @type {string} */ var fmtName = fboTestUtil.getFormatName(format);
                 /** @type {Array.<BufferSpec>} */ var fboSpec = [];
     
-                fboSpec.push(BufferSpec(format, width, height, samples));
+                fboSpec.push(new BufferSpec(format, width, height, samples));
     
                 for (var precNdx = 0; precNdx < precisions.length; precNdx++)
                 {
@@ -1394,7 +1398,7 @@ function(
                 /** @type {Array.<BufferSpec>} */ var fboSpec = [];
 
                 for (var ndx = 0; ndx < numTargets; ndx++)
-                    fboSpec.push(BufferSpec(format, width, height, samples));
+                    fboSpec.push(new BufferSpec(format, width, height, samples));
 
                 for (var precNdx = 0; precNdx < precisions.length; precNdx++)
                 {
@@ -1418,7 +1422,7 @@ function(
                 /** @type {Array.<BufferSpec>} */ var fboSpec = [];
 
                 for (var ndx = 0; ndx < numTargets; ndx++)
-                    fboSpec.push(BufferSpec(format, width, height, samples));
+                    fboSpec.push(new BufferSpec(format, width, height, samples));
 
                 for (var precNdx = 0; precNdx < precisions.length; precNdx++)
                 {
@@ -1442,7 +1446,7 @@ function(
                 /** @type {Array.<BufferSpec>} */ var fboSpec = [];
 
                 for (var ndx = 0; ndx < numTargets; ndx++)
-                    fboSpec.push(BufferSpec(format, width, height, samples));
+                    fboSpec.push(new BufferSpec(format, width, height, samples));
 
                 for (var precNdx = 0; precNdx < precisions.length; precNdx++)
                 {
@@ -1481,14 +1485,14 @@ function(
             }
         }
 
-     /*// .random
+     // .random
         {
-            tcu::TestCaseGroup* randomGroup = new tcu::TestCaseGroup(m_testCtx, "random", "Random fragment output cases");
-            addChild(randomGroup);
+            /** @type {deqpTests.DeqpTest} */ var randomGroup = deqpTests.newTest('random', 'Random fragment output cases');
+            testGroup.addChild(randomGroup);
 
-            for (deUint32 seed = 0; seed < 100; seed++)
-                randomGroup->addChild(createRandomCase(m_context, 2, 4, seed));
-        }*/
+            for (var seed = 0; seed < 100; seed++)
+                randomGroup.addChild(createRandomCase(gl, 2, 4, seed));
+        }
 
     };
 
