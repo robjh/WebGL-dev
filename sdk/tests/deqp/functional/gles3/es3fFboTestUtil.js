@@ -18,8 +18,8 @@
  *
  */
 
-define(['framework/opengl/gluShaderUtil', 'framework/common/tcuSurface', 'framework/opengl/gluTexture', 'framework/opengl/gluTextureUtil', 'framework/common/tcuTexture', 'modules/shared/glsTextureTestUtil', 'framework/common/tcuTextureUtil', 'framework/opengl/gluStrUtil', 'framework/delibs/debase/deMath', 'framework/common/tcuCompressedTexture'],
-     function(gluShaderUtil, tcuSurface, gluTexture, gluTextureUtil, tcuTexture, glsTextureTestUtil, tcuTextureUtil, gluStrUtil, deMath, tcuCompressedTexture) {
+define(['framework/common/tcuTexture', 'framework/common/tcuTextureUtil'],
+     function(tcuTexture, tcuTextureUtil) {
     'use strict';
 
     var getFormatName = function(format) {
@@ -85,6 +85,35 @@ define(['framework/opengl/gluShaderUtil', 'framework/common/tcuSurface', 'framew
         default:
             throw new Error('Unknown format in getFromatName()');
         }
+
+    };
+
+    var getFramebufferReadFormat = function(format) {
+        switch (tcuTextureUtil.getTextureChannelClass(format.type))
+        {
+            case tcuTextureUtil.TextureChannelClass.FLOATING_POINT:
+                return tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.FLOAT);
+
+            case tcuTextureUtil.TextureChannelClass.SIGNED_FIXED_POINT:
+            case tcuTextureUtil.TextureChannelClass.UNSIGNED_FIXED_POINT:
+                return tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.UNORM_INT8);
+
+            case tcuTextureUtil.TextureChannelClass.UNSIGNED_INTEGER:
+                return tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.UNSIGNED_INT32);
+
+            case tcuTextureUtil.TextureChannelClass.SIGNED_INTEGER:
+                return tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.SIGNED_INT32);
+
+            default:
+                // DE_ASSERT(!"Unknown format");
+            throw new Error('Unknown format in getFramebufferReadFormat()');
+                return tcuTexture.TextureFormat();
+        }
+    };
+
+    return {
+        getFormatName: getFormatName,
+        getFramebufferReadFormat: getFramebufferReadFormat
 
     };
 

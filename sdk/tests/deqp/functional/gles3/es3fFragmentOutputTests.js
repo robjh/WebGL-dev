@@ -69,6 +69,15 @@ function(
         testFailedOptions(msg, true);
     };
 
+    /** toUInt32
+     * Returns a converted UInt32
+     * @param {number} x
+     * @return {UInt32}
+     */
+    var toUInt32 = function(x) {
+        return x >>> 0;
+      };
+
     /** BufferSpec
      * Constructs the BufferSpec object, it's originally a struct
      * @param {number} format_
@@ -147,7 +156,7 @@ function(
     };
 
     /** FragmentOutputCase
-     * Returns the FragmentOutputCase object
+     * Constructs the FragmentOutputCase object
      * @param {WebGLRenderingContext} gl WebGL context
      * @param {string} name
      * @param {string} description
@@ -465,12 +474,12 @@ function(
                 /** @type {boolean} */ var tri = xf + yf >= 1.0;
                 /** @type {Float32Array} */ var v0 = tri ? v11 : v00; // Vec4&
                 /** @type {Float32Array} */ var v1 = tri ? v01 : v10; // Vec4&
-                /** @type {Float32Array} */ var v2  = tri ? v10 : v01; // Vec4&
+                /** @type {Float32Array} */ var v2 = tri ? v10 : v01; // Vec4&
                 /** @type {number} */ var s = tri ? 1.0 - xf : xf;
                 /** @type {number} */ var t = tri ? 1.0 - yf : yf;
                 /** @type {Float32Array} */ var color = deMath.add(v0, deMath.add(deMath.multiply((deMath.subtract(v1, v0)), s), deMath.multiply((deMath.subtract(v2, v0)), t))); // Vec4
 
-                dst.setPixel(isSRGB ? tcuTextureutil.linearToSRGB(color) : color, x, y);
+                dst.setPixel(isSRGB ? tcuTextureUtil.linearToSRGB(color) : color, x, y);
             }
         }
     };
@@ -562,14 +571,14 @@ function(
         /** @type {Array.<number>} */ var minBufSize = getMinSize(m_fboSpec); // IVec2, array of integers, size = 2
         /** @type {number} */ var gridWidth = deMath.clamp(Math.floor(minBufSize[0] / minCellSize), 1, 255) + 1;
         /** @type {number} */ var gridHeight = deMath.clamp(Math.floor(minBufSize[1] / minCellSize), 1, 255) + 1;
-        /** @type {number} */ var numVertices = gridWidth * gridHeight; // TODO: don't needed?
-        /** @type {number} */ var numQuads = (gridWidth - 1) * (gridHeight -1 );
+        /** @type {number} */ var numVertices = gridWidth * gridHeight;
+        /** @type {number} */ var numQuads = (gridWidth - 1) * (gridHeight - 1);
         /** @type {number} */ var numIndices = numQuads * 6;
 
         /** @type {number} */ var numInputVecs = getNumInputVectors(m_outputs);
-        /** @type {Array.<Uint32Array>} */ var inputs = []; // TODO: originally vector<vector<deUint32>, new Uint32Array
+        /** @type {Array.<Uint32Array>} */ var inputs = []; // TODO: originally vector<vector<deUint32>
         /** @type {Array.<number>} */ var positions = []; // originally vector<float>
-        /** @type {Uint16Array} */ var indices  = new Uint16Array(numIndices); // originally vector<deUint16>
+        /** @type {Uint16Array} */ var indices = new Uint16Array(numIndices); // originally vector<deUint16>
 
         /** @type {number} */ var readAlignment = 4;
         /** @type {number} */ var viewportW = minBufSize[0];
@@ -589,7 +598,7 @@ function(
 
             // \note Fixed-point formats use float reference to enable more accurate result verification.
             /** @type {tcuTexture.TextureFormat} */ var refFmt = isFixedPoint ? tcuTexture.TextureFormat(texFmt.order, tcuTexture.ChannelType.FLOAT) : texFmt; // TODO: check parameters tcuTexture.TextureFormat()
-            /** @type {tcuTexture.TextureFormat} */ var readFmt = getFramebufferReadFormat(texFmt);
+            /** @type {tcuTexture.TextureFormat} */ var readFmt = fboTestUtil.getFramebufferReadFormat(texFmt);
             /** @type {number} */ var attachmentW = m_fboSpec[ndx].width;
             /** @type {number} */ var attachmentH = m_fboSpec[ndx].height;
 
@@ -625,7 +634,7 @@ function(
                 positions[(y * gridWidth + x) * 4 + 0] = 2.0 * xf - 1.0;
                 positions[(y * gridWidth + x) * 4 + 1] = 2.0 * yf - 1.0;
                 positions[(y * gridWidth + x) * 4 + 2] = 0.0;
-                positions[(y  *gridWidth + x) * 4 + 3] = 1.0;
+                positions[(y * gridWidth + x) * 4 + 3] = 1.0;
             }
         }
 
@@ -686,7 +695,7 @@ function(
                                 /** @type {number} */ var pos = (y * gridWidth + x) * numScalars;
 
                                 for (var ndx = 0; ndx < numScalars; ndx++)
-                                    inputs[curInVec][pos] = ToUInt32(c[ndx]); // TODO: validate ToUInt32() conversion, inputs[curInVec][v] is an Uint32, and c[ndx] a float
+                                    inputs[curInVec][pos] = toUInt32(c[ndx]); // TODO: validate toUInt32() conversion, inputs[curInVec][v] is an Uint32, and c[ndx] a float
                             }
                         }
                     }
@@ -700,10 +709,19 @@ function(
                         {
                             // Limit to range of output format as conversion mode is not specified.
                             /** @type {Int32Array} */ var fmtBits = tcuTextureUtil.getTextureFormatBitDepth(attachments[output.location + vecNdx].format); // IVec4
-                            /** @type {Array.<boolean>} */ var isZero = deMath.lessThanEqual(fmtBits, [0, 0, 0, 0]); // BVec4, array of booleans, size = 4
+                            /** @type {Array.<boolean>} */ var isZero = deMath.lessThanEqual(fmtBits, new Int32Array([0, 0, 0, 0])); // BVec4, array of booleans, size = 4
 
-                            const IVec4 fmtMinVal = (-(tcu::Vector<deInt64, 4>(1) << (fmtBits - 1 ).cast<deInt64>())).asInt(); // IVec4 // TODO: how to implement deInt64?
-                            const IVec4 fmtMaxVal = ((tcu::Vector<deInt64, 4>(1) << (fmtBits - 1 ).cast<deInt64>()) - deInt64(1)).asInt(); // IVec4 // TODO: how to implement deInt64?
+                            /** @type {Int32Array} */ var fmtMinVal = new Int32Array(4); // IVec4
+                            /** @type {Int32Array} */ var fmtMaxVal = new Int32Array(4); // IVec4
+                            /** @type {Int32Array} */ var deInt = new Int32Array([1, 1, 1, 1]); // instead of deInt64, Vector<deInt64, 4>(1)
+
+                            for (var i = 0; i < 4; i++) {
+
+                                // const IVec4 fmtMinVal = (-(tcu::Vector<deInt64, 4>(1) << (fmtBits - 1 ).cast<deInt64>())).asInt();
+                                fmtMinVal[i] = deInt[i] << fmtBits[i] - 1; // TODO: check implementation, original above. There is not ArrayInt64 in JavaScript
+                                // const IVec4 fmtMaxVal = ((tcu::Vector<deInt64, 4>(1) << (fmtBits - 1 ).cast<deInt64>()) - deInt64(1)).asInt();
+                                fmtMaxVal[i] = (deInt[i] << fmtBits[i] - 1) - deInt[i]; // TODO: check implementation, original above. There is not ArrayInt64 in JavaScript
+                            }
 
                             minVal = tcuTextureUtil.select(minVal, deMath.max(minVal, fmtMinVal), isZero);
                             maxVal = tcuTextureUtil.select(maxVal, deMath.min(maxVal, fmtMaxVal), isZero);
@@ -713,7 +731,13 @@ function(
 
                         /** @type {Int32Array} */
                         var rangeDiv = swizzleVec(new Int32Array([gridWidth - 1, gridHeight - 1, gridWidth - 1, gridHeight - 1]), curInVec); // IVec4
-                        const IVec4 step = ((maxVal.cast<deInt64>() - minVal.cast<deInt64>()) / (rangeDiv.cast<deInt64>())).asInt();// IVec4 // TODO: how to implement deInt64?
+                        /** @type {Int32Array} */ var step = new Int32Array(4); // IVec4
+                        /** @type {Int32Array} */ var deInt = new Int32Array([1, 1, 1, 1]); // instead of deInt64
+                        for (var i = 0; i < 4; i++) {
+                            // const IVec4 step = ((maxVal.cast<deInt64>() - minVal.cast<deInt64>()) / (rangeDiv.cast<deInt64>())).asInt();
+                            step[i] = (maxVal[i] - minVal[i]) / rangeDiv[i];
+
+                        }
                         // deInt32* dst = (deInt32*)&inputs[curInVec][0]; // a pointer needed in the next loop in the C++ version
 
                         for (var y = 0; y < gridHeight; y++)
@@ -731,20 +755,26 @@ function(
                                 // TODO: DE_ASSERT(deMath.boolAll(logicalAnd(greaterThanEqual(c, minVal), deMath.lessThanEqual(c, maxVal))));
 
                                 for (var ndx = 0; ndx < numScalars; ndx++)
-                                    inputs[curInVec][pos] = ToUInt32(c[ndx]); // TODO: validate ToUInt32() conversion, inputs[curInVec][v] is an Uint32, and c[ndx] an Int
+                                    inputs[curInVec][pos] = toUInt32(c[ndx]); // TODO: validate toUInt32() conversion, inputs[curInVec][v] is an Uint32, and c[ndx] an Int
                             }
                         }
                     }
                     else if (isUint)
                     {
-                        /** @type {Uint32Array} */ var range  = getUintRange(output.precision); // UVec2
+                        /** @type {Uint32Array} */ var range = getUintRange(output.precision); // UVec2
                         /** @type {Uint32Array} */ var maxVal = new Uint32Array([range[1], range[1], range[1], range[1]]); // UVec4
 
                         if (deMath.deInBounds32(output.location + vecNdx, 0, attachments.length))
                         {
                             // Limit to range of output format as conversion mode is not specified.
                             /** @type {Int32Array} */ var fmtBits = tcuTextureUtil.getTextureFormatBitDepth(attachments[output.location + vecNdx].format); // IVec4
-                            const UVec4 fmtMaxVal = ((tcu::Vector<deUint64, 4>(1) << fmtBits.cast<deUint64>()) - deUint64(1)).asUint(); // UVec4 // TODO: how to implement deUint64?
+                            /** @type {Uint32Array} */ var fmtMaxVal = new Uint32Array(4); // UVec4
+                            /** @type {Uint32Array} */ var deUint = new Uint32Array([1, 1, 1, 1]); // instead of deUint64, Vector<deUint64, 4>(1)
+
+                            for (var i = 0; i < 4; i++) {
+                                // const UVec4 fmtMaxVal = ((tcu::Vector<deUint64, 4>(1) << fmtBits.cast<deUint64>()) - deUint64(1)).asUint();
+                                fmtMaxVal[i] = deUint[i] << fmtBits[i] - deUint[i]; // TODO: check implementation, original above. There is not ArrayUint64 in JavaScript
+                            }
 
                             maxVal = deMath.min(maxVal, fmtMaxVal);
                         }
@@ -756,8 +786,8 @@ function(
 
                         /** @type {Uint32Array} */ var step = new Uint32Array(maxVal.length); // UVec4
 
-                        for(var stepPos = 0; stepPos < maxVal.length; stepPos++){
-                            step[stepPos] = maxVal[stepPos] / ToUInt32(rangeDiv[stepPos]); // TODO: check conversion rangeDiv ToUInt32()
+                        for (var stepPos = 0; stepPos < maxVal.length; stepPos++) {
+                            step[stepPos] = maxVal[stepPos] / toUInt32(rangeDiv[stepPos]); // TODO: check conversion rangeDiv toUInt32()
                         }
 
                         // deUint32*  dst = &inputs[curInVec][0]; // a pointer used in the next loop
@@ -797,7 +827,7 @@ function(
         GLU_EXPECT_NO_ERROR(gl.getError(), 'After program setup');
 
         {
-            /** @type {number} */ var curInVec = 0;
+            curInVec = 0;
             for (var outputNdx = 0; outputNdx < m_outputs.length; outputNdx++)
             {
                 /** @type {FragmentOutput} */ var output = m_outputs[outputNdx];
@@ -806,24 +836,24 @@ function(
                 /** @type {boolean} */ var isInt = gluShaderUtil.isDataTypeIntOrIVec(output.type);
                 /** @type {boolean} */ var isUint = gluShaderUtil.isDataTypeUintOrUVec(output.type);
                 /** @type {number} */ var scalarSize = gluShaderUtil.getDataTypeScalarSize(output.type);
-                /** @type {number} */ var glScalarType = isFloat ? /* gluShaderUtil.DataType.FLOAT */ gl.FLOAT  :
-                                                         isInt ? /* gluShaderUtil.DataType.INT */ gl.INT  :
-                                                         isUint ? /* gluShaderUtil.DataType.UINT */  gl.UNSIGNED_INT : /* gluShaderUtil.DataType.INVALID */ gl.NONE;
+                /** @type {number} */ var glScalarType = isFloat ? /* gluShaderUtil.DataType.FLOAT */ gl.FLOAT :
+                                                         isInt ? /* gluShaderUtil.DataType.INT */ gl.INT :
+                                                         isUint ? /* gluShaderUtil.DataType.UINT */ gl.UNSIGNED_INT : /* gluShaderUtil.DataType.INVALID */ gl.NONE;
                 /** @type {number} */ var numVecs = isArray ? output.arrayLength : 1;
 
                 for (var vecNdx = 0; vecNdx < numVecs; vecNdx++)
                 {
-                    /** @type {string} */ var name = string('in') + outputNdx + (isArray ? '_' + vecNdx : '');
+                    /** @type {string} */ var name = 'in' + outputNdx + (isArray ? '_' + vecNdx : '');
                     /** @type {number} */ var loc = gl.getAttribLocation(m_program.getProgram(), name);
 
                     if (loc >= 0)
                     {
                         gl.enableVertexAttribArray(loc);
                         if (isFloat)
-                            // KHRONOS speification: void vertexAttribIPointer(GLuint index, GLint size, GLenum type, GLsizei stride, GLintptr offset)
+                            // KHRONOS specification: void vertexAttribIPointer(GLuint index, GLint size, GLenum type, GLsizei stride, GLintptr offset)
                             gl.vertexAttribPointer(loc, scalarSize, glScalarType, gl.FALSE, 0, inputs[curInVec][0]); // TODO: check call, offset first position Uint32Array?
                         else
-                            // KHRONOS speification: void vertexAttribIPointer(GLuint index, GLint size, GLenum type, GLsizei stride, GLintptr offset)
+                            // KHRONOS specification: void vertexAttribIPointer(GLuint index, GLint size, GLenum type, GLsizei stride, GLintptr offset)
                             gl.vertexAttribIPointer(loc, scalarSize, glScalarType, 0, inputs[curInVec][0]); // TODO: check call, offset first position Uint32Array?
                     }
                     else
@@ -969,7 +999,7 @@ function(
                             precThreshold = (1 << 21);
                             break;
                         case gluShaderUtil.Precision.PRECISION_MEDIUMP:
-                            recThreshold = (1 << 13);
+                            precThreshold = (1 << 13);
                             break;
                         case gluShaderUtil.Precision.PRECISION_HIGHP:
                             precThreshold = 0;
@@ -993,11 +1023,11 @@ function(
                 {
                     // \note glReadPixels() allows only 8 bits to be read. This means that RGB10_A2 will loose some
                     // bits in the process and it must be taken into account when computing threshold.
-                    /** @type {Int32Array} */ var bits = deMath.min(new Int32Array([8, 8 ,8, 8]), tcuTextureUtil.getTextureFormatBitDepth(format)); // IVec4
+                    /** @type {Int32Array} */ var bits = deMath.min(new Int32Array([8, 8, 8, 8]), tcuTextureUtil.getTextureFormatBitDepth(format)); // IVec4
 
                     /** @type {Float32Array} */ var baseThreshold = new Float32Array(4); // Vec4
-                    for(var inc = 0; inc < mbaseThreshold.length; inc++){
-                        // TODO: check this operation: baseThreshold = 1.0f / ((IVec4(1) << bits)-1).asFloat();
+                    for (var inc = 0; inc < baseThreshold.length; inc++) {
+                        // TODO: check the operation below: baseThreshold = 1.0f / ((IVec4(1) << bits)-1).asFloat();
                         baseThreshold[inc] = 1.0 / ((1 << bits[inc]) - 1);
                     }
 
@@ -1033,6 +1063,138 @@ function(
         return deqpTests.runner.IterateResult.STOP;
     };
 
+    /** createRandomCase
+     * Creates the createRandomCase, child class of FragmentOutputCase
+     * @param {WebGLRenderingContext} gl WebGL context
+     * @param {number} minRenderTargets
+     * @param {number} maxRenderTargets
+     * @param {number} seed
+     * @return {FragmentOutputCase} The currently modified object
+     */
+    var createRandomCase = function (gl, minRenderTargets, maxRenderTargets, seed) {
+/*
+        static const glu::DataType outputTypes[] =
+        {
+            glu::TYPE_FLOAT,
+            glu::TYPE_FLOAT_VEC2,
+            glu::TYPE_FLOAT_VEC3,
+            glu::TYPE_FLOAT_VEC4,
+            glu::TYPE_INT,
+            glu::TYPE_INT_VEC2,
+            glu::TYPE_INT_VEC3,
+            glu::TYPE_INT_VEC4,
+            glu::TYPE_UINT,
+            glu::TYPE_UINT_VEC2,
+            glu::TYPE_UINT_VEC3,
+            glu::TYPE_UINT_VEC4
+        };
+        static const glu::Precision precisions[] =
+        {
+            glu::PRECISION_LOWP,
+            glu::PRECISION_MEDIUMP,
+            glu::PRECISION_HIGHP
+        };
+        static const deUint32 floatFormats[] =
+        {
+            GL_RGBA32F,
+            GL_RGBA16F,
+            GL_R11F_G11F_B10F,
+            GL_RG32F,
+            GL_RG16F,
+            GL_R32F,
+            GL_R16F,
+            GL_RGBA8,
+            GL_SRGB8_ALPHA8,
+            GL_RGB10_A2,
+            GL_RGBA4,
+            GL_RGB5_A1,
+            GL_RGB8,
+            GL_RGB565,
+            GL_RG8,
+            GL_R8
+        };
+        static const deUint32 intFormats[] =
+        {
+            GL_RGBA32I,
+            GL_RGBA16I,
+            GL_RGBA8I,
+            GL_RG32I,
+            GL_RG16I,
+            GL_RG8I,
+            GL_R32I,
+            GL_R16I,
+            GL_R8I
+        };
+        static const deUint32 uintFormats[] =
+        {
+            GL_RGBA32UI,
+            GL_RGBA16UI,
+            GL_RGBA8UI,
+            GL_RGB10_A2UI,
+            GL_RG32UI,
+            GL_RG16UI,
+            GL_RG8UI,
+            GL_R32UI,
+            GL_R16UI,
+            GL_R8UI
+        };
+
+        de::Random                  rnd         (seed);
+        vector<FragmentOutput>      outputs;
+        vector<BufferSpec>          targets;
+        vector<glu::DataType>       outTypes;
+
+        int                         numTargets  = rnd.getInt(minRenderTargets, maxRenderTargets);
+        const int                   width       = 128; // \todo [2012-04-10 pyry] Separate randomized sizes per target?
+        const int                   height      = 64;
+        const int                   samples     = 0;
+
+        // Compute outputs.
+        int curLoc = 0;
+        while (curLoc < numTargets)
+        {
+            bool            useArray        = rnd.getFloat() < 0.3f;
+            int             maxArrayLen     = numTargets-curLoc;
+            int             arrayLen        = useArray ? rnd.getInt(1, maxArrayLen) : 0;
+            glu::DataType   basicType       = rnd.choose<glu::DataType>(&outputTypes[0], &outputTypes[0] + DE_LENGTH_OF_ARRAY(outputTypes));
+            glu::Precision  precision       = rnd.choose<glu::Precision>(&precisions[0], &precisions[0] + DE_LENGTH_OF_ARRAY(precisions));
+            int             numLocations    = useArray ? arrayLen : 1;
+
+            outputs.push_back(FragmentOutput(basicType, precision, curLoc, arrayLen));
+
+            for (int ndx = 0; ndx < numLocations; ndx++)
+                outTypes.push_back(basicType);
+
+            curLoc += numLocations;
+        }
+        DE_ASSERT(curLoc == numTargets);
+        DE_ASSERT((int)outTypes.size() == numTargets);
+
+        // Compute buffers.
+        while ((int)targets.size() < numTargets)
+        {
+            glu::DataType   outType     = outTypes[targets.size()];
+            bool            isFloat     = glu::isDataTypeFloatOrVec(outType);
+            bool            isInt       = glu::isDataTypeIntOrIVec(outType);
+            bool            isUint      = glu::isDataTypeUintOrUVec(outType);
+            deUint32        format      = 0;
+
+            if (isFloat)
+                format = rnd.choose<deUint32>(&floatFormats[0], &floatFormats[0] + DE_LENGTH_OF_ARRAY(floatFormats));
+            else if (isInt)
+                format = rnd.choose<deUint32>(&intFormats[0], &intFormats[0] + DE_LENGTH_OF_ARRAY(intFormats));
+            else if (isUint)
+                format = rnd.choose<deUint32>(&uintFormats[0], &uintFormats[0] + DE_LENGTH_OF_ARRAY(uintFormats));
+            else
+                DE_ASSERT(false);
+
+            targets.push_back(BufferSpec(format, width, height, samples));
+        }
+
+        return new FragmentOutputCase(context, de::toString(seed).c_str(), "", targets, outputs);
+       */ 
+    };
+    
     var init = function(gl) {
 
       /** @const @type {deqpTests.DeqpTest} */ var testGroup = deqpTests.runner.getState().testCases;
@@ -1140,7 +1302,194 @@ function(
                 }
             }
             bufferedLogToConsole('fot.basic_float: Tests created');
+
+         // .fixed
+            /** @type {deqpTests.DeqpTest} */ var fixedGroup = deqpTests.newTest('fixed', 'Fixed-point output tests');
+            basicGroup.addChild(fixedGroup);
+            for (var fmtNdx = 0; fmtNdx < requiredFixedFormats.length; fmtNdx++)
+            {
+                /** @type {number} */ var format  = requiredFixedFormats[fmtNdx];
+                /** @type {string} */ var fmtName = fboTestUtil.getFormatName(format);
+                /** @type {Array.<BufferSpec>} */ var fboSpec = [];
+    
+                fboSpec.push(BufferSpec(format, width, height, samples));
+    
+                for (var precNdx = 0; precNdx < precisions.length; precNdx++)
+                {
+                    /** @type {Array.<gluShaderUtil.precision>} */ var prec = precisions[precNdx];
+                    /** @type {string} */ var precName = gluShaderUtil.getPrecisionName(prec);
+    
+                    fixedGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_float', '', fboSpec, OutputVec(FragmentOutput(gluShaderUtil.DataType.FLOAT, prec, 0))));
+                    fixedGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_vec2', '', fboSpec, OutputVec(FragmentOutput(gluShaderUtil.DataType.FLOAT_VEC2, prec, 0))));
+                    fixedGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_vec3', '', fboSpec, OutputVec(FragmentOutput(gluShaderUtil.DataType.FLOAT_VEC3, prec, 0))));
+                    fixedGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_vec4', '', fboSpec, OutputVec(FragmentOutput(gluShaderUtil.DataType.FLOAT_VEC4, prec, 0))));
+                }
+            }
+    
+         // .int
+            /** @type {deqpTests.DeqpTest} */ var intGroup = deqpTests.newTest('int', 'Integer output tests');
+            basicGroup.addChild(intGroup);
+            for (var fmtNdx = 0; fmtNdx < requiredIntFormats.length; fmtNdx++)
+            {
+                /** @type {number} */ var format = requiredIntFormats[fmtNdx];
+                /** @type {string} */ var fmtName = fboTestUtil.getFormatName(format);
+                /** @type {Array.<BufferSpec>} */ var fboSpec = [];
+    
+                fboSpec.push(BufferSpec(format, width, height, samples));
+    
+                for (var precNdx = 0; precNdx < precisions.length; precNdx++)
+                {
+                    /** @type {Array.<gluShaderUtil.precision>} */ var prec = precisions[precNdx];
+                    /** @type {string} */ var precName = gluShaderUtil.getPrecisionName(prec);
+    
+                    intGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_int', '', fboSpec, OutputVec(FragmentOutput(gluShaderUtil.DataType.INT, prec, 0))));
+                    intGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_ivec2', '', fboSpec, OutputVec(FragmentOutput(gluShaderUtil.DataType.INT_VEC2, prec, 0))));
+                    intGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_ivec3', '', fboSpec, OutputVec(FragmentOutput(gluShaderUtil.DataType.INT_VEC3, prec, 0))));
+                    intGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_ivec4', '', fboSpec, OutputVec(FragmentOutput(gluShaderUtil.DataType.INT_VEC4, prec, 0))));
+                }
+            }
+    
+         // .uint
+            /** @type {deqpTests.DeqpTest} */ var uintGroup = deqpTests.newTest('uint', 'Usigned integer output tests');
+            basicGroup.addChild(uintGroup);
+            for (var fmtNdx = 0; fmtNdx < requiredUintFormats.length; fmtNdx++)
+            {
+                /** @type {number} */ var format = requiredUintFormats[fmtNdx];
+                /** @type {string} */ var fmtName = fboTestUtil.getFormatName(format);
+                /** @type {Array.<BufferSpec>} */ var fboSpec = [];
+    
+                fboSpec.push(BufferSpec(format, width, height, samples));
+    
+                for (var precNdx = 0; precNdx < precisions.length; precNdx++)
+                {
+                    /** @type {Array.<gluShaderUtil.precision>} */ var prec = precisions[precNdx];
+                    /** @type {string} */ var precName = gluShaderUtil.getPrecisionName(prec);
+    
+                    uintGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_uint', '', fboSpec, OutputVec(FragmentOutput(gluShaderUtil.DataType.UINT, prec, 0))));
+                    uintGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_uvec2', '', fboSpec, OutputVec(FragmentOutput(gluShaderUtil.DataType.UINT_VEC2, prec, 0))));
+                    uintGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_uvec3', '', fboSpec, OutputVec(FragmentOutput(gluShaderUtil.DataType.UINT_VEC3, prec, 0))));
+                    uintGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_uvec4', '', fboSpec, OutputVec(FragmentOutput(gluShaderUtil.DataType.UINT_VEC4, prec, 0))));
+    
+                }
+            }
         }
+
+     // .array
+        {
+            /** @type {deqpTests.DeqpTest} */ var arrayGroup = deqpTests.newTest('array', 'Array outputs');
+            testGroup.addChild(arrayGroup);
+
+            width = 64;
+            height = 64;
+            samples = 0;
+            /** @type {number} */ var numTargets = 3;
+
+            // .float
+            /** @type {deqpTests.DeqpTest} */ var arrayFloatGroup = deqpTests.newTest('float', 'Floating-point output tests');
+            arrayGroup.addChild(arrayFloatGroup);
+            for (var fmtNdx = 0; fmtNdx < requiredFloatFormats.length; fmtNdx++)
+            {
+                /** @type {number} */ var format = requiredFloatFormats[fmtNdx];
+                /** @type {string} */ var fmtName = fboTestUtil.getFormatName(format);
+                /** @type {Array.<BufferSpec>} */ var fboSpec = [];
+
+                for (var ndx = 0; ndx < numTargets; ndx++)
+                    fboSpec.push(BufferSpec(format, width, height, samples));
+
+                for (var precNdx = 0; precNdx < precisions.length; precNdx++)
+                {
+                    /** @type {Array.<gluShaderUtil.precision>} */ var prec = precisions[precNdx];
+                    /** @type {string} */ var precName = gluShaderUtil.getPrecisionName(prec);
+
+                    arrayFloatGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_float', '', fboSpec, OutputVec(FragmentOutput(gluShaderUtil.DataType.FLOAT, prec, 0, numTargets))));
+                    arrayFloatGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_vec2', '', fboSpec, OutputVec(FragmentOutput(gluShaderUtil.DataType.FLOAT_VEC2, prec, 0, numTargets))));
+                    arrayFloatGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_vec3', '', fboSpec, OutputVec(FragmentOutput(gluShaderUtil.DataType.FLOAT_VEC3, prec, 0, numTargets))));
+                    arrayFloatGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_vec4', '', fboSpec, OutputVec(FragmentOutput(gluShaderUtil.DataType.FLOAT_VEC4, prec, 0, numTargets))));
+                }
+            }
+
+            // .fixed
+            /** @type {deqpTests.DeqpTest} */ var arrayFixedGroup = deqpTests.newTest('fixed', 'Fixed-point output tests');
+            arrayGroup.addChild(arrayFixedGroup);
+            for (var fmtNdx = 0; fmtNdx < requiredFixedFormats.length; fmtNdx++)
+            {
+                /** @type {number} */ var format = requiredFixedFormats[fmtNdx];
+                /** @type {string} */ var fmtName = fboTestUtil.getFormatName(format);
+                /** @type {Array.<BufferSpec>} */ var fboSpec = [];
+
+                for (var ndx = 0; ndx < numTargets; ndx++)
+                    fboSpec.push(BufferSpec(format, width, height, samples));
+
+                for (var precNdx = 0; precNdx < precisions.length; precNdx++)
+                {
+                    /** @type {Array.<gluShaderUtil.precision>} */ var prec = precisions[precNdx];
+                    /** @type {string} */ var precName = gluShaderUtil.getPrecisionName(prec);
+
+                    arrayFixedGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_float', '', fboSpec, OutputVec(FragmentOutput(gluShaderUtil.DataType.FLOAT, prec, 0, numTargets))));
+                    arrayFixedGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_vec2', '', fboSpec, OutputVec(FragmentOutput(gluShaderUtil.DataType.FLOAT_VEC2, prec, 0, numTargets))));
+                    arrayFixedGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_vec3', '', fboSpec, OutputVec(FragmentOutput(gluShaderUtil.DataType.FLOAT_VEC3, prec, 0, numTargets))));
+                    arrayFixedGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_vec4', '', fboSpec, OutputVec(FragmentOutput(gluShaderUtil.DataType.FLOAT_VEC4, prec, 0, numTargets))));
+                }
+            }
+
+            // .int
+            /** @type {deqpTests.DeqpTest} */ var arrayIntGroup = deqpTests.newTest('int', 'Integer output tests');
+            arrayGroup.addChild(arrayIntGroup);
+            for (var fmtNdx = 0; fmtNdx < requiredIntFormats.length; fmtNdx++)
+            {
+                /** @type {number} */ var format = requiredIntFormats[fmtNdx];
+                /** @type {string} */ var fmtName = fboTestUtil.getFormatName(format);
+                /** @type {Array.<BufferSpec>} */ var fboSpec = [];
+
+                for (var ndx = 0; ndx < numTargets; ndx++)
+                    fboSpec.push(BufferSpec(format, width, height, samples));
+
+                for (var precNdx = 0; precNdx < precisions.length; precNdx++)
+                {
+                    /** @type {Array.<gluShaderUtil.precision>} */ var prec = precisions[precNdx];
+                    /** @type {string} */ var precName = gluShaderUtil.getPrecisionName(prec);
+
+                    arrayIntGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_int', '', fboSpec, OutputVec(FragmentOutput(gluShaderUtil.DataType.INT, prec, 0, numTargets))));
+                    arrayIntGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_ivec2', '', fboSpec, OutputVec(FragmentOutput(gluShaderUtil.DataType.INT_VEC2, prec, 0, numTargets))));
+                    arrayIntGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_ivec3', '', fboSpec, OutputVec(FragmentOutput(gluShaderUtil.DataType.INT_VEC3, prec, 0, numTargets))));
+                    arrayIntGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_ivec4', '', fboSpec, OutputVec(FragmentOutput(gluShaderUtil.DataType.INT_VEC4, prec, 0, numTargets))));
+                }
+            }
+
+            // .uint
+            /** @type {deqpTests.DeqpTest} */ var arrayUintGroup = deqpTests.newTest('uint', 'Usigned integer output tests');
+            arrayGroup.addChild(arrayUintGroup);
+            for (var fmtNdx = 0; fmtNdx < requiredUintFormats.length; fmtNdx++)
+            {
+                /** @type {number} */ var format = requiredUintFormats[fmtNdx];
+                /** @type {string} */ var fmtName = fboTestUtil.getFormatName(format);
+                /** @type {Array.<BufferSpec>} */ var fboSpec = [];
+
+                for (var ndx = 0; ndx < numTargets; ndx++)
+                    fboSpec.push_back(BufferSpec(format, width, height, samples));
+
+                for (var precNdx = 0; precNdx < precisions.length; precNdx++)
+                {
+                    /** @type {Array.<gluShaderUtil.precision>} */ var prec = precisions[precNdx];
+                    /** @type {string} */ var precName = gluShaderUtil.getPrecisionName(prec);
+
+                    arrayUintGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_uint', '', fboSpec, OutputVec(FragmentOutput(gluShaderUtil.DataType.UINT, prec, 0, numTargets))));
+                    arrayUintGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_uvec2', '', fboSpec, OutputVec(FragmentOutput(gluShaderUtil.DataType.UINT_VEC2, prec, 0, numTargets))));
+                    arrayUintGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_uvec3', '', fboSpec, OutputVec(FragmentOutput(gluShaderUtil.DataType.UINT_VEC3, prec, 0, numTargets))));
+                    arrayUintGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_uvec4', '', fboSpec, OutputVec(FragmentOutput(gluShaderUtil.DataType.UINT_VEC4, prec, 0, numTargets))));
+                }
+            }
+        }
+
+     /*// .random
+        {
+            tcu::TestCaseGroup* randomGroup = new tcu::TestCaseGroup(m_testCtx, "random", "Random fragment output cases");
+            addChild(randomGroup);
+
+            for (deUint32 seed = 0; seed < 100; seed++)
+                randomGroup->addChild(createRandomCase(m_context, 2, 4, seed));
+        }*/
+
     };
 
     /**
