@@ -243,7 +243,8 @@ var floatThresholdCompare = function(imageSetName, imageSetDesc, reference, resu
 
     /** @type {tcuTexture.TextureLevel} */
     var errorMaskStorage = new tcuTexture.TextureLevel(
-            new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGB, tcuTexture.ChannelType.UNORM_INT8), width, height, depth);
+        new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGB, tcuTexture.ChannelType.UNORM_INT8), width, height, depth
+    );
     /** @type {tcuTexture.PixelBufferAccess} */ var errorMask = errorMaskStorage.getAccess();
     /** @type {Float32Array} */ var maxDiff = new Float32Array([0.0, 0.0, 0.0, 0.0]); // Vec4
     /** @type {Float32Array} */ var pixelBias = new Float32Array([0.0, 0.0, 0.0, 0.0]); // Vec4
@@ -258,9 +259,10 @@ var floatThresholdCompare = function(imageSetName, imageSetDesc, reference, resu
                 /** @type {Float32Array} */ var cmpPix = result.getPixel(x, y, z); // Vec4
                 /** @type {Float32Array} */ var diff = new Float32Array(4); // Vec4
                 for (var x = 0; x < refPix.length; x++) {
-                    diff[x] = deMath.abs(reference.getPixel(x, y, z)[x], cmpPix[x]);
+                    var px = reference.getPixel(x, y, z);
+                    diff[x] = deMath.abs(px[x], cmpPix[x]);
                 }
-                /** @type {boolean} */ var bool isOk = deMath.boolAll(deMath.lessThanEqual(diff, threshold));
+                /** @type {boolean} */ var isOk = deMath.boolAll(deMath.lessThanEqual(diff, threshold));
 
                 maxDiff = deMath.max(maxDiff, diff);
 

@@ -29,9 +29,9 @@ define(['framework/opengl/gluShaderUtil',
         'framework/common/tcuTestCase',
         'framework/common/tcuSurface',
         'framework/common/tcuImageCompare'],
-        function(deqpUtils, deqpDraw, gluVT, gluVTU, deqpProgram, deRandom, deMath, deString, deqpTests, tcuSurface, tcuPixelThresholdCompare) {
+        function(deqpUtils, deqpDraw, gluVT, gluVTU, deqpProgram, deRandom, deMath, deString, deqpTests, tcuSurface, tcuImageCompare) {
     'use strict';
-
+    
     /** @const @type {number} */ var VIEWPORT_WIDTH = 128;
     /** @const @type {number} */ var VIEWPORT_HEIGHT = 128;
     /** @const @type {number} */ var BUFFER_GUARD_MULTIPLIER = 2;
@@ -215,10 +215,10 @@ define(['framework/opengl/gluShaderUtil',
         if (totalVertexAttribs > maxVertexAttribs)
             return false; // Vertex attribute count exceeded.
 
-            // check varyings
-            /** @type {number}                  */ var totalTfComponents = 0;
-            /** @type {number}                  */ var totalTfAttribs = 0;
-            /** @type {Object.<number, number>} */ var presetNumComponents = {
+        // check varyings
+        /** @type {number}                  */ var totalTfComponents = 0;
+        /** @type {number}                  */ var totalTfAttribs = 0;
+        /** @type {Object.<number, number>} */ var presetNumComponents = {
             gl_Position: 4,
             gl_PointSize: 1
         };
@@ -1323,6 +1323,7 @@ define(['framework/opengl/gluShaderUtil',
                     gl.drawArrays(this.m_primitiveType, offset, call.numElements);
                     offset += call.numElements;
                 }
+                
 
                 GLU_EXPECT_NO_ERROR(gl, gl.getError(), 'render');
                 gl.readPixels(viewportX, viewportY, viewportW, viewportH, gl.RGBA, gl.UNSIGNED_BYTE, frameWithoutTf.getAccess().getDataPtr());
@@ -1330,7 +1331,7 @@ define(['framework/opengl/gluShaderUtil',
             };
 
             // Compare images with and without transform feedback.
-            imagesOk = tcuPixelThresholdCompare.pixelThresholdCompare('Result', 'Image comparison result', frameWithoutTf, frameWithTf, [1,1,1,1], tcuPixelThresholdCompare.CompareLogMode.ON_ERROR);
+            imagesOk = tcuImageCompare.pixelThresholdCompare('Result', 'Image comparison result', frameWithoutTf, frameWithTf, [1,1,1,1], tcuImageCompare.CompareLogMode.ON_ERROR);
 
             if (imagesOk) {
                 bufferedLogToConsole('Rendering result comparison between TF enabled and TF disabled passed.');
@@ -1538,176 +1539,182 @@ define(['framework/opengl/gluShaderUtil',
      * @param {deqpDraw.primitiveType} primitiveType GLenum that specifies what kind of primitive is
      * @param {number} seed
      */
-
     var RandomCase = (function(context, name, desc, bufferMode, primitiveType, seed) {
 
         this._construct(context, name, desc, bufferMode, primitiveType);
 
-        // TODO: unfinished, same implementation in TransformFeedbackCase.iterate
-        // var seed = this.iterate.seed; // TODO: possible solution as a local attribute?
-        /** @type {number} */
-        var seed = /*deString.deStringHash(getName()) ^ */ deMath.deMathHash(this.m_iterNdx);
-
-        /** @type {Array.<deqpUtils.DataType>} */
-        var typeCandidates = [
-            deqpUtils.DataType.FLOAT,
-            deqpUtils.DataType.FLOAT_VEC2,
-            deqpUtils.DataType.FLOAT_VEC3,
-            deqpUtils.DataType.FLOAT_VEC4,
-            deqpUtils.DataType.INT,
-            deqpUtils.DataType.INT_VEC2,
-            deqpUtils.DataType.INT_VEC3,
-            deqpUtils.DataType.INT_VEC4,
-            deqpUtils.DataType.UINT,
-            deqpUtils.DataType.UINT_VEC2,
-            deqpUtils.DataType.UINT_VEC3,
-            deqpUtils.DataType.UINT_VEC4,
-
-            deqpUtils.DataType.FLOAT_MAT2,
-            deqpUtils.DataType.FLOAT_MAT2X3,
-            deqpUtils.DataType.FLOAT_MAT2X4,
-
-            deqpUtils.DataType.FLOAT_MAT3X2,
-            deqpUtils.DataType.FLOAT_MAT3,
-            deqpUtils.DataType.FLOAT_MAT3X4,
-
-            deqpUtils.DataType.FLOAT_MAT4X2,
-            deqpUtils.DataType.FLOAT_MAT4X3,
-            deqpUtils.DataType.FLOAT_MAT4
-        ];
-
-        // TODO: could we use /** @type {Array.<glsUBC.UniformFlags>} */ instead ???
-        /** @type {Array.<deqpUtils.precision>} */
-        var precisions = [
-
-            deqpUtils.precision.PRECISION_LOWP,
-            deqpUtils.precision.PRECISION_MEDIUMP,
-            deqpUtils.precision.PRECISION_HIGHP
-
-            // glsUBC.UniformFlags.PRECISION_LOW,
-            // glsUBC.UniformFlags.PRECISION_MEDIUM,
-            // glsUBC.UniformFlags.PRECISION_HIGH
-        ];
-
-        /** @type {Array.<string, interpolation>} */
-        var interpModes = [
-            {name: 'smooth', interp: interpolation.SMOOTH},
-            {name: 'flat', interp: interpolation.FLAT},
-            {name: 'centroid', interp: interpolation.CENTROID}
-        ];
-
-        /** @type {number} */  var maxAttributeVectors      = 16;
-       //** @type {number} */  var maxTransformFeedbackComponents    = 64; // note It is enough to limit attribute set size.
-        /** @type {boolean} */ var isSeparateMode           = (this.m_bufferMode === this.m_gl.SEPARATE_ATTRIBS);
-        /** @type {number} */  var maxTransformFeedbackVars = isSeparateMode ? 4 : maxAttributeVectors;
-        /** @type {number} */  var arrayWeight              = 0.3;
-        /** @type {number} */  var positionWeight           = 0.7;
-        /** @type {number} */  var pointSizeWeight          = 0.1;
-        /** @type {number} */  var captureFullArrayWeight   = 0.5;
-
-        /** @type {deRandom.deRandom} */
-                               var rnd                      = new deRandom.Random(seed);
-        /** @type {boolean} */ var usePosition              = rnd.getFloat() < positionWeight;
-        /** @type {boolean} */ var usePointSize             = rnd.getFloat() < pointSizeWeight;
-        /** @type {number} */  var numAttribVectorsToUse    = rnd.getInt(
-            1, maxAttributeVectors - 1/*position*/ - (usePointSize ? 1 : 0)
-        );
-
-        /** @type {number} */  var numAttributeVectors      = 0;
-        /** @type {number} */  var varNdx                   = 0;
-
-        // Generate varyings.
-        while (numAttributeVectors < numAttribVectorsToUse)
-        {
+        var parent = {
+            init: this.init,
+        };
+        
+        this.init = (function() {
+        
+            // TODO: unfinished, same implementation in TransformFeedbackCase.iterate
+            // var seed = this.iterate.seed; // TODO: possible solution as a local attribute?
             /** @type {number} */
-            var maxVecs = isSeparateMode ? Math.min(2 /*at most 2*mat2*/, numAttribVectorsToUse - numAttributeVectors) : numAttribVectorsToUse - numAttributeVectors;
-            /** @type {deqpUtils.DataType} */
-            var begin   = typeCandidates[0];
-            /** @type {number} */
-            var endCandidates = begin + (
-                maxVecs >= 4 ? 21 : (
-                    maxVecs >= 3 ? 18 : (
-                        maxVecs >= 2 ? (isSeparateMode ? 13 : 15) : 12
-                    )
-                )
+            var seed = /*deString.deStringHash(getName()) ^ */ deMath.deMathHash(this.m_iterNdx);
+
+            /** @type {Array.<deqpUtils.DataType>} */
+            var typeCandidates = [
+                deqpUtils.DataType.FLOAT,
+                deqpUtils.DataType.FLOAT_VEC2,
+                deqpUtils.DataType.FLOAT_VEC3,
+                deqpUtils.DataType.FLOAT_VEC4,
+                deqpUtils.DataType.INT,
+                deqpUtils.DataType.INT_VEC2,
+                deqpUtils.DataType.INT_VEC3,
+                deqpUtils.DataType.INT_VEC4,
+                deqpUtils.DataType.UINT,
+                deqpUtils.DataType.UINT_VEC2,
+                deqpUtils.DataType.UINT_VEC3,
+                deqpUtils.DataType.UINT_VEC4,
+
+                deqpUtils.DataType.FLOAT_MAT2,
+                deqpUtils.DataType.FLOAT_MAT2X3,
+                deqpUtils.DataType.FLOAT_MAT2X4,
+
+                deqpUtils.DataType.FLOAT_MAT3X2,
+                deqpUtils.DataType.FLOAT_MAT3,
+                deqpUtils.DataType.FLOAT_MAT3X4,
+
+                deqpUtils.DataType.FLOAT_MAT4X2,
+                deqpUtils.DataType.FLOAT_MAT4X3,
+                deqpUtils.DataType.FLOAT_MAT4
+            ];
+
+            // TODO: could we use /** @type {Array.<glsUBC.UniformFlags>} */ instead ???
+            /** @type {Array.<deqpUtils.precision>} */
+            var precisions = [
+
+                deqpUtils.precision.PRECISION_LOWP,
+                deqpUtils.precision.PRECISION_MEDIUMP,
+                deqpUtils.precision.PRECISION_HIGHP
+
+                // glsUBC.UniformFlags.PRECISION_LOW,
+                // glsUBC.UniformFlags.PRECISION_MEDIUM,
+                // glsUBC.UniformFlags.PRECISION_HIGH
+            ];
+
+            /** @type {Array.<string, interpolation>} */
+            var interpModes = [
+                {name: 'smooth', interp: interpolation.SMOOTH},
+                {name: 'flat', interp: interpolation.FLAT},
+                {name: 'centroid', interp: interpolation.CENTROID}
+            ];
+
+            /** @type {number} */  var maxAttributeVectors      = 16;
+           //** @type {number} */  var maxTransformFeedbackComponents    = 64; // note It is enough to limit attribute set size.
+            /** @type {boolean} */ var isSeparateMode           = (this.m_bufferMode === this.m_gl.SEPARATE_ATTRIBS);
+            /** @type {number} */  var maxTransformFeedbackVars = isSeparateMode ? 4 : maxAttributeVectors;
+            /** @type {number} */  var arrayWeight              = 0.3;
+            /** @type {number} */  var positionWeight           = 0.7;
+            /** @type {number} */  var pointSizeWeight          = 0.1;
+            /** @type {number} */  var captureFullArrayWeight   = 0.5;
+
+            /** @type {deRandom.deRandom} */
+                                   var rnd                      = new deRandom.Random(seed);
+            /** @type {boolean} */ var usePosition              = rnd.getFloat() < positionWeight;
+            /** @type {boolean} */ var usePointSize             = rnd.getFloat() < pointSizeWeight;
+            /** @type {number} */  var numAttribVectorsToUse    = rnd.getInt(
+                1, maxAttributeVectors - 1/*position*/ - (usePointSize ? 1 : 0)
             );
-            /** @type {deqpUtils.DataType} */
-            var end = typeCandidates[endCandidates];
 
-            /** @type {deqpUtils.DataType} */
-            var type = rnd.choose(typeCandidates)[0];
-            
-            /** @type {glsUBC.UniformFlags | deqpUtils.precision} */
-            var precision = rnd.choose(precisions)[0];
-            
-            /** @type {interpolation} */ // TODO: implement
-            var interp = deqpUtils.getDataTypeScalarType(type) === deqpUtils.DataType.FLOAT
-                       ? rnd.choose(interpModes)
-                       : interpolation.FLAT; 
-            
-            /** @type {number} */
-            var numVecs     = deqpUtils.isDataTypeMatrix(type) ? deqpUtils.getDataTypeMatrixNumColumns(type) : 1;
-            /** @type {number} */
-            var numComps    = deqpUtils.getDataTypeScalarSize(type);
-            /** @type {number} */
-            var maxArrayLen = Math.max(1, isSeparateMode ? (4 / numComps) : (maxVecs / numVecs));
-            /** @type {boolean} */
-            var useArray    = rnd.getFloat() < arrayWeight;
-            /** @type {number} */
-            var arrayLen    = useArray ? rnd.getInt(1, maxArrayLen) : 1;
-            /** @type {string} */
-            var name        = 'v_var' + varNdx;
+            /** @type {number} */  var numAttributeVectors      = 0;
+            /** @type {number} */  var varNdx                   = 0;
 
-            if (useArray)
-                this.m_progSpec.addVarying(name, gluVT.newTypeArray(gluVT.newTypeBasic(type, precision), arrayLen), interp);
-            else
-                this.m_progSpec.addVarying(name, gluVT.newTypeBasic(type, precision), interp);
-
-            numAttributeVectors += arrayLen * numVecs;
-            varNdx += 1;
-        }
-
-        // Generate transform feedback candidate set.
-        /** @type {Array.<string>} */ var tfCandidates =[];
-
-        if (usePosition) tfCandidates.push('gl_Position');
-        if (usePointSize) tfCandidates.push('gl_PointSize');
-
-        for (var ndx = 0; ndx < varNdx; ndx++)
-        {
-            /** @type {Varying} */
-            var varying = this.m_progSpec.getVaryings()[ndx];
-
-            if (varying.type.isArrayType())
+            // Generate varyings.
+            while (numAttributeVectors < numAttribVectorsToUse)
             {
-                /** @type {boolean} */
-                var captureFull = rnd.getFloat() < captureFullArrayWeight;
+                /** @type {number} */
+                var maxVecs = isSeparateMode ? Math.min(2 /*at most 2*mat2*/, numAttribVectorsToUse - numAttributeVectors) : numAttribVectorsToUse - numAttributeVectors;
+                /** @type {deqpUtils.DataType} */
+                var begin   = typeCandidates[0];
+                /** @type {number} */
+                var endCandidates = begin + (
+                    maxVecs >= 4 ? 21 : (
+                        maxVecs >= 3 ? 18 : (
+                            maxVecs >= 2 ? (isSeparateMode ? 13 : 15) : 12
+                        )
+                    )
+                );
+                /** @type {deqpUtils.DataType} */
+                var end = typeCandidates[endCandidates];
 
-                if (captureFull)
+                /** @type {deqpUtils.DataType} */
+                var type = rnd.choose(typeCandidates)[0];
+                
+                /** @type {glsUBC.UniformFlags | deqpUtils.precision} */
+                var precision = rnd.choose(precisions)[0];
+                
+                /** @type {interpolation} */ // TODO: implement
+                var interp = deqpUtils.getDataTypeScalarType(type) === deqpUtils.DataType.FLOAT
+                           ? rnd.choose(interpModes)
+                           : interpolation.FLAT; 
+                
+                /** @type {number} */
+                var numVecs     = deqpUtils.isDataTypeMatrix(type) ? deqpUtils.getDataTypeMatrixNumColumns(type) : 1;
+                /** @type {number} */
+                var numComps    = deqpUtils.getDataTypeScalarSize(type);
+                /** @type {number} */
+                var maxArrayLen = Math.max(1, isSeparateMode ? (4 / numComps) : (maxVecs / numVecs));
+                /** @type {boolean} */
+                var useArray    = rnd.getFloat() < arrayWeight;
+                /** @type {number} */
+                var arrayLen    = useArray ? rnd.getInt(1, maxArrayLen) : 1;
+                /** @type {string} */
+                var name        = 'v_var' + varNdx;
+
+                if (useArray)
+                    this.m_progSpec.addVarying(name, gluVT.newTypeArray(gluVT.newTypeBasic(type, precision), arrayLen), interp);
+                else
+                    this.m_progSpec.addVarying(name, gluVT.newTypeBasic(type, precision), interp);
+
+                numAttributeVectors += arrayLen * numVecs;
+                varNdx += 1;
+            }
+
+            // Generate transform feedback candidate set.
+            /** @type {Array.<string>} */ var tfCandidates =[];
+
+            if (usePosition) tfCandidates.push('gl_Position');
+            if (usePointSize) tfCandidates.push('gl_PointSize');
+
+            for (var ndx = 0; ndx < varNdx; ndx++)
+            {
+                /** @type {Varying} */
+                var varying = this.m_progSpec.getVaryings()[ndx];
+
+                if (varying.type.isArrayType())
                 {
-                    tfCandidates.push(varying.name);
+                    /** @type {boolean} */
+                    var captureFull = rnd.getFloat() < captureFullArrayWeight;
+
+                    if (captureFull)
+                    {
+                        tfCandidates.push(varying.name);
+                    }
+                    else
+                    {
+                        /** @type {number} */
+                        var numElem = varying.type.getArraySize();
+                        for (var elemNdx = 0; elemNdx < numElem; elemNdx++)
+                            tfCandidates.push(varying.name + '[' + elemNdx + ']');
+                    }
                 }
                 else
-                {
-                    /** @type {number} */
-                    var numElem = varying.type.getArraySize();
-                    for (var elemNdx = 0; elemNdx < numElem; elemNdx++)
-                        tfCandidates.push(varying.name + '[' + elemNdx + ']');
-                }
+                    tfCandidates.push(varying.name);
             }
-            else
-                tfCandidates.push(varying.name);
-        }
 
-        // Pick random selection.
-        var tfVaryings = [];
-        rnd.choose(tfCandidates, tfVaryings, Math.min(tfCandidates.length, maxTransformFeedbackVars));
-        rnd.shuffle(tfVaryings);
-        for (var i = 0; i < tfVaryings.length; i++)
-            this.m_progSpec.addTransformFeedbackVarying(tfVaryings[i]);
+            // Pick random selection.
+            var tfVaryings = [];
+            rnd.choose(tfCandidates, tfVaryings, Math.min(tfCandidates.length, maxTransformFeedbackVars));
+            rnd.shuffle(tfVaryings);
+            for (var i = 0; i < tfVaryings.length; i++)
+                this.m_progSpec.addTransformFeedbackVarying(tfVaryings[i]);
 
-        // this.init();
-
+            parent.init();
+        
+        });
     });
 
     RandomCase.prototype = new TransformFeedbackCase();
