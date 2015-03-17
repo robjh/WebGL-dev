@@ -27,18 +27,25 @@
         var wtu = WebGLTestUtils;
         var gl = wtu.create3DContext('canvas', {preserveDrawingBuffer: true}, 2);
 
-        var glhelper = (function(name){
-            return (function() {
-                console.log(name+'(',arguments,')');
+        var gldisable = (function(name) {
+            return (function(a1,a2,a3,a4,a5,a6,a7,a8) {
+                var args = [name+'('];
+                if (a1 !== undefined) { args.push(a1); if (a2 !== undefined) { args.push(a2);
+                if (a3 !== undefined) { args.push(a3); if (a4 !== undefined) { args.push(a4);
+                if (a5 !== undefined) { args.push(a5); if (a6 !== undefined) { args.push(a6);
+                if (a7 !== undefined) { args.push(a7); if (a8 !== undefined) { args.push(a8);
+                }} }} }} }} // just some brackets. pretend theyre not here.
+                args.push(')');
+                console.log.apply(console, args);
             });
         });
         
-        gl.bindTransformFeedback = glhelper('bindTransformFeedback');
-        gl.bufferData            = glhelper('bufferData');
-        gl.bindBufferBase        = glhelper('bindBufferBase');
-        gl.beginQuery            = glhelper('beginQuery');
-        gl.getBufferSubData      = glhelper('getBufferSubData');
-        gl.linkProgram           = glhelper('linkProgram');
+        gl.bindTransformFeedback = gldisable('bindTransformFeedback');
+        gl.bufferData            = gldisable('bufferData');
+        gl.bindBufferBase        = gldisable('bindBufferBase');
+        gl.beginQuery            = gldisable('beginQuery');
+        gl.getBufferSubData      = gldisable('getBufferSubData');
+        gl.linkProgram           = gldisable('linkProgram');
         gl.getError = function() {
             return gl.NO_ERROR;
         };

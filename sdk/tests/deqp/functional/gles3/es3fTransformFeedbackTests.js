@@ -541,7 +541,7 @@ define(['framework/opengl/gluShaderUtil',
      */
     var genAttributeData = function(attrib, buffer, stride, numElements, rnd) {
 
-        /** @type {number} */ var elementSize = 1; /*formerly; sizeof(deUint32), but this isnt a bleeding byte buffer anymore */
+        /** @type {number} */  var elementSize = 1; /*formerly; sizeof(deUint32), but this isnt a bleeding byte buffer anymore */
         /** @type {boolean} */ var isFloat = deqpUtils.isDataTypeFloatOrVec(attrib.type.getBasicType());
         /** @type {boolean} */ var isInt   = deqpUtils.isDataTypeIntOrIVec(attrib.type.getBasicType());
         /** @type {boolean} */ var isUint  = deqpUtils.isDataTypeUintOrUVec(attrib.type.getBasicType());
@@ -566,7 +566,7 @@ define(['framework/opengl/gluShaderUtil',
                         case deqpUtils.precision.PRECISION_HIGHP:   buffer[offset] = rnd.getFloat(-1e5, 1e5); break;
                         default: DE_ASSERT(false);
                     }
-                      
+                
                 }
                 else if (isInt)
                 {
