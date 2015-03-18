@@ -18,7 +18,7 @@
  *
  */
 
-define(['../../framework/delibs/debase/deMath'],function(deMath) {
+define(['../../framework/delibs/debase/deMath'], function(deMath) {
     'use strict';
 
 var DE_ASSERT = function(x) {
@@ -44,12 +44,11 @@ GLSLVersion.V_LAST = Object.keys(GLSLVersion).length;
  */
 var getGLSLVersion = function(gl) {
     var webglversion = gl.getParameter(gl.VERSION);
-    switch (webglversion)
-    {
-        case 'WebGL 1.0': return GLSLVersion.V100_ES;
-        case 'WebGL 2.0': return GLSLVersion.V300_ES;
-        default: DE_ASSERT(false);
-    }
+
+    if (webglversion.indexOf('WebGL 1.0') != -1) return GLSLVersion.V100_ES;
+    if (webglversion.indexOf('WebGL 2.0') != -1) return GLSLVersion.V300_ES;
+
+    throw new Error('Invalid WebGL version');
 };
 
 /**
@@ -539,7 +538,7 @@ var isDataTypeSampler = function(dataType) {
  */
 var getDataTypeMatrix = function(numCols, numRows) {
     DE_ASSERT(deMath.deInRange32(numCols, 2, 4) && deMath.deInRange32(numRows, 2, 4));
-    return (DataType.FLOAT_MAT2 + (numCols-2)*3 + (numRows-2));
+    return (DataType.FLOAT_MAT2 + (numCols - 2) * 3 + (numRows - 2));
 };
 
 /**
