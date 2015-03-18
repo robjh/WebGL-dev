@@ -248,10 +248,6 @@ define(['framework/opengl/gluShaderUtil'], function(deqpUtils) {
      * @return {VarType}
      */
     var newTypeBasic = function(basicType, flags) {
-      /*TODO: Let others know flags CAN be undefined - if (flags === undefined)
-      {
-          throw new Error("wrong flag");
-      }*/
        return new VarType().VarTypeBasic(basicType, flags);
     };
 

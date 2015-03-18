@@ -22,9 +22,9 @@ requirejs.config({
     baseUrl: "../../"
     });
 
-requirejs(["functional/gles3/es3fUniformApi"], function(uniformApi) {
+requirejs(["functional/gles3/es3fUniformApiTests"], function(es3fUniformApiTests) {
     try {
-        uniformApi.run(gl);
+        es3fUniformApiTests.run(gl);
     }
     catch(err)
     {
