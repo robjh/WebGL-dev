@@ -71,13 +71,13 @@ define([
         deqpUtils.DataType.FLOAT_VEC3,
         deqpUtils.DataType.FLOAT_VEC4,
         deqpUtils.DataType.FLOAT_MAT2,
-        /*deqpUtils.DataType.FLOAT_MAT2X3,
+        deqpUtils.DataType.FLOAT_MAT2X3,
         deqpUtils.DataType.FLOAT_MAT2X4,
-        deqpUtils.DataType.FLOAT_MAT3X2,*/
+        deqpUtils.DataType.FLOAT_MAT3X2,
         deqpUtils.DataType.FLOAT_MAT3,
-        /*deqpUtils.DataType.FLOAT_MAT3X4,
+        deqpUtils.DataType.FLOAT_MAT3X4,
         deqpUtils.DataType.FLOAT_MAT4X2,
-        deqpUtils.DataType.FLOAT_MAT4X3,*/
+        deqpUtils.DataType.FLOAT_MAT4X3,
         deqpUtils.DataType.FLOAT_MAT4,
 
         deqpUtils.DataType.INT,
@@ -85,10 +85,10 @@ define([
         deqpUtils.DataType.INT_VEC3,
         deqpUtils.DataType.INT_VEC4,
 
-        /*TODO: Uncomment this - deqpUtils.DataType.UINT,
+        deqpUtils.DataType.UINT,
         deqpUtils.DataType.UINT_VEC2,
         deqpUtils.DataType.UINT_VEC3,
-        deqpUtils.DataType.UINT_VEC4,*/
+        deqpUtils.DataType.UINT_VEC4,
 
         deqpUtils.DataType.BOOL,
         deqpUtils.DataType.BOOL_VEC2,
@@ -189,7 +189,6 @@ define([
 
             default:
                 DE_ASSERT(false);
-                return deqpUtils.DataType.LAST;
         }
     };
 
@@ -333,7 +332,7 @@ define([
         else
         {
             /** @type {deqpUtils.DataType} */ var basicType = s_testDataTypes[rnd.getInt(0, s_testDataTypes.length - 1)];
-            /** @type {deqpUtils.precision} */ var precision = deqpUtils.isDataTypeBoolOrBVec(basicType) ? deqpUtils.precision.PRECISION_LAST : deqpUtils.precision.PRECISION_MEDIUMP;
+            /** @type {deqpUtils.precision} */ var precision = deqpUtils.isDataTypeBoolOrBVec(basicType) ? undefined : deqpUtils.precision.PRECISION_MEDIUMP;
             return isArray ?
             {
                 type: gluVT.newTypeArray(gluVT.newTypeBasic(basicType, precision), rnd.getInt(1, 5)),
@@ -375,9 +374,6 @@ define([
         FRAGMENT: 1,
         BOTH: 2
     };
-
-    /** @type {CaseShaderType} */
-    CaseShaderType.LAST = Object.keys(CaseShaderType).length;
 
     /**
      * Uniform struct.
@@ -499,7 +495,7 @@ define([
     UniformCollection.basic = function(type, nameSuffix) {
         if (nameSuffix === undefined) nameSuffix = '';
         /** @type {UniformCollection} */ var res = new UniformCollection();
-        /** @type {deqpUtils.precision} */ var prec = deqpUtils.isDataTypeBoolOrBVec(type) ? deqpUtils.precision.PRECISION_LAST : deqpUtils.precision.PRECISION_MEDIUMP;
+        /** @type {deqpUtils.precision} */ var prec = deqpUtils.isDataTypeBoolOrBVec(type) ? undefined : deqpUtils.precision.PRECISION_MEDIUMP;
         res.m_uniforms.push(new Uniform('u_var' + nameSuffix, gluVT.newTypeBasic(type, prec)));
         return res;
     };
@@ -512,7 +508,7 @@ define([
     UniformCollection.basicArray = function(type, nameSuffix) {
         if (nameSuffix === undefined) nameSuffix = '';
         /** @type {UniformCollection} */ var res = new UniformCollection();
-        /** @type {deqpUtils.precision} */ var prec = deqpUtils.isDataTypeBoolOrBVec(type) ? deqpUtils.precision.PRECISION_LAST : deqpUtils.precision.PRECISION_MEDIUMP;
+        /** @type {deqpUtils.precision} */ var prec = deqpUtils.isDataTypeBoolOrBVec(type) ? undefined : deqpUtils.precision.PRECISION_MEDIUMP;
         res.m_uniforms.push(new Uniform('u_var' + nameSuffix, gluVT.newTypeArray(gluVT.newTypeBasic(type, prec), 3)));
         return res;
     };
@@ -527,8 +523,8 @@ define([
     UniformCollection.basicStruct = function(type0, type1, containsArrays, nameSuffix) {
         if (nameSuffix === undefined) nameSuffix = '';
         /** @type {UniformCollection} */ var res = new UniformCollection();
-        /** @type {deqpUtils.precision} */ var prec0 = deqpUtils.isDataTypeBoolOrBVec(type0) ? deqpUtils.precision.PRECISION_LAST : deqpUtils.precision.PRECISION_MEDIUMP;
-        /** @type {deqpUtils.precision} */ var prec1 = deqpUtils.isDataTypeBoolOrBVec(type1) ? deqpUtils.precision.PRECISION_LAST : deqpUtils.precision.PRECISION_MEDIUMP;
+        /** @type {deqpUtils.precision} */ var prec0 = deqpUtils.isDataTypeBoolOrBVec(type0) ? undefined : deqpUtils.precision.PRECISION_MEDIUMP;
+        /** @type {deqpUtils.precision} */ var prec1 = deqpUtils.isDataTypeBoolOrBVec(type1) ? undefined : deqpUtils.precision.PRECISION_MEDIUMP;
 
         /** @type {gluVT.StructType} */ var structType = new gluVT.StructType('structType' + nameSuffix);
         structType.addMember('m0', gluVT.newTypeBasic(type0, prec0));
@@ -568,8 +564,8 @@ define([
     UniformCollection.nestedArraysStructs = function(type0, type1, nameSuffix) {
         if (nameSuffix === undefined) nameSuffix = '';
         /** @type {UniformCollection} */ var res = new UniformCollection();
-        /** @type {deqpUtils.precision} */ var prec0 = deqpUtils.isDataTypeBoolOrBVec(type0) ? deqpUtils.precision.PRECISION_LAST : deqpUtils.precision.PRECISION_MEDIUMP;
-        /** @type {deqpUtils.precision} */ var prec1 = deqpUtils.isDataTypeBoolOrBVec(type1) ? deqpUtils.precision.PRECISION_LAST : deqpUtils.precision.PRECISION_MEDIUMP;
+        /** @type {deqpUtils.precision} */ var prec0 = deqpUtils.isDataTypeBoolOrBVec(type0) ? undefined : deqpUtils.precision.PRECISION_MEDIUMP;
+        /** @type {deqpUtils.precision} */ var prec1 = deqpUtils.isDataTypeBoolOrBVec(type1) ? undefined : deqpUtils.precision.PRECISION_MEDIUMP;
         /** @type {gluVT.StructType} */ var structType = gluVT.newStructType('structType' + nameSuffix);
         /** @type {gluVT.StructType} */ var subStructType = gluVT.newStructType('subStructType' + nameSuffix);
         /** @type {gluVT.StructType} */ var subSubStructType = gluVT.newStructType('subSubStructType' + nameSuffix);
@@ -600,7 +596,7 @@ define([
      */
     UniformCollection.multipleBasic = function(nameSuffix) {
         if (nameSuffix === undefined) nameSuffix = '';
-        /** @type {Array.<deqpUtils.DataType>} */ var types = [deqpUtils.DataType.FLOAT, deqpUtils.DataType.INT_VEC3, /*TODO: Uncomment - deqpUtils.DataType.UINT_VEC4,*/ deqpUtils.DataType.FLOAT_MAT3, deqpUtils.DataType.BOOL_VEC2];
+        /** @type {Array.<deqpUtils.DataType>} */ var types = [deqpUtils.DataType.FLOAT, deqpUtils.DataType.INT_VEC3, deqpUtils.DataType.UINT_VEC4, deqpUtils.DataType.FLOAT_MAT3, deqpUtils.DataType.BOOL_VEC2];
         /** @type {UniformCollection} */ var res = new UniformCollection();
 
         for (var i = 0; i < types.length; i++)
@@ -1074,40 +1070,40 @@ define([
      * @return {CaseShaderType}
      */
     var randomCaseShaderType = function(seed) {
-        return (new deRandom.Random(seed)).getInt(0, CaseShaderType.LAST - 1);
+        return (new deRandom.Random(seed)).getInt(0, Object.keys(CaseShaderType).length - 1);
     };
 
     //UniformCase definitions
 
     /**
-     * @enum Feature
+     * @enum Feature - Implemented as a function to create an object without unwanted properties.
      */
-    var Feature = {
+    var Feature = function() { return {
         // ARRAYUSAGE_ONLY_MIDDLE_INDEX: only middle index of each array is used in shader. If not given, use all indices.
-        ARRAYUSAGE_ONLY_MIDDLE_INDEX: 1 << 0,
+        ARRAYUSAGE_ONLY_MIDDLE_INDEX: false,
 
         // UNIFORMFUNC_VALUE: use pass-by-value versions of uniform assignment funcs, e.g. glUniform1f(), where possible. If not given, use pass-by-pointer versions.
-        UNIFORMFUNC_VALUE: 1 << 1,
+        UNIFORMFUNC_VALUE: false,
 
         // MATRIXMODE_ROWMAJOR: pass matrices to GL in row major form. If not given, use column major.
-        MATRIXMODE_ROWMAJOR: 1 << 2,
+        MATRIXMODE_ROWMAJOR: false,
 
         // ARRAYASSIGN: how basic-type arrays are assigned with glUniform*(). If none given, assign each element of an array separately.
-        ARRAYASSIGN_FULL: 1 << 3, //!< Assign all elements of an array with one glUniform*().
-        ARRAYASSIGN_BLOCKS_OF_TWO: 1 << 4, //!< Assign two elements per one glUniform*().
+        ARRAYASSIGN_FULL: false, //!< Assign all elements of an array with one glUniform*().
+        ARRAYASSIGN_BLOCKS_OF_TWO: false, //!< Assign two elements per one glUniform*().
 
         // UNIFORMUSAGE_EVERY_OTHER: use about half of the uniforms. If not given, use all uniforms (except that some array indices may be omitted according to ARRAYUSAGE).
-        UNIFORMUSAGE_EVERY_OTHER: 1 << 5,
+        UNIFORMUSAGE_EVERY_OTHER: false,
 
         // BOOLEANAPITYPE: type used to pass booleans to and from GL api. If none given, use float.
-        BOOLEANAPITYPE_INT: 1 << 6,
-        BOOLEANAPITYPE_UINT: 1 << 7,
+        BOOLEANAPITYPE_INT: false,
+        BOOLEANAPITYPE_UINT: false,
 
         // UNIFORMVALUE_ZERO: use zero-valued uniforms. If not given, use random uniform values.
-        UNIFORMVALUE_ZERO: 1 << 8,
+        UNIFORMVALUE_ZERO: false,
 
         // ARRAY_FIRST_ELEM_NAME_NO_INDEX: in certain API functions, when referring to the first element of an array, use just the array name without [0] at the end.
-        ARRAY_FIRST_ELEM_NAME_NO_INDEX: 1 << 9
+        ARRAY_FIRST_ELEM_NAME_NO_INDEX: false };
     };
 
     // A basic uniform is a uniform (possibly struct or array member) whose type is a basic type (e.g. float, ivec4, sampler2d).
@@ -1218,7 +1214,7 @@ define([
     var UniformCase = function(name, description, seed) { // \note Randomizes caseType, uniformCollection and features.
         deqpTests.DeqpTest.call(this, name, description);
 
-        /** @type {deMath.deUint32} */ this.m_features = this.randomFeatures(seed);
+        /** @type {Feature} */ this.m_features = this.randomFeatures(seed);
         /** @type {UniformCollection} (SharedPtr) */ this.m_uniformCollection = UniformCollection.random(seed);
 
         /** @type {CaseShaderType} */ this.m_caseShaderType = randomCaseShaderType(seed);
@@ -1236,7 +1232,7 @@ define([
      * UniformCase new_B. Creates a UniformCase. Use after constructor.
      * @param {CaseShaderType} caseShaderType
      * @param {UniformCollection} uniformCollection (SharedPtr)
-     * @param {deMath.deUint32} features
+     * @param {Feature} features
      * @return {UniformCase}
      */
     UniformCase.prototype.newB = function(caseShaderType, uniformCollection, features) {
@@ -1253,7 +1249,7 @@ define([
      * @param {string} description
      * @param {CaseShaderType} caseShaderType
      * @param {UniformCollection} uniformCollection (SharedPtr)
-     * @param {deMath.deUint32} features
+     * @param {Feature} features
      * @return {UniformCase}
      */
     UniformCase.new_B = function(name, description, caseShaderType, uniformCollection, features) {
@@ -1292,30 +1288,22 @@ define([
 
     /**
      * @param {deMath.deUint32} seed
-     * @return {deMath.deUint32}
+     * @return {Feature}
      */
     UniformCase.prototype.randomFeatures = function(seed) {
-        /** @type {Array.<deMath.deUint32>} */ UniformCase.arrayUsageChoices = [0, Feature.ARRAYUSAGE_ONLY_MIDDLE_INDEX];
-        /** @type {Array.<deMath.deUint32>} */ UniformCase.uniformFuncChoices = [0, Feature.UNIFORMFUNC_VALUE];
-        /** @type {Array.<deMath.deUint32>} */ UniformCase.matrixModeChoices = [0, Feature.MATRIXMODE_ROWMAJOR];
-        /** @type {Array.<deMath.deUint32>} */ UniformCase.arrayAssignChoices = [0, Feature.ARRAYASSIGN_FULL, Feature.ARRAYASSIGN_BLOCKS_OF_TWO];
-        /** @type {Array.<deMath.deUint32>} */ UniformCase.uniformUsageChoices = [0, Feature.UNIFORMUSAGE_EVERY_OTHER];
-        /** @type {Array.<deMath.deUint32>} */ UniformCase.booleanApiTypeChoices = [0, Feature.BOOLEANAPITYPE_INT/*TODO: Uncomment this, Feature.BOOLEANAPITYPE_UINT*/];
-        /** @type {Array.<deMath.deUint32>} */ UniformCase.uniformValueChoices = [0, Feature.UNIFORMVALUE_ZERO];
+        /** @type {Feature} */ var result = Feature();
 
         /** @type {deRandom.Random} */ var rnd = new deRandom.Random(seed);
 
-        /** @type {deMath.deUint32} */ var result = 0;
-
-        var ARRAY_CHOICE = function(ARR) {return ARR[rnd.getInt(0, ARR.length - 1)];};
-
-        result |= ARRAY_CHOICE(UniformCase.arrayUsageChoices);
-        result |= ARRAY_CHOICE(UniformCase.uniformFuncChoices);
-        result |= ARRAY_CHOICE(UniformCase.matrixModeChoices);
-        result |= ARRAY_CHOICE(UniformCase.arrayAssignChoices);
-        result |= ARRAY_CHOICE(UniformCase.uniformUsageChoices);
-        result |= ARRAY_CHOICE(UniformCase.booleanApiTypeChoices);
-        result |= ARRAY_CHOICE(UniformCase.uniformValueChoices);
+        result.ARRAYUSAGE_ONLY_MIDDLE_INDEX = rnd.getBool();
+        result.UNIFORMFUNC_VALUE = rnd.getBool();
+        result.MATRIXMODE_ROWMAJOR = rnd.getBool();
+        result.ARRAYASSIGN_FULL = rnd.getBool();
+        result.ARRAYASSIGN_BLOCKS_OF_TWO = !result.ARRAYASSIGN_FULL;
+        result.UNIFORMUSAGE_EVERY_OTHER = rnd.getBool();
+        result.BOOLEANAPITYPE_INT = rnd.getBool();
+        result.BOOLEANAPITYPE_UINT = !result.BOOLEANAPITYPE_INT;
+        result.UNIFORMVALUE_ZERO = rnd.getBool();
 
         return result;
     };
@@ -1355,9 +1343,9 @@ define([
     UniformCase.prototype.generateBasicUniforms = function(basicUniformsDst, basicUniformReportsDst, varType, varName, isParentActive, samplerUnitCounter, rnd) {
         if (varType.isBasicType())
         {
-            /** @type {boolean} */ var isActive = isParentActive && (this.m_features & Feature.UNIFORMUSAGE_EVERY_OTHER ? basicUniformsDst.length % 2 == 0 : true);
+            /** @type {boolean} */ var isActive = isParentActive && (this.m_features.UNIFORMUSAGE_EVERY_OTHER ? basicUniformsDst.length % 2 == 0 : true);
             /** @type {deqpUtils.DataType} */ var type = varType.getBasicType();
-            /** @type {VarValue} */ var value = this.m_features & Feature.UNIFORMVALUE_ZERO ? generateZeroVarValue(type) :
+            /** @type {VarValue} */ var value = this.m_features.UNIFORMVALUE_ZERO ? generateZeroVarValue(type) :
                                                 deqpUtils.isDataTypeSampler(type) ? generateRandomVarValue(type, rnd, samplerUnitCounter++) :
                                                 generateRandomVarValue(varType.getBasicType(), rnd);
 
@@ -1374,8 +1362,8 @@ define([
             {
                 /** @type {boolean} */ var indexedName = '' + varName + '[' + elemNdx + ']';
                 /** @type {boolean} */ var isCurElemActive = isParentActive &&
-                                                  (this.m_features & Feature.UNIFORMUSAGE_EVERY_OTHER ? basicUniformsDst.length % 2 == 0 : true) &&
-                                                  (this.m_features & Feature.ARRAYUSAGE_ONLY_MIDDLE_INDEX ? elemNdx == Math.floor(size / 2) : true);
+                                                  (this.m_features.UNIFORMUSAGE_EVERY_OTHER ? basicUniformsDst.length % 2 == 0 : true) &&
+                                                  (this.m_features.ARRAYUSAGE_ONLY_MIDDLE_INDEX ? elemNdx == Math.floor(size / 2) : true);
 
                 isElemActive.push(isCurElemActive);
 
@@ -1383,7 +1371,7 @@ define([
                 {
                     // \note We don't want separate entries in basicUniformReportsDst for elements of basic-type arrays.
                     /** @type {deqpUtils.DataType} */ var elemBasicType = varType.getElementType().getBasicType();
-                    /** @type {VarValue} */ var value = this.m_features & Feature.UNIFORMVALUE_ZERO ? generateZeroVarValue(elemBasicType) :
+                    /** @type {VarValue} */ var value = this.m_features.UNIFORMVALUE_ZERO ? generateZeroVarValue(elemBasicType) :
                                                         deqpUtils.isDataTypeSampler(elemBasicType) ? generateRandomVarValue(elemBasicType, rnd, samplerUnitCounter++) :
                                                         generateRandomVarValue(elemBasicType, rnd);
 
@@ -1673,7 +1661,7 @@ define([
 
             reportedType = deqpUtils.getDataTypeFromGLType(reportedTypeGL);
 
-            //TODO: TCU_CHECK_MSG(reportedType != deqpUtils.DataType.LAST, "Invalid uniform type");
+            //TODO: TCU_CHECK_MSG(reportedType !== undefined, "Invalid uniform type");
 
             bufferedLogToConsole('// Got name = ' + reportedNameStr + ', size = ' + reportedSize + ', type = ' + deqpUtils.getDataTypeName(reportedType));
 
@@ -1695,7 +1683,7 @@ define([
                 {
                     /** @type {BasicUniformReportRef} */ var reference = basicUniformReportsRef[referenceNdx];
 
-                    DE_ASSERT(reference.type != deqpUtils.DataType.LAST);
+                    DE_ASSERT(reference.type !== undefined);
                     DE_ASSERT(reference.minSize >= 1 || (reference.minSize == 0 && !reference.isUsedInShader));
                     DE_ASSERT(reference.minSize <= reference.maxSize);
 
@@ -1752,7 +1740,7 @@ define([
         for (var i = 0; i < basicUniformReportsRef.length; i++)
         {
             /** @type {string} */ var name = basicUniformReportsRef[i].name;
-            queryNames[i] = this.m_features & Feature.ARRAY_FIRST_ELEM_NAME_NO_INDEX && name[name.length - 1] == ']' ? beforeLast(name, '[') : name;
+            queryNames[i] = this.m_features.ARRAY_FIRST_ELEM_NAME_NO_INDEX && name[name.length - 1] == ']' ? beforeLast(name, '[') : name;
             queryNamesC[i] = queryNames[i];
         }
 
@@ -1799,7 +1787,7 @@ define([
                     ', type = ' + deqpUtils.getDataTypeName(reportedType) +
                     ' for the uniform at index ' + reportedIndex + ' (' + reference.name + ')');
 
-                DE_ASSERT(reference.type != deqpUtils.DataType.LAST);
+                DE_ASSERT(reference.type !== undefined);
                 DE_ASSERT(reference.minSize >= 1 || (reference.minSize == 0 && !reference.isUsedInShader));
                 DE_ASSERT(reference.minSize <= reference.maxSize);
                 basicUniformReportsDst.push(new BasicUniformReportGL(reference.name, reportedNameLength, reportedSize, reportedType, reportedIndex));
@@ -1897,7 +1885,7 @@ define([
         for (var unifNdx = 0; unifNdx < basicUniforms.length; unifNdx++)
         {
             /** @type {BasicUniform} */ var uniform = basicUniforms[unifNdx];
-            /** @type {string} */ var queryName = this.m_features & Feature.ARRAY_FIRST_ELEM_NAME_NO_INDEX && uniform.elemNdx == 0 ? beforeLast(uniform.name, '[') : uniform.name;
+            /** @type {string} */ var queryName = this.m_features.ARRAY_FIRST_ELEM_NAME_NO_INDEX && uniform.elemNdx == 0 ? beforeLast(uniform.name, '[') : uniform.name;
             /** @type {number} */ var location = gl.getUniformLocation(programGL, queryName);
             /** @type {number} */ var size = deqpUtils.getDataTypeScalarSize(uniform.type);
             /** @type {VarValue} */ var value = new VarValue();
@@ -1921,7 +1909,7 @@ define([
             var result = 0;
             gluDefs.GLU_CHECK_CALL(function() {result = gl.getUniform(programGL, location);});
 
-            if(deqpUtils.isDataTypeSampler(uniform.type))
+            if (deqpUtils.isDataTypeSampler(uniform.type))
             {
                 value.val = new SamplerV();
                 value.val.samplerV.unit = result;
@@ -2001,20 +1989,20 @@ define([
      * @param {deRandom.Random} rnd
      */
     UniformCase.prototype.assignUniforms = function(basicUniforms, programGL, rnd) {
-        /** @type {boolean} */ var transpose = false; //No support to transpose uniform matrices in WebGL, must always be false. (this.m_features & Feature.MATRIXMODE_ROWMAJOR) != 0;
+        /** @type {boolean} */ var transpose = false; //No support to transpose uniform matrices in WebGL, must always be false. (this.m_features.MATRIXMODE_ROWMAJOR) != 0;
         /** @type {boolean} (GLboolean) */ var transposeGL = transpose;
-        /** @type {deqpUtils.DataType} */ var boolApiType = this.m_features & Feature.BOOLEANAPITYPE_INT ? deqpUtils.DataType.INT :
-                                                this.m_features & Feature.BOOLEANAPITYPE_UINT ? deqpUtils.DataType.UINT :
+        /** @type {deqpUtils.DataType} */ var boolApiType = this.m_features.BOOLEANAPITYPE_INT ? deqpUtils.DataType.INT :
+                                                this.m_features.BOOLEANAPITYPE_UINT ? deqpUtils.DataType.UINT :
                                                 deqpUtils.DataType.FLOAT;
 
         for (var unifNdx = 0; unifNdx < basicUniforms.length; unifNdx++)
         {
             /** @type {BasicUniform} */ var uniform = basicUniforms[unifNdx];
             /** @type {boolean} */ var isArrayMember = uniform.elemNdx >= 0;
-            /** @type {string} */ var queryName = this.m_features & Feature.ARRAY_FIRST_ELEM_NAME_NO_INDEX && uniform.elemNdx == 0 ? beforeLast(uniform.name, '[') : uniform.name;
+            /** @type {string} */ var queryName = this.m_features.ARRAY_FIRST_ELEM_NAME_NO_INDEX && uniform.elemNdx == 0 ? beforeLast(uniform.name, '[') : uniform.name;
             /** @type {number} */ var numValuesToAssign = !isArrayMember ? 1 :
-                                                        this.m_features & Feature.ARRAYASSIGN_FULL ? (uniform.elemNdx == 0 ? uniform.rootSize : 0) :
-                                                        this.m_features & Feature.ARRAYASSIGN_BLOCKS_OF_TWO ? (uniform.elemNdx % 2 == 0 ? 2 : 0) :
+                                                        this.m_features.ARRAYASSIGN_FULL ? (uniform.elemNdx == 0 ? uniform.rootSize : 0) :
+                                                        this.m_features.ARRAYASSIGN_BLOCKS_OF_TWO ? (uniform.elemNdx % 2 == 0 ? 2 : 0) :
                                                         /* Default: assign array elements separately */ 1;
 
             DE_ASSERT(numValuesToAssign >= 0);
@@ -2028,7 +2016,7 @@ define([
 
             /** @type {number} */ var location = gl.getUniformLocation(programGL, queryName);
             /** @type {number} */ var typeSize = deqpUtils.getDataTypeScalarSize(uniform.type);
-            /** @type {boolean} */ var assignByValue = this.m_features & Feature.UNIFORMFUNC_VALUE && !deqpUtils.isDataTypeMatrix(uniform.type) && numValuesToAssign == 1;
+            /** @type {boolean} */ var assignByValue = this.m_features.UNIFORMFUNC_VALUE && !deqpUtils.isDataTypeMatrix(uniform.type) && numValuesToAssign == 1;
             /** @type {Array.<VarValue>} */ var valuesToAssign = [];
 
             for (var i = 0; i < numValuesToAssign; i++)
@@ -2260,26 +2248,15 @@ define([
 
         gluDefs.GLU_CHECK_CALL(function() {gl.viewport(viewportX, viewportY, viewportW, viewportH);});
 
-
-        var position_buffer = new ArrayBuffer(16 * 4);
-        /** @type {Float32Array} */ var position = new Float32Array(position_buffer);
-        position[0] = -1.0; position[1] = -1.0; position[2] = 0.0; position[3] = 1.0;
-        position[4] = -1.0; position[5] = 1.0; position[6] = 0.0; position[7] = 1.0;
-        position[8] = 1.0; position[9] = -1.0; position[10] = 0.0; position[11] = 1.0;
-        position[12] = 1.0; position[13] = 1.0; position[14] = 0.0; position[15] = 1.0;
-        /*[
+        /** @type {Float32Array} */ var position = new Float32Array([
             -1.0, -1.0, 0.0, 1.0,
             -1.0, 1.0, 0.0, 1.0,
             1.0, -1.0, 0.0, 1.0,
             1.0, 1.0, 0.0, 1.0
-        ];*/
+        ]);
 
-        var index_buffer = new ArrayBuffer(6 * 2);
-        /** @type {deMath.deUint16} TODO: deUint16 not yet declared. Necessary? */
-        var indices = new Uint16Array(index_buffer);
-        indices[0] = 0; indices[1] = 1; indices[2] = 2;
-        indices[3] = 2; indices[4] = 1; indices[5] = 3;
-        /*[0, 1, 2, 2, 1, 3];*/
+        /** @type {deMath.deUint16} */
+        var indices = new Uint16Array([0, 1, 2, 2, 1, 3]);
 
         /** @type {number} */ var posLoc = gl.getAttribLocation(program.getProgram(), 'a_position');
         gl.enableVertexAttribArray(posLoc);
@@ -2363,9 +2340,6 @@ define([
         CONSISTENCY: 2            //!< Query info with both above methods, and check consistency.
     };
 
-    /** @type {CaseType} */
-    CaseType.LAST = Object.keys(CaseType).length;
-
     /**
      * UniformInfoQueryCase class
      * @constructor
@@ -2374,7 +2348,7 @@ define([
      * @param {CaseShaderType} shaderType
      * @param {UniformCollection} uniformCollection
      * @param {CaseType} caseType
-     * @param {deMath.deUint32} additionalFeatures
+     * @param {Feature} additionalFeatures
      */
     var UniformInfoQueryCase = function(name, description, shaderType, uniformCollection, caseType, additionalFeatures) {
         UniformCase.call(this, name, description);
@@ -2504,9 +2478,6 @@ define([
         ASSIGNED: 1         //!< Assign values to uniforms with glUniform*(), and check those.
     };
 
-    /** @type {ValueToCheck} */
-    ValueToCheck.LAST = Object.keys(ValueToCheck).length;
-
     /**
      * @enum CheckMethod
      */
@@ -2515,9 +2486,6 @@ define([
         RENDER: 1               //!< Check values by rendering with the value-checking shader.
     };
 
-    /** @type {CheckMethod} */
-    CheckMethod.LAST = Object.keys(CheckMethod).length;
-
     /**
      * @enum AssignMethod
      */
@@ -2525,9 +2493,6 @@ define([
         POINTER: 0,
         VALUE: 1
     };
-
-    /** @type {AssignMethod} */
-    AssignMethod.LAST = Object.keys(AssignMethod).length;
 
     /**
      * UniformValueCase test class
@@ -2539,17 +2504,19 @@ define([
      * @param {ValueToCheck} valueToCheck
      * @param {CheckMethod} checkMethod
      * @param {AssignMethod} assignMethod
-     * @param {deMath.deUint32} additionalFeatures
+     * @param {Feature} additionalFeatures
      */
     var UniformValueCase = function(name, description, shaderType, uniformCollection, valueToCheck, checkMethod, assignMethod, additionalFeatures) {
         UniformCase.call(this, name, description);
-        this.newB(shaderType, uniformCollection,
-            (valueToCheck == ValueToCheck.INITIAL ? Feature.UNIFORMVALUE_ZERO : 0) | (assignMethod == AssignMethod.VALUE ? Feature.UNIFORMFUNC_VALUE : 0) | additionalFeatures);
+
+        additionalFeatures.UNIFORMVALUE_ZERO |= valueToCheck == ValueToCheck.INITIAL;
+        additionalFeatures.UNIFORMFUNC_VALUE |= assignMethod == AssignMethod.VALUE;
+        this.newB(shaderType, uniformCollection, additionalFeatures);
 
         this.m_valueToCheck = valueToCheck;
         this.m_checkMethod = checkMethod;
 
-        DE_ASSERT(!(assignMethod == AssignMethod.LAST && valueToCheck == ValueToCheck.ASSIGNED));
+        DE_ASSERT(!(assignMethod === undefined && valueToCheck == ValueToCheck.ASSIGNED));
     };
 
     UniformValueCase.prototype = Object.create(UniformCase.prototype);
@@ -2722,7 +2689,7 @@ define([
      */
     RandomUniformCase.prototype.test = function(basicUniforms, basicUniformReportsRef, program, rnd) {
         // \note Different sampler types may not be bound to same unit when rendering.
-        /** @type {boolean}*/ var renderingPossible = (this.m_features & Feature.UNIFORMVALUE_ZERO) == 0 || !this.m_uniformCollection.containsSeveralSamplerTypes();
+        /** @type {boolean}*/ var renderingPossible = !this.m_features.UNIFORMVALUE_ZERO || !this.m_uniformCollection.containsSeveralSamplerTypes();
 
         /** @type {boolean} */ var performGetActiveUniforms = rnd.getBool();
         /** @type {boolean} */ var performGetActiveUniformsiv = rnd.getBool();
@@ -2809,14 +2776,12 @@ define([
             MULTIPLE_NESTED_STRUCTS_ARRAYS: 8
         };
 
-        UniformCollections.LAST = Object.keys(UniformCollections).length;
-
         var UniformCollectionGroup = function() {
             /** @type {string} */ this.name = '';
             /** @type {Array.<UniformCollectionCase>} */ this.cases = [];
         };
 
-        /** @type {Array.<UniformCollectionGroup>} */ var defaultUniformCollections = new Array(UniformCollections.LAST);
+        /** @type {Array.<UniformCollectionGroup>} */ var defaultUniformCollections = new Array(Object.keys(UniformCollections).length);
 
         //Initialize
         for (var i = 0; i < defaultUniformCollections.length; i++) defaultUniformCollections[i] = new UniformCollectionGroup();
@@ -2851,8 +2816,8 @@ define([
                 /** @type {deqpUtils.DataType} */ var secondDataType = deqpUtils.isDataTypeScalar(dataType) ? deqpUtils.getDataTypeVector(dataType, 4) :
                                                     dataType == deqpUtils.DataType.FLOAT_MAT4 ? deqpUtils.DataType.FLOAT_MAT2 :
                                                     dataType == deqpUtils.DataType.SAMPLER_2D ? deqpUtils.DataType.SAMPLER_CUBE :
-                                                    deqpUtils.DataType.LAST;
-                DE_ASSERT(secondDataType != deqpUtils.DataType.LAST);
+                                                    undefined;
+                DE_ASSERT(secondDataType !== undefined);
                 /** @type {string} */ var secondTypeName = deqpUtils.getDataTypeName(secondDataType);
                 /** @type {string} */ var name = typeName + '_' + secondTypeName;
 
@@ -2872,14 +2837,14 @@ define([
         /** @type {deqpTests.DeqpTest} */
         var infoQueryGroup = deqpTests.newTest('info_query', 'Test uniform info querying functions');
         testGroup.addChild(infoQueryGroup);
-        for (var caseTypeI = 0; caseTypeI < CaseType.LAST; caseTypeI++)
+        for (var caseTypeI in CaseType)
         {
-            /** @type {CaseType} */ var caseType = caseTypeI;
+            /** @type {CaseType} */ var caseType = CaseType[caseTypeI];
             /** @type {deqpTests.DeqpTest} */
             var caseTypeGroup = deqpTests.newTest(UniformInfoQueryCase.getCaseTypeName(caseType), UniformInfoQueryCase.getCaseTypeDescription(caseType));
             infoQueryGroup.addChild(caseTypeGroup);
 
-            for (var collectionGroupNdx = 0; collectionGroupNdx < UniformCollections.LAST; collectionGroupNdx++)
+            for (var collectionGroupNdx = 0; collectionGroupNdx < Object.keys(UniformCollections).length; collectionGroupNdx++)
             {
                 var numArrayFirstElemNameCases = caseType == CaseType.INDICES_UNIFORMSIV && collectionGroupNdx == UniformCollections.BASIC_ARRAY ? 2 : 1;
 
@@ -2895,13 +2860,15 @@ define([
                     {
                         /** @type {UniformCollectionCase} */ var collectionCase = collectionGroup.cases[collectionNdx];
 
-                        for (var shaderType = 0; shaderType < CaseShaderType.LAST; shaderType++)
+                        for (var shaderType = 0; shaderType < Object.keys(CaseShaderType).length; shaderType++)
                         {
                             /** @type {string} */ var name = collectionCase.namePrefix + getCaseShaderTypeName(shaderType);
                             /** @type {UniformCollection} (SharedPtr) */ var uniformCollection = collectionCase.uniformCollection;
 
-                            collectionTestGroup.addChild(new UniformInfoQueryCase(name, '', shaderType, uniformCollection, caseType,
-                                                                                    referToFirstArrayElemWithoutIndexI == 0 ? 0 : Feature.ARRAY_FIRST_ELEM_NAME_NO_INDEX));
+                            /** @type {Feature} */ var features = Feature();
+                            features.ARRAY_FIRST_ELEM_NAME_NO_INDEX = referToFirstArrayElemWithoutIndexI != 0;
+
+                            collectionTestGroup.addChild(new UniformInfoQueryCase(name, '', shaderType, uniformCollection, caseType, features));
                         }
                     }
                 }
@@ -2921,11 +2888,15 @@ define([
                 /** @type {string} */ var collName = collectionCase.namePrefix;
                 /** @type {UniformCollection} (SharedPtr) */ var uniformCollection = collectionCase.uniformCollection;
 
-                for (var shaderType = 0; shaderType < CaseShaderType.LAST; shaderType++)
+                for (var shaderType = 0; shaderType < Object.keys(CaseShaderType).length; shaderType++)
                 {
                     /** @type {string} */ var name = collName + getCaseShaderTypeName(shaderType);
-                    unusedUniformsGroup.addChild(new UniformInfoQueryCase(name, '', shaderType, uniformCollection, caseType,
-                                                                            Feature.UNIFORMUSAGE_EVERY_OTHER | Feature.ARRAYUSAGE_ONLY_MIDDLE_INDEX));
+
+                    /** @type {Feature} */ var features = Feature();
+                    features.UNIFORMUSAGE_EVERY_OTHER = true;
+                    features.ARRAYUSAGE_ONLY_MIDDLE_INDEX = true;
+
+                    unusedUniformsGroup.addChild(new UniformInfoQueryCase(name, '', shaderType, uniformCollection, caseType, features));
                 }
             }
         }
@@ -2941,13 +2912,13 @@ define([
                                                        UniformValueCase.getValueToCheckDescription(ValueToCheck.INITIAL));
         valueGroup.addChild(initialValuesGroup);
 
-        for (var checkMethodI = 0; checkMethodI < CheckMethod.LAST; checkMethodI++)
+        for (var checkMethodI in CheckMethod)
         {
-            /** @type {CheckMethod} */ var checkMethod = checkMethodI;
+            /** @type {CheckMethod} */ var checkMethod = CheckMethod[checkMethodI];
             /** @type {deqpTests.DeqpTest} */ var checkMethodGroup = deqpTests.newTest(UniformValueCase.getCheckMethodName(checkMethod), UniformValueCase.getCheckMethodDescription(checkMethod));
             initialValuesGroup.addChild(checkMethodGroup);
 
-            for (var collectionGroupNdx = 0; collectionGroupNdx < UniformCollections.LAST; collectionGroupNdx++)
+            for (var collectionGroupNdx = 0; collectionGroupNdx < Object.keys(UniformCollections).length; collectionGroupNdx++)
             {
                 /** @type {UniformCollectionGroup} */ var collectionGroup = defaultUniformCollections[collectionGroupNdx];
                 /** @type {deqpTests.DeqpTest} */ var collectionTestGroup = deqpTests.newTest(collectionGroup.name, '');
@@ -2968,19 +2939,20 @@ define([
 
                     for (var booleanTypeI = 0; booleanTypeI < numBoolVariations; booleanTypeI++)
                     {
-                        /** @type {deMath.deUint32} */ var booleanTypeFeat = booleanTypeI == 1 ? Feature.BOOLEANAPITYPE_INT :
-                                                            //TODO: Uncomment this - booleanTypeI == 2 ? Feature.BOOLEANAPITYPE_UINT :
-                                                            0;
+                        /** @type {Feature} */ var booleanTypeFeat = Feature();
+                        booleanTypeFeat.BOOLEANAPITYPE_INT = booleanTypeI == 1;
+                        booleanTypeFeat.BOOLEANAPITYPE_UINT = booleanTypeI == 2;
+
                         /** @type {string} */ var booleanTypeName = booleanTypeI == 1 ? 'int' :
-                                                            //TODO: Uncomment this - booleanTypeI == 2 ? 'uint' :
+                                                            booleanTypeI == 2 ? 'uint' :
                                                             'float';
                         /** @type {string} */ var nameWithApiType = varyBoolApiType ? collName + 'api_' + booleanTypeName + '_' : collName;
 
-                        for (var shaderType = 0; shaderType < CaseShaderType.LAST; shaderType++)
+                        for (var shaderType = 0; shaderType < Object.keys(CaseShaderType).length; shaderType++)
                         {
                             /** @type {string} */ var name = nameWithApiType + getCaseShaderTypeName(shaderType);
                             collectionTestGroup.addChild(new UniformValueCase(name, '', shaderType, uniformCollection,
-                                                                                ValueToCheck.INITIAL, checkMethod, AssignMethod.LAST, booleanTypeFeat));
+                                                                                ValueToCheck.INITIAL, checkMethod, undefined, booleanTypeFeat));
                         }
                     }
                 }
@@ -2993,19 +2965,19 @@ define([
                                                                     UniformValueCase.getValueToCheckDescription(ValueToCheck.ASSIGNED));
         valueGroup.addChild(assignedValuesGroup);
 
-        for (var assignMethodI = 0; assignMethodI < AssignMethod.LAST; assignMethodI++)
+        for (var assignMethodI in AssignMethod)
         {
-            /** @type {AssignMethod} */ var assignMethod = assignMethodI;
+            /** @type {AssignMethod} */ var assignMethod = AssignMethod[assignMethodI];
             /** @type {deqpTests.DeqpTest} */ var assignMethodGroup = deqpTests.newTest(UniformValueCase.getAssignMethodName(assignMethod), UniformValueCase.getAssignMethodDescription(assignMethod));
             assignedValuesGroup.addChild(assignMethodGroup);
 
-            for (var checkMethodI = 0; checkMethodI < CheckMethod.LAST; checkMethodI++)
+            for (var checkMethodI in CheckMethod)
             {
-                /** @type {CheckMethod} */ var checkMethod = checkMethodI;
+                /** @type {CheckMethod} */ var checkMethod = CheckMethod[checkMethodI];
                 /** @type {deqpTests.DeqpTest} */ var checkMethodGroup = deqpTests.newTest(UniformValueCase.getCheckMethodName(checkMethod), UniformValueCase.getCheckMethodDescription(checkMethod));
                 assignMethodGroup.addChild(checkMethodGroup);
 
-                for (var collectionGroupNdx = 0; collectionGroupNdx < UniformCollections.LAST; collectionGroupNdx++)
+                for (var collectionGroupNdx = 0; collectionGroupNdx < Object.keys(UniformCollections).length; collectionGroupNdx++)
                 {
                     /** @type {number} */ var numArrayFirstElemNameCases = checkMethod == CheckMethod.GET_UNIFORM && collectionGroupNdx == UniformCollections.BASIC_ARRAY ? 2 : 1;
 
@@ -3035,11 +3007,12 @@ define([
 
                             for (var booleanTypeI = 0; booleanTypeI < numBoolVariations; booleanTypeI++)
                             {
-                                /** @type {deMath.deUint32} */ var booleanTypeFeat = booleanTypeI == 1 ? Feature.BOOLEANAPITYPE_INT :
-                                                                        //TODO: Uncomment this - booleanTypeI == 2 ? Feature.BOOLEANAPITYPE_UINT :
-                                                                        0;
+                                /** @type {Feature} */ var booleanTypeFeat = Feature();
+                                booleanTypeFeat.BOOLEANAPITYPE_INT = booleanTypeI == 1;
+                                booleanTypeFeat.BOOLEANAPITYPE_UINT = booleanTypeI == 2;
+
                                 /** @type {string} */ var booleanTypeName = booleanTypeI == 1 ? 'int' :
-                                                                        //TODO: Uncomment this - booleanTypeI == 2 ? 'uint' :
+                                                                        booleanTypeI == 2 ? 'uint' :
                                                                         'float';
                                 /** @type {string} */ var nameWithBoolType = varyBoolApiType ? collName + 'api_' + booleanTypeName + '_' : collName;
 
@@ -3047,14 +3020,15 @@ define([
                                 {
                                     /** @type {string} */ var nameWithMatrixType = nameWithBoolType + (matrixTypeI == 1 ? 'row_major_' : '');
 
-                                    for (var shaderType = 0; shaderType < CaseShaderType.LAST; shaderType++)
+                                    for (var shaderType = 0; shaderType < Object.keys(CaseShaderType).length; shaderType++)
                                     {
                                         /** @type {string} */ var name = nameWithMatrixType + getCaseShaderTypeName(shaderType);
-                                        /** @type {deMath.deUint32} */ var arrayFirstElemNameNoIndexFeat = referToFirstArrayElemWithoutIndexI == 0 ? 0 : Feature.ARRAY_FIRST_ELEM_NAME_NO_INDEX;
+
+                                        booleanTypeFeat.ARRAY_FIRST_ELEM_NAME_NO_INDEX = referToFirstArrayElemWithoutIndexI != 0;
+                                        booleanTypeFeat.MATRIXMODE_ROWMAJOR = matrixTypeI == 1;
 
                                         collectionTestGroup.addChild(new UniformValueCase(name, '', shaderType, uniformCollection,
-                                                                                            ValueToCheck.ASSIGNED, checkMethod, assignMethod,
-                                                                                            booleanTypeFeat | arrayFirstElemNameNoIndexFeat | (matrixTypeI == 1 ? Feature.MATRIXMODE_ROWMAJOR : 0)));
+                                                                                            ValueToCheck.ASSIGNED, checkMethod, assignMethod, booleanTypeFeat));
                                     }
                                 }
                             }
@@ -3066,10 +3040,16 @@ define([
 
         // Cases assign multiple basic-array elements with one glUniform*v() (i.e. the count parameter is bigger than 1).
 
+        /** @type {Feature} */ var arrayAssignFullMode = Feature();
+        arrayAssignFullMode.ARRAYASSIGN_FULL = true;
+
+        /** @type {Feature} */ var arrayAssignBlocksOfTwo = Feature();
+        arrayAssignFullMode.ARRAYASSIGN_BLOCKS_OF_TWO = true;
+
         var arrayAssignGroups =
         [
-            {arrayAssignMode: Feature.ARRAYASSIGN_FULL, name: 'basic_array_assign_full', description: 'Assign entire basic-type arrays per glUniform*v() call'},
-            {arrayAssignMode: Feature.ARRAYASSIGN_BLOCKS_OF_TWO, name: 'basic_array_assign_partial', description: 'Assign two elements of a basic-type array per glUniform*v() call'}
+            {arrayAssignMode: arrayAssignFullMode, name: 'basic_array_assign_full', description: 'Assign entire basic-type arrays per glUniform*v() call'},
+            {arrayAssignMode: arrayAssignBlocksOfTwo, name: 'basic_array_assign_partial', description: 'Assign two elements of a basic-type array per glUniform*v() call'}
         ];
 
         for (var arrayAssignGroupNdx = 0; arrayAssignGroupNdx < arrayAssignGroups.length; arrayAssignGroupNdx++)
@@ -3095,7 +3075,7 @@ define([
                     /** @type {string} */ var collName = collectionCase.namePrefix;
                     /** @type {UniformCollection} (SharedPtr) */ var uniformCollection = collectionCase.uniformCollection;
 
-                    for (var shaderType = 0; shaderType < CaseShaderType.LAST; shaderType++)
+                    for (var shaderType = 0; shaderType < Object.keys(CaseShaderType).length; shaderType++)
                     {
                         /** @type {string} */ var name = collName + getCaseShaderTypeName(shaderType);
                         collectionTestGroup.addChild(new UniformValueCase(name, '', shaderType, uniformCollection,
@@ -3119,12 +3099,17 @@ define([
             /** @type {string} */ var collName = collectionCase.namePrefix;
             /** @type {UniformCollection} (SharedPtr) */ var uniformCollection = collectionCase.uniformCollection;
 
-            for (var shaderType = 0; shaderType < CaseShaderType.LAST; shaderType++)
+            for (var shaderType = 0; shaderType < Object.keys(CaseShaderType).length; shaderType++)
             {
                 /** @type {string} */ var name = collName + getCaseShaderTypeName(shaderType);
+
+                /** @type {Feature} */ var features = Feature();
+                features.ARRAYUSAGE_ONLY_MIDDLE_INDEX = true;
+                features.UNIFORMUSAGE_EVERY_OTHER = true;
+
                 unusedUniformsGroup.addChild(new UniformValueCase(name, '', shaderType, uniformCollection,
                                                                     ValueToCheck.ASSIGNED, CheckMethod.GET_UNIFORM, AssignMethod.POINTER,
-                                                                    Feature.ARRAYUSAGE_ONLY_MIDDLE_INDEX | Feature.UNIFORMUSAGE_EVERY_OTHER));
+                                                                    features));
             }
         }
 

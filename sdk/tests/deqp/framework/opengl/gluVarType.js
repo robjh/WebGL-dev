@@ -248,10 +248,10 @@ define(['framework/opengl/gluShaderUtil'], function(deqpUtils) {
      * @return {VarType}
      */
     var newTypeBasic = function(basicType, flags) {
-      if (flags === undefined)
+      /*TODO: Let others know flags CAN be undefined - if (flags === undefined)
       {
           throw new Error("wrong flag");
-      }
+      }*/
        return new VarType().VarTypeBasic(basicType, flags);
     };
 
@@ -437,7 +437,7 @@ define(['framework/opengl/gluShaderUtil'], function(deqpUtils) {
 
         if (curType.isBasicType())
         {
-            if (curType.getPrecision() != deqpUtils.precision.PRECISION_LAST)
+            if (curType.getPrecision() !== undefined)
                 str += deqpUtils.getPrecisionName(curType.getPrecision()) + ' ';
             str += deqpUtils.getDataTypeName(curType.getBasicType());
         }

@@ -250,6 +250,7 @@ var runTestCases = function() {
                 var fullTestName = state.currentTest.fullName();
                 setCurrentTestName(fullTestName);
                 debug('Start testcase: ' + fullTestName);
+                bufferedLogToConsole('Start testcase: ' + fullTestName); //Show also in console so we can see which test crashed the browser's tab
 
                 //TODO: Improve this
                 //Initialize particular test if it exposes an init method
