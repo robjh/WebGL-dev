@@ -18,7 +18,7 @@
  *
  */
 
-define(function() {
+define(['../../framework/delibs/debase/deMath'],function(deMath) {
     'use strict';
 
 var DE_ASSERT = function(x) {
@@ -531,6 +531,17 @@ var isDataTypeSampler = function(dataType) {
     return (dataType >= DataType.SAMPLER_2D) && (dataType <= DataType.UINT_SAMPLER_3D);
 };
 
+/*
+ * Returns a DataType based on given rows and columns
+ * @param {number} numCols
+ * @param {number} numRows
+ * @return {DataType}
+ */
+var getDataTypeMatrix = function(numCols, numRows) {
+    DE_ASSERT(deMath.deInRange32(numCols, 2, 4) && deMath.deInRange32(numRows, 2, 4));
+    return (DataType.FLOAT_MAT2 + (numCols-2)*3 + (numRows-2));
+};
+
 /**
 * Returns number of rows of a DataType Matrix
 * @param {DataType} dataType shader
@@ -718,6 +729,7 @@ return {
     isDataTypeVector: isDataTypeVector,
     isDataTypeScalarOrVector: isDataTypeScalarOrVector,
     isDataTypeSampler: isDataTypeSampler,
+    getDataTypeMatrix: getDataTypeMatrix,
     getDataTypeMatrixNumColumns: getDataTypeMatrixNumColumns,
     getDataTypeMatrixNumRows: getDataTypeMatrixNumRows,
     getDataTypeName: getDataTypeName,
