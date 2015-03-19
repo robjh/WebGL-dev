@@ -424,7 +424,6 @@ define([
     var count = 0;
     var createVertexCaptureProgram = function(gl, spec, bufferMode, primitiveType) {
 
-        if (++count % 250 == 0) debugger;
     /** @type {Object.<string, string>} */ var source = genShaderSources(spec, primitiveType === deqpDraw.primitiveType.POINTS /* Is point size required? */);
 
     /** @type {deqpProgram.ShaderProgram} */ var programSources = new deqpProgram.ProgramSources();
