@@ -18,18 +18,22 @@
  *
  */
 
-define(['framework/opengl/gluShaderUtil',
-        'framework/opengl/gluDrawUtil',
-        'framework/opengl/gluVarType',
-        'framework/opengl/gluVarTypeUtil',
-        'framework/opengl/gluShaderProgram',
-        'framework/delibs/debase/deRandom',
-        'framework/delibs/debase/deMath',
-        'framework/delibs/debase/deString',
-        'framework/common/tcuTestCase',
-        'framework/common/tcuSurface',
-        'framework/common/tcuImageCompare'],
-        function(deqpUtils, deqpDraw, gluVT, gluVTU, deqpProgram, deRandom, deMath, deString, deqpTests, tcuSurface, tcuImageCompare) {
+define([
+    'framework/opengl/gluShaderUtil',
+    'framework/opengl/gluDrawUtil',
+    'framework/opengl/gluVarType',
+    'framework/opengl/gluVarTypeUtil',
+    'framework/opengl/gluShaderProgram',
+    'framework/delibs/debase/deRandom',
+    'framework/delibs/debase/deMath',
+    'framework/delibs/debase/deString',
+    'framework/common/tcuTestCase',
+    'framework/common/tcuSurface',
+    'framework/common/tcuImageCompare'
+], function(
+    deqpUtils, deqpDraw, gluVT, gluVTU, deqpProgram, deRandom, deMath, deString,
+    deqpTests, tcuSurface, tcuImageCompare
+) {
     'use strict';
     
     /** @const @type {number} */ var VIEWPORT_WIDTH = 128;
@@ -608,7 +612,7 @@ define(['framework/opengl/gluShaderUtil',
             throw new Error('Position attribute not found.');
 
         console.log("Position: " + position);
-        
+
         for (var ndx = 0; ndx < numInputs; ndx++) {
             var pos = new Float32Array(buffer, position.offset + inputStride * ndx, 4);
             pos[0] = rnd.getFloat(-1.2, 1.2);
