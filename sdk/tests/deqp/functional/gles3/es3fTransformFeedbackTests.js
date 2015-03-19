@@ -541,10 +541,10 @@ define(['framework/opengl/gluShaderUtil',
      */
     var genAttributeData = function(attrib, buffer, stride, numElements, rnd) {
 
-        /** @type {number} */  var elementSize = 1; /*formerly; sizeof(deUint32), but this isnt a bleeding byte buffer anymore */
+        /** @type {number} */ var elementSize = 4; /*sizeof(deUint32)*/
         /** @type {boolean} */ var isFloat = deqpUtils.isDataTypeFloatOrVec(attrib.type.getBasicType());
-        /** @type {boolean} */ var isInt   = deqpUtils.isDataTypeIntOrIVec(attrib.type.getBasicType());
-        /** @type {boolean} */ var isUint  = deqpUtils.isDataTypeUintOrUVec(attrib.type.getBasicType());
+        /** @type {boolean} */ var isInt = deqpUtils.isDataTypeIntOrIVec(attrib.type.getBasicType());
+        /** @type {boolean} */ var isUint = deqpUtils.isDataTypeUintOrUVec(attrib.type.getBasicType());
 
         // TODO: below type glsUBC.UniformFlags ?
         /** @type {deqpUtils.precision} */ var precision = attrib.type.getPrecision(); // TODO: getPrecision() called correctly? implemented in glsVarType.js
@@ -555,36 +555,37 @@ define(['framework/opengl/gluShaderUtil',
         {
             for (var compNdx = 0; compNdx < numComps; compNdx++)
             {
-                /** @type {number} */ var offset = attrib.offset + (elemNdx * stride) + (compNdx * elementSize);
+                /** @type {number} */ var offset = attrib.offset + elemNdx * stride + compNdx * elementSize;
                 if (isFloat)
                 {
-                    
+                    var pos = new Float32Array(buffer, offset, 1);
                     switch (precision)
                     {
-                        case deqpUtils.precision.PRECISION_LOWP:    buffer[offset] = 0.25 * rnd.getInt(0, 4); break;
-                        case deqpUtils.precision.PRECISION_MEDIUMP: buffer[offset] = rnd.getFloat(-1e3, 1e3); break;
-                        case deqpUtils.precision.PRECISION_HIGHP:   buffer[offset] = rnd.getFloat(-1e5, 1e5); break;
+                        case deqpUtils.precision.PRECISION_LOWP:    pos[0] = 0.25 * rnd.getInt(0, 4); break;
+                        case deqpUtils.precision.PRECISION_MEDIUMP: pos[0] = rnd.getFloat(-1e3, 1e3); break;
+                        case deqpUtils.precision.PRECISION_HIGHP:   pos[0] = rnd.getFloat(-1e5, 1e5); break;
                         default: DE_ASSERT(false);
                     }
-                
                 }
                 else if (isInt)
                 {
+                    var pos = new Int32Array(buffer, offset, 1);
                     switch (precision)
                     {
-                        case deqpUtils.precision.PRECISION_LOWP:    buffer[offset] = rnd.getInt(-128, 127);     break;
-                        case deqpUtils.precision.PRECISION_MEDIUMP: buffer[offset] = rnd.getInt(-32768, 32767); break;
-                        case deqpUtils.precision.PRECISION_HIGHP:   buffer[offset] = rnd.getInt();              break;
+                        case deqpUtils.precision.PRECISION_LOWP:    pos[0] = rnd.getInt(-128, 127);     break;
+                        case deqpUtils.precision.PRECISION_MEDIUMP: pos[0] = rnd.getInt(-32768, 32767); break;
+                        case deqpUtils.precision.PRECISION_HIGHP:   pos[0] = rnd.getInt();              break;
                         default: DE_ASSERT(false);
                     }
                 }
                 else if (isUint)
                 {
+                    var pos = new Uint32Array(buffer, offset, 1);
                     switch (precision)
                     {
-                        case deqpUtils.precision.PRECISION_LOWP:    buffer[offset] = rnd.getInt(0, 255);     break;
-                        case deqpUtils.precision.PRECISION_MEDIUMP: buffer[offset] = rnd.getInt(0, 65535);   break;
-                        case deqpUtils.precision.PRECISION_HIGHP:   buffer[offset] = Math.abs(rnd.getInt()); break;
+                        case deqpUtils.precision.PRECISION_LOWP:    pos[0] = rnd.getInt(0, 255);     break;
+                        case deqpUtils.precision.PRECISION_MEDIUMP: pos[0] = rnd.getInt(0, 65535);   break;
+                        case deqpUtils.precision.PRECISION_HIGHP:   pos[0] = Math.abs(rnd.getInt()); break;
                         default: DE_ASSERT(false);
                     }
                 }
@@ -593,30 +594,30 @@ define(['framework/opengl/gluShaderUtil',
     };
 
     /**
-     * @param {Array.<Attribute>} attrib
+     * @param {Array.<Attribute>} attributes
      * @param {number} numInputs
      * @param {number} inputStride
      * @param {deRandom} rnd
      * @return {ArrayBuffer}
      */
-    var genInputData = function(attrib, numInputs, inputStride, rnd) {
+    var genInputData = function(attributes, numInputs, inputStride, rnd) {
         var buffer = new ArrayBuffer(numInputs * inputStride);
 
-        var position = findAttributeNameEquals(attrib, 'a_position');
+        var position = findAttributeNameEquals(attributes, 'a_position');
         if (!position)
             throw new Error('Position attribute not found.');
 
-        console.log("Position: ", position);
+        console.log("Position: " + position);
         
         for (var ndx = 0; ndx < numInputs; ndx++) {
             var pos = new Float32Array(buffer, position.offset + inputStride * ndx, 4);
             pos[0] = rnd.getFloat(-1.2, 1.2);
             pos[1] = rnd.getFloat(-1.2, 1.2);
             pos[2] = rnd.getFloat(-1.2, 1.2);
-            pos[3] = rnd.getFloat( 0.1, 2.0);
+            pos[3] = rnd.getFloat(0.1, 2.0);
         }
 
-        var pointSizePos = findAttributeNameEquals(attrib, 'a_pointSize');
+        var pointSizePos = findAttributeNameEquals(attributes, 'a_pointSize');
         if (pointSizePos)
             for (var ndx = 0; ndx < numInputs; ndx++) {
                 var pos = new Float32Array(buffer, pointSizePos.offset + inputStride * ndx, 1);
@@ -628,10 +629,10 @@ define(['framework/opengl/gluShaderUtil',
         // and only used within these two loops
 
         // Random data for rest of components.
-        for (var i = 0; i < attrib.length; i++)
+        for (var i = 0; i < attributes.length; i++)
         {
-            if (attrib[i].name != 'a_position' && attrib[i].name != 'a_pointSize')
-                genAttributeData(attrib[i], buffer, inputStride, numInputs, rnd);
+            if (attributes[i].name != 'a_position' && attributes[i].name != 'a_pointSize')
+                genAttributeData(attributes[i], buffer, inputStride, numInputs, rnd);
         }
 
         return buffer;
@@ -885,7 +886,13 @@ define(['framework/opengl/gluShaderUtil',
     var TransformFeedbackCase = (function(context, name, desc, bufferMode, primitiveType) {
 
         this._construct = function(context, name, desc, bufferMode, primitiveType) {
-            if (arguments.length >= 5) {
+            if (
+                typeof(context) !== 'undefined' &&
+                typeof(name) !== 'undefined' &&
+                typeof(desc) !== 'undefined' &&
+                typeof(bufferMode) !== 'undefined' &&
+                typeof(primitiveType) !== 'undefined'
+            ) {
                 deqpTests.DeqpTest.call(this, name, description);
                 this.m_gl = context;
                 this.m_bufferMode = bufferMode;
@@ -1533,6 +1540,11 @@ define(['framework/opengl/gluShaderUtil',
         
         this.init = (function() {
         
+            // TODO: unfinished, same implementation in TransformFeedbackCase.iterate
+            // var seed = this.iterate.seed; // TODO: possible solution as a local attribute?
+            /** @type {number} */
+            var seed = /*deString.deStringHash(getName()) ^ */ deMath.deMathHash(this.m_iterNdx);
+
             /** @type {Array.<deqpUtils.DataType>} */
             var typeCandidates = [
                 deqpUtils.DataType.FLOAT,
@@ -1625,7 +1637,7 @@ define(['framework/opengl/gluShaderUtil',
                 /** @type {glsUBC.UniformFlags | deqpUtils.precision} */
                 var precision = rnd.choose(precisions)[0];
                 
-                /** @type {interpolation} */
+                /** @type {interpolation} */ // TODO: implement
                 var interp = deqpUtils.getDataTypeScalarType(type) === deqpUtils.DataType.FLOAT
                            ? rnd.choose(interpModes)
                            : interpolation.FLAT; 
