@@ -84,30 +84,12 @@ function(
      * @param {number} width_
      * @param {number} height_
      * @param {number} samples_
-     * @return {Object} The currently modified object
      */
     var BufferSpec = (function(format_, width_, height_, samples_) {
-        var container = {
-                format: gl.NONE, // TODO: change initialization GL_NONE?
-                width: 0,
-                height: 0,
-                samples: 0
-        };
-
-        if (
-                typeof(format_) !== 'undefined' &&
-                typeof(width_) !== 'undefined' &&
-                typeof(height_) !== 'undefined' &&
-                typeof(samples_) !== 'undefined'
-            ) {
-                container.format = format_;
-                container.width = width_;
-                container.height = height_;
-                container.samples = samples_;
-            }
-
-            return container;
-
+        this.format = format_;
+        this.width = width_;
+        this.height = height_;
+        this.samples = samples_;
     });
 
     /** FragmentOutput
@@ -116,31 +98,15 @@ function(
      * @param {gluShaderUtil.precision} precision_
      * @param {number} location_
      * @param {number} arrayLength_
-     * @return {Object} The currently modified object
      */
     var FragmentOutput = (function(type_, precision_, location_, arrayLength_) {
-        var container = {
-                type: gluShaderUtil.DataType.INVALID,
-                precision: null, // TODO: check initialization, possible INVALID in gluShaderUtil.precision?
-                location: 0,
-                arrayLength: 0
-        };
-
-        if (
-                typeof(type_) !== 'undefined' &&
-                typeof(precision_) !== 'undefined' &&
-                typeof(location_) !== 'undefined' &&
-                typeof(arrayLength_) !== 'undefined'
-            ) {
-                container.type = type_;
-                container.precision = precision_;
-                container.location = location_;
-                container.arrayLength = arrayLength_;
-            }
-
-            return container;
-
+        this.type = type_;
+        this.precision = precision_;
+        this.location = location_;
+        this.arrayLength = arrayLength_;
     });
+
+    /** @type {Array.<FragmentOutput>} */ var Outputs = [];
 
     /** OutputVec
      * Returns an Array of FragmentOutput objects
@@ -149,10 +115,9 @@ function(
      */
     var OutputVec = function(output) {
 
-        /** @type {Array.<FragmentOutput>} */ var outputs = [];
-        outputs.push(output);
+        Outputs.push(output);
 
-        return outputs;
+        return Outputs;
     };
 
     /** FragmentOutputCase
@@ -251,33 +216,30 @@ function(
 
         /** @type {deqpProgram.ShaderProgram}*/
         var program = new deqpProgram.ShaderProgram(gl, deqpProgram.makeVtxFragSources(vtx, frag));
+        bufferedLogToConsole(program);
         return program;
     };
 
     FragmentOutputCase.prototype.init = function() {
 
-        // TestLog& log = m_testCtx.getLog();
-        /** @type {Array.<BufferSpec>} */ var m_fboSpec = this.m_fboSpec;
-        /** @type {Array.<FragmentOutput>} */ var m_outputs = this.m_outputs;
-        /** @type {deqpProgram.ShaderProgram} */ var m_program = this.m_program;
-        /** @type {number} */ var m_framebuffer = this.m_framebuffer; // deUint32
-        /** @type {Uint32Array} */ var m_renderbuffers = new Uint32Array(m_fboSpec.length);
-        /** @type {WebGLRenderingContext} */ var gl = this.m_gl; // TODO: check creation of this WebGLRenderingContext variable
+        /** @type {WebGLRenderingContext} */ var gl = this.m_gl;
+        this.m_renderbuffers = new Uint32Array(this.m_fboSpec.length); // m_renderbuffers only used here in init()
 
         // Check that all attachments are supported
-        for (var iter = 0; m_fboSpec.length; ++iter)
+        for (var iter = 0; this.m_fboSpec.length; ++iter)
         {
             /* TODO: isSizedFormatColorRenderable (in gluTextureUtil) not implemented yet.
-            if (!glu::isSizedFormatColorRenderable(m_context.getRenderContext(), m_context.getContextInfo(), m_fboSpec[iter].format))
+            if (!glu::isSizedFormatColorRenderable(m_context.getRenderContext(), m_context.getContextInfo(), this.m_fboSpec[iter].format))
                 throw tcu::NotSupportedError("Unsupported attachment format");
                 */
         }
 
-        DE_ASSERT(!m_program);
-        m_program = createProgram(gl, m_outputs);
+        debug('HELLO PROGRAM !');
+        DE_ASSERT(!this.m_program);
+        this.m_program = createProgram(gl, this.m_outputs);
 
        // log << *m_program;
-        if (!m_program.isOk())
+        if (!this.m_program.isOk())
             throw new Error('Compile failed. Program no created');
 
         /*
@@ -294,15 +256,15 @@ function(
         log << TestLog::EndSection;*/
 
         // Create framebuffer.
-        gl.genFramebuffers(1, m_framebuffer);
-        gl.genRenderbuffers(m_renderbuffers.length, m_renderbuffers[0]);
+        gl.genFramebuffers(1, this.m_framebuffer);
+        gl.genRenderbuffers(this.m_framebuffer.length, this.m_framebuffer);
 
-        gl.bindFramebuffer(gl.FRAMEBUFFER, m_framebuffer);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.m_framebuffer);
 
-        for (var bufNdx = 0; bufNdx < m_renderbuffers.length; bufNdx++)
+        for (var bufNdx = 0; bufNdx < this.m_framebuffer.length; bufNdx++)
         {
-            /** @type {boolean} */ var rbo = m_renderbuffers[bufNdx];
-            /** @type {BufferSpec} */ var bufSpec = m_fboSpec[bufNdx];
+            /** @type {boolean} */ var rbo = this.m_framebuffer[bufNdx];
+            /** @type {BufferSpec} */ var bufSpec = this.m_fboSpec[bufNdx];
             /** @type {number} */ var attachment = gl.COLOR_ATTACHMENT0 + bufNdx;
 
             gl.bindRenderbuffer(gl.RENDERBUFFER, rbo);
@@ -324,7 +286,7 @@ function(
     };
 
     FragmentOutputCase.prototype.deinit = function() {
-        // TODO: implement
+        // TODO: implement?
     };
 
     /** getMinSize
@@ -563,8 +525,7 @@ function(
         /** @type {Array.<BufferSpec>} */ var m_fboSpec = this.m_fboSpec;
         /** @type {Array.<FragmentOutput>} */ var m_outputs = this.m_outputs;
         /** @type {deqpProgram.ShaderProgram} */ var m_program = this.m_program;
-        /** @type {number} */ var m_framebuffer = this.m_framebuffer;
-        /** @type {WebGLRenderingContext} */ var gl = this.m_gl; // TODO: check creation of this WebGLRenderingContext variable
+        /** @type {WebGLRenderingContext} */ var gl = this.m_gl;
 
         // Compute grid size & index list.
         /** @type {number} */ var minCellSize = 8;
@@ -603,6 +564,7 @@ function(
             /** @type {number} */ var attachmentH = m_fboSpec[ndx].height;
 
             drawBuffers[ndx] = gl.COLOR_ATTACHMENT0 + ndx;
+            attachments[ndx] = new AttachmentData;
             attachments[ndx].format = texFmt;
             attachments[ndx].readFormat = readFmt;
             attachments[ndx].referenceFormat = refFmt;
@@ -820,7 +782,7 @@ function(
 
         // Render using gl.
         gl.useProgram(m_program.getProgram());
-        gl.bindFramebuffer(gl.FRAMEBUFFER, m_framebuffer);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.m_framebuffer);
         gl.viewport(0, 0, viewportW, viewportH);
         gl.drawBuffers(drawBuffers.length, drawBuffers);
         gl.disable(gl.DITHER); // Dithering causes issues with unorm formats. Those issues could be worked around in threshold, but it makes validation less accurate.
@@ -851,10 +813,9 @@ function(
                         gl.enableVertexAttribArray(loc);
                         if (isFloat)
                             // KHRONOS specification: void vertexAttribIPointer(GLuint index, GLint size, GLenum type, GLsizei stride, GLintptr offset)
-                            gl.vertexAttribPointer(loc, scalarSize, glScalarType, gl.FALSE, 0, inputs[curInVec][0]); // TODO: check call, offset first position Uint32Array?
+                            gl.vertexAttribPointer(loc, scalarSize, glScalarType, gl.FALSE, 0, inputs[curInVec][0]); // TODO: check offset = inputs[curInVec][0] ?
                         else
-                            // KHRONOS specification: void vertexAttribIPointer(GLuint index, GLint size, GLenum type, GLsizei stride, GLintptr offset)
-                            gl.vertexAttribIPointer(loc, scalarSize, glScalarType, 0, inputs[curInVec][0]); // TODO: check call, offset first position Uint32Array?
+                            gl.vertexAttribIPointer(loc, scalarSize, glScalarType, 0, inputs[curInVec][0], 0); // offset = 0
                     }
                     else
                         bufferedLogToConsole('Warning: No location for attribute "' + name + '" found.');
@@ -1164,7 +1125,7 @@ function(
             /** @type {Array.<gluShaderUtil.precision>} */ var precision = rnd.choose(precisions, precisions.length); // TODO: check second parameter: &precisions[0] + DE_LENGTH_OF_ARRAY(precisions)
             /** @type {number} */ var numLocations = useArray ? arrayLen : 1;
 
-            outputs.push(FragmentOutput(basicType, precision, curLoc, arrayLen));
+            outputs.push(new FragmentOutput(basicType, precision, curLoc, arrayLen));
 
             for (var ndx = 0; ndx < numLocations; ndx++)
                 outTypes.push(basicType);
@@ -1184,11 +1145,11 @@ function(
             /** @type {number} */ var format = 0; // deUint32
 
             if (isFloat)
-                format = rnd.choose(floatFormats, floatFormats.length); // TODO: check second parameter: &floatFormats[0] + DE_LENGTH_OF_ARRAY(floatFormats)
+                format = rnd.choose(floatFormats, null, floatFormats.length); // TODO: check second parameter: &floatFormats[0] + DE_LENGTH_OF_ARRAY(floatFormats)
             else if (isInt)
-                format = rnd.choose(intFormats, intFormats.length); // TODO: check second parameter: &intFormats[0] + DE_LENGTH_OF_ARRAY(intFormats)
+                format = rnd.choose(intFormats, null, intFormats.length); // TODO: check second parameter: &intFormats[0] + DE_LENGTH_OF_ARRAY(intFormats)
             else if (isUint)
-                format = rnd.choose(uintFormats, uintFormats.length); // TODO: check second parameter: &uintFormats[0] + DE_LENGTH_OF_ARRAY(uintFormats)
+                format = rnd.choose(uintFormats, null, uintFormats.length); // TODO: check second parameter: &uintFormats[0] + DE_LENGTH_OF_ARRAY(uintFormats)
             else
                 DE_ASSERT(false);
 
@@ -1201,7 +1162,6 @@ function(
     
     var init = function(gl) {
 
-      /** @const @type {deqpTests.DeqpTest} */ var testGroup = deqpTests.runner.getState().testCases;
       //Set up Test Root parameters
         var testName = 'fot';
         var testDescription = 'Fragment Output Tests';
@@ -1213,6 +1173,8 @@ function(
       //Set up name and description of this test series.
         setCurrentTestName(testName);
         description(testDescription);
+
+        /** @const @type {deqpTests.DeqpTest} */ var testGroup = state.testCases;
 
         /** @type {Array.<GLenum>} */
         var requiredFloatFormats = [
@@ -1286,11 +1248,13 @@ function(
             // .float
             /** @type {deqpTests.DeqpTest} */ var floatGroup = deqpTests.newTest('float', 'Floating-point output tests');
             basicGroup.addChild(floatGroup);
+            /** @type {Array.<BufferSpec>} */
+            var fboSpec = []; // TODO: check C++ version, possible BUG, it is always reseted!
+
             for (var fmtNdx = 0; fmtNdx < requiredFloatFormats.length; fmtNdx++)
             {
                 /** @type {number} */ var format = requiredFloatFormats[fmtNdx];
                 /** @type {string} */ var fmtName = fboTestUtil.getFormatName(format);
-                /** @type {Array.<BufferSpec>} */ var fboSpec = [];
 
                 fboSpec.push(new BufferSpec(format, width, height, samples));
 
@@ -1299,80 +1263,83 @@ function(
                     /** @type {Array.<gluShaderUtil.precision>} */ var prec = precisions[precNdx];
                     /** @type {string} */ var precName = gluShaderUtil.getPrecisionName(prec);
 
-                    floatGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_float', '', fboSpec, OutputVec(FragmentOutput(gluShaderUtil.DataType.FLOAT, prec, 0))));
-                    floatGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_vec2', '', fboSpec, OutputVec(FragmentOutput(gluShaderUtil.DataType.FLOAT_VEC2, prec, 0))));
-                    floatGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_vec3', '', fboSpec, OutputVec(FragmentOutput(gluShaderUtil.DataType.FLOAT_VEC3, prec, 0))));
-                    floatGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_vec4', '', fboSpec, OutputVec(FragmentOutput(gluShaderUtil.DataType.FLOAT_VEC4, prec, 0))));
+                    floatGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_float', '', fboSpec, OutputVec(new FragmentOutput(gluShaderUtil.DataType.FLOAT, prec, 0))));
+                    floatGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_vec2', '', fboSpec, OutputVec(new FragmentOutput(gluShaderUtil.DataType.FLOAT_VEC2, prec, 0))));
+                    floatGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_vec3', '', fboSpec, OutputVec(new FragmentOutput(gluShaderUtil.DataType.FLOAT_VEC3, prec, 0))));
+                    floatGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_vec4', '', fboSpec, OutputVec(new FragmentOutput(gluShaderUtil.DataType.FLOAT_VEC4, prec, 0))));
                 }
             }
             bufferedLogToConsole('fot.basic_float: Tests created');
+            debug('fot.basic_float: Tests created');
 
-         // .fixed
-            /** @type {deqpTests.DeqpTest} */ var fixedGroup = deqpTests.newTest('fixed', 'Fixed-point output tests');
+        } // ADDED BECAUSE THE COMMENTED CODE BELOW!!!!
+
+/*         // .fixed
+            *//** @type {deqpTests.DeqpTest} *//* var fixedGroup = deqpTests.newTest('fixed', 'Fixed-point output tests');
             basicGroup.addChild(fixedGroup);
             for (var fmtNdx = 0; fmtNdx < requiredFixedFormats.length; fmtNdx++)
             {
-                /** @type {number} */ var format  = requiredFixedFormats[fmtNdx];
-                /** @type {string} */ var fmtName = fboTestUtil.getFormatName(format);
-                /** @type {Array.<BufferSpec>} */ var fboSpec = [];
+                *//** @type {number} *//* var format  = requiredFixedFormats[fmtNdx];
+                *//** @type {string} *//* var fmtName = fboTestUtil.getFormatName(format);
+                *//** @type {Array.<BufferSpec>} *//* var fboSpec = []; // TODO: change outside the loop? check C++ version, possible BUG, it is always reseted!
     
                 fboSpec.push(new BufferSpec(format, width, height, samples));
     
                 for (var precNdx = 0; precNdx < precisions.length; precNdx++)
                 {
-                    /** @type {Array.<gluShaderUtil.precision>} */ var prec = precisions[precNdx];
-                    /** @type {string} */ var precName = gluShaderUtil.getPrecisionName(prec);
+                    *//** @type {Array.<gluShaderUtil.precision>} *//* var prec = precisions[precNdx];
+                    *//** @type {string} *//* var precName = gluShaderUtil.getPrecisionName(prec);
     
-                    fixedGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_float', '', fboSpec, OutputVec(FragmentOutput(gluShaderUtil.DataType.FLOAT, prec, 0))));
-                    fixedGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_vec2', '', fboSpec, OutputVec(FragmentOutput(gluShaderUtil.DataType.FLOAT_VEC2, prec, 0))));
-                    fixedGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_vec3', '', fboSpec, OutputVec(FragmentOutput(gluShaderUtil.DataType.FLOAT_VEC3, prec, 0))));
-                    fixedGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_vec4', '', fboSpec, OutputVec(FragmentOutput(gluShaderUtil.DataType.FLOAT_VEC4, prec, 0))));
+                    fixedGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_float', '', fboSpec, OutputVec(new FragmentOutput(gluShaderUtil.DataType.FLOAT, prec, 0))));
+                    fixedGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_vec2', '', fboSpec, OutputVec(new FragmentOutput(gluShaderUtil.DataType.FLOAT_VEC2, prec, 0))));
+                    fixedGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_vec3', '', fboSpec, OutputVec(new FragmentOutput(gluShaderUtil.DataType.FLOAT_VEC3, prec, 0))));
+                    fixedGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_vec4', '', fboSpec, OutputVec(new FragmentOutput(gluShaderUtil.DataType.FLOAT_VEC4, prec, 0))));
                 }
             }
     
          // .int
-            /** @type {deqpTests.DeqpTest} */ var intGroup = deqpTests.newTest('int', 'Integer output tests');
+            *//** @type {deqpTests.DeqpTest} *//* var intGroup = deqpTests.newTest('int', 'Integer output tests');
             basicGroup.addChild(intGroup);
             for (var fmtNdx = 0; fmtNdx < requiredIntFormats.length; fmtNdx++)
             {
-                /** @type {number} */ var format = requiredIntFormats[fmtNdx];
-                /** @type {string} */ var fmtName = fboTestUtil.getFormatName(format);
-                /** @type {Array.<BufferSpec>} */ var fboSpec = [];
+                *//** @type {number} *//* var format = requiredIntFormats[fmtNdx];
+                *//** @type {string} *//* var fmtName = fboTestUtil.getFormatName(format);
+                *//** @type {Array.<BufferSpec>} *//* var fboSpec = []; // TODO: change outside the loop? check C++ version, possible BUG, it is always reseted!
     
                 fboSpec.push(new BufferSpec(format, width, height, samples));
     
                 for (var precNdx = 0; precNdx < precisions.length; precNdx++)
                 {
-                    /** @type {Array.<gluShaderUtil.precision>} */ var prec = precisions[precNdx];
-                    /** @type {string} */ var precName = gluShaderUtil.getPrecisionName(prec);
+                    *//** @type {Array.<gluShaderUtil.precision>} *//* var prec = precisions[precNdx];
+                    *//** @type {string} *//* var precName = gluShaderUtil.getPrecisionName(prec);
     
-                    intGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_int', '', fboSpec, OutputVec(FragmentOutput(gluShaderUtil.DataType.INT, prec, 0))));
-                    intGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_ivec2', '', fboSpec, OutputVec(FragmentOutput(gluShaderUtil.DataType.INT_VEC2, prec, 0))));
-                    intGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_ivec3', '', fboSpec, OutputVec(FragmentOutput(gluShaderUtil.DataType.INT_VEC3, prec, 0))));
-                    intGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_ivec4', '', fboSpec, OutputVec(FragmentOutput(gluShaderUtil.DataType.INT_VEC4, prec, 0))));
+                    intGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_int', '', fboSpec, OutputVec(new FragmentOutput(gluShaderUtil.DataType.INT, prec, 0))));
+                    intGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_ivec2', '', fboSpec, OutputVec(new FragmentOutput(gluShaderUtil.DataType.INT_VEC2, prec, 0))));
+                    intGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_ivec3', '', fboSpec, OutputVec(new FragmentOutput(gluShaderUtil.DataType.INT_VEC3, prec, 0))));
+                    intGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_ivec4', '', fboSpec, OutputVec(new FragmentOutput(gluShaderUtil.DataType.INT_VEC4, prec, 0))));
                 }
             }
     
          // .uint
-            /** @type {deqpTests.DeqpTest} */ var uintGroup = deqpTests.newTest('uint', 'Usigned integer output tests');
+            *//** @type {deqpTests.DeqpTest} *//* var uintGroup = deqpTests.newTest('uint', 'Usigned integer output tests');
             basicGroup.addChild(uintGroup);
             for (var fmtNdx = 0; fmtNdx < requiredUintFormats.length; fmtNdx++)
             {
-                /** @type {number} */ var format = requiredUintFormats[fmtNdx];
-                /** @type {string} */ var fmtName = fboTestUtil.getFormatName(format);
-                /** @type {Array.<BufferSpec>} */ var fboSpec = [];
+                *//** @type {number} *//* var format = requiredUintFormats[fmtNdx];
+                *//** @type {string} *//* var fmtName = fboTestUtil.getFormatName(format);
+                *//** @type {Array.<BufferSpec>} *//* var fboSpec = []; // TODO: change outside the loop? check C++ version, possible BUG, it is always reseted!
     
                 fboSpec.push(new BufferSpec(format, width, height, samples));
     
                 for (var precNdx = 0; precNdx < precisions.length; precNdx++)
                 {
-                    /** @type {Array.<gluShaderUtil.precision>} */ var prec = precisions[precNdx];
-                    /** @type {string} */ var precName = gluShaderUtil.getPrecisionName(prec);
+                    *//** @type {Array.<gluShaderUtil.precision>} *//* var prec = precisions[precNdx];
+                    *//** @type {string} *//* var precName = gluShaderUtil.getPrecisionName(prec);
     
-                    uintGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_uint', '', fboSpec, OutputVec(FragmentOutput(gluShaderUtil.DataType.UINT, prec, 0))));
-                    uintGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_uvec2', '', fboSpec, OutputVec(FragmentOutput(gluShaderUtil.DataType.UINT_VEC2, prec, 0))));
-                    uintGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_uvec3', '', fboSpec, OutputVec(FragmentOutput(gluShaderUtil.DataType.UINT_VEC3, prec, 0))));
-                    uintGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_uvec4', '', fboSpec, OutputVec(FragmentOutput(gluShaderUtil.DataType.UINT_VEC4, prec, 0))));
+                    uintGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_uint', '', fboSpec, OutputVec(new FragmentOutput(gluShaderUtil.DataType.UINT, prec, 0))));
+                    uintGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_uvec2', '', fboSpec, OutputVec(new FragmentOutput(gluShaderUtil.DataType.UINT_VEC2, prec, 0))));
+                    uintGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_uvec3', '', fboSpec, OutputVec(new FragmentOutput(gluShaderUtil.DataType.UINT_VEC3, prec, 0))));
+                    uintGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_uvec4', '', fboSpec, OutputVec(new FragmentOutput(gluShaderUtil.DataType.UINT_VEC4, prec, 0))));
     
                 }
             }
@@ -1380,119 +1347,119 @@ function(
 
      // .array
         {
-            /** @type {deqpTests.DeqpTest} */ var arrayGroup = deqpTests.newTest('array', 'Array outputs');
+            *//** @type {deqpTests.DeqpTest} *//* var arrayGroup = deqpTests.newTest('array', 'Array outputs');
             testGroup.addChild(arrayGroup);
 
             width = 64;
             height = 64;
             samples = 0;
-            /** @type {number} */ var numTargets = 3;
+            *//** @type {number} *//* var numTargets = 3;
 
             // .float
-            /** @type {deqpTests.DeqpTest} */ var arrayFloatGroup = deqpTests.newTest('float', 'Floating-point output tests');
+            *//** @type {deqpTests.DeqpTest} *//* var arrayFloatGroup = deqpTests.newTest('float', 'Floating-point output tests');
             arrayGroup.addChild(arrayFloatGroup);
             for (var fmtNdx = 0; fmtNdx < requiredFloatFormats.length; fmtNdx++)
             {
-                /** @type {number} */ var format = requiredFloatFormats[fmtNdx];
-                /** @type {string} */ var fmtName = fboTestUtil.getFormatName(format);
-                /** @type {Array.<BufferSpec>} */ var fboSpec = [];
+                *//** @type {number} *//* var format = requiredFloatFormats[fmtNdx];
+                *//** @type {string} *//* var fmtName = fboTestUtil.getFormatName(format);
+                *//** @type {Array.<BufferSpec>} *//* var fboSpec = []; // TODO: change outside the loop? check C++ version, possible BUG, it is always reseted!
 
                 for (var ndx = 0; ndx < numTargets; ndx++)
                     fboSpec.push(new BufferSpec(format, width, height, samples));
 
                 for (var precNdx = 0; precNdx < precisions.length; precNdx++)
                 {
-                    /** @type {Array.<gluShaderUtil.precision>} */ var prec = precisions[precNdx];
-                    /** @type {string} */ var precName = gluShaderUtil.getPrecisionName(prec);
+                    *//** @type {Array.<gluShaderUtil.precision>} *//* var prec = precisions[precNdx];
+                    *//** @type {string} *//* var precName = gluShaderUtil.getPrecisionName(prec);
 
-                    arrayFloatGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_float', '', fboSpec, OutputVec(FragmentOutput(gluShaderUtil.DataType.FLOAT, prec, 0, numTargets))));
-                    arrayFloatGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_vec2', '', fboSpec, OutputVec(FragmentOutput(gluShaderUtil.DataType.FLOAT_VEC2, prec, 0, numTargets))));
-                    arrayFloatGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_vec3', '', fboSpec, OutputVec(FragmentOutput(gluShaderUtil.DataType.FLOAT_VEC3, prec, 0, numTargets))));
-                    arrayFloatGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_vec4', '', fboSpec, OutputVec(FragmentOutput(gluShaderUtil.DataType.FLOAT_VEC4, prec, 0, numTargets))));
+                    arrayFloatGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_float', '', fboSpec, OutputVec(new FragmentOutput(gluShaderUtil.DataType.FLOAT, prec, 0, numTargets))));
+                    arrayFloatGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_vec2', '', fboSpec, OutputVec(new FragmentOutput(gluShaderUtil.DataType.FLOAT_VEC2, prec, 0, numTargets))));
+                    arrayFloatGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_vec3', '', fboSpec, OutputVec(new FragmentOutput(gluShaderUtil.DataType.FLOAT_VEC3, prec, 0, numTargets))));
+                    arrayFloatGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_vec4', '', fboSpec, OutputVec(new FragmentOutput(gluShaderUtil.DataType.FLOAT_VEC4, prec, 0, numTargets))));
                 }
             }
 
             // .fixed
-            /** @type {deqpTests.DeqpTest} */ var arrayFixedGroup = deqpTests.newTest('fixed', 'Fixed-point output tests');
+            *//** @type {deqpTests.DeqpTest} *//* var arrayFixedGroup = deqpTests.newTest('fixed', 'Fixed-point output tests');
             arrayGroup.addChild(arrayFixedGroup);
             for (var fmtNdx = 0; fmtNdx < requiredFixedFormats.length; fmtNdx++)
             {
-                /** @type {number} */ var format = requiredFixedFormats[fmtNdx];
-                /** @type {string} */ var fmtName = fboTestUtil.getFormatName(format);
-                /** @type {Array.<BufferSpec>} */ var fboSpec = [];
+                *//** @type {number} *//* var format = requiredFixedFormats[fmtNdx];
+                *//** @type {string} *//* var fmtName = fboTestUtil.getFormatName(format);
+                *//** @type {Array.<BufferSpec>} *//* var fboSpec = []; // TODO: change outside the loop? check C++ version, possible BUG, it is always reseted!
 
                 for (var ndx = 0; ndx < numTargets; ndx++)
                     fboSpec.push(new BufferSpec(format, width, height, samples));
 
                 for (var precNdx = 0; precNdx < precisions.length; precNdx++)
                 {
-                    /** @type {Array.<gluShaderUtil.precision>} */ var prec = precisions[precNdx];
-                    /** @type {string} */ var precName = gluShaderUtil.getPrecisionName(prec);
+                    *//** @type {Array.<gluShaderUtil.precision>} *//* var prec = precisions[precNdx];
+                    *//** @type {string} *//* var precName = gluShaderUtil.getPrecisionName(prec);
 
-                    arrayFixedGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_float', '', fboSpec, OutputVec(FragmentOutput(gluShaderUtil.DataType.FLOAT, prec, 0, numTargets))));
-                    arrayFixedGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_vec2', '', fboSpec, OutputVec(FragmentOutput(gluShaderUtil.DataType.FLOAT_VEC2, prec, 0, numTargets))));
-                    arrayFixedGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_vec3', '', fboSpec, OutputVec(FragmentOutput(gluShaderUtil.DataType.FLOAT_VEC3, prec, 0, numTargets))));
-                    arrayFixedGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_vec4', '', fboSpec, OutputVec(FragmentOutput(gluShaderUtil.DataType.FLOAT_VEC4, prec, 0, numTargets))));
+                    arrayFixedGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_float', '', fboSpec, OutputVec(new FragmentOutput(gluShaderUtil.DataType.FLOAT, prec, 0, numTargets))));
+                    arrayFixedGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_vec2', '', fboSpec, OutputVec(new FragmentOutput(gluShaderUtil.DataType.FLOAT_VEC2, prec, 0, numTargets))));
+                    arrayFixedGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_vec3', '', fboSpec, OutputVec(new FragmentOutput(gluShaderUtil.DataType.FLOAT_VEC3, prec, 0, numTargets))));
+                    arrayFixedGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_vec4', '', fboSpec, OutputVec(new FragmentOutput(gluShaderUtil.DataType.FLOAT_VEC4, prec, 0, numTargets))));
                 }
             }
 
             // .int
-            /** @type {deqpTests.DeqpTest} */ var arrayIntGroup = deqpTests.newTest('int', 'Integer output tests');
+            *//** @type {deqpTests.DeqpTest} *//* var arrayIntGroup = deqpTests.newTest('int', 'Integer output tests');
             arrayGroup.addChild(arrayIntGroup);
             for (var fmtNdx = 0; fmtNdx < requiredIntFormats.length; fmtNdx++)
             {
-                /** @type {number} */ var format = requiredIntFormats[fmtNdx];
-                /** @type {string} */ var fmtName = fboTestUtil.getFormatName(format);
-                /** @type {Array.<BufferSpec>} */ var fboSpec = [];
+                *//** @type {number} *//* var format = requiredIntFormats[fmtNdx];
+                *//** @type {string} *//* var fmtName = fboTestUtil.getFormatName(format);
+                *//** @type {Array.<BufferSpec>} *//* var fboSpec = []; // TODO: change outside the loop? check C++ version, possible BUG, it is always reseted!
 
                 for (var ndx = 0; ndx < numTargets; ndx++)
                     fboSpec.push(new BufferSpec(format, width, height, samples));
 
                 for (var precNdx = 0; precNdx < precisions.length; precNdx++)
                 {
-                    /** @type {Array.<gluShaderUtil.precision>} */ var prec = precisions[precNdx];
-                    /** @type {string} */ var precName = gluShaderUtil.getPrecisionName(prec);
+                    *//** @type {Array.<gluShaderUtil.precision>} *//* var prec = precisions[precNdx];
+                    *//** @type {string} *//* var precName = gluShaderUtil.getPrecisionName(prec);
 
-                    arrayIntGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_int', '', fboSpec, OutputVec(FragmentOutput(gluShaderUtil.DataType.INT, prec, 0, numTargets))));
-                    arrayIntGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_ivec2', '', fboSpec, OutputVec(FragmentOutput(gluShaderUtil.DataType.INT_VEC2, prec, 0, numTargets))));
-                    arrayIntGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_ivec3', '', fboSpec, OutputVec(FragmentOutput(gluShaderUtil.DataType.INT_VEC3, prec, 0, numTargets))));
-                    arrayIntGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_ivec4', '', fboSpec, OutputVec(FragmentOutput(gluShaderUtil.DataType.INT_VEC4, prec, 0, numTargets))));
+                    arrayIntGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_int', '', fboSpec, OutputVec(new FragmentOutput(gluShaderUtil.DataType.INT, prec, 0, numTargets))));
+                    arrayIntGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_ivec2', '', fboSpec, OutputVec(new FragmentOutput(gluShaderUtil.DataType.INT_VEC2, prec, 0, numTargets))));
+                    arrayIntGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_ivec3', '', fboSpec, OutputVec(new FragmentOutput(gluShaderUtil.DataType.INT_VEC3, prec, 0, numTargets))));
+                    arrayIntGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_ivec4', '', fboSpec, OutputVec(new FragmentOutput(gluShaderUtil.DataType.INT_VEC4, prec, 0, numTargets))));
                 }
             }
 
             // .uint
-            /** @type {deqpTests.DeqpTest} */ var arrayUintGroup = deqpTests.newTest('uint', 'Usigned integer output tests');
+            *//** @type {deqpTests.DeqpTest} *//* var arrayUintGroup = deqpTests.newTest('uint', 'Usigned integer output tests');
             arrayGroup.addChild(arrayUintGroup);
             for (var fmtNdx = 0; fmtNdx < requiredUintFormats.length; fmtNdx++)
             {
-                /** @type {number} */ var format = requiredUintFormats[fmtNdx];
-                /** @type {string} */ var fmtName = fboTestUtil.getFormatName(format);
-                /** @type {Array.<BufferSpec>} */ var fboSpec = [];
+                *//** @type {number} *//* var format = requiredUintFormats[fmtNdx];
+                *//** @type {string} *//* var fmtName = fboTestUtil.getFormatName(format);
+                *//** @type {Array.<BufferSpec>} *//* var fboSpec = []; // TODO: change outside the loop? check C++ version, possible BUG, it is always reseted!
 
                 for (var ndx = 0; ndx < numTargets; ndx++)
-                    fboSpec.push_back(BufferSpec(format, width, height, samples));
+                    fboSpec.push(new BufferSpec(format, width, height, samples));
 
                 for (var precNdx = 0; precNdx < precisions.length; precNdx++)
                 {
-                    /** @type {Array.<gluShaderUtil.precision>} */ var prec = precisions[precNdx];
-                    /** @type {string} */ var precName = gluShaderUtil.getPrecisionName(prec);
+                    *//** @type {Array.<gluShaderUtil.precision>} *//* var prec = precisions[precNdx];
+                    *//** @type {string} *//* var precName = gluShaderUtil.getPrecisionName(prec);
 
-                    arrayUintGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_uint', '', fboSpec, OutputVec(FragmentOutput(gluShaderUtil.DataType.UINT, prec, 0, numTargets))));
-                    arrayUintGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_uvec2', '', fboSpec, OutputVec(FragmentOutput(gluShaderUtil.DataType.UINT_VEC2, prec, 0, numTargets))));
-                    arrayUintGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_uvec3', '', fboSpec, OutputVec(FragmentOutput(gluShaderUtil.DataType.UINT_VEC3, prec, 0, numTargets))));
-                    arrayUintGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_uvec4', '', fboSpec, OutputVec(FragmentOutput(gluShaderUtil.DataType.UINT_VEC4, prec, 0, numTargets))));
+                    arrayUintGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_uint', '', fboSpec, OutputVec(new FragmentOutput(gluShaderUtil.DataType.UINT, prec, 0, numTargets))));
+                    arrayUintGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_uvec2', '', fboSpec, OutputVec(new FragmentOutput(gluShaderUtil.DataType.UINT_VEC2, prec, 0, numTargets))));
+                    arrayUintGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_uvec3', '', fboSpec, OutputVec(new FragmentOutput(gluShaderUtil.DataType.UINT_VEC3, prec, 0, numTargets))));
+                    arrayUintGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_uvec4', '', fboSpec, OutputVec(new FragmentOutput(gluShaderUtil.DataType.UINT_VEC4, prec, 0, numTargets))));
                 }
             }
         }
 
      // .random
         {
-            /** @type {deqpTests.DeqpTest} */ var randomGroup = deqpTests.newTest('random', 'Random fragment output cases');
+            *//** @type {deqpTests.DeqpTest} *//* var randomGroup = deqpTests.newTest('random', 'Random fragment output cases');
             testGroup.addChild(randomGroup);
 
             for (var seed = 0; seed < 100; seed++)
                 randomGroup.addChild(createRandomCase(gl, 2, 4, seed));
-        }
+        }*/
 
     };
 
@@ -1502,8 +1469,11 @@ function(
     var run = function(gl) {
         try {
             init(gl);
-            deqpTests.runner.runCallback(deqpTests.runTestCases);
+            // deqpTests.runner.runCallback(deqpTests.runTestCases);
+            deqpTests.runTestCases();
         } catch (err) {
+            testFailedOptions('Failed to run tests', false);
+            // console.log(err);
             bufferedLogToConsole(err);
             deqpTests.runner.terminate();
         }
