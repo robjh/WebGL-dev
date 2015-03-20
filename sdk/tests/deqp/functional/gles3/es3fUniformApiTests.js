@@ -414,12 +414,6 @@ define([
 
     /**
      * @param {number} ndx
-     * @return {Uniform}
-     */
-    UniformCollection.prototype.getUniform = function(ndx) {return this.m_uniforms[ndx];};
-
-    /**
-     * @param {number} ndx
      * @return {gluVT.StructType}
      */
     UniformCollection.prototype.getStructType = function(ndx) {return this.m_structTypes[ndx];};
