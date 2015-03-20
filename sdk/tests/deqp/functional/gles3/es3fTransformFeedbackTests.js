@@ -859,7 +859,11 @@ define([
      * @param {number} guardSize
      */
     var writeBufferGuard = function(gl, target, bufferSize, guardSize) {
-        // TODO: implement
+        var buffer = new ArrayBuffer(guardSize);
+        var view   = new Uint8Array(buffer);
+        for (var i = 0 ; i < guardSize ; ++i) view[i] = 0xcd;
+        gl.bufferSubData(target, bufferSize, buffer);
+        GLU_EXPECT_NO_ERROR(gl, gl.getError(), 'guardband write');
     };
 
     /**
@@ -867,15 +871,13 @@ define([
      * @param {Array.<number>} buffer
      * @return {boolean}
      */
-    var verifyGuard = function(buffer) {
-        /* TODO: Implement */
+    var verifyGuard = function(buffer, start) {
+        var view = Uint8Array(buffer);
+        for (var i = (start || 0) ; i < view.length ; i++) {
+            if (view[i] != 0xcd)
+                return false;
+        }
         return true;
-        // for (var i = 0; i < buffer.length; i++)
-        // {
-        //     if (buffer[i] != 0xcd)
-        //         return false;
-        // }
-        // return true;
     };
 
     /**
@@ -1203,7 +1205,7 @@ define([
 
             // Compare result buffers.
             for (var bufferNdx = 0; bufferNdx < this.m_outputBuffers.length; ++bufferNdx) {
-                var stride    = this.m_bufferStrides[bufferNdx];        // int
+                var stride    = this.m_bufferStrides[bufferNdx];   // int
                 var size      = stride * numOutputs;               // int
                 var guardSize = stride * BUFFER_GUARD_MULTIPLIER;  // int
                 var buffer    = new ArrayBuffer(size + guardSize); // const void*
@@ -1221,7 +1223,7 @@ define([
                     if (out.bufferNdx != bufferNdx)
                         continue;
 
-                    var inputOffset = 0;
+                    var inputOffset  = 0;
                     var outputOffset = 0;
 
                     // Process all draw calls and check ones with transform feedback enabled
@@ -1256,7 +1258,7 @@ define([
                 }
 
                 // Verify guardband.
-                if (!verifyGuard(buffer)) {
+                if (!verifyGuard(buffer, size)) {
                     bufferedLogToConsole('Error: Transform feedback buffer overrun detected');
                     outputsOk = false;
                 }
