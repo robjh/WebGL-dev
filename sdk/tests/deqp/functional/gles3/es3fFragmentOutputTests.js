@@ -116,8 +116,9 @@ function(
     var OutputVec = function(output) {
 
         Outputs.push(output);
+        var partialOutput = Outputs.slice(0, Outputs.length);
 
-        return Outputs;
+        return partialOutput;
     };
 
     /** FragmentOutputCase
@@ -130,7 +131,7 @@ function(
      * @return {Object} The currently modified object
      */
     var FragmentOutputCase = function(gl, name, description, fboSpec, outputs) {
-        deqpTests.DeqpTest.call(gl, name, description);
+        deqpTests.DeqpTest.call(this, name, description);
         /** @type {Array.<BufferSpec>} */ this.m_fboSpec = fboSpec;
         /** @type {Array.<FragmentOutput>} */ this.m_outputs = outputs;
         /** @type {deqpProgram.ShaderProgram} */ this.m_program = null;
@@ -153,8 +154,8 @@ function(
         var vtx = '';
         var frag = '';
 
-        vtx.str = '#version 300 es\n' + 'in highp vec4 a_position;\n';
-        frag.str = '#version 300 es\n';
+        vtx = '#version 300 es\n' + 'in highp vec4 a_position;\n';
+        frag = '#version 300 es\n';
 
      // Input-output declarations.
         for (var outNdx = 0; outNdx < outputs.length; outNdx++)
@@ -216,7 +217,7 @@ function(
 
         /** @type {deqpProgram.ShaderProgram}*/
         var program = new deqpProgram.ShaderProgram(gl, deqpProgram.makeVtxFragSources(vtx, frag));
-        bufferedLogToConsole(program);
+        // bufferedLogToConsole(program);
         return program;
     };
 
@@ -226,7 +227,7 @@ function(
         this.m_renderbuffers = new Uint32Array(this.m_fboSpec.length); // m_renderbuffers only used here in init()
 
         // Check that all attachments are supported
-        for (var iter = 0; this.m_fboSpec.length; ++iter)
+        for (var iter = 0; iter < this.m_fboSpec.length; ++iter)
         {
             /* TODO: isSizedFormatColorRenderable (in gluTextureUtil) not implemented yet.
             if (!glu::isSizedFormatColorRenderable(m_context.getRenderContext(), m_context.getContextInfo(), this.m_fboSpec[iter].format))
@@ -234,7 +235,6 @@ function(
                 */
         }
 
-        debug('HELLO PROGRAM !');
         DE_ASSERT(!this.m_program);
         this.m_program = createProgram(gl, this.m_outputs);
 
@@ -1162,18 +1162,7 @@ function(
     
     var init = function(gl) {
 
-      //Set up Test Root parameters
-        var testName = 'fot';
-        var testDescription = 'Fragment Output Tests';
         var state = deqpTests.runner.getState();
-
-        state.testName = testName;
-        state.testCases = deqpTests.newTest(testName, testDescription, null);
-
-      //Set up name and description of this test series.
-        setCurrentTestName(testName);
-        description(testDescription);
-
         /** @const @type {deqpTests.DeqpTest} */ var testGroup = state.testCases;
 
         /** @type {Array.<GLenum>} */
@@ -1248,13 +1237,12 @@ function(
             // .float
             /** @type {deqpTests.DeqpTest} */ var floatGroup = deqpTests.newTest('float', 'Floating-point output tests');
             basicGroup.addChild(floatGroup);
-            /** @type {Array.<BufferSpec>} */
-            var fboSpec = []; // TODO: check C++ version, possible BUG, it is always reseted!
 
             for (var fmtNdx = 0; fmtNdx < requiredFloatFormats.length; fmtNdx++)
             {
                 /** @type {number} */ var format = requiredFloatFormats[fmtNdx];
                 /** @type {string} */ var fmtName = fboTestUtil.getFormatName(format);
+                /** @type {Array.<BufferSpec>} */ var fboSpec = [];
 
                 fboSpec.push(new BufferSpec(format, width, height, samples));
 
@@ -1269,26 +1257,26 @@ function(
                     floatGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_vec4', '', fboSpec, OutputVec(new FragmentOutput(gluShaderUtil.DataType.FLOAT_VEC4, prec, 0))));
                 }
             }
-            bufferedLogToConsole('fot.basic_float: Tests created');
-            debug('fot.basic_float: Tests created');
+            // bufferedLogToConsole('fot.basic_float: Tests created');
+            // debug('fot.basic_float: Tests created');
 
-        } // ADDED BECAUSE THE COMMENTED CODE BELOW!!!!
+     //   } // ADDED BECAUSE THE COMMENTED CODE BELOW!!!!
 
-/*         // .fixed
-            *//** @type {deqpTests.DeqpTest} *//* var fixedGroup = deqpTests.newTest('fixed', 'Fixed-point output tests');
+         // .fixed
+            /** @type {deqpTests.DeqpTest} */ var fixedGroup = deqpTests.newTest('fixed', 'Fixed-point output tests');
             basicGroup.addChild(fixedGroup);
             for (var fmtNdx = 0; fmtNdx < requiredFixedFormats.length; fmtNdx++)
             {
-                *//** @type {number} *//* var format  = requiredFixedFormats[fmtNdx];
-                *//** @type {string} *//* var fmtName = fboTestUtil.getFormatName(format);
-                *//** @type {Array.<BufferSpec>} *//* var fboSpec = []; // TODO: change outside the loop? check C++ version, possible BUG, it is always reseted!
+                /** @type {number} */ var format  = requiredFixedFormats[fmtNdx];
+                /** @type {string} */ var fmtName = fboTestUtil.getFormatName(format);
+                /** @type {Array.<BufferSpec>} */ var fboSpec = [];
     
                 fboSpec.push(new BufferSpec(format, width, height, samples));
     
                 for (var precNdx = 0; precNdx < precisions.length; precNdx++)
                 {
-                    *//** @type {Array.<gluShaderUtil.precision>} *//* var prec = precisions[precNdx];
-                    *//** @type {string} *//* var precName = gluShaderUtil.getPrecisionName(prec);
+                    /** @type {Array.<gluShaderUtil.precision>} */ var prec = precisions[precNdx];
+                    /** @type {string} */ var precName = gluShaderUtil.getPrecisionName(prec);
     
                     fixedGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_float', '', fboSpec, OutputVec(new FragmentOutput(gluShaderUtil.DataType.FLOAT, prec, 0))));
                     fixedGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_vec2', '', fboSpec, OutputVec(new FragmentOutput(gluShaderUtil.DataType.FLOAT_VEC2, prec, 0))));
@@ -1298,20 +1286,20 @@ function(
             }
     
          // .int
-            *//** @type {deqpTests.DeqpTest} *//* var intGroup = deqpTests.newTest('int', 'Integer output tests');
+            /** @type {deqpTests.DeqpTest} */ var intGroup = deqpTests.newTest('int', 'Integer output tests');
             basicGroup.addChild(intGroup);
             for (var fmtNdx = 0; fmtNdx < requiredIntFormats.length; fmtNdx++)
             {
-                *//** @type {number} *//* var format = requiredIntFormats[fmtNdx];
-                *//** @type {string} *//* var fmtName = fboTestUtil.getFormatName(format);
-                *//** @type {Array.<BufferSpec>} *//* var fboSpec = []; // TODO: change outside the loop? check C++ version, possible BUG, it is always reseted!
+                /** @type {number} */ var format = requiredIntFormats[fmtNdx];
+                /** @type {string} */ var fmtName = fboTestUtil.getFormatName(format);
+                /** @type {Array.<BufferSpec>} */ var fboSpec = [];
     
                 fboSpec.push(new BufferSpec(format, width, height, samples));
     
                 for (var precNdx = 0; precNdx < precisions.length; precNdx++)
                 {
-                    *//** @type {Array.<gluShaderUtil.precision>} *//* var prec = precisions[precNdx];
-                    *//** @type {string} *//* var precName = gluShaderUtil.getPrecisionName(prec);
+                    /** @type {Array.<gluShaderUtil.precision>} */ var prec = precisions[precNdx];
+                    /** @type {string} */ var precName = gluShaderUtil.getPrecisionName(prec);
     
                     intGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_int', '', fboSpec, OutputVec(new FragmentOutput(gluShaderUtil.DataType.INT, prec, 0))));
                     intGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_ivec2', '', fboSpec, OutputVec(new FragmentOutput(gluShaderUtil.DataType.INT_VEC2, prec, 0))));
@@ -1321,20 +1309,20 @@ function(
             }
     
          // .uint
-            *//** @type {deqpTests.DeqpTest} *//* var uintGroup = deqpTests.newTest('uint', 'Usigned integer output tests');
+            /** @type {deqpTests.DeqpTest} */ var uintGroup = deqpTests.newTest('uint', 'Usigned integer output tests');
             basicGroup.addChild(uintGroup);
             for (var fmtNdx = 0; fmtNdx < requiredUintFormats.length; fmtNdx++)
             {
-                *//** @type {number} *//* var format = requiredUintFormats[fmtNdx];
-                *//** @type {string} *//* var fmtName = fboTestUtil.getFormatName(format);
-                *//** @type {Array.<BufferSpec>} *//* var fboSpec = []; // TODO: change outside the loop? check C++ version, possible BUG, it is always reseted!
+                /** @type {number} */ var format = requiredUintFormats[fmtNdx];
+                /** @type {string} */ var fmtName = fboTestUtil.getFormatName(format);
+                /** @type {Array.<BufferSpec>} */ var fboSpec = [];
     
                 fboSpec.push(new BufferSpec(format, width, height, samples));
     
                 for (var precNdx = 0; precNdx < precisions.length; precNdx++)
                 {
-                    *//** @type {Array.<gluShaderUtil.precision>} *//* var prec = precisions[precNdx];
-                    *//** @type {string} *//* var precName = gluShaderUtil.getPrecisionName(prec);
+                    /** @type {Array.<gluShaderUtil.precision>} */ var prec = precisions[precNdx];
+                    /** @type {string} */ var precName = gluShaderUtil.getPrecisionName(prec);
     
                     uintGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_uint', '', fboSpec, OutputVec(new FragmentOutput(gluShaderUtil.DataType.UINT, prec, 0))));
                     uintGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_uvec2', '', fboSpec, OutputVec(new FragmentOutput(gluShaderUtil.DataType.UINT_VEC2, prec, 0))));
@@ -1347,30 +1335,30 @@ function(
 
      // .array
         {
-            *//** @type {deqpTests.DeqpTest} *//* var arrayGroup = deqpTests.newTest('array', 'Array outputs');
+            /** @type {deqpTests.DeqpTest} */ var arrayGroup = deqpTests.newTest('array', 'Array outputs');
             testGroup.addChild(arrayGroup);
 
             width = 64;
             height = 64;
             samples = 0;
-            *//** @type {number} *//* var numTargets = 3;
+            /** @type {number} */ var numTargets = 3;
 
             // .float
-            *//** @type {deqpTests.DeqpTest} *//* var arrayFloatGroup = deqpTests.newTest('float', 'Floating-point output tests');
+            /** @type {deqpTests.DeqpTest} */ var arrayFloatGroup = deqpTests.newTest('float', 'Floating-point output tests');
             arrayGroup.addChild(arrayFloatGroup);
             for (var fmtNdx = 0; fmtNdx < requiredFloatFormats.length; fmtNdx++)
             {
-                *//** @type {number} *//* var format = requiredFloatFormats[fmtNdx];
-                *//** @type {string} *//* var fmtName = fboTestUtil.getFormatName(format);
-                *//** @type {Array.<BufferSpec>} *//* var fboSpec = []; // TODO: change outside the loop? check C++ version, possible BUG, it is always reseted!
+                /** @type {number} */ var format = requiredFloatFormats[fmtNdx];
+                /** @type {string} */ var fmtName = fboTestUtil.getFormatName(format);
+                /** @type {Array.<BufferSpec>} */ var fboSpec = [];
 
                 for (var ndx = 0; ndx < numTargets; ndx++)
                     fboSpec.push(new BufferSpec(format, width, height, samples));
 
                 for (var precNdx = 0; precNdx < precisions.length; precNdx++)
                 {
-                    *//** @type {Array.<gluShaderUtil.precision>} *//* var prec = precisions[precNdx];
-                    *//** @type {string} *//* var precName = gluShaderUtil.getPrecisionName(prec);
+                    /** @type {Array.<gluShaderUtil.precision>} */ var prec = precisions[precNdx];
+                    /** @type {string} */ var precName = gluShaderUtil.getPrecisionName(prec);
 
                     arrayFloatGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_float', '', fboSpec, OutputVec(new FragmentOutput(gluShaderUtil.DataType.FLOAT, prec, 0, numTargets))));
                     arrayFloatGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_vec2', '', fboSpec, OutputVec(new FragmentOutput(gluShaderUtil.DataType.FLOAT_VEC2, prec, 0, numTargets))));
@@ -1380,21 +1368,21 @@ function(
             }
 
             // .fixed
-            *//** @type {deqpTests.DeqpTest} *//* var arrayFixedGroup = deqpTests.newTest('fixed', 'Fixed-point output tests');
+            /** @type {deqpTests.DeqpTest} */ var arrayFixedGroup = deqpTests.newTest('fixed', 'Fixed-point output tests');
             arrayGroup.addChild(arrayFixedGroup);
             for (var fmtNdx = 0; fmtNdx < requiredFixedFormats.length; fmtNdx++)
             {
-                *//** @type {number} *//* var format = requiredFixedFormats[fmtNdx];
-                *//** @type {string} *//* var fmtName = fboTestUtil.getFormatName(format);
-                *//** @type {Array.<BufferSpec>} *//* var fboSpec = []; // TODO: change outside the loop? check C++ version, possible BUG, it is always reseted!
+                /** @type {number} */ var format = requiredFixedFormats[fmtNdx];
+                /** @type {string} */ var fmtName = fboTestUtil.getFormatName(format);
+                /** @type {Array.<BufferSpec>} */ var fboSpec = [];
 
                 for (var ndx = 0; ndx < numTargets; ndx++)
                     fboSpec.push(new BufferSpec(format, width, height, samples));
 
                 for (var precNdx = 0; precNdx < precisions.length; precNdx++)
                 {
-                    *//** @type {Array.<gluShaderUtil.precision>} *//* var prec = precisions[precNdx];
-                    *//** @type {string} *//* var precName = gluShaderUtil.getPrecisionName(prec);
+                    /** @type {Array.<gluShaderUtil.precision>} */ var prec = precisions[precNdx];
+                    /** @type {string} */ var precName = gluShaderUtil.getPrecisionName(prec);
 
                     arrayFixedGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_float', '', fboSpec, OutputVec(new FragmentOutput(gluShaderUtil.DataType.FLOAT, prec, 0, numTargets))));
                     arrayFixedGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_vec2', '', fboSpec, OutputVec(new FragmentOutput(gluShaderUtil.DataType.FLOAT_VEC2, prec, 0, numTargets))));
@@ -1404,21 +1392,21 @@ function(
             }
 
             // .int
-            *//** @type {deqpTests.DeqpTest} *//* var arrayIntGroup = deqpTests.newTest('int', 'Integer output tests');
+            /** @type {deqpTests.DeqpTest} */ var arrayIntGroup = deqpTests.newTest('int', 'Integer output tests');
             arrayGroup.addChild(arrayIntGroup);
             for (var fmtNdx = 0; fmtNdx < requiredIntFormats.length; fmtNdx++)
             {
-                *//** @type {number} *//* var format = requiredIntFormats[fmtNdx];
-                *//** @type {string} *//* var fmtName = fboTestUtil.getFormatName(format);
-                *//** @type {Array.<BufferSpec>} *//* var fboSpec = []; // TODO: change outside the loop? check C++ version, possible BUG, it is always reseted!
+                /** @type {number} */ var format = requiredIntFormats[fmtNdx];
+                /** @type {string} */ var fmtName = fboTestUtil.getFormatName(format);
+                /** @type {Array.<BufferSpec>} */ var fboSpec = [];
 
                 for (var ndx = 0; ndx < numTargets; ndx++)
                     fboSpec.push(new BufferSpec(format, width, height, samples));
 
                 for (var precNdx = 0; precNdx < precisions.length; precNdx++)
                 {
-                    *//** @type {Array.<gluShaderUtil.precision>} *//* var prec = precisions[precNdx];
-                    *//** @type {string} *//* var precName = gluShaderUtil.getPrecisionName(prec);
+                    /** @type {Array.<gluShaderUtil.precision>} */ var prec = precisions[precNdx];
+                    /** @type {string} */ var precName = gluShaderUtil.getPrecisionName(prec);
 
                     arrayIntGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_int', '', fboSpec, OutputVec(new FragmentOutput(gluShaderUtil.DataType.INT, prec, 0, numTargets))));
                     arrayIntGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_ivec2', '', fboSpec, OutputVec(new FragmentOutput(gluShaderUtil.DataType.INT_VEC2, prec, 0, numTargets))));
@@ -1428,21 +1416,21 @@ function(
             }
 
             // .uint
-            *//** @type {deqpTests.DeqpTest} *//* var arrayUintGroup = deqpTests.newTest('uint', 'Usigned integer output tests');
+            /** @type {deqpTests.DeqpTest} */ var arrayUintGroup = deqpTests.newTest('uint', 'Usigned integer output tests');
             arrayGroup.addChild(arrayUintGroup);
             for (var fmtNdx = 0; fmtNdx < requiredUintFormats.length; fmtNdx++)
             {
-                *//** @type {number} *//* var format = requiredUintFormats[fmtNdx];
-                *//** @type {string} *//* var fmtName = fboTestUtil.getFormatName(format);
-                *//** @type {Array.<BufferSpec>} *//* var fboSpec = []; // TODO: change outside the loop? check C++ version, possible BUG, it is always reseted!
+                /** @type {number} */ var format = requiredUintFormats[fmtNdx];
+                /** @type {string} */ var fmtName = fboTestUtil.getFormatName(format);
+                /** @type {Array.<BufferSpec>} */ var fboSpec = [];
 
                 for (var ndx = 0; ndx < numTargets; ndx++)
                     fboSpec.push(new BufferSpec(format, width, height, samples));
 
                 for (var precNdx = 0; precNdx < precisions.length; precNdx++)
                 {
-                    *//** @type {Array.<gluShaderUtil.precision>} *//* var prec = precisions[precNdx];
-                    *//** @type {string} *//* var precName = gluShaderUtil.getPrecisionName(prec);
+                    /** @type {Array.<gluShaderUtil.precision>} */ var prec = precisions[precNdx];
+                    /** @type {string} */ var precName = gluShaderUtil.getPrecisionName(prec);
 
                     arrayUintGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_uint', '', fboSpec, OutputVec(new FragmentOutput(gluShaderUtil.DataType.UINT, prec, 0, numTargets))));
                     arrayUintGroup.addChild(new FragmentOutputCase(gl, fmtName + '_' + precName + '_uvec2', '', fboSpec, OutputVec(new FragmentOutput(gluShaderUtil.DataType.UINT_VEC2, prec, 0, numTargets))));
@@ -1452,7 +1440,10 @@ function(
             }
         }
 
-     // .random
+        bufferedLogToConsole('fragment output test: Tests created');
+        debug('fragment output test: Tests created');
+
+     /*// .random
         {
             *//** @type {deqpTests.DeqpTest} *//* var randomGroup = deqpTests.newTest('random', 'Random fragment output cases');
             testGroup.addChild(randomGroup);
@@ -1467,6 +1458,19 @@ function(
      * Create and execute the test cases
      */
     var run = function(gl) {
+
+      //Set up Test Root parameters
+        var testName = 'fragment_output';
+        var testDescription = 'Fragment Output Tests';
+        var state = deqpTests.runner.getState();
+
+        state.testName = testName;
+        state.testCases = deqpTests.newTest(testName, testDescription, null);
+
+      //Set up name and description of this test series.
+        setCurrentTestName(testName);
+        description(testDescription);
+
         try {
             init(gl);
             // deqpTests.runner.runCallback(deqpTests.runTestCases);
