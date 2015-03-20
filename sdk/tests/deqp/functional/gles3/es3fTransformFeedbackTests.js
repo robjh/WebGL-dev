@@ -322,8 +322,6 @@ define([
         /** @type {string} */ var name = spec.getVaryings()[i].name;
         /** @type {gluVarType.VarType} */ var type = spec.getVaryings()[i].type;
 
-            // TODO: check loop, original code:
-            // for (glu::VectorTypeIterator vecIter = glu::VectorTypeIterator::begin(&type); vecIter != glu::VectorTypeIterator::end(&type); vecIter++)
             for (var vecIter = new gluVTU.VectorTypeIterator(type); !vecIter.end(); vecIter.next()) {
 
                 /** @type {gluVarType.VarType} */
@@ -331,8 +329,6 @@ define([
 
                 /** @type {string} */
                 var attribName = getAttributeName(name, vecIter.getPath());
-                
-                // TODO: only strings are needed for attribType, attribName
                 vtx.str += 'in ' + gluVT.declareVariable(attribType, attribName) + ';\n'; 
                 
             }
@@ -346,7 +342,7 @@ define([
             for (var i = 0; i < spec.getStructs().length; ++i) {
                 var struct = spec.getStructs()[i];
                 if (struct.hasTypeName()) {
-                    shader.str += gluVT.declareStructType(struct) + ';\n'; // TODO: only a string is needed for struct
+                    shader.str += gluVT.declareStructType(struct) + ';\n';
                 }
             }
 
@@ -355,7 +351,7 @@ define([
             	var varying = varyings[i];
                 shader.str += getInterpolationName(varying.interpolation)
                            + ' ' + inout + ' '
-                           + gluVT.declareVariable(varying.type, varying.name) // TODO: only strings are needed for varyings.type and varyings.name
+                           + gluVT.declareVariable(varying.type, varying.name)
                            + ';\n';
             }
         }
@@ -375,8 +371,6 @@ define([
         /** @type {string} */ var name = spec.getVaryings()[i].name;
         /** @type {gluVarType.VarType} */ var type = spec.getVaryings()[i].type;
 
-            // TODO: check this loop, original code:
-            // for (glu::VectorTypeIterator vecIter = glu::VectorTypeIterator::begin(&type); vecIter != glu::VectorTypeIterator::end(&type); vecIter++)
             for (var vecIter = new gluVTU.VectorTypeIterator(type); !vecIter.end(); vecIter.next()) {
             /** @type {gluVarType.VarType} */var subType = gluVTU.getVarType(type, vecIter.getPath());
             /** @type {string} */ var attribName = getAttributeName(name, vecIter.getPath());
@@ -385,8 +379,6 @@ define([
                     subType.isBasicType() &&
                     deqpUtils.isDataTypeScalarOrVector(subType.getBasicType())
                 )) throw new Error('Not a scalar or vector.');
-
-                /* TODO: Fix converting type and vecIter to string */
 
                 // Vertex: assign from attribute.
                 vtx.str += '\t' + name + vecIter.toString() + ' = ' + attribName + ';\n';
@@ -458,13 +450,9 @@ define([
         }
 
         for (var i = 0; i < varyings.length; i++) {
-            // TODO: check loop's conditions
-            // original code:
-            // for (glu::VectorTypeIterator vecIter = glu::VectorTypeIterator::begin(&var->type); vecIter != glu::VectorTypeIterator::end(&var->type); vecIter++)
-
             for (var vecIter = new gluVTU.VectorTypeIterator(varyings[i].type); !vecIter.end(); vecIter.next()) {
                 var type = vecIter.getType(); // originally getType() in getVarType() within gluVARTypeUtil.hpp.
-                var name = getAttributeName(varyings[i].name, vecIter.getPath()); // TODO: getPath(), originally in gluVARTypeUtil.hpp
+                var name = getAttributeName(varyings[i].name, vecIter.getPath());
 
                 attributes.push(new Attribute(name, type, inputStride));
                 inputStride += deqpUtils.getDataTypeScalarSize(type.getBasicType()) * 4; /*sizeof(deUint32)*/
@@ -518,8 +506,6 @@ define([
                 output.type = gluVTU.getVarType(varying.type, varPath);
 
                 // Add all vectorized attributes as inputs.
-                // TODO: check loop, original code:
-                // for (glu::VectorTypeIterator iter = glu::VectorTypeIterator::begin(&output.type); iter != glu::VectorTypeIterator::end(&output.type); iter++)
                 for (var iter = new gluVTU.VectorTypeIterator(output.type); !iter.end(); iter.next())
                 {
                     /** @type {array} */     var fullpath   = varPath.concat(iter.getPath());
@@ -529,8 +515,6 @@ define([
                 }
             }
             transformFeedbackOutputs.push(output);
-
-            // TODO: getScalarSize() called correctly? already implemented in glsVarType.js
             accumulatedSize += output.type.getScalarSize() * 4; /*sizeof(deUint32)*/
         }
     };
@@ -548,9 +532,8 @@ define([
         /** @type {boolean} */ var isFloat = deqpUtils.isDataTypeFloatOrVec(attrib.type.getBasicType());
         /** @type {boolean} */ var isInt = deqpUtils.isDataTypeIntOrIVec(attrib.type.getBasicType());
         /** @type {boolean} */ var isUint = deqpUtils.isDataTypeUintOrUVec(attrib.type.getBasicType());
-
-        // TODO: below type glsUBC.UniformFlags ?
-        /** @type {deqpUtils.precision} */ var precision = attrib.type.getPrecision(); // TODO: getPrecision() called correctly? implemented in glsVarType.js
+        
+        /** @type {deqpUtils.precision} */ var precision = attrib.type.getPrecision();
 
         /** @type {number} */ var numComps = deqpUtils.getDataTypeScalarSize(attrib.type.getBasicType());
 
@@ -610,8 +593,6 @@ define([
         if (!position)
             throw new Error('Position attribute not found.');
 
-        console.log("Position: " + position);
-
         for (var ndx = 0; ndx < numInputs; ndx++) {
             var pos = new Float32Array(buffer, position.offset + inputStride * ndx, 4);
             pos[0] = rnd.getFloat(-1.2, 1.2);
@@ -621,15 +602,12 @@ define([
         }
 
         var pointSizePos = findAttributeNameEquals(attributes, 'a_pointSize');
-        if (pointSizePos)
+        if (pointSizePos) {
             for (var ndx = 0; ndx < numInputs; ndx++) {
                 var pos = new Float32Array(buffer, pointSizePos.offset + inputStride * ndx, 1);
                 pos[0] = rnd.getFloat(1, 8);
             }
-
-        // TODO: two first loops have been omitted
-        // is declared 'ptr' --> deUint8* ptr = inputBasePtr + position.offset + inputStride*ndx;
-        // and only used within these two loops
+        }
 
         // Random data for rest of components.
         for (var i = 0; i < attributes.length; i++)
@@ -771,8 +749,7 @@ define([
         /** @type {deqpUtils.DataType} */ var type = attribute.type.getBasicType();
         /** @type {number} */ var numComponents = deqpUtils.getDataTypeScalarSize(type);
 
-        // TODO: below type glsUBC.UniformFlags ?
-        /** @type {deqpUtils.precision} */ var precision = attribute.type.getPrecision(); // TODO: getPrecision() called correctly? implemented in gluVarType.js
+        /** @type {deqpUtils.precision} */ var precision = attribute.type.getPrecision();
 
         /** @type {string} */ var scalarType = deqpUtils.getDataTypeScalarType(type);
         /** @type {number} */ var numOutputs = getTransformFeedbackOutputCount(primitiveType, numInputs);
@@ -951,7 +928,7 @@ define([
             // Build list of varyings used in transform feedback.
             computeTransformFeedbackOutputs(
             	this.m_gl,
-                this.m_transformFeedbackOutputs, // TODO: make sure this param is working as intended
+                this.m_transformFeedbackOutputs,
                 this.m_attributes,
                 this.m_progSpec.getVaryings(),
                 this.m_progSpec.getTransformFeedbackVaryings(),
@@ -1545,8 +1522,6 @@ define([
         
         this.init = (function() {
         
-            // TODO: unfinished, same implementation in TransformFeedbackCase.iterate
-            // var seed = this.iterate.seed; // TODO: possible solution as a local attribute?
             /** @type {number} */
             var seed = /*deString.deStringHash(getName()) ^ */ deMath.deMathHash(this.m_iterNdx);
 
@@ -1578,7 +1553,6 @@ define([
                 deqpUtils.DataType.FLOAT_MAT4
             ];
 
-            // TODO: could we use /** @type {Array.<glsUBC.UniformFlags>} */ instead ???
             /** @type {Array.<deqpUtils.precision>} */
             var precisions = [
 
@@ -1642,7 +1616,7 @@ define([
                 /** @type {glsUBC.UniformFlags | deqpUtils.precision} */
                 var precision = rnd.choose(precisions)[0];
                 
-                /** @type {interpolation} */ // TODO: implement
+                /** @type {interpolation} */
                 var interp = deqpUtils.getDataTypeScalarType(type) === deqpUtils.DataType.FLOAT
                            ? rnd.choose(interpModes)
                            : interpolation.FLAT; 
@@ -1761,7 +1735,6 @@ define([
             deqpUtils.DataType.UINT_VEC4
         ];
 
-        // TODO: could we use /** @type {Array.<glsUBC.UniformFlags>} */ instead ???
         /** @type {Array.<deqpUtils.precision>} */
         var precisions = [
 
@@ -2051,7 +2024,7 @@ define([
                         bufferMode,
                         primitiveType,
                         seed
-                    )); // TODO: check, toString() omitted?
+                    ));
                 }
             }
         }
