@@ -872,7 +872,7 @@ define([
      * @return {boolean}
      */
     var verifyGuard = function(buffer, start) {
-        var view = Uint8Array(buffer);
+        var view = new Uint8Array(buffer);
         for (var i = (start || 0) ; i < view.length ; i++) {
             if (view[i] != 0xcd)
                 return false;
