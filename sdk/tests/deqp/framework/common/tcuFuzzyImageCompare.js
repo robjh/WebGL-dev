@@ -20,10 +20,12 @@
 
 define(['framework/delibs/debase/deMath',
         'framework/common/tcuTexture',
-        'framework/delibs/debase/deRandom'], function(
+        'framework/delibs/debase/deRandom',
+        'framework/common/tcuTextureUtil'], function(
             deMath,
             tcuTexture,
-            deRandom
+            deRandom,
+            tcuTextureUtil
             )  {
     'use strict';
 
@@ -32,6 +34,7 @@ define(['framework/delibs/debase/deMath',
             throw new Error('Assert failed');
     };
 
+    var DE_NULL = null;
 
     /**
      * @constructor
@@ -96,19 +99,16 @@ define(['framework/delibs/debase/deMath',
      * @return {deUint32}
      */
     var readUnorm8 = function(NumChannels, src, x, y) {
-        // TODO: implement
-        /*
-        const deUint8*	ptr	= (const deUint8*)src.getDataPtr() + src.getRowPitch()*y + x*NumChannels;
-        deUint32		v	= 0;
+        /** @type {deUint8} */ var ptr = src.getDataPtr() + src.getRowPitch() * y + x * NumChannels;
+        /** @type {deUint32} */ var v = 0;
 
-        for (int c = 0; c < NumChannels; c++)
-            v |= ptr[c] << (c*8);
+        for (var c = 0; c < NumChannels; c++)
+            v |= ptr[c] << (c * 8);
 
         if (NumChannels < 4)
             v |= 0xffu << 24;
 
         return v;
-        */
     };
 
     /**
@@ -119,11 +119,10 @@ define(['framework/delibs/debase/deMath',
      * @param {deUint32} val
     */
     var writeUnorm8 = function(NumChannels, dst, x, y, val) {
-        // TODO: implement
-        // deUint8* ptr = (deUint8*)dst.getDataPtr() + dst.getRowPitch()*y + x*NumChannels;
-        //
-        // for (int c = 0; c < NumChannels; c++)
-        //     ptr[c] = getChannel(val, c);
+        /** @type {deUint8} */ var ptr = dst.getDataPtr() + dst.getRowPitch() * y + x * NumChannels;
+
+        for (var c = 0; c < NumChannels; c++)
+            ptr[c] = getChannel(val, c);
     };
 
     /**
@@ -133,16 +132,15 @@ define(['framework/delibs/debase/deMath',
      * @return {float}
     */
     var compareColoros = function(pa, pb, minErrThreshold) {
-        // TODO: implement
-        // int r = de::max<int>(de::abs((int)getChannel<0>(pa) - (int)getChannel<0>(pb)) - minErrThreshold, 0);
-        // int g = de::max<int>(de::abs((int)getChannel<1>(pa) - (int)getChannel<1>(pb)) - minErrThreshold, 0);
-        // int b = de::max<int>(de::abs((int)getChannel<2>(pa) - (int)getChannel<2>(pb)) - minErrThreshold, 0);
-        // int a = de::max<int>(de::abs((int)getChannel<3>(pa) - (int)getChannel<3>(pb)) - minErrThreshold, 0);
-        //
-        // float scale	= 1.0f/(255-minErrThreshold);
-        // float sqSum	= (float)(r*r + g*g + b*b + a*a) * (scale*scale);
-        //
-        // return deFloatSqrt(sqSum);
+        /** @type {integer} */ var r = Math.max(Math.abs(getChannel(0, pa) - getChannel(0, pb)) - minErrThreshold, 0);
+        /** @type {integer} */ var g = Math.max(Math.abs(getChannel(1, pa) - getChannel(1, pb)) - minErrThreshold, 0);
+        /** @type {integer} */ var b = Math.max(Math.abs(getChannel(2, pa) - getChannel(2, pb)) - minErrThreshold, 0);
+        /** @type {integer} */ var a = Math.max(Math.abs(getChannel(3, pa) - getChannel(3, pb)) - minErrThreshold, 0);
+
+        /** @type {float} */ var scale	= 1.0 / (255 - minErrThreshold);
+        /** @type {float} */ var sqSum	= (r * r + g * g + b * b + a * a) * (scale * scale);
+
+        return Math.sqrt(sqSum);
     };
 
     /**
@@ -153,40 +151,40 @@ define(['framework/delibs/debase/deMath',
      * @return {tcuTexture.ConstPixelBufferAccess}
     */
     var bilinearSample = function(NumChannels, src, u, v) {
-        // TODO: implement
-        // int w = src.getWidth();
-        // int h = src.getHeight();
-        //
-        // int x0 = deFloorFloatToInt32(u-0.5f);
-        // int x1 = x0+1;
-        // int y0 = deFloorFloatToInt32(v-0.5f);
-        // int y1 = y0+1;
-        //
-        // int i0 = de::clamp(x0, 0, w-1);
-        // int i1 = de::clamp(x1, 0, w-1);
-        // int j0 = de::clamp(y0, 0, h-1);
-        // int j1 = de::clamp(y1, 0, h-1);
-        //
-        // float a = deFloatFrac(u-0.5f);
-        // float b = deFloatFrac(v-0.5f);
-        //
-        // deUint32 p00	= readUnorm8<NumChannels>(src, i0, j0);
-        // deUint32 p10	= readUnorm8<NumChannels>(src, i1, j0);
-        // deUint32 p01	= readUnorm8<NumChannels>(src, i0, j1);
-        // deUint32 p11	= readUnorm8<NumChannels>(src, i1, j1);
-        // deUint32 dst	= 0;
-        //
-        // // Interpolate.
-        // for (int c = 0; c < NumChannels; c++)
-        // {
-        //     float f = (getChannel(p00, c)*(1.0f-a)*(1.0f-b)) +
-        //               (getChannel(p10, c)*(     a)*(1.0f-b)) +
-        //               (getChannel(p01, c)*(1.0f-a)*(     b)) +
-        //               (getChannel(p11, c)*(     a)*(     b));
-        //     dst = setChannel(dst, c, roundToUint8Sat(f));
-        // }
-        //
-        // return dst;
+        /** @type {integer} */ var w = src.getWidth();
+        /** @type {integer} */ var h = src.getHeight();
+
+        /** @type {integer} */ var x0 = Math.floor(u - 0.5);
+        /** @type {integer} */ var x1 = x0 + 1;
+        /** @type {integer} */ var y0 = Math.floor(v - 0.5);
+        /** @type {integer} */ var y1 = y0 + 1;
+
+        /** @type {integer} */ var i0 = deMath.clamp(x0, 0, w - 1);
+        /** @type {integer} */ var i1 = deMath.clamp(x1, 0, w - 1);
+        /** @type {integer} */ var j0 = deMath.clamp(y0, 0, h - 1);
+        /** @type {integer} */ var j1 = deMath.clamp(y1, 0, h - 1);
+
+        /** @type {float} */ var a = (u - 0.5) - Math.floor(u - 0.5);
+        /** @type {float} */ var b = (v - 0.5) - Math.floor(v - 0.5);
+
+        /** @type {deUint32} */ var p00	= readUnorm8(NumChannels, src, i0, j0);
+        /** @type {deUint32} */ var p10	= readUnorm8(NumChannels, src, i1, j0);
+        /** @type {deUint32} */ var p01	= readUnorm8(NumChannels, src, i0, j1);
+        /** @type {deUint32} */ var p11	= readUnorm8(NumChannels, src, i1, j1);
+        /** @type {deUint32} */ var dst	= 0;
+
+        // Interpolate.
+        for (var c = 0; c < NumChannels; c++)
+        {
+            // getChannel(color, channel) so we have to reverse the arguments from (p00, c) to (c, p00)
+            /** @type {float} */ var f = (getChannel(c, p00) * (1.0 - a) * (1.0 - b)) +
+                                         (getChannel(c, p10) * (      a) * (1.0 - b)) +
+                                         (getChannel(c, p01) * (1.0 - a) * (      b)) +
+                                         (getChannel(c, p11) * (      a) * (      b));
+            dst = setChannel(dst, c, roundToUint8Sat(f));
+        }
+
+        return dst;
     };
 
     /**
@@ -201,54 +199,55 @@ define(['framework/delibs/debase/deMath',
     */
     var separableConvolve = function (DstChannels, SrcChannels, dst, src, shiftX, shiftY, kernelX, kernelY)
     {
-        // TODO: implement
-        // DE_ASSERT(dst.getWidth() == src.getWidth() && dst.getHeight() == src.getHeight());
-        //
-        // TextureLevel		tmp			(dst.getFormat(), dst.getHeight(), dst.getWidth());
-        // PixelBufferAccess	tmpAccess	= tmp.getAccess();
-        //
-        // int kw = (int)kernelX.size();
-        // int kh = (int)kernelY.size();
-        //
-        // // Horizontal pass
-        // // \note Temporary surface is written in column-wise order
-        // for (int j = 0; j < src.getHeight(); j++)
-        // {
-        //     for (int i = 0; i < src.getWidth(); i++)
-        //     {
-        //         Vec4 sum(0);
-        //
-        //         for (int kx = 0; kx < kw; kx++)
-        //         {
-        //             float		f = kernelX[kw-kx-1];
-        //             deUint32	p = readUnorm8<SrcChannels>(src, de::clamp(i+kx-shiftX, 0, src.getWidth()-1), j);
-        //
-        //             sum += toFloatVec(p)*f;
-        //         }
-        //
-        //         writeUnorm8<DstChannels>(tmpAccess, j, i, toColor(sum));
-        //     }
-        // }
-        //
-        // // Vertical pass
-        // for (int j = 0; j < src.getHeight(); j++)
-        // {
-        //     for (int i = 0; i < src.getWidth(); i++)
-        //     {
-        //         Vec4 sum(0.0f);
-        //
-        //         for (int ky = 0; ky < kh; ky++)
-        //         {
-        //             float		f = kernelY[kh-ky-1];
-        //             deUint32	p = readUnorm8<DstChannels>(tmpAccess, de::clamp(j+ky-shiftY, 0, tmp.getWidth()-1), i);
-        //
-        //             sum += toFloatVec(p)*f;
-        //         }
-        //
-        //         writeUnorm8<DstChannels>(dst, i, j, toColor(sum));
-        //     }
-        // }
-    }
+        DE_ASSERT(dst.getWidth() == src.getWidth() && dst.getHeight() == src.getHeight());
+
+        // TODO: implement TextureLevel
+        /** @type {TextureLevel} */ var tmp = new TextureLevel(dst.getFormat(), dst.getHeight(), dst.getWidth());
+        /** @type {PixelBufferAccess} */ var tmpAccess = tmp.getAccess();
+
+        /** @type {integer} */ var kw = kernelX.size();
+        /** @type {integer} */ var kh = kernelY.size();
+
+        // Horizontal pass
+        // \note Temporary surface is written in column-wise order
+
+        for (var j = 0; j < src.getHeight(); j++)
+        {
+            for (var i = 0; i < src.getWidth(); i++)
+            {
+                /** @type {Array<float>} */ var sum = [0.0, 0.0, 0.0, 0.0];
+
+                for (var kx = 0; kx < kw; kx++)
+                {
+                    /** @type {float} */ var f = kernelX[kw - kx - 1];
+                    /** @type {deUint32} */ var p = readUnorm8(SrcChannels, src, deMath.clamp(i + kx - shiftX, 0, src.getWidth() - 1), j);
+
+                    sum = deMath.add(sum, deMath.multiply(toFloatVec(p), f));
+                }
+
+                writeUnorm8(DstChannels, tmpAccess, j, i, toColor(sum));
+            }
+        }
+
+        // Vertical pass
+        for (var j = 0; j < src.getHeight(); j++)
+        {
+            for (var i = 0; i < src.getWidth(); i++)
+            {
+                /** @type {Array<float>} */ var sum = [0.0, 0.0, 0.0, 0.0];
+
+                for (var ky = 0; ky < kh; ky++)
+                {
+                    /** @type {float} */ var f = kernelY[kh - ky - 1];
+                    /** @type {deUint32} */ var = readUnorm8(DstChannels, tmpAccess, deMath.clamp(j + ky - shiftY, 0, tmp.getWidth() - 1), i);
+
+                    sum = deMath.add(sum, deMath.multiply(toFloatVec(p), f));
+                }
+
+                writeUnorm8(DstChannels, dst, i, j, toColor(sum));
+            }
+        }
+    };
 
     /**
      * @param {integer} NumChannels
@@ -262,55 +261,54 @@ define(['framework/delibs/debase/deMath',
     */
     var compareToNeighbor = function(NumChannels, params, rnd, pixel, surface, x, y)
     {
-        // TODO: implement
-        // float minErr = +100.f;
-        //
-        // // (x, y) + (0, 0)
-        // minErr = deFloatMin(minErr, compareColors(pixel, readUnorm8<NumChannels>(surface, x, y), params.minErrThreshold));
-        // if (minErr == 0.0f)
-        //     return minErr;
-        //
-        // // Area around (x, y)
-        // static const int s_coords[][2] =
-        // {
-        //     {-1, -1},
-        //     { 0, -1},
-        //     {+1, -1},
-        //     {-1,  0},
-        //     {+1,  0},
-        //     {-1, +1},
-        //     { 0, +1},
-        //     {+1, +1}
-        // };
-        //
-        // for (int d = 0; d < (int)DE_LENGTH_OF_ARRAY(s_coords); d++)
-        // {
-        //     int dx = x + s_coords[d][0];
-        //     int dy = y + s_coords[d][1];
-        //
-        //     if (!deInBounds32(dx, 0, surface.getWidth()) || !deInBounds32(dy, 0, surface.getHeight()))
-        //         continue;
-        //
-        //     minErr = deFloatMin(minErr, compareColors(pixel, readUnorm8<NumChannels>(surface, dx, dy), params.minErrThreshold));
-        //     if (minErr == 0.0f)
-        //         return minErr;
-        // }
-        //
-        // // Random bilinear-interpolated samples around (x, y)
-        // for (int s = 0; s < 32; s++)
-        // {
-        //     float dx = (float)x + rnd.getFloat()*2.0f - 0.5f;
-        //     float dy = (float)y + rnd.getFloat()*2.0f - 0.5f;
-        //
-        //     deUint32 sample = bilinearSample<NumChannels>(surface, dx, dy);
-        //
-        //     minErr = deFloatMin(minErr, compareColors(pixel, sample, params.minErrThreshold));
-        //     if (minErr == 0.0f)
-        //         return minErr;
-        // }
-        //
-        // return minErr;
-    }
+        /** @type {float} */ var minErr = +100.0;
+
+        // (x, y) + (0, 0)
+        minErr = Math.min(minErr, compareColors(pixel, readUnorm8(NumChannels, surface, x, y), params.minErrThreshold));
+        if (minErr == 0.0)
+            return minErr;
+
+        // Area around (x, y)
+        /** @type {Array<Array<integer>>} */ var s_coords =
+        [
+            [-1, -1],
+            [ 0, -1],
+            [+1, -1],
+            [-1,  0],
+            [+1,  0],
+            [-1, +1],
+            [ 0, +1],
+            [+1, +1]
+        ];
+
+        for (var d = 0; d < s_coords.length; d++)
+        {
+            /** @type {integer} */ var dx = x + s_coords[d][0];
+            /** @type {integer} */ var dy = y + s_coords[d][1];
+
+            if (!deMath.deInBounds32(dx, 0, surface.getWidth()) || !deMath.deInBounds32(dy, 0, surface.getHeight()))
+                continue;
+
+            minErr = Math.min(minErr, compareColors(pixel, readUnorm8(NumChannels, surface, dx, dy), params.minErrThreshold));
+            if (minErr == 0.0)
+                return minErr;
+        }
+
+        // Random bilinear-interpolated samples around (x, y)
+        for (var s = 0; s < 32; s++)
+        {
+            /** @type {float} */ var dx = x + rnd.getFloat() * 2.0 - 0.5;
+            /** @type {float} */ var dy = y + rnd.getFloat() * 2.0 - 0.5;
+
+            /** @type {deUint32} */ var sample = bilinearSample(NumChannels, surface, dx, dy);
+
+            minErr = Math.min(minErr, compareColors(pixel, sample, params.minErrThreshold));
+            if (minErr == 0.0)
+                return minErr;
+        }
+
+        return minErr;
+    };
 
     /**
      * @param {Array<float>} c
@@ -327,8 +325,7 @@ define(['framework/delibs/debase/deMath',
     */
     var isFormatSupported = function(format)
     {
-        // TODO: implement
-        //return format.type == TextureFormat::UNORM_INT8 && (format.order == TextureFormat::RGB || format.order == TextureFormat::RGBA);
+        return format.type == tcuTexture.ChannelType.UNORM_INT8 && (format.order == tcuTexture.ChannelOrder.RGB || format.order == tcuTexture.ChannelOrder.RGBA);
     }
 
     /**
@@ -340,74 +337,75 @@ define(['framework/delibs/debase/deMath',
     */
     float fuzzyCompare (params, ref, cmp, errorMask)
     {
-        // TODO: implement
-        // DE_ASSERT(ref.getWidth() == cmp.getWidth() && ref.getHeight() == cmp.getHeight());
-        // DE_ASSERT(errorMask.getWidth() == ref.getWidth() && errorMask.getHeight() == ref.getHeight());
-        //
-        // if (!isFormatSupported(ref.getFormat()) || !isFormatSupported(cmp.getFormat()))
-        //     throw InternalError("Unsupported format in fuzzy comparison", DE_NULL, __FILE__, __LINE__);
-        //
-        // int			width	= ref.getWidth();
-        // int			height	= ref.getHeight();
-        // de::Random	rnd		(667);
-        //
-        // // Filtered
-        // TextureLevel refFiltered(TextureFormat(TextureFormat::RGBA, TextureFormat::UNORM_INT8), width, height);
-        // TextureLevel cmpFiltered(TextureFormat(TextureFormat::RGBA, TextureFormat::UNORM_INT8), width, height);
-        //
-        // // Kernel = {0.15, 0.7, 0.15}
-        // vector<float> kernel(3);
-        // kernel[0] = kernel[2] = 0.1f; kernel[1]= 0.8f;
-        // int shift = (int)(kernel.size() - 1) / 2;
-        //
-        // switch (ref.getFormat().order)
-        // {
-        //     case TextureFormat::RGBA:	separableConvolve<4, 4>(refFiltered, ref, shift, shift, kernel, kernel);	break;
-        //     case TextureFormat::RGB:	separableConvolve<4, 3>(refFiltered, ref, shift, shift, kernel, kernel);	break;
-        //     default:
-        //         DE_ASSERT(DE_FALSE);
-        // }
-        //
-        // switch (cmp.getFormat().order)
-        // {
-        //     case TextureFormat::RGBA:	separableConvolve<4, 4>(cmpFiltered, cmp, shift, shift, kernel, kernel);	break;
-        //     case TextureFormat::RGB:	separableConvolve<4, 3>(cmpFiltered, cmp, shift, shift, kernel, kernel);	break;
-        //     default:
-        //         DE_ASSERT(DE_FALSE);
-        // }
-        //
-        // int		numSamples	= 0;
-        // float	errSum		= 0.0f;
-        //
-        // // Clear error mask to green.
-        // clear(errorMask, Vec4(0.0f, 1.0f, 0.0f, 1.0f));
-        //
-        // ConstPixelBufferAccess refAccess = refFiltered.getAccess();
-        // ConstPixelBufferAccess cmpAccess = cmpFiltered.getAccess();
-        //
-        // for (int y = 1; y < height-1; y++)
-        // {
-        //     for (int x = 1; x < width-1; x += params.maxSampleSkip > 0 ? (int)rnd.getInt(0, params.maxSampleSkip) : 1)
-        //     {
-        //         float err = deFloatMin(compareToNeighbor<4>(params, rnd, readUnorm8<4>(refAccess, x, y), cmpAccess, x, y),
-        //                                compareToNeighbor<4>(params, rnd, readUnorm8<4>(cmpAccess, x, y), refAccess, x, y));
-        //
-        //         err = deFloatPow(err, params.errExp);
-        //
-        //         errSum		+= err;
-        //         numSamples	+= 1;
-        //
-        //         // Build error image.
-        //         float	red		= err * 500.0f;
-        //         float	luma	= toGrayscale(cmp.getPixel(x, y));
-        //         float	rF		= 0.7f + 0.3f*luma;
-        //         errorMask.setPixel(Vec4(red*rF, (1.0f-red)*rF, 0.0f, 1.0f), x, y);
-        //     }
-        // }
-        //
-        // // Scale error sum based on number of samples taken
-        // errSum *= (float)((width-2) * (height-2)) / (float)numSamples;
-        //
-        // return errSum;
+        DE_ASSERT(ref.getWidth() == cmp.getWidth() && ref.getHeight() == cmp.getHeight());
+        DE_ASSERT(errorMask.getWidth() == ref.getWidth() && errorMask.getHeight() == ref.getHeight());
+
+        if (!isFormatSupported(ref.getFormat()) || !isFormatSupported(cmp.getFormat()))
+            throw new Error("Unsupported format in fuzzy comparison");
+
+        /** @type {integer} */ var width = ref.getWidth();
+        /** @type {integer} */ var height = ref.getHeight();
+        /** @type {deRandom.Random} */ var rnd (667);
+
+        // Filtered
+        /** @type {TextureLevel} */ var refFiltered = new TextureLevel(TextureFormat(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.UNORM_INT8), width, height);
+        /** @type {TextureLevel} */ var cmpFiltered = new TextureLevel(TextureFormat(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.UNORM_INT8), width, height);
+
+        // Kernel = {0.15, 0.7, 0.15}
+        /** @type {Array<float>} */ var kernel = [0, 0, 0];
+        kernel[0] = kernel[2] = 0.1; kernel[1]= 0.8;
+        /** @type {integer} */ var shift = Math.floor((kernel.length - 1) / 2);
+
+        switch (ref.getFormat().order)
+        {
+            case tcuTexture.ChannelOrder.RGBA: separableConvolve(4, 4, refFiltered, ref, shift, shift, kernel, kernel); break;
+            case tcuTexture.ChannelOrder.RGB: separableConvolve(4, 3, refFiltered, ref, shift, shift, kernel, kernel); break;
+            default:
+                DE_ASSERT(DE_FALSE);
+        }
+
+        switch (cmp.getFormat().order)
+        {
+            case tcuTexture.ChannelOrder.RGBA: separableConvolve(4, 4, cmpFiltered, cmp, shift, shift, kernel, kernel); break;
+            case tcuTexture.ChannelOrder.RGB: separableConvolve(4, 3, cmpFiltered, cmp, shift, shift, kernel, kernel); break;
+            default:
+                DE_ASSERT(DE_FALSE);
+        }
+
+        /** @type {integer} */ var numSamples = 0;
+        /** @type {float} */ var errSum = 0.0;
+
+        // Clear error mask to green.
+        // TODO: implement clear()
+        tcuTextureUtil.clear(errorMask, [0.0, 1.0, 0.0, 1.0]);
+
+        /** @type {ConstPixelBufferAccess} */ var refAccess = refFiltered.getAccess();
+        /** @type {ConstPixelBufferAccess} */ var cmpAccess = cmpFiltered.getAccess();
+
+        for (var y = 1; y < height - 1; y++)
+        {
+            for (var x = 1; x < width - 1; x += params.maxSampleSkip > 0 ? rnd.getInt(0, params.maxSampleSkip) : 1)
+            {
+                /** @type {float} */ var err = Math.min(
+                                       compareToNeighbor(4, params, rnd, readUnorm8(4, refAccess, x, y), cmpAccess, x, y),
+                                       compareToNeighbor(4, params, rnd, readUnorm8(4, cmpAccess, x, y), refAccess, x, y));
+
+                err = Math.pow(err, params.errExp);
+
+                errSum += err;
+                numSamples += 1;
+
+                // Build error image.
+                /** @type {float} */ var red = err * 500.0;
+                /** @type {float} */ var luma = toGrayscale(cmp.getPixel(x, y));
+                /** @type {float} */ var rF = 0.7 + 0.3 * luma;
+                errorMask.setPixel([red * rF, (1.0 - red) * rF, 0.0, 1.0], x, y);
+            }
+        }
+
+        // Scale error sum based on number of samples taken
+        errSum *= ((width - 2) * (height - 2)) / numSamples;
+
+        return errSum;
     }
-};
+});
