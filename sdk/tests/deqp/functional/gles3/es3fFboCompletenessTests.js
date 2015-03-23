@@ -151,7 +151,7 @@ define([
         }
         
         this.check = (function(attPoint, attachment, image) {
-            
+            // TODO
         });
         
     });
