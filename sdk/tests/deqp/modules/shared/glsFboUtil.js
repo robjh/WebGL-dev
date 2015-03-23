@@ -1,8 +1,6 @@
 
 // glsFBOU
-define([
-    'modules/shared/glsFboUtil.js'
-], function(glsFBOU) {
+define([], function() {
     'use strict';
     
     var remove_from_array = (function(array, value) {
@@ -78,7 +76,7 @@ define([
     return {
         range:                  range,
         formatkey:              formatkey,
-        GLS_UNSIGNED_FORMATKEY: formatkey,
+        GLS_UNSIZED_FORMATKEY:  formatkey,
         FormatFlags:            FormatFlags,
         Checker:                Checker
     };
