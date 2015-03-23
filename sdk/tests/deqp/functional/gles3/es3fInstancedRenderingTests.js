@@ -1,3 +1,23 @@
+/*-------------------------------------------------------------------------
+ * drawElements Quality Program OpenGL ES Utilities
+ * ------------------------------------------------
+ *
+ * Copyright 2014 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
 define([
     'framework/opengl/gluShaderUtil',
     'framework/opengl/gluShaderProgram',
@@ -355,7 +375,7 @@ define([
                         this.m_instanceOffsets.push(0.0);
                 }
 
-                /** @type {integer} */ var rInstances = this.m_numInstances / ATTRIB_DIVISOR_R + (this.m_numInstances % ATTRIB_DIVISOR_R == 0 ? 0 : 1);
+                /** @type {integer} */ var rInstances = Math.floor(this.m_numInstances / ATTRIB_DIVISOR_R) + (this.m_numInstances % ATTRIB_DIVISOR_R == 0 ? 0 : 1);
                 for (var i = 0; i < rInstances; i++)
                 {
                     this.pushVarCompAttrib(this.m_instanceColorR, i / rInstances);
@@ -365,7 +385,7 @@ define([
                 }
             }
 
-            /** @type {integer} */ var gInstances = this.m_numInstances / ATTRIB_DIVISOR_G + (this.m_numInstances % ATTRIB_DIVISOR_G == 0 ? 0 : 1);
+            /** @type {integer} */ var gInstances = Math.floor(this.m_numInstances / ATTRIB_DIVISOR_G) + (this.m_numInstances % ATTRIB_DIVISOR_G == 0 ? 0 : 1);
             for (var i = 0; i < gInstances; i++)
             {
                 this.pushVarCompAttrib(this.m_instanceColorG, i * 2.0 / gInstances);
@@ -374,7 +394,7 @@ define([
                     this.pushVarCompAttrib(this.m_instanceColorG, 0.0);
             }
 
-            /** @type {integer} */ var bInstances = this.m_numInstances / ATTRIB_DIVISOR_B + (this.m_numInstances % ATTRIB_DIVISOR_B == 0 ? 0 : 1);
+            /** @type {integer} */ var bInstances = Math.floor(this.m_numInstances / ATTRIB_DIVISOR_B) + (this.m_numInstances % ATTRIB_DIVISOR_B == 0 ? 0 : 1);
             for (var i = 0; i < bInstances; i++)
             {
                 this.pushVarCompAttrib(this.m_instanceColorB, 1.0 - i / bInstances);
@@ -505,7 +525,7 @@ define([
         if (this.m_function == DrawFunction.FUNCTION_DRAW_ARRAYS_INSTANCED)
         {
             /** @type {integer} */ var numPositionComponents = 2;
-            gl.drawArraysInstanced(gl.TRIANGLES, 0, (this.m_gridVertexPositions.length / numPositionComponents), this.m_numInstances);
+            gl.drawArraysInstanced(gl.TRIANGLES, 0, Math.floor(this.m_gridVertexPositions.length / numPositionComponents), this.m_numInstances);
         }
         else
             gl.drawElementsInstanced(gl.TRIANGLES, this.m_gridIndices.length, gl.UNSIGNED_SHORT, this.m_gridIndices[0], this.m_numInstances);
@@ -526,18 +546,18 @@ define([
 
         for (var instanceNdx = 0; instanceNdx < this.m_numInstances; instanceNdx++)
         {
-            /** @type {integer} */ var xStart = instanceNdx * wid / this.m_numInstances;
-            /** @type {integer} */ var xEnd = (instanceNdx + 1) * wid / this.m_numInstances;
+            /** @type {integer} */ var xStart = Math.floor(instanceNdx * wid / this.m_numInstances);
+            /** @type {integer} */ var xEnd = Math.floor((instanceNdx + 1) * wid / this.m_numInstances);
 
             // Emulate attribute divisors if that is the case.
 
-            /** @type {integer} */ var clrNdxR = this.m_instancingType == InstancingType.TYPE_ATTRIB_DIVISOR ? instanceNdx / ATTRIB_DIVISOR_R : instanceNdx;
-            /** @type {integer} */ var clrNdxG = this.m_instancingType == InstancingType.TYPE_ATTRIB_DIVISOR || this.m_instancingType == InstancingType.TYPE_MIXED ? instanceNdx / ATTRIB_DIVISOR_G : instanceNdx;
-            /** @type {integer} */ var clrNdxB = this.m_instancingType == InstancingType.TYPE_ATTRIB_DIVISOR || this.m_instancingType == InstancingType.TYPE_MIXED ? instanceNdx / ATTRIB_DIVISOR_B : instanceNdx;
+            /** @type {integer} */ var clrNdxR = this.m_instancingType == InstancingType.TYPE_ATTRIB_DIVISOR ? Math.floor(instanceNdx / ATTRIB_DIVISOR_R) : instanceNdx;
+            /** @type {integer} */ var clrNdxG = this.m_instancingType == InstancingType.TYPE_ATTRIB_DIVISOR || this.m_instancingType == InstancingType.TYPE_MIXED ? Math.floor(instanceNdx / ATTRIB_DIVISOR_G) : instanceNdx;
+            /** @type {integer} */ var clrNdxB = this.m_instancingType == InstancingType.TYPE_ATTRIB_DIVISOR || this.m_instancingType == InstancingType.TYPE_MIXED ? Math.floor(instanceNdx / ATTRIB_DIVISOR_B) : instanceNdx;
 
-            /** @type {integer} */ var rInstances = this.m_instancingType == InstancingType.TYPE_ATTRIB_DIVISOR ? this.m_numInstances / ATTRIB_DIVISOR_R + (this.m_numInstances % ATTRIB_DIVISOR_R == 0 ? 0 : 1) : this.m_numInstances;
-            /** @type {integer} */ var gInstances = this.m_instancingType == InstancingType.TYPE_ATTRIB_DIVISOR || this.m_instancingType == InstancingType.TYPE_MIXED ? this.m_numInstances / ATTRIB_DIVISOR_G + (this.m_numInstances % ATTRIB_DIVISOR_G == 0 ? 0 : 1) : this.m_numInstances;
-            /** @type {integer} */ var bInstances = this.m_instancingType == InstancingType.TYPE_ATTRIB_DIVISOR || this.m_instancingType == InstancingType.TYPE_MIXED ? this.m_numInstances / ATTRIB_DIVISOR_B + (this.m_numInstances % ATTRIB_DIVISOR_B == 0 ? 0 : 1) : this.m_numInstances;
+            /** @type {integer} */ var rInstances = this.m_instancingType == InstancingType.TYPE_ATTRIB_DIVISOR ? Math.floor(this.m_numInstances / ATTRIB_DIVISOR_R) + (this.m_numInstances % ATTRIB_DIVISOR_R == 0 ? 0 : 1) : this.m_numInstances;
+            /** @type {integer} */ var gInstances = this.m_instancingType == InstancingType.TYPE_ATTRIB_DIVISOR || this.m_instancingType == InstancingType.TYPE_MIXED ? Math.floor(this.m_numInstances / ATTRIB_DIVISOR_G) + (this.m_numInstances % ATTRIB_DIVISOR_G == 0 ? 0 : 1) : this.m_numInstances;
+            /** @type {integer} */ var bInstances = this.m_instancingType == InstancingType.TYPE_ATTRIB_DIVISOR || this.m_instancingType == InstancingType.TYPE_MIXED ? Math.floor(this.m_numInstances / ATTRIB_DIVISOR_B) + (this.m_numInstances % ATTRIB_DIVISOR_B == 0 ? 0 : 1) : this.m_numInstances;
 
             // Calculate colors.
 
