@@ -391,7 +391,7 @@ ProgramLibrary.prototype.getProgram = function(program) {
         '    ${FRAG_COLOR} = ${LOOKUP} * u_colorScale + u_colorBias;\n' +
         '}\n';
 
-    var params = new Map();
+    var params = [];
 
     var isCube = deMath.deInRange32(program, programType.PROGRAM_CUBE_FLOAT, programType.PROGRAM_CUBE_SHADOW_BIAS);
     var isArray = deMath.deInRange32(program, programType.PROGRAM_2D_ARRAY_FLOAT, programType.PROGRAM_2D_ARRAY_SHADOW)
@@ -409,12 +409,12 @@ ProgramLibrary.prototype.getProgram = function(program) {
     var isBuffer = deMath.deInRange32(program, programType.PROGRAM_BUFFER_FLOAT, programType.PROGRAM_BUFFER_UINT);
 
     if (this.m_glslVersion == '100 es') {
-        params.set('FRAG_HEADER', '');
-        params.set('VTX_HEADER', '');
-        params.set('VTX_IN', 'attribute');
-        params.set('VTX_OUT', 'varying');
-        params.set('FRAG_IN', 'varying');
-        params.set('FRAG_COLOR', 'gl_FragColor');
+        params['FRAG_HEADER'] =  '';
+        params['VTX_HEADER'] =  '';
+        params['VTX_IN'] =  'attribute';
+        params['VTX_OUT'] =  'varying';
+        params['FRAG_IN'] =  'varying';
+        params['FRAG_COLOR'] =  'gl_FragColor';
     } else if (this.m_glslVersion == '300 es' || this.m_glslVersion == '310 es' || this.m_glslVersion == '330') {
         var ext = null;
 
@@ -427,25 +427,25 @@ ProgramLibrary.prototype.getProgram = function(program) {
         if (ext)
             extension = '\n#extension ' + ext + ' : require';
 
-        params.set('FRAG_HEADER', '#version ' + this.m_glslVersion + extension + '\nlayout(location = 0) out mediump vec4 dEQP_FragColor;\n');
-        params.set('VTX_HEADER', '#version ' + this.m_glslVersion + '\n');
-        params.set('VTX_IN', 'in');
-        params.set('VTX_OUT', 'out');
-        params.set('FRAG_IN', 'in');
-        params.set('FRAG_COLOR', 'dEQP_FragColor');
+        params['FRAG_HEADER'] =  '#version ' + this.m_glslVersion + extension + '\nlayout(location = 0) out mediump vec4 dEQP_FragColor;\n';
+        params['VTX_HEADER'] =  '#version ' + this.m_glslVersion + '\n';
+        params['VTX_IN'] =  'in';
+        params['VTX_OUT'] =  'out';
+        params['FRAG_IN'] =  'in';
+        params['FRAG_COLOR'] =  'dEQP_FragColor';
     } else
         throw new Error('Unsupported version: ' + this.m_glslVersion);
 
-    params.set('PRECISION', gluShaderUtil.getPrecisionName(this.m_texCoordPrecision));
+    params['PRECISION'] =  gluShaderUtil.getPrecisionName(this.m_texCoordPrecision);
 
     if (isCubeArray)
-        params.set('TEXCOORD_TYPE', 'vec4');
+        params['TEXCOORD_TYPE'] =  'vec4';
     else if (isCube || (is2D && isArray) || is3D)
-        params.set('TEXCOORD_TYPE', 'vec3');
+        params['TEXCOORD_TYPE'] =  'vec3';
     else if ((is1D && isArray) || is2D)
-        params.set('TEXCOORD_TYPE', 'vec2');
+        params['TEXCOORD_TYPE'] =  'vec2';
     else if (is1D)
-        params.set('TEXCOORD_TYPE', 'float');
+        params['TEXCOORD_TYPE'] =  'float';
     else
         DE_ASSERT(false);
 
@@ -516,8 +516,8 @@ ProgramLibrary.prototype.getProgram = function(program) {
     } else
         DE_ASSERT(!'Unsupported version');
 
-    params.set('SAMPLER_TYPE', sampler);
-    params.set('LOOKUP', lookup);
+    params['SAMPLER_TYPE'] =  sampler;
+    params['LOOKUP'] =  lookup;
 
     var vertSrc = tcuStringTemplate.specialize(vertShaderTemplate, params);
     var fragSrc = tcuStringTemplate.specialize(fragShaderTemplate, params);

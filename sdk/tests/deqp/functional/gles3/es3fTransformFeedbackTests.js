@@ -1706,7 +1706,7 @@ define([
             for (var i = 0; i < tfVaryings.length; i++)
                 this.m_progSpec.addTransformFeedbackVarying(tfVaryings[i]);
 
-            parent.init();
+            parent.init.call(this);
         
         });
     });
