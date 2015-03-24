@@ -89,6 +89,7 @@ define([
      * @param {gluVT.VarType} type
      * @param {number} interpolation
      * @return {Object}
+     * @constructor
      */
     var Varying = (function(name, type, interpolation) {
         this.name = name;
@@ -116,6 +117,7 @@ define([
      * @param {string} name
      * @param {gluVT.VarType} type
      * @param {number} offset
+     * @constructor
      */
     var Attribute = (function(name, type, offset) {
         this.name = name;
@@ -125,6 +127,7 @@ define([
 
     /**
      * Constructs an Output object
+     * @constructor
      */
     var Output = (function() {
         /** @type {number}            */ this.bufferNdx = 0;
@@ -140,13 +143,16 @@ define([
      * It's a struct, but as occurs in Varying, is invoked in the C++ version as a function.
      * @param {number} numElements
      * @param {boolean} tfEnabled is Transform Feedback enabled or not
+     * @constructor
      */
     var DrawCall = (function(numElements, tfEnabled) {
         this.numElements = numElements;
         this.transformFeedbackEnabled = tfEnabled;
     });
 
-    // it's a class
+    /**
+     * @constructor
+     */
     var ProgramSpec = (function() {
 
     /** @type {Array.<gluVT.StructType>} */ var m_structs = [];
@@ -864,6 +870,7 @@ define([
      * @param {string} desc
      * @param {number} bufferMode
      * @param {deqpDraw.primitiveType} primitiveType GLenum that specifies what kind of primitive is
+     * @constructor
      */
     var TransformFeedbackCase = (function(context, name, desc, bufferMode, primitiveType) {
 
@@ -1389,6 +1396,7 @@ define([
      * @param {string} desc
      * @param {number} bufferMode
      * @param {deqpDraw.primitiveType} primitiveType GLenum that specifies what kind of primitive is
+     * @constructor
      */
     var PositionCase = (function(context, name, desc, bufferMode, primitiveType) {
 
@@ -1406,6 +1414,7 @@ define([
      * @param {string} desc
      * @param {number} bufferMode
      * @param {deqpDraw.primitiveType} primitiveType GLenum that specifies what kind of primitive is
+     * @constructor
      */
     var PointSizeCase = (function(context, name, desc, bufferMode, primitiveType) {
 
@@ -1426,6 +1435,7 @@ define([
      * @param {gluVT.VarType} type
      * @param {deqpUtils.precision} precision
      * @param {interpolation} interpolation enum number in this javascript
+     * @constructor
      */
     var BasicTypeCase = (function(context, name, desc, bufferMode, primitiveType, type, precision, interpolation) {
 
@@ -1451,6 +1461,7 @@ define([
      * @param {gluVT.VarType} type
      * @param {deqpUtils.precision} precision
      * @param {interpolation} interpolation enum number in this javascript
+     * @constructor
      */
     var BasicArrayCase = (function(context, name, desc, bufferMode, primitiveType, type, precision, interpolation) {
 
@@ -1487,6 +1498,7 @@ define([
      * @param {gluVT.VarType} type
      * @param {deqpUtils.precision} precision
      * @param {interpolation} interpolation enum number in this javascript
+     * @constructor
      */
     var ArrayElementCase = (function(context, name, desc, bufferMode, primitiveType, type, precision, interpolation) {
 
@@ -1511,13 +1523,14 @@ define([
      * @param {number} bufferMode
      * @param {deqpDraw.primitiveType} primitiveType GLenum that specifies what kind of primitive is
      * @param {number} seed
+     * @constructor
      */
     var RandomCase = (function(context, name, desc, bufferMode, primitiveType, seed) {
 
         this._construct(context, name, desc, bufferMode, primitiveType);
 
         var parent = {
-            init: this.init,
+            init: this.init
         };
         
         this.init = (function() {

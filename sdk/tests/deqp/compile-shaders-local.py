@@ -112,7 +112,7 @@ def compileJavaScript(file, whitespaceCompilation, simpleCompilation, advancedCo
         writeOutputAmendFile(outputCompilerFile, cmdInput)
         
     if advancedCompilation==True:
-        cmdInput= "java -jar compiler.jar --compilation_level ADVANCED_OPTIMIZATIONS --js " + file + " --warning_level VERBOSE"
+        cmdInput= "java -jar compiler.jar --compilation_level ADVANCED_OPTIMIZATIONS --js " + common_deps + " " + file + " --transform_amd_modules --warning_level VERBOSE"
         with open(outputCompilerFile, "a") as out_file:
             out_file.write("\n" + "\n"+ "------------------------------------------" + "\n")
             out_file.write("COMPILATION LEVEL: ADVANCED_OPTIMIZATIONS" + "\n")
@@ -138,9 +138,9 @@ def writeOutputAmendFile(outputCompilerFile, cmdInput):
 
 
 #main program
-whitespace= True # WHITESPACE_ONLY
-simple= True # SIMPLE_OPTIMIZATIONS
-advanced= False # ADVANCED_OPTIMIZATIONS
+whitespace= False # WHITESPACE_ONLY
+simple= False # SIMPLE_OPTIMIZATIONS
+advanced= True # ADVANCED_OPTIMIZATIONS
 if (len(argv[1:]) > 0):
     for filepath in argv[1:]:
         compileJavaScript(filepath, whitespace, simple, advanced)
