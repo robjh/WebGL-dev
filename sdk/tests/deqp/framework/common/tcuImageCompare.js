@@ -18,7 +18,7 @@
  *
  */
 
-define(['framework/common/tcuSurface', 'framework/delibs/debase/deMath', 'framework/common/tcuTexture'], function(tcuSurface, deMath, tcuTexture) {
+define(['framework/common/tcuSurface', 'framework/delibs/debase/deMath', 'framework/common/tcuTexture', 'framework/common/tcuFuzzyImageCompare'], function(tcuSurface, deMath, tcuTexture, tcuFuzzyImageCompare) {
 
 var CompareLogMode = {
     EVERYTHING: 0,
@@ -330,13 +330,79 @@ var pixelThresholdCompare = function(/*const char* */imageSetName, /*const char*
     return intThresholdCompare(imageSetName, imageSetDesc, reference.getAccess(), result.getAccess(), threshold, logMode);
 };
 
+ /** fuzzyCompare
+  * @param {string} imageSetName
+  * @param {string} imageSetDesc
+  * @param {tcuTexture.ConstPixelBufferAccess} reference
+  * @param {tcuTexture.ConstPixelBufferAccess} result
+  * @param {float} threshold
+  * @param {deqpUtils.CompareLogMode} logMode
+  * @return {boolean}
+  */
+var fuzzyCompare = function(imageSetName, imageSetDesc, reference, result, threshold, logMode)
+{
+    /** @type {FuzzyCompareParams} */ var params = new FuzzyCompareParams(); // Use defaults.
+    /** @type {TextureLevel} */ var errorMask = tcuTexture.TextureLevel(
+                                                                TextureFormat(tcuTexture.ChannelOrder.RGB,
+                                                                              tcuTexture.ChannelType.UNORM_INT8),
+                                                                reference.getWidth(),
+                                                                reference.getHeight()
+                                                           );
+    /** @type {float} */ var difference = tcuFuzzyImageCompare.fuzzyCompare(
+                                                                params,
+                                                                reference,
+                                                                result,
+                                                                errorMask.getAccess()
+                                                               );
+    /** @type {boolean} */ var isOk = difference <= threshold;
+    /** @type {Array<float>} */ var pixelBias [0.0, 0.0, 0.0, 0.0];
+    /** @type {Array<float>} */ var pixelScale [1.0, 1.0, 1.0, 1.0];
+
+    if (!isOk) {
+        debug('Fuzzy image comparison failed: difference = ' + difference + ', threshold = ' + threshold);
+        displayImages(result, reference, errorMask.getAccess());
+    }
+
+    /*
+    if (!isOk || logMode == COMPARE_LOG_EVERYTHING)
+    {
+        // Generate more accurate error mask.
+        params.maxSampleSkip = 0;
+        fuzzyCompare(params, reference, result, errorMask.getAccess());
+
+        if (result.getFormat() != TextureFormat(TextureFormat::RGBA, TextureFormat::UNORM_INT8) && reference.getFormat() != TextureFormat(TextureFormat::RGBA, TextureFormat::UNORM_INT8))
+            computeScaleAndBias(reference, result, pixelScale, pixelBias);
+
+        if (!isOk)
+            log << TestLog::Message << "Image comparison failed: difference = " << difference << ", threshold = " << threshold << TestLog::EndMessage;
+
+        log << TestLog::ImageSet(imageSetName, imageSetDesc)
+            << TestLog::Image("Result",		"Result",		result,		pixelScale, pixelBias)
+            << TestLog::Image("Reference",	"Reference",	reference,	pixelScale, pixelBias)
+            << TestLog::Image("ErrorMask",	"Error mask",	errorMask)
+            << TestLog::EndImageSet;
+    }
+    else if (logMode == COMPARE_LOG_RESULT)
+    {
+        if (result.getFormat() != TextureFormat(TextureFormat::RGBA, TextureFormat::UNORM_INT8))
+            computePixelScaleBias(result, pixelScale, pixelBias);
+
+        log << TestLog::ImageSet(imageSetName, imageSetDesc)
+            << TestLog::Image("Result",		"Result",		result, pixelScale, pixelBias)
+            << TestLog::EndImageSet;
+    }
+    */
+    return isOk;
+}
+
 return {
     CompareLogMode: CompareLogMode,
     pixelThresholdCompare: pixelThresholdCompare,
     floatUlpThresholdCompare: floatUlpThresholdCompare,
     floatThresholdCompare: floatThresholdCompare,
-    intThresholdCompare: intThresholdCompare
-    
+    intThresholdCompare: intThresholdCompare,
+    fuzzyCompare: fuzzyCompare
+
 };
 
 });

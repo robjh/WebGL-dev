@@ -98,8 +98,8 @@ define([
     var GLU_CHECK_ERROR = function(ERR)            {GLU_EXPECT_NO_ERROR(ERR, DE_NULL)};
     var GLU_CHECK_MSG = function(MSG)              {GLU_EXPECT_NO_ERROR(function() {return gl.getError();}, MSG)};
     var GLU_CHECK = function()                     {GLU_CHECK_MSG(DE_NULL)};
-    var GLU_CHECK_CALL_ERROR = function(CALL, ERR) {do { CALL(); GLU_EXPECT_NO_ERROR(ERR, CALL.toString()); } while (deGetFalse())};
-    var GLU_CHECK_CALL = function(CALL)             {do { CALL(); GLU_EXPECT_NO_ERROR(function() {return gl.getError();}, CALL.toString()); } while (deGetFalse())};
+    var GLU_CHECK_CALL_ERROR = function(CALL, ERR) {CALL(); GLU_EXPECT_NO_ERROR(ERR, CALL.toString()); };
+    var GLU_CHECK_CALL = function(CALL)            {CALL(); GLU_EXPECT_NO_ERROR(function() {return gl.getError();}, CALL.toString()); };
 
     return {
         GLU_CHECK_CALL: GLU_CHECK_CALL
