@@ -123,6 +123,7 @@ var getSubregion = function(access, x, y, z, width, height, depth) {
         depth: depth,
         rowPitch: access.getRowPitch(),
         slicePitch: access.getSlicePitch(),
+     // TODO: change data, implement offset in tcuTexture.ConstPixelBufferAccess
         data: access.getDataPtr() + access.getFormat().getPixelSize() * x + access.getRowPitch() * y + access.getSlicePitch() * z
         });
 
@@ -361,7 +362,10 @@ var getTextureFormatBitDepth = function(format) {
 };
 
 return {
+    getTextureChannelClass: getTextureChannelClass,
+    getSubregion: getSubregion,
     fillWithComponentGradients: fillWithComponentGradients,
+    select: select,
     getTextureFormatInfo: getTextureFormatInfo,
     getChannelBitDepth: getChannelBitDepth,
     getTextureFormatBitDepth: getTextureFormatBitDepth

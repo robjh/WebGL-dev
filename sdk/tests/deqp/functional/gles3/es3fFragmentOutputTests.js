@@ -214,10 +214,12 @@ function(
 
         vtx += '}\n';
         frag += '}\n';
-
+        // vtx = 'void main() { gl_Position = vec4(0.0, 1.0, 1.0, 1.0);}'; // simple vertex shader to run on WebGL 1.0
+        // frag = 'void main() { gl_FragColor = vec4(0.0, 1.0, 1.0, 1.0);}'; // simple fragment shader to run on WebGL 1.0
+        
         /** @type {deqpProgram.ShaderProgram} */
         var program = new deqpProgram.ShaderProgram(gl, deqpProgram.makeVtxFragSources(vtx, frag));
-        // bufferedLogToConsole(program);
+        console.log(program);
         return program;
     };
 
@@ -256,14 +258,13 @@ function(
 
         // Create framebuffer.
         this.m_renderbuffers.length = this.m_fboSpec.length; // m_renderbuffers only used here in init()
-
         gl.genFramebuffers(1, this.m_framebuffer);
-        gl.genRenderbuffers(this.m_framebuffer.length, this.m_framebuffer);
+        gl.genRenderbuffers(this.m_renderbuffers.length, this.m_renderbuffers);
         gl.bindFramebuffer(gl.FRAMEBUFFER, this.m_framebuffer);
 
-        for (var bufNdx = 0; bufNdx < this.m_framebuffer.length; bufNdx++)
+        for (var bufNdx = 0; bufNdx < this.m_renderbuffers.length; bufNdx++)
         {
-            /** @type {boolean} */ var rbo = this.m_framebuffer[bufNdx];
+            /** @type {boolean} */ var rbo = this.m_renderbuffers[bufNdx];
             /** @type {BufferSpec} */ var bufSpec = this.m_fboSpec[bufNdx];
             /** @type {number} */ var attachment = gl.COLOR_ATTACHMENT0 + bufNdx;
 
@@ -566,7 +567,7 @@ function(
             /** @type {number} */ var attachmentH = m_fboSpec[ndx].height;
 
             drawBuffers[ndx] = gl.COLOR_ATTACHMENT0 + ndx;
-            attachments[ndx] = new AttachmentData;
+            attachments[ndx] = new AttachmentData();
             attachments[ndx].format = texFmt;
             attachments[ndx].readFormat = readFmt;
             attachments[ndx].referenceFormat = refFmt;
@@ -1445,7 +1446,7 @@ function(
             }
         }
 
-        debug('fragment output test: Tests created');
+        debug('Fragment Output Tests: Tests created');
 
      /*// .random
         {
@@ -1481,8 +1482,8 @@ function(
             deqpTests.runTestCases();
         } catch (err) {
             testFailedOptions('Failed to run tests', false);
-            // console.log(err);
-            bufferedLogToConsole(err);
+            console.log(err);
+            // bufferedLogToConsole(err);
             deqpTests.runner.terminate();
         }
 
