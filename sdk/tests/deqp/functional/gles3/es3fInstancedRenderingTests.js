@@ -427,6 +427,7 @@ define([
 
         this.setupAndRender();
 
+        //TODO: validate readPixels()
         deqpUtils.readPixels(this.m_context.getRenderContext(), xOffset, yOffset, resultImg.getAccess());
 
         // Compute reference.
@@ -496,7 +497,11 @@ define([
             // Position attribute is non-instanced.
             /** @type {integer} */ var positionLoc = gl.getAttribLocation(program, 'a_position');
             gl.enableVertexAttribArray(positionLoc);
-            gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, GL_FALSE, 0, this.m_gridVertexPositions[0]);
+            var positionBuffer = gl.createBuffer();
+            var bufferGridVertexPosition = new Float32Array(this.m_gridVertexPositions);
+            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, bufferGridVertexPosition, gl.STATIC_DRAW);
+            gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, GL_FALSE, 0, 0);
 
             if (this.m_instancingType == InstancingType.TYPE_ATTRIB_DIVISOR || this.m_instancingType == InstancingType.TYPE_MIXED)
             {
@@ -506,7 +511,7 @@ define([
                     /** @type {integer} */ var offsetLoc = gl.getAttribLocation(program, 'a_instanceOffset');
                     gl.enableVertexAttribArray(offsetLoc);
                     gl.vertexAttribDivisor(offsetLoc, 1);
-                    gl.vertexAttribPointer(offsetLoc, OFFSET_COMPONENTS, gl.FLOAT, GL_FALSE, 0, this.m_instanceOffsets[0]);
+                    gl.vertexAttribPointer(offsetLoc, OFFSET_COMPONENTS, gl.FLOAT, GL_FALSE, 0, this.m_instanceOffsets);
 
                     /** @type {integer} */ var rLoc = gl.getAttribLocation(program, 'a_instanceR');
                     this.setupVarAttribPointer(this.m_instanceColorR[0].u32, rLoc, ATTRIB_DIVISOR_R);
@@ -528,9 +533,11 @@ define([
             gl.drawArraysInstanced(gl.TRIANGLES, 0, Math.floor(this.m_gridVertexPositions.length / numPositionComponents), this.m_numInstances);
         }
         else
-            gl.drawElementsInstanced(gl.TRIANGLES, this.m_gridIndices.length, gl.UNSIGNED_SHORT, this.m_gridIndices[0], this.m_numInstances);
-
-        gl.useProgram(0);
+        {
+            gl.drawElementsInstanced(gl.TRIANGLES, this.m_gridIndices.length, gl.UNSIGNED_SHORT, 0, this.m_numInstances);
+            // drawElementsInstanced(GLenum mode , GLsizei count            , GLenum type      , GLintptr offset      , GLsizei instanceCount)
+        }
+        gl.useProgram(null);
     };
 
 
