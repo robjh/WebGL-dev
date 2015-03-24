@@ -1,16 +1,38 @@
+/*-------------------------------------------------------------------------
+ * drawElements Quality Program OpenGL ES Utilities
+ * ------------------------------------------------
+ *
+ * Copyright 2014 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
 define([
     'framework/opengl/gluShaderUtil',
     'framework/opengl/gluShaderProgram',
     'framework/common/tcuTestCase',
     'framework/common/tcuSurface',
     'framework/delibs/debase/deString',
-    'framework/delibs/debase/deRandom'], function(
+    'framework/delibs/debase/deRandom',
+    'framework/common/tcuImageCompare'], function(
         deqpUtils,
         gluSP,
         deqpTests,
         tcuSurface,
         deString,
-        deRandom) {
+        deRandom,
+        tcuImageCompare) {
     'use strict';
 
     /** @const @type {number} */ var MAX_RENDER_WIDTH = 128;
@@ -177,8 +199,7 @@ define([
             {
                 posExpression = 'a_position + vec4(a_instanceOffset';
 
-                // TODO: validate
-                //DE_STATIC_ASSERT(OFFSET_COMPONENTS >= 1 && OFFSET_COMPONENTS <= 4);
+                DE_STATIC_ASSERT(OFFSET_COMPONENTS >= 1 && OFFSET_COMPONENTS <= 4);
 
                 for (var i = 0; i < 4 - OFFSET_COMPONENTS; i++)
                     posExpression += ', 0.0';
@@ -263,8 +284,8 @@ define([
 
         //tcu::TestLog& log = this.m_testCtx.getLog();
         //log << *m_program;
-        // TODO: bufferedLogToConsole? how?
-        bufferedLogToConsole(this.m_program);
+        // TODO: bufferedLogToConsole?
+        //bufferedLogToConsole(this.m_program);
 
         if (!this.m_program.isOk())
             TCU_FAIL('Failed to compile shader');
@@ -355,7 +376,7 @@ define([
                         this.m_instanceOffsets.push(0.0);
                 }
 
-                /** @type {integer} */ var rInstances = this.m_numInstances / ATTRIB_DIVISOR_R + (this.m_numInstances % ATTRIB_DIVISOR_R == 0 ? 0 : 1);
+                /** @type {integer} */ var rInstances = Math.floor(this.m_numInstances / ATTRIB_DIVISOR_R) + (this.m_numInstances % ATTRIB_DIVISOR_R == 0 ? 0 : 1);
                 for (var i = 0; i < rInstances; i++)
                 {
                     this.pushVarCompAttrib(this.m_instanceColorR, i / rInstances);
@@ -365,7 +386,7 @@ define([
                 }
             }
 
-            /** @type {integer} */ var gInstances = this.m_numInstances / ATTRIB_DIVISOR_G + (this.m_numInstances % ATTRIB_DIVISOR_G == 0 ? 0 : 1);
+            /** @type {integer} */ var gInstances = Math.floor(this.m_numInstances / ATTRIB_DIVISOR_G) + (this.m_numInstances % ATTRIB_DIVISOR_G == 0 ? 0 : 1);
             for (var i = 0; i < gInstances; i++)
             {
                 this.pushVarCompAttrib(this.m_instanceColorG, i * 2.0 / gInstances);
@@ -374,7 +395,7 @@ define([
                     this.pushVarCompAttrib(this.m_instanceColorG, 0.0);
             }
 
-            /** @type {integer} */ var bInstances = this.m_numInstances / ATTRIB_DIVISOR_B + (this.m_numInstances % ATTRIB_DIVISOR_B == 0 ? 0 : 1);
+            /** @type {integer} */ var bInstances = Math.floor(this.m_numInstances / ATTRIB_DIVISOR_B) + (this.m_numInstances % ATTRIB_DIVISOR_B == 0 ? 0 : 1);
             for (var i = 0; i < bInstances; i++)
             {
                 this.pushVarCompAttrib(this.m_instanceColorB, 1.0 - i / bInstances);
@@ -406,6 +427,7 @@ define([
 
         this.setupAndRender();
 
+        //TODO: validate readPixels()
         deqpUtils.readPixels(this.m_context.getRenderContext(), xOffset, yOffset, resultImg.getAccess());
 
         // Compute reference.
@@ -413,8 +435,9 @@ define([
         this.computeReference(referenceImg);
 
         // Compare.
-        //TODO: is fuzzyCompare implemented?
-        /** @type {boolean} */ var testOk = deqpUtils.fuzzyCompare(this.m_testCtx.getLog(), 'ComparisonResult', 'Image comparison result', referenceImg, resultImg, 0.05, deqpUtils.COMPARE_LOG_RESULT);
+
+        // Passing referenceImg.getAccess() and resultImg.getAccess() instead of referenceImg and resultImg
+        /** @type {boolean} */ var testOk = tcuImageCompare.fuzzyCompare(this.m_testCtx.getLog(), 'ComparisonResult', 'Image comparison result', referenceImg.getAccess(), resultImg.getAccess(), 0.05, deqpUtils.COMPARE_LOG_RESULT);
 
         this.m_testCtx.setTestResult(testOk ? QP_TEST_RESULT_PASS : QP_TEST_RESULT_FAIL,
                                     testOk ? 'Pass' : 'Fail');
@@ -444,7 +467,6 @@ define([
             gl.enableVertexAttribArray(curLoc);
             gl.vertexAttribDivisor(curLoc, divisor);
             //TODO: where is the implementation for GL_FALSE?
-            //TODO: how does attrPtr fit in here?
             if (isFloatCase)
                 gl.vertexAttribPointer(curLoc, typeSize, gl.FLOAT, GL_FALSE, 0, attrPtr);
             else if (isIntCase)
@@ -455,8 +477,7 @@ define([
             {
                 /** @type {integer} */ var numRows = deqpUtils.getDataTypeMatrixNumRows(this.m_rgbAttrType);
                 /** @type {integer} */ var numCols = deqpUtils.getDataTypeMatrixNumColumns(this.m_rgbAttrType);
-                //TODO: sizeof()?
-                gl.vertexAttribPointer(curLoc, numRows, gl.FLOAT, GL_FALSE, numCols * numRows * sizeof(float), attrPtr);
+                gl.vertexAttribPointer(curLoc, numRows, gl.FLOAT, GL_FALSE, numCols * numRows * 4, attrPtr); //sizeof(float) = 4
             }
             else
                 DE_ASSERT(DE_FALSE);
@@ -476,7 +497,11 @@ define([
             // Position attribute is non-instanced.
             /** @type {integer} */ var positionLoc = gl.getAttribLocation(program, 'a_position');
             gl.enableVertexAttribArray(positionLoc);
-            gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, GL_FALSE, 0, this.m_gridVertexPositions[0]);
+            var positionBuffer = gl.createBuffer();
+            var bufferGridVertexPosition = new Float32Array(this.m_gridVertexPositions);
+            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, bufferGridVertexPosition, gl.STATIC_DRAW);
+            gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, GL_FALSE, 0, 0);
 
             if (this.m_instancingType == InstancingType.TYPE_ATTRIB_DIVISOR || this.m_instancingType == InstancingType.TYPE_MIXED)
             {
@@ -486,7 +511,7 @@ define([
                     /** @type {integer} */ var offsetLoc = gl.getAttribLocation(program, 'a_instanceOffset');
                     gl.enableVertexAttribArray(offsetLoc);
                     gl.vertexAttribDivisor(offsetLoc, 1);
-                    gl.vertexAttribPointer(offsetLoc, OFFSET_COMPONENTS, gl.FLOAT, GL_FALSE, 0, this.m_instanceOffsets[0]);
+                    gl.vertexAttribPointer(offsetLoc, OFFSET_COMPONENTS, gl.FLOAT, GL_FALSE, 0, this.m_instanceOffsets);
 
                     /** @type {integer} */ var rLoc = gl.getAttribLocation(program, 'a_instanceR');
                     this.setupVarAttribPointer(this.m_instanceColorR[0].u32, rLoc, ATTRIB_DIVISOR_R);
@@ -505,12 +530,14 @@ define([
         if (this.m_function == DrawFunction.FUNCTION_DRAW_ARRAYS_INSTANCED)
         {
             /** @type {integer} */ var numPositionComponents = 2;
-            gl.drawArraysInstanced(gl.TRIANGLES, 0, (this.m_gridVertexPositions.length / numPositionComponents), this.m_numInstances);
+            gl.drawArraysInstanced(gl.TRIANGLES, 0, Math.floor(this.m_gridVertexPositions.length / numPositionComponents), this.m_numInstances);
         }
         else
-            gl.drawElementsInstanced(gl.TRIANGLES, this.m_gridIndices.length, gl.UNSIGNED_SHORT, this.m_gridIndices[0], this.m_numInstances);
-
-        gl.useProgram(0);
+        {
+            gl.drawElementsInstanced(gl.TRIANGLES, this.m_gridIndices.length, gl.UNSIGNED_SHORT, 0, this.m_numInstances);
+            // drawElementsInstanced(GLenum mode , GLsizei count            , GLenum type      , GLintptr offset      , GLsizei instanceCount)
+        }
+        gl.useProgram(null);
     };
 
 
@@ -526,18 +553,18 @@ define([
 
         for (var instanceNdx = 0; instanceNdx < this.m_numInstances; instanceNdx++)
         {
-            /** @type {integer} */ var xStart = instanceNdx * wid / this.m_numInstances;
-            /** @type {integer} */ var xEnd = (instanceNdx + 1) * wid / this.m_numInstances;
+            /** @type {integer} */ var xStart = Math.floor(instanceNdx * wid / this.m_numInstances);
+            /** @type {integer} */ var xEnd = Math.floor((instanceNdx + 1) * wid / this.m_numInstances);
 
             // Emulate attribute divisors if that is the case.
 
-            /** @type {integer} */ var clrNdxR = this.m_instancingType == InstancingType.TYPE_ATTRIB_DIVISOR ? instanceNdx / ATTRIB_DIVISOR_R : instanceNdx;
-            /** @type {integer} */ var clrNdxG = this.m_instancingType == InstancingType.TYPE_ATTRIB_DIVISOR || this.m_instancingType == InstancingType.TYPE_MIXED ? instanceNdx / ATTRIB_DIVISOR_G : instanceNdx;
-            /** @type {integer} */ var clrNdxB = this.m_instancingType == InstancingType.TYPE_ATTRIB_DIVISOR || this.m_instancingType == InstancingType.TYPE_MIXED ? instanceNdx / ATTRIB_DIVISOR_B : instanceNdx;
+            /** @type {integer} */ var clrNdxR = this.m_instancingType == InstancingType.TYPE_ATTRIB_DIVISOR ? Math.floor(instanceNdx / ATTRIB_DIVISOR_R) : instanceNdx;
+            /** @type {integer} */ var clrNdxG = this.m_instancingType == InstancingType.TYPE_ATTRIB_DIVISOR || this.m_instancingType == InstancingType.TYPE_MIXED ? Math.floor(instanceNdx / ATTRIB_DIVISOR_G) : instanceNdx;
+            /** @type {integer} */ var clrNdxB = this.m_instancingType == InstancingType.TYPE_ATTRIB_DIVISOR || this.m_instancingType == InstancingType.TYPE_MIXED ? Math.floor(instanceNdx / ATTRIB_DIVISOR_B) : instanceNdx;
 
-            /** @type {integer} */ var rInstances = this.m_instancingType == InstancingType.TYPE_ATTRIB_DIVISOR ? this.m_numInstances / ATTRIB_DIVISOR_R + (this.m_numInstances % ATTRIB_DIVISOR_R == 0 ? 0 : 1) : this.m_numInstances;
-            /** @type {integer} */ var gInstances = this.m_instancingType == InstancingType.TYPE_ATTRIB_DIVISOR || this.m_instancingType == InstancingType.TYPE_MIXED ? this.m_numInstances / ATTRIB_DIVISOR_G + (this.m_numInstances % ATTRIB_DIVISOR_G == 0 ? 0 : 1) : this.m_numInstances;
-            /** @type {integer} */ var bInstances = this.m_instancingType == InstancingType.TYPE_ATTRIB_DIVISOR || this.m_instancingType == InstancingType.TYPE_MIXED ? this.m_numInstances / ATTRIB_DIVISOR_B + (this.m_numInstances % ATTRIB_DIVISOR_B == 0 ? 0 : 1) : this.m_numInstances;
+            /** @type {integer} */ var rInstances = this.m_instancingType == InstancingType.TYPE_ATTRIB_DIVISOR ? Math.floor(this.m_numInstances / ATTRIB_DIVISOR_R) + (this.m_numInstances % ATTRIB_DIVISOR_R == 0 ? 0 : 1) : this.m_numInstances;
+            /** @type {integer} */ var gInstances = this.m_instancingType == InstancingType.TYPE_ATTRIB_DIVISOR || this.m_instancingType == InstancingType.TYPE_MIXED ? Math.floor(this.m_numInstances / ATTRIB_DIVISOR_G) + (this.m_numInstances % ATTRIB_DIVISOR_G == 0 ? 0 : 1) : this.m_numInstances;
+            /** @type {integer} */ var bInstances = this.m_instancingType == InstancingType.TYPE_ATTRIB_DIVISOR || this.m_instancingType == InstancingType.TYPE_MIXED ? Math.floor(this.m_numInstances / ATTRIB_DIVISOR_B) + (this.m_numInstances % ATTRIB_DIVISOR_B == 0 ? 0 : 1) : this.m_numInstances;
 
             // Calculate colors.
 
@@ -593,9 +620,8 @@ define([
 
             DE_ASSERT(functionName != DE_NULL);
             DE_ASSERT(functionDesc != DE_NULL);
-            //TODO: TestCaseGroup?
-            /** @type {TestCaseGroup} */
-            var functionGroup = new deqpTests.newTest(functionName, functionDesc);
+
+            /** @type {TestCaseGroup} */ var functionGroup = new deqpTests.newTest(functionName, functionDesc);
             testGroup.addChild(functionGroup);
 
             for (var instancingType = 0; instancingType < InstancingType.length; instancingType++)
