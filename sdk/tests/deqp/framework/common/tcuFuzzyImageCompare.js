@@ -201,8 +201,7 @@ define(['framework/delibs/debase/deMath',
     {
         DE_ASSERT(dst.getWidth() == src.getWidth() && dst.getHeight() == src.getHeight());
 
-        // TODO: implement TextureLevel
-        /** @type {TextureLevel} */ var tmp = new TextureLevel(dst.getFormat(), dst.getHeight(), dst.getWidth());
+        /** @type {TextureLevel} */ var tmp = new tcuTexture.TextureLevel(dst.getFormat(), dst.getHeight(), dst.getWidth());
         /** @type {PixelBufferAccess} */ var tmpAccess = tmp.getAccess();
 
         /** @type {integer} */ var kw = kernelX.size();
@@ -348,8 +347,8 @@ define(['framework/delibs/debase/deMath',
         /** @type {deRandom.Random} */ var rnd (667);
 
         // Filtered
-        /** @type {TextureLevel} */ var refFiltered = new TextureLevel(TextureFormat(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.UNORM_INT8), width, height);
-        /** @type {TextureLevel} */ var cmpFiltered = new TextureLevel(TextureFormat(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.UNORM_INT8), width, height);
+        /** @type {TextureLevel} */ var refFiltered = new tcuTexture.TextureLevel(TextureFormat(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.UNORM_INT8), width, height);
+        /** @type {TextureLevel} */ var cmpFiltered = new tcuTexture.TextureLevel(TextureFormat(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.UNORM_INT8), width, height);
 
         // Kernel = {0.15, 0.7, 0.15}
         /** @type {Array<float>} */ var kernel = [0, 0, 0];

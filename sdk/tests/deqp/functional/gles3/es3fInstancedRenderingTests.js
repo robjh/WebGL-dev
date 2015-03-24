@@ -24,13 +24,15 @@ define([
     'framework/common/tcuTestCase',
     'framework/common/tcuSurface',
     'framework/delibs/debase/deString',
-    'framework/delibs/debase/deRandom'], function(
+    'framework/delibs/debase/deRandom',
+    'framework/common/tcuImageCompare'], function(
         deqpUtils,
         gluSP,
         deqpTests,
         tcuSurface,
         deString,
-        deRandom) {
+        deRandom,
+        tcuImageCompare) {
     'use strict';
 
     /** @const @type {number} */ var MAX_RENDER_WIDTH = 128;
@@ -197,8 +199,7 @@ define([
             {
                 posExpression = 'a_position + vec4(a_instanceOffset';
 
-                // TODO: validate
-                //DE_STATIC_ASSERT(OFFSET_COMPONENTS >= 1 && OFFSET_COMPONENTS <= 4);
+                DE_STATIC_ASSERT(OFFSET_COMPONENTS >= 1 && OFFSET_COMPONENTS <= 4);
 
                 for (var i = 0; i < 4 - OFFSET_COMPONENTS; i++)
                     posExpression += ', 0.0';
@@ -283,8 +284,8 @@ define([
 
         //tcu::TestLog& log = this.m_testCtx.getLog();
         //log << *m_program;
-        // TODO: bufferedLogToConsole? how?
-        bufferedLogToConsole(this.m_program);
+        // TODO: bufferedLogToConsole?
+        //bufferedLogToConsole(this.m_program);
 
         if (!this.m_program.isOk())
             TCU_FAIL('Failed to compile shader');
@@ -433,8 +434,9 @@ define([
         this.computeReference(referenceImg);
 
         // Compare.
-        //TODO: is fuzzyCompare implemented?
-        /** @type {boolean} */ var testOk = deqpUtils.fuzzyCompare(this.m_testCtx.getLog(), 'ComparisonResult', 'Image comparison result', referenceImg, resultImg, 0.05, deqpUtils.COMPARE_LOG_RESULT);
+
+        // Passing referenceImg.getAccess() and resultImg.getAccess() instead of referenceImg and resultImg
+        /** @type {boolean} */ var testOk = tcuImageCompare.fuzzyCompare(this.m_testCtx.getLog(), 'ComparisonResult', 'Image comparison result', referenceImg.getAccess(), resultImg.getAccess(), 0.05, deqpUtils.COMPARE_LOG_RESULT);
 
         this.m_testCtx.setTestResult(testOk ? QP_TEST_RESULT_PASS : QP_TEST_RESULT_FAIL,
                                     testOk ? 'Pass' : 'Fail');
@@ -464,7 +466,6 @@ define([
             gl.enableVertexAttribArray(curLoc);
             gl.vertexAttribDivisor(curLoc, divisor);
             //TODO: where is the implementation for GL_FALSE?
-            //TODO: how does attrPtr fit in here?
             if (isFloatCase)
                 gl.vertexAttribPointer(curLoc, typeSize, gl.FLOAT, GL_FALSE, 0, attrPtr);
             else if (isIntCase)
@@ -475,8 +476,7 @@ define([
             {
                 /** @type {integer} */ var numRows = deqpUtils.getDataTypeMatrixNumRows(this.m_rgbAttrType);
                 /** @type {integer} */ var numCols = deqpUtils.getDataTypeMatrixNumColumns(this.m_rgbAttrType);
-                //TODO: sizeof()?
-                gl.vertexAttribPointer(curLoc, numRows, gl.FLOAT, GL_FALSE, numCols * numRows * sizeof(float), attrPtr);
+                gl.vertexAttribPointer(curLoc, numRows, gl.FLOAT, GL_FALSE, numCols * numRows * 4, attrPtr); //sizeof(float) = 4
             }
             else
                 DE_ASSERT(DE_FALSE);
@@ -613,9 +613,8 @@ define([
 
             DE_ASSERT(functionName != DE_NULL);
             DE_ASSERT(functionDesc != DE_NULL);
-            //TODO: TestCaseGroup?
-            /** @type {TestCaseGroup} */
-            var functionGroup = new deqpTests.newTest(functionName, functionDesc);
+
+            /** @type {TestCaseGroup} */ var functionGroup = new deqpTests.newTest(functionName, functionDesc);
             testGroup.addChild(functionGroup);
 
             for (var instancingType = 0; instancingType < InstancingType.length; instancingType++)
