@@ -392,7 +392,6 @@ return {
     shaderType: shaderType,
     genVertexSource: genVertexSource,
     genFragmentSource: genFragmentSource,
-
     containerTypes: containerTypes,
     AttribLocationBinding: AttribLocationBinding,
     TransformFeedbackMode: TransformFeedbackMode,

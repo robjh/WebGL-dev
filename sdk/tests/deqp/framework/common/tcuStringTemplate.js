@@ -27,7 +27,8 @@ var escapeRegExp = function(string) {
 
 var specialize = function(str, params) {
     var dst = str;
-    for (var [key, value] of params) {
+    for (var key in params) {
+        var value = params[key];
         var re = new RegExp(escapeRegExp('\$\{' + key + '\}'), 'g');
         dst = dst.replace(re, value);
     }
