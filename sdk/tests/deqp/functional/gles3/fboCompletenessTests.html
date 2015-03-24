@@ -1,0 +1,72 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>WebGL FBO Completeness Tests</title>
+<link rel="stylesheet" href="../../../resources/js-test-style.css"/>
+<script src="../../../resources/js-test-pre.js"></script>
+<script src="../../../conformance/resources/webgl-test-utils.js"></script>
+<script src="../../require.js"></script>
+</head>
+<body>
+<div id="description"></div>
+<div id="console"></div>
+<canvas id="canvas" width="320" height="240"></canvas>
+<script>
+
+    var wtu = WebGLTestUtils;
+    var gl = wtu.create3DContext('canvas', {preserveDrawingBuffer: true}, 2);
+
+    requirejs.config({
+        baseUrl: "../../"
+    });
+
+    requirejs([
+        "functional/gles3/es3fFboCompletenessTests",
+        "modules/shared/glsFboUtil"
+    ], function(fboct, glsfbou) {
+
+        
+
+        var gldisable = (function(name) {
+            return (function(a1,a2,a3,a4,a5,a6,a7,a8) {
+                var args = [name+'('];
+                if (a1 !== undefined) { args.push(a1); if (a2 !== undefined) { args.push(a2);
+                if (a3 !== undefined) { args.push(a3); if (a4 !== undefined) { args.push(a4);
+                if (a5 !== undefined) { args.push(a5); if (a6 !== undefined) { args.push(a6);
+                if (a7 !== undefined) { args.push(a7); if (a8 !== undefined) { args.push(a8);
+                }} }} }} }} // just some brackets. pretend theyre not here.
+                args.push(')');
+                console.log.apply(console, args);
+            });
+        });
+        /*
+        gl.bindTransformFeedback = gldisable('bindTransformFeedback');
+        gl.bufferData            = gldisable('bufferData');
+        gl.bindBufferBase        = gldisable('bindBufferBase');
+        gl.beginQuery            = gldisable('beginQuery');
+        gl.getBufferSubData      = gldisable('getBufferSubData');
+        gl.linkProgram           = gldisable('linkProgram');
+        gl.getError = function() {
+            return gl.NO_ERROR;
+        };
+        //*/
+        
+        try {
+        //    tft.run(gl);
+        }
+        catch(err) {
+        //    bufferedLogToConsole(err);
+        }
+        
+        var params = fboct.tmp.numLayersParams(gl.TEXTURE_2D_ARRAY, 4, 2);
+        console.log(fboct.tmp.numLayersParams.getName(params));
+        console.log(fboct.tmp.numLayersParams.getDescription(params));
+        
+        var testBase = fboct.tmp.TestBase();
+        
+    });
+</script>
+</body>
+</html>

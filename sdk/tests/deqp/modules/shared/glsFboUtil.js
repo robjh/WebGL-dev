@@ -1,8 +1,6 @@
 
 // glsFBOU
-define([
-    'modules/shared/glsFboUtil.js'
-], function(glsFBOU) {
+define([], function() {
     'use strict';
     
     var remove_from_array = (function(array, value) {
@@ -12,20 +10,18 @@ define([
         }
     });
     
-    var range = (function(opt, m) {
-        var self = {};
-        m        = m || {};
+    var Range = (function(opt) {
         
-        m.begin  = opt.begin || 0;
-        m.end    = opt.end   || opt.array.length;
+        var m_begin  = opt.begin || 0;
+        var m_end    = opt.end   || opt.array.length;
         
-        self.array = (function() {
+        this.array = (function() {
             return opt.array;
         });
-        self.begin = (function() {
+        this.begin = (function() {
             return m.begin;
         });
-        self.end = (function() {
+        this.end = (function() {
             return m.end;
         });
         
@@ -44,6 +40,64 @@ define([
         TEXTURE_VALID:        0x10,
         REQUIRED_RENDERABLE:  0x20, //< Without this, renderability is allowed, not required.
     };
+    
+    var Framebuffer = (function(argv) {
+        
+        argv = argv || {};
+        this._construct = (function(argv) {
+            this.attachments = argv.attachments  || {};
+            this.textures    = argv.textures     || {};
+            this.rbos        = argv.rbos         || {};
+        });
+        
+        this.attach = (function(attPoint, att) {
+            if (!att) {
+                this.attachments[attPoint] = undefined;
+            } else {
+                this.attachments[attPoint] = att;
+            }
+        });
+        this.setTexture = (function(texName, texCfg) {
+            this.textures[texName] = texCfg;
+        });
+        this.setRbo = (function(rbName, rbCfg) {
+            this.rbos[rbName] = rbCfg;
+        });
+        this.getImage = (function(type, imgName) {
+            switch (type) {
+                case gl.TEXTURE:      return lookupDefault(this.textures, imgName, null);
+                case gl.RENDERBUFFER: return lookupDefault(this.rbos,     imgName, null);
+                default: DE_ASSERT(false, "Bad image type.");
+            }
+            return null;
+        });
+        
+        if (!argv.dont_construct) this._construct(argv);
+    });
+    
+    var FboBuilder = (function(argv) {
+        argv = argv || {};
+        
+        var parent = {
+            _construct: this._construct,
+        };
+        
+        this._construct = (function(argv) {
+            parent._construct(argv);
+            
+            this.m_error = null;
+            this.m_target = null;
+            this.m_gl = null;
+            this.m_configs = null;
+        });
+        
+        this.checkError = (function() {
+            
+        });
+        
+        if (!argv.dont_construct) this._construct(argv);
+    });
+    FboBuilder.prototype = new Framebuffer({dont_construct: true});
     
     var Checker = (function() {
         
@@ -76,9 +130,9 @@ define([
     });
     
     return {
-        range:                  range,
+        Range:                  Range,
         formatkey:              formatkey,
-        GLS_UNSIGNED_FORMATKEY: formatkey,
+        GLS_UNSIZED_FORMATKEY:  formatkey,
         FormatFlags:            FormatFlags,
         Checker:                Checker
     };

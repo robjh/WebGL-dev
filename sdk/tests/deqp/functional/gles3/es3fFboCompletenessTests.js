@@ -1,8 +1,9 @@
 
 // FboCompletenessTests
 define([
-    'modules/shared/glsFboUtil.js'
-], function(glsFBOU) {
+    'modules/shared/glsFboUtil',
+    'framework/common/tcuTestCase'
+], function(glsFBOU, deqpTests) {
     'use strict';
     
     var s_es3ColorRenderables = [
@@ -31,7 +32,7 @@ define([
 	    // the formats from table 3.13."
 	    gl.DEPTH_COMPONENT16, gl.DEPTH_COMPONENT24, gl.DEPTH_COMPONENT32F,
 	    gl.DEPTH24_STENCIL8, gl.DEPTH32F_STENCIL8
-    };
+    ];
     
     var s_es3StencilRboRenderables = [
     	// GLES3, 4.4.4: "An internal format is stencil-renderable if it is
@@ -131,7 +132,7 @@ define([
     
     var ES3Checker = (function(dont_construct_flag) {
         var parent = {
-            _construct = this._construct
+            _construct: this._construct
         };
         
         var m_numSamples; // GLsizei
@@ -150,20 +151,90 @@ define([
         }
         
         this.check = (function(attPoint, attachment, image) {
-            
+            // TODO
         });
         
     });
     ES3Checker.prototype = new glsFBOU.Checker(true);
     
-    var run = (function() {
+    var numLayersParams = (function(textureKind, numLayers, attachmentLayer) {
+        if (typeof(attachmentLayer) == 'undefined') {
+            textureKind     = null;
+            numLayers       = null;
+            attachmentLayer = null;
+        }
+        return {
+            textureKind:     textureKind,     //< GL_TEXTURE_3D or GL_TEXTURE_2D_ARRAY
+            numLayers:       numLayers,       //< Number of layers in texture
+            attachmentLayer: attachmentLayer  //< Layer referenced by attachment
+        };
+    });
+    // returns a string.
+    // takes const NumLayersParams&
+    numLayersParams.getName = (function(params) {
+        return (
+            (params.textureKind == gl.TEXTURE_3D ? '3d' : '2darr') + '_' +
+            params.numLayers + '_' +
+            params.attachmentLayer
+        );
+    });
+    // returns a string.
+    // takes const NumLayersParams&
+    numLayersParams.getDescription = (function(params) {
+        return (
+            (params.textureKind == gl.TEXTURE_3D ? '3D Texture' : '2D Array Texture') + ', ' +
+            params.numLayers + ' layers, ' +
+            'attached layer ' + params.attachmentLayer + '.'
+        );
+    });
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    var TestBase = (function(opt) {
+
+        this.params = null;
+
+        this.getContext = this.getState;
         
+        this._construct = (function(opt) {
+            
+        });
+        
+        
+        
+        if (opt.dont_construct !== true) this._construct(opt);
+
+    });
+    TestBase.prototype = new deqpTests.DeqpTest();
+    
+    
+    
+    
+    
+    
+    
+    
+    var run = (function() {
     });
 
     return {
         tmp: {
             tmp: 1,
-            ES3Checker: ES3Checker
+            ES3Checker: ES3Checker,
+            numLayersParams: numLayersParams,
         },
         run: run,
     };
