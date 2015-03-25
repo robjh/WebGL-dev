@@ -151,8 +151,8 @@ var intThresholdCompare = function(/*const char* */imageSetName, /*const char* *
     var errorMask = new tcuSurface.Surface(width, height);
 
     var maxDiff = [0, 0, 0, 0];
-    var pixelBias = [0, 0, 0, 0];
-    var pixelScale = [1, 1, 1, 1];
+    // var pixelBias = [0, 0, 0, 0]; // Vec4 // TODO: check, only used in computeScaleAndBias, which is not included
+    // var pixelScale = [1, 1, 1, 1]; // Vec4 // TODO: check, only used in computeScaleAndBias
 
     assertMsgOptions(result.getWidth() == width && result.getHeight() == height && result.getDepth() == depth,
         'Reference and result images have different dimensions', false, true);
@@ -185,27 +185,27 @@ var intThresholdCompare = function(/*const char* */imageSetName, /*const char* *
     return compareOk;
 };
 
-/** floatUlpThresholdCompare
+/**
+ * floatUlpThresholdCompare
  * @param {string} imageSetName
  * @param {string} imageSetDesc
  * @param {tcuTexture.ConstPixelBufferAccess} reference
  * @param {tcuTexture.ConstPixelBufferAccess} result
- * @param {Uint32Array} threshold
+ * @param {Array.<number>} threshold, previously used as an Uint32Array
  * @return {boolean}
  */
 var floatUlpThresholdCompare = function(imageSetName, imageSetDesc, reference, result, threshold) {
     /** @type {number} */ var width = reference.getWidth();
     /** @type {number} */ var height = reference.getHeight();
     /** @type {number} */ var depth = reference.getDepth();
-    /** @type {tcuTexture.TextureLevel} */
-    var errorMaskStorage = new tcuTexture.TextureLevel(
-            new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGB, tcuTexture.ChannelType.UNORM_INT8), width, height, depth); // TODO: implement tcuTexture.TextureLevel
-    /** @type {tcuTexture.PixelBufferAccess} */ var errorMask = errorMaskStorage.getAccess(); // TODO: implement getAccess() in tcuTexture.TextureLevel
-    /** @type {Uint32Array} */ var maxDiff = new Uint32Array([0, 0, 0, 0]); // UVec4
-    /** @type {Float32Array} */ var pixelBias = new Float32Array([0.0, 0.0, 0.0, 0.0]); // Vec4
-    /** @type {Float32Array} */ var pixelScale = new Float32Array([1.0, 1.0, 1.0, 1.0]); // Vec4
+    /** @type {tcuSurface.Surface} */ var errorMask = new tcuSurface.Surface(width, height);
 
-    // TODO: TCU_CHECK(result.getWidth() == width && result.getHeight() == height && result.getDepth() == depth);
+    /** @type {Array.<number>} */ var maxDiff = [0, 0, 0, 0]; // UVec4
+    // var pixelBias = [0, 0, 0, 0]; // Vec4
+    // var pixelScale = [1, 1, 1, 1]; // Vec4
+
+    assertMsgOptions(result.getWidth() == width && result.getHeight() == height && result.getDepth() == depth,
+            'Reference and result images have different dimensions', false, true);
 
     for (var z = 0; z < depth; z++)
     {
@@ -213,30 +213,30 @@ var floatUlpThresholdCompare = function(imageSetName, imageSetDesc, reference, r
         {
             for (var x = 0; x < width; x++)
             {
-                /** @type {Float32Array} */ var refPix = reference.getPixel(x, y, z); // Vec4
-                /** @type {Float32Array} */ var cmpPix = result.getPixel(x, y, z); // Vec4
-                /** @type {Uint32Array} */ var refBits = new Uint32Array(4); // UVec4
-                /** @type {Uint32Array} */ var cmpBits = new Uint32Array(4); // UVec4
+                /** @type {ArrayBuffer} */ var arrayBufferRef = ArrayBuffer(4);
+                /** @type {ArrayBuffer} */ var arrayBufferCmp = ArrayBuffer(4);
 
-                // memcpy() is the way to do float->uint32 reinterpretation.
-                // memcpy(refBits.getPtr(), refPix.getPtr(), 4 * sizeof(deUint32));
-                // memcpy(cmpBits.getPtr(), cmpPix.getPtr(), 4 * sizeof(deUint32));
+                /** @type {Array.<number>} */ var refPix = Float32Array(arrayBufferRef); // Vec4
+                refPix = reference.getPixel(x, y, z); // getPixel returns a Vec4 pixel color
+
+                /** @type {Array.<number>} */ var cmpPix = Float32Array(arrayBufferCmp); // Vec4
+                cmpPix = result.getPixel(x, y, z); // getPixel returns a Vec4 pixel color
+
+                /** @type {Uint32Array} */ var refBits = new Uint32Array(arrayBufferRef); // UVec4
+                /** @type {Uint32Array} */ var cmpBits = new Uint32Array(arrayBufferCmp); // UVec4
+
+                // Instead of memcpy(), which is the way to do float->uint32 reinterpretation in C++
                 for (var i = 0; i < refPix.length; i++) {
-                    refBits[i] = ToUInt32(refPix[i]); // TODO: implement ToUInt32()?
-                    // reference.getPixel(x, y, z)[i] = ToUInt32(refPix[i]);
-                    cmpBits[i] = ToUInt32(cmpPix[i]); // TODO: implement ToUInt32()?
-                    // result.getPixel(x, y, z)[i] = ToUInt32(cmpPix[i]);
+                    refBits[i] = refPix[i];
+                    cmpBits[i] = cmpPix[i];
                 }
 
-                /** @type {Uint32Array} */ var diff = new Uint32Array(4); // UVec4
-                for (var x = 0; x < refPix.length; x++) {
-                    diff[x] = ToUInt32(deMath.abs(Math.floor(refBits[x]) - Math.floor(cmpBits[x]))); // Math.floor to convert into int
-                }
+                /** @type {Array.<number>} */ var diff = deMath.absDiff(refBits, cmpBits); // UVec4
                 /** @type {boolean} */ var isOk = deMath.boolAll(deMath.lessThanEqual(diff, threshold));
 
                 maxDiff = deMath.max(maxDiff, diff);
 
-                errorMask.setPixel(isOk ? new Float32Array([0.0, 1.0, 0.0, 1.0]) : new Float32Array([1.0, 0.0, 0.0, 1.0]), x, y, z);
+                errorMask.setPixel(isOk ? [0, 1, 0, 1] : [1, 0, 0, 1], x, y, z);
             }
         }
     }
@@ -280,27 +280,27 @@ var floatUlpThresholdCompare = function(imageSetName, imageSetDesc, reference, r
     return compareOk;
 };
 
-/** floatThresholdCompare
+/**
+ * floatThresholdCompare
  * @param {string} imageSetName
  * @param {string} imageSetDesc
  * @param {tcuTexture.ConstPixelBufferAccess} reference
  * @param {tcuTexture.ConstPixelBufferAccess} result
- * @param {Uint32Array} threshold
+ * @param {Array.<number>} threshold
  * @return {boolean}
  */
 var floatThresholdCompare = function(imageSetName, imageSetDesc, reference, result, threshold) {
-    /** @type {number} */ var width = result.getWidth();
-    /** @type {number} */ var height = result.getHeight();
-    /** @type {number} */ var depth = result.getDepth();
+    /** @type {number} */ var width = reference.getWidth();
+    /** @type {number} */ var height = reference.getHeight();
+    /** @type {number} */ var depth = reference.getDepth();
+    /** @type {tcuSurface.Surface} */ var errorMask = new tcuSurface.Surface(width, height);
 
-    /** @type {tcuTexture.TextureLevel} */
-    var errorMaskStorage = new tcuTexture.TextureLevel(
-        new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGB, tcuTexture.ChannelType.UNORM_INT8), width, height, depth
-    );
-    /** @type {tcuTexture.PixelBufferAccess} */ var errorMask = errorMaskStorage.getAccess();
-    /** @type {Float32Array} */ var maxDiff = new Float32Array([0.0, 0.0, 0.0, 0.0]); // Vec4
-    /** @type {Float32Array} */ var pixelBias = new Float32Array([0.0, 0.0, 0.0, 0.0]); // Vec4
-    /** @type {Float32Array} */ var pixelScale = new Float32Array([1.0, 1.0, 1.0, 1.0]); // Vec4
+    /** @type {Array.<number>} */ var maxDiff = [0, 0, 0, 0]; // Vec4
+    // var pixelBias = [0, 0, 0, 0]; // Vec4
+    // var pixelScale = [1, 1, 1, 1]; // Vec4
+
+    assertMsgOptions(result.getWidth() == width && result.getHeight() == height && result.getDepth() == depth,
+            'Reference and result images have different dimensions', false, true);
 
     for (var z = 0; z < depth; z++)
     {
@@ -308,17 +308,15 @@ var floatThresholdCompare = function(imageSetName, imageSetDesc, reference, resu
         {
             for (var x = 0; x < width; x++)
             {
-                /** @type {Float32Array} */ var cmpPix = result.getPixel(x, y, z); // Vec4
-                /** @type {Float32Array} */ var diff = new Float32Array(4); // Vec4
-                for (var x = 0; x < refPix.length; x++) {
-                    var px = reference.getPixel(x, y, z);
-                    diff[x] = deMath.abs(px[x], cmpPix[x]);
-                }
+                var refPix = reference.getPixel(x, y, z); // Vec4
+                var cmpPix = result.getPixel(x, y, z); // Vec4
+
+                /** @type {Array.<number>} */ var diff = deMath.absDiff(refPix, cmpPix); // Vec4
                 /** @type {boolean} */ var isOk = deMath.boolAll(deMath.lessThanEqual(diff, threshold));
 
                 maxDiff = deMath.max(maxDiff, diff);
 
-                errorMask.setPixel(isOk ? new Float32Array([0.0, 1.0, 0.0, 1.0]) : new Float32Array([1.0, 0.0, 0.0, 1.0]), x, y, z);
+                errorMask.setPixel(isOk ? [0, 1, 0, 1] : [1, 0, 0, 1], x, y, z);
             }
         }
     }
@@ -333,17 +331,19 @@ var floatThresholdCompare = function(imageSetName, imageSetDesc, reference, resu
     /*if (!compareOk || logMode == COMPARE_LOG_EVERYTHING)
     {
         // All formats except normalized unsigned fixed point ones need remapping in order to fit into unorm channels in logged images.
-        if (tcu::getTextureChannelClass(result.getFormat().type) != tcu::TEXTURECHANNELCLASS_UNSIGNED_FIXED_POINT)
+        if (tcu::getTextureChannelClass(reference.getFormat().type) != tcu::TEXTURECHANNELCLASS_UNSIGNED_FIXED_POINT ||
+            tcu::getTextureChannelClass(result.getFormat().type)    != tcu::TEXTURECHANNELCLASS_UNSIGNED_FIXED_POINT)
         {
-            computeScaleAndBias(result, result, pixelScale, pixelBias);
-            log << TestLog::Message << "Result image is normalized with formula p * " << pixelScale << " + " << pixelBias << TestLog::EndMessage;
+            computeScaleAndBias(reference, result, pixelScale, pixelBias);
+            log << TestLog::Message << "Result and reference images are normalized with formula p * " << pixelScale << " + " << pixelBias << TestLog::EndMessage;
         }
 
         if (!compareOk)
-            log << TestLog::Message << "Image comparison failed: max difference = " << maxDiff << ", threshold = " << threshold << ", reference = " << reference << TestLog::EndMessage;
+            log << TestLog::Message << "Image comparison failed: max difference = " << maxDiff << ", threshold = " << threshold << TestLog::EndMessage;
 
         log << TestLog::ImageSet(imageSetName, imageSetDesc)
             << TestLog::Image("Result",     "Result",       result,     pixelScale, pixelBias)
+            << TestLog::Image("Reference",  "Reference",    reference,  pixelScale, pixelBias)
             << TestLog::Image("ErrorMask",  "Error mask",   errorMask)
             << TestLog::EndImageSet;
     }
@@ -382,7 +382,8 @@ var pixelThresholdCompare = function(/*const char* */imageSetName, /*const char*
     return intThresholdCompare(imageSetName, imageSetDesc, reference.getAccess(), result.getAccess(), threshold, logMode);
 };
 
- /** fuzzyCompare
+ /**
+  * fuzzyCompare
   * @param {string} imageSetName
   * @param {string} imageSetDesc
   * @param {tcuTexture.ConstPixelBufferAccess} reference
@@ -429,9 +430,9 @@ var fuzzyCompare = function(imageSetName, imageSetDesc, reference, result, thres
             log << TestLog::Message << "Image comparison failed: difference = " << difference << ", threshold = " << threshold << TestLog::EndMessage;
 
         log << TestLog::ImageSet(imageSetName, imageSetDesc)
-            << TestLog::Image("Result",		"Result",		result,		pixelScale, pixelBias)
-            << TestLog::Image("Reference",	"Reference",	reference,	pixelScale, pixelBias)
-            << TestLog::Image("ErrorMask",	"Error mask",	errorMask)
+            << TestLog::Image("Result",	    "Result",       result,     pixelScale, pixelBias)
+            << TestLog::Image("Reference",	"Reference", reference,	pixelScale, pixelBias)
+            << TestLog::Image("ErrorMask",	"Error mask",    errorMask)
             << TestLog::EndImageSet;
     }
     else if (logMode == COMPARE_LOG_RESULT)
@@ -445,7 +446,7 @@ var fuzzyCompare = function(imageSetName, imageSetDesc, reference, result, thres
     }
     */
     return isOk;
-}
+};
 
 return {
     CompareLogMode: CompareLogMode,

@@ -27,6 +27,122 @@ define([], function() {
         
     });
     
+    var ImageFormat = (function(argv) {
+        argv = argv || {};
+        
+        this._construct = (function(argv) {
+            this.format = null;
+            //! Type if format is unsized, GL_NONE if sized.
+            this.unsizedType = null;
+        });
+        
+        this.lessthan = (function(other) {
+            return (
+                (this.format <  other.format) ||
+                (this.format == other.format && this.unsizeType < other.unsizedType)
+            );
+        });
+        
+        this.none = (function(glctx) {
+            glctx = glctx || gl;
+            this.format      = glctx.NONE;
+            this.unsizedType = glctx.NONE;
+        });
+        
+        if (!argv.dont_construct) this._construct(argv);
+    });
+    
+    var Config = (function(argv) {
+        argv = argv || {};
+        
+        this._construct = (function(argv) {
+            this.type = argv.type || 'config';
+        });
+        
+        if (!argv.dont_construct) this._construct(argv);
+    });
+    
+    var Image = (function(argv) {
+        argv = argv || {};
+        
+        var parent = {
+            _construct: this._construct,
+        };
+        
+        this._construct = (function(argv) {
+            argv.type = argv.type || 'image';
+            parent._construct(argv);
+            this.type = argv.type;
+            this.width  = 0;
+            this.height = 0;
+            this.internalFormat = new ImageFormat();
+        });
+        
+        if (!argv.dont_construct) this._construct(argv);
+    });
+    Image.prototype = new Config({dont_construct: true});
+    
+    var RenderBuffer = (function(argv) {
+        argv = argv || {};
+        
+        var parent = {
+            _construct: this._construct,
+        };
+        
+        this._construct = (function(argv) {
+            argv.type = argv.type || 'renderbuffer';
+            parent._construct(argv);
+            this.numSamples = 0;
+        });
+        
+        if (!argv.dont_construct) this._construct(argv);
+    });
+    RenderBuffer.prototype = new Image({dont_construct: true});
+    
+    var Texture = (function(argv) {
+        argv = argv || {};
+        
+        var parent = {
+            _construct: this._construct,
+        };
+        
+        this._construct = (function(argv) {
+            argv.type = argv.type || 'texture';
+            parent._construct(argv);
+            this.numLevels = 1;
+        });
+        
+        if (!argv.dont_construct) this._construct(argv);
+    });
+    Texture.prototype = new Image({dont_construct: true});
+    
+    var TextureLayered = (function(argv) {
+        argv = argv || {};
+        
+        var parent = {
+            _construct: this._construct,
+        };
+        
+        this._construct = (function(argv) {
+            argv.type = argv.type || 'texturelayered';
+            parent._construct(argv);
+            this.numLayers = 1;
+        });
+        
+        if (!argv.dont_construct) this._construct(argv);
+    });
+    TextureLayered.prototype = new Texture({dont_construct: true});
+    
+    var glsup = {
+    //  initFlat: (function() {}),
+    //  initLayered: (function() {}),
+    //  init: (function() {}),
+        create: (function() {}),
+        remove: (function(cfg, img, gl_ctx) { // delete
+            gl_ctx = gl_ctx || gl;
+        }),
+    };
+    
     var formatkey = (function(format, type) {
         return (type << 16 | format) & 0xFFFFFFFF;
     });
@@ -85,14 +201,63 @@ define([], function() {
         this._construct = (function(argv) {
             parent._construct(argv);
             
-            this.m_error = null;
-            this.m_target = null;
-            this.m_gl = null;
+            if (argv.fbo === undefined || argv.target === undefined) {
+                throw new Error('Invalid args.');
+            }
+            
+            this.m_gl      = argv.gl || gl;
+            this.m_target  = argv.target;
             this.m_configs = null;
+            this.m_error   = this.m_gl.NO_ERROR;
+            
+            this.m_gl.bindFramebuffer(this.m_target, argv.fbo);
         });
         
+        this.deinit = (function() {
+            for (var name in this.textures) {
+                glDelete(this.textures[name], name, this.m_gl);
+            }
+            for (var name in this.rbos) {
+                glDelete(this.rbos[name], name, this.m_gl);
+            }
+            this.m_gl.bindFramebuffer(this.m_target, 0);
+        });
+        
+        // GLenum attPoint, const Attachment* att
+        this.glAttach = (function(attPoint, att) {
+            if (!att) {
+                this.m_gl.framebufferRenderbuffer(this.m_target, attPoint, this.m_gl.RENDERBUFFER, 0);
+            } else {
+                attachAttachment(att, attPoint, this.m_gl);
+            }
+            this.checkError();
+            attach(attPoint, att);
+        });
+        
+        // const Texture& texCfg
+        this.glCreateTexture = (function(texCfg) {
+            var texName = glCreate(texCfg, this.m_gl);
+            checkError();
+            setTexture(texName, texCfg);
+            return texName;
+        });
+        
+        // const Renderbuffer& rbCfg
+        this.glCreateRbo = (function(rbCfg) {
+            var rbName = glCreate(rbCfg, this.m_gl);
+            checkError();
+            setRbo(rbName, rbCfg);
+            return rbName;
+        });
+        
+        
+        
+        
         this.checkError = (function() {
-            
+            var error = m_gl.getError();
+            if (error != m_gl.NO_ERROR && this.m_error != m_gl.NO_ERROR) {
+                this.m_error = error;
+            }
         });
         
         if (!argv.dont_construct) this._construct(argv);
@@ -134,6 +299,16 @@ define([], function() {
         formatkey:              formatkey,
         GLS_UNSIZED_FORMATKEY:  formatkey,
         FormatFlags:            FormatFlags,
+        Config:                 Config,
+        Image:                  Image,
+        RenderBuffer:           RenderBuffer,
+        Texture:                Texture,
+        TextureFlat:            Texture,
+        Texture2D:              Texture, // TextureFlat
+        TextureCubeMap:         Texture, // TextureFlat
+        TextureLayered:         TextureLayered,
+        Texture3D:              TextureLayered,
+        Texture2DArray:         TextureLayered,
         Checker:                Checker
     };
 
