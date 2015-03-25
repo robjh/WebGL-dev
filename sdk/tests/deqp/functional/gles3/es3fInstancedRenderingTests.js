@@ -270,7 +270,7 @@ define([
             '}\n';
 
         /** @type {string} */ var fragShaderSource =
-            '#version 300 es \n' +
+            '#version 300 es\n' +
             'layout(location = 0) out mediump vec4 o_color;\n' +
             'in mediump vec4 v_color;\n' +
             '\n' +

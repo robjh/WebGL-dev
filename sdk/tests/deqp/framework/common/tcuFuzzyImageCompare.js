@@ -372,15 +372,15 @@ define(
         /** @type {number} */ var shift = Math.floor((kernel.length - 1) / 2);
 
         switch (ref.getFormat().order) {
-            case tcuTexture.ChannelOrder.RGBA: separableConvolve(refFiltered, ref, shift, shift, kernel, kernel, 4, 4); break;
-            case tcuTexture.ChannelOrder.RGB: separableConvolve(refFiltered, ref, shift, shift, kernel, kernel, 4, 3); break;
+            case tcuTexture.ChannelOrder.RGBA: separableConvolve(PixelBufferAccess.newFromTextureLevel(refFiltered), ref, shift, shift, kernel, kernel, 4, 4); break;
+            case tcuTexture.ChannelOrder.RGB: separableConvolve(PixelBufferAccess.newFromTextureLevel(refFiltered), ref, shift, shift, kernel, kernel, 4, 3); break;
             default:
                 throw new Error('fuzzyCompare - Invalid ChannelOrder');
         }
 
         switch (cmp.getFormat().order) {
-            case tcuTexture.ChannelOrder.RGBA: separableConvolve(cmpFiltered, cmp, shift, shift, kernel, kernel, 4, 4); break;
-            case tcuTexture.ChannelOrder.RGB: separableConvolve(cmpFiltered, cmp, shift, shift, kernel, kernel, 4, 3); break;
+            case tcuTexture.ChannelOrder.RGBA: separableConvolve(PixelBufferAccess.newFromTextureLevel(cmpFiltered), cmp, shift, shift, kernel, kernel, 4, 4); break;
+            case tcuTexture.ChannelOrder.RGB: separableConvolve(PixelBufferAccess.newFromTextureLevel(cmpFiltered), cmp, shift, shift, kernel, kernel, 4, 3); break;
             default:
                 throw new Error('fuzzyCompare - Invalid ChannelOrder');
         }
