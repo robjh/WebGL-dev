@@ -1921,7 +1921,7 @@ TextureLevel.prototype.setSize = function(width, height, depth)
     this.m_height = height;
     this.m_depth = depth;
 
-    this.m_data.setStorage(this.m_width * this.m_height * this.m_depth * this.pixelSize);
+    this.m_data.setStorage(this.m_width * this.m_height * this.m_depth * pixelSize);
 };
 
 TextureLevel.prototype.getAccess = function() {
