@@ -25,9 +25,9 @@
     requirejs([
         "functional/gles3/es3fFboCompletenessTests",
         "modules/shared/glsFboUtil"
-    ], function(fboct, glsfbou) {
+    ], function(es3fFboCompletenessTests, glsFboUtil) {
 
-        
+
 
         var gldisable = (function(name) {
             return (function(a1,a2,a3,a4,a5,a6,a7,a8) {
@@ -52,20 +52,20 @@
             return gl.NO_ERROR;
         };
         //*/
-        
+
         try {
         //    tft.run(gl);
         }
         catch(err) {
         //    bufferedLogToConsole(err);
         }
-        
+
         var params = fboct.tmp.numLayersParams(gl.TEXTURE_2D_ARRAY, 4, 2);
         console.log(fboct.tmp.numLayersParams.getName(params));
         console.log(fboct.tmp.numLayersParams.getDescription(params));
-        
+
         var testBase = fboct.tmp.TestBase();
-        
+
     });
 </script>
 </body>
