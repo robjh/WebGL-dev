@@ -43,10 +43,10 @@ GLSLVersion.V_LAST = Object.keys(GLSLVersion).length;
  * @return {GLSLVersion}
  */
 var getGLSLVersion = function(gl) {
-    var webglversion = gl.getParameter(gl.VERSION);
+    var glslversion = gl.getParameter(gl.SHADING_LANGUAGE_VERSION);
 
-    if (webglversion.indexOf('WebGL 1.0') != -1) return GLSLVersion.V100_ES;
-    if (webglversion.indexOf('WebGL 2.0') != -1) return GLSLVersion.V300_ES;
+    if (glslversion.indexOf('WebGL 1.0') != -1) return GLSLVersion.V100_ES;
+       if (glslversion.indexOf('WebGL 2.0') != -1) return GLSLVersion.V300_ES;
 
     throw new Error('Invalid WebGL version');
 };
@@ -530,7 +530,7 @@ var isDataTypeSampler = function(dataType) {
     return (dataType >= DataType.SAMPLER_2D) && (dataType <= DataType.UINT_SAMPLER_3D);
 };
 
-/*
+/**
  * Returns a DataType based on given rows and columns
  * @param {number} numCols
  * @param {number} numRows

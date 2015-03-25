@@ -20,6 +20,8 @@
 
 define([
     'framework/common/tcuTestCase',
+    'framework/common/tcuRGBA',
+    'framework/common/tcuImageCompare',
     'framework/opengl/gluShaderProgram',
     'framework/opengl/gluShaderUtil',
     'framework/opengl/gluDrawUtil',
@@ -27,8 +29,10 @@ define([
     'framework/delibs/debase/deRandom',
     'framework/delibs/debase/deString'
 ],
-function(
+function (
     deqpTests,
+    tcuRGBA,
+    tcuImgCmp,
     deqpProgram,
     deqpUtils,
     deqpDraw,
@@ -165,8 +169,8 @@ function(
 
         /** @type {Array.<string>} */ var targets =
         [
-            "element_array",    // deArray.Target.ELEMENT_ARRAY
-            "array"             // deArray.Target.ARRAY
+            "element_array",  // deArray.Target.ELEMENT_ARRAY
+            "array"           // deArray.Target.ARRAY
         ];
         DE_ASSERT(targets.length == Object.keys(deArray.TARGET).length);
 
@@ -182,21 +186,21 @@ function(
 
         /** @type {Array.<string>} */ var types =
         [
-            "float",            // deArray.InputType.FLOAT
-            "fixed",            // deArray.InputType.FIXED
-            "double",           // deArray.InputType.DOUBLE
+            "float",          // deArray.InputType.FLOAT
+            "fixed",          // deArray.InputType.FIXED
+            "double",         // deArray.InputType.DOUBLE
 
-            "byte",             // deArray.InputType.BYTE
-            "short",            // deArray.InputType.SHORT
+            "byte",           // deArray.InputType.BYTE
+            "short",          // deArray.InputType.SHORT
 
-            "unsigned_byte",    // deArray.InputType.UNSIGNED_BYTE
-            "unsigned_short",   // deArray.InputType.UNSIGNED_SHORT
+            "unsigned_byte",  // deArray.InputType.UNSIGNED_BYTE
+            "unsigned_short", // deArray.InputType.UNSIGNED_SHORT
 
-            "int",                      // deArray.InputType.INT
-            "unsigned_int",             // deArray.InputType.UNSIGNED_INT
-            "half",                     // deArray.InputType.HALF
-            "usigned_int2_10_10_10",    // deArray.InputType.UNSIGNED_INT_2_10_10_10
-            "int2_10_10_10"             // deArray.InputType.INT_2_10_10_10
+            "int",                    // deArray.InputType.INT
+            "unsigned_int",           // deArray.InputType.UNSIGNED_INT
+            "half",                   // deArray.InputType.HALF
+            "usigned_int2_10_10_10",  // deArray.InputType.UNSIGNED_INT_2_10_10_10
+            "int2_10_10_10"           // deArray.InputType.INT_2_10_10_10
         ];
         DE_ASSERT(types.length == Object.keys(deArray.InputType).length);
 
@@ -212,21 +216,21 @@ function(
 
         /** @type {Array.<string>} */ var types =
         [
-            "float",        // deArray.OutputType.FLOAT
-            "vec2",         // deArray.OutputType.VEC2
-            "vec3",         // deArray.OutputType.VEC3
-            "vec4",         // deArray.OutputType.VEC4
+            "float",       // deArray.OutputType.FLOAT
+            "vec2",        // deArray.OutputType.VEC2
+            "vec3",        // deArray.OutputType.VEC3
+            "vec4",        // deArray.OutputType.VEC4
 
-            "int",          // deArray.OutputType.INT
-            "uint",         // deArray.OutputType.UINT
+            "int",         // deArray.OutputType.INT
+            "uint",        // deArray.OutputType.UINT
 
-            "ivec2",        // deArray.OutputType.IVEC2
-            "ivec3",        // deArray.OutputType.IVEC3
-            "ivec4",        // deArray.OutputType.IVEC4
+            "ivec2",       // deArray.OutputType.IVEC2
+            "ivec3",       // deArray.OutputType.IVEC3
+            "ivec4",       // deArray.OutputType.IVEC4
 
-            "uvec2",        // deArray.OutputType.UVEC2
-            "uvec3",        // deArray.OutputType.UVEC3
-            "uvec4"         // deArray.OutputType.UVEC4
+            "uvec2",       // deArray.OutputType.UVEC2
+            "uvec3",       // deArray.OutputType.UVEC3
+            "uvec4"        // deArray.OutputType.UVEC4
         ];
         DE_ASSERT(types.length == Object.keys(deArray.OutputType).length);
 
@@ -253,7 +257,7 @@ function(
             "static_copy",  // deArray.Usage.STATIC_COPY
 
             "dynamic_read", // deArray.Usage.DYNAMIC_READ
-            "dynamic_copy", // deArray.Usage.DYNAMIC_COPY
+            "dynamic_copy"  // deArray.Usage.DYNAMIC_COPY
         ];
         DE_ASSERT(usages.length == Object.keys(deArray.Usage).length);
 
@@ -286,10 +290,10 @@ function(
 
         /** @type {Array.<string>} */ var primitives =
         [
-            "points",           // deArray.Primitive.POINTS
-            "triangles",        // deArray.Primitive.TRIANGLES
-            "triangle_fan",     // deArray.Primitive.TRIANGLE_FAN
-            "triangle_strip"    // deArray.Primitive.TRIANGLE_STRIP
+            "points",          // deArray.Primitive.POINTS
+            "triangles",       // deArray.Primitive.TRIANGLES
+            "triangle_fan",    // deArray.Primitive.TRIANGLE_FAN
+            "triangle_strip"   // deArray.Primitive.TRIANGLE_STRIP
         ];
         DE_ASSERT(primitives.length == Object.keys(deArray.Primitive).length);
 
@@ -305,21 +309,21 @@ function(
 
         /** @type {Array.<number>} */ var size =
         [
-            4,      // deArray.InputType.FLOAT
-            4,      // deArray.InputType.FIXED
-            8,      // deArray.InputType.DOUBLE
+            4,     // deArray.InputType.FLOAT
+            4,     // deArray.InputType.FIXED
+            8,     // deArray.InputType.DOUBLE
 
-            8,      // deArray.InputType.BYTE
-            16,     // deArray.InputType.SHORT
+            8,     // deArray.InputType.BYTE
+            16,    // deArray.InputType.SHORT
 
-            8,      // deArray.InputType.UNSIGNED_BYTE
-            16,     // deArray.InputType.UNSIGNED_SHORT
+            8,     // deArray.InputType.UNSIGNED_BYTE
+            16,    // deArray.InputType.UNSIGNED_SHORT
 
-            32,     // deArray.InputType.INT
-            32,     // deArray.InputType.UNSIGNED_INT
-            16,     // deArray.InputType.HALF
-            32 / 4, // deArray.InputType.UNSIGNED_INT_2_10_10_10
-            32 / 4  // deArray.InputType.INT_2_10_10_10
+            32,    // deArray.InputType.INT
+            32,    // deArray.InputType.UNSIGNED_INT
+            16,    // deArray.InputType.HALF
+            32 / 4,// deArray.InputType.UNSIGNED_INT_2_10_10_10
+            32 / 4 // deArray.InputType.INT_2_10_10_10
         ];
         DE_ASSERT(size.length == Object.keys(deArray.InputType).length);
 
@@ -670,7 +674,7 @@ function(
                 // Input type is float type
 
                 // Output type must be float type
-                DE_ASSERT(this.this.m_outputType == deArray.OutType.FLOAT || this.m_outputType == deArray.OutType.VEC2 || this.m_outputType == deArray.OutType.VEC3 || this.m_outputType == deArray.OutType.VEC4);
+                DE_ASSERT(this.m_outputType == deArray.OutType.FLOAT || this.m_outputType == deArray.OutType.VEC2 || this.m_outputType == deArray.OutType.VEC3 || this.m_outputType == deArray.OutType.VEC4);
 
                 this.m_ctx.vertexAttribPointer(loc, this.m_componentCount, ContextArray.inputTypeToGL(this.m_inputType), this.m_normalize, this.m_stride, this.m_data.subarray(this.m_offset));
                 GLU_EXPECT_NO_ERROR(m_ctx.getError(), "gl.vertexAttribPointer()");
@@ -776,7 +780,7 @@ function(
 
             "uvec2",        // deArray.OutputType.UVEC2
             "uvec3",        // deArray.OutputType.UVEC3
-            "uvec4",        // deArray.OutputType.UVEC4
+            "uvec4"         // deArray.OutputType.UVEC4
         ];
         DE_ASSERT(types.length == Object.keys(deArray.OutputType).length);
 
@@ -807,7 +811,8 @@ function(
      */
     var ContextArrayPack = function(renderCtx, drawContext) {
         /** @type {WebGLRenderingContextBase} */ this.m_renderCtx = renderCtx;
-        /** @type {ReferenceRasterizerContext} */ this.m_ctx = drawContext;
+        //TODO: Reference rasterizer implementation.
+        /** @type {GLContext} */ this.m_ctx = drawContext;
 
         /** @type {Array.<ContextArray>} */ this.m_arrays = [];
         /** @type {ShaderProgram} */ this.m_program = DE_NULL;
@@ -832,24 +837,405 @@ function(
         this.m_arrays.push(new ContextArray(storage, this.m_ctx));
     };
 
-    /*{
-    public:
-        ContextArrayPack    (glu::RenderContext& renderCtx, sglr::Context& drawContext);
-        virtual                     ~ContextArrayPack   (void);
-        virtual Array*              getArray            (int i);
-        virtual int                 getArrayCount       (void);
-        virtual void                newArray            (Array::Storage storage);
-        virtual void                render              (Array::Primitive primitive, int firstVertex, int vertexCount, bool useVao, float coordScale, float colorScale);
-        
-        const tcu::Surface&         getSurface          (void) const { return m_screen; }
-    private:
-        void                        updateProgram       (void);
-        glu::RenderContext&         m_renderCtx;
-        sglr::Context&              m_ctx;
-        
-        std::vector<ContextArray*>  m_arrays;
-        sglr::ShaderProgram*        m_program;
-        tcu::Surface                m_screen;
-    };*/
-});
+    /**
+     * @param {number} i
+     * @return {ContextArray}
+     */
+    ContextArrayPack.prototype.getArray = function (i)
+    {
+        return this.m_arrays[i];
+    };
 
+    /**
+     * updateProgram
+     */
+    ContextArrayPack.prototype.updateProgram = function () {
+        this.m_program = new ContextShaderProgram(this.m_renderCtx, this.m_arrays);
+    };
+
+    /**
+     * @param {deArray.Primitive} primitive
+     * @param {number} firstVertex
+     * @param {number} vertexCount
+     * @param {boolean} useVao
+     * @param {number} coordScale
+     * @param {number} colorScale
+     */
+    ContextArrayPack.render = function (primitive, firstVertex, vertexCount, useVao, coordScale, colorScale) {
+        /** @type {number} */ var program = 0;
+        /** @type {number} */ var vaoId = 0;
+
+        this.updateProgram();
+
+        this.m_ctx.viewport(0, 0, this.m_screen.getWidth(), this.m_screen.getHeight());
+        this.m_ctx.clearColor(0.0, 0.0, 0.0, 1.0);
+        this.m_ctx.clear(gl.COLOR_BUFFER_BIT);
+
+        program = this.m_ctx.createProgram(this.m_program);
+
+        this.m_ctx.useProgram(program);
+        GLU_EXPECT_NO_ERROR(this.m_ctx.getError(), "glUseProgram()");
+
+        this.m_ctx.uniform1f(this.m_ctx.getUniformLocation(program, "u_coordScale"), coordScale);
+        this.m_ctx.uniform1f(this.m_ctx.getUniformLocation(program, "u_colorScale"), colorScale);
+
+        if (useVao) {
+            vaoID = this.m_ctx.genVertexArrays(1, vaoId);
+            this.m_ctx.bindVertexArray(vaoId);
+        }
+
+        for (var arrayNdx = 0; arrayNdx < this.m_arrays.length; arrayNdx++) {
+            if (this.m_arrays[arrayNdx].isBound()) {
+                /** @type {string} */ var attribName;
+                attribName = 'a_' + this.m_arrays[arrayNdx].getAttribNdx();
+
+                /** @type {number} */ var loc = this.m_ctx.getAttribLocation(program, attribName);
+                this.m_ctx.enableVertexAttribArray(loc);
+                GLU_EXPECT_NO_ERROR(this.m_ctx.getError(), "gl.enableVertexAttribArray()");
+
+                this.m_arrays[arrayNdx].glBind(loc);
+            }
+        }
+
+        DE_ASSERT((firstVertex % 6) == 0);
+        this.m_ctx.drawArrays(ContextArray.primitiveToGL(primitive), firstVertex, vertexCount - firstVertex);
+        GLU_EXPECT_NO_ERROR(this.m_ctx.getError(), "gl.drawArrays()");
+
+        for (var arrayNdx = 0; arrayNdx < this.m_arrays.length; arrayNdx++) {
+            if (this.m_arrays[arrayNdx].isBound()) {
+                /** @type {string} */ var attribName;
+                attribName = "a_" + this.m_arrays[arrayNdx].getAttribNdx();
+
+                /** @type {number} */ var loc = this.m_ctx.getAttribLocation(program, attribName);
+
+                this.m_ctx.disableVertexAttribArray(loc);
+                GLU_EXPECT_NO_ERROR(this.m_ctx.getError(), "gl.disableVertexAttribArray()");
+            }
+        }
+
+        if (useVao)
+            vaoID = this.m_ctx.deleteVertexArrays(1, vaoId);
+
+        this.m_ctx.deleteProgram(program);
+        this.m_ctx.useProgram(0);
+        this.m_ctx.readPixels(this.m_screen, 0, 0, this.m_screen.getWidth(), this.m_screen.getHeight());
+    };
+
+    /**
+     * @return {tcuSurface.Surface}
+     */
+    ContextArrayPack.prototype.getSurface = function () { return this.m_screen; };
+
+    /**
+     * GLValue class
+     */
+    var GLValue = function () {
+        /** @type {number} */ this.m_value = 0;
+        /** @type {deArray.InputType} */ this.m_type = undefined;
+    };
+
+    /**
+     * GLValue.Fixed
+     */
+    GLValue.Fixed = function () {
+        /** @type {deMath.deInt32} */ this.m_value = 0;
+    };
+
+    /**
+     * GLValue.Fixed.create
+     * @param {deMath.deInt32} value
+     */
+    GLValue.Fixed.create = function (value) {
+        var v = new GLValue.Fixed();
+        v.m_value = value;
+        return v;
+    };
+
+    /**
+     * GLValue.Fixed.getValue
+     * @return {deMath.deInt32}
+     */
+    GLValue.Fixed.getValue = function () {
+        return this.m_value;
+    };
+
+    /**
+     * newGLValueFromValue constructor
+     * @param {number} value
+     * @param {deArray.InputType} type
+     * @return {GLValue}
+     */
+    var newGLValueFromValue = function (value, type) {
+        var glValue = new GLValue();
+        glValue.m_value = value;
+        glValue.m_type = type;
+    };
+
+    /*class GLValue
+    {
+        public:
+        
+        template<class Type>
+        class WrappedType
+        {
+            public:
+            static WrappedType<Type>    create          (Type value)                            { WrappedType<Type> v; v.m_value = value; return v; }
+            inline Type                 getValue        (void) const                            { return m_value; }
+            
+            inline WrappedType<Type>    operator+       (const WrappedType<Type>& other) const  { return WrappedType<Type>::create(m_value + other.getValue()); }
+            inline WrappedType<Type>    operator*       (const WrappedType<Type>& other) const  { return WrappedType<Type>::create(m_value * other.getValue()); }
+            inline WrappedType<Type>    operator/       (const WrappedType<Type>& other) const  { return WrappedType<Type>::create(m_value / other.getValue()); }
+            inline WrappedType<Type>    operator-       (const WrappedType<Type>& other) const  { return WrappedType<Type>::create(m_value - other.getValue()); }
+            
+            inline WrappedType<Type>&   operator+=      (const WrappedType<Type>& other)        { m_value += other.getValue(); return *this; }
+            inline WrappedType<Type>&   operator*=      (const WrappedType<Type>& other)        { m_value *= other.getValue(); return *this; }
+            inline WrappedType<Type>&   operator/=      (const WrappedType<Type>& other)        { m_value /= other.getValue(); return *this; }
+            inline WrappedType<Type>&   operator-=      (const WrappedType<Type>& other)        { m_value -= other.getValue(); return *this; }
+            
+            inline bool                 operator==      (const WrappedType<Type>& other) const  { return m_value == other.m_value; }
+            inline bool                 operator!=      (const WrappedType<Type>& other) const  { return m_value != other.m_value; }
+            inline bool                 operator<       (const WrappedType<Type>& other) const  { return m_value < other.m_value; }
+            inline bool                 operator>       (const WrappedType<Type>& other) const  { return m_value > other.m_value; }
+            inline bool                 operator<=      (const WrappedType<Type>& other) const  { return m_value <= other.m_value; }
+            inline bool                 operator>=      (const WrappedType<Type>& other) const  { return m_value >= other.m_value; }
+            
+            inline                      operator Type   (void) const                            { return m_value; }
+            template<class T>
+            inline T                    to              (void) const                            { return (T)m_value; }
+            private:
+            Type    m_value;
+        };
+        
+        typedef WrappedType<deInt16>    Short;
+        typedef WrappedType<deUint16>   Ushort;
+        
+        typedef WrappedType<deInt8>     Byte;
+        typedef WrappedType<deUint8>    Ubyte;
+        
+        typedef WrappedType<float>      Float;
+        typedef WrappedType<double>     Double;
+        
+        typedef WrappedType<deInt32>    Int;
+        typedef WrappedType<deUint32>   Uint;
+        
+        class Half
+        {
+            public:
+            static Half         create          (float value)               { Half h; h.m_value = floatToHalf(value); return h; }
+            inline deFloat16    getValue        (void) const                { return m_value; }
+            
+            inline Half         operator+       (const Half& other) const   { return create(halfToFloat(m_value) + halfToFloat(other.getValue())); }
+            inline Half         operator*       (const Half& other) const   { return create(halfToFloat(m_value) * halfToFloat(other.getValue())); }
+            inline Half         operator/       (const Half& other) const   { return create(halfToFloat(m_value) / halfToFloat(other.getValue())); }
+            inline Half         operator-       (const Half& other) const   { return create(halfToFloat(m_value) - halfToFloat(other.getValue())); }
+            
+            inline Half&        operator+=      (const Half& other)         { m_value = floatToHalf(halfToFloat(other.getValue()) + halfToFloat(m_value)); return *this; }
+            inline Half&        operator*=      (const Half& other)         { m_value = floatToHalf(halfToFloat(other.getValue()) * halfToFloat(m_value)); return *this; }
+            inline Half&        operator/=      (const Half& other)         { m_value = floatToHalf(halfToFloat(other.getValue()) / halfToFloat(m_value)); return *this; }
+            inline Half&        operator-=      (const Half& other)         { m_value = floatToHalf(halfToFloat(other.getValue()) - halfToFloat(m_value)); return *this; }
+            
+            inline bool         operator==      (const Half& other) const   { return m_value == other.m_value; }
+            inline bool         operator!=      (const Half& other) const   { return m_value != other.m_value; }
+            inline bool         operator<       (const Half& other) const   { return halfToFloat(m_value) < halfToFloat(other.m_value); }
+            inline bool         operator>       (const Half& other) const   { return halfToFloat(m_value) > halfToFloat(other.m_value); }
+            inline bool         operator<=      (const Half& other) const   { return halfToFloat(m_value) <= halfToFloat(other.m_value); }
+            inline bool         operator>=      (const Half& other) const   { return halfToFloat(m_value) >= halfToFloat(other.m_value); }
+            
+            template<class T>
+            inline T            to              (void) const                { return (T)halfToFloat(m_value); }
+            
+            inline static deFloat16 floatToHalf     (float f);
+            inline static float     halfToFloat     (deFloat16 h);
+            private:
+            deFloat16 m_value;
+        };
+        
+        class Fixed
+        {
+            public:
+            static Fixed        create          (deInt32 value)             { Fixed v; v.m_value = value; return v; }
+            inline deInt32      getValue        (void) const                { return m_value; }
+            
+            inline Fixed        operator+       (const Fixed& other) const  { return create(m_value + other.getValue()); }
+            inline Fixed        operator*       (const Fixed& other) const  { return create(m_value * other.getValue()); }
+            inline Fixed        operator/       (const Fixed& other) const  { return create(m_value / other.getValue()); }
+            inline Fixed        operator-       (const Fixed& other) const  { return create(m_value - other.getValue()); }
+            
+            inline Fixed&       operator+=      (const Fixed& other)        { m_value += other.getValue(); return *this; }
+            inline Fixed&       operator*=      (const Fixed& other)        { m_value *= other.getValue(); return *this; }
+            inline Fixed&       operator/=      (const Fixed& other)        { m_value /= other.getValue(); return *this; }
+            inline Fixed&       operator-=      (const Fixed& other)        { m_value -= other.getValue(); return *this; }
+            
+            inline bool         operator==      (const Fixed& other) const  { return m_value == other.m_value; }
+            inline bool         operator!=      (const Fixed& other) const  { return m_value != other.m_value; }
+            inline bool         operator<       (const Fixed& other) const  { return m_value < other.m_value; }
+            inline bool         operator>       (const Fixed& other) const  { return m_value > other.m_value; }
+            inline bool         operator<=      (const Fixed& other) const  { return m_value <= other.m_value; }
+            inline bool         operator>=      (const Fixed& other) const  { return m_value >= other.m_value; }
+            
+            inline              operator deInt32 (void) const               { return m_value; }
+            template<class T>
+            inline T            to              (void) const                { return (T)m_value; }
+            private:
+            deInt32             m_value;
+        };
+        
+        // \todo [mika] This is pretty messy
+        GLValue         (void)          : type(Array::INPUTTYPE_LAST) {}
+        explicit            GLValue         (Float value)   : type(Array::INPUTTYPE_FLOAT),             fl(value)   {}
+        explicit            GLValue         (Fixed value)   : type(Array::INPUTTYPE_FIXED),             fi(value)   {}
+        explicit            GLValue         (Byte value)    : type(Array::INPUTTYPE_BYTE),              b(value)    {}
+        explicit            GLValue         (Ubyte value)   : type(Array::INPUTTYPE_UNSIGNED_BYTE),     ub(value)   {}
+        explicit            GLValue         (Short value)   : type(Array::INPUTTYPE_SHORT),             s(value)    {}
+        explicit            GLValue         (Ushort value)  : type(Array::INPUTTYPE_UNSIGNED_SHORT),    us(value)   {}
+        explicit            GLValue         (Int value)     : type(Array::INPUTTYPE_INT),               i(value)    {}
+        explicit            GLValue         (Uint value)    : type(Array::INPUTTYPE_UNSIGNED_INT),      ui(value)   {}
+        explicit            GLValue         (Half value)    : type(Array::INPUTTYPE_HALF),              h(value)    {}
+        explicit            GLValue         (Double value)  : type(Array::INPUTTYPE_DOUBLE),            d(value)    {}
+        
+        float               toFloat         (void) const;
+        
+        static GLValue      getMaxValue     (Array::InputType type);
+        static GLValue      getMinValue     (Array::InputType type);
+        
+        Array::InputType    type;
+        
+        union
+        {
+            Float       fl;
+            Fixed       fi;
+            Double      d;
+            Byte        b;
+            Ubyte       ub;
+            Short       s;
+            Ushort      us;
+            Int         i;
+            Uint        ui;
+            Half        h;
+        };
+    };*/
+
+    /**
+     * class VertexArrayTest
+     * @param {string} name
+     * @param {string} description
+     */
+    var VertexArrayTest = function(name, description) {
+        tcuTestCase.DeqpTest.call(this, name, description);
+        this.m_renderCtx = gl;
+
+        //TODO: Reference rasterizer implementation.
+        /** @type {ReferenceContextBuffers} */ this.m_refBuffers = DE_NULL;
+        /** @type {ReferenceContext} */ this.m_refContext = DE_NULL;
+        /** @type {GLContext} */ this.m_glesContext = DE_NULL;
+        /** @type {ContextArrayPack} */ this.m_glArrayPack = DE_NULL;
+        /** @type {ContextArrayPack} */ this.m_rrArrayPack = DE_NULL;
+        /** @type {boolean} */ this.m_isOk = false;
+        /** @type {number} */ this.m_maxDiffRed = deMath.deCeilFloatToInt32(256.0 * (2.0 / (1 << this.m_renderCtx.getRenderTarget().getPixelFormat().redBits)));
+        /** @type {number} */ this.m_maxDiffGreen = deMath.deCeilFloatToInt32(256.0 * (2.0 / (1 << this.m_renderCtx.getRenderTarget().getPixelFormat().greenBits)));
+        /** @type {number} */ this.m_maxDiffBlue = deMath.deCeilFloatToInt32(256.0 * (2.0 / (1 << this.m_renderCtx.getRenderTarget().getPixelFormat().blueBits)));
+    };
+
+    VertexArrayTest.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
+    VertexArrayTest.prototype.constructor = VertexArrayTest;
+
+    /**
+     * init
+     */
+    void VertexArrayTest.prototype.init = function () {
+        /** @type {number}*/ var renderTargetWidth = Math.min(512, m_renderCtx.getRenderTarget().getWidth());
+        /** @type {number}*/ var renderTargetHeight  = Math.min(512, m_renderCtx.getRenderTarget().getHeight());
+        /** @type {ReferenceContextLimits} */ var limits = new ReferenceContextLimits(this.m_renderCtx);
+
+        //TODO: Reference rasterizer implementation.
+//         this.m_glesContext = new sglr::GLContext(this.m_renderCtx, this.m_testCtx.getLog(), sglr::GLCONTEXT_LOG_CALLS | sglr::GLCONTEXT_LOG_PROGRAMS, [0, 0, renderTargetWidth, renderTargetHeight]);
+//         this.m_refBuffers = new sglr::ReferenceContextBuffers(this.m_renderCtx.getRenderTarget().getPixelFormat(), 0, 0, renderTargetWidth, renderTargetHeight);
+//         this.m_refContext = new sglr::ReferenceContext(limits, this.m_refBuffers.getColorbuffer(), this.m_refBuffers.getDepthbuffer(), this.m_refBuffers.getStencilbuffer());
+
+        this.m_glArrayPack = new ContextArrayPack(this.m_renderCtx, this.m_glesContext);
+        //TODO: Reference rasterizer implementation.
+        this.m_rrArrayPack = new ContextArrayPack(this.m_renderCtx, this.m_refContext);
+    };
+
+    /**
+     * compare
+     */
+    var VertexArrayTest.prototype.compare = function () {
+        /** @type {tcuSurface.Surface} */ var ref = this.m_rrArrayPack.getSurface();
+        /** @type {tcuSurface.Surface} */ var screen = this.m_glArrayPack.getSurface();
+
+        if (this.m_renderCtx.getRenderTarget().getNumSamples() > 1) {
+            // \todo [mika] Improve compare when using multisampling
+            bufferedLogToConsole("Warning: Comparision of result from multisample render targets are not as stricts as without multisampling. Might produce false positives!");
+            this.m_isOk = tcuImgCmp.fuzzyCompare("Compare Results", "Compare Results", ref.getAccess(), screen.getAccess(), 1.5);
+        }
+        else {
+            /** @type {tcuRGBA.RGBA} */ var threshold = (this.m_maxDiffRed, this.m_maxDiffGreen, this.m_maxDiffBlue, 255);
+            /** @type {tcuSurface.Surface} */ var error = new tcuSurface.Surface(ref.getWidth(), ref.getHeight());
+
+            this.m_isOk = true;
+
+            for (var y = 1; y < ref.getHeight()-1; y++) {
+                for (int x = 1; x < ref.getWidth()-1; x++) {
+                    /** @type {tcuRGBA.RGBA} */ var refPixel = ref.getPixel(x, y);
+                    /** @type {tcuRGBA.RGBA} */ var screenPixel = screen.getPixel(x, y);
+                    /** @type {boolean} */ var isOkPixel = false;
+
+                    // Don't do comparisons for this pixel if it belongs to a one-pixel-thin part (i.e. it doesn't have similar-color neighbors in both x and y directions) in both result and reference.
+                    // This fixes some false negatives.
+                    /** @type {boolean} */ var refThin = (!tcuRGBA.compareThreshold(refPixel, ref.getPixel(x - 1, y), threshold) && !tcuRGBA.compareThreshold(refPixel, ref.getPixel(x + 1, y), threshold)) ||
+                    (!tcuRGBA.compareThreshold(refPixel, ref.getPixel(x, y - 1), threshold) && !tcuRGBA.compareThreshold(refPixel, ref.getPixel(x, y + 1), threshold));
+                    /** @type {boolean} */ var screenThin = (!tcuRGBA.compareThreshold(screenPixel, screen.getPixel(x-1, y  ), threshold) && !tcuRGBA.compareThreshold(screenPixel, screen.getPixel(x + 1, y), threshold)) ||
+                    (!tcuRGBA.compareThreshold(screenPixel, screen.getPixel(x, y - 1), threshold) && !tcuRGBA.compareThreshold(screenPixel, screen.getPixel(x, y + 1), threshold));
+
+                    if (refThin && screenThin)
+                        isOkPixel = true;
+                    else {
+                        for (var dy = -1; dy < 2 && !isOkPixel; dy++) {
+                            for (int dx = -1; dx < 2 && !isOkPixel; dx++) {
+                                // Check reference pixel against screen pixel
+                                /** @type {tcuRGBA.RGBA} */ var screenCmpPixel  = screen.getPixel(x + dx, y + dy);
+                                /** @type {deMath.deUint8} */ var r = Math.abs(refPixel.getRed() - screenCmpPixel.getRed());
+                                /** @type {deMath.deUint8} */ var g = Math.abs(refPixel.getGreen() - screenCmpPixel.getGreen());
+                                /** @type {deMath.deUint8} */ var b = Math.abs(refPixel.getBlue() - screenCmpPixel.getBlue());
+
+                                if (r <= this.m_maxDiffRed && g <= this.m_maxDiffGreen && b <= this.m_maxDiffBlue)
+                                    isOkPixel = true;
+
+                                // Check screen pixels against reference pixel
+                                /** @type {tcuRGBA.RGBA} */ var refCmpPixel     = ref.getPixel(x+dx, y+dy);
+                                /** @type {deMath.deUint8} */ var r = Math.abs(refCmpPixel.getRed() - screenPixel.getRed());
+                                /** @type {deMath.deUint8} */ var g = Math.abs(refCmpPixel.getGreen() - screenPixel.getGreen());
+                                /** @type {deMath.deUint8} */ var b = Math.abs(refCmpPixel.getBlue() - screenPixel.getBlue());
+
+                                    if (r <= this.m_maxDiffRed && g <= this.m_maxDiffGreen && b <= this.m_maxDiffBlue)
+                                        isOkPixel = true;
+                            }
+                        }
+                    }
+
+                    if (isOkPixel)
+                        error.setPixel(x, y, tcuRGBA.RGBA(screen.getPixel(x, y).getRed(), (screen.getPixel(x, y).getGreen() + 255) / 2, screen.getPixel(x, y).getBlue(), 255));
+                    else {
+                        error.setPixel(x, y, tcuRGBA.RGBA(255, 0, 0, 255));
+                        this.m_isOk = false;
+                    }
+                }
+            }
+
+            if (!this.m_isOk) {
+                debug("Image comparison failed, threshold = (" + this.m_maxDiffRed + ", " + this.m_maxDiffGreen + ", " + this.m_maxDiffBlue + ")");
+                //log << TestLog::ImageSet("Compare result", "Result of rendering");
+                tcuImgCmp.displayImages("Result",     "Result",       screen);
+                tcuImgCmp.displayImages("Reference",  "Reference",    ref);
+                tcuImgCmp.displayImages("ErrorMask",  "Error mask",   error);
+            }
+            else {
+                //log << TestLog::ImageSet("Compare result", "Result of rendering")
+                tcuImgCmp.displayImages("Result", "Result", screen);
+            }
+        }
+    };
+
+    //TODO: Is this actually used? -> VertexArrayTest&                operator=           (const VertexArrayTest& other);
+});

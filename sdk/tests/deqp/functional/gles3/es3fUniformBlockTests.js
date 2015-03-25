@@ -366,9 +366,9 @@ define(['framework/opengl/gluShaderUtil', 'modules/shared/glsUniformBlockCase', 
 
         /** @type {Array.<string, glsUBC.UniformFlags>} */
         var layoutFlags = [
-            { name: 'shared', flags: glsUBC.UniformFlags.PRECISION_LOW },
-            { name: 'packed', flags: glsUBC.UniformFlags.PRECISION_MEDIUM },
-            { name: 'std140', flags: glsUBC.UniformFlags.PRECISION_HIGH }
+            { name: 'shared', flags: glsUBC.UniformFlags.LAYOUT_SHARED },
+            //{ name: 'packed', flags: glsUBC.UniformFlags.LAYOUT_PACKED },
+            { name: 'std140', flags: glsUBC.UniformFlags.LAYOUT_STD140 }
         ];
 
         /** @type {Array.<string, glsUBC.UniformFlags>} */

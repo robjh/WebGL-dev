@@ -347,7 +347,7 @@ define([
     };
 
     /**
-     * @typedef {Object} SamplerV
+     * SamplerV structure
      * @constructor
      */
     var SamplerV = function() {

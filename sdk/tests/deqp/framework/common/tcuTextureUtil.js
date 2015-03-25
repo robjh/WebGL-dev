@@ -31,6 +31,41 @@ var linearInterpolate = function(t, minVal, maxVal)
 };
 
 /**
+ * @enum Clear
+ */
+var Clear = {
+    OPTIMIZE_THRESHOLD: 128,
+    OPTIMIZE_MAX_PIXEL_SIZE: 8
+};
+
+/**
+ * @param {PixelBufferAccess} access
+ * @param {Array.<number>} color
+ */
+var clear = function (access, color) {
+    /** @type {number} */ var pixelSize = access.getFormat().getPixelSize();
+
+    if (access.getWidth() * access.getHeight() * access.getDepth() >= Clear.OPTIMIZE_THRESHOLD &&
+        pixelSize < Clear.OPTIMIZE_MAX_PIXEL_SIZE) {
+        // Convert to destination format.
+        /** @type {Uint8Array} */ var pixel = new Uint8Array(Clear.OPTIMIZE_MAX_PIXEL_SIZE);
+
+        DE_ASSERT(pixel.length == Clear.OPTIMIZE_MAX_PIXEL_SIZE);
+        PixelBufferAccess(access.getFormat(), 1, 1, 1, 0, 0, pixel).setPixel(color, 0, 0);
+
+        for (var z = 0; z < access.getDepth(); z++)
+            for (var y = 0; y < access.getHeight(); y++)
+                fillRow(access, y, z, pixelSize, pixel);
+    }
+    else {
+        for (var z = 0; z < access.getDepth(); z++)
+            for (var y = 0; y < access.getHeight(); y++)
+                for (var x = 0; x < access.getWidth(); x++)
+                    access.setPixel(color, x, y, z);
+    }
+};
+
+/**
  * Enums for TextureChannelClass
  * @enum {number}
  */
@@ -362,6 +397,7 @@ var getTextureFormatBitDepth = function(format) {
 };
 
 return {
+    clear: clear,
     getTextureChannelClass: getTextureChannelClass,
     getSubregion: getSubregion,
     fillWithComponentGradients: fillWithComponentGradients,

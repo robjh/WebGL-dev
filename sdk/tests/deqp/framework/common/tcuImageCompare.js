@@ -71,6 +71,58 @@ var displayImages = function(result, reference, diff) {
         contexts[2].putImageData(createImage(contexts[2], diff), 0, 0);
 };
 
+/** TODO: implement this
+ * @param {tcuTexture.ConstPixelBufferAccess} reference
+ * @param {tcuTexture.ConstPixelBufferAccess} result
+ * @param {Float32Array} scale (Vec4)
+ * @param {Float32Array} bias (Vec4)
+ */
+/*var computeScaleAndBias = function (reference, result, scale, bias) {
+    Vec4 minVal;
+    Vec4 maxVal;
+    const float eps = 0.0001f;
+    
+    {
+        Vec4 refMin;
+        Vec4 refMax;
+        estimatePixelValueRange(reference, refMin, refMax);
+        
+        minVal  = refMin;
+        maxVal  = refMax;
+    }
+    
+    {
+        Vec4 resMin;
+        Vec4 resMax;
+        
+        estimatePixelValueRange(result, resMin, resMax);
+        
+        minVal[0] = de::min(minVal[0], resMin[0]);
+        minVal[1] = de::min(minVal[1], resMin[1]);
+        minVal[2] = de::min(minVal[2], resMin[2]);
+        minVal[3] = de::min(minVal[3], resMin[3]);
+        
+        maxVal[0] = de::max(maxVal[0], resMax[0]);
+        maxVal[1] = de::max(maxVal[1], resMax[1]);
+        maxVal[2] = de::max(maxVal[2], resMax[2]);
+        maxVal[3] = de::max(maxVal[3], resMax[3]);
+    }
+    
+    for (int c = 0; c < 4; c++)
+    {
+        if (maxVal[c] - minVal[c] < eps)
+        {
+            scale[c]    = (maxVal[c] < eps) ? 1.0f : (1.0f / maxVal[c]);
+            bias[c]     = (c == 3) ? (1.0f - maxVal[c]*scale[c]) : (0.0f - minVal[c]*scale[c]);
+        }
+        else
+        {
+            scale[c]    = 1.0f / (maxVal[c] - minVal[c]);
+            bias[c]     = 0.0f - minVal[c]*scale[c];
+        }
+    }
+};*/
+
 /*--------------------------------------------------------------------*//*!
  * \brief Per-pixel threshold-based comparison
  *
@@ -335,28 +387,28 @@ var pixelThresholdCompare = function(/*const char* */imageSetName, /*const char*
   * @param {string} imageSetDesc
   * @param {tcuTexture.ConstPixelBufferAccess} reference
   * @param {tcuTexture.ConstPixelBufferAccess} result
-  * @param {float} threshold
+  * @param {number} threshold
   * @param {deqpUtils.CompareLogMode} logMode
   * @return {boolean}
   */
 var fuzzyCompare = function(imageSetName, imageSetDesc, reference, result, threshold, logMode)
 {
-    /** @type {FuzzyCompareParams} */ var params = new FuzzyCompareParams(); // Use defaults.
-    /** @type {TextureLevel} */ var errorMask = tcuTexture.TextureLevel(
-                                                                TextureFormat(tcuTexture.ChannelOrder.RGB,
+    /** @type {tcuFuzzyImageCompare.FuzzyCompareParams} */ var params = new FuzzyCompareParams(); // Use defaults.
+    /** @type {tcuTexture.TextureLevel} */ var errorMask = tcuTexture.TextureLevel(
+                                                                new TextureFormat(tcuTexture.ChannelOrder.RGB,
                                                                               tcuTexture.ChannelType.UNORM_INT8),
                                                                 reference.getWidth(),
                                                                 reference.getHeight()
                                                            );
-    /** @type {float} */ var difference = tcuFuzzyImageCompare.fuzzyCompare(
+    /** @type {number} */ var difference = tcuFuzzyImageCompare.fuzzyCompare(
                                                                 params,
                                                                 reference,
                                                                 result,
                                                                 errorMask.getAccess()
                                                                );
     /** @type {boolean} */ var isOk = difference <= threshold;
-    /** @type {Array<float>} */ var pixelBias [0.0, 0.0, 0.0, 0.0];
-    /** @type {Array<float>} */ var pixelScale [1.0, 1.0, 1.0, 1.0];
+    /** @type {Array<number>} */ var pixelBias = [0.0, 0.0, 0.0, 0.0];
+    /** @type {Array<number>} */ var pixelScale = [1.0, 1.0, 1.0, 1.0];
 
     if (!isOk) {
         debug('Fuzzy image comparison failed: difference = ' + difference + ', threshold = ' + threshold);
