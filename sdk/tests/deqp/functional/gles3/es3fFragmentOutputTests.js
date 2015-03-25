@@ -69,8 +69,8 @@ function(
         testFailedOptions(msg, true);
     };
 
-    /** toUInt32
-     * Returns a converted UInt32
+    /**
+     * toUInt32. Returns a converted UInt32
      * @param {number} x
      * @return {UInt32}
      */
@@ -78,8 +78,9 @@ function(
         return x >>> 0;
       };
 
-    /** BufferSpec
-     * Constructs the BufferSpec object, it's originally a struct
+    /**
+     * BufferSpec. Constructs the BufferSpec object, a struct in the C++ version
+     * @constructor
      * @param {number} format_
      * @param {number} width_
      * @param {number} height_
@@ -92,8 +93,9 @@ function(
         this.samples = samples_;
     });
 
-    /** FragmentOutput
-     * Constructs the FragmentOutput object, it's originally a struct
+    /**
+     * FragmentOutput. Constructs the FragmentOutput object, a struct in the C++ version
+     * @constructor
      * @param {gluShaderUtil.DataType} type_
      * @param {gluShaderUtil.precision} precision_
      * @param {number} location_
@@ -108,8 +110,8 @@ function(
 
     /** @type {Array.<FragmentOutput>} */ var Outputs = [];
 
-    /** OutputVec
-     * Returns an Array of FragmentOutput objects
+    /**
+     * OutputVec. Returns an Array of FragmentOutput objects
      * @param {FragmentOutput} output
      * @return {Array.<FragmentOutput>} outputs
      */
@@ -121,8 +123,9 @@ function(
         return partialOutput;
     };
 
-    /** FragmentOutputCase
-     * Constructs the FragmentOutputCase object
+    /**
+     * FragmentOutputCase. Constructs the FragmentOutputCase object
+     * @constructor
      * @param {WebGLRenderingContext} gl WebGL context
      * @param {string} name
      * @param {string} description
@@ -143,8 +146,8 @@ function(
     FragmentOutputCase.prototype = Object.create(deqpTests.DeqpTest.prototype);
     FragmentOutputCase.prototype.constructor = FragmentOutputCase;
 
-    /** Creates Program
-     * Returns a ShaderProgram object
+    /**
+     * createProgram. Returns a ShaderProgram object
      * @param {WebGLRenderingContext} gl WebGL context
      * @param {Array.<FragmentOutput>} outputs
      * @return {deqpProgram.ShaderProgram} program
@@ -290,8 +293,8 @@ function(
         // TODO: implement?
     };
 
-    /** getMinSize
-     * Returns a 2-dimension Array (originally in the C++ version IVec2) with the minimum size
+    /**
+     * getMinSize. Returns a 2-dimension Array (originally in the C++ version IVec2) with the minimum size
      * compared to the width and height of each BufferSpec object contained in the passed Array
      * @param {Array.<BufferSpec>} fboSpec
      * @return {Array.<number>} minSize
@@ -307,8 +310,8 @@ function(
 
     };
 
-    /** getNumInputVectors
-     * Returns the length of the array of all the outputs (FragmentOutput object)
+    /**
+     * getNumInputVectors. Returns the length of the array of all the outputs (FragmentOutput object)
      * @param {Array.<FragmentOutput>} outputs
      * @return {number} numVecs
      */
@@ -319,8 +322,8 @@ function(
         return numVecs;
     };
 
-    /** getFloatRange
-     * Returns an Float32Array, in the C++ version called Vec2 object
+    /**
+     * getFloatRange. Returns an Array(instead of a Float32Array), in the C++ version called Vec2 object
      * @param {gluShaderUtil.precision} precision, number
      * @return {Float32Array} Vec2
      */
@@ -338,8 +341,8 @@ function(
         return ranges[precision];
     };
 
-    /** getIntRange
-     * Returns an Int32Array, in the C++ version called IVec2 object
+    /**
+     * getIntRange. Returns an Array(instead of an Int32Array), in the C++ version called IVec2 object
      * @param {gluShaderUtil.precision} precision, number
      * @return {Int32Array} IVec2
      */
@@ -357,8 +360,8 @@ function(
         return ranges[precision];
     };
 
-    /** getUintRange
-     * Returns an Uint32Array, in the C++ version called UVec2 object
+    /**
+     * getUintRange. Returns an Array(instead of an Uint32Array), in the C++ version called UVec2 object
      * @param {gluShaderUtil.precision} precision, number
      * @return {Uint32Array} UVec2
      */
@@ -377,7 +380,8 @@ function(
 
     };
 
-    /** readVec4
+    /**
+     * readVec4
      * @param {Float32Array} ptr, TypedArray Float32Array, it is a pointer in the C++ version
      * @param {number} numComponents
      * @return {Float32Array} Vec4
@@ -392,7 +396,8 @@ function(
                 ];
     };
 
-    /** readIVec4
+    /**
+     * readIVec4
      * @param {Int32Array} ptr, TypedArray Int32Array, it is a pointer in the C++ version
      * @param {number} numComponents
      * @return {Int32Array} IVec4
@@ -407,7 +412,8 @@ function(
                 ];
     };
 
-    /** renderFloatReference
+    /**
+     * renderFloatReference
      * @param {tcuTexture.PixelBufferAccess} dst
      * @param {number} gridWidth
      * @param {number} gridHeight
@@ -447,7 +453,8 @@ function(
         }
     };
 
-    /** renderIntReference
+    /**
+     * renderIntReference
      * @param {tcuTexture.PixelBufferAccess} dst
      * @param {number} gridWidth
      * @param {number} gridHeight
@@ -472,7 +479,8 @@ function(
         }
     };
 
-    /** s_swizzles
+    /**
+     * s_swizzles
      * @return {Array.<Array.<number>>}
      */
     var s_swizzles = function() {
@@ -490,8 +498,8 @@ function(
         return mat_swizzles;
     };
 
-    /** swizzleVec
-     * Returns an Array from a position contained in the Array s_swizzles []
+    /**
+     * swizzleVec. Returns an Array from a position contained in the Array s_swizzles []
      * @param {Array.<number>} vec
      * @param {number} swzNdx
      * @return {Array.<number>} Swizzled array
@@ -503,7 +511,8 @@ function(
     };
 
     /**
-     * Constructs an AttachmentData object
+     * AttachmentData struct class
+     * @constructor
      * @return {Object}
      */
     var AttachmentData = (function() {
@@ -530,7 +539,7 @@ function(
 
         // Compute grid size & index list.
         /** @type {number} */ var minCellSize = 8;
-        /** @type {Array.<number>} */ var minBufSize = getMinSize(m_fboSpec); // IVec2, array of integers, size = 2
+        /** @type {Array.<number>} */ var minBufSize = getMinSize(m_fboSpec); // IVec2
         /** @type {number} */ var gridWidth = deMath.clamp(Math.floor(minBufSize[0] / minCellSize), 1, 255) + 1;
         /** @type {number} */ var gridHeight = deMath.clamp(Math.floor(minBufSize[1] / minCellSize), 1, 255) + 1;
         /** @type {number} */ var numVertices = gridWidth * gridHeight;
@@ -626,8 +635,8 @@ function(
 
                     if (isFloat)
                     {
-                     /** @type {Float32Array} */ var range = getFloatRange(output.precision); // Vec2, array of floats, size = 2
-                     /** @type {Float32Array} */ var minVal = [range[0], range[0], range[0], range[0]]; // Vec4, array of floats, size = 4
+                     /** @type {Float32Array} */ var range = getFloatRange(output.precision); // Vec2
+                     /** @type {Float32Array} */ var minVal = [range[0], range[0], range[0], range[0]]; // Vec4
                      /** @type {Float32Array} */ var maxVal = [range[1], range[1], range[1], range[1]]; // Vec4
                      // float* dst = (float*)&inputs[curInVec][0]; // a pointer needed in the next loop
 
@@ -822,10 +831,13 @@ function(
                     {
                         gl.enableVertexAttribArray(loc);
                         if (isFloat)
-                            // KHRONOS specification: void vertexAttribIPointer(GLuint index, GLint size, GLenum type, GLsizei stride, GLintptr offset)
-                            gl.vertexAttribPointer(loc, scalarSize, glScalarType, gl.FALSE, 0, inputs[curInVec][0]); // TODO: check offset = inputs[curInVec][0] ?
+                            // KHRONOS WebGL 1.0 specification:
+                            // void vertexAttribPointer(GLuint indx, GLint size, GLenum type, GLboolean normalized, GLsizei stride, GLintptr offset);
+                            gl.vertexAttribPointer(loc, scalarSize, glScalarType, gl.FALSE, 0, 0); // offset = 0
                         else
-                            gl.vertexAttribIPointer(loc, scalarSize, glScalarType, 0, inputs[curInVec][0], 0); // offset = 0
+                            // KHRONOS WebGL 2.0 specification:
+                            // void vertexAttribIPointer(GLuint index, GLint size, GLenum type, GLsizei stride, GLintptr offset)
+                            gl.vertexAttribIPointer(loc, scalarSize, glScalarType, 0, 0); // offset = 0
                     }
                     else
                         bufferedLogToConsole('Warning: No location for attribute "' + name + '" found.');
@@ -842,7 +854,7 @@ function(
         }
         GLU_EXPECT_NO_ERROR(gl.getError(), 'After attribute setup');
 
-        gl.drawElements(gl.TRIANGLES, numIndices, gl.UNSIGNED_SHORT, indices);
+        gl.drawElements(gl.TRIANGLES, numIndices, gl.UNSIGNED_SHORT, indices); // TODO: check last argument, offset
         GLU_EXPECT_NO_ERROR(gl.getError(), 'glDrawElements');
 
         // Read all attachment points.
@@ -1034,8 +1046,9 @@ function(
         return deqpTests.runner.IterateResult.STOP;
     };
 
-    /** createRandomCase
-     * Creates the createRandomCase, child class of FragmentOutputCase
+    /**
+     * createRandomCase. Constructs the createRandomCase, child class of FragmentOutputCase
+     * @constructor
      * @param {WebGLRenderingContext} gl WebGL context
      * @param {number} minRenderTargets
      * @param {number} maxRenderTargets
