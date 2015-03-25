@@ -22,23 +22,13 @@ define([
     'framework/common/tcuTestCase',
     'framework/common/tcuRGBA',
     'framework/common/tcuImageCompare',
-    'framework/opengl/gluShaderProgram',
-    'framework/opengl/gluShaderUtil',
-    'framework/opengl/gluDrawUtil',
-    'framework/delibs/debase/deMath',
-    'framework/delibs/debase/deRandom',
-    'framework/delibs/debase/deString'
+    'framework/delibs/debase/deMath'
 ],
 function (
-    deqpTests,
+    tcuTestCase,
     tcuRGBA,
-    tcuImgCmp,
-    deqpProgram,
-    deqpUtils,
-    deqpDraw,
-    deMath,
-    deRandom,
-    deString
+    tcuImageCompare,
+    deMath
 ) {
     'use strict';
 
@@ -1167,7 +1157,7 @@ function (
         if (this.m_renderCtx.getRenderTarget().getNumSamples() > 1) {
             // \todo [mika] Improve compare when using multisampling
             bufferedLogToConsole("Warning: Comparision of result from multisample render targets are not as stricts as without multisampling. Might produce false positives!");
-            this.m_isOk = tcuImgCmp.fuzzyCompare("Compare Results", "Compare Results", ref.getAccess(), screen.getAccess(), 1.5);
+            this.m_isOk = tcuImageCompare.fuzzyCompare("Compare Results", "Compare Results", ref.getAccess(), screen.getAccess(), 1.5);
         }
         else {
             /** @type {tcuRGBA.RGBA} */ var threshold = (this.m_maxDiffRed, this.m_maxDiffGreen, this.m_maxDiffBlue, 255);
@@ -1226,13 +1216,13 @@ function (
             if (!this.m_isOk) {
                 debug("Image comparison failed, threshold = (" + this.m_maxDiffRed + ", " + this.m_maxDiffGreen + ", " + this.m_maxDiffBlue + ")");
                 //log << TestLog::ImageSet("Compare result", "Result of rendering");
-                tcuImgCmp.displayImages("Result",     "Result",       screen);
-                tcuImgCmp.displayImages("Reference",  "Reference",    ref);
-                tcuImgCmp.displayImages("ErrorMask",  "Error mask",   error);
+                tcuImageCompare.displayImages("Result",     "Result",       screen);
+                tcuImageCompare.displayImages("Reference",  "Reference",    ref);
+                tcuImageCompare.displayImages("ErrorMask",  "Error mask",   error);
             }
             else {
                 //log << TestLog::ImageSet("Compare result", "Result of rendering")
-                tcuImgCmp.displayImages("Result", "Result", screen);
+                tcuImageCompare.displayImages("Result", "Result", screen);
             }
         }
     };

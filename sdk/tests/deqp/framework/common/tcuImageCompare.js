@@ -19,6 +19,7 @@
  */
 
 define(['framework/common/tcuSurface', 'framework/delibs/debase/deMath', 'framework/common/tcuTexture', 'framework/common/tcuFuzzyImageCompare'], function(tcuSurface, deMath, tcuTexture, tcuFuzzyImageCompare) {
+    'use strict';
 
 var CompareLogMode = {
     EVERYTHING: 0,

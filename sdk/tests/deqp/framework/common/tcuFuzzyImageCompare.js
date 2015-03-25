@@ -27,7 +27,7 @@ define(
         deMath,
         deRandom,
         tcuTexture,
-        tcuTUtil
+        tcuTextureUtil
     ) {
     'use strict';
 
@@ -394,7 +394,7 @@ define(
         /** @type {number} */ var errSum      = 0.0;
 
         // Clear error mask to green.
-        tcuTUtil.clear(errorMask, [0.0, 1.0, 0.0, 1.0]);
+        tcuTextureUtil.clear(errorMask, [0.0, 1.0, 0.0, 1.0]);
 
         /** @type {ConstPixelBufferAccess} */ var refAccess = refFiltered.getAccess();
         /** @type {ConstPixelBufferAccess} */ var cmpAccess = cmpFiltered.getAccess();

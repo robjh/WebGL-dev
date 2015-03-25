@@ -18,7 +18,8 @@
  *
  */
 
-define(['framework/common/tcuSurface', 'framework/delibs/debase/deMath', 'framework/common/tcuTexture', 'framework/common/tcuTextureUtil'], function(tcuSurface, deMath, tcuTexture, tcuTUtil) {
+define(['framework/delibs/debase/deMath'], function (deMath) {
+    'use strict';
 
     var DE_ASSERT = function(x) {
         if (!x)
