@@ -8,7 +8,7 @@ define([
     
     var s_es3ColorRenderables = [
         // GLES3, 4.4.4: "An internal format is color-renderable if it is one of
-	    // the formats from table 3.12 noted as color-renderable..."
+        // the formats from table 3.12 noted as color-renderable..."
         gl.R8,     gl.RG8,     gl.RGB8,   gl.RGB565,   gl.RGBA4,   gl.RGB5_A1, gl.RGBA8,
         gl.RGB10_A2, gl.RGB10_A2UI, gl.SRGB8_ALPHA8,
         gl.R8I,    gl.R8UI,    gl.R16I,   gl.R16UI,    gl.R32I,    gl.R32UI,
@@ -28,28 +28,28 @@ define([
 
     
     var s_es3DepthRenderables = [
-	    // GLES3, 4.4.4: "An internal format is depth-renderable if it is one of
-	    // the formats from table 3.13."
-	    gl.DEPTH_COMPONENT16, gl.DEPTH_COMPONENT24, gl.DEPTH_COMPONENT32F,
-	    gl.DEPTH24_STENCIL8, gl.DEPTH32F_STENCIL8
+        // GLES3, 4.4.4: "An internal format is depth-renderable if it is one of
+        // the formats from table 3.13."
+        gl.DEPTH_COMPONENT16, gl.DEPTH_COMPONENT24, gl.DEPTH_COMPONENT32F,
+        gl.DEPTH24_STENCIL8, gl.DEPTH32F_STENCIL8
     ];
     
     var s_es3StencilRboRenderables = [
-    	// GLES3, 4.4.4: "An internal format is stencil-renderable if it is
-	    // STENCIL_INDEX8..."
-	    gl.STENCIL_INDEX8
+        // GLES3, 4.4.4: "An internal format is stencil-renderable if it is
+        // STENCIL_INDEX8..."
+        gl.STENCIL_INDEX8
     ];
     
     var s_es3StencilRenderables = [
-	    // "...or one of the formats from table 3.13 whose base internal format is
-	    // DEPTH_STENCIL."
-	    gl.DEPTH24_STENCIL8, gl.DEPTH32F_STENCIL8,
+        // "...or one of the formats from table 3.13 whose base internal format is
+        // DEPTH_STENCIL."
+        gl.DEPTH24_STENCIL8, gl.DEPTH32F_STENCIL8,
     ];
     
     var s_es3TextureFloatFormats = [
-	    gl.RGBA32F, gl.RGBA16F, gl.R11F_G11F_B10F,
-	    gl.RG32F,   gl.RG16F,   gl.R32F,  gl.R16F,
-	    gl.RGBA16F, gl.RGB16F,  gl.RG16F, gl.R16F,
+        gl.RGBA32F, gl.RGBA16F, gl.R11F_G11F_B10F,
+        gl.RG32F,   gl.RG16F,   gl.R32F,  gl.R16F,
+        gl.RGBA16F, gl.RGB16F,  gl.RG16F, gl.R16F,
     ];
     
     var s_es3Formats = [
@@ -94,23 +94,23 @@ define([
         ],
         
         // These are not color-renderable in vanilla ES3, but we need to mark them
-	    // as valid for textures, since EXT_color_buffer_(half_)float brings in
-	    // color-renderability and only renderbuffer-validity.
-	    [
-	        glsFBOU.FormatFlags.TEXTURE_VALID,
-	        s_es3TextureFloatFormats
-	    ]
-	];
+        // as valid for textures, since EXT_color_buffer_(half_)float brings in
+        // color-renderability and only renderbuffer-validity.
+        [
+            glsFBOU.FormatFlags.TEXTURE_VALID,
+            s_es3TextureFloatFormats
+        ]
+    ];
     
     
     // GL_EXT_color_buffer_float
     var s_extColorBufferFloatFormats = [
-    	gl.RGBA32F, gl.RGBA16F, gl.R11F_G11F_B10F, gl.RG32F, gl.RG16F, gl.R32F, gl.R16F,
+        gl.RGBA32F, gl.RGBA16F, gl.R11F_G11F_B10F, gl.RG32F, gl.RG16F, gl.R32F, gl.R16F,
     ];
 
     // GL_OES_texture_stencil8
     var s_extOESTextureStencil8 = [
-    	gl.STENCIL_INDEX8,
+        gl.STENCIL_INDEX8,
     ];
     
     var s_es3ExtFormats = [
@@ -119,13 +119,13 @@ define([
             flags:      glsFBOU.FormatFlags.REQUIRED_RENDERABLE |
                         glsFBOU.FormatFlags.COLOR_RENDERABLE    |
                         glsFBOU.FormatFlags.RENDERBUFFER_VALID,
-            formats:    glsFBOU.range({ array: s_extColorBufferFloatFormats })
+            formats:    new glsFBOU.Range({ array: s_extColorBufferFloatFormats })
         }, {
             extensions: 'GL_OES_texture_stencil8',
             flags:      glsFBOU.FormatFlags.REQUIRED_RENDERABLE |
                         glsFBOU.FormatFlags.STENCIL_RENDERABLE  |
                         glsFBOU.FormatFlags.TEXTURE_VALID,
-            formats:    glsFBOU.range({ array: s_extOESTextureStencil8 })
+            formats:    new glsFBOU.Range({ array: s_extOESTextureStencil8 })
         }
     ];
     
@@ -151,7 +151,54 @@ define([
         }
         
         this.check = (function(attPoint, attachment, image) {
-            // TODO
+            // TODO find imageNumSamples
+            var imgSamples = imageNumSamples(image);
+            
+            if (m_numSamples == -1) {
+                m_numSamples = imgSamples;
+            } else {
+                // GLES3: "The value of RENDERBUFFER_SAMPLES is the same for all attached
+                // renderbuffers and, if the attached images are a mix of renderbuffers
+                // and textures, the value of RENDERBUFFER_SAMPLES is zero."
+                //
+                // On creating a renderbuffer: "If _samples_ is zero, then
+                // RENDERBUFFER_SAMPLES is set to zero. Otherwise [...] the resulting
+                // value for RENDERBUFFER_SAMPLES is guaranteed to be greater than or
+                // equal to _samples_ and no more than the next larger sample count
+                // supported by the implementation."
+
+                // Either all attachments are zero-sample renderbuffers and/or
+                // textures, or none of them are.
+                this.require(
+                    (m_numSamples == 0) == (imgSamples == 0),
+                    gl.FRAMEBUFFER_INCOMPLETE_MULTISAMPLE
+                );
+
+                // If the attachments requested a different number of samples, the
+                // implementation is allowed to report this as incomplete. However, it
+                // is also possible that despite the different requests, the
+                // implementation allocated the same number of samples to both. Hence
+                // reporting the framebuffer as complete is also legal.
+                canRequire(
+                    m_numSamples == imgSamples,
+                    gl.FRAMEBUFFER_INCOMPLETE_MULTISAMPLE
+                );
+            }
+            
+            // "Depth and stencil attachments, if present, are the same image."
+            if (attPoint == gl.DEPTH_ATTACHMENT || attPoint == gl.STENCIL_ATTACHMENT) {
+                if (m_depthStencilImage == 0) {
+                    m_depthStencilImage = att.imageName;
+                    m_depthStencilType  = attachmentType(att);
+                    
+                } else {
+                    require(
+                        m_depthStencilImage == att.imageName && m_depthStencilType == attachmentType(att),
+                        gl.FRAMEBUFFER_UNSUPPORTED
+                    );
+                }
+            }
+            
         });
         
     });
@@ -203,24 +250,27 @@ define([
     
     
     
-    var TestBase = (function(opt) {
-
+    var TestBase = (function(argv) {
+    
+        argv = argv || {};
         this.params = null;
 
         this.getContext = this.getState;
         
         this._construct = (function(opt) {
-            
+            console.log("TestBase Constructor");
         });
+        if (!argv.dont_construct) this._construct(argv);
         
-        
-        
-        if (opt.dont_construct !== true) this._construct(opt);
-
     });
     TestBase.prototype = new deqpTests.DeqpTest();
     
+    var NumLayersTest = (function(argv) {
+        argv = argv || {};
     
+        if (!argv.dont_construct) this._construct(argv);
+    });
+    NumLayersTest.prototype = new TestBase({dont_construct: true});
     
     
     
@@ -235,6 +285,7 @@ define([
             tmp: 1,
             ES3Checker: ES3Checker,
             numLayersParams: numLayersParams,
+            TestBase: TestBase,
         },
         run: run,
     };

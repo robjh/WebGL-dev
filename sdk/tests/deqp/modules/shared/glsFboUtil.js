@@ -137,7 +137,17 @@ define([], function() {
     //  initFlat: (function() {}),
     //  initLayered: (function() {}),
     //  init: (function() {}),
-        create: (function() {}),
+        create: (function(cfg, gl_ctx) {
+            gl_ctx = gl_ctx || gl;
+            
+            if (cfg.type == 'renderbuffer') {
+                var ret = gl_ctx.createRenderBuffer();
+                gl_ctx.bindRenderBuffer(gl.RENDERBUFFER, ret);
+            } else if (cfg.type == 'texture') {
+            } else {
+                throw new Error('Impossible image type');
+            }
+        }),
         remove: (function(cfg, img, gl_ctx) { // delete
             gl_ctx = gl_ctx || gl;
         }),
