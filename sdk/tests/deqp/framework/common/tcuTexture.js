@@ -89,7 +89,7 @@ var ChannelType = {
  * @param {ChannelType} type
  *
  * @constructor
- */ 
+ */
 var TextureFormat = function(order, type) {
     this.order = order;
     this.type = type;
@@ -108,7 +108,7 @@ TextureFormat.prototype.isEqual = function(format) {
  * Is format sRGB?
  * @param {TextureFormat} format
  * @return {boolean}
- */ 
+ */
 var isSRGB = function(format) {
     return format.order === ChannelOrder.sRGB || format.order === ChannelOrder.sRGBA;
 };
@@ -280,7 +280,7 @@ DeqpArrayBuffer.prototype.size = function() {
     return 0;
 };
 
-/** 
+/**
  * Is the buffer empty (zero size)?
  * @return {boolean}
  */
@@ -606,7 +606,7 @@ var sRGBToLinear = function(cs) {
  * @param {Number} i
  * @param {Number} j
  * @param {Number} k
- * @return {Array<Number>} Vec4 pixel color 
+ * @return {Array<Number>} Vec4 pixel color
  */
 var lookup = function(access, i, j, k) {
     var p = access.getPixel(i, j, k);
@@ -620,7 +620,7 @@ var lookup = function(access, i, j, k) {
  * @param {Number} u
  * @param {Number} v
  * @param {Number} depth (integer)
- * @return {Array<Number>} Vec4 pixel color 
+ * @return {Array<Number>} Vec4 pixel color
  */
 var sampleNearest2D = function(access, sampler, u, v, depth) {
     var width = access.getWidth();
@@ -647,7 +647,7 @@ var sampleNearest2D = function(access, sampler, u, v, depth) {
  * @param {Number} u
  * @param {Number} v
  * @param {Number} w
- * @return {Array<Number>} Vec4 pixel color 
+ * @return {Array<Number>} Vec4 pixel color
  */
 var sampleNearest3D = function(access, sampler, u, v, w) {
     var width = access.getWidth();
@@ -1278,7 +1278,7 @@ TextureLevelPyramid.prototype.clearLevel = function(levelNdx) {
  * @param {Number} t
  * @param {Number} depth (integer)
  * @param {Number} lod
- * @return {Array<Number>} Vec4 pixel color 
+ * @return {Array<Number>} Vec4 pixel color
  */
 var sampleLevelArray2D = function(levels, numLevels, sampler, s, t, depth, lod) {
     var magnified = lod <= sampler.lodThreshold;
@@ -1328,7 +1328,7 @@ var sampleLevelArray2D = function(levels, numLevels, sampler, s, t, depth, lod) 
  * @param {Number} t
  * @param {Number} r
  * @param {Number} lod
- * @return {Array<Number>} Vec4 pixel color 
+ * @return {Array<Number>} Vec4 pixel color
  */
 var sampleLevelArray3D = function(levels, numLevels, sampler, s, t, r, lod) {
     var magnified = lod <= sampler.lodThreshold;
@@ -1422,7 +1422,7 @@ Texture2DView.prototype.getSubView = function(baseLevel, maxLevel) {
  * @param {Array<Number>} texCoord
  * @param {Number} lod
  * @return {Array<Number>} Pixel color
- */  
+ */
 Texture2DView.prototype.sample = function(sampler, texCoord, lod) {
     return sampleLevelArray2D(this.m_levels, this.m_numLevels, sampler, texCoord[0], texCoord[1], 0 /* depth */, lod);
 };
@@ -1808,7 +1808,7 @@ TextureCube.prototype.allocLevel = function(face, levelNdx) {
 };
 
 /**
- * @param {Array<Number>} coords Cube coordinates 
+ * @param {Array<Number>} coords Cube coordinates
  * @return {CubeFace}
  */
 var selectCubeFace = function(coords) {
@@ -1878,6 +1878,86 @@ var projectToFace = function(face, coord) {
     return [s, t];
 };
 
+/**
+ * @constructor
+ * @param {TextureFormat} format
+ * @param {number} width
+ * @param {number} height
+ * @param {number} depth
+ */
+var TextureLevel = function(format, width, height, depth) {
+    this.m_format = format;
+    this.m_width = width;
+    this.m_height = height;
+    this.m_depth = depth === undefined ? 1 : depth;
+    this.m_data = new DeqpArrayBuffer();
+    this.setSize(this.m_width, this.m_height, this.m_depth);
+};
+
+TextureLevel.prototype.constructor = TextureLevel;
+
+/**
+ * @param {TextureFormat} format
+ * @param {number} width
+ * @param {number} height
+ * @param {number} depth
+ */
+TextureLevel.prototype.setStorage = function(format, width, height, depth)
+{
+    this.m_format = format;
+    this.setSize(width, height, depth);
+};
+
+/**
+ * @param {number} width
+ * @param {number} height
+ * @param {number} depth
+ */
+TextureLevel.prototype.setSize = function(width, height, depth)
+{
+    var pixelSize = this.m_format.getPixelSize();
+
+    this.m_width = width;
+    this.m_height = height;
+    this.m_depth = depth;
+
+    this.m_data.setStorage(this.m_width * this.m_height * this.m_depth * this.pixelSize);
+};
+
+TextureLevel.prototype.getAccess = function() {
+    return new PixelBufferAccess({
+                    format: new TextureFormat(ChannelOrder.RGBA, ChannelType.UNORM_INT8),
+                    width: this.m_width,
+                    height: this.m_height,
+                    data: this.m_data
+                });
+
+};
+
+/**
+ * @return {number}
+ */
+TextureLevel.prototype.getWidth = function()
+{
+    return this.m_width;
+};
+
+/**
+ * @return {number}
+ */
+TextureLevel.prototype.getHeight = function()
+{
+    return this.m_height;
+};
+
+/**
+ * @return {number}
+ */
+TextureLevel.prototype.getFormat = function()
+{
+    return this.m_format;
+};
+
 return {
     TextureFormat: TextureFormat,
     ChannelType: ChannelType,
@@ -1893,7 +1973,8 @@ return {
     WrapMode: WrapMode,
     FilterMode: FilterMode,
     Sampler: Sampler,
-    selectCubeFace: selectCubeFace
+    selectCubeFace: selectCubeFace,
+    TextureLevel: TextureLevel
 };
 
 });
