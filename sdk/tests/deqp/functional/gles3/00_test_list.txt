@@ -1,2 +1,4 @@
+textureformat.html
+transformfeedback.html
 uniformbuffers.html
 uniformapi.html

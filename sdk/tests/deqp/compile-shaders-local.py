@@ -36,8 +36,10 @@ the .txt file generated.
 import re
 import os
 import subprocess
-import threading 
-from sys import stdout, stderr
+import threading
+from sys import stdout, stderr, argv
+
+common_deps = "require.js ../resources/js-test-pre.js"
 
 def compileAllJavaScript(whitespaceCompilation, simpleCompilation, advancedCompilation):
     
@@ -45,7 +47,7 @@ def compileAllJavaScript(whitespaceCompilation, simpleCompilation, advancedCompi
     for root, dirs, files in os.walk(directory):
         for file in files:
             if file.endswith(".js"):
-                compileJavaScript(file, whitespaceCompilation, simpleCompilation, advancedCompilation)
+                compileJavaScript(os.path.join(root, file), whitespaceCompilation, simpleCompilation, advancedCompilation)
 
 def createMenuJavaScript(whitespaceCompilation, simpleCompilation, advancedCompilation):
     
@@ -57,7 +59,7 @@ def createMenuJavaScript(whitespaceCompilation, simpleCompilation, advancedCompi
         for file in files:
             if file.endswith(".js"):
                 x += 1
-                temp_list.append(file)
+                temp_list.append(os.path.join(root,file))
                 print(str(x) + ". " + file)
     try:
         print("JavaScript size list: " + str(len(temp_list)))
@@ -78,9 +80,10 @@ def createMenuJavaScript(whitespaceCompilation, simpleCompilation, advancedCompi
         createMenuJavaScript (whitespaceCompilation, simpleCompilation, advancedCompilation)
 
 def compileJavaScript(file, whitespaceCompilation, simpleCompilation, advancedCompilation):
-    print("RUNNING CLOSURE COMPILER OUTPUT for " + file + " ...")
+    filename = os.path.basename(file)
+    print("RUNNING CLOSURE COMPILER OUTPUT for " + filename + " ...")
 
-    outputCompilerFile= file.strip()[0:-3]
+    outputCompilerFile= filename.strip()[0:-3]
     outputCompilerFile= outputCompilerFile +".txt"
     
     with open(outputCompilerFile, "w") as out_file:
@@ -90,7 +93,7 @@ def compileJavaScript(file, whitespaceCompilation, simpleCompilation, advancedCo
             out_file.flush()
     
     if whitespaceCompilation==True:
-        cmdInput= "java -jar compiler.jar --compilation_level WHITESPACE_ONLY --js " + file + " --warning_level VERBOSE"
+        cmdInput= "java -jar compiler.jar --compilation_level WHITESPACE_ONLY --js " + common_deps + " "  + file + " --transform_amd_modules --warning_level VERBOSE"
         with open(outputCompilerFile, "a") as out_file:
             out_file.write("\n"+ "------------------------------------------" + "\n")
             out_file.write("COMPILATION LEVEL: WHITESPACE_ONLY " + "\n")
@@ -98,7 +101,7 @@ def compileJavaScript(file, whitespaceCompilation, simpleCompilation, advancedCo
         writeOutputAmendFile(outputCompilerFile, cmdInput)
     
     if simpleCompilation==True:
-        cmdInput= "java -jar compiler.jar --compilation_level SIMPLE_OPTIMIZATIONS --js " + file + " --warning_level VERBOSE"
+        cmdInput= "java -jar compiler.jar --compilation_level SIMPLE_OPTIMIZATIONS --js " + common_deps + " " + file + " --transform_amd_modules --warning_level VERBOSE"
         # HINT: cmdInput must be the one below with require.js in the same folder
         # in order to eliminate "ERROR - variable define is undeclared" when RequireJs is added in the JavaScripts
         # cmdInput= "java -jar compiler.jar --compilation_level SIMPLE_OPTIMIZATIONS --js "+file+" --externs require.js --jscomp_off=externsValidation --warning_level VERBOSE"
@@ -109,7 +112,7 @@ def compileJavaScript(file, whitespaceCompilation, simpleCompilation, advancedCo
         writeOutputAmendFile(outputCompilerFile, cmdInput)
         
     if advancedCompilation==True:
-        cmdInput= "java -jar compiler.jar --compilation_level ADVANCED_OPTIMIZATIONS --js " + file + " --warning_level VERBOSE"
+        cmdInput= "java -jar compiler.jar --compilation_level ADVANCED_OPTIMIZATIONS --js " + common_deps + " " + file + " --transform_amd_modules --warning_level VERBOSE"
         with open(outputCompilerFile, "a") as out_file:
             out_file.write("\n" + "\n"+ "------------------------------------------" + "\n")
             out_file.write("COMPILATION LEVEL: ADVANCED_OPTIMIZATIONS" + "\n")
@@ -135,9 +138,13 @@ def writeOutputAmendFile(outputCompilerFile, cmdInput):
 
 
 #main program
-whitespace= True # WHITESPACE_ONLY
-simple= True # SIMPLE_OPTIMIZATIONS
-advanced= False # ADVANCED_OPTIMIZATIONS
-# compileAllJavaScript(whitespace, simple, advanced)
-createMenuJavaScript (whitespace, simple, advanced)
+whitespace= False # WHITESPACE_ONLY
+simple= False # SIMPLE_OPTIMIZATIONS
+advanced= True # ADVANCED_OPTIMIZATIONS
+if (len(argv[1:]) > 0):
+    for filepath in argv[1:]:
+        compileJavaScript(filepath, whitespace, simple, advanced)
+else:
+    compileAllJavaScript(whitespace, simple, advanced)
+#createMenuJavaScript (whitespace, simple, advanced)
 print("------ END EXECUTION Python script: compiler-shaders-local.py ------" + "\n")

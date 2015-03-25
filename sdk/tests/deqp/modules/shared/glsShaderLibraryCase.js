@@ -1105,7 +1105,7 @@ var execute = function()
             // Draw.
             if (tessellationPresent)
             {
-                gl.patchParameteri(gl.GL_PATCH_VERTICES, 3);
+                gl.patchParameteri(gl.PATCH_VERTICES, 3);
                 assertMsgOptions(gl.getError() === gl.NO_ERROR, 'set patchParameteri(PATCH_VERTICES, 3)', false, true);
             }
 
