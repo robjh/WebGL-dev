@@ -18,8 +18,8 @@
  *
  */
 
-define(
-    ['framework/delibs/debase/deMath',
+define([
+    'framework/delibs/debase/deMath',
     'framework/delibs/debase/deRandom',
     'framework/common/tcuTexture',
     'framework/common/tcuTextureUtil'],

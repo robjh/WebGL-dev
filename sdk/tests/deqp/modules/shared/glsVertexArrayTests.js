@@ -989,8 +989,11 @@ function (
      * @return {number}
      */
     GLValue.halfToFloat = function (value) {
+        //TODO: Give sign support
         return tcuFloat.halfFloatToNumber(value);
     };
+
+    //TODO: floatToHalf
 
     /**
      * GLValue.getMaxValue
@@ -1329,4 +1332,96 @@ function (
     };
 
     //TODO: Is this actually used? -> VertexArrayTest&                operator=           (const VertexArrayTest& other);
+
+    /**
+     * MultiVertexArrayTest class
+     * @constructor
+     * @extends {VertexArrayTest}
+     * @param {MultiVertexArrayTest.Spec} spec
+     * @param {string} name
+     * @param {string} desc
+     */
+    var MultiVertexArrayTest = function (spec, name, desc) {
+        VertexArrayTest.call(this, name, desc);
+
+        /** @type {MultiVertexArrayTest.Spec} */ this.m_spec = spec;
+        /** @type {number} */ this.m_iteration = 0;
+    };
+
+    MultiVertexArrayTest.prototype = Object.create(VertexArrayTest.prototype);
+    MultiVertexArrayTest.prototype.constructor = MultiVertexArrayTest;
+
+    /**
+     * MultiVertexArrayTest.Spec class
+     */
+    MultiVertexArrayTest.Spec = function () {
+        /** @type {deArray.Primitive} */ this.primitive = undefined;
+        /** @type {number} */ this.drawCount = 0;
+        /** @type {number} */ this.first = 0;
+        /** @type {Array.<MultiVertexArrayTest.Spec.ArraySpec>} */ this.arrays = [];
+    };
+
+    /**
+     * MultiVertexArrayTest.Spec.ArraySpec class
+     * @constructor
+     * @param {deArray.InputType} inputType
+     * @param {deArray.OutputType} outputType
+     * @param {deArray.Storage} storage
+     * @param {deArray.Usage} usage
+     * @param {number} componentCount
+     * @param {number} offset
+     * @param {number} stride
+     * @param {boolean} normalize
+     * @param {GLValue} min
+     * @param {GLValue} max
+     */
+    MultiVertexArrayTest.Spec.ArraySpec = function () {
+        
+    };
+
+    /*class MultiVertexArrayTest : public VertexArrayTest
+    {
+    public:
+        class Spec
+        {
+        public:
+            class ArraySpec
+            {
+            public:
+                ArraySpec   (Array::InputType inputType, Array::OutputType outputType, Array::Storage storage, Array::Usage usage, int componetCount, int offset, int stride, bool normalize, GLValue min, GLValue max);
+                
+                Array::InputType    inputType;
+                Array::OutputType   outputType;
+                Array::Storage      storage;
+                Array::Usage        usage;
+                int                 componentCount;
+                int                 offset;
+                int                 stride;
+                bool                normalize;
+                GLValue             min;
+                GLValue             max;
+            };
+            
+            std::string             getName     (void) const;
+            std::string             getDesc     (void) const;
+            
+            Array::Primitive        primitive;
+            int                     drawCount;          //!<Number of primitives to draw
+            int                     first;
+            
+            std::vector<ArraySpec>  arrays;
+        };
+        
+        MultiVertexArrayTest    (tcu::TestContext& testCtx, glu::RenderContext& renderCtx, const Spec& spec, const char* name, const char* desc);
+        virtual                 ~MultiVertexArrayTest   (void);
+        virtual IterateResult   iterate                 (void);
+        
+    private:
+        bool                    isUnalignedBufferOffsetTest     (void) const;
+        bool                    isUnalignedBufferStrideTest     (void) const;
+        
+        Spec                    m_spec;
+        int                     m_iteration;
+    };*/
+
 });
