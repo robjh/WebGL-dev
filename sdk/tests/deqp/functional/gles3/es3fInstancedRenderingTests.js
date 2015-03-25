@@ -25,14 +25,16 @@ define([
     'framework/common/tcuSurface',
     'framework/delibs/debase/deString',
     'framework/delibs/debase/deRandom',
-    'framework/common/tcuImageCompare'], function(
+    'framework/common/tcuImageCompare',
+    'framework/opengl/gluTextureUtil'], function(
         deqpUtils,
         gluSP,
         deqpTests,
         tcuSurface,
         deString,
         deRandom,
-        tcuImageCompare) {
+        tcuImageCompare,
+        gluTextureUtil) {
     'use strict';
 
     /** @const @type {number} */ var MAX_RENDER_WIDTH = 128;
@@ -48,10 +50,10 @@ define([
     /** @const @type {number} */var OFFSET_COMPONENTS = 3; // \note Affects whether a float or a vecN is used in shader, but only first component is non-zero.
 
     // Scale and bias values when converting float to integer, when attribute is of integer type.
-    /** @const @type {float} */var FLOAT_INT_SCALE = 100.0;
-    /** @const @type {float} */var FLOAT_INT_BIAS = -50.0;
-    /** @const @type {float} */var FLOAT_UINT_SCALE = 100.0;
-    /** @const @type {float} */var FLOAT_UINT_BIAS = 0.0;
+    /** @const @type {number} */var FLOAT_INT_SCALE = 100.0;
+    /** @const @type {number} */var FLOAT_INT_BIAS = -50.0;
+    /** @const @type {number} */var FLOAT_UINT_SCALE = 100.0;
+    /** @const @type {number} */var FLOAT_UINT_BIAS = 0.0;
 
     var DE_ASSERT = function(expression)
     {
@@ -111,7 +113,7 @@ define([
     * @param {DrawFunction} function
     * @param {InstancingType} instancingType
     * @param {glu.DataType} rgbAttrType
-    * @param {integer} numInstances
+    * @param {number} numInstances
     */
     var InstancedRenderingCase = function(name, description, _function, instancingType, rgbAttrType, numInstances)
     {
@@ -119,11 +121,11 @@ define([
         /** @type {DrawFunction} */ this.m_function = _function;
         /** @type {InstancingType} */ this.m_instancingType = instancingType;
         /** @type {glu.DataType} */ this.m_rgbAttrType = rgbAttrType;
-        /** @type {integer} */ this.m_numInstances = numInstances;
+        /** @type {number} */ this.m_numInstances = numInstances;
         /** @type {glu.ShaderProgram} */ this.m_program = DE_NULL;
-        /** @type {Array.<float>} */ this.m_gridVertexPositions = [];
+        /** @type {Array.<number>} */ this.m_gridVertexPositions = [];
         /** @type {Array.<deUint16>} */ this.m_gridIndices = [];
-        /** @type {Array.<float>} */ this.m_instanceOffsets = [];
+        /** @type {Array.<number>} */ this.m_instanceOffsets = [];
         /** @type {Array.<VarComp>} */ this.m_instanceColorR = [];
         /** @type {Array.<VarComp>} */ this.m_instanceColorG = [];
         /** @type {Array.<VarComp>} */ this.m_instanceColorB = [];
@@ -135,7 +137,7 @@ define([
     /**
     * Helper function that does biasing and scaling when converting float to integer.
     * @param {Array.<VarComp>} vec
-    * @param {float} val
+    * @param {number} val
     */
     InstancedRenderingCase.prototype.pushVarCompAttrib = function(vec, val)
     {
@@ -158,7 +160,7 @@ define([
         /** @type {boolean} */ var isIntCase = deqpUtils.isDataTypeIntOrIVec(this.m_rgbAttrType);
         /** @type {boolean} */ var isUintCase = deqpUtils.isDataTypeUintOrUVec(this.m_rgbAttrType);
         /** @type {boolean} */ var isMatCase = deqpUtils.isDataTypeMatrix(this.m_rgbAttrType);
-        /** @type {integer} */ var typeSize = deqpUtils.getDataTypeScalarSize(this.m_rgbAttrType);
+        /** @type {number} */ var typeSize = deqpUtils.getDataTypeScalarSize(this.m_rgbAttrType);
         /** @type {boolean} */ var isScalarCase = typeSize == 1;
         /** @type {string} */ var swizzleFirst = isScalarCase ? '' : '.x';
         /** @type {string} */ var typeName = deqpUtils.getDataTypeName(this.m_rgbAttrType);
@@ -299,8 +301,8 @@ define([
             for (var y = 0; y < QUAD_GRID_SIZE + 1; y++)
                 for (var x = 0; x < QUAD_GRID_SIZE + 1; x++)
                 {
-                    /** @type {float} */ var fx = -1.0 + x / QUAD_GRID_SIZE * 2.0 / this.m_numInstances;
-                    /** @type {float} */ var fy = -1.0 + y / QUAD_GRID_SIZE * 2.0;
+                    /** @type {number} */ var fx = -1.0 + x / QUAD_GRID_SIZE * 2.0 / this.m_numInstances;
+                    /** @type {number} */ var fy = -1.0 + y / QUAD_GRID_SIZE * 2.0;
 
                     this.m_gridVertexPositions.push(fx);
                     this.m_gridVertexPositions.push(fy);
@@ -311,10 +313,10 @@ define([
             for (var y = 0; y < QUAD_GRID_SIZE; y++)
                 for (var x = 0; x < QUAD_GRID_SIZE; x++)
                 {
-                    /** @type {integer} */ var ndx00 = y * (QUAD_GRID_SIZE + 1) + x;
-                    /** @type {integer} */ var ndx10 = y * (QUAD_GRID_SIZE + 1) + x + 1;
-                    /** @type {integer} */ var ndx01 = (y + 1) * (QUAD_GRID_SIZE + 1) + x;
-                    /** @type {integer} */ var ndx11 = (y + 1) * (QUAD_GRID_SIZE + 1) + x + 1;
+                    /** @type {number} */ var ndx00 = y * (QUAD_GRID_SIZE + 1) + x;
+                    /** @type {number} */ var ndx10 = y * (QUAD_GRID_SIZE + 1) + x + 1;
+                    /** @type {number} */ var ndx01 = (y + 1) * (QUAD_GRID_SIZE + 1) + x;
+                    /** @type {number} */ var ndx11 = (y + 1) * (QUAD_GRID_SIZE + 1) + x + 1;
 
                     // Lower-left triangle of a quad.
                     this.m_gridIndices.push(ndx00);
@@ -336,10 +338,10 @@ define([
             for (var y = 0; y < QUAD_GRID_SIZE; y++)
                 for (var x = 0; x < QUAD_GRID_SIZE; x++)
                 {
-                    /** @type {float} */ var fx0 = -1.0 + (x + 0) / QUAD_GRID_SIZE * 2.0 / this.m_numInstances;
-                    /** @type {float} */ var fx1 = -1.0 + (x + 1) / QUAD_GRID_SIZE * 2.0 / this.m_numInstances;
-                    /** @type {float} */ var fy0 = -1.0 + (y + 0) / QUAD_GRID_SIZE * 2.0;
-                    /** @type {float} */ var fy1 = -1.0 + (y + 1) / QUAD_GRID_SIZE * 2.0;
+                    /** @type {number} */ var fx0 = -1.0 + (x + 0) / QUAD_GRID_SIZE * 2.0 / this.m_numInstances;
+                    /** @type {number} */ var fx1 = -1.0 + (x + 1) / QUAD_GRID_SIZE * 2.0 / this.m_numInstances;
+                    /** @type {number} */ var fy0 = -1.0 + (y + 0) / QUAD_GRID_SIZE * 2.0;
+                    /** @type {number} */ var fy1 = -1.0 + (y + 1) / QUAD_GRID_SIZE * 2.0;
 
                     // Vertices of a quad's lower-left triangle: (fx0, fy0), (fx1, fy0) and (fx0, fy1)
                     this.m_gridVertexPositions.push(fx0);
@@ -376,7 +378,7 @@ define([
                         this.m_instanceOffsets.push(0.0);
                 }
 
-                /** @type {integer} */ var rInstances = Math.floor(this.m_numInstances / ATTRIB_DIVISOR_R) + (this.m_numInstances % ATTRIB_DIVISOR_R == 0 ? 0 : 1);
+                /** @type {number} */ var rInstances = Math.floor(this.m_numInstances / ATTRIB_DIVISOR_R) + (this.m_numInstances % ATTRIB_DIVISOR_R == 0 ? 0 : 1);
                 for (var i = 0; i < rInstances; i++)
                 {
                     this.pushVarCompAttrib(this.m_instanceColorR, i / rInstances);
@@ -386,7 +388,7 @@ define([
                 }
             }
 
-            /** @type {integer} */ var gInstances = Math.floor(this.m_numInstances / ATTRIB_DIVISOR_G) + (this.m_numInstances % ATTRIB_DIVISOR_G == 0 ? 0 : 1);
+            /** @type {number} */ var gInstances = Math.floor(this.m_numInstances / ATTRIB_DIVISOR_G) + (this.m_numInstances % ATTRIB_DIVISOR_G == 0 ? 0 : 1);
             for (var i = 0; i < gInstances; i++)
             {
                 this.pushVarCompAttrib(this.m_instanceColorG, i * 2.0 / gInstances);
@@ -395,7 +397,7 @@ define([
                     this.pushVarCompAttrib(this.m_instanceColorG, 0.0);
             }
 
-            /** @type {integer} */ var bInstances = Math.floor(this.m_numInstances / ATTRIB_DIVISOR_B) + (this.m_numInstances % ATTRIB_DIVISOR_B == 0 ? 0 : 1);
+            /** @type {number} */ var bInstances = Math.floor(this.m_numInstances / ATTRIB_DIVISOR_B) + (this.m_numInstances % ATTRIB_DIVISOR_B == 0 ? 0 : 1);
             for (var i = 0; i < bInstances; i++)
             {
                 this.pushVarCompAttrib(this.m_instanceColorB, 1.0 - i / bInstances);
@@ -407,19 +409,19 @@ define([
     };
 
     InstancedRenderingCase.prototype.iterate = function() {
-        /** @type {integer} */ var width = Math.min(gl.drawingBufferWidth, MAX_RENDER_WIDTH);
-        /** @type {integer} */ var height = Math.min(gl.drawingBufferHeight, MAX_RENDER_HEIGHT);
+        /** @type {number} */ var width = Math.min(gl.drawingBufferWidth, MAX_RENDER_WIDTH);
+        /** @type {number} */ var height = Math.min(gl.drawingBufferHeight, MAX_RENDER_HEIGHT);
 
-        /** @type {integer} */ var xOffsetMax = gl.drawingBufferWidth - width;
-        /** @type {integer} */ var yOffsetMax = gl.drawingBufferHeight - height;
+        /** @type {number} */ var xOffsetMax = gl.drawingBufferWidth - width;
+        /** @type {number} */ var yOffsetMax = gl.drawingBufferHeight - height;
 
         /** @type {de::Random} */ var rnd = new deRandom.Random(deString.deStringHash(this.name));
 
-        /** @type {integer} */ var xOffset = rnd.getInt(0, xOffsetMax);
-        /** @type {integer} */ var yOffset = rnd.getInt(0, yOffsetMax);
+        /** @type {number} */ var xOffset = rnd.getInt(0, xOffsetMax);
+        /** @type {number} */ var yOffset = rnd.getInt(0, yOffsetMax);
 
-        /** @type {tcu::Surface} */ var referenceImg = tcuSurface.Surface(width, height);
-        /** @type {tcu::Surface} */ var resultImg = tcuSurface.Surface(width, height);
+        /** @type {tcu::Surface} */ var referenceImg = new tcuSurface.Surface(width, height);
+        /** @type {tcu::Surface} */ var resultImg = new tcuSurface.Surface(width, height);
 
         // Draw result.
 
@@ -428,8 +430,11 @@ define([
         this.setupAndRender();
 
         //TODO: validate readPixels()
-        deqpUtils.readPixels(this.m_context.getRenderContext(), xOffset, yOffset, resultImg.getAccess());
-
+        //deqpUtils.readPixels(this.m_context.getRenderContext(), xOffset, yOffset, resultImg.getAccess());
+        var resImg = resultImg.getAccess();
+        var resImgTransferFormat = gluTextureUtil.getTransferFormat(resImg.getFormat());
+        var pixels = new Uint8Array(resImg.m_height*resImg.m_rowPitch);
+        gl.readPixels(xOffset, yOffset, resImg.m_width, resImg.m_height, resImgTransferFormat.format, resImgTransferFormat.dataType, resultImg.m_pixels);
         // Compute reference.
 
         this.computeReference(referenceImg);
@@ -437,7 +442,7 @@ define([
         // Compare.
 
         // Passing referenceImg.getAccess() and resultImg.getAccess() instead of referenceImg and resultImg
-        /** @type {boolean} */ var testOk = tcuImageCompare.fuzzyCompare(this.m_testCtx.getLog(), 'ComparisonResult', 'Image comparison result', referenceImg.getAccess(), resultImg.getAccess(), 0.05, deqpUtils.COMPARE_LOG_RESULT);
+        /** @type {boolean} */ var testOk = tcuImageCompare.fuzzyCompare('ComparisonResult', 'Image comparison result', referenceImg.getAccess(), resultImg.getAccess(), 0.05, deqpUtils.COMPARE_LOG_RESULT);
 
         this.m_testCtx.setTestResult(testOk ? QP_TEST_RESULT_PASS : QP_TEST_RESULT_FAIL,
                                     testOk ? 'Pass' : 'Fail');
@@ -448,8 +453,8 @@ define([
 
     /**
     * @param {attribute?} attrPtr
-    * @param {integer} location
-    * @param {integer} divisor
+    * @param {number} location
+    * @param {number} divisor
     */
     InstancedRenderingCase.prototype.setupVarAttribPointer = function(attrPtr, location, divisor)
     {
@@ -457,12 +462,12 @@ define([
         /** @type {boolean} */ var isIntCase = deqpUtils.isDataTypeIntOrIVec(this.m_rgbAttrType);
         /** @type {boolean} */ var isUintCase = deqpUtils.isDataTypeUintOrUVec(this.m_rgbAttrType);
         /** @type {boolean} */ var isMatCase = deqpUtils.isDataTypeMatrix(this.m_rgbAttrType);
-        /** @type {integer} */ var typeSize = deqpUtils.getDataTypeScalarSize(this.m_rgbAttrType);
-        /** @type {integer} */ var numSlots = isMatCase ? deqpUtils.getDataTypeMatrixNumColumns(this.m_rgbAttrType) : 1; // Matrix uses as many attribute slots as it has columns.
+        /** @type {number} */ var typeSize = deqpUtils.getDataTypeScalarSize(this.m_rgbAttrType);
+        /** @type {number} */ var numSlots = isMatCase ? deqpUtils.getDataTypeMatrixNumColumns(this.m_rgbAttrType) : 1; // Matrix uses as many attribute slots as it has columns.
 
         for (var slotNdx = 0; slotNdx < numSlots; slotNdx++)
         {
-            /** @type {integer} */ var curLoc = location + slotNdx;
+            /** @type {number} */ var curLoc = location + slotNdx;
 
             gl.enableVertexAttribArray(curLoc);
             gl.vertexAttribDivisor(curLoc, divisor);
@@ -475,8 +480,8 @@ define([
                 gl.vertexAttribIPointer(curLoc, typeSize, gl.UNSIGNED_INT, 0, attrPtr);
             else if (isMatCase)
             {
-                /** @type {integer} */ var numRows = deqpUtils.getDataTypeMatrixNumRows(this.m_rgbAttrType);
-                /** @type {integer} */ var numCols = deqpUtils.getDataTypeMatrixNumColumns(this.m_rgbAttrType);
+                /** @type {number} */ var numRows = deqpUtils.getDataTypeMatrixNumRows(this.m_rgbAttrType);
+                /** @type {number} */ var numCols = deqpUtils.getDataTypeMatrixNumColumns(this.m_rgbAttrType);
                 gl.vertexAttribPointer(curLoc, numRows, gl.FLOAT, GL_FALSE, numCols * numRows * 4, attrPtr); //sizeof(float) = 4
             }
             else
@@ -495,7 +500,7 @@ define([
             // Setup attributes.
 
             // Position attribute is non-instanced.
-            /** @type {integer} */ var positionLoc = gl.getAttribLocation(program, 'a_position');
+            /** @type {number} */ var positionLoc = gl.getAttribLocation(program, 'a_position');
             gl.enableVertexAttribArray(positionLoc);
             var positionBuffer = gl.createBuffer();
             var bufferGridVertexPosition = new Float32Array(this.m_gridVertexPositions);
@@ -508,19 +513,19 @@ define([
                 if (this.m_instancingType == InstancingType.TYPE_ATTRIB_DIVISOR)
                 {
                     // Position offset attribute is instanced with separate offset for every instance.
-                    /** @type {integer} */ var offsetLoc = gl.getAttribLocation(program, 'a_instanceOffset');
+                    /** @type {number} */ var offsetLoc = gl.getAttribLocation(program, 'a_instanceOffset');
                     gl.enableVertexAttribArray(offsetLoc);
                     gl.vertexAttribDivisor(offsetLoc, 1);
                     gl.vertexAttribPointer(offsetLoc, OFFSET_COMPONENTS, gl.FLOAT, GL_FALSE, 0, this.m_instanceOffsets);
 
-                    /** @type {integer} */ var rLoc = gl.getAttribLocation(program, 'a_instanceR');
+                    /** @type {number} */ var rLoc = gl.getAttribLocation(program, 'a_instanceR');
                     this.setupVarAttribPointer(this.m_instanceColorR[0].u32, rLoc, ATTRIB_DIVISOR_R);
                 }
 
-                /** @type {integer} */ var gLoc = gl.getAttribLocation(program, 'a_instanceG');
+                /** @type {number} */ var gLoc = gl.getAttribLocation(program, 'a_instanceG');
                 this.setupVarAttribPointer(this.m_instanceColorG[0].u32, gLoc, ATTRIB_DIVISOR_G);
 
-                /** @type {integer} */ var bLoc = gl.getAttribLocation(program, 'a_instanceB');
+                /** @type {number} */ var bLoc = gl.getAttribLocation(program, 'a_instanceB');
                 this.setupVarAttribPointer(this.m_instanceColorB[0].u32, bLoc, ATTRIB_DIVISOR_B);
             }
         }
@@ -529,7 +534,7 @@ define([
 
         if (this.m_function == DrawFunction.FUNCTION_DRAW_ARRAYS_INSTANCED)
         {
-            /** @type {integer} */ var numPositionComponents = 2;
+            /** @type {number} */ var numPositionComponents = 2;
             gl.drawArraysInstanced(gl.TRIANGLES, 0, Math.floor(this.m_gridVertexPositions.length / numPositionComponents), this.m_numInstances);
         }
         else
@@ -546,31 +551,31 @@ define([
     */
     InstancedRenderingCase.prototype.computeReference = function(dst)
     {
-        /** @type {integer} */ var wid = dst.getWidth();
-        /** @type {integer} */ var hei = dst.getHeight();
+        /** @type {number} */ var wid = dst.getWidth();
+        /** @type {number} */ var hei = dst.getHeight();
 
         // Draw a rectangle (vertical bar) for each instance.
 
         for (var instanceNdx = 0; instanceNdx < this.m_numInstances; instanceNdx++)
         {
-            /** @type {integer} */ var xStart = Math.floor(instanceNdx * wid / this.m_numInstances);
-            /** @type {integer} */ var xEnd = Math.floor((instanceNdx + 1) * wid / this.m_numInstances);
+            /** @type {number} */ var xStart = Math.floor(instanceNdx * wid / this.m_numInstances);
+            /** @type {number} */ var xEnd = Math.floor((instanceNdx + 1) * wid / this.m_numInstances);
 
             // Emulate attribute divisors if that is the case.
 
-            /** @type {integer} */ var clrNdxR = this.m_instancingType == InstancingType.TYPE_ATTRIB_DIVISOR ? Math.floor(instanceNdx / ATTRIB_DIVISOR_R) : instanceNdx;
-            /** @type {integer} */ var clrNdxG = this.m_instancingType == InstancingType.TYPE_ATTRIB_DIVISOR || this.m_instancingType == InstancingType.TYPE_MIXED ? Math.floor(instanceNdx / ATTRIB_DIVISOR_G) : instanceNdx;
-            /** @type {integer} */ var clrNdxB = this.m_instancingType == InstancingType.TYPE_ATTRIB_DIVISOR || this.m_instancingType == InstancingType.TYPE_MIXED ? Math.floor(instanceNdx / ATTRIB_DIVISOR_B) : instanceNdx;
+            /** @type {number} */ var clrNdxR = this.m_instancingType == InstancingType.TYPE_ATTRIB_DIVISOR ? Math.floor(instanceNdx / ATTRIB_DIVISOR_R) : instanceNdx;
+            /** @type {number} */ var clrNdxG = this.m_instancingType == InstancingType.TYPE_ATTRIB_DIVISOR || this.m_instancingType == InstancingType.TYPE_MIXED ? Math.floor(instanceNdx / ATTRIB_DIVISOR_G) : instanceNdx;
+            /** @type {number} */ var clrNdxB = this.m_instancingType == InstancingType.TYPE_ATTRIB_DIVISOR || this.m_instancingType == InstancingType.TYPE_MIXED ? Math.floor(instanceNdx / ATTRIB_DIVISOR_B) : instanceNdx;
 
-            /** @type {integer} */ var rInstances = this.m_instancingType == InstancingType.TYPE_ATTRIB_DIVISOR ? Math.floor(this.m_numInstances / ATTRIB_DIVISOR_R) + (this.m_numInstances % ATTRIB_DIVISOR_R == 0 ? 0 : 1) : this.m_numInstances;
-            /** @type {integer} */ var gInstances = this.m_instancingType == InstancingType.TYPE_ATTRIB_DIVISOR || this.m_instancingType == InstancingType.TYPE_MIXED ? Math.floor(this.m_numInstances / ATTRIB_DIVISOR_G) + (this.m_numInstances % ATTRIB_DIVISOR_G == 0 ? 0 : 1) : this.m_numInstances;
-            /** @type {integer} */ var bInstances = this.m_instancingType == InstancingType.TYPE_ATTRIB_DIVISOR || this.m_instancingType == InstancingType.TYPE_MIXED ? Math.floor(this.m_numInstances / ATTRIB_DIVISOR_B) + (this.m_numInstances % ATTRIB_DIVISOR_B == 0 ? 0 : 1) : this.m_numInstances;
+            /** @type {number} */ var rInstances = this.m_instancingType == InstancingType.TYPE_ATTRIB_DIVISOR ? Math.floor(this.m_numInstances / ATTRIB_DIVISOR_R) + (this.m_numInstances % ATTRIB_DIVISOR_R == 0 ? 0 : 1) : this.m_numInstances;
+            /** @type {number} */ var gInstances = this.m_instancingType == InstancingType.TYPE_ATTRIB_DIVISOR || this.m_instancingType == InstancingType.TYPE_MIXED ? Math.floor(this.m_numInstances / ATTRIB_DIVISOR_G) + (this.m_numInstances % ATTRIB_DIVISOR_G == 0 ? 0 : 1) : this.m_numInstances;
+            /** @type {number} */ var bInstances = this.m_instancingType == InstancingType.TYPE_ATTRIB_DIVISOR || this.m_instancingType == InstancingType.TYPE_MIXED ? Math.floor(this.m_numInstances / ATTRIB_DIVISOR_B) + (this.m_numInstances % ATTRIB_DIVISOR_B == 0 ? 0 : 1) : this.m_numInstances;
 
             // Calculate colors.
 
-            /** @type {float} */ var r = clrNdxR / rInstances;
-            /** @type {float} */ var g = clrNdxG * 2.0 / gInstances;
-            /** @type {float} */ var b = 1.0 - clrNdxB / bInstances;
+            /** @type {number} */ var r = clrNdxR / rInstances;
+            /** @type {number} */ var g = clrNdxG * 2.0 / gInstances;
+            /** @type {number} */ var b = 1.0 - clrNdxB / bInstances;
 
             // Convert to integer and back if shader inputs are integers.
 
@@ -686,7 +691,7 @@ define([
             deqpUtils.DataType.UINT_VEC4
         ];
 
-        /** @type {integer} */ var typeTestNumInstances = 4;
+        /** @type {number} */ var typeTestNumInstances = 4;
 
         /** @type {TestCaseGroup} */ var typesGroup = new deqpTests.newTest('types', 'Tests for instanced attributes of particular data types');
 

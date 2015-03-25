@@ -81,33 +81,33 @@ var displayImages = function(result, reference, diff) {
     Vec4 minVal;
     Vec4 maxVal;
     const float eps = 0.0001f;
-    
+
     {
         Vec4 refMin;
         Vec4 refMax;
         estimatePixelValueRange(reference, refMin, refMax);
-        
+
         minVal  = refMin;
         maxVal  = refMax;
     }
-    
+
     {
         Vec4 resMin;
         Vec4 resMax;
-        
+
         estimatePixelValueRange(result, resMin, resMax);
-        
+
         minVal[0] = de::min(minVal[0], resMin[0]);
         minVal[1] = de::min(minVal[1], resMin[1]);
         minVal[2] = de::min(minVal[2], resMin[2]);
         minVal[3] = de::min(minVal[3], resMin[3]);
-        
+
         maxVal[0] = de::max(maxVal[0], resMax[0]);
         maxVal[1] = de::max(maxVal[1], resMax[1]);
         maxVal[2] = de::max(maxVal[2], resMax[2]);
         maxVal[3] = de::max(maxVal[3], resMax[3]);
     }
-    
+
     for (int c = 0; c < 4; c++)
     {
         if (maxVal[c] - minVal[c] < eps)
@@ -393,9 +393,9 @@ var pixelThresholdCompare = function(/*const char* */imageSetName, /*const char*
   */
 var fuzzyCompare = function(imageSetName, imageSetDesc, reference, result, threshold, logMode)
 {
-    /** @type {tcuFuzzyImageCompare.FuzzyCompareParams} */ var params = new FuzzyCompareParams(); // Use defaults.
-    /** @type {tcuTexture.TextureLevel} */ var errorMask = tcuTexture.TextureLevel(
-                                                                new TextureFormat(tcuTexture.ChannelOrder.RGB,
+    /** @type {tcuFuzzyImageCompare.FuzzyCompareParams} */ var params = new tcuFuzzyImageCompare.FuzzyCompareParams(); // Use defaults.
+    /** @type {tcuTexture.TextureLevel} */ var errorMask = new tcuTexture.TextureLevel(
+                                                                new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGB,
                                                                               tcuTexture.ChannelType.UNORM_INT8),
                                                                 reference.getWidth(),
                                                                 reference.getHeight()
@@ -404,7 +404,7 @@ var fuzzyCompare = function(imageSetName, imageSetDesc, reference, result, thres
                                                                 params,
                                                                 reference,
                                                                 result,
-                                                                errorMask.getAccess()
+                                                                errorMask
                                                                );
     /** @type {boolean} */ var isOk = difference <= threshold;
     /** @type {Array<number>} */ var pixelBias = [0.0, 0.0, 0.0, 0.0];
