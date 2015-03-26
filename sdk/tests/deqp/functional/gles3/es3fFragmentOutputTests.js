@@ -24,34 +24,22 @@ define([
     'framework/opengl/gluShaderUtil',
     'framework/delibs/debase/deRandom',
     'framework/common/tcuTestCase',
-    'framework/common/tcuSurface',
-    'framework/opengl/gluTexture',
     'framework/opengl/gluTextureUtil',
     'framework/common/tcuTexture',
-    'modules/shared/glsTextureTestUtil',
     'framework/common/tcuTextureUtil',
-    'framework/opengl/gluStrUtil',
     'framework/delibs/debase/deMath',
-    'framework/common/tcuCompressedTexture',
-    'framework/opengl/gluVarTypeUtil',
     'framework/common/tcuImageCompare'
 ],
 function(
-        deqpProgram,
+        gluShaderProgram,
         fboTestUtil,
         gluShaderUtil,
         deRandom,
-        deqpTests,
-        tcuSurface,
-        gluTexture,
+        tcuTestCase,
         gluTextureUtil,
         tcuTexture,
-        glsTextureTestUtil,
         tcuTextureUtil,
-        gluStrUtil,
         deMath,
-        tcuCompressedTexture,
-        gluVarTypeUtil,
         tcuImageCompare
 ) {
     'use strict';
@@ -134,23 +122,26 @@ function(
      * @return {Object} The currently modified object
      */
     var FragmentOutputCase = function(gl, name, description, fboSpec, outputs) {
-        deqpTests.DeqpTest.call(this, name, description);
+        tcuTestCase.DeqpTest.call(this, name, description);
         /** @type {Array.<BufferSpec>} */ this.m_fboSpec = fboSpec;
         /** @type {Array.<FragmentOutput>} */ this.m_outputs = outputs;
-        /** @type {deqpProgram.ShaderProgram} */ this.m_program = null;
-        /** @type {number} */ this.m_framebuffer = 0; // deUint32
-        /** @type {Uint32Array} */ this.m_renderbuffers = []; // vector<deUint32>
+        /** @type {gluShaderProgram.ShaderProgram} */ this.m_program = null;
+        /** @type {WebGLFramebuffer} */ this.m_framebuffer = 0; // deUint32
+
+        /** @type {WebGLRenderbuffer} */ this.m_renderbuffer = 0; // NOTE: originally a vector<deUint32>, Array not needed in this case
+        // only useful in OpenGL ES version: gl.genRenderbuffers((int)m_renderbuffers.size(), &m_renderbuffers[0])
+
         /** @type {WebGLRenderingContext} */ this.m_gl = gl;
     };
 
-    FragmentOutputCase.prototype = Object.create(deqpTests.DeqpTest.prototype);
+    FragmentOutputCase.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
     FragmentOutputCase.prototype.constructor = FragmentOutputCase;
 
     /**
      * createProgram. Returns a ShaderProgram object
      * @param {WebGLRenderingContext} gl WebGL context
      * @param {Array.<FragmentOutput>} outputs
-     * @return {deqpProgram.ShaderProgram} program
+     * @return {gluShaderProgram.ShaderProgram} program
      */
     var createProgram = function(gl, outputs) {
 
@@ -217,11 +208,9 @@ function(
 
         vtx += '}\n';
         frag += '}\n';
-        // vtx = 'void main() { gl_Position = vec4(0.0, 1.0, 1.0, 1.0);}'; // simple vertex shader to run on WebGL 1.0
-        // frag = 'void main() { gl_FragColor = vec4(0.0, 1.0, 1.0, 1.0);}'; // simple fragment shader to run on WebGL 1.0
-        
-        /** @type {deqpProgram.ShaderProgram} */
-        var program = new deqpProgram.ShaderProgram(gl, deqpProgram.makeVtxFragSources(vtx, frag));
+
+        /** @type {gluShaderProgram.ShaderProgram} */
+        var program = new gluShaderProgram.ShaderProgram(gl, gluShaderProgram.makeVtxFragSources(vtx, frag));
         console.log(program);
         return program;
     };
@@ -260,20 +249,19 @@ function(
         log << TestLog::EndSection;*/
 
         // Create framebuffer.
-        this.m_renderbuffers.length = this.m_fboSpec.length; // m_renderbuffers only used here in init()
-        gl.genFramebuffers(1, this.m_framebuffer);
-        gl.genRenderbuffers(this.m_renderbuffers.length, this.m_renderbuffers);
+        // gl.genFramebuffers(1, this.m_framebuffer); // corresponding OpenGL ES function
+        this.m_framebuffer = gl.createFramebuffer();
         gl.bindFramebuffer(gl.FRAMEBUFFER, this.m_framebuffer);
 
-        for (var bufNdx = 0; bufNdx < this.m_renderbuffers.length; bufNdx++)
+        for (var bufNdx = 0; bufNdx < /* m_renderbuffers.size() */ this.m_fboSpec.length; bufNdx++)
         {
-            /** @type {boolean} */ var rbo = this.m_renderbuffers[bufNdx];
+            this.m_renderbuffer = gl.createRenderbuffer();
             /** @type {BufferSpec} */ var bufSpec = this.m_fboSpec[bufNdx];
             /** @type {number} */ var attachment = gl.COLOR_ATTACHMENT0 + bufNdx;
 
-            gl.bindRenderbuffer(gl.RENDERBUFFER, rbo);
+            gl.bindRenderbuffer(gl.RENDERBUFFER, this.m_renderbuffer);
             gl.renderbufferStorageMultisample(gl.RENDERBUFFER, bufSpec.samples, bufSpec.format, bufSpec.width, bufSpec.height);
-            gl.framebufferRenderbuffer(gl.FRAMEBUFFER, attachment, gl.RENDERBUFFER, rbo);
+            gl.framebufferRenderbuffer(gl.FRAMEBUFFER, attachment, gl.RENDERBUFFER, this.m_renderbuffer);
         }
         GLU_EXPECT_NO_ERROR(gl.getError(), 'After framebuffer setup');
 
@@ -534,7 +522,7 @@ function(
         // TestLog& log  = m_testCtx.getLog();
         /** @type {Array.<BufferSpec>} */ var m_fboSpec = this.m_fboSpec;
         /** @type {Array.<FragmentOutput>} */ var m_outputs = this.m_outputs;
-        /** @type {deqpProgram.ShaderProgram} */ var m_program = this.m_program;
+        /** @type {gluShaderProgram.ShaderProgram} */ var m_program = this.m_program;
         /** @type {WebGLRenderingContext} */ var gl = this.m_gl;
 
         // Compute grid size & index list.
@@ -1043,7 +1031,7 @@ function(
                 allLevelsOk = false;
         }
 
-        return deqpTests.runner.IterateResult.STOP;
+        return tcuTestCase.runner.IterateResult.STOP;
     };
 
     /**
@@ -1185,8 +1173,8 @@ function(
     
     var init = function(gl) {
 
-        var state = deqpTests.runner.getState();
-        /** @const @type {deqpTests.DeqpTest} */ var testGroup = state.testCases;
+        var state = tcuTestCase.runner.getState();
+        /** @const @type {tcuTestCase.DeqpTest} */ var testGroup = state.testCases;
 
         /** @type {Array.<GLenum>} */
         var requiredFloatFormats = [
@@ -1250,7 +1238,7 @@ function(
 
      // .basic.
         {
-            /** @type {deqpTests.DeqpTest} */ var basicGroup = deqpTests.newTest('basic', 'Basic fragment output tests');
+            /** @type {tcuTestCase.DeqpTest} */ var basicGroup = tcuTestCase.newTest('basic', 'Basic fragment output tests');
             testGroup.addChild(basicGroup);
 
             /** @const @type {number} */ var width = 64;
@@ -1258,7 +1246,7 @@ function(
             /** @const @type {number} */ var samples = 0;
 
             // .float
-            /** @type {deqpTests.DeqpTest} */ var floatGroup = deqpTests.newTest('float', 'Floating-point output tests');
+            /** @type {tcuTestCase.DeqpTest} */ var floatGroup = tcuTestCase.newTest('float', 'Floating-point output tests');
             basicGroup.addChild(floatGroup);
 
             for (var fmtNdx = 0; fmtNdx < requiredFloatFormats.length; fmtNdx++)
@@ -1282,7 +1270,7 @@ function(
             }
 
          // .fixed
-            /** @type {deqpTests.DeqpTest} */ var fixedGroup = deqpTests.newTest('fixed', 'Fixed-point output tests');
+            /** @type {tcuTestCase.DeqpTest} */ var fixedGroup = tcuTestCase.newTest('fixed', 'Fixed-point output tests');
             basicGroup.addChild(fixedGroup);
             for (var fmtNdx = 0; fmtNdx < requiredFixedFormats.length; fmtNdx++)
             {
@@ -1305,7 +1293,7 @@ function(
             }
     
          // .int
-            /** @type {deqpTests.DeqpTest} */ var intGroup = deqpTests.newTest('int', 'Integer output tests');
+            /** @type {tcuTestCase.DeqpTest} */ var intGroup = tcuTestCase.newTest('int', 'Integer output tests');
             basicGroup.addChild(intGroup);
             for (var fmtNdx = 0; fmtNdx < requiredIntFormats.length; fmtNdx++)
             {
@@ -1328,7 +1316,7 @@ function(
             }
     
          // .uint
-            /** @type {deqpTests.DeqpTest} */ var uintGroup = deqpTests.newTest('uint', 'Usigned integer output tests');
+            /** @type {tcuTestCase.DeqpTest} */ var uintGroup = tcuTestCase.newTest('uint', 'Usigned integer output tests');
             basicGroup.addChild(uintGroup);
             for (var fmtNdx = 0; fmtNdx < requiredUintFormats.length; fmtNdx++)
             {
@@ -1354,7 +1342,7 @@ function(
 
      // .array
         {
-            /** @type {deqpTests.DeqpTest} */ var arrayGroup = deqpTests.newTest('array', 'Array outputs');
+            /** @type {tcuTestCase.DeqpTest} */ var arrayGroup = tcuTestCase.newTest('array', 'Array outputs');
             testGroup.addChild(arrayGroup);
 
             width = 64;
@@ -1363,7 +1351,7 @@ function(
             /** @type {number} */ var numTargets = 3;
 
             // .float
-            /** @type {deqpTests.DeqpTest} */ var arrayFloatGroup = deqpTests.newTest('float', 'Floating-point output tests');
+            /** @type {tcuTestCase.DeqpTest} */ var arrayFloatGroup = tcuTestCase.newTest('float', 'Floating-point output tests');
             arrayGroup.addChild(arrayFloatGroup);
             for (var fmtNdx = 0; fmtNdx < requiredFloatFormats.length; fmtNdx++)
             {
@@ -1387,7 +1375,7 @@ function(
             }
 
             // .fixed
-            /** @type {deqpTests.DeqpTest} */ var arrayFixedGroup = deqpTests.newTest('fixed', 'Fixed-point output tests');
+            /** @type {tcuTestCase.DeqpTest} */ var arrayFixedGroup = tcuTestCase.newTest('fixed', 'Fixed-point output tests');
             arrayGroup.addChild(arrayFixedGroup);
             for (var fmtNdx = 0; fmtNdx < requiredFixedFormats.length; fmtNdx++)
             {
@@ -1411,7 +1399,7 @@ function(
             }
 
             // .int
-            /** @type {deqpTests.DeqpTest} */ var arrayIntGroup = deqpTests.newTest('int', 'Integer output tests');
+            /** @type {tcuTestCase.DeqpTest} */ var arrayIntGroup = tcuTestCase.newTest('int', 'Integer output tests');
             arrayGroup.addChild(arrayIntGroup);
             for (var fmtNdx = 0; fmtNdx < requiredIntFormats.length; fmtNdx++)
             {
@@ -1435,7 +1423,7 @@ function(
             }
 
             // .uint
-            /** @type {deqpTests.DeqpTest} */ var arrayUintGroup = deqpTests.newTest('uint', 'Usigned integer output tests');
+            /** @type {tcuTestCase.DeqpTest} */ var arrayUintGroup = tcuTestCase.newTest('uint', 'Usigned integer output tests');
             arrayGroup.addChild(arrayUintGroup);
             for (var fmtNdx = 0; fmtNdx < requiredUintFormats.length; fmtNdx++)
             {
@@ -1463,7 +1451,7 @@ function(
 
      /*// .random
         {
-            *//** @type {deqpTests.DeqpTest} *//* var randomGroup = deqpTests.newTest('random', 'Random fragment output cases');
+            *//** @type {tcuTestCase.DeqpTest} *//* var randomGroup = tcuTestCase.newTest('random', 'Random fragment output cases');
             testGroup.addChild(randomGroup);
 
             for (var seed = 0; seed < 100; seed++)
@@ -1480,10 +1468,10 @@ function(
       //Set up Test Root parameters
         var testName = 'fragment_output';
         var testDescription = 'Fragment Output Tests';
-        var state = deqpTests.runner.getState();
+        var state = tcuTestCase.runner.getState();
 
         state.testName = testName;
-        state.testCases = deqpTests.newTest(testName, testDescription, null);
+        state.testCases = tcuTestCase.newTest(testName, testDescription, null);
 
       //Set up name and description of this test series.
         setCurrentTestName(testName);
@@ -1491,13 +1479,12 @@ function(
 
         try {
             init(gl);
-            // deqpTests.runner.runCallback(deqpTests.runTestCases);
-            deqpTests.runTestCases();
+            tcuTestCase.runTestCases();
         } catch (err) {
             testFailedOptions('Failed to run tests', false);
             console.log(err);
             // bufferedLogToConsole(err);
-            deqpTests.runner.terminate();
+            tcuTestCase.runner.terminate();
         }
 
     };

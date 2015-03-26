@@ -133,15 +133,52 @@ define([], function() {
     });
     TextureLayered.prototype = new Texture({dont_construct: true});
     
+//    var glTarget = (function() {});
+    
     var glsup = {
     //  initFlat: (function() {}),
     //  initLayered: (function() {}),
     //  init: (function() {}),
-        create: (function() {}),
+    //  target: (function() {}),
         remove: (function(cfg, img, gl_ctx) { // delete
             gl_ctx = gl_ctx || gl;
         }),
     };
+    
+    glsup.create = (function(cfg, gl_ctx) {
+        gl_ctx = gl_ctx || gl;
+        
+        if (cfg.type == 'renderbuffer') {
+            var ret = gl_ctx.createRenderBuffer();
+            gl_ctx.bindRenderBuffer(gl.RENDERBUFFER, ret);
+            
+            if (cfg.numSamples == 0) {
+                gl_ctx.renderBufferStorage(
+                    gl_ctx.RENDERBUFFER,
+                    cfg.internalFormat.format,
+                    cfg.width, cfg.height
+                );
+            } else {
+                gl_ctx.renderbufferStorageMultisample(
+                gl_ctx.RENDERBUFFER,
+                    cfg.numSamples,
+                    cfg.internalFormat.format,
+                    cfg.width, cfg.height
+                );
+            }
+            gl_ctx.bindRenderbuffer(gl_ctx.RENDERBUFFER, 0);
+            
+        } else if (cfg.type == 'texture') {
+            var ret = gl_ctx.createTexture();
+            gl_ctx.bindTexture(glsup.Target(cfg), ret);
+            glsup.Init(tex, gl_ctx);
+            gl_ctx.bindTexture(glsup.Target(cfg), 0);
+        
+        } else {
+            throw new Error('Impossible image type');
+        }
+    });
+    
     
     var formatkey = (function(format, type) {
         return (type << 16 | format) & 0xFFFFFFFF;
