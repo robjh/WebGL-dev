@@ -1215,6 +1215,29 @@ PixelBufferAccess.newFromTextureLevel = function (level) {
     return new PixelBufferAccess(descriptor);
 };
 
+/**
+ * newFromTextureFormat
+ * @param {TextureFormat} format
+ * @param {number} width
+ * @param {number} height
+ * @param {number} depth
+ * @param {number} rowPitch
+ * @param {number} slicePitch
+ * @param {Uint8Array} data
+ */
+PixelBufferAccess.newFromTextureFormat = function (format, width, height, depth, rowPitch, slicePitch, data) {
+    var descriptor = new Object();
+    descriptor.format = format;
+    descriptor.width = width;
+    descriptor.height = height;
+    descriptor.depth = depth;
+    descriptor.rowPitch = rowPitch;
+    descriptor.slicePitch = slicePitch;
+    descriptor.data = data;
+
+    return new PixelBufferAccess(descriptor);
+};
+
 /* TODO: Port */
 // {
 // public:
@@ -1962,6 +1985,14 @@ TextureLevel.prototype.getWidth = function()
 TextureLevel.prototype.getHeight = function()
 {
     return this.m_height;
+};
+
+/**
+ * @return {number}
+ */
+TextureLevel.prototype.getDepth = function()
+{
+    return this.m_depth;
 };
 
 /**
