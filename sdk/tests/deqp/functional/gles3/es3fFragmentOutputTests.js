@@ -263,7 +263,7 @@ function(
             gl.renderbufferStorageMultisample(gl.RENDERBUFFER, bufSpec.samples, bufSpec.format, bufSpec.width, bufSpec.height);
             gl.framebufferRenderbuffer(gl.FRAMEBUFFER, attachment, gl.RENDERBUFFER, this.m_renderbuffer);
         }
-        // GLU_EXPECT_NO_ERROR(gl.getError(), 'After framebuffer setup');
+        GLU_EXPECT_NO_ERROR(gl.getError(), 'After framebuffer setup');
 
         /** @type {number} */ var fboStatus = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
         if (fboStatus == gl.FRAMEBUFFER_UNSUPPORTED)
