@@ -1364,64 +1364,297 @@ function (
     /**
      * MultiVertexArrayTest.Spec.ArraySpec class
      * @constructor
-     * @param {deArray.InputType} inputType
-     * @param {deArray.OutputType} outputType
-     * @param {deArray.Storage} storage
-     * @param {deArray.Usage} usage
-     * @param {number} componentCount
-     * @param {number} offset
-     * @param {number} stride
-     * @param {boolean} normalize
-     * @param {GLValue} min
-     * @param {GLValue} max
+     * @param {deArray.InputType} inputType_
+     * @param {deArray.OutputType} outputType_
+     * @param {deArray.Storage} storage_
+     * @param {deArray.Usage} usage_
+     * @param {number} componentCount_
+     * @param {number} offset_
+     * @param {number} stride_
+     * @param {boolean} normalize_
+     * @param {GLValue} min_
+     * @param {GLValue} max_
      */
-    MultiVertexArrayTest.Spec.ArraySpec = function () {
-        
+    MultiVertexArrayTest.Spec.ArraySpec = function (inputType_, outputType_, storage_, usage_, componentCount_, offset_, stride_, normalize_, min_, max_) {
+        this.inputType = inputType_;
+        this.outputType = outputType_;
+        this.storage = storage_;
+        this.usage = usage_;
+        this.componentCount = componentCount_;
+        this.offset = offset_;
+        this.stride = stride_;
+        this.normalize = normalize_;
+        this.min = min_;
+        this.max = max_;
     };
 
-    /*class MultiVertexArrayTest : public VertexArrayTest
-    {
-    public:
-        class Spec
-        {
-        public:
-            class ArraySpec
+    /**
+     * getName
+     * @return {string}
+     */
+    MultiVertexArrayTest.Spec.prototype.getName = function () {
+        var name = '';
+
+        for (var ndx = 0; ndx < arrays.length; ++ndx) {
+            /** @type {MultiVertexArrayTest.Spec.ArraySpec} */ var array = arrays[ndx];
+
+            if (arrays.length > 1)
+                name += "array" + ndx + "_";
+
+            name += deArray.storageToString(array.storage) + "_" +
+            array.offset + "_" +
+            array.stride + "_" +
+            deArray.inputTypeToString(array.inputType);
+
+            if (array.inputType != deArray.InputType.UNSIGNED_INT_2_10_10_10 && array.inputType != deArray.InputType.INT_2_10_10_10)
+                name += array.componentCount;
+            name += "_" +
+            (array.normalize ? "normalized_" : "") +
+            deArray.outputTypeToString(array.outputType) + "_" +
+            deArray.usageTypeToString(array.usage) + "_";
+        }
+
+        if (first)
+            name += "first" + first + "_";
+
+        switch (primitive) {
+            case deArray.Primitive.TRIANGLES:
+                name += "quads_";
+                break;
+            case deArray.Primitive.POINTS:
+                name += "points_";
+                break;
+
+            default:
+                throw new Error('MultiVertexArrayTest.Spec.getName - Invalid primitive type');
+                break;
+        }
+
+        name += drawCount;
+
+        return name;
+    };
+
+    /**
+     * getName
+     * @return {string}
+     */
+    var MultiVertexArrayTest.Spec.prototype.getDesc = function () {
+        var desc = '';
+
+        for (var ndx = 0; ndx < arrays.length; ++ndx) {
+            /** @type {MultiVertexArrayTest.Spec.ArraySpec} */ var array = arrays[ndx];
+
+            desc += "Array " + ndx + ": " +
+            "Storage in " deArray.storageToString(array.storage) + ", " +
+            "stride " + array.stride + ", " +
+            "input datatype " + deArray.inputTypeToString(array.inputType) + ", " +
+            "input component count " + array.componentCount + ", " +
+            (array.normalize ? "normalized, " : "") +
+            "used as " + deArray.outputTypeToString(array.outputType) + ", ";
+        }
+
+        desc += "drawArrays(), " +
+        "first " + first + ", " +
+        drawCount;
+
+        switch (primitive) {
+            case deArray.Primitive.TRIANGLES:
+                desc += "quads ";
+                break;
+            case deArray.Primitive.POINTS:
+                desc += "points";
+                break;
+
+            default:
+                throw new Error('MultiVertexArrayTest.Spec.getDesc - Invalid primitive type');
+                break;
+        }
+
+        return desc;
+    };
+
+    /** TODO: Implement: RandomArrayGenerator class
+     * iterate
+     * @return {tcuTestCase.runner.IterateResult}
+     */
+    MultiVertexArrayTest.prototype.iterate = function () {
+        if (this.m_iteration == 0) {
+            var primitiveSize = (this.m_spec.primitive == deArray.Primitive.TRIANGLES) ? (6) : (1); // in non-indexed draw Triangles means rectangles
+            var coordScale = 1.0;
+            var colorScale = 1.0;
+            var useVao = true; // WebGL, WebGL 2.0 - gl.getType().getProfile() == glu::PROFILE_CORE;
+
+            // Log info
+            bufferedLogToConsole(this.m_spec.getDesc());
+
+            // Color and Coord scale
+
+            // First array is always position
+            /** @type {MultiVertexArrayTest.Spec.ArraySpec} */ var arraySpec = this.m_spec.arrays[0];
+            if (arraySpec.inputType == deArray.InputType.UNSIGNED_INT_2_10_10_10) {
+                if (arraySpec.normalize)
+                    coordScale = 1;
+                else
+                    coordScale = 1 / 1024;
+            }
+            else if (arraySpec.inputType == deArray.InputType.INT_2_10_10_10)
             {
-            public:
-                ArraySpec   (Array::InputType inputType, Array::OutputType outputType, Array::Storage storage, Array::Usage usage, int componetCount, int offset, int stride, bool normalize, GLValue min, GLValue max);
+                if (arraySpec.normalize)
+                    coordScale = 1.0f;
+                else
+                    coordScale = 1.0 / 512.0;
+            }
+            else
+                coordScale = (arraySpec.normalize && !inputTypeIsFloatType(arraySpec.inputType) ? 1.0f : float(0.9 / double(arraySpec.max.toFloat())));
+
+            if (arraySpec.outputType == deArray.OutputType.VEC3 || arraySpec.outputType == deArray.OutputType.VEC4
+                || arraySpec.outputType == deArray.OutputType.IVEC3 || arraySpec.outputType == deArray.OutputType.IVEC4
+                || arraySpec.outputType == deArray.OutputType.UVEC3 || arraySpec.outputType == deArray.OutputType.UVEC4)
+                coordScale = coordScale * 0.5;
+
+
+            // And other arrays are color-like
+            for (var arrayNdx = 1; arrayNdx < this.m_spec.arrays.length; arrayNdx++) {
+                /** @type {MultiVertexArrayTest.Spec.ArraySpec} */ var arraySpec = this.m_spec.arrays[arrayNdx];
+
+                colorScale *= (arraySpec.normalize && !inputTypeIsFloatType(arraySpec.inputType) ? 1.0 : 1.0 / arraySpec.max.toFloat());
+                if (arraySpec.outputType == deArray.OutputType.VEC4)
+                    colorScale *= (arraySpec.normalize && !inputTypeIsFloatType(arraySpec.inputType) ? 1.0 : 1.0 / arraySpec.max.toFloat());
+            }
+
+            // Data
+
+            for (var arrayNdx = 0; arrayNdx < this.m_spec.arrays.length; arrayNdx++) {
+                /** @type {MultiVertexArrayTest.Spec.ArraySpec} */ var arraySpec = this.m_spec.arrays[arrayNdx];
+                /** @type {number} */ var seed = arraySpec.inputType + 10 * arraySpec.outputType + 100 * arraySpec.storage + 1000 * this.m_spec.primitive + 10000 * arraySpec.usage + this.m_spec.drawCount + 12 * arraySpec.componentCount + arraySpec.stride + arraySpec.normalize;
+                /** @type {Uint8Array} */ var data = DE_NULL;
+                /** @type {number} */ var stride = arraySpec.stride == 0 ? arraySpec.componentCount * deArray.inputTypeSize(arraySpec.inputType) : arraySpec.stride;
+                /** @type {number} */ var bufferSize = arraySpec.offset + stride * (this.m_spec.drawCount * primitiveSize - 1) + arraySpec.componentCount  * deArray.inputTypeSize(arraySpec.inputType);
+
+                switch (this.m_spec.primitive) {
+                    //          case deArray.Primitive.POINTS:
+                    //              data = RandomArrayGenerator.generateArray(seed, arraySpec.min, arraySpec.max, arraySpec.count, arraySpec.componentCount, arraySpec.stride, arraySpec.inputType);
+                    //              break;
+                    case deArray.Primitive.TRIANGLES:
+                        if (arrayNdx == 0) {
+                            data = RandomArrayGenerator.generateQuads(seed, this.m_spec.drawCount, arraySpec.componentCount, arraySpec.offset, arraySpec.stride, this.m_spec.primitive, arraySpec.inputType, arraySpec.min, arraySpec.max);
+                        }
+                        else {
+                            DE_ASSERT(arraySpec.offset == 0); // \note [jarkko] it just hasn't been implemented
+                            data = RandomArrayGenerator.generatePerQuad(seed, this.m_spec.drawCount, arraySpec.componentCount, arraySpec.stride, this.m_spec.primitive, arraySpec.inputType, arraySpec.min, arraySpec.max);
+                        }
+                        break;
+
+                    default:
+                        throw new Error('MultiVertexArrayTest.prototype.iterate - Invalid primitive type');
+                        break;
+                }
+
+                this.m_glArrayPack.newArray(arraySpec.storage);
+                this.m_rrArrayPack.newArray(arraySpec.storage);
+
+                this.m_glArrayPack.getArray(arrayNdx).data(deArray.Target.ARRAY, bufferSize, data, arraySpec.usage);
+                this.m_rrArrayPack.getArray(arrayNdx).data(deArray.Target.ARRAY, bufferSize, data, arraySpec.usage);
+
+                this.m_glArrayPack.getArray(arrayNdx).bind(arrayNdx, arraySpec.offset, arraySpec.componentCount, arraySpec.inputType, arraySpec.outputType, arraySpec.normalize, arraySpec.stride);
+                this.m_rrArrayPack.getArray(arrayNdx).bind(arrayNdx, arraySpec.offset, arraySpec.componentCount, arraySpec.inputType, arraySpec.outputType, arraySpec.normalize, arraySpec.stride);
+
+                delete [] data;
+            }
+
+            try
+            {
+                m_glArrayPack->render(m_spec.primitive, m_spec.first, m_spec.drawCount * (int)primitiveSize, useVao, coordScale, colorScale);
+                m_rrArrayPack->render(m_spec.primitive, m_spec.first, m_spec.drawCount * (int)primitiveSize, useVao, coordScale, colorScale);
+            }
+            catch (glu::Error& err)
+            {
+                // GL Errors are ok if the mode is not properly aligned
                 
-                Array::InputType    inputType;
-                Array::OutputType   outputType;
-                Array::Storage      storage;
-                Array::Usage        usage;
-                int                 componentCount;
-                int                 offset;
-                int                 stride;
-                bool                normalize;
-                GLValue             min;
-                GLValue             max;
-            };
+                m_testCtx.getLog() << TestLog::Message << "Got error: " << err.what() << TestLog::EndMessage;
+                
+                if (isUnalignedBufferOffsetTest())
+                    m_testCtx.setTestResult(QP_TEST_RESULT_COMPATIBILITY_WARNING, "Failed to draw with unaligned buffers.");
+                else if (isUnalignedBufferStrideTest())
+                    m_testCtx.setTestResult(QP_TEST_RESULT_COMPATIBILITY_WARNING, "Failed to draw with unaligned stride.");
+                else
+                    throw;
+                
+                return STOP;
+            }
             
-            std::string             getName     (void) const;
-            std::string             getDesc     (void) const;
+            m_iteration++;
+            return CONTINUE;
+        }
+        else if (m_iteration == 1)
+        {
+            compare();
             
-            Array::Primitive        primitive;
-            int                     drawCount;          //!<Number of primitives to draw
-            int                     first;
+            if (m_isOk)
+            {
+                m_testCtx.setTestResult(QP_TEST_RESULT_PASS, "Pass");
+            }
+            else
+            {
+                if (isUnalignedBufferOffsetTest())
+                    m_testCtx.setTestResult(QP_TEST_RESULT_COMPATIBILITY_WARNING, "Failed to draw with unaligned buffers.");
+                else if (isUnalignedBufferStrideTest())
+                    m_testCtx.setTestResult(QP_TEST_RESULT_COMPATIBILITY_WARNING, "Failed to draw with unaligned stride.");
+                else
+                    m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, "Image comparison failed.");
+            }
             
-            std::vector<ArraySpec>  arrays;
-        };
+            m_iteration++;
+            return STOP;
+        }
+        else
+        {
+            DE_ASSERT(false);
+            return STOP;
+        }
+    };
+    
+    bool MultiVertexArrayTest::isUnalignedBufferOffsetTest (void) const
+    {
+        // Buffer offsets should be data type size aligned
+        for (size_t i = 0; i < m_spec.arrays.size(); ++i)
+        {
+            if (m_spec.arrays[i].storage == Array::STORAGE_BUFFER)
+            {
+                const bool inputTypePacked = m_spec.arrays[i].inputType == deArray.InputType.UNSIGNED_INT_2_10_10_10 || m_spec.arrays[i].inputType == deArray.InputType.INT_2_10_10_10;
+                
+                int dataTypeSize = Array::inputTypeSize(m_spec.arrays[i].inputType);
+                if (inputTypePacked)
+                    dataTypeSize = 4;
+                
+                if (m_spec.arrays[i].offset % dataTypeSize != 0)
+                    return true;
+            }
+        }
         
-        MultiVertexArrayTest    (tcu::TestContext& testCtx, glu::RenderContext& renderCtx, const Spec& spec, const char* name, const char* desc);
-        virtual                 ~MultiVertexArrayTest   (void);
-        virtual IterateResult   iterate                 (void);
+        return false;
+    };
+    
+    bool MultiVertexArrayTest::isUnalignedBufferStrideTest (void) const
+    {
+        // Buffer strides should be data type size aligned
+        for (size_t i = 0; i < m_spec.arrays.size(); ++i)
+        {
+            if (m_spec.arrays[i].storage == Array::STORAGE_BUFFER)
+            {
+                const bool inputTypePacked = m_spec.arrays[i].inputType == deArray.InputType.UNSIGNED_INT_2_10_10_10 || m_spec.arrays[i].inputType == deArray.InputType.INT_2_10_10_10;
+                
+                int dataTypeSize = Array::inputTypeSize(m_spec.arrays[i].inputType);
+                if (inputTypePacked)
+                    dataTypeSize = 4;
+                
+                if (m_spec.arrays[i].stride % dataTypeSize != 0)
+                    return true;
+            }
+        }
         
-    private:
-        bool                    isUnalignedBufferOffsetTest     (void) const;
-        bool                    isUnalignedBufferStrideTest     (void) const;
-        
-        Spec                    m_spec;
-        int                     m_iteration;
+        return false;
     };*/
 
 });

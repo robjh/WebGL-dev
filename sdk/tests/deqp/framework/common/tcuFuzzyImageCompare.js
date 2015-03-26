@@ -57,6 +57,7 @@ define([
      * @return {deMath.deUint8}
      */
     var getChannel = function (color, channel) {
+        if (channel > 4) return 0; //No point trying to get a channel beyond the color parameter's 32-bit boundary.
         var buffer = new ArrayBuffer(4);
         var result = new Uint32Array(buffer);
         result[0] = color;
@@ -70,6 +71,7 @@ define([
      * @return {deMath.deUint32}
      */
     var setChannel = function (color, channel, val) {
+        if(channel > 4) return color; //No point trying to set a channel beyond the color parameter's 32-bit boundary.
         var buffer = new ArrayBuffer(4);
         var result = new Uint32Array(buffer);
         result[0] = color;
@@ -121,10 +123,9 @@ define([
         var start = src.getRowPitch() * y + x * NumChannels;
         var end = start + NumChannels;
         /** @type {TypedArray} */ var ptr = src.getDataPtr().subarray(start, end);
-
         /** @type {Uint32Array} */ var v = new Uint32Array(ptr); //Small buffer copy
 
-        return v[0];
+        return v[0]; //Expected return value is 32-bit max, regardless if it's made of more than 4 channels one byte each.
     };
 
     /**
@@ -136,32 +137,10 @@ define([
      */
     var writeUnorm8 = function (dst, x, y, val, NumChannels) {
         var start = dst.getRowPitch() * y + x * NumChannels;
-        var end = start + NumChannels;
-         /** @type {TypedArray} */ var ptr = dst.getDataPtr().subarray(start, end);
+        /** @type {Uint8Array} */ var ptr = new Uint8Array(dst.getBuffer());
 
-        var buffer = new ArrayBuffer(4);
-        /** @type {Uint32Array} */ var v = new Uint32Array(buffer);
-        v[0] = val;
-
-        /** @type {TypedArray} */ var sizedSource; //Array will be of same size as ptr, whatever it is.
-        switch (ptr.BYTES_PER_ELEMENT) {
-            case 1:
-                sizedSource = new Uint8Array(buffer);
-                break;
-            case 2:
-                sizedSource = new Uint16Array(buffer);
-                break;
-            case 4:
-                sizedSource = new Uint32Array(buffer);
-                break;
-            default:
-                throw new Error('Unexpected array size');
-        }
-
-        //1 on 1 copy
-        for(var c = 0; c < ptr.length; c++) {
-            ptr[c] = sizedSource[c];
-        }
+        for (var c = 0; c < NumChannels; c++)
+            ptr[start + c] = getChannel(val, c);
     };
 
     /**

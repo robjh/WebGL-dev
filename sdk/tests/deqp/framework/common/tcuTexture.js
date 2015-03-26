@@ -764,8 +764,11 @@ ConstPixelBufferAccess.prototype.getDataSize = function() { return this.m_depth 
 ConstPixelBufferAccess.prototype.getDataPtr = function() {
         var arrayType = getTypedArray(this.m_format.type);
          return new arrayType(this.m_data);
- };
-
+};
+/** @return {ArrayBuffer} */
+ConstPixelBufferAccess.prototype.getBuffer = function() {
+    return this.m_data;
+};
 /** @return {Number} */
 ConstPixelBufferAccess.prototype.getRowPitch = function() { return this.m_rowPitch; };
 /** @return {Number} */

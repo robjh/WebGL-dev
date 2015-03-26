@@ -203,14 +203,6 @@ define([
     };
 
     /**
-     * @param {deqpUtils.DataType} t
-     * @return {boolean}
-     */
-    dataTypeEquals.prototype.exec = function(t) {
-        return t == this.T;
-    };
-
-    /**
      * @param {number} N Row number. Used to be a template parameter
      * @param {deqpUtils.DataType} t
      * @return {dataTypeIsMatrixWithNRows | boolean}
