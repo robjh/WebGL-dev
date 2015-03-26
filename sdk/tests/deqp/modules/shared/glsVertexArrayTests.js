@@ -21,24 +21,16 @@
 define([
     'framework/common/tcuTestCase',
     'framework/common/tcuRGBA',
+    'framework/common/tcuFloat',
     'framework/common/tcuImageCompare',
-    'framework/opengl/gluShaderProgram',
-    'framework/opengl/gluShaderUtil',
-    'framework/opengl/gluDrawUtil',
-    'framework/delibs/debase/deMath',
-    'framework/delibs/debase/deRandom',
-    'framework/delibs/debase/deString'
+    'framework/delibs/debase/deMath'
 ],
 function (
-    deqpTests,
+    tcuTestCase,
     tcuRGBA,
-    tcuImgCmp,
-    deqpProgram,
-    deqpUtils,
-    deqpDraw,
-    deMath,
-    deRandom,
-    deString
+    tcuFloat,
+    tcuImageCompare,
+    deMath
 ) {
     'use strict';
 
@@ -930,190 +922,292 @@ function (
      * GLValue class
      */
     var GLValue = function () {
-        /** @type {number} */ this.m_value = 0;
+        /** @type {Array | TypedArray} */ this.m_value = new Array(1);
+        this.m_value[0] = 0;
         /** @type {deArray.InputType} */ this.m_type = undefined;
     };
 
     /**
-     * GLValue.Fixed
+     * typeToTypedArray function. Determines which type of array will store the value, and stores it.
+     * @param {number} value
+     * @param {deArray.InputType} type
      */
-    GLValue.Fixed = function () {
-        /** @type {deMath.deInt32} */ this.m_value = 0;
+    GLValue.typeToTypedArray = function (value, type) {
+        var array;
+
+        switch (type) {
+            case deArray.InputType.FLOAT:
+                array = new Float32Array(1);
+            case deArray.InputType.FIXED:
+                array = new Int32Array(1);
+            case deArray.InputType.DOUBLE:
+                array = new Float32Array(1);
+
+            case deArray.InputType.BYTE:
+                array = new Int8Array(1);
+            case deArray.InputType.SHORT:
+                array = new Int16Array(1);
+
+            case deArray.InputType.UNSIGNED_BYTE:
+                array = new Uint8Array(1);
+            case deArray.InputType.UNSIGNED_SHORT:
+                array = new Uint16Array(1);
+
+            case deArray.InputType.INT:
+                array = new Int32Array(1);
+            case deArray.InputType.UNSIGNED_INT:
+                array = new Uint32Array(1);
+            case deArray.InputType.HALF:
+                array = new Uint16Array(1);
+            case deArray.InputType.UNSIGNED_INT_2_10_10_10:
+                array = new Uint32Array(1);
+            case deArray.InputType.INT_2_10_10_10:
+                array = new Int32Array(1);
+            default:
+                throw new Error('GLValue.typeToTypedArray - Invalid InputType');
+        }
+
+        array[0] = value;
+        return array;
     };
 
     /**
-     * GLValue.Fixed.create
-     * @param {deMath.deInt32} value
+     * GLValue.create
+     * @param {number} value
+     * @param {deArray.InputType} type
      */
-    GLValue.Fixed.create = function (value) {
-        var v = new GLValue.Fixed();
-        v.m_value = value;
+    GLValue.create = function (value, type) {
+        var v = new GLValue();
+        v.m_value = GLValue.typeToTypedArray(value, type);
+        v.m_type = type;
         return v;
     };
 
     /**
-     * GLValue.Fixed.getValue
-     * @return {deMath.deInt32}
+     * GLValue.halfToFloat
+     * @param {number} value
+     * @return {number}
      */
-    GLValue.Fixed.getValue = function () {
-        return this.m_value;
+    GLValue.halfToFloat = function (value) {
+        //TODO: Give sign support
+        return tcuFloat.halfFloatToNumber(value);
     };
 
+    //TODO: floatToHalf
+
     /**
-     * newGLValueFromValue constructor
-     * @param {number} value
+     * GLValue.getMaxValue
      * @param {deArray.InputType} type
      * @return {GLValue}
      */
-    var newGLValueFromValue = function (value, type) {
-        var glValue = new GLValue();
-        glValue.m_value = value;
-        glValue.m_type = type;
+    GLValue.getMaxValue = function (type) {
+        var value;
+
+        switch (type) {
+            case deArray.InputType.FLOAT:
+                value =  127;
+            case deArray.InputType.FIXED:
+                value = 32760;
+            case deArray.InputType.DOUBLE:
+                value = 127;
+            case deArray.InputType.BYTE:
+                value = 127;
+            case deArray.InputType.SHORT:
+                value = 32760;
+            case deArray.InputType.UNSIGNED_BYTE:
+                value = 255;
+            case deArray.InputType.UNSIGNED_SHORT:
+                value = 65530;
+            case deArray.InputType.INT:
+                value = 2147483647;
+            case deArray.InputType.UNSIGNED_INT:
+                value = 4294967295;
+            case deArray.InputType.HALF:
+                value = 256;
+
+            default:
+                throw new Error('GLValue.getMaxValue - Invalid InputType');
+        }
+
+        return GLValue.create(value, type);
     };
 
-    /*class GLValue
-    {
-        public:
-        
-        template<class Type>
-        class WrappedType
-        {
-            public:
-            static WrappedType<Type>    create          (Type value)                            { WrappedType<Type> v; v.m_value = value; return v; }
-            inline Type                 getValue        (void) const                            { return m_value; }
-            
-            inline WrappedType<Type>    operator+       (const WrappedType<Type>& other) const  { return WrappedType<Type>::create(m_value + other.getValue()); }
-            inline WrappedType<Type>    operator*       (const WrappedType<Type>& other) const  { return WrappedType<Type>::create(m_value * other.getValue()); }
-            inline WrappedType<Type>    operator/       (const WrappedType<Type>& other) const  { return WrappedType<Type>::create(m_value / other.getValue()); }
-            inline WrappedType<Type>    operator-       (const WrappedType<Type>& other) const  { return WrappedType<Type>::create(m_value - other.getValue()); }
-            
-            inline WrappedType<Type>&   operator+=      (const WrappedType<Type>& other)        { m_value += other.getValue(); return *this; }
-            inline WrappedType<Type>&   operator*=      (const WrappedType<Type>& other)        { m_value *= other.getValue(); return *this; }
-            inline WrappedType<Type>&   operator/=      (const WrappedType<Type>& other)        { m_value /= other.getValue(); return *this; }
-            inline WrappedType<Type>&   operator-=      (const WrappedType<Type>& other)        { m_value -= other.getValue(); return *this; }
-            
-            inline bool                 operator==      (const WrappedType<Type>& other) const  { return m_value == other.m_value; }
-            inline bool                 operator!=      (const WrappedType<Type>& other) const  { return m_value != other.m_value; }
-            inline bool                 operator<       (const WrappedType<Type>& other) const  { return m_value < other.m_value; }
-            inline bool                 operator>       (const WrappedType<Type>& other) const  { return m_value > other.m_value; }
-            inline bool                 operator<=      (const WrappedType<Type>& other) const  { return m_value <= other.m_value; }
-            inline bool                 operator>=      (const WrappedType<Type>& other) const  { return m_value >= other.m_value; }
-            
-            inline                      operator Type   (void) const                            { return m_value; }
-            template<class T>
-            inline T                    to              (void) const                            { return (T)m_value; }
-            private:
-            Type    m_value;
-        };
-        
-        typedef WrappedType<deInt16>    Short;
-        typedef WrappedType<deUint16>   Ushort;
-        
-        typedef WrappedType<deInt8>     Byte;
-        typedef WrappedType<deUint8>    Ubyte;
-        
-        typedef WrappedType<float>      Float;
-        typedef WrappedType<double>     Double;
-        
-        typedef WrappedType<deInt32>    Int;
-        typedef WrappedType<deUint32>   Uint;
-        
-        class Half
-        {
-            public:
-            static Half         create          (float value)               { Half h; h.m_value = floatToHalf(value); return h; }
-            inline deFloat16    getValue        (void) const                { return m_value; }
-            
-            inline Half         operator+       (const Half& other) const   { return create(halfToFloat(m_value) + halfToFloat(other.getValue())); }
-            inline Half         operator*       (const Half& other) const   { return create(halfToFloat(m_value) * halfToFloat(other.getValue())); }
-            inline Half         operator/       (const Half& other) const   { return create(halfToFloat(m_value) / halfToFloat(other.getValue())); }
-            inline Half         operator-       (const Half& other) const   { return create(halfToFloat(m_value) - halfToFloat(other.getValue())); }
-            
-            inline Half&        operator+=      (const Half& other)         { m_value = floatToHalf(halfToFloat(other.getValue()) + halfToFloat(m_value)); return *this; }
-            inline Half&        operator*=      (const Half& other)         { m_value = floatToHalf(halfToFloat(other.getValue()) * halfToFloat(m_value)); return *this; }
-            inline Half&        operator/=      (const Half& other)         { m_value = floatToHalf(halfToFloat(other.getValue()) / halfToFloat(m_value)); return *this; }
-            inline Half&        operator-=      (const Half& other)         { m_value = floatToHalf(halfToFloat(other.getValue()) - halfToFloat(m_value)); return *this; }
-            
-            inline bool         operator==      (const Half& other) const   { return m_value == other.m_value; }
-            inline bool         operator!=      (const Half& other) const   { return m_value != other.m_value; }
-            inline bool         operator<       (const Half& other) const   { return halfToFloat(m_value) < halfToFloat(other.m_value); }
-            inline bool         operator>       (const Half& other) const   { return halfToFloat(m_value) > halfToFloat(other.m_value); }
-            inline bool         operator<=      (const Half& other) const   { return halfToFloat(m_value) <= halfToFloat(other.m_value); }
-            inline bool         operator>=      (const Half& other) const   { return halfToFloat(m_value) >= halfToFloat(other.m_value); }
-            
-            template<class T>
-            inline T            to              (void) const                { return (T)halfToFloat(m_value); }
-            
-            inline static deFloat16 floatToHalf     (float f);
-            inline static float     halfToFloat     (deFloat16 h);
-            private:
-            deFloat16 m_value;
-        };
-        
-        class Fixed
-        {
-            public:
-            static Fixed        create          (deInt32 value)             { Fixed v; v.m_value = value; return v; }
-            inline deInt32      getValue        (void) const                { return m_value; }
-            
-            inline Fixed        operator+       (const Fixed& other) const  { return create(m_value + other.getValue()); }
-            inline Fixed        operator*       (const Fixed& other) const  { return create(m_value * other.getValue()); }
-            inline Fixed        operator/       (const Fixed& other) const  { return create(m_value / other.getValue()); }
-            inline Fixed        operator-       (const Fixed& other) const  { return create(m_value - other.getValue()); }
-            
-            inline Fixed&       operator+=      (const Fixed& other)        { m_value += other.getValue(); return *this; }
-            inline Fixed&       operator*=      (const Fixed& other)        { m_value *= other.getValue(); return *this; }
-            inline Fixed&       operator/=      (const Fixed& other)        { m_value /= other.getValue(); return *this; }
-            inline Fixed&       operator-=      (const Fixed& other)        { m_value -= other.getValue(); return *this; }
-            
-            inline bool         operator==      (const Fixed& other) const  { return m_value == other.m_value; }
-            inline bool         operator!=      (const Fixed& other) const  { return m_value != other.m_value; }
-            inline bool         operator<       (const Fixed& other) const  { return m_value < other.m_value; }
-            inline bool         operator>       (const Fixed& other) const  { return m_value > other.m_value; }
-            inline bool         operator<=      (const Fixed& other) const  { return m_value <= other.m_value; }
-            inline bool         operator>=      (const Fixed& other) const  { return m_value >= other.m_value; }
-            
-            inline              operator deInt32 (void) const               { return m_value; }
-            template<class T>
-            inline T            to              (void) const                { return (T)m_value; }
-            private:
-            deInt32             m_value;
-        };
-        
-        // \todo [mika] This is pretty messy
-        GLValue         (void)          : type(Array::INPUTTYPE_LAST) {}
-        explicit            GLValue         (Float value)   : type(Array::INPUTTYPE_FLOAT),             fl(value)   {}
-        explicit            GLValue         (Fixed value)   : type(Array::INPUTTYPE_FIXED),             fi(value)   {}
-        explicit            GLValue         (Byte value)    : type(Array::INPUTTYPE_BYTE),              b(value)    {}
-        explicit            GLValue         (Ubyte value)   : type(Array::INPUTTYPE_UNSIGNED_BYTE),     ub(value)   {}
-        explicit            GLValue         (Short value)   : type(Array::INPUTTYPE_SHORT),             s(value)    {}
-        explicit            GLValue         (Ushort value)  : type(Array::INPUTTYPE_UNSIGNED_SHORT),    us(value)   {}
-        explicit            GLValue         (Int value)     : type(Array::INPUTTYPE_INT),               i(value)    {}
-        explicit            GLValue         (Uint value)    : type(Array::INPUTTYPE_UNSIGNED_INT),      ui(value)   {}
-        explicit            GLValue         (Half value)    : type(Array::INPUTTYPE_HALF),              h(value)    {}
-        explicit            GLValue         (Double value)  : type(Array::INPUTTYPE_DOUBLE),            d(value)    {}
-        
-        float               toFloat         (void) const;
-        
-        static GLValue      getMaxValue     (Array::InputType type);
-        static GLValue      getMinValue     (Array::InputType type);
-        
-        Array::InputType    type;
-        
-        union
-        {
-            Float       fl;
-            Fixed       fi;
-            Double      d;
-            Byte        b;
-            Ubyte       ub;
-            Short       s;
-            Ushort      us;
-            Int         i;
-            Uint        ui;
-            Half        h;
-        };
-    };*/
+    /**
+     * GLValue.getMinValue
+     * @param {deArray.InputType} type
+     * @return {GLValue}
+     */
+    GLValue.getMinValue = function (type) {
+        var value;
+
+        switch (type) {
+            case deArray.InputType.FLOAT:
+                value =  -127;
+            case deArray.InputType.FIXED:
+                value = -32760;
+            case deArray.InputType.DOUBLE:
+                value = -127;
+            case deArray.InputType.BYTE:
+                value = -127;
+            case deArray.InputType.SHORT:
+                value = -32760;
+            case deArray.InputType.UNSIGNED_BYTE:
+                value = 0;
+            case deArray.InputType.UNSIGNED_SHORT:
+                value = 0;
+            case deArray.InputType.INT:
+                value = -2147483647;
+            case deArray.InputType.UNSIGNED_INT:
+                value = 0;
+            case deArray.InputType.HALF:
+                value = -256;
+
+            default:
+                throw new Error('GLValue.getMinValue - Invalid InputType');
+        }
+
+        return GLValue.create(value, type);
+    };
+
+    /**
+     * GLValue.toFloat
+     * @return {number}
+     */
+    GLValue.prototype.toFloat = function () {
+        return this.interpret();
+    };
+
+    /**
+     * GLValue.getValue
+     * @return {number}
+     */
+    GLValue.prototype.getValue = function () {
+        return this.m_value[0];
+    };
+
+    /**
+     * interpret function. Returns the m_value as a quantity so arithmetic operations can be performed on it
+     * Only some types require this.
+     * @return {number}
+     */
+    GLValue.prototype.interpret() {
+        if (this.m_type == deArray.InputType.HALF)
+            return GLValue.halfToFloat(this.m_value[0]);
+        else if (this.m_type == deArray.InputType.FIXED) {
+            var maxValue = 65536;
+            return ((2 * this.m_value[0] + 1) / (maxValue - 1));
+        }
+
+        return this.m_value[0];
+    };
+
+    /**
+     * @param {GLValue} other
+     * @return {GLValue}
+     */
+    GLValue.prototype.add = function (other) {
+        return GLValue.create(this.interpret() + other.interpret(), this.m_type);
+    };
+
+    /**
+     * @param {GLValue} other
+     * @return {GLValue}
+     */
+    GLValue.prototype.mul = function (other) {
+        return GLValue.create(this.interpret() * other.interpret(), this.m_type);
+    };
+
+    /**
+     * @param {GLValue} other
+     * @return {GLValue}
+     */
+    GLValue.prototype.div = function (other) {
+        return GLValue.create(this.interpret() / other.interpret(), this.m_type);
+    };
+
+    /**
+     * @param {GLValue} other
+     * @return {GLValue}
+     */
+    GLValue.prototype.sub = function (other) {
+        return GLValue.create(this.interpret() - other.interpret(), this.m_type);
+    };
+
+    /**
+     * @param {GLValue} other
+     * @return {GLValue}
+     */
+    GLValue.prototype.addToSelf = function (other) {
+        this.m_value[0] = this.interpret() + other.interpret();
+        return this;
+    };
+
+    /**
+     * @param {GLValue} other
+     * @return {GLValue}
+     */
+    GLValue.prototype.subToSelf = function (other) {
+        this.m_value[0] = this.interpret() - other.interpret();
+        return this;
+    };
+
+    /**
+     * @param {GLValue} other
+     * @return {GLValue}
+     */
+    GLValue.prototype.mulToSelf = function (other) {
+        this.m_value[0] = this.interpret() * other.interpret();
+        return this;
+    };
+
+    /**
+     * @param {GLValue} other
+     * @return {GLValue}
+     */
+    GLValue.prototype.divToSelf = function (other) {
+        this.m_value[0] = this.interpret() / other.interpret();
+        return this;
+    };
+
+    /**
+     * @param {GLValue} other
+     * @return {boolean}
+     */
+    GLValue.prototype.equals = function (other) {
+        return this.m_value[0] == other.getValue();
+    };
+
+    /**
+     * @param {GLValue} other
+     * @return {boolean}
+     */
+    GLValue.prototype.lessThan = function (other) {
+        return this.interpret() < other.interpret();
+    };
+
+    /**
+     * @param {GLValue} other
+     * @return {boolean}
+     */
+    GLValue.prototype.greaterThan = function (other) {
+        return this.interpret() > other.interpret();
+    };
+
+    /**
+     * @param {GLValue} other
+     * @return {boolean}
+     */
+    GLValue.prototype.lessOrEqualThan = function (other) {
+        return this.interpret() <= other.interpret();
+    };
+
+    /**
+     * @param {GLValue} other
+     * @return {boolean}
+     */
+    GLValue.prototype.greaterOrEqualThan = function (other) {
+        return this.interpret() >= other.interpret();
+    };
 
     /**
      * class VertexArrayTest
@@ -1167,7 +1261,7 @@ function (
         if (this.m_renderCtx.getRenderTarget().getNumSamples() > 1) {
             // \todo [mika] Improve compare when using multisampling
             bufferedLogToConsole("Warning: Comparision of result from multisample render targets are not as stricts as without multisampling. Might produce false positives!");
-            this.m_isOk = tcuImgCmp.fuzzyCompare("Compare Results", "Compare Results", ref.getAccess(), screen.getAccess(), 1.5);
+            this.m_isOk = tcuImageCompare.fuzzyCompare("Compare Results", "Compare Results", ref.getAccess(), screen.getAccess(), 1.5);
         }
         else {
             /** @type {tcuRGBA.RGBA} */ var threshold = (this.m_maxDiffRed, this.m_maxDiffGreen, this.m_maxDiffBlue, 255);
@@ -1226,16 +1320,108 @@ function (
             if (!this.m_isOk) {
                 debug("Image comparison failed, threshold = (" + this.m_maxDiffRed + ", " + this.m_maxDiffGreen + ", " + this.m_maxDiffBlue + ")");
                 //log << TestLog::ImageSet("Compare result", "Result of rendering");
-                tcuImgCmp.displayImages("Result",     "Result",       screen);
-                tcuImgCmp.displayImages("Reference",  "Reference",    ref);
-                tcuImgCmp.displayImages("ErrorMask",  "Error mask",   error);
+                tcuImageCompare.displayImages("Result",     "Result",       screen);
+                tcuImageCompare.displayImages("Reference",  "Reference",    ref);
+                tcuImageCompare.displayImages("ErrorMask",  "Error mask",   error);
             }
             else {
                 //log << TestLog::ImageSet("Compare result", "Result of rendering")
-                tcuImgCmp.displayImages("Result", "Result", screen);
+                tcuImageCompare.displayImages("Result", "Result", screen);
             }
         }
     };
 
     //TODO: Is this actually used? -> VertexArrayTest&                operator=           (const VertexArrayTest& other);
+
+    /**
+     * MultiVertexArrayTest class
+     * @constructor
+     * @extends {VertexArrayTest}
+     * @param {MultiVertexArrayTest.Spec} spec
+     * @param {string} name
+     * @param {string} desc
+     */
+    var MultiVertexArrayTest = function (spec, name, desc) {
+        VertexArrayTest.call(this, name, desc);
+
+        /** @type {MultiVertexArrayTest.Spec} */ this.m_spec = spec;
+        /** @type {number} */ this.m_iteration = 0;
+    };
+
+    MultiVertexArrayTest.prototype = Object.create(VertexArrayTest.prototype);
+    MultiVertexArrayTest.prototype.constructor = MultiVertexArrayTest;
+
+    /**
+     * MultiVertexArrayTest.Spec class
+     */
+    MultiVertexArrayTest.Spec = function () {
+        /** @type {deArray.Primitive} */ this.primitive = undefined;
+        /** @type {number} */ this.drawCount = 0;
+        /** @type {number} */ this.first = 0;
+        /** @type {Array.<MultiVertexArrayTest.Spec.ArraySpec>} */ this.arrays = [];
+    };
+
+    /**
+     * MultiVertexArrayTest.Spec.ArraySpec class
+     * @constructor
+     * @param {deArray.InputType} inputType
+     * @param {deArray.OutputType} outputType
+     * @param {deArray.Storage} storage
+     * @param {deArray.Usage} usage
+     * @param {number} componentCount
+     * @param {number} offset
+     * @param {number} stride
+     * @param {boolean} normalize
+     * @param {GLValue} min
+     * @param {GLValue} max
+     */
+    MultiVertexArrayTest.Spec.ArraySpec = function () {
+        
+    };
+
+    /*class MultiVertexArrayTest : public VertexArrayTest
+    {
+    public:
+        class Spec
+        {
+        public:
+            class ArraySpec
+            {
+            public:
+                ArraySpec   (Array::InputType inputType, Array::OutputType outputType, Array::Storage storage, Array::Usage usage, int componetCount, int offset, int stride, bool normalize, GLValue min, GLValue max);
+                
+                Array::InputType    inputType;
+                Array::OutputType   outputType;
+                Array::Storage      storage;
+                Array::Usage        usage;
+                int                 componentCount;
+                int                 offset;
+                int                 stride;
+                bool                normalize;
+                GLValue             min;
+                GLValue             max;
+            };
+            
+            std::string             getName     (void) const;
+            std::string             getDesc     (void) const;
+            
+            Array::Primitive        primitive;
+            int                     drawCount;          //!<Number of primitives to draw
+            int                     first;
+            
+            std::vector<ArraySpec>  arrays;
+        };
+        
+        MultiVertexArrayTest    (tcu::TestContext& testCtx, glu::RenderContext& renderCtx, const Spec& spec, const char* name, const char* desc);
+        virtual                 ~MultiVertexArrayTest   (void);
+        virtual IterateResult   iterate                 (void);
+        
+    private:
+        bool                    isUnalignedBufferOffsetTest     (void) const;
+        bool                    isUnalignedBufferStrideTest     (void) const;
+        
+        Spec                    m_spec;
+        int                     m_iteration;
+    };*/
+
 });

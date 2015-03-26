@@ -27,9 +27,9 @@ define([
     'framework/delibs/debase/deRandom',
     'framework/common/tcuImageCompare',
     'framework/opengl/gluTextureUtil'], function(
-        deqpUtils,
-        gluSP,
-        deqpTests,
+        gluShaderUtil,
+        gluShaderProgram,
+        tcuTestCase,
         tcuSurface,
         deString,
         deRandom,
@@ -117,7 +117,7 @@ define([
     */
     var InstancedRenderingCase = function(name, description, _function, instancingType, rgbAttrType, numInstances)
     {
-        deqpTests.DeqpTest.call(this, name, description);
+        tcuTestCase.DeqpTest.call(this, name, description);
         /** @type {DrawFunction} */ this.m_function = _function;
         /** @type {InstancingType} */ this.m_instancingType = instancingType;
         /** @type {glu.DataType} */ this.m_rgbAttrType = rgbAttrType;
@@ -131,7 +131,7 @@ define([
         /** @type {Array.<VarComp>} */ this.m_instanceColorB = [];
     };
 
-    InstancedRenderingCase.prototype = Object.create(deqpTests.DeqpTest.prototype);
+    InstancedRenderingCase.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
     InstancedRenderingCase.prototype.constructor = InstancedRenderingCase;
 
     /**
@@ -141,10 +141,10 @@ define([
     */
     InstancedRenderingCase.prototype.pushVarCompAttrib = function(vec, val)
     {
-        var isFloatCase = deqpUtils.isDataTypeFloatOrVec(this.m_rgbAttrType);
-        var isIntCase = deqpUtils.isDataTypeIntOrIVec(this.m_rgbAttrType);
-        var isUintCase = deqpUtils.isDataTypeUintOrUVec(this.m_rgbAttrType);
-        var isMatCase = deqpUtils.isDataTypeMatrix(this.m_rgbAttrType);
+        var isFloatCase = gluShaderUtil.isDataTypeFloatOrVec(this.m_rgbAttrType);
+        var isIntCase = gluShaderUtil.isDataTypeIntOrIVec(this.m_rgbAttrType);
+        var isUintCase = gluShaderUtil.isDataTypeUintOrUVec(this.m_rgbAttrType);
+        var isMatCase = gluShaderUtil.isDataTypeMatrix(this.m_rgbAttrType);
         if (isFloatCase || isMatCase)
             vec.push(new VarComp(val));
         else if (isIntCase)
@@ -156,14 +156,14 @@ define([
     };
 
     InstancedRenderingCase.prototype.init = function() {
-        /** @type {boolean} */ var isFloatCase = deqpUtils.isDataTypeFloatOrVec(this.m_rgbAttrType);
-        /** @type {boolean} */ var isIntCase = deqpUtils.isDataTypeIntOrIVec(this.m_rgbAttrType);
-        /** @type {boolean} */ var isUintCase = deqpUtils.isDataTypeUintOrUVec(this.m_rgbAttrType);
-        /** @type {boolean} */ var isMatCase = deqpUtils.isDataTypeMatrix(this.m_rgbAttrType);
-        /** @type {number} */ var typeSize = deqpUtils.getDataTypeScalarSize(this.m_rgbAttrType);
+        /** @type {boolean} */ var isFloatCase = gluShaderUtil.isDataTypeFloatOrVec(this.m_rgbAttrType);
+        /** @type {boolean} */ var isIntCase = gluShaderUtil.isDataTypeIntOrIVec(this.m_rgbAttrType);
+        /** @type {boolean} */ var isUintCase = gluShaderUtil.isDataTypeUintOrUVec(this.m_rgbAttrType);
+        /** @type {boolean} */ var isMatCase = gluShaderUtil.isDataTypeMatrix(this.m_rgbAttrType);
+        /** @type {number} */ var typeSize = gluShaderUtil.getDataTypeScalarSize(this.m_rgbAttrType);
         /** @type {boolean} */ var isScalarCase = typeSize == 1;
         /** @type {string} */ var swizzleFirst = isScalarCase ? '' : '.x';
-        /** @type {string} */ var typeName = deqpUtils.getDataTypeName(this.m_rgbAttrType);
+        /** @type {string} */ var typeName = gluShaderUtil.getDataTypeName(this.m_rgbAttrType);
 
         /** @type {string} */ var floatIntScaleStr = '(' + FLOAT_INT_SCALE.toFixed(3) + ')';
         /** @type {string} */ var floatIntBiasStr = '(' + FLOAT_INT_BIAS.toFixed(3) + ')';
@@ -270,7 +270,7 @@ define([
             '}\n';
 
         /** @type {string} */ var fragShaderSource =
-            '#version 300 es \n' +
+            '#version 300 es\n' +
             'layout(location = 0) out mediump vec4 o_color;\n' +
             'in mediump vec4 v_color;\n' +
             '\n' +
@@ -282,7 +282,7 @@ define([
         // Create shader program and log it.
 
         DE_ASSERT(!this.m_program);
-        this.m_program = new gluSP.ShaderProgram(gl, gluSP.makeVtxFragSources(vertShaderSourceStr, fragShaderSource));
+        this.m_program = new gluShaderProgram.ShaderProgram(gl, gluShaderProgram.makeVtxFragSources(vertShaderSourceStr, fragShaderSource));
 
         //tcu::TestLog& log = this.m_testCtx.getLog();
         //log << *m_program;
@@ -430,7 +430,7 @@ define([
         this.setupAndRender();
 
         //TODO: validate readPixels()
-        //deqpUtils.readPixels(this.m_context.getRenderContext(), xOffset, yOffset, resultImg.getAccess());
+        //gluShaderUtil.readPixels(this.m_context.getRenderContext(), xOffset, yOffset, resultImg.getAccess());
         var resImg = resultImg.getAccess();
         var resImgTransferFormat = gluTextureUtil.getTransferFormat(resImg.getFormat());
         var pixels = new Uint8Array(resImg.m_height*resImg.m_rowPitch);
@@ -442,12 +442,12 @@ define([
         // Compare.
 
         // Passing referenceImg.getAccess() and resultImg.getAccess() instead of referenceImg and resultImg
-        /** @type {boolean} */ var testOk = tcuImageCompare.fuzzyCompare('ComparisonResult', 'Image comparison result', referenceImg.getAccess(), resultImg.getAccess(), 0.05, deqpUtils.COMPARE_LOG_RESULT);
+        /** @type {boolean} */ var testOk = tcuImageCompare.fuzzyCompare('ComparisonResult', 'Image comparison result', referenceImg.getAccess(), resultImg.getAccess(), 0.05, gluShaderUtil.COMPARE_LOG_RESULT);
 
         this.m_testCtx.setTestResult(testOk ? QP_TEST_RESULT_PASS : QP_TEST_RESULT_FAIL,
                                     testOk ? 'Pass' : 'Fail');
 
-        return deqpTests.runner.IterateResult.STOP;
+        return tcuTestCase.runner.IterateResult.STOP;
     };
 
 
@@ -458,12 +458,12 @@ define([
     */
     InstancedRenderingCase.prototype.setupVarAttribPointer = function(attrPtr, location, divisor)
     {
-        /** @type {boolean} */ var isFloatCase = deqpUtils.isDataTypeFloatOrVec(this.m_rgbAttrType);
-        /** @type {boolean} */ var isIntCase = deqpUtils.isDataTypeIntOrIVec(this.m_rgbAttrType);
-        /** @type {boolean} */ var isUintCase = deqpUtils.isDataTypeUintOrUVec(this.m_rgbAttrType);
-        /** @type {boolean} */ var isMatCase = deqpUtils.isDataTypeMatrix(this.m_rgbAttrType);
-        /** @type {number} */ var typeSize = deqpUtils.getDataTypeScalarSize(this.m_rgbAttrType);
-        /** @type {number} */ var numSlots = isMatCase ? deqpUtils.getDataTypeMatrixNumColumns(this.m_rgbAttrType) : 1; // Matrix uses as many attribute slots as it has columns.
+        /** @type {boolean} */ var isFloatCase = gluShaderUtil.isDataTypeFloatOrVec(this.m_rgbAttrType);
+        /** @type {boolean} */ var isIntCase = gluShaderUtil.isDataTypeIntOrIVec(this.m_rgbAttrType);
+        /** @type {boolean} */ var isUintCase = gluShaderUtil.isDataTypeUintOrUVec(this.m_rgbAttrType);
+        /** @type {boolean} */ var isMatCase = gluShaderUtil.isDataTypeMatrix(this.m_rgbAttrType);
+        /** @type {number} */ var typeSize = gluShaderUtil.getDataTypeScalarSize(this.m_rgbAttrType);
+        /** @type {number} */ var numSlots = isMatCase ? gluShaderUtil.getDataTypeMatrixNumColumns(this.m_rgbAttrType) : 1; // Matrix uses as many attribute slots as it has columns.
 
         for (var slotNdx = 0; slotNdx < numSlots; slotNdx++)
         {
@@ -480,8 +480,8 @@ define([
                 gl.vertexAttribIPointer(curLoc, typeSize, gl.UNSIGNED_INT, 0, attrPtr);
             else if (isMatCase)
             {
-                /** @type {number} */ var numRows = deqpUtils.getDataTypeMatrixNumRows(this.m_rgbAttrType);
-                /** @type {number} */ var numCols = deqpUtils.getDataTypeMatrixNumColumns(this.m_rgbAttrType);
+                /** @type {number} */ var numRows = gluShaderUtil.getDataTypeMatrixNumRows(this.m_rgbAttrType);
+                /** @type {number} */ var numCols = gluShaderUtil.getDataTypeMatrixNumColumns(this.m_rgbAttrType);
                 gl.vertexAttribPointer(curLoc, numRows, gl.FLOAT, GL_FALSE, numCols * numRows * 4, attrPtr); //sizeof(float) = 4
             }
             else
@@ -579,7 +579,7 @@ define([
 
             // Convert to integer and back if shader inputs are integers.
 
-            if (deqpUtils.isDataTypeIntOrIVec(this.m_rgbAttrType))
+            if (gluShaderUtil.isDataTypeIntOrIVec(this.m_rgbAttrType))
             {
                 /** @type {deInt32} */var intR = (r * FLOAT_INT_SCALE + FLOAT_INT_BIAS);
                 /** @type {deInt32} */var intG = (g * FLOAT_INT_SCALE + FLOAT_INT_BIAS);
@@ -588,7 +588,7 @@ define([
                 g = (intG - FLOAT_INT_BIAS) / FLOAT_INT_SCALE;
                 b = (intB - FLOAT_INT_BIAS) / FLOAT_INT_SCALE;
             }
-            else if (deqpUtils.isDataTypeUintOrUVec(this.m_rgbAttrType))
+            else if (gluShaderUtil.isDataTypeUintOrUVec(this.m_rgbAttrType))
             {
                 /** @type {deUint32} */var uintR = (r * FLOAT_UINT_SCALE + FLOAT_UINT_BIAS);
                 /** @type {deUint32} */var uintG = (g * FLOAT_UINT_SCALE + FLOAT_UINT_BIAS);
@@ -608,7 +608,7 @@ define([
 
     var init = function()
     {
-        var testGroup = deqpTests.runner.getState().testCases;
+        var testGroup = tcuTestCase.runner.getState().testCases;
         /** @type {deUintinteger32} */ var instanceCounts = [1, 2, 4, 20];
 
         for (var _function = 0; _function < DrawFunction.length; _function++)
@@ -626,7 +626,7 @@ define([
             DE_ASSERT(functionName != DE_NULL);
             DE_ASSERT(functionDesc != DE_NULL);
 
-            /** @type {TestCaseGroup} */ var functionGroup = new deqpTests.newTest(functionName, functionDesc);
+            /** @type {TestCaseGroup} */ var functionGroup = new tcuTestCase.newTest(functionName, functionDesc);
             testGroup.addChild(functionGroup);
 
             for (var instancingType = 0; instancingType < InstancingType.length; instancingType++)
@@ -647,7 +647,7 @@ define([
                 DE_ASSERT(instancingTypeDesc != DE_NULL);
 
                 /** @type {TestCaseGroup} */
-                var instancingTypeGroup = new deqpTests.newTest(instancingTypeName, instancingTypeDesc);
+                var instancingTypeGroup = new tcuTestCase.newTest(instancingTypeName, instancingTypeDesc);
 
                 functionGroup.addChild(instancingTypeGroup);
 
@@ -658,7 +658,7 @@ define([
                     instancingTypeGroup.addChild(new InstancedRenderingCase(countName, '',
                                                                              _function,
                                                                              instancingType,
-                                                                             deqpUtils.DataType.FLOAT,
+                                                                             gluShaderUtil.DataType.FLOAT,
                                                                              instanceCounts[countNdx]));
                 }
             }
@@ -666,34 +666,34 @@ define([
 
         /** @type {glu::DataType} */ var s_testTypes =
         [
-            deqpUtils.DataType.FLOAT,
-            deqpUtils.DataType.FLOAT_VEC2,
-            deqpUtils.DataType.FLOAT_VEC3,
-            deqpUtils.DataType.FLOAT_VEC4,
-            deqpUtils.DataType.FLOAT_MAT2,
-            deqpUtils.DataType.FLOAT_MAT2X3,
-            deqpUtils.DataType.FLOAT_MAT2X4,
-            deqpUtils.DataType.FLOAT_MAT3X2,
-            deqpUtils.DataType.FLOAT_MAT3,
-            deqpUtils.DataType.FLOAT_MAT3X4,
-            deqpUtils.DataType.FLOAT_MAT4X2,
-            deqpUtils.DataType.FLOAT_MAT4X3,
-            deqpUtils.DataType.FLOAT_MAT4,
+            gluShaderUtil.DataType.FLOAT,
+            gluShaderUtil.DataType.FLOAT_VEC2,
+            gluShaderUtil.DataType.FLOAT_VEC3,
+            gluShaderUtil.DataType.FLOAT_VEC4,
+            gluShaderUtil.DataType.FLOAT_MAT2,
+            gluShaderUtil.DataType.FLOAT_MAT2X3,
+            gluShaderUtil.DataType.FLOAT_MAT2X4,
+            gluShaderUtil.DataType.FLOAT_MAT3X2,
+            gluShaderUtil.DataType.FLOAT_MAT3,
+            gluShaderUtil.DataType.FLOAT_MAT3X4,
+            gluShaderUtil.DataType.FLOAT_MAT4X2,
+            gluShaderUtil.DataType.FLOAT_MAT4X3,
+            gluShaderUtil.DataType.FLOAT_MAT4,
 
-            deqpUtils.DataType.INT,
-            deqpUtils.DataType.INT_VEC2,
-            deqpUtils.DataType.INT_VEC3,
-            deqpUtils.DataType.INT_VEC4,
+            gluShaderUtil.DataType.INT,
+            gluShaderUtil.DataType.INT_VEC2,
+            gluShaderUtil.DataType.INT_VEC3,
+            gluShaderUtil.DataType.INT_VEC4,
 
-            deqpUtils.DataType.UINT,
-            deqpUtils.DataType.UINT_VEC2,
-            deqpUtils.DataType.UINT_VEC3,
-            deqpUtils.DataType.UINT_VEC4
+            gluShaderUtil.DataType.UINT,
+            gluShaderUtil.DataType.UINT_VEC2,
+            gluShaderUtil.DataType.UINT_VEC3,
+            gluShaderUtil.DataType.UINT_VEC4
         ];
 
         /** @type {number} */ var typeTestNumInstances = 4;
 
-        /** @type {TestCaseGroup} */ var typesGroup = new deqpTests.newTest('types', 'Tests for instanced attributes of particular data types');
+        /** @type {TestCaseGroup} */ var typesGroup = new tcuTestCase.newTest('types', 'Tests for instanced attributes of particular data types');
 
         testGroup.addChild(typesGroup);
 
@@ -701,7 +701,7 @@ define([
         {
             /** @type {glu::DataType} */ var type = s_testTypes[typeNdx];
 
-            typesGroup.addChild(new InstancedRenderingCase(deqpUtils.getDataTypeName(type), '',
+            typesGroup.addChild(new InstancedRenderingCase(gluShaderUtil.getDataTypeName(type), '',
                                                             DrawFunction.FUNCTION_DRAW_ARRAYS_INSTANCED,
                                                             InstancingType.TYPE_ATTRIB_DIVISOR,
                                                             type,
@@ -715,10 +715,10 @@ define([
         //Set up Test Root parameters
         var testName = 'instanced_rendering';
         var testDescription = 'Instanced Rendering Tests';
-        var state = deqpTests.runner.getState();
+        var state = tcuTestCase.runner.getState();
 
         state.testName = testName;
-        state.testCases = deqpTests.newTest(testName, testDescription, null);
+        state.testCases = tcuTestCase.newTest(testName, testDescription, null);
 
         //Set up name and description of this test series.
         setCurrentTestName(testName);
@@ -728,11 +728,11 @@ define([
             //Create test cases
             init();
             //Run test cases
-            deqpTests.runTestCases();
+            tcuTestCase.runTestCases();
         }
         catch (err) {
             testFailedOptions('Failed to run tests', false);
-            deqpTests.runner.terminate();
+            tcuTestCase.runner.terminate();
         }
     };
 

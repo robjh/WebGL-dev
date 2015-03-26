@@ -136,7 +136,8 @@ var getTextureChannelClass = function(channelType) {
 
 };
 
-/** getSubregion
+/**
+ * getSubregion
  * @param {tcuTexture.PixelBufferAccess} access
  * @param {number} x
  * @param {number} y
@@ -151,16 +152,20 @@ var getSubregion = function(access, x, y, z, width, height, depth) {
     DE_ASSERT(deMath.deInBounds32(x, 0, access.getWidth()) && deMath.deInRange32(x + width, x, access.getWidth()));
     DE_ASSERT(deMath.deInBounds32(y, 0, access.getHeight()) && deMath.deInRange32(y + height, y, access.getHeight()));
     DE_ASSERT(deMath.deInBounds32(z, 0, access.getDepth()) && deMath.deInRange32(z + depth, z, access.getDepth()));
-    return new tcuTexture.PixelBufferAccess({
+    var constPixelBufferAccess =  new tcuTexture.ConstPixelBufferAccess({
         format: access.getFormat(),
         width: width,
         height: height,
         depth: depth,
         rowPitch: access.getRowPitch(),
         slicePitch: access.getSlicePitch(),
-     // TODO: change data, implement offset in tcuTexture.ConstPixelBufferAccess
+     // TODO: unfinished, access.getDataPtr(), implement offset in tcuTexture.ConstPixelBufferAccess
         data: access.getDataPtr() + access.getFormat().getPixelSize() * x + access.getRowPitch() * y + access.getSlicePitch() * z
         });
+
+    // TODO: unfinished Error
+    if(constPixelBufferAccess.data != 'undefined' && constPixelBufferAccess.data != null) return constPixelBufferAccess;
+    else throw new Error('Error creating data in constPixelBufferAccess, check getDataPtr()');
 
 };
 

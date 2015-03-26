@@ -1200,11 +1200,25 @@ PixelBufferAccess.prototype.setPixel = function(color, x, y, z) {
     }
 };
 
+/**
+ * newFromTextureLevel
+ * @param {TextureLevel} level
+ */
+PixelBufferAccess.newFromTextureLevel = function (level) {
+    var descriptor = new Object();
+    descriptor.format = level.getFormat();
+    descriptor.width = level.getWidth();
+    descriptor.height = level.getHeight();
+    descriptor.depth = level.m_depth;
+    descriptor.data = level.m_data;
+
+    return new PixelBufferAccess(descriptor);
+};
+
 /* TODO: Port */
 // {
 // public:
 //                             PixelBufferAccess            (void) {}
-//                             PixelBufferAccess            (TextureLevel& level);
 //                             PixelBufferAccess            (const TextureFormat& format, int width, int height, int depth, void* data);
 //                             PixelBufferAccess            (const TextureFormat& format, int width, int height, int depth, int rowPitch, int slicePitch, void* data);
 
@@ -1921,7 +1935,7 @@ TextureLevel.prototype.setSize = function(width, height, depth)
     this.m_height = height;
     this.m_depth = depth;
 
-    this.m_data.setStorage(this.m_width * this.m_height * this.m_depth * this.pixelSize);
+    this.m_data.setStorage(this.m_width * this.m_height * this.m_depth * pixelSize);
 };
 
 TextureLevel.prototype.getAccess = function() {

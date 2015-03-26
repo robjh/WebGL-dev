@@ -18,8 +18,8 @@
  *
  */
 
-define(
-    ['framework/delibs/debase/deMath',
+define([
+    'framework/delibs/debase/deMath',
     'framework/delibs/debase/deRandom',
     'framework/common/tcuTexture',
     'framework/common/tcuTextureUtil'],
@@ -27,7 +27,7 @@ define(
         deMath,
         deRandom,
         tcuTexture,
-        tcuTUtil
+        tcuTextureUtil
     ) {
     'use strict';
 
@@ -118,7 +118,9 @@ define(
      * @return {deMath.deUint32}
      */
     var readUnorm8 = function (src, x, y, NumChannels) {
-        /** @type {TypedArray} */ var ptr = src.getDataPtr().subarray(src.getRowPitch() * y + x * NumChannels, NumChannels);
+        var start = src.getRowPitch() * y + x * NumChannels;
+        var end = start + NumChannels;
+        /** @type {TypedArray} */ var ptr = src.getDataPtr().subarray(start, end);
 
         /** @type {Uint32Array} */ var v = new Uint32Array(ptr); //Small buffer copy
 
@@ -133,7 +135,9 @@ define(
      * @param {number} NumChannels
      */
     var writeUnorm8 = function (dst, x, y, val, NumChannels) {
-        /** @type {TypedArray} */ var ptr = dst.getDataPtr().subarray(dst.getRowPitch() * y + x * NumChannels, NumChannels);
+        var start = dst.getRowPitch() * y + x * NumChannels;
+        var end = start + NumChannels;
+        /** @type {TypedArray} */ var ptr = dst.getDataPtr().subarray(start, NumChannels);
         var buffer = new ArrayBuffer(4);
         /** @type {Uint32Array} */ var v = new Uint32Array(buffer);
         v[0] = val;
@@ -142,16 +146,19 @@ define(
         switch (ptr.BYTES_PER_ELEMENT) {
             case 1:
                 sizedSource = new Uint8Array(buffer);
+                break;
             case 2:
                 sizedSource = new Uint16Array(buffer);
+                break;
             case 4:
                 sizedSource = new Uint32Array(buffer);
+                break;
             default:
                 throw new Error('Unexpected array size');
         }
 
         //1 on 1 copy
-        for(var c = 0; c < ptr.length; ptr++) {
+        for(var c = 0; c < ptr.length; c++) {
             ptr[c] = sizedSource[c];
         }
     };
@@ -241,12 +248,11 @@ define(
         for (var j = 0; j < src.getHeight(); j++) {
             for (var i = 0; i < src.getWidth(); i++) {
                 /** @type {Array.<number>} */ var sum = new Array(4);
-
+                sum[0] = sum[1] = sum[2] = sum[3] = 0;
                 for (var kx = 0; kx < kw; kx++) {
                     /** @type {number} */ var f = kernelX[kw - kx - 1];
                     /** @type {deMath.deUint32} */ var p = readUnorm8(src, deMath.clamp(i + kx - shiftX, 0, src.getWidth()-1), j, SrcChannels);
-
-                    sum = deMath.add(sum, deMath.multiply(toFloatVec(p), f));
+                    sum = deMath.add(sum, deMath.multiply(toFloatVec(p), toFloatVec(f)));
                 }
 
                 writeUnorm8(tmpAccess, j, i, toColor(sum), DstChannels);
@@ -257,12 +263,11 @@ define(
         for (var j = 0; j < src.getHeight(); j++) {
             for (var i = 0; i < src.getWidth(); i++) {
                 /** @type {Array.<number>} */ var sum = new Array(4);
-
+                sum[0] = sum[1] = sum[2] = sum[3] = 0;
                 for (var ky = 0; ky < kh; ky++) {
                     /** @type {number} */ var f = kernelY[kh - ky - 1];
                     /** @type {deMath.deUint32} */ var p = readUnorm8(tmpAccess, deMath.clamp(j + ky - shiftY, 0, tmp.getWidth()-1), i, DstChannels);
-
-                    sum = deMath.add(sum, deMath.multiply(toFloatVec(p), f));
+                    sum = deMath.add(sum, deMath.multiply(toFloatVec(p), toFloatVec(f)));
                 }
 
                 writeUnorm8(dst, i, j, toColor(sum), DstChannels);
@@ -372,15 +377,15 @@ define(
         /** @type {number} */ var shift = Math.floor((kernel.length - 1) / 2);
 
         switch (ref.getFormat().order) {
-            case tcuTexture.ChannelOrder.RGBA: separableConvolve(refFiltered, ref, shift, shift, kernel, kernel, 4, 4); break;
-            case tcuTexture.ChannelOrder.RGB: separableConvolve(refFiltered, ref, shift, shift, kernel, kernel, 4, 3); break;
+            case tcuTexture.ChannelOrder.RGBA: separableConvolve(PixelBufferAccess.newFromTextureLevel(refFiltered), ref, shift, shift, kernel, kernel, 4, 4); break;
+            case tcuTexture.ChannelOrder.RGB: separableConvolve(PixelBufferAccess.newFromTextureLevel(refFiltered), ref, shift, shift, kernel, kernel, 4, 3); break;
             default:
                 throw new Error('fuzzyCompare - Invalid ChannelOrder');
         }
 
         switch (cmp.getFormat().order) {
-            case tcuTexture.ChannelOrder.RGBA: separableConvolve(cmpFiltered, cmp, shift, shift, kernel, kernel, 4, 4); break;
-            case tcuTexture.ChannelOrder.RGB: separableConvolve(cmpFiltered, cmp, shift, shift, kernel, kernel, 4, 3); break;
+            case tcuTexture.ChannelOrder.RGBA: separableConvolve(PixelBufferAccess.newFromTextureLevel(cmpFiltered), cmp, shift, shift, kernel, kernel, 4, 4); break;
+            case tcuTexture.ChannelOrder.RGB: separableConvolve(PixelBufferAccess.newFromTextureLevel(cmpFiltered), cmp, shift, shift, kernel, kernel, 4, 3); break;
             default:
                 throw new Error('fuzzyCompare - Invalid ChannelOrder');
         }
@@ -389,7 +394,7 @@ define(
         /** @type {number} */ var errSum      = 0.0;
 
         // Clear error mask to green.
-        tcuTUtil.clear(errorMask, [0.0, 1.0, 0.0, 1.0]);
+        tcuTextureUtil.clear(errorMask, [0.0, 1.0, 0.0, 1.0]);
 
         /** @type {ConstPixelBufferAccess} */ var refAccess = refFiltered.getAccess();
         /** @type {ConstPixelBufferAccess} */ var cmpAccess = cmpFiltered.getAccess();
@@ -417,5 +422,10 @@ define(
 
         return errSum;
     };
+
+return {
+    FuzzyCompareParams: FuzzyCompareParams,
+    fuzzyCompare: fuzzyCompare
+}
 
 });
