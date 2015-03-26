@@ -137,7 +137,8 @@ define([
     var writeUnorm8 = function (dst, x, y, val, NumChannels) {
         var start = dst.getRowPitch() * y + x * NumChannels;
         var end = start + NumChannels;
-        /** @type {TypedArray} */ var ptr = dst.getDataPtr().subarray(start, NumChannels);
+         /** @type {TypedArray} */ var ptr = dst.getDataPtr().subarray(start, end);
+
         var buffer = new ArrayBuffer(4);
         /** @type {Uint32Array} */ var v = new Uint32Array(buffer);
         v[0] = val;
@@ -192,9 +193,9 @@ define([
         /** @type {number}*/ var w = src.getWidth();
         /** @type {number}*/ var h = src.getHeight();
 
-        /** @type {number}*/ var x0 = deMath.deFloorFloatToInt32(u - 0.5);
+        /** @type {number}*/ var x0 = Math.floor(u - 0.5);
         /** @type {number}*/ var x1 = x0 + 1;
-        /** @type {number}*/ var y0 = deMath.deFloorFloatToInt32(v - 0.5);
+        /** @type {number}*/ var y0 = Math.floor(v - 0.5);
         /** @type {number}*/ var y1 = y0 + 1;
 
         /** @type {number}*/ var i0 = deMath.clamp(x0, 0, w - 1);
@@ -202,8 +203,8 @@ define([
         /** @type {number}*/ var j0 = deMath.clamp(y0, 0, h - 1);
         /** @type {number}*/ var j1 = deMath.clamp(y1, 0, h - 1);
 
-        /** @type {number}*/ var a = deMath.deFloatFrac(u - 0.5);
-        /** @type {number}*/ var b = deMath.deFloatFrac(v - 0.5);
+        /** @type {number}*/ var a = (u - 0.5) - Math.floor(u - 0.5);;
+        /** @type {number}*/ var b = (u - 0.5) - Math.floor(u - 0.5);;
 
         /** @type {deMath.deUint32} */ var p00 = readUnorm8(src, i0, j0, NumChannels);
         /** @type {deMath.deUint32} */ var p10 = readUnorm8(src, i1, j0, NumChannels);
@@ -359,7 +360,8 @@ define([
     var fuzzyCompare = function (params, ref, cmp, errorMask) {
         DE_ASSERT(ref.getWidth() == cmp.getWidth() && ref.getHeight() == cmp.getHeight());
         DE_ASSERT(errorMask.getWidth() == ref.getWidth() && errorMask.getHeight() == ref.getHeight());
-
+        // TODO: this is a work around to debug/test (errorMask_)
+        var errorMask_ = tcuTexture.PixelBufferAccess.newFromTextureLevel(errorMask);
         if (!isFormatSupported(ref.getFormat()) || !isFormatSupported(cmp.getFormat()))
             throw new Error("Unsupported format in fuzzy comparison");
 
@@ -377,15 +379,15 @@ define([
         /** @type {number} */ var shift = Math.floor((kernel.length - 1) / 2);
 
         switch (ref.getFormat().order) {
-            case tcuTexture.ChannelOrder.RGBA: separableConvolve(PixelBufferAccess.newFromTextureLevel(refFiltered), ref, shift, shift, kernel, kernel, 4, 4); break;
-            case tcuTexture.ChannelOrder.RGB: separableConvolve(PixelBufferAccess.newFromTextureLevel(refFiltered), ref, shift, shift, kernel, kernel, 4, 3); break;
+            case tcuTexture.ChannelOrder.RGBA: separableConvolve(tcuTexture.PixelBufferAccess.newFromTextureLevel(refFiltered), ref, shift, shift, kernel, kernel, 4, 4); break;
+            case tcuTexture.ChannelOrder.RGB: separableConvolve(tcuTexture.PixelBufferAccess.newFromTextureLevel(refFiltered), ref, shift, shift, kernel, kernel, 4, 3); break;
             default:
                 throw new Error('fuzzyCompare - Invalid ChannelOrder');
         }
 
         switch (cmp.getFormat().order) {
-            case tcuTexture.ChannelOrder.RGBA: separableConvolve(PixelBufferAccess.newFromTextureLevel(cmpFiltered), cmp, shift, shift, kernel, kernel, 4, 4); break;
-            case tcuTexture.ChannelOrder.RGB: separableConvolve(PixelBufferAccess.newFromTextureLevel(cmpFiltered), cmp, shift, shift, kernel, kernel, 4, 3); break;
+            case tcuTexture.ChannelOrder.RGBA: separableConvolve(tcuTexture.PixelBufferAccess.newFromTextureLevel(cmpFiltered), cmp, shift, shift, kernel, kernel, 4, 4); break;
+            case tcuTexture.ChannelOrder.RGB: separableConvolve(tcuTexture.PixelBufferAccess.newFromTextureLevel(cmpFiltered), cmp, shift, shift, kernel, kernel, 4, 3); break;
             default:
                 throw new Error('fuzzyCompare - Invalid ChannelOrder');
         }
@@ -413,7 +415,8 @@ define([
                 /** @type {number} */ var red = err * 500.0;
                 /** @type {number} */ var luma = toGrayscale(cmp.getPixel(x, y));
                 /** @type {number} */ var rF = 0.7 + 0.3 * luma;
-                errorMask.setPixel([red * rF, (1.0 - red) * rF, 0.0, 1.0], x, y);
+                errorMask_.setPixel([red * rF, (1.0 - red) * rF, 0.0, 1.0], x, y);
+
             }
         }
 
