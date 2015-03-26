@@ -57,10 +57,19 @@ define([], function() {
         
         this._construct = (function(argv) {
             this.type = argv.type || 'config';
+            this.target = argv.target || Config.s_target.NONE;
         });
         
         if (!argv.dont_construct) this._construct(argv);
     });
+    Config.s_target = {
+        NONE:             0,
+        RENDERBUFFER:     1,
+        TEXTURE_2D:       2,
+        TEXTURE_CUBE_MAP: 3,
+        TEXTURE_3D:       4,
+        TEXTURE_2D_ARRAY: 5
+    };
     
     var Image = (function(argv) {
         argv = argv || {};
@@ -90,7 +99,8 @@ define([], function() {
         };
         
         this._construct = (function(argv) {
-            argv.type = argv.type || 'renderbuffer';
+            argv.type = argv.type   || 'renderbuffer';
+            argv.type = argv.target || Config.s_target.RENDERBUFFER;
             parent._construct(argv);
             this.numSamples = 0;
         });
@@ -135,49 +145,68 @@ define([], function() {
     
 //    var glTarget = (function() {});
     
-    var glsup = {
+    var glsup = (function() {
+    
     //  initFlat: (function() {}),
     //  initLayered: (function() {}),
     //  init: (function() {}),
-    //  target: (function() {}),
-        remove: (function(cfg, img, gl_ctx) { // delete
-            gl_ctx = gl_ctx || gl;
-        }),
-    };
     
-    glsup.create = (function(cfg, gl_ctx) {
-        gl_ctx = gl_ctx || gl;
-        
-        if (cfg.type == 'renderbuffer') {
-            var ret = gl_ctx.createRenderBuffer();
-            gl_ctx.bindRenderBuffer(gl.RENDERBUFFER, ret);
+        var glCreate = (function(cfg, gl_ctx) {
+            gl_ctx = gl_ctx || gl;
             
-            if (cfg.numSamples == 0) {
-                gl_ctx.renderBufferStorage(
+            if (cfg.type == 'renderbuffer') {
+                var ret = gl_ctx.createRenderBuffer();
+                gl_ctx.bindRenderBuffer(gl.RENDERBUFFER, ret);
+                
+                if (cfg.numSamples == 0) {
+                    gl_ctx.renderBufferStorage(
+                        gl_ctx.RENDERBUFFER,
+                        cfg.internalFormat.format,
+                        cfg.width, cfg.height
+                    );
+                } else {
+                    gl_ctx.renderbufferStorageMultisample(
                     gl_ctx.RENDERBUFFER,
-                    cfg.internalFormat.format,
-                    cfg.width, cfg.height
-                );
-            } else {
-                gl_ctx.renderbufferStorageMultisample(
-                gl_ctx.RENDERBUFFER,
-                    cfg.numSamples,
-                    cfg.internalFormat.format,
-                    cfg.width, cfg.height
-                );
-            }
-            gl_ctx.bindRenderbuffer(gl_ctx.RENDERBUFFER, 0);
+                        cfg.numSamples,
+                        cfg.internalFormat.format,
+                        cfg.width, cfg.height
+                    );
+                }
+                gl_ctx.bindRenderbuffer(gl_ctx.RENDERBUFFER, 0);
+                
+            } else if (cfg.type == 'texture') {
+                var ret = gl_ctx.createTexture();
+                gl_ctx.bindTexture(glTarget(cfg, gl_ctx), ret);
+                glInit(tex, gl_ctx);
+                gl_ctx.bindTexture(glTarget(cfg, gl_ctx), 0);
             
-        } else if (cfg.type == 'texture') {
-            var ret = gl_ctx.createTexture();
-            gl_ctx.bindTexture(glsup.Target(cfg), ret);
-            glsup.Init(tex, gl_ctx);
-            gl_ctx.bindTexture(glsup.Target(cfg), 0);
-        
-        } else {
-            throw new Error('Impossible image type');
-        }
-    });
+            } else {
+                throw new Error('Impossible image type');
+            }
+        });
+    
+        var glTarget = (function(cfg, gl_ctx) {
+            gl_ctx = gl_ctx || gl;
+            switch(cfg.target) {
+                case Config.s_target.RENDERBUFFER:     return gl_ctx.RENDERBUFFER;
+                case Config.s_target.TEXTURE_2D:       return gl_ctx.TEXTURE_2D;
+                case Config.s_target.TEXTURE_CUBE_MAP: return gl_ctx.TEXTURE_CUBE_MAP;
+                case Config.s_target.TEXTURE_3D:       return gl_ctx.TEXTURE_3D;
+                case Config.s_target.TEXTURE_2D_ARRAY: return gl_ctx.TEXTURE_2D_ARRAY;
+                default: throw new Error('Impossible image type.');
+            }
+            return gl_ctx.NONE;
+        });
+    
+        return {
+            create: glCreate,
+            remove: glDelete,
+            target: glTarget,
+        };
+    
+    })();
+    
+
     
     
     var formatkey = (function(format, type) {
