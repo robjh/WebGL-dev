@@ -800,6 +800,17 @@ var newFloat16 = function(value) {
 };
 
 /**
+ * Builds a 16 bit deFloat with no denorm support
+ * @param {number} value (64-bit JS float)
+ * @return {deFloat}
+ */
+var newFloat16NoDenorm = function(value) {
+    /**@type {deFloat} */ var other32 = new deFloat().deFloatNumber(value);
+    /**@type {FloatDescription} */ var description16 = new FloatDescription(5, 10, 15, FloatFlags.FLOAT_HAS_SIGN);
+    return description16.convert(other32);
+};
+
+/**
  * Builds a 32 bit deFloat
  * @param {number} value (64-bit JS float)
  * @return {deFloat}
@@ -832,8 +843,18 @@ var numberToHalfFloat = function(value) {
     return newFloat16(value).bits();
 };
 
+var numberToHalfFloatNoDenorm = function(value) {
+    return newFloat16NoDenorm(value).bits();
+};
+
 var halfFloatToNumber = function(half) {
     var description16 = new FloatDescription(5, 10, 15, FloatFlags.FLOAT_HAS_SIGN | FloatFlags.FLOAT_SUPPORT_DENORM);
+    var x = newDeFloatFromParameters(half, description16);
+    return x.getValue();
+};
+
+var halfFloatToNumberNoDenorm = function(half) {
+    var description16 = new FloatDescription(5, 10, 15, FloatFlags.FLOAT_HAS_SIGN);
     var x = newDeFloatFromParameters(half, description16);
     return x.getValue();
 };
@@ -844,7 +865,9 @@ return {
     numberToFloat10: numberToFloat10,
     float10ToNumber: float10ToNumber,
     numberToHalfFloat: numberToHalfFloat,
-    halfFloatToNumber: halfFloatToNumber
+    numberToHalfFloatNoDenorm: numberToHalfFloatNoDenorm,
+    halfFloatToNumber: halfFloatToNumber,
+    halfFloatToNumberNoDenorm: halfFloatToNumberNoDenorm,
 };
 
 });

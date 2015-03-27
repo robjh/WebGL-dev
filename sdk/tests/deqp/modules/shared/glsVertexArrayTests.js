@@ -436,6 +436,28 @@ function (
      */
     deArray.prototype.setAttribNdx = function (attribNdx) {};
 
+    /**
+     * @param {Uint8Array} dst
+     * @param {GLValue} val
+     */
+    var copyGLValueToArray = function (dst, val)
+    {
+        /** @type {Uint8Array} */ var val8 = Uint8Array(val.m_value.buffer); // TODO: Fix encapsulation issue
+        for (var ndx = 0; ndx < val8.length; ndx++)
+            dst[ndx] = val[ndx];
+    };
+
+    /**
+     * @param {Uint8Array} dst
+     * @param {TypedArray} src
+     */
+    var copyArray = function (dst, src)
+    {
+        /** @type {Uint8Array} */ var src8 = Uint8Array(src.m_value.buffer).subarray(src.offset, src.offset + src.byteLength); // TODO: Fix encapsulation issue
+        for (var ndx = 0; ndx < src8.length; ndx++)
+            dst[ndx] = src8[ndx];
+    };
+
     //ContextArray class, implements deArray interface
 
     /**
@@ -809,7 +831,7 @@ function (
         /** @type {Array.<ContextArray>} */ this.m_arrays = [];
         /** @type {ShaderProgram} */ this.m_program = DE_NULL;
         /** @type {tcuSurface.Surface} */ this.m_screen = new tcuSurface.Surface(
-            Math.min(512, renderCtx.getRenderTarget().getWidth()), 
+            Math.min(512, renderCtx.getRenderTarget().getWidth()),
             Math.min(512, renderCtx.getRenderTarget().getHeight())
         );
     };
@@ -824,8 +846,7 @@ function (
     /**
      * @param {deArray.Storage} storage
      */
-    ContextArrayPack.newArray = functional(storage)
-    {
+    ContextArrayPack.newArray = function (storage) {
         this.m_arrays.push(new ContextArray(storage, this.m_ctx));
     };
 
@@ -833,8 +854,7 @@ function (
      * @param {number} i
      * @return {ContextArray}
      */
-    ContextArrayPack.prototype.getArray = function (i)
-    {
+    ContextArrayPack.prototype.getArray = function (i) {
         return this.m_arrays[i];
     };
 
@@ -866,7 +886,7 @@ function (
         program = this.m_ctx.createProgram(this.m_program);
 
         this.m_ctx.useProgram(program);
-        GLU_EXPECT_NO_ERROR(this.m_ctx.getError(), "glUseProgram()");
+        GLU_EXPECT_NO_ERROR(this.m_ctx.getError(), "gl.useProgram()");
 
         this.m_ctx.uniform1f(this.m_ctx.getUniformLocation(program, "u_coordScale"), coordScale);
         this.m_ctx.uniform1f(this.m_ctx.getUniformLocation(program, "u_colorScale"), colorScale);
@@ -938,31 +958,44 @@ function (
         switch (type) {
             case deArray.InputType.FLOAT:
                 array = new Float32Array(1);
+                break;
             case deArray.InputType.FIXED:
                 array = new Int32Array(1);
+                break;
             case deArray.InputType.DOUBLE:
-                array = new Float32Array(1);
+                array = new Float32Array(1); // 64-bit?
+                break;
 
             case deArray.InputType.BYTE:
                 array = new Int8Array(1);
+                break;
             case deArray.InputType.SHORT:
                 array = new Int16Array(1);
+                break;
 
             case deArray.InputType.UNSIGNED_BYTE:
                 array = new Uint8Array(1);
+                break;
             case deArray.InputType.UNSIGNED_SHORT:
                 array = new Uint16Array(1);
+                break;
 
             case deArray.InputType.INT:
                 array = new Int32Array(1);
+                break;
             case deArray.InputType.UNSIGNED_INT:
                 array = new Uint32Array(1);
+                break;
             case deArray.InputType.HALF:
                 array = new Uint16Array(1);
+                value = GLValue.floatToHalf(value);
+                break;
             case deArray.InputType.UNSIGNED_INT_2_10_10_10:
                 array = new Uint32Array(1);
+                break;
             case deArray.InputType.INT_2_10_10_10:
                 array = new Int32Array(1);
+                break;
             default:
                 throw new Error('GLValue.typeToTypedArray - Invalid InputType');
         }
@@ -989,11 +1022,18 @@ function (
      * @return {number}
      */
     GLValue.halfToFloat = function (value) {
-        //TODO: Give sign support
-        return tcuFloat.halfFloatToNumber(value);
+        return tcuFloat.halfFloatToNumberNoDenorm(value);
     };
 
-    //TODO: floatToHalf
+    /**
+     * @param {number} f
+     * @return {number}
+     */
+    GLValue.floatToHalf = function (f)
+    {
+        // No denorm support.
+        return tcuFloat.numberToHalfFloatNoDenorm(f);
+    }
 
     /**
      * GLValue.getMaxValue
@@ -1070,6 +1110,118 @@ function (
     };
 
     /**
+     * GLValue.getRandom
+     * @param {deRandom.Random} rnd
+     * @param {GLValue} min
+     * @param {GLValue} max
+     * @return {GLValue}
+     */
+    GLValue.getRandom = function (rnd, min, max) {
+        DE_ASSERT(min.getType() == max.getType());
+
+        var minv = min.interpret();
+        var maxv = max.interpret();
+        var type = min.getType();
+        var value;
+
+        if (maxv < minv)
+            return min;
+
+        switch (type) {
+            case deArray.InputType.FLOAT:
+            case deArray.InputType.DOUBLE:
+            case deArray.InputType.HALF: {
+                return GLValue.create(minv + rnd.getFloat() * (maxv - minv), type));
+                break;
+            }
+
+            case deArray.InputType.FIXED: {
+                return minv == maxv ? min : GLValue.create(minv + rnd.getInt() % (maxv - minv), type);
+                break;
+            }
+
+            case deArray.InputType.SHORT:
+            case deArray.InputType.UNSIGNED_SHORT:
+            case deArray.InputType.BYTE:
+            case deArray.InputType.UNSIGNED_BYTE:
+            case deArray.InputType.INT:
+            case deArray.InputType.UNSIGNED_INT: {
+                return GLValue.create(minv + rnd.getInt() % (maxv - minv), type);
+                break;
+            }
+
+            default:
+                throw new Error('GLValue.getRandom - Invalid input type');
+                break;
+        }
+    };
+
+    // Minimum difference required between coordinates
+
+    /**
+     * @param {deArray.InputType} type
+     * @return {GLValue}
+     */
+    GLValue.minValue = function (type) {
+        switch (type) {
+            case deArray.InputType.FLOAT:
+            case deArray.InputType.BYTE:
+            case deArray.InputType.HALF:
+            case deArray.InputType.DOUBLE:
+                return GLValue.create(4, type);
+            case deArray.InputType.SHORT:
+            case deArray.InputType.UNSIGNED_SHORT:
+                return GLValue.create(4 * 256, type);
+            case deArray.InputType.UNSIGNED_BYTE:
+                return GLValue.create(4 * 2, type);
+            case deArray.InputType.FIXED:
+                return GLValue.create(4 * 512, type);
+            case deArray.InputType.INT:
+            case deArray.InputType.UNSIGNED_INT:
+                return GLValue.create(4 * 16777216, type);
+
+            default:
+                throw new Error('GLValue.minValue - Invalid input type');
+        }
+    };
+
+    /**
+     * @param {GLValue} val
+     * @return {GLValue}
+     */
+    GLValue.abs = function (val)
+    {
+        var type = val.getType();
+        switch(type) {
+            case deArray.InputType.FIXED:
+            case deArray.InputType.SHORT:
+                return GLValue.create(0x7F & val.getValue(), type);
+                return GLValue.create(0x7FFF & val.getValue(), type);
+            case deArray.InputType.BYTE:
+                return GLValue.create(0x7F & val.getValue(), type);
+            case deArray.InputType.UNSIGNED_BYTE:
+            case deArray.InputType.UNSIGNED_SHORT:
+            case deArray.InputType.UNSIGNED_INT:
+                return val;
+            case deArray.InputType.FLOAT:
+            case deArray.InputType.HALF:
+            case deArray.InputType.DOUBLE:
+                return GLValue.create(Math.abs(val.interpret(), type);
+            case deArray.InputType.INT:
+                return GLValue.create(0x7FFFFFFF & val.getValue(), type);
+            default:
+                throw new Error('GLValue.abs - Invalid input type');
+        }
+    };
+
+    /**
+     * @return {deArray.InputType}
+     */
+    GLValue.prototype.getType = function () {
+        return this.m_type;
+    };
+
+    /**
      * GLValue.toFloat
      * @return {number}
      */
@@ -1095,7 +1247,7 @@ function (
             return GLValue.halfToFloat(this.m_value[0]);
         else if (this.m_type == deArray.InputType.FIXED) {
             var maxValue = 65536;
-            return ((2 * this.m_value[0] + 1) / (maxValue - 1));
+            return Math.floor((2 * this.m_value[0] + 1) / (maxValue - 1));
         }
 
         return this.m_value[0];
@@ -1207,6 +1359,360 @@ function (
      */
     GLValue.prototype.greaterOrEqualThan = function (other) {
         return this.interpret() >= other.interpret();
+    };
+
+    /**
+     * RandomArrayGenerator class. Contains static methods only
+     */
+    var RandomArrayGenerator;
+
+    /**
+     * RandomArrayGenerator.setData
+     * @param {Uint8Array} data
+     * @param {deArray.InputType} type
+     * @param {deRandom.Random} rnd
+     * @param {GLValue} min
+     * @param {GLValue} max
+     */
+    RandomArrayGenerator.setData = function (data, type, rnd, min, max) {
+        // Parameter type is not necessary, but we'll use it to assert the created GLValue is of the correct type.
+        /** @type {GLValue} */ var value = GLValue.getRandom(rnd, min, max);
+        DE_ASSERT(value.getType() == type);
+
+        copyGLValueToArray(data, value);
+    };
+
+    /**
+     * generateArray
+     * @param {number} seed
+     * @param {GLValue} min
+     * @param {GLValue} max
+     * @param {number} count
+     * @param {number} componentCount
+     * @param {number} stride
+     * @param {deArray.InputType} type
+     * @return {ArrayBuffer}
+     */
+    RandomArrayGenerator.generateArray = function (seed, min, max, count, componentCount, stride, type) {
+        /** @type {ArrayBuffer} */ var data;
+        /** @type {Uint8Array} */ var data8;
+
+        var rnd = new deRandom.Random(seed);
+
+        if (stride == 0)
+            stride = componentCount * deArray.inputTypeSize(type);
+
+        data = new ArrayBuffer(stride * count);
+        data8 = new Uint8Array(data);
+
+        for (var vertexNdx = 0; vertexNdx < count; vertexNdx++) {
+            for (var componentNdx = 0; componentNdx < componentCount; componentNdx++) {
+                RandomArrayGenerator.setData(data8.subarray(vertexNdx * stride + deArray.inputTypeSize(type) * componentNdx), type, rnd, min, max);
+            }
+        }
+
+        return data;
+    };
+
+
+    /*{
+        static char*    generateQuads           (int seed, int count, int componentCount, int offset, int stride, Array::Primitive primitive, Array::InputType type, GLValue min, GLValue max);
+        static char*    generatePerQuad         (int seed, int count, int componentCount, int stride, Array::Primitive primitive, Array::InputType type, GLValue min, GLValue max);
+
+    private:
+        template<typename T>
+        static char*    createQuads     (int seed, int count, int componentCount, int offset, int stride, Array::Primitive primitive, T min, T max);
+        template<typename T>
+        static char*    createPerQuads  (int seed, int count, int componentCount, int stride, Array::Primitive primitive, T min, T max);
+        static char*    createQuadsPacked (int seed, int count, int componentCount, int offset, int stride, Array::Primitive primitive);
+    };*/
+
+    /**
+     * @param {number} seed
+     * @param {number} count
+     * @param {number} componentCount
+     * @param {number} offset
+     * @param {number} stride
+     * @param {deArray.Primitive} primitive
+     * @param {deArray.InputType} type
+     * @param {GLValue} min
+     * @param {GLValue} max
+     * @return {ArrayBuffer}
+     */
+    RandomArrayGenerator.generateQuads = function (seed, count, componentCount, offset, stride, primitive, type, min, max) {
+        /** @type {ArrayBuffer} */ var data;
+
+        switch (type) {
+            case deArray.InputType.FLOAT:
+            case deArray.InputType.FIXED:
+            case deArray.InputType.DOUBLE:
+            case deArray.InputType.BYTE:
+            case deArray.InputType.SHORT:
+            case deArray.InputType.UNSIGNED_BYTE:
+            case deArray.InputType.UNSIGNED_SHORT:
+            case deArray.InputType.UNSIGNED_INT:
+            case deArray.InputType.INT:
+            case deArray.InputType.HALF:
+                data = createQuads(seed, count, componentCount, offset, stride, primitive, min, max);
+                break;
+
+            case deArray.InputType.INT_2_10_10_10:
+            case deArray.InputType.UNSIGNED_INT_2_10_10_10:
+                data = createQuadsPacked(seed, count, componentCount, offset, stride, primitive);
+                break;
+
+            default:
+                throw new Error('RandomArrayGenerator.generateQuads - Invalid input type');
+                break;
+        }
+
+        return data;
+    };
+
+    /**
+     * @param {number} seed
+     * @param {number} count
+     * @param {number} componentCount
+     * @param {number} offset
+     * @param {number} stride
+     * @param {deArray.Primitive} primitive
+     * @return {ArrayBuffer}
+     */
+    RandomArrayGenerator.createQuadsPacked = function (seed, count, componentCount, offset, stride, primitive) {
+        DE_ASSERT(componentCount == 4);
+        DE_UNREF(componentCount);
+        /** @type {number} */ var quadStride = 0;
+
+        if (stride == 0)
+            stride = deMath.deUint32_size;
+
+        switch (primitive) {
+            case deArray.Primitive.TRIANGLES:
+                quadStride = stride * 6;
+                break;
+
+            default:
+                throw new Error('RandomArrayGenerator.createQuadsPacked - Invalid primitive');
+                break;
+        }
+
+        /** @type {ArrayBuffer} */ var _data = new ArrayBuffer[offset + quadStride * (count - 1) + stride * 5 + componentCount * deArray.inputTypeSize(deArray.InputType.INT_2_10_10_10)]; // last element must be fully in the array
+        /** @type {Uint8Array} */ var resultData  = new Uint8Array(_data).subarray(offset);
+
+        /** @type {deMath.deUint32} */ var max = 1024;
+        /** @type {deMath.deUint32} */ var min = 10;
+        /** @type {deMath.deUint32} */ var max2 = 4;
+
+        rnd = new deRandom.Random(seed);
+
+        switch (primitive) {
+            case deArray.Primitive.TRIANGLES: {
+                for (var quadNdx = 0; quadNdx < count; quadNdx++) {
+                    /** @type {deMath.deUint32} */ var x1 = min + rnd.getInt() % (max - min);
+                    /** @type {deMath.deUint32} */ var x2 = min + rnd.getInt() % (max - x1);
+
+                    /** @type {deMath.deUint32} */ var y1 = min + rnd.getInt() % (max - min);
+                    /** @type {deMath.deUint32} */ var y2 = min + rnd.getInt() % (max - y1);
+
+                    /** @type {deMath.deUint32} */ var z  = min + rnd.getInt() % (max - min);
+                    /** @type {deMath.deUint32} */ var w  = rnd.getInt() % max2;
+
+                    /** @type {deMath.deUint32} */ var val1 = (w << 30) | (z << 20) | (y1 << 10) | x1;
+                    /** @type {deMath.deUint32} */ var val2 = (w << 30) | (z << 20) | (y1 << 10) | x2;
+                    /** @type {deMath.deUint32} */ var val3 = (w << 30) | (z << 20) | (y2 << 10) | x1;
+
+                    /** @type {deMath.deUint32} */ var val4 = (w << 30) | (z << 20) | (y2 << 10) | x1;
+                    /** @type {deMath.deUint32} */ var val5 = (w << 30) | (z << 20) | (y1 << 10) | x2;
+                    /** @type {deMath.deUint32} */ var val6 = (w << 30) | (z << 20) | (y2 << 10) | x2;
+
+                    copyArray(resultData.subarray(quadNdx * quadStride + stride * 0), new Uint32Array([val1]);
+                    copyArray(resultData.subarray(quadNdx * quadStride + stride * 1), new Uint32Array([val2]);
+                    copyArray(resultData.subarray(quadNdx * quadStride + stride * 2), new Uint32Array([val3]);
+                    copyArray(resultData.subarray(quadNdx * quadStride + stride * 3), new Uint32Array([val4]);
+                    copyArray(resultData.subarray(quadNdx * quadStride + stride * 4), new Uint32Array([val5]);
+                    copyArray(resultData.subarray(quadNdx * quadStride + stride * 5), new Uint32Array([val6]);
+                }
+
+                break;
+            }
+
+            default:
+                throw new Error('RandomArrayGenerator.createQuadsPacked - Invalid primitive');
+                break;
+        }
+
+        return _data;
+    };
+
+    /**
+     * @param {number} seed
+     * @param {number} count
+     * @param {number} componentCount
+     * @param {number} offset
+     * @param {number} stride
+     * @param {deArray.Primitive} primitive
+     * @param {GLValue} min
+     * @param {GLValue} max
+     * @return {ArrayBuffer}
+     */
+    RandomArrayGenerator.createQuads = function (seed, count, componentCount, offset, stride, primitive, min, max) {
+        var componentStride = min.m_value.byteLength; //TODO: Fix encapsulation issue
+        var quadStride = 0;
+        var type = min.getType(); //Instead of using the template parameter.
+
+        if (stride == 0)
+            stride = componentCount * componentStride;
+        DE_ASSERT(stride >= componentCount * componentStride);
+
+        switch (primitive) {
+            case deArray.Primitive.TRIANGLES:
+                quadStride = stride * 6;
+                break;
+
+            default:
+                throw new Error('RandomArrayGenerator.createQuads - Invalid primitive');
+                break;
+        }
+
+        /** @type {ArrayBuffer} */ var _data = new ArrayBuffer(offset + quadStride * count);
+        /** @type {Uint8Array} */ resultData = new Uint8Array(resultData).subarray(offset);
+
+        var rnd = new deRandom.Random(seed);
+
+        switch (primitive) {
+            case deArray.Primitive.TRIANGLES: {
+                for (var quadNdx = 0; quadNdx < count; ++quadNdx) {
+                    /** @type {GLValue} */ var x1, x2;
+                    /** @type {GLValue} */ var y1, y2;
+                    /** @type {GLValue} */ var z, w;
+
+                    // attempt to find a good (i.e not extremely small) quad
+                    for (var attemptNdx = 0; attemptNdx < 4; ++attemptNdx) {
+                        x1 = GLValue.getRandom(rnd, min, max);
+                        x2 = GLValue.getRandom(rnd, GLValue.minValue(type), GLValue.abs(max.subtract(x1)));
+
+                        y1 = GLValue.getRandom(rnd, min, max);
+                        y2 = GLValue.getRandom(rnd, GLValue.minValue(type), GLValue.abs(max.subtract(y1)));
+
+                        z = (componentCount > 2) ? (GLValue.getRandom(rnd, min, max)) : (GLValue.create(0, type));
+                        w = (componentCount > 3) ? (GLValue.getRandom(rnd, min, max)) : (GLValue.create(1, type));
+
+                        // no additional components, all is good
+                        if (componentCount <= 2)
+                            break;
+
+                        // The result quad is too thin?
+                        if ((Math.abs(x2.interpret() + z.interpret()) < GLValue.minValue().interpret()) ||
+                            (deFloatAbs(y2.interpret() + w.interpret()) < GLValue.minValue().interpret()))
+                            continue;
+
+                        // all ok
+                        break;
+                    }
+
+                    copyGLValueToArray(resultData.subarray(quadNdx * quadStride), x1);
+                    copyGLValueToArray(resultData.subarray(quadNdx * quadStride + componentStride), y1);
+
+                    copyGLValueToArray(resultData.subarray(quadNdx * quadStride + stride), x1.add(x2));
+                    copyGLValueToArray(resultData.subarray(quadNdx * quadStride + stride + componentStride), y1);
+
+                    copyGLValueToArray(resultData.subarray(quadNdx * quadStride + stride * 2), x1);
+                    copyGLValueToArray(resultData.subarray(quadNdx * quadStride + stride * 2 + componentStride), y1.add(y2));
+
+                    copyGLValueToArray(resultData.subarray(quadNdx * quadStride + stride * 3), x1);
+                    copyGLValueToArray(resultData.subarray(quadNdx * quadStride + stride * 3 + componentStride), y1.add(y2));
+
+                    copyGLValueToArray(resultData.subarray(quadNdx * quadStride + stride * 4), x1.add(x2));
+                    copyGLValueToArray(resultData.subarray(quadNdx * quadStride + stride * 4 + componentStride), y1);
+
+                    copyGLValueToArray(resultData.subarray(quadNdx * quadStride + stride * 5), x1.add(x2));
+                    copyGLValueToArray(resultData.subarray(quadNdx * quadStride + stride * 5 + componentStride), y1.add(y2));
+
+                    if (componentCount > 2) {
+                        for (var i = 0; i < 6; i++)
+                            copyGLValueToArray(resultData.subarray(quadNdx * quadStride + stride * i + componentStride * 2), z);
+                    }
+
+                    if (componentCount > 3) {
+                        for (var i = 0; i < 6; i++)
+                            copyGLValueToArray(resultData.subarray(quadNdx * quadStride + stride * i + componentStride * 3), w);
+                    }
+                }
+
+                break;
+            }
+
+            default:
+                throw new Error('RandomArrayGenerator.createQuads - Invalid primitive');
+                break;
+        }
+
+        return _data;
+    };
+
+    /**
+     * @param {number} seed
+     * @param {number} count
+     * @param {number} componentCount
+     * @param {number} stride
+     * @param {deArray.Primitive} primitive
+     * @param {deArray.InputType} type
+     * @param {GLValue} min
+     * @param {GLValue} max
+     */
+    RandomArrayGenerator.generatePerQuad = function (seed, count, componentCount, stride, primitive, type, min, max) {
+        /** @type {ArrayBuffer} */ var data = DE_NULL;
+
+        data = RandomArrayGenerator.createPerQuads(seed, count, componentCount, stride, primitive, min.interpret(), max.interpret());
+        return data;
+    };
+
+    /**
+     * @param {number} seed
+     * @param {number} count
+     * @param {number} componentCount
+     * @param {number} stride
+     * @param {deArray.Primitive} primitive
+     * @param {GLValue} min
+     * @param {GLValue} max
+     */
+    RandomArrayGenerator.createPerQuads = function (seed, count, componentCount, stride, primitive, min, max) {
+        var rnd = new deRandom.Random(seed);
+
+        var componentStride = min.m_data.byteLength; //TODO: Fix encapsulation issue.
+
+        if (stride == 0)
+            stride = componentStride * componentCount;
+
+        var quadStride = 0;
+
+        switch (primitive) {
+            case deArray.Primitive.TRIANGLES:
+                quadStride = stride * 6;
+                break;
+
+            default:
+                throw new Error('RandomArrayGenerator.createPerQuads - Invalid primitive');
+                break;
+        }
+
+        /** @type {ArrayBuffer} */ var data = new ArrayBuffer(count * quadStride);
+
+        for (var quadNdx = 0; quadNdx < count; quadNdx++) {
+            for (var componentNdx = 0; componentNdx < componentCount; componentNdx++) {
+                /** @type {GLValue} */ var val = GLValue.getRandom(rnd, min, max);
+
+                var data8 = new Uint8Array(data);
+                copyGLValueToArray(data8.subarray(quadNdx * quadStride + stride * 0 + componentStride * componentNdx), val);
+                copyGLValueToArray(data8.subarray(quadNdx * quadStride + stride * 1 + componentStride * componentNdx), val);
+                copyGLValueToArray(data8.subarray(quadNdx * quadStride + stride * 2 + componentStride * componentNdx), val);
+                copyGLValueToArray(data8.subarray(quadNdx * quadStride + stride * 3 + componentStride * componentNdx), val);
+                copyGLValueToArray(data8.subarray(quadNdx * quadStride + stride * 4 + componentStride * componentNdx), val);
+                copyGLValueToArray(data8.subarray(quadNdx * quadStride + stride * 5 + componentStride * componentNdx), val);
+            }
+        }
+
+        return data;
     };
 
     /**
@@ -1474,7 +1980,7 @@ function (
         return desc;
     };
 
-    /** TODO: Implement: RandomArrayGenerator class
+    /**
      * iterate
      * @return {tcuTestCase.runner.IterateResult}
      */
@@ -1559,102 +2065,94 @@ function (
 
                 this.m_glArrayPack.getArray(arrayNdx).bind(arrayNdx, arraySpec.offset, arraySpec.componentCount, arraySpec.inputType, arraySpec.outputType, arraySpec.normalize, arraySpec.stride);
                 this.m_rrArrayPack.getArray(arrayNdx).bind(arrayNdx, arraySpec.offset, arraySpec.componentCount, arraySpec.inputType, arraySpec.outputType, arraySpec.normalize, arraySpec.stride);
-
-                delete [] data;
             }
 
-            try
-            {
-                m_glArrayPack->render(m_spec.primitive, m_spec.first, m_spec.drawCount * (int)primitiveSize, useVao, coordScale, colorScale);
-                m_rrArrayPack->render(m_spec.primitive, m_spec.first, m_spec.drawCount * (int)primitiveSize, useVao, coordScale, colorScale);
+            try {
+                this.m_glArrayPack.render(this.m_spec.primitive, this.m_spec.first, this.m_spec.drawCount * primitiveSize, useVao, coordScale, colorScale);
+                this.m_rrArrayPack.render(this.m_spec.primitive, this.m_spec.first, this.m_spec.drawCount * primitiveSize, useVao, coordScale, colorScale);
             }
-            catch (glu::Error& err)
-            {
+            catch (err) {
                 // GL Errors are ok if the mode is not properly aligned
-                
-                m_testCtx.getLog() << TestLog::Message << "Got error: " << err.what() << TestLog::EndMessage;
-                
-                if (isUnalignedBufferOffsetTest())
-                    m_testCtx.setTestResult(QP_TEST_RESULT_COMPATIBILITY_WARNING, "Failed to draw with unaligned buffers.");
-                else if (isUnalignedBufferStrideTest())
-                    m_testCtx.setTestResult(QP_TEST_RESULT_COMPATIBILITY_WARNING, "Failed to draw with unaligned stride.");
+
+                bufferedLogToConsole("Got error: " + err.getMessage();
+
+                if (this.isUnalignedBufferOffsetTest())
+                    testFailedOptions('Failed to draw with unaligned buffers', false); // TODO: QP_TEST_RESULT_COMPATIBILITY_WARNING
+                else if (this.isUnalignedBufferStrideTest())
+                    testFailedOptions('Failed to draw with unaligned stride', false); // QP_TEST_RESULT_COMPATIBILITY_WARNING
                 else
-                    throw;
-                
-                return STOP;
+                    throw new Error();
+
+                return tcuTestCase.runner.IterateResult.STOP;
             }
-            
-            m_iteration++;
-            return CONTINUE;
+
+            this.m_iteration++;
+            return tcuTestCase.runner.IterateResult.CONTINUE;
         }
-        else if (m_iteration == 1)
-        {
-            compare();
-            
-            if (m_isOk)
-            {
-                m_testCtx.setTestResult(QP_TEST_RESULT_PASS, "Pass");
+        else if (this.m_iteration == 1) {
+            this.compare();
+
+            if (this.m_isOk) {
+                testPassedOptions('', true);
             }
-            else
-            {
-                if (isUnalignedBufferOffsetTest())
-                    m_testCtx.setTestResult(QP_TEST_RESULT_COMPATIBILITY_WARNING, "Failed to draw with unaligned buffers.");
-                else if (isUnalignedBufferStrideTest())
-                    m_testCtx.setTestResult(QP_TEST_RESULT_COMPATIBILITY_WARNING, "Failed to draw with unaligned stride.");
+            else {
+                if (this.isUnalignedBufferOffsetTest())
+                    testFailedOptions('Failed to draw with unaligned buffers', false); // QP_TEST_RESULT_COMPATIBILITY_WARNING
+                else if (this.isUnalignedBufferStrideTest())
+                    testFailedOptions('Failed to draw with unaligned stride', false); // QP_TEST_RESULT_COMPATIBILITY_WARNING
                 else
-                    m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, "Image comparison failed.");
+                    testFailedOptions('Image comparison failed', false);
             }
-            
-            m_iteration++;
-            return STOP;
+
+            this.m_iteration++;
+            return tcuTestCase.runner.IterateResult.STOP;
         }
-        else
-        {
-            DE_ASSERT(false);
-            return STOP;
+        else {
+            throw new Error('MultiVertexArrayTest.iterate - Invalid iteration stage');
+            return tcuTestCase.runner.IterateResult.STOP;
         }
     };
-    
-    bool MultiVertexArrayTest::isUnalignedBufferOffsetTest (void) const
-    {
+
+    /**
+     * isUnalignedBufferOffsetTest
+     * @return {boolean}
+     */
+    MultiVertexArrayTest.prototype.isUnalignedBufferOffsetTest = function () {
         // Buffer offsets should be data type size aligned
-        for (size_t i = 0; i < m_spec.arrays.size(); ++i)
-        {
-            if (m_spec.arrays[i].storage == Array::STORAGE_BUFFER)
-            {
-                const bool inputTypePacked = m_spec.arrays[i].inputType == deArray.InputType.UNSIGNED_INT_2_10_10_10 || m_spec.arrays[i].inputType == deArray.InputType.INT_2_10_10_10;
-                
-                int dataTypeSize = Array::inputTypeSize(m_spec.arrays[i].inputType);
+        for (var i = 0; i < this.m_spec.arrays.length; ++i) {
+            if (this.m_spec.arrays[i].storage == deArray.Storage.BUFFER) {
+                /** @type {boolean} */ var inputTypePacked = this.m_spec.arrays[i].inputType == deArray.InputType.UNSIGNED_INT_2_10_10_10 || this.m_spec.arrays[i].inputType == deArray.InputType.INT_2_10_10_10;
+
+                /** @type {number} */ var dataTypeSize = deArray.inputTypeSize(this.m_spec.arrays[i].inputType);
                 if (inputTypePacked)
                     dataTypeSize = 4;
-                
-                if (m_spec.arrays[i].offset % dataTypeSize != 0)
+
+                if (this.m_spec.arrays[i].offset % dataTypeSize != 0)
                     return true;
             }
         }
-        
         return false;
     };
-    
-    bool MultiVertexArrayTest::isUnalignedBufferStrideTest (void) const
-    {
+
+    /**
+     * isUnalignedBufferStrideTest
+     * @return {boolean}
+     */
+    MultiVertexArrayTest.prototype.isUnalignedBufferStrideTest = function () {
         // Buffer strides should be data type size aligned
-        for (size_t i = 0; i < m_spec.arrays.size(); ++i)
-        {
-            if (m_spec.arrays[i].storage == Array::STORAGE_BUFFER)
-            {
-                const bool inputTypePacked = m_spec.arrays[i].inputType == deArray.InputType.UNSIGNED_INT_2_10_10_10 || m_spec.arrays[i].inputType == deArray.InputType.INT_2_10_10_10;
-                
-                int dataTypeSize = Array::inputTypeSize(m_spec.arrays[i].inputType);
+        for (var i = 0; i < this.m_spec.arrays.length; ++i) {
+            if (this.m_spec.arrays[i].storage == deArray.Storage.BUFFER) {
+                /** @type {boolean} */ var inputTypePacked = this.m_spec.arrays[i].inputType == deArray.InputType.UNSIGNED_INT_2_10_10_10 || m_spec.arrays[i].inputType == deArray.InputType.INT_2_10_10_10;
+
+                /** @type {number} */ var dataTypeSize = deArray.inputTypeSize(this.m_spec.arrays[i].inputType);
                 if (inputTypePacked)
                     dataTypeSize = 4;
-                
-                if (m_spec.arrays[i].stride % dataTypeSize != 0)
+
+                if (this.m_spec.arrays[i].stride % dataTypeSize != 0)
                     return true;
             }
         }
-        
         return false;
-    };*/
+    };
 
 });
