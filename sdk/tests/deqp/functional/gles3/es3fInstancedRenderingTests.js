@@ -99,7 +99,7 @@ define([
     var InstancingType = {
             TYPE_INSTANCE_ID: 0,
             TYPE_ATTRIB_DIVISOR: 1,
-            TYPE_MIXED: 2,
+            TYPE_MIXED: 2
     };
 
     InstancingType.length = Object.keys(InstancingType).length;
@@ -112,7 +112,7 @@ define([
     * @param {string} description
     * @param {DrawFunction} function
     * @param {InstancingType} instancingType
-    * @param {glu.DataType} rgbAttrType
+    * @param {gluShaderUtil.DataType} rgbAttrType
     * @param {number} numInstances
     */
     var InstancedRenderingCase = function(name, description, _function, instancingType, rgbAttrType, numInstances)
@@ -146,11 +146,11 @@ define([
         var isUintCase = gluShaderUtil.isDataTypeUintOrUVec(this.m_rgbAttrType);
         var isMatCase = gluShaderUtil.isDataTypeMatrix(this.m_rgbAttrType);
         if (isFloatCase || isMatCase)
-            vec.push(new VarComp(val));
+            vec.push(VarComp(val));
         else if (isIntCase)
-            vec.push(new VarComp(val * FLOAT_INT_SCALE + FLOAT_INT_BIAS));
+            vec.push(VarComp(val * FLOAT_INT_SCALE + FLOAT_INT_BIAS));
         else if (isUintCase)
-            vec.push(new VarComp(val * FLOAT_UINT_SCALE + FLOAT_UINT_BIAS));
+            vec.push(VarComp(val * FLOAT_UINT_SCALE + FLOAT_UINT_BIAS));
         else
             DE_ASSERT(DE_FALSE);
     };
@@ -218,7 +218,7 @@ define([
                 else
                     DE_ASSERT(DE_FALSE);
 
-                instanceAttribs += 'in highp ' + (OFFSET_COMPONENTS == 1 ? string('float') : 'vec' + OFFSET_COMPONENTS.toString()) + ' a_instanceOffset;\n';
+                instanceAttribs += 'in highp ' + (OFFSET_COMPONENTS == 1 ? 'float' : 'vec' + OFFSET_COMPONENTS.toString()) + ' a_instanceOffset;\n';
                 instanceAttribs += 'in mediump ' + typeName + ' a_instanceR;\n';
             }
 
@@ -415,13 +415,13 @@ define([
         /** @type {number} */ var xOffsetMax = gl.drawingBufferWidth - width;
         /** @type {number} */ var yOffsetMax = gl.drawingBufferHeight - height;
 
-        /** @type {de::Random} */ var rnd = new deRandom.Random(deString.deStringHash(this.name));
+        /** @type {deRandom.Random} */ var rnd = new deRandom.Random(deString.deStringHash(this.name));
 
         /** @type {number} */ var xOffset = rnd.getInt(0, xOffsetMax);
         /** @type {number} */ var yOffset = rnd.getInt(0, yOffsetMax);
 
-        /** @type {tcu::Surface} */ var referenceImg = new tcuSurface.Surface(width, height);
-        /** @type {tcu::Surface} */ var resultImg = new tcuSurface.Surface(width, height);
+        /** @type {tcuSurface.Surface} */ var referenceImg = new tcuSurface.Surface(width, height);
+        /** @type {tcuSurface.Surface} */ var resultImg = new tcuSurface.Surface(width, height);
 
         // Draw result.
 
@@ -451,7 +451,7 @@ define([
 
 
     /**
-    * @param {attribute?} attrPtr
+    * @param {gluShaderUtil.DataType} attrPtr
     * @param {number} location
     * @param {number} divisor
     */
@@ -546,7 +546,7 @@ define([
 
 
     /**
-    * @param {tcu::Surface&?} attrPtr
+    * @param {tcuSurface.Surface} attrPtr
     */
     InstancedRenderingCase.prototype.computeReference = function(dst)
     {
@@ -608,7 +608,7 @@ define([
     var init = function()
     {
         var testGroup = tcuTestCase.runner.getState().testCases;
-        /** @type {deUintinteger32} */ var instanceCounts = [1, 2, 4, 20];
+    /** @type {Array.<number>} */ var instanceCounts = [1, 2, 4, 20];
 
         for (var _function = 0; _function < DrawFunction.length; _function++)
         {
@@ -663,7 +663,7 @@ define([
             }
         }
 
-        /** @type {glu::DataType} */ var s_testTypes =
+        /** @type {gluShaderUtil.DataType} */ var s_testTypes =
         [
             gluShaderUtil.DataType.FLOAT,
             gluShaderUtil.DataType.FLOAT_VEC2,
@@ -698,7 +698,7 @@ define([
 
         for (var typeNdx = 0; typeNdx < s_testTypes.length; typeNdx++)
         {
-            /** @type {glu::DataType} */ var type = s_testTypes[typeNdx];
+            /** @type {gluShaderUtil.DataType} */ var type = s_testTypes[typeNdx];
 
             typesGroup.addChild(new InstancedRenderingCase(gluShaderUtil.getDataTypeName(type), '',
                                                             DrawFunction.FUNCTION_DRAW_ARRAYS_INSTANCED,

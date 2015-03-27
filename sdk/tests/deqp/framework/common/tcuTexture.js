@@ -290,7 +290,7 @@ DeqpArrayBuffer.prototype.empty = function() {
     return this.size() == 0;
 };
 
-/*
+/**
  * @enum
  * The values are negative to avoid conflict with channels 0 - 3
  */

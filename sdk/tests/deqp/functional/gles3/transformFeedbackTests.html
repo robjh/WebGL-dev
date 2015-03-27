@@ -22,7 +22,7 @@
     requirejs([
         "functional/gles3/es3fTransformFeedbackTests",
         "framework/opengl/gluVarTypeUtil"
-    ], function(tft, gluVTU) {
+    ], function(es3fTransformFeedbackTests, gluVarTypeUtil) {
 
         var wtu = WebGLTestUtils;
         var gl = wtu.create3DContext('canvas', {preserveDrawingBuffer: true}, 2);
@@ -39,7 +39,7 @@
                 console.log.apply(console, args);
             });
         });
-        
+
         gl.bindTransformFeedback = gldisable('bindTransformFeedback');
         gl.bufferData            = gldisable('bufferData');
         gl.bindBufferBase        = gldisable('bindBufferBase');
@@ -49,16 +49,16 @@
         gl.getError = function() {
             return gl.NO_ERROR;
         };
-        
+
         try {
-            tft.run(gl);
+            es3fTransformFeedbackTests.run(gl);
         }
         catch(err) {
             bufferedLogToConsole(err);
         }
-        
-        
-        
+
+
+
     });
 </script>
 </body>

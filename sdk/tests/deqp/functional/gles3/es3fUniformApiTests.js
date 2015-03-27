@@ -33,11 +33,11 @@ define([
     'framework/delibs/debase/deRandom'], function(
         gluDefs,
         gluDrawUtil,
-        deqpUtils,
-        gluSP,
+        gluShaderUtil,
+        gluShaderProgram,
         gluTexture,
-        gluVT,
-        deqpTests,
+        gluVarType,
+        tcuTestCase,
         tcuSurface,
         tcuTexture,
         deMath,
@@ -59,44 +59,44 @@ define([
 
     var DE_NULL = null;
 
-    /** @typedef {function(deqpUtils.DataType): boolean} dataTypePredicate (callback) */
+    /** @typedef {function(gluShaderUtil.DataType): boolean} dataTypePredicate (callback) */
 
     /** @type {number} */ var MAX_RENDER_WIDTH = 32;
     /** @type {number} */ var MAX_RENDER_HEIGHT = 32;
     /** @type {number} */ var MAX_NUM_SAMPLER_UNIFORMS = 16;
 
-    /** @type {Array.<deqpUtils.DataType>} */ var s_testDataTypes = [
-        deqpUtils.DataType.FLOAT,
-        deqpUtils.DataType.FLOAT_VEC2,
-        deqpUtils.DataType.FLOAT_VEC3,
-        deqpUtils.DataType.FLOAT_VEC4,
-        deqpUtils.DataType.FLOAT_MAT2,
-        deqpUtils.DataType.FLOAT_MAT2X3,
-        deqpUtils.DataType.FLOAT_MAT2X4,
-        deqpUtils.DataType.FLOAT_MAT3X2,
-        deqpUtils.DataType.FLOAT_MAT3,
-        deqpUtils.DataType.FLOAT_MAT3X4,
-        deqpUtils.DataType.FLOAT_MAT4X2,
-        deqpUtils.DataType.FLOAT_MAT4X3,
-        deqpUtils.DataType.FLOAT_MAT4,
+    /** @type {Array.<gluShaderUtil.DataType>} */ var s_testDataTypes = [
+    gluShaderUtil.DataType.FLOAT,
+    gluShaderUtil.DataType.FLOAT_VEC2,
+    gluShaderUtil.DataType.FLOAT_VEC3,
+    gluShaderUtil.DataType.FLOAT_VEC4,
+    gluShaderUtil.DataType.FLOAT_MAT2,
+    gluShaderUtil.DataType.FLOAT_MAT2X3,
+    gluShaderUtil.DataType.FLOAT_MAT2X4,
+    gluShaderUtil.DataType.FLOAT_MAT3X2,
+    gluShaderUtil.DataType.FLOAT_MAT3,
+    gluShaderUtil.DataType.FLOAT_MAT3X4,
+    gluShaderUtil.DataType.FLOAT_MAT4X2,
+    gluShaderUtil.DataType.FLOAT_MAT4X3,
+    gluShaderUtil.DataType.FLOAT_MAT4,
 
-        deqpUtils.DataType.INT,
-        deqpUtils.DataType.INT_VEC2,
-        deqpUtils.DataType.INT_VEC3,
-        deqpUtils.DataType.INT_VEC4,
+    gluShaderUtil.DataType.INT,
+    gluShaderUtil.DataType.INT_VEC2,
+    gluShaderUtil.DataType.INT_VEC3,
+    gluShaderUtil.DataType.INT_VEC4,
 
-        deqpUtils.DataType.UINT,
-        deqpUtils.DataType.UINT_VEC2,
-        deqpUtils.DataType.UINT_VEC3,
-        deqpUtils.DataType.UINT_VEC4,
+    gluShaderUtil.DataType.UINT,
+    gluShaderUtil.DataType.UINT_VEC2,
+    gluShaderUtil.DataType.UINT_VEC3,
+    gluShaderUtil.DataType.UINT_VEC4,
 
-        deqpUtils.DataType.BOOL,
-        deqpUtils.DataType.BOOL_VEC2,
-        deqpUtils.DataType.BOOL_VEC3,
-        deqpUtils.DataType.BOOL_VEC4,
+    gluShaderUtil.DataType.BOOL,
+    gluShaderUtil.DataType.BOOL_VEC2,
+    gluShaderUtil.DataType.BOOL_VEC3,
+    gluShaderUtil.DataType.BOOL_VEC4,
 
-        deqpUtils.DataType.SAMPLER_2D,
-        deqpUtils.DataType.SAMPLER_CUBE
+    gluShaderUtil.DataType.SAMPLER_2D,
+    gluShaderUtil.DataType.SAMPLER_CUBE
         // \note We don't test all sampler types here.
     ];
 
@@ -124,31 +124,31 @@ define([
     };
 
     /**
-     * @param {deqpUtils.DataType} type
+     * @param {gluShaderUtil.DataType} type
      * @return {number}
      */
     var getSamplerNumLookupDimensions = function(type) {
         switch (type)
         {
-            case deqpUtils.DataType.SAMPLER_2D:
-            case deqpUtils.DataType.INT_SAMPLER_2D:
-            case deqpUtils.DataType.UINT_SAMPLER_2D:
+            case gluShaderUtil.DataType.SAMPLER_2D:
+            case gluShaderUtil.DataType.INT_SAMPLER_2D:
+            case gluShaderUtil.DataType.UINT_SAMPLER_2D:
                 return 2;
 
-            case deqpUtils.DataType.SAMPLER_3D:
-            case deqpUtils.DataType.INT_SAMPLER_3D:
-            case deqpUtils.DataType.UINT_SAMPLER_3D:
-            case deqpUtils.DataType.SAMPLER_2D_SHADOW:
-            case deqpUtils.DataType.SAMPLER_2D_ARRAY:
-            case deqpUtils.DataType.INT_SAMPLER_2D_ARRAY:
-            case deqpUtils.DataType.UINT_SAMPLER_2D_ARRAY:
-            case deqpUtils.DataType.SAMPLER_CUBE:
-            case deqpUtils.DataType.INT_SAMPLER_CUBE:
-            case deqpUtils.DataType.UINT_SAMPLER_CUBE:
+            case gluShaderUtil.DataType.SAMPLER_3D:
+            case gluShaderUtil.DataType.INT_SAMPLER_3D:
+            case gluShaderUtil.DataType.UINT_SAMPLER_3D:
+            case gluShaderUtil.DataType.SAMPLER_2D_SHADOW:
+            case gluShaderUtil.DataType.SAMPLER_2D_ARRAY:
+            case gluShaderUtil.DataType.INT_SAMPLER_2D_ARRAY:
+            case gluShaderUtil.DataType.UINT_SAMPLER_2D_ARRAY:
+            case gluShaderUtil.DataType.SAMPLER_CUBE:
+            case gluShaderUtil.DataType.INT_SAMPLER_CUBE:
+            case gluShaderUtil.DataType.UINT_SAMPLER_CUBE:
                 return 3;
 
-            case deqpUtils.DataType.SAMPLER_CUBE_SHADOW:
-            case deqpUtils.DataType.SAMPLER_2D_ARRAY_SHADOW:
+            case gluShaderUtil.DataType.SAMPLER_CUBE_SHADOW:
+            case gluShaderUtil.DataType.SAMPLER_2D_ARRAY_SHADOW:
                 return 4;
 
             default:
@@ -158,34 +158,34 @@ define([
     };
 
    /**
-    * @param {deqpUtils.DataType} type
-    * @return {deqpUtils.DataType}
+    * @param {gluShaderUtil.DataType} type
+    * @return {gluShaderUtil.DataType}
     */
     var getSamplerLookupReturnType = function(type) {
         switch (type)
         {
-            case deqpUtils.DataType.SAMPLER_2D:
-            case deqpUtils.DataType.SAMPLER_CUBE:
-            case deqpUtils.DataType.SAMPLER_2D_ARRAY:
-            case deqpUtils.DataType.SAMPLER_3D:
-                return deqpUtils.DataType.FLOAT_VEC4;
+            case gluShaderUtil.DataType.SAMPLER_2D:
+            case gluShaderUtil.DataType.SAMPLER_CUBE:
+            case gluShaderUtil.DataType.SAMPLER_2D_ARRAY:
+            case gluShaderUtil.DataType.SAMPLER_3D:
+                return gluShaderUtil.DataType.FLOAT_VEC4;
 
-            case deqpUtils.DataType.UINT_SAMPLER_2D:
-            case deqpUtils.DataType.UINT_SAMPLER_CUBE:
-            case deqpUtils.DataType.UINT_SAMPLER_2D_ARRAY:
-            case deqpUtils.DataType.UINT_SAMPLER_3D:
-                return deqpUtils.DataType.UINT_VEC4;
+            case gluShaderUtil.DataType.UINT_SAMPLER_2D:
+            case gluShaderUtil.DataType.UINT_SAMPLER_CUBE:
+            case gluShaderUtil.DataType.UINT_SAMPLER_2D_ARRAY:
+            case gluShaderUtil.DataType.UINT_SAMPLER_3D:
+                return gluShaderUtil.DataType.UINT_VEC4;
 
-            case deqpUtils.DataType.INT_SAMPLER_2D:
-            case deqpUtils.DataType.INT_SAMPLER_CUBE:
-            case deqpUtils.DataType.INT_SAMPLER_2D_ARRAY:
-            case deqpUtils.DataType.INT_SAMPLER_3D:
-                return deqpUtils.DataType.INT_VEC4;
+            case gluShaderUtil.DataType.INT_SAMPLER_2D:
+            case gluShaderUtil.DataType.INT_SAMPLER_CUBE:
+            case gluShaderUtil.DataType.INT_SAMPLER_2D_ARRAY:
+            case gluShaderUtil.DataType.INT_SAMPLER_3D:
+                return gluShaderUtil.DataType.INT_VEC4;
 
-            case deqpUtils.DataType.SAMPLER_2D_SHADOW:
-            case deqpUtils.DataType.SAMPLER_CUBE_SHADOW:
-            case deqpUtils.DataType.SAMPLER_2D_ARRAY_SHADOW:
-                return deqpUtils.DataType.FLOAT;
+            case gluShaderUtil.DataType.SAMPLER_2D_SHADOW:
+            case gluShaderUtil.DataType.SAMPLER_CUBE_SHADOW:
+            case gluShaderUtil.DataType.SAMPLER_2D_ARRAY_SHADOW:
+                return gluShaderUtil.DataType.FLOAT;
 
             default:
                 DE_ASSERT(false);
@@ -193,8 +193,8 @@ define([
     };
 
     /**
-     * @param {deqpUtils.DataType} T DataType to compare the type. Used to be a template param
-     * @param {deqpUtils.DataType} t
+     * @param {gluShaderUtil.DataType} T DataType to compare the type. Used to be a template param
+     * @param {gluShaderUtil.DataType} t
      * @return {boolean}
      */
     var dataTypeEquals = function(T, t)
@@ -204,23 +204,23 @@ define([
 
     /**
      * @param {number} N Row number. Used to be a template parameter
-     * @param {deqpUtils.DataType} t
+     * @param {gluShaderUtil.DataType} t
      * @return {dataTypeIsMatrixWithNRows | boolean}
      */
     var dataTypeIsMatrixWithNRows = function(N, t) {
-        return deqpUtils.isDataTypeMatrix(t) && deqpUtils.getDataTypeMatrixNumRows(t) == N;
+        return gluShaderUtil.isDataTypeMatrix(t) && gluShaderUtil.getDataTypeMatrixNumRows(t) == N;
     };
 
     /**
-     * @param {deqpUtils.DataType} t
+     * @param {gluShaderUtil.DataType} t
      * @return {boolean}
      */
     dataTypeIsMatrixWithNRows.prototype.exec = function(t) {
-        return deqpUtils.isDataTypeMatrix(t) && deqpUtils.getDataTypeMatrixNumRows(t) == this.N;
+        return gluShaderUtil.isDataTypeMatrix(t) && gluShaderUtil.getDataTypeMatrixNumRows(t) == this.N;
     };
 
    /**
-    * @param {gluVT.VarType} type
+    * @param {gluVarType.VarType} type
     * @param {dataTypePredicate} predicate
     * @return {boolean}
     */
@@ -232,7 +232,7 @@ define([
         else
         {
             DE_ASSERT(type.isStructType());
-            /** @type {gluVT.StructType} */ var structType = type.getStruct();
+            /** @type {gluVarType.StructType} */ var structType = type.getStruct();
             for (var i = 0; i < structType.getSize(); i++)
                 if (typeContainsMatchingBasicType(structType.getMember(i).getType(), predicate))
                     return true;
@@ -241,14 +241,14 @@ define([
     };
 
     /**
-     * @param {Array.<deqpUtils.DataType>} dst
-     * @param {gluVT.VarType} type
+     * @param {Array.<gluShaderUtil.DataType>} dst
+     * @param {gluVarType.VarType} type
      */
     var getDistinctSamplerTypes = function(dst, type) {
         if (type.isBasicType())
         {
-            /** @type {deqpUtils.DataType} */ var basicType = type.getBasicType();
-            if (deqpUtils.isDataTypeSampler(basicType) && dst.indexOf(basicType) == -1)
+            /** @type {gluShaderUtil.DataType} */ var basicType = type.getBasicType();
+            if (gluShaderUtil.isDataTypeSampler(basicType) && dst.indexOf(basicType) == -1)
                 dst.push(basicType);
         }
         else if (type.isArrayType())
@@ -256,25 +256,25 @@ define([
         else
         {
             DE_ASSERT(type.isStructType());
-            /** @type {gluVT.StructType} */ var structType = type.getStruct();
+            /** @type {gluVarType.StructType} */ var structType = type.getStruct();
             for (var i = 0; i < structType.getSize(); i++)
                 getDistinctSamplerTypes(dst, structType.getMember(i).getType());
         }
     };
 
     /**
-     * @param {gluVT.VarType} type
+     * @param {gluVarType.VarType} type
      * @return {number}
      */
     var getNumSamplersInType = function(type) {
         if (type.isBasicType())
-            return deqpUtils.isDataTypeSampler(type.getBasicType()) ? 1 : 0;
+            return gluShaderUtil.isDataTypeSampler(type.getBasicType()) ? 1 : 0;
         else if (type.isArrayType())
             return getNumSamplersInType(type.getElementType()) * type.getArraySize();
         else
         {
             DE_ASSERT(type.isStructType());
-            /** @type {gluVT.StructType} */ var structType = type.getStruct();
+            /** @type {gluVarType.StructType} */ var structType = type.getStruct();
             /** @type {number} */ var sum = 0;
             for (var i = 0; i < structType.getSize(); i++)
                 sum += getNumSamplersInType(structType.getMember(i).getType());
@@ -283,13 +283,13 @@ define([
     };
 
     /**
-     * @typedef {{type: gluVT.VarType, ndx: number}} VarTypeWithIndex
+     * @typedef {{type: gluVarType.VarType, ndx: number}} VarTypeWithIndex
      */
 
     /**
      * @param {number} maxDepth
      * @param {number} curStructIdx Out parameter, instead returning it in the VarTypeWithIndex structure.
-     * @param {Array.<gluVT.StructType>} structTypesDst
+     * @param {Array.<gluVarType.StructType>} structTypesDst
      * @param {deRandom.Random} rnd
      * @return {VarTypeWithIndex}
      */
@@ -300,7 +300,7 @@ define([
         if (isStruct)
         {
             /** @type {number} */ var numMembers = rnd.getInt(1, 5);
-            /** @type {gluVT.StructType} */ var structType = gluVT.newStructType('structType' + curStructIdx++);
+            /** @type {gluVarType.StructType} */ var structType = gluVarType.newStructType('structType' + curStructIdx++);
 
             for (var i = 0; i < numMembers; i++)
             {
@@ -312,27 +312,27 @@ define([
             structTypesDst.push(structType);
             return isArray ?
             {
-                type: gluVT.newTypeArray(gluVT.newTypeStruct(structType), rnd.getInt(1, 5)),
+                type: gluVarType.newTypeArray(gluVarType.newTypeStruct(structType), rnd.getInt(1, 5)),
                 ndx: curStructIdx
             }
             :
             {
-                type: gluVT.newTypeStruct(structType),
+                type: gluVarType.newTypeStruct(structType),
                 ndx: curStructIdx
             };
         }
         else
         {
-            /** @type {deqpUtils.DataType} */ var basicType = s_testDataTypes[rnd.getInt(0, s_testDataTypes.length - 1)];
-            /** @type {deqpUtils.precision} */ var precision = deqpUtils.isDataTypeBoolOrBVec(basicType) ? undefined : deqpUtils.precision.PRECISION_MEDIUMP;
+            /** @type {gluShaderUtil.DataType} */ var basicType = s_testDataTypes[rnd.getInt(0, s_testDataTypes.length - 1)];
+            /** @type {gluShaderUtil.precision} */ var precision = gluShaderUtil.isDataTypeBoolOrBVec(basicType) ? undefined : gluShaderUtil.precision.PRECISION_MEDIUMP;
             return isArray ?
             {
-                type: gluVT.newTypeArray(gluVT.newTypeBasic(basicType, precision), rnd.getInt(1, 5)),
+                type: gluVarType.newTypeArray(gluVarType.newTypeBasic(basicType, precision), rnd.getInt(1, 5)),
                 ndx: curStructIdx
             }
             :
             {
-                type: gluVT.newTypeBasic(basicType, precision),
+                type: gluVarType.newTypeBasic(basicType, precision),
                 ndx: curStructIdx
             };
         }
@@ -354,7 +354,7 @@ define([
      * @constructor
      */
     var VarValue = function() {
-        /** @type {deqpUtils.DataType} */ this.type = -1;
+        /** @type {gluShaderUtil.DataType} */ this.type = -1;
         /** @type {Array.<number | boolean> | SamplerV} */ this.val = [];
     };
 
@@ -370,12 +370,12 @@ define([
     /**
      * Uniform struct.
      * @param {string} name_
-     * @param {gluVT.VarType} type_
+     * @param {gluVarType.VarType} type_
      * @constructor
      */
     var Uniform = function(name_, type_) {
         /** @type {string} */ this.name = name_;
-        /** @type {gluVT.VarType} */ this.type = type_;
+        /** @type {gluVarType.VarType} */ this.type = type_;
     };
 
     // A set of uniforms, along with related struct types.
@@ -385,7 +385,7 @@ define([
      */
     var UniformCollection = function() {
         /** @type {Array.<Uniform>} */ this.m_uniforms = [];
-        /** @type {Array.<gluVT.StructType>} */ this.m_structTypes = [];
+        /** @type {Array.<gluVarType.StructType>} */ this.m_structTypes = [];
     };
 
     /**
@@ -406,7 +406,7 @@ define([
 
     /**
      * @param {number} ndx
-     * @return {gluVT.StructType}
+     * @return {gluVarType.StructType}
      */
     UniformCollection.prototype.getStructType = function(ndx) {return this.m_structTypes[ndx];};
 
@@ -416,7 +416,7 @@ define([
     UniformCollection.prototype.addUniform = function(uniform) {this.m_uniforms.push(uniform);};
 
     /**
-     * @param {gluVT.StructType} type
+     * @param {gluVarType.StructType} type
      */
     UniformCollection.prototype.addStructType = function(type) {this.m_structTypes.push(type);};
 
@@ -447,10 +447,10 @@ define([
     };
 
     /**
-     * @return {Array.<deqpUtils.DataType>}
+     * @return {Array.<gluShaderUtil.DataType>}
      */
     UniformCollection.prototype.getSamplerTypes = function() {
-        /** @type {Array<deqpUtils.DataType>} */ var samplerTypes = [];
+        /** @type {Array<gluShaderUtil.DataType>} */ var samplerTypes = [];
         for (var i = 0; i < this.m_uniforms.length; i++)
             getDistinctSamplerTypes(samplerTypes, this.m_uniforms[i].type);
         return samplerTypes;
@@ -474,34 +474,34 @@ define([
     };
 
     /**
-     * @param {deqpUtils.DataType} type
+     * @param {gluShaderUtil.DataType} type
      * @param {string} nameSuffix
      * @return {UniformCollection}
      */
     UniformCollection.basic = function(type, nameSuffix) {
         if (nameSuffix === undefined) nameSuffix = '';
         /** @type {UniformCollection} */ var res = new UniformCollection();
-        /** @type {deqpUtils.precision} */ var prec = deqpUtils.isDataTypeBoolOrBVec(type) ? undefined : deqpUtils.precision.PRECISION_MEDIUMP;
-        res.m_uniforms.push(new Uniform('u_var' + nameSuffix, gluVT.newTypeBasic(type, prec)));
+        /** @type {gluShaderUtil.precision} */ var prec = gluShaderUtil.isDataTypeBoolOrBVec(type) ? undefined : gluShaderUtil.precision.PRECISION_MEDIUMP;
+        res.m_uniforms.push(new Uniform('u_var' + nameSuffix, gluVarType.newTypeBasic(type, prec)));
         return res;
     };
 
     /**
-     * @param {deqpUtils.DataType} type
+     * @param {gluShaderUtil.DataType} type
      * @param {string} nameSuffix
      * @return {UniformCollection}
      */
     UniformCollection.basicArray = function(type, nameSuffix) {
         if (nameSuffix === undefined) nameSuffix = '';
         /** @type {UniformCollection} */ var res = new UniformCollection();
-        /** @type {deqpUtils.precision} */ var prec = deqpUtils.isDataTypeBoolOrBVec(type) ? undefined : deqpUtils.precision.PRECISION_MEDIUMP;
-        res.m_uniforms.push(new Uniform('u_var' + nameSuffix, gluVT.newTypeArray(gluVT.newTypeBasic(type, prec), 3)));
+        /** @type {gluShaderUtil.precision} */ var prec = gluShaderUtil.isDataTypeBoolOrBVec(type) ? undefined : gluShaderUtil.precision.PRECISION_MEDIUMP;
+        res.m_uniforms.push(new Uniform('u_var' + nameSuffix, gluVarType.newTypeArray(gluVarType.newTypeBasic(type, prec), 3)));
         return res;
     };
 
     /**
-     * @param {deqpUtils.DataType} type0
-     * @param {deqpUtils.DataType} type1
+     * @param {gluShaderUtil.DataType} type0
+     * @param {gluShaderUtil.DataType} type1
      * @param {boolean} containsArrays
      * @param {string} nameSuffix
      * @return {UniformCollection}
@@ -509,27 +509,27 @@ define([
     UniformCollection.basicStruct = function(type0, type1, containsArrays, nameSuffix) {
         if (nameSuffix === undefined) nameSuffix = '';
         /** @type {UniformCollection} */ var res = new UniformCollection();
-        /** @type {deqpUtils.precision} */ var prec0 = deqpUtils.isDataTypeBoolOrBVec(type0) ? undefined : deqpUtils.precision.PRECISION_MEDIUMP;
-        /** @type {deqpUtils.precision} */ var prec1 = deqpUtils.isDataTypeBoolOrBVec(type1) ? undefined : deqpUtils.precision.PRECISION_MEDIUMP;
+        /** @type {gluShaderUtil.precision} */ var prec0 = gluShaderUtil.isDataTypeBoolOrBVec(type0) ? undefined : gluShaderUtil.precision.PRECISION_MEDIUMP;
+        /** @type {gluShaderUtil.precision} */ var prec1 = gluShaderUtil.isDataTypeBoolOrBVec(type1) ? undefined : gluShaderUtil.precision.PRECISION_MEDIUMP;
 
-        /** @type {gluVT.StructType} */ var structType = new gluVT.StructType('structType' + nameSuffix);
-        structType.addMember('m0', gluVT.newTypeBasic(type0, prec0));
-        structType.addMember('m1', gluVT.newTypeBasic(type1, prec1));
+        /** @type {gluVarType.StructType} */ var structType = new gluVarType.StructType('structType' + nameSuffix);
+        structType.addMember('m0', gluVarType.newTypeBasic(type0, prec0));
+        structType.addMember('m1', gluVarType.newTypeBasic(type1, prec1));
         if (containsArrays)
         {
-            structType.addMember('m2', gluVT.newTypeArray(gluVT.newTypeBasic(type0, prec0), 3));
-            structType.addMember('m3', gluVT.newTypeArray(gluVT.newTypeBasic(type1, prec1), 3));
+            structType.addMember('m2', gluVarType.newTypeArray(gluVarType.newTypeBasic(type0, prec0), 3));
+            structType.addMember('m3', gluVarType.newTypeArray(gluVarType.newTypeBasic(type1, prec1), 3));
         }
 
         res.addStructType(structType);
-        res.addUniform(new Uniform('u_var' + nameSuffix, gluVT.newTypeStruct(structType)));
+        res.addUniform(new Uniform('u_var' + nameSuffix, gluVarType.newTypeStruct(structType)));
 
         return res;
     };
 
     /**
-     * @param {deqpUtils.DataType} type0
-     * @param {deqpUtils.DataType} type1
+     * @param {gluShaderUtil.DataType} type0
+     * @param {gluShaderUtil.DataType} type1
      * @param {boolean} containsArrays
      * @param {string} nameSuffix
      * @return {UniformCollection}
@@ -537,41 +537,41 @@ define([
     UniformCollection.structInArray = function(type0, type1, containsArrays, nameSuffix) {
         if (nameSuffix === undefined) nameSuffix = '';
         /** @type {UniformCollection} */ var res = UniformCollection.basicStruct(type0, type1, containsArrays, nameSuffix);
-        res.getUniform(0).type = gluVT.newTypeArray(res.getUniform(0).type, 3);
+        res.getUniform(0).type = gluVarType.newTypeArray(res.getUniform(0).type, 3);
         return res;
     };
 
     /**
-     * @param {deqpUtils.DataType} type0
-     * @param {deqpUtils.DataType} type1
+     * @param {gluShaderUtil.DataType} type0
+     * @param {gluShaderUtil.DataType} type1
      * @param {string} nameSuffix
      * @return {UniformCollection}
      */
     UniformCollection.nestedArraysStructs = function(type0, type1, nameSuffix) {
         if (nameSuffix === undefined) nameSuffix = '';
         /** @type {UniformCollection} */ var res = new UniformCollection();
-        /** @type {deqpUtils.precision} */ var prec0 = deqpUtils.isDataTypeBoolOrBVec(type0) ? undefined : deqpUtils.precision.PRECISION_MEDIUMP;
-        /** @type {deqpUtils.precision} */ var prec1 = deqpUtils.isDataTypeBoolOrBVec(type1) ? undefined : deqpUtils.precision.PRECISION_MEDIUMP;
-        /** @type {gluVT.StructType} */ var structType = gluVT.newStructType('structType' + nameSuffix);
-        /** @type {gluVT.StructType} */ var subStructType = gluVT.newStructType('subStructType' + nameSuffix);
-        /** @type {gluVT.StructType} */ var subSubStructType = gluVT.newStructType('subSubStructType' + nameSuffix);
+        /** @type {gluShaderUtil.precision} */ var prec0 = gluShaderUtil.isDataTypeBoolOrBVec(type0) ? undefined : gluShaderUtil.precision.PRECISION_MEDIUMP;
+        /** @type {gluShaderUtil.precision} */ var prec1 = gluShaderUtil.isDataTypeBoolOrBVec(type1) ? undefined : gluShaderUtil.precision.PRECISION_MEDIUMP;
+        /** @type {gluVarType.StructType} */ var structType = gluVarType.newStructType('structType' + nameSuffix);
+        /** @type {gluVarType.StructType} */ var subStructType = gluVarType.newStructType('subStructType' + nameSuffix);
+        /** @type {gluVarType.StructType} */ var subSubStructType = gluVarType.newStructType('subSubStructType' + nameSuffix);
 
-        subSubStructType.addMember('mss0', gluVT.newTypeBasic(type0, prec0));
-        subSubStructType.addMember('mss1', gluVT.newTypeBasic(type1, prec1));
+        subSubStructType.addMember('mss0', gluVarType.newTypeBasic(type0, prec0));
+        subSubStructType.addMember('mss1', gluVarType.newTypeBasic(type1, prec1));
 
-        subStructType.addMember('ms0', gluVT.newTypeBasic(type1, prec1));
-        subStructType.addMember('ms1', gluVT.newTypeArray(gluVT.newTypeBasic(type0, prec0), 2));
-        subStructType.addMember('ms2', gluVT.newTypeArray(gluVT.newTypeStruct(subSubStructType), 2));
+        subStructType.addMember('ms0', gluVarType.newTypeBasic(type1, prec1));
+        subStructType.addMember('ms1', gluVarType.newTypeArray(gluVarType.newTypeBasic(type0, prec0), 2));
+        subStructType.addMember('ms2', gluVarType.newTypeArray(gluVarType.newTypeStruct(subSubStructType), 2));
 
-        structType.addMember('m0', gluVT.newTypeBasic(type0, prec0));
-        structType.addMember('m1', gluVT.newTypeStruct(subStructType));
-        structType.addMember('m2', gluVT.newTypeBasic(type1, prec1));
+        structType.addMember('m0', gluVarType.newTypeBasic(type0, prec0));
+        structType.addMember('m1', gluVarType.newTypeStruct(subStructType));
+        structType.addMember('m2', gluVarType.newTypeBasic(type1, prec1));
 
         res.addStructType(subSubStructType);
         res.addStructType(subStructType);
         res.addStructType(structType);
 
-        res.addUniform(new Uniform('u_var' + nameSuffix, gluVT.newTypeStruct(structType)));
+        res.addUniform(new Uniform('u_var' + nameSuffix, gluVarType.newTypeStruct(structType)));
 
         return res;
     };
@@ -582,7 +582,7 @@ define([
      */
     UniformCollection.multipleBasic = function(nameSuffix) {
         if (nameSuffix === undefined) nameSuffix = '';
-        /** @type {Array.<deqpUtils.DataType>} */ var types = [deqpUtils.DataType.FLOAT, deqpUtils.DataType.INT_VEC3, deqpUtils.DataType.UINT_VEC4, deqpUtils.DataType.FLOAT_MAT3, deqpUtils.DataType.BOOL_VEC2];
+        /** @type {Array.<gluShaderUtil.DataType>} */ var types = [gluShaderUtil.DataType.FLOAT, gluShaderUtil.DataType.INT_VEC3, gluShaderUtil.DataType.UINT_VEC4, gluShaderUtil.DataType.FLOAT_MAT3, gluShaderUtil.DataType.BOOL_VEC2];
         /** @type {UniformCollection} */ var res = new UniformCollection();
 
         for (var i = 0; i < types.length; i++)
@@ -600,7 +600,7 @@ define([
      */
     UniformCollection.multipleBasicArray = function(nameSuffix) {
         if (nameSuffix === undefined) nameSuffix = '';
-        /** @type {Array.<deqpUtils.DataType>} */ var types = [deqpUtils.DataType.FLOAT, deqpUtils.DataType.INT_VEC3, deqpUtils.DataType.BOOL_VEC2];
+        /** @type {Array.<gluShaderUtil.DataType>} */ var types = [gluShaderUtil.DataType.FLOAT, gluShaderUtil.DataType.INT_VEC3, gluShaderUtil.DataType.BOOL_VEC2];
         /** @type {UniformCollection} */ var res = new UniformCollection();
 
         for (var i = 0; i < types.length; i++)
@@ -618,8 +618,8 @@ define([
      */
     UniformCollection.multipleNestedArraysStructs = function(nameSuffix) {
         if (nameSuffix === undefined) nameSuffix = '';
-        /** @type {Array.<deqpUtils.DataType>} */ var types0 = [deqpUtils.DataType.FLOAT, deqpUtils.DataType.INT, deqpUtils.DataType.BOOL_VEC4];
-        /** @type {Array.<deqpUtils.DataType>} */ var types1 = [deqpUtils.DataType.FLOAT_VEC4, deqpUtils.DataType.INT_VEC4, deqpUtils.DataType.BOOL];
+        /** @type {Array.<gluShaderUtil.DataType>} */ var types0 = [gluShaderUtil.DataType.FLOAT, gluShaderUtil.DataType.INT, gluShaderUtil.DataType.BOOL_VEC4];
+        /** @type {Array.<gluShaderUtil.DataType>} */ var types1 = [gluShaderUtil.DataType.FLOAT_VEC4, gluShaderUtil.DataType.INT_VEC4, gluShaderUtil.DataType.BOOL];
         /** @type {UniformCollection} */ var res = new UniformCollection();
 
         DE_STATIC_ASSERT(types0.length == types1.length);
@@ -645,8 +645,8 @@ define([
 
         for (var i = 0; i < numUniforms; i++)
         {
-            /** @type {Array.<gluVT.StructType>} */ var structTypes = [];
-            /** @type {Uniform} */ var uniform = new Uniform('u_var' + i, new gluVT.VarType());
+            /** @type {Array.<gluVarType.StructType>} */ var structTypes = [];
+            /** @type {Uniform} */ var uniform = new Uniform('u_var' + i, new gluVarType.VarType());
 
             // \note Discard uniforms that would cause number of samplers to exceed MAX_NUM_SAMPLER_UNIFORMS.
             do
@@ -669,26 +669,26 @@ define([
      * @return {VarValue}
      */
     var getSamplerFillValue = function(sampler) {
-        DE_ASSERT(deqpUtils.isDataTypeSampler(sampler.type));
+        DE_ASSERT(gluShaderUtil.isDataTypeSampler(sampler.type));
 
         /** @type {VarValue} */ var result = new VarValue();
         result.type = getSamplerLookupReturnType(sampler.type);
 
         switch (result.type)
         {
-            case deqpUtils.DataType.FLOAT_VEC4:
+            case gluShaderUtil.DataType.FLOAT_VEC4:
                 for (var i = 0; i < 4; i++)
                     result.val[i] = sampler.val.samplerV.fillColor[i];
                 break;
-            case deqpUtils.DataType.UINT_VEC4:
+            case gluShaderUtil.DataType.UINT_VEC4:
                 for (var i = 0; i < 4; i++)
                     result.val[i] = sampler.val.samplerV.fillColor[i];
                 break;
-            case deqpUtils.DataType.INT_VEC4:
+            case gluShaderUtil.DataType.INT_VEC4:
                 for (var i = 0; i < 4; i++)
                     result.val[i] = sampler.val.samplerV.fillColor[i];
                 break;
-            case deqpUtils.DataType.FLOAT:
+            case gluShaderUtil.DataType.FLOAT:
                 result.val[0] = sampler.val.samplerV.fillColor[0];
                 break;
             default:
@@ -703,21 +703,21 @@ define([
      * @return {VarValue}
      */
     var getSamplerUnitValue = function(sampler) {
-        DE_ASSERT(deqpUtils.isDataTypeSampler(sampler.type));
+        DE_ASSERT(gluShaderUtil.isDataTypeSampler(sampler.type));
 
         /** @type {VarValue} */ var result = new VarValue();
-        result.type = deqpUtils.DataType.INT;
+        result.type = gluShaderUtil.DataType.INT;
         result.val[0] = sampler.val.samplerV.unit;
 
         return result;
     };
 
     /**
-     * @param {deqpUtils.DataType} original
-     * @return {deqpUtils.DataType}
+     * @param {gluShaderUtil.DataType} original
+     * @return {gluShaderUtil.DataType}
      */
     var getDataTypeTransposedMatrix = function(original) {
-        return deqpUtils.getDataTypeMatrix(deqpUtils.getDataTypeMatrixNumRows(original), deqpUtils.getDataTypeMatrixNumColumns(original));
+        return gluShaderUtil.getDataTypeMatrix(gluShaderUtil.getDataTypeMatrixNumRows(original), gluShaderUtil.getDataTypeMatrixNumColumns(original));
     };
 
     /**
@@ -725,10 +725,10 @@ define([
      * @return {VarValue}
      */
     var getTransposeMatrix = function(original) {
-        DE_ASSERT(deqpUtils.isDataTypeMatrix(original.type));
+        DE_ASSERT(gluShaderUtil.isDataTypeMatrix(original.type));
 
-        /** @type {number} */ var rows = deqpUtils.getDataTypeMatrixNumRows(original.type);
-        /** @type {number} */ var cols = deqpUtils.getDataTypeMatrixNumColumns(original.type);
+        /** @type {number} */ var rows = gluShaderUtil.getDataTypeMatrixNumRows(original.type);
+        /** @type {number} */ var cols = gluShaderUtil.getDataTypeMatrixNumColumns(original.type);
         /** @type {VarValue} */ var result = new VarValue();
         result.type = getDataTypeTransposedMatrix(original.type);
 
@@ -744,26 +744,26 @@ define([
      * @return {string}
      */
     var shaderVarValueStr = function(value) {
-        /** @type {number} */ var numElems = deqpUtils.getDataTypeScalarSize(value.type);
+        /** @type {number} */ var numElems = gluShaderUtil.getDataTypeScalarSize(value.type);
         /** @type {string} */ var result = '';
 
         if (numElems > 1)
-            result += deqpUtils.getDataTypeName(value.type) + '(';
+            result += gluShaderUtil.getDataTypeName(value.type) + '(';
 
         for (var i = 0; i < numElems; i++)
         {
             if (i > 0)
                 result += ', ';
 
-            if (deqpUtils.isDataTypeFloatOrVec(value.type) || deqpUtils.isDataTypeMatrix(value.type))
+            if (gluShaderUtil.isDataTypeFloatOrVec(value.type) || gluShaderUtil.isDataTypeMatrix(value.type))
                 result += value.val[i].toFixed(2);
-            else if (deqpUtils.isDataTypeIntOrIVec((value.type)))
+            else if (gluShaderUtil.isDataTypeIntOrIVec((value.type)))
                 result += value.val[i];
-            else if (deqpUtils.isDataTypeUintOrUVec((value.type)))
+            else if (gluShaderUtil.isDataTypeUintOrUVec((value.type)))
                 result += value.val[i] + 'u';
-            else if (deqpUtils.isDataTypeBoolOrBVec((value.type)))
+            else if (gluShaderUtil.isDataTypeBoolOrBVec((value.type)))
                 result += value.val[i] ? 'true' : 'false';
-            else if (deqpUtils.isDataTypeSampler((value.type)))
+            else if (gluShaderUtil.isDataTypeSampler((value.type)))
                 result += shaderVarValueStr(getSamplerFillValue(value));
             else
                 DE_ASSERT(false);
@@ -780,7 +780,7 @@ define([
      * @return {string}
      */
     var apiVarValueStr = function(value) {
-        /** @type {number} */ var numElems = deqpUtils.getDataTypeScalarSize(value.type);
+        /** @type {number} */ var numElems = gluShaderUtil.getDataTypeScalarSize(value.type);
         /** @type {string} */ var result = '';
 
         if (numElems > 1)
@@ -791,14 +791,14 @@ define([
             if (i > 0)
                 result += ', ';
 
-            if (deqpUtils.isDataTypeFloatOrVec(value.type) || deqpUtils.isDataTypeMatrix(value.type))
+            if (gluShaderUtil.isDataTypeFloatOrVec(value.type) || gluShaderUtil.isDataTypeMatrix(value.type))
                 result += value.val[i].toFixed(2);
-            else if (deqpUtils.isDataTypeIntOrIVec(value.type) ||
-                deqpUtils.isDataTypeUintOrUVec(value.type))
+            else if (gluShaderUtil.isDataTypeIntOrIVec(value.type) ||
+            gluShaderUtil.isDataTypeUintOrUVec(value.type))
                 result += value.val[i];
-            else if (deqpUtils.isDataTypeBoolOrBVec(value.type))
+            else if (gluShaderUtil.isDataTypeBoolOrBVec(value.type))
                 result += value.val[i] ? 'true' : 'false';
-            else if (deqpUtils.isDataTypeSampler(value.type))
+            else if (gluShaderUtil.isDataTypeSampler(value.type))
                 result += value.val.samplerV.unit;
             else
                 DE_ASSERT(false);
@@ -812,44 +812,44 @@ define([
 
     // samplerUnit used if type is a sampler type. \note Samplers' unit numbers are not randomized.
     /**
-     * @param {deqpUtils.DataType} type
+     * @param {gluShaderUtil.DataType} type
      * @param {deRandom.Random} rnd
      * @param {number} samplerUnit
      * @return {VarValue}
      */
     var generateRandomVarValue = function(type, rnd, samplerUnit) {
         if (samplerUnit === undefined) samplerUnit = -1;
-        /** @type {number} */ var numElems = deqpUtils.getDataTypeScalarSize(type);
+        /** @type {number} */ var numElems = gluShaderUtil.getDataTypeScalarSize(type);
         /** @type {VarValue} */ var result = new VarValue();
         result.type = type;
 
-        DE_ASSERT((samplerUnit >= 0) == (deqpUtils.isDataTypeSampler(type)));
+        DE_ASSERT((samplerUnit >= 0) == (gluShaderUtil.isDataTypeSampler(type)));
 
-        if (deqpUtils.isDataTypeFloatOrVec(type) || deqpUtils.isDataTypeMatrix(type))
+        if (gluShaderUtil.isDataTypeFloatOrVec(type) || gluShaderUtil.isDataTypeMatrix(type))
         {
             for (var i = 0; i < numElems; i++)
                 result.val[i] = rnd.getFloat(-10.0, 10.0);
         }
-        else if (deqpUtils.isDataTypeIntOrIVec(type))
+        else if (gluShaderUtil.isDataTypeIntOrIVec(type))
         {
             for (var i = 0; i < numElems; i++)
                 result.val[i] = rnd.getInt(-10, 10);
         }
-        else if (deqpUtils.isDataTypeUintOrUVec(type))
+        else if (gluShaderUtil.isDataTypeUintOrUVec(type))
         {
             for (var i = 0; i < numElems; i++)
                 result.val[i] = rnd.getInt(0, 10);
         }
-        else if (deqpUtils.isDataTypeBoolOrBVec(type))
+        else if (gluShaderUtil.isDataTypeBoolOrBVec(type))
         {
             for (var i = 0; i < numElems; i++)
                 result.val[i] = rnd.getBool();
         }
-        else if (deqpUtils.isDataTypeSampler(type))
+        else if (gluShaderUtil.isDataTypeSampler(type))
         {
-            /** @type {deqpUtils.DataType} */ var texResultType = getSamplerLookupReturnType(type);
-            /** @type {deqpUtils.DataType} */ var texResultScalarType = deqpUtils.getDataTypeScalarTypeAsDataType(texResultType);
-            /** @type {number} */ var texResultNumDims = deqpUtils.getDataTypeScalarSize(texResultType);
+            /** @type {gluShaderUtil.DataType} */ var texResultType = getSamplerLookupReturnType(type);
+            /** @type {gluShaderUtil.DataType} */ var texResultScalarType = gluShaderUtil.getDataTypeScalarTypeAsDataType(texResultType);
+            /** @type {number} */ var texResultNumDims = gluShaderUtil.getDataTypeScalarSize(texResultType);
 
             result.val = new SamplerV();
             result.val.samplerV.unit = samplerUnit;
@@ -858,9 +858,9 @@ define([
             {
                 switch (texResultScalarType)
                 {
-                    case deqpUtils.DataType.FLOAT: result.val.samplerV.fillColor[i] = rnd.getFloat(0.0, 1.0); break;
-                    case deqpUtils.DataType.INT: result.val.samplerV.fillColor[i] = rnd.getInt(-10, 10); break;
-                    case deqpUtils.DataType.UINT: result.val.samplerV.fillColor[i] = rnd.getInt(0, 10); break;
+                    case gluShaderUtil.DataType.FLOAT: result.val.samplerV.fillColor[i] = rnd.getFloat(0.0, 1.0); break;
+                    case gluShaderUtil.DataType.INT: result.val.samplerV.fillColor[i] = rnd.getInt(-10, 10); break;
+                    case gluShaderUtil.DataType.UINT: result.val.samplerV.fillColor[i] = rnd.getInt(0, 10); break;
                     default:
                         DE_ASSERT(false);
                 }
@@ -873,39 +873,39 @@ define([
     };
 
     /**
-     * @param {deqpUtils.DataType} type
+     * @param {gluShaderUtil.DataType} type
      * @return {VarValue}
      */
     var generateZeroVarValue = function(type) {
-        /** @type {number} */ var numElems = deqpUtils.getDataTypeScalarSize(type);
+        /** @type {number} */ var numElems = gluShaderUtil.getDataTypeScalarSize(type);
         /** @type {VarValue} */ var result = new VarValue();
         result.type = type;
 
-        if (deqpUtils.isDataTypeFloatOrVec(type) || deqpUtils.isDataTypeMatrix(type))
+        if (gluShaderUtil.isDataTypeFloatOrVec(type) || gluShaderUtil.isDataTypeMatrix(type))
         {
             for (var i = 0; i < numElems; i++)
                 result.val[i] = 0.0;
         }
-        else if (deqpUtils.isDataTypeIntOrIVec(type))
+        else if (gluShaderUtil.isDataTypeIntOrIVec(type))
         {
             for (var i = 0; i < numElems; i++)
                 result.val[i] = 0;
         }
-        else if (deqpUtils.isDataTypeUintOrUVec(type))
+        else if (gluShaderUtil.isDataTypeUintOrUVec(type))
         {
             for (var i = 0; i < numElems; i++)
                 result.val[i] = 0;
         }
-        else if (deqpUtils.isDataTypeBoolOrBVec(type))
+        else if (gluShaderUtil.isDataTypeBoolOrBVec(type))
         {
             for (var i = 0; i < numElems; i++)
                 result.val[i] = false;
         }
-        else if (deqpUtils.isDataTypeSampler(type))
+        else if (gluShaderUtil.isDataTypeSampler(type))
         {
-            /** @type {deqpUtils.DataType} */ var texResultType = getSamplerLookupReturnType(type);
-            /** @type {deqpUtils.DataType} */ var texResultScalarType = deqpUtils.getDataTypeScalarTypeAsDataType(texResultType);
-            /** @type {number} */ var texResultNumDims = deqpUtils.getDataTypeScalarSize(texResultType);
+            /** @type {gluShaderUtil.DataType} */ var texResultType = getSamplerLookupReturnType(type);
+            /** @type {gluShaderUtil.DataType} */ var texResultScalarType = gluShaderUtil.getDataTypeScalarTypeAsDataType(texResultType);
+            /** @type {number} */ var texResultNumDims = gluShaderUtil.getDataTypeScalarSize(texResultType);
 
             result.val = new SamplerV();
             result.val.samplerV.unit = 0;
@@ -914,9 +914,9 @@ define([
             {
                 switch (texResultScalarType)
                 {
-                    case deqpUtils.DataType.FLOAT: result.val.samplerV.fillColor[i] = 0.12 * i; break;
-                    case deqpUtils.DataType.INT: result.val.samplerV.fillColor[i] = -2 + i; break;
-                    case deqpUtils.DataType.UINT: result.val.samplerV.fillColor[i] = 4 + i; break;
+                    case gluShaderUtil.DataType.FLOAT: result.val.samplerV.fillColor[i] = 0.12 * i; break;
+                    case gluShaderUtil.DataType.INT: result.val.samplerV.fillColor[i] = -2 + i; break;
+                    case gluShaderUtil.DataType.UINT: result.val.samplerV.fillColor[i] = 4 + i; break;
                     default:
                         DE_ASSERT(false);
                 }
@@ -934,36 +934,36 @@ define([
      * @return {boolean}
      */
     var apiVarValueEquals = function(a, b) {
-        /** @type {number} */ var size = deqpUtils.getDataTypeScalarSize(a.type);
+        /** @type {number} */ var size = gluShaderUtil.getDataTypeScalarSize(a.type);
         /** @type {number} */ var floatThreshold = 0.05;
 
         DE_ASSERT(a.type == b.type);
 
-        if (deqpUtils.isDataTypeFloatOrVec(a.type) || deqpUtils.isDataTypeMatrix(a.type))
+        if (gluShaderUtil.isDataTypeFloatOrVec(a.type) || gluShaderUtil.isDataTypeMatrix(a.type))
         {
             for (var i = 0; i < size; i++)
                 if (Math.abs(a.val[i] - b.val[i]) >= floatThreshold)
                     return false;
         }
-        else if (deqpUtils.isDataTypeIntOrIVec(a.type))
+        else if (gluShaderUtil.isDataTypeIntOrIVec(a.type))
         {
             for (var i = 0; i < size; i++)
                 if (a.val[i] != b.val[i])
                     return false;
         }
-        else if (deqpUtils.isDataTypeUintOrUVec(a.type))
+        else if (gluShaderUtil.isDataTypeUintOrUVec(a.type))
         {
             for (var i = 0; i < size; i++)
                 if (a.val[i] != b.val[i])
                     return false;
         }
-        else if (deqpUtils.isDataTypeBoolOrBVec(a.type))
+        else if (gluShaderUtil.isDataTypeBoolOrBVec(a.type))
         {
             for (var i = 0; i < size; i++)
                 if (a.val[i] != b.val[i])
                     return false;
         }
-        else if (deqpUtils.isDataTypeSampler(a.type))
+        else if (gluShaderUtil.isDataTypeSampler(a.type))
         {
             if (a.val.samplerV.unit != b.val.samplerV.unit)
                 return false;
@@ -976,21 +976,21 @@ define([
 
     /**
      * @param {VarValue} boolValue
-     * @param {deqpUtils.DataType} targetScalarType
+     * @param {gluShaderUtil.DataType} targetScalarType
      * @param {deRandom.Random} rnd
      * @return {VarValue}
      */
     var getRandomBoolRepresentation = function(boolValue, targetScalarType, rnd) {
-        DE_ASSERT(deqpUtils.isDataTypeBoolOrBVec(boolValue.type));
+        DE_ASSERT(gluShaderUtil.isDataTypeBoolOrBVec(boolValue.type));
 
-        /** @type {number} */ var size = deqpUtils.getDataTypeScalarSize(boolValue.type);
-        /** @type {deqpUtils.DataType} */ var targetType = size == 1 ? targetScalarType : deqpUtils.getDataTypeVector(targetScalarType, size);
+        /** @type {number} */ var size = gluShaderUtil.getDataTypeScalarSize(boolValue.type);
+        /** @type {gluShaderUtil.DataType} */ var targetType = size == 1 ? targetScalarType : gluShaderUtil.getDataTypeVector(targetScalarType, size);
         /** @type {VarValue} */ var result = new VarValue();
         result.type = targetType;
 
         switch (targetScalarType)
         {
-            case deqpUtils.DataType.INT:
+            case gluShaderUtil.DataType.INT:
                 for (var i = 0; i < size; i++)
                 {
                     if (boolValue.val[i])
@@ -1004,7 +1004,7 @@ define([
                 }
                 break;
 
-            case deqpUtils.DataType.UINT:
+            case gluShaderUtil.DataType.UINT:
                 for (var i = 0; i < size; i++)
                 {
                     if (boolValue.val[i])
@@ -1014,7 +1014,7 @@ define([
                 }
                 break;
 
-            case deqpUtils.DataType.FLOAT:
+            case gluShaderUtil.DataType.FLOAT:
                 for (var i = 0; i < size; i++)
                 {
                     if (boolValue.val[i])
@@ -1096,7 +1096,7 @@ define([
     /**
      * @constructor
      * @param {string} name_
-     * @param {deqpUtils.DataType} type_
+     * @param {gluShaderUtil.DataType} type_
      * @param {boolean} isUsedInShader_
      * @param {VarValue} finalValue_
      * @param {string} rootName_
@@ -1105,7 +1105,7 @@ define([
      */
     var BasicUniform = function(name_, type_, isUsedInShader_, finalValue_, rootName_, elemNdx_, rootSize_) {
         /** @type {string} */ this.name = name_;
-        /** @type {deqpUtils.DataType} */ this.type = type_;
+        /** @type {gluShaderUtil.DataType} */ this.type = type_;
         /** @type {boolean} */ this.isUsedInShader = isUsedInShader_;
         /** @type {VarValue} */ this.finalValue = finalValue_; //!< The value we ultimately want to set for this uniform.
 
@@ -1132,7 +1132,7 @@ define([
     /**
      * @constructor
      * @param {string} name_
-     * @param {deqpUtils.DataType} type_
+     * @param {gluShaderUtil.DataType} type_
      * @param {boolean} used
      */
     var BasicUniformReportRef = function(name_, type_, used) {
@@ -1140,7 +1140,7 @@ define([
         // \note minSize and maxSize are for arrays and can be distinct since implementations are allowed, but not required, to trim the inactive end indices of arrays.
         /** @type {number} */ this.minSize = 1;
         /** @type {number} */ this.maxSize = 1;
-        /** @type {deqpUtils.DataType} */ this.type = type_;
+        /** @type {gluShaderUtil.DataType} */ this.type = type_;
         /** @type {boolean} */ this.isUsedInShader = used;
     };
 
@@ -1165,7 +1165,7 @@ define([
      * @param {string} name_
      * @param {number} nameLength_
      * @param {number} size_
-     * @param {deqpUtils.DataType} type_
+     * @param {gluShaderUtil.DataType} type_
      * @param {number} index_
      */
     var BasicUniformReportGL = function(name_, nameLength_, size_, type_, index_) {
@@ -1198,7 +1198,7 @@ define([
      * @param {deMath.deUint32} seed
      */
     var UniformCase = function(name, description, seed) { // \note Randomizes caseType, uniformCollection and features.
-        deqpTests.DeqpTest.call(this, name, description);
+        tcuTestCase.DeqpTest.call(this, name, description);
 
         /** @type {Feature} */ this.m_features = this.randomFeatures(seed);
         /** @type {UniformCollection} (SharedPtr) */ this.m_uniformCollection = UniformCollection.random(seed);
@@ -1210,7 +1210,7 @@ define([
         /** @type {Array.<deMath.deUint32>} */ this.m_filledTextureUnits = [];
     };
 
-    UniformCase.prototype = Object.create(deqpTests.DeqpTest.prototype);
+    UniformCase.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
     /** UniformCase prototype restore */
     UniformCase.prototype.constructor = UniformCase;
 
@@ -1319,7 +1319,7 @@ define([
     /**
      * @param {Array.<BasicUniform>} basicUniformsDst
      * @param {Array.<BasicUniformReportRef>} basicUniformReportsDst
-     * @param {gluVT.VarType} varType
+     * @param {gluVarType.VarType} varType
      * @param {string} varName
      * @param {boolean} isParentActive
      * @param {number} samplerUnitCounter
@@ -1330,9 +1330,9 @@ define([
         if (varType.isBasicType())
         {
             /** @type {boolean} */ var isActive = isParentActive && (this.m_features.UNIFORMUSAGE_EVERY_OTHER ? basicUniformsDst.length % 2 == 0 : true);
-            /** @type {deqpUtils.DataType} */ var type = varType.getBasicType();
+            /** @type {gluShaderUtil.DataType} */ var type = varType.getBasicType();
             /** @type {VarValue} */ var value = this.m_features.UNIFORMVALUE_ZERO ? generateZeroVarValue(type) :
-                                                deqpUtils.isDataTypeSampler(type) ? generateRandomVarValue(type, rnd, samplerUnitCounter++) :
+            gluShaderUtil.isDataTypeSampler(type) ? generateRandomVarValue(type, rnd, samplerUnitCounter++) :
                                                 generateRandomVarValue(varType.getBasicType(), rnd);
 
             basicUniformsDst.push(new BasicUniform(varName, varType.getBasicType(), isActive, value));
@@ -1356,9 +1356,9 @@ define([
                 if (varType.getElementType().isBasicType())
                 {
                     // \note We don't want separate entries in basicUniformReportsDst for elements of basic-type arrays.
-                    /** @type {deqpUtils.DataType} */ var elemBasicType = varType.getElementType().getBasicType();
+                    /** @type {gluShaderUtil.DataType} */ var elemBasicType = varType.getElementType().getBasicType();
                     /** @type {VarValue} */ var value = this.m_features.UNIFORMVALUE_ZERO ? generateZeroVarValue(elemBasicType) :
-                                                        deqpUtils.isDataTypeSampler(elemBasicType) ? generateRandomVarValue(elemBasicType, rnd, samplerUnitCounter++) :
+                    gluShaderUtil.isDataTypeSampler(elemBasicType) ? generateRandomVarValue(elemBasicType, rnd, samplerUnitCounter++) :
                                                         generateRandomVarValue(elemBasicType, rnd);
 
                     basicUniformsDst.push(new BasicUniform(indexedName, elemBasicType, isCurElemActive, value, arrayRootName, elemNdx, size));
@@ -1379,11 +1379,11 @@ define([
         {
             DE_ASSERT(varType.isStructType());
 
-            /** @type {gluVT.StructType} */ var structType = varType.getStruct();
+            /** @type {gluVarType.StructType} */ var structType = varType.getStruct();
 
             for (var i = 0; i < structType.getSize(); i++)
             {
-                /** @type {gluVT.StructMember} */ var member = structType.getMember(i);
+                /** @type {gluVarType.StructMember} */ var member = structType.getMember(i);
                 /** @type {string} */ var memberFullName = '' + varName + '.' + member.getName();
 
                 samplerUnitCounter = this.generateBasicUniforms(basicUniformsDst, basicUniformReportsDst, member.getType(), memberFullName, isParentActive, samplerUnitCounter, rnd);
@@ -1399,43 +1399,43 @@ define([
      */
     UniformCase.prototype.writeUniformDefinitions = function(dst) {
         for (var i = 0; i < this.m_uniformCollection.getNumStructTypes(); i++)
-            dst += gluVT.declareStructType(this.m_uniformCollection.getStructType(i), 0) + ';\n';
+            dst += gluVarType.declareStructType(this.m_uniformCollection.getStructType(i), 0) + ';\n';
 
         for (var i = 0; i < this.m_uniformCollection.getNumUniforms(); i++)
-            dst += 'uniform ' + gluVT.declareVariable(this.m_uniformCollection.getUniform(i).type, this.m_uniformCollection.getUniform(i).name, 0) + ';\n';
+            dst += 'uniform ' + gluVarType.declareVariable(this.m_uniformCollection.getUniform(i).type, this.m_uniformCollection.getUniform(i).name, 0) + ';\n';
 
         dst += '\n';
 
         var compareFuncs =
         [
-            { requiringTypes: [deqpUtils.isDataTypeFloatOrVec, deqpUtils.isDataTypeMatrix], definition: 'mediump float compare_float    (mediump float a, mediump float b)  { return abs(a - b) < 0.05 ? 1.0 : 0.0; }'},
-            { requiringTypes: [function(t) {return dataTypeEquals(deqpUtils.DataType.FLOAT_VEC2, t);}, function(t) {return dataTypeIsMatrixWithNRows(2, t);}], definition: 'mediump float compare_vec2     (mediump vec2 a, mediump vec2 b)    { return compare_float(a.x, b.x)*compare_float(a.y, b.y); }'},
-            { requiringTypes: [function(t) {return dataTypeEquals(deqpUtils.DataType.FLOAT_VEC3, t);}, function(t) {return dataTypeIsMatrixWithNRows(3, t);}], definition: 'mediump float compare_vec3     (mediump vec3 a, mediump vec3 b)    { return compare_float(a.x, b.x)*compare_float(a.y, b.y)*compare_float(a.z, b.z); }'},
-            { requiringTypes: [function(t) {return dataTypeEquals(deqpUtils.DataType.FLOAT_VEC4, t);}, function(t) {return dataTypeIsMatrixWithNRows(4, t);}], definition: 'mediump float compare_vec4     (mediump vec4 a, mediump vec4 b)    { return compare_float(a.x, b.x)*compare_float(a.y, b.y)*compare_float(a.z, b.z)*compare_float(a.w, b.w); }'},
-            { requiringTypes: [function(t) {return dataTypeEquals(deqpUtils.DataType.FLOAT_MAT2, t);}, function(t) {return dataTypeEquals(deqpUtils.DataType.INVALID, t);}], definition: 'mediump float compare_mat2     (mediump mat2 a, mediump mat2 b)    { return compare_vec2(a[0], b[0])*compare_vec2(a[1], b[1]); }'},
-            { requiringTypes: [function(t) {return dataTypeEquals(deqpUtils.DataType.FLOAT_MAT2X3, t);}, function(t) {return dataTypeEquals(deqpUtils.DataType.INVALID, t);}], definition: 'mediump float compare_mat2x3   (mediump mat2x3 a, mediump mat2x3 b){ return compare_vec3(a[0], b[0])*compare_vec3(a[1], b[1]); }'},
-            { requiringTypes: [function(t) {return dataTypeEquals(deqpUtils.DataType.FLOAT_MAT2X4, t);}, function(t) {return dataTypeEquals(deqpUtils.DataType.INVALID, t);}], definition: 'mediump float compare_mat2x4   (mediump mat2x4 a, mediump mat2x4 b){ return compare_vec4(a[0], b[0])*compare_vec4(a[1], b[1]); }'},
-            { requiringTypes: [function(t) {return dataTypeEquals(deqpUtils.DataType.FLOAT_MAT3X2, t);}, function(t) {return dataTypeEquals(deqpUtils.DataType.INVALID, t);}], definition: 'mediump float compare_mat3x2   (mediump mat3x2 a, mediump mat3x2 b){ return compare_vec2(a[0], b[0])*compare_vec2(a[1], b[1])*compare_vec2(a[2], b[2]); }'},
-            { requiringTypes: [function(t) {return dataTypeEquals(deqpUtils.DataType.FLOAT_MAT3, t);}, function(t) {return dataTypeEquals(deqpUtils.DataType.INVALID, t);}], definition: 'mediump float compare_mat3     (mediump mat3 a, mediump mat3 b)    { return compare_vec3(a[0], b[0])*compare_vec3(a[1], b[1])*compare_vec3(a[2], b[2]); }'},
-            { requiringTypes: [function(t) {return dataTypeEquals(deqpUtils.DataType.FLOAT_MAT3X4, t);}, function(t) {return dataTypeEquals(deqpUtils.DataType.INVALID, t);}], definition: 'mediump float compare_mat3x4   (mediump mat3x4 a, mediump mat3x4 b){ return compare_vec4(a[0], b[0])*compare_vec4(a[1], b[1])*compare_vec4(a[2], b[2]); }'},
-            { requiringTypes: [function(t) {return dataTypeEquals(deqpUtils.DataType.FLOAT_MAT4X2, t);}, function(t) {return dataTypeEquals(deqpUtils.DataType.INVALID, t);}], definition: 'mediump float compare_mat4x2   (mediump mat4x2 a, mediump mat4x2 b){ return compare_vec2(a[0], b[0])*compare_vec2(a[1], b[1])*compare_vec2(a[2], b[2])*compare_vec2(a[3], b[3]); }'},
-            { requiringTypes: [function(t) {return dataTypeEquals(deqpUtils.DataType.FLOAT_MAT4X3, t);}, function(t) {return dataTypeEquals(deqpUtils.DataType.INVALID, t);}], definition: 'mediump float compare_mat4x3   (mediump mat4x3 a, mediump mat4x3 b){ return compare_vec3(a[0], b[0])*compare_vec3(a[1], b[1])*compare_vec3(a[2], b[2])*compare_vec3(a[3], b[3]); }'},
-            { requiringTypes: [function(t) {return dataTypeEquals(deqpUtils.DataType.FLOAT_MAT4, t);}, function(t) {return dataTypeEquals(deqpUtils.DataType.INVALID, t);}], definition: 'mediump float compare_mat4     (mediump mat4 a, mediump mat4 b)    { return compare_vec4(a[0], b[0])*compare_vec4(a[1], b[1])*compare_vec4(a[2], b[2])*compare_vec4(a[3], b[3]); }'},
-            { requiringTypes: [function(t) {return dataTypeEquals(deqpUtils.DataType.INT, t);}, function(t) {return dataTypeEquals(deqpUtils.DataType.INVALID, t);}], definition: 'mediump float compare_int      (mediump int a, mediump int b)      { return a == b ? 1.0 : 0.0; }'},
-            { requiringTypes: [function(t) {return dataTypeEquals(deqpUtils.DataType.INT_VEC2, t);}, function(t) {return dataTypeEquals(deqpUtils.DataType.INVALID, t);}], definition: 'mediump float compare_ivec2    (mediump ivec2 a, mediump ivec2 b)  { return a == b ? 1.0 : 0.0; }'},
-            { requiringTypes: [function(t) {return dataTypeEquals(deqpUtils.DataType.INT_VEC3, t);}, function(t) {return dataTypeEquals(deqpUtils.DataType.INVALID, t);}], definition: 'mediump float compare_ivec3    (mediump ivec3 a, mediump ivec3 b)  { return a == b ? 1.0 : 0.0; }'},
-            { requiringTypes: [function(t) {return dataTypeEquals(deqpUtils.DataType.INT_VEC4, t);}, function(t) {return dataTypeEquals(deqpUtils.DataType.INVALID, t);}], definition: 'mediump float compare_ivec4    (mediump ivec4 a, mediump ivec4 b)  { return a == b ? 1.0 : 0.0; }'},
-            { requiringTypes: [function(t) {return dataTypeEquals(deqpUtils.DataType.UINT, t);}, function(t) {return dataTypeEquals(deqpUtils.DataType.INVALID, t);}], definition: 'mediump float compare_uint     (mediump uint a, mediump uint b)    { return a == b ? 1.0 : 0.0; }'},
-            { requiringTypes: [function(t) {return dataTypeEquals(deqpUtils.DataType.UINT_VEC2, t);}, function(t) {return dataTypeEquals(deqpUtils.DataType.INVALID, t);}], definition: 'mediump float compare_uvec2    (mediump uvec2 a, mediump uvec2 b)  { return a == b ? 1.0 : 0.0; }'},
-            { requiringTypes: [function(t) {return dataTypeEquals(deqpUtils.DataType.UINT_VEC3, t);}, function(t) {return dataTypeEquals(deqpUtils.DataType.INVALID, t);}], definition: 'mediump float compare_uvec3    (mediump uvec3 a, mediump uvec3 b)  { return a == b ? 1.0 : 0.0; }'},
-            { requiringTypes: [function(t) {return dataTypeEquals(deqpUtils.DataType.UINT_VEC4, t);}, function(t) {return dataTypeEquals(deqpUtils.DataType.INVALID, t);}], definition: 'mediump float compare_uvec4    (mediump uvec4 a, mediump uvec4 b)  { return a == b ? 1.0 : 0.0; }'},
-            { requiringTypes: [function(t) {return dataTypeEquals(deqpUtils.DataType.BOOL, t);}, function(t) {return dataTypeEquals(deqpUtils.DataType.INVALID, t);}], definition: 'mediump float compare_bool     (bool a, bool b)                    { return a == b ? 1.0 : 0.0; }'},
-            { requiringTypes: [function(t) {return dataTypeEquals(deqpUtils.DataType.BOOL_VEC2, t);}, function(t) {return dataTypeEquals(deqpUtils.DataType.INVALID, t);}], definition: 'mediump float compare_bvec2    (bvec2 a, bvec2 b)                  { return a == b ? 1.0 : 0.0; }'},
-            { requiringTypes: [function(t) {return dataTypeEquals(deqpUtils.DataType.BOOL_VEC3, t);}, function(t) {return dataTypeEquals(deqpUtils.DataType.INVALID, t);}], definition: 'mediump float compare_bvec3    (bvec3 a, bvec3 b)                  { return a == b ? 1.0 : 0.0; }'},
-            { requiringTypes: [function(t) {return dataTypeEquals(deqpUtils.DataType.BOOL_VEC4, t);}, function(t) {return dataTypeEquals(deqpUtils.DataType.INVALID, t);}], definition: 'mediump float compare_bvec4    (bvec4 a, bvec4 b)                  { return a == b ? 1.0 : 0.0; }'}
+            { requiringTypes: [gluShaderUtil.isDataTypeFloatOrVec, gluShaderUtil.isDataTypeMatrix], definition: 'mediump float compare_float    (mediump float a, mediump float b)  { return abs(a - b) < 0.05 ? 1.0 : 0.0; }'},
+            { requiringTypes: [function(t) {return dataTypeEquals(gluShaderUtil.DataType.FLOAT_VEC2, t);}, function(t) {return dataTypeIsMatrixWithNRows(2, t);}], definition: 'mediump float compare_vec2     (mediump vec2 a, mediump vec2 b)    { return compare_float(a.x, b.x)*compare_float(a.y, b.y); }'},
+            { requiringTypes: [function(t) {return dataTypeEquals(gluShaderUtil.DataType.FLOAT_VEC3, t);}, function(t) {return dataTypeIsMatrixWithNRows(3, t);}], definition: 'mediump float compare_vec3     (mediump vec3 a, mediump vec3 b)    { return compare_float(a.x, b.x)*compare_float(a.y, b.y)*compare_float(a.z, b.z); }'},
+            { requiringTypes: [function(t) {return dataTypeEquals(gluShaderUtil.DataType.FLOAT_VEC4, t);}, function(t) {return dataTypeIsMatrixWithNRows(4, t);}], definition: 'mediump float compare_vec4     (mediump vec4 a, mediump vec4 b)    { return compare_float(a.x, b.x)*compare_float(a.y, b.y)*compare_float(a.z, b.z)*compare_float(a.w, b.w); }'},
+            { requiringTypes: [function(t) {return dataTypeEquals(gluShaderUtil.DataType.FLOAT_MAT2, t);}, function(t) {return dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}], definition: 'mediump float compare_mat2     (mediump mat2 a, mediump mat2 b)    { return compare_vec2(a[0], b[0])*compare_vec2(a[1], b[1]); }'},
+            { requiringTypes: [function(t) {return dataTypeEquals(gluShaderUtil.DataType.FLOAT_MAT2X3, t);}, function(t) {return dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}], definition: 'mediump float compare_mat2x3   (mediump mat2x3 a, mediump mat2x3 b){ return compare_vec3(a[0], b[0])*compare_vec3(a[1], b[1]); }'},
+            { requiringTypes: [function(t) {return dataTypeEquals(gluShaderUtil.DataType.FLOAT_MAT2X4, t);}, function(t) {return dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}], definition: 'mediump float compare_mat2x4   (mediump mat2x4 a, mediump mat2x4 b){ return compare_vec4(a[0], b[0])*compare_vec4(a[1], b[1]); }'},
+            { requiringTypes: [function(t) {return dataTypeEquals(gluShaderUtil.DataType.FLOAT_MAT3X2, t);}, function(t) {return dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}], definition: 'mediump float compare_mat3x2   (mediump mat3x2 a, mediump mat3x2 b){ return compare_vec2(a[0], b[0])*compare_vec2(a[1], b[1])*compare_vec2(a[2], b[2]); }'},
+            { requiringTypes: [function(t) {return dataTypeEquals(gluShaderUtil.DataType.FLOAT_MAT3, t);}, function(t) {return dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}], definition: 'mediump float compare_mat3     (mediump mat3 a, mediump mat3 b)    { return compare_vec3(a[0], b[0])*compare_vec3(a[1], b[1])*compare_vec3(a[2], b[2]); }'},
+            { requiringTypes: [function(t) {return dataTypeEquals(gluShaderUtil.DataType.FLOAT_MAT3X4, t);}, function(t) {return dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}], definition: 'mediump float compare_mat3x4   (mediump mat3x4 a, mediump mat3x4 b){ return compare_vec4(a[0], b[0])*compare_vec4(a[1], b[1])*compare_vec4(a[2], b[2]); }'},
+            { requiringTypes: [function(t) {return dataTypeEquals(gluShaderUtil.DataType.FLOAT_MAT4X2, t);}, function(t) {return dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}], definition: 'mediump float compare_mat4x2   (mediump mat4x2 a, mediump mat4x2 b){ return compare_vec2(a[0], b[0])*compare_vec2(a[1], b[1])*compare_vec2(a[2], b[2])*compare_vec2(a[3], b[3]); }'},
+            { requiringTypes: [function(t) {return dataTypeEquals(gluShaderUtil.DataType.FLOAT_MAT4X3, t);}, function(t) {return dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}], definition: 'mediump float compare_mat4x3   (mediump mat4x3 a, mediump mat4x3 b){ return compare_vec3(a[0], b[0])*compare_vec3(a[1], b[1])*compare_vec3(a[2], b[2])*compare_vec3(a[3], b[3]); }'},
+            { requiringTypes: [function(t) {return dataTypeEquals(gluShaderUtil.DataType.FLOAT_MAT4, t);}, function(t) {return dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}], definition: 'mediump float compare_mat4     (mediump mat4 a, mediump mat4 b)    { return compare_vec4(a[0], b[0])*compare_vec4(a[1], b[1])*compare_vec4(a[2], b[2])*compare_vec4(a[3], b[3]); }'},
+            { requiringTypes: [function(t) {return dataTypeEquals(gluShaderUtil.DataType.INT, t);}, function(t) {return dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}], definition: 'mediump float compare_int      (mediump int a, mediump int b)      { return a == b ? 1.0 : 0.0; }'},
+            { requiringTypes: [function(t) {return dataTypeEquals(gluShaderUtil.DataType.INT_VEC2, t);}, function(t) {return dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}], definition: 'mediump float compare_ivec2    (mediump ivec2 a, mediump ivec2 b)  { return a == b ? 1.0 : 0.0; }'},
+            { requiringTypes: [function(t) {return dataTypeEquals(gluShaderUtil.DataType.INT_VEC3, t);}, function(t) {return dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}], definition: 'mediump float compare_ivec3    (mediump ivec3 a, mediump ivec3 b)  { return a == b ? 1.0 : 0.0; }'},
+            { requiringTypes: [function(t) {return dataTypeEquals(gluShaderUtil.DataType.INT_VEC4, t);}, function(t) {return dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}], definition: 'mediump float compare_ivec4    (mediump ivec4 a, mediump ivec4 b)  { return a == b ? 1.0 : 0.0; }'},
+            { requiringTypes: [function(t) {return dataTypeEquals(gluShaderUtil.DataType.UINT, t);}, function(t) {return dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}], definition: 'mediump float compare_uint     (mediump uint a, mediump uint b)    { return a == b ? 1.0 : 0.0; }'},
+            { requiringTypes: [function(t) {return dataTypeEquals(gluShaderUtil.DataType.UINT_VEC2, t);}, function(t) {return dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}], definition: 'mediump float compare_uvec2    (mediump uvec2 a, mediump uvec2 b)  { return a == b ? 1.0 : 0.0; }'},
+            { requiringTypes: [function(t) {return dataTypeEquals(gluShaderUtil.DataType.UINT_VEC3, t);}, function(t) {return dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}], definition: 'mediump float compare_uvec3    (mediump uvec3 a, mediump uvec3 b)  { return a == b ? 1.0 : 0.0; }'},
+            { requiringTypes: [function(t) {return dataTypeEquals(gluShaderUtil.DataType.UINT_VEC4, t);}, function(t) {return dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}], definition: 'mediump float compare_uvec4    (mediump uvec4 a, mediump uvec4 b)  { return a == b ? 1.0 : 0.0; }'},
+            { requiringTypes: [function(t) {return dataTypeEquals(gluShaderUtil.DataType.BOOL, t);}, function(t) {return dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}], definition: 'mediump float compare_bool     (bool a, bool b)                    { return a == b ? 1.0 : 0.0; }'},
+            { requiringTypes: [function(t) {return dataTypeEquals(gluShaderUtil.DataType.BOOL_VEC2, t);}, function(t) {return dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}], definition: 'mediump float compare_bvec2    (bvec2 a, bvec2 b)                  { return a == b ? 1.0 : 0.0; }'},
+            { requiringTypes: [function(t) {return dataTypeEquals(gluShaderUtil.DataType.BOOL_VEC3, t);}, function(t) {return dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}], definition: 'mediump float compare_bvec3    (bvec3 a, bvec3 b)                  { return a == b ? 1.0 : 0.0; }'},
+            { requiringTypes: [function(t) {return dataTypeEquals(gluShaderUtil.DataType.BOOL_VEC4, t);}, function(t) {return dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}], definition: 'mediump float compare_bvec4    (bvec4 a, bvec4 b)                  { return a == b ? 1.0 : 0.0; }'}
         ];
 
-        /** @type {Array.<deqpUtils.DataType>} */ var samplerTypes = this.m_uniformCollection.getSamplerTypes();
+        /** @type {Array.<gluShaderUtil.DataType>} */ var samplerTypes = this.m_uniformCollection.getSamplerTypes();
 
         for (var compFuncNdx = 0; compFuncNdx < compareFuncs.length; compFuncNdx++)
         {
@@ -1444,9 +1444,9 @@ define([
 
             for (var i = 0; i < samplerTypes.length; i++)
             {
-                if (deqpUtils.isDataTypeSampler(samplerTypes[i]))
+                if (gluShaderUtil.isDataTypeSampler(samplerTypes[i]))
                 {
-                    /** @type {deqpUtils.DataType} */ var retType = getSamplerLookupReturnType(samplerTypes[i]);
+                    /** @type {gluShaderUtil.DataType} */ var retType = getSamplerLookupReturnType(samplerTypes[i]);
                     if (typeReq[0](retType) || typeReq[1](retType))
                     {
                         containsTypeSampler = true;
@@ -1468,10 +1468,10 @@ define([
      * @return {string} Used to write the string in the output parameter
      */
     UniformCase.prototype.writeUniformCompareExpr = function(dst, uniform) {
-        if (deqpUtils.isDataTypeSampler(uniform.type))
-            dst += 'compare_' + deqpUtils.getDataTypeName(getSamplerLookupReturnType(uniform.type)) + '(texture(' + uniform.name + ', vec' + getSamplerNumLookupDimensions(uniform.type) + '(0.0))'; //WebGL2.0
+        if (gluShaderUtil.isDataTypeSampler(uniform.type))
+            dst += 'compare_' + gluShaderUtil.getDataTypeName(getSamplerLookupReturnType(uniform.type)) + '(texture(' + uniform.name + ', vec' + getSamplerNumLookupDimensions(uniform.type) + '(0.0))'; //WebGL2.0
         else
-            dst += 'compare_' + deqpUtils.getDataTypeName(uniform.type) + '(' + uniform.name;
+            dst += 'compare_' + gluShaderUtil.getDataTypeName(uniform.type) + '(' + uniform.name;
 
         dst += ', ' + shaderVarValueStr(uniform.finalValue) + ')';
 
@@ -1569,13 +1569,13 @@ define([
     UniformCase.prototype.setupTexture = function(value) {
         // \note No handling for samplers other than 2D or cube.
 
-        DE_ASSERT(getSamplerLookupReturnType(value.type) == deqpUtils.DataType.FLOAT_VEC4);
+        DE_ASSERT(getSamplerLookupReturnType(value.type) == gluShaderUtil.DataType.FLOAT_VEC4);
 
         /** @type {number} */ var width = 32;
         /** @type {number} */ var height = 32;
         /** @type {Array.<number>} */ var color = value.val.samplerV.fillColor;
 
-        if (value.type == deqpUtils.DataType.SAMPLER_2D)
+        if (value.type == gluShaderUtil.DataType.SAMPLER_2D)
         {
             /** @type {gluTexture.Texture2D} */ var texture = gluTexture.texture2DFromFormat(gl, gl.RGBA, gl.UNSIGNED_BYTE, width, height);
             /** @type {tcuTexture.Texture2D} */ var refTexture = texture.getRefTexture();
@@ -1592,7 +1592,7 @@ define([
             gluDefs.GLU_CHECK_CALL(function() {gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);});
             gluDefs.GLU_CHECK_CALL(function() {gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);});
         }
-        else if (value.type == deqpUtils.DataType.SAMPLER_CUBE)
+        else if (value.type == gluShaderUtil.DataType.SAMPLER_CUBE)
         {
             DE_ASSERT(width == height);
 
@@ -1635,7 +1635,7 @@ define([
         {
             /** @type {number} (GLint)*/ var reportedSize = -1;
             /** @type {number} (GLenum)*/ var reportedTypeGL = gl.NONE;
-            /** @type {deqpUtils.DataType} */ var reportedType;
+            /** @type {gluShaderUtil.DataType} */ var reportedType;
             /** @type {string} */ var reportedNameStr;
             /** @type {WebGLActiveInfo} */ var activeInfo;
 
@@ -1645,11 +1645,11 @@ define([
             reportedTypeGL = activeInfo.type;
             reportedSize = activeInfo.size;
 
-            reportedType = deqpUtils.getDataTypeFromGLType(reportedTypeGL);
+            reportedType = gluShaderUtil.getDataTypeFromGLType(reportedTypeGL);
 
             //TODO: TCU_CHECK_MSG(reportedType !== undefined, "Invalid uniform type");
 
-            bufferedLogToConsole('// Got name = ' + reportedNameStr + ', size = ' + reportedSize + ', type = ' + deqpUtils.getDataTypeName(reportedType));
+            bufferedLogToConsole('// Got name = ' + reportedNameStr + ', size = ' + reportedSize + ', type = ' + gluShaderUtil.getDataTypeName(reportedType));
 
             if (reportedNameStr.indexOf('gl_') == -1) // Ignore built-in uniforms.
             {
@@ -1683,7 +1683,7 @@ define([
 
                     if (reportedType != reference.type)
                     {
-                        bufferedLogToConsole('// FAILURE: wrong type reported, should be ' + deqpUtils.getDataTypeName(reference.type));
+                        bufferedLogToConsole('// FAILURE: wrong type reported, should be ' + gluShaderUtil.getDataTypeName(reference.type));
                         success = false;
                     }
                     if (reportedSize < reference.minSize || reportedSize > reference.maxSize)
@@ -1767,10 +1767,10 @@ define([
                 /** @type {number} */ var reportedIndex = validUniformIndices[validNdx];
                 /** @type {number} */ var reportedNameLength = reference.name.length;
                 /** @type {number} */ var reportedSize = uniformSizeBuf[validNdx];
-                /** @type {deqpUtils.DataType} */ var reportedType = deqpUtils.getDataTypeFromGLType(uniformTypeBuf[validNdx]);
+                /** @type {gluShaderUtil.DataType} */ var reportedType = gluShaderUtil.getDataTypeFromGLType(uniformTypeBuf[validNdx]);
 
                 bufferedLogToConsole('// Got name size = ' + reportedSize +
-                    ', type = ' + deqpUtils.getDataTypeName(reportedType) +
+                    ', type = ' + gluShaderUtil.getDataTypeName(reportedType) +
                     ' for the uniform at index ' + reportedIndex + ' (' + reference.name + ')');
 
                 DE_ASSERT(reference.type !== undefined);
@@ -1780,7 +1780,7 @@ define([
 
                 if (reportedType != reference.type)
                 {
-                    bufferedLogToConsole('// FAILURE: wrong type reported, should be ' + deqpUtils.getDataTypeName(reference.type));
+                    bufferedLogToConsole('// FAILURE: wrong type reported, should be ' + gluShaderUtil.getDataTypeName(reference.type));
                     success = false;
                 }
 
@@ -1873,14 +1873,14 @@ define([
             /** @type {BasicUniform} */ var uniform = basicUniforms[unifNdx];
             /** @type {string} */ var queryName = this.m_features.ARRAY_FIRST_ELEM_NAME_NO_INDEX && uniform.elemNdx == 0 ? beforeLast(uniform.name, '[') : uniform.name;
             /** @type {number} */ var location = gl.getUniformLocation(programGL, queryName);
-            /** @type {number} */ var size = deqpUtils.getDataTypeScalarSize(uniform.type);
+            /** @type {number} */ var size = gluShaderUtil.getDataTypeScalarSize(uniform.type);
             /** @type {VarValue} */ var value = new VarValue();
 
             //TODO: deMemset(&value, 0xcd, sizeof(value)); // Initialize to known garbage.
 
             if (!location)
             {
-                value.type = deqpUtils.DataType.INVALID;
+                value.type = gluShaderUtil.DataType.INVALID;
                 valuesDst.push(value);
                 if (uniform.isUsedInShader)
                 {
@@ -1895,7 +1895,7 @@ define([
             var result = 0;
             gluDefs.GLU_CHECK_CALL(function() {result = gl.getUniform(programGL, location);});
 
-            if (deqpUtils.isDataTypeSampler(uniform.type))
+            if (gluShaderUtil.isDataTypeSampler(uniform.type))
             {
                 value.val = new SamplerV();
                 value.val.samplerV.unit = result;
@@ -1925,11 +1925,11 @@ define([
         {
             /** @type {BasicUniform} */ var uniform = basicUniforms[unifNdx];
             /** @type {VarValue} */ var unifValue = values[unifNdx];
-            /** @type {number} */ var valSize = deqpUtils.getDataTypeScalarSize(uniform.type);
+            /** @type {number} */ var valSize = gluShaderUtil.getDataTypeScalarSize(uniform.type);
 
             bufferedLogToConsole('// Checking uniform ' + uniform.name);
 
-            if (unifValue.type == deqpUtils.DataType.INVALID) // This happens when glGetUniformLocation() returned -1.
+            if (unifValue.type == gluShaderUtil.DataType.INVALID) // This happens when glGetUniformLocation() returned -1.
                 continue;
 
             var CHECK_UNIFORM = function(ZERO) {
@@ -1946,15 +1946,15 @@ define([
                 } while (false);
             };
 
-            if (deqpUtils.isDataTypeFloatOrVec(uniform.type) || deqpUtils.isDataTypeMatrix(uniform.type))
+            if (gluShaderUtil.isDataTypeFloatOrVec(uniform.type) || gluShaderUtil.isDataTypeMatrix(uniform.type))
                 CHECK_UNIFORM(0.0);
-            else if (deqpUtils.isDataTypeIntOrIVec(uniform.type))
+            else if (gluShaderUtil.isDataTypeIntOrIVec(uniform.type))
                 CHECK_UNIFORM(0);
-            else if (deqpUtils.isDataTypeUintOrUVec(uniform.type))
+            else if (gluShaderUtil.isDataTypeUintOrUVec(uniform.type))
                 CHECK_UNIFORM(0);
-            else if (deqpUtils.isDataTypeBoolOrBVec(uniform.type))
+            else if (gluShaderUtil.isDataTypeBoolOrBVec(uniform.type))
                 CHECK_UNIFORM(false);
-            else if (deqpUtils.isDataTypeSampler(uniform.type))
+            else if (gluShaderUtil.isDataTypeSampler(uniform.type))
             {
                 if (unifValue.val.samplerV.unit != 0)
                 {
@@ -1977,9 +1977,9 @@ define([
     UniformCase.prototype.assignUniforms = function(basicUniforms, programGL, rnd) {
         /** @type {boolean} */ var transpose = false; //No support to transpose uniform matrices in WebGL, must always be false. (this.m_features.MATRIXMODE_ROWMAJOR) != 0;
         /** @type {boolean} (GLboolean) */ var transposeGL = transpose;
-        /** @type {deqpUtils.DataType} */ var boolApiType = this.m_features.BOOLEANAPITYPE_INT ? deqpUtils.DataType.INT :
-                                                this.m_features.BOOLEANAPITYPE_UINT ? deqpUtils.DataType.UINT :
-                                                deqpUtils.DataType.FLOAT;
+        /** @type {gluShaderUtil.DataType} */ var boolApiType = this.m_features.BOOLEANAPITYPE_INT ? gluShaderUtil.DataType.INT :
+                                                this.m_features.BOOLEANAPITYPE_UINT ? gluShaderUtil.DataType.UINT :
+                                                gluShaderUtil.DataType.FLOAT;
 
         for (var unifNdx = 0; unifNdx < basicUniforms.length; unifNdx++)
         {
@@ -2001,8 +2001,8 @@ define([
             }
 
             /** @type {number} */ var location = gl.getUniformLocation(programGL, queryName);
-            /** @type {number} */ var typeSize = deqpUtils.getDataTypeScalarSize(uniform.type);
-            /** @type {boolean} */ var assignByValue = this.m_features.UNIFORMFUNC_VALUE && !deqpUtils.isDataTypeMatrix(uniform.type) && numValuesToAssign == 1;
+            /** @type {number} */ var typeSize = gluShaderUtil.getDataTypeScalarSize(uniform.type);
+            /** @type {boolean} */ var assignByValue = this.m_features.UNIFORMFUNC_VALUE && !gluShaderUtil.isDataTypeMatrix(uniform.type) && numValuesToAssign == 1;
             /** @type {Array.<VarValue>} */ var valuesToAssign = [];
 
             for (var i = 0; i < numValuesToAssign; i++)
@@ -2020,21 +2020,21 @@ define([
                 else
                     unifValue = uniform.finalValue;
 
-                /** @type {VarValue} */ var apiValue = deqpUtils.isDataTypeBoolOrBVec(unifValue.type) ? getRandomBoolRepresentation(unifValue, boolApiType, rnd) :
-                                        deqpUtils.isDataTypeSampler(unifValue.type) ? getSamplerUnitValue(unifValue) :
+                /** @type {VarValue} */ var apiValue = gluShaderUtil.isDataTypeBoolOrBVec(unifValue.type) ? getRandomBoolRepresentation(unifValue, boolApiType, rnd) :
+                gluShaderUtil.isDataTypeSampler(unifValue.type) ? getSamplerUnitValue(unifValue) :
                                         unifValue;
 
-                valuesToAssign.push(deqpUtils.isDataTypeMatrix(apiValue.type) && transpose ? getTransposeMatrix(apiValue) : apiValue);
+                valuesToAssign.push(gluShaderUtil.isDataTypeMatrix(apiValue.type) && transpose ? getTransposeMatrix(apiValue) : apiValue);
 
-                if (deqpUtils.isDataTypeBoolOrBVec(uniform.type))
-                    bufferedLogToConsole('// Using type ' + deqpUtils.getDataTypeName(boolApiType) + ' to set boolean value ' + apiVarValueStr(unifValue) + ' for ' + curName);
-                else if (deqpUtils.isDataTypeSampler(uniform.type))
+                if (gluShaderUtil.isDataTypeBoolOrBVec(uniform.type))
+                    bufferedLogToConsole('// Using type ' + gluShaderUtil.getDataTypeName(boolApiType) + ' to set boolean value ' + apiVarValueStr(unifValue) + ' for ' + curName);
+                else if (gluShaderUtil.isDataTypeSampler(uniform.type))
                     bufferedLogToConsole('// Texture for the sampler uniform ' + curName + ' will be filled with color ' + apiVarValueStr(getSamplerFillValue(uniform.finalValue)));
             }
 
             DE_ASSERT(valuesToAssign.length > 0);
 
-            if (deqpUtils.isDataTypeFloatOrVec(valuesToAssign[0].type))
+            if (gluShaderUtil.isDataTypeFloatOrVec(valuesToAssign[0].type))
             {
                 if (assignByValue)
                 {
@@ -2065,7 +2065,7 @@ define([
                     }
                 }
             }
-            else if (deqpUtils.isDataTypeMatrix(valuesToAssign[0].type))
+            else if (gluShaderUtil.isDataTypeMatrix(valuesToAssign[0].type))
             {
                 DE_ASSERT(!assignByValue);
 
@@ -2075,20 +2075,20 @@ define([
 
                 switch (uniform.type)
                 {
-                    case deqpUtils.DataType.FLOAT_MAT2: gluDefs.GLU_CHECK_CALL(function() {gl.uniformMatrix2fv(location, transposeGL, new Float32Array(buffer));}); break;
-                    case deqpUtils.DataType.FLOAT_MAT3: gluDefs.GLU_CHECK_CALL(function() {gl.uniformMatrix3fv(location, transposeGL, new Float32Array(buffer));}); break;
-                    case deqpUtils.DataType.FLOAT_MAT4: gluDefs.GLU_CHECK_CALL(function() {gl.uniformMatrix4fv(location, transposeGL, new Float32Array(buffer));}); break;
-                    case deqpUtils.DataType.FLOAT_MAT2X3: gluDefs.GLU_CHECK_CALL(function() {gl.uniformMatrix2x3fv(location, transposeGL, new Float32Array(buffer));}); break;
-                    case deqpUtils.DataType.FLOAT_MAT2X4: gluDefs.GLU_CHECK_CALL(function() {gl.uniformMatrix2x4fv(location, transposeGL, new Float32Array(buffer));}); break;
-                    case deqpUtils.DataType.FLOAT_MAT3X2: gluDefs.GLU_CHECK_CALL(function() {gl.uniformMatrix3x2fv(location, transposeGL, new Float32Array(buffer));}); break;
-                    case deqpUtils.DataType.FLOAT_MAT3X4: gluDefs.GLU_CHECK_CALL(function() {gl.uniformMatrix3x4fv(location, transposeGL, new Float32Array(buffer));}); break;
-                    case deqpUtils.DataType.FLOAT_MAT4X2: gluDefs.GLU_CHECK_CALL(function() {gl.uniformMatrix4x2fv(location, transposeGL, new Float32Array(buffer));}); break;
-                    case deqpUtils.DataType.FLOAT_MAT4X3: gluDefs.GLU_CHECK_CALL(function() {gl.uniformMatrix4x3fv(location, transposeGL, new Float32Array(buffer));}); break;
+                    case gluShaderUtil.DataType.FLOAT_MAT2: gluDefs.GLU_CHECK_CALL(function() {gl.uniformMatrix2fv(location, transposeGL, new Float32Array(buffer));}); break;
+                    case gluShaderUtil.DataType.FLOAT_MAT3: gluDefs.GLU_CHECK_CALL(function() {gl.uniformMatrix3fv(location, transposeGL, new Float32Array(buffer));}); break;
+                    case gluShaderUtil.DataType.FLOAT_MAT4: gluDefs.GLU_CHECK_CALL(function() {gl.uniformMatrix4fv(location, transposeGL, new Float32Array(buffer));}); break;
+                    case gluShaderUtil.DataType.FLOAT_MAT2X3: gluDefs.GLU_CHECK_CALL(function() {gl.uniformMatrix2x3fv(location, transposeGL, new Float32Array(buffer));}); break;
+                    case gluShaderUtil.DataType.FLOAT_MAT2X4: gluDefs.GLU_CHECK_CALL(function() {gl.uniformMatrix2x4fv(location, transposeGL, new Float32Array(buffer));}); break;
+                    case gluShaderUtil.DataType.FLOAT_MAT3X2: gluDefs.GLU_CHECK_CALL(function() {gl.uniformMatrix3x2fv(location, transposeGL, new Float32Array(buffer));}); break;
+                    case gluShaderUtil.DataType.FLOAT_MAT3X4: gluDefs.GLU_CHECK_CALL(function() {gl.uniformMatrix3x4fv(location, transposeGL, new Float32Array(buffer));}); break;
+                    case gluShaderUtil.DataType.FLOAT_MAT4X2: gluDefs.GLU_CHECK_CALL(function() {gl.uniformMatrix4x2fv(location, transposeGL, new Float32Array(buffer));}); break;
+                    case gluShaderUtil.DataType.FLOAT_MAT4X3: gluDefs.GLU_CHECK_CALL(function() {gl.uniformMatrix4x3fv(location, transposeGL, new Float32Array(buffer));}); break;
                     default:
                         DE_ASSERT(false);
                 }
             }
-            else if (deqpUtils.isDataTypeIntOrIVec(valuesToAssign[0].type))
+            else if (gluShaderUtil.isDataTypeIntOrIVec(valuesToAssign[0].type))
             {
                 if (assignByValue)
                 {
@@ -2119,7 +2119,7 @@ define([
                     }
                 }
             }
-            else if (deqpUtils.isDataTypeUintOrUVec(valuesToAssign[0].type))
+            else if (gluShaderUtil.isDataTypeUintOrUVec(valuesToAssign[0].type))
             {
                 if (assignByValue)
                 {
@@ -2150,7 +2150,7 @@ define([
                     }
                 }
             }
-            else if (deqpUtils.isDataTypeSampler(valuesToAssign[0].type))
+            else if (gluShaderUtil.isDataTypeSampler(valuesToAssign[0].type))
             {
                 if (assignByValue)
                     gluDefs.GLU_CHECK_CALL(function() {gl.uniform1i(location, uniform.finalValue.val);});
@@ -2180,7 +2180,7 @@ define([
 
             bufferedLogToConsole('// Checking uniform ' + uniform.name);
 
-            if (unifValue.type == deqpUtils.DataType.INVALID) // This happens when glGetUniformLocation() returned -1.
+            if (unifValue.type == gluShaderUtil.DataType.INVALID) // This happens when glGetUniformLocation() returned -1.
                 continue;
 
             if (!apiVarValueEquals(unifValue, uniform.finalValue))
@@ -2198,7 +2198,7 @@ define([
 
     /**
      * @param {Array.<BasicUniform>} basicUniforms
-     * @param {gluSP.ShaderProgram} program
+     * @param {gluShaderProgram.ShaderProgram} program
      * @param {deRandom.Random} rnd
      * @return {boolean}
      */
@@ -2213,11 +2213,11 @@ define([
         // Assert that no two samplers of different types have the same texture unit - this is an error in GL.
         for (var i = 0; i < basicUniforms.length; i++)
         {
-            if (deqpUtils.isDataTypeSampler(basicUniforms[i].type))
+            if (gluShaderUtil.isDataTypeSampler(basicUniforms[i].type))
             {
                 for (var j = 0; j < i; j++)
                 {
-                    if (deqpUtils.isDataTypeSampler(basicUniforms[j].type) && basicUniforms[i].type != basicUniforms[j].type)
+                    if (gluShaderUtil.isDataTypeSampler(basicUniforms[j].type) && basicUniforms[i].type != basicUniforms[j].type)
                         DE_ASSERT(basicUniforms[i].finalValue.val.samplerV.unit != basicUniforms[j].finalValue.val.samplerV.unit);
                 }
             }
@@ -2225,7 +2225,7 @@ define([
 
         for (var i = 0; i < basicUniforms.length; i++)
         {
-            if (deqpUtils.isDataTypeSampler(basicUniforms[i].type) && this.m_filledTextureUnits.indexOf(basicUniforms[i].finalValue.val) == -1)
+            if (gluShaderUtil.isDataTypeSampler(basicUniforms[i].type) && this.m_filledTextureUnits.indexOf(basicUniforms[i].finalValue.val) == -1)
             {
                 bufferedLogToConsole('// Filling texture at unit ' + apiVarValueStr(basicUniforms[i].finalValue) + ' with color ' + shaderVarValueStr(basicUniforms[i].finalValue));
                 this.setupTexture(basicUniforms[i].finalValue);
@@ -2286,7 +2286,7 @@ define([
     };
 
     /**
-     * @return {deqpTests.runner.IterateResult}
+     * @return {tcuTestCase.runner.IterateResult}
      */
     UniformCase.prototype.iterate = function() {
         /** @type {deRandom.Random} */ var rnd = new deRandom.Random(deString.deStringHash(this.name) ^ deRandom.getBaseSeed());
@@ -2299,14 +2299,14 @@ define([
 
         /** @type {string} */ var vertexSource = this.generateVertexSource(basicUniforms);
         /** @type {string} */ var fragmentSource = this.generateFragmentSource(basicUniforms);
-        /** @type {gluSP.ShaderProgram} */ var program = new gluSP.ShaderProgram(gl, gluSP.makeVtxFragSources(vertexSource, fragmentSource));
+        /** @type {gluShaderProgram.ShaderProgram} */ var program = new gluShaderProgram.ShaderProgram(gl, gluShaderProgram.makeVtxFragSources(vertexSource, fragmentSource));
 
         bufferedLogToConsole(program);
 
         if (!program.isOk())
         {
             testFailedOptions('Compile failed', false);
-            return deqpTests.runner.IterateResult.STOP;
+            return tcuTestCase.runner.IterateResult.STOP;
         }
 
         gluDefs.GLU_CHECK_CALL(function() {gl.useProgram(program.getProgram());});
@@ -2314,7 +2314,7 @@ define([
         /** @type {boolean} */ var success = this.test(basicUniforms, basicUniformReportsRef, program, rnd);
         assertMsgOptions(success, '', true, false);
 
-        return deqpTests.runner.IterateResult.STOP;
+        return tcuTestCase.runner.IterateResult.STOP;
     };
 
     /**
@@ -2743,7 +2743,7 @@ define([
      * Initializes the tests to be performed.
      */
     var init = function() {
-        var state = deqpTests.runner.getState();
+        var state = tcuTestCase.runner.getState();
         var testGroup = state.testCases;
 
         // Generate sets of UniformCollections that are used by several cases.
@@ -2784,27 +2784,27 @@ define([
 
         for (var dataTypeNdx = 0; dataTypeNdx < s_testDataTypes.length; dataTypeNdx++)
         {
-            /** @type {deqpUtils.DataType} */ var dataType = s_testDataTypes[dataTypeNdx];
-            /** @type {string} */ var typeName = deqpUtils.getDataTypeName(dataType);
+            /** @type {gluShaderUtil.DataType} */ var dataType = s_testDataTypes[dataTypeNdx];
+            /** @type {string} */ var typeName = gluShaderUtil.getDataTypeName(dataType);
 
             defaultUniformCollections[UniformCollections.BASIC].cases.push(new UniformCollectionCase(typeName, UniformCollection.basic(dataType)));
 
-            if (deqpUtils.isDataTypeScalar(dataType) ||
-                (deqpUtils.isDataTypeVector(dataType) && deqpUtils.getDataTypeScalarSize(dataType) == 4) ||
-                dataType == deqpUtils.DataType.FLOAT_MAT4 ||
-                dataType == deqpUtils.DataType.SAMPLER_2D)
+            if (gluShaderUtil.isDataTypeScalar(dataType) ||
+                (gluShaderUtil.isDataTypeVector(dataType) && gluShaderUtil.getDataTypeScalarSize(dataType) == 4) ||
+                dataType == gluShaderUtil.DataType.FLOAT_MAT4 ||
+                dataType == gluShaderUtil.DataType.SAMPLER_2D)
                 defaultUniformCollections[UniformCollections.BASIC_ARRAY].cases.push(new UniformCollectionCase(typeName, UniformCollection.basicArray(dataType)));
 
-            if (deqpUtils.isDataTypeScalar(dataType) ||
-                dataType == deqpUtils.DataType.FLOAT_MAT4 ||
-                dataType == deqpUtils.DataType.SAMPLER_2D)
+            if (gluShaderUtil.isDataTypeScalar(dataType) ||
+                dataType == gluShaderUtil.DataType.FLOAT_MAT4 ||
+                dataType == gluShaderUtil.DataType.SAMPLER_2D)
             {
-                /** @type {deqpUtils.DataType} */ var secondDataType = deqpUtils.isDataTypeScalar(dataType) ? deqpUtils.getDataTypeVector(dataType, 4) :
-                                                    dataType == deqpUtils.DataType.FLOAT_MAT4 ? deqpUtils.DataType.FLOAT_MAT2 :
-                                                    dataType == deqpUtils.DataType.SAMPLER_2D ? deqpUtils.DataType.SAMPLER_CUBE :
+                /** @type {gluShaderUtil.DataType} */ var secondDataType = gluShaderUtil.isDataTypeScalar(dataType) ? gluShaderUtil.getDataTypeVector(dataType, 4) :
+                                                    dataType == gluShaderUtil.DataType.FLOAT_MAT4 ? gluShaderUtil.DataType.FLOAT_MAT2 :
+                                                    dataType == gluShaderUtil.DataType.SAMPLER_2D ? gluShaderUtil.DataType.SAMPLER_CUBE :
                                                     undefined;
                 DE_ASSERT(secondDataType !== undefined);
-                /** @type {string} */ var secondTypeName = deqpUtils.getDataTypeName(secondDataType);
+                /** @type {string} */ var secondTypeName = gluShaderUtil.getDataTypeName(secondDataType);
                 /** @type {string} */ var name = typeName + '_' + secondTypeName;
 
                 defaultUniformCollections[UniformCollections.BASIC_STRUCT].cases.push(new UniformCollectionCase(name, UniformCollection.basicStruct(dataType, secondDataType, false)));
@@ -2820,14 +2820,14 @@ define([
         // Info-query cases (check info returned by e.g. glGetActiveUniforms()).
 
         // info_query
-        /** @type {deqpTests.DeqpTest} */
-        var infoQueryGroup = deqpTests.newTest('info_query', 'Test uniform info querying functions');
+        /** @type {tcuTestCase.DeqpTest} */
+        var infoQueryGroup = tcuTestCase.newTest('info_query', 'Test uniform info querying functions');
         testGroup.addChild(infoQueryGroup);
         for (var caseTypeI in CaseType)
         {
             /** @type {CaseType} */ var caseType = CaseType[caseTypeI];
-            /** @type {deqpTests.DeqpTest} */
-            var caseTypeGroup = deqpTests.newTest(UniformInfoQueryCase.getCaseTypeName(caseType), UniformInfoQueryCase.getCaseTypeDescription(caseType));
+            /** @type {tcuTestCase.DeqpTest} */
+            var caseTypeGroup = tcuTestCase.newTest(UniformInfoQueryCase.getCaseTypeName(caseType), UniformInfoQueryCase.getCaseTypeDescription(caseType));
             infoQueryGroup.addChild(caseTypeGroup);
 
             for (var collectionGroupNdx = 0; collectionGroupNdx < Object.keys(UniformCollections).length; collectionGroupNdx++)
@@ -2838,8 +2838,8 @@ define([
                 {
                     /** @type {UniformCollectionGroup} */ var collectionGroup = defaultUniformCollections[collectionGroupNdx];
                     /** @type {string} */ var collectionGroupName = collectionGroup.name + (referToFirstArrayElemWithoutIndexI == 0 ? '' : '_first_elem_without_brackets');
-                    /** @type {deqpTests.DeqpTest} */
-                    var collectionTestGroup = deqpTests.newTest(collectionGroupName, '');
+                    /** @type {tcuTestCase.DeqpTest} */
+                    var collectionTestGroup = tcuTestCase.newTest(collectionGroupName, '');
                     caseTypeGroup.addChild(collectionTestGroup);
 
                     for (var collectionNdx = 0; collectionNdx < collectionGroup.cases.length; collectionNdx++)
@@ -2862,8 +2862,8 @@ define([
 
             // Info-querying cases when unused uniforms are present.
 
-            /** @type {deqpTests.DeqpTest} */
-            var unusedUniformsGroup = deqpTests.newTest('unused_uniforms', 'Test with unused uniforms');
+            /** @type {tcuTestCase.DeqpTest} */
+            var unusedUniformsGroup = tcuTestCase.newTest('unused_uniforms', 'Test with unused uniforms');
             caseTypeGroup.addChild(unusedUniformsGroup);
 
             /** @type {UniformCollectionGroup} */ var collectionGroup = defaultUniformCollections[UniformCollections.ARRAY_IN_STRUCT];
@@ -2889,25 +2889,25 @@ define([
 
         // Cases testing uniform values.
 
-        /** @type {deqpTests.DeqpTest} */ var valueGroup = deqpTests.newTest('value', 'Uniform value tests');
+        /** @type {tcuTestCase.DeqpTest} */ var valueGroup = tcuTestCase.newTest('value', 'Uniform value tests');
         testGroup.addChild(valueGroup);
 
         // Cases checking uniforms' initial values (all must be zeros), with glGetUniform*() or by rendering.
 
-        /** @type {deqpTests.DeqpTest} */ var initialValuesGroup = deqpTests.newTest(UniformValueCase.getValueToCheckName(ValueToCheck.INITIAL),
+        /** @type {tcuTestCase.DeqpTest} */ var initialValuesGroup = tcuTestCase.newTest(UniformValueCase.getValueToCheckName(ValueToCheck.INITIAL),
                                                        UniformValueCase.getValueToCheckDescription(ValueToCheck.INITIAL));
         valueGroup.addChild(initialValuesGroup);
 
         for (var checkMethodI in CheckMethod)
         {
             /** @type {CheckMethod} */ var checkMethod = CheckMethod[checkMethodI];
-            /** @type {deqpTests.DeqpTest} */ var checkMethodGroup = deqpTests.newTest(UniformValueCase.getCheckMethodName(checkMethod), UniformValueCase.getCheckMethodDescription(checkMethod));
+            /** @type {tcuTestCase.DeqpTest} */ var checkMethodGroup = tcuTestCase.newTest(UniformValueCase.getCheckMethodName(checkMethod), UniformValueCase.getCheckMethodDescription(checkMethod));
             initialValuesGroup.addChild(checkMethodGroup);
 
             for (var collectionGroupNdx = 0; collectionGroupNdx < Object.keys(UniformCollections).length; collectionGroupNdx++)
             {
                 /** @type {UniformCollectionGroup} */ var collectionGroup = defaultUniformCollections[collectionGroupNdx];
-                /** @type {deqpTests.DeqpTest} */ var collectionTestGroup = deqpTests.newTest(collectionGroup.name, '');
+                /** @type {tcuTestCase.DeqpTest} */ var collectionTestGroup = tcuTestCase.newTest(collectionGroup.name, '');
                 checkMethodGroup.addChild(collectionTestGroup);
 
                 for (var collectionNdx = 0; collectionNdx < collectionGroup.cases.length; collectionNdx++)
@@ -2915,7 +2915,7 @@ define([
                     /** @type {UniformCollectionCase} */ var collectionCase = collectionGroup.cases[collectionNdx];
                     /** @type {string} */ var collName = collectionCase.namePrefix;
                     /** @type {UniformCollection} (SharedPtr)*/ var uniformCollection = collectionCase.uniformCollection;
-                    /** @type {boolean} */ var containsBooleans = uniformCollection.containsMatchingBasicType(deqpUtils.isDataTypeBoolOrBVec);
+                    /** @type {boolean} */ var containsBooleans = uniformCollection.containsMatchingBasicType(gluShaderUtil.isDataTypeBoolOrBVec);
                     /** @type {boolean} */ var varyBoolApiType = checkMethod == CheckMethod.GET_UNIFORM && containsBooleans &&
                                                                 (collectionGroupNdx == UniformCollections.BASIC || collectionGroupNdx == UniformCollections.BASIC_ARRAY);
                     /** @type {number} */ var numBoolVariations = varyBoolApiType ? 3 : 1;
@@ -2947,20 +2947,20 @@ define([
 
         // Cases that first assign values to each uniform, then check the values with glGetUniform*() or by rendering.
 
-        /** @type {deqpTests.DeqpTest} */ var assignedValuesGroup = deqpTests.newTest(UniformValueCase.getValueToCheckName(ValueToCheck.ASSIGNED),
+        /** @type {tcuTestCase.DeqpTest} */ var assignedValuesGroup = tcuTestCase.newTest(UniformValueCase.getValueToCheckName(ValueToCheck.ASSIGNED),
                                                                     UniformValueCase.getValueToCheckDescription(ValueToCheck.ASSIGNED));
         valueGroup.addChild(assignedValuesGroup);
 
         for (var assignMethodI in AssignMethod)
         {
             /** @type {AssignMethod} */ var assignMethod = AssignMethod[assignMethodI];
-            /** @type {deqpTests.DeqpTest} */ var assignMethodGroup = deqpTests.newTest(UniformValueCase.getAssignMethodName(assignMethod), UniformValueCase.getAssignMethodDescription(assignMethod));
+            /** @type {tcuTestCase.DeqpTest} */ var assignMethodGroup = tcuTestCase.newTest(UniformValueCase.getAssignMethodName(assignMethod), UniformValueCase.getAssignMethodDescription(assignMethod));
             assignedValuesGroup.addChild(assignMethodGroup);
 
             for (var checkMethodI in CheckMethod)
             {
                 /** @type {CheckMethod} */ var checkMethod = CheckMethod[checkMethodI];
-                /** @type {deqpTests.DeqpTest} */ var checkMethodGroup = deqpTests.newTest(UniformValueCase.getCheckMethodName(checkMethod), UniformValueCase.getCheckMethodDescription(checkMethod));
+                /** @type {tcuTestCase.DeqpTest} */ var checkMethodGroup = tcuTestCase.newTest(UniformValueCase.getCheckMethodName(checkMethod), UniformValueCase.getCheckMethodDescription(checkMethod));
                 assignMethodGroup.addChild(checkMethodGroup);
 
                 for (var collectionGroupNdx = 0; collectionGroupNdx < Object.keys(UniformCollections).length; collectionGroupNdx++)
@@ -2971,7 +2971,7 @@ define([
                     {
                         /** @type {UniformCollectionGroup} */ var collectionGroup = defaultUniformCollections[collectionGroupNdx];
                         /** @type {string} */ var collectionGroupName = collectionGroup.name + (referToFirstArrayElemWithoutIndexI == 0 ? '' : '_first_elem_without_brackets');
-                        /** @type {deqpTests.DeqpTest} */ var collectionTestGroup = deqpTests.newTest(collectionGroupName, '');
+                        /** @type {tcuTestCase.DeqpTest} */ var collectionTestGroup = tcuTestCase.newTest(collectionGroupName, '');
                         checkMethodGroup.addChild(collectionTestGroup);
 
                         for (var collectionNdx = 0; collectionNdx < collectionGroup.cases.length; collectionNdx++)
@@ -2979,11 +2979,11 @@ define([
                             /** @type {UniformCollectionCase} */ var collectionCase = collectionGroup.cases[collectionNdx];
                             /** @type {string} */ var collName = collectionCase.namePrefix;
                             /** @type {UniformCollectionGroup} (SharedPtr)*/ var uniformCollection = collectionCase.uniformCollection;
-                            /** @type {boolean} */ var containsBooleans = uniformCollection.containsMatchingBasicType(deqpUtils.isDataTypeBoolOrBVec);
+                            /** @type {boolean} */ var containsBooleans = uniformCollection.containsMatchingBasicType(gluShaderUtil.isDataTypeBoolOrBVec);
                             /** @type {boolean} */ var varyBoolApiType = checkMethod == CheckMethod.GET_UNIFORM && containsBooleans &&
                                                                             (collectionGroupNdx == UniformCollections.BASIC || collectionGroupNdx == UniformCollections.BASIC_ARRAY);
                             /** @type {number} */ var numBoolVariations = varyBoolApiType ? 3 : 1;
-                            /** @type {boolean} */ var containsMatrices = uniformCollection.containsMatchingBasicType(deqpUtils.isDataTypeMatrix);
+                            /** @type {boolean} */ var containsMatrices = uniformCollection.containsMatchingBasicType(gluShaderUtil.isDataTypeMatrix);
                             /** @type {boolean} */ var varyMatrixMode = containsMatrices &&
                                                                             (collectionGroupNdx == UniformCollections.BASIC || collectionGroupNdx == UniformCollections.BASIC_ARRAY);
                             /** @type {number} */ var numMatVariations = varyMatrixMode ? 2 : 1;
@@ -3044,7 +3044,7 @@ define([
             /** @type {string} */ var groupName = arrayAssignGroups[arrayAssignGroupNdx].name;
             /** @type {string} */ var groupDesc = arrayAssignGroups[arrayAssignGroupNdx].description;
 
-            /** @type {deqpTests.DeqpTest} */ var curArrayAssignGroup = deqpTests.newTest(groupName, groupDesc);
+            /** @type {tcuTestCase.DeqpTest} */ var curArrayAssignGroup = tcuTestCase.newTest(groupName, groupDesc);
             assignedValuesGroup.addChild(curArrayAssignGroup);
 
             /** @type {Array.<number>} */ var basicArrayCollectionGroups = [UniformCollections.BASIC_ARRAY, UniformCollections.ARRAY_IN_STRUCT, UniformCollections.MULTIPLE_BASIC_ARRAY];
@@ -3052,7 +3052,7 @@ define([
             for (var collectionGroupNdx = 0; collectionGroupNdx < basicArrayCollectionGroups.length; collectionGroupNdx++)
             {
                 /** @type {UniformCollectionGroup} */ var collectionGroup = defaultUniformCollections[basicArrayCollectionGroups[collectionGroupNdx]];
-                /** @type {deqpTests.DeqpTest} */ var collectionTestGroup = deqpTests.newTest(collectionGroup.name, '');
+                /** @type {tcuTestCase.DeqpTest} */ var collectionTestGroup = tcuTestCase.newTest(collectionGroup.name, '');
                 curArrayAssignGroup.addChild(collectionTestGroup);
 
                 for (var collectionNdx = 0; collectionNdx < collectionGroup.cases.length; collectionNdx++)
@@ -3074,7 +3074,7 @@ define([
 
         // Value checking cases when unused uniforms are present.
 
-        /** @type {deqpTests.DeqpTest} */ var unusedUniformsGroup = deqpTests.newTest('unused_uniforms', 'Test with unused uniforms');
+        /** @type {tcuTestCase.DeqpTest} */ var unusedUniformsGroup = tcuTestCase.newTest('unused_uniforms', 'Test with unused uniforms');
         assignedValuesGroup.addChild(unusedUniformsGroup);
 
         /** @type {UniformCollectionGroup} */ var collectionGroup = defaultUniformCollections[UniformCollections.ARRAY_IN_STRUCT];
@@ -3102,7 +3102,7 @@ define([
         // Random cases.
 
         /** @type {number} */ var numRandomCases = 100;
-        /** @type {deqpTests.DeqpTest} */ var randomGroup = deqpTests.newTest('random', 'Random cases');
+        /** @type {tcuTestCase.DeqpTest} */ var randomGroup = tcuTestCase.newTest('random', 'Random cases');
         testGroup.addChild(randomGroup);
 
         for (var ndx = 0; ndx < numRandomCases; ndx++)
@@ -3118,10 +3118,10 @@ define([
         //Set up Test Root parameters
         var testName = 'uniform_api';
         var testDescription = 'Uniform API Tests';
-        var state = deqpTests.runner.getState();
+        var state = tcuTestCase.runner.getState();
 
         state.testName = testName;
-        state.testCases = deqpTests.newTest(testName, testDescription, null);
+        state.testCases = tcuTestCase.newTest(testName, testDescription, null);
 
         //Set up name and description of this test series.
         setCurrentTestName(testName);
@@ -3131,11 +3131,11 @@ define([
             //Create test cases
             init();
             //Run test cases
-            deqpTests.runTestCases();
+            tcuTestCase.runTestCases();
         }
         catch (err) {
             testFailedOptions('Failed to run tests', false);
-            deqpTests.runner.terminate();
+            tcuTestCase.runner.terminate();
         }
     };
 
