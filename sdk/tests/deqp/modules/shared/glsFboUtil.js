@@ -1,6 +1,6 @@
 
 // glsFBOU
-define([], function() {
+define(['framework/opengl/gluTextureUtil'], function(gluTextureUtil) {
     'use strict';
     
     var remove_from_array = (function(array, value) {
@@ -57,10 +57,19 @@ define([], function() {
         
         this._construct = (function(argv) {
             this.type = argv.type || 'config';
+            this.target = argv.target || Config.s_target.NONE;
         });
         
         if (!argv.dont_construct) this._construct(argv);
     });
+    Config.s_target = {
+        NONE:             0,
+        RENDERBUFFER:     1,
+        TEXTURE_2D:       2,
+        TEXTURE_CUBE_MAP: 3,
+        TEXTURE_3D:       4,
+        TEXTURE_2D_ARRAY: 5
+    };
     
     var Image = (function(argv) {
         argv = argv || {};
@@ -72,7 +81,8 @@ define([], function() {
         this._construct = (function(argv) {
             argv.type = argv.type || 'image';
             parent._construct(argv);
-            this.type = argv.type;
+            this.type   = argv.type;
+            this.target = argv.target;
             this.width  = 0;
             this.height = 0;
             this.internalFormat = new ImageFormat();
@@ -90,7 +100,8 @@ define([], function() {
         };
         
         this._construct = (function(argv) {
-            argv.type = argv.type || 'renderbuffer';
+            argv.type   = argv.type   || 'renderbuffer';
+            argv.target = argv.target || Config.s_target.RENDERBUFFER;
             parent._construct(argv);
             this.numSamples = 0;
         });
@@ -116,6 +127,44 @@ define([], function() {
     });
     Texture.prototype = new Image({dont_construct: true});
     
+    var TextureFlat = (function(argv) {
+        argv = argv || {};
+        if (!argv.dont_construct) this._construct(argv);
+    });
+    TextureFlat.prototype = new Texture({dont_construct: true});
+    
+    var Texture2D = (function(argv) {
+        argv = argv || {};
+        
+        var parent = {
+            _construct: this._construct,
+        };
+        
+        this._construct = (function(argv) {
+            argv.target = argv.target || Config.s_target.TEXTURE_2D;
+            parent._construct(argv);
+        });
+        
+        if (!argv.dont_construct) this._construct(argv);
+    });
+    Texture2D.prototype = new TextureFlat({dont_construct: true});
+    
+    var TextureCubeMap = (function(argv) {
+        argv = argv || {};
+        
+        var parent = {
+            _construct: this._construct,
+        };
+        
+        this._construct = (function(argv) {
+            argv.target = argv.target || Config.s_target.TEXTURE_CUBE_MAP;
+            parent._construct(argv);
+        });
+        
+        if (!argv.dont_construct) this._construct(argv);
+    });
+    TextureCubeMap.prototype = new TextureFlat({dont_construct: true});
+    
     var TextureLayered = (function(argv) {
         argv = argv || {};
         
@@ -133,51 +182,158 @@ define([], function() {
     });
     TextureLayered.prototype = new Texture({dont_construct: true});
     
-//    var glTarget = (function() {});
-    
-    var glsup = {
-    //  initFlat: (function() {}),
-    //  initLayered: (function() {}),
-    //  init: (function() {}),
-    //  target: (function() {}),
-        remove: (function(cfg, img, gl_ctx) { // delete
-            gl_ctx = gl_ctx || gl;
-        }),
-    };
-    
-    glsup.create = (function(cfg, gl_ctx) {
-        gl_ctx = gl_ctx || gl;
+    var Texture3D = (function(argv) {
+        argv = argv || {};
         
-        if (cfg.type == 'renderbuffer') {
-            var ret = gl_ctx.createRenderBuffer();
-            gl_ctx.bindRenderBuffer(gl.RENDERBUFFER, ret);
-            
-            if (cfg.numSamples == 0) {
-                gl_ctx.renderBufferStorage(
-                    gl_ctx.RENDERBUFFER,
-                    cfg.internalFormat.format,
-                    cfg.width, cfg.height
-                );
-            } else {
-                gl_ctx.renderbufferStorageMultisample(
-                gl_ctx.RENDERBUFFER,
-                    cfg.numSamples,
-                    cfg.internalFormat.format,
-                    cfg.width, cfg.height
-                );
-            }
-            gl_ctx.bindRenderbuffer(gl_ctx.RENDERBUFFER, 0);
-            
-        } else if (cfg.type == 'texture') {
-            var ret = gl_ctx.createTexture();
-            gl_ctx.bindTexture(glsup.Target(cfg), ret);
-            glsup.Init(tex, gl_ctx);
-            gl_ctx.bindTexture(glsup.Target(cfg), 0);
+        var parent = {
+            _construct: this._construct,
+        };
         
-        } else {
-            throw new Error('Impossible image type');
-        }
+        this._construct = (function(argv) {
+            argv.target = argv.target || Config.s_target.TEXTURE_3D;
+            parent._construct(argv);
+        });
+        
+        if (!argv.dont_construct) this._construct(argv);
     });
+    Texture3D.prototype = new TextureLayered({dont_construct: true});
+    
+    var Texture2DArray = (function(argv) {
+        argv = argv || {};
+        
+        var parent = {
+            _construct: this._construct,
+        };
+        
+        this._construct = (function(argv) {
+            argv.target = argv.target || Config.s_target.TEXTURE_2D_ARRAY;
+            parent._construct(argv);
+        });
+        
+        if (!argv.dont_construct) this._construct(argv);
+    });
+    Texture2DArray.prototype = new TextureLayered({dont_construct: true});
+    
+    
+    // these are a collection of helper functions for creating various gl textures.
+    var glsup = (function() {
+    
+        var glInit = (function(cfg, gl_ctx) {
+            if (cfg.target == Config.s_target.TEXTURE_2D) {
+                glInitFlat(cfg, glTarget, gl_ctx);
+                
+            } else if (cfg.target == Config.s_target.TEXTURE_CUBE_MAP) {
+                for (
+                    var i = gl_ctx.TEXTURE_CUBE_MAP_NEGATIVE_X;
+                    i <= gl_ctx.TEXTURE_CUBE_MAP_POSITIVE_Z;
+                    ++i
+                ) {
+                    glInitFlat(cfg, i, gl_ctx);
+                }
+                
+            } else if (cfg.target == Config.s_target.TEXTURE_3D) {
+                glInitLayered(cfg, 2, gl_ctx);
+            
+            } else if (cfg.target == Config.s_target.TEXTURE_2D_ARRAY) {
+                glInitLayered(cfg, 1, gl_ctx);
+            
+            }
+        });
+        
+        var glInitFlat = (function(cfg, target, gl_ctx) {
+            var format = transferImageFormat(cfg.internalFormat, gl_ctx);
+            var w = cfg.width;
+            var h = cfg.height;
+            for (var level = 0; level < cfg.numLevels; ++level) {
+                gl_ctx.texImage2D(
+                    target, level, cfg.internalFormat.format,
+                    w, h, 0,format.format, format.dataType
+                );
+                w = Math.max(1, w / 2);
+                h = Math.max(1, h / 2);
+            }
+        });
+        
+        var glInitLayered = (function(cfg, depth_divider, gl_ctx) {
+            var format = transferImageFormat(cfg.internalFormat, gl_ctx);
+            var w = cfg.width;
+            var h = cfg.height;
+            var depth = cfg.numLayers;
+            for (var level = 0; level < cfg.numLevels; ++level) {
+                gl_ctx.texImage3D(
+                    glTarget(cfg), level, cfg.internalFormat.format,
+                    w, h, depth, 0, format.format, format.dataType
+                );
+                w = Math.max(1, w / 2);
+                h = Math.max(1, h / 2);
+                depth = dMath.max(1, depth / depth_divider);
+            }
+        });
+    
+        var glCreate = (function(cfg, gl_ctx) {
+            gl_ctx = gl_ctx || gl;
+            
+            if (cfg.type == 'renderbuffer') {
+                var ret = gl_ctx.createRenderBuffer();
+                gl_ctx.bindRenderBuffer(gl.RENDERBUFFER, ret);
+                
+                if (cfg.numSamples == 0) {
+                    gl_ctx.renderBufferStorage(
+                        gl_ctx.RENDERBUFFER,
+                        cfg.internalFormat.format,
+                        cfg.width, cfg.height
+                    );
+                } else {
+                    gl_ctx.renderbufferStorageMultisample(
+                    gl_ctx.RENDERBUFFER,
+                        cfg.numSamples,
+                        cfg.internalFormat.format,
+                        cfg.width, cfg.height
+                    );
+                }
+                gl_ctx.bindRenderbuffer(gl_ctx.RENDERBUFFER, 0);
+                
+            } else if (cfg.type == 'texture') {
+                var ret = gl_ctx.createTexture();
+                gl_ctx.bindTexture(glTarget(cfg, gl_ctx), ret);
+                glInit(tex, gl_ctx);
+                gl_ctx.bindTexture(glTarget(cfg, gl_ctx), 0);
+            
+            } else {
+                throw new Error('Impossible image type');
+            }
+        });
+    
+        var glTarget = (function(cfg, gl_ctx) {
+            gl_ctx = gl_ctx || gl;
+            switch(cfg.target) {
+                case Config.s_target.RENDERBUFFER:     return gl_ctx.RENDERBUFFER;
+                case Config.s_target.TEXTURE_2D:       return gl_ctx.TEXTURE_2D;
+                case Config.s_target.TEXTURE_CUBE_MAP: return gl_ctx.TEXTURE_CUBE_MAP;
+                case Config.s_target.TEXTURE_3D:       return gl_ctx.TEXTURE_3D;
+                case Config.s_target.TEXTURE_2D_ARRAY: return gl_ctx.TEXTURE_2D_ARRAY;
+                default: throw new Error('Impossible image type.');
+            }
+            return gl_ctx.NONE;
+        });
+        
+        var glDelete = (function(cfg, img, gl_ctx) {
+            if (cfg.type == 'renderbuffer')
+                gl.deleteRenderbuffers(1, img);
+            else if (cfg.type == 'texture')
+                gl.deleteTextures(1, img);
+            else
+                DE_ASSERT(!"Impossible image type");
+        });
+        
+        return {
+            create: glCreate,
+            remove: glDelete,
+        };
+    
+    })();
+    
+
     
     
     var formatkey = (function(format, type) {
@@ -252,10 +408,10 @@ define([], function() {
         
         this.deinit = (function() {
             for (var name in this.textures) {
-                glDelete(this.textures[name], name, this.m_gl);
+                glsup.remove(this.textures[name], name, this.m_gl);
             }
             for (var name in this.rbos) {
-                glDelete(this.rbos[name], name, this.m_gl);
+                glsup.remove(this.rbos[name], name, this.m_gl);
             }
             this.m_gl.bindFramebuffer(this.m_target, 0);
         });
@@ -273,7 +429,7 @@ define([], function() {
         
         // const Texture& texCfg
         this.glCreateTexture = (function(texCfg) {
-            var texName = glCreate(texCfg, this.m_gl);
+            var texName = glsup.create(texCfg, this.m_gl);
             checkError();
             setTexture(texName, texCfg);
             return texName;
@@ -281,7 +437,7 @@ define([], function() {
         
         // const Renderbuffer& rbCfg
         this.glCreateRbo = (function(rbCfg) {
-            var rbName = glCreate(rbCfg, this.m_gl);
+            var rbName = glsup.create(rbCfg, this.m_gl);
             checkError();
             setRbo(rbName, rbCfg);
             return rbName;
@@ -331,6 +487,14 @@ define([], function() {
         
     });
     
+    var transferImageFormat = (function(imgFormat, gl_ctx) {
+        gl_ctx = gl_ctx || gl;
+        if (imgFormat.unsizedType == gl_ctx.NONE)
+            return gluTextureUtil.getTransferFormat(mapGLInternalFormat(imgFormat.format));
+        else
+            return new TransferFormat(imgFormat.format, imgFormat.unsizedType);
+    });
+    
     return {
         Range:                  Range,
         formatkey:              formatkey,
@@ -340,13 +504,14 @@ define([], function() {
         Image:                  Image,
         RenderBuffer:           RenderBuffer,
         Texture:                Texture,
-        TextureFlat:            Texture,
-        Texture2D:              Texture, // TextureFlat
-        TextureCubeMap:         Texture, // TextureFlat
+        TextureFlat:            TextureFlat,
+        Texture2D:              Texture2D,
+        TextureCubeMap:         TextureCubeMap,
         TextureLayered:         TextureLayered,
-        Texture3D:              TextureLayered,
-        Texture2DArray:         TextureLayered,
-        Checker:                Checker
+        Texture3D:              Texture3D,
+        Texture2DArray:         Texture2DArray,
+        Checker:                Checker,
+        transferImageFormat:    transferImageFormat
     };
 
 });
