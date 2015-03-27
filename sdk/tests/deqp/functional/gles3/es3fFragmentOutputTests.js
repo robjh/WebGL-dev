@@ -870,11 +870,11 @@ function(
         /** @type {WebGLBuffer} */ var indexObject = gl.createBuffer();
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexObject);
         GLU_EXPECT_NO_ERROR(gl.getError(), 'bindBuffer');
-        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(primitives.indices), gl.STATIC_DRAW);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
         GLU_EXPECT_NO_ERROR(gl.getError(), 'bufferData');
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
 
-        gl.drawElements(gl.TRIANGLES, numIndices, gl.UNSIGNED_SHORT, indices); // TODO: check last argument, offset
+        gl.drawElements(gl.TRIANGLES, numIndices, gl.UNSIGNED_SHORT, 0); // offset = 0
         GLU_EXPECT_NO_ERROR(gl.getError(), 'glDrawElements');
 
         // Read all attachment points.
