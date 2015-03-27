@@ -1114,7 +1114,7 @@ define([
                         case "float":
                             gl.vertexAttribPointer(loc, numComponents, gl.FLOAT, gl.FALSE, this.m_inputStride, attrib.offset); break;
                         case "int":
-                            gl.vertexAttribIPointer(loc, numComponents, gl.INT, gl.FALSE, this.m_inputStride, attrib.offset); break;
+                            gl.vertexAttribIPointer(loc, numComponents, gl.INT, this.m_inputStride, attrib.offset); break;
                         case "uint":
                             gl.vertexAttribPointer(loc, numComponents, gl.UNSIGNED_INT, gl.FALSE, this.m_inputStride, attrib.offset); break;
                     }
