@@ -764,8 +764,11 @@ ConstPixelBufferAccess.prototype.getDataSize = function() { return this.m_depth 
 ConstPixelBufferAccess.prototype.getDataPtr = function() {
         var arrayType = getTypedArray(this.m_format.type);
          return new arrayType(this.m_data);
- };
-
+};
+/** @return {ArrayBuffer} */
+ConstPixelBufferAccess.prototype.getBuffer = function() {
+    return this.m_data;
+};
 /** @return {Number} */
 ConstPixelBufferAccess.prototype.getRowPitch = function() { return this.m_rowPitch; };
 /** @return {Number} */
@@ -1210,7 +1213,30 @@ PixelBufferAccess.newFromTextureLevel = function (level) {
     descriptor.width = level.getWidth();
     descriptor.height = level.getHeight();
     descriptor.depth = level.m_depth;
-    descriptor.data = level.m_data;
+    descriptor.data = level.m_data.m_ptr;
+
+    return new PixelBufferAccess(descriptor);
+};
+
+/**
+ * newFromTextureFormat
+ * @param {TextureFormat} format
+ * @param {number} width
+ * @param {number} height
+ * @param {number} depth
+ * @param {number} rowPitch
+ * @param {number} slicePitch
+ * @param {ArrayBuffer} data
+ */
+PixelBufferAccess.newFromTextureFormat = function (format, width, height, depth, rowPitch, slicePitch, data) {
+    var descriptor = new Object();
+    descriptor.format = format;
+    descriptor.width = width;
+    descriptor.height = height;
+    descriptor.depth = depth;
+    descriptor.rowPitch = rowPitch;
+    descriptor.slicePitch = slicePitch;
+    descriptor.data = data;
 
     return new PixelBufferAccess(descriptor);
 };
@@ -1220,7 +1246,7 @@ PixelBufferAccess.newFromTextureLevel = function (level) {
 // public:
 //                             PixelBufferAccess            (void) {}
 //                             PixelBufferAccess            (const TextureFormat& format, int width, int height, int depth, void* data);
-//                             PixelBufferAccess            (const TextureFormat& format, int width, int height, int depth, int rowPitch, int slicePitch, void* data);
+
 
 //     void*                    getDataPtr                    (void) const { return m_data; }
 
@@ -1940,10 +1966,10 @@ TextureLevel.prototype.setSize = function(width, height, depth)
 
 TextureLevel.prototype.getAccess = function() {
     return new PixelBufferAccess({
-                    format: new TextureFormat(ChannelOrder.RGBA, ChannelType.UNORM_INT8),
+                    format: this.m_format,
                     width: this.m_width,
                     height: this.m_height,
-                    data: this.m_data
+                    data: this.m_data.m_ptr
                 });
 
 };
@@ -1962,6 +1988,14 @@ TextureLevel.prototype.getWidth = function()
 TextureLevel.prototype.getHeight = function()
 {
     return this.m_height;
+};
+
+/**
+ * @return {number}
+ */
+TextureLevel.prototype.getDepth = function()
+{
+    return this.m_depth;
 };
 
 /**

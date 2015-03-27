@@ -444,8 +444,7 @@ define([
         // Passing referenceImg.getAccess() and resultImg.getAccess() instead of referenceImg and resultImg
         /** @type {boolean} */ var testOk = tcuImageCompare.fuzzyCompare('ComparisonResult', 'Image comparison result', referenceImg.getAccess(), resultImg.getAccess(), 0.05, gluShaderUtil.COMPARE_LOG_RESULT);
 
-        this.m_testCtx.setTestResult(testOk ? QP_TEST_RESULT_PASS : QP_TEST_RESULT_FAIL,
-                                    testOk ? 'Pass' : 'Fail');
+        assertMsgOptions(testOk, '', true, false);
 
         return tcuTestCase.runner.IterateResult.STOP;
     };
