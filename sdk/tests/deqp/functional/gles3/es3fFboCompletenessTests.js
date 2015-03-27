@@ -3,7 +3,7 @@
 define([
     'modules/shared/glsFboUtil',
     'framework/common/tcuTestCase'
-], function(glsFboUtil, deqpTests) {
+], function(glsFboUtil, tcuTestCase) {
     'use strict';
 
     var s_es3ColorRenderables = [
@@ -132,7 +132,7 @@ define([
 
     var ES3Checker = (function(argv) {
         argv = argv || {};
-        
+
         var parent = {
             _construct: this._construct
         };
@@ -155,7 +155,7 @@ define([
         this.check = (function(attPoint, attachment, image) {
             // TODO find imageNumSamples
             var imgSamples = imageNumSamples(image);
-            
+
             if (m_numSamples == -1) {
                 m_numSamples = imgSamples;
             } else {
@@ -186,13 +186,13 @@ define([
                     gl.FRAMEBUFFER_INCOMPLETE_MULTISAMPLE
                 );
             }
-            
+
             // "Depth and stencil attachments, if present, are the same image."
             if (attPoint == gl.DEPTH_ATTACHMENT || attPoint == gl.STENCIL_ATTACHMENT) {
                 if (m_depthStencilImage == 0) {
                     m_depthStencilImage = att.imageName;
                     m_depthStencilType  = attachmentType(att);
-                    
+
                 } else {
                     this.require(
                         m_depthStencilImage == att.imageName && m_depthStencilType == attachmentType(att),
@@ -200,7 +200,7 @@ define([
                     );
                 }
             }
-            
+
         });
 
     });
@@ -236,24 +236,24 @@ define([
             'attached layer ' + params.attachmentLayer + '.'
         );
     });
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     var TestBase = (function(argv) {
-    
+
         argv = argv || {};
 
         this.params = null;
@@ -264,22 +264,22 @@ define([
             console.log("TestBase Constructor");
         });
         if (!argv.dont_construct) this._construct(argv);
-        
+
     });
-    TestBase.prototype = new deqpTests.DeqpTest();
-    
+    TestBase.prototype = new tcuTestCase.DeqpTest();
+
     var NumLayersTest = (function(argv) {
         argv = argv || {};
-    
+
         if (!argv.dont_construct) this._construct(argv);
     });
     NumLayersTest.prototype = new TestBase({dont_construct: true});
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+
 
     var run = (function() {
     });
