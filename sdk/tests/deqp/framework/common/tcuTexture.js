@@ -1226,7 +1226,7 @@ PixelBufferAccess.newFromTextureLevel = function (level) {
  * @param {number} depth
  * @param {number} rowPitch
  * @param {number} slicePitch
- * @param {Uint8Array} data
+ * @param {ArrayBuffer} data
  */
 PixelBufferAccess.newFromTextureFormat = function (format, width, height, depth, rowPitch, slicePitch, data) {
     var descriptor = new Object();
@@ -1969,7 +1969,7 @@ TextureLevel.prototype.getAccess = function() {
                     format: this.m_format,
                     width: this.m_width,
                     height: this.m_height,
-                    data: this.m_data.m_ptr;
+                    data: this.m_data.m_ptr
                 });
 
 };

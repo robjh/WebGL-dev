@@ -39,6 +39,27 @@ var Clear = {
 };
 
 /**
+ * @param {tcuTexture.PixelBufferAccess} dst
+ * @param {number} y
+ * @param {number} z
+ * @param {number} pixelSize
+ * @param {ArrayBuffer} pixel
+ */
+var fillRow = function (dst, y, z, pixelSize, pixel) {
+    var start = z * dst.getSlicePitch() + y * dst.getRowPitch();
+    /** @type {ArrayBuffer} */ var dstPtr  = dst.getBuffer();
+    var width = dst.getWidth();
+
+    //TODO: Optimize this for pixel sizes 8 and 4
+    /** @type {Uint8Array} */ var dstPtr8 = new Uint8Array(dstPtr);
+    /** @type {Uint8Array} */ var pixel8 = new Uint8Array(pixel);
+
+    for (var i = 0; i < width; i++)
+        for ( var c = 0; c < pixelSize; c++)
+            dstPtr8[start + (i * pixelSize + c)] = pixel8[c];
+};
+
+/**
  * @param {PixelBufferAccess} access
  * @param {Array.<number>} color
  */
@@ -48,10 +69,10 @@ var clear = function (access, color) {
     if (access.getWidth() * access.getHeight() * access.getDepth() >= Clear.OPTIMIZE_THRESHOLD &&
         pixelSize < Clear.OPTIMIZE_MAX_PIXEL_SIZE) {
         // Convert to destination format.
-        /** @type {Uint8Array} */ var pixel = new Uint8Array(Clear.OPTIMIZE_MAX_PIXEL_SIZE);
+        /** @type {ArrayBuffer} */ var pixel = new ArrayBuffer(Clear.OPTIMIZE_MAX_PIXEL_SIZE);
 
-        DE_ASSERT(pixel.length == Clear.OPTIMIZE_MAX_PIXEL_SIZE);
-        PixelBufferAccess(access.getFormat(), 1, 1, 1, 0, 0, pixel).setPixel(color, 0, 0);
+        DE_ASSERT(pixel.byteLength == Clear.OPTIMIZE_MAX_PIXEL_SIZE);
+        tcuTexture.PixelBufferAccess.newFromTextureFormat(access.getFormat(), 1, 1, 1, 0, 0, pixel).setPixel(color, 0, 0);
 
         for (var z = 0; z < access.getDepth(); z++)
             for (var y = 0; y < access.getHeight(); y++)
