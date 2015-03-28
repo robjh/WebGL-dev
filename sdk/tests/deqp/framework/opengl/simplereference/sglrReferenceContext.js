@@ -18,7 +18,8 @@
  *
  */
 
-define(['framework/referencerenderer/rrMultisamplePixelBufferAccess', 'framework/common/tcuTexture', 'framework/delibs/debase/deMath'], function(rrMultisamplePixelBufferAccess, tcuTexture, deMath) {
+define(['framework/referencerenderer/rrMultisamplePixelBufferAccess', 'framework/common/tcuTexture', 'framework/delibs/debase/deMath', 'framework/opengl/gluTextureUtil', 'framework/common/tcuTextureUtil' ],
+ function(rrMultisamplePixelBufferAccess, tcuTexture, deMath, gluTextureUtil, tcuTextureUtil) {
 
 var rrMPBA = rrMultisamplePixelBufferAccess;
 
@@ -56,6 +57,17 @@ var isMipmapFilter = function(/*const tcu::Sampler::FilterMode*/ mode) {
 var FaceType = {
     FACETYPE_FRONT: 0,
     FACETYPE_BACK: 1
+};
+
+/**
+ * @constructor
+ * @param {number=} a
+ * @param {number=} b
+ * @param {number=} c
+ * @param {number=} d
+ */
+var GenericVec4 = function(a, b, c, d) {
+    this.data = [a || 0, b || 0, c || 0, d || 0];
 };
 
 /**
@@ -345,11 +357,60 @@ var TextureContainer = function() {
 };
 
 /**
+ * @enum
+ */
+var AttachmentPoint = {
+    ATTACHMENTPOINT_COLOR0: 0,
+    ATTACHMENTPOINT_DEPTH: 1,
+    ATTACHMENTPOINT_STENCIL: 2
+};
+
+/**
+ * @enum
+ */
+var AttachmentType = {
+    ATTACHMENTTYPE_RENDERBUFFER: 0,
+    ATTACHMENTTYPE_TEXTURE: 1
+};
+
+/**
+ * @enum
+ */
+var TexTarget = {
+    TEXTARGET_2D: 0,
+    TEXTARGET_CUBE_MAP_POSITIVE_X: 1,
+    TEXTARGET_CUBE_MAP_POSITIVE_Y: 2,
+    TEXTARGET_CUBE_MAP_POSITIVE_Z: 3,
+    TEXTARGET_CUBE_MAP_NEGATIVE_X: 4,
+    TEXTARGET_CUBE_MAP_NEGATIVE_Y: 5,
+    TEXTARGET_CUBE_MAP_NEGATIVE_Z: 6,
+    TEXTARGET_2D_ARRAY: 7,
+    TEXTARGET_3D: 8,
+    TEXTARGET_CUBE_MAP_ARRAY: 9
+
+};
+
+/**
+ * @constructor
+ */
+var Attachment = function() {
+    /** @type {AttachmentType} */ this.type = undefined;
+    this.object = null;
+    /** @type {TexTarget} */ this.texTarget = undefined;
+    this.level = 0;
+    this.layer = 0;
+};
+
+/**
  * @constructor
  */
 var Framebuffer = function() {
-    /* TODO: implement */
+    this.m_attachments = [];
+    for (var point in AttachmentType)
+        this.m_attachments[point] = new Attachment();
 };
+
+Framebuffer.prototype.getAttachment = function(point) { return this.m_attachments[point]; };
 
 /**
  * @constructor
@@ -399,6 +460,42 @@ DataBuffer.prototype.getSize = function() {
     return size;
 };
 DataBuffer.prototype.getData = function() { return this.m_data; };
+
+DataBuffer.prototype.setData = function(data) {
+    var buffer;
+    var offset = 0;
+    var byteLength = data.byteLength;
+    if (data instanceof ArrayBuffer)
+        buffer = data;
+    else {
+        buffer = data.buffer;
+        offset = data.byteOffset;
+    }
+
+    if (!buffer)
+        throw new Error("Invalid buffer");
+
+    this.m_data = buffer.slice(offset, offset + byteLength);
+};
+
+DataBuffer.prototype.setSubData = function(offset, data) {
+    var buffer;
+    var srcOffset = 0;
+    var byteLength = data.byteLength;
+    if (data instanceof ArrayBuffer)
+        buffer = data;
+    else {
+        buffer = data.buffer;
+        srcOffset = data.byteOffset;
+    }
+
+    if (!buffer)
+        throw new Error("Invalid buffer");
+
+    var src = new Uint8Array(buffer, srcOffset, byteLength);
+    var dst = new Uint8Array(this.m_data, offset, byteLength);
+    dst.set(src);
+};
 
 
 // /**
@@ -531,6 +628,9 @@ var ReferenceContext = function(limits, colorbuffer, depthbuffer, stencilbuffer)
     this.m_drawFramebufferBinding = null;
     this.m_renderbufferBinding    = null;
     this.m_currentProgram         = null;
+    this.m_currentAttribs = [];
+    for (var i = 0; i < this.m_limits.maxVertexAttribs; i++)
+        this.m_currentAttribs.push(new GenericVec4());
 };
 
 ReferenceContext.prototype.getWidth = function() { return this.m_defaultColorbuffer.raw().getHeight(); };
@@ -1041,6 +1141,54 @@ ReferenceContext.prototype.vertexAttribIPointer = function(index, size, type, st
     array.bufferBinding   = this.m_arrayBufferBinding;
 };
 
+ReferenceContext.prototype.enableVertexAttribArray = function(index) {
+     if (this.condtionalSetError(index >= this.m_limits.maxVertexAttribs, gl.INVALID_VALUE))
+        return;
+
+    this.m_vertexArrayBinding.m_arrays[index].enabled = true;
+};
+
+ReferenceContext.prototype.disableVertexAttribArray = function(index) {
+     if (this.condtionalSetError(index >= this.m_limits.maxVertexAttribs, gl.INVALID_VALUE))
+        return;
+
+    this.m_vertexArrayBinding.m_arrays[index].enabled = false;
+};
+
+ReferenceContext.prototype.vertexAttribDivisor = function(index, divisor) {
+      if (this.condtionalSetError(index >= this.m_limits.maxVertexAttribs, gl.INVALID_VALUE))
+        return;
+
+    this.m_vertexArrayBinding.m_arrays[index].divisor = divisor;
+};
+
+ReferenceContext.prototype.vertexAttrib1f = function(index, x) {
+      if (this.condtionalSetError(index >= this.m_limits.maxVertexAttribs, gl.INVALID_VALUE))
+        return;
+
+    this.m_currentAttribs[index] = new GenericVec4(x, 0, 0, 1);
+};
+
+ReferenceContext.prototype.vertexAttrib2f = function(index, x, y) {
+      if (this.condtionalSetError(index >= this.m_limits.maxVertexAttribs, gl.INVALID_VALUE))
+        return;
+
+    this.m_currentAttribs[index] = new GenericVec4(x, y, 0, 1);
+};
+
+ReferenceContext.prototype.vertexAttrib3f = function(index, x, y, z) {
+      if (this.condtionalSetError(index >= this.m_limits.maxVertexAttribs, gl.INVALID_VALUE))
+        return;
+
+    this.m_currentAttribs[index] = new GenericVec4(x, y, z, 1);
+};
+ReferenceContext.prototype.vertexAttrib4f = function(index, x, y, z, w) {
+      if (this.condtionalSetError(index >= this.m_limits.maxVertexAttribs, gl.INVALID_VALUE))
+        return;
+
+    this.m_currentAttribs[index] = new GenericVec4(x, y, z, w);
+};
+
 var isValidBufferTarget = function(target) {
     switch (target)
     {
@@ -1102,6 +1250,129 @@ ReferenceContext.prototype.bindBuffer = function(target, buffer) {
 };
 
 ReferenceContext.prototype.createBuffer = function() { return new DataBuffer(); };
+
+ReferenceContext.prototype.bufferData = function(target, input, usage) {
+    if (this.condtionalSetError(!isValidBufferTarget(target), gl.INVALID_ENUM))
+        return;
+    var buffer = this.getBufferBinding(target);
+    if (this.condtionalSetError(!buffer, gl.INVALID_OPERATION))
+        return;
+
+    if (typeof input == 'number') {
+        if (this.condtionalSetError(input < 0, gl.INVALID_VALUE))
+            return;
+        buffer.setStorage(input);
+    } else {
+        buffer.setData(input);
+    }
+};
+
+ReferenceContext.prototype.bufferSubData = function(target, offset, data) {
+    if (this.condtionalSetError(!isValidBufferTarget(target), gl.INVALID_ENUM))
+        return;
+    if (this.condtionalSetError(offset < 0, gl.INVALID_VALUE))
+        return;
+    var buffer = this.getBufferBinding(target);
+    if (this.condtionalSetError(!buffer, gl.INVALID_OPERATION))
+        return;
+
+    if (this.condtionalSetError(offset + data.byteLength > buffer.getSize(), gl.INVALID_VALUE))
+        return;
+    buffer.setSubData(offset, data);
+};
+
+
+ReferenceContext.prototype.readPixels = function(x, y, width, height, format, type, pixels) {
+    var    src = this.getReadColorbuffer();
+
+    // Map transfer format.
+    var transferFmt = gluTextureUtil.mapGLTransferFormat(format, type);
+
+    // Clamp input values
+    var copyX         = deMath.clamp(x,      0, src.raw().getHeight());
+    var copyY         = deMath.clamp(y,      0, src.raw().getDepth());
+    var copyWidth     = deMath.clamp(width,  0, src.raw().getHeight()-x);
+    var copyHeight    = deMath.clamp(height, 0, src.raw().getDepth()-y);
+
+    var data;
+    var offset;
+    if (this.m_pixelPackBufferBinding) {
+        if (this.condtionalSetError(typeof pixels !== 'number', gl.INVALID_VALUE))
+            return;
+        data = this.m_pixelPackBufferBinding.getData();
+        offset = pixels;
+    } else {
+        data = pixels;
+        offset = 0;
+    }
+
+    var dst = new tcuTexture.PixelBufferAccess({
+        format: transferFmt,
+        width: width,
+        heigth: height,
+        depth: 1,
+        rowPitch: deMath.deAlign32(width*transferFmt.getPixelSize(), this.m_pixelPackAlignment),
+        slicePitch: 0,
+        data: data,
+        offset: offset});
+
+    src = tcuTextureUtil.getSubregion(src, copyX, copyY, 0, copyWidth, copyHeight, 1);
+    src.resolveMultisampleColorBuffer(tcuTextureUtil.getSubregion(dst, 0, 0, 0, copyWidth, copyHeight, 1));
+};
+
+var nullAccess = function() {
+    return new tcuTexture.PixelBufferAccess({
+        width: 0,
+        height: 0});
+};
+
+ReferenceContext.prototype.getFboAttachment = function(framebuffer, point) {
+    var attachment = framebuffer.getAttachment(point);
+
+    switch (attachment.type) {
+        case AttachmentType.ATTACHMENTTYPE_TEXTURE: {
+            var texture = attachment.object;
+
+            if (texture.getType() == TextureType.TYPE_2D)
+                return texture.getLevel(attachment.level);
+            else if (texture.getType() == TextureType.TYPE_CUBE_MAP)
+                return texture.getFace(attachment.level, texTargetToFace(attachment.texTarget));
+            else if (texture.getType() == TextureType.TYPE_2D_ARRAY   ||
+                     texture.getType() == TextureType.TYPE_3D         ||
+                     texture.getType() == TextureType.TYPE_CUBE_MAP_ARRAY)
+            {
+                var level = texture.getLevel(attachment.level);
+
+                return new tcuTexture.PixelBufferAccess({
+                    format: level.getFormat(),
+                    width: level.getWidth(),
+                    height: level.getHeight(),
+                    depth: 1,
+                    rowPitch: level.getRowPitch(),
+                    slicePitch: 0,
+                    data: level.getDataPtr(),
+                    offset: level.getSlicePitch() * attachment.layer});
+            }
+            else
+                return nullAccess();
+        }
+
+        case AttachmentType.ATTACHMENTTYPE_RENDERBUFFER: {
+            var rbo = attachment.object;
+            return rbo.getAccess();
+        }
+
+        default:
+            return nullAccess();
+    }
+}
+
+ReferenceContext.prototype.getReadColorbuffer = function()  {
+    if (this.m_readFramebufferBinding)
+         return rrMultisamplePixelBufferAccess.fromSinglesampleAccess(this.getFboAttachment(this.m_readFramebufferBinding, AttachmentPoint.ATTACHMENTPOINT_COLOR0));
+    else
+        return this.m_defaultColorbuffer;
+};
 
 return {
     ReferenceContext: ReferenceContext
