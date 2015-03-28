@@ -443,8 +443,7 @@ function (
     var copyGLValueToArray = function (dst, val)
     {
         /** @type {Uint8Array} */ var val8 = Uint8Array(val.m_value.buffer); // TODO: Fix encapsulation issue
-        for (var ndx = 0; ndx < val8.length; ndx++)
-            dst[ndx] = val[ndx];
+        dst.set(val8);
     };
 
     /**
@@ -453,9 +452,8 @@ function (
      */
     var copyArray = function (dst, src)
     {
-        /** @type {Uint8Array} */ var src8 = Uint8Array(src.m_value.buffer).subarray(src.offset, src.offset + src.byteLength); // TODO: Fix encapsulation issue
-        for (var ndx = 0; ndx < src8.length; ndx++)
-            dst[ndx] = src8[ndx];
+        /** @type {Uint8Array} */ var src8 = new Uint8Array(src.buffer).subarray(src.offset, src.offset + src.byteLength); // TODO: Fix encapsulation issue
+        dst.set(src8);
     };
 
     //ContextArray class, implements deArray interface
