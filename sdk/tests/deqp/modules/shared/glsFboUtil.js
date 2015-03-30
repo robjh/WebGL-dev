@@ -400,7 +400,7 @@ define(['framework/opengl/gluTextureUtil'], function(gluTextureUtil) {
             
             this.m_gl      = argv.gl || gl;
             this.m_target  = argv.target;
-            this.m_configs = null;
+            this.m_configs = [];
             this.m_error   = this.m_gl.NO_ERROR;
             
             this.m_gl.bindFramebuffer(this.m_target, argv.fbo);
@@ -414,6 +414,11 @@ define(['framework/opengl/gluTextureUtil'], function(gluTextureUtil) {
                 glsup.remove(this.rbos[name], name, this.m_gl);
             }
             this.m_gl.bindFramebuffer(this.m_target, 0);
+/*
+            for (var i = 0 ; i < this.m_configs.length ; ++i) {
+                delete this.m_configs[i];
+            }
+//*/
         });
         
         // GLenum attPoint, const Attachment* att
@@ -424,14 +429,14 @@ define(['framework/opengl/gluTextureUtil'], function(gluTextureUtil) {
                 attachAttachment(att, attPoint, this.m_gl);
             }
             this.checkError();
-            attach(attPoint, att);
+            this.attach(attPoint, att);
         });
         
         // const Texture& texCfg
         this.glCreateTexture = (function(texCfg) {
             var texName = glsup.create(texCfg, this.m_gl);
             checkError();
-            setTexture(texName, texCfg);
+            this.setTexture(texName, texCfg);
             return texName;
         });
         
@@ -439,18 +444,28 @@ define(['framework/opengl/gluTextureUtil'], function(gluTextureUtil) {
         this.glCreateRbo = (function(rbCfg) {
             var rbName = glsup.create(rbCfg, this.m_gl);
             checkError();
-            setRbo(rbName, rbCfg);
+            this.setRbo(rbName, rbCfg);
             return rbName;
         });
         
         
-        
+        // Due to lazy memory management in javascript, this function isnt really
+        // needed anymore. Yet it persists here regardless.
+        this.makeConfig = (function(Definition) {
+            var cfg = new Definition();
+            this.m_configs.push(cfg);
+            return cfg;
+        });
         
         this.checkError = (function() {
             var error = m_gl.getError();
             if (error != m_gl.NO_ERROR && this.m_error != m_gl.NO_ERROR) {
                 this.m_error = error;
             }
+        });
+        
+        this.getError = (function() {
+            return this.m_error;
         });
         
         if (!argv.dont_construct) this._construct(argv);

@@ -260,7 +260,7 @@ define([
 
         this.getContext = this.getState;
 
-        this._construct = (function(opt) {
+        this._construct = (function(argv) {
             console.log("TestBase Constructor");
         });
         if (!argv.dont_construct) this._construct(argv);
@@ -270,6 +270,28 @@ define([
 
     var NumLayersTest = (function(argv) {
         argv = argv || {};
+
+        this.build = (function(builder, gl_ctx) {
+            
+            var gl_ctx = gl_ctx || gl;
+            
+            var target = gl_ctx.COLOR_ATTACHMENT0;
+            var texCfg = builder.makeConfig(
+                function(kind) {
+                    if (kind == gl_ctx.TEXTURE_3D) {
+                        return glsFboUtil.Texture3D;
+                    }
+                    if (kind == gl_ctx.TEXTURE_2D_ARRAY) {
+                        return glsFboUtil.Texture2DArray;
+                    }
+                    throw new Error('Impossible case');
+                }(this.m_params.textureKind)
+            );
+            
+            
+            texCfg.internalFormat = getDefaultFormat(target, gl_ctx.TEXTURE);
+            
+        });
 
         if (!argv.dont_construct) this._construct(argv);
     });
