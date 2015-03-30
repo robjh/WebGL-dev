@@ -45,7 +45,6 @@ var deRandom_init = function(rnd, seed)
     rnd.y = (362436069 * seed);
     rnd.z = (521288629 ^ (seed >> 7));
     rnd.w = (88675123 ^ (seed << 3));
-
 };
 
 /**

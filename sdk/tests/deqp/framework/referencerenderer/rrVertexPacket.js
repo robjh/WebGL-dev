@@ -32,7 +32,7 @@ define(['framework/common/tcuTexture', 'framework/delibs/debase/deMath'], functi
         /** @type {number} */ this.vertexNdx;
         /** @type {Array.<number>} */ this.position; //!< Transformed position - must be written always.
         /** @type {number} */ this.pointSize; //!< Point size, required when rendering points.
-        /** @type {number} */ this.primitiveID; //!< Geometry shader output
+        // /** @type {number} */ this.primitiveID; //!< Geometry shader output (Not used in webGL)
         /** @type {Array.<Array.<number>>} */ this.outputs = [[0, 0, 0, 0]];
     };
 
@@ -80,11 +80,7 @@ define(['framework/common/tcuTexture', 'framework/delibs/debase/deMath'], functi
         if (this.m_singleAllocPool.length == 0)
             this.m_singleAllocPool = allocArray(poolSize);
 
-        /** @type {VertexPacket} */ var packet = this.m_singleAllocPool[this.m_singleAllocPool.length - 1];
-        if(this.m_singleAllocPool.length - 2 >= 0)
-            this.m_singleAllocPool = this.m_singleAllocPool.slice(0, this.m_singleAllocPool.length - 2);
-        else
-            this.m_singleAllocPool = [];
+        /** @type {VertexPacket} */ var packet = this.m_singleAllocPool.pop();
 
         return packet;
     };

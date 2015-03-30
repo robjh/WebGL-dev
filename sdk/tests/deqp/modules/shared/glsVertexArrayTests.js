@@ -26,7 +26,8 @@ define([
     'framework/common/tcuImageCompare',
     'framework/delibs/debase/deMath',
     'framework/delibs/debase/deRandom',
-    'framework/referencerenderer/rrVertexAttrib'
+    'framework/referencerenderer/rrVertexAttrib',
+    'framework/referencerenderer/rrVertexPacket'
 ],
 function (
     tcuTestCase,
@@ -36,7 +37,8 @@ function (
     tcuImageCompare,
     deMath,
     deRandom,
-    rrVertexAttrib
+    rrVertexAttrib,
+    rrVertexPacket
 ) {
     'use strict';
 
@@ -928,8 +930,8 @@ function (
      */
     var ContextShaderProgram = function (ctx, arrays) {
         sglrShaderProgram.ShaderProgram.call(this, this.createProgramDeclaration(ctx, arrays));
-        this.m_componentCount = arrays.length;
-        this.m_attrType = arrays.length;
+        this.m_componentCount = new Array(arrays.length);
+        this.m_attrType = new Array(arrays.length);
 
         for(var arrayNdx = 0; arrayNdx < arrays.length; arrayNdx++)
         {
@@ -955,13 +957,13 @@ function (
                 case 4: coord = [attribValue[0] + attribValue[2], attribValue[1] + attribValue[3]]; break;
 
                 default:
-                    DE_ASSERT(false);
+                    throw new Error('calcShaderColorCoord - Invalid number of components');
             }
         else
         {
             switch (numComponents) {
                 case 1:
-                    color = color * attribValue[0];
+                    color[0] = color[0] * attribValue[0];
                     break;
 
                 case 2:
@@ -989,29 +991,27 @@ function (
 
     /**
      * ContextShaderProgram.shadeVertices
-     * @param {}
+     * @param {Array.<rrVertexAttrib.VertexAttrib>} inputs
+     * @param {Array.<rrVertexPacket.VertexPacket>} packets
+     * @param {number} numPackets
      */
-    void ContextShaderProgram::shadeVertices (const rr::VertexAttrib* inputs, rr::VertexPacket* const* packets, const int numPackets) const
-    {
-        const float u_coordScale = getUniformByName("u_coordScale").value.f;
-        const float u_colorScale = getUniformByName("u_colorScale").value.f;
-        
-        for (int packetNdx = 0; packetNdx < numPackets; ++packetNdx)
-        {
-            const size_t varyingLocColor = 0;
-            
-            rr::VertexPacket& packet = *packets[packetNdx];
-            
+    ContextShaderProgram.prototype.shadeVertices = function (inputs, packets, numPackets) {
+        /** @type {number} */ var u_coordScale = this.getUniformByName("u_coordScale").value;
+        /** @type {number} */ var u_colorScale = this.getUniformByName("u_colorScale").value;
+
+        for (var packetNdx = 0; packetNdx < numPackets; ++packetNdx) {
+            /** @type {number} */ var varyingLocColor = 0;
+
+            /** @type {rrVertexPacket.VertexPacket} */ var packet = packets[packetNdx];
+
             // Calc output color
-            tcu::Vec2 coord = tcu::Vec2(1.0, 1.0);
-            tcu::Vec3 color = tcu::Vec3(1.0, 1.0, 1.0);
-            
-            for (int attribNdx = 0; attribNdx < (int)m_attrType.size(); attribNdx++)
-            {
-                const int numComponents = m_componentCount[attribNdx];
-                
-                switch (m_attrType[attribNdx])
-                {
+            /** @type {Array.<number>} */ var coord = [1.0, 1.0];
+            /** @type {Array.<number>} */ var color = [1.0, 1.0, 1.0];
+
+            for (var attribNdx = 0; attribNdx < this.m_attrType.length; attribNdx++) {
+                /** @type {number} */ var numComponents = this.m_componentCount[attribNdx];
+
+                switch (this.m_attrType[attribNdx]) {
                     case rr::GENERICVECTYPE_FLOAT:  calcShaderColorCoord(coord, color, rr::readVertexAttribFloat(inputs[attribNdx], packet.instanceNdx, packet.vertexNdx), attribNdx == 0, numComponents);  break;
                     case rr::GENERICVECTYPE_INT32:  calcShaderColorCoord(coord, color, rr::readVertexAttribInt  (inputs[attribNdx], packet.instanceNdx, packet.vertexNdx), attribNdx == 0, numComponents);  break;
                     case rr::GENERICVECTYPE_UINT32: calcShaderColorCoord(coord, color, rr::readVertexAttribUint (inputs[attribNdx], packet.instanceNdx, packet.vertexNdx), attribNdx == 0, numComponents);  break;
@@ -1019,7 +1019,7 @@ function (
                         DE_ASSERT(false);
                 }
             }
-            
+
             // Transform position
             {
                 packet.position = tcu::Vec4(u_coordScale * coord.x(), u_coordScale * coord.y(), 1.0f, 1.0f);

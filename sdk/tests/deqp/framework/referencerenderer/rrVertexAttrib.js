@@ -18,9 +18,14 @@
  *
  */
 
-define(['framework/common/tcuTexture', 'framework/delibs/debase/deMath'], function(tcuTexture, deMath) {
+define(function() {
 
     var DE_NULL = null;
+
+    var DE_ASSERT = function(x) {
+        if (!x)
+            throw new Error('Assert failed');
+    };
 
     /**
      * VertexAttribType enum
@@ -84,6 +89,7 @@ define(['framework/common/tcuTexture', 'framework/delibs/debase/deMath'], functi
 
     /**
      * VertexAttrib class
+     * @constructor
      */
     var VertexAttrib = function () {
         /** @type {VertexAttribType} */ this.type = VertexAttribType.FLOAT;
@@ -94,4 +100,60 @@ define(['framework/common/tcuTexture', 'framework/delibs/debase/deMath'], functi
         /** @type {Array.<number> */ this.generic; //!< Generic attribute, used if pointer is null.
     };
 
+    /**
+     * isValidVertexAttrib function
+     * @param {VertexAttrib} vertexAttrib
+     * @return {boolean}
+     */
+    var isValidVertexAttrib = function (vertexAttrib) {
+        // Trivial range checks.
+        if (!deMath.inBounds(vertexAttrib.type, 0, Object.keys(VertexAttribType).length) ||
+            !deMath.inRange(vertexAttrib.size, 0, 4) ||
+            vertexAttrib.instanceDivisor < 0)
+            return false;
+
+        // Generic attributes
+        if (!vertexAttrib.pointer && vertexAttrib.type != VertexAttribType.DONT_CARE)
+            return false;
+
+        // Packed formats
+        if ((vertexAttrib.type == VertexAttribType.NONPURE_INT_2_10_10_10_REV               ||
+            vertexAttrib.type == VertexAttribType.NONPURE_UINT_2_10_10_10_REV              ||
+            vertexAttrib.type == VertexAttribType.NONPURE_UNORM_2_10_10_10_REV             ||
+            vertexAttrib.type == VertexAttribType.NONPURE_SNORM_2_10_10_10_REV_CLAMP       ||
+            vertexAttrib.type == VertexAttribType.NONPURE_SNORM_2_10_10_10_REV_SCALE       ||
+            vertexAttrib.type == VertexAttribType.NONPURE_UNORM_2_10_10_10_REV_BGRA        ||
+            vertexAttrib.type == VertexAttribType.NONPURE_SNORM_2_10_10_10_REV_CLAMP_BGRA  ||
+            vertexAttrib.type == VertexAttribType.NONPURE_SNORM_2_10_10_10_REV_SCALE_BGRA) &&
+            vertexAttrib.size != 4)
+            return false;
+
+        return true;
+    };
+
+    /**
+     * readVertexAttrib function
+     * @param {Array.<number>} dst
+     * @param {VertexAttrib} vertexAttrib
+     * @param {number} instanceNdx
+     * @param {number} vertexNdx
+     */
+    var readVertexAttrib = function (dst, vertexAttrib, instanceNdx, vertexNdx) {
+        DE_ASSERT(isValidVertexAttrib(vertexAttrib));
+
+        if (vertexAttrib.pointer)
+        {
+            /** @type {number} */ var elementNdx = (vertexAttrib.instanceDivisor != 0) ? (instanceNdx / vertexAttrib.instanceDivisor) : vertexNdx;
+            /** @type {number} */ var compSize = getComponentSize(vertexAttrib.type);
+            /** @type {number} */ var stride = (vertexAttrib.stride != 0) ? (vertexAttrib.stride) : (vertexAttrib.size * compSize);
+            /** @type {number} */ var byteOffset = elementNdx*stride;
+
+            dst = [0, 0, 0, 1]; // defaults
+            readUint(dst, vertexAttrib.type, vertexAttrib.size, (const deUint8*)vertexAttrib.pointer + byteOffset);
+        }
+        else
+        {
+            dst = vertexAttrib.generic.get<deUint32>();
+        }
+    }
 });
