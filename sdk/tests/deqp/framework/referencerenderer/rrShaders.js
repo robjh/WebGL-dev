@@ -18,13 +18,7 @@
  *
  */
 
-define(['framework/referencerenderer/rrShaders', 'framework/common/tcuTexture', 'framework/delibs/debase/deMath', 'framework/opengl/gluTextureUtil', 'framework/common/tcuTextureUtil' ],
- function(rrShaders, tcuTexture, deMath, gluTextureUtil, tcuTextureUtil) {
+define(['framework/common/tcuTexture', 'framework/delibs/debase/deMath'], function(tcuTexture, deMath) {
 
-     /**
-      * ShaderProgram class
-      * @constructor
-      */
-     var ShaderProgram = function {
-     };
+
 });
