@@ -867,7 +867,7 @@ return {
     numberToHalfFloat: numberToHalfFloat,
     numberToHalfFloatNoDenorm: numberToHalfFloatNoDenorm,
     halfFloatToNumber: halfFloatToNumber,
-    halfFloatToNumberNoDenorm: halfFloatToNumberNoDenorm,
+    halfFloatToNumberNoDenorm: halfFloatToNumberNoDenorm
 };
 
 });
