@@ -45,9 +45,9 @@ var Clear = {
  * @param {number} pixelSize
  * @param {ArrayBuffer} pixel
  */
-var fillRow = function (dst, y, z, pixelSize, pixel) {
+var fillRow = function(dst, y, z, pixelSize, pixel) {
     var start = z * dst.getSlicePitch() + y * dst.getRowPitch();
-    /** @type {ArrayBuffer} */ var dstPtr  = dst.getBuffer();
+    /** @type {ArrayBuffer} */ var dstPtr = dst.getBuffer();
     var width = dst.getWidth();
 
     //TODO: Optimize this for pixel sizes 8 and 4
@@ -55,7 +55,7 @@ var fillRow = function (dst, y, z, pixelSize, pixel) {
     /** @type {Uint8Array} */ var pixel8 = new Uint8Array(pixel);
 
     for (var i = 0; i < width; i++)
-        for ( var c = 0; c < pixelSize; c++)
+        for (var c = 0; c < pixelSize; c++)
             dstPtr8[start + (i * pixelSize + c)] = pixel8[c];
 };
 
@@ -63,7 +63,7 @@ var fillRow = function (dst, y, z, pixelSize, pixel) {
  * @param {PixelBufferAccess} access
  * @param {Array.<number>} color
  */
-var clear = function (access, color) {
+var clear = function(access, color) {
     /** @type {number} */ var pixelSize = access.getFormat().getPixelSize();
 
     if (access.getWidth() * access.getHeight() * access.getDepth() >= Clear.OPTIMIZE_THRESHOLD &&
@@ -173,20 +173,20 @@ var getSubregion = function(access, x, y, z, width, height, depth) {
     DE_ASSERT(deMath.deInBounds32(x, 0, access.getWidth()) && deMath.deInRange32(x + width, x, access.getWidth()));
     DE_ASSERT(deMath.deInBounds32(y, 0, access.getHeight()) && deMath.deInRange32(y + height, y, access.getHeight()));
     DE_ASSERT(deMath.deInBounds32(z, 0, access.getDepth()) && deMath.deInRange32(z + depth, z, access.getDepth()));
-    var constPixelBufferAccess =  new tcuTexture.ConstPixelBufferAccess({
+
+    var constPixelBufferAccess = new tcuTexture.ConstPixelBufferAccess({
         format: access.getFormat(),
         width: width,
         height: height,
         depth: depth,
         rowPitch: access.getRowPitch(),
         slicePitch: access.getSlicePitch(),
-     // TODO: unfinished, access.getDataPtr(), implement offset in tcuTexture.ConstPixelBufferAccess
-        data: access.getDataPtr() + access.getFormat().getPixelSize() * x + access.getRowPitch() * y + access.getSlicePitch() * z
+        offset: access.getDataPtr() + access.getFormat().getPixelSize() * x + access.getRowPitch() * y + access.getSlicePitch() * z,
+        data: access.getDataPtr() // TODO: check getDataPtr()
         });
 
-    // TODO: unfinished Error
-    if(constPixelBufferAccess.data != 'undefined' && constPixelBufferAccess.data != null) return constPixelBufferAccess;
-    else throw new Error('Error creating data in constPixelBufferAccess, check getDataPtr()');
+    if (constPixelBufferAccess.data != 'undefined' && constPixelBufferAccess.data != null) return constPixelBufferAccess;
+    else throw new Error('Error creating data element in object tcuTexture.ConstPixelBufferAccess, check getDataPtr()');
 
 };
 
