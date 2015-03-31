@@ -56,19 +56,40 @@ define(['framework/opengl/gluTextureUtil'], function(gluTextureUtil) {
         argv = argv || {};
         
         this._construct = (function(argv) {
-            this.type = argv.type || 'config';
+            this.type = argv.type ? argv.type | Config.s_types.CONFIG : Config.s_types.CONFIG;
             this.target = argv.target || Config.s_target.NONE;
         });
         
         if (!argv.dont_construct) this._construct(argv);
     });
     Config.s_target = {
-        NONE:             0,
-        RENDERBUFFER:     1,
-        TEXTURE_2D:       2,
-        TEXTURE_CUBE_MAP: 3,
-        TEXTURE_3D:       4,
-        TEXTURE_2D_ARRAY: 5
+        NONE:              0,
+        RENDERBUFFER:      1,
+        TEXTURE_2D:        2,
+        TEXTURE_CUBE_MAP:  3,
+        TEXTURE_3D:        4,
+        TEXTURE_2D_ARRAY:  5,
+        
+        FRAMEBUFFER:       6
+    };
+    Config.s_types = {
+        CONFIG:            0x000001,
+        
+        IMAGE:             0x000010,
+        RENDERBUFFER:      0x000020,
+        TEXTURE:           0x000040,
+        TEXTURE_FLAT:      0x000080,
+        TEXTURE_2D:        0x000100,
+        TEXTURE_CUBE_MAP:  0x000200,
+        TEXTURE_LAYERED:   0x000400,
+        TEXTURE_3D:        0x000800,
+        TEXTURE_2D_ARRAY:  0x001000,
+        
+        ATTACHMENT:        0x010000,
+        ATT_RENDERBUFFER:  0x020000,
+        ATT_TEXTURE:       0x040000,
+        ATT_TEXTURE_FLAT:  0x080000,
+        ATT_TEXTURE_LAYER: 0x100000
     };
     
     var Image = (function(argv) {
@@ -79,10 +100,8 @@ define(['framework/opengl/gluTextureUtil'], function(gluTextureUtil) {
         };
         
         this._construct = (function(argv) {
-            argv.type = argv.type || 'image';
+            argv.type = argv.type ? argv.type | Config.s_types.IMAGE : Config.s_types.IMAGE;
             parent._construct(argv);
-            this.type   = argv.type;
-            this.target = argv.target;
             this.width  = 0;
             this.height = 0;
             this.internalFormat = new ImageFormat();
@@ -100,7 +119,7 @@ define(['framework/opengl/gluTextureUtil'], function(gluTextureUtil) {
         };
         
         this._construct = (function(argv) {
-            argv.type   = argv.type   || 'renderbuffer';
+            argv.type   = argv.type ? argv.type | Config.s_types.RENDERBUFFER : Config.s_types.RENDERBUFFER;
             argv.target = argv.target || Config.s_target.RENDERBUFFER;
             parent._construct(argv);
             this.numSamples = 0;
@@ -118,7 +137,7 @@ define(['framework/opengl/gluTextureUtil'], function(gluTextureUtil) {
         };
         
         this._construct = (function(argv) {
-            argv.type = argv.type || 'texture';
+            argv.type = argv.type ? argv.type | Config.s_types.TEXTURE : Config.s_types.TEXTURE;
             parent._construct(argv);
             this.numLevels = 1;
         });
@@ -129,6 +148,16 @@ define(['framework/opengl/gluTextureUtil'], function(gluTextureUtil) {
     
     var TextureFlat = (function(argv) {
         argv = argv || {};
+        
+        var parent = {
+            _construct: this._construct,
+        };
+        
+        this._construct = (function(argv) {
+            argv.type = argv.type ? argv.type | Config.s_types.TEXTURE_FLAT : Config.s_types.TEXTURE_FLAT;
+            parent._construct(argv);
+        });
+        
         if (!argv.dont_construct) this._construct(argv);
     });
     TextureFlat.prototype = new Texture({dont_construct: true});
@@ -142,6 +171,7 @@ define(['framework/opengl/gluTextureUtil'], function(gluTextureUtil) {
         
         this._construct = (function(argv) {
             argv.target = argv.target || Config.s_target.TEXTURE_2D;
+            argv.type = argv.type ? argv.type | Config.s_types.TEXTURE_2D : Config.s_types.TEXTURE_2D;
             parent._construct(argv);
         });
         
@@ -158,6 +188,7 @@ define(['framework/opengl/gluTextureUtil'], function(gluTextureUtil) {
         
         this._construct = (function(argv) {
             argv.target = argv.target || Config.s_target.TEXTURE_CUBE_MAP;
+            argv.type = argv.type ? argv.type | Config.s_types.TEXTURE_CUBE_MAP : Config.s_types.TEXTURE_CUBE_MAP;
             parent._construct(argv);
         });
         
@@ -173,7 +204,7 @@ define(['framework/opengl/gluTextureUtil'], function(gluTextureUtil) {
         };
         
         this._construct = (function(argv) {
-            argv.type = argv.type || 'texturelayered';
+            argv.type = argv.type ? argv.type | Config.s_types.TEXTURE_LAYERED : Config.s_types.TEXTURE_LAYERED;
             parent._construct(argv);
             this.numLayers = 1;
         });
@@ -191,6 +222,7 @@ define(['framework/opengl/gluTextureUtil'], function(gluTextureUtil) {
         
         this._construct = (function(argv) {
             argv.target = argv.target || Config.s_target.TEXTURE_3D;
+            argv.type = argv.type ? argv.type | Config.s_types.TEXTURE_3D : Config.s_types.TEXTURE_3D;
             parent._construct(argv);
         });
         
@@ -207,12 +239,104 @@ define(['framework/opengl/gluTextureUtil'], function(gluTextureUtil) {
         
         this._construct = (function(argv) {
             argv.target = argv.target || Config.s_target.TEXTURE_2D_ARRAY;
+            argv.type = argv.type ? argv.type | Config.s_types.TEXTURE_2D_ARRAY : Config.s_types.TEXTURE_2D_ARRAY;
             parent._construct(argv);
         });
         
         if (!argv.dont_construct) this._construct(argv);
     });
     Texture2DArray.prototype = new TextureLayered({dont_construct: true});
+    
+    
+    // Attachments
+    var Attachment = (function(argv) {
+        argv = argv || {};
+        
+        var parent = {
+            _construct: this._construct,
+        };
+        
+        this._construct = (function(argv) {
+            argv.type = argv.type ? argv.type | Config.s_types.ATTACHMENT : Config.s_types.ATTACHMENT;
+            argv.target = argv.target || Config.s_target.FRAMEBUFFER;
+            parent._construct(argv);
+            this.imageName = 0;
+        });
+        
+        // this function is declared, but has no definition/is unused in the c++
+        // var isComplete = (function(attPoint, image, vfr) { });
+        
+        if (!argv.dont_construct) this._construct(argv);
+    });
+    Attachment.prototype = new Config({dont_construct: true});
+    
+    var RenderbufferAttachment = (function(argv) {
+        argv = argv || {};
+        
+        var parent = {
+            _construct: this._construct,
+        };
+        
+        this._construct = (function(argv) {
+            argv.type = argv.type ? argv.type | Config.s_types.ATT_RENDERBUFFER : Config.s_types.ATT_RENDERBUFFER;
+            parent._construct(argv);
+            this.renderbufferTarget = Config.s_target.RENDERBUFFER;
+        });
+        
+        if (!argv.dont_construct) this._construct(argv);
+    });
+    RenderbufferAttachment.prototype = new Attachment({dont_construct: true});
+    
+    var TextureAttachment = (function(argv) {
+        argv = argv || {};
+        
+        var parent = {
+            _construct: this._construct,
+        };
+        
+        this._construct = (function(argv) {
+            argv.type = argv.type ? argv.type | Config.s_types.ATT_TEXTURE : Config.s_types.ATT_TEXTURE;
+            parent._construct(argv);
+            this.level = 0;
+        });
+        
+        if (!argv.dont_construct) this._construct(argv);
+    });
+    TextureAttachment.prototype = new Attachment({dont_construct: true});
+    
+    var TextureFlatAttachment = (function(argv) {
+        argv = argv || {};
+        
+        var parent = {
+            _construct: this._construct,
+        };
+        
+        this._construct = (function(argv) {
+            argv.type = argv.type ? argv.type | Config.s_types.ATT_TEXTURE_FLAT : Config.s_types.ATT_TEXTURE_FLAT;
+            parent._construct(argv);
+            this.texTarget = Config.s_target.NONE;
+        });
+        
+        if (!argv.dont_construct) this._construct(argv);
+    });
+    TextureFlatAttachment.prototype = new TextureAttachment({dont_construct: true});
+    
+    var TextureLayerAttachment = (function(argv) {
+        argv = argv || {};
+        
+        var parent = {
+            _construct: this._construct,
+        };
+        
+        this._construct = (function(argv) {
+            argv.type = argv.type ? argv.type | Config.s_types.ATT_TEXTURE_LAYER : Config.s_types.ATT_TEXTURE_LAYER;
+            parent._construct(argv);
+            this.layer = 0;
+        });
+        
+        if (!argv.dont_construct) this._construct(argv);
+    });
+    TextureLayerAttachment.prototype = new TextureAttachment({dont_construct: true});
     
     
     // these are a collection of helper functions for creating various gl textures.
@@ -273,7 +397,7 @@ define(['framework/opengl/gluTextureUtil'], function(gluTextureUtil) {
         var glCreate = (function(cfg, gl_ctx) {
             gl_ctx = gl_ctx || gl;
             
-            if (cfg.type == 'renderbuffer') {
+            if (cfg.type & Config.s_types.RENDERBUFFER) {
                 var ret = gl_ctx.createRenderBuffer();
                 gl_ctx.bindRenderBuffer(gl.RENDERBUFFER, ret);
                 
@@ -293,7 +417,7 @@ define(['framework/opengl/gluTextureUtil'], function(gluTextureUtil) {
                 }
                 gl_ctx.bindRenderbuffer(gl_ctx.RENDERBUFFER, 0);
                 
-            } else if (cfg.type == 'texture') {
+            } else if (cfg.type & Config.s_types.TEXTURE) {
                 var ret = gl_ctx.createTexture();
                 gl_ctx.bindTexture(glTarget(cfg, gl_ctx), ret);
                 glInit(tex, gl_ctx);
@@ -318,9 +442,9 @@ define(['framework/opengl/gluTextureUtil'], function(gluTextureUtil) {
         });
         
         var glDelete = (function(cfg, img, gl_ctx) {
-            if (cfg.type == 'renderbuffer')
+            if (cfg.type & Config.s_types.RENDERBUFFER)
                 gl.deleteRenderbuffers(1, img);
-            else if (cfg.type == 'texture')
+            else if (cfg.type & Config.s_types.TEXTURE)
                 gl.deleteTextures(1, img);
             else
                 DE_ASSERT(!"Impossible image type");
@@ -333,9 +457,97 @@ define(['framework/opengl/gluTextureUtil'], function(gluTextureUtil) {
     
     })();
     
+    var attachAttachment = (function(att, attPoint, gl_ctx) {
+        gl_ctx = gl_ctx || gl;
+        
+        var mask = (
+            Config.s_types.ATT_RENDERBUFFER |
+            Config.s_types.ATT_TEXTURE_FLAT |
+            Config.s_types.ATT_TEXTURE_LAYER
+        );
+        
+        switch (att.type & mask) {
+            case Config.s_types.ATT_RENDERBUFFER:
+                gl_ctx.framebufferRenderbuffer(
+                    att.target, attPoint, att.renderbufferTarget, att.imageName
+                );
+                break;
+            case Config.s_types.ATT_TEXTURE_FLAT:
+                gl_ctx.framebufferTexture2D(
+                    att.target, attPoint, att.texTarget, att.imageName, att.level
+                );
+                break;
+            case Config.s_types.ATT_TEXURE_LAYER:
+                gl_ctx.framebufferTextureLayer(
+                    att.target, attPoint, att.imageName, att.level, att.layer
+                );
+                break;
+            default:
+                throw new Error('Impossible attachment type');
+        }
+        
+    });
 
+    var attachmentType = (function(att, gl_ctx) {
+        gl_ctx = gl_ctx || gl;
+        
+        if (att.type & Config.s_types.ATT_RENDERBUFFER) {
+            return gl_ctx.RENDERBUFFER;
+        }
+        if (att.type & Config.s_types.ATT_TEXTURE) {
+            return gl_ctx.TEXTURE;
+        }
+        throw new Error('Impossible attachment type.');
+        return gl_ctx.NONE;
+        
+    });
     
-    
+    var textureLayer = (function(att) {
+        if (att.type & att.type & Config.s_types.ATT_TEXTURE_FLAT)  return 0;
+        if (att.type & att.type & Config.s_types.ATT_TEXTURE_LAYER) return att.layer;
+        throw new Error('Impossible attachment type.');
+        return 0;
+    });
+    /* TODO: port this tomorrow.
+    static void checkAttachmentCompleteness (Checker& cctx, const Attachment& attachment,
+										 GLenum attPoint, const Image* image,
+										 const FormatDB& db)
+{
+	// GLES2 4.4.5 / GLES3 4.4.4, "Framebuffer attachment completeness"
+
+	if (const TextureAttachment* const texAtt =
+		dynamic_cast<const TextureAttachment*>(&attachment))
+		if (const TextureLayered* const ltex = dynamic_cast<const TextureLayered*>(image))
+		{
+			// GLES3: "If the value of FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE is
+			// TEXTURE and the value of FRAMEBUFFER_ATTACHMENT_OBJECT_NAME names a
+			// three-dimensional texture, then the value of
+			// FRAMEBUFFER_ATTACHMENT_TEXTURE_LAYER must be smaller than the depth
+			// of the texture.
+			//
+			// GLES3: "If the value of FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE is
+			// TEXTURE and the value of FRAMEBUFFER_ATTACHMENT_OBJECT_NAME names a
+			// two-dimensional array texture, then the value of
+			// FRAMEBUFFER_ATTACHMENT_TEXTURE_LAYER must be smaller than the
+			// number of layers in the texture.
+
+			cctx.require(textureLayer(*texAtt) < ltex->numLayers,
+						 GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT);
+		}
+
+	// "The width and height of image are non-zero."
+	cctx.require(image->width > 0 && image->height > 0, GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT);
+
+	// Check for renderability
+	FormatFlags flags = db.getFormatInfo(image->internalFormat, ANY_FORMAT);
+	// If the format does not have the proper renderability flag, the
+	// completeness check _must_ fail.
+	cctx.require((flags & formatFlag(attPoint)) != 0, GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT);
+	// If the format is only optionally renderable, the completeness check _can_ fail.
+	cctx.canRequire((flags & REQUIRED_RENDERABLE) != 0,
+					GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT);
+}
+    //*/
     var formatkey = (function(format, type) {
         return (type << 16 | format) & 0xFFFFFFFF;
     });
@@ -511,22 +723,29 @@ define(['framework/opengl/gluTextureUtil'], function(gluTextureUtil) {
     });
     
     return {
-        Range:                  Range,
-        formatkey:              formatkey,
-        GLS_UNSIZED_FORMATKEY:  formatkey,
-        FormatFlags:            FormatFlags,
-        Config:                 Config,
-        Image:                  Image,
-        RenderBuffer:           RenderBuffer,
-        Texture:                Texture,
-        TextureFlat:            TextureFlat,
-        Texture2D:              Texture2D,
-        TextureCubeMap:         TextureCubeMap,
-        TextureLayered:         TextureLayered,
-        Texture3D:              Texture3D,
-        Texture2DArray:         Texture2DArray,
-        Checker:                Checker,
-        transferImageFormat:    transferImageFormat
+        Range:                     Range,
+        formatkey:                 formatkey,
+        GLS_UNSIZED_FORMATKEY:     formatkey,
+        FormatFlags:               FormatFlags,
+        
+        Config:                    Config,
+        Image:                       Image,
+        RenderBuffer:                  RenderBuffer,
+        Texture:                       Texture,
+        TextureFlat:                     TextureFlat,
+        Texture2D:                         Texture2D,
+        TextureCubeMap:                    TextureCubeMap,
+        TextureLayered:                 TextureLayered,
+        Texture3D:                         Texture3D,
+        Texture2DArray:                    Texture2DArray,
+        Attachment:                  Attachment,
+        RenderbufferAttachment:        RenderbufferAttachment,
+        TextureAttachment:             TextureAttachment,
+        TextureFlatAttachment:           TextureFlatAttachment,
+        TextureLayerAttachment:          TextureLayerAttachment,
+
+        Checker:                   Checker,
+        transferImageFormat:       transferImageFormat
     };
 
 });
