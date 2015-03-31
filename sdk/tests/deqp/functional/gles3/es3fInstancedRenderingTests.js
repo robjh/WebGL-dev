@@ -69,18 +69,6 @@ define([
         throw new Error(message);
     };
 
-    var DE_NULL = null;
-
-    var DE_FALSE = false;
-
-    var GL_FALSE = false;
-
-    var VarComp = function(v) {
-        //TODO: implement
-        return v;
-    };
-    // TODO: do we need this?
-    //DE_STATIC_ASSERT(sizeof(VarComp) == sizeof(deUint32));
     // InstancedRenderingCase
 
     /**
@@ -91,8 +79,6 @@ define([
             FUNCTION_DRAW_ELEMENTS_INSTANCED: 1
     };
 
-    DrawFunction.length = Object.keys(DrawFunction).length;
-
     /**
      * @enum InstancingType
      */
@@ -101,8 +87,6 @@ define([
             TYPE_ATTRIB_DIVISOR: 1,
             TYPE_MIXED: 2
     };
-
-    InstancingType.length = Object.keys(InstancingType).length;
 
 
     /**
@@ -122,13 +106,13 @@ define([
         /** @type {InstancingType} */ this.m_instancingType = instancingType;
         /** @type {glu.DataType} */ this.m_rgbAttrType = rgbAttrType;
         /** @type {number} */ this.m_numInstances = numInstances;
-        /** @type {glu.ShaderProgram} */ this.m_program = DE_NULL;
+        /** @type {glu.ShaderProgram} */ this.m_program = null;
         /** @type {Array.<number>} */ this.m_gridVertexPositions = [];
-        /** @type {Array.<deUint16>} */ this.m_gridIndices = [];
+        /** @type {Array.<number>} */ this.m_gridIndices = [];
         /** @type {Array.<number>} */ this.m_instanceOffsets = [];
-        /** @type {Array.<VarComp>} */ this.m_instanceColorR = [];
-        /** @type {Array.<VarComp>} */ this.m_instanceColorG = [];
-        /** @type {Array.<VarComp>} */ this.m_instanceColorB = [];
+        /** @type {Array.<number>} */ this.m_instanceColorR = [];
+        /** @type {Array.<number>} */ this.m_instanceColorG = [];
+        /** @type {Array.<number>} */ this.m_instanceColorB = [];
     };
 
     InstancedRenderingCase.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
@@ -136,23 +120,12 @@ define([
 
     /**
     * Helper function that does biasing and scaling when converting float to integer.
-    * @param {Array.<VarComp>} vec
+    * @param {Array.<number>} vec
     * @param {number} val
     */
     InstancedRenderingCase.prototype.pushVarCompAttrib = function(vec, val)
     {
-        var isFloatCase = gluShaderUtil.isDataTypeFloatOrVec(this.m_rgbAttrType);
-        var isIntCase = gluShaderUtil.isDataTypeIntOrIVec(this.m_rgbAttrType);
-        var isUintCase = gluShaderUtil.isDataTypeUintOrUVec(this.m_rgbAttrType);
-        var isMatCase = gluShaderUtil.isDataTypeMatrix(this.m_rgbAttrType);
-        if (isFloatCase || isMatCase)
-            vec.push(VarComp(val));
-        else if (isIntCase)
-            vec.push(VarComp(val * FLOAT_INT_SCALE + FLOAT_INT_BIAS));
-        else if (isUintCase)
-            vec.push(VarComp(val * FLOAT_UINT_SCALE + FLOAT_UINT_BIAS));
-        else
-            DE_ASSERT(DE_FALSE);
+        vec.push(val);
     };
 
     InstancedRenderingCase.prototype.init = function() {
@@ -216,7 +189,7 @@ define([
                 else if (isMatCase)
                     colorRExpression = 'a_instanceR[0][0]';
                 else
-                    DE_ASSERT(DE_FALSE);
+                    DE_ASSERT(false);
 
                 instanceAttribs += 'in highp ' + (OFFSET_COMPONENTS == 1 ? 'float' : 'vec' + OFFSET_COMPONENTS.toString()) + ' a_instanceOffset;\n';
                 instanceAttribs += 'in mediump ' + typeName + ' a_instanceR;\n';
@@ -243,7 +216,7 @@ define([
                 colorBExpression = 'a_instanceB[0][0]';
             }
             else
-                DE_ASSERT(DE_FALSE);
+                DE_ASSERT(false);
 
             instanceAttribs += 'in mediump ' + typeName + ' a_instanceG;\n';
             instanceAttribs += 'in mediump ' + typeName + ' a_instanceB;\n';
@@ -433,7 +406,7 @@ define([
         //gluShaderUtil.readPixels(this.m_context.getRenderContext(), xOffset, yOffset, resultImg.getAccess());
         var resImg = resultImg.getAccess();
         var resImgTransferFormat = gluTextureUtil.getTransferFormat(resImg.getFormat());
-        var pixels = new Uint8Array(resImg.m_height*resImg.m_rowPitch);
+
         gl.readPixels(xOffset, yOffset, resImg.m_width, resImg.m_height, resImgTransferFormat.format, resImgTransferFormat.dataType, resultImg.m_pixels);
         // Compute reference.
 
@@ -451,7 +424,7 @@ define([
 
 
     /**
-    * @param {gluShaderUtil.DataType} attrPtr
+    * @param {Array.<number>} attrPtr
     * @param {number} location
     * @param {number} divisor
     */
@@ -470,21 +443,44 @@ define([
 
             gl.enableVertexAttribArray(curLoc);
             gl.vertexAttribDivisor(curLoc, divisor);
-            //TODO: where is the implementation for GL_FALSE?
+            var curLocGlBuffer = gl.createBuffer();
             if (isFloatCase)
-                gl.vertexAttribPointer(curLoc, typeSize, gl.FLOAT, GL_FALSE, 0, attrPtr);
+            {
+                var bufferCurLoc = new Float32Array(this.m_gridVertexPositions);
+                gl.bindBuffer(gl.ARRAY_BUFFER, curLocGlBuffer);
+                gl.bufferData(gl.ARRAY_BUFFER, bufferCurLoc, gl.STATIC_DRAW);
+
+                gl.vertexAttribPointer(curLoc, typeSize, gl.FLOAT, false, 0, 0);
+            }
             else if (isIntCase)
-                gl.vertexAttribIPointer(curLoc, typeSize, gl.INT, 0, attrPtr);
+            {
+                var bufferCurLoc = new Int32Array(this.m_gridVertexPositions);
+                gl.bindBuffer(gl.ARRAY_BUFFER, curLocGlBuffer);
+                gl.bufferData(gl.ARRAY_BUFFER, bufferCurLoc, gl.STATIC_DRAW);
+
+                gl.vertexAttribIPointer(curLoc, typeSize, gl.INT, 0, 0);
+            }
             else if (isUintCase)
-                gl.vertexAttribIPointer(curLoc, typeSize, gl.UNSIGNED_INT, 0, attrPtr);
+            {
+                var bufferCurLoc = new Uint32Array(this.m_gridVertexPositions);
+                gl.bindBuffer(gl.ARRAY_BUFFER, curLocGlBuffer);
+                gl.bufferData(gl.ARRAY_BUFFER, bufferCurLoc, gl.STATIC_DRAW);
+
+                gl.vertexAttribIPointer(curLoc, typeSize, gl.UNSIGNED_INT, 0, 0);
+            }
             else if (isMatCase)
             {
                 /** @type {number} */ var numRows = gluShaderUtil.getDataTypeMatrixNumRows(this.m_rgbAttrType);
                 /** @type {number} */ var numCols = gluShaderUtil.getDataTypeMatrixNumColumns(this.m_rgbAttrType);
-                gl.vertexAttribPointer(curLoc, numRows, gl.FLOAT, GL_FALSE, numCols * numRows * 4, attrPtr); //sizeof(float) = 4
+
+                var bufferCurLoc = new Float32Array(this.m_gridVertexPositions);
+                gl.bindBuffer(gl.ARRAY_BUFFER, curLocGlBuffer);
+                gl.bufferData(gl.ARRAY_BUFFER, bufferCurLoc, gl.STATIC_DRAW);
+
+                gl.vertexAttribPointer(curLoc, numRows, gl.FLOAT, false, numCols * numRows * 4, 0);
             }
             else
-                DE_ASSERT(DE_FALSE);
+                DE_ASSERT(false);
         }
     };
 
@@ -505,7 +501,7 @@ define([
             var bufferGridVertexPosition = new Float32Array(this.m_gridVertexPositions);
             gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
             gl.bufferData(gl.ARRAY_BUFFER, bufferGridVertexPosition, gl.STATIC_DRAW);
-            gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, GL_FALSE, 0, 0);
+            gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
 
             if (this.m_instancingType == InstancingType.TYPE_ATTRIB_DIVISOR || this.m_instancingType == InstancingType.TYPE_MIXED)
             {
@@ -515,17 +511,23 @@ define([
                     /** @type {number} */ var offsetLoc = gl.getAttribLocation(program, 'a_instanceOffset');
                     gl.enableVertexAttribArray(offsetLoc);
                     gl.vertexAttribDivisor(offsetLoc, 1);
-                    gl.vertexAttribPointer(offsetLoc, OFFSET_COMPONENTS, gl.FLOAT, GL_FALSE, 0, this.m_instanceOffsets);
+
+                    var offsetLocGlBuffer = gl.createBuffer();
+                    var bufferOffsetLoc = new Float32Array(this.m_gridVertexPositions);
+                    gl.bindBuffer(gl.ARRAY_BUFFER, offsetLocGlBuffer);
+                    gl.bufferData(gl.ARRAY_BUFFER, bufferOffsetLoc, gl.STATIC_DRAW);
+
+                    gl.vertexAttribPointer(offsetLoc, OFFSET_COMPONENTS, gl.FLOAT, false, 0, this.m_instanceOffsets);
 
                     /** @type {number} */ var rLoc = gl.getAttribLocation(program, 'a_instanceR');
-                    this.setupVarAttribPointer(this.m_instanceColorR[0].u32, rLoc, ATTRIB_DIVISOR_R);
+                    this.setupVarAttribPointer(this.m_instanceColorR, rLoc, ATTRIB_DIVISOR_R);
                 }
 
                 /** @type {number} */ var gLoc = gl.getAttribLocation(program, 'a_instanceG');
-                this.setupVarAttribPointer(this.m_instanceColorG[0].u32, gLoc, ATTRIB_DIVISOR_G);
+                this.setupVarAttribPointer(this.m_instanceColorG, gLoc, ATTRIB_DIVISOR_G);
 
                 /** @type {number} */ var bLoc = gl.getAttribLocation(program, 'a_instanceB');
-                this.setupVarAttribPointer(this.m_instanceColorB[0].u32, bLoc, ATTRIB_DIVISOR_B);
+                this.setupVarAttribPointer(this.m_instanceColorB, bLoc, ATTRIB_DIVISOR_B);
             }
         }
 
@@ -538,8 +540,13 @@ define([
         }
         else
         {
+            var gridIndicesGLBuffer = gl.createBuffer();
+            var bufferGridIndices = new Float32Array(this.m_gridIndices);
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gridIndicesGLBuffer);
+            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, bufferGridIndices, gl.STATIC_DRAW);
+
             gl.drawElementsInstanced(gl.TRIANGLES, this.m_gridIndices.length, gl.UNSIGNED_SHORT, 0, this.m_numInstances);
-            // drawElementsInstanced(GLenum mode , GLsizei count            , GLenum type      , GLintptr offset      , GLsizei instanceCount)
+
         }
         gl.useProgram(null);
     };
@@ -610,40 +617,40 @@ define([
         var testGroup = tcuTestCase.runner.getState().testCases;
     /** @type {Array.<number>} */ var instanceCounts = [1, 2, 4, 20];
 
-        for (var _function = 0; _function < DrawFunction.length; _function++)
+        for (var _function = 0; _function < Object.keys(DrawFunction).length; _function++)
         {
             /** @type {string} */ var functionName =
                                        _function == DrawFunction.FUNCTION_DRAW_ARRAYS_INSTANCED ? 'draw_arrays_instanced' :
                                        _function == DrawFunction.FUNCTION_DRAW_ELEMENTS_INSTANCED ? 'draw_elements_instanced' :
-                                       DE_NULL;
+                                       null;
 
             /** @type {string} */ var functionDesc =
                                        _function == DrawFunction.FUNCTION_DRAW_ARRAYS_INSTANCED ? 'Use glDrawArraysInstanced()' :
                                        _function == DrawFunction.FUNCTION_DRAW_ELEMENTS_INSTANCED ? 'Use glDrawElementsInstanced()' :
-                                       DE_NULL;
+                                       null;
 
-            DE_ASSERT(functionName != DE_NULL);
-            DE_ASSERT(functionDesc != DE_NULL);
+            DE_ASSERT(functionName != null);
+            DE_ASSERT(functionDesc != null);
 
             /** @type {TestCaseGroup} */ var functionGroup = new tcuTestCase.newTest(functionName, functionDesc);
             testGroup.addChild(functionGroup);
 
-            for (var instancingType = 0; instancingType < InstancingType.length; instancingType++)
+            for (var instancingType = 0; instancingType < Object.keys(InstancingType).length; instancingType++)
             {
                 /** @type {string} */ var instancingTypeName =
                                                  instancingType == InstancingType.TYPE_INSTANCE_ID ? 'instance_id' :
                                                  instancingType == InstancingType.TYPE_ATTRIB_DIVISOR ? 'attribute_divisor' :
                                                  instancingType == InstancingType.TYPE_MIXED ? 'mixed' :
-                                                 DE_NULL;
+                                                 null;
 
                 /** @type {string} */ var instancingTypeDesc =
                                                  instancingType == InstancingType.TYPE_INSTANCE_ID ? 'Use gl_InstanceID for instancing' :
                                                  instancingType == InstancingType.TYPE_ATTRIB_DIVISOR ? 'Use vertex attribute divisors for instancing' :
                                                  instancingType == InstancingType.TYPE_MIXED ? 'Use both gl_InstanceID and vertex attribute divisors for instancing' :
-                                                 DE_NULL;
+                                                 null;
 
-                DE_ASSERT(instancingTypeName != DE_NULL);
-                DE_ASSERT(instancingTypeDesc != DE_NULL);
+                DE_ASSERT(instancingTypeName != null);
+                DE_ASSERT(instancingTypeDesc != null);
 
                 /** @type {TestCaseGroup} */
                 var instancingTypeGroup = new tcuTestCase.newTest(instancingTypeName, instancingTypeDesc);
@@ -699,7 +706,6 @@ define([
         for (var typeNdx = 0; typeNdx < s_testTypes.length; typeNdx++)
         {
             /** @type {gluShaderUtil.DataType} */ var type = s_testTypes[typeNdx];
-
             typesGroup.addChild(new InstancedRenderingCase(gluShaderUtil.getDataTypeName(type), '',
                                                             DrawFunction.FUNCTION_DRAW_ARRAYS_INSTANCED,
                                                             InstancingType.TYPE_ATTRIB_DIVISOR,

@@ -737,6 +737,7 @@ var unpackRGB999E5 = function(color) {
  */
 var ConstPixelBufferAccess = function(descriptor) {
     if (descriptor) {
+        this.m_offset = descriptor.offset;
         this.m_format = descriptor.format;
         this.m_width = descriptor.width;
         this.m_height = descriptor.height;
@@ -761,9 +762,17 @@ var ConstPixelBufferAccess = function(descriptor) {
 /** @return {Number} */
 ConstPixelBufferAccess.prototype.getDataSize = function() { return this.m_depth * this.m_slicePitch; };
 /** @return {TypedArray} */
-ConstPixelBufferAccess.prototype.getDataPtr = function() {
-        var arrayType = getTypedArray(this.m_format.type);
-         return new arrayType(this.m_data);
+ConstPixelBufferAccess.prototype.getDataPtr = function(offset) {
+
+    var arrayType = getTypedArray(this.m_format.type);
+    var dataPtrReturn = new arrayType(this.m_data);
+
+    if (offset == 'undefined') {
+        return dataPtrReturn;
+    } else {
+        return dataPtrReturn.subarray(offset, dataPtrReturn.length);
+    }
+
 };
 /** @return {ArrayBuffer} */
 ConstPixelBufferAccess.prototype.getBuffer = function() {
@@ -1207,7 +1216,7 @@ PixelBufferAccess.prototype.setPixel = function(color, x, y, z) {
  * newFromTextureLevel
  * @param {TextureLevel} level
  */
-PixelBufferAccess.newFromTextureLevel = function (level) {
+PixelBufferAccess.newFromTextureLevel = function(level) {
     var descriptor = new Object();
     descriptor.format = level.getFormat();
     descriptor.width = level.getWidth();
@@ -1228,7 +1237,7 @@ PixelBufferAccess.newFromTextureLevel = function (level) {
  * @param {number} slicePitch
  * @param {ArrayBuffer} data
  */
-PixelBufferAccess.newFromTextureFormat = function (format, width, height, depth, rowPitch, slicePitch, data) {
+PixelBufferAccess.newFromTextureFormat = function(format, width, height, depth, rowPitch, slicePitch, data) {
     var descriptor = new Object();
     descriptor.format = format;
     descriptor.width = width;
