@@ -112,6 +112,32 @@ TextureFormat.prototype.isSRGB = function() {
     return this.order === ChannelOrder.sRGB || this.order === ChannelOrder.sRGBA;
 };
 
+TextureFormat.prototype.getNumStencilBits = function() {
+    switch (this.order) {
+        case ChannelOrder.S:
+            switch (this.type)
+            {
+                case ChannelType.UNSIGNED_INT8:     return 8;
+                case ChannelType.UNSIGNED_INT16:    return 16;
+                case ChannelType.UNSIGNED_INT32:    return 32;
+                default:
+                    throw new Error('Wrong type: ' + this.type);
+            }
+
+        case ChannelOrder.DS:
+            switch (this.type)
+            {
+                case ChannelType.UNSIGNED_INT_24_8:             return 8;
+                case ChannelType.FLOAT_UNSIGNED_INT_24_8_REV:   return 8;
+                default:
+                    throw new Error('Wrong type: ' + this.type);
+            }
+
+        default:
+            throw new Error('Wrong order: ' + this.order);
+    }
+};
+
 /**
  * Get TypedArray type that can be used to access texture.
  * @param {ChannelType} type
@@ -588,7 +614,7 @@ var sRGBChannelToLinear = function(cs) {
 /**
  * Convert sRGB to linear colorspace
  * @param {Array<Number>} cs Vec4
- * @param {Array<Number>} Vec4
+ * @return {Array<Number>} Vec4
  */
 var sRGBToLinear = function(cs) {
     return [
@@ -834,14 +860,14 @@ ConstPixelBufferAccess.prototype.getPixel = function(x, y, z) {
         case ChannelType.UNSIGNED_INT_24_8:
             switch (this.m_format.order) {
                 // \note Stencil is always ignored.
-                case ChannelType.D: return [nb(pixel, 8, 24), 0, 0, 1];
-                case ChannelType.DS: return [nb(pixel, 8, 24), 0, 0, 1 /* (float)ub(0, 8) */];
+                case ChannelOrder.D: return [nb(pixel, 8, 24), 0, 0, 1];
+                case ChannelOrder.DS: return [nb(pixel, 8, 24), 0, 0, 1 /* (float)ub(0, 8) */];
                 default:
                     DE_ASSERT(false);
             }
 
         case ChannelType.FLOAT_UNSIGNED_INT_24_8_REV: {
-            DE_ASSERT(this.m_format.order == ChannelType.DS);
+            DE_ASSERT(this.m_format.order == ChannelOrder.DS);
             // \note Stencil is ignored.
             return [pixel, 0, 0, 1];
         }
@@ -916,14 +942,14 @@ ConstPixelBufferAccess.prototype.getPixelInt = function(x, y, z) {
         case ChannelType.UNSIGNED_INT_24_8:
             switch (this.m_format.order) {
                 // \note Stencil is always ignored.
-                case ChannelType.D: return [ub(pixel, 8, 24), 0, 0, 1];
-                case ChannelType.DS: return [ub(pixel, 8, 24), 0, 0, 1 /* (float)ub(0, 8) */];
+                case ChannelOrder.D: return [ub(pixel, 8, 24), 0, 0, 1];
+                case ChannelOrder.DS: return [ub(pixel, 8, 24), 0, 0, 1 /* (float)ub(0, 8) */];
                 default:
                     DE_ASSERT(false);
             }
 
         case ChannelType.FLOAT_UNSIGNED_INT_24_8_REV: {
-            DE_ASSERT(this.m_format.order == ChannelType.DS);
+            DE_ASSERT(this.m_format.order == ChannelOrder.DS);
             // \note Stencil is ignored.
             return [pixel, 0, 0, 1];
         }
@@ -1127,7 +1153,7 @@ PixelBufferAccess.prototype = Object.create(ConstPixelBufferAccess.prototype);
 PixelBufferAccess.prototype.constructor = PixelBufferAccess;
 
 /**
- * @param {Array<Number>} Vec4 color to set
+ * @param {Array<Number>} color Vec4 color to set
  * @param {Number} x
  * @param {Number} y
  * @param {Number} z
@@ -1207,6 +1233,103 @@ PixelBufferAccess.prototype.setPixel = function(color, x, y, z) {
 
             for (var c = 0; c < numChannels; c++)
                 pixelPtr[c] = floatToChannel(color[map[c]], this.m_format.type);
+        }
+    }
+};
+
+/**
+ * @param {number} depth to set
+ * @param {number} x
+ * @param {number} y
+ * @param {number=} z
+ */
+PixelBufferAccess.prototype.setPixDepth = function(depth, x, y, z) {
+    if (z == null)
+        z = 0;
+    DE_ASSERT(deMath.deInBounds32(x, 0, this.m_width));
+    DE_ASSERT(deMath.deInBounds32(y, 0, this.m_height));
+    DE_ASSERT(deMath.deInBounds32(z, 0, this.m_depth));
+
+    var pixelSize = this.m_format.getPixelSize();
+    var arrayType = getTypedArray(this.m_format.type);
+    var offset = z * this.m_slicePitch + y * this.m_rowPitch + x * pixelSize;
+    var pixelPtr = new arrayType(this.m_data, offset);
+
+    var pn = function(val, offs, bits) {
+        return normFloatToChannel(val, bits) << offs;
+    };
+
+
+    // Packed formats.
+    switch (this.m_format.type) {
+        case ChannelType.UNSIGNED_INT_24_8:
+            switch (this.m_format.order) {
+                case ChannelOrder.D: pixelPtr[0] = pn(depth, 8, 24); break;
+                case ChannelOrder.DS: pixelPtr[0] = pn(depth, 8, 24) | (pixelPtr[0] & 0xFF); break;
+                default:
+                    throw new Error('Unsupported channel order ' + this.m_format.order);
+            }
+            break;
+
+        case ChannelType.FLOAT_UNSIGNED_INT_24_8_REV: {
+            DE_ASSERT(this.m_format.order == ChannelOrder.DS);
+            pixelPtr[0] = depth;
+            break;
+        }
+
+        default: {
+            DE_ASSERT(this.m_format.order == ChannelOrder.D || this.m_format.order == ChannelOrder.DS);
+            pixelPtr[0] = floatToChannel(depth, this.m_format.type);
+        }
+    }
+};
+
+/**
+ * @param {number} stencil to set
+ * @param {number} x
+ * @param {number} y
+ * @param {number=} z
+ */
+PixelBufferAccess.prototype.setPixStencil = function(stencil, x, y, z) {
+    if (z == null)
+        z = 0;
+    DE_ASSERT(deMath.deInBounds32(x, 0, this.m_width));
+    DE_ASSERT(deMath.deInBounds32(y, 0, this.m_height));
+    DE_ASSERT(deMath.deInBounds32(z, 0, this.m_depth));
+
+    var pixelSize = this.m_format.getPixelSize();
+    var arrayType = getTypedArray(this.m_format.type);
+    var offset = z * this.m_slicePitch + y * this.m_rowPitch + x * pixelSize;
+    var pixelPtr = new arrayType(this.m_data, offset);
+
+    var pu = function(val, offs, bits) {
+        return uintToChannel(val, bits) << offs;
+    };
+
+    // Packed formats.
+    switch (this.m_format.type) {
+        case ChannelType.UNSIGNED_INT_24_8:
+            switch (this.m_format.order) {
+                case ChannelOrder.S: pixelPtr[0] = pu(stencil, 8, 24); break;
+                case ChannelOrder.DS: pixelPtr[0] = pu(stencil, 0, 8) | (pixelPtr[0] & 0xFFFFFF00); break;
+                default:
+                    throw new Error('Unsupported channel order ' + this.m_format.order);
+            }
+            break;
+
+        case ChannelType.FLOAT_UNSIGNED_INT_24_8_REV: {
+            var u32array = new Uint32Array(this.m_data, offset + 4, 1);
+            u32array[0] = pu(stencil, 0, 8);
+            break;
+        }
+
+        default: {
+            if (this.m_format.order == ChannelOrder.S)
+                pixelPtr[0] = floatToChannel(stencil, this.m_format.type);
+            else {
+                DE_ASSERT(this.m_format.order == ChannelOrder.DS);
+                pixelPtr[3] = floatToChannel(stencil, this.m_format.type);
+            }
         }
     }
 };
