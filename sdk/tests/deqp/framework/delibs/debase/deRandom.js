@@ -25,8 +25,9 @@ define(function() {
 'use strict';
 
 /**
-* Array of pseudo random numbers based on seed
-*/
+ * Array of pseudo random numbers based on seed
+ * @constructor
+ */
 var deRandom = function() {
     var x;
     var y;
@@ -184,7 +185,6 @@ var Random = function(seed) {
 
 /**
  * Function to get random boolean
- * @param {deRandom} rnd Initialised array of random numbers
  * @return {boolean} Random boolean
  */
 Random.prototype.getBool = function()  { return deRandom_getBool(this.m_rnd) == true; };
@@ -241,4 +241,3 @@ return {
 };
 
 });
-

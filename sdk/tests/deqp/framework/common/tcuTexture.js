@@ -792,7 +792,7 @@ ConstPixelBufferAccess.prototype.getDataSize = function() { return this.m_depth 
 /** @return {TypedArray} */
 ConstPixelBufferAccess.prototype.getDataPtr = function() {
     var arrayType = getTypedArray(this.m_format.type);
-    
+
     if (this.m_offset > this.m_data.length)
         throw new Error('Failing generating TypedArray: offset is bigger than ArrayBuffer');
     else {
@@ -1582,7 +1582,7 @@ var sampleLevelArray3D = function(levels, numLevels, sampler, s, t, r, lod) {
 /**
  * @constructor
  * @param {CubeFace} face
- * @param {Array<Number>} Vec2 coordinates
+ * @param {Array<Number>} coords
  */
 var CubeFaceCoords = function(face, coords) {
     this.face = face;
