@@ -163,14 +163,13 @@ function escapeHTML(text)
 }
 /**
  * Defines the exception type for a test failure.
+ * @constructor
  * @param {string} message The error message.
  */
-
-function TestFailedException(message) {
+var TestFailedException = function (message) {
    this.message = message;
    this.name = "TestFailedException";
-}
- 
+};
 
 function testPassed(msg)
 {
@@ -240,7 +239,7 @@ function testFailedOptions(msg, exthrow)
     if (exthrow) {
         _currentTestName = ""; //Remembering to set the name of current testcase to empty string.
         throw new TestFailedException(msg);
-	}
+    }
 }
 
 function areArraysEqual(_a, _b)

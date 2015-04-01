@@ -22,15 +22,23 @@ define([
     'framework/common/tcuTestCase',
     'framework/common/tcuRGBA',
     'framework/common/tcuFloat',
+    'framework/common/tcuSurface',
     'framework/common/tcuImageCompare',
-    'framework/delibs/debase/deMath'
+    'framework/delibs/debase/deMath',
+    'framework/delibs/debase/deRandom',
+    'framework/referencerenderer/rrVertexAttrib',
+    'framework/referencerenderer/rrVertexPacket'
 ],
 function (
     tcuTestCase,
     tcuRGBA,
     tcuFloat,
+    tcuSurface,
     tcuImageCompare,
-    deMath
+    deMath,
+    deRandom,
+    rrVertexAttrib,
+    rrVertexPacket
 ) {
     'use strict';
 
@@ -48,14 +56,16 @@ function (
         testFailedOptions(msg, true);
     };
 
+    var DE_NULL = null;
+
     /**
-     * deArray interface
+     * @interface
      */
-    var deArray;
+    var deArray = function() {};
 
     /**
      * deArray.Target enum
-     * @enum deArray.Target
+     * @enum
      */
     deArray.Target = {
         ELEMENT_ARRAY: 0,
@@ -64,7 +74,7 @@ function (
 
     /**
      * deArray.InputType enum
-     * @enum deArray.InputType
+     * @enum
      */
     deArray.InputType = {
         FLOAT: 0,
@@ -86,7 +96,7 @@ function (
 
     /**
      * deArray.OutputType enum
-     * @enum deArray.OutputType
+     * @enum
      */
     deArray.OutputType = {
         FLOAT: 0,
@@ -108,7 +118,7 @@ function (
 
     /**
      * deArray.Usage enum
-     * @enum deArray.Usage
+     * @enum
      */
     deArray.Usage = {
         DYNAMIC_DRAW: 0,
@@ -127,7 +137,7 @@ function (
 
     /**
      * deArray.Storage enum
-     * @enum deArray.Storage
+     * @enum
      */
     deArray.Storage = {
         USER: 0,
@@ -136,7 +146,7 @@ function (
 
     /**
      * deArray.Primitive enum
-     * @enum deArray.Primitive
+     * @enum
      */
     deArray.Primitive = {
         POINTS: 0,
@@ -145,11 +155,6 @@ function (
         TRIANGLE_STRIP: 3
     };
 
-    /**
-     * @interface
-     */
-    var deArray = function() {};
-
     //deArray static functions
 
     /**
@@ -157,14 +162,14 @@ function (
      * @return {string}
      */
     deArray.targetToString = function (target) {
-        DE_ASSERT(target < Object.keys(deArray.TARGET).length);
+        DE_ASSERT(target < Object.keys(deArray.Target).length);
 
         /** @type {Array.<string>} */ var targets =
         [
             "element_array",  // deArray.Target.ELEMENT_ARRAY
             "array"           // deArray.Target.ARRAY
         ];
-        DE_ASSERT(targets.length == Object.keys(deArray.TARGET).length);
+        DE_ASSERT(targets.length == Object.keys(deArray.Target).length);
 
         return targets[target];
     };
@@ -436,26 +441,6 @@ function (
      */
     deArray.prototype.setAttribNdx = function (attribNdx) {};
 
-    /**
-     * @param {Uint8Array} dst
-     * @param {GLValue} val
-     */
-    var copyGLValueToArray = function (dst, val)
-    {
-        /** @type {Uint8Array} */ var val8 = Uint8Array(val.m_value.buffer); // TODO: Fix encapsulation issue
-        dst.set(val8);
-    };
-
-    /**
-     * @param {Uint8Array} dst
-     * @param {TypedArray} src
-     */
-    var copyArray = function (dst, src)
-    {
-        /** @type {Uint8Array} */ var src8 = new Uint8Array(src.buffer).subarray(src.offset, src.offset + src.byteLength); // TODO: Fix encapsulation issue
-        dst.set(src8);
-    };
-
     //ContextArray class, implements deArray interface
 
     /**
@@ -466,7 +451,7 @@ function (
      */
     var ContextArray = function (storage, context) {
         /** @type {deArray.Storage} */ this.m_storage = storage;
-        /** @type {deArray.Storage} */ this.m_ctx = context;
+        /** @type {ReferenceRasterizerContext} */ this.m_ctx = context;
         /** @type {deMath.deUint32} */ this.m_glBuffer = 0;
 
         /** @type {boolean} */ this.m_bound = false;
@@ -483,7 +468,7 @@ function (
 
         if (this.m_storage == deArray.Storage.BUFFER) {
             this.m_glBuffer = this.m_ctx.genBuffers(1)[0];
-            GLU_EXPECT_NO_ERROR(m_ctx.getError(), "gl.genBuffers()");
+            GLU_EXPECT_NO_ERROR(this.m_ctx.getError(), "gl.genBuffers()");
         }
     };
 
@@ -497,7 +482,7 @@ function (
     /**
      * @return {boolean}
      */
-    ContextArray.prototype.isBound = function () const { return this.m_bound; };
+    ContextArray.prototype.isBound = function () { return this.m_bound; };
 
     /**
      * @return {number}
@@ -556,10 +541,10 @@ function (
 
         if (this.m_storage == deArray.Storage.BUFFER) {
             this.m_ctx.bindBuffer(ContextArray.targetToGL(target), this.m_glBuffer);
-            GLU_EXPECT_NO_ERROR(m_ctx.getError(), "gl.bindBuffer()");
+            GLU_EXPECT_NO_ERROR(this.m_ctx.getError(), "gl.bindBuffer()");
 
             this.m_ctx.bufferData(ContextArray.targetToGL(target), size, ptr, ContextArray.usageToGL(usage));
-            GLU_EXPECT_NO_ERROR(m_ctx.getError(), "gl.bufferData()");
+            GLU_EXPECT_NO_ERROR(this.m_ctx.getError(), "gl.bufferData()");
         }
         else if (this.m_storage == deArray.Storage.USER) {
             this.m_data = new Uint8Array(size);
@@ -581,10 +566,10 @@ function (
 
         if (this.m_storage == deArray.Storage.BUFFER) {
             this.m_ctx.bindBuffer(ContextArray.targetToGL(target), this.m_glBuffer);
-            GLU_EXPECT_NO_ERROR(m_ctx.getError(), "gl.bindBuffer()");
+            GLU_EXPECT_NO_ERROR(this.m_ctx.getError(), "gl.bindBuffer()");
 
-            m_ctx.bufferSubData(ContextArray.targetToGL(target), offset, size, ptr);
-            GLU_EXPECT_NO_ERROR(m_ctx.getError(), "gl.bufferSubData()");
+            this.m_ctx.bufferSubData(ContextArray.targetToGL(target), offset, size, ptr);
+            GLU_EXPECT_NO_ERROR(this.m_ctx.getError(), "gl.bufferSubData()");
         }
         else if (this.m_storage == deArray.Storage.USER)
             for(var i = offset; i < size; i++)
@@ -602,11 +587,11 @@ function (
      * @param {boolean} normalized
      * @param {number} stride
      */
-    ContextArray.prototype.bind = function (attribNdx, offset, size, inputType, outType, normalized, stride) {
+    ContextArray.prototype.bind = function (attribNdx, offset, size, inType, outType, normalized, stride) {
         this.m_attribNdx         = attribNdx;
         this.m_bound             = true;
         this.m_componentCount    = size;
-        this.m_inputType         = inputType;
+        this.m_inputType         = inType;
         this.m_outputType        = outType;
         this.m_normalize         = normalized;
         this.m_stride            = stride;
@@ -632,7 +617,7 @@ function (
         if (this.m_storage == deArray.Storage.BUFFER)
         {
             this.m_ctx.bindBuffer(ContextArray.targetToGL(this.m_target), this.m_glBuffer);
-            GLU_EXPECT_NO_ERROR(m_ctx.getError(), "gl.bindBuffer()");
+            GLU_EXPECT_NO_ERROR(this.m_ctx.getError(), "gl.bindBuffer()");
 
             if (!inputTypeIsFloatType(this.m_inputType))
             {
@@ -642,13 +627,13 @@ function (
                 {
                     // Output type is float type
                     this.m_ctx.vertexAttribPointer(loc, this.m_componentCount, ContextArray.inputTypeToGL(this.m_inputType), this.m_normalize, this.m_stride, this.m_offset);
-                    GLU_EXPECT_NO_ERROR(m_ctx.getError(), "gl.vertexAttribPointer()");
+                    GLU_EXPECT_NO_ERROR(this.m_ctx.getError(), "gl.vertexAttribPointer()");
                 }
                 else
                 {
                     // Output type is int type
                     this.m_ctx.vertexAttribIPointer(loc, this.m_componentCount, ContextArray.inputTypeToGL(this.m_inputType), this.m_stride, this.m_offset);
-                    GLU_EXPECT_NO_ERROR(m_ctx.getError(), "gl.vertexAttribPointer()");
+                    GLU_EXPECT_NO_ERROR(this.m_ctx.getError(), "gl.vertexAttribPointer()");
                 }
             }
             else
@@ -659,14 +644,14 @@ function (
                 DE_ASSERT(this.m_outputType == deArray.OutputType.FLOAT || this.m_outputType == deArray.OutputType.VEC2 || this.m_outputType == deArray.OutputType.VEC3 || this.m_outputType == deArray.OutputType.VEC4);
 
                 this.m_ctx.vertexAttribPointer(loc, this.m_componentCount, ContextArray.inputTypeToGL(this.m_inputType), this.m_normalize, this.m_stride, this.m_offset);
-                GLU_EXPECT_NO_ERROR(m_ctx.getError(), "gl.vertexAttribPointer()");
+                GLU_EXPECT_NO_ERROR(this.m_ctx.getError(), "gl.vertexAttribPointer()");
             }
 
             this.m_ctx.bindBuffer(ContextArray.targetToGL(this.m_target), 0);
         }
         else if (this.m_storage == deArray.Storage.USER) {
-            m_ctx.bindBuffer(targetToGL(m_target), 0);
-            GLU_EXPECT_NO_ERROR(m_ctx.getError(), "gl.bindBuffer()");
+            this.m_ctx.bindBuffer(ContextArray.targetToGL(this.m_target), 0);
+            GLU_EXPECT_NO_ERROR(this.m_ctx.getError(), "gl.bindBuffer()");
 
             if (!inputTypeIsFloatType(this.m_inputType)) {
                 // Input is not float type
@@ -674,22 +659,22 @@ function (
                 if (outputTypeIsFloatType(this.m_outputType)) {
                     // Output type is float type
                     this.m_ctx.vertexAttribPointer(loc, this.m_componentCount, ContextArray.inputTypeToGL(this.m_inputType), this.m_normalize, this.m_stride, this.m_data.subarray(this.m_offset));
-                    GLU_EXPECT_NO_ERROR(m_ctx.getError(), "gl.vertexAttribPointer()");
+                    GLU_EXPECT_NO_ERROR(this.m_ctx.getError(), "gl.vertexAttribPointer()");
                 }
                 else {
                     // Output type is int type
                     this.m_ctx.vertexAttribIPointer(loc, this.m_componentCount, ContextArray.inputTypeToGL(this.m_inputType), this.m_stride, this.m_data.subarray(this.m_offset));
-                    GLU_EXPECT_NO_ERROR(m_ctx.getError(), "gl.vertexAttribIPointer()");
+                    GLU_EXPECT_NO_ERROR(this.m_ctx.getError(), "gl.vertexAttribIPointer()");
                 }
             }
             else {
                 // Input type is float type
 
                 // Output type must be float type
-                DE_ASSERT(this.m_outputType == deArray.OutType.FLOAT || this.m_outputType == deArray.OutType.VEC2 || this.m_outputType == deArray.OutType.VEC3 || this.m_outputType == deArray.OutType.VEC4);
+                DE_ASSERT(this.m_outputType == deArray.OutputType.FLOAT || this.m_outputType == deArray.OutputType.VEC2 || this.m_outputType == deArray.OutputType.VEC3 || this.m_outputType == deArray.OutputType.VEC4);
 
                 this.m_ctx.vertexAttribPointer(loc, this.m_componentCount, ContextArray.inputTypeToGL(this.m_inputType), this.m_normalize, this.m_stride, this.m_data.subarray(this.m_offset));
-                GLU_EXPECT_NO_ERROR(m_ctx.getError(), "gl.vertexAttribPointer()");
+                GLU_EXPECT_NO_ERROR(this.m_ctx.getError(), "gl.vertexAttribPointer()");
             }
         }
         else
@@ -844,7 +829,7 @@ function (
     /**
      * @param {deArray.Storage} storage
      */
-    ContextArrayPack.newArray = function (storage) {
+    ContextArrayPack.prototype.newArray = function (storage) {
         this.m_arrays.push(new ContextArray(storage, this.m_ctx));
     };
 
@@ -871,7 +856,7 @@ function (
      * @param {number} coordScale
      * @param {number} colorScale
      */
-    ContextArrayPack.render = function (primitive, firstVertex, vertexCount, useVao, coordScale, colorScale) {
+    ContextArrayPack.prototype.render = function (primitive, firstVertex, vertexCount, useVao, coordScale, colorScale) {
         /** @type {number} */ var program = 0;
         /** @type {number} */ var vaoId = 0;
 
@@ -890,7 +875,7 @@ function (
         this.m_ctx.uniform1f(this.m_ctx.getUniformLocation(program, "u_colorScale"), colorScale);
 
         if (useVao) {
-            vaoID = this.m_ctx.genVertexArrays(1, vaoId);
+            var vaoID = this.m_ctx.genVertexArrays(1, vaoId);
             this.m_ctx.bindVertexArray(vaoId);
         }
 
@@ -937,12 +922,144 @@ function (
     ContextArrayPack.prototype.getSurface = function () { return this.m_screen; };
 
     /**
+     * ContextShaderProgram class
+     * @constructor
+     * @extends sglrShaderProgram.ShaderProgram
+     * @param {GLRenderContext} ctx
+     * @param {Array.<ContextArray>} arrays
+     */
+    var ContextShaderProgram = function (ctx, arrays) {
+        sglrShaderProgram.ShaderProgram.call(this, this.createProgramDeclaration(ctx, arrays));
+        this.m_componentCount = new Array(arrays.length);
+        this.m_attrType = new Array(arrays.length);
+
+        for(var arrayNdx = 0; arrayNdx < arrays.length; arrayNdx++)
+        {
+            this.m_componentCount[arrayNdx] = this.getComponentCount(arrays[arrayNdx].getOutputType());
+            this.m_attrType[arrayNdx] = this.mapOutputType(arrays[arrayNdx].getOutputType());
+        }
+    };
+
+    /**
+     * calcShaderColorCoord function
+     * @param {Array.<number>} coord (2 elements)
+     * @param {Array.<number>} color (3 elements)
+     * @param {Array.<number>} attribValue (4 elements)
+     * @param {boolean} isCoordinate
+     * @param {number} numComponents
+     */
+    var calcShaderColorCoord = function (coord, color, attribValue, isCoordinate, numComponents) {
+        if (isCoordinate)
+            switch (numComponents) {
+                case 1: coord = [attribValue[0], attribValue[0]]; break;
+                case 2: coord = [attribValue[0], attribValue[1]]; break;
+                case 3: coord = [attribValue[0] + attribValue[2], attribValue[1]]; break;
+                case 4: coord = [attribValue[0] + attribValue[2], attribValue[1] + attribValue[3]]; break;
+
+                default:
+                    throw new Error('calcShaderColorCoord - Invalid number of components');
+            }
+        else
+        {
+            switch (numComponents) {
+                case 1:
+                    color[0] = color[0] * attribValue[0];
+                    break;
+
+                case 2:
+                    color[0] = color[0] * attribValue[0];
+                    color[1] = color[1] * attribValue[1];
+                    break;
+
+                case 3:
+                    color[0] = color[0] * attribValue[0];
+                    color[1] = color[1] * attribValue[1];
+                    color[2] = color[2] * attribValue[2];
+                    break;
+
+                case 4:
+                    color[0] = color[0] * attribValue[0] * attribValue[3];
+                    color[1] = color[1] * attribValue[1] * attribValue[3];
+                    color[2] = color[2] * attribValue[2] * attribValue[3];
+                    break;
+
+                default:
+                    throw new Error('calcShaderColorCoord - Invalid number of components');
+            }
+        }
+    };
+
+    /**
+     * ContextShaderProgram.shadeVertices
+     * @param {Array.<rrVertexAttrib.VertexAttrib>} inputs
+     * @param {Array.<rrVertexPacket.VertexPacket>} packets
+     * @param {number} numPackets
+     */
+    ContextShaderProgram.prototype.shadeVertices = function (inputs, packets, numPackets) {
+        /** @type {number} */ var u_coordScale = this.getUniformByName("u_coordScale").value;
+        /** @type {number} */ var u_colorScale = this.getUniformByName("u_colorScale").value;
+
+        for (var packetNdx = 0; packetNdx < numPackets; ++packetNdx) {
+            /** @type {number} */ var varyingLocColor = 0;
+
+            /** @type {rrVertexPacket.VertexPacket} */ var packet = packets[packetNdx];
+
+            // Calc output color
+            /** @type {Array.<number>} */ var coord = [1.0, 1.0];
+            /** @type {Array.<number>} */ var color = [1.0, 1.0, 1.0];
+
+            for (var attribNdx = 0; attribNdx < this.m_attrType.length; attribNdx++) {
+                /** @type {number} */ var numComponents = this.m_componentCount[attribNdx];
+
+                switch (this.m_attrType[attribNdx]) {
+                    case rr::GENERICVECTYPE_FLOAT:  calcShaderColorCoord(coord, color, rr::readVertexAttribFloat(inputs[attribNdx], packet.instanceNdx, packet.vertexNdx), attribNdx == 0, numComponents);  break;
+                    case rr::GENERICVECTYPE_INT32:  calcShaderColorCoord(coord, color, rr::readVertexAttribInt  (inputs[attribNdx], packet.instanceNdx, packet.vertexNdx), attribNdx == 0, numComponents);  break;
+                    case rr::GENERICVECTYPE_UINT32: calcShaderColorCoord(coord, color, rr::readVertexAttribUint (inputs[attribNdx], packet.instanceNdx, packet.vertexNdx), attribNdx == 0, numComponents);  break;
+                    default:
+                        DE_ASSERT(false);
+                }
+            }
+
+            // Transform position
+            {
+                packet.position = tcu::Vec4(u_coordScale * coord.x(), u_coordScale * coord.y(), 1.0f, 1.0f);
+            }
+            
+            // Pass color to FS
+            {
+                packet.outputs[varyingLocColor] = tcu::Vec4(u_colorScale * color.x(), u_colorScale * color.y(), u_colorScale * color.z(), 1.0f);
+            }
+        }
+    }
+
+    /**
      * GLValue class
+     * @constructor
      */
     var GLValue = function () {
         /** @type {Array | TypedArray} */ this.m_value = new Array(1);
         this.m_value[0] = 0;
         /** @type {deArray.InputType} */ this.m_type = undefined;
+    };
+
+    /**
+     * @param {Uint8Array} dst
+     * @param {GLValue} val
+     */
+    var copyGLValueToArray = function (dst, val)
+    {
+        /** @type {Uint8Array} */ var val8 = new Uint8Array(val.m_value.buffer); // TODO: Fix encapsulation issue
+        dst.set(val8);
+    };
+
+    /**
+     * @param {Uint8Array} dst
+     * @param {TypedArray} src
+     */
+    var copyArray = function (dst, src)
+    {
+        /** @type {Uint8Array} */ var src8 = new Uint8Array(src.buffer).subarray(src.offset, src.offset + src.byteLength); // TODO: Fix encapsulation issue
+        dst.set(src8);
     };
 
     /**
@@ -1044,25 +1161,34 @@ function (
         switch (type) {
             case deArray.InputType.FLOAT:
                 value =  127;
+                break;
             case deArray.InputType.FIXED:
                 value = 32760;
+                break;
             case deArray.InputType.DOUBLE:
                 value = 127;
+                break;
             case deArray.InputType.BYTE:
                 value = 127;
+                break;
             case deArray.InputType.SHORT:
                 value = 32760;
+                break;
             case deArray.InputType.UNSIGNED_BYTE:
                 value = 255;
+                break;
             case deArray.InputType.UNSIGNED_SHORT:
                 value = 65530;
+                break;
             case deArray.InputType.INT:
                 value = 2147483647;
+                break;
             case deArray.InputType.UNSIGNED_INT:
                 value = 4294967295;
+                break;
             case deArray.InputType.HALF:
                 value = 256;
-
+                break;
             default:
                 throw new Error('GLValue.getMaxValue - Invalid InputType');
         }
@@ -1081,24 +1207,34 @@ function (
         switch (type) {
             case deArray.InputType.FLOAT:
                 value =  -127;
+                break;
             case deArray.InputType.FIXED:
                 value = -32760;
+                break;
             case deArray.InputType.DOUBLE:
                 value = -127;
+                break;
             case deArray.InputType.BYTE:
                 value = -127;
+                break;
             case deArray.InputType.SHORT:
                 value = -32760;
+                break;
             case deArray.InputType.UNSIGNED_BYTE:
                 value = 0;
+                break;
             case deArray.InputType.UNSIGNED_SHORT:
                 value = 0;
+                break;
             case deArray.InputType.INT:
                 value = -2147483647;
+                break;
             case deArray.InputType.UNSIGNED_INT:
                 value = 0;
+                break;
             case deArray.InputType.HALF:
                 value = -256;
+                break;
 
             default:
                 throw new Error('GLValue.getMinValue - Invalid InputType');
@@ -1129,7 +1265,7 @@ function (
             case deArray.InputType.FLOAT:
             case deArray.InputType.DOUBLE:
             case deArray.InputType.HALF: {
-                return GLValue.create(minv + rnd.getFloat() * (maxv - minv), type));
+                return GLValue.create(minv + rnd.getFloat() * (maxv - minv), type);
                 break;
             }
 
@@ -1193,7 +1329,6 @@ function (
         switch(type) {
             case deArray.InputType.FIXED:
             case deArray.InputType.SHORT:
-                return GLValue.create(0x7F & val.getValue(), type);
                 return GLValue.create(0x7FFF & val.getValue(), type);
             case deArray.InputType.BYTE:
                 return GLValue.create(0x7F & val.getValue(), type);
@@ -1204,7 +1339,7 @@ function (
             case deArray.InputType.FLOAT:
             case deArray.InputType.HALF:
             case deArray.InputType.DOUBLE:
-                return GLValue.create(Math.abs(val.interpret(), type);
+                return GLValue.create(Math.abs(val.interpret()), type);
             case deArray.InputType.INT:
                 return GLValue.create(0x7FFFFFFF & val.getValue(), type);
             default:
@@ -1240,7 +1375,7 @@ function (
      * Only some types require this.
      * @return {number}
      */
-    GLValue.prototype.interpret() {
+    GLValue.prototype.interpret = function () {
         if (this.m_type == deArray.InputType.HALF)
             return GLValue.halfToFloat(this.m_value[0]);
         else if (this.m_type == deArray.InputType.FIXED) {
@@ -1362,7 +1497,7 @@ function (
     /**
      * RandomArrayGenerator class. Contains static methods only
      */
-    var RandomArrayGenerator;
+    var RandomArrayGenerator = function () {};
 
     /**
      * RandomArrayGenerator.setData
@@ -1451,12 +1586,12 @@ function (
             case deArray.InputType.UNSIGNED_INT:
             case deArray.InputType.INT:
             case deArray.InputType.HALF:
-                data = createQuads(seed, count, componentCount, offset, stride, primitive, min, max);
+                data = RandomArrayGenerator.createQuads(seed, count, componentCount, offset, stride, primitive, min, max);
                 break;
 
             case deArray.InputType.INT_2_10_10_10:
             case deArray.InputType.UNSIGNED_INT_2_10_10_10:
-                data = createQuadsPacked(seed, count, componentCount, offset, stride, primitive);
+                data = RandomArrayGenerator.createQuadsPacked(seed, count, componentCount, offset, stride, primitive);
                 break;
 
             default:
@@ -1478,7 +1613,7 @@ function (
      */
     RandomArrayGenerator.createQuadsPacked = function (seed, count, componentCount, offset, stride, primitive) {
         DE_ASSERT(componentCount == 4);
-        DE_UNREF(componentCount);
+        //DE_UNREF(componentCount); // TODO: Check this
         /** @type {number} */ var quadStride = 0;
 
         if (stride == 0)
@@ -1501,7 +1636,7 @@ function (
         /** @type {deMath.deUint32} */ var min = 10;
         /** @type {deMath.deUint32} */ var max2 = 4;
 
-        rnd = new deRandom.Random(seed);
+        var rnd = new deRandom.Random(seed);
 
         switch (primitive) {
             case deArray.Primitive.TRIANGLES: {
@@ -1523,12 +1658,12 @@ function (
                     /** @type {deMath.deUint32} */ var val5 = (w << 30) | (z << 20) | (y1 << 10) | x2;
                     /** @type {deMath.deUint32} */ var val6 = (w << 30) | (z << 20) | (y2 << 10) | x2;
 
-                    copyArray(resultData.subarray(quadNdx * quadStride + stride * 0), new Uint32Array([val1]);
-                    copyArray(resultData.subarray(quadNdx * quadStride + stride * 1), new Uint32Array([val2]);
-                    copyArray(resultData.subarray(quadNdx * quadStride + stride * 2), new Uint32Array([val3]);
-                    copyArray(resultData.subarray(quadNdx * quadStride + stride * 3), new Uint32Array([val4]);
-                    copyArray(resultData.subarray(quadNdx * quadStride + stride * 4), new Uint32Array([val5]);
-                    copyArray(resultData.subarray(quadNdx * quadStride + stride * 5), new Uint32Array([val6]);
+                    copyArray(resultData.subarray(quadNdx * quadStride + stride * 0), new Uint32Array([val1]));
+                    copyArray(resultData.subarray(quadNdx * quadStride + stride * 1), new Uint32Array([val2]));
+                    copyArray(resultData.subarray(quadNdx * quadStride + stride * 2), new Uint32Array([val3]));
+                    copyArray(resultData.subarray(quadNdx * quadStride + stride * 3), new Uint32Array([val4]));
+                    copyArray(resultData.subarray(quadNdx * quadStride + stride * 4), new Uint32Array([val5]));
+                    copyArray(resultData.subarray(quadNdx * quadStride + stride * 5), new Uint32Array([val6]));
                 }
 
                 break;
@@ -1573,24 +1708,24 @@ function (
         }
 
         /** @type {ArrayBuffer} */ var _data = new ArrayBuffer(offset + quadStride * count);
-        /** @type {Uint8Array} */ resultData = new Uint8Array(resultData).subarray(offset);
+        /** @type {Uint8Array} */ var resultData = new Uint8Array(_data).subarray(offset);
 
         var rnd = new deRandom.Random(seed);
 
         switch (primitive) {
             case deArray.Primitive.TRIANGLES: {
                 for (var quadNdx = 0; quadNdx < count; ++quadNdx) {
-                    /** @type {GLValue} */ var x1, x2;
-                    /** @type {GLValue} */ var y1, y2;
-                    /** @type {GLValue} */ var z, w;
+                    /** @type {GLValue} */ var x1, x2 = null;
+                    /** @type {GLValue} */ var y1, y2 = null;
+                    /** @type {GLValue} */ var z, w = null;
 
                     // attempt to find a good (i.e not extremely small) quad
                     for (var attemptNdx = 0; attemptNdx < 4; ++attemptNdx) {
                         x1 = GLValue.getRandom(rnd, min, max);
-                        x2 = GLValue.getRandom(rnd, GLValue.minValue(type), GLValue.abs(max.subtract(x1)));
+                        x2 = GLValue.getRandom(rnd, GLValue.minValue(type), GLValue.abs(max.sub(x1)));
 
                         y1 = GLValue.getRandom(rnd, min, max);
-                        y2 = GLValue.getRandom(rnd, GLValue.minValue(type), GLValue.abs(max.subtract(y1)));
+                        y2 = GLValue.getRandom(rnd, GLValue.minValue(type), GLValue.abs(max.sub(y1)));
 
                         z = (componentCount > 2) ? (GLValue.getRandom(rnd, min, max)) : (GLValue.create(0, type));
                         w = (componentCount > 3) ? (GLValue.getRandom(rnd, min, max)) : (GLValue.create(1, type));
@@ -1600,8 +1735,8 @@ function (
                             break;
 
                         // The result quad is too thin?
-                        if ((Math.abs(x2.interpret() + z.interpret()) < GLValue.minValue().interpret()) ||
-                            (deFloatAbs(y2.interpret() + w.interpret()) < GLValue.minValue().interpret()))
+                        if ((Math.abs(x2.interpret() + z.interpret()) < GLValue.minValue(type).interpret()) ||
+                            (Math.abs(y2.interpret() + w.interpret()) < GLValue.minValue(type).interpret()))
                             continue;
 
                         // all ok
@@ -1661,7 +1796,7 @@ function (
     RandomArrayGenerator.generatePerQuad = function (seed, count, componentCount, stride, primitive, type, min, max) {
         /** @type {ArrayBuffer} */ var data = DE_NULL;
 
-        data = RandomArrayGenerator.createPerQuads(seed, count, componentCount, stride, primitive, min.interpret(), max.interpret());
+        data = RandomArrayGenerator.createPerQuads(seed, count, componentCount, stride, primitive, min, max);
         return data;
     };
 
@@ -1677,7 +1812,7 @@ function (
     RandomArrayGenerator.createPerQuads = function (seed, count, componentCount, stride, primitive, min, max) {
         var rnd = new deRandom.Random(seed);
 
-        var componentStride = min.m_data.byteLength; //TODO: Fix encapsulation issue.
+        var componentStride = min.m_value.byteLength; //TODO: Fix encapsulation issue.
 
         if (stride == 0)
             stride = componentStride * componentCount;
@@ -1715,6 +1850,7 @@ function (
 
     /**
      * class VertexArrayTest
+     * @constructor
      * @param {string} name
      * @param {string} description
      */
@@ -1740,15 +1876,15 @@ function (
     /**
      * init
      */
-    void VertexArrayTest.prototype.init = function () {
-        /** @type {number}*/ var renderTargetWidth = Math.min(512, m_renderCtx.getRenderTarget().getWidth());
-        /** @type {number}*/ var renderTargetHeight  = Math.min(512, m_renderCtx.getRenderTarget().getHeight());
+    VertexArrayTest.prototype.init = function () {
+        /** @type {number}*/ var renderTargetWidth = Math.min(512, this.m_renderCtx.getRenderTarget().getWidth());
+        /** @type {number}*/ var renderTargetHeight  = Math.min(512, this.m_renderCtx.getRenderTarget().getHeight());
         /** @type {ReferenceContextLimits} */ var limits = new ReferenceContextLimits(this.m_renderCtx);
 
         //TODO: Reference rasterizer implementation.
-//         this.m_glesContext = new sglr::GLContext(this.m_renderCtx, this.m_testCtx.getLog(), sglr::GLCONTEXT_LOG_CALLS | sglr::GLCONTEXT_LOG_PROGRAMS, [0, 0, renderTargetWidth, renderTargetHeight]);
-//         this.m_refBuffers = new sglr::ReferenceContextBuffers(this.m_renderCtx.getRenderTarget().getPixelFormat(), 0, 0, renderTargetWidth, renderTargetHeight);
-//         this.m_refContext = new sglr::ReferenceContext(limits, this.m_refBuffers.getColorbuffer(), this.m_refBuffers.getDepthbuffer(), this.m_refBuffers.getStencilbuffer());
+        //this.m_glesContext = new sglr::GLContext(this.m_renderCtx, this.m_testCtx.getLog(), sglr::GLCONTEXT_LOG_CALLS | sglr::GLCONTEXT_LOG_PROGRAMS, [0, 0, renderTargetWidth, renderTargetHeight]);
+        //this.m_refBuffers = new sglr::ReferenceContextBuffers(this.m_renderCtx.getRenderTarget().getPixelFormat(), 0, 0, renderTargetWidth, renderTargetHeight);
+        //this.m_refContext = new sglr::ReferenceContext(limits, this.m_refBuffers.getColorbuffer(), this.m_refBuffers.getDepthbuffer(), this.m_refBuffers.getStencilbuffer());
 
         this.m_glArrayPack = new ContextArrayPack(this.m_renderCtx, this.m_glesContext);
         //TODO: Reference rasterizer implementation.
@@ -1758,7 +1894,7 @@ function (
     /**
      * compare
      */
-    var VertexArrayTest.prototype.compare = function () {
+    VertexArrayTest.prototype.compare = function () {
         /** @type {tcuSurface.Surface} */ var ref = this.m_rrArrayPack.getSurface();
         /** @type {tcuSurface.Surface} */ var screen = this.m_glArrayPack.getSurface();
 
@@ -1768,13 +1904,13 @@ function (
             this.m_isOk = tcuImageCompare.fuzzyCompare("Compare Results", "Compare Results", ref.getAccess(), screen.getAccess(), 1.5);
         }
         else {
-            /** @type {tcuRGBA.RGBA} */ var threshold = (this.m_maxDiffRed, this.m_maxDiffGreen, this.m_maxDiffBlue, 255);
+            /** @type {tcuRGBA.RGBA} */ var threshold = new tcuRGBA.RGBA(this.m_maxDiffRed, this.m_maxDiffGreen, this.m_maxDiffBlue, 255);
             /** @type {tcuSurface.Surface} */ var error = new tcuSurface.Surface(ref.getWidth(), ref.getHeight());
 
             this.m_isOk = true;
 
             for (var y = 1; y < ref.getHeight()-1; y++) {
-                for (int x = 1; x < ref.getWidth()-1; x++) {
+                for (var x = 1; x < ref.getWidth()-1; x++) {
                     /** @type {tcuRGBA.RGBA} */ var refPixel = ref.getPixel(x, y);
                     /** @type {tcuRGBA.RGBA} */ var screenPixel = screen.getPixel(x, y);
                     /** @type {boolean} */ var isOkPixel = false;
@@ -1790,7 +1926,7 @@ function (
                         isOkPixel = true;
                     else {
                         for (var dy = -1; dy < 2 && !isOkPixel; dy++) {
-                            for (int dx = -1; dx < 2 && !isOkPixel; dx++) {
+                            for (var dx = -1; dx < 2 && !isOkPixel; dx++) {
                                 // Check reference pixel against screen pixel
                                 /** @type {tcuRGBA.RGBA} */ var screenCmpPixel  = screen.getPixel(x + dx, y + dy);
                                 /** @type {deMath.deUint8} */ var r = Math.abs(refPixel.getRed() - screenCmpPixel.getRed());
@@ -1801,10 +1937,10 @@ function (
                                     isOkPixel = true;
 
                                 // Check screen pixels against reference pixel
-                                /** @type {tcuRGBA.RGBA} */ var refCmpPixel     = ref.getPixel(x+dx, y+dy);
-                                /** @type {deMath.deUint8} */ var r = Math.abs(refCmpPixel.getRed() - screenPixel.getRed());
-                                /** @type {deMath.deUint8} */ var g = Math.abs(refCmpPixel.getGreen() - screenPixel.getGreen());
-                                /** @type {deMath.deUint8} */ var b = Math.abs(refCmpPixel.getBlue() - screenPixel.getBlue());
+                                /** @type {tcuRGBA.RGBA} */ var refCmpPixel = ref.getPixel(x+dx, y+dy);
+                                r = Math.abs(refCmpPixel.getRed() - screenPixel.getRed());
+                                g = Math.abs(refCmpPixel.getGreen() - screenPixel.getGreen());
+                                b = Math.abs(refCmpPixel.getBlue() - screenPixel.getBlue());
 
                                     if (r <= this.m_maxDiffRed && g <= this.m_maxDiffGreen && b <= this.m_maxDiffBlue)
                                         isOkPixel = true;
@@ -1857,6 +1993,7 @@ function (
 
     /**
      * MultiVertexArrayTest.Spec class
+     * @constructor
      */
     MultiVertexArrayTest.Spec = function () {
         /** @type {deArray.Primitive} */ this.primitive = undefined;
@@ -1886,7 +2023,7 @@ function (
         this.usage = usage_;
         this.componentCount = componentCount_;
         this.offset = offset_;
-        this.stride = stride_;
+        /** @type {number} */ this.stride = stride_;
         this.normalize = normalize_;
         this.min = min_;
         this.max = max_;
@@ -1899,10 +2036,10 @@ function (
     MultiVertexArrayTest.Spec.prototype.getName = function () {
         var name = '';
 
-        for (var ndx = 0; ndx < arrays.length; ++ndx) {
-            /** @type {MultiVertexArrayTest.Spec.ArraySpec} */ var array = arrays[ndx];
+        for (var ndx = 0; ndx < this.arrays.length; ++ndx) {
+            /** @type {MultiVertexArrayTest.Spec.ArraySpec} */ var array = this.arrays[ndx];
 
-            if (arrays.length > 1)
+            if (this.arrays.length > 1)
                 name += "array" + ndx + "_";
 
             name += deArray.storageToString(array.storage) + "_" +
@@ -1918,10 +2055,10 @@ function (
             deArray.usageTypeToString(array.usage) + "_";
         }
 
-        if (first)
-            name += "first" + first + "_";
+        if (this.first)
+            name += "first" + this.first + "_";
 
-        switch (primitive) {
+        switch (this.primitive) {
             case deArray.Primitive.TRIANGLES:
                 name += "quads_";
                 break;
@@ -1934,7 +2071,7 @@ function (
                 break;
         }
 
-        name += drawCount;
+        name += this.drawCount;
 
         return name;
     };
@@ -1943,14 +2080,14 @@ function (
      * getName
      * @return {string}
      */
-    var MultiVertexArrayTest.Spec.prototype.getDesc = function () {
+    MultiVertexArrayTest.Spec.prototype.getDesc = function () {
         var desc = '';
 
-        for (var ndx = 0; ndx < arrays.length; ++ndx) {
-            /** @type {MultiVertexArrayTest.Spec.ArraySpec} */ var array = arrays[ndx];
+        for (var ndx = 0; ndx < this.arrays.length; ++ndx) {
+            /** @type {MultiVertexArrayTest.Spec.ArraySpec} */ var array = this.arrays[ndx];
 
             desc += "Array " + ndx + ": " +
-            "Storage in " deArray.storageToString(array.storage) + ", " +
+            "Storage in " + deArray.storageToString(array.storage) + ", " +
             "stride " + array.stride + ", " +
             "input datatype " + deArray.inputTypeToString(array.inputType) + ", " +
             "input component count " + array.componentCount + ", " +
@@ -1959,10 +2096,10 @@ function (
         }
 
         desc += "drawArrays(), " +
-        "first " + first + ", " +
-        drawCount;
+        "first " + this.first + ", " +
+        this.drawCount;
 
-        switch (primitive) {
+        switch (this.primitive) {
             case deArray.Primitive.TRIANGLES:
                 desc += "quads ";
                 break;
@@ -2005,12 +2142,12 @@ function (
             else if (arraySpec.inputType == deArray.InputType.INT_2_10_10_10)
             {
                 if (arraySpec.normalize)
-                    coordScale = 1.0f;
+                    coordScale = 1.0;
                 else
                     coordScale = 1.0 / 512.0;
             }
             else
-                coordScale = (arraySpec.normalize && !inputTypeIsFloatType(arraySpec.inputType) ? 1.0f : float(0.9 / double(arraySpec.max.toFloat())));
+                coordScale = arraySpec.normalize && !inputTypeIsFloatType(arraySpec.inputType) ? 1.0 : 0.9 / arraySpec.max.toFloat();
 
             if (arraySpec.outputType == deArray.OutputType.VEC3 || arraySpec.outputType == deArray.OutputType.VEC4
                 || arraySpec.outputType == deArray.OutputType.IVEC3 || arraySpec.outputType == deArray.OutputType.IVEC4
@@ -2020,7 +2157,7 @@ function (
 
             // And other arrays are color-like
             for (var arrayNdx = 1; arrayNdx < this.m_spec.arrays.length; arrayNdx++) {
-                /** @type {MultiVertexArrayTest.Spec.ArraySpec} */ var arraySpec = this.m_spec.arrays[arrayNdx];
+                arraySpec = this.m_spec.arrays[arrayNdx];
 
                 colorScale *= (arraySpec.normalize && !inputTypeIsFloatType(arraySpec.inputType) ? 1.0 : 1.0 / arraySpec.max.toFloat());
                 if (arraySpec.outputType == deArray.OutputType.VEC4)
@@ -2030,9 +2167,9 @@ function (
             // Data
 
             for (var arrayNdx = 0; arrayNdx < this.m_spec.arrays.length; arrayNdx++) {
-                /** @type {MultiVertexArrayTest.Spec.ArraySpec} */ var arraySpec = this.m_spec.arrays[arrayNdx];
+                arraySpec = this.m_spec.arrays[arrayNdx];
                 /** @type {number} */ var seed = arraySpec.inputType + 10 * arraySpec.outputType + 100 * arraySpec.storage + 1000 * this.m_spec.primitive + 10000 * arraySpec.usage + this.m_spec.drawCount + 12 * arraySpec.componentCount + arraySpec.stride + arraySpec.normalize;
-                /** @type {Uint8Array} */ var data = DE_NULL;
+                /** @type {ArrayBuffer} */ var data = DE_NULL;
                 /** @type {number} */ var stride = arraySpec.stride == 0 ? arraySpec.componentCount * deArray.inputTypeSize(arraySpec.inputType) : arraySpec.stride;
                 /** @type {number} */ var bufferSize = arraySpec.offset + stride * (this.m_spec.drawCount * primitiveSize - 1) + arraySpec.componentCount  * deArray.inputTypeSize(arraySpec.inputType);
 
@@ -2058,8 +2195,8 @@ function (
                 this.m_glArrayPack.newArray(arraySpec.storage);
                 this.m_rrArrayPack.newArray(arraySpec.storage);
 
-                this.m_glArrayPack.getArray(arrayNdx).data(deArray.Target.ARRAY, bufferSize, data, arraySpec.usage);
-                this.m_rrArrayPack.getArray(arrayNdx).data(deArray.Target.ARRAY, bufferSize, data, arraySpec.usage);
+                this.m_glArrayPack.getArray(arrayNdx).data(deArray.Target.ARRAY, bufferSize, new Uint8Array(data), arraySpec.usage);
+                this.m_rrArrayPack.getArray(arrayNdx).data(deArray.Target.ARRAY, bufferSize, new Uint8Array(data), arraySpec.usage);
 
                 this.m_glArrayPack.getArray(arrayNdx).bind(arrayNdx, arraySpec.offset, arraySpec.componentCount, arraySpec.inputType, arraySpec.outputType, arraySpec.normalize, arraySpec.stride);
                 this.m_rrArrayPack.getArray(arrayNdx).bind(arrayNdx, arraySpec.offset, arraySpec.componentCount, arraySpec.inputType, arraySpec.outputType, arraySpec.normalize, arraySpec.stride);
@@ -2072,7 +2209,7 @@ function (
             catch (err) {
                 // GL Errors are ok if the mode is not properly aligned
 
-                bufferedLogToConsole("Got error: " + err.getMessage();
+                bufferedLogToConsole("Got error: " + err.message);
 
                 if (this.isUnalignedBufferOffsetTest())
                     testFailedOptions('Failed to draw with unaligned buffers', false); // TODO: QP_TEST_RESULT_COMPATIBILITY_WARNING
@@ -2140,7 +2277,7 @@ function (
         // Buffer strides should be data type size aligned
         for (var i = 0; i < this.m_spec.arrays.length; ++i) {
             if (this.m_spec.arrays[i].storage == deArray.Storage.BUFFER) {
-                /** @type {boolean} */ var inputTypePacked = this.m_spec.arrays[i].inputType == deArray.InputType.UNSIGNED_INT_2_10_10_10 || m_spec.arrays[i].inputType == deArray.InputType.INT_2_10_10_10;
+                /** @type {boolean} */ var inputTypePacked = this.m_spec.arrays[i].inputType == deArray.InputType.UNSIGNED_INT_2_10_10_10 || this.m_spec.arrays[i].inputType == deArray.InputType.INT_2_10_10_10;
 
                 /** @type {number} */ var dataTypeSize = deArray.inputTypeSize(this.m_spec.arrays[i].inputType);
                 if (inputTypePacked)

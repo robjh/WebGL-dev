@@ -106,11 +106,10 @@ TextureFormat.prototype.isEqual = function(format) {
 
 /**
  * Is format sRGB?
- * @param {TextureFormat} format
  * @return {boolean}
  */
-var isSRGB = function(format) {
-    return format.order === ChannelOrder.sRGB || format.order === ChannelOrder.sRGBA;
+TextureFormat.prototype.isSRGB = function() {
+    return this.order === ChannelOrder.sRGB || this.order === ChannelOrder.sRGBA;
 };
 
 /**
@@ -611,7 +610,7 @@ var sRGBToLinear = function(cs) {
 var lookup = function(access, i, j, k) {
     var p = access.getPixel(i, j, k);
     // console.log('Lookup at ' + i + ' ' + j + ' ' + k + ' ' + p);
-    return isSRGB(access.getFormat()) ? sRGBToLinear(p) : p;
+    return access.getFormat().isSRGB() ? sRGBToLinear(p) : p;
 };
 
 /**
@@ -737,6 +736,7 @@ var unpackRGB999E5 = function(color) {
  */
 var ConstPixelBufferAccess = function(descriptor) {
     if (descriptor) {
+        this.m_offset = descriptor.offset;
         this.m_format = descriptor.format;
         this.m_width = descriptor.width;
         this.m_height = descriptor.height;
@@ -762,8 +762,14 @@ var ConstPixelBufferAccess = function(descriptor) {
 ConstPixelBufferAccess.prototype.getDataSize = function() { return this.m_depth * this.m_slicePitch; };
 /** @return {TypedArray} */
 ConstPixelBufferAccess.prototype.getDataPtr = function() {
-        var arrayType = getTypedArray(this.m_format.type);
-         return new arrayType(this.m_data);
+    var arrayType = getTypedArray(this.m_format.type);
+    var dataPtrReturn = new arrayType(this.m_data);
+
+    if (this.m_offset == 'undefined') {
+        return dataPtrReturn;
+    } else {
+        return new arrayType(this.m_data, this.m_offset, this.m_data.length); // TODO: this.m_data.length strictly necessary in the constructor?
+    }
 };
 /** @return {ArrayBuffer} */
 ConstPixelBufferAccess.prototype.getBuffer = function() {
@@ -798,10 +804,9 @@ ConstPixelBufferAccess.prototype.getPixel = function(x, y, z) {
     DE_ASSERT(deMath.deInBounds32(y, 0, this.m_height));
     DE_ASSERT(deMath.deInBounds32(z, 0, this.m_depth));
 
-    var pixelSize = this.m_format.getPixelSize();
-    var arrayType = getTypedArray(this.m_format.type);
-    var offset = z * this.m_slicePitch + y * this.m_rowPitch + x * pixelSize;
-    var pixelPtr = new arrayType(this.m_data, z * this.m_slicePitch + y * this.m_rowPitch + x * pixelSize);
+    /** @type {number} */ var pixelSize = this.m_format.getPixelSize();
+    this.m_offset = z * this.m_slicePitch + y * this.m_rowPitch + x * pixelSize;
+    /** @type {TypedArray} */ var pixelPtr = this.getDataPtr();
 
     var ub = function(pixel, offset, count) {
         return (pixel >> offset) & ((1 << count) - 1);
@@ -884,10 +889,9 @@ ConstPixelBufferAccess.prototype.getPixelInt = function(x, y, z) {
     DE_ASSERT(deMath.deInBounds32(y, 0, this.m_height));
     DE_ASSERT(deMath.deInBounds32(z, 0, this.m_depth));
 
-    var pixelSize = this.m_format.getPixelSize();
-    var arrayType = getTypedArray(this.m_format.type);
-    var offset = z * this.m_slicePitch + y * this.m_rowPitch + x * pixelSize;
-    var pixelPtr = new arrayType(this.m_data, z * this.m_slicePitch + y * this.m_rowPitch + x * pixelSize);
+    /** @type {number} */ var pixelSize = this.m_format.getPixelSize();
+    this.m_offset = z * this.m_slicePitch + y * this.m_rowPitch + x * pixelSize;
+    /** @type {TypedArray} */ var pixelPtr = this.getDataPtr();
 
     var ub = function(pixel, offset, count) {
         return (pixel >> offset) & ((1 << count) - 1);
@@ -1131,10 +1135,9 @@ PixelBufferAccess.prototype.setPixel = function(color, x, y, z) {
     DE_ASSERT(deMath.deInBounds32(y, 0, this.m_height));
     DE_ASSERT(deMath.deInBounds32(z, 0, this.m_depth));
 
-    var pixelSize = this.m_format.getPixelSize();
-    var arrayType = getTypedArray(this.m_format.type);
-    var offset = z * this.m_slicePitch + y * this.m_rowPitch + x * pixelSize;
-    var pixelPtr = new arrayType(this.m_data, offset);
+    /** @type {number} */ var pixelSize = this.m_format.getPixelSize();
+    this.m_offset = z * this.m_slicePitch + y * this.m_rowPitch + x * pixelSize;
+    /** @type {TypedArray} */ var pixelPtr = this.getDataPtr();
 
     var pn = function(val, offs, bits) {
         return normFloatToChannel(val, bits) << offs;
@@ -1207,7 +1210,7 @@ PixelBufferAccess.prototype.setPixel = function(color, x, y, z) {
  * newFromTextureLevel
  * @param {TextureLevel} level
  */
-PixelBufferAccess.newFromTextureLevel = function (level) {
+PixelBufferAccess.newFromTextureLevel = function(level) {
     var descriptor = new Object();
     descriptor.format = level.getFormat();
     descriptor.width = level.getWidth();
@@ -1228,7 +1231,7 @@ PixelBufferAccess.newFromTextureLevel = function (level) {
  * @param {number} slicePitch
  * @param {ArrayBuffer} data
  */
-PixelBufferAccess.newFromTextureFormat = function (format, width, height, depth, rowPitch, slicePitch, data) {
+PixelBufferAccess.newFromTextureFormat = function(format, width, height, depth, rowPitch, slicePitch, data) {
     var descriptor = new Object();
     descriptor.format = format;
     descriptor.width = width;
