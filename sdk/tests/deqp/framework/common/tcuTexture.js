@@ -767,7 +767,7 @@ ConstPixelBufferAccess.prototype.getDataSize = function() { return this.m_depth 
 ConstPixelBufferAccess.prototype.getDataPtr = function() {
     var arrayType = getTypedArray(this.m_format.type);
     
-    if (this.m_offset > this.m_data)
+    if (this.m_offset > this.m_data.length)
         throw new Error('Failing generating TypedArray: offset is bigger than ArrayBuffer');
     else {
         if (this.m_offset == 0) {
