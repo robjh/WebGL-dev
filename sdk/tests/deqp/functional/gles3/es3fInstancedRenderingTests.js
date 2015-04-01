@@ -94,15 +94,15 @@ define([
     * @constructor
     * @param {string} name
     * @param {string} description
-    * @param {DrawFunction} function
+    * @param {DrawFunction} drawFunction
     * @param {InstancingType} instancingType
     * @param {gluShaderUtil.DataType} rgbAttrType
     * @param {number} numInstances
     */
-    var InstancedRenderingCase = function(name, description, _function, instancingType, rgbAttrType, numInstances)
+    var InstancedRenderingCase = function(name, description, drawFunction, instancingType, rgbAttrType, numInstances)
     {
         tcuTestCase.DeqpTest.call(this, name, description);
-        /** @type {DrawFunction} */ this.m_function = _function;
+        /** @type {DrawFunction} */ this.m_function = drawFunction;
         /** @type {InstancingType} */ this.m_instancingType = instancingType;
         /** @type {glu.DataType} */ this.m_rgbAttrType = rgbAttrType;
         /** @type {number} */ this.m_numInstances = numInstances;
@@ -125,7 +125,18 @@ define([
     */
     InstancedRenderingCase.prototype.pushVarCompAttrib = function(vec, val)
     {
-        vec.push(val);
+        var isFloatCase = gluShaderUtil.isDataTypeFloatOrVec(this.m_rgbAttrType);
+        var isIntCase = gluShaderUtil.isDataTypeIntOrIVec(this.m_rgbAttrType);
+        var isUintCase = gluShaderUtil.isDataTypeUintOrUVec(this.m_rgbAttrType);
+        var isMatCase = gluShaderUtil.isDataTypeMatrix(this.m_rgbAttrType);
+        if (isFloatCase || isMatCase)
+            vec.push(val);
+        else if (isIntCase)
+            vec.push(val * FLOAT_INT_SCALE + FLOAT_INT_BIAS);
+        else if (isUintCase)
+            vec.push(val * FLOAT_UINT_SCALE + FLOAT_UINT_BIAS);
+        else
+            throw new Error("Invalid attribute type.")
     };
 
     InstancedRenderingCase.prototype.init = function() {
@@ -402,14 +413,12 @@ define([
 
         this.setupAndRender();
 
-        //TODO: validate readPixels()
-        //gluShaderUtil.readPixels(this.m_context.getRenderContext(), xOffset, yOffset, resultImg.getAccess());
         var resImg = resultImg.getAccess();
         var resImgTransferFormat = gluTextureUtil.getTransferFormat(resImg.getFormat());
 
         gl.readPixels(xOffset, yOffset, resImg.m_width, resImg.m_height, resImgTransferFormat.format, resImgTransferFormat.dataType, resultImg.m_pixels);
-        // Compute reference.
 
+        // Compute reference.
         this.computeReference(referenceImg);
 
         // Compare.
@@ -541,19 +550,18 @@ define([
         else
         {
             var gridIndicesGLBuffer = gl.createBuffer();
-            var bufferGridIndices = new Float32Array(this.m_gridIndices);
+            var bufferGridIndices = new Uint16Array(this.m_gridIndices);
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gridIndicesGLBuffer);
             gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, bufferGridIndices, gl.STATIC_DRAW);
 
             gl.drawElementsInstanced(gl.TRIANGLES, this.m_gridIndices.length, gl.UNSIGNED_SHORT, 0, this.m_numInstances);
-
         }
         gl.useProgram(null);
     };
 
 
     /**
-    * @param {tcuSurface.Surface} attrPtr
+    * @param {tcuSurface.Surface} dst
     */
     InstancedRenderingCase.prototype.computeReference = function(dst)
     {
@@ -617,16 +625,17 @@ define([
         var testGroup = tcuTestCase.runner.getState().testCases;
     /** @type {Array.<number>} */ var instanceCounts = [1, 2, 4, 20];
 
-        for (var _function = 0; _function < Object.keys(DrawFunction).length; _function++)
+        for (var _function in DrawFunction)
         {
-            /** @type {string} */ var functionName =
-                                       _function == DrawFunction.FUNCTION_DRAW_ARRAYS_INSTANCED ? 'draw_arrays_instanced' :
-                                       _function == DrawFunction.FUNCTION_DRAW_ELEMENTS_INSTANCED ? 'draw_elements_instanced' :
+            debugger;
+            /** @type {string|null} */ var functionName =
+                                       DrawFunction[_function] == DrawFunction.FUNCTION_DRAW_ARRAYS_INSTANCED ? 'draw_arrays_instanced' :
+                                       DrawFunction[_function] == DrawFunction.FUNCTION_DRAW_ELEMENTS_INSTANCED ? 'draw_elements_instanced' :
                                        null;
 
-            /** @type {string} */ var functionDesc =
-                                       _function == DrawFunction.FUNCTION_DRAW_ARRAYS_INSTANCED ? 'Use glDrawArraysInstanced()' :
-                                       _function == DrawFunction.FUNCTION_DRAW_ELEMENTS_INSTANCED ? 'Use glDrawElementsInstanced()' :
+            /** @type {string|null} */ var functionDesc =
+                                       DrawFunction[_function] == DrawFunction.FUNCTION_DRAW_ARRAYS_INSTANCED ? 'Use glDrawArraysInstanced()' :
+                                       DrawFunction[_function] == DrawFunction.FUNCTION_DRAW_ELEMENTS_INSTANCED ? 'Use glDrawElementsInstanced()' :
                                        null;
 
             DE_ASSERT(functionName != null);
@@ -635,18 +644,18 @@ define([
             /** @type {TestCaseGroup} */ var functionGroup = new tcuTestCase.newTest(functionName, functionDesc);
             testGroup.addChild(functionGroup);
 
-            for (var instancingType = 0; instancingType < Object.keys(InstancingType).length; instancingType++)
+            for (var instancingType in InstancingType)
             {
-                /** @type {string} */ var instancingTypeName =
-                                                 instancingType == InstancingType.TYPE_INSTANCE_ID ? 'instance_id' :
-                                                 instancingType == InstancingType.TYPE_ATTRIB_DIVISOR ? 'attribute_divisor' :
-                                                 instancingType == InstancingType.TYPE_MIXED ? 'mixed' :
+                /** @type {string|null} */ var instancingTypeName =
+                                                 InstancingType[instancingType] == InstancingType.TYPE_INSTANCE_ID ? 'instance_id' :
+                                                 InstancingType[instancingType] == InstancingType.TYPE_ATTRIB_DIVISOR ? 'attribute_divisor' :
+                                                 InstancingType[instancingType] == InstancingType.TYPE_MIXED ? 'mixed' :
                                                  null;
 
-                /** @type {string} */ var instancingTypeDesc =
-                                                 instancingType == InstancingType.TYPE_INSTANCE_ID ? 'Use gl_InstanceID for instancing' :
-                                                 instancingType == InstancingType.TYPE_ATTRIB_DIVISOR ? 'Use vertex attribute divisors for instancing' :
-                                                 instancingType == InstancingType.TYPE_MIXED ? 'Use both gl_InstanceID and vertex attribute divisors for instancing' :
+                /** @type {string|null} */ var instancingTypeDesc =
+                                                 InstancingType[instancingType] == InstancingType.TYPE_INSTANCE_ID ? 'Use gl_InstanceID for instancing' :
+                                                 InstancingType[instancingType] == InstancingType.TYPE_ATTRIB_DIVISOR ? 'Use vertex attribute divisors for instancing' :
+                                                 InstancingType[instancingType] == InstancingType.TYPE_MIXED ? 'Use both gl_InstanceID and vertex attribute divisors for instancing' :
                                                  null;
 
                 DE_ASSERT(instancingTypeName != null);
@@ -657,13 +666,13 @@ define([
 
                 functionGroup.addChild(instancingTypeGroup);
 
-                for (var countNdx = 0; countNdx < instanceCounts.length; countNdx++)
+                for (var countNdx in instanceCounts)
                 {
                     /** @type {string} */ var countName = instanceCounts[countNdx].toString() + '_instances';
-
-                    instancingTypeGroup.addChild(new InstancedRenderingCase(countName, '',
-                                                                             _function,
-                                                                             instancingType,
+                    instancingTypeGroup.addChild(new InstancedRenderingCase(countName,
+                                                                             '',
+                                                                             DrawFunction[_function],
+                                                                             InstancingType[instancingType],
                                                                              gluShaderUtil.DataType.FLOAT,
                                                                              instanceCounts[countNdx]));
                 }
@@ -703,7 +712,7 @@ define([
 
         testGroup.addChild(typesGroup);
 
-        for (var typeNdx = 0; typeNdx < s_testTypes.length; typeNdx++)
+        for (var typeNdx in s_testTypes)
         {
             /** @type {gluShaderUtil.DataType} */ var type = s_testTypes[typeNdx];
             typesGroup.addChild(new InstancedRenderingCase(gluShaderUtil.getDataTypeName(type), '',
