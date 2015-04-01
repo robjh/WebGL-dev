@@ -268,8 +268,8 @@ function(
             // gl.getInternalformatParameter(gl.RENDERBUFFER, bufSpec.format, gl.NUM_SAMPLE_COUNTS);
 
             // gl.MAX_RENDERBUFFER_SIZE, gl.MAX_SAMPLES, gl.NUM_SAMPLE_COUNTS, gl.SAMPLES
-            // gl.renderbufferStorageMultisample(gl.RENDERBUFFER, gl.MAX_RENDERBUFFER_SIZE, bufSpec.format, bufSpec.width, bufSpec.height);
-            gl.renderbufferStorageMultisample(gl.RENDERBUFFER, bufSpec.samples, bufSpec.format, bufSpec.width, bufSpec.height);
+            // gl.renderbufferStorageMultisample(gl.RENDERBUFFER, bufSpec.samples, bufSpec.format, bufSpec.width, bufSpec.height);
+            gl.renderbufferStorageMultisample(gl.RENDERBUFFER, gl.MAX_RENDERBUFFER_SIZE, bufSpec.format, bufSpec.width, bufSpec.height);
             gl.framebufferRenderbuffer(gl.FRAMEBUFFER, attachment, gl.RENDERBUFFER, this.m_renderbuffer);
         }
         // GLU_EXPECT_NO_ERROR(gl.getError(), 'After framebuffer setup');

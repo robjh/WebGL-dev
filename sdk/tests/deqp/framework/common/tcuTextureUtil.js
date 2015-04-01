@@ -174,19 +174,19 @@ var getSubregion = function(access, x, y, z, width, height, depth) {
     DE_ASSERT(deMath.deInBounds32(y, 0, access.getHeight()) && deMath.deInRange32(y + height, y, access.getHeight()));
     DE_ASSERT(deMath.deInBounds32(z, 0, access.getDepth()) && deMath.deInRange32(z + depth, z, access.getDepth()));
 
-    var pixelBufferAccess = new tcuTexture.PixelBufferAccess({
+    var constPixelBufferAccess = new tcuTexture.ConstPixelBufferAccess({
         format: access.getFormat(),
         width: width,
         height: height,
         depth: depth,
         rowPitch: access.getRowPitch(),
         slicePitch: access.getSlicePitch(),
-        offset: access.getFormat().getPixelSize() * x + access.getRowPitch() * y + access.getSlicePitch() * z, // number
-        data: access.getDataPtr() // TODO: check functionality getDataPtr()
+        offset: access.getDataPtr() + access.getFormat().getPixelSize() * x + access.getRowPitch() * y + access.getSlicePitch() * z,
+        data: access.getDataPtr() // TODO: check getDataPtr()
         });
 
-    if (pixelBufferAccess.data != 'undefined' || pixelBufferAccess.data != null) return pixelBufferAccess;
-    else throw new Error('Error creating data element in object tcuTexture.PixelBufferAccess, check getDataPtr()');
+    if (constPixelBufferAccess.data != 'undefined' && constPixelBufferAccess.data != null) return constPixelBufferAccess;
+    else throw new Error('Error creating data element in object tcuTexture.ConstPixelBufferAccess, check getDataPtr()');
 
 };
 
