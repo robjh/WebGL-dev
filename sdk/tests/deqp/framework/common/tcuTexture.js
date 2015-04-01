@@ -1242,6 +1242,41 @@ PixelBufferAccess.prototype.setPixel = function(color, x, y, z) {
 };
 
 /**
+ * @param {Array<number>=} color Vec4 color to set, optional.
+ * @param {Array<number>=} x Range in x axis, optional.
+ * @param {Array<number>=} y Range in y axis, optional.
+ * @param {Array<number>=} z Range in z axis, optional.
+ */
+PixelBufferAccess.prototype.clear = function(color, x, y, z) {
+    var c = color || [0, 0, 0, 0];
+    /** @type {ArrayBuffer} */ var pixel = new ArrayBuffer(16);
+    PixelBufferAccess.newFromTextureFormat(this.getFormat(), 1, 1, 1, 0, 0, pixel).setPixel(c, 0, 0);
+    var pixelSize = this.m_format.getPixelSize();
+    var arrayType = getTypedArray(this.m_format.type);
+    var dst = this.getDataPtr();
+    var src = new arrayType(pixel);
+    var numChannels = getNumUsedChannels(this.m_format.order);
+    var elemSize = arrayType.BYTES_PER_ELEMENT;
+    var range_x = x || [0, this.m_width];
+    var range_y = y || [0, this.m_height];
+    var range_z = z || [0, this.m_depth];
+
+    for (var slice = range_z[0]; slice < range_z[1]; slice++) {
+        var slice_offset = slice * this.m_slicePitch;
+        for (var row = range_y[0]; row < range_y[1]; row++) {
+            var row_offset = row * this.m_rowPitch;
+            for (var col = range_x[0]; col < range_x[1]; col++) {
+                var col_offset = col * pixelSize;
+                var index = (slice_offset + row_offset + col_offset) / elemSize;
+                for (var i = 0; i < numChannels; i++) {
+                    dst[index + i] = src[i];
+                }
+            }
+        }
+    }
+};
+
+/**
  * @param {number} depth to set
  * @param {number} x
  * @param {number} y
