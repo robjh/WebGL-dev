@@ -736,8 +736,8 @@ var unpackRGB999E5 = function(color) {
  */
 var ConstPixelBufferAccess = function(descriptor) {
     if (descriptor) {
-        if (descriptor.slicePitch)
-            this.m_slicePitch = descriptor.slicePitch;
+        if (descriptor.offset)
+            this.m_offset = descriptor.offset;
         else
             this.m_offset = 0;
         this.m_format = descriptor.format;
