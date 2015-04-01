@@ -278,6 +278,7 @@ var FloatFlags = {
 /**
  * Defines a FloatDescription object, which is an essential part of the deFloat type.
  * Holds the information that shapes the deFloat.
+ * @constructor
  */
 var FloatDescription = function(exponentBits, mantissaBits, exponentBias, flags) {
     this.ExponentBits = exponentBits;
@@ -527,6 +528,7 @@ FloatDescription.prototype.convert = function(other) {
 
 /**
  * deFloat class - Empty constructor, builds a 32 bit float by default
+ * @constructor
  */
 var deFloat = function() {
     this.description = new FloatDescription(8, 23, 127, FloatFlags.FLOAT_HAS_SIGN | FloatFlags.FLOAT_SUPPORT_DENORM);

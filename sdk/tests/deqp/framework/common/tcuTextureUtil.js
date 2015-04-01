@@ -233,6 +233,10 @@ var fillWithComponentGradients = function(/*const PixelBufferAccess&*/ access, /
         fillWithComponentGradients3D(access, minVal, maxVal);
 };
 
+/**
+ * Create TextureFormatInfo.
+ * @constructor
+ */
 var TextureFormatInfo = function(valueMin, valueMax, lookupScale, lookupBias) {
     this.valueMin = valueMin;
     this.valueMax = valueMax;

@@ -82,6 +82,7 @@ return {
 
 /**
  * Assigns name, description and specification to test
+ * @constructor
  * @param {string} name
  * @param {string} description
  * @param {string} spec

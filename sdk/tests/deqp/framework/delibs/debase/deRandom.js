@@ -25,8 +25,9 @@ define(function() {
 'use strict';
 
 /**
-* Array of pseudo random numbers based on seed
-*/
+ * Array of pseudo random numbers based on seed
+ * @constructor
+ */
 var deRandom = function() {
     var x;
     var y;
@@ -241,4 +242,3 @@ return {
 };
 
 });
-

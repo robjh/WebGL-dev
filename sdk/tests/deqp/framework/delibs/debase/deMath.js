@@ -41,7 +41,7 @@ var deInBounds32 = function(a, mn, mx) {
  * @param {number} a
  * @return {number}
  */
-var deFloatFrac = function (a) { return a - Math.floot(a); };
+var deFloatFrac = function (a) { return a - Math.floor(a); };
 
 /**
  * @param {number} a
@@ -313,4 +313,3 @@ var deMathHash = function(a) {
         deMathHash: deMathHash
     };
 });
-

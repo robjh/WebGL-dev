@@ -214,13 +214,13 @@ var floatUlpThresholdCompare = function(imageSetName, imageSetDesc, reference, r
         {
             for (var x = 0; x < width; x++)
             {
-                /** @type {ArrayBuffer} */ var arrayBufferRef = ArrayBuffer(4);
-                /** @type {ArrayBuffer} */ var arrayBufferCmp = ArrayBuffer(4);
+                /** @type {ArrayBuffer} */ var arrayBufferRef = new ArrayBuffer(4);
+                /** @type {ArrayBuffer} */ var arrayBufferCmp = new ArrayBuffer(4);
 
-                /** @type {Array.<number>} */ var refPix = Float32Array(arrayBufferRef); // Vec4
+                /** @type {Array.<number>} */ var refPix = new Float32Array(arrayBufferRef); // Vec4
                 refPix = reference.getPixel(x, y, z); // getPixel returns a Vec4 pixel color
 
-                /** @type {Array.<number>} */ var cmpPix = Float32Array(arrayBufferCmp); // Vec4
+                /** @type {Array.<number>} */ var cmpPix = new Float32Array(arrayBufferCmp); // Vec4
                 cmpPix = result.getPixel(x, y, z); // getPixel returns a Vec4 pixel color
 
                 /** @type {Uint32Array} */ var refBits = new Uint32Array(arrayBufferRef); // UVec4

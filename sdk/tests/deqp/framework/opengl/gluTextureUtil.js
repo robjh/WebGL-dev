@@ -30,6 +30,10 @@
 define(['framework/common/tcuTexture', 'framework/common/tcuCompressedTexture'], function(textureFormat, tcuCompressedTexture)
 {
 
+/**
+ * Create TransferFormat.
+ * @constructor
+ */
 var TransferFormat = function(format, dataType) {
     this.format = format;        //!< Pixel format.
     this.dataType = dataType;    //!< Data type.

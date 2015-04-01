@@ -104,7 +104,7 @@ define([
         tcuTestCase.DeqpTest.call(this, name, description);
         /** @type {DrawFunction} */ this.m_function = drawFunction;
         /** @type {InstancingType} */ this.m_instancingType = instancingType;
-        /** @type {glu.DataType} */ this.m_rgbAttrType = rgbAttrType;
+        /** @type {DataType} */ this.m_rgbAttrType = rgbAttrType;
         /** @type {number} */ this.m_numInstances = numInstances;
         /** @type {glu.ShaderProgram} */ this.m_program = null;
         /** @type {Array.<number>} */ this.m_gridVertexPositions = [];
@@ -627,7 +627,6 @@ define([
 
         for (var _function in DrawFunction)
         {
-            debugger;
             /** @type {string|null} */ var functionName =
                                        DrawFunction[_function] == DrawFunction.FUNCTION_DRAW_ARRAYS_INSTANCED ? 'draw_arrays_instanced' :
                                        DrawFunction[_function] == DrawFunction.FUNCTION_DRAW_ELEMENTS_INSTANCED ? 'draw_elements_instanced' :
