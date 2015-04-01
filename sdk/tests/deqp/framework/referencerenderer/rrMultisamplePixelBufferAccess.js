@@ -70,7 +70,7 @@ MultisamplePixelBufferAccess.fromMultisampleAccess = function(multisampledAccess
     return new MultisamplePixelBufferAccess(multisampledAccess);
 };
 
-MultisamplePixelBufferAccess.prototype.getSubregion = function(x, y, width, height) {
+MultisamplePixelBufferAccess.prototype.getSubregion = function(region) {
     /* TODO: implement */
     throw new Error('Unimplemented');
 };

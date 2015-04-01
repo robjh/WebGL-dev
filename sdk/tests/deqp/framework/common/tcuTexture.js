@@ -106,11 +106,10 @@ TextureFormat.prototype.isEqual = function(format) {
 
 /**
  * Is format sRGB?
- * @param {TextureFormat} format
  * @return {boolean}
  */
-var isSRGB = function(format) {
-    return format.order === ChannelOrder.sRGB || format.order === ChannelOrder.sRGBA;
+TextureFormat.prototype.isSRGB = function() {
+    return this.order === ChannelOrder.sRGB || this.order === ChannelOrder.sRGBA;
 };
 
 /**
@@ -611,7 +610,7 @@ var sRGBToLinear = function(cs) {
 var lookup = function(access, i, j, k) {
     var p = access.getPixel(i, j, k);
     // console.log('Lookup at ' + i + ' ' + j + ' ' + k + ' ' + p);
-    return isSRGB(access.getFormat()) ? sRGBToLinear(p) : p;
+    return access.getFormat().isSRGB() ? sRGBToLinear(p) : p;
 };
 
 /**

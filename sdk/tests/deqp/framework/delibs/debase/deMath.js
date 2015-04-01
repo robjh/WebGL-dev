@@ -254,11 +254,32 @@ var rint = function(a) {
     return floorVal + (roundUp ? 1 : 0);
 };
 
+/**
+ * Find intersection of two rectangles
+ * @param {Array<number>} a Array [x, y, width, height]
+ * @param {Array<number>} b Array [x, y, width, height]
+ * @return {Array<number>}
+ */
+var intersect = function(a, b){
+    if (a.length != 4)
+        throw new Error('Array "a" must have length 4 but has length: ' + a.length);
+    if (b.length != 4)
+        throw new Error('Array "b" must have length 4 but has length: ' + b.length);
+    var x0  = Math.max(a[0], b[0]);
+    var y0  = Math.max(a[1], b[1]);
+    var x1  = Math.min(a[0]+a[2], b[0]+b[2]);
+    var y1  = Math.min(a[1]+a[3], b[1]+b[3]);
+    var w   = Math.max(0, x1-x0);
+    var h   = Math.max(0, y1-y0);
+
+    return [x0, y0, w, h];
+};
+
+
 /** deMathHash
  * @param {number} a
  * @return {number}
  */
-
 var deMathHash = function(a) {
     var key = a;
     key = (key ^ 61) ^ (key >> 16);
@@ -288,6 +309,7 @@ var deMathHash = function(a) {
         max: max,
         min: min,
         rint: rint,
+        intersect: intersect,
         deMathHash: deMathHash
     };
 });

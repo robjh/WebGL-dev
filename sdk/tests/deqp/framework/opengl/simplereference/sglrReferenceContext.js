@@ -1815,7 +1815,114 @@ ReferenceContext.prototype.drawElementsInstancedBaseVertex = function(mode, coun
 
         drawWithReference(rr::PrimitiveList(primitiveType, count, rr::DrawIndices(indicesPtr, sglr::rr_util::mapGLIndexType(type), baseVertex)), instanceCount);
     }*/
-}
+};
+
+/**
+ * @param {rrMultisampleConstPixelBufferAccess.MultisampleConstPixelBufferAccess} access
+ * @return {Array<number>}
+ */
+var getBufferRect = function(access) { return [0, 0, access.raw().getHeight(), access.raw().getDepth()]; };
+
+ReferenceContext.prototype.clear = function(buffers) {
+    if (this.condtionalSetError((buffers & ~(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT)) != 0, GL_INVALID_VALUE))
+        return;
+
+    var    colorBuf0   = this.getDrawColorbuffer();
+    var    depthBuf    = this.getDrawDepthbuffer();
+    var    stencilBuf  = this.getDrawStencilbuffer();
+    var    hasColor0   = !isEmpty(colorBuf0);
+    var    hasDepth    = !isEmpty(depthBuf);
+    var    hasStencil  = !isEmpty(stencilBuf);
+    var    baseArea    = this.m_scissorEnabled ? this.m_scissorBox : [0, 0, 0x7fffffff, 0x7fffffff];
+
+    if (hasColor0 && (buffers & GL_COLOR_BUFFER_BIT) != 0)
+    {
+        var                               colorArea   = deMath.intersect(baseArea, getBufferRect(colorBuf0));
+        var    access      = colorBuf0.getSubregion(colorArea);
+        var                                isSRGB      = colorBuf0.raw().getFormat().isSRGB();
+        var                                c           = (isSRGB && this.m_sRGBUpdateEnabled) ? tcuTextureUtil.linearToSRGB(this.m_clearColor) : this.m_clearColor;
+        var                                maskUsed    = !this.m_colorMask[0] || !this.m_colorMask[1] || !this.m_colorMask[2] || !this.m_colorMask[3];
+        var                                maskZero    = !this.m_colorMask[0] && !this.m_colorMask[1] && !this.m_colorMask[2] && !this.m_colorMask[3];
+
+        if (!maskUsed)
+            access.clear(c);
+        else if (!maskZero)
+        {
+            for (var y = 0; y < access.raw().getDepth(); y++)
+                for (var x = 0; x < access.raw().getHeight(); x++)
+                    for (var s = 0; s < access.getNumSamples(); s++)
+                        access.raw().setPixel(tcuTextureUtil.select(c, access.raw().getPixel(s, x, y), this.m_colorMask), s, x, y);
+        }
+        // else all channels masked out
+    }
+
+    if (hasDepth && (buffers & GL_DEPTH_BUFFER_BIT) != 0 && m_depthMask)
+    {
+        var                               depthArea               = deMath.intersect(baseArea, getBufferRect(depthBuf));
+        var    access                  = depthBuf.getSubregion(depthArea);
+        var                                isSharedDepthStencil    = depthBuf.raw().getFormat().order != tcuTexture.ChannelOrder.D;
+
+        if (isSharedDepthStencil)
+        {
+            // Slow path where stencil is masked out in write.
+            for (var y = 0; y < access.raw().getDepth(); y++)
+                for (var x = 0; x < access.raw().getHeight(); x++)
+                    for (var s = 0; s < access.getNumSamples(); s++)
+                        writeDepthOnly(access, s, x, y, this.m_clearDepth);
+        }
+        else
+        {
+            /* TODO: Port
+            // Fast path.
+            int                     pixelSize       = access.raw().getFormat().getPixelSize();
+            std::vector<deUint8>    row             (access.raw().getWidth()*access.raw().getHeight()*pixelSize);
+            tcu::PixelBufferAccess  rowAccess       (depthBuf.raw().getFormat(), access.raw().getWidth(), access.raw().getHeight(), 1, &row[0]);
+
+            for (int y = 0; y < rowAccess.getHeight(); y++)
+                for (int x = 0; x < rowAccess.getWidth(); x++)
+                    rowAccess.setPixel(tcu::Vec4(m_clearDepth), x, y);
+
+            for (int y = 0; y < access.raw().getDepth(); y++)
+                deMemcpy((deUint8*)access.raw().getDataPtr() + access.raw().getSlicePitch()*y, &row[0], (int)row.size());
+            */
+        }
+    }
+
+    if (hasStencil && (buffers & GL_STENCIL_BUFFER_BIT) != 0)
+    {
+        var                               stencilArea             = deMath.intersect(baseArea, getBufferRect(stencilBuf));
+        var    access                  = stencilBuf.getSubregion(stencilArea);
+        var                                 stencilBits             = getNumStencilBits(stencilBuf.raw().getFormat());
+        var                                 stencil                 = maskStencil(stencilBits, this.m_clearStencil);
+        var                                isSharedDepthStencil    = stencilBuf.raw().getFormat().order != tcuTexture.ChannelOrder.S;
+
+        if (isSharedDepthStencil || ((this.m_stencil[FaceType.FACETYPE_FRONT].writeMask & ((1<<stencilBits)-1)) != ((1<<stencilBits)-1)))
+        {
+            // Slow path where depth or stencil is masked out in write.
+            for (var y = 0; y < access.raw().getDepth(); y++)
+                for (var x = 0; x < access.raw().getHeight(); x++)
+                    for (var s = 0; s < access.getNumSamples(); s++)
+                        writeStencilOnly(access, s, x, y, stencil, this.m_stencil[FaceType.FACETYPE_FRONT].writeMask);
+        }
+        else
+        {
+            /* TODO: Port
+            // Fast path.
+            int                     pixelSize       = access.raw().getFormat().getPixelSize();
+            std::vector<deUint8>    row             (access.raw().getWidth()*access.raw().getHeight()*pixelSize);
+            tcu::PixelBufferAccess  rowAccess       (stencilBuf.raw().getFormat(), access.raw().getWidth(), access.raw().getHeight(), 1, &row[0]);
+
+            for (int y = 0; y < rowAccess.getHeight(); y++)
+                for (int x = 0; x < rowAccess.getWidth(); x++)
+                    rowAccess.setPixel(tcu::IVec4(stencil), x, y);
+
+            for (int y = 0; y < access.raw().getDepth(); y++)
+                deMemcpy((deUint8*)access.raw().getDataPtr() + access.raw().getSlicePitch()*y, &row[0], (int)row.size());
+            */
+        }
+    }
+};
+
 return {
     ReferenceContext: ReferenceContext
 };

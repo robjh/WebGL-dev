@@ -422,6 +422,24 @@ var getTextureFormatBitDepth = function(format) {
 
 };
 
+var linearChannelToSRGB = function(cl) {
+    if (cl <= 0)
+        return 0;
+    else if (cl < 0.0031308)
+        return 12.92 * cl;
+    else if (cl < 1.0)
+        return 1.055 * Math.pow(cl, 0.41666) - 0.055;
+    else
+        return 1.0;
+};
+
+var linearToSRGB = function(cl) {
+    return [linearChannelToSRGB(cl[0]),
+                linearChannelToSRGB(cl[1]),
+                linearChannelToSRGB(cl[2]),
+                cl[3]];
+};
+
 return {
     clear: clear,
     getTextureChannelClass: getTextureChannelClass,
@@ -430,7 +448,8 @@ return {
     select: select,
     getTextureFormatInfo: getTextureFormatInfo,
     getChannelBitDepth: getChannelBitDepth,
-    getTextureFormatBitDepth: getTextureFormatBitDepth
+    getTextureFormatBitDepth: getTextureFormatBitDepth,
+    linearToSRGB: linearToSRGB
 };
 
 });
