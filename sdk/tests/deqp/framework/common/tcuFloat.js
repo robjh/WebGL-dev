@@ -115,7 +115,7 @@ var doNativeBinaryOp = function(valueA, valueB, operation) {
  * If the operation is safe to perform in a native way, it will do that.
  * @param {number} valueA First operand
  * @param {number} valueB Second operand
- * @param {BinaryOp} operation The desired operation to perform
+ * @param {BinaryOp} binaryOp The desired operation to perform
  * @return {number}
  */
 var binaryOp = function(valueA, valueB, binaryOp) {
@@ -583,7 +583,8 @@ deFloat.prototype.deFloatBuffer = function(buffer, description) {
 /**
  * Convenience function to build a deFloat based on a buffer and a format description
  * The buffer is assumed to contain data of the given description.
- * @param {number} jsnumber
+ * @param {ArrayBuffer} buffer
+ * @param {FloatDescription} description
  * @return {deFloat}
  */
 var newDeFloatFromBuffer = function(buffer, description) {

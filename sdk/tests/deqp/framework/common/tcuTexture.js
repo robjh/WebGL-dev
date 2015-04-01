@@ -588,7 +588,7 @@ var sRGBChannelToLinear = function(cs) {
 /**
  * Convert sRGB to linear colorspace
  * @param {Array<Number>} cs Vec4
- * @param {Array<Number>} Vec4
+ * @return {Array<Number>}
  */
 var sRGBToLinear = function(cs) {
     return [
@@ -766,7 +766,7 @@ ConstPixelBufferAccess.prototype.getDataSize = function() { return this.m_depth 
 /** @return {TypedArray} */
 ConstPixelBufferAccess.prototype.getDataPtr = function() {
     var arrayType = getTypedArray(this.m_format.type);
-    
+
     if (this.m_offset > this.m_data.length)
         throw new Error('Failing generating TypedArray: offset is bigger than ArrayBuffer');
     else {
@@ -1131,7 +1131,7 @@ PixelBufferAccess.prototype = Object.create(ConstPixelBufferAccess.prototype);
 PixelBufferAccess.prototype.constructor = PixelBufferAccess;
 
 /**
- * @param {Array<Number>} Vec4 color to set
+ * @param {Array<Number>} color to set
  * @param {Number} x
  * @param {Number} y
  * @param {Number} z
@@ -1424,7 +1424,7 @@ var sampleLevelArray3D = function(levels, numLevels, sampler, s, t, r, lod) {
 /**
  * @constructor
  * @param {CubeFace} face
- * @param {Array<Number>} Vec2 coordinates
+ * @param {Array<Number>} coords
  */
 var CubeFaceCoords = function(face, coords) {
     this.face = face;
