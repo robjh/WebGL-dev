@@ -736,7 +736,10 @@ var unpackRGB999E5 = function(color) {
  */
 var ConstPixelBufferAccess = function(descriptor) {
     if (descriptor) {
-        this.m_offset = descriptor.offset;
+        if (descriptor.slicePitch)
+            this.m_slicePitch = descriptor.slicePitch;
+        else
+            this.m_offset = 0;
         this.m_format = descriptor.format;
         this.m_width = descriptor.width;
         this.m_height = descriptor.height;
@@ -761,17 +764,18 @@ var ConstPixelBufferAccess = function(descriptor) {
 /** @return {Number} */
 ConstPixelBufferAccess.prototype.getDataSize = function() { return this.m_depth * this.m_slicePitch; };
 /** @return {TypedArray} */
-ConstPixelBufferAccess.prototype.getDataPtr = function(offset) {
-
+ConstPixelBufferAccess.prototype.getDataPtr = function() {
     var arrayType = getTypedArray(this.m_format.type);
-    var dataPtrReturn = new arrayType(this.m_data);
-
-    if (offset == 'undefined') {
-        return dataPtrReturn;
-    } else {
-        return dataPtrReturn.subarray(offset, dataPtrReturn.length);
+    
+    if (this.m_offset > this.m_data)
+        throw new Error('Failing generating TypedArray: offset is bigger than ArrayBuffer');
+    else {
+        if (this.m_offset == 0) {
+            return new arrayType(this.m_data);
+        } else {
+            return new arrayType(this.m_data, this.m_offset);
+        }
     }
-
 };
 /** @return {ArrayBuffer} */
 ConstPixelBufferAccess.prototype.getBuffer = function() {
