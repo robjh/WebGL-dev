@@ -684,27 +684,27 @@ define([
                     /** @type {TestCaseGroup} */ var specialCaseGroup = new tcuTestCase.newTest(specialCaseGroupName, '');
                     testGroup.addChild(specialCaseGroup);
 
-                    for (var primType = 0; primType < Object.keys(PrimitiveType).length; primType++)
+                    for (var primType in PrimitiveType)
                     {
-                        /** @type {string} */ var primTypeName = primType == PrimitiveType.PRIMITIVE_POINTS ? 'points' :
-                                                                 primType == PrimitiveType.PRIMITIVE_LINE_STRIP ? 'line_strip' :
-                                                                 primType == PrimitiveType.PRIMITIVE_LINE_LOOP ? 'line_loop' :
-                                                                 primType == PrimitiveType.PRIMITIVE_LINES ? 'lines' :
-                                                                 primType == PrimitiveType.PRIMITIVE_TRIANGLE_STRIP ? 'triangle_strip' :
-                                                                 primType == PrimitiveType.PRIMITIVE_TRIANGLE_FAN ? 'triangle_fan' :
-                                                                 primType == PrimitiveType.PRIMITIVE_TRIANGLES ? 'triangles' :
+                        /** @type {string} */ var primTypeName = PrimitiveType[primType] == PrimitiveType.PRIMITIVE_POINTS ? 'points' :
+                                                                 PrimitiveType[primType] == PrimitiveType.PRIMITIVE_LINE_STRIP ? 'line_strip' :
+                                                                 PrimitiveType[primType] == PrimitiveType.PRIMITIVE_LINE_LOOP ? 'line_loop' :
+                                                                 PrimitiveType[primType] == PrimitiveType.PRIMITIVE_LINES ? 'lines' :
+                                                                 PrimitiveType[primType] == PrimitiveType.PRIMITIVE_TRIANGLE_STRIP ? 'triangle_strip' :
+                                                                 PrimitiveType[primType] == PrimitiveType.PRIMITIVE_TRIANGLE_FAN ? 'triangle_fan' :
+                                                                 PrimitiveType[primType] == PrimitiveType.PRIMITIVE_TRIANGLES ? 'triangles' :
                                                                  null;
 
                         DE_ASSERT(primTypeName != null);
 
-                        /** @type {TestCaseGroup} */ var primTypeGroup = new tcuTestCase.newTest(primTypeName, '');
+                        /** @type {TestCaseGroup} */ var primTypeGroup = new tcuTestCase.newTest(PrimitiveType[primType], '');
                         specialCaseGroup.addChild(primTypeGroup);
 
-                        for (var indexType = 0; indexType < Object.keys(IndexType).length; indexType++)
+                        for (var indexType in IndexType)
                         {
-                            /** @type {string} */ var indexTypeName = indexType == IndexType.INDEX_UNSIGNED_BYTE ? 'unsigned_byte' :
-                                                                      indexType == IndexType.INDEX_UNSIGNED_SHORT ? 'unsigned_short' :
-                                                                      indexType == IndexType.INDEX_UNSIGNED_INT ? 'unsigned_int' :
+                            /** @type {string} */ var indexTypeName = IndexType[indexType] == IndexType.INDEX_UNSIGNED_BYTE ? 'unsigned_byte' :
+                                                                      IndexType[indexType] == IndexType.INDEX_UNSIGNED_SHORT ? 'unsigned_short' :
+                                                                      IndexType[indexType] == IndexType.INDEX_UNSIGNED_INT ? 'unsigned_int' :
                                                                       null;
 
                             DE_ASSERT(indexTypeName != null);
@@ -712,20 +712,20 @@ define([
                             /** @type {TestCaseGroup} */ var indexTypeGroup = new tcuTestCase.newTest(indexTypeName, '');
                             primTypeGroup.addChild(indexTypeGroup);
 
-                            for (var _function = 0; _function < Object.keys(Function).length; _function++)
+                            for (var _function in Function)
                             {
-                                /** @type {string} */ var functionName = _function == Function.FUNCTION_DRAW_ELEMENTS ? 'draw_elements' :
-                                                                         _function == Function.FUNCTION_DRAW_ELEMENTS_INSTANCED ? 'draw_elements_instanced' :
-                                                                         _function == Function.FUNCTION_DRAW_RANGE_ELEMENTS ? 'draw_range_elements' :
+                                /** @type {string} */ var functionName = Function[_function] == Function.FUNCTION_DRAW_ELEMENTS ? 'draw_elements' :
+                                                                         Function[_function] == Function.FUNCTION_DRAW_ELEMENTS_INSTANCED ? 'draw_elements_instanced' :
+                                                                         Function[_function] == Function.FUNCTION_DRAW_RANGE_ELEMENTS ? 'draw_range_elements' :
                                                                          null;
 
                                 DE_ASSERT(functionName != null);
 
                                 indexTypeGroup.addChild(new PrimitiveRestartCase(functionName,
                                                                                  '',
-                                                                                 primType,
-                                                                                 indexType,
-                                                                                 _function,
+                                                                                 PrimitiveType[primType],
+                                                                                 IndexType[indexType],
+                                                                                 Function[_function],
                                                                                  isRestartBeginCase,
                                                                                  isRestartEndCase,
                                                                                  isDuplicateRestartCase));
