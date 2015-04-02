@@ -446,6 +446,7 @@ var linearToSRGB = function(cl) {
 
 return {
     clear: clear,
+    TextureChannelClass: TextureChannelClass,
     getTextureChannelClass: getTextureChannelClass,
     getSubregion: getSubregion,
     fillWithComponentGradients: fillWithComponentGradients,
