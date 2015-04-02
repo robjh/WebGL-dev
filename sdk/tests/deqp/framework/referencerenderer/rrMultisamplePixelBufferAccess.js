@@ -108,6 +108,10 @@ MultisamplePixelBufferAccess.prototype.resolveMultisamplePixel = function(x, y) 
     return sum;
 };
 
+MultisamplePixelBufferAccess.prototype.clear = function(color) {
+    this.raw().clear(color);
+};
+
 return {
     MultisamplePixelBufferAccess: MultisamplePixelBufferAccess
 };

@@ -1823,8 +1823,59 @@ ReferenceContext.prototype.drawElementsInstancedBaseVertex = function(mode, coun
  */
 var getBufferRect = function(access) { return [0, 0, access.raw().getHeight(), access.raw().getDepth()]; };
 
+ReferenceContext.prototype.getDrawColorbuffer  = function() {
+    if (this.m_drawFramebufferBinding)
+        return rrMultisamplePixelBufferAccess.fromSinglesampleAccess(this.getFboAttachment(this.m_drawFramebufferBinding, AttachmentPoint.ATTACHMENTPOINT_COLOR0));
+    return this.m_defaultColorbuffer;
+};
+
+ReferenceContext.prototype.getDrawDepthbuffer  = function() {
+    if (this.m_drawFramebufferBinding)
+        return rrMultisamplePixelBufferAccess.fromSinglesampleAccess(this.getFboAttachment(this.m_drawFramebufferBinding, AttachmentPoint.ATTACHMENTPOINT_DEPTH));
+    return this.m_defaultDepthbuffer;
+};
+
+ReferenceContext.prototype.getDrawStencilbuffer  = function() {
+    if (this.m_drawFramebufferBinding)
+        return rrMultisamplePixelBufferAccess.fromSinglesampleAccess(this.getFboAttachment(this.m_drawFramebufferBinding, AttachmentPoint.ATTACHMENTPOINT_STENCIL));
+    return this.m_defaultStencilbuffer;
+};
+
+ReferenceContext.prototype.getReadColorbuffer  = function() {
+    if (this.m_readFramebufferBinding)
+        return rrMultisamplePixelBufferAccess.fromSinglesampleAccess(this.getFboAttachment(this.m_readFramebufferBinding, AttachmentPoint.ATTACHMENTPOINT_COLOR0));
+    return this.m_defaultColorbuffer;
+};
+
+ReferenceContext.prototype.getReadDepthbuffer  = function() {
+    if (this.m_readFramebufferBinding)
+        return rrMultisamplePixelBufferAccess.fromSinglesampleAccess(this.getFboAttachment(this.m_readFramebufferBinding, AttachmentPoint.ATTACHMENTPOINT_DEPTH));
+    return this.m_defaultDepthbuffer;
+};
+
+ReferenceContext.prototype.getReadStencilbuffer  = function() {
+    if (this.m_readFramebufferBinding)
+        return rrMultisamplePixelBufferAccess.fromSinglesampleAccess(this.getFboAttachment(this.m_readFramebufferBinding, AttachmentPoint.ATTACHMENTPOINT_STENCIL));
+    return this.m_defaultStencilbuffer;
+};
+
+/**
+ * @param {rrMultisampleConstPixelBufferAccess.MultisampleConstPixelBufferAccess} access
+ */
+var writeDepthOnly = function(access, s, x, y, depth) { access.raw().setPixDepth(depth, s, x, y); };
+
+/**
+ * @param {rrMultisampleConstPixelBufferAccess.MultisampleConstPixelBufferAccess} access
+ */
+var writeStencilOnly = function(access, s, x, y, stencil, writeMask) {
+    var oldVal = access.raw().getPixelInt(s, x, y)[3];
+    access.raw().setPixStencil((oldVal & ~writeMask) | (stencil & writeMask), s, x, y);
+};
+
+var maskStencil = function(bits, s) { return s & ((1<<bits)-1); };
+
 ReferenceContext.prototype.clear = function(buffers) {
-    if (this.condtionalSetError((buffers & ~(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT)) != 0, GL_INVALID_VALUE))
+    if (this.condtionalSetError((buffers & ~(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT|gl.STENCIL_BUFFER_BIT)) != 0, gl.INVALID_VALUE))
         return;
 
     var    colorBuf0   = this.getDrawColorbuffer();
@@ -1835,12 +1886,11 @@ ReferenceContext.prototype.clear = function(buffers) {
     var    hasStencil  = !isEmpty(stencilBuf);
     var    baseArea    = this.m_scissorEnabled ? this.m_scissorBox : [0, 0, 0x7fffffff, 0x7fffffff];
 
-    if (hasColor0 && (buffers & GL_COLOR_BUFFER_BIT) != 0)
+    if (hasColor0 && (buffers & gl.COLOR_BUFFER_BIT) != 0)
     {
         var                               colorArea   = deMath.intersect(baseArea, getBufferRect(colorBuf0));
         var    access      = colorBuf0.getSubregion(colorArea);
-        var                                isSRGB      = colorBuf0.raw().getFormat().isSRGB();
-        var                                c           = (isSRGB && this.m_sRGBUpdateEnabled) ? tcuTextureUtil.linearToSRGB(this.m_clearColor) : this.m_clearColor;
+        var                                c           = this.m_clearColor;
         var                                maskUsed    = !this.m_colorMask[0] || !this.m_colorMask[1] || !this.m_colorMask[2] || !this.m_colorMask[3];
         var                                maskZero    = !this.m_colorMask[0] && !this.m_colorMask[1] && !this.m_colorMask[2] && !this.m_colorMask[3];
 
@@ -1856,7 +1906,7 @@ ReferenceContext.prototype.clear = function(buffers) {
         // else all channels masked out
     }
 
-    if (hasDepth && (buffers & GL_DEPTH_BUFFER_BIT) != 0 && m_depthMask)
+    if (hasDepth && (buffers & gl.DEPTH_BUFFER_BIT) != 0 && this.m_depthMask)
     {
         var                               depthArea               = deMath.intersect(baseArea, getBufferRect(depthBuf));
         var    access                  = depthBuf.getSubregion(depthArea);
@@ -1871,28 +1921,14 @@ ReferenceContext.prototype.clear = function(buffers) {
                         writeDepthOnly(access, s, x, y, this.m_clearDepth);
         }
         else
-        {
-            /* TODO: Port
-            // Fast path.
-            int                     pixelSize       = access.raw().getFormat().getPixelSize();
-            std::vector<deUint8>    row             (access.raw().getWidth()*access.raw().getHeight()*pixelSize);
-            tcu::PixelBufferAccess  rowAccess       (depthBuf.raw().getFormat(), access.raw().getWidth(), access.raw().getHeight(), 1, &row[0]);
-
-            for (int y = 0; y < rowAccess.getHeight(); y++)
-                for (int x = 0; x < rowAccess.getWidth(); x++)
-                    rowAccess.setPixel(tcu::Vec4(m_clearDepth), x, y);
-
-            for (int y = 0; y < access.raw().getDepth(); y++)
-                deMemcpy((deUint8*)access.raw().getDataPtr() + access.raw().getSlicePitch()*y, &row[0], (int)row.size());
-            */
-        }
+            access.clear([this.m_clearDepth, 0, 0, 0]);
     }
 
-    if (hasStencil && (buffers & GL_STENCIL_BUFFER_BIT) != 0)
+    if (hasStencil && (buffers & gl.STENCIL_BUFFER_BIT) != 0)
     {
         var                               stencilArea             = deMath.intersect(baseArea, getBufferRect(stencilBuf));
         var    access                  = stencilBuf.getSubregion(stencilArea);
-        var                                 stencilBits             = getNumStencilBits(stencilBuf.raw().getFormat());
+        var                                 stencilBits             = stencilBuf.raw().getFormat().getNumStencilBits();
         var                                 stencil                 = maskStencil(stencilBits, this.m_clearStencil);
         var                                isSharedDepthStencil    = stencilBuf.raw().getFormat().order != tcuTexture.ChannelOrder.S;
 
@@ -1905,22 +1941,148 @@ ReferenceContext.prototype.clear = function(buffers) {
                         writeStencilOnly(access, s, x, y, stencil, this.m_stencil[FaceType.FACETYPE_FRONT].writeMask);
         }
         else
+            access.clear([0, 0, 0, stencil]);
+    }
+};
+
+ReferenceContext.prototype.clearBufferiv = function(buffer, drawbuffer, value)
+{
+    if (this.condtionalSetError(buffer != gl.COLOR && buffer != gl.STENCIL, gl.INVALID_ENUM))
+        return;
+    if (this.condtionalSetError(drawbuffer != 0, gl.INVALID_VALUE))
+        return;
+
+    var    baseArea    = this.m_scissorEnabled ? this.m_scissorBox : [0, 0, 0x7fffffff, 0x7fffffff];
+
+    if (buffer == gl.COLOR)
+    {
+        var    colorBuf    = this.getDrawColorbuffer();
+        var                                maskUsed    = !this.m_colorMask[0] || !this.m_colorMask[1] || !this.m_colorMask[2] || !this.m_colorMask[3];
+        var                                maskZero    = !this.m_colorMask[0] && !this.m_colorMask[1] && !this.m_colorMask[2] && !this.m_colorMask[3];
+
+        if (!isEmpty(colorBuf) && !maskZero)
         {
-            /* TODO: Port
-            // Fast path.
-            int                     pixelSize       = access.raw().getFormat().getPixelSize();
-            std::vector<deUint8>    row             (access.raw().getWidth()*access.raw().getHeight()*pixelSize);
-            tcu::PixelBufferAccess  rowAccess       (stencilBuf.raw().getFormat(), access.raw().getWidth(), access.raw().getHeight(), 1, &row[0]);
+        var                               colorArea   = deMath.intersect(baseArea, getBufferRect(colorBuf));
+        var    access      = colorBuf.getSubregion(colorArea);
 
-            for (int y = 0; y < rowAccess.getHeight(); y++)
-                for (int x = 0; x < rowAccess.getWidth(); x++)
-                    rowAccess.setPixel(tcu::IVec4(stencil), x, y);
-
-            for (int y = 0; y < access.raw().getDepth(); y++)
-                deMemcpy((deUint8*)access.raw().getDataPtr() + access.raw().getSlicePitch()*y, &row[0], (int)row.size());
-            */
+            if (!maskUsed)
+                access.clear(value);
+            else
+            {
+            for (var y = 0; y < access.raw().getDepth(); y++)
+                for (var x = 0; x < access.raw().getHeight(); x++)
+                    for (var s = 0; s < access.getNumSamples(); s++)
+                        access.raw().setPixel(tcuTextureUtil.select(value, access.raw().getPixel(s, x, y), this.m_colorMask), s, x, y);                
+            }
         }
     }
+    else
+    {
+        if (buffer !== gl.STENCIL)
+            throw new Error("Unexpected buffer type: " + buffer);
+
+        var    stencilBuf  = this.getDrawStencilbuffer();
+
+        if (!isEmpty(stencilBuf) && this.m_stencil[FaceType.FACETYPE_FRONT].writeMask != 0)
+        {
+            var                               area        = deMath.intersect(baseArea, getBufferRect(stencilBuf));
+            var    access      = stencilBuf.getSubregion(area);
+            var                                 stencil     = value[0];
+
+           for (var y = 0; y < access.raw().getDepth(); y++)
+                for (var x = 0; x < access.raw().getHeight(); x++)
+                    for (var s = 0; s < access.getNumSamples(); s++)
+                        writeStencilOnly(access, s, x, y, stencil, this.m_stencil[FaceType.FACETYPE_FRONT].writeMask);
+        }
+    }
+};
+
+ReferenceContext.prototype.clearBufferfv = function(buffer, drawbuffer, value) {
+    if (this.condtionalSetError(buffer != gl.COLOR && buffer != gl.DEPTH, gl.INVALID_ENUM))
+        return;
+    if (this.condtionalSetError(drawbuffer != 0, gl.INVALID_VALUE))
+        return;
+
+    var    baseArea    = this.m_scissorEnabled ? this.m_scissorBox : [0, 0, 0x7fffffff, 0x7fffffff];
+
+    if (buffer == gl.COLOR)
+    {
+        var    colorBuf    = this.getDrawColorbuffer();
+        var                                maskUsed    = !this.m_colorMask[0] || !this.m_colorMask[1] || !this.m_colorMask[2] || !this.m_colorMask[3];
+        var                                maskZero    = !this.m_colorMask[0] && !this.m_colorMask[1] && !this.m_colorMask[2] && !this.m_colorMask[3];
+
+        if (!isEmpty(colorBuf) && !maskZero)
+        {
+        var                               colorArea   = deMath.intersect(baseArea, getBufferRect(colorBuf));
+        var    access      = colorBuf.getSubregion(colorArea);
+
+            if (!maskUsed)
+                access.clear(value);
+            else
+            {
+            for (var y = 0; y < access.raw().getDepth(); y++)
+                for (var x = 0; x < access.raw().getHeight(); x++)
+                    for (var s = 0; s < access.getNumSamples(); s++)
+                        access.raw().setPixel(tcuTextureUtil.select(value, access.raw().getPixel(s, x, y), this.m_colorMask), s, x, y);                
+            }
+        }
+    }
+    else
+    {
+       if (buffer !== gl.DEPTH)
+            throw new Error("Unexpected buffer type: " + buffer);
+
+        var depthBuf = this.getDrawDepthbuffer();
+
+        if (!isEmpty(depthBuf) && this.m_depthMask)
+        {
+            var                               area        = deMath.intersect(baseArea, getBufferRect(depthBuf));
+            var    access      = depthBuf.getSubregion(area);
+            var                               depth       = value[0];
+
+             for (var y = 0; y < access.raw().getDepth(); y++)
+                for (var x = 0; x < access.raw().getHeight(); x++)
+                    for (var s = 0; s < access.getNumSamples(); s++)
+                        writeDepthOnly(access, s, x, y, depth);
+        }
+    }
+};
+
+ReferenceContext.prototype.clearBufferuiv = function(buffer, drawbuffer, value)
+{
+    if (this.condtionalSetError(buffer != gl.COLOR, gl.INVALID_ENUM))
+        return;
+    if (this.condtionalSetError(drawbuffer != 0, gl.INVALID_VALUE))
+        return;
+
+    var    baseArea    = this.m_scissorEnabled ? this.m_scissorBox : [0, 0, 0x7fffffff, 0x7fffffff];
+
+    var    colorBuf    = this.getDrawColorbuffer();
+    var                                maskUsed    = !this.m_colorMask[0] || !this.m_colorMask[1] || !this.m_colorMask[2] || !this.m_colorMask[3];
+    var                                maskZero    = !this.m_colorMask[0] && !this.m_colorMask[1] && !this.m_colorMask[2] && !this.m_colorMask[3];
+
+    if (!isEmpty(colorBuf) && !maskZero)
+    {
+    var                               colorArea   = deMath.intersect(baseArea, getBufferRect(colorBuf));
+    var    access      = colorBuf.getSubregion(colorArea);
+
+        if (!maskUsed)
+            access.clear(value);
+        else
+        {
+        for (var y = 0; y < access.raw().getDepth(); y++)
+            for (var x = 0; x < access.raw().getHeight(); x++)
+                for (var s = 0; s < access.getNumSamples(); s++)
+                    access.raw().setPixel(tcuTextureUtil.select(value, access.raw().getPixel(s, x, y), this.m_colorMask), s, x, y);                
+        }
+    }
+};
+
+ReferenceContext.prototype.clearBufferfi = function(buffer, drawbuffer, depth, stencil) {
+    if (this.condtionalSetError(buffer != gl.DEPTH_STENCIL, gl.INVALID_ENUM))
+        return;
+    this.clearBufferfv(gl.DEPTH, drawbuffer, [depth]);
+    this.clearBufferiv(gl.STENCIL, drawbuffer, [stencil]);
 };
 
 return {
