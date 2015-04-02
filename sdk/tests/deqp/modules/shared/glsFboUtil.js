@@ -34,21 +34,22 @@ define(['framework/opengl/gluTextureUtil'], function(gluTextureUtil) {
         return (map[key] !== undefined) ? map[key] || fallback;
     };
     
+    // db is a FormatDB, stdFmts is a range object
+    var addFormats = function(db, stdFmts) {
+    
+        for (var i = stdFmts.begin(); i < stdFmts.end(); ++i) {
+            var stdFmt_current = stdFmts.get(i);
+		    for (var j = stdFmt_current.second.begin(); j < stdFmt_current.second.end(); ++j) {
+			    var formatKey_current = stdFmt_current.second.get(j);
+			    db.addFormat(formatKeyInfo(formatKey_current.second), stdFmt_current.first);
+			}
+	    }
+    
+    };
+    
     
     
     /* TODO: This next. looks like helpers for FormatDB objects
-    // Need to find/port: formatKeyInto(). FormatEntries,
-    
-    
-template<typename M> inline
-const typename M::mapped_type& lookupDefault (const M& map,
-											  const typename M::key_type& key,
-											  const typename M::mapped_type& fallback)
-{
-	const typename M::mapped_type* ptr = lookupMaybe(map, key);
-	return ptr == DE_NULL ? fallback : *ptr;
-}
-
     
 void addFormats (FormatDB& db, FormatEntries stdFmts)
 {
@@ -117,6 +118,7 @@ FormatFlags formatFlag (GLenum context)
         }
     };
     
+    // this wont work if argv.array is an object
     var Range = function(argv) {
         
         var m_begin  = argv.begin || 0;
@@ -131,6 +133,12 @@ FormatFlags formatFlag (GLenum context)
         this.end = function() {
             return m.end;
         };
+        this.get = function(id) {
+            return {
+                first: id,
+                second: argv.array[id]
+            };
+        }
         
     };
     
@@ -138,9 +146,9 @@ FormatFlags formatFlag (GLenum context)
         argv = argv || {};
         
         this._construct = function(argv) {
-            this.format = null;
+            this.format      = argv.format || null;
             //! Type if format is unsized, GL_NONE if sized.
-            this.unsizedType = null;
+            this.unsizedType = argv.unsizedType || null;
         };
         
         this.lessthan = function(other) {
@@ -157,6 +165,14 @@ FormatFlags formatFlag (GLenum context)
         };
         
         if (!argv.dont_construct) this._construct(argv);
+    };
+    
+    // where key is a FormatKey, and a FormatKey is a 32bit int.
+    var formatKeyInfo = function(key) {
+        return new ImageFormat({
+            format:      (key & 0x0000ffff),
+            unsizedType: (key & 0xffff0000) >> 16
+        });
     };
     
     var Config = function(argv) {
@@ -179,6 +195,10 @@ FormatFlags formatFlag (GLenum context)
         
         FRAMEBUFFER:       6
     };
+    
+    // the c++ uses dynamic casts to determain if an object inherits from a
+    // given class. Here, each class' constructor assigns a bit to obj.type.
+    // look for the bit to see if an object inherits that class.
     Config.s_types = {
         CONFIG:            0x000001,
         
@@ -196,7 +216,9 @@ FormatFlags formatFlag (GLenum context)
         ATT_RENDERBUFFER:  0x020000,
         ATT_TEXTURE:       0x040000,
         ATT_TEXTURE_FLAT:  0x080000,
-        ATT_TEXTURE_LAYER: 0x100000
+        ATT_TEXTURE_LAYER: 0x100000,
+        
+        UNUSED:          0xFFE0E00E,
     };
     
     var Image = function(argv) {
