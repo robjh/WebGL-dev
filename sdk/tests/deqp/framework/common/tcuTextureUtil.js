@@ -185,7 +185,7 @@ var getSubregion = function(access, x, y, z, width, height, depth) {
         data: access.getDataPtr()
         });
 
-    if (pixelBufferAccess.data != 'undefined' && pixelBufferAccess.data != null) return pixelBufferAccess;
+    if (pixelBufferAccess.data != 'undefined' || pixelBufferAccess.data != null) return pixelBufferAccess;
     else throw new Error('Error creating data element in object tcuTexture.PixelBufferAccess, check getDataPtr()');
 
 };

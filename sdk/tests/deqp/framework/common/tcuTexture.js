@@ -117,9 +117,9 @@ TextureFormat.prototype.getNumStencilBits = function() {
         case ChannelOrder.S:
             switch (this.type)
             {
-                case ChannelType.UNSIGNED_INT8:     return 8;
-                case ChannelType.UNSIGNED_INT16:    return 16;
-                case ChannelType.UNSIGNED_INT32:    return 32;
+                case ChannelType.UNSIGNED_INT8: return 8;
+                case ChannelType.UNSIGNED_INT16: return 16;
+                case ChannelType.UNSIGNED_INT32: return 32;
                 default:
                     throw new Error('Wrong type: ' + this.type);
             }
@@ -127,8 +127,8 @@ TextureFormat.prototype.getNumStencilBits = function() {
         case ChannelOrder.DS:
             switch (this.type)
             {
-                case ChannelType.UNSIGNED_INT_24_8:             return 8;
-                case ChannelType.FLOAT_UNSIGNED_INT_24_8_REV:   return 8;
+                case ChannelType.UNSIGNED_INT_24_8: return 8;
+                case ChannelType.FLOAT_UNSIGNED_INT_24_8_REV: return 8;
                 default:
                     throw new Error('Wrong type: ' + this.type);
             }
@@ -762,10 +762,7 @@ var unpackRGB999E5 = function(color) {
  */
 var ConstPixelBufferAccess = function(descriptor) {
     if (descriptor) {
-        if (descriptor.offset)
-            this.m_offset = descriptor.offset;
-        else
-            this.m_offset = 0;
+        this.m_offset = descriptor.offset || 0;
         this.m_format = descriptor.format;
         this.m_width = descriptor.width;
         this.m_height = descriptor.height;
@@ -783,7 +780,6 @@ var ConstPixelBufferAccess = function(descriptor) {
             this.m_slicePitch = descriptor.slicePitch;
         else
             this.m_slicePitch = this.m_rowPitch * this.m_height;
-
     }
 };
 
@@ -792,16 +788,7 @@ ConstPixelBufferAccess.prototype.getDataSize = function() { return this.m_depth 
 /** @return {TypedArray} */
 ConstPixelBufferAccess.prototype.getDataPtr = function() {
     var arrayType = getTypedArray(this.m_format.type);
-
-    if (this.m_offset > this.m_data.length)
-        throw new Error('Failing generating TypedArray: offset is bigger than ArrayBuffer');
-    else {
-        if (this.m_offset == 0) {
-            return new arrayType(this.m_data);
-        } else {
-            return new arrayType(this.m_data, this.m_offset);
-        }
-    }
+    return new arrayType(this.m_data, this.m_offset);
 };
 /** @return {ArrayBuffer} */
 ConstPixelBufferAccess.prototype.getBuffer = function() {
@@ -839,7 +826,7 @@ ConstPixelBufferAccess.prototype.getPixel = function(x, y, z) {
     var pixelSize = this.m_format.getPixelSize();
     var arrayType = getTypedArray(this.m_format.type);
     var offset = z * this.m_slicePitch + y * this.m_rowPitch + x * pixelSize;
-    var pixelPtr = new arrayType(this.m_data, z * this.m_slicePitch + y * this.m_rowPitch + x * pixelSize);
+    var pixelPtr = new arrayType(this.m_data, offset + this.m_offset);
 
     var ub = function(pixel, offset, count) {
         return (pixel >> offset) & ((1 << count) - 1);
@@ -925,7 +912,7 @@ ConstPixelBufferAccess.prototype.getPixelInt = function(x, y, z) {
     var pixelSize = this.m_format.getPixelSize();
     var arrayType = getTypedArray(this.m_format.type);
     var offset = z * this.m_slicePitch + y * this.m_rowPitch + x * pixelSize;
-    var pixelPtr = new arrayType(this.m_data, z * this.m_slicePitch + y * this.m_rowPitch + x * pixelSize);
+    var pixelPtr = new arrayType(this.m_data, offset + this.m_offset);
 
     var ub = function(pixel, offset, count) {
         return (pixel >> offset) & ((1 << count) - 1);
@@ -1172,7 +1159,7 @@ PixelBufferAccess.prototype.setPixel = function(color, x, y, z) {
     var pixelSize = this.m_format.getPixelSize();
     var arrayType = getTypedArray(this.m_format.type);
     var offset = z * this.m_slicePitch + y * this.m_rowPitch + x * pixelSize;
-    var pixelPtr = new arrayType(this.m_data, offset);
+    var pixelPtr = new arrayType(this.m_data, offset + this.m_offset);
 
     var pn = function(val, offs, bits) {
         return normFloatToChannel(val, bits) << offs;
