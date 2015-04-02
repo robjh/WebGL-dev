@@ -1279,7 +1279,7 @@ PixelBufferAccess.prototype.setPixDepth = function(depth, x, y, z) {
     var pixelSize = this.m_format.getPixelSize();
     var arrayType = getTypedArray(this.m_format.type);
     var offset = z * this.m_slicePitch + y * this.m_rowPitch + x * pixelSize;
-    var pixelPtr = new arrayType(this.m_data, offset);
+    var pixelPtr = new arrayType(this.m_data, offset + this.m_offset);
 
     var pn = function(val, offs, bits) {
         return normFloatToChannel(val, bits) << offs;
@@ -1326,7 +1326,7 @@ PixelBufferAccess.prototype.setPixStencil = function(stencil, x, y, z) {
     var pixelSize = this.m_format.getPixelSize();
     var arrayType = getTypedArray(this.m_format.type);
     var offset = z * this.m_slicePitch + y * this.m_rowPitch + x * pixelSize;
-    var pixelPtr = new arrayType(this.m_data, offset);
+    var pixelPtr = new arrayType(this.m_data, offset + this.m_offset);
 
     var pu = function(val, offs, bits) {
         return uintToChannel(val, bits) << offs;
