@@ -161,7 +161,7 @@ define([
                 primTypeGL = gl.TRIANGLES;
                 break;
             default:
-                DE_ASSERT(DE_FALSE);
+                DE_ASSERT(false);
                 primTypeGL = 0;
         }
 
@@ -179,7 +179,7 @@ define([
                 indexTypeGL = gl.UNSIGNED_INT;
                 break;
             default:
-                DE_ASSERT(DE_FALSE);
+                DE_ASSERT(false);
                 indexTypeGL = 0;
         }
 
@@ -190,10 +190,21 @@ define([
 
         DE_ASSERT(restartIndex != 0);
         //TODO: drawElementsInstanced -> check usage of getIndexPtr
+
+        var indexGLBuffer = gl.createBuffer();
+        var bufferIndex = this.getIndexPtr(startNdx);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexGLBuffer);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, bufferIndex, gl.STATIC_DRAW);
+
         if (this.m_function == Function.FUNCTION_DRAW_ELEMENTS)
-            gl.drawElements(primTypeGL, count, indexTypeGL, this.getIndexPtr(startNdx));
+        {
+            debugger;
+            gl.drawElements(primTypeGL, count-1, indexTypeGL, 0);
+        }
         else if (this.m_function == Function.FUNCTION_DRAW_ELEMENTS_INSTANCED)
-            gl.drawElementsInstanced(primTypeGL, count, indexTypeGL, this.getIndexPtr(startNdx), 1);
+        {
+            gl.drawElementsInstanced(primTypeGL, count, indexTypeGL, 0, 1);
+        }
 
         else
         {
@@ -211,7 +222,7 @@ define([
                     max = index;
             }
             //TODO: drawRangeElements -> check getIndexPtr usage
-            gl.drawRangeElements(primTypeGL, 0, max, count, indexTypeGL, this.getIndexPtr(startNdx));
+            gl.drawRangeElements(primTypeGL, 0, max, count, indexTypeGL, 0);
         }
     };
 
@@ -293,7 +304,7 @@ define([
             this.m_indicesUI.push(index); // // deUint32
         }
         else
-            DE_ASSERT(DE_FALSE);
+            DE_ASSERT(false);
     };
 
     /**
@@ -310,7 +321,7 @@ define([
             case IndexType.INDEX_UNSIGNED_INT:
                 return this.m_indicesUI[indexNdx];
             default:
-                DE_ASSERT(DE_FALSE);
+                DE_ASSERT(false);
                 return 0;
         }
     };
@@ -328,7 +339,7 @@ define([
             case IndexType.INDEX_UNSIGNED_INT:
                 return this.m_indicesUI.length;
             default:
-                DE_ASSERT(DE_FALSE);
+                DE_ASSERT(false);
                 return 0;
         }
     };
@@ -336,21 +347,21 @@ define([
     /**
     * Pointer to the index value at index indexNdx.
     * @param {number} indexNdx
-    * @return {Array<number>}
+    * @return {Uint8Array<number>|Uint16Array<number>|Uint32<number}
     */
     PrimitiveRestartCase.prototype.getIndexPtr = function(indexNdx) {
         //TODO: implement
         switch (this.m_indexType)
         {
             case IndexType.INDEX_UNSIGNED_BYTE:
-                return this.m_indicesUB[indexNdx];
+                return new Uint8Array(this.m_indicesUB).subarray(indexNdx);
             case IndexType.INDEX_UNSIGNED_SHORT:
-                return this.m_indicesUS[indexNdx];
+                return new Uint16Array(this.m_indicesUS).subarray(indexNdx);
             case IndexType.INDEX_UNSIGNED_INT:
-                return this.m_indicesUI[indexNdx];
+                return new Uint32Array(this.m_indicesUI).subarray(indexNdx);
             default:
-                DE_ASSERT(DE_FALSE);
-                return DE_NULL;
+                DE_ASSERT(false);
+                return null;
         }
     };
 
@@ -392,7 +403,7 @@ define([
         DE_ASSERT(restartIndex != 0);
 
         DE_ASSERT(this.getNumIndices() == 0);
-
+debugger;
         // If testing a case with restart at beginning, add it there.
         if (this.m_beginWithRestart)
         {
@@ -574,7 +585,7 @@ define([
             }
         }
         else
-            DE_ASSERT(DE_FALSE);
+            DE_ASSERT(false);
 
         // If testing a case with restart at end, add it there.
         if (this.m_endWithRestart)
@@ -662,7 +673,7 @@ define([
                     /** @type {boolean} */ var isRestartEndCase = isRestartEndCaseI != 0;
                     /** @type {boolean} */ var isDuplicateRestartCase = isDuplicateRestartCaseI != 0;
 
-                    /** @type {string} */ var specialCaseGroupName;
+                    /** @type {string} */ var specialCaseGroupName = "";
 
                     if (isRestartBeginCase) specialCaseGroupName = 'begin_restart';
                     if (isRestartEndCase) specialCaseGroupName += (deString.deIsStringEmpty(specialCaseGroupName) ? '' : '_') + 'end_restart';
