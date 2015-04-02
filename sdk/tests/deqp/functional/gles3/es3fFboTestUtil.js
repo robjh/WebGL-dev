@@ -92,22 +92,22 @@ define(['framework/common/tcuTexture', 'framework/common/tcuTextureUtil'],
         switch (tcuTextureUtil.getTextureChannelClass(format.type))
         {
             case tcuTextureUtil.TextureChannelClass.FLOATING_POINT:
-                return tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.FLOAT);
+                return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.FLOAT);
 
             case tcuTextureUtil.TextureChannelClass.SIGNED_FIXED_POINT:
             case tcuTextureUtil.TextureChannelClass.UNSIGNED_FIXED_POINT:
-                return tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.UNORM_INT8);
+                return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.UNORM_INT8);
 
             case tcuTextureUtil.TextureChannelClass.UNSIGNED_INTEGER:
-                return tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.UNSIGNED_INT32);
+                return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.UNSIGNED_INT32);
 
             case tcuTextureUtil.TextureChannelClass.SIGNED_INTEGER:
-                return tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.SIGNED_INT32);
+                return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.SIGNED_INT32);
 
             default:
                 // DE_ASSERT(!"Unknown format");
             throw new Error('Unknown format in getFramebufferReadFormat()');
-                return tcuTexture.TextureFormat();
+                return new tcuTexture.TextureFormat();
         }
     };
 
