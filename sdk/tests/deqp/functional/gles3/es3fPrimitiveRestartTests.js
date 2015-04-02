@@ -198,7 +198,6 @@ define([
 
         if (this.m_function == Function.FUNCTION_DRAW_ELEMENTS)
         {
-            debugger;
             gl.drawElements(primTypeGL, count-1, indexTypeGL, 0);
         }
         else if (this.m_function == Function.FUNCTION_DRAW_ELEMENTS_INSTANCED)
@@ -403,7 +402,7 @@ define([
         DE_ASSERT(restartIndex != 0);
 
         DE_ASSERT(this.getNumIndices() == 0);
-debugger;
+
         // If testing a case with restart at beginning, add it there.
         if (this.m_beginWithRestart)
         {
@@ -634,9 +633,9 @@ debugger;
         /** @type {number} */ var loc = gl.getAttribLocation(program, 'a_position');
         gl.enableVertexAttribArray(loc);
 
-        var logGlBuffer = gl.createBuffer();
+        var locGlBuffer = gl.createBuffer();
         var bufferLoc = new Float32Array(this.m_position);
-        gl.bindBuffer(gl.ARRAY_BUFFER, logGlBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, locGlBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, bufferLoc, gl.STATIC_DRAW);
         gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
 
