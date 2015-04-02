@@ -65,12 +65,12 @@ function(
      * @param {number} height_
      * @param {number} samples_
      */
-    var BufferSpec = (function(format_, width_, height_, samples_) {
+    var BufferSpec = function(format_, width_, height_, samples_) {
         this.format = format_;
         this.width = width_;
         this.height = height_;
         this.samples = samples_;
-    });
+    };
 
     /**
      * FragmentOutput. Constructs the FragmentOutput object, a struct in the C++ version
@@ -80,12 +80,12 @@ function(
      * @param {number} location_
      * @param {number} arrayLength_
      */
-    var FragmentOutput = (function(type_, precision_, location_, arrayLength_) {
+    var FragmentOutput = function(type_, precision_, location_, arrayLength_) {
         this.type = type_;
         this.precision = precision_;
         this.location = location_;
         this.arrayLength = arrayLength_;
-    });
+    };
 
     /** @type {Array.<FragmentOutput>} */ var Outputs = [];
     /** @type {number} */ var outputPos = 0;
@@ -341,7 +341,7 @@ function(
     /**
      * getIntRange. Returns an Array(instead of an Int32Array), in the C++ version called IVec2 object
      * @param {gluShaderUtil.precision} precision, number
-     * @return {Int32Array} IVec2
+     * @return {Array.<number>} IVec2
      */
     var getIntRange = function(precision) {
 
@@ -360,7 +360,7 @@ function(
     /**
      * getUintRange. Returns an Array(instead of an Uint32Array), in the C++ version called UVec2 object
      * @param {gluShaderUtil.precision} precision, number
-     * @return {Uint32Array} UVec2
+     * @return {Array.<number>} UVec2
      */
     var getUintRange = function(precision) {
 
@@ -379,9 +379,9 @@ function(
 
     /**
      * readVec4
-     * @param {Float32Array} ptr, TypedArray Float32Array, it is a pointer in the C++ version
+     * @param {Array.<number>} ptr, TypedArray Float32Array, it is a pointer in the C++ version
      * @param {number} numComponents
-     * @return {Float32Array} Vec4
+     * @return {Array.<number>} Vec4
      */
     var readVec4 = function(ptr, numComponents) {
         DE_ASSERT(numComponents >= 1);
@@ -395,9 +395,9 @@ function(
 
     /**
      * readIVec4
-     * @param {Int32Array} ptr, TypedArray Int32Array, it is a pointer in the C++ version
+     * @param {Array.<number>} ptr, TypedArray Int32Array, it is a pointer in the C++ version
      * @param {number} numComponents
-     * @return {Int32Array} IVec4
+     * @return {Array.<number>} IVec4
      */
     var readIVec4 = function(ptr, numComponents) {
         DE_ASSERT(numComponents >= 1);
@@ -415,7 +415,7 @@ function(
      * @param {number} gridWidth
      * @param {number} gridHeight
      * @param {number} numComponents
-     * @param {Float32Array} vertices, whole TypedArray Float32Array. It's a pointer in the C++ version
+     * @param {Array.<number>} vertices ,it's a pointer in the C++ version
      */
     var renderFloatReference = function(dst, gridWidth, gridHeight, numComponents, vertices) {
 
@@ -432,18 +432,18 @@ function(
                 /** @type {number} */ var xf = Math.floor((x - cellX * cellW + 0.5) / cellW);
                 /** @type {number} */ var yf = Math.floor((y - cellY * cellH + 0.5) / cellH);
 
-                /** @type {Float32Array} */ var v00 = readVec4(vertices[((cellY + 0) * gridWidth + cellX + 0) * numComponents], numComponents); // Vec4
-                /** @type {Float32Array} */ var v01 = readVec4(vertices[((cellY + 1) * gridWidth + cellX + 0) * numComponents], numComponents); // Vec4
-                /** @type {Float32Array} */ var v10 = readVec4(vertices[((cellY + 0) * gridWidth + cellX + 1) * numComponents], numComponents); // Vec4
-                /** @type {Float32Array} */ var v11 = readVec4(vertices[((cellY + 1) * gridWidth + cellX + 1) * numComponents], numComponents); // Vec4
+                /** @type {Array.<number>} */ var v00 = readVec4(vertices[((cellY + 0) * gridWidth + cellX + 0) * numComponents], numComponents); // Vec4
+                /** @type {Array.<number>} */ var v01 = readVec4(vertices[((cellY + 1) * gridWidth + cellX + 0) * numComponents], numComponents); // Vec4
+                /** @type {Array.<number>} */ var v10 = readVec4(vertices[((cellY + 0) * gridWidth + cellX + 1) * numComponents], numComponents); // Vec4
+                /** @type {Array.<number>} */ var v11 = readVec4(vertices[((cellY + 1) * gridWidth + cellX + 1) * numComponents], numComponents); // Vec4
 
                 /** @type {boolean} */ var tri = xf + yf >= 1.0;
-                /** @type {Float32Array} */ var v0 = tri ? v11 : v00; // Vec4&
-                /** @type {Float32Array} */ var v1 = tri ? v01 : v10; // Vec4&
-                /** @type {Float32Array} */ var v2 = tri ? v10 : v01; // Vec4&
+                /** @type {Array.<number>} */ var v0 = tri ? v11 : v00; // Vec4&
+                /** @type {Array.<number>} */ var v1 = tri ? v01 : v10; // Vec4&
+                /** @type {Array.<number>} */ var v2 = tri ? v10 : v01; // Vec4&
                 /** @type {number} */ var s = tri ? 1.0 - xf : xf;
                 /** @type {number} */ var t = tri ? 1.0 - yf : yf;
-                /** @type {Float32Array} */ var color = deMath.add(v0, deMath.add(deMath.multiply((deMath.subtract(v1, v0)), s), deMath.multiply((deMath.subtract(v2, v0)), t))); // Vec4
+                /** @type {Array.<number>} */ var color = deMath.add(v0, deMath.add(deMath.multiply((deMath.subtract(v1, v0)), s), deMath.multiply((deMath.subtract(v2, v0)), t))); // Vec4
 
                 dst.setPixel(isSRGB ? tcuTextureUtil.linearToSRGB(color) : color, x, y);
             }
@@ -456,7 +456,7 @@ function(
      * @param {number} gridWidth
      * @param {number} gridHeight
      * @param {number} numComponents
-     * @param {Uint32Array} vertices, whole TypedArray Uint32Array. It's a pointer in the C++ version
+     * @param {Array.<number>} vertices ,it's a pointer in the C++ version
      */
     var renderIntReference = function(dst, gridWidth, gridHeight, numComponents, vertices) {
 
@@ -512,7 +512,7 @@ function(
      * @constructor
      * @return {Object}
      */
-    var AttachmentData = (function() {
+    var AttachmentData = function() {
         return {
 
         /** @type {tcuTexture.TextureFormat} */ format: null, //!< Actual format of attachment.
@@ -520,11 +520,11 @@ function(
         /** @type {tcuTexture.TextureFormat} */ readFormat: null,
         /** @type {number} */ numWrittenChannels: 0,
         /** @type {gluShaderUtil.Precision} */ outPrecision: null,
-        /** @type {Uint8Array} */ renderedData: [],
-        /** @type {Uint8Array} */ referenceData: []
+        /** @type {Array.<number>} */ renderedData: [],
+        /** @type {Array.<number>} */ referenceData: []
 
         };
-    });
+    };
 
     FragmentOutputCase.prototype.iterate = function() {
 
@@ -544,7 +544,7 @@ function(
         /** @type {number} */ var numIndices = numQuads * 6;
 
         /** @type {number} */ var numInputVecs = getNumInputVectors(m_outputs);
-        /** @type {Array.<Uint32Array>} */ var inputs = []; // originally vector<vector<deUint32>
+        /** @type {Array.<Array.<number>>} */ var inputs = []; // originally vector<vector<deUint32>
         /** @type {Array.<number>} */ var positions = []; // originally vector<float>
         /** @type {Array.<number>} */ var indices = []; // originally vector<deUint16>
         indices.length = numIndices;
@@ -554,7 +554,7 @@ function(
         /** @type {number} */ var viewportH = minBufSize[1];
         /** @type {number} */ var numAttachments = m_fboSpec.length;
 
-        /** @type {Uint32Array} */ var drawBuffers = []; // originally vector<deUint32>
+        /** @type {Array.<number>} */ var drawBuffers = []; // originally vector<deUint32>
         drawBuffers.length = numAttachments;
         /** @type {Array.<AttachmentData>} */ var attachments = [];
 
@@ -632,9 +632,9 @@ function(
 
                     if (isFloat)
                     {
-                     /** @type {Float32Array} */ var range = getFloatRange(output.precision); // Vec2
-                     /** @type {Float32Array} */ var minVal = [range[0], range[0], range[0], range[0]]; // Vec4
-                     /** @type {Float32Array} */ var maxVal = [range[1], range[1], range[1], range[1]]; // Vec4
+                     /** @type {Array.<number>} */ var range = getFloatRange(output.precision); // Vec2
+                     /** @type {Array.<number>} */ var minVal = [range[0], range[0], range[0], range[0]]; // Vec4
+                     /** @type {Array.<number>} */ var maxVal = [range[1], range[1], range[1], range[1]]; // Vec4
                      // float* dst = (float*)&inputs[curInVec][0]; // a pointer needed in the next loop
 
                         if (deMath.deInBounds32(output.location + vecNdx, 0, attachments.length))
@@ -657,8 +657,8 @@ function(
                                 /** @type {number} */ var f0 = (xf + yf) * 0.5;
                                 /** @type {number} */ var f1 = 0.5 + (xf - yf) * 0.5;
 
-                                /** @type {Float32Array} */ var f = swizzleVec([f0, f1, 1.0 - f0, 1.0 - f1], curInVec); // Vec4
-                                /** @type {Float32Array} */ var c = deMath.multiply(deMath.add(minVal, deMath.subtract(maxVal, minVal)), f); // Vec4
+                                /** @type {Array.<number>} */ var f = swizzleVec([f0, f1, 1.0 - f0, 1.0 - f1], curInVec); // Vec4
+                                /** @type {Array.<number>} */ var c = deMath.multiply(deMath.add(minVal, deMath.subtract(maxVal, minVal)), f); // Vec4
 
 
                                 // this is a pointer which is incremented, originally pos = dst + (y*gridWidth + x)*numScalars;
@@ -673,21 +673,21 @@ function(
                     }
                     else if (isInt)
                     {
-                        /** @type {Int32Array} */ var range = getIntRange(output.precision); // IVec2
-                        /** @type {Int32Array} */ var minVal = [range[0], range[0], range[0], range[0]]; // IVec4
-                        /** @type {Int32Array} */ var maxVal = [range[1], range[1], range[1], range[1]]; // IVec4
+                        /** @type {Array.<number>} */ var range = getIntRange(output.precision); // IVec2
+                        /** @type {Array.<number>} */ var minVal = [range[0], range[0], range[0], range[0]]; // IVec4
+                        /** @type {Array.<number>} */ var maxVal = [range[1], range[1], range[1], range[1]]; // IVec4
 
                         if (deMath.deInBounds32(output.location + vecNdx, 0, attachments.length))
                         {
                             // Limit to range of output format as conversion mode is not specified.
-                            /** @type {Int32Array} */ var fmtBits = tcuTextureUtil.getTextureFormatBitDepth(attachments[output.location + vecNdx].format); // IVec4
+                            /** @type {Array.<number>} */ var fmtBits = tcuTextureUtil.getTextureFormatBitDepth(attachments[output.location + vecNdx].format); // IVec4
                             /** @type {Array.<boolean>} */ var isZero = deMath.lessThanEqual(fmtBits, [0, 0, 0, 0]); // BVec4, array of booleans, size = 4
 
-                            /** @type {Int32Array} */ var fmtMinVal = []; // IVec4
+                            /** @type {Array.<number>} */ var fmtMinVal = []; // IVec4
                             fmtMinVal.length = 4;
-                            /** @type {Int32Array} */ var fmtMaxVal = []; // IVec4
+                            /** @type {Array.<number>} */ var fmtMaxVal = []; // IVec4
                             fmtMaxVal.length = 4;
-                            /** @type {Int32Array} */ var deInt = [1, 1, 1, 1]; // instead of deInt64, Vector<deInt64, 4>(1)
+                            /** @type {Array.<number>} */ var deInt = [1, 1, 1, 1]; // instead of deInt64, Vector<deInt64, 4>(1)
 
                             for (var i = 0; i < 4; i++) {
 
@@ -703,11 +703,11 @@ function(
 
                         console.log('out ' + curInVec + ' value range: ' + minVal + ' -> ' + maxVal);
 
-                        /** @type {Int32Array} */
+                        /** @type {Array.<number>} */
                         var rangeDiv = swizzleVec([gridWidth - 1, gridHeight - 1, gridWidth - 1, gridHeight - 1], curInVec); // IVec4
-                        /** @type {Int32Array} */ var step = []; // IVec4
+                        /** @type {Array.<number>} */ var step = []; // IVec4
                         step.length = 4;
-                        /** @type {Int32Array} */ var deInt = [1, 1, 1, 1]; // instead of the original deInt64
+                        /** @type {Array.<number>} */ var deInt = [1, 1, 1, 1]; // instead of the original deInt64
                         for (var i = 0; i < 4; i++) {
                             // const IVec4 step = ((maxVal.cast<deInt64>() - minVal.cast<deInt64>()) / (rangeDiv.cast<deInt64>())).asInt();
                             step[i] = Math.floor((maxVal[i] - minVal[i]) / rangeDiv[i]); // TODO: check with the above line of code
@@ -737,16 +737,16 @@ function(
                     }
                     else if (isUint)
                     {
-                        /** @type {Uint32Array} */ var range = getUintRange(output.precision); // UVec2
-                        /** @type {Uint32Array} */ var maxVal = [range[1], range[1], range[1], range[1]]; // UVec4
+                        /** @type {Array.<number>} */ var range = getUintRange(output.precision); // UVec2
+                        /** @type {Array.<number>} */ var maxVal = [range[1], range[1], range[1], range[1]]; // UVec4
 
                         if (deMath.deInBounds32(output.location + vecNdx, 0, attachments.length))
                         {
                             // Limit to range of output format as conversion mode is not specified.
-                            /** @type {Int32Array} */ var fmtBits = tcuTextureUtil.getTextureFormatBitDepth(attachments[output.location + vecNdx].format); // IVec4
-                            /** @type {Uint32Array} */ var fmtMaxVal = []; // UVec4
+                            /** @type {Array.<number>} */ var fmtBits = tcuTextureUtil.getTextureFormatBitDepth(attachments[output.location + vecNdx].format); // IVec4
+                            /** @type {Array.<number>} */ var fmtMaxVal = []; // UVec4
                             fmtMaxVal.length = 4;
-                            /** @type {Uint32Array} */ var deUint = [1, 1, 1, 1]; // instead of original deUint64, Vector<deUint64, 4>(1)
+                            /** @type {Array.<number>} */ var deUint = [1, 1, 1, 1]; // instead of original deUint64, Vector<deUint64, 4>(1)
 
                             for (var i = 0; i < 4; i++) {
                                 // const UVec4 fmtMaxVal = ((tcu::Vector<deUint64, 4>(1) << fmtBits.cast<deUint64>()) - deUint64(1)).asUint();
@@ -758,10 +758,10 @@ function(
 
                         console.log('out ' + curInVec + ' value range: ' + minVal + ' -> ' + maxVal);
 
-                        /** @type {Int32Array} */
+                        /** @type {Array.<number>} */
                         var rangeDiv = swizzleVec([gridWidth - 1, gridHeight - 1, gridWidth - 1, gridHeight - 1], curInVec); // IVec4
 
-                        /** @type {Uint32Array} */ var step = []; // UVec4
+                        /** @type {Array.<number>} */ var step = []; // UVec4
                         step.length = 4;
 
                         for (var stepPos = 0; stepPos < maxVal.length; stepPos++) {
@@ -778,7 +778,7 @@ function(
                             {
                                 /** @type {number} */ var ix = gridWidth - x - 1;
                                 /** @type {number} */ var iy = gridHeight - y - 1;
-                                /** @type {Uint32Array} */ var c = deMath.multiply(step, swizzleVec([x, y, ix, iy], curInVec)); // UVec4
+                                /** @type {Array.<number>} */ var c = deMath.multiply(step, swizzleVec([x, y, ix, iy], curInVec)); // UVec4
                                 /** @type {number} */ var pos = (y * gridWidth + x) * numScalars;
 
                                 DE_ASSERT(deMath.boolAll(deMath.lessThanEqual(c, maxVal)));
@@ -900,7 +900,7 @@ function(
                 for (var vecNdx = 0; vecNdx < numVecs; vecNdx++)
                 {
                     /** @type {number} */ var location = output.location + vecNdx;
-                    /** @type {Uint32Array} */ var inputData = inputs[curInNdx];
+                    /** @type {Array.<number>} */ var inputData = inputs[curInNdx];
 
                     DE_ASSERT(deMath.deInBounds32(location, 0, m_fboSpec.length));
 
@@ -972,10 +972,10 @@ function(
             {
                 case tcuTextureUtil.TextureChannelClass.FLOATING_POINT:
                 {
-                    /** @type {Uint32Array} */ var formatThreshold = []; // UVec4 //!< Threshold computed based on format.
+                    /** @type {Array.<number>} */ var formatThreshold = []; // UVec4 //!< Threshold computed based on format.
                     formatThreshold.length = 4;
                     /** @type {number} */ var precThreshold = 0; // deUint32 //!< Threshold computed based on output type precision
-                    /** @type {Uint32Array} */ var finalThreshold = []; // UVec4
+                    /** @type {Array.<number>} */ var finalThreshold = []; // UVec4
                     finalThreshold.length = 4;
 
                     switch (format.type)
@@ -1022,16 +1022,16 @@ function(
                 {
                     // \note glReadPixels() allows only 8 bits to be read. This means that RGB10_A2 will loose some
                     // bits in the process and it must be taken into account when computing threshold.
-                    /** @type {Int32Array} */ var bits = deMath.min([8, 8, 8, 8], tcuTextureUtil.getTextureFormatBitDepth(format)); // IVec4
+                    /** @type {Array.<number>} */ var bits = deMath.min([8, 8, 8, 8], tcuTextureUtil.getTextureFormatBitDepth(format)); // IVec4
 
-                    /** @type {Float32Array} */ var baseThreshold = []; // Vec4
+                    /** @type {Array.<number>} */ var baseThreshold = []; // Vec4
                     baseThreshold.length = 4;
                     for (var inc = 0; inc < baseThreshold.length; inc++) {
                         // TODO: check the operation below: baseThreshold = 1.0f / ((IVec4(1) << bits)-1).asFloat();
                         baseThreshold[inc] = 1.0 / ((1 << bits[inc]) - 1);
                     }
 
-                    /** @type {Float32Array} */ var threshold = tcuTextureUtil.select(baseThreshold, [2.0, 2.0, 2.0, 2.0], cmpMask); // Vec4
+                    /** @type {Array.<number>} */ var threshold = tcuTextureUtil.select(baseThreshold, [2.0, 2.0, 2.0, 2.0], cmpMask); // Vec4
 
                     isOk = tcuImageCompare.floatThresholdCompare(name, desc, reference, rendered, threshold/*, tcu::COMPARE_LOG_RESULT*/);
                     break;
@@ -1040,7 +1040,7 @@ function(
                 case tcuTextureUtil.TextureChannelClass.SIGNED_INTEGER:
                 case tcuTextureUtil.TextureChannelClass.UNSIGNED_INTEGER:
                 {
-                    /** @type {Uint32Array} */
+                    /** @type {Array.<number>} */
                     var threshold = tcuTextureUtil.select(
                                     [0, 0, 0, 0],
                                     [1, 1, 1, 1],
