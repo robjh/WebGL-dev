@@ -18,79 +18,86 @@
  *
  */
 define([
+    'framework/opengl/gluShaderProgram',
     'framework/common/tcuTestCase',
     'framework/delibs/debase/deRandom',
     'framework/common/tcuTextureUtil',
     'framework/opengl/gluTextureUtil'], function(
-        deqpTests,
+        gluShaderProgram,
+        tcuTestCase,
         deRandom,
         tcuTextureUtil,
         gluTextureUtil) {
     'use strict';
 
-var DE_ASSERT = function(x) {
-    if (!x)
-        throw new Error('Assert failed');
-};
+    var DE_ASSERT = function(x) {
+        if (!x)
+            throw new Error('Assert failed');
+    };
 
-var TestSpec = { // This is originaly a struct
-    FramebufferType : {
-        FRAMEBUFFERTYPE_NATIVE : 0,
-        FRAMEBUFFERTYPE_RENDERBUFFER : 1
-    },
-    name : '',
-    description:'',
-    useColorClear:false,
-    renderTriangles:false,
-    framebufferType:{},
-    renderbufferFormat:{},
-}
-
-
-var ReadPixelsTest = function(gl, spec) {
-    deqpTests.DeqpTest.call(gl, spec.name, spec.description);
-    this.m_random;
-    this.m_log;
-    /** @type {deqpProgram.ShaderProgram} */ this.m_program = null;
-    /** @type {TestSpect.FramebufferType} */ this.m_framebuffeType = spec.framebufferType;
-    /** @type {TestSpect.GLenum} */ this.m_renderbufferFormat = spec.renderbufferFormat;
-    /** @type {tcuTextureUtil.TextureChannelClass} */ this.m_texChannelClass = tcuTextureUtil.TextureChannelClass.LAST;
-    /** @type {TestSpect.FramebufferType} */ this.m_useColorClears = spec.useColorClear;
-    /** @type {TestSpect.FramebufferType} */ this.m_renderTriangles = spec.renderTriangles;
-    /** @type {TestSpect.FramebufferType} */ this.m_colorScale =  1.0;
-
-    if (this.m_framebuffeType == TestSpec.FramebufferType.FRAMEBUFFERTYPE_NATIVE)
-  	{
-        this.m_colorScale = 1.0;
-  	}
-    else if (this.m_framebuffeType == TestSpec.FramebufferType.FRAMEBUFFERTYPE_RENDERBUFFER)
+    var DE_STATIC_ASSERT = function(expression)
     {
-        this.m_textChannelClass = tcuTextureUtil.getTextureChannelClass(gluTextureUtil.mapGLInternalFormat(spec.renderbufferFormat).type);
-        switch (this.m_texChannelClass)
+        if (!expression) throw new Error('Assert failed');
+    };
+
+    var TestSpec = { // This is originaly a struct
+        FramebufferType : {
+            FRAMEBUFFERTYPE_NATIVE : 0,
+            FRAMEBUFFERTYPE_RENDERBUFFER : 1
+        },
+        name : '',
+        description:'',
+        useColorClear:false,
+        renderTriangles:false,
+        framebufferType:{},
+        renderbufferFormat:{},
+    }
+
+
+    var ReadPixelsTest = function(gl, spec) {
+        tcuTestCase.DeqpTest.call(gl, spec.name, spec.description);
+        this.m_random;
+        this.m_log;
+        /** @type {gluShaderProgram.ShaderProgram} */ this.m_program = null;
+        /** @type {TestSpect.FramebufferType} */ this.m_framebuffeType = spec.framebufferType;
+        /** @type {TestSpect.GLenum} */ this.m_renderbufferFormat = spec.renderbufferFormat;
+        /** @type {tcuTextureUtil.TextureChannelClass} */ this.m_texChannelClass = Object.keys(tcuTextureUtil.TextureChannelClass).length;
+        /** @type {TestSpect.FramebufferType} */ this.m_useColorClears = spec.useColorClear;
+        /** @type {TestSpect.FramebufferType} */ this.m_renderTriangles = spec.renderTriangles;
+        /** @type {TestSpect.FramebufferType} */ this.m_colorScale =  1.0;
+
+        if (this.m_framebuffeType == TestSpec.FramebufferType.FRAMEBUFFERTYPE_NATIVE)
         {
-            case tcuTextureUtil.TextureChannelClass.UNSIGNED_FIXED_POINT:
-                this.m_colorScale = 1.0;
-                break;
-            case tcuTextureUtil.TextureChannelClass.SIGNED_INTEGER:
-                this.m_colorScale = 100.0;
-                break;
-            case tcuTextureUtil.TextureChannelClass.UNSIGNED_INTEGER:
-                this.m_colorScale = 100.0;
-                break;
-            case tcuTextureUtil.TextureChannelClass.FLOATING_POINT:
-                this.m_colorScale = 100.0;
-                break;
-            default:
-                DE_ASSERT(false);
+            this.m_colorScale = 1.0;
         }
-    }
-    else
-    {
-        DE_ASSERT(false);
-    }
-};
+        else if (this.m_framebuffeType == TestSpec.FramebufferType.FRAMEBUFFERTYPE_RENDERBUFFER)
+        {
+            this.m_textChannelClass = tcuTextureUtil.getTextureChannelClass(gluTextureUtil.mapGLInternalFormat(spec.renderbufferFormat).type);
+            switch (this.m_textChannelClass)
+            {
+                case tcuTextureUtil.TextureChannelClass.UNSIGNED_FIXED_POINT:
+                    this.m_colorScale = 1.0;
+                    break;
+                case tcuTextureUtil.TextureChannelClass.SIGNED_INTEGER:
+                    this.m_colorScale = 100.0;
+                    break;
+                case tcuTextureUtil.TextureChannelClass.UNSIGNED_INTEGER:
+                    this.m_colorScale = 100.0;
+                    break;
+                case tcuTextureUtil.TextureChannelClass.FLOATING_POINT:
+                    this.m_colorScale = 100.0;
+                    break;
+                default:
+                    DE_ASSERT(false);
+            }
+        }
+        else
+        {
+            DE_ASSERT(false);
+        }
+    };
 
-    ReadPixelsTest.prototype = Object.create(deqpTests.DeqpTest.prototype);
+    ReadPixelsTest.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
     ReadPixelsTest.prototype.constructor = ReadPixelsTest;
 
     ReadPixelsTest.prototype.init = function () {
@@ -144,31 +151,31 @@ var ReadPixelsTest = function(gl, spec) {
         if (this.m_framebuffeType == TestSpec.FramebufferType.FRAMEBUFFERTYPE_NATIVE)
             outtype = "vec4";
         else if (this.m_framebuffeType == TestSpec.FramebufferType.FRAMEBUFFERTYPE_RENDERBUFFER)
-      	{
-        		switch (this.m_texChannelClass)
-        		{
+        {
+    		switch (this.m_texChannelClass)
+    		{
                 case tcuTextureUtil.TextureChannelClass.UNSIGNED_FIXED_POINT:
-            				outtype = "vec4";
-            				break;
-          			case tcuTextureUtil.TextureChannelClass.SIGNED_INTEGER:
-            				outtype = "ivec4";
-            				break;
-          			case tcuTextureUtil.TextureChannelClass.UNSIGNED_INTEGER:
-            				outtype = "uvec4";
-            				break;
-          			case tcuTextureUtil.TextureChannelClass.FLOATING_POINT:
-            				outtype = "vec4";
-            				break;
-          			default:
-            				DE_ASSERT(false);
-        		}
-      	}
-      	else
-      		  DE_ASSERT(false);
+    				outtype = "vec4";
+    				break;
+                case tcuTextureUtil.TextureChannelClass.SIGNED_INTEGER:
+                	outtype = "ivec4";
+                	break;
+                case tcuTextureUtil.TextureChannelClass.UNSIGNED_INTEGER:
+                	outtype = "uvec4";
+                	break;
+                case tcuTextureUtil.TextureChannelClass.FLOATING_POINT:
+                	outtype = "vec4";
+                	break;
+                default:
+                    DE_ASSERT(false);
+    		}
+        }
+        else
+            DE_ASSERT(false);
 
         /** @type {string} */ var vertexShaderSource =
-      	"#version 300 es\n"
-      	+ "in mediump vec3 a_position;\n"
+        "#version 300 es\n"
+        + "in mediump vec3 a_position;\n"
         + "in mediump vec4 a_color;\n"
         + "uniform mediump float u_colorScale;\n"
         + "out mediump vec4 v_color;\n"
@@ -176,51 +183,185 @@ var ReadPixelsTest = function(gl, spec) {
         + "{\n"
         + "\tgl_Position = vec4(a_position, 1.0);\n"
         + "\tv_color = u_colorScale * a_color;\n"
-      	+ "}";
+        + "}";
 
         /** @type {string} */ var fragmentShaderSource =
         "#version 300 es\n"
-      	+ "in mediump vec4 v_color;\n";
+        + "in mediump vec4 v_color;\n";
         + "layout (location = 0) out mediump "
         + outtype
         + " o_color;\n"
         + "void main(void)\n"
-      	+ "{\n"
-      	+ "\to_color = "
+        + "{\n"
+        + "\to_color = "
         + outtype
         + "(v_color);\n"
-      	+ "}";
-    }
+        + "}";
 
-var run = function(context)
-{
-    gl = context;
-    //Set up Test Root parameters
-    var testName = 'pixel_buffer_objct';
-    var testDescription = 'Pixel Buffer Object Tests';
-    var state = deqpTests.runner.getState();
+        this.m_program = new gluShaderProgram.ShaderProgram(gl, gluShaderProgram.makeVtxFragSources(vertexShaderSource, fragmentShaderSource));
 
-    state.testName = testName;
-    state.testCases = deqpTests.newTest(testName, testDescription, null);
+        if (!this.m_program.isOk())
+            throw new Error('Compile failed. Program no created');
 
-    //Set up name and description of this test series.
-    setCurrentTestName(testName);
-    description(testDescription);
+    };
 
-    try {
-        //Create test cases
-        init();
-        //Run test cases
-        deqpTests.runTestCases();
-    }
-    catch (err) {
-        testFailedOptions('Failed to run tests', false);
-        deqpTests.runner.terminate();
-    }
-};
+    var init = function(context)
+    {
+        var state = tcuTestCase.runner.getState();
+        /** @const @type {tcuTestCase.DeqpTest} */ var testGroup = state.testCases;
 
-return {
-    run: run
-};
+        /** @type {tcuTestCase.DeqpTest} */ var nativeFramebufferGroup = new tcuTestCase.newTest('native', 'Tests with reading from native framebuffer');
+
+        var nativeFramebufferTests = [
+    		{
+                name: "clears",
+                description: "Simple read pixels test with color clears",
+                useColorClear: true,
+                renderTriangles: false,
+                framebufferType: TestSpec.FramebufferType.FRAMEBUFFERTYPE_NATIVE,
+                renderbufferFormat: gl.NONE
+    		},
+    		{
+                name: "triangles",
+                description: "Simple read pixels test rendering triangles",
+                useColorClear: false,
+                renderTriangles: true,
+                framebufferType: TestSpec.FramebufferType.FRAMEBUFFERTYPE_NATIVE,
+                renderbufferFormat: gl.NONE
+    		}
+    	];
+
+        for (var testNdx = 0; testNdx < nativeFramebufferTests.length; testNdx++)
+            nativeFramebufferGroup.addChild(new ReadPixelsTest(context, nativeFramebufferTests[testNdx]));
+
+        testGroup.addChild(nativeFramebufferGroup);
+
+        /** @type {tcuTestCase.DeqpTest} */ var renderbufferGroup = new tcuTestCase.newTest('renderbuffer', 'Tests with reading from renderbuffer');
+
+        var renderbufferFormats = [
+            gl.RGBA8,
+            gl.RGBA8I,
+            gl.RGBA8UI,
+            gl.RGBA16F,
+            gl.RGBA16I,
+            gl.RGBA16UI,
+            gl.RGBA32F,
+            gl.RGBA32I,
+            gl.RGBA32UI,
+
+            gl.SRGB8_ALPHA8,
+            gl.RGB10_A2,
+            gl.RGB10_A2UI,
+            gl.RGBA4,
+            gl.RGB5_A1,
+
+            gl.RGB8,
+            gl.RGB565,
+
+            gl.R11F_G11F_B10F,
+
+            gl.RG8,
+            gl.RG8I,
+            gl.RG8UI,
+            gl.RG16F,
+            gl.RG16I,
+            gl.RG16UI,
+            gl.RG32F,
+            gl.RG32I,
+            gl.RG32UI
+        ];
+
+        var renderbufferFormatsStr = [
+    		"rgba8",
+    		"rgba8i",
+    		"rgba8ui",
+    		"rgba16f",
+    		"rgba16i",
+    		"rgba16ui",
+    		"rgba32f",
+    		"rgba32i",
+    		"rgba32ui",
+
+    		"srgb8_alpha8",
+    		"rgb10_a2",
+    		"rgb10_a2ui",
+    		"rgba4",
+    		"rgb5_a1",
+
+    		"rgb8",
+    		"rgb565",
+
+    		"r11f_g11f_b10f",
+
+    		"rg8",
+    		"rg8i",
+    		"rg8ui",
+    		"rg16f",
+    		"rg16i",
+    		"rg16ui",
+    		"rg32f",
+    		"rg32i",
+    		"rg32ui"
+    	];
+
+        DE_STATIC_ASSERT(renderbufferFormatsStr.length == renderbufferFormats.length);
+
+        for (var formatNdx = 0; formatNdx < renderbufferFormats.length; formatNdx++)
+        {
+            for (var trianglesClears = 0; trianglesClears < 2; trianglesClears++)
+            {
+                var nameDescription = renderbufferFormatsStr[formatNdx] + '_' + trianglesClears == 0 ? 'triangles' : 'clears';
+                var testSpect = {
+                    FramebufferType : {
+                        FRAMEBUFFERTYPE_NATIVE : 0,
+                        FRAMEBUFFERTYPE_RENDERBUFFER : 1
+                    },
+                    name: nameDescription,
+                    description: nameDescription,
+                    useColorClear:trianglesClears == 1,
+                    renderTriangles:trianglesClears == 0,
+                    framebufferType: TestSpec.FramebufferType.FRAMEBUFFERTYPE_RENDERBUFFER,
+                    renderbufferFormat: renderbufferFormats[formatNdx]
+                }
+
+                renderbufferGroup.addChild(new ReadPixelsTest(context, testSpect));
+            }
+        }
+
+        testGroup.addChild(renderbufferGroup);
+    };
+
+
+
+    var run = function(context)
+    {
+        gl = context;
+        //Set up Test Root parameters
+        var testName = 'pixel_buffer_objct';
+        var testDescription = 'Pixel Buffer Object Tests';
+        var state = tcuTestCase.runner.getState();
+
+        state.testName = testName;
+        state.testCases = tcuTestCase.newTest(testName, testDescription, null);
+
+        //Set up name and description of this test series.
+        setCurrentTestName(testName);
+        description(testDescription);
+
+        try {
+            //Create test cases
+            init(context);
+            //Run test cases
+            tcuTestCase.runTestCases();
+        }
+        catch (err) {
+            bufferedLogToConsole(err);
+            tcuTestCase.runner.terminate();
+        }
+    };
+
+    return {
+        run: run
+    };
 
 });
