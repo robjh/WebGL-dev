@@ -35,7 +35,9 @@ var DE_ASSERT = function(x) {
  * @constructor
  */
 var MultisamplePixelBufferAccess = function(rawAccess) {
-    this.m_access = rawAccess;
+    this.m_access = rawAccess || new tcuTexture.PixelBufferAccess({
+                                            width: 0,
+                                            height: 0});
 };
 
 MultisamplePixelBufferAccess.prototype.raw = function() { return this.m_access; };
@@ -79,6 +81,13 @@ MultisamplePixelBufferAccess.prototype.getSubregion = function(region) {
 
     return MultisamplePixelBufferAccess.fromMultisampleAccess(tcuTextureUtil.getSubregion(this.raw(), 0, x, y, this.getNumSamples(), width, height));
 };
+
+/**
+ * @return {Array<number>} [x, y, width, height]
+ */
+MultisamplePixelBufferAccess.prototype.getBufferSize = function() {
+    return [0, 0, multisampleBuffer.raw().getHeight(), multisampleBuffer.raw().getDepth()];
+}
 
 /**
  * @param {tcuTexture.PixelBufferAccess} dst

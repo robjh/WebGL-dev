@@ -450,8 +450,7 @@ return {
     getTextureFormatInfo: getTextureFormatInfo,
     getChannelBitDepth: getChannelBitDepth,
     getTextureFormatBitDepth: getTextureFormatBitDepth,
-    linearToSRGB: linearToSRGB,
-    TextureChannelClass: TextureChannelClass
+    linearToSRGB: linearToSRGB
 };
 
 });
