@@ -763,7 +763,7 @@ var unpackRGB999E5 = function(color) {
 var ConstPixelBufferAccess = function(descriptor) {
     if (descriptor) {
         this.m_offset = descriptor.offset || 0;
-        this.m_format = descriptor.format;
+        this.m_format = descriptor.format || new TextureFormat(ChannelOrder.RGBA, ChannelType.FLOAT);
         this.m_width = descriptor.width;
         this.m_height = descriptor.height;
         if (descriptor.depth)
@@ -785,6 +785,7 @@ var ConstPixelBufferAccess = function(descriptor) {
 
 /** @return {Number} */
 ConstPixelBufferAccess.prototype.getDataSize = function() { return this.m_depth * this.m_slicePitch; };
+ConstPixelBufferAccess.prototype.isEmpty = function() { return this.m_width == 0 || this.m_height == 0 || this.m_depth == 0; };
 /** @return {TypedArray} */
 ConstPixelBufferAccess.prototype.getDataPtr = function() {
     var arrayType = getTypedArray(this.m_format.type);
@@ -2126,6 +2127,7 @@ TextureLevel.prototype.getAccess = function() {
                     format: this.m_format,
                     width: this.m_width,
                     height: this.m_height,
+                    depth: this.m_depth,
                     data: this.m_data.m_ptr
                 });
 
