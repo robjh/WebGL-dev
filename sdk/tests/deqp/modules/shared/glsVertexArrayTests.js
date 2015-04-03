@@ -24,10 +24,13 @@ define([
     'framework/common/tcuFloat',
     'framework/common/tcuSurface',
     'framework/common/tcuImageCompare',
+    'framework/opengl/simplereference/sglrReferenceContext',
+    'framework/opengl/simplereference/sglrShaderProgram',
     'framework/delibs/debase/deMath',
     'framework/delibs/debase/deRandom',
     'framework/referencerenderer/rrVertexAttrib',
-    'framework/referencerenderer/rrVertexPacket'
+    'framework/referencerenderer/rrVertexPacket',
+    'framework/referencerenderer/rrGenericVertex'
 ],
 function (
     tcuTestCase,
@@ -35,10 +38,13 @@ function (
     tcuFloat,
     tcuSurface,
     tcuImageCompare,
+    sglrReferenceContext,
+    sglrShaderProgram,
     deMath,
     deRandom,
     rrVertexAttrib,
-    rrVertexPacket
+    rrVertexPacket,
+    rrGenericVertex
 ) {
     'use strict';
 
@@ -931,7 +937,7 @@ function (
     var ContextShaderProgram = function (ctx, arrays) {
         sglrShaderProgram.ShaderProgram.call(this, this.createProgramDeclaration(ctx, arrays));
         this.m_componentCount = new Array(arrays.length);
-        this.m_attrType = new Array(arrays.length);
+        /** @type {Array.<rrGenericVertex.GenericVecType>} */ this.m_attrType = new Array(arrays.length);
 
         for(var arrayNdx = 0; arrayNdx < arrays.length; arrayNdx++)
         {
@@ -939,6 +945,9 @@ function (
             this.m_attrType[arrayNdx] = this.mapOutputType(arrays[arrayNdx].getOutputType());
         }
     };
+
+    ContextShaderProgram.prototype = Object.create(sglrShaderProgram.ShaderProgram.prototype);
+    ContextShaderProgram.prototype.constructor = ContextShaderProgram;
 
     /**
      * calcShaderColorCoord function
@@ -1011,24 +1020,14 @@ function (
             for (var attribNdx = 0; attribNdx < this.m_attrType.length; attribNdx++) {
                 /** @type {number} */ var numComponents = this.m_componentCount[attribNdx];
 
-                switch (this.m_attrType[attribNdx]) {
-                    case rr::GENERICVECTYPE_FLOAT:  calcShaderColorCoord(coord, color, rr::readVertexAttribFloat(inputs[attribNdx], packet.instanceNdx, packet.vertexNdx), attribNdx == 0, numComponents);  break;
-                    case rr::GENERICVECTYPE_INT32:  calcShaderColorCoord(coord, color, rr::readVertexAttribInt  (inputs[attribNdx], packet.instanceNdx, packet.vertexNdx), attribNdx == 0, numComponents);  break;
-                    case rr::GENERICVECTYPE_UINT32: calcShaderColorCoord(coord, color, rr::readVertexAttribUint (inputs[attribNdx], packet.instanceNdx, packet.vertexNdx), attribNdx == 0, numComponents);  break;
-                    default:
-                        DE_ASSERT(false);
-                }
+                calcShaderColorCoord(coord, color, rrVertexAttrib.readVertexAttrib(inputs[attribNdx], packet.instanceNdx, packet.vertexNdx, this.m_attrType[attribNdx]), attribNdx == 0, numComponents);
             }
 
             // Transform position
-            {
-                packet.position = tcu::Vec4(u_coordScale * coord.x(), u_coordScale * coord.y(), 1.0f, 1.0f);
-            }
-            
+            packet.position = [u_coordScale * coord[0], u_coordScale * coord[1], 1.0, 1.0];
+
             // Pass color to FS
-            {
-                packet.outputs[varyingLocColor] = tcu::Vec4(u_colorScale * color.x(), u_colorScale * color.y(), u_colorScale * color.z(), 1.0f);
-            }
+            packet.outputs[varyingLocColor] = [u_colorScale * color[0], u_colorScale * color[1], u_colorScale * color[2], 1.0];
         }
     }
 
@@ -1859,8 +1858,8 @@ function (
         this.m_renderCtx = gl;
 
         //TODO: Reference rasterizer implementation.
-        /** @type {ReferenceContextBuffers} */ this.m_refBuffers = DE_NULL;
-        /** @type {ReferenceContext} */ this.m_refContext = DE_NULL;
+        /** @type {sglrReferenceContext.ReferenceContextBuffers} */ this.m_refBuffers = DE_NULL;
+        /** @type {sglrReferenceContext.ReferenceContext} */ this.m_refContext = DE_NULL;
         /** @type {GLContext} */ this.m_glesContext = DE_NULL;
         /** @type {ContextArrayPack} */ this.m_glArrayPack = DE_NULL;
         /** @type {ContextArrayPack} */ this.m_rrArrayPack = DE_NULL;
@@ -1879,12 +1878,12 @@ function (
     VertexArrayTest.prototype.init = function () {
         /** @type {number}*/ var renderTargetWidth = Math.min(512, this.m_renderCtx.getRenderTarget().getWidth());
         /** @type {number}*/ var renderTargetHeight  = Math.min(512, this.m_renderCtx.getRenderTarget().getHeight());
-        /** @type {ReferenceContextLimits} */ var limits = new ReferenceContextLimits(this.m_renderCtx);
+        /** @type {sglrReferenceContext.ReferenceContextLimits} */ var limits = new sglrReferenceContext.ReferenceContextLimits(this.m_renderCtx);
 
         //TODO: Reference rasterizer implementation.
-        //this.m_glesContext = new sglr::GLContext(this.m_renderCtx, this.m_testCtx.getLog(), sglr::GLCONTEXT_LOG_CALLS | sglr::GLCONTEXT_LOG_PROGRAMS, [0, 0, renderTargetWidth, renderTargetHeight]);
-        //this.m_refBuffers = new sglr::ReferenceContextBuffers(this.m_renderCtx.getRenderTarget().getPixelFormat(), 0, 0, renderTargetWidth, renderTargetHeight);
-        //this.m_refContext = new sglr::ReferenceContext(limits, this.m_refBuffers.getColorbuffer(), this.m_refBuffers.getDepthbuffer(), this.m_refBuffers.getStencilbuffer());
+        this.m_glesContext = new sglrReferenceContext.GLContext(this.m_renderCtx, this.m_testCtx.getLog(), sglrReferenceContext.GLContext.LOG_CALLS | sglrReferenceContext.GLContext.LOG_PROGRAMS, [0, 0, renderTargetWidth, renderTargetHeight]);
+        this.m_refBuffers = new sglrReferenceContext.ReferenceContextBuffers(this.m_renderCtx.getRenderTarget().getPixelFormat(), 0, 0, renderTargetWidth, renderTargetHeight);
+        this.m_refContext = new sglrReferenceContext.ReferenceContext(limits, this.m_refBuffers.getColorbuffer(), this.m_refBuffers.getDepthbuffer(), this.m_refBuffers.getStencilbuffer());
 
         this.m_glArrayPack = new ContextArrayPack(this.m_renderCtx, this.m_glesContext);
         //TODO: Reference rasterizer implementation.

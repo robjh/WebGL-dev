@@ -62,11 +62,11 @@ define(['framework/common/tcuTexture', 'framework/delibs/debase/deMath'], functi
         /** @type {Array.<VertexPacket>} */ var retVal = [];
         /** @type {Uint8Array} TODO: same as above */ //var ptr = new deInt8[packetSize * count]; // throws bad_alloc => ok
 
-        // run ctors
+        //run ctors
         for (var i = 0; i < count; ++i)
             retVal.push(new VertexPacket());
 
-        //TODO: same as previous - this.m_allocations.push_back(ptr);
+        /** TODO: same as previous - this.m_allocations.push_back(ptr); */
 
         return retVal;
     };
@@ -78,7 +78,7 @@ define(['framework/common/tcuTexture', 'framework/delibs/debase/deMath'], functi
         /** @type {number} */ var poolSize = 8;
 
         if (this.m_singleAllocPool.length == 0)
-            this.m_singleAllocPool = allocArray(poolSize);
+            this.m_singleAllocPool = this.allocArray(poolSize);
 
         /** @type {VertexPacket} */ var packet = this.m_singleAllocPool.pop();
 
