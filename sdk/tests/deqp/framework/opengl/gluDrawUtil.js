@@ -322,6 +322,35 @@ Surface.prototype.getPixel = function(x, y) {
     return new Pixel(rgba);
 };
 
+/**
+ * @enum
+ */
+var VertexComponentType =
+{
+    // Standard types: all conversion types apply.
+    VTX_COMP_UNSIGNED_INT8: 0,
+    VTX_COMP_UNSIGNED_INT16: 1,
+    VTX_COMP_UNSIGNED_INT32: 2,
+    VTX_COMP_SIGNED_INT8: 3,
+    VTX_COMP_SIGNED_INT16: 4,
+    VTX_COMP_SIGNED_INT32: 5,
+
+    // Special types: only CONVERT_NONE is allowed.
+    VTX_COMP_FIXED: 6,
+    VTX_COMP_HALF_FLOAT: 7,
+    VTX_COMP_FLOAT: 8,
+};
+
+/**
+ * @enum
+ */
+var VertexComponentConversion
+{
+    VTX_COMP_CONVERT_NONE: 0,				//!< No conversion: integer types, or floating-point values.
+    VTX_COMP_CONVERT_NORMALIZE_TO_FLOAT: 1,	//!< Normalize integers to range [0,1] or [-1,1] depending on type.
+    VTX_COMP_CONVERT_CAST_TO_FLOAT: 2,			//!< Convert to floating-point directly.
+};
+
 return {
     primitiveType: primitiveType,
     namedBindingsToProgramLocations: namedBindingsToProgramLocations,
@@ -331,7 +360,8 @@ return {
     triangles: triangles,
     patches: patches,
     Surface: Surface,
-    VertexArrayBinding: VertexArrayBinding
+    VertexArrayBinding: VertexArrayBinding,
+    VertexComponentType: VertexComponentType,
+    VertexComponentConversion: VertexComponentConversion
 };
 });
-

@@ -228,8 +228,9 @@ define([
     PrimitiveRestartCase.prototype.renderWithRestart = function() {
         GLU_CHECK_MSG('renderWithRestart() begin');
 
-        gl.enable(gl.PRIMITIVE_RESTART_FIXED_INDEX);
-        GLU_CHECK_MSG('Enable primitive restart');
+        // Primitive Restart is always on in WebGL2
+        //gl.enable(gl.PRIMITIVE_RESTART_FIXED_INDEX);
+        //GLU_CHECK_MSG('Enable primitive restart');
 
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
         GLU_CHECK_MSG('Clear in renderWithRestart()');
@@ -249,9 +250,9 @@ define([
                                                  0;
 
         DE_ASSERT(restartIndex != 0);
-
-        gl.disable(gl.PRIMITIVE_RESTART_FIXED_INDEX);
-        GLU_CHECK_MSG('Disable primitive restart');
+        // Primitive Restart is always on in WebGL2
+        //gl.disable(gl.PRIMITIVE_RESTART_FIXED_INDEX);
+        //GLU_CHECK_MSG('Disable primitive restart');
 
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
         GLU_CHECK_MSG('Clear in renderWithoutRestart()');
@@ -365,6 +366,9 @@ define([
     };
 
     PrimitiveRestartCase.prototype.init = function() {
+        // Clear errors from previous tests
+        gl.getError();
+
         // Create shader program.
 
         /** @type {string} */ var vertShaderSource =
@@ -386,6 +390,7 @@ define([
             '}\n';
 
         DE_ASSERT(!this.m_program);
+
         this.m_program = new gluShaderProgram.ShaderProgram(gl, gluShaderProgram.makeVtxFragSources(vertShaderSource, fragShaderSource));
 
         if (!this.m_program.isOk())

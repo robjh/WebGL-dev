@@ -277,10 +277,10 @@ var getGLFormat = function(/* tcuCompressedTexture.Format */ format) {
     }
 };
 
-/** 
- * @param {deMath.deUint32} dataType 
- * @param {boolean} normalized 
- * @return {tcuTexture.ChannelType} 
+/**
+ * @param {deMath.deUint32} dataType
+ * @param {boolean} normalized
+ * @return {tcuTexture.ChannelType}
  * @throws {Error}
  */
 var mapGLChannelType = function(/* deMath.deUint32 */ dataType, /*boolean*/ normalized) {
@@ -310,7 +310,7 @@ var mapGLChannelType = function(/* deMath.deUint32 */ dataType, /*boolean*/ norm
     }
 };
 
-/** 
+/**
  * Map generic compressed format to GL compressed format enum.
  *
  * Maps generic compressed format to GL compressed format enum value.
@@ -685,29 +685,34 @@ var isGLInternalColorFormatFilterable = function(/* deMath.deUint32 */ format)
 //     }
 // }
 
-// /*--------------------------------------------------------------------*//*!
-//  * \brief Get GL cube face.
-//  *
-//  * If no mapping is found, throws tcu::InternalError.
-//  *
-//  * \param face Cube face
-//  * \return GL cube face
-//  *//*--------------------------------------------------------------------*/
-// deUint32 getGLCubeFace (tcu::CubeFace face)
-// {
-//     DE_ASSERT(face != tcu::CUBEFACE_LAST);
-//     switch (face)
-//     {
-//         case tcu::CUBEFACE_NEGATIVE_X:    return gl.TEXTURE_CUBE_MAP_NEGATIVE_X;
-//         case tcu::CUBEFACE_POSITIVE_X:    return gl.TEXTURE_CUBE_MAP_POSITIVE_X;
-//         case tcu::CUBEFACE_NEGATIVE_Y:    return gl.TEXTURE_CUBE_MAP_NEGATIVE_Y;
-//         case tcu::CUBEFACE_POSITIVE_Y:    return gl.TEXTURE_CUBE_MAP_POSITIVE_Y;
-//         case tcu::CUBEFACE_NEGATIVE_Z:    return gl.TEXTURE_CUBE_MAP_NEGATIVE_Z;
-//         case tcu::CUBEFACE_POSITIVE_Z:    return gl.TEXTURE_CUBE_MAP_POSITIVE_Z;
-//         default:
-//             throw tcu::InternalError("Can't map cube face");
-//     }
-// }
+/**
+ * Get GL cube face.
+ *
+ * If no mapping is found, throws tcu::InternalError.
+ *
+ * @param face Cube face
+ * @return {number} GL cube face
+ */
+var getGLCubeFace = function(face)
+{
+    switch (face)
+    {
+        case tcuTexture.CubeFace.CUBEFACE_NEGATIVE_X:
+            return gl.TEXTURE_CUBE_MAP_NEGATIVE_X;
+        case tcuTexture.CubeFace.CUBEFACE_POSITIVE_X:
+            return gl.TEXTURE_CUBE_MAP_POSITIVE_X;
+        case tcuTexture.CubeFace.CUBEFACE_NEGATIVE_Y:
+            return gl.TEXTURE_CUBE_MAP_NEGATIVE_Y;
+        case tcuTexture.CubeFace.CUBEFACE_POSITIVE_Y:
+            return gl.TEXTURE_CUBE_MAP_POSITIVE_Y;
+        case tcuTexture.CubeFace.CUBEFACE_NEGATIVE_Z:
+            return gl.TEXTURE_CUBE_MAP_NEGATIVE_Z;
+        case tcuTexture.CubeFace.CUBEFACE_POSITIVE_Z:
+            return gl.TEXTURE_CUBE_MAP_POSITIVE_Z;
+        default:
+            throw Error("Can't map cube face");
+    }
+};
 
 // /*--------------------------------------------------------------------*//*!
 //  * \brief Get GLSL sampler type for texture format.
