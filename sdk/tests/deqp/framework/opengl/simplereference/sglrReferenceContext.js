@@ -18,16 +18,16 @@
  *
  */
 
-define(['framework/referencerenderer/rrMultisamplePixelBufferAccess', 'framework/common/tcuTexture', 'framework/delibs/debase/deMath', 'framework/opengl/gluTextureUtil', 'framework/common/tcuTextureUtil', 'framwework/common/tcuPixelFormat.js', 'framework/opengl/gluShaderUtil' ],
+define(['framework/referencerenderer/rrMultisamplePixelBufferAccess', 'framework/common/tcuTexture', 'framework/delibs/debase/deMath', 'framework/opengl/gluTextureUtil', 'framework/common/tcuTextureUtil', 'framework/common/tcuPixelFormat', 'framework/opengl/gluShaderUtil' ],
  function(rrMultisamplePixelBufferAccess, tcuTexture, deMath, gluTextureUtil, tcuTextureUtil, tcuPixelFormat, gluShaderUtil) {
 
 var rrMPBA = rrMultisamplePixelBufferAccess;
 
-/** TODO: Remove */
-/** @type {WebGLRenderingContext} */ var gl;
-
 var GLU_EXPECT_NO_ERROR = function(error, message) {
-    assertMsgOptions(error === gl.NONE, message, false, true);
+    if (error !== gl.NONE) {
+        console.log('Assertion failed message:' + message)
+        // throw new Error(message);
+    }
 };
 
 var DE_ASSERT = function(x) {
@@ -37,10 +37,6 @@ var DE_ASSERT = function(x) {
 
 var MAX_TEXTURE_SIZE_LOG2       = 14;
 var MAX_TEXTURE_SIZE            = 1<<MAX_TEXTURE_SIZE_LOG2;
-
-var isEmpty = function(/*const tcu::ConstPixelBufferAccess&*/ access) {
-    return access.getWidth() == 0 || access.getHeight() == 0 || access.getDepth() == 0;
-};
 
 var getNumMipLevels2D = function(width, height) {
     return Math.floor(Math.log2(Math.max(width, height))+1);
@@ -283,7 +279,7 @@ Texture2D.prototype.isComplete = function() {
 Texture2D.prototype.updateView = function() {
     var baseLevel = this.getBaseLevel();
 
-    if (this.hasLevel(baseLevel) && !isEmpty(this.getLevel(baseLevel))) {
+    if (this.hasLevel(baseLevel) && !this.getLevel(baseLevel).isEmpty()) {
         // Update number of levels in mipmap pyramid.
         var   width       = this.getLevel(baseLevel).getWidth();
         var   height      = this.getLevel(baseLevel).getHeight();
@@ -370,6 +366,15 @@ var AttachmentPoint = {
     ATTACHMENTPOINT_STENCIL: 2
 };
 
+var mapGLAttachmentPoint  = function(attachment) {
+    switch (attachment) {
+        case gl.COLOR_ATTACHMENT0:  return AttachmentPoint.ATTACHMENTPOINT_COLOR0;
+        case gl.DEPTH_ATTACHMENT:   return AttachmentPoint.ATTACHMENTPOINT_DEPTH;
+        case gl.STENCIL_ATTACHMENT: return AttachmentPoint.ATTACHMENTPOINT_STENCIL;
+        default:                    throw new Error('Wrong attachment point:' + attachment);
+    }
+};
+
 /**
  * @enum
  */
@@ -392,7 +397,19 @@ var TexTarget = {
     TEXTARGET_2D_ARRAY: 7,
     TEXTARGET_3D: 8,
     TEXTARGET_CUBE_MAP_ARRAY: 9
+};
 
+var mapGLFboTexTarget = function(target) {
+    switch (target) {
+        case gl.TEXTURE_2D:                     return TexTarget.TEXTARGET_2D;
+        case gl.TEXTURE_CUBE_MAP_POSITIVE_X:    return TexTarget.TEXTARGET_CUBE_MAP_POSITIVE_X;
+        case gl.TEXTURE_CUBE_MAP_POSITIVE_Y:    return TexTarget.TEXTARGET_CUBE_MAP_POSITIVE_Y;
+        case gl.TEXTURE_CUBE_MAP_POSITIVE_Z:    return TexTarget.TEXTARGET_CUBE_MAP_POSITIVE_Z;
+        case gl.TEXTURE_CUBE_MAP_NEGATIVE_X:    return TexTarget.TEXTARGET_CUBE_MAP_NEGATIVE_X;
+        case gl.TEXTURE_CUBE_MAP_NEGATIVE_Y:    return TexTarget.TEXTARGET_CUBE_MAP_NEGATIVE_Y;
+        case gl.TEXTURE_CUBE_MAP_NEGATIVE_Z:    return TexTarget.TEXTARGET_CUBE_MAP_NEGATIVE_Z;
+        default:                                throw new Error('Wrong texture target:' + target);
+    }
 };
 
 /**
@@ -411,11 +428,21 @@ var Attachment = function() {
  */
 var Framebuffer = function() {
     this.m_attachments = [];
-    for (var point in AttachmentType)
-        this.m_attachments[point] = new Attachment();
+    for (var key in AttachmentPoint)
+        this.m_attachments[AttachmentPoint[key]] = new Attachment();
 };
 
+/**
+ * @param {AttachmentPoint} point
+ * @return {Attachment}
+ */
 Framebuffer.prototype.getAttachment = function(point) { return this.m_attachments[point]; };
+
+/**
+ * @param {AttachmentPoint} point
+ * @param {Attachment} attachment
+ */
+Framebuffer.prototype.setAttachment = function(point, attachment) { this.m_attachments[point] = attachment; };
 
 // /**
 //  * @enum
@@ -647,9 +674,9 @@ var ReferenceContextBuffers = function(colorBits, depthBits, stencilBits, width,
 };
 
 
-ReferenceContextBuffers.prototype.getColorbuffer = function() { return rrMultisamplePixelBufferAccess.fromMultisampleAccess(this.m_colorbuffer.getAccess()); }
-ReferenceContextBuffers.prototype.getDepthbuffer = function() { return rrMultisamplePixelBufferAccess.fromMultisampleAccess(this.m_depthbuffer.getAccess()); }
-ReferenceContextBuffers.prototype.getStencilbuffer = function() { return rrMultisamplePixelBufferAccess.fromMultisampleAccess(this.m_stencilbuffer.getAccess());   }
+ReferenceContextBuffers.prototype.getColorbuffer = function() { return rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.fromMultisampleAccess(this.m_colorbuffer.getAccess()); }
+ReferenceContextBuffers.prototype.getDepthbuffer = function() { return rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.fromMultisampleAccess(this.m_depthbuffer.getAccess()); }
+ReferenceContextBuffers.prototype.getStencilbuffer = function() { return rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.fromMultisampleAccess(this.m_stencilbuffer.getAccess());   }
 
 /**
  * @param {ReferenceContextLimits} limits
@@ -689,7 +716,7 @@ var ReferenceContext = function(limits, colorbuffer, depthbuffer, stencilbuffer)
     this.m_primitiveRestartSettableIndex = true; //always on
     this.m_stencil = [];
     for (var type in FaceType)
-        this.m_stencil[type] = new StencilState();
+        this.m_stencil[FaceType[type]] = new StencilState();
     this.m_depthFunc = gl.LESS;
     this.m_depthRangeNear      = 0;
     this.m_depthRangeFar       = 1;
@@ -1536,21 +1563,26 @@ ReferenceContext.prototype.readPixels = function(x, y, width, height, format, ty
         data = this.m_pixelPackBufferBinding.getData();
         offset = pixels;
     } else {
-        data = pixels;
-        offset = 0;
+        if (pixels instanceof ArrayBuffer) {
+            data = pixels;
+            offset = 0;
+        } else {
+            data = pixels.buffer;
+            offset = pixels.byteOffset;
+        }
     }
 
     var dst = new tcuTexture.PixelBufferAccess({
         format: transferFmt,
         width: width,
-        heigth: height,
+        height: height,
         depth: 1,
         rowPitch: deMath.deAlign32(width*transferFmt.getPixelSize(), this.m_pixelPackAlignment),
         slicePitch: 0,
         data: data,
         offset: offset});
 
-    src = tcuTextureUtil.getSubregion(src, copyX, copyY, 0, copyWidth, copyHeight, 1);
+    src = src.getSubregion([copyX, copyY, copyWidth, copyHeight]);
     src.resolveMultisampleColorBuffer(tcuTextureUtil.getSubregion(dst, 0, 0, 0, copyWidth, copyHeight, 1));
 };
 
@@ -1631,7 +1663,8 @@ ReferenceContext.prototype.checkFramebufferStatus = function(target) {
     var    attachmentComplete  = true;
     var    dimensionsOk        = true;
 
-    for (var point in AttachmentPoint) {
+    for (var key in AttachmentPoint) {
+        var point = AttachmentPoint[key];
         var  attachment          = framebufferBinding.getAttachment(point);
         var                             attachmentWidth     = 0;
         var                             attachmentHeight    = 0;
@@ -1825,37 +1858,37 @@ var getBufferRect = function(access) { return [0, 0, access.raw().getHeight(), a
 
 ReferenceContext.prototype.getDrawColorbuffer  = function() {
     if (this.m_drawFramebufferBinding)
-        return rrMultisamplePixelBufferAccess.fromSinglesampleAccess(this.getFboAttachment(this.m_drawFramebufferBinding, AttachmentPoint.ATTACHMENTPOINT_COLOR0));
+        return rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.fromSinglesampleAccess(this.getFboAttachment(this.m_drawFramebufferBinding, AttachmentPoint.ATTACHMENTPOINT_COLOR0));
     return this.m_defaultColorbuffer;
 };
 
 ReferenceContext.prototype.getDrawDepthbuffer  = function() {
     if (this.m_drawFramebufferBinding)
-        return rrMultisamplePixelBufferAccess.fromSinglesampleAccess(this.getFboAttachment(this.m_drawFramebufferBinding, AttachmentPoint.ATTACHMENTPOINT_DEPTH));
+        return rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.fromSinglesampleAccess(this.getFboAttachment(this.m_drawFramebufferBinding, AttachmentPoint.ATTACHMENTPOINT_DEPTH));
     return this.m_defaultDepthbuffer;
 };
 
 ReferenceContext.prototype.getDrawStencilbuffer  = function() {
     if (this.m_drawFramebufferBinding)
-        return rrMultisamplePixelBufferAccess.fromSinglesampleAccess(this.getFboAttachment(this.m_drawFramebufferBinding, AttachmentPoint.ATTACHMENTPOINT_STENCIL));
+        return rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.fromSinglesampleAccess(this.getFboAttachment(this.m_drawFramebufferBinding, AttachmentPoint.ATTACHMENTPOINT_STENCIL));
     return this.m_defaultStencilbuffer;
 };
 
 ReferenceContext.prototype.getReadColorbuffer  = function() {
     if (this.m_readFramebufferBinding)
-        return rrMultisamplePixelBufferAccess.fromSinglesampleAccess(this.getFboAttachment(this.m_readFramebufferBinding, AttachmentPoint.ATTACHMENTPOINT_COLOR0));
+        return rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.fromSinglesampleAccess(this.getFboAttachment(this.m_readFramebufferBinding, AttachmentPoint.ATTACHMENTPOINT_COLOR0));
     return this.m_defaultColorbuffer;
 };
 
 ReferenceContext.prototype.getReadDepthbuffer  = function() {
     if (this.m_readFramebufferBinding)
-        return rrMultisamplePixelBufferAccess.fromSinglesampleAccess(this.getFboAttachment(this.m_readFramebufferBinding, AttachmentPoint.ATTACHMENTPOINT_DEPTH));
+        return rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.fromSinglesampleAccess(this.getFboAttachment(this.m_readFramebufferBinding, AttachmentPoint.ATTACHMENTPOINT_DEPTH));
     return this.m_defaultDepthbuffer;
 };
 
 ReferenceContext.prototype.getReadStencilbuffer  = function() {
     if (this.m_readFramebufferBinding)
-        return rrMultisamplePixelBufferAccess.fromSinglesampleAccess(this.getFboAttachment(this.m_readFramebufferBinding, AttachmentPoint.ATTACHMENTPOINT_STENCIL));
+        return rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.fromSinglesampleAccess(this.getFboAttachment(this.m_readFramebufferBinding, AttachmentPoint.ATTACHMENTPOINT_STENCIL));
     return this.m_defaultStencilbuffer;
 };
 
@@ -1881,9 +1914,9 @@ ReferenceContext.prototype.clear = function(buffers) {
     var    colorBuf0   = this.getDrawColorbuffer();
     var    depthBuf    = this.getDrawDepthbuffer();
     var    stencilBuf  = this.getDrawStencilbuffer();
-    var    hasColor0   = !isEmpty(colorBuf0);
-    var    hasDepth    = !isEmpty(depthBuf);
-    var    hasStencil  = !isEmpty(stencilBuf);
+    var    hasColor0   = !colorBuf0.isEmpty();
+    var    hasDepth    = !depthBuf.isEmpty();
+    var    hasStencil  = !stencilBuf.isEmpty();
     var    baseArea    = this.m_scissorEnabled ? this.m_scissorBox : [0, 0, 0x7fffffff, 0x7fffffff];
 
     if (hasColor0 && (buffers & gl.COLOR_BUFFER_BIT) != 0)
@@ -1960,7 +1993,7 @@ ReferenceContext.prototype.clearBufferiv = function(buffer, drawbuffer, value)
         var                                maskUsed    = !this.m_colorMask[0] || !this.m_colorMask[1] || !this.m_colorMask[2] || !this.m_colorMask[3];
         var                                maskZero    = !this.m_colorMask[0] && !this.m_colorMask[1] && !this.m_colorMask[2] && !this.m_colorMask[3];
 
-        if (!isEmpty(colorBuf) && !maskZero)
+        if (!colorBuf.isEmpty() && !maskZero)
         {
         var                               colorArea   = deMath.intersect(baseArea, getBufferRect(colorBuf));
         var    access      = colorBuf.getSubregion(colorArea);
@@ -1983,7 +2016,7 @@ ReferenceContext.prototype.clearBufferiv = function(buffer, drawbuffer, value)
 
         var    stencilBuf  = this.getDrawStencilbuffer();
 
-        if (!isEmpty(stencilBuf) && this.m_stencil[FaceType.FACETYPE_FRONT].writeMask != 0)
+        if (!stencilBuf.isEmpty() && this.m_stencil[FaceType.FACETYPE_FRONT].writeMask != 0)
         {
             var                               area        = deMath.intersect(baseArea, getBufferRect(stencilBuf));
             var    access      = stencilBuf.getSubregion(area);
@@ -2011,7 +2044,7 @@ ReferenceContext.prototype.clearBufferfv = function(buffer, drawbuffer, value) {
         var                                maskUsed    = !this.m_colorMask[0] || !this.m_colorMask[1] || !this.m_colorMask[2] || !this.m_colorMask[3];
         var                                maskZero    = !this.m_colorMask[0] && !this.m_colorMask[1] && !this.m_colorMask[2] && !this.m_colorMask[3];
 
-        if (!isEmpty(colorBuf) && !maskZero)
+        if (!colorBuf.isEmpty() && !maskZero)
         {
         var                               colorArea   = deMath.intersect(baseArea, getBufferRect(colorBuf));
         var    access      = colorBuf.getSubregion(colorArea);
@@ -2034,7 +2067,7 @@ ReferenceContext.prototype.clearBufferfv = function(buffer, drawbuffer, value) {
 
         var depthBuf = this.getDrawDepthbuffer();
 
-        if (!isEmpty(depthBuf) && this.m_depthMask)
+        if (!depthBuf.isEmpty() && this.m_depthMask)
         {
             var                               area        = deMath.intersect(baseArea, getBufferRect(depthBuf));
             var    access      = depthBuf.getSubregion(area);
@@ -2061,7 +2094,7 @@ ReferenceContext.prototype.clearBufferuiv = function(buffer, drawbuffer, value)
     var                                maskUsed    = !this.m_colorMask[0] || !this.m_colorMask[1] || !this.m_colorMask[2] || !this.m_colorMask[3];
     var                                maskZero    = !this.m_colorMask[0] && !this.m_colorMask[1] && !this.m_colorMask[2] && !this.m_colorMask[3];
 
-    if (!isEmpty(colorBuf) && !maskZero)
+    if (!colorBuf.isEmpty() && !maskZero)
     {
     var                               colorArea   = deMath.intersect(baseArea, getBufferRect(colorBuf));
     var    access      = colorBuf.getSubregion(colorArea);
@@ -2085,8 +2118,118 @@ ReferenceContext.prototype.clearBufferfi = function(buffer, drawbuffer, depth, s
     this.clearBufferiv(gl.STENCIL, drawbuffer, [stencil]);
 };
 
+ReferenceContext.prototype.framebufferTexture2D = function(target, attachment, textarget, texture, level) {
+    if (attachment == gl.DEPTH_STENCIL_ATTACHMENT)
+    {
+        // Attach to both depth and stencil.
+        this.framebufferTexture2D(target, gl.DEPTH_ATTACHMENT,   textarget, texture, level);
+        this.framebufferTexture2D(target, gl.STENCIL_ATTACHMENT, textarget, texture, level);
+    }
+    else
+    {
+        var    point           = mapGLAttachmentPoint(attachment);
+        var          fboTexTarget    = mapGLFboTexTarget(textarget);
+
+        if (this.condtionalSetError(target != gl.FRAMEBUFFER        &&
+                    target != gl.DRAW_FRAMEBUFFER   &&
+                    target != gl.READ_FRAMEBUFFER,              gl.INVALID_ENUM))
+            return;
+        if (this.condtionalSetError(point == undefined, gl.INVALID_ENUM))
+            return;
+
+        // Select binding point.
+        var framebufferBinding = (target == gl.FRAMEBUFFER || target == gl.DRAW_FRAMEBUFFER) ? this.m_drawFramebufferBinding : this.m_readFramebufferBinding;
+        if (this.condtionalSetError(!framebufferBinding, gl.INVALID_OPERATION))
+            return;
+
+        if (texture) {
+            if (this.condtionalSetError(level != 0,     gl.INVALID_VALUE))
+                return;
+
+            if (texture.getType() == TextureType.TYPE_2D)
+                if (this.condtionalSetError(fboTexTarget != TexTarget.TEXTARGET_2D, gl.INVALID_OPERATION))
+                    return;
+            else
+            {
+                if (texture.getType() == TextureType.TYPE_CUBE_MAP)
+                    throw new Error("Unsupported texture type");
+                if (this.condtionalSetError(!deMath.deInRange32(fboTexTarget, TexTarget.TEXTARGET_CUBE_MAP_POSITIVE_X, TexTarget.TEXTARGET_CUBE_MAP_NEGATIVE_Z), gl.INVALID_OPERATION))
+                    return;
+            }
+        }
+
+        var fboAttachment = new Attachment();
+
+        if (texture) {
+            fboAttachment.type          = AttachmentType.ATTACHMENTTYPE_TEXTURE;
+            fboAttachment.object        = texture
+            fboAttachment.texTarget     = fboTexTarget;
+            fboAttachment.level         = level;
+        }
+        framebufferBinding.setAttachment(point, fboAttachment);
+    }
+};
+
+ReferenceContext.prototype.framebufferRenderbuffer = function(target, attachment, renderbuffertarget, renderbuffer) {
+    if (attachment == gl.DEPTH_STENCIL_ATTACHMENT)
+    {
+        // Attach both to depth and stencil.
+        this.framebufferRenderbuffer(target, gl.DEPTH_ATTACHMENT,    renderbuffertarget, renderbuffer);
+        this.framebufferRenderbuffer(target, gl.STENCIL_ATTACHMENT,  renderbuffertarget, renderbuffer);
+    }
+    else
+    {
+        var    point           = mapGLAttachmentPoint(attachment);
+
+        if (this.condtionalSetError(target != gl.FRAMEBUFFER        &&
+                    target != gl.DRAW_FRAMEBUFFER   &&
+                    target != gl.READ_FRAMEBUFFER,              gl.INVALID_ENUM))
+            return;
+        if (this.condtionalSetError(point == undefined, gl.INVALID_ENUM))
+            return;
+
+        // Select binding point.
+        var framebufferBinding = (target == gl.FRAMEBUFFER || target == gl.DRAW_FRAMEBUFFER) ? this.m_drawFramebufferBinding : this.m_readFramebufferBinding;
+        if (this.condtionalSetError(!framebufferBinding, gl.INVALID_OPERATION))
+            return;
+
+        if (renderbuffer) {
+            if (this.condtionalSetError(renderbuffertarget != gl.RENDERBUFFER,  gl.INVALID_ENUM))
+                return;
+        }
+
+        var fboAttachment = new Attachment();
+
+        if (renderbuffer)
+        {
+            fboAttachment.type  = AttachmentType.ATTACHMENTTYPE_RENDERBUFFER;
+            fboAttachment.object  = renderbuffer;
+        }
+        framebufferBinding.setAttachment(point, fboAttachment);        
+    }
+};
+
+ReferenceContext.prototype.renderbufferStorage = function(target, internalformat, width, height) {
+    var format = gluTextureUtil.mapGLInternalFormat(internalformat);
+
+    if (this.condtionalSetError(target != gl.RENDERBUFFER, gl.INVALID_ENUM))
+        return;
+    if (this.condtionalSetError(!this.m_renderbufferBinding, gl.INVALID_OPERATION))
+        return;
+    if (this.condtionalSetError(!deMath.deInRange32(width, 0, this.m_limits.maxRenderbufferSize) ||
+                !deMath.deInRange32(height, 0, this.m_limits.maxRenderbufferSize),
+                gl.INVALID_OPERATION))
+        return;
+    if (this.condtionalSetError(!format, gl.INVALID_ENUM))
+        return;
+
+    this.m_renderbufferBinding.setStorage(format, width, height);
+};
+
 return {
-    ReferenceContext: ReferenceContext
+    ReferenceContext: ReferenceContext,
+    ReferenceContextBuffers: ReferenceContextBuffers,
+    ReferenceContextLimits: ReferenceContextLimits
 };
 
 });
