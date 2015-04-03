@@ -18,8 +18,8 @@
  *
  */
 
-define(['framework/referencerenderer/rrVertexPacket', 'framework/referencerenderer/rrDefs', 'framework/referencerenderer/rrFragmentOperations', 'framework/delibs/debase/deMath','framework/common/tcuTextureUtil', 'framework/common/tcuTexture', 'framework/referencerenderer/rrRasterizer','framework/referencerenderer/rrMultisamplePixelBufferAccess' ],
- function(rrVertexPacket, rrDefs, rrFragmentOperations, deMath, tcuTextureUtil, tcuTexture, rrRasterizer, rrMultisamplePixelBufferAccess) {
+define(['framework/referencerenderer/rrVertexPacket', 'framework/referencerenderer/rrDefs', 'framework/referencerenderer/rrFragmentOperations', 'framework/delibs/debase/deMath','framework/common/tcuTextureUtil', 'framework/common/tcuTexture', 'framework/referencerenderer/rrRasterizer', 'framework/referencerenderer/rrRenderState','framework/referencerenderer/rrMultisamplePixelBufferAccess' ],
+ function(rrVertexPacket, rrDefs, rrFragmentOperations, deMath, tcuTextureUtil, tcuTexture, rrRasterizer, rrRenderState, rrMultisamplePixelBufferAccess) {
 
 /**
  * @enum
@@ -663,7 +663,10 @@ var draw = function(/*const DrawCommand&*/ command) {
 return {
     drawInstanced: drawInstanced,
     draw: draw,
-    DrawCommand: DrawCommand
+    DrawCommand: DrawCommand,
+    PrimitiveType: PrimitiveType,
+    RenderTarget: RenderTarget,
+    Program: Program
 };
 
 });
