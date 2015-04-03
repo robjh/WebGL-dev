@@ -140,6 +140,9 @@ define([
     };
 
     InstancedRenderingCase.prototype.init = function() {
+        // Clear errors from previous tests
+        gl.getError();
+        
         /** @type {boolean} */ var isFloatCase = gluShaderUtil.isDataTypeFloatOrVec(this.m_rgbAttrType);
         /** @type {boolean} */ var isIntCase = gluShaderUtil.isDataTypeIntOrIVec(this.m_rgbAttrType);
         /** @type {boolean} */ var isUintCase = gluShaderUtil.isDataTypeUintOrUVec(this.m_rgbAttrType);
