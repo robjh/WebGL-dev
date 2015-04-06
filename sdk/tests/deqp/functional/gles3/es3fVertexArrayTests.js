@@ -30,7 +30,9 @@ define([
     'framework/common/tcuTexture',
     'framework/delibs/debase/deMath',
     'framework/delibs/debase/deString',
-    'framework/delibs/debase/deRandom'], function(
+    'framework/delibs/debase/deRandom',
+    'modules/shared/glsVertexArrayTests'
+       ], function(
         gluDefs,
         gluDrawUtil,
         gluShaderUtil,
@@ -42,7 +44,9 @@ define([
         tcuTexture,
         deMath,
         deString,
-        deRandom) {
+        deRandom,
+        glsVertexArrayTests
+    ) {
     'use strict';
 
     var gl = 0;
@@ -60,7 +64,60 @@ define([
     var DE_NULL = null;
 
     /**
+     * SingleVertexArrayUsageGroup
+     * @constructor
+     * @param {glsVertexArrayTests.deArray.Usage} usage
+     */
+    var SingleVertexArrayUsageGroup = function (usage) {
+        tcuTestCase.DeqpTests.call(this, deArray.usageTypeToString(usage), deArray.usageTypeToString(usage));
+        this.m_usage = usage
+    };
+
+    SingleVertexArrayUsageGroup.prototype = Object.create(tcuTestCase.DeqpTests.prototype);
+    SingleVertexArrayUsageGroup.prototype.constructor = SingleVertexArrayUsageGroup;
+
+    /**
+     * init
+     */
+    SingleVertexArrayUsageGroup.prototype.init = function () {
+        /** @type {Array.<number>} */ var counts = [1, 256];
+        /** @type {Array.<number>} */ var strides = [0, -1, 17, 32]; // Tread negative value as sizeof input. Same as 0, but done outside of GL.
+        /** @type {glsVertexArrayTests.deArray.InputType} */ var inputTypes = [glsVertexArrayTests.deArray.InputType.FLOAT, glsVertexArrayTests.deArray.InputType.FIXED, glsVertexArrayTests.deArray.InputType.SHORT, glsVertexArrayTests.deArray.InputType.BYTE];
+
+        for (var inputTypeNdx = 0; inputTypeNdx < inputTypes.length; inputTypeNdx++) {
+            for (var countNdx = 0; countNdx < counts.length; countNdx++) {
+                for (var strideNdx = 0; strideNdx < strides.length; strideNdx++) {
+                    /** @type {number} */ var stride = (strides[strideNdx] < 0 ? glsVertexArrayTests.deArray.inputTypeSize(inputTypes[inputTypeNdx]) * 2 : strides[strideNdx]);
+                    /** @type {boolean} */ var aligned = (stride % glsVertexArrayTests.deArray.inputTypeSize(inputTypes[inputTypeNdx])) == 0;
+                    /** @type {string} */ var name = "stride" + stride + "_" + glsVertexArrayTests.deArray.inputTypeToString(inputTypes[inputTypeNdx]) + "_quads" + counts[countNdx];
+
+                    var arraySpec = new glsVertexArrayTests.MultiVertexArrayTest.Spec.ArraySpec(inputTypes[inputTypeNdx],
+                                                                    glsVertexArrayTests.deArray.OutputType.VEC2,
+                                                                    glsVertexArrayTests.deArray.Storage.BUFFER,
+                                                                    this.m_usage,
+                                                                    2,
+                                                                    0,
+                                                                    stride,
+                                                                    false,
+                                                                    glsVertexArrayTests.GLValue.getMinValue(inputTypes[inputTypeNdx]),
+                                                                    glsVertexArrayTests.GLValue.getMaxValue(inputTypes[inputTypeNdx]));
+
+                    var spec = new glsVertexArrayTests.MultiVertexArrayTest.Spec();
+                    spec.primitive  = glsVertexArrayTests.deArray.Primitive.TRIANGLES;
+                    spec.drawCount  = counts[countNdx];
+                    spec.first      = 0;
+                    spec.arrays.push(arraySpec);
+
+                    if (aligned)
+                        this.addChild(new MultiVertexArrayTest(gl.getRenderContext(), spec, name, name));
+                }
+            }
+        }
+    };
+
+    /**
      * SingleVertexArrayUsageTests
+     * @constructor
      */
     var SingleVertexArrayUsageTests = function () {
         tcuTestCase.DeqpTests.call(this, "usages", "Single vertex atribute, usage");
@@ -83,6 +140,7 @@ define([
 
     /**
      * VertexArrayTestGroup
+     * @constructor
      */
     var VertexArrayTestGroup = function () {
         tcuTestCase.DeqpTests.call(this, "vertex_arrays", "Vertex array and array tests");
@@ -94,7 +152,7 @@ define([
     /**
      * init
      */
-    void VertexArrayTestGroup.prototype.init = function () {
+    VertexArrayTestGroup.prototype.init = function () {
         this.addChild(new SingleVertexArrayTestGroup());
         //TODO: this.addChild(new MultiVertexArrayTestGroup());
     };

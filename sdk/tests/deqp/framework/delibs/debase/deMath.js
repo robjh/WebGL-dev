@@ -212,6 +212,18 @@ var boolAll = function(a) {
 };
 
 /**
+ * assign(a, b) element by element
+ * @param {Array.<number>} a
+ * @return {Array.<number>}
+ */
+var assign = function(a) {
+    var dst = [];
+    for (var i = 0; i < a.length; i++)
+        dst.push(a[i]);
+    return dst;
+};
+
+/**
  * max(a, b) element by element
  * @param {Array.<number>} a
  * @param {Array.<number>} b
@@ -550,6 +562,7 @@ var shiftRight = function(value, steps)
         absDiff: absDiff,
         lessThanEqual: lessThanEqual,
         boolAll: boolAll,
+        assign: assign,
         max: max,
         min: min,
         rint: rint,

@@ -30,7 +30,7 @@ define([
     'framework/delibs/debase/deRandom',
     'framework/referencerenderer/rrVertexAttrib',
     'framework/referencerenderer/rrVertexPacket',
-    'framework/referencerenderer/rrGenericVertex'
+    'framework/referencerenderer/rrGenericVector'
 ],
 function (
     tcuTestCase,
@@ -44,7 +44,7 @@ function (
     deRandom,
     rrVertexAttrib,
     rrVertexPacket,
-    rrGenericVertex
+    rrGenericVector
 ) {
     'use strict';
 
@@ -937,7 +937,7 @@ function (
     var ContextShaderProgram = function (ctx, arrays) {
         sglrShaderProgram.ShaderProgram.call(this, this.createProgramDeclaration(ctx, arrays));
         this.m_componentCount = new Array(arrays.length);
-        /** @type {Array.<rrGenericVertex.GenericVecType>} */ this.m_attrType = new Array(arrays.length);
+        /** @type {Array.<rrGenericVector.GenericVecType>} */ this.m_attrType = new Array(arrays.length);
 
         for(var arrayNdx = 0; arrayNdx < arrays.length; arrayNdx++)
         {
