@@ -23,252 +23,252 @@ define(['framework/common/tcuTestCase', 'modules/shared/glsSamplerObjectTest'], 
     // TODO: implement glsSamplerObjectTest and validate constructors
     var init = function() {
         var testGroup = tcuTestCase.runner.getState().testCases;
-        glsSamplerObjectTest.TextureSamplerTest.TestSpec simpleTestCases[] = [
-            [ 'diff_wrap_t', 'Different gl.TEXTURE_WRAP_T', gl.TEXTURE_2D,
-                    [ gl.NEAREST, gl.NEAREST, gl.MIRRORED_REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ],
-                    [ gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ]
-            ],
-            [ 'diff_wrap_s', 'Different gl.TEXTURE_WRAP_S', gl.TEXTURE_2D,
-                    [ gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.MIRRORED_REPEAT, gl.REPEAT, -1000.0, 1000.0 ],
-                    [ gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ]
-            ],
-            [ 'diff_wrap_r', 'Different gl.TEXTURE_WRAP_R', gl.TEXTURE_2D,
-                    [ gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.MIRRORED_REPEAT, -1000.0, 1000.0 ],
-                    [ gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ]
-            ],
-            [ 'diff_min_filter', 'Different gl.TEXTURE_MIN_FILTER', gl.TEXTURE_2D,
-                    [ gl.LINEAR, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ],
-                    [ gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ]
-            ],
-            [ 'diff_mag_filter', 'Different gl.TEXTURE_MAG_FILTER', gl.TEXTURE_2D,
-                    [ gl.NEAREST, gl.LINEAR, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ],
-                    [ gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ]
-            ],
-            [ 'diff_max_lod', 'Different gl.TEXTURE_MAX_LOD', gl.TEXTURE_2D,
-                    [ gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ],
-                    [ gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, -999.0 ]
-            ],
-            [ 'diff_min_lod', 'Different gl.TEXTURE_MIN_LOD', gl.TEXTURE_2D,
-                    [ gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, 0.0, 1000.0 ],
-                    [ gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, 100.0, 1000.0 ]
-            ]
+        /* @type {glsSamplerObjectTest.TestSpec} */ var simpleTestCases = [
+            new glsSamplerObjectTest.TestSpec('diff_wrap_t', 'Different gl.TEXTURE_WRAP_T', gl.TEXTURE_2D,
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.MIRRORED_REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0),
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0)
+            ),
+            new glsSamplerObjectTest.TestSpec('diff_wrap_s', 'Different gl.TEXTURE_WRAP_S', gl.TEXTURE_2D,
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.MIRRORED_REPEAT, gl.REPEAT, -1000.0, 1000.0),
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0)
+            ),
+            new glsSamplerObjectTest.TestSpec('diff_wrap_r', 'Different gl.TEXTURE_WRAP_R', gl.TEXTURE_2D,
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.MIRRORED_REPEAT, -1000.0, 1000.0),
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0)
+            ),
+            new glsSamplerObjectTest.TestSpec('diff_min_filter', 'Different gl.TEXTURE_MIN_FILTER', gl.TEXTURE_2D,
+                new glsSamplerObjectTest.SamplingState(gl.LINEAR, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0),
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0)
+            ),
+            new glsSamplerObjectTest.TestSpec('diff_mag_filter', 'Different gl.TEXTURE_MAG_FILTER', gl.TEXTURE_2D,
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.LINEAR, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0),
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0)
+            ),
+            new glsSamplerObjectTest.TestSpec('diff_max_lod', 'Different gl.TEXTURE_MAX_LOD', gl.TEXTURE_2D,
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0),
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, -999.0)
+            ),
+            new glsSamplerObjectTest.TestSpec('diff_min_lod', 'Different gl.TEXTURE_MIN_LOD', gl.TEXTURE_2D,
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, 0.0, 1000.0),
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, 100.0, 1000.0)
+            )
         ];
 
-        /** @type {TestCaseGroup} */ var  simpleTexture2D = new tcuTestCase.newTest('single_tex_2d', 'Simple 2D texture with sampler');
+        /** @type {TestCaseGroup} */ var simpleTexture2D = new tcuTestCase.newTest('single_tex_2d', 'Simple 2D texture with sampler');
 
         for (var testNdx = 0; testNdx < simpleTestCases.length; testNdx++)
-            simpleTexture2D.addChild(new glsSamplerObjectTest.TextureSamplerTest(m_testCtx, m_context.getRenderContext(), simpleTestCases[testNdx]));
+            simpleTexture2D.addChild(new glsSamplerObjectTest.TextureSamplerTest(simpleTestCases[testNdx]));
 
         testGroup.addChild(simpleTexture2D);
 
-        glsSamplerObjectTest.MultiTextureSamplerTest.TestSpec multiTestCases[] = [
-            [ 'diff_wrap_t', 'Different gl.TEXTURE_WRAP_T', gl.TEXTURE_2D,
-                    [ gl.NEAREST, gl.NEAREST, gl.MIRRORED_REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ],
-                    [ gl.NEAREST, gl.NEAREST, gl.MIRRORED_REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ],
-                    [ gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ]
-            ],
-            [ 'diff_wrap_s', 'Different gl.TEXTURE_WRAP_S', gl.TEXTURE_2D,
-                    [ gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.MIRRORED_REPEAT, gl.REPEAT, -1000.0, 1000.0 ],
-                    [ gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.MIRRORED_REPEAT, gl.REPEAT, -1000.0, 1000.0 ],
-                    [ gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ]
-            ],
-            [ 'diff_wrap_r', 'Different gl.TEXTURE_WRAP_R', gl.TEXTURE_2D,
-                    [ gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.MIRRORED_REPEAT, -1000.0, 1000.0 ],
-                    [ gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.MIRRORED_REPEAT, -1000.0, 1000.0 ],
-                    [ gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ]
-            ],
-            [ 'diff_min_filter', 'Different gl.TEXTURE_MIN_FILTER', gl.TEXTURE_2D,
-                    [ gl.LINEAR, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ],
-                    [ gl.LINEAR, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ],
-                    [ gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ]
-            ],
-            [ 'diff_mag_filter', 'Different gl.TEXTURE_MAG_FILTER', gl.TEXTURE_2D,
-                    [ gl.NEAREST, gl.LINEAR, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ],
-                    [ gl.NEAREST, gl.LINEAR, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ],
-                    [ gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ]
-            ],
-            [ 'diff_max_lod', 'Different gl.TEXTURE_MAX_LOD', gl.TEXTURE_2D,
-                    [ gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ],
-                    [ gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ],
-                    [ gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, -999.0 ]
-            ],
-            [ 'diff_min_lod', 'Different gl.TEXTURE_MIN_LOD', gl.TEXTURE_2D,
-                    [ gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, 0.0, 1000.0 ],
-                    [ gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, 0.0, 1000.0 ],
-                    [ gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, 100.0, 1000.0 ]
-            ]
+        /* @type {glsSamplerObjectTest.TestSpec} */ var multiTestCases = [
+            new glsSamplerObjectTest.TestSpec('diff_wrap_t', 'Different gl.TEXTURE_WRAP_T', gl.TEXTURE_2D,
+                    new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.MIRRORED_REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0),
+                    new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.MIRRORED_REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0),
+                    new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0)
+            ),
+            new glsSamplerObjectTest.TestSpec('diff_wrap_s', 'Different gl.TEXTURE_WRAP_S', gl.TEXTURE_2D,
+                    new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.MIRRORED_REPEAT, gl.REPEAT, -1000.0, 1000.0),
+                    new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.MIRRORED_REPEAT, gl.REPEAT, -1000.0, 1000.0),
+                    new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0)
+            ),
+            new glsSamplerObjectTest.TestSpec('diff_wrap_r', 'Different gl.TEXTURE_WRAP_R', gl.TEXTURE_2D,
+                    new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.MIRRORED_REPEAT, -1000.0, 1000.0),
+                    new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.MIRRORED_REPEAT, -1000.0, 1000.0),
+                    new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0)
+            ),
+            new glsSamplerObjectTest.TestSpec('diff_min_filter', 'Different gl.TEXTURE_MIN_FILTER', gl.TEXTURE_2D,
+                    new glsSamplerObjectTest.SamplingState(gl.LINEAR, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0),
+                    new glsSamplerObjectTest.SamplingState(gl.LINEAR, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0),
+                    new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0)
+            ),
+            new glsSamplerObjectTest.TestSpec('diff_mag_filter', 'Different gl.TEXTURE_MAG_FILTER', gl.TEXTURE_2D,
+                    new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.LINEAR, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0),
+                    new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.LINEAR, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0),
+                    new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0)
+            ),
+            new glsSamplerObjectTest.TestSpec('diff_max_lod', 'Different gl.TEXTURE_MAX_LOD', gl.TEXTURE_2D,
+                    new glsSamplerObjectTest.SamplingState(gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0),
+                    new glsSamplerObjectTest.SamplingState(gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0),
+                    new glsSamplerObjectTest.SamplingState(gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, -999.0)
+            ),
+            new glsSamplerObjectTest.TestSpec('diff_min_lod', 'Different gl.TEXTURE_MIN_LOD', gl.TEXTURE_2D,
+                    new glsSamplerObjectTest.SamplingState(gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, 0.0, 1000.0),
+                    new glsSamplerObjectTest.SamplingState(gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, 0.0, 1000.0),
+                    new glsSamplerObjectTest.SamplingState(gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, 100.0, 1000.0)
+            )
         ];
 
-        /** @type {TestCaseGroup} */ var  multiTexture2D = new tcuTestCase.newTest('multi_tex_2d', 'Multiple texture units 2D texture with sampler');
+        /** @type {TestCaseGroup} */ var multiTexture2D = new tcuTestCase.newTest('multi_tex_2d', 'Multiple texture units 2D texture with sampler');
 
         for (var testNdx = 0; testNdx < multiTestCases.length; testNdx++)
-            multiTexture2D.addChild(new glsSamplerObjectTest.MultiTextureSamplerTest(m_testCtx, m_context.getRenderContext(), multiTestCases[testNdx]));
+            multiTexture2D.addChild(new glsSamplerObjectTest.MultiTextureSamplerTest(multiTestCases[testNdx]));
 
         testGroup.addChild(multiTexture2D);
 
-        glsSamplerObjectTest.TextureSamplerTest.TestSpec simpleTestCases3D[] = [
-            [ 'diff_wrap_t', 'Different gl.TEXTURE_WRAP_T', gl.TEXTURE_3D,
-                    [ gl.NEAREST, gl.NEAREST, gl.MIRRORED_REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ],
-                    [ gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ]
-            ],
-            [ 'diff_wrap_s', 'Different gl.TEXTURE_WRAP_S', gl.TEXTURE_3D,
-                    [ gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.MIRRORED_REPEAT, gl.REPEAT, -1000.0, 1000.0 ],
-                    [ gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ]
-            ],
-            [ 'diff_wrap_r', 'Different gl.TEXTURE_WRAP_R', gl.TEXTURE_3D,
-                    [ gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.MIRRORED_REPEAT, -1000.0, 1000.0 ],
-                    [ gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ]
-            ],
-            [ 'diff_min_filter', 'Different gl.TEXTURE_MIN_FILTER', gl.TEXTURE_3D,
-                    [ gl.LINEAR, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ],
-                    [ gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ]
-            ],
-            [ 'diff_mag_filter', 'Different gl.TEXTURE_MAG_FILTER', gl.TEXTURE_3D,
-                    [ gl.NEAREST, gl.LINEAR, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ],
-                    [ gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ]
-            ],
-            [ 'diff_max_lod', 'Different gl.TEXTURE_MAX_LOD', gl.TEXTURE_3D,
-                    [ gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ],
-                    [ gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, -999.0 ]
-            ],
-            [ 'diff_min_lod', 'Different gl.TEXTURE_MIN_LOD', gl.TEXTURE_3D,
-                    [ gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, 0.0, 1000.0 ],
-                    [ gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, 100.0, 1000.0 ]
-            ]
+        /* @type {glsSamplerObjectTest.TestSpec} */ var simpleTestCases3D = [
+        new glsSamplerObjectTest.TestSpec('diff_wrap_t', 'Different gl.TEXTURE_WRAP_T', gl.TEXTURE_3D,
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.MIRRORED_REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0),
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0)
+            ),
+            new glsSamplerObjectTest.TestSpec('diff_wrap_s', 'Different gl.TEXTURE_WRAP_S', gl.TEXTURE_3D,
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.MIRRORED_REPEAT, gl.REPEAT, -1000.0, 1000.0),
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0)
+            ),
+            new glsSamplerObjectTest.TestSpec('diff_wrap_r', 'Different gl.TEXTURE_WRAP_R', gl.TEXTURE_3D,
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.MIRRORED_REPEAT, -1000.0, 1000.0),
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0)
+            ),
+            new glsSamplerObjectTest.TestSpec('diff_min_filter', 'Different gl.TEXTURE_MIN_FILTER', gl.TEXTURE_3D,
+                new glsSamplerObjectTest.SamplingState(gl.LINEAR, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0),
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0)
+            ),
+            new glsSamplerObjectTest.TestSpec('diff_mag_filter', 'Different gl.TEXTURE_MAG_FILTER', gl.TEXTURE_3D,
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.LINEAR, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0),
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0)
+            ),
+            new glsSamplerObjectTest.TestSpec('diff_max_lod', 'Different gl.TEXTURE_MAX_LOD', gl.TEXTURE_3D,
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0),
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, -999.0)
+            ),
+            new glsSamplerObjectTest.TestSpec('diff_min_lod', 'Different gl.TEXTURE_MIN_LOD', gl.TEXTURE_3D,
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, 0.0, 1000.0),
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, 100.0, 1000.0)
+            )
         ];
 
-        /** @type {TestCaseGroup} */ var  simpleTexture3D = new tcuTestCase.newTest('single_tex_3d', 'Simple 3D texture with sampler');
+        /** @type {TestCaseGroup} */ var simpleTexture3D = new tcuTestCase.newTest('single_tex_3d', 'Simple 3D texture with sampler');
 
         for (var testNdx = 0; testNdx < simpleTestCases3D.length; testNdx++)
-            simpleTexture3D.addChild(new glsSamplerObjectTest.TextureSamplerTest(m_testCtx, m_context.getRenderContext(), simpleTestCases3D[testNdx]));
+            simpleTexture3D.addChild(new glsSamplerObjectTest.TextureSamplerTest(simpleTestCases3D[testNdx]));
 
         testGroup.addChild(simpleTexture3D);
 
-        glsSamplerObjectTest.MultiTextureSamplerTest.TestSpec multiTestCases3D[] = [
-            [ 'diff_wrap_t', 'Different gl.TEXTURE_WRAP_T', gl.TEXTURE_3D,
-                    [ gl.NEAREST, gl.NEAREST, gl.MIRRORED_REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ],
-                    [ gl.NEAREST, gl.NEAREST, gl.MIRRORED_REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ],
-                    [ gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ]
-            ],
-            [ 'diff_wrap_s', 'Different gl.TEXTURE_WRAP_S', gl.TEXTURE_3D,
-                    [ gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.MIRRORED_REPEAT, gl.REPEAT, -1000.0, 1000.0 ],
-                    [ gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.MIRRORED_REPEAT, gl.REPEAT, -1000.0, 1000.0 ],
-                    [ gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ]
-            ],
-            [ 'diff_wrap_r', 'Different gl.TEXTURE_WRAP_R', gl.TEXTURE_3D,
-                    [ gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.MIRRORED_REPEAT, -1000.0, 1000.0 ],
-                    [ gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.MIRRORED_REPEAT, -1000.0, 1000.0 ],
-                    [ gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ]
-            ],
-            [ 'diff_min_filter', 'Different gl.TEXTURE_MIN_FILTER', gl.TEXTURE_3D,
-                    [ gl.LINEAR, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ],
-                    [ gl.LINEAR, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ],
-                    [ gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ]
-            ],
-            [ 'diff_mag_filter', 'Different gl.TEXTURE_MAG_FILTER', gl.TEXTURE_3D,
-                    [ gl.NEAREST, gl.LINEAR, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ],
-                    [ gl.NEAREST, gl.LINEAR, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ],
-                    [ gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ]
-            ],
-            [ 'diff_max_lod', 'Different gl.TEXTURE_MAX_LOD', gl.TEXTURE_3D,
-                    [ gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ],
-                    [ gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ],
-                    [ gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, -999.0 ]
-            ],
-            [ 'diff_min_lod', 'Different gl.TEXTURE_MIN_LOD', gl.TEXTURE_3D,
-                    [ gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, 0.0, 1000.0 ],
-                    [ gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, 0.0, 1000.0 ],
-                    [ gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, 100.0, 1000.0 ]
-            ]
+        /* @type {glsSamplerObjectTest.TestSpec} */ var multiTestCases3D = [
+            new glsSamplerObjectTest.TestSpec('diff_wrap_t', 'Different gl.TEXTURE_WRAP_T', gl.TEXTURE_3D,
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.MIRRORED_REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0),
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.MIRRORED_REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0),
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0)
+            ),
+            new glsSamplerObjectTest.TestSpec('diff_wrap_s', 'Different gl.TEXTURE_WRAP_S', gl.TEXTURE_3D,
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.MIRRORED_REPEAT, gl.REPEAT, -1000.0, 1000.0),
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.MIRRORED_REPEAT, gl.REPEAT, -1000.0, 1000.0),
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0)
+            ),
+            new glsSamplerObjectTest.TestSpec('diff_wrap_r', 'Different gl.TEXTURE_WRAP_R', gl.TEXTURE_3D,
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.MIRRORED_REPEAT, -1000.0, 1000.0),
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.MIRRORED_REPEAT, -1000.0, 1000.0),
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0)
+            ),
+            new glsSamplerObjectTest.TestSpec('diff_min_filter', 'Different gl.TEXTURE_MIN_FILTER', gl.TEXTURE_3D,
+                new glsSamplerObjectTest.SamplingState(gl.LINEAR, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0),
+                new glsSamplerObjectTest.SamplingState(gl.LINEAR, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0),
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0)
+            ),
+            new glsSamplerObjectTest.TestSpec('diff_mag_filter', 'Different gl.TEXTURE_MAG_FILTER', gl.TEXTURE_3D,
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.LINEAR, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0),
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.LINEAR, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0),
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0)
+            ),
+            new glsSamplerObjectTest.TestSpec('diff_max_lod', 'Different gl.TEXTURE_MAX_LOD', gl.TEXTURE_3D,
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0),
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0),
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, -999.0)
+            ),
+            new glsSamplerObjectTest.TestSpec('diff_min_lod', 'Different gl.TEXTURE_MIN_LOD', gl.TEXTURE_3D,
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, 0.0, 1000.0),
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, 0.0, 1000.0),
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, 100.0, 1000.0)
+            )
         ];
 
-        /** @type {TestCaseGroup} */ var  multiTexture3D = new tcuTestCase.newTest('multi_tex_3d', 'Multiple texture units 3D texture with sampler');
+        /** @type {TestCaseGroup} */ var multiTexture3D = new tcuTestCase.newTest('multi_tex_3d', 'Multiple texture units 3D texture with sampler');
 
         for (var testNdx = 0; testNdx < multiTestCases3D.length; testNdx++)
-            multiTexture3D.addChild(new glsSamplerObjectTest.MultiTextureSamplerTest(m_testCtx, m_context.getRenderContext(), multiTestCases3D[testNdx]));
+            multiTexture3D.addChild(new glsSamplerObjectTest.MultiTextureSamplerTest(multiTestCases3D[testNdx]));
 
         testGroup.addChild(multiTexture3D);
 
-        glsSamplerObjectTest.TextureSamplerTest.TestSpec simpleTestCasesCube[] = [
-            [ 'diff_wrap_t', 'Different gl.TEXTURE_WRAP_T', gl.TEXTURE_CUBE_MAP,
-                    [ gl.NEAREST, gl.NEAREST, gl.MIRRORED_REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ],
-                    [ gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ]
-            ],
-            [ 'diff_wrap_s', 'Different gl.TEXTURE_WRAP_S', gl.TEXTURE_CUBE_MAP,
-                    [ gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.MIRRORED_REPEAT, gl.REPEAT, -1000.0, 1000.0 ],
-                    [ gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ]
-            ],
-            [ 'diff_wrap_r', 'Different gl.TEXTURE_WRAP_R', gl.TEXTURE_CUBE_MAP,
-                    [ gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.MIRRORED_REPEAT, -1000.0, 1000.0 ],
-                    [ gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ]
-            ],
-            [ 'diff_min_filter', 'Different gl.TEXTURE_MIN_FILTER', gl.TEXTURE_CUBE_MAP,
-                    [ gl.LINEAR, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ],
-                    [ gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ]
-            ],
-            [ 'diff_mag_filter', 'Different gl.TEXTURE_MAG_FILTER', gl.TEXTURE_CUBE_MAP,
-                    [ gl.NEAREST, gl.LINEAR, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ],
-                    [ gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ]
-            ],
-            [ 'diff_max_lod', 'Different gl.TEXTURE_MAX_LOD', gl.TEXTURE_CUBE_MAP,
-                    [ gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ],
-                    [ gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, -999.0 ]
-            ],
-            [ 'diff_min_lod', 'Different gl.TEXTURE_MIN_LOD', gl.TEXTURE_CUBE_MAP,
-                    [ gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, 0.0, 1000.0 ],
-                    [ gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, 100.0, 1000.0 ]
-            ]
+        /* @type {glsSamplerObjectTest.TestSpec} */ var simpleTestCasesCube = [
+            new glsSamplerObjectTest.TestSpec('diff_wrap_t', 'Different gl.TEXTURE_WRAP_T', gl.TEXTURE_CUBE_MAP,
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.MIRRORED_REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0),
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0)
+            ),
+            new glsSamplerObjectTest.TestSpec('diff_wrap_s', 'Different gl.TEXTURE_WRAP_S', gl.TEXTURE_CUBE_MAP,
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.MIRRORED_REPEAT, gl.REPEAT, -1000.0, 1000.0),
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0)
+            ),
+            new glsSamplerObjectTest.TestSpec('diff_wrap_r', 'Different gl.TEXTURE_WRAP_R', gl.TEXTURE_CUBE_MAP,
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.MIRRORED_REPEAT, -1000.0, 1000.0),
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0)
+            ),
+            new glsSamplerObjectTest.TestSpec('diff_min_filter', 'Different gl.TEXTURE_MIN_FILTER', gl.TEXTURE_CUBE_MAP,
+                new glsSamplerObjectTest.SamplingState(gl.LINEAR, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0),
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0)
+            ),
+            new glsSamplerObjectTest.TestSpec('diff_mag_filter', 'Different gl.TEXTURE_MAG_FILTER', gl.TEXTURE_CUBE_MAP,
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.LINEAR, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0),
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0)
+            ),
+            new glsSamplerObjectTest.TestSpec('diff_max_lod', 'Different gl.TEXTURE_MAX_LOD', gl.TEXTURE_CUBE_MAP,
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0),
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, -999.0)
+            ),
+            new glsSamplerObjectTest.TestSpec('diff_min_lod', 'Different gl.TEXTURE_MIN_LOD', gl.TEXTURE_CUBE_MAP,
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, 0.0, 1000.0),
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, 100.0, 1000.0)
+            )
         ];
 
-        /** @type {TestCaseGroup} */ var  simpleTextureCube = new tcuTestCase.newTest('single_cubemap', 'Simple cubemap texture with sampler');
+        /** @type {TestCaseGroup} */ var simpleTextureCube = new tcuTestCase.newTest('single_cubemap', 'Simple cubemap texture with sampler');
 
         for (var testNdx = 0; testNdx < simpleTestCasesCube.length; testNdx++)
-            simpleTextureCube.addChild(new glsSamplerObjectTest.TextureSamplerTest(m_testCtx, m_context.getRenderContext(), simpleTestCasesCube[testNdx]));
+            simpleTextureCube.addChild(new glsSamplerObjectTest.TextureSamplerTest(simpleTestCasesCube[testNdx]));
 
         testGroup.addChild(simpleTextureCube);
 
-        glsSamplerObjectTest.MultiTextureSamplerTest.TestSpec multiTestCasesCube[] = [
-            [ 'diff_wrap_t', 'Different gl.TEXTURE_WRAP_T', gl.TEXTURE_CUBE_MAP,
-                    [ gl.NEAREST, gl.NEAREST, gl.MIRRORED_REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ],
-                    [ gl.NEAREST, gl.NEAREST, gl.MIRRORED_REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ],
-                    [ gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ]
-            ],
-            [ 'diff_wrap_s', 'Different gl.TEXTURE_WRAP_S', gl.TEXTURE_CUBE_MAP,
-                    [ gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.MIRRORED_REPEAT, gl.REPEAT, -1000.0, 1000.0 ],
-                    [ gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.MIRRORED_REPEAT, gl.REPEAT, -1000.0, 1000.0 ],
-                    [ gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ]
-            ],
-            [ 'diff_wrap_r', 'Different gl.TEXTURE_WRAP_R', gl.TEXTURE_CUBE_MAP,
-                    [ gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.MIRRORED_REPEAT, -1000.0, 1000.0 ],
-                    [ gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.MIRRORED_REPEAT, -1000.0, 1000.0 ],
-                    [ gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ]
-            ],
-            [ 'diff_min_filter', 'Different gl.TEXTURE_MIN_FILTER', gl.TEXTURE_CUBE_MAP,
-                    [ gl.LINEAR, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ],
-                    [ gl.LINEAR, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ],
-                    [ gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ]
-            ],
-            [ 'diff_mag_filter', 'Different gl.TEXTURE_MAG_FILTER', gl.TEXTURE_CUBE_MAP,
-                    [ gl.NEAREST, gl.LINEAR, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ],
-                    [ gl.NEAREST, gl.LINEAR, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ],
-                    [ gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ]
-            ],
-            [ 'diff_max_lod', 'Different gl.TEXTURE_MAX_LOD', gl.TEXTURE_CUBE_MAP,
-                    [ gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ],
-                    [ gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0 ],
-                    [ gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, -999.0 ]
-            ],
-            [ 'diff_min_lod', 'Different gl.TEXTURE_MIN_LOD', gl.TEXTURE_CUBE_MAP,
-                    [ gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, 0.0, 1000.0 ],
-                    [ gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, 0.0, 1000.0 ],
-                    [ gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, 100.0, 1000.0 ]
-            ]
+        /* @type {glsSamplerObjectTest.TestSpec} */ var multiTestCasesCube = [
+            new glsSamplerObjectTest.TestSpec('diff_wrap_t', 'Different gl.TEXTURE_WRAP_T', gl.TEXTURE_CUBE_MAP,
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.MIRRORED_REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0),
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.MIRRORED_REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0),
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0)
+            ),
+            new glsSamplerObjectTest.TestSpec('diff_wrap_s', 'Different gl.TEXTURE_WRAP_S', gl.TEXTURE_CUBE_MAP,
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.MIRRORED_REPEAT, gl.REPEAT, -1000.0, 1000.0),
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.MIRRORED_REPEAT, gl.REPEAT, -1000.0, 1000.0),
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0)
+            ),
+            new glsSamplerObjectTest.TestSpec('diff_wrap_r', 'Different gl.TEXTURE_WRAP_R', gl.TEXTURE_CUBE_MAP,
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.MIRRORED_REPEAT, -1000.0, 1000.0),
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.MIRRORED_REPEAT, -1000.0, 1000.0),
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0)
+            ),
+            new glsSamplerObjectTest.TestSpec('diff_min_filter', 'Different gl.TEXTURE_MIN_FILTER', gl.TEXTURE_CUBE_MAP,
+                new glsSamplerObjectTest.SamplingState(gl.LINEAR, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0),
+                new glsSamplerObjectTest.SamplingState(gl.LINEAR, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0),
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0)
+            ),
+            new glsSamplerObjectTest.TestSpec('diff_mag_filter', 'Different gl.TEXTURE_MAG_FILTER', gl.TEXTURE_CUBE_MAP,
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.LINEAR, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0),
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.LINEAR, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0),
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0)
+            ),
+            new glsSamplerObjectTest.TestSpec('diff_max_lod', 'Different gl.TEXTURE_MAX_LOD', gl.TEXTURE_CUBE_MAP,
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0),
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0),
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, -999.0)
+            ),
+            new glsSamplerObjectTest.TestSpec('diff_min_lod', 'Different gl.TEXTURE_MIN_LOD', gl.TEXTURE_CUBE_MAP,
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, 0.0, 1000.0),
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, 0.0, 1000.0),
+                new glsSamplerObjectTest.SamplingState(gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, 100.0, 1000.0)
+            )
         ];
 
-        /** @type {TestCaseGroup} */ var  multiTextureCube = new tcuTestCase.newTest('multi_cubemap', 'Multiple texture units cubemap textures with sampler');
+        /** @type {TestCaseGroup} */ var multiTextureCube = new tcuTestCase.newTest('multi_cubemap', 'Multiple texture units cubemap textures with sampler');
 
         for (var testNdx = 0; testNdx < multiTestCasesCube.length; testNdx++)
-            multiTextureCube.addChild(new glsSamplerObjectTest.MultiTextureSamplerTest(m_testCtx, m_context.getRenderContext(), multiTestCasesCube[testNdx]));
+            multiTextureCube.addChild(new glsSamplerObjectTest.MultiTextureSamplerTest(multiTestCasesCube[testNdx]));
 
         testGroup.addChild(multiTextureCube);
     };

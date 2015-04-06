@@ -359,17 +359,16 @@ var VertexComponentType =
     // Special types: only CONVERT_NONE is allowed.
     VTX_COMP_FIXED: 6,
     VTX_COMP_HALF_FLOAT: 7,
-    VTX_COMP_FLOAT: 8,
+    VTX_COMP_FLOAT: 8
 };
 
 /**
  * @enum
  */
-var VertexComponentConversion
-{
+var VertexComponentConversion = {
     VTX_COMP_CONVERT_NONE: 0, //!< No conversion: integer types, or floating-point values.
     VTX_COMP_CONVERT_NORMALIZE_TO_FLOAT: 1, //!< Normalize integers to range [0,1] or [-1,1] depending on type.
-    VTX_COMP_CONVERT_CAST_TO_FLOAT: 2, //!< Convert to floating-point directly.
+    VTX_COMP_CONVERT_CAST_TO_FLOAT: 2 //!< Convert to floating-point directly.
 };
 
 /**
@@ -397,7 +396,7 @@ var VertexArrayPointer = function(componentType_, convert_, numComponents_, numE
  */
 var Type = {
     TYPE_LOCATION: 0, //!< Binding by numeric location.
-    TYPE_NAME: 1, //!< Binding by input name.
+    TYPE_NAME: 1 //!< Binding by input name.
 };
 
 /**
@@ -446,7 +445,7 @@ return {
     VertexComponentType: VertexComponentType,
     VertexComponentConversion: VertexComponentConversion,
     VertexArrayPointer: VertexArrayPointer,
-    vabFromBindingPointAndArrayPointer: vabFromBindingPointAndArrayPointer
+    vabFromBindingPointAndArrayPointer: vabFromBindingPointAndArrayPointer,
     BindingPoint: BindingPoint,
     bindingPointFromLocation: bindingPointFromLocation,
     bindingPointFromName: bindingPointFromName

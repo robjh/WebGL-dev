@@ -50,13 +50,11 @@ define([
     /** @const @type {number} */ var RESTART_INDEX_UNSIGNED_SHORT = MAX_UNSIGNED_SHORT;
     /** @const @type {number} */ var RESTART_INDEX_UNSIGNED_INT = MAX_UNSIGNED_INT;
 
-    var DE_ASSERT = function(expression)
-    {
+    var DE_ASSERT = function(expression) {
         if (!expression) throw new Error('Assert failed');
     };
 
-    var GLU_CHECK_MSG = function(message)
-    {
+    var GLU_CHECK_MSG = function(message) {
         console.log(message);
     };
 
@@ -87,9 +85,9 @@ define([
     };
 
     /**
-     * @enum Function
+     * @enum DrawFunction
      */
-    var Function = {
+    var DrawFunction = {
         FUNCTION_DRAW_ELEMENTS: 0,
         FUNCTION_DRAW_ELEMENTS_INSTANCED: 1,
         FUNCTION_DRAW_RANGE_ELEMENTS: 2
@@ -102,17 +100,16 @@ define([
     * @param {string} description
     * @param {PrimitiveType} primType
     * @param {IndexType} indexType
-    * @param {Function} function
+    * @param {DrawFunction} function
     * @param {boolean} beginWithRestart
     * @param {boolean} endWithRestart
     * @param {boolean} duplicateRestarts
     */
-    var PrimitiveRestartCase = function(name, description, primType, indexType, _function, beginWithRestart, endWithRestart, duplicateRestarts)
-    {
+    var PrimitiveRestartCase = function(name, description, primType, indexType, _function, beginWithRestart, endWithRestart, duplicateRestarts) {
         tcuTestCase.DeqpTest.call(this, name, description);
         /** @type {PrimitiveType} */ this.m_primType = primType;
         /** @type {IndexType} */ this.m_indexType = indexType;
-        /** @type {Function} */ this.m_function = _function;
+        /** @type {DrawFunction} */ this.m_function = _function;
         /** @type {boolean} */ this.m_beginWithRestart = beginWithRestart; // Whether there will be restart indices at the beginning of the index array.
         /** @type {boolean} */ this.m_endWithRestart = endWithRestart; // Whether there will be restart indices at the end of the index array.
         /** @type {boolean} */ this.m_duplicateRestarts = duplicateRestarts; // Whether two consecutive restarts are used instead of one.
@@ -137,8 +134,7 @@ define([
     PrimitiveRestartCase.prototype.draw = function(startNdx, count) {
         /** @type {PrimitiveType} */ var primTypeGL;
 
-        switch (this.m_primType)
-        {
+        switch (this.m_primType) {
             case PrimitiveType.PRIMITIVE_POINTS:
                 primTypeGL = gl.POINTS;
                 break;
@@ -167,8 +163,7 @@ define([
 
         /** @type {IndexType} */ var indexTypeGL;
 
-        switch (this.m_indexType)
-        {
+        switch (this.m_indexType) {
             case IndexType.INDEX_UNSIGNED_BYTE:
                 indexTypeGL = gl.UNSIGNED_BYTE;
                 break;
@@ -189,33 +184,28 @@ define([
                                                    0;
 
         DE_ASSERT(restartIndex != 0);
-        //TODO: drawElementsInstanced -> check usage of getIndexPtr
 
         var indexGLBuffer = gl.createBuffer();
         var bufferIndex = this.getIndexPtr(startNdx);
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexGLBuffer);
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, bufferIndex, gl.STATIC_DRAW);
 
-        if (this.m_function == Function.FUNCTION_DRAW_ELEMENTS)
-        {
+        if (this.m_function == DrawFunction.FUNCTION_DRAW_ELEMENTS) {
             gl.drawElements(primTypeGL, count-1, indexTypeGL, 0);
         }
-        else if (this.m_function == Function.FUNCTION_DRAW_ELEMENTS_INSTANCED)
-        {
+        else if (this.m_function == DrawFunction.FUNCTION_DRAW_ELEMENTS_INSTANCED) {
             gl.drawElementsInstanced(primTypeGL, count, indexTypeGL, 0, 1);
         }
 
-        else
-        {
-            DE_ASSERT(this.m_function == Function.FUNCTION_DRAW_RANGE_ELEMENTS);
+        else {
+            DE_ASSERT(this.m_function == DrawFunction.FUNCTION_DRAW_RANGE_ELEMENTS);
 
             // Find the largest non-restart index in the index array (for glDrawRangeElements() end parameter).
 
             /** @type {number} */ var max = 0;
 
             /** @type {number} */ var numIndices = this.getNumIndices();
-            for (var i = 0; i < numIndices; i++)
-            {
+            for (var i = 0; i < numIndices; i++) {
                 /** @type {number} */ var index = this.getIndex(i);
                 if (index != restartIndex && index > max)
                     max = index;
@@ -265,12 +255,9 @@ define([
 
         /** @type {number} */ var indexArrayStartNdx = 0; // Keep track of the draw start index - first index after a primitive restart, or initially the first index altogether.
 
-        for (var indexArrayNdx = 0; indexArrayNdx <= numIndices; indexArrayNdx++) // \note Goes one "too far" in order to detect end of array as well.
-        {
-            if (indexArrayNdx >= numIndices || this.getIndex(indexArrayNdx) == restartIndex) // \note Handle end of array the same way as a restart index encounter.
-            {
-                if (indexArrayStartNdx < numIndices)
-                {
+        for (var indexArrayNdx = 0; indexArrayNdx <= numIndices; indexArrayNdx++) { // \note Goes one "too far" in order to detect end of array as well.
+            if (indexArrayNdx >= numIndices || this.getIndex(indexArrayNdx) == restartIndex) {// \note Handle end of array the same way as a restart index encounter.
+                if (indexArrayStartNdx < numIndices) {
                     // Draw from index indexArrayStartNdx to index indexArrayNdx-1 .
 
                     this.draw(indexArrayStartNdx, indexArrayNdx - indexArrayStartNdx);
@@ -288,18 +275,15 @@ define([
     * @param {number} index
     */
     PrimitiveRestartCase.prototype.addIndex = function(index) {
-        if (this.m_indexType == IndexType.INDEX_UNSIGNED_BYTE)
-        {
+        if (this.m_indexType == IndexType.INDEX_UNSIGNED_BYTE) {
             DE_ASSERT(deMath.deInRange32(index, 0, MAX_UNSIGNED_BYTE));
             this.m_indicesUB.push(index); // deUint8
         }
-        else if (this.m_indexType == IndexType.INDEX_UNSIGNED_SHORT)
-        {
+        else if (this.m_indexType == IndexType.INDEX_UNSIGNED_SHORT) {
             DE_ASSERT(deMath.deInRange32(index, 0, MAX_UNSIGNED_SHORT));
             this.m_indicesUS.push(index); // deUint16
         }
-        else if (this.m_indexType == IndexType.INDEX_UNSIGNED_INT)
-        {
+        else if (this.m_indexType == IndexType.INDEX_UNSIGNED_INT) {
             DE_ASSERT(deMath.deInRange32(index, 0, MAX_UNSIGNED_INT));
             this.m_indicesUI.push(index); // // deUint32
         }
@@ -312,8 +296,7 @@ define([
     * @return {number}
     */
     PrimitiveRestartCase.prototype.getIndex = function(indexNdx) {
-        switch (this.m_indexType)
-        {
+        switch (this.m_indexType) {
             case IndexType.INDEX_UNSIGNED_BYTE:
                 return this.m_indicesUB[indexNdx]; //deUint32
             case IndexType.INDEX_UNSIGNED_SHORT:
@@ -330,8 +313,7 @@ define([
     * @return {number}
     */
     PrimitiveRestartCase.prototype.getNumIndices = function() {
-        switch (this.m_indexType)
-        {
+        switch (this.m_indexType) {
             case IndexType.INDEX_UNSIGNED_BYTE:
                 return this.m_indicesUB.length;
             case IndexType.INDEX_UNSIGNED_SHORT:
@@ -347,12 +329,11 @@ define([
     /**
     * Pointer to the index value at index indexNdx.
     * @param {number} indexNdx
-    * @return {Uint8Array.<number>|Uint16Array.<number>|Uint32<number}
+    * @return {Uint8Array|Uint16Array|Uint32}
     */
     PrimitiveRestartCase.prototype.getIndexPtr = function(indexNdx) {
         //TODO: implement
-        switch (this.m_indexType)
-        {
+        switch (this.m_indexType) {
             case IndexType.INDEX_UNSIGNED_BYTE:
                 return new Uint8Array(this.m_indicesUB).subarray(indexNdx);
             case IndexType.INDEX_UNSIGNED_SHORT:
@@ -393,8 +374,7 @@ define([
 
         this.m_program = new gluShaderProgram.ShaderProgram(gl, gluShaderProgram.makeVtxFragSources(vertShaderSource, fragShaderSource));
 
-        if (!this.m_program.isOk())
-        {
+        if (!this.m_program.isOk()) {
             //m_testCtx.getLog() << *this.m_program;
             TCU_FAIL('Failed to compile shader');
         }
@@ -409,8 +389,7 @@ define([
         DE_ASSERT(this.getNumIndices() == 0);
 
         // If testing a case with restart at beginning, add it there.
-        if (this.m_beginWithRestart)
-        {
+        if (this.m_beginWithRestart) {
             this.addIndex(restartIndex);
             if (this.m_duplicateRestarts)
                 this.addIndex(restartIndex);
@@ -419,17 +398,14 @@ define([
         // Generate vertex positions and indices depending on primitive type.
         // \note At this point, restarts shall not be added to the start or the end of the index vector. Those are special cases, and are done above and after the following if-else chain, respectively.
 
-        if (this.m_primType == PrimitiveType.PRIMITIVE_POINTS)
-        {
+        if (this.m_primType == PrimitiveType.PRIMITIVE_POINTS) {
             // Generate rows with different numbers of points.
 
             /** @type {number} */ var curIndex = 0;
             /** @type {number} */ var numRows = 20;
 
-            for (var row = 0; row < numRows; row++)
-            {
-                for (var col = 0; col < row + 1; col++)
-                {
+            for (var row = 0; row < numRows; row++) {
+                for (var col = 0; col < row + 1; col++) {
                     /** @type {number} */ var fx = -1.0 + 2.0 * (col + 0.5) / numRows;
                     /** @type {number} */ var fy = -1.0 + 2.0 * (row + 0.5) / numRows;
 
@@ -439,35 +415,28 @@ define([
                     this.addIndex(curIndex++);
                 }
 
-                if (row < numRows - 1) // Add a restart after all but last row.
-                {
+                if (row < numRows - 1) { // Add a restart after all but last row.
                     this.addIndex(restartIndex);
                     if (this.m_duplicateRestarts)
                         this.addIndex(restartIndex);
                 }
             }
         }
-        else if (this.m_primType == PrimitiveType.PRIMITIVE_LINE_STRIP ||
-                 this.m_primType == PrimitiveType.PRIMITIVE_LINE_LOOP ||
-                 this.m_primType == PrimitiveType.PRIMITIVE_LINES)
-        {
+        else if (this.m_primType == PrimitiveType.PRIMITIVE_LINE_STRIP || this.m_primType == PrimitiveType.PRIMITIVE_LINE_LOOP || this.m_primType == PrimitiveType.PRIMITIVE_LINES) {
             // Generate a numRows x numCols arrangement of line polygons of different vertex counts.
 
             /** @type {number} */ var curIndex = 0;
             /** @type {number} */ var numRows = 4;
             /** @type {number} */ var numCols = 4;
 
-            for (var row = 0; row < numRows; row++)
-            {
+            for (var row = 0; row < numRows; row++) {
                 /** @type {number} */ var centerY = -1.0 + 2.0 * (row + 0.5) / numRows;
 
-                for (var col = 0; col < numCols; col++)
-                {
+                for (var col = 0; col < numCols; col++) {
                     /** @type {number} */ var centerX = -1.0 + 2.0 * (col + 0.5) / numCols;
                     /** @type {number} */ var numVertices = row * numCols + col + 1;
 
-                    for (var i = 0; i < numVertices; i++)
-                    {
+                    for (var i = 0; i < numVertices; i++) {
                         /** @type {number} */ var fx = centerX + 0.9 * Math.cos(i * 2.0 * Math.PI / numVertices) / numCols;
                         /** @type {number} */ var fy = centerY + 0.9 * Math.sin(i * 2.0 * Math.PI / numVertices) / numRows;
 
@@ -477,8 +446,7 @@ define([
                         this.addIndex(curIndex++);
                     }
 
-                    if (col < numCols - 1 || row < numRows - 1) // Add a restart after all but last polygon.
-                    {
+                    if (col < numCols - 1 || row < numRows - 1) {// Add a restart after all but last polygon.
                         this.addIndex(restartIndex);
                         if (this.m_duplicateRestarts)
                             this.addIndex(restartIndex);
@@ -486,19 +454,16 @@ define([
                 }
             }
         }
-        else if (this.m_primType == PrimitiveType.PRIMITIVE_TRIANGLE_STRIP)
-        {
+        else if (this.m_primType == PrimitiveType.PRIMITIVE_TRIANGLE_STRIP) {
             // Generate a number of horizontal triangle strips of different lengths.
 
             /** @type {number} */ var curIndex = 0;
             /** @const @type {number} */ var numStrips = 20;
 
-            for (var stripNdx = 0; stripNdx < numStrips; stripNdx++)
-            {
+            for (var stripNdx = 0; stripNdx < numStrips; stripNdx++) {
                 /** @type {number} */ var numVertices = stripNdx + 1;
 
-                for (var i = 0; i < numVertices; i++)
-                {
+                for (var i = 0; i < numVertices; i++) {
                     /** @type {number} */ var fx = -0.9 + 1.8 * (i / 2 * 2) / numStrips;
                     /** @type {number} */ var fy = -0.9 + 1.8 * (stripNdx + (i % 2 == 0 ? 0.0 : 0.8)) / numStrips;
 
@@ -508,8 +473,7 @@ define([
                     this.addIndex(curIndex++);
                 }
 
-                if (stripNdx < numStrips - 1) // Add a restart after all but last strip.
-                {
+                if (stripNdx < numStrips - 1) { // Add a restart after all but last strip.
                     this.addIndex(restartIndex);
                     if (this.m_duplicateRestarts)
                         this.addIndex(restartIndex);
@@ -524,12 +488,10 @@ define([
             /** @type {number} */ var numRows = 4;
             /** @type {number} */ var numCols = 4;
 
-            for (var row = 0; row < numRows; row++)
-            {
+            for (var row = 0; row < numRows; row++) {
                 /** @type {number} */ var centerY = -1.0 + 2.0 * (row + 0.5) / numRows;
 
-                for (var col = 0; col < numCols; col++)
-                {
+                for (var col = 0; col < numCols; col++) {
                     /** @type {number} */ var centerX = -1.0 + 2.0 * (col + 0.5) / numCols;
                     /** @type {number} */ var numArcVertices = row * numCols + col;
 
@@ -538,8 +500,7 @@ define([
 
                     this.addIndex(curIndex++);
 
-                    for (var i = 0; i < numArcVertices; i++)
-                    {
+                    for (var i = 0; i < numArcVertices; i++) {
                         /** @type {number} */ var fx = centerX + 0.9 * Math.cos(i * 2.0 * Math.PI / numArcVertices) / numCols;
                         /** @type {number} */ var fy = centerY + 0.9 * Math.sin(i * 2.0 * Math.PI / numArcVertices) / numRows;
 
@@ -549,8 +510,7 @@ define([
                         this.addIndex(curIndex++);
                     }
 
-                    if (col < numCols - 1 || row < numRows - 1) // Add a restart after all but last polygon.
-                    {
+                    if (col < numCols - 1 || row < numRows - 1) { // Add a restart after all but last polygon.
                         this.addIndex(restartIndex);
                         if (this.m_duplicateRestarts)
                             this.addIndex(restartIndex);
@@ -558,19 +518,16 @@ define([
                 }
             }
         }
-        else if (this.m_primType == PrimitiveType.PRIMITIVE_TRIANGLES)
-        {
+        else if (this.m_primType == PrimitiveType.PRIMITIVE_TRIANGLES) {
             // Generate a number of rows with (potentially incomplete) triangles.
 
             /** @type {number} */ var curIndex = 0;
             /** @type {number} */ var numRows = 3 * 7;
 
-            for (var rowNdx = 0; rowNdx < numRows; rowNdx++)
-            {
+            for (var rowNdx = 0; rowNdx < numRows; rowNdx++) {
                 /** @type {number} */ var numVertices = rowNdx + 1;
 
-                for (var i = 0; i < numVertices; i++)
-                {
+                for (var i = 0; i < numVertices; i++) {
                     /** @type {number} */ var fx = -0.9 + 1.8 * ((i / 3) + (i % 3 == 2 ? 0.8 : 0.0)) * 3 / numRows;
                     /** @type {number} */ var fy = -0.9 + 1.8 * (rowNdx + (i % 3 == 0 ? 0.0 : 0.8)) / numRows;
 
@@ -580,8 +537,7 @@ define([
                     this.addIndex(curIndex++);
                 }
 
-                if (rowNdx < numRows - 1) // Add a restart after all but last row.
-                {
+                if (rowNdx < numRows - 1) { // Add a restart after all but last row.
                     this.addIndex(restartIndex);
                     if (this.m_duplicateRestarts)
                         this.addIndex(restartIndex);
@@ -592,8 +548,7 @@ define([
             DE_ASSERT(false);
 
         // If testing a case with restart at end, add it there.
-        if (this.m_endWithRestart)
-        {
+        if (this.m_endWithRestart) {
             this.addIndex(restartIndex);
             if (this.m_duplicateRestarts)
                 this.addIndex(restartIndex);
@@ -639,21 +594,24 @@ define([
         gl.enableVertexAttribArray(loc);
 
         var locGlBuffer = gl.createBuffer();
-        var bufferLoc = new Float32Array(this.m_position);
+        var bufferLoc = new Float32Array(this.m_positions);
         gl.bindBuffer(gl.ARRAY_BUFFER, locGlBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, bufferLoc, gl.STATIC_DRAW);
         gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
 
-        var resImg = resultImg.getAccess();
-        var resImgTransferFormat = gluTextureUtil.getTransferFormat(resImg.getFormat());
-
         // Render result.
         this.renderWithRestart();
+        var resImg = resultImg.getAccess();
+        var resImgTransferFormat = gluTextureUtil.getTransferFormat(resImg.getFormat());
         gl.readPixels(xOffset, yOffset, resImg.m_width, resImg.m_height, resImgTransferFormat.format, resImgTransferFormat.dataType, resultImg.m_pixels);
 
         // Render reference (same scene as the real deal, but emulate primitive restart without actually using it).
         this.renderWithoutRestart();
-        gl.readPixels(xOffset, yOffset, resImg.m_width, resImg.m_height, resImgTransferFormat.format, resImgTransferFormat.dataType, resultImg.m_pixels);
+
+        var refImg = referenceImg.getAccess();
+        var refImgTransferFormat = gluTextureUtil.getTransferFormat(refImg.getFormat());
+
+        gl.readPixels(xOffset, yOffset, refImg.m_width, refImg.m_height, refImgTransferFormat.format, refImgTransferFormat.dataType, referenceImg.m_pixels);
 
         // Compare.
         /** @type {boolean} */ var testOk = tcuImageCompare.pixelThresholdCompare('ComparisonResult', 'Image comparison result', referenceImg, resultImg, [0, 0, 0, 0], /*COMPARE_LOG_RESULT*/ null);
@@ -667,12 +625,9 @@ define([
 
     var init = function() {
         var testGroup = tcuTestCase.runner.getState().testCases;
-        for (var isRestartBeginCaseI = 0; isRestartBeginCaseI <= 1; isRestartBeginCaseI++)
-        {
-            for (var isRestartEndCaseI = 0; isRestartEndCaseI <= 1; isRestartEndCaseI++)
-            {
-                for (var isDuplicateRestartCaseI = 0; isDuplicateRestartCaseI <= 1; isDuplicateRestartCaseI++)
-                {
+        for (var isRestartBeginCaseI = 0; isRestartBeginCaseI <= 1; isRestartBeginCaseI++) {
+            for (var isRestartEndCaseI = 0; isRestartEndCaseI <= 1; isRestartEndCaseI++) {
+                for (var isDuplicateRestartCaseI = 0; isDuplicateRestartCaseI <= 1; isDuplicateRestartCaseI++) {
                     /** @type {boolean} */ var isRestartBeginCase = isRestartBeginCaseI != 0;
                     /** @type {boolean} */ var isRestartEndCase = isRestartEndCaseI != 0;
                     /** @type {boolean} */ var isDuplicateRestartCase = isDuplicateRestartCaseI != 0;
@@ -689,8 +644,7 @@ define([
                     /** @type {TestCaseGroup} */ var specialCaseGroup = new tcuTestCase.newTest(specialCaseGroupName, '');
                     testGroup.addChild(specialCaseGroup);
 
-                    for (var primType in PrimitiveType)
-                    {
+                    for (var primType in PrimitiveType) {
                         /** @type {string} */ var primTypeName = PrimitiveType[primType] == PrimitiveType.PRIMITIVE_POINTS ? 'points' :
                                                                  PrimitiveType[primType] == PrimitiveType.PRIMITIVE_LINE_STRIP ? 'line_strip' :
                                                                  PrimitiveType[primType] == PrimitiveType.PRIMITIVE_LINE_LOOP ? 'line_loop' :
@@ -705,8 +659,7 @@ define([
                         /** @type {TestCaseGroup} */ var primTypeGroup = new tcuTestCase.newTest(PrimitiveType[primType], '');
                         specialCaseGroup.addChild(primTypeGroup);
 
-                        for (var indexType in IndexType)
-                        {
+                        for (var indexType in IndexType) {
                             /** @type {string} */ var indexTypeName = IndexType[indexType] == IndexType.INDEX_UNSIGNED_BYTE ? 'unsigned_byte' :
                                                                       IndexType[indexType] == IndexType.INDEX_UNSIGNED_SHORT ? 'unsigned_short' :
                                                                       IndexType[indexType] == IndexType.INDEX_UNSIGNED_INT ? 'unsigned_int' :
@@ -717,11 +670,10 @@ define([
                             /** @type {TestCaseGroup} */ var indexTypeGroup = new tcuTestCase.newTest(indexTypeName, '');
                             primTypeGroup.addChild(indexTypeGroup);
 
-                            for (var _function in Function)
-                            {
-                                /** @type {string} */ var functionName = Function[_function] == Function.FUNCTION_DRAW_ELEMENTS ? 'draw_elements' :
-                                                                         Function[_function] == Function.FUNCTION_DRAW_ELEMENTS_INSTANCED ? 'draw_elements_instanced' :
-                                                                         Function[_function] == Function.FUNCTION_DRAW_RANGE_ELEMENTS ? 'draw_range_elements' :
+                            for (var _function in DrawFunction) {
+                                /** @type {string} */ var functionName = DrawFunction[_function] == DrawFunction.FUNCTION_DRAW_ELEMENTS ? 'draw_elements' :
+                                                                         DrawFunction[_function] == DrawFunction.FUNCTION_DRAW_ELEMENTS_INSTANCED ? 'draw_elements_instanced' :
+                                                                         DrawFunction[_function] == DrawFunction.FUNCTION_DRAW_RANGE_ELEMENTS ? 'draw_range_elements' :
                                                                          null;
 
                                 DE_ASSERT(functionName != null);
@@ -730,7 +682,7 @@ define([
                                                                                  '',
                                                                                  PrimitiveType[primType],
                                                                                  IndexType[indexType],
-                                                                                 Function[_function],
+                                                                                 DrawFunction[_function],
                                                                                  isRestartBeginCase,
                                                                                  isRestartEndCase,
                                                                                  isDuplicateRestartCase));

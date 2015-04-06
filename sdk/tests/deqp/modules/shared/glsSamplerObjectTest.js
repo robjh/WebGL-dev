@@ -27,7 +27,8 @@ define([
     'framework/common/tcuTextureUtil',
     'framework/common/tcuImageCompare',
     'framework/opengl/gluDrawUtil',
-    'framework/opengl/gluTextureUtil'], function(
+    'framework/opengl/gluTextureUtil',
+    'framework/delibs/debase/deString'], function(
         tcuTestCase,
         deRandom,
         gluShaderProgram,
@@ -36,7 +37,8 @@ define([
         tcuTextureUtil,
         tcuImageCompare,
         gluDrawUtil,
-        gluTextureUtil) {
+        gluTextureUtil,
+        deString) {
     'use strict';
 
     var GLU_EXPECT_NO_ERROR = function(errorNumber, message) {
@@ -91,26 +93,26 @@ define([
     /**
      * @struct
      */
-    var SamplingState = function() {
-        /** @type {GLenum} */ this.minFilter;
-        /** @type {GLenum} */ this.magFilter;
-        /** @type {GLenum} */ this.wrapT;
-        /** @type {GLenum} */ this.wrapS;
-        /** @type {GLenum} */ this.wrapR;
-        /** @type {number} */ this.minLod;
-        /** @type {number} */ this.maxLod;
+    var SamplingState = function(minFilter, magFilter, wrapT, wrapS, wrapR, minLod, maxLod) {
+        /** @type {GLenum} */ this.minFilter = minFilter;
+        /** @type {GLenum} */ this.magFilter = magFilter;
+        /** @type {GLenum} */ this.wrapT = wrapT;
+        /** @type {GLenum} */ this.wrapS = wrapS;
+        /** @type {GLenum} */ this.wrapR = wrapR;
+        /** @type {number} */ this.minLod = minLod;
+        /** @type {number} */ this.maxLod = maxLod;
     };
 
     /**
      * @struct
      */
-    var TestSpec = function() {
-        /** @type {string} */ this.name;
-        /** @type {string} */ this.desc;
-        /** @type {GLenum} */ this.target;
-        /** @type {SamplingState} */ this.textureState;
-        /** @type {SamplingState} */ this.textureState2; // merging TST and MTST structs
-        /** @type {SamplingState} */ this.samplerState;
+    var TestSpec = function(name, desc, target, state1, state2, state3) {
+        /** @type {string} */ this.name = name;
+        /** @type {string} */ this.desc = desc;
+        /** @type {GLenum} */ this.target = target;
+        /** @type {SamplingState} */ this.textureState = state1;
+        /** @type {SamplingState} */ this.textureState2 = state3 !== undefined ? state2 : null; // merging TST and MTST structs
+        /** @type {SamplingState} */ this.samplerState = state3 !== undefined ? state3 : state2;
     };
 
     /**
@@ -123,8 +125,11 @@ define([
         /** @type {GLenum} */ this.m_target = spec.target;
         /** @type {SamplingState} */ this.m_textureState = spec.textureState;
         /** @type {SamplingState} */ this.m_samplerState = spec.samplerState;
-        /** @type {deRandom.Random} */ this.m_random = deRandom.deStringHash(spec.name);
+        /** @type {deRandom.Random} */ this.m_random = new deRandom.Random(deString.deStringHash(spec.name));
     };
+
+    TextureSamplerTest.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
+    TextureSamplerTest.prototype.constructor = TextureSamplerTest;
 
     /**
      * @private
@@ -151,7 +156,7 @@ define([
         this.setTextureState(this.m_target, this.m_samplerState);
         render();
         var sampRef = samplerRef.getAccess();
-        var sampRefTransferFormat = gluTextureUtil.getTransferFormat(texRef.getFormat());
+        var sampRefTransferFormat = gluTextureUtil.getTransferFormat(sampRef.getFormat());
         gl.readPixels(x, y, sampRef.m_width, sampRef.m_height, sampRefTransferFormat.format, sampRefTransferFormat.dataType, samplerRef.m_pixels);
 
         gl.deleteTextures(1, texture);
@@ -190,7 +195,7 @@ define([
         // Render using sampler
         this.render();
         var sampRes = samplerResult.getAccess();
-        var sampResTransferFormat = gluTextureUtil.getTransferFormat(texRef.getFormat());
+        var sampResTransferFormat = gluTextureUtil.getTransferFormat(sampRes.getFormat());
         gl.readPixels(x, y, sampRes.m_width, sampRes.m_height, sampResTransferFormat.format, sampResTransferFormat.dataType, samplerResult.m_pixels);
 
         // Render without sampler
@@ -199,7 +204,7 @@ define([
 
         this.render();
         var texRes = textureResult.getAccess();
-        var texResTransferFormat = gluTextureUtil.getTransferFormat(texRef.getFormat());
+        var texResTransferFormat = gluTextureUtil.getTransferFormat(texRes.getFormat());
         gl.readPixels(x, y, texRes.m_width, texRes.m_height, texResTransferFormat.format, texResTransferFormat.dataType, textureResult.m_pixels);
 
         gl.deleteSamplers(1, sampler);
@@ -236,12 +241,9 @@ define([
         gl.uniform1f(scaleLoc, 1.0);
         GLU_EXPECT_NO_ERROR(gl.getError(), 'glUniform1f(scaleLoc, 1.0f)');
 
-        switch (this.m_target)
-        {
-            case gl.TEXTURE_2D:
-            {
-                /** @type {Array.<gluDrawUtil.VertexArrayBinding>} */ var vertexArrays =
-                [
+        switch (this.m_target) {
+            case gl.TEXTURE_2D: {
+                /** @type {Array.<gluDrawUtil.VertexArrayBinding>} */ var vertexArrays = [
                     gluDrawUtil.vabFromBindingPointAndArrayPointer(
                         gluDrawUtil.bindingPointFromName('a_position'),
                         new gluDrawUtil.VertexArrayPointer(
@@ -263,10 +265,8 @@ define([
                 break;
             }
 
-            case gl.TEXTURE_3D:
-            {
-                /** @type {Array.<gluDrawUtil.VertexArrayBinding>} */ var vertexArrays =
-                [
+            case gl.TEXTURE_3D: {
+                /** @type {Array.<gluDrawUtil.VertexArrayBinding>} */ var vertexArrays = [
                     gluDrawUtil.vabFromBindingPointAndArrayPointer(
                         gluDrawUtil.bindingPointFromName('a_position'),
                         new gluDrawUtil.VertexArrayPointer(
@@ -288,10 +288,8 @@ define([
                 break;
             }
 
-            case gl.TEXTURE_CUBE_MAP:
-            {
-                /** @type {Array.<gluDrawUtil.VertexArrayBinding>} */ var vertexArrays =
-                [
+            case gl.TEXTURE_CUBE_MAP: {
+                /** @type {Array.<gluDrawUtil.VertexArrayBinding>} */ var vertexArrays = [
                     gluDrawUtil.vabFromBindingPointAndArrayPointer(
                         gluDrawUtil.bindingPointFromName('a_position'),
                         new gluDrawUtil.VertexArrayPointer(
@@ -457,8 +455,7 @@ define([
         gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
         GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(GL_TEXTURE_CUBE_MAP, texture)');
 
-        for (var face = 0; face < Objects.keys(tcuTexture.CubeFace).length; face++)
-        {
+        for (var face = 0; face < Objects.keys(tcuTexture.CubeFace).length; face++) {
             /** @const @type {number} */ var target = gluTextureUtil.getGLCubeFace(face);
             gl.texImage2D(target, 0, gl.RGBA8, refTexture.getSize(), refTexture.getSize(), 0, gl.RGBA, gl.UNSIGNED_BYTE, refTexture.getLevelFace(0, face).getDataPtr());
         }
@@ -478,8 +475,7 @@ define([
      * @return {number}
      */
     TextureSamplerTest.createTexture = function(target) {
-        switch (target)
-        {
+        switch (target) {
             case gl.TEXTURE_2D:
                 return this.createTexture2D(gl);
 
@@ -501,8 +497,7 @@ define([
      * @return {string}
      */
      TextureSamplerTest.selectVertexShader = function(target) {
-         switch (target)
-         {
+         switch (target) {
              case gl.TEXTURE_2D:
                  return '#version 300 es\n' +
                  'in highp vec2 a_position;\n' +
@@ -548,8 +543,7 @@ define([
       * @return {string}
       */
      TextureSamplerTest.selectFragmentShader = function(target) {
-         switch (target)
-         {
+         switch (target) {
              case gl.TEXTURE_2D:
                  return '#version 300 es\nlayout(location = 0) out mediump vec4 o_color;\n' +
                  'uniform lowp sampler2D u_sampler;\n' +
@@ -585,17 +579,16 @@ define([
 
 
     TextureSamplerTest.prototype.init = function() {
-        /** @const @type {string} */ var vertexShader = this.selectVertexShader(this.m_target);
-        /** @const @type {string} */ var fragmentShader = this.selectFragmentShader(this.m_target);
+        /** @const @type {string} */ var vertexShaderTemplate = TextureSamplerTest.selectVertexShader(this.m_target);
+        /** @const @type {string} */ var fragmentShaderTemplate = TextureSamplerTest.selectFragmentShader(this.m_target);
 
         DE_ASSERT(!this.m_program);
-        m_program = new gluShaderProgram.ShaderProgram(gl,
+        this.m_program = new gluShaderProgram.ShaderProgram(gl,
                                                        gluShaderProgram.makeVtxFragSources(
                                                            vertexShaderTemplate,
                                                            fragmentShaderTemplate));
 
-        if (!this.m_program.isOk())
-        {
+        if (!this.m_program.isOk()) {
             // tcu::TestLog& log = m_testCtx.getLog();
             // log << *m_program;
             TCU_FAIL('Failed to compile shaders');
@@ -640,20 +633,22 @@ define([
         /** @type {SamplingState} */ this.m_textureState1 = spec.textureState;
         /** @type {SamplingState} */ this.m_textureState2 = spec.textureState2;
         /** @type {SamplingState} */ this.m_samplerState = spec.samplerState;
-        /** @type {deRandom.Random} */ this.m_random = deRandom.deStringHash(spec.name);
+        /** @type {deRandom.Random} */ this.m_random = deRandom.Random(deString.deStringHash(spec.name));
     };
 
+    MultiTextureSamplerTest.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
+    MultiTextureSamplerTest.prototype.constructor = MultiTextureSamplerTest;
+
     MultiTextureSamplerTest.prototype.init = function() {
-        /** @type {string} */ var vertexShaderTemplate = selectVertexShader(this.m_target);
-        /** @type {string} */ var fragmentShaderTemplate = selectFragmentShader(this.m_target);
+        /** @type {string} */ var vertexShaderTemplate = MultiTextureSamplerTest.selectVertexShader(this.m_target);
+        /** @type {string} */ var fragmentShaderTemplate = MultiTextureSamplerTest.selectFragmentShader(this.m_target);
 
         DE_ASSERT(!this.m_program);
         this.m_program = new gluShaderProgram.ShaderProgram(this,
                                                             gluShaderProgram.makeVtxFragSources(
                                                                 vertexShaderTemplate,
                                                                 fragmentShaderTemplate));
-        if (!this.m_program.isOk())
-        {
+        if (!this.m_program.isOk()) {
             // tcu::TestLog& log = m_testCtx.getLog();
             //
             // log << *m_program;
@@ -734,7 +729,7 @@ define([
 
         render();
         var sampRef = samplerRef.getAccess();
-        var sampRefTransferFormat = gluTextureUtil.getTransferFormat(texRef.getFormat());
+        var sampRefTransferFormat = gluTextureUtil.getTransferFormat(sampRef.getFormat());
         gl.readPixels(x, y, sampRef.m_width, sampRef.m_height, sampRefTransferFormat.format, sampRefTransferFormat.dataType, samplerRef.m_pixels);
     };
 
@@ -787,7 +782,7 @@ define([
         // Render using sampler
         this.render();
         var sampRes = samplerResult.getAccess();
-        var sampResTransferFormat = gluTextureUtil.getTransferFormat(texRef.getFormat());
+        var sampResTransferFormat = gluTextureUtil.getTransferFormat(sampRes.getFormat());
         gl.readPixels(x, y, sampRes.m_width, sampRes.m_height, sampResTransferFormat.format, sampResTransferFormat.dataType, samplerResult.m_pixels);
 
         gl.bindSampler(0, 0);
@@ -797,7 +792,7 @@ define([
 
         this.render();
         var texRes = textureResult.getAccess();
-        var texResTransferFormat = gluTextureUtil.getTransferFormat(texRef.getFormat());
+        var texResTransferFormat = gluTextureUtil.getTransferFormat(texRes.getFormat());
         gl.readPixels(x, y, texRes.m_width, texRes.m_height, texResTransferFormat.format, texResTransferFormat.dataType, textureResult.m_pixels);
 
         gl.activeTexture(gl.TEXTURE0);
@@ -850,12 +845,9 @@ define([
         gl.uniform1f(scaleLoc, 1.0);
         GLU_EXPECT_NO_ERROR(gl.getError(), 'glUniform1f(scaleLoc, 1.0f)');
 
-        switch (this.m_target)
-        {
-            case gl.TEXTURE_2D:
-            {
-                /** @type {Array.<gluDrawUtil.VertexArrayBinding>} */ var vertexArrays =
-                [
+        switch (this.m_target) {
+            case gl.TEXTURE_2D: {
+                /** @type {Array.<gluDrawUtil.VertexArrayBinding>} */ var vertexArrays = [
                     gluDrawUtil.vabFromBindingPointAndArrayPointer(
                         gluDrawUtil.bindingPointFromName('a_position'),
                         new gluDrawUtil.VertexArrayPointer(
@@ -877,10 +869,8 @@ define([
                 break;
             }
 
-            case gl.TEXTURE_3D:
-            {
-                /** @type {Array.<gluDrawUtil.VertexArrayBinding>} */ var vertexArrays =
-                [
+            case gl.TEXTURE_3D: {
+                /** @type {Array.<gluDrawUtil.VertexArrayBinding>} */ var vertexArrays = [
                     gluDrawUtil.vabFromBindingPointAndArrayPointer(
                         gluDrawUtil.bindingPointFromName('a_position'),
                         new gluDrawUtil.VertexArrayPointer(
@@ -902,11 +892,9 @@ define([
                 break;
             }
 
-            case gl.TEXTURE_CUBE_MAP:
-            {
+            case gl.TEXTURE_CUBE_MAP: {
 
-                /** @type {Array.<gluDrawUtil.VertexArrayBinding>} */ var vertexArrays =
-                [
+                /** @type {Array.<gluDrawUtil.VertexArrayBinding>} */ var vertexArrays = [
                     gluDrawUtil.vabFromBindingPointAndArrayPointer(
                         gluDrawUtil.bindingPointFromName('a_position'),
                         new gluDrawUtil.VertexArrayPointer(
@@ -997,8 +985,7 @@ define([
         gl.genTextures(1, texture);
         GLU_EXPECT_NO_ERROR(gl.getError(), 'glGenTextures(1, &texture)');
 
-        switch (id)
-        {
+        switch (id) {
             case 0:
                 tcuTextureUtil.fillWithComponentGradients(refTexture.getLevel(0), [0.0, 0.0, 0.0, 0.0], [1.0, 1.0, 0.5, 0.5]);
                 break;
@@ -1046,8 +1033,7 @@ define([
         gl.genTextures(1, texture);
         GLU_EXPECT_NO_ERROR(gl.getError(), 'glGenTextures(1, &texture)');
 
-        switch (id)
-        {
+        switch (id) {
             case 0:
                 tcuTextureUtil.fillWithComponentGradients(refTexture.getLevel(0), [0.0, 0.0, 0.0, 0.0], [1.0, 1.0, 0.5, 0.5]);
                 break;
@@ -1097,8 +1083,7 @@ define([
         refTexture.allocLevel(tcuTexture.CubeFace.CUBEFACE_NEGATIVE_Y, 0);
         refTexture.allocLevel(tcuTexture.CubeFace.CUBEFACE_NEGATIVE_Z, 0);
 
-        switch (id)
-        {
+        switch (id) {
             case 0:
                 tcuTextureUtil.fillWithComponentGradients(refTexture.getLevelFace(0, tcuTexture.CubeFace.CUBEFACE_POSITIVE_X), [0.0, 0.0, 0.0, 0.0], [0.5, 0.5, 0.5, 0.5]);
                 tcuTextureUtil.fillWithComponentGradients(refTexture.getLevelFace(0, tcuTexture.CubeFace.CUBEFACE_POSITIVE_Y), [0.0, 0.0, 0.0, 0.0], [0.5, 0.5, 0.5, 0.5]);
@@ -1124,8 +1109,7 @@ define([
         gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
         GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(GL_TEXTURE_CUBE_MAP, texture)');
 
-        for (var face = 0; face < Object.keys(tcuTexture.CubeFace).length; face++)
-        {
+        for (var face = 0; face < Object.keys(tcuTexture.CubeFace).length; face++) {
             /** @const @type {number} */ var target = gluTextureUtil.getGLCubeFace(face);
             gl.texImage2D(target, 0, gl.RGBA8, refTexture.getSize(), refTexture.getSize(), 0, gl.RGBA, gl.UNSIGNED_BYTE, refTexture.getLevelFace(0, face).getDataPtr());
         }
@@ -1146,8 +1130,7 @@ define([
      * @return {number}
      */
     MultiTextureSamplerTest.createTexture = function(target, id) {
-        switch (target)
-        {
+        switch (target) {
             case gl.TEXTURE_2D:
                 return this.createTexture2D(gl, id);
 
@@ -1169,8 +1152,7 @@ define([
      * @return {string}
      */
     MultiTextureSamplerTest.selectVertexShader = function(target) {
-        switch (target)
-            {
+        switch (target) {
                 case gl.TEXTURE_2D:
                     return '#version 300 es\n' +
                     'in highp vec2 a_position;\n' +
@@ -1216,8 +1198,7 @@ define([
      * @return {string}
      */
     MultiTextureSamplerTest.selectFragmentShader = function(target) {
-        switch (target)
-            {
+        switch (target) {
                 case gl.TEXTURE_2D:
                     return '#version 300 es\nlayout(location = 0) out mediump vec4 o_color;\n' +
                     'uniform lowp sampler2D u_sampler1;\n' +
@@ -1260,6 +1241,8 @@ define([
 
     return {
         TextureSamplerTest: TextureSamplerTest,
-        MultiTextureSamplerTest: MultiTextureSamplerTest
+        MultiTextureSamplerTest: MultiTextureSamplerTest,
+        SamplingState: SamplingState,
+        TestSpec: TestSpec
     };
 });
