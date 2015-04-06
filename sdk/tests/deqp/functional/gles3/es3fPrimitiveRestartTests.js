@@ -39,16 +39,16 @@ define([
         gluTextureUtil) {
     'use strict';
 
-    /** @const @type {int} */ var MAX_RENDER_WIDTH = 256;
-    /** @const @type {int} */ var MAX_RENDER_HEIGHT = 256;
+    /** @const @type {number} */ var MAX_RENDER_WIDTH = 256;
+    /** @const @type {number} */ var MAX_RENDER_HEIGHT = 256;
 
-    /** @const @type {deUint32} */ var MAX_UNSIGNED_BYTE = 255;
-    /** @const @type {deUint32} */ var MAX_UNSIGNED_SHORT = 65535;
-    /** @const @type {deUint32} */ var MAX_UNSIGNED_INT = 4294967295;
+    /** @const @type {number} */ var MAX_UNSIGNED_BYTE = 255;
+    /** @const @type {number} */ var MAX_UNSIGNED_SHORT = 65535;
+    /** @const @type {number} */ var MAX_UNSIGNED_INT = 4294967295;
 
-    /** @const @type {deUint8} */ var RESTART_INDEX_UNSIGNED_BYTE = MAX_UNSIGNED_BYTE;
-    /** @const @type {deUint16} */ var RESTART_INDEX_UNSIGNED_SHORT = MAX_UNSIGNED_SHORT;
-    /** @const @type {deUint32} */ var RESTART_INDEX_UNSIGNED_INT = MAX_UNSIGNED_INT;
+    /** @const @type {number} */ var RESTART_INDEX_UNSIGNED_BYTE = MAX_UNSIGNED_BYTE;
+    /** @const @type {number} */ var RESTART_INDEX_UNSIGNED_SHORT = MAX_UNSIGNED_SHORT;
+    /** @const @type {number} */ var RESTART_INDEX_UNSIGNED_INT = MAX_UNSIGNED_INT;
 
     var DE_ASSERT = function(expression)
     {
@@ -119,11 +119,11 @@ define([
         /** @type {ShaderProgram} */ this.m_program = null;
 
         // \note Only one of the following index vectors is used (according to m_indexType).
-        /** @type {Array<deUint8>} */ this.m_indicesUB = [];
-        /** @type {Array<deUint16>} */ this.m_indicesUS = [];
-        /** @type {Array<deUint32>} */ this.m_indicesUI = [];
+        /** @type {Array.<number>} */ this.m_indicesUB = []; //deUint8
+        /** @type {Array.<number>} */ this.m_indicesUS = []; //deUint16
+        /** @type {Array.<number>} */ this.m_indicesUI = []; //deUint32
 
-        /** @type {Array<float>} */ this.m_positions = [];
+        /** @type {Array.<number>} */ this.m_positions = [];
     };
 
     PrimitiveRestartCase.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
@@ -183,7 +183,7 @@ define([
                 indexTypeGL = 0;
         }
 
-        /** @type {deUint32} */ var restartIndex = this.m_indexType == IndexType.INDEX_UNSIGNED_BYTE ? RESTART_INDEX_UNSIGNED_BYTE :
+        /** @type {number} */ var restartIndex = this.m_indexType == IndexType.INDEX_UNSIGNED_BYTE ? RESTART_INDEX_UNSIGNED_BYTE :
                                                    this.m_indexType == IndexType.INDEX_UNSIGNED_SHORT ? RESTART_INDEX_UNSIGNED_SHORT :
                                                    this.m_indexType == IndexType.INDEX_UNSIGNED_INT ? RESTART_INDEX_UNSIGNED_INT :
                                                    0;
@@ -211,12 +211,12 @@ define([
 
             // Find the largest non-restart index in the index array (for glDrawRangeElements() end parameter).
 
-            /** @type {deUint32} */ var max = 0;
+            /** @type {number} */ var max = 0;
 
             /** @type {number} */ var numIndices = this.getNumIndices();
             for (var i = 0; i < numIndices; i++)
             {
-                /** @type {deUint32} */ var index = this.getIndex(i);
+                /** @type {number} */ var index = this.getIndex(i);
                 if (index != restartIndex && index > max)
                     max = index;
             }
@@ -285,7 +285,7 @@ define([
     };
 
     /**
-    * @param {deUint32} index
+    * @param {number} index
     */
     PrimitiveRestartCase.prototype.addIndex = function(index) {
         if (this.m_indexType == IndexType.INDEX_UNSIGNED_BYTE)
@@ -347,7 +347,7 @@ define([
     /**
     * Pointer to the index value at index indexNdx.
     * @param {number} indexNdx
-    * @return {Uint8Array<number>|Uint16Array<number>|Uint32<number}
+    * @return {Uint8Array.<number>|Uint16Array.<number>|Uint32<number}
     */
     PrimitiveRestartCase.prototype.getIndexPtr = function(indexNdx) {
         //TODO: implement

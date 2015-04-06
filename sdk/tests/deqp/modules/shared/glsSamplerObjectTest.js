@@ -70,8 +70,8 @@ define([
         /** @type {GLenum} */ this.wrapT;
         /** @type {GLenum} */ this.wrapS;
         /** @type {GLenum} */ this.wrapR;
-        /** @type {GLfloat} */ this.minLod;
-        /** @type {GLfloat} */ this.maxLod;
+        /** @type {number} */ this.minLod;
+        /** @type {number} */ this.maxLod;
     };
 
     /**

@@ -52,9 +52,9 @@ define([
     };
 
     /**
-     * @param {deMath.deUint32} color
+     * @param {number} color
      * @param {number} channel
-     * @return {deMath.deUint8}
+     * @return {number}
      */
     var getChannel = function (color, channel) {
         if (channel > 4) return 0; //No point trying to get a channel beyond the color parameter's 32-bit boundary.
@@ -65,10 +65,10 @@ define([
     };
 
     /**
-     * @param {deMath.deUint32} color
+     * @param {number} color
      * @param {number} channel
-     * @param {deMath.deUint8} val
-     * @return {deMath.deUint32}
+     * @param {number} val
+     * @return {number}
      */
     var setChannel = function (color, channel, val) {
         if(channel > 4) return color; //No point trying to set a channel beyond the color parameter's 32-bit boundary.
@@ -82,7 +82,7 @@ define([
     };
 
     /**
-     * @param {deMath.deUint32} color
+     * @param {number} color
      * @return {Array.<deMath.deUint32>}
      */
     var toFloatVec = function (color) {
@@ -91,7 +91,7 @@ define([
 
     /**
      * @param {number} v
-     * @return {deMath.deUint8}
+     * @return {number}
      */
     var roundToUint8Sat = function (v) {
         return new Uint8Array([deMath.clamp(v + 0.5, 0, 255)])[0];
@@ -99,7 +99,7 @@ define([
 
     /**
      * @param {Array.<number>} v
-     * @return {deMath.deUint32}
+     * @return {number}
      */
     var toColor = function (v) {
         var buffer = new ArrayBuffer(4);
@@ -117,7 +117,7 @@ define([
      * @param {number} x
      * @param {number} y
      * @param {number} NumChannels
-     * @return {deMath.deUint32}
+     * @return {number}
      */
     var readUnorm8 = function (src, x, y, NumChannels) {
         var start = src.getRowPitch() * y + x * NumChannels;
@@ -132,7 +132,7 @@ define([
      * @param {tcuTexture.PixelBufferAccess} dst
      * @param {number} x
      * @param {number} y
-     * @param {deMath.deUint32} val
+     * @param {number} val
      * @param {number} NumChannels
      */
     var writeUnorm8 = function (dst, x, y, val, NumChannels) {
@@ -144,8 +144,8 @@ define([
     };
 
     /**
-     * @param {deUint32} pa
-     * @param {deUint32} pb
+     * @param {number} pa
+     * @param {number} pb
      * @param {number} minErrThreshold
      * @return {number}
      */
@@ -166,7 +166,7 @@ define([
      * @param {number} u
      * @param {number} v
      * @param {number} NumChannels
-     * @return {deMath.deUint32}
+     * @return {number}
      */
     var bilinearSample = function (src, u, v, NumChannels) {
         /** @type {number}*/ var w = src.getWidth();
@@ -185,11 +185,11 @@ define([
         /** @type {number}*/ var a = (u - 0.5) - Math.floor(u - 0.5);;
         /** @type {number}*/ var b = (u - 0.5) - Math.floor(u - 0.5);;
 
-        /** @type {deMath.deUint32} */ var p00 = readUnorm8(src, i0, j0, NumChannels);
-        /** @type {deMath.deUint32} */ var p10 = readUnorm8(src, i1, j0, NumChannels);
-        /** @type {deMath.deUint32} */ var p01 = readUnorm8(src, i0, j1, NumChannels);
-        /** @type {deMath.deUint32} */ var p11 = readUnorm8(src, i1, j1, NumChannels);
-        /** @type {deMath.deUint32} */ var dst = 0;
+        /** @type {number} */ var p00 = readUnorm8(src, i0, j0, NumChannels);
+        /** @type {number} */ var p10 = readUnorm8(src, i1, j0, NumChannels);
+        /** @type {number} */ var p01 = readUnorm8(src, i0, j1, NumChannels);
+        /** @type {number} */ var p11 = readUnorm8(src, i1, j1, NumChannels);
+        /** @type {number} */ var dst = 0;
 
         // Interpolate.
         for (var c = 0; c < NumChannels; c++)
@@ -231,7 +231,7 @@ define([
                 sum[0] = sum[1] = sum[2] = sum[3] = 0;
                 for (var kx = 0; kx < kw; kx++) {
                     /** @type {number} */ var f = kernelX[kw - kx - 1];
-                    /** @type {deMath.deUint32} */ var p = readUnorm8(src, deMath.clamp(i + kx - shiftX, 0, src.getWidth()-1), j, SrcChannels);
+                    /** @type {number} */ var p = readUnorm8(src, deMath.clamp(i + kx - shiftX, 0, src.getWidth()-1), j, SrcChannels);
                     sum = deMath.add(sum, deMath.multiply(toFloatVec(p), toFloatVec(f)));
                 }
 
@@ -246,7 +246,7 @@ define([
                 sum[0] = sum[1] = sum[2] = sum[3] = 0;
                 for (var ky = 0; ky < kh; ky++) {
                     /** @type {number} */ var f = kernelY[kh - ky - 1];
-                    /** @type {deMath.deUint32} */ var p = readUnorm8(tmpAccess, deMath.clamp(j + ky - shiftY, 0, tmp.getWidth()-1), i, DstChannels);
+                    /** @type {number} */ var p = readUnorm8(tmpAccess, deMath.clamp(j + ky - shiftY, 0, tmp.getWidth()-1), i, DstChannels);
                     sum = deMath.add(sum, deMath.multiply(toFloatVec(p), toFloatVec(f)));
                 }
 
@@ -258,7 +258,7 @@ define([
     /**
      * @param {FuzzyCompareParams} params
      * @param {deRandom.Random} rnd
-     * @param {deMath.deUint32} pixel
+     * @param {number} pixel
      * @param {ConstPixelBufferAccess} surface
      * @param {number} x
      * @param {number} y
@@ -303,7 +303,7 @@ define([
             /** @type {number} */ var dx = x + rnd.getFloat() * 2.0 - 0.5;
             /** @type {number} */ var dy = y + rnd.getFloat() * 2.0 - 0.5;
 
-            /** @type {deMath.deUint32} */ var sample = bilinearSample(surface, dx, dy, NumChannels);
+            /** @type {number} */ var sample = bilinearSample(surface, dx, dy, NumChannels);
 
             minErr = Math.min(minErr, compareColors(pixel, sample, params.minErrThreshold));
             if (minErr == 0.0)

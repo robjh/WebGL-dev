@@ -409,8 +409,8 @@ var fuzzyCompare = function(imageSetName, imageSetDesc, reference, result, thres
                                                                 tcuTexture.PixelBufferAccess.newFromTextureLevel(errorMask)
                                                                );
     /** @type {boolean} */ var isOk = difference <= threshold;
-    /** @type {Array<number>} */ var pixelBias = [0.0, 0.0, 0.0, 0.0];
-    /** @type {Array<number>} */ var pixelScale = [1.0, 1.0, 1.0, 1.0];
+    /** @type {Array.<number>} */ var pixelBias = [0.0, 0.0, 0.0, 0.0];
+    /** @type {Array.<number>} */ var pixelScale = [1.0, 1.0, 1.0, 1.0];
 
     if (!isOk) {
         debug('Fuzzy image comparison failed: difference = ' + difference + ', threshold = ' + threshold);
