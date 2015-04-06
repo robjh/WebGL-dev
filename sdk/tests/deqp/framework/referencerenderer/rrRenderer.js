@@ -315,7 +315,7 @@ Triangle.prototype.rasterizePrimitive = function(/*const RenderState&*/         
         return;
 
     // Shading context
-    var shadingContext = FragmentShadingContext(this.v0.outputs, this.v1.outputs, this.v2.outputs, buffers.shaderOutputs, buffers.fragmentDepthBuffer, this.v2.primitiveID, program.fragmentShader.getOutputs().length, numSamples);
+    var shadingContext = new rrShadingContext.FragmentShadingContext(this.v0.outputs, this.v1.outputs, this.v2.outputs, buffers.shaderOutputs, buffers.fragmentDepthBuffer, this.v2.primitiveID, program.fragmentShader.getOutputs().length, numSamples);
 
     // Polygon offset
     if (buffers.fragmentDepthBuffer && state.fragOps.polygonOffsetEnabled)
@@ -527,9 +527,9 @@ DrawIndices.prototype.readIndexArray = function(index) { return this.access[inde
 
 /**
  * @constructor
- * @param {ArrayBuffer} data
- * @param {rrDefs.IndexType} type
- * @param {number=} baseVertex_
+ * @param {PrimitiveType} primitiveType
+ * @param {number} numElements
+ * @param { (number|DrawIndices) } indices
  */
 var PrimitiveList = function(primitiveType, numElements, indices) {
     this.m_primitiveType = primitiveType;
@@ -552,7 +552,7 @@ PrimitiveList.prototype.getIndex = function(elementNdx) {
     if (this.m_indices) {
         var index = this.m_baseVertex + this.m_indices.readIndexArray(elementNdx);
         if (index < 0)
-            throw new Error('Index must not be negative').
+            throw new Error('Index must not be negative');
 
         return index;
     }

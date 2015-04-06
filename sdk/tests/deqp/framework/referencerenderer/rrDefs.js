@@ -24,7 +24,7 @@ define(function() {
  * @enum
  */
 var FaceType = {
-    FACETYPE_FRONT: 0
+    FACETYPE_FRONT: 0,
     FACETYPE_BACK: 1
 };
 
@@ -41,14 +41,14 @@ var IndexType = {
  * @enum
  */
 var ProvokingVertex = {
-    PROVOKINGVERTEX_FIRST: 1
+    PROVOKINGVERTEX_FIRST: 1,
     PROVOKINGVERTEX_LAST: 2           // \note valid value, "last vertex", not last of enum
 };
 
-return [
+return {
     FaceType: FaceType,
     IndexType: IndexType,
     ProvokingVertex: ProvokingVertex
-];
+};
 
 });

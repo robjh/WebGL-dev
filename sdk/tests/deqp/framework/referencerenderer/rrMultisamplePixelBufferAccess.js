@@ -86,7 +86,7 @@ MultisamplePixelBufferAccess.prototype.getSubregion = function(region) {
  * @return {Array<number>} [x, y, width, height]
  */
 MultisamplePixelBufferAccess.prototype.getBufferSize = function() {
-    return [0, 0, multisampleBuffer.raw().getHeight(), multisampleBuffer.raw().getDepth()];
+    return [0, 0, this.raw().getHeight(), this.raw().getDepth()];
 }
 
 /**

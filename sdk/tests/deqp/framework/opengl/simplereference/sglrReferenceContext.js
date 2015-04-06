@@ -18,14 +18,14 @@
  *
  */
 
-define(['framework/referencerenderer/rrMultisamplePixelBufferAccess', 'framework/common/tcuTexture', 'framework/delibs/debase/deMath', 'framework/opengl/gluTextureUtil', 'framework/common/tcuTextureUtil', 'framework/common/tcuPixelFormat', 'framework/opengl/gluShaderUtil', 'framework/referencerenderer/rrRenderer', 'framework/referencerenderer/rrDefs', 'framework/referencerenderer/rrVertexAttrib' ],
- function(rrMultisamplePixelBufferAccess, tcuTexture, deMath, gluTextureUtil, tcuTextureUtil, tcuPixelFormat, gluShaderUtil, rrRenderer, rrDefs, rrVertexAttrib) {
+define(['framework/referencerenderer/rrMultisamplePixelBufferAccess', 'framework/common/tcuTexture', 'framework/delibs/debase/deMath', 'framework/opengl/gluTextureUtil', 'framework/common/tcuTextureUtil', 'framework/common/tcuPixelFormat', 'framework/opengl/gluShaderUtil', 'framework/referencerenderer/rrRenderer', 'framework/referencerenderer/rrDefs', 'framework/referencerenderer/rrVertexAttrib', 'framework/referencerenderer/rrRenderState' ],
+ function(rrMultisamplePixelBufferAccess, tcuTexture, deMath, gluTextureUtil, tcuTextureUtil, tcuPixelFormat, gluShaderUtil, rrRenderer, rrDefs, rrVertexAttrib, rrRenderState) {
 
 var rrMPBA = rrMultisamplePixelBufferAccess;
 
 var GLU_EXPECT_NO_ERROR = function(error, message) {
     if (error !== gl.NONE) {
-        console.log('Assertion failed message:' + message)
+        console.log('Assertion failed message:' + message);
         // throw new Error(message);
     }
 };
@@ -34,6 +34,9 @@ var DE_ASSERT = function(x) {
     if (!x)
         throw new Error('Assert failed');
 };
+
+/* TODO: remove */
+/** @type {WebGL2RenderingContext} */ var gl;
 
 var MAX_TEXTURE_SIZE_LOG2       = 14;
 var MAX_TEXTURE_SIZE            = 1<<MAX_TEXTURE_SIZE_LOG2;
@@ -50,16 +53,17 @@ var isMipmapFilter = function(/*const tcu::Sampler::FilterMode*/ mode) {
     return mode != tcuTexture.FilterMode.NEAREST && mode != tcuTexture.FilterMode.LINEAR;
 };
 
-
-/* TODO: This belongs to refrast. Where to move it? */
-/**
- * @enum
- */
-var FaceType = {
-    FACETYPE_FRONT: 0,
-    FACETYPE_BACK: 1
+var getFixedRestartIndex = function(indexType) {
+    switch (indexType) {
+        case rrDefs.INDEXTYPE_UINT8:       return 0xFF;
+        case rrDefs.INDEXTYPE_UINT16:      return 0xFFFF;
+        case rrDefs.INDEXTYPE_UINT32:      return 0xFFFFFFFF;
+        default:
+            throw new Error('Unrecognized index type: ' + indexType);
+        }
 };
 
+/* TODO: This belongs to refrast. Where to move it? */
 /**
  * @constructor
  * @param {number=} a
@@ -399,6 +403,22 @@ var TexTarget = {
     TEXTARGET_CUBE_MAP_ARRAY: 9
 };
 
+/**
+ * @param {TexTarget} target
+ * @return {tcutexture.CubeFace}
+ */
+var texTargetToFace = function(target) {
+    switch (target) {
+        case TexTarget.TEXTARGET_CUBE_MAP_NEGATIVE_X:    return tcuTexture.CubeFace.CUBEFACE_NEGATIVE_X;
+        case TexTarget.TEXTARGET_CUBE_MAP_POSITIVE_X:    return tcuTexture.CubeFace.CUBEFACE_POSITIVE_X;
+        case TexTarget.TEXTARGET_CUBE_MAP_NEGATIVE_Y:    return tcuTexture.CubeFace.CUBEFACE_NEGATIVE_Y;
+        case TexTarget.TEXTARGET_CUBE_MAP_POSITIVE_Y:    return tcuTexture.CubeFace.CUBEFACE_POSITIVE_Y;
+        case TexTarget.TEXTARGET_CUBE_MAP_NEGATIVE_Z:    return tcuTexture.CubeFace.CUBEFACE_NEGATIVE_Z;
+        case TexTarget.TEXTARGET_CUBE_MAP_POSITIVE_Z:    return tcuTexture.CubeFace.CUBEFACE_POSITIVE_Z;
+        default:                                            return undefined;
+    }
+};
+
 var mapGLFboTexTarget = function(target) {
     switch (target) {
         case gl.TEXTURE_2D:                     return TexTarget.TEXTARGET_2D;
@@ -715,8 +735,8 @@ var ReferenceContext = function(limits, colorbuffer, depthbuffer, stencilbuffer)
     this.m_primitiveRestartFixedIndex    = true; //always on
     this.m_primitiveRestartSettableIndex = true; //always on
     this.m_stencil = [];
-    for (var type in FaceType)
-        this.m_stencil[FaceType[type]] = new StencilState();
+    for (var type in rrDefs.FaceType)
+        this.m_stencil[rrDefs.FaceType[type]] = new StencilState();
     this.m_depthFunc = gl.LESS;
     this.m_depthRangeNear      = 0;
     this.m_depthRangeFar       = 1;
@@ -749,6 +769,16 @@ var ReferenceContext = function(limits, colorbuffer, depthbuffer, stencilbuffer)
     for (var i = 0; i < this.m_limits.maxVertexAttribs; i++)
         this.m_currentAttribs.push(new GenericVec4());
     this.m_lineWidth = 1;
+
+    this.m_emptyTex2D = new TextureContainer();
+    this.m_emptyTex2D.init(gl.TEXTURE_2D);
+    this.m_emptyTex2D.texture.getSampler().wrapS     = tcuTexture.WrapMode.CLAMP_TO_EDGE;
+    this.m_emptyTex2D.texture.getSampler().wrapT     = tcuTexture.WrapMode.CLAMP_TO_EDGE;
+    this.m_emptyTex2D.texture.getSampler().minFilter = tcuTexture.FilterMode.NEAREST;
+    this.m_emptyTex2D.texture.getSampler().magFilter = tcuTexture.FilterMode.NEAREST;
+    this.m_emptyTex2D.texture.allocLevel(0, new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.UNORM_INT8), 1, 1);
+    this.m_emptyTex2D.texture.getLevel(0).setPixel([0, 0, 0, 1], 0, 0);
+    this.m_emptyTex2D.texture.updateView();
 };
 
 ReferenceContext.prototype.getWidth = function() { return this.m_defaultColorbuffer.raw().getHeight(); };
@@ -778,8 +808,7 @@ ReferenceContext.prototype.condtionalSetError = function(condition, error) {
 ReferenceContext.prototype.bindTexture = function(target, texture) {
     var unitNdx = this.m_activeTexture;
 
-    if (this.condtionalSetError((target != gl.TEXTURE_1D             &&
-                target != gl.TEXTURE_2D             &&
+    if (this.condtionalSetError((target != gl.TEXTURE_2D             &&
                 target != gl.TEXTURE_CUBE_MAP       &&
                 target != gl.TEXTURE_2D_ARRAY       &&
                 target != gl.TEXTURE_3D             &&
@@ -794,7 +823,6 @@ ReferenceContext.prototype.bindTexture = function(target, texture) {
             case gl.TEXTURE_CUBE_MAP:       setTexCubeBinding       (unitNdx, null); break;
             case gl.TEXTURE_2D_ARRAY:       setTex2DArrayBinding    (unitNdx, null); break;
             case gl.TEXTURE_3D:             setTex3DBinding         (unitNdx, null); break;
-            case gl.TEXTURE_CUBE_MAP_ARRAY: setTexCubeArrayBinding  (unitNdx, null); break;
             default:
                 throw new Error("Unrecognized target: " + target);
         }
@@ -809,7 +837,6 @@ ReferenceContext.prototype.bindTexture = function(target, texture) {
                 case gl.TEXTURE_CUBE_MAP: expectedType = TextureType.TYPE_CUBE_MAP; break;
                 case gl.TEXTURE_2D_ARRAY: expectedType = TextureType.TYPE_2D_ARRAY; break;
                 case gl.TEXTURE_3D: expectedType = TextureType.TYPE_3D; break;
-                case gl.TEXTURE_CUBE_MAP_ARRAY: expectedType = TextureType.TYPE_CUBE_MAP_ARRAY; break;
                 default: throw new Error("Unrecognized target: " + target);
             };
             if (this.condtionalSetError((texture.textureType != expectedType), gl.INVALID_OPERATION))
@@ -821,7 +848,6 @@ ReferenceContext.prototype.bindTexture = function(target, texture) {
             case gl.TEXTURE_CUBE_MAP:       setTexCubeBinding       (unitNdx, texture);  break;
             case gl.TEXTURE_2D_ARRAY:       setTex2DArrayBinding    (unitNdx, texture);  break;
             case gl.TEXTURE_3D:             setTex3DBinding         (unitNdx, texture);  break;
-            case gl.TEXTURE_CUBE_MAP_ARRAY: setTexCubeArrayBinding  (unitNdx, texture);  break;
             default:
                 throw new Error("Unrecognized target: " + target);
         }
@@ -987,9 +1013,9 @@ ReferenceContext.prototype.stencilFuncSeparate = function(face, func, ref, mask)
     if (this.condtionalSetError(!setFront && !setBack, gl.INVALID_ENUM))
         return;
 
-    for (var type in FaceType) {
-        if ((type == FaceType.FACETYPE_FRONT && setFront) ||
-            (type == FaceType.FACETYPE_BACK && setBack))
+    for (var type in rrDefs.FaceType) {
+        if ((type == rrDefs.FaceType.FACETYPE_FRONT && setFront) ||
+            (type == rrDefs.FaceType.FACETYPE_BACK && setBack))
         {
             this.m_stencil[type].func    = func;
             this.m_stencil[type].ref     = ref;
@@ -1051,9 +1077,9 @@ ReferenceContext.prototype.stencilOpSeparate = function(face, sfail, dpfail, dpp
     if (this.condtionalSetError(!setFront && !setBack, gl.INVALID_ENUM))
         return;
 
-   for (var type in FaceType) {
-        if ((type == FaceType.FACETYPE_FRONT && setFront) ||
-            (type == FaceType.FACETYPE_BACK && setBack))
+   for (var type in rrDefs.FaceType) {
+        if ((type == rrDefs.FaceType.FACETYPE_FRONT && setFront) ||
+            (type == rrDefs.FaceType.FACETYPE_BACK && setBack))
         {
             this.m_stencil[type].opStencilFail   = sfail;
             this.m_stencil[type].opDepthFail     = dpfail;
@@ -1180,8 +1206,8 @@ ReferenceContext.prototype.stencilMaskSeparate = function(face, mask) {
     if (this.condtionalSetError(!setFront && !setBack, gl.INVALID_ENUM))
         return;
 
-    if (setFront)   this.m_stencil[FaceType.FACETYPE_FRONT].writeMask = mask;
-    if (setBack)    this.m_stencil[FaceType.FACETYPE_BACK].writeMask  = mask;
+    if (setFront)   this.m_stencil[rrDefs.FaceType.FACETYPE_FRONT].writeMask = mask;
+    if (setBack)    this.m_stencil[rrDefs.FaceType.FACETYPE_BACK].writeMask  = mask;
 };
 
 ReferenceContext.prototype.bindVertexArray = function(array){
@@ -1195,7 +1221,7 @@ ReferenceContext.prototype.createVertexArray = function() { return new VertexArr
 
 ReferenceContext.prototype.vertexAttribPointer = function(index, rawSize, type, normalized, stride, offset) {
     var allowBGRA    = false;
-    var effectiveSize = (allowBGRA && rawSize == gl.BGRA) ? (4) : (rawSize);
+    var effectiveSize = rawSize;
 
     if (this.condtionalSetError(index >= this.m_limits.maxVertexAttribs, gl.INVALID_VALUE))
         return;
@@ -1204,7 +1230,6 @@ ReferenceContext.prototype.vertexAttribPointer = function(index, rawSize, type, 
     if (this.condtionalSetError(type != gl.BYTE                 &&  type != gl.UNSIGNED_BYTE    &&
                 type != gl.SHORT                &&  type != gl.UNSIGNED_SHORT   &&
                 type != gl.INT                  &&  type != gl.UNSIGNED_INT     &&
-                type != gl.FIXED                &&  type != gl.DOUBLE           &&
                 type != gl.FLOAT                &&  type != gl.HALF_FLOAT       &&
                 type != gl.INT_2_10_10_10_REV   &&  type != gl.UNSIGNED_INT_2_10_10_10_REV, gl.INVALID_ENUM))
         return;
@@ -1215,10 +1240,6 @@ ReferenceContext.prototype.vertexAttribPointer = function(index, rawSize, type, 
     if (this.condtionalSetError((type == gl.INT_2_10_10_10_REV || type == gl.UNSIGNED_INT_2_10_10_10_REV) && effectiveSize != 4, gl.INVALID_OPERATION))
         return;
     if (this.condtionalSetError(this.m_vertexArrayBinding != null && this.m_arrayBufferBinding == null && offset != 0, gl.INVALID_OPERATION))
-        return;
-    if (this.condtionalSetError(allowBGRA && rawSize == gl.BGRA && type != gl.INT_2_10_10_10_REV && type != gl.UNSIGNED_INT_2_10_10_10_REV && type != gl.UNSIGNED_BYTE, gl.INVALID_OPERATION))
-        return;
-    if (this.condtionalSetError(allowBGRA && rawSize == gl.BGRA && normalized == false, gl.INVALID_OPERATION))
         return;
 
     var array = this.m_vertexArrayBinding.m_arrays[index];
@@ -1456,7 +1477,6 @@ var isValidBufferTarget = function(target) {
         case  gl.ARRAY_BUFFER:
         case  gl.COPY_READ_BUFFER:
         case  gl.COPY_WRITE_BUFFER:
-        case  gl.DRAW_INDIRECT_BUFFER:
         case  gl.ELEMENT_ARRAY_BUFFER:
         case  gl.PIXEL_PACK_BUFFER:
         case  gl.PIXEL_UNPACK_BUFFER:
@@ -1475,7 +1495,6 @@ ReferenceContext.prototype.setBufferBinding = function(target, buffer) {
         case  gl.ARRAY_BUFFER:               this.m_arrayBufferBinding                           = buffer;     break
         case  gl.COPY_READ_BUFFER:           this.m_copyReadBufferBinding                        = buffer;     break
         case  gl.COPY_WRITE_BUFFER:          this.m_copyWriteBufferBinding                       = buffer;     break
-        case  gl.DRAW_INDIRECT_BUFFER:       this.m_drawIndirectBufferBinding                    = buffer;     break
         case  gl.ELEMENT_ARRAY_BUFFER:       this.m_vertexArrayBinding.m_elementArrayBufferBinding = buffer;     break
         case  gl.PIXEL_PACK_BUFFER:          this.m_pixelPackBufferBinding                       = buffer;     break
         case  gl.PIXEL_UNPACK_BUFFER:        this.m_pixelUnpackBufferBinding                     = buffer;     break
@@ -1492,7 +1511,6 @@ ReferenceContext.prototype.getBufferBinding = function(target) {
         case  gl.ARRAY_BUFFER:               return this.m_arrayBufferBinding;
         case  gl.COPY_READ_BUFFER:           return this.m_copyReadBufferBinding;
         case  gl.COPY_WRITE_BUFFER:          return this.m_copyWriteBufferBinding;
-        case  gl.DRAW_INDIRECT_BUFFER:       return this.m_drawIndirectBufferBinding;
         case  gl.ELEMENT_ARRAY_BUFFER:       return this.m_vertexArrayBinding.m_elementArrayBufferBinding;
         case  gl.PIXEL_PACK_BUFFER:          return this.m_pixelPackBufferBinding;
         case  gl.PIXEL_UNPACK_BUFFER:        return this.m_pixelUnpackBufferBinding;
@@ -1681,7 +1699,7 @@ ReferenceContext.prototype.checkFramebufferStatus = function(target) {
                 if (tex2D.hasLevel(attachment.level))
                     level = tex2D.getLevel(attachment.level);
             }
-            else if (deMath.deInRange32(container.texTarget, TexTarget.TEXTARGET_CUBE_MAP_POSITIVE_X,
+            else if (deMath.deInRange32(attachment.texTarget, TexTarget.TEXTARGET_CUBE_MAP_POSITIVE_X,
                                                       TexTarget.TEXTARGET_CUBE_MAP_NEGATIVE_Z))
             {
                 DE_ASSERT(container.textureType  == TextureType.TYPE_CUBE_MAP);
@@ -1786,9 +1804,7 @@ ReferenceContext.prototype.checkFramebufferStatus = function(target) {
 ReferenceContext.prototype.predrawErrorChecks = function(mode) {
     if (this.condtionalSetError(mode != gl.POINTS &&
                 mode != gl.LINE_STRIP && mode != gl.LINE_LOOP && mode != gl.LINES &&
-                mode != gl.TRIANGLE_STRIP && mode != gl.TRIANGLE_FAN && mode != gl.TRIANGLES &&
-                mode != gl.LINES_ADJACENCY && mode != gl.LINE_STRIP_ADJACENCY &&
-                mode != gl.TRIANGLES_ADJACENCY && mode != gl.TRIANGLE_STRIP_ADJACENCY,
+                mode != gl.TRIANGLE_STRIP && mode != gl.TRIANGLE_FAN && mode != gl.TRIANGLES,
                 gl.INVALID_ENUM))
         return false;
 
@@ -1842,7 +1858,7 @@ ReferenceContext.prototype.drawElementsInstancedBaseVertex = function(mode, coun
     // All is ok
     var primitiveType   = mapGLPrimitiveType(mode);
     var data = vao.m_elementArrayBufferBinding.getData();
-    var indices = new rrRenderer.DrawIndices(data, mapGLIndexType(type), baseVertex);
+    var indices = new rrRenderer.DrawIndices(data, sglrReferenceUtils.mapGLIndexType(type), baseVertex);
 
     drawWithReference(new rrRenderer.PrimitiveList(primitiveType, count, indices), instanceCount);
 };
@@ -1962,13 +1978,13 @@ ReferenceContext.prototype.clear = function(buffers) {
         var                                 stencil                 = maskStencil(stencilBits, this.m_clearStencil);
         var                                isSharedDepthStencil    = stencilBuf.raw().getFormat().order != tcuTexture.ChannelOrder.S;
 
-        if (isSharedDepthStencil || ((this.m_stencil[FaceType.FACETYPE_FRONT].writeMask & ((1<<stencilBits)-1)) != ((1<<stencilBits)-1)))
+        if (isSharedDepthStencil || ((this.m_stencil[rrDefs.FaceType.FACETYPE_FRONT].writeMask & ((1<<stencilBits)-1)) != ((1<<stencilBits)-1)))
         {
             // Slow path where depth or stencil is masked out in write.
             for (var y = 0; y < access.raw().getDepth(); y++)
                 for (var x = 0; x < access.raw().getHeight(); x++)
                     for (var s = 0; s < access.getNumSamples(); s++)
-                        writeStencilOnly(access, s, x, y, stencil, this.m_stencil[FaceType.FACETYPE_FRONT].writeMask);
+                        writeStencilOnly(access, s, x, y, stencil, this.m_stencil[rrDefs.FaceType.FACETYPE_FRONT].writeMask);
         }
         else
             access.clear([0, 0, 0, stencil]);
@@ -2013,7 +2029,7 @@ ReferenceContext.prototype.clearBufferiv = function(buffer, drawbuffer, value)
 
         var    stencilBuf  = this.getDrawStencilbuffer();
 
-        if (!stencilBuf.isEmpty() && this.m_stencil[FaceType.FACETYPE_FRONT].writeMask != 0)
+        if (!stencilBuf.isEmpty() && this.m_stencil[rrDefs.FaceType.FACETYPE_FRONT].writeMask != 0)
         {
             var                               area        = deMath.intersect(baseArea, getBufferRect(stencilBuf));
             var    access      = stencilBuf.getSubregion(area);
@@ -2022,7 +2038,7 @@ ReferenceContext.prototype.clearBufferiv = function(buffer, drawbuffer, value)
            for (var y = 0; y < access.raw().getDepth(); y++)
                 for (var x = 0; x < access.raw().getHeight(); x++)
                     for (var s = 0; s < access.getNumSamples(); s++)
-                        writeStencilOnly(access, s, x, y, stencil, this.m_stencil[FaceType.FACETYPE_FRONT].writeMask);
+                        writeStencilOnly(access, s, x, y, stencil, this.m_stencil[rrDefs.FaceType.FACETYPE_FRONT].writeMask);
         }
     }
 };
