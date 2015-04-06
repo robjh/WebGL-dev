@@ -61,6 +61,36 @@ define([
 
     /** @const @type {number} */ var CUBEMAP_SIZE = 32;
 
+    /** @const @type {number} */ var s_positions = [
+    	-1.0, -1.0,
+    	 1.0, -1.0,
+    	 1.0,  1.0,
+
+    	 1.0,  1.0,
+    	-1.0,  1.0,
+    	-1.0, -1.0
+    ];
+
+    /** @const @type {number} */ var s_positions3D = [
+    	-1.0, -1.0, -1.0,
+    	 1.0, -1.0,  1.0,
+    	 1.0,  1.0, -1.0,
+
+    	 1.0,  1.0, -1.0,
+    	-1.0,  1.0,  1.0,
+    	-1.0, -1.0, -1.0
+    ];
+
+    /** @const @type {number} */ var s_positionsCube = [
+    	-1.0, -1.0, -1.0, -0.5,
+    	 1.0, -1.0,  1.0, -0.5,
+    	 1.0,  1.0,  1.0,  0.5,
+
+    	 1.0,  1.0,  1.0,  0.5,
+    	-1.0,  1.0, -1.0,  0.5,
+    	-1.0, -1.0, -1.0, -0.5
+    ];
+
     /**
      * @struct
      */
@@ -139,17 +169,20 @@ define([
         GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(m_target, texture)');
 
         this.setTextureState(this.m_target, this.m_textureState);
-        // TODO: readPixels()
         // Render using sampler
         this.render();
-        glu::readPixels(m_renderCtx, x, y, samplerResult.getAccess());
+        var sampRes = samplerResult.getAccess();
+        var sampResTransferFormat = gluTextureUtil.getTransferFormat(texRef.getFormat());
+        gl.readPixels(x, y, sampRes.m_width, sampRes.m_height, sampResTransferFormat.format, sampResTransferFormat.dataType, samplerResult.m_pixels);
 
         // Render without sampler
         gl.bindSampler(0, 0);
         GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindSampler(0, 0)');
 
         this.render();
-        glu::readPixels(m_renderCtx, x, y, textureResult.getAccess());
+        var texRes = textureResult.getAccess();
+        var texResTransferFormat = gluTextureUtil.getTransferFormat(texRef.getFormat());
+        gl.readPixels(x, y, texRes.m_width, texRes.m_height, texResTransferFormat.format, texResTransferFormat.dataType, textureResult.m_pixels);
 
         gl.deleteSamplers(1, sampler);
         GLU_EXPECT_NO_ERROR(gl.getError(), 'glDeleteSamplers(1, &sampler)');
@@ -189,24 +222,25 @@ define([
         {
             case gl.TEXTURE_2D:
             {
-                //TODO: implement gluDrawUtil.VertexArrayBinding constructor for BindingPoint, VertexArrayPointer
                 /** @type {Array.<gluDrawUtil.VertexArrayBinding>} */ var vertexArrays =
                 [
-                    new gluDrawUtil.VertexArrayBinding(new gluDrawUtil.BindingPoint('a_position'),
-                                                       new gluDrawUtil.VertexArrayPointer(gluDrawUtil.VertexComponentType.VTX_COMP_FLOAT,
-                                                                                          gluDrawUtil.VertexComponentConversion.VTX_COMP_CONVERT_NONE,
-                                                                                          2,
-                                                                                          6,
-                                                                                          0,
-                                                                                          s_positions))
+                    gluDrawUtil.vabFromBindingPointAndArrayPointer(
+                        gluDrawUtil.bindingPointFromName('a_position'),
+                        new gluDrawUtil.VertexArrayPointer(
+                            gluDrawUtil.VertexComponentType.VTX_COMP_FLOAT,
+                            gluDrawUtil.VertexComponentConversion.VTX_COMP_CONVERT_NONE,
+                            2,
+                            6,
+                            0,
+                            s_positions))
                 ];
-                // TODO: draw()
-                glu::draw(m_renderCtx, this.m_program.getProgram(), vertexArrays.length, vertexArrays, gluDrawUtil.PrimitiveList(gluDrawUtil.primitiveType.TRIANGLES, 6));
+
+                gluDrawUtil.draw(gl, this.m_program.getProgram(), vertexArrays, new gluDrawUtil.PrimitiveList(gluDrawUtil.primitiveType.TRIANGLES, 6));
 
                 gl.uniform1f(scaleLoc, 0.25);
                 GLU_EXPECT_NO_ERROR(gl.getError(), 'glUniform1f(scaleLoc, 0.25f)');
 
-                glu::draw(m_renderCtx, this.m_program.getProgram(), vertexArrays.length, vertexArrays, gluDrawUtil.PrimitiveList(gluDrawUtil.primitiveType.TRIANGLES, 6));
+                gluDrawUtil.draw(gl, this.m_program.getProgram(), vertexArrays, new gluDrawUtil.PrimitiveList(gluDrawUtil.primitiveType.TRIANGLES, 6));
 
                 break;
             }
@@ -215,21 +249,23 @@ define([
             {
                 /** @type {Array.<gluDrawUtil.VertexArrayBinding>} */ var vertexArrays =
                 [
-                    new gluDrawUtil.VertexArrayBinding(new gluDrawUtil.BindingPoint('a_position'),
-                                                       new gluDrawUtil.VertexArrayPointer(gluDrawUtil.VertexComponentType.VTX_COMP_FLOAT,
-                                                                                          gluDrawUtil.VertexComponentConversion.VTX_COMP_CONVERT_NONE,
-                                                                                          3,
-                                                                                          6,
-                                                                                          0,
-                                                                                          s_positions3D))
+                    gluDrawUtil.vabFromBindingPointAndArrayPointer(
+                        gluDrawUtil.bindingPointFromName('a_position'),
+                        new gluDrawUtil.VertexArrayPointer(
+                            gluDrawUtil.VertexComponentType.VTX_COMP_FLOAT,
+                            gluDrawUtil.VertexComponentConversion.VTX_COMP_CONVERT_NONE,
+                            3,
+                            6,
+                            0,
+                            s_positions3D))
                 ];
-                // TODO: draw()
-                glu::draw(m_renderCtx, this.m_program.getProgram(), vertexArrays.length, vertexArrays, gluDrawUtil.PrimitiveList(gluDrawUtil.primitiveType.TRIANGLES, 6));
+
+                gluDrawUtil.draw(gl, this.m_program.getProgram(), vertexArrays, new gluDrawUtil.PrimitiveList(gluDrawUtil.primitiveType.TRIANGLES, 6));
 
                 gl.uniform1f(scaleLoc, 0.25);
                 GLU_EXPECT_NO_ERROR(gl.getError(), 'glUniform1f(scaleLoc, 0.25f)');
 
-                glu::draw(m_renderCtx, this.m_program.getProgram(), vertexArrays.length, vertexArrays, gluDrawUtil.PrimitiveList(gluDrawUtil.primitiveType.TRIANGLES, 6));
+                gluDrawUtil.draw(gl, this.m_program.getProgram(), vertexArrays, new gluDrawUtil.PrimitiveList(gluDrawUtil.primitiveType.TRIANGLES, 6));
 
                 break;
             }
@@ -238,21 +274,23 @@ define([
             {
                 /** @type {Array.<gluDrawUtil.VertexArrayBinding>} */ var vertexArrays =
                 [
-                    new gluDrawUtil.VertexArrayBinding(new gluDrawUtil.BindingPoint('a_position'),
-                                                       new gluDrawUtil.VertexArrayPointer(gluDrawUtil.VertexComponentType.VTX_COMP_FLOAT,
-                                                                                          gluDrawUtil.VertexComponentConversion.VTX_COMP_CONVERT_NONE,
-                                                                                          4,
-                                                                                          6,
-                                                                                          0,
-                                                                                          s_positionsCube))
+                    gluDrawUtil.vabFromBindingPointAndArrayPointer(
+                        gluDrawUtil.bindingPointFromName('a_position'),
+                        new gluDrawUtil.VertexArrayPointer(
+                            gluDrawUtil.VertexComponentType.VTX_COMP_FLOAT,
+                            gluDrawUtil.VertexComponentConversion.VTX_COMP_CONVERT_NONE,
+                            4,
+                            6,
+                            0,
+                            s_positionsCube))
                 ];
-                //TODO: draw()
-                glu::draw(m_renderCtx, this.m_program.getProgram(), vertexArrays.length, vertexArrays, gluDrawUtil.PrimitiveList(gluDrawUtil.primitiveType.TRIANGLES, 6));
+
+                gluDrawUtil.draw(gl, this.m_program.getProgram(), vertexArrays, new gluDrawUtil.PrimitiveList(gluDrawUtil.primitiveType.TRIANGLES, 6));
 
                 gl.uniform1f(scaleLoc, 0.25);
                 GLU_EXPECT_NO_ERROR(gl.getError(), 'glUniform1f(scaleLoc, 0.25f)');
 
-                glu::draw(m_renderCtx, this.m_program.getProgram(), vertexArrays.length, vertexArrays, gluDrawUtil.PrimitiveList(gluDrawUtil.primitiveType.TRIANGLES, 6));
+                gluDrawUtil.draw(gl, this.m_program.getProgram(), vertexArrays, new gluDrawUtil.PrimitiveList(gluDrawUtil.primitiveType.TRIANGLES, 6));
 
                 break;
             }
@@ -663,9 +701,11 @@ define([
         GLU_EXPECT_NO_ERROR(gl.getError(), "glBindTexture(m_target, texture2)");
         this.setTextureState(this.m_target, this.m_textureState2);
 
-        // TODO: readPixels()
+
         this.render();
-        glu::readPixels(m_renderCtx, x, y, textureRef.getAccess());
+        var texRef = textureRef.getAccess();
+        var texRefTransferFormat = gluTextureUtil.getTransferFormat(texRef.getFormat());
+        gl.readPixels(x, y, texRef.m_width, texRef.m_height, texRefTransferFormat.format, texRefTransferFormat.dataType, textureRef.m_pixels);
 
         // Generate sampler rendering reference
         gl.activeTexture(gl.TEXTURE0);
@@ -681,7 +721,9 @@ define([
         setTextureState(this.m_target, this.m_samplerState);
 
         render();
-        glu::readPixels(m_renderCtx, x, y, samplerRef.getAccess());
+        var sampRef = samplerRef.getAccess();
+        var sampRefTransferFormat = gluTextureUtil.getTransferFormat(texRef.getFormat());
+        gl.readPixels(x, y, sampRef.m_width, sampRef.m_height, sampRefTransferFormat.format, sampRefTransferFormat.dataType, samplerRef.m_pixels);
     };
 
     /**
@@ -731,9 +773,10 @@ define([
         GLU_EXPECT_NO_ERROR(gl.getError(), "glBindTexture(m_target, texture2)");
 
         // Render using sampler
-        // TODO: readPixels()
         this.render();
-        glu::readPixels(m_renderCtx, x, y, samplerResult.getAccess());
+        var sampRes = samplerResult.getAccess();
+        var sampResTransferFormat = gluTextureUtil.getTransferFormat(texRef.getFormat());
+        gl.readPixels(x, y, sampRes.m_width, sampRes.m_height, sampResTransferFormat.format, sampResTransferFormat.dataType, samplerResult.m_pixels);
 
         gl.bindSampler(0, 0);
         GLU_EXPECT_NO_ERROR(gl.getError(), "glBindSampler(0, 0)");
@@ -741,7 +784,9 @@ define([
         GLU_EXPECT_NO_ERROR(gl.getError(), "glBindSampler(1, 0)");
 
         this.render();
-        glu::readPixels(m_renderCtx, x, y, textureResult.getAccess());
+        var texRes = textureResult.getAccess();
+        var texResTransferFormat = gluTextureUtil.getTransferFormat(texRef.getFormat());
+        gl.readPixels(x, y, texRes.m_width, texRes.m_height, texResTransferFormat.format, texResTransferFormat.dataType, textureResult.m_pixels);
 
         gl.activeTexture(gl.TEXTURE0);
         GLU_EXPECT_NO_ERROR(gl.getError(), "glActiveTexture(GL_TEXTURE0)");
@@ -797,52 +842,77 @@ define([
         {
             case gl.TEXTURE_2D:
             {
-                //TODO: VertexArrayBinding, VertexArrayPointer, PrimitiveList, draw
-                glu::VertexArrayBinding vertexArrays[] =
-                {
-                    glu::VertexArrayBinding(glu::BindingPoint("a_position"), glu::VertexArrayPointer(glu::VTX_COMP_FLOAT, glu::VTX_COMP_CONVERT_NONE, 2, 6, 0, s_positions))
-                };
+                /** @type {Array.<gluDrawUtil.VertexArrayBinding>} */ var vertexArrays =
+                [
+                    gluDrawUtil.vabFromBindingPointAndArrayPointer(
+                        gluDrawUtil.bindingPointFromName('a_position'),
+                        new gluDrawUtil.VertexArrayPointer(
+                            gluDrawUtil.VertexComponentType.VTX_COMP_FLOAT,
+                            gluDrawUtil.VertexComponentConversion.VTX_COMP_CONVERT_NONE,
+                            2,
+                            6,
+                            0,
+                            s_positions))
+                ];
 
-                glu::draw(m_renderCtx, this.m_program.getProgram(), vertexArrays.length, vertexArrays, glu::PrimitiveList(glu::PRIMITIVETYPE_TRIANGLES, 6));
+                gluDrawUtil.draw(gl, this.m_program.getProgram(), vertexArrays, new gluDrawUtil.PrimitiveList(gluDrawUtil.primitiveType.TRIANGLES, 6));
 
-                gl.uniform1f(scaleLoc, 0.25f);
+                gl.uniform1f(scaleLoc, 0.25);
                 GLU_EXPECT_NO_ERROR(gl.getError(), "glUniform1f(scaleLoc, 0.25f)");
 
-                glu::draw(m_renderCtx, this.m_program.getProgram(), vertexArrays.length, vertexArrays, glu::PrimitiveList(glu::PRIMITIVETYPE_TRIANGLES, 6));
+                gluDrawUtil.draw(gl, this.m_program.getProgram(), vertexArrays, new gluDrawUtil.PrimitiveList(gluDrawUtil.primitiveType.TRIANGLES, 6));
 
                 break;
             }
 
             case gl.TEXTURE_3D:
             {
-                glu::VertexArrayBinding vertexArrays[] =
-                {
-                    glu::VertexArrayBinding(glu::BindingPoint("a_position"), glu::VertexArrayPointer(glu::VTX_COMP_FLOAT, glu::VTX_COMP_CONVERT_NONE, 3, 6, 0, s_positions3D))
-                };
+                /** @type {Array.<gluDrawUtil.VertexArrayBinding>} */ var vertexArrays =
+                [
+                    gluDrawUtil.vabFromBindingPointAndArrayPointer(
+                        gluDrawUtil.bindingPointFromName('a_position'),
+                        new gluDrawUtil.VertexArrayPointer(
+                            gluDrawUtil.VertexComponentType.VTX_COMP_FLOAT,
+                            gluDrawUtil.VertexComponentConversion.VTX_COMP_CONVERT_NONE,
+                            3,
+                            6,
+                            0,
+                            s_positions3D))
+                ];
 
-                glu::draw(m_renderCtx, this.m_program.getProgram(), vertexArrays.length, vertexArrays, glu::PrimitiveList(glu::PRIMITIVETYPE_TRIANGLES, 6));
+                gluDrawUtil.draw(gl, this.m_program.getProgram(), vertexArrays, new gluDrawUtil.PrimitiveList(gluDrawUtil.primitiveType.TRIANGLES, 6));
 
-                gl.uniform1f(scaleLoc, 0.25f);
+                gl.uniform1f(scaleLoc, 0.25);
                 GLU_EXPECT_NO_ERROR(gl.getError(), "glUniform1f(scaleLoc, 0.25f)");
 
-                glu::draw(m_renderCtx, this.m_program.getProgram(), vertexArrays.length, vertexArrays, glu::PrimitiveList(glu::PRIMITIVETYPE_TRIANGLES, 6));
+                gluDrawUtil.draw(gl, this.m_program.getProgram(), vertexArrays, new gluDrawUtil.PrimitiveList(gluDrawUtil.primitiveType.TRIANGLES, 6));
 
                 break;
             }
 
             case gl.TEXTURE_CUBE_MAP:
             {
-                glu::VertexArrayBinding vertexArrays[] =
-                {
-                    glu::VertexArrayBinding(glu::BindingPoint("a_position"), glu::VertexArrayPointer(glu::VTX_COMP_FLOAT, glu::VTX_COMP_CONVERT_NONE, 4, 6, 0, s_positionsCube))
-                };
 
-                glu::draw(m_renderCtx, this.m_program.getProgram(), vertexArrays.length, vertexArrays, glu::PrimitiveList(glu::PRIMITIVETYPE_TRIANGLES, 6));
+                /** @type {Array.<gluDrawUtil.VertexArrayBinding>} */ var vertexArrays =
+                [
+                    gluDrawUtil.vabFromBindingPointAndArrayPointer(
+                        gluDrawUtil.bindingPointFromName('a_position'),
+                        new gluDrawUtil.VertexArrayPointer(
+                            gluDrawUtil.VertexComponentType.VTX_COMP_FLOAT,
+                            gluDrawUtil.VertexComponentConversion.VTX_COMP_CONVERT_NONE,
+                            4,
+                            6,
+                            0,
+                            s_positionsCube))
+                ];
 
-                gl.uniform1f(scaleLoc, 0.25f);
+
+                gluDrawUtil.draw(gl, this.m_program.getProgram(), vertexArrays, new gluDrawUtil.PrimitiveList(gluDrawUtil.primitiveType.TRIANGLES, 6));
+
+                gl.uniform1f(scaleLoc, 0.25);
                 GLU_EXPECT_NO_ERROR(gl.getError(), "glUniform1f(scaleLoc, 0.25f)");
 
-                glu::draw(m_renderCtx, this.m_program.getProgram(), vertexArrays.length, vertexArrays, glu::PrimitiveList(glu::PRIMITIVETYPE_TRIANGLES, 6));
+                gluDrawUtil.draw(gl, this.m_program.getProgram(), vertexArrays, new gluDrawUtil.PrimitiveList(gluDrawUtil.primitiveType.TRIANGLES, 6));
 
                 break;
             }
