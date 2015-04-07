@@ -18,11 +18,13 @@
  *
  */
 define([
+    'framework/opengl/gluDefs',
     'framework/opengl/gluShaderProgram',
     'framework/common/tcuTestCase',
     'framework/delibs/debase/deRandom',
     'framework/common/tcuTextureUtil',
     'framework/opengl/gluTextureUtil'], function(
+        gluDefs,
         gluShaderProgram,
         tcuTestCase,
         deRandom,
@@ -205,10 +207,65 @@ define([
 
     };
 
+    /**
+     * @param {Array.<number>} a
+     * @param {Array.<number>} b
+     * @param {Array.<number>} c
+     */
+    ReadPixelsTest.prototype.renderTriangle = function (a, b, c) {
+
+        var positions;
+
+        positions[0] = a[0];
+        positions[1] = a[1];
+        positions[2] = a[2];
+
+        positions[3] = b[0];
+        positions[4] = b[1];
+        positions[5] = b[2];
+
+        positions[6] = c[0];
+        positions[7] = c[1];
+        positions[8] = c[2];
+
+        colors = [
+            1.0, 0.0, 0.0, 1.0,
+            0.0, 1.0, 0.0, 1.0,
+            0.0, 0.0, 1.0, 1.0];
+
+        gluDefs.GUL_CHECK_CALL(function() {gl.useProgram(this.m_program.getProgram())});
+        
+        /** @type {number} */ coordLoc = -1;
+        /** @type {number} */ colorLoc = -1;
+        /** @type {number} */ colorScaleLoc = -1;
+        
+        colorScaleLoc = gl.getUniformLocation(this.m_program, 'u_colorScale');
+        TCU_CHECK(clearTimeout != -1);
+        
+        gluDefs.GLU_CHECK_CALL(function() {gl.uniform1f(colorScaleLoc, this.m_colorScale)});
+        
+        coordLoc = gl.getAttribLocation(this.m_program.getProgram(), 'a_position');
+        TCU_CHECK(coordLoc != -1);
+        
+        colorLoc = gl.getAttribLocation(this.m_program.getProgram(), 'a_color');
+        TCU_CHECK(colorLoc != -1);
+        
+        gluDefs.GLU_CHECK_CALL(function() {gl.enableVertexAttribArray(colorLoc)});
+        gluDefs.GLU_CHECK_CALL(function() {gl.enableVertexAttribArray(coordLoc)});
+        
+        gluDefs.GLU_CHECK_CALL(function() {gl.vertexAttribPointer(coordLoc, 3, gl.FLOAT, gl.FALSE, 0, positions)});
+        gluDefs.GLU_CHECK_CALL(function() {gl.vertexAttribPointer(colorLoc, 4, gl.FLOAT, gl.FALSE, 0, colors)});
+        
+        gluDefs.GLU_CHECK_CALL(function() {gl.drawArrays(gl.TRIANGLES, 0, 3)});
+        
+        gluDefs.GLU_CHECK_CALL(function() {gl.disableVertexAttribArray(colorLoc)});
+        gluDefs.GLU_CHECK_CALL(function() {gl.disableVertexAttribArray(coordLoc)});
+    }
+
     var init = function(context)
     {
         var state = tcuTestCase.runner.getState();
-        /** @const @type {tcuTestCase.DeqpTest} */ var testGroup = state.testCases;
+        /** @type {tcuTestCase.DeqpTest} */ var testGroup = state.testCases;
 
         /** @type {tcuTestCase.DeqpTest} */ var nativeFramebufferGroup = new tcuTestCase.newTest('native', 'Tests with reading from native framebuffer');
 
