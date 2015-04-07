@@ -190,6 +190,7 @@ var Program = function(gl, programID) {
 
 /**
  * Assigns gl WebGL context and programSources. Declares array of shaders and new program()
+ * @constructor
  * @param {WebGLRenderingContext} gl WebGL context
  * @param {ProgramSources} programSources
  */

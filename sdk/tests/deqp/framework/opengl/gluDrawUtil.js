@@ -23,6 +23,7 @@ define(function() {
 
 /**
  * Description of a vertex array binding
+ * @constructor
  * @param {WebGLRenderingContext.GLEnum} type GL Type of data
  * @param {string|number} location Binding location
  * @param {number} components Number of components per vertex
@@ -448,6 +449,7 @@ return {
     vabFromBindingPointAndArrayPointer: vabFromBindingPointAndArrayPointer,
     BindingPoint: BindingPoint,
     bindingPointFromLocation: bindingPointFromLocation,
-    bindingPointFromName: bindingPointFromName
+    bindingPointFromName: bindingPointFromName,
+    PrimitiveList: PrimitiveList
 };
 });

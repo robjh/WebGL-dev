@@ -23,7 +23,7 @@ define(['framework/common/tcuTestCase', 'modules/shared/glsSamplerObjectTest'], 
     // TODO: implement glsSamplerObjectTest and validate constructors
     var init = function() {
         var testGroup = tcuTestCase.runner.getState().testCases;
-        /* @type {glsSamplerObjectTest.TestSpec} */ var simpleTestCases = [
+        /** @type {glsSamplerObjectTest.TestSpec} */ var simpleTestCases = [
             new glsSamplerObjectTest.TestSpec('diff_wrap_t', 'Different gl.TEXTURE_WRAP_T', gl.TEXTURE_2D,
                 new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.MIRRORED_REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0),
                 new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0)
@@ -61,7 +61,7 @@ define(['framework/common/tcuTestCase', 'modules/shared/glsSamplerObjectTest'], 
 
         testGroup.addChild(simpleTexture2D);
 
-        /* @type {glsSamplerObjectTest.TestSpec} */ var multiTestCases = [
+        /** @type {glsSamplerObjectTest.TestSpec} */ var multiTestCases = [
             new glsSamplerObjectTest.TestSpec('diff_wrap_t', 'Different gl.TEXTURE_WRAP_T', gl.TEXTURE_2D,
                     new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.MIRRORED_REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0),
                     new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.MIRRORED_REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0),
@@ -106,7 +106,7 @@ define(['framework/common/tcuTestCase', 'modules/shared/glsSamplerObjectTest'], 
 
         testGroup.addChild(multiTexture2D);
 
-        /* @type {glsSamplerObjectTest.TestSpec} */ var simpleTestCases3D = [
+        /** @type {glsSamplerObjectTest.TestSpec} */ var simpleTestCases3D = [
         new glsSamplerObjectTest.TestSpec('diff_wrap_t', 'Different gl.TEXTURE_WRAP_T', gl.TEXTURE_3D,
                 new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.MIRRORED_REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0),
                 new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0)
@@ -144,7 +144,7 @@ define(['framework/common/tcuTestCase', 'modules/shared/glsSamplerObjectTest'], 
 
         testGroup.addChild(simpleTexture3D);
 
-        /* @type {glsSamplerObjectTest.TestSpec} */ var multiTestCases3D = [
+        /** @type {glsSamplerObjectTest.TestSpec} */ var multiTestCases3D = [
             new glsSamplerObjectTest.TestSpec('diff_wrap_t', 'Different gl.TEXTURE_WRAP_T', gl.TEXTURE_3D,
                 new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.MIRRORED_REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0),
                 new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.MIRRORED_REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0),
@@ -189,7 +189,7 @@ define(['framework/common/tcuTestCase', 'modules/shared/glsSamplerObjectTest'], 
 
         testGroup.addChild(multiTexture3D);
 
-        /* @type {glsSamplerObjectTest.TestSpec} */ var simpleTestCasesCube = [
+        /** @type {glsSamplerObjectTest.TestSpec} */ var simpleTestCasesCube = [
             new glsSamplerObjectTest.TestSpec('diff_wrap_t', 'Different gl.TEXTURE_WRAP_T', gl.TEXTURE_CUBE_MAP,
                 new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.MIRRORED_REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0),
                 new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0)
@@ -227,7 +227,7 @@ define(['framework/common/tcuTestCase', 'modules/shared/glsSamplerObjectTest'], 
 
         testGroup.addChild(simpleTextureCube);
 
-        /* @type {glsSamplerObjectTest.TestSpec} */ var multiTestCasesCube = [
+        /** @type {glsSamplerObjectTest.TestSpec} */ var multiTestCasesCube = [
             new glsSamplerObjectTest.TestSpec('diff_wrap_t', 'Different gl.TEXTURE_WRAP_T', gl.TEXTURE_CUBE_MAP,
                 new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.MIRRORED_REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0),
                 new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.MIRRORED_REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0),

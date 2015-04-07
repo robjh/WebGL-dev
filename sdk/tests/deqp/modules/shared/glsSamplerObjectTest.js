@@ -63,7 +63,7 @@ define([
 
     /** @const @type {number} */ var CUBEMAP_SIZE = 32;
 
-    /** @const @type {number} */ var s_positions = [
+    /** @const @type {Array.<number>} */ var s_positions = [
         -1.0, -1.0,
          1.0, -1.0,
          1.0, 1.0,
@@ -72,7 +72,7 @@ define([
         -1.0, -1.0
     ];
 
-    /** @const @type {number} */ var s_positions3D = [
+    /** @const @type {Array.<number>} */ var s_positions3D = [
         -1.0, -1.0, -1.0,
          1.0, -1.0, 1.0,
          1.0, 1.0, -1.0,
@@ -81,7 +81,7 @@ define([
         -1.0, -1.0, -1.0
     ];
 
-    /** @const @type {number} */ var s_positionsCube = [
+    /** @const @type {Array.<number>} */ var s_positionsCube = [
         -1.0, -1.0, -1.0, -0.5,
          1.0, -1.0, 1.0, -0.5,
          1.0, 1.0, 1.0, 0.5,
@@ -92,6 +92,7 @@ define([
 
     /**
      * @struct
+     * @constructor
      */
     var SamplingState = function(minFilter, magFilter, wrapT, wrapS, wrapR, minLod, maxLod) {
         /** @type {GLenum} */ this.minFilter = minFilter;
@@ -105,6 +106,7 @@ define([
 
     /**
      * @struct
+     * @constructor
      */
     var TestSpec = function(name, desc, target, state1, state2, state3) {
         /** @type {string} */ this.name = name;
@@ -179,7 +181,7 @@ define([
 
         gl.genSamplers(1, sampler);
         GLU_EXPECT_NO_ERROR(gl.getError(), 'glGenSamplers(1, &sampler)');
-        TCU_CHECK(sampler != -1);
+        DE_ASSERT(sampler != -1);
 
         gl.bindSampler(0, sampler);
         GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindSampler(0, sampler)');
@@ -224,10 +226,10 @@ define([
         GLU_EXPECT_NO_ERROR(gl.getError(), 'glUseProgram(m_program->getProgram())');
 
         samplerLoc = gl.getUniformLocation(this.m_program.getProgram(), 'u_sampler');
-        TCU_CHECK(samplerLoc != -1);
+        DE_ASSERT(samplerLoc != -1);
 
         scaleLoc = gl.getUniformLocation(this.m_program.getProgram(), 'u_posScale');
-        TCU_CHECK(scaleLoc != -1);
+        DE_ASSERT(scaleLoc != -1);
 
         gl.clearColor(0.5, 0.5, 0.5, 1.0);
         GLU_EXPECT_NO_ERROR(gl.getError(), 'glClearColor(0.5f, 0.5f, 0.5f, 1.0f)');
@@ -241,9 +243,10 @@ define([
         gl.uniform1f(scaleLoc, 1.0);
         GLU_EXPECT_NO_ERROR(gl.getError(), 'glUniform1f(scaleLoc, 1.0f)');
 
+        /** @type {Array.<gluDrawUtil.VertexArrayBinding>} */ var vertexArrays;
         switch (this.m_target) {
             case gl.TEXTURE_2D: {
-                /** @type {Array.<gluDrawUtil.VertexArrayBinding>} */ var vertexArrays = [
+                vertexArrays = [
                     gluDrawUtil.vabFromBindingPointAndArrayPointer(
                         gluDrawUtil.bindingPointFromName('a_position'),
                         new gluDrawUtil.VertexArrayPointer(
@@ -266,7 +269,7 @@ define([
             }
 
             case gl.TEXTURE_3D: {
-                /** @type {Array.<gluDrawUtil.VertexArrayBinding>} */ var vertexArrays = [
+                vertexArrays = [
                     gluDrawUtil.vabFromBindingPointAndArrayPointer(
                         gluDrawUtil.bindingPointFromName('a_position'),
                         new gluDrawUtil.VertexArrayPointer(
@@ -289,7 +292,7 @@ define([
             }
 
             case gl.TEXTURE_CUBE_MAP: {
-                /** @type {Array.<gluDrawUtil.VertexArrayBinding>} */ var vertexArrays = [
+                vertexArrays = [
                     gluDrawUtil.vabFromBindingPointAndArrayPointer(
                         gluDrawUtil.bindingPointFromName('a_position'),
                         new gluDrawUtil.VertexArrayPointer(
@@ -455,7 +458,7 @@ define([
         gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
         GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(GL_TEXTURE_CUBE_MAP, texture)');
 
-        for (var face = 0; face < Objects.keys(tcuTexture.CubeFace).length; face++) {
+        for (var face = 0; face < Object.keys(tcuTexture.CubeFace).length; face++) {
             /** @const @type {number} */ var target = gluTextureUtil.getGLCubeFace(face);
             gl.texImage2D(target, 0, gl.RGBA8, refTexture.getSize(), refTexture.getSize(), 0, gl.RGBA, gl.UNSIGNED_BYTE, refTexture.getLevelFace(0, face).getDataPtr());
         }
@@ -477,13 +480,13 @@ define([
     TextureSamplerTest.createTexture = function(target) {
         switch (target) {
             case gl.TEXTURE_2D:
-                return TextureSamplerTest.createTexture2D(gl);
+                return TextureSamplerTest.createTexture2D();
 
             case gl.TEXTURE_3D:
-                return TextureSamplerTest.createTexture3D(gl);
+                return TextureSamplerTest.createTexture3D();
 
             case gl.TEXTURE_CUBE_MAP:
-                return TextureSamplerTest.createTextureCube(gl);
+                return TextureSamplerTest.createTextureCube();
 
             default:
                 DE_ASSERT(false);
@@ -494,7 +497,7 @@ define([
     /**
      * @private
      * @param {GLenum} target
-     * @return {string}
+     * @return {?string}
      */
      TextureSamplerTest.selectVertexShader = function(target) {
          switch (target) {
@@ -540,7 +543,7 @@ define([
      /**
       * @private
       * @param {GLenum} target
-      * @return {string}
+      * @return {?string}
       */
      TextureSamplerTest.selectFragmentShader = function(target) {
          switch (target) {
@@ -579,8 +582,8 @@ define([
 
 
     TextureSamplerTest.prototype.init = function() {
-        /** @const @type {string} */ var vertexShaderTemplate = TextureSamplerTest.selectVertexShader(this.m_target);
-        /** @const @type {string} */ var fragmentShaderTemplate = TextureSamplerTest.selectFragmentShader(this.m_target);
+        /** @const @type {?string} */ var vertexShaderTemplate = TextureSamplerTest.selectVertexShader(this.m_target);
+        /** @const @type {?string} */ var fragmentShaderTemplate = TextureSamplerTest.selectFragmentShader(this.m_target);
 
         DE_ASSERT(!this.m_program);
         this.m_program = new gluShaderProgram.ShaderProgram(gl,
@@ -591,7 +594,7 @@ define([
         if (!this.m_program.isOk()) {
             // tcu::TestLog& log = m_testCtx.getLog();
             // log << *m_program;
-            TCU_FAIL('Failed to compile shaders');
+            throw new Error('Failed to compile shaders');
         }
     };
 
@@ -640,8 +643,8 @@ define([
     MultiTextureSamplerTest.prototype.constructor = MultiTextureSamplerTest;
 
     MultiTextureSamplerTest.prototype.init = function() {
-        /** @type {string} */ var vertexShaderTemplate = MultiTextureSamplerTest.selectVertexShader(this.m_target);
-        /** @type {string} */ var fragmentShaderTemplate = MultiTextureSamplerTest.selectFragmentShader(this.m_target);
+        /** @type {?string} */ var vertexShaderTemplate = MultiTextureSamplerTest.selectVertexShader(this.m_target);
+        /** @type {?string} */ var fragmentShaderTemplate = MultiTextureSamplerTest.selectFragmentShader(this.m_target);
 
         DE_ASSERT(!this.m_program);
         this.m_program = new gluShaderProgram.ShaderProgram(this,
@@ -652,7 +655,7 @@ define([
             // tcu::TestLog& log = m_testCtx.getLog();
             //
             // log << *m_program;
-            TCU_FAIL('Failed to compile shaders');
+            throw new Error('Failed to compile shaders');
         }
     };
 
@@ -750,7 +753,7 @@ define([
 
         gl.genSamplers(1, sampler);
         GLU_EXPECT_NO_ERROR(gl.getError(), 'glGenSamplers(1, &sampler)');
-        TCU_CHECK(sampler != -1);
+        DE_ASSERT(sampler != -1);
 
         gl.bindSampler(0, sampler);
         GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindSampler(0, sampler)');
@@ -822,13 +825,13 @@ define([
         GLU_EXPECT_NO_ERROR(gl.getError(), 'glUseProgram(m_program->getProgram())');
 
         samplerLoc1 = gl.getUniformLocation(this.m_program.getProgram(), 'u_sampler1');
-        TCU_CHECK(samplerLoc1 != -1);
+        DE_ASSERT(samplerLoc1 != -1);
 
         samplerLoc2 = gl.getUniformLocation(this.m_program.getProgram(), 'u_sampler2');
-        TCU_CHECK(samplerLoc2 != -1);
+        DE_ASSERT(samplerLoc2 != -1);
 
-        scaleLoc = glGetUniformLocation(this.m_program.getProgram(), 'u_posScale');
-        TCU_CHECK(scaleLoc != -1);
+        scaleLoc = gl.getUniformLocation(this.m_program.getProgram(), 'u_posScale');
+        DE_ASSERT(scaleLoc != -1);
 
         gl.clearColor(0.5, 0.5, 0.5, 1.0);
         GLU_EXPECT_NO_ERROR(gl.getError(), 'glClearColor(0.5f, 0.5f, 0.5f, 1.0f)');
@@ -845,9 +848,10 @@ define([
         gl.uniform1f(scaleLoc, 1.0);
         GLU_EXPECT_NO_ERROR(gl.getError(), 'glUniform1f(scaleLoc, 1.0f)');
 
+        /** @type {Array.<gluDrawUtil.VertexArrayBinding>} */ var vertexArrays;
         switch (this.m_target) {
             case gl.TEXTURE_2D: {
-                /** @type {Array.<gluDrawUtil.VertexArrayBinding>} */ var vertexArrays = [
+                vertexArrays = [
                     gluDrawUtil.vabFromBindingPointAndArrayPointer(
                         gluDrawUtil.bindingPointFromName('a_position'),
                         new gluDrawUtil.VertexArrayPointer(
@@ -870,7 +874,7 @@ define([
             }
 
             case gl.TEXTURE_3D: {
-                /** @type {Array.<gluDrawUtil.VertexArrayBinding>} */ var vertexArrays = [
+                vertexArrays = [
                     gluDrawUtil.vabFromBindingPointAndArrayPointer(
                         gluDrawUtil.bindingPointFromName('a_position'),
                         new gluDrawUtil.VertexArrayPointer(
@@ -893,8 +897,7 @@ define([
             }
 
             case gl.TEXTURE_CUBE_MAP: {
-
-                /** @type {Array.<gluDrawUtil.VertexArrayBinding>} */ var vertexArrays = [
+                vertexArrays = [
                     gluDrawUtil.vabFromBindingPointAndArrayPointer(
                         gluDrawUtil.bindingPointFromName('a_position'),
                         new gluDrawUtil.VertexArrayPointer(
@@ -1132,13 +1135,13 @@ define([
     MultiTextureSamplerTest.createTexture = function(target, id) {
         switch (target) {
             case gl.TEXTURE_2D:
-                return MultiTextureSamplerTest.createTexture2D(gl, id);
+                return MultiTextureSamplerTest.createTexture2D(id);
 
             case gl.TEXTURE_3D:
-                return MultiTextureSamplerTest.createTexture3D(gl, id);
+                return MultiTextureSamplerTest.createTexture3D(id);
 
             case gl.TEXTURE_CUBE_MAP:
-                return MultiTextureSamplerTest.createTextureCube(gl, id);
+                return MultiTextureSamplerTest.createTextureCube(id);
 
             default:
                 DE_ASSERT(false);
@@ -1149,7 +1152,7 @@ define([
     /**
      * @private
      * @param {GLenum} target
-     * @return {string}
+     * @return {?string}
      */
     MultiTextureSamplerTest.selectVertexShader = function(target) {
         switch (target) {
@@ -1195,7 +1198,7 @@ define([
     /**
      * @private
      * @param {GLenum} target
-     * @return {string}
+     * @return {?string}
      */
     MultiTextureSamplerTest.selectFragmentShader = function(target) {
         switch (target) {

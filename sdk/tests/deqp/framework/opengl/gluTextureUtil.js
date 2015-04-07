@@ -31,7 +31,7 @@ define(['framework/common/tcuTexture', 'framework/common/tcuCompressedTexture'],
 {
 
 /**
- * @param {WebGL2RenderingContext.GLenum} format 
+ * @param {WebGL2RenderingContext.GLenum} format
  * @param {WebGL2RenderingContext.GLenum} dataType
  * @constructor
  */
@@ -1032,7 +1032,8 @@ return {
     mapGLInternalFormat: mapGLInternalFormat,
     mapGLTransferFormat: mapGLTransferFormat,
     getTransferFormat: getTransferFormat,
-    getGLFormat: getGLFormat
+    getGLFormat: getGLFormat,
+    getGLCubeFace: getGLCubeFace
 };
 
 });
