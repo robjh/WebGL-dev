@@ -25,7 +25,7 @@ define([
     'framework/delibs/debase/deMath',
     'framework/opengl/gluTextureUtil',
     'framework/opengl/gluShaderUtil',
-    'framework/opengl/simplereference/sglrReferenceContext'
+    'framework/opengl/simplereference/sglrReferenceContext',
     'framework/common/tcuTextureUtil'],
     function(
         rrShaders,
@@ -34,7 +34,7 @@ define([
         deMath,
         gluTextureUtil,
         gluShaderUtil,
-        sglrReferenceContext
+        sglrReferenceContext,
         tcuTextureUtil
     ) {
 
@@ -241,50 +241,69 @@ define([
      */
     var ShaderProgram = function (decl) {
         rrShaders.VertexShader.call(this, decl.getVertexInputCount(), decl.getVertexOutputCount());
+        var current = this;
+        this.VertexShader = {m_inputs: current.m_inputs, m_outputs: current.m_outputs};
+
         rrShaders.FragmentShader.call(this, decl.getFragmentInputCount(), decl.getFragmentOutputCount());
+        current = this;
+        this.FragmentShader = {m_inputs: current.m_inputs, m_outputs: current.m_outputs};
+
         /** @type {Array.<string>} */ this.m_attributeNames = new Array(decl.getFragmentInputCount());
         /** @type {Array.<UniformSlot>} */ this.m_uniforms = new Array(decl.m_uniforms.length);
         /** @type {string} */ this.m_vertSrc = decl.m_vertexSource;
         /** @type {string} */ this.m_fragSrc = decl.m_fragmentSource;
+
+        DE_ASSERT(decl.valid());
+
+        // Set up shader IO
+
+        for (var ndx = 0; ndx < decl.m_vertexAttributes.length; ++ndx)
+        {
+            this.VertexShader.m_inputs[ndx].type  = decl.m_vertexAttributes[ndx].type;
+            this.m_attributeNames[ndx] = decl.m_vertexAttributes[ndx].name;
+        }
+
+        for (var ndx = 0; ndx < decl.m_vertexToFragmentVaryings.length; ++ndx)
+        {
+            this.VertexShader.m_outputs[ndx].type = decl.m_vertexToFragmentVaryings[ndx].type;
+            this.VertexShader.m_outputs[ndx].flatshade = decl.m_vertexToFragmentVaryings[ndx].flatshade;
+
+            this.FragmentShader.m_inputs[ndx] = this.VertexShader.m_outputs[ndx];
+        }
+
+        for (var ndx = 0; ndx < decl.m_fragmentOutputs.length; ++ndx)
+            this.FragmentShader.m_outputs[ndx].type = decl.m_fragmentOutputs[ndx].type;
+
+        // Set up uniforms
+
+        for (var ndx = 0; ndx < decl.m_uniforms.length; ++ndx)
+        {
+            this.m_uniforms[ndx].name = decl.m_uniforms[ndx].name;
+            this.m_uniforms[ndx].type = decl.m_uniforms[ndx].type;
+        }
     };
 
-
+    ShaderProgram.prototype = Object.create(rrShaders.VertexShader.prototype);
+    ShaderProgram.prototype = Object.create(rrShaders.FragmentShader.prototype);
+    ShaderProgram.prototype.constructor = ShaderProgram;
 
     /**
      * @param {string} name
      * @return {UniformSlot}
      */
     ShaderProgram.prototype.getUniformByName = function (name) {
-        
+        DE_ASSERT(name);
+
+        for (var ndx = 0; ndx < this.m_uniforms.length; ++ndx)
+            if (this.m_uniforms[ndx].name == name)
+                return this.m_uniforms[ndx];
+
+        DE_ASSERT(!"Invalid uniform name, uniform not found.");
+        return this.m_uniforms[0];
     };
 
-        inline const rr::VertexShader*          getVertexShader     (void) const { return static_cast<const rr::VertexShader*>(this);   }
-        inline const rr::FragmentShader*        getFragmentShader   (void) const { return static_cast<const rr::FragmentShader*>(this); }
-        inline const rr::GeometryShader*        getGeometryShader   (void) const { return static_cast<const rr::GeometryShader*>(this); }
-        
-    private:
-        virtual void                            shadeVertices       (const rr::VertexAttrib* inputs, rr::VertexPacket* const* packets, const int numPackets) const = 0;
-        virtual void                            shadeFragments      (rr::FragmentPacket* packets, const int numPackets, const rr::FragmentShadingContext& context) const = 0;
-        virtual void                            shadePrimitives     (rr::GeometryEmitter& output, int verticesIn, const rr::PrimitivePacket* packets, const int numPackets, int invocationID) const;
-        
-        std::vector<std::string>                m_attributeNames;
-    protected:
-        std::vector<UniformSlot>                m_uniforms;
-        
-    private:
-        const std::string                       m_vertSrc;
-        const std::string                       m_fragSrc;
-        const std::string                       m_geomSrc;
-        const bool                              m_hasGeometryShader;
-        
-        friend class ReferenceContext;  // for uniform access
-        friend class GLContext;         // for source string access
+    return {
+        ShaderProgram: ShaderProgram
     };
 
-    /**
-    * ShaderProgram class
-    * @constructor
-    */
-    var ShaderProgram = function () {
-    };
 });

@@ -156,7 +156,7 @@ define([
      * @param {number} numPackets
      * @param {Object} shader
      */
-    var VertexShaderLoop.prototype.shadeVertices = function (inputs, packets, numPackets, shader) {
+    VertexShaderLoop.prototype.shadeVertices = function (inputs, packets, numPackets, shader) {
         for (var ndx = 0; ndx < numPackets; ndx++)
             this.m_shader.shadeVertex(inputs, packets[ndx]);
     };
@@ -182,4 +182,10 @@ define([
             this.m_shader.shadeFragment(packets[ndx]);
     };
 
+    return {
+        VertexShader: VertexShader,
+        FragmentShader: FragmentShader,
+        VertexShaderLoop: VertexShaderLoop,
+        FragmentShaderLoop: FragmentShaderLoop
+    };
 });
