@@ -274,7 +274,7 @@ var CubeFace = {
     CUBEFACE_POSITIVE_Y: 3,
     CUBEFACE_NEGATIVE_Z: 4,
     CUBEFACE_POSITIVE_Z: 5,
-    TOTAL_FACES: 6
+    TOTAL_FACES: 6 // TODO: remove this entry and update for loops
 };
 
 /**

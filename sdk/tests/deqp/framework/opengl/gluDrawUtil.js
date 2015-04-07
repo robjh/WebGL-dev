@@ -47,10 +47,10 @@ var VertexArrayBinding = function(type, location, components, elements, data) {
 function vabFromBindingPointAndArrayPointer(binding, pointer) {
     var type = gl.FLOAT;
     var location = binding.location;
-    var components = pointer.components;
-    var elements = pointer.elements;
+    var components = pointer.numComponents;
+    var elements = pointer.numElements;
     var data = pointer.data;
-    var vaBinding = new VertexArrayBinding(type, location, component, elements, data);
+    var vaBinding = new VertexArrayBinding(type, location, components, elements, data);
     vaBinding.componentType = pointer.componentType;
     vaBinding.name = binding.name;
     vaBinding.bindingPointType = binding.type;
@@ -418,7 +418,7 @@ var BindingPoint = function(type, name, location) {
  * @param {number} location
  */
 function bindingPointFromLocation(location) {
-    return new BindingPoint(this.Type.TYPE_LOCATION, '', location);
+    return new BindingPoint(Type.TYPE_LOCATION, '', location);
 }
 
 /**
@@ -428,7 +428,7 @@ function bindingPointFromLocation(location) {
  */
 function bindingPointFromName(name, location) {
     var loc = location === undefined ? 0 : location;
-    return new BindingPoint(this.Type.TYPE_LOCATION, name, loc);
+    return new BindingPoint(Type.TYPE_LOCATION, name, loc);
 }
 
 

@@ -23,9 +23,9 @@ define([
     'framework/common/tcuTexture',
     'framework/common/tcuCompressedTexture',
     'framework/delibs/debase/deMath'], function(
-        gluTextureUtil, 
-        tcuTexture, 
-        tcuCompressedTexture, 
+        gluTextureUtil,
+        tcuTexture,
+        tcuCompressedTexture,
         deMath) {
 
     'use strict';
@@ -94,7 +94,7 @@ define([
     };
 
     // Functions for checking API errors.
-    var GLU_EXPECT_NO_ERROR = function(ERR, MSG)   {checkErrorCode(ERR(), MSG)};
+    var GLU_EXPECT_NO_ERROR = function(ERR, MSG)   {checkErrorCode(ERR, MSG)};
     var GLU_CHECK_ERROR = function(ERR)            {GLU_EXPECT_NO_ERROR(ERR, DE_NULL)};
     var GLU_CHECK_MSG = function(MSG)              {GLU_EXPECT_NO_ERROR(function() {return gl.getError();}, MSG)};
     var GLU_CHECK = function()                     {GLU_CHECK_MSG(DE_NULL)};
@@ -102,6 +102,7 @@ define([
     var GLU_CHECK_CALL = function(CALL)            {CALL(); GLU_EXPECT_NO_ERROR(function() {return gl.getError();}, CALL.toString()); };
 
     return {
-        GLU_CHECK_CALL: GLU_CHECK_CALL
+        GLU_CHECK_CALL: GLU_CHECK_CALL,
+        GLU_EXPECT_NO_ERROR: GLU_EXPECT_NO_ERROR
     };
 });

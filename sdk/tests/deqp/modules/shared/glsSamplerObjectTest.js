@@ -28,7 +28,8 @@ define([
     'framework/common/tcuImageCompare',
     'framework/opengl/gluDrawUtil',
     'framework/opengl/gluTextureUtil',
-    'framework/delibs/debase/deString'], function(
+    'framework/delibs/debase/deString',
+    'framework/opengl/gluDefs'], function(
         tcuTestCase,
         deRandom,
         gluShaderProgram,
@@ -38,12 +39,9 @@ define([
         tcuImageCompare,
         gluDrawUtil,
         gluTextureUtil,
-        deString) {
+        deString,
+        gluDefs) {
     'use strict';
-
-    var GLU_EXPECT_NO_ERROR = function(errorNumber, message) {
-            if (errorNumber != gl.NO_ERROR) throw new Error(message);
-    };
 
     var DE_ASSERT = function(expression) {
         if (!expression) throw new Error('Assert failed');
@@ -144,10 +142,10 @@ define([
         /** @type {number} */ var texture = TextureSamplerTest.createTexture(this.m_target);
 
         gl.viewport(x, y, VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glViewport(x, y, VIEWPORT_WIDTH, VIEWPORT_HEIGHT)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glViewport(x, y, VIEWPORT_WIDTH, VIEWPORT_HEIGHT)');
 
         gl.bindTexture(this.m_target, texture);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(m_target, texture)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(m_target, texture)');
 
         TextureSamplerTest.setTextureState(this.m_target, this.m_textureState);
         this.render();
@@ -161,8 +159,8 @@ define([
         var sampRefTransferFormat = gluTextureUtil.getTransferFormat(sampRef.getFormat());
         gl.readPixels(x, y, sampRef.m_width, sampRef.m_height, sampRefTransferFormat.format, sampRefTransferFormat.dataType, samplerRef.m_pixels);
 
-        gl.deleteTextures(1, texture);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glDeleteTextures(1, &texture)');
+        gl.deleteTexture(texture);
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glDeleteTextures(1, &texture)');
     };
 
     /**
@@ -177,21 +175,21 @@ define([
         /** @type {number} */ var sampler = -1;
 
         gl.viewport(x, y, VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glViewport(x, y, VIEWPORT_WIDTH, VIEWPORT_HEIGHT)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glViewport(x, y, VIEWPORT_WIDTH, VIEWPORT_HEIGHT)');
 
-        gl.genSamplers(1, sampler);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glGenSamplers(1, &sampler)');
+        sampler = gl.createSampler();
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glGenSamplers(1, &sampler)');
         DE_ASSERT(sampler != -1);
 
         gl.bindSampler(0, sampler);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindSampler(0, sampler)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindSampler(0, sampler)');
 
         // First set sampler state
         TextureSamplerTest.setSamplerState(this.m_samplerState, sampler);
 
         // Set texture state
         gl.bindTexture(this.m_target, texture);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(m_target, texture)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(m_target, texture)');
 
         TextureSamplerTest.setTextureState(this.m_target, this.m_textureState);
         // Render using sampler
@@ -201,18 +199,19 @@ define([
         gl.readPixels(x, y, sampRes.m_width, sampRes.m_height, sampResTransferFormat.format, sampResTransferFormat.dataType, samplerResult.m_pixels);
 
         // Render without sampler
-        gl.bindSampler(0, 0);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindSampler(0, 0)');
+        //gl.bindSampler(0, 0);
+        gl.deleteSampler(sampler);
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindSampler(0, 0)');
 
         this.render();
         var texRes = textureResult.getAccess();
         var texResTransferFormat = gluTextureUtil.getTransferFormat(texRes.getFormat());
         gl.readPixels(x, y, texRes.m_width, texRes.m_height, texResTransferFormat.format, texResTransferFormat.dataType, textureResult.m_pixels);
 
-        gl.deleteSamplers(1, sampler);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glDeleteSamplers(1, &sampler)');
-        gl.deleteTextures(1, texture);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glDeleteTextures(1, &texture)');
+        //gl.deleteSampler(sampler);
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glDeleteSamplers(1, &sampler)');
+        gl.deleteTexture(texture);
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glDeleteTextures(1, &texture)');
     };
 
     /**
@@ -223,7 +222,7 @@ define([
         /** @type {number} */ var scaleLoc = -1;
 
         gl.useProgram(this.m_program.getProgram());
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glUseProgram(m_program->getProgram())');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glUseProgram(m_program->getProgram())');
 
         samplerLoc = gl.getUniformLocation(this.m_program.getProgram(), 'u_sampler');
         DE_ASSERT(samplerLoc != -1);
@@ -232,16 +231,16 @@ define([
         DE_ASSERT(scaleLoc != -1);
 
         gl.clearColor(0.5, 0.5, 0.5, 1.0);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glClearColor(0.5f, 0.5f, 0.5f, 1.0f)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glClearColor(0.5f, 0.5f, 0.5f, 1.0f)');
 
         gl.clear(gl.COLOR_BUFFER_BIT);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glClear(GL_COLOR_BUFFER_BIT)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glClear(GL_COLOR_BUFFER_BIT)');
 
         gl.uniform1i(samplerLoc, 0);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glUniform1i(samplerLoc, 0)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glUniform1i(samplerLoc, 0)');
 
         gl.uniform1f(scaleLoc, 1.0);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glUniform1f(scaleLoc, 1.0f)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glUniform1f(scaleLoc, 1.0f)');
 
         /** @type {Array.<gluDrawUtil.VertexArrayBinding>} */ var vertexArrays;
         switch (this.m_target) {
@@ -261,7 +260,7 @@ define([
                 gluDrawUtil.draw(gl, this.m_program.getProgram(), vertexArrays, new gluDrawUtil.PrimitiveList(gluDrawUtil.primitiveType.TRIANGLES, 6));
 
                 gl.uniform1f(scaleLoc, 0.25);
-                GLU_EXPECT_NO_ERROR(gl.getError(), 'glUniform1f(scaleLoc, 0.25f)');
+                gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glUniform1f(scaleLoc, 0.25f)');
 
                 gluDrawUtil.draw(gl, this.m_program.getProgram(), vertexArrays, new gluDrawUtil.PrimitiveList(gluDrawUtil.primitiveType.TRIANGLES, 6));
 
@@ -284,7 +283,7 @@ define([
                 gluDrawUtil.draw(gl, this.m_program.getProgram(), vertexArrays, new gluDrawUtil.PrimitiveList(gluDrawUtil.primitiveType.TRIANGLES, 6));
 
                 gl.uniform1f(scaleLoc, 0.25);
-                GLU_EXPECT_NO_ERROR(gl.getError(), 'glUniform1f(scaleLoc, 0.25f)');
+                gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glUniform1f(scaleLoc, 0.25f)');
 
                 gluDrawUtil.draw(gl, this.m_program.getProgram(), vertexArrays, new gluDrawUtil.PrimitiveList(gluDrawUtil.primitiveType.TRIANGLES, 6));
 
@@ -307,7 +306,7 @@ define([
                 gluDrawUtil.draw(gl, this.m_program.getProgram(), vertexArrays, new gluDrawUtil.PrimitiveList(gluDrawUtil.primitiveType.TRIANGLES, 6));
 
                 gl.uniform1f(scaleLoc, 0.25);
-                GLU_EXPECT_NO_ERROR(gl.getError(), 'glUniform1f(scaleLoc, 0.25f)');
+                gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glUniform1f(scaleLoc, 0.25f)');
 
                 gluDrawUtil.draw(gl, this.m_program.getProgram(), vertexArrays, new gluDrawUtil.PrimitiveList(gluDrawUtil.primitiveType.TRIANGLES, 6));
 
@@ -326,19 +325,19 @@ define([
      */
     TextureSamplerTest.setTextureState = function(target, state) {
         gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, state.minFilter);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glTexParameteri(target, GL_TEXTURE_MIN_FILTER, state.minFilter)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glTexParameteri(target, GL_TEXTURE_MIN_FILTER, state.minFilter)');
         gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, state.magFilter);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glTexParameteri(target, GL_TEXTURE_MAG_FILTER, state.magFilter)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glTexParameteri(target, GL_TEXTURE_MAG_FILTER, state.magFilter)');
         gl.texParameteri(target, gl.TEXTURE_WRAP_S, state.wrapS);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glTexParameteri(target, GL_TEXTURE_WRAP_S, state.wrapS)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glTexParameteri(target, GL_TEXTURE_WRAP_S, state.wrapS)');
         gl.texParameteri(target, gl.TEXTURE_WRAP_T, state.wrapT);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glTexParameteri(target, GL_TEXTURE_WRAP_T, state.wrapT)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glTexParameteri(target, GL_TEXTURE_WRAP_T, state.wrapT)');
         gl.texParameteri(target, gl.TEXTURE_WRAP_R, state.wrapR);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glTexParameteri(target, GL_TEXTURE_WRAP_R, state.wrapR)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glTexParameteri(target, GL_TEXTURE_WRAP_R, state.wrapR)');
         gl.texParameterf(target, gl.TEXTURE_MAX_LOD, state.maxLod);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glTexParameterf(target, GL_TEXTURE_MAX_LOD, state.maxLod)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glTexParameterf(target, GL_TEXTURE_MAX_LOD, state.maxLod)');
         gl.texParameterf(target, gl.TEXTURE_MIN_LOD, state.minLod);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glTexParameterf(target, GL_TEXTURE_MIN_LOD, state.minLod)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glTexParameterf(target, GL_TEXTURE_MIN_LOD, state.minLod)');
     };
 
     /**
@@ -348,19 +347,19 @@ define([
      */
     TextureSamplerTest.setSamplerState = function(state, sampler) {
         gl.samplerParameteri(sampler, gl.TEXTURE_MIN_FILTER, state.minFilter);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glSamplerParameteri(sampler, GL_TEXTURE_MIN_FILTER, state.minFilter)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glSamplerParameteri(sampler, GL_TEXTURE_MIN_FILTER, state.minFilter)');
         gl.samplerParameteri(sampler, gl.TEXTURE_MAG_FILTER, state.magFilter);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glSamplerParameteri(sampler, GL_TEXTURE_MAG_FILTER, state.magFilter)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glSamplerParameteri(sampler, GL_TEXTURE_MAG_FILTER, state.magFilter)');
         gl.samplerParameteri(sampler, gl.TEXTURE_WRAP_S, state.wrapS);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glSamplerParameteri(sampler, GL_TEXTURE_WRAP_S, state.wrapS)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glSamplerParameteri(sampler, GL_TEXTURE_WRAP_S, state.wrapS)');
         gl.samplerParameteri(sampler, gl.TEXTURE_WRAP_T, state.wrapT);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glSamplerParameteri(sampler, GL_TEXTURE_WRAP_T, state.wrapT)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glSamplerParameteri(sampler, GL_TEXTURE_WRAP_T, state.wrapT)');
         gl.samplerParameteri(sampler, gl.TEXTURE_WRAP_R, state.wrapR);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glSamplerParameteri(sampler, GL_TEXTURE_WRAP_R, state.wrapR)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glSamplerParameteri(sampler, GL_TEXTURE_WRAP_R, state.wrapR)');
         gl.samplerParameterf(sampler, gl.TEXTURE_MAX_LOD, state.maxLod);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glSamplerParameterf(sampler, GL_TEXTURE_MAX_LOD, state.maxLod)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glSamplerParameterf(sampler, GL_TEXTURE_MAX_LOD, state.maxLod)');
         gl.samplerParameterf(sampler, gl.TEXTURE_MIN_LOD, state.minLod);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glSamplerParameterf(sampler, GL_TEXTURE_MIN_LOD, state.minLod)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glSamplerParameterf(sampler, GL_TEXTURE_MIN_LOD, state.minLod)');
     };
 
     /**
@@ -379,19 +378,19 @@ define([
         tcuTextureUtil.fillWithComponentGradients(refTexture.getLevel(0), [0.0, 0.0, 0.0, 0.0], [1.0, 1.0, 1.0, 1.0]);
 
         texture = gl.createTexture();
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glGenTextures(1, &texture)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glGenTextures(1, &texture)');
 
         gl.bindTexture(gl.TEXTURE_2D, texture);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(GL_TEXTURE_2D, texture)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(GL_TEXTURE_2D, texture)');
 
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, refTexture.getWidth(), refTexture.getHeight(), 0, gl.RGBA, gl.UNSIGNED_BYTE, refTexture.getLevel(0).getDataPtr());
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, refTexture.getWidth(), refTexture.getHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, refTexture.getLevel(0).getDataPtr())');
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, refTexture.getWidth(), refTexture.getHeight(), 0, gl.RGBA, gl.UNSIGNED_BYTE, refTexture.getLevel(0).getDataPtr());
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, refTexture.getWidth(), refTexture.getHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, refTexture.getLevel(0).getDataPtr())');
 
         gl.generateMipmap(gl.TEXTURE_2D);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glGenerateMipmap(GL_TEXTURE_2D)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glGenerateMipmap(GL_TEXTURE_2D)');
 
-        gl.bindTexture(gl.TEXTURE_2D, 0);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(GL_TEXTURE_2D, texture)');
+        gl.bindTexture(gl.TEXTURE_2D, null);
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(GL_TEXTURE_2D, texture)');
 
         return texture;
     };
@@ -413,19 +412,19 @@ define([
         tcuTextureUtil.fillWithComponentGradients(refTexture.getLevel(0), [0.0, 0.0, 0.0, 0.0], [1.0, 1.0, 1.0, 1.0]);
 
         texture = gl.createTexture();
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glGenTextures(1, &texture)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glGenTextures(1, &texture)');
 
         gl.bindTexture(gl.TEXTURE_3D, texture);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(GL_TEXTURE_3D, texture)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(GL_TEXTURE_3D, texture)');
 
-        gl.texImage3D(gl.TEXTURE_3D, 0, gl.RGBA8, refTexture.getWidth(), refTexture.getHeight(), refTexture.getDepth(), 0, gl.RGBA, gl.UNSIGNED_BYTE, refTexture.getLevel(0).getDataPtr());
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8, refTexture.getWidth(), refTexture.getHeight(), refTexture.getDepth(), 0, GL_RGBA, GL_UNSIGNED_BYTE, refTexture.getLevel(0).getDataPtr())');
+        gl.texImage3D(gl.TEXTURE_3D, 0, gl.RGBA, refTexture.getWidth(), refTexture.getHeight(), refTexture.getDepth(), 0, gl.RGBA, gl.UNSIGNED_BYTE, refTexture.getLevel(0).getDataPtr());
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8, refTexture.getWidth(), refTexture.getHeight(), refTexture.getDepth(), 0, GL_RGBA, GL_UNSIGNED_BYTE, refTexture.getLevel(0).getDataPtr())');
 
         gl.generateMipmap(gl.TEXTURE_3D);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glGenerateMipmap(GL_TEXTURE_3D)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glGenerateMipmap(GL_TEXTURE_3D)');
 
-        gl.bindTexture(gl.TEXTURE_3D, 0);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(GL_TEXTURE_3D, 0)');
+        gl.bindTexture(gl.TEXTURE_3D, null);
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(GL_TEXTURE_3D, 0)');
 
         return texture;
     };
@@ -442,7 +441,7 @@ define([
                                                                   CUBEMAP_SIZE);
 
         texture = gl.createTexture();
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glCreateTexture()');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glCreateTexture()');
 
         refTexture.allocLevel(tcuTexture.CubeFace.CUBEFACE_POSITIVE_X, 0);
         refTexture.allocLevel(tcuTexture.CubeFace.CUBEFACE_POSITIVE_Y, 0);
@@ -459,18 +458,18 @@ define([
         tcuTextureUtil.fillWithComponentGradients(refTexture.getLevelFace(0, tcuTexture.CubeFace.CUBEFACE_NEGATIVE_Z), [0.0, 0.0, 0.0, 0.0], [1.0, 1.0, 1.0, 1.0]);
 
         gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(GL_TEXTURE_CUBE_MAP, texture)');
-
-        for (var face = 0; face < Object.keys(tcuTexture.CubeFace).length; face++) {
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(GL_TEXTURE_CUBE_MAP, texture)');
+        // TODO: check internalFormat / format parameters in texImage2D (were RGBA8 and RGBA respectively)
+        for (var face = 0; face < Object.keys(tcuTexture.CubeFace).length -1; face++) { // TODO: remove the TOTAL_FACES entry from the enum. Until then, -1.
             /** @const @type {number} */ var target = gluTextureUtil.getGLCubeFace(face);
-            gl.texImage2D(target, 0, gl.RGBA8, refTexture.getSize(), refTexture.getSize(), 0, gl.RGBA, gl.UNSIGNED_BYTE, refTexture.getLevelFace(0, face).getDataPtr());
+            gl.texImage2D(target, 0, gl.RGBA, refTexture.getSize(), refTexture.getSize(), 0, gl.RGBA, gl.UNSIGNED_BYTE, refTexture.getLevelFace(0, face).getDataPtr());
         }
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glTexImage2D(GL_TEXTURE_CUBE_MAP_...) failed');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glTexImage2D(GL_TEXTURE_CUBE_MAP_...) failed');
 
         gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glGenerateMipmap(GL_TEXTURE_CUBE_MAP)');
-        gl.bindTexture(gl.TEXTURE_CUBE_MAP, 0);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(GL_TEXTURE_CUBE_MAP, texture)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glGenerateMipmap(GL_TEXTURE_CUBE_MAP)');
+        gl.bindTexture(gl.TEXTURE_CUBE_MAP, null);
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(GL_TEXTURE_CUBE_MAP, texture)');
 
         return texture;
     };
@@ -699,19 +698,19 @@ define([
         /** @type {number} */ var texture2 = MultiTextureSamplerTest.createTexture(this.m_target, 1);
 
         gl.viewport(x, y, VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glViewport(x, y, VIEWPORT_WIDTH, VIEWPORT_HEIGHT)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glViewport(x, y, VIEWPORT_WIDTH, VIEWPORT_HEIGHT)');
 
         // Generate texture rendering reference
         gl.activeTexture(gl.TEXTURE0);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glActiveTexture(GL_TEXTURE0)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glActiveTexture(GL_TEXTURE0)');
         gl.bindTexture(this.m_target, texture1);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(m_target, texture1)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(m_target, texture1)');
         MultiTextureSamplerTest.setTextureState(this.m_target, this.m_textureState1);
 
         gl.activeTexture(gl.TEXTURE1);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glActiveTexture(GL_TEXTURE1)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glActiveTexture(GL_TEXTURE1)');
         gl.bindTexture(this.m_target, texture2);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(m_target, texture2)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(m_target, texture2)');
         MultiTextureSamplerTest.setTextureState(this.m_target, this.m_textureState2);
 
 
@@ -722,15 +721,15 @@ define([
 
         // Generate sampler rendering reference
         gl.activeTexture(gl.TEXTURE0);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glActiveTexture(GL_TEXTURE0)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glActiveTexture(GL_TEXTURE0)');
         gl.bindTexture(this.m_target, texture1);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(m_target, texture1)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(m_target, texture1)');
         MultiTextureSamplerTest.setTextureState(this.m_target, this.m_samplerState);
 
         gl.activeTexture(gl.TEXTURE1);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glActiveTexture(GL_TEXTURE1)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glActiveTexture(GL_TEXTURE1)');
         gl.bindTexture(this.m_target, texture2);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(m_target, texture2)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(m_target, texture2)');
         MultiTextureSamplerTest.setTextureState(this.m_target, this.m_samplerState);
 
         this.render();
@@ -752,38 +751,38 @@ define([
         /** @type {number} */ var sampler = -1;
 
         gl.viewport(x, y, VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glViewport(x, y, VIEWPORT_WIDTH, VIEWPORT_HEIGHT)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glViewport(x, y, VIEWPORT_WIDTH, VIEWPORT_HEIGHT)');
 
-        gl.genSamplers(1, sampler);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glGenSamplers(1, &sampler)');
+        sampler = gl.createSampler();
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glGenSamplers(1, &sampler)');
         DE_ASSERT(sampler != -1);
 
         gl.bindSampler(0, sampler);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindSampler(0, sampler)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindSampler(0, sampler)');
         gl.bindSampler(1, sampler);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindSampler(1, sampler)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindSampler(1, sampler)');
 
         // First set sampler state
         MultiTextureSamplerTest.setSamplerState(this.m_samplerState, sampler);
 
         // Set texture state
         gl.bindTexture(this.m_target, texture1);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(m_target, texture1)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(m_target, texture1)');
         MultiTextureSamplerTest.setTextureState(this.m_target, this.m_textureState1);
 
         gl.bindTexture(this.m_target, texture2);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(m_target, texture2)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(m_target, texture2)');
         MultiTextureSamplerTest.setTextureState(this. m_target, this.m_textureState2);
 
         gl.activeTexture(gl.TEXTURE0);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glActiveTexture(GL_TEXTURE0)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glActiveTexture(GL_TEXTURE0)');
         gl.bindTexture(this.m_target, texture1);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(m_target, texture1)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(m_target, texture1)');
 
         gl.activeTexture(gl.TEXTURE1);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glActiveTexture(GL_TEXTURE1)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glActiveTexture(GL_TEXTURE1)');
         gl.bindTexture(this.m_target, texture2);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(m_target, texture2)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(m_target, texture2)');
 
         // Render using sampler
         this.render();
@@ -792,9 +791,9 @@ define([
         gl.readPixels(x, y, sampRes.m_width, sampRes.m_height, sampResTransferFormat.format, sampResTransferFormat.dataType, samplerResult.m_pixels);
 
         gl.bindSampler(0, 0);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindSampler(0, 0)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindSampler(0, 0)');
         gl.bindSampler(1, 0);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindSampler(1, 0)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindSampler(1, 0)');
 
         this.render();
         var texRes = textureResult.getAccess();
@@ -802,21 +801,21 @@ define([
         gl.readPixels(x, y, texRes.m_width, texRes.m_height, texResTransferFormat.format, texResTransferFormat.dataType, textureResult.m_pixels);
 
         gl.activeTexture(gl.TEXTURE0);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glActiveTexture(GL_TEXTURE0)');
-        gl.bindTexture(this.m_target, 0);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(m_target, 0)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glActiveTexture(GL_TEXTURE0)');
+        gl.bindTexture(this.m_target, null);
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(m_target, 0)');
 
         gl.activeTexture(gl.TEXTURE1);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glActiveTexture(GL_TEXTURE1)');
-        gl.bindTexture(this.m_target, 0);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(m_target, 0)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glActiveTexture(GL_TEXTURE1)');
+        gl.bindTexture(this.m_target, null);
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(m_target, 0)');
 
-        gl.deleteSamplers(1, sampler);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glDeleteSamplers(1, &sampler)');
-        gl.deleteTextures(1, texture1);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glDeleteTextures(1, &texture1)');
-        gl.deleteTextures(1, texture2);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glDeleteTextures(1, &texture2)');
+        gl.deleteSampler(sampler);
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glDeleteSamplers(1, &sampler)');
+        gl.deleteTexture(texture1);
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glDeleteTextures(1, &texture1)');
+        gl.deleteTexture(texture2);
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glDeleteTextures(1, &texture2)');
     };
 
     MultiTextureSamplerTest.prototype.render = function() {
@@ -825,7 +824,7 @@ define([
         /** @type {number} */ var scaleLoc = -1;
 
         gl.useProgram(this.m_program.getProgram());
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glUseProgram(m_program->getProgram())');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glUseProgram(m_program->getProgram())');
 
         samplerLoc1 = gl.getUniformLocation(this.m_program.getProgram(), 'u_sampler1');
         DE_ASSERT(samplerLoc1 != -1);
@@ -837,19 +836,19 @@ define([
         DE_ASSERT(scaleLoc != -1);
 
         gl.clearColor(0.5, 0.5, 0.5, 1.0);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glClearColor(0.5f, 0.5f, 0.5f, 1.0f)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glClearColor(0.5f, 0.5f, 0.5f, 1.0f)');
 
         gl.clear(gl.COLOR_BUFFER_BIT);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glClear(GL_COLOR_BUFFER_BIT)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glClear(GL_COLOR_BUFFER_BIT)');
 
         gl.uniform1i(samplerLoc1, 0);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glUniform1i(samplerLoc1, 0)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glUniform1i(samplerLoc1, 0)');
 
         gl.uniform1i(samplerLoc2, 1);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glUniform1i(samplerLoc2, 1)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glUniform1i(samplerLoc2, 1)');
 
         gl.uniform1f(scaleLoc, 1.0);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glUniform1f(scaleLoc, 1.0f)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glUniform1f(scaleLoc, 1.0f)');
 
         /** @type {Array.<gluDrawUtil.VertexArrayBinding>} */ var vertexArrays;
         switch (this.m_target) {
@@ -869,7 +868,7 @@ define([
                 gluDrawUtil.draw(gl, this.m_program.getProgram(), vertexArrays, new gluDrawUtil.PrimitiveList(gluDrawUtil.primitiveType.TRIANGLES, 6));
 
                 gl.uniform1f(scaleLoc, 0.25);
-                GLU_EXPECT_NO_ERROR(gl.getError(), 'glUniform1f(scaleLoc, 0.25f)');
+                gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glUniform1f(scaleLoc, 0.25f)');
 
                 gluDrawUtil.draw(gl, this.m_program.getProgram(), vertexArrays, new gluDrawUtil.PrimitiveList(gluDrawUtil.primitiveType.TRIANGLES, 6));
 
@@ -892,7 +891,7 @@ define([
                 gluDrawUtil.draw(gl, this.m_program.getProgram(), vertexArrays, new gluDrawUtil.PrimitiveList(gluDrawUtil.primitiveType.TRIANGLES, 6));
 
                 gl.uniform1f(scaleLoc, 0.25);
-                GLU_EXPECT_NO_ERROR(gl.getError(), 'glUniform1f(scaleLoc, 0.25f)');
+                gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glUniform1f(scaleLoc, 0.25f)');
 
                 gluDrawUtil.draw(gl, this.m_program.getProgram(), vertexArrays, new gluDrawUtil.PrimitiveList(gluDrawUtil.primitiveType.TRIANGLES, 6));
 
@@ -916,7 +915,7 @@ define([
                 gluDrawUtil.draw(gl, this.m_program.getProgram(), vertexArrays, new gluDrawUtil.PrimitiveList(gluDrawUtil.primitiveType.TRIANGLES, 6));
 
                 gl.uniform1f(scaleLoc, 0.25);
-                GLU_EXPECT_NO_ERROR(gl.getError(), 'glUniform1f(scaleLoc, 0.25f)');
+                gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glUniform1f(scaleLoc, 0.25f)');
 
                 gluDrawUtil.draw(gl, this.m_program.getProgram(), vertexArrays, new gluDrawUtil.PrimitiveList(gluDrawUtil.primitiveType.TRIANGLES, 6));
 
@@ -936,19 +935,19 @@ define([
      */
     MultiTextureSamplerTest.setTextureState = function(target, state) {
         gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, state.minFilter);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glTexParameteri(target, GL_TEXTURE_MIN_FILTER, state.minFilter)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glTexParameteri(target, GL_TEXTURE_MIN_FILTER, state.minFilter)');
         gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, state.magFilter);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glTexParameteri(target, GL_TEXTURE_MAG_FILTER, state.magFilter)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glTexParameteri(target, GL_TEXTURE_MAG_FILTER, state.magFilter)');
         gl.texParameteri(target, gl.TEXTURE_WRAP_S, state.wrapS);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glTexParameteri(target, GL_TEXTURE_WRAP_S, state.wrapS)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glTexParameteri(target, GL_TEXTURE_WRAP_S, state.wrapS)');
         gl.texParameteri(target, gl.TEXTURE_WRAP_T, state.wrapT);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glTexParameteri(target, GL_TEXTURE_WRAP_T, state.wrapT)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glTexParameteri(target, GL_TEXTURE_WRAP_T, state.wrapT)');
         gl.texParameteri(target, gl.TEXTURE_WRAP_R, state.wrapR);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glTexParameteri(target, GL_TEXTURE_WRAP_R, state.wrapR)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glTexParameteri(target, GL_TEXTURE_WRAP_R, state.wrapR)');
         gl.texParameterf(target, gl.TEXTURE_MAX_LOD, state.maxLod);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glTexParameterf(target, GL_TEXTURE_MAX_LOD, state.maxLod)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glTexParameterf(target, GL_TEXTURE_MAX_LOD, state.maxLod)');
         gl.texParameterf(target, gl.TEXTURE_MIN_LOD, state.minLod);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glTexParameterf(target, GL_TEXTURE_MIN_LOD, state.minLod)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glTexParameterf(target, GL_TEXTURE_MIN_LOD, state.minLod)');
     };
 
     /**
@@ -958,19 +957,19 @@ define([
      */
     MultiTextureSamplerTest.setSamplerState = function(state, sampler) {
         gl.samplerParameteri(sampler, gl.TEXTURE_MIN_FILTER, state.minFilter);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glSamplerParameteri(sampler, GL_TEXTURE_MIN_FILTER, state.minFilter)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glSamplerParameteri(sampler, GL_TEXTURE_MIN_FILTER, state.minFilter)');
         gl.samplerParameteri(sampler, gl.TEXTURE_MAG_FILTER, state.magFilter);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glSamplerParameteri(sampler, GL_TEXTURE_MAG_FILTER, state.magFilter)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glSamplerParameteri(sampler, GL_TEXTURE_MAG_FILTER, state.magFilter)');
         gl.samplerParameteri(sampler, gl.TEXTURE_WRAP_S, state.wrapS);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glSamplerParameteri(sampler, GL_TEXTURE_WRAP_S, state.wrapS)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glSamplerParameteri(sampler, GL_TEXTURE_WRAP_S, state.wrapS)');
         gl.samplerParameteri(sampler, gl.TEXTURE_WRAP_T, state.wrapT);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glSamplerParameteri(sampler, GL_TEXTURE_WRAP_T, state.wrapT)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glSamplerParameteri(sampler, GL_TEXTURE_WRAP_T, state.wrapT)');
         gl.samplerParameteri(sampler, gl.TEXTURE_WRAP_R, state.wrapR);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glSamplerParameteri(sampler, GL_TEXTURE_WRAP_R, state.wrapR)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glSamplerParameteri(sampler, GL_TEXTURE_WRAP_R, state.wrapR)');
         gl.samplerParameterf(sampler, gl.TEXTURE_MAX_LOD, state.maxLod);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glSamplerParameterf(sampler, GL_TEXTURE_MAX_LOD, state.maxLod)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glSamplerParameterf(sampler, GL_TEXTURE_MAX_LOD, state.maxLod)');
         gl.samplerParameterf(sampler, gl.TEXTURE_MIN_LOD, state.minLod);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glSamplerParameterf(sampler, GL_TEXTURE_MIN_LOD, state.minLod)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glSamplerParameterf(sampler, GL_TEXTURE_MIN_LOD, state.minLod)');
     };
 
     /**
@@ -989,7 +988,7 @@ define([
         refTexture.allocLevel(0);
 
         texture = gl.createTexture();
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glGenTextures(1, &texture)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glGenTextures(1, &texture)');
 
         switch (id) {
             case 0:
@@ -1005,16 +1004,16 @@ define([
         }
 
         gl.bindTexture(gl.TEXTURE_2D, texture);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(GL_TEXTURE_2D, texture)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(GL_TEXTURE_2D, texture)');
 
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, refTexture.getWidth(), refTexture.getHeight(), 0, gl.RGBA, gl.UNSIGNED_BYTE, refTexture.getLevel(0).getDataPtr());
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, refTexture.getWidth(), refTexture.getHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, refTexture.getLevel(0).getDataPtr())');
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, refTexture.getWidth(), refTexture.getHeight(), 0, gl.RGBA, gl.UNSIGNED_BYTE, refTexture.getLevel(0).getDataPtr());
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, refTexture.getWidth(), refTexture.getHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, refTexture.getLevel(0).getDataPtr())');
 
         gl.generateMipmap(gl.TEXTURE_2D);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glGenerateMipmap(GL_TEXTURE_2D)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glGenerateMipmap(GL_TEXTURE_2D)');
 
-        gl.bindTexture(gl.TEXTURE_2D, 0);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(GL_TEXTURE_2D, 0)');
+        gl.bindTexture(gl.TEXTURE_2D, null);
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(GL_TEXTURE_2D, 0)');
 
         return texture;
     };
@@ -1037,7 +1036,7 @@ define([
         refTexture.allocLevel(0);
 
         texture = gl.createTexture();
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glGenTextures(1, &texture)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glGenTextures(1, &texture)');
 
         switch (id) {
             case 0:
@@ -1053,16 +1052,16 @@ define([
         }
 
         gl.bindTexture(gl.TEXTURE_3D, texture);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(GL_TEXTURE_3D, texture)');
-
-        gl.texImage3D(gl.TEXTURE_3D, 0, gl.RGBA8, refTexture.getWidth(), refTexture.getHeight(), refTexture.getDepth(), 0, gl.RGBA, gl.UNSIGNED_BYTE, refTexture.getLevel(0).getDataPtr());
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8, refTexture.getWidth(), refTexture.getHeight(), refTexture.getDepth(), 0, GL_RGBA, GL_UNSIGNED_BYTE, refTexture.getLevel(0).getDataPtr())');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(GL_TEXTURE_3D, texture)');
+        // TODO: check internalFormat and format in texImage3D
+        gl.texImage3D(gl.TEXTURE_3D, 0, gl.RGBA, refTexture.getWidth(), refTexture.getHeight(), refTexture.getDepth(), 0, gl.RGBA, gl.UNSIGNED_BYTE, refTexture.getLevel(0).getDataPtr());
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8, refTexture.getWidth(), refTexture.getHeight(), refTexture.getDepth(), 0, GL_RGBA, GL_UNSIGNED_BYTE, refTexture.getLevel(0).getDataPtr())');
 
         gl.generateMipmap(gl.TEXTURE_3D);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glGenerateMipmap(GL_TEXTURE_3D)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glGenerateMipmap(GL_TEXTURE_3D)');
 
-        gl.bindTexture(gl.TEXTURE_3D, 0);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(GL_TEXTURE_3D, 0)');
+        gl.bindTexture(gl.TEXTURE_3D, null);
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(GL_TEXTURE_3D, 0)');
 
         return texture;
     };
@@ -1080,7 +1079,7 @@ define([
                                                                      CUBEMAP_SIZE);
 
         texture = gl.createTexture();
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glCreateTexture()');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glCreateTexture()');
 
         refTexture.allocLevel(tcuTexture.CubeFace.CUBEFACE_POSITIVE_X, 0);
         refTexture.allocLevel(tcuTexture.CubeFace.CUBEFACE_POSITIVE_Y, 0);
@@ -1113,18 +1112,18 @@ define([
         }
 
         gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(GL_TEXTURE_CUBE_MAP, texture)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(GL_TEXTURE_CUBE_MAP, texture)');
 
-        for (var face = 0; face < Object.keys(tcuTexture.CubeFace).length; face++) {
+        for (var face = 0; face < Object.keys(tcuTexture.CubeFace).length -1; face++) { // TODO: remove the TOTAL_FACES entry from the enum. Until then, -1.
             /** @const @type {number} */ var target = gluTextureUtil.getGLCubeFace(face);
-            gl.texImage2D(target, 0, gl.RGBA8, refTexture.getSize(), refTexture.getSize(), 0, gl.RGBA, gl.UNSIGNED_BYTE, refTexture.getLevelFace(0, face).getDataPtr());
+            gl.texImage2D(target, 0, gl.RGBA, refTexture.getSize(), refTexture.getSize(), 0, gl.RGBA, gl.UNSIGNED_BYTE, refTexture.getLevelFace(0, face).getDataPtr());
         }
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glTexImage2D(GL_TEXTURE_CUBE_MAP_...) failed');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glTexImage2D(GL_TEXTURE_CUBE_MAP_...) failed');
 
         gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glGenerateMipmap(GL_TEXTURE_CUBE_MAP)');
-        gl.bindTexture(gl.TEXTURE_CUBE_MAP, 0);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(GL_TEXTURE_CUBE_MAP, 0)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glGenerateMipmap(GL_TEXTURE_CUBE_MAP)');
+        gl.bindTexture(gl.TEXTURE_CUBE_MAP, null);
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(GL_TEXTURE_CUBE_MAP, 0)');
 
         return texture;
     };
