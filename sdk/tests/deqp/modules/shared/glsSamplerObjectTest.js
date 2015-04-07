@@ -139,7 +139,7 @@ define([
      * @param {number} y
      */
     TextureSamplerTest.prototype.renderReferences = function(textureRef, samplerRef, x, y) {
-        /** @type {number} */ var texture = this.createTexture(this.m_target);
+        /** @type {number} */ var texture = TextureSamplerTest.createTexture(this.m_target);
 
         gl.viewport(x, y, VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
         GLU_EXPECT_NO_ERROR(gl.getError(), 'glViewport(x, y, VIEWPORT_WIDTH, VIEWPORT_HEIGHT)');
@@ -147,14 +147,14 @@ define([
         gl.bindTexture(this.m_target, texture);
         GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(m_target, texture)');
 
-        this.setTextureState(this.m_target, this.m_textureState);
+        TextureSamplerTest.setTextureState(this.m_target, this.m_textureState);
         this.render();
         var texRef = textureRef.getAccess();
         var texRefTransferFormat = gluTextureUtil.getTransferFormat(texRef.getFormat());
         gl.readPixels(x, y, texRef.m_width, texRef.m_height, texRefTransferFormat.format, texRefTransferFormat.dataType, textureRef.m_pixels);
 
-        this.setTextureState(this.m_target, this.m_samplerState);
-        render();
+        TextureSamplerTest.setTextureState(this.m_target, this.m_samplerState);
+        this.render();
         var sampRef = samplerRef.getAccess();
         var sampRefTransferFormat = gluTextureUtil.getTransferFormat(sampRef.getFormat());
         gl.readPixels(x, y, sampRef.m_width, sampRef.m_height, sampRefTransferFormat.format, sampRefTransferFormat.dataType, samplerRef.m_pixels);
@@ -171,7 +171,7 @@ define([
      * @param {number} y
      */
     TextureSamplerTest.prototype.renderResults = function(textureResult, samplerResult, x, y) {
-        /** @type {number} */ var texture = this.createTexture(this.m_target);
+        /** @type {number} */ var texture = TextureSamplerTest.createTexture(this.m_target);
         /** @type {number} */ var sampler = -1;
 
         gl.viewport(x, y, VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
@@ -185,13 +185,13 @@ define([
         GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindSampler(0, sampler)');
 
         // First set sampler state
-        this.setSamplerState(this.m_samplerState, sampler);
+        TextureSamplerTest.setSamplerState(this.m_samplerState, sampler);
 
         // Set texture state
         gl.bindTexture(this.m_target, texture);
         GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(m_target, texture)');
 
-        this.setTextureState(this.m_target, this.m_textureState);
+        TextureSamplerTest.setTextureState(this.m_target, this.m_textureState);
         // Render using sampler
         this.render();
         var sampRes = samplerResult.getAccess();
@@ -477,13 +477,13 @@ define([
     TextureSamplerTest.createTexture = function(target) {
         switch (target) {
             case gl.TEXTURE_2D:
-                return this.createTexture2D(gl);
+                return TextureSamplerTest.createTexture2D(gl);
 
             case gl.TEXTURE_3D:
-                return this.createTexture3D(gl);
+                return TextureSamplerTest.createTexture3D(gl);
 
             case gl.TEXTURE_CUBE_MAP:
-                return this.createTextureCube(gl);
+                return TextureSamplerTest.createTextureCube(gl);
 
             default:
                 DE_ASSERT(false);
@@ -689,8 +689,8 @@ define([
      * @param {number} y
      */
     MultiTextureSamplerTest.prototype.renderReferences = function(textureRef, samplerRef, x, y) {
-        /** @type {number} */ var texture1 = this.createTexture(this.m_target, 0);
-        /** @type {number} */ var texture2 = this.createTexture(this.m_target, 1);
+        /** @type {number} */ var texture1 = MultiTextureSamplerTest.createTexture(this.m_target, 0);
+        /** @type {number} */ var texture2 = MultiTextureSamplerTest.createTexture(this.m_target, 1);
 
         gl.viewport(x, y, VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
         GLU_EXPECT_NO_ERROR(gl.getError(), 'glViewport(x, y, VIEWPORT_WIDTH, VIEWPORT_HEIGHT)');
@@ -700,13 +700,13 @@ define([
         GLU_EXPECT_NO_ERROR(gl.getError(), 'glActiveTexture(GL_TEXTURE0)');
         gl.bindTexture(this.m_target, texture1);
         GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(m_target, texture1)');
-        this.setTextureState(this.m_target, this.m_textureState1);
+        MultiTextureSamplerTest.setTextureState(this.m_target, this.m_textureState1);
 
         gl.activeTexture(gl.TEXTURE1);
         GLU_EXPECT_NO_ERROR(gl.getError(), 'glActiveTexture(GL_TEXTURE1)');
         gl.bindTexture(this.m_target, texture2);
         GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(m_target, texture2)');
-        this.setTextureState(this.m_target, this.m_textureState2);
+        MultiTextureSamplerTest.setTextureState(this.m_target, this.m_textureState2);
 
 
         this.render();
@@ -719,15 +719,15 @@ define([
         GLU_EXPECT_NO_ERROR(gl.getError(), 'glActiveTexture(GL_TEXTURE0)');
         gl.bindTexture(this.m_target, texture1);
         GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(m_target, texture1)');
-        this.setTextureState(this.m_target, this.m_samplerState);
+        MultiTextureSamplerTest.setTextureState(this.m_target, this.m_samplerState);
 
         gl.activeTexture(gl.TEXTURE1);
         GLU_EXPECT_NO_ERROR(gl.getError(), 'glActiveTexture(GL_TEXTURE1)');
         gl.bindTexture(this.m_target, texture2);
         GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(m_target, texture2)');
-        setTextureState(this.m_target, this.m_samplerState);
+        MultiTextureSamplerTest.setTextureState(this.m_target, this.m_samplerState);
 
-        render();
+        this.render();
         var sampRef = samplerRef.getAccess();
         var sampRefTransferFormat = gluTextureUtil.getTransferFormat(sampRef.getFormat());
         gl.readPixels(x, y, sampRef.m_width, sampRef.m_height, sampRefTransferFormat.format, sampRefTransferFormat.dataType, samplerRef.m_pixels);
@@ -741,8 +741,8 @@ define([
      * @param {number} y
      */
     MultiTextureSamplerTest.prototype.renderResults = function(textureResult, samplerResult, x, y) {
-        /** @type {number} */ var texture1 = this.createTexture(this.m_target, 0);
-        /** @type {number} */ var texture2 = this.createTexture(this.m_target, 1);
+        /** @type {number} */ var texture1 = MultiTextureSamplerTest.createTexture(this.m_target, 0);
+        /** @type {number} */ var texture2 = MultiTextureSamplerTest.createTexture(this.m_target, 1);
         /** @type {number} */ var sampler = -1;
 
         gl.viewport(x, y, VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
@@ -758,16 +758,16 @@ define([
         GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindSampler(1, sampler)');
 
         // First set sampler state
-        this.setSamplerState(this.m_samplerState, sampler);
+        MultiTextureSamplerTest.setSamplerState(this.m_samplerState, sampler);
 
         // Set texture state
         gl.bindTexture(this.m_target, texture1);
         GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(m_target, texture1)');
-        this.setTextureState(this.m_target, this.m_textureState1);
+        MultiTextureSamplerTest.setTextureState(this.m_target, this.m_textureState1);
 
         gl.bindTexture(this.m_target, texture2);
         GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(m_target, texture2)');
-        this.setTextureState(this. m_target, this.m_textureState2);
+        MultiTextureSamplerTest.setTextureState(this. m_target, this.m_textureState2);
 
         gl.activeTexture(gl.TEXTURE0);
         GLU_EXPECT_NO_ERROR(gl.getError(), 'glActiveTexture(GL_TEXTURE0)');
@@ -1132,13 +1132,13 @@ define([
     MultiTextureSamplerTest.createTexture = function(target, id) {
         switch (target) {
             case gl.TEXTURE_2D:
-                return this.createTexture2D(gl, id);
+                return MultiTextureSamplerTest.createTexture2D(gl, id);
 
             case gl.TEXTURE_3D:
-                return this.createTexture3D(gl, id);
+                return MultiTextureSamplerTest.createTexture3D(gl, id);
 
             case gl.TEXTURE_CUBE_MAP:
-                return this.createTextureCube(gl, id);
+                return MultiTextureSamplerTest.createTextureCube(gl, id);
 
             default:
                 DE_ASSERT(false);
