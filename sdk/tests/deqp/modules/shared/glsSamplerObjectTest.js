@@ -368,7 +368,7 @@ define([
      * @return {number}
      */
     TextureSamplerTest.createTexture2D = function() {
-        /** @type {number} */ var texture = -1;
+        /** @type {WebGLTexture} */ var texture = -1;
         /** @type {tcuTexture.Texture2D} */ var refTexture = new tcuTexture.Texture2D(
                                                                 new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA,
                                                                                              tcuTexture.ChannelType.UNORM_INT8),
@@ -378,7 +378,7 @@ define([
         refTexture.allocLevel(0);
         tcuTextureUtil.fillWithComponentGradients(refTexture.getLevel(0), [0.0, 0.0, 0.0, 0.0], [1.0, 1.0, 1.0, 1.0]);
 
-        gl.genTextures(1, texture);
+        texture = gl.createTexture();
         GLU_EXPECT_NO_ERROR(gl.getError(), 'glGenTextures(1, &texture)');
 
         gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -401,7 +401,7 @@ define([
      * @return {number}
      */
     TextureSamplerTest.createTexture3D = function() {
-        /** @type {number} */ var texture = -1;
+        /** @type {WebGLTexture} */ var texture = -1;
         /** @type {tcuTexture.Texture3D} */ var refTexture = new tcuTexture.Texture3D(
                                                                  new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA,
                                                                                               tcuTexture.ChannelType.UNORM_INT8),
@@ -412,7 +412,7 @@ define([
         refTexture.allocLevel(0);
         tcuTextureUtil.fillWithComponentGradients(refTexture.getLevel(0), [0.0, 0.0, 0.0, 0.0], [1.0, 1.0, 1.0, 1.0]);
 
-        gl.genTextures(1, texture);
+        texture = gl.createTexture();
         GLU_EXPECT_NO_ERROR(gl.getError(), 'glGenTextures(1, &texture)');
 
         gl.bindTexture(gl.TEXTURE_3D, texture);
@@ -435,11 +435,14 @@ define([
      * @return {number}
      */
     TextureSamplerTest.createTextureCube = function() {
-        /** @type {number} */ var texture = -1;
+        /** @type {WebGLTexture} */ var texture = -1;
         /** @type {tcuTexture.TextureCube} */ var refTexture = new tcuTexture.TextureCube(
                                                                   new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA,
                                                                                                tcuTexture.ChannelType.UNORM_INT8),
                                                                   CUBEMAP_SIZE);
+
+        texture = gl.createTexture();
+        GLU_EXPECT_NO_ERROR(gl.getError(), 'glCreateTexture()');
 
         refTexture.allocLevel(tcuTexture.CubeFace.CUBEFACE_POSITIVE_X, 0);
         refTexture.allocLevel(tcuTexture.CubeFace.CUBEFACE_POSITIVE_Y, 0);
@@ -636,7 +639,7 @@ define([
         /** @type {SamplingState} */ this.m_textureState1 = spec.textureState;
         /** @type {SamplingState} */ this.m_textureState2 = spec.textureState2;
         /** @type {SamplingState} */ this.m_samplerState = spec.samplerState;
-        /** @type {deRandom.Random} */ this.m_random = deRandom.Random(deString.deStringHash(spec.name));
+        /** @type {deRandom.Random} */ this.m_random = new deRandom.Random(deString.deStringHash(spec.name));
     };
 
     MultiTextureSamplerTest.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
@@ -647,7 +650,7 @@ define([
         /** @type {?string} */ var fragmentShaderTemplate = MultiTextureSamplerTest.selectFragmentShader(this.m_target);
 
         DE_ASSERT(!this.m_program);
-        this.m_program = new gluShaderProgram.ShaderProgram(this,
+        this.m_program = new gluShaderProgram.ShaderProgram(gl,
                                                             gluShaderProgram.makeVtxFragSources(
                                                                 vertexShaderTemplate,
                                                                 fragmentShaderTemplate));
@@ -976,7 +979,7 @@ define([
      * @return {number}
      */
     MultiTextureSamplerTest.createTexture2D = function(id) {
-        /** @type {number} */ var texture = -1;
+        /** @type {WebGLTexture} */ var texture = -1;
         /** @type {tcuTexture.Texture2D} */ var refTexture = new tcuTexture.Texture2D(
                                                                  new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA,
                                                                                               tcuTexture.ChannelType.UNORM_INT8),
@@ -985,7 +988,7 @@ define([
 
         refTexture.allocLevel(0);
 
-        gl.genTextures(1, texture);
+        texture = gl.createTexture();
         GLU_EXPECT_NO_ERROR(gl.getError(), 'glGenTextures(1, &texture)');
 
         switch (id) {
@@ -1023,7 +1026,7 @@ define([
      * @return {number}
      */
     MultiTextureSamplerTest.createTexture3D = function(id) {
-        /** @type {number} */ var texture = -1;
+        /** @type {WebGLTexture} */ var texture = -1;
         /** @type {tcuTexture.Texture3D} */ var refTexture = new tcuTexture.Texture3D(
                                                                  new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA,
                                                                                               tcuTexture.ChannelType.UNORM_INT8),
@@ -1033,7 +1036,7 @@ define([
 
         refTexture.allocLevel(0);
 
-        gl.genTextures(1, texture);
+        texture = gl.createTexture();
         GLU_EXPECT_NO_ERROR(gl.getError(), 'glGenTextures(1, &texture)');
 
         switch (id) {
@@ -1070,14 +1073,14 @@ define([
      * @return {number}
      */
     MultiTextureSamplerTest.createTextureCube = function(id) {
-        /** @type {number} */ var texture = -1;
+        /** @type {WebGLTexture} */ var texture = -1;
         /** @type {tcuTexture.TextureCube} */ var refTexture = new tcuTexture.TextureCube(
                                                                      new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA,
                                                                                                   tcuTexture.ChannelType.UNORM_INT8),
                                                                      CUBEMAP_SIZE);
 
-        gl.genTextures(1, texture);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glGenTextures(1, &texture)');
+        texture = gl.createTexture();
+        GLU_EXPECT_NO_ERROR(gl.getError(), 'glCreateTexture()');
 
         refTexture.allocLevel(tcuTexture.CubeFace.CUBEFACE_POSITIVE_X, 0);
         refTexture.allocLevel(tcuTexture.CubeFace.CUBEFACE_POSITIVE_Y, 0);
