@@ -1774,6 +1774,9 @@ var Texture2D = function(format, width, height) {
 Texture2D.prototype = Object.create(TextureLevelPyramid.prototype);
 Texture2D.prototype.constructor = Texture2D;
 
+Texture2D.prototype.getWidth = function() { return this.m_width; };
+Texture2D.prototype.getHeight = function() { return this.m_height; };
+
 /**
  * @param {Number} baseLevel
  * @param {Number} maxLevel
@@ -1845,6 +1848,9 @@ var Texture3D = function(format, width, height, depth) {
 
 Texture3D.prototype = Object.create(TextureLevelPyramid.prototype);
 Texture3D.prototype.constructor = Texture3D;
+
+Texture3D.prototype.getWidth = function() { return this.m_width; };
+Texture3D.prototype.getHeight = function() { return this.m_height; };
 
 /**
  * @param {Number} baseLevel
