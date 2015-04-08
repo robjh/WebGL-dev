@@ -930,7 +930,7 @@ function (
     /**
      * ContextShaderProgram class
      * @constructor
-     * @extends sglrShaderProgram.ShaderProgram
+     * @extends {sglrShaderProgram.ShaderProgram}
      * @param {GLRenderContext} ctx
      * @param {Array.<ContextArray>} arrays
      */

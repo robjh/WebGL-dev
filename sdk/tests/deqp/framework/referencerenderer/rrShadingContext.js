@@ -137,12 +137,11 @@ define([
      * @param {Array.<Array.<number>>} outFragmentdFdx
      * @param {Array.<Array.<number>>} func
      */
-    var dFdxLocal = function (outFragmentdFdx, func)
-    {
-        /** @type {Array.<Array.<number>>} */ var dFdx = {
+    var dFdxLocal = function (outFragmentdFdx, func) {
+        /** @type {Array.<Array.<number>>} */ var dFdx = [
             deMath.subtract(func[1], func[0]),
             deMath.subtract(func[3], func[2])
-        };
+        ];
 
         outFragmentdFdx[0] = deMath.assign(dFdx[0]);
         outFragmentdFdx[1] = deMath.assign(dFdx[0]);
@@ -155,12 +154,11 @@ define([
      * @param {Array.<Array.<number>>} outFragmentdFdy
      * @param {Array.<Array.<number>>} func
      */
-    var dFdyLocal = function (outFragmentdFdy, func)
-    {
-        /** @type {Array.<Array.<number>>} */ var dFdy = {
+    var dFdyLocal = function (outFragmentdFdy, func) {
+        /** @type {Array.<Array.<number>>} */ var dFdy = [
             deMath.subtract(func[2], func[0]),
             deMath.subtract(func[3], func[1])
-        };
+        ];
 
         outFragmentdFdy[0] = deMath.assign(dFdy[0]);
         outFragmentdFdy[1] = deMath.assign(dFdy[1]);
@@ -221,7 +219,7 @@ define([
     };
 
     /**
-     * readFragmentDepth
+     * writeFragmentDepth
      * @param {FragmentShadingContext} context
      * @param {number} packetNdx
      * @param {number} fragNdx

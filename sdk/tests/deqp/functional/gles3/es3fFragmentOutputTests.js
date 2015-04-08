@@ -253,7 +253,6 @@ function(
         log << TestLog::EndSection;*/
 
         // Create framebuffer.
-        // gl.genFramebuffers(1, this.m_framebuffer); // corresponding OpenGL ES function
         this.m_framebuffer = gl.createFramebuffer();
         gl.bindFramebuffer(gl.FRAMEBUFFER, this.m_framebuffer);
 
@@ -264,17 +263,15 @@ function(
             /** @type {number} */ var attachment = gl.COLOR_ATTACHMENT0 + bufNdx;
 
             gl.bindRenderbuffer(gl.RENDERBUFFER, this.m_renderbuffer);
-            gl.getInternalformatParameter(gl.RENDERBUFFER, bufSpec.format, gl.SAMPLES);
-            // gl.getInternalformatParameter(gl.RENDERBUFFER, bufSpec.format, gl.NUM_SAMPLE_COUNTS);
+            // gl.getInternalformatParameter(gl.RENDERBUFFER, bufSpec.format, gl.SAMPLES);
 
             // gl.MAX_RENDERBUFFER_SIZE, gl.MAX_SAMPLES, gl.NUM_SAMPLE_COUNTS, gl.SAMPLES
             gl.renderbufferStorageMultisample(gl.RENDERBUFFER, bufSpec.samples, bufSpec.format, bufSpec.width, bufSpec.height);
-            // gl.renderbufferStorageMultisample(gl.RENDERBUFFER, gl.MAX_RENDERBUFFER_SIZE, bufSpec.format, bufSpec.width, bufSpec.height);
-            gl.framebufferRenderbuffer(gl.FRAMEBUFFER, attachment, gl.RENDERBUFFER, this.m_renderbuffer);
+            gl.framebufferRenderbuffer(gl.FRAMEBUFFER, attachment, gl.RENDERBUFFER, this.m_renderbuffer); // TODO: crashes here, does not attach renderbuffer
         }
-        // GLU_EXPECT_NO_ERROR(gl.getError(), 'After framebuffer setup');
-
         /** @type {number} */ var fboStatus = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+        GLU_EXPECT_NO_ERROR(gl.getError(), 'After framebuffer and renderbuffer setup ');
+
         if (fboStatus == gl.FRAMEBUFFER_UNSUPPORTED)
             throw new Error('Framebuffer not supported');
             // throw tcu::NotSupportedError("Framebuffer not supported", "", __FILE__, __LINE__);
@@ -282,7 +279,8 @@ function(
             throw new Error('Incomplete framebuffer');
             // throw tcu::TestError((string("Incomplete framebuffer: ") + glu::getFramebufferStatusStr(fboStatus), "", __FILE__, __LINE__);
 
-        gl.bindFramebuffer(gl.FRAMEBUFFER, 0);
+        // gl.bindRenderbuffer(gl.RENDERBUFFER, null); // TODO: maybe needed
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         GLU_EXPECT_NO_ERROR(gl.getError(), 'After init');
     };
 
@@ -304,7 +302,6 @@ function(
             minSize[1] = Math.min(minSize[1], fboSpec[i].height);
         }
         return minSize;
-
     };
 
     /**
@@ -325,7 +322,6 @@ function(
      * @return {Float32Array} Vec2
      */
     var getFloatRange = function(precision) {
-
         /** @type {Array.<Float32Array>} */
         var ranges = // Vec2
         [
@@ -344,7 +340,6 @@ function(
      * @return {Array.<number>} IVec2
      */
     var getIntRange = function(precision) {
-
         /** @type {Array.<Int32Array>} */
         var ranges = // IVec2
         [
@@ -363,7 +358,6 @@ function(
      * @return {Array.<number>} UVec2
      */
     var getUintRange = function(precision) {
-
         /** @type {Array.<Uint32Array>} */
         var ranges = // UVec2
         [
@@ -514,7 +508,6 @@ function(
      */
     var AttachmentData = function() {
         return {
-
         /** @type {tcuTexture.TextureFormat} */ format: null, //!< Actual format of attachment.
         /** @type {tcuTexture.TextureFormat} */ referenceFormat: null, //!< Used for reference rendering.
         /** @type {tcuTexture.TextureFormat} */ readFormat: null,
@@ -522,7 +515,6 @@ function(
         /** @type {gluShaderUtil.Precision} */ outPrecision: null,
         /** @type {ArrayBuffer} */ renderedData: null,
         /** @type {ArrayBuffer} */ referenceData: null
-
         };
     };
 
@@ -541,7 +533,9 @@ function(
 
         /** @type {number} */ var numInputVecs = getNumInputVectors(this.m_outputs);
         /** @type {Array.<Array.<number>>} */ var inputs = [[]]; // originally vector<vector<deUint32>
+        inputs.length = numInputVecs;
         /** @type {Array.<number>} */ var positions = []; // originally vector<float>
+        positions.length = numVertices * 4;
         /** @type {Array.<number>} */ var indices = []; // originally vector<deUint16>
         indices.length = numIndices;
 
@@ -553,6 +547,7 @@ function(
         /** @type {Array.<number>} */ var drawBuffers = []; // originally vector<deUint32>
         drawBuffers.length = numAttachments;
         /** @type {Array.<AttachmentData>} */ var attachments = [];
+        attachments.length = numAttachments;
 
         // Initialize attachment data.
         for (var ndx = 0; ndx < numAttachments; ndx++)

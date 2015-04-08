@@ -219,11 +219,11 @@ TextureCubeFormatCase.prototype.init = function() {
               gluTexture.cubeFromInternalFormat(gl, this.m_format, this.m_width); // Explicit internal format.
 
     // Fill level 0.
-    for (var face = 0; face < tcuTexture.CubeFace.TOTAL_FACES; face++) {
+    for (var face in tcuTexture.CubeFace) {
         var gMin = null;
         var gMax = null;
 
-        switch (face) {
+        switch (tcuTexture.CubeFace[face]) {
             case 0: gMin = deMath.swizzle(spec.valueMin, [0, 1, 2, 3]); gMax = deMath.swizzle(spec.valueMax, [0, 1, 2, 3]); break;
             case 1: gMin = deMath.swizzle(spec.valueMin, [2, 1, 0, 3]); gMax = deMath.swizzle(spec.valueMax, [2, 1, 0, 3]); break;
             case 2: gMin = deMath.swizzle(spec.valueMin, [1, 2, 0, 3]); gMax = deMath.swizzle(spec.valueMax, [1, 2, 0, 3]); break;
@@ -234,8 +234,8 @@ TextureCubeFormatCase.prototype.init = function() {
                 DE_ASSERT(false);
         }
 
-        this.m_texture.getRefTexture().allocLevel(face, 0);
-        tcuTextureUtil.fillWithComponentGradients(this.m_texture.getRefTexture().getLevelFace(0, face), gMin, gMax);
+        this.m_texture.getRefTexture().allocLevel(tcuTexture.CubeFace[face], 0);
+        tcuTextureUtil.fillWithComponentGradients(this.m_texture.getRefTexture().getLevelFace(0, tcuTexture.CubeFace[face]), gMin, gMax);
     }
 
     this.m_texture.upload();
@@ -326,10 +326,10 @@ TextureCubeFormatCase.prototype.iterate = function() {
 
     this.m_curFace += 1;
 
-    if (this.m_curFace == tcuTexture.CubeFace.TOTAL_FACES)
-        return tcuTestCase.runner.IterateResult.STOP;
-    else
+    if (this.m_curFace < Object.keys(tcuTexture.CubeFace).length)
         return tcuTestCase.runner.IterateResult.CONTINUE;
+    else
+        return tcuTestCase.runner.IterateResult.STOP;
 };
 
 /**
@@ -796,10 +796,10 @@ CompressedCubeFormatCase.prototype.iterate = function() {
 
     this.m_curFace += 1;
 
-    if (this.m_curFace == tcuTexture.CubeFace.TOTAL_FACES)
-        return tcuTestCase.runner.IterateResult.STOP;
-    else
+    if (this.m_curFace < Object.keys(tcuTexture.CubeFace).length)
         return tcuTestCase.runner.IterateResult.CONTINUE;
+    else
+        return tcuTestCase.runner.IterateResult.STOP;
 };
 
 /*TODO: remove */
