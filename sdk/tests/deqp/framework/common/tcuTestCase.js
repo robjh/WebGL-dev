@@ -114,7 +114,7 @@ var DeqpTest = function(name, description, spec) {
  };
 
 /**
- * Returns the next 'leaf' test in the hierarchy of tests
+ * Returns the next 'child' test in the hierarchy of tests
  *
  * @param {string} pattern Optional pattern to search for
  * @return {Object} Test specification
@@ -126,19 +126,12 @@ var DeqpTest = function(name, description, spec) {
     var test = null;
 
     if (this.spec && this.spec.length) {
-        while (!test) {
-            if (this.currentTest < this.spec.length) {
-                test = this.spec[this.currentTest].next();
-                if (!test)
-                    this.currentTest += 1;
-            } else
-                break;
+        if (this.currentTest < this.spec.length) {
+            test = this.spec[this.currentTest];
+            this.currentTest++;
         }
-
-    } else if (this.currentTest === 0) {
-        this.currentTest += 1;
-        test = this;
     }
+
     return test;
 };
 
@@ -194,6 +187,7 @@ DeqpTest.prototype.find = function(pattern) {
             this.spec[i].reset();
 };
 
+
 /**
  * Defines a new test
  *
@@ -237,7 +231,24 @@ var runTestCases = function() {
         state.filter = getFilter();
 
     //Should we proceed with the next test?
-    state.currentTest = DeqpTest.lastResult == stateMachine.IterateResult.STOP ? state.testCases.next(state.filter) : state.currentTest;
+    if (DeqpTest.lastResult == stateMachine.IterateResult.STOP) {
+
+        //If not defined, let's start with the root test.
+        if (!state.currentTest)
+            state.currentTest = state.testCases;
+
+        else { //Otherwise, look for the next child
+
+            var nextTest = state.currentTest.next(state.filter);
+
+            //If no more children, get the next brother
+            if (nextTest == null && state.currentTest.parentTest !== undefined)
+                nextTest = state.currentTest.parentTest.next(state.filter);
+
+            state.currentTest = nextTest;
+        }
+    }
+
     if (state.currentTest) {
         try
         {
@@ -247,7 +258,6 @@ var runTestCases = function() {
                 //Update current test name
                 var fullTestName = state.currentTest.fullName();
                 setCurrentTestName(fullTestName);
-                debug('Start testcase: ' + fullTestName);
                 bufferedLogToConsole('Start testcase: ' + fullTestName); //Show also in console so we can see which test crashed the browser's tab
 
                 //TODO: Improve this
@@ -261,9 +271,15 @@ var runTestCases = function() {
             //TODO: Improve this
             //Run the test, save the result.
             if (state.currentTest.iterate !== undefined)
+            {
+                debug('Start testcase: ' + fullTestName);
                 DeqpTest.lastResult = state.currentTest.iterate();
+            }
             else if (state.currentTest.spec !== undefined && state.currentTest.spec.iterate !== undefined)
+            {
+                debug('Start testcase: ' + fullTestName);
                 DeqpTest.lastResult = state.currentTest.spec.iterate();
+            }
         }
         catch (err)
         {

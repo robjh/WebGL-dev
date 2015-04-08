@@ -104,17 +104,17 @@ define([
             packet.barycentric[1][fragNdx] * context.varyings[1][varyingLoc];
     };
 
+    //REMOVED: @param {number} fragNdx
     /**
      * @param {rrFragmentPacket.FragmentPacket} packet
      * @param {FragmentShadingContext} context
      * @param {number} varyingLoc
-     * @param {number} fragNdx
      * @return {Array.<number>} (Vector<T, 4>)
      */
-    var readTriangleVarying = function (packet, context, varyingLoc, fragNdx) {
-        return   packet.barycentric[0][fragNdx] * context.varyings[0][varyingLoc] +
-            packet.barycentric[1][fragNdx] * context.varyings[1][varyingLoc] +
-            packet.barycentric[2][fragNdx] * context.varyings[2][varyingLoc];
+    var readTriangleVarying = function (packet, context, varyingLoc /*, fragNdx*/) {
+        return   deMath.add(deMath.multiply(packet.barycentric[0]/*[fragNdx]*/, context.varyings[0][varyingLoc]),
+            deMath.add(deMath.multiply(packet.barycentric[1]/*[fragNdx]*/, context.varyings[1][varyingLoc]),
+            deMath.multiply(packet.barycentric[2]/*[fragNdx]*/, context.varyings[2][varyingLoc])));
     };
 
     /**
