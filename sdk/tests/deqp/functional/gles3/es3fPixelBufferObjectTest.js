@@ -23,13 +23,17 @@ define([
     'framework/common/tcuTestCase',
     'framework/delibs/debase/deRandom',
     'framework/common/tcuTextureUtil',
-    'framework/opengl/gluTextureUtil'], function(
+    'framework/common/tcuTexture',
+    'framework/opengl/gluTextureUtil',
+    'framework/common/tcuImageCompare'], function(
         gluDefs,
         gluShaderProgram,
         tcuTestCase,
         deRandom,
         tcuTextureUtil,
-        gluTextureUtil) {
+        tcuTexture,
+        gluTextureUtil,
+        tcuImageCompare) {
     'use strict';
 
     var DE_ASSERT = function(x) {
@@ -260,6 +264,232 @@ define([
         
         gluDefs.GLU_CHECK_CALL(function() {gl.disableVertexAttribArray(colorLoc)});
         gluDefs.GLU_CHECK_CALL(function() {gl.disableVertexAttribArray(coordLoc)});
+    }
+    
+    /*
+     * @param {Float} r
+     * @param {Float} g
+     * @param {Float} b
+     * @param {Float} a
+     */
+    
+    ReadPixelsTest.prototype.clearColor = function(r, g, b, a) {
+        if(this.m_framebuffeType == TestSpec.FramebufferType.FRAMEBUFFERTYPE_NATIVE)
+        {
+            gluDefs.GLU_CHECK_CALL(function() {gl.clearColor(r,g,b,a)});
+            gluDefs.GLU_CHECK_CALL(function() {gl.clear(gl.COLOR_BUFFER_BIT)});
+        }
+        else if(this.m_framebuffeType == TestSpec.FramebufferType.FRAMEBUFFERTYPE_RENDERBUFFER)
+        {
+            switch(this.m_texChannelClass)
+            {
+                case tcuTextureUtil.TextureChannelClass.UNSIGNED_FIXED_POINT:
+                    gluDefs.GLU_CHECK_CALL(function() {gl.clearColor(r,g,b,a)});
+                    gluDefs.GLU_CHECK_CALL(function() {gl.clear(gl.COLOR_BUFFER_BIT)});
+                    break;
+                case tcuTextureUtil.TextureChannelClass.SIGNED_INTEGER:
+                    /* @param {Array.<number>} */ color = [r,g,b,a];
+                    gluDefs.GLU_CHECK_CALL(function() {gl.clearBufferiv(gl.COLOR, 0, color)});
+                    break;
+                case tcuTextureUtil.TextureChannelClass.UNSIGNED_INTEGER:
+                    /* @param {Array.<number>} */ color = [r,g,b,a];
+                    gluDefs.GLU_CHECK_CALL(function() {gl.clearBufferiv(gl.COLOR, 0, color)});
+                    break;
+                case tcuTextureUtil.TextureChannelClass.FLOATING_POINT:
+                    /* @param {Array.<number>} */ color = [r,g,b,a];
+                    gluDefs.GLU_CHECK_CALL(function() {gl.clearBufferiv(gl.COLOR, 0, color)});
+                    break;
+                default:
+                    DE_ASSERT(false);
+            }
+        }
+        else
+		  DE_ASSERT(false);
+            
+    }
+    
+    ReadPixelsTest.prototype.iterate = function() {
+        var width = m_context.getRenderTarget().getWidth();
+        var height = m_context.getRenderTarget().getHeight();
+        
+        var framebuffer = 0;
+        var renderbuffer = 0;
+        
+        switch (this.m_framebuffeType)
+        {
+            case TestSpec.FramebufferType.FRAMEBUFFERTYPE_NATIVE:
+                gluDefs.GLU_CHECK_CALL(function() {gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer)});
+                break;
+            case TestSpec.FramebufferType.FRAMEBUFFERTYPE_RENDERBUFFER:
+                gluDefs.GLU_CHECK_CALL(function() {gl.genFramebuffers(1, framebuffer)});
+                gluDefs.GLU_CHECK_CALL(function() {gl.genRenderbuffers(1, renderbuffer)});
+                
+                gluDefs.GLU_CHECK_CALL(function() {gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer)});
+                gluDefs.GLU_CHECK_CALL(function() {gl.renderbufferStorage(gl.RENDERBUFFER, this.m_renderbufferFormat, width, height)});
+                
+                gluDefs.GLU_CHECK_CALL(function() {gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer)});
+                gluDefs.GLU_CHECK_CALL(function() {gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, renderbuffer)});
+                break;
+        }
+        
+        this.clearColor(this.m_colorScale * 0.4, this.m_colorScale * 1.0, this.m_colorScale * 0.5, this.m_colorScale * 1.0);
+        
+        if(this.m_useColorClears)
+        {
+            /** @type {number} */ var maxClearCount = 10;
+            /** @type {number} */ var minClearCount = 6;
+            /** @type {number} */ var minClearSize = 15;
+            
+            /** @type {number} */ var clearCount = this.m_random.getInt(minClearCount, maxClearCount);
+            
+            for(var clearNdx = 0; clearNdx < clearCount; clearNdx++)
+            {
+                /** @type {number} */ var clearX = this.m_random.getInt(0, width - minClearSize);
+                /** @type {number} */ var clearY = this.m_random.getInt(0, height - minClearSize);
+                
+                /** @type {number} */ var clearWidth = this.m_random.getInt(minClearSize, width - clearX);
+                /** @type {number} */ var clearHeight = this.m_random.getInt(minClearSize, height - cleary);
+                
+                /** @type {float} */ var clearRed = this.m_colorScale * this.m_random.getFloat();
+                /** @type {float} */ var clearGreen = this.m_colorScale * this.m_random.getFloat();
+                /** @type {float} */ var clearBlue = this.m_colorScale * this.m_random.getFloat();
+                /** @type {float} */ var clearAlpha = this.m_colorScale * (0.5 + 0.5 * this.m_random.getFloat());
+                
+                gluDefs.GLU_CHECK_CALL(function() {gl.enable(gl.SCISSOR_TEST)});
+                gluDefs.GLU_CHECK_CALL(function() {gl.scissor(clearX, clearY, clearWidth, clearHeight)});
+                
+                this.clearColor(clearRed,clearGreen, clearBlue, clearAlpha);
+            }
+            
+            gluDefs.GLU_CHECK_CALL(function() {gl.disable(gl.SCISSOR_TEST)});
+            
+        }
+        
+        if(this.m_renderTriangles)
+        {
+            /** @type {number} */ var minTriangleCount = 4;
+            /** @type {number} */ var maxTriangleCount = 10;
+            
+            /** @type {number} */ var triangleCount = this.m_random.getInt(minTriangleCount, maxTriangleCount);
+            
+            for(var triangleNdx = 0; triangleNdx < triangleCount; triangleNdx++)
+            {
+                /** @type {float} */ var x1 = 2.0 * this.m_random.getFloat() - 1.0;
+                /** @type {float} */ var y1 = 2.0 * this.m_random.getFloat() - 1.0;
+                /** @type {float} */ var z1 = 2.0 * this.m_random.getFloat() - 1.0;
+                
+                /** @type {float} */ var x2 = 2.0 * this.m_random.getFloat() - 1.0;
+                /** @type {float} */ var y2 = 2.0 * this.m_random.getFloat() - 1.0;
+                /** @type {float} */ var z2 = 2.0 * this.m_random.getFloat() - 1.0;
+                
+                /** @type {float} */ var x3 = 2.0 * this.m_random.getFloat() - 1.0;
+                /** @type {float} */ var y3 = 2.0 * this.m_random.getFloat() - 1.0;
+                /** @type {float} */ var z3 = 2.0 * this.m_random.getFloat() - 1.0;
+                
+                this.renderTriangle([x1,y1,z1], [x2,y2,z2], [x3,y3,z3]);
+            }
+        }
+        
+        /** @type {TextureFormat} */ var readFormat;
+        /** @type {float} */ var readPixelsFormat;
+        /** @type {float} */ var readPixelsType;
+        /** @type {bool} */ var floatCompare;
+        
+        
+        if(this.m_framebuffeType == TestSpec.FramebufferType.FRAMEBUFFERTYPE_NATIVE)
+        {
+            readFormat = gluTextureUtil.mapGLTransferFormat(gl.RGBA, gl.UNSIGNED_BYTE);
+            readPixelsFormat = gl.RGBA;
+            readPixelsType = gl.UNSIGNED_BYTE;
+            floatCompare = false;
+        }
+        else if(this.m_framebuffeType == TestSpec.FramebufferType.FRAMEBUFFERTYPE_RENDERBUFFER)
+        {
+            switch(this.m_texChannelClass)
+            {
+                case tcuTextureUtil.TextureChannelClass.UNSIGNED_FIXED_POINT:
+                    readFormat = gluTextureUtil.mapGLTransferFormat(gl.RGBA_INTEGER, gl.INT);
+                    readPixelsFormat = gl.RGBA_INTEGER;
+                    readPixelsType = gl.INT;
+                    floatCompare = true;
+                    break;
+                case tcuTextureUtil.TextureChannelClass.SIGNED_INTEGER:
+                    readFormat = gluTextureUtil.mapGLTransferFormat(gl.RGBA_INTEGER, gl.INT);
+                    readPixelsFormat = gl.RGBA_INTEGER;
+                    readPixelsType = gl.INT;
+                    floatCompare = false;
+                    break;
+                case tcuTextureUtil.TextureChannelClass.UNSIGNED_INTEGER:
+                    readFormat = gluTextureUtil.mapGLTransferFormat(gl.RGBA_INTEGER, gl.UNSIGNED_INT);
+                    readPixelsFormat = gl.RGBA_INTEGER;
+                    readPixelsType = gl.UNSIGNED_INT;
+                    floatCompare = false;
+                    break;
+                case tcuTextureUtil.TextureChannelClass.FLOATING_POINT:
+                    readFormat = gluTextureUtil.mapGLTransferFormat(gl.RGBA, gl.FLOAT);
+                    readPixelsFormat = gl.RGBA;
+                    readPixelsType = gl.FLOAT;
+                    floatCompare = true;
+                    break;
+                default:
+                    DE_ASSERT(false);
+                    // Silence warning
+                    readFormat = gluTextureUtil.mapGLTransferFormat(gl.RGBA, gl.FLOAT);
+                    readPixelsFormat = gl.RGBA;
+                    readPixelsType = gl.FLOAT;
+                    floatCompare = true;
+            }
+        }
+        else
+        {
+            // Silence warnings
+            readFormat = gluTextureUtil.mapGLTransferFormat(gl.RGBA, gl.FLOAT);
+            readPixelsFormat = gl.RGBA;
+            readPixelsType = gl.FLOAT;
+            floatCompare = true;
+            DE_ASSERT(false);
+        }
+        
+        tcuTexture.Texture2D.readReference(readFormat, width, height);
+        readReference.allocLevel(0);
+        
+        /** @type {number} */ var pixelBuffer = -1;
+        
+        gluDefs.GLU_CHECK_CALL(function() {gl.genBuffers(1, pixelBuffer)});
+        gluDefs.GLU_CHECK_CALL(function() {gl.bindBuffer(gl.PIXEL_PACK_BUFFER, pixelBuffer)});
+        gluDefs.GLU_CHECK_CALL(function() {gl.bufferData(gl.PIXEL_PACK_BUFFER, readReference.getLevel(0).getDataSize(), null, gl.STREAM_READ)});
+        
+        gluDefs.GLU_CHECK_CALL(function() {gl.readPixels(0, 0, width, height, readPixelsFormat, readPixelsType, 0)});
+        
+        /** @type {deMath.deUint8} */ var bufferData = gl.mapBufferRange(gl.PIXEL_PACK_BUFFER, 0, readReference.getLevel(0).getDataSize(), gl.MAP_READ_BIT);
+        gluDefs.GLU_CHECK_MSG("glMapBufferRange() failed");
+        
+        tcuTexture.ConstPixelBufferAccess.readResult(readFormat, width, height, 1, bufferData);
+        
+        gluDefs.GLU_CHECK_CALL(function() {gl.bindBuffer(gl.PIXEL_PACK_BUFFER, 0)});
+        
+        gluDefs.GLU_CHECK_CALL(function() {gl.readPixels(0, 0, width, height, readPixelsFormat, readPixelsType, readReference.getLevel(0).getDataPtr())});
+        
+        if(framebuffer)
+            gluDefs.GLU_CHECK_CALL(gl.deleteFramebuffers(1, framebuffer));
+        
+        if(renderbuffer)
+            gluDefs.GLU_CHECK_CALL(function() {gl.deleteRenderbuffers(1, renderbuffer)});
+        
+        
+        var isOk = false;
+        
+        if(floatCompare)
+            isOk = tcuImageCompare.floatThresholdCompare('Result comparision', 'Result of read pixels to memory compared with result of read pixels to buffer', readReference.getLevel(0), readResult, [0.0, 0.0, 0.0, 0.0]);
+        else
+            isOk = tcuImageCompare.intThresholdCompare('Result comparision', 'Result of read pixels to memory compared with result of read pixels to buffer', readReference.getLevel(0), readResult, [0, 0, 0, 0]);
+        
+        gluDefs.GLU_CHECK_CALL(function() {gl.bindBuffer(gl.PIXEL_PACK_BUFFER, pixelBuffer)});
+        gluDefs.GLU_CHECK_CALL(function() {gl.unmapBuffer(gl.PIXEL_PACK_BUFFER)});
+        gluDefs.GLU_CHECK_CALL(function() {gl.deleteBuffers(1, pixelBuffer)});
+        
+        return tcuTestCase.runner.IterateResult.STOP;
+
     }
 
     var init = function(context)
