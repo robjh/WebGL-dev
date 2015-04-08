@@ -460,9 +460,9 @@ define([
         gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
         gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(GL_TEXTURE_CUBE_MAP, texture)');
         // TODO: check internalFormat / format parameters in texImage2D (were RGBA8 and RGBA respectively)
-        for (var face = 0; face < Object.keys(tcuTexture.CubeFace).length -1; face++) { // TODO: remove the TOTAL_FACES entry from the enum. Until then, -1.
-            /** @const @type {number} */ var target = gluTextureUtil.getGLCubeFace(face);
-            gl.texImage2D(target, 0, gl.RGBA, refTexture.getSize(), refTexture.getSize(), 0, gl.RGBA, gl.UNSIGNED_BYTE, refTexture.getLevelFace(0, face).getDataPtr());
+        for (var face in tcuTexture.CubeFace) {
+            /** @const @type {number} */ var target = gluTextureUtil.getGLCubeFace(tcuTexture.CubeFace[face]);
+            gl.texImage2D(target, 0, gl.RGBA, refTexture.getSize(), refTexture.getSize(), 0, gl.RGBA, gl.UNSIGNED_BYTE, refTexture.getLevelFace(0, tcuTexture.CubeFace[face]).getDataPtr());
         }
         gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glTexImage2D(GL_TEXTURE_CUBE_MAP_...) failed');
 
@@ -1114,9 +1114,9 @@ define([
         gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
         gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(GL_TEXTURE_CUBE_MAP, texture)');
 
-        for (var face = 0; face < Object.keys(tcuTexture.CubeFace).length -1; face++) { // TODO: remove the TOTAL_FACES entry from the enum. Until then, -1.
-            /** @const @type {number} */ var target = gluTextureUtil.getGLCubeFace(face);
-            gl.texImage2D(target, 0, gl.RGBA, refTexture.getSize(), refTexture.getSize(), 0, gl.RGBA, gl.UNSIGNED_BYTE, refTexture.getLevelFace(0, face).getDataPtr());
+        for (var face in tcuTexture.CubeFace) {
+            /** @const @type {number} */ var target = gluTextureUtil.getGLCubeFace(tcuTexture.CubeFace[face]);
+            gl.texImage2D(target, 0, gl.RGBA, refTexture.getSize(), refTexture.getSize(), 0, gl.RGBA, gl.UNSIGNED_BYTE, refTexture.getLevelFace(0, tcuTexture.CubeFace[face]).getDataPtr());
         }
         gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glTexImage2D(GL_TEXTURE_CUBE_MAP_...) failed');
 

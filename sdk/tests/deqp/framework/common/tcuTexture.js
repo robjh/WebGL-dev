@@ -274,7 +274,6 @@ var CubeFace = {
     CUBEFACE_POSITIVE_Y: 3,
     CUBEFACE_NEGATIVE_Z: 4,
     CUBEFACE_POSITIVE_Z: 5,
-    TOTAL_FACES: 6 // TODO: remove this entry and update for loops
 };
 
 /**
@@ -1918,8 +1917,8 @@ TextureCubeView.prototype.getSubView = function(baseLevel, maxLevel) {
     var clampedMax = deMath.clamp(maxLevel, clampedBase, this.m_numLevels - 1);
     var numLevels = clampedMax - clampedBase + 1;
     var levels = [];
-    for (var face = 0; face < CubeFace.TOTAL_FACES; face++)
-        levels.push(this.getFaceLevels(face).slice(clampedBase, numLevels));
+    for (var face in CubeFace)
+        levels.push(this.getFaceLevels(CubeFace[face]).slice(clampedBase, numLevels));
 
     return new TextureCubeView(numLevels, levels);
 };
@@ -1933,21 +1932,21 @@ var TextureCube = function(format, size) {
     this.m_format = format;
     this.m_size = size;
     this.m_data = [];
-    this.m_data.length = CubeFace.TOTAL_FACES;
+    this.m_data.length = Object.keys(CubeFace).length;
     this.m_access = [];
-    this.m_access.length = CubeFace.TOTAL_FACES;
+    this.m_access.length = Object.keys(CubeFace).length;
 
     var numLevels = computeMipPyramidLevels(this.m_size);
     var levels = [];
-    levels.length = CubeFace.TOTAL_FACES;
+    levels.length = Object.keys(CubeFace).length;
 
-    for (var face = 0; face < CubeFace.TOTAL_FACES; face++) {
-        this.m_data[face] = [];
+    for (var face in CubeFace) {
+        this.m_data[CubeFace[face]] = [];
         for (var i = 0; i < numLevels; i++)
-            this.m_data[face].push(new DeqpArrayBuffer());
-        this.m_access[face] = [];
-        this.m_access[face].length = numLevels;
-        levels[face] = this.m_access[face];
+            this.m_data[CubeFace[face]].push(new DeqpArrayBuffer());
+        this.m_access[CubeFace[face]] = [];
+        this.m_access[CubeFace[face]].length = numLevels;
+        levels[CubeFace[face]] = this.m_access[CubeFace[face]];
     }
 
     this.m_view = new TextureCubeView(numLevels, levels);
