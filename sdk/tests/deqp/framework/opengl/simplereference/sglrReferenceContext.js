@@ -35,8 +35,8 @@ var DE_ASSERT = function(x) {
         throw new Error('Assert failed');
 };
 
-/* TODO: remove */
-/** @type {WebGL2RenderingContext} */ var gl;
+// /* TODO: remove */
+// /** @type {WebGL2RenderingContext} */ var gl;
 
 var MAX_TEXTURE_SIZE_LOG2       = 14;
 var MAX_TEXTURE_SIZE            = 1<<MAX_TEXTURE_SIZE_LOG2;
