@@ -31,7 +31,7 @@ define(['framework/opengl/gluTextureUtil'], function(gluTextureUtil) {
     };
     
     var lookupDefault = function(map, key, fallback) {
-        return (map[key] !== undefined) ? map[key] || fallback;
+        return (map[key] !== undefined) ? map[key] : fallback;
     };
     
     // db is a FormatDB, stdFmts is a range object
@@ -47,19 +47,12 @@ define(['framework/opengl/gluTextureUtil'], function(gluTextureUtil) {
     
     };
     
-    
+    this.addExtFormats = function() {
+        
+    };
     
     /* TODO: This next. looks like helpers for FormatDB objects
     
-void addFormats (FormatDB& db, FormatEntries stdFmts)
-{
-	for (const FormatEntry* it = stdFmts.begin(); it != stdFmts.end(); it++)
-	{
-		for (const FormatKey* it2 = it->second.begin(); it2 != it->second.end(); it2++)
-			db.addFormat(formatKeyInfo(*it2), it->first);
-	}
-}
-
 void addExtFormats (FormatDB& db, FormatExtEntries extFmts, const RenderContext* ctx)
 {
 	const UniquePtr<ContextInfo> ctxInfo(ctx != DE_NULL ? ContextInfo::create(*ctx) : DE_NULL);
@@ -165,6 +158,11 @@ FormatFlags formatFlag (GLenum context)
         };
         
         if (!argv.dont_construct) this._construct(argv);
+    };
+    ImageFormat.none = function() {
+        var obj = new ImageFormat();
+        obj.none();
+        return obj;
     };
     
     // where key is a FormatKey, and a FormatKey is a 32bit int.
@@ -868,6 +866,8 @@ FormatFlags formatFlag (GLenum context)
         formatkey:               formatkey,
         GLS_UNSIZED_FORMATKEY:   formatkey,
         FormatFlags:             FormatFlags,
+        addFormats:              addFormats,
+        
         
         Config:                  Config,
         Image:                     Image,

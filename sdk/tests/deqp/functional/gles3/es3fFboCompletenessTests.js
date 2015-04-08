@@ -2,8 +2,8 @@
 // FboCompletenessTests
 define([
     'modules/shared/glsFboUtil',
-    'framework/common/tcuTestCase'
-], function(glsFboUtil, tcuTestCase) {
+    'modules/shared/glsFboCompletenessTests'
+], function(glsFboUtil, glsFboCompletenessTests) {
     'use strict';
 
     var s_es3ColorRenderables = [
@@ -252,21 +252,8 @@ define([
 
 
 
-    var TestBase = (function(argv) {
-
-        argv = argv || {};
-
-        this.params = null;
-
-        this.getContext = this.getState;
-
-        this._construct = (function(argv) {
-            console.log("TestBase Constructor");
-        });
-        if (!argv.dont_construct) this._construct(argv);
-
-    });
-    TestBase.prototype = new tcuTestCase.DeqpTest();
+    
+    
 
     var NumLayersTest = (function(argv) {
         argv = argv || {};
@@ -289,13 +276,13 @@ define([
             );
             
             
-            texCfg.internalFormat = getDefaultFormat(target, gl_ctx.TEXTURE);
+            texCfg.internalFormat = this.getDefaultFormat(target, gl_ctx.TEXTURE);
             
         });
 
         if (!argv.dont_construct) this._construct(argv);
     });
-    NumLayersTest.prototype = new TestBase({dont_construct: true});
+    NumLayersTest.prototype = new glsFboCompletenessTests({dont_construct: true});
 
 
 
