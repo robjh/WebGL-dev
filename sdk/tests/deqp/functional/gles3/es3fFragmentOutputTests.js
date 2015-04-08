@@ -99,7 +99,7 @@ function(
 
         Outputs.push(output);
 
-        // TODO: check it! original C++ method but by using this only compiles the first shaders in the very first test case
+        // TODO: check this! original C++ method but by using this only compiles the first shaders in the very first test case
         this.toVec = function() {
             var partialOutput = Outputs.slice(0, Outputs.length);
             return partialOutput;
@@ -253,7 +253,6 @@ function(
         log << TestLog::EndSection;*/
 
         // Create framebuffer.
-        // gl.genFramebuffers(1, this.m_framebuffer); // corresponding OpenGL ES function
         this.m_framebuffer = gl.createFramebuffer();
         gl.bindFramebuffer(gl.FRAMEBUFFER, this.m_framebuffer);
 
@@ -264,17 +263,15 @@ function(
             /** @type {number} */ var attachment = gl.COLOR_ATTACHMENT0 + bufNdx;
 
             gl.bindRenderbuffer(gl.RENDERBUFFER, this.m_renderbuffer);
-            gl.getInternalformatParameter(gl.RENDERBUFFER, bufSpec.format, gl.SAMPLES);
-            // gl.getInternalformatParameter(gl.RENDERBUFFER, bufSpec.format, gl.NUM_SAMPLE_COUNTS);
+            // gl.getInternalformatParameter(gl.RENDERBUFFER, bufSpec.format, gl.SAMPLES);
 
             // gl.MAX_RENDERBUFFER_SIZE, gl.MAX_SAMPLES, gl.NUM_SAMPLE_COUNTS, gl.SAMPLES
-            // gl.renderbufferStorageMultisample(gl.RENDERBUFFER, bufSpec.samples, bufSpec.format, bufSpec.width, bufSpec.height);
-            gl.renderbufferStorageMultisample(gl.RENDERBUFFER, gl.MAX_RENDERBUFFER_SIZE, bufSpec.format, bufSpec.width, bufSpec.height);
-            gl.framebufferRenderbuffer(gl.FRAMEBUFFER, attachment, gl.RENDERBUFFER, this.m_renderbuffer);
+            gl.renderbufferStorageMultisample(gl.RENDERBUFFER, bufSpec.samples, bufSpec.format, bufSpec.width, bufSpec.height);
+            gl.framebufferRenderbuffer(gl.FRAMEBUFFER, attachment, gl.RENDERBUFFER, this.m_renderbuffer); // TODO: crashes here, does not attach renderbuffer
         }
-        // GLU_EXPECT_NO_ERROR(gl.getError(), 'After framebuffer setup');
-
         /** @type {number} */ var fboStatus = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+        GLU_EXPECT_NO_ERROR(gl.getError(), 'After framebuffer and renderbuffer setup ');
+
         if (fboStatus == gl.FRAMEBUFFER_UNSUPPORTED)
             throw new Error('Framebuffer not supported');
             // throw tcu::NotSupportedError("Framebuffer not supported", "", __FILE__, __LINE__);
@@ -282,7 +279,8 @@ function(
             throw new Error('Incomplete framebuffer');
             // throw tcu::TestError((string("Incomplete framebuffer: ") + glu::getFramebufferStatusStr(fboStatus), "", __FILE__, __LINE__);
 
-        gl.bindFramebuffer(gl.FRAMEBUFFER, 0);
+        // gl.bindRenderbuffer(gl.RENDERBUFFER, null); // TODO: maybe needed
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         GLU_EXPECT_NO_ERROR(gl.getError(), 'After init');
     };
 
@@ -304,7 +302,6 @@ function(
             minSize[1] = Math.min(minSize[1], fboSpec[i].height);
         }
         return minSize;
-
     };
 
     /**
@@ -325,7 +322,6 @@ function(
      * @return {Float32Array} Vec2
      */
     var getFloatRange = function(precision) {
-
         /** @type {Array.<Float32Array>} */
         var ranges = // Vec2
         [
@@ -344,7 +340,6 @@ function(
      * @return {Array.<number>} IVec2
      */
     var getIntRange = function(precision) {
-
         /** @type {Array.<Int32Array>} */
         var ranges = // IVec2
         [
@@ -363,7 +358,6 @@ function(
      * @return {Array.<number>} UVec2
      */
     var getUintRange = function(precision) {
-
         /** @type {Array.<Uint32Array>} */
         var ranges = // UVec2
         [
@@ -514,71 +508,68 @@ function(
      */
     var AttachmentData = function() {
         return {
-
         /** @type {tcuTexture.TextureFormat} */ format: null, //!< Actual format of attachment.
         /** @type {tcuTexture.TextureFormat} */ referenceFormat: null, //!< Used for reference rendering.
         /** @type {tcuTexture.TextureFormat} */ readFormat: null,
         /** @type {number} */ numWrittenChannels: 0,
         /** @type {gluShaderUtil.Precision} */ outPrecision: null,
-        /** @type {Array.<number>} */ renderedData: [],
-        /** @type {Array.<number>} */ referenceData: []
-
+        /** @type {ArrayBuffer} */ renderedData: null,
+        /** @type {ArrayBuffer} */ referenceData: null
         };
     };
 
     FragmentOutputCase.prototype.iterate = function() {
 
-        // TestLog& log  = m_testCtx.getLog();
-        /** @type {Array.<BufferSpec>} */ var m_fboSpec = this.m_fboSpec;
-        /** @type {Array.<FragmentOutput>} */ var m_outputs = this.m_outputs;
-        /** @type {gluShaderProgram.ShaderProgram} */ var m_program = this.m_program;
         /** @type {WebGLRenderingContext} */ var gl = this.m_gl;
 
         // Compute grid size & index list.
         /** @type {number} */ var minCellSize = 8;
-        /** @type {Array.<number>} */ var minBufSize = getMinSize(m_fboSpec); // IVec2
+        /** @type {Array.<number>} */ var minBufSize = getMinSize(this.m_fboSpec); // IVec2
         /** @type {number} */ var gridWidth = deMath.clamp(Math.floor(minBufSize[0] / minCellSize), 1, 255) + 1;
         /** @type {number} */ var gridHeight = deMath.clamp(Math.floor(minBufSize[1] / minCellSize), 1, 255) + 1;
         /** @type {number} */ var numVertices = gridWidth * gridHeight;
         /** @type {number} */ var numQuads = (gridWidth - 1) * (gridHeight - 1);
         /** @type {number} */ var numIndices = numQuads * 6;
 
-        /** @type {number} */ var numInputVecs = getNumInputVectors(m_outputs);
-        /** @type {Array.<Array.<number>>} */ var inputs = []; // originally vector<vector<deUint32>
+        /** @type {number} */ var numInputVecs = getNumInputVectors(this.m_outputs);
+        /** @type {Array.<Array.<number>>} */ var inputs = [[]]; // originally vector<vector<deUint32>
+        inputs.length = numInputVecs;
         /** @type {Array.<number>} */ var positions = []; // originally vector<float>
+        positions.length = numVertices * 4;
         /** @type {Array.<number>} */ var indices = []; // originally vector<deUint16>
         indices.length = numIndices;
 
         /** @type {number} */ var readAlignment = 4;
         /** @type {number} */ var viewportW = minBufSize[0];
         /** @type {number} */ var viewportH = minBufSize[1];
-        /** @type {number} */ var numAttachments = m_fboSpec.length;
+        /** @type {number} */ var numAttachments = this.m_fboSpec.length;
 
         /** @type {Array.<number>} */ var drawBuffers = []; // originally vector<deUint32>
         drawBuffers.length = numAttachments;
         /** @type {Array.<AttachmentData>} */ var attachments = [];
+        attachments.length = numAttachments;
 
         // Initialize attachment data.
         for (var ndx = 0; ndx < numAttachments; ndx++)
         {
-            /** @type {tcuTexture.TextureFormat} */ var texFmt = gluTextureUtil.mapGLInternalFormat(m_fboSpec[ndx].format);
+            /** @type {tcuTexture.TextureFormat} */ var texFmt = gluTextureUtil.mapGLInternalFormat(this.m_fboSpec[ndx].format);
             /** @type {tcuTextureUtil.TextureChannelClass} */ var chnClass = tcuTextureUtil.getTextureChannelClass(texFmt.type);
             /** @type {boolean} */ var isFixedPoint = (chnClass == tcuTextureUtil.TextureChannelClass.SIGNED_FIXED_POINT ||
                                                               chnClass == tcuTextureUtil.TextureChannelClass.UNSIGNED_FIXED_POINT);
 
             // \note Fixed-point formats use float reference to enable more accurate result verification.
-            /** @type {tcuTexture.TextureFormat} */ var refFmt = isFixedPoint ? tcuTexture.TextureFormat(texFmt.order, tcuTexture.ChannelType.FLOAT) : texFmt; // TODO: check parameters tcuTexture.TextureFormat()
+            /** @type {tcuTexture.TextureFormat} */ var refFmt = isFixedPoint ? tcuTexture.TextureFormat(texFmt.order, tcuTexture.ChannelType.FLOAT) : texFmt;
             /** @type {tcuTexture.TextureFormat} */ var readFmt = es3fFboTestUtil.getFramebufferReadFormat(texFmt);
-            /** @type {number} */ var attachmentW = m_fboSpec[ndx].width;
-            /** @type {number} */ var attachmentH = m_fboSpec[ndx].height;
+            /** @type {number} */ var attachmentW = this.m_fboSpec[ndx].width;
+            /** @type {number} */ var attachmentH = this.m_fboSpec[ndx].height;
 
             drawBuffers[ndx] = gl.COLOR_ATTACHMENT0 + ndx;
             attachments[ndx] = new AttachmentData();
             attachments[ndx].format = texFmt;
             attachments[ndx].readFormat = readFmt;
             attachments[ndx].referenceFormat = refFmt;
-            attachments[ndx].renderedData.length = readFmt.getPixelSize() * attachmentW * attachmentH;
-            attachments[ndx].referenceData.length = refFmt.getPixelSize() * attachmentW * attachmentH;
+            attachments[ndx].renderedData = new ArrayBuffer(readFmt.getPixelSize() * attachmentW * attachmentH);
+            attachments[ndx].referenceData = new ArrayBuffer(refFmt.getPixelSize() * attachmentW * attachmentH);
         }
 
         // Initialize indices.
@@ -612,9 +603,9 @@ function(
         // Initialize input vectors.
         {
             var curInVec = 0;
-            for (var outputNdx = 0; outputNdx < m_outputs.length; outputNdx++)
+            for (var outputNdx = 0; outputNdx < this.m_outputs.length; outputNdx++)
             {
-                /** @type {FragmentOutput} */ var output = m_outputs[outputNdx];
+                /** @type {FragmentOutput} */ var output = this.m_outputs[outputNdx];
                 /** @type {boolean} */ var isFloat = gluShaderUtil.isDataTypeFloatOrVec(output.type);
                 /** @type {boolean} */ var isInt = gluShaderUtil.isDataTypeIntOrIVec(output.type);
                 /** @type {boolean} */ var isUint = gluShaderUtil.isDataTypeUintOrUVec(output.type);
@@ -666,8 +657,7 @@ function(
                                 // which dst, is a pointer at inputs[]: float* dst = (float*)&inputs[curInVec][0]
 
                                 for (var ndx = 0; ndx < numScalars; ndx++)
-                                 // TODO: toUInt32() conversion? inputs[curInVec][pos] is an Uint32, and c[ndx] a float
-                                    inputs[curInVec][pos] = c[ndx]; // pos changes every iteration!
+                                    inputs[curInVec][pos + ndx] = c[ndx];
                             }
                         }
                     }
@@ -730,8 +720,7 @@ function(
                                 // TODO: DE_ASSERT(deMath.boolAll(logicalAnd(greaterThanEqual(c, minVal), deMath.lessThanEqual(c, maxVal))));
 
                                 for (var ndx = 0; ndx < numScalars; ndx++)
-                                 // TODO: validate toUInt32() conversion, inputs[curInVec][v] is an Uint32, and c[ndx] an Int
-                                    inputs[curInVec][pos] = c[ndx]; // pos changes every iteration!
+                                    inputs[curInVec][pos + ndx] = c[ndx];
                             }
                         }
                     }
@@ -784,7 +773,7 @@ function(
                                 DE_ASSERT(deMath.boolAll(deMath.lessThanEqual(c, maxVal)));
 
                                 for (var ndx = 0; ndx < numScalars; ndx++)
-                                    inputs[curInVec][pos] = c[ndx]; // pos changes every iteration!
+                                    inputs[curInVec][pos + ndx] = c[ndx];
                             }
                         }
                     }
@@ -797,7 +786,7 @@ function(
         }
 
         // Render using gl.
-        gl.useProgram(m_program.getProgram());
+        gl.useProgram(this.m_program.getProgram());
         gl.bindFramebuffer(gl.FRAMEBUFFER, this.m_framebuffer);
         gl.viewport(0, 0, viewportW, viewportH);
         gl.drawBuffers(drawBuffers.length, drawBuffers);
@@ -806,9 +795,9 @@ function(
 
         {
             curInVec = 0;
-            for (var outputNdx = 0; outputNdx < m_outputs.length; outputNdx++)
+            for (var outputNdx = 0; outputNdx < this.m_outputs.length; outputNdx++)
             {
-                /** @type {FragmentOutput} */ var output = m_outputs[outputNdx];
+                /** @type {FragmentOutput} */ var output = this.m_outputs[outputNdx];
                 /** @type {boolean} */ var isArray = output.arrayLength > 0;
                 /** @type {boolean} */ var isFloat = gluShaderUtil.isDataTypeFloatOrVec(output.type);
                 /** @type {boolean} */ var isInt = gluShaderUtil.isDataTypeIntOrIVec(output.type);
@@ -822,7 +811,7 @@ function(
                 for (var vecNdx = 0; vecNdx < numVecs; vecNdx++)
                 {
                     /** @type {string} */ var name = 'in' + outputNdx + (isArray ? '_' + vecNdx : '');
-                    /** @type {number} */ var loc = gl.getAttribLocation(m_program.getProgram(), name);
+                    /** @type {number} */ var loc = gl.getAttribLocation(this.m_program.getProgram(), name);
 
                     if (loc >= 0)
                     {
@@ -850,7 +839,7 @@ function(
             }
         }
         {
-            /** @type {string} */ var posLoc = gl.getAttribLocation(m_program.getProgram(), 'a_position');
+            /** @type {string} */ var posLoc = gl.getAttribLocation(this.m_program.getProgram(), 'a_position');
             // TCU_CHECK(posLoc >= 0);
             /** @type {WebGLBuffer} */ var buffer = gl.createBuffer();
             gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
@@ -877,7 +866,7 @@ function(
         for (var ndx = 0; ndx < numAttachments; ndx++)
         {
             /** @type {gluTextureUtil.TransferFormat} */ var transferFmt = gluTextureUtil.getTransferFormat(attachments[ndx].readFormat);
-            var dst = attachments[ndx].renderedData; // void* dst = &attachments[ndx].renderedData[0]; // originally a pointer but needed in gl.readPixels
+            /** @type {ArrayBuffer} */ var dst = attachments[ndx].renderedData; // void* dst = &attachments[ndx].renderedData[0]; // originally a pointer but needed in gl.readPixels
 
             gl.readBuffer(gl.COLOR_ATTACHMENT0 + ndx);
             // KHRONOS specification: void glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLvoid * data);
@@ -887,9 +876,9 @@ function(
         // Render reference images.
         {
             var curInNdx = 0;
-            for (var outputNdx = 0; outputNdx < m_outputs.length; outputNdx++)
+            for (var outputNdx = 0; outputNdx < this.m_outputs.length; outputNdx++)
             {
-                /** @type {FragmentOutput} */ var output = m_outputs[outputNdx];
+                /** @type {FragmentOutput} */ var output = this.m_outputs[outputNdx];
                 /** @type {boolean} */ var isArray = output.arrayLength > 0;
                 /** @type {boolean} */ var isFloat = gluShaderUtil.isDataTypeFloatOrVec(output.type);
                 /** @type {boolean} */ var isInt = gluShaderUtil.isDataTypeIntOrIVec(output.type);
@@ -902,16 +891,16 @@ function(
                     /** @type {number} */ var location = output.location + vecNdx;
                     /** @type {Array.<number>} */ var inputData = inputs[curInNdx];
 
-                    DE_ASSERT(deMath.deInBounds32(location, 0, m_fboSpec.length));
+                    DE_ASSERT(deMath.deInBounds32(location, 0, this.m_fboSpec.length));
 
-                    /** @type {number} */ var bufW = m_fboSpec[location].width;
-                    /** @type {number} */ var bufH = m_fboSpec[location].height;
+                    /** @type {number} */ var bufW = this.m_fboSpec[location].width;
+                    /** @type {number} */ var bufH = this.m_fboSpec[location].height;
                     /** @type {Object} */ var descriptor = {
                             format: attachments[location].referenceFormat,
                             width: bufW,
                             height: bufH,
                             depth: 1,
-                            data: attachments[location].referenceData
+                            data: attachments[location].referenceData // ArrayBuffer
                     };
                     /** @type {tcuTexture.PixelBufferAccess} */ var buf = tcuTexture.PixelBufferAccess(descriptor);
                     /** @type {tcuTexture.PixelBufferAccess} */ var viewportBuf = tcuTextureUtil.getSubregion(buf, 0, 0, 0, viewportW, viewportH, 1);
@@ -932,33 +921,31 @@ function(
         /** @type {boolean} */ var allLevelsOk = true;
         for (var attachNdx = 0; attachNdx < numAttachments; attachNdx++)
         {
-            /** @type {number} */ var attachmentW = m_fboSpec[attachNdx].width;
-            /** @type {number} */ var attachmentH  = m_fboSpec[attachNdx].height;
+            /** @type {number} */ var attachmentW = this.m_fboSpec[attachNdx].width;
+            /** @type {number} */ var attachmentH  = this.m_fboSpec[attachNdx].height;
             /** @type {number} */ var numValidChannels = attachments[attachNdx].numWrittenChannels;
             /** @type {Array.<boolean>} */ var cmpMask = [numValidChannels >= 1, numValidChannels >= 2, numValidChannels >= 3, numValidChannels >= 4];
             /** @type {gluShaderUtil.Precision} */ var outPrecision = attachments[attachNdx].outPrecision;
             /** @type {tcuTexture.TextureFormat} */ var format = attachments[attachNdx].format;
             /** @type {Object} */
             var renderedDescriptor = {
-                    // TODO: check attributes of this object for descriptor in tcuTexture.ConstPixelBufferAccess
                     format: attachments[attachNdx].readFormat,
                     width: attachmentW,
                     height: attachmentH,
                     depth: 1,
                     rowPitch: deMath.deAlign32(attachments[attachNdx].readFormat.getPixelSize() * attachmentW, readAlignment),
                     slicePitch: 0,
-                    data: attachments[attachNdx].renderedData
+                    data: attachments[attachNdx].renderedData // ArrayBuffer
             };
             /** @type {tcuTexture.ConstPixelBufferAccess} */ var rendered = tcuTexture.ConstPixelBufferAccess(renderedDescriptor);
 
             /** @type {Object} */
             var referenceDescriptor = {
-                    // TODO: check attributes of this object for descriptor in tcuTexture.ConstPixelBufferAccess
                     format: attachments[attachNdx].referenceFormat,
                     width: attachmentW,
                     height: attachmentH,
                     depth: 1,
-                    data: attachments[attachNdx].referenceData
+                    data: attachments[attachNdx].referenceData // ArrayBuffer
             };
             /** @type {tcuTexture.ConstPixelBufferAccess} */ var reference = tcuTexture.ConstPixelBufferAccess(referenceDescriptor);
             /** @type {tcuTextureUtil.TextureChannelClass} */ var texClass = tcuTextureUtil.getTextureChannelClass(format.type);

@@ -18,7 +18,7 @@
  *
  */
 
-define(['framework/common/tcuTexture', 'framework/delibs/debase/deMath'], function(tcuTexture, deMath) {
+define(['framework/common/tcuTexture', 'framework/delibs/debase/deMath', "framework/common/tcuTextureUtil" ], function(tcuTexture, deMath, tcuTextureUtil) {
 
 var DE_ASSERT = function(x) {
     if (!x)
@@ -35,11 +35,14 @@ var DE_ASSERT = function(x) {
  * @constructor
  */
 var MultisamplePixelBufferAccess = function(rawAccess) {
-    this.m_access = rawAccess;
+    this.m_access = rawAccess || new tcuTexture.PixelBufferAccess({
+                                            width: 0,
+                                            height: 0});
 };
 
 MultisamplePixelBufferAccess.prototype.raw = function() { return this.m_access; };
-MultisamplePixelBufferAccess.prototype.getNumSamples = function() { this.raw().getWidth(); };
+MultisamplePixelBufferAccess.prototype.isEmpty = function() { return this.m_access.isEmpty(); };
+MultisamplePixelBufferAccess.prototype.getNumSamples = function() { return this.raw().getWidth(); };
 
 MultisamplePixelBufferAccess.prototype.toSinglesampleAccess = function() {
     DE_ASSERT(this.getNumSamples() == 1);
@@ -71,9 +74,20 @@ MultisamplePixelBufferAccess.fromMultisampleAccess = function(multisampledAccess
 };
 
 MultisamplePixelBufferAccess.prototype.getSubregion = function(region) {
-    /* TODO: implement */
-    throw new Error('Unimplemented');
+    var x = region[0];
+    var y = region[1];
+    var width = region[2];
+    var height = region[3];
+
+    return MultisamplePixelBufferAccess.fromMultisampleAccess(tcuTextureUtil.getSubregion(this.raw(), 0, x, y, this.getNumSamples(), width, height));
 };
+
+/**
+ * @return {Array<number>} [x, y, width, height]
+ */
+MultisamplePixelBufferAccess.prototype.getBufferSize = function() {
+    return [0, 0, this.raw().getHeight(), this.raw().getDepth()];
+}
 
 /**
  * @param {tcuTexture.PixelBufferAccess} dst

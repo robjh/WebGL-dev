@@ -274,7 +274,6 @@ var CubeFace = {
     CUBEFACE_POSITIVE_Y: 3,
     CUBEFACE_NEGATIVE_Z: 4,
     CUBEFACE_POSITIVE_Z: 5,
-    TOTAL_FACES: 6
 };
 
 /**
@@ -763,7 +762,7 @@ var unpackRGB999E5 = function(color) {
 var ConstPixelBufferAccess = function(descriptor) {
     if (descriptor) {
         this.m_offset = descriptor.offset || 0;
-        this.m_format = descriptor.format;
+        this.m_format = descriptor.format || new TextureFormat(ChannelOrder.RGBA, ChannelType.FLOAT);
         this.m_width = descriptor.width;
         this.m_height = descriptor.height;
         if (descriptor.depth)
@@ -785,6 +784,7 @@ var ConstPixelBufferAccess = function(descriptor) {
 
 /** @return {Number} */
 ConstPixelBufferAccess.prototype.getDataSize = function() { return this.m_depth * this.m_slicePitch; };
+ConstPixelBufferAccess.prototype.isEmpty = function() { return this.m_width == 0 || this.m_height == 0 || this.m_depth == 0; };
 /** @return {TypedArray} */
 ConstPixelBufferAccess.prototype.getDataPtr = function() {
     var arrayType = getTypedArray(this.m_format.type);
@@ -1279,7 +1279,7 @@ PixelBufferAccess.prototype.setPixDepth = function(depth, x, y, z) {
     var pixelSize = this.m_format.getPixelSize();
     var arrayType = getTypedArray(this.m_format.type);
     var offset = z * this.m_slicePitch + y * this.m_rowPitch + x * pixelSize;
-    var pixelPtr = new arrayType(this.m_data, offset);
+    var pixelPtr = new arrayType(this.m_data, offset + this.m_offset);
 
     var pn = function(val, offs, bits) {
         return normFloatToChannel(val, bits) << offs;
@@ -1326,7 +1326,7 @@ PixelBufferAccess.prototype.setPixStencil = function(stencil, x, y, z) {
     var pixelSize = this.m_format.getPixelSize();
     var arrayType = getTypedArray(this.m_format.type);
     var offset = z * this.m_slicePitch + y * this.m_rowPitch + x * pixelSize;
-    var pixelPtr = new arrayType(this.m_data, offset);
+    var pixelPtr = new arrayType(this.m_data, offset + this.m_offset);
 
     var pu = function(val, offs, bits) {
         return uintToChannel(val, bits) << offs;
@@ -1773,6 +1773,9 @@ var Texture2D = function(format, width, height) {
 Texture2D.prototype = Object.create(TextureLevelPyramid.prototype);
 Texture2D.prototype.constructor = Texture2D;
 
+Texture2D.prototype.getWidth = function() { return this.m_width; };
+Texture2D.prototype.getHeight = function() { return this.m_height; };
+
 /**
  * @param {Number} baseLevel
  * @param {Number} maxLevel
@@ -1845,6 +1848,9 @@ var Texture3D = function(format, width, height, depth) {
 Texture3D.prototype = Object.create(TextureLevelPyramid.prototype);
 Texture3D.prototype.constructor = Texture3D;
 
+Texture3D.prototype.getWidth = function() { return this.m_width; };
+Texture3D.prototype.getHeight = function() { return this.m_height; };
+
 /**
  * @param {Number} baseLevel
  * @param {Number} maxLevel
@@ -1911,8 +1917,8 @@ TextureCubeView.prototype.getSubView = function(baseLevel, maxLevel) {
     var clampedMax = deMath.clamp(maxLevel, clampedBase, this.m_numLevels - 1);
     var numLevels = clampedMax - clampedBase + 1;
     var levels = [];
-    for (var face = 0; face < CubeFace.TOTAL_FACES; face++)
-        levels.push(this.getFaceLevels(face).slice(clampedBase, numLevels));
+    for (var face in CubeFace)
+        levels.push(this.getFaceLevels(CubeFace[face]).slice(clampedBase, numLevels));
 
     return new TextureCubeView(numLevels, levels);
 };
@@ -1926,21 +1932,21 @@ var TextureCube = function(format, size) {
     this.m_format = format;
     this.m_size = size;
     this.m_data = [];
-    this.m_data.length = CubeFace.TOTAL_FACES;
+    this.m_data.length = Object.keys(CubeFace).length;
     this.m_access = [];
-    this.m_access.length = CubeFace.TOTAL_FACES;
+    this.m_access.length = Object.keys(CubeFace).length;
 
     var numLevels = computeMipPyramidLevels(this.m_size);
     var levels = [];
-    levels.length = CubeFace.TOTAL_FACES;
+    levels.length = Object.keys(CubeFace).length;
 
-    for (var face = 0; face < CubeFace.TOTAL_FACES; face++) {
-        this.m_data[face] = [];
+    for (var face in CubeFace) {
+        this.m_data[CubeFace[face]] = [];
         for (var i = 0; i < numLevels; i++)
-            this.m_data[face].push(new DeqpArrayBuffer());
-        this.m_access[face] = [];
-        this.m_access[face].length = numLevels;
-        levels[face] = this.m_access[face];
+            this.m_data[CubeFace[face]].push(new DeqpArrayBuffer());
+        this.m_access[CubeFace[face]] = [];
+        this.m_access[CubeFace[face]].length = numLevels;
+        levels[CubeFace[face]] = this.m_access[CubeFace[face]];
     }
 
     this.m_view = new TextureCubeView(numLevels, levels);
@@ -2126,6 +2132,7 @@ TextureLevel.prototype.getAccess = function() {
                     format: this.m_format,
                     width: this.m_width,
                     height: this.m_height,
+                    depth: this.m_depth,
                     data: this.m_data.m_ptr
                 });
 

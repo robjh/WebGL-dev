@@ -171,6 +171,7 @@ var shuffle = function(rnd, elements)
  * This function is used to create the Random object and
  * initialise the random number with a seed.
  * It contains functions for generating random numbers in a variety of formats
+ * @constructor
  * @param {number} seed Number to use as a seed
  */
 var Random = function(seed) {

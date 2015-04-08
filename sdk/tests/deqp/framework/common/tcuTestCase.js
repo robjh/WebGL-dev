@@ -156,6 +156,15 @@ DeqpTest.prototype.fullName = function() {
 };
 
 /**
+ * Returns the description of the test
+ *
+ * @return {string} Test description.
+ */
+DeqpTest.prototype.getDescription = function() {
+    return this.description;
+};
+
+/**
  * Find a test with a matching name
  * Fast-forwards to a test whose full name matches the given pattern
  *

@@ -22,9 +22,9 @@ requirejs.config({
     baseUrl: "../../"
     });
 
-requirejs(["functional/gles3/es3fPrimitiveTestartTests"], function(es3fPrimitiveTestartTests) {
+requirejs(["functional/gles3/es3fPrimitiveRestartTests"], function(es3fPrimitiveRestartTests) {
     try {
-        es3fPrimitiveTestartTests.run(gl);
+        es3fPrimitiveRestartTests.run(gl);
     }
     catch(err)
     {

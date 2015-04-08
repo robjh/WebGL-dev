@@ -140,6 +140,9 @@ define([
     };
 
     InstancedRenderingCase.prototype.init = function() {
+        // Clear errors from previous tests
+        gl.getError();
+
         /** @type {boolean} */ var isFloatCase = gluShaderUtil.isDataTypeFloatOrVec(this.m_rgbAttrType);
         /** @type {boolean} */ var isIntCase = gluShaderUtil.isDataTypeIntOrIVec(this.m_rgbAttrType);
         /** @type {boolean} */ var isUintCase = gluShaderUtil.isDataTypeUintOrUVec(this.m_rgbAttrType);
@@ -496,7 +499,7 @@ define([
 
     InstancedRenderingCase.prototype.setupAndRender = function()
     {
-        /** @type {deUint32} */ var program = this.m_program.getProgram();
+        /** @type {number} */ var program = this.m_program.getProgram();
 
         gl.useProgram(program);
 
@@ -595,18 +598,18 @@ define([
 
             if (gluShaderUtil.isDataTypeIntOrIVec(this.m_rgbAttrType))
             {
-                /** @type {deInt32} */var intR = (r * FLOAT_INT_SCALE + FLOAT_INT_BIAS);
-                /** @type {deInt32} */var intG = (g * FLOAT_INT_SCALE + FLOAT_INT_BIAS);
-                /** @type {deInt32} */var intB = (b * FLOAT_INT_SCALE + FLOAT_INT_BIAS);
+                /** @type {number} */var intR = (r * FLOAT_INT_SCALE + FLOAT_INT_BIAS);
+                /** @type {number} */var intG = (g * FLOAT_INT_SCALE + FLOAT_INT_BIAS);
+                /** @type {number} */var intB = (b * FLOAT_INT_SCALE + FLOAT_INT_BIAS);
                 r = (intR - FLOAT_INT_BIAS) / FLOAT_INT_SCALE;
                 g = (intG - FLOAT_INT_BIAS) / FLOAT_INT_SCALE;
                 b = (intB - FLOAT_INT_BIAS) / FLOAT_INT_SCALE;
             }
             else if (gluShaderUtil.isDataTypeUintOrUVec(this.m_rgbAttrType))
             {
-                /** @type {deUint32} */var uintR = (r * FLOAT_UINT_SCALE + FLOAT_UINT_BIAS);
-                /** @type {deUint32} */var uintG = (g * FLOAT_UINT_SCALE + FLOAT_UINT_BIAS);
-                /** @type {deUint32} */var uintB = (b * FLOAT_UINT_SCALE + FLOAT_UINT_BIAS);
+                /** @type {number} */var uintR = (r * FLOAT_UINT_SCALE + FLOAT_UINT_BIAS);
+                /** @type {number} */var uintG = (g * FLOAT_UINT_SCALE + FLOAT_UINT_BIAS);
+                /** @type {number} */var uintB = (b * FLOAT_UINT_SCALE + FLOAT_UINT_BIAS);
                 r = (uintR - FLOAT_UINT_BIAS) / FLOAT_UINT_SCALE;
                 g = (uintG - FLOAT_UINT_BIAS) / FLOAT_UINT_SCALE;
                 b = (uintB - FLOAT_UINT_BIAS) / FLOAT_UINT_SCALE;
