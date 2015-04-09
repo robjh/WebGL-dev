@@ -116,11 +116,11 @@ define([
         /** @type {ShaderProgram} */ this.m_program = null;
 
         // \note Only one of the following index vectors is used (according to m_indexType).
-        /** @type {Array.<number>} */ this.m_indicesUB = []; //deUint8
-        /** @type {Array.<number>} */ this.m_indicesUS = []; //deUint16
-        /** @type {Array.<number>} */ this.m_indicesUI = []; //deUint32
+        /** @type {Array<number>} */ this.m_indicesUB = []; //deUint8
+        /** @type {Array<number>} */ this.m_indicesUS = []; //deUint16
+        /** @type {Array<number>} */ this.m_indicesUI = []; //deUint32
 
-        /** @type {Array.<number>} */ this.m_positions = [];
+        /** @type {Array<number>} */ this.m_positions = [];
     };
 
     PrimitiveRestartCase.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
