@@ -1129,8 +1129,7 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcyTexture, gluTexture
                          ([this.m_context.getRenderTarget().getWidth(), this.m_context.getRenderTarget().getHeight()]);
 
 			this.m_srcRect = [-10, -15, 100,  63];
-            // TODO: swizzle
-			this.m_dstRect = ubound.swizzle(0, 1, 0, 1) + [-75, -99, 8, 16];
+			this.m_dstRect = deMath.add(deMath.swizzle(ubound, [0, 1, 0, 1]), [-75, -99, 8, 16]);
 			this.m_interestingArea = [ubound[0] - 128, ubound[1] - 128, ubound[0], ubound[1]];
 		}
 		else
@@ -1246,8 +1245,35 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcyTexture, gluTexture
 		checkError();
     };
 
-    return {
+    var run = function(context) {
+        gl = context;
+        //Set up root Test
+        var state = tcuTestCase.runner.getState();
 
+        var test = new FramebufferBlitTests();
+        var testName = test.fullName();
+        var testDescription = test.getDescription();
+        state.testCases = test;
+        state.testName = testName;
+
+        //Set up name and description of this test series.
+        setCurrentTestName(testName);
+        description(testDescription);
+
+        try {
+            //Create test cases
+            test.init();
+            //Run test cases
+            tcuTestCase.runTestCases();
+        }
+        catch (err) {
+            testFailedOptions('Failed to run tests', false);
+            tcuTestCase.runner.terminate();
+        }
+    };
+
+    return {
+        run: run
     };
 
 });
