@@ -362,4 +362,19 @@ var mapGLBlendFunc = function(/* deUint32 */ func) {
 	}
 };
 
+return {
+	mapGLPureIntegerVertexAttributeType : mapGLPureIntegerVertexAttributeType,
+	mapGLFloatVertexAttributeType : mapGLFloatVertexAttributeType,
+	mapGLSize : mapGLSize,
+	mapGLPrimitiveType : mapGLPrimitiveType,
+	mapGLIndexType : mapGLIndexType,
+	mapGLGeometryShaderOutputType : mapGLGeometryShaderOutputType,
+	mapGLGeometryShaderInputType : mapGLGeometryShaderInputType,
+	mapGLTestFunc :mapGLTestFunc,
+	mapGLStencilOp : mapGLStencilOp,
+	mapGLBlendEquation : mapGLBlendEquation,
+	mapGLBlendEquationAdvanced : mapGLBlendEquationAdvanced,
+	mapGLBlendFunc : mapGLBlendFunc
+};
+
 });
