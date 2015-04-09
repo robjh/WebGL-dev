@@ -2179,11 +2179,13 @@ return {
     ConstPixelBufferAccess: ConstPixelBufferAccess,
     PixelBufferAccess: PixelBufferAccess,
     Texture2D: Texture2D,
+    Texture2DView: Texture2DView,
     TextureCube: TextureCube,
     Texture2DArray: Texture2DArray,
     Texture3D: Texture3D,
     WrapMode: WrapMode,
     FilterMode: FilterMode,
+    CompareMode: CompareMode,
     Sampler: Sampler,
     selectCubeFace: selectCubeFace,
     TextureLevel: TextureLevel
