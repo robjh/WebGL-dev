@@ -61,7 +61,8 @@ var CullMode = {
 	FRONT : 2
 };
 
-/**
+/**Winding : Winding,
+
  * @constructor
  */
 var RasterizationState = function() {
@@ -299,8 +300,26 @@ var RenderState = function(viewport_) {
 };
 
 return {
-	RenderState: RenderState,
-	WindowRectangle: WindowRectangle
+	HorizontalFill : HorizontalFill,
+	VerticalFill : VerticalFill,
+	Winding : Winding,
+	CullMode : CullMode,
+	RasterizationState : RasterizationState,
+	TestFunc : TestFunc,
+	StencilOp : StencilOp,
+	BlendMode :BlendMode,
+	BlendEquation : BlendEquation,
+	BlendEquationAdvanced : BlendEquationAdvanced,
+	BlendFunc : BlendFunc,
+	StencilState : StencilState,
+	BlendState : BlendState,
+	WindowRectangle : WindowRectangle,
+	FragmentOperationState : FragmentOperationState,
+	PointState : PointState,
+	LineState : LineState,
+	ViewportState : ViewportState,
+	RestartState : RestartState,
+	RenderState: RenderState
 };
 
 });

@@ -192,7 +192,7 @@ var intThresholdCompare = function(/*const char* */imageSetName, /*const char* *
  * @param {string} imageSetDesc
  * @param {tcuTexture.ConstPixelBufferAccess} reference
  * @param {tcuTexture.ConstPixelBufferAccess} result
- * @param {Array.<number>} threshold, previously used as an Uint32Array
+ * @param {Array<number>} threshold, previously used as an Uint32Array
  * @return {boolean}
  */
 var floatUlpThresholdCompare = function(imageSetName, imageSetDesc, reference, result, threshold) {
@@ -201,7 +201,7 @@ var floatUlpThresholdCompare = function(imageSetName, imageSetDesc, reference, r
     /** @type {number} */ var depth = reference.getDepth();
     /** @type {tcuSurface.Surface} */ var errorMask = new tcuSurface.Surface(width, height);
 
-    /** @type {Array.<number>} */ var maxDiff = [0, 0, 0, 0]; // UVec4
+    /** @type {Array<number>} */ var maxDiff = [0, 0, 0, 0]; // UVec4
     // var pixelBias = [0, 0, 0, 0]; // Vec4
     // var pixelScale = [1, 1, 1, 1]; // Vec4
 
@@ -217,10 +217,10 @@ var floatUlpThresholdCompare = function(imageSetName, imageSetDesc, reference, r
                 /** @type {ArrayBuffer} */ var arrayBufferRef = new ArrayBuffer(4);
                 /** @type {ArrayBuffer} */ var arrayBufferCmp = new ArrayBuffer(4);
 
-                /** @type {Array.<number>} */ var refPix = new Float32Array(arrayBufferRef); // Vec4
+                /** @type {Array<number>} */ var refPix = new Float32Array(arrayBufferRef); // Vec4
                 refPix = reference.getPixel(x, y, z); // getPixel returns a Vec4 pixel color
 
-                /** @type {Array.<number>} */ var cmpPix = new Float32Array(arrayBufferCmp); // Vec4
+                /** @type {Array<number>} */ var cmpPix = new Float32Array(arrayBufferCmp); // Vec4
                 cmpPix = result.getPixel(x, y, z); // getPixel returns a Vec4 pixel color
 
                 /** @type {Uint32Array} */ var refBits = new Uint32Array(arrayBufferRef); // UVec4
@@ -232,7 +232,7 @@ var floatUlpThresholdCompare = function(imageSetName, imageSetDesc, reference, r
                     cmpBits[i] = cmpPix[i];
                 }
 
-                /** @type {Array.<number>} */ var diff = deMath.absDiff(refBits, cmpBits); // UVec4
+                /** @type {Array<number>} */ var diff = deMath.absDiff(refBits, cmpBits); // UVec4
                 /** @type {boolean} */ var isOk = deMath.boolAll(deMath.lessThanEqual(diff, threshold));
 
                 maxDiff = deMath.max(maxDiff, diff);
@@ -287,7 +287,7 @@ var floatUlpThresholdCompare = function(imageSetName, imageSetDesc, reference, r
  * @param {string} imageSetDesc
  * @param {tcuTexture.ConstPixelBufferAccess} reference
  * @param {tcuTexture.ConstPixelBufferAccess} result
- * @param {Array.<number>} threshold
+ * @param {Array<number>} threshold
  * @return {boolean}
  */
 var floatThresholdCompare = function(imageSetName, imageSetDesc, reference, result, threshold) {
@@ -296,7 +296,7 @@ var floatThresholdCompare = function(imageSetName, imageSetDesc, reference, resu
     /** @type {number} */ var depth = reference.getDepth();
     /** @type {tcuSurface.Surface} */ var errorMask = new tcuSurface.Surface(width, height);
 
-    /** @type {Array.<number>} */ var maxDiff = [0, 0, 0, 0]; // Vec4
+    /** @type {Array<number>} */ var maxDiff = [0, 0, 0, 0]; // Vec4
     // var pixelBias = [0, 0, 0, 0]; // Vec4
     // var pixelScale = [1, 1, 1, 1]; // Vec4
 
@@ -312,7 +312,7 @@ var floatThresholdCompare = function(imageSetName, imageSetDesc, reference, resu
                 var refPix = reference.getPixel(x, y, z); // Vec4
                 var cmpPix = result.getPixel(x, y, z); // Vec4
 
-                /** @type {Array.<number>} */ var diff = deMath.absDiff(refPix, cmpPix); // Vec4
+                /** @type {Array<number>} */ var diff = deMath.absDiff(refPix, cmpPix); // Vec4
                 /** @type {boolean} */ var isOk = deMath.boolAll(deMath.lessThanEqual(diff, threshold));
 
                 maxDiff = deMath.max(maxDiff, diff);
@@ -409,8 +409,8 @@ var fuzzyCompare = function(imageSetName, imageSetDesc, reference, result, thres
                                                                 tcuTexture.PixelBufferAccess.newFromTextureLevel(errorMask)
                                                                );
     /** @type {boolean} */ var isOk = difference <= threshold;
-    /** @type {Array.<number>} */ var pixelBias = [0.0, 0.0, 0.0, 0.0];
-    /** @type {Array.<number>} */ var pixelScale = [1.0, 1.0, 1.0, 1.0];
+    /** @type {Array<number>} */ var pixelBias = [0.0, 0.0, 0.0, 0.0];
+    /** @type {Array<number>} */ var pixelScale = [1.0, 1.0, 1.0, 1.0];
 
     if (!isOk) {
         debug('Fuzzy image comparison failed: difference = ' + difference + ', threshold = ' + threshold);

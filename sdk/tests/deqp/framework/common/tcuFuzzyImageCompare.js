@@ -83,7 +83,7 @@ define([
 
     /**
      * @param {number} color
-     * @return {Array.<deMath.deUint32>}
+     * @return {Array<deMath.deUint32>}
      */
     var toFloatVec = function (color) {
         return [getChannel(color, 0), getChannel(color, 1), getChannel(color, 2), getChannel(color, 3)];
@@ -98,7 +98,7 @@ define([
     };
 
     /**
-     * @param {Array.<number>} v
+     * @param {Array<number>} v
      * @return {number}
      */
     var toColor = function (v) {
@@ -209,8 +209,8 @@ define([
      * @param {tcuTexture.ConstPixelBufferAccess} src
      * @param {number} shiftX
      * @param {number} shiftY
-     * @param {Array.<number>} kernelX
-     * @param {Array.<number>} kernelY
+     * @param {Array<number>} kernelX
+     * @param {Array<number>} kernelY
      * @param {number} DstChannels
      * @param {number} SrcChannels
      */
@@ -227,7 +227,7 @@ define([
         // \note Temporary surface is written in column-wise order
         for (var j = 0; j < src.getHeight(); j++) {
             for (var i = 0; i < src.getWidth(); i++) {
-                /** @type {Array.<number>} */ var sum = new Array(4);
+                /** @type {Array<number>} */ var sum = new Array(4);
                 sum[0] = sum[1] = sum[2] = sum[3] = 0;
                 for (var kx = 0; kx < kw; kx++) {
                     /** @type {number} */ var f = kernelX[kw - kx - 1];
@@ -242,7 +242,7 @@ define([
         // Vertical pass
         for (var j = 0; j < src.getHeight(); j++) {
             for (var i = 0; i < src.getWidth(); i++) {
-                /** @type {Array.<number>} */ var sum = new Array(4);
+                /** @type {Array<number>} */ var sum = new Array(4);
                 sum[0] = sum[1] = sum[2] = sum[3] = 0;
                 for (var ky = 0; ky < kh; ky++) {
                     /** @type {number} */ var f = kernelY[kh - ky - 1];
@@ -274,7 +274,7 @@ define([
             return minErr;
 
         // Area around (x, y)
-        /** @type {Array.<Array.<number>>} */ var s_coords =
+        /** @type {Array<Array.<number>>} */ var s_coords =
         [
             [-1, -1],
             [ 0, -1],
@@ -314,7 +314,7 @@ define([
     };
 
     /**
-     * @param {Array.<number>} c
+     * @param {Array<number>} c
      * @return {number}
      */
     var toGrayscale = function (c) {
@@ -353,7 +353,7 @@ define([
         /** @type {tcuTexture.TextureLevel} */ var cmpFiltered = new tcuTexture.TextureLevel(new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.UNORM_INT8), width, height);
 
         // Kernel = {0.15, 0.7, 0.15}
-        /** @type {Array.<number>} */ var kernel = new Array(3);
+        /** @type {Array<number>} */ var kernel = new Array(3);
         kernel[0] = kernel[2] = 0.1; kernel[1]= 0.8;
         /** @type {number} */ var shift = Math.floor((kernel.length - 1) / 2);
 

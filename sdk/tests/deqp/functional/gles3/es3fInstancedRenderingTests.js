@@ -107,12 +107,12 @@ define([
         /** @type {DataType} */ this.m_rgbAttrType = rgbAttrType;
         /** @type {number} */ this.m_numInstances = numInstances;
         /** @type {glu.ShaderProgram} */ this.m_program = null;
-        /** @type {Array.<number>} */ this.m_gridVertexPositions = [];
-        /** @type {Array.<number>} */ this.m_gridIndices = [];
-        /** @type {Array.<number>} */ this.m_instanceOffsets = [];
-        /** @type {Array.<number>} */ this.m_instanceColorR = [];
-        /** @type {Array.<number>} */ this.m_instanceColorG = [];
-        /** @type {Array.<number>} */ this.m_instanceColorB = [];
+        /** @type {Array<number>} */ this.m_gridVertexPositions = [];
+        /** @type {Array<number>} */ this.m_gridIndices = [];
+        /** @type {Array<number>} */ this.m_instanceOffsets = [];
+        /** @type {Array<number>} */ this.m_instanceColorR = [];
+        /** @type {Array<number>} */ this.m_instanceColorG = [];
+        /** @type {Array<number>} */ this.m_instanceColorB = [];
     };
 
     InstancedRenderingCase.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
@@ -120,7 +120,7 @@ define([
 
     /**
     * Helper function that does biasing and scaling when converting float to integer.
-    * @param {Array.<number>} vec
+    * @param {Array<number>} vec
     * @param {number} val
     */
     InstancedRenderingCase.prototype.pushVarCompAttrib = function(vec, val)
@@ -436,7 +436,7 @@ define([
 
 
     /**
-    * @param {Array.<number>} attrPtr
+    * @param {Array<number>} attrPtr
     * @param {number} location
     * @param {number} divisor
     */
@@ -626,7 +626,7 @@ define([
     var init = function()
     {
         var testGroup = tcuTestCase.runner.getState().testCases;
-    /** @type {Array.<number>} */ var instanceCounts = [1, 2, 4, 20];
+    /** @type {Array<number>} */ var instanceCounts = [1, 2, 4, 20];
 
         for (var _function in DrawFunction)
         {

@@ -46,7 +46,7 @@ define([
     * @param {string} description
     * @param {boolean} useScreenSizedViewport
     */
-    var FboTestCase = function(name, description, useScreenSizedViewport /*= false */) { // TODO: default value
+    var FboTestCase = function(name, description, useScreenSizedViewport /*= false */) {
         tcuTestCase.DeqpTest.call(this, name, description);
         /** @type {number} */ this.m_viewportWidth = useScreenSizedViewport === undefined ? gl.drawingBufferWidth : 128;
         /** @type {number} */ this.m_viewportHeight = useScreenSizedViewport === undefined ? gl.drawingBufferHeight : 128;
@@ -68,7 +68,7 @@ define([
     */
     FboTestCase.prototype.checkFormatSupport = function(sizedFormat) {
         /** @const @type {boolean} */ var isCoreFormat = isRequiredFormat(sizedFormat);
-        /** @const @type {Array.<string>} */ var requiredExts = (!isCoreFormat) ? getEnablingExtensions(sizedFormat) : [];
+        /** @const @type {Array<string>} */ var requiredExts = (!isCoreFormat) ? getEnablingExtensions(sizedFormat) : [];
 
         // Check that we don't try to use invalid formats.
         DE_ASSERT(isCoreFormat || !deString.deIsStringEmpty(requiredExts));
@@ -87,7 +87,7 @@ define([
         if (numSamples > minSampleCount)
         {
             // Exceeds spec-mandated minimum - need to check.
-            /** @const @type {Array.<number>} */ var supportedSampleCounts = querySampleCounts(this.m_context.getRenderContext().getFunctions(), sizedFormat);
+            /** @const @type {Array<number>} */ var supportedSampleCounts = querySampleCounts(this.m_context.getRenderContext().getFunctions(), sizedFormat);
 
             if (supportedSampleCounts.indexOf(numSamples) == -1)
                 throw new Error('Sample count not supported');
@@ -101,8 +101,8 @@ define([
     * @param {number} width
     * @param {number} height
     * @param {tcuTextureTextureFormat} format
-    * @param {Array.<number>} scale Vec4
-    * @param {Array.<number>} bias Vec4
+    * @param {Array<number>} scale Vec4
+    * @param {Array<number>} bias Vec4
     */
     FboTestCase.prototype.readPixelsUsingFormat = function(dst, x, y, width, height, format, scale, bias) {
         // TODO: implement fboTestUtil.readPixels, getCurrentContext
@@ -138,7 +138,7 @@ define([
 
     /**
     * @param {tcuTexture.TextureFormat} format
-    * @param {Array.<number>} value Vec4
+    * @param {Array<number>} value Vec4
     */
     FboTestCase.prototype.clearColorBuffer = function(format, value) {
         if (value === undefined) value = [0.0, 0.0, 0.0, 0.0];
@@ -292,10 +292,10 @@ define([
 
     /**
     * @param {number} format deUint32
-    * @return {Array.<string>}
+    * @return {Array<string>}
     */
     FboTestCase.getEnablingExtensions = function(format) {
-        /** @return {Array.<string>} */ var out = [];
+        /** @return {Array<string>} */ var out = [];
 
         DE_ASSERT(!isRequiredFormat(format));
 
@@ -326,7 +326,7 @@ define([
 
     /**
     * @param {Context} context
-    * @param {Array.<string>} requiredExts
+    * @param {Array<string>} requiredExts
     * @return {boolean}
     */
     FboTestCase.isAnyExtensionSupported = function(context, requiredExts) {
