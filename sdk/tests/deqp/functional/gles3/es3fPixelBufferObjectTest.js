@@ -497,10 +497,8 @@ define([
             gl.RGBA8,
             gl.RGBA8I,
             gl.RGBA8UI,
-            gl.RGBA16F,
             gl.RGBA16I,
             gl.RGBA16UI,
-            gl.RGBA32F,
             gl.RGBA32I,
             gl.RGBA32UI,
 
@@ -513,15 +511,12 @@ define([
             gl.RGB8,
             gl.RGB565,
 
-            gl.R11F_G11F_B10F,
 
             gl.RG8,
             gl.RG8I,
             gl.RG8UI,
-            gl.RG16F,
             gl.RG16I,
             gl.RG16UI,
-            gl.RG32F,
             gl.RG32I,
             gl.RG32UI
         ];
@@ -530,10 +525,8 @@ define([
     		'rgba8',
     		'rgba8i',
     		'rgba8ui',
-    		'rgba16f',
     		'rgba16i',
     		'rgba16ui',
-    		'rgba32f',
     		'rgba32i',
     		'rgba32ui',
 
@@ -546,15 +539,11 @@ define([
     		'rgb8',
     		'rgb565',
 
-    		'r11f_g11f_b10f',
-
     		'rg8',
     		'rg8i',
     		'rg8ui',
-    		'rg16f',
     		'rg16i',
     		'rg16ui',
-    		'rg32f',
     		'rg32i',
     		'rg32ui'];
         DE_STATIC_ASSERT(renderbufferFormatsStr.length == renderbufferFormats.length);
