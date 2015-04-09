@@ -18,8 +18,8 @@
  *
  */
 
-define(['framework/referencerenderer/rrVertexPacket', 'framework/referencerenderer/rrDefs', 'framework/referencerenderer/rrFragmentOperations', 'framework/delibs/debase/deMath','framework/common/tcuTextureUtil', 'framework/common/tcuTexture', 'framework/referencerenderer/rrRasterizer', 'framework/referencerenderer/rrRenderState','framework/referencerenderer/rrMultisamplePixelBufferAccess' ],
- function(rrVertexPacket, rrDefs, rrFragmentOperations, deMath, tcuTextureUtil, tcuTexture, rrRasterizer, rrRenderState, rrMultisamplePixelBufferAccess) {
+define(['framework/referencerenderer/rrVertexPacket', 'framework/referencerenderer/rrDefs', 'framework/referencerenderer/rrFragmentOperations', 'framework/delibs/debase/deMath','framework/common/tcuTextureUtil', 'framework/common/tcuTexture', 'framework/referencerenderer/rrRasterizer', 'framework/referencerenderer/rrRenderState','framework/referencerenderer/rrMultisamplePixelBufferAccess', 'framework/referencerenderer/rrShadingContext' ],
+ function(rrVertexPacket, rrDefs, rrFragmentOperations, deMath, tcuTextureUtil, tcuTexture, rrRasterizer, rrRenderState, rrMultisamplePixelBufferAccess, rrShadingContext) {
 
 /**
  * @enum
@@ -713,7 +713,7 @@ var writeFragments = function(state, renderTarget, fragments) {
  * @param {Array<number>} bottomRight Coordinates of bottom right corner of the rectangle
 */
 var drawQuad = function(state, renderTarget, program, vertexAttribs, topLeft, bottomRight) {
-    var v0 = [topLeft[0], topleft[1]];
+    var v0 = [topLeft[0], topLeft[1]];
     var v1 = [topLeft[0], bottomRight[1]];
     var v2 = [bottomRight[0], topLeft[1]];
     var v3 = [bottomRight[0], bottomRight[1]];
@@ -727,7 +727,7 @@ var drawQuad = function(state, renderTarget, program, vertexAttribs, topLeft, bo
     var shadingContextBottomRight = new rrShadingContext.FragmentShadingContext(vertexAttribs[1], vertexAttribs[2], vertexAttribs[3], null, 1);
     var packetsBottomRight = [];
     for (var i = 0; i < width; i++)
-        for (var j = 0; i < height; j++) {
+        for (var j = 0; j < height; j++) {
             var x = v0[0] + i + 0.5;
             var y = v0[1] + j + 0.5;
 

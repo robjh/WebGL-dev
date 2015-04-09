@@ -21,8 +21,8 @@
  * \brief Reference renderer render state.
  *//*--------------------------------------------------------------------*/
 define(['framework/common/tcuTexture', 'framework/delibs/debase/deMath'
-	,'framework/referencerenderer/rrMultisamplePixelBufferAccess'], 
-	function(tcuTexture, deMath, rrMultisamplePixelBufferAccess) {
+	,'framework/referencerenderer/rrMultisamplePixelBufferAccess', 'framework/referencerenderer/rrDefs'], 
+	function(tcuTexture, deMath, rrMultisamplePixelBufferAccess, rrDefs) {
 
 /**
  * Enum for HorizontalFill values.
@@ -215,7 +215,9 @@ var FragmentOperationState = function() {
 
 	/** @type {boolean} */ this.stencilTestEnabled	= false;
 
-	/** @type {StencilState} */ this.stencilStates;
+	/** @type {StencilState} */ this.stencilStates = [];
+    for (var type in rrDefs.FaceType)
+        this.stencilStates[rrDefs.FaceType[type]] = new StencilState();	
 
 	/** @type {boolean} */ this.depthTestEnabled = false;
 	/** @type {TestFunc} */ this.depthFunc = TestFunc.LESS;
@@ -289,11 +291,16 @@ var RenderState = function(viewport_) {
 	/** @type {number} */ this.provokingVertexConvention;
 	/** @type {ViewportState} */ this.viewport = viewport_;
 
-	/** @type {RasterizationState} */ this.rasterization;
-	/** @type {FragmentOperationState} */ this.fragOps;
-	/** @type {PointState} */ this.point;
-	/** @type {LineState} */ this.line;
-	/** @type {RestartState} */ this.restart;
+	/** @type {RasterizationState} */ this.rasterization = new RasterizationState();
+	/** @type {FragmentOperationState} */ this.fragOps = new FragmentOperationState();
+	/** @type {PointState} */ this.point = new PointState();
+	/** @type {LineState} */ this.line = new LineState();
+	/** @type {RestartState} */ this.restart = new RestartState();
+};
+
+return {
+	RenderState: RenderState,
+	WindowRectangle: WindowRectangle
 };
 
 });
