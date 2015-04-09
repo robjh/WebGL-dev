@@ -287,9 +287,9 @@ var select = function(a, b, cond) {
     var dst = [];
     for (var i = 0; i < cond.length; i++)
         if (cond[i])
-            dst.push(a);
+            dst.push(a[i]);
         else
-            dst.push(b);
+            dst.push(b[i]);
     return dst;
 };
 

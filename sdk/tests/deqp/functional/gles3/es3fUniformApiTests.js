@@ -1600,10 +1600,10 @@ define([
             /** @type {tcuTexture.TextureCube} */ var refTexture = texture.getRefTexture();
             this.m_texturesCube.push(texture);
 
-            for (var face = 0; face < tcuTexture.CubeFace.TOTAL_FACES; face++)
+            for (var face in tcuTexture.CubeFace)
             {
-                refTexture.allocLevel(face, 0);
-                fillWithColor(refTexture.getLevelFace(0, face), color);
+                refTexture.allocLevel(tcuTexture.CubeFace[face], 0);
+                fillWithColor(refTexture.getLevelFace(0, tcuTexture.CubeFace[face]), color);
             }
 
             gluDefs.GLU_CHECK_CALL(function() {gl.activeTexture(gl.TEXTURE0 + value.val.samplerV.unit);});

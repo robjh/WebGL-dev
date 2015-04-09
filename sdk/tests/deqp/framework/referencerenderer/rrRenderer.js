@@ -18,8 +18,8 @@
  *
  */
 
-define(['framework/referencerenderer/rrVertexPacket', 'framework/referencerenderer/rrDefs', 'framework/referencerenderer/rrFragmentOperations', 'framework/delibs/debase/deMath','framework/common/tcuTextureUtil', 'framework/common/tcuTexture', 'framework/referencerenderer/rrRasterizer', 'framework/referencerenderer/rrRenderState','framework/referencerenderer/rrMultisamplePixelBufferAccess' ],
- function(rrVertexPacket, rrDefs, rrFragmentOperations, deMath, tcuTextureUtil, tcuTexture, rrRasterizer, rrRenderState, rrMultisamplePixelBufferAccess) {
+define(['framework/referencerenderer/rrVertexPacket', 'framework/referencerenderer/rrDefs', 'framework/referencerenderer/rrFragmentOperations', 'framework/delibs/debase/deMath','framework/common/tcuTextureUtil', 'framework/common/tcuTexture', 'framework/referencerenderer/rrRasterizer', 'framework/referencerenderer/rrRenderState','framework/referencerenderer/rrMultisamplePixelBufferAccess', 'framework/referencerenderer/rrShadingContext' ],
+ function(rrVertexPacket, rrDefs, rrFragmentOperations, deMath, tcuTextureUtil, tcuTexture, rrRasterizer, rrRenderState, rrMultisamplePixelBufferAccess, rrShadingContext) {
 
 /**
  * @enum
@@ -399,7 +399,7 @@ var generatePrimitiveIDs = function(list, /*DrawContext&*/ drawContext) {
         list[i].generatePrimitiveIDs(drawContext.primitiveID++);
 };
 
-var flatshadeVertices = function(/*const Program&*/ program, /*ContainerType&*/ list) {
+var flatshadeVertices =function(/*const Program&*/ program, /*ContainerType&*/ list) {
     // flatshade
     var fragInputs = program.vertexShader.getOutputs();
 
@@ -655,18 +655,104 @@ var drawInstanced = function(/*const DrawCommand&*/ command, numInstances) {
     }
 };
 
+
 var draw = function(/*const DrawCommand&*/ command) {
     drawInstanced(command, 1);
 };
 
+var getBarycentricCoefficients = function(v, v1, v2, v3) {
+    var b = [];
+
+    var x = v[0];
+    var y = v[1];
+    var x1 = v1[0];
+    var x2 = v2[0];
+    var x3 = v3[0];
+    var y1 = v1[1];
+    var y2 = v2[1];
+    var y3 = v3[1];
+
+    var det = (y2 - y3)*(x1 - x3) + (x3 - x2)*(y1 - y3);
+
+    b[0] = ((y2 - y3)*(x - x3) + (x3 - x2)*(y - y3))/det;
+    b[1] = ((y3 - y1)*(x - x3) + (x1 - x3)*(y - y3))/det;
+    b[2] = 1 - b[0] - b[1];
+
+    return b;
+};
+
+/**
+ * @constructor
+ */
+var FragmentPacket = function(coefficents, coords) {
+    this.barycentric = coefficents;
+    this.fragCoord = coords;
+};
+
+/**
+ * @param {rrRenderState.RenderState} state
+ * @param {RenderTarget} renderTarget
+ * @param {Array<FragmentPacket>} fragments Fragments to write
+*/
+var writeFragments = function(state, renderTarget, fragments) {
+    /* TODO: Add blending, depth, stencil ... */
+    var colorbuffer = renderTarget.colorBuffers[0].raw();
+    for (var i = 0; i < fragments.length; i++) {
+        var fragment = fragments[i];
+        colorbuffer.setPixel(fragment.output, 0, fragment.pixelCoord[0], fragment.pixelCoord[0]);
+    }
+
+};
+
+/**
+ * @param {rrRenderState.RenderState} state
+ * @param {RenderTarget} renderTarget
+ * @param {Program} program
+ * @param {Array<rrVertexAttrib.VertexAttrib>} vertexAttribs
+ * @param {Array<number>} topLeft Coordinates of top left corner of the rectangle
+ * @param {Array<number>} bottomRight Coordinates of bottom right corner of the rectangle
+*/
+var drawQuad = function(state, renderTarget, program, vertexAttribs, topLeft, bottomRight) {
+    var v0 = [topLeft[0], topLeft[1]];
+    var v1 = [topLeft[0], bottomRight[1]];
+    var v2 = [bottomRight[0], topLeft[1]];
+    var v3 = [bottomRight[0], bottomRight[1]];
+    var width = bottomRight[0] - topLeft[0];
+    var height = bottomRight[1] - topLeft[1];
+
+    // Generate two triangles [v0, v1, v2] and [v1, v2, v3]
+    var shadingContextTopLeft = new rrShadingContext.FragmentShadingContext(vertexAttribs[0], vertexAttribs[1], vertexAttribs[2], null, 1);
+    var packetsTopLeft = [];
+
+    var shadingContextBottomRight = new rrShadingContext.FragmentShadingContext(vertexAttribs[1], vertexAttribs[2], vertexAttribs[3], null, 1);
+    var packetsBottomRight = [];
+    for (var i = 0; i < width; i++)
+        for (var j = 0; j < height; j++) {
+            var x = v0[0] + i + 0.5;
+            var y = v0[1] + j + 0.5;
+
+            var xf = (i + 0.5) / width;
+            var yf = (j + 0.5) / height;
+            var triNdx = xf + yf >= 1;
+            if (!triNdx) {
+                var b = getBarycentricCoefficients([x, y], v0, v1, v2);
+                packetsTopLeft.push(new FragmentPacket(b, [v0[0] + i, v0[1] + j]));
+            } else {
+                 var b = getBarycentricCoefficients([x, y], v1, v2, v3);
+                packetsBottomRight.push(new FragmentPacket(b, [v0[0] + i, v0[1] + j]));
+            }
+        }
+    program.fragmentShader.shadeFragments(packetsTopLeft, shadingContextpacketsTopLeft);
+    program.fragmentShader.shadeFragments(packetsBottomRight, shadingContextpacketsBottomRight);
+    writeFragments(state, renderTarget, packetsTopLeft);
+    writeFragments(state, renderTarget, packetsBottomRight);
+};
 
 return {
-    drawInstanced: drawInstanced,
-    draw: draw,
-    DrawCommand: DrawCommand,
     PrimitiveType: PrimitiveType,
     RenderTarget: RenderTarget,
-    Program: Program
+    Program: Program,
+    drawQuad: drawQuad 
 };
 
 });

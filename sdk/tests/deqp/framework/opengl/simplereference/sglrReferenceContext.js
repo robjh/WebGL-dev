@@ -18,8 +18,11 @@
  *
  */
 
-define(['framework/referencerenderer/rrMultisamplePixelBufferAccess', 'framework/common/tcuTexture', 'framework/delibs/debase/deMath', 'framework/opengl/gluTextureUtil', 'framework/common/tcuTextureUtil', 'framework/common/tcuPixelFormat', 'framework/opengl/gluShaderUtil', 'framework/referencerenderer/rrRenderer', 'framework/referencerenderer/rrDefs', 'framework/referencerenderer/rrVertexAttrib', 'framework/referencerenderer/rrRenderState' ],
- function(rrMultisamplePixelBufferAccess, tcuTexture, deMath, gluTextureUtil, tcuTextureUtil, tcuPixelFormat, gluShaderUtil, rrRenderer, rrDefs, rrVertexAttrib, rrRenderState) {
+define(['framework/referencerenderer/rrMultisamplePixelBufferAccess', 'framework/common/tcuTexture', 'framework/delibs/debase/deMath', 'framework/opengl/gluTextureUtil',
+ 'framework/common/tcuTextureUtil', 'framework/common/tcuPixelFormat', 'framework/opengl/gluShaderUtil',
+  'framework/referencerenderer/rrRenderer', 'framework/referencerenderer/rrDefs', 'framework/referencerenderer/rrVertexAttrib',
+   'framework/referencerenderer/rrRenderState', 'framework/opengl/simplereference/sglrReferenceUtils' ],
+ function(rrMultisamplePixelBufferAccess, tcuTexture, deMath, gluTextureUtil, tcuTextureUtil, tcuPixelFormat, gluShaderUtil, rrRenderer, rrDefs, rrVertexAttrib, rrRenderState, sglrReferenceUtils) {
 
 var rrMPBA = rrMultisamplePixelBufferAccess;
 
@@ -35,8 +38,8 @@ var DE_ASSERT = function(x) {
         throw new Error('Assert failed');
 };
 
-/* TODO: remove */
-/** @type {WebGL2RenderingContext} */ var gl;
+// /* TODO: remove */
+// /** @type {WebGL2RenderingContext} */ var gl;
 
 var MAX_TEXTURE_SIZE_LOG2       = 14;
 var MAX_TEXTURE_SIZE            = 1<<MAX_TEXTURE_SIZE_LOG2;
@@ -626,13 +629,13 @@ var TextureUnit = function() {
  * @constructor
  */
 var StencilState = function() {
-    this.func = 0;
+    this.func = gl.ALWAYS;
     this.ref = 0;
-    this.opMask = 0;
-    this.opStencilFail = 0;
-    this.opDepthFail = 0;
-    this.opDepthPass = 0;
-    this.writeMask = 0;
+    this.opMask = ~0;
+    this.opStencilFail = gl.KEEP;
+    this.opDepthFail = gl.KEEP;
+    this.opDepthPass = gl.KEEP;
+    this.writeMask = ~0;
 };
 
 /**
@@ -2322,7 +2325,7 @@ ReferenceContext.prototype.drawWithReference = function(primitives, instanceCoun
 
         state.fragOps.colorMask                                     = this.m_colorMask;
 
-        state.viewport.rect                                         = new rrRenderState.WindowRectangle(this.m_viewport[0], this.m_viewport[1], this.m_viewport[2], this.m_viewport[3]);
+        state.viewport.rect                                         = new rrRenderState.WindowRectangle(this.m_viewport);
         state.viewport.zn                                           = this.m_depthRangeNear;
         state.viewport.zf                                           = this.m_depthRangeFar;
 
@@ -2490,6 +2493,216 @@ ReferenceContext.prototype.drawWithReference = function(primitives, instanceCoun
     var command = new rrRenderer.DrawCommand(state, renderTarget, program, vertexAttribs.length, vertexAttribs, primitives);
     rrRenderer.drawInstanced(command, instanceCount);
 }
+
+/**
+ * @param {Array<number>} topLeft Coordinates of top left corner of the rectangle
+ * @param {Array<number>} bottomRight Coordinates of bottom right corner of the rectangle
+ */
+ReferenceContext.prototype.drawQuad = function(topLeft, bottomRight) {
+    // undefined results
+    if (!this.m_currentProgram)
+        return;
+
+    var  colorBuf0   = this.getDrawColorbuffer();
+    var  depthBuf    = this.getDrawDepthbuffer();
+    var  stencilBuf  = this.getDrawStencilbuffer();
+    var hasStencil  = !stencilBuf.isEmpty();
+    var                           stencilBits = (hasStencil) ? stencilBuf.raw().getFormat().getNumStencilBits() : (0);
+
+    var              renderTarget = new rrRenderer.RenderTarget(colorBuf0, depthBuf,stencilBuf);
+    var                   program     = new rrRenderer.Program(this.m_currentProgram.m_program.getVertexShader(),
+                                                     this.m_currentProgram.m_program.getFragmentShader());
+    var state       = new rrRenderState.RenderState(colorBuf0);
+
+    var       vertexAttribs = [];
+
+    // Gen state
+    var baseType                            = rrRenderer.PrimitiveType.PRIMITIVETYPE_TRIANGLES;
+    var              polygonOffsetEnabled                = (baseType == rrRenderer.PrimitiveType.PRIMITIVETYPE_TRIANGLES) ? (this.m_polygonOffsetFillEnabled) : (false);
+
+    //state.cullMode                                            = m_cullMode
+
+    state.fragOps.scissorTestEnabled                            = this.m_scissorEnabled;
+    state.fragOps.scissorRectangle                              = new rrRenderState.WindowRectangle(this.m_scissorBox);
+
+    state.fragOps.numStencilBits                                = stencilBits;
+    state.fragOps.stencilTestEnabled                            = this.m_stencilTestEnabled;
+
+    for (var key in rrDefs.FaceType) {
+        var faceType = rrDefs.FaceType[key];
+        state.fragOps.stencilStates[faceType].compMask  = this.m_stencil[faceType].opMask;
+        state.fragOps.stencilStates[faceType].writeMask = this.m_stencil[faceType].writeMask;
+        state.fragOps.stencilStates[faceType].ref       = this.m_stencil[faceType].ref;
+        state.fragOps.stencilStates[faceType].func      = sglrReferenceUtils.mapGLTestFunc(this.m_stencil[faceType].func);
+        state.fragOps.stencilStates[faceType].sFail     = sglrReferenceUtils.mapGLStencilOp(this.m_stencil[faceType].opStencilFail);
+        state.fragOps.stencilStates[faceType].dpFail    = sglrReferenceUtils.mapGLStencilOp(this.m_stencil[faceType].opDepthFail);
+        state.fragOps.stencilStates[faceType].dpPass    = sglrReferenceUtils.mapGLStencilOp(this.m_stencil[faceType].opDepthPass);
+    }
+
+    state.fragOps.depthTestEnabled                              = this.m_depthTestEnabled;
+    state.fragOps.depthFunc                                     = sglrReferenceUtils.mapGLTestFunc(this.m_depthFunc);
+    state.fragOps.depthMask                                     = this.m_depthMask;
+
+    state.fragOps.blendMode                                     = this.m_blendEnabled ? rrRenderState.BlendMode.BLENDMODE_STANDARD : rrRenderState.BlendMode.BLENDMODE_NONE;
+    state.fragOps.blendRGBState.equation                        = sglrReferenceUtils.mapGLBlendEquation(this.m_blendModeRGB);
+    state.fragOps.blendRGBState.srcFunc                         = sglrReferenceUtils.mapGLBlendFunc(this.m_blendFactorSrcRGB);
+    state.fragOps.blendRGBState.dstFunc                         = sglrReferenceUtils.mapGLBlendFunc(this.m_blendFactorDstRGB);
+    state.fragOps.blendAState.equation                          = sglrReferenceUtils.mapGLBlendEquation(this.m_blendModeAlpha);
+    state.fragOps.blendAState.srcFunc                           = sglrReferenceUtils.mapGLBlendFunc(this.m_blendFactorSrcAlpha);
+    state.fragOps.blendAState.dstFunc                           = sglrReferenceUtils.mapGLBlendFunc(this.m_blendFactorDstAlpha);
+    state.fragOps.blendColor                                    = this.m_blendColor;
+
+    state.fragOps.colorMask                                     = this.m_colorMask;
+
+    state.viewport.rect                                         = new rrRenderState.WindowRectangle(this.m_viewport);
+    state.viewport.zn                                           = this.m_depthRangeNear;
+    state.viewport.zf                                           = this.m_depthRangeFar;
+
+    //state.point.pointSize                                     = this.m_pointSize;
+    state.line.lineWidth                                        = this.m_lineWidth;
+
+    state.fragOps.polygonOffsetEnabled                          = polygonOffsetEnabled;
+    state.fragOps.polygonOffsetFactor                           = this.m_polygonOffsetFactor;
+    state.fragOps.polygonOffsetUnits                            = this.m_polygonOffsetUnits;
+
+    state.provokingVertexConvention                             = (this.m_provokingFirstVertexConvention) ? (rrDefs.ProvokingVertex.PROVOKINGVERTEX_FIRST) : (rrDefs.ProvokingVertex.PROVOKINGVERTEX_LAST);
+
+    // gen attributes
+    var vao = this.m_vertexArrayBinding;
+
+    for (var ndx = 0; ndx < vao.m_arrays.length; ++ndx)
+    {
+        vertexAttribs[ndx] = new rrVertexAttrib.VertexAttrib();
+        if (!vao.m_arrays[ndx].enabled)
+        {
+            vertexAttribs[ndx].type = rrVertexAttrib.VertexAttribType.VERTEXATTRIBTYPE_DONT_CARE; // reading with wrong type is allowed, but results are undefined
+            vertexAttribs[ndx].generic = this.m_currentAttribs[ndx];
+        }
+        else
+        {
+            vertexAttribs[ndx].type             = (vao.m_arrays[ndx].integer) ?
+                                                    (sglrReferenceUtils.mapGLPureIntegerVertexAttributeType(vao.m_arrays[ndx].type)) :
+                                                    (sglrReferenceUtils.mapGLFloatVertexAttributeType(vao.m_arrays[ndx].type, vao.m_arrays[ndx].normalized, vao.m_arrays[ndx].size, this.getType()));
+            vertexAttribs[ndx].size             = sglrReferenceUtils.mapGLSize(vao.m_arrays[ndx].size);
+            vertexAttribs[ndx].stride           = vao.m_arrays[ndx].stride;
+            vertexAttribs[ndx].instanceDivisor  = vao.m_arrays[ndx].divisor;
+            vertexAttribs[ndx].pointer          = vao.m_arrays[ndx].bufferBinding.getData();
+            vertexAttribs[ndx].offset           = vao.m_arrays[ndx].offset;
+        }
+    }
+
+    // Set shader samplers
+    for (var uniformNdx = 0; uniformNdx < this.m_currentProgram.m_program.m_uniforms.length; ++uniformNdx)
+    {
+        var texNdx = this.m_currentProgram.m_program.m_uniforms[uniformNdx].value.i;
+
+        switch (this.m_currentProgram.m_program.m_uniforms[uniformNdx].type)
+        {
+            case gluShaderUtil.DataType.TYPE_SAMPLER_2D:
+            case gluShaderUtil.DataType.TYPE_UINT_SAMPLER_2D:
+            case gluShaderUtil.DataType.TYPE_INT_SAMPLER_2D:
+            {
+                var tex = null;
+
+                if (texNdx >= 0 && texNdx < this.m_textureUnits.length)
+                    tex = (this.m_textureUnits[texNdx].tex2DBinding) ? (this.m_textureUnits[texNdx].tex2DBinding) : (this.m_textureUnits[texNdx].default2DTex);
+
+                if (tex && tex.isComplete())
+                {
+                    tex.updateView();
+                    this.m_currentProgram.m_program.m_uniforms[uniformNdx].sampler.tex2D = tex;
+                }
+                else
+                    this.m_currentProgram.m_program.m_uniforms[uniformNdx].sampler.tex2D = this.m_emptyTex2D;
+
+                break;
+            }
+            /* TODO: Port        
+            case gluShaderUtil.DataType.TYPE_SAMPLER_CUBE:
+            case gluShaderUtil.DataType.TYPE_UINT_SAMPLER_CUBE:
+            case gluShaderUtil.DataType.TYPE_INT_SAMPLER_CUBE:
+            {
+                rc::TextureCube* tex = DE_NULL;
+
+                if (texNdx >= 0 && (size_t)texNdx < this.m_textureUnits.length)
+                    tex = (this.m_textureUnits[texNdx].texCubeBinding) ? (this.m_textureUnits[texNdx].texCubeBinding) : (&this.m_textureUnits[texNdx].defaultCubeTex);
+
+                if (tex && tex.isComplete())
+                {
+                    tex.updateView();
+                    this.m_currentProgram.m_program.m_uniforms[uniformNdx].sampler.texCube = tex;
+                }
+                else
+                    this.m_currentProgram.m_program.m_uniforms[uniformNdx].sampler.texCube = &this.m_emptyTexCube;
+
+                break;
+            }
+            case gluShaderUtil.DataType.TYPE_SAMPLER_2D_ARRAY:
+            case gluShaderUtil.DataType.TYPE_UINT_SAMPLER_2D_ARRAY:
+            case gluShaderUtil.DataType.TYPE_INT_SAMPLER_2D_ARRAY:
+            {
+                rc::Texture2DArray* tex = DE_NULL;
+
+                if (texNdx >= 0 && (size_t)texNdx < this.m_textureUnits.length)
+                    tex = (this.m_textureUnits[texNdx].tex2DArrayBinding) ? (this.m_textureUnits[texNdx].tex2DArrayBinding) : (&this.m_textureUnits[texNdx].default2DArrayTex);
+
+                if (tex && tex.isComplete())
+                {
+                    tex.updateView();
+                    this.m_currentProgram.m_program.m_uniforms[uniformNdx].sampler.tex2DArray = tex;
+                }
+                else
+                    this.m_currentProgram.m_program.m_uniforms[uniformNdx].sampler.tex2DArray = &this.m_emptyTex2DArray;
+
+                break;
+            }
+            case gluShaderUtil.DataType.TYPE_SAMPLER_3D:
+            case gluShaderUtil.DataType.TYPE_UINT_SAMPLER_3D:
+            case gluShaderUtil.DataType.TYPE_INT_SAMPLER_3D:
+            {
+                rc::Texture3D* tex = DE_NULL;
+
+                if (texNdx >= 0 && (size_t)texNdx < m_textureUnits.length)
+                    tex = (this.m_textureUnits[texNdx].tex3DBinding) ? (this.m_textureUnits[texNdx].tex3DBinding) : (&this.m_textureUnits[texNdx].default3DTex);
+
+                if (tex && tex.isComplete())
+                {
+                    tex.updateView();
+                    this.m_currentProgram.m_program.m_uniforms[uniformNdx].sampler.tex3D = tex;
+                }
+                else
+                    this.m_currentProgram.m_program.m_uniforms[uniformNdx].sampler.tex3D = &this.m_emptyTex3D;
+
+                break;
+            }
+            case gluShaderUtil.DataType.TYPE_SAMPLER_CUBE_ARRAY:
+            case gluShaderUtil.DataType.TYPE_UINT_SAMPLER_CUBE_ARRAY:
+            case gluShaderUtil.DataType.TYPE_INT_SAMPLER_CUBE_ARRAY:
+            {
+                rc::TextureCubeArray* tex = DE_NULL;
+
+                if (texNdx >= 0 && (size_t)texNdx < m_textureUnits.length)
+                    tex = (this.m_textureUnits[texNdx].texCubeArrayBinding) ? (this.m_textureUnits[texNdx].texCubeArrayBinding) : (&this.m_textureUnits[texNdx].defaultCubeArrayTex);
+
+                if (tex && tex.isComplete())
+                {
+                    tex.updateView();
+                    this.m_currentProgram.m_program.m_uniforms[uniformNdx].sampler.texCubeArray = tex;
+                }
+                else
+                    this.m_currentProgram.m_program.m_uniforms[uniformNdx].sampler.texCubeArray = &this.m_emptyTexCubeArray;
+
+                break;
+            }
+            */
+            default:
+                // nothing
+                break;
+        }
+    }
+
+    rrRenderer.drawQuad(state, renderTarget, program, vertexAttribs, topLeft, bottomRight);
+};
 
 return {
     ReferenceContext: ReferenceContext,

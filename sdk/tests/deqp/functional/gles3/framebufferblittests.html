@@ -3,7 +3,7 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<title>WebGL Primitive Restart Conformance Tests</title>
+<title>WebGL Framebuffer Blit Conformance Tests</title>
 <link rel="stylesheet" href="../../../resources/js-test-style.css"/>
 <script src="../../../resources/js-test-pre.js"></script>
 <script src="../../../conformance/resources/webgl-test-utils.js"></script>
@@ -13,7 +13,7 @@
 <body>
 <div id="description"></div>
 <div id="console"></div>
-<canvas id="canvas" width="256" height="256"> </canvas>
+<canvas id="canvas" width="200" height="100"> </canvas>
 <script>
 var wtu = WebGLTestUtils;
 var gl = wtu.create3DContext('canvas', {preserveDrawingBuffer: true}, 2);
@@ -22,9 +22,9 @@ requirejs.config({
     baseUrl: "../../"
     });
 
-requirejs(["functional/gles3/es3fPrimitiveRestartTests"], function(es3fPrimitiveRestartTests) {
+requirejs(["functional/gles3/es3fFramebufferBlitTests"], function(es3fFramebufferBlitTests) {
     try {
-        es3fPrimitiveRestartTests.run(gl);
+        es3fFramebufferBlitTests.run(gl);
     }
     catch(err)
     {

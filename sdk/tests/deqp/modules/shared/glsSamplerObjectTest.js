@@ -61,7 +61,7 @@ define([
 
     /** @const @type {number} */ var CUBEMAP_SIZE = 32;
 
-    /** @const @type {Array.<number>} */ var s_positions = [
+    /** @const @type {Array<number>} */ var s_positions = [
         -1.0, -1.0,
          1.0, -1.0,
          1.0, 1.0,
@@ -70,7 +70,7 @@ define([
         -1.0, -1.0
     ];
 
-    /** @const @type {Array.<number>} */ var s_positions3D = [
+    /** @const @type {Array<number>} */ var s_positions3D = [
         -1.0, -1.0, -1.0,
          1.0, -1.0, 1.0,
          1.0, 1.0, -1.0,
@@ -79,7 +79,7 @@ define([
         -1.0, -1.0, -1.0
     ];
 
-    /** @const @type {Array.<number>} */ var s_positionsCube = [
+    /** @const @type {Array<number>} */ var s_positionsCube = [
         -1.0, -1.0, -1.0, -0.5,
          1.0, -1.0, 1.0, -0.5,
          1.0, 1.0, 1.0, 0.5,
@@ -242,7 +242,7 @@ define([
         gl.uniform1f(scaleLoc, 1.0);
         gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glUniform1f(scaleLoc, 1.0f)');
 
-        /** @type {Array.<gluDrawUtil.VertexArrayBinding>} */ var vertexArrays;
+        /** @type {Array<gluDrawUtil.VertexArrayBinding>} */ var vertexArrays;
         switch (this.m_target) {
             case gl.TEXTURE_2D: {
                 vertexArrays = [
@@ -460,9 +460,9 @@ define([
         gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
         gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(GL_TEXTURE_CUBE_MAP, texture)');
         // TODO: check internalFormat / format parameters in texImage2D (were RGBA8 and RGBA respectively)
-        for (var face = 0; face < Object.keys(tcuTexture.CubeFace).length -1; face++) { // TODO: remove the TOTAL_FACES entry from the enum. Until then, -1.
-            /** @const @type {number} */ var target = gluTextureUtil.getGLCubeFace(face);
-            gl.texImage2D(target, 0, gl.RGBA, refTexture.getSize(), refTexture.getSize(), 0, gl.RGBA, gl.UNSIGNED_BYTE, refTexture.getLevelFace(0, face).getDataPtr());
+        for (var face in tcuTexture.CubeFace) {
+            /** @const @type {number} */ var target = gluTextureUtil.getGLCubeFace(tcuTexture.CubeFace[face]);
+            gl.texImage2D(target, 0, gl.RGBA, refTexture.getSize(), refTexture.getSize(), 0, gl.RGBA, gl.UNSIGNED_BYTE, refTexture.getLevelFace(0, tcuTexture.CubeFace[face]).getDataPtr());
         }
         gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glTexImage2D(GL_TEXTURE_CUBE_MAP_...) failed');
 
@@ -850,7 +850,7 @@ define([
         gl.uniform1f(scaleLoc, 1.0);
         gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glUniform1f(scaleLoc, 1.0f)');
 
-        /** @type {Array.<gluDrawUtil.VertexArrayBinding>} */ var vertexArrays;
+        /** @type {Array<gluDrawUtil.VertexArrayBinding>} */ var vertexArrays;
         switch (this.m_target) {
             case gl.TEXTURE_2D: {
                 vertexArrays = [
@@ -1114,9 +1114,9 @@ define([
         gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
         gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(GL_TEXTURE_CUBE_MAP, texture)');
 
-        for (var face = 0; face < Object.keys(tcuTexture.CubeFace).length -1; face++) { // TODO: remove the TOTAL_FACES entry from the enum. Until then, -1.
-            /** @const @type {number} */ var target = gluTextureUtil.getGLCubeFace(face);
-            gl.texImage2D(target, 0, gl.RGBA, refTexture.getSize(), refTexture.getSize(), 0, gl.RGBA, gl.UNSIGNED_BYTE, refTexture.getLevelFace(0, face).getDataPtr());
+        for (var face in tcuTexture.CubeFace) {
+            /** @const @type {number} */ var target = gluTextureUtil.getGLCubeFace(tcuTexture.CubeFace[face]);
+            gl.texImage2D(target, 0, gl.RGBA, refTexture.getSize(), refTexture.getSize(), 0, gl.RGBA, gl.UNSIGNED_BYTE, refTexture.getLevelFace(0, tcuTexture.CubeFace[face]).getDataPtr());
         }
         gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glTexImage2D(GL_TEXTURE_CUBE_MAP_...) failed');
 
