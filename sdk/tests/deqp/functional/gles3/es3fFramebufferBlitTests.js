@@ -212,7 +212,7 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcyTexture, gluTexture
 
         /** @type {boolean} */ var error = false;
         /** @type {tcuSurface.Surface} */ var errorMask = new tcuSurface.Surface(result.getWidth(), result.getHeight());
-        // TODO: destinationArea is of type IVec -> '-' operator overloaded? so special handling of the following is needed
+        // TODO: destinationArea is of type IVec . '-' operator overloaded? so special handling of the following is needed
         /** @type {Array<boolean>} */ var horisontalSign = [];
         /** @type {Array<boolean>} */ var verticalSign = [];
 
@@ -690,8 +690,8 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcyTexture, gluTexture
         // /** @tpye {GradientShader} */ var gradientToSrcShader     (srcOutputType);
         // /** @tpye {GradientShader} */ var gradientToDstShader     (dstOutputType);
         //
-        /** @type {number} */ var gradShaderSrcID = getCurrentContext()->createProgram(&gradientToSrcShader);
-        /** @type {number} */ var gradShaderDstID = getCurrentContext()->createProgram(&gradientToDstShader);
+        /** @type {number} */ var gradShaderSrcID = getCurrentContext().createProgram(gradientToSrcShader);
+        /** @type {number} */ var gradShaderDstID = getCurrentContext().createProgram(gradientToDstShader);
         //
         /** @type {number} */ var srcFbo;
         /** @type {number} */ var dstFbo;
@@ -994,57 +994,63 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcyTexture, gluTexture
      */
     BlitDefaultFramebufferCase.prototype.render = function(dst) {
         // // TODO: implement
-		// tcu::TextureFormat		colorFormat		= glu::mapGLInternalFormat(m_format);
-		// glu::TransferFormat		transferFmt		= glu::getTransferFormat(colorFormat);
-		// GradientShader			gradShader		(glu::TYPE_FLOAT_VEC4);
-		// Texture2DShader			texShader		(DataTypes() << glu::getSampler2DType(colorFormat), glu::TYPE_FLOAT_VEC4);
-		// deUint32				gradShaderID	= getCurrentContext()->createProgram(&gradShader);
-		// deUint32				texShaderID		= getCurrentContext()->createProgram(&texShader);
-		// deUint32				fbo				= 0;
-		// deUint32				tex				= 0;
-		// const int				texW			= 128;
-		// const int				texH			= 128;
-        //
-		// // Setup shaders
-		// gradShader.setGradient(*getCurrentContext(), gradShaderID, Vec4(0.0f), Vec4(1.0f));
-		// texShader.setUniforms(*getCurrentContext(), texShaderID);
-        //
-		// // FBO
-		// glGenFramebuffers(1, &fbo);
-		// glGenTextures(1, &tex);
-        //
-		// glBindTexture(GL_TEXTURE_2D, tex);
-		// glTexParameteri(GL_TEXTURE_2D,	GL_TEXTURE_WRAP_S,		GL_CLAMP_TO_EDGE);
-		// glTexParameteri(GL_TEXTURE_2D,	GL_TEXTURE_WRAP_T,		GL_CLAMP_TO_EDGE);
-		// glTexParameteri(GL_TEXTURE_2D,	GL_TEXTURE_MIN_FILTER,	m_filter);
-		// glTexParameteri(GL_TEXTURE_2D,	GL_TEXTURE_MAG_FILTER,	m_filter);
-		// glTexImage2D(GL_TEXTURE_2D, 0, m_format, texW, texH, 0, transferFmt.format, transferFmt.dataType, DE_NULL);
-        //
-		// glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-		// glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 0);
-		// checkError();
-		// checkFramebufferStatus(GL_FRAMEBUFFER);
-        //
-		// // Render gradient to screen.
-		// glBindFramebuffer(GL_FRAMEBUFFER, m_context.getRenderContext().getDefaultFramebuffer());
-        //
-		// sglr::drawQuad(*getCurrentContext(), gradShaderID, Vec3(-1.0f, -1.0f, 0.0f), Vec3(1.0f, 1.0f, 0.0f));
-        //
-		// // Blit gradient from screen to fbo.
-		// glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
-		// glBlitFramebuffer(0, 0, getWidth(), getHeight(), 0, 0, texW, texH, GL_COLOR_BUFFER_BIT, m_filter);
-        //
-		// // Fill left half of viewport with quad that uses texture.
-		// glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_context.getRenderContext().getDefaultFramebuffer());
-		// glClearBufferfv(GL_COLOR, 0, Vec4(1.0f, 0.0f, 0.0f, 1.0f).getPtr());
-		// sglr::drawQuad(*getCurrentContext(), texShaderID, Vec3(-1.0f, -1.0f, 0.0f), Vec3(0.0f, 1.0f, 0.0f));
-        //
-		// // Blit fbo to right half.
-		// glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo);
-		// glBlitFramebuffer(0, 0, texW, texH, getWidth()/2, 0, getWidth(), getHeight(), GL_COLOR_BUFFER_BIT, m_filter);
-        //
-		// glBindFramebuffer(GL_READ_FRAMEBUFFER, m_context.getRenderContext().getDefaultFramebuffer());
-		// readPixels(dst, 0, 0, getWidth(), getHeight());
+		/** @type {tcuTexture.TextureFormat} */ var colorFormat = gluTextureUtil.mapGLInternalFormat(m_format);
+		/** @type {gluTextureUtil.TransferFormat} */ var transferFmt = gluTextureUtil.getTransferFormat(colorFormat);
+        // TODO: implement GradientShader, Texture2DShader
+		// /** @type {GradientShader} */ var gradShader (glu::TYPE_FLOAT_VEC4);
+		// /** @type {Texture2DShader} */ var texShader (DataTypes() << glu::getSampler2DType(colorFormat), glu::TYPE_FLOAT_VEC4);
+        // TODO: implement getCurrentContext
+		/** @type {number} */ var gradShaderID = getCurrentContext().createProgram(gradShader);
+		/** @type {number} */ var texShaderID = getCurrentContext().createProgram(texShader);
+		/** @type {number} */ var fbo = 0;
+		/** @type {number} */ var tex = 0;
+        /** @const @type {number} */ texW = 128;
+        /** @const @type {number} */ texH= 128;
+
+		// Setup shaders
+		gradShader.setGradient(getCurrentContext(), gradShaderID, [0.0, 0.0, 0.0, 0.0], [1.0, 1.0, 1.0, 1.0]);
+		texShader.setUniforms(getCurrentContext(), texShaderID);
+
+		// FBO
+        fbo = gl.createFramebuffer();
+		tex = gl.createTexture();
+
+		gl.bindTexture(gl.TEXTURE_2D, tex);
+		gl.texParameteri(gl.TEXTURE_2D,	gl.TEXTURE_WRAP_S,		gl.CLAMP_TO_EDGE);
+		gl.texParameteri(gl.TEXTURE_2D,	gl.TEXTURE_WRAP_T,		gl.CLAMP_TO_EDGE);
+		gl.texParameteri(gl.TEXTURE_2D,	gl.TEXTURE_MIN_FILTER,	this.m_filter);
+		gl.texParameteri(gl.TEXTURE_2D,	gl.TEXTURE_MAG_FILTER,	this.m_filter);
+		gl.texImage2D(gl.TEXTURE_2D, 0, this.m_format, texW, texH, 0, transferFmt.format, transferFmt.dataType, null);
+
+		gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+		checkError();
+		checkFramebufferStatus(gl.FRAMEBUFFER);
+
+		// Render gradient to screen.
+        // TODO: context...
+		gl.bindFramebuffer(gl.FRAMEBUFFER, this.m_context.getRenderContext().getDefaultFramebuffer());
+
+        //TODO: implement drawQuad
+		// sglr::drawQuad(getCurrentContext(), gradShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
+
+		// Blit gradient from screen to fbo.
+		gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, fbo);
+		gl.blitFramebuffer(0, 0, getWidth(), getHeight(), 0, 0, texW, texH, gl.COLOR_BUFFER_BIT, this.m_filter);
+
+		// Fill left half of viewport with quad that uses texture.
+		gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, this.m_context.getRenderContext().getDefaultFramebuffer());
+		gl.clearBufferfv(gl.COLOR, 0, [1.0, 0.0, 0.0, 1.0]);
+        // TODO: implement drawQuad
+		/// sglr::drawQuad(getCurrentContext(), texShaderID, [-1.0, -1.0, 0.0], [0.0, 1.0, 0.0]);
+
+		// Blit fbo to right half.
+		gl.bindFramebuffer(gl.READ_FRAMEBUFFER, fbo);
+		gl.blitFramebuffer(0, 0, texW, texH, Math.floor(getWidth()/2), 0, getWidth(), getHeight(), gl.COLOR_BUFFER_BIT, this.m_filter);
+
+        // TODO: context
+		gl.bindFramebuffer(gl.READ_FRAMEBUFFER, m_context.getRenderContext().getDefaultFramebuffer());
+		readPixels(dst, 0, 0, getWidth(), getHeight());
     };
 
     /**
@@ -1054,11 +1060,12 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcyTexture, gluTexture
      */
     BlitDefaultFramebufferCase.prototype.compare = function(reference, result) {
         // TODO: implement
-        // const tcu::RGBA threshold (tcu::max(getFormatThreshold(m_format), tcu::RGBA(12, 12, 12, 12)));
-        //
-        // m_testCtx.getLog() << TestLog::Message << "Comparing images, threshold: " << threshold << TestLog::EndMessage;
-        //
-        // return tcu::bilinearCompare(m_testCtx.getLog(), "Result", "Image comparison result", reference.getAccess(), result.getAccess(), threshold, tcu::COMPARE_LOG_RESULT);
+        //const tcu::RGBA threshold (tcu::max(getFormatThreshold(m_format), tcu::RGBA(12, 12, 12, 12)));
+
+        //m_testCtx.getLog() << TestLog::Message << "Comparing images, threshold: " << threshold << TestLog::EndMessage;
+
+        // TODO: implement bilinearCompare
+        return tcu.bilinearCompare(m_testCtx.getLog(), "Result", "Image comparison result", reference.getAccess(), result.getAccess(), threshold, null /*tcu::COMPARE_LOG_RESULT*/);
 
     };
 
@@ -1098,33 +1105,36 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcyTexture, gluTexture
     DefaultFramebufferBlitCase.prototype.constructor = DefaultFramebufferBlitCase
 
     DefaultFramebufferBlitCase.prototype.init = function() {
-        // TODO: implement
-        // // requirements
-		// const int minViewportSize = 128;
-		// if (m_context.getRenderTarget().getWidth() < minViewportSize || m_context.getRenderTarget().getHeight() < minViewportSize)
-		// 	throw tcu::NotSupportedError("Viewport size " + de::toString(minViewportSize) + "x" + de::toString(minViewportSize) + " required");
-        //
-		// // prevent viewport randoming
-		// m_viewportWidth = m_context.getRenderTarget().getWidth();
-		// m_viewportHeight = m_context.getRenderTarget().getHeight();
-        //
-		// // set proper areas
-		// if (m_blitArea == AREA_SCALE)
-		// {
-		// 	m_srcRect = IVec4( 10,  20,  65, 100);
-		// 	m_dstRect = IVec4( 25,  30, 125,  94);
-		// 	m_interestingArea = IVec4(0, 0, 128, 128);
-		// }
-		// else if (m_blitArea == AREA_OUT_OF_BOUNDS)
-		// {
-		// 	const tcu::IVec2 ubound = (m_blitDir == BLIT_DEFAULT_TO_TARGET) ? (tcu::IVec2(128, 128)) : (tcu::IVec2(m_context.getRenderTarget().getWidth(), m_context.getRenderTarget().getHeight()));
-        //
-		// 	m_srcRect = IVec4(-10, -15, 100,  63);
-		// 	m_dstRect = ubound.swizzle(0, 1, 0, 1) + IVec4(-75, -99, 8, 16);
-		// 	m_interestingArea = IVec4(ubound.x() - 128, ubound.y() - 128, ubound.x(), ubound.y());
-		// }
-		// else
-		// 	DE_ASSERT(false);
+        TODO: implement
+        // requirements
+		/** @const @type {number} */ var minViewportSize = 128;
+		if (this.m_context.getRenderTarget().getWidth() < minViewportSize ||
+            this.m_context.getRenderTarget().getHeight() < minViewportSize)
+			throw new Error("Viewport size " + minViewportSize + "x" + minViewportSize + " required");
+
+		// prevent viewport randoming
+		this.m_viewportWidth = this.m_context.getRenderTarget().getWidth();
+		this.m_viewportHeight = this.m_context.getRenderTarget().getHeight();
+
+		// set proper areas
+		if (this.m_blitArea == BlitArea.AREA_SCALE) {
+			this.m_srcRect = [10, 20, 65, 100];
+			this.m_dstRect = [25, 30, 125, 94];
+			this.m_interestingArea = [0, 0, 128, 128];
+		}
+		else if (this.blitArea == BlitArea.AREA_OUT_OF_BOUNDS) {
+			/** @const @type {Array<number>} */
+            var ubound = (this.m_blitDir == BlitDirection.BLIT_DEFAULT_TO_TARGET) ?
+                         ([128, 128]) :
+                         ([this.m_context.getRenderTarget().getWidth(), this.m_context.getRenderTarget().getHeight()]);
+
+			this.m_srcRect = [-10, -15, 100,  63];
+            // TODO: swizzle
+			this.m_dstRect = ubound.swizzle(0, 1, 0, 1) + [-75, -99, 8, 16];
+			this.m_interestingArea = [ubound[0] - 128, ubound[1] - 128, ubound[0], ubound[1]];
+		}
+		else
+			DE_ASSERT(false);
     };
 
     /**
@@ -1132,99 +1142,108 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcyTexture, gluTexture
      */
     DefaultFramebufferBlitCase.prototype.render = function(dst) {
         // TOOD: implement
-        // const tcu::TextureFormat		colorFormat		= glu::mapGLInternalFormat(m_format);
-		// const glu::TransferFormat		transferFmt		= glu::getTransferFormat(colorFormat);
-		// const tcu::TextureChannelClass	targetClass		= (m_blitDir == BLIT_DEFAULT_TO_TARGET) ? (tcu::getTextureChannelClass(colorFormat.type)) : (tcu::TEXTURECHANNELCLASS_UNSIGNED_FIXED_POINT);
-		// deUint32						fbo				= 0;
-		// deUint32						fboTex			= 0;
-		// const int						fboTexW			= 128;
-		// const int						fboTexH			= 128;
-		// const int						sourceWidth		= (m_blitDir == BLIT_DEFAULT_TO_TARGET) ? (getWidth()) : (fboTexW);
-		// const int						sourceHeight	= (m_blitDir == BLIT_DEFAULT_TO_TARGET) ? (getHeight()) : (fboTexH);
-		// const int						gridRenderWidth	= de::min(256, sourceWidth);
-		// const int						gridRenderHeight= de::min(256, sourceHeight);
-        //
-		// int								targetFbo		= -1;
-		// int								sourceFbo		= -1;
-        //
-		// // FBO
-		// glGenFramebuffers(1, &fbo);
-		// glGenTextures(1, &fboTex);
-        //
-		// glBindTexture(GL_TEXTURE_2D, fboTex);
-		// glTexParameteri(GL_TEXTURE_2D,	GL_TEXTURE_WRAP_S,		GL_CLAMP_TO_EDGE);
-		// glTexParameteri(GL_TEXTURE_2D,	GL_TEXTURE_WRAP_T,		GL_CLAMP_TO_EDGE);
-		// glTexParameteri(GL_TEXTURE_2D,	GL_TEXTURE_MIN_FILTER,	m_filter);
-		// glTexParameteri(GL_TEXTURE_2D,	GL_TEXTURE_MAG_FILTER,	m_filter);
-		// glTexImage2D(GL_TEXTURE_2D, 0, m_format, fboTexW, fboTexH, 0, transferFmt.format, transferFmt.dataType, DE_NULL);
-        //
-		// glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-		// glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fboTex, 0);
-		// checkError();
-		// checkFramebufferStatus(GL_FRAMEBUFFER);
-        //
-		// targetFbo = (m_blitDir == BLIT_DEFAULT_TO_TARGET) ? (fbo) : (m_context.getRenderContext().getDefaultFramebuffer());
-		// sourceFbo = (m_blitDir == BLIT_DEFAULT_TO_TARGET) ? (m_context.getRenderContext().getDefaultFramebuffer()) : (fbo);
-        //
-		// // Render grid to source framebuffer
-		// {
-		// 	Texture2DShader		texShader		(DataTypes() << glu::TYPE_SAMPLER_2D, glu::TYPE_FLOAT_VEC4);
-		// 	const deUint32		texShaderID		= getCurrentContext()->createProgram(&texShader);
-		// 	const deUint32		internalFormat	= GL_RGBA8;
-		// 	const deUint32		format			= GL_RGBA;
-		// 	const deUint32		dataType		= GL_UNSIGNED_BYTE;
-		// 	const int			gridTexW		= 128;
-		// 	const int			gridTexH		= 128;
-		// 	deUint32			gridTex			= 0;
-		// 	tcu::TextureLevel	data			(glu::mapGLTransferFormat(format, dataType), gridTexW, gridTexH, 1);
-        //
-		// 	tcu::fillWithGrid(data.getAccess(), 9, tcu::Vec4(0.9f, 0.5f, 0.1f, 0.9f), tcu::Vec4(0.2f, 0.8f, 0.2f, 0.7f));
-        //
-		// 	glGenTextures(1, &gridTex);
-		// 	glBindTexture(GL_TEXTURE_2D, gridTex);
-		// 	glTexParameteri(GL_TEXTURE_2D,	GL_TEXTURE_WRAP_S,		GL_CLAMP_TO_EDGE);
-		// 	glTexParameteri(GL_TEXTURE_2D,	GL_TEXTURE_WRAP_T,		GL_CLAMP_TO_EDGE);
-		// 	glTexParameteri(GL_TEXTURE_2D,	GL_TEXTURE_MIN_FILTER,	GL_NEAREST);
-		// 	glTexParameteri(GL_TEXTURE_2D,	GL_TEXTURE_MAG_FILTER,	GL_NEAREST);
-		// 	glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, gridTexW, gridTexH, 0, format, dataType, data.getAccess().getDataPtr());
-        //
-		// 	glBindFramebuffer(GL_FRAMEBUFFER, sourceFbo);
-		// 	glViewport(0, 0, gridRenderWidth, gridRenderHeight);
-		// 	glClearBufferfv(GL_COLOR, 0, Vec4(1.0f, 0.0f, 0.0f, 1.0f).getPtr());
-        //
-		// 	texShader.setUniforms(*getCurrentContext(), texShaderID);
-		// 	sglr::drawQuad(*getCurrentContext(), texShaderID, Vec3(-1.0f, -1.0f, 0.0f), Vec3(1.0f, 1.0f, 0.0f));
-		// 	glUseProgram(0);
-		// }
-        //
-		// // Blit source framebuffer to destination
-        //
-		// glBindFramebuffer(GL_READ_FRAMEBUFFER, sourceFbo);
-		// glBindFramebuffer(GL_DRAW_FRAMEBUFFER, targetFbo);
-		// checkError();
-        //
-		// if (targetClass == tcu::TEXTURECHANNELCLASS_SIGNED_FIXED_POINT || targetClass == tcu::TEXTURECHANNELCLASS_UNSIGNED_FIXED_POINT || targetClass == tcu::TEXTURECHANNELCLASS_FLOATING_POINT)
-		// 	glClearBufferfv(GL_COLOR, 0, Vec4(1.0f, 1.0f, 0.0f, 1.0f).getPtr());
-		// else if (targetClass == tcu::TEXTURECHANNELCLASS_SIGNED_INTEGER)
-		// 	glClearBufferiv(GL_COLOR, 0, IVec4(0, 0, 0, 0).getPtr());
-		// else if (targetClass == tcu::TEXTURECHANNELCLASS_UNSIGNED_INTEGER)
-		// 	glClearBufferuiv(GL_COLOR, 0, UVec4(0, 0, 0, 0).getPtr());
-		// else
-		// 	DE_ASSERT(false);
-        //
-		// glBlitFramebuffer(m_srcRect.x(), m_srcRect.y(), m_srcRect.z(), m_srcRect.w(), m_dstRect.x(), m_dstRect.y(), m_dstRect.z(), m_dstRect.w(), GL_COLOR_BUFFER_BIT, m_filter);
-		// checkError();
-        //
-		// // Read target
-        //
-		// glBindFramebuffer(GL_FRAMEBUFFER, targetFbo);
-        //
-		// if (m_blitDir == BLIT_TO_DEFAULT_FROM_TARGET)
-		// 	readPixels(dst, m_interestingArea.x(), m_interestingArea.y(), m_interestingArea.z() - m_interestingArea.x(), m_interestingArea.w() - m_interestingArea.y());
-		// else
-		// 	readPixels(dst, m_interestingArea.x(), m_interestingArea.y(), m_interestingArea.z() - m_interestingArea.x(), m_interestingArea.w() - m_interestingArea.y(), colorFormat, tcu::Vec4(1.0f), tcu::Vec4(0.0f));
-        //
-		// checkError();
+        /** @type {tcuTexture.TextureFormat} */ var colorFormat = gluTextureUtil.mapGLInternalFormat(m_format);
+		/** @type {gluTextureUtil.TransferFormat} */ var transferFmt = gluTextureUtil.getTransferFormat(colorFormat);
+        /** @const @type {tcuTexture.TextureChannelClass} */
+        var targetClass = (m_blitDir == BLIT_DEFAULT_TO_TARGET) ?
+            (tcu.getTextureChannelClass(colorFormat.type)) :
+            (tcuTextureUtil.TextureChannelClass.UNSIGNED_FIXED_POINT);
+
+		/** @type {number} */ var fbo = 0;
+		/** @type {number} */ var fboTex = 0;
+        /** @const @type {number} */ var fboTexW = 128;
+        /** @const @type {number} */ var fboTexH = 128;
+        /** @const @type {number} */ var sourceWidth = (this.m_blitDir == BlitDirection.BLIT_DEFAULT_TO_TARGET) ? (getWidth()) : (fboTexW);
+        /** @const @type {number} */ var sourceHeight = (this.m_blitDir == BlitDirection.BLIT_DEFAULT_TO_TARGET) ? (getHeight()) : (fboTexH);
+        /** @const @type {number} */ var gridRenderWidth = Math.min(256, sourceWidth);
+        /** @const @type {number} */ var gridRenderHeight = Math.min(256, sourceHeight);
+
+        /** @type {number} */ var targetFbo		= -1;
+        /** @type {number} */ var sourceFbo		= -1;
+
+		// FBO
+        fbo = gl.createFramebuffer();
+        fboTex = gl.createTexture();
+
+		gl.bindTexture(gl.TEXTURE_2D, fboTex);
+		gl.texParameteri(gl.TEXTURE_2D,	gl.TEXTURE_WRAP_S,		gl.CLAMP_TO_EDGE);
+		gl.texParameteri(gl.TEXTURE_2D,	gl.TEXTURE_WRAP_T,		gl.CLAMP_TO_EDGE);
+		gl.texParameteri(gl.TEXTURE_2D,	gl.TEXTURE_MIN_FILTER,	this.m_filter);
+		gl.texParameteri(gl.TEXTURE_2D,	gl.TEXTURE_MAG_FILTER,	this.m_filter);
+		gl.texImage2D(GL_TEXTURE_2D, 0, m_format, fboTexW, fboTexH, 0, transferFmt.format, transferFmt.dataType, DE_NULL);
+
+		gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, fboTex, 0);
+		checkError();
+		checkFramebufferStatus(gl.FRAMEBUFFER);
+
+		targetFbo = (this.m_blitDir == BlitDirection.BLIT_DEFAULT_TO_TARGET) ? (fbo) : (this.m_context.getRenderContext().getDefaultFramebuffer());
+		sourceFbo = (this.m_blitDir == BlitDirection.BLIT_DEFAULT_TO_TARGET) ? (this.m_context.getRenderContext().getDefaultFramebuffer()) : (fbo);
+
+		// Render grid to source framebuffer
+		{
+            // TODO: implement Texture2DShader
+            ///** @type {Texture2DShader} */ var texShader (DataTypes() << glu::TYPE_SAMPLER_2D, glu::TYPE_FLOAT_VEC4);
+            /** @const @type {number} */ var texShaderID = getCurrentContext().createProgram(texShader);
+            /** @const @type {number} */ var internalFormat = gl.RGBA8;
+            /** @const @type {number} */ var format = gl.RGBA;
+            /** @const @type {number} */ var dataType = gl.UNSIGNED_BYTE;
+            /** @const @type {number} */ var gridTexW = 128;
+            /** @const @type {number} */ var gridTexH = 128;
+            /** @type {number} */ var gridTex = 0;
+            /** @type {tcuTexture.TextureLevel} */ var data = new tcuTexture.TextureLevel(gluTextueUtil.mapGLTransferFormat(format, dataType), gridTexW, gridTexH, 1);
+            // TODO: implement fillWithGrid
+			//tcu::fillWithGrid(data.getAccess(), 9, [0.9, 0.5, 0.1, 0.9], [0.2, 0.8, 0.2, 0.7]);
+
+            gridTex = gl.createTexture();
+			gl.BindTexture(gl.TEXTURE_2D, gridTex);
+			gl.texParameteri(gl.TEXTURE_2D,	gl.TEXTURE_WRAP_S,		gl.CLAMP_TO_EDGE);
+			gl.texParameteri(gl.TEXTURE_2D,	gl.TEXTURE_WRAP_T,		gl.CLAMP_TO_EDGE);
+			gl.texParameteri(gl.TEXTURE_2D,	gl.TEXTURE_MIN_FILTER,	gl.NEAREST);
+			gl.texParameteri(gl.TEXTURE_2D,	gl.TEXTURE_MAG_FILTER,	gl.NEAREST);
+			gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat, gridTexW, gridTexH, 0, format, dataType, data.getAccess().getDataPtr());
+
+			gl.BindFramebuffer(gl.FRAMEBUFFER, sourceFbo);
+			glViewport(0, 0, gridRenderWidth, gridRenderHeight);
+			glClearBufferfv(gl.COLOR, 0, [1.0, 0.0, 0.0, 1.0].getPtr());
+
+            // TODO: implement setUniforms
+			texShader.setUniforms(getCurrentContext(), texShaderID);
+            // TODO: implement drawQuad
+			//sglr::drawQuad(*getCurrentContext(), texShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
+			gl.useProgram(null);
+		}
+
+		// Blit source framebuffer to destination
+
+		gl.bindFramebuffer(GL_READ_FRAMEBUFFER, sourceFbo);
+		gl.bindFramebuffer(GL_DRAW_FRAMEBUFFER, targetFbo);
+		checkError();
+
+		if (targetClass == tcuTextureUtil.TextureChannelClass.SIGNED_FIXED_POINT ||
+            targetClass == tcuTextureUtil.TextureChannelClass.UNSIGNED_FIXED_POINT ||
+            targetClass == tcuTextureUtil.TextureChannelClass.FLOATING_POINT)
+			gl.clearBufferfv(gl.COLOR, 0, [1.0, 1.0, 0.0, 1.0]);
+		else if (targetClass == tcuTextureUtil.TextureChannelClass.SIGNED_INTEGER)
+			gl.clearBufferiv(gl.COLOR, 0, [0, 0, 0, 0]);
+		else if (targetClass == tcuTextureUtil.TextureChannelClass.UNSIGNED_INTEGER)
+			gl.clearBufferuiv(gl.COLOR, 0, [0, 0, 0, 0]);
+		else
+			DE_ASSERT(false);
+
+		gl.blitFramebuffer(this.m_srcRect.x(), this.m_srcRect.y(), this.m_srcRect.z(), this.m_srcRect.w(), this.m_dstRect.x(), this.m_dstRect.y(), this.m_dstRect.z(), this.m_dstRect.w(), gl.COLOR_BUFFER_BIT, this.m_filter);
+		checkError();
+
+		// Read target
+
+		gl.bindFramebuffer(gl.FRAMEBUFFER, targetFbo);
+
+		if (this.m_blitDir == BlitDirection.BLIT_TO_DEFAULT_FROM_TARGET)
+			readPixels(dst, this.m_interestingArea.x(), this.m_interestingArea.y(), this.m_interestingArea.z() - this.m_interestingArea.x(), this.m_interestingArea.w() - this.m_interestingArea.y());
+		else
+			readPixels(dst, this.m_interestingArea.x(), this.m_interestingArea.y(), this.m_interestingArea.z() - this.m_interestingArea.x(), this.m_interestingArea.w() - this.m_interestingArea.y(), colorFormat, [1.0, 1.0, 1.0, 1.0], [0.0, 0.0, 0.0, 0.0]);
+
+		checkError();
     };
 
     return {
