@@ -22,6 +22,7 @@ define([
     'framework/opengl/gluShaderProgram',
     'framework/common/tcuTestCase',
     'framework/delibs/debase/deRandom',
+    'framework/delibs/debase/deString',
     'framework/common/tcuTextureUtil',
     'framework/common/tcuTexture',
     'framework/opengl/gluTextureUtil',
@@ -30,6 +31,7 @@ define([
         gluShaderProgram,
         tcuTestCase,
         deRandom,
+        deString,
         tcuTextureUtil,
         tcuTexture,
         gluTextureUtil,
@@ -45,41 +47,49 @@ define([
     {
         if (!expression) throw new Error('Assert failed');
     };
+    
+    /** @enum */
+    var FramebufferType= {
+        FRAMEBUFFERTYPE_NATIVE: 0,
+        FRAMEBUFFERTYPE_RENDERBUFFER: 1
+    };
+    
+    /**
+     * @constructor
+     * @struct
+     */
+    var TestSpec = function () { // This is originaly a struct
+        this.name= '';
+        this.description= '';
+        this.useColorClear= false;
+        this.renderTriangles= false;
+        this.framebufferType= undefined;
+        this.renderbufferFormat= undefined;
+    };
 
-    var TestSpec = { // This is originaly a struct
-        FramebufferType : {
-            FRAMEBUFFERTYPE_NATIVE : 0,
-            FRAMEBUFFERTYPE_RENDERBUFFER : 1
-        },
-        name : '',
-        description:'',
-        useColorClear:false,
-        renderTriangles:false,
-        framebufferType:{},
-        renderbufferFormat:{},
-    }
-
-
+    /**
+     * @constructor
+     * @param {TestSpec} spec
+     */
     var ReadPixelsTest = function(gl, spec) {
-        tcuTestCase.DeqpTest.call(gl, spec.name, spec.description);
-        this.m_random;
-        this.m_log;
+        tcuTestCase.DeqpTest.call(this, spec.name, spec.description);
+        this.m_random = new deRandom.Random(deString.deStringHash(spec.name));
         /** @type {gluShaderProgram.ShaderProgram} */ this.m_program = null;
-        /** @type {TestSpect.FramebufferType} */ this.m_framebuffeType = spec.framebufferType;
-        /** @type {TestSpect.GLenum} */ this.m_renderbufferFormat = spec.renderbufferFormat;
-        /** @type {tcuTextureUtil.TextureChannelClass} */ this.m_texChannelClass = Object.keys(tcuTextureUtil.TextureChannelClass).length;
-        /** @type {TestSpect.FramebufferType} */ this.m_useColorClears = spec.useColorClear;
-        /** @type {TestSpect.FramebufferType} */ this.m_renderTriangles = spec.renderTriangles;
-        /** @type {TestSpect.FramebufferType} */ this.m_colorScale =  1.0;
+        /** @type {FramebufferType} */ this.m_framebuffeType = spec.framebufferType;
+        /** @type {GLenum} */ this.m_renderbufferFormat = spec.renderbufferFormat;
+        /** @type {tcuTextureUtil.TextureChannelClass} */ this.m_texChannelClass = undefined;
+        this.m_useColorClears = spec.useColorClear;
+        this.m_renderTriangles = spec.renderTriangles;
+        this.m_colorScale = 1.0;
 
-        if (this.m_framebuffeType == TestSpec.FramebufferType.FRAMEBUFFERTYPE_NATIVE)
+        if (this.m_framebuffeType === FramebufferType.FRAMEBUFFERTYPE_NATIVE)
         {
             this.m_colorScale = 1.0;
         }
-        else if (this.m_framebuffeType == TestSpec.FramebufferType.FRAMEBUFFERTYPE_RENDERBUFFER)
+        else if (this.m_framebuffeType === FramebufferType.FRAMEBUFFERTYPE_RENDERBUFFER)
         {
-            this.m_textChannelClass = tcuTextureUtil.getTextureChannelClass(gluTextureUtil.mapGLInternalFormat(spec.renderbufferFormat).type);
-            switch (this.m_textChannelClass)
+            this.m_texChannelClass = tcuTextureUtil.getTextureChannelClass(gluTextureUtil.mapGLInternalFormat(spec.renderbufferFormat).type);
+            switch (this.m_texChannelClass)
             {
                 case tcuTextureUtil.TextureChannelClass.UNSIGNED_FIXED_POINT:
                     this.m_colorScale = 1.0;
@@ -106,108 +116,63 @@ define([
     ReadPixelsTest.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
     ReadPixelsTest.prototype.constructor = ReadPixelsTest;
 
-    ReadPixelsTest.prototype.init = function () {
-        // Check extrensions
-        if (this.m_framebuffeType == TestSpec.FramebufferType.FRAMEBUFFERTYPE_RENDERBUFFER)
+    ReadPixelsTest.prototype.init = function() {
+        var outtype = '';
+
+        if (this.m_framebuffeType === FramebufferType.FRAMEBUFFERTYPE_NATIVE)
+            outtype = 'vec4';
+        else if (this.m_framebuffeType === FramebufferType.FRAMEBUFFERTYPE_RENDERBUFFER)
         {
-            supported = false;
-
-            if (this.m_renderbufferFormat == gl.RGBA16F || this.m_renderbufferFormat == gl.RGBA16)
+            switch (this.m_texChannelClass)
             {
-                var extensions = gl.getSupportedExtensions();
-                var extension;
-
-                for (extension of extensions)
-                {
-                    if (extension == "GL_EXT_color_buffer_half_float")
-                    {
-                        supported = true;
-                        break;
-                    }
-                    else if (extension=="GL_EXT_color_buffer_float")
-                    {
-                        supported = true;
-                        break;
-                    }
-                }
-            }
-            else if (this.m_renderbufferFormat == gl.RGBA32F || this.m_renderbufferFormat == gl.RG32F
-            || this.m_renderbufferFormat == gl.R11F_G11F_B10F)
-            {
-                var extensions = gl.getSupportedExtensions();
-                var extension;
-
-                for (extension of extensions)
-                {
-                    if (extension=="GL_EXT_color_buffer_float")
-                    {
-                        supported = true;
-                        break;
-                    }
-                }
-            }
-            else
-                supported = true;
-
-        		if (!supported)
-                throw Error("Renderbuffer format not supported");
-        }
-        var outtype = "";
-
-        if (this.m_framebuffeType == TestSpec.FramebufferType.FRAMEBUFFERTYPE_NATIVE)
-            outtype = "vec4";
-        else if (this.m_framebuffeType == TestSpec.FramebufferType.FRAMEBUFFERTYPE_RENDERBUFFER)
-        {
-    		switch (this.m_texChannelClass)
-    		{
                 case tcuTextureUtil.TextureChannelClass.UNSIGNED_FIXED_POINT:
-    				outtype = "vec4";
-    				break;
+                    outtype = 'vec4';
+                    break;
                 case tcuTextureUtil.TextureChannelClass.SIGNED_INTEGER:
-                	outtype = "ivec4";
-                	break;
+                    outtype = 'ivec4';
+                    break;
                 case tcuTextureUtil.TextureChannelClass.UNSIGNED_INTEGER:
-                	outtype = "uvec4";
-                	break;
+                    outtype = 'uvec4';
+                    break;
                 case tcuTextureUtil.TextureChannelClass.FLOATING_POINT:
-                	outtype = "vec4";
-                	break;
+                    outtype = 'vec4';
+                    break;
                 default:
                     DE_ASSERT(false);
-    		}
+            }
         }
         else
             DE_ASSERT(false);
 
         /** @type {string} */ var vertexShaderSource =
-        "#version 300 es\n"
-        + "in mediump vec3 a_position;\n"
-        + "in mediump vec4 a_color;\n"
-        + "uniform mediump float u_colorScale;\n"
-        + "out mediump vec4 v_color;\n"
-        + "void main(void)\n"
-        + "{\n"
-        + "\tgl_Position = vec4(a_position, 1.0);\n"
-        + "\tv_color = u_colorScale * a_color;\n"
-        + "}";
+        '#version 300 es\n' +
+        'in mediump vec3 a_position;\n' +
+        'in mediump vec4 a_color;\n' +
+        'uniform mediump float u_colorScale;\n' +
+        'out mediump vec4 v_color;\n' +
+        'void main(void)\n' +
+        '{\n' +
+        '\tgl_Position = vec4(a_position, 1.0);\n' +
+        '\tv_color = u_colorScale * a_color;\n' +
+        '}';
 
         /** @type {string} */ var fragmentShaderSource =
-        "#version 300 es\n"
-        + "in mediump vec4 v_color;\n";
-        + "layout (location = 0) out mediump "
-        + outtype
-        + " o_color;\n"
-        + "void main(void)\n"
-        + "{\n"
-        + "\to_color = "
-        + outtype
-        + "(v_color);\n"
-        + "}";
+        '#version 300 es\n' +
+        'in mediump vec4 v_color;\n' +
+        'layout (location = 0) out mediump ' +
+        outtype +
+        ' o_color;\n' +
+        'void main(void)\n' +
+        '{\n' +
+        '\to_color = ' +
+        outtype +
+        '(v_color);\n' +
+        '}';
 
         this.m_program = new gluShaderProgram.ShaderProgram(gl, gluShaderProgram.makeVtxFragSources(vertexShaderSource, fragmentShaderSource));
 
         if (!this.m_program.isOk())
-            throw new Error('Compile failed. Program no created');
+            throw new Error('Compile failed. Program not created');
 
     };
 
@@ -216,9 +181,9 @@ define([
      * @param {Array.<number>} b
      * @param {Array.<number>} c
      */
-    ReadPixelsTest.prototype.renderTriangle = function (a, b, c) {
+    ReadPixelsTest.prototype.renderTriangle = function(a, b, c) {
 
-        var positions;
+        var positions = [];
 
         positions[0] = a[0];
         positions[1] = a[1];
@@ -232,41 +197,44 @@ define([
         positions[7] = c[1];
         positions[8] = c[2];
 
-        colors = [
+        var colors = [
             1.0, 0.0, 0.0, 1.0,
             0.0, 1.0, 0.0, 1.0,
             0.0, 0.0, 1.0, 1.0];
 
-        gluDefs.GUL_CHECK_CALL(function() {gl.useProgram(this.m_program.getProgram())});
+        gl.useProgram(this.m_program.getProgram());
+        assertMsgOptions(gl.getError() === gl.NO_ERROR, 'useProgram failed ', false, true);
         
-        /** @type {number} */ coordLoc = -1;
-        /** @type {number} */ colorLoc = -1;
-        /** @type {number} */ colorScaleLoc = -1;
+        /** @type {number} */ var coordLoc = -1;
+        /** @type {number} */ var colorLoc = -1;
+        /** @type {number} */ var colorScaleLoc = -1;
         
         colorScaleLoc = gl.getUniformLocation(this.m_program, 'u_colorScale');
-        TCU_CHECK(clearTimeout != -1);
+        assertMsgOptions(colorScaleLoc != -1, 'Could not find u_colorScale ', false, true);
         
-        gluDefs.GLU_CHECK_CALL(function() {gl.uniform1f(colorScaleLoc, this.m_colorScale)});
+        gl.uniform1f(colorScaleLoc, this.m_colorScale);
         
         coordLoc = gl.getAttribLocation(this.m_program.getProgram(), 'a_position');
-        TCU_CHECK(coordLoc != -1);
+        assertMsgOptions(coordLoc != -1, 'Could not find a_position ', false, true);
         
         colorLoc = gl.getAttribLocation(this.m_program.getProgram(), 'a_color');
-        TCU_CHECK(colorLoc != -1);
+        assertMsgOptions(colorLoc != -1, 'Could not find a_color ', false, true);
         
-        gluDefs.GLU_CHECK_CALL(function() {gl.enableVertexAttribArray(colorLoc)});
-        gluDefs.GLU_CHECK_CALL(function() {gl.enableVertexAttribArray(coordLoc)});
+        gl.enableVertexAttribArray(colorLoc);
+        assertMsgOptions(gl.getError() === gl.NO_ERROR, 'enableVertexAttribArray failed ', false, true);
+        gl.enableVertexAttribArray(coordLoc);
+        assertMsgOptions(gl.getError() === gl.NO_ERROR, 'enableVertexAttribArray failed ', false, true);
         
-        gluDefs.GLU_CHECK_CALL(function() {gl.vertexAttribPointer(coordLoc, 3, gl.FLOAT, gl.FALSE, 0, positions)});
-        gluDefs.GLU_CHECK_CALL(function() {gl.vertexAttribPointer(colorLoc, 4, gl.FLOAT, gl.FALSE, 0, colors)});
+        gl.vertexAttribPointer(coordLoc, 3, gl.FLOAT, gl.FALSE, 0, positions);
+        gl.vertexAttribPointer(colorLoc, 4, gl.FLOAT, gl.FALSE, 0, colors);
         
-        gluDefs.GLU_CHECK_CALL(function() {gl.drawArrays(gl.TRIANGLES, 0, 3)});
+        gl.drawArrays(gl.TRIANGLES, 0, 3);
         
-        gluDefs.GLU_CHECK_CALL(function() {gl.disableVertexAttribArray(colorLoc)});
-        gluDefs.GLU_CHECK_CALL(function() {gl.disableVertexAttribArray(coordLoc)});
-    }
+        gl.disableVertexAttribArray(colorLoc);
+        gl.disableVertexAttribArray(coordLoc);
+    };
     
-    /*
+    /**
      * @param {Float} r
      * @param {Float} g
      * @param {Float} b
@@ -274,30 +242,27 @@ define([
      */
     
     ReadPixelsTest.prototype.clearColor = function(r, g, b, a) {
-        if(this.m_framebuffeType == TestSpec.FramebufferType.FRAMEBUFFERTYPE_NATIVE)
+        if (this.m_framebuffeType == FramebufferType.FRAMEBUFFERTYPE_NATIVE)
         {
-            gluDefs.GLU_CHECK_CALL(function() {gl.clearColor(r,g,b,a)});
-            gluDefs.GLU_CHECK_CALL(function() {gl.clear(gl.COLOR_BUFFER_BIT)});
+            gl.clearColor(r, g, b, a);
+            gl.clear(gl.COLOR_BUFFER_BIT);
         }
-        else if(this.m_framebuffeType == TestSpec.FramebufferType.FRAMEBUFFERTYPE_RENDERBUFFER)
+        else if (this.m_framebuffeType == FramebufferType.FRAMEBUFFERTYPE_RENDERBUFFER)
         {
-            switch(this.m_texChannelClass)
+            switch (this.m_texChannelClass)
             {
                 case tcuTextureUtil.TextureChannelClass.UNSIGNED_FIXED_POINT:
-                    gluDefs.GLU_CHECK_CALL(function() {gl.clearColor(r,g,b,a)});
-                    gluDefs.GLU_CHECK_CALL(function() {gl.clear(gl.COLOR_BUFFER_BIT)});
+                    gl.clearColor(r, g, b, a);
+                    gl.clear(gl.COLOR_BUFFER_BIT);
                     break;
                 case tcuTextureUtil.TextureChannelClass.SIGNED_INTEGER:
-                    /* @param {Array.<number>} */ color = [r,g,b,a];
-                    gluDefs.GLU_CHECK_CALL(function() {gl.clearBufferiv(gl.COLOR, 0, color)});
+                    gl.clearBufferiv(gl.COLOR, 0, new Int32Array([r, g, b, a]));
                     break;
                 case tcuTextureUtil.TextureChannelClass.UNSIGNED_INTEGER:
-                    /* @param {Array.<number>} */ color = [r,g,b,a];
-                    gluDefs.GLU_CHECK_CALL(function() {gl.clearBufferiv(gl.COLOR, 0, color)});
+                    gl.clearBufferuiv(gl.COLOR, 0, new Uint32Array([r, g, b, a]));
                     break;
                 case tcuTextureUtil.TextureChannelClass.FLOATING_POINT:
-                    /* @param {Array.<number>} */ color = [r,g,b,a];
-                    gluDefs.GLU_CHECK_CALL(function() {gl.clearBufferiv(gl.COLOR, 0, color)});
+                    gl.clearBufferfv(gl.COLOR, 0, new Float32Array([r, g, b, a]));
                     break;
                 default:
                     DE_ASSERT(false);
@@ -309,26 +274,26 @@ define([
     }
     
     ReadPixelsTest.prototype.iterate = function() {
-        var width = m_context.getRenderTarget().getWidth();
-        var height = m_context.getRenderTarget().getHeight();
+        var width = gl.drawingBufferWidth;
+        var height = gl.drawingBufferHeight;
         
-        var framebuffer = 0;
-        var renderbuffer = 0;
+        var framebuffer = null;
+        var renderbuffer = null;
         
         switch (this.m_framebuffeType)
         {
-            case TestSpec.FramebufferType.FRAMEBUFFERTYPE_NATIVE:
-                gluDefs.GLU_CHECK_CALL(function() {gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer)});
+            case FramebufferType.FRAMEBUFFERTYPE_NATIVE:
+                gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
                 break;
-            case TestSpec.FramebufferType.FRAMEBUFFERTYPE_RENDERBUFFER:
-                gluDefs.GLU_CHECK_CALL(function() {gl.genFramebuffers(1, framebuffer)});
-                gluDefs.GLU_CHECK_CALL(function() {gl.genRenderbuffers(1, renderbuffer)});
+            case FramebufferType.FRAMEBUFFERTYPE_RENDERBUFFER:
+                framebuffer = gl.createFramebuffer();
+                renderbuffer = gl.createRenderbuffer();
                 
-                gluDefs.GLU_CHECK_CALL(function() {gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer)});
-                gluDefs.GLU_CHECK_CALL(function() {gl.renderbufferStorage(gl.RENDERBUFFER, this.m_renderbufferFormat, width, height)});
+                gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer);
+                gl.renderbufferStorage(gl.RENDERBUFFER, this.m_renderbufferFormat, width, height);
                 
-                gluDefs.GLU_CHECK_CALL(function() {gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer)});
-                gluDefs.GLU_CHECK_CALL(function() {gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, renderbuffer)});
+                gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+                gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, renderbuffer);
                 break;
         }
         
@@ -348,20 +313,20 @@ define([
                 /** @type {number} */ var clearY = this.m_random.getInt(0, height - minClearSize);
                 
                 /** @type {number} */ var clearWidth = this.m_random.getInt(minClearSize, width - clearX);
-                /** @type {number} */ var clearHeight = this.m_random.getInt(minClearSize, height - cleary);
+                /** @type {number} */ var clearHeight = this.m_random.getInt(minClearSize, height - clearY);
                 
                 /** @type {float} */ var clearRed = this.m_colorScale * this.m_random.getFloat();
                 /** @type {float} */ var clearGreen = this.m_colorScale * this.m_random.getFloat();
                 /** @type {float} */ var clearBlue = this.m_colorScale * this.m_random.getFloat();
                 /** @type {float} */ var clearAlpha = this.m_colorScale * (0.5 + 0.5 * this.m_random.getFloat());
                 
-                gluDefs.GLU_CHECK_CALL(function() {gl.enable(gl.SCISSOR_TEST)});
-                gluDefs.GLU_CHECK_CALL(function() {gl.scissor(clearX, clearY, clearWidth, clearHeight)});
+                gl.enable(gl.SCISSOR_TEST);
+                gl.scissor(clearX, clearY, clearWidth, clearHeight);
                 
                 this.clearColor(clearRed,clearGreen, clearBlue, clearAlpha);
             }
             
-            gluDefs.GLU_CHECK_CALL(function() {gl.disable(gl.SCISSOR_TEST)});
+            gl.disable(gl.SCISSOR_TEST);
             
         }
         
@@ -396,14 +361,14 @@ define([
         /** @type {bool} */ var floatCompare;
         
         
-        if(this.m_framebuffeType == TestSpec.FramebufferType.FRAMEBUFFERTYPE_NATIVE)
+        if(this.m_framebuffeType == FramebufferType.FRAMEBUFFERTYPE_NATIVE)
         {
             readFormat = gluTextureUtil.mapGLTransferFormat(gl.RGBA, gl.UNSIGNED_BYTE);
             readPixelsFormat = gl.RGBA;
             readPixelsType = gl.UNSIGNED_BYTE;
             floatCompare = false;
         }
-        else if(this.m_framebuffeType == TestSpec.FramebufferType.FRAMEBUFFERTYPE_RENDERBUFFER)
+        else if(this.m_framebuffeType == FramebufferType.FRAMEBUFFERTYPE_RENDERBUFFER)
         {
             switch(this.m_texChannelClass)
             {
@@ -450,32 +415,36 @@ define([
             DE_ASSERT(false);
         }
         
-        tcuTexture.Texture2D.readReference(readFormat, width, height);
+        var readReference = new tcuTexture.Texture2D(readFormat, width, height);
         readReference.allocLevel(0);
         
-        /** @type {number} */ var pixelBuffer = -1;
+        var pixelBuffer = gl.createBuffer();
         
-        gluDefs.GLU_CHECK_CALL(function() {gl.genBuffers(1, pixelBuffer)});
-        gluDefs.GLU_CHECK_CALL(function() {gl.bindBuffer(gl.PIXEL_PACK_BUFFER, pixelBuffer)});
-        gluDefs.GLU_CHECK_CALL(function() {gl.bufferData(gl.PIXEL_PACK_BUFFER, readReference.getLevel(0).getDataSize(), null, gl.STREAM_READ)});
+        gl.bindBuffer(gl.PIXEL_PACK_BUFFER, pixelBuffer);
+        gl.bufferData(gl.PIXEL_PACK_BUFFER, readReference.getLevel(0).getDataSize(), gl.STREAM_READ);
         
-        gluDefs.GLU_CHECK_CALL(function() {gl.readPixels(0, 0, width, height, readPixelsFormat, readPixelsType, 0)});
+        // TODO: enable
+        //gl.readPixels(0, 0, width, height, readPixelsFormat, readPixelsType, 0);
         
-        /** @type {deMath.deUint8} */ var bufferData = gl.mapBufferRange(gl.PIXEL_PACK_BUFFER, 0, readReference.getLevel(0).getDataSize(), gl.MAP_READ_BIT);
-        gluDefs.GLU_CHECK_MSG("glMapBufferRange() failed");
+        var bufferData = new ArrayBuffer(readReference.getLevel(0).getDataSize());
         
-        tcuTexture.ConstPixelBufferAccess.readResult(readFormat, width, height, 1, bufferData);
+        gl.getBufferSubData(gl.PIXEL_PACK_BUFFER, 0, bufferData);
         
-        gluDefs.GLU_CHECK_CALL(function() {gl.bindBuffer(gl.PIXEL_PACK_BUFFER, 0)});
+        var readResult = new tcuTexture.ConstPixelBufferAccess({
+            width: width,
+            height: height,
+            format: readFormat,
+            data: bufferData});
         
-        gluDefs.GLU_CHECK_CALL(function() {gl.readPixels(0, 0, width, height, readPixelsFormat, readPixelsType, readReference.getLevel(0).getDataPtr())});
+        gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
+        
+        gl.readPixels(0, 0, width, height, readPixelsFormat, readPixelsType, readReference.getLevel(0).getDataPtr());
         
         if(framebuffer)
-            gluDefs.GLU_CHECK_CALL(gl.deleteFramebuffers(1, framebuffer));
+            gl.deleteFramebuffer(framebuffer);
         
         if(renderbuffer)
-            gluDefs.GLU_CHECK_CALL(function() {gl.deleteRenderbuffers(1, renderbuffer)});
-        
+            gl.deleteRenderbuffer(renderbuffer);
         
         var isOk = false;
         
@@ -484,12 +453,11 @@ define([
         else
             isOk = tcuImageCompare.intThresholdCompare('Result comparision', 'Result of read pixels to memory compared with result of read pixels to buffer', readReference.getLevel(0), readResult, [0, 0, 0, 0]);
         
-        gluDefs.GLU_CHECK_CALL(function() {gl.bindBuffer(gl.PIXEL_PACK_BUFFER, pixelBuffer)});
-        gluDefs.GLU_CHECK_CALL(function() {gl.unmapBuffer(gl.PIXEL_PACK_BUFFER)});
-        gluDefs.GLU_CHECK_CALL(function() {gl.deleteBuffers(1, pixelBuffer)});
+        gl.deleteBuffer(pixelBuffer);
+        
+        assertMsgOptions(isOk, this.getDescription(), true, true);
         
         return tcuTestCase.runner.IterateResult.STOP;
-
     }
 
     var init = function(context)
@@ -505,7 +473,7 @@ define([
                 description: "Simple read pixels test with color clears",
                 useColorClear: true,
                 renderTriangles: false,
-                framebufferType: TestSpec.FramebufferType.FRAMEBUFFERTYPE_NATIVE,
+                framebufferType: FramebufferType.FRAMEBUFFERTYPE_NATIVE,
                 renderbufferFormat: gl.NONE
     		},
     		{
@@ -513,7 +481,7 @@ define([
                 description: "Simple read pixels test rendering triangles",
                 useColorClear: false,
                 renderTriangles: true,
-                framebufferType: TestSpec.FramebufferType.FRAMEBUFFERTYPE_NATIVE,
+                framebufferType: FramebufferType.FRAMEBUFFERTYPE_NATIVE,
                 renderbufferFormat: gl.NONE
     		}
     	];
@@ -559,38 +527,36 @@ define([
         ];
 
         var renderbufferFormatsStr = [
-    		"rgba8",
-    		"rgba8i",
-    		"rgba8ui",
-    		"rgba16f",
-    		"rgba16i",
-    		"rgba16ui",
-    		"rgba32f",
-    		"rgba32i",
-    		"rgba32ui",
+    		'rgba8',
+    		'rgba8i',
+    		'rgba8ui',
+    		'rgba16f',
+    		'rgba16i',
+    		'rgba16ui',
+    		'rgba32f',
+    		'rgba32i',
+    		'rgba32ui',
 
-    		"srgb8_alpha8",
-    		"rgb10_a2",
-    		"rgb10_a2ui",
-    		"rgba4",
-    		"rgb5_a1",
+    		'srgb8_alpha8',
+    		'rgb10_a2',
+    		'rgb10_a2ui',
+    		'rgba4',
+    		'rgb5_a1',
 
-    		"rgb8",
-    		"rgb565",
+    		'rgb8',
+    		'rgb565',
 
-    		"r11f_g11f_b10f",
+    		'r11f_g11f_b10f',
 
-    		"rg8",
-    		"rg8i",
-    		"rg8ui",
-    		"rg16f",
-    		"rg16i",
-    		"rg16ui",
-    		"rg32f",
-    		"rg32i",
-    		"rg32ui"
-    	];
-
+    		'rg8',
+    		'rg8i',
+    		'rg8ui',
+    		'rg16f',
+    		'rg16i',
+    		'rg16ui',
+    		'rg32f',
+    		'rg32i',
+    		'rg32ui'];
         DE_STATIC_ASSERT(renderbufferFormatsStr.length == renderbufferFormats.length);
 
         for (var formatNdx = 0; formatNdx < renderbufferFormats.length; formatNdx++)
@@ -598,20 +564,15 @@ define([
             for (var trianglesClears = 0; trianglesClears < 2; trianglesClears++)
             {
                 var nameDescription = renderbufferFormatsStr[formatNdx] + '_' + trianglesClears == 0 ? 'triangles' : 'clears';
-                var testSpect = {
-                    FramebufferType : {
-                        FRAMEBUFFERTYPE_NATIVE : 0,
-                        FRAMEBUFFERTYPE_RENDERBUFFER : 1
-                    },
-                    name: nameDescription,
-                    description: nameDescription,
-                    useColorClear:trianglesClears == 1,
-                    renderTriangles:trianglesClears == 0,
-                    framebufferType: TestSpec.FramebufferType.FRAMEBUFFERTYPE_RENDERBUFFER,
-                    renderbufferFormat: renderbufferFormats[formatNdx]
-                }
+                var testSpec = new TestSpec();
+                testSpec.name= nameDescription;
+                testSpec.description= nameDescription;
+                testSpec.useColorClear= trianglesClears == 1;
+                testSpec.renderTriangles= trianglesClears == 0;
+                testSpec.framebufferType= FramebufferType.FRAMEBUFFERTYPE_RENDERBUFFER;
+                testSpec.renderbufferFormat= renderbufferFormats[formatNdx];
 
-                renderbufferGroup.addChild(new ReadPixelsTest(context, testSpect));
+                renderbufferGroup.addChild(new ReadPixelsTest(context, testSpec));
             }
         }
 
