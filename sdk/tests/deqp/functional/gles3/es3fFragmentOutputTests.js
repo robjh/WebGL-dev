@@ -502,8 +502,11 @@ function(
         /** @type {number} */ var numIndices = numQuads * 6;
 
         /** @type {number} */ var numInputVecs = getNumInputVectors(this.m_outputs);
-        /** @type {Array<Array<number>>} */ var inputs = [[]]; // originally vector<vector<deUint32>
-        inputs.length = numInputVecs;
+        /** @type {Array<Array<number>>} */ var inputs = []; // originally vector<vector<deUint32>
+
+        for (var inputNdx = 0; inputNdx < numInputVecs; inputNdx++)
+            inputs[inputNdx] = []; // inputs.length = numInputVecs;
+
         /** @type {Array<number>} */ var positions = []; // originally vector<float>
         positions.length = numVertices * 4;
         /** @type {Array<number>} */ var indices = []; // originally vector<deUint16>
@@ -528,7 +531,7 @@ function(
                                                               chnClass == tcuTextureUtil.TextureChannelClass.UNSIGNED_FIXED_POINT);
 
             // \note Fixed-point formats use float reference to enable more accurate result verification.
-            /** @type {tcuTexture.TextureFormat} */ var refFmt = isFixedPoint ? tcuTexture.TextureFormat(texFmt.order, tcuTexture.ChannelType.FLOAT) : texFmt;
+            /** @type {tcuTexture.TextureFormat} */ var refFmt = isFixedPoint ? new tcuTexture.TextureFormat(texFmt.order, tcuTexture.ChannelType.FLOAT) : texFmt;
             /** @type {tcuTexture.TextureFormat} */ var readFmt = es3fFboTestUtil.getFramebufferReadFormat(texFmt);
             /** @type {number} */ var attachmentW = this.m_fboSpec[ndx].width;
             /** @type {number} */ var attachmentH = this.m_fboSpec[ndx].height;
@@ -736,7 +739,7 @@ function(
                             /** @type {Array<number>} */ var c = deMath.multiply(step, swizzleVec([x, y, ix, iy], curInVec)); // UVec4
                             /** @type {number} */ var pos = (y * gridWidth + x) * numScalars;
 
-                            DE_ASSERT(deMath.boolAll(deMath.lessThanEqual(c, maxVal))); // TODO: crashes here, condition not asserted
+                            DE_ASSERT(deMath.boolAll(deMath.lessThanEqual(c, maxVal))); // TODO: sometimes crashes here, condition not asserted
 
                             for (var ndx = 0; ndx < numScalars; ndx++)
                                 inputs[curInVec][pos + ndx] = c[ndx];
