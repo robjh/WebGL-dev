@@ -21,7 +21,7 @@
 define(['framework/referencerenderer/rrMultisamplePixelBufferAccess', 'framework/common/tcuTexture', 'framework/delibs/debase/deMath', 'framework/opengl/gluTextureUtil',
  'framework/common/tcuTextureUtil', 'framework/common/tcuPixelFormat', 'framework/opengl/gluShaderUtil',
   'framework/referencerenderer/rrRenderer', 'framework/referencerenderer/rrDefs', 'framework/referencerenderer/rrVertexAttrib',
-   'framework/referencerenderer/rrRenderState', 'framework/referencerenderer/sglrReferenceUtils' ],
+   'framework/referencerenderer/rrRenderState', 'framework/opengl/simplereference/sglrReferenceUtils' ],
  function(rrMultisamplePixelBufferAccess, tcuTexture, deMath, gluTextureUtil, tcuTextureUtil, tcuPixelFormat, gluShaderUtil, rrRenderer, rrDefs, rrVertexAttrib, rrRenderState, sglrReferenceUtils) {
 
 var rrMPBA = rrMultisamplePixelBufferAccess;
@@ -627,16 +627,15 @@ var TextureUnit = function() {
 
 /**
  * @constructor
- * TODO: remove
  */
 var StencilState = function() {
-    this.func = 0;
+    this.func = gl.ALWAYS;
     this.ref = 0;
-    this.opMask = 0;
-    this.opStencilFail = 0;
-    this.opDepthFail = 0;
-    this.opDepthPass = 0;
-    this.writeMask = 0;
+    this.opMask = ~0;
+    this.opStencilFail = gl.KEEP;
+    this.opDepthFail = gl.KEEP;
+    this.opDepthPass = gl.KEEP;
+    this.writeMask = ~0;
 };
 
 /**
@@ -2500,14 +2499,6 @@ ReferenceContext.prototype.drawWithReference = function(primitives, instanceCoun
  * @param {Array<number>} bottomRight Coordinates of bottom right corner of the rectangle
  */
 ReferenceContext.prototype.drawQuad = function(topLeft, bottomRight) {
-    debugger;
-    this.m_currentProgram  = {
-        m_program: {
-            getVertexShader: function() {return null},
-            getFragmentShader: function() {return null}
-            }
-    };
-
     // undefined results
     if (!this.m_currentProgram)
         return;
@@ -2574,7 +2565,7 @@ ReferenceContext.prototype.drawQuad = function(topLeft, bottomRight) {
     state.fragOps.polygonOffsetFactor                           = this.m_polygonOffsetFactor;
     state.fragOps.polygonOffsetUnits                            = this.m_polygonOffsetUnits;
 
-    state.provokingVertexConvention                             = (this.m_provokingFirstVertexConvention) ? (rrDefs.ProvokingIndex.PROVOKINGVERTEX_FIRST) : (rrDefs.ProvokingIndex.PROVOKINGVERTEX_LAST);
+    state.provokingVertexConvention                             = (this.m_provokingFirstVertexConvention) ? (rrDefs.ProvokingVertex.PROVOKINGVERTEX_FIRST) : (rrDefs.ProvokingVertex.PROVOKINGVERTEX_LAST);
 
     // gen attributes
     var vao = this.m_vertexArrayBinding;
@@ -2710,7 +2701,7 @@ ReferenceContext.prototype.drawQuad = function(topLeft, bottomRight) {
         }
     }
 
-    rrRenderer.DrawQuad(state, renderTarget, program, vertexAttribs.length, vertexAttribs, topLeft, bottomRight);
+    rrRenderer.drawQuad(state, renderTarget, program, vertexAttribs, topLeft, bottomRight);
 };
 
 return {

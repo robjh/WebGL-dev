@@ -18,7 +18,7 @@
  *
  */
 
-define(['../../framework/delibs/debase/deMath'], function(deMath) {
+define(['framework/delibs/debase/deMath'], function(deMath) {
     'use strict';
 
 var DE_ASSERT = function(x) {
@@ -45,8 +45,8 @@ GLSLVersion.V_LAST = Object.keys(GLSLVersion).length;
 var getGLSLVersion = function(gl) {
     var glslversion = gl.getParameter(gl.SHADING_LANGUAGE_VERSION);
 
-    if (glslversion.indexOf('WebGL 1.0') != -1) return GLSLVersion.V100_ES;
-       if (glslversion.indexOf('WebGL 2.0') != -1) return GLSLVersion.V300_ES;
+    if (glslversion.indexOf('WebGL GLSL ES 1.0') != -1) return GLSLVersion.V100_ES;
+       if (glslversion.indexOf('WebGL GLSL ES 3.0') != -1) return GLSLVersion.V300_ES;
 
     throw new Error('Invalid WebGL version');
 };

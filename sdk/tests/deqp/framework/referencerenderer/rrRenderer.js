@@ -749,12 +749,10 @@ var drawQuad = function(state, renderTarget, program, vertexAttribs, topLeft, bo
 };
 
 return {
-    drawInstanced: drawInstanced,
-    draw: draw,
-    DrawCommand: DrawCommand,
     PrimitiveType: PrimitiveType,
     RenderTarget: RenderTarget,
-    Program: Program
+    Program: Program,
+    drawQuad: drawQuad 
 };
 
 });
