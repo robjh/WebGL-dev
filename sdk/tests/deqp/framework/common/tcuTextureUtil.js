@@ -284,13 +284,22 @@ var TextureFormatInfo = function(valueMin, valueMax, lookupScale, lookupBias) {
  * @return {Array}
  */
 var select = function(a, b, cond) {
+
+    /*DE_ASSERT(!(a.length && !b.length)
+                || !(!a.length && b.length)
+                || !((a.length && b.length) && ((a.length != b.length) || (b.length != cond.length) || (a.length != cond.length))));*/
+
+    if (a.length && !b.length) throw new Error('second input parameter is not a vector');
+    if (!a.length && b.length) throw new Error('first input parameter is not a vector');
+    if ((a.length && b.length) && ((a.length != b.length) || (b.length != cond.length) || (a.length != cond.length))) throw new Error('different size vectors');
+
     var dst = [];
     for (var i = 0; i < cond.length; i++)
         if (cond[i])
-            if (a.length > 0) dst.push(a[i]);
+            if (a.length) dst.push(a[i]);
             else dst.push(a);
         else
-            if (b.length > 0) dst.push(b[i]);
+            if (b.length) dst.push(b[i]);
             else dst.push(b);
     return dst;
 };
