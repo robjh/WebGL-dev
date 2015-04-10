@@ -31,34 +31,29 @@ define(['framework/opengl/gluTextureUtil'], function(gluTextureUtil) {
     };
     
     var lookupDefault = function(map, key, fallback) {
-        return (map[key] !== undefined) ? map[key] || fallback;
+        return (map[key] !== undefined) ? map[key] : fallback;
     };
     
+    // db is a FormatDB, stdFmts is a range object
+    var addFormats = function(db, stdFmts) {
     
+        for (var i = stdFmts.begin(); i < stdFmts.end(); ++i) {
+            var stdFmt_current = stdFmts.get(i);
+		    for (var j = stdFmt_current.second.begin(); j < stdFmt_current.second.end(); ++j) {
+			    var formatKey_current = stdFmt_current.second.get(j);
+			    db.addFormat(formatKeyInfo(formatKey_current.second), stdFmt_current.first);
+			}
+	    }
+    
+    };
+    
+    // FormatDB& db, FormatExtEntries extFmts, const RenderContext* ctx
+    var addExtFormats = function(db, extFmts, ctx) {
+        
+    };
     
     /* TODO: This next. looks like helpers for FormatDB objects
-    // Need to find/port: formatKeyInto(). FormatEntries,
     
-    
-template<typename M> inline
-const typename M::mapped_type& lookupDefault (const M& map,
-											  const typename M::key_type& key,
-											  const typename M::mapped_type& fallback)
-{
-	const typename M::mapped_type* ptr = lookupMaybe(map, key);
-	return ptr == DE_NULL ? fallback : *ptr;
-}
-
-    
-void addFormats (FormatDB& db, FormatEntries stdFmts)
-{
-	for (const FormatEntry* it = stdFmts.begin(); it != stdFmts.end(); it++)
-	{
-		for (const FormatKey* it2 = it->second.begin(); it2 != it->second.end(); it2++)
-			db.addFormat(formatKeyInfo(*it2), it->first);
-	}
-}
-
 void addExtFormats (FormatDB& db, FormatExtEntries extFmts, const RenderContext* ctx)
 {
 	const UniquePtr<ContextInfo> ctxInfo(ctx != DE_NULL ? ContextInfo::create(*ctx) : DE_NULL);
@@ -86,29 +81,29 @@ void addExtFormats (FormatDB& db, FormatExtEntries extFmts, const RenderContext*
 	}
 }
 
-FormatFlags formatFlag (GLenum context)
-{
-	switch (context)
-	{
-		case GL_NONE:
-			return FormatFlags(0);
-		case GL_RENDERBUFFER:
-			return RENDERBUFFER_VALID;
-		case GL_TEXTURE:
-			return TEXTURE_VALID;
-		case GL_STENCIL_ATTACHMENT:
-			return STENCIL_RENDERABLE;
-		case GL_DEPTH_ATTACHMENT:
-			return DEPTH_RENDERABLE;
-		default:
-			DE_ASSERT(context >= GL_COLOR_ATTACHMENT0 && context <= GL_COLOR_ATTACHMENT15);
-			return COLOR_RENDERABLE;
-	}
-}
-    
-    
-    ------------------------------------------------------------------------
+        --------------------------------------------------
     //*/
+    
+    var formatFlag = function(glenum, gl_ctx) {
+        gl_ctx = gl_ctx || gl;
+        
+        switch (glenum) {
+         case gl_ctx.NONE:
+            return FormatFlags.ANY_FORMAT;
+         case gl_ctx.RENDERBUFFER:
+            return FormatFlags.RENDERBUFFER_VALID;
+         case gl_ctx.TEXTURE:
+            return FormatFlags.TEXTURE_VALID;
+         case gl_ctx.STENCIL_ATTACHMENT:
+            return FormatFlags.STENCIL_RENDERABLE;
+         case gl_ctx.DEPTH_ATTACHMENT:
+            return FormatFlags.DEPTH_RENDERABLE;
+         default:
+            if (glenum < gl_ctx.COLOR_ATTACHMENT0 || glenum > gl_ctx.COLOR_ATTACHMENT15)
+                throw new Error('glenum out of range');
+        }
+        return FormatFlags.COLOR_RENDERABLE;
+    };
     
     var remove_from_array = function(array, value) {
         var index = array.indexOf(value);
@@ -117,6 +112,17 @@ FormatFlags formatFlag (GLenum context)
         }
     };
     
+    var FormatExtEntry = function(argv) {
+        argv = argv || {};
+        this.construct = function(argv) {
+            this.extensions = argv.extensions || null;
+            this.flags      = argv.flags      || null;
+            this.formats    = argv.formats    || null;
+        };
+        if (!argv.dont_construct) this._construct(argv);
+    };
+    
+    // this wont work if argv.array is an object
     var Range = function(argv) {
         
         var m_begin  = argv.begin || 0;
@@ -131,6 +137,12 @@ FormatFlags formatFlag (GLenum context)
         this.end = function() {
             return m.end;
         };
+        this.get = function(id) {
+            return {
+                first: id,
+                second: argv.array[id]
+            };
+        }
         
     };
     
@@ -138,9 +150,9 @@ FormatFlags formatFlag (GLenum context)
         argv = argv || {};
         
         this._construct = function(argv) {
-            this.format = null;
+            this.format      = argv.format || null;
             //! Type if format is unsized, GL_NONE if sized.
-            this.unsizedType = null;
+            this.unsizedType = argv.unsizedType || null;
         };
         
         this.lessthan = function(other) {
@@ -157,6 +169,19 @@ FormatFlags formatFlag (GLenum context)
         };
         
         if (!argv.dont_construct) this._construct(argv);
+    };
+    ImageFormat.none = function() {
+        var obj = new ImageFormat();
+        obj.none();
+        return obj;
+    };
+    
+    // where key is a FormatKey, and a FormatKey is a 32bit int.
+    var formatKeyInfo = function(key) {
+        return new ImageFormat({
+            format:      (key & 0x0000ffff),
+            unsizedType: (key & 0xffff0000) >> 16
+        });
     };
     
     var Config = function(argv) {
@@ -179,6 +204,10 @@ FormatFlags formatFlag (GLenum context)
         
         FRAMEBUFFER:       6
     };
+    
+    // the c++ uses dynamic casts to determain if an object inherits from a
+    // given class. Here, each class' constructor assigns a bit to obj.type.
+    // look for the bit to see if an object inherits that class.
     Config.s_types = {
         CONFIG:            0x000001,
         
@@ -196,7 +225,9 @@ FormatFlags formatFlag (GLenum context)
         ATT_RENDERBUFFER:  0x020000,
         ATT_TEXTURE:       0x040000,
         ATT_TEXTURE_FLAT:  0x080000,
-        ATT_TEXTURE_LAYER: 0x100000
+        ATT_TEXTURE_LAYER: 0x100000,
+        
+        UNUSED:          0xFFE0E00E,
     };
     
     var Image = function(argv) {
@@ -554,7 +585,7 @@ FormatFlags formatFlag (GLenum context)
             else if (cfg.type & Config.s_types.TEXTURE)
                 gl.deleteTextures(1, img);
             else
-                DE_ASSERT(!"Impossible image type");
+                throw new Error('Impossible image type');
         };
         
         return {
@@ -687,6 +718,7 @@ FormatFlags formatFlag (GLenum context)
             this.attachments = argv.attachments  || {};
             this.textures    = argv.textures     || {};
             this.rbos        = argv.rbos         || {};
+            this.m_gl        = argv.gl           || gl;
         };
         
         this.attach = function(attPoint, att) {
@@ -704,9 +736,9 @@ FormatFlags formatFlag (GLenum context)
         };
         this.getImage = function(type, imgName) {
             switch (type) {
-                case gl.TEXTURE:      return lookupDefault(this.textures, imgName, null);
-                case gl.RENDERBUFFER: return lookupDefault(this.rbos,     imgName, null);
-                default: DE_ASSERT(false, "Bad image type.");
+                case this.m_gl.TEXTURE:      return lookupDefault(this.textures, imgName, null);
+                case this.m_gl.RENDERBUFFER: return lookupDefault(this.rbos,     imgName, null);
+                default: throw new Error ('Bad image type.');
             }
             return null;
         };
@@ -728,7 +760,6 @@ FormatFlags formatFlag (GLenum context)
                 throw new Error('Invalid args.');
             }
             
-            this.m_gl      = argv.gl || gl;
             this.m_target  = argv.target;
             this.m_configs = [];
             this.m_error   = this.m_gl.NO_ERROR;
@@ -788,8 +819,8 @@ FormatFlags formatFlag (GLenum context)
         };
         
         this.checkError = function() {
-            var error = m_gl.getError();
-            if (error != m_gl.NO_ERROR && this.m_error != m_gl.NO_ERROR) {
+            var error = this.m_gl.getError();
+            if (error != this.m_gl.NO_ERROR && this.m_error != this.m_gl.NO_ERROR) {
                 this.m_error = error;
             }
         };
@@ -802,7 +833,8 @@ FormatFlags formatFlag (GLenum context)
     };
     FboBuilder.prototype = new Framebuffer({dont_construct: true});
     
-    var Checker = function() {
+    var Checker = function(argv) {
+        argv = argv || {};
         
         // Allowed return values for gl.CheckFramebufferStatus
         // formarly an std::set
@@ -828,8 +860,22 @@ FormatFlags formatFlag (GLenum context)
             return m_statusCodes;
         };
         
-//      this.check = (function(attPoint, attachment, image) =0); virtual
+//      this.check = function(attPoint, attachment, image) =0; virtual
         
+        if (!argv.dont_construct)
+            throw new Error('Constructor called on virtual class: Checker'); 
+    };
+    
+    var CheckerFactory = function(argv) {
+        argv = argv || {};
+        
+        this._construct = function(argv) {
+            if (typeof(this.createChecker) != 'function')
+                throw new Error('Unimplemented virtual function: CheckerFactory::createChecker');
+        };
+        
+        if (!argv.dont_construct)
+            throw new Error('Constructor called on virtual class: CheckerFactory'); 
     };
     
     var transferImageFormat = function(imgFormat, gl_ctx) {
@@ -837,7 +883,7 @@ FormatFlags formatFlag (GLenum context)
         if (imgFormat.unsizedType == gl_ctx.NONE)
             return gluTextureUtil.getTransferFormat(mapGLInternalFormat(imgFormat.format));
         else
-            return new TransferFormat(imgFormat.format, imgFormat.unsizedType);
+            return new gluTextureUtil.TransferFormat(imgFormat.format, imgFormat.unsizedType);
     };
     
     return {
@@ -846,6 +892,8 @@ FormatFlags formatFlag (GLenum context)
         formatkey:               formatkey,
         GLS_UNSIZED_FORMATKEY:   formatkey,
         FormatFlags:             FormatFlags,
+        addFormats:              addFormats,
+        
         
         Config:                  Config,
         Image:                     Image,
@@ -864,6 +912,7 @@ FormatFlags formatFlag (GLenum context)
         TextureLayerAttachment:        TextureLayerAttachment,
 
         Checker:                   Checker,
+        CheckerFactory:            CheckerFactory,
         transferImageFormat:       transferImageFormat
     };
 

@@ -21,8 +21,8 @@
  * \brief Reference renderer render state.
  *//*--------------------------------------------------------------------*/
 define(['framework/common/tcuTexture', 'framework/delibs/debase/deMath'
-	,'framework/referencerenderer/rrMultisamplePixelBufferAccess'], 
-	function(tcuTexture, deMath, rrMultisamplePixelBufferAccess) {
+	,'framework/referencerenderer/rrMultisamplePixelBufferAccess', 'framework/referencerenderer/rrDefs'], 
+	function(tcuTexture, deMath, rrMultisamplePixelBufferAccess, rrDefs) {
 
 /**
  * Enum for HorizontalFill values.
@@ -61,7 +61,8 @@ var CullMode = {
 	FRONT : 2
 };
 
-/**
+/**Winding : Winding,
+
  * @constructor
  */
 var RasterizationState = function() {
@@ -215,15 +216,17 @@ var FragmentOperationState = function() {
 
 	/** @type {boolean} */ this.stencilTestEnabled	= false;
 
-	/** @type {StencilState} */ this.stencilStates;
+	/** @type {StencilState} */ this.stencilStates = [];
+    for (var type in rrDefs.FaceType)
+        this.stencilStates[rrDefs.FaceType[type]] = new StencilState();	
 
 	/** @type {boolean} */ this.depthTestEnabled = false;
 	/** @type {TestFunc} */ this.depthFunc = TestFunc.LESS;
 	/** @type {boolean} */ this.depthMask = true;
 
 	/** @type {BlendMode} */ this.blendMode = BlendMode.NONE;
-	/** @type {BlendState} */ this.blendRGBState = null;
-	/** @type {BlendState} */ this.blendAState = null;
+	/** @type {BlendState} */ this.blendRGBState = new BlendState();
+	/** @type {BlendState} */ this.blendAState = new BlendState();
 	/** @type {Array.<number>} */ this.blendColor	= [0.0, 0.0, 0.0, 0.0];
 	/** @type {BlendEquationAdvanced} */ this.blendEquationAdvaced = null;
 
@@ -289,11 +292,34 @@ var RenderState = function(viewport_) {
 	/** @type {number} */ this.provokingVertexConvention;
 	/** @type {ViewportState} */ this.viewport = viewport_;
 
-	/** @type {RasterizationState} */ this.rasterization;
-	/** @type {FragmentOperationState} */ this.fragOps;
-	/** @type {PointState} */ this.point;
-	/** @type {LineState} */ this.line;
-	/** @type {RestartState} */ this.restart;
+	/** @type {RasterizationState} */ this.rasterization = new RasterizationState();
+	/** @type {FragmentOperationState} */ this.fragOps = new FragmentOperationState();
+	/** @type {PointState} */ this.point = new PointState();
+	/** @type {LineState} */ this.line = new LineState();
+	/** @type {RestartState} */ this.restart = new RestartState();
+};
+
+return {
+	HorizontalFill : HorizontalFill,
+	VerticalFill : VerticalFill,
+	Winding : Winding,
+	CullMode : CullMode,
+	RasterizationState : RasterizationState,
+	TestFunc : TestFunc,
+	StencilOp : StencilOp,
+	BlendMode :BlendMode,
+	BlendEquation : BlendEquation,
+	BlendEquationAdvanced : BlendEquationAdvanced,
+	BlendFunc : BlendFunc,
+	StencilState : StencilState,
+	BlendState : BlendState,
+	WindowRectangle : WindowRectangle,
+	FragmentOperationState : FragmentOperationState,
+	PointState : PointState,
+	LineState : LineState,
+	ViewportState : ViewportState,
+	RestartState : RestartState,
+	RenderState: RenderState
 };
 
 });

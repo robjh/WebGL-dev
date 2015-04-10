@@ -69,7 +69,7 @@ define([
 
     };
 
-    var GLU_EXPECT_NO_ERROR = (function(gl, err, msg) {
+    var GLU_EXPECT_NO_ERROR = function(gl, err, msg) {
         if (err != gl.NO_ERROR) {
             if (msg) msg += ': ';
 
@@ -77,7 +77,7 @@ define([
 
             throw new Error(msg)
         }
-    });
+    };
     var DE_ASSERT = function(x) {
         if (!x)
             throw new Error('Assert failed');
@@ -91,11 +91,11 @@ define([
      * @return {Object}
      * @constructor
      */
-    var Varying = (function(name, type, interpolation) {
+    var Varying = function(name, type, interpolation) {
         this.name = name;
         this.type = type;
         this.interpolation = interpolation;
-    });
+    };
 
     /** findAttributeNameEquals
      * Replaces original implementation of "VaryingNameEquals" and "AttributeNameEquals" in the C++ version
@@ -119,23 +119,23 @@ define([
      * @param {number} offset
      * @constructor
      */
-    var Attribute = (function(name, type, offset) {
+    var Attribute = function(name, type, offset) {
         this.name = name;
         this.type = type;
         this.offset = offset;
-    });
+    };
 
     /**
      * Constructs an Output object
      * @constructor
      */
-    var Output = (function() {
+    var Output = function() {
         /** @type {number}            */ this.bufferNdx = 0;
         /** @type {number}            */ this.offset = 0;
         /** @type {string}            */ this.name = null;
-        /** @type {gluVarType.VarType}     */ this.type = null;
+        /** @type {gluVarType.VarType} */ this.type = null;
         /** @type {Array.<Attribute>} */ this.inputs = [];
-    });
+    };
 
     /**
      * Constructs an object type DrawCall.
@@ -145,15 +145,15 @@ define([
      * @param {boolean} tfEnabled is Transform Feedback enabled or not
      * @constructor
      */
-    var DrawCall = (function(numElements, tfEnabled) {
+    var DrawCall = function(numElements, tfEnabled) {
         this.numElements = numElements;
         this.transformFeedbackEnabled = tfEnabled;
-    });
+    };
 
     /**
      * @constructor
      */
-    var ProgramSpec = (function() {
+    var ProgramSpec = function() {
 
     /** @type {Array.<gluVarType.StructType>} */ var m_structs = [];
     /** @type {Array.<Varying>}          */ var m_varyings = [];
@@ -190,7 +190,7 @@ define([
             return false;
         };
 
-    });
+    };
 
     /** Returns if the program is supported or not
      * @param {WebGLRenderingContext} gl WebGL context
@@ -872,7 +872,7 @@ define([
      * @param {gluDrawUtil.primitiveType} primitiveType GLenum that specifies what kind of primitive is
      * @constructor
      */
-    var TransformFeedbackCase = (function(context, name, desc, bufferMode, primitiveType) {
+    var TransformFeedbackCase = function(context, name, desc, bufferMode, primitiveType) {
 
         this._construct = function(context, name, desc, bufferMode, primitiveType) {
             if (
@@ -1341,7 +1341,7 @@ define([
 
         this._construct(context, name, desc, bufferMode, primitiveType);
 
-    });
+    };
 
 	var dc = function(numElements, tfEnabled) {
 		return new DrawCall(numElements,tfEnabled);
@@ -1375,7 +1375,7 @@ define([
 
     TransformFeedbackCase.prototype = new tcuTestCase.DeqpTest();
 
-    var hasArraysInTFVaryings = (function(spec) {
+    var hasArraysInTFVaryings = function(spec) {
 
         for (var i = 0 ; i < spec.getTransformFeedbackVaryings().length ; ++i) {
             var tfVar = spec.getTransformFeedbackVaryings()[i];
@@ -1385,7 +1385,7 @@ define([
         }
         return false;
 
-    });
+    };
 
 
 
@@ -1398,12 +1398,12 @@ define([
      * @param {gluDrawUtil.primitiveType} primitiveType GLenum that specifies what kind of primitive is
      * @constructor
      */
-    var PositionCase = (function(context, name, desc, bufferMode, primitiveType) {
+    var PositionCase = function(context, name, desc, bufferMode, primitiveType) {
 
         this._construct(context, name, desc, bufferMode, primitiveType);
         this.m_progSpec.addTransformFeedbackVarying('gl_Position');
 
-    });
+    };
 
     PositionCase.prototype = new TransformFeedbackCase();
 
@@ -1416,12 +1416,12 @@ define([
      * @param {gluDrawUtil.primitiveType} primitiveType GLenum that specifies what kind of primitive is
      * @constructor
      */
-    var PointSizeCase = (function(context, name, desc, bufferMode, primitiveType) {
+    var PointSizeCase = function(context, name, desc, bufferMode, primitiveType) {
 
         this._construct(context, name, desc, bufferMode, primitiveType);
         this.m_progSpec.addTransformFeedbackVarying('gl_PointSize');
 
-    });
+    };
 
     PointSizeCase.prototype = new TransformFeedbackCase();
 
@@ -1437,7 +1437,7 @@ define([
      * @param {interpolation} interpolation enum number in this javascript
      * @constructor
      */
-    var BasicTypeCase = (function(context, name, desc, bufferMode, primitiveType, type, precision, interpolation) {
+    var BasicTypeCase = function(context, name, desc, bufferMode, primitiveType, type, precision, interpolation) {
 
         this._construct(context, name, desc, bufferMode, primitiveType);
 
@@ -1447,7 +1447,7 @@ define([
         this.m_progSpec.addTransformFeedbackVarying('v_varA');
         this.m_progSpec.addTransformFeedbackVarying('v_varB');
 
-    });
+    };
 
     BasicTypeCase.prototype = new TransformFeedbackCase();
 
@@ -1463,7 +1463,7 @@ define([
      * @param {interpolation} interpolation enum number in this javascript
      * @constructor
      */
-    var BasicArrayCase = (function(context, name, desc, bufferMode, primitiveType, type, precision, interpolation) {
+    var BasicArrayCase = function(context, name, desc, bufferMode, primitiveType, type, precision, interpolation) {
 
         this._construct(context, name, desc, bufferMode, primitiveType);
 
@@ -1484,7 +1484,7 @@ define([
         this.m_progSpec.addTransformFeedbackVarying('v_varA');
         this.m_progSpec.addTransformFeedbackVarying('v_varB');
 
-    });
+    };
 
     BasicArrayCase.prototype = new TransformFeedbackCase();
 
@@ -1500,7 +1500,7 @@ define([
      * @param {interpolation} interpolation enum number in this javascript
      * @constructor
      */
-    var ArrayElementCase = (function(context, name, desc, bufferMode, primitiveType, type, precision, interpolation) {
+    var ArrayElementCase = function(context, name, desc, bufferMode, primitiveType, type, precision, interpolation) {
 
         this._construct(context, name, desc, bufferMode, primitiveType);
 
@@ -1511,7 +1511,7 @@ define([
         this.m_progSpec.addTransformFeedbackVarying('v_varB[0]');
         this.m_progSpec.addTransformFeedbackVarying('v_varB[3]');
 
-    });
+    };
 
     ArrayElementCase.prototype = new TransformFeedbackCase();
 
@@ -1525,7 +1525,7 @@ define([
      * @param {number} seed
      * @constructor
      */
-    var RandomCase = (function(context, name, desc, bufferMode, primitiveType, seed) {
+    var RandomCase = function(context, name, desc, bufferMode, primitiveType, seed) {
 
         this._construct(context, name, desc, bufferMode, primitiveType);
 
@@ -1533,7 +1533,7 @@ define([
             init: this.init
         };
 
-        this.init = (function() {
+        this.init = function() {
 
             /** @type {number} */
             var seed = /*deString.deStringHash(getName()) ^ */ deMath.deMathHash(this.m_iterNdx);
@@ -1697,8 +1697,8 @@ define([
 
             parent.init.call(this);
 
-        });
-    });
+        };
+    };
 
     RandomCase.prototype = new TransformFeedbackCase();
 

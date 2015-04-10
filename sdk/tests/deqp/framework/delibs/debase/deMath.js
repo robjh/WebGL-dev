@@ -546,6 +546,67 @@ var shiftRight = function(value, steps)
     return arrayToNumber(outArray);
 };
 
+/** logicalAndBool over two arrays of booleans
+ * @param {Array<boolean>} a
+ * @param {Array<boolean>} b
+ * @return {Array<boolean>}
+ */
+var logicalAndBool = function(a, b) {
+    DE_ASSERT(Array.isArray(a) && Array.isArray(b));
+    DE_ASSERT(a.length == b.length);
+    /** @type {Array<boolean>} */ var result = [];
+    for (var i = 0; i < a.length; i++) {
+        if (a[i] & b[i])
+            result.push(true);
+        else
+            result.push(false);
+    }
+    return result;
+};
+
+/** logicalOrBool over two arrays of booleans
+ * @param {Array<boolean>} a
+ * @param {Array<boolean>} b
+ * @return {Array<boolean>}
+ */
+var logicalOrBool = function(a, b) {
+    DE_ASSERT(Array.isArray(a) && Array.isArray(b));
+    DE_ASSERT(a.length == b.length);
+    /** @type {Array<boolean>} */ var result = [];
+    for (var i = 0; i < a.length; i++) {
+        if (a[i] | b[i])
+            result.push(true);
+        else
+            result.push(false);
+    }
+    return result;
+};
+
+/** logicalNotBool over an array of booleans
+ * @param {Array<boolean>} a
+ * @return {Array<boolean>}
+ */
+var logicalNotBool = function(a) {
+    DE_ASSERT(Array.isArray(a));
+    /** @type {Array<boolean>} */ var result = [];
+    for (var i = 0; i < a.length; i++)
+        result.push(!a[i]);
+    return result;
+};
+
+/** greaterThan over two arrays of booleans
+ * @param {Array<boolean>} a
+ * @return {Array<boolean>}
+ */
+var greaterThan = function(a, b) {
+    DE_ASSERT(Array.isArray(a) && Array.isArray(b));
+    DE_ASSERT(a.length == b.length);
+    /** @type {Array<boolean>} */ var result = [];
+    for (var i = 0; i < a.length; i++)
+        result.push(a[i] > b[i]);
+    return result;
+};
+
     return {
         deInRange32: deInRange32,
         deInBounds32: deInBounds32,
@@ -576,6 +637,10 @@ var shiftRight = function(value, steps)
         binaryOp: binaryOp,
         binaryNot: binaryNot,
         shiftLeft: shiftLeft,
-        shiftRight: shiftRight
+        shiftRight: shiftRight,
+        logicalAndBool: logicalAndBool,
+        logicalOrBool: logicalOrBool,
+        logicalNotBool: logicalNotBool,
+        greaterThan: greaterThan
     };
 });
