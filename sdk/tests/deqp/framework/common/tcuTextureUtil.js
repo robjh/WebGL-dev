@@ -100,7 +100,7 @@ var TextureChannelClass = {
 };
 
 /** linearChannelToSRGB
- * @param {number} cl, a float in the C++ version
+ * @param {number} cl - a float in the C++ version
  * @return {Array}
  */
 var linearChannelToSRGB = function(cl) {
@@ -440,6 +440,86 @@ var linearToSRGB = function(cl) {
                 cl[3]];
 };
 
+/** fillWithGrid
+ * @const @param {tcuTexture.PixelBufferAccess} access
+ * @param {number} cellSize
+ * @param {Array<number>} colorA
+ * @param {Array<number>} colorB
+ */
+var fillWithGrid = function(access, cellSize, colorA, colorB)
+{
+    if (access.getHeight() == 1 && access.getDepth() == 1)
+        fillWithGrid1D(access, cellSize, colorA, colorB);
+    else if (access.getDepth() == 1)
+        fillWithGrid2D(access, cellSize, colorA, colorB);
+    else
+        fillWithGrid3D(access, cellSize, colorA, colorB);
+};
+
+/** fillWithGrid1D
+ * @const @param {tcuTexture.PixelBufferAccess} access
+ * @param {number} cellSize
+ * @param {Array<number>} colorA
+ * @param {Array<number>} colorB
+ */
+var fillWithGrid1D = function(access, cellSize, colorA, colorB)
+{
+    for (var x = 0; x < access.getWidth(); x++)
+    {
+        var mx = Math.floor(x / cellSize) % 2;
+
+        if (mx)
+            access.setPixel(colorB, x, 0);
+        else
+            access.setPixel(colorA, x, 0);
+    }
+};
+
+/** fillWithGrid2D
+ * @const @param {tcuTexture.PixelBufferAccess} access
+ * @param {number} cellSize
+ * @param {Array<number>} colorA
+ * @param {Array<number>} colorB
+ */
+var fillWithGrid2D = function(access, cellSize, colorA, colorB)
+{
+    for (var y = 0; y < access.getHeight(); y++)
+        for (var x = 0; x < access.getWidth(); x++)
+        {
+            var mx = Math.floor(x / cellSize) % 2;
+            var my = Math.floor(y / cellSize) % 2;
+
+            if (mx ^ my)
+                access.setPixel(colorB, x, y);
+            else
+                access.setPixel(colorA, x, y);
+        }
+};
+
+/** fillWithGrid3D
+ * @const @param {tcuTexture.PixelBufferAccess} access
+ * @param {number} cellSize
+ * @param {Array<number>} colorA
+ * @param {Array<number>} colorB
+ */
+var fillWithGrid3D = function(access, cellSize, colorA, colorB)
+{
+    for (var z = 0; z < access.getDepth(); z++)
+        for (var y = 0; y < access.getHeight(); y++)
+            for (var x = 0; x < access.getWidth(); x++)
+            {
+                var mx = Math.floor(x / cellSize) % 2;
+                var my = Math.floor(y / cellSize) % 2;
+                var mz = Math.floor(z / cellSize) % 2;
+
+                if (mx ^ my ^ mz)
+                    access.setPixel(colorB, x, y, z);
+                else
+                    access.setPixel(colorA, x, y, z);
+            }
+};
+
+
 return {
     clear: clear,
     TextureChannelClass: TextureChannelClass,
@@ -450,7 +530,8 @@ return {
     getTextureFormatInfo: getTextureFormatInfo,
     getChannelBitDepth: getChannelBitDepth,
     getTextureFormatBitDepth: getTextureFormatBitDepth,
-    linearToSRGB: linearToSRGB
+    linearToSRGB: linearToSRGB,
+    fillWithGrid: fillWithGrid
 };
 
 });
