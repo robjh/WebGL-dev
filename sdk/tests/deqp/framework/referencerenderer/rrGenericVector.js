@@ -36,4 +36,8 @@ define(function() {
         UINT32: 1,
         INT32: 2
     };
+
+    return {
+        GenericVecType: GenericVecType
+    };
 });

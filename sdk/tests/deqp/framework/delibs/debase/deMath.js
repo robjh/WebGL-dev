@@ -549,6 +549,7 @@ var shiftRight = function(value, steps)
     return {
         deInRange32: deInRange32,
         deInBounds32: deInBounds32,
+        deCeilFloatToInt32: deCeilFloatToInt32,
         deAlign32: deAlign32,
         dePop32: dePop32,
         deIsPowerOfTwo32: deIsPowerOfTwo32,

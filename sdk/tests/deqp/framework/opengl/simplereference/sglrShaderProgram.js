@@ -38,6 +38,11 @@ define([
         tcuTextureUtil
     ) {
 
+    var DE_ASSERT = function(x) {
+        if (!x)
+            throw new Error('Assert failed');
+    };
+
     /**
      * VaryingFlags
      * @enum
@@ -65,7 +70,7 @@ define([
      */
     var VertexToFragmentVarying = function (type_, flags) {
         this.type = type_;
-        this.flatshade = flags.FLATSHADE;
+        this.flatshade = flags === undefined ? new VaryingFlags().FLATSHADE : flags.FLATSHADE;
     };
 
     /**
@@ -111,10 +116,10 @@ define([
      * @constructor
      */
     var ShaderProgramDeclaration = function () {
-        /** @type {Array.<VertexAttribute>} */ this.m_vertexAttributes = [];
-        /** @type {Array.<VertexToFragmentVarying>} */ this.m_vertexToFragmentVaryings = [];
-        /** @type {Array.<FragmentOutput>} */ this.m_fragmentOutputs = [];
-        /** @type {Array.<Uniform>} */ this.m_uniforms = [];
+        /** @type {Array<VertexAttribute>} */ this.m_vertexAttributes = [];
+        /** @type {Array<VertexToFragmentVarying>} */ this.m_vertexToFragmentVaryings = [];
+        /** @type {Array<FragmentOutput>} */ this.m_fragmentOutputs = [];
+        /** @type {Array<Uniform>} */ this.m_uniforms = [];
         /** @type {string} */ this.m_vertexSource;
         /** @type {string} */ this.m_fragmentSource;
 
@@ -220,7 +225,7 @@ define([
      * @return {number}
      */
     ShaderProgramDeclaration.prototype.getFragmentOutputCount = function () {
-        return m_fragmentOutputs.length;
+        return this.m_fragmentOutputs.length;
     };
 
     /**
@@ -248,8 +253,8 @@ define([
         current = this;
         this.FragmentShader = {m_inputs: current.m_inputs, m_outputs: current.m_outputs};
 
-        /** @type {Array.<string>} */ this.m_attributeNames = new Array(decl.getFragmentInputCount());
-        /** @type {Array.<UniformSlot>} */ this.m_uniforms = new Array(decl.m_uniforms.length);
+        /** @type {Array<string>} */ this.m_attributeNames = new Array(decl.getFragmentInputCount());
+        /** @type {Array<UniformSlot>} */ this.m_uniforms = new Array(decl.m_uniforms.length);
         /** @type {string} */ this.m_vertSrc = decl.m_vertexSource;
         /** @type {string} */ this.m_fragSrc = decl.m_fragmentSource;
 
@@ -257,14 +262,12 @@ define([
 
         // Set up shader IO
 
-        for (var ndx = 0; ndx < decl.m_vertexAttributes.length; ++ndx)
-        {
+        for (var ndx = 0; ndx < decl.m_vertexAttributes.length; ++ndx) {
             this.VertexShader.m_inputs[ndx].type  = decl.m_vertexAttributes[ndx].type;
             this.m_attributeNames[ndx] = decl.m_vertexAttributes[ndx].name;
         }
 
-        for (var ndx = 0; ndx < decl.m_vertexToFragmentVaryings.length; ++ndx)
-        {
+        for (var ndx = 0; ndx < decl.m_vertexToFragmentVaryings.length; ++ndx) {
             this.VertexShader.m_outputs[ndx].type = decl.m_vertexToFragmentVaryings[ndx].type;
             this.VertexShader.m_outputs[ndx].flatshade = decl.m_vertexToFragmentVaryings[ndx].flatshade;
 
@@ -277,10 +280,7 @@ define([
         // Set up uniforms
 
         for (var ndx = 0; ndx < decl.m_uniforms.length; ++ndx)
-        {
-            this.m_uniforms[ndx].name = decl.m_uniforms[ndx].name;
-            this.m_uniforms[ndx].type = decl.m_uniforms[ndx].type;
-        }
+            this.m_uniforms[ndx] = new Uniform(decl.m_uniforms[ndx].name, decl.m_uniforms[ndx].type);
     };
 
     ShaderProgram.prototype = Object.create(rrShaders.VertexShader.prototype);
@@ -303,7 +303,14 @@ define([
     };
 
     return {
-        ShaderProgram: ShaderProgram
+        ShaderProgram: ShaderProgram,
+        ShaderProgramDeclaration: ShaderProgramDeclaration,
+        VertexAttribute: VertexAttribute,
+        VertexToFragmentVarying: VertexToFragmentVarying,
+        FragmentOutput: FragmentOutput,
+        Uniform: Uniform,
+        VertexSource: VertexSource,
+        FragmentSource: FragmentSource
     };
 
 });
