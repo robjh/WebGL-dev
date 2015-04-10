@@ -282,7 +282,8 @@ define([
 
         if (!argv.dont_construct) this._construct(argv);
     });
-    NumLayersTest.prototype = new glsFboCompletenessTests({dont_construct: true});
+    // TODO: implement glsFboCompletenessTests class
+//    NumLayersTest.prototype = new glsFboCompletenessTests({dont_construct: true});
 
 
 
@@ -297,8 +298,7 @@ define([
         tmp: {
             tmp: 1,
             ES3Checker: ES3Checker,
-            numLayersParams: numLayersParams,
-            TestBase: TestBase,
+            numLayersParams: numLayersParams
         },
         run: run,
     };

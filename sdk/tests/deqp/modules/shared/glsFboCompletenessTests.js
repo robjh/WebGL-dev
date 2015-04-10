@@ -75,7 +75,7 @@ define([
 
         this.getContext = this.getState;
 
-        this._construct = (function(argv) {
+        this._construct = function(argv) {
             console.log("TestBase Constructor");
         };
         
