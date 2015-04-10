@@ -22,6 +22,198 @@ define(['framework/common/tcuTexture', 'framework/common/tcuTextureUtil'],
      function(tcuTexture, tcuTextureUtil) {
     'use strict';
 
+    /**
+     * FlatColorShader inherits from sglrShaderProgram
+     * @constructor
+     * @param {gluShaderUtil.DataType} outputType
+     */
+    var FlatColorShader = function(outputType) {
+        // TODO: implement
+    };
+
+    FlatColorShader.prototype.setColor = function() {
+        // TODO: implement
+    };
+
+    FlatColorShader.prototype.shadeVertices = function() {
+        // TODO: implement
+    };
+
+    FlatColorShader.prototype.shadeFragments = function() {
+        // TODO: implement
+    };
+
+    /**
+     * GradientShader inherits from sglrShaderProgram
+     * @constructor
+     * @param {gluShaderUtil.DataType} outputType
+     */
+    var GradientShader = function(outputType) {
+        // TODO: implement
+    };
+
+    GradientShader.prototype.setGradient = function() {
+        // TODO: implement
+    };
+
+    GradientShader.prototype.shadeVertices = function() {
+        // TODO: implement
+    };
+
+    GradientShader.prototype.shadeFragments = function() {
+        // TODO: implement
+    };
+
+    /**
+     * Texture2DShader inherits from sglrShaderProgram
+     * @constructor
+     * @param {Array<gluShaderUtilDataType>} samplerTypes
+     * @param {gluShaderUtil.DataType} outputType
+     * @const @param {Array<number>} outScale - default [1.0, 1.0, 1.0, 1.0]
+     * @const @param {Array<number>} outBias - default [0.0, 0.0, 0.0, 0.0]
+     */
+    var Texture2DShader = function(samplerTypes, outputType, outScale, outBias) {
+        if (outScale === undefined) outScale = [1.0, 1.0, 1.0, 1.0];
+        if (outBias === undefined) outBias = [0.0, 0.0, 0.0, 0.0];
+        // TODO: implement
+    };
+
+    Texture2DShader.prototype.setUnit = function() {
+        // TODO: implement
+    };
+
+    Texture2DShader.prototype.setTexScaleBias = function() {
+        // TODO: implement
+    };
+
+    Texture2DShader.prototype.setOutScaleBias = function() {
+        // TODO: implement
+    };
+
+    Texture2DShader.prototype.setUniforms = function() {
+        // TODO: implement
+    };
+
+    Texture2DShader.prototype.shadeVertices = function() {
+        // TODO: implement
+    };
+
+    Texture2DShader.prototype.shadeFragments = function() {
+        // TODO: implement
+    };
+
+    /**
+     * TextureCubeShader inherits from sglrShaderProgram
+     * @constructor
+     * @param {gluShaderUtil.DataType} samplerType
+     * @param {glu.DataType} outputType
+     */
+    var TextureCubeShader = function(samplerType, outputType) {
+        // TODO: implement
+    };
+
+    TextureCubeShader.prototype.setFace = function() {
+        // TODO: implement
+    };
+
+    TextureCubeShader.prototype.setTexScaleBias = function() {
+        // TODO: implement
+    };
+
+    TextureCubeShader.prototype.setUniforms = function() {
+        // TODO: implement
+    };
+
+    TextureCubeShader.prototype.shadeVertices = function() {
+        // TODO: implement
+    };
+
+    TextureCubeShader.prototype.shadeFragments = function() {
+        // TODO: implement
+    };
+
+    /**
+     * Texture2DArrayShader inherits from sglrShaderProgram
+     * @constructor
+     * @param {gluShaderUtil.DataType} samplerType
+     * @param {glu.DataType} outputType
+     */
+    var Texture2DArrayShader = function(samplerType, outputType) {
+        // TODO: implement
+    };
+
+    Texture2DArrayShader.prototype.setLayer = function() {
+        // TODO: implement
+    };
+
+    Texture2DArrayShader.prototype.setTexScaleBias = function() {
+        // TODO: implement
+    };
+
+    Texture2DArrayShader.prototype.setUniforms = function() {
+        // TODO: implement
+    };
+
+    Texture2DArrayShader.prototype.shadeVertices = function() {
+        // TODO: implement
+    };
+
+    Texture2DArrayShader.prototype.shadeFragments = function() {
+        // TODO: implement
+    };
+
+    /**
+     * Texture3DShader inherits from sglrShaderProgram
+     * @constructor
+     * @param {gluShaderUtil.DataType} samplerType
+     * @param {glu.DataType} outputType
+     */
+    var Texture3DShader = function(samplerType, outputType) {
+        // TODO: implement
+    };
+
+    Texture3DShader.prototype.setDepth = function() {
+        // TODO: implement
+    };
+
+    Texture3DShader.prototype.setTexScaleBias = function() {
+        // TODO: implement
+    };
+
+    Texture3DShader.prototype.setUniforms = function() {
+        // TODO: implement
+    };
+
+    Texture3DShader.prototype.shadeVertices = function() {
+        // TODO: implement
+    };
+
+    Texture3DShader.prototype.shadeFragments = function() {
+        // TODO: implement
+    };
+
+    /**
+     * DepthGradientShader inherits from sglrShaderProgram
+     * @constructor
+     * @param {gluShaderUtil.DataType} samplerType
+     */
+    var DepthGradientShader = function(samplerType) {
+        // TODO: implement
+    };
+
+    DepthGradientShader.prototype.setUniforms = function() {
+        // TODO: implement
+    };
+
+    DepthGradientShader.prototype.shadeVertices = function() {
+        // TODO: implement
+    };
+
+    DepthGradientShader.prototype.shadeFragments = function() {
+        // TODO: implement
+    };
+
+
     var getFormatName = function(format) {
 
         switch (format) {
@@ -113,8 +305,14 @@ define(['framework/common/tcuTexture', 'framework/common/tcuTextureUtil'],
 
     return {
         getFormatName: getFormatName,
-        getFramebufferReadFormat: getFramebufferReadFormat
-
+        getFramebufferReadFormat: getFramebufferReadFormat,
+        FlatColorShader : FlatColorShader,
+        GradientShader : GradientShader,
+        Texture2DShader : Texture2DShader,
+        TextureCubeShader : TextureCubeShader,
+        Texture2DArrayShader : Texture2DArrayShader,
+        Texture3DShader : Texture3DShader,
+        DepthGradientShader : DepthGradientShader
     };
 
 });

@@ -55,8 +55,13 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcyTexture, gluTexture
         /** @type {number} */ var colorFormat = gl.RGBA8;
 
         //TODO: implement Texture2DShader, Texture2DShader
-        // /** @type {GradientShader} */ var gradShader (glu::TYPE_FLOAT_VEC4);
-        // /** @type {Texture2DShader} */ var texShader (DataTypes() << glu::TYPE_SAMPLER_2D, glu::TYPE_FLOAT_VEC4);
+        /** @type {fboTestUtil.GradientShader} */
+        var gradShader = new fboTestUtil.GradientShader(
+            gluShaderUtil.DataType.TYPE_FLOAT_VEC4);
+        /** @type {fboTestUtil.Texture2DShader} */
+        var texShader = new fboTestUtil.Texture2DShader(
+            [gluShaderUtil.DataType.TYPE_SAMPLER_2D],
+            gluShaderUtil.DataType.TYPE_FLOAT_VEC4);
 
         // TODO: implement getCurrentContext()
         /** @type {number} */ var gradShaderID = getCurrentContext().createProgram(gradShader);
@@ -116,8 +121,7 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcyTexture, gluTexture
             /** @type {number} */ var gridTex = 0;
             /** @type {tcuTexture.TextureLevel} */ var data = new tcuTexture.TextureLevel(gluTextureUtil.mapGLTransferFormat(format, dataType), texW, texH, 1);
 
-            // TODO: implement fillWithGrid
-            //tcu::fillWithGrid(data.getAccess(), this.m_cellSize, this.m_gridCellColorA, this.m_gridCellColorB);
+            tcuTextureUtil.fillWithGrid(data.getAccess(), this.m_cellSize, this.m_gridCellColorA, this.m_gridCellColorB);
 
             gridTex = gl.createTexture();
             gl.bindTexture(gl.TEXTURE_2D, gridTex);
@@ -477,9 +481,9 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcyTexture, gluTexture
                     /** @type {Array<number>} */ var dstSwz = swizzles[swzNdx].dstSwizzle;
                     /** @type {Array<number>} */ var srcRect = copyRects[rectNdx].srcRect.swizzle(srcSwz[0], srcSwz[1], srcSwz[2], srcSwz[3]);
                     /** @type {Array<number>} */ var dstRect = copyRects[rectNdx].dstRect.swizzle(dstSwz[0], dstSwz[1], dstSwz[2], dstSwz[3]);
-                    // TODO: fix context
-                    rectGroup.addChild(new BlitRectCase(m_context, (name + "_nearest"), "", gl.NEAREST, srcSize, srcRect, dstSize, dstRect));
-                    rectGroup.addChild(new BlitRectCase(m_context, (name + "_linear"), "", gl.LINEAR, srcSize, srcRect, dstSize, dstRect));
+
+                    rectGroup.addChild(new BlitRectCase((name + "_nearest"), "", gl.NEAREST, srcSize, srcRect, dstSize, dstRect));
+                    rectGroup.addChild(new BlitRectCase((name + "_linear"), "", gl.LINEAR, srcSize, srcRect, dstSize, dstRect));
                 }
             }
 
@@ -493,8 +497,8 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcyTexture, gluTexture
                     /** @type {Array<number>} */ var dstSwz    = swizzles[swzNdx].dstSwizzle;
                     /** @type {Array<number>} */ var srcRect    = filterConsistencyRects[rectNdx].srcRect.swizzle(srcSwz[0], srcSwz[1], srcSwz[2], srcSwz[3]);
                     /** @type {Array<number>} */ var dstRect    = filterConsistencyRects[rectNdx].dstRect.swizzle(dstSwz[0], dstSwz[1], dstSwz[2], dstSwz[3]);
-                    // TODO: fix context
-                    rectGroup.addChild(new BlitNearestFilterConsistencyCase(m_context, name, "Test consistency of the nearest filter", srcSize, srcRect, dstSize, dstRect));
+
+                    rectGroup.addChild(new BlitNearestFilterConsistencyCase(name, "Test consistency of the nearest filter", srcSize, srcRect, dstSize, dstRect));
                 }
             }
         }
@@ -522,8 +526,8 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcyTexture, gluTexture
                         continue; // Conversion not supported.
 
                     /** @type {string} */ var name = getFormatName(srcFormat) + "_to_" + getFormatName(dstFormat);
-                    // TODO: fix context
-                    conversionGroup.addChild(new BlitColorConversionCase(m_context, name, "", srcFormat, dstFormat, [127, 113]));
+
+                    conversionGroup.addChild(new BlitColorConversionCase(name, "", srcFormat, dstFormat, [127, 113]));
                 }
             }
         }
@@ -541,14 +545,14 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcyTexture, gluTexture
                 /** @type {boolean} */ var depth = texFmt.order == tcuTexture.ChannelOrder.D || texFmt.order == tcuTexture.ChannelOrder.DS;
                 /** @type {boolean} */ var stencil = texFmt.order == tcuTexture.ChannelOrder.S || texFmt.order == tcuTexture.ChannelOrder.DS;
                 /** @type {number} */ var buffers = (depth ? gl.DEPTH_BUFFER_BIT : 0) | (stencil ? gl.STENCIL_BUFFER_BIT : 0);
-                // TODO: fix context
-                depthStencilGroup.addChild(new BlitDepthStencilCase(m_context, (fmtName + "_basic"), "", format, buffers, [128, 128], [0, 0, 128, 128], buffers, [128, 128], [0, 0, 128, 128], buffers));
-                depthStencilGroup.addChild(new BlitDepthStencilCase(m_context, (fmtName + "_scale"), "", format, buffers, [127, 119], [10, 30, 100, 70], buffers, [111, 130], [20, 5, 80, 130], buffers));
+
+                depthStencilGroup.addChild(new BlitDepthStencilCase((fmtName + "_basic"), "", format, buffers, [128, 128], [0, 0, 128, 128], buffers, [128, 128], [0, 0, 128, 128], buffers));
+                depthStencilGroup.addChild(new BlitDepthStencilCase((fmtName + "_scale"), "", format, buffers, [127, 119], [10, 30, 100, 70], buffers, [111, 130], [20, 5, 80, 130], buffers));
 
                 if (depth && stencil)
                 {
-                    depthStencilGroup.addChild(new BlitDepthStencilCase(m_context, (fmtName + "_depth_only"), "", format, buffers, [128, 128], [0, 0, 128, 128], buffers, [128, 128], [0, 0, 128, 128], gl.DEPTH_BUFFER_BIT));
-                    depthStencilGroup.addChild(new BlitDepthStencilCase(m_context, (fmtName + "_stencil_only"), "", format, buffers, [128, 128], [0, 0, 128, 128], buffers, [128, 128], [0, 0, 128, 128], gl.STENCIL_BUFFER_BIT));
+                    depthStencilGroup.addChild(new BlitDepthStencilCase((fmtName + "_depth_only"), "", format, buffers, [128, 128], [0, 0, 128, 128], buffers, [128, 128], [0, 0, 128, 128], gl.DEPTH_BUFFER_BIT));
+                    depthStencilGroup.addChild(new BlitDepthStencilCase((fmtName + "_stencil_only"), "", format, buffers, [128, 128], [0, 0, 128, 128], buffers, [128, 128], [0, 0, 128, 128], gl.STENCIL_BUFFER_BIT));
                 }
             }
         }
@@ -586,8 +590,8 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcyTexture, gluTexture
                     fmtClass != tcuTextureUtil.TextureChannelClass.UNSIGNED_FIXED_POINT &&
                     fmtClass != tcuTextureUtil.TextureChannelClass.SIGNED_FIXED_POINT)
                     continue; // Conversion not supported.
-                //TODO: context...
-                defaultFbGroup.addChild(new BlitDefaultFramebufferCase(m_context, getFormatName(format), "", format, filter));
+
+                defaultFbGroup.addChild(new BlitDefaultFramebufferCase(getFormatName(format), "", format, filter));
 
                 for (var areaNdx = 0; areaNdx < areas.length; areaNdx++)
                 {
@@ -597,15 +601,15 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcyTexture, gluTexture
 
                     if (addNearest)
                     {
-                        // TODO: context....
-                        defaultFbGroup.addChild(new DefaultFramebufferBlitCase(m_context, (getFormatName(format) + "_nearest_" + name + "_blit_from_default"), "", format, gl.NEAREST, DefaultFramebufferBlitCase.BLIT_DEFAULT_TO_TARGET, areas[areaNdx].area));
-                        defaultFbGroup.addChild(new DefaultFramebufferBlitCase(m_context, (getFormatName(format) + "_nearest_" + name + "_blit_to_default"), "", format, gl.NEAREST, DefaultFramebufferBlitCase.BLIT_TO_DEFAULT_FROM_TARGET, areas[areaNdx].area));
+
+                        defaultFbGroup.addChild(new DefaultFramebufferBlitCase((getFormatName(format) + "_nearest_" + name + "_blit_from_default"), "", format, gl.NEAREST, DefaultFramebufferBlitCase.BLIT_DEFAULT_TO_TARGET, areas[areaNdx].area));
+                        defaultFbGroup.addChild(new DefaultFramebufferBlitCase((getFormatName(format) + "_nearest_" + name + "_blit_to_default"), "", format, gl.NEAREST, DefaultFramebufferBlitCase.BLIT_TO_DEFAULT_FROM_TARGET, areas[areaNdx].area));
                     }
 
                     if (addLinear)
                     {
-                        defaultFbGroup.addChild(new DefaultFramebufferBlitCase(m_context, (getFormatName(format) + "_linear_" + name + "_blit_from_default"), "", format, gl.LINEAR, DefaultFramebufferBlitCase.BLIT_DEFAULT_TO_TARGET, areas[areaNdx].area));
-                        defaultFbGroup.addChild(new DefaultFramebufferBlitCase(m_context, (getFormatName(format) + "_linear_" + name + "_blit_to_default"), "", format, gl.LINEAR, DefaultFramebufferBlitCase.BLIT_TO_DEFAULT_FROM_TARGET, areas[areaNdx].area));
+                        defaultFbGroup.addChild(new DefaultFramebufferBlitCase((getFormatName(format) + "_linear_" + name + "_blit_from_default"), "", format, gl.LINEAR, DefaultFramebufferBlitCase.BLIT_DEFAULT_TO_TARGET, areas[areaNdx].area));
+                        defaultFbGroup.addChild(new DefaultFramebufferBlitCase((getFormatName(format) + "_linear_" + name + "_blit_to_default"), "", format, gl.LINEAR, DefaultFramebufferBlitCase.BLIT_TO_DEFAULT_FROM_TARGET, areas[areaNdx].area));
                     }
                 }
             }
@@ -619,12 +623,12 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcyTexture, gluTexture
     FramebufferBlitTests.getChannelMask = function(order) {
         switch (order)
         {
-            case tcuTexture.ChannelOrder::R: return [true, false, false, false];
-            case tcuTexture.ChannelOrder::RG: return [true, true, false, false];
-            case tcuTexture.ChannelOrder::RGB: return [true, true, true, false];
-            case tcuTexture.ChannelOrder::RGBA: return [true, true, true, true];
-            case tcuTexture.ChannelOrder::sRGB: return [true, true, true, false];
-            case tcuTexture.ChannelOrder::sRGBA: return [true, true, true, true];
+            case tcuTexture.ChannelOrder.R: return [true, false, false, false];
+            case tcuTexture.ChannelOrder.RG: return [true, true, false, false];
+            case tcuTexture.ChannelOrder.RGB: return [true, true, true, false];
+            case tcuTexture.ChannelOrder.RGBA: return [true, true, true, true];
+            case tcuTexture.ChannelOrder.sRGB: return [true, true, true, false];
+            case tcuTexture.ChannelOrder.sRGBA: return [true, true, true, true];
             default:
                 DE_ASSERT(false);
                 return [false, false, false, false];
@@ -684,15 +688,17 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcyTexture, gluTexture
                                                      tcuTextureUtil.select(dstFmtRangeInfo.valueMax, srcFmtRangeInfo.valueMax, tcu::logicalOr(tcu::logicalNot(copyMask), srcIsGreater)),
                                                      tcuTextureUtil.select(dstFmtRangeInfo.lookupScale, srcFmtRangeInfo.lookupScale, tcu::logicalOr(tcu::logicalNot(copyMask), srcIsGreater)),
                                                      tcuTextureUtil.select(dstFmtRangeInfo.lookupBias, srcFmtRangeInfo.lookupBias, tcu::logicalOr(tcu::logicalNot(copyMask), srcIsGreater)));
-        //
-        // // Shaders.
+
+        // Shaders.
         // TODO: implement GradientShader
-        // /** @tpye {GradientShader} */ var gradientToSrcShader     (srcOutputType);
-        // /** @tpye {GradientShader} */ var gradientToDstShader     (dstOutputType);
-        //
+        /** @tpye {fboTestUtil.GradientShader} */
+        var gradientToSrcShader = new fboTestUtil.GradientShader(srcOutputType);
+        /** @tpye {fboTestUtil.GradientShader} */
+        var gradientToDstShader = new fboTestUtil.GradientShader(dstOutputType);
+
         /** @type {number} */ var gradShaderSrcID = getCurrentContext().createProgram(gradientToSrcShader);
         /** @type {number} */ var gradShaderDstID = getCurrentContext().createProgram(gradientToDstShader);
-        //
+
         /** @type {number} */ var srcFbo;
         /** @type {number} */ var dstFbo;
         /** @type {number} */ var srcRbo;
@@ -816,11 +822,15 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcyTexture, gluTexture
      */
     BlitDepthStencilCase.prototype.render = function(dst) {
         /** @const @type {number} */ var colorFormat = gl.RGBA8;
-
         // TODO:implement GradientShader, Texture2DShader, FlatColorShader
-        // /** @tpye {GradientShader} */ var gradShader (glu::TYPE_FLOAT_VEC4);
-        // /** @tpye {Texture2DShader} */ var texShader (DataTypes() << glu::TYPE_SAMPLER_2D, glu::TYPE_FLOAT_VEC4);
-        // /** @tpye {FlatColorShader} */ var flatShader (glu::TYPE_FLOAT_VEC4);
+        /** @type {GradientShader} */
+        var gradShader = new fboTestUtil.GradientShader(gluShaderUtil.DataType.FLOAT_VEC4);
+        /** @type {Texture2DShader} */
+        var texShader = new fboTestUtil.Texture2DShader(
+            [gluShaderUtil.DataType.SAMPLER_2D] ,
+            gluShaderUtil.DataType.FLOAT_VEC4);
+        /** @type {FlatColorShader} */
+        var flatShader = new fboTestUtil.FlatColorShader(gluShaderUtil.DataType.FLOAT_VEC4);
 
         // TODO: implement getCurrentContext
         /** @type {number} */ var flatShaderID = getCurrentContext().createProgram(flatShader);
@@ -912,8 +922,7 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcyTexture, gluTexture
             /** @type {number} */ var gridTex = 0;
             /** @type {tcuTexture.TextureLevel} */ var data = new tcuTexture.TextureLevel(gluTextueUtil.mapGLTransferFormat(format, dataType), texW, texH, 1);
 
-            // TODO: implement fillWithGrid
-            //tcu::fillWithGrid(data.getAccess(), 8, [0.2, 0.7, 0.1, 1.0], [0.7, 0.1, 0.5, 0.8]);
+            tcuTextureUtil.fillWithGrid(data.getAccess(), 8, [0.2, 0.7, 0.1, 1.0], [0.7, 0.1, 0.5, 0.8]);
 
             gridTex = gl.createTexture();
             gl.bindTexture(gl.TEXTURE_2D, gridTex);
@@ -997,8 +1006,9 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcyTexture, gluTexture
 		/** @type {tcuTexture.TextureFormat} */ var colorFormat = gluTextureUtil.mapGLInternalFormat(m_format);
 		/** @type {gluTextureUtil.TransferFormat} */ var transferFmt = gluTextureUtil.getTransferFormat(colorFormat);
         // TODO: implement GradientShader, Texture2DShader
-		// /** @type {GradientShader} */ var gradShader (glu::TYPE_FLOAT_VEC4);
-		// /** @type {Texture2DShader} */ var texShader (DataTypes() << glu::getSampler2DType(colorFormat), glu::TYPE_FLOAT_VEC4);
+		/** @type {fboTestUtil.GradientShader} */ var gradShader = new fboTestUtil.GradientShader(gluShaderUtil.DataType.FLOAT_VEC4);
+        // TODO:IMPLEMENT getSampler2DType
+		/** @type {fboTestUtil.Texture2DShader} */ var texShader = new fboTestUtil.Texture2DShader([glu.getSampler2DType(colorFormat)], gluShaderUtil.DataType.FLOAT_VEC4);
         // TODO: implement getCurrentContext
 		/** @type {number} */ var gradShaderID = getCurrentContext().createProgram(gradShader);
 		/** @type {number} */ var texShaderID = getCurrentContext().createProgram(texShader);
@@ -1065,7 +1075,7 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcyTexture, gluTexture
         //m_testCtx.getLog() << TestLog::Message << "Comparing images, threshold: " << threshold << TestLog::EndMessage;
 
         // TODO: implement bilinearCompare
-        return tcu.bilinearCompare(m_testCtx.getLog(), "Result", "Image comparison result", reference.getAccess(), result.getAccess(), threshold, null /*tcu::COMPARE_LOG_RESULT*/);
+        return tcu.bilinearCompare("Result", "Image comparison result", reference.getAccess(), result.getAccess(), threshold, null /*tcu::COMPARE_LOG_RESULT*/);
 
     };
 
@@ -1182,7 +1192,10 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcyTexture, gluTexture
 		// Render grid to source framebuffer
 		{
             // TODO: implement Texture2DShader
-            ///** @type {Texture2DShader} */ var texShader (DataTypes() << glu::TYPE_SAMPLER_2D, glu::TYPE_FLOAT_VEC4);
+            /** @type {fboTestUtil.Texture2DShader} */
+            var texShader = new fboTestUtil.Texture2DShader(
+                [gluShaderUtil.DataType.TYPE_SAMPLER_2D],
+                gluShaderUtil.DataType.TYPE_FLOAT_VEC4);
             /** @const @type {number} */ var texShaderID = getCurrentContext().createProgram(texShader);
             /** @const @type {number} */ var internalFormat = gl.RGBA8;
             /** @const @type {number} */ var format = gl.RGBA;
@@ -1191,8 +1204,8 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcyTexture, gluTexture
             /** @const @type {number} */ var gridTexH = 128;
             /** @type {number} */ var gridTex = 0;
             /** @type {tcuTexture.TextureLevel} */ var data = new tcuTexture.TextureLevel(gluTextueUtil.mapGLTransferFormat(format, dataType), gridTexW, gridTexH, 1);
-            // TODO: implement fillWithGrid
-			//tcu::fillWithGrid(data.getAccess(), 9, [0.9, 0.5, 0.1, 0.9], [0.2, 0.8, 0.2, 0.7]);
+
+			tcuTextureUtil.fillWithGrid(data.getAccess(), 9, [0.9, 0.5, 0.1, 0.9], [0.2, 0.8, 0.2, 0.7]);
 
             gridTex = gl.createTexture();
 			gl.BindTexture(gl.TEXTURE_2D, gridTex);
