@@ -142,7 +142,7 @@ define([
     */
     FboTestCase.prototype.clearColorBuffer = function(format, value) {
         if (value === undefined) value = [0.0, 0.0, 0.0, 0.0];
-        // TODO: implement fboTestUtil.clearColorBuffer, getCurrentContext
+        // TODO: implement getCurrentContext
         fboTestUtil.clearColorBuffer(getCurrentContext(), format, value);
     };
 
@@ -171,8 +171,7 @@ define([
         preCheck(); // TODO: implement
 
         // Render using GLES3.
-        try
-        {
+        try {
             /** @type {GLContext} */ var context = new sglrReferenceContext.GLContext(
                                                             renderCtx,
                                                             null /*log*/,
@@ -188,10 +187,8 @@ define([
 
             setContext(null);
         }
-        catch (/** @const @type {fboTestUtil.FboIncompleteException} */ e)
-        {
-            if (e.getReason() == gl.FRAMEBUFFER_UNSUPPORTED)
-            {
+        catch (/** @const @type {fboTestUtil.FboIncompleteException} */ e) {
+            if (e.getReason() == gl.FRAMEBUFFER_UNSUPPORTED) {
                 // log << e;
                 // m_testCtx.setTestResult(QP_TEST_RESULT_NOT_SUPPORTED, 'Not supported');
                 assertMsgOptions(false, 'Not supported', true, false);
@@ -237,8 +234,7 @@ define([
     * @return {boolean}
     */
     FboTestCase.isRequiredFormat = function(format) {
-        switch (format)
-        {
+        switch (format) {
             // Color-renderable formats
             case gl.RGBA32I:
             case gl.RGBA32UI:
@@ -299,8 +295,7 @@ define([
 
         DE_ASSERT(!isRequiredFormat(format));
 
-        switch (format)
-        {
+        switch (format) {
             case gl.RGB16F:
                 out.push('GL_EXT_color_buffer_half_float');
                 break;
@@ -330,8 +325,7 @@ define([
     * @return {boolean}
     */
     FboTestCase.isAnyExtensionSupported = function(context, requiredExts) {
-        for (var iter in requiredExts)
-        {
+        for (var iter in requiredExts) {
             /** @const @type {string} */ var extension = iter;
 
             if (context.getContextInfo().isExtensionSupported(extension))
