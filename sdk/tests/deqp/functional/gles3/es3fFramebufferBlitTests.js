@@ -18,7 +18,7 @@
  *
  */
 
-define([], function(tcuTestCase, fboTestCase, tcuSurface, tcyTexture, gluTextureUtil, tcuTextureUtil, deMath) {
+define([], function(tcuTestCase, fboTestCase, tcuSurface, tcuTexture, gluTextureUtil, tcuTextureUtil, deMath, tcuRGBA, fboTestUtil) {
 
     /**
     * BlitRectCase class, inherits from FboTestCase
@@ -146,7 +146,7 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcyTexture, gluTexture
         // Read back results.
         gl.bindFramebuffer(gl.READ_FRAMEBUFFER, dstFbo);
 
-        fboTestCase.readPixelsUsingFormat(dst, 0, 0, this.m_dstSize[0], this.m_dstSize[1],
+        this.readPixelsUsingFormat(dst, 0, 0, this.m_dstSize[0], this.m_dstSize[1],
                                           gluTextureUtil.mapGLInternalFormat(colorFormat),
                                           [1.0, 1.0, 1.0, 1.0],
                                           [0.0, 0.0, 0.0, 0.0]);
@@ -208,8 +208,8 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcyTexture, gluTexture
             deMath.clamp(Math.max(this.m_dstRect[1], this.m_dstRect[3]), 0, result.getHeight())];
 
         /** @const @type {tcuRGBA.RGBA} */ var baseColor = result.getPixel(destinationArea[0], destinationArea[1]);
-        // TODO: implement compareThreshold
-        /** @const @type {boolean} */ var signConfig = tcu.compareThreshold(baseColor, cellColorA, threshold);
+
+        /** @const @type {boolean} */ var signConfig = tcuRGBA.compareThreshold(baseColor, cellColorA, threshold);
 
         /** @type {boolean} */ var error = false;
         /** @type {tcuSurface.Surface} */ var errorMask = new tcuSurface.Surface(result.getWidth(), result.getHeight());
@@ -238,11 +238,10 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcyTexture, gluTexture
                 /** @const @type {tcuRGBA.RGBA} */
                 var color = result.getPixel(destinationArea[0] + dx, destinationArea[1] + dy);
 
-                // TODO: implement compareThreshold
                 /** @const @type {boolean} */
                 var isValidColor =
-                            tcu.compareThreshold(color, cellColorA, threshold) ||
-                            tcu.compareThreshold(color, cellColorB, threshold);
+                            tcuRGBA.compareThreshold(color, cellColorA, threshold) ||
+                            tcuRGBA.compareThreshold(color, cellColorB, threshold);
 
                 if (!isValidColor)
                 {
@@ -272,10 +271,9 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcyTexture, gluTexture
         for (var dx = 0; dx < destinationArea[2] - destinationArea[0]; ++dx)
         {
             /** @const @type {tcuRGBA.RGBA} */ var color = result.getPixel(destinationArea[0] + dx, destinationArea[1]);
-            // TODO: implement compareThreshold
-            if (tcu.compareThreshold(color, cellColorA, threshold))
+            if (tcuRGBA.compareThreshold(color, cellColorA, threshold))
                 horisontalSign[dx] = true;
-            else if (tcu.compareThreshold(color, cellColorB, threshold))
+            else if (tcuRGBA.compareThreshold(color, cellColorB, threshold))
                 horisontalSign[dx] = false;
             else
                 DE_ASSERT(false);
@@ -284,9 +282,9 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcyTexture, gluTexture
         {
             /** @const @type {tcuRGBA.RGBA} */ var color = result.getPixel(destinationArea[0], destinationArea[1] + dy);
 
-            if (tcu.compareThreshold(color, cellColorA, threshold))
+            if (tcuRGBA.compareThreshold(color, cellColorA, threshold))
                 verticalSign[dy] = true;
-            else if (tcu::compareThreshold(color, cellColorB, threshold))
+            else if (tcuRGBA.compareThreshold(color, cellColorB, threshold))
                 verticalSign[dy] = false;
             else
                 DE_ASSERT(false);
@@ -299,7 +297,7 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcyTexture, gluTexture
             for (var dx = 0; dx < destinationArea[2] - destinationArea[0]; ++dx)
             {
                 /** @const @type {tcuRGBA.RGBA} */ var color = result.getPixel(destinationArea[0] + dx, destinationArea[1] + dy);
-                /** @const @type {boolean} */ var resultSign = tcu.compareThreshold(cellColorA, color, threshold);
+                /** @const @type {boolean} */ var resultSign = tcuRGBA.compareThreshold(cellColorA, color, threshold);
                 /** @const @type {boolean} */ var correctSign = (horisontalSign[dx] == verticalSign[dy]) == signConfig;
 
                 if (resultSign != correctSign)
@@ -650,7 +648,7 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcyTexture, gluTexture
     BlitColorConversionCase.prototype.constructor = BlitColorConversionCase;
 
     BlitColorConversionCase.prototype.preCheck = function() {
-        this.checkFormatSupport(this.m_srcFormat); // TODO: implement
+        this.checkFormatSupport(this.m_srcFormat);
         this.checkFormatSupport(this.m_dstFormat);
     };
 
@@ -726,9 +724,10 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcyTexture, gluTexture
         gl.viewport(0, 0, m_size[0], m_size[1]);
 
         // Render gradients.
-        // TODO: implement gradientToDstShader, , getCurrentContext, drawQuad
+        // TODO: implement getCurrentContext, drawQuad
         gl.bindFramebuffer(gl.FRAMEBUFFER, srcFbo);
         gradientToDstShader.setGradient(getCurrentContext(), gradShaderDstID, dstRangeInfo.valueMax, dstRangeInfo.valueMin);
+
         // sglr::drawQuad(getCurrentContext(), gradShaderDstID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, dstFbo);
@@ -743,7 +742,7 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcyTexture, gluTexture
 
         // Read results.
         gl.bindFramebuffer(gl.READ_FRAMEBUFFER, dstFbo);
-        readPixels(dst, 0, 0, this.m_size[0], this.m_size[1], dstFormat, dstRangeInfo.lookupScale, dstRangeInfo.lookupBias);
+        this.readPixelsUsingFormat(dst, 0, 0, this.m_size[0], this.m_size[1], dstFormat, dstRangeInfo.lookupScale, dstRangeInfo.lookupBias);
     };
 
     /**
@@ -751,7 +750,6 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcyTexture, gluTexture
      * @param {tcuSurface.Surface} result
      */
     BlitColorConversionCase.prototype.compare = function(reference, result) {
-        // TODO: implement
         /** @const @type {tcuTexture.TextureFormat} */ var srcFormat = gluTextureUtil.mapGLInternalFormat(m_srcFormat);
         /** @const @type {tcuTexture.TextureFormat} */ var dstFormat = gluTextureUtil.mapGLInternalFormat(m_dstFormat);
         /** @const @type {boolean} */ var srcIsSRGB = (srcFormat.order == tcuTexture.ChannelOrder.sRGBA);
@@ -759,16 +757,11 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcyTexture, gluTexture
         /** @type {tcuRGBA.RGBA} */ var threshold = new tcuRGBA.RGBA();
 
         if (dstIsSRGB)
-        {
-            // TODO: implement getToSRGBConversionThreshold
-            threshold = getToSRGBConversionThreshold(srcFormat, dstFormat);
-        }
-        else
-        {
-            /** @const @type {tcuRGBA.RGBA} */ var srcMaxDiff = getFormatThreshold(srcFormat) * (srcIsSRGB ? 2 : 1);
-            /** @const @type {tcuRGBA.RGBA} */ var dstMaxDiff = getFormatThreshold(dstFormat);
-            // TODO: implement mac
-            //threshold = tcu::max(srcMaxDiff, dstMaxDiff);
+            threshold = fboTestUtil.getToSRGBConversionThreshold(srcFormat, dstFormat);
+        else {
+            /** @const @type {tcuRGBA.RGBA} */ var srcMaxDiff = fboTestUtil.getFormatThreshold(srcFormat) * (srcIsSRGB ? 2 : 1);
+            /** @const @type {tcuRGBA.RGBA} */ var dstMaxDiff = fboTestUtil.getFormatThreshold(dstFormat);
+            threshold = tcuRGBA.max(srcMaxDiff, dstMaxDiff);
         }
 
         // m_testCtx.getLog() << tcu::TestLog::Message << "threshold = " << threshold << tcu::TestLog::EndMessage;
@@ -944,7 +937,6 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcyTexture, gluTexture
         gl.stencilOp(gl.KEEP, gl.DECR, gl.KEEP);
         gl.stencilFunc(gl.ALWAYS, 0, 0xffu);
 
-        // TODO: implement setColor
         flatShader.setColor(getCurrentContext(), flatShaderID, [0.0, 0.0, 1.0, 1.0]);
         // TODO: implement drawQuad
         sglr::drawQuad(getCurrentContext(), flatShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
@@ -955,12 +947,11 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcyTexture, gluTexture
             gl.disable(gl.DEPTH_TEST);
             gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
             gl.stencilFunc(gl.EQUAL, 6, 0xffu);
-            // TODO: implement setColor, drawQuad
+            // TODO: implement drawQuad
             flatShader.setColor(getCurrentContext(), flatShaderID, [0.0, 1.0, 0.0, 1.0]);
             //sglr::drawQuad(*getCurrentContext(), flatShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
         }
-        // TODO: readPixels
-        readPixels(dst, 0, 0, this.m_dstSize[0], this.m_dstSize[1], gluTextureUtil.mapGLInternalFormat(colorFormat), [1.0, 1.0, 1.0, 1.0], [0.0, 0.0, 0.0, 0.0]);
+        this.readPixelsUsingFormat(dst, 0, 0, this.m_dstSize[0], this.m_dstSize[1], gluTextureUtil.mapGLInternalFormat(colorFormat), [1.0, 1.0, 1.0, 1.0], [0.0, 0.0, 0.0, 0.0]);
 
     };
 
@@ -984,11 +975,11 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcyTexture, gluTexture
      * @protected
      */
     BlitDefaultFramebufferCase.prototype.preCheck = function() {
-        // TODO: implement
-        // if (m_context.getRenderTarget().getNumSamples() > 0)
-		// 	throw tcu::NotSupportedError("Not supported in MSAA config");
-        //
-		// this.checkFormatSupport(m_format);
+        // TODO: m_context?
+        if (m_context.getRenderTarget().getNumSamples() > 0)
+			throw new Error("Not supported in MSAA config");
+
+		this.checkFormatSupport(m_format);
     };
 
     /**
@@ -1054,7 +1045,7 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcyTexture, gluTexture
 
         // TODO: context
 		gl.bindFramebuffer(gl.READ_FRAMEBUFFER, m_context.getRenderContext().getDefaultFramebuffer());
-		readPixels(dst, 0, 0, getWidth(), getHeight());
+		this.readPixels(dst, 0, 0, getWidth(), getHeight());
     };
 
     /**
@@ -1064,11 +1055,11 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcyTexture, gluTexture
      */
     BlitDefaultFramebufferCase.prototype.compare = function(reference, result) {
         // TODO: implement
-        //const tcu::RGBA threshold (tcu::max(getFormatThreshold(m_format), tcu::RGBA(12, 12, 12, 12)));
+        /** @const @type {tcuRGBA.RGBA} */
+        var threshold = tcuRGBA.max(fboTestUtil.getFormatThreshold(m_format), tcuRGBA.newRGBAComponents(12, 12, 12, 12)));
 
         //m_testCtx.getLog() << TestLog::Message << "Comparing images, threshold: " << threshold << TestLog::EndMessage;
 
-        // TODO: implement bilinearCompare
         return tcu.bilinearCompare("Result", "Image comparison result", reference.getAccess(), result.getAccess(), threshold, null /*tcu::COMPARE_LOG_RESULT*/);
 
     };
@@ -1245,9 +1236,9 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcyTexture, gluTexture
 		gl.bindFramebuffer(gl.FRAMEBUFFER, targetFbo);
 
 		if (this.m_blitDir == BlitDirection.BLIT_TO_DEFAULT_FROM_TARGET)
-			readPixels(dst, this.m_interestingArea[0], this.m_interestingArea[1], this.m_interestingArea[2] - this.m_interestingArea[0], this.m_interestingArea[3] - this.m_interestingArea[1]);
+			this.readPixels(dst, this.m_interestingArea[0], this.m_interestingArea[1], this.m_interestingArea[2] - this.m_interestingArea[0], this.m_interestingArea[3] - this.m_interestingArea[1]);
 		else
-			readPixels(dst, this.m_interestingArea[0], this.m_interestingArea[1], this.m_interestingArea[2] - this.m_interestingArea[0], this.m_interestingArea[3] - this.m_interestingArea[1], colorFormat, [1.0, 1.0, 1.0, 1.0], [0.0, 0.0, 0.0, 0.0]);
+            this.readPixelsUsingFormat(dst, this.m_interestingArea[0], this.m_interestingArea[1], this.m_interestingArea[2] - this.m_interestingArea[0], this.m_interestingArea[3] - this.m_interestingArea[1], colorFormat, [1.0, 1.0, 1.0, 1.0], [0.0, 0.0, 0.0, 0.0]);
 
 		this.checkError();
     };

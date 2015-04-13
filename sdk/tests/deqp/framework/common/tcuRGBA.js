@@ -187,7 +187,7 @@ define(['framework/delibs/debase/deMath'], function(deMath) {
     /**
      * @return {Array.<number>}
      */
-    RGBA.prototype.toVec = function() {
+    RGBA.prototype.toIVec = function() {
         return [
             this.getRed(),
             this.getGreen(),
@@ -234,6 +234,20 @@ define(['framework/delibs/debase/deMath'], function(deMath) {
         );
     };
 
+    /**
+     * @param {RGBA} a
+     * @param {RGBA} b
+     * @return {RGBA}
+     */
+    var max = function(a, b) {
+        return newRGBAComponents(
+            Math.max(a.getRed(), b.getRed()),
+            Math.max(a.getGreen(), b.getGreen()),
+            Math.max(a.getBlue(), b.getBlue()),
+            Math.max(a.getAlpha(), b.getAlpha())
+        );
+    };
+
     // Color constants
     RGBA.red = new RGBA(0xFF, 0, 0, 0xFF);
     RGBA.green = new RGBA(0, 0xFF, 0, 0xFF);
@@ -248,6 +262,7 @@ define(['framework/delibs/debase/deMath'], function(deMath) {
         newRGBAValue: newRGBAValue,
         newRGBAFromArray: newRGBAFromArray,
         compareThreshold: compareThreshold,
-        computeAbsDiff: computeAbsDiff
+        computeAbsDiff: computeAbsDiff,
+        max: max
     };
 });

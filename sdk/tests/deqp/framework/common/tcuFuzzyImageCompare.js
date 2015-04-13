@@ -223,15 +223,19 @@ define([
         /** @type {number} */ var kw = kernelX.length;
         /** @type {number} */ var kh = kernelY.length;
 
+        /** @type {Array<number>} */ var sum;
+        /** @type {number} */ var f;
+        /** @type {number} */ var p;
+
         // Horizontal pass
         // \note Temporary surface is written in column-wise order
         for (var j = 0; j < src.getHeight(); j++) {
             for (var i = 0; i < src.getWidth(); i++) {
-                /** @type {Array<number>} */ var sum = new Array(4);
+                sum = new Array(4);
                 sum[0] = sum[1] = sum[2] = sum[3] = 0;
                 for (var kx = 0; kx < kw; kx++) {
-                    /** @type {number} */ var f = kernelX[kw - kx - 1];
-                    /** @type {number} */ var p = readUnorm8(src, deMath.clamp(i + kx - shiftX, 0, src.getWidth()-1), j, SrcChannels);
+                    f = kernelX[kw - kx - 1];
+                    p = readUnorm8(src, deMath.clamp(i + kx - shiftX, 0, src.getWidth()-1), j, SrcChannels);
                     sum = deMath.add(sum, deMath.multiply(toFloatVec(p), toFloatVec(f)));
                 }
 
@@ -242,11 +246,11 @@ define([
         // Vertical pass
         for (var j = 0; j < src.getHeight(); j++) {
             for (var i = 0; i < src.getWidth(); i++) {
-                /** @type {Array<number>} */ var sum = new Array(4);
+                sum = new Array(4);
                 sum[0] = sum[1] = sum[2] = sum[3] = 0;
                 for (var ky = 0; ky < kh; ky++) {
-                    /** @type {number} */ var f = kernelY[kh - ky - 1];
-                    /** @type {number} */ var p = readUnorm8(tmpAccess, deMath.clamp(j + ky - shiftY, 0, tmp.getWidth()-1), i, DstChannels);
+                    f = kernelY[kh - ky - 1];
+                    p = readUnorm8(tmpAccess, deMath.clamp(j + ky - shiftY, 0, tmp.getWidth()-1), i, DstChannels);
                     sum = deMath.add(sum, deMath.multiply(toFloatVec(p), toFloatVec(f)));
                 }
 
@@ -286,9 +290,12 @@ define([
             [ 1,  1]
         ];
 
+        /** @type {number} */ var dx;
+        /** @type {number} */ var dy;
+
         for (var d = 0; d < s_coords.length; d++) {
-            /** @type {number} */ var dx = x + s_coords[d][0];
-            /** @type {number} */ var dy = y + s_coords[d][1];
+            dx = x + s_coords[d][0];
+            dy = y + s_coords[d][1];
 
             if (!deMath.deInBounds32(dx, 0, surface.getWidth()) || !deMath.deInBounds32(dy, 0, surface.getHeight()))
                 continue;
@@ -300,8 +307,8 @@ define([
 
         // Random bilinear-interpolated samples around (x, y)
         for (var s = 0; s < 32; s++) {
-            /** @type {number} */ var dx = x + rnd.getFloat() * 2.0 - 0.5;
-            /** @type {number} */ var dy = y + rnd.getFloat() * 2.0 - 0.5;
+            dx = x + rnd.getFloat() * 2.0 - 0.5;
+            dy = y + rnd.getFloat() * 2.0 - 0.5;
 
             /** @type {number} */ var sample = bilinearSample(surface, dx, dy, NumChannels);
 

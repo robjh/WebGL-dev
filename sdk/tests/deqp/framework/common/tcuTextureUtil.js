@@ -295,12 +295,13 @@ var select = function(a, b, cond) {
 
     var dst = [];
     for (var i = 0; i < cond.length; i++)
-        if (cond[i])
+        if (cond[i]) {
             if (a.length) dst.push(a[i]);
             else dst.push(a);
-        else
+        } else {
             if (b.length) dst.push(b[i]);
             else dst.push(b);
+        }
     return dst;
 };
 
@@ -457,8 +458,7 @@ var linearToSRGB = function(cl) {
  * @param {Array<number>} colorA
  * @param {Array<number>} colorB
  */
-var fillWithGrid = function(access, cellSize, colorA, colorB)
-{
+var fillWithGrid = function(access, cellSize, colorA, colorB) {
     if (access.getHeight() == 1 && access.getDepth() == 1)
         fillWithGrid1D(access, cellSize, colorA, colorB);
     else if (access.getDepth() == 1)
@@ -473,10 +473,8 @@ var fillWithGrid = function(access, cellSize, colorA, colorB)
  * @param {Array<number>} colorA
  * @param {Array<number>} colorB
  */
-var fillWithGrid1D = function(access, cellSize, colorA, colorB)
-{
-    for (var x = 0; x < access.getWidth(); x++)
-    {
+var fillWithGrid1D = function(access, cellSize, colorA, colorB) {
+    for (var x = 0; x < access.getWidth(); x++) {
         var mx = Math.floor(x / cellSize) % 2;
 
         if (mx)
@@ -492,11 +490,9 @@ var fillWithGrid1D = function(access, cellSize, colorA, colorB)
  * @param {Array<number>} colorA
  * @param {Array<number>} colorB
  */
-var fillWithGrid2D = function(access, cellSize, colorA, colorB)
-{
+var fillWithGrid2D = function(access, cellSize, colorA, colorB) {
     for (var y = 0; y < access.getHeight(); y++)
-        for (var x = 0; x < access.getWidth(); x++)
-        {
+        for (var x = 0; x < access.getWidth(); x++) {
             var mx = Math.floor(x / cellSize) % 2;
             var my = Math.floor(y / cellSize) % 2;
 
@@ -513,12 +509,10 @@ var fillWithGrid2D = function(access, cellSize, colorA, colorB)
  * @param {Array<number>} colorA
  * @param {Array<number>} colorB
  */
-var fillWithGrid3D = function(access, cellSize, colorA, colorB)
-{
+var fillWithGrid3D = function(access, cellSize, colorA, colorB) {
     for (var z = 0; z < access.getDepth(); z++)
         for (var y = 0; y < access.getHeight(); y++)
-            for (var x = 0; x < access.getWidth(); x++)
-            {
+            for (var x = 0; x < access.getWidth(); x++) {
                 var mx = Math.floor(x / cellSize) % 2;
                 var my = Math.floor(y / cellSize) % 2;
                 var mz = Math.floor(z / cellSize) % 2;
@@ -528,6 +522,76 @@ var fillWithGrid3D = function(access, cellSize, colorA, colorB)
                 else
                     access.setPixel(colorA, x, y, z);
             }
+};
+
+/**
+ * @const @param {tcuTexture.TextureFormat} format
+ * @return {Array<number>}
+ */
+var getTextureFormatMantissaBitDepth = function(format) {
+    /** @type {Array<number>} */ var chnBits = getChannelMantissaBitDepth(format.type);
+    /** @type {Array<boolean>} */ var chnMask = [false, false, false, false];
+    /** @type {Array<number>} */ var chnSwz = [0, 1, 2, 3];
+
+    switch (format.order) {
+        case tcuTexture.ChannelOrder.R: chnMask = [true, false, false, false]; break;
+        case tcuTexture.ChannelOrder.A: chnMask = [false, false, false, true]; break;
+        case tcuTexture.ChannelOrder.RA: chnMask = [true, false, false, true]; break;
+        case tcuTexture.ChannelOrder.L: chnMask = [true, true, true, false]; break;
+        case tcuTexture.ChannelOrder.I: chnMask = [true, true, true, true]; break;
+        case tcuTexture.ChannelOrder.LA: chnMask = [true, true, true, true]; break;
+        case tcuTexture.ChannelOrder.RG: chnMask = [true, true, false, false]; break;
+        case tcuTexture.ChannelOrder.RGB: chnMask = [true, true, true, false]; break;
+        case tcuTexture.ChannelOrder.RGBA: chnMask = [true, true, true, true]; break;
+        case tcuTexture.ChannelOrder.BGRA: chnMask = [true, true, true, true]; chnSwz = [2, 1, 0, 3]; break;
+        case tcuTexture.ChannelOrder.ARGB: chnMask = [true, true, true, true]; chnSwz = [1, 2, 3, 0]; break;
+        case tcuTexture.ChannelOrder.sRGB: chnMask = [true, true, true, false]; break;
+        case tcuTexture.ChannelOrder.sRGBA: chnMask = [true, true, true, true]; break;
+        case tcuTexture.ChannelOrder.D: chnMask = [true, false, false, false]; break;
+        case tcuTexture.ChannelOrder.DS: chnMask = [true, false, false, true]; break;
+        case tcuTexture.ChannelOrder.S: chnMask = [false, false, false, true]; break;
+        default:
+            DE_ASSERT(false);
+    }
+    return select(chnBits.swizzle(chnSwz[0], chnSwz[1], chnSwz[2], chnSwz[3]), [0, 0, 0, 0], chnMask);
+};
+
+/**
+ * @param {tcuTexture.ChannelType} channelType
+ * @return {Array<number>}
+ */
+var getChannelMantissaBitDepth = function(channelType) {
+    switch (channelType) {
+        case tcuTexture.ChannelType.SNORM_INT8:
+        case tcuTexture.ChannelType.SNORM_INT16:
+        case tcuTexture.ChannelType.SNORM_INT32:
+        case tcuTexture.ChannelType.UNORM_INT8:
+        case tcuTexture.ChannelType.UNORM_INT16:
+        case tcuTexture.ChannelType.UNORM_INT32:
+        case tcuTexture.ChannelType.UNORM_SHORT_565:
+        case tcuTexture.ChannelType.UNORM_SHORT_4444:
+        case tcuTexture.ChannelType.UNORM_SHORT_555:
+        case tcuTexture.ChannelType.UNORM_SHORT_5551:
+        case tcuTexture.ChannelType.UNORM_INT_101010:
+        case tcuTexture.ChannelType.UNORM_INT_1010102_REV:
+        case tcuTexture.ChannelType.SIGNED_INT8:
+        case tcuTexture.ChannelType.SIGNED_INT16:
+        case tcuTexture.ChannelType.SIGNED_INT32:
+        case tcuTexture.ChannelType.UNSIGNED_INT8:
+        case tcuTexture.ChannelType.UNSIGNED_INT16:
+        case tcuTexture.ChannelType.UNSIGNED_INT32:
+        case tcuTexture.ChannelType.UNSIGNED_INT_1010102_REV:
+        case tcuTexture.ChannelType.UNSIGNED_INT_24_8:
+        case tcuTexture.ChannelType.UNSIGNED_INT_999_E5_REV:
+            return getChannelBitDepth(channelType);
+        case tcuTexture.ChannelType.HALF_FLOAT: return [10, 10, 10, 10];
+        case tcuTexture.ChannelType.FLOAT: return [23, 23, 23, 23];
+        case tcuTexture.ChannelType.UNSIGNED_INT_11F_11F_10F_REV: return [6, 6, 5, 0];
+        case tcuTexture.ChannelType.FLOAT_UNSIGNED_INT_24_8_REV: return [23, 0, 0, 8];
+        default:
+            DE_ASSERT(false);
+            return [0, 0, 0, 0];
+    }
 };
 
 
@@ -542,7 +606,10 @@ return {
     getChannelBitDepth: getChannelBitDepth,
     getTextureFormatBitDepth: getTextureFormatBitDepth,
     linearToSRGB: linearToSRGB,
-    fillWithGrid: fillWithGrid
+    fillWithGrid: fillWithGrid,
+    getTextureFormatMantissaBitDepth: getTextureFormatMantissaBitDepth,
+    getChannelMantissaBitDepth: getChannelMantissaBitDepth
+
 };
 
 });
