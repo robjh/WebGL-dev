@@ -88,8 +88,8 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcyTexture, gluTexture
         gl.renderbufferStorage(gl.RENDERBUFFER, colorFormat, size[0], size[1]);
         gl.bindFramebuffer(gl.FRAMEBUFFER, srcFbo);
         gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, srcRbo);
-        checkError();
-        checkFramebufferStatus(gl.FRAMEBUFFER);
+        this.checkError();
+        this.checkFramebufferStatus(gl.FRAMEBUFFER);
 
         // destination framebuffers
         dstFbo = gl.createFramebuffer();
@@ -100,8 +100,8 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcyTexture, gluTexture
         gl.renderbufferStorage(gl.RENDERBUFFER, colorFormat, size[0], size[1]);
         gl.bindFramebuffer(gl.FRAMEBUFFER, dstFbo);
         gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, dstRbo);
-        checkError();
-        checkFramebufferStatus(gl.FRAMEBUFFER);
+        this.checkError();
+        this.checkFramebufferStatus(gl.FRAMEBUFFER);
 
 
         // Fill destination with gradient.
@@ -650,8 +650,8 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcyTexture, gluTexture
     BlitColorConversionCase.prototype.constructor = BlitColorConversionCase;
 
     BlitColorConversionCase.prototype.preCheck = function() {
-        checkFormatSupport(this.m_srcFormat); // TODO: implement
-        checkFormatSupport(this.m_dstFormat);
+        this.checkFormatSupport(this.m_srcFormat); // TODO: implement
+        this.checkFormatSupport(this.m_dstFormat);
     };
 
     /**
@@ -708,8 +708,8 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcyTexture, gluTexture
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, srcFbo);
         gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, srcRbo);
-        checkError();
-        checkFramebufferStatus(gl.FRAMEBUFFER);
+        this.checkError();
+        this.checkFramebufferStatus(gl.FRAMEBUFFER);
 
         // Destination framebuffers
         dstFbo = gl.createFramebuffer();
@@ -720,8 +720,8 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcyTexture, gluTexture
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, dstFbo);
         gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, dstRbo);
-        checkError();
-        checkFramebufferStatus(gl.FRAMEBUFFER);
+        this.checkError();
+        this.checkFramebufferStatus(gl.FRAMEBUFFER);
 
         gl.viewport(0, 0, m_size[0], m_size[1]);
 
@@ -739,7 +739,7 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcyTexture, gluTexture
         gl.bindFramebuffer(gl.READ_FRAMEBUFFER, srcFbo);
         gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, dstFbo);
         gl.blitFramebuffer(0, 0, this.m_size[0], this.m_size[1], 0, 0, this.m_size[0], this.m_size[1], gl.COLOR_BUFFER_BIT, gl.NEAREST);
-        checkError();
+        this.checkError();
 
         // Read results.
         gl.bindFramebuffer(gl.READ_FRAMEBUFFER, dstFbo);
@@ -807,7 +807,7 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcyTexture, gluTexture
      * @protected
      */
     BlitDepthStencilCase.prototype.preCheck = function() {
-        checkFormatSupport(this.m_format);
+        this.checkFormatSupport(this.m_format);
     };
 
     /**
@@ -863,8 +863,8 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcyTexture, gluTexture
             if (this.m_srcBuffers & gl.STENCIL_BUFFER_BIT)
                 gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.STENCIL_ATTACHMENT, gl.RENDERBUFFER, srcDepthStencilRbo);
 
-            checkError();
-            checkFramebufferStatus(gl.FRAMEBUFFER);
+            this.checkError();
+            this.checkFramebufferStatus(gl.FRAMEBUFFER);
 
             // Clear depth to 1 and stencil to 0.
             gl.ClearBufferfi(gl.DEPTH_STENCIL, 0, 1.0, 0);
@@ -889,8 +889,8 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcyTexture, gluTexture
             if (this.m_dstBuffers & gl.STENCIL_BUFFER_BIT)
                 gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.STENCIL_ATTACHMENT, gl.RENDERBUFFER, dstDepthStencilRbo);
 
-            checkError();
-            checkFramebufferStatus(gl.FRAMEBUFFER);
+            this.checkError();
+            this.checkFramebufferStatus(gl.FRAMEBUFFER);
 
             // Clear depth to 1 and stencil to 0.
             gl.ClearBufferfi(gl.DEPTH_STENCIL, 0, 1.0, 0);
@@ -988,7 +988,7 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcyTexture, gluTexture
         // if (m_context.getRenderTarget().getNumSamples() > 0)
 		// 	throw tcu::NotSupportedError("Not supported in MSAA config");
         //
-		// checkFormatSupport(m_format);
+		// this.checkFormatSupport(m_format);
     };
 
     /**
@@ -1028,8 +1028,8 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcyTexture, gluTexture
 
 		gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
 		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
-		checkError();
-		checkFramebufferStatus(gl.FRAMEBUFFER);
+		this.checkError();
+		this.checkFramebufferStatus(gl.FRAMEBUFFER);
 
 		// Render gradient to screen.
         // TODO: context...
@@ -1177,8 +1177,8 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcyTexture, gluTexture
 
 		gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
 		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, fboTex, 0);
-		checkError();
-		checkFramebufferStatus(gl.FRAMEBUFFER);
+		this.checkError();
+		this.checkFramebufferStatus(gl.FRAMEBUFFER);
 
 		targetFbo = (this.m_blitDir == BlitDirection.BLIT_DEFAULT_TO_TARGET) ? (fbo) : (this.m_context.getRenderContext().getDefaultFramebuffer());
 		sourceFbo = (this.m_blitDir == BlitDirection.BLIT_DEFAULT_TO_TARGET) ? (this.m_context.getRenderContext().getDefaultFramebuffer()) : (fbo);
@@ -1224,7 +1224,7 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcyTexture, gluTexture
 
 		gl.bindFramebuffer(GL_READ_FRAMEBUFFER, sourceFbo);
 		gl.bindFramebuffer(GL_DRAW_FRAMEBUFFER, targetFbo);
-		checkError();
+		this.checkError();
 
 		if (targetClass == tcuTextureUtil.TextureChannelClass.SIGNED_FIXED_POINT ||
             targetClass == tcuTextureUtil.TextureChannelClass.UNSIGNED_FIXED_POINT ||
@@ -1238,7 +1238,7 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcyTexture, gluTexture
 			DE_ASSERT(false);
 
 		gl.blitFramebuffer(this.m_srcRect[0], this.m_srcRect[1], this.m_srcRect[2], this.m_srcRect[3], this.m_dstRect[0], this.m_dstRect[1], this.m_dstRect[2], this.m_dstRect[3], gl.COLOR_BUFFER_BIT, this.m_filter);
-		checkError();
+		this.checkError();
 
 		// Read target
 
@@ -1249,7 +1249,7 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcyTexture, gluTexture
 		else
 			readPixels(dst, this.m_interestingArea[0], this.m_interestingArea[1], this.m_interestingArea[2] - this.m_interestingArea[0], this.m_interestingArea[3] - this.m_interestingArea[1], colorFormat, [1.0, 1.0, 1.0, 1.0], [0.0, 0.0, 0.0, 0.0]);
 
-		checkError();
+		this.checkError();
     };
 
     var run = function(context) {
