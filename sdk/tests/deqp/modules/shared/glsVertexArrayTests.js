@@ -658,10 +658,10 @@ define([
                 GLU_EXPECT_NO_ERROR(this.m_ctx.getError(), "gl.vertexAttribPointer()");
             }
 
-            this.m_ctx.bindBuffer(ContextArray.targetToGL(this.m_target), 0);
+            this.m_ctx.bindBuffer(ContextArray.targetToGL(this.m_target), null);
         }
         else if (this.m_storage == deArray.Storage.USER) {
-            this.m_ctx.bindBuffer(ContextArray.targetToGL(this.m_target), 0);
+            this.m_ctx.bindBuffer(ContextArray.targetToGL(this.m_target), null);
             GLU_EXPECT_NO_ERROR(this.m_ctx.getError(), "gl.bindBuffer()");
 
             if (!inputTypeIsFloatType(this.m_inputType)) {
@@ -885,8 +885,8 @@ define([
         this.m_ctx.uniform1f(this.m_ctx.getUniformLocation(program, "u_colorScale"), colorScale);
 
         if (useVao) {
-            var vaoID = this.m_ctx.genVertexArrays(1, vaoId);
-            this.m_ctx.bindVertexArray(vaoId);
+            var vaoID = this.m_ctx.genVertexArrays(1, vaoId)[0];
+            this.m_ctx.bindVertexArray(vaoID);
         }
 
         for (var arrayNdx = 0; arrayNdx < this.m_arrays.length; arrayNdx++) {
@@ -2455,7 +2455,7 @@ define([
             }
 
             try {
-                this.m_glArrayPack.render(this.m_spec.primitive, this.m_spec.first, this.m_spec.drawCount * primitiveSize, useVao, coordScale, colorScale);
+                //this.m_glArrayPack.render(this.m_spec.primitive, this.m_spec.first, this.m_spec.drawCount * primitiveSize, useVao, coordScale, colorScale);
                 this.m_rrArrayPack.render(this.m_spec.primitive, this.m_spec.first, this.m_spec.drawCount * primitiveSize, useVao, coordScale, colorScale);
             }
             catch (err) {

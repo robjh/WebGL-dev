@@ -19,8 +19,8 @@
  */
 
 define([
-    
     'framework/common/tcuTexture',
+    'framework/delibs/debase/deUtil',
     'framework/delibs/debase/deMath',
     'framework/common/tcuTextureUtil',
     'framework/common/tcuPixelFormat',
@@ -36,6 +36,7 @@ define([
 ],
 function(
     tcuTexture,
+    deUtil,
     deMath,
     tcuTextureUtil,
     tcuPixelFormat,
@@ -105,7 +106,7 @@ function(
                     Object.getPrototypeOf(this)[name] = (
                         function (originalobject, originalfunction) {
                             return function () {
-                                originalfunction.apply(originalobject, arguments);
+                                return originalfunction.apply(originalobject, arguments);
                             };
                         }
                     )(this.m_context, this.m_context[name]);
@@ -141,14 +142,24 @@ function(
     };
 
     /**
-     * genVertexArrays
+     * genVertexArrays - Creates new vertex array objects, stores them and returns the array of added array objects.
      * @param {number} numArrays
-     * @param {Uint32Array} vertexArrays
+     * @return {Uint32Array} IDs of created VAOs
      */
-    GLContext.prototype.genVertexArrays = function (numArrays, vertexArrays) {
-        if (numArrays > 0)
-            //TODO: this is a set -> m_allocatedVaos.push(vertexArrays, vertexArrays+numArrays);
-    }
+    GLContext.prototype.genVertexArrays = function (numArrays) {
+        var currentlength = this.m_allocatedVaos.length;
+        if (numArrays > 0) {
+            for (var i=0; i < numArrays; i++) {
+                var createdArray = this.m_context.createVertexArray();
+                deUtil.dePushUniqueToArray(
+                    this.m_allocatedVaos,
+                    createdArray
+                );
+            }
+            return this.m_allocatedVaos.slice(currentlength, currentlength + numArrays);
+        }
+        return null;
+    };
 
     return {
         GLContext: GLContext

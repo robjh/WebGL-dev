@@ -78,6 +78,49 @@ var GenericVec4 = function(a, b, c, d) {
     this.data = [a || 0, b || 0, c || 0, d || 0];
 };
 
+// /**
+//  * NamedObject
+//  * @constructor
+//  * @param {deMath.deUint32} name
+//  */
+// var NamedObject = function (name) {
+//     this.m_name = name;
+//     this.m_refCount = 1;
+// };
+// 
+// /**
+//  * @return {deMath.deUint32}
+//  */
+// NamedObject.prototype.getName = fuction () {return this.m_name;};
+// 
+// /**
+//  * @return {number}
+//  */
+// NamedObject.prototype.getRefCount = fuction () {return this.m_refCount;};
+// 
+// /**
+//  */
+// NamedObject.prototype.incRefCount = fuction () {this.m_refCount += 1;};
+// 
+// /**
+//  */
+// NamedObject.prototype.decRefCount = fuction () {this.m_refCount -= 1;};
+// 
+// /**
+//  * @constructor
+//  * @extends {NamedObject}
+//  * @param {deMath.deUint32} name
+//  * @param {ShaderProgram} program
+//  */
+// ShaderProgramObjectContainer = function (name, program) {
+//     NamedObject.call(this, name);
+//     this.m_program = program;
+//     /** @type {boolean} */ this.m_deleteFlag = false;
+// };
+// 
+// ShaderProgramObjectContainer.prototype = Object.create(NamedObject.prototype);
+// ShaderProgramObjectContainer.prototype.constructor = ShaderProgramObjectContainer;
+
 /**
  * @constructor
  */
@@ -1930,9 +1973,9 @@ ReferenceContext.prototype.clear = function(buffers) {
     var    colorBuf0   = this.getDrawColorbuffer();
     var    depthBuf    = this.getDrawDepthbuffer();
     var    stencilBuf  = this.getDrawStencilbuffer();
-    var    hasColor0   = !colorBuf0.isEmpty();
-    var    hasDepth    = !depthBuf.isEmpty();
-    var    hasStencil  = !stencilBuf.isEmpty();
+    var    hasColor0   = colorBuf0 && !colorBuf0.isEmpty();
+    var    hasDepth    = depthBuf && !depthBuf.isEmpty();
+    var    hasStencil  = stencilBuf && !stencilBuf.isEmpty();
     var    baseArea    = this.m_scissorEnabled ? this.m_scissorBox : [0, 0, 0x7fffffff, 0x7fffffff];
 
     if (hasColor0 && (buffers & gl.COLOR_BUFFER_BIT) != 0)
@@ -2492,7 +2535,20 @@ ReferenceContext.prototype.drawWithReference = function(primitives, instanceCoun
 
     var command = new rrRenderer.DrawCommand(state, renderTarget, program, vertexAttribs.length, vertexAttribs, primitives);
     rrRenderer.drawInstanced(command, instanceCount);
-}
+};
+
+/**
+ * createProgram
+ * @param {sglrShaderProgram.ShaderProgram} program
+ * @return {deMath.deUint32}
+ */
+ReferenceContext.prototype.createProgram = function (program) {
+    /** @type {number} */ var name = this.m_programs.allocateName();
+
+    this.m_programs.push(program);
+
+    return this.m_programs.length;
+};
 
 /**
  * @param {Array<number>} topLeft Coordinates of top left corner of the rectangle

@@ -114,7 +114,7 @@ var DeqpTest = function(name, description, spec) {
  };
 
 /**
- * Returns the next 'child' test in the hierarchy of tests
+ * Returns the next test in the hierarchy of tests
  *
  * @param {string} pattern Optional pattern to search for
  * @return {Object} Test specification
@@ -125,12 +125,17 @@ var DeqpTest = function(name, description, spec) {
 
     var test = null;
 
+    //Look for the next child
     if (this.spec && this.spec.length) {
         if (this.currentTest < this.spec.length) {
             test = this.spec[this.currentTest];
             this.currentTest++;
         }
     }
+
+    //If no more children, get the next brother
+    if (test == null && this.parentTest !== undefined)
+        test = this.parentTest.next();
 
     return test;
 };
@@ -232,21 +237,10 @@ var runTestCases = function() {
 
     //Should we proceed with the next test?
     if (DeqpTest.lastResult == stateMachine.IterateResult.STOP) {
-
-        //If not defined, let's start with the root test.
-        if (!state.currentTest)
-            state.currentTest = state.testCases;
-
-        else { //Otherwise, look for the next child
-
-            var nextTest = state.currentTest.next(state.filter);
-
-            //If no more children, get the next brother
-            if (nextTest == null && state.currentTest.parentTest !== undefined)
-                nextTest = state.currentTest.parentTest.next(state.filter);
-
-            state.currentTest = nextTest;
-        }
+        //If current test not defined, let's start with the root test.
+        state.currentTest = state.currentTest ?
+            state.currentTest.next(state.filter) :
+            state.testCases;
     }
 
     if (state.currentTest) {
