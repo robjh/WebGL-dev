@@ -27,22 +27,22 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcuTexture, gluTexture
     * @param {string} name
     * @param {string} description
     * @param {number} filter deUint32
-    * @const @param {Array<number>} srcSize
-    * @const @param {Array<number>} srcRect
-    * @const @param {Array<number>} dstSize
-    * @const @param {Array<number>} dstRect
+    * @param {Array<number>} srcSize
+    * @param {Array<number>} srcRect
+    * @param {Array<number>} dstSize
+    * @param {Array<number>} dstRect
     * @param {number} cellSize
     */
     var BlitRectCase = function(name, desc, filter, srcSize, srcRect, dstSize, dstRect, cellSize) {
         fboTestCase.FboTestCase.call(name, description);
-        /** @const @type {number} */ this.m_filter = filter;
-        /** @const @type {Array<number>} */ this.m_srcSize = srcSize;
-        /** @const @type {Array<number>} */ this.m_srcRect = srcRect;
-        /** @const @type {Array<number>} */ this.m_dstSize = dstSize;
-        /** @const @type {Array<number>} */ this.m_dstRect = dstRect;
-        /** @const @type {number} */ this.m_cellSize = cellSize === undefined ? 8 : cellSize;
-        /** @const @type {Array<number>} */ this.m_gridCellColorA = [0.2, 0.7, 0.1, 1.0];
-        /** @const @type {Array<number>} */ this.m_gridCellColorB = [0.7, 0.1, 0.5, 0.8];
+        /** @const {number} */ this.m_filter = filter;
+        /** @const {Array<number>} */ this.m_srcSize = srcSize;
+        /** @const {Array<number>} */ this.m_srcRect = srcRect;
+        /** @const {Array<number>} */ this.m_dstSize = dstSize;
+        /** @const {Array<number>} */ this.m_dstRect = dstRect;
+        /** @const {number} */ this.m_cellSize = cellSize === undefined ? 8 : cellSize;
+        /** @const {Array<number>} */ this.m_gridCellColorA = [0.2, 0.7, 0.1, 1.0];
+        /** @const {Array<number>} */ this.m_gridCellColorB = [0.7, 0.1, 0.5, 0.8];
     };
 
     BlitRectCase.prototype = Object.create(fboTestCase.FboTestCase.prototype);
@@ -78,7 +78,7 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcuTexture, gluTexture
 
         // Create framebuffers.
 
-        /** @const @type {Array<number>} */ var size;
+        /** @type {Array<number>} */ var size;
 
         // source framebuffers
         srcFbo = gl.createFramebuffer();
@@ -113,10 +113,10 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcuTexture, gluTexture
         //sglr.drawQuad(*getCurrentContext(), gradShaderID, Vec3(-1.0f, -1.0f, 0.0f), Vec3(1.0f, 1.0f, 0.0f));
 
         // Fill source with grid pattern.
-        /** @const @type {number} */ var format = gl.RGBA;
-        /** @const @type {number} */ var dataType = gl.UNSIGNED_BYTE;
-        /** @const @type {number} */ var texW = this.m_srcSize[0];
-        /** @const @type {number} */ var texH = this.m_srcSize[1];
+        /** @const {number} */ var format = gl.RGBA;
+        /** @const {number} */ var dataType = gl.UNSIGNED_BYTE;
+        /** @const {number} */ var texW = this.m_srcSize[0];
+        /** @const {number} */ var texH = this.m_srcSize[1];
         /** @type {number} */ var gridTex = 0;
         /** @type {tcuTexture.TextureLevel} */ var data = new tcuTexture.TextureLevel(gluTextureUtil.mapGLTransferFormat(format, dataType), texW, texH, 1);
 
@@ -169,10 +169,10 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcuTexture, gluTexture
     * @constructor
     * @param {string} name
     * @param {string} desc
-    * @const @param {Array<number>} srcSize
-    * @const @param {Array<number>} srcRect
-    * @const @param {Array<number>} dstSize
-    * @const @param {Array<number>} dstRect
+    * @param {Array<number>} srcSize
+    * @param {Array<number>} srcRect
+    * @param {Array<number>} dstSize
+    * @param {Array<number>} dstRect
     */
     var BlitNearestFilterConsistencyCase = function(name, desc, srcSize, srcRect, dstSize, dstRect) {
         BlitRectCase.call(name, desc, gl.NEAREST, srcSize, srcRect, dstSize, dstRect, 1);
@@ -193,21 +193,21 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcuTexture, gluTexture
         // Image origin must be visible (for baseColor)
         DE_ASSERT(Math.min(this.m_dstRect[0], this.m_dstRect[2]) >= 0);
         DE_ASSERT(Math.min(this.m_dstRect[1], this.m_dstRect[3]) >= 0);
-        /** @const @type {tcuRGBA.RGBA} */ var cellColorA = tcuRGBA.newRGBAFromArray(m_gridCellColorA);
-        /** @const @type {tcuRGBA.RGBA} */ var cellColorB = tcuRGBA.newRGBAFromArray(m_gridCellColorB);
+        /** @const {tcuRGBA.RGBA} */ var cellColorA = tcuRGBA.newRGBAFromArray(m_gridCellColorA);
+        /** @const {tcuRGBA.RGBA} */ var cellColorB = tcuRGBA.newRGBAFromArray(m_gridCellColorB);
         // TODO: implement
         // const tcu::RGBA        threshold        = TestCase::m_context.getRenderTarget().getPixelFormat().getColorThreshold() + tcu::RGBA(7,7,7,7);
         /** @type {tcuRGBA.RGBA} */ var threshold = tcuRGBA.newRGBAComponents(7, 7, 7, 7);
-        /** @const @type {Array<number>} */  //IVec4.xyzw
+        /** @const {Array<number>} */  //IVec4.xyzw
         var destinationArea = [
             deMath.clamp(Math.min(this.m_dstRect[0], this.m_dstRect[2]), 0, result.getWidth()),
             deMath.clamp(Math.min(this.m_dstRect[1], this.m_dstRect[3]), 0, result.getHeight()),
             deMath.clamp(Math.max(this.m_dstRect[0], this.m_dstRect[2]), 0, result.getWidth()),
             deMath.clamp(Math.max(this.m_dstRect[1], this.m_dstRect[3]), 0, result.getHeight())];
 
-        /** @const @type {tcuRGBA.RGBA} */ var baseColor = result.getPixel(destinationArea[0], destinationArea[1]);
+        /** @const {tcuRGBA.RGBA} */ var baseColor = result.getPixel(destinationArea[0], destinationArea[1]);
 
-        /** @const @type {boolean} */ var signConfig = tcuRGBA.compareThreshold(baseColor, cellColorA, threshold);
+        /** @const {boolean} */ var signConfig = tcuRGBA.compareThreshold(baseColor, cellColorA, threshold);
 
         /** @type {boolean} */ var error = false;
         /** @type {tcuSurface.Surface} */ var errorMask = new tcuSurface.Surface(result.getWidth(), result.getHeight());
@@ -228,13 +228,14 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcuTexture, gluTexture
 
         // Verify that destination only contains valid colors
 
+        /** @type {tcuRGBA.RGBA} */ var color;
+
         // TODO: destinationArea ...
         for (var dy = 0; dy < destinationArea[3] - destinationArea[1]; ++dy) {
             for (var dx = 0; dx < destinationArea[2] - destinationArea[0]; ++dx) {
-                /** @const @type {tcuRGBA.RGBA} */
-                var color = result.getPixel(destinationArea[0] + dx, destinationArea[1] + dy);
+                color = result.getPixel(destinationArea[0] + dx, destinationArea[1] + dy);
 
-                /** @const @type {boolean} */
+                /** @const {boolean} */
                 var isValidColor =
                             tcuRGBA.compareThreshold(color, cellColorA, threshold) ||
                             tcuRGBA.compareThreshold(color, cellColorB, threshold);
@@ -263,7 +264,7 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcuTexture, gluTexture
         // Blitting a grid should result in a grid-like image. ('sign changes' should be consistent)
 
         for (var dx = 0; dx < destinationArea[2] - destinationArea[0]; ++dx) {
-            /** @const @type {tcuRGBA.RGBA} */ var color = result.getPixel(destinationArea[0] + dx, destinationArea[1]);
+            color = result.getPixel(destinationArea[0] + dx, destinationArea[1]);
             if (tcuRGBA.compareThreshold(color, cellColorA, threshold))
                 horisontalSign[dx] = true;
             else if (tcuRGBA.compareThreshold(color, cellColorB, threshold))
@@ -272,7 +273,7 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcuTexture, gluTexture
                 DE_ASSERT(false);
         }
         for (var dy = 0; dy < destinationArea[3] - destinationArea[1]; ++dy) {
-            /** @const @type {tcuRGBA.RGBA} */ var color = result.getPixel(destinationArea[0], destinationArea[1] + dy);
+            color = result.getPixel(destinationArea[0], destinationArea[1] + dy);
 
             if (tcuRGBA.compareThreshold(color, cellColorA, threshold))
                 verticalSign[dy] = true;
@@ -286,9 +287,9 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcuTexture, gluTexture
 
         for (var dy = 0; dy < destinationArea[3] - destinationArea[1]; ++dy) {
             for (var dx = 0; dx < destinationArea[2] - destinationArea[0]; ++dx) {
-                /** @const @type {tcuRGBA.RGBA} */ var color = result.getPixel(destinationArea[0] + dx, destinationArea[1] + dy);
-                /** @const @type {boolean} */ var resultSign = tcuRGBA.compareThreshold(cellColorA, color, threshold);
-                /** @const @type {boolean} */ var correctSign = (horisontalSign[dx] == verticalSign[dy]) == signConfig;
+                color = result.getPixel(destinationArea[0] + dx, destinationArea[1] + dy);
+                /** @const {boolean} */ var resultSign = tcuRGBA.compareThreshold(cellColorA, color, threshold);
+                /** @const {boolean} */ var correctSign = (horisontalSign[dx] == verticalSign[dy]) == signConfig;
 
                 if (resultSign != correctSign) {
                     errorMask.setPixel(destinationArea[0] + dx, destinationArea[1] + dy, tcuRGBA.RGBA.red);
@@ -338,7 +339,7 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcuTexture, gluTexture
     FramebufferBlitTests.prototype.constructor = FramebufferBlitTests;
 
     FramebufferBlitTests.prototype.init = function() {
-        /** @const @type {Array.number} */ var colorFormats = [
+        /** @const {Array.number} */ var colorFormats = [
             // RGBA formats
             gl.RGBA32I,
             gl.RGBA32UI,
@@ -385,7 +386,7 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcuTexture, gluTexture
             gl.R16F
         ];
 
-        /** @const @type {Array.number} */ var depthStencilFormats = [
+        /** @const {Array.number} */ var depthStencilFormats = [
             gl.DEPTH_COMPONENT32F,
             gl.DEPTH_COMPONENT24,
             gl.DEPTH_COMPONENT16,
@@ -401,23 +402,23 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcuTexture, gluTexture
          * @param {dstRect} dstRect
          */
         var CopyRect = function(name, srcRect, dstRect) {
-            /** @const @type {string} */ this.name = name;
+            /** @const {string} */ this.name = name;
             /** @type {Array<number>} */ this.srcRect = srcRect;
             /** @type {Array<number>} */ this.dstRect = dstRect;
         };
 
-        /** @const @type {Array<CopyRect>} */ var copyRects = [
+        /** @const {Array<CopyRect>} */ var copyRects = [
             new CopyRect('basic', [10, 20, 65, 100], [45, 5, 100, 85]),
             new CopyRect('scale', [10, 20, 65, 100], [25, 30, 125, 94]),
-            new CopyRect('out_of_bounds', [-10, -15, 100, 63], [50, 30, 136, 144]),
+            new CopyRect('out_of_bounds', [-10, -15, 100, 63], [50, 30, 136, 144])
         ];
 
-        /** @const @type {Array<CopyRect>} */ var filterConsistencyRects = [
+        /** @const {Array<CopyRect>} */ var filterConsistencyRects = [
 
             new CopyRect('mag', [20, 10, 74, 88], [10, 10, 91, 101]),
             new CopyRect('min', [10, 20, 78, 100], [20, 20, 71, 80]),
             new CopyRect('out_of_bounds_mag', [21, 10, 73, 82], [11, 43, 141, 151]),
-            new CopyRect('out_of_bounds_min', [11, 21, 77, 97], [80, 82, 135, 139]),
+            new CopyRect('out_of_bounds_min', [11, 21, 77, 97], [80, 82, 135, 139])
         ];
 
         /** @constructor
@@ -426,12 +427,12 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcuTexture, gluTexture
          * @param {dstRect} dstSwizzle
          */
         var Swizzle = function(name, srcSwizzle, dstSwizzle) {
-            /** @const @type {string} */ this.name = name;
+            /** @const {string} */ this.name = name;
             /** @type {Array<number>} */ this.srcSwizzle = srcSwizzle;
             /** @type {Array<number>} */ this.dstSwizzle = dstSwizzle;
         };
 
-        /** @const @type {Array<Swizzle>} */ var swizzles = [
+        /** @const {Array<Swizzle>} */ var swizzles = [
             new Swizzle(null, [0, 1, 2, 3], [0, 1, 2, 3]),
             new Swizzle('reverse_src_x', [2, 1, 0, 3], [0, 1, 2, 3]),
             new Swizzle('reverse_src_y', [0, 3, 2, 1], [0, 1, 2, 3]),
@@ -441,48 +442,48 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcuTexture, gluTexture
             new Swizzle('reverse_src_dst_y', [0, 3, 2, 1], [0, 3, 2, 1])
         ];
 
-        /** @const @type {Array<number>} */ var srcSize = [127, 119];
-        /** @const @type {Array<number>} */ var dstSize = [132, 128];
+        /** @const {Array<number>} */ var srcSize = [127, 119];
+        /** @const {Array<number>} */ var dstSize = [132, 128];
 
         // Blit rectangle tests.
-        /** @type {TestCaseGroup} */ var rectGroup = new tcuTestCase.newTest(rect, Blit rectangle tests);
+        /** @type {TestCaseGroup} */ var rectGroup = new tcuTestCase.newTest('rect', 'Blit rectangle tests');
         testGroup.addChild(rectGroup);
         for (var rectNdx = 0; rectNdx < copyRects.length; rectNdx++) {
             for (var swzNdx = 0; swzNdx < swizzles.length; swzNdx++) {
-                /** @type {string} */ var name = copyRects[rectNdx].name + (swizzles[swzNdx].name ? (string(_) + swizzles[swzNdx].name) : '');
+                /** @type {string} */ var name = copyRects[rectNdx].name + (swizzles[swzNdx].name ? ('_' + swizzles[swzNdx].name) : '');
                 /** @type {Array<number>} */ var srcSwz = swizzles[swzNdx].srcSwizzle;
                 /** @type {Array<number>} */ var dstSwz = swizzles[swzNdx].dstSwizzle;
                 /** @type {Array<number>} */ var srcRect = copyRects[rectNdx].srcRect.swizzle(srcSwz[0], srcSwz[1], srcSwz[2], srcSwz[3]);
                 /** @type {Array<number>} */ var dstRect = copyRects[rectNdx].dstRect.swizzle(dstSwz[0], dstSwz[1], dstSwz[2], dstSwz[3]);
 
-                rectGroup.addChild(new BlitRectCase((name + _nearest), , gl.NEAREST, srcSize, srcRect, dstSize, dstRect));
-                rectGroup.addChild(new BlitRectCase((name + _linear), , gl.LINEAR, srcSize, srcRect, dstSize, dstRect));
+                rectGroup.addChild(new BlitRectCase((name + '_nearest'), '', gl.NEAREST, srcSize, srcRect, dstSize, dstRect));
+                rectGroup.addChild(new BlitRectCase((name + '_linear'), '', gl.LINEAR, srcSize, srcRect, dstSize, dstRect));
             }
         }
 
         // Nearest filter tests
         for (var rectNdx = 0; rectNdx < filterConsistencyRects.length; rectNdx++) {
             for (var swzNdx = 0; swzNdx < swizzles.length; swzNdx++) {
-                /** @type {string} */ var name = nearest_consistency_ + filterConsistencyRects[rectNdx].name + (swizzles[swzNdx].name ? (string(_) + swizzles[swzNdx].name) : '');
+                /** @type {string} */ var name = 'nearest_consistency_' + filterConsistencyRects[rectNdx].name + (swizzles[swzNdx].name ? ('_' + swizzles[swzNdx].name) : '');
                 /** @type {Array<number>} */ var srcSwz = swizzles[swzNdx].srcSwizzle;
                 /** @type {Array<number>} */ var dstSwz = swizzles[swzNdx].dstSwizzle;
                 /** @type {Array<number>} */ var srcRect = filterConsistencyRects[rectNdx].srcRect.swizzle(srcSwz[0], srcSwz[1], srcSwz[2], srcSwz[3]);
                 /** @type {Array<number>} */ var dstRect = filterConsistencyRects[rectNdx].dstRect.swizzle(dstSwz[0], dstSwz[1], dstSwz[2], dstSwz[3]);
 
-                rectGroup.addChild(new BlitNearestFilterConsistencyCase(name, Test consistency of the nearest filter, srcSize, srcRect, dstSize, dstRect));
+                rectGroup.addChild(new BlitNearestFilterConsistencyCase(name, 'Test consistency of the nearest filter', srcSize, srcRect, dstSize, dstRect));
             }
         }
 
         // .conversion
-        /** @type {TestCaseGroup} */ var conversionGroup = new tcuTestCase.newTest(conversion, Color conversion tests);
+        /** @type {TestCaseGroup} */ var conversionGroup = new tcuTestCase.newTest('conversion', 'Color conversion tests');
         testGroup.addChild(conversionGroup);
 
         for (var srcFmtNdx = 0; srcFmtNdx < colorFormats.length; srcFmtNdx++) {
             for (var dstFmtNdx = 0; dstFmtNdx < colorFormats.length; dstFmtNdx++) {
-                /** @type {number} */ var deUint32 srcFormat = colorFormats[srcFmtNdx]; // TODO: mapGLInternalFormat
+                /** @type {number} */ var srcFormat = colorFormats[srcFmtNdx]; // TODO: mapGLInternalFormat
                 /** @type {tcuTexture.TextureFormat} */ var srcTexFmt = glu.mapGLInternalFormat(srcFormat);
                 /** @type {tcuTextureUtil.TextureChannelClass} */ var srcType = tcuTextureUtil.getTextureChannelClass(srcTexFmt.type);
-                /** @type {number} */ var deUint32 dstFormat = colorFormats[dstFmtNdx];
+                /** @type {number} */ var dstFormat = colorFormats[dstFmtNdx];
                 /** @type {tcuTexture.TextureFormat} */ var dstTexFmt = glu.mapGLInternalFormat(dstFormat);
                 /** @type {tcuTextureUtil.TextureChannelClass} */ var dstType = tcuTextureUtil.getTextureChannelClass(dstTexFmt.type);
 
@@ -502,7 +503,7 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcuTexture, gluTexture
         /** @type {TestCaseGroup} */ var depthStencilGroup = new tcuTestCase.newTest('depth_stencil', 'Depth and stencil blits');
         testGroup.addChild(depthStencilGroup);
 
-        for (int fmtNdx = 0; fmtNdx < DE_LENGTH_OF_ARRAY(depthStencilFormats); fmtNdx++) {
+        for (var fmtNdx = 0; fmtNdx < DE_LENGTH_OF_ARRAY(depthStencilFormats); fmtNdx++) {
             /** @type {number} */ var format = depthStencilFormats[fmtNdx];
             /** @type {tcuTexture.TextureFormat} */ var texFmt = gluTextureUtil.mapGLInternalFormat(format);
             /** @type {string} */ var fmtName = getFormatName(format);
@@ -532,18 +533,18 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcuTexture, gluTexture
 
         /** @type {Array<Area>} */ var areas = [
             new Area('scale', DefaultFramebufferBlitCase.AREA_SCALE),
-            new Area('out_of_bounds', DefaultFramebufferBlitCase.AREA_OUT_OF_BOUNDS),
+            new Area('out_of_bounds', DefaultFramebufferBlitCase.AREA_OUT_OF_BOUNDS)
         ];
 
         /** @type {TestCaseGroup} */ var defaultFbGroup = new tcuTestCase.newTest('default_framebuffer', 'Blits with default framebuffer');
         testGroup.addChild(defaultFbGroup);
 
         for (var fmtNdx = 0; fmtNdx < colorFormats.length; fmtNdx++) {
-            /** @const @type {number} */ var format = colorFormats[fmtNdx];
-            /** @const @type {tcuTexture.TextureFormat} */ var texFmt = gluTextureUtil.mapGLInternalFormat(format);
-            /** @const @type {tcuTexture.TextureChannelClass} */ var fmtClass = tcuTextureUtil.getTextureChannelClass(texFmt.type);
-            /** @const @type {number} */ var filter = gluTextureUtil.isGLInternalColorFormatFilterable(format) ? gl.LINEAR : gl.NEAREST;
-            /** @const @type {boolean} */ var filterable = gluTextureUtil.isGLInternalColorFormatFilterable(format);
+            /** @const {number} */ var format = colorFormats[fmtNdx];
+            /** @const {tcuTexture.TextureFormat} */ var texFmt = gluTextureUtil.mapGLInternalFormat(format);
+            /** @const {tcuTexture.TextureChannelClass} */ var fmtClass = tcuTextureUtil.getTextureChannelClass(texFmt.type);
+            /** @const {number} */ var filter = gluTextureUtil.isGLInternalColorFormatFilterable(format) ? gl.LINEAR : gl.NEAREST;
+            /** @const {boolean} */ var filterable = gluTextureUtil.isGLInternalColorFormatFilterable(format);
 
             if (fmtClass != tcuTextureUtil.TextureChannelClass.FLOATING_POINT &&
                 fmtClass != tcuTextureUtil.TextureChannelClass.UNSIGNED_FIXED_POINT &&
@@ -553,9 +554,9 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcuTexture, gluTexture
             defaultFbGroup.addChild(new BlitDefaultFramebufferCase(getFormatName(format), '', format, filter));
 
             for (var areaNdx = 0; areaNdx < areas.length; areaNdx++) {
-                /** @const @type {string} */ var name = areas[areaNdx].name;
-                /** @const @type {boolean} */ var addLinear = filterable;
-                /** @const @type {boolean} */ var addNearest = !addLinear || (areas[areaNdx].area != DefaultFramebufferBlitCase.AREA_OUT_OF_BOUNDS); // No need to check out-of-bounds with different filtering
+                /** @const {string} */ var name = areas[areaNdx].name;
+                /** @const {boolean} */ var addLinear = filterable;
+                /** @const {boolean} */ var addNearest = !addLinear || (areas[areaNdx].area != DefaultFramebufferBlitCase.AREA_OUT_OF_BOUNDS); // No need to check out-of-bounds with different filtering
 
                 if (addNearest) {
 
@@ -594,11 +595,11 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcuTexture, gluTexture
      * @constructor
      * @param {string} name
      * @param {string} desc
-     * @param {number} srcFormat deUint32
-     * @param {number} dstFormat deUint32
-     * @const @param {Array<number>} size
+     * @param {number} srcFormat
+     * @param {number} dstFormat
+     * @param {Array<number>} size
      */
-    var BlitColorConversionCase = function(const char* name, const char* desc, deUint32 srcFormat, deUint32 dstFormat, const IVec2& size) {
+    var BlitColorConversionCase = function(name, desc, srcFormat, dstFormat, size) {
         fboTestCase.FboTestCase.call(name, desc);
         /** @type {number} */ this.m_srcFormat = srcFormat;
         /** @type {number} */ this.m_dstFormat = dstFormat;
@@ -711,17 +712,17 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcuTexture, gluTexture
      * @param {tcuSurface.Surface} result
      */
     BlitColorConversionCase.prototype.compare = function(reference, result) {
-        /** @const @type {tcuTexture.TextureFormat} */ var srcFormat = gluTextureUtil.mapGLInternalFormat(m_srcFormat);
-        /** @const @type {tcuTexture.TextureFormat} */ var dstFormat = gluTextureUtil.mapGLInternalFormat(m_dstFormat);
-        /** @const @type {boolean} */ var srcIsSRGB = (srcFormat.order == tcuTexture.ChannelOrder.sRGBA);
-        /** @const @type {boolean} */ var dstIsSRGB = (dstFormat.order == tcuTexture.ChannelOrder.sRGBA);
+        /** @const {tcuTexture.TextureFormat} */ var srcFormat = gluTextureUtil.mapGLInternalFormat(m_srcFormat);
+        /** @const {tcuTexture.TextureFormat} */ var dstFormat = gluTextureUtil.mapGLInternalFormat(m_dstFormat);
+        /** @const {boolean} */ var srcIsSRGB = (srcFormat.order == tcuTexture.ChannelOrder.sRGBA);
+        /** @const {boolean} */ var dstIsSRGB = (dstFormat.order == tcuTexture.ChannelOrder.sRGBA);
         /** @type {tcuRGBA.RGBA} */ var threshold = new tcuRGBA.RGBA();
 
         if (dstIsSRGB)
             threshold = fboTestUtil.getToSRGBConversionThreshold(srcFormat, dstFormat);
         else {
-            /** @const @type {tcuRGBA.RGBA} */ var srcMaxDiff = fboTestUtil.getFormatThreshold(srcFormat) * (srcIsSRGB ? 2 : 1);
-            /** @const @type {tcuRGBA.RGBA} */ var dstMaxDiff = fboTestUtil.getFormatThreshold(dstFormat);
+            /** @const {tcuRGBA.RGBA} */ var srcMaxDiff = fboTestUtil.getFormatThreshold(srcFormat) * (srcIsSRGB ? 2 : 1);
+            /** @const {tcuRGBA.RGBA} */ var dstMaxDiff = fboTestUtil.getFormatThreshold(dstFormat);
             threshold = tcuRGBA.max(srcMaxDiff, dstMaxDiff);
         }
 
@@ -731,15 +732,15 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcuTexture, gluTexture
 
     /**
      * @constructor
-     * @const @param {string} name
-     * @const @param {string} desc
+     * @param {string} name
+     * @param {string} desc
      * @param {number} format deUint32
      * @param {number} srcBuffers deUint32
-     * @const @param {Array<number>} srcSize IVec2
-     * @const @param {Array<number>} srcRect IVec4
+     * @param {Array<number>} srcSize IVec2
+     * @param {Array<number>} srcRect IVec4
      * @param {number} dstBuffers deUint32
-     * @const @param {Array<number>} dstSize IVec2
-     * @const @param {Array<number>} dstRect IVec4
+     * @param {Array<number>} dstSize IVec2
+     * @param {Array<number>} dstRect IVec4
      * @param {number} copyBuffers deUint32
      */
     var BlitDepthStencilCase = function(name, desc, format, srcBuffers, srcSize, srcRect, dstBuffers, dstSize, dstRect, copyBuffers) {
@@ -769,7 +770,7 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcuTexture, gluTexture
      * @param {tcuSurface.Surface} dst
      */
     BlitDepthStencilCase.prototype.render = function(dst) {
-        /** @const @type {number} */ var colorFormat = gl.RGBA8;
+        /** @const {number} */ var colorFormat = gl.RGBA8;
         // TODO:implement GradientShader, Texture2DShader, FlatColorShader
         /** @type {GradientShader} */
         var gradShader = new fboTestUtil.GradientShader(gluShaderUtil.DataType.FLOAT_VEC4);
@@ -853,16 +854,16 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcuTexture, gluTexture
         gl.enable(gl.DEPTH_TEST);
         gl.enable(gl.STENCIL_TEST);
         gl.stencilOp(gl.KEEP, gl.KEEP, gl.REPLACE);
-        gl.stencilFunc(gl.ALWAYS, 7, 0xffu);
+        gl.stencilFunc(gl.ALWAYS, 7, 0xff);
 
         // TODO: implement drawQuad
         //sglr.drawQuad(getCurrentContext(), gradShaderID, [-1.0, -1.0, -1.0], [1.0, 1.0, 1.0]);
 
         // Fill destination with grid pattern, depth = 0 and stencil = 1
-        /** @const @type {number} */ var format = gl.RGBA;
-        /** @const @type {number} */ var dataType = gl.UNSIGNED_BYTE;
-        /** @const @type {number} */ var texW = this.m_srcSize[0];
-        /** @const @type {number} */ var texH = this.m_srcSize[1];
+        /** @const {number} */ var format = gl.RGBA;
+        /** @const {number} */ var dataType = gl.UNSIGNED_BYTE;
+        /** @const {number} */ var texW = this.m_srcSize[0];
+        /** @const {number} */ var texH = this.m_srcSize[1];
         /** @type {number} */ var gridTex = 0;
         /** @type {tcuTexture.TextureLevel} */ var data = new tcuTexture.TextureLevel(gluTextueUtil.mapGLTransferFormat(format, dataType), texW, texH, 1);
 
@@ -878,7 +879,7 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcuTexture, gluTexture
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, dstFbo);
         gl.viewport(0, 0, this.m_dstSize[0], this.m_dstSize[1]);
-        gl.stencilFunc(gl.ALWAYS, 1, 0xffu);
+        gl.stencilFunc(gl.ALWAYS, 1, 0xff);
         // TODO: implement drawQuad
         //sglr.drawQuad(getCurrentContext(), texShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
 
@@ -891,7 +892,7 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcuTexture, gluTexture
         gl.bindFramebuffer(gl.FRAMEBUFFER, dstFbo);
         gl.viewport(0, 0, this.m_dstSize[0], this.m_dstSize[1]);
         gl.stencilOp(gl.KEEP, gl.DECR, gl.KEEP);
-        gl.stencilFunc(gl.ALWAYS, 0, 0xffu);
+        gl.stencilFunc(gl.ALWAYS, 0, 0xff);
 
         flatShader.setColor(getCurrentContext(), flatShaderID, [0.0, 0.0, 1.0, 1.0]);
         // TODO: implement drawQuad
@@ -901,7 +902,7 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcuTexture, gluTexture
             // Render green color where stencil == 6.
             gl.disable(gl.DEPTH_TEST);
             gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
-            gl.stencilFunc(gl.EQUAL, 6, 0xffu);
+            gl.stencilFunc(gl.EQUAL, 6, 0xff);
             // TODO: implement drawQuad
             flatShader.setColor(getCurrentContext(), flatShaderID, [0.0, 1.0, 0.0, 1.0]);
             //sglr.drawQuad(*getCurrentContext(), flatShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
@@ -919,8 +920,8 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcuTexture, gluTexture
      */
     var BlitDefaultFramebufferCase = function(name, desc, format, filter) {
         fboTestCase.FboTestCase(this, name, desc);
-        /** @const @type {number} */ this.m_format;
-        /** @const @type {number} */ this.m_filter;
+        /** @const {number} */ this.m_format;
+        /** @const {number} */ this.m_filter;
     };
 
     BlitDefaultFramebufferCase.prototype = Object.create(fboTestCase.FboTestCase.prototype);
@@ -954,8 +955,8 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcuTexture, gluTexture
         /** @type {number} */ var texShaderID = getCurrentContext().createProgram(texShader);
         /** @type {number} */ var fbo = 0;
         /** @type {number} */ var tex = 0;
-        /** @const @type {number} */ texW = 128;
-        /** @const @type {number} */ texH = 128;
+        /** @const {number} */ var texW = 128;
+        /** @const {number} */ var texH = 128;
 
         // Setup shaders
         gradShader.setGradient(getCurrentContext(), gradShaderID, [0.0, 0.0, 0.0, 0.0], [1.0, 1.0, 1.0, 1.0]);
@@ -1010,8 +1011,8 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcuTexture, gluTexture
      */
     BlitDefaultFramebufferCase.prototype.compare = function(reference, result) {
         // TODO: implement
-        /** @const @type {tcuRGBA.RGBA} */
-        var threshold = tcuRGBA.max(fboTestUtil.getFormatThreshold(m_format), tcuRGBA.newRGBAComponents(12, 12, 12, 12)));
+        /** @const {tcuRGBA.RGBA} */
+        var threshold = tcuRGBA.max(fboTestUtil.getFormatThreshold(m_format), tcuRGBA.newRGBAComponents(12, 12, 12, 12));
 
         //m_testCtx.getLog() << TestLog::Message << 'Comparing images, threshold: ' << threshold << TestLog::EndMessage;
 
@@ -1041,8 +1042,8 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcuTexture, gluTexture
      */
     var DefaultFramebufferBlitCase = function(name, desc, format, filter, dir, area) {
         BlitDefaultFramebufferCase(this, name, desc, format, filter);
-        /** @const @type{BlitDirection} */ this.m_blitDir = dir
-        /** @const @type{BlitArea} */ this.m_blitArea = area;
+        /** @const {BlitDirection} */ this.m_blitDir = dir;
+        /** @const {BlitArea} */ this.m_blitArea = area;
         /** @type {Array<number>} */ this.m_srcRect = [-1, -1, -1, -1];
         /** @type {Array<number>} */ this.m_dstRect = [-1, -1, -1, -1];
         /** @type {Array<number>} */ this.m_interestingArea = [-1, -1, -1, -1];
@@ -1051,12 +1052,12 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcuTexture, gluTexture
     };
 
     DefaultFramebufferBlitCase.prototype = Object.create(BlitDefaultFramebufferCase.prototype);
-    DefaultFramebufferBlitCase.prototype.constructor = DefaultFramebufferBlitCase
+    DefaultFramebufferBlitCase.prototype.constructor = DefaultFramebufferBlitCase;
 
     DefaultFramebufferBlitCase.prototype.init = function() {
-        TODO: implement
+        //TODO: implement
         // requirements
-        /** @const @type {number} */ var minViewportSize = 128;
+        /** @const {number} */ var minViewportSize = 128;
         if (this.m_context.getRenderTarget().getWidth() < minViewportSize ||
             this.m_context.getRenderTarget().getHeight() < minViewportSize)
             throw new Error('Viewport size ' + minViewportSize + 'x' + minViewportSize + ' required');
@@ -1072,12 +1073,12 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcuTexture, gluTexture
             this.m_interestingArea = [0, 0, 128, 128];
         }
         else if (this.blitArea == BlitArea.AREA_OUT_OF_BOUNDS) {
-            /** @const @type {Array<number>} */
+            /** @const {Array<number>} */
             var ubound = (this.m_blitDir == BlitDirection.BLIT_DEFAULT_TO_TARGET) ?
                          ([128, 128]) :
                          ([this.m_context.getRenderTarget().getWidth(), this.m_context.getRenderTarget().getHeight()]);
 
-            this.m_srcRect = [-10, -15, 100,  63];
+            this.m_srcRect = [-10, -15, 100, 63];
             this.m_dstRect = deMath.add(deMath.swizzle(ubound, [0, 1, 0, 1]), [-75, -99, 8, 16]);
             this.m_interestingArea = [ubound[0] - 128, ubound[1] - 128, ubound[0], ubound[1]];
         }
@@ -1092,32 +1093,32 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcuTexture, gluTexture
         // TOOD: implement
         /** @type {tcuTexture.TextureFormat} */ var colorFormat = gluTextureUtil.mapGLInternalFormat(m_format);
         /** @type {gluTextureUtil.TransferFormat} */ var transferFmt = gluTextureUtil.getTransferFormat(colorFormat);
-        /** @const @type {tcuTexture.TextureChannelClass} */
+        /** @const {tcuTexture.TextureChannelClass} */
         var targetClass = (m_blitDir == BLIT_DEFAULT_TO_TARGET) ?
             (tcuTextureUtil.getTextureChannelClass(colorFormat.type)) :
             (tcuTextureUtil.TextureChannelClass.UNSIGNED_FIXED_POINT);
 
         /** @type {number} */ var fbo = 0;
         /** @type {number} */ var fboTex = 0;
-        /** @const @type {number} */ var fboTexW = 128;
-        /** @const @type {number} */ var fboTexH = 128;
-        /** @const @type {number} */ var sourceWidth = (this.m_blitDir == BlitDirection.BLIT_DEFAULT_TO_TARGET) ? (getWidth()) : (fboTexW);
-        /** @const @type {number} */ var sourceHeight = (this.m_blitDir == BlitDirection.BLIT_DEFAULT_TO_TARGET) ? (getHeight()) : (fboTexH);
-        /** @const @type {number} */ var gridRenderWidth = Math.min(256, sourceWidth);
-        /** @const @type {number} */ var gridRenderHeight = Math.min(256, sourceHeight);
+        /** @const {number} */ var fboTexW = 128;
+        /** @const {number} */ var fboTexH = 128;
+        /** @const {number} */ var sourceWidth = (this.m_blitDir == BlitDirection.BLIT_DEFAULT_TO_TARGET) ? (getWidth()) : (fboTexW);
+        /** @const {number} */ var sourceHeight = (this.m_blitDir == BlitDirection.BLIT_DEFAULT_TO_TARGET) ? (getHeight()) : (fboTexH);
+        /** @const {number} */ var gridRenderWidth = Math.min(256, sourceWidth);
+        /** @const {number} */ var gridRenderHeight = Math.min(256, sourceHeight);
 
-        /** @type {number} */ var targetFbo        = -1;
-        /** @type {number} */ var sourceFbo        = -1;
+        /** @type {number} */ var targetFbo = -1;
+        /** @type {number} */ var sourceFbo = -1;
 
         // FBO
         fbo = gl.createFramebuffer();
         fboTex = gl.createTexture();
 
         gl.bindTexture(gl.TEXTURE_2D, fboTex);
-        gl.texParameteri(gl.TEXTURE_2D,    gl.TEXTURE_WRAP_S,        gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D,    gl.TEXTURE_WRAP_T,        gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D,    gl.TEXTURE_MIN_FILTER,    this.m_filter);
-        gl.texParameteri(gl.TEXTURE_2D,    gl.TEXTURE_MAG_FILTER,    this.m_filter);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, this.m_filter);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, this.m_filter);
         gl.texImage2D(GL_TEXTURE_2D, 0, m_format, fboTexW, fboTexH, 0, transferFmt.format, transferFmt.dataType, DE_NULL);
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
@@ -1134,12 +1135,12 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcuTexture, gluTexture
         var texShader = new fboTestUtil.Texture2DShader(
             [gluShaderUtil.DataType.TYPE_SAMPLER_2D],
             gluShaderUtil.DataType.TYPE_FLOAT_VEC4);
-        /** @const @type {number} */ var texShaderID = getCurrentContext().createProgram(texShader);
-        /** @const @type {number} */ var internalFormat = gl.RGBA8;
-        /** @const @type {number} */ var format = gl.RGBA;
-        /** @const @type {number} */ var dataType = gl.UNSIGNED_BYTE;
-        /** @const @type {number} */ var gridTexW = 128;
-        /** @const @type {number} */ var gridTexH = 128;
+        /** @const {number} */ var texShaderID = getCurrentContext().createProgram(texShader);
+        /** @const {number} */ var internalFormat = gl.RGBA8;
+        /** @const {number} */ var format = gl.RGBA;
+        /** @const {number} */ var dataType = gl.UNSIGNED_BYTE;
+        /** @const {number} */ var gridTexW = 128;
+        /** @const {number} */ var gridTexH = 128;
         /** @type {number} */ var gridTex = 0;
         /** @type {tcuTexture.TextureLevel} */ var data = new tcuTexture.TextureLevel(gluTextueUtil.mapGLTransferFormat(format, dataType), gridTexW, gridTexH, 1);
 
@@ -1147,10 +1148,10 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcuTexture, gluTexture
 
         gridTex = gl.createTexture();
         gl.BindTexture(gl.TEXTURE_2D, gridTex);
-        gl.texParameteri(gl.TEXTURE_2D,    gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D,    gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D,    gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D,    gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
         gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat, gridTexW, gridTexH, 0, format, dataType, data.getAccess().getDataPtr());
 
         gl.BindFramebuffer(gl.FRAMEBUFFER, sourceFbo);

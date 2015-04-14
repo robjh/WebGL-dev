@@ -69,8 +69,8 @@ define(['framework/common/tcuTexture', 'framework/common/tcuTextureUtil', 'frame
      * @constructor
      * @param {Array<gluShaderUtilDataType>} samplerTypes
      * @param {gluShaderUtil.DataType} outputType
-     * @const @param {Array<number>} outScale - default [1.0, 1.0, 1.0, 1.0]
-     * @const @param {Array<number>} outBias - default [0.0, 0.0, 0.0, 0.0]
+     * @param {Array<number>} outScale - default [1.0, 1.0, 1.0, 1.0]
+     * @param {Array<number>} outBias - default [0.0, 0.0, 0.0, 0.0]
      */
     var Texture2DShader = function(samplerTypes, outputType, outScale, outBias) {
         if (outScale === undefined) outScale = [1.0, 1.0, 1.0, 1.0];
@@ -275,7 +275,6 @@ define(['framework/common/tcuTexture', 'framework/common/tcuTextureUtil', 'frame
             default:
                 throw new Error('Unknown format in getFromatName()');
         }
-
     };
 
     var getFramebufferReadFormat = function(format) {
@@ -294,9 +293,7 @@ define(['framework/common/tcuTexture', 'framework/common/tcuTextureUtil', 'frame
                 return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.SIGNED_INT32);
 
             default:
-                // DE_ASSERT(!"Unknown format");
-            throw new Error('Unknown format in getFramebufferReadFormat()');
-                return new tcuTexture.TextureFormat();
+                throw new Error('Unknown format in getFramebufferReadFormat()');
         }
     };
 
@@ -383,8 +380,8 @@ define(['framework/common/tcuTexture', 'framework/common/tcuTextureUtil', 'frame
     };
 
     /**
-     * @const @param {tcuTexture.TextureFormat} src
-     * @const @param {tcuTexture.TextureFormat} dst
+     * @param {tcuTexture.TextureFormat} src
+     * @param {tcuTexture.TextureFormat} dst
      * @return {tcuRGBA.RGBA}
      */
     var getToSRGBConversionThreshold = function(src, dst) {
@@ -407,11 +404,10 @@ define(['framework/common/tcuTexture', 'framework/common/tcuTextureUtil', 'frame
      * @return {number}
      */
     var calculateU8ConversionError = function(srcBits) {
-        if (srcBits > 0)
-        {
-            const int clampedBits = deMath.clamp(srcBits, 0, 8);
-            const int srcMaxValue = Math.max((1 << clampedBits) - 1, 1);
-            const int error = Math.floor(Math.ceil(255.0 * 2.0 / srcMaxValue));
+        if (srcBits > 0) {
+            /** @const @type {number} */ var clampedBits = deMath.clamp(srcBits, 0, 8);
+            /** @const @type {number} */ var srcMaxValue = Math.max((1 << clampedBits) - 1, 1);
+            /** @const @type {number} */ var error = Math.floor(Math.ceil(255.0 * 2.0 / srcMaxValue));
 
             return deMath.clamp(error, 0, 255);
         }
