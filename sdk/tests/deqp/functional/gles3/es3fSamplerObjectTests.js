@@ -20,6 +20,8 @@
 
 define(['framework/common/tcuTestCase', 'modules/shared/glsSamplerObjectTest'], function(tcuTestCase, glsSamplerObjectTest) {
     'use strict';
+    /** @type {WebGL2RenderingContext} */ var gl;
+
     // TODO: implement glsSamplerObjectTest and validate constructors
     var init = function() {
         var testGroup = tcuTestCase.runner.getState().testCases;

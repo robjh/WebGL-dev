@@ -221,7 +221,7 @@ define([
             setContext(null);
         }
 
-        /** @type {boolean6 */ var isOk = compare(reference, result);
+        /** @type {boolean} */ var isOk = compare(reference, result);
 
      assertMsgOptions(isOk, '', true, false);
 
@@ -335,7 +335,7 @@ define([
         return false;
     };
 
-     return {
-
+    return {
+        FboTestCase: FboTestCase
     };
  });

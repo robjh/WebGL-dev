@@ -690,7 +690,7 @@ var isGLInternalColorFormatFilterable = function(/* deMath.deUint32 */ format)
  *
  * If no mapping is found, throws tcu::InternalError.
  *
- * @param face Cube face
+ * @param {tcuTexture.CubeFace} face Cube face
  * @return {number} GL cube face
  */
 var getGLCubeFace = function(face)

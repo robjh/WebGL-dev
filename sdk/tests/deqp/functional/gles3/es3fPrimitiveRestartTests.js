@@ -38,7 +38,7 @@ define([
         tcuImageCompare,
         gluTextureUtil) {
     'use strict';
-
+    /** @type {WebGL2RenderingContext} */ var gl;
     /** @const @type {number} */ var MAX_RENDER_WIDTH = 256;
     /** @const @type {number} */ var MAX_RENDER_HEIGHT = 256;
 
@@ -191,7 +191,7 @@ define([
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, bufferIndex, gl.STATIC_DRAW);
 
         if (this.m_function == DrawFunction.FUNCTION_DRAW_ELEMENTS) {
-            gl.drawElements(primTypeGL, count-1, indexTypeGL, 0);
+            gl.drawElements(primTypeGL, count - 1, indexTypeGL, 0);
         }
         else if (this.m_function == DrawFunction.FUNCTION_DRAW_ELEMENTS_INSTANCED) {
             gl.drawElementsInstanced(primTypeGL, count, indexTypeGL, 0, 1);
@@ -642,7 +642,7 @@ define([
                     /** @type {boolean} */ var isRestartEndCase = isRestartEndCaseI != 0;
                     /** @type {boolean} */ var isDuplicateRestartCase = isDuplicateRestartCaseI != 0;
 
-                    /** @type {string} */ var specialCaseGroupName = "";
+                    /** @type {string} */ var specialCaseGroupName = '';
 
                     if (isRestartBeginCase) specialCaseGroupName = 'begin_restart';
                     if (isRestartEndCase) specialCaseGroupName += (deString.deIsStringEmpty(specialCaseGroupName) ? '' : '_') + 'end_restart';

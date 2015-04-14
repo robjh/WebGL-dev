@@ -339,7 +339,7 @@ define(['framework/common/tcuTexture', 'framework/common/tcuTextureUtil', 'frame
             calculateU8ConversionError(bits[0]),
             calculateU8ConversionError(bits[1]),
             calculateU8ConversionError(bits[2]),
-            calculateU8ConversionError(bits[3]),
+            calculateU8ConversionError(bits[3])
         );
     };
 
@@ -380,7 +380,7 @@ define(['framework/common/tcuTexture', 'framework/common/tcuTextureUtil', 'frame
             return errors[srcBits];
         else
             return 1;
-    }
+    };
 
     /**
      * @const @param {tcuTexture.TextureFormat} src
