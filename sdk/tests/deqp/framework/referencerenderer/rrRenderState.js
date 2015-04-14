@@ -228,7 +228,7 @@ var FragmentOperationState = function() {
 	/** @type {BlendState} */ this.blendRGBState = new BlendState();
 	/** @type {BlendState} */ this.blendAState = new BlendState();
 	/** @type {Array.<number>} */ this.blendColor	= [0.0, 0.0, 0.0, 0.0];
-	/** @type {BlendEquationAdvanced} */ this.blendEquationAdvaced = null;
+	/** @type {BlendEquationAdvanced} */ this.blendEquationAdvanced = null;
 
 	/** @type {boolean} */ this.sRGBEnabled = true;
 

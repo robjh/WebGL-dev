@@ -42,9 +42,16 @@ define(['framework/common/tcuTexture', 'framework/delibs/debase/deMath'], functi
      * @param {number} numberOfVertexOutputs
      */
     var VertexPacketAllocator = function (numberOfVertexOutputs) {
-        /** @type {number} */ this.m_numberOfvertexOutputs = numberOfVertexOutputs;
+        /** @type {number} */ this.m_numberOfVertexOutputs = numberOfVertexOutputs;
         /** @type {Uint8Array} */ this.m_allocations;
         /** @type {Array.<VertexPacket>} */ this.m_singleAllocPool = [];
+    };
+
+    /**
+     * @return {number}
+     */
+    VertexPacketAllocator.prototype.getNumVertexOutputs = function () {
+        return this.m_numberOfVertexOutputs;
     };
 
     /**
@@ -83,6 +90,10 @@ define(['framework/common/tcuTexture', 'framework/delibs/debase/deMath'], functi
         /** @type {VertexPacket} */ var packet = this.m_singleAllocPool.pop();
 
         return packet;
+    };
+
+    return {
+        VertexPacketAllocator: VertexPacketAllocator
     };
 
 });

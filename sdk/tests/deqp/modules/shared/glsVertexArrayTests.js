@@ -478,7 +478,7 @@ define([
         /** @type {number} */ this.m_offset = 0;
 
         if (this.m_storage == deArray.Storage.BUFFER) {
-            this.m_glBuffer = this.m_ctx.genBuffers(1)[0];
+            this.m_glBuffer = this.m_ctx.createBuffer();
             GLU_EXPECT_NO_ERROR(this.m_ctx.getError(), "gl.genBuffers()");
         }
     };
@@ -554,7 +554,8 @@ define([
             this.m_ctx.bindBuffer(ContextArray.targetToGL(target), this.m_glBuffer);
             GLU_EXPECT_NO_ERROR(this.m_ctx.getError(), "gl.bindBuffer()");
 
-            this.m_ctx.bufferData(ContextArray.targetToGL(target), size, ptr, ContextArray.usageToGL(usage));
+            //No need for size param here, as opposed to GL ES.
+            this.m_ctx.bufferData(ContextArray.targetToGL(target), ptr, ContextArray.usageToGL(usage));
             GLU_EXPECT_NO_ERROR(this.m_ctx.getError(), "gl.bufferData()");
         }
         else if (this.m_storage == deArray.Storage.USER) {
@@ -650,7 +651,6 @@ define([
             else
             {
                 // Input type is float type
-
                 // Output type must be float type
                 DE_ASSERT(this.m_outputType == deArray.OutputType.FLOAT || this.m_outputType == deArray.OutputType.VEC2 || this.m_outputType == deArray.OutputType.VEC3 || this.m_outputType == deArray.OutputType.VEC4);
 
@@ -868,7 +868,7 @@ define([
      */
     ContextArrayPack.prototype.render = function (primitive, firstVertex, vertexCount, useVao, coordScale, colorScale) {
         /** @type {number} */ var program = 0;
-        /** @type {number} */ var vaoId = 0;
+        /** @type {number} */ var vaoID = 0;
 
         this.updateProgram();
 
@@ -885,7 +885,7 @@ define([
         this.m_ctx.uniform1f(this.m_ctx.getUniformLocation(program, "u_colorScale"), colorScale);
 
         if (useVao) {
-            var vaoID = this.m_ctx.genVertexArrays(1, vaoId)[0];
+            vaoID = this.m_ctx.createVertexArray();
             this.m_ctx.bindVertexArray(vaoID);
         }
 
@@ -919,10 +919,10 @@ define([
         }
 
         if (useVao)
-            vaoID = this.m_ctx.deleteVertexArrays(1, vaoId);
+            vaoID = this.m_ctx.deleteVertexArray(vaoID);
 
         this.m_ctx.deleteProgram(program);
-        this.m_ctx.useProgram(0);
+        this.m_ctx.useProgram(null);
         this.m_ctx.readPixels(this.m_screen, 0, 0, this.m_screen.getWidth(), this.m_screen.getHeight());
     };
 
@@ -964,11 +964,22 @@ define([
     var calcShaderColorCoord = function (coord, color, attribValue, isCoordinate, numComponents) {
         if (isCoordinate)
             switch (numComponents) {
-                case 1: coord = [attribValue[0], attribValue[0]]; break;
-                case 2: coord = [attribValue[0], attribValue[1]]; break;
-                case 3: coord = [attribValue[0] + attribValue[2], attribValue[1]]; break;
-                case 4: coord = [attribValue[0] + attribValue[2], attribValue[1] + attribValue[3]]; break;
-
+                case 1:
+                    coord[0] = attribValue[0];
+                    coord[1] = attribValue[0];
+                    break;
+                case 2:
+                    coord[0] = attribValue[0];
+                    coord[1] = attribValue[1];
+                    break;
+                case 3:
+                    coord[0] = attribValue[0] + attribValue[2];
+                    coord[1] = attribValue[1];
+                    break;
+                case 4: 
+                    coord[0] = attribValue[0] + attribValue[2];
+                    coord[1] = attribValue[1] + attribValue[3];
+                    break;
                 default:
                     throw new Error('calcShaderColorCoord - Invalid number of components');
             }
@@ -978,24 +989,20 @@ define([
                 case 1:
                     color[0] = color[0] * attribValue[0];
                     break;
-
                 case 2:
                     color[0] = color[0] * attribValue[0];
                     color[1] = color[1] * attribValue[1];
                     break;
-
                 case 3:
                     color[0] = color[0] * attribValue[0];
                     color[1] = color[1] * attribValue[1];
                     color[2] = color[2] * attribValue[2];
                     break;
-
                 case 4:
                     color[0] = color[0] * attribValue[0] * attribValue[3];
                     color[1] = color[1] * attribValue[1] * attribValue[3];
                     color[2] = color[2] * attribValue[2] * attribValue[3];
                     break;
-
                 default:
                     throw new Error('calcShaderColorCoord - Invalid number of components');
             }

@@ -25,15 +25,15 @@ define(['framework/referencerenderer/rrVertexPacket', 'framework/referencerender
  * @enum
  */
 var PrimitiveType = {
-    PRIMITIVETYPE_TRIANGLES: 0,            //!< Separate triangles
-    PRIMITIVETYPE_TRIANGLE_STRIP: 1,           //!< Triangle strip
-    PRIMITIVETYPE_TRIANGLE_FAN: 2,             //!< Triangle fan
+    TRIANGLES: 0,            //!< Separate triangles
+    TRIANGLE_STRIP: 1,           //!< Triangle strip
+    TRIANGLE_FAN: 2,             //!< Triangle fan
 
-    PRIMITIVETYPE_LINES: 3,                    //!< Separate lines
-    PRIMITIVETYPE_LINE_STRIP: 4,               //!< Line strip
-    PRIMITIVETYPE_LINE_LOOP: 5,                //!< Line loop
+    LINES: 3,                    //!< Separate lines
+    LINE_STRIP: 4,               //!< Line strip
+    LINE_LOOP: 5,                //!< Line loop
 
-    PRIMITIVETYPE_POINTS: 6                   //!< Points
+    POINTS: 6                   //!< Points
 };
 
 /**
@@ -381,9 +381,9 @@ var triangles = (function() {
     };
 })();
 
- var assemblers = (function() {
+var assemblers = (function() {
     var assemblers = [];
-    assemblers[PrimitiveType.PRIMITIVETYPE_TRIANGLES] = triangles;
+    assemblers[PrimitiveType.TRIANGLES] = triangles;
     return assemblers;
 })();
 
@@ -495,15 +495,16 @@ var RenderTarget = function(colorMultisampleBuffer, depthMultisampleBuffer, sten
     this.numColorBuffers = 1;
 };
 
-/**
- * @constructor
- * @param {rrShaders.VertexShader} vertexShader_
- * @param {rrShaders.FragmentShader} fragmentShader_
- */
-var Program = function(vertexShader_, fragmentShader_){
-    this.vertexShader = vertexShader_;
-    this.fragmentShader = fragmentShader_;
-};
+// NOTE: Program object is useless. Let's just use the sglrShaderProgram
+// /**
+//  * @constructor
+//  * @param {rrShaders.VertexShader} vertexShader_
+//  * @param {rrShaders.FragmentShader} fragmentShader_
+//  */
+// var Program = function(vertexShader_, fragmentShader_){
+//     this.vertexShader = vertexShader_;
+//     this.fragmentShader = fragmentShader_;
+// };
 
 /**
  * @constructor
@@ -531,7 +532,7 @@ DrawIndices.prototype.readIndexArray = function(index) { return this.access[inde
  * @param {number} numElements
  * @param { (number|DrawIndices) } indices
  */
-var PrimitiveList = function(primitiveType, numElements, indices) {
+var PrimitiveList = function (primitiveType, numElements, indices) {
     this.m_primitiveType = primitiveType;
     this.m_numElements = numElements;
 
@@ -576,7 +577,7 @@ PrimitiveList.prototype.getIndexType = function() { return this.m_indexType; };
  * @constructor
  * @param {rrRenderState.RenderState} state_
  * @param {RenderTarget} renderTarget_
- * @param {Program} program_
+ * @param {sglrShaderProgram.ShaderProgram} program_
  * @param {number} numVertexAttribs_
  * @param {Array<rrVertexAttrib.VertexAttrib>} vertexAttribs_
  * @param {PrimitiveList} primitives_
@@ -647,7 +648,7 @@ var drawInstanced = function(/*const DrawCommand&*/ command, numInstances) {
 
             // Transform vertices
 
-            command.program.vertexShader.shadeVertices(command.vertexAttribs, vertexPackets, numVertexPackets);
+            command.program.shadeVertices(command.vertexAttribs, vertexPackets, numVertexPackets);
 
             // Draw primitives
             drawAsPrimitives(command.primitives.getPrimitiveType(), command.state, command.renderTarget, command.program, vertexPackets, numVertexPackets, drawContext, vpalloc);
@@ -707,7 +708,7 @@ var writeFragments = function(state, renderTarget, fragments) {
 /**
  * @param {rrRenderState.RenderState} state
  * @param {RenderTarget} renderTarget
- * @param {Program} program
+ * @param {sglrShaderProgram.ShaderProgram} program
  * @param {Array<rrVertexAttrib.VertexAttrib>} vertexAttribs
  * @param {Array<number>} topLeft Coordinates of top left corner of the rectangle
  * @param {Array<number>} bottomRight Coordinates of bottom right corner of the rectangle
@@ -750,9 +751,11 @@ var drawQuad = function(state, renderTarget, program, vertexAttribs, topLeft, bo
 
 return {
     PrimitiveType: PrimitiveType,
+    PrimitiveList: PrimitiveList,
     RenderTarget: RenderTarget,
-    Program: Program,
-    drawQuad: drawQuad 
+    DrawCommand: DrawCommand,
+    drawInstanced: drawInstanced,
+    drawQuad: drawQuad
 };
 
 });

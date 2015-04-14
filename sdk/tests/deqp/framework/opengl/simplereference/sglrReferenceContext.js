@@ -18,11 +18,33 @@
  *
  */
 
-define(['framework/referencerenderer/rrMultisamplePixelBufferAccess', 'framework/common/tcuTexture', 'framework/delibs/debase/deMath', 'framework/opengl/gluTextureUtil',
- 'framework/common/tcuTextureUtil', 'framework/common/tcuPixelFormat', 'framework/opengl/gluShaderUtil',
-  'framework/referencerenderer/rrRenderer', 'framework/referencerenderer/rrDefs', 'framework/referencerenderer/rrVertexAttrib',
-   'framework/referencerenderer/rrRenderState', 'framework/opengl/simplereference/sglrReferenceUtils' ],
- function(rrMultisamplePixelBufferAccess, tcuTexture, deMath, gluTextureUtil, tcuTextureUtil, tcuPixelFormat, gluShaderUtil, rrRenderer, rrDefs, rrVertexAttrib, rrRenderState, sglrReferenceUtils) {
+define([
+    'framework/referencerenderer/rrMultisamplePixelBufferAccess',
+    'framework/common/tcuTexture',
+    'framework/delibs/debase/deMath',
+    'framework/opengl/gluTextureUtil',
+    'framework/common/tcuTextureUtil',
+    'framework/common/tcuPixelFormat',
+    'framework/opengl/gluShaderUtil',
+    'framework/referencerenderer/rrRenderer',
+    'framework/referencerenderer/rrDefs',
+    'framework/referencerenderer/rrVertexAttrib',
+    'framework/referencerenderer/rrRenderState',
+    'framework/opengl/simplereference/sglrReferenceUtils'
+],
+function(
+    rrMultisamplePixelBufferAccess,
+    tcuTexture,
+    deMath,
+    gluTextureUtil,
+    tcuTextureUtil,
+    tcuPixelFormat,
+    gluShaderUtil,
+    rrRenderer,
+    rrDefs,
+    rrVertexAttrib,
+    rrRenderState,
+    sglrReferenceUtils) {
 
 var rrMPBA = rrMultisamplePixelBufferAccess;
 
@@ -78,48 +100,15 @@ var GenericVec4 = function(a, b, c, d) {
     this.data = [a || 0, b || 0, c || 0, d || 0];
 };
 
-// /**
-//  * NamedObject
-//  * @constructor
-//  * @param {deMath.deUint32} name
-//  */
-// var NamedObject = function (name) {
-//     this.m_name = name;
-//     this.m_refCount = 1;
-// };
-// 
-// /**
-//  * @return {deMath.deUint32}
-//  */
-// NamedObject.prototype.getName = fuction () {return this.m_name;};
-// 
-// /**
-//  * @return {number}
-//  */
-// NamedObject.prototype.getRefCount = fuction () {return this.m_refCount;};
-// 
-// /**
-//  */
-// NamedObject.prototype.incRefCount = fuction () {this.m_refCount += 1;};
-// 
-// /**
-//  */
-// NamedObject.prototype.decRefCount = fuction () {this.m_refCount -= 1;};
-// 
-// /**
-//  * @constructor
-//  * @extends {NamedObject}
-//  * @param {deMath.deUint32} name
-//  * @param {ShaderProgram} program
-//  */
-// ShaderProgramObjectContainer = function (name, program) {
-//     NamedObject.call(this, name);
-//     this.m_program = program;
-//     /** @type {boolean} */ this.m_deleteFlag = false;
-// };
-// 
-// ShaderProgramObjectContainer.prototype = Object.create(NamedObject.prototype);
-// ShaderProgramObjectContainer.prototype.constructor = ShaderProgramObjectContainer;
+/**
+ * @constructor
+ * @param {deMath.deUint32} name
+ * @param {ShaderProgram} program
+ */
+ShaderProgramObjectContainer = function (program) {
+    this.m_program = program;
+    /** @type {boolean} */ this.m_deleteFlag = false;
+};
 
 /**
  * @constructor
@@ -810,6 +799,7 @@ var ReferenceContext = function(limits, colorbuffer, depthbuffer, stencilbuffer)
     this.m_readFramebufferBinding = null;
     this.m_drawFramebufferBinding = null;
     this.m_renderbufferBinding    = null;
+    this.m_programs = [];
     this.m_currentProgram         = null;
     this.m_currentAttribs = [];
     for (var i = 0; i < this.m_limits.maxVertexAttribs; i++)
@@ -840,6 +830,15 @@ ReferenceContext.prototype.activeTexture = function(texture) {
 ReferenceContext.prototype.setError = function(error) {
     if (this.m_lastError == gl.NO_ERROR)
         this.m_lastError = error;
+};
+
+/**
+ * @return {number} error
+ */
+ReferenceContext.prototype.getError = function () {
+    var err = this.m_lastError;
+    this.m_lastError = gl.NO_ERROR;
+    return err;
 };
 
 ReferenceContext.prototype.condtionalSetError = function(condition, error) {
@@ -1387,11 +1386,11 @@ ReferenceContext.prototype.vertexAttribI4ui = function(index, x, y, z, w) {
 };
 
 ReferenceContext.prototype.getAttribLocation = function(program, name) {
-    if (this.condtionalSetError(!program, gl.INVALID_OPERATION))
+    if (this.condtionalSetError(!(program >= 0), gl.INVALID_OPERATION))
         return -1;
 
-    for (var i = 0; i < program.m_attributeNames.length; i++)
-        if (program.m_attributeNames[i] === name)
+    for (var i = 0; i < this.m_programs[program].m_program.m_attributeNames.length; i++)
+        if (this.m_programs[program].m_program.m_attributeNames[i] === name)
             return i;
 
     return -1;
@@ -1501,11 +1500,11 @@ ReferenceContext.prototype.uniformMatrix4fv = function(location, transpose, x) {
 };
 
 ReferenceContext.prototype.getUniformLocation = function(program, name) {
-    if (this.condtionalSetError(!program, gl.INVALID_OPERATION))
+    if (this.condtionalSetError(!(program >= 0), gl.INVALID_OPERATION))
         return -1;
 
-    for (var i = 0; i < program.m_program.m_uniforms.length; i++)
-        if (program.m_program.m_uniforms[i] === name)
+    for (var i = 0; i < this.m_programs[program].m_program.m_uniforms.length; i++)
+        if (this.m_programs[program].m_program.m_uniforms[i].name === name)
             return i;
 
     return -1;
@@ -1648,6 +1647,10 @@ ReferenceContext.prototype.readPixels = function(x, y, width, height, format, ty
 
     src = src.getSubregion([copyX, copyY, copyWidth, copyHeight]);
     src.resolveMultisampleColorBuffer(tcuTextureUtil.getSubregion(dst, 0, 0, 0, copyWidth, copyHeight, 1));
+};
+
+ReferenceContext.prototype.getType = function () {
+    return this.m_type;
 };
 
 var nullAccess = function() {
@@ -1873,9 +1876,9 @@ ReferenceContext.prototype.drawArraysInstanced = function(mode, first, count, in
         return;
 
     // All is ok
-    var primitiveType = mapGLPrimitiveType(mode);
+    var primitiveType = sglrReferenceUtils.mapGLPrimitiveType(mode);
 
-    drawWithReference(new rrRenderer.PrimitiveList(primitiveType, count, first), instanceCount);
+    this.drawWithReference(new rrRenderer.PrimitiveList(primitiveType, count, first), instanceCount);
 };
 
 ReferenceContext.prototype.drawElements = function(mode, count, type, offset) {
@@ -1902,11 +1905,11 @@ ReferenceContext.prototype.drawElementsInstancedBaseVertex = function(mode, coun
     if (this.condtionalSetError(count >0 && !vao.m_elementArrayBufferBinding, gl.INVALID_OPERATION))
         return;
     // All is ok
-    var primitiveType   = mapGLPrimitiveType(mode);
+    var primitiveType   = sglrReferenceUtils.mapGLPrimitiveType(mode);
     var data = vao.m_elementArrayBufferBinding.getData();
     var indices = new rrRenderer.DrawIndices(data, sglrReferenceUtils.mapGLIndexType(type), baseVertex);
 
-    drawWithReference(new rrRenderer.PrimitiveList(primitiveType, count, indices), instanceCount);
+    this.drawWithReference(new rrRenderer.PrimitiveList(primitiveType, count, indices), instanceCount);
 };
 
 /**
@@ -2293,18 +2296,18 @@ var getPrimitiveBaseType = function(derivedType)
 {
     switch (derivedType)
     {
-        case rrRenderer.PrimitiveType.PRIMITIVETYPE_TRIANGLES:
-        case rrRenderer.PrimitiveType.PRIMITIVETYPE_TRIANGLE_STRIP:
-        case rrRenderer.PrimitiveType.PRIMITIVETYPE_TRIANGLE_FAN:
-            return rrRenderer.PrimitiveType.PRIMITIVETYPE_TRIANGLES;
+        case rrRenderer.PrimitiveType.TRIANGLES:
+        case rrRenderer.PrimitiveType.TRIANGLE_STRIP:
+        case rrRenderer.PrimitiveType.TRIANGLE_FAN:
+            return rrRenderer.PrimitiveType.TRIANGLES;
 
-        case rrRenderer.PrimitiveType.PRIMITIVETYPE_LINES:
-        case rrRenderer.PrimitiveType.PRIMITIVETYPE_LINE_STRIP:
-        case rrRenderer.PrimitiveType.PRIMITIVETYPE_LINE_LOOP:
-            return rrRenderer.PrimitiveType.PRIMITIVETYPE_LINES;
+        case rrRenderer.PrimitiveType.LINES:
+        case rrRenderer.PrimitiveType.LINE_STRIP:
+        case rrRenderer.PrimitiveType.LINE_LOOP:
+            return rrRenderer.PrimitiveType.LINES;
 
-        case rrRenderer.PrimitiveType.PRIMITIVETYPE_POINTS:
-            return rrRenderer.PrimitiveType.PRIMITIVETYPE_POINTS;
+        case rrRenderer.PrimitiveType.POINTS:
+            return rrRenderer.PrimitiveType.POINTS;
 
         default:
             throw new Error('Unrecognized primitive type:' + derivedType);
@@ -2319,128 +2322,112 @@ ReferenceContext.prototype.drawWithReference = function(primitives, instanceCoun
     var  colorBuf0   = this.getDrawColorbuffer();
     var  depthBuf    = this.getDrawDepthbuffer();
     var  stencilBuf  = this.getDrawStencilbuffer();
-    var hasStencil  = !stencilBuf.isEmpty();
+    var hasStencil  = stencilBuf && !stencilBuf.isEmpty();
     var                           stencilBits = (hasStencil) ? stencilBuf.raw().getFormat().getNumStencilBits() : (0);
 
-    var              renderTarget = new rrRenderer.RenderTarget(colorBuf0, depthBuf,stencilBuf);
-    var                   program     = new rrRenderer.Program(this.m_currentProgram.m_program.getVertexShader(),
-                                                     this.m_currentProgram.m_program.getFragmentShader());
-    var state       = rrRenderState.RenderState(colorBuf0);
+    var renderTarget = new rrRenderer.RenderTarget(colorBuf0, depthBuf, stencilBuf);
+    var program = this.m_currentProgram.m_program;
+    var state = new rrRenderState.RenderState(colorBuf0);
 
     var       vertexAttribs = [];
 
     // Gen state
-    {
-        var baseType                            = getPrimitiveBaseType(primitives.getPrimitiveType());
-        var              polygonOffsetEnabled                = (baseType == rrRenderer.PrimitiveType.PRIMITIVETYPE_TRIANGLES) ? (this.m_polygonOffsetFillEnabled) : (false);
+    var baseType                            = getPrimitiveBaseType(primitives.getPrimitiveType());
+    var              polygonOffsetEnabled                = (baseType == rrRenderer.PrimitiveType.TRIANGLES) ? (this.m_polygonOffsetFillEnabled) : (false);
 
-        //state.cullMode                                            = m_cullMode
+    //state.cullMode                                            = m_cullMode
 
-        state.fragOps.scissorTestEnabled                            = this.m_scissorEnabled;
-        state.fragOps.scissorRectangle                              = new rrRenderState.WindowRectangle(this.m_scissorBox[0], this.m_scissorBox[1], this.m_scissorBox[2], this.m_scissorBox[3]);
+    state.fragOps.scissorTestEnabled                            = this.m_scissorEnabled;
+    state.fragOps.scissorRectangle                              = new rrRenderState.WindowRectangle(this.m_scissorBox[0], this.m_scissorBox[1], this.m_scissorBox[2], this.m_scissorBox[3]);
 
-        state.fragOps.numStencilBits                                = stencilBits;
-        state.fragOps.stencilTestEnabled                            = this.m_stencilTestEnabled;
+    state.fragOps.numStencilBits                                = stencilBits;
+    state.fragOps.stencilTestEnabled                            = this.m_stencilTestEnabled;
 
-        for (var key in rrDefs.FaceType) {
-            var faceType = rrDefs.FaceType[key];
-            state.fragOps.stencilStates[faceType].compMask  = this.m_stencil[faceType].opMask;
-            state.fragOps.stencilStates[faceType].writeMask = this.m_stencil[faceType].writeMask;
-            state.fragOps.stencilStates[faceType].ref       = this.m_stencil[faceType].ref;
-            state.fragOps.stencilStates[faceType].func      = sglrReferenceUtils.mapGLTestFunc(this.m_stencil[faceType].func);
-            state.fragOps.stencilStates[faceType].sFail     = sglrReferenceUtils.mapGLStencilOp(this.m_stencil[faceType].opStencilFail);
-            state.fragOps.stencilStates[faceType].dpFail    = sglrReferenceUtils.mapGLStencilOp(this.m_stencil[faceType].opDepthFail);
-            state.fragOps.stencilStates[faceType].dpPass    = sglrReferenceUtils.mapGLStencilOp(this.m_stencil[faceType].opDepthPass);
-        }
-
-        state.fragOps.depthTestEnabled                              = this.m_depthTestEnabled;
-        state.fragOps.depthFunc                                     = sglrReferenceUtils.mapGLTestFunc(this.m_depthFunc);
-        state.fragOps.depthMask                                     = this.m_depthMask;
-
-        state.fragOps.blendMode                                     = this.m_blendEnabled ? rrRenderState.BlendMode.BLENDMODE_STANDARD : rrRenderState.BlendMode.BLENDMODE_NONE;
-        state.fragOps.blendRGBState.equation                        = sglrReferenceUtils.mapGLBlendEquation(this.m_blendModeRGB);
-        state.fragOps.blendRGBState.srcFunc                         = sglrReferenceUtils.mapGLBlendFunc(this.m_blendFactorSrcRGB);
-        state.fragOps.blendRGBState.dstFunc                         = sglrReferenceUtils.mapGLBlendFunc(this.m_blendFactorDstRGB);
-        state.fragOps.blendAState.equation                          = sglrReferenceUtils.mapGLBlendEquation(this.m_blendModeAlpha);
-        state.fragOps.blendAState.srcFunc                           = sglrReferenceUtils.mapGLBlendFunc(this.m_blendFactorSrcAlpha);
-        state.fragOps.blendAState.dstFunc                           = sglrReferenceUtils.mapGLBlendFunc(this.m_blendFactorDstAlpha);
-        state.fragOps.blendColor                                    = this.m_blendColor;
-
-        state.fragOps.colorMask                                     = this.m_colorMask;
-
-        state.viewport.rect                                         = new rrRenderState.WindowRectangle(this.m_viewport);
-        state.viewport.zn                                           = this.m_depthRangeNear;
-        state.viewport.zf                                           = this.m_depthRangeFar;
-
-        //state.point.pointSize                                     = this.m_pointSize;
-        state.line.lineWidth                                        = this.m_lineWidth;
-
-        state.fragOps.polygonOffsetEnabled                          = polygonOffsetEnabled;
-        state.fragOps.polygonOffsetFactor                           = this.m_polygonOffsetFactor;
-        state.fragOps.polygonOffsetUnits                            = this.m_polygonOffsetUnits;
-
-        {
-            /* TODO: Check this logic */
-            var indexType = primitives.getIndexType();
-
-            if (this.m_primitiveRestartFixedIndex && indexType)
-            {
-                state.restart.enabled = true;
-                state.restart.restartIndex = getFixedRestartIndex(indexType);
-            }
-            else
-            {
-                state.restart.enabled = false;
-            }
-        }
-
-        state.provokingVertexConvention                             = (this.m_provokingFirstVertexConvention) ? (rrDefs.ProvokingIndex.PROVOKINGVERTEX_FIRST) : (rrDefs.ProvokingIndex.PROVOKINGVERTEX_LAST);
+    for (var key in rrDefs.FaceType) {
+        var faceType = rrDefs.FaceType[key];
+        state.fragOps.stencilStates[faceType].compMask  = this.m_stencil[faceType].opMask;
+        state.fragOps.stencilStates[faceType].writeMask = this.m_stencil[faceType].writeMask;
+        state.fragOps.stencilStates[faceType].ref       = this.m_stencil[faceType].ref;
+        state.fragOps.stencilStates[faceType].func      = sglrReferenceUtils.mapGLTestFunc(this.m_stencil[faceType].func);
+        state.fragOps.stencilStates[faceType].sFail     = sglrReferenceUtils.mapGLStencilOp(this.m_stencil[faceType].opStencilFail);
+        state.fragOps.stencilStates[faceType].dpFail    = sglrReferenceUtils.mapGLStencilOp(this.m_stencil[faceType].opDepthFail);
+        state.fragOps.stencilStates[faceType].dpPass    = sglrReferenceUtils.mapGLStencilOp(this.m_stencil[faceType].opDepthPass);
     }
 
-    // gen attributes
-    {
-        var vao = this.m_vertexArrayBinding;
+    state.fragOps.depthTestEnabled                              = this.m_depthTestEnabled;
+    state.fragOps.depthFunc                                     = sglrReferenceUtils.mapGLTestFunc(this.m_depthFunc);
+    state.fragOps.depthMask                                     = this.m_depthMask;
 
-        for (var ndx = 0; ndx < vao.m_arrays.length; ++ndx)
-        {
-            vertexAttribs[ndx] = new rrVertexAttrib.VertexAttrib();
-            if (!vao.m_arrays[ndx].enabled)
-            {
-                vertexAttribs[ndx].type = rrVertexAttrib.VertexAttribType.VERTEXATTRIBTYPE_DONT_CARE; // reading with wrong type is allowed, but results are undefined
-                vertexAttribs[ndx].generic = this.m_currentAttribs[ndx];
-            }
-            else
-            {
-                vertexAttribs[ndx].type             = (vao.m_arrays[ndx].integer) ?
-                                                        (sglrReferenceUtils.mapGLPureIntegerVertexAttributeType(vao.m_arrays[ndx].type)) :
-                                                        (sglrReferenceUtils.mapGLFloatVertexAttributeType(vao.m_arrays[ndx].type, vao.m_arrays[ndx].normalized, vao.m_arrays[ndx].size, this.getType()));
-                vertexAttribs[ndx].size             = sglrReferenceUtils.mapGLSize(vao.m_arrays[ndx].size);
-                vertexAttribs[ndx].stride           = vao.m_arrays[ndx].stride;
-                vertexAttribs[ndx].instanceDivisor  = vao.m_arrays[ndx].divisor;
-                vertexAttribs[ndx].pointer          = vao.m_arrays[ndx].bufferBinding.getData();
-                vertexAttribs[ndx].offset           = vao.m_arrays[ndx].offset;
-            }
+    state.fragOps.blendMode                                     = this.m_blendEnabled ? rrRenderState.BlendMode.BLENDMODE_STANDARD : rrRenderState.BlendMode.BLENDMODE_NONE;
+    state.fragOps.blendRGBState.equation                        = sglrReferenceUtils.mapGLBlendEquation(this.m_blendModeRGB);
+    state.fragOps.blendRGBState.srcFunc                         = sglrReferenceUtils.mapGLBlendFunc(this.m_blendFactorSrcRGB);
+    state.fragOps.blendRGBState.dstFunc                         = sglrReferenceUtils.mapGLBlendFunc(this.m_blendFactorDstRGB);
+    state.fragOps.blendAState.equation                          = sglrReferenceUtils.mapGLBlendEquation(this.m_blendModeAlpha);
+    state.fragOps.blendAState.srcFunc                           = sglrReferenceUtils.mapGLBlendFunc(this.m_blendFactorSrcAlpha);
+    state.fragOps.blendAState.dstFunc                           = sglrReferenceUtils.mapGLBlendFunc(this.m_blendFactorDstAlpha);
+    state.fragOps.blendColor                                    = this.m_blendColor;
+
+    state.fragOps.colorMask                                     = this.m_colorMask;
+
+    state.viewport.rect                                         = new rrRenderState.WindowRectangle(this.m_viewport);
+    state.viewport.zn                                           = this.m_depthRangeNear;
+    state.viewport.zf                                           = this.m_depthRangeFar;
+
+    //state.point.pointSize                                     = this.m_pointSize;
+    state.line.lineWidth                                        = this.m_lineWidth;
+
+    state.fragOps.polygonOffsetEnabled                          = polygonOffsetEnabled;
+    state.fragOps.polygonOffsetFactor                           = this.m_polygonOffsetFactor;
+    state.fragOps.polygonOffsetUnits                            = this.m_polygonOffsetUnits;
+
+    /* TODO: Check this logic */
+    var indexType = primitives.getIndexType();
+
+    if (this.m_primitiveRestartFixedIndex && indexType) {
+        state.restart.enabled = true;
+        state.restart.restartIndex = getFixedRestartIndex(indexType);
+    }
+    else {
+        state.restart.enabled = false;
+    }
+
+    state.provokingVertexConvention = (this.m_provokingFirstVertexConvention) ? (rrDefs.ProvokingVertex.PROVOKINGVERTEX_FIRST) : (rrDefs.ProvokingVertex.PROVOKINGVERTEX_LAST);
+
+    // gen attributes
+    var vao = this.m_vertexArrayBinding;
+
+    for (var ndx = 0; ndx < vao.m_arrays.length; ++ndx) {
+        vertexAttribs[ndx] = new rrVertexAttrib.VertexAttrib();
+        if (!vao.m_arrays[ndx].enabled) {
+            vertexAttribs[ndx].type = rrVertexAttrib.VertexAttribType.DONT_CARE; // reading with wrong type is allowed, but results are undefined
+            vertexAttribs[ndx].generic = this.m_currentAttribs[ndx];
+        }
+        else {
+            vertexAttribs[ndx].type             = (vao.m_arrays[ndx].integer) ?
+                                                    (sglrReferenceUtils.mapGLPureIntegerVertexAttributeType(vao.m_arrays[ndx].type)) :
+                                                    (sglrReferenceUtils.mapGLFloatVertexAttributeType(vao.m_arrays[ndx].type, vao.m_arrays[ndx].normalized, vao.m_arrays[ndx].size));
+            vertexAttribs[ndx].size             = sglrReferenceUtils.mapGLSize(vao.m_arrays[ndx].size);
+            vertexAttribs[ndx].stride           = vao.m_arrays[ndx].stride;
+            vertexAttribs[ndx].instanceDivisor  = vao.m_arrays[ndx].divisor;
+            vertexAttribs[ndx].pointer          = vao.m_arrays[ndx].bufferBinding.getData();
+            vertexAttribs[ndx].offset           = vao.m_arrays[ndx].offset;
         }
     }
 
     // Set shader samplers
-    for (var uniformNdx = 0; uniformNdx < this.m_currentProgram.m_program.m_uniforms.length; ++uniformNdx)
-    {
-        var texNdx = this.m_currentProgram.m_program.m_uniforms[uniformNdx].value.i;
+    for (var uniformNdx = 0; uniformNdx < this.m_currentProgram.m_program.m_uniforms.length; ++uniformNdx) {
+        var texNdx = this.m_currentProgram.m_program.m_uniforms[uniformNdx].value;
 
-        switch (this.m_currentProgram.m_program.m_uniforms[uniformNdx].type)
-        {
-            case gluShaderUtil.DataType.TYPE_SAMPLER_2D:
-            case gluShaderUtil.DataType.TYPE_UINT_SAMPLER_2D:
-            case gluShaderUtil.DataType.TYPE_INT_SAMPLER_2D:
-            {
+        switch (this.m_currentProgram.m_program.m_uniforms[uniformNdx].type) {
+            case gluShaderUtil.DataType.SAMPLER_2D:
+            case gluShaderUtil.DataType.UINT_SAMPLER_2D:
+            case gluShaderUtil.DataType.INT_SAMPLER_2D: {
                 var tex = null;
 
                 if (texNdx >= 0 && texNdx < this.m_textureUnits.length)
                     tex = (this.m_textureUnits[texNdx].tex2DBinding) ? (this.m_textureUnits[texNdx].tex2DBinding) : (this.m_textureUnits[texNdx].default2DTex);
 
-                if (tex && tex.isComplete())
-                {
+                if (tex && tex.isComplete()) {
                     tex.updateView();
                     this.m_currentProgram.m_program.m_uniforms[uniformNdx].sampler.tex2D = tex;
                 }
@@ -2450,17 +2437,15 @@ ReferenceContext.prototype.drawWithReference = function(primitives, instanceCoun
                 break;
             }
             /* TODO: Port        
-            case gluShaderUtil.DataType.TYPE_SAMPLER_CUBE:
-            case gluShaderUtil.DataType.TYPE_UINT_SAMPLER_CUBE:
-            case gluShaderUtil.DataType.TYPE_INT_SAMPLER_CUBE:
-            {
+            case gluShaderUtil.DataType.SAMPLER_CUBE:
+            case gluShaderUtil.DataType.UINT_SAMPLER_CUBE:
+            case gluShaderUtil.DataType.INT_SAMPLER_CUBE: {
                 rc::TextureCube* tex = DE_NULL;
 
                 if (texNdx >= 0 && (size_t)texNdx < this.m_textureUnits.length)
                     tex = (this.m_textureUnits[texNdx].texCubeBinding) ? (this.m_textureUnits[texNdx].texCubeBinding) : (&this.m_textureUnits[texNdx].defaultCubeTex);
 
-                if (tex && tex.isComplete())
-                {
+                if (tex && tex.isComplete()) {
                     tex.updateView();
                     this.m_currentProgram.m_program.m_uniforms[uniformNdx].sampler.texCube = tex;
                 }
@@ -2469,17 +2454,15 @@ ReferenceContext.prototype.drawWithReference = function(primitives, instanceCoun
 
                 break;
             }
-            case gluShaderUtil.DataType.TYPE_SAMPLER_2D_ARRAY:
-            case gluShaderUtil.DataType.TYPE_UINT_SAMPLER_2D_ARRAY:
-            case gluShaderUtil.DataType.TYPE_INT_SAMPLER_2D_ARRAY:
-            {
+            case gluShaderUtil.DataType.SAMPLER_2D_ARRAY:
+            case gluShaderUtil.DataType.UINT_SAMPLER_2D_ARRAY:
+            case gluShaderUtil.DataType.INT_SAMPLER_2D_ARRAY: {
                 rc::Texture2DArray* tex = DE_NULL;
 
                 if (texNdx >= 0 && (size_t)texNdx < this.m_textureUnits.length)
                     tex = (this.m_textureUnits[texNdx].tex2DArrayBinding) ? (this.m_textureUnits[texNdx].tex2DArrayBinding) : (&this.m_textureUnits[texNdx].default2DArrayTex);
 
-                if (tex && tex.isComplete())
-                {
+                if (tex && tex.isComplete()) {
                     tex.updateView();
                     this.m_currentProgram.m_program.m_uniforms[uniformNdx].sampler.tex2DArray = tex;
                 }
@@ -2488,17 +2471,15 @@ ReferenceContext.prototype.drawWithReference = function(primitives, instanceCoun
 
                 break;
             }
-            case gluShaderUtil.DataType.TYPE_SAMPLER_3D:
-            case gluShaderUtil.DataType.TYPE_UINT_SAMPLER_3D:
-            case gluShaderUtil.DataType.TYPE_INT_SAMPLER_3D:
-            {
+            case gluShaderUtil.DataType.SAMPLER_3D:
+            case gluShaderUtil.DataType.UINT_SAMPLER_3D:
+            case gluShaderUtil.DataType.INT_SAMPLER_3D: {
                 rc::Texture3D* tex = DE_NULL;
 
                 if (texNdx >= 0 && (size_t)texNdx < m_textureUnits.length)
                     tex = (this.m_textureUnits[texNdx].tex3DBinding) ? (this.m_textureUnits[texNdx].tex3DBinding) : (&this.m_textureUnits[texNdx].default3DTex);
 
-                if (tex && tex.isComplete())
-                {
+                if (tex && tex.isComplete()) {
                     tex.updateView();
                     this.m_currentProgram.m_program.m_uniforms[uniformNdx].sampler.tex3D = tex;
                 }
@@ -2507,17 +2488,15 @@ ReferenceContext.prototype.drawWithReference = function(primitives, instanceCoun
 
                 break;
             }
-            case gluShaderUtil.DataType.TYPE_SAMPLER_CUBE_ARRAY:
-            case gluShaderUtil.DataType.TYPE_UINT_SAMPLER_CUBE_ARRAY:
-            case gluShaderUtil.DataType.TYPE_INT_SAMPLER_CUBE_ARRAY:
-            {
+            case gluShaderUtil.DataType.SAMPLER_CUBE_ARRAY:
+            case gluShaderUtil.DataType.UINT_SAMPLER_CUBE_ARRAY:
+            case gluShaderUtil.DataType.INT_SAMPLER_CUBE_ARRAY: {
                 rc::TextureCubeArray* tex = DE_NULL;
 
                 if (texNdx >= 0 && (size_t)texNdx < m_textureUnits.length)
                     tex = (this.m_textureUnits[texNdx].texCubeArrayBinding) ? (this.m_textureUnits[texNdx].texCubeArrayBinding) : (&this.m_textureUnits[texNdx].defaultCubeArrayTex);
 
-                if (tex && tex.isComplete())
-                {
+                if (tex && tex.isComplete()) {
                     tex.updateView();
                     this.m_currentProgram.m_program.m_uniforms[uniformNdx].sampler.texCubeArray = tex;
                 }
@@ -2540,15 +2519,40 @@ ReferenceContext.prototype.drawWithReference = function(primitives, instanceCoun
 /**
  * createProgram
  * @param {sglrShaderProgram.ShaderProgram} program
- * @return {deMath.deUint32}
+ * @return {number}
  */
 ReferenceContext.prototype.createProgram = function (program) {
-    /** @type {number} */ var name = this.m_programs.allocateName();
-
-    this.m_programs.push(program);
-
-    return this.m_programs.length;
+    //Push and return position
+    this.m_programs.push(new ShaderProgramObjectContainer(program));
+    return this.m_programs.length - 1;
 };
+
+/**
+ * @param {number} program
+ */
+ReferenceContext.prototype.useProgram = function (program) {
+    /** @type {ShaderProgramObjectContainer} */ var shaderProg = null;
+    /** @type {ShaderProgramObjectContainer} */ var programToBeDeleted = null;
+
+    if (program >= 0) {
+        shaderProg = this.m_programs[program];
+
+        // shader has not been linked
+        if (!shaderProg || shaderProg.m_deleteFlag) {
+            this.setError(gl.INVALID_OPERATION);
+            return;
+        }
+    }
+
+    if (this.m_currentProgram && this.m_currentProgram.m_deleteFlag)
+        programToBeDeleted = this.m_currentProgram;
+
+    this.m_currentProgram = shaderProg;
+
+    if (programToBeDeleted) {
+        this.deleteProgramObject(programToBeDeleted);
+    }
+}
 
 /**
  * @param {Array<number>} topLeft Coordinates of top left corner of the rectangle
@@ -2573,8 +2577,8 @@ ReferenceContext.prototype.drawQuad = function(topLeft, bottomRight) {
     var       vertexAttribs = [];
 
     // Gen state
-    var baseType                            = rrRenderer.PrimitiveType.PRIMITIVETYPE_TRIANGLES;
-    var              polygonOffsetEnabled                = (baseType == rrRenderer.PrimitiveType.PRIMITIVETYPE_TRIANGLES) ? (this.m_polygonOffsetFillEnabled) : (false);
+    var baseType                            = rrRenderer.PrimitiveType.TRIANGLES;
+    var              polygonOffsetEnabled                = (baseType == rrRenderer.PrimitiveType.TRIANGLES) ? (this.m_polygonOffsetFillEnabled) : (false);
 
     //state.cullMode                                            = m_cullMode
 
@@ -2631,7 +2635,7 @@ ReferenceContext.prototype.drawQuad = function(topLeft, bottomRight) {
         vertexAttribs[ndx] = new rrVertexAttrib.VertexAttrib();
         if (!vao.m_arrays[ndx].enabled)
         {
-            vertexAttribs[ndx].type = rrVertexAttrib.VertexAttribType.VERTEXATTRIBTYPE_DONT_CARE; // reading with wrong type is allowed, but results are undefined
+            vertexAttribs[ndx].type = rrVertexAttrib.VertexAttribType.DONT_CARE; // reading with wrong type is allowed, but results are undefined
             vertexAttribs[ndx].generic = this.m_currentAttribs[ndx];
         }
         else
@@ -2650,13 +2654,13 @@ ReferenceContext.prototype.drawQuad = function(topLeft, bottomRight) {
     // Set shader samplers
     for (var uniformNdx = 0; uniformNdx < this.m_currentProgram.m_program.m_uniforms.length; ++uniformNdx)
     {
-        var texNdx = this.m_currentProgram.m_program.m_uniforms[uniformNdx].value.i;
+        var texNdx = this.m_currentProgram.m_program.m_uniforms[uniformNdx].value;
 
         switch (this.m_currentProgram.m_program.m_uniforms[uniformNdx].type)
         {
-            case gluShaderUtil.DataType.TYPE_SAMPLER_2D:
-            case gluShaderUtil.DataType.TYPE_UINT_SAMPLER_2D:
-            case gluShaderUtil.DataType.TYPE_INT_SAMPLER_2D:
+            case gluShaderUtil.DataType.SAMPLER_2D:
+            case gluShaderUtil.DataType.UINT_SAMPLER_2D:
+            case gluShaderUtil.DataType.INT_SAMPLER_2D:
             {
                 var tex = null;
 
@@ -2674,9 +2678,9 @@ ReferenceContext.prototype.drawQuad = function(topLeft, bottomRight) {
                 break;
             }
             /* TODO: Port        
-            case gluShaderUtil.DataType.TYPE_SAMPLER_CUBE:
-            case gluShaderUtil.DataType.TYPE_UINT_SAMPLER_CUBE:
-            case gluShaderUtil.DataType.TYPE_INT_SAMPLER_CUBE:
+            case gluShaderUtil.DataType.SAMPLER_CUBE:
+            case gluShaderUtil.DataType.UINT_SAMPLER_CUBE:
+            case gluShaderUtil.DataType.INT_SAMPLER_CUBE:
             {
                 rc::TextureCube* tex = DE_NULL;
 
@@ -2693,9 +2697,9 @@ ReferenceContext.prototype.drawQuad = function(topLeft, bottomRight) {
 
                 break;
             }
-            case gluShaderUtil.DataType.TYPE_SAMPLER_2D_ARRAY:
-            case gluShaderUtil.DataType.TYPE_UINT_SAMPLER_2D_ARRAY:
-            case gluShaderUtil.DataType.TYPE_INT_SAMPLER_2D_ARRAY:
+            case gluShaderUtil.DataType.SAMPLER_2D_ARRAY:
+            case gluShaderUtil.DataType.UINT_SAMPLER_2D_ARRAY:
+            case gluShaderUtil.DataType.INT_SAMPLER_2D_ARRAY:
             {
                 rc::Texture2DArray* tex = DE_NULL;
 
@@ -2712,9 +2716,9 @@ ReferenceContext.prototype.drawQuad = function(topLeft, bottomRight) {
 
                 break;
             }
-            case gluShaderUtil.DataType.TYPE_SAMPLER_3D:
-            case gluShaderUtil.DataType.TYPE_UINT_SAMPLER_3D:
-            case gluShaderUtil.DataType.TYPE_INT_SAMPLER_3D:
+            case gluShaderUtil.DataType.SAMPLER_3D:
+            case gluShaderUtil.DataType.UINT_SAMPLER_3D:
+            case gluShaderUtil.DataType.INT_SAMPLER_3D:
             {
                 rc::Texture3D* tex = DE_NULL;
 
@@ -2731,9 +2735,9 @@ ReferenceContext.prototype.drawQuad = function(topLeft, bottomRight) {
 
                 break;
             }
-            case gluShaderUtil.DataType.TYPE_SAMPLER_CUBE_ARRAY:
-            case gluShaderUtil.DataType.TYPE_UINT_SAMPLER_CUBE_ARRAY:
-            case gluShaderUtil.DataType.TYPE_INT_SAMPLER_CUBE_ARRAY:
+            case gluShaderUtil.DataType.SAMPLER_CUBE_ARRAY:
+            case gluShaderUtil.DataType.UINT_SAMPLER_CUBE_ARRAY:
+            case gluShaderUtil.DataType.INT_SAMPLER_CUBE_ARRAY:
             {
                 rc::TextureCubeArray* tex = DE_NULL;
 

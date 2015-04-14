@@ -66,7 +66,7 @@ var mapGLFloatVertexAttributeType = function(/* deUint32 */ type, /*bool*/ norma
 
 	/** @type{boolean} */ var useClampingNormalization = true;
 
-	/** @type{boolean} */ var bgraComponentOrder = (size == GL_BGRA);
+	/** @type{boolean} */ var bgraComponentOrder = (size == gl.BGRA);
 
 	switch(type) {
 		case gl.FLOAT:
