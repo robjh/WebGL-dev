@@ -44,6 +44,7 @@ define([
     'use strict';
 
     /**
+     * @constructor
      * @param {string} name
      * @param {string} desc
      * @param {number} colorFormat
@@ -84,7 +85,7 @@ define([
         /** @type {boolean} */ var stencil = depthStencilFmt.order == tcuTexture.ChannelOrder.S || depthStencilFmt.order == tcuTexture.ChannelOrder.DS;
         /** @type {fboTestUtil.GradientShader} */ var gradShader = new fboTestUtil.GradientShader(fboTestUtil.getFragmentOutputType(colorFmt));
         /** @type {fboTestUtil.FlatColorShader} */ var flatShader = new fboTestUtil.FlatColorShader(fboTestUtil.getFragmentOutputType(colorFmt));
-        /** @type {number} */ var gradShaderID = getCurrentContext().createProgram(gradShader);
+        /** @type {number} */ var gradShaderID = getCurrentContext().createProgram(gradShader); // TODO: getCurrentContext
         /** @type {number} */ var flatShaderID = getCurrentContext().createProgram(flatShader);
         /** @type {number} */ var msaaFbo = 0;
         /** @type {number} */ var resolveFbo = 0;
@@ -259,6 +260,9 @@ define([
             return colorCompare(reference, result);
     };
 
+    /**
+     * @constructor
+     */
     var FboMultisampleTests = function() {
         tcuTestCase.DeqpTest.call('msaa', 'Multisample FBO tests');
     };
