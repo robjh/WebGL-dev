@@ -230,7 +230,6 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcuTexture, gluTexture
 
         /** @type {tcuRGBA.RGBA} */ var color;
 
-        // TODO: destinationArea ...
         for (var dy = 0; dy < destinationArea[3] - destinationArea[1]; ++dy) {
             for (var dx = 0; dx < destinationArea[2] - destinationArea[0]; ++dx) {
                 color = result.getPixel(destinationArea[0] + dx, destinationArea[1] + dy);
@@ -480,11 +479,11 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcuTexture, gluTexture
 
         for (var srcFmtNdx = 0; srcFmtNdx < colorFormats.length; srcFmtNdx++) {
             for (var dstFmtNdx = 0; dstFmtNdx < colorFormats.length; dstFmtNdx++) {
-                /** @type {number} */ var srcFormat = colorFormats[srcFmtNdx]; // TODO: mapGLInternalFormat
-                /** @type {tcuTexture.TextureFormat} */ var srcTexFmt = glu.mapGLInternalFormat(srcFormat);
+                /** @type {number} */ var srcFormat = colorFormats[srcFmtNdx];
+                /** @type {tcuTexture.TextureFormat} */ var srcTexFmt = gluTextureUtil.mapGLInternalFormat(srcFormat);
                 /** @type {tcuTextureUtil.TextureChannelClass} */ var srcType = tcuTextureUtil.getTextureChannelClass(srcTexFmt.type);
                 /** @type {number} */ var dstFormat = colorFormats[dstFmtNdx];
-                /** @type {tcuTexture.TextureFormat} */ var dstTexFmt = glu.mapGLInternalFormat(dstFormat);
+                /** @type {tcuTexture.TextureFormat} */ var dstTexFmt = gluTextureUtil.mapGLInternalFormat(dstFormat);
                 /** @type {tcuTextureUtil.TextureChannelClass} */ var dstType = tcuTextureUtil.getTextureChannelClass(dstTexFmt.type);
 
                 if (((srcType == tcuTextureUtil.TextureChannelClass.FLOATING_POINT || srcType == tcuTextureUtil.TextureChannelClass.UNSIGNED_FIXED_POINT) !=
@@ -542,7 +541,7 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcuTexture, gluTexture
         for (var fmtNdx = 0; fmtNdx < colorFormats.length; fmtNdx++) {
             /** @const {number} */ var format = colorFormats[fmtNdx];
             /** @const {tcuTexture.TextureFormat} */ var texFmt = gluTextureUtil.mapGLInternalFormat(format);
-            /** @const {tcuTexture.TextureChannelClass} */ var fmtClass = tcuTextureUtil.getTextureChannelClass(texFmt.type);
+            /** @const {tcuTextureUtil.TextureChannelClass} */ var fmtClass = tcuTextureUtil.getTextureChannelClass(texFmt.type);
             /** @const {number} */ var filter = gluTextureUtil.isGLInternalColorFormatFilterable(format) ? gl.LINEAR : gl.NEAREST;
             /** @const {boolean} */ var filterable = gluTextureUtil.isGLInternalColorFormatFilterable(format);
 
@@ -948,8 +947,7 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcuTexture, gluTexture
         /** @type {gluTextureUtil.TransferFormat} */ var transferFmt = gluTextureUtil.getTransferFormat(colorFormat);
         // TODO: implement GradientShader, Texture2DShader
         /** @type {fboTestUtil.GradientShader} */ var gradShader = new fboTestUtil.GradientShader(gluShaderUtil.DataType.FLOAT_VEC4);
-        // TODO:IMPLEMENT getSampler2DType
-        /** @type {fboTestUtil.Texture2DShader} */ var texShader = new fboTestUtil.Texture2DShader([glu.getSampler2DType(colorFormat)], gluShaderUtil.DataType.FLOAT_VEC4);
+        /** @type {fboTestUtil.Texture2DShader} */ var texShader = new fboTestUtil.Texture2DShader([gluTextureUtil.getSampler2DType(colorFormat)], gluShaderUtil.DataType.FLOAT_VEC4);
         // TODO: implement getCurrentContext
         /** @type {number} */ var gradShaderID = getCurrentContext().createProgram(gradShader);
         /** @type {number} */ var texShaderID = getCurrentContext().createProgram(texShader);
@@ -1093,7 +1091,7 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcuTexture, gluTexture
         // TOOD: implement
         /** @type {tcuTexture.TextureFormat} */ var colorFormat = gluTextureUtil.mapGLInternalFormat(m_format);
         /** @type {gluTextureUtil.TransferFormat} */ var transferFmt = gluTextureUtil.getTransferFormat(colorFormat);
-        /** @const {tcuTexture.TextureChannelClass} */
+        /** @const {tcuTextureUtil.TextureChannelClass} */
         var targetClass = (m_blitDir == BLIT_DEFAULT_TO_TARGET) ?
             (tcuTextureUtil.getTextureChannelClass(colorFormat.type)) :
             (tcuTextureUtil.TextureChannelClass.UNSIGNED_FIXED_POINT);
