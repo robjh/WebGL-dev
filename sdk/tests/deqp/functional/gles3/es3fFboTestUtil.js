@@ -18,8 +18,8 @@
  *
  */
 
-define(['framework/common/tcuTexture', 'framework/common/tcuTextureUtil'],
-    function(tcuTexture, tcuTextureUtil) {
+define(['framework/common/tcuTexture', 'framework/common/tcuTextureUtil', 'framework/common/tcuRGBA', 'framework/opengl/gluTextureUtil', 'framework/delibs/debase/deMath'],
+    function(tcuTexture, tcuTextureUtil, tcuRGBA, gluTextureUtil, deMath) {
     'use strict';
 
     /**
@@ -329,17 +329,108 @@ define(['framework/common/tcuTexture', 'framework/common/tcuTextureUtil'],
                 DE_ASSERT(false);
         }
     };
+    /**
+     * @param {tcuTexture.TextureFormat} format
+     * @return {tcuRGBA.RGBA}
+     */
+    var getThresholdFromTextureFormat = function(format) {
+        /** @const @type {Array<number>} */ var bits = tcuTextureUtil.getTextureFormatMantissaBitDepth(format);
+        return tcuRGBA.newRGBAComponents(
+            calculateU8ConversionError(bits[0]),
+            calculateU8ConversionError(bits[1]),
+            calculateU8ConversionError(bits[2]),
+            calculateU8ConversionError(bits[3]),
+        );
+    };
+
+    /**
+     * @param {number} glFormat
+     * @return {tcuRGBA}
+     */
+    var getFormatThreshold = function(glFormat) {
+        /** @const @type {tcuTexture.TextureFormat} */ var format = gluTextureUtil.mapGLInternalFormat(glFormat);
+        return getThresholdFromTextureFormat(format);
+    };
+
+    /**
+     * @param {number} srcBits
+     * @return {number}
+     */
+    var getToSRGB8ConversionError = function(srcBits) {
+        // \note These are pre-computed based on simulation results.
+        /* @const @type {Array<number>} */ var errors = [
+            1,        // 0 bits - rounding
+            255,    // 1 bits
+            157,    // 2 bits
+            106,    // 3 bits
+            74,        // 4 bits
+            51,        // 5 bits
+            34,        // 6 bits
+            22,        // 7 bits
+            13,        // 8 bits
+            7,        // 9 bits
+            4,        // 10 bits
+            3,        // 11 bits
+            2        // 12 bits
+            // 1 from this on
+        ];
+
+        DE_ASSERT(srcBits >= 0);
+        if (srcBits < errors.length)
+            return errors[srcBits];
+        else
+            return 1;
+    }
+
+    /**
+     * @const @param {tcuTexture.TextureFormat} src
+     * @const @param {tcuTexture.TextureFormat} dst
+     * @return {tcuRGBA.RGBA}
+     */
+    var getToSRGBConversionThreshold = function(src, dst) {
+        // Only SRGB8 and SRGB8_ALPHA8 formats are supported.
+        DE_ASSERT(dst.type == tcuTexture.ChannelType.UNORM_INT8);
+        DE_ASSERT(dst.order == tcuTexture.ChannelOrder.sRGB || dst.order == tcuTexture.ChannelOrder.sRGBA);
+
+        /** @const @type {Array<number>} */ var bits = tcuTextureUtil.getTextureFormatMantissaBitDepth(src);
+        /** @const @type {boolean} */ var dstHasAlpha = dst.order == tcuTexture.ChannelOrder.sRGBA;
+
+        return tcuRGBA.newRGBAComponents(
+            getToSRGB8ConversionError(bits[0]),
+            getToSRGB8ConversionError(bits[1]),
+            getToSRGB8ConversionError(bits[2]),
+            dstHasAlpha ? calculateU8ConversionError(bits[3]) : 0);
+    };
+
+    /**
+     * @param {number} srcBits
+     * @return {number}
+     */
+    var calculateU8ConversionError = function(srcBits) {
+        if (srcBits > 0)
+        {
+            const int clampedBits = deMath.clamp(srcBits, 0, 8);
+            const int srcMaxValue = Math.max((1 << clampedBits) - 1, 1);
+            const int error = Math.floor(Math.ceil(255.0 * 2.0 / srcMaxValue));
+
+            return deMath.clamp(error, 0, 255);
+        }
+        else
+            return 1;
+    };
 
     return {
         getFormatName: getFormatName,
         getFramebufferReadFormat: getFramebufferReadFormat,
-        FlatColorShader : FlatColorShader,
-        GradientShader : GradientShader,
-        Texture2DShader : Texture2DShader,
-        TextureCubeShader : TextureCubeShader,
-        Texture2DArrayShader : Texture2DArrayShader,
-        Texture3DShader : Texture3DShader,
-        DepthGradientShader : DepthGradientShader
+        FlatColorShader: FlatColorShader,
+        GradientShader: GradientShader,
+        Texture2DShader: Texture2DShader,
+        TextureCubeShader: TextureCubeShader,
+        Texture2DArrayShader: Texture2DArrayShader,
+        Texture3DShader: Texture3DShader,
+        DepthGradientShader: DepthGradientShader,
+        getFormatThreshold: getFormatThreshold,
+        getToSRGBConversionThreshold: getToSRGBConversionThreshold
     };
 
 });

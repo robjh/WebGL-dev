@@ -397,17 +397,27 @@ define([
 
         // Generate vertex positions and indices depending on primitive type.
         // \note At this point, restarts shall not be added to the start or the end of the index vector. Those are special cases, and are done above and after the following if-else chain, respectively.
+        /** @type {number} */ var curIndex;
+        /** @type {number} */ var numRows;
+        /** @type {number} */ var numCols;
+        /** @type {number} */ var fx;
+        /** @type {number} */ var fy;
+        /** @type {number} */ var centerY;
+        /** @type {number} */ var centerX;
+        /** @type {number} */ var numVertices;
+        /** @type {number} */ var numArcVertices;
+        /** @type {number} */ var numStrips;
 
         if (this.m_primType == PrimitiveType.PRIMITIVE_POINTS) {
             // Generate rows with different numbers of points.
 
-            /** @type {number} */ var curIndex = 0;
-            /** @type {number} */ var numRows = 20;
+            curIndex = 0;
+            numRows = 20;
 
             for (var row = 0; row < numRows; row++) {
                 for (var col = 0; col < row + 1; col++) {
-                    /** @type {number} */ var fx = -1.0 + 2.0 * (col + 0.5) / numRows;
-                    /** @type {number} */ var fy = -1.0 + 2.0 * (row + 0.5) / numRows;
+                    fx = -1.0 + 2.0 * (col + 0.5) / numRows;
+                    fy = -1.0 + 2.0 * (row + 0.5) / numRows;
 
                     this.m_positions.push(fx);
                     this.m_positions.push(fy);
@@ -425,20 +435,20 @@ define([
         else if (this.m_primType == PrimitiveType.PRIMITIVE_LINE_STRIP || this.m_primType == PrimitiveType.PRIMITIVE_LINE_LOOP || this.m_primType == PrimitiveType.PRIMITIVE_LINES) {
             // Generate a numRows x numCols arrangement of line polygons of different vertex counts.
 
-            /** @type {number} */ var curIndex = 0;
-            /** @type {number} */ var numRows = 4;
-            /** @type {number} */ var numCols = 4;
+            curIndex = 0;
+            numRows = 4;
+            numCols = 4;
 
             for (var row = 0; row < numRows; row++) {
-                /** @type {number} */ var centerY = -1.0 + 2.0 * (row + 0.5) / numRows;
+                centerY = -1.0 + 2.0 * (row + 0.5) / numRows;
 
                 for (var col = 0; col < numCols; col++) {
-                    /** @type {number} */ var centerX = -1.0 + 2.0 * (col + 0.5) / numCols;
-                    /** @type {number} */ var numVertices = row * numCols + col + 1;
+                    centerX = -1.0 + 2.0 * (col + 0.5) / numCols;
+                    numVertices = row * numCols + col + 1;
 
                     for (var i = 0; i < numVertices; i++) {
-                        /** @type {number} */ var fx = centerX + 0.9 * Math.cos(i * 2.0 * Math.PI / numVertices) / numCols;
-                        /** @type {number} */ var fy = centerY + 0.9 * Math.sin(i * 2.0 * Math.PI / numVertices) / numRows;
+                        fx = centerX + 0.9 * Math.cos(i * 2.0 * Math.PI / numVertices) / numCols;
+                        fy = centerY + 0.9 * Math.sin(i * 2.0 * Math.PI / numVertices) / numRows;
 
                         this.m_positions.push(fx);
                         this.m_positions.push(fy);
@@ -457,15 +467,15 @@ define([
         else if (this.m_primType == PrimitiveType.PRIMITIVE_TRIANGLE_STRIP) {
             // Generate a number of horizontal triangle strips of different lengths.
 
-            /** @type {number} */ var curIndex = 0;
-            /** @const @type {number} */ var numStrips = 20;
+            curIndex = 0;
+            numStrips = 20;
 
             for (var stripNdx = 0; stripNdx < numStrips; stripNdx++) {
-                /** @type {number} */ var numVertices = stripNdx + 1;
+                numVertices = stripNdx + 1;
 
                 for (var i = 0; i < numVertices; i++) {
-                    /** @type {number} */ var fx = -0.9 + 1.8 * (i / 2 * 2) / numStrips;
-                    /** @type {number} */ var fy = -0.9 + 1.8 * (stripNdx + (i % 2 == 0 ? 0.0 : 0.8)) / numStrips;
+                    fx = -0.9 + 1.8 * (i / 2 * 2) / numStrips;
+                    fy = -0.9 + 1.8 * (stripNdx + (i % 2 == 0 ? 0.0 : 0.8)) / numStrips;
 
                     this.m_positions.push(fx);
                     this.m_positions.push(fy);
@@ -484,16 +494,16 @@ define([
         {
             // Generate a numRows x numCols arrangement of triangle fan polygons of different vertex counts.
 
-            /** @type {number} */ var curIndex = 0;
-            /** @type {number} */ var numRows = 4;
-            /** @type {number} */ var numCols = 4;
+            curIndex = 0;
+            numRows = 4;
+            numCols = 4;
 
             for (var row = 0; row < numRows; row++) {
-                /** @type {number} */ var centerY = -1.0 + 2.0 * (row + 0.5) / numRows;
+                centerY = -1.0 + 2.0 * (row + 0.5) / numRows;
 
                 for (var col = 0; col < numCols; col++) {
-                    /** @type {number} */ var centerX = -1.0 + 2.0 * (col + 0.5) / numCols;
-                    /** @type {number} */ var numArcVertices = row * numCols + col;
+                    centerX = -1.0 + 2.0 * (col + 0.5) / numCols;
+                    numArcVertices = row * numCols + col;
 
                     this.m_positions.push(centerX);
                     this.m_positions.push(centerY);
@@ -501,8 +511,8 @@ define([
                     this.addIndex(curIndex++);
 
                     for (var i = 0; i < numArcVertices; i++) {
-                        /** @type {number} */ var fx = centerX + 0.9 * Math.cos(i * 2.0 * Math.PI / numArcVertices) / numCols;
-                        /** @type {number} */ var fy = centerY + 0.9 * Math.sin(i * 2.0 * Math.PI / numArcVertices) / numRows;
+                        fx = centerX + 0.9 * Math.cos(i * 2.0 * Math.PI / numArcVertices) / numCols;
+                        fy = centerY + 0.9 * Math.sin(i * 2.0 * Math.PI / numArcVertices) / numRows;
 
                         this.m_positions.push(fx);
                         this.m_positions.push(fy);
@@ -521,15 +531,15 @@ define([
         else if (this.m_primType == PrimitiveType.PRIMITIVE_TRIANGLES) {
             // Generate a number of rows with (potentially incomplete) triangles.
 
-            /** @type {number} */ var curIndex = 0;
-            /** @type {number} */ var numRows = 3 * 7;
+            curIndex = 0;
+            numRows = 3 * 7;
 
             for (var rowNdx = 0; rowNdx < numRows; rowNdx++) {
-                /** @type {number} */ var numVertices = rowNdx + 1;
+                numVertices = rowNdx + 1;
 
                 for (var i = 0; i < numVertices; i++) {
-                    /** @type {number} */ var fx = -0.9 + 1.8 * ((i / 3) + (i % 3 == 2 ? 0.8 : 0.0)) * 3 / numRows;
-                    /** @type {number} */ var fy = -0.9 + 1.8 * (rowNdx + (i % 3 == 0 ? 0.0 : 0.8)) / numRows;
+                    fx = -0.9 + 1.8 * ((i / 3) + (i % 3 == 2 ? 0.8 : 0.0)) * 3 / numRows;
+                    fy = -0.9 + 1.8 * (rowNdx + (i % 3 == 0 ? 0.0 : 0.8)) / numRows;
 
                     this.m_positions.push(fx);
                     this.m_positions.push(fy);

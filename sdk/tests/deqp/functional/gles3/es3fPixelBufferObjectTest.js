@@ -49,7 +49,7 @@ define([
     };
     
     /** @enum */
-    var FramebufferType= {
+    var FramebufferType = {
         FRAMEBUFFERTYPE_NATIVE: 0,
         FRAMEBUFFERTYPE_RENDERBUFFER: 1
     };
@@ -74,10 +74,10 @@ define([
     var ReadPixelsTest = function(gl, spec) {
         tcuTestCase.DeqpTest.call(this, spec.name, spec.description);
         this.m_random = new deRandom.Random(deString.deStringHash(spec.name));
-        /** @type {gluShaderProgram.ShaderProgram} */ this.m_program = null;
-        /** @type {FramebufferType} */ this.m_framebuffeType = spec.framebufferType;
-        /** @type {GLenum} */ this.m_renderbufferFormat = spec.renderbufferFormat;
-        /** @type {tcuTextureUtil.TextureChannelClass} */ this.m_texChannelClass = undefined;
+        this.m_program = null;
+        this.m_framebuffeType = spec.framebufferType;
+        this.m_renderbufferFormat = spec.renderbufferFormat;
+        this.m_texChannelClass = undefined;
         this.m_useColorClears = spec.useColorClear;
         this.m_renderTriangles = spec.renderTriangles;
         this.m_colorScale = 1.0;
@@ -225,8 +225,8 @@ define([
         gl.enableVertexAttribArray(coordLoc);
         assertMsgOptions(gl.getError() === gl.NO_ERROR, 'enableVertexAttribArray failed ', false, true);
         
-        gl.vertexAttribPointer(coordLoc, 3, gl.FLOAT, gl.FALSE, 0, positions);
-        gl.vertexAttribPointer(colorLoc, 4, gl.FLOAT, gl.FALSE, 0, colors);
+        gl.vertexAttribPointer(coordLoc, 3, gl.FLOAT, false, 0, positions);
+        gl.vertexAttribPointer(colorLoc, 4, gl.FLOAT, false, 0, colors);
         
         gl.drawArrays(gl.TRIANGLES, 0, 3);
         
@@ -235,10 +235,10 @@ define([
     };
     
     /**
-     * @param {Float} r
-     * @param {Float} g
-     * @param {Float} b
-     * @param {Float} a
+     * @param {number} r
+     * @param {number} g
+     * @param {number} b
+     * @param {number} a
      */
     
     ReadPixelsTest.prototype.clearColor = function(r, g, b, a) {
@@ -315,10 +315,10 @@ define([
                 /** @type {number} */ var clearWidth = this.m_random.getInt(minClearSize, width - clearX);
                 /** @type {number} */ var clearHeight = this.m_random.getInt(minClearSize, height - clearY);
                 
-                /** @type {float} */ var clearRed = this.m_colorScale * this.m_random.getFloat();
-                /** @type {float} */ var clearGreen = this.m_colorScale * this.m_random.getFloat();
-                /** @type {float} */ var clearBlue = this.m_colorScale * this.m_random.getFloat();
-                /** @type {float} */ var clearAlpha = this.m_colorScale * (0.5 + 0.5 * this.m_random.getFloat());
+                /** @type {number} */ var clearRed = this.m_colorScale * this.m_random.getFloat();
+                /** @type {number} */ var clearGreen = this.m_colorScale * this.m_random.getFloat();
+                /** @type {number} */ var clearBlue = this.m_colorScale * this.m_random.getFloat();
+                /** @type {number} */ var clearAlpha = this.m_colorScale * (0.5 + 0.5 * this.m_random.getFloat());
                 
                 gl.enable(gl.SCISSOR_TEST);
                 gl.scissor(clearX, clearY, clearWidth, clearHeight);
@@ -339,26 +339,26 @@ define([
             
             for(var triangleNdx = 0; triangleNdx < triangleCount; triangleNdx++)
             {
-                /** @type {float} */ var x1 = 2.0 * this.m_random.getFloat() - 1.0;
-                /** @type {float} */ var y1 = 2.0 * this.m_random.getFloat() - 1.0;
-                /** @type {float} */ var z1 = 2.0 * this.m_random.getFloat() - 1.0;
+                /** @type {number} */ var x1 = 2.0 * this.m_random.getFloat() - 1.0;
+                /** @type {number} */ var y1 = 2.0 * this.m_random.getFloat() - 1.0;
+                /** @type {number} */ var z1 = 2.0 * this.m_random.getFloat() - 1.0;
                 
-                /** @type {float} */ var x2 = 2.0 * this.m_random.getFloat() - 1.0;
-                /** @type {float} */ var y2 = 2.0 * this.m_random.getFloat() - 1.0;
-                /** @type {float} */ var z2 = 2.0 * this.m_random.getFloat() - 1.0;
+                /** @type {number} */ var x2 = 2.0 * this.m_random.getFloat() - 1.0;
+                /** @type {number} */ var y2 = 2.0 * this.m_random.getFloat() - 1.0;
+                /** @type {number} */ var z2 = 2.0 * this.m_random.getFloat() - 1.0;
                 
-                /** @type {float} */ var x3 = 2.0 * this.m_random.getFloat() - 1.0;
-                /** @type {float} */ var y3 = 2.0 * this.m_random.getFloat() - 1.0;
-                /** @type {float} */ var z3 = 2.0 * this.m_random.getFloat() - 1.0;
+                /** @type {number} */ var x3 = 2.0 * this.m_random.getFloat() - 1.0;
+                /** @type {number} */ var y3 = 2.0 * this.m_random.getFloat() - 1.0;
+                /** @type {number} */ var z3 = 2.0 * this.m_random.getFloat() - 1.0;
                 
                 this.renderTriangle([x1,y1,z1], [x2,y2,z2], [x3,y3,z3]);
             }
         }
         
         /** @type {TextureFormat} */ var readFormat;
-        /** @type {float} */ var readPixelsFormat;
-        /** @type {float} */ var readPixelsType;
-        /** @type {bool} */ var floatCompare;
+        /** @type {number} */ var readPixelsFormat;
+        /** @type {number} */ var readPixelsType;
+        /** @type {boolean} */ var floatCompare;
         
         
         if(this.m_framebuffeType == FramebufferType.FRAMEBUFFERTYPE_NATIVE)
@@ -574,7 +574,7 @@ define([
     {
         gl = context;
         //Set up Test Root parameters
-        var testName = 'pixel_buffer_objct';
+        var testName = 'pixel_buffer_object';
         var testDescription = 'Pixel Buffer Object Tests';
         var state = tcuTestCase.runner.getState();
 
