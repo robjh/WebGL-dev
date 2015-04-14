@@ -449,9 +449,9 @@ define([
         var isOk = false;
         
         if(floatCompare)
-            isOk = tcuImageCompare.floatThresholdCompare('Result comparision', 'Result of read pixels to memory compared with result of read pixels to buffer', readReference.getLevel(0), readResult, [0.0, 0.0, 0.0, 0.0]);
+            isOk = tcuImageCompare.floatThresholdCompare('Result comparison', 'Result of read pixels to memory compared with result of read pixels to buffer', readReference.getLevel(0), readResult, [0.0, 0.0, 0.0, 0.0]);
         else
-            isOk = tcuImageCompare.intThresholdCompare('Result comparision', 'Result of read pixels to memory compared with result of read pixels to buffer', readReference.getLevel(0), readResult, [0, 0, 0, 0]);
+            isOk = tcuImageCompare.intThresholdCompare('Result comparison', 'Result of read pixels to memory compared with result of read pixels to buffer', readReference.getLevel(0), readResult, [0, 0, 0, 0]);
         
         gl.deleteBuffer(pixelBuffer);
         
