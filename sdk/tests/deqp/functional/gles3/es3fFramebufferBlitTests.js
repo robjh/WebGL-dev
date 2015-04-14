@@ -29,14 +29,14 @@ define([
     'framework/delibs/debase/deMath',
     'framework/opengl/gluTextureUtil'], function(
         fboTestCase,
-        fboTestUtil, 
-        tcuTestCase, 
-        tcuSurface, 
-        tcuRGBA, 
-        tcuImageCompare, 
-        tcuTexture, 
-        tcuTextureUtil, 
-        deMath, 
+        fboTestUtil,
+        tcuTestCase,
+        tcuSurface,
+        tcuRGBA,
+        tcuImageCompare,
+        tcuTexture,
+        tcuTextureUtil,
+        deMath,
         gluTextureUtil) {
     'use strict';
 
@@ -523,7 +523,7 @@ define([
         /** @type {TestCaseGroup} */ var depthStencilGroup = new tcuTestCase.newTest('depth_stencil', 'Depth and stencil blits');
         testGroup.addChild(depthStencilGroup);
 
-        for (var fmtNdx = 0; fmtNdx < DE_LENGTH_OF_ARRAY(depthStencilFormats); fmtNdx++) {
+        for (var fmtNdx = 0; fmtNdx < depthStencilFormats.length; fmtNdx++) {
             /** @type {number} */ var format = depthStencilFormats[fmtNdx];
             /** @type {tcuTexture.TextureFormat} */ var texFmt = gluTextureUtil.mapGLInternalFormat(format);
             /** @type {string} */ var fmtName = getFormatName(format);

@@ -67,8 +67,7 @@ define([
         this.checkFormatSupport(this.m_colorFormat);
         this.checkSampleCount(this.m_colorFormat, this.m_numSamples);
 
-        if (this.m_depthStencilFormat != gl.NONE)
-        {
+        if (this.m_depthStencilFormat != gl.NONE) {
             this.checkFormatSupport(this.m_depthStencilFormat);
             this.checkSampleCount(this.m_depthStencilFormat, this.m_numSamples);
         }
@@ -310,8 +309,7 @@ define([
 
         /** @const {number} */ var sampleCounts = [2, 4, 8];
         var testGroup = tcuTestCase.runner.getState().testCases;
-        for (var sampleCntNdx in sampleCounts)
-        {
+        for (var sampleCntNdx in sampleCounts) {
             /** @type {number} */ var samples = sampleCounts[sampleCntNdx];
             /** @type {TestCaseGroup} */
             var sampleCountGroup = new tcuTestCase.newTest(samples + '_', '');

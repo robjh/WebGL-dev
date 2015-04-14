@@ -256,8 +256,7 @@ define([
         var basicGroup = new tcuTestCase.newTest('basic', 'Basic stencil tests');
         testGroup.addChild(basicGroup);
 
-        for (var fmtNdx = 0; fmtNdx < stencilFormats.length; fmtNdx++)
-        {
+        for (var fmtNdx = 0; fmtNdx < stencilFormats.length; fmtNdx++) {
             /** @type {number} */ var format = stencilFormats[fmtNdx];
             /** @type {tcuTexture.TextureFormat} */ var texFmt = gluTextureUtil.mapGLInternalFormat(format);
 
