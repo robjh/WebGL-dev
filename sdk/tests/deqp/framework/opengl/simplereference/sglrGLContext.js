@@ -130,7 +130,13 @@ function(
     GLContext.prototype.createProgram = function (shader) {
         /** @type {gluShaderProgram} */ var program = DE_NULL;
 
-        program = new gluShaderProgram.ShaderProgram(this.m_context, gluShaderProgram.makeVtxFragSources(shader.m_vertSrc, shader.m_fragSrc));
+        program = new gluShaderProgram.ShaderProgram(
+            this.m_context,
+            gluShaderProgram.makeVtxFragSources(
+                shader.m_vertSrc,
+                shader.m_fragSrc
+            )
+        );
 
         if (!program.isOk()) {
             bufferedLogToConsole(program.toString());
@@ -142,27 +148,22 @@ function(
     };
 
     /**
-     * genVertexArrays - Creates new vertex array objects, stores them and returns the array of added array objects.
-     * @param {number} numArrays
-     * @return {Uint32Array} IDs of created VAOs
+     * createVertexArray - Creates a new vertex array object, stores it and returns the added array object.
+     * @return {number} ID of created VAO
      */
-    GLContext.prototype.genVertexArrays = function (numArrays) {
+    GLContext.prototype.createVertexArray = function () {
         var currentlength = this.m_allocatedVaos.length;
-        if (numArrays > 0) {
-            for (var i=0; i < numArrays; i++) {
-                var createdArray = this.m_context.createVertexArray();
-                deUtil.dePushUniqueToArray(
-                    this.m_allocatedVaos,
-                    createdArray
-                );
-            }
-            return this.m_allocatedVaos.slice(currentlength, currentlength + numArrays);
-        }
-        return null;
+
+        var createdArray = this.m_context.createVertexArray();
+        deUtil.dePushUniqueToArray(
+            this.m_allocatedVaos,
+            createdArray
+        );
+
+        return this.m_allocatedVaos[currentlength];
     };
 
     return {
         GLContext: GLContext
     };
-
 });

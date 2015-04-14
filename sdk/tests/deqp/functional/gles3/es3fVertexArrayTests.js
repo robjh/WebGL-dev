@@ -76,7 +76,7 @@ define([
 
     SingleVertexArrayStrideGroup.prototype.init = function () {
         /** @type {glsVertexArrayTests.deArray.Storage} */ var storages = [
-            glsVertexArrayTests.deArray.Storage.USER,
+            // User storage not supported in WebGL - glsVertexArrayTests.deArray.Storage.USER,
             glsVertexArrayTests.deArray.Storage.BUFFER];
         var counts = [1, 256];
         var strides = [/*0,*/ -1, 17, 32]; // Tread negative value as sizeof input. Same as 0, but done outside of GL.

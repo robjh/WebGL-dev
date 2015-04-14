@@ -185,8 +185,8 @@ define([
      */
     var isValidVertexAttrib = function(vertexAttrib) {
         // Trivial range checks.
-        if (!deMath.inBounds(vertexAttrib.type, 0, Object.keys(VertexAttribType).length) ||
-            !deMath.inRange(vertexAttrib.size, 0, 4) ||
+        if (!deMath.deInBounds32(vertexAttrib.type, 0, Object.keys(VertexAttribType).length) ||
+            !deMath.deInRange32(vertexAttrib.size, 0, 4) ||
             vertexAttrib.instanceDivisor < 0)
             return false;
 
@@ -336,7 +336,7 @@ define([
         //Reinterpret aligned as an array the same type of readAsTypeArray
         //but with ptr's buffer, assuming ptr is an 8-bit element array,
         //and convert to 32-bit float values.
-        var aligned = new Float32Array(readAsTypeArray.prototype.constructor(ptr.buffer).subarray(
+        var aligned = new Float32Array(new readAsTypeArray(ptr.buffer).subarray(
             ptr.byteOffset / arrayelementsize,
             (ptr.byteOffset + ptr.byteLength) / arrayelementsize));
 
@@ -360,7 +360,7 @@ define([
 
         //Reinterpret aligned as an array the same type of readAsTypeArray
         //but with ptr's buffer, assuming ptr is an 8-bit element array.
-        var aligned = readAsTypeArray.prototype.constructor(ptr.buffer).subarray(
+        var aligned = new readAsTypeArray(ptr.buffer).subarray(
             ptr.byteOffset / arrayelementsize,
             (ptr.byteOffset + ptr.byteLength) / arrayelementsize);
 
@@ -384,7 +384,8 @@ define([
 
         switch (type) {
             case VertexAttribType.FLOAT:
-                readOrder(dst, size, ptr, NormalOrder, new Float32Array(1));
+                readOrder(dst, size, ptr, NormalOrder, Float32Array);
+                break;
             case VertexAttribType.HALF:
                 readHalf(dst, size, ptr);
                 break;
@@ -395,11 +396,11 @@ define([
                 readDouble(dst, size, ptr);
                 break;
             case VertexAttribType.NONPURE_UNORM8:
-                readUnormOrder(dst, size, ptr, NormalOrder, new Uint8Array(1));
+                readUnormOrder(dst, size, ptr, NormalOrder, Uint8Array);
             case VertexAttribType.NONPURE_UNORM16:
-                readUnormOrder(dst, size, ptr, NormalOrder, new Uint16Array(1));
+                readUnormOrder(dst, size, ptr, NormalOrder, Uint16Array);
             case VertexAttribType.NONPURE_UNORM32:
-                readUnormOrder(dst, size, ptr, NormalOrder, new Uint32Array(1));
+                readUnormOrder(dst, size, ptr, NormalOrder, Uint32Array);
                 break;
             case VertexAttribType.NONPURE_UNORM_2_10_10_10_REV:
                 readUnorm2101010RevOrder(dst, size, ptr, NormalOrder);
@@ -427,7 +428,7 @@ define([
                 readInt2101010Rev(dst, size, ptr);
                 break;
             case VertexAttribType.NONPURE_UNORM8_BGRA:
-                readUnormOrder(dst, size, ptr, BGRAOrder, new Uint8Array(1));
+                readUnormOrder(dst, size, ptr, BGRAOrder, Uint8Array);
                 break;
             case VertexAttribType.NONPURE_UNORM_2_10_10_10_REV_BGRA:
                 readUnorm2101010RevOrder(dst, size, ptr, BGRAOrder);
@@ -439,33 +440,52 @@ define([
                 readSnorm2101010RevScaleOrder(dst, size, ptr, BGRAOrder);
                 break;
             case VertexAttribType.NONPURE_UINT8:
-                readOrder(dst, size, ptr, NormalOrder, new Uint8Array(1));
+                readOrder(dst, size, ptr, NormalOrder, Uint8Array);
+                break;
             case VertexAttribType.NONPURE_UINT16:
-                readOrder(dst, size, ptr, NormalOrder, new Uint16Array(1));
+                readOrder(dst, size, ptr, NormalOrder, Uint16Array);
+                break;
             case VertexAttribType.NONPURE_UINT32:
-                readOrder(dst, size, ptr, NormalOrder, new Uint32Array(1));
+                readOrder(dst, size, ptr, NormalOrder, Uint32Array);
+                break;
             case VertexAttribType.NONPURE_INT8:
-                readOrder(dst, size, ptr, NormalOrder, new Int8Array(1));
+                readOrder(dst, size, ptr, NormalOrder, Int8Array);
+                break;
             case VertexAttribType.NONPURE_INT16:
-                readOrder(dst, size, ptr, NormalOrder, new Int16Array(1));
+                readOrder(dst, size, ptr, NormalOrder, Int16Array);
+                break;
             case VertexAttribType.NONPURE_INT32:
-                readOrder(dst, size, ptr, NormalOrder, new Int32Array(1));
+                readOrder(dst, size, ptr, NormalOrder, Int32Array);
+                break;
             case VertexAttribType.PURE_UINT8:
-                readOrder(dst, size, ptr, NormalOrder, new Uint8Array(1));
+                readOrder(dst, size, ptr, NormalOrder, Uint8Array);
+                break;
             case VertexAttribType.PURE_UINT16:
-                readOrder(dst, size, ptr, NormalOrder, new Uint16Array(1));
+                readOrder(dst, size, ptr, NormalOrder, Uint16Array);
+                break;
             case VertexAttribType.PURE_UINT32:
-                readOrder(dst, size, ptr, NormalOrder, new Uint32Array(1));
+                readOrder(dst, size, ptr, NormalOrder, Uint32Array);
+                break;
             case VertexAttribType.PURE_INT8:
-                readOrder(dst, size, ptr, NormalOrder, new Int8Array(1));
+                readOrder(dst, size, ptr, NormalOrder, Int8Array);
+                break;
             case VertexAttribType.PURE_INT16:
-                readOrder(dst, size, ptr, NormalOrder, new Int16Array(1));
+                readOrder(dst, size, ptr, NormalOrder, Int16Array);
+                break;
             case VertexAttribType.PURE_INT32:
-                readOrder(dst, size, ptr, NormalOrder, new Int32Array(1));
+                readOrder(dst, size, ptr, NormalOrder, Int32Array);
                 break;
 
             default:
                 throw new Error('read - Invalid type');
         }
+    };
+
+    return {
+        NormalOrder: NormalOrder,
+        BGRAOrder: BGRAOrder,
+        VertexAttribType: VertexAttribType,
+        VertexAttrib: VertexAttrib,
+        readVertexAttrib: readVertexAttrib
     };
 });

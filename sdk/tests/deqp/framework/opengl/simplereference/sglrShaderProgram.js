@@ -245,13 +245,10 @@ define([
      * @param {ShaderProgramDeclaration} decl
      */
     var ShaderProgram = function (decl) {
-        rrShaders.VertexShader.call(this, decl.getVertexInputCount(), decl.getVertexOutputCount());
-        var current = this;
-        this.VertexShader = {m_inputs: current.m_inputs, m_outputs: current.m_outputs};
-
-        rrShaders.FragmentShader.call(this, decl.getFragmentInputCount(), decl.getFragmentOutputCount());
-        current = this;
-        this.FragmentShader = {m_inputs: current.m_inputs, m_outputs: current.m_outputs};
+        this.vertexShader = new rrShaders.VertexShader(decl.getVertexInputCount(), decl.getVertexOutputCount());
+        this.vertexShader.shadeVertices = this.shadeVertices;
+        this.fragmentShader = new rrShaders.FragmentShader(decl.getFragmentInputCount(), decl.getFragmentOutputCount());
+        this.fragmentShader.shadeFragments = this.shadeFragments;
 
         /** @type {Array<string>} */ this.m_attributeNames = new Array(decl.getFragmentInputCount());
         /** @type {Array<UniformSlot>} */ this.m_uniforms = new Array(decl.m_uniforms.length);
@@ -263,19 +260,19 @@ define([
         // Set up shader IO
 
         for (var ndx = 0; ndx < decl.m_vertexAttributes.length; ++ndx) {
-            this.VertexShader.m_inputs[ndx].type  = decl.m_vertexAttributes[ndx].type;
+            this.vertexShader.m_inputs[ndx].type  = decl.m_vertexAttributes[ndx].type;
             this.m_attributeNames[ndx] = decl.m_vertexAttributes[ndx].name;
         }
 
         for (var ndx = 0; ndx < decl.m_vertexToFragmentVaryings.length; ++ndx) {
-            this.VertexShader.m_outputs[ndx].type = decl.m_vertexToFragmentVaryings[ndx].type;
-            this.VertexShader.m_outputs[ndx].flatshade = decl.m_vertexToFragmentVaryings[ndx].flatshade;
+            this.vertexShader.m_outputs[ndx].type = decl.m_vertexToFragmentVaryings[ndx].type;
+            this.vertexShader.m_outputs[ndx].flatshade = decl.m_vertexToFragmentVaryings[ndx].flatshade;
 
-            this.FragmentShader.m_inputs[ndx] = this.VertexShader.m_outputs[ndx];
+            this.fragmentShader.m_inputs[ndx] = this.vertexShader.m_outputs[ndx];
         }
 
         for (var ndx = 0; ndx < decl.m_fragmentOutputs.length; ++ndx)
-            this.FragmentShader.m_outputs[ndx].type = decl.m_fragmentOutputs[ndx].type;
+            this.fragmentShader.m_outputs[ndx].type = decl.m_fragmentOutputs[ndx].type;
 
         // Set up uniforms
 
@@ -283,9 +280,19 @@ define([
             this.m_uniforms[ndx] = new Uniform(decl.m_uniforms[ndx].name, decl.m_uniforms[ndx].type);
     };
 
-    ShaderProgram.prototype = Object.create(rrShaders.VertexShader.prototype);
-    ShaderProgram.prototype = Object.create(rrShaders.FragmentShader.prototype);
-    ShaderProgram.prototype.constructor = ShaderProgram;
+    /**
+     * @return {rrShaders.VertexShader}
+     */
+    ShaderProgram.prototype.getVertexShader = function () {
+        return this.vertexShader;
+    };
+
+    /**
+     * @return {rrShaders.FragmentShader}
+     */
+    ShaderProgram.prototype.getFragmentShader = function () {
+        return this.fragmentShader;
+    };
 
     /**
      * @param {string} name
