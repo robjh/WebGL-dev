@@ -74,12 +74,12 @@ define([
         // Colorbuffer.
         colorRbo = gl.createRenderbuffer();
         gl.bindRenderbuffer(gl.RENDERBUFFER, colorRbo);
-        gl.renderbufferStorage(gl.RENDERBUFFER, colorFormat, this.m_size.x(), this.m_size.y());
+        gl.renderbufferStorage(gl.RENDERBUFFER, colorFormat, this.m_size[0], this.m_size[1]);
 
         // Stencil (and depth) buffer.
         depthStencilRbo = gl.createRenderbuffer();
         gl.bindRenderbuffer(gl.RENDERBUFFER, depthStencilRbo);
-        gl.renderbufferStorage(gl.RENDERBUFFER, this.m_format, this.m_size.x(), this.m_size.y());
+        gl.renderbufferStorage(gl.RENDERBUFFER, this.m_format, this.m_size[0], this.m_size[1]);
 
         // Framebuffer.
         fbo = gl.createFramebuffers();
@@ -91,7 +91,7 @@ define([
         this.checkError();
         this.checkFramebufferStatus(gl.FRAMEBUFFER);
 
-        gl.viewport(0, 0, this.m_size.x(), this.m_size.y());
+        gl.viewport(0, 0, this.m_size[0], this.m_size[1]);
 
         // Clear framebuffer.
         gl.clearBufferfv(gl.COLOR, 0, [0.0, 0.0, 0.0, 0.0]);
@@ -129,7 +129,7 @@ define([
 
         //sglr::drawQuad(*getCurrentContext(), flatShaderID, Vec3(-1.0f, -1.0f, 0.0f), Vec3(+1.0f, +1.0f, 0.0f));
 
-        this.readPixels(dst, 0, 0, this.m_size.x(), this.m_size.y(), gluTextureUtil.mapGLInternalFormat(colorFormat), [1.0, 1.0, 1.0, 1.0], [0.0, 0.0, 0.0, 0.0]);
+        this.readPixels(dst, 0, 0, this.m_size[0], this.m_size[1], gluTextureUtil.mapGLInternalFormat(colorFormat), [1.0, 1.0, 1.0, 1.0], [0.0, 0.0, 0.0, 0.0]);
     };
 
     /**
