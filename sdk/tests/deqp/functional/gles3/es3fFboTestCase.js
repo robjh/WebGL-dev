@@ -219,7 +219,7 @@ define([
         setContext(null);
 
 
-        /** @type {boolean} */ var isOk = compare(reference, result);
+        /** @type {boolean} */ var isOk = this.compare(reference, result);
 
         assertMsgOptions(isOk, '', true, false);
 

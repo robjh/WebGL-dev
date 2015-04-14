@@ -1,0 +1,356 @@
+/*-------------------------------------------------------------------------
+ * drawElements Quality Program OpenGL ES Utilities
+ * ------------------------------------------------
+ *
+ * Copyright 2014 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
+define([
+    'functional/gles3/es3fFboTestCase',
+    'functional/gles3/es3fFboTestUtil',
+    'framework/common/tcuTestCase',
+    'framework/common/tcuSurface',
+    'framework/common/tcuRGBA',
+    'framework/common/tcuImageCompare',
+    'framework/common/tcuTexture',
+    'framework/common/tcuTextureUtil',
+    'framework/delibs/debase/deRandom',
+    'framework/delibs/debase/deMath',
+    'framework/opengl/gluTextureUtil'], function(
+        fboTestCase,
+        fboTestUtil,
+        tcuTestCase,
+        tcuSurface,
+        tcuRGBA,
+        tcuImageCompare,
+        tcuTexture,
+        tcuTextureUtil,
+        deRandom,
+        deMath,
+        gluTextureUtil) {
+    'use strict';
+
+    /**
+     * @param {string} name
+     * @param {string} desc
+     * @param {number} colorFormat
+     * @param {number} depthStencilFormat
+     * @param {Array<number>} size
+     * @param {number} numSamples
+     */
+    var BasicFboMultisampleCase = function(name, desc, colorFormat, depthStencilFormat, size, numSamples) {
+        fboTestCase.FboTestCase.call(name, desc);
+        /** @type {number} */ this.m_colorFormat = colorFormat;
+        /** @type {number} */ this.m_depthStencilFormat = depthStencilFormat;
+        /** @type {Array<number>} */ this.m_size = size;
+        /** @type {number} */ this.m_numSamples = numSamples;
+    };
+
+    BasicFboMultisampleCase.prototype = Object.create(fboTestCase.FboTestCase.prototype);
+    BasicFboMultisampleCase.prototype.constructor = BasicFboMultisampleCase;
+
+    BasicFboMultisampleCase.prototype.preCheck = function() {
+        this.checkFormatSupport(this.m_colorFormat);
+        this.checkSampleCount(this.m_colorFormat, this.m_numSamples);
+
+        if (this.m_depthStencilFormat != gl.NONE)
+        {
+            this.checkFormatSupport(this.m_depthStencilFormat);
+            this.checkSampleCount(this.m_depthStencilFormat, this.m_numSamples);
+        }
+    };
+
+    /**
+     * @param {tcuSurface.Surface} dst
+     */
+    BasicFboMultisampleCase.prototype.render = function(dst) {
+        /** @type {tcuTexture.TextureFormat} */ var colorFmt = gluTextureUtil.mapGLInternalFormat(this.m_colorFormat);
+        /** @type {tcuTexture.TextureFormat} */ var depthStencilFmt = this.m_depthStencilFormat != gl.NONE ? gluTextureUtil.mapGLInternalFormat(this.m_depthStencilFormat) : new tcuTexture.TextureFormat(null, null);
+        /** @type {tcuTextureUtil.TextureFormatInfo} */ var colorFmtInfo = tcuTextureUtil.getTextureFormatInfo(colorFmt);
+        /** @type {boolean} */ var depth = depthStencilFmt.order == tcuTexture.ChannelOrder.D || depthStencilFmt.order == tcuTexture.ChannelOrder.DS;
+        /** @type {boolean} */ var stencil = depthStencilFmt.order == tcuTexture.ChannelOrder.S || depthStencilFmt.order == tcuTexture.ChannelOrder.DS;
+        /** @type {fboTestUtil.GradientShader} */ var gradShader = new fboTestUtil.GradientShader(fboTestUtil.getFragmentOutputType(colorFmt));
+        /** @type {fboTestUtil.FlatColorShader} */ var flatShader = new fboTestUtil.FlatColorShader(fboTestUtil.getFragmentOutputType(colorFmt));
+        /** @type {number} */ var gradShaderID = getCurrentContext().createProgram(gradShader);
+        /** @type {number} */ var flatShaderID = getCurrentContext().createProgram(flatShader);
+        /** @type {number} */ var msaaFbo = 0;
+        /** @type {number} */ var resolveFbo = 0;
+        /** @type {number} */ var msaaColorRbo = 0;
+        /** @type {number} */ var resolveColorRbo = 0;
+        /** @type {number} */ var msaaDepthStencilRbo = 0;
+        /** @type {number} */ var resolveDepthStencilRbo = 0;
+
+        // Create framebuffers.
+        msaaColorRbo = gl.createRenderbuffer();
+        gl.bindRenderbuffer(gl.RENDERBUFFER, msaaColorRbo);
+        gl.renderbufferStorageMultisample(gl.RENDERBUFFER, this.m_numSamples, this.m_colorFormat, this.m_size[0], this.m_size[1]);
+
+        if (depth || stencil) {
+            msaaDepthStencilRbo = gl.createRenderbuffer();
+            gl.bindRenderbuffer(gl.RENDERBUFFER, msaaDepthStencilRbo);
+            gl.renderbufferStorageMultisample(gl.RENDERBUFFER, this.m_numSamples, this.m_depthStencilFormat, this.m_size[0], this.m_size[1]);
+        }
+
+        msaaFbo = gl.createFramebuffer();
+        gl.bindFramebuffer(gl.FRAMEBUFFER, msaaFbo);
+        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, msaaColorRbo);
+        if (depth)
+            gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, msaaDepthStencilRbo);
+        if (stencil)
+            gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.STENCIL_ATTACHMENT, gl.RENDERBUFFER, msaaDepthStencilRbo);
+
+        this.checkError();
+        this.checkFramebufferStatus(gl.FRAMEBUFFER);
+
+        resolveColorRbo = gl.createRenderbuffer();
+        gl.bindRenderbuffer(gl.RENDERBUFFER, resolveColorRbo);
+        gl.renderbufferStorageMultisample(gl.RENDERBUFFER, 0, this.m_colorFormat, this.m_size[0], this.m_size[1]);
+
+        if (depth || stencil) {
+            resolveDepthStencilRbo = gl.createRenderbuffer();
+            gl.bindRenderbuffer(gl.RENDERBUFFER, resolveDepthStencilRbo);
+            gl.renderbufferStorageMultisample(gl.RENDERBUFFER, 0, this.m_depthStencilFormat, this.m_size[0], this.m_size[1]);
+        }
+
+        resolveFbo = gl.createFramebuffer();
+        gl.bindFramebuffer(gl.FRAMEBUFFER, resolveFbo);
+        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, resolveColorRbo);
+        if (depth)
+            gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, resolveDepthStencilRbo);
+        if (stencil)
+            gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.STENCIL_ATTACHMENT, gl.RENDERBUFFER, resolveDepthStencilRbo);
+
+        this.checkError();
+        this.checkFramebufferStatus(gl.FRAMEBUFFER);
+
+
+        gl.bindFramebuffer(gl.FRAMEBUFFER, msaaFbo);
+        gl.viewport(0, 0, this.m_size[0], this.m_size[1]);
+
+        // Clear depth and stencil buffers.
+        gl.clearBufferfi(gl.DEPTH_STENCIL, 0, 1.0, 0);
+
+        // Fill MSAA fbo with gradient, depth = [-1..1]
+        gl.enable(gl.DEPTH_TEST);
+        gradShader.setGradient(getCurrentContext(), gradShaderID, colorFmtInfo.valueMin, colorFmtInfo.valueMax);
+        // TODO: implement drawQuad
+        //sglr::drawQuad(*getCurrentContext(), gradShaderID, [-1.0, -1.0, -1.0], [1.0, 1.0, 1.0]);
+
+        // Render random-colored quads.
+        /** @const {number} */ var numQuads = 8;
+        /** @type {deRandom.Random} */ var rnd = new deRandom.Random(9);
+
+        gl.depthFunc(gl.ALWAYS);
+        gl.enable(gl.STENCIL_TEST);
+        gl.stencilFunc(gl.ALWAYS, 0, 0xff);
+        gl.stencilOp(gl.KEEP, gl.KEEP, gl.INCR);
+
+        for (var ndx = 0; ndx < numQuads; ndx++) {
+            /** @type {number} */ var r = rnd.getFloat();
+            /** @type {number} */ var g = rnd.getFloat();
+            /** @type {number} */ var b = rnd.getFloat();
+            /** @type {number} */ var a = rnd.getFloat();
+            /** @type {number} */ var x0 = rnd.getFloat(-1.0, 1.0);
+            /** @type {number} */ var y0 = rnd.getFloat(-1.0, 1.0);
+            /** @type {number} */ var z0 = rnd.getFloat(-1.0, 1.0);
+            /** @type {number} */ var x1 = rnd.getFloat(-1.0, 1.0);
+            /** @type {number} */ var y1 = rnd.getFloat(-1.0, 1.0);
+            /** @type {number} */ var z1 = rnd.getFloat(-1.0, 1.0);
+
+            flatShader.setColor(getCurrentContext(), flatShaderID, deMath.add(deMath.multiply([r, g, b, a], deMath.subtract(colorFmtInfo.valueMax, colorFmtInfo.valueMin)), colorFmtInfo.valueMin));
+            // TODO: implement drawQuad
+            //sglr::drawQuad(getCurrentContext(), flatShaderID, [x0, y0, z0], [x1, y1, z1]);
+        }
+
+        gl.disable(gl.DEPTH_TEST);
+        gl.disable(gl.STENCIL_TEST);
+        this.checkError();
+
+        // Resolve using glBlitFramebuffer().
+        gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, resolveFbo);
+        gl.blitFramebuffer(0, 0, this.m_size[0], this.m_size[1], 0, 0, this.m_size[0], this.m_size[1], gl.COLOR_BUFFER_BIT | (depth ? gl.DEPTH_BUFFER_BIT : 0) | (stencil ? gl.STENCIL_BUFFER_BIT : 0), gl.NEAREST);
+
+        gl.bindFramebuffer(gl.READ_FRAMEBUFFER, resolveFbo);
+
+        /** @type {number} */ var numSteps;
+        /** @type {number} */ var step;
+        /** @type {number} */ var d;
+        /** @type {number} */ var c;
+        /** @type {number} */ var s;
+        if (depth) {
+            // Visualize depth.
+            numSteps = 8;
+            step = 2.0 / numSteps;
+            gl.enable(gl.DEPTH_TEST);
+            gl.depthFunc(gl.LESS);
+            gl.depthMask(false);
+            gl.colorMask(false, false, true, false);
+
+            for (var ndx = 0; ndx < numSteps; ndx++) {
+                d = -1.0 + step * ndx;
+                c = ndx / (numSteps - 1);
+
+                flatShader.setColor(getCurrentContext(), flatShaderID, deMath.add(deMath.multiply([0.0, 0.0, c, 1.0], deMath.subtract(colorFmtInfo.valueMax, colorFmtInfo.valueMin)), colorFmtInfo.valueMin));
+                // TODO: implement drawQuad
+                //sglr::drawQuad(*getCurrentContext(), flatShaderID, [-1.0, -1.0, d], [1.0, 1.0, d]);
+            }
+
+            gl.disable(gl.DEPTH_TEST);
+        }
+
+        if (stencil) {
+            // Visualize stencil.
+            numSteps = 4;
+            step = 1;
+
+            gl.enable(gl.STENCIL_TEST);
+            gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
+            gl.colorMask(false, true, false, false);
+
+            for (var ndx = 0; ndx < numSteps; ndx++) {
+                s = step * ndx;
+                c = ndx / (numSteps - 1);
+
+                gl.stencilFunc(gl.EQUAL, s, 0xff);
+
+                flatShader.setColor(getCurrentContext(), flatShaderID, deMath.add(deMath.multiply([0.0, c, 0.0, 1.0], deMath.substract(colorFmtInfo.valueMax, colorFmtInfo.valueMin)), colorFmtInfo.valueMin));
+                // TODO: implement drawQuad
+                //sglr::drawQuad(getCurrentContext(), flatShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
+            }
+
+            gl.disable(gl.STENCIL_TEST);
+        }
+
+        this.readPixels(dst, 0, 0, this.m_size[0], this.m_size[1], colorFmt, colorFmtInfo.lookupScale, colorFmtInfo.lookupBias);
+    };
+
+    /**
+     * @param {tcuSurface.Surface} reference
+     * @param {tcuSurface.Surface} result
+     * @return {boolean}
+     */
+    BasicFboMultisampleCase.prototype.colorCompare = function(reference, result) {
+        /** @const {tcuRGBA.RGBA} */ var threshold = tcuRGBA.max(fboTestUtil.getFormatThreshold(this.m_colorFormat), tcuRGBA.newRGBAComponents(12, 12, 12, 12));
+        return tcuImageCompare.bilinearCompare('Result', 'Image comparison result', reference.getAccess(), result.getAccess(), threshold, null /*tcu::COMPARE_LOG_RESULT*/);
+    };
+
+    /**
+     * @param {tcuSurface.Surface} reference
+     * @param {tcuSurface.Surface} result
+     * @return {boolean}
+     */
+    BasicFboMultisampleCase.prototype.compare = function(reference, result) {
+        if (this.m_depthStencilFormat != gl.NONE)
+            return this.compare(reference, result); // FboTestCase.compare
+        else
+            return colorCompare(reference, result);
+    };
+
+    var FboMultisampleTests = function() {
+        tcuTestCase.DeqpTest.call('msaa', 'Multisample FBO tests');
+    };
+
+    FboMultisampleTests.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
+    FboMultisampleTests.prototype.constructor = FboMultisampleTests;
+
+    FboMultisampleTests.prototype.init = function() {
+        /** @const {number} */ var colorFormats = [
+            // RGBA formats
+            gl.RGBA8,
+            gl.SRGB8_ALPHA8,
+            gl.RGB10_A2,
+            gl.RGBA4,
+            gl.RGB5_A1,
+
+            // RGB formats
+            gl.RGB8,
+            gl.RGB565,
+
+            // RG formats
+            gl.RG8,
+
+            // R formats
+            gl.R8,
+
+            // GL_EXT_color_buffer_float
+            gl.RGBA32F,
+            gl.RGBA16F,
+            gl.R11F_G11F_B10F,
+            gl.RG32F,
+            gl.RG16F,
+            gl.R32F,
+            gl.R16F
+        ];
+
+        /** @const {number} */ var depthStencilFormats = [
+            gl.DEPTH_COMPONENT32F,
+            gl.DEPTH_COMPONENT24,
+            gl.DEPTH_COMPONENT16,
+            gl.DEPTH32F_STENCIL8,
+            gl.DEPTH24_STENCIL8,
+            gl.STENCIL_INDEX8
+        ];
+
+        /** @const {number} */ var sampleCounts = [2, 4, 8];
+        var testGroup = tcuTestCase.runner.getState().testCases;
+        for (var sampleCntNdx in sampleCounts)
+        {
+            /** @type {number} */ var samples = sampleCounts[sampleCntNdx];
+            /** @type {TestCaseGroup} */
+            var sampleCountGroup = new tcuTestCase.newTest(samples + '_', '');
+            testGroup.addChild(sampleCountGroup);
+
+            // Color formats.
+            for (var fmtNdx in colorFormats)
+                sampleCountGroup.addChild(new BasicFboMultisampleCase(fboTestUtil.getFormatName(colorFormats[fmtNdx]), '', colorFormats[fmtNdx], gl.NONE, [119, 131], samples));
+
+            // Depth/stencil formats.
+            for (var fmtNdx in depthStencilFormats)
+                sampleCountGroup.addChild(new BasicFboMultisampleCase(fboTestUtil.getFormatName(depthStencilFormats[fmtNdx]), '', gl.RGBA8, depthStencilFormats[fmtNdx], [119, 131], samples));
+        }
+    };
+
+    var run = function(context) {
+        gl = context;
+        //Set up root Test
+        var state = tcuTestCase.runner.getState();
+
+        var test = new FboMultisampleTests();
+        var testName = test.fullName();
+        var testDescription = test.getDescription();
+        state.testCases = test;
+        state.testName = testName;
+
+        //Set up name and description of this test series.
+        setCurrentTestName(testName);
+        description(testDescription);
+
+        try {
+            //Create test cases
+            test.init();
+            //Run test cases
+            tcuTestCase.runTestCases();
+        }
+        catch (err) {
+            testFailedOptions('Failed to run tests', false);
+            tcuTestCase.runner.terminate();
+        }
+    };
+
+    return {
+        FboMultisampleTests: FboMultisampleTests
+    };
+});

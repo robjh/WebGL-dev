@@ -17,7 +17,27 @@
  * limitations under the License.
  *
  */
-define([], function(tcuTestCase, fboTestCase, tcuSurface, tcuTexture, gluTextureUtil, tcuTextureUtil, deMath, tcuRGBA, fboTestUtil) {
+define([
+    'functional/gles3/es3fFboTestCase',
+    'functional/gles3/es3fFboTestUtil',
+    'framework/common/tcuTestCase',
+    'framework/common/tcuSurface',
+    'framework/common/tcuRGBA',
+    'framework/common/tcuImageCompare',
+    'framework/common/tcuTexture',
+    'framework/common/tcuTextureUtil',
+    'framework/delibs/debase/deMath',
+    'framework/opengl/gluTextureUtil'], function(
+        fboTestCase,
+        fboTestUtil, 
+        tcuTestCase, 
+        tcuSurface, 
+        tcuRGBA, 
+        tcuImageCompare, 
+        tcuTexture, 
+        tcuTextureUtil, 
+        deMath, 
+        gluTextureUtil) {
     'use strict';
 
     /** @type {WebGL2RenderingContext} */ var gl;
@@ -34,7 +54,7 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcuTexture, gluTexture
     * @param {number} cellSize
     */
     var BlitRectCase = function(name, desc, filter, srcSize, srcRect, dstSize, dstRect, cellSize) {
-        fboTestCase.FboTestCase.call(name, description);
+        fboTestCase.FboTestCase.call(name, desc);
         /** @const {number} */ this.m_filter = filter;
         /** @const {Array<number>} */ this.m_srcSize = srcSize;
         /** @const {Array<number>} */ this.m_srcRect = srcRect;
@@ -330,7 +350,8 @@ define([], function(tcuTestCase, fboTestCase, tcuSurface, tcuTexture, gluTexture
     * @param {string} description
     * @param {boolean} useScreenSizedViewport
     */
-    var FramebufferBlitTests = function() {
+    var FramebufferBlitTests = function(name, description, useScreenSizedViewport) {
+        // TODO: check this constructos
         tcuTestCase.DeqpTest.call(this, name, description);
     };
 
