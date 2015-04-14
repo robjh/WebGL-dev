@@ -8,14 +8,10 @@ define([], function() {
     };
     var getCompressedTextureFormats = function(context) {
         var gl = context.getFunctions();
-        if (!gl.NUM_COMPRESSED_TEXTURE_FORMATS) return [];
-        
-        var numFormats = gl.getParameter(gl.NUM_COMPRESSED_TEXTURE_FORMATS);
-        
         var formats = gl.getParameter(gl.COMPRESSED_TEXTURE_FORMATS);
         
         var formatSet = [];
-        for (var i = 0 ; i < formats.length ; ++i) formatSet.push(formats[i]);'
+        for (var i = 0 ; i < formats.length ; ++i) formatSet.push(formats[i]);
         
         return formatSet;
     };
