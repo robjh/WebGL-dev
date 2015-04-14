@@ -1078,6 +1078,49 @@ var convertSatRte = function(deType, value) {
 };
 
 /**
+ * Saturate value to type range
+ * @param {deTypes} deType
+ * @param {number} src
+ * @return {number}
+ */
+var convertSat = function(deType, src) {
+    var minVal = deType.min;
+    var maxVal = deType.max;
+    if (src < min)
+        return min;
+    else if (src > max)
+        return max;
+    else
+        return src;
+};
+
+/**
+ * @param {number} src Input integer value
+ * @param {ChannelType} type
+ * @return {number}
+ */
+var intToChannel = function(src, type) {
+    var dst;
+    switch (type) {
+        case ChannelType.SNORM_INT8:         dst = convertSat(deTypes.deInt8, src);              break;
+        case ChannelType.SNORM_INT16:        dst = convertSat(deTypes.deInt16, src);              break;
+        case ChannelType.UNORM_INT8:         dst = convertSat(deTypes.deUint8, src);              break;
+        case ChannelType.UNORM_INT16:        dst = convertSat(deTypes.deUint16, src);              break;
+        case ChannelType.SIGNED_INT8:        dst = convertSat(deTypes.deInt8, src);              break;
+        case ChannelType.SIGNED_INT16:       dst = convertSat(deTypes.deInt16, src);              break;
+        case ChannelType.SIGNED_INT32:       dst = convertSat(deTypes.deInt32, src);              break;
+        case ChannelType.UNSIGNED_INT8:      dst = convertSat(deTypes.deUint8, src);    break;
+        case ChannelType.UNSIGNED_INT16:     dst = convertSat(deTypes.deUint16, src);    break;
+        case ChannelType.UNSIGNED_INT32:     dst = convertSat(deTypes.deUint32, src);    break;
+        case ChannelType.HALF_FLOAT:         dst = tcuFloat.numberToHalfFloat(src);                break;
+        case ChannelType.FLOAT:              dst = src;                               break;
+        default:
+            throw new Error('Unrecognized channel type: ' + type);
+    }
+    return dst;
+};
+
+/**
  * @param {Number} src
  * @param {Number} bits
  * @return {Number}
@@ -1162,6 +1205,8 @@ PixelBufferAccess.prototype.setPixel = function(color, x, y, z) {
     var pixelPtr = new arrayType(this.m_data, offset + this.m_offset);
 
     var pn = function(val, offs, bits) {
+        /* Check if the value is normalized (in [0, 1] range) */
+        DE_ASSERT(deMath.deInBounds32(val, 0, 1));
         return normFloatToChannel(val, bits) << offs;
     };
 
@@ -1193,7 +1238,7 @@ PixelBufferAccess.prototype.setPixel = function(color, x, y, z) {
 
         case ChannelType.FLOAT_UNSIGNED_INT_24_8_REV: {
             pixelPtr[0] = color[0];
-            var u32array = new Uint32Array(this.m_data, offset + 4, 1);
+            var u32array = new Uint32Array(this.m_data, offset + this.m_offset + 4, 1);
             u32array[0] = pu(color[3], 0, 8);
             break;
         }
@@ -1228,6 +1273,67 @@ PixelBufferAccess.prototype.setPixel = function(color, x, y, z) {
     }
 };
 
+/**
+ * @param {Array<Number>} color Vec4 color to set (unnormalized)
+ * @param {Number} x
+ * @param {Number} y
+ * @param {Number} z
+ */
+PixelBufferAccess.prototype.setPixelInt = function(color, x, y, z) {
+    if (z == null)
+        z = 0;
+    DE_ASSERT(deMath.deInBounds32(x, 0, this.m_width));
+    DE_ASSERT(deMath.deInBounds32(y, 0, this.m_height));
+    DE_ASSERT(deMath.deInBounds32(z, 0, this.m_depth));
+
+    var pixelSize = this.m_format.getPixelSize();
+    var arrayType = getTypedArray(this.m_format.type);
+    var offset = z * this.m_slicePitch + y * this.m_rowPitch + x * pixelSize;
+    var pixelPtr = new arrayType(this.m_data, offset + this.m_offset);
+
+    var pu = function(val, offs, bits) {
+        return uintToChannel(val, bits) << offs;
+    };
+
+    // Packed formats.
+    switch (this.m_format.type) {
+        case ChannelType.UNORM_SHORT_565: pixelPtr[0] = pu(color[0], 11, 5) | pu(color[1], 5, 6) | pu(color[2], 0, 5); break;
+        case ChannelType.UNORM_SHORT_555: pixelPtr[0] = pu(color[0], 10, 5) | pu(color[1], 5, 5) | pu(color[2], 0, 5); break;
+        case ChannelType.UNORM_SHORT_4444: pixelPtr[0] = pu(color[0], 12, 4) | pu(color[1], 8, 4) | pu(color[2], 4, 4) | pu(color[3], 0, 4); break;
+        case ChannelType.UNORM_SHORT_5551: pixelPtr[0] = pu(color[0], 11, 5) | pu(color[1], 6, 5) | pu(color[2], 1, 5) | pu(color[3], 0, 1); break;
+        case ChannelType.UNORM_INT_101010: pixelPtr[0] = pu(color[0], 22, 10) | pu(color[1], 12, 10) | pu(color[2], 2, 10); break;
+        case ChannelType.UNORM_INT_1010102_REV: pixelPtr[0] = pu(color[0], 0, 10) | pu(color[1], 10, 10) | pu(color[2], 20, 10) | pu(color[3], 30, 2); break;
+        case ChannelType.UNSIGNED_INT_1010102_REV: pixelPtr[0] = pu(color[0], 0, 10) | pu(color[1], 10, 10) | pu(color[2], 20, 10) | pu(color[3], 30, 2); break;
+
+        case ChannelType.UNSIGNED_INT_24_8:
+            switch (this.m_format.order) {
+                // \note Stencil is always ignored.
+                case ChannelOrder.D: pixelPtr[0] = pu(color[0], 8, 24); break;
+                case ChannelOrder.S: pixelPtr[0] = pu(color[3], 8, 24); break;
+                case ChannelOrder.DS: pixelPtr[0] = pu(color[0], 8, 24) | pu(color[3], 0, 8); break;
+                default:
+                    throw new Error('Unsupported channel order ' + this.m_format.order);
+            }
+            break;
+
+        case ChannelType.FLOAT_UNSIGNED_INT_24_8_REV: {
+            pixelPtr[0] = color[0];
+            var u32array = new Uint32Array(this.m_data, offset + this.m_offset + 4, 1);
+            u32array[0] = pu(color[3], 0, 8);
+            break;
+        }
+
+        default:
+        {
+            // Generic path.
+            var numChannels = getNumUsedChannels(this.m_format.order);
+            var map = getChannelWriteMap(this.m_format.order);
+
+            for (var c = 0; c < numChannels; c++)
+                pixelPtr[c] = intToChannel(color[map[c]], this.m_format.type);
+        }
+    }
+};
 /**
  * @param {Array<number>=} color Vec4 color to set, optional.
  * @param {Array<number>=} x Range in x axis, optional.

@@ -2760,6 +2760,183 @@ ReferenceContext.prototype.drawQuad = function(topLeft, bottomRight) {
     rrRenderer.drawQuad(state, renderTarget, program, vertexAttribs, topLeft, bottomRight);
 };
 
+var isEmpty  = function(rect) { return rect[2] == 0 || rect[3] == 0; };
+
+ReferenceContext.prototype.blitResolveMultisampleFramebuffer = function(mask, srcRect, dstRect, flipX, flipY) {
+    throw new Error('Unimplemented');
+};
+
+ReferenceContext.prototype.blitFramebuffer = function(srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter) {
+    // p0 in inclusive, p1 exclusive.
+    // Negative width/height means swap.
+    var    swapSrcX    = srcX1 < srcX0;
+    var    swapSrcY    = srcY1 < srcY0;
+    var    swapDstX    = dstX1 < dstX0;
+    var    swapDstY    = dstY1 < dstY0;
+    var    srcW        = Math.abs(srcX1-srcX0);
+    var    srcH        = Math.abs(srcY1-srcY0);
+    var    dstW        = Math.abs(dstX1-dstX0);
+    var    dstH        = Math.abs(dstY1-dstY0);
+    var    scale       = srcW != dstW || srcH != dstH;
+    var    srcOriginX  = swapSrcX ? srcX1 : srcX0;
+    var    srcOriginY  = swapSrcY ? srcY1 : srcY0;
+    var    dstOriginX  = swapDstX ? dstX1 : dstX0;
+    var    dstOriginY  = swapDstY ? dstY1 : dstY0;
+    var   srcRect     = [srcOriginX, srcOriginY, srcW, srcH];
+    var   dstRect     = [dstOriginX, dstOriginY, dstW, dstH];
+
+    if (this.condtionalSetError(filter != gl.NEAREST && filter != gl.LINEAR, gl.INVALID_ENUM))
+        return;
+    if (this.condtionalSetError((mask & (gl.DEPTH_BUFFER_BIT|gl.STENCIL_BUFFER_BIT)) != 0 && filter != gl.NEAREST, gl.INVALID_OPERATION))
+        return;
+
+    // Validate that both targets are complete.
+    if (this.condtionalSetError(this.checkFramebufferStatus(gl.DRAW_FRAMEBUFFER) != gl.FRAMEBUFFER_COMPLETE ||
+                this.checkFramebufferStatus(gl.READ_FRAMEBUFFER) != gl.FRAMEBUFFER_COMPLETE, gl.INVALID_OPERATION))
+        return;
+
+    // Check samples count is valid
+    if (this.condtionalSetError(this.getDrawColorbuffer().getNumSamples() != 1, gl.INVALID_OPERATION))
+        return
+
+    // Check size restrictions of multisampled case
+    if (this.getReadColorbuffer().getNumSamples() != 1) {
+        // Src and Dst rect dimensions must be the same
+        if (this.condtionalSetError(srcW != dstW || srcH != dstH, gl.INVALID_OPERATION))
+            return;
+
+        // Framebuffer formats must match
+        if (mask & gl.COLOR_BUFFER_BIT)
+             if (this.condtionalSetError(this.getReadColorbuffer().raw().getFormat()   != this.getDrawColorbuffer().raw().getFormat(),   gl.INVALID_OPERATION))
+                return;
+        if (mask & gl.DEPTH_BUFFER_BIT) 
+            if (this.condtionalSetError(this.getReadDepthbuffer().raw().getFormat()   != this.getDrawDepthbuffer().raw().getFormat(),   gl.INVALID_OPERATION))
+                return;
+        if (mask & gl.STENCIL_BUFFER_BIT) 
+          if (this.condtionalSetError(this.getReadStencilbuffer().raw().getFormat() != this.getDrawStencilbuffer().raw().getFormat(), gl.INVALID_OPERATION))
+            return;
+    }
+
+    // Compute actual source rect.
+    srcRect = (mask & gl.COLOR_BUFFER_BIT)      ? deMath.intersect(srcRect, getBufferRect(this.getReadColorbuffer()))   : srcRect;
+    srcRect = (mask & gl.DEPTH_BUFFER_BIT)      ? deMath.intersect(srcRect, getBufferRect(this.getReadDepthbuffer()))   : srcRect;
+    srcRect = (mask & gl.STENCIL_BUFFER_BIT)    ? deMath.intersect(srcRect, getBufferRect(this.getReadStencilbuffer())) : srcRect;
+
+    // Compute destination rect.
+    dstRect = (mask & gl.COLOR_BUFFER_BIT)      ? deMath.intersect(dstRect, getBufferRect(this.getDrawColorbuffer()))   : dstRect;
+    dstRect = (mask & gl.DEPTH_BUFFER_BIT)      ? deMath.intersect(dstRect, getBufferRect(this.getDrawDepthbuffer()))   : dstRect;
+    dstRect = (mask & gl.STENCIL_BUFFER_BIT)    ? deMath.intersect(dstRect, getBufferRect(this.getDrawStencilbuffer())) : dstRect;
+    dstRect = this.m_scissorEnabled                  ? deMath.intersect(dstRect, this.m_scissorBox)                          : dstRect;
+
+    if (isEmpty(srcRect) || isEmpty(dstRect))
+        return; // Don't attempt copy.
+
+    // Multisampled read buffer is a special case
+    if (this.getReadColorbuffer().getNumSamples() != 1) {
+        var error = blitResolveMultisampleFramebuffer(mask, srcRect, dstRect, swapSrcX ^ swapDstX, swapSrcY ^ swapDstY);
+
+        if (error != gl.NO_ERROR)
+            this.setError(error);
+
+        return;
+    }
+
+    // \note Multisample pixel buffers can now be accessed like non-multisampled because multisample read buffer case is already handled. => sample count must be 1
+
+    // Coordinate transformation:
+    // Dst offset space -> dst rectangle space -> src rectangle space -> src offset space.
+    var matrix = tcuMatrixUtil.translationMatrix([srcX0 - srcRect[0], srcY0 - srcRect[1]]);
+    matrix = matrix = matrix.multiply(new tcuMatrix.Mat3([(srcX1-srcX0) / (dstX1-dstX0), (srcY1-srcY0) / (dstY1-dstY0), 1]));
+    matrix = matrix * tcuMatrixUtil.translationMatrix([dstRect[0] - dstX0, dstRect[1] - dstY0]);
+    var transform = function(x, y) { return matrix.get(x, y); };
+
+    if (mask & gl.COLOR_BUFFER_BIT)
+    {
+        var     src         = tcuTextureUtil.getSubregion(this.getReadColorbuffer().toSinglesampleAccess(), srcRect[0], srcRect[1], srcRect[2], srcRect[3]);
+        var          dst         = tcuTextureUtil.getSubregion(this.getDrawColorbuffer().toSinglesampleAccess(), dstRect[0], dstRect[1], dstRect[2], dstRect[3]);
+        var        dstClass    = tcuTextureUtil.getTextureChannelClass(dst.getFormat().type);
+        var                            dstIsFloat  = dstClass == tcuTextureUtil.TextureChannelClass.TEXTURECHANNELCLASS_FLOATING_POINT       ||
+                                                      dstClass == tcuTextureUtil.TextureChannelClass.TEXTURECHANNELCLASS_UNSIGNED_FIXED_POINT ||
+                                                      dstClass == tcuTextureUtil.TextureChannelClass.TEXTURECHANNELCLASS_SIGNED_FIXED_POINT;
+        var        sFilter     = (scale && filter == gl.LINEAR) ? tcuTexture.FilterMode.LINEAR : tcuTexture.FilterMode.NEAREST;
+        var                    sampler  = new tcuTexture.Sampler(tcuTexture.WrapMode.CLAMP_TO_EDGE, tcuTexture.WrapMode.CLAMP_TO_EDGE, tcuTexture.WrapMode.CLAMP_TO_EDGE,
+                                                     sFilter, sFilter, 0.0 /* lod threshold */, false /* non-normalized coords */);
+        var                            srcIsSRGB   = src.getFormat().order == tcuTexture.ChannelOrder.sRGB || src.getFormat().order == tcuTexture.ChannelOrder.sRGBA;
+        var                            dstIsSRGB   = dst.getFormat().order == tcuTexture.ChannelOrder.sRGB || dst.getFormat().order == tcuTexture.ChannelOrder.sRGBA;
+        var                      convertSRGB = false;
+
+        // \note We don't check for unsupported conversions, unlike spec requires.
+
+        for (var yo = 0; yo < dstRect[3]; yo++)
+        {
+            for (var xo = 0; xo < dstRect[2]; xo++)
+            {
+                var   dX  = xo + 0.5;
+                var   dY  = yo + 0.5;
+
+                // \note Only affine part is used.
+                var   sX  = transform(0, 0)*dX + transform(0, 1)*dY + transform(0, 2);
+                var   sY  = transform(1, 0)*dX + transform(1, 1)*dY + transform(1, 2);
+
+                // do not copy pixels outside the modified source region (modified by buffer intersection)
+                if (sX < 0.0 || sX >= srcRect[2] ||
+                    sY < 0.0 || sY >= srcRect[3])
+                    continue;
+
+                if (dstIsFloat || srcIsSRGB || filter == tcuTexture.FilterMode.LINEAR)
+                {
+                    var p = src.sample2D(sampler, sampler.minFilter, sX, sY, 0);
+                    dst.setPixel((dstIsSRGB && convertSRGB) ? tcuTextureUtil.linearToSRGB(p) : p, xo, yo);
+                }
+                else
+                    dst.setPixelInt(src.getPixelInt(Math.floor(sX), Math.floor(sY)), xo, yo);
+            }
+        }
+    }
+
+    if ((mask & gl.DEPTH_BUFFER_BIT) && this.m_depthMask)
+    {
+        var   src     = this.getReadDepthbuffer().getSubregion(srcRect);
+        var        dst     = this.getDrawDepthbuffer().getSubregion(dstRect);
+
+        for (var yo = 0; yo < dstRect[3]; yo++)
+        {
+            for (var xo = 0; xo < dstRect[2]; xo++)
+            {
+                var sampleNdx = 0; // multisample read buffer case is already handled
+
+                var dX  = xo + 0.5;
+                var dY  = yo + 0.5;
+                var sX  = transform(0, 0)*dX + transform(0, 1)*dY + transform(0, 2);
+                var sY  = transform(1, 0)*dX + transform(1, 1)*dY + transform(1, 2);
+
+                writeDepthOnly(dst, sampleNdx, xo, yo, src.raw().getPixel(sampleNdx, Math.floor(sX), Math.floor(sY))[0]);
+            }
+        }
+    }
+
+    if (mask & gl.STENCIL_BUFFER_BIT)
+    {
+        var   src     = this.getReadStencilbuffer().getSubregion(srcRect);
+        var        dst     = this.getDrawStencilbuffer().getSubregion(dstRect);
+
+        for (var yo = 0; yo < dstRect[3]; yo++)
+        {
+            for (var xo = 0; xo < dstRect[2]; xo++)
+            {
+                var sampleNdx = 0; // multisample read buffer case is already handled
+
+                var dX  = xo + 0.5;
+                var dY  = yo + 0.5;
+                var sX  = transform(0, 0)*dX + transform(0, 1)*dY + transform(0, 2);
+                var sY  = transform(1, 0)*dX + transform(1, 1)*dY + transform(1, 2);
+
+                writeStencilOnly(dst, sampleNdx, xo, yo, src.raw().getPixelInt(sampleNdx, Math.floor(sX), Math.floor(sY))[3], this.m_stencil[rrDefs.FaceType.FACETYPE_FRONT].writeMask);
+            }
+        }
+    }
+};
+
 return {
     ReferenceContext: ReferenceContext,
     ReferenceContextBuffers: ReferenceContextBuffers,

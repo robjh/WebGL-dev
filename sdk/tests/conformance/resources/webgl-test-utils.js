@@ -1396,10 +1396,12 @@ var createGLErrorWrapper = function(context, fname) {
  * Creates a WebGL context where all functions are wrapped to throw an exception
  * if there is an error.
  * @param {!Canvas} canvas The HTML canvas to get a context from.
+ * @param {Object} opt_attributes Context attributes.
+ * @param {!number} opt_version Version of WebGL context to create
  * @return {!Object} The wrapped context.
  */
-function create3DContextWithWrapperThatThrowsOnGLError(canvas) {
-  var context = create3DContext(canvas);
+function create3DContextWithWrapperThatThrowsOnGLError(canvas, opt_attributes, opt_version) {
+  var context = create3DContext(canvas, opt_attributes, opt_version);
   var wrap = {};
   for (var i in context) {
     try {
