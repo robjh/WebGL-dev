@@ -23,12 +23,11 @@ define([
     'framework/delibs/debase/deRandom',
     'framework/common/tcuTexture',
     'framework/common/tcuTextureUtil'],
-    function (
+    function(
         deMath,
         deRandom,
         tcuTexture,
-        tcuTextureUtil
-    ) {
+        tcuTextureUtil) {
     'use strict';
 
     var DE_ASSERT = function(x) {
@@ -45,7 +44,7 @@ define([
      * @param {number} minErrThreshold_
      * @param {number} errExp_
      */
-    var FuzzyCompareParams = function (maxSampleSkip_, minErrThreshold_, errExp_) {
+    var FuzzyCompareParams = function(maxSampleSkip_, minErrThreshold_, errExp_) {
         /** @type {number} */ this.maxSampleSkip = maxSampleSkip_ === undefined ? 8 : maxSampleSkip_;
         /** @type {number} */ this.minErrThreshold = minErrThreshold_ === undefined ? 4 : minErrThreshold_;
         /** @type {number} */ this.errExp = errExp_ === undefined ? 4.0 : errExp_;
@@ -56,7 +55,7 @@ define([
      * @param {number} channel
      * @return {number}
      */
-    var getChannel = function (color, channel) {
+    var getChannel = function(color, channel) {
         if (channel > 4) return 0; //No point trying to get a channel beyond the color parameter's 32-bit boundary.
         var buffer = new ArrayBuffer(4);
         var result = new Uint32Array(buffer);
@@ -70,8 +69,8 @@ define([
      * @param {number} val
      * @return {number}
      */
-    var setChannel = function (color, channel, val) {
-        if(channel > 4) return color; //No point trying to set a channel beyond the color parameter's 32-bit boundary.
+    var setChannel = function(color, channel, val) {
+        if (channel > 4) return color; //No point trying to set a channel beyond the color parameter's 32-bit boundary.
         var buffer = new ArrayBuffer(4);
         var result = new Uint32Array(buffer);
         result[0] = color;
@@ -85,7 +84,7 @@ define([
      * @param {number} color
      * @return {Array<deMath.deUint32>}
      */
-    var toFloatVec = function (color) {
+    var toFloatVec = function(color) {
         return [getChannel(color, 0), getChannel(color, 1), getChannel(color, 2), getChannel(color, 3)];
     };
 
@@ -93,7 +92,7 @@ define([
      * @param {number} v
      * @return {number}
      */
-    var roundToUint8Sat = function (v) {
+    var roundToUint8Sat = function(v) {
         return new Uint8Array([deMath.clamp(v + 0.5, 0, 255)])[0];
     };
 
@@ -101,7 +100,7 @@ define([
      * @param {Array<number>} v
      * @return {number}
      */
-    var toColor = function (v) {
+    var toColor = function(v) {
         var buffer = new ArrayBuffer(4);
         var result = new Uint8Array(buffer);
         result[0] = roundToUint8Sat(v[0]);
@@ -119,7 +118,7 @@ define([
      * @param {number} NumChannels
      * @return {number}
      */
-    var readUnorm8 = function (src, x, y, NumChannels) {
+    var readUnorm8 = function(src, x, y, NumChannels) {
         var start = src.getRowPitch() * y + x * NumChannels;
         var end = start + NumChannels;
         /** @type {TypedArray} */ var ptr = src.getDataPtr().subarray(start, end);
@@ -135,7 +134,7 @@ define([
      * @param {number} val
      * @param {number} NumChannels
      */
-    var writeUnorm8 = function (dst, x, y, val, NumChannels) {
+    var writeUnorm8 = function(dst, x, y, val, NumChannels) {
         var start = dst.getRowPitch() * y + x * NumChannels;
         /** @type {Uint8Array} */ var ptr = new Uint8Array(dst.getBuffer());
 
@@ -149,7 +148,7 @@ define([
      * @param {number} minErrThreshold
      * @return {number}
      */
-    var compareColors = function (pa, pb, minErrThreshold) {
+    var compareColors = function(pa, pb, minErrThreshold) {
         /** @type {number}*/ var r = Math.max(Math.abs(getChannel(pa, 0) - getChannel(pb, 0)) - minErrThreshold, 0);
         /** @type {number}*/ var g = Math.max(Math.abs(getChannel(pa, 1) - getChannel(pb, 1)) - minErrThreshold, 1);
         /** @type {number}*/ var b = Math.max(Math.abs(getChannel(pa, 2) - getChannel(pb, 2)) - minErrThreshold, 2);
@@ -168,7 +167,7 @@ define([
      * @param {number} NumChannels
      * @return {number}
      */
-    var bilinearSample = function (src, u, v, NumChannels) {
+    var bilinearSample = function(src, u, v, NumChannels) {
         /** @type {number}*/ var w = src.getWidth();
         /** @type {number}*/ var h = src.getHeight();
 
@@ -182,8 +181,8 @@ define([
         /** @type {number}*/ var j0 = deMath.clamp(y0, 0, h - 1);
         /** @type {number}*/ var j1 = deMath.clamp(y1, 0, h - 1);
 
-        /** @type {number}*/ var a = (u - 0.5) - Math.floor(u - 0.5);;
-        /** @type {number}*/ var b = (u - 0.5) - Math.floor(u - 0.5);;
+        /** @type {number}*/ var a = (u - 0.5) - Math.floor(u - 0.5);
+        /** @type {number}*/ var b = (u - 0.5) - Math.floor(u - 0.5);
 
         /** @type {number} */ var p00 = readUnorm8(src, i0, j0, NumChannels);
         /** @type {number} */ var p10 = readUnorm8(src, i1, j0, NumChannels);
@@ -214,7 +213,7 @@ define([
      * @param {number} DstChannels
      * @param {number} SrcChannels
      */
-    var separableConvolve = function (dst, src, shiftX, shiftY, kernelX, kernelY, DstChannels, SrcChannels) {
+    var separableConvolve = function(dst, src, shiftX, shiftY, kernelX, kernelY, DstChannels, SrcChannels) {
         DE_ASSERT(dst.getWidth() == src.getWidth() && dst.getHeight() == src.getHeight());
 
         /** @type {tcuTexture.TextureLevel} */ var tmp = new tcuTexture.TextureLevel(dst.getFormat(), dst.getHeight(), dst.getWidth());
@@ -235,7 +234,7 @@ define([
                 sum[0] = sum[1] = sum[2] = sum[3] = 0;
                 for (var kx = 0; kx < kw; kx++) {
                     f = kernelX[kw - kx - 1];
-                    p = readUnorm8(src, deMath.clamp(i + kx - shiftX, 0, src.getWidth()-1), j, SrcChannels);
+                    p = readUnorm8(src, deMath.clamp(i + kx - shiftX, 0, src.getWidth() - 1), j, SrcChannels);
                     sum = deMath.add(sum, deMath.multiply(toFloatVec(p), toFloatVec(f)));
                 }
 
@@ -250,7 +249,7 @@ define([
                 sum[0] = sum[1] = sum[2] = sum[3] = 0;
                 for (var ky = 0; ky < kh; ky++) {
                     f = kernelY[kh - ky - 1];
-                    p = readUnorm8(tmpAccess, deMath.clamp(j + ky - shiftY, 0, tmp.getWidth()-1), i, DstChannels);
+                    p = readUnorm8(tmpAccess, deMath.clamp(j + ky - shiftY, 0, tmp.getWidth() - 1), i, DstChannels);
                     sum = deMath.add(sum, deMath.multiply(toFloatVec(p), toFloatVec(f)));
                 }
 
@@ -269,7 +268,7 @@ define([
      * @param {number} NumChannels
      * @return {number}
      */
-    var compareToNeighbor = function (params, rnd, pixel, surface, x, y, NumChannels) {
+    var compareToNeighbor = function(params, rnd, pixel, surface, x, y, NumChannels) {
         /** @type {number} */ var minErr = 100;
 
         // (x, y) + (0, 0)
@@ -281,13 +280,13 @@ define([
         /** @type {Array<Array.<number>>} */ var s_coords =
         [
             [-1, -1],
-            [ 0, -1],
-            [ 1, -1],
-            [-1,  0],
-            [ 1,  0],
-            [-1,  1],
-            [ 0,  1],
-            [ 1,  1]
+            [0, -1],
+            [1, -1],
+            [-1, 0],
+            [1, 0],
+            [-1, 1],
+            [0, 1],
+            [1, 1]
         ];
 
         /** @type {number} */ var dx;
@@ -324,7 +323,7 @@ define([
      * @param {Array<number>} c
      * @return {number}
      */
-    var toGrayscale = function (c) {
+    var toGrayscale = function(c) {
         return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
     };
 
@@ -332,7 +331,7 @@ define([
      * @param {tcuTexture.TextureFormat} format
      * @return {boolean}
      */
-    var isFormatSupported = function (format) {
+    var isFormatSupported = function(format) {
         return format.type == tcuTexture.ChannelType.UNORM_INT8 && (format.order == tcuTexture.ChannelOrder.RGB || format.order == tcuTexture.ChannelOrder.RGBA);
     };
 
@@ -343,13 +342,13 @@ define([
      * @param {tcuTexture.PixelBufferAccess} errorMask
      * @return {number}
      */
-    var fuzzyCompare = function (params, ref, cmp, errorMask) {
+    var fuzzyCompare = function(params, ref, cmp, errorMask) {
         DE_ASSERT(ref.getWidth() == cmp.getWidth() && ref.getHeight() == cmp.getHeight());
         DE_ASSERT(errorMask.getWidth() == ref.getWidth() && errorMask.getHeight() == ref.getHeight());
         // TODO: this is a work around to debug/test (errorMask_)
         var errorMask_ = tcuTexture.PixelBufferAccess.newFromTextureLevel(errorMask);
         if (!isFormatSupported(ref.getFormat()) || !isFormatSupported(cmp.getFormat()))
-            throw new Error("Unsupported format in fuzzy comparison");
+            throw new Error('Unsupported format in fuzzy comparison');
 
         /** @type {number} */ var width = ref.getWidth();
         /** @type {number} */ var height = ref.getHeight();
@@ -361,7 +360,7 @@ define([
 
         // Kernel = {0.15, 0.7, 0.15}
         /** @type {Array<number>} */ var kernel = new Array(3);
-        kernel[0] = kernel[2] = 0.1; kernel[1]= 0.8;
+        kernel[0] = kernel[2] = 0.1; kernel[1] = 0.8;
         /** @type {number} */ var shift = Math.floor((kernel.length - 1) / 2);
 
         switch (ref.getFormat().order) {
@@ -378,8 +377,8 @@ define([
                 throw new Error('fuzzyCompare - Invalid ChannelOrder');
         }
 
-        /** @type {number} */ var numSamples  = 0;
-        /** @type {number} */ var errSum      = 0.0;
+        /** @type {number} */ var numSamples = 0;
+        /** @type {number} */ var errSum = 0.0;
 
         // Clear error mask to green.
         tcuTextureUtil.clear(errorMask, [0.0, 1.0, 0.0, 1.0]);
@@ -387,15 +386,15 @@ define([
         /** @type {ConstPixelBufferAccess} */ var refAccess = refFiltered.getAccess();
         /** @type {ConstPixelBufferAccess} */ var cmpAccess = cmpFiltered.getAccess();
 
-        for (var y = 1; y < height-1; y++) {
-            for (var x = 1; x < width-1; x += params.maxSampleSkip > 0 ? rnd.getInt(0, params.maxSampleSkip) : 1) {
+        for (var y = 1; y < height - 1; y++) {
+            for (var x = 1; x < width - 1; x += params.maxSampleSkip > 0 ? rnd.getInt(0, params.maxSampleSkip) : 1) {
                 /** @type {number} */ var err = Math.min(compareToNeighbor(params, rnd, readUnorm8(refAccess, x, y, 4), cmpAccess, x, y, 4),
                                        compareToNeighbor(params, rnd, readUnorm8(cmpAccess, x, y, 4), refAccess, x, y, 4));
 
                 err = Math.pow(err, params.errExp);
 
-                errSum      += err;
-                numSamples  += 1;
+                errSum += err;
+                numSamples += 1;
 
                 // Build error image.
                 /** @type {number} */ var red = err * 500.0;
@@ -407,7 +406,7 @@ define([
         }
 
         // Scale error sum based on number of samples taken
-        errSum *= ((width-2) * (height-2)) / numSamples;
+        errSum *= ((width - 2) * (height - 2)) / numSamples;
 
         return errSum;
     };
@@ -415,6 +414,6 @@ define([
 return {
     FuzzyCompareParams: FuzzyCompareParams,
     fuzzyCompare: fuzzyCompare
-}
+};
 
 });

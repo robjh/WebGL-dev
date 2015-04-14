@@ -84,8 +84,7 @@ define([
     FboTestCase.prototype.checkSampleCount = function(sizedFormat, numSamples) {
         /** @const @type {number} */ var minSampleCount = getMinimumSampleCount(sizedFormat);
         // TODO: implement
-        if (numSamples > minSampleCount)
-        {
+        if (numSamples > minSampleCount) {
             // Exceeds spec-mandated minimum - need to check.
             /** @const @type {Array<number>} */ var supportedSampleCounts = querySampleCounts(this.m_context.getRenderContext().getFunctions(), sizedFormat);
 
@@ -199,31 +198,30 @@ define([
         }
 
         // Render reference.
-        {
-            /** @type {sglrReferenceContext.ReferenceContextBuffers} */
-            var buffers = new sglrReferenceContext.ReferenceContextBuffers(new tcuPixelFormat.PixelFormat(
-                                                                                8,
-                                                                                8,
-                                                                                8,
-                                                                                renderTarget.getPixelFormat().alphaBits ? 8 : 0),
-                                                                           renderTarget.getDepthBits(),
-                                                                           renderTarget.getStencilBits(),
-                                                                           width,
-                                                                           height);
-            /** @type {sglrReferenceContext.ReferenceContext} */
-            var context = new sglrReferenceContext.ReferenceContext(new sglrReferenceContext.ReferenceContextLimits(renderCtx),
-                                                                    buffers.getColorbuffer(),
-                                                                    buffers.getDepthbuffer(),
-                                                                    buffers.getStencilbuffer());
+        /** @type {sglrReferenceContext.ReferenceContextBuffers} */
+        var buffers = new sglrReferenceContext.ReferenceContextBuffers(new tcuPixelFormat.PixelFormat(
+                                                                            8,
+                                                                            8,
+                                                                            8,
+                                                                            renderTarget.getPixelFormat().alphaBits ? 8 : 0),
+                                                                       renderTarget.getDepthBits(),
+                                                                       renderTarget.getStencilBits(),
+                                                                       width,
+                                                                       height);
+        /** @type {sglrReferenceContext.ReferenceContext} */
+        var context = new sglrReferenceContext.ReferenceContext(new sglrReferenceContext.ReferenceContextLimits(renderCtx),
+                                                                buffers.getColorbuffer(),
+                                                                buffers.getDepthbuffer(),
+                                                                buffers.getStencilbuffer());
 
-            setContext(context);
-            render(reference);
-            setContext(null);
-        }
+        setContext(context);
+        render(reference);
+        setContext(null);
 
-        /** @type {boolean6 */ var isOk = compare(reference, result);
 
-     assertMsgOptions(isOk, '', true, false);
+        /** @type {boolean} */ var isOk = this.compare(reference, result);
+
+        assertMsgOptions(isOk, '', true, false);
 
         return tcuTestCase.runner.IterateResult.STOP;
     };
@@ -335,7 +333,7 @@ define([
         return false;
     };
 
-     return {
-
+    return {
+        FboTestCase: FboTestCase
     };
  });

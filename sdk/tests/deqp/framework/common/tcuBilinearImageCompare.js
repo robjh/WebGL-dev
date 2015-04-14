@@ -35,7 +35,7 @@ define([
     };
 
     // for bilinear interpolation
-    /** @const @type {number} */ var NUM_SUBPIXEL_BITS = 8;
+    /** @const {number} */ var NUM_SUBPIXEL_BITS = 8;
 
     // Algorithm assumes that colors are packed to 32-bit values as dictated by
     // tcu::RGBA::*_SHIFT values.
@@ -54,7 +54,7 @@ define([
     };
 
     /**
-     * @const @param {tcuTexture.ConstPixelBufferAccess} src
+     * @param {tcuTexture.ConstPixelBufferAccess} src
      * @param {number} x
      * @param {number} y
      * @return {number}
@@ -69,7 +69,7 @@ define([
     };
 
     /**
-     * @const @param {tcuTexture.ConstPixelBufferAccess} src
+     * @param {tcuTexture.ConstPixelBufferAccess} src
      * @param {number} x
      * @param {number} y
      * @return {tcuRGBA.RGBA}
@@ -95,16 +95,16 @@ define([
     * @return {number} deUint8
     */
     var interpolateChannel = function(fx1, fy1, p00, p01, p10, p11) {
-        /** @const @type {number} */ var fx0 = (1 << NUM_SUBPIXEL_BITS) - fx1;
-        /** @const @type {number} */ var fy0 = (1 << NUM_SUBPIXEL_BITS) - fy1;
-        /** @const @type {number} */
+        /** @const {number} */ var fx0 = (1 << NUM_SUBPIXEL_BITS) - fx1;
+        /** @const {number} */ var fy0 = (1 << NUM_SUBPIXEL_BITS) - fy1;
+        /** @const {number} */
         var half = 1 << (NUM_SUBPIXEL_BITS * 2 - 1);
-        /** @const @type {number} */ var sum =
+        /** @const {number} */ var sum =
             (fx0 * fy0 * p00) +
             (fx1 * fy0 * p10) +
             (fx0 * fy1 * p01) +
             (fx1 * fy1 * p11);
-        /** @const @type {number} */
+        /** @const {number} */
         var rounded = (sum + half) >> (NUM_SUBPIXEL_BITS * 2);
 
         DE_ASSERT(deMath.inRange(rounded, 0, 0xff));
@@ -112,7 +112,7 @@ define([
     };
 
     /**
-     * @const @type {tcuTexture.ConstPixelBufferAccess} access
+     * @const {tcuTexture.ConstPixelBufferAccess} access
      * @type {number} u
      * @type {number} v
      * @return {tcuRGBA.RGBA}
@@ -149,24 +149,24 @@ define([
     };
 
     /**
-     * @const @type {tcuTexture.ConstPixelBufferAccess} reference
-     * @const @type {tcuTexture.ConstPixelBufferAccess} result
-     * @const @type {tcuRGBA.RGBA} threshold
+     * @param {tcuTexture.ConstPixelBufferAccess} reference
+     * @param {tcuTexture.ConstPixelBufferAccess} result
+     * @param {tcuRGBA.RGBA} threshold
      * @type {number} x
      * @type {number} y
      * @return {boolean}
      */
     var comparePixelRGBA8 = function(reference, result, threshold, x, y) {
-        /** @const @type {tcyRGBA.RGBA} */ var resPix = readRGBA8(result, x, y);
+        /** @const {tcyRGBA.RGBA} */ var resPix = readRGBA8(result, x, y);
 
         // Step 1: Compare result pixel to 3x3 neighborhood pixels in reference.
-        /** @const @type {number} */ var x0 = Math.max(x - 1, 0);
-        /** @const @type {number} */ var x1 = x;
-        /** @const @type {number} */
+        /** @const {number} */ var x0 = Math.max(x - 1, 0);
+        /** @const {number} */ var x1 = x;
+        /** @const {number} */
         var x2 = Math.min(x + 1, reference.getWidth() - 1);
-        /** @const @type {number} */ var y0 = Math.max(y - 1, 0);
-        /** @const @type {number} */ var y1 = y;
-        /** @const @type {number} */
+        /** @const {number} */ var y0 = Math.max(y - 1, 0);
+        /** @const {number} */ var y1 = y;
+        /** @const {number} */
         var y2 = Math.min(y + 1, reference.getHeight() - 1);
 
         if (tcuRGBA.compareThreshold(resPix, readRGBA8(reference, x1, y1), threshold) ||
@@ -182,7 +182,7 @@ define([
 
         // Step 2: Compare using bilinear sampling.
         // \todo [pyry] Optimize sample positions!
-        /** @const @type {Array<Array<number>>} */ var s_offsets = [
+        /** @const {Array<Array<number>>} */ var s_offsets = [
             [226, 186],
             [335, 235],
             [279, 334],
@@ -214,9 +214,9 @@ define([
         ];
 
         for (var sampleNdx = 0; sampleNdx < s_offsets.length; sampleNdx++) {
-            /** @const @type {number} */
+            /** @const {number} */
             var u = ((x - 1) << NUM_SUBPIXEL_BITS) + s_offsets[sampleNdx][0];
-            /** @const @type {number} */
+            /** @const {number} */
             var v = ((y - 1) << NUM_SUBPIXEL_BITS) + s_offsets[sampleNdx][1];
 
             if (!deMath.inBounds(u, 0, (reference.getWidth() - 1) << NUM_SUBPIXEL_BITS) ||
@@ -231,10 +231,10 @@ define([
     };
 
     /**
-     * @const @type {tcuTexture.ConstPixelBufferAccess} reference
-     * @const @type {tcuTexture.ConstPixelBufferAccess} result
-     * @const @type {tcuTexture.PixelBufferAccess} errorMask
-     * @const @type {tcuRGBA.RGBA} threshold
+     * @param {tcuTexture.ConstPixelBufferAccess} reference
+     * @param {tcuTexture.ConstPixelBufferAccess} result
+     * @param {tcuTexture.PixelBufferAccess} errorMask
+     * @param {tcuRGBA.RGBA} threshold
      * @return {boolean}
      */
     var bilinearCompareRGBA8 = function(reference, result, errorMask, threshold) {
@@ -262,10 +262,10 @@ define([
     };
 
     /**
-     * @const @type {tcuTexture.ConstPixelBufferAccess} reference
-     * @const @type {tcuTexture.ConstPixelBufferAccess} result
-     * @const @type {tcuTexture.PixelBufferAccess} errorMask
-     * @const @type {tcuRGBA.RGBA} threshold
+     * @param {tcuTexture.ConstPixelBufferAccess} reference
+     * @param {tcuTexture.ConstPixelBufferAccess} result
+     * @param {tcuTexture.PixelBufferAccess} errorMask
+     * @param {tcuRGBA.RGBA} threshold
      * @return {boolean}
      */
     var bilinearCompare = function(reference, result, errorMask, threshold) {

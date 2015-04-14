@@ -457,9 +457,9 @@ var fuzzyCompare = function(imageSetName, imageSetDesc, reference, result, thres
  *
  * @param {string} imageSetName Name for image set when logging results
  * @param {string} imageSetDesc Description for image set
- * @const @param {ConstPixelBufferAccess} reference Reference image
- * @const @param {ConstPixelBufferAccess} result Result image
- * @const @param {RGBA} threshold Maximum local difference
+ * @param {ConstPixelBufferAccess} reference Reference image
+ * @param {ConstPixelBufferAccess} result Result image
+ * @param {RGBA} threshold Maximum local difference
  * @param {CompareLogMode} logMode Logging mode
  * @return {boolean} if comparison passes, false otherwise
  */
