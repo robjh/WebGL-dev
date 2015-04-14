@@ -31,8 +31,8 @@ define([
     'framework/delibs/debase/deMath',
     'framework/delibs/debase/deString',
     'framework/delibs/debase/deRandom',
-    'modules/shared/glsVertexArrayTests'
-       ], function(
+    'modules/shared/glsVertexArrayTests'],
+    function(
         gluDefs,
         gluDrawUtil,
         gluShaderUtil,

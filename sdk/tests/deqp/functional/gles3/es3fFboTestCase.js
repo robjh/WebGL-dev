@@ -84,8 +84,7 @@ define([
     FboTestCase.prototype.checkSampleCount = function(sizedFormat, numSamples) {
         /** @const @type {number} */ var minSampleCount = getMinimumSampleCount(sizedFormat);
         // TODO: implement
-        if (numSamples > minSampleCount)
-        {
+        if (numSamples > minSampleCount) {
             // Exceeds spec-mandated minimum - need to check.
             /** @const @type {Array<number>} */ var supportedSampleCounts = querySampleCounts(this.m_context.getRenderContext().getFunctions(), sizedFormat);
 
@@ -142,7 +141,7 @@ define([
     */
     FboTestCase.prototype.clearColorBuffer = function(format, value) {
         if (value === undefined) value = [0.0, 0.0, 0.0, 0.0];
-        // TODO: implement fboTestUtil.clearColorBuffer, getCurrentContext
+        // TODO: implement getCurrentContext
         fboTestUtil.clearColorBuffer(getCurrentContext(), format, value);
     };
 
@@ -171,8 +170,7 @@ define([
         preCheck(); // TODO: implement
 
         // Render using GLES3.
-        try
-        {
+        try {
             /** @type {GLContext} */ var context = new sglrReferenceContext.GLContext(
                                                             renderCtx,
                                                             null /*log*/,
@@ -188,10 +186,8 @@ define([
 
             setContext(null);
         }
-        catch (/** @const @type {fboTestUtil.FboIncompleteException} */ e)
-        {
-            if (e.getReason() == gl.FRAMEBUFFER_UNSUPPORTED)
-            {
+        catch (/** @const @type {fboTestUtil.FboIncompleteException} */ e) {
+            if (e.getReason() == gl.FRAMEBUFFER_UNSUPPORTED) {
                 // log << e;
                 // m_testCtx.setTestResult(QP_TEST_RESULT_NOT_SUPPORTED, 'Not supported');
                 assertMsgOptions(false, 'Not supported', true, false);
@@ -202,31 +198,30 @@ define([
         }
 
         // Render reference.
-        {
-            /** @type {sglrReferenceContext.ReferenceContextBuffers} */
-            var buffers = new sglrReferenceContext.ReferenceContextBuffers(new tcuPixelFormat.PixelFormat(
-                                                                                8,
-                                                                                8,
-                                                                                8,
-                                                                                renderTarget.getPixelFormat().alphaBits ? 8 : 0),
-                                                                           renderTarget.getDepthBits(),
-                                                                           renderTarget.getStencilBits(),
-                                                                           width,
-                                                                           height);
-            /** @type {sglrReferenceContext.ReferenceContext} */
-            var context = new sglrReferenceContext.ReferenceContext(new sglrReferenceContext.ReferenceContextLimits(renderCtx),
-                                                                    buffers.getColorbuffer(),
-                                                                    buffers.getDepthbuffer(),
-                                                                    buffers.getStencilbuffer());
+        /** @type {sglrReferenceContext.ReferenceContextBuffers} */
+        var buffers = new sglrReferenceContext.ReferenceContextBuffers(new tcuPixelFormat.PixelFormat(
+                                                                            8,
+                                                                            8,
+                                                                            8,
+                                                                            renderTarget.getPixelFormat().alphaBits ? 8 : 0),
+                                                                       renderTarget.getDepthBits(),
+                                                                       renderTarget.getStencilBits(),
+                                                                       width,
+                                                                       height);
+        /** @type {sglrReferenceContext.ReferenceContext} */
+        var context = new sglrReferenceContext.ReferenceContext(new sglrReferenceContext.ReferenceContextLimits(renderCtx),
+                                                                buffers.getColorbuffer(),
+                                                                buffers.getDepthbuffer(),
+                                                                buffers.getStencilbuffer());
 
-            setContext(context);
-            render(reference);
-            setContext(null);
-        }
+        setContext(context);
+        render(reference);
+        setContext(null);
 
-        /** @type {boolean6 */ var isOk = compare(reference, result);
 
-     assertMsgOptions(isOk, '', true, false);
+        /** @type {boolean} */ var isOk = compare(reference, result);
+
+        assertMsgOptions(isOk, '', true, false);
 
         return tcuTestCase.runner.IterateResult.STOP;
     };
@@ -237,8 +232,7 @@ define([
     * @return {boolean}
     */
     FboTestCase.isRequiredFormat = function(format) {
-        switch (format)
-        {
+        switch (format) {
             // Color-renderable formats
             case gl.RGBA32I:
             case gl.RGBA32UI:
@@ -299,8 +293,7 @@ define([
 
         DE_ASSERT(!isRequiredFormat(format));
 
-        switch (format)
-        {
+        switch (format) {
             case gl.RGB16F:
                 out.push('GL_EXT_color_buffer_half_float');
                 break;
@@ -330,8 +323,7 @@ define([
     * @return {boolean}
     */
     FboTestCase.isAnyExtensionSupported = function(context, requiredExts) {
-        for (var iter in requiredExts)
-        {
+        for (var iter in requiredExts) {
             /** @const @type {string} */ var extension = iter;
 
             if (context.getContextInfo().isExtensionSupported(extension))
@@ -341,7 +333,7 @@ define([
         return false;
     };
 
-     return {
-
+    return {
+        FboTestCase: FboTestCase
     };
  });

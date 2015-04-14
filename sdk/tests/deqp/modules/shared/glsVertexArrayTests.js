@@ -22,30 +22,35 @@ define([
     'framework/common/tcuTestCase',
     'framework/common/tcuRGBA',
     'framework/common/tcuFloat',
+    'framework/common/tcuPixelFormat',
     'framework/common/tcuSurface',
     'framework/common/tcuImageCompare',
+    'framework/opengl/gluShaderUtil',    
+    'framework/opengl/simplereference/sglrGLContext',
     'framework/opengl/simplereference/sglrReferenceContext',
     'framework/opengl/simplereference/sglrShaderProgram',
     'framework/delibs/debase/deMath',
     'framework/delibs/debase/deRandom',
     'framework/referencerenderer/rrVertexAttrib',
     'framework/referencerenderer/rrVertexPacket',
-    'framework/referencerenderer/rrGenericVector'
-],
-function (
-    tcuTestCase,
-    tcuRGBA,
-    tcuFloat,
-    tcuSurface,
-    tcuImageCompare,
-    sglrReferenceContext,
-    sglrShaderProgram,
-    deMath,
-    deRandom,
-    rrVertexAttrib,
-    rrVertexPacket,
-    rrGenericVector
-) {
+    'framework/referencerenderer/rrGenericVector'],
+    function (
+        tcuTestCase,
+        tcuRGBA,
+        tcuFloat,
+        tcuPixelFormat,
+        tcuSurface,
+        tcuImageCompare,
+        gluShaderUtil,
+        sglrGLContext,
+        sglrReferenceContext,
+        sglrShaderProgram,
+        deMath,
+        deRandom,
+        rrVertexAttrib,
+        rrVertexPacket,
+        rrGenericVector
+    ) {
     'use strict';
 
     var DE_ASSERT = function(x) {
@@ -170,7 +175,7 @@ function (
     deArray.targetToString = function (target) {
         DE_ASSERT(target < Object.keys(deArray.Target).length);
 
-        /** @type {Array.<string>} */ var targets =
+        /** @type {Array<string>} */ var targets =
         [
             "element_array",  // deArray.Target.ELEMENT_ARRAY
             "array"           // deArray.Target.ARRAY
@@ -187,7 +192,7 @@ function (
     deArray.inputTypeToString = function (type) {
         DE_ASSERT(type < Object.keys(deArray.InputType).length);
 
-        /** @type {Array.<string>} */ var types =
+        /** @type {Array<string>} */ var types =
         [
             "float",          // deArray.InputType.FLOAT
             "fixed",          // deArray.InputType.FIXED
@@ -217,7 +222,7 @@ function (
     deArray.outputTypeToString = function (type) {
         DE_ASSERT(type < Object.keys(deArray.OutputType).length);
 
-        /** @type {Array.<string>} */ var types =
+        /** @type {Array<string>} */ var types =
         [
             "float",       // deArray.OutputType.FLOAT
             "vec2",        // deArray.OutputType.VEC2
@@ -247,7 +252,7 @@ function (
     deArray.usageTypeToString = function (usage) {
         DE_ASSERT(usage < Object.keys(deArray.Usage).length);
 
-        /** @type {Array.<string>} */ var usages =
+        /** @type {Array<string>} */ var usages =
         [
             "dynamic_draw", // deArray.Usage.DYNAMIC_DRAW
             "static_draw",  // deArray.Usage.STATIC_DRAW
@@ -274,7 +279,7 @@ function (
     deArray.storageToString = function (storage) {
         DE_ASSERT(storage < Object.keys(deArray.Storage).length);
 
-        /** @type {Array.<string>} */ var storages =
+        /** @type {Array<string>} */ var storages =
         [
             "user_ptr", // deArray.Storage.USER
             "buffer"    // deArray.Storage.BUFFER
@@ -291,7 +296,7 @@ function (
     deArray.primitiveToString = function (primitive) {
         DE_ASSERT(primitive < Object.keys(deArray.Primitive).length);
 
-        /** @type {Array.<string>} */ var primitives =
+        /** @type {Array<string>} */ var primitives =
         [
             "points",          // deArray.Primitive.POINTS
             "triangles",       // deArray.Primitive.TRIANGLES
@@ -310,7 +315,7 @@ function (
     deArray.inputTypeSize = function (type) {
         DE_ASSERT(type < Object.keys(deArray.InputType).length);
 
-        /** @type {Array.<number>} */ var size =
+        /** @type {Array<number>} */ var size =
         [
             4,     // deArray.InputType.FLOAT
             4,     // deArray.InputType.FIXED
@@ -653,10 +658,10 @@ function (
                 GLU_EXPECT_NO_ERROR(this.m_ctx.getError(), "gl.vertexAttribPointer()");
             }
 
-            this.m_ctx.bindBuffer(ContextArray.targetToGL(this.m_target), 0);
+            this.m_ctx.bindBuffer(ContextArray.targetToGL(this.m_target), null);
         }
         else if (this.m_storage == deArray.Storage.USER) {
-            this.m_ctx.bindBuffer(ContextArray.targetToGL(this.m_target), 0);
+            this.m_ctx.bindBuffer(ContextArray.targetToGL(this.m_target), null);
             GLU_EXPECT_NO_ERROR(this.m_ctx.getError(), "gl.bindBuffer()");
 
             if (!inputTypeIsFloatType(this.m_inputType)) {
@@ -696,7 +701,7 @@ function (
     ContextArray.targetToGL = function (target) {
         DE_ASSERT(target < Object.keys(deArray.Target).length);
 
-        /** @type {Array.<GLenum>} */ var targets =
+        /** @type {Array<GLenum>} */ var targets =
         [
             gl.ELEMENT_ARRAY_BUFFER,    // deArray.Target.ELEMENT_ARRAY
             gl.ARRAY_BUFFER             // deArray.Target.ARRAY
@@ -712,7 +717,7 @@ function (
     ContextArray.usageToGL = function (usage) {
         DE_ASSERT(usage < Object.keys(deArray.Usage).length);
 
-        /** @type {Array.<GLenum>} */ var usages =
+        /** @type {Array<GLenum>} */ var usages =
         [
             gl.DYNAMIC_DRAW,    // deArray.Usage.DYNAMIC_DRAW
             gl.STATIC_DRAW,     // deArray.Usage.STATIC_DRAW
@@ -739,7 +744,7 @@ function (
     ContextArray.inputTypeToGL = function (type) {
         DE_ASSERT(type < Object.keys(deArray.InputType).length);
 
-        /** @type {Array.<GLenum>} */ var types =
+        /** @type {Array<GLenum>} */ var types =
         [
             gl.FLOAT,               // deArray.InputType.FLOAT
             gl.FIXED,               // deArray.InputType.FIXED
@@ -767,7 +772,7 @@ function (
     ContextArray.outputTypeToGLType = function (type) {
         DE_ASSERT(type < Object.keys(deArray.OutputType).length);
 
-        /** @type {Array.<string>} */ var types =
+        /** @type {Array<string>} */ var types =
         [
             "float",        // deArray.OutputType.FLOAT
             "vec2",         // deArray.OutputType.VEC2
@@ -795,7 +800,7 @@ function (
      * @return {GLenum}
      */
     ContextArray.primitiveToGL = function (primitive) {
-        /** @type {Array.<GLenum>} */ var primitives =
+        /** @type {Array<GLenum>} */ var primitives =
         [
             gl.POINTS,          // deArray.Primitive.POINTS
             gl.TRIANGLES,       // deArray.Primitive.TRIANGLES
@@ -809,19 +814,18 @@ function (
 
     /**
      * @constructor
-     * @param {WebGLRenderingContextBase} renderCtx
-     * @param {ReferenceRasterizerContext} drawContext
+     * @param {sglrGLContext.GLContext | sglrReferenceContext.ReferenceContext} drawContext
      */
-    var ContextArrayPack = function(renderCtx, drawContext) {
-        /** @type {WebGLRenderingContextBase} */ this.m_renderCtx = renderCtx;
+    var ContextArrayPack = function(drawContext) {
+        /** @type {WebGLRenderingContextBase} */ this.m_renderCtx = gl;
         //TODO: Reference rasterizer implementation.
         /** @type {GLContext} */ this.m_ctx = drawContext;
 
-        /** @type {Array.<ContextArray>} */ this.m_arrays = [];
+        /** @type {Array<ContextArray>} */ this.m_arrays = [];
         /** @type {ShaderProgram} */ this.m_program = DE_NULL;
         /** @type {tcuSurface.Surface} */ this.m_screen = new tcuSurface.Surface(
-            Math.min(512, renderCtx.getRenderTarget().getWidth()),
-            Math.min(512, renderCtx.getRenderTarget().getHeight())
+            Math.min(512, canvas.width),
+            Math.min(512, canvas.height)
         );
     };
 
@@ -881,8 +885,8 @@ function (
         this.m_ctx.uniform1f(this.m_ctx.getUniformLocation(program, "u_colorScale"), colorScale);
 
         if (useVao) {
-            var vaoID = this.m_ctx.genVertexArrays(1, vaoId);
-            this.m_ctx.bindVertexArray(vaoId);
+            var vaoID = this.m_ctx.genVertexArrays(1, vaoId)[0];
+            this.m_ctx.bindVertexArray(vaoID);
         }
 
         for (var arrayNdx = 0; arrayNdx < this.m_arrays.length; arrayNdx++) {
@@ -931,13 +935,13 @@ function (
      * ContextShaderProgram class
      * @constructor
      * @extends {sglrShaderProgram.ShaderProgram}
-     * @param {GLRenderContext} ctx
-     * @param {Array.<ContextArray>} arrays
+     * @param {WebGLRenderingContextBase | sglrReferenceContext.ReferenceContext} ctx
+     * @param {Array<ContextArray>} arrays
      */
     var ContextShaderProgram = function (ctx, arrays) {
         sglrShaderProgram.ShaderProgram.call(this, this.createProgramDeclaration(ctx, arrays));
         this.m_componentCount = new Array(arrays.length);
-        /** @type {Array.<rrGenericVector.GenericVecType>} */ this.m_attrType = new Array(arrays.length);
+        /** @type {Array<rrGenericVector.GenericVecType>} */ this.m_attrType = new Array(arrays.length);
 
         for(var arrayNdx = 0; arrayNdx < arrays.length; arrayNdx++)
         {
@@ -951,9 +955,9 @@ function (
 
     /**
      * calcShaderColorCoord function
-     * @param {Array.<number>} coord (2 elements)
-     * @param {Array.<number>} color (3 elements)
-     * @param {Array.<number>} attribValue (4 elements)
+     * @param {Array<number>} coord (2 elements)
+     * @param {Array<number>} color (3 elements)
+     * @param {Array<number>} attribValue (4 elements)
      * @param {boolean} isCoordinate
      * @param {number} numComponents
      */
@@ -1000,8 +1004,8 @@ function (
 
     /**
      * ContextShaderProgram.shadeVertices
-     * @param {Array.<rrVertexAttrib.VertexAttrib>} inputs
-     * @param {Array.<rrVertexPacket.VertexPacket>} packets
+     * @param {Array<rrVertexAttrib.VertexAttrib>} inputs
+     * @param {Array<rrVertexPacket.VertexPacket>} packets
      * @param {number} numPackets
      */
     ContextShaderProgram.prototype.shadeVertices = function (inputs, packets, numPackets) {
@@ -1014,8 +1018,8 @@ function (
             /** @type {rrVertexPacket.VertexPacket} */ var packet = packets[packetNdx];
 
             // Calc output color
-            /** @type {Array.<number>} */ var coord = [1.0, 1.0];
-            /** @type {Array.<number>} */ var color = [1.0, 1.0, 1.0];
+            /** @type {Array<number>} */ var coord = [1.0, 1.0];
+            /** @type {Array<number>} */ var color = [1.0, 1.0, 1.0];
 
             for (var attribNdx = 0; attribNdx < this.m_attrType.length; attribNdx++) {
                 /** @type {number} */ var numComponents = this.m_componentCount[attribNdx];
@@ -1030,6 +1034,254 @@ function (
             packet.outputs[varyingLocColor] = [u_colorScale * color[0], u_colorScale * color[1], u_colorScale * color[2], 1.0];
         }
     }
+
+    // REMOVED: @param {number} numPackets
+    /**
+     * @param {Array<rrFragmentPacket.FragmentPacket>} packets
+     * @param {rrShadingContext.FragmentShadingContext} context
+     */
+    ContextShaderProgram.prototype.shadeFragments = function (packets, /*numPackets,*/ context) {
+        var varyingLocColor = 0;
+
+        // Triangles are flashaded
+        //var color = rrShadingContext.readTriangleVarying(packets[0], context, varyingLocColor, 0);
+
+        // Normal shading
+        for (var packetNdx = 0; packetNdx < packets.length; ++packetNdx)
+            packets[packetNdx].color = rrShadingContext.readTriangleVarying(packets[packetNdx], context, varyingLocColor /*, 0*/);
+            /*for (int fragNdx = 0; fragNdx < 4; ++fragNdx)
+                rr::writeFragmentOutput(context, packetNdx, fragNdx, 0, color);*/
+    };
+
+    /**
+     * @param {Array<Array<ContextArray>>} arrays
+     * @return string
+     */
+    ContextShaderProgram.prototype.genVertexSource = function (arrays) {
+        var vertexShaderSrc = '';
+        var params = [];
+
+        params["VTX_IN"]        = "in";
+        params["VTX_OUT"]       = "out";
+        params["FRAG_IN"]       = "in";
+        params["FRAG_COLOR"]    = "dEQP_FragColor";
+        params["VTX_HDR"]       = "#version 300 es\n";
+        params["FRAG_HDR"]      = "#version 300 es\nlayout(location = 0) out mediump vec4 dEQP_FragColor;\n";
+
+
+        vertexShaderSrc += params['VTX_HDR'];
+
+        for (var arrayNdx = 0; arrayNdx < arrays.length; arrayNdx++) {
+            vertexShaderSrc += params['VTX_IN'] + ' highp ' + ContextArray.outputTypeToGLType(arrays[arrayNdx].getOutputType()) + ' a_' + arrays[arrayNdx].getAttribNdx() + ';\n';
+        }
+
+        vertexShaderSrc +=
+        'uniform highp float u_coordScale;\n' +
+        'uniform highp float u_colorScale;\n' +
+        params['VTX_OUT'] + ' mediump vec4 v_color;\n' +
+        'void main(void)\n' +
+        '{\n' +
+        '\tgl_PointSize = 1.0;\n' +
+        '\thighp vec2 coord = vec2(1.0, 1.0);\n' +
+        '\thighp vec3 color = vec3(1.0, 1.0, 1.0);\n';
+
+        for (var arrayNdx = 0; arrayNdx < arrays.length; arrayNdx++) {
+            if (arrays[arrayNdx].getAttribNdx() == 0) {
+                switch (arrays[arrayNdx].getOutputType()) {
+                    case (deArray.OutputType.FLOAT):
+                        vertexShaderSrc +=
+                        '\tcoord = vec2(a_0);\n';
+                        break;
+
+                    case (deArray.OutputType.VEC2):
+                        vertexShaderSrc +=
+                        '\tcoord = a_0.xy;\n';
+                        break;
+
+                    case (deArray.OutputType.VEC3):
+                        vertexShaderSrc +=
+                        '\tcoord = a_0.xy;\n' +
+                        '\tcoord.x = coord.x + a_0.z;\n';
+                        break;
+
+                    case (deArray.OutputType.VEC4):
+                        vertexShaderSrc +=
+                        '\tcoord = a_0.xy;\n' +
+                        '\tcoord += a_0.zw;\n';
+                        break;
+
+                    case (deArray.OutputType.IVEC2):
+                    case (deArray.OutputType.UVEC2):
+                        vertexShaderSrc +=
+                        '\tcoord = vec2(a_0.xy);\n';
+                        break;
+
+                    case (deArray.OutputType.IVEC3):
+                    case (deArray.OutputType.UVEC3):
+                        vertexShaderSrc +=
+                        '\tcoord = vec2(a_0.xy);\n' +
+                        '\tcoord.x = coord.x + float(a_0.z);\n';
+                        break;
+
+                    case (deArray.OutputType.IVEC4):
+                    case (deArray.OutputType.UVEC4):
+                        vertexShaderSrc +=
+                        '\tcoord = vec2(a_0.xy);\n' +
+                        '\tcoord += vec2(a_0.zw);\n';
+                        break;
+
+                    default:
+                        throw new Error('Invalid output type');
+                        break;
+                }
+                continue;
+            }
+
+            switch (arrays[arrayNdx].getOutputType())
+            {
+                case (deArray.OutputType.FLOAT):
+                    vertexShaderSrc +=
+                    "\tcolor = color * a_" + arrays[arrayNdx].getAttribNdx() + ";\n";
+                    break;
+
+                case (deArray.OutputType.VEC2):
+                    vertexShaderSrc +=
+                    "\tcolor.rg = color.rg * a_" + arrays[arrayNdx].getAttribNdx() + ".xy;\n";
+                    break;
+
+                case (deArray.OutputType.VEC3):
+                    vertexShaderSrc +=
+                    "\tcolor = color.rgb * a_" + arrays[arrayNdx].getAttribNdx() + ".xyz;\n";
+                    break;
+
+                case (deArray.OutputType.VEC4):
+                    vertexShaderSrc +=
+                    "\tcolor = color.rgb * a_" + arrays[arrayNdx].getAttribNdx() + ".xyz * a_" + arrays[arrayNdx].getAttribNdx() + ".w;\n";
+                    break;
+
+                default:
+                    throw new Error('Invalid output type');
+                    break;
+            }
+        }
+
+        vertexShaderSrc +=
+        "\tv_color = vec4(u_colorScale * color, 1.0);\n" +
+        "\tgl_Position = vec4(u_coordScale * coord, 1.0, 1.0);\n" +
+        "}\n";
+
+        return vertexShaderSrc;
+    };
+
+    /**
+     * @return {string}
+     */
+    ContextShaderProgram.prototype.genFragmentSource = function () {
+        var params = [];
+
+        params["VTX_IN"] = "in";
+        params["VTX_OUT"] = "out";
+        params["FRAG_IN"] = "in";
+        params["FRAG_COLOR"] = "dEQP_FragColor";
+        params["VTX_HDR"] = "#version 300 es\n";
+        params["FRAG_HDR"] = "#version 300 es\nlayout(location = 0) out mediump vec4 dEQP_FragColor;\n";
+
+        /* TODO: Check if glsl supported version check function is needed.*/
+
+        var fragmentShaderSrc = params['FRAG_HDR'] +
+        params['FRAG_IN'] + ' mediump vec4 v_color;\n' +
+        'void main(void)\n' +
+        '{\n' +
+        '\t' + params['FRAG_COLOR'] + ' = v_color;\n' +
+        '}\n';
+
+        return fragmentShaderSrc;
+    };
+
+    /**
+     * @param {deArray.OutputType} type
+     * @return {rrGenericVector.GenericVecType}
+     */
+    ContextShaderProgram.prototype.mapOutputType = function (type) {
+        switch (type) {
+            case (deArray.OutputType.FLOAT):
+            case (deArray.OutputType.VEC2):
+            case (deArray.OutputType.VEC3):
+            case (deArray.OutputType.VEC4):
+                return rrGenericVector.GenericVecType.FLOAT;
+
+            case (deArray.OutputType.INT):
+            case (deArray.OutputType.IVEC2):
+            case (deArray.OutputType.IVEC3):
+            case (deArray.OutputType.IVEC4):
+                return rrGenericVector.GenericVecType.INT32;
+
+            case (deArray.OutputType.UINT):
+            case (deArray.OutputType.UVEC2):
+            case (deArray.OutputType.UVEC3):
+            case (deArray.OutputType.UVEC4):
+                return rrGenericVector.GenericVecType.UINT32;
+
+            default:
+                throw new Error('Invalid output type');
+                return rrGenericVector.GenericVecType.LAST;
+        }
+    };
+
+    /**
+     * @param {deArray.OutputType} type
+     * @return {number}
+     */
+    ContextShaderProgram.prototype.getComponentCount = function (type) {
+        switch (type) {
+            case (deArray.OutputType.FLOAT):
+            case (deArray.OutputType.INT):
+            case (deArray.OutputType.UINT):
+                return 1;
+
+            case (deArray.OutputType.VEC2):
+            case (deArray.OutputType.IVEC2):
+            case (deArray.OutputType.UVEC2):
+                return 2;
+
+            case (deArray.OutputType.VEC3):
+            case (deArray.OutputType.IVEC3):
+            case (deArray.OutputType.UVEC3):
+                return 3;
+
+            case (deArray.OutputType.VEC4):
+            case (deArray.OutputType.IVEC4):
+            case (deArray.OutputType.UVEC4):
+                return 4;
+
+            default:
+                throw new Error('Invalid output type');
+                return 0;
+        }
+    };
+
+    /**
+     * @param {Array<Array<ContextArray>>} arrays
+     * @param {WebGLRenderingContextBase | sglrReferenceContext.ReferenceContext} ctx
+     * @return {sglrShaderProgram.ShaderProgramDeclaration}
+     */
+    ContextShaderProgram.prototype.createProgramDeclaration = function (ctx, arrays) {
+        /** @type {sglrShaderProgram.ShaderProgramDeclaration} */ var decl = new sglrShaderProgram.ShaderProgramDeclaration();
+
+        for (var arrayNdx = 0; arrayNdx < arrays.length; arrayNdx++)
+            decl.pushVertexAttribute(new sglrShaderProgram.VertexAttribute('a_' + arrayNdx, this.mapOutputType(arrays[arrayNdx].getOutputType())));
+
+        decl.pushVertexToFragmentVarying(new sglrShaderProgram.VertexToFragmentVarying(rrGenericVector.GenericVecType.FLOAT));
+        decl.pushFragmentOutput(rrGenericVector.GenericVecType.FLOAT);
+
+        decl.pushVertexSource(new sglrShaderProgram.VertexSource(this.genVertexSource(/*ctx,*/ arrays))); //TODO: Check if we need to review the support of a given GLSL version (we'd need the ctx)
+        decl.pushFragmentSource(new sglrShaderProgram.FragmentSource(this.genFragmentSource(/*ctx*/)));
+
+        decl.pushUniform(new sglrShaderProgram.Uniform('u_coordScale', gluShaderUtil.DataType.FLOAT));
+        decl.pushUniform(new sglrShaderProgram.Uniform('u_colorScale', gluShaderUtil.DataType.FLOAT));
+
+        return decl;
+    };
 
     /**
      * GLValue class
@@ -1855,7 +2107,8 @@ function (
      */
     var VertexArrayTest = function(name, description) {
         tcuTestCase.DeqpTest.call(this, name, description);
-        this.m_renderCtx = gl;
+
+        this.m_pixelformat = new tcuPixelFormat.PixelFormat(gl.getParameter(gl.RED_BITS), gl.getParameter(gl.GREEN_BITS), gl.getParameter(gl.BLUE_BITS), gl.getParameter(gl.ALPHA_BITS));
 
         //TODO: Reference rasterizer implementation.
         /** @type {sglrReferenceContext.ReferenceContextBuffers} */ this.m_refBuffers = DE_NULL;
@@ -1864,9 +2117,9 @@ function (
         /** @type {ContextArrayPack} */ this.m_glArrayPack = DE_NULL;
         /** @type {ContextArrayPack} */ this.m_rrArrayPack = DE_NULL;
         /** @type {boolean} */ this.m_isOk = false;
-        /** @type {number} */ this.m_maxDiffRed = deMath.deCeilFloatToInt32(256.0 * (2.0 / (1 << this.m_renderCtx.getRenderTarget().getPixelFormat().redBits)));
-        /** @type {number} */ this.m_maxDiffGreen = deMath.deCeilFloatToInt32(256.0 * (2.0 / (1 << this.m_renderCtx.getRenderTarget().getPixelFormat().greenBits)));
-        /** @type {number} */ this.m_maxDiffBlue = deMath.deCeilFloatToInt32(256.0 * (2.0 / (1 << this.m_renderCtx.getRenderTarget().getPixelFormat().blueBits)));
+        /** @type {number} */ this.m_maxDiffRed = deMath.deCeilFloatToInt32(256.0 * (2.0 / (1 << this.m_pixelformat.redBits)));
+        /** @type {number} */ this.m_maxDiffGreen = deMath.deCeilFloatToInt32(256.0 * (2.0 / (1 << this.m_pixelformat.greenBits)));
+        /** @type {number} */ this.m_maxDiffBlue = deMath.deCeilFloatToInt32(256.0 * (2.0 / (1 << this.m_pixelformat.blueBits)));
     };
 
     VertexArrayTest.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
@@ -1876,18 +2129,18 @@ function (
      * init
      */
     VertexArrayTest.prototype.init = function () {
-        /** @type {number}*/ var renderTargetWidth = Math.min(512, this.m_renderCtx.getRenderTarget().getWidth());
-        /** @type {number}*/ var renderTargetHeight  = Math.min(512, this.m_renderCtx.getRenderTarget().getHeight());
-        /** @type {sglrReferenceContext.ReferenceContextLimits} */ var limits = new sglrReferenceContext.ReferenceContextLimits(this.m_renderCtx);
+        /** @type {number}*/ var renderTargetWidth = Math.min(512, canvas.width);
+        /** @type {number}*/ var renderTargetHeight  = Math.min(512, canvas.height);
+        /** @type {sglrReferenceContext.ReferenceContextLimits} */ var limits = new sglrReferenceContext.ReferenceContextLimits(gl);
 
         //TODO: Reference rasterizer implementation.
-        this.m_glesContext = new sglrReferenceContext.GLContext(this.m_renderCtx, this.m_testCtx.getLog(), sglrReferenceContext.GLContext.LOG_CALLS | sglrReferenceContext.GLContext.LOG_PROGRAMS, [0, 0, renderTargetWidth, renderTargetHeight]);
-        this.m_refBuffers = new sglrReferenceContext.ReferenceContextBuffers(this.m_renderCtx.getRenderTarget().getPixelFormat(), 0, 0, renderTargetWidth, renderTargetHeight);
+        this.m_glesContext = new sglrGLContext.GLContext(gl);
+        this.m_refBuffers = new sglrReferenceContext.ReferenceContextBuffers(this.m_pixelformat, 0, 0, renderTargetWidth, renderTargetHeight);
         this.m_refContext = new sglrReferenceContext.ReferenceContext(limits, this.m_refBuffers.getColorbuffer(), this.m_refBuffers.getDepthbuffer(), this.m_refBuffers.getStencilbuffer());
 
-        this.m_glArrayPack = new ContextArrayPack(this.m_renderCtx, this.m_glesContext);
+        this.m_glArrayPack = new ContextArrayPack(this.m_glesContext);
         //TODO: Reference rasterizer implementation.
-        this.m_rrArrayPack = new ContextArrayPack(this.m_renderCtx, this.m_refContext);
+        this.m_rrArrayPack = new ContextArrayPack(this.m_refContext);
     };
 
     /**
@@ -1897,9 +2150,9 @@ function (
         /** @type {tcuSurface.Surface} */ var ref = this.m_rrArrayPack.getSurface();
         /** @type {tcuSurface.Surface} */ var screen = this.m_glArrayPack.getSurface();
 
-        if (this.m_renderCtx.getRenderTarget().getNumSamples() > 1) {
+        if (this.m_glesContext.getParameter(gl.SAMPLES) > 1) {
             // \todo [mika] Improve compare when using multisampling
-            bufferedLogToConsole("Warning: Comparision of result from multisample render targets are not as stricts as without multisampling. Might produce false positives!");
+            bufferedLogToConsole("Warning: Comparison of result from multisample render targets are not as strict as without multisampling. Might produce false positives!");
             this.m_isOk = tcuImageCompare.fuzzyCompare("Compare Results", "Compare Results", ref.getAccess(), screen.getAccess(), 1.5);
         }
         else {
@@ -1998,7 +2251,7 @@ function (
         /** @type {deArray.Primitive} */ this.primitive = undefined;
         /** @type {number} */ this.drawCount = 0;
         /** @type {number} */ this.first = 0;
-        /** @type {Array.<MultiVertexArrayTest.Spec.ArraySpec>} */ this.arrays = [];
+        /** @type {Array<MultiVertexArrayTest.Spec.ArraySpec>} */ this.arrays = [];
     };
 
     /**
@@ -2202,7 +2455,7 @@ function (
             }
 
             try {
-                this.m_glArrayPack.render(this.m_spec.primitive, this.m_spec.first, this.m_spec.drawCount * primitiveSize, useVao, coordScale, colorScale);
+                //this.m_glArrayPack.render(this.m_spec.primitive, this.m_spec.first, this.m_spec.drawCount * primitiveSize, useVao, coordScale, colorScale);
                 this.m_rrArrayPack.render(this.m_spec.primitive, this.m_spec.first, this.m_spec.drawCount * primitiveSize, useVao, coordScale, colorScale);
             }
             catch (err) {
@@ -2215,7 +2468,7 @@ function (
                 else if (this.isUnalignedBufferStrideTest())
                     testFailedOptions('Failed to draw with unaligned stride', false); // QP_TEST_RESULT_COMPATIBILITY_WARNING
                 else
-                    throw new Error();
+                    throw new Error(err.message);
 
                 return tcuTestCase.runner.IterateResult.STOP;
             }
@@ -2287,6 +2540,12 @@ function (
             }
         }
         return false;
+    };
+
+    return {
+        deArray: deArray,
+        MultiVertexArrayTest: MultiVertexArrayTest,
+        GLValue: GLValue
     };
 
 });

@@ -18,7 +18,7 @@
  *
  */
 
-define(['framework/common/tcuSurface', 'framework/delibs/debase/deMath', 'framework/common/tcuTexture', 'framework/common/tcuFuzzyImageCompare'], function(tcuSurface, deMath, tcuTexture, tcuFuzzyImageCompare) {
+define(['framework/common/tcuSurface', 'framework/delibs/debase/deMath', 'framework/common/tcuTexture', 'framework/common/tcuFuzzyImageCompare', 'framework/common/tcuBilinearImageCompare'], function(tcuSurface, deMath, tcuTexture, tcuFuzzyImageCompare, tcuBilinearImageCompare) {
     'use strict';
 
 var CompareLogMode = {
@@ -192,7 +192,7 @@ var intThresholdCompare = function(/*const char* */imageSetName, /*const char* *
  * @param {string} imageSetDesc
  * @param {tcuTexture.ConstPixelBufferAccess} reference
  * @param {tcuTexture.ConstPixelBufferAccess} result
- * @param {Array<number>} threshold, previously used as an Uint32Array
+ * @param {Array<number>} threshold - previously used as an Uint32Array
  * @return {boolean}
  */
 var floatUlpThresholdCompare = function(imageSetName, imageSetDesc, reference, result, threshold) {
@@ -431,9 +431,9 @@ var fuzzyCompare = function(imageSetName, imageSetDesc, reference, result, thres
             log << TestLog::Message << "Image comparison failed: difference = " << difference << ", threshold = " << threshold << TestLog::EndMessage;
 
         log << TestLog::ImageSet(imageSetName, imageSetDesc)
-            << TestLog::Image("Result",	    "Result",       result,     pixelScale, pixelBias)
-            << TestLog::Image("Reference",	"Reference", reference,	pixelScale, pixelBias)
-            << TestLog::Image("ErrorMask",	"Error mask",    errorMask)
+            << TestLog::Image("Result",        "Result",       result,     pixelScale, pixelBias)
+            << TestLog::Image("Reference",    "Reference", reference,    pixelScale, pixelBias)
+            << TestLog::Image("ErrorMask",    "Error mask",    errorMask)
             << TestLog::EndImageSet;
     }
     else if (logMode == COMPARE_LOG_RESULT)
@@ -442,12 +442,79 @@ var fuzzyCompare = function(imageSetName, imageSetDesc, reference, result, thres
             computePixelScaleBias(result, pixelScale, pixelBias);
 
         log << TestLog::ImageSet(imageSetName, imageSetDesc)
-            << TestLog::Image("Result",		"Result",		result, pixelScale, pixelBias)
+            << TestLog::Image("Result",        "Result",        result, pixelScale, pixelBias)
             << TestLog::EndImageSet;
     }
     */
     return isOk;
 };
+
+/**
+ * Bilinear image comparison
+ * On failure error image is generated that shows where the failing pixels
+ * are.
+ * Currently supports only RGBA, UNORM_INT8 formats
+ *
+ * @param {string} imageSetName Name for image set when logging results
+ * @param {string} imageSetDesc Description for image set
+ * @param {ConstPixelBufferAccess} reference Reference image
+ * @param {ConstPixelBufferAccess} result Result image
+ * @param {RGBA} threshold Maximum local difference
+ * @param {CompareLogMode} logMode Logging mode
+ * @return {boolean} if comparison passes, false otherwise
+ */
+var bilinearCompare = function(imageSetName, imageSetDesc, reference, result, threshold, logMode)
+{
+    /* @type {TextureLevel} */
+    var errorMask = new tcuTexture.TextureLevel(
+        new tcuTexture.TextureFormat(
+            tcuTexture.ChannelOrder.RGB,
+            tcuTexture.ChannelType.UNORM_INT8),
+        reference.getWidth(),
+        reference.getHeight());
+
+    /* @type {bool} */
+    var isOk = tcuBilinearImageCompare.bilinearCompare(
+        reference,
+        result,
+        errorMask,
+        threshold);
+
+    if (!compareOk) {
+        debug('Image comparison failed: threshold = ' + threshold);
+        displayImages(result, reference, errorMask.getAccess());
+    }
+
+    // /* @type {Array<number>} */ var pixelBias = [0.0, 0.0, 0.0, 0.0];
+    // /* @type {Array<number>} */ var pixelScale = [1.0, 1.0, 1.0, 1.0];
+    // if (!isOk || logMode == COMPARE_LOG_EVERYTHING)
+    // {
+    //     if (result.getFormat() != TextureFormat(TextureFormat::RGBA, TextureFormat::UNORM_INT8) && reference.getFormat() != TextureFormat(TextureFormat::RGBA, TextureFormat::UNORM_INT8))
+    //         computeScaleAndBias(reference, result, pixelScale, pixelBias);
+    //
+    //     if (!isOk)
+    //         log << TestLog::Message << "Image comparison failed, threshold = " << threshold << TestLog::EndMessage;
+    //
+    //     log << TestLog::ImageSet(imageSetName, imageSetDesc)
+    //         << TestLog::Image("Result",        "Result",        result,        pixelScale, pixelBias)
+    //         << TestLog::Image("Reference",    "Reference",    reference,    pixelScale, pixelBias)
+    //         << TestLog::Image("ErrorMask",    "Error mask",    errorMask)
+    //         << TestLog::EndImageSet;
+    // }
+    // else if (logMode == COMPARE_LOG_RESULT)
+    // {
+    //     if (result.getFormat() != TextureFormat(TextureFormat::RGBA, TextureFormat::UNORM_INT8))
+    //         computePixelScaleBias(result, pixelScale, pixelBias);
+    //
+    //     log << TestLog::ImageSet(imageSetName, imageSetDesc)
+    //         << TestLog::Image("Result",        "Result",        result, pixelScale, pixelBias)
+    //         << TestLog::EndImageSet;
+    // }
+
+    return isOk;
+};
+
+
 
 return {
     CompareLogMode: CompareLogMode,

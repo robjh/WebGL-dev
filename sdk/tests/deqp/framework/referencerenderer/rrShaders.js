@@ -25,7 +25,8 @@ define([
     'framework/referencerenderer/rrGenericVector',
     'framework/referencerenderer/rrShadingContext',
     'framework/referencerenderer/rrVertexAttrib',
-    'framework/referencerenderer/rrVertexPacket'],
+    'framework/referencerenderer/rrVertexPacket'
+],
     function(
         tcuTexture,
         deMath,
@@ -74,8 +75,10 @@ define([
      * @param {number} numOutputs
      */
     var VertexShader = function (numInputs, numOutputs) {
-        /** @type {Array.<VertexInputInfo> */ this.m_inputs = [];
-        /** @type {Array.<VertexOutputInfo> */ this.m_outputs = [];
+        /** @type {Array.<VertexInputInfo> */ this.m_inputs = new Array(numInputs);
+        for(var ndx = 0; ndx < numInputs; ndx++) this.m_inputs[ndx] = new VertexInputInfo();
+        /** @type {Array.<VertexOutputInfo> */ this.m_outputs = new Array(numOutputs);
+        for(var ndx = 0; ndx < numOutputs; ndx++) this.m_outputs[ndx] = new VertexOutputInfo();
     };
 
     /**
@@ -109,8 +112,10 @@ define([
      * @param {number} numOutputs
      */
     var FragmentShader = function (numInputs, numOutputs) {
-        /** @type {Array.<FragmentInputInfo> */ this.m_inputs = [];
-        /** @type {Array.<FragmentOutputInfo> */ this.m_outputs = [];
+        /** @type {Array.<FragmentInputInfo> */ this.m_inputs = new Array(numInputs);
+        for(var ndx = 0; ndx < numInputs; ndx++) this.m_inputs[ndx] = new FragmentInputInfo();
+        /** @type {Array.<FragmentOutputInfo> */ this.m_outputs = new Array(numOutputs);
+        for(var ndx = 0; ndx < numOutputs; ndx++) this.m_outputs[ndx] = new FragmentOutputInfo();
     };
 
     /**

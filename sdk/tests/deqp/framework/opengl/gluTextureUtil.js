@@ -690,7 +690,7 @@ var isGLInternalColorFormatFilterable = function(/* deMath.deUint32 */ format)
  *
  * If no mapping is found, throws tcu::InternalError.
  *
- * @param face Cube face
+ * @param {tcuTexture.CubeFace} face Cube face
  * @return {number} GL cube face
  */
 var getGLCubeFace = function(face)
@@ -750,37 +750,36 @@ var getGLCubeFace = function(face)
 //     }
 // }
 
-// /*--------------------------------------------------------------------*//*!
-//  * \brief Get GLSL sampler type for texture format.
-//  *
-//  * If no mapping is found, glu::TYPE_LAST is returned.
-//  *
-//  * \param format Texture format
-//  * \return GLSL 2D sampler type for format
-//  *//*--------------------------------------------------------------------*/
-// DataType getSampler2DType (tcu::TextureFormat format)
-// {
+/**
+ * Get GLSL sampler type for texture format.
+ * If no mapping is found, glu::TYPE_LAST is returned.
+ *
+ * @param {tcuTexture.TextureFormat} format
+ * @return {DataType} GLSL 2D sampler type for format
+ */
+ // TODO: implement
+// var getSampler2DType (format) {
 //     using tcu::TextureFormat;
-
+//
 //     if (format.order ==  textureFormat.ChannelOrder.D || format.order ==  textureFormat.ChannelOrder.DS)
 //         return TYPE_SAMPLER_2D;
-
+//
 //     if (format.order ==  textureFormat.ChannelOrder.S)
 //         return TYPE_LAST;
-
+//
 //     switch (tcu::getTextureChannelClass(format.type))
 //     {
 //         case tcu::TEXTURECHANNELCLASS_FLOATING_POINT:
 //         case tcu::TEXTURECHANNELCLASS_SIGNED_FIXED_POINT:
 //         case tcu::TEXTURECHANNELCLASS_UNSIGNED_FIXED_POINT:
 //             return glu::TYPE_SAMPLER_2D;
-
+//
 //         case tcu::TEXTURECHANNELCLASS_SIGNED_INTEGER:
 //             return glu::TYPE_INT_SAMPLER_2D;
-
+//
 //         case tcu::TEXTURECHANNELCLASS_UNSIGNED_INTEGER:
 //             return glu::TYPE_UINT_SAMPLER_2D;
-
+//
 //         default:
 //             return glu::TYPE_LAST;
 //     }

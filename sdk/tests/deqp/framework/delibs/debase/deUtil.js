@@ -19,25 +19,27 @@
  */
 
 define(function() {
-
-    var DE_NULL = null;
-
-    var DE_ASSERT = function(x) {
-        if (!x)
-            throw new Error('Assert failed');
-    };
+'use strict';
 
     /**
-     * GenericVecType
-     * @enum
-     */
-    var GenericVecType = {
-        FLOAT: 0,
-        UINT32: 1,
-        INT32: 2
+    * Add a push_unique function to Array. Will insert only if there is no equal element.
+    * @param {Array} array Any array
+    * @param {Object} object Any object
+    */
+    var dePushUniqueToArray = function(array, object) {
+        //Simplest implementation
+        for (var i = 0; i < array.length; i++) {
+            if (object.equals !== undefined)
+                if (object.equals(array[i]))
+                    return undefined;
+            else if (object === array[i])
+                return undefined;
+        }
+
+        array.push(object);
     };
 
     return {
-        GenericVecType: GenericVecType
+        dePushUniqueToArray: dePushUniqueToArray
     };
 });

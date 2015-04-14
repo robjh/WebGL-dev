@@ -23,6 +23,7 @@ define([
     'framework/opengl/gluShaderProgram',
     'framework/opengl/gluShaderUtil',
     'framework/opengl/gluDrawUtil',
+    'framework/delibs/debase/deUtil',
     'framework/delibs/debase/deMath',
     'framework/delibs/debase/deRandom',
     'framework/delibs/debase/deString'
@@ -32,6 +33,7 @@ function(
     gluShaderProgram,
     gluShaderUtil,
     gluDrawUtil,
+    deUtil,
     deMath,
     deRandom,
     deString
@@ -94,7 +96,7 @@ BlockPointers.prototype.resize = function(newsize) {
  * @param {Array} array Any array
  * @param {Object} object Any object
  */
-var pushUniqueToArray = function(array, object) {
+var deUtil.dePushUniqueToArray = function(array, object) {
     //Simplest implementation
     for (var i = 0; i < array.length; i++)
         if (object === array[i])
@@ -1217,8 +1219,8 @@ var getCompareDependencies = function(compareFuncs, basicType) {
         case gluShaderUtil.DataType.FLOAT_VEC2:
         case gluShaderUtil.DataType.FLOAT_VEC3:
         case gluShaderUtil.DataType.FLOAT_VEC4:
-            pushUniqueToArray(compareFuncs, gluShaderUtil.DataType.FLOAT);
-            pushUniqueToArray(compareFuncs, basicType);
+            deUtil.dePushUniqueToArray(compareFuncs, gluShaderUtil.DataType.FLOAT);
+            deUtil.dePushUniqueToArray(compareFuncs, basicType);
             break;
 
         case gluShaderUtil.DataType.FLOAT_MAT2:
@@ -1230,13 +1232,13 @@ var getCompareDependencies = function(compareFuncs, basicType) {
         case gluShaderUtil.DataType.FLOAT_MAT4X2:
         case gluShaderUtil.DataType.FLOAT_MAT4X3:
         case gluShaderUtil.DataType.FLOAT_MAT4:
-            pushUniqueToArray(compareFuncs, gluShaderUtil.DataType.FLOAT);
-            pushUniqueToArray(compareFuncs, gluShaderUtil.getDataTypeFloatVec(gluShaderUtil.getDataTypeMatrixNumRows(basicType)));
-            pushUniqueToArray(compareFuncs, basicType);
+            deUtil.dePushUniqueToArray(compareFuncs, gluShaderUtil.DataType.FLOAT);
+            deUtil.dePushUniqueToArray(compareFuncs, gluShaderUtil.getDataTypeFloatVec(gluShaderUtil.getDataTypeMatrixNumRows(basicType)));
+            deUtil.dePushUniqueToArray(compareFuncs, basicType);
             break;
 
         default:
-            pushUniqueToArray(compareFuncs, basicType);
+            deUtil.dePushUniqueToArray(compareFuncs, basicType);
             break;
     }
 };
@@ -1258,7 +1260,7 @@ var collectUniqueBasicTypes_B = function(basicTypes, type) {
     else
     {
         DE_ASSERT(type.isBasicType());
-        pushUniqueToArray(basicTypes, type.getBasicType());
+        deUtil.dePushUniqueToArray(basicTypes, type.getBasicType());
     }
 };
 

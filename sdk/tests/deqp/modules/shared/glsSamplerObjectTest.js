@@ -678,7 +678,7 @@ define([
 
         /** @type {boolean} */ var isOk = tcuImageCompare.pixelThresholdCompare('Sampler render result', 'Result from rendering with sampler', samplerRef, samplerResult, [0, 0, 0, 0], /*tcu::COMPARE_LOG_RESULT*/ null);
 
-        if (!tcuImageCompare.pixelThresholdCompare ('Texture render result', 'Result from rendering with texture state', textureRef, textureResult, [0, 0, 0, 0], /*tcu::COMPARE_LOG_RESULT*/ null))
+        if (!tcuImageCompare.pixelThresholdCompare('Texture render result', 'Result from rendering with texture state', textureRef, textureResult, [0, 0, 0, 0], /*tcu::COMPARE_LOG_RESULT*/ null))
             isOk = false;
 
         assertMsgOptions(isOk, '', true, false);

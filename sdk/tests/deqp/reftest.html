@@ -50,7 +50,13 @@ var displayImage = function(w, h, image) {
     contexts[0].putImageData(createImage(contexts[0], w, h, image), 0, 0);
 };
 
-    requirejs(['framework/opengl/simplereference/sglrReferenceContext', 'framework/common/tcuPixelFormat'], function(sglrReferenceContext, tcuPixelFormat) {
+    requirejs([
+        'framework/opengl/simplereference/sglrReferenceContext',
+        'framework/common/tcuPixelFormat'
+    ], function (
+        sglrReferenceContext,
+        tcuPixelFormat
+    ) {
         try {
             console.log('Creating context');
             var limits = new sglrReferenceContext.ReferenceContextLimits(gl);
@@ -104,6 +110,53 @@ var displayImage = function(w, h, image) {
             ctx.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT|gl.STENCIL_BUFFER_BIT);            
             var fbo = ctx.createFramebuffer();
             var rbo = ctx.createRenderbuffer();            
+            ctx.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+            ctx.bindRenderbuffer(gl.RENDERBUFFER, rbo);
+            ctx.renderbufferStorage(gl.RENDERBUFFER, gl.RGBA8, width, height);
+            ctx.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, rbo);
+            console.log("Framebuffer status: " + (ctx.checkFramebufferStatus(gl.FRAMEBUFFER) == gl.FRAMEBUFFER_COMPLETE));
+            ctx.clearColor(1, 0, 0, 1);
+            ctx.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT|gl.STENCIL_BUFFER_BIT);
+            var pixels = new Uint8Array(width * height * 4);
+            ctx.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+            console.log("Context: " + ctx);
+            console.log("Pixels: " + pixels);
+            displayImage(width, height, pixels);
+            ctx.scissor(width/4, height/4, width/2, height/2);
+            ctx.enable(gl.SCISSOR_TEST);
+            ctx.clearColor(0, 1, 1, 1);
+            ctx.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT|gl.STENCIL_BUFFER_BIT);
+            ctx.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+            displayImage(width, height, pixels);
+            ctx.bindFramebuffer(gl.FRAMEBUFFER, null);
+            ctx.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+            displayImage(width, height, pixels);
+        } catch (err) {
+            console.log(err);
+        }
+        try {
+            var vertices = [
+                0, 1, -1,
+                -1, -1, -1,
+                1, -1, -1
+            ];
+            var colors = [
+                1,0,0,1,
+                0,1,0,1,
+                0,0,1,1
+            ];
+            console.log('shader');
+            var limits = new sglrReferenceContext.ReferenceContextLimits(gl);
+            var format = new tcuPixelFormat.PixelFormat(8,8,8,8);
+            var width = 200;
+            var height = 188;
+            var samples = 4;
+            var buffers = new sglrReferenceContext.ReferenceContextBuffers(format, 24, 8, width, height, samples);
+            var ctx = new sglrReferenceContext.ReferenceContext(limits, buffers.getColorbuffer(), buffers.getDepthbuffer(), buffers.getStencilbuffer());
+            ctx.clearColor(0, 0, 1, 1);
+            ctx.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT|gl.STENCIL_BUFFER_BIT);
+            var fbo = ctx.createFramebuffer();
+            var rbo = ctx.createRenderbuffer();
             ctx.bindFramebuffer(gl.FRAMEBUFFER, fbo);
             ctx.bindRenderbuffer(gl.RENDERBUFFER, rbo);
             ctx.renderbufferStorage(gl.RENDERBUFFER, gl.RGBA8, width, height);
