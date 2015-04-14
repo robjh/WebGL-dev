@@ -160,7 +160,7 @@ define([
         gl.readPixels(x, y, sampRef.m_width, sampRef.m_height, sampRefTransferFormat.format, sampRefTransferFormat.dataType, samplerRef.m_pixels);
 
         gl.deleteTexture(texture);
-        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glDeleteTextures(1, &texture)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glDeleteTexture()');
     };
 
     /**
@@ -178,7 +178,7 @@ define([
         gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glViewport(x, y, VIEWPORT_WIDTH, VIEWPORT_HEIGHT)');
 
         sampler = gl.createSampler();
-        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glGenSamplers(1, &sampler)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glCreateSampler()');
         DE_ASSERT(sampler != -1);
 
         gl.bindSampler(0, sampler);
@@ -199,7 +199,7 @@ define([
         gl.readPixels(x, y, sampRes.m_width, sampRes.m_height, sampResTransferFormat.format, sampResTransferFormat.dataType, samplerResult.m_pixels);
 
         // Render without sampler
-        //gl.bindSampler(0, 0);
+        gl.bindSampler(0, null);
         gl.deleteSampler(sampler);
         gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindSampler(0, 0)');
 
@@ -208,10 +208,10 @@ define([
         var texResTransferFormat = gluTextureUtil.getTransferFormat(texRes.getFormat());
         gl.readPixels(x, y, texRes.m_width, texRes.m_height, texResTransferFormat.format, texResTransferFormat.dataType, textureResult.m_pixels);
 
-        //gl.deleteSampler(sampler);
-        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glDeleteSamplers(1, &sampler)');
+        gl.deleteSampler(sampler);
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glDeleteSampler()');
         gl.deleteTexture(texture);
-        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glDeleteTextures(1, &texture)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glDeleteTexture()');
     };
 
     /**
@@ -364,10 +364,10 @@ define([
 
     /**
      * @private
-     * @return {number}
+     * @return {WebGLTexture}
      */
     TextureSamplerTest.createTexture2D = function() {
-        /** @type {WebGLTexture} */ var texture = -1;
+        /** @type {WebGLTexture} */ var texture = null;
         /** @type {tcuTexture.Texture2D} */ var refTexture = new tcuTexture.Texture2D(
                                                                 new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA,
                                                                                              tcuTexture.ChannelType.UNORM_INT8),
@@ -378,7 +378,7 @@ define([
         tcuTextureUtil.fillWithComponentGradients(refTexture.getLevel(0), [0.0, 0.0, 0.0, 0.0], [1.0, 1.0, 1.0, 1.0]);
 
         texture = gl.createTexture();
-        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glGenTextures(1, &texture)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'gl.CreateTexture()');
 
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(GL_TEXTURE_2D, texture)');
@@ -412,7 +412,7 @@ define([
         tcuTextureUtil.fillWithComponentGradients(refTexture.getLevel(0), [0.0, 0.0, 0.0, 0.0], [1.0, 1.0, 1.0, 1.0]);
 
         texture = gl.createTexture();
-        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glGenTextures(1, &texture)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glCreateTexture()');
 
         gl.bindTexture(gl.TEXTURE_3D, texture);
         gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(GL_TEXTURE_3D, texture)');
@@ -492,7 +492,6 @@ define([
 
             default:
                 DE_ASSERT(false);
-                return -1;
         }
     };
 
@@ -754,7 +753,7 @@ define([
         gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glViewport(x, y, VIEWPORT_WIDTH, VIEWPORT_HEIGHT)');
 
         sampler = gl.createSampler();
-        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glGenSamplers(1, &sampler)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glCreateSampler()');
         DE_ASSERT(sampler != -1);
 
         gl.bindSampler(0, sampler);
@@ -790,9 +789,9 @@ define([
         var sampResTransferFormat = gluTextureUtil.getTransferFormat(sampRes.getFormat());
         gl.readPixels(x, y, sampRes.m_width, sampRes.m_height, sampResTransferFormat.format, sampResTransferFormat.dataType, samplerResult.m_pixels);
 
-        gl.bindSampler(0, 0);
+        gl.bindSampler(0, null);
         gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindSampler(0, 0)');
-        gl.bindSampler(1, 0);
+        gl.bindSampler(1, null);
         gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindSampler(1, 0)');
 
         this.render();
@@ -811,11 +810,11 @@ define([
         gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindTexture(m_target, 0)');
 
         gl.deleteSampler(sampler);
-        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glDeleteSamplers(1, &sampler)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'gldeleteSampler()');
         gl.deleteTexture(texture1);
-        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glDeleteTextures(1, &texture1)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'gldeleteTexture()');
         gl.deleteTexture(texture2);
-        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glDeleteTextures(1, &texture2)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'gldeleteTexture()');
     };
 
     MultiTextureSamplerTest.prototype.render = function() {
@@ -988,7 +987,7 @@ define([
         refTexture.allocLevel(0);
 
         texture = gl.createTexture();
-        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glGenTextures(1, &texture)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glCreateTexture()');
 
         switch (id) {
             case 0:
@@ -1036,7 +1035,7 @@ define([
         refTexture.allocLevel(0);
 
         texture = gl.createTexture();
-        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glGenTextures(1, &texture)');
+        gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glCreateTexture()');
 
         switch (id) {
             case 0:
