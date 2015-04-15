@@ -790,6 +790,9 @@ return {
 
 }();
 
+/**
+ * @constructor
+ */
 var CompressedTexture = function(format, width, height, depth) {
     this.setStorage(format, width, height, depth);
 };

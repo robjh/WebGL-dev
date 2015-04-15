@@ -259,6 +259,9 @@ var containerTypes = {
     ATTACHABLE_END: 5 + 1 // PROGRAM_SEPARABLE + 1
 };
 
+/**
+ * @constructor
+ */
 var AttribLocationBinding = function(name, location) {
     this.name = name;
     this.location = location;
@@ -268,6 +271,9 @@ var AttribLocationBinding = function(name, location) {
     };
 };
 
+/**
+ * @constructor
+ */
 var TransformFeedbackMode = function(mode) {
     this.mode = mode;
 
@@ -276,6 +282,9 @@ var TransformFeedbackMode = function(mode) {
     };
 };
 
+/**
+ * @constructor
+ */
 var TransformFeedbackVarying = function(name) {
     this.name = name;
 
@@ -284,6 +293,9 @@ var TransformFeedbackVarying = function(name) {
     };
 };
 
+/**
+ * @constructor
+ */
 var TransformFeedbackVaryings = function(array) {
     this.array = array;
 
@@ -292,6 +304,9 @@ var TransformFeedbackVaryings = function(array) {
     };
 };
 
+/**
+ * @constructor
+ */
 var ProgramSeparable = function(separable) {
     this.separable = separable;
 
@@ -300,6 +315,9 @@ var ProgramSeparable = function(separable) {
     };
 };
 
+/**
+ * @constructor
+ */
 var VertexSource = function(str) {
     this.shaderType = shaderType.VERTEX;
     this.source = str;
@@ -309,6 +327,9 @@ var VertexSource = function(str) {
     };
 };
 
+/**
+ * @constructor
+ */
 var FragmentSource = function(str) {
     this.shaderType = shaderType.FRAGMENT;
     this.source = str;

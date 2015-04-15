@@ -27,7 +27,7 @@ var DE_ASSERT = function(x) {
 };
 var DE_FALSE = false;
 
-/**--------------------------------------------------------------------*//*!
+/**
  * \brief RGBA8888 surface
  *
  * Surface provides basic pixel storage functionality. Only single format
@@ -36,7 +36,7 @@ var DE_FALSE = false;
  * PixelBufferAccess (see tcuTexture.h) provides much more flexible API
  * for handling various pixel formats. This is mainly a convinience class.
  * @constructor
- *//*--------------------------------------------------------------------*/
+ */
 var Surface = function(width, height) {
     this.m_width = width;
     this.m_height = height;
@@ -45,6 +45,7 @@ var Surface = function(width, height) {
         this.m_pixels = new Uint8Array(this.m_data);
     }
 };
+
 
 Surface.prototype.setSize = function(width, height) {
     /* TODO: Duplicated code from constructor */

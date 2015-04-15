@@ -31,7 +31,7 @@ var linearInterpolate = function(t, minVal, maxVal)
 };
 
 /**
- * @enum Clear
+ * @enum 
  */
 var Clear = {
     OPTIMIZE_THRESHOLD: 128,

@@ -93,8 +93,8 @@ var dePop32 = function(a) {
     return t;
 };
 
-var clamp = function(val, min, max) {
-    return Math.max(min, Math.min(val, max));
+var clamp = function(val, minParm, maxParm) {
+    return Math.max(minParm, Math.min(val, maxParm));
 };
 
 var imod = function(a, b) {
@@ -391,16 +391,16 @@ var doNativeBinaryOp = function(valueA, valueB, operation) {
  * If the operation is safe to perform in a native way, it will do that.
  * @param {number} valueA First operand
  * @param {number} valueB Second operand
- * @param {BinaryOp} binaryOp The desired operation to perform
+ * @param {BinaryOp} binaryOpParm The desired operation to perform
  * @return {number}
  */
-var binaryOp = function(valueA, valueB, binaryOp) {
+var binaryOp = function(valueA, valueB, binaryOpParm) {
     /** @type {number} */ var valueABitSize = Math.floor(Math.log2(valueA) + 1);
     /** @type {number} */ var valueBBitSize = Math.floor(Math.log2(valueB) + 1);
     /** @type {number} */ var bitsSize = Math.max(valueABitSize, valueBBitSize);
 
     if (bitsSize <= 32)
-        return doNativeBinaryOp(valueA, valueB, binaryOp);
+        return doNativeBinaryOp(valueA, valueB, binaryOpParm);
 
     /** @type {number} */ var valueAByteSize = Math.floor(valueABitSize / 8) + ((valueABitSize % 8) > 0 ? 1 : 0);
     /** @type {number} */ var valueBByteSize = Math.floor(valueBBitSize / 8) + ((valueBBitSize % 8) > 0 ? 1 : 0);
@@ -423,7 +423,7 @@ var binaryOp = function(valueA, valueB, binaryOp) {
 
     for (var byteNdx = 0; byteNdx < minLength; byteNdx++)
     {
-        outArray[byteNdx] = doNativeBinaryOp(inArrayA[byteNdx], inArrayB[byteNdx], binaryOp);
+        outArray[byteNdx] = doNativeBinaryOp(inArrayA[byteNdx], inArrayB[byteNdx], binaryOpParm);
     }
 
     while (byteNdx < byteSize)

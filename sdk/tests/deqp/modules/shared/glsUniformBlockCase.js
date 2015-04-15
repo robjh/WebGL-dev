@@ -96,7 +96,7 @@ BlockPointers.prototype.resize = function(newsize) {
  * @param {Array} array Any array
  * @param {Object} object Any object
  */
-var deUtil.dePushUniqueToArray = function(array, object) {
+var dePushUniqueToArray = function(array, object) {
     //Simplest implementation
     for (var i = 0; i < array.length; i++)
         if (object === array[i])

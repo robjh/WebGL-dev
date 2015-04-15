@@ -40,8 +40,8 @@ var VertexArrayBinding = function(type, location, components, elements, data) {
 
 /**
  * Description of a vertex array binding
- * @param {BindingPoint} bindingPoint
- * @param {VertexArrayPointer} vertexArrayPointer
+ * @param {BindingPoint} binding
+ * @param {VertexArrayPointer} pointer
  * @return {VertexArrayBinding}
  */
 function vabFromBindingPointAndArrayPointer(binding, pointer) {
@@ -254,6 +254,7 @@ var patches = function(indices) {
  * Creates primitive list for Triangles or Patches, depending on type
  * @param {primitiveType} type primitiveType
  * @param {number} indices
+ * @constructor
  */
 var PrimitiveList = function(type, indices) {
     this.type = type;
@@ -296,6 +297,10 @@ var vertexBuffer = function(gl, vertexArray) {
     return buffer;
 };
 
+/**
+ * @param {Array.<number>} rgba
+ * @constructor
+ */
 var Pixel = function(rgba) {
     this.rgba = rgba;
 };

@@ -23,7 +23,7 @@ define([
     'framework/delibs/debase/deMath',
     'framework/common/tcuSurface',
     'framework/common/tcuTexture',
-    '/framework/referencerenderer/rrRenderer',
+    'framework/referencerenderer/rrRenderer',
     'framework/opengl/simplereference/sglrReferenceContext',
     'framework/common/tcuPixelFormat',
     'framework/common/tcuImageCompare',
