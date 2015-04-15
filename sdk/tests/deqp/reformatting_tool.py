@@ -1,4 +1,4 @@
-
+#!python
 import os.path
 import sys
 import re
@@ -6,10 +6,27 @@ import string
 import getopt
 
 #format of the dictionary regex:replacement
-rules = {
-    '^(\t)+': ("    ", 0),
-    '(\s*=\s*)': (" = ", 0),
-    }
+rules = [
+    {
+        'pattern': '(\t)',
+        'repl': '    ',
+        'count': 0,
+        'flags': re.MULTILINE
+    },
+    {
+        'pattern': '(function[ \t]+\()',
+        'repl': 'function(',
+        'count': 0,
+        'flags': re.MULTILINE
+    },
+    {
+        'pattern': '([ \t]+$)',
+        'repl': '',
+        'count': 0,
+        'flags': re.MULTILINE
+    },
+]
+
 
 def main(argv):
     try:
@@ -28,7 +45,8 @@ def main(argv):
     
 def analyze_sigle_file(dire):
     file_content = read_file(dire)
-    new_file = analize_string_content(file_content)
+    new_file = re_analize_string_content(file_content)
+    write_file(dire, new_file)
 
 
 def analyze_directory(dire):
@@ -37,6 +55,7 @@ def analyze_directory(dire):
             if file.endswith(".js"):
                 file_content = read_file(os.path.join(root, file))
                 new_file = analize_string_content(file_content)
+                write_file(os.path.join(root, file), new_file)
 
 def analize_string_content(data):
     for pattern in rules.keys():
@@ -46,7 +65,13 @@ def analize_string_content(data):
             if rules[pattern][1] > 0:
                 data = string.replace(data, m.group(1), rules[pattern][0], rules[pattern][1])
             else:
+                print pattern + " - " + m.group(1)
                 data = string.replace(data, m.group(1), rules[pattern][0])
+    return data
+
+def re_analize_string_content(data):
+    for rule in rules:
+        data = re.sub(rule['pattern'], rule['repl'], data, rule['count'], rule['flags'])
     return data
 
 def read_file(file_path):
@@ -54,7 +79,11 @@ def read_file(file_path):
     if not file_exists(file_path):
         sys.exit(2)
 
-    lines = open(file_path).read()
+    fo = open(file_path)
+
+    lines = fo.read()
+
+    fo.close()
 
     return lines
 
@@ -64,6 +93,9 @@ def write_file(file_path, content):
         sys.exit(2)
 
     #overwrite the file
+    fo = open(file_path, 'w')
+    fo.write(content)
+    fo.close()
 
 
 def file_exists(file_path):
