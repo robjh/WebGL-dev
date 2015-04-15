@@ -2941,6 +2941,271 @@ ReferenceContext.prototype.blitFramebuffer = function(srcX0, srcY0, srcX1, srcY1
     }
 };
 
+var mapInternalFormat = function(internalFormat) {
+    switch (internalFormat) {
+        case GL_ALPHA:              return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.A,      tcuTexture.ChannelType.UNORM_INT8);
+        case GL_LUMINANCE:          return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.L,      tcuTexture.ChannelType.UNORM_INT8);
+        case GL_LUMINANCE_ALPHA:    return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.LA,     tcuTexture.ChannelType.UNORM_INT8);
+        case GL_RGB:                return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGB,    tcuTexture.ChannelType.UNORM_INT8);
+        case GL_RGBA:               return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA,   tcuTexture.ChannelType.UNORM_INT8);
+
+        default:
+            return gluTextureUtil.mapGLInternalFormat(internalFormat);
+    }
+};
+
+ReferenceContext.prototype.texImage2D = function(target, level, internalFormat, width, height, border, format, type, pixels) {
+    this.texImage3D(target, level, internalFormat, width, height, 1, border, format, type, data);
+};
+
+ReferenceContext.prototype.texImage3D = function(target, level, internalFormat, width, height, depth, border, format, type, pixels) {
+    var        unit                    = this.m_textureUnits[this.m_activeTexture];
+    var data = null;
+    var offset = 0;
+    if (this.m_pixelUnpackBufferBinding) {
+        if (this.condtionalSetError(typeof pixels !== 'number', gl.INVALID_VALUE))
+            return;
+        data = this.m_pixelUnpackBufferBinding.getData();
+        offset = pixels;
+    } else {
+        if (pixels instanceof ArrayBuffer) {
+            data = pixels;
+            offset = 0;
+        } else {
+            data = pixels.buffer;
+            offset = pixels.byteOffset;
+        }
+    }
+    var          isDstFloatDepthFormat   = (internalFormat == GL_DEPTH_COMPONENT32F || internalFormat == GL_DEPTH32F_STENCIL8); // depth components are limited to [0,1] range
+
+    if (this.condtionalSetError(border != 0, GL_INVALID_VALUE))
+        return;
+    if (this.condtionalSetError(width < 0 || height < 0 || depth < 0 || level < 0, GL_INVALID_VALUE))
+        return;
+
+    // Map storage format.
+    var storageFmt = mapInternalFormat(internalFormat);
+    if (this.condtionalSetError(!storageFmt, GL_INVALID_ENUM))
+        return;
+
+    // Map transfer format.
+    transferFmt = gluTextureUtil.mapGLTransferFormat(format, type);
+    if (this.condtionalSetError(!transferFmt, GL_INVALID_ENUM))
+        return;
+
+    if (target == GL_TEXTURE_2D) {
+        // Validate size and level.
+        if (this.condtionalSetError(width > this.m_limits.maxTexture2DSize || height > this.m_limits.maxTexture2DSize || depth != 1, GL_INVALID_VALUE))
+            return;
+        if (this.condtionalSetError(level > Math.log2(this.m_limits.maxTexture2DSize), GL_INVALID_VALUE))
+            return;
+
+        var texture = unit.tex2DBinding ? unit.tex2DBinding : unit.default2DTex;
+
+        if (texture.isImmutable()) {
+            if (this.condtionalSetError(!texture.hasLevel(level), GL_INVALID_OPERATION))
+                return;
+
+            var texLevel = texture.getLevel(level);
+            var dst = newFromTextureLevel(texture.getLevel(level));
+            if (this.condtionalSetError(storageFmt  != dst.getFormat()  ||
+                        width       != dst.getWidth()   ||
+                        height      != dst.getHeight(), GL_INVALID_OPERATION))
+                return;
+        }
+        else
+            texture.allocLevel(level, storageFmt, width, height);
+
+        if (data)
+        {
+            var  src     = new tcuTexture.PixelBufferAccess({
+                format: transferFmt,
+                width: width,
+                height: height,
+                data: data,
+                offset: offset});
+            var dst = newFromTextureLevel(texture.getLevel(level));
+
+            if (isDstFloatDepthFormat)
+                depthValueFloatClampCopy(dst, src);
+            else
+                tcuTextureUtil.copy(dst, src);
+        }
+        else
+        {
+            // No data supplied, clear to black.
+            var dst = newFromTextureLevel(texture.getLevel(level));
+            dst.clear([0.0, 0.0, 0.0, 1.0]);
+        }
+    }
+    // else if (target == GL_TEXTURE_CUBE_MAP_NEGATIVE_X ||
+    //          target == GL_TEXTURE_CUBE_MAP_POSITIVE_X ||
+    //          target == GL_TEXTURE_CUBE_MAP_NEGATIVE_Y ||
+    //          target == GL_TEXTURE_CUBE_MAP_POSITIVE_Y ||
+    //          target == GL_TEXTURE_CUBE_MAP_NEGATIVE_Z ||
+    //          target == GL_TEXTURE_CUBE_MAP_POSITIVE_Z)
+    // {
+    //     // Validate size and level.
+    //     RC_IF_ERROR(width != height || width > m_limits.maxTextureCubeSize || depth != 1, GL_INVALID_VALUE, RC_RET_VOID);
+    //     RC_IF_ERROR(level > deLog2Floor32(m_limits.maxTextureCubeSize), GL_INVALID_VALUE, RC_RET_VOID);
+
+    //     TextureCube*    texture = unit.texCubeBinding ? unit.texCubeBinding : &unit.defaultCubeTex;
+    //     tcu::CubeFace   face    = mapGLCubeFace(target);
+
+    //     if (texture->isImmutable())
+    //     {
+    //         RC_IF_ERROR(!texture->hasFace(level, face), GL_INVALID_OPERATION, RC_RET_VOID);
+
+    //         ConstPixelBufferAccess dst(texture->getFace(level, face));
+    //         RC_IF_ERROR(storageFmt  != dst.getFormat()  ||
+    //                     width       != dst.getWidth()   ||
+    //                     height      != dst.getHeight(), GL_INVALID_OPERATION, RC_RET_VOID);
+    //     }
+    //     else
+    //         texture->allocFace(level, face, storageFmt, width, height);
+
+    //     if (unpackPtr)
+    //     {
+    //         ConstPixelBufferAccess  src     = getUnpack2DAccess(transferFmt, width, height, unpackPtr);
+    //         PixelBufferAccess       dst     (texture->getFace(level, face));
+
+    //         if (isDstFloatDepthFormat)
+    //             depthValueFloatClampCopy(dst, src);
+    //         else
+    //             tcu::copy(dst, src);
+    //     }
+    //     else
+    //     {
+    //         // No data supplied, clear to black.
+    //         PixelBufferAccess dst = texture->getFace(level, face);
+    //         tcu::clear(dst, Vec4(0.0f, 0.0f, 0.0f, 1.0f));
+    //     }
+    // }
+    // else if (target == GL_TEXTURE_2D_ARRAY)
+    // {
+    //     // Validate size and level.
+    //     RC_IF_ERROR(width   > m_limits.maxTexture2DSize ||
+    //                 height  > m_limits.maxTexture2DSize ||
+    //                 depth   > m_limits.maxTexture2DArrayLayers, GL_INVALID_VALUE, RC_RET_VOID);
+    //     RC_IF_ERROR(level > deLog2Floor32(m_limits.maxTexture2DSize), GL_INVALID_VALUE, RC_RET_VOID);
+
+    //     Texture2DArray* texture = unit.tex2DArrayBinding ? unit.tex2DArrayBinding : &unit.default2DArrayTex;
+
+    //     if (texture->isImmutable())
+    //     {
+    //         RC_IF_ERROR(!texture->hasLevel(level), GL_INVALID_OPERATION, RC_RET_VOID);
+
+    //         ConstPixelBufferAccess dst(texture->getLevel(level));
+    //         RC_IF_ERROR(storageFmt  != dst.getFormat()  ||
+    //                     width       != dst.getWidth()   ||
+    //                     height      != dst.getHeight()  ||
+    //                     depth       != dst.getDepth(), GL_INVALID_OPERATION, RC_RET_VOID);
+    //     }
+    //     else
+    //         texture->allocLevel(level, storageFmt, width, height, depth);
+
+    //     if (unpackPtr)
+    //     {
+    //         ConstPixelBufferAccess  src     = getUnpack3DAccess(transferFmt, width, height, depth, unpackPtr);
+    //         PixelBufferAccess       dst     (texture->getLevel(level));
+
+    //         if (isDstFloatDepthFormat)
+    //             depthValueFloatClampCopy(dst, src);
+    //         else
+    //             tcu::copy(dst, src);
+    //     }
+    //     else
+    //     {
+    //         // No data supplied, clear to black.
+    //         PixelBufferAccess dst = texture->getLevel(level);
+    //         tcu::clear(dst, Vec4(0.0f, 0.0f, 0.0f, 1.0f));
+    //     }
+    // }
+    // else if (target == GL_TEXTURE_3D)
+    // {
+    //     // Validate size and level.
+    //     RC_IF_ERROR(width   > m_limits.maxTexture3DSize ||
+    //                 height  > m_limits.maxTexture3DSize ||
+    //                 depth   > m_limits.maxTexture3DSize, GL_INVALID_VALUE, RC_RET_VOID);
+    //     RC_IF_ERROR(level > deLog2Floor32(m_limits.maxTexture3DSize), GL_INVALID_VALUE, RC_RET_VOID);
+
+    //     Texture3D* texture = unit.tex3DBinding ? unit.tex3DBinding : &unit.default3DTex;
+
+    //     if (texture->isImmutable())
+    //     {
+    //         RC_IF_ERROR(!texture->hasLevel(level), GL_INVALID_OPERATION, RC_RET_VOID);
+
+    //         ConstPixelBufferAccess dst(texture->getLevel(level));
+    //         RC_IF_ERROR(storageFmt  != dst.getFormat()  ||
+    //                     width       != dst.getWidth()   ||
+    //                     height      != dst.getHeight()  ||
+    //                     depth       != dst.getDepth(), GL_INVALID_OPERATION, RC_RET_VOID);
+    //     }
+    //     else
+    //         texture->allocLevel(level, storageFmt, width, height, depth);
+
+    //     if (unpackPtr)
+    //     {
+    //         ConstPixelBufferAccess  src     = getUnpack3DAccess(transferFmt, width, height, depth, unpackPtr);
+    //         PixelBufferAccess       dst     (texture->getLevel(level));
+
+    //         if (isDstFloatDepthFormat)
+    //             depthValueFloatClampCopy(dst, src);
+    //         else
+    //             tcu::copy(dst, src);
+    //     }
+    //     else
+    //     {
+    //         // No data supplied, clear to black.
+    //         PixelBufferAccess dst = texture->getLevel(level);
+    //         tcu::clear(dst, Vec4(0.0f, 0.0f, 0.0f, 1.0f));
+    //     }
+    // }
+    // else if (target == GL_TEXTURE_CUBE_MAP_ARRAY)
+    // {
+    //     // Validate size and level.
+    //     RC_IF_ERROR(width       != height                       ||
+    //                 width        > m_limits.maxTexture2DSize    ||
+    //                 depth % 6   != 0                            ||
+    //                 depth        > m_limits.maxTexture2DArrayLayers, GL_INVALID_VALUE, RC_RET_VOID);
+    //     RC_IF_ERROR(level > deLog2Floor32(m_limits.maxTexture2DSize), GL_INVALID_VALUE, RC_RET_VOID);
+
+    //     TextureCubeArray* texture = unit.texCubeArrayBinding ? unit.texCubeArrayBinding : &unit.defaultCubeArrayTex;
+
+    //     if (texture->isImmutable())
+    //     {
+    //         RC_IF_ERROR(!texture->hasLevel(level), GL_INVALID_OPERATION, RC_RET_VOID);
+
+    //         ConstPixelBufferAccess dst(texture->getLevel(level));
+    //         RC_IF_ERROR(storageFmt  != dst.getFormat()  ||
+    //                     width       != dst.getWidth()   ||
+    //                     height      != dst.getHeight()  ||
+    //                     depth       != dst.getDepth(), GL_INVALID_OPERATION, RC_RET_VOID);
+    //     }
+    //     else
+    //         texture->allocLevel(level, storageFmt, width, height, depth);
+
+    //     if (unpackPtr)
+    //     {
+    //         ConstPixelBufferAccess  src     = getUnpack3DAccess(transferFmt, width, height, depth, unpackPtr);
+    //         PixelBufferAccess       dst     (texture->getLevel(level));
+
+    //         if (isDstFloatDepthFormat)
+    //             depthValueFloatClampCopy(dst, src);
+    //         else
+    //             tcu::copy(dst, src);
+    //     }
+    //     else
+    //     {
+    //         // No data supplied, clear to black.
+    //         PixelBufferAccess dst = texture->getLevel(level);
+    //         tcu::clear(dst, Vec4(0.0f, 0.0f, 0.0f, 1.0f));
+    //     }
+    // }
+    else
+        this.setError(GL_INVALID_ENUM);
+};
+
 return {
     ReferenceContext: ReferenceContext,
     ReferenceContextBuffers: ReferenceContextBuffers,
