@@ -43,7 +43,7 @@ define([
      * @param {boolean} useDepth
      */
     var BasicFboStencilCase = function(name, desc, format, size, useDepth) {
-        fboTestCase.FboTestCase.call(name, desc);
+        fboTestCase.FboTestCase.call(this, name, desc);
         /** @type {number} */ this.m_format = format;
         /** @type {Array<number>} */ this.m_size = size;
         /** @type {boolean} */ this.m_useDepth = useDepth;
@@ -64,8 +64,8 @@ define([
 
         /** @type {fboTestUtil.GradientShader} */ var gradShader = new fboTestUtil.GradientShader(gluShaderUtil.DataType.FLOAT_VEC4);
         /** @type {fboTestUtil.FlatColorShader} */ var flatShader = new fboTestUtil.FlatColorShader(gluShaderUtil.DataType.FLOAT_VEC4);
-        /** @type {number} */ var flatShaderID = getCurrentContext().createProgram(flatShader); // TODO: getCurrentContext
-        /** @type {number} */ var gradShaderID = getCurrentContext().createProgram(gradShader);
+        /** @type {number} */ var flatShaderID = this.getCurrentContext().createProgram(flatShader); // TODO: getCurrentContext
+        /** @type {number} */ var gradShaderID = this.getCurrentContext().createProgram(gradShader);
 
         /** @type {number} */ var fbo = 0;
         /** @type {number} */ var colorRbo = 0;
@@ -103,13 +103,13 @@ define([
         gl.stencilFunc(gl.ALWAYS, 0, 0xff);
         gl.stencilOp(gl.KEEP, gl.KEEP, gl.INCR);
 
-        flatShader.setColor(getCurrentContext(), flatShaderID, [1.0, 0.0, 0.0, 1.0]);
+        flatShader.setColor(this.getCurrentContext(), flatShaderID, [1.0, 0.0, 0.0, 1.0]);
         // TODO: drawQuad
-        //sglr::drawQuad(*getCurrentContext(), flatShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
+        //sglr::drawQuad(this.getCurrentContext(), flatShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
 
-        gradShader.setGradient(getCurrentContext(), gradShaderID, [0.0, 0.0, 0.0, 0.0], [1.0, 1.0, 1.0, 1.0]);
+        gradShader.setGradient(this.getCurrentContext(), gradShaderID, [0.0, 0.0, 0.0, 0.0], [1.0, 1.0, 1.0, 1.0]);
         // TODO: drawQuad
-        //sglr::drawQuad(*getCurrentContext(), gradShaderID, [-1.0, -1.0, -1.0], [1.0, 1.0, 1.0]);
+        //sglr::drawQuad(this.getCurrentContext(), gradShaderID, [-1.0, -1.0, -1.0], [1.0, 1.0, 1.0]);
 
         gl.disable(gl.DEPTH_TEST);
 
@@ -117,17 +117,17 @@ define([
         gl.stencilFunc(gl.EQUAL, this.m_useDepth ? 2 : 1, 0xff);
         gl.stencilOp(gl.DECR, gl.KEEP, gl.KEEP);
 
-        flatShader.setColor(getCurrentContext(), flatShaderID, [0.0, 1.0, 0.0, 1.0]);
+        flatShader.setColor(this.getCurrentContext(), flatShaderID, [0.0, 1.0, 0.0, 1.0]);
         // TODO: drawQuad
-        //sglr::drawQuad(*getCurrentContext(), flatShaderID, [-0.5, -0.5, 0.0], [0.5, 0.5, 0.0]);
+        //sglr::drawQuad(this.getCurrentContext(), flatShaderID, [-0.5, -0.5, 0.0], [0.5, 0.5, 0.0]);
 
         // Draw quad with stencil test where stencil > 1 or 2 depending on depth buffer
         gl.stencilFunc(gl.GREATER, this.m_useDepth ? 1 : 2, 0xff);
 
-        flatShader.setColor(getCurrentContext(), flatShaderID, [0.0, 0.0, 1.0, 1.0]);
+        flatShader.setColor(this.getCurrentContext(), flatShaderID, [0.0, 0.0, 1.0, 1.0]);
 
 
-        //sglr::drawQuad(*getCurrentContext(), flatShaderID, Vec3(-1.0f, -1.0f, 0.0f), Vec3(+1.0f, +1.0f, 0.0f));
+        //sglr::drawQuad(this.getCurrentContext(), flatShaderID, Vec3(-1.0f, -1.0f, 0.0f), Vec3(+1.0f, +1.0f, 0.0f));
 
         this.readPixels(dst, 0, 0, this.m_size[0], this.m_size[1], gluTextureUtil.mapGLInternalFormat(colorFormat), [1.0, 1.0, 1.0, 1.0], [0.0, 0.0, 0.0, 0.0]);
     };
@@ -140,7 +140,7 @@ define([
      * @param {number} useDepth
      */
     var DepthStencilAttachCase = function(name, desc, attachDepth, attachStencil) {
-        fboTestCase.FboTestCase.call(name, desc);
+        fboTestCase.FboTestCase.call(this, name, desc);
         /** @type {number} */ this.m_attachDepth = attachDepth;
         /** @type {number} */ this.m_attachStencil = attachStencil;
         DE_ASSERT(this.m_attachDepth == gl.DEPTH_ATTACHMENT || this.m_attachDepth == gl.DEPTH_STENCIL_ATTACHMENT || this.m_attachDepth == gl.NONE);
@@ -164,8 +164,8 @@ define([
 
         /** @type {fboTestUtil.GradientShader} */ var gradShader = fboTestUtil.GradientShader(gluShaderUtil.DataType.FLOAT_VEC4);
         /** @type {fboTestUtil.FlatColorShader} */ var flatShader = fboTestUtil.FlatColorShader(gluShaderUtil.DataType.FLOAT_VEC4);
-        /** @type {number} */ var flatShaderID = getCurrentContext().createProgram(flatShader); // TODO: getCurrentContext
-        /** @type {number} */ var gradShaderID = getCurrentContext().createProgram(gradShader);
+        /** @type {number} */ var flatShaderID = this.getCurrentContext().createProgram(flatShader); // TODO: getCurrentContext
+        /** @type {number} */ var gradShaderID = this.getCurrentContext().createProgram(gradShader);
 
         /** @type {number} */ var fbo = 0;
         /** @type {number} */ var colorRbo = 0;
@@ -206,13 +206,13 @@ define([
         gl.stencilFunc(gl.ALWAYS, 0, 0xff);
         gl.stencilOp(gl.KEEP, gl.KEEP, gl.INCR);
 
-        flatShader.setColor(getCurrentContext(), flatShaderID, [1.0, 0.0, 0.0, 1.0]);
+        flatShader.setColor(this.getCurrentContext(), flatShaderID, [1.0, 0.0, 0.0, 1.0]);
         // TODO: implement drawQuad
-        //sglr::drawQuad(getCurrentContext(), flatShaderID, [-1.0, -1.0,  0.0], [1.0, 1.0, 0.0]);
+        //sglr::drawQuad(this.getCurrentContext(), flatShaderID, [-1.0, -1.0,  0.0], [1.0, 1.0, 0.0]);
 
-        gradShader.setGradient(getCurrentContext(), gradShaderID, [0.0, 0.0, 0.0, 0.0], [1.0, 1.0, 1.0, 1.0]);
+        gradShader.setGradient(this.getCurrentContext(), gradShaderID, [0.0, 0.0, 0.0, 0.0], [1.0, 1.0, 1.0, 1.0]);
         // TODO: implement drawQuad
-        //sglr::drawQuad(getCurrentContext(), gradShaderID, [-1.0, -1.0, -1.0], [1.0, 1.0, 1.0]);
+        //sglr::drawQuad(this.getCurrentContext(), gradShaderID, [-1.0, -1.0, -1.0], [1.0, 1.0, 1.0]);
 
         gl.disable(gl.DEPTH_TEST);
 
@@ -220,16 +220,16 @@ define([
         gl.stencilFunc(gl.EQUAL, hasDepth ? 2 : 1, 0xff);
         gl.stencilOp(gl.DECR, gl.KEEP, gl.KEEP);
 
-        flatShader.setColor(getCurrentContext(), flatShaderID, [0.0, 1.0, 0.0, 1.0]);
+        flatShader.setColor(this.getCurrentContext(), flatShaderID, [0.0, 1.0, 0.0, 1.0]);
         // TODO: implement drawQuad
-        //sglr::drawQuad(getCurrentContext(), flatShaderID, [-0.5, -0.5, 0.0], [0.5, 0.5, 0.0]);
+        //sglr::drawQuad(this.getCurrentContext(), flatShaderID, [-0.5, -0.5, 0.0], [0.5, 0.5, 0.0]);
 
         // Draw quad with stencil test where stencil > 1 or 2 depending on depth buffer
         gl.stencilFunc(gl.GREATER, hasDepth ? 1 : 2, 0xff);
 
-        flatShader.setColor(getCurrentContext(), flatShaderID, [0.0, 0.0, 1.0, 1.0]);
+        flatShader.setColor(this.getCurrentContext(), flatShaderID, [0.0, 0.0, 1.0, 1.0]);
         // TODO: implement drawQuad
-        //sglr::drawQuad(getCurrentContext(), flatShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
+        //sglr::drawQuad(this.getCurrentContext(), flatShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
 
         this.readPixels(dst, 0, 0, width, height, gluTextureUtil.mapGLInternalFormat(colorFormat), [1.0, 1.0, 1.0, 1.0], [0.0, 0.0, 0.0, 0.0]);
     };
@@ -238,7 +238,7 @@ define([
      * @constructor
      */
     var FboStencilTests = function() {
-        tcuTestCase.DeqpTest.call('stencil', 'FBO Stencilbuffer tests');
+        tcuTestCase.DeqpTest.call(this, 'stencil', 'FBO Stencilbuffer tests');
     };
 
     FboStencilTests.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
