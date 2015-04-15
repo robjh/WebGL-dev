@@ -212,12 +212,12 @@ var ShaderProgram = function(gl, programSources) {
 
         for (var i = 0; i < programSources.sources.length; i++) {
         /** @type {Shader} */ var shader = new Shader(gl, programSources.sources[i].type);
-            console.log("Shader:\n" + programSources.sources[i].source);
+            console.log('Shader:\n' + programSources.sources[i].source);
             shader.setSources(programSources.sources[i].source);
             shader.compile();
             this.shaders.push(shader);
             this.shadersOK = this.shadersOK && shader.getCompileStatus();
-            console.log("Compile status: " + shader.getCompileStatus());
+            console.log('Compile status: ' + shader.getCompileStatus());
         }
 
         if (this.shadersOK) {

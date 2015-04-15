@@ -63,8 +63,8 @@ function vabFromBindingPointAndArrayPointer(binding, pointer) {
  * ! Lower named bindings to locations and eliminate bindings that are not used by program.
  * @param {WebGLRenderingContext} gl WebGL context
  * @param {number} program ID, ID of the shader program
- * @param {Array} inputArray, Array with the named binding locations
- * @param {Array} outputArray, Array with the lowered locations
+ * @param {Array} inputArray - Array with the named binding locations
+ * @param {Array} outputArray - Array with the lowered locations
  */
 var namedBindingsToProgramLocations = function(gl, program, inputArray, outputArray) {
     if (typeof outputArray === 'undefined')

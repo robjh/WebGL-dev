@@ -43,6 +43,7 @@ define(['framework/opengl/gluShaderUtil',
         tcuCompressedTexture) {
     'use strict';
 
+/** @type {WebGL2RenderingContext} */ var gl;
 var GLU_EXPECT_NO_ERROR = function(error, message) {
     assertMsgOptions(error === gl.NONE, message, false, true);
 };
@@ -802,12 +803,6 @@ CompressedCubeFormatCase.prototype.iterate = function() {
         return tcuTestCase.runner.IterateResult.STOP;
 };
 
-/*TODO: remove */
-if (!gl.R11F_G11F_B10F)
-    gl.R11F_G11F_B10F = 0x8C3A;
-if (!gl.RGB16F)
-    gl.RGB16F = 0x881A;
-
 var genTestCases = function() {
     var state = tcuTestCase.runner.getState();
     state.testCases = tcuTestCase.newTest(state.testName, 'Top level');
@@ -1138,7 +1133,8 @@ var genTestCases = function() {
 /**
  * Create and execute the test cases
  */
-var run = function() {
+var run = function(context) {
+	gl = context;
     try {
         genTestCases();
         tcuTestCase.runner.runCallback(tcuTestCase.runTestCases);

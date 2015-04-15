@@ -165,23 +165,23 @@ define([
 
                 case VarTypeComponent.s_Type.MATRIX_COLUMN:
                 case VarTypeComponent.s_Type.VECTOR_COMPONENT:
-                    str += "[" + iter.index + "]";
+                    str += '[' + iter.index + ']';
                     break;
 
                 case VarTypeComponent.s_Type.STRUCT_MEMBER:
                 {
                     var member = curType.getStruct().getMember(i);
-                    str += "." + member.getName();
+                    str += '.' + member.getName();
                     curType = member.getType();
                     break;
                 }
 
                 default:
-                   throw new Error("Unrecognized type:" + iter.type);
+                   throw new Error('Unrecognized type:' + iter.type);
             }
         }
 
-        return str;       
+        return str;
     };
 
     /** SubTypeAccess
@@ -356,10 +356,10 @@ define([
             }
         });
 
-        this.getType = (function () {
+        this.getType = (function() {
             return getVarType(m_type, m_path);
         });
-        this.getPath = (function () {
+        this.getPath = (function() {
             return m_path;
         });
 

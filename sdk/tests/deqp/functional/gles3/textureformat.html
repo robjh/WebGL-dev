@@ -23,11 +23,11 @@ requirejs.config({
     baseUrl: "../../"
     });
 var wtu = WebGLTestUtils;
-/** @type {WebGLRenderingContext} */ var gl = wtu.create3DContext('canvas', {preserveDrawingBuffer: true}, 2);
+/** @type {WebGL2RenderingContext} */ var gl = wtu.create3DContext('canvas', {preserveDrawingBuffer: true}, 2);
 
 requirejs(["functional/gles3/es3fTextureFormatTests"], function(es3fTextureFormatTests) {
     try{
-        es3fTextureFormatTests.run();
+        es3fTextureFormatTests.run(gl);
     }
     catch(err)
     {
