@@ -92,19 +92,6 @@ BlockPointers.prototype.resize = function(newsize) {
 };
 
 /**
- * Add a push_unique function to Array. Will insert only if there is no equal element.
- * @param {Array} array Any array
- * @param {Object} object Any object
- */
-var deUtil.dePushUniqueToArray = function(array, object) {
-    //Simplest implementation
-    for (var i = 0; i < array.length; i++)
-        if (object === array[i])
-            return undefined;
-    array.push(object);
-};
-
-/**
  * isSupportedGLSLVersion
  * @param {gluShaderUtil.GLSLVersion} version
  * @return {boolean}
