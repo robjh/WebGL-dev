@@ -1102,18 +1102,18 @@ var convertSat = function(deType, src) {
 var intToChannel = function(src, type) {
     var dst;
     switch (type) {
-        case ChannelType.SNORM_INT8:         dst = convertSat(deTypes.deInt8, src);              break;
-        case ChannelType.SNORM_INT16:        dst = convertSat(deTypes.deInt16, src);              break;
-        case ChannelType.UNORM_INT8:         dst = convertSat(deTypes.deUint8, src);              break;
-        case ChannelType.UNORM_INT16:        dst = convertSat(deTypes.deUint16, src);              break;
-        case ChannelType.SIGNED_INT8:        dst = convertSat(deTypes.deInt8, src);              break;
-        case ChannelType.SIGNED_INT16:       dst = convertSat(deTypes.deInt16, src);              break;
-        case ChannelType.SIGNED_INT32:       dst = convertSat(deTypes.deInt32, src);              break;
-        case ChannelType.UNSIGNED_INT8:      dst = convertSat(deTypes.deUint8, src);    break;
-        case ChannelType.UNSIGNED_INT16:     dst = convertSat(deTypes.deUint16, src);    break;
-        case ChannelType.UNSIGNED_INT32:     dst = convertSat(deTypes.deUint32, src);    break;
-        case ChannelType.HALF_FLOAT:         dst = tcuFloat.numberToHalfFloat(src);                break;
-        case ChannelType.FLOAT:              dst = src;                               break;
+        case ChannelType.SNORM_INT8: dst = convertSat(deTypes.deInt8, src); break;
+        case ChannelType.SNORM_INT16: dst = convertSat(deTypes.deInt16, src); break;
+        case ChannelType.UNORM_INT8: dst = convertSat(deTypes.deUint8, src); break;
+        case ChannelType.UNORM_INT16: dst = convertSat(deTypes.deUint16, src); break;
+        case ChannelType.SIGNED_INT8: dst = convertSat(deTypes.deInt8, src); break;
+        case ChannelType.SIGNED_INT16: dst = convertSat(deTypes.deInt16, src); break;
+        case ChannelType.SIGNED_INT32: dst = convertSat(deTypes.deInt32, src); break;
+        case ChannelType.UNSIGNED_INT8: dst = convertSat(deTypes.deUint8, src); break;
+        case ChannelType.UNSIGNED_INT16: dst = convertSat(deTypes.deUint16, src); break;
+        case ChannelType.UNSIGNED_INT32: dst = convertSat(deTypes.deUint32, src); break;
+        case ChannelType.HALF_FLOAT: dst = tcuFloat.numberToHalfFloat(src); break;
+        case ChannelType.FLOAT: dst = src; break;
         default:
             throw new Error('Unrecognized channel type: ' + type);
     }

@@ -758,10 +758,10 @@ var getGLCubeFace = function(face)
  * @return {DataType} GLSL 2D sampler type for format
  */
 var getSampler2DType = function(format) {
-    if (format.order ==  textureFormat.ChannelOrder.D || format.order ==  textureFormat.ChannelOrder.DS)
+    if (format.order == textureFormat.ChannelOrder.D || format.order == textureFormat.ChannelOrder.DS)
     return gluShaderUtil.DataType.SAMPLER_2D;
 
-    if (format.order ==  textureFormat.ChannelOrder.S)
+    if (format.order == textureFormat.ChannelOrder.S)
     return Object.keys(gluShaderUtil.DataType).length;
 
     switch (tcuTextureUtil.getTextureChannelClass(format.type))
