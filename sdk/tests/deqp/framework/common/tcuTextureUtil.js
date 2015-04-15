@@ -434,24 +434,6 @@ var getTextureFormatBitDepth = function(format) {
 
 };
 
-var linearChannelToSRGB = function(cl) {
-    if (cl <= 0)
-        return 0;
-    else if (cl < 0.0031308)
-        return 12.92 * cl;
-    else if (cl < 1.0)
-        return 1.055 * Math.pow(cl, 0.41666) - 0.055;
-    else
-        return 1.0;
-};
-
-var linearToSRGB = function(cl) {
-    return [linearChannelToSRGB(cl[0]),
-                linearChannelToSRGB(cl[1]),
-                linearChannelToSRGB(cl[2]),
-                cl[3]];
-};
-
 /** fillWithGrid
  * @const @param {tcuTexture.PixelBufferAccess} access
  * @param {number} cellSize
@@ -594,8 +576,49 @@ var getChannelMantissaBitDepth = function(channelType) {
     }
 };
 
+/**
+ * @param {tcuTexture.PixelBufferAccess} dst
+ * @param {tcuTexture.PixelBufferAccess} src
+ */
+var copy = function(dst, src) {
+    var width   = dst.getWidth();
+    var height  = dst.getHeight();
+    var depth   = dst.getDepth();
+
+    DE_ASSERT(src.getWidth() == width && src.getHeight() == height && src.getDepth() == depth);
+
+    if (src.getFormat() == dst.getFormat()) {
+        var srcData = src.getDataPtr();
+        var dstData = dst.getDataPtr();
+        
+        dstData.set(srcData);
+    } else {
+        var srcClass    = getTextureChannelClass(src.getFormat().type);
+        var dstClass    = getTextureChannelClass(dst.getFormat().type);
+        var                    srcIsInt    = srcClass == TextureChannelClass.SIGNED_INTEGER || srcClass == TextureChannelClass.UNSIGNED_INTEGER;
+        var                    dstIsInt    = dstClass == TextureChannelClass.SIGNED_INTEGER || dstClass == TextureChannelClass.UNSIGNED_INTEGER;
+
+        if (srcIsInt && dstIsInt)
+        {
+            for (var z = 0; z < depth; z++)
+            for (var y = 0; y < height; y++)
+            for (var x = 0; x < width; x++)
+                dst.setPixelInt(src.getPixelInt(x, y, z), x, y, z);
+        }
+        else
+        {
+            for (var z = 0; z < depth; z++)
+            for (var y = 0; y < height; y++)
+            for (var x = 0; x < width; x++)
+                dst.setPixel(src.getPixel(x, y, z), x, y, z);
+        }
+    }
+};
+
+
 
 return {
+    copy: copy,
     clear: clear,
     TextureChannelClass: TextureChannelClass,
     getTextureChannelClass: getTextureChannelClass,
