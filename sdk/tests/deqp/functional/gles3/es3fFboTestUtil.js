@@ -319,8 +319,8 @@ define(['framework/common/tcuTexture', 'framework/common/tcuTextureUtil', 'frame
 
         for (var ndx = 0; ndx < samplerTypes.length; ++ndx) {
             decl.pushUniform('u_sampler' + ndx, samplerTypes[ndx]);
-            decl.pushUniform('u_texScale' + ndx, gluShaderUtil.DataType.TYPE_FLOAT_VEC4);
-            decl.pushUniform('u_texBias' + ndx, gluShaderUtil.DataType.TYPE_FLOAT_VEC4);
+            decl.pushUniform('u_texScale' + ndx, gluShaderUtil.DataType.VEC4);
+            decl.pushUniform('u_texBias' + ndx, gluShaderUtil.DataType.VEC4);
         }
 
         return decl;
@@ -473,11 +473,11 @@ define(['framework/common/tcuTexture', 'framework/common/tcuTextureUtil', 'frame
                 /** @const {Array<number>} */ var icolor = castVectorSaturate(color, tcuTexture.deTypes.deInt32);
                 /** @const {Array<number>} */ var uicolor = castVectorSaturate(color, tcuTexture.deTypes.deUint32);
 
-                if (this.m_outputType == glu.TYPE_FLOAT_VEC4)
+                if (this.m_outputType == gluShaderUtil.DataType.FLOAT_VEC4)
                     rrShadingContext.writeFragmentOutput(context, packetNdx, fragNdx, 0, color);
-                else if (this.m_outputType == glu.TYPE_INT_VEC4)
+                else if (this.m_outputType == gluShaderUtil.DataType.INT_VEC4)
                     rrShadingContext.writeFragmentOutput(context, packetNdx, fragNdx, 0, icolor);
-                else if (this.m_outputType == glu.TYPE_UINT_VEC4)
+                else if (this.m_outputType == gluShaderUtil.DataType.UINT_VEC4)
                     rrShadingContext.writeFragmentOutput(context, packetNdx, fragNdx, 0, uicolor);
                 else
                     DE_ASSERT(false);
@@ -492,8 +492,14 @@ define(['framework/common/tcuTexture', 'framework/common/tcuTextureUtil', 'frame
      * @param {glu.DataType} outputType
      */
     var TextureCubeShader = function(samplerType, outputType) {
-        // TODO: implement
+        /** @type {sglrShaderProgram.ShaderProgramDeclaration} */
+        var decl = new sglrShaderProgram.ShaderProgramDeclaration();
+
+        sglrShaderProgram.ShaderProgram.call(this, decl);
     };
+
+    TextureCubeShader.prototype = Object.create(sglrShaderProgram.ShaderProgram.prototype);
+    TextureCubeShader.prototype.constructor = TextureCubeShader;
 
     TextureCubeShader.prototype.setFace = function() {
         // TODO: implement
@@ -522,8 +528,14 @@ define(['framework/common/tcuTexture', 'framework/common/tcuTextureUtil', 'frame
      * @param {glu.DataType} outputType
      */
     var Texture2DArrayShader = function(samplerType, outputType) {
-        // TODO: implement
+        /** @type {sglrShaderProgram.ShaderProgramDeclaration} */
+        var decl = new sglrShaderProgram.ShaderProgramDeclaration();
+
+        sglrShaderProgram.ShaderProgram.call(this, decl);
     };
+
+    Texture2DArrayShader.prototype = Object.create(sglrShaderProgram.ShaderProgram.prototype);
+    Texture2DArrayShader.prototype.constructor = Texture2DArrayShader;
 
     Texture2DArrayShader.prototype.setLayer = function() {
         // TODO: implement
@@ -552,8 +564,14 @@ define(['framework/common/tcuTexture', 'framework/common/tcuTextureUtil', 'frame
      * @param {glu.DataType} outputType
      */
     var Texture3DShader = function(samplerType, outputType) {
-        // TODO: implement
+        /** @type {sglrShaderProgram.ShaderProgramDeclaration} */
+        var decl = new sglrShaderProgram.ShaderProgramDeclaration();
+
+        sglrShaderProgram.ShaderProgram.call(this, decl);
     };
+
+    Texture3DShader.prototype = Object.create(sglrShaderProgram.ShaderProgram.prototype);
+    Texture3DShader.prototype.constructor = Texture3DShader;
 
     Texture3DShader.prototype.setDepth = function() {
         // TODO: implement
@@ -581,8 +599,49 @@ define(['framework/common/tcuTexture', 'framework/common/tcuTextureUtil', 'frame
      * @param {gluShaderUtil.DataType} samplerType
      */
     var DepthGradientShader = function(samplerType) {
-        // TODO: implement
+        /** @type {sglrShaderProgram.ShaderProgramDeclaration} */
+        var decl = new sglrShaderProgram.ShaderProgramDeclaration();
+        decl.pushVertexAttribute('a_position', rrGenericVector.GenericVecType.FLOAT);
+        decl.pushVertexAttribute('a_coord', rrGenericVector.GenericVecType.FLOAT);
+        decl.pushVertexToFragmentVarying(rrGenericVector.GenericVecType.FLOAT);
+        decl.pushFragmentOutput(mapDataTypeToGenericVecType(outputType));
+        decl.pushUniform('u_maxGradient', gluShaderUtil.DataType.FLOAT);
+        decl.pushUniform('u_minGradient', gluShaderUtil.DataType.FLOAT);
+        decl.pushUniform('u_color', gluShaderUtil.DataType.FLOAT_VEC4);
+        decl.pushVertexSource(
+                '#version 300 es\n' +
+                'in highp vec4 a_position;\n' +
+                'in highp vec4 a_coord;\n' +
+                'out highp vec4 v_coord;\n' +
+                'void main (void)\n' +
+                '{\n' +
+                '    gl_Position = a_position;\n' +
+                '    v_coord = a_coord;\n' +
+                '}\n');
+        decl.pushFragmentSource(
+                    '#version 300 es\n' +
+                    'in highp vec4 v_coord;\n' +
+                    'uniform highp float u_minGradient;\n' +
+                    'uniform highp float u_maxGradient;\n' +
+                    'uniform highp vec4 u_color;\n' +
+                    'layout(location = 0) out highp ' + gluShaderUtil.getDataTypeName(outputType) + ' o_color;\n' +
+                    'void main (void)\n' +
+                    '{\n' +
+                    '    highp float x = v_coord.x;\n' +
+                    '    highp float y = v_coord.y;\n' +
+                    '    highp float f0 = (x + y) * 0.5;\n' +
+                    '    gl_FragDepth = u_minGradient + (u_maxGradient-u_minGradient)*f0;\n' +
+                    '    o_color = ' + gluShaderUtil.getDataTypeName(outputType) + '(u_color);\n' +
+                    '}\n');
+        this.m_outputType = outputType;
+        sglrShaderProgram.ShaderProgram.call(this, decl);
+        /** @const {sglrShaderProgram.UniformSlot} */ this.u_minGradient = this.getUniformByName('u_minGradient');
+        /** @const {sglrShaderProgram.UniformSlot} */ this.u_maxGradient = this.getUniformByName('u_maxGradient');
+        /** @const {sglrShaderProgram.UniformSlot} */ this.u_color = this.getUniformByName('u_color');
     };
+
+    DepthGradientShader.prototype = Object.create(sglrShaderProgram.ShaderProgram.prototype);
+    DepthGradientShader.prototype.constructor = DepthGradientShader;
 
     DepthGradientShader.prototype.setUniforms = function() {
         // TODO: implement
@@ -783,6 +842,49 @@ define(['framework/common/tcuTexture', 'framework/common/tcuTextureUtil', 'frame
     };
 
     /**
+     * readPixels()
+     * @param {Context} ctx
+     * @param {tcuTexture.Texture} dst
+     * @param {number} x
+     * @param {number} y
+     * @param {number} width
+     * @param {number} height
+     * @param {tcuTexture.TextureFormat} format
+     * @param {Array<number>} scale
+     * @param {Array<number>} bias
+     */
+    var readPixels = function(ctx, dst, x, y, width, height, format, scale, bias) {
+        /** @type {tcuTexture.TextureFormat} */ var readFormat = getFramebufferReadFormat(format);
+        /** @type {gluTextureUtil.TransferFormat} */ var transferFmt = gluTextureUtil.getTransferFormat(readFormat);
+        /** @type {number} */ var alignment = 4; // \note GL_PACK_ALIGNMENT = 4 is assumed.
+        /** @type {number} */ var rowSize = deMath.deAlign32(readFormat.getPixelSize() * width, alignment);
+        /** @type {Array<number>} */ var data = [];
+
+        ctx.readPixels(x, y, width, height, transferFmt.format, transferFmt.dataType, data);
+
+        // Convert to surface.
+        var cpbaDescriptor = {
+            format: readFormat,
+            width: width,
+            height: height,
+            depth: 1,
+            rowPitch: rowSize,
+            slicePitch: 0,
+            data: data
+        };
+
+        /** @type {tcuTexture.ConstPixelBufferAccess} */
+        var src = new tcuTexture.ConstPixelBufferAccess(cpbaDescriptor);
+
+        dst.setSize(width, height);
+        /** @type {tcuTexture.PixelBufferAccess} */ var dstAccess = dst.getAccess();
+
+        for (var yo = 0; yo < height; yo++)
+        for (var xo = 0; xo < width; xo++)
+            dstAccess.setPixel(src.getPixel(xo, yo) * scale + bias, xo, yo);
+    };
+
+    /**
      * @param {number} srcBits
      * @return {number}
      */
@@ -809,7 +911,8 @@ define(['framework/common/tcuTexture', 'framework/common/tcuTextureUtil', 'frame
         Texture3DShader: Texture3DShader,
         DepthGradientShader: DepthGradientShader,
         getFormatThreshold: getFormatThreshold,
-        getToSRGBConversionThreshold: getToSRGBConversionThreshold
+        getToSRGBConversionThreshold: getToSRGBConversionThreshold,
+        readPixels: readPixels
     };
 
 });
