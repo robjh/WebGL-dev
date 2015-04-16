@@ -419,9 +419,9 @@ gluDrawUtil.Type = {
  * @param {number} location
  */
 gluDrawUtil.BindingPoint = function(type, name, location) {
-    /* @type {gluDrawUtil.Type} */ this.type = type;
-    /* @type {string} */ this.name = name;
-    /* @type {number} */ this.location = location;
+    /** @type {gluDrawUtil.Type} */ this.type = type;
+    /** @type {string} */ this.name = name;
+    /** @type {number} */ this.location = location;
 };
 
 /**

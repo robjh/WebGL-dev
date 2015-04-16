@@ -41,7 +41,7 @@ tcuTextureUtil.linearInterpolate = function(t, minVal, maxVal)
 };
 
 /**
- * @enum 
+ * @enum
  */
 tcuTextureUtil.Clear = {
     OPTIMIZE_THRESHOLD: 128,
@@ -232,7 +232,8 @@ tcuTextureUtil.fillWithComponentGradients3D = function(/*const PixelBufferAccess
 
 tcuTextureUtil.fillWithComponentGradients = function(/*const PixelBufferAccess&*/ access, /*const Vec4&*/ minVal, /*const Vec4&*/ maxVal) {
     if (access.getHeight() == 1 && access.getDepth() == 1)
-        fillWithComponentGradients1D(access, minVal, maxVal);
+        throw new Error('Inimplemented');
+        //fillWithComponentGradients1D(access, minVal, maxVal);
     else if (access.getDepth() == 1)
         tcuTextureUtil.fillWithComponentGradients2D(access, minVal, maxVal);
     else
@@ -591,22 +592,22 @@ tcuTextureUtil.getChannelMantissaBitDepth = function(channelType) {
  * @param {tcuTexture.PixelBufferAccess} src
  */
 tcuTextureUtil.copy = function(dst, src) {
-    var width   = dst.getWidth();
-    var height  = dst.getHeight();
-    var depth   = dst.getDepth();
+    var width = dst.getWidth();
+    var height = dst.getHeight();
+    var depth = dst.getDepth();
 
     DE_ASSERT(src.getWidth() == width && src.getHeight() == height && src.getDepth() == depth);
 
     if (src.getFormat() == dst.getFormat()) {
         var srcData = src.getDataPtr();
         var dstData = dst.getDataPtr();
-        
+
         dstData.set(srcData);
     } else {
-        var srcClass    = tcuTextureUtil.getTextureChannelClass(src.getFormat().type);
-        var dstClass    = tcuTextureUtil.getTextureChannelClass(dst.getFormat().type);
-        var                    srcIsInt    = srcClass == tcuTextureUtil.TextureChannelClass.SIGNED_INTEGER || srcClass == tcuTextureUtil.TextureChannelClass.UNSIGNED_INTEGER;
-        var                    dstIsInt    = dstClass == tcuTextureUtil.TextureChannelClass.SIGNED_INTEGER || dstClass == tcuTextureUtil.TextureChannelClass.UNSIGNED_INTEGER;
+        var srcClass = tcuTextureUtil.getTextureChannelClass(src.getFormat().type);
+        var dstClass = tcuTextureUtil.getTextureChannelClass(dst.getFormat().type);
+        var srcIsInt = srcClass == tcuTextureUtil.TextureChannelClass.SIGNED_INTEGER || srcClass == tcuTextureUtil.TextureChannelClass.UNSIGNED_INTEGER;
+        var dstIsInt = dstClass == tcuTextureUtil.TextureChannelClass.SIGNED_INTEGER || dstClass == tcuTextureUtil.TextureChannelClass.UNSIGNED_INTEGER;
 
         if (srcIsInt && dstIsInt)
         {

@@ -56,7 +56,7 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
      * @param {number} numSamples
      */
     rrShadingContext.FragmentShadingContext = function (varying0, varying1, varying2, outputArray, fragmentDepths, numFragmentOutputs, numSamples) {
-        /** @type {Array<Array<Array<number>>>} (GenericVec4*) */ this.varyings = [varying0, varying1, varying2]; //!< Vertex shader outputs. Pointer will be NULL if there is no such vertex.
+        /** @type {Array<Array<number>>} (GenericVec4**) */ this.varyings = [varying0, varying1, varying2]; //!< Vertex shader outputs. Pointer will be NULL if there is no such vertex.
         /** @type {Array<number>} (GenericVec4*) */ this.outputArray = outputArray; //!< Fragment output array
         /** @type {number} */ this.numFragmentOutputs = numFragmentOutputs; //!< Fragment output count
         /** @type {number} */ this.numSamples = numSamples; //!< Number of samples
@@ -220,6 +220,22 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
     rrShadingContext.readFragmentDepth = function (context, packetNdx, fragNdx, sampleNdx) {
         // Reading or writing to fragment depth values while there is no depth buffer is legal but not supported by rr
         DE_ASSERT(context.fragmentDepths);
-        
+        return context.fragmentDepths[(packetNdx * 4 + fragNdx) * context.numSamples + sampleNdx];
+    };
 
+    /**
+     * rrShadingContext.writeFragmentDepth
+     * @param {rrShadingContext.FragmentShadingContext} context
+     * @param {number} packetNdx
+     * @param {number} fragNdx
+     * @param {number} sampleNdx
+     * @param {number} depthValue
+     */
+    rrShadingContext.writeFragmentDepth = function (context, packetNdx, fragNdx, sampleNdx, depthValue) {
+        // Reading or writing to fragment depth values while there is no depth buffer is legal but not supported by rr
+        DE_ASSERT(context.fragmentDepths);
+        context.fragmentDepths[(packetNdx * 4 + fragNdx) * context.numSamples + sampleNdx] = depthValue;
+    };
+
+    
 });

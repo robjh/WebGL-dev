@@ -20,11 +20,11 @@
 
 'use strict';
 goog.provide('framework.common.tcuImageCompare');
-goog.require('framework.common.tcuSurface');
-goog.require('framework.delibs.debase.deMath');
-goog.require('framework.common.tcuTexture');
-goog.require('framework.common.tcuFuzzyImageCompare');
 goog.require('framework.common.tcuBilinearImageCompare');
+goog.require('framework.common.tcuFuzzyImageCompare');
+goog.require('framework.common.tcuSurface');
+goog.require('framework.common.tcuTexture');
+goog.require('framework.delibs.debase.deMath');
 
 
 goog.scope(function() {
@@ -35,7 +35,7 @@ var deMath = framework.delibs.debase.deMath;
 var tcuTexture = framework.common.tcuTexture;
 var tcuFuzzyImageCompare = framework.common.tcuFuzzyImageCompare;
 var tcuBilinearImageCompare = framework.common.tcuBilinearImageCompare;
-    
+
 
 tcuImageCompare.CompareLogMode = {
     EVERYTHING: 0,
@@ -481,7 +481,7 @@ tcuImageCompare.fuzzyCompare = function(imageSetName, imageSetDesc, reference, r
  */
 tcuImageCompare.bilinearCompare = function(imageSetName, imageSetDesc, reference, result, threshold, logMode)
 {
-    /* @type {TextureLevel} */
+    /** @type {TextureLevel} */
     var errorMask = new tcuTexture.TextureLevel(
         new tcuTexture.TextureFormat(
             tcuTexture.ChannelOrder.RGB,
@@ -489,14 +489,14 @@ tcuImageCompare.bilinearCompare = function(imageSetName, imageSetDesc, reference
         reference.getWidth(),
         reference.getHeight());
 
-    /* @type {bool} */
+    /** @type {bool} */
     var isOk = tcuBilinearImageCompare.bilinearCompare(
         reference,
         result,
         errorMask,
         threshold);
 
-    if (!compareOk) {
+    if (!isOk) {
         debug('Image comparison failed: threshold = ' + threshold);
         tcuImageCompare.displayImages(result, reference, errorMask.getAccess());
     }

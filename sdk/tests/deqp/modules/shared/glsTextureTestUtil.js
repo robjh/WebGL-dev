@@ -39,7 +39,7 @@ var gluShaderUtil = framework.opengl.gluShaderUtil;
 var tcuStringTemplate = framework.common.tcuStringTemplate;
 var deMath = framework.delibs.debase.deMath;
 var tcuImageCompare = framework.common.tcuImageCompare;
-    
+
 var DE_ASSERT = function(x) {
     if (!x)
         throw new Error('Assert failed');
@@ -413,27 +413,27 @@ glsTextureTestUtil.ProgramLibrary.prototype.getProgram = function(program) {
     var params = [];
 
     var isCube = deMath.deInRange32(program, glsTextureTestUtil.programType.PROGRAM_CUBE_FLOAT, glsTextureTestUtil.programType.PROGRAM_CUBE_SHADOW_BIAS);
-    var isArray = deMath.deInRange32(program, glsTextureTestUtil.programType.PROGRAM_2D_ARRAY_FLOAT, glsTextureTestUtil.programType.PROGRAM_2D_ARRAY_SHADOW)
-                            || deMath.deInRange32(program, glsTextureTestUtil.programType.PROGRAM_1D_ARRAY_FLOAT, glsTextureTestUtil.programType.PROGRAM_1D_ARRAY_SHADOW);
+    var isArray = deMath.deInRange32(program, glsTextureTestUtil.programType.PROGRAM_2D_ARRAY_FLOAT, glsTextureTestUtil.programType.PROGRAM_2D_ARRAY_SHADOW) ||
+                            deMath.deInRange32(program, glsTextureTestUtil.programType.PROGRAM_1D_ARRAY_FLOAT, glsTextureTestUtil.programType.PROGRAM_1D_ARRAY_SHADOW);
 
-    var is1D = deMath.deInRange32(program, glsTextureTestUtil.programType.PROGRAM_1D_FLOAT, glsTextureTestUtil.programType.PROGRAM_1D_UINT_BIAS)
-                            || deMath.deInRange32(program, glsTextureTestUtil.programType.PROGRAM_1D_ARRAY_FLOAT, glsTextureTestUtil.programType.PROGRAM_1D_ARRAY_SHADOW)
-                            || deMath.deInRange32(program, glsTextureTestUtil.programType.PROGRAM_BUFFER_FLOAT, glsTextureTestUtil.programType.PROGRAM_BUFFER_UINT);
+    var is1D = deMath.deInRange32(program, glsTextureTestUtil.programType.PROGRAM_1D_FLOAT, glsTextureTestUtil.programType.PROGRAM_1D_UINT_BIAS) ||
+                            deMath.deInRange32(program, glsTextureTestUtil.programType.PROGRAM_1D_ARRAY_FLOAT, glsTextureTestUtil.programType.PROGRAM_1D_ARRAY_SHADOW) ||
+                            deMath.deInRange32(program, glsTextureTestUtil.programType.PROGRAM_BUFFER_FLOAT, glsTextureTestUtil.programType.PROGRAM_BUFFER_UINT);
 
-    var is2D = deMath.deInRange32(program, glsTextureTestUtil.programType.PROGRAM_2D_FLOAT, glsTextureTestUtil.programType.PROGRAM_2D_UINT_BIAS)
-                            || deMath.deInRange32(program, glsTextureTestUtil.programType.PROGRAM_2D_ARRAY_FLOAT, glsTextureTestUtil.programType.PROGRAM_2D_ARRAY_SHADOW);
+    var is2D = deMath.deInRange32(program, glsTextureTestUtil.programType.PROGRAM_2D_FLOAT, glsTextureTestUtil.programType.PROGRAM_2D_UINT_BIAS) ||
+                            deMath.deInRange32(program, glsTextureTestUtil.programType.PROGRAM_2D_ARRAY_FLOAT, glsTextureTestUtil.programType.PROGRAM_2D_ARRAY_SHADOW);
 
     var is3D = deMath.deInRange32(program, glsTextureTestUtil.programType.PROGRAM_3D_FLOAT, glsTextureTestUtil.programType.PROGRAM_3D_UINT_BIAS);
     var isCubeArray = deMath.deInRange32(program, glsTextureTestUtil.programType.PROGRAM_CUBE_ARRAY_FLOAT, glsTextureTestUtil.programType.PROGRAM_CUBE_ARRAY_SHADOW);
     var isBuffer = deMath.deInRange32(program, glsTextureTestUtil.programType.PROGRAM_BUFFER_FLOAT, glsTextureTestUtil.programType.PROGRAM_BUFFER_UINT);
 
     if (this.m_glslVersion == '100 es') {
-        params['FRAG_HEADER'] =  '';
-        params['VTX_HEADER'] =  '';
-        params['VTX_IN'] =  'attribute';
-        params['VTX_OUT'] =  'varying';
-        params['FRAG_IN'] =  'varying';
-        params['FRAG_COLOR'] =  'gl_FragColor';
+        params['FRAG_HEADER'] = '';
+        params['VTX_HEADER'] = '';
+        params['VTX_IN'] = 'attribute';
+        params['VTX_OUT'] = 'varying';
+        params['FRAG_IN'] = 'varying';
+        params['FRAG_COLOR'] = 'gl_FragColor';
     } else if (this.m_glslVersion == '300 es' || this.m_glslVersion == '310 es' || this.m_glslVersion == '330') {
         var ext = null;
 
@@ -446,25 +446,25 @@ glsTextureTestUtil.ProgramLibrary.prototype.getProgram = function(program) {
         if (ext)
             extension = '\n#extension ' + ext + ' : require';
 
-        params['FRAG_HEADER'] =  '#version ' + this.m_glslVersion + extension + '\nlayout(location = 0) out mediump vec4 dEQP_FragColor;\n';
-        params['VTX_HEADER'] =  '#version ' + this.m_glslVersion + '\n';
-        params['VTX_IN'] =  'in';
-        params['VTX_OUT'] =  'out';
-        params['FRAG_IN'] =  'in';
-        params['FRAG_COLOR'] =  'dEQP_FragColor';
+        params['FRAG_HEADER'] = '#version ' + this.m_glslVersion + extension + '\nlayout(location = 0) out mediump vec4 dEQP_FragColor;\n';
+        params['VTX_HEADER'] = '#version ' + this.m_glslVersion + '\n';
+        params['VTX_IN'] = 'in';
+        params['VTX_OUT'] = 'out';
+        params['FRAG_IN'] = 'in';
+        params['FRAG_COLOR'] = 'dEQP_FragColor';
     } else
         throw new Error('Unsupported version: ' + this.m_glslVersion);
 
-    params['PRECISION'] =  gluShaderUtil.getPrecisionName(this.m_texCoordPrecision);
+    params['PRECISION'] = gluShaderUtil.getPrecisionName(this.m_texCoordPrecision);
 
     if (isCubeArray)
-        params['TEXCOORD_TYPE'] =  'vec4';
+        params['TEXCOORD_TYPE'] = 'vec4';
     else if (isCube || (is2D && isArray) || is3D)
-        params['TEXCOORD_TYPE'] =  'vec3';
+        params['TEXCOORD_TYPE'] = 'vec3';
     else if ((is1D && isArray) || is2D)
-        params['TEXCOORD_TYPE'] =  'vec2';
+        params['TEXCOORD_TYPE'] = 'vec2';
     else if (is1D)
-        params['TEXCOORD_TYPE'] =  'float';
+        params['TEXCOORD_TYPE'] = 'float';
     else
         DE_ASSERT(false);
 
@@ -535,8 +535,8 @@ glsTextureTestUtil.ProgramLibrary.prototype.getProgram = function(program) {
     } else
         DE_ASSERT(!'Unsupported version');
 
-    params['SAMPLER_TYPE'] =  sampler;
-    params['LOOKUP'] =  lookup;
+    params['SAMPLER_TYPE'] = sampler;
+    params['LOOKUP'] = lookup;
 
     var vertSrc = tcuStringTemplate.specialize(vertShaderTemplate, params);
     var fragSrc = tcuStringTemplate.specialize(fragShaderTemplate, params);
@@ -1033,7 +1033,8 @@ glsTextureTestUtil.sampleTexture2D = function(dst, src, texCoord, params) {
     var tq = [texCoord[0 + 1], texCoord[2 + 1], texCoord[4 + 1], texCoord[6 + 1]];
 
     if (params.flags.projected)
-        sampleTextureProjected(dst, view, sq, tq, params);
+    	throw new Error('Unimplemented');
+        //sampleTextureProjected(dst, view, sq, tq, params);
     else
         glsTextureTestUtil.sampleTextureNonProjected2D(dst, view, sq, tq, params);
 };

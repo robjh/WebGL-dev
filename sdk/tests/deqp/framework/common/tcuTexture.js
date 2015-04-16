@@ -20,8 +20,8 @@
 
 'use strict';
 goog.provide('framework.common.tcuTexture');
-goog.require('framework.delibs.debase.deMath');
 goog.require('framework.common.tcuFloat');
+goog.require('framework.delibs.debase.deMath');
 
 
 goog.scope(function() {
@@ -1096,10 +1096,10 @@ tcuTexture.convertSatRte = function(deType, value) {
 tcuTexture.convertSat = function(deType, src) {
     var minVal = deType.min;
     var maxVal = deType.max;
-    if (src < min)
-        return min;
-    else if (src > max)
-        return max;
+    if (src < minVal)
+        return minVal;
+    else if (src > maxVal)
+        return maxVal;
     else
         return src;
 };
@@ -2010,7 +2010,8 @@ tcuTexture.TextureCubeView.prototype.sample = function(sampler, texCoord, lod) {
     // Computes (face, s, t).
     var coords = tcuTexture.getCubeFaceCoords(texCoord);
     if (sampler.seamlessCubeMap)
-        return sampleLevelArrayCubeSeamless(this.m_levels, this.m_numLevels, coords.face, sampler, coords.s, coords.t, 0 /* depth */, lod);
+        throw new Error('Not implemented');
+//        return sampleLevelArrayCubeSeamless(this.m_levels, this.m_numLevels, coords.face, sampler, coords.s, coords.t, 0 /* depth */, lod);
     else
         return tcuTexture.sampleLevelArray2D(this.m_levels[coords.face], this.m_numLevels, sampler, coords.s, coords.t, 0 /* depth */, lod);
 };
