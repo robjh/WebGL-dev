@@ -24,36 +24,36 @@ define([
 ], function(gluVarType, deqpUtils) {
     'use strict';
 
-    var isNum = (function(c) { return /^[0-9]$/ .test(c); });
-    var isAlpha = (function(c) { return /^[a-zA-Z]$/ .test(c); });
-    var isIdentifierChar = (function(c) { return /^[a-zA-Z0-9_]$/.test(c); });
-    var array_op_equivalent = (function(arr1, arr2) {
+    var isNum = function(c) { return /^[0-9]$/ .test(c); };
+    var isAlpha = function(c) { return /^[a-zA-Z]$/ .test(c); };
+    var isIdentifierChar = function(c) { return /^[a-zA-Z0-9_]$/.test(c); };
+    var array_op_equivalent = function(arr1, arr2) {
         if (arr1.length != arr2.length) return false;
         for (var i = 0; i < arr1.length; ++i) {
             if (arr1[i].isnt(arr2[1])) return false;
         }
         return true;
-    });
+    };
 
     /**
      * VarTokenizer class.
      * @param {string} str
      * @return {Object}
      */
-    var VarTokenizer = (function(str) {
+    var VarTokenizer = function(str) {
 
         var m_str = str;
         var m_token = VarTokenizer.s_Token.length;
         var m_tokenStart = 0;
         var m_tokenLen = 0;
 
-        this.getToken = (function() { return m_token; });
-        this.getIdentifier = (function() { return m_str.substr(m_tokenStart, m_tokenLen); });
-        this.getNumber = (function() { return parseInt(this.getIdentifier()); });
-        this.getCurrentTokenStartLocation = (function() { return m_tokenStart; });
-        this.getCurrentTokenEndLocation = (function() { return m_tokenStart + m_tokenLen; });
+        this.getToken = function() { return m_token; };
+        this.getIdentifier = function() { return m_str.substr(m_tokenStart, m_tokenLen); };
+        this.getNumber = function() { return parseInt(this.getIdentifier()); };
+        this.getCurrentTokenStartLocation = function() { return m_tokenStart; };
+        this.getCurrentTokenEndLocation = function() { return m_tokenStart + m_tokenLen; };
 
-        this.advance = (function() {
+        this.advance = function() {
 
             if (m_token == VarTokenizer.s_Token.END) {
                 throw new Error('No more tokens.');
@@ -91,11 +91,11 @@ define([
                 throw new Error('Unexpected character');
             }
 
-        });
+        };
 
         this.advance();
 
-    });
+    };
     VarTokenizer.s_Token = {
         IDENTIFIER: 0,
         LEFT_BRACKET: 1,
@@ -112,7 +112,7 @@ define([
      * @param {number} index_
      * @return {Object}
      */
-    var VarTypeComponent = (function(type_, index_) {
+    var VarTypeComponent = function(type_, index_) {
 
         this.type = null;
         this.index = VarTypeComponent.s_Type.length;
@@ -122,13 +122,13 @@ define([
             this.index = index_;
         }
 
-        this.is = (function(other) {
+        this.is = function(other) {
             return this.type == other.type && this.index == other.index;
-        });
-        this.isnt = (function(other) {
+        };
+        this.isnt = function(other) {
             return this.type != other.type || this.index != other.index;
-        });
-    });
+        };
+    };
 
     /**
      * @enum
@@ -147,10 +147,10 @@ define([
      * @param {Array.<VarTypeComponent>} path_
      * @return {Object}
      */
-    var TypeAccessFormat = (function(type_, path_) {
+    var TypeAccessFormat = function(type_, path_) {
         this.type = type_;
         this.path = path_;
-    });
+    };
 
     TypeAccessFormat.prototype.toString = function() {
         var curType = this.type;
@@ -188,49 +188,49 @@ define([
      * @param {gluVarType.VarType} type
      * @return {SubTypeAccess | array_op_equivalent | boolean}
      */
-    var SubTypeAccess = (function(type) {
+    var SubTypeAccess = function(type) {
 
         this.m_type = null; // VarType
         this.m_path = [];   // TypeComponentVector
 
-        var helper = (function(type, ndx) {
+        var helper = function(type, ndx) {
             this.m_path.push(new VarTypeComponent(type, ndx));
             if (!this.isValid()) {
                 throw new Error;
             }
             return this;
-        });
+        };
 
-        this.member = (function(ndx) { return helper(VarTypeComponent.s_Type.STRUCT_MEMBER); });
-        this.element = (function(ndx) { return helper(VarTypeComponent.s_Type.ARRAY_ELEMENT); });
-        this.column = (function(ndx) { return helper(VarTypeComponent.s_Type.MATRIX_COLUMN); });
-        this.component = (function(ndx) { return helper(VarTypeComponent.s_Type.VECTOR_COMPONENT); });
-        this.parent = (function() {
+        this.member = function(ndx) { return helper(VarTypeComponent.s_Type.STRUCT_MEMBER); };
+        this.element = function(ndx) { return helper(VarTypeComponent.s_Type.ARRAY_ELEMENT); };
+        this.column = function(ndx) { return helper(VarTypeComponent.s_Type.MATRIX_COLUMN); };
+        this.component = function(ndx) { return helper(VarTypeComponent.s_Type.VECTOR_COMPONENT); };
+        this.parent = function() {
             if (this.m_path.empty()) {
                 throw new Error;
             }
             this.m_path.pop();
             return this;
-        });
+        };
 
-        this.isValid = (function() { return isValidTypePath(this.m_type, this.m_path); });
-        this.getType = (function() { return getVarType(this.m_type, this.m_path); });
-        this.getPath = (function() { return this.m_path; });
-        this.empty = (function() { return this.m_path.empty(); });
-        this.is = (function(other) {
+        this.isValid = function() { return isValidTypePath(this.m_type, this.m_path); };
+        this.getType = function() { return getVarType(this.m_type, this.m_path); };
+        this.getPath = function() { return this.m_path; };
+        this.empty = function() { return this.m_path.empty(); };
+        this.is = function(other) {
             return (
                 array_op_equivalent(this.m_path, other.m_path) &&
                 this.m_type.is(other.m_type)
             );
-        });
-        this.isnt = (function(other) {
+        };
+        this.isnt = function(other) {
             return (
                 !array_op_equivalent(this.m_path, other.m_path) ||
                 this.m_type.isnt(other.m_type)
             );
-        });
+        };
 
-    });
+    };
 
     /**
      * Subtype iterator parent class.
@@ -238,182 +238,188 @@ define([
      *     for (var i = new BasicTypeIterator(type) ; !i.end() ; i.next()) {
      *         var j = i.getType();
      *     }
-     * To inherit from this base class, use this outside the child's definition:
-     *     ChildClass.prototype = new SubTypeIterator();
      * @return {Object}
      */
-    var SubTypeIterator = (function() {
+    var SubTypeIterator = function(type) {
 
-        var m_type = null;  // const VarType*
-        var m_path = [];    // TypeComponentVector
+        /** @orivate */
+        this.m_type = null;  // const VarType*
+        /** @orivate */
+        this.m_path = [];    // TypeComponentVector
 
-        var removeTraversed = (function() {
-
-            while (m_path.length) {
-                var curComp = m_path[m_path.length - 1]; // VarTypeComponent&
-                var parentType = getVarType(m_type, m_path, 0, m_path.length - 1); // VarType
-
-                if (curComp.type == VarTypeComponent.s_Type.MATRIX_COLUMN) {
-                    if (!deqpUtils.isDataTypeMatrix(parentType.getBasicType())) {
-                        throw new Error('Isn\'t a matrix.');
-                    }
-                    if (curComp.index + 1 < deqpUtils.getDataTypeMatrixNumColumns(parentType.getBasicType())) {
-                        break;
-                    }
-
-                } else if (curComp.type == VarTypeComponent.s_Type.VECTOR_COMPONENT) {
-                    if (!deqpUtils.isDataTypeVector(parentType.getBasicType())) {
-                        throw new Error('Isn\'t a vector.');
-                    }
-                    if (curComp.index + 1 < deqpUtils.getDataTypeScalarSize(parentType.getBasicType())) {
-                        break;
-                    }
-
-                } else if (curComp.type == VarTypeComponent.s_Type.ARRAY_ELEMENT) {
-                    if (!parentType.isArrayType()) {
-                        throw new Error('Isn\'t an array.');
-                    }
-                    if (curComp.index + 1 < parentType.getArraySize()) {
-                        break;
-                    }
-
-                } else if (curComp.type == VarTypeComponent.s_Type.STRUCT_MEMBER) {
-                    if (!parentType.isStructType()) {
-                        throw new Error('Isn\'t a struct.');
-                    }
-                    if (curComp.index + 1 < parentType.getStruct().getNumMembers()) {
-                        break;
-                    }
-
-                }
-
-                m_path.pop();
-            }
-
-        });
-
-        this.findNext = (function() {
-
-            if (m_path.length > 0) {
-                // Increment child counter in current level.
-                var curComp = m_path[m_path.length - 1]; // VarTypeComponent&
-                curComp.index += 1;
-            }
-
-            for (;;) {
-
-                var curType = getVarType(m_type, m_path); // VarType
-
-                if (this.isExpanded(curType))
-                    break;
-
-                // Recurse into child type.
-                if (curType.isBasicType()) {
-                    var basicType = curType.getBasicType(); // DataType
-
-                    if (deqpUtils.isDataTypeMatrix(basicType)) {
-                        m_path.push(new VarTypeComponent(VarTypeComponent.s_Type.MATRIX_COLUMN, 0));
-
-                    } else if (deqpUtils.isDataTypeVector(basicType)) {
-                        m_path.push(new VarTypeComponent(VarTypeComponent.s_Type.VECTOR_COMPONENT, 0));
-
-                    } else {
-                        throw new Error('Cant expand scalars - isExpanded() is buggy.');
-                    }
-
-                } else if (curType.isArrayType()) {
-                    m_path.push(new VarTypeComponent(VarTypeComponent.s_Type.ARRAY_ELEMENT, 0));
-
-                } else if (curType.isStructType()) {
-                    m_path.push(new VarTypeComponent(VarTypeComponent.s_Type.STRUCT_MEMBER, 0));
-
-                } else {
-                    throw new Error();
-                }
-            }
-
-        });
-
-        this.end = (function() {
-            return (m_type == null);
-        });
-
-        // equivelant to operator++(), doesnt return.
-        this.next = (function() {
-            if (m_path.length > 0) {
-                // Remove traversed nodes.
-                removeTraversed();
-
-                if (m_path.length > 0)
-                    this.findNext();
-                else
-                    m_type = null; // Unset type to signal end.
-            } else {
-                if (!this.isExpanded(getVarType(m_type, m_path))) {
-                    throw new Error('First type was already expanded.');
-                }
-                m_type = null;
-            }
-        });
-
-        this.getType = (function() {
-            return getVarType(m_type, m_path);
-        });
-        this.getPath = (function() {
-            return m_path;
-        });
-
-        this.toString = function() {
-            var x = new TypeAccessFormat(m_type, m_path);
-            return x.toString();
-        };
-
-        this.__construct = (function(type) {
-            if (type) {
-                m_type = type;
-                this.findNext();
-            }
-        });
+        if (type) {
+            this.m_type = type;
+            this.findNext();
+        }
 
         this.isExpanded = null;
 
-    });
+    };
+    
+    /** removeTraversed
+     * @private
+     */
+    SubTypeIterator.prototype.removeTraversed = function() {
+
+        while (this.m_path.length) {
+            var curComp = this.m_path[this.m_path.length - 1]; // VarTypeComponent&
+            var parentType = getVarType(this.m_type, this.m_path, 0, this.m_path.length - 1); // VarType
+
+            if (curComp.type == VarTypeComponent.s_Type.MATRIX_COLUMN) {
+                if (!deqpUtils.isDataTypeMatrix(parentType.getBasicType())) {
+                    throw new Error('Isn\'t a matrix.');
+                }
+                if (curComp.index + 1 < deqpUtils.getDataTypeMatrixNumColumns(parentType.getBasicType())) {
+                    break;
+                }
+
+            } else if (curComp.type == VarTypeComponent.s_Type.VECTOR_COMPONENT) {
+                if (!deqpUtils.isDataTypeVector(parentType.getBasicType())) {
+                    throw new Error('Isn\'t a vector.');
+                }
+                if (curComp.index + 1 < deqpUtils.getDataTypeScalarSize(parentType.getBasicType())) {
+                    break;
+                }
+
+            } else if (curComp.type == VarTypeComponent.s_Type.ARRAY_ELEMENT) {
+                if (!parentType.isArrayType()) {
+                    throw new Error('Isn\'t an array.');
+                }
+                if (curComp.index + 1 < parentType.getArraySize()) {
+                    break;
+                }
+
+            } else if (curComp.type == VarTypeComponent.s_Type.STRUCT_MEMBER) {
+                if (!parentType.isStructType()) {
+                    throw new Error('Isn\'t a struct.');
+                }
+                if (curComp.index + 1 < parentType.getStruct().getNumMembers()) {
+                    break;
+                }
+
+            }
+
+            this.m_path.pop();
+        }
+    };
+    SubTypeIterator.prototype.findNext = function() {
+
+        if (this.m_path.length > 0) {
+            // Increment child counter in current level.
+            var curComp = this.m_path[this.m_path.length - 1]; // VarTypeComponent&
+            curComp.index += 1;
+        }
+
+        for (;;) {
+
+            var curType = getVarType(this.m_type, this.m_path); // VarType
+
+            if (this.isExpanded(curType))
+                break;
+
+            // Recurse into child type.
+            if (curType.isBasicType()) {
+                var basicType = curType.getBasicType(); // DataType
+
+                if (deqpUtils.isDataTypeMatrix(basicType)) {
+                    this.m_path.push(new VarTypeComponent(VarTypeComponent.s_Type.MATRIX_COLUMN, 0));
+
+                } else if (deqpUtils.isDataTypeVector(basicType)) {
+                    this.m_path.push(new VarTypeComponent(VarTypeComponent.s_Type.VECTOR_COMPONENT, 0));
+
+                } else {
+                    throw new Error('Cant expand scalars - isExpanded() is buggy.');
+                }
+
+            } else if (curType.isArrayType()) {
+                this.m_path.push(new VarTypeComponent(VarTypeComponent.s_Type.ARRAY_ELEMENT, 0));
+
+            } else if (curType.isStructType()) {
+                this.m_path.push(new VarTypeComponent(VarTypeComponent.s_Type.STRUCT_MEMBER, 0));
+
+            } else {
+                throw new Error();
+            }
+        }
+
+    };
+    SubTypeIterator.prototype.end = function() {
+        return (this.m_type == null);
+    };
+    /** next
+     * equivelant to operator++(), doesnt return.
+     */
+    SubTypeIterator.prototype.next = function() {
+        if (this.m_path.length > 0) {
+            // Remove traversed nodes.
+            removeTraversed();
+
+            if (this.m_path.length > 0)
+                this.findNext();
+            else
+                this.m_type = null; // Unset type to signal end.
+        } else {
+            if (!this.isExpanded(getVarType(this.m_type, this.m_path))) {
+                throw new Error('First type was already expanded.');
+            }
+            this.m_type = null;
+        }
+    };
+    SubTypeIterator.prototype.getType = function() {
+        return getVarType(this.m_type, this.m_path);
+    };
+    SubTypeIterator.prototype.getPath = function() {
+        return this.m_path;
+    };
+
+    SubTypeIterator.prototype.toString = function() {
+        var x = new TypeAccessFormat(this.m_type, this.m_path);
+        return x.toString();
+    };
+    
+    
 
     /** BasicTypeIterator
      * @param {gluVarType.VarType} type
      * @return {gluVarType.Type}
      */
-    var BasicTypeIterator = (function(type) {
-        this.isExpanded = (function(type) {
-            return type.isBasicType();
-        });
-        this.__construct(type);
-    });
-    BasicTypeIterator.prototype = new SubTypeIterator();
+    var BasicTypeIterator = function(type) {
+        SubTypeIterator.call(this, type);
+    };
+    BasicTypeIterator.prototype = Object.create(SubTypeIterator.prototype);
+    BasicTypeIterator.prototype.constructor = BasicTypeIterator;
+    
+    BasicTypeIterator.prototype.isExpanded = function(type) {
+        return type.isBasicType();
+    };
 
     /** VectorTypeIterator
      * @param {gluVarType.VarType} type
      * @return {gluVarType.Type}
      */
-    var VectorTypeIterator = (function(type) {
-        this.isExpanded = (function(type) {
-            return type.isBasicType() && deqpUtils.isDataTypeScalarOrVector(type.getBasicType());
-        });
-        this.__construct(type);
-    });
-    VectorTypeIterator.prototype = new SubTypeIterator();
+     var VectorTypeIterator = function(type) {
+        SubTypeIterator.call(this, type);
+    };
+    VectorTypeIterator.prototype = Object.create(SubTypeIterator.prototype);
+    VectorTypeIterator.prototype.constructor = VectorTypeIterator;
+    
+    VectorTypeIterator.prototype.isExpanded = function(type) {
+        return type.isBasicType() && deqpUtils.isDataTypeScalarOrVector(type.getBasicType());
+    };
 
     /** ScalarTypeIterator
      * @param {gluVarType.VarType} type
      * @return {gluVarType.Type}
      */
-    var ScalarTypeIterator = (function(type) {
-        this.isExpanded = (function(type) {
-            return type.isBasicType() && deqpUtils.isDataTypeScalar(type.getBasicType());
-        });
-        this.__construct(type);
-    });
-    ScalarTypeIterator.prototype = new SubTypeIterator();
+     var ScalarTypeIterator = function(type) {
+        SubTypeIterator.call(this, type);
+    };
+    ScalarTypeIterator.prototype = Object.create(SubTypeIterator.prototype);
+    ScalarTypeIterator.prototype.constructor = ScalarTypeIterator;
+    
+    ScalarTypeIterator.prototype.isExpanded = function(type) {
+        return type.isBasicType() && deqpUtils.isDataTypeScalar(type.getBasicType());
+    };
 
     var inBounds = (function(x, a, b) { return a <= x && x < b; });
 
@@ -424,7 +430,7 @@ define([
      * @param {number} end
      * @return {boolean}
      */
-    var isValidTypePath = (function(type, array, begin, end) {
+    var isValidTypePath = function(type, array, begin, end) {
 
         if (typeof(begin) == 'undefined') {begin = 0;}
         if (typeof(end) == 'undefined') {begin = array.length;}
@@ -499,7 +505,7 @@ define([
         }
 
         return pathIter == end;
-    });
+    };
 
     /** getVarType
      * @param {gluVarType.VarType} type
@@ -508,7 +514,7 @@ define([
      * @param {number} end
      * @return {gluVarType.VarType}
      */
-    var getVarType = (function(type, array, start, end) {
+    var getVarType = function(type, array, start, end) {
 
         if (typeof(start) == 'undefined') {start = 0;}
         if (typeof(end) == 'undefined') {end = array.length;}
@@ -560,19 +566,19 @@ define([
             /* TODO: Original code created an object copy. We are returning reference to the same object */
             return curType;
         }
-    });
+    };
 
-    var parseVariableName = (function(nameWithPath) {
+    var parseVariableName = function(nameWithPath) {
         var tokenizer = new VarTokenizer(nameWithPath);
         if (tokenizer.getToken() != VarTokenizer.s_Token.IDENTIFIER) {
             throw new Error('Not an identifier.');
         }
         return tokenizer.getIdentifier();
-    });
+    };
 
     // returns an array (TypeComponentVector& path)
     // params: const char*, const VarType&
-    var parseTypePath = (function(nameWithPath, type) {
+    var parseTypePath = function(nameWithPath, type) {
 
         var tokenizer = new VarTokenizer(nameWithPath);
 
@@ -653,7 +659,7 @@ define([
 
         return path;
 
-    });
+    };
 
     return {
         BasicTypeIterator: BasicTypeIterator,

@@ -1,33 +1,46 @@
+/*-------------------------------------------------------------------------
+ * drawElements Quality Program OpenGL ES Utilities
+ * ------------------------------------------------
+ *
+ * Copyright 2014 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
 
 // glsFBOU
 define(['framework/opengl/gluTextureUtil'], function(gluTextureUtil) {
     'use strict';
 
-    var FormatDB = function(argv) {
-        argv = argv || {};
-        var _construct = function(argv) {
-            this.m_map = {};
-        };
-        
-        this.addFormat = function(format, flags) {
-            this.m_map[format]  = this.m_map[format] || 0;
-            this.m_map[format] |= flags;
-        };
-        this.getFormats = function(requirements) {
-            var ret = [];
-            for (var index in this.m_map) {
-                if (this.m_map[index] & requirements == requirements) {
-                    ret.push(index);
-                }
+    var FormatDB = function() {
+        this.m_map = {};
+    };
+    
+    FormatDB.prototype.addFormat = function(format, flags) {
+        this.m_map[format]  = this.m_map[format] || 0;
+        this.m_map[format] |= flags;
+    };
+    FormatDB.prototype.getFormats = function(requirements) {
+        var ret = [];
+        for (var index in this.m_map) {
+            if (this.m_map[index] & requirements == requirements) {
+                ret.push(index);
             }
-            return ret;
-        };
-        this.getFormatInfo = function(format, fallback) {
-            return lookupDefault(this.m_map, format, fallback);
-        };
-        
-        
-        if (!argv.dont_construct) this._construct(argv);
+        }
+        return ret;
+    };
+    FormatDB.prototype.getFormatInfo = function(format, fallback) {
+        return lookupDefault(this.m_map, format, fallback);
     };
     
     var lookupDefault = function(map, key, fallback) {
@@ -49,7 +62,8 @@ define(['framework/opengl/gluTextureUtil'], function(gluTextureUtil) {
     
     // FormatDB& db, FormatExtEntries extFmts, const RenderContext* ctx
     var addExtFormats = function(db, extFmts, ctx) {
-        
+        const UniquePtr<ContextInfo> ctxInfo(ctx != DE_NULL ? ContextInfo::create(*ctx) : DE_NULL);
+        var ctxInfo = ctx ? ContextInfo.create(ctx) : null;
     };
     
     /* TODO: This next. looks like helpers for FormatDB objects
@@ -114,61 +128,55 @@ void addExtFormats (FormatDB& db, FormatExtEntries extFmts, const RenderContext*
     
     var FormatExtEntry = function(argv) {
         argv = argv || {};
-        this.construct = function(argv) {
-            this.extensions = argv.extensions || null;
-            this.flags      = argv.flags      || null;
-            this.formats    = argv.formats    || null;
-        };
-        if (!argv.dont_construct) this._construct(argv);
+        this.extensions = argv.extensions || null;
+        this.flags      = argv.flags      || null;
+        this.formats    = argv.formats    || null;
     };
     
     // this wont work if argv.array is an object
     var Range = function(argv) {
-        
-        var m_begin  = argv.begin || 0;
-        var m_end    = argv.end   || argv.array.length;
-        
-        this.array = function() {
-            return argv.array;
-        };
-        this.begin = function() {
-            return m.begin;
-        };
-        this.end = function() {
-            return m.end;
-        };
-        this.get = function(id) {
-            return {
-                first: id,
-                second: argv.array[id]
-            };
-        }
-        
+        argv = argv || {};
+        // @private
+        this.m_begin = argv.begin || 0;
+        // @private
+        this.m_end   = argv.end   || argv.array.length;
+        // @private
+        this.m_array = argv.array;
     };
+    Range.prototype.array = function() {
+        return this.m_array;
+    };
+    Range.prototype.begin = function() {
+        return this.m_begin;
+    };
+    Range.prototype.end = function() {
+        return this.m_end;
+    };
+    Range.prototype.get = function(id) {
+        return {
+            first: id,
+            second: this.m_array[id]
+        };
+    }
     
     var ImageFormat = function(argv) {
         argv = argv || {};
         
-        this._construct = function(argv) {
-            this.format      = argv.format || null;
-            //! Type if format is unsized, GL_NONE if sized.
-            this.unsizedType = argv.unsizedType || null;
-        };
+        this.m_format      = argv.format || null;
+        //! Type if format is unsized, GL_NONE if sized.
+        this.m_unsizedType = argv.unsizedType || null;
         
-        this.lessthan = function(other) {
-            return (
-                (this.format <  other.format) ||
-                (this.format == other.format && this.unsizeType < other.unsizedType)
-            );
-        };
-        
-        this.none = function(gl_ctx) {
-            gl_ctx = gl_ctx || gl;
-            this.format      = gl_ctx.NONE;
-            this.unsizedType = gl_ctx.NONE;
-        };
-        
-        if (!argv.dont_construct) this._construct(argv);
+    };
+    ImageFormat.prototype.lessthan = function(other) {
+        return (
+            (this.m_format <  other.m_format) ||
+            (this.m_format == other.m_format && this.m_unsizeType < other.m_unsizedType)
+        );
+    };
+    ImageFormat.prototype.none = function(gl_ctx) {
+        gl_ctx = gl_ctx || gl;
+        this.m_format      = gl_ctx.NONE;
+        this.m_unsizedType = gl_ctx.NONE;
     };
     ImageFormat.none = function() {
         var obj = new ImageFormat();
@@ -187,12 +195,9 @@ void addExtFormats (FormatDB& db, FormatExtEntries extFmts, const RenderContext*
     var Config = function(argv) {
         argv = argv || {};
         
-        this._construct = function(argv) {
-            this.type = argv.type ? argv.type | Config.s_types.CONFIG : Config.s_types.CONFIG;
-            this.target = argv.target || Config.s_target.NONE;
-        };
+        this.type = argv.type ? argv.type | Config.s_types.CONFIG : Config.s_types.CONFIG;
+        this.target = argv.target || Config.s_target.NONE;
         
-        if (!argv.dont_construct) this._construct(argv);
     };
     Config.s_target = {
         NONE:              0,
@@ -233,248 +238,147 @@ void addExtFormats (FormatDB& db, FormatExtEntries extFmts, const RenderContext*
     var Image = function(argv) {
         argv = argv || {};
         
-        var parent = {
-            _construct: this._construct,
-        };
+        argv.type = argv.type ? argv.type | Config.s_types.IMAGE : Config.s_types.IMAGE;
+        Config.call(this, argv);
         
-        this._construct = function(argv) {
-            argv.type = argv.type ? argv.type | Config.s_types.IMAGE : Config.s_types.IMAGE;
-            parent._construct(argv);
-            this.width  = 0;
-            this.height = 0;
-            this.internalFormat = new ImageFormat();
-        };
+        this.width  = 0;
+        this.height = 0;
+        this.internalFormat = new ImageFormat();
         
-        if (!argv.dont_construct) this._construct(argv);
     };
-    Image.prototype = new Config({dont_construct: true});
     
     var RenderBuffer = function(argv) {
         argv = argv || {};
         
-        var parent = {
-            _construct: this._construct,
-        };
+        argv.type   = argv.type ? argv.type | Config.s_types.RENDERBUFFER : Config.s_types.RENDERBUFFER;
+        argv.target = argv.target || Config.s_target.RENDERBUFFER;
+        Image.call(this, argv);
         
-        this._construct = function(argv) {
-            argv.type   = argv.type ? argv.type | Config.s_types.RENDERBUFFER : Config.s_types.RENDERBUFFER;
-            argv.target = argv.target || Config.s_target.RENDERBUFFER;
-            parent._construct(argv);
-            this.numSamples = 0;
-        };
+        this.numSamples = 0;
         
-        if (!argv.dont_construct) this._construct(argv);
     };
-    RenderBuffer.prototype = new Image({dont_construct: true});
     
     var Texture = function(argv) {
         argv = argv || {};
         
-        var parent = {
-            _construct: this._construct,
-        };
+        argv.type = argv.type ? argv.type | Config.s_types.TEXTURE : Config.s_types.TEXTURE;
+        Image.call(this, argv);
+        this.numLevels = 1;
         
-        this._construct = function(argv) {
-            argv.type = argv.type ? argv.type | Config.s_types.TEXTURE : Config.s_types.TEXTURE;
-            parent._construct(argv);
-            this.numLevels = 1;
-        };
-        
-        if (!argv.dont_construct) this._construct(argv);
     };
-    Texture.prototype = new Image({dont_construct: true});
     
     var TextureFlat = function(argv) {
         argv = argv || {};
         
-        var parent = {
-            _construct: this._construct,
-        };
+        argv.type = argv.type ? argv.type | Config.s_types.TEXTURE_FLAT : Config.s_types.TEXTURE_FLAT;
+        Texture.call(this, argv);
         
-        this._construct = function(argv) {
-            argv.type = argv.type ? argv.type | Config.s_types.TEXTURE_FLAT : Config.s_types.TEXTURE_FLAT;
-            parent._construct(argv);
-        };
-        
-        if (!argv.dont_construct) this._construct(argv);
     };
-    TextureFlat.prototype = new Texture({dont_construct: true});
     
     var Texture2D = function(argv) {
         argv = argv || {};
         
-        var parent = {
-            _construct: this._construct,
-        };
+        argv.target = argv.target || Config.s_target.TEXTURE_2D;
+        argv.type = argv.type ? argv.type | Config.s_types.TEXTURE_2D : Config.s_types.TEXTURE_2D;
+        TextureFlat.call(this, argv);
         
-        this._construct = function(argv) {
-            argv.target = argv.target || Config.s_target.TEXTURE_2D;
-            argv.type = argv.type ? argv.type | Config.s_types.TEXTURE_2D : Config.s_types.TEXTURE_2D;
-            parent._construct(argv);
-        };
-        
-        if (!argv.dont_construct) this._construct(argv);
     };
-    Texture2D.prototype = new TextureFlat({dont_construct: true});
     
     var TextureCubeMap = function(argv) {
         argv = argv || {};
         
-        var parent = {
-            _construct: this._construct,
-        };
+        argv.target = argv.target || Config.s_target.TEXTURE_CUBE_MAP;
+        argv.type = argv.type ? argv.type | Config.s_types.TEXTURE_CUBE_MAP : Config.s_types.TEXTURE_CUBE_MAP;
+        TextureFlat.call(this, argv);
         
-        this._construct = function(argv) {
-            argv.target = argv.target || Config.s_target.TEXTURE_CUBE_MAP;
-            argv.type = argv.type ? argv.type | Config.s_types.TEXTURE_CUBE_MAP : Config.s_types.TEXTURE_CUBE_MAP;
-            parent._construct(argv);
-        };
-        
-        if (!argv.dont_construct) this._construct(argv);
     };
-    TextureCubeMap.prototype = new TextureFlat({dont_construct: true});
     
     var TextureLayered = function(argv) {
         argv = argv || {};
         
-        var parent = {
-            _construct: this._construct,
-        };
+        argv.type = argv.type ? argv.type | Config.s_types.TEXTURE_LAYERED : Config.s_types.TEXTURE_LAYERED;
+        Texture.call(this, argv);
+        this.numLayers = 1;
         
-        this._construct = function(argv) {
-            argv.type = argv.type ? argv.type | Config.s_types.TEXTURE_LAYERED : Config.s_types.TEXTURE_LAYERED;
-            parent._construct(argv);
-            this.numLayers = 1;
-        };
-        
-        if (!argv.dont_construct) this._construct(argv);
     };
-    TextureLayered.prototype = new Texture({dont_construct: true});
     
     var Texture3D = function(argv) {
         argv = argv || {};
         
-        var parent = {
-            _construct: this._construct,
-        };
-        
-        this._construct = function(argv) {
-            argv.target = argv.target || Config.s_target.TEXTURE_3D;
-            argv.type = argv.type ? argv.type | Config.s_types.TEXTURE_3D : Config.s_types.TEXTURE_3D;
-            parent._construct(argv);
-        };
-        
-        if (!argv.dont_construct) this._construct(argv);
+        argv.target = argv.target || Config.s_target.TEXTURE_3D;
+        argv.type = argv.type ? argv.type | Config.s_types.TEXTURE_3D : Config.s_types.TEXTURE_3D;
+        TextureLayered.call(this, argv);
+            
     };
-    Texture3D.prototype = new TextureLayered({dont_construct: true});
     
     var Texture2DArray = function(argv) {
         argv = argv || {};
         
-        var parent = {
-            _construct: this._construct,
-        };
-        
-        this._construct = function(argv) {
-            argv.target = argv.target || Config.s_target.TEXTURE_2D_ARRAY;
-            argv.type = argv.type ? argv.type | Config.s_types.TEXTURE_2D_ARRAY : Config.s_types.TEXTURE_2D_ARRAY;
-            parent._construct(argv);
-        };
-        
-        if (!argv.dont_construct) this._construct(argv);
+        argv.target = argv.target || Config.s_target.TEXTURE_2D_ARRAY;
+        argv.type = argv.type ? argv.type | Config.s_types.TEXTURE_2D_ARRAY : Config.s_types.TEXTURE_2D_ARRAY;
+        TextureLayered.call(this, argv);
+            
     };
-    Texture2DArray.prototype = new TextureLayered({dont_construct: true});
     
     
     // Attachments
     var Attachment = function(argv) {
         argv = argv || {};
         
-        var parent = {
-            _construct: this._construct,
-        };
+        argv.type = argv.type ? argv.type | Config.s_types.ATTACHMENT : Config.s_types.ATTACHMENT;
+        argv.target = argv.target || Config.s_target.FRAMEBUFFER;
+        Config.call(this, argv);
+        this.imageName = 0;
         
-        this._construct = function(argv) {
-            argv.type = argv.type ? argv.type | Config.s_types.ATTACHMENT : Config.s_types.ATTACHMENT;
-            argv.target = argv.target || Config.s_target.FRAMEBUFFER;
-            parent._construct(argv);
-            this.imageName = 0;
-        };
-        
-        // this function is declared, but has no definition/is unused in the c++
-        // var isComplete = (function(attPoint, image, vfr) { });
-        
-        if (!argv.dont_construct) this._construct(argv);
     };
-    Attachment.prototype = new Config({dont_construct: true});
+    // this function is declared, but has no definition/is unused in the c++
+    // Attachment.prototype.isComplete = function(attPoint, image, vfr) { };
     
     var RenderbufferAttachment = function(argv) {
         argv = argv || {};
         
-        var parent = {
-            _construct: this._construct,
-        };
+        argv.type = argv.type ? argv.type | Config.s_types.ATT_RENDERBUFFER : Config.s_types.ATT_RENDERBUFFER;
+        Attachment.call(this, argv);
+        this.renderbufferTarget = Config.s_target.RENDERBUFFER;
         
-        this._construct = function(argv) {
-            argv.type = argv.type ? argv.type | Config.s_types.ATT_RENDERBUFFER : Config.s_types.ATT_RENDERBUFFER;
-            parent._construct(argv);
-            this.renderbufferTarget = Config.s_target.RENDERBUFFER;
-        };
-        
-        if (!argv.dont_construct) this._construct(argv);
     };
-    RenderbufferAttachment.prototype = new Attachment({dont_construct: true});
+    RenderbufferAttachment.prototype = Object.create(Attachment.prototype);
+    RenderbufferAttachment.prototype.constructor = RenderbufferAttachment;
     
     var TextureAttachment = function(argv) {
         argv = argv || {};
         
-        var parent = {
-            _construct: this._construct,
-        };
+        argv.type = argv.type ? argv.type | Config.s_types.ATT_TEXTURE : Config.s_types.ATT_TEXTURE;
+        Attachment.call(this, argv);
+        this.level = 0;
         
-        this._construct = function(argv) {
-            argv.type = argv.type ? argv.type | Config.s_types.ATT_TEXTURE : Config.s_types.ATT_TEXTURE;
-            parent._construct(argv);
-            this.level = 0;
-        };
-        
-        if (!argv.dont_construct) this._construct(argv);
     };
-    TextureAttachment.prototype = new Attachment({dont_construct: true});
+    TextureAttachment.prototype = Object.create(Attachment.prototype);
+    TextureAttachment.prototype.constructor = TextureAttachment;
     
     var TextureFlatAttachment = function(argv) {
         argv = argv || {};
         
-        var parent = {
-            _construct: this._construct,
-        };
+        argv.type = argv.type ? argv.type | Config.s_types.ATT_TEXTURE_FLAT : Config.s_types.ATT_TEXTURE_FLAT;
+        TextureAttachment.call(this, argv);
+        this.texTarget = Config.s_target.NONE;
         
-        this._construct = function(argv) {
-            argv.type = argv.type ? argv.type | Config.s_types.ATT_TEXTURE_FLAT : Config.s_types.ATT_TEXTURE_FLAT;
-            parent._construct(argv);
-            this.texTarget = Config.s_target.NONE;
-        };
-        
-        if (!argv.dont_construct) this._construct(argv);
     };
-    TextureFlatAttachment.prototype = new TextureAttachment({dont_construct: true});
+    TextureFlatAttachment.prototype = Object.create(TextureAttachment.prototype);
+    TextureFlatAttachment.prototype.constructor = TextureFlatAttachment;
     
     var TextureLayerAttachment = function(argv) {
         argv = argv || {};
         
-        var parent = {
-            _construct: this._construct,
-        };
-        
-        this._construct = function(argv) {
             argv.type = argv.type ? argv.type | Config.s_types.ATT_TEXTURE_LAYER : Config.s_types.ATT_TEXTURE_LAYER;
-            parent._construct(argv);
+            TextureAttachment.call(this, argv);
             this.layer = 0;
         };
         
         if (!argv.dont_construct) this._construct(argv);
     };
-    TextureLayerAttachment.prototype = new TextureAttachment({dont_construct: true});
+    TextureLayerAttachment.prototype = Object.create(TextureAttachment.prototype);
+    TextureLayerAttachment.prototype.constructor = TextureLayerAttachment;
     
     
     // these are a collection of helper functions for creating various gl textures.
@@ -712,171 +616,155 @@ void addExtFormats (FormatDB& db, FormatExtEntries extFmts, const RenderContext*
     };
     
     var Framebuffer = function(argv) {
-        
         argv = argv || {};
-        this._construct = function(argv) {
-            this.attachments = argv.attachments  || {};
-            this.textures    = argv.textures     || {};
-            this.rbos        = argv.rbos         || {};
-            this.m_gl        = argv.gl           || gl;
-        };
         
-        this.attach = function(attPoint, att) {
-            if (!att) {
-                this.attachments[attPoint] = undefined;
-            } else {
-                this.attachments[attPoint] = att;
-            }
-        };
-        this.setTexture = function(texName, texCfg) {
-            this.textures[texName] = texCfg;
-        };
-        this.setRbo = function(rbName, rbCfg) {
-            this.rbos[rbName] = rbCfg;
-        };
-        this.getImage = function(type, imgName) {
-            switch (type) {
-                case this.m_gl.TEXTURE:      return lookupDefault(this.textures, imgName, null);
-                case this.m_gl.RENDERBUFFER: return lookupDefault(this.rbos,     imgName, null);
-                default: throw new Error ('Bad image type.');
-            }
-            return null;
-        };
+        this.attachments = argv.attachments  || {};
+        this.textures    = argv.textures     || {};
+        this.rbos        = argv.rbos         || {};
+        this.m_gl        = argv.gl           || gl;
         
-        if (!argv.dont_construct) this._construct(argv);
+    };
+    Framebuffer.prototype.attach = function(attPoint, att) {
+        if (!att) {
+            this.attachments[attPoint] = undefined;
+        } else {
+            this.attachments[attPoint] = att;
+        }
+    };
+    Framebuffer.prototype.setTexture = function(texName, texCfg) {
+        this.textures[texName] = texCfg;
+    };
+    Framebuffer.prototype.setRbo = function(rbName, rbCfg) {
+        this.rbos[rbName] = rbCfg;
+    };
+    Framebuffer.prototype.getImage = function(type, imgName) {
+        switch (type) {
+            case this.m_gl.TEXTURE:      return lookupDefault(this.textures, imgName, null);
+            case this.m_gl.RENDERBUFFER: return lookupDefault(this.rbos,     imgName, null);
+            default: throw new Error ('Bad image type.');
+        }
+        return null;
     };
     
     var FboBuilder = function(argv) {
         argv = argv || {};
         
-        var parent = {
-            _construct: this._construct,
-        };
-        
-        this._construct = function(argv) {
-            parent._construct(argv);
+        parent._construct(argv);
             
-            if (argv.fbo === undefined || argv.target === undefined) {
-                throw new Error('Invalid args.');
-            }
+        if (argv.fbo === undefined || argv.target === undefined) {
+            throw new Error('Invalid args.');
+        }
             
-            this.m_target  = argv.target;
-            this.m_configs = [];
-            this.m_error   = this.m_gl.NO_ERROR;
-            
-            this.m_gl.bindFramebuffer(this.m_target, argv.fbo);
-        };
+        this.m_target  = argv.target;
+        this.m_configs = [];
+        this.m_error   = this.m_gl.NO_ERROR;
         
-        this.deinit = function() {
-            for (var name in this.textures) {
-                glsup.remove(this.textures[name], name, this.m_gl);
-            }
-            for (var name in this.rbos) {
-                glsup.remove(this.rbos[name], name, this.m_gl);
-            }
-            this.m_gl.bindFramebuffer(this.m_target, 0);
-/*
-            for (var i = 0 ; i < this.m_configs.length ; ++i) {
-                delete this.m_configs[i];
-            }
-//*/
-        };
-        
-        // GLenum attPoint, const Attachment* att
-        this.glAttach = function(attPoint, att) {
-            if (!att) {
-                this.m_gl.framebufferRenderbuffer(this.m_target, attPoint, this.m_gl.RENDERBUFFER, 0);
-            } else {
-                attachAttachment(att, attPoint, this.m_gl);
-            }
-            this.checkError();
-            this.attach(attPoint, att);
-        };
-        
-        // const Texture& texCfg
-        this.glCreateTexture = function(texCfg) {
-            var texName = glsup.create(texCfg, this.m_gl);
-            checkError();
-            this.setTexture(texName, texCfg);
-            return texName;
-        };
-        
-        // const Renderbuffer& rbCfg
-        this.glCreateRbo = function(rbCfg) {
-            var rbName = glsup.create(rbCfg, this.m_gl);
-            checkError();
-            this.setRbo(rbName, rbCfg);
-            return rbName;
-        };
-        
-        
-        // Due to lazy memory management in javascript, this function isnt really
-        // needed anymore. Yet it persists here regardless.
-        this.makeConfig = function(Definition) {
-            var cfg = new Definition();
-            this.m_configs.push(cfg);
-            return cfg;
-        };
-        
-        this.checkError = function() {
-            var error = this.m_gl.getError();
-            if (error != this.m_gl.NO_ERROR && this.m_error != this.m_gl.NO_ERROR) {
-                this.m_error = error;
-            }
-        };
-        
-        this.getError = function() {
-            return this.m_error;
-        };
-        
-        if (!argv.dont_construct) this._construct(argv);
+        this.m_gl.bindFramebuffer(this.m_target, argv.fbo);
+    
     };
-    FboBuilder.prototype = new Framebuffer({dont_construct: true});
+    FboBuilder.prototype = Object.create(Framebuffer.prototype);
+    FboBuilder.prototype.constructor = FboBuilder;
+    
+    FboBuilder.prototype.deinit = function() {
+        for (var name in this.textures) {
+            glsup.remove(this.textures[name], name, this.m_gl);
+        }
+        for (var name in this.rbos) {
+            glsup.remove(this.rbos[name], name, this.m_gl);
+        }
+        this.m_gl.bindFramebuffer(this.m_target, 0);
+/*
+        for (var i = 0 ; i < this.m_configs.length ; ++i) {
+            delete this.m_configs[i];
+        }
+//*/
+    };
+        
+    // GLenum attPoint, const Attachment* att
+    FboBuilder.prototype.glAttach = function(attPoint, att) {
+        if (!att) {
+            this.m_gl.framebufferRenderbuffer(this.m_target, attPoint, this.m_gl.RENDERBUFFER, 0);
+        } else {
+            attachAttachment(att, attPoint, this.m_gl);
+        }
+        this.checkError();
+        this.attach(attPoint, att);
+    };
+        
+    // const Texture& texCfg
+    FboBuilder.prototype.glCreateTexture = function(texCfg) {
+        var texName = glsup.create(texCfg, this.m_gl);
+        checkError();
+        this.setTexture(texName, texCfg);
+        return texName;
+    };
+        
+    // const Renderbuffer& rbCfg
+    FboBuilder.prototype.glCreateRbo = function(rbCfg) {
+        var rbName = glsup.create(rbCfg, this.m_gl);
+        checkError();
+        this.setRbo(rbName, rbCfg);
+        return rbName;
+    };
+    
+    // Due to lazy memory management in javascript, this function isnt really
+    // needed anymore. Yet it persists here regardless.
+    FboBuilder.prototype.makeConfig = function(Definition) {
+        var cfg = new Definition();
+        this.m_configs.push(cfg);
+        return cfg;
+    };
+        
+    FboBuilder.prototype.checkError = function() {
+        var error = this.m_gl.getError();
+        if (error != this.m_gl.NO_ERROR && this.m_error != this.m_gl.NO_ERROR) {
+            this.m_error = error;
+        }
+    };
+    
+    FboBuilder.prototype.getError = function() {
+        return this.m_error;
+    };
+    
+    
     
     var Checker = function(argv) {
         argv = argv || {};
+        gl_ctx = argv.gl || gl;
         
         // Allowed return values for gl.CheckFramebufferStatus
         // formarly an std::set
-        var m_statusCodes = [];
+        var m_statusCodes = [gl_ctx.FRAMEBUFFER_COMPLETE];
         
-        this._construct = function() {
-            m_statusCodes.push(gl.FRAMEBUFFER_COMPLETE);
-        };
-        
-        
-        this.require = function(condition, error) {
-            if (!condition) {
-                remove_from_array(m_statusCodes, gl.FRAMEBUFFER_COMPLETE);
-                m_statusCodes.push(error);
-            }
-        };
-        this.canRequire = function(condition, error) {
-            if (!condition) {
-                m_statusCodes.push(error);
-            }
-        };
-        this.getStatusCodes = function() {
-            return m_statusCodes;
-        };
-        
-//      this.check = function(attPoint, attachment, image) =0; virtual
-        
-        if (!argv.dont_construct)
+        // this.check = function(attPoint, attachment, image) =0; virtual
+        if (typeof(this.check) != 'function')
             throw new Error('Constructor called on virtual class: Checker'); 
     };
+    Checker.prototype.require = function(condition, error) {
+        if (!condition) {
+            remove_from_array(m_statusCodes, gl.FRAMEBUFFER_COMPLETE);
+            m_statusCodes.push(error);
+        }
+    };
+    Checker.prototype.canRequire = function(condition, error) {
+        if (!condition) {
+            m_statusCodes.push(error);
+        }
+    };
+    Checker.prototype.getStatusCodes = function() {
+        return m_statusCodes;
+    };
+    
+    
     
     var CheckerFactory = function(argv) {
         argv = argv || {};
         
-        this._construct = function(argv) {
-            if (typeof(this.createChecker) != 'function')
-                throw new Error('Unimplemented virtual function: CheckerFactory::createChecker');
-        };
-        
-        if (!argv.dont_construct)
-            throw new Error('Constructor called on virtual class: CheckerFactory'); 
+        if (typeof(this.createChecker) != 'function')
+            throw new Error('Unimplemented virtual function: CheckerFactory::createChecker');
     };
+    
+    
     
     var transferImageFormat = function(imgFormat, gl_ctx) {
         gl_ctx = gl_ctx || gl;
