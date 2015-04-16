@@ -101,7 +101,7 @@ define([
     */
     FboTestCase.prototype.checkSampleCount = function(sizedFormat, numSamples) {
         /** @const @type {number} */ var minSampleCount = getMinimumSampleCount(sizedFormat);
-        // TODO: implement
+
         if (numSamples > minSampleCount) {
             // Exceeds spec-mandated minimum - need to check.
             /** @const @type {Array<number>} */ var supportedSampleCounts = querySampleCounts(this.m_context.getRenderContext().getFunctions(), sizedFormat);
@@ -122,7 +122,6 @@ define([
     * @param {Array<number>} bias Vec4
     */
     FboTestCase.prototype.readPixelsUsingFormat = function(dst, x, y, width, height, format, scale, bias) {
-        // TODO: implement fboTestUtil.readPixels, getCurrentContext
         fboTestUtil.readPixels(getCurrentContext(), dst, x, y, width, height, format, scale, bias);
     };
 
@@ -134,7 +133,6 @@ define([
     * @param {number} height
     */
     FboTestCase.prototype.readPixels = function(dst, x, y, width, height) {
-        // TODO: implement getCurrentContext
         getCurrentContext().readPixels(dst, x, y, width, height);
     };
 
@@ -159,7 +157,6 @@ define([
     */
     FboTestCase.prototype.clearColorBuffer = function(format, value) {
         if (value === undefined) value = [0.0, 0.0, 0.0, 0.0];
-        // TODO: implement getCurrentContext
         fboTestUtil.clearColorBuffer(getCurrentContext(), format, value);
     };
 
@@ -169,7 +166,8 @@ define([
         var renderCtx = gl;
 
         //const tcu::RenderTarget&    renderTarget    = renderCtx.getRenderTarget();
-        /** @type {rrRenderer.RenderTarget} */ var renderTarget = new rrRenderer.RenderTarget(); // TODO: implement
+
+        /** @type {RenderTarget} */ var renderTarget = renderCtx.getRenderTarget();
 
         //TestLog&                    log                = m_testCtx.getLog();
 
@@ -185,7 +183,7 @@ define([
         /** @type {tcuSurface.Surface} */ var result = new tcuSurface.Surface(width, height);
 
         // Call preCheck() that can throw exception if some requirement is not met.
-        preCheck(); // TODO: implement
+        this.preCheck();
 
         // Render using GLES3.
         try {

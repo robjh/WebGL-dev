@@ -19,8 +19,8 @@
  */
 
 
-define(['framework/common/tcuTexture', 'framework/common/tcuTextureUtil', 'framework/common/tcuRGBA', 'framework/opengl/gluTextureUtil', 'framework/delibs/debase/deMath', 'framework/referencerenderer/rrShadingContext', 'framework/referencerenderer/rrFragmentPacket', 'framework/referencerenderer/rrVertexPacket', 'framework/referencerenderer/rrVertexAttrib', 'framework/opengl/gluShaderUtil', 'framework/opengl/simplereference/sglrReferenceContext', 'framework/opengl/simplereference/sglrShaderProgram', 'framework/referencerenderer/rrGenericVector'],
-    function(tcuTexture, tcuTextureUtil, tcuRGBA, gluTextureUtil, deMath, rrShadingContext,  rrFragmentPacket,  rrVertexPacket,  rrVertexAttrib,  gluShaderUtil, sglrReferenceContext, sglrShaderProgram, rrGenericVector) {
+define(['framework/common/tcuTexture', 'framework/common/tcuTextureUtil', 'framework/common/tcuRGBA', 'framework/opengl/gluTextureUtil', 'framework/delibs/debase/deMath', 'framework/referencerenderer/rrShadingContext', 'framework/referencerenderer/rrFragmentPacket', 'framework/referencerenderer/rrVertexPacket', 'framework/referencerenderer/rrVertexAttrib', 'framework/opengl/gluShaderUtil', 'framework/opengl/simplereference/sglrReferenceContext', 'framework/opengl/simplereference/sglrShaderProgram', 'framework/referencerenderer/rrGenericVector', 'framework/common/tcuMatrix'],
+    function(tcuTexture, tcuTextureUtil, tcuRGBA, gluTextureUtil, deMath, rrShadingContext,  rrFragmentPacket,  rrVertexPacket,  rrVertexAttrib,  gluShaderUtil, sglrReferenceContext, sglrShaderProgram, rrGenericVector, tcuMatrix) {
     'use strict';
 
     /**
@@ -594,7 +594,7 @@ define(['framework/common/tcuTexture', 'framework/common/tcuTextureUtil', 'frame
             var x = rrVertexAttrib.readVertexAttribFloat(inputs[1], packet.instanceNdx, packet.vertexNdx)[0];
             var y = rrVertexAttrib.readVertexAttribFloat(inputs[1], packet.instanceNdx, packet.vertexNdx)[1];
             /** @type {Array<number>} */ var a_coord = [x, y];
-            /** @type {Array<number>} */ var v_coord = tcuMatrix.multiplyMatVec(texCoordMat, [a_coord[0], a_coord[1], 1.0]); // TODO: multiplyMatVec
+            /** @type {Array<number>} */ var v_coord = tcuMatrix.multiplyMatVec(texCoordMat, [a_coord[0], a_coord[1], 1.0]);
 
             packet.position = rrVertexAttrib.readVertexAttribFloat(inputs[0], packet.instanceNdx, packet.vertexNdx);
             packet.outputs[0] = [v_coord[0], v_coord[1], v_coord[2], 0.0];
