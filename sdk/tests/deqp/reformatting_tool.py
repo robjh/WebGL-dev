@@ -25,6 +25,85 @@ rules = [
         'count': 0,
         'flags': re.MULTILINE
     },
+    {
+        'pattern': r'\bGL_',
+        'repl': 'gl.',
+        'count': 0,
+        'flags': re.MULTILINE
+    },
+    {
+        'pattern': r'\bgl.FALSE\b',
+        'repl': 'false',
+        'count': 0,
+        'flags': re.MULTILINE
+    },
+    {
+        'pattern': r'\bgl.TRUE\b',
+        'repl': 'true',
+        'count': 0,
+        'flags': re.MULTILINE
+    },
+    {
+        'pattern': '\.x\(\)',
+        'repl': '[0]',
+        'count': 0,
+        'flags': re.MULTILINE
+    },
+    {
+        'pattern': '\.y\(\)',
+        'repl': '[1]',
+        'count': 0,
+        'flags': re.MULTILINE
+    },
+    {
+        'pattern': '\.z\(\)',
+        'repl': '[2]',
+        'count': 0,
+        'flags': re.MULTILINE
+    },
+    {
+        'pattern': '\.w\(\)',
+        'repl': '[3]',
+        'count': 0,
+        'flags': re.MULTILINE
+    },
+    # merge multiple spaces into 1
+    {
+        'pattern': r'(?<=[^\s\*\/]) {2,}',
+        'repl': ' ',
+        'count': 0,
+        'flags': re.MULTILINE
+    },
+    {
+        'pattern': r'\n\s*\{',
+        'repl': '{',
+        'count': 0,
+        'flags': re.MULTILINE
+    },
+    {
+        'pattern': r'(?<=\S){',
+        'repl': ' {',
+        'count': 0,
+        'flags': re.MULTILINE
+    },
+    {
+        'pattern': r'(?<=\()\s*{',
+        'repl': '{',
+        'count': 0,
+        'flags': re.MULTILINE
+    },
+    {
+        'pattern': r'(?<=\})\s*else',
+        'repl': ' else',
+        'count': 0,
+        'flags': re.MULTILINE
+    },
+    { # remove repeated empty lines
+        'pattern': r'\n{3,}',
+        'repl': '\n\n',
+        'count': 0,
+        'flags': re.MULTILINE
+    },
 ]
 
 

@@ -63,8 +63,8 @@ var DE_ASSERT = function(x) {
 // /* TODO: remove */
 // /** @type {WebGL2RenderingContext} */ var gl;
 
-var MAX_TEXTURE_SIZE_LOG2       = 14;
-var MAX_TEXTURE_SIZE            = 1<<MAX_TEXTURE_SIZE_LOG2;
+var MAX_TEXTURE_SIZE_LOG2 = 14;
+var MAX_TEXTURE_SIZE = 1<<MAX_TEXTURE_SIZE_LOG2;
 
 var getNumMipLevels2D = function(width, height) {
     return Math.floor(Math.log2(Math.max(width, height))+1);
@@ -80,9 +80,9 @@ var isMipmapFilter = function(/*const tcu::Sampler::FilterMode*/ mode) {
 
 var getFixedRestartIndex = function(indexType) {
     switch (indexType) {
-        case rrDefs.INDEXTYPE_UINT8:       return 0xFF;
-        case rrDefs.INDEXTYPE_UINT16:      return 0xFFFF;
-        case rrDefs.INDEXTYPE_UINT32:      return 0xFFFFFFFF;
+        case rrDefs.INDEXTYPE_UINT8: return 0xFF;
+        case rrDefs.INDEXTYPE_UINT16: return 0xFFFF;
+        case rrDefs.INDEXTYPE_UINT32: return 0xFFFFFFFF;
         default:
             throw new Error('Unrecognized index type: ' + indexType);
         }
@@ -132,9 +132,9 @@ var ReferenceContextLimits = function(gl) {
         this.maxTexture3DSize = gl.getParameter(gl.MAX_3D_TEXTURE_SIZE);
 
         // Limit texture sizes to supported values
-        this.maxTexture2DSize    = Math.min(this.maxTexture2DSize,   MAX_TEXTURE_SIZE);
-        this.maxTextureCubeSize  = Math.min(this.maxTextureCubeSize, MAX_TEXTURE_SIZE);
-        this.maxTexture3DSize    = Math.min(this.maxTexture3DSize,   MAX_TEXTURE_SIZE);
+        this.maxTexture2DSize = Math.min(this.maxTexture2DSize, MAX_TEXTURE_SIZE);
+        this.maxTextureCubeSize = Math.min(this.maxTextureCubeSize, MAX_TEXTURE_SIZE);
+        this.maxTexture3DSize = Math.min(this.maxTexture3DSize, MAX_TEXTURE_SIZE);
 
         GLU_EXPECT_NO_ERROR(gl.getError(), gl.NO_ERROR);
     }
@@ -205,14 +205,14 @@ var Texture = function(type) {
 // Texture.prototype.constructor = Texture;
 
 Texture.prototype.getType = function() { return this.m_type; };
-Texture.prototype.getBaseLevel = function()  { return this.m_baseLevel;       };
-Texture.prototype.getMaxLevel  = function()  { return this.m_maxLevel;        };
-Texture.prototype.isImmutable  = function()  { return this.m_immutable;       };
-Texture.prototype.setBaseLevel = function(baseLevel)  { this.m_baseLevel = baseLevel;  };
-Texture.prototype.setMaxLevel  = function(maxLevel)   { this.m_maxLevel = maxLevel;    };
-Texture.prototype.setImmutable = function()     { this.m_immutable = true;       };
+Texture.prototype.getBaseLevel = function() { return this.m_baseLevel; };
+Texture.prototype.getMaxLevel = function() { return this.m_maxLevel; };
+Texture.prototype.isImmutable = function() { return this.m_immutable; };
+Texture.prototype.setBaseLevel = function(baseLevel) { this.m_baseLevel = baseLevel; };
+Texture.prototype.setMaxLevel = function(maxLevel) { this.m_maxLevel = maxLevel; };
+Texture.prototype.setImmutable = function() { this.m_immutable = true; };
 
-Texture.prototype.getSampler  = function() { return this.m_sampler;         };
+Texture.prototype.getSampler = function() { return this.m_sampler; };
 
 /**
  * @constructor
@@ -233,11 +233,11 @@ TextureLevelArray.prototype.getLevel = function(level) {
 TextureLevelArray.prototype.getLevels = function() { return this.m_access; };
 
 TextureLevelArray.prototype.allocLevel = function(level, format, width, height, depth) {
-    var   dataSize    = format.getPixelSize()*width*height*depth;
+    var dataSize = format.getPixelSize()*width*height*depth;
     if (this.hasLevel(level))
         this.clearLevel(level);
 
-    this.m_data[level]   = new ArrayBuffer(dataSize);
+    this.m_data[level] = new ArrayBuffer(dataSize);
     this.m_access[level] = new tcuTexture.PixelBufferAccess({
         format: format,
         width: width,
@@ -273,45 +273,39 @@ Texture2D.prototype = Object.create(Texture.prototype);
 Texture2D.prototype.constructor = Texture2D;
 
 Texture2D.prototype.clearLevels = function() { this.m_levels.clear(); };
-Texture2D.prototype.hasLevel = function(level) { return this.m_levels.hasLevel(level);  };
-Texture2D.prototype.getLevel = function(level) { return this.m_levels.getLevel(level);  };
+Texture2D.prototype.hasLevel = function(level) { return this.m_levels.hasLevel(level); };
+Texture2D.prototype.getLevel = function(level) { return this.m_levels.getLevel(level); };
 Texture2D.prototype.allocLevel = function(level, format, width, height) { this.m_levels.allocLevel(level, format, width, height, 1); };
 Texture2D.prototype.isComplete = function() {
-    var  baseLevel   = this.getBaseLevel();
+    var baseLevel = this.getBaseLevel();
 
-    if (this.hasLevel(baseLevel))
-    {
-        var  level0      = this.getLevel(baseLevel);
-        /** @type {boolean} */ var                          mipmap      = isMipmapFilter(this.getSampler().minFilter);
+    if (this.hasLevel(baseLevel)) {
+        var level0 = this.getLevel(baseLevel);
+        /** @type {boolean} */ var mipmap = isMipmapFilter(this.getSampler().minFilter);
 
-        if (mipmap)
-        {
-            var    format      = level0.getFormat();
-            var               w           = level0.getWidth();
-            var               h           = level0.getHeight();
-            var               numLevels   = Math.min(this.getMaxLevel()-baseLevel+1, getNumMipLevels2D(w, h));
+        if (mipmap) {
+            var format = level0.getFormat();
+            var w = level0.getWidth();
+            var h = level0.getHeight();
+            var numLevels = Math.min(this.getMaxLevel()-baseLevel+1, getNumMipLevels2D(w, h));
 
-            for (var levelNdx = 1; levelNdx < numLevels; levelNdx++)
-            {
-                if (this.hasLevel(baseLevel+levelNdx))
-                {
-                    var  level       = this.getLevel(baseLevel+levelNdx);
-                    var                           expectedW   = getMipLevelSize(w, levelNdx);
-                    var                           expectedH   = getMipLevelSize(h, levelNdx);
+            for (var levelNdx = 1; levelNdx < numLevels; levelNdx++) {
+                if (this.hasLevel(baseLevel+levelNdx)) {
+                    var level = this.getLevel(baseLevel+levelNdx);
+                    var expectedW = getMipLevelSize(w, levelNdx);
+                    var expectedH = getMipLevelSize(h, levelNdx);
 
-                    if (level.getWidth()    != expectedW    ||
-                        level.getHeight()   != expectedH    ||
-                        level.getFormat()   != format)
+                    if (level.getWidth() != expectedW ||
+                        level.getHeight() != expectedH ||
+                        level.getFormat() != format)
                         return false;
-                }
-                else
+                } else
                     return false;
             }
         }
 
         return true;
-    }
-    else
+    } else
         return false;
 };
 
@@ -320,17 +314,17 @@ Texture2D.prototype.updateView = function() {
 
     if (this.hasLevel(baseLevel) && !this.getLevel(baseLevel).isEmpty()) {
         // Update number of levels in mipmap pyramid.
-        var   width       = this.getLevel(baseLevel).getWidth();
-        var   height      = this.getLevel(baseLevel).getHeight();
-        var   isMipmap    = isMipmapFilter(this.getSampler().minFilter);
-        var   numLevels   = isMipmap ? Math.min(this.getMaxLevel()-baseLevel+1, getNumMipLevels2D(width, height)) : 1;
+        var width = this.getLevel(baseLevel).getWidth();
+        var height = this.getLevel(baseLevel).getHeight();
+        var isMipmap = isMipmapFilter(this.getSampler().minFilter);
+        var numLevels = isMipmap ? Math.min(this.getMaxLevel()-baseLevel+1, getNumMipLevels2D(width, height)) : 1;
 
         this.m_view = new tcuTexture.Texture2DView(numLevels, this.m_levels.getLevels().slice(baseLevel));
     } else
         this.m_view = new tcuTexture.Texture2DView();
 };
 
-Texture2D.prototype.sample  = function(s, t, lod) { return this.m_view.sample(this.getSampler(), [s, t], lod) };
+Texture2D.prototype.sample = function(s, t, lod) { return this.m_view.sample(this.getSampler(), [s, t], lod) };
 
 /**
  * @param {Array<Array<number>>} packetTexcoords 4 vec2 coordinates
@@ -338,7 +332,7 @@ Texture2D.prototype.sample  = function(s, t, lod) { return this.m_view.sample(th
  */
 Texture2D.prototype.sample4 = function(packetTexcoords, lodBias_) {
     var lodBias = lodBias_ || 0;
-    var texWidth  = this.m_view.getWidth();
+    var texWidth = this.m_view.getWidth();
     var texHeight = this.m_view.getHeight();
     var output = [];
 
@@ -347,8 +341,7 @@ Texture2D.prototype.sample4 = function(packetTexcoords, lodBias_) {
     var dFdy0 = deMath.subtract(packetTexcoords[2], packetTexcoords[0]);
     var dFdy1 = deMath.subtract(packetTexcoords[3], packetTexcoords[1]);
 
-    for (var fragNdx = 0; fragNdx < 4; ++fragNdx)
-    {
+    for (var fragNdx = 0; fragNdx < 4; ++fragNdx) {
         var dFdx = (fragNdx & 2) ? dFdx1 : dFdx0;
         var dFdy = (fragNdx & 1) ? dFdy1 : dFdy0;
 
@@ -405,12 +398,12 @@ var AttachmentPoint = {
     ATTACHMENTPOINT_STENCIL: 2
 };
 
-var mapGLAttachmentPoint  = function(attachment) {
+var mapGLAttachmentPoint = function(attachment) {
     switch (attachment) {
-        case gl.COLOR_ATTACHMENT0:  return AttachmentPoint.ATTACHMENTPOINT_COLOR0;
-        case gl.DEPTH_ATTACHMENT:   return AttachmentPoint.ATTACHMENTPOINT_DEPTH;
+        case gl.COLOR_ATTACHMENT0: return AttachmentPoint.ATTACHMENTPOINT_COLOR0;
+        case gl.DEPTH_ATTACHMENT: return AttachmentPoint.ATTACHMENTPOINT_DEPTH;
         case gl.STENCIL_ATTACHMENT: return AttachmentPoint.ATTACHMENTPOINT_STENCIL;
-        default:                    throw new Error('Wrong attachment point:' + attachment);
+        default: throw new Error('Wrong attachment point:' + attachment);
     }
 };
 
@@ -444,26 +437,26 @@ var TexTarget = {
  */
 var texTargetToFace = function(target) {
     switch (target) {
-        case TexTarget.TEXTARGET_CUBE_MAP_NEGATIVE_X:    return tcuTexture.CubeFace.CUBEFACE_NEGATIVE_X;
-        case TexTarget.TEXTARGET_CUBE_MAP_POSITIVE_X:    return tcuTexture.CubeFace.CUBEFACE_POSITIVE_X;
-        case TexTarget.TEXTARGET_CUBE_MAP_NEGATIVE_Y:    return tcuTexture.CubeFace.CUBEFACE_NEGATIVE_Y;
-        case TexTarget.TEXTARGET_CUBE_MAP_POSITIVE_Y:    return tcuTexture.CubeFace.CUBEFACE_POSITIVE_Y;
-        case TexTarget.TEXTARGET_CUBE_MAP_NEGATIVE_Z:    return tcuTexture.CubeFace.CUBEFACE_NEGATIVE_Z;
-        case TexTarget.TEXTARGET_CUBE_MAP_POSITIVE_Z:    return tcuTexture.CubeFace.CUBEFACE_POSITIVE_Z;
-        default:                                            return undefined;
+        case TexTarget.TEXTARGET_CUBE_MAP_NEGATIVE_X: return tcuTexture.CubeFace.CUBEFACE_NEGATIVE_X;
+        case TexTarget.TEXTARGET_CUBE_MAP_POSITIVE_X: return tcuTexture.CubeFace.CUBEFACE_POSITIVE_X;
+        case TexTarget.TEXTARGET_CUBE_MAP_NEGATIVE_Y: return tcuTexture.CubeFace.CUBEFACE_NEGATIVE_Y;
+        case TexTarget.TEXTARGET_CUBE_MAP_POSITIVE_Y: return tcuTexture.CubeFace.CUBEFACE_POSITIVE_Y;
+        case TexTarget.TEXTARGET_CUBE_MAP_NEGATIVE_Z: return tcuTexture.CubeFace.CUBEFACE_NEGATIVE_Z;
+        case TexTarget.TEXTARGET_CUBE_MAP_POSITIVE_Z: return tcuTexture.CubeFace.CUBEFACE_POSITIVE_Z;
+        default: return undefined;
     }
 };
 
 var mapGLFboTexTarget = function(target) {
     switch (target) {
-        case gl.TEXTURE_2D:                     return TexTarget.TEXTARGET_2D;
-        case gl.TEXTURE_CUBE_MAP_POSITIVE_X:    return TexTarget.TEXTARGET_CUBE_MAP_POSITIVE_X;
-        case gl.TEXTURE_CUBE_MAP_POSITIVE_Y:    return TexTarget.TEXTARGET_CUBE_MAP_POSITIVE_Y;
-        case gl.TEXTURE_CUBE_MAP_POSITIVE_Z:    return TexTarget.TEXTARGET_CUBE_MAP_POSITIVE_Z;
-        case gl.TEXTURE_CUBE_MAP_NEGATIVE_X:    return TexTarget.TEXTARGET_CUBE_MAP_NEGATIVE_X;
-        case gl.TEXTURE_CUBE_MAP_NEGATIVE_Y:    return TexTarget.TEXTARGET_CUBE_MAP_NEGATIVE_Y;
-        case gl.TEXTURE_CUBE_MAP_NEGATIVE_Z:    return TexTarget.TEXTARGET_CUBE_MAP_NEGATIVE_Z;
-        default:                                throw new Error('Wrong texture target:' + target);
+        case gl.TEXTURE_2D: return TexTarget.TEXTARGET_2D;
+        case gl.TEXTURE_CUBE_MAP_POSITIVE_X: return TexTarget.TEXTARGET_CUBE_MAP_POSITIVE_X;
+        case gl.TEXTURE_CUBE_MAP_POSITIVE_Y: return TexTarget.TEXTARGET_CUBE_MAP_POSITIVE_Y;
+        case gl.TEXTURE_CUBE_MAP_POSITIVE_Z: return TexTarget.TEXTARGET_CUBE_MAP_POSITIVE_Z;
+        case gl.TEXTURE_CUBE_MAP_NEGATIVE_X: return TexTarget.TEXTARGET_CUBE_MAP_NEGATIVE_X;
+        case gl.TEXTURE_CUBE_MAP_NEGATIVE_Y: return TexTarget.TEXTARGET_CUBE_MAP_NEGATIVE_Y;
+        case gl.TEXTURE_CUBE_MAP_NEGATIVE_Z: return TexTarget.TEXTARGET_CUBE_MAP_NEGATIVE_Z;
+        default: throw new Error('Wrong texture target:' + target);
     }
 };
 
@@ -523,11 +516,10 @@ var Renderbuffer = function() {
 Renderbuffer.prototype.setStorage = function(format, width, height) {
     this.m_data = new tcuTexture.TextureLevel(format, width, height);
 };
-Renderbuffer.prototype.getWidth = function() { return this.m_data.getWidth();     };
-Renderbuffer.prototype.getHeight = function() { return this.m_data.getHeight();    };
-Renderbuffer.prototype.getFormat  = function() { return this.m_data.getFormat();    };
-Renderbuffer.prototype.getAccess = function() { return this.m_data.getAccess();    };
-
+Renderbuffer.prototype.getWidth = function() { return this.m_data.getWidth(); };
+Renderbuffer.prototype.getHeight = function() { return this.m_data.getHeight(); };
+Renderbuffer.prototype.getFormat = function() { return this.m_data.getFormat(); };
+Renderbuffer.prototype.getAccess = function() { return this.m_data.getAccess(); };
 
 /**
  * @constructor
@@ -606,7 +598,6 @@ DataBuffer.prototype.setSubData = function(offset, data) {
     dst.set(src);
 };
 
-
 // /**
 //  * @constructor
 //  */
@@ -645,15 +636,15 @@ DataBuffer.prototype.setSubData = function(offset, data) {
  * @constructor
  */
 var TextureUnit = function() {
-    this.tex2DBinding        = null;
-    this.texCubeBinding      = null;
-    this.tex2DArrayBinding   = null;
-    this.tex3DBinding        = null;
+    this.tex2DBinding = null;
+    this.texCubeBinding = null;
+    this.tex2DArrayBinding = null;
+    this.tex3DBinding = null;
     this.texCubeArrayBinding = null;
-    this.default2DTex        = 0;
-    this.defaultCubeTex      = 0;
-    this.default2DArrayTex   = 0;
-    this.default3DTex        = 0;
+    this.default2DTex = 0;
+    this.defaultCubeTex = 0;
+    this.default2DArrayTex = 0;
+    this.default3DTex = 0;
     this.defaultCubeArrayTex = 0;
 };
 
@@ -678,23 +669,23 @@ var toTextureFormat = function(pixelFmt) {
     if (pixelFmt.equals(8,8,8,8))
         return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.UNORM_INT8);
     else if (pixelFmt.equals(8,8,8,0))
-        return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGB,  tcuTexture.ChannelType.UNORM_INT8);
+        return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGB, tcuTexture.ChannelType.UNORM_INT8);
     else if (pixelFmt.equals(4,4,4,4))
         return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.UNORM_SHORT_4444);
     else if (pixelFmt.equals(5,5,5,1))
         return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.UNORM_SHORT_5551);
     else if (pixelFmt.equals(5,6,5,0))
-        return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGB,  tcuTexture.ChannelType.UNORM_SHORT_565);
+        return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGB, tcuTexture.ChannelType.UNORM_SHORT_565);
 
     throw new Error("Could not map pixel format:" + pixelFmt);
 };
 
 var getDepthFormat = function(depthBits) {
     switch (depthBits) {
-        case 8:     return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.D, tcuTexture.ChannelType.UNORM_INT8);
-        case 16:    return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.D, tcuTexture.ChannelType.UNORM_INT16);
-        case 24:    return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.D, tcuTexture.ChannelType.UNSIGNED_INT_24_8);
-        case 32:    return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.D, tcuTexture.ChannelType.FLOAT);
+        case 8: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.D, tcuTexture.ChannelType.UNORM_INT8);
+        case 16: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.D, tcuTexture.ChannelType.UNORM_INT16);
+        case 24: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.D, tcuTexture.ChannelType.UNSIGNED_INT_24_8);
+        case 32: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.D, tcuTexture.ChannelType.FLOAT);
         default:
             throw new Error("Can't map depth buffer format, bits: " + depthBits);
     }
@@ -702,10 +693,10 @@ var getDepthFormat = function(depthBits) {
 
 var getStencilFormat = function(stencilBits) {
     switch (stencilBits) {
-        case 8:     return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.S, tcuTexture.ChannelType.UNSIGNED_INT8);
-        case 16:    return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.S, tcuTexture.ChannelType.UNSIGNED_INT16);
-        case 24:    return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.S, tcuTexture.ChannelType.UNSIGNED_INT_24_8);
-        case 32:    return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.S, tcuTexture.ChannelType.UNSIGNED_INT32);
+        case 8: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.S, tcuTexture.ChannelType.UNSIGNED_INT8);
+        case 16: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.S, tcuTexture.ChannelType.UNSIGNED_INT16);
+        case 24: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.S, tcuTexture.ChannelType.UNSIGNED_INT_24_8);
+        case 32: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.S, tcuTexture.ChannelType.UNSIGNED_INT32);
         default:
             throw new Error("Can't map stencil buffer format, bits: " + stencilBits);
     }
@@ -728,10 +719,9 @@ var ReferenceContextBuffers = function(colorBits, depthBits, stencilBits, width,
         this.m_stencilbuffer = new tcuTexture.TextureLevel(getStencilFormat(stencilBits), samples, width, height);
 };
 
-
 ReferenceContextBuffers.prototype.getColorbuffer = function() { return rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.fromMultisampleAccess(this.m_colorbuffer.getAccess()); }
 ReferenceContextBuffers.prototype.getDepthbuffer = function() { return this.m_depthbuffer !== undefined ? rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.fromMultisampleAccess(this.m_depthbuffer.getAccess()) : null; }
-ReferenceContextBuffers.prototype.getStencilbuffer = function() { return this.m_stencilbuffer !== undefined ? rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.fromMultisampleAccess(this.m_stencilbuffer.getAccess()) : null;   }
+ReferenceContextBuffers.prototype.getStencilbuffer = function() { return this.m_stencilbuffer !== undefined ? rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.fromMultisampleAccess(this.m_stencilbuffer.getAccess()) : null; }
 
 /**
  * @param {ReferenceContextLimits} limits
@@ -751,39 +741,39 @@ var ReferenceContext = function(limits, colorbuffer, depthbuffer, stencilbuffer)
         this.m_textureUnits.push(new TextureUnit());
     this.m_lastError = gl.NO_ERROR;
     // this.m_textures = new ObjectManager();
-    this.m_pixelUnpackRowLength   = 0;
-    this.m_pixelUnpackSkipRows    = 0;
-    this.m_pixelUnpackSkipPixels  = 0;
+    this.m_pixelUnpackRowLength = 0;
+    this.m_pixelUnpackSkipRows = 0;
+    this.m_pixelUnpackSkipPixels = 0;
     this.m_pixelUnpackImageHeight = 0;
-    this.m_pixelUnpackSkipImages  = 0;
-    this.m_pixelUnpackAlignment   = 4;
-    this.m_pixelPackAlignment     = 4;
-    this.m_clearColor    = [0, 0, 0, 0];
-    this.m_clearDepth    = 1;
-    this.m_clearStencil  = 0;
+    this.m_pixelUnpackSkipImages = 0;
+    this.m_pixelUnpackAlignment = 4;
+    this.m_pixelPackAlignment = 4;
+    this.m_clearColor = [0, 0, 0, 0];
+    this.m_clearDepth = 1;
+    this.m_clearStencil = 0;
     this.m_scissorBox = this.m_viewport;
-    this.m_blendEnabled              = false;
-    this.m_scissorEnabled            = false;
-    this.m_depthTestEnabled          = false;
-    this.m_stencilTestEnabled        = false;
-    this.m_polygonOffsetFillEnabled  = false;
-    this.m_primitiveRestartFixedIndex    = true; //always on
+    this.m_blendEnabled = false;
+    this.m_scissorEnabled = false;
+    this.m_depthTestEnabled = false;
+    this.m_stencilTestEnabled = false;
+    this.m_polygonOffsetFillEnabled = false;
+    this.m_primitiveRestartFixedIndex = true; //always on
     this.m_primitiveRestartSettableIndex = true; //always on
     this.m_stencil = [];
     for (var type in rrDefs.FaceType)
         this.m_stencil[rrDefs.FaceType[type]] = new StencilState();
     this.m_depthFunc = gl.LESS;
-    this.m_depthRangeNear      = 0;
-    this.m_depthRangeFar       = 1;
+    this.m_depthRangeNear = 0;
+    this.m_depthRangeFar = 1;
     this.m_polygonOffsetFactor = 0;
-    this.m_polygonOffsetUnits  = 0;
-    this.m_blendModeRGB        = gl.FUNC_ADD;
-    this.m_blendModeAlpha      = gl.FUNC_ADD;
-    this.m_blendFactorSrcRGB   = gl.ONE;
-    this.m_blendFactorDstRGB   = gl.ZERO;
+    this.m_polygonOffsetUnits = 0;
+    this.m_blendModeRGB = gl.FUNC_ADD;
+    this.m_blendModeAlpha = gl.FUNC_ADD;
+    this.m_blendFactorSrcRGB = gl.ONE;
+    this.m_blendFactorDstRGB = gl.ZERO;
     this.m_blendFactorSrcAlpha = gl.ONE;
     this.m_blendFactorDstAlpha = gl.ZERO;
-    this.m_blendColor          = [0, 0, 0, 0];
+    this.m_blendColor = [0, 0, 0, 0];
     this.m_colorMask = [true, true, true, true];
     this.m_depthMask = true;
     this.m_defaultVAO = new VertexArray(this.m_limits.maxVertexAttribs);
@@ -798,9 +788,9 @@ var ReferenceContext = function(limits, colorbuffer, depthbuffer, stencilbuffer)
     this.m_uniformBufferBinding = null;
     this.m_readFramebufferBinding = null;
     this.m_drawFramebufferBinding = null;
-    this.m_renderbufferBinding    = null;
+    this.m_renderbufferBinding = null;
     this.m_programs = [];
-    this.m_currentProgram         = null;
+    this.m_currentProgram = null;
     this.m_currentAttribs = [];
     for (var i = 0; i < this.m_limits.maxVertexAttribs; i++)
         this.m_currentAttribs.push(new GenericVec4());
@@ -808,8 +798,8 @@ var ReferenceContext = function(limits, colorbuffer, depthbuffer, stencilbuffer)
 
     this.m_emptyTex2D = new TextureContainer();
     this.m_emptyTex2D.init(gl.TEXTURE_2D);
-    this.m_emptyTex2D.texture.getSampler().wrapS     = tcuTexture.WrapMode.CLAMP_TO_EDGE;
-    this.m_emptyTex2D.texture.getSampler().wrapT     = tcuTexture.WrapMode.CLAMP_TO_EDGE;
+    this.m_emptyTex2D.texture.getSampler().wrapS = tcuTexture.WrapMode.CLAMP_TO_EDGE;
+    this.m_emptyTex2D.texture.getSampler().wrapT = tcuTexture.WrapMode.CLAMP_TO_EDGE;
     this.m_emptyTex2D.texture.getSampler().minFilter = tcuTexture.FilterMode.NEAREST;
     this.m_emptyTex2D.texture.getSampler().magFilter = tcuTexture.FilterMode.NEAREST;
     this.m_emptyTex2D.texture.allocLevel(0, new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.UNORM_INT8), 1, 1);
@@ -818,7 +808,7 @@ var ReferenceContext = function(limits, colorbuffer, depthbuffer, stencilbuffer)
 };
 
 ReferenceContext.prototype.getWidth = function() { return this.m_defaultColorbuffer.raw().getHeight(); };
-ReferenceContext.prototype.getHeight = function() { return  this.m_defaultColorbuffer.raw().getDepth(); };
+ReferenceContext.prototype.getHeight = function() { return this.m_defaultColorbuffer.raw().getDepth(); };
 ReferenceContext.prototype.viewport = function(x, y, width, height) { this.m_viewport = [x, y, width, height]; };
 ReferenceContext.prototype.activeTexture = function(texture) {
     if (deMath.deInBounds32(texture, gl.TEXTURE0, gl.TEXTURE0 + this.m_textureUnits.length))
@@ -853,10 +843,10 @@ ReferenceContext.prototype.condtionalSetError = function(condition, error) {
 ReferenceContext.prototype.bindTexture = function(target, texture) {
     var unitNdx = this.m_activeTexture;
 
-    if (this.condtionalSetError((target != gl.TEXTURE_2D             &&
-                target != gl.TEXTURE_CUBE_MAP       &&
-                target != gl.TEXTURE_2D_ARRAY       &&
-                target != gl.TEXTURE_3D             &&
+    if (this.condtionalSetError((target != gl.TEXTURE_2D &&
+                target != gl.TEXTURE_CUBE_MAP &&
+                target != gl.TEXTURE_2D_ARRAY &&
+                target != gl.TEXTURE_3D &&
                 target != gl.TEXTURE_CUBE_MAP_ARRAY),
                 gl.INVALID_ENUM))
         return;
@@ -864,10 +854,10 @@ ReferenceContext.prototype.bindTexture = function(target, texture) {
     if (!texture) {
         // Clear binding.
         switch (target) {
-            case gl.TEXTURE_2D:             setTex2DBinding         (unitNdx, null); break;
-            case gl.TEXTURE_CUBE_MAP:       setTexCubeBinding       (unitNdx, null); break;
-            case gl.TEXTURE_2D_ARRAY:       setTex2DArrayBinding    (unitNdx, null); break;
-            case gl.TEXTURE_3D:             setTex3DBinding         (unitNdx, null); break;
+            case gl.TEXTURE_2D: setTex2DBinding (unitNdx, null); break;
+            case gl.TEXTURE_CUBE_MAP: setTexCubeBinding (unitNdx, null); break;
+            case gl.TEXTURE_2D_ARRAY: setTex2DArrayBinding (unitNdx, null); break;
+            case gl.TEXTURE_3D: setTex3DBinding (unitNdx, null); break;
             default:
                 throw new Error("Unrecognized target: " + target);
         }
@@ -887,12 +877,11 @@ ReferenceContext.prototype.bindTexture = function(target, texture) {
             if (this.condtionalSetError((texture.textureType != expectedType), gl.INVALID_OPERATION))
                  return;
         }
-        switch (target)
-        {
-            case gl.TEXTURE_2D:             setTex2DBinding         (unitNdx, texture);  break;
-            case gl.TEXTURE_CUBE_MAP:       setTexCubeBinding       (unitNdx, texture);  break;
-            case gl.TEXTURE_2D_ARRAY:       setTex2DArrayBinding    (unitNdx, texture);  break;
-            case gl.TEXTURE_3D:             setTex3DBinding         (unitNdx, texture);  break;
+        switch (target) {
+            case gl.TEXTURE_2D: setTex2DBinding (unitNdx, texture); break;
+            case gl.TEXTURE_CUBE_MAP: setTexCubeBinding (unitNdx, texture); break;
+            case gl.TEXTURE_2D_ARRAY: setTex2DArrayBinding (unitNdx, texture); break;
+            case gl.TEXTURE_3D: setTex3DBinding (unitNdx, texture); break;
             default:
                 throw new Error("Unrecognized target: " + target);
         }
@@ -900,14 +889,12 @@ ReferenceContext.prototype.bindTexture = function(target, texture) {
 };
 
 ReferenceContext.prototype.setTex2DBinding = function(unitNdx, texture) {
-    if (this.m_textureUnits[unitNdx].tex2DBinding)
-    {
+    if (this.m_textureUnits[unitNdx].tex2DBinding) {
         // this.m_textures.releaseReference(this.m_textureUnits[unitNdx].tex2DBinding);
         this.m_textureUnits[unitNdx].tex2DBinding = null;
     }
 
-    if (texture)
-    {
+    if (texture) {
         // this.m_textures.acquireReference(texture);
         this.m_textureUnits[unitNdx].tex2DBinding = texture;
     }
@@ -916,13 +903,12 @@ ReferenceContext.prototype.setTex2DBinding = function(unitNdx, texture) {
 ReferenceContext.prototype.createTexture = function() { return new TextureContainer(); };
 
 ReferenceContext.prototype.bindFramebuffer = function(target, fbo) {
-    if (this.condtionalSetError((target != gl.FRAMEBUFFER        &&
-                target != gl.DRAW_FRAMEBUFFER   &&
+    if (this.condtionalSetError((target != gl.FRAMEBUFFER &&
+                target != gl.DRAW_FRAMEBUFFER &&
                 target != gl.READ_FRAMEBUFFER), gl.INVALID_ENUM))
                 return;
-    for (var ndx = 0; ndx < 2; ndx++)
-    {
-        var            bindingTarget   = ndx ? gl.DRAW_FRAMEBUFFER         : gl.READ_FRAMEBUFFER;
+    for (var ndx = 0; ndx < 2; ndx++) {
+        var bindingTarget = ndx ? gl.DRAW_FRAMEBUFFER : gl.READ_FRAMEBUFFER;
 
         if (target != gl.FRAMEBUFFER && target != bindingTarget)
             continue; // Doesn't match this target.
@@ -946,7 +932,7 @@ ReferenceContext.prototype.bindRenderbuffer = function(target, rbo) {
 ReferenceContext.prototype.createRenderbuffer = function() { return new Renderbuffer(); };
 
 ReferenceContext.prototype.pixelStorei = function(pname, param) {
-    switch (pname)    {
+    switch (pname) {
         case gl.UNPACK_ALIGNMENT:
             if (this.condtionalSetError((param != 1 && param != 2 && param != 4 && param != 8), gl.INVALID_VALUE)) return;
             this.m_pixelUnpackAlignment = param;
@@ -988,10 +974,10 @@ ReferenceContext.prototype.pixelStorei = function(pname, param) {
 };
 
 ReferenceContext.prototype.clearColor = function(red, green, blue, alpha) {
-    this.m_clearColor = [deMath.clamp(red,  0, 1),
-                        deMath.clamp(green,    0, 1),
+    this.m_clearColor = [deMath.clamp(red, 0, 1),
+                        deMath.clamp(green, 0, 1),
                         deMath.clamp(blue, 0, 1),
-                        deMath.clamp(alpha,    0, 1)];
+                        deMath.clamp(alpha, 0, 1)];
 };
 
 ReferenceContext.prototype.clearDepthf = function(depth) {
@@ -1010,11 +996,11 @@ ReferenceContext.prototype.scissor = function(x, y, width, height) {
 
 ReferenceContext.prototype.enable = function(cap) {
     switch (cap) {
-        case gl.BLEND:                  this.m_blendEnabled              = true; break;
-        case gl.SCISSOR_TEST:           this.m_scissorEnabled            = true; break;
-        case gl.DEPTH_TEST:             this.m_depthTestEnabled          = true; break;
-        case gl.STENCIL_TEST:           this.m_stencilTestEnabled        = true; break;
-        case gl.POLYGON_OFFSET_FILL:    this.m_polygonOffsetFillEnabled  = true; break;
+        case gl.BLEND: this.m_blendEnabled = true; break;
+        case gl.SCISSOR_TEST: this.m_scissorEnabled = true; break;
+        case gl.DEPTH_TEST: this.m_depthTestEnabled = true; break;
+        case gl.STENCIL_TEST: this.m_stencilTestEnabled = true; break;
+        case gl.POLYGON_OFFSET_FILL: this.m_polygonOffsetFillEnabled = true; break;
 
         case gl.DITHER:
             // Not implemented - just ignored.
@@ -1028,11 +1014,11 @@ ReferenceContext.prototype.enable = function(cap) {
 
 ReferenceContext.prototype.disable = function(cap) {
     switch (cap) {
-        case gl.BLEND:                  this.m_blendEnabled              = false; break;
-        case gl.SCISSOR_TEST:           this.m_scissorEnabled            = false; break;
-        case gl.DEPTH_TEST:             this.m_depthTestEnabled          = false; break;
-        case gl.STENCIL_TEST:           this.m_stencilTestEnabled        = false; break;
-        case gl.POLYGON_OFFSET_FILL:    this.m_polygonOffsetFillEnabled  = false; break;
+        case gl.BLEND: this.m_blendEnabled = false; break;
+        case gl.SCISSOR_TEST: this.m_scissorEnabled = false; break;
+        case gl.DEPTH_TEST: this.m_depthTestEnabled = false; break;
+        case gl.STENCIL_TEST: this.m_stencilTestEnabled = false; break;
+        case gl.POLYGON_OFFSET_FILL: this.m_polygonOffsetFillEnabled = false; break;
 
         case gl.DITHER:
             // Not implemented - just ignored.
@@ -1048,10 +1034,9 @@ ReferenceContext.prototype.stencilFunc = function(func, ref, mask) {
     this.stencilFuncSeparate(gl.FRONT_AND_BACK, func, ref, mask);
 }
 
-ReferenceContext.prototype.stencilFuncSeparate = function(face, func, ref, mask)
-{
-    var  setFront    = face == gl.FRONT || face == gl.FRONT_AND_BACK;
-    var  setBack     = face == gl.BACK || face == gl.FRONT_AND_BACK;
+ReferenceContext.prototype.stencilFuncSeparate = function(face, func, ref, mask) {
+    var setFront = face == gl.FRONT || face == gl.FRONT_AND_BACK;
+    var setBack = face == gl.BACK || face == gl.FRONT_AND_BACK;
 
     if (this.condtionalSetError(!isValidCompareFunc(func), gl.INVALID_ENUM))
         return;
@@ -1060,18 +1045,16 @@ ReferenceContext.prototype.stencilFuncSeparate = function(face, func, ref, mask)
 
     for (var type in rrDefs.FaceType) {
         if ((type == rrDefs.FaceType.FACETYPE_FRONT && setFront) ||
-            (type == rrDefs.FaceType.FACETYPE_BACK && setBack))
-        {
-            this.m_stencil[type].func    = func;
-            this.m_stencil[type].ref     = ref;
-            this.m_stencil[type].opMask  = mask;
+            (type == rrDefs.FaceType.FACETYPE_BACK && setBack)) {
+            this.m_stencil[type].func = func;
+            this.m_stencil[type].ref = ref;
+            this.m_stencil[type].opMask = mask;
         }
     }
 };
 
 var isValidCompareFunc = function(func) {
-    switch (func)
-    {
+    switch (func) {
         case gl.NEVER:
         case gl.LESS:
         case gl.LEQUAL:
@@ -1088,8 +1071,7 @@ var isValidCompareFunc = function(func) {
 };
 
 var isValidStencilOp = function(op) {
-    switch (op)
-    {
+    switch (op) {
         case gl.KEEP:
         case gl.ZERO:
         case gl.REPLACE:
@@ -1110,11 +1092,11 @@ ReferenceContext.prototype.stencilOp = function(sfail, dpfail, dppass) {
 }
 
 ReferenceContext.prototype.stencilOpSeparate = function(face, sfail, dpfail, dppass) {
-    var  setFront    = face == gl.FRONT || face == gl.FRONT_AND_BACK;
-    var  setBack     = face == gl.BACK || face == gl.FRONT_AND_BACK;
+    var setFront = face == gl.FRONT || face == gl.FRONT_AND_BACK;
+    var setBack = face == gl.BACK || face == gl.FRONT_AND_BACK;
 
-    if (this.condtionalSetError((!isValidStencilOp(sfail)    ||
-                !isValidStencilOp(dpfail)   ||
+    if (this.condtionalSetError((!isValidStencilOp(sfail) ||
+                !isValidStencilOp(dpfail) ||
                 !isValidStencilOp(dppass)),
                 gl.INVALID_ENUM))
         return;
@@ -1124,11 +1106,10 @@ ReferenceContext.prototype.stencilOpSeparate = function(face, sfail, dpfail, dpp
 
    for (var type in rrDefs.FaceType) {
         if ((type == rrDefs.FaceType.FACETYPE_FRONT && setFront) ||
-            (type == rrDefs.FaceType.FACETYPE_BACK && setBack))
-        {
-            this.m_stencil[type].opStencilFail   = sfail;
-            this.m_stencil[type].opDepthFail     = dpfail;
-            this.m_stencil[type].opDepthPass     = dppass;
+            (type == rrDefs.FaceType.FACETYPE_BACK && setBack)) {
+            this.m_stencil[type].opStencilFail = sfail;
+            this.m_stencil[type].opDepthFail = dpfail;
+            this.m_stencil[type].opDepthPass = dppass;
         }
     }
 };
@@ -1150,16 +1131,15 @@ ReferenceContext.prototype.polygonOffset = function(factor, units) {
 };
 
 var isValidBlendEquation = function(mode) {
-    return mode == gl.FUNC_ADD              ||
-           mode == gl.FUNC_SUBTRACT         ||
+    return mode == gl.FUNC_ADD ||
+           mode == gl.FUNC_SUBTRACT ||
            mode == gl.FUNC_REVERSE_SUBTRACT ||
-           mode == gl.MIN                   ||
+           mode == gl.MIN ||
            mode == gl.MAX;
 };
 
 var isValidBlendFactor = function(factor) {
-    switch (factor)
-    {
+    switch (factor) {
         case gl.ZERO:
         case gl.ONE:
         case gl.SRC_COLOR:
@@ -1185,8 +1165,8 @@ var isValidBlendFactor = function(factor) {
 ReferenceContext.prototype.blendEquation = function(mode) {
     if (this.condtionalSetError(!isValidBlendEquation(mode), gl.INVALID_ENUM))
         return;
-    this.m_blendModeRGB      = mode;
-    this.m_blendModeAlpha    = mode;
+    this.m_blendModeRGB = mode;
+    this.m_blendModeAlpha = mode;
 };
 
 ReferenceContext.prototype.blendEquationSeparate = function(modeRGB, modeAlpha) {
@@ -1195,8 +1175,8 @@ ReferenceContext.prototype.blendEquationSeparate = function(modeRGB, modeAlpha) 
                 gl.INVALID_ENUM))
         return;
 
-    this.m_blendModeRGB      = modeRGB;
-    this.m_blendModeAlpha    = modeAlpha;
+    this.m_blendModeRGB = modeRGB;
+    this.m_blendModeAlpha = modeAlpha;
 };
 
 ReferenceContext.prototype.blendFunc = function(src, dst) {
@@ -1205,31 +1185,31 @@ ReferenceContext.prototype.blendFunc = function(src, dst) {
                 gl.INVALID_ENUM))
         return;
 
-    this.m_blendFactorSrcRGB     = src;
-    this.m_blendFactorSrcAlpha   = src;
-    this.m_blendFactorDstRGB     = dst;
-    this.m_blendFactorDstAlpha   = dst;
+    this.m_blendFactorSrcRGB = src;
+    this.m_blendFactorSrcAlpha = src;
+    this.m_blendFactorDstRGB = dst;
+    this.m_blendFactorDstAlpha = dst;
 };
 
 ReferenceContext.prototype.blendFuncSeparate = function(srcRGB, dstRGB, srcAlpha, dstAlpha) {
-    if (this.condtionalSetError(!isValidBlendFactor(srcRGB)     ||
-                !isValidBlendFactor(dstRGB)     ||
-                !isValidBlendFactor(srcAlpha)   ||
+    if (this.condtionalSetError(!isValidBlendFactor(srcRGB) ||
+                !isValidBlendFactor(dstRGB) ||
+                !isValidBlendFactor(srcAlpha) ||
                 !isValidBlendFactor(dstAlpha),
                 gl.INVALID_ENUM))
         return;
 
-    this.m_blendFactorSrcRGB     = srcRGB;
-    this.m_blendFactorSrcAlpha   = srcAlpha;
-    this.m_blendFactorDstRGB     = dstRGB;
-    this.m_blendFactorDstAlpha   = dstAlpha;
+    this.m_blendFactorSrcRGB = srcRGB;
+    this.m_blendFactorSrcAlpha = srcAlpha;
+    this.m_blendFactorDstRGB = dstRGB;
+    this.m_blendFactorDstAlpha = dstAlpha;
 };
 
-ReferenceContext.prototype.blendColor = function(red, green, blue, alpha){
-    this.m_blendColor = [deMath.clamp(red,  0, 1),
-                        deMath.clamp(green,    0, 1),
+ReferenceContext.prototype.blendColor = function(red, green, blue, alpha) {
+    this.m_blendColor = [deMath.clamp(red, 0, 1),
+                        deMath.clamp(green, 0, 1),
                         deMath.clamp(blue, 0, 1),
-                        deMath.clamp(alpha,    0, 1)];
+                        deMath.clamp(alpha, 0, 1)];
 };
 
 ReferenceContext.prototype.colorMask = function(r, g, b, a) {
@@ -1245,17 +1225,17 @@ ReferenceContext.prototype.stencilMask = function(mask) {
 };
 
 ReferenceContext.prototype.stencilMaskSeparate = function(face, mask) {
-    var  setFront    = face == gl.FRONT || face == gl.FRONT_AND_BACK;
-    var  setBack     = face == gl.BACK || face == gl.FRONT_AND_BACK;
+    var setFront = face == gl.FRONT || face == gl.FRONT_AND_BACK;
+    var setBack = face == gl.BACK || face == gl.FRONT_AND_BACK;
 
     if (this.condtionalSetError(!setFront && !setBack, gl.INVALID_ENUM))
         return;
 
-    if (setFront)   this.m_stencil[rrDefs.FaceType.FACETYPE_FRONT].writeMask = mask;
-    if (setBack)    this.m_stencil[rrDefs.FaceType.FACETYPE_BACK].writeMask  = mask;
+    if (setFront) this.m_stencil[rrDefs.FaceType.FACETYPE_FRONT].writeMask = mask;
+    if (setBack) this.m_stencil[rrDefs.FaceType.FACETYPE_BACK].writeMask = mask;
 };
 
-ReferenceContext.prototype.bindVertexArray = function(array){
+ReferenceContext.prototype.bindVertexArray = function(array) {
     if (array)
         this.m_vertexArrayBinding = array;
     else
@@ -1265,18 +1245,18 @@ ReferenceContext.prototype.bindVertexArray = function(array){
 ReferenceContext.prototype.createVertexArray = function() { return new VertexArray(this.m_limits.maxVertexAttribs); };
 
 ReferenceContext.prototype.vertexAttribPointer = function(index, rawSize, type, normalized, stride, offset) {
-    var allowBGRA    = false;
+    var allowBGRA = false;
     var effectiveSize = rawSize;
 
     if (this.condtionalSetError(index >= this.m_limits.maxVertexAttribs, gl.INVALID_VALUE))
         return;
     if (this.condtionalSetError(effectiveSize <= 0 || effectiveSize > 4, gl.INVALID_VALUE))
         return;
-    if (this.condtionalSetError(type != gl.BYTE                 &&  type != gl.UNSIGNED_BYTE    &&
-                type != gl.SHORT                &&  type != gl.UNSIGNED_SHORT   &&
-                type != gl.INT                  &&  type != gl.UNSIGNED_INT     &&
-                type != gl.FLOAT                &&  type != gl.HALF_FLOAT       &&
-                type != gl.INT_2_10_10_10_REV   &&  type != gl.UNSIGNED_INT_2_10_10_10_REV, gl.INVALID_ENUM))
+    if (this.condtionalSetError(type != gl.BYTE && type != gl.UNSIGNED_BYTE &&
+                type != gl.SHORT && type != gl.UNSIGNED_SHORT &&
+                type != gl.INT && type != gl.UNSIGNED_INT &&
+                type != gl.FLOAT && type != gl.HALF_FLOAT &&
+                type != gl.INT_2_10_10_10_REV && type != gl.UNSIGNED_INT_2_10_10_10_REV, gl.INVALID_ENUM))
         return;
     if (this.condtionalSetError(normalized != true && normalized != false, gl.INVALID_ENUM))
         return;
@@ -1289,14 +1269,14 @@ ReferenceContext.prototype.vertexAttribPointer = function(index, rawSize, type, 
 
     var array = this.m_vertexArrayBinding.m_arrays[index];
 
-    array.size            = rawSize;
-    array.stride          = stride;
-    array.type            = type;
-    array.normalized      = normalized;
-    array.integer         = false;
-    array.offset         = offset;
+    array.size = rawSize;
+    array.stride = stride;
+    array.type = type;
+    array.normalized = normalized;
+    array.integer = false;
+    array.offset = offset;
 
-    array.bufferBinding   = this.m_arrayBufferBinding;
+    array.bufferBinding = this.m_arrayBufferBinding;
 };
 
 ReferenceContext.prototype.vertexAttribIPointer = function(index, size, type, stride, offset) {
@@ -1304,9 +1284,9 @@ ReferenceContext.prototype.vertexAttribIPointer = function(index, size, type, st
         return;
     if (this.condtionalSetError(size <= 0 || size > 4, gl.INVALID_VALUE))
         return;
-    if (this.condtionalSetError(type != gl.BYTE                 &&  type != gl.UNSIGNED_BYTE    &&
-                type != gl.SHORT                &&  type != gl.UNSIGNED_SHORT   &&
-                type != gl.INT                  &&  type != gl.UNSIGNED_INT, gl.INVALID_ENUM))
+    if (this.condtionalSetError(type != gl.BYTE && type != gl.UNSIGNED_BYTE &&
+                type != gl.SHORT && type != gl.UNSIGNED_SHORT &&
+                type != gl.INT && type != gl.UNSIGNED_INT, gl.INVALID_ENUM))
         return;
     if (this.condtionalSetError(stride < 0, gl.INVALID_VALUE))
         return;
@@ -1315,14 +1295,14 @@ ReferenceContext.prototype.vertexAttribIPointer = function(index, size, type, st
 
     var array = this.m_vertexArrayBinding.m_arrays[index];
 
-    array.size            = size;
-    array.stride          = stride;
-    array.type            = type;
-    array.normalized      = false;
-    array.integer         = true;
-    array.offset         = offset;
+    array.size = size;
+    array.stride = stride;
+    array.type = type;
+    array.normalized = false;
+    array.integer = true;
+    array.offset = offset;
 
-    array.bufferBinding   = this.m_arrayBufferBinding;
+    array.bufferBinding = this.m_arrayBufferBinding;
 };
 
 ReferenceContext.prototype.enableVertexAttribArray = function(index) {
@@ -1517,16 +1497,15 @@ ReferenceContext.prototype.lineWidth = function(w) {
 };
 
 var isValidBufferTarget = function(target) {
-    switch (target)
-    {
-        case  gl.ARRAY_BUFFER:
-        case  gl.COPY_READ_BUFFER:
-        case  gl.COPY_WRITE_BUFFER:
-        case  gl.ELEMENT_ARRAY_BUFFER:
-        case  gl.PIXEL_PACK_BUFFER:
-        case  gl.PIXEL_UNPACK_BUFFER:
-        case  gl.TRANSFORM_FEEDBACK_BUFFER:
-        case  gl.UNIFORM_BUFFER:
+    switch (target) {
+        case gl.ARRAY_BUFFER:
+        case gl.COPY_READ_BUFFER:
+        case gl.COPY_WRITE_BUFFER:
+        case gl.ELEMENT_ARRAY_BUFFER:
+        case gl.PIXEL_PACK_BUFFER:
+        case gl.PIXEL_UNPACK_BUFFER:
+        case gl.TRANSFORM_FEEDBACK_BUFFER:
+        case gl.UNIFORM_BUFFER:
             return true;
 
         default:
@@ -1535,39 +1514,37 @@ var isValidBufferTarget = function(target) {
 }
 
 ReferenceContext.prototype.setBufferBinding = function(target, buffer) {
-    switch (target)
-    {
-        case  gl.ARRAY_BUFFER:               this.m_arrayBufferBinding                           = buffer;     break
-        case  gl.COPY_READ_BUFFER:           this.m_copyReadBufferBinding                        = buffer;     break
-        case  gl.COPY_WRITE_BUFFER:          this.m_copyWriteBufferBinding                       = buffer;     break
-        case  gl.ELEMENT_ARRAY_BUFFER:       this.m_vertexArrayBinding.m_elementArrayBufferBinding = buffer;     break
-        case  gl.PIXEL_PACK_BUFFER:          this.m_pixelPackBufferBinding                       = buffer;     break
-        case  gl.PIXEL_UNPACK_BUFFER:        this.m_pixelUnpackBufferBinding                     = buffer;     break
-        case  gl.TRANSFORM_FEEDBACK_BUFFER:  this.m_transformFeedbackBufferBinding               = buffer;     break
-        case  gl.UNIFORM_BUFFER:             this.m_uniformBufferBinding                         = buffer;     break
+    switch (target) {
+        case gl.ARRAY_BUFFER: this.m_arrayBufferBinding = buffer; break
+        case gl.COPY_READ_BUFFER: this.m_copyReadBufferBinding = buffer; break
+        case gl.COPY_WRITE_BUFFER: this.m_copyWriteBufferBinding = buffer; break
+        case gl.ELEMENT_ARRAY_BUFFER: this.m_vertexArrayBinding.m_elementArrayBufferBinding = buffer; break
+        case gl.PIXEL_PACK_BUFFER: this.m_pixelPackBufferBinding = buffer; break
+        case gl.PIXEL_UNPACK_BUFFER: this.m_pixelUnpackBufferBinding = buffer; break
+        case gl.TRANSFORM_FEEDBACK_BUFFER: this.m_transformFeedbackBufferBinding = buffer; break
+        case gl.UNIFORM_BUFFER: this.m_uniformBufferBinding = buffer; break
         default:
             throw new Error("Unrecognized target: " + target);
     }
 };
 
 ReferenceContext.prototype.getBufferBinding = function(target) {
-    switch (target)
-    {
-        case  gl.ARRAY_BUFFER:               return this.m_arrayBufferBinding;
-        case  gl.COPY_READ_BUFFER:           return this.m_copyReadBufferBinding;
-        case  gl.COPY_WRITE_BUFFER:          return this.m_copyWriteBufferBinding;
-        case  gl.ELEMENT_ARRAY_BUFFER:       return this.m_vertexArrayBinding.m_elementArrayBufferBinding;
-        case  gl.PIXEL_PACK_BUFFER:          return this.m_pixelPackBufferBinding;
-        case  gl.PIXEL_UNPACK_BUFFER:        return this.m_pixelUnpackBufferBinding;
-        case  gl.TRANSFORM_FEEDBACK_BUFFER:  return this.m_transformFeedbackBufferBinding;
-        case  gl.UNIFORM_BUFFER:             return this.m_uniformBufferBinding;
+    switch (target) {
+        case gl.ARRAY_BUFFER: return this.m_arrayBufferBinding;
+        case gl.COPY_READ_BUFFER: return this.m_copyReadBufferBinding;
+        case gl.COPY_WRITE_BUFFER: return this.m_copyWriteBufferBinding;
+        case gl.ELEMENT_ARRAY_BUFFER: return this.m_vertexArrayBinding.m_elementArrayBufferBinding;
+        case gl.PIXEL_PACK_BUFFER: return this.m_pixelPackBufferBinding;
+        case gl.PIXEL_UNPACK_BUFFER: return this.m_pixelUnpackBufferBinding;
+        case gl.TRANSFORM_FEEDBACK_BUFFER: return this.m_transformFeedbackBufferBinding;
+        case gl.UNIFORM_BUFFER: return this.m_uniformBufferBinding;
         default:
             throw new Error("Unrecognized target: " + target);
     }
 };
 
 ReferenceContext.prototype.bindBuffer = function(target, buffer) {
-    if (this.condtionalSetError(!isValidBufferTarget(target),  gl.INVALID_ENUM))
+    if (this.condtionalSetError(!isValidBufferTarget(target), gl.INVALID_ENUM))
         return;
 
     this.setBufferBinding(target, buffer);
@@ -1605,18 +1582,17 @@ ReferenceContext.prototype.bufferSubData = function(target, offset, data) {
     buffer.setSubData(offset, data);
 };
 
-
 ReferenceContext.prototype.readPixels = function(x, y, width, height, format, type, pixels) {
-    var    src = this.getReadColorbuffer();
+    var src = this.getReadColorbuffer();
 
     // Map transfer format.
     var transferFmt = gluTextureUtil.mapGLTransferFormat(format, type);
 
     // Clamp input values
-    var copyX         = deMath.clamp(x,      0, src.raw().getHeight());
-    var copyY         = deMath.clamp(y,      0, src.raw().getDepth());
-    var copyWidth     = deMath.clamp(width,  0, src.raw().getHeight()-x);
-    var copyHeight    = deMath.clamp(height, 0, src.raw().getDepth()-y);
+    var copyX = deMath.clamp(x, 0, src.raw().getHeight());
+    var copyY = deMath.clamp(y, 0, src.raw().getDepth());
+    var copyWidth = deMath.clamp(width, 0, src.raw().getHeight()-x);
+    var copyHeight = deMath.clamp(height, 0, src.raw().getDepth()-y);
 
     var data;
     var offset;
@@ -1670,10 +1646,9 @@ ReferenceContext.prototype.getFboAttachment = function(framebuffer, point) {
                 return texture.getLevel(attachment.level);
             else if (texture.getType() == TextureType.TYPE_CUBE_MAP)
                 return texture.getFace(attachment.level, texTargetToFace(attachment.texTarget));
-            else if (texture.getType() == TextureType.TYPE_2D_ARRAY   ||
-                     texture.getType() == TextureType.TYPE_3D         ||
-                     texture.getType() == TextureType.TYPE_CUBE_MAP_ARRAY)
-            {
+            else if (texture.getType() == TextureType.TYPE_2D_ARRAY ||
+                     texture.getType() == TextureType.TYPE_3D ||
+                     texture.getType() == TextureType.TYPE_CUBE_MAP_ARRAY) {
                 var level = texture.getLevel(attachment.level);
 
                 return new tcuTexture.PixelBufferAccess({
@@ -1685,8 +1660,7 @@ ReferenceContext.prototype.getFboAttachment = function(framebuffer, point) {
                     slicePitch: 0,
                     data: level.getDataPtr(),
                     offset: level.getSlicePitch() * attachment.layer});
-            }
-            else
+            } else
                 return nullAccess();
         }
 
@@ -1700,7 +1674,7 @@ ReferenceContext.prototype.getFboAttachment = function(framebuffer, point) {
     }
 }
 
-ReferenceContext.prototype.getReadColorbuffer = function()  {
+ReferenceContext.prototype.getReadColorbuffer = function() {
     if (this.m_readFramebufferBinding)
          return rrMultisamplePixelBufferAccess.fromSinglesampleAccess(this.getFboAttachment(this.m_readFramebufferBinding, AttachmentPoint.ATTACHMENTPOINT_COLOR0));
     else
@@ -1712,8 +1686,8 @@ ReferenceContext.prototype.drawArrays = function(mode, first, count) {
 };
 
 ReferenceContext.prototype.checkFramebufferStatus = function(target) {
-    if (this.condtionalSetError(target != gl.FRAMEBUFFER        &&
-                target != gl.DRAW_FRAMEBUFFER   &&
+    if (this.condtionalSetError(target != gl.FRAMEBUFFER &&
+                target != gl.DRAW_FRAMEBUFFER &&
                 target != gl.READ_FRAMEBUFFER, gl.INVALID_ENUM))
         return 0;
 
@@ -1724,22 +1698,22 @@ ReferenceContext.prototype.checkFramebufferStatus = function(target) {
     if (!framebufferBinding)
         return gl.FRAMEBUFFER_COMPLETE;
 
-    var     width               = -1;
-    var     height              = -1;
-    var    hasAttachment       = false;
-    var    attachmentComplete  = true;
-    var    dimensionsOk        = true;
+    var width = -1;
+    var height = -1;
+    var hasAttachment = false;
+    var attachmentComplete = true;
+    var dimensionsOk = true;
 
     for (var key in AttachmentPoint) {
         var point = AttachmentPoint[key];
-        var  attachment          = framebufferBinding.getAttachment(point);
-        var                             attachmentWidth     = 0;
-        var                             attachmentHeight    = 0;
-        var              attachmentFormat;
+        var attachment = framebufferBinding.getAttachment(point);
+        var attachmentWidth = 0;
+        var attachmentHeight = 0;
+        var attachmentFormat;
 
         if (attachment.type == AttachmentType.ATTACHMENTTYPE_TEXTURE) {
             /** @type {TextureContainer} */ var container = attachment.object;
-            var    level;
+            var level;
 
             if (attachment.texTarget == TexTarget.TEXTARGET_2D) {
                 DE_ASSERT(container.textureType == TextureType.TYPE_2D);
@@ -1747,68 +1721,57 @@ ReferenceContext.prototype.checkFramebufferStatus = function(target) {
 
                 if (tex2D.hasLevel(attachment.level))
                     level = tex2D.getLevel(attachment.level);
-            }
-            else if (deMath.deInRange32(attachment.texTarget, TexTarget.TEXTARGET_CUBE_MAP_POSITIVE_X,
-                                                      TexTarget.TEXTARGET_CUBE_MAP_NEGATIVE_Z))
-            {
-                DE_ASSERT(container.textureType  == TextureType.TYPE_CUBE_MAP);
+            } else if (deMath.deInRange32(attachment.texTarget, TexTarget.TEXTARGET_CUBE_MAP_POSITIVE_X,
+                                                      TexTarget.TEXTARGET_CUBE_MAP_NEGATIVE_Z)) {
+                DE_ASSERT(container.textureType == TextureType.TYPE_CUBE_MAP);
 
-                var  texCube = container.texture;
-                var face    = texTargetToFace(attachment.texTarget);
+                var texCube = container.texture;
+                var face = texTargetToFace(attachment.texTarget);
 
                 if (texCube.hasFace(attachment.level, face))
                     level = texCube.getFace(attachment.level, face);
-            }
-            else if (attachment.texTarget == TexTarget.TEXTARGET_2D_ARRAY)
-            {
+            } else if (attachment.texTarget == TexTarget.TEXTARGET_2D_ARRAY) {
                 DE_ASSERT(container.textureType == TextureType.TYPE_2D_ARRAY);
                 var tex2DArr = container.texture;
 
                 if (tex2DArr.hasLevel(attachment.level))
                     level = tex2DArr.getLevel(attachment.level); // \note Slice doesn't matter here.
-            }
-            else if (attachment.texTarget == TexTarget.TEXTARGET_3D)
-            {
+            } else if (attachment.texTarget == TexTarget.TEXTARGET_3D) {
                 DE_ASSERT(container.textureType == TextureType.TYPE_3D);
                 var tex3D = container.texture;
 
                 if (tex3D.hasLevel(attachment.level))
                     level = tex3D.getLevel(attachment.level); // \note Slice doesn't matter here.
-            }
-            else if (attachment.texTarget == TexTarget.TEXTARGET_CUBE_MAP_ARRAY)
-            {
+            } else if (attachment.texTarget == TexTarget.TEXTARGET_CUBE_MAP_ARRAY) {
                 DE_ASSERT(container.textureType == TextureType.TYPE_CUBE_MAP_ARRAY);
                 var texCubeArr = container.texture;
 
                 if (texCubeArr.hasLevel(attachment.level))
                     level = texCubeArr.getLevel(attachment.level); // \note Slice doesn't matter here.
-            }
-            else
+            } else
                 throw new Error("Framebuffer attached to a texture but no valid target specified");
 
-            attachmentWidth     = level.getWidth();
-            attachmentHeight    = level.getHeight();
-            attachmentFormat    = level.getFormat();
+            attachmentWidth = level.getWidth();
+            attachmentHeight = level.getHeight();
+            attachmentFormat = level.getFormat();
         } else if (attachment.type == AttachmentType.ATTACHMENTTYPE_RENDERBUFFER) {
             var renderbuffer =attachment.object;
 
-            attachmentWidth     = renderbuffer.getWidth();
-            attachmentHeight    = renderbuffer.getHeight();
-            attachmentFormat    = renderbuffer.getFormat();
-        }else
+            attachmentWidth = renderbuffer.getWidth();
+            attachmentHeight = renderbuffer.getHeight();
+            attachmentFormat = renderbuffer.getFormat();
+        } else
             continue; // Skip rest of checks.
 
-        if (!hasAttachment && attachmentWidth > 0 && attachmentHeight > 0)
-        {
-            width           = attachmentWidth;
-            height          = attachmentHeight;
-            hasAttachment   = true;
-        }
-        else if (attachmentWidth != width || attachmentHeight != height)
+        if (!hasAttachment && attachmentWidth > 0 && attachmentHeight > 0) {
+            width = attachmentWidth;
+            height = attachmentHeight;
+            hasAttachment = true;
+        } else if (attachmentWidth != width || attachmentHeight != height)
             dimensionsOk = false;
 
         // Validate attachment point compatibility.
-        switch (attachmentFormat.order){
+        switch (attachmentFormat.order) {
             case tcuTexture.ChannelOrder.R:
             case tcuTexture.ChannelOrder.RG:
             case tcuTexture.ChannelOrder.RGB:
@@ -1905,7 +1868,7 @@ ReferenceContext.prototype.drawElementsInstancedBaseVertex = function(mode, coun
     if (this.condtionalSetError(count >0 && !vao.m_elementArrayBufferBinding, gl.INVALID_OPERATION))
         return;
     // All is ok
-    var primitiveType   = sglrReferenceUtils.mapGLPrimitiveType(mode);
+    var primitiveType = sglrReferenceUtils.mapGLPrimitiveType(mode);
     var data = vao.m_elementArrayBufferBinding.getData();
     var indices = new rrRenderer.DrawIndices(data, sglrReferenceUtils.mapGLIndexType(type), baseVertex);
 
@@ -1918,37 +1881,37 @@ ReferenceContext.prototype.drawElementsInstancedBaseVertex = function(mode, coun
  */
 var getBufferRect = function(access) { return [0, 0, access.raw().getHeight(), access.raw().getDepth()]; };
 
-ReferenceContext.prototype.getDrawColorbuffer  = function() {
+ReferenceContext.prototype.getDrawColorbuffer = function() {
     if (this.m_drawFramebufferBinding)
         return rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.fromSinglesampleAccess(this.getFboAttachment(this.m_drawFramebufferBinding, AttachmentPoint.ATTACHMENTPOINT_COLOR0));
     return this.m_defaultColorbuffer;
 };
 
-ReferenceContext.prototype.getDrawDepthbuffer  = function() {
+ReferenceContext.prototype.getDrawDepthbuffer = function() {
     if (this.m_drawFramebufferBinding)
         return rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.fromSinglesampleAccess(this.getFboAttachment(this.m_drawFramebufferBinding, AttachmentPoint.ATTACHMENTPOINT_DEPTH));
     return this.m_defaultDepthbuffer;
 };
 
-ReferenceContext.prototype.getDrawStencilbuffer  = function() {
+ReferenceContext.prototype.getDrawStencilbuffer = function() {
     if (this.m_drawFramebufferBinding)
         return rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.fromSinglesampleAccess(this.getFboAttachment(this.m_drawFramebufferBinding, AttachmentPoint.ATTACHMENTPOINT_STENCIL));
     return this.m_defaultStencilbuffer;
 };
 
-ReferenceContext.prototype.getReadColorbuffer  = function() {
+ReferenceContext.prototype.getReadColorbuffer = function() {
     if (this.m_readFramebufferBinding)
         return rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.fromSinglesampleAccess(this.getFboAttachment(this.m_readFramebufferBinding, AttachmentPoint.ATTACHMENTPOINT_COLOR0));
     return this.m_defaultColorbuffer;
 };
 
-ReferenceContext.prototype.getReadDepthbuffer  = function() {
+ReferenceContext.prototype.getReadDepthbuffer = function() {
     if (this.m_readFramebufferBinding)
         return rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.fromSinglesampleAccess(this.getFboAttachment(this.m_readFramebufferBinding, AttachmentPoint.ATTACHMENTPOINT_DEPTH));
     return this.m_defaultDepthbuffer;
 };
 
-ReferenceContext.prototype.getReadStencilbuffer  = function() {
+ReferenceContext.prototype.getReadStencilbuffer = function() {
     if (this.m_readFramebufferBinding)
         return rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.fromSinglesampleAccess(this.getFboAttachment(this.m_readFramebufferBinding, AttachmentPoint.ATTACHMENTPOINT_STENCIL));
     return this.m_defaultStencilbuffer;
@@ -1973,26 +1936,24 @@ ReferenceContext.prototype.clear = function(buffers) {
     if (this.condtionalSetError((buffers & ~(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT|gl.STENCIL_BUFFER_BIT)) != 0, gl.INVALID_VALUE))
         return;
 
-    var    colorBuf0   = this.getDrawColorbuffer();
-    var    depthBuf    = this.getDrawDepthbuffer();
-    var    stencilBuf  = this.getDrawStencilbuffer();
-    var    hasColor0   = colorBuf0 && !colorBuf0.isEmpty();
-    var    hasDepth    = depthBuf && !depthBuf.isEmpty();
-    var    hasStencil  = stencilBuf && !stencilBuf.isEmpty();
-    var    baseArea    = this.m_scissorEnabled ? this.m_scissorBox : [0, 0, 0x7fffffff, 0x7fffffff];
+    var colorBuf0 = this.getDrawColorbuffer();
+    var depthBuf = this.getDrawDepthbuffer();
+    var stencilBuf = this.getDrawStencilbuffer();
+    var hasColor0 = colorBuf0 && !colorBuf0.isEmpty();
+    var hasDepth = depthBuf && !depthBuf.isEmpty();
+    var hasStencil = stencilBuf && !stencilBuf.isEmpty();
+    var baseArea = this.m_scissorEnabled ? this.m_scissorBox : [0, 0, 0x7fffffff, 0x7fffffff];
 
-    if (hasColor0 && (buffers & gl.COLOR_BUFFER_BIT) != 0)
-    {
-        var                               colorArea   = deMath.intersect(baseArea, getBufferRect(colorBuf0));
-        var    access      = colorBuf0.getSubregion(colorArea);
-        var                                c           = this.m_clearColor;
-        var                                maskUsed    = !this.m_colorMask[0] || !this.m_colorMask[1] || !this.m_colorMask[2] || !this.m_colorMask[3];
-        var                                maskZero    = !this.m_colorMask[0] && !this.m_colorMask[1] && !this.m_colorMask[2] && !this.m_colorMask[3];
+    if (hasColor0 && (buffers & gl.COLOR_BUFFER_BIT) != 0) {
+        var colorArea = deMath.intersect(baseArea, getBufferRect(colorBuf0));
+        var access = colorBuf0.getSubregion(colorArea);
+        var c = this.m_clearColor;
+        var maskUsed = !this.m_colorMask[0] || !this.m_colorMask[1] || !this.m_colorMask[2] || !this.m_colorMask[3];
+        var maskZero = !this.m_colorMask[0] && !this.m_colorMask[1] && !this.m_colorMask[2] && !this.m_colorMask[3];
 
         if (!maskUsed)
             access.clear(c);
-        else if (!maskZero)
-        {
+        else if (!maskZero) {
             for (var y = 0; y < access.raw().getDepth(); y++)
                 for (var x = 0; x < access.raw().getHeight(); x++)
                     for (var s = 0; s < access.getNumSamples(); s++)
@@ -2001,88 +1962,75 @@ ReferenceContext.prototype.clear = function(buffers) {
         // else all channels masked out
     }
 
-    if (hasDepth && (buffers & gl.DEPTH_BUFFER_BIT) != 0 && this.m_depthMask)
-    {
-        var                               depthArea               = deMath.intersect(baseArea, getBufferRect(depthBuf));
-        var    access                  = depthBuf.getSubregion(depthArea);
-        var                                isSharedDepthStencil    = depthBuf.raw().getFormat().order != tcuTexture.ChannelOrder.D;
+    if (hasDepth && (buffers & gl.DEPTH_BUFFER_BIT) != 0 && this.m_depthMask) {
+        var depthArea = deMath.intersect(baseArea, getBufferRect(depthBuf));
+        var access = depthBuf.getSubregion(depthArea);
+        var isSharedDepthStencil = depthBuf.raw().getFormat().order != tcuTexture.ChannelOrder.D;
 
-        if (isSharedDepthStencil)
-        {
+        if (isSharedDepthStencil) {
             // Slow path where stencil is masked out in write.
             for (var y = 0; y < access.raw().getDepth(); y++)
                 for (var x = 0; x < access.raw().getHeight(); x++)
                     for (var s = 0; s < access.getNumSamples(); s++)
                         writeDepthOnly(access, s, x, y, this.m_clearDepth);
-        }
-        else
+        } else
             access.clear([this.m_clearDepth, 0, 0, 0]);
     }
 
-    if (hasStencil && (buffers & gl.STENCIL_BUFFER_BIT) != 0)
-    {
-        var                               stencilArea             = deMath.intersect(baseArea, getBufferRect(stencilBuf));
-        var    access                  = stencilBuf.getSubregion(stencilArea);
-        var                                 stencilBits             = stencilBuf.raw().getFormat().getNumStencilBits();
-        var                                 stencil                 = maskStencil(stencilBits, this.m_clearStencil);
-        var                                isSharedDepthStencil    = stencilBuf.raw().getFormat().order != tcuTexture.ChannelOrder.S;
+    if (hasStencil && (buffers & gl.STENCIL_BUFFER_BIT) != 0) {
+        var stencilArea = deMath.intersect(baseArea, getBufferRect(stencilBuf));
+        var access = stencilBuf.getSubregion(stencilArea);
+        var stencilBits = stencilBuf.raw().getFormat().getNumStencilBits();
+        var stencil = maskStencil(stencilBits, this.m_clearStencil);
+        var isSharedDepthStencil = stencilBuf.raw().getFormat().order != tcuTexture.ChannelOrder.S;
 
-        if (isSharedDepthStencil || ((this.m_stencil[rrDefs.FaceType.FACETYPE_FRONT].writeMask & ((1<<stencilBits)-1)) != ((1<<stencilBits)-1)))
-        {
+        if (isSharedDepthStencil || ((this.m_stencil[rrDefs.FaceType.FACETYPE_FRONT].writeMask & ((1<<stencilBits)-1)) != ((1<<stencilBits)-1))) {
             // Slow path where depth or stencil is masked out in write.
             for (var y = 0; y < access.raw().getDepth(); y++)
                 for (var x = 0; x < access.raw().getHeight(); x++)
                     for (var s = 0; s < access.getNumSamples(); s++)
                         writeStencilOnly(access, s, x, y, stencil, this.m_stencil[rrDefs.FaceType.FACETYPE_FRONT].writeMask);
-        }
-        else
+        } else
             access.clear([0, 0, 0, stencil]);
     }
 };
 
-ReferenceContext.prototype.clearBufferiv = function(buffer, drawbuffer, value)
-{
+ReferenceContext.prototype.clearBufferiv = function(buffer, drawbuffer, value) {
     if (this.condtionalSetError(buffer != gl.COLOR && buffer != gl.STENCIL, gl.INVALID_ENUM))
         return;
     if (this.condtionalSetError(drawbuffer != 0, gl.INVALID_VALUE))
         return;
 
-    var    baseArea    = this.m_scissorEnabled ? this.m_scissorBox : [0, 0, 0x7fffffff, 0x7fffffff];
+    var baseArea = this.m_scissorEnabled ? this.m_scissorBox : [0, 0, 0x7fffffff, 0x7fffffff];
 
-    if (buffer == gl.COLOR)
-    {
-        var    colorBuf    = this.getDrawColorbuffer();
-        var                                maskUsed    = !this.m_colorMask[0] || !this.m_colorMask[1] || !this.m_colorMask[2] || !this.m_colorMask[3];
-        var                                maskZero    = !this.m_colorMask[0] && !this.m_colorMask[1] && !this.m_colorMask[2] && !this.m_colorMask[3];
+    if (buffer == gl.COLOR) {
+        var colorBuf = this.getDrawColorbuffer();
+        var maskUsed = !this.m_colorMask[0] || !this.m_colorMask[1] || !this.m_colorMask[2] || !this.m_colorMask[3];
+        var maskZero = !this.m_colorMask[0] && !this.m_colorMask[1] && !this.m_colorMask[2] && !this.m_colorMask[3];
 
-        if (!colorBuf.isEmpty() && !maskZero)
-        {
-        var                               colorArea   = deMath.intersect(baseArea, getBufferRect(colorBuf));
-        var    access      = colorBuf.getSubregion(colorArea);
+        if (!colorBuf.isEmpty() && !maskZero) {
+        var colorArea = deMath.intersect(baseArea, getBufferRect(colorBuf));
+        var access = colorBuf.getSubregion(colorArea);
 
             if (!maskUsed)
                 access.clear(value);
-            else
-            {
+            else {
             for (var y = 0; y < access.raw().getDepth(); y++)
                 for (var x = 0; x < access.raw().getHeight(); x++)
                     for (var s = 0; s < access.getNumSamples(); s++)
                         access.raw().setPixel(tcuTextureUtil.select(value, access.raw().getPixel(s, x, y), this.m_colorMask), s, x, y);
             }
         }
-    }
-    else
-    {
+    } else {
         if (buffer !== gl.STENCIL)
             throw new Error("Unexpected buffer type: " + buffer);
 
-        var    stencilBuf  = this.getDrawStencilbuffer();
+        var stencilBuf = this.getDrawStencilbuffer();
 
-        if (!stencilBuf.isEmpty() && this.m_stencil[rrDefs.FaceType.FACETYPE_FRONT].writeMask != 0)
-        {
-            var                               area        = deMath.intersect(baseArea, getBufferRect(stencilBuf));
-            var    access      = stencilBuf.getSubregion(area);
-            var                                 stencil     = value[0];
+        if (!stencilBuf.isEmpty() && this.m_stencil[rrDefs.FaceType.FACETYPE_FRONT].writeMask != 0) {
+            var area = deMath.intersect(baseArea, getBufferRect(stencilBuf));
+            var access = stencilBuf.getSubregion(area);
+            var stencil = value[0];
 
            for (var y = 0; y < access.raw().getDepth(); y++)
                 for (var x = 0; x < access.raw().getHeight(); x++)
@@ -2098,42 +2046,36 @@ ReferenceContext.prototype.clearBufferfv = function(buffer, drawbuffer, value) {
     if (this.condtionalSetError(drawbuffer != 0, gl.INVALID_VALUE))
         return;
 
-    var    baseArea    = this.m_scissorEnabled ? this.m_scissorBox : [0, 0, 0x7fffffff, 0x7fffffff];
+    var baseArea = this.m_scissorEnabled ? this.m_scissorBox : [0, 0, 0x7fffffff, 0x7fffffff];
 
-    if (buffer == gl.COLOR)
-    {
-        var    colorBuf    = this.getDrawColorbuffer();
-        var                                maskUsed    = !this.m_colorMask[0] || !this.m_colorMask[1] || !this.m_colorMask[2] || !this.m_colorMask[3];
-        var                                maskZero    = !this.m_colorMask[0] && !this.m_colorMask[1] && !this.m_colorMask[2] && !this.m_colorMask[3];
+    if (buffer == gl.COLOR) {
+        var colorBuf = this.getDrawColorbuffer();
+        var maskUsed = !this.m_colorMask[0] || !this.m_colorMask[1] || !this.m_colorMask[2] || !this.m_colorMask[3];
+        var maskZero = !this.m_colorMask[0] && !this.m_colorMask[1] && !this.m_colorMask[2] && !this.m_colorMask[3];
 
-        if (!colorBuf.isEmpty() && !maskZero)
-        {
-        var                               colorArea   = deMath.intersect(baseArea, getBufferRect(colorBuf));
-        var    access      = colorBuf.getSubregion(colorArea);
+        if (!colorBuf.isEmpty() && !maskZero) {
+        var colorArea = deMath.intersect(baseArea, getBufferRect(colorBuf));
+        var access = colorBuf.getSubregion(colorArea);
 
             if (!maskUsed)
                 access.clear(value);
-            else
-            {
+            else {
             for (var y = 0; y < access.raw().getDepth(); y++)
                 for (var x = 0; x < access.raw().getHeight(); x++)
                     for (var s = 0; s < access.getNumSamples(); s++)
                         access.raw().setPixel(tcuTextureUtil.select(value, access.raw().getPixel(s, x, y), this.m_colorMask), s, x, y);
             }
         }
-    }
-    else
-    {
+    } else {
        if (buffer !== gl.DEPTH)
             throw new Error("Unexpected buffer type: " + buffer);
 
         var depthBuf = this.getDrawDepthbuffer();
 
-        if (!depthBuf.isEmpty() && this.m_depthMask)
-        {
-            var                               area        = deMath.intersect(baseArea, getBufferRect(depthBuf));
-            var    access      = depthBuf.getSubregion(area);
-            var                               depth       = value[0];
+        if (!depthBuf.isEmpty() && this.m_depthMask) {
+            var area = deMath.intersect(baseArea, getBufferRect(depthBuf));
+            var access = depthBuf.getSubregion(area);
+            var depth = value[0];
 
              for (var y = 0; y < access.raw().getDepth(); y++)
                 for (var x = 0; x < access.raw().getHeight(); x++)
@@ -2143,28 +2085,25 @@ ReferenceContext.prototype.clearBufferfv = function(buffer, drawbuffer, value) {
     }
 };
 
-ReferenceContext.prototype.clearBufferuiv = function(buffer, drawbuffer, value)
-{
+ReferenceContext.prototype.clearBufferuiv = function(buffer, drawbuffer, value) {
     if (this.condtionalSetError(buffer != gl.COLOR, gl.INVALID_ENUM))
         return;
     if (this.condtionalSetError(drawbuffer != 0, gl.INVALID_VALUE))
         return;
 
-    var    baseArea    = this.m_scissorEnabled ? this.m_scissorBox : [0, 0, 0x7fffffff, 0x7fffffff];
+    var baseArea = this.m_scissorEnabled ? this.m_scissorBox : [0, 0, 0x7fffffff, 0x7fffffff];
 
-    var    colorBuf    = this.getDrawColorbuffer();
-    var                                maskUsed    = !this.m_colorMask[0] || !this.m_colorMask[1] || !this.m_colorMask[2] || !this.m_colorMask[3];
-    var                                maskZero    = !this.m_colorMask[0] && !this.m_colorMask[1] && !this.m_colorMask[2] && !this.m_colorMask[3];
+    var colorBuf = this.getDrawColorbuffer();
+    var maskUsed = !this.m_colorMask[0] || !this.m_colorMask[1] || !this.m_colorMask[2] || !this.m_colorMask[3];
+    var maskZero = !this.m_colorMask[0] && !this.m_colorMask[1] && !this.m_colorMask[2] && !this.m_colorMask[3];
 
-    if (!colorBuf.isEmpty() && !maskZero)
-    {
-    var                               colorArea   = deMath.intersect(baseArea, getBufferRect(colorBuf));
-    var    access      = colorBuf.getSubregion(colorArea);
+    if (!colorBuf.isEmpty() && !maskZero) {
+    var colorArea = deMath.intersect(baseArea, getBufferRect(colorBuf));
+    var access = colorBuf.getSubregion(colorArea);
 
         if (!maskUsed)
             access.clear(value);
-        else
-        {
+        else {
         for (var y = 0; y < access.raw().getDepth(); y++)
             for (var x = 0; x < access.raw().getHeight(); x++)
                 for (var s = 0; s < access.getNumSamples(); s++)
@@ -2181,20 +2120,17 @@ ReferenceContext.prototype.clearBufferfi = function(buffer, drawbuffer, depth, s
 };
 
 ReferenceContext.prototype.framebufferTexture2D = function(target, attachment, textarget, texture, level) {
-    if (attachment == gl.DEPTH_STENCIL_ATTACHMENT)
-    {
+    if (attachment == gl.DEPTH_STENCIL_ATTACHMENT) {
         // Attach to both depth and stencil.
-        this.framebufferTexture2D(target, gl.DEPTH_ATTACHMENT,   textarget, texture, level);
+        this.framebufferTexture2D(target, gl.DEPTH_ATTACHMENT, textarget, texture, level);
         this.framebufferTexture2D(target, gl.STENCIL_ATTACHMENT, textarget, texture, level);
-    }
-    else
-    {
-        var    point           = mapGLAttachmentPoint(attachment);
-        var          fboTexTarget    = mapGLFboTexTarget(textarget);
+    } else {
+        var point = mapGLAttachmentPoint(attachment);
+        var fboTexTarget = mapGLFboTexTarget(textarget);
 
-        if (this.condtionalSetError(target != gl.FRAMEBUFFER        &&
-                    target != gl.DRAW_FRAMEBUFFER   &&
-                    target != gl.READ_FRAMEBUFFER,              gl.INVALID_ENUM))
+        if (this.condtionalSetError(target != gl.FRAMEBUFFER &&
+                    target != gl.DRAW_FRAMEBUFFER &&
+                    target != gl.READ_FRAMEBUFFER, gl.INVALID_ENUM))
             return;
         if (this.condtionalSetError(point == undefined, gl.INVALID_ENUM))
             return;
@@ -2205,14 +2141,13 @@ ReferenceContext.prototype.framebufferTexture2D = function(target, attachment, t
             return;
 
         if (texture) {
-            if (this.condtionalSetError(level != 0,     gl.INVALID_VALUE))
+            if (this.condtionalSetError(level != 0, gl.INVALID_VALUE))
                 return;
 
             if (texture.getType() == TextureType.TYPE_2D)
                 if (this.condtionalSetError(fboTexTarget != TexTarget.TEXTARGET_2D, gl.INVALID_OPERATION))
                     return;
-            else
-            {
+            else {
                 if (texture.getType() == TextureType.TYPE_CUBE_MAP)
                     throw new Error("Unsupported texture type");
                 if (this.condtionalSetError(!deMath.deInRange32(fboTexTarget, TexTarget.TEXTARGET_CUBE_MAP_POSITIVE_X, TexTarget.TEXTARGET_CUBE_MAP_NEGATIVE_Z), gl.INVALID_OPERATION))
@@ -2223,29 +2158,26 @@ ReferenceContext.prototype.framebufferTexture2D = function(target, attachment, t
         var fboAttachment = new Attachment();
 
         if (texture) {
-            fboAttachment.type          = AttachmentType.ATTACHMENTTYPE_TEXTURE;
-            fboAttachment.object        = texture
-            fboAttachment.texTarget     = fboTexTarget;
-            fboAttachment.level         = level;
+            fboAttachment.type = AttachmentType.ATTACHMENTTYPE_TEXTURE;
+            fboAttachment.object = texture
+            fboAttachment.texTarget = fboTexTarget;
+            fboAttachment.level = level;
         }
         framebufferBinding.setAttachment(point, fboAttachment);
     }
 };
 
 ReferenceContext.prototype.framebufferRenderbuffer = function(target, attachment, renderbuffertarget, renderbuffer) {
-    if (attachment == gl.DEPTH_STENCIL_ATTACHMENT)
-    {
+    if (attachment == gl.DEPTH_STENCIL_ATTACHMENT) {
         // Attach both to depth and stencil.
-        this.framebufferRenderbuffer(target, gl.DEPTH_ATTACHMENT,    renderbuffertarget, renderbuffer);
-        this.framebufferRenderbuffer(target, gl.STENCIL_ATTACHMENT,  renderbuffertarget, renderbuffer);
-    }
-    else
-    {
-        var    point           = mapGLAttachmentPoint(attachment);
+        this.framebufferRenderbuffer(target, gl.DEPTH_ATTACHMENT, renderbuffertarget, renderbuffer);
+        this.framebufferRenderbuffer(target, gl.STENCIL_ATTACHMENT, renderbuffertarget, renderbuffer);
+    } else {
+        var point = mapGLAttachmentPoint(attachment);
 
-        if (this.condtionalSetError(target != gl.FRAMEBUFFER        &&
-                    target != gl.DRAW_FRAMEBUFFER   &&
-                    target != gl.READ_FRAMEBUFFER,              gl.INVALID_ENUM))
+        if (this.condtionalSetError(target != gl.FRAMEBUFFER &&
+                    target != gl.DRAW_FRAMEBUFFER &&
+                    target != gl.READ_FRAMEBUFFER, gl.INVALID_ENUM))
             return;
         if (this.condtionalSetError(point == undefined, gl.INVALID_ENUM))
             return;
@@ -2256,16 +2188,15 @@ ReferenceContext.prototype.framebufferRenderbuffer = function(target, attachment
             return;
 
         if (renderbuffer) {
-            if (this.condtionalSetError(renderbuffertarget != gl.RENDERBUFFER,  gl.INVALID_ENUM))
+            if (this.condtionalSetError(renderbuffertarget != gl.RENDERBUFFER, gl.INVALID_ENUM))
                 return;
         }
 
         var fboAttachment = new Attachment();
 
-        if (renderbuffer)
-        {
-            fboAttachment.type  = AttachmentType.ATTACHMENTTYPE_RENDERBUFFER;
-            fboAttachment.object  = renderbuffer;
+        if (renderbuffer) {
+            fboAttachment.type = AttachmentType.ATTACHMENTTYPE_RENDERBUFFER;
+            fboAttachment.object = renderbuffer;
         }
         framebufferBinding.setAttachment(point, fboAttachment);
     }
@@ -2292,10 +2223,8 @@ ReferenceContext.prototype.renderbufferStorage = function(target, internalformat
  * @param {rrRenderer.PrimitiveType} derivedType
  * @return {rrRenderer.PrimitiveType}
  */
-var getPrimitiveBaseType = function(derivedType)
-{
-    switch (derivedType)
-    {
+var getPrimitiveBaseType = function(derivedType) {
+    switch (derivedType) {
         case rrRenderer.PrimitiveType.TRIANGLES:
         case rrRenderer.PrimitiveType.TRIANGLE_STRIP:
         case rrRenderer.PrimitiveType.TRIANGLE_FAN:
@@ -2319,66 +2248,66 @@ ReferenceContext.prototype.drawWithReference = function(primitives, instanceCoun
     if (!this.m_currentProgram)
         return;
 
-    var  colorBuf0   = this.getDrawColorbuffer();
-    var  depthBuf    = this.getDrawDepthbuffer();
-    var  stencilBuf  = this.getDrawStencilbuffer();
-    var hasStencil  = stencilBuf && !stencilBuf.isEmpty();
-    var                           stencilBits = (hasStencil) ? stencilBuf.raw().getFormat().getNumStencilBits() : (0);
+    var colorBuf0 = this.getDrawColorbuffer();
+    var depthBuf = this.getDrawDepthbuffer();
+    var stencilBuf = this.getDrawStencilbuffer();
+    var hasStencil = stencilBuf && !stencilBuf.isEmpty();
+    var stencilBits = (hasStencil) ? stencilBuf.raw().getFormat().getNumStencilBits() : (0);
 
     var renderTarget = new rrRenderer.RenderTarget(colorBuf0, depthBuf, stencilBuf);
     var program = this.m_currentProgram.m_program;
     var state = new rrRenderState.RenderState(colorBuf0);
 
-    var       vertexAttribs = [];
+    var vertexAttribs = [];
 
     // Gen state
-    var baseType                            = getPrimitiveBaseType(primitives.getPrimitiveType());
-    var              polygonOffsetEnabled                = (baseType == rrRenderer.PrimitiveType.TRIANGLES) ? (this.m_polygonOffsetFillEnabled) : (false);
+    var baseType = getPrimitiveBaseType(primitives.getPrimitiveType());
+    var polygonOffsetEnabled = (baseType == rrRenderer.PrimitiveType.TRIANGLES) ? (this.m_polygonOffsetFillEnabled) : (false);
 
-    //state.cullMode                                            = m_cullMode
+    //state.cullMode = m_cullMode
 
-    state.fragOps.scissorTestEnabled                            = this.m_scissorEnabled;
-    state.fragOps.scissorRectangle                              = new rrRenderState.WindowRectangle(this.m_scissorBox[0], this.m_scissorBox[1], this.m_scissorBox[2], this.m_scissorBox[3]);
+    state.fragOps.scissorTestEnabled = this.m_scissorEnabled;
+    state.fragOps.scissorRectangle = new rrRenderState.WindowRectangle(this.m_scissorBox[0], this.m_scissorBox[1], this.m_scissorBox[2], this.m_scissorBox[3]);
 
-    state.fragOps.numStencilBits                                = stencilBits;
-    state.fragOps.stencilTestEnabled                            = this.m_stencilTestEnabled;
+    state.fragOps.numStencilBits = stencilBits;
+    state.fragOps.stencilTestEnabled = this.m_stencilTestEnabled;
 
     for (var key in rrDefs.FaceType) {
         var faceType = rrDefs.FaceType[key];
-        state.fragOps.stencilStates[faceType].compMask  = this.m_stencil[faceType].opMask;
+        state.fragOps.stencilStates[faceType].compMask = this.m_stencil[faceType].opMask;
         state.fragOps.stencilStates[faceType].writeMask = this.m_stencil[faceType].writeMask;
-        state.fragOps.stencilStates[faceType].ref       = this.m_stencil[faceType].ref;
-        state.fragOps.stencilStates[faceType].func      = sglrReferenceUtils.mapGLTestFunc(this.m_stencil[faceType].func);
-        state.fragOps.stencilStates[faceType].sFail     = sglrReferenceUtils.mapGLStencilOp(this.m_stencil[faceType].opStencilFail);
-        state.fragOps.stencilStates[faceType].dpFail    = sglrReferenceUtils.mapGLStencilOp(this.m_stencil[faceType].opDepthFail);
-        state.fragOps.stencilStates[faceType].dpPass    = sglrReferenceUtils.mapGLStencilOp(this.m_stencil[faceType].opDepthPass);
+        state.fragOps.stencilStates[faceType].ref = this.m_stencil[faceType].ref;
+        state.fragOps.stencilStates[faceType].func = sglrReferenceUtils.mapGLTestFunc(this.m_stencil[faceType].func);
+        state.fragOps.stencilStates[faceType].sFail = sglrReferenceUtils.mapGLStencilOp(this.m_stencil[faceType].opStencilFail);
+        state.fragOps.stencilStates[faceType].dpFail = sglrReferenceUtils.mapGLStencilOp(this.m_stencil[faceType].opDepthFail);
+        state.fragOps.stencilStates[faceType].dpPass = sglrReferenceUtils.mapGLStencilOp(this.m_stencil[faceType].opDepthPass);
     }
 
-    state.fragOps.depthTestEnabled                              = this.m_depthTestEnabled;
-    state.fragOps.depthFunc                                     = sglrReferenceUtils.mapGLTestFunc(this.m_depthFunc);
-    state.fragOps.depthMask                                     = this.m_depthMask;
+    state.fragOps.depthTestEnabled = this.m_depthTestEnabled;
+    state.fragOps.depthFunc = sglrReferenceUtils.mapGLTestFunc(this.m_depthFunc);
+    state.fragOps.depthMask = this.m_depthMask;
 
-    state.fragOps.blendMode                                     = this.m_blendEnabled ? rrRenderState.BlendMode.BLENDMODE_STANDARD : rrRenderState.BlendMode.BLENDMODE_NONE;
-    state.fragOps.blendRGBState.equation                        = sglrReferenceUtils.mapGLBlendEquation(this.m_blendModeRGB);
-    state.fragOps.blendRGBState.srcFunc                         = sglrReferenceUtils.mapGLBlendFunc(this.m_blendFactorSrcRGB);
-    state.fragOps.blendRGBState.dstFunc                         = sglrReferenceUtils.mapGLBlendFunc(this.m_blendFactorDstRGB);
-    state.fragOps.blendAState.equation                          = sglrReferenceUtils.mapGLBlendEquation(this.m_blendModeAlpha);
-    state.fragOps.blendAState.srcFunc                           = sglrReferenceUtils.mapGLBlendFunc(this.m_blendFactorSrcAlpha);
-    state.fragOps.blendAState.dstFunc                           = sglrReferenceUtils.mapGLBlendFunc(this.m_blendFactorDstAlpha);
-    state.fragOps.blendColor                                    = this.m_blendColor;
+    state.fragOps.blendMode = this.m_blendEnabled ? rrRenderState.BlendMode.BLENDMODE_STANDARD : rrRenderState.BlendMode.BLENDMODE_NONE;
+    state.fragOps.blendRGBState.equation = sglrReferenceUtils.mapGLBlendEquation(this.m_blendModeRGB);
+    state.fragOps.blendRGBState.srcFunc = sglrReferenceUtils.mapGLBlendFunc(this.m_blendFactorSrcRGB);
+    state.fragOps.blendRGBState.dstFunc = sglrReferenceUtils.mapGLBlendFunc(this.m_blendFactorDstRGB);
+    state.fragOps.blendAState.equation = sglrReferenceUtils.mapGLBlendEquation(this.m_blendModeAlpha);
+    state.fragOps.blendAState.srcFunc = sglrReferenceUtils.mapGLBlendFunc(this.m_blendFactorSrcAlpha);
+    state.fragOps.blendAState.dstFunc = sglrReferenceUtils.mapGLBlendFunc(this.m_blendFactorDstAlpha);
+    state.fragOps.blendColor = this.m_blendColor;
 
-    state.fragOps.colorMask                                     = this.m_colorMask;
+    state.fragOps.colorMask = this.m_colorMask;
 
-    state.viewport.rect                                         = new rrRenderState.WindowRectangle(this.m_viewport);
-    state.viewport.zn                                           = this.m_depthRangeNear;
-    state.viewport.zf                                           = this.m_depthRangeFar;
+    state.viewport.rect = new rrRenderState.WindowRectangle(this.m_viewport);
+    state.viewport.zn = this.m_depthRangeNear;
+    state.viewport.zf = this.m_depthRangeFar;
 
-    //state.point.pointSize                                     = this.m_pointSize;
-    state.line.lineWidth                                        = this.m_lineWidth;
+    //state.point.pointSize = this.m_pointSize;
+    state.line.lineWidth = this.m_lineWidth;
 
-    state.fragOps.polygonOffsetEnabled                          = polygonOffsetEnabled;
-    state.fragOps.polygonOffsetFactor                           = this.m_polygonOffsetFactor;
-    state.fragOps.polygonOffsetUnits                            = this.m_polygonOffsetUnits;
+    state.fragOps.polygonOffsetEnabled = polygonOffsetEnabled;
+    state.fragOps.polygonOffsetFactor = this.m_polygonOffsetFactor;
+    state.fragOps.polygonOffsetUnits = this.m_polygonOffsetUnits;
 
     /* TODO: Check this logic */
     var indexType = primitives.getIndexType();
@@ -2386,8 +2315,7 @@ ReferenceContext.prototype.drawWithReference = function(primitives, instanceCoun
     if (this.m_primitiveRestartFixedIndex && indexType) {
         state.restart.enabled = true;
         state.restart.restartIndex = getFixedRestartIndex(indexType);
-    }
-    else {
+    } else {
         state.restart.enabled = false;
     }
 
@@ -2401,16 +2329,15 @@ ReferenceContext.prototype.drawWithReference = function(primitives, instanceCoun
         if (!vao.m_arrays[ndx].enabled) {
             vertexAttribs[ndx].type = rrVertexAttrib.VertexAttribType.DONT_CARE; // reading with wrong type is allowed, but results are undefined
             vertexAttribs[ndx].generic = this.m_currentAttribs[ndx];
-        }
-        else {
-            vertexAttribs[ndx].type             = (vao.m_arrays[ndx].integer) ?
+        } else {
+            vertexAttribs[ndx].type = (vao.m_arrays[ndx].integer) ?
                                                     (sglrReferenceUtils.mapGLPureIntegerVertexAttributeType(vao.m_arrays[ndx].type)) :
                                                     (sglrReferenceUtils.mapGLFloatVertexAttributeType(vao.m_arrays[ndx].type, vao.m_arrays[ndx].normalized, vao.m_arrays[ndx].size));
-            vertexAttribs[ndx].size             = sglrReferenceUtils.mapGLSize(vao.m_arrays[ndx].size);
-            vertexAttribs[ndx].stride           = vao.m_arrays[ndx].stride;
-            vertexAttribs[ndx].instanceDivisor  = vao.m_arrays[ndx].divisor;
-            vertexAttribs[ndx].pointer          = vao.m_arrays[ndx].bufferBinding.getData();
-            vertexAttribs[ndx].offset           = vao.m_arrays[ndx].offset;
+            vertexAttribs[ndx].size = sglrReferenceUtils.mapGLSize(vao.m_arrays[ndx].size);
+            vertexAttribs[ndx].stride = vao.m_arrays[ndx].stride;
+            vertexAttribs[ndx].instanceDivisor = vao.m_arrays[ndx].divisor;
+            vertexAttribs[ndx].pointer = vao.m_arrays[ndx].bufferBinding.getData();
+            vertexAttribs[ndx].offset = vao.m_arrays[ndx].offset;
         }
     }
 
@@ -2430,8 +2357,7 @@ ReferenceContext.prototype.drawWithReference = function(primitives, instanceCoun
                 if (tex && tex.isComplete()) {
                     tex.updateView();
                     this.m_currentProgram.m_program.m_uniforms[uniformNdx].sampler.tex2D = tex;
-                }
-                else
+                } else
                     this.m_currentProgram.m_program.m_uniforms[uniformNdx].sampler.tex2D = this.m_emptyTex2D;
 
                 break;
@@ -2448,8 +2374,7 @@ ReferenceContext.prototype.drawWithReference = function(primitives, instanceCoun
                 if (tex && tex.isComplete()) {
                     tex.updateView();
                     this.m_currentProgram.m_program.m_uniforms[uniformNdx].sampler.texCube = tex;
-                }
-                else
+                } else
                     this.m_currentProgram.m_program.m_uniforms[uniformNdx].sampler.texCube = &this.m_emptyTexCube;
 
                 break;
@@ -2465,8 +2390,7 @@ ReferenceContext.prototype.drawWithReference = function(primitives, instanceCoun
                 if (tex && tex.isComplete()) {
                     tex.updateView();
                     this.m_currentProgram.m_program.m_uniforms[uniformNdx].sampler.tex2DArray = tex;
-                }
-                else
+                } else
                     this.m_currentProgram.m_program.m_uniforms[uniformNdx].sampler.tex2DArray = &this.m_emptyTex2DArray;
 
                 break;
@@ -2482,8 +2406,7 @@ ReferenceContext.prototype.drawWithReference = function(primitives, instanceCoun
                 if (tex && tex.isComplete()) {
                     tex.updateView();
                     this.m_currentProgram.m_program.m_uniforms[uniformNdx].sampler.tex3D = tex;
-                }
-                else
+                } else
                     this.m_currentProgram.m_program.m_uniforms[uniformNdx].sampler.tex3D = &this.m_emptyTex3D;
 
                 break;
@@ -2499,8 +2422,7 @@ ReferenceContext.prototype.drawWithReference = function(primitives, instanceCoun
                 if (tex && tex.isComplete()) {
                     tex.updateView();
                     this.m_currentProgram.m_program.m_uniforms[uniformNdx].sampler.texCubeArray = tex;
-                }
-                else
+                } else
                     this.m_currentProgram.m_program.m_uniforms[uniformNdx].sampler.texCubeArray = &this.m_emptyTexCubeArray;
 
                 break;
@@ -2563,116 +2485,107 @@ ReferenceContext.prototype.drawQuad = function(topLeft, bottomRight) {
     if (!this.m_currentProgram)
         return;
 
-    var  colorBuf0   = this.getDrawColorbuffer();
-    var  depthBuf    = this.getDrawDepthbuffer();
-    var  stencilBuf  = this.getDrawStencilbuffer();
-    var hasStencil  = !stencilBuf.isEmpty();
-    var                           stencilBits = (hasStencil) ? stencilBuf.raw().getFormat().getNumStencilBits() : (0);
+    var colorBuf0 = this.getDrawColorbuffer();
+    var depthBuf = this.getDrawDepthbuffer();
+    var stencilBuf = this.getDrawStencilbuffer();
+    var hasStencil = !stencilBuf.isEmpty();
+    var stencilBits = (hasStencil) ? stencilBuf.raw().getFormat().getNumStencilBits() : (0);
 
-    var              renderTarget = new rrRenderer.RenderTarget(colorBuf0, depthBuf,stencilBuf);
-    var                   program     = new rrRenderer.Program(this.m_currentProgram.m_program.getVertexShader(),
+    var renderTarget = new rrRenderer.RenderTarget(colorBuf0, depthBuf,stencilBuf);
+    var program = new rrRenderer.Program(this.m_currentProgram.m_program.getVertexShader(),
                                                      this.m_currentProgram.m_program.getFragmentShader());
-    var state       = new rrRenderState.RenderState(colorBuf0);
+    var state = new rrRenderState.RenderState(colorBuf0);
 
-    var       vertexAttribs = [];
+    var vertexAttribs = [];
 
     // Gen state
-    var baseType                            = rrRenderer.PrimitiveType.TRIANGLES;
-    var              polygonOffsetEnabled                = (baseType == rrRenderer.PrimitiveType.TRIANGLES) ? (this.m_polygonOffsetFillEnabled) : (false);
+    var baseType = rrRenderer.PrimitiveType.TRIANGLES;
+    var polygonOffsetEnabled = (baseType == rrRenderer.PrimitiveType.TRIANGLES) ? (this.m_polygonOffsetFillEnabled) : (false);
 
-    //state.cullMode                                            = m_cullMode
+    //state.cullMode = m_cullMode
 
-    state.fragOps.scissorTestEnabled                            = this.m_scissorEnabled;
-    state.fragOps.scissorRectangle                              = new rrRenderState.WindowRectangle(this.m_scissorBox);
+    state.fragOps.scissorTestEnabled = this.m_scissorEnabled;
+    state.fragOps.scissorRectangle = new rrRenderState.WindowRectangle(this.m_scissorBox);
 
-    state.fragOps.numStencilBits                                = stencilBits;
-    state.fragOps.stencilTestEnabled                            = this.m_stencilTestEnabled;
+    state.fragOps.numStencilBits = stencilBits;
+    state.fragOps.stencilTestEnabled = this.m_stencilTestEnabled;
 
     for (var key in rrDefs.FaceType) {
         var faceType = rrDefs.FaceType[key];
-        state.fragOps.stencilStates[faceType].compMask  = this.m_stencil[faceType].opMask;
+        state.fragOps.stencilStates[faceType].compMask = this.m_stencil[faceType].opMask;
         state.fragOps.stencilStates[faceType].writeMask = this.m_stencil[faceType].writeMask;
-        state.fragOps.stencilStates[faceType].ref       = this.m_stencil[faceType].ref;
-        state.fragOps.stencilStates[faceType].func      = sglrReferenceUtils.mapGLTestFunc(this.m_stencil[faceType].func);
-        state.fragOps.stencilStates[faceType].sFail     = sglrReferenceUtils.mapGLStencilOp(this.m_stencil[faceType].opStencilFail);
-        state.fragOps.stencilStates[faceType].dpFail    = sglrReferenceUtils.mapGLStencilOp(this.m_stencil[faceType].opDepthFail);
-        state.fragOps.stencilStates[faceType].dpPass    = sglrReferenceUtils.mapGLStencilOp(this.m_stencil[faceType].opDepthPass);
+        state.fragOps.stencilStates[faceType].ref = this.m_stencil[faceType].ref;
+        state.fragOps.stencilStates[faceType].func = sglrReferenceUtils.mapGLTestFunc(this.m_stencil[faceType].func);
+        state.fragOps.stencilStates[faceType].sFail = sglrReferenceUtils.mapGLStencilOp(this.m_stencil[faceType].opStencilFail);
+        state.fragOps.stencilStates[faceType].dpFail = sglrReferenceUtils.mapGLStencilOp(this.m_stencil[faceType].opDepthFail);
+        state.fragOps.stencilStates[faceType].dpPass = sglrReferenceUtils.mapGLStencilOp(this.m_stencil[faceType].opDepthPass);
     }
 
-    state.fragOps.depthTestEnabled                              = this.m_depthTestEnabled;
-    state.fragOps.depthFunc                                     = sglrReferenceUtils.mapGLTestFunc(this.m_depthFunc);
-    state.fragOps.depthMask                                     = this.m_depthMask;
+    state.fragOps.depthTestEnabled = this.m_depthTestEnabled;
+    state.fragOps.depthFunc = sglrReferenceUtils.mapGLTestFunc(this.m_depthFunc);
+    state.fragOps.depthMask = this.m_depthMask;
 
-    state.fragOps.blendMode                                     = this.m_blendEnabled ? rrRenderState.BlendMode.BLENDMODE_STANDARD : rrRenderState.BlendMode.BLENDMODE_NONE;
-    state.fragOps.blendRGBState.equation                        = sglrReferenceUtils.mapGLBlendEquation(this.m_blendModeRGB);
-    state.fragOps.blendRGBState.srcFunc                         = sglrReferenceUtils.mapGLBlendFunc(this.m_blendFactorSrcRGB);
-    state.fragOps.blendRGBState.dstFunc                         = sglrReferenceUtils.mapGLBlendFunc(this.m_blendFactorDstRGB);
-    state.fragOps.blendAState.equation                          = sglrReferenceUtils.mapGLBlendEquation(this.m_blendModeAlpha);
-    state.fragOps.blendAState.srcFunc                           = sglrReferenceUtils.mapGLBlendFunc(this.m_blendFactorSrcAlpha);
-    state.fragOps.blendAState.dstFunc                           = sglrReferenceUtils.mapGLBlendFunc(this.m_blendFactorDstAlpha);
-    state.fragOps.blendColor                                    = this.m_blendColor;
+    state.fragOps.blendMode = this.m_blendEnabled ? rrRenderState.BlendMode.BLENDMODE_STANDARD : rrRenderState.BlendMode.BLENDMODE_NONE;
+    state.fragOps.blendRGBState.equation = sglrReferenceUtils.mapGLBlendEquation(this.m_blendModeRGB);
+    state.fragOps.blendRGBState.srcFunc = sglrReferenceUtils.mapGLBlendFunc(this.m_blendFactorSrcRGB);
+    state.fragOps.blendRGBState.dstFunc = sglrReferenceUtils.mapGLBlendFunc(this.m_blendFactorDstRGB);
+    state.fragOps.blendAState.equation = sglrReferenceUtils.mapGLBlendEquation(this.m_blendModeAlpha);
+    state.fragOps.blendAState.srcFunc = sglrReferenceUtils.mapGLBlendFunc(this.m_blendFactorSrcAlpha);
+    state.fragOps.blendAState.dstFunc = sglrReferenceUtils.mapGLBlendFunc(this.m_blendFactorDstAlpha);
+    state.fragOps.blendColor = this.m_blendColor;
 
-    state.fragOps.colorMask                                     = this.m_colorMask;
+    state.fragOps.colorMask = this.m_colorMask;
 
-    state.viewport.rect                                         = new rrRenderState.WindowRectangle(this.m_viewport);
-    state.viewport.zn                                           = this.m_depthRangeNear;
-    state.viewport.zf                                           = this.m_depthRangeFar;
+    state.viewport.rect = new rrRenderState.WindowRectangle(this.m_viewport);
+    state.viewport.zn = this.m_depthRangeNear;
+    state.viewport.zf = this.m_depthRangeFar;
 
-    //state.point.pointSize                                     = this.m_pointSize;
-    state.line.lineWidth                                        = this.m_lineWidth;
+    //state.point.pointSize = this.m_pointSize;
+    state.line.lineWidth = this.m_lineWidth;
 
-    state.fragOps.polygonOffsetEnabled                          = polygonOffsetEnabled;
-    state.fragOps.polygonOffsetFactor                           = this.m_polygonOffsetFactor;
-    state.fragOps.polygonOffsetUnits                            = this.m_polygonOffsetUnits;
+    state.fragOps.polygonOffsetEnabled = polygonOffsetEnabled;
+    state.fragOps.polygonOffsetFactor = this.m_polygonOffsetFactor;
+    state.fragOps.polygonOffsetUnits = this.m_polygonOffsetUnits;
 
-    state.provokingVertexConvention                             = (this.m_provokingFirstVertexConvention) ? (rrDefs.ProvokingVertex.PROVOKINGVERTEX_FIRST) : (rrDefs.ProvokingVertex.PROVOKINGVERTEX_LAST);
+    state.provokingVertexConvention = (this.m_provokingFirstVertexConvention) ? (rrDefs.ProvokingVertex.PROVOKINGVERTEX_FIRST) : (rrDefs.ProvokingVertex.PROVOKINGVERTEX_LAST);
 
     // gen attributes
     var vao = this.m_vertexArrayBinding;
 
-    for (var ndx = 0; ndx < vao.m_arrays.length; ++ndx)
-    {
+    for (var ndx = 0; ndx < vao.m_arrays.length; ++ndx) {
         vertexAttribs[ndx] = new rrVertexAttrib.VertexAttrib();
-        if (!vao.m_arrays[ndx].enabled)
-        {
+        if (!vao.m_arrays[ndx].enabled) {
             vertexAttribs[ndx].type = rrVertexAttrib.VertexAttribType.DONT_CARE; // reading with wrong type is allowed, but results are undefined
             vertexAttribs[ndx].generic = this.m_currentAttribs[ndx];
-        }
-        else
-        {
-            vertexAttribs[ndx].type             = (vao.m_arrays[ndx].integer) ?
+        } else {
+            vertexAttribs[ndx].type = (vao.m_arrays[ndx].integer) ?
                                                     (sglrReferenceUtils.mapGLPureIntegerVertexAttributeType(vao.m_arrays[ndx].type)) :
                                                     (sglrReferenceUtils.mapGLFloatVertexAttributeType(vao.m_arrays[ndx].type, vao.m_arrays[ndx].normalized, vao.m_arrays[ndx].size, this.getType()));
-            vertexAttribs[ndx].size             = sglrReferenceUtils.mapGLSize(vao.m_arrays[ndx].size);
-            vertexAttribs[ndx].stride           = vao.m_arrays[ndx].stride;
-            vertexAttribs[ndx].instanceDivisor  = vao.m_arrays[ndx].divisor;
-            vertexAttribs[ndx].pointer          = vao.m_arrays[ndx].bufferBinding.getData();
-            vertexAttribs[ndx].offset           = vao.m_arrays[ndx].offset;
+            vertexAttribs[ndx].size = sglrReferenceUtils.mapGLSize(vao.m_arrays[ndx].size);
+            vertexAttribs[ndx].stride = vao.m_arrays[ndx].stride;
+            vertexAttribs[ndx].instanceDivisor = vao.m_arrays[ndx].divisor;
+            vertexAttribs[ndx].pointer = vao.m_arrays[ndx].bufferBinding.getData();
+            vertexAttribs[ndx].offset = vao.m_arrays[ndx].offset;
         }
     }
 
     // Set shader samplers
-    for (var uniformNdx = 0; uniformNdx < this.m_currentProgram.m_program.m_uniforms.length; ++uniformNdx)
-    {
+    for (var uniformNdx = 0; uniformNdx < this.m_currentProgram.m_program.m_uniforms.length; ++uniformNdx) {
         var texNdx = this.m_currentProgram.m_program.m_uniforms[uniformNdx].value;
 
-        switch (this.m_currentProgram.m_program.m_uniforms[uniformNdx].type)
-        {
+        switch (this.m_currentProgram.m_program.m_uniforms[uniformNdx].type) {
             case gluShaderUtil.DataType.SAMPLER_2D:
             case gluShaderUtil.DataType.UINT_SAMPLER_2D:
-            case gluShaderUtil.DataType.INT_SAMPLER_2D:
-            {
+            case gluShaderUtil.DataType.INT_SAMPLER_2D: {
                 var tex = null;
 
                 if (texNdx >= 0 && texNdx < this.m_textureUnits.length)
                     tex = (this.m_textureUnits[texNdx].tex2DBinding) ? (this.m_textureUnits[texNdx].tex2DBinding) : (this.m_textureUnits[texNdx].default2DTex);
 
-                if (tex && tex.isComplete())
-                {
+                if (tex && tex.isComplete()) {
                     tex.updateView();
                     this.m_currentProgram.m_program.m_uniforms[uniformNdx].sampler.tex2D = tex;
-                }
-                else
+                } else
                     this.m_currentProgram.m_program.m_uniforms[uniformNdx].sampler.tex2D = this.m_emptyTex2D;
 
                 break;
@@ -2680,76 +2593,64 @@ ReferenceContext.prototype.drawQuad = function(topLeft, bottomRight) {
             /* TODO: Port
             case gluShaderUtil.DataType.SAMPLER_CUBE:
             case gluShaderUtil.DataType.UINT_SAMPLER_CUBE:
-            case gluShaderUtil.DataType.INT_SAMPLER_CUBE:
-            {
+            case gluShaderUtil.DataType.INT_SAMPLER_CUBE: {
                 rc::TextureCube* tex = DE_NULL;
 
                 if (texNdx >= 0 && (size_t)texNdx < this.m_textureUnits.length)
                     tex = (this.m_textureUnits[texNdx].texCubeBinding) ? (this.m_textureUnits[texNdx].texCubeBinding) : (&this.m_textureUnits[texNdx].defaultCubeTex);
 
-                if (tex && tex.isComplete())
-                {
+                if (tex && tex.isComplete()) {
                     tex.updateView();
                     this.m_currentProgram.m_program.m_uniforms[uniformNdx].sampler.texCube = tex;
-                }
-                else
+                } else
                     this.m_currentProgram.m_program.m_uniforms[uniformNdx].sampler.texCube = &this.m_emptyTexCube;
 
                 break;
             }
             case gluShaderUtil.DataType.SAMPLER_2D_ARRAY:
             case gluShaderUtil.DataType.UINT_SAMPLER_2D_ARRAY:
-            case gluShaderUtil.DataType.INT_SAMPLER_2D_ARRAY:
-            {
+            case gluShaderUtil.DataType.INT_SAMPLER_2D_ARRAY: {
                 rc::Texture2DArray* tex = DE_NULL;
 
                 if (texNdx >= 0 && (size_t)texNdx < this.m_textureUnits.length)
                     tex = (this.m_textureUnits[texNdx].tex2DArrayBinding) ? (this.m_textureUnits[texNdx].tex2DArrayBinding) : (&this.m_textureUnits[texNdx].default2DArrayTex);
 
-                if (tex && tex.isComplete())
-                {
+                if (tex && tex.isComplete()) {
                     tex.updateView();
                     this.m_currentProgram.m_program.m_uniforms[uniformNdx].sampler.tex2DArray = tex;
-                }
-                else
+                } else
                     this.m_currentProgram.m_program.m_uniforms[uniformNdx].sampler.tex2DArray = &this.m_emptyTex2DArray;
 
                 break;
             }
             case gluShaderUtil.DataType.SAMPLER_3D:
             case gluShaderUtil.DataType.UINT_SAMPLER_3D:
-            case gluShaderUtil.DataType.INT_SAMPLER_3D:
-            {
+            case gluShaderUtil.DataType.INT_SAMPLER_3D: {
                 rc::Texture3D* tex = DE_NULL;
 
                 if (texNdx >= 0 && (size_t)texNdx < m_textureUnits.length)
                     tex = (this.m_textureUnits[texNdx].tex3DBinding) ? (this.m_textureUnits[texNdx].tex3DBinding) : (&this.m_textureUnits[texNdx].default3DTex);
 
-                if (tex && tex.isComplete())
-                {
+                if (tex && tex.isComplete()) {
                     tex.updateView();
                     this.m_currentProgram.m_program.m_uniforms[uniformNdx].sampler.tex3D = tex;
-                }
-                else
+                } else
                     this.m_currentProgram.m_program.m_uniforms[uniformNdx].sampler.tex3D = &this.m_emptyTex3D;
 
                 break;
             }
             case gluShaderUtil.DataType.SAMPLER_CUBE_ARRAY:
             case gluShaderUtil.DataType.UINT_SAMPLER_CUBE_ARRAY:
-            case gluShaderUtil.DataType.INT_SAMPLER_CUBE_ARRAY:
-            {
+            case gluShaderUtil.DataType.INT_SAMPLER_CUBE_ARRAY: {
                 rc::TextureCubeArray* tex = DE_NULL;
 
                 if (texNdx >= 0 && (size_t)texNdx < m_textureUnits.length)
                     tex = (this.m_textureUnits[texNdx].texCubeArrayBinding) ? (this.m_textureUnits[texNdx].texCubeArrayBinding) : (&this.m_textureUnits[texNdx].defaultCubeArrayTex);
 
-                if (tex && tex.isComplete())
-                {
+                if (tex && tex.isComplete()) {
                     tex.updateView();
                     this.m_currentProgram.m_program.m_uniforms[uniformNdx].sampler.texCubeArray = tex;
-                }
-                else
+                } else
                     this.m_currentProgram.m_program.m_uniforms[uniformNdx].sampler.texCubeArray = &this.m_emptyTexCubeArray;
 
                 break;
@@ -2764,7 +2665,7 @@ ReferenceContext.prototype.drawQuad = function(topLeft, bottomRight) {
     rrRenderer.drawQuad(state, renderTarget, program, vertexAttribs, topLeft, bottomRight);
 };
 
-var isEmpty  = function(rect) { return rect[2] == 0 || rect[3] == 0; };
+var isEmpty = function(rect) { return rect[2] == 0 || rect[3] == 0; };
 
 ReferenceContext.prototype.blitResolveMultisampleFramebuffer = function(mask, srcRect, dstRect, flipX, flipY) {
     throw new Error('Unimplemented');
@@ -2773,21 +2674,21 @@ ReferenceContext.prototype.blitResolveMultisampleFramebuffer = function(mask, sr
 ReferenceContext.prototype.blitFramebuffer = function(srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter) {
     // p0 in inclusive, p1 exclusive.
     // Negative width/height means swap.
-    var    swapSrcX    = srcX1 < srcX0;
-    var    swapSrcY    = srcY1 < srcY0;
-    var    swapDstX    = dstX1 < dstX0;
-    var    swapDstY    = dstY1 < dstY0;
-    var    srcW        = Math.abs(srcX1-srcX0);
-    var    srcH        = Math.abs(srcY1-srcY0);
-    var    dstW        = Math.abs(dstX1-dstX0);
-    var    dstH        = Math.abs(dstY1-dstY0);
-    var    scale       = srcW != dstW || srcH != dstH;
-    var    srcOriginX  = swapSrcX ? srcX1 : srcX0;
-    var    srcOriginY  = swapSrcY ? srcY1 : srcY0;
-    var    dstOriginX  = swapDstX ? dstX1 : dstX0;
-    var    dstOriginY  = swapDstY ? dstY1 : dstY0;
-    var   srcRect     = [srcOriginX, srcOriginY, srcW, srcH];
-    var   dstRect     = [dstOriginX, dstOriginY, dstW, dstH];
+    var swapSrcX = srcX1 < srcX0;
+    var swapSrcY = srcY1 < srcY0;
+    var swapDstX = dstX1 < dstX0;
+    var swapDstY = dstY1 < dstY0;
+    var srcW = Math.abs(srcX1-srcX0);
+    var srcH = Math.abs(srcY1-srcY0);
+    var dstW = Math.abs(dstX1-dstX0);
+    var dstH = Math.abs(dstY1-dstY0);
+    var scale = srcW != dstW || srcH != dstH;
+    var srcOriginX = swapSrcX ? srcX1 : srcX0;
+    var srcOriginY = swapSrcY ? srcY1 : srcY0;
+    var dstOriginX = swapDstX ? dstX1 : dstX0;
+    var dstOriginY = swapDstY ? dstY1 : dstY0;
+    var srcRect = [srcOriginX, srcOriginY, srcW, srcH];
+    var dstRect = [dstOriginX, dstOriginY, dstW, dstH];
 
     if (this.condtionalSetError(filter != gl.NEAREST && filter != gl.LINEAR, gl.INVALID_ENUM))
         return;
@@ -2811,10 +2712,10 @@ ReferenceContext.prototype.blitFramebuffer = function(srcX0, srcY0, srcX1, srcY1
 
         // Framebuffer formats must match
         if (mask & gl.COLOR_BUFFER_BIT)
-             if (this.condtionalSetError(this.getReadColorbuffer().raw().getFormat()   != this.getDrawColorbuffer().raw().getFormat(),   gl.INVALID_OPERATION))
+             if (this.condtionalSetError(this.getReadColorbuffer().raw().getFormat() != this.getDrawColorbuffer().raw().getFormat(), gl.INVALID_OPERATION))
                 return;
         if (mask & gl.DEPTH_BUFFER_BIT)
-            if (this.condtionalSetError(this.getReadDepthbuffer().raw().getFormat()   != this.getDrawDepthbuffer().raw().getFormat(),   gl.INVALID_OPERATION))
+            if (this.condtionalSetError(this.getReadDepthbuffer().raw().getFormat() != this.getDrawDepthbuffer().raw().getFormat(), gl.INVALID_OPERATION))
                 return;
         if (mask & gl.STENCIL_BUFFER_BIT)
           if (this.condtionalSetError(this.getReadStencilbuffer().raw().getFormat() != this.getDrawStencilbuffer().raw().getFormat(), gl.INVALID_OPERATION))
@@ -2822,15 +2723,15 @@ ReferenceContext.prototype.blitFramebuffer = function(srcX0, srcY0, srcX1, srcY1
     }
 
     // Compute actual source rect.
-    srcRect = (mask & gl.COLOR_BUFFER_BIT)      ? deMath.intersect(srcRect, getBufferRect(this.getReadColorbuffer()))   : srcRect;
-    srcRect = (mask & gl.DEPTH_BUFFER_BIT)      ? deMath.intersect(srcRect, getBufferRect(this.getReadDepthbuffer()))   : srcRect;
-    srcRect = (mask & gl.STENCIL_BUFFER_BIT)    ? deMath.intersect(srcRect, getBufferRect(this.getReadStencilbuffer())) : srcRect;
+    srcRect = (mask & gl.COLOR_BUFFER_BIT) ? deMath.intersect(srcRect, getBufferRect(this.getReadColorbuffer())) : srcRect;
+    srcRect = (mask & gl.DEPTH_BUFFER_BIT) ? deMath.intersect(srcRect, getBufferRect(this.getReadDepthbuffer())) : srcRect;
+    srcRect = (mask & gl.STENCIL_BUFFER_BIT) ? deMath.intersect(srcRect, getBufferRect(this.getReadStencilbuffer())) : srcRect;
 
     // Compute destination rect.
-    dstRect = (mask & gl.COLOR_BUFFER_BIT)      ? deMath.intersect(dstRect, getBufferRect(this.getDrawColorbuffer()))   : dstRect;
-    dstRect = (mask & gl.DEPTH_BUFFER_BIT)      ? deMath.intersect(dstRect, getBufferRect(this.getDrawDepthbuffer()))   : dstRect;
-    dstRect = (mask & gl.STENCIL_BUFFER_BIT)    ? deMath.intersect(dstRect, getBufferRect(this.getDrawStencilbuffer())) : dstRect;
-    dstRect = this.m_scissorEnabled                  ? deMath.intersect(dstRect, this.m_scissorBox)                          : dstRect;
+    dstRect = (mask & gl.COLOR_BUFFER_BIT) ? deMath.intersect(dstRect, getBufferRect(this.getDrawColorbuffer())) : dstRect;
+    dstRect = (mask & gl.DEPTH_BUFFER_BIT) ? deMath.intersect(dstRect, getBufferRect(this.getDrawDepthbuffer())) : dstRect;
+    dstRect = (mask & gl.STENCIL_BUFFER_BIT) ? deMath.intersect(dstRect, getBufferRect(this.getDrawStencilbuffer())) : dstRect;
+    dstRect = this.m_scissorEnabled ? deMath.intersect(dstRect, this.m_scissorBox) : dstRect;
 
     if (isEmpty(srcRect) || isEmpty(dstRect))
         return; // Don't attempt copy.
@@ -2854,86 +2755,75 @@ ReferenceContext.prototype.blitFramebuffer = function(srcX0, srcY0, srcX1, srcY1
     matrix = matrix * tcuMatrixUtil.translationMatrix([dstRect[0] - dstX0, dstRect[1] - dstY0]);
     var transform = function(x, y) { return matrix.get(x, y); };
 
-    if (mask & gl.COLOR_BUFFER_BIT)
-    {
-        var     src         = tcuTextureUtil.getSubregion(this.getReadColorbuffer().toSinglesampleAccess(), srcRect[0], srcRect[1], srcRect[2], srcRect[3]);
-        var          dst         = tcuTextureUtil.getSubregion(this.getDrawColorbuffer().toSinglesampleAccess(), dstRect[0], dstRect[1], dstRect[2], dstRect[3]);
-        var        dstClass    = tcuTextureUtil.getTextureChannelClass(dst.getFormat().type);
-        var                            dstIsFloat  = dstClass == tcuTextureUtil.TextureChannelClass.TEXTURECHANNELCLASS_FLOATING_POINT       ||
+    if (mask & gl.COLOR_BUFFER_BIT) {
+        var src = tcuTextureUtil.getSubregion(this.getReadColorbuffer().toSinglesampleAccess(), srcRect[0], srcRect[1], srcRect[2], srcRect[3]);
+        var dst = tcuTextureUtil.getSubregion(this.getDrawColorbuffer().toSinglesampleAccess(), dstRect[0], dstRect[1], dstRect[2], dstRect[3]);
+        var dstClass = tcuTextureUtil.getTextureChannelClass(dst.getFormat().type);
+        var dstIsFloat = dstClass == tcuTextureUtil.TextureChannelClass.TEXTURECHANNELCLASS_FLOATING_POINT ||
                                                       dstClass == tcuTextureUtil.TextureChannelClass.TEXTURECHANNELCLASS_UNSIGNED_FIXED_POINT ||
                                                       dstClass == tcuTextureUtil.TextureChannelClass.TEXTURECHANNELCLASS_SIGNED_FIXED_POINT;
-        var        sFilter     = (scale && filter == gl.LINEAR) ? tcuTexture.FilterMode.LINEAR : tcuTexture.FilterMode.NEAREST;
-        var                    sampler  = new tcuTexture.Sampler(tcuTexture.WrapMode.CLAMP_TO_EDGE, tcuTexture.WrapMode.CLAMP_TO_EDGE, tcuTexture.WrapMode.CLAMP_TO_EDGE,
+        var sFilter = (scale && filter == gl.LINEAR) ? tcuTexture.FilterMode.LINEAR : tcuTexture.FilterMode.NEAREST;
+        var sampler = new tcuTexture.Sampler(tcuTexture.WrapMode.CLAMP_TO_EDGE, tcuTexture.WrapMode.CLAMP_TO_EDGE, tcuTexture.WrapMode.CLAMP_TO_EDGE,
                                                      sFilter, sFilter, 0.0 /* lod threshold */, false /* non-normalized coords */);
-        var                            srcIsSRGB   = src.getFormat().order == tcuTexture.ChannelOrder.sRGB || src.getFormat().order == tcuTexture.ChannelOrder.sRGBA;
-        var                            dstIsSRGB   = dst.getFormat().order == tcuTexture.ChannelOrder.sRGB || dst.getFormat().order == tcuTexture.ChannelOrder.sRGBA;
-        var                      convertSRGB = false;
+        var srcIsSRGB = src.getFormat().order == tcuTexture.ChannelOrder.sRGB || src.getFormat().order == tcuTexture.ChannelOrder.sRGBA;
+        var dstIsSRGB = dst.getFormat().order == tcuTexture.ChannelOrder.sRGB || dst.getFormat().order == tcuTexture.ChannelOrder.sRGBA;
+        var convertSRGB = false;
 
         // \note We don't check for unsupported conversions, unlike spec requires.
 
-        for (var yo = 0; yo < dstRect[3]; yo++)
-        {
-            for (var xo = 0; xo < dstRect[2]; xo++)
-            {
-                var   dX  = xo + 0.5;
-                var   dY  = yo + 0.5;
+        for (var yo = 0; yo < dstRect[3]; yo++) {
+            for (var xo = 0; xo < dstRect[2]; xo++) {
+                var dX = xo + 0.5;
+                var dY = yo + 0.5;
 
                 // \note Only affine part is used.
-                var   sX  = transform(0, 0)*dX + transform(0, 1)*dY + transform(0, 2);
-                var   sY  = transform(1, 0)*dX + transform(1, 1)*dY + transform(1, 2);
+                var sX = transform(0, 0)*dX + transform(0, 1)*dY + transform(0, 2);
+                var sY = transform(1, 0)*dX + transform(1, 1)*dY + transform(1, 2);
 
                 // do not copy pixels outside the modified source region (modified by buffer intersection)
                 if (sX < 0.0 || sX >= srcRect[2] ||
                     sY < 0.0 || sY >= srcRect[3])
                     continue;
 
-                if (dstIsFloat || srcIsSRGB || filter == tcuTexture.FilterMode.LINEAR)
-                {
+                if (dstIsFloat || srcIsSRGB || filter == tcuTexture.FilterMode.LINEAR) {
                     var p = src.sample2D(sampler, sampler.minFilter, sX, sY, 0);
                     dst.setPixel((dstIsSRGB && convertSRGB) ? tcuTextureUtil.linearToSRGB(p) : p, xo, yo);
-                }
-                else
+                } else
                     dst.setPixelInt(src.getPixelInt(Math.floor(sX), Math.floor(sY)), xo, yo);
             }
         }
     }
 
-    if ((mask & gl.DEPTH_BUFFER_BIT) && this.m_depthMask)
-    {
-        var   src     = this.getReadDepthbuffer().getSubregion(srcRect);
-        var        dst     = this.getDrawDepthbuffer().getSubregion(dstRect);
+    if ((mask & gl.DEPTH_BUFFER_BIT) && this.m_depthMask) {
+        var src = this.getReadDepthbuffer().getSubregion(srcRect);
+        var dst = this.getDrawDepthbuffer().getSubregion(dstRect);
 
-        for (var yo = 0; yo < dstRect[3]; yo++)
-        {
-            for (var xo = 0; xo < dstRect[2]; xo++)
-            {
+        for (var yo = 0; yo < dstRect[3]; yo++) {
+            for (var xo = 0; xo < dstRect[2]; xo++) {
                 var sampleNdx = 0; // multisample read buffer case is already handled
 
-                var dX  = xo + 0.5;
-                var dY  = yo + 0.5;
-                var sX  = transform(0, 0)*dX + transform(0, 1)*dY + transform(0, 2);
-                var sY  = transform(1, 0)*dX + transform(1, 1)*dY + transform(1, 2);
+                var dX = xo + 0.5;
+                var dY = yo + 0.5;
+                var sX = transform(0, 0)*dX + transform(0, 1)*dY + transform(0, 2);
+                var sY = transform(1, 0)*dX + transform(1, 1)*dY + transform(1, 2);
 
                 writeDepthOnly(dst, sampleNdx, xo, yo, src.raw().getPixel(sampleNdx, Math.floor(sX), Math.floor(sY))[0]);
             }
         }
     }
 
-    if (mask & gl.STENCIL_BUFFER_BIT)
-    {
-        var   src     = this.getReadStencilbuffer().getSubregion(srcRect);
-        var        dst     = this.getDrawStencilbuffer().getSubregion(dstRect);
+    if (mask & gl.STENCIL_BUFFER_BIT) {
+        var src = this.getReadStencilbuffer().getSubregion(srcRect);
+        var dst = this.getDrawStencilbuffer().getSubregion(dstRect);
 
-        for (var yo = 0; yo < dstRect[3]; yo++)
-        {
-            for (var xo = 0; xo < dstRect[2]; xo++)
-            {
+        for (var yo = 0; yo < dstRect[3]; yo++) {
+            for (var xo = 0; xo < dstRect[2]; xo++) {
                 var sampleNdx = 0; // multisample read buffer case is already handled
 
-                var dX  = xo + 0.5;
-                var dY  = yo + 0.5;
-                var sX  = transform(0, 0)*dX + transform(0, 1)*dY + transform(0, 2);
-                var sY  = transform(1, 0)*dX + transform(1, 1)*dY + transform(1, 2);
+                var dX = xo + 0.5;
+                var dY = yo + 0.5;
+                var sX = transform(0, 0)*dX + transform(0, 1)*dY + transform(0, 2);
+                var sY = transform(1, 0)*dX + transform(1, 1)*dY + transform(1, 2);
 
                 writeStencilOnly(dst, sampleNdx, xo, yo, src.raw().getPixelInt(sampleNdx, Math.floor(sX), Math.floor(sY))[3], this.m_stencil[rrDefs.FaceType.FACETYPE_FRONT].writeMask);
             }
@@ -2943,11 +2833,11 @@ ReferenceContext.prototype.blitFramebuffer = function(srcX0, srcY0, srcX1, srcY1
 
 var mapInternalFormat = function(internalFormat) {
     switch (internalFormat) {
-        case gl.ALPHA:              return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.A,      tcuTexture.ChannelType.UNORM_INT8);
-        case gl.LUMINANCE:          return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.L,      tcuTexture.ChannelType.UNORM_INT8);
-        case gl.LUMINANCE_ALPHA:    return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.LA,     tcuTexture.ChannelType.UNORM_INT8);
-        case gl.RGB:                return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGB,    tcuTexture.ChannelType.UNORM_INT8);
-        case gl.RGBA:               return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA,   tcuTexture.ChannelType.UNORM_INT8);
+        case gl.ALPHA: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.A, tcuTexture.ChannelType.UNORM_INT8);
+        case gl.LUMINANCE: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.L, tcuTexture.ChannelType.UNORM_INT8);
+        case gl.LUMINANCE_ALPHA: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.LA, tcuTexture.ChannelType.UNORM_INT8);
+        case gl.RGB: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGB, tcuTexture.ChannelType.UNORM_INT8);
+        case gl.RGBA: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.UNORM_INT8);
 
         default:
             return gluTextureUtil.mapGLInternalFormat(internalFormat);
@@ -2959,9 +2849,9 @@ var mapInternalFormat = function(internalFormat) {
  * @param {tcuTexture.PixelBufferAccess} src
  */
 var depthValueFloatClampCopy = function(dst, src) {
-    var width   = dst.getWidth();
-    var height  = dst.getHeight();
-    var depth   = dst.getDepth();
+    var width = dst.getWidth();
+    var height = dst.getHeight();
+    var depth = dst.getDepth();
 
     DE_ASSERT(src.getWidth() == width && src.getHeight() == height && src.getDepth() == depth);
 
@@ -2974,13 +2864,12 @@ var depthValueFloatClampCopy = function(dst, src) {
     }
 }
 
-
 ReferenceContext.prototype.texImage2D = function(target, level, internalFormat, width, height, border, format, type, pixels) {
     this.texImage3D(target, level, internalFormat, width, height, 1, border, format, type, pixels);
 };
 
 ReferenceContext.prototype.texImage3D = function(target, level, internalFormat, width, height, depth, border, format, type, pixels) {
-    var        unit                    = this.m_textureUnits[this.m_activeTexture];
+    var unit = this.m_textureUnits[this.m_activeTexture];
     var data = null;
     var offset = 0;
     if (this.m_pixelUnpackBufferBinding) {
@@ -2997,7 +2886,7 @@ ReferenceContext.prototype.texImage3D = function(target, level, internalFormat, 
             offset = pixels.byteOffset;
         }
     }
-    var          isDstFloatDepthFormat   = (internalFormat == gl.DEPTH_COMPONENT32F || internalFormat == gl.DEPTH32F_STENCIL8); // depth components are limited to [0,1] range
+    var isDstFloatDepthFormat = (internalFormat == gl.DEPTH_COMPONENT32F || internalFormat == gl.DEPTH32F_STENCIL8); // depth components are limited to [0,1] range
 
     if (this.condtionalSetError(border != 0, gl.INVALID_VALUE))
         return;
@@ -3029,17 +2918,15 @@ ReferenceContext.prototype.texImage3D = function(target, level, internalFormat, 
 
             var texLevel = texture.getLevel(level);
             var dst = tcuTexture.newFromTextureLevel(texture.getLevel(level));
-            if (this.condtionalSetError(storageFmt  != dst.getFormat()  ||
-                        width       != dst.getWidth()   ||
-                        height      != dst.getHeight(), gl.INVALID_OPERATION))
+            if (this.condtionalSetError(storageFmt != dst.getFormat() ||
+                        width != dst.getWidth() ||
+                        height != dst.getHeight(), gl.INVALID_OPERATION))
                 return;
-        }
-        else
+        } else
             texture.allocLevel(level, storageFmt, width, height);
 
-        if (data)
-        {
-            var  src     = new tcuTexture.tcuTexture.PixelBufferAccess({
+        if (data) {
+            var src = new tcuTexture.tcuTexture.PixelBufferAccess({
                 format: transferFmt,
                 width: width,
                 height: height,
@@ -3051,9 +2938,7 @@ ReferenceContext.prototype.texImage3D = function(target, level, internalFormat, 
                 depthValueFloatClampCopy(dst, src);
             else
                 tcuTextureUtil.copy(dst, src);
-        }
-        else
-        {
+        } else {
             // No data supplied, clear to black.
             var dst = tcuTexture.newFromTextureLevel(texture.getLevel(level));
             dst.clear([0.0, 0.0, 0.0, 1.0]);
@@ -3071,24 +2956,24 @@ ReferenceContext.prototype.texImage3D = function(target, level, internalFormat, 
     //     RC_IF_ERROR(level > deLog2Floor32(m_limits.maxTextureCubeSize), gl.INVALID_VALUE, RC_RET_VOID);
 
     //     TextureCube*    texture = unit.texCubeBinding ? unit.texCubeBinding : &unit.defaultCubeTex;
-    //     tcu::CubeFace   face    = mapGLCubeFace(target);
+    //     tcu::CubeFace face = mapGLCubeFace(target);
 
     //     if (texture->isImmutable())
     //     {
     //         RC_IF_ERROR(!texture->hasFace(level, face), gl.INVALID_OPERATION, RC_RET_VOID);
 
     //         ConstPixelBufferAccess dst(texture->getFace(level, face));
-    //         RC_IF_ERROR(storageFmt  != dst.getFormat()  ||
-    //                     width       != dst.getWidth()   ||
-    //                     height      != dst.getHeight(), gl.INVALID_OPERATION, RC_RET_VOID);
+    //         RC_IF_ERROR(storageFmt != dst.getFormat() ||
+    //                     width != dst.getWidth() ||
+    //                     height != dst.getHeight(), gl.INVALID_OPERATION, RC_RET_VOID);
     //     }
     //     else
     //         texture->allocFace(level, face, storageFmt, width, height);
 
     //     if (unpackPtr)
     //     {
-    //         ConstPixelBufferAccess  src     = getUnpack2DAccess(transferFmt, width, height, unpackPtr);
-    //         PixelBufferAccess       dst     (texture->getFace(level, face));
+    //         ConstPixelBufferAccess src = getUnpack2DAccess(transferFmt, width, height, unpackPtr);
+    //         PixelBufferAccess dst (texture->getFace(level, face));
 
     //         if (isDstFloatDepthFormat)
     //             depthValueFloatClampCopy(dst, src);
@@ -3105,9 +2990,9 @@ ReferenceContext.prototype.texImage3D = function(target, level, internalFormat, 
     // else if (target == gl.TEXTURE_2D_ARRAY)
     // {
     //     // Validate size and level.
-    //     RC_IF_ERROR(width   > m_limits.maxTexture2DSize ||
-    //                 height  > m_limits.maxTexture2DSize ||
-    //                 depth   > m_limits.maxTexture2DArrayLayers, gl.INVALID_VALUE, RC_RET_VOID);
+    //     RC_IF_ERROR(width > m_limits.maxTexture2DSize ||
+    //                 height > m_limits.maxTexture2DSize ||
+    //                 depth > m_limits.maxTexture2DArrayLayers, gl.INVALID_VALUE, RC_RET_VOID);
     //     RC_IF_ERROR(level > deLog2Floor32(m_limits.maxTexture2DSize), gl.INVALID_VALUE, RC_RET_VOID);
 
     //     Texture2DArray* texture = unit.tex2DArrayBinding ? unit.tex2DArrayBinding : &unit.default2DArrayTex;
@@ -3117,18 +3002,18 @@ ReferenceContext.prototype.texImage3D = function(target, level, internalFormat, 
     //         RC_IF_ERROR(!texture->hasLevel(level), gl.INVALID_OPERATION, RC_RET_VOID);
 
     //         ConstPixelBufferAccess dst(texture->getLevel(level));
-    //         RC_IF_ERROR(storageFmt  != dst.getFormat()  ||
-    //                     width       != dst.getWidth()   ||
-    //                     height      != dst.getHeight()  ||
-    //                     depth       != dst.getDepth(), gl.INVALID_OPERATION, RC_RET_VOID);
+    //         RC_IF_ERROR(storageFmt != dst.getFormat() ||
+    //                     width != dst.getWidth() ||
+    //                     height != dst.getHeight() ||
+    //                     depth != dst.getDepth(), gl.INVALID_OPERATION, RC_RET_VOID);
     //     }
     //     else
     //         texture->allocLevel(level, storageFmt, width, height, depth);
 
     //     if (unpackPtr)
     //     {
-    //         ConstPixelBufferAccess  src     = getUnpack3DAccess(transferFmt, width, height, depth, unpackPtr);
-    //         PixelBufferAccess       dst     (texture->getLevel(level));
+    //         ConstPixelBufferAccess src = getUnpack3DAccess(transferFmt, width, height, depth, unpackPtr);
+    //         PixelBufferAccess dst (texture->getLevel(level));
 
     //         if (isDstFloatDepthFormat)
     //             depthValueFloatClampCopy(dst, src);
@@ -3145,9 +3030,9 @@ ReferenceContext.prototype.texImage3D = function(target, level, internalFormat, 
     // else if (target == gl.TEXTURE_3D)
     // {
     //     // Validate size and level.
-    //     RC_IF_ERROR(width   > m_limits.maxTexture3DSize ||
-    //                 height  > m_limits.maxTexture3DSize ||
-    //                 depth   > m_limits.maxTexture3DSize, gl.INVALID_VALUE, RC_RET_VOID);
+    //     RC_IF_ERROR(width > m_limits.maxTexture3DSize ||
+    //                 height > m_limits.maxTexture3DSize ||
+    //                 depth > m_limits.maxTexture3DSize, gl.INVALID_VALUE, RC_RET_VOID);
     //     RC_IF_ERROR(level > deLog2Floor32(m_limits.maxTexture3DSize), gl.INVALID_VALUE, RC_RET_VOID);
 
     //     Texture3D* texture = unit.tex3DBinding ? unit.tex3DBinding : &unit.default3DTex;
@@ -3157,18 +3042,18 @@ ReferenceContext.prototype.texImage3D = function(target, level, internalFormat, 
     //         RC_IF_ERROR(!texture->hasLevel(level), gl.INVALID_OPERATION, RC_RET_VOID);
 
     //         ConstPixelBufferAccess dst(texture->getLevel(level));
-    //         RC_IF_ERROR(storageFmt  != dst.getFormat()  ||
-    //                     width       != dst.getWidth()   ||
-    //                     height      != dst.getHeight()  ||
-    //                     depth       != dst.getDepth(), gl.INVALID_OPERATION, RC_RET_VOID);
+    //         RC_IF_ERROR(storageFmt != dst.getFormat() ||
+    //                     width != dst.getWidth() ||
+    //                     height != dst.getHeight() ||
+    //                     depth != dst.getDepth(), gl.INVALID_OPERATION, RC_RET_VOID);
     //     }
     //     else
     //         texture->allocLevel(level, storageFmt, width, height, depth);
 
     //     if (unpackPtr)
     //     {
-    //         ConstPixelBufferAccess  src     = getUnpack3DAccess(transferFmt, width, height, depth, unpackPtr);
-    //         PixelBufferAccess       dst     (texture->getLevel(level));
+    //         ConstPixelBufferAccess src = getUnpack3DAccess(transferFmt, width, height, depth, unpackPtr);
+    //         PixelBufferAccess dst (texture->getLevel(level));
 
     //         if (isDstFloatDepthFormat)
     //             depthValueFloatClampCopy(dst, src);
@@ -3185,10 +3070,10 @@ ReferenceContext.prototype.texImage3D = function(target, level, internalFormat, 
     // else if (target == gl.TEXTURE_CUBE_MAP_ARRAY)
     // {
     //     // Validate size and level.
-    //     RC_IF_ERROR(width       != height                       ||
-    //                 width        > m_limits.maxTexture2DSize    ||
-    //                 depth % 6   != 0                            ||
-    //                 depth        > m_limits.maxTexture2DArrayLayers, gl.INVALID_VALUE, RC_RET_VOID);
+    //     RC_IF_ERROR(width != height ||
+    //                 width > m_limits.maxTexture2DSize ||
+    //                 depth % 6 != 0 ||
+    //                 depth > m_limits.maxTexture2DArrayLayers, gl.INVALID_VALUE, RC_RET_VOID);
     //     RC_IF_ERROR(level > deLog2Floor32(m_limits.maxTexture2DSize), gl.INVALID_VALUE, RC_RET_VOID);
 
     //     TextureCubeArray* texture = unit.texCubeArrayBinding ? unit.texCubeArrayBinding : &unit.defaultCubeArrayTex;
@@ -3198,18 +3083,18 @@ ReferenceContext.prototype.texImage3D = function(target, level, internalFormat, 
     //         RC_IF_ERROR(!texture->hasLevel(level), gl.INVALID_OPERATION, RC_RET_VOID);
 
     //         ConstPixelBufferAccess dst(texture->getLevel(level));
-    //         RC_IF_ERROR(storageFmt  != dst.getFormat()  ||
-    //                     width       != dst.getWidth()   ||
-    //                     height      != dst.getHeight()  ||
-    //                     depth       != dst.getDepth(), gl.INVALID_OPERATION, RC_RET_VOID);
+    //         RC_IF_ERROR(storageFmt != dst.getFormat() ||
+    //                     width != dst.getWidth() ||
+    //                     height != dst.getHeight() ||
+    //                     depth != dst.getDepth(), gl.INVALID_OPERATION, RC_RET_VOID);
     //     }
     //     else
     //         texture->allocLevel(level, storageFmt, width, height, depth);
 
     //     if (unpackPtr)
     //     {
-    //         ConstPixelBufferAccess  src     = getUnpack3DAccess(transferFmt, width, height, depth, unpackPtr);
-    //         PixelBufferAccess       dst     (texture->getLevel(level));
+    //         ConstPixelBufferAccess src = getUnpack3DAccess(transferFmt, width, height, depth, unpackPtr);
+    //         PixelBufferAccess dst (texture->getLevel(level));
 
     //         if (isDstFloatDepthFormat)
     //             depthValueFloatClampCopy(dst, src);
@@ -3222,7 +3107,7 @@ ReferenceContext.prototype.texImage3D = function(target, level, internalFormat, 
     //         PixelBufferAccess dst = texture->getLevel(level);
     //         tcu::clear(dst, Vec4(0.0f, 0.0f, 0.0f, 1.0f));
     //     }
-    // }
+    // } /**/
     else
         this.setError(gl.INVALID_ENUM);
 };

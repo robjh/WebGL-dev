@@ -141,10 +141,10 @@ Texture2DFormatCase.prototype.iterate = function() {
     var texCoord = glsTextureTestUtil.computeQuadTexCoord2D([0, 0], [1, 1]);
 
     // log << TestLog::Message << "Texture parameters:"
-    // << "\n WRAP_S = " << glu::getTextureParameterValueStr(GL_TEXTURE_WRAP_S, wrapS)
-    // << "\n WRAP_T = " << glu::getTextureParameterValueStr(GL_TEXTURE_WRAP_T, wrapT)
-    // << "\n MIN_FILTER = " << glu::getTextureParameterValueStr(GL_TEXTURE_MIN_FILTER, minFilter)
-    // << "\n MAG_FILTER = " << glu::getTextureParameterValueStr(GL_TEXTURE_MAG_FILTER, magFilter)
+    // << "\n WRAP_S = " << glu::getTextureParameterValueStr(gl.TEXTURE_WRAP_S, wrapS)
+    // << "\n WRAP_T = " << glu::getTextureParameterValueStr(gl.TEXTURE_WRAP_T, wrapT)
+    // << "\n MIN_FILTER = " << glu::getTextureParameterValueStr(gl.TEXTURE_MIN_FILTER, minFilter)
+    // << "\n MAG_FILTER = " << glu::getTextureParameterValueStr(gl.TEXTURE_MAG_FILTER, magFilter)
     // << TestLog::EndMessage;
 
     // Setup base viewport.
@@ -281,10 +281,10 @@ TextureCubeFormatCase.prototype.testFace = function(face) {
     var texCoord = glsTextureTestUtil.computeQuadTexCoordCube(face);
 
     // log << TestLog::Message << "Texture parameters:"
-    // << "\n WRAP_S = " << glu::getTextureParameterValueStr(GL_TEXTURE_WRAP_S, wrapS)
-    // << "\n WRAP_T = " << glu::getTextureParameterValueStr(GL_TEXTURE_WRAP_T, wrapT)
-    // << "\n MIN_FILTER = " << glu::getTextureParameterValueStr(GL_TEXTURE_MIN_FILTER, minFilter)
-    // << "\n MAG_FILTER = " << glu::getTextureParameterValueStr(GL_TEXTURE_MAG_FILTER, magFilter)
+    // << "\n WRAP_S = " << glu::getTextureParameterValueStr(gl.TEXTURE_WRAP_S, wrapS)
+    // << "\n WRAP_T = " << glu::getTextureParameterValueStr(gl.TEXTURE_WRAP_T, wrapT)
+    // << "\n MIN_FILTER = " << glu::getTextureParameterValueStr(gl.TEXTURE_MIN_FILTER, minFilter)
+    // << "\n MAG_FILTER = " << glu::getTextureParameterValueStr(gl.TEXTURE_MAG_FILTER, magFilter)
     // << TestLog::EndMessage;
 
     // Setup base viewport.
@@ -408,10 +408,10 @@ Texture2DArrayFormatCase.prototype.testLayer = function(layerNdx) {
     var texCoord = glsTextureTestUtil.computeQuadTexCoord2DArray(layerNdx, [0, 0], [1, 1]);
 
     // log << TestLog::Message << "Texture parameters:"
-    // << "\n WRAP_S = " << glu::getTextureParameterValueStr(GL_TEXTURE_WRAP_S, wrapS)
-    // << "\n WRAP_T = " << glu::getTextureParameterValueStr(GL_TEXTURE_WRAP_T, wrapT)
-    // << "\n MIN_FILTER = " << glu::getTextureParameterValueStr(GL_TEXTURE_MIN_FILTER, minFilter)
-    // << "\n MAG_FILTER = " << glu::getTextureParameterValueStr(GL_TEXTURE_MAG_FILTER, magFilter)
+    // << "\n WRAP_S = " << glu::getTextureParameterValueStr(gl.TEXTURE_WRAP_S, wrapS)
+    // << "\n WRAP_T = " << glu::getTextureParameterValueStr(gl.TEXTURE_WRAP_T, wrapT)
+    // << "\n MIN_FILTER = " << glu::getTextureParameterValueStr(gl.TEXTURE_MIN_FILTER, minFilter)
+    // << "\n MAG_FILTER = " << glu::getTextureParameterValueStr(gl.TEXTURE_MAG_FILTER, magFilter)
     // << TestLog::EndMessage;
 
     // Setup base viewport.
@@ -538,10 +538,10 @@ Texture3DFormatCase.prototype.testSlice = function(sliceNdx) {
     var texCoord = glsTextureTestUtil.computeQuadTexCoord3D([0, 0, r], [1, 1, r], [0, 1, 2]);
 
     // log << TestLog::Message << "Texture parameters:"
-    // << "\n WRAP_S = " << glu::getTextureParameterValueStr(GL_TEXTURE_WRAP_S, wrapS)
-    // << "\n WRAP_T = " << glu::getTextureParameterValueStr(GL_TEXTURE_WRAP_T, wrapT)
-    // << "\n MIN_FILTER = " << glu::getTextureParameterValueStr(GL_TEXTURE_MIN_FILTER, minFilter)
-    // << "\n MAG_FILTER = " << glu::getTextureParameterValueStr(GL_TEXTURE_MAG_FILTER, magFilter)
+    // << "\n WRAP_S = " << glu::getTextureParameterValueStr(gl.TEXTURE_WRAP_S, wrapS)
+    // << "\n WRAP_T = " << glu::getTextureParameterValueStr(gl.TEXTURE_WRAP_T, wrapT)
+    // << "\n MIN_FILTER = " << glu::getTextureParameterValueStr(gl.TEXTURE_MIN_FILTER, minFilter)
+    // << "\n MAG_FILTER = " << glu::getTextureParameterValueStr(gl.TEXTURE_MAG_FILTER, magFilter)
     // << TestLog::EndMessage;
 
     // Setup base viewport.
@@ -651,10 +651,10 @@ Compressed2DFormatCase.prototype.iterate = function() {
     var texCoord = glsTextureTestUtil.computeQuadTexCoord2D([0, 0], [1, 1]);
 
     // log << TestLog::Message << "Texture parameters:"
-    // << "\n WRAP_S = " << glu::getTextureParameterValueStr(GL_TEXTURE_WRAP_S, wrapS)
-    // << "\n WRAP_T = " << glu::getTextureParameterValueStr(GL_TEXTURE_WRAP_T, wrapT)
-    // << "\n MIN_FILTER = " << glu::getTextureParameterValueStr(GL_TEXTURE_MIN_FILTER, minFilter)
-    // << "\n MAG_FILTER = " << glu::getTextureParameterValueStr(GL_TEXTURE_MAG_FILTER, magFilter)
+    // << "\n WRAP_S = " << glu::getTextureParameterValueStr(gl.TEXTURE_WRAP_S, wrapS)
+    // << "\n WRAP_T = " << glu::getTextureParameterValueStr(gl.TEXTURE_WRAP_T, wrapT)
+    // << "\n MIN_FILTER = " << glu::getTextureParameterValueStr(gl.TEXTURE_MIN_FILTER, minFilter)
+    // << "\n MAG_FILTER = " << glu::getTextureParameterValueStr(gl.TEXTURE_MAG_FILTER, magFilter)
     // << TestLog::EndMessage;
 
     // Setup base viewport.
@@ -751,10 +751,10 @@ CompressedCubeFormatCase.prototype.testFace = function(face) {
     var texCoord = glsTextureTestUtil.computeQuadTexCoordCube(face);
 
     // log << TestLog::Message << "Texture parameters:"
-    // << "\n WRAP_S = " << glu::getTextureParameterValueStr(GL_TEXTURE_WRAP_S, wrapS)
-    // << "\n WRAP_T = " << glu::getTextureParameterValueStr(GL_TEXTURE_WRAP_T, wrapT)
-    // << "\n MIN_FILTER = " << glu::getTextureParameterValueStr(GL_TEXTURE_MIN_FILTER, minFilter)
-    // << "\n MAG_FILTER = " << glu::getTextureParameterValueStr(GL_TEXTURE_MAG_FILTER, magFilter)
+    // << "\n WRAP_S = " << glu::getTextureParameterValueStr(gl.TEXTURE_WRAP_S, wrapS)
+    // << "\n WRAP_T = " << glu::getTextureParameterValueStr(gl.TEXTURE_WRAP_T, wrapT)
+    // << "\n MIN_FILTER = " << glu::getTextureParameterValueStr(gl.TEXTURE_MIN_FILTER, minFilter)
+    // << "\n MAG_FILTER = " << glu::getTextureParameterValueStr(gl.TEXTURE_MAG_FILTER, magFilter)
     // << TestLog::EndMessage;
 
     // Setup base viewport.
@@ -1084,40 +1084,40 @@ var genTestCases = function() {
     });
 
     var etc2Formats = [
-        ['GL_COMPRESSED_R11_EAC', 'eac_r11', tcuCompressedTexture.Format.EAC_R11],
-        ['GL_COMPRESSED_SIGNED_R11_EAC', 'eac_signed_r11', tcuCompressedTexture.Format.EAC_SIGNED_R11],
-        ['GL_COMPRESSED_RG11_EAC', 'eac_rg11', tcuCompressedTexture.Format.EAC_RG11],
-        ['GL_COMPRESSED_SIGNED_RG11_EAC', 'eac_signed_rg11', tcuCompressedTexture.Format.EAC_SIGNED_RG11],
-        ['GL_COMPRESSED_RGB8_ETC2', 'etc2_rgb8', tcuCompressedTexture.Format.ETC2_RGB8],
-        ['GL_COMPRESSED_SRGB8_ETC2', 'etc2_srgb8', tcuCompressedTexture.Format.ETC2_SRGB8],
-        ['GL_COMPRESSED_RGB8_PUNCHTHROUGH_ALPHA1_ETC2', 'etc2_rgb8_punchthrough_alpha1', tcuCompressedTexture.Format.ETC2_RGB8_PUNCHTHROUGH_ALPHA1],
-        ['GL_COMPRESSED_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2', 'etc2_srgb8_punchthrough_alpha1', tcuCompressedTexture.Format.ETC2_SRGB8_PUNCHTHROUGH_ALPHA1],
-        ['GL_COMPRESSED_RGBA8_ETC2_EAC', 'etc2_eac_rgba8', tcuCompressedTexture.Format.ETC2_EAC_RGBA8],
-        ['GL_COMPRESSED_SRGB8_ALPHA8_ETC2_EAC', 'etc2_eac_srgb8_alpha8', tcuCompressedTexture.Format.ETC2_EAC_SRGB8_ALPHA8]
+        ['gl.COMPRESSED_R11_EAC', 'eac_r11', tcuCompressedTexture.Format.EAC_R11],
+        ['gl.COMPRESSED_SIGNED_R11_EAC', 'eac_signed_r11', tcuCompressedTexture.Format.EAC_SIGNED_R11],
+        ['gl.COMPRESSED_RG11_EAC', 'eac_rg11', tcuCompressedTexture.Format.EAC_RG11],
+        ['gl.COMPRESSED_SIGNED_RG11_EAC', 'eac_signed_rg11', tcuCompressedTexture.Format.EAC_SIGNED_RG11],
+        ['gl.COMPRESSED_RGB8_ETC2', 'etc2_rgb8', tcuCompressedTexture.Format.ETC2_RGB8],
+        ['gl.COMPRESSED_SRGB8_ETC2', 'etc2_srgb8', tcuCompressedTexture.Format.ETC2_SRGB8],
+        ['gl.COMPRESSED_RGB8_PUNCHTHROUGH_ALPHA1_ETC2', 'etc2_rgb8_punchthrough_alpha1', tcuCompressedTexture.Format.ETC2_RGB8_PUNCHTHROUGH_ALPHA1],
+        ['gl.COMPRESSED_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2', 'etc2_srgb8_punchthrough_alpha1', tcuCompressedTexture.Format.ETC2_SRGB8_PUNCHTHROUGH_ALPHA1],
+        ['gl.COMPRESSED_RGBA8_ETC2_EAC', 'etc2_eac_rgba8', tcuCompressedTexture.Format.ETC2_EAC_RGBA8],
+        ['gl.COMPRESSED_SRGB8_ALPHA8_ETC2_EAC', 'etc2_eac_srgb8_alpha8', tcuCompressedTexture.Format.ETC2_EAC_SRGB8_ALPHA8]
     ];
     etc2Formats.forEach(function(elem) {
         var nameBase = elem[1];
         var descriptionBase = elem[0];
         var format = elem[2];
-        compressedGroup.addChild(new Compressed2DFormatCase({name: nameBase + '_2d_pot', description: descriptionBase + ', GL_TEXTURE_2D',
+        compressedGroup.addChild(new Compressed2DFormatCase({name: nameBase + '_2d_pot', description: descriptionBase + ', gl.TEXTURE_2D',
                                                 format: format,
                                                 width: 128,
                                                 height: 64
                                             })
                                 );
-        compressedGroup.addChild(new CompressedCubeFormatCase({name: nameBase + '_cube_pot', description: descriptionBase + ', GL_TEXTURE_CUBE_MAP',
+        compressedGroup.addChild(new CompressedCubeFormatCase({name: nameBase + '_cube_pot', description: descriptionBase + ', gl.TEXTURE_CUBE_MAP',
                                                 format: format,
                                                 width: 64,
                                                 height: 64
                                             })
                                 );
-        compressedGroup.addChild(new Compressed2DFormatCase({name: nameBase + '_2d_pot', description: descriptionBase + ', GL_TEXTURE_2D',
+        compressedGroup.addChild(new Compressed2DFormatCase({name: nameBase + '_2d_pot', description: descriptionBase + ', gl.TEXTURE_2D',
                                                 format: format,
                                                 width: 128,
                                                 height: 64
                                             })
                                 );
-        compressedGroup.addChild(new CompressedCubeFormatCase({name: nameBase + '_cube_npot', description: descriptionBase + ', GL_TEXTURE_CUBE_MAP',
+        compressedGroup.addChild(new CompressedCubeFormatCase({name: nameBase + '_cube_npot', description: descriptionBase + ', gl.TEXTURE_CUBE_MAP',
                                                 format: format,
                                                 width: 51,
                                                 height: 51
@@ -1134,7 +1134,7 @@ var genTestCases = function() {
  * Create and execute the test cases
  */
 var run = function(context) {
-	gl = context;
+    gl = context;
     try {
         genTestCases();
         tcuTestCase.runner.runCallback(tcuTestCase.runTestCases);
