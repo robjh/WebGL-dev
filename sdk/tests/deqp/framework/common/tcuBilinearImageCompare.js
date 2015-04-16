@@ -20,9 +20,9 @@
 
 'use strict';
 goog.provide('framework.common.tcuBilinearImageCompare');
-goog.require('framework.delibs.debase.deMath');
-goog.require('framework.common.tcuTexture');
 goog.require('framework.common.tcuRGBA');
+goog.require('framework.common.tcuTexture');
+goog.require('framework.delibs.debase.deMath');
 
 
 goog.scope(function() {
@@ -31,7 +31,7 @@ var tcuBilinearImageCompare = framework.common.tcuBilinearImageCompare;
 var deMath = framework.delibs.debase.deMath;
 var tcuTexture = framework.common.tcuTexture;
 var tcuRGBA = framework.common.tcuRGBA;
-    
+
 
     var DE_ASSERT = function(x) {
         if (!x)
@@ -291,6 +291,6 @@ var tcuRGBA = framework.common.tcuRGBA;
             throw new Error('Unsupported format for bilinear comparison');
     };
 
-    
+
 
 });

@@ -29,9 +29,9 @@
  *//*--------------------------------------------------------------------*/
 'use strict';
 goog.provide('framework.opengl.gluTextureUtil');
+goog.require('framework.common.tcuCompressedTexture');
 goog.require('framework.common.tcuTexture');
 goog.require('framework.common.tcuTextureUtil');
-goog.require('framework.common.tcuCompressedTexture');
 goog.require('framework.opengl.gluShaderUtil');
 
 

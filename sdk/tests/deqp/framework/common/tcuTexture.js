@@ -20,8 +20,8 @@
 
 'use strict';
 goog.provide('framework.common.tcuTexture');
-goog.require('framework.delibs.debase.deMath');
 goog.require('framework.common.tcuFloat');
+goog.require('framework.delibs.debase.deMath');
 
 
 goog.scope(function() {
