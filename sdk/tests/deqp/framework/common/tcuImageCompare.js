@@ -481,7 +481,7 @@ tcuImageCompare.fuzzyCompare = function(imageSetName, imageSetDesc, reference, r
  */
 tcuImageCompare.bilinearCompare = function(imageSetName, imageSetDesc, reference, result, threshold, logMode)
 {
-    /** @type {TextureLevel} */
+    /** @type {tcuTexture.TextureLevel} */
     var errorMask = new tcuTexture.TextureLevel(
         new tcuTexture.TextureFormat(
             tcuTexture.ChannelOrder.RGB,
@@ -489,7 +489,7 @@ tcuImageCompare.bilinearCompare = function(imageSetName, imageSetDesc, reference
         reference.getWidth(),
         reference.getHeight());
 
-    /** @type {bool} */
+    /** @type {boolean} */
     var isOk = tcuBilinearImageCompare.bilinearCompare(
         reference,
         result,
