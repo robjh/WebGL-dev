@@ -120,7 +120,7 @@ es3fTextureFormatTests.Texture2DFormatCase.prototype.deinit = function() {
 es3fTextureFormatTests.Texture2DFormatCase.prototype.iterate = function() {
     /* TODO: Implement */
 
-    var viewport = new glsTextureTestUtil.RandomViewport(canvas, this.m_width, this.m_height/*, deStringHash(getName())*/);
+    var viewport = new glsTextureTestUtil.RandomViewport(document.getElementById('canvas'), this.m_width, this.m_height/*, deStringHash(getName())*/);
 
     /* tcu::Surface */ var renderedFrame = new tcuSurface.Surface(viewport.width, viewport.height);
     /* tcu::Surface */ var referenceFrame = new tcuSurface.Surface(viewport.width, viewport.height);
@@ -254,7 +254,7 @@ es3fTextureFormatTests.TextureCubeFormatCase.prototype.init = function() {
 es3fTextureFormatTests.TextureCubeFormatCase.prototype.testFace = function(face) {
     /* TODO: Implement */
 
-    var viewport = new glsTextureTestUtil.RandomViewport(canvas, this.m_width, this.m_height/*, deStringHash(getName())*/);
+    var viewport = new glsTextureTestUtil.RandomViewport(document.getElementById('canvas'), this.m_width, this.m_height/*, deStringHash(getName())*/);
 
     /* tcu::Surface */ var renderedFrame = new tcuSurface.Surface(viewport.width, viewport.height);
     /* tcu::Surface */ var referenceFrame = new tcuSurface.Surface(viewport.width, viewport.height);
@@ -387,7 +387,7 @@ es3fTextureFormatTests.Texture2DArrayFormatCase.prototype.init = function() {
 es3fTextureFormatTests.Texture2DArrayFormatCase.prototype.testLayer = function(layerNdx) {
     /* TODO: Implement */
 
-    var viewport = new glsTextureTestUtil.RandomViewport(canvas, this.m_width, this.m_height/*, deStringHash(getName())*/);
+    var viewport = new glsTextureTestUtil.RandomViewport(document.getElementById('canvas'), this.m_width, this.m_height/*, deStringHash(getName())*/);
 
     /* tcu::Surface */ var renderedFrame = new tcuSurface.Surface(viewport.width, viewport.height);
     /* tcu::Surface */ var referenceFrame = new tcuSurface.Surface(viewport.width, viewport.height);
@@ -516,7 +516,7 @@ es3fTextureFormatTests.Texture3DFormatCase.prototype.init = function() {
 es3fTextureFormatTests.Texture3DFormatCase.prototype.testSlice = function(sliceNdx) {
     /* TODO: Implement */
 
-    var viewport = new glsTextureTestUtil.RandomViewport(canvas, this.m_width, this.m_height/*, deStringHash(getName())*/);
+    var viewport = new glsTextureTestUtil.RandomViewport(document.getElementById('canvas'), this.m_width, this.m_height/*, deStringHash(getName())*/);
 
     /* tcu::Surface */ var renderedFrame = new tcuSurface.Surface(viewport.width, viewport.height);
     /* tcu::Surface */ var referenceFrame = new tcuSurface.Surface(viewport.width, viewport.height);
@@ -630,7 +630,7 @@ es3fTextureFormatTests.Compressed2DFormatCase.prototype.deinit = function() {
 es3fTextureFormatTests.Compressed2DFormatCase.prototype.iterate = function() {
     /* TODO: Implement */
 
-    var viewport = new glsTextureTestUtil.RandomViewport(canvas, this.m_width, this.m_height/*, deStringHash(getName())*/);
+    var viewport = new glsTextureTestUtil.RandomViewport(document.getElementById('canvas'), this.m_width, this.m_height/*, deStringHash(getName())*/);
 
     /* tcu::Surface */ var renderedFrame = new tcuSurface.Surface(viewport.width, viewport.height);
     /* tcu::Surface */ var referenceFrame = new tcuSurface.Surface(viewport.width, viewport.height);
@@ -727,7 +727,7 @@ es3fTextureFormatTests.CompressedCubeFormatCase.prototype.init = function() {
 es3fTextureFormatTests.CompressedCubeFormatCase.prototype.testFace = function(face) {
     /* TODO: Implement */
 
-    var viewport = new glsTextureTestUtil.RandomViewport(canvas, this.m_width, this.m_height/*, deStringHash(getName())*/);
+    var viewport = new glsTextureTestUtil.RandomViewport(document.getElementById('canvas'), this.m_width, this.m_height/*, deStringHash(getName())*/);
 
     /* tcu::Surface */ var renderedFrame = new tcuSurface.Surface(viewport.width, viewport.height);
     /* tcu::Surface */ var referenceFrame = new tcuSurface.Surface(viewport.width, viewport.height);
