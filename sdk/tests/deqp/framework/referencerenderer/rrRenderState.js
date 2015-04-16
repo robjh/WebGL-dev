@@ -201,10 +201,19 @@ var BlendState = function() {
  * @constructor
  */
 var WindowRectangle = function(left_, bottom_, width_, height_) {
-	this.left = left_;
-	this.bottom = bottom_;
-	this.width = width_;
-	this.height = height_;
+    // Is first parameter an array? Use it
+    if (left_.length && left_.length == 4) {
+        this.left = left_[0];
+        this.bottom = left_[1];
+        this.width = left_[2];
+        this.height = left_[3];
+    }
+    else {
+        this.left = left_;
+        this.bottom = bottom_;
+        this.width = width_;
+        this.height = height_;
+    }
 };
 
 /**

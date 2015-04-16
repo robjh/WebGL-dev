@@ -50,6 +50,9 @@ var EdgeFunction = function(a_, b_, c_, inclusive_) {
     this.inclusive = inclusive_ || false;  //!< True if edge is inclusive according to fill rules.
 };
 
+/**
+ * 
+ */
 EdgeFunction.prototype.initEdgeCCW = function(horizontalFill, verticalFill, x0, y0, x1, y1) {
     // \note See EdgeFunction documentation for details.
 
@@ -60,13 +63,13 @@ EdgeFunction.prototype.initEdgeCCW = function(horizontalFill, verticalFill, x0, 
     if (yd == 0)
         inclusive = verticalFill == rrRenderState.VerticalFill.BOTTOM ? xd >= 0 : xd <= 0;
     else
-        inclusive = rrRenderState.HorizontalFill.LEFT == FILL_LEFT ? yd <= 0 : yd >= 0;
+        inclusive = horizontalFill == rrRenderState.HorizontalFill.LEFT ? yd <= 0 : yd >= 0;
 
-    edge.a          = (y0 - y1);
-    edge.b          = (x1 - x0);
-    edge.c          = x0*y1 - y0*x1;
-    edge.inclusive  = inclusive; //!< \todo [pyry] Swap for CW triangles
-}
+    this.a          = (y0 - y1);
+    this.b          = (x1 - x0);
+    this.c          = x0*y1 - y0*x1;
+    this.inclusive  = inclusive; //!< \todo [pyry] Swap for CW triangles
+};
 
 /**
  * @constructor
@@ -79,6 +82,9 @@ var TriangleRasterizer = function(viewport, numSamples, state) {
     this.m_horizontalFill = state.horizontalFill;
     this.m_verticalFill = state.verticalFill;
     this.m_face = undefined;
+    this.m_edge01 = new EdgeFunction();
+    this.m_edge12 = new EdgeFunction();
+    this.m_edge20 = new EdgeFunction();
 };
 
 
@@ -104,16 +110,16 @@ TriangleRasterizer.prototype.init = function(v0,v1, v2) {
     // Initialize edge functions.
     if (this.m_winding == rrRenderState.Winding.CCW)
     {
-        initEdgeCCW(this.m_edge01, this.m_horizontalFill, this.m_verticalFill, x0, y0, x1, y1);
-        initEdgeCCW(this.m_edge12, this.m_horizontalFill, this.m_verticalFill, x1, y1, x2, y2);
-        initEdgeCCW(this.m_edge20, this.m_horizontalFill, this.m_verticalFill, x2, y2, x0, y0);
+        this.m_edge01.initEdgeCCW(this.m_horizontalFill, this.m_verticalFill, x0, y0, x1, y1);
+        this.m_edge12.initEdgeCCW(this.m_horizontalFill, this.m_verticalFill, x1, y1, x2, y2);
+        this.m_edge20.initEdgeCCW(this.m_horizontalFill, this.m_verticalFill, x2, y2, x0, y0);
     }
     else
     {
         // Reverse edges
-        initEdgeCCW(this.m_edge01, this.m_horizontalFill, this.m_verticalFill, x1, y1, x0, y0);
-        initEdgeCCW(this.m_edge12, this.m_horizontalFill, this.m_verticalFill, x2, y2, x1, y1);
-        initEdgeCCW(this.m_edge20, this.m_horizontalFill, this.m_verticalFill, x0, y0, x2, y2);
+        this.m_edge01.initEdgeCCW(this.m_horizontalFill, this.m_verticalFill, x1, y1, x0, y0);
+        this.m_edge12.initEdgeCCW(this.m_horizontalFill, this.m_verticalFill, x2, y2, x1, y1);
+        this.m_edge20.initEdgeCCW(this.m_horizontalFill, this.m_verticalFill, x0, y0, x2, y2);
     }
 
     // Determine face.

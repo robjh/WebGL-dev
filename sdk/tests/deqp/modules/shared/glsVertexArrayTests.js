@@ -31,9 +31,10 @@ define([
     'framework/opengl/simplereference/sglrShaderProgram',
     'framework/delibs/debase/deMath',
     'framework/delibs/debase/deRandom',
+    'framework/referencerenderer/rrGenericVector',
+    'framework/referencerenderer/rrShadingContext',
     'framework/referencerenderer/rrVertexAttrib',
-    'framework/referencerenderer/rrVertexPacket',
-    'framework/referencerenderer/rrGenericVector'],
+    'framework/referencerenderer/rrVertexPacket'],
     function (
         tcuTestCase,
         tcuRGBA,
@@ -47,9 +48,10 @@ define([
         sglrShaderProgram,
         deMath,
         deRandom,
+        rrGenericVector,
+        rrShadingContext,
         rrVertexAttrib,
-        rrVertexPacket,
-        rrGenericVector
+        rrVertexPacket
     ) {
     'use strict';
 
@@ -903,7 +905,8 @@ define([
         }
 
         DE_ASSERT((firstVertex % 6) == 0);
-        this.m_ctx.drawArrays(ContextArray.primitiveToGL(primitive), firstVertex, vertexCount - firstVertex);
+        this.m_ctx.drawQuad(firstVertex);
+        //this.m_ctx.drawArrays(ContextArray.primitiveToGL(primitive), firstVertex, vertexCount - firstVertex);
         GLU_EXPECT_NO_ERROR(this.m_ctx.getError(), "gl.drawArrays()");
 
         for (var arrayNdx = 0; arrayNdx < this.m_arrays.length; arrayNdx++) {
@@ -1031,7 +1034,13 @@ define([
             for (var attribNdx = 0; attribNdx < this.m_attrType.length; attribNdx++) {
                 /** @type {number} */ var numComponents = this.m_componentCount[attribNdx];
 
-                calcShaderColorCoord(coord, color, rrVertexAttrib.readVertexAttrib(inputs[attribNdx], packet.instanceNdx, packet.vertexNdx, this.m_attrType[attribNdx]), attribNdx == 0, numComponents);
+                calcShaderColorCoord(coord, color,
+                                     rrVertexAttrib.readVertexAttrib(
+                                        inputs[attribNdx],
+                                        packet.instanceNdx,
+                                        packet.vertexNdx,
+                                        this.m_attrType[attribNdx]),
+                                     attribNdx == 0, numComponents);
             }
 
             // Transform position
@@ -1047,15 +1056,12 @@ define([
      * @param {Array<rrFragmentPacket.FragmentPacket>} packets
      * @param {rrShadingContext.FragmentShadingContext} context
      */
-    ContextShaderProgram.prototype.shadeFragments = function (packets, /*numPackets,*/ context) {
+    ContextShaderProgram.prototype.shadeFragments = function (packets, context) {
         var varyingLocColor = 0;
 
-        // Triangles are flashaded
-        //var color = rrShadingContext.readTriangleVarying(packets[0], context, varyingLocColor, 0);
-
-        // Normal shading
-        for (var packetNdx = 0; packetNdx < packets.length; ++packetNdx)
-            packets[packetNdx].color = rrShadingContext.readTriangleVarying(packets[packetNdx], context, varyingLocColor /*, 0*/);
+            // Actually fragment-shade the transformed values.
+            packet.outputs[varyingLocColor] = rrShadingContext.readTriangleVarying(packets[packetNdx], context, varyingLocColor /*, 0*/);
+        }
             /*for (int fragNdx = 0; fragNdx < 4; ++fragNdx)
                 rr::writeFragmentOutput(context, packetNdx, fragNdx, 0, color);*/
     };
