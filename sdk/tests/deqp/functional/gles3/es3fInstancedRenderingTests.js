@@ -41,7 +41,7 @@ var deString = framework.delibs.debase.deString;
 var deRandom = framework.delibs.debase.deRandom;
 var tcuImageCompare = framework.common.tcuImageCompare;
 var gluTextureUtil = framework.opengl.gluTextureUtil;
-    
+
     /** @type {WebGL2RenderingContext} */ var gl;
 
     /** @const @type {number} */ es3fInstancedRenderingTests.MAX_RENDER_WIDTH = 128;
@@ -112,7 +112,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
         /** @type {es3fInstancedRenderingTests.InstancingType} */ this.m_instancingType = instancingType;
         /** @type {DataType} */ this.m_rgbAttrType = rgbAttrType;
         /** @type {number} */ this.m_numInstances = numInstances;
-        /** @type {glu.ShaderProgram} */ this.m_program = null;
+        /** @type {gluShaderProgram.ShaderProgram} */ this.m_program = null;
         /** @type {Array<number>} */ this.m_gridVertexPositions = [];
         /** @type {Array<number>} */ this.m_gridIndices = [];
         /** @type {Array<number>} */ this.m_instanceOffsets = [];
@@ -478,7 +478,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
 
 
     es3fInstancedRenderingTests.InstancedRenderingCase.prototype.setupAndRender = function() {
-        /** @type {number} */ var program = this.m_program.getProgram();
+        /** @type {WebGLProgram} */ var program = this.m_program.getProgram();
 
         gl.useProgram(program);
         // Setup attributes.
@@ -714,5 +714,5 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
         }
     };
 
-    
+
 });
