@@ -143,7 +143,7 @@ tcuFloat.FloatDescription.prototype.constructBits = function(sign, exponent, man
 
     DE_ASSERT(sign == +1 || sign == -1);
     DE_ASSERT((exponentBits >> this.ExponentBits) == 0);
-    DE_ASSERT(deMath.shiftRight(mantissaBits >> this.MantissaBits) == 0);
+    DE_ASSERT(deMath.shiftRight(mantissaBits, this.MantissaBits) == 0);
 
     return tcuFloat.newDeFloatFromParameters(
         deMath.binaryOp(

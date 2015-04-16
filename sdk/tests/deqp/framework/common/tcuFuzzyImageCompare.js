@@ -33,7 +33,7 @@ var deMath = framework.delibs.debase.deMath;
 var deRandom = framework.delibs.debase.deRandom;
 var tcuTexture = framework.common.tcuTexture;
 var tcuTextureUtil = framework.common.tcuTextureUtil;
-    
+
 
     var DE_ASSERT = function(x) {
         if (!x)
@@ -87,7 +87,7 @@ var tcuTextureUtil = framework.common.tcuTextureUtil;
 
     /**
      * @param {number} color
-     * @return {Array<deMath.deUint32>}
+     * @return {Array<number>}
      */
     tcuFuzzyImageCompare.toFloatVec = function(color) {
         return [tcuFuzzyImageCompare.getChannel(color, 0), tcuFuzzyImageCompare.getChannel(color, 1), tcuFuzzyImageCompare.getChannel(color, 2), tcuFuzzyImageCompare.getChannel(color, 3)];
@@ -166,7 +166,7 @@ var tcuTextureUtil = framework.common.tcuTextureUtil;
     };
 
     /**
-     * @param {ConstPixelBufferAccess} src
+     * @param {tcuTexture.ConstPixelBufferAccess} src
      * @param {number} u
      * @param {number} v
      * @param {number} NumChannels
@@ -267,7 +267,7 @@ var tcuTextureUtil = framework.common.tcuTextureUtil;
      * @param {tcuFuzzyImageCompare.FuzzyCompareParams} params
      * @param {deRandom.Random} rnd
      * @param {number} pixel
-     * @param {ConstPixelBufferAccess} surface
+     * @param {tcuTexture.ConstPixelBufferAccess} surface
      * @param {number} x
      * @param {number} y
      * @param {number} NumChannels
@@ -388,8 +388,8 @@ var tcuTextureUtil = framework.common.tcuTextureUtil;
         // Clear error mask to green.
         tcuTextureUtil.clear(errorMask, [0.0, 1.0, 0.0, 1.0]);
 
-        /** @type {ConstPixelBufferAccess} */ var refAccess = refFiltered.getAccess();
-        /** @type {ConstPixelBufferAccess} */ var cmpAccess = cmpFiltered.getAccess();
+        /** @type {tcuTexture.ConstPixelBufferAccess} */ var refAccess = refFiltered.getAccess();
+        /** @type {tcuTexture.ConstPixelBufferAccess} */ var cmpAccess = cmpFiltered.getAccess();
 
         for (var y = 1; y < height - 1; y++) {
             for (var x = 1; x < width - 1; x += params.maxSampleSkip > 0 ? rnd.getInt(0, params.maxSampleSkip) : 1) {

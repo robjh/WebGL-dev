@@ -233,10 +233,10 @@ tcuImageCompare.floatUlpThresholdCompare = function(imageSetName, imageSetDesc, 
                 /** @type {ArrayBuffer} */ var arrayBufferRef = new ArrayBuffer(4);
                 /** @type {ArrayBuffer} */ var arrayBufferCmp = new ArrayBuffer(4);
 
-                /** @type {Array<number>} */ var refPix = new Float32Array(arrayBufferRef); // Vec4
+                /** @type {Float32Array} */ var refPix = new Float32Array(arrayBufferRef); // Vec4
                 refPix = reference.getPixel(x, y, z); // getPixel returns a Vec4 pixel color
 
-                /** @type {Array<number>} */ var cmpPix = new Float32Array(arrayBufferCmp); // Vec4
+                /** @type {Float32Array} */ var cmpPix = new Float32Array(arrayBufferCmp); // Vec4
                 cmpPix = result.getPixel(x, y, z); // getPixel returns a Vec4 pixel color
 
                 /** @type {Uint32Array} */ var refBits = new Uint32Array(arrayBufferRef); // UVec4
@@ -473,9 +473,9 @@ tcuImageCompare.fuzzyCompare = function(imageSetName, imageSetDesc, reference, r
  *
  * @param {string} imageSetName Name for image set when logging results
  * @param {string} imageSetDesc Description for image set
- * @param {ConstPixelBufferAccess} reference Reference image
- * @param {ConstPixelBufferAccess} result Result image
- * @param {RGBA} threshold Maximum local difference
+ * @param {tcuTexture.ConstPixelBufferAccess} reference Reference image
+ * @param {tcuTexture.ConstPixelBufferAccess} result Result image
+ * @param {tcuRGBA.RGBA} threshold Maximum local difference
  * @param {tcuImageCompare.CompareLogMode} logMode Logging mode
  * @return {boolean} if comparison passes, false otherwise
  */

@@ -80,13 +80,13 @@ var tcuRGBA = framework.common.tcuRGBA;
      */
     tcuBilinearImageCompare.readRGBA8 = function(src, x, y) {
         /** @type {number} */ var raw = tcuBilinearImageCompare.readRGBA8Raw(src, x, y);
-        /** @type {number} */ var res = [
+        /** @type {Array<number>} */ var res = [
             tcuBilinearImageCompare.getChannel(raw, 0),
             tcuBilinearImageCompare.getChannel(raw, 1),
             tcuBilinearImageCompare.getChannel(raw, 2),
             tcuBilinearImageCompare.getChannel(raw, 3)
         ];
-        return new tcuRGBA.RGBA(res);
+        return new tcuRGBA.newRGBAFromArray(res);
     };
 
     /**
@@ -111,7 +111,7 @@ var tcuRGBA = framework.common.tcuRGBA;
         /** @const {number} */
         var rounded = (sum + half) >> (tcuBilinearImageCompare.NUM_SUBPIXEL_BITS * 2);
 
-        DE_ASSERT(deMath.inRange(rounded, 0, 0xff));
+        DE_ASSERT(deMath.inRange32(rounded, 0, 0xff));
         return rounded;
     };
 
@@ -138,7 +138,7 @@ var tcuRGBA = framework.common.tcuRGBA;
         /** @type {number} */ var p01 = tcuBilinearImageCompare.readRGBA8Raw(access, x0, y1);
         /** @type {number} */ var p11 = tcuBilinearImageCompare.readRGBA8Raw(access, x1, y1);
 
-        /** @type {number} */ var res = [];
+        /** @type {Array<number>} */ var res = [];
 
         res[0] = tcuBilinearImageCompare.interpolateChannel(fx1, fy1, tcuBilinearImageCompare.getChannel(p00, 0),
             tcuBilinearImageCompare.getChannel(p01, 0), tcuBilinearImageCompare.getChannel(p10, 0), tcuBilinearImageCompare.getChannel(p11, 0));
@@ -149,7 +149,7 @@ var tcuRGBA = framework.common.tcuRGBA;
         res[3] = tcuBilinearImageCompare.interpolateChannel(fx1, fy1, tcuBilinearImageCompare.getChannel(p00, 3),
             tcuBilinearImageCompare.getChannel(p01, 3), tcuBilinearImageCompare.getChannel(p10, 3), tcuBilinearImageCompare.getChannel(p11, 3));
 
-        return new tcuRGBA.RGBA(res);
+        return new tcuRGBA.newRGBAFromArray(res);
     };
 
     /**
@@ -161,7 +161,7 @@ var tcuRGBA = framework.common.tcuRGBA;
      * @return {boolean}
      */
     tcuBilinearImageCompare.comparePixelRGBA8 = function(reference, result, threshold, x, y) {
-        /** @const {tcyRGBA.RGBA} */ var resPix = tcuBilinearImageCompare.readRGBA8(result, x, y);
+        /** @const {tcuRGBA.RGBA} */ var resPix = tcuBilinearImageCompare.readRGBA8(result, x, y);
 
         // Step 1: Compare result pixel to 3x3 neighborhood pixels in reference.
         /** @const {number} */ var x0 = Math.max(x - 1, 0);
@@ -223,8 +223,8 @@ var tcuRGBA = framework.common.tcuRGBA;
             /** @const {number} */
             var v = ((y - 1) << tcuBilinearImageCompare.NUM_SUBPIXEL_BITS) + s_offsets[sampleNdx][1];
 
-            if (!deMath.inBounds(u, 0, (reference.getWidth() - 1) << tcuBilinearImageCompare.NUM_SUBPIXEL_BITS) ||
-                !deMath.inBounds(v, 0, (reference.getHeight() - 1) << tcuBilinearImageCompare.NUM_SUBPIXEL_BITS))
+            if (!deMath.inBounds32(u, 0, (reference.getWidth() - 1) << tcuBilinearImageCompare.NUM_SUBPIXEL_BITS) ||
+                !deMath.inBounds32(v, 0, (reference.getHeight() - 1) << tcuBilinearImageCompare.NUM_SUBPIXEL_BITS))
                 continue;
 
             if (tcuRGBA.compareThreshold(resPix, tcuBilinearImageCompare.bilinearSampleRGBA8(reference, u, v), threshold))

@@ -186,7 +186,7 @@ tcuTexture.getTypedArray = function(type) {
 };
 
 /**
- * @return {Number} pixel size in bytes
+ * @return {number} pixel size in bytes
  */
 tcuTexture.TextureFormat.prototype.getPixelSize = function() {
     if (this.type == null || this.order == null)
@@ -298,14 +298,14 @@ tcuTexture.DeqpArrayBuffer = function(numElements) {
 
 /**
  * Set array size
- * @param {Number} numElements Size in bytes
+ * @param {number} numElements Size in bytes
  */
 tcuTexture.DeqpArrayBuffer.prototype.setStorage = function(numElements) {
     this.m_ptr = new ArrayBuffer(numElements);
 };
 
 /**
- * @return {Number} Buffer size
+ * @return {number} Buffer size
  */
 tcuTexture.DeqpArrayBuffer.prototype.size = function() {
     if (this.m_ptr)
@@ -364,7 +364,7 @@ tcuTexture.getChannelReadMap = function(order) {
 
 /**
  * @param {tcuTexture.ChannelOrder} order
- * @return {Array<Number>}
+ * @return {Array<number>}
  */
 tcuTexture.getChannelWriteMap = function(order) {
     switch (order) {
@@ -390,7 +390,7 @@ tcuTexture.getChannelWriteMap = function(order) {
 
 /**
  * @param {tcuTexture.ChannelType} type
- * @return {Number}
+ * @return {number}
  */
 tcuTexture.getChannelSize = function(type) {
     switch (type) {
@@ -414,9 +414,9 @@ tcuTexture.getChannelSize = function(type) {
 };
 
 /**
- * @param {Number} src Source value
- * @param {Number} bits Source value size in bits
- * @return {Number} Normalized value
+ * @param {number} src Source value
+ * @param {number} bits Source value size in bits
+ * @return {number} Normalized value
  */
 tcuTexture.channelToNormFloat = function(src, bits) {
     var maxVal = (1 << bits) - 1;
@@ -424,9 +424,9 @@ tcuTexture.channelToNormFloat = function(src, bits) {
 };
 
 /**
- * @param {Number} value Source value
+ * @param {number} value Source value
  * @param {tcuTexture.ChannelType} type
- * @return {Number} Source value converted to float
+ * @return {number} Source value converted to float
  */
 tcuTexture.channelToFloat = function(value, type) {
     switch (type) {
@@ -449,9 +449,9 @@ tcuTexture.channelToFloat = function(value, type) {
 };
 
 /**
- * @param {Number} value Source value
+ * @param {number} value Source value
  * @param {tcuTexture.ChannelType} type
- * @return {Number} Source value converted to int
+ * @return {number} Source value converted to int
  */
 tcuTexture.channelToInt = function(value, type) {
     switch (type) {
@@ -464,7 +464,7 @@ tcuTexture.channelToInt = function(value, type) {
 
 /**
  * @param {tcuTexture.ChannelOrder} order
- * @return {Number}
+ * @return {number}
  */
 tcuTexture.getNumUsedChannels = function(order) {
     switch (order) {
@@ -535,11 +535,11 @@ tcuTexture.CompareMode = {
  * @param {tcuTexture.WrapMode} wrapR
  * @param {tcuTexture.FilterMode} minFilter
  * @param {tcuTexture.FilterMode} magFilter
- * @param {Number} lodThreshold
+ * @param {number} lodThreshold
  * @param {boolean} normalizedCoords
  * @param {tcuTexture.CompareMode} compare
- * @param {Number} compareChannel
- * @param {Array<Number>} borderColor
+ * @param {number} compareChannel
+ * @param {Array<number>} borderColor
  * @param {boolean} seamlessCubeMap
  */
 tcuTexture.Sampler = function(wrapS, wrapT, wrapR, minFilter, magFilter, lodThreshold, normalizedCoords, compare, compareChannel, borderColor, seamlessCubeMap) {
@@ -559,9 +559,9 @@ tcuTexture.Sampler = function(wrapS, wrapT, wrapR, minFilter, magFilter, lodThre
 /**
  * Special unnormalization for REPEAT_CL and MIRRORED_REPEAT_CL tcuTexture.wrap modes; otherwise ordinary unnormalization.
  * @param {tcuTexture.WrapMode} mode
- * @param {Number} c Value to tcuTexture.unnormalize
- * @param {Number} size Unnormalized type size (integer)
- * @return {Number}
+ * @param {number} c Value to tcuTexture.unnormalize
+ * @param {number} size Unnormalized type size (integer)
+ * @return {number}
  */
 tcuTexture.unnormalize = function(mode, c, size) {
     switch (mode) {
@@ -582,9 +582,9 @@ tcuTexture.unnormalize = function(mode, c, size) {
 
 /**
  * @param {tcuTexture.WrapMode} mode
- * @param {Number} c Source value (integer)
- * @param {Number} size Type size (integer)
- * @return {Number}
+ * @param {number} c Source value (integer)
+ * @param {number} size Type size (integer)
+ * @return {number}
  */
 tcuTexture.wrap = function(mode, c, size) {
     switch (mode) {
@@ -610,8 +610,8 @@ tcuTexture.wrap = function(mode, c, size) {
 };
 
 /**
- * @param {Number} cs
- * @return {Number}
+ * @param {number} cs
+ * @return {number}
  */
 tcuTexture.sRGBChannelToLinear = function(cs) {
     if (cs <= 0.04045)
@@ -622,8 +622,8 @@ tcuTexture.sRGBChannelToLinear = function(cs) {
 
 /**
  * Convert sRGB to linear colorspace
- * @param {Array<Number>} cs Vec4
- * @return {Array<Number>} Vec4
+ * @param {Array<number>} cs Vec4
+ * @return {Array<number>} Vec4
  */
 tcuTexture.sRGBToLinear = function(cs) {
     return [
@@ -637,10 +637,10 @@ tcuTexture.sRGBToLinear = function(cs) {
 /**
  * Texel tcuTexture.lookup with color conversion.
  * @param {tcuTexture.ConstPixelBufferAccess} access
- * @param {Number} i
- * @param {Number} j
- * @param {Number} k
- * @return {Array<Number>} Vec4 pixel color
+ * @param {number} i
+ * @param {number} j
+ * @param {number} k
+ * @return {Array<number>} Vec4 pixel color
  */
 tcuTexture.lookup = function(access, i, j, k) {
     var p = access.getPixel(i, j, k);
@@ -651,10 +651,10 @@ tcuTexture.lookup = function(access, i, j, k) {
 /**
  * @param {tcuTexture.ConstPixelBufferAccess} access
  * @param {tcuTexture.Sampler} sampler
- * @param {Number} u
- * @param {Number} v
- * @param {Number} depth (integer)
- * @return {Array<Number>} Vec4 pixel color
+ * @param {number} u
+ * @param {number} v
+ * @param {number} depth (integer)
+ * @return {Array<number>} Vec4 pixel color
  */
 tcuTexture.sampleNearest2D = function(access, sampler, u, v, depth) {
     var width = access.getWidth();
@@ -678,10 +678,10 @@ tcuTexture.sampleNearest2D = function(access, sampler, u, v, depth) {
 /**
  * @param {tcuTexture.ConstPixelBufferAccess} access
  * @param {tcuTexture.Sampler} sampler
- * @param {Number} u
- * @param {Number} v
- * @param {Number} w
- * @return {Array<Number>} Vec4 pixel color
+ * @param {number} u
+ * @param {number} v
+ * @param {number} w
+ * @return {Array<number>} Vec4 pixel color
  */
 tcuTexture.sampleNearest3D = function(access, sampler, u, v, w) {
     var width = access.getWidth();
@@ -706,8 +706,8 @@ tcuTexture.sampleNearest3D = function(access, sampler, u, v, w) {
 };
 
 /**
- * @param {Array<Number>} color Vec4 color
- * @return {Number} The color in packed 32 bit format
+ * @param {Array<number>} color Vec4 color
+ * @return {number} The color in packed 32 bit format
  */
 tcuTexture.packRGB999E5 = function(color) {
     /** @const */ var mBits = 9;
@@ -738,8 +738,8 @@ tcuTexture.packRGB999E5 = function(color) {
 };
 
 /**
- * @param {Number} color Color in packed 32 bit format
- * @return {Array<Number>} The color in unpacked format
+ * @param {number} color Color in packed 32 bit format
+ * @return {Array<number>} The color in unpacked format
  */
 tcuTexture.unpackRGB999E5 = function(color) {
     var mBits = 9;
@@ -792,7 +792,7 @@ tcuTexture.ConstPixelBufferAccess = function(descriptor) {
     }
 };
 
-/** @return {Number} */
+/** @return {number} */
 tcuTexture.ConstPixelBufferAccess.prototype.getDataSize = function() { return this.m_depth * this.m_slicePitch; };
 tcuTexture.ConstPixelBufferAccess.prototype.isEmpty = function() { return this.m_width == 0 || this.m_height == 0 || this.m_depth == 0; };
 /** @return {TypedArray} */
@@ -804,24 +804,24 @@ tcuTexture.ConstPixelBufferAccess.prototype.getDataPtr = function() {
 tcuTexture.ConstPixelBufferAccess.prototype.getBuffer = function() {
     return this.m_data;
 };
-/** @return {Number} */
+/** @return {number} */
 tcuTexture.ConstPixelBufferAccess.prototype.getRowPitch = function() { return this.m_rowPitch; };
-/** @return {Number} */
+/** @return {number} */
 tcuTexture.ConstPixelBufferAccess.prototype.getWidth = function() { return this.m_width; };
-/** @return {Number} */
+/** @return {number} */
 tcuTexture.ConstPixelBufferAccess.prototype.getHeight = function() { return this.m_height; };
-/** @return {Number} */
+/** @return {number} */
 tcuTexture.ConstPixelBufferAccess.prototype.getDepth = function() { return this.m_depth; };
-/** @return {Number} */
+/** @return {number} */
 tcuTexture.ConstPixelBufferAccess.prototype.getSlicePitch = function() { return this.m_slicePitch; };
 /** @return {tcuTexture.TextureFormat} */
 tcuTexture.ConstPixelBufferAccess.prototype.getFormat = function() { return this.m_format; };
 
 /**
- * @param {Number} x
- * @param {Number} y
- * @param {Number} z
- * @return {Array<Number>} Pixel value as Vec4
+ * @param {number} x
+ * @param {number} y
+ * @param {number} z
+ * @return {Array<number>} Pixel value as Vec4
  */
 tcuTexture.ConstPixelBufferAccess.prototype.getPixel = function(x, y, z) {
     if (z == null)
@@ -907,10 +907,10 @@ tcuTexture.ConstPixelBufferAccess.prototype.getPixel = function(x, y, z) {
 };
 
 /**
- * @param {Number} x
- * @param {Number} y
- * @param {Number} z
- * @return {Array<Number>} Pixel value as Vec4
+ * @param {number} x
+ * @param {number} y
+ * @param {number} z
+ * @return {Array<number>} Pixel value as Vec4
  */
 tcuTexture.ConstPixelBufferAccess.prototype.getPixelInt = function(x, y, z) {
     if (z == null)
@@ -981,10 +981,10 @@ tcuTexture.ConstPixelBufferAccess.prototype.getPixelInt = function(x, y, z) {
 /**
  * @param {tcuTexture.Sampler} sampler
  * @param {tcuTexture.FilterMode} filter
- * @param {Number} s
- * @param {Number} t
- * @param {Number} depth (integer)
- * @return {Array<Number>} Sample color
+ * @param {number} s
+ * @param {number} t
+ * @param {number} depth (integer)
+ * @return {Array<number>} Sample color
  */
 tcuTexture.ConstPixelBufferAccess.prototype.sample2D = function(sampler, filter, s, t, depth) {
     DE_ASSERT(deMath.deInBounds32(depth, 0, this.m_depth));
@@ -1011,10 +1011,10 @@ tcuTexture.ConstPixelBufferAccess.prototype.sample2D = function(sampler, filter,
 /**
  * @param {tcuTexture.Sampler} sampler
  * @param {tcuTexture.FilterMode} filter
- * @param {Number} s
- * @param {Number} t
- * @param {Number} r
- * @return {Array<Number>} Sample color
+ * @param {number} s
+ * @param {number} t
+ * @param {number} r
+ * @return {Array<number>} Sample color
  */
 tcuTexture.ConstPixelBufferAccess.prototype.sample3D = function(sampler, filter, s, t, r) {
     // Non-normalized coordinates.
@@ -1070,8 +1070,8 @@ tcuTexture.deTypes = {
 /**
  * Round to even and saturate
  * @param {tcuTexture.deTypes} deType
- * @param {Number} value
- * @return {Number}
+ * @param {number} value
+ * @return {number}
  */
 tcuTexture.convertSatRte = function(deType, value) {
     var minVal = deType.min;
@@ -1131,9 +1131,9 @@ tcuTexture.intToChannel = function(src, type) {
 };
 
 /**
- * @param {Number} src
- * @param {Number} bits
- * @return {Number}
+ * @param {number} src
+ * @param {number} bits
+ * @return {number}
  */
 tcuTexture.normFloatToChannel = function(src, bits) {
     var maxVal = (1 << bits) - 1;
@@ -1142,9 +1142,9 @@ tcuTexture.normFloatToChannel = function(src, bits) {
 };
 
 /**
- * @param {Number} src
- * @param {Number} bits
- * @return {Number}
+ * @param {number} src
+ * @param {number} bits
+ * @return {number}
  */
 tcuTexture.uintToChannel = function(src, bits) {
     var maxVal = (1 << bits) - 1;
@@ -1152,9 +1152,9 @@ tcuTexture.uintToChannel = function(src, bits) {
 };
 
 /**
- * @param {Number} src
+ * @param {number} src
  * @param {tcuTexture.ChannelType} type
- * @return {Number} Converted src color value
+ * @return {number} Converted src color value
  */
 tcuTexture.floatToChannel = function(src, type) {
     switch (type)
@@ -1197,10 +1197,10 @@ tcuTexture.PixelBufferAccess.prototype = Object.create(tcuTexture.ConstPixelBuff
 tcuTexture.PixelBufferAccess.prototype.constructor = tcuTexture.PixelBufferAccess;
 
 /**
- * @param {Array<Number>} color Vec4 color to set
- * @param {Number} x
- * @param {Number} y
- * @param {Number} z
+ * @param {Array<number>} color Vec4 color to set
+ * @param {number} x
+ * @param {number} y
+ * @param {number} z
  */
 tcuTexture.PixelBufferAccess.prototype.setPixel = function(color, x, y, z) {
     if (z == null)
@@ -1284,10 +1284,10 @@ tcuTexture.PixelBufferAccess.prototype.setPixel = function(color, x, y, z) {
 };
 
 /**
- * @param {Array<Number>} color Vec4 color to set (unnormalized)
- * @param {Number} x
- * @param {Number} y
- * @param {Number} z
+ * @param {Array<number>} color Vec4 color to set (unnormalized)
+ * @param {number} x
+ * @param {number} y
+ * @param {number} z
  */
 tcuTexture.PixelBufferAccess.prototype.setPixelInt = function(color, x, y, z) {
     if (z == null)
@@ -1535,7 +1535,7 @@ tcuTexture.PixelBufferAccess.newFromTextureFormat = function(format, width, heig
 /**
  * @constructor
  * @param {tcuTexture.TextureFormat} format
- * @param {Number} numLevels
+ * @param {number} numLevels
  */
 tcuTexture.TextureLevelPyramid = function(format, numLevels) {
     /* tcuTexture.TextureFormat */this.m_format = format;
@@ -1550,7 +1550,7 @@ tcuTexture.TextureLevelPyramid = function(format, numLevels) {
 tcuTexture.TextureLevelPyramid.prototype.isLevelEmpty = function(levelNdx) { return this.m_data[levelNdx].empty(); };
 /** @return {tcuTexture.TextureFormat} */
 tcuTexture.TextureLevelPyramid.prototype.getFormat = function()            { return this.m_format; };
-/** @return {Number} */
+/** @return {number} */
 tcuTexture.TextureLevelPyramid.prototype.getNumLevels = function()            { return this.m_access.length; };
 /** @return {tcuTexture.PixelBufferAccess} */
 tcuTexture.TextureLevelPyramid.prototype.getLevel = function(ndx)             { return this.m_access[ndx]; };
@@ -1558,10 +1558,10 @@ tcuTexture.TextureLevelPyramid.prototype.getLevel = function(ndx)             { 
 tcuTexture.TextureLevelPyramid.prototype.getLevels = function()            { return this.m_access; };
 
 /**
- * @param {Number} levelNdx
- * @param {Number} width
- * @param {Number} height
- * @param {Number} depth
+ * @param {number} levelNdx
+ * @param {number} width
+ * @param {number} height
+ * @param {number} depth
  */
 tcuTexture.TextureLevelPyramid.prototype.allocLevel = function(levelNdx, width, height, depth) {
     var size = this.m_format.getPixelSize() * width * height * depth;
@@ -1585,13 +1585,13 @@ tcuTexture.TextureLevelPyramid.prototype.clearLevel = function(levelNdx) {
 
 /**
  * @param {Array<tcuTexture.ConstPixelBufferAccess>} levels
- * @param {Number} numLevels
+ * @param {number} numLevels
  * @param {tcuTexture.Sampler} sampler
- * @param {Number} s
- * @param {Number} t
- * @param {Number} depth (integer)
- * @param {Number} lod
- * @return {Array<Number>} Vec4 pixel color
+ * @param {number} s
+ * @param {number} t
+ * @param {number} depth (integer)
+ * @param {number} lod
+ * @return {Array<number>} Vec4 pixel color
  */
 tcuTexture.sampleLevelArray2D = function(levels, numLevels, sampler, s, t, depth, lod) {
     var magnified = lod <= sampler.lodThreshold;
@@ -1635,13 +1635,13 @@ tcuTexture.sampleLevelArray2D = function(levels, numLevels, sampler, s, t, depth
 
 /**
  * @param {Array<tcuTexture.ConstPixelBufferAccess>} levels
- * @param {Number} numLevels
+ * @param {number} numLevels
  * @param {tcuTexture.Sampler} sampler
- * @param {Number} s
- * @param {Number} t
- * @param {Number} r
- * @param {Number} lod
- * @return {Array<Number>} Vec4 pixel color
+ * @param {number} s
+ * @param {number} t
+ * @param {number} r
+ * @param {number} lod
+ * @return {Array<number>} Vec4 pixel color
  */
 tcuTexture.sampleLevelArray3D = function(levels, numLevels, sampler, s, t, r, lod) {
     var magnified = lod <= sampler.lodThreshold;
@@ -1685,7 +1685,7 @@ tcuTexture.sampleLevelArray3D = function(levels, numLevels, sampler, s, t, r, lo
 /**
  * @constructor
  * @param {tcuTexture.CubeFace} face
- * @param {Array<Number>} coords
+ * @param {Array<number>} coords
  */
 tcuTexture.CubeFaceCoords = function(face, coords) {
     this.face = face;
@@ -1696,7 +1696,7 @@ tcuTexture.CubeFaceCoords = function(face, coords) {
 /**
  * \brief 2D Texture View
  * @constructor
- * @param {Number} numLevels
+ * @param {number} numLevels
  * @param {Array<tcuTexture.ConstPixelBufferAccess>} levels
  */
 tcuTexture.Texture2DView = function(numLevels, levels) {
@@ -1704,14 +1704,14 @@ tcuTexture.Texture2DView = function(numLevels, levels) {
     this.m_levels = levels;
 };
 
-/** @return {Number} */
+/** @return {number} */
 tcuTexture.Texture2DView.prototype.getNumLevels = function()    { return this.m_numLevels; };
-/** @return {Number} */
+/** @return {number} */
 tcuTexture.Texture2DView.prototype.getWidth = function()     { return this.m_numLevels > 0 ? this.m_levels[0].getWidth() : 0; };
-/** @return {Number} */
+/** @return {number} */
 tcuTexture.Texture2DView.prototype.getHeight = function() { return this.m_numLevels > 0 ? this.m_levels[0].getHeight() : 0; };
 /**
- * @param {Number} ndx
+ * @param {number} ndx
  * @return {tcuTexture.ConstPixelBufferAccess}
  */
 tcuTexture.Texture2DView.prototype.getLevel = function(ndx) { DE_ASSERT(deMath.deInBounds32(ndx, 0, this.m_numLevels)); return this.m_levels[ndx]; };
@@ -1719,8 +1719,8 @@ tcuTexture.Texture2DView.prototype.getLevel = function(ndx) { DE_ASSERT(deMath.d
 tcuTexture.Texture2DView.prototype.getLevels = function() { return this.m_levels; };
 
 /**
- * @param {Number} baseLevel
- * @param {Number} maxLevel
+ * @param {number} baseLevel
+ * @param {number} maxLevel
  * return {tcuTexture.Texture2DView}
  */
 tcuTexture.Texture2DView.prototype.getSubView = function(baseLevel, maxLevel) {
@@ -1732,9 +1732,9 @@ tcuTexture.Texture2DView.prototype.getSubView = function(baseLevel, maxLevel) {
 
 /**
  * @param {tcuTexture.Sampler} sampler
- * @param {Array<Number>} texCoord
- * @param {Number} lod
- * @return {Array<Number>} Pixel color
+ * @param {Array<number>} texCoord
+ * @param {number} lod
+ * @return {Array<number>} Pixel color
  */
 tcuTexture.Texture2DView.prototype.sample = function(sampler, texCoord, lod) {
     return tcuTexture.sampleLevelArray2D(this.m_levels, this.m_numLevels, sampler, texCoord[0], texCoord[1], 0 /* depth */, lod);
@@ -1752,7 +1752,7 @@ tcuTexture.Texture2DView.prototype.sample = function(sampler, texCoord, lod) {
 
 /**
  * @constructor
- * @param {Number} numLevels
+ * @param {number} numLevels
  * @param {Array<tcuTexture.ConstPixelBufferAccess>} levels
  */
 tcuTexture.Texture2DArrayView = function(numLevels, levels) {
@@ -1760,16 +1760,16 @@ tcuTexture.Texture2DArrayView = function(numLevels, levels) {
     this.m_levels = levels;
 };
 
-/** @return {Number} */
+/** @return {number} */
 tcuTexture.Texture2DArrayView.prototype.getNumLevels = function()    { return this.m_numLevels; };
-/** @return {Number} */
+/** @return {number} */
 tcuTexture.Texture2DArrayView.prototype.getWidth = function()     { return this.m_numLevels > 0 ? this.m_levels[0].getWidth() : 0; };
-/** @return {Number} */
+/** @return {number} */
 tcuTexture.Texture2DArrayView.prototype.getHeight = function() { return this.m_numLevels > 0 ? this.m_levels[0].getHeight() : 0; };
-/** @return {Number} */
+/** @return {number} */
 tcuTexture.Texture2DArrayView.prototype.getNumLayers = function() { return this.m_numLevels > 0 ? this.m_levels[0].getDepth() : 0; };
 /**
- * @param {Number} ndx
+ * @param {number} ndx
  * @return {tcuTexture.ConstPixelBufferAccess}
  */
 tcuTexture.Texture2DArrayView.prototype.getLevel = function(ndx) { DE_ASSERT(deMath.deInBounds32(ndx, 0, this.m_numLevels)); return this.m_levels[ndx]; };
@@ -1777,8 +1777,8 @@ tcuTexture.Texture2DArrayView.prototype.getLevel = function(ndx) { DE_ASSERT(deM
 tcuTexture.Texture2DArrayView.prototype.getLevels = function() { return this.m_levels; };
 
 /**
- * @param {Number} r
- * @return {Number} layer corresponding to requested sampling 'r' coordinate
+ * @param {number} r
+ * @return {number} layer corresponding to requested sampling 'r' coordinate
  */
 tcuTexture.Texture2DArrayView.prototype.selectLayer = function(r) {
     DE_ASSERT(this.m_numLevels > 0 && this.m_levels);
@@ -1787,9 +1787,9 @@ tcuTexture.Texture2DArrayView.prototype.selectLayer = function(r) {
 
 /**
  * @param {tcuTexture.Sampler} sampler
- * @param {Array<Number>} texCoord
- * @param {Number} lod
- * @return {Array<Number>} Pixel color
+ * @param {Array<number>} texCoord
+ * @param {number} lod
+ * @return {Array<number>} Pixel color
  */
 tcuTexture.Texture2DArrayView.prototype.sample = function(sampler, texCoord, lod) {
     return tcuTexture.sampleLevelArray2D(this.m_levels, this.m_numLevels, sampler, texCoord[0], texCoord[1], this.selectLayer(texCoord[2]), lod);
@@ -1797,7 +1797,7 @@ tcuTexture.Texture2DArrayView.prototype.sample = function(sampler, texCoord, lod
 
 /**
  * @constructor
- * @param {Number} numLevels
+ * @param {number} numLevels
  * @param {Array<tcuTexture.ConstPixelBufferAccess>} levels
  */
 tcuTexture.Texture3DView = function(numLevels, levels) {
@@ -1805,16 +1805,16 @@ tcuTexture.Texture3DView = function(numLevels, levels) {
     this.m_levels = levels;
 };
 
-/** @return {Number} */
+/** @return {number} */
 tcuTexture.Texture3DView.prototype.getNumLevels = function()    { return this.m_numLevels; };
-/** @return {Number} */
+/** @return {number} */
 tcuTexture.Texture3DView.prototype.getWidth = function()     { return this.m_numLevels > 0 ? this.m_levels[0].getWidth() : 0; };
-/** @return {Number} */
+/** @return {number} */
 tcuTexture.Texture3DView.prototype.getHeight = function() { return this.m_numLevels > 0 ? this.m_levels[0].getHeight() : 0; };
-/** @return {Number} */
+/** @return {number} */
 tcuTexture.Texture3DView.prototype.getDepth = function() { return this.m_numLevels > 0 ? this.m_levels[0].getDepth() : 0; };
 /**
- * @param {Number} ndx
+ * @param {number} ndx
  * @return {tcuTexture.ConstPixelBufferAccess}
  */
 tcuTexture.Texture3DView.prototype.getLevel = function(ndx) { DE_ASSERT(deMath.deInBounds32(ndx, 0, this.m_numLevels)); return this.m_levels[ndx]; };
@@ -1822,8 +1822,8 @@ tcuTexture.Texture3DView.prototype.getLevel = function(ndx) { DE_ASSERT(deMath.d
 tcuTexture.Texture3DView.prototype.getLevels = function() { return this.m_levels; };
 
 /**
- * @param {Number} baseLevel
- * @param {Number} maxLevel
+ * @param {number} baseLevel
+ * @param {number} maxLevel
  * return {tcuTexture.Texture3DView}
  */
 tcuTexture.Texture3DView.prototype.getSubView = function(baseLevel, maxLevel) {
@@ -1835,9 +1835,9 @@ tcuTexture.Texture3DView.prototype.getSubView = function(baseLevel, maxLevel) {
 
 /**
  * @param {tcuTexture.Sampler} sampler
- * @param {Array<Number>} texCoord
- * @param {Number} lod
- * @return {Array<Number>} Pixel color
+ * @param {Array<number>} texCoord
+ * @param {number} lod
+ * @return {Array<number>} Pixel color
  */
 tcuTexture.Texture3DView.prototype.sample = function(sampler, texCoord, lod) {
     return tcuTexture.sampleLevelArray3D(this.m_levels, this.m_numLevels, sampler, texCoord[0], texCoord[1], texCoord[2], lod);
@@ -1846,9 +1846,9 @@ tcuTexture.Texture3DView.prototype.sample = function(sampler, texCoord, lod) {
 /* TODO: All view classes are very similar. They should have a common base class */
 
 /**
- * @param {Number} width
- * @param {Number} height
- * @return {Number} Number of pyramid levels
+ * @param {number} width
+ * @param {number} height
+ * @return {number} Number of pyramid levels
  */
 tcuTexture.computeMipPyramidLevels = function(width, height) {
     var h = height || width;
@@ -1856,15 +1856,15 @@ tcuTexture.computeMipPyramidLevels = function(width, height) {
 };
 
 /**
- * @param {Number} baseLevelSize
- * @param {Number} levelNdx
+ * @param {number} baseLevelSize
+ * @param {number} levelNdx
  */
 tcuTexture.getMipPyramidLevelSize = function(baseLevelSize, levelNdx) {
     return Math.max(baseLevelSize >> levelNdx, 1);
 };
 
 /**
- * @param {Array<Number>} coords Vec3 cube coordinates
+ * @param {Array<number>} coords Vec3 cube coordinates
  * @return {tcuTexture.CubeFaceCoords}
  */
 tcuTexture.getCubeFaceCoords = function(coords) {
@@ -1876,8 +1876,8 @@ tcuTexture.getCubeFaceCoords = function(coords) {
  * @constructor
  * @extends {tcuTexture.TextureLevelPyramid}
  * @param {tcuTexture.TextureFormat} format
- * @param {Number} width
- * @param {Number} height
+ * @param {number} width
+ * @param {number} height
  */
 tcuTexture.Texture2D = function(format, width, height) {
     tcuTexture.TextureLevelPyramid.call(this, format, tcuTexture.computeMipPyramidLevels(width, height));
@@ -1893,14 +1893,14 @@ tcuTexture.Texture2D.prototype.getWidth = function() { return this.m_width; };
 tcuTexture.Texture2D.prototype.getHeight = function() { return this.m_height; };
 
 /**
- * @param {Number} baseLevel
- * @param {Number} maxLevel
+ * @param {number} baseLevel
+ * @param {number} maxLevel
  * @return {tcuTexture.Texture2DView}
  */
 tcuTexture.Texture2D.prototype.getSubView = function(baseLevel, maxLevel) { return this.m_view.getSubView(baseLevel, maxLevel); };
 
 /**
- * @param {Number} levelNdx
+ * @param {number} levelNdx
  */
 tcuTexture.Texture2D.prototype.allocLevel = function(levelNdx) {
     DE_ASSERT(deMath.deInBounds32(levelNdx, 0, this.getNumLevels()));
@@ -1916,9 +1916,9 @@ tcuTexture.Texture2D.prototype.allocLevel = function(levelNdx) {
  * @constructor
  * @extends {tcuTexture.TextureLevelPyramid}
  * @param {tcuTexture.TextureFormat} format
- * @param {Number} width
- * @param {Number} height
- * @param {Number} numLayers
+ * @param {number} width
+ * @param {number} height
+ * @param {number} numLayers
  */
 tcuTexture.Texture2DArray = function(format, width, height, numLayers) {
     tcuTexture.TextureLevelPyramid.call(this, format, tcuTexture.computeMipPyramidLevels(width, height));
@@ -1934,7 +1934,7 @@ tcuTexture.Texture2DArray.prototype.constructor = tcuTexture.Texture2DArray;
 tcuTexture.Texture2DArray.prototype.getView = function() { return this.m_view; };
 
 /**
- * @param {Number} levelNdx
+ * @param {number} levelNdx
  */
 tcuTexture.Texture2DArray.prototype.allocLevel = function(levelNdx) {
     DE_ASSERT(deMath.deInBounds32(levelNdx, 0, this.getNumLevels()));
@@ -1949,9 +1949,9 @@ tcuTexture.Texture2DArray.prototype.allocLevel = function(levelNdx) {
  * @constructor
  * @extends {tcuTexture.TextureLevelPyramid}
  * @param {tcuTexture.TextureFormat} format
- * @param {Number} width
- * @param {Number} height
- * @param {Number} depth
+ * @param {number} width
+ * @param {number} height
+ * @param {number} depth
  */
 tcuTexture.Texture3D = function(format, width, height, depth) {
     tcuTexture.TextureLevelPyramid.call(this, format, tcuTexture.computeMipPyramidLevels(width, height));
@@ -1968,14 +1968,14 @@ tcuTexture.Texture3D.prototype.getWidth = function() { return this.m_width; };
 tcuTexture.Texture3D.prototype.getHeight = function() { return this.m_height; };
 
 /**
- * @param {Number} baseLevel
- * @param {Number} maxLevel
+ * @param {number} baseLevel
+ * @param {number} maxLevel
  * @return {tcuTexture.Texture3DView}
  */
 tcuTexture.Texture3D.prototype.getSubView = function(baseLevel, maxLevel) { return this.m_view.getSubView(baseLevel, maxLevel); };
 
 /**
- * @param {Number} levelNdx
+ * @param {number} levelNdx
  */
 tcuTexture.Texture3D.prototype.allocLevel = function(levelNdx) {
     DE_ASSERT(deMath.deInBounds32(levelNdx, 0, this.getNumLevels()));
@@ -1990,7 +1990,7 @@ tcuTexture.Texture3D.prototype.allocLevel = function(levelNdx) {
 
 /**
  * @constructor
- * @param {Number} numLevels
+ * @param {number} numLevels
  * @param {Array<Array<tcuTexture.ConstPixelBufferAccess>>} levels
  */
 tcuTexture.TextureCubeView = function(numLevels, levels) {
@@ -2000,9 +2000,9 @@ tcuTexture.TextureCubeView = function(numLevels, levels) {
 
 /**
  * @param {tcuTexture.Sampler} sampler
- * @param {Array<Number>} texCoord
- * @param {Number} lod
- * @return {Array<Number>} Pixel color
+ * @param {Array<number>} texCoord
+ * @param {number} lod
+ * @return {Array<number>} Pixel color
  */
 tcuTexture.TextureCubeView.prototype.sample = function(sampler, texCoord, lod) {
     DE_ASSERT(sampler.compare == tcuTexture.CompareMode.COMPAREMODE_NONE);
@@ -2021,12 +2021,12 @@ tcuTexture.TextureCubeView.prototype.sample = function(sampler, texCoord, lod) {
  * @return {Array<tcuTexture.ConstPixelBufferAccess>}
  */
 tcuTexture.TextureCubeView.prototype.getFaceLevels = function(face) { return this.m_levels[face]; };
-/** @return {Number} */
+/** @return {number} */
 tcuTexture.TextureCubeView.prototype.getSize = function() { return this.m_numLevels > 0 ? this.m_levels[0][0].getWidth() : 0; };
 
 /**
- * @param {Number} baseLevel
- * @param {Number} maxLevel
+ * @param {number} baseLevel
+ * @param {number} maxLevel
  * @return {tcuTexture.TextureCubeView}
  */
 tcuTexture.TextureCubeView.prototype.getSubView = function(baseLevel, maxLevel) {
@@ -2043,7 +2043,7 @@ tcuTexture.TextureCubeView.prototype.getSubView = function(baseLevel, maxLevel) 
 /**
  * @constructor
  * @param {tcuTexture.TextureFormat} format
- * @param {Number} size
+ * @param {number} size
  */
 tcuTexture.TextureCube = function(format, size) {
     this.m_format = format;
@@ -2071,37 +2071,37 @@ tcuTexture.TextureCube = function(format, size) {
 
 /** @return {tcuTexture.TextureFormat} */
 tcuTexture.TextureCube.prototype.getFormat = function() { return this.m_format; };
-/** @return {Number} */
+/** @return {number} */
 tcuTexture.TextureCube.prototype.getSize = function() { return this.m_size; };
 /**
- * @param {Number} ndx Level index
+ * @param {number} ndx Level index
  * @param {tcuTexture.CubeFace} face
  * @return {tcuTexture.ConstPixelBufferAccess}
  */
 tcuTexture.TextureCube.prototype.getLevelFace = function(ndx, face)        { return this.m_access[face][ndx]; };
-/** @return {Number} */
+/** @return {number} */
 tcuTexture.TextureCube.prototype.getNumLevels = function() { return this.m_access[0].length; };
 
 /**
  * @param {tcuTexture.Sampler} sampler
- * @param {Array<Number>} texCoord
- * @param {Number} lod
- * @return {Array<Number>} Pixel color
+ * @param {Array<number>} texCoord
+ * @param {number} lod
+ * @return {Array<number>} Pixel color
  */
 tcuTexture.TextureCube.prototype.sample = function(sampler, texCoord, lod) {
     this.m_view.sample(sampler, texCoord, lod);
 };
 
 /**
- * @param {Number} baseLevel
- * @param {Number} maxLevel
+ * @param {number} baseLevel
+ * @param {number} maxLevel
  * @return {tcuTexture.TextureCubeView}
  */
 tcuTexture.TextureCube.prototype.getSubView = function(baseLevel, maxLevel) { return this.m_view.getSubView(baseLevel, maxLevel); };
 
 /**
  * @param {tcuTexture.CubeFace} face
- * @param {Number} levelNdx
+ * @param {number} levelNdx
  * @return {boolean}
  */
 tcuTexture.TextureCube.prototype.isLevelEmpty = function(face, levelNdx) {
@@ -2110,7 +2110,7 @@ tcuTexture.TextureCube.prototype.isLevelEmpty = function(face, levelNdx) {
 
 /**
  * @param {tcuTexture.CubeFace} face
- * @param {Number} levelNdx
+ * @param {number} levelNdx
  */
 tcuTexture.TextureCube.prototype.allocLevel = function(face, levelNdx) {
     /** @const */ var size = tcuTexture.getMipPyramidLevelSize(this.m_size, levelNdx);
@@ -2128,7 +2128,7 @@ tcuTexture.TextureCube.prototype.allocLevel = function(face, levelNdx) {
 };
 
 /**
- * @param {Array<Number>} coords Cube coordinates
+ * @param {Array<number>} coords Cube coordinates
  * @return {tcuTexture.CubeFace}
  */
 tcuTexture.selectCubeFace = function(coords) {
@@ -2169,8 +2169,8 @@ tcuTexture.selectCubeFace = function(coords) {
 
 /**
  * @param {tcuTexture.CubeFace} face
- * @param {Array<Number>} coord  Cube coordinates (Vec3)
- * @return {Array<Number>} face coordinates (Vec2)
+ * @param {Array<number>} coord  Cube coordinates (Vec3)
+ * @return {Array<number>} face coordinates (Vec2)
  */
 tcuTexture.projectToFace = function(face, coord) {
     var rx = coord[0];
