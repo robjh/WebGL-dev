@@ -197,15 +197,15 @@ deRandom.Random = function(seed) {
 deRandom.Random.prototype.getBool = function()  { return deRandom.deRandom_getBool(this.m_rnd) == true; };
 /**
  * Function to get random float
- * @param {number} min Min for range
- * @param {number} max Max for range
+ * @param {number=} min Min for range
+ * @param {number=} max Max for range
  * @return {float} deRandom.Random float
  */
 deRandom.Random.prototype.getFloat = function(min, max) { return deRandom.deRandom_getFloat(this.m_rnd, [min, max]) };
 /**
  * Function to get random int
- * @param {number} min Min for range
- * @param {number} max Max for range
+ * @param {number=} min Min for range
+ * @param {number=} max Max for range
  * @return {int} deRandom.Random int
  */
 deRandom.Random.prototype.getInt = function(min, max) {return deRandom.deRandom_getInt(this.m_rnd, [min, max])};

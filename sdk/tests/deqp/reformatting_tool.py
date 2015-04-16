@@ -104,6 +104,48 @@ rules = [
         'count': 0,
         'flags': re.MULTILINE
     },
+    { 
+        'pattern': r'\{Number\}',
+        'repl': '{number}',
+        'count': 0,
+        'flags': re.MULTILINE
+    },
+    { 
+        'pattern': r'<Number>',
+        'repl': '<number>',
+        'count': 0,
+        'flags': re.MULTILINE
+    },
+    { 
+        'pattern': r'\{Number=\}',
+        'repl': '{number=}',
+        'count': 0,
+        'flags': re.MULTILINE
+    },
+    { 
+        'pattern': r'\{bool\}',
+        'repl': '{boolean}',
+        'count': 0,
+        'flags': re.MULTILINE
+    },
+    { 
+        'pattern': r'\{deMath.deUint32\}',
+        'repl': '{number}',
+        'count': 0,
+        'flags': re.MULTILINE
+    },    
+    { 
+        'pattern': r'<deMath.deUint32>',
+        'repl': '<number>',
+        'count': 0,
+        'flags': re.MULTILINE
+    },    
+    { 
+        'pattern': r'\{TypedArray\}',
+        'repl': '{goog.TypedArray}',
+        'count': 0,
+        'flags': re.MULTILINE
+    },
 ]
 
 

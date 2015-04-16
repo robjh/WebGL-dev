@@ -143,7 +143,7 @@ tcuFloat.FloatDescription.prototype.constructBits = function(sign, exponent, man
 
     DE_ASSERT(sign == +1 || sign == -1);
     DE_ASSERT((exponentBits >> this.ExponentBits) == 0);
-    DE_ASSERT(deMath.shiftRight(mantissaBits >> this.MantissaBits) == 0);
+    DE_ASSERT(deMath.shiftRight(mantissaBits, this.MantissaBits) == 0);
 
     return tcuFloat.newDeFloatFromParameters(
         deMath.binaryOp(
@@ -365,7 +365,7 @@ tcuFloat.newDeFloatFromBuffer = function(buffer, description) {
  * It does not perform any conversion, it assumes the number contains a
  * binary representation of the given description.
  * @param {number} jsnumber
- * @param {Floatdescription} description
+ * @param {tcuFloat.FloatDescription} description
  * @return {tcuFloat.deFloat}
  **/
 tcuFloat.deFloat.prototype.deFloatParameters = function(jsnumber, description) {
@@ -579,7 +579,7 @@ tcuFloat.newFloat32From16 = function(value) {
     /**@type {tcuFloat.FloatDescription} */ var description16 = new tcuFloat.FloatDescription(5, 10, 15, tcuFloat.FloatFlags.FLOAT_HAS_SIGN | tcuFloat.FloatFlags.FLOAT_SUPPORT_DENORM);
     var other16 = tcuFloat.newDeFloatFromParameters(value, description16);
     /**@type {tcuFloat.FloatDescription} */ var description32 = new tcuFloat.FloatDescription(8, 23, 127, tcuFloat.FloatFlags.FLOAT_HAS_SIGN | tcuFloat.FloatFlags.FLOAT_SUPPORT_DENORM);
-    description32.convert(other16).bits();
+    return description32.convert(other16);
 };
 
 /**

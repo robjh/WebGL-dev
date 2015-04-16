@@ -21,6 +21,12 @@
 'use strict';
 goog.provide('framework.delibs.debase.deMath');
 
+/** @typedef { (Int8Array|Uint8Array|Uint8ClampedArray|Int16Array|Uint16Array|Int32Array|Uint32Array|Float32Array|Float64Array) } */
+goog.TypedArray;
+
+/** @typedef { (Array<number>|goog.TypedArray) } */
+goog.NumberArray;
+
 
 goog.scope(function() {
 
@@ -176,8 +182,8 @@ deMath.subtract = function(a, b) {
 
 /**
  * Calculate absolute difference between two vectors
- * @param {Array.<number>} a
- * @param {Array.<number>} b
+ * @param {goog.NumberArray} a
+ * @param {goog.NumberArray} b
  * @return {Array.<number>} abs(diff(a - b))
  */
 deMath.absDiff = function(a, b) {
@@ -206,7 +212,7 @@ deMath.lessThanEqual = function(a, b) {
 
 /**
  * Are all values in the array true?
- * @param {Array.<number>} a
+ * @param {Array<boolean>} a
  * @return {boolean}
  */
 

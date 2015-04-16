@@ -23,11 +23,16 @@ goog.provide('framework.common.tcuRGBA');
 goog.require('framework.delibs.debase.deMath');
 
 
+/** @typedef { (Int8Array|Uint8Array|Uint8ClampedArray|Int16Array|Uint16Array|Int32Array|Uint32Array|Float32Array|Float64Array) } */
+TypedArray;
+
+/** @typedef { (Array<number>|TypedArray) } */
+NumberArray;
+
 goog.scope(function() {
 
 var tcuRGBA = framework.common.tcuRGBA;
 var deMath = framework.delibs.debase.deMath;
-    
 
     var DE_ASSERT = function(x) {
         if (!x)
@@ -40,10 +45,11 @@ var deMath = framework.delibs.debase.deMath;
      */
     tcuRGBA.RGBA = function() {
         /** @type {Uint32Array} */ this.m_value = new Uint32Array(4);
+
     };
 
     /**
-     * @enum Shift
+     * @enum
      * In JS, these are not shift values, but positions in a typed array
      */
     tcuRGBA.RGBA.Shift = {
@@ -54,7 +60,8 @@ var deMath = framework.delibs.debase.deMath;
     };
 
     /**
-     * @enum Mask used as flags
+     * @enum
+     * Mask used as flags
      * Hopefully will not use typed arrays
      */
     tcuRGBA.RGBA.Mask = function() {
@@ -94,7 +101,7 @@ var deMath = framework.delibs.debase.deMath;
 
     /**
      * Builds an tcuRGBA.RGBA object from a 32 bit value
-     * @param {deMath.deUint32} val
+     * @param {number} val
      * @return {tcuRGBA.RGBA}
      */
     tcuRGBA.newRGBAValue = function(val) {
@@ -106,7 +113,7 @@ var deMath = framework.delibs.debase.deMath;
 
     /**
      * Builds an tcuRGBA.RGBA object from a number array
-     * @param {Array.<number>} v
+     * @param {NumberArray} v
      * @return {tcuRGBA.RGBA}
      */
     tcuRGBA.newRGBAFromArray = function(v) {
@@ -159,7 +166,7 @@ var deMath = framework.delibs.debase.deMath;
     tcuRGBA.RGBA.prototype.getAlpha = function() { return this.m_value[tcuRGBA.RGBA.Shift.ALPHA]; };
 
     /**
-     * @return {deMath.deUint32}
+     * @return {number}
      */
     tcuRGBA.RGBA.prototype.getPacked = function() { return this.m_value[0]; };
 
@@ -173,7 +180,7 @@ var deMath = framework.delibs.debase.deMath;
      * @param {Uint8Array} bytes
      * @return {tcuRGBA.RGBA}
      */
-    tcuRGBA.RGBA.fromBytes = function(bytes)  { return tcuRGBA.newRGBAFromArray(bytes); };
+    tcuRGBA.RGBA.fromBytes = function(bytes) { return tcuRGBA.newRGBAFromArray(bytes); };
 
     /**
      * @param {Uint8Array} bytes
@@ -257,12 +264,11 @@ var deMath = framework.delibs.debase.deMath;
     };
 
     // Color constants
-    tcuRGBA.RGBA.red = new tcuRGBA.RGBA(0xFF, 0, 0, 0xFF);
-    tcuRGBA.RGBA.green = new tcuRGBA.RGBA(0, 0xFF, 0, 0xFF);
-    tcuRGBA.RGBA.blue = new tcuRGBA.RGBA(0, 0, 0xFF, 0xFF);
-    tcuRGBA.RGBA.gray = new tcuRGBA.RGBA(0x80, 0x80, 0x80, 0xFF);
-    tcuRGBA.RGBA.white = new tcuRGBA.RGBA(0xFF, 0xFF, 0xFF, 0xFF);
-    tcuRGBA.RGBA.black = new tcuRGBA.RGBA(0, 0, 0, 0xFF);
+    tcuRGBA.RGBA.red = tcuRGBA.newRGBAComponents(0xFF, 0, 0, 0xFF);
+    tcuRGBA.RGBA.green = tcuRGBA.newRGBAComponents(0, 0xFF, 0, 0xFF);
+    tcuRGBA.RGBA.blue = tcuRGBA.newRGBAComponents(0, 0, 0xFF, 0xFF);
+    tcuRGBA.RGBA.gray = tcuRGBA.newRGBAComponents(0x80, 0x80, 0x80, 0xFF);
+    tcuRGBA.RGBA.white = tcuRGBA.newRGBAComponents(0xFF, 0xFF, 0xFF, 0xFF);
+    tcuRGBA.RGBA.black = tcuRGBA.newRGBAComponents(0, 0, 0, 0xFF);
 
-    
 });

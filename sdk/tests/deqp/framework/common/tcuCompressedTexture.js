@@ -225,7 +225,7 @@ var extend11To16WithSign = function(src) {
 };
 
 /**
- * @param {Uint16Array} dst
+ * @param { (Uint16Array|Int16Array) } dst
  * @param {Uint8Array} src
  * @param {boolean} signedMode
  */
