@@ -30,14 +30,18 @@
 'use strict';
 goog.provide('framework.opengl.gluTextureUtil');
 goog.require('framework.common.tcuTexture');
+goog.require('framework.common.tcuTextureUtil');
 goog.require('framework.common.tcuCompressedTexture');
+goog.require('framework.opengl.gluShaderUtil');
 
 
 goog.scope(function() {
 
 var gluTextureUtil = framework.opengl.gluTextureUtil;
 var tcuTexture = framework.common.tcuTexture;
+var tcuTextureUtil = framework.common.tcuTextureUtil;
 var tcuCompressedTexture = framework.common.tcuCompressedTexture;
+var gluShaderUtil = framework.opengl.gluShaderUtil;
 
 /**
  * @param {WebGL2RenderingContext.GLenum} format
@@ -735,10 +739,10 @@ gluTextureUtil.getGLCubeFace = function(face)
 // {
 //     using tcu::TextureFormat;
 
-//     if (format.order ==  textureFormat.ChannelOrder.D || format.order ==  textureFormat.ChannelOrder.DS)
+//     if (format.order ==  tcuTexture.ChannelOrder.D || format.order ==  tcuTexture.ChannelOrder.DS)
 //         return TYPE_SAMPLER_1D;
 
-//     if (format.order ==  textureFormat.ChannelOrder.S)
+//     if (format.order ==  tcuTexture.ChannelOrder.S)
 //         return TYPE_LAST;
 
 //     switch (tcu::getTextureChannelClass(format.type))
@@ -767,10 +771,10 @@ gluTextureUtil.getGLCubeFace = function(face)
  * @return {DataType} GLSL 2D sampler type for format
  */
 gluTextureUtil.getSampler2DType = function(format) {
-    if (format.order == textureFormat.ChannelOrder.D || format.order == textureFormat.ChannelOrder.DS)
+    if (format.order == tcuTexture.ChannelOrder.D || format.order == tcuTexture.ChannelOrder.DS)
     return gluShaderUtil.DataType.SAMPLER_2D;
 
-    if (format.order == textureFormat.ChannelOrder.S)
+    if (format.order == tcuTexture.ChannelOrder.S)
     return Object.keys(gluShaderUtil.DataType).length;
 
     switch (tcuTextureUtil.getTextureChannelClass(format.type))
@@ -803,10 +807,10 @@ gluTextureUtil.getSampler2DType = function(format) {
 // {
 //     using tcu::TextureFormat;
 
-//     if (format.order ==  textureFormat.ChannelOrder.D || format.order ==  textureFormat.ChannelOrder.DS)
+//     if (format.order ==  tcuTexture.ChannelOrder.D || format.order ==  tcuTexture.ChannelOrder.DS)
 //         return TYPE_SAMPLER_CUBE;
 
-//     if (format.order ==  textureFormat.ChannelOrder.S)
+//     if (format.order ==  tcuTexture.ChannelOrder.S)
 //         return TYPE_LAST;
 
 //     switch (tcu::getTextureChannelClass(format.type))
@@ -839,10 +843,10 @@ gluTextureUtil.getSampler2DType = function(format) {
 // {
 //     using tcu::TextureFormat;
 
-//     if (format.order ==  textureFormat.ChannelOrder.D || format.order ==  textureFormat.ChannelOrder.DS)
+//     if (format.order ==  tcuTexture.ChannelOrder.D || format.order ==  tcuTexture.ChannelOrder.DS)
 //         return TYPE_SAMPLER_2D_ARRAY;
 
-//     if (format.order ==  textureFormat.ChannelOrder.S)
+//     if (format.order ==  tcuTexture.ChannelOrder.S)
 //         return TYPE_LAST;
 
 //     switch (tcu::getTextureChannelClass(format.type))
@@ -875,10 +879,10 @@ gluTextureUtil.getSampler2DType = function(format) {
 // {
 //     using tcu::TextureFormat;
 
-//     if (format.order ==  textureFormat.ChannelOrder.D || format.order ==  textureFormat.ChannelOrder.DS)
+//     if (format.order ==  tcuTexture.ChannelOrder.D || format.order ==  tcuTexture.ChannelOrder.DS)
 //         return TYPE_SAMPLER_3D;
 
-//     if (format.order ==  textureFormat.ChannelOrder.S)
+//     if (format.order ==  tcuTexture.ChannelOrder.S)
 //         return TYPE_LAST;
 
 //     switch (tcu::getTextureChannelClass(format.type))
@@ -911,10 +915,10 @@ gluTextureUtil.getSampler2DType = function(format) {
 // {
 //     using tcu::TextureFormat;
 
-//     if (format.order ==  textureFormat.ChannelOrder.D || format.order ==  textureFormat.ChannelOrder.DS)
+//     if (format.order ==  tcuTexture.ChannelOrder.D || format.order ==  tcuTexture.ChannelOrder.DS)
 //         return TYPE_SAMPLER_CUBE_ARRAY;
 
-//     if (format.order ==  textureFormat.ChannelOrder.S)
+//     if (format.order ==  tcuTexture.ChannelOrder.S)
 //         return TYPE_LAST;
 
 //     switch (tcu::getTextureChannelClass(format.type))

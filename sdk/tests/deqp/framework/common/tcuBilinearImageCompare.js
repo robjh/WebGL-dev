@@ -116,9 +116,9 @@ var tcuRGBA = framework.common.tcuRGBA;
     };
 
     /**
-     * @const {tcuTexture.ConstPixelBufferAccess} access
-     * @type {number} u
-     * @type {number} v
+     * @param {tcuTexture.ConstPixelBufferAccess} access
+     * @param {number} u
+     * @param {number} v
      * @return {tcuRGBA.RGBA}
      */
     tcuBilinearImageCompare.bilinearSampleRGBA8 = function(access, u, v) {
@@ -149,15 +149,15 @@ var tcuRGBA = framework.common.tcuRGBA;
         res[3] = tcuBilinearImageCompare.interpolateChannel(fx1, fy1, tcuBilinearImageCompare.getChannel(p00, 3),
             tcuBilinearImageCompare.getChannel(p01, 3), tcuBilinearImageCompare.getChannel(p10, 3), tcuBilinearImageCompare.getChannel(p11, 3));
 
-        return new RGBA(res);
+        return new tcuRGBA.RGBA(res);
     };
 
     /**
      * @param {tcuTexture.ConstPixelBufferAccess} reference
      * @param {tcuTexture.ConstPixelBufferAccess} result
      * @param {tcuRGBA.RGBA} threshold
-     * @type {number} x
-     * @type {number} y
+     * @param {number} x
+     * @param {number} y
      * @return {boolean}
      */
     tcuBilinearImageCompare.comparePixelRGBA8 = function(reference, result, threshold, x, y) {
@@ -242,13 +242,13 @@ var tcuRGBA = framework.common.tcuRGBA;
      * @return {boolean}
      */
     tcuBilinearImageCompare.bilinearCompareRGBA8 = function(reference, result, errorMask, threshold) {
-        DE_ASSERT(reference.isEqual(new TextureFormat(
+        DE_ASSERT(reference.isEqual(new tcuTexture.TextureFormat(
             tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.UNORM_INT8)));
-        DE_ASSERT(result.isEqual(new TextureFormat(
+        DE_ASSERT(result.isEqual(new tcuTexture.TextureFormat(
             tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.UNORM_INT8)));
 
         // Clear error mask first to green (faster this way).
-        clear(errorMask, [0.0, 1.0, 0.0, 1.0]);
+        errorMask.clear([0.0, 1.0, 0.0, 1.0]);
 
         /** @type {boolean} */ var allOk = true;
 
@@ -288,7 +288,7 @@ var tcuRGBA = framework.common.tcuRGBA;
         if (isEqual)
             return tcuBilinearImageCompare.bilinearCompareRGBA8(reference, result, errorMask, threshold);
         else
-            throw InternalError('Unsupported format for bilinear comparison');
+            throw new Error('Unsupported format for bilinear comparison');
     };
 
     

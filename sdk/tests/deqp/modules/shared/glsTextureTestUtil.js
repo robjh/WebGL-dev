@@ -1033,7 +1033,8 @@ glsTextureTestUtil.sampleTexture2D = function(dst, src, texCoord, params) {
     var tq = [texCoord[0 + 1], texCoord[2 + 1], texCoord[4 + 1], texCoord[6 + 1]];
 
     if (params.flags.projected)
-        sampleTextureProjected(dst, view, sq, tq, params);
+    	throw new Error('Unimplemented');
+        //sampleTextureProjected(dst, view, sq, tq, params);
     else
         glsTextureTestUtil.sampleTextureNonProjected2D(dst, view, sq, tq, params);
 };

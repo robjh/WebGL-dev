@@ -232,7 +232,8 @@ tcuTextureUtil.fillWithComponentGradients3D = function(/*const PixelBufferAccess
 
 tcuTextureUtil.fillWithComponentGradients = function(/*const PixelBufferAccess&*/ access, /*const Vec4&*/ minVal, /*const Vec4&*/ maxVal) {
     if (access.getHeight() == 1 && access.getDepth() == 1)
-        fillWithComponentGradients1D(access, minVal, maxVal);
+        throw new Error('Inimplemented');
+        //fillWithComponentGradients1D(access, minVal, maxVal);
     else if (access.getDepth() == 1)
         tcuTextureUtil.fillWithComponentGradients2D(access, minVal, maxVal);
     else
