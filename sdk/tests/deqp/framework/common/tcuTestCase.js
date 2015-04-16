@@ -140,7 +140,7 @@ tcuTestCase.DeqpTest = function(name, description, spec) {
     }
 
     //If no more children, get the next brother
-    if (test == null && this.parentTest !== undefined)
+    if (test == null && this.parentTest != null)
         test = this.parentTest.next();
 
     return test;

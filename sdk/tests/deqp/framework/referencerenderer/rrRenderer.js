@@ -326,8 +326,8 @@ rrRenderer.Triangle.prototype.rasterizePrimitive = function(/*const RenderState&
                          /*const tcu::IVec4&*/                  renderTargetRect,
                          /*rrRenderer.RasterizationInternalBuffers&*/      buffers) {
     var           numSamples      = renderTarget.colorBuffers[0].getNumSamples();
-    var         depthClampMin   = deMath.min(state.viewport.zn, state.viewport.zf);
-    var         depthClampMax   = deMath.max(state.viewport.zn, state.viewport.zf);
+    var         depthClampMin   = Math.min(state.viewport.zn, state.viewport.zf);
+    var         depthClampMax   = Math.max(state.viewport.zn, state.viewport.zf);
     var  rasterizer      = new rrRasterizer.TriangleRasterizer(renderTargetRect, numSamples, state.rasterization);
     var               depthOffset     = 0;
 
@@ -617,13 +617,10 @@ rrRenderer.DrawCommand = function(state_, renderTarget_, program_, numVertexAttr
 };
 
 rrRenderer.drawInstanced = function(/*const rrRenderer.DrawCommand&*/ command, numInstances) {
-     // Do not run bad commands
-    {
-        var validCommand = rrRenderer.isValidCommand(command, numInstances);
-        if (!validCommand)
-        {
-            throw new Error('Invalid command');
-        }
+    // Do not run bad commands
+    var validCommand = rrRenderer.isValidCommand(command, numInstances);
+    if (!validCommand) {
+        throw new Error('Invalid command');
     }
 
     // Do not rrRenderer.draw if nothing to rrRenderer.draw
@@ -634,10 +631,10 @@ rrRenderer.drawInstanced = function(/*const rrRenderer.DrawCommand&*/ command, n
 
     // Prepare transformation
 
-    var                numVaryings = command.program.vertexShader.getOutputs().length;
-    var       vpalloc = new rrVertexPacket.VertexPacketAllocator(numVaryings);
-    var  vertexPackets = vpalloc.allocArray(command.primitives.getNumElements());
-    var  drawContext = new rrRenderer.DrawContext();
+    var numVaryings = command.program.vertexShader.getOutputs().length;
+    var vpalloc = new rrVertexPacket.VertexPacketAllocator(numVaryings);
+    var vertexPackets = vpalloc.allocArray(command.primitives.getNumElements());
+    var drawContext = new rrRenderer.DrawContext();
 
     for (var instanceID = 0; instanceID < numInstances; ++instanceID)
     {
@@ -731,6 +728,96 @@ rrRenderer.writeFragments = function(state, renderTarget, fragments) {
 };
 
 /**
+ * @param {rrRenderer.DrawCommand} command
+ */
+rrRenderer.drawQuads = function (state, renderTarget, program, vertexAttribs, first, count) {
+    var primitives = new rrRenderer.PrimitiveList(gl.TRIANGLES, count * 2, first); // 2 rrRenderer.triangles per quad.
+    // Do not rrRenderer.draw if nothing to rrRenderer.draw
+    if (primitives.getNumElements() == 0)
+        return;
+
+    // Prepare transformation
+    var numVaryings = program.vertexShader.getOutputs().length;
+    var vpalloc = new rrVertexPacket.VertexPacketAllocator(numVaryings);
+    var vertexPackets = vpalloc.allocArray(primitives.getNumElements());
+    var drawContext = new rrRenderer.DrawContext();
+    drawContext.primitiveID = 0;
+    var instanceID = 0;
+
+    var elementsPerTriangle = primitives.getNumElements();
+    for (var elementNdx = 0; elementNdx < elementsPerTriangle; ++elementNdx)
+    {
+        var numVertexPackets = 0;
+
+        // collect primitive vertices until restart
+        while (elementNdx < elementsPerTriangle &&
+            !(state.restart.enabled && primitives.isRestartIndex(elementNdx, state.restart.restartIndex)))
+        {
+            // input
+            vertexPackets[numVertexPackets].instanceNdx    = instanceID;
+            vertexPackets[numVertexPackets].vertexNdx      = primitives.getIndex(elementNdx);
+
+            // output
+            vertexPackets[numVertexPackets].pointSize      = state.point.pointSize;    // default value from the current state
+            vertexPackets[numVertexPackets].position       = [0, 0, 0, 0];            // no undefined values
+
+            ++numVertexPackets;
+            ++elementNdx;
+        }
+
+        // Duplicated restart shade
+        if (numVertexPackets == 0)
+            continue;
+
+        // \todo Vertex cache?
+
+        // Transform vertices
+
+        program.shadeVertices(vertexAttribs, vertexPackets, numVertexPackets);
+    }
+
+    // For each quad, we get a group of four vertex packets
+    for (var quad = 0; quad < count; quad++) {
+        var topLeft = [vertexPackets[quad * 4].position[0], vertexPackets[quad * 4].position[1]];
+        var v0 = [topLeft[0], topLeft[1]];
+        var v1 = [topLeft[0], bottomRight[1]];
+        var v2 = [bottomRight[0], topLeft[1]];
+        var v3 = [bottomRight[0], bottomRight[1]];
+        var width = bottomRight[0] - topLeft[0];
+        var height = bottomRight[1] - topLeft[1];
+
+        // Generate two rrRenderer.triangles [v0, v1, v2] and [v1, v2, v3]
+        var shadingContextTopLeft = new rrShadingContext.FragmentShadingContext(vertexAttribs[0], vertexAttribs[1], vertexAttribs[2], null, 1);
+        var packetsTopLeft = [];
+
+        var shadingContextBottomRight = new rrShadingContext.FragmentShadingContext(vertexAttribs[1], vertexAttribs[2], vertexAttribs[3], null, 1);
+        var packetsBottomRight = [];
+        for (var i = 0; i < width; i++)
+            for (var j = 0; j < height; j++) {
+                var x = v0[0] + i + 0.5;
+                var y = v0[1] + j + 0.5;
+
+                var xf = (i + 0.5) / width;
+                var yf = (j + 0.5) / height;
+                var triNdx = xf + yf >= 1;
+                if (!triNdx) {
+                    var b = rrRenderer.getBarycentricCoefficients([x, y], v0, v1, v2);
+                    packetsTopLeft.push(new rrRenderer.FragmentPacket(b, [v0[0] + i, v0[1] + j]));
+                } else {
+                    var b = rrRenderer.getBarycentricCoefficients([x, y], v1, v2, v3);
+                    packetsBottomRight.push(new rrRenderer.FragmentPacket(b, [v0[0] + i, v0[1] + j]));
+                }
+            }
+
+        program.fragmentShader.shadeFragments(packetsTopLeft, shadingContextTopLeft);
+        program.fragmentShader.shadeFragments(packetsBottomRight, shadingContextBottomRight);
+
+        rrRenderer.writeFragments(state, renderTarget, packetsTopLeft);
+        rrRenderer.writeFragments(state, renderTarget, packetsBottomRight);
+    }
+};
+
+/**
  * @param {rrRenderState.RenderState} state
  * @param {rrRenderer.RenderTarget} renderTarget
  * @param {sglrShaderProgram.ShaderProgram} program
@@ -745,6 +832,34 @@ rrRenderer.drawQuad = function(state, renderTarget, program, vertexAttribs, topL
     var v3 = [bottomRight[0], bottomRight[1]];
     var width = bottomRight[0] - topLeft[0];
     var height = bottomRight[1] - topLeft[1];
+
+    /** @type {number} */ var u_coordScale = program.getUniformByName("u_coordScale").value;
+    /** @type {number} */ var u_colorScale = program.getUniformByName("u_colorScale").value;
+
+    // Normal shading
+    for (var packetNdx = 0; packetNdx < packets.length; ++packetNdx) {
+        // Calc output color
+        /** @type {Array<number>} */ var coord = [1.0, 1.0];
+        /** @type {Array<number>} */ var color = [1.0, 1.0, 1.0];
+
+        for (var attribNdx = 0; attribNdx < this.packets.length; attribNdx++) {
+            /** @type {number} */ var numComponents = this.m_componentCount[attribNdx];
+
+            calcShaderColorCoord(coord, color,
+                                 rrVertexAttrib.readVertexAttrib(
+                                     packets[attribNdx],
+                                     packet.instanceNdx,
+                                     packet.vertexNdx,
+                                     this.m_attrType[attribNdx]),
+                                 attribNdx == 0, numComponents);
+        }
+
+        // Transform position
+        packet.position = [u_coordScale * coord[0], u_coordScale * coord[1], 1.0, 1.0];
+
+        // Pass color to FS
+        packet.outputs[varyingLocColor] = [u_colorScale * color[0], u_colorScale * color[1], u_colorScale * color[2], 1.0];
+    }
 
     // Generate two rrRenderer.triangles [v0, v1, v2] and [v1, v2, v3]
     var shadingContextTopLeft = new rrShadingContext.FragmentShadingContext(vertexAttribs[0], vertexAttribs[1], vertexAttribs[2], null, 1);
@@ -768,8 +883,10 @@ rrRenderer.drawQuad = function(state, renderTarget, program, vertexAttribs, topL
                 packetsBottomRight.push(new rrRenderer.FragmentPacket(b, [v0[0] + i, v0[1] + j]));
             }
         }
-    program.fragmentShader.shadeFragments(packetsTopLeft, shadingContextpacketsTopLeft);
-    program.fragmentShader.shadeFragments(packetsBottomRight, shadingContextpacketsBottomRight);
+
+    program.fragmentShader.shadeFragments(packetsTopLeft, shadingContextTopLeft);
+    program.fragmentShader.shadeFragments(packetsBottomRight, shadingContextBottomRight);
+
     rrRenderer.writeFragments(state, renderTarget, packetsTopLeft);
     rrRenderer.writeFragments(state, renderTarget, packetsBottomRight);
 };
