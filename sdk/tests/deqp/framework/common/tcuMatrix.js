@@ -27,7 +27,7 @@
 
     /**
      * @constructor
-     * @param {Array<number>} matrix
+     * @param {Array<Array<number>>} matrix
      */
     var Matrix = function(matrix) {
         this.matrix = matrix;
@@ -45,7 +45,7 @@
 
     /**
      * @constructor
-     * @param {Array<number>} m3Matrix
+     * @param {Array<Array<number>>} m3Matrix
      */
     var Mat3 = function(m3Matrix) {
         DE_ASSERT(m3Matrix.length == 3);
