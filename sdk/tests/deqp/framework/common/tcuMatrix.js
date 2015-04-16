@@ -17,8 +17,14 @@
  * limitations under the License.
  *
  */
- define([], function()  {
-    'use strict';
+ 'use strict';
+goog.provide('framework.common.tcuMatrix');
+
+
+goog.scope(function() {
+
+var tcuMatrix = framework.common.tcuMatrix;
+    
 
     var DE_ASSERT = function(x) {
         if (!x)
@@ -27,28 +33,44 @@
 
     /**
      * @constructor
-     * @param {Array} matrix
+     * @param {Array<Array<number>>} matrix
      */
-    var Matrix = function(matrix) {
+    tcuMatrix.Matrix = function(matrix) {
         this.matrix = matrix;
         for (row = 0; row < matrix.length; row++)
             DE_ASSERT(matrix[row].length == matrix.length);
     };
 
-    Matrix.prototype.set = function(x,y, value) {
-        this.array[x][y] = value;
-    }
-
-    Matrix.prototype.get = function(x, y) {
-        return this.array[x][y];
-    }
-
-    var Mat3 = function(m3Matrix) {
-        DE_ASSERT(m3Matrix.length == 3);
-        Matrix.call(this, m3Matrix);
+    tcuMatrix.Matrix.prototype.set = function(x,y, value) {
+        this.matrix[x][y] = value;
     };
 
-    Mat3.prototype.operator = function(){}
+    tcuMatrix.Matrix.prototype.get = function(x, y) {
+        return this.matrix[x][y];
+    };
 
-    Mat3.prototype.multiply = functon(){}
-};
+    /**
+     * @constructor
+     * @param {Array<Array<number>>} m3Matrix
+     */
+    tcuMatrix.Mat3 = function(m3Matrix) {
+        DE_ASSERT(m3Matrix.length == 3);
+        tcuMatrix.Matrix.call(this, m3Matrix);
+    };
+
+    tcuMatrix.Mat3.prototype = Object.create(tcuMatrix.Matrix.prototype);
+    tcuMatrix.Mat3.prototype.constructor = tcuMatrix.Mat3;
+
+    // Multiplication of two matrices.
+    tcuMatrix.Mat3.prototype.multiply = function(matrixA, matrixB) {
+        var res = new tcuMatrix.Mat3([[0,0,0],[0,0,0],[0,0,0]]);
+        var v = 0;
+        for (row = 0; row < matrixA.length; row++)
+            for (col = 0; col < matrixB[row].length; col++)
+            {
+                for (ndx = 0; ndx < matrixA[row]; ndx++)
+                    v += matrixA.get(row, ndx) * matrixB.get(ndx, col);
+                res.set(row, col, v);
+            }
+        
+});

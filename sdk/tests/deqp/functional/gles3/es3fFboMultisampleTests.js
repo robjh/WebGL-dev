@@ -51,6 +51,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
 
     /**
      * @constructor
+     * @extends {fboTestCase.FboTestCase}
      * @param {string} name
      * @param {string} desc
      * @param {number} colorFormat
@@ -267,6 +268,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
 
     /**
      * @constructor
+     * @extends {tcuTestCase.DeqpTest}
      */
     es3fFboMultisampleTests.FboMultisampleTests = function() {
         tcuTestCase.DeqpTest.call(this, 'msaa', 'Multisample FBO tests');

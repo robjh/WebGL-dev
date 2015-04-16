@@ -34,6 +34,7 @@ goog.require('framework.opengl.gluShaderUtil');
 goog.require('framework.opengl.simplereference.sglrReferenceContext');
 goog.require('framework.opengl.simplereference.sglrShaderProgram');
 goog.require('framework.referencerenderer.rrGenericVector');
+goog.require('framework.common.tcuMatrix');
 
 
 goog.scope(function() {
@@ -52,6 +53,7 @@ var gluShaderUtil = framework.opengl.gluShaderUtil;
 var sglrReferenceContext = framework.opengl.simplereference.sglrReferenceContext;
 var sglrShaderProgram = framework.opengl.simplereference.sglrShaderProgram;
 var rrGenericVector = framework.referencerenderer.rrGenericVector;
+var tcuMatrix = framework.common.tcuMatrix;
     
 
     /**
@@ -85,6 +87,7 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
     /**
      * es3fFboTestUtil.FlatColorShader inherits from sglrShaderProgram
      * @constructor
+     * @extends {sglrShaderProgram.ShaderProgram}
      * @param {gluShaderUtil.DataType} outputType
      */
     es3fFboTestUtil.FlatColorShader = function(outputType) {
@@ -122,7 +125,7 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
      * @param {Array<number>} color
      */
     es3fFboTestUtil.FlatColorShader.prototype.setColor = function(context, program, color) {
-        /** @type {number */ var location = context.getUniformLocation(program, 'u_color');
+        /** @type {number} */ var location = context.getUniformLocation(program, 'u_color');
 
         context.useProgram(program);
         context.uniform4fv(location, 1, color);
@@ -176,6 +179,7 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
     /**
      * es3fFboTestUtil.GradientShader inherits from sglrShaderProgram
      * @constructor
+     * @extends {sglrShaderProgram.ShaderProgram}
      * @param {gluShaderUtil.DataType} outputType
      */
     es3fFboTestUtil.GradientShader = function(outputType) {
@@ -263,7 +267,7 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
             /** @const {number} */ var f1 = 0.5 + (x - y) * 0.5;
             /** @const {Array<number>} */ var fv = [f0, f1, 1.0 - f0, 1.0 - f1];
 
-            /** @const {Array<number>} */ var color = gradientMin + (gradientMax - gradientMin) * fv;
+            /** @const {Array<number>} */ var color = deMath.add(gradientMin, deMath.multiply(deMath.subtract(gradientMax, gradientMin), fv));
             /** @const {Array<number>} */ var icolor = es3fFboTestUtil.castVectorSaturate(color, tcuTexture.deTypes.deInt32);
             /** @const {Array<number>} */ var uicolor = es3fFboTestUtil.castVectorSaturate(color, tcuTexture.deTypes.deUint32);
 
@@ -370,6 +374,7 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
     /**
      * es3fFboTestUtil.Texture2DShader inherits from sglrShaderProgram
      * @constructor
+     * @extends {sglrShaderProgram.ShaderProgram}
      * @param {Array<gluShaderUtilDataType>} samplerTypes
      * @param {gluShaderUtil.DataType} outputType
      * @param {Array<number>} outScale - default [1.0, 1.0, 1.0, 1.0]
@@ -468,8 +473,8 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
         /** @type {Array<number>} */ var outScale = [sval, sval, sval, sval];
         /** @type {Array<number>} */ var outBias = [bval, bval, bval, bval];
 
-        /** @type {Array<number>} */ var texCoords = [];
-        /** @type {Array<number>} */ var colors = [];
+        /** @type {Array<Array<number>>} */ var texCoords = [[], [], [], []];
+        /** @type {Array<Array<number>>} */ var colors = [[], [], [], []];
 
         for (var packetNdx = 0; packetNdx < numPackets; ++packetNdx) {
             // setup tex coords
@@ -490,17 +495,17 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
                 bval = this.m_uniforms[2 + ndx * 3 + 2].value;
                 /** @const {Array<number>} */ var scale = [sval, sval, sval, sval];
                 /** @const {Array<number>} */ var bias = [bval, bval, bval, bval];
-                /** @const {Array<number>} */ var tmpColors = [];
+                /** @const {Array<Array<number>>} */ var tmpColors = [[], [], [], []];
 
                 tex.sample4(tmpColors, texCoords);
 
                 for (var fragNdx = 0; fragNdx < 4; ++fragNdx)
-                    colors[fragNdx] += tmpColors[fragNdx] * scale + bias;
+                    colors[fragNdx] = deMath.add(colors[fragNdx], deMath.add(deMath.multiply(tmpColors[fragNdx], scale), bias));
             }
 
             // write out
             for (var fragNdx = 0; fragNdx < 4; ++fragNdx) {
-                /** @const {Array<number>} */ var color = colors[fragNdx] * outScale + outBias;
+                /** @const {Array<number>} */ var color = deMath.add(deMath.multiply(colors[fragNdx], outScale), outBias);
                 /** @const {Array<number>} */ var icolor = es3fFboTestUtil.castVectorSaturate(color, tcuTexture.deTypes.deInt32);
                 /** @const {Array<number>} */ var uicolor = es3fFboTestUtil.castVectorSaturate(color, tcuTexture.deTypes.deUint32);
 
@@ -519,114 +524,428 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
     /**
      * es3fFboTestUtil.TextureCubeShader inherits from sglrShaderProgram
      * @constructor
+     * @extends {sglrShaderProgram.ShaderProgram}
      * @param {gluShaderUtil.DataType} samplerType
-     * @param {glu.DataType} outputType
+     * @param {gluShaderUtil.DataType} outputType
      */
     es3fFboTestUtil.TextureCubeShader = function(samplerType, outputType) {
         /** @type {sglrShaderProgram.ShaderProgramDeclaration} */
         var decl = new sglrShaderProgram.ShaderProgramDeclaration();
-
+        decl.pushVertexAttribute('a_position', rrGenericVector.GenericVecType.FLOAT);
+        decl.pushVertexAttribute('a_coord', rrGenericVector.GenericVecType.FLOAT);
+        decl.pushVertexToFragmentVarying(rrGenericVector.GenericVecType.FLOAT);
+        decl.pushFragmentOutput(es3fFboTestUtil.mapDataTypeToGenericVecType(outputType));
+        decl.pushUniform('u_coordMat', gluShaderUtil.DataType.FLOAT_MAT3);
+        decl.pushUniform('u_sampler0', samplerType);
+        decl.pushUniform('u_scale', gluShaderUtil.DataType.FLOAT_VEC4);
+        decl.pushUniform('u_bias', gluShaderUtil.DataType.FLOAT_VEC4);
+        decl.pushVertexSource(
+            '#version 300 es\n' +
+            'in highp vec4 a_position;\n' +
+            'in mediump vec2 a_coord;\n' +
+            'uniform mat3 u_coordMat;\n' +
+            'out mediump vec3 v_coord;\n' +
+            'void main (void)\n' +
+            '{\n' +
+            '    gl_Position = a_position;\n' +
+            '    v_coord = u_coordMat * vec3(a_coord, 1.0);\n' +
+            '}\n');
+        decl.pushFragmentSource(
+            '#version 300 es\n' +
+            'uniform highp ' + gluShaderUtil.getDataTypeName(samplerType) + ' u_sampler0;\n' +
+            'uniform highp vec4 u_scale;\n' +
+            'uniform highp vec4 u_bias;\n' +
+            'in mediump vec3 v_coord;\n' +
+            'layout(location = 0) out highp ' + gluShaderUtil.getDataTypeName(outputType) + ' o_color;\n' +
+            'void main (void)\n' +
+            '{\n' +
+            '    o_color = ' + gluShaderUtil.getDataTypeName(outputType) + '(vec4(texture(u_sampler0, v_coord)) * u_scale + u_bias);\n' +
+            '}\n');
         sglrShaderProgram.ShaderProgram.call(this, decl);
+        /** @type {Array<number>} */ this.m_texScale = [1.0, 1.0, 1.0, 1.0];
+        /** @type {Array<number>} */ this.m_texBias = [0.0, 0.0, 0.0, 0.0];
+        /** @type {tcuMatrix.Mat3} */ this.m_coordMat;
+        /** @type {gluShaderUtil.DataType} */ this.m_outputType = outputType;
     };
 
     es3fFboTestUtil.TextureCubeShader.prototype = Object.create(sglrShaderProgram.ShaderProgram.prototype);
     es3fFboTestUtil.TextureCubeShader.prototype.constructor = es3fFboTestUtil.TextureCubeShader;
 
-    es3fFboTestUtil.TextureCubeShader.prototype.setFace = function() {
-        // TODO: implement
+    /**
+     * @param {tcuTexture.CubeFace} face
+     */
+    es3fFboTestUtil.TextureCubeShader.prototype.setFace = function(face) {
+        /** @const {Array<Array<number>>} */ var s_cubeTransforms = [
+            // Face -X: (x, y, 1) -> (-1, -(2*y-1), +(2*x-1))
+            [[0.0, 0.0, -1.0], [0.0, -2.0, 1.0], [2.0, 0.0, -1.0]],
+            // Face +X: (x, y, 1) -> (+1, -(2*y-1), -(2*x-1))
+            [[0.0, 0.0, 1.0], [0.0, -2.0, 1.0], [-2.0, 0.0, 1.0]],
+            // Face -Y: (x, y, 1) -> (+(2*x-1), -1, -(2*y-1))
+            [[2.0, 0.0, -1.0], [0.0, 0.0, -1.0], [0.0, -2.0, 1.0]],
+            // Face +Y: (x, y, 1) -> (+(2*x-1), +1, +(2*y-1))
+            [[2.0, 0.0, -1.0], [0.0, 0.0, 1.0], [0.0, 2.0, -1.0]],
+            // Face -Z: (x, y, 1) -> (-(2*x-1), -(2*y-1), -1)
+            [[-2.0, 0.0, 1.0], [0.0, -2.0, 1.0], [0.0, 0.0, -1.0]],
+            // Face +Z: (x, y, 1) -> (+(2*x-1), -(2*y-1), +1)
+            [[2.0, 0.0, -1.0], [0.0, -2.0, 1.0], [0.0, 0.0, 1.0]]];
+        DE_ASSERT(deMath.inBounds32(face, 0, Object.keys(tcuTexuture.CubeFace).length));
+        this.m_coordMat = new tcuMatrix.Mat3(s_cubeTransforms[face]);
     };
 
-    es3fFboTestUtil.TextureCubeShader.prototype.setTexScaleBias = function() {
-        // TODO: implement
+    /**
+     * @param {Array<number>} scale
+     * @param {Array<number>} bias
+     */
+    es3fFboTestUtil.TextureCubeShader.prototype.setTexScaleBias = function(scale, bias) {
+        this.m_texScale = scale;
+        this.m_texBias = bias;
     };
 
-    es3fFboTestUtil.TextureCubeShader.prototype.setUniforms = function() {
-        // TODO: implement
+    /**
+     * @param {Context} ctx
+     * @param {number} program
+     */
+    es3fFboTestUtil.TextureCubeShader.prototype.setUniforms = function(ctx, program) {
+        ctx.useProgram(program);
+
+        ctx.uniform1i(ctx.getUniformLocation(program, 'u_sampler0'), 0);
+        ctx.uniformMatrix3fv(ctx.getUniformLocation(program, 'u_coordMat'), 1, false, this.m_coordMat.getColumnMajorData());
+        ctx.uniform4fv(ctx.getUniformLocation(program, 'u_scale'), 1, this.m_texScale);
+        ctx.uniform4fv(ctx.getUniformLocation(program, 'u_bias'), 1, this.m_texBias);
     };
 
-    es3fFboTestUtil.TextureCubeShader.prototype.shadeVertices = function() {
-        // TODO: implement
+    /**
+     * @param {rrVertexAttrib.VertexAttrib} inputs
+     * @param {rrVertexPacket.VertexPacket} packets
+     * @param {number} numPackets
+     */
+    es3fFboTestUtil.TextureCubeShader.prototype.shadeVertices = function(inputs, packets, numPackets) {
+        /** @type {tcuMatrix.Mat3} */ var texCoordMat = new tcuMatrix.Mat3(this.m_uniforms[0].value);
+
+        for (var packetNdx = 0; packetNdx < numPackets; ++packetNdx) {
+            /** @type {rrVertexPacket.VertexPacket} */ var packetc = packets[packetNdx];
+            var x = rrVertexAttrib.readVertexAttribFloat(inputs[1], packet.instanceNdx, packet.vertexNdx)[0];
+            var y = rrVertexAttrib.readVertexAttribFloat(inputs[1], packet.instanceNdx, packet.vertexNdx)[1];
+            /** @type {Array<number>} */ var a_coord = [x, y];
+            /** @type {Array<number>} */ var v_coord = tcuMatrix.multiplyMatVec(texCoordMat, [a_coord[0], a_coord[1], 1.0]);
+
+            packet.position = rrVertexAttrib.readVertexAttribFloat(inputs[0], packet.instanceNdx, packet.vertexNdx);
+            packet.outputs[0] = [v_coord[0], v_coord[1], v_coord[2], 0.0];
+        }
     };
 
-    es3fFboTestUtil.TextureCubeShader.prototype.shadeFragments = function() {
-        // TODO: implement
+    /**
+     * @param {rrFragmentPacket.FragmentPacket} packets
+     * @param {number} numPackets
+     * @param {rrShadingContext.FragmentShadingContext} context
+     */
+    es3fFboTestUtil.TextureCubeShader.prototype.shadeFragments = function(packets, numPackets, context) {
+        var sval = m_uniforms[2].value;
+        var bval = m_uniforms[3].value;
+        /** @const {Array<number>} */ var texScale = [sval, sval, sval, sval];
+        /** @const {Array<number>} */ var texBias = [bval, bval, bval, bval];
+
+        /** @type {Array<Array<number>>} */ var texCoords = [[], [], [], []];
+        /** @type {Array<Array<number>>} */ var colors = [[], [], [], []];
+
+        for (var packetNdx = 0; packetNdx < numPackets; ++packetNdx) {
+            /** @const {sglrReferenceContext.TextureCube} */ var tex = m_uniforms[1].sampler.texCube;
+
+            for (var fragNdx = 0; fragNdx < 4; ++fragNdx) {
+                /** @type {Array<Array<number>>} */ var coord = rrShadingContext.readTriangleVarying(packets[packetNdx], context, 0, fragNdx);
+                texCoords[fragNdx] = [coord[0], coord[1], coord[2]];
+            }
+
+            tex.sample4(colors, texCoords);
+
+            for (var fragNdx = 0; fragNdx < 4; ++fragNdx) {
+                /** @type {Array<Array<number>>} */ var color = deMath.add(deMath.multiply(colors[fragNdx], texScale), texBias);
+                /** @type {Array<Array<number>>} */ var icolor = es3fFboTestUtil.castVectorSaturate(color, tcuTexture.deTypes.deInt32);
+                /** @type {Array<Array<number>>} */ var uicolor = es3fFboTestUtil.castVectorSaturate(color, tcuTexture.deTypes.deUint32);
+
+                if (this.m_outputType == gluShaderUtil.DataType.FLOAT_VEC4)
+                    rrShadingContext.writeFragmentOutput(context, packetNdx, fragNdx, 0, color);
+                else if (this.m_outputType == gluShaderUtil.DataType.INT_VEC4)
+                    rrShadingContext.writeFragmentOutput(context, packetNdx, fragNdx, 0, icolor);
+                else if (this.m_outputType == gluShaderUtil.DataType.UINT_VEC4)
+                    rrShadingContext.writeFragmentOutput(context, packetNdx, fragNdx, 0, uicolor);
+                else
+                    DE_ASSERT(false);
+            }
+        }
     };
 
     /**
      * es3fFboTestUtil.Texture2DArrayShader inherits from sglrShaderProgram
      * @constructor
+     * @extends {sglrShaderProgram.ShaderProgram}
      * @param {gluShaderUtil.DataType} samplerType
      * @param {glu.DataType} outputType
      */
     es3fFboTestUtil.Texture2DArrayShader = function(samplerType, outputType) {
         /** @type {sglrShaderProgram.ShaderProgramDeclaration} */
         var decl = new sglrShaderProgram.ShaderProgramDeclaration();
-
+        decl.pushVertexAttribute('a_position', rrGenericVector.GenericVecType.FLOAT);
+        decl.pushVertexAttribute('a_coord', rrGenericVector.GenericVecType.FLOAT);
+        decl.pushVertexToFragmentVarying(rrGenericVector.GenericVecType.FLOAT);
+        decl.pushFragmentOutput(es3fFboTestUtil.mapDataTypeToGenericVecType(outputType));
+        decl.pushUniform('u_sampler0', samplerType);
+        decl.pushUniform('u_scale', gluShaderUtil.DataType.FLOAT_VEC4);
+        decl.pushUniform('u_bias', gluShaderUtil.DataType.FLOAT_VEC4);
+        decl.pushUniform('u_layer', gluShaderUtil.DataType.INT);
+        decl.pushVertexSource(
+                '#version 300 es\n' +
+                'in highp vec4 a_position;\n' +
+                'in highp vec2 a_coord;\n' +
+                'out highp vec2 v_coord;\n' +
+                'void main (void)\n' +
+                '{\n' +
+                '    gl_Position = a_position;\n' +
+                '    v_coord = a_coord;\n' +
+                '}\n');
+        decl.pushFragmentSource(
+                '#version 300 es\n' +
+                'uniform highp ' + gluShaderUtil.getDataTypeName(samplerType) + ' u_sampler0;\n' +
+                'uniform highp vec4 u_scale;\n' +
+                'uniform highp vec4 u_bias;\n' +
+                'uniform highp int u_layer;\n' +
+                'in highp vec2 v_coord;\n' +
+                'layout(location = 0) out highp ' + gluShaderUtil.getDataTypeName(outputType) + ' o_color;\n' +
+                'void main (void)\n' +
+                '{\n' +
+                '    o_color = ' + gluShaderUtil.getDataTypeName(outputType) + '(vec4(texture(u_sampler0, vec3(v_coord, u_layer))) * u_scale + u_bias);\n' +
+                '}\n');
         sglrShaderProgram.ShaderProgram.call(this, decl);
+        /** @type {Array<number>} */ this.m_texScale = [1.0, 1.0, 1.0, 1.0];
+        /** @type {Array<number>} */ this.m_texBias = [0.0, 0.0, 0.0, 0.0];
+        /** @type {number} */ this.m_layer = 0;
+        /** @type {gluShaderUtil.DataType} */ this.m_outputType = outputType;
     };
 
     es3fFboTestUtil.Texture2DArrayShader.prototype = Object.create(sglrShaderProgram.ShaderProgram.prototype);
     es3fFboTestUtil.Texture2DArrayShader.prototype.constructor = es3fFboTestUtil.Texture2DArrayShader;
 
-    es3fFboTestUtil.Texture2DArrayShader.prototype.setLayer = function() {
-        // TODO: implement
+    /**
+     * @param {number} layer
+     */
+    es3fFboTestUtil.Texture2DArrayShader.prototype.setLayer = function(layer) {
+        this.m_layer = layer;
+    };
+    /**
+     * @param {Array<number>} scale
+     * @param {Array<number>} bias
+     */
+    es3fFboTestUtil.Texture2DArrayShader.prototype.setTexScaleBias = function(scale, bias) {
+        this.m_texScale = scale;
+        this.m_texBias = bias;
+    };
+    /**
+     * @param {Context} ctx
+     * @param {number} program
+     */
+    es3fFboTestUtil.Texture2DArrayShader.prototype.setUniforms = function(ctx, program) {
+        ctx.useProgram(program);
+
+        ctx.uniform1i(ctx.getUniformLocation(program, 'u_sampler0'), 0);
+        ctx.uniform1i(ctx.getUniformLocation(program, 'u_layer'), this.m_layer);
+        ctx.uniform4fv(ctx.getUniformLocation(program, 'u_scale'), 1, this.m_texScale);
+        ctx.uniform4fv(ctx.getUniformLocation(program, 'u_bias'), 1, this.m_texBias);
     };
 
-    es3fFboTestUtil.Texture2DArrayShader.prototype.setTexScaleBias = function() {
-        // TODO: implement
+    /**
+     * @param {rrVertexAttrib.VertexAttrib} inputs
+     * @param {rrVertexPacket.VertexPacket} packets
+     * @param {number} numPackets
+     */
+    es3fFboTestUtil.Texture2DArrayShader.prototype.shadeVertices = function(inputs, packets, numPackets) {
+        for (var packetNdx = 0; packetNdx < numPackets; ++packetNdx) {
+            /** @type {rrVertexPacket.VertexPacket} */ var packet = packets[packetNdx];
+
+            packet.position = rrVertexAttrib.readVertexAttribFloat(inputs[0], packet.instanceNdx, packet.vertexNdx);
+            packet.outputs[0] = rrVertexAttrib.readVertexAttribFloat(inputs[1], packet.instanceNdx, packet.vertexNdx);
+        }
     };
 
-    es3fFboTestUtil.Texture2DArrayShader.prototype.setUniforms = function() {
-        // TODO: implement
-    };
+    /**
+     * @param {rrFragmentPacket.FragmentPacket} packets
+     * @param {number} numPackets
+     * @param {rrShadingContext.FragmentShadingContext} context
+     */
+    es3fFboTestUtil.Texture2DArrayShader.prototype.shadeFragments = function(packets, numPackets, context) {
+        var sval = this.m_uniforms[1].value;
+        var bval = this.m_uniforms[2].value;
+        /** @const {Array<number>} */ var texScale = [sval, sval, sval, sval];
+        /** @const {Array<number>} */ var texBias = [bval, bval, bval, bval];
+        /** @const {number} */ var layer = this.m_uniforms[3].value;
 
-    es3fFboTestUtil.Texture2DArrayShader.prototype.shadeVertices = function() {
-        // TODO: implement
-    };
+        /** @type {Array<number>} */ var texCoords = [[], [], [], []];
+        /** @type {Array<number>} */ var colors = [[], [], [], []];
 
-    es3fFboTestUtil.Texture2DArrayShader.prototype.shadeFragments = function() {
-        // TODO: implement
+        for (var packetNdx = 0; packetNdx < numPackets; ++packetNdx) {
+            /** @const {sglrReferenceContext.Texture2DArray} */ var tex = this.m_uniforms[0].sampler.tex2DArray;
+
+            for (var fragNdx = 0; fragNdx < 4; ++fragNdx) {
+                /** @const {Array<number>} */ var coord = rrShadingContext.readTriangleVarying(packets[packetNdx], context, 0, fragNdx);
+                texCoords[fragNdx] = [coord[0], coord[1], layer];
+            }
+
+            tex.sample4(colors, texCoords);
+
+            for (var fragNdx = 0; fragNdx < 4; ++fragNdx) {
+                /** @const {Array<number>} */ var color = deMath.add(deMath.multiply(colors[fragNdx], texScale), texBias);
+                /** @const {Array<number>} */ var icolor = es3fFboTestUtil.castVectorSaturate(color, tcuTexture.deTypes.deInt32);
+                /** @const {Array<number>} */ var uicolor = es3fFboTestUtil.castVectorSaturate(color, tcuTexture.deTypes.deUint32);
+
+                if (m_outputType == gluShaderUtil.DataType.FLOAT_VEC4)
+                    rrShadingContext.writeFragmentOutput(context, packetNdx, fragNdx, 0, color);
+                else if (m_outputType == gluShaderUtil.DataType.INT_VEC4)
+                    rrShadingContext.writeFragmentOutput(context, packetNdx, fragNdx, 0, icolor);
+                else if (m_outputType == gluShaderUtil.DataType.UINT_VEC4)
+                    rrShadingContext.writeFragmentOutput(context, packetNdx, fragNdx, 0, uicolor);
+                else
+                    DE_ASSERT(false);
+            }
+        }
     };
 
     /**
      * es3fFboTestUtil.Texture3DShader inherits from sglrShaderProgram
      * @constructor
+     * @extends {sglrShaderProgram.ShaderProgram}
      * @param {gluShaderUtil.DataType} samplerType
      * @param {glu.DataType} outputType
      */
     es3fFboTestUtil.Texture3DShader = function(samplerType, outputType) {
         /** @type {sglrShaderProgram.ShaderProgramDeclaration} */
         var decl = new sglrShaderProgram.ShaderProgramDeclaration();
-
+        decl.pushVertexAttribute('a_position', rrGenericVector.GenericVecType.FLOAT);
+        decl.pushVertexAttribute('a_coord', rrGenericVector.GenericVecType.FLOAT);
+        decl.pushVertexToFragmentVarying(rrGenericVector.GenericVecType.FLOAT);
+        decl.pushFragmentOutput(es3fFboTestUtil.mapDataTypeToGenericVecType(outputType));
+        decl.pushUniform('u_sampler0', samplerType);
+        decl.pushUniform('u_scale', gluShaderUtil.DataType.FLOAT_VEC4);
+        decl.pushUniform('u_bias', gluShaderUtil.DataType.FLOAT_VEC4);
+        decl.pushUniform('u_depth', gluShaderUtil.DataType.FLOAT);
+        decl.pushVertexSource(
+            '#version 300 es\n' +
+            'in highp vec4 a_position;\n' +
+            'in highp vec2 a_coord;\n' +
+            'out highp vec2 v_coord;\n' +
+            'void main (void)\n' +
+            '{\n' +
+            '    gl_Position = a_position;\n' +
+            '    v_coord = a_coord;\n' +
+            '}\n');
+        decl.pushFragmentSource(
+            '#version 300 es\n' +
+            'uniform highp ' + gluShaderUtil.getDataTypeName(samplerType) + ' u_sampler0;\n' +
+            'uniform highp vec4 u_scale;\n' +
+            'uniform highp vec4 u_bias;\n' +
+            'uniform highp float u_depth;\n' +
+            'in highp vec2 v_coord;\n' +
+            'layout(location = 0) out highp ' + gluShaderUtil.getDataTypeName(outputType) + ' o_color;\n' +
+            'void main (void)\n' +
+            '{\n' +
+            '    o_color = ' + gluShaderUtil.getDataTypeName(outputType) + '(vec4(texture(u_sampler0, vec3(v_coord, u_depth))) * u_scale + u_bias);\n' +
+            '}\n');
         sglrShaderProgram.ShaderProgram.call(this, decl);
+        /** @type {Array<number>} */ this.m_texScale = [1.0, 1.0, 1.0, 1.0];
+        /** @type {Array<number>} */ this.m_texBias = [0.0, 0.0, 0.0, 0.0];
+        /** @type {number} */ this.m_depth = 0.0;
+        /** @type {gluShaderUtil.DataType} */ this.m_outputType = outputType;
     };
 
     es3fFboTestUtil.Texture3DShader.prototype = Object.create(sglrShaderProgram.ShaderProgram.prototype);
     es3fFboTestUtil.Texture3DShader.prototype.constructor = es3fFboTestUtil.Texture3DShader;
 
-    es3fFboTestUtil.Texture3DShader.prototype.setDepth = function() {
-        // TODO: implement
+    /**
+     * @param {number} depth
+     */
+    es3fFboTestUtil.Texture3DShader.prototype.setDepth = function(depth) {
+        thism_depth = depth;
     };
 
-    es3fFboTestUtil.Texture3DShader.prototype.setTexScaleBias = function() {
-        // TODO: implement
+    /**
+     * @param {Array<number>} scale
+     * @param {Array<number>} bias
+     */
+    es3fFboTestUtil.Texture3DShader.prototype.setTexScaleBias = function(scale, bias) {
+        this.m_texScale = scale;
+        this.m_texBias = bias;
     };
 
-    es3fFboTestUtil.Texture3DShader.prototype.setUniforms = function() {
-        // TODO: implement
+    /**
+     * @param {Context} context
+     * @param {number} program
+     */
+    es3fFboTestUtil.Texture3DShader.prototype.setUniforms = function(context, program) {
+        context.useProgram(program);
+        context.uniform1i(context.getUniformLocation(program, 'u_sampler0'), 0);
+        context.uniform1f(context.getUniformLocation(program, 'u_depth'), this.m_depth);
+        context.uniform4fv(context.getUniformLocation(program, 'u_scale'), 1, this.m_texScale);
+        context.uniform4fv(context.getUniformLocation(program, 'u_bias'), 1, this.m_texBias);
     };
 
-    es3fFboTestUtil.Texture3DShader.prototype.shadeVertices = function() {
-        // TODO: implement
+    /**
+     * @param {rrVertexAttrib.VertexAttrib} inputs
+     * @param {rrVertexPacket.VertexPacket} packets
+     * @param {number} numPackets
+     */
+    es3fFboTestUtil.Texture3DShader.prototype.shadeVertices = function(inputs, packets, numPackets) {
+        for (var packetNdx = 0; packetNdx < numPackets; ++packetNdx) {
+            /** @type {rrVertexPacket.VertexPacket} */ var packet = packets[packetNdx];
+
+            packet.position = rrVertexAttrib.readVertexAttribFloat(inputs[0], packet.instanceNdx, packet.vertexNdx);
+            packet.outputs[0] = rrVertexAttrib.readVertexAttribFloat(inputs[1], packet.instanceNdx, packet.vertexNdx);
+        }
     };
 
-    es3fFboTestUtil.Texture3DShader.prototype.shadeFragments = function() {
-        // TODO: implement
+    /**
+     * @param {rrFragmentPacket.FragmentPacket} packets
+     * @param {number} numPackets
+     * @param {rrShadingContext.FragmentShadingContext} context
+     */
+    es3fFboTestUtil.Texture3DShader.prototype.shadeFragments = function(packets, numPackets, context) {
+        var sval = this.m_uniforms[1].value;
+        var bval = this.m_uniforms[2].value;
+        /** @const {Array<number>} */ var texScale = [sval, sval, sval, sval];
+        /** @const {Array<number>} */ var texBias = [bval, bval, bval, bval];
+        /** @const {number} */ var depth = this.m_uniforms[3].value;
+
+        /** @type {Array<Array<number>>} */ var texCoords = [[], [], [], []];
+        /** @type {Array<Array<number>>} */ var colors = [[], [], [], []];
+
+        for (var packetNdx = 0; packetNdx < numPackets; ++packetNdx) {
+            /** @const {sglrReferenceContext.Texture3D} */ var tex = this.m_uniforms[0].sampler.tex3D;
+
+            for (var fragNdx = 0; fragNdx < 4; ++fragNdx) {
+                /** @const {Array<number>} */ var coord = rrShadingContext.readTriangleVarying(packets[packetNdx], context, 0, fragNdx);
+                texCoords[fragNdx] = [coord[0], coord[1], depth];
+            }
+
+            tex.sample4(colors, texCoords);
+
+            for (var fragNdx = 0; fragNdx < 4; ++fragNdx) {
+                /** @const {Array<number>} */ var color = deMath.add(deMath.multiply(colors[fragNdx], texScale), texBias);
+                /** @const {Array<number>} */ var icolor = es3fFboTestUtil.castVectorSaturate(color, tcuTexture.deTypes.deInt32);
+                /** @const {Array<number>} */ var uicolor = es3fFboTestUtil.castVectorSaturate(color, tcuTexture.deTypes.deUint32);
+
+                if (this.m_outputType == gluShaderUtil.DataType.FLOAT_VEC4)
+                    rrShadingContext.writeFragmentOutput(context, packetNdx, fragNdx, 0, color);
+                else if (this.m_outputType == gluShaderUtil.DataType.INT_VEC4)
+                    rrShadingContext.writeFragmentOutput(context, packetNdx, fragNdx, 0, icolor);
+                else if (this.m_outputType == gluShaderUtil.DataType.UINT_VEC4)
+                    rrShadingContext.writeFragmentOutput(context, packetNdx, fragNdx, 0, uicolor);
+                else
+                    DE_ASSERT(false);
+            }
+        }
     };
 
     /**
      * es3fFboTestUtil.DepthGradientShader inherits from sglrShaderProgram
      * @constructor
+     * @extends {sglrShaderProgram.ShaderProgram}
      * @param {gluShaderUtil.DataType} samplerType
      */
     es3fFboTestUtil.DepthGradientShader = function(samplerType) {
@@ -674,16 +993,71 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
     es3fFboTestUtil.DepthGradientShader.prototype = Object.create(sglrShaderProgram.ShaderProgram.prototype);
     es3fFboTestUtil.DepthGradientShader.prototype.constructor = es3fFboTestUtil.DepthGradientShader;
 
-    es3fFboTestUtil.DepthGradientShader.prototype.setUniforms = function() {
-        // TODO: implement
+    /**
+     * @param {Context} ctx
+     * @param {number} program
+     * @param {numbrer} gradientMin
+     * @param {numbrer} gradientMax
+     * @param {Array<number>} color
+     */
+    es3fFboTestUtil.DepthGradientShader.prototype.setUniforms = function(ctx, program, gradientMin, gradientMax, color) {
+        ctx.useProgram(program);
+        ctx.uniform1fv(ctx.getUniformLocation(program, 'u_minGradient'), 1, gradientMin);
+        ctx.uniform1fv(ctx.getUniformLocation(program, 'u_maxGradient'), 1, gradientMax);
+        ctx.uniform4fv(ctx.getUniformLocation(program, 'u_color'), 1, color);
     };
 
-    es3fFboTestUtil.DepthGradientShader.prototype.shadeVertices = function() {
-        // TODO: implement
+    /**
+     * @param {rrVertexAttrib.VertexAttrib} inputs
+     * @param {rrVertexPacket.VertexPacket} packets
+     * @param {number} numPackets
+     */
+    es3fFboTestUtil.DepthGradientShader.prototype.shadeVertices = function(inputs, packets, numPackets) {
+        for (var packetNdx = 0; packetNdx < numPackets; ++packetNdx) {
+            /** @type {rrVertexPacket.VertexPacket} */ var packet = packets[packetNdx];
+
+            packet.position = rrVertexAttrib.readVertexAttribFloat(inputs[0], packet.instanceNdx, packet.vertexNdx);
+            packet.outputs[0] = rrVertexAttrib.readVertexAttribFloat(inputs[1], packet.instanceNdx, packet.vertexNdx);
+        }
     };
 
-    es3fFboTestUtil.DepthGradientShader.prototype.shadeFragments = function() {
-        // TODO: implement
+    /**
+     * @param {rrFragmentPacket.FragmentPacket} packets
+     * @param {number} numPackets
+     * @param {rrShadingContext.FragmentShadingContext} context
+     */
+    es3fFboTestUtil.DepthGradientShader.prototype.shadeFragments = function(packets, numPackets, context) {
+        /** @const {number} */ var gradientMin = u_minGradient.value;
+        /** @const {number} */ var gradientMax = u_maxGradient.value;
+        var cval = u_color.value;
+        var ival = es3fFboTestUtil.castVectorSaturate(color, tcuTexture.deTypes.deInt32);
+        var uval = es3fFboTestUtil.castVectorSaturate(color, tcuTexture.deTypes.deUint32);
+
+        /** @type {Array<number>} */ var color = [cval, cval, cval, cval];
+        /** @type {Array<number>} */ var icolor = [ival, ival, ival, ival];
+        /** @type {Array<number>} */ var uicolor = [uval, uval, uval, uval];
+
+        // running this shader without a depth buffer does not make any sense
+        DE_ASSERT(context.fragmentDepths);
+
+        for (var packetNdx = 0; packetNdx < numPackets; ++packetNdx)
+        for (var fragNdx = 0; fragNdx < 4; ++fragNdx) {
+            /** @type {Array<number>} */ var coord = rrShadingContext.readTriangleVarying(packets[packetNdx], context, 0, fragNdx);
+            /** @const {number} */ var x = coord[0];
+            /** @const {number} */ var y = coord[1];
+            /** @const {number} */ var f0 = (x + y) * 0.5;
+
+            rrShadingContext.writeFragmentDepth(context, packetNdx, fragNdx, 0, gradientMin + (gradientMax - gradientMin) * f0);
+
+            if (this.m_outputType == gluShaderUtil.DataType.FLOAT_VEC4)
+                rrShadingContext.writeFragmentOutput(context, packetNdx, fragNdx, 0, color);
+            else if (this.m_outputType == gluShaderUtil.DataType.INT_VEC4)
+                rrShadingContext.writeFragmentOutput(context, packetNdx, fragNdx, 0, icolor);
+            else if (this.m_outputType == gluShaderUtil.DataType.UINT_VEC4)
+                rrShadingContext.writeFragmentOutput(context, packetNdx, fragNdx, 0, uicolor);
+            else
+                DE_ASSERT(false);
+        }
     };
 
 
@@ -771,12 +1145,11 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
     };
 
     /**
-     * @param {sglr::Context} ctx
+     * @param {sglrContext} ctx
      * @param {TextureFormat} format
      * @param {Array<number>} value
      */
     es3fFboTestUtil.clearColorBuffer = function(ctx, format, value) {
-        // TODO: implement (ctx)
         /** @const @type {tcuTextureUtil.TextureChannelClass} */
         var fmtClass = tcuTextureUtil.getTextureChannelClass(format.type);
 
@@ -799,6 +1172,7 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
                 DE_ASSERT(false);
         }
     };
+
     /**
      * @param {tcuTexture.TextureFormat} format
      * @return {tcuRGBA.RGBA}

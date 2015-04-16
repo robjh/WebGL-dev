@@ -42,6 +42,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
 
     /**
      * @constructor
+     * @extends {fboTestCase.FboTestCase}
      * @param {string} name
      * @param {string} desc
      * @param {number} format
@@ -70,7 +71,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
 
         /** @type {fboTestUtil.GradientShader} */ var gradShader = new fboTestUtil.GradientShader(gluShaderUtil.DataType.FLOAT_VEC4);
         /** @type {fboTestUtil.FlatColorShader} */ var flatShader = new fboTestUtil.FlatColorShader(gluShaderUtil.DataType.FLOAT_VEC4);
-        /** @type {number} */ var flatShaderID = this.getCurrentContext().createProgram(flatShader); // TODO: getCurrentContext
+        /** @type {number} */ var flatShaderID = this.getCurrentContext().createProgram(flatShader);
         /** @type {number} */ var gradShaderID = this.getCurrentContext().createProgram(gradShader);
 
         /** @type {number} */ var fbo = 0;
@@ -140,6 +141,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
 
     /**
      * @constructor
+     * @extends {fboTestCase.FboTestCase}
      * @param {string} name
      * @param {string} desc
      * @param {number} attachDepth
@@ -166,11 +168,11 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
         /** @const {number} */ var width = 128;
         /** @const {number} */ var height = 128;
         /** @const {boolean} */ var hasDepth = this.m_attachDepth == gl.DEPTH_STENCIL || this.m_attachDepth == gl.DEPTH_ATTACHMENT;
-        //        const bool                hasStencil            = (m_attachDepth == GL_DEPTH_STENCIL || m_attachStencil == GL_DEPTH_STENCIL_ATTACHMENT);
+        // /** @const {boolean} */ var hasStencil = this.m_attachDepth == gl.DEPTH_STENCIL || this.m_attachStencil == gl.DEPTH_STENCIL_ATTACHMENT); // commented out in original code
 
         /** @type {fboTestUtil.GradientShader} */ var gradShader = fboTestUtil.GradientShader(gluShaderUtil.DataType.FLOAT_VEC4);
         /** @type {fboTestUtil.FlatColorShader} */ var flatShader = fboTestUtil.FlatColorShader(gluShaderUtil.DataType.FLOAT_VEC4);
-        /** @type {number} */ var flatShaderID = this.getCurrentContext().createProgram(flatShader); // TODO: getCurrentContext
+        /** @type {number} */ var flatShaderID = this.getCurrentContext().createProgram(flatShader);
         /** @type {number} */ var gradShaderID = this.getCurrentContext().createProgram(gradShader);
 
         /** @type {number} */ var fbo = 0;
@@ -242,6 +244,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
 
     /**
      * @constructor
+     * @extends {tcuTestCase.DeqpTest}
      */
     es3fFboStencilbufferTests.FboStencilTests = function() {
         tcuTestCase.DeqpTest.call(this, 'stencil', 'FBO Stencilbuffer tests');
