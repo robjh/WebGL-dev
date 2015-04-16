@@ -45,6 +45,7 @@ define([
 
     /**
      * @constructor
+     * @extends {fboTestCase.FboTestCase}
      * @param {string} name
      * @param {string} desc
      * @param {number} colorFormat
@@ -261,6 +262,7 @@ define([
 
     /**
      * @constructor
+     * @extends {tcuTestCase.DeqpTest}
      */
     var FboMultisampleTests = function() {
         tcuTestCase.DeqpTest.call(this, 'msaa', 'Multisample FBO tests');

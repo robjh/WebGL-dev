@@ -36,6 +36,7 @@ define([
 
     /**
      * @constructor
+     * @extends {fboTestCase.FboTestCase}
      * @param {string} name
      * @param {string} desc
      * @param {number} format
@@ -134,6 +135,7 @@ define([
 
     /**
      * @constructor
+     * @extends {fboTestCase.FboTestCase}
      * @param {string} name
      * @param {string} desc
      * @param {number} attachDepth
@@ -236,6 +238,7 @@ define([
 
     /**
      * @constructor
+     * @extends {tcuTestCase.DeqpTest}
      */
     var FboStencilTests = function() {
         tcuTestCase.DeqpTest.call(this, 'stencil', 'FBO Stencilbuffer tests');

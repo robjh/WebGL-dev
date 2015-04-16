@@ -42,6 +42,7 @@ define([
     /**
     * FboTestCase class, inherits from TestCase and sglrContextWrapper
     * @constructor
+    * @extends {tcuTestCase.DeqpTest}
     * @param {string} name
     * @param {string} description
     * @param {boolean} useScreenSizedViewport

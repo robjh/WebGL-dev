@@ -44,6 +44,7 @@ define([
     /**
     * BlitRectCase class, inherits from FboTestCase
     * @constructor
+    * @extends {fboTestCase.FboTestCase}
     * @param {string} name
     * @param {string} description
     * @param {number} filter deUint32
@@ -184,8 +185,9 @@ define([
     };
 
     /**
-    * BlitNearestFilterConsistencyCase class, inherits from FboTestCase
+    * BlitNearestFilterConsistencyCase class
     * @constructor
+    * @extends {BlitRectCase}
     * @param {string} name
     * @param {string} desc
     * @param {Array<number>} srcSize
@@ -345,6 +347,7 @@ define([
     /**
     * FramebufferBlitTests class, inherits from TestCase
     * @constructor
+    * @extends {tcuTestCase.DeqpTest}
     * @param {string} name
     * @param {string} description
     * @param {boolean} useScreenSizedViewport
@@ -612,6 +615,7 @@ define([
     /**
      * BlitColorConversionCase class, inherits from FboTestCase
      * @constructor
+     * @extends {fboTestCase.FboTestCase}
      * @param {string} name
      * @param {string} desc
      * @param {number} srcFormat
@@ -751,6 +755,7 @@ define([
 
     /**
      * @constructor
+     * @extends {fboTestCase.FboTestCase}
      * @param {string} name
      * @param {string} desc
      * @param {number} format deUint32
@@ -763,7 +768,7 @@ define([
      * @param {number} copyBuffers deUint32
      */
     var BlitDepthStencilCase = function(name, desc, format, srcBuffers, srcSize, srcRect, dstBuffers, dstSize, dstRect, copyBuffers) {
-        fboTestCase.FboTestCase(this, name, desc);
+        fboTestCase.FboTestCase.call(this, name, desc);
         /** @type {number} */ this.m_format = format;
         /** @type {number} */ this.m_srcBuffers = srcBuffers;
         /** @type {Array<number>} */ this.m_srcSize = srcSize;
@@ -932,13 +937,14 @@ define([
 
     /**
      * @constructor
+     * @extends {fboTestCase.FboTestCase}
      * @param {string} name
      * @param {string} desc
      * @param {number} format
      * @param {number} filter
      */
     var BlitDefaultFramebufferCase = function(name, desc, format, filter) {
-        fboTestCase.FboTestCase(this, name, desc);
+        fboTestCase.FboTestCase.call(this, name, desc);
         /** @const {number} */ this.m_format;
         /** @const {number} */ this.m_filter;
     };
@@ -1047,6 +1053,7 @@ define([
 
     /**
      * @constructor
+     * @extends {BlitDefaultDramebufferCase}
      * @param {string} name
      * @param {string} desc
      * @param {string} format
@@ -1055,7 +1062,7 @@ define([
      * @param {BlitArea} area
      */
     var DefaultFramebufferBlitCase = function(name, desc, format, filter, dir, area) {
-        BlitDefaultFramebufferCase(this, name, desc, format, filter);
+        BlitDefaultFramebufferCase.call(this, name, desc, format, filter);
         /** @const {BlitDirection} */ this.m_blitDir = dir;
         /** @const {BlitArea} */ this.m_blitArea = area;
         /** @type {Array<number>} */ this.m_srcRect = [-1, -1, -1, -1];
