@@ -768,7 +768,7 @@ TextureRenderer.prototype.renderQuad = function(texUnit, texCoord, params) {
  * @param {Number} x
  * @param {Number} y
  * @param {Number} width
- * @param {Number} heigth
+ * @param {Number} height
  */
 var SurfaceAccess = function(surface, colorFmt, x, y, width, height) {
     this.m_surface = surface;
@@ -884,7 +884,7 @@ var triDerivateX = function(/*const tcu::Vec3&*/ s, /*const tcu::Vec3&*/ w, wx, 
  * @param {Array<Number>} s
  * @param {Array<Number>} w
  * @param {Number} wy
- * @param {Number} heigth
+ * @param {Number} height
  * @param {Number} nx
  * @return {Number}
  */
@@ -1020,14 +1020,14 @@ var sampleTexture2D = function(dst, src, texCoord, params) {
 };
 
 /**
- * @param {lodMode} lodMode
+ * @param {lodMode} lodModeParm
  * @param {Array<Number>} coord
  * @param {Array<Number>} coordDx
  * @param {Array<Number>} coordDy
  * @param {Number} faceSize
  * @return {Number}
  */
-var computeCubeLodFromDerivates = function(lodMode, coord, coordDx, coordDy, faceSize) {
+var computeCubeLodFromDerivates = function(lodModeParm, coord, coordDx, coordDy, faceSize) {
     var face = tcuTexture.selectCubeFace(coord);
     var maNdx = 0;
     var sNdx = 0;
@@ -1059,7 +1059,7 @@ var computeCubeLodFromDerivates = function(lodMode, coord, coordDx, coordDy, fac
         var dvdx = faceSize * 0.5 * (tcdx * ma - tc * madx) / (ma * ma);
         var dudy = faceSize * 0.5 * (scdy * ma - sc * mady) / (ma * ma);
         var dvdy = faceSize * 0.5 * (tcdy * ma - tc * mady) / (ma * ma);
-        return computeLodFromDerivates(lodMode, dudx, dvdx, dudy, dvdy);
+        return computeLodFromDerivates(lodModeParm, dudx, dvdx, dudy, dvdy);
     }
 };
 

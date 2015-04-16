@@ -166,6 +166,10 @@ FloatDescription.prototype.convert = function(other) {
     /** @type {number} */ var otherExponentBias = other.description.ExponentBias;
     /** @type {number} */ var otherFlags = other.description.Flags;
 
+    /** @type {number} */ var bitDiff;
+    /** @type {number} */ var half;
+    /** @type {number} */ var bias;
+
     if (!(this.Flags & FloatFlags.FLOAT_HAS_SIGN) && other.sign() < 0)
     {
         // Negative number, truncate to zero.
@@ -205,9 +209,9 @@ FloatDescription.prototype.convert = function(other) {
             if ((this.Flags & FloatFlags.FLOAT_SUPPORT_DENORM) && (eMin - e - 1 <= this.MantissaBits))
             {
                 // Shift and round (RTE).
-                /** @type {number} */ var bitDiff = (otherMantissaBits - this.MantissaBits) + (eMin - e);
-                /** @type {number} */ var half = deMath.shiftLeft(1, (bitDiff - 1)) - 1;
-                /** @type {number} */ var bias = deMath.binaryOp(deMath.shiftRight(m, bitDiff), 1, deMath.BinaryOp.AND);
+                bitDiff = (otherMantissaBits - this.MantissaBits) + (eMin - e);
+                half = deMath.shiftLeft(1, (bitDiff - 1)) - 1;
+                bias = deMath.binaryOp(deMath.shiftRight(m, bitDiff), 1, deMath.BinaryOp.AND);
 
                 return newDeFloatFromParameters(
                     deMath.binaryOp(
@@ -232,9 +236,9 @@ FloatDescription.prototype.convert = function(other) {
             if (this.MantissaBits < otherMantissaBits)
             {
                 // Round mantissa (round to nearest even).
-                /** @type {number} */ var bitDiff = otherMantissaBits - this.MantissaBits;
-                /** @type {number} */ var half = deMath.shiftLeft(1, (bitDiff - 1)) - 1;
-                /** @type {number} */ var bias = deMath.binaryOp(deMath.shiftRight(m, bitDiff), 1, deMath.BinaryOp.AND);
+                bitDiff = otherMantissaBits - this.MantissaBits;
+                half = deMath.shiftLeft(1, (bitDiff - 1)) - 1;
+                bias = deMath.binaryOp(deMath.shiftRight(m, bitDiff), 1, deMath.BinaryOp.AND);
 
                 m = deMath.shiftRight(m + half + bias, bitDiff);
 
@@ -247,7 +251,7 @@ FloatDescription.prototype.convert = function(other) {
             }
             else
             {
-                /** @type {number} */ var bitDiff = this.MantissaBits - otherMantissaBits;
+                bitDiff = this.MantissaBits - otherMantissaBits;
                 m = deMath.shiftLeft(m, bitDiff);
             }
 

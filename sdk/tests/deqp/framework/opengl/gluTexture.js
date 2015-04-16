@@ -27,6 +27,9 @@ var DE_ASSERT = function(x) {
 };
 var DE_FALSE = false;
 
+/**
+ * @constructor
+ */
 var Texture2D = function(gl, format, isCompressed, refTexture) {
     this.gl = gl;
     this.m_glTexture = gl.createTexture();
@@ -104,6 +107,9 @@ Texture2D.prototype.upload = function() {
     assertMsgOptions(gl.getError() === gl.NO_ERROR, 'Texture upload failed', false, true);
 };
 
+/**
+ * @constructor
+ */
 var TextureCube = function(gl, format, isCompressed, refTexture) {
     Texture2D.call(this, gl, format, isCompressed, refTexture);
 };
@@ -149,6 +155,9 @@ var cubeFromInternalFormat = function(gl, internalFormat, size) {
     return tex;
 };
 
+/**
+ * @constructor
+ */
 var Texture2DArray = function(gl, format, isCompressed, refTexture) {
     Texture2D.call(this, gl, format, isCompressed, refTexture);
 };
@@ -189,6 +198,9 @@ var texture2DArrayFromInternalFormat = function(gl, internalFormat, width, heigh
     return tex;
 };
 
+/**
+ * @constructor
+ */
 var Texture3D = function(gl, format, isCompressed, refTexture) {
     Texture2D.call(this, gl, format, isCompressed, refTexture);
 };
@@ -229,6 +241,9 @@ var texture3DFromInternalFormat = function(gl, internalFormat, width, height, de
     return tex;
 };
 
+/**
+ * @constructor
+ */
 var Compressed2D = function(gl, format, isCompressed, refTexture) {
     Texture2D.call(this, gl, format, isCompressed, refTexture);
 };
@@ -248,6 +263,9 @@ Compressed2D.prototype.upload = function(level, source) {
     assertMsgOptions(gl.getError() === gl.NO_ERROR, 'Texture upload failed', false, true);
 };
 
+/**
+ * @constructor
+ */
 var CompressedCube = function(gl, format, isCompressed, refTexture) {
     Texture2D.call(this, gl, format, isCompressed, refTexture);
 };

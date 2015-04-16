@@ -1051,7 +1051,7 @@ ConstPixelBufferAccess.prototype.sample3D = function(sampler, filter, s, t, r) {
 var deTypes = {
     deInt8: {min: -(1 << 7), max: (1 << 7) - 1},
     deInt16: {min: -(1 << 15), max: (1 << 15) - 1},
-    deMath: {min: -(1 << 31), max: (1 << 31) - 1},
+    deInt32: {min: -(1 << 31), max: (1 << 31) - 1},
     deUint8: {min: 0, max: (1 << 8) - 1},
     deUint16: {min: 0, max: (1 << 16) - 1},
     deUint32: {min: 0, max: 4294967295}

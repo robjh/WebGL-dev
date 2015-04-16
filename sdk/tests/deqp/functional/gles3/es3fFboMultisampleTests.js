@@ -45,6 +45,7 @@ define([
 
     /**
      * @constructor
+     * @extends {fboTestCase.FboTestCase}
      * @param {string} name
      * @param {string} desc
      * @param {number} colorFormat
@@ -53,7 +54,7 @@ define([
      * @param {number} numSamples
      */
     var BasicFboMultisampleCase = function(name, desc, colorFormat, depthStencilFormat, size, numSamples) {
-        fboTestCase.FboTestCase.call(name, desc);
+        fboTestCase.FboTestCase.call(this, name, desc);
         /** @type {number} */ this.m_colorFormat = colorFormat;
         /** @type {number} */ this.m_depthStencilFormat = depthStencilFormat;
         /** @type {Array<number>} */ this.m_size = size;
@@ -84,8 +85,8 @@ define([
         /** @type {boolean} */ var stencil = depthStencilFmt.order == tcuTexture.ChannelOrder.S || depthStencilFmt.order == tcuTexture.ChannelOrder.DS;
         /** @type {fboTestUtil.GradientShader} */ var gradShader = new fboTestUtil.GradientShader(fboTestUtil.getFragmentOutputType(colorFmt));
         /** @type {fboTestUtil.FlatColorShader} */ var flatShader = new fboTestUtil.FlatColorShader(fboTestUtil.getFragmentOutputType(colorFmt));
-        /** @type {number} */ var gradShaderID = getCurrentContext().createProgram(gradShader); // TODO: getCurrentContext
-        /** @type {number} */ var flatShaderID = getCurrentContext().createProgram(flatShader);
+        /** @type {number} */ var gradShaderID = this.getCurrentContext().createProgram(gradShader);
+        /** @type {number} */ var flatShaderID = this.getCurrentContext().createProgram(flatShader);
         /** @type {number} */ var msaaFbo = 0;
         /** @type {number} */ var resolveFbo = 0;
         /** @type {number} */ var msaaColorRbo = 0;
@@ -145,9 +146,9 @@ define([
 
         // Fill MSAA fbo with gradient, depth = [-1..1]
         gl.enable(gl.DEPTH_TEST);
-        gradShader.setGradient(getCurrentContext(), gradShaderID, colorFmtInfo.valueMin, colorFmtInfo.valueMax);
+        gradShader.setGradient(this.getCurrentContext(), gradShaderID, colorFmtInfo.valueMin, colorFmtInfo.valueMax);
         // TODO: implement drawQuad
-        //sglr::drawQuad(*getCurrentContext(), gradShaderID, [-1.0, -1.0, -1.0], [1.0, 1.0, 1.0]);
+        //sglr::drawQuad(this.getCurrentContext(), gradShaderID, [-1.0, -1.0, -1.0], [1.0, 1.0, 1.0]);
 
         // Render random-colored quads.
         /** @const {number} */ var numQuads = 8;
@@ -170,9 +171,9 @@ define([
             /** @type {number} */ var y1 = rnd.getFloat(-1.0, 1.0);
             /** @type {number} */ var z1 = rnd.getFloat(-1.0, 1.0);
 
-            flatShader.setColor(getCurrentContext(), flatShaderID, deMath.add(deMath.multiply([r, g, b, a], deMath.subtract(colorFmtInfo.valueMax, colorFmtInfo.valueMin)), colorFmtInfo.valueMin));
+            flatShader.setColor(this.getCurrentContext(), flatShaderID, deMath.add(deMath.multiply([r, g, b, a], deMath.subtract(colorFmtInfo.valueMax, colorFmtInfo.valueMin)), colorFmtInfo.valueMin));
             // TODO: implement drawQuad
-            //sglr::drawQuad(getCurrentContext(), flatShaderID, [x0, y0, z0], [x1, y1, z1]);
+            //sglr::drawQuad(this.getCurrentContext(), flatShaderID, [x0, y0, z0], [x1, y1, z1]);
         }
 
         gl.disable(gl.DEPTH_TEST);
@@ -203,9 +204,9 @@ define([
                 d = -1.0 + step * ndx;
                 c = ndx / (numSteps - 1);
 
-                flatShader.setColor(getCurrentContext(), flatShaderID, deMath.add(deMath.multiply([0.0, 0.0, c, 1.0], deMath.subtract(colorFmtInfo.valueMax, colorFmtInfo.valueMin)), colorFmtInfo.valueMin));
+                flatShader.setColor(this.getCurrentContext(), flatShaderID, deMath.add(deMath.multiply([0.0, 0.0, c, 1.0], deMath.subtract(colorFmtInfo.valueMax, colorFmtInfo.valueMin)), colorFmtInfo.valueMin));
                 // TODO: implement drawQuad
-                //sglr::drawQuad(*getCurrentContext(), flatShaderID, [-1.0, -1.0, d], [1.0, 1.0, d]);
+                //sglr::drawQuad(this.getCurrentContext(), flatShaderID, [-1.0, -1.0, d], [1.0, 1.0, d]);
             }
 
             gl.disable(gl.DEPTH_TEST);
@@ -226,9 +227,9 @@ define([
 
                 gl.stencilFunc(gl.EQUAL, s, 0xff);
 
-                flatShader.setColor(getCurrentContext(), flatShaderID, deMath.add(deMath.multiply([0.0, c, 0.0, 1.0], deMath.substract(colorFmtInfo.valueMax, colorFmtInfo.valueMin)), colorFmtInfo.valueMin));
+                flatShader.setColor(this.getCurrentContext(), flatShaderID, deMath.add(deMath.multiply([0.0, c, 0.0, 1.0], deMath.substract(colorFmtInfo.valueMax, colorFmtInfo.valueMin)), colorFmtInfo.valueMin));
                 // TODO: implement drawQuad
-                //sglr::drawQuad(getCurrentContext(), flatShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
+                //sglr::drawQuad(this.getCurrentContext(), flatShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
             }
 
             gl.disable(gl.STENCIL_TEST);
@@ -261,9 +262,10 @@ define([
 
     /**
      * @constructor
+     * @extends {tcuTestCase.DeqpTest}
      */
     var FboMultisampleTests = function() {
-        tcuTestCase.DeqpTest.call('msaa', 'Multisample FBO tests');
+        tcuTestCase.DeqpTest.call(this, 'msaa', 'Multisample FBO tests');
     };
 
     FboMultisampleTests.prototype = Object.create(tcuTestCase.DeqpTest.prototype);

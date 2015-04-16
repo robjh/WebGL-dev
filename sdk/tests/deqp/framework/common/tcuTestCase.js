@@ -30,7 +30,7 @@ define(function() {
  * The purpose of this this object is to break
  * long tests into small chunks that won't cause a timeout
  */
-var stateMachine = (function() {
+var runner = (function() {
 'use strict';
 
 /**
@@ -43,7 +43,7 @@ var IterateResult = {
 
 /**
  * A general purpose bucket for string current execution state
- * stateMachine doesn't modify this container.
+ * runner doesn't modify this container.
  */
 var state = {};
 
@@ -95,7 +95,7 @@ var DeqpTest = function(name, description, spec) {
     this.parentTest = null;
 };
 
-/** @type {stateMachine.IterateResult} static property */ DeqpTest.lastResult = stateMachine.IterateResult.STOP;
+/** @type {runner.IterateResult} static property */ DeqpTest.lastResult = runner.IterateResult.STOP;
 
  DeqpTest.prototype.addChild = function(test) {
     test.parentTest = this;
@@ -231,12 +231,12 @@ var getFilter = function() {
  * Run through the test cases giving time to system operation.
  */
 var runTestCases = function() {
-    var state = stateMachine.getState();
+    var state = runner.getState();
     if (state.filter === undefined)
         state.filter = getFilter();
 
     //Should we proceed with the next test?
-    if (DeqpTest.lastResult == stateMachine.IterateResult.STOP) {
+    if (DeqpTest.lastResult == runner.IterateResult.STOP) {
         //If current test not defined, let's start with the root test.
         state.currentTest = state.currentTest ?
             state.currentTest.next(state.filter) :
@@ -247,7 +247,7 @@ var runTestCases = function() {
         try
         {
             //If proceeding with the next test, prepare it.
-            if (DeqpTest.lastResult == stateMachine.IterateResult.STOP)
+            if (DeqpTest.lastResult == runner.IterateResult.STOP)
             {
                 //Update current test name
                 var fullTestName = state.currentTest.fullName();
@@ -283,15 +283,15 @@ var runTestCases = function() {
             bufferedLogToConsole(err);
         }
 
-        stateMachine.runCallback(runTestCases);
+        runner.runCallback(runTestCases);
 
     } else
-        stateMachine.terminate();
+        runner.terminate();
 };
 
 return {
     DeqpTest: DeqpTest,
-    runner: stateMachine,
+    runner: runner,
     newTest: newTest,
     runTestCases: runTestCases
 };

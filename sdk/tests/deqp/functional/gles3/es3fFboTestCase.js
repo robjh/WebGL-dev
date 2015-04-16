@@ -23,7 +23,7 @@ define([
     'framework/delibs/debase/deMath',
     'framework/common/tcuSurface',
     'framework/common/tcuTexture',
-    '/framework/referencerenderer/rrRenderer',
+    'framework/referencerenderer/rrRenderer',
     'framework/opengl/simplereference/sglrReferenceContext',
     'framework/common/tcuPixelFormat',
     'framework/common/tcuImageCompare',
@@ -42,6 +42,7 @@ define([
     /**
     * FboTestCase class, inherits from TestCase and sglrContextWrapper
     * @constructor
+    * @extends {tcuTestCase.DeqpTest}
     * @param {string} name
     * @param {string} description
     * @param {boolean} useScreenSizedViewport
@@ -50,10 +51,28 @@ define([
         tcuTestCase.DeqpTest.call(this, name, description);
         /** @type {number} */ this.m_viewportWidth = useScreenSizedViewport === undefined ? gl.drawingBufferWidth : 128;
         /** @type {number} */ this.m_viewportHeight = useScreenSizedViewport === undefined ? gl.drawingBufferHeight : 128;
+        /** @type {Context} */ this.m_context = gl; // from TestCase
+        /** @type {sglrReferenceContext.ReferenceContext|sglrGLContext.GLContext} */ this.m_curCtx = null; // from sglrContextWrapper
     };
 
     FboTestCase.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
     FboTestCase.prototype.constructor = FboTestCase;
+
+    /**
+     * Sets the current context (inherited from sglrContextWrapper)
+     * @param {Context} context
+     */
+    FboTestCase.prototype.setContext = function(context) {
+        this.m_curCtx = context;
+    };
+
+    /**
+     * Gets the current context (inherited from sglrContextWrapper)
+     * @return {Context}
+     */
+    FboTestCase.prototype.getCurrentContext = function() {
+        return this.m_curCtx;
+    };
 
     /**
     * @param {tcuSurface.Surface} reference
@@ -72,7 +91,6 @@ define([
 
         // Check that we don't try to use invalid formats.
         DE_ASSERT(isCoreFormat || !deString.deIsStringEmpty(requiredExts));
-        // TODO: implement m_context
         if (!deString.deIsStringEmpty(requiredExts) && !isAnyExtensionSupported(this.m_context, requiredExts))
             throw new Error('Format not supported');
     };
@@ -83,7 +101,7 @@ define([
     */
     FboTestCase.prototype.checkSampleCount = function(sizedFormat, numSamples) {
         /** @const @type {number} */ var minSampleCount = getMinimumSampleCount(sizedFormat);
-        // TODO: implement
+
         if (numSamples > minSampleCount) {
             // Exceeds spec-mandated minimum - need to check.
             /** @const @type {Array<number>} */ var supportedSampleCounts = querySampleCounts(this.m_context.getRenderContext().getFunctions(), sizedFormat);
@@ -104,7 +122,6 @@ define([
     * @param {Array<number>} bias Vec4
     */
     FboTestCase.prototype.readPixelsUsingFormat = function(dst, x, y, width, height, format, scale, bias) {
-        // TODO: implement fboTestUtil.readPixels, getCurrentContext
         fboTestUtil.readPixels(getCurrentContext(), dst, x, y, width, height, format, scale, bias);
     };
 
@@ -116,7 +133,6 @@ define([
     * @param {number} height
     */
     FboTestCase.prototype.readPixels = function(dst, x, y, width, height) {
-        // TODO: implement getCurrentContext
         getCurrentContext().readPixels(dst, x, y, width, height);
     };
 
@@ -141,7 +157,6 @@ define([
     */
     FboTestCase.prototype.clearColorBuffer = function(format, value) {
         if (value === undefined) value = [0.0, 0.0, 0.0, 0.0];
-        // TODO: implement getCurrentContext
         fboTestUtil.clearColorBuffer(getCurrentContext(), format, value);
     };
 
@@ -151,7 +166,8 @@ define([
         var renderCtx = gl;
 
         //const tcu::RenderTarget&    renderTarget    = renderCtx.getRenderTarget();
-        /** @type {rrRenderer.RenderTarget} */ var renderTarget = new rrRenderer.RenderTarget(); // TODO: implement
+
+        /** @type {RenderTarget} */ var renderTarget = renderCtx.getRenderTarget();
 
         //TestLog&                    log                = m_testCtx.getLog();
 
@@ -167,7 +183,7 @@ define([
         /** @type {tcuSurface.Surface} */ var result = new tcuSurface.Surface(width, height);
 
         // Call preCheck() that can throw exception if some requirement is not met.
-        preCheck(); // TODO: implement
+        this.preCheck();
 
         // Render using GLES3.
         try {
@@ -176,15 +192,15 @@ define([
                                                             null /*log*/,
                                                             sglrReferenceContext.GLContext.LOG_CALLS,
                                                             [x, y, width, height]);
-            setContext(context);
-            render(result);
+            this.setContext(context);
+            this.render(result);
 
             // Check error.
             /** @type {number} */ var err = gl.getError();
             if (err != gl.NO_ERROR)
                 throw new Error('glError: err');
 
-            setContext(null);
+            this.setContext(null);
         }
         catch (/** @const @type {fboTestUtil.FboIncompleteException} */ e) {
             if (e.getReason() == gl.FRAMEBUFFER_UNSUPPORTED) {
@@ -214,9 +230,9 @@ define([
                                                                 buffers.getDepthbuffer(),
                                                                 buffers.getStencilbuffer());
 
-        setContext(context);
+        this.setContext(context);
         render(reference);
-        setContext(null);
+        this.setContext(null);
 
 
         /** @type {boolean} */ var isOk = this.compare(reference, result);

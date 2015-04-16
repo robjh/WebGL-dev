@@ -44,6 +44,7 @@ define([
     /**
     * BlitRectCase class, inherits from FboTestCase
     * @constructor
+    * @extends {fboTestCase.FboTestCase}
     * @param {string} name
     * @param {string} description
     * @param {number} filter deUint32
@@ -54,7 +55,7 @@ define([
     * @param {number} cellSize
     */
     var BlitRectCase = function(name, desc, filter, srcSize, srcRect, dstSize, dstRect, cellSize) {
-        fboTestCase.FboTestCase.call(name, desc);
+        fboTestCase.FboTestCase.call(this, name, desc);
         /** @const {number} */ this.m_filter = filter;
         /** @const {Array<number>} */ this.m_srcSize = srcSize;
         /** @const {Array<number>} */ this.m_srcRect = srcRect;
@@ -74,7 +75,6 @@ define([
     BlitRectCase.prototype.render = function(dst) {
         /** @type {number} */ var colorFormat = gl.RGBA8;
 
-        //TODO: implement Texture2DShader, Texture2DShader
         /** @type {fboTestUtil.GradientShader} */
         var gradShader = new fboTestUtil.GradientShader(
             gluShaderUtil.DataType.TYPE_FLOAT_VEC4);
@@ -83,9 +83,8 @@ define([
             [gluShaderUtil.DataType.TYPE_SAMPLER_2D],
             gluShaderUtil.DataType.TYPE_FLOAT_VEC4);
 
-        // TODO: implement getCurrentContext()
-        /** @type {number} */ var gradShaderID = getCurrentContext().createProgram(gradShader);
-        /** @type {number} */ var texShaderID = getCurrentContext().createProgram(texShader);
+        /** @type {number} */ var gradShaderID = this.getCurrentContext().createProgram(gradShader);
+        /** @type {number} */ var texShaderID = this.getCurrentContext().createProgram(texShader);
 
         /** @type {Framebuffer} */ var srcFbo;
         /** @type {Framebuffer} */ var dstFbo;
@@ -93,8 +92,8 @@ define([
         /** @type {Renderbuffer} */ var dstRbo;
 
         // Setup shaders
-        gradShader.setGradient(getCurrentContext(), gradShaderID, [0.0, 0.0, 0.0, 0.0], [1.0, 1.0, 1.0, 1.0]);
-        texShader.setUniforms(getCurrentContext(), texShaderID);
+        gradShader.setGradient(this.getCurrentContext(), gradShaderID, [0.0, 0.0, 0.0, 0.0], [1.0, 1.0, 1.0, 1.0]);
+        texShader.setUniforms(this.getCurrentContext(), texShaderID);
 
         // Create framebuffers.
 
@@ -130,7 +129,7 @@ define([
         gl.viewport(0, 0, this.m_dstSize[0], this.m_dstSize[1]);
 
         //TODO: implement drawQuad
-        //sglr.drawQuad(*getCurrentContext(), gradShaderID, Vec3(-1.0f, -1.0f, 0.0f), Vec3(1.0f, 1.0f, 0.0f));
+        //sglr.drawQuad(this.getCurrentContext(), gradShaderID, Vec3(-1.0f, -1.0f, 0.0f), Vec3(1.0f, 1.0f, 0.0f));
 
         // Fill source with grid pattern.
         /** @const {number} */ var format = gl.RGBA;
@@ -153,7 +152,7 @@ define([
         gl.bindFramebuffer(gl.FRAMEBUFFER, srcFbo);
         gl.viewport(0, 0, this.m_srcSize[0], this.m_srcSize[1]);
         // TODO: implement drawQuad
-        // sglr.drawQuad(getCurrentContext(), texShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
+        // sglr.drawQuad(this.getCurrentContext(), texShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
 
         // Perform copy.
         gl.bindFramebuffer(gl.READ_FRAMEBUFFER, srcFbo);
@@ -179,14 +178,15 @@ define([
     BlitRectCase.prototype.compare = function(reference, result) {
         // TODO: implement
         // Use pixel-threshold compare for rect cases since 1px off will mean failure.
-        //tcu::RGBA threshold = TestCase::m_context.getRenderTarget().getPixelFormat().getColorThreshold() + tcu::RGBA(7,7,7,7);
+        //tcu::RGBA threshold = this.m_context.getRenderTarget().getPixelFormat().getColorThreshold() + tcu::RGBA(7,7,7,7);
         /** @type {tcuRGBA.RGBA} */ var threshold = tcuRGBA.newRGBAComponents(7, 7, 7, 7);
         return tcuImageCompare.pixelThresholdCompare('Result', 'Image comparison result', reference, result, threshold, null /*tcu::COMPARE_LOG_RESULT*/);
     };
 
     /**
-    * BlitNearestFilterConsistencyCase class, inherits from FboTestCase
+    * BlitNearestFilterConsistencyCase class
     * @constructor
+    * @extends {BlitRectCase}
     * @param {string} name
     * @param {string} desc
     * @param {Array<number>} srcSize
@@ -195,7 +195,7 @@ define([
     * @param {Array<number>} dstRect
     */
     var BlitNearestFilterConsistencyCase = function(name, desc, srcSize, srcRect, dstSize, dstRect) {
-        BlitRectCase.call(name, desc, gl.NEAREST, srcSize, srcRect, dstSize, dstRect, 1);
+        BlitRectCase.call(this, name, desc, gl.NEAREST, srcSize, srcRect, dstSize, dstRect, 1);
     };
 
     BlitNearestFilterConsistencyCase.prototype = Object.create(BlitRectCase.prototype);
@@ -216,7 +216,7 @@ define([
         /** @const {tcuRGBA.RGBA} */ var cellColorA = tcuRGBA.newRGBAFromArray(m_gridCellColorA);
         /** @const {tcuRGBA.RGBA} */ var cellColorB = tcuRGBA.newRGBAFromArray(m_gridCellColorB);
         // TODO: implement
-        // const tcu::RGBA        threshold        = TestCase::m_context.getRenderTarget().getPixelFormat().getColorThreshold() + tcu::RGBA(7,7,7,7);
+        // const tcu::RGBA        threshold        = this.m_context.getRenderTarget().getPixelFormat().getColorThreshold() + tcu::RGBA(7,7,7,7);
         /** @type {tcuRGBA.RGBA} */ var threshold = tcuRGBA.newRGBAComponents(7, 7, 7, 7);
         /** @const {Array<number>} */  //IVec4.xyzw
         var destinationArea = [
@@ -346,13 +346,10 @@ define([
     /**
     * FramebufferBlitTests class, inherits from TestCase
     * @constructor
-    * @param {string} name
-    * @param {string} description
-    * @param {boolean} useScreenSizedViewport
+    * @extends {tcuTestCase.DeqpTest}
     */
-    var FramebufferBlitTests = function(name, description, useScreenSizedViewport) {
-        // TODO: check this constructos
-        tcuTestCase.DeqpTest.call(this, name, description);
+    var FramebufferBlitTests = function() {
+        tcuTestCase.DeqpTest.call(this, 'blit', 'Framebuffer blit tests');
     };
 
     FramebufferBlitTests.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
@@ -613,6 +610,7 @@ define([
     /**
      * BlitColorConversionCase class, inherits from FboTestCase
      * @constructor
+     * @extends {fboTestCase.FboTestCase}
      * @param {string} name
      * @param {string} desc
      * @param {number} srcFormat
@@ -620,7 +618,7 @@ define([
      * @param {Array<number>} size
      */
     var BlitColorConversionCase = function(name, desc, srcFormat, dstFormat, size) {
-        fboTestCase.FboTestCase.call(name, desc);
+        fboTestCase.FboTestCase.call(this, name, desc);
         /** @type {number} */ this.m_srcFormat = srcFormat;
         /** @type {number} */ this.m_dstFormat = dstFormat;
         /** @type {Array<number>} */ this.m_size = size;
@@ -638,7 +636,6 @@ define([
      * @param {tcuSurface.Surface} dst
      */
     BlitColorConversionCase.prototype.render = function(dst) {
-        // TODO: implement
         /** @type {tcuTexture.TextureFormat} */ var srcFormat = new gluTextureUtil.mapGLInternalFormat(this.m_srcFormat);
         /** @type {tcuTexture.TextureFormat} */ var srcFormat = new gluTextureUtil.mapGLInternalFormat(this.m_dstFormat);
 
@@ -664,14 +661,13 @@ define([
                                                      tcuTextureUtil.select(dstFmtRangeInfo.lookupBias, srcFmtRangeInfo.lookupBias, deMath.logicalOrBool(deMath.logicalNotBool(copyMask), srcIsGreater)));
 
         // Shaders.
-        // TODO: implement GradientShader
         /** @type {fboTestUtil.GradientShader} */
         var gradientToSrcShader = new fboTestUtil.GradientShader(srcOutputType);
         /** @type {fboTestUtil.GradientShader} */
         var gradientToDstShader = new fboTestUtil.GradientShader(dstOutputType);
 
-        /** @type {number} */ var gradShaderSrcID = getCurrentContext().createProgram(gradientToSrcShader);
-        /** @type {number} */ var gradShaderDstID = getCurrentContext().createProgram(gradientToDstShader);
+        /** @type {number} */ var gradShaderSrcID = this.getCurrentContext().createProgram(gradientToSrcShader);
+        /** @type {number} */ var gradShaderDstID = this.getCurrentContext().createProgram(gradientToDstShader);
 
         /** @type {number} */ var srcFbo;
         /** @type {number} */ var dstFbo;
@@ -706,15 +702,15 @@ define([
         gl.viewport(0, 0, m_size[0], m_size[1]);
 
         // Render gradients.
-        // TODO: implement getCurrentContext, drawQuad
+        // TODO: implement drawQuad
         gl.bindFramebuffer(gl.FRAMEBUFFER, srcFbo);
-        gradientToDstShader.setGradient(getCurrentContext(), gradShaderDstID, dstRangeInfo.valueMax, dstRangeInfo.valueMin);
+        gradientToDstShader.setGradient(this.getCurrentContext(), gradShaderDstID, dstRangeInfo.valueMax, dstRangeInfo.valueMin);
 
-        // sglr.drawQuad(getCurrentContext(), gradShaderDstID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
+        // sglr.drawQuad(this.getCurrentContext(), gradShaderDstID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, dstFbo);
-        gradientToSrcShader.setGradient(getCurrentContext(), gradShaderSrcID, srcRangeInfo.valueMin, dstRangeInfo.valueMax);
-        // sglr.drawQuad(getCurrentContext(), gradShaderSrcID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
+        gradientToSrcShader.setGradient(this.getCurrentContext(), gradShaderSrcID, srcRangeInfo.valueMin, dstRangeInfo.valueMax);
+        // sglr.drawQuad(this.getCurrentContext(), gradShaderSrcID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
 
         // Execute copy.
         gl.bindFramebuffer(gl.READ_FRAMEBUFFER, srcFbo);
@@ -752,6 +748,7 @@ define([
 
     /**
      * @constructor
+     * @extends {fboTestCase.FboTestCase}
      * @param {string} name
      * @param {string} desc
      * @param {number} format deUint32
@@ -764,7 +761,7 @@ define([
      * @param {number} copyBuffers deUint32
      */
     var BlitDepthStencilCase = function(name, desc, format, srcBuffers, srcSize, srcRect, dstBuffers, dstSize, dstRect, copyBuffers) {
-        fboTestCase.FboTestCase(this, name, desc);
+        fboTestCase.FboTestCase.call(this, name, desc);
         /** @type {number} */ this.m_format = format;
         /** @type {number} */ this.m_srcBuffers = srcBuffers;
         /** @type {Array<number>} */ this.m_srcSize = srcSize;
@@ -791,7 +788,6 @@ define([
      */
     BlitDepthStencilCase.prototype.render = function(dst) {
         /** @const {number} */ var colorFormat = gl.RGBA8;
-        // TODO:implement GradientShader, Texture2DShader, FlatColorShader
         /** @type {GradientShader} */
         var gradShader = new fboTestUtil.GradientShader(gluShaderUtil.DataType.FLOAT_VEC4);
         /** @type {Texture2DShader} */
@@ -801,10 +797,9 @@ define([
         /** @type {FlatColorShader} */
         var flatShader = new fboTestUtil.FlatColorShader(gluShaderUtil.DataType.FLOAT_VEC4);
 
-        // TODO: implement getCurrentContext
-        /** @type {number} */ var flatShaderID = getCurrentContext().createProgram(flatShader);
-        /** @type {number} */ var texShaderID = getCurrentContext().createProgram(texShader);
-        /** @type {number} */ var gradShaderID = getCurrentContext().createProgram(gradShader);
+        /** @type {number} */ var flatShaderID = this.getCurrentContext().createProgram(flatShader);
+        /** @type {number} */ var texShaderID = this.getCurrentContext().createProgram(texShader);
+        /** @type {number} */ var gradShaderID = this.getCurrentContext().createProgram(gradShader);
 
         /** @type {number} */ var srcFbo = 0;
         /** @type {number} */ var dstFbo = 0;
@@ -814,8 +809,8 @@ define([
         /** @type {number} */ var dstDepthStencilRbo = 0;
 
         // setup shaders
-        gradShader.setGradient(getCurrentContext(), gradShaderID, [0.0, 0.0, 0.0, 0.0], [1.0, 1.0, 1.0, 1.0]);
-        texShader.setUniforms(getCurrentContext(), texShaderID);
+        gradShader.setGradient(this.getCurrentContext(), gradShaderID, [0.0, 0.0, 0.0, 0.0], [1.0, 1.0, 1.0, 1.0]);
+        texShader.setUniforms(this.getCurrentContext(), texShaderID);
 
         // Create framebuffers
         // Source framebuffers
@@ -877,7 +872,7 @@ define([
         gl.stencilFunc(gl.ALWAYS, 7, 0xff);
 
         // TODO: implement drawQuad
-        //sglr.drawQuad(getCurrentContext(), gradShaderID, [-1.0, -1.0, -1.0], [1.0, 1.0, 1.0]);
+        //sglr.drawQuad(this.getCurrentContext(), gradShaderID, [-1.0, -1.0, -1.0], [1.0, 1.0, 1.0]);
 
         // Fill destination with grid pattern, depth = 0 and stencil = 1
         /** @const {number} */ var format = gl.RGBA;
@@ -901,7 +896,7 @@ define([
         gl.viewport(0, 0, this.m_dstSize[0], this.m_dstSize[1]);
         gl.stencilFunc(gl.ALWAYS, 1, 0xff);
         // TODO: implement drawQuad
-        //sglr.drawQuad(getCurrentContext(), texShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
+        //sglr.drawQuad(this.getCurrentContext(), texShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
 
         // Perform copy.
         gl.bindFramebuffer(gl.READ_FRAMEBUFFER, srcFbo);
@@ -914,9 +909,9 @@ define([
         gl.stencilOp(gl.KEEP, gl.DECR, gl.KEEP);
         gl.stencilFunc(gl.ALWAYS, 0, 0xff);
 
-        flatShader.setColor(getCurrentContext(), flatShaderID, [0.0, 0.0, 1.0, 1.0]);
+        flatShader.setColor(this.getCurrentContext(), flatShaderID, [0.0, 0.0, 1.0, 1.0]);
         // TODO: implement drawQuad
-        sglr.drawQuad(getCurrentContext(), flatShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
+        sglr.drawQuad(this.getCurrentContext(), flatShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
 
         if (this.m_dstBuffers & gl.STENCIL_BUFFER_BIT) {
             // Render green color where stencil == 6.
@@ -924,8 +919,8 @@ define([
             gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
             gl.stencilFunc(gl.EQUAL, 6, 0xff);
             // TODO: implement drawQuad
-            flatShader.setColor(getCurrentContext(), flatShaderID, [0.0, 1.0, 0.0, 1.0]);
-            //sglr.drawQuad(*getCurrentContext(), flatShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
+            flatShader.setColor(this.getCurrentContext(), flatShaderID, [0.0, 1.0, 0.0, 1.0]);
+            //sglr.drawQuad(this.getCurrentContext(), flatShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
         }
         this.readPixelsUsingFormat(dst, 0, 0, this.m_dstSize[0], this.m_dstSize[1], gluTextureUtil.mapGLInternalFormat(colorFormat), [1.0, 1.0, 1.0, 1.0], [0.0, 0.0, 0.0, 0.0]);
 
@@ -933,13 +928,14 @@ define([
 
     /**
      * @constructor
+     * @extends {fboTestCase.FboTestCase}
      * @param {string} name
      * @param {string} desc
      * @param {number} format
      * @param {number} filter
      */
     var BlitDefaultFramebufferCase = function(name, desc, format, filter) {
-        fboTestCase.FboTestCase(this, name, desc);
+        fboTestCase.FboTestCase.call(this, name, desc);
         /** @const {number} */ this.m_format;
         /** @const {number} */ this.m_filter;
     };
@@ -951,8 +947,7 @@ define([
      * @protected
      */
     BlitDefaultFramebufferCase.prototype.preCheck = function() {
-        // TODO: m_context?
-        if (m_context.getRenderTarget().getNumSamples() > 0)
+        if (this.m_context.getRenderTarget().getNumSamples() > 0)
             throw new Error('Not supported in MSAA config');
 
         this.checkFormatSupport(m_format);
@@ -963,23 +958,22 @@ define([
      * @param {tcuSurface.Surface} dst
      */
     BlitDefaultFramebufferCase.prototype.render = function(dst) {
-        // // TODO: implement
         /** @type {tcuTexture.TextureFormat} */ var colorFormat = gluTextureUtil.mapGLInternalFormat(m_format);
         /** @type {gluTextureUtil.TransferFormat} */ var transferFmt = gluTextureUtil.getTransferFormat(colorFormat);
-        // TODO: implement GradientShader, Texture2DShader
+
         /** @type {fboTestUtil.GradientShader} */ var gradShader = new fboTestUtil.GradientShader(gluShaderUtil.DataType.FLOAT_VEC4);
         /** @type {fboTestUtil.Texture2DShader} */ var texShader = new fboTestUtil.Texture2DShader([gluTextureUtil.getSampler2DType(colorFormat)], gluShaderUtil.DataType.FLOAT_VEC4);
-        // TODO: implement getCurrentContext
-        /** @type {number} */ var gradShaderID = getCurrentContext().createProgram(gradShader);
-        /** @type {number} */ var texShaderID = getCurrentContext().createProgram(texShader);
+
+        /** @type {number} */ var gradShaderID = this.getCurrentContext().createProgram(gradShader);
+        /** @type {number} */ var texShaderID = this.getCurrentContext().createProgram(texShader);
         /** @type {number} */ var fbo = 0;
         /** @type {number} */ var tex = 0;
         /** @const {number} */ var texW = 128;
         /** @const {number} */ var texH = 128;
 
         // Setup shaders
-        gradShader.setGradient(getCurrentContext(), gradShaderID, [0.0, 0.0, 0.0, 0.0], [1.0, 1.0, 1.0, 1.0]);
-        texShader.setUniforms(getCurrentContext(), texShaderID);
+        gradShader.setGradient(this.getCurrentContext(), gradShaderID, [0.0, 0.0, 0.0, 0.0], [1.0, 1.0, 1.0, 1.0]);
+        texShader.setUniforms(this.getCurrentContext(), texShaderID);
 
         // FBO
         fbo = gl.createFramebuffer();
@@ -998,11 +992,10 @@ define([
         this.checkFramebufferStatus(gl.FRAMEBUFFER);
 
         // Render gradient to screen.
-        // TODO: context...
         gl.bindFramebuffer(gl.FRAMEBUFFER, this.m_context.getRenderContext().getDefaultFramebuffer());
 
         //TODO: implement drawQuad
-        // sglr.drawQuad(getCurrentContext(), gradShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
+        // sglr.drawQuad(this.getCurrentContext(), gradShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
 
         // Blit gradient from screen to fbo.
         gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, fbo);
@@ -1012,14 +1005,13 @@ define([
         gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, this.m_context.getRenderContext().getDefaultFramebuffer());
         gl.clearBufferfv(gl.COLOR, 0, [1.0, 0.0, 0.0, 1.0]);
         // TODO: implement drawQuad
-        /// sglr.drawQuad(getCurrentContext(), texShaderID, [-1.0, -1.0, 0.0], [0.0, 1.0, 0.0]);
+        /// sglr.drawQuad(this.getCurrentContext(), texShaderID, [-1.0, -1.0, 0.0], [0.0, 1.0, 0.0]);
 
         // Blit fbo to right half.
         gl.bindFramebuffer(gl.READ_FRAMEBUFFER, fbo);
         gl.blitFramebuffer(0, 0, texW, texH, Math.floor(getWidth() / 2), 0, getWidth(), getHeight(), gl.COLOR_BUFFER_BIT, this.m_filter);
 
-        // TODO: context
-        gl.bindFramebuffer(gl.READ_FRAMEBUFFER, m_context.getRenderContext().getDefaultFramebuffer());
+        gl.bindFramebuffer(gl.READ_FRAMEBUFFER, this.m_context.getRenderContext().getDefaultFramebuffer());
         this.readPixels(dst, 0, 0, getWidth(), getHeight());
     };
 
@@ -1029,9 +1021,8 @@ define([
      * @param {tcuSurface.Surface} result
      */
     BlitDefaultFramebufferCase.prototype.compare = function(reference, result) {
-        // TODO: implement
         /** @const {tcuRGBA.RGBA} */
-        var threshold = tcuRGBA.max(fboTestUtil.getFormatThreshold(m_format), tcuRGBA.newRGBAComponents(12, 12, 12, 12));
+        var threshold = tcuRGBA.max(fboTestUtil.getFormatThreshold(this.m_format), tcuRGBA.newRGBAComponents(12, 12, 12, 12));
 
         //m_testCtx.getLog() << TestLog::Message << 'Comparing images, threshold: ' << threshold << TestLog::EndMessage;
 
@@ -1052,6 +1043,7 @@ define([
 
     /**
      * @constructor
+     * @extends {BlitDefaultDramebufferCase}
      * @param {string} name
      * @param {string} desc
      * @param {string} format
@@ -1060,7 +1052,7 @@ define([
      * @param {BlitArea} area
      */
     var DefaultFramebufferBlitCase = function(name, desc, format, filter, dir, area) {
-        BlitDefaultFramebufferCase(this, name, desc, format, filter);
+        BlitDefaultFramebufferCase.call(this, name, desc, format, filter);
         /** @const {BlitDirection} */ this.m_blitDir = dir;
         /** @const {BlitArea} */ this.m_blitArea = area;
         /** @type {Array<number>} */ this.m_srcRect = [-1, -1, -1, -1];
@@ -1074,7 +1066,6 @@ define([
     DefaultFramebufferBlitCase.prototype.constructor = DefaultFramebufferBlitCase;
 
     DefaultFramebufferBlitCase.prototype.init = function() {
-        //TODO: implement
         // requirements
         /** @const {number} */ var minViewportSize = 128;
         if (this.m_context.getRenderTarget().getWidth() < minViewportSize ||
@@ -1149,12 +1140,11 @@ define([
         sourceFbo = (this.m_blitDir == BlitDirection.BLIT_DEFAULT_TO_TARGET) ? (this.m_context.getRenderContext().getDefaultFramebuffer()) : (fbo);
 
         // Render grid to source framebuffer
-        // TODO: implement Texture2DShader
         /** @type {fboTestUtil.Texture2DShader} */
         var texShader = new fboTestUtil.Texture2DShader(
             [gluShaderUtil.DataType.TYPE_SAMPLER_2D],
             gluShaderUtil.DataType.TYPE_FLOAT_VEC4);
-        /** @const {number} */ var texShaderID = getCurrentContext().createProgram(texShader);
+        /** @const {number} */ var texShaderID = this.getCurrentContext().createProgram(texShader);
         /** @const {number} */ var internalFormat = gl.RGBA8;
         /** @const {number} */ var format = gl.RGBA;
         /** @const {number} */ var dataType = gl.UNSIGNED_BYTE;
@@ -1177,10 +1167,9 @@ define([
         glViewport(0, 0, gridRenderWidth, gridRenderHeight);
         glClearBufferfv(gl.COLOR, 0, [1.0, 0.0, 0.0, 1.0]);
 
-        // TODO: implement setUniforms
-        texShader.setUniforms(getCurrentContext(), texShaderID);
+        texShader.setUniforms(this.getCurrentContext(), texShaderID);
         // TODO: implement drawQuad
-        //sglr.drawQuad(*getCurrentContext(), texShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
+        //sglr.drawQuad(this.getCurrentContext(), texShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
         gl.useProgram(null);
 
         // Blit source framebuffer to destination

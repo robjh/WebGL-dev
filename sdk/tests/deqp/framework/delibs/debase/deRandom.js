@@ -191,15 +191,15 @@ var Random = function(seed) {
 Random.prototype.getBool = function()  { return deRandom_getBool(this.m_rnd) == true; };
 /**
  * Function to get random float
- * @param {deRandom} rnd Initialised array of random numbers
- * @param {array} opts Min and max for range
+ * @param {number} min Min for range
+ * @param {number} max Max for range
  * @return {float} Random float
  */
 Random.prototype.getFloat = function(min, max) { return deRandom_getFloat(this.m_rnd, [min, max]) };
 /**
  * Function to get random int
- * @param {deRandom} rnd Initialised array of random numbers
- * @param {array} opts Min and max for range
+ * @param {number} min Min for range
+ * @param {number} max Max for range
  * @return {int} Random int
  */
 Random.prototype.getInt = function(min, max) {return deRandom_getInt(this.m_rnd, [min, max])};
@@ -213,7 +213,6 @@ Random.prototype.getInt = function(min, max) {return deRandom_getInt(this.m_rnd,
 Random.prototype.choose = function(elements, resultOut, num) {return choose(this.m_rnd, elements, resultOut, num)};
 /**
  * TODO Function to choose weighted random items from a list
- * @param {deRandom} rnd initialised array of random numbers
  * @param {Iterator} first Start of array
  * @param {Iterator} last End of array
  * @param {Iterator} weight Weight
@@ -222,7 +221,6 @@ Random.prototype.choose = function(elements, resultOut, num) {return choose(this
 Random.prototype.chooseWeighted = function(first, last, weight) {return chooseWeighted(this.m_rnd, first, last, weight)};
 /**
  * TODO Function to shuffle an array
- * @param {deRandom} rnd Initialised array of random numbers
  * @param {Array} elements Array to shuffle
  * @return {Array} Shuffled array
  */

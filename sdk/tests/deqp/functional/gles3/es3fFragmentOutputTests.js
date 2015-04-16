@@ -255,8 +255,7 @@ function(
     };
 
     /**
-     * getMinSize. Returns a 2-dimension Array (originally in the C++ version IVec2) with the minimum size
-     * compared to the width and height of each BufferSpec object contained in the passed Array
+     * getMinSize.
      * @param {Array<BufferSpec>} fboSpec
      * @return {Array<number>} minSize
      */
@@ -276,14 +275,14 @@ function(
      * @return {number} numVecs
      */
     var getNumInputVectors = function(outputs) {
-        /** @type number} */ var numVecs = 0;
+        /** @type {number} */ var numVecs = 0;
         for (var i = 0; i < outputs.length; i++)
             numVecs += (outputs[i].arrayLength > 0 ? outputs[i].arrayLength : 1);
         return numVecs;
     };
 
     /**
-     * getFloatRange. Returns an Array(instead of a Float32Array), in the C++ version called Vec2 object
+     * getFloatRange
      * @param {gluShaderUtil.precision} precision
      * @return {Array<number>} Vec2
      */
@@ -301,7 +300,7 @@ function(
     };
 
     /**
-     * getIntRange. Returns an Array(instead of an Int32Array), in the C++ version called IVec2 object
+     * getIntRange
      * @param {gluShaderUtil.precision} precision
      * @return {Array<number>} IVec2
      */
@@ -319,7 +318,7 @@ function(
     };
 
     /**
-     * getUintRange. Returns an Array(instead of an Uint32Array), in the C++ version called UVec2 object
+     * getUintRange
      * @param {gluShaderUtil.precision} precision
      * @return {Array<number>} UVec2
      */
@@ -355,7 +354,7 @@ function(
 
     /**
      * readIVec4
-     * @param {Array<number>} ptr, TypedArray Int32Array, it is a pointer in the C++ version
+     * @param {Array<number>} ptr
      * @param {number} numComponents
      * @return {Array<number>} IVec4
      */
@@ -375,7 +374,7 @@ function(
      * @param {number} gridWidth
      * @param {number} gridHeight
      * @param {number} numComponents
-     * @param {Array<number>} vertices ,it's a pointer in the C++ version
+     * @param {Array<number>} vertices
      */
     var renderFloatReference = function(dst, gridWidth, gridHeight, numComponents, vertices) {
 
@@ -416,7 +415,7 @@ function(
      * @param {number} gridWidth
      * @param {number} gridHeight
      * @param {number} numComponents
-     * @param {Array<number>} vertices ,it's a pointer in the C++ version
+     * @param {Array<number>} vertices
      */
     var renderIntReference = function(dst, gridWidth, gridHeight, numComponents, vertices) {
 

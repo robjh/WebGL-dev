@@ -72,12 +72,12 @@ var displayImages = function(result, reference, diff) {
         contexts[2].putImageData(createImage(contexts[2], diff), 0, 0);
 };
 
-/** TODO: implement this
- * @param {tcuTexture.ConstPixelBufferAccess} reference
- * @param {tcuTexture.ConstPixelBufferAccess} result
- * @param {Float32Array} scale (Vec4)
- * @param {Float32Array} bias (Vec4)
- */
+//** TODO: implement this
+ // * @param {tcuTexture.ConstPixelBufferAccess} reference
+ // * @param {tcuTexture.ConstPixelBufferAccess} result
+ // * @param {Float32Array} scale (Vec4)
+ // * @param {Float32Array} bias (Vec4)
+ // */
 /*var computeScaleAndBias = function (reference, result, scale, bias) {
     Vec4 minVal;
     Vec4 maxVal;

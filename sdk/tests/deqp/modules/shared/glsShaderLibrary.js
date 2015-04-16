@@ -18,7 +18,7 @@
  *
  */
 
-define(['framework/common/tcuTestCase', './glsShaderLibraryCase', 'framework/opengl/gluShaderUtil'], function(tcuTestCase, glsShaderLibraryCase, gluShaderUtil) {
+define(['framework/common/tcuTestCase', 'modules/shared/glsShaderLibraryCase', 'framework/opengl/gluShaderUtil'], function(tcuTestCase, glsShaderLibraryCase, gluShaderUtil) {
     'use strict';
 
     var generateTestCases = function() {
