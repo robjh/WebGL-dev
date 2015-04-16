@@ -27,15 +27,24 @@
  * \param texFormat Generic texture format.
  * \return GL pixel transfer format.
  *//*--------------------------------------------------------------------*/
-define(['framework/common/tcuTexture', 'framework/common/tcuCompressedTexture'], function(tcuTexture, tcuCompressedTexture)
-{
+'use strict';
+goog.provide('framework.opengl.gluTextureUtil');
+goog.require('framework.common.tcuTexture');
+goog.require('framework.common.tcuCompressedTexture');
+
+
+goog.scope(function() {
+
+var gluTextureUtil = framework.opengl.gluTextureUtil;
+var tcuTexture = framework.common.tcuTexture;
+var tcuCompressedTexture = framework.common.tcuCompressedTexture;
 
 /**
  * @param {WebGL2RenderingContext.GLenum} format
  * @param {WebGL2RenderingContext.GLenum} dataType
  * @constructor
  */
-var TransferFormat = function(format, dataType) {
+gluTextureUtil.TransferFormat = function(format, dataType) {
     this.format = format;        //!< Pixel format.
     this.dataType = dataType;    //!< Data type.
 };
@@ -47,10 +56,10 @@ var TransferFormat = function(format, dataType) {
  * If no mapping is found, throws tcu::InternalError.
  *
  * @param {tcuTexture.TextureFormat} texFormat Generic texture format.
- * @return {TransferFormat} GL pixel transfer format.
+ * @return {gluTextureUtil.TransferFormat} GL pixel transfer format.
  * @throws {Error}
  */
-var getTransferFormat = function(/* tcuTexture.TextureFormat */ texFormat) {
+gluTextureUtil.getTransferFormat = function(/* tcuTexture.TextureFormat */ texFormat) {
     var format = gl.NONE;
     var type = gl.NONE;
     /*boolean*/ var isInt = false;
@@ -121,7 +130,7 @@ var getTransferFormat = function(/* tcuTexture.TextureFormat */ texFormat) {
             throw new Error("Can't map texture format to GL transfer format " + tcuTexture.type);
     }
 
-    return new TransferFormat(format, type);
+    return new gluTextureUtil.TransferFormat(format, type);
 };
 
 /**
@@ -134,7 +143,7 @@ var getTransferFormat = function(/* tcuTexture.TextureFormat */ texFormat) {
  * @return {WebGL2RenderingContext.GLenum} GL texture format.
  * @throws {Error}
  */
-var getInternalFormat = function(/* tcuTexture.TextureFormat */ texFormat)
+gluTextureUtil.getInternalFormat = function(/* tcuTexture.TextureFormat */ texFormat)
 {
 
     var stringify = function(order, type) {
@@ -229,7 +238,7 @@ var getInternalFormat = function(/* tcuTexture.TextureFormat */ texFormat)
  * @return {WebGL2RenderingContext.GLenum} GL compressed texture format.
  * @throws {Error}
  */
-var getGLFormat = function(/* tcuCompressedTexture.Format */ format) {
+gluTextureUtil.getGLFormat = function(/* tcuCompressedTexture.Format */ format) {
     switch (format) {
         case tcuCompressedTexture.Format.ETC1_RGB8: return gl.ETC1_RGB8_OES;
         case tcuCompressedTexture.Format.EAC_R11: return gl.COMPRESSED_R11_EAC;
@@ -283,7 +292,7 @@ var getGLFormat = function(/* tcuCompressedTexture.Format */ format) {
  * @return {tcuTexture.ChannelType}
  * @throws {Error}
  */
-var mapGLChannelType = function(/* deMath.deUint32 */ dataType, /*boolean*/ normalized) {
+gluTextureUtil.mapGLChannelType = function(/* deMath.deUint32 */ dataType, /*boolean*/ normalized) {
     // \note Normalized bit is ignored where it doesn't apply.
 
     switch (dataType)
@@ -321,24 +330,24 @@ var mapGLChannelType = function(/* deMath.deUint32 */ dataType, /*boolean*/ norm
  * @return {tcuTexture.TextureFormat} GL compressed texture format.
  * @throws {Error}
  */
-var mapGLTransferFormat = function(/*deMath.deUint32*/ format, /*deMath.deUint32*/ dataType)
+gluTextureUtil.mapGLTransferFormat = function(/*deMath.deUint32*/ format, /*deMath.deUint32*/ dataType)
 {
     switch (format) {
-        case gl.ALPHA: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.A, mapGLChannelType(dataType, true));
-        case gl.LUMINANCE: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.L, mapGLChannelType(dataType, true));
-        case gl.LUMINANCE_ALPHA: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.LA, mapGLChannelType(dataType, true));
-        case gl.RGB: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGB, mapGLChannelType(dataType, true));
-        case gl.RGBA: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA, mapGLChannelType(dataType, true));
-        case gl.BGRA: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.BGRA, mapGLChannelType(dataType, true));
-        case gl.RG: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RG, mapGLChannelType(dataType, true));
-        case gl.RED: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.R, mapGLChannelType(dataType, true));
-        case gl.RGBA_INTEGER: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA, mapGLChannelType(dataType, false));
-        case gl.RGB_INTEGER: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGB, mapGLChannelType(dataType, false));
-        case gl.RG_INTEGER: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RG, mapGLChannelType(dataType, false));
-        case gl.RED_INTEGER: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.R, mapGLChannelType(dataType, false));
+        case gl.ALPHA: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.A, gluTextureUtil.mapGLChannelType(dataType, true));
+        case gl.LUMINANCE: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.L, gluTextureUtil.mapGLChannelType(dataType, true));
+        case gl.LUMINANCE_ALPHA: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.LA, gluTextureUtil.mapGLChannelType(dataType, true));
+        case gl.RGB: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGB, gluTextureUtil.mapGLChannelType(dataType, true));
+        case gl.RGBA: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA, gluTextureUtil.mapGLChannelType(dataType, true));
+        case gl.BGRA: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.BGRA, gluTextureUtil.mapGLChannelType(dataType, true));
+        case gl.RG: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RG, gluTextureUtil.mapGLChannelType(dataType, true));
+        case gl.RED: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.R, gluTextureUtil.mapGLChannelType(dataType, true));
+        case gl.RGBA_INTEGER: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA, gluTextureUtil.mapGLChannelType(dataType, false));
+        case gl.RGB_INTEGER: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGB, gluTextureUtil.mapGLChannelType(dataType, false));
+        case gl.RG_INTEGER: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RG, gluTextureUtil.mapGLChannelType(dataType, false));
+        case gl.RED_INTEGER: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.R, gluTextureUtil.mapGLChannelType(dataType, false));
 
-        case gl.DEPTH_COMPONENT: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.D, mapGLChannelType(dataType, true));
-        case gl.DEPTH_STENCIL: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.DS, mapGLChannelType(dataType, true));
+        case gl.DEPTH_COMPONENT: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.D, gluTextureUtil.mapGLChannelType(dataType, true));
+        case gl.DEPTH_STENCIL: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.DS, gluTextureUtil.mapGLChannelType(dataType, true));
 
         default:
             throw new Error("Can't map GL pixel format (" + format + ', ' + dataType.toString(16) + ') to texture format');
@@ -353,7 +362,7 @@ var mapGLTransferFormat = function(/*deMath.deUint32*/ format, /*deMath.deUint32
  * @return {tcuTexture.TextureFormat} GL compressed texture format.
  * @throws {Error}
  */
-var mapGLInternalFormat = function(/*deMath.deUint32*/ internalFormat)
+gluTextureUtil.mapGLInternalFormat = function(/*deMath.deUint32*/ internalFormat)
 {
     if (internalFormat === undefined)
         throw new Error('internalformat is undefined');
@@ -440,7 +449,7 @@ var mapGLInternalFormat = function(/*deMath.deUint32*/ internalFormat)
  * @param {deMath.deUint32} format
  * @return {boolean}
  */
-var isGLInternalColorFormatFilterable = function(/* deMath.deUint32 */ format)
+gluTextureUtil.isGLInternalColorFormatFilterable = function(/* deMath.deUint32 */ format)
 {
     switch (format)
     {
@@ -693,7 +702,7 @@ var isGLInternalColorFormatFilterable = function(/* deMath.deUint32 */ format)
  * @param {tcuTexture.CubeFace} face Cube face
  * @return {number} GL cube face
  */
-var getGLCubeFace = function(face)
+gluTextureUtil.getGLCubeFace = function(face)
 {
     switch (face)
     {
@@ -757,7 +766,7 @@ var getGLCubeFace = function(face)
  * @param {tcuTexture.TextureFormat} format
  * @return {DataType} GLSL 2D sampler type for format
  */
-var getSampler2DType = function(format) {
+gluTextureUtil.getSampler2DType = function(format) {
     if (format.order == textureFormat.ChannelOrder.D || format.order == textureFormat.ChannelOrder.DS)
     return gluShaderUtil.DataType.SAMPLER_2D;
 
@@ -1024,12 +1033,6 @@ var getSampler2DType = function(format) {
 //     return (renderable & RENDERABLE_COLOR) != 0;
 // }
 
-return {
-    mapGLInternalFormat: mapGLInternalFormat,
-    mapGLTransferFormat: mapGLTransferFormat,
-    getTransferFormat: getTransferFormat,
-    getGLFormat: getGLFormat,
-    getGLCubeFace: getGLCubeFace
-};
+
 
 });

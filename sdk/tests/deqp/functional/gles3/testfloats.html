@@ -8,7 +8,9 @@
 <script src="../../../resources/js-test-pre.js"></script>
 <script src="../../../conformance/resources/webgl-test-utils.js"></script>
 
-<script src="../../require.js"></script>
+<script src="../../../closure-library/closure/goog/base.js"></script>
+<script src="../../deqp-deps.js"></script>
+<script>goog.require('framework.common.tcuFloat');</script>
 </head>
 <body>
 <div id="description"></div>
@@ -3096,11 +3098,6 @@ testvalues = [
 { v: -2.68700040039153e+116, v64: "0xd81b471e17cc517f", v32: "0xff800000", v16: "0xfc00", v11: "0x0", v10: "0x0"}
 ];
 
-requirejs.config({
-    baseUrl: "../../"
-    });
-
-requirejs(["framework/common/tcuFloat"], function(tcuFloat) {
 
     var myAddSpan = function(contents) {
         var span = document.createElement("span");
@@ -3136,19 +3133,19 @@ requirejs(["framework/common/tcuFloat"], function(tcuFloat) {
 
     var descs = new Array(Object.keys(FloatSizes).length);
 
-    descs[FloatSizes.F64] = function() {return new tcuFloat.FloatDescription(11, 52, 1023, tcuFloat.FloatFlags.FLOAT_HAS_SIGN | tcuFloat.FloatFlags.FLOAT_SUPPORT_DENORM);};
-    descs[FloatSizes.F32] = function() {return new tcuFloat.FloatDescription(8, 23, 127, tcuFloat.FloatFlags.FLOAT_HAS_SIGN | tcuFloat.FloatFlags.FLOAT_SUPPORT_DENORM);};
-    descs[FloatSizes.F16] = function() {return new tcuFloat.FloatDescription(5, 10, 15, tcuFloat.FloatFlags.FLOAT_HAS_SIGN | tcuFloat.FloatFlags.FLOAT_SUPPORT_DENORM);};
-    descs[FloatSizes.F11] = function() {return new tcuFloat.FloatDescription(5, 6, 15, 0);};
-    descs[FloatSizes.F10] = function() {return new tcuFloat.FloatDescription(5, 5, 15, 0);};
+    descs[FloatSizes.F64] = function() {return new framework.common.tcuFloat.FloatDescription(11, 52, 1023, framework.common.tcuFloat.FloatFlags.FLOAT_HAS_SIGN | framework.common.tcuFloat.FloatFlags.FLOAT_SUPPORT_DENORM);};
+    descs[FloatSizes.F32] = function() {return new framework.common.tcuFloat.FloatDescription(8, 23, 127, framework.common.tcuFloat.FloatFlags.FLOAT_HAS_SIGN | framework.common.tcuFloat.FloatFlags.FLOAT_SUPPORT_DENORM);};
+    descs[FloatSizes.F16] = function() {return new framework.common.tcuFloat.FloatDescription(5, 10, 15, framework.common.tcuFloat.FloatFlags.FLOAT_HAS_SIGN | framework.common.tcuFloat.FloatFlags.FLOAT_SUPPORT_DENORM);};
+    descs[FloatSizes.F11] = function() {return new framework.common.tcuFloat.FloatDescription(5, 6, 15, 0);};
+    descs[FloatSizes.F10] = function() {return new framework.common.tcuFloat.FloatDescription(5, 5, 15, 0);};
 
     var constructors = new Array(Object.keys(FloatSizes).length);
 
-    constructors[FloatSizes.F64] = tcuFloat.newFloat64;
-    constructors[FloatSizes.F32] = tcuFloat.newFloat32;
-    constructors[FloatSizes.F16] = tcuFloat.newFloat16;
-    constructors[FloatSizes.F11] = tcuFloat.newFloat11;
-    constructors[FloatSizes.F10] = tcuFloat.newFloat10;
+    constructors[FloatSizes.F64] = framework.common.tcuFloat.newFloat64;
+    constructors[FloatSizes.F32] = framework.common.tcuFloat.newFloat32;
+    constructors[FloatSizes.F16] = framework.common.tcuFloat.newFloat16;
+    constructors[FloatSizes.F11] = framework.common.tcuFloat.newFloat11;
+    constructors[FloatSizes.F10] = framework.common.tcuFloat.newFloat10;
 
     var testBySize = function(testcase, size)
     {
@@ -3165,7 +3162,7 @@ requirejs(["framework/common/tcuFloat"], function(tcuFloat) {
         var valueF = constructors[size](v);
 
         //Read each in it's own width type
-        //var valueF = tcuFloat.newDeFloatFromParameters(Number(strings[size]), descs[size]());
+        //var valueF = framework.common.tcuFloat.newDeFloatFromParameters(Number(strings[size]), descs[size]());
         
         debug(FloatSizeToSize(size) + '-BIT:\n');
         assert('0x' + valueF.bits().toString(16) == strings[size], '\tREADING TEST: ');
@@ -3206,7 +3203,6 @@ requirejs(["framework/common/tcuFloat"], function(tcuFloat) {
             testBySize(testvalues[i], j);
         }
     }
-});
 </script>
 </body>
 </html>

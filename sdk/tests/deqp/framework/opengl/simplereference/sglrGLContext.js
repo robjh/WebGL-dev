@@ -18,42 +18,45 @@
  *
  */
 
-define([
-    'framework/common/tcuTexture',
-    'framework/delibs/debase/deUtil',
-    'framework/delibs/debase/deMath',
-    'framework/common/tcuTextureUtil',
-    'framework/common/tcuPixelFormat',
-    'framework/opengl/gluShaderProgram',
-    'framework/opengl/gluShaderUtil',
-    'framework/opengl/gluTextureUtil',
-    'framework/opengl/simplereference/sglrShaderProgram',
-    'framework/referencerenderer/rrDefs',
-    'framework/referencerenderer/rrMultisamplePixelBufferAccess',
-    'framework/referencerenderer/rrRenderer',
-    'framework/referencerenderer/rrRenderState',
-    'framework/referencerenderer/rrVertexAttrib'
-],
-function(
-    tcuTexture,
-    deUtil,
-    deMath,
-    tcuTextureUtil,
-    tcuPixelFormat,
-    gluShaderProgram,
-    gluShaderUtil,
-    gluTextureUtil,
-    sglrShaderProgram,
-    rrDefs,
-    rrMultisamplePixelBufferAccess,
-    rrRenderer,
-    rrRenderState,
-    rrVertexAttrib
-) {
+'use strict';
+goog.provide('framework.opengl.simplereference.sglrGLContext');
+goog.require('framework.common.tcuTexture');
+goog.require('framework.delibs.debase.deUtil');
+goog.require('framework.delibs.debase.deMath');
+goog.require('framework.common.tcuTextureUtil');
+goog.require('framework.common.tcuPixelFormat');
+goog.require('framework.opengl.gluShaderProgram');
+goog.require('framework.opengl.gluShaderUtil');
+goog.require('framework.opengl.gluTextureUtil');
+goog.require('framework.opengl.simplereference.sglrShaderProgram');
+goog.require('framework.referencerenderer.rrDefs');
+goog.require('framework.referencerenderer.rrMultisamplePixelBufferAccess');
+goog.require('framework.referencerenderer.rrRenderer');
+goog.require('framework.referencerenderer.rrRenderState');
+goog.require('framework.referencerenderer.rrVertexAttrib');
 
-    var DE_NULL = null;
 
-    var GLU_EXPECT_NO_ERROR = function(error, message) {
+goog.scope(function() {
+
+var sglrGLContext = framework.opengl.simplereference.sglrGLContext;
+var tcuTexture = framework.common.tcuTexture;
+var deUtil = framework.delibs.debase.deUtil;
+var deMath = framework.delibs.debase.deMath;
+var tcuTextureUtil = framework.common.tcuTextureUtil;
+var tcuPixelFormat = framework.common.tcuPixelFormat;
+var gluShaderProgram = framework.opengl.gluShaderProgram;
+var gluShaderUtil = framework.opengl.gluShaderUtil;
+var gluTextureUtil = framework.opengl.gluTextureUtil;
+var sglrShaderProgram = framework.opengl.simplereference.sglrShaderProgram;
+var rrDefs = framework.referencerenderer.rrDefs;
+var rrMultisamplePixelBufferAccess = framework.referencerenderer.rrMultisamplePixelBufferAccess;
+var rrRenderer = framework.referencerenderer.rrRenderer;
+var rrRenderState = framework.referencerenderer.rrRenderState;
+var rrVertexAttrib = framework.referencerenderer.rrVertexAttrib;
+
+    sglrGLContext.DE_NULL = null;
+
+    sglrGLContext.GLU_EXPECT_NO_ERROR = function(error, message) {
         if (error !== gl.NONE) {
             console.log('Assertion failed message:' + message);
             // throw new Error(message);
@@ -66,11 +69,11 @@ function(
     };
 
     /**
-     * GLContext wraps the standard WebGL context to be able to be used interchangeably with the ReferenceContext
+     * sglrGLContext.GLContext wraps the standard WebGL context to be able to be used interchangeably with the ReferenceContext
      * @constructor
      * @param {WebGL2RenderingContext}
      */
-    var GLContext = function(context) {
+    sglrGLContext.GLContext = function(context) {
         this.m_context = context;
         this.m_programs = [];
         this.m_allocatedVaos = [];
@@ -92,7 +95,7 @@ function(
                 var name = keys[key];
 
                 var exists = false;
-                var selfkeys = Object.keys(GLContext.prototype);
+                var selfkeys = Object.keys(sglrGLContext.GLContext.prototype);
                 for(var selfkey in selfkeys) {
                     var selfname = selfkeys[selfkey];
 
@@ -118,8 +121,8 @@ function(
     /**
      * Unimplemented error thrower
      */
-    GLContext.prototype.notImplemented = function (name) {
-        throw new Error('Function ' + name + ' not yet implemented in GLContext');
+    sglrGLContext.GLContext.prototype.notImplemented = function (name) {
+        throw new Error('Function ' + name + ' not yet implemented in sglrGLContext.GLContext');
     };
 
     /**
@@ -127,8 +130,8 @@ function(
      * @param {sglrShaderProgram.ShaderProgram} shader
      * @return {WebGLProgram}
      */
-    GLContext.prototype.createProgram = function (shader) {
-        /** @type {gluShaderProgram} */ var program = DE_NULL;
+    sglrGLContext.GLContext.prototype.createProgram = function (shader) {
+        /** @type {gluShaderProgram} */ var program = sglrGLContext.DE_NULL;
 
         program = new gluShaderProgram.ShaderProgram(
             this.m_context,
@@ -151,7 +154,7 @@ function(
      * createVertexArray - Creates a new vertex array object, stores it and returns the added array object.
      * @return {number} ID of created VAO
      */
-    GLContext.prototype.createVertexArray = function () {
+    sglrGLContext.GLContext.prototype.createVertexArray = function () {
         var currentlength = this.m_allocatedVaos.length;
 
         var createdArray = this.m_context.createVertexArray();
@@ -163,7 +166,5 @@ function(
         return this.m_allocatedVaos[currentlength];
     };
 
-    return {
-        GLContext: GLContext
-    };
+    
 });

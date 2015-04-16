@@ -1,9 +1,17 @@
 
 // glsFBOU
-define(['framework/opengl/gluTextureUtil'], function(gluTextureUtil) {
-    'use strict';
+'use strict';
+goog.provide('modules.shared.glsFboUtil');
+goog.require('framework.opengl.gluTextureUtil');
 
-    var FormatDB = function(argv) {
+
+goog.scope(function() {
+
+var glsFboUtil = modules.shared.glsFboUtil;
+var gluTextureUtil = framework.opengl.gluTextureUtil;
+    
+
+    glsFboUtil.FormatDB = function(argv) {
         argv = argv || {};
         var _construct = function(argv) {
             this.m_map = {};
@@ -23,41 +31,41 @@ define(['framework/opengl/gluTextureUtil'], function(gluTextureUtil) {
             return ret;
         };
         this.getFormatInfo = function(format, fallback) {
-            return lookupDefault(this.m_map, format, fallback);
+            return glsFboUtil.lookupDefault(this.m_map, format, fallback);
         };
         
         
         if (!argv.dont_construct) this._construct(argv);
     };
     
-    var lookupDefault = function(map, key, fallback) {
+    glsFboUtil.lookupDefault = function(map, key, fallback) {
         return (map[key] !== undefined) ? map[key] : fallback;
     };
     
-    // db is a FormatDB, stdFmts is a range object
-    var addFormats = function(db, stdFmts) {
+    // db is a glsFboUtil.FormatDB, stdFmts is a range object
+    glsFboUtil.addFormats = function(db, stdFmts) {
     
         for (var i = stdFmts.begin(); i < stdFmts.end(); ++i) {
             var stdFmt_current = stdFmts.get(i);
 		    for (var j = stdFmt_current.second.begin(); j < stdFmt_current.second.end(); ++j) {
 			    var formatKey_current = stdFmt_current.second.get(j);
-			    db.addFormat(formatKeyInfo(formatKey_current.second), stdFmt_current.first);
+			    db.addFormat(glsFboUtil.formatKeyInfo(formatKey_current.second), stdFmt_current.first);
 			}
 	    }
     
     };
     
-    // FormatDB& db, FormatExtEntries extFmts, const RenderContext* ctx
-    var addExtFormats = function(db, extFmts, ctx) {
+    // glsFboUtil.FormatDB& db, FormatExtEntries extFmts, const RenderContext* ctx
+    glsFboUtil.addExtFormats = function(db, extFmts, ctx) {
         
     };
     
-    /* TODO: This next. looks like helpers for FormatDB objects
+    /* TODO: This next. looks like helpers for glsFboUtil.FormatDB objects
     
-void addExtFormats (FormatDB& db, FormatExtEntries extFmts, const RenderContext* ctx)
+void glsFboUtil.addExtFormats (glsFboUtil.FormatDB& db, FormatExtEntries extFmts, const RenderContext* ctx)
 {
 	const UniquePtr<ContextInfo> ctxInfo(ctx != DE_NULL ? ContextInfo::create(*ctx) : DE_NULL);
-	for (const FormatExtEntry* it = extFmts.begin(); it != extFmts.end(); it++)
+	for (const glsFboUtil.FormatExtEntry* it = extFmts.begin(); it != extFmts.end(); it++)
 	{
 		bool supported = true;
 		if (ctxInfo)
@@ -77,42 +85,42 @@ void addExtFormats (FormatDB& db, FormatExtEntries extFmts, const RenderContext*
 		}
 		if (supported)
 			for (const FormatKey* i2 = it->formats.begin(); i2 != it->formats.end(); i2++)
-				db.addFormat(formatKeyInfo(*i2), FormatFlags(it->flags));
+				db.addFormat(glsFboUtil.formatKeyInfo(*i2), glsFboUtil.FormatFlags(it->flags));
 	}
 }
 
         --------------------------------------------------
     //*/
     
-    var formatFlag = function(glenum, gl_ctx) {
+    glsFboUtil.formatFlag = function(glenum, gl_ctx) {
         gl_ctx = gl_ctx || gl;
         
         switch (glenum) {
          case gl_ctx.NONE:
-            return FormatFlags.ANY_FORMAT;
+            return glsFboUtil.FormatFlags.ANY_FORMAT;
          case gl_ctx.RENDERBUFFER:
-            return FormatFlags.RENDERBUFFER_VALID;
+            return glsFboUtil.FormatFlags.RENDERBUFFER_VALID;
          case gl_ctx.TEXTURE:
-            return FormatFlags.TEXTURE_VALID;
+            return glsFboUtil.FormatFlags.TEXTURE_VALID;
          case gl_ctx.STENCIL_ATTACHMENT:
-            return FormatFlags.STENCIL_RENDERABLE;
+            return glsFboUtil.FormatFlags.STENCIL_RENDERABLE;
          case gl_ctx.DEPTH_ATTACHMENT:
-            return FormatFlags.DEPTH_RENDERABLE;
+            return glsFboUtil.FormatFlags.DEPTH_RENDERABLE;
          default:
             if (glenum < gl_ctx.COLOR_ATTACHMENT0 || glenum > gl_ctx.COLOR_ATTACHMENT15)
                 throw new Error('glenum out of range');
         }
-        return FormatFlags.COLOR_RENDERABLE;
+        return glsFboUtil.FormatFlags.COLOR_RENDERABLE;
     };
     
-    var remove_from_array = function(array, value) {
+    glsFboUtil.remove_from_array = function(array, value) {
         var index = array.indexOf(value);
         if (index != -1) {
             array.splice(index, 1)  
         }
     };
     
-    var FormatExtEntry = function(argv) {
+    glsFboUtil.FormatExtEntry = function(argv) {
         argv = argv || {};
         this.construct = function(argv) {
             this.extensions = argv.extensions || null;
@@ -123,7 +131,7 @@ void addExtFormats (FormatDB& db, FormatExtEntries extFmts, const RenderContext*
     };
     
     // this wont work if argv.array is an object
-    var Range = function(argv) {
+    glsFboUtil.Range = function(argv) {
         
         var m_begin  = argv.begin || 0;
         var m_end    = argv.end   || argv.array.length;
@@ -146,7 +154,7 @@ void addExtFormats (FormatDB& db, FormatExtEntries extFmts, const RenderContext*
         
     };
     
-    var ImageFormat = function(argv) {
+    glsFboUtil.ImageFormat = function(argv) {
         argv = argv || {};
         
         this._construct = function(argv) {
@@ -170,31 +178,31 @@ void addExtFormats (FormatDB& db, FormatExtEntries extFmts, const RenderContext*
         
         if (!argv.dont_construct) this._construct(argv);
     };
-    ImageFormat.none = function() {
-        var obj = new ImageFormat();
+    glsFboUtil.ImageFormat.none = function() {
+        var obj = new glsFboUtil.ImageFormat();
         obj.none();
         return obj;
     };
     
     // where key is a FormatKey, and a FormatKey is a 32bit int.
-    var formatKeyInfo = function(key) {
-        return new ImageFormat({
+    glsFboUtil.formatKeyInfo = function(key) {
+        return new glsFboUtil.ImageFormat({
             format:      (key & 0x0000ffff),
             unsizedType: (key & 0xffff0000) >> 16
         });
     };
     
-    var Config = function(argv) {
+    glsFboUtil.Config = function(argv) {
         argv = argv || {};
         
         this._construct = function(argv) {
-            this.type = argv.type ? argv.type | Config.s_types.CONFIG : Config.s_types.CONFIG;
-            this.target = argv.target || Config.s_target.NONE;
+            this.type = argv.type ? argv.type | glsFboUtil.Config.s_types.CONFIG : glsFboUtil.Config.s_types.CONFIG;
+            this.target = argv.target || glsFboUtil.Config.s_target.NONE;
         };
         
         if (!argv.dont_construct) this._construct(argv);
     };
-    Config.s_target = {
+    glsFboUtil.Config.s_target = {
         NONE:              0,
         RENDERBUFFER:      1,
         TEXTURE_2D:        2,
@@ -208,7 +216,7 @@ void addExtFormats (FormatDB& db, FormatExtEntries extFmts, const RenderContext*
     // the c++ uses dynamic casts to determain if an object inherits from a
     // given class. Here, each class' constructor assigns a bit to obj.type.
     // look for the bit to see if an object inherits that class.
-    Config.s_types = {
+    glsFboUtil.Config.s_types = {
         CONFIG:            0x000001,
         
         IMAGE:             0x000010,
@@ -230,7 +238,7 @@ void addExtFormats (FormatDB& db, FormatExtEntries extFmts, const RenderContext*
         UNUSED:          0xFFE0E00E,
     };
     
-    var Image = function(argv) {
+    glsFboUtil.Image = function(argv) {
         argv = argv || {};
         
         var parent = {
@@ -238,18 +246,18 @@ void addExtFormats (FormatDB& db, FormatExtEntries extFmts, const RenderContext*
         };
         
         this._construct = function(argv) {
-            argv.type = argv.type ? argv.type | Config.s_types.IMAGE : Config.s_types.IMAGE;
+            argv.type = argv.type ? argv.type | glsFboUtil.Config.s_types.IMAGE : glsFboUtil.Config.s_types.IMAGE;
             parent._construct(argv);
             this.width  = 0;
             this.height = 0;
-            this.internalFormat = new ImageFormat();
+            this.internalFormat = new glsFboUtil.ImageFormat();
         };
         
         if (!argv.dont_construct) this._construct(argv);
     };
-    Image.prototype = new Config({dont_construct: true});
+    glsFboUtil.Image.prototype = new glsFboUtil.Config({dont_construct: true});
     
-    var RenderBuffer = function(argv) {
+    glsFboUtil.RenderBuffer = function(argv) {
         argv = argv || {};
         
         var parent = {
@@ -257,17 +265,17 @@ void addExtFormats (FormatDB& db, FormatExtEntries extFmts, const RenderContext*
         };
         
         this._construct = function(argv) {
-            argv.type   = argv.type ? argv.type | Config.s_types.RENDERBUFFER : Config.s_types.RENDERBUFFER;
-            argv.target = argv.target || Config.s_target.RENDERBUFFER;
+            argv.type   = argv.type ? argv.type | glsFboUtil.Config.s_types.RENDERBUFFER : glsFboUtil.Config.s_types.RENDERBUFFER;
+            argv.target = argv.target || glsFboUtil.Config.s_target.RENDERBUFFER;
             parent._construct(argv);
             this.numSamples = 0;
         };
         
         if (!argv.dont_construct) this._construct(argv);
     };
-    RenderBuffer.prototype = new Image({dont_construct: true});
+    glsFboUtil.RenderBuffer.prototype = new glsFboUtil.Image({dont_construct: true});
     
-    var Texture = function(argv) {
+    glsFboUtil.Texture = function(argv) {
         argv = argv || {};
         
         var parent = {
@@ -275,16 +283,16 @@ void addExtFormats (FormatDB& db, FormatExtEntries extFmts, const RenderContext*
         };
         
         this._construct = function(argv) {
-            argv.type = argv.type ? argv.type | Config.s_types.TEXTURE : Config.s_types.TEXTURE;
+            argv.type = argv.type ? argv.type | glsFboUtil.Config.s_types.TEXTURE : glsFboUtil.Config.s_types.TEXTURE;
             parent._construct(argv);
             this.numLevels = 1;
         };
         
         if (!argv.dont_construct) this._construct(argv);
     };
-    Texture.prototype = new Image({dont_construct: true});
+    glsFboUtil.Texture.prototype = new glsFboUtil.Image({dont_construct: true});
     
-    var TextureFlat = function(argv) {
+    glsFboUtil.TextureFlat = function(argv) {
         argv = argv || {};
         
         var parent = {
@@ -292,15 +300,15 @@ void addExtFormats (FormatDB& db, FormatExtEntries extFmts, const RenderContext*
         };
         
         this._construct = function(argv) {
-            argv.type = argv.type ? argv.type | Config.s_types.TEXTURE_FLAT : Config.s_types.TEXTURE_FLAT;
+            argv.type = argv.type ? argv.type | glsFboUtil.Config.s_types.TEXTURE_FLAT : glsFboUtil.Config.s_types.TEXTURE_FLAT;
             parent._construct(argv);
         };
         
         if (!argv.dont_construct) this._construct(argv);
     };
-    TextureFlat.prototype = new Texture({dont_construct: true});
+    glsFboUtil.TextureFlat.prototype = new glsFboUtil.Texture({dont_construct: true});
     
-    var Texture2D = function(argv) {
+    glsFboUtil.Texture2D = function(argv) {
         argv = argv || {};
         
         var parent = {
@@ -308,16 +316,16 @@ void addExtFormats (FormatDB& db, FormatExtEntries extFmts, const RenderContext*
         };
         
         this._construct = function(argv) {
-            argv.target = argv.target || Config.s_target.TEXTURE_2D;
-            argv.type = argv.type ? argv.type | Config.s_types.TEXTURE_2D : Config.s_types.TEXTURE_2D;
+            argv.target = argv.target || glsFboUtil.Config.s_target.TEXTURE_2D;
+            argv.type = argv.type ? argv.type | glsFboUtil.Config.s_types.TEXTURE_2D : glsFboUtil.Config.s_types.TEXTURE_2D;
             parent._construct(argv);
         };
         
         if (!argv.dont_construct) this._construct(argv);
     };
-    Texture2D.prototype = new TextureFlat({dont_construct: true});
+    glsFboUtil.Texture2D.prototype = new glsFboUtil.TextureFlat({dont_construct: true});
     
-    var TextureCubeMap = function(argv) {
+    glsFboUtil.TextureCubeMap = function(argv) {
         argv = argv || {};
         
         var parent = {
@@ -325,16 +333,16 @@ void addExtFormats (FormatDB& db, FormatExtEntries extFmts, const RenderContext*
         };
         
         this._construct = function(argv) {
-            argv.target = argv.target || Config.s_target.TEXTURE_CUBE_MAP;
-            argv.type = argv.type ? argv.type | Config.s_types.TEXTURE_CUBE_MAP : Config.s_types.TEXTURE_CUBE_MAP;
+            argv.target = argv.target || glsFboUtil.Config.s_target.TEXTURE_CUBE_MAP;
+            argv.type = argv.type ? argv.type | glsFboUtil.Config.s_types.TEXTURE_CUBE_MAP : glsFboUtil.Config.s_types.TEXTURE_CUBE_MAP;
             parent._construct(argv);
         };
         
         if (!argv.dont_construct) this._construct(argv);
     };
-    TextureCubeMap.prototype = new TextureFlat({dont_construct: true});
+    glsFboUtil.TextureCubeMap.prototype = new glsFboUtil.TextureFlat({dont_construct: true});
     
-    var TextureLayered = function(argv) {
+    glsFboUtil.TextureLayered = function(argv) {
         argv = argv || {};
         
         var parent = {
@@ -342,16 +350,16 @@ void addExtFormats (FormatDB& db, FormatExtEntries extFmts, const RenderContext*
         };
         
         this._construct = function(argv) {
-            argv.type = argv.type ? argv.type | Config.s_types.TEXTURE_LAYERED : Config.s_types.TEXTURE_LAYERED;
+            argv.type = argv.type ? argv.type | glsFboUtil.Config.s_types.TEXTURE_LAYERED : glsFboUtil.Config.s_types.TEXTURE_LAYERED;
             parent._construct(argv);
             this.numLayers = 1;
         };
         
         if (!argv.dont_construct) this._construct(argv);
     };
-    TextureLayered.prototype = new Texture({dont_construct: true});
+    glsFboUtil.TextureLayered.prototype = new glsFboUtil.Texture({dont_construct: true});
     
-    var Texture3D = function(argv) {
+    glsFboUtil.Texture3D = function(argv) {
         argv = argv || {};
         
         var parent = {
@@ -359,16 +367,16 @@ void addExtFormats (FormatDB& db, FormatExtEntries extFmts, const RenderContext*
         };
         
         this._construct = function(argv) {
-            argv.target = argv.target || Config.s_target.TEXTURE_3D;
-            argv.type = argv.type ? argv.type | Config.s_types.TEXTURE_3D : Config.s_types.TEXTURE_3D;
+            argv.target = argv.target || glsFboUtil.Config.s_target.TEXTURE_3D;
+            argv.type = argv.type ? argv.type | glsFboUtil.Config.s_types.TEXTURE_3D : glsFboUtil.Config.s_types.TEXTURE_3D;
             parent._construct(argv);
         };
         
         if (!argv.dont_construct) this._construct(argv);
     };
-    Texture3D.prototype = new TextureLayered({dont_construct: true});
+    glsFboUtil.Texture3D.prototype = new glsFboUtil.TextureLayered({dont_construct: true});
     
-    var Texture2DArray = function(argv) {
+    glsFboUtil.Texture2DArray = function(argv) {
         argv = argv || {};
         
         var parent = {
@@ -376,18 +384,18 @@ void addExtFormats (FormatDB& db, FormatExtEntries extFmts, const RenderContext*
         };
         
         this._construct = function(argv) {
-            argv.target = argv.target || Config.s_target.TEXTURE_2D_ARRAY;
-            argv.type = argv.type ? argv.type | Config.s_types.TEXTURE_2D_ARRAY : Config.s_types.TEXTURE_2D_ARRAY;
+            argv.target = argv.target || glsFboUtil.Config.s_target.TEXTURE_2D_ARRAY;
+            argv.type = argv.type ? argv.type | glsFboUtil.Config.s_types.TEXTURE_2D_ARRAY : glsFboUtil.Config.s_types.TEXTURE_2D_ARRAY;
             parent._construct(argv);
         };
         
         if (!argv.dont_construct) this._construct(argv);
     };
-    Texture2DArray.prototype = new TextureLayered({dont_construct: true});
+    glsFboUtil.Texture2DArray.prototype = new glsFboUtil.TextureLayered({dont_construct: true});
     
     
     // Attachments
-    var Attachment = function(argv) {
+    glsFboUtil.Attachment = function(argv) {
         argv = argv || {};
         
         var parent = {
@@ -395,8 +403,8 @@ void addExtFormats (FormatDB& db, FormatExtEntries extFmts, const RenderContext*
         };
         
         this._construct = function(argv) {
-            argv.type = argv.type ? argv.type | Config.s_types.ATTACHMENT : Config.s_types.ATTACHMENT;
-            argv.target = argv.target || Config.s_target.FRAMEBUFFER;
+            argv.type = argv.type ? argv.type | glsFboUtil.Config.s_types.ATTACHMENT : glsFboUtil.Config.s_types.ATTACHMENT;
+            argv.target = argv.target || glsFboUtil.Config.s_target.FRAMEBUFFER;
             parent._construct(argv);
             this.imageName = 0;
         };
@@ -406,9 +414,9 @@ void addExtFormats (FormatDB& db, FormatExtEntries extFmts, const RenderContext*
         
         if (!argv.dont_construct) this._construct(argv);
     };
-    Attachment.prototype = new Config({dont_construct: true});
+    glsFboUtil.Attachment.prototype = new glsFboUtil.Config({dont_construct: true});
     
-    var RenderbufferAttachment = function(argv) {
+    glsFboUtil.RenderbufferAttachment = function(argv) {
         argv = argv || {};
         
         var parent = {
@@ -416,16 +424,16 @@ void addExtFormats (FormatDB& db, FormatExtEntries extFmts, const RenderContext*
         };
         
         this._construct = function(argv) {
-            argv.type = argv.type ? argv.type | Config.s_types.ATT_RENDERBUFFER : Config.s_types.ATT_RENDERBUFFER;
+            argv.type = argv.type ? argv.type | glsFboUtil.Config.s_types.ATT_RENDERBUFFER : glsFboUtil.Config.s_types.ATT_RENDERBUFFER;
             parent._construct(argv);
-            this.renderbufferTarget = Config.s_target.RENDERBUFFER;
+            this.renderbufferTarget = glsFboUtil.Config.s_target.RENDERBUFFER;
         };
         
         if (!argv.dont_construct) this._construct(argv);
     };
-    RenderbufferAttachment.prototype = new Attachment({dont_construct: true});
+    glsFboUtil.RenderbufferAttachment.prototype = new glsFboUtil.Attachment({dont_construct: true});
     
-    var TextureAttachment = function(argv) {
+    glsFboUtil.TextureAttachment = function(argv) {
         argv = argv || {};
         
         var parent = {
@@ -433,16 +441,16 @@ void addExtFormats (FormatDB& db, FormatExtEntries extFmts, const RenderContext*
         };
         
         this._construct = function(argv) {
-            argv.type = argv.type ? argv.type | Config.s_types.ATT_TEXTURE : Config.s_types.ATT_TEXTURE;
+            argv.type = argv.type ? argv.type | glsFboUtil.Config.s_types.ATT_TEXTURE : glsFboUtil.Config.s_types.ATT_TEXTURE;
             parent._construct(argv);
             this.level = 0;
         };
         
         if (!argv.dont_construct) this._construct(argv);
     };
-    TextureAttachment.prototype = new Attachment({dont_construct: true});
+    glsFboUtil.TextureAttachment.prototype = new glsFboUtil.Attachment({dont_construct: true});
     
-    var TextureFlatAttachment = function(argv) {
+    glsFboUtil.TextureFlatAttachment = function(argv) {
         argv = argv || {};
         
         var parent = {
@@ -450,16 +458,16 @@ void addExtFormats (FormatDB& db, FormatExtEntries extFmts, const RenderContext*
         };
         
         this._construct = function(argv) {
-            argv.type = argv.type ? argv.type | Config.s_types.ATT_TEXTURE_FLAT : Config.s_types.ATT_TEXTURE_FLAT;
+            argv.type = argv.type ? argv.type | glsFboUtil.Config.s_types.ATT_TEXTURE_FLAT : glsFboUtil.Config.s_types.ATT_TEXTURE_FLAT;
             parent._construct(argv);
-            this.texTarget = Config.s_target.NONE;
+            this.texTarget = glsFboUtil.Config.s_target.NONE;
         };
         
         if (!argv.dont_construct) this._construct(argv);
     };
-    TextureFlatAttachment.prototype = new TextureAttachment({dont_construct: true});
+    glsFboUtil.TextureFlatAttachment.prototype = new glsFboUtil.TextureAttachment({dont_construct: true});
     
-    var TextureLayerAttachment = function(argv) {
+    glsFboUtil.TextureLayerAttachment = function(argv) {
         argv = argv || {};
         
         var parent = {
@@ -467,24 +475,24 @@ void addExtFormats (FormatDB& db, FormatExtEntries extFmts, const RenderContext*
         };
         
         this._construct = function(argv) {
-            argv.type = argv.type ? argv.type | Config.s_types.ATT_TEXTURE_LAYER : Config.s_types.ATT_TEXTURE_LAYER;
+            argv.type = argv.type ? argv.type | glsFboUtil.Config.s_types.ATT_TEXTURE_LAYER : glsFboUtil.Config.s_types.ATT_TEXTURE_LAYER;
             parent._construct(argv);
             this.layer = 0;
         };
         
         if (!argv.dont_construct) this._construct(argv);
     };
-    TextureLayerAttachment.prototype = new TextureAttachment({dont_construct: true});
+    glsFboUtil.TextureLayerAttachment.prototype = new glsFboUtil.TextureAttachment({dont_construct: true});
     
     
     // these are a collection of helper functions for creating various gl textures.
-    var glsup = function() {
+    glsFboUtil.glsup = function() {
     
         var glInit = function(cfg, gl_ctx) {
-            if (cfg.target == Config.s_target.TEXTURE_2D) {
+            if (cfg.target == glsFboUtil.Config.s_target.TEXTURE_2D) {
                 glInitFlat(cfg, glTarget, gl_ctx);
                 
-            } else if (cfg.target == Config.s_target.TEXTURE_CUBE_MAP) {
+            } else if (cfg.target == glsFboUtil.Config.s_target.TEXTURE_CUBE_MAP) {
                 for (
                     var i = gl_ctx.TEXTURE_CUBE_MAP_NEGATIVE_X;
                     i <= gl_ctx.TEXTURE_CUBE_MAP_POSITIVE_Z;
@@ -493,17 +501,17 @@ void addExtFormats (FormatDB& db, FormatExtEntries extFmts, const RenderContext*
                     glInitFlat(cfg, i, gl_ctx);
                 }
                 
-            } else if (cfg.target == Config.s_target.TEXTURE_3D) {
+            } else if (cfg.target == glsFboUtil.Config.s_target.TEXTURE_3D) {
                 glInitLayered(cfg, 2, gl_ctx);
             
-            } else if (cfg.target == Config.s_target.TEXTURE_2D_ARRAY) {
+            } else if (cfg.target == glsFboUtil.Config.s_target.TEXTURE_2D_ARRAY) {
                 glInitLayered(cfg, 1, gl_ctx);
             
             }
         };
         
         var glInitFlat = function(cfg, target, gl_ctx) {
-            var format = transferImageFormat(cfg.internalFormat, gl_ctx);
+            var format = glsFboUtil.transferImageFormat(cfg.internalFormat, gl_ctx);
             var w = cfg.width;
             var h = cfg.height;
             for (var level = 0; level < cfg.numLevels; ++level) {
@@ -517,7 +525,7 @@ void addExtFormats (FormatDB& db, FormatExtEntries extFmts, const RenderContext*
         };
         
         var glInitLayered = function(cfg, depth_divider, gl_ctx) {
-            var format = transferImageFormat(cfg.internalFormat, gl_ctx);
+            var format = glsFboUtil.transferImageFormat(cfg.internalFormat, gl_ctx);
             var w = cfg.width;
             var h = cfg.height;
             var depth = cfg.numLayers;
@@ -535,7 +543,7 @@ void addExtFormats (FormatDB& db, FormatExtEntries extFmts, const RenderContext*
         var glCreate = function(cfg, gl_ctx) {
             gl_ctx = gl_ctx || gl;
             
-            if (cfg.type & Config.s_types.RENDERBUFFER) {
+            if (cfg.type & glsFboUtil.Config.s_types.RENDERBUFFER) {
                 var ret = gl_ctx.createRenderBuffer();
                 gl_ctx.bindRenderBuffer(gl.RENDERBUFFER, ret);
                 
@@ -555,7 +563,7 @@ void addExtFormats (FormatDB& db, FormatExtEntries extFmts, const RenderContext*
                 }
                 gl_ctx.bindRenderbuffer(gl_ctx.RENDERBUFFER, 0);
                 
-            } else if (cfg.type & Config.s_types.TEXTURE) {
+            } else if (cfg.type & glsFboUtil.Config.s_types.TEXTURE) {
                 var ret = gl_ctx.createTexture();
                 gl_ctx.bindTexture(glTarget(cfg, gl_ctx), ret);
                 glInit(tex, gl_ctx);
@@ -569,20 +577,20 @@ void addExtFormats (FormatDB& db, FormatExtEntries extFmts, const RenderContext*
         var glTarget = function(cfg, gl_ctx) {
             gl_ctx = gl_ctx || gl;
             switch(cfg.target) {
-                case Config.s_target.RENDERBUFFER:     return gl_ctx.RENDERBUFFER;
-                case Config.s_target.TEXTURE_2D:       return gl_ctx.TEXTURE_2D;
-                case Config.s_target.TEXTURE_CUBE_MAP: return gl_ctx.TEXTURE_CUBE_MAP;
-                case Config.s_target.TEXTURE_3D:       return gl_ctx.TEXTURE_3D;
-                case Config.s_target.TEXTURE_2D_ARRAY: return gl_ctx.TEXTURE_2D_ARRAY;
+                case glsFboUtil.Config.s_target.RENDERBUFFER:     return gl_ctx.RENDERBUFFER;
+                case glsFboUtil.Config.s_target.TEXTURE_2D:       return gl_ctx.TEXTURE_2D;
+                case glsFboUtil.Config.s_target.TEXTURE_CUBE_MAP: return gl_ctx.TEXTURE_CUBE_MAP;
+                case glsFboUtil.Config.s_target.TEXTURE_3D:       return gl_ctx.TEXTURE_3D;
+                case glsFboUtil.Config.s_target.TEXTURE_2D_ARRAY: return gl_ctx.TEXTURE_2D_ARRAY;
                 default: throw new Error('Impossible image type.');
             }
             return gl_ctx.NONE;
         };
         
         var glDelete = function(cfg, img, gl_ctx) {
-            if (cfg.type & Config.s_types.RENDERBUFFER)
+            if (cfg.type & glsFboUtil.Config.s_types.RENDERBUFFER)
                 gl.deleteRenderbuffers(1, img);
-            else if (cfg.type & Config.s_types.TEXTURE)
+            else if (cfg.type & glsFboUtil.Config.s_types.TEXTURE)
                 gl.deleteTextures(1, img);
             else
                 throw new Error('Impossible image type');
@@ -595,27 +603,27 @@ void addExtFormats (FormatDB& db, FormatExtEntries extFmts, const RenderContext*
     
     }();
     
-    var attachAttachment = function(att, attPoint, gl_ctx) {
+    glsFboUtil.attachAttachment = function(att, attPoint, gl_ctx) {
         gl_ctx = gl_ctx || gl;
         
         var mask = (
-            Config.s_types.ATT_RENDERBUFFER |
-            Config.s_types.ATT_TEXTURE_FLAT |
-            Config.s_types.ATT_TEXTURE_LAYER
+            glsFboUtil.Config.s_types.ATT_RENDERBUFFER |
+            glsFboUtil.Config.s_types.ATT_TEXTURE_FLAT |
+            glsFboUtil.Config.s_types.ATT_TEXTURE_LAYER
         );
         
         switch (att.type & mask) {
-            case Config.s_types.ATT_RENDERBUFFER:
+            case glsFboUtil.Config.s_types.ATT_RENDERBUFFER:
                 gl_ctx.framebufferRenderbuffer(
                     att.target, attPoint, att.renderbufferTarget, att.imageName
                 );
                 break;
-            case Config.s_types.ATT_TEXTURE_FLAT:
+            case glsFboUtil.Config.s_types.ATT_TEXTURE_FLAT:
                 gl_ctx.framebufferTexture2D(
                     att.target, attPoint, att.texTarget, att.imageName, att.level
                 );
                 break;
-            case Config.s_types.ATT_TEXURE_LAYER:
+            case glsFboUtil.Config.s_types.ATT_TEXURE_LAYER:
                 gl_ctx.framebufferTextureLayer(
                     att.target, attPoint, att.imageName, att.level, att.layer
                 );
@@ -626,13 +634,13 @@ void addExtFormats (FormatDB& db, FormatExtEntries extFmts, const RenderContext*
         
     };
 
-    var attachmentType = function(att, gl_ctx) {
+    glsFboUtil.attachmentType = function(att, gl_ctx) {
         gl_ctx = gl_ctx || gl;
         
-        if (att.type & Config.s_types.ATT_RENDERBUFFER) {
+        if (att.type & glsFboUtil.Config.s_types.ATT_RENDERBUFFER) {
             return gl_ctx.RENDERBUFFER;
         }
-        if (att.type & Config.s_types.ATT_TEXTURE) {
+        if (att.type & glsFboUtil.Config.s_types.ATT_TEXTURE) {
             return gl_ctx.TEXTURE;
         }
         throw new Error('Impossible attachment type.');
@@ -640,21 +648,21 @@ void addExtFormats (FormatDB& db, FormatExtEntries extFmts, const RenderContext*
         
     };
     
-    var textureLayer = function(att) {
-        if (att.type & Config.s_types.ATT_TEXTURE_FLAT)  return 0;
-        if (att.type & Config.s_types.ATT_TEXTURE_LAYER) return att.layer;
+    glsFboUtil.textureLayer = function(att) {
+        if (att.type & glsFboUtil.Config.s_types.ATT_TEXTURE_FLAT)  return 0;
+        if (att.type & glsFboUtil.Config.s_types.ATT_TEXTURE_LAYER) return att.layer;
         throw new Error('Impossible attachment type.');
         return 0;
     };
     
     
-    var checkAttachmentCompleteness = function(cctx, att, attPoint, image, db, gl_ctx) {
+    glsFboUtil.checkAttachmentCompleteness = function(cctx, att, attPoint, image, db, gl_ctx) {
         gl_ctx = gl_ctx || gl;
     
-        // GLES2 4.4.5 / GLES3 4.4.4, "Framebuffer attachment completeness"
+        // GLES2 4.4.5 / GLES3 4.4.4, "glsFboUtil.Framebuffer attachment completeness"
         if (
-            ( att.type   & Config.s_types.ATT_TEXTURE     ) &&
-            ( image.type & Config.s_types.TEXTURE_LAYERED )
+            ( att.type   & glsFboUtil.Config.s_types.ATT_TEXTURE     ) &&
+            ( image.type & glsFboUtil.Config.s_types.TEXTURE_LAYERED )
         ) {
             // GLES3: "If the value of FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE is
             // TEXTURE and the value of FRAMEBUFFER_ATTACHMENT_OBJECT_NAME names a
@@ -668,7 +676,7 @@ void addExtFormats (FormatDB& db, FormatExtEntries extFmts, const RenderContext*
             // FRAMEBUFFER_ATTACHMENT_TEXTURE_LAYER must be smaller than the
             // number of layers in the texture.
             cctx.require(
-                textureLayer(att) < image.numLayers,
+                glsFboUtil.textureLayer(att) < image.numLayers,
                 gl_ctx.FRAMEBUFFER_INCOMPLETE_ATTACHMENT
             );
         }
@@ -680,28 +688,28 @@ void addExtFormats (FormatDB& db, FormatExtEntries extFmts, const RenderContext*
         );
 
         // Check for renderability
-        var flags = db.getFormatInfo(image.internalFormat, FormatFlags.ANY_FORMAT);
+        var flags = db.getFormatInfo(image.internalFormat, glsFboUtil.FormatFlags.ANY_FORMAT);
         
         // If the format does not have the proper renderability flag, the
         // completeness check _must_ fail.
         cctx.require(
-            (flags & formatFlag(attPoint)) != 0,
+            (flags & glsFboUtil.formatFlag(attPoint)) != 0,
             gl_ctx.FRAMEBUFFER_INCOMPLETE_ATTACHMENT
         );
         
         // If the format is only optionally renderable, the completeness check _can_ fail.
         cctx.canRequire(
-            (flags & FormatFlags.REQUIRED_RENDERABLE) != 0,
+            (flags & glsFboUtil.FormatFlags.REQUIRED_RENDERABLE) != 0,
             gl_ctx.FRAMEBUFFER_INCOMPLETE_ATTACHMENT
         );
         
     };
     
-    var formatkey = function(format, type) {
+    glsFboUtil.formatkey = function(format, type) {
         return (type << 16 | format) & 0xFFFFFFFF;
     };
     
-    var FormatFlags = {
+    glsFboUtil.FormatFlags = {
         ANY_FORMAT:           0x00,
         COLOR_RENDERABLE:     0x01,
         DEPTH_RENDERABLE:     0x02,
@@ -711,7 +719,7 @@ void addExtFormats (FormatDB& db, FormatExtEntries extFmts, const RenderContext*
         REQUIRED_RENDERABLE:  0x20, //< Without this, renderability is allowed, not required.
     };
     
-    var Framebuffer = function(argv) {
+    glsFboUtil.Framebuffer = function(argv) {
         
         argv = argv || {};
         this._construct = function(argv) {
@@ -736,8 +744,8 @@ void addExtFormats (FormatDB& db, FormatExtEntries extFmts, const RenderContext*
         };
         this.getImage = function(type, imgName) {
             switch (type) {
-                case this.m_gl.TEXTURE:      return lookupDefault(this.textures, imgName, null);
-                case this.m_gl.RENDERBUFFER: return lookupDefault(this.rbos,     imgName, null);
+                case this.m_gl.TEXTURE:      return glsFboUtil.lookupDefault(this.textures, imgName, null);
+                case this.m_gl.RENDERBUFFER: return glsFboUtil.lookupDefault(this.rbos,     imgName, null);
                 default: throw new Error ('Bad image type.');
             }
             return null;
@@ -746,7 +754,7 @@ void addExtFormats (FormatDB& db, FormatExtEntries extFmts, const RenderContext*
         if (!argv.dont_construct) this._construct(argv);
     };
     
-    var FboBuilder = function(argv) {
+    glsFboUtil.FboBuilder = function(argv) {
         argv = argv || {};
         
         var parent = {
@@ -769,10 +777,10 @@ void addExtFormats (FormatDB& db, FormatExtEntries extFmts, const RenderContext*
         
         this.deinit = function() {
             for (var name in this.textures) {
-                glsup.remove(this.textures[name], name, this.m_gl);
+                glsFboUtil.glsup.remove(this.textures[name], name, this.m_gl);
             }
             for (var name in this.rbos) {
-                glsup.remove(this.rbos[name], name, this.m_gl);
+                glsFboUtil.glsup.remove(this.rbos[name], name, this.m_gl);
             }
             this.m_gl.bindFramebuffer(this.m_target, 0);
 /*
@@ -782,20 +790,20 @@ void addExtFormats (FormatDB& db, FormatExtEntries extFmts, const RenderContext*
 //*/
         };
         
-        // GLenum attPoint, const Attachment* att
+        // GLenum attPoint, const glsFboUtil.Attachment* att
         this.glAttach = function(attPoint, att) {
             if (!att) {
                 this.m_gl.framebufferRenderbuffer(this.m_target, attPoint, this.m_gl.RENDERBUFFER, 0);
             } else {
-                attachAttachment(att, attPoint, this.m_gl);
+                glsFboUtil.attachAttachment(att, attPoint, this.m_gl);
             }
             this.checkError();
             this.attach(attPoint, att);
         };
         
-        // const Texture& texCfg
+        // const glsFboUtil.Texture& texCfg
         this.glCreateTexture = function(texCfg) {
-            var texName = glsup.create(texCfg, this.m_gl);
+            var texName = glsFboUtil.glsup.create(texCfg, this.m_gl);
             checkError();
             this.setTexture(texName, texCfg);
             return texName;
@@ -803,7 +811,7 @@ void addExtFormats (FormatDB& db, FormatExtEntries extFmts, const RenderContext*
         
         // const Renderbuffer& rbCfg
         this.glCreateRbo = function(rbCfg) {
-            var rbName = glsup.create(rbCfg, this.m_gl);
+            var rbName = glsFboUtil.glsup.create(rbCfg, this.m_gl);
             checkError();
             this.setRbo(rbName, rbCfg);
             return rbName;
@@ -831,9 +839,9 @@ void addExtFormats (FormatDB& db, FormatExtEntries extFmts, const RenderContext*
         
         if (!argv.dont_construct) this._construct(argv);
     };
-    FboBuilder.prototype = new Framebuffer({dont_construct: true});
+    glsFboUtil.FboBuilder.prototype = new glsFboUtil.Framebuffer({dont_construct: true});
     
-    var Checker = function(argv) {
+    glsFboUtil.Checker = function(argv) {
         argv = argv || {};
         
         // Allowed return values for gl.CheckFramebufferStatus
@@ -847,7 +855,7 @@ void addExtFormats (FormatDB& db, FormatExtEntries extFmts, const RenderContext*
         
         this.require = function(condition, error) {
             if (!condition) {
-                remove_from_array(m_statusCodes, gl.FRAMEBUFFER_COMPLETE);
+                glsFboUtil.remove_from_array(m_statusCodes, gl.FRAMEBUFFER_COMPLETE);
                 m_statusCodes.push(error);
             }
         };
@@ -863,22 +871,22 @@ void addExtFormats (FormatDB& db, FormatExtEntries extFmts, const RenderContext*
 //      this.check = function(attPoint, attachment, image) =0; virtual
         
         if (!argv.dont_construct)
-            throw new Error('Constructor called on virtual class: Checker'); 
+            throw new Error('Constructor called on virtual class: glsFboUtil.Checker'); 
     };
     
-    var CheckerFactory = function(argv) {
+    glsFboUtil.CheckerFactory = function(argv) {
         argv = argv || {};
         
         this._construct = function(argv) {
             if (typeof(this.createChecker) != 'function')
-                throw new Error('Unimplemented virtual function: CheckerFactory::createChecker');
+                throw new Error('Unimplemented virtual function: glsFboUtil.CheckerFactory::createChecker');
         };
         
         if (!argv.dont_construct)
-            throw new Error('Constructor called on virtual class: CheckerFactory'); 
+            throw new Error('Constructor called on virtual class: glsFboUtil.CheckerFactory'); 
     };
     
-    var transferImageFormat = function(imgFormat, gl_ctx) {
+    glsFboUtil.transferImageFormat = function(imgFormat, gl_ctx) {
         gl_ctx = gl_ctx || gl;
         if (imgFormat.unsizedType == gl_ctx.NONE)
             return gluTextureUtil.getTransferFormat(mapGLInternalFormat(imgFormat.format));
@@ -886,34 +894,6 @@ void addExtFormats (FormatDB& db, FormatExtEntries extFmts, const RenderContext*
             return new gluTextureUtil.TransferFormat(imgFormat.format, imgFormat.unsizedType);
     };
     
-    return {
-        FormatDB:                FormatDB,
-        Range:                   Range,
-        formatkey:               formatkey,
-        GLS_UNSIZED_FORMATKEY:   formatkey,
-        FormatFlags:             FormatFlags,
-        addFormats:              addFormats,
-        
-        
-        Config:                  Config,
-        Image:                     Image,
-        RenderBuffer:                RenderBuffer,
-        Texture:                     Texture,
-        TextureFlat:                   TextureFlat,
-        Texture2D:                       Texture2D,
-        TextureCubeMap:                  TextureCubeMap,
-        TextureLayered:                TextureLayered,
-        Texture3D:                       Texture3D,
-        Texture2DArray:                  Texture2DArray,
-        Attachment:                Attachment,
-        RenderbufferAttachment:      RenderbufferAttachment,
-        TextureAttachment:           TextureAttachment,
-        TextureFlatAttachment:         TextureFlatAttachment,
-        TextureLayerAttachment:        TextureLayerAttachment,
-
-        Checker:                   Checker,
-        CheckerFactory:            CheckerFactory,
-        transferImageFormat:       transferImageFormat
-    };
+    
 
 });

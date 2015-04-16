@@ -18,8 +18,16 @@
  *
  */
 
-define(['framework/delibs/debase/deMath'], function(deMath) {
-    'use strict';
+'use strict';
+goog.provide('framework.common.tcuRGBA');
+goog.require('framework.delibs.debase.deMath');
+
+
+goog.scope(function() {
+
+var tcuRGBA = framework.common.tcuRGBA;
+var deMath = framework.delibs.debase.deMath;
+    
 
     var DE_ASSERT = function(x) {
         if (!x)
@@ -27,10 +35,10 @@ define(['framework/delibs/debase/deMath'], function(deMath) {
     };
 
     /**
-     * class RGBA
+     * class tcuRGBA.RGBA
      * @constructor
      */
-    var RGBA = function() {
+    tcuRGBA.RGBA = function() {
         /** @type {Uint32Array} */ this.m_value = new Uint32Array(4);
     };
 
@@ -38,7 +46,7 @@ define(['framework/delibs/debase/deMath'], function(deMath) {
      * @enum Shift
      * In JS, these are not shift values, but positions in a typed array
      */
-    RGBA.Shift = {
+    tcuRGBA.RGBA.Shift = {
         RED: 0,
         GREEN: 1,
         BLUE: 2,
@@ -49,7 +57,7 @@ define(['framework/delibs/debase/deMath'], function(deMath) {
      * @enum Mask used as flags
      * Hopefully will not use typed arrays
      */
-    RGBA.Mask = function() {
+    tcuRGBA.RGBA.Mask = function() {
         return {
             RED: false,
             GREEN: false,
@@ -59,25 +67,25 @@ define(['framework/delibs/debase/deMath'], function(deMath) {
     };
 
     /**
-     * Builds an RGBA object from color components
+     * Builds an tcuRGBA.RGBA object from color components
      * @param {number} r
      * @param {number} g
      * @param {number} b
      * @param {number} a
-     * @return {RGBA}
+     * @return {tcuRGBA.RGBA}
      */
-    var newRGBAComponents = function(r, g, b, a) {
-        /** @type {RGBA} */ var rgba = new RGBA();
+    tcuRGBA.newRGBAComponents = function(r, g, b, a) {
+        /** @type {tcuRGBA.RGBA} */ var rgba = new tcuRGBA.RGBA();
         DE_ASSERT(deMath.deInRange32(r, 0, 255));
         DE_ASSERT(deMath.deInRange32(g, 0, 255));
         DE_ASSERT(deMath.deInRange32(b, 0, 255));
         DE_ASSERT(deMath.deInRange32(a, 0, 255));
 
         var result = new Uint8Array(4);
-        result[RGBA.Shift.RED] = r;
-        result[RGBA.Shift.GREEN] = g;
-        result[RGBA.Shift.BLUE] = b;
-        result[RGBA.Shift.ALPHA] = a;
+        result[tcuRGBA.RGBA.Shift.RED] = r;
+        result[tcuRGBA.RGBA.Shift.GREEN] = g;
+        result[tcuRGBA.RGBA.Shift.BLUE] = b;
+        result[tcuRGBA.RGBA.Shift.ALPHA] = a;
 
         rgba.m_value = new Uint32Array(result);
 
@@ -85,24 +93,24 @@ define(['framework/delibs/debase/deMath'], function(deMath) {
     };
 
     /**
-     * Builds an RGBA object from a 32 bit value
+     * Builds an tcuRGBA.RGBA object from a 32 bit value
      * @param {deMath.deUint32} val
-     * @return {RGBA}
+     * @return {tcuRGBA.RGBA}
      */
-    var newRGBAValue = function(val) {
-        /** @type {RGBA} */ var rgba = new RGBA();
+    tcuRGBA.newRGBAValue = function(val) {
+        /** @type {tcuRGBA.RGBA} */ var rgba = new tcuRGBA.RGBA();
         rgba.m_value = new Uint32Array([val]);
 
         return rgba;
     };
 
     /**
-     * Builds an RGBA object from a number array
+     * Builds an tcuRGBA.RGBA object from a number array
      * @param {Array.<number>} v
-     * @return {RGBA}
+     * @return {tcuRGBA.RGBA}
      */
-    var newRGBAFromArray = function(v) {
-        /** @type {RGBA} */ var rgba = new RGBA();
+    tcuRGBA.newRGBAFromArray = function(v) {
+        /** @type {tcuRGBA.RGBA} */ var rgba = new tcuRGBA.RGBA();
         var result = new Uint8Array(v);
 
         rgba.m_value = new Uint32Array(result);
@@ -113,69 +121,69 @@ define(['framework/delibs/debase/deMath'], function(deMath) {
     /**
      * @param {number} v
      */
-    RGBA.prototype.setRed = function(v) { DE_ASSERT(deMath.deInRange32(v, 0, 255)); this.m_value[RGBA.Shift.RED] = v; };
+    tcuRGBA.RGBA.prototype.setRed = function(v) { DE_ASSERT(deMath.deInRange32(v, 0, 255)); this.m_value[tcuRGBA.RGBA.Shift.RED] = v; };
 
     /**
      * @param {number} v
      */
-    RGBA.prototype.setGreen = function(v) { DE_ASSERT(deMath.deInRange32(v, 0, 255)); this.m_value[RGBA.Shift.GREEN] = v; };
+    tcuRGBA.RGBA.prototype.setGreen = function(v) { DE_ASSERT(deMath.deInRange32(v, 0, 255)); this.m_value[tcuRGBA.RGBA.Shift.GREEN] = v; };
 
     /**
      * @param {number} v
      */
-    RGBA.prototype.setBlue = function(v) { DE_ASSERT(deMath.deInRange32(v, 0, 255)); this.m_value[RGBA.Shift.BLUE] = v; };
+    tcuRGBA.RGBA.prototype.setBlue = function(v) { DE_ASSERT(deMath.deInRange32(v, 0, 255)); this.m_value[tcuRGBA.RGBA.Shift.BLUE] = v; };
 
     /**
      * @param {number} v
      */
-    RGBA.prototype.setAlpha = function(v) { DE_ASSERT(deMath.deInRange32(v, 0, 255)); this.m_value[RGBA.Shift.ALPHA] = v; };
+    tcuRGBA.RGBA.prototype.setAlpha = function(v) { DE_ASSERT(deMath.deInRange32(v, 0, 255)); this.m_value[tcuRGBA.RGBA.Shift.ALPHA] = v; };
 
     /**
      * @return {number}
      */
-    RGBA.prototype.getRed = function() { return this.m_value[RGBA.Shift.RED]; };
+    tcuRGBA.RGBA.prototype.getRed = function() { return this.m_value[tcuRGBA.RGBA.Shift.RED]; };
 
     /**
      * @return {number}
      */
-    RGBA.prototype.getGreen = function() { return this.m_value[RGBA.Shift.GREEN]; };
+    tcuRGBA.RGBA.prototype.getGreen = function() { return this.m_value[tcuRGBA.RGBA.Shift.GREEN]; };
 
     /**
      * @return {number}
      */
-    RGBA.prototype.getBlue = function() { return this.m_value[RGBA.Shift.BLUE]; };
+    tcuRGBA.RGBA.prototype.getBlue = function() { return this.m_value[tcuRGBA.RGBA.Shift.BLUE]; };
 
     /**
      * @return {number}
      */
-    RGBA.prototype.getAlpha = function() { return this.m_value[RGBA.Shift.ALPHA]; };
+    tcuRGBA.RGBA.prototype.getAlpha = function() { return this.m_value[tcuRGBA.RGBA.Shift.ALPHA]; };
 
     /**
      * @return {deMath.deUint32}
      */
-    RGBA.prototype.getPacked = function() { return this.m_value[0]; };
+    tcuRGBA.RGBA.prototype.getPacked = function() { return this.m_value[0]; };
 
     /**
-     * @param {RGBA} thr
+     * @param {tcuRGBA.RGBA} thr
      * @return {boolean}
      */
-    RGBA.prototype.isBelowThreshold = function(thr) { return (this.getRed() <= thr.getRed()) && (this.getGreen() <= thr.getGreen()) && (this.getBlue() <= thr.getBlue()) && (this.getAlpha() <= thr.getAlpha()); };
+    tcuRGBA.RGBA.prototype.isBelowThreshold = function(thr) { return (this.getRed() <= thr.getRed()) && (this.getGreen() <= thr.getGreen()) && (this.getBlue() <= thr.getBlue()) && (this.getAlpha() <= thr.getAlpha()); };
 
     /**
      * @param {Uint8Array} bytes
-     * @return {RGBA}
+     * @return {tcuRGBA.RGBA}
      */
-    RGBA.fromBytes = function(bytes)  { return newRGBAFromArray(bytes); };
+    tcuRGBA.RGBA.fromBytes = function(bytes)  { return tcuRGBA.newRGBAFromArray(bytes); };
 
     /**
      * @param {Uint8Array} bytes
      */
-    RGBA.prototype.toBytes = function(bytes) { var result = new Uint8Array(this.m_value); bytes[0] = result[0]; bytes[1] = result[1]; bytes[2] = result[2]; bytes[3] = result[3]; };
+    tcuRGBA.RGBA.prototype.toBytes = function(bytes) { var result = new Uint8Array(this.m_value); bytes[0] = result[0]; bytes[1] = result[1]; bytes[2] = result[2]; bytes[3] = result[3]; };
 
     /**
      * @return {Array.<number>}
      */
-    RGBA.prototype.toVec = function() {
+    tcuRGBA.RGBA.prototype.toVec = function() {
         return [
             this.getRed() / 255.0,
             this.getGreen() / 255.0,
@@ -187,7 +195,7 @@ define(['framework/delibs/debase/deMath'], function(deMath) {
     /**
      * @return {Array.<number>}
      */
-    RGBA.prototype.toIVec = function() {
+    tcuRGBA.RGBA.prototype.toIVec = function() {
         return [
             this.getRed(),
             this.getGreen(),
@@ -197,10 +205,10 @@ define(['framework/delibs/debase/deMath'], function(deMath) {
     };
 
     /**
-     * @param {RGBA} v
+     * @param {tcuRGBA.RGBA} v
      * @return {boolean}
      */
-    RGBA.prototype.equals = function(v) {
+    tcuRGBA.RGBA.prototype.equals = function(v) {
         return (
             this.m_value[0] == v.m_value[0] &&
             this.m_value[1] == v.m_value[1] &&
@@ -210,23 +218,23 @@ define(['framework/delibs/debase/deMath'], function(deMath) {
     };
 
     /**
-     * @param {RGBA} a
-     * @param {RGBA} b
-     * @param {RGBA} threshold
+     * @param {tcuRGBA.RGBA} a
+     * @param {tcuRGBA.RGBA} b
+     * @param {tcuRGBA.RGBA} threshold
      * @return {boolean}
      */
-    var compareThreshold = function(a, b, threshold) {
+    tcuRGBA.compareThreshold = function(a, b, threshold) {
         if (a.equals(b)) return true; // Quick-accept
-        return computeAbsDiff(a, b).isBelowThreshold(threshold);
+        return tcuRGBA.computeAbsDiff(a, b).isBelowThreshold(threshold);
     };
 
     /**
-     * @param {RGBA} a
-     * @param {RGBA} b
+     * @param {tcuRGBA.RGBA} a
+     * @param {tcuRGBA.RGBA} b
      * @return {boolean}
      */
-    var computeAbsDiff = function(a, b) {
-        return newRGBAComponents(
+    tcuRGBA.computeAbsDiff = function(a, b) {
+        return tcuRGBA.newRGBAComponents(
             Math.abs(a.getRed() - b.getRed()),
             Math.abs(a.getGreen() - b.getGreen()),
             Math.abs(a.getBlue() - b.getBlue()),
@@ -235,12 +243,12 @@ define(['framework/delibs/debase/deMath'], function(deMath) {
     };
 
     /**
-     * @param {RGBA} a
-     * @param {RGBA} b
-     * @return {RGBA}
+     * @param {tcuRGBA.RGBA} a
+     * @param {tcuRGBA.RGBA} b
+     * @return {tcuRGBA.RGBA}
      */
-    var max = function(a, b) {
-        return newRGBAComponents(
+    tcuRGBA.max = function(a, b) {
+        return tcuRGBA.newRGBAComponents(
             Math.max(a.getRed(), b.getRed()),
             Math.max(a.getGreen(), b.getGreen()),
             Math.max(a.getBlue(), b.getBlue()),
@@ -249,20 +257,12 @@ define(['framework/delibs/debase/deMath'], function(deMath) {
     };
 
     // Color constants
-    RGBA.red = new RGBA(0xFF, 0, 0, 0xFF);
-    RGBA.green = new RGBA(0, 0xFF, 0, 0xFF);
-    RGBA.blue = new RGBA(0, 0, 0xFF, 0xFF);
-    RGBA.gray = new RGBA(0x80, 0x80, 0x80, 0xFF);
-    RGBA.white = new RGBA(0xFF, 0xFF, 0xFF, 0xFF);
-    RGBA.black = new RGBA(0, 0, 0, 0xFF);
+    tcuRGBA.RGBA.red = new tcuRGBA.RGBA(0xFF, 0, 0, 0xFF);
+    tcuRGBA.RGBA.green = new tcuRGBA.RGBA(0, 0xFF, 0, 0xFF);
+    tcuRGBA.RGBA.blue = new tcuRGBA.RGBA(0, 0, 0xFF, 0xFF);
+    tcuRGBA.RGBA.gray = new tcuRGBA.RGBA(0x80, 0x80, 0x80, 0xFF);
+    tcuRGBA.RGBA.white = new tcuRGBA.RGBA(0xFF, 0xFF, 0xFF, 0xFF);
+    tcuRGBA.RGBA.black = new tcuRGBA.RGBA(0, 0, 0, 0xFF);
 
-    return {
-        RGBA: RGBA,
-        newRGBAComponents: newRGBAComponents,
-        newRGBAValue: newRGBAValue,
-        newRGBAFromArray: newRGBAFromArray,
-        compareThreshold: compareThreshold,
-        computeAbsDiff: computeAbsDiff,
-        max: max
-    };
+    
 });

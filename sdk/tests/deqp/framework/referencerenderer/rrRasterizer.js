@@ -18,15 +18,23 @@
  *
  */
 
-define(['framework/referencerenderer/rrRenderState'], function(rrRenderState) {
 'use strict';
+goog.provide('framework.referencerenderer.rrRasterizer');
+goog.require('framework.referencerenderer.rrRenderState');
 
-/** @const */ var RASTERIZER_SUBPIXEL_BITS            = 8;
-/** @const */ var RASTERIZER_MAX_SAMPLES_PER_FRAGMENT = 16;
-/** @const */ var shlMultiplier = Math.pow(2, RASTERIZER_SUBPIXEL_BITS);
-/** @const */ var shrMultiplier = Math.pow(2, -RASTERIZER_SUBPIXEL_BITS);
 
-var toSubpixelCoord = function(v) { return v * shlMultiplier + (v < 0 ? -0.5 : 0.5); };
+goog.scope(function() {
+
+var rrRasterizer = framework.referencerenderer.rrRasterizer;
+var rrRenderState = framework.referencerenderer.rrRenderState;
+
+
+/** @const */ rrRasterizer.RASTERIZER_SUBPIXEL_BITS            = 8;
+/** @const */ rrRasterizer.RASTERIZER_MAX_SAMPLES_PER_FRAGMENT = 16;
+/** @const */ rrRasterizer.shlMultiplier = Math.pow(2, rrRasterizer.RASTERIZER_SUBPIXEL_BITS);
+/** @const */ rrRasterizer.shrMultiplier = Math.pow(2, -rrRasterizer.RASTERIZER_SUBPIXEL_BITS);
+
+rrRasterizer.toSubpixelCoord = function(v) { return v * rrRasterizer.shlMultiplier + (v < 0 ? -0.5 : 0.5); };
 
 
 /**
@@ -43,15 +51,15 @@ var toSubpixelCoord = function(v) { return v * shlMultiplier + (v < 0 ? -0.5 : 0
  * with SUBPIXEL_BITS*2 fractional bits.
  * @constructor
  */
-var EdgeFunction = function(a_, b_, c_, inclusive_) {
+rrRasterizer.EdgeFunction = function(a_, b_, c_, inclusive_) {
     this.a = a_ || 0;
     this.b = b_ || 0;
     this.c = c_ || 0;
     this.inclusive = inclusive_ || false;  //!< True if edge is inclusive according to fill rules.
 };
 
-EdgeFunction.prototype.initEdgeCCW = function(horizontalFill, verticalFill, x0, y0, x1, y1) {
-    // \note See EdgeFunction documentation for details.
+rrRasterizer.EdgeFunction.prototype.initEdgeCCW = function(horizontalFill, verticalFill, x0, y0, x1, y1) {
+    // \note See rrRasterizer.EdgeFunction documentation for details.
 
     var xd          = x1-x0;
     var yd          = y1-y0;
@@ -72,7 +80,7 @@ EdgeFunction.prototype.initEdgeCCW = function(horizontalFill, verticalFill, x0, 
  * @constructor
  * @param {rrRenderState.RasterizationState} state
  */
-var TriangleRasterizer = function(viewport, numSamples, state) {
+rrRasterizer.TriangleRasterizer = function(viewport, numSamples, state) {
     this.m_viewport = viewport;
     this.m_numSamples = numSamples;
     this.m_winding = state.winding;
@@ -88,18 +96,18 @@ var TriangleRasterizer = function(viewport, numSamples, state) {
  * @param {Array<number>} v1 Screen-space coordinates (x, y, z) and 1/w for vertex 1.
  * @param {Array<number>} v2 Screen-space coordinates (x, y, z) and 1/w for vertex 2.
  */
-TriangleRasterizer.prototype.init = function(v0,v1, v2) {
+rrRasterizer.TriangleRasterizer.prototype.init = function(v0,v1, v2) {
     this.m_v0 = v0;
     this.m_v1 = v1;
     this.m_v2 = v2;
 
     // Positions in fixed-point coordinates.
-    var x0      = toSubpixelCoord(v0[0]);
-    var y0      = toSubpixelCoord(v0[1]);
-    var x1      = toSubpixelCoord(v1[0]);
-    var y1      = toSubpixelCoord(v1[1]);
-    var x2      = toSubpixelCoord(v2[0]);
-    var y2      = toSubpixelCoord(v2[1]);
+    var x0      = rrRasterizer.toSubpixelCoord(v0[0]);
+    var y0      = rrRasterizer.toSubpixelCoord(v0[1]);
+    var x1      = rrRasterizer.toSubpixelCoord(v1[0]);
+    var y1      = rrRasterizer.toSubpixelCoord(v1[1]);
+    var x2      = rrRasterizer.toSubpixelCoord(v2[0]);
+    var y2      = rrRasterizer.toSubpixelCoord(v2[1]);
 
     // Initialize edge functions.
     if (this.m_winding == rrRenderState.Winding.CCW)
@@ -154,8 +162,6 @@ TriangleRasterizer.prototype.init = function(v0,v1, v2) {
 };
 
 
-return {
-    TriangleRasterizer: TriangleRasterizer
-};
+
 
 });

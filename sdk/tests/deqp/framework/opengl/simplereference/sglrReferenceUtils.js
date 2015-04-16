@@ -21,26 +21,38 @@
  * \brief Reference context utils
  *//*--------------------------------------------------------------------*/
 
-define([
-    'framework/delibs/debase/deMath',
-    'framework/common/tcuFloat',
-    'framework/referencerenderer/rrGenericVector',
-    'framework/referencerenderer/rrVertexAttrib',
-    'framework/referencerenderer/rrRenderer',
-    'framework/referencerenderer/rrDefs',
-    'framework/referencerenderer/rrShaders',
-    'framework/referencerenderer/rrRenderState',
-    'framework/delibs/debase/deMath'
-    ],
-    function(deMath, tcuFloat, rrGenericVector, rrVertexAttrib, rrRenderer, rrDefs, 
-    	rrShaders, rrRenderState, deMath) {
+'use strict';
+goog.provide('framework.opengl.simplereference.sglrReferenceUtils');
+goog.require('framework.delibs.debase.deMath');
+goog.require('framework.common.tcuFloat');
+goog.require('framework.referencerenderer.rrGenericVector');
+goog.require('framework.referencerenderer.rrVertexAttrib');
+goog.require('framework.referencerenderer.rrRenderer');
+goog.require('framework.referencerenderer.rrDefs');
+goog.require('framework.referencerenderer.rrShaders');
+goog.require('framework.referencerenderer.rrRenderState');
+goog.require('framework.delibs.debase.deMath');
+
+
+goog.scope(function() {
+
+var sglrReferenceUtils = framework.opengl.simplereference.sglrReferenceUtils;
+var deMath = framework.delibs.debase.deMath;
+var tcuFloat = framework.common.tcuFloat;
+var rrGenericVector = framework.referencerenderer.rrGenericVector;
+var rrVertexAttrib = framework.referencerenderer.rrVertexAttrib;
+var rrRenderer = framework.referencerenderer.rrRenderer;
+var rrDefs = framework.referencerenderer.rrDefs;
+var rrShaders = framework.referencerenderer.rrShaders;
+var rrRenderState = framework.referencerenderer.rrRenderState;
+var deMath = framework.delibs.debase.deMath;
 
 /**
  * @param {deMath.deUint32} type
  * @return {rrVertexAttrib.VertexAttribType} 
  * @throws {Error} 
  */
-var mapGLPureIntegerVertexAttributeType = function(/* deUint32 */ type){
+sglrReferenceUtils.mapGLPureIntegerVertexAttributeType = function(/* deUint32 */ type){
 	switch (type)
 	{
 		case gl.UNSIGNED_BYTE:					return rrVertexAttrib.VertexAttribType.PURE_UINT8;
@@ -61,7 +73,7 @@ var mapGLPureIntegerVertexAttributeType = function(/* deUint32 */ type){
  * @return {rrVertexAttrib.VertexAttribType} converted value from type to VertexAttribType
  * @throws {Error} 
  */
-var mapGLFloatVertexAttributeType = function(/* deUint32 */ type, /*bool*/ normalizedInteger, 
+sglrReferenceUtils.mapGLFloatVertexAttributeType = function(/* deUint32 */ type, /*bool*/ normalizedInteger, 
 	/*int*/ size) {
 
 	/** @type{boolean} */ var useClampingNormalization = true;
@@ -149,7 +161,7 @@ var mapGLFloatVertexAttributeType = function(/* deUint32 */ type, /*bool*/ norma
  * @return {number} 
  * @throws {Error} 
  */
-var mapGLSize = function(/*int*/ size) {
+sglrReferenceUtils.mapGLSize = function(/*int*/ size) {
 	switch (size)
 	{
 		case 1:			return 1;
@@ -170,7 +182,7 @@ var mapGLSize = function(/*int*/ size) {
  * @return {rrRenderer.PrimitiveType} 
  * @throws {Error} 
  */
-var mapGLPrimitiveType = function(/*deUint32*/ type){
+sglrReferenceUtils.mapGLPrimitiveType = function(/*deUint32*/ type){
 	switch (type)
 	{
 		case gl.TRIANGLES:					return rrRenderer.PrimitiveType.TRIANGLES;
@@ -197,7 +209,7 @@ var mapGLPrimitiveType = function(/*deUint32*/ type){
  * @return {rrDefs.IndexType} 
  * @throws {Error} 
  */
-var mapGLIndexType = function(/*deUint32*/ type) {
+sglrReferenceUtils.mapGLIndexType = function(/*deUint32*/ type) {
 	switch (type)
 	{
 		case gl.UNSIGNED_BYTE:	return rrDefs.IndexType.INDEXTYPE_UINT8;
@@ -213,7 +225,7 @@ var mapGLIndexType = function(/*deUint32*/ type) {
  * @return {rrShaders.GeometryShaderOutputType} 
  * @throws {Error} 
  */
-var mapGLGeometryShaderOutputType = function(/* deUint32 */ primitive) {
+sglrReferenceUtils.mapGLGeometryShaderOutputType = function(/* deUint32 */ primitive) {
 	switch (primitive) {
 		case gl.POINTS:				return rrShaders.GeometryShaderOutputType.POINTS;
 		case gl.LINE_STRIP:			return rrShaders.GeometryShaderOutputType.LINE_STRIP;
@@ -228,7 +240,7 @@ var mapGLGeometryShaderOutputType = function(/* deUint32 */ primitive) {
  * @return {rrShaders.GeometryShaderInputType} 
  * @throws {Error} 
  */
-var mapGLGeometryShaderInputType = function(/* deUint32 */ primitive) {
+sglrReferenceUtils.mapGLGeometryShaderInputType = function(/* deUint32 */ primitive) {
 	switch (primitive) {
 		case gl.POINTS:						return rrShaders.GeometryShaderInputType.POINTS;
 		case gl.LINES:						return rrShaders.GeometryShaderInputType.LINES;
@@ -251,7 +263,7 @@ var mapGLGeometryShaderInputType = function(/* deUint32 */ primitive) {
  * @return {rrRenderState.TestFunc} 
  * @throws {Error} 
  */
-var mapGLTestFunc = function(/* deUint32 */ func) {
+sglrReferenceUtils.mapGLTestFunc = function(/* deUint32 */ func) {
 	switch (func) {
 		case gl.ALWAYS:		return rrRenderState.TestFunc.ALWAYS;
 		case gl.EQUAL:		return rrRenderState.TestFunc.EQUAL;
@@ -271,7 +283,7 @@ var mapGLTestFunc = function(/* deUint32 */ func) {
  * @return {rrRenderState.StencilOp} 
  * @throws {Error} 
  */
-var mapGLStencilOp = function(/* deUint32 */ op) {
+sglrReferenceUtils.mapGLStencilOp = function(/* deUint32 */ op) {
 	switch (op) {
 		case gl.KEEP:		return rrRenderState.StencilOp.KEEP;
 		case gl.ZERO:		return rrRenderState.StencilOp.ZERO;
@@ -291,7 +303,7 @@ var mapGLStencilOp = function(/* deUint32 */ op) {
  * @return {rrRenderState.BlendEquation} 
  * @throws {Error} 
  */
-var mapGLBlendEquation = function(/* deUint32 */ equation) {
+sglrReferenceUtils.mapGLBlendEquation = function(/* deUint32 */ equation) {
 	switch (equation) {
 		case gl.FUNC_ADD:				return rrRenderState.BlendEquation.ADD;
 		case gl.FUNC_SUBTRACT:			return rrRenderState.BlendEquation.SUBTRACT;
@@ -308,7 +320,7 @@ var mapGLBlendEquation = function(/* deUint32 */ equation) {
  * @return {rrRenderState.BlendEquationAdvanced} 
  * @throws {Error} 
  */
-var mapGLBlendEquationAdvanced = function(/* deUint32 */ equation) {
+sglrReferenceUtils.mapGLBlendEquationAdvanced = function(/* deUint32 */ equation) {
 	switch (equation) {
 		case gl.MULTIPLY_KHR:		return rrRenderState.BlendEquationAdvanced.MULTIPLY;
 		case gl.SCREEN_KHR:			return rrRenderState.BlendEquationAdvanced.SCREEN;
@@ -335,7 +347,7 @@ var mapGLBlendEquationAdvanced = function(/* deUint32 */ equation) {
  * @return {rrRenderState.BlendFunc} 
  * @throws {Error} 
  */
-var mapGLBlendFunc = function(/* deUint32 */ func) {
+sglrReferenceUtils.mapGLBlendFunc = function(/* deUint32 */ func) {
 	switch (func)
 	{
 		case gl.ZERO:						return rrRenderState.BlendFunc.ZERO;
@@ -362,19 +374,6 @@ var mapGLBlendFunc = function(/* deUint32 */ func) {
 	}
 };
 
-return {
-	mapGLPureIntegerVertexAttributeType : mapGLPureIntegerVertexAttributeType,
-	mapGLFloatVertexAttributeType : mapGLFloatVertexAttributeType,
-	mapGLSize : mapGLSize,
-	mapGLPrimitiveType : mapGLPrimitiveType,
-	mapGLIndexType : mapGLIndexType,
-	mapGLGeometryShaderOutputType : mapGLGeometryShaderOutputType,
-	mapGLGeometryShaderInputType : mapGLGeometryShaderInputType,
-	mapGLTestFunc :mapGLTestFunc,
-	mapGLStencilOp : mapGLStencilOp,
-	mapGLBlendEquation : mapGLBlendEquation,
-	mapGLBlendEquationAdvanced : mapGLBlendEquationAdvanced,
-	mapGLBlendFunc : mapGLBlendFunc
-};
+
 
 });

@@ -18,18 +18,22 @@
  *
  */
 
-define(function() {
 'use strict';
+goog.provide('framework.referencerenderer.rrFragmentOperations');
+
+
+goog.scope(function() {
+
+var rrFragmentOperations = framework.referencerenderer.rrFragmentOperations;
+
 
 /**
  * @constructor
  */
-var FragmentProcessor = function() {
+rrFragmentOperations.FragmentProcessor = function() {
     /* TODO: implement */
 };
 
-return {
-    FragmentProcessor: FragmentProcessor
-};
+
 
 });

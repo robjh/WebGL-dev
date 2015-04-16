@@ -20,52 +20,58 @@
 
 
 
-define([
-    'framework/common/tcuTestCase',
-    'framework/opengl/gluShaderProgram',
-    'framework/common/tcuSurface',
-    'framework/delibs/debase/deMath',
-    'framework/delibs/debase/deRandom',
-    'framework/delibs/debase/deString',
-    'framework/common/tcuImageCompare',
-    'framework/opengl/gluTextureUtil'], function(
-        tcuTestCase,
-        gluShaderProgram,
-        tcuSurface,
-        deMath,
-        deRandom,
-        deString,
-        tcuImageCompare,
-        gluTextureUtil) {
-    'use strict';
+'use strict';
+goog.provide('functional.gles3.es3fPrimitiveRestartTests');
+goog.require('framework.common.tcuTestCase');
+goog.require('framework.opengl.gluShaderProgram');
+goog.require('framework.common.tcuSurface');
+goog.require('framework.delibs.debase.deMath');
+goog.require('framework.delibs.debase.deRandom');
+goog.require('framework.delibs.debase.deString');
+goog.require('framework.common.tcuImageCompare');
+goog.require('framework.opengl.gluTextureUtil');
+
+
+goog.scope(function() {
+
+var es3fPrimitiveRestartTests = functional.gles3.es3fPrimitiveRestartTests;
+var tcuTestCase = framework.common.tcuTestCase;
+var gluShaderProgram = framework.opengl.gluShaderProgram;
+var tcuSurface = framework.common.tcuSurface;
+var deMath = framework.delibs.debase.deMath;
+var deRandom = framework.delibs.debase.deRandom;
+var deString = framework.delibs.debase.deString;
+var tcuImageCompare = framework.common.tcuImageCompare;
+var gluTextureUtil = framework.opengl.gluTextureUtil;
+    
     /** @type {WebGL2RenderingContext} */ var gl;
-    /** @const @type {number} */ var MAX_RENDER_WIDTH = 256;
-    /** @const @type {number} */ var MAX_RENDER_HEIGHT = 256;
+    /** @const @type {number} */ es3fPrimitiveRestartTests.MAX_RENDER_WIDTH = 256;
+    /** @const @type {number} */ es3fPrimitiveRestartTests.MAX_RENDER_HEIGHT = 256;
 
-    /** @const @type {number} */ var MAX_UNSIGNED_BYTE = 255;
-    /** @const @type {number} */ var MAX_UNSIGNED_SHORT = 65535;
-    /** @const @type {number} */ var MAX_UNSIGNED_INT = 4294967295;
+    /** @const @type {number} */ es3fPrimitiveRestartTests.MAX_UNSIGNED_BYTE = 255;
+    /** @const @type {number} */ es3fPrimitiveRestartTests.MAX_UNSIGNED_SHORT = 65535;
+    /** @const @type {number} */ es3fPrimitiveRestartTests.MAX_UNSIGNED_INT = 4294967295;
 
-    /** @const @type {number} */ var RESTART_INDEX_UNSIGNED_BYTE = MAX_UNSIGNED_BYTE;
-    /** @const @type {number} */ var RESTART_INDEX_UNSIGNED_SHORT = MAX_UNSIGNED_SHORT;
-    /** @const @type {number} */ var RESTART_INDEX_UNSIGNED_INT = MAX_UNSIGNED_INT;
+    /** @const @type {number} */ es3fPrimitiveRestartTests.RESTART_INDEX_UNSIGNED_BYTE = es3fPrimitiveRestartTests.MAX_UNSIGNED_BYTE;
+    /** @const @type {number} */ es3fPrimitiveRestartTests.RESTART_INDEX_UNSIGNED_SHORT = es3fPrimitiveRestartTests.MAX_UNSIGNED_SHORT;
+    /** @const @type {number} */ es3fPrimitiveRestartTests.RESTART_INDEX_UNSIGNED_INT = es3fPrimitiveRestartTests.MAX_UNSIGNED_INT;
 
     var DE_ASSERT = function(expression) {
         if (!expression) throw new Error('Assert failed');
     };
 
-    var GLU_CHECK_MSG = function(message) {
+    es3fPrimitiveRestartTests.GLU_CHECK_MSG = function(message) {
         console.log(message);
     };
 
-    var TCU_FAIL = function(message) {
+    es3fPrimitiveRestartTests.TCU_FAIL = function(message) {
         throw new Error(message);
     };
 
     /**
-     * @enum PrimitiveType
+     * @enum es3fPrimitiveRestartTests.PrimitiveType
      */
-    var PrimitiveType = {
+    es3fPrimitiveRestartTests.PrimitiveType = {
         PRIMITIVE_POINTS: 0,
         PRIMITIVE_LINE_STRIP: 1,
         PRIMITIVE_LINE_LOOP: 2,
@@ -76,40 +82,40 @@ define([
     };
 
     /**
-     * @enum IndexType
+     * @enum es3fPrimitiveRestartTests.IndexType
      */
-    var IndexType = {
+    es3fPrimitiveRestartTests.IndexType = {
         INDEX_UNSIGNED_BYTE: 0,
         INDEX_UNSIGNED_SHORT: 1,
         INDEX_UNSIGNED_INT: 2
     };
 
     /**
-     * @enum DrawFunction
+     * @enum es3fPrimitiveRestartTests.DrawFunction
      */
-    var DrawFunction = {
+    es3fPrimitiveRestartTests.DrawFunction = {
         FUNCTION_DRAW_ELEMENTS: 0,
         FUNCTION_DRAW_ELEMENTS_INSTANCED: 1,
         FUNCTION_DRAW_RANGE_ELEMENTS: 2
     };
 
     /**
-    * PrimitiveRestartCase class, inherits from TestCase class
+    * es3fPrimitiveRestartTests.PrimitiveRestartCase class, inherits from TestCase class
     * @constructor
     * @param {string} name
     * @param {string} description
-    * @param {PrimitiveType} primType
-    * @param {IndexType} indexType
-    * @param {DrawFunction} function
+    * @param {es3fPrimitiveRestartTests.PrimitiveType} primType
+    * @param {es3fPrimitiveRestartTests.IndexType} indexType
+    * @param {es3fPrimitiveRestartTests.DrawFunction} function
     * @param {boolean} beginWithRestart
     * @param {boolean} endWithRestart
     * @param {boolean} duplicateRestarts
     */
-    var PrimitiveRestartCase = function(name, description, primType, indexType, _function, beginWithRestart, endWithRestart, duplicateRestarts) {
+    es3fPrimitiveRestartTests.PrimitiveRestartCase = function(name, description, primType, indexType, _function, beginWithRestart, endWithRestart, duplicateRestarts) {
         tcuTestCase.DeqpTest.call(this, name, description);
-        /** @type {PrimitiveType} */ this.m_primType = primType;
-        /** @type {IndexType} */ this.m_indexType = indexType;
-        /** @type {DrawFunction} */ this.m_function = _function;
+        /** @type {es3fPrimitiveRestartTests.PrimitiveType} */ this.m_primType = primType;
+        /** @type {es3fPrimitiveRestartTests.IndexType} */ this.m_indexType = indexType;
+        /** @type {es3fPrimitiveRestartTests.DrawFunction} */ this.m_function = _function;
         /** @type {boolean} */ this.m_beginWithRestart = beginWithRestart; // Whether there will be restart indices at the beginning of the index array.
         /** @type {boolean} */ this.m_endWithRestart = endWithRestart; // Whether there will be restart indices at the end of the index array.
         /** @type {boolean} */ this.m_duplicateRestarts = duplicateRestarts; // Whether two consecutive restarts are used instead of one.
@@ -123,37 +129,37 @@ define([
         /** @type {Array<number>} */ this.m_positions = [];
     };
 
-    PrimitiveRestartCase.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
-    PrimitiveRestartCase.prototype.constructor = PrimitiveRestartCase;
+    es3fPrimitiveRestartTests.PrimitiveRestartCase.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
+    es3fPrimitiveRestartTests.PrimitiveRestartCase.prototype.constructor = es3fPrimitiveRestartTests.PrimitiveRestartCase;
 
     /**
     * Draw with the appropriate GLES3 draw function.
     * @param {number} startNdx
     * @param {number} count
     */
-    PrimitiveRestartCase.prototype.draw = function(startNdx, count) {
-        /** @type {PrimitiveType} */ var primTypeGL;
+    es3fPrimitiveRestartTests.PrimitiveRestartCase.prototype.draw = function(startNdx, count) {
+        /** @type {es3fPrimitiveRestartTests.PrimitiveType} */ var primTypeGL;
 
         switch (this.m_primType) {
-            case PrimitiveType.PRIMITIVE_POINTS:
+            case es3fPrimitiveRestartTests.PrimitiveType.PRIMITIVE_POINTS:
                 primTypeGL = gl.POINTS;
                 break;
-            case PrimitiveType.PRIMITIVE_LINE_STRIP:
+            case es3fPrimitiveRestartTests.PrimitiveType.PRIMITIVE_LINE_STRIP:
                 primTypeGL = gl.LINE_STRIP;
                 break;
-            case PrimitiveType.PRIMITIVE_LINE_LOOP:
+            case es3fPrimitiveRestartTests.PrimitiveType.PRIMITIVE_LINE_LOOP:
                 primTypeGL = gl.LINE_LOOP;
                 break;
-            case PrimitiveType.PRIMITIVE_LINES:
+            case es3fPrimitiveRestartTests.PrimitiveType.PRIMITIVE_LINES:
                 primTypeGL = gl.LINES;
                 break;
-            case PrimitiveType.PRIMITIVE_TRIANGLE_STRIP:
+            case es3fPrimitiveRestartTests.PrimitiveType.PRIMITIVE_TRIANGLE_STRIP:
                 primTypeGL = gl.TRIANGLE_STRIP;
                 break;
-            case PrimitiveType.PRIMITIVE_TRIANGLE_FAN:
+            case es3fPrimitiveRestartTests.PrimitiveType.PRIMITIVE_TRIANGLE_FAN:
                 primTypeGL = gl.TRIANGLE_FAN;
                 break;
-            case PrimitiveType.PRIMITIVE_TRIANGLES:
+            case es3fPrimitiveRestartTests.PrimitiveType.PRIMITIVE_TRIANGLES:
                 primTypeGL = gl.TRIANGLES;
                 break;
             default:
@@ -161,16 +167,16 @@ define([
                 primTypeGL = 0;
         }
 
-        /** @type {IndexType} */ var indexTypeGL;
+        /** @type {es3fPrimitiveRestartTests.IndexType} */ var indexTypeGL;
 
         switch (this.m_indexType) {
-            case IndexType.INDEX_UNSIGNED_BYTE:
+            case es3fPrimitiveRestartTests.IndexType.INDEX_UNSIGNED_BYTE:
                 indexTypeGL = gl.UNSIGNED_BYTE;
                 break;
-            case IndexType.INDEX_UNSIGNED_SHORT:
+            case es3fPrimitiveRestartTests.IndexType.INDEX_UNSIGNED_SHORT:
                 indexTypeGL = gl.UNSIGNED_SHORT;
                 break;
-            case IndexType.INDEX_UNSIGNED_INT:
+            case es3fPrimitiveRestartTests.IndexType.INDEX_UNSIGNED_INT:
                 indexTypeGL = gl.UNSIGNED_INT;
                 break;
             default:
@@ -178,9 +184,9 @@ define([
                 indexTypeGL = 0;
         }
 
-        /** @type {number} */ var restartIndex = this.m_indexType == IndexType.INDEX_UNSIGNED_BYTE ? RESTART_INDEX_UNSIGNED_BYTE :
-                                                   this.m_indexType == IndexType.INDEX_UNSIGNED_SHORT ? RESTART_INDEX_UNSIGNED_SHORT :
-                                                   this.m_indexType == IndexType.INDEX_UNSIGNED_INT ? RESTART_INDEX_UNSIGNED_INT :
+        /** @type {number} */ var restartIndex = this.m_indexType == es3fPrimitiveRestartTests.IndexType.INDEX_UNSIGNED_BYTE ? es3fPrimitiveRestartTests.RESTART_INDEX_UNSIGNED_BYTE :
+                                                   this.m_indexType == es3fPrimitiveRestartTests.IndexType.INDEX_UNSIGNED_SHORT ? es3fPrimitiveRestartTests.RESTART_INDEX_UNSIGNED_SHORT :
+                                                   this.m_indexType == es3fPrimitiveRestartTests.IndexType.INDEX_UNSIGNED_INT ? es3fPrimitiveRestartTests.RESTART_INDEX_UNSIGNED_INT :
                                                    0;
 
         DE_ASSERT(restartIndex != 0);
@@ -190,15 +196,15 @@ define([
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexGLBuffer);
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, bufferIndex, gl.STATIC_DRAW);
 
-        if (this.m_function == DrawFunction.FUNCTION_DRAW_ELEMENTS) {
+        if (this.m_function == es3fPrimitiveRestartTests.DrawFunction.FUNCTION_DRAW_ELEMENTS) {
             gl.drawElements(primTypeGL, count - 1, indexTypeGL, 0);
         }
-        else if (this.m_function == DrawFunction.FUNCTION_DRAW_ELEMENTS_INSTANCED) {
+        else if (this.m_function == es3fPrimitiveRestartTests.DrawFunction.FUNCTION_DRAW_ELEMENTS_INSTANCED) {
             gl.drawElementsInstanced(primTypeGL, count, indexTypeGL, 0, 1);
         }
 
         else {
-            DE_ASSERT(this.m_function == DrawFunction.FUNCTION_DRAW_RANGE_ELEMENTS);
+            DE_ASSERT(this.m_function == es3fPrimitiveRestartTests.DrawFunction.FUNCTION_DRAW_RANGE_ELEMENTS);
 
             // Find the largest non-restart index in the index array (for glDrawRangeElements() end parameter).
 
@@ -215,37 +221,37 @@ define([
         }
     };
 
-    PrimitiveRestartCase.prototype.renderWithRestart = function() {
-        GLU_CHECK_MSG('renderWithRestart() begin');
+    es3fPrimitiveRestartTests.PrimitiveRestartCase.prototype.renderWithRestart = function() {
+        es3fPrimitiveRestartTests.GLU_CHECK_MSG('renderWithRestart() begin');
 
         // Primitive Restart is always on in WebGL2
         //gl.enable(gl.PRIMITIVE_RESTART_FIXED_INDEX);
-        //GLU_CHECK_MSG('Enable primitive restart');
+        //es3fPrimitiveRestartTests.GLU_CHECK_MSG('Enable primitive restart');
 
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
-        GLU_CHECK_MSG('Clear in renderWithRestart()');
+        es3fPrimitiveRestartTests.GLU_CHECK_MSG('Clear in renderWithRestart()');
 
         this.draw(0, this.getNumIndices());
-        GLU_CHECK_MSG('Draw in renderWithRestart()');
+        es3fPrimitiveRestartTests.GLU_CHECK_MSG('Draw in renderWithRestart()');
 
-        GLU_CHECK_MSG('renderWithRestart() end');
+        es3fPrimitiveRestartTests.GLU_CHECK_MSG('renderWithRestart() end');
     };
 
-    PrimitiveRestartCase.prototype.renderWithoutRestart = function() {
-        GLU_CHECK_MSG('renderWithoutRestart() begin');
+    es3fPrimitiveRestartTests.PrimitiveRestartCase.prototype.renderWithoutRestart = function() {
+        es3fPrimitiveRestartTests.GLU_CHECK_MSG('renderWithoutRestart() begin');
 
-        /** @type {number} */ var restartIndex = this.m_indexType == IndexType.INDEX_UNSIGNED_BYTE ? RESTART_INDEX_UNSIGNED_BYTE :
-                                                 this.m_indexType == IndexType.INDEX_UNSIGNED_SHORT ? RESTART_INDEX_UNSIGNED_SHORT :
-                                                 this.m_indexType == IndexType.INDEX_UNSIGNED_INT ? RESTART_INDEX_UNSIGNED_INT :
+        /** @type {number} */ var restartIndex = this.m_indexType == es3fPrimitiveRestartTests.IndexType.INDEX_UNSIGNED_BYTE ? es3fPrimitiveRestartTests.RESTART_INDEX_UNSIGNED_BYTE :
+                                                 this.m_indexType == es3fPrimitiveRestartTests.IndexType.INDEX_UNSIGNED_SHORT ? es3fPrimitiveRestartTests.RESTART_INDEX_UNSIGNED_SHORT :
+                                                 this.m_indexType == es3fPrimitiveRestartTests.IndexType.INDEX_UNSIGNED_INT ? es3fPrimitiveRestartTests.RESTART_INDEX_UNSIGNED_INT :
                                                  0;
 
         DE_ASSERT(restartIndex != 0);
         // Primitive Restart is always on in WebGL2
         //gl.disable(gl.PRIMITIVE_RESTART_FIXED_INDEX);
-        //GLU_CHECK_MSG('Disable primitive restart');
+        //es3fPrimitiveRestartTests.GLU_CHECK_MSG('Disable primitive restart');
 
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
-        GLU_CHECK_MSG('Clear in renderWithoutRestart()');
+        es3fPrimitiveRestartTests.GLU_CHECK_MSG('Clear in renderWithoutRestart()');
 
         // Draw, emulating primitive restart.
 
@@ -261,30 +267,30 @@ define([
                     // Draw from index indexArrayStartNdx to index indexArrayNdx-1 .
 
                     this.draw(indexArrayStartNdx, indexArrayNdx - indexArrayStartNdx);
-                    GLU_CHECK_MSG('Draw in renderWithoutRestart()');
+                    es3fPrimitiveRestartTests.GLU_CHECK_MSG('Draw in renderWithoutRestart()');
                 }
 
                 indexArrayStartNdx = indexArrayNdx + 1; // Next draw starts just after this restart index.
             }
         }
 
-        GLU_CHECK_MSG('renderWithoutRestart() end');
+        es3fPrimitiveRestartTests.GLU_CHECK_MSG('renderWithoutRestart() end');
     };
 
     /**
     * @param {number} index
     */
-    PrimitiveRestartCase.prototype.addIndex = function(index) {
-        if (this.m_indexType == IndexType.INDEX_UNSIGNED_BYTE) {
-            DE_ASSERT(deMath.deInRange32(index, 0, MAX_UNSIGNED_BYTE));
+    es3fPrimitiveRestartTests.PrimitiveRestartCase.prototype.addIndex = function(index) {
+        if (this.m_indexType == es3fPrimitiveRestartTests.IndexType.INDEX_UNSIGNED_BYTE) {
+            DE_ASSERT(deMath.deInRange32(index, 0, es3fPrimitiveRestartTests.MAX_UNSIGNED_BYTE));
             this.m_indicesUB.push(index); // deUint8
         }
-        else if (this.m_indexType == IndexType.INDEX_UNSIGNED_SHORT) {
-            DE_ASSERT(deMath.deInRange32(index, 0, MAX_UNSIGNED_SHORT));
+        else if (this.m_indexType == es3fPrimitiveRestartTests.IndexType.INDEX_UNSIGNED_SHORT) {
+            DE_ASSERT(deMath.deInRange32(index, 0, es3fPrimitiveRestartTests.MAX_UNSIGNED_SHORT));
             this.m_indicesUS.push(index); // deUint16
         }
-        else if (this.m_indexType == IndexType.INDEX_UNSIGNED_INT) {
-            DE_ASSERT(deMath.deInRange32(index, 0, MAX_UNSIGNED_INT));
+        else if (this.m_indexType == es3fPrimitiveRestartTests.IndexType.INDEX_UNSIGNED_INT) {
+            DE_ASSERT(deMath.deInRange32(index, 0, es3fPrimitiveRestartTests.MAX_UNSIGNED_INT));
             this.m_indicesUI.push(index); // // deUint32
         }
         else
@@ -295,13 +301,13 @@ define([
     * @param {number} indexNdx
     * @return {number}
     */
-    PrimitiveRestartCase.prototype.getIndex = function(indexNdx) {
+    es3fPrimitiveRestartTests.PrimitiveRestartCase.prototype.getIndex = function(indexNdx) {
         switch (this.m_indexType) {
-            case IndexType.INDEX_UNSIGNED_BYTE:
+            case es3fPrimitiveRestartTests.IndexType.INDEX_UNSIGNED_BYTE:
                 return this.m_indicesUB[indexNdx]; //deUint32
-            case IndexType.INDEX_UNSIGNED_SHORT:
+            case es3fPrimitiveRestartTests.IndexType.INDEX_UNSIGNED_SHORT:
                 return this.m_indicesUS[indexNdx]; //deUint32
-            case IndexType.INDEX_UNSIGNED_INT:
+            case es3fPrimitiveRestartTests.IndexType.INDEX_UNSIGNED_INT:
                 return this.m_indicesUI[indexNdx];
             default:
                 DE_ASSERT(false);
@@ -312,13 +318,13 @@ define([
     /**
     * @return {number}
     */
-    PrimitiveRestartCase.prototype.getNumIndices = function() {
+    es3fPrimitiveRestartTests.PrimitiveRestartCase.prototype.getNumIndices = function() {
         switch (this.m_indexType) {
-            case IndexType.INDEX_UNSIGNED_BYTE:
+            case es3fPrimitiveRestartTests.IndexType.INDEX_UNSIGNED_BYTE:
                 return this.m_indicesUB.length;
-            case IndexType.INDEX_UNSIGNED_SHORT:
+            case es3fPrimitiveRestartTests.IndexType.INDEX_UNSIGNED_SHORT:
                 return this.m_indicesUS.length;
-            case IndexType.INDEX_UNSIGNED_INT:
+            case es3fPrimitiveRestartTests.IndexType.INDEX_UNSIGNED_INT:
                 return this.m_indicesUI.length;
             default:
                 DE_ASSERT(false);
@@ -331,14 +337,14 @@ define([
     * @param {number} indexNdx
     * @return {Uint8Array|Uint16Array|Uint32}
     */
-    PrimitiveRestartCase.prototype.getIndexPtr = function(indexNdx) {
+    es3fPrimitiveRestartTests.PrimitiveRestartCase.prototype.getIndexPtr = function(indexNdx) {
         //TODO: implement
         switch (this.m_indexType) {
-            case IndexType.INDEX_UNSIGNED_BYTE:
+            case es3fPrimitiveRestartTests.IndexType.INDEX_UNSIGNED_BYTE:
                 return new Uint8Array(this.m_indicesUB).subarray(indexNdx);
-            case IndexType.INDEX_UNSIGNED_SHORT:
+            case es3fPrimitiveRestartTests.IndexType.INDEX_UNSIGNED_SHORT:
                 return new Uint16Array(this.m_indicesUS).subarray(indexNdx);
-            case IndexType.INDEX_UNSIGNED_INT:
+            case es3fPrimitiveRestartTests.IndexType.INDEX_UNSIGNED_INT:
                 return new Uint32Array(this.m_indicesUI).subarray(indexNdx);
             default:
                 DE_ASSERT(false);
@@ -346,7 +352,7 @@ define([
         }
     };
 
-    PrimitiveRestartCase.prototype.init = function() {
+    es3fPrimitiveRestartTests.PrimitiveRestartCase.prototype.init = function() {
         // Clear errors from previous tests
         gl.getError();
 
@@ -376,12 +382,12 @@ define([
 
         if (!this.m_program.isOk()) {
             //m_testCtx.getLog() << *this.m_program;
-            TCU_FAIL('Failed to compile shader');
+            es3fPrimitiveRestartTests.TCU_FAIL('Failed to compile shader');
         }
 
-        /** @type {number} */ var restartIndex = this.m_indexType == IndexType.INDEX_UNSIGNED_BYTE ? RESTART_INDEX_UNSIGNED_BYTE :
-                                                 this.m_indexType == IndexType.INDEX_UNSIGNED_SHORT ? RESTART_INDEX_UNSIGNED_SHORT :
-                                                 this.m_indexType == IndexType.INDEX_UNSIGNED_INT ? RESTART_INDEX_UNSIGNED_INT :
+        /** @type {number} */ var restartIndex = this.m_indexType == es3fPrimitiveRestartTests.IndexType.INDEX_UNSIGNED_BYTE ? es3fPrimitiveRestartTests.RESTART_INDEX_UNSIGNED_BYTE :
+                                                 this.m_indexType == es3fPrimitiveRestartTests.IndexType.INDEX_UNSIGNED_SHORT ? es3fPrimitiveRestartTests.RESTART_INDEX_UNSIGNED_SHORT :
+                                                 this.m_indexType == es3fPrimitiveRestartTests.IndexType.INDEX_UNSIGNED_INT ? es3fPrimitiveRestartTests.RESTART_INDEX_UNSIGNED_INT :
                                                  0;
 
         DE_ASSERT(restartIndex != 0);
@@ -408,7 +414,7 @@ define([
         /** @type {number} */ var numArcVertices;
         /** @type {number} */ var numStrips;
 
-        if (this.m_primType == PrimitiveType.PRIMITIVE_POINTS) {
+        if (this.m_primType == es3fPrimitiveRestartTests.PrimitiveType.PRIMITIVE_POINTS) {
             // Generate rows with different numbers of points.
 
             curIndex = 0;
@@ -432,7 +438,7 @@ define([
                 }
             }
         }
-        else if (this.m_primType == PrimitiveType.PRIMITIVE_LINE_STRIP || this.m_primType == PrimitiveType.PRIMITIVE_LINE_LOOP || this.m_primType == PrimitiveType.PRIMITIVE_LINES) {
+        else if (this.m_primType == es3fPrimitiveRestartTests.PrimitiveType.PRIMITIVE_LINE_STRIP || this.m_primType == es3fPrimitiveRestartTests.PrimitiveType.PRIMITIVE_LINE_LOOP || this.m_primType == es3fPrimitiveRestartTests.PrimitiveType.PRIMITIVE_LINES) {
             // Generate a numRows x numCols arrangement of line polygons of different vertex counts.
 
             curIndex = 0;
@@ -464,7 +470,7 @@ define([
                 }
             }
         }
-        else if (this.m_primType == PrimitiveType.PRIMITIVE_TRIANGLE_STRIP) {
+        else if (this.m_primType == es3fPrimitiveRestartTests.PrimitiveType.PRIMITIVE_TRIANGLE_STRIP) {
             // Generate a number of horizontal triangle strips of different lengths.
 
             curIndex = 0;
@@ -490,7 +496,7 @@ define([
                 }
             }
         }
-        else if (this.m_primType == PrimitiveType.PRIMITIVE_TRIANGLE_FAN)
+        else if (this.m_primType == es3fPrimitiveRestartTests.PrimitiveType.PRIMITIVE_TRIANGLE_FAN)
         {
             // Generate a numRows x numCols arrangement of triangle fan polygons of different vertex counts.
 
@@ -528,7 +534,7 @@ define([
                 }
             }
         }
-        else if (this.m_primType == PrimitiveType.PRIMITIVE_TRIANGLES) {
+        else if (this.m_primType == es3fPrimitiveRestartTests.PrimitiveType.PRIMITIVE_TRIANGLES) {
             // Generate a number of rows with (potentially incomplete) triangles.
 
             curIndex = 0;
@@ -578,9 +584,9 @@ define([
 
     };
 
-    PrimitiveRestartCase.prototype.iterate = function() {
-        /** @type {number} */ var width = Math.min(gl.drawingBufferWidth, MAX_RENDER_WIDTH);
-        /** @type {number} */ var height = Math.min(gl.drawingBufferHeight, MAX_RENDER_HEIGHT);
+    es3fPrimitiveRestartTests.PrimitiveRestartCase.prototype.iterate = function() {
+        /** @type {number} */ var width = Math.min(gl.drawingBufferWidth, es3fPrimitiveRestartTests.MAX_RENDER_WIDTH);
+        /** @type {number} */ var height = Math.min(gl.drawingBufferHeight, es3fPrimitiveRestartTests.MAX_RENDER_HEIGHT);
 
         /** @type {number} */ var xOffsetMax = gl.drawingBufferWidth - width;
         /** @type {number} */ var yOffsetMax = gl.drawingBufferHeight - height;
@@ -633,7 +639,7 @@ define([
     };
 
 
-    var init = function() {
+    es3fPrimitiveRestartTests.init = function() {
         var testGroup = tcuTestCase.runner.getState().testCases;
         for (var isRestartBeginCaseI = 0; isRestartBeginCaseI <= 1; isRestartBeginCaseI++) {
             for (var isRestartEndCaseI = 0; isRestartEndCaseI <= 1; isRestartEndCaseI++) {
@@ -654,25 +660,25 @@ define([
                     /** @type {TestCaseGroup} */ var specialCaseGroup = new tcuTestCase.newTest(specialCaseGroupName, '');
                     testGroup.addChild(specialCaseGroup);
 
-                    for (var primType in PrimitiveType) {
-                        /** @type {string} */ var primTypeName = PrimitiveType[primType] == PrimitiveType.PRIMITIVE_POINTS ? 'points' :
-                                                                 PrimitiveType[primType] == PrimitiveType.PRIMITIVE_LINE_STRIP ? 'line_strip' :
-                                                                 PrimitiveType[primType] == PrimitiveType.PRIMITIVE_LINE_LOOP ? 'line_loop' :
-                                                                 PrimitiveType[primType] == PrimitiveType.PRIMITIVE_LINES ? 'lines' :
-                                                                 PrimitiveType[primType] == PrimitiveType.PRIMITIVE_TRIANGLE_STRIP ? 'triangle_strip' :
-                                                                 PrimitiveType[primType] == PrimitiveType.PRIMITIVE_TRIANGLE_FAN ? 'triangle_fan' :
-                                                                 PrimitiveType[primType] == PrimitiveType.PRIMITIVE_TRIANGLES ? 'triangles' :
+                    for (var primType in es3fPrimitiveRestartTests.PrimitiveType) {
+                        /** @type {string} */ var primTypeName = es3fPrimitiveRestartTests.PrimitiveType[primType] == es3fPrimitiveRestartTests.PrimitiveType.PRIMITIVE_POINTS ? 'points' :
+                                                                 es3fPrimitiveRestartTests.PrimitiveType[primType] == es3fPrimitiveRestartTests.PrimitiveType.PRIMITIVE_LINE_STRIP ? 'line_strip' :
+                                                                 es3fPrimitiveRestartTests.PrimitiveType[primType] == es3fPrimitiveRestartTests.PrimitiveType.PRIMITIVE_LINE_LOOP ? 'line_loop' :
+                                                                 es3fPrimitiveRestartTests.PrimitiveType[primType] == es3fPrimitiveRestartTests.PrimitiveType.PRIMITIVE_LINES ? 'lines' :
+                                                                 es3fPrimitiveRestartTests.PrimitiveType[primType] == es3fPrimitiveRestartTests.PrimitiveType.PRIMITIVE_TRIANGLE_STRIP ? 'triangle_strip' :
+                                                                 es3fPrimitiveRestartTests.PrimitiveType[primType] == es3fPrimitiveRestartTests.PrimitiveType.PRIMITIVE_TRIANGLE_FAN ? 'triangle_fan' :
+                                                                 es3fPrimitiveRestartTests.PrimitiveType[primType] == es3fPrimitiveRestartTests.PrimitiveType.PRIMITIVE_TRIANGLES ? 'triangles' :
                                                                  null;
 
                         DE_ASSERT(primTypeName != null);
 
-                        /** @type {TestCaseGroup} */ var primTypeGroup = new tcuTestCase.newTest(PrimitiveType[primType], '');
+                        /** @type {TestCaseGroup} */ var primTypeGroup = new tcuTestCase.newTest(es3fPrimitiveRestartTests.PrimitiveType[primType], '');
                         specialCaseGroup.addChild(primTypeGroup);
 
-                        for (var indexType in IndexType) {
-                            /** @type {string} */ var indexTypeName = IndexType[indexType] == IndexType.INDEX_UNSIGNED_BYTE ? 'unsigned_byte' :
-                                                                      IndexType[indexType] == IndexType.INDEX_UNSIGNED_SHORT ? 'unsigned_short' :
-                                                                      IndexType[indexType] == IndexType.INDEX_UNSIGNED_INT ? 'unsigned_int' :
+                        for (var indexType in es3fPrimitiveRestartTests.IndexType) {
+                            /** @type {string} */ var indexTypeName = es3fPrimitiveRestartTests.IndexType[indexType] == es3fPrimitiveRestartTests.IndexType.INDEX_UNSIGNED_BYTE ? 'unsigned_byte' :
+                                                                      es3fPrimitiveRestartTests.IndexType[indexType] == es3fPrimitiveRestartTests.IndexType.INDEX_UNSIGNED_SHORT ? 'unsigned_short' :
+                                                                      es3fPrimitiveRestartTests.IndexType[indexType] == es3fPrimitiveRestartTests.IndexType.INDEX_UNSIGNED_INT ? 'unsigned_int' :
                                                                       null;
 
                             DE_ASSERT(indexTypeName != null);
@@ -680,19 +686,19 @@ define([
                             /** @type {TestCaseGroup} */ var indexTypeGroup = new tcuTestCase.newTest(indexTypeName, '');
                             primTypeGroup.addChild(indexTypeGroup);
 
-                            for (var _function in DrawFunction) {
-                                /** @type {string} */ var functionName = DrawFunction[_function] == DrawFunction.FUNCTION_DRAW_ELEMENTS ? 'draw_elements' :
-                                                                         DrawFunction[_function] == DrawFunction.FUNCTION_DRAW_ELEMENTS_INSTANCED ? 'draw_elements_instanced' :
-                                                                         DrawFunction[_function] == DrawFunction.FUNCTION_DRAW_RANGE_ELEMENTS ? 'draw_range_elements' :
+                            for (var _function in es3fPrimitiveRestartTests.DrawFunction) {
+                                /** @type {string} */ var functionName = es3fPrimitiveRestartTests.DrawFunction[_function] == es3fPrimitiveRestartTests.DrawFunction.FUNCTION_DRAW_ELEMENTS ? 'draw_elements' :
+                                                                         es3fPrimitiveRestartTests.DrawFunction[_function] == es3fPrimitiveRestartTests.DrawFunction.FUNCTION_DRAW_ELEMENTS_INSTANCED ? 'draw_elements_instanced' :
+                                                                         es3fPrimitiveRestartTests.DrawFunction[_function] == es3fPrimitiveRestartTests.DrawFunction.FUNCTION_DRAW_RANGE_ELEMENTS ? 'draw_range_elements' :
                                                                          null;
 
                                 DE_ASSERT(functionName != null);
 
-                                indexTypeGroup.addChild(new PrimitiveRestartCase(functionName,
+                                indexTypeGroup.addChild(new es3fPrimitiveRestartTests.PrimitiveRestartCase(functionName,
                                                                                  '',
-                                                                                 PrimitiveType[primType],
-                                                                                 IndexType[indexType],
-                                                                                 DrawFunction[_function],
+                                                                                 es3fPrimitiveRestartTests.PrimitiveType[primType],
+                                                                                 es3fPrimitiveRestartTests.IndexType[indexType],
+                                                                                 es3fPrimitiveRestartTests.DrawFunction[_function],
                                                                                  isRestartBeginCase,
                                                                                  isRestartEndCase,
                                                                                  isDuplicateRestartCase));
@@ -704,7 +710,7 @@ define([
         }
     };
 
-    var run = function(context) {
+    es3fPrimitiveRestartTests.run = function(context) {
         gl = context;
         //Set up Test Root parameters
         var testName = 'primitive_restart';
@@ -720,18 +726,16 @@ define([
 
         try {
             //Create test cases
-            init();
+            es3fPrimitiveRestartTests.init();
             //Run test cases
             tcuTestCase.runTestCases();
         }
         catch (err) {
-            testFailedOptions('Failed to run tests', false);
+            testFailedOptions('Failed to es3fPrimitiveRestartTests.run tests', false);
             tcuTestCase.runner.terminate();
         }
     };
 
 
-    return {
-        run: run
-    };
+    
 });

@@ -18,7 +18,19 @@
  *
  */
 
-define(['framework/common/tcuTexture', 'framework/delibs/debase/deMath', "framework/common/tcuTextureUtil" ], function(tcuTexture, deMath, tcuTextureUtil) {
+'use strict';
+goog.provide('framework.referencerenderer.rrMultisamplePixelBufferAccess');
+goog.require('framework.common.tcuTexture');
+goog.require('framework.delibs.debase.deMath');
+goog.require('framework.common.tcuTextureUtil');
+
+
+goog.scope(function() {
+
+var rrMultisamplePixelBufferAccess = framework.referencerenderer.rrMultisamplePixelBufferAccess;
+var tcuTexture = framework.common.tcuTexture;
+var deMath = framework.delibs.debase.deMath;
+var tcuTextureUtil = framework.common.tcuTextureUtil;
 
 var DE_ASSERT = function(x) {
     if (!x)
@@ -34,17 +46,17 @@ var DE_ASSERT = function(x) {
  * with PixelBufferAccess.
  * @constructor
  */
-var MultisamplePixelBufferAccess = function(rawAccess) {
+rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess = function(rawAccess) {
     this.m_access = rawAccess || new tcuTexture.PixelBufferAccess({
                                             width: 0,
                                             height: 0});
 };
 
-MultisamplePixelBufferAccess.prototype.raw = function() { return this.m_access; };
-MultisamplePixelBufferAccess.prototype.isEmpty = function() { return this.m_access.isEmpty(); };
-MultisamplePixelBufferAccess.prototype.getNumSamples = function() { return this.raw().getWidth(); };
+rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.prototype.raw = function() { return this.m_access; };
+rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.prototype.isEmpty = function() { return this.m_access.isEmpty(); };
+rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.prototype.getNumSamples = function() { return this.raw().getWidth(); };
 
-MultisamplePixelBufferAccess.prototype.toSinglesampleAccess = function() {
+rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.prototype.toSinglesampleAccess = function() {
     DE_ASSERT(this.getNumSamples() == 1);
 
     return new tcuTexture.PixelBufferAccess({
@@ -57,8 +69,8 @@ MultisamplePixelBufferAccess.prototype.toSinglesampleAccess = function() {
                                   data: this.m_access.m_data});
 };
 
-MultisamplePixelBufferAccess.fromSinglesampleAccess = function(original) {
-    return new MultisamplePixelBufferAccess(
+rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.fromSinglesampleAccess = function(original) {
+    return new rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess(
                 new tcuTexture.PixelBufferAccess({
                                 format: original.getFormat(),
                                 width: 1,
@@ -69,30 +81,30 @@ MultisamplePixelBufferAccess.fromSinglesampleAccess = function(original) {
                                 data: original.m_data}));
 };
 
-MultisamplePixelBufferAccess.fromMultisampleAccess = function(multisampledAccess) {
-    return new MultisamplePixelBufferAccess(multisampledAccess);
+rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.fromMultisampleAccess = function(multisampledAccess) {
+    return new rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess(multisampledAccess);
 };
 
-MultisamplePixelBufferAccess.prototype.getSubregion = function(region) {
+rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.prototype.getSubregion = function(region) {
     var x = region[0];
     var y = region[1];
     var width = region[2];
     var height = region[3];
 
-    return MultisamplePixelBufferAccess.fromMultisampleAccess(tcuTextureUtil.getSubregion(this.raw(), 0, x, y, this.getNumSamples(), width, height));
+    return rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.fromMultisampleAccess(tcuTextureUtil.getSubregion(this.raw(), 0, x, y, this.getNumSamples(), width, height));
 };
 
 /**
  * @return {Array<number>} [x, y, width, height]
  */
-MultisamplePixelBufferAccess.prototype.getBufferSize = function() {
+rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.prototype.getBufferSize = function() {
     return [0, 0, this.raw().getHeight(), this.raw().getDepth()];
 }
 
 /**
  * @param {tcuTexture.PixelBufferAccess} dst
  */
-MultisamplePixelBufferAccess.prototype.resolveMultisampleColorBuffer = function(dst) {
+rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.prototype.resolveMultisampleColorBuffer = function(dst) {
     var src = this;
     DE_ASSERT(dst.getWidth() == src.raw().getHeight());
     DE_ASSERT(dst.getHeight() == src.raw().getDepth());
@@ -111,7 +123,7 @@ MultisamplePixelBufferAccess.prototype.resolveMultisampleColorBuffer = function(
     }
 };
 
-MultisamplePixelBufferAccess.prototype.resolveMultisamplePixel = function(x, y) {
+rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.prototype.resolveMultisamplePixel = function(x, y) {
     var sum = [0, 0, 0, 0];
     for (var s = 0; s < this.getNumSamples(); s++)
         sum = deMath.add(sum, this.raw().getPixel(s, x, y));
@@ -122,12 +134,10 @@ MultisamplePixelBufferAccess.prototype.resolveMultisamplePixel = function(x, y) 
     return sum;
 };
 
-MultisamplePixelBufferAccess.prototype.clear = function(color) {
+rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.prototype.clear = function(color) {
     this.raw().clear(color);
 };
 
-return {
-    MultisamplePixelBufferAccess: MultisamplePixelBufferAccess
-};
+
 
 });

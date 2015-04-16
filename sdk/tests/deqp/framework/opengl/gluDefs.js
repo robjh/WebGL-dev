@@ -18,25 +18,31 @@
  *
  */
 
-define([
-    'framework/opengl/gluTextureUtil' ,
-    'framework/common/tcuTexture',
-    'framework/common/tcuCompressedTexture',
-    'framework/delibs/debase/deMath'], function(
-        gluTextureUtil,
-        tcuTexture,
-        tcuCompressedTexture,
-        deMath) {
+'use strict';
+goog.provide('framework.opengl.gluDefs');
+goog.require('framework.opengl.gluTextureUtil');
+goog.require('framework.common.tcuTexture');
+goog.require('framework.common.tcuCompressedTexture');
+goog.require('framework.delibs.debase.deMath');
 
-    'use strict';
 
-    var DE_NULL = null;
+goog.scope(function() {
+
+var gluDefs = framework.opengl.gluDefs;
+var gluTextureUtil = framework.opengl.gluTextureUtil;
+var tcuTexture = framework.common.tcuTexture;
+var tcuCompressedTexture = framework.common.tcuCompressedTexture;
+var deMath = framework.delibs.debase.deMath;
+
+    
+
+    gluDefs.DE_NULL = null;
 
     /**
      * Might be useful.
      * Constant false.
      */
-    var deGetFalse = function() {
+    gluDefs.deGetFalse = function() {
         return false;
     };
 
@@ -44,40 +50,40 @@ define([
      * Might be useful.
      * Constant true.
      */
-    var deGetTrue = function() {
+    gluDefs.deGetTrue = function() {
         return true;
     };
 
     /**
      * @param {string} message
      */
-    var OutOfMemoryError = function(message) {
+    gluDefs.OutOfMemoryError = function(message) {
         this.message = message;
-        this.name = 'OutOfMemoryError';
+        this.name = 'gluDefs.OutOfMemoryError';
     };
 
     /**
      * @param {number} error
      * @param {string} message
      */
-    var Error = function(error, message) {
+    gluDefs.Error = function(error, message) {
         this.message = message;
-        this.name = 'Error ' + error;
+        this.name = 'gluDefs.Error ' + error;
     };
 
     /**
      * @param {WebGLRenderingContext} context
      * @param {string} msg
      */
-    var checkError = function(context, msg) {
-        checkErrorCode(context.getError(), msg);
+    gluDefs.checkError = function(context, msg) {
+        gluDefs.checkErrorCode(context.getError(), msg);
     };
 
     /**
      * @param {deMath.deUint32} err
      * @param {string} msg
      */
-    var checkErrorCode = function(err, msg) {
+    gluDefs.checkErrorCode = function(err, msg) {
         if (err != gl.NO_ERROR)
         {
             /** @type {string} */ var msgStr = '';
@@ -87,22 +93,19 @@ define([
             msgStr += 'gl.getError() returned ' + /*getErrorStr*/(err); //TODO: Check if we'll implement getErrorStr(err)
 
             if (err == gl.OUT_OF_MEMORY)
-                throw new OutOfMemoryError(msgStr);
+                throw new gluDefs.OutOfMemoryError(msgStr);
             else
-                throw new Error(err, msgStr);
+                throw new gluDefs.Error(err, msgStr);
         }
     };
 
     // Functions for checking API errors.
-    var GLU_EXPECT_NO_ERROR = function(ERR, MSG)   {checkErrorCode(ERR, MSG)};
-    var GLU_CHECK_ERROR = function(ERR)            {GLU_EXPECT_NO_ERROR(ERR, DE_NULL)};
-    var GLU_CHECK_MSG = function(MSG)              {GLU_EXPECT_NO_ERROR(function() {return gl.getError();}, MSG)};
-    var GLU_CHECK = function()                     {GLU_CHECK_MSG(DE_NULL)};
-    var GLU_CHECK_CALL_ERROR = function(CALL, ERR) {CALL(); GLU_EXPECT_NO_ERROR(ERR, CALL.toString()); };
-    var GLU_CHECK_CALL = function(CALL)            {CALL(); GLU_EXPECT_NO_ERROR(function() {return gl.getError();}, CALL.toString()); };
+    gluDefs.GLU_EXPECT_NO_ERROR = function(ERR, MSG)   {gluDefs.checkErrorCode(ERR, MSG)};
+    gluDefs.GLU_CHECK_ERROR = function(ERR)            {gluDefs.GLU_EXPECT_NO_ERROR(ERR, gluDefs.DE_NULL)};
+    gluDefs.GLU_CHECK_MSG = function(MSG)              {gluDefs.GLU_EXPECT_NO_ERROR(function() {return gl.getError();}, MSG)};
+    gluDefs.GLU_CHECK = function()                     {gluDefs.GLU_CHECK_MSG(gluDefs.DE_NULL)};
+    gluDefs.GLU_CHECK_CALL_ERROR = function(CALL, ERR) {CALL(); gluDefs.GLU_EXPECT_NO_ERROR(ERR, CALL.toString()); };
+    gluDefs.GLU_CHECK_CALL = function(CALL)            {CALL(); gluDefs.GLU_EXPECT_NO_ERROR(function() {return gl.getError();}, CALL.toString()); };
 
-    return {
-        GLU_CHECK_CALL: GLU_CHECK_CALL,
-        GLU_EXPECT_NO_ERROR: GLU_EXPECT_NO_ERROR
-    };
+    
 });

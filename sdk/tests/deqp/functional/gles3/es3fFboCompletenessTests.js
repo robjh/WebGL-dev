@@ -1,12 +1,19 @@
 
 // FboCompletenessTests
-define([
-    'modules/shared/glsFboUtil',
-    'modules/shared/glsFboCompletenessTests'
-], function(glsFboUtil, glsFboCompletenessTests) {
-    'use strict';
+'use strict';
+goog.provide('functional.gles3.es3fFboCompletenessTests');
+goog.require('modules.shared.glsFboUtil');
+goog.require('modules.shared.glsFboCompletenessTests');
 
-    var s_es3ColorRenderables = [
+
+goog.scope(function() {
+
+var es3fFboCompletenessTests = functional.gles3.es3fFboCompletenessTests;
+var glsFboUtil = modules.shared.glsFboUtil;
+var glsFboCompletenessTests = modules.shared.glsFboCompletenessTests;
+    
+
+    es3fFboCompletenessTests.s_es3ColorRenderables = [
         // GLES3, 4.4.4: "An internal format is color-renderable if it is one of
         // the formats from table 3.12 noted as color-renderable..."
         gl.R8,     gl.RG8,     gl.RGB8,   gl.RGB565,   gl.RGBA4,   gl.RGB5_A1, gl.RGBA8,
@@ -16,7 +23,7 @@ define([
         gl.RGBA81, gl.RGBA8UI, gl.RGB16I, gl.RGBA16UI, gl.RGBA32I, gl.RGBA32UI
     ];
 
-    var s_es3UnsizedColorRenderables = [
+    es3fFboCompletenessTests.s_es3UnsizedColorRenderables = [
         // "...or if it is unsized format RGBA or RGB."
         // See Table 3.3 in GLES3.
         glsFboUtil.GLS_UNSIZED_FORMATKEY(gl.RGBA,  gl.UNSIGNED_BYTE),
@@ -27,39 +34,39 @@ define([
     ];
 
 
-    var s_es3DepthRenderables = [
+    es3fFboCompletenessTests.s_es3DepthRenderables = [
         // GLES3, 4.4.4: "An internal format is depth-renderable if it is one of
         // the formats from table 3.13."
         gl.DEPTH_COMPONENT16, gl.DEPTH_COMPONENT24, gl.DEPTH_COMPONENT32F,
         gl.DEPTH24_STENCIL8, gl.DEPTH32F_STENCIL8
     ];
 
-    var s_es3StencilRboRenderables = [
+    es3fFboCompletenessTests.s_es3StencilRboRenderables = [
         // GLES3, 4.4.4: "An internal format is stencil-renderable if it is
         // STENCIL_INDEX8..."
         gl.STENCIL_INDEX8
     ];
 
-    var s_es3StencilRenderables = [
+    es3fFboCompletenessTests.s_es3StencilRenderables = [
         // "...or one of the formats from table 3.13 whose base internal format is
         // DEPTH_STENCIL."
         gl.DEPTH24_STENCIL8, gl.DEPTH32F_STENCIL8,
     ];
 
-    var s_es3TextureFloatFormats = [
+    es3fFboCompletenessTests.s_es3TextureFloatFormats = [
         gl.RGBA32F, gl.RGBA16F, gl.R11F_G11F_B10F,
         gl.RG32F,   gl.RG16F,   gl.R32F,  gl.R16F,
         gl.RGBA16F, gl.RGB16F,  gl.RG16F, gl.R16F,
     ];
 
-    var s_es3Formats = [
+    es3fFboCompletenessTests.s_es3Formats = [
         [
             (
                 glsFboUtil.FormatFlags.REQUIRED_RENDERABLE |
                 glsFboUtil.FormatFlags.COLOR_RENDERABLE    |
                 glsFboUtil.FormatFlags.TEXTURE_VALID
             ),
-            s_es3UnsizedColorRenderables
+            es3fFboCompletenessTests.s_es3UnsizedColorRenderables
         ], [
             (
                 glsFboUtil.FormatFlags.REQUIRED_RENDERABLE |
@@ -67,7 +74,7 @@ define([
                 glsFboUtil.FormatFlags.RENDERBUFFER_VALID  |
                 glsFboUtil.FormatFlags.TEXTURE_VALID
             ),
-            s_es3ColorRenderables
+            es3fFboCompletenessTests.s_es3ColorRenderables
         ], [
             (
                 glsFboUtil.FormatFlags.REQUIRED_RENDERABLE |
@@ -75,14 +82,14 @@ define([
                 glsFboUtil.FormatFlags.RENDERBUFFER_VALID  |
                 glsFboUtil.FormatFlags.TEXTURE_VALID
             ),
-            s_es3DepthRenderables
+            es3fFboCompletenessTests.s_es3DepthRenderables
         ], [
             (
                 glsFboUtil.FormatFlags.REQUIRED_RENDERABLE |
                 glsFboUtil.FormatFlags.STENCIL_RENDERABLE  |
                 glsFboUtil.FormatFlags.RENDERBUFFER_VALID
             ),
-            s_es3StencilRboRenderables
+            es3fFboCompletenessTests.s_es3StencilRboRenderables
         ], [
             (
                 glsFboUtil.FormatFlags.REQUIRED_RENDERABLE |
@@ -90,7 +97,7 @@ define([
                 glsFboUtil.FormatFlags.RENDERBUFFER_VALID  |
                 glsFboUtil.FormatFlags.TEXTURE_VALID
             ),
-            s_es3StencilRenderables
+            es3fFboCompletenessTests.s_es3StencilRenderables
         ],
 
         // These are not color-renderable in vanilla ES3, but we need to mark them
@@ -98,39 +105,39 @@ define([
 	    // color-renderability and only renderbuffer-validity.
 	    [
 	        glsFboUtil.FormatFlags.TEXTURE_VALID,
-	        s_es3TextureFloatFormats
+	        es3fFboCompletenessTests.s_es3TextureFloatFormats
 	    ]
 	];
 
 
     // GL_EXT_color_buffer_float
-    var s_extColorBufferFloatFormats = [
+    es3fFboCompletenessTests.s_extColorBufferFloatFormats = [
         gl.RGBA32F, gl.RGBA16F, gl.R11F_G11F_B10F, gl.RG32F, gl.RG16F, gl.R32F, gl.R16F,
     ];
 
     // GL_OES_texture_stencil8
-    var s_extOESTextureStencil8 = [
+    es3fFboCompletenessTests.s_extOESTextureStencil8 = [
         gl.STENCIL_INDEX8,
     ];
 
-    var s_es3ExtFormats = [
+    es3fFboCompletenessTests.s_es3ExtFormats = [
         {
             extensions: 'GL_EXT_color_buffer_float',
             flags:      glsFboUtil.FormatFlags.REQUIRED_RENDERABLE |
                         glsFboUtil.FormatFlags.COLOR_RENDERABLE    |
                         glsFboUtil.FormatFlags.RENDERBUFFER_VALID,
-            formats:    new glsFboUtil.Range({ array: s_extColorBufferFloatFormats })
+            formats:    new glsFboUtil.Range({ array: es3fFboCompletenessTests.s_extColorBufferFloatFormats })
         }, {
             extensions: 'GL_OES_texture_stencil8',
             flags:      glsFboUtil.FormatFlags.REQUIRED_RENDERABLE |
                         glsFboUtil.FormatFlags.STENCIL_RENDERABLE  |
                         glsFboUtil.FormatFlags.TEXTURE_VALID,
-            formats:    new glsFboUtil.Range({ array: s_extOESTextureStencil8 })
+            formats:    new glsFboUtil.Range({ array: es3fFboCompletenessTests.s_extOESTextureStencil8 })
         }
     ];
 
 
-    var ES3Checker = (function(argv) {
+    es3fFboCompletenessTests.ES3Checker = (function(argv) {
         argv = argv || {};
 
         var parent = {
@@ -204,9 +211,9 @@ define([
         });
 
     });
-    ES3Checker.prototype = new glsFboUtil.Checker({dont_construct: true});
+    es3fFboCompletenessTests.ES3Checker.prototype = new glsFboUtil.Checker({dont_construct: true});
 
-    var numLayersParams = (function(textureKind, numLayers, attachmentLayer) {
+    es3fFboCompletenessTests.numLayersParams = (function(textureKind, numLayers, attachmentLayer) {
         if (typeof(attachmentLayer) == 'undefined') {
             textureKind     = null;
             numLayers       = null;
@@ -220,7 +227,7 @@ define([
     });
     // returns a string.
     // takes const NumLayersParams&
-    numLayersParams.getName = (function(params) {
+    es3fFboCompletenessTests.numLayersParams.getName = (function(params) {
         return (
             (params.textureKind == gl.TEXTURE_3D ? '3d' : '2darr') + '_' +
             params.numLayers + '_' +
@@ -229,7 +236,7 @@ define([
     });
     // returns a string.
     // takes const NumLayersParams&
-    numLayersParams.getDescription = (function(params) {
+    es3fFboCompletenessTests.numLayersParams.getDescription = (function(params) {
         return (
             (params.textureKind == gl.TEXTURE_3D ? '3D Texture' : '2D Array Texture') + ', ' +
             params.numLayers + ' layers, ' +
@@ -255,7 +262,7 @@ define([
     
     
 
-    var NumLayersTest = (function(argv) {
+    es3fFboCompletenessTests.NumLayersTest = (function(argv) {
         argv = argv || {};
 
         this.build = (function(builder, gl_ctx) {
@@ -283,7 +290,7 @@ define([
         if (!argv.dont_construct) this._construct(argv);
     });
     // TODO: implement glsFboCompletenessTests class
-//    NumLayersTest.prototype = new glsFboCompletenessTests({dont_construct: true});
+//    es3fFboCompletenessTests.NumLayersTest.prototype = new glsFboCompletenessTests({dont_construct: true});
 
 
 
@@ -291,16 +298,9 @@ define([
 
 
 
-    var run = (function() {
+    es3fFboCompletenessTests.run = (function() {
     });
 
-    return {
-        tmp: {
-            tmp: 1,
-            ES3Checker: ES3Checker,
-            numLayersParams: numLayersParams
-        },
-        run: run,
-    };
+    
 
 });

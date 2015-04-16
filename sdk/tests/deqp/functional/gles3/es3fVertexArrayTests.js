@@ -18,63 +18,67 @@
  *
  */
 
-define([
-    'framework/opengl/gluDefs',
-    'framework/opengl/gluDrawUtil',
-    'framework/opengl/gluShaderUtil',
-    'framework/opengl/gluShaderProgram',
-    'framework/opengl/gluTexture',
-    'framework/opengl/gluVarType',
-    'framework/common/tcuTestCase',
-    'framework/common/tcuSurface',
-    'framework/common/tcuTexture',
-    'framework/delibs/debase/deMath',
-    'framework/delibs/debase/deString',
-    'framework/delibs/debase/deRandom',
-    'modules/shared/glsVertexArrayTests'],
-    function(
-        gluDefs,
-        gluDrawUtil,
-        gluShaderUtil,
-        gluShaderProgram,
-        gluTexture,
-        gluVarType,
-        tcuTestCase,
-        tcuSurface,
-        tcuTexture,
-        deMath,
-        deString,
-        deRandom,
-        glsVertexArrayTests
-    ) {
-    'use strict';
+'use strict';
+goog.provide('functional.gles3.es3fVertexArrayTests');
+goog.require('framework.opengl.gluDefs');
+goog.require('framework.opengl.gluDrawUtil');
+goog.require('framework.opengl.gluShaderUtil');
+goog.require('framework.opengl.gluShaderProgram');
+goog.require('framework.opengl.gluTexture');
+goog.require('framework.opengl.gluVarType');
+goog.require('framework.common.tcuTestCase');
+goog.require('framework.common.tcuSurface');
+goog.require('framework.common.tcuTexture');
+goog.require('framework.delibs.debase.deMath');
+goog.require('framework.delibs.debase.deString');
+goog.require('framework.delibs.debase.deRandom');
+goog.require('modules.shared.glsVertexArrayTests');
+
+
+goog.scope(function() {
+
+var es3fVertexArrayTests = functional.gles3.es3fVertexArrayTests;
+var gluDefs = framework.opengl.gluDefs;
+var gluDrawUtil = framework.opengl.gluDrawUtil;
+var gluShaderUtil = framework.opengl.gluShaderUtil;
+var gluShaderProgram = framework.opengl.gluShaderProgram;
+var gluTexture = framework.opengl.gluTexture;
+var gluVarType = framework.opengl.gluVarType;
+var tcuTestCase = framework.common.tcuTestCase;
+var tcuSurface = framework.common.tcuSurface;
+var tcuTexture = framework.common.tcuTexture;
+var deMath = framework.delibs.debase.deMath;
+var deString = framework.delibs.debase.deString;
+var deRandom = framework.delibs.debase.deRandom;
+var glsVertexArrayTests = modules.shared.glsVertexArrayTests;
+    
 
     var DE_ASSERT = function(x) {
         if (!x)
             throw new Error('Assert failed');
     };
 
-    var DE_STATIC_ASSERT = function(x) {
+    es3fVertexArrayTests.DE_STATIC_ASSERT = function(x) {
         if (!x)
             throw new Error('Assert failed');
     };
 
-    var DE_NULL = null;
+    es3fVertexArrayTests.DE_NULL = null;
 
     /**
-     * SingleVertexArrayStrideGroup
+     * es3fVertexArrayTests.SingleVertexArrayStrideGroup
      * @constructor
      * @param {glsVertexArrayTests.deArray.InputType} type
      */
-    var SingleVertexArrayStrideGroup = function (type) {
+    es3fVertexArrayTests.SingleVertexArrayStrideGroup = function (type) {
         tcuTestCase.DeqpTest.call(this, glsVertexArrayTests.deArray.inputTypeToString(type), glsVertexArrayTests.deArray.inputTypeToString(type));
         this.m_type = type;
     };
 
-    SingleVertexArrayStrideGroup.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
-    SingleVertexArrayStrideGroup.prototype.constructor = SingleVertexArrayStrideGroup;
+    es3fVertexArrayTests.SingleVertexArrayStrideGroup.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
+    es3fVertexArrayTests.SingleVertexArrayStrideGroup.prototype.constructor = es3fVertexArrayTests.SingleVertexArrayStrideGroup;
 
-    SingleVertexArrayStrideGroup.prototype.init = function () {
+    es3fVertexArrayTests.SingleVertexArrayStrideGroup.prototype.init = function () {
         /** @type {glsVertexArrayTests.deArray.Storage} */ var storages = [
             // User storage not supported in WebGL - glsVertexArrayTests.deArray.Storage.USER,
             glsVertexArrayTests.deArray.Storage.BUFFER];
@@ -125,17 +129,17 @@ define([
     };
 
     /**
-     * SingleVertexArrayStrideTests
+     * es3fVertexArrayTests.SingleVertexArrayStrideTests
      * @constructor
      */
-    var SingleVertexArrayStrideTests = function () {
+    es3fVertexArrayTests.SingleVertexArrayStrideTests = function () {
         tcuTestCase.DeqpTest.call(this, "strides", "Single stride vertex atribute");
     };
 
-    SingleVertexArrayStrideTests.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
-    SingleVertexArrayStrideTests.prototype.constructor = SingleVertexArrayStrideTests;
+    es3fVertexArrayTests.SingleVertexArrayStrideTests.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
+    es3fVertexArrayTests.SingleVertexArrayStrideTests.prototype.constructor = es3fVertexArrayTests.SingleVertexArrayStrideTests;
 
-    SingleVertexArrayStrideTests.prototype.init = function () {
+    es3fVertexArrayTests.SingleVertexArrayStrideTests.prototype.init = function () {
         /** @type {glsVertexArrayTests.deArray.InputType} */ var inputTypes = [
             glsVertexArrayTests.deArray.InputType.FLOAT,
             glsVertexArrayTests.deArray.InputType.SHORT,
@@ -147,47 +151,47 @@ define([
 
         for (var inputTypeNdx = 0; inputTypeNdx < inputTypes.length; inputTypeNdx++)
         {
-            this.addChild(new SingleVertexArrayStrideGroup(inputTypes[inputTypeNdx]));
+            this.addChild(new es3fVertexArrayTests.SingleVertexArrayStrideGroup(inputTypes[inputTypeNdx]));
         }
     };
 
     /**
-     * SingleVertexArrayTestGroup
+     * es3fVertexArrayTests.SingleVertexArrayTestGroup
      * @constructor
      */
-    var SingleVertexArrayTestGroup = function () {
+    es3fVertexArrayTests.SingleVertexArrayTestGroup = function () {
         tcuTestCase.DeqpTest.call(this, "single_attribute", "Single vertex atribute");
     };
 
-    SingleVertexArrayTestGroup.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
-    SingleVertexArrayTestGroup.prototype.constructor = SingleVertexArrayTestGroup;
+    es3fVertexArrayTests.SingleVertexArrayTestGroup.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
+    es3fVertexArrayTests.SingleVertexArrayTestGroup.prototype.constructor = es3fVertexArrayTests.SingleVertexArrayTestGroup;
 
-    SingleVertexArrayTestGroup.prototype.init = function () {
-        this.addChild(new SingleVertexArrayStrideTests());
+    es3fVertexArrayTests.SingleVertexArrayTestGroup.prototype.init = function () {
+        this.addChild(new es3fVertexArrayTests.SingleVertexArrayStrideTests());
         /*TODO: this.addChild(new SingleVertexArrayNormalizeTests(m_context));
         this.addChild(new SingleVertexArrayOutputTypeTests(m_context));
-        this.addChild(new SingleVertexArrayUsageTests(m_context));
+        this.addChild(new es3fVertexArrayTests.SingleVertexArrayUsageTests(m_context));
         this.addChild(new SingleVertexArrayOffsetTests(m_context));
         this.addChild(new SingleVertexArrayFirstTests(m_context));*/
     };
 
     /**
-     * SingleVertexArrayUsageGroup
+     * es3fVertexArrayTests.SingleVertexArrayUsageGroup
      * @constructor
      * @param {glsVertexArrayTests.deArray.Usage} usage
      */
-    var SingleVertexArrayUsageGroup = function (usage) {
+    es3fVertexArrayTests.SingleVertexArrayUsageGroup = function (usage) {
         tcuTestCase.DeqpTest.call(this, glsVertexArrayTests.deArray.usageTypeToString(usage), glsVertexArrayTests.deArray.usageTypeToString(usage));
         this.m_usage = usage;
     };
 
-    SingleVertexArrayUsageGroup.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
-    SingleVertexArrayUsageGroup.prototype.constructor = SingleVertexArrayUsageGroup;
+    es3fVertexArrayTests.SingleVertexArrayUsageGroup.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
+    es3fVertexArrayTests.SingleVertexArrayUsageGroup.prototype.constructor = es3fVertexArrayTests.SingleVertexArrayUsageGroup;
 
     /**
      * init
      */
-    SingleVertexArrayUsageGroup.prototype.init = function () {
+    es3fVertexArrayTests.SingleVertexArrayUsageGroup.prototype.init = function () {
         /** @type {Array.<number>} */ var counts = [1, 256];
         /** @type {Array.<number>} */ var strides = [0, -1, 17, 32]; // Tread negative value as sizeof input. Same as 0, but done outside of GL.
         /** @type {glsVertexArrayTests.deArray.InputType} */ var inputTypes = [glsVertexArrayTests.deArray.InputType.FLOAT, glsVertexArrayTests.deArray.InputType.FIXED, glsVertexArrayTests.deArray.InputType.SHORT, glsVertexArrayTests.deArray.InputType.BYTE];
@@ -224,20 +228,20 @@ define([
     };
 
     /**
-     * SingleVertexArrayUsageTests
+     * es3fVertexArrayTests.SingleVertexArrayUsageTests
      * @constructor
      */
-    var SingleVertexArrayUsageTests = function () {
+    es3fVertexArrayTests.SingleVertexArrayUsageTests = function () {
         tcuTestCase.DeqpTest.call(this, "usages", "Single vertex atribute, usage");
     };
 
-    SingleVertexArrayUsageTests.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
-    SingleVertexArrayUsageTests.prototype.constructor = SingleVertexArrayUsageTests;
+    es3fVertexArrayTests.SingleVertexArrayUsageTests.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
+    es3fVertexArrayTests.SingleVertexArrayUsageTests.prototype.constructor = es3fVertexArrayTests.SingleVertexArrayUsageTests;
 
     /**
-     * SingleVertexArrayUsageTests.init
+     * es3fVertexArrayTests.SingleVertexArrayUsageTests.init
      */
-    SingleVertexArrayUsageTests.prototype.init = function() {
+    es3fVertexArrayTests.SingleVertexArrayUsageTests.prototype.init = function() {
         // Test usage
         /** @type {glsVertexArrayTests.deArray.Usage} */ var usages = [
             glsVertexArrayTests.deArray.Usage.STATIC_DRAW,
@@ -252,26 +256,26 @@ define([
 
         for (var usageNdx = 0; usageNdx < usages.length; usageNdx++)
         {
-            this.addChild(new SingleVertexArrayUsageGroup(usages[usageNdx]));
+            this.addChild(new es3fVertexArrayTests.SingleVertexArrayUsageGroup(usages[usageNdx]));
         }
     };
 
     /**
-     * VertexArrayTestGroup
+     * es3fVertexArrayTests.VertexArrayTestGroup
      * @constructor
      */
-    var VertexArrayTestGroup = function () {
+    es3fVertexArrayTests.VertexArrayTestGroup = function () {
         tcuTestCase.DeqpTest.call(this, "vertex_arrays", "Vertex array and array tests");
     };
 
-    VertexArrayTestGroup.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
-    VertexArrayTestGroup.prototype.constructor = VertexArrayTestGroup;
+    es3fVertexArrayTests.VertexArrayTestGroup.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
+    es3fVertexArrayTests.VertexArrayTestGroup.prototype.constructor = es3fVertexArrayTests.VertexArrayTestGroup;
 
     /**
      * init
      */
-    VertexArrayTestGroup.prototype.init = function () {
-        this.addChild(new SingleVertexArrayTestGroup());
+    es3fVertexArrayTests.VertexArrayTestGroup.prototype.init = function () {
+        this.addChild(new es3fVertexArrayTests.SingleVertexArrayTestGroup());
         //TODO: this.addChild(new MultiVertexArrayTestGroup());
     };
 
@@ -279,12 +283,12 @@ define([
      * Create and execute the test cases
      * @param {WebGLRenderingContextBase} context
      */
-    var run = function(context) {
+    es3fVertexArrayTests.run = function(context) {
         gl = context;
         //Set up root Test
         var state = tcuTestCase.runner.getState();
 
-        var test = new VertexArrayTestGroup();
+        var test = new es3fVertexArrayTests.VertexArrayTestGroup();
         var testName = test.fullName();
         var testDescription = test.getDescription();
         state.testCases = test;
@@ -301,13 +305,11 @@ define([
             tcuTestCase.runTestCases();
         }
         catch (err) {
-            testFailedOptions('Failed to run tests', false);
+            testFailedOptions('Failed to es3fVertexArrayTests.run tests', false);
             tcuTestCase.runner.terminate();
         }
     };
 
-    return {
-        run: run
-    };
+    
 
 });

@@ -17,39 +17,45 @@
  * limitations under the License.
  *
  */
-define([
-    'framework/opengl/gluDefs',
-    'framework/opengl/gluShaderProgram',
-    'framework/common/tcuTestCase',
-    'framework/delibs/debase/deRandom',
-    'framework/delibs/debase/deString',
-    'framework/common/tcuTextureUtil',
-    'framework/common/tcuTexture',
-    'framework/opengl/gluTextureUtil',
-    'framework/common/tcuImageCompare'], function(
-        gluDefs,
-        gluShaderProgram,
-        tcuTestCase,
-        deRandom,
-        deString,
-        tcuTextureUtil,
-        tcuTexture,
-        gluTextureUtil,
-        tcuImageCompare) {
-    'use strict';
+'use strict';
+goog.provide('functional.gles3.es3fPixelBufferObjectTest');
+goog.require('framework.opengl.gluDefs');
+goog.require('framework.opengl.gluShaderProgram');
+goog.require('framework.common.tcuTestCase');
+goog.require('framework.delibs.debase.deRandom');
+goog.require('framework.delibs.debase.deString');
+goog.require('framework.common.tcuTextureUtil');
+goog.require('framework.common.tcuTexture');
+goog.require('framework.opengl.gluTextureUtil');
+goog.require('framework.common.tcuImageCompare');
+
+
+goog.scope(function() {
+
+var es3fPixelBufferObjectTest = functional.gles3.es3fPixelBufferObjectTest;
+var gluDefs = framework.opengl.gluDefs;
+var gluShaderProgram = framework.opengl.gluShaderProgram;
+var tcuTestCase = framework.common.tcuTestCase;
+var deRandom = framework.delibs.debase.deRandom;
+var deString = framework.delibs.debase.deString;
+var tcuTextureUtil = framework.common.tcuTextureUtil;
+var tcuTexture = framework.common.tcuTexture;
+var gluTextureUtil = framework.opengl.gluTextureUtil;
+var tcuImageCompare = framework.common.tcuImageCompare;
+    
 
     var DE_ASSERT = function(x) {
         if (!x)
             throw new Error('Assert failed');
     };
 
-    var DE_STATIC_ASSERT = function(expression)
+    es3fPixelBufferObjectTest.DE_STATIC_ASSERT = function(expression)
     {
         if (!expression) throw new Error('Assert failed');
     };
     
     /** @enum */
-    var FramebufferType = {
+    es3fPixelBufferObjectTest.FramebufferType = {
         FRAMEBUFFERTYPE_NATIVE: 0,
         FRAMEBUFFERTYPE_RENDERBUFFER: 1
     };
@@ -58,7 +64,7 @@ define([
      * @constructor
      * @struct
      */
-    var TestSpec = function () { // This is originaly a struct
+    es3fPixelBufferObjectTest.TestSpec = function () { // This is originaly a struct
         this.name= '';
         this.description= '';
         this.useColorClear= false;
@@ -69,9 +75,9 @@ define([
 
     /**
      * @constructor
-     * @param {TestSpec} spec
+     * @param {es3fPixelBufferObjectTest.TestSpec} spec
      */
-    var ReadPixelsTest = function(gl, spec) {
+    es3fPixelBufferObjectTest.ReadPixelsTest = function(gl, spec) {
         tcuTestCase.DeqpTest.call(this, spec.name, spec.description);
         this.m_random = new deRandom.Random(deString.deStringHash(spec.name));
         this.m_program = null;
@@ -82,11 +88,11 @@ define([
         this.m_renderTriangles = spec.renderTriangles;
         this.m_colorScale = 1.0;
 
-        if (this.m_framebuffeType === FramebufferType.FRAMEBUFFERTYPE_NATIVE)
+        if (this.m_framebuffeType === es3fPixelBufferObjectTest.FramebufferType.FRAMEBUFFERTYPE_NATIVE)
         {
             this.m_colorScale = 1.0;
         }
-        else if (this.m_framebuffeType === FramebufferType.FRAMEBUFFERTYPE_RENDERBUFFER)
+        else if (this.m_framebuffeType === es3fPixelBufferObjectTest.FramebufferType.FRAMEBUFFERTYPE_RENDERBUFFER)
         {
             this.m_texChannelClass = tcuTextureUtil.getTextureChannelClass(gluTextureUtil.mapGLInternalFormat(spec.renderbufferFormat).type);
             switch (this.m_texChannelClass)
@@ -113,15 +119,15 @@ define([
         }
     };
 
-    ReadPixelsTest.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
-    ReadPixelsTest.prototype.constructor = ReadPixelsTest;
+    es3fPixelBufferObjectTest.ReadPixelsTest.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
+    es3fPixelBufferObjectTest.ReadPixelsTest.prototype.constructor = es3fPixelBufferObjectTest.ReadPixelsTest;
 
-    ReadPixelsTest.prototype.init = function() {
+    es3fPixelBufferObjectTest.ReadPixelsTest.prototype.init = function() {
         var outtype = '';
 
-        if (this.m_framebuffeType === FramebufferType.FRAMEBUFFERTYPE_NATIVE)
+        if (this.m_framebuffeType === es3fPixelBufferObjectTest.FramebufferType.FRAMEBUFFERTYPE_NATIVE)
             outtype = 'vec4';
-        else if (this.m_framebuffeType === FramebufferType.FRAMEBUFFERTYPE_RENDERBUFFER)
+        else if (this.m_framebuffeType === es3fPixelBufferObjectTest.FramebufferType.FRAMEBUFFERTYPE_RENDERBUFFER)
         {
             switch (this.m_texChannelClass)
             {
@@ -181,7 +187,7 @@ define([
      * @param {Array.<number>} b
      * @param {Array.<number>} c
      */
-    ReadPixelsTest.prototype.renderTriangle = function(a, b, c) {
+    es3fPixelBufferObjectTest.ReadPixelsTest.prototype.renderTriangle = function(a, b, c) {
 
         var positions = [];
 
@@ -241,13 +247,13 @@ define([
      * @param {number} a
      */
     
-    ReadPixelsTest.prototype.clearColor = function(r, g, b, a) {
-        if (this.m_framebuffeType == FramebufferType.FRAMEBUFFERTYPE_NATIVE)
+    es3fPixelBufferObjectTest.ReadPixelsTest.prototype.clearColor = function(r, g, b, a) {
+        if (this.m_framebuffeType == es3fPixelBufferObjectTest.FramebufferType.FRAMEBUFFERTYPE_NATIVE)
         {
             gl.clearColor(r, g, b, a);
             gl.clear(gl.COLOR_BUFFER_BIT);
         }
-        else if (this.m_framebuffeType == FramebufferType.FRAMEBUFFERTYPE_RENDERBUFFER)
+        else if (this.m_framebuffeType == es3fPixelBufferObjectTest.FramebufferType.FRAMEBUFFERTYPE_RENDERBUFFER)
         {
             switch (this.m_texChannelClass)
             {
@@ -273,7 +279,7 @@ define([
             
     }
     
-    ReadPixelsTest.prototype.iterate = function() {
+    es3fPixelBufferObjectTest.ReadPixelsTest.prototype.iterate = function() {
         var width = gl.drawingBufferWidth;
         var height = gl.drawingBufferHeight;
         
@@ -282,10 +288,10 @@ define([
         
         switch (this.m_framebuffeType)
         {
-            case FramebufferType.FRAMEBUFFERTYPE_NATIVE:
+            case es3fPixelBufferObjectTest.FramebufferType.FRAMEBUFFERTYPE_NATIVE:
                 gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
                 break;
-            case FramebufferType.FRAMEBUFFERTYPE_RENDERBUFFER:
+            case es3fPixelBufferObjectTest.FramebufferType.FRAMEBUFFERTYPE_RENDERBUFFER:
                 framebuffer = gl.createFramebuffer();
                 renderbuffer = gl.createRenderbuffer();
                 
@@ -361,14 +367,14 @@ define([
         /** @type {boolean} */ var floatCompare;
         
         
-        if(this.m_framebuffeType == FramebufferType.FRAMEBUFFERTYPE_NATIVE)
+        if(this.m_framebuffeType == es3fPixelBufferObjectTest.FramebufferType.FRAMEBUFFERTYPE_NATIVE)
         {
             readFormat = gluTextureUtil.mapGLTransferFormat(gl.RGBA, gl.UNSIGNED_BYTE);
             readPixelsFormat = gl.RGBA;
             readPixelsType = gl.UNSIGNED_BYTE;
             floatCompare = false;
         }
-        else if(this.m_framebuffeType == FramebufferType.FRAMEBUFFERTYPE_RENDERBUFFER)
+        else if(this.m_framebuffeType == es3fPixelBufferObjectTest.FramebufferType.FRAMEBUFFERTYPE_RENDERBUFFER)
         {
             switch(this.m_texChannelClass)
             {
@@ -460,7 +466,7 @@ define([
         return tcuTestCase.runner.IterateResult.STOP;
     }
 
-    var init = function(context)
+    es3fPixelBufferObjectTest.init = function(context)
     {
         var state = tcuTestCase.runner.getState();
         /** @type {tcuTestCase.DeqpTest} */ var testGroup = state.testCases;
@@ -473,7 +479,7 @@ define([
                 description: "Simple read pixels test with color clears",
                 useColorClear: true,
                 renderTriangles: false,
-                framebufferType: FramebufferType.FRAMEBUFFERTYPE_NATIVE,
+                framebufferType: es3fPixelBufferObjectTest.FramebufferType.FRAMEBUFFERTYPE_NATIVE,
                 renderbufferFormat: gl.NONE
     		},
     		{
@@ -481,13 +487,13 @@ define([
                 description: "Simple read pixels test rendering triangles",
                 useColorClear: false,
                 renderTriangles: true,
-                framebufferType: FramebufferType.FRAMEBUFFERTYPE_NATIVE,
+                framebufferType: es3fPixelBufferObjectTest.FramebufferType.FRAMEBUFFERTYPE_NATIVE,
                 renderbufferFormat: gl.NONE
     		}
     	];
 
         for (var testNdx = 0; testNdx < nativeFramebufferTests.length; testNdx++)
-            nativeFramebufferGroup.addChild(new ReadPixelsTest(context, nativeFramebufferTests[testNdx]));
+            nativeFramebufferGroup.addChild(new es3fPixelBufferObjectTest.ReadPixelsTest(context, nativeFramebufferTests[testNdx]));
 
         testGroup.addChild(nativeFramebufferGroup);
 
@@ -546,22 +552,22 @@ define([
     		'rg16ui',
     		'rg32i',
     		'rg32ui'];
-        DE_STATIC_ASSERT(renderbufferFormatsStr.length == renderbufferFormats.length);
+        es3fPixelBufferObjectTest.DE_STATIC_ASSERT(renderbufferFormatsStr.length == renderbufferFormats.length);
 
         for (var formatNdx = 0; formatNdx < renderbufferFormats.length; formatNdx++)
         {
             for (var trianglesClears = 0; trianglesClears < 2; trianglesClears++)
             {
                 var nameDescription = renderbufferFormatsStr[formatNdx] + '_' + trianglesClears == 0 ? 'triangles' : 'clears';
-                var testSpec = new TestSpec();
+                var testSpec = new es3fPixelBufferObjectTest.TestSpec();
                 testSpec.name= nameDescription;
                 testSpec.description= nameDescription;
                 testSpec.useColorClear= trianglesClears == 1;
                 testSpec.renderTriangles= trianglesClears == 0;
-                testSpec.framebufferType= FramebufferType.FRAMEBUFFERTYPE_RENDERBUFFER;
+                testSpec.framebufferType= es3fPixelBufferObjectTest.FramebufferType.FRAMEBUFFERTYPE_RENDERBUFFER;
                 testSpec.renderbufferFormat= renderbufferFormats[formatNdx];
 
-                renderbufferGroup.addChild(new ReadPixelsTest(context, testSpec));
+                renderbufferGroup.addChild(new es3fPixelBufferObjectTest.ReadPixelsTest(context, testSpec));
             }
         }
 
@@ -570,7 +576,7 @@ define([
 
 
 
-    var run = function(context)
+    es3fPixelBufferObjectTest.run = function(context)
     {
         gl = context;
         //Set up Test Root parameters
@@ -587,7 +593,7 @@ define([
 
         try {
             //Create test cases
-            init(context);
+            es3fPixelBufferObjectTest.init(context);
             //Run test cases
             tcuTestCase.runTestCases();
         }
@@ -597,8 +603,6 @@ define([
         }
     };
 
-    return {
-        run: run
-    };
+    
 
 });

@@ -18,17 +18,31 @@
  *
  */
 
-define(['framework/common/tcuTestCase', 'framework/opengl/gluShaderProgram', 'framework/opengl/gluShaderUtil', 'framework/opengl/gluDrawUtil'], function(tcuTestCase, gluShaderProgram, gluShaderUtil, gluDrawUtil) {
-    'use strict';
+'use strict';
+goog.provide('modules.shared.glsShaderLibraryCase');
+goog.require('framework.common.tcuTestCase');
+goog.require('framework.opengl.gluShaderProgram');
+goog.require('framework.opengl.gluShaderUtil');
+goog.require('framework.opengl.gluDrawUtil');
 
-    /** @const @type {number} */ var VIEWPORT_WIDTH = 128;
-    /** @const @type {number} */ var VIEWPORT_HEIGHT = 128;
+
+goog.scope(function() {
+
+var glsShaderLibraryCase = modules.shared.glsShaderLibraryCase;
+var tcuTestCase = framework.common.tcuTestCase;
+var gluShaderProgram = framework.opengl.gluShaderProgram;
+var gluShaderUtil = framework.opengl.gluShaderUtil;
+var gluDrawUtil = framework.opengl.gluDrawUtil;
+    
+
+    /** @const @type {number} */ glsShaderLibraryCase.VIEWPORT_WIDTH = 128;
+    /** @const @type {number} */ glsShaderLibraryCase.VIEWPORT_HEIGHT = 128;
 
 /**
  * Shader compilation expected result enum
  * @enum {number}
  */
-var expectResult = {
+glsShaderLibraryCase.expectResult = {
     EXPECT_PASS: 0,
     EXPECT_COMPILE_FAIL: 1,
     EXPECT_LINK_FAIL: 2,
@@ -40,21 +54,21 @@ var expectResult = {
  * Test case type
  * @enum {number}
  */
-var caseType = {
+glsShaderLibraryCase.caseType = {
     CASETYPE_COMPLETE: 0,         //!< Has all shaders specified separately.
     CASETYPE_VERTEX_ONLY: 1,      //!< "Both" case, vertex shader sub case.
     CASETYPE_FRAGMENT_ONLY: 2     //!< "Both" case, fragment shader sub case.
 };
 
-var BeforeDrawValidator = function() {
+glsShaderLibraryCase.BeforeDrawValidator = function() {
     /* TODO : GLES 3.1: implement */
 };
 
 /**
- * BeforeDrawValidator target type enum
+ * glsShaderLibraryCase.BeforeDrawValidator target type enum
  * @enum {number}
  */
-var targetType = {
+glsShaderLibraryCase.targetType = {
     PROGRAM: 0,
     PIPELINE: 1
 };
@@ -63,7 +77,7 @@ var targetType = {
  * Shader case type enum
  * @enum {number}
  */
-var shaderCase = {
+glsShaderLibraryCase.shaderCase = {
     value: {
         STORAGE_INPUT: 0,
         STORAGE_OUTPUT: 1,
@@ -76,7 +90,7 @@ var shaderCase = {
  * @param {string} version
  * @return {boolean} version
  */
-var usesShaderInoutQualifiers = function(version) {
+glsShaderLibraryCase.usesShaderInoutQualifiers = function(version) {
     switch (version) {
         case '100':
         case '130':
@@ -94,7 +108,7 @@ var usesShaderInoutQualifiers = function(version) {
  * @param {string} version
  * @return {boolean} version ,True when is different from version 100
  */
-var supportsFragmentHighp = function(version) {
+glsShaderLibraryCase.supportsFragmentHighp = function(version) {
     return version !== '100';
 };
 
@@ -105,10 +119,10 @@ var supportsFragmentHighp = function(version) {
  * @param {Array.<Object>} valueBlock
  * @return {string} res
  */
-var genVertexShader = function(valueBlock) {
+glsShaderLibraryCase.genVertexShader = function(valueBlock) {
     /** @type {string} */ var res = '';
     /** @type {Object} */ var state = tcuTestCase.runner.getState();
-    /** @type {boolean} */ var usesInout = usesShaderInoutQualifiers(state.currentTest.spec.targetVersion);
+    /** @type {boolean} */ var usesInout = glsShaderLibraryCase.usesShaderInoutQualifiers(state.currentTest.spec.targetVersion);
     /** @type {string} */ var vtxIn = usesInout ? 'in' : 'attribute';
     /** @type {string} */ var vtxOut = usesInout ? 'out' : 'varying';
 
@@ -120,7 +134,7 @@ var genVertexShader = function(valueBlock) {
 
     for (var ndx = 0; ndx < valueBlock.values.length; ndx++) {
     /** @type {Array} */ var val = valueBlock.values[ndx];
-        if (val.storageType === shaderCase.value.STORAGE_INPUT) {
+        if (val.storageType === glsShaderLibraryCase.shaderCase.value.STORAGE_INPUT) {
             /** @type {string} */ var floatType = gluShaderUtil.getDataTypeFloatScalars(val.dataType);
             res += vtxIn + ' ' + floatType + ' a_' + val.valueName + ';\n';
 
@@ -140,7 +154,7 @@ var genVertexShader = function(valueBlock) {
     res += '\tgl_Position = dEQP_Position;\n';
     for (var ndx = 0; ndx < valueBlock.values.length; ndx++) {
     /** @type {Array} */ var val = valueBlock.values[ndx];
-        if (val.storageType === shaderCase.value.STORAGE_INPUT) {
+        if (val.storageType === glsShaderLibraryCase.shaderCase.value.STORAGE_INPUT) {
         /** @type {string} */ var name = val.valueName;
             if (gluShaderUtil.getDataTypeScalarType(val.dataType) === 'float')
                 res += '\t' + name + ' = a_' + name + ';\n';
@@ -158,13 +172,13 @@ var genVertexShader = function(valueBlock) {
  * @param {boolean} useFloatTypes
  * @return {string} stream
  */
-var genCompareFunctions = function(valueBlock, useFloatTypes) {
+glsShaderLibraryCase.genCompareFunctions = function(valueBlock, useFloatTypes) {
     var cmpTypeFound = {};
     /** @type {string} */ var stream = '';
 
     for (var ndx = 0; ndx < valueBlock.values.length; ndx++) {
     /** @type {Array} */ var val = valueBlock.values[ndx];
-        if (val.storageType === shaderCase.value.STORAGE_OUTPUT)
+        if (val.storageType === glsShaderLibraryCase.shaderCase.value.STORAGE_OUTPUT)
             cmpTypeFound[gluShaderUtil.getDataTypeName(val.dataType)] = true;
 
     }
@@ -237,7 +251,7 @@ var genCompareFunctions = function(valueBlock, useFloatTypes) {
  * @param {string} checkVarName
  * @return {string} output
  */
-var genCompareOp = function(dstVec4Var, valueBlock, nonFloatNamePrefix, checkVarName) {
+glsShaderLibraryCase.genCompareOp = function(dstVec4Var, valueBlock, nonFloatNamePrefix, checkVarName) {
 
     /** @type {boolean} */ var isFirstOutput = true;
     /** @type {string} */ var output = '';
@@ -246,7 +260,7 @@ var genCompareOp = function(dstVec4Var, valueBlock, nonFloatNamePrefix, checkVar
     /** @type {Array} */ var val = valueBlock.values[ndx];
     /** @type {string} */ var valueName = val.valueName;
 
-        if (val.storageType === shaderCase.value.STORAGE_OUTPUT) {
+        if (val.storageType === glsShaderLibraryCase.shaderCase.value.STORAGE_OUTPUT) {
             // Check if we're only interested in one variable (then skip if not the right one).
             if (checkVarName && (valueName !== checkVarName))
                 continue;
@@ -281,15 +295,15 @@ var genCompareOp = function(dstVec4Var, valueBlock, nonFloatNamePrefix, checkVar
  * @param {Array.<Object>} valueBlock
  * @return {string} shader
  */
-var genFragmentShader = function(valueBlock) {
+glsShaderLibraryCase.genFragmentShader = function(valueBlock) {
     /** @type {string} */ var shader = '';
     /** @type {Object} */ var state = tcuTestCase.runner.getState();
-    /** @type {boolean} */ var usesInout = usesShaderInoutQualifiers(state.currentTest.spec.targetVersion);
+    /** @type {boolean} */ var usesInout = glsShaderLibraryCase.usesShaderInoutQualifiers(state.currentTest.spec.targetVersion);
     /** @type {string} */ var vtxIn = usesInout ? 'in' : 'attribute';
     /** @type {string} */ var vtxOut = usesInout ? 'out' : 'varying';
     /** @type {boolean} */ var customColorOut = usesInout;
     /** @type {string} */ var fragIn = usesInout ? 'in' : 'varying';
-    /** @type {string} */ var prec = supportsFragmentHighp(state.currentTest.spec.targetVersion) ? 'highp' : 'mediump';
+    /** @type {string} */ var prec = glsShaderLibraryCase.supportsFragmentHighp(state.currentTest.spec.targetVersion) ? 'highp' : 'mediump';
 
     shader += '#version ' + state.currentTest.spec.targetVersion + '\n';
 
@@ -303,7 +317,7 @@ var genFragmentShader = function(valueBlock) {
         shader += '\n';
     }
 
-    shader += genCompareFunctions(valueBlock, true);
+    shader += glsShaderLibraryCase.genCompareFunctions(valueBlock, true);
     shader += '\n';
 
     // Declarations (varying, reference for each output).
@@ -312,7 +326,7 @@ var genFragmentShader = function(valueBlock) {
     /** @type {string} */ var floatType = gluShaderUtil.getDataTypeFloatScalars(val.dataType);
     /** @type {string} */ var refType = gluShaderUtil.getDataTypeName(val.dataType);
 
-        if (val.storageType == shaderCase.value.STORAGE_OUTPUT)
+        if (val.storageType == glsShaderLibraryCase.shaderCase.value.STORAGE_OUTPUT)
         {
             if (gluShaderUtil.getDataTypeScalarType(val.dataType) === 'float')
                 shader += fragIn + ' ' + floatType + ' ' + val.valueName + ';\n';
@@ -328,13 +342,13 @@ var genFragmentShader = function(valueBlock) {
     shader += '{\n';
 
     shader += '\t';
-    shader += genCompareOp(customColorOut ? 'dEQP_FragColor' : 'gl_FragColor', valueBlock, 'v_', null);
+    shader += glsShaderLibraryCase.genCompareOp(customColorOut ? 'dEQP_FragColor' : 'gl_FragColor', valueBlock, 'v_', null);
 
     shader += '}\n';
     return shader;
 };
 
-var caseRequirement = (function() {
+glsShaderLibraryCase.caseRequirement = (function() {
 
 var CaseRequirement = function() {
 
@@ -414,7 +428,7 @@ return {
  * @param {Array.<Object>} requirements
  * @return {string} resultBuf
  */
-var injectExtensionRequirements = function(baseCode, shaderType, requirements) {
+glsShaderLibraryCase.injectExtensionRequirements = function(baseCode, shaderType, requirements) {
 /**
  * @param {Array.<Object>} requirements
  * @param {number} shaderType
@@ -425,7 +439,7 @@ var injectExtensionRequirements = function(baseCode, shaderType, requirements) {
 
         if (requirements)
             for (var ndx = 0; ndx < requirements.length; ndx++)
-                if (requirements[ndx].type === caseRequirement.requirementType.EXTENSION &&
+                if (requirements[ndx].type === glsShaderLibraryCase.caseRequirement.requirementType.EXTENSION &&
                     requirements[ndx].isAffected(shaderType))
                     buf += '#extension ' + requirements[ndx].getSupportedExtension() + ' : require\n';
 
@@ -461,12 +475,12 @@ var injectExtensionRequirements = function(baseCode, shaderType, requirements) {
  * @param {Array.<Object>} valueBlock
  * @return {string} withExt
  */
-var specializeVertexShader = function(src, valueBlock) {
+glsShaderLibraryCase.specializeVertexShader = function(src, valueBlock) {
     /** @type {string} */ var decl = '';
     /** @type {string} */ var setup = '';
     /** @type {string} */ var output = '';
     /** @type {Object} */ var state = tcuTestCase.runner.getState();
-    /** @type {boolean} */ var usesInout = usesShaderInoutQualifiers(state.currentTest.spec.targetVersion);
+    /** @type {boolean} */ var usesInout = glsShaderLibraryCase.usesShaderInoutQualifiers(state.currentTest.spec.targetVersion);
     /** @type {string} */ var vtxIn = usesInout ? 'in' : 'attribute';
     /** @type {string} */ var vtxOut = usesInout ? 'out' : 'varying';
 
@@ -481,7 +495,7 @@ var specializeVertexShader = function(src, valueBlock) {
     /** @type {string} */ var floatType = gluShaderUtil.getDataTypeFloatScalars(val.dataType);
     /** @type {string} */ var dataTypeName = gluShaderUtil.getDataTypeName(val.dataType);
 
-        if (val.storageType === shaderCase.value.STORAGE_INPUT)
+        if (val.storageType === glsShaderLibraryCase.shaderCase.value.STORAGE_INPUT)
         {
             if (gluShaderUtil.getDataTypeScalarType(val.dataType) === 'float')
             {
@@ -493,7 +507,7 @@ var specializeVertexShader = function(src, valueBlock) {
                 setup += dataTypeName + ' ' + valueName + ' = ' + dataTypeName + '(a_' + valueName + ');\n';
             }
         }
-        else if (val.storageType === shaderCase.value.STORAGE_OUTPUT)
+        else if (val.storageType === glsShaderLibraryCase.shaderCase.value.STORAGE_OUTPUT)
         {
             if (gluShaderUtil.getDataTypeScalarType(val.dataType) === 'float')
                 decl += vtxOut + ' ' + floatType + ' ' + valueName + ';\n';
@@ -516,7 +530,7 @@ var specializeVertexShader = function(src, valueBlock) {
                     .replace(/\$\{POSITION_FRAG_COLOR\}/g, 'gl_Position');
 
     /** @type {string} */
-    var withExt = injectExtensionRequirements(baseSrc, gluShaderProgram.shaderType.VERTEX, state.currentTest.spec.requirements);
+    var withExt = glsShaderLibraryCase.injectExtensionRequirements(baseSrc, gluShaderProgram.shaderType.VERTEX, state.currentTest.spec.requirements);
 
     return withExt;
 };
@@ -526,12 +540,12 @@ var specializeVertexShader = function(src, valueBlock) {
  * @param {Array.<Object>} valueBlock
  * @return {string} withExt
  */
-var specializeVertexOnly = function(src, valueBlock) {
+glsShaderLibraryCase.specializeVertexOnly = function(src, valueBlock) {
     /** @type {string} */ var decl = '';
     /** @type {string} */ var setup = '';
     /** @type {string} */ var output = '';
     /** @type {Object} */ var state = tcuTestCase.runner.getState();
-    /** @type {boolean} */ var usesInout = usesShaderInoutQualifiers(state.currentTest.spec.targetVersion);
+    /** @type {boolean} */ var usesInout = glsShaderLibraryCase.usesShaderInoutQualifiers(state.currentTest.spec.targetVersion);
     /** @type {string} */ var vtxIn = usesInout ? 'in' : 'attribute';
 
     // Output (write out position).
@@ -545,7 +559,7 @@ var specializeVertexOnly = function(src, valueBlock) {
     /** @type {string} */ var valueName = val.valueName;
     /** @type {string} */ var type = gluShaderUtil.getDataTypeName(val.dataType);
 
-        if (val.storageType === shaderCase.value.STORAGE_INPUT)
+        if (val.storageType === glsShaderLibraryCase.shaderCase.value.STORAGE_INPUT)
         {
             if (gluShaderUtil.getDataTypeScalarType(val.dataType) === 'float')
             {
@@ -559,7 +573,7 @@ var specializeVertexOnly = function(src, valueBlock) {
                 setup += type + ' ' + valueName + ' = ' + type + '(a_' + valueName + ');\n';
             }
         }
-        else if (val.storageType === shaderCase.value.STORAGE_UNIFORM &&
+        else if (val.storageType === glsShaderLibraryCase.shaderCase.value.STORAGE_UNIFORM &&
                     !val.valueName.match('\\.'))
             decl += 'uniform ' + type + ' ' + valueName + ';\n';
     }
@@ -572,7 +586,7 @@ var specializeVertexOnly = function(src, valueBlock) {
                     .replace(/\$\{VERTEX_OUTPUT\}/g, output);
 
     /** @type {string} */
-    var withExt = injectExtensionRequirements(baseSrc, gluShaderProgram.shaderType.VERTEX, state.currentTest.spec.requirements);
+    var withExt = glsShaderLibraryCase.injectExtensionRequirements(baseSrc, gluShaderProgram.shaderType.VERTEX, state.currentTest.spec.requirements);
 
     return withExt;
 };
@@ -582,20 +596,20 @@ var specializeVertexOnly = function(src, valueBlock) {
  * @param {Array.<Object>} valueBlock
  * @return {string} withExt
  */
-var specializeFragmentShader = function(src, valueBlock) {
+glsShaderLibraryCase.specializeFragmentShader = function(src, valueBlock) {
     /** @type {string} */ var decl = '';
     /** @type {string} */ var setup = '';
     /** @type {string} */ var output = '';
 
     /** @type {Object} */ var state = tcuTestCase.runner.getState();
 
-    /** @type {boolean} */ var usesInout = usesShaderInoutQualifiers(state.currentTest.spec.targetVersion);
+    /** @type {boolean} */ var usesInout = glsShaderLibraryCase.usesShaderInoutQualifiers(state.currentTest.spec.targetVersion);
     /** @type {boolean} */ var customColorOut = usesInout;
     /** @type {string} */ var fragIn = usesInout ? 'in' : 'varying';
     /** @type {string} */ var fragColor = customColorOut ? 'dEQP_FragColor' : 'gl_FragColor';
 
-    decl += genCompareFunctions(valueBlock, false);
-    output += genCompareOp(fragColor, valueBlock, '', null);
+    decl += glsShaderLibraryCase.genCompareFunctions(valueBlock, false);
+    output += glsShaderLibraryCase.genCompareOp(fragColor, valueBlock, '', null);
 
     if (customColorOut)
         decl += 'layout(location = 0) out mediump vec4 dEQP_FragColor;\n';
@@ -606,7 +620,7 @@ var specializeFragmentShader = function(src, valueBlock) {
     /** @type {string} */ var floatType = gluShaderUtil.getDataTypeFloatScalars(val.dataType);
     /** @type {string} */ var refType = gluShaderUtil.getDataTypeName(val.dataType);
 
-        if (val.storageType === shaderCase.value.STORAGE_INPUT)
+        if (val.storageType === glsShaderLibraryCase.shaderCase.value.STORAGE_INPUT)
         {
             if (gluShaderUtil.getDataTypeScalarType(val.dataType) === 'float')
                 decl += fragIn + ' ' + floatType + ' ' + valueName + ';\n';
@@ -617,7 +631,7 @@ var specializeFragmentShader = function(src, valueBlock) {
                 setup += refType + ' ' + valueName + ' = ' + refType + '(v_' + valueName + offset + ');\n';
             }
         }
-        else if (val.storageType === shaderCase.value.STORAGE_OUTPUT)
+        else if (val.storageType === glsShaderLibraryCase.shaderCase.value.STORAGE_OUTPUT)
         {
             decl += 'uniform ' + refType + ' ref_' + valueName + ';\n';
             decl += refType + ' ' + valueName + ';\n';
@@ -635,7 +649,7 @@ var specializeFragmentShader = function(src, valueBlock) {
                     .replace(/\$\{POSITION_FRAG_COLOR\}/g, fragColor);
 
     /** @type {string} */
-    var withExt = injectExtensionRequirements(baseSrc, gluShaderProgram.shaderType.FRAGMENT, state.currentTest.spec.requirements);
+    var withExt = glsShaderLibraryCase.injectExtensionRequirements(baseSrc, gluShaderProgram.shaderType.FRAGMENT, state.currentTest.spec.requirements);
 
     return withExt;
 };
@@ -645,17 +659,17 @@ var specializeFragmentShader = function(src, valueBlock) {
  * @param {Array.<Object>} valueBlock
  * @return {string} withExt
  */
-var specializeFragmentOnly = function(src, valueBlock) {
+glsShaderLibraryCase.specializeFragmentOnly = function(src, valueBlock) {
     /** @type {string} */ var decl = '';
     /** @type {string} */ var output = '';
     /** @type {Object} */ var state = tcuTestCase.runner.getState();
-    /** @type {boolean} */ var usesInout = usesShaderInoutQualifiers(state.currentTest.spec.targetVersion);
+    /** @type {boolean} */ var usesInout = glsShaderLibraryCase.usesShaderInoutQualifiers(state.currentTest.spec.targetVersion);
     /** @type {boolean} */ var customColorOut = usesInout;
     /** @type {string} */ var fragIn = usesInout ? 'in' : 'varying';
     /** @type {string} */ var fragColor = customColorOut ? 'dEQP_FragColor' : 'gl_FragColor';
 
-    decl += genCompareFunctions(valueBlock, false);
-    output += genCompareOp(fragColor, valueBlock, '', null);
+    decl += glsShaderLibraryCase.genCompareFunctions(valueBlock, false);
+    output += glsShaderLibraryCase.genCompareOp(fragColor, valueBlock, '', null);
 
     if (customColorOut)
         decl += 'layout(location = 0) out mediump vec4 dEQP_FragColor;\n';
@@ -666,10 +680,10 @@ var specializeFragmentOnly = function(src, valueBlock) {
     /** @type {string} */ var floatType = gluShaderUtil.getDataTypeFloatScalars(val.dataType);
     /** @type {string} */ var refType = gluShaderUtil.getDataTypeName(val.dataType);
 
-        if (val.storageType === shaderCase.value.STORAGE_OUTPUT) {
+        if (val.storageType === glsShaderLibraryCase.shaderCase.value.STORAGE_OUTPUT) {
             decl += 'uniform ' + refType + ' ref_' + valueName + ';\n';
             decl += refType + ' ' + valueName + ';\n';
-        } else if (val.storageType === shaderCase.value.STORAGE_UNIFORM &&
+        } else if (val.storageType === glsShaderLibraryCase.shaderCase.value.STORAGE_UNIFORM &&
                    !valueName.match('\\.'))
             decl += 'uniform ' + refType + ' ' + valueName + ';\n';
     }
@@ -682,7 +696,7 @@ var specializeFragmentOnly = function(src, valueBlock) {
                      .replace(/\$\{FRAG_COLOR\}/g, fragColor);
 
     /** @type {string} */
-    var withExt = injectExtensionRequirements(baseSrc, gluShaderProgram.shaderType.FRAGMENT, state.currentTest.spec.requirements);
+    var withExt = glsShaderLibraryCase.injectExtensionRequirements(baseSrc, gluShaderProgram.shaderType.FRAGMENT, state.currentTest.spec.requirements);
 
     return withExt;
 };
@@ -691,12 +705,12 @@ var specializeFragmentOnly = function(src, valueBlock) {
  * Is tessellation present
  * @return {boolean} True if tessellation is present
  */
-var isTessellationPresent = function() {
+glsShaderLibraryCase.isTessellationPresent = function() {
     /* TODO: GLES 3.1: implement */
     return false;
 };
 
-var setUniformValue = function(gl, pipelinePrograms, name, val, arrayNdx) {
+glsShaderLibraryCase.setUniformValue = function(gl, pipelinePrograms, name, val, arrayNdx) {
     /** @type {boolean} */ var foundAnyMatch = false;
 
     for (var programNdx = 0; programNdx < pipelinePrograms.length; ++programNdx)
@@ -762,12 +776,12 @@ var setUniformValue = function(gl, pipelinePrograms, name, val, arrayNdx) {
  * @param {number} maxY
  * @return {boolean} True if tessellation is present
  */
-var checkPixels = function(surface, minX, maxX, minY, maxY) {
+glsShaderLibraryCase.checkPixels = function(surface, minX, maxX, minY, maxY) {
     /** @type {boolean} */ var allWhite = true;
     /** @type {boolean} */ var allBlack = true;
     /** @type {boolean} */ var anyUnexpected = false;
 
-    assertMsgOptions((maxX > minX) && (maxY > minY), 'checkPixels sanity check', false, true);
+    assertMsgOptions((maxX > minX) && (maxY > minY), 'glsShaderLibraryCase.checkPixels sanity check', false, true);
 
     for (var y = minY; y <= maxY; y++) {
         for (var x = minX; x <= maxX; x++) {
@@ -797,14 +811,14 @@ var checkPixels = function(surface, minX, maxX, minY, maxY) {
 /**
  * Initialize a test case
  */
-var init = function() {
+glsShaderLibraryCase.init = function() {
 /** @type {Object} */ var state = tcuTestCase.runner.getState();
 /** @type {Object} */ var test = state.currentTest;
 
     bufferedLogToConsole('Processing ' + test.fullName());
 
     if (!test.spec.valueBlockList.length)
-        test.spec.valueBlockList.push(genValueBlock());
+        test.spec.valueBlockList.push(glsShaderLibraryCase.genValueBlock());
     /** @type {Array.<Object>} */ var valueBlock = test.spec.valueBlockList[0];
 
     if (test.spec.requirements)
@@ -813,17 +827,17 @@ var init = function() {
 
     /** @type {Array.<gluShaderProgram.ShaderInfo>} */ var sources = [];
 
-    if (test.spec.caseType === caseType.CASETYPE_COMPLETE) {
-    /** @type {string} */ var vertex = specializeVertexOnly(test.spec.vertexSource, valueBlock);
-    /** @type {string} */ var fragment = specializeFragmentOnly(test.spec.fragmentSource, valueBlock);
+    if (test.spec.caseType === glsShaderLibraryCase.caseType.CASETYPE_COMPLETE) {
+    /** @type {string} */ var vertex = glsShaderLibraryCase.specializeVertexOnly(test.spec.vertexSource, valueBlock);
+    /** @type {string} */ var fragment = glsShaderLibraryCase.specializeFragmentOnly(test.spec.fragmentSource, valueBlock);
         sources.push(gluShaderProgram.genVertexSource(vertex));
         sources.push(gluShaderProgram.genFragmentSource(fragment));
-    } else if (test.spec.caseType === caseType.CASETYPE_VERTEX_ONLY) {
-        sources.push(gluShaderProgram.genVertexSource(specializeVertexShader(test.spec.vertexSource, valueBlock)));
-        sources.push(gluShaderProgram.genFragmentSource(genFragmentShader(valueBlock)));
-    } else if (test.spec.caseType === caseType.CASETYPE_FRAGMENT_ONLY) {
-        sources.push(gluShaderProgram.genVertexSource(genVertexShader(valueBlock)));
-        sources.push(gluShaderProgram.genFragmentSource(specializeFragmentShader(test.spec.fragmentSource, valueBlock)));
+    } else if (test.spec.caseType === glsShaderLibraryCase.caseType.CASETYPE_VERTEX_ONLY) {
+        sources.push(gluShaderProgram.genVertexSource(glsShaderLibraryCase.specializeVertexShader(test.spec.vertexSource, valueBlock)));
+        sources.push(gluShaderProgram.genFragmentSource(glsShaderLibraryCase.genFragmentShader(valueBlock)));
+    } else if (test.spec.caseType === glsShaderLibraryCase.caseType.CASETYPE_FRAGMENT_ONLY) {
+        sources.push(gluShaderProgram.genVertexSource(glsShaderLibraryCase.genVertexShader(valueBlock)));
+        sources.push(gluShaderProgram.genFragmentSource(glsShaderLibraryCase.specializeFragmentShader(test.spec.fragmentSource, valueBlock)));
     }
 
     test.programs = [];
@@ -841,7 +855,7 @@ var init = function() {
  * Execute a test case
  * @return {boolean} True if test case passed
  */
-var execute = function()
+glsShaderLibraryCase.execute = function()
 {
     /** @const @type {number} */ var quadSize = 1.0;
     /** @const @type {Array.<number>} */
@@ -866,12 +880,12 @@ var execute = function()
 
     // Compute viewport.
     /* TODO: original code used random number generator to compute viewport, we use whole canvas */
-    /** @const @type {number} */ var width = Math.min(canvas.width, VIEWPORT_WIDTH);
-    /** @const @type {number} */ var height = Math.min(canvas.height, VIEWPORT_HEIGHT);
+    /** @const @type {number} */ var width = Math.min(canvas.width, glsShaderLibraryCase.VIEWPORT_WIDTH);
+    /** @const @type {number} */ var height = Math.min(canvas.height, glsShaderLibraryCase.VIEWPORT_HEIGHT);
     /** @const @type {number} */ var viewportX = 0;
     /** @const @type {number} */ var viewportY = 0;
     /** @const @type {number} */ var numVerticesPerDraw = 4;
-    /** @const @type {boolean} */ var tessellationPresent = isTessellationPresent();
+    /** @const @type {boolean} */ var tessellationPresent = glsShaderLibraryCase.isTessellationPresent();
 
     /** @type {boolean} */ var allCompilesOk = true;
     /** @type {boolean} */ var allLinksOk = true;
@@ -913,29 +927,29 @@ var execute = function()
 
     switch (spec.expectResult)
     {
-        case expectResult.EXPECT_PASS:
-        case expectResult.EXPECT_VALIDATION_FAIL:
+        case glsShaderLibraryCase.expectResult.EXPECT_PASS:
+        case glsShaderLibraryCase.expectResult.EXPECT_VALIDATION_FAIL:
             if (!allCompilesOk)
                 failReason = 'expected shaders to compile and link properly, but failed to compile.';
             else if (!allLinksOk)
                 failReason = 'expected shaders to compile and link properly, but failed to link.';
             break;
 
-        case expectResult.EXPECT_COMPILE_FAIL:
+        case glsShaderLibraryCase.expectResult.EXPECT_COMPILE_FAIL:
             if (allCompilesOk && !allLinksOk)
                 failReason = 'expected compilation to fail, but shaders compiled and link failed.';
             else if (allCompilesOk)
                 failReason = 'expected compilation to fail, but shaders compiled correctly.';
             break;
 
-        case expectResult.EXPECT_LINK_FAIL:
+        case glsShaderLibraryCase.expectResult.EXPECT_LINK_FAIL:
             if (!allCompilesOk)
                 failReason = 'expected linking to fail, but unable to compile.';
             else if (allLinksOk)
                 failReason = 'expected linking to fail, but passed.';
             break;
 
-        case expectResult.EXPECT_COMPILE_LINK_FAIL:
+        case glsShaderLibraryCase.expectResult.EXPECT_COMPILE_LINK_FAIL:
             if (allCompilesOk && allLinksOk)
                 failReason = 'expected compile or link to fail, but passed.';
             break;
@@ -951,7 +965,7 @@ var execute = function()
         bufferedLogToConsole('ERROR: ' + failReason);
 
         // If implementation parses shader at link time, report it as quality warning.
-        if (spec.expectResult === expectResult.EXPECT_COMPILE_FAIL && allCompilesOk && !allLinksOk)
+        if (spec.expectResult === glsShaderLibraryCase.expectResult.EXPECT_COMPILE_FAIL && allCompilesOk && !allLinksOk)
             bufferedLogToConsole('Quality warning: implementation parses shader at link time');
 
         testFailedOptions(failReason, true);
@@ -959,9 +973,9 @@ var execute = function()
     }
 
     // Return if compile/link expected to fail.
-    if (spec.expectResult === expectResult.EXPECT_COMPILE_FAIL ||
-        spec.expectResult === expectResult.EXPECT_COMPILE_LINK_FAIL ||
-        spec.expectResult === expectResult.EXPECT_LINK_FAIL) {
+    if (spec.expectResult === glsShaderLibraryCase.expectResult.EXPECT_COMPILE_FAIL ||
+        spec.expectResult === glsShaderLibraryCase.expectResult.EXPECT_COMPILE_LINK_FAIL ||
+        spec.expectResult === glsShaderLibraryCase.expectResult.EXPECT_LINK_FAIL) {
         testPassedOptions('Compile/link is expected to fail', true);
         setCurrentTestName('');
         return (failReason === null);
@@ -1004,10 +1018,10 @@ var execute = function()
             /** @type {number} */ var attribValueNdx = 0;
             /** @type {gl.enum} */ var postDrawError;
             var beforeDrawValidator = (
-                new BeforeDrawValidator(
+                new glsShaderLibraryCase.BeforeDrawValidator(
                                         gl,
                                         (spec.separatePrograms) ? (programPipeline.getPipeline()) : (vertexProgramID),
-                                        (spec.separatePrograms) ? (targetType.PIPELINE) : (targetType.PROGRAM)
+                                        (spec.separatePrograms) ? (glsShaderLibraryCase.targetType.PIPELINE) : (glsShaderLibraryCase.targetType.PROGRAM)
                                        )
             );
 
@@ -1020,7 +1034,7 @@ var execute = function()
                 /** @const @type {string} */ var dataType = val.dataType;
                 /** @const @type {number} */ var scalarSize = gluShaderUtil.getDataTypeScalarSize(val.dataType);
 
-                if (val.storageType === shaderCase.value.STORAGE_INPUT)
+                if (val.storageType === glsShaderLibraryCase.shaderCase.value.STORAGE_INPUT)
                 {
                     // Replicate values four times.
                 /** @type {Array} */ var scalars = [];
@@ -1040,7 +1054,7 @@ var execute = function()
                                 // Attribute name prefix.
                     /** @type {string} */ var attribPrefix = '';
                     // \todo [2010-05-27 petri] Should latter condition only apply for vertex cases (or actually non-fragment cases)?
-                    if ((spec.caseType === caseType.CASETYPE_FRAGMENT_ONLY) || (gluShaderUtil.getDataTypeScalarType(dataType) !== 'float'))
+                    if ((spec.caseType === glsShaderLibraryCase.caseType.CASETYPE_FRAGMENT_ONLY) || (gluShaderUtil.getDataTypeScalarType(dataType) !== 'float'))
                         attribPrefix = 'a_';
 
                     // Input always given as attribute.
@@ -1078,15 +1092,15 @@ var execute = function()
             /** @type {Array} */ var val1 = block.values[valNdx];
             /** @type {string} */ var valueName1 = val1.valueName;
 
-                if (val1.storageType === shaderCase.value.STORAGE_OUTPUT)
+                if (val1.storageType === glsShaderLibraryCase.shaderCase.value.STORAGE_OUTPUT)
                 {
                     // Set reference value.
-                    setUniformValue(gl, pipelineProgramIDs, 'ref_' + valueName1, val1, arrayNdx);
+                    glsShaderLibraryCase.setUniformValue(gl, pipelineProgramIDs, 'ref_' + valueName1, val1, arrayNdx);
                     assertMsgOptions(gl.getError() === gl.NO_ERROR, 'set reference uniforms', false, true);
                 }
-                else if (val1.storageType === shaderCase.value.STORAGE_UNIFORM)
+                else if (val1.storageType === glsShaderLibraryCase.shaderCase.value.STORAGE_UNIFORM)
                 {
-                    setUniformValue(gl, pipelineProgramIDs, valueName1, val1, arrayNdx);
+                    glsShaderLibraryCase.setUniformValue(gl, pipelineProgramIDs, valueName1, val1, arrayNdx);
                     assertMsgOptions(gl.getError() === gl.NO_ERROR, 'set uniforms', false, true);
                 }
             }
@@ -1115,13 +1129,13 @@ var execute = function()
                  (tessellationPresent) ?
                     (gluDrawUtil.patches(s_indices)) :
                     (gluDrawUtil.triangles(s_indices)),
-                 (spec.expectResult === expectResult.EXPECT_VALIDATION_FAIL) ?
+                 (spec.expectResult === glsShaderLibraryCase.expectResult.EXPECT_VALIDATION_FAIL) ?
                     (beforeDrawValidator) :
                     (null));
 
             postDrawError = gl.getError();
 
-            if (spec.expectResult === expectResult.EXPECT_PASS) {
+            if (spec.expectResult === glsShaderLibraryCase.expectResult.EXPECT_PASS) {
                 /** @type {gluDrawUtil.Surface} */ var surface = new gluDrawUtil.Surface();
                 /** @const @type {number} */ var w = s_positions[3];
                 /** @const @type {number} */ var minY = Math.ceil(((-quadSize / w) * 0.5 + 0.5) * height + 1.0);
@@ -1134,7 +1148,7 @@ var execute = function()
                 surface.readSurface(gl, viewportX, viewportY, width, height);
                 assertMsgOptions(gl.getError() === gl.NO_ERROR, 'read pixels', false, true);
 
-                if (!checkPixels(surface, minX, maxX, minY, maxY)) {
+                if (!glsShaderLibraryCase.checkPixels(surface, minX, maxX, minY, maxY)) {
                     testFailedOptions((
                         'INCORRECT RESULT for (value block ' + (blockNdx + 1) +
                         ' of ' + spec.valueBlockList.length + ', sub-case ' +
@@ -1154,7 +1168,7 @@ var execute = function()
 
                     return false;
                 }
-            } else if (spec.expectResult === expectResult.EXPECT_VALIDATION_FAIL) {
+            } else if (spec.expectResult === glsShaderLibraryCase.expectResult.EXPECT_VALIDATION_FAIL) {
                 /** TODO: GLES 3.1: Implement */
                 testFailedOptions('Unsupported test case', true);
             }
@@ -1170,35 +1184,29 @@ var execute = function()
     return true;
 };
 
-var runTestCases = function() {
+glsShaderLibraryCase.runTestCases = function() {
 /** @type {Object} */ var state = tcuTestCase.runner.getState();
     state.currentTest = state.testCases.next(state.filter);
     if (state.currentTest) {
         try {
-            init();
-            execute();
+            glsShaderLibraryCase.init();
+            glsShaderLibraryCase.execute();
         } catch (err) {
            bufferedLogToConsole(err);
         }
-        tcuTestCase.runner.runCallback(runTestCases);
+        tcuTestCase.runner.runCallback(glsShaderLibraryCase.runTestCases);
     } else
     tcuTestCase.runner.terminate();
 
 };
 
-var genValueBlock = function() {
+glsShaderLibraryCase.genValueBlock = function() {
     return {
     /** @type {Array} */ values: [],
     /** @type {number} */ arrayLength: 0
     };
 };
 
-return {
-    runTestCases: runTestCases,
-    expectResult: expectResult,
-    caseType: caseType,
-    shaderCase: shaderCase,
-    genValueBlock: genValueBlock
-};
+
 
 });

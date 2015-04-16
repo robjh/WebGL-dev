@@ -18,35 +18,41 @@
  *
  */
 
-define([
-    'framework/common/tcuTestCase',
-    'framework/delibs/debase/deMath',
-    'framework/common/tcuSurface',
-    'framework/common/tcuTexture',
-    'framework/referencerenderer/rrRenderer',
-    'framework/opengl/simplereference/sglrReferenceContext',
-    'framework/common/tcuPixelFormat',
-    'framework/common/tcuImageCompare',
-    'framework/delibs/debase/deString'], function(
-    tcuTestCase,
-    deMath,
-    tcuSurface,
-    tcuTexture,
-    rrRenderer,
-    sglrReferenceContext,
-    tcuPixelFormat,
-    tcuImageCompare,
-    deString) {
-    'use strict';
+'use strict';
+goog.provide('functional.gles3.es3fFboTestCase');
+goog.require('framework.common.tcuTestCase');
+goog.require('framework.delibs.debase.deMath');
+goog.require('framework.common.tcuSurface');
+goog.require('framework.common.tcuTexture');
+goog.require('framework.referencerenderer.rrRenderer');
+goog.require('framework.opengl.simplereference.sglrReferenceContext');
+goog.require('framework.common.tcuPixelFormat');
+goog.require('framework.common.tcuImageCompare');
+goog.require('framework.delibs.debase.deString');
+
+
+goog.scope(function() {
+
+var es3fFboTestCase = functional.gles3.es3fFboTestCase;
+var tcuTestCase = framework.common.tcuTestCase;
+var deMath = framework.delibs.debase.deMath;
+var tcuSurface = framework.common.tcuSurface;
+var tcuTexture = framework.common.tcuTexture;
+var rrRenderer = framework.referencerenderer.rrRenderer;
+var sglrReferenceContext = framework.opengl.simplereference.sglrReferenceContext;
+var tcuPixelFormat = framework.common.tcuPixelFormat;
+var tcuImageCompare = framework.common.tcuImageCompare;
+var deString = framework.delibs.debase.deString;
+    
 
     /**
-    * FboTestCase class, inherits from TestCase and sglrContextWrapper
+    * es3fFboTestCase.FboTestCase class, inherits from TestCase and sglrContextWrapper
     * @constructor
     * @param {string} name
     * @param {string} description
     * @param {boolean} useScreenSizedViewport
     */
-    var FboTestCase = function(name, description, useScreenSizedViewport /*= false */) {
+    es3fFboTestCase.FboTestCase = function(name, description, useScreenSizedViewport /*= false */) {
         tcuTestCase.DeqpTest.call(this, name, description);
         /** @type {number} */ this.m_viewportWidth = useScreenSizedViewport === undefined ? gl.drawingBufferWidth : 128;
         /** @type {number} */ this.m_viewportHeight = useScreenSizedViewport === undefined ? gl.drawingBufferHeight : 128;
@@ -54,14 +60,14 @@ define([
         /** @type {sglrReferenceContext.ReferenceContext|sglrGLContext.GLContext} */ this.m_curCtx = null; // from sglrContextWrapper
     };
 
-    FboTestCase.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
-    FboTestCase.prototype.constructor = FboTestCase;
+    es3fFboTestCase.FboTestCase.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
+    es3fFboTestCase.FboTestCase.prototype.constructor = es3fFboTestCase.FboTestCase;
 
     /**
      * Sets the current context (inherited from sglrContextWrapper)
      * @param {Context} context
      */
-    FboTestCase.prototype.setContext = function(context) {
+    es3fFboTestCase.FboTestCase.prototype.setContext = function(context) {
         this.m_curCtx = context;
     };
 
@@ -69,7 +75,7 @@ define([
      * Gets the current context (inherited from sglrContextWrapper)
      * @return {Context}
      */
-    FboTestCase.prototype.getCurrentContext = function() {
+    es3fFboTestCase.FboTestCase.prototype.getCurrentContext = function() {
         return this.m_curCtx;
     };
 
@@ -77,14 +83,14 @@ define([
     * @param {tcuSurface.Surface} reference
     * @param {tcuSurface.Surface} result
     */
-    FboTestCase.prototype.compare = function(reference, result) {
+    es3fFboTestCase.FboTestCase.prototype.compare = function(reference, result) {
         return tcuImageCompare.fuzzyCompare('Result', 'Image comparison result', reference, result, 0.05, null /*tcu::COMPARE_LOG_RESULT*/);
     };
 
     /**
     * @param {number} sizedFormat deUint32
     */
-    FboTestCase.prototype.checkFormatSupport = function(sizedFormat) {
+    es3fFboTestCase.FboTestCase.prototype.checkFormatSupport = function(sizedFormat) {
         /** @const @type {boolean} */ var isCoreFormat = isRequiredFormat(sizedFormat);
         /** @const @type {Array<string>} */ var requiredExts = (!isCoreFormat) ? getEnablingExtensions(sizedFormat) : [];
 
@@ -98,7 +104,7 @@ define([
     * @param {number} sizedFormat deUint32
     * @param {number} numSamples
     */
-    FboTestCase.prototype.checkSampleCount = function(sizedFormat, numSamples) {
+    es3fFboTestCase.FboTestCase.prototype.checkSampleCount = function(sizedFormat, numSamples) {
         /** @const @type {number} */ var minSampleCount = getMinimumSampleCount(sizedFormat);
         // TODO: implement
         if (numSamples > minSampleCount) {
@@ -120,7 +126,7 @@ define([
     * @param {Array<number>} scale Vec4
     * @param {Array<number>} bias Vec4
     */
-    FboTestCase.prototype.readPixelsUsingFormat = function(dst, x, y, width, height, format, scale, bias) {
+    es3fFboTestCase.FboTestCase.prototype.readPixelsUsingFormat = function(dst, x, y, width, height, format, scale, bias) {
         // TODO: implement fboTestUtil.readPixels, getCurrentContext
         fboTestUtil.readPixels(getCurrentContext(), dst, x, y, width, height, format, scale, bias);
     };
@@ -132,7 +138,7 @@ define([
     * @param {number} width
     * @param {number} height
     */
-    FboTestCase.prototype.readPixels = function(dst, x, y, width, height) {
+    es3fFboTestCase.FboTestCase.prototype.readPixels = function(dst, x, y, width, height) {
         // TODO: implement getCurrentContext
         getCurrentContext().readPixels(dst, x, y, width, height);
     };
@@ -140,13 +146,13 @@ define([
     /**
     * @param {number} target deUint32
     */
-    FboTestCase.prototype.checkFramebufferStatus = function(target) {
+    es3fFboTestCase.FboTestCase.prototype.checkFramebufferStatus = function(target) {
         /** @type {number} */ var status = gl.checkFramebufferStatus(target);
         if (status != gl.FRAMEBUFFER_COMPLETE)
             throw new Error('Framebuffer Status: ' + status);
     };
 
-    FboTestCase.prototype.checkError = function() {
+    es3fFboTestCase.FboTestCase.prototype.checkError = function() {
         /** @type {number} */ var err = gl.getError();
             if (err != gl.NO_ERROR)
                 throw new Error('glError: ' + err);
@@ -156,14 +162,14 @@ define([
     * @param {tcuTexture.TextureFormat} format
     * @param {Array<number>} value Vec4
     */
-    FboTestCase.prototype.clearColorBuffer = function(format, value) {
+    es3fFboTestCase.FboTestCase.prototype.clearColorBuffer = function(format, value) {
         if (value === undefined) value = [0.0, 0.0, 0.0, 0.0];
         // TODO: implement getCurrentContext
         fboTestUtil.clearColorBuffer(getCurrentContext(), format, value);
     };
 
 
-    FboTestCase.prototype.iterate = function() {
+    es3fFboTestCase.FboTestCase.prototype.iterate = function() {
 
         var renderCtx = gl;
 
@@ -248,7 +254,7 @@ define([
     * @param {number} format deUint32
     * @return {boolean}
     */
-    FboTestCase.isRequiredFormat = function(format) {
+    es3fFboTestCase.FboTestCase.isRequiredFormat = function(format) {
         switch (format) {
             // Color-renderable formats
             case gl.RGBA32I:
@@ -305,7 +311,7 @@ define([
     * @param {number} format deUint32
     * @return {Array<string>}
     */
-    FboTestCase.getEnablingExtensions = function(format) {
+    es3fFboTestCase.FboTestCase.getEnablingExtensions = function(format) {
         /** @return {Array<string>} */ var out = [];
 
         DE_ASSERT(!isRequiredFormat(format));
@@ -339,7 +345,7 @@ define([
     * @param {Array<string>} requiredExts
     * @return {boolean}
     */
-    FboTestCase.isAnyExtensionSupported = function(context, requiredExts) {
+    es3fFboTestCase.FboTestCase.isAnyExtensionSupported = function(context, requiredExts) {
         for (var iter in requiredExts) {
             /** @const @type {string} */ var extension = iter;
 
@@ -350,7 +356,5 @@ define([
         return false;
     };
 
-    return {
-        FboTestCase: FboTestCase
-    };
+    
  });

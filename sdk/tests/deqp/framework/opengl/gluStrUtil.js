@@ -18,9 +18,15 @@
  *
  */
 
-define(function() {
+'use strict';
+goog.provide('framework.opengl.gluStrUtil');
 
-var getPixelFormatName = function(value) {
+
+goog.scope(function() {
+
+var gluStrUtil = framework.opengl.gluStrUtil;
+
+gluStrUtil.getPixelFormatName = function(value) {
     switch (value) {
         case gl.LUMINANCE: return 'gl.LUMINANCE';
         case gl.LUMINANCE_ALPHA: return 'gl.LUMINANCE_ALPHA';
@@ -106,7 +112,7 @@ var getPixelFormatName = function(value) {
     }
 };
 
-var getTypeName = function(value) {
+gluStrUtil.getTypeName = function(value) {
     switch (value) {
         case gl.BYTE: return 'gl.BYTE';
         case gl.UNSIGNED_BYTE: return 'gl.UNSIGNED_BYTE';
@@ -133,9 +139,6 @@ var getTypeName = function(value) {
     }
 };
 
-return {
-    getPixelFormatName: getPixelFormatName,
-    getTypeName: getTypeName
-};
+
 
 });

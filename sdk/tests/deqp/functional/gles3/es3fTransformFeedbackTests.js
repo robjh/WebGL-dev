@@ -18,33 +18,46 @@
  *
  */
 
-define([
-    'framework/opengl/gluShaderUtil',
-    'framework/opengl/gluDrawUtil',
-    'framework/opengl/gluVarType',
-    'framework/opengl/gluVarTypeUtil',
-    'framework/opengl/gluShaderProgram',
-    'framework/delibs/debase/deRandom',
-    'framework/delibs/debase/deMath',
-    'framework/delibs/debase/deString',
-    'framework/common/tcuTestCase',
-    'framework/common/tcuSurface',
-    'framework/common/tcuImageCompare'
-], function(
-    gluShaderUtil, gluDrawUtil, gluVarType, gluVarTypeUtil, gluShaderProgram, deRandom, deMath, deString,
-    tcuTestCase, tcuSurface, tcuImageCompare
-) {
-    'use strict';
+'use strict';
+goog.provide('functional.gles3.es3fTransformFeedbackTests');
+goog.require('framework.opengl.gluShaderUtil');
+goog.require('framework.opengl.gluDrawUtil');
+goog.require('framework.opengl.gluVarType');
+goog.require('framework.opengl.gluVarTypeUtil');
+goog.require('framework.opengl.gluShaderProgram');
+goog.require('framework.delibs.debase.deRandom');
+goog.require('framework.delibs.debase.deMath');
+goog.require('framework.delibs.debase.deString');
+goog.require('framework.common.tcuTestCase');
+goog.require('framework.common.tcuSurface');
+goog.require('framework.common.tcuImageCompare');
 
-    /** @const @type {number} */ var VIEWPORT_WIDTH = 128;
-    /** @const @type {number} */ var VIEWPORT_HEIGHT = 128;
-    /** @const @type {number} */ var BUFFER_GUARD_MULTIPLIER = 2;
+
+goog.scope(function() {
+
+var es3fTransformFeedbackTests = functional.gles3.es3fTransformFeedbackTests;
+var gluShaderUtil = framework.opengl.gluShaderUtil;
+var gluDrawUtil = framework.opengl.gluDrawUtil;
+var gluVarType = framework.opengl.gluVarType;
+var gluVarTypeUtil = framework.opengl.gluVarTypeUtil;
+var gluShaderProgram = framework.opengl.gluShaderProgram;
+var deRandom = framework.delibs.debase.deRandom;
+var deMath = framework.delibs.debase.deMath;
+var deString = framework.delibs.debase.deString;
+var tcuTestCase = framework.common.tcuTestCase;
+var tcuSurface = framework.common.tcuSurface;
+var tcuImageCompare = framework.common.tcuImageCompare;
+    
+
+    /** @const @type {number} */ es3fTransformFeedbackTests.VIEWPORT_WIDTH = 128;
+    /** @const @type {number} */ es3fTransformFeedbackTests.VIEWPORT_HEIGHT = 128;
+    /** @const @type {number} */ es3fTransformFeedbackTests.BUFFER_GUARD_MULTIPLIER = 2;
 
     /**
-     * Enums for interpolation
+     * Enums for es3fTransformFeedbackTests.interpolation
      * @enum {number}
      */
-    var interpolation = {
+    es3fTransformFeedbackTests.interpolation = {
 
         SMOOTH: 0,
         FLAT: 1,
@@ -53,23 +66,23 @@ define([
     };
 
     /**
-     * Returns interpolation name: smooth, flat or centroid
-     * @param {number} interpol interpolation enum value
+     * Returns es3fTransformFeedbackTests.interpolation name: smooth, flat or centroid
+     * @param {number} interpol es3fTransformFeedbackTests.interpolation enum value
      * @return {string}
      */
-    var getInterpolationName = function(interpol) {
+    es3fTransformFeedbackTests.getInterpolationName = function(interpol) {
 
         switch (interpol) {
-        case interpolation.SMOOTH: return 'smooth';
-        case interpolation.FLAT: return 'flat';
-        case interpolation.CENTROID: return 'centroid';
+        case es3fTransformFeedbackTests.interpolation.SMOOTH: return 'smooth';
+        case es3fTransformFeedbackTests.interpolation.FLAT: return 'flat';
+        case es3fTransformFeedbackTests.interpolation.CENTROID: return 'centroid';
         default:
-            throw new Error('Unrecognized interpolation name ' + interpol);
+            throw new Error('Unrecognized es3fTransformFeedbackTests.interpolation name ' + interpol);
        }
 
     };
 
-    var GLU_EXPECT_NO_ERROR = function(gl, err, msg) {
+    es3fTransformFeedbackTests.GLU_EXPECT_NO_ERROR = function(gl, err, msg) {
         if (err != gl.NO_ERROR) {
             if (msg) msg += ': ';
 
@@ -84,27 +97,27 @@ define([
     };
 
     /**
-     * Returns a Varying object, it's a struct, invoked in the C version as a function
+     * Returns a es3fTransformFeedbackTests.Varying object, it's a struct, invoked in the C version as a function
      * @param {string} name
      * @param {gluVarType.VarType} type
-     * @param {number} interpolation
+     * @param {number} es3fTransformFeedbackTests.interpolation
      * @return {Object}
      * @constructor
      */
-    var Varying = function(name, type, interpolation) {
+    es3fTransformFeedbackTests.Varying = function(name, type, es3fTransformFeedbackTests.interpolation) {
         this.name = name;
         this.type = type;
-        this.interpolation = interpolation;
+        this.interpolation = es3fTransformFeedbackTests.interpolation;
     };
 
-    /** findAttributeNameEquals
+    /** es3fTransformFeedbackTests.findAttributeNameEquals
      * Replaces original implementation of "VaryingNameEquals" and "AttributeNameEquals" in the C++ version
-     * Returns an Attribute or Varying object which matches its name with the passed string value in the function
-     * @param {Array.<Attribute> || Array.<Varying>} array
+     * Returns an es3fTransformFeedbackTests.Attribute or es3fTransformFeedbackTests.Varying object which matches its name with the passed string value in the function
+     * @param {Array.<es3fTransformFeedbackTests.Attribute> || Array.<es3fTransformFeedbackTests.Varying>} array
      * @param {string} name
-     * @return {Attribute || Varying}
+     * @return {es3fTransformFeedbackTests.Attribute || es3fTransformFeedbackTests.Varying}
      */
-    var findAttributeNameEquals = function(array, name) {
+    es3fTransformFeedbackTests.findAttributeNameEquals = function(array, name) {
         for (var pos = 0; pos < array.length; pos++) {
             if (array[pos].name === name) {
                 return array[pos];
@@ -113,39 +126,39 @@ define([
     };
 
     /**
-     * Constructs an Attribute object, it's a struct, invoked in the C version as a function
+     * Constructs an es3fTransformFeedbackTests.Attribute object, it's a struct, invoked in the C version as a function
      * @param {string} name
      * @param {gluVarType.VarType} type
      * @param {number} offset
      * @constructor
      */
-    var Attribute = function(name, type, offset) {
+    es3fTransformFeedbackTests.Attribute = function(name, type, offset) {
         this.name = name;
         this.type = type;
         this.offset = offset;
     };
 
     /**
-     * Constructs an Output object
+     * Constructs an es3fTransformFeedbackTests.Output object
      * @constructor
      */
-    var Output = function() {
+    es3fTransformFeedbackTests.Output = function() {
         /** @type {number}            */ this.bufferNdx = 0;
         /** @type {number}            */ this.offset = 0;
         /** @type {string}            */ this.name = null;
         /** @type {gluVarType.VarType} */ this.type = null;
-        /** @type {Array.<Attribute>} */ this.inputs = [];
+        /** @type {Array.<es3fTransformFeedbackTests.Attribute>} */ this.inputs = [];
     };
 
     /**
-     * Constructs an object type DrawCall.
+     * Constructs an object type es3fTransformFeedbackTests.DrawCall.
      * Contains the number of elements as well as whether the Transform Feedback is enabled or not.
-     * It's a struct, but as occurs in Varying, is invoked in the C++ version as a function.
+     * It's a struct, but as occurs in es3fTransformFeedbackTests.Varying, is invoked in the C++ version as a function.
      * @param {number} numElements
      * @param {boolean} tfEnabled is Transform Feedback enabled or not
      * @constructor
      */
-    var DrawCall = function(numElements, tfEnabled) {
+    es3fTransformFeedbackTests.DrawCall = function(numElements, tfEnabled) {
         this.numElements = numElements;
         this.transformFeedbackEnabled = tfEnabled;
     };
@@ -153,10 +166,10 @@ define([
     /**
      * @constructor
      */
-    var ProgramSpec = function() {
+    es3fTransformFeedbackTests.ProgramSpec = function() {
 
     /** @type {Array.<gluVarType.StructType>} */ var m_structs = [];
-    /** @type {Array.<Varying>}          */ var m_varyings = [];
+    /** @type {Array.<es3fTransformFeedbackTests.Varying>}          */ var m_varyings = [];
     /** @type {Array.<string>}           */ var m_transformFeedbackVaryings = [];
 
         this.createStruct = function(name) {
@@ -166,7 +179,7 @@ define([
         };
 
         this.addVarying = function(name, type, interp) {
-            m_varyings.push(new Varying(name, type, interp));
+            m_varyings.push(new es3fTransformFeedbackTests.Varying(name, type, interp));
         };
 
         this.addTransformFeedbackVarying = function(name) {
@@ -194,11 +207,11 @@ define([
 
     /** Returns if the program is supported or not
      * @param {WebGLRenderingContext} gl WebGL context
-     * @param {ProgramSpec} spec
+     * @param {es3fTransformFeedbackTests.ProgramSpec} spec
      * @param {number} tfMode
      * @return {boolean}
      */
-    var isProgramSupported = function(gl, spec, tfMode) {
+    es3fTransformFeedbackTests.isProgramSupported = function(gl, spec, tfMode) {
 
         // all ints
         /** @type {number} */ var maxVertexAttribs = 0;
@@ -223,7 +236,7 @@ define([
         }
 
         if (totalVertexAttribs > maxVertexAttribs)
-            return false; // Vertex attribute count exceeded.
+            return false; // Vertex attribute es3fTransformFeedbackTests.count exceeded.
 
         // check varyings
         /** @type {number}                  */ var totalTfComponents = 0;
@@ -241,7 +254,7 @@ define([
             } else {
                 var varName = gluVarTypeUtil.parseVariableName(name);
                 // find the varying called varName
-                /** @type {Varying} */ var varying = (function(varyings) {
+                /** @type {es3fTransformFeedbackTests.Varying} */ var varying = (function(varyings) {
                     for (var i = 0; i < varyings.length; ++i) {
                         if (varyings[i].name == varName) {
                             return varyings[i];
@@ -256,7 +269,7 @@ define([
             }
 
             if (tfMode == gl.SEPARATE_ATTRIBS && numComponents > maxTfSeparateComponents)
-                return false; // Per-attribute component count exceeded.
+                return false; // Per-attribute component es3fTransformFeedbackTests.count exceeded.
 
             totalTfComponents += numComponents;
             totalTfAttribs += 1;
@@ -277,7 +290,7 @@ define([
      * @param {Array.<string>} path
      * @return {string}
      */
-    var getAttributeName = function(varyingName, path) {
+    es3fTransformFeedbackTests.getAttributeName = function(varyingName, path) {
     /** @type {string} */ var str = 'a_' + varyingName.substr(/^v_/.test(varyingName) ? 2 : 0);
 
         for (var i = 0; i < path.length; ++i) {
@@ -298,14 +311,14 @@ define([
 
     /**
      * original definition:
-     * static void genShaderSources (const ProgramSpec& spec, std::string& vertSource, std::string& fragSource, bool pointSizeRequired)
+     * static void es3fTransformFeedbackTests.genShaderSources (const es3fTransformFeedbackTests.ProgramSpec& spec, std::string& vertSource, std::string& fragSource, bool pointSizeRequired)
      * in place of the std::string references, this function returns those params in an object
      *
-     * @param {ProgramSpec} spec
+     * @param {es3fTransformFeedbackTests.ProgramSpec} spec
      * @param {boolean} pointSizeRequired
      * @return {Object.<string, string>}
      */
-    var genShaderSources = function(spec, pointSizeRequired) {
+    es3fTransformFeedbackTests.genShaderSources = function(spec, pointSizeRequired) {
 
         var vtx = { str: null };
         var frag = { str: null };
@@ -334,7 +347,7 @@ define([
                 var attribType = gluVarTypeUtil.getVarType(type, vecIter.getPath());
 
                 /** @type {string} */
-                var attribName = getAttributeName(name, vecIter.getPath());
+                var attribName = es3fTransformFeedbackTests.getAttributeName(name, vecIter.getPath());
                 vtx.str += 'in ' + gluVarType.declareVariable(attribType, attribName) + ';\n';
 
             }
@@ -352,10 +365,10 @@ define([
                 }
             }
 
-            /** @type {Array.<Varying>} */ var varyings = spec.getVaryings();
+            /** @type {Array.<es3fTransformFeedbackTests.Varying>} */ var varyings = spec.getVaryings();
             for (var i = 0; i < varyings.length; ++i) {
             	var varying = varyings[i];
-                shader.str += getInterpolationName(varying.interpolation)
+                shader.str += es3fTransformFeedbackTests.getInterpolationName(varying.interpolation)
                            + ' ' + inout + ' '
                            + gluVarType.declareVariable(varying.type, varying.name)
                            + ';\n';
@@ -379,7 +392,7 @@ define([
 
             for (var vecIter = new gluVarTypeUtil.VectorTypeIterator(type); !vecIter.end(); vecIter.next()) {
             /** @type {gluVarType.VarType} */var subType = gluVarTypeUtil.getVarType(type, vecIter.getPath());
-            /** @type {string} */ var attribName = getAttributeName(name, vecIter.getPath());
+            /** @type {string} */ var attribName = es3fTransformFeedbackTests.getAttributeName(name, vecIter.getPath());
 
                 if (!(
                     subType.isBasicType() &&
@@ -414,15 +427,15 @@ define([
     /**
      * Returns a Shader program
      * @param {WebGLRenderingContext} gl WebGL context
-     * @param {ProgramSpec} spec
+     * @param {es3fTransformFeedbackTests.ProgramSpec} spec
      * @param {number} bufferMode
      * @param {gluDrawUtil.primitiveType} primitiveType GLenum that specifies what kind of primitive is
      * @return {gluShaderProgram.ShaderProgram}
      */
-    var count = 0;
-    var createVertexCaptureProgram = function(gl, spec, bufferMode, primitiveType) {
+    es3fTransformFeedbackTests.count = 0;
+    es3fTransformFeedbackTests.createVertexCaptureProgram = function(gl, spec, bufferMode, primitiveType) {
 
-    /** @type {Object.<string, string>} */ var source = genShaderSources(spec, primitiveType === gluDrawUtil.primitiveType.POINTS /* Is point size required? */);
+    /** @type {Object.<string, string>} */ var source = es3fTransformFeedbackTests.genShaderSources(spec, primitiveType === gluDrawUtil.primitiveType.POINTS /* Is point size required? */);
 
     /** @type {gluShaderProgram.ShaderProgram} */ var programSources = new gluShaderProgram.ProgramSources();
         programSources.add(new gluShaderProgram.VertexSource(source.vertSource))
@@ -435,32 +448,32 @@ define([
     };
 
     /**
-     * @param {Array.<Attribute>} attributes
-     * @param {Array.<Varying>} varyings
+     * @param {Array.<es3fTransformFeedbackTests.Attribute>} attributes
+     * @param {Array.<es3fTransformFeedbackTests.Varying>} varyings
      * @param {boolean} usePointSize
      * @return {Number} input stride
      */
-    var computeInputLayout = function(attributes, varyings, usePointSize) {
+    es3fTransformFeedbackTests.computeInputLayout = function(attributes, varyings, usePointSize) {
 
         var inputStride = 0;
 
         // Add position
         var dataTypeVec4 = gluVarType.newTypeBasic(gluShaderUtil.DataType.FLOAT_VEC4, gluShaderUtil.precision.PRECISION_HIGHP);
-        attributes.push(new Attribute('a_position', dataTypeVec4, inputStride));
+        attributes.push(new es3fTransformFeedbackTests.Attribute('a_position', dataTypeVec4, inputStride));
         inputStride += 4 * 4; /*sizeof(deUint32)*/
 
         if (usePointSize) {
             var dataTypeFloat = gluVarType.newTypeBasic(gluShaderUtil.DataType.FLOAT, gluShaderUtil.precision.PRECISION_HIGHP);
-            attributes.push(new Attribute('a_pointSize', dataTypeFloat, inputStride));
+            attributes.push(new es3fTransformFeedbackTests.Attribute('a_pointSize', dataTypeFloat, inputStride));
             inputStride += 1 * 4; /*sizeof(deUint32)*/
         }
 
         for (var i = 0; i < varyings.length; i++) {
             for (var vecIter = new gluVarTypeUtil.VectorTypeIterator(varyings[i].type); !vecIter.end(); vecIter.next()) {
                 var type = vecIter.getType(); // originally getType() in getVarType() within gluVARTypeUtil.hpp.
-                var name = getAttributeName(varyings[i].name, vecIter.getPath());
+                var name = es3fTransformFeedbackTests.getAttributeName(varyings[i].name, vecIter.getPath());
 
-                attributes.push(new Attribute(name, type, inputStride));
+                attributes.push(new es3fTransformFeedbackTests.Attribute(name, type, inputStride));
                 inputStride += gluShaderUtil.getDataTypeScalarSize(type.getBasicType()) * 4; /*sizeof(deUint32)*/
             }
         }
@@ -469,13 +482,13 @@ define([
     };
 
     /**
-     * @param {Array.<Output>} transformFeedbackOutputs
-     * @param {Array.<Attribute>} attributes
-     * @param {Array.<Varying>} varyings
+     * @param {Array.<es3fTransformFeedbackTests.Output>} transformFeedbackOutputs
+     * @param {Array.<es3fTransformFeedbackTests.Attribute>} attributes
+     * @param {Array.<es3fTransformFeedbackTests.Varying>} varyings
      * @param {Array.<string>} transformFeedbackVaryings
      * @param {number} bufferMode
      */
-    var computeTransformFeedbackOutputs = function(gl, transformFeedbackOutputs, attributes, varyings, transformFeedbackVaryings, bufferMode) {
+    es3fTransformFeedbackTests.computeTransformFeedbackOutputs = function(gl, transformFeedbackOutputs, attributes, varyings, transformFeedbackVaryings, bufferMode) {
 
     /** @type {number} */ var accumulatedSize = 0;
 
@@ -485,7 +498,7 @@ define([
         /** @type {string} */ var name = transformFeedbackVaryings[varNdx];
         /** @type {number} */ var bufNdx = (bufferMode === gl.SEPARATE_ATTRIBS ? varNdx : 0);
         /** @type {number} */ var offset = (bufferMode === gl.SEPARATE_ATTRIBS ? 0 : accumulatedSize);
-        /** @type {Output} */ var output = new Output();
+        /** @type {es3fTransformFeedbackTests.Output} */ var output = new es3fTransformFeedbackTests.Output();
 
             output.name = name;
             output.bufferNdx = bufNdx;
@@ -493,20 +506,20 @@ define([
 
             if (name === 'gl_Position')
             {
-            /** @type {Attribute} */ var posIn = findAttributeNameEquals(attributes, 'a_position');
+            /** @type {es3fTransformFeedbackTests.Attribute} */ var posIn = es3fTransformFeedbackTests.findAttributeNameEquals(attributes, 'a_position');
                 output.type = posIn.type;
                 output.inputs.push(posIn);
             }
             else if (name === 'gl_PointSize')
             {
-            /** @type {Attribute} */ var sizeIn = findAttributeNameEquals(attributes, 'a_pointSize');
+            /** @type {es3fTransformFeedbackTests.Attribute} */ var sizeIn = es3fTransformFeedbackTests.findAttributeNameEquals(attributes, 'a_pointSize');
                 output.type = sizeIn.type;
                 output.inputs.push(sizeIn);
             }
             else
             {
                 /** @type {string} */ var varName = gluVarTypeUtil.parseVariableName(name);
-                /** @type {Varying} */ var varying = findAttributeNameEquals(varyings, varName);
+                /** @type {es3fTransformFeedbackTests.Varying} */ var varying = es3fTransformFeedbackTests.findAttributeNameEquals(varyings, varName);
 
                 var varPath = gluVarTypeUtil.parseTypePath(name, varying.type);
                 output.type = gluVarTypeUtil.getVarType(varying.type, varPath);
@@ -515,8 +528,8 @@ define([
                 for (var iter = new gluVarTypeUtil.VectorTypeIterator(output.type); !iter.end(); iter.next())
                 {
                     /** @type {array} */     var fullpath   = varPath.concat(iter.getPath());
-                    /** @type {string} */    var attribName = getAttributeName(varName, fullpath);
-                    /** @type {Attribute} */ var attrib     = findAttributeNameEquals(attributes, attribName);
+                    /** @type {string} */    var attribName = es3fTransformFeedbackTests.getAttributeName(varName, fullpath);
+                    /** @type {es3fTransformFeedbackTests.Attribute} */ var attrib     = es3fTransformFeedbackTests.findAttributeNameEquals(attributes, attribName);
                     output.inputs.push(attrib);
                 }
             }
@@ -526,13 +539,13 @@ define([
     };
 
     /**
-     * @param {Attribute} attrib
+     * @param {es3fTransformFeedbackTests.Attribute} attrib
      * @param {ArrayBuffer} buffer
      * @param {number} stride
      * @param {number} numElements
      * @param {deRandom} rnd
      */
-    var genAttributeData = function(attrib, buffer, stride, numElements, rnd) {
+    es3fTransformFeedbackTests.genAttributeData = function(attrib, buffer, stride, numElements, rnd) {
 
         /** @type {number} */ var elementSize = 4; /*sizeof(deUint32)*/
         /** @type {boolean} */ var isFloat = gluShaderUtil.isDataTypeFloatOrVec(attrib.type.getBasicType());
@@ -586,16 +599,16 @@ define([
     };
 
     /**
-     * @param {Array.<Attribute>} attributes
+     * @param {Array.<es3fTransformFeedbackTests.Attribute>} attributes
      * @param {number} numInputs
      * @param {number} inputStride
      * @param {deRandom} rnd
      * @return {ArrayBuffer}
      */
-    var genInputData = function(attributes, numInputs, inputStride, rnd) {
+    es3fTransformFeedbackTests.genInputData = function(attributes, numInputs, inputStride, rnd) {
         var buffer = new ArrayBuffer(numInputs * inputStride);
 
-        var position = findAttributeNameEquals(attributes, 'a_position');
+        var position = es3fTransformFeedbackTests.findAttributeNameEquals(attributes, 'a_position');
         if (!position)
             throw new Error('Position attribute not found.');
 
@@ -607,7 +620,7 @@ define([
             pos[3] = rnd.getFloat(0.1, 2.0);
         }
 
-        var pointSizePos = findAttributeNameEquals(attributes, 'a_pointSize');
+        var pointSizePos = es3fTransformFeedbackTests.findAttributeNameEquals(attributes, 'a_pointSize');
         if (pointSizePos) {
             for (var ndx = 0; ndx < numInputs; ndx++) {
                 var pos = new Float32Array(buffer, pointSizePos.offset + inputStride * ndx, 1);
@@ -619,19 +632,19 @@ define([
         for (var i = 0; i < attributes.length; i++)
         {
             if (attributes[i].name != 'a_position' && attributes[i].name != 'a_pointSize')
-                genAttributeData(attributes[i], buffer, inputStride, numInputs, rnd);
+                es3fTransformFeedbackTests.genAttributeData(attributes[i], buffer, inputStride, numInputs, rnd);
         }
 
         return buffer;
     };
 
     /**
-     * Returns the number of outputs with the count for the Primitives in the Transform Feedback.
+     * Returns the number of outputs with the es3fTransformFeedbackTests.count for the Primitives in the Transform Feedback.
      * @param {gluDrawUtil.primitiveType} primitiveType GLenum that specifies what kind of primitive is
      * @param {number} numElements
      * @return {number}
      */
-    var getTransformFeedbackOutputCount = function(primitiveType, numElements) {
+    es3fTransformFeedbackTests.getTransformFeedbackOutputCount = function(primitiveType, numElements) {
 
     switch (primitiveType) {
         case gluDrawUtil.primitiveType.TRIANGLES: return numElements - numElements % 3;
@@ -648,13 +661,13 @@ define([
     };
 
     /**
-     * Returns a number with the count for the Primitives in the Transform Feedback.
+     * Returns a number with the es3fTransformFeedbackTests.count for the Primitives in the Transform Feedback.
      * @param {WebGLRenderingContext} gl WebGL context
      * @param {gluDrawUtil.primitiveType} primitiveType GLenum that specifies what kind of primitive is
      * @param {number} numElements
      * @return {number}
      */
-    var getTransformFeedbackPrimitiveCount = function(gl, primitiveType, numElements) {
+    es3fTransformFeedbackTests.getTransformFeedbackPrimitiveCount = function(gl, primitiveType, numElements) {
 
     switch (primitiveType) {
         case gl.TRIANGLES: return numElements - numElements / 3;
@@ -676,7 +689,7 @@ define([
      * @param {gluDrawUtil.primitiveType} primitiveType GLenum that specifies what kind of primitive is
      * @return {gluDrawUtil.primitiveType} primitiveType
      */
-    var getTransformFeedbackPrimitiveMode = function(gl, primitiveType) {
+    es3fTransformFeedbackTests.getTransformFeedbackPrimitiveMode = function(gl, primitiveType) {
 
     switch (primitiveType) {
         case gl.TRIANGLES:
@@ -706,7 +719,7 @@ define([
      * @param {number} outNdx
      * @return {number}
      */
-    var getAttributeIndex = function(gl, primitiveType, numInputs, outNdx) {
+    es3fTransformFeedbackTests.getAttributeIndex = function(gl, primitiveType, numInputs, outNdx) {
 
     switch (primitiveType) {
 
@@ -741,27 +754,27 @@ define([
 
     /**
      * @param {gluDrawUtil.primitiveType} primitiveType type number in gluDrawUtil.primitiveType
-     * @param {Output} output
+     * @param {es3fTransformFeedbackTests.Output} output
      * @param {number} numInputs
      * @param {Object} buffers
      * @return {boolean} isOk
      */
-    var compareTransformFeedbackOutput = function(primitiveType, output, numInputs, buffers) {
+    es3fTransformFeedbackTests.compareTransformFeedbackOutput = function(primitiveType, output, numInputs, buffers) {
         /** @type {boolean} */ var isOk = true;
         /** @type {number} */ var outOffset = output.offset;
 
         for (var attrNdx = 0; attrNdx < output.inputs.length; attrNdx++) {
-        /** @type {Attribute} */ var attribute = output.inputs[attrNdx];
+        /** @type {es3fTransformFeedbackTests.Attribute} */ var attribute = output.inputs[attrNdx];
         /** @type {gluShaderUtil.DataType} */ var type = attribute.type.getBasicType();
         /** @type {number} */ var numComponents = gluShaderUtil.getDataTypeScalarSize(type);
 
         /** @type {gluShaderUtil.precision} */ var precision = attribute.type.getPrecision();
 
         /** @type {string} */ var scalarType = gluShaderUtil.getDataTypeScalarType(type);
-        /** @type {number} */ var numOutputs = getTransformFeedbackOutputCount(primitiveType, numInputs);
+        /** @type {number} */ var numOutputs = es3fTransformFeedbackTests.getTransformFeedbackOutputCount(primitiveType, numInputs);
 
             for (var outNdx = 0; outNdx < numOutputs; outNdx++) {
-            /** @type {number} */ var inNdx = getAttributeIndex(primitiveType, numInputs, outNdx);
+            /** @type {number} */ var inNdx = es3fTransformFeedbackTests.getAttributeIndex(primitiveType, numInputs, outNdx);
 
                 for (var compNdx = 0; compNdx < numComponents; compNdx++) {
                 /** @type {boolean} */ var isEqual = false;
@@ -816,20 +829,20 @@ define([
     };
 
     /**
-     * Returns (for all the draw calls) the type of Primitive Mode, as it calls "getTransformFeedbackPrimitiveCount".
+     * Returns (for all the draw calls) the type of Primitive Mode, as it calls "es3fTransformFeedbackTests.getTransformFeedbackPrimitiveCount".
      * @param {WebGLRenderingContext} gl WebGL context
      * @param {gluDrawUtil.primitiveType} primitiveType GLenum that specifies what kind of primitive is
-     * @param {Object.<number, boolean>} array DrawCall object
+     * @param {Object.<number, boolean>} array es3fTransformFeedbackTests.DrawCall object
      * @return {number} primCount
      */
-    var computeTransformFeedbackPrimitiveCount = function(gl, primitiveType, array) {
+    es3fTransformFeedbackTests.computeTransformFeedbackPrimitiveCount = function(gl, primitiveType, array) {
 
     /** @type {number} */ var primCount = 0;
 
         for (var i = 0; i < array.length; ++ i) {
 
             if (array.transformFeedbackEnabled)
-            primCount += getTransformFeedbackPrimitiveCount(gl, primitiveType, array.numElements);
+            primCount += es3fTransformFeedbackTests.getTransformFeedbackPrimitiveCount(gl, primitiveType, array.numElements);
         }
 
         return primCount;
@@ -841,12 +854,12 @@ define([
      * @param {number} bufferSize
      * @param {number} guardSize
      */
-    var writeBufferGuard = function(gl, target, bufferSize, guardSize) {
+    es3fTransformFeedbackTests.writeBufferGuard = function(gl, target, bufferSize, guardSize) {
         var buffer = new ArrayBuffer(guardSize);
         var view   = new Uint8Array(buffer);
         for (var i = 0 ; i < guardSize ; ++i) view[i] = 0xcd;
         gl.bufferSubData(target, bufferSize, buffer);
-        GLU_EXPECT_NO_ERROR(gl, gl.getError(), 'guardband write');
+        es3fTransformFeedbackTests.GLU_EXPECT_NO_ERROR(gl, gl.getError(), 'guardband write');
     };
 
     /**
@@ -854,7 +867,7 @@ define([
      * @param {Array.<number>} buffer
      * @return {boolean}
      */
-    var verifyGuard = function(buffer, start) {
+    es3fTransformFeedbackTests.verifyGuard = function(buffer, start) {
         var view = new Uint8Array(buffer);
         for (var i = (start || 0) ; i < view.length ; i++) {
             if (view[i] != 0xcd)
@@ -872,7 +885,7 @@ define([
      * @param {gluDrawUtil.primitiveType} primitiveType GLenum that specifies what kind of primitive is
      * @constructor
      */
-    var TransformFeedbackCase = function(context, name, desc, bufferMode, primitiveType) {
+    es3fTransformFeedbackTests.TransformFeedbackCase = function(context, name, desc, bufferMode, primitiveType) {
 
         this._construct = function(context, name, desc, bufferMode, primitiveType) {
             if (
@@ -886,7 +899,7 @@ define([
                 this.m_gl = context;
                 this.m_bufferMode = bufferMode;
                 this.m_primitiveType = primitiveType;
-		        this.m_progSpec = new ProgramSpec();
+		        this.m_progSpec = new es3fTransformFeedbackTests.ProgramSpec();
             }
         };
 
@@ -895,7 +908,7 @@ define([
             var gl = this.m_gl; // const glw::Functions&
 
             if (this.m_program != null) { throw new Error('this.m_program isnt null.'); }
-            this.m_program = createVertexCaptureProgram(
+            this.m_program = es3fTransformFeedbackTests.createVertexCaptureProgram(
                 gl,
                 this.m_progSpec,
                 this.m_bufferMode,
@@ -910,9 +923,9 @@ define([
                                !this.m_program.getProgramInfo().linkOk;
 
                 if (linkFail) {
-                    if (!isProgramSupported(gl, this.m_progSpec, this.m_bufferMode)) {
+                    if (!es3fTransformFeedbackTests.isProgramSupported(gl, this.m_progSpec, this.m_bufferMode)) {
                         throw new Error('Not Supported. Implementation limits exceeded.');
-                    } else if (hasArraysInTFVaryings(this.m_progSpec)) {
+                    } else if (es3fTransformFeedbackTests.hasArraysInTFVaryings(this.m_progSpec)) {
                         throw new Error('Capturing arrays is not supported (undefined in specification)');
                     } else {
                         throw new Error('Link failed');
@@ -930,10 +943,10 @@ define([
             //logTransformFeedbackVaryings(log, gl, this.m_program.getProgram());
 
             // Compute input specification.
-            this.m_inputStride = computeInputLayout(this.m_attributes, this.m_progSpec.getVaryings(), this.m_progSpec.isPointSizeUsed());
+            this.m_inputStride = es3fTransformFeedbackTests.computeInputLayout(this.m_attributes, this.m_progSpec.getVaryings(), this.m_progSpec.isPointSizeUsed());
 
             // Build list of varyings used in transform feedback.
-            computeTransformFeedbackOutputs(
+            es3fTransformFeedbackTests.computeTransformFeedbackOutputs(
             	this.m_gl,
                 this.m_transformFeedbackOutputs,
                 this.m_attributes,
@@ -967,7 +980,7 @@ define([
             }
             this.m_transformFeedback = gl.createTransformFeedback();
 
-            GLU_EXPECT_NO_ERROR(gl, gl.getError(), 'init');
+            es3fTransformFeedbackTests.GLU_EXPECT_NO_ERROR(gl, gl.getError(), 'es3fTransformFeedbackTests.init');
 
             this.m_iterNdx = 0;
 //          this.m_testCtx.setTestResult(QP_TEST_RESULT_PASS, 'Pass');
@@ -997,12 +1010,12 @@ define([
         this.iterate = function() {
 
             // static vars
-            var s = TransformFeedbackCase.s_iterate;
+            var s = es3fTransformFeedbackTests.TransformFeedbackCase.s_iterate;
 
 //          var log = this.m_textCtx.getLog();
             var isOk = true;
             var seed = /*deString.deStringHash(getName()) ^ */ deMath.deMathHash(this.m_iterNdx);
-            var numIterations = TransformFeedbackCase.s_iterate.iterations.length;
+            var numIterations = es3fTransformFeedbackTests.TransformFeedbackCase.s_iterate.iterations.length;
             // first and end ignored.
 
             var sectionName = 'Iteration' + (this.m_iterNdx + 1);
@@ -1011,7 +1024,7 @@ define([
 
             bufferedLogToConsole('Testing ' +
                 s.testCases[s.iterations[this.m_iterNdx]].length +
-                ' draw calls, (element count, TF state): ' +
+                ' draw calls, (element es3fTransformFeedbackTests.count, TF state): ' +
             //  tcu.formatArray(
                     s.testCases[s.iterations[this.m_iterNdx]]
             //  )
@@ -1049,8 +1062,8 @@ define([
             var numOutputs = 0;
             var width = gl.drawingBufferWidth;
             var height = gl.drawingBufferHeight;
-            var viewportW = _min(VIEWPORT_WIDTH, width);
-            var viewportH = _min(VIEWPORT_HEIGHT, height);
+            var viewportW = _min(es3fTransformFeedbackTests.VIEWPORT_WIDTH, width);
+            var viewportH = _min(es3fTransformFeedbackTests.VIEWPORT_HEIGHT, height);
             var viewportX = rnd.getInt(0, width - viewportW);
             var viewportY = rnd.getInt(0, height - viewportH);
             var frameWithTf = new tcuSurface.Surface(viewportW, viewportH); // tcu::Surface
@@ -1064,14 +1077,14 @@ define([
             for (var i = 0; i < calls.length; ++i) {
                 var call = calls[i];
                 numInputs += call.numElements;
-                numOutputs += call.transformFeedbackEnabled ? getTransformFeedbackOutputCount(this.m_primitiveType, call.numElements) : 0;
+                numOutputs += call.transformFeedbackEnabled ? es3fTransformFeedbackTests.getTransformFeedbackOutputCount(this.m_primitiveType, call.numElements) : 0;
             }
 
             // Input data.
-            var inputData = genInputData(this.m_attributes, numInputs, this.m_inputStride, rnd);
+            var inputData = es3fTransformFeedbackTests.genInputData(this.m_attributes, numInputs, this.m_inputStride, rnd);
 
             gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, this.m_transformFeedback);
-            GLU_EXPECT_NO_ERROR(gl, gl.getError(), 'glBindTransformFeedback()');
+            es3fTransformFeedbackTests.GLU_EXPECT_NO_ERROR(gl, gl.getError(), 'glBindTransformFeedback()');
 
             // Allocate storage for transform feedback output buffers and bind to targets.
             for (var bufNdx = 0; bufNdx < this.m_outputBuffers.length; ++bufNdx) {
@@ -1079,25 +1092,25 @@ define([
                 var stride    = this.m_bufferStrides[bufNdx]; // int
                 var target    = bufNdx; // int
                 var size      = stride * numOutputs; // int
-                var guardSize = stride * BUFFER_GUARD_MULTIPLIER; // int
+                var guardSize = stride * es3fTransformFeedbackTests.BUFFER_GUARD_MULTIPLIER; // int
                 var usage     = gl.DYNAMIC_READ; // const deUint32
 
                 gl.bindBuffer(gl.TRANSFORM_FEEDBACK_BUFFER, buffer);
-                GLU_EXPECT_NO_ERROR(gl, gl.getError(), 'bindBuffer');
+                es3fTransformFeedbackTests.GLU_EXPECT_NO_ERROR(gl, gl.getError(), 'bindBuffer');
                 gl.bufferData(gl.TRANSFORM_FEEDBACK_BUFFER, size + guardSize, usage);
-                GLU_EXPECT_NO_ERROR(gl, gl.getError(), 'bufferData');
-                writeBufferGuard(gl, gl.TRANSFORM_FEEDBACK_BUFFER, size, guardSize);
+                es3fTransformFeedbackTests.GLU_EXPECT_NO_ERROR(gl, gl.getError(), 'bufferData');
+                es3fTransformFeedbackTests.writeBufferGuard(gl, gl.TRANSFORM_FEEDBACK_BUFFER, size, guardSize);
 
                 // \todo [2012-07-30 pyry] glBindBufferRange()?
                 gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, target, buffer);
 
-                GLU_EXPECT_NO_ERROR(gl, gl.getError(), 'transform feedback buffer setup');
+                es3fTransformFeedbackTests.GLU_EXPECT_NO_ERROR(gl, gl.getError(), 'transform feedback buffer setup');
             }
 
             var attribBuffer = gl.createBuffer();
             gl.bindBuffer(gl.ARRAY_BUFFER, attribBuffer);
             gl.bufferData(gl.ARRAY_BUFFER, inputData, gl.STATIC_DRAW);
-            GLU_EXPECT_NO_ERROR(gl, gl.getError(), 'Attributes buffer setup');
+            es3fTransformFeedbackTests.GLU_EXPECT_NO_ERROR(gl, gl.getError(), 'Attributes buffer setup');
 
             // Setup attributes.
             for (var i = 0; i < this.m_attributes.length; ++i) {
@@ -1138,7 +1151,7 @@ define([
 
             // Enable query.
             gl.beginQuery(gl.TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN, primitiveQuery);
-            GLU_EXPECT_NO_ERROR(gl, gl.getError(), 'glBeginQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN)');
+            es3fTransformFeedbackTests.GLU_EXPECT_NO_ERROR(gl, gl.getError(), 'glBeginQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN)');
 
             // Draw
             {
@@ -1147,7 +1160,7 @@ define([
 
                 gl.clear(gl.COLOR_BUFFER_BIT);
 
-                gl.beginTransformFeedback(getTransformFeedbackPrimitiveMode(this.m_primitiveType));
+                gl.beginTransformFeedback(es3fTransformFeedbackTests.getTransformFeedbackPrimitiveMode(this.m_primitiveType));
 
                 for (var i = 0; i < calls.length; ++i) {
                     var call = calls[i];
@@ -1171,17 +1184,17 @@ define([
                     gl.resumeTransformFeedback();
 
                 gl.endTransformFeedback();
-                GLU_EXPECT_NO_ERROR(gl, gl.getError(), 'render');
+                es3fTransformFeedbackTests.GLU_EXPECT_NO_ERROR(gl, gl.getError(), 'render');
             };
 
             gl.endQuery(gl.TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN);
-            GLU_EXPECT_NO_ERROR(gl, gl.getError(), 'glEndQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN)');
+            es3fTransformFeedbackTests.GLU_EXPECT_NO_ERROR(gl, gl.getError(), 'glEndQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN)');
 
             // Check and log query status right after submit
             (function() {
                 var available = gl.FALSE; // deUint32
                 available = gl.getQueryParameter(primitiveQuery, gl.QUERY_RESULT_AVAILABLE);
-                GLU_EXPECT_NO_ERROR(gl, gl.getError(), 'getQueryParameter()'); // formerly glGetQueryObjectuiv()
+                es3fTransformFeedbackTests.GLU_EXPECT_NO_ERROR(gl, gl.getError(), 'getQueryParameter()'); // formerly glGetQueryObjectuiv()
 
                 bufferedLogToConsole('GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN status after submit: ' +
                     (available != gl.FALSE ? 'GL_TRUE' : 'GL_FALSE'));
@@ -1191,14 +1204,14 @@ define([
             for (var bufferNdx = 0; bufferNdx < this.m_outputBuffers.length; ++bufferNdx) {
                 var stride    = this.m_bufferStrides[bufferNdx];   // int
                 var size      = stride * numOutputs;               // int
-                var guardSize = stride * BUFFER_GUARD_MULTIPLIER;  // int
+                var guardSize = stride * es3fTransformFeedbackTests.BUFFER_GUARD_MULTIPLIER;  // int
                 var buffer    = new ArrayBuffer(size + guardSize); // const void*
 
                 // Bind buffer for reading.
                 gl.bindBuffer(gl.TRANSFORM_FEEDBACK_BUFFER, this.m_outputBuffers[bufferNdx]);
 
                 gl.getBufferSubData(gl.TRANSFORM_FEEDBACK_BUFFER, 0, buffer); // (spec says to use ArrayBufferData)
-                GLU_EXPECT_NO_ERROR(gl, gl.getError(), 'mapping buffer');
+                es3fTransformFeedbackTests.GLU_EXPECT_NO_ERROR(gl, gl.getError(), 'mapping buffer');
 
                 // Verify all output variables that are written to this buffer.
                 for (var i = 0; i < this.m_transformFeedbackOutputs.length; ++i) {
@@ -1218,7 +1231,7 @@ define([
                             var inputPtr = inputData[0] + inputOffset * this.m_inputStride; // const deUint8*
                             var outputPtr = outputOffset * stride; // const deUint8*
 
-                            if (!compareTransformFeedbackOutput(this.m_primitiveType, out, call.numElements, {
+                            if (!es3fTransformFeedbackTests.compareTransformFeedbackOutput(this.m_primitiveType, out, call.numElements, {
                                      input: {
                                         buffer: inputData,
                                         offset: inputOffset * this.m_inputStride,
@@ -1236,13 +1249,13 @@ define([
                         }
 
                         inputOffset += call.numElements;
-                        outputOffset += call.transformFeedbackEnabled ? getTransformFeedbackOutputCount(this.m_primitiveType, call.numElements) : 0;
+                        outputOffset += call.transformFeedbackEnabled ? es3fTransformFeedbackTests.getTransformFeedbackOutputCount(this.m_primitiveType, call.numElements) : 0;
 
                     }
                 }
 
                 // Verify guardband.
-                if (!verifyGuard(buffer, size)) {
+                if (!es3fTransformFeedbackTests.verifyGuard(buffer, size)) {
                     bufferedLogToConsole('Error: Transform feedback buffer overrun detected');
                     outputsOk = false;
                 }
@@ -1256,13 +1269,13 @@ define([
             {
 
                 var mustBeReady = this.m_outputBuffers.length > 0; // Mapping buffer forces synchronization. // const bool
-                var expectedCount = computeTransformFeedbackPrimitiveCount(gl, this.m_primitiveType, calls); // const int
+                var expectedCount = es3fTransformFeedbackTests.computeTransformFeedbackPrimitiveCount(gl, this.m_primitiveType, calls); // const int
                 var available = gl.FALSE; // deUint32
                 var numPrimitives = 0; // deUint32
 
                 available = gl.getQueryParameter(primitiveQuery, gl.QUERY_RESULT_AVAILABLE);
                 numPrimitives = gl.getQueryParameter(primitiveQuery, gl.QUERY_RESULT);
-                GLU_EXPECT_NO_ERROR(gl, gl.getError(), 'getQueryParameter()'); // formerly getQueryObjectuiv()
+                es3fTransformFeedbackTests.GLU_EXPECT_NO_ERROR(gl, gl.getError(), 'getQueryParameter()'); // formerly getQueryObjectuiv()
 
                 if (!mustBeReady && available == gl.FALSE) {
 
@@ -1290,7 +1303,7 @@ define([
             // Read back rendered image.
             gl.readPixels(viewportX, viewportY, viewportW, viewportH, gl.RGBA, gl.UNSIGNED_BYTE, frameWithTf.getAccess().getDataPtr());
 
-            GLU_EXPECT_NO_ERROR(gl, gl.getError(), 'glReadPixels()');
+            es3fTransformFeedbackTests.GLU_EXPECT_NO_ERROR(gl, gl.getError(), 'glReadPixels()');
 
             // Render without transform feedback.
             {
@@ -1305,9 +1318,9 @@ define([
                 }
 
 
-                GLU_EXPECT_NO_ERROR(gl, gl.getError(), 'render');
+                es3fTransformFeedbackTests.GLU_EXPECT_NO_ERROR(gl, gl.getError(), 'render');
                 gl.readPixels(viewportX, viewportY, viewportW, viewportH, gl.RGBA, gl.UNSIGNED_BYTE, frameWithoutTf.getAccess().getDataPtr());
-                GLU_EXPECT_NO_ERROR(gl, gl.getError(), 'glReadPixels()');
+                es3fTransformFeedbackTests.GLU_EXPECT_NO_ERROR(gl, gl.getError(), 'glReadPixels()');
             };
 
             // Compare images with and without transform feedback.
@@ -1323,10 +1336,10 @@ define([
 
         }; // runTest();
 
-        // Derived from ProgramSpec in init()
+        // Derived from es3fTransformFeedbackTests.ProgramSpec in es3fTransformFeedbackTests.init()
         this.m_inputStride       = 0;
-        this.m_attributes        = [];    // vector<Attribute>
-        this.m_transformFeedbackOutputs = []; // vector<Output>
+        this.m_attributes        = [];    // vector<es3fTransformFeedbackTests.Attribute>
+        this.m_transformFeedbackOutputs = []; // vector<es3fTransformFeedbackTests.Output>
         this.m_bufferStrides     = [];    // vector<int>
 
         // GL state.
@@ -1343,28 +1356,28 @@ define([
 
     };
 
-	var dc = function(numElements, tfEnabled) {
-		return new DrawCall(numElements,tfEnabled);
+	es3fTransformFeedbackTests.dc = function(numElements, tfEnabled) {
+		return new es3fTransformFeedbackTests.DrawCall(numElements,tfEnabled);
 	};
 
     // static data
-    TransformFeedbackCase.s_iterate = {
+    es3fTransformFeedbackTests.TransformFeedbackCase.s_iterate = {
 
         testCases: {
-            elemCount1:   [dc(  1, true )],
-            elemCount2:   [dc(  2, true )],
-            elemCount3:   [dc(  3, true )],
-            elemCount4:   [dc(  4, true )],
-            elemCount123: [dc(123, true )],
-            basicPause1:  [dc( 64, true ), dc( 64, false), dc( 64, true)],
-            basicPause2:  [dc( 13, true ), dc(  5, true ), dc( 17, false),
-                           dc(  3, true ), dc(  7, false)],
-            startPaused:  [dc(123, false), dc(123, true )],
-            random1:      [dc( 65, true ), dc(135, false), dc( 74, true),
-                           dc( 16, false), dc(226, false), dc(  9, true),
-                           dc(174, false)],
-            random2:      [dc(217, true ), dc(171, true ), dc(147, true),
-                           dc(152, false), dc( 55, true )]
+            elemCount1:   [es3fTransformFeedbackTests.dc(  1, true )],
+            elemCount2:   [es3fTransformFeedbackTests.dc(  2, true )],
+            elemCount3:   [es3fTransformFeedbackTests.dc(  3, true )],
+            elemCount4:   [es3fTransformFeedbackTests.dc(  4, true )],
+            elemCount123: [es3fTransformFeedbackTests.dc(123, true )],
+            basicPause1:  [es3fTransformFeedbackTests.dc( 64, true ), es3fTransformFeedbackTests.dc( 64, false), es3fTransformFeedbackTests.dc( 64, true)],
+            basicPause2:  [es3fTransformFeedbackTests.dc( 13, true ), es3fTransformFeedbackTests.dc(  5, true ), es3fTransformFeedbackTests.dc( 17, false),
+                           es3fTransformFeedbackTests.dc(  3, true ), es3fTransformFeedbackTests.dc(  7, false)],
+            startPaused:  [es3fTransformFeedbackTests.dc(123, false), es3fTransformFeedbackTests.dc(123, true )],
+            random1:      [es3fTransformFeedbackTests.dc( 65, true ), es3fTransformFeedbackTests.dc(135, false), es3fTransformFeedbackTests.dc( 74, true),
+                           es3fTransformFeedbackTests.dc( 16, false), es3fTransformFeedbackTests.dc(226, false), es3fTransformFeedbackTests.dc(  9, true),
+                           es3fTransformFeedbackTests.dc(174, false)],
+            random2:      [es3fTransformFeedbackTests.dc(217, true ), es3fTransformFeedbackTests.dc(171, true ), es3fTransformFeedbackTests.dc(147, true),
+                           es3fTransformFeedbackTests.dc(152, false), es3fTransformFeedbackTests.dc( 55, true )]
         },
         iterations: [
             'elemCount1',  'elemCount2',  'elemCount3', 'elemCount4', 'elemCount1234',
@@ -1373,15 +1386,15 @@ define([
         ]
     };
 
-    TransformFeedbackCase.prototype = new tcuTestCase.DeqpTest();
+    es3fTransformFeedbackTests.TransformFeedbackCase.prototype = new tcuTestCase.DeqpTest();
 
-    var hasArraysInTFVaryings = function(spec) {
+    es3fTransformFeedbackTests.hasArraysInTFVaryings = function(spec) {
 
         for (var i = 0 ; i < spec.getTransformFeedbackVaryings().length ; ++i) {
             var tfVar = spec.getTransformFeedbackVaryings()[i];
             var varName = gluVarTypeUtil.parseVariableName(tfVar);
 
-            if (findAttributeNameEquals(spec.getVaryings(), varName)) return true;
+            if (es3fTransformFeedbackTests.findAttributeNameEquals(spec.getVaryings(), varName)) return true;
         }
         return false;
 
@@ -1389,8 +1402,8 @@ define([
 
 
 
-    /** PositionCase
-     * It is a child class of TransformFeedbackCase
+    /** es3fTransformFeedbackTests.PositionCase
+     * It is a child class of es3fTransformFeedbackTests.TransformFeedbackCase
      * @param {WebGLRenderingContext} context gl WebGL context
      * @param {string} name
      * @param {string} desc
@@ -1398,17 +1411,17 @@ define([
      * @param {gluDrawUtil.primitiveType} primitiveType GLenum that specifies what kind of primitive is
      * @constructor
      */
-    var PositionCase = function(context, name, desc, bufferMode, primitiveType) {
+    es3fTransformFeedbackTests.PositionCase = function(context, name, desc, bufferMode, primitiveType) {
 
         this._construct(context, name, desc, bufferMode, primitiveType);
         this.m_progSpec.addTransformFeedbackVarying('gl_Position');
 
     };
 
-    PositionCase.prototype = new TransformFeedbackCase();
+    es3fTransformFeedbackTests.PositionCase.prototype = new es3fTransformFeedbackTests.TransformFeedbackCase();
 
-    /** PointSizeCase
-     * It is a child class of TransformFeedbackCase
+    /** es3fTransformFeedbackTests.PointSizeCase
+     * It is a child class of es3fTransformFeedbackTests.TransformFeedbackCase
      * @param {WebGLRenderingContext} context gl WebGL context
      * @param {string} name
      * @param {string} desc
@@ -1416,17 +1429,17 @@ define([
      * @param {gluDrawUtil.primitiveType} primitiveType GLenum that specifies what kind of primitive is
      * @constructor
      */
-    var PointSizeCase = function(context, name, desc, bufferMode, primitiveType) {
+    es3fTransformFeedbackTests.PointSizeCase = function(context, name, desc, bufferMode, primitiveType) {
 
         this._construct(context, name, desc, bufferMode, primitiveType);
         this.m_progSpec.addTransformFeedbackVarying('gl_PointSize');
 
     };
 
-    PointSizeCase.prototype = new TransformFeedbackCase();
+    es3fTransformFeedbackTests.PointSizeCase.prototype = new es3fTransformFeedbackTests.TransformFeedbackCase();
 
-    /** BasicTypeCase
-     * It is a child class of TransformFeedbackCase
+    /** es3fTransformFeedbackTests.BasicTypeCase
+     * It is a child class of es3fTransformFeedbackTests.TransformFeedbackCase
      * @param {WebGLRenderingContext} context gl WebGL context
      * @param {string} name
      * @param {string} desc
@@ -1434,25 +1447,25 @@ define([
      * @param {gluDrawUtil.primitiveType} primitiveType GLenum that specifies what kind of primitive is
      * @param {gluVarType.VarType} type
      * @param {gluShaderUtil.precision} precision
-     * @param {interpolation} interpolation enum number in this javascript
+     * @param {es3fTransformFeedbackTests.interpolation} es3fTransformFeedbackTests.interpolation enum number in this javascript
      * @constructor
      */
-    var BasicTypeCase = function(context, name, desc, bufferMode, primitiveType, type, precision, interpolation) {
+    es3fTransformFeedbackTests.BasicTypeCase = function(context, name, desc, bufferMode, primitiveType, type, precision, es3fTransformFeedbackTests.interpolation) {
 
         this._construct(context, name, desc, bufferMode, primitiveType);
 
-        this.m_progSpec.addVarying('v_varA', gluVarType.newTypeBasic(type, precision), interpolation);
-        this.m_progSpec.addVarying('v_varB', gluVarType.newTypeBasic(type, precision), interpolation);
+        this.m_progSpec.addVarying('v_varA', gluVarType.newTypeBasic(type, precision), es3fTransformFeedbackTests.interpolation);
+        this.m_progSpec.addVarying('v_varB', gluVarType.newTypeBasic(type, precision), es3fTransformFeedbackTests.interpolation);
 
         this.m_progSpec.addTransformFeedbackVarying('v_varA');
         this.m_progSpec.addTransformFeedbackVarying('v_varB');
 
     };
 
-    BasicTypeCase.prototype = new TransformFeedbackCase();
+    es3fTransformFeedbackTests.BasicTypeCase.prototype = new es3fTransformFeedbackTests.TransformFeedbackCase();
 
-    /** BasicArrayCase
-     * It is a child class of TransformFeedbackCase
+    /** es3fTransformFeedbackTests.BasicArrayCase
+     * It is a child class of es3fTransformFeedbackTests.TransformFeedbackCase
      * @param {WebGLRenderingContext} context gl WebGL context
      * @param {string} name
      * @param {string} desc
@@ -1460,25 +1473,25 @@ define([
      * @param {gluDrawUtil.primitiveType} primitiveType GLenum that specifies what kind of primitive is
      * @param {gluVarType.VarType} type
      * @param {gluShaderUtil.precision} precision
-     * @param {interpolation} interpolation enum number in this javascript
+     * @param {es3fTransformFeedbackTests.interpolation} es3fTransformFeedbackTests.interpolation enum number in this javascript
      * @constructor
      */
-    var BasicArrayCase = function(context, name, desc, bufferMode, primitiveType, type, precision, interpolation) {
+    es3fTransformFeedbackTests.BasicArrayCase = function(context, name, desc, bufferMode, primitiveType, type, precision, es3fTransformFeedbackTests.interpolation) {
 
         this._construct(context, name, desc, bufferMode, primitiveType);
 
         if (gluShaderUtil.isDataTypeMatrix(type) || this.m_bufferMode === this.m_gl.SEPARATE_ATTRIBS)
         {
             // note For matrix types we need to use reduced array sizes or otherwise we will exceed maximum attribute (16)
-            // or transform feedback component count (64).
-            // On separate attribs mode maximum component count per varying is 4.
-            this.m_progSpec.addVarying('v_varA', gluVarType.newTypeArray(gluVarType.newTypeBasic(type, precision), 1), interpolation);
-            this.m_progSpec.addVarying('v_varB', gluVarType.newTypeArray(gluVarType.newTypeBasic(type, precision), 2), interpolation);
+            // or transform feedback component es3fTransformFeedbackTests.count (64).
+            // On separate attribs mode maximum component es3fTransformFeedbackTests.count per varying is 4.
+            this.m_progSpec.addVarying('v_varA', gluVarType.newTypeArray(gluVarType.newTypeBasic(type, precision), 1), es3fTransformFeedbackTests.interpolation);
+            this.m_progSpec.addVarying('v_varB', gluVarType.newTypeArray(gluVarType.newTypeBasic(type, precision), 2), es3fTransformFeedbackTests.interpolation);
         }
         else
         {
-            this.m_progSpec.addVarying('v_varA', gluVarType.newTypeArray(gluVarType.newTypeBasic(type, precision), 3), interpolation);
-            this.m_progSpec.addVarying('v_varB', gluVarType.newTypeArray(gluVarType.newTypeBasic(type, precision), 4), interpolation);
+            this.m_progSpec.addVarying('v_varA', gluVarType.newTypeArray(gluVarType.newTypeBasic(type, precision), 3), es3fTransformFeedbackTests.interpolation);
+            this.m_progSpec.addVarying('v_varB', gluVarType.newTypeArray(gluVarType.newTypeBasic(type, precision), 4), es3fTransformFeedbackTests.interpolation);
         }
 
         this.m_progSpec.addTransformFeedbackVarying('v_varA');
@@ -1486,10 +1499,10 @@ define([
 
     };
 
-    BasicArrayCase.prototype = new TransformFeedbackCase();
+    es3fTransformFeedbackTests.BasicArrayCase.prototype = new es3fTransformFeedbackTests.TransformFeedbackCase();
 
-    /** ArrayElementCase
-     * It is a child class of TransformFeedbackCase
+    /** es3fTransformFeedbackTests.ArrayElementCase
+     * It is a child class of es3fTransformFeedbackTests.TransformFeedbackCase
      * @param {WebGLRenderingContext} context gl WebGL context
      * @param {string} name
      * @param {string} desc
@@ -1497,15 +1510,15 @@ define([
      * @param {gluDrawUtil.primitiveType} primitiveType GLenum that specifies what kind of primitive is
      * @param {gluVarType.VarType} type
      * @param {gluShaderUtil.precision} precision
-     * @param {interpolation} interpolation enum number in this javascript
+     * @param {es3fTransformFeedbackTests.interpolation} es3fTransformFeedbackTests.interpolation enum number in this javascript
      * @constructor
      */
-    var ArrayElementCase = function(context, name, desc, bufferMode, primitiveType, type, precision, interpolation) {
+    es3fTransformFeedbackTests.ArrayElementCase = function(context, name, desc, bufferMode, primitiveType, type, precision, es3fTransformFeedbackTests.interpolation) {
 
         this._construct(context, name, desc, bufferMode, primitiveType);
 
-        this.m_progSpec.addVarying('v_varA', gluVarType.newTypeBasic(type, precision), interpolation);
-        this.m_progSpec.addVarying('v_varB', gluVarType.newTypeBasic(type, precision), interpolation);
+        this.m_progSpec.addVarying('v_varA', gluVarType.newTypeBasic(type, precision), es3fTransformFeedbackTests.interpolation);
+        this.m_progSpec.addVarying('v_varB', gluVarType.newTypeBasic(type, precision), es3fTransformFeedbackTests.interpolation);
 
         this.m_progSpec.addTransformFeedbackVarying('v_varA[1]');
         this.m_progSpec.addTransformFeedbackVarying('v_varB[0]');
@@ -1513,10 +1526,10 @@ define([
 
     };
 
-    ArrayElementCase.prototype = new TransformFeedbackCase();
+    es3fTransformFeedbackTests.ArrayElementCase.prototype = new es3fTransformFeedbackTests.TransformFeedbackCase();
 
-    /** RandomCase
-     * It is a child class of TransformFeedbackCase
+    /** es3fTransformFeedbackTests.RandomCase
+     * It is a child class of es3fTransformFeedbackTests.TransformFeedbackCase
      * @param {WebGLRenderingContext} context gl WebGL context
      * @param {string} name
      * @param {string} desc
@@ -1525,12 +1538,12 @@ define([
      * @param {number} seed
      * @constructor
      */
-    var RandomCase = function(context, name, desc, bufferMode, primitiveType, seed) {
+    es3fTransformFeedbackTests.RandomCase = function(context, name, desc, bufferMode, primitiveType, seed) {
 
         this._construct(context, name, desc, bufferMode, primitiveType);
 
         var parent = {
-            init: this.init
+            es3fTransformFeedbackTests.init: this.init
         };
 
         this.init = function() {
@@ -1578,11 +1591,11 @@ define([
                 // glsUBC.UniformFlags.PRECISION_HIGH
             ];
 
-            /** @type {Array.<string, interpolation>} */
+            /** @type {Array.<string, es3fTransformFeedbackTests.interpolation>} */
             var interpModes = [
-                {name: 'smooth', interp: interpolation.SMOOTH},
-                {name: 'flat', interp: interpolation.FLAT},
-                {name: 'centroid', interp: interpolation.CENTROID}
+                {name: 'smooth', interp: es3fTransformFeedbackTests.interpolation.SMOOTH},
+                {name: 'flat', interp: es3fTransformFeedbackTests.interpolation.FLAT},
+                {name: 'centroid', interp: es3fTransformFeedbackTests.interpolation.CENTROID}
             ];
 
             /** @type {number} */  var maxAttributeVectors      = 16;
@@ -1629,10 +1642,10 @@ define([
                 /** @type {glsUBC.UniformFlags | gluShaderUtil.precision} */
                 var precision = rnd.choose(precisions)[0];
 
-                /** @type {interpolation} */
+                /** @type {es3fTransformFeedbackTests.interpolation} */
                 var interp = gluShaderUtil.getDataTypeScalarType(type) === gluShaderUtil.DataType.FLOAT
                            ? rnd.choose(interpModes)
-                           : interpolation.FLAT;
+                           : es3fTransformFeedbackTests.interpolation.FLAT;
 
                 /** @type {number} */
                 var numVecs     = gluShaderUtil.isDataTypeMatrix(type) ? gluShaderUtil.getDataTypeMatrixNumColumns(type) : 1;
@@ -1664,7 +1677,7 @@ define([
 
             for (var ndx = 0; ndx < varNdx; ndx++)
             {
-                /** @type {Varying} */
+                /** @type {es3fTransformFeedbackTests.Varying} */
                 var varying = this.m_progSpec.getVaryings()[ndx];
 
                 if (varying.type.isArrayType())
@@ -1700,12 +1713,12 @@ define([
         };
     };
 
-    RandomCase.prototype = new TransformFeedbackCase();
+    es3fTransformFeedbackTests.RandomCase.prototype = new es3fTransformFeedbackTests.TransformFeedbackCase();
 
     /**
      * Creates the test in order to be executed
     **/
-    var init = function(context) {
+    es3fTransformFeedbackTests.init = function(context) {
 
         /** @const @type {tcuTestCase.DeqpTest} */
         var testGroup = tcuTestCase.runner.getState().testCases;
@@ -1760,11 +1773,11 @@ define([
             // glsUBC.UniformFlags.PRECISION_HIGH
         ];
 
-        /** @type {Array.<string, interpolation>} */
+        /** @type {Array.<string, es3fTransformFeedbackTests.interpolation>} */
         var interpModes = [
-            {name: 'smooth', interp: interpolation.SMOOTH},
-            {name: 'flat', interp: interpolation.FLAT},
-            {name: 'centroid', interp: interpolation.CENTROID}
+            {name: 'smooth', interp: es3fTransformFeedbackTests.interpolation.SMOOTH},
+            {name: 'flat', interp: es3fTransformFeedbackTests.interpolation.FLAT},
+            {name: 'centroid', interp: es3fTransformFeedbackTests.interpolation.CENTROID}
         ];
 
         // .position
@@ -1779,7 +1792,7 @@ define([
                 /** @type {string} */
                 var name = primitiveTypes[primitiveType].name + '_' + bufferModes[bufferMode].name;
 
-                positionGroup.addChild(new PositionCase(
+                positionGroup.addChild(new es3fTransformFeedbackTests.PositionCase(
                     context,
                     name,
                     '',
@@ -1800,7 +1813,7 @@ define([
                 /** @type {string} */
                 var name = primitiveTypes[primitiveType].name + '_' + bufferModes[bufferMode].name;
 
-                pointSizeGroup.addChild(new PointSizeCase(
+                pointSizeGroup.addChild(new es3fTransformFeedbackTests.PointSizeCase(
                     context,
                     name,
                     '',
@@ -1845,7 +1858,7 @@ define([
                         /** @type {string} */
                         var name = gluShaderUtil.getPrecisionName(precision) + '_' + gluShaderUtil.getDataTypeName(type);
 
-                        primitiveGroup.addChild(new BasicTypeCase(
+                        primitiveGroup.addChild(new es3fTransformFeedbackTests.BasicTypeCase(
                             context,
                             name,
                             '',
@@ -1853,7 +1866,7 @@ define([
                             primitiveType,
                             type,
                             precision,
-                            isFloat ? interpolation.SMOOTH : interpolation.FLAT
+                            isFloat ? es3fTransformFeedbackTests.interpolation.SMOOTH : es3fTransformFeedbackTests.interpolation.FLAT
                         ));
                     }
                 }
@@ -1892,7 +1905,7 @@ define([
                         /** @type {string} */
                         var name = gluShaderUtil.getPrecisionName(precision) + '_' + gluShaderUtil.getDataTypeName(type);
 
-                        primitiveGroup.addChild(new BasicArrayCase(
+                        primitiveGroup.addChild(new es3fTransformFeedbackTests.BasicArrayCase(
                             context,
                             name,
                             '',
@@ -1900,7 +1913,7 @@ define([
                             primitiveType,
                             type,
                             precision,
-                            isFloat ? interpolation.SMOOTH : interpolation.FLAT
+                            isFloat ? es3fTransformFeedbackTests.interpolation.SMOOTH : es3fTransformFeedbackTests.interpolation.FLAT
                         ));
                     }
                 }
@@ -1942,7 +1955,7 @@ define([
                         /** @type {string} */
                         var name = gluShaderUtil.getPrecisionName(precision) + '_' + gluShaderUtil.getDataTypeName(type);
 
-                        primitiveGroup.addChild(new ArrayElementCase(
+                        primitiveGroup.addChild(new es3fTransformFeedbackTests.ArrayElementCase(
                             context,
                             name,
                             '',
@@ -1950,7 +1963,7 @@ define([
                             primitiveType,
                             type,
                             precision,
-                            isFloat ? interpolation.SMOOTH : interpolation.FLAT
+                            isFloat ? es3fTransformFeedbackTests.interpolation.SMOOTH : es3fTransformFeedbackTests.interpolation.FLAT
                         ));
                     }
                 }
@@ -1960,13 +1973,13 @@ define([
         // .interpolation
         /** @type {tcuTestCase.DeqpTest} */
         var interpolationGroup = tcuTestCase.newTest(
-            'interpolation', 'Different interpolation modes in transform feedback varyings'
+            'es3fTransformFeedbackTests.interpolation', 'Different es3fTransformFeedbackTests.interpolation modes in transform feedback varyings'
         );
         testGroup.addChild(interpolationGroup);
 
         for (var modeNdx = 0; modeNdx < interpModes.length; modeNdx++)
         {
-        /** @type {interpolation} */
+        /** @type {es3fTransformFeedbackTests.interpolation} */
         var interp = interpModes[modeNdx].interp;
         /** @type {tcuTestCase.DeqpTest} */
         var modeGroup = tcuTestCase.newTest(interpModes[modeNdx].name, '');
@@ -1989,7 +2002,7 @@ define([
                             '_'      + bufferModes[bufferMode].name
                         );
 
-                        modeGroup.addChild(new BasicTypeCase(
+                        modeGroup.addChild(new es3fTransformFeedbackTests.BasicTypeCase(
                             context,
                             name,
                             '',
@@ -2030,7 +2043,7 @@ define([
                     /** @type {number} */
                     var seed = deMath.deMathHash(bufferMode) ^ deMath.deMathHash(primitiveType) ^ deMath.deMathHash(ndx);
 
-                    primitiveGroup.addChild(new RandomCase(
+                    primitiveGroup.addChild(new es3fTransformFeedbackTests.RandomCase(
                         context,
                         (ndx + 1).toString(),
                         '',
@@ -2048,7 +2061,7 @@ define([
     /**
      * Create and execute the test cases
      */
-    var run = function(gl) {
+    es3fTransformFeedbackTests.run = function(gl) {
 		var testName = 'transform_feedback';
         var testDescription = 'Transform Feedback Tests';
         var state = tcuTestCase.runner.getState();
@@ -2060,7 +2073,7 @@ define([
         setCurrentTestName(testName);
         description(testDescription);
         try {
-            init(gl);
+            es3fTransformFeedbackTests.init(gl);
             tcuTestCase.runner.runCallback(tcuTestCase.runTestCases);
         } catch (err) {
         	console.log(err);
@@ -2071,8 +2084,6 @@ define([
     };
 
 
-    return {
-        run: run
-    };
+    
 
 });

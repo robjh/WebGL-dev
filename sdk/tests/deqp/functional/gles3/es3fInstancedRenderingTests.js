@@ -18,72 +18,78 @@
  *
  */
 
-define([
-    'framework/opengl/gluShaderUtil',
-    'framework/opengl/gluShaderProgram',
-    'framework/common/tcuTestCase',
-    'framework/common/tcuSurface',
-    'framework/delibs/debase/deString',
-    'framework/delibs/debase/deRandom',
-    'framework/common/tcuImageCompare',
-    'framework/opengl/gluTextureUtil'], function(
-        gluShaderUtil,
-        gluShaderProgram,
-        tcuTestCase,
-        tcuSurface,
-        deString,
-        deRandom,
-        tcuImageCompare,
-        gluTextureUtil) {
-    'use strict';
+'use strict';
+goog.provide('functional.gles3.es3fInstancedRenderingTests');
+goog.require('framework.opengl.gluShaderUtil');
+goog.require('framework.opengl.gluShaderProgram');
+goog.require('framework.common.tcuTestCase');
+goog.require('framework.common.tcuSurface');
+goog.require('framework.delibs.debase.deString');
+goog.require('framework.delibs.debase.deRandom');
+goog.require('framework.common.tcuImageCompare');
+goog.require('framework.opengl.gluTextureUtil');
+
+
+goog.scope(function() {
+
+var es3fInstancedRenderingTests = functional.gles3.es3fInstancedRenderingTests;
+var gluShaderUtil = framework.opengl.gluShaderUtil;
+var gluShaderProgram = framework.opengl.gluShaderProgram;
+var tcuTestCase = framework.common.tcuTestCase;
+var tcuSurface = framework.common.tcuSurface;
+var deString = framework.delibs.debase.deString;
+var deRandom = framework.delibs.debase.deRandom;
+var tcuImageCompare = framework.common.tcuImageCompare;
+var gluTextureUtil = framework.opengl.gluTextureUtil;
+    
     /** @type {WebGL2RenderingContext} */ var gl;
 
-    /** @const @type {number} */ var MAX_RENDER_WIDTH = 128;
-    /** @const @type {number} */ var MAX_RENDER_HEIGHT = 128;
+    /** @const @type {number} */ es3fInstancedRenderingTests.MAX_RENDER_WIDTH = 128;
+    /** @const @type {number} */ es3fInstancedRenderingTests.MAX_RENDER_HEIGHT = 128;
 
-    /** @const @type {number} */ var QUAD_GRID_SIZE = 127;
+    /** @const @type {number} */ es3fInstancedRenderingTests.QUAD_GRID_SIZE = 127;
 
     // Attribute divisors for the attributes defining the color's RGB components.
-    /** @const @type {number} */var ATTRIB_DIVISOR_R = 3;
-    /** @const @type {number} */var ATTRIB_DIVISOR_G = 2;
-    /** @const @type {number} */var ATTRIB_DIVISOR_B = 1;
+    /** @const @type {number} */es3fInstancedRenderingTests.ATTRIB_DIVISOR_R = 3;
+    /** @const @type {number} */es3fInstancedRenderingTests.ATTRIB_DIVISOR_G = 2;
+    /** @const @type {number} */es3fInstancedRenderingTests.ATTRIB_DIVISOR_B = 1;
 
-    /** @const @type {number} */var OFFSET_COMPONENTS = 3; // \note Affects whether a float or a vecN is used in shader, but only first component is non-zero.
+    /** @const @type {number} */es3fInstancedRenderingTests.OFFSET_COMPONENTS = 3; // \note Affects whether a float or a vecN is used in shader, but only first component is non-zero.
 
     // Scale and bias values when converting float to integer, when attribute is of integer type.
-    /** @const @type {number} */var FLOAT_INT_SCALE = 100.0;
-    /** @const @type {number} */var FLOAT_INT_BIAS = -50.0;
-    /** @const @type {number} */var FLOAT_UINT_SCALE = 100.0;
-    /** @const @type {number} */var FLOAT_UINT_BIAS = 0.0;
+    /** @const @type {number} */es3fInstancedRenderingTests.FLOAT_INT_SCALE = 100.0;
+    /** @const @type {number} */es3fInstancedRenderingTests.FLOAT_INT_BIAS = -50.0;
+    /** @const @type {number} */es3fInstancedRenderingTests.FLOAT_UINT_SCALE = 100.0;
+    /** @const @type {number} */es3fInstancedRenderingTests.FLOAT_UINT_BIAS = 0.0;
 
     var DE_ASSERT = function(expression)
     {
         if (!expression) throw new Error('Assert failed');
     };
 
-    var DE_STATIC_ASSERT = function(expression)
+    es3fInstancedRenderingTests.DE_STATIC_ASSERT = function(expression)
     {
         if (!expression) throw new Error('Assert failed');
     };
 
-    var TCU_FAIL = function(message) {
+    es3fInstancedRenderingTests.TCU_FAIL = function(message) {
         throw new Error(message);
     };
 
-    // InstancedRenderingCase
+    // es3fInstancedRenderingTests.InstancedRenderingCase
 
     /**
-     * @enum DrawFunction
+     * @enum es3fInstancedRenderingTests.DrawFunction
      */
-    var DrawFunction = {
+    es3fInstancedRenderingTests.DrawFunction = {
             FUNCTION_DRAW_ARRAYS_INSTANCED: 0,
             FUNCTION_DRAW_ELEMENTS_INSTANCED: 1
     };
 
     /**
-     * @enum InstancingType
+     * @enum es3fInstancedRenderingTests.InstancingType
      */
-    var InstancingType = {
+    es3fInstancedRenderingTests.InstancingType = {
             TYPE_INSTANCE_ID: 0,
             TYPE_ATTRIB_DIVISOR: 1,
             TYPE_MIXED: 2
@@ -91,19 +97,19 @@ define([
 
 
     /**
-    * InstancedRenderingCase class, inherits from TestCase class
+    * es3fInstancedRenderingTests.InstancedRenderingCase class, inherits from TestCase class
     * @constructor
     * @param {string} name
     * @param {string} description
-    * @param {DrawFunction} drawFunction
-    * @param {InstancingType} instancingType
+    * @param {es3fInstancedRenderingTests.DrawFunction} drawFunction
+    * @param {es3fInstancedRenderingTests.InstancingType} instancingType
     * @param {gluShaderUtil.DataType} rgbAttrType
     * @param {number} numInstances
     */
-    var InstancedRenderingCase = function(name, description, drawFunction, instancingType, rgbAttrType, numInstances) {
+    es3fInstancedRenderingTests.InstancedRenderingCase = function(name, description, drawFunction, instancingType, rgbAttrType, numInstances) {
         tcuTestCase.DeqpTest.call(this, name, description);
-        /** @type {DrawFunction} */ this.m_function = drawFunction;
-        /** @type {InstancingType} */ this.m_instancingType = instancingType;
+        /** @type {es3fInstancedRenderingTests.DrawFunction} */ this.m_function = drawFunction;
+        /** @type {es3fInstancedRenderingTests.InstancingType} */ this.m_instancingType = instancingType;
         /** @type {DataType} */ this.m_rgbAttrType = rgbAttrType;
         /** @type {number} */ this.m_numInstances = numInstances;
         /** @type {glu.ShaderProgram} */ this.m_program = null;
@@ -115,15 +121,15 @@ define([
         /** @type {Array<number>} */ this.m_instanceColorB = [];
     };
 
-    InstancedRenderingCase.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
-    InstancedRenderingCase.prototype.constructor = InstancedRenderingCase;
+    es3fInstancedRenderingTests.InstancedRenderingCase.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
+    es3fInstancedRenderingTests.InstancedRenderingCase.prototype.constructor = es3fInstancedRenderingTests.InstancedRenderingCase;
 
     /**
     * Helper function that does biasing and scaling when converting float to integer.
     * @param {Array<number>} vec
     * @param {number} val
     */
-    InstancedRenderingCase.prototype.pushVarCompAttrib = function(vec, val) {
+    es3fInstancedRenderingTests.InstancedRenderingCase.prototype.pushVarCompAttrib = function(vec, val) {
         var isFloatCase = gluShaderUtil.isDataTypeFloatOrVec(this.m_rgbAttrType);
         var isIntCase = gluShaderUtil.isDataTypeIntOrIVec(this.m_rgbAttrType);
         var isUintCase = gluShaderUtil.isDataTypeUintOrUVec(this.m_rgbAttrType);
@@ -131,14 +137,14 @@ define([
         if (isFloatCase || isMatCase)
             vec.push(val);
         else if (isIntCase)
-            vec.push(val * FLOAT_INT_SCALE + FLOAT_INT_BIAS);
+            vec.push(val * es3fInstancedRenderingTests.FLOAT_INT_SCALE + es3fInstancedRenderingTests.FLOAT_INT_BIAS);
         else if (isUintCase)
-            vec.push(val * FLOAT_UINT_SCALE + FLOAT_UINT_BIAS);
+            vec.push(val * es3fInstancedRenderingTests.FLOAT_UINT_SCALE + es3fInstancedRenderingTests.FLOAT_UINT_BIAS);
         else
             throw new Error('Invalid attribute type.');
     };
 
-    InstancedRenderingCase.prototype.init = function() {
+    es3fInstancedRenderingTests.InstancedRenderingCase.prototype.init = function() {
         // Clear errors from previous tests
         gl.getError();
 
@@ -151,10 +157,10 @@ define([
         /** @type {string} */ var swizzleFirst = isScalarCase ? '' : '.x';
         /** @type {string} */ var typeName = gluShaderUtil.getDataTypeName(this.m_rgbAttrType);
 
-        /** @type {string} */ var floatIntScaleStr = '(' + FLOAT_INT_SCALE.toFixed(3) + ')';
-        /** @type {string} */ var floatIntBiasStr = '(' + FLOAT_INT_BIAS.toFixed(3) + ')';
-        /** @type {string} */ var floatUintScaleStr = '(' + FLOAT_UINT_SCALE.toFixed(3) + ')';
-        /** @type {string} */ var floatUintBiasStr = '(' + FLOAT_UINT_BIAS.toFixed(3) + ')';
+        /** @type {string} */ var floatIntScaleStr = '(' + es3fInstancedRenderingTests.FLOAT_INT_SCALE.toFixed(3) + ')';
+        /** @type {string} */ var floatIntBiasStr = '(' + es3fInstancedRenderingTests.FLOAT_INT_BIAS.toFixed(3) + ')';
+        /** @type {string} */ var floatUintScaleStr = '(' + es3fInstancedRenderingTests.FLOAT_UINT_SCALE.toFixed(3) + ')';
+        /** @type {string} */ var floatUintBiasStr = '(' + es3fInstancedRenderingTests.FLOAT_UINT_BIAS.toFixed(3) + ')';
 
         DE_ASSERT(isFloatCase || isIntCase || isUintCase || isMatCase);
 
@@ -169,23 +175,23 @@ define([
         /** @type {string} */ var colorGExpression = '';
         /** @type {string} */ var colorBExpression = '';
 
-        if (this.m_instancingType == InstancingType.TYPE_INSTANCE_ID || this.m_instancingType == InstancingType.TYPE_MIXED) {
+        if (this.m_instancingType == es3fInstancedRenderingTests.InstancingType.TYPE_INSTANCE_ID || this.m_instancingType == es3fInstancedRenderingTests.InstancingType.TYPE_MIXED) {
             posExpression = 'a_position + vec4(float(gl_InstanceID) * 2.0 / ' + numInstancesStr + ', 0.0, 0.0, 0.0)';
             colorRExpression = 'float(gl_InstanceID)/' + numInstancesStr;
 
-            if (this.m_instancingType == InstancingType.TYPE_INSTANCE_ID) {
+            if (this.m_instancingType == es3fInstancedRenderingTests.InstancingType.TYPE_INSTANCE_ID) {
                 colorGExpression = 'float(gl_InstanceID)*2.0/' + numInstancesStr;
                 colorBExpression = '1.0 - float(gl_InstanceID)/' + numInstancesStr;
             }
         }
 
-        if (this.m_instancingType == InstancingType.TYPE_ATTRIB_DIVISOR || this.m_instancingType == InstancingType.TYPE_MIXED) {
-            if (this.m_instancingType == InstancingType.TYPE_ATTRIB_DIVISOR) {
+        if (this.m_instancingType == es3fInstancedRenderingTests.InstancingType.TYPE_ATTRIB_DIVISOR || this.m_instancingType == es3fInstancedRenderingTests.InstancingType.TYPE_MIXED) {
+            if (this.m_instancingType == es3fInstancedRenderingTests.InstancingType.TYPE_ATTRIB_DIVISOR) {
                 posExpression = 'a_position + vec4(a_instanceOffset';
 
-                DE_STATIC_ASSERT(OFFSET_COMPONENTS >= 1 && OFFSET_COMPONENTS <= 4);
+                es3fInstancedRenderingTests.DE_STATIC_ASSERT(es3fInstancedRenderingTests.OFFSET_COMPONENTS >= 1 && es3fInstancedRenderingTests.OFFSET_COMPONENTS <= 4);
 
-                for (var i = 0; i < 4 - OFFSET_COMPONENTS; i++)
+                for (var i = 0; i < 4 - es3fInstancedRenderingTests.OFFSET_COMPONENTS; i++)
                     posExpression += ', 0.0';
                 posExpression += ')';
 
@@ -200,7 +206,7 @@ define([
                 else
                     DE_ASSERT(false);
 
-                instanceAttribs += 'in highp ' + (OFFSET_COMPONENTS == 1 ? 'float' : 'vec' + OFFSET_COMPONENTS.toString()) + ' a_instanceOffset;\n';
+                instanceAttribs += 'in highp ' + (es3fInstancedRenderingTests.OFFSET_COMPONENTS == 1 ? 'float' : 'vec' + es3fInstancedRenderingTests.OFFSET_COMPONENTS.toString()) + ' a_instanceOffset;\n';
                 instanceAttribs += 'in mediump ' + typeName + ' a_instanceR;\n';
             }
 
@@ -268,17 +274,17 @@ define([
         //bufferedLogToConsole(this.m_program);
 
         if (!this.m_program.isOk())
-            TCU_FAIL('Failed to compile shader');
+            es3fInstancedRenderingTests.TCU_FAIL('Failed to compile shader');
 
         // Vertex shader attributes.
 
-        if (this.m_function == DrawFunction.FUNCTION_DRAW_ELEMENTS_INSTANCED) {
+        if (this.m_function == es3fInstancedRenderingTests.DrawFunction.FUNCTION_DRAW_ELEMENTS_INSTANCED) {
             // Vertex positions. Positions form a vertical bar of width <screen width>/<number of instances>.
 
-            for (var y = 0; y < QUAD_GRID_SIZE + 1; y++)
-                for (var x = 0; x < QUAD_GRID_SIZE + 1; x++) {
-                    /** @type {number} */ var fx = -1.0 + x / QUAD_GRID_SIZE * 2.0 / this.m_numInstances;
-                    /** @type {number} */ var fy = -1.0 + y / QUAD_GRID_SIZE * 2.0;
+            for (var y = 0; y < es3fInstancedRenderingTests.QUAD_GRID_SIZE + 1; y++)
+                for (var x = 0; x < es3fInstancedRenderingTests.QUAD_GRID_SIZE + 1; x++) {
+                    /** @type {number} */ var fx = -1.0 + x / es3fInstancedRenderingTests.QUAD_GRID_SIZE * 2.0 / this.m_numInstances;
+                    /** @type {number} */ var fy = -1.0 + y / es3fInstancedRenderingTests.QUAD_GRID_SIZE * 2.0;
 
                     this.m_gridVertexPositions.push(fx);
                     this.m_gridVertexPositions.push(fy);
@@ -286,12 +292,12 @@ define([
 
             // Indices.
 
-            for (var y = 0; y < QUAD_GRID_SIZE; y++)
-                for (var x = 0; x < QUAD_GRID_SIZE; x++) {
-                    /** @type {number} */ var ndx00 = y * (QUAD_GRID_SIZE + 1) + x;
-                    /** @type {number} */ var ndx10 = y * (QUAD_GRID_SIZE + 1) + x + 1;
-                    /** @type {number} */ var ndx01 = (y + 1) * (QUAD_GRID_SIZE + 1) + x;
-                    /** @type {number} */ var ndx11 = (y + 1) * (QUAD_GRID_SIZE + 1) + x + 1;
+            for (var y = 0; y < es3fInstancedRenderingTests.QUAD_GRID_SIZE; y++)
+                for (var x = 0; x < es3fInstancedRenderingTests.QUAD_GRID_SIZE; x++) {
+                    /** @type {number} */ var ndx00 = y * (es3fInstancedRenderingTests.QUAD_GRID_SIZE + 1) + x;
+                    /** @type {number} */ var ndx10 = y * (es3fInstancedRenderingTests.QUAD_GRID_SIZE + 1) + x + 1;
+                    /** @type {number} */ var ndx01 = (y + 1) * (es3fInstancedRenderingTests.QUAD_GRID_SIZE + 1) + x;
+                    /** @type {number} */ var ndx11 = (y + 1) * (es3fInstancedRenderingTests.QUAD_GRID_SIZE + 1) + x + 1;
 
                     // Lower-left triangle of a quad.
                     this.m_gridIndices.push(ndx00);
@@ -305,16 +311,16 @@ define([
                 }
         }
         else {
-            DE_ASSERT(this.m_function == DrawFunction.FUNCTION_DRAW_ARRAYS_INSTANCED);
+            DE_ASSERT(this.m_function == es3fInstancedRenderingTests.DrawFunction.FUNCTION_DRAW_ARRAYS_INSTANCED);
 
             // Vertex positions. Positions form a vertical bar of width <screen width>/<number of instances>.
 
-            for (var y = 0; y < QUAD_GRID_SIZE; y++)
-                for (var x = 0; x < QUAD_GRID_SIZE; x++) {
-                    /** @type {number} */ var fx0 = -1.0 + (x + 0) / QUAD_GRID_SIZE * 2.0 / this.m_numInstances;
-                    /** @type {number} */ var fx1 = -1.0 + (x + 1) / QUAD_GRID_SIZE * 2.0 / this.m_numInstances;
-                    /** @type {number} */ var fy0 = -1.0 + (y + 0) / QUAD_GRID_SIZE * 2.0;
-                    /** @type {number} */ var fy1 = -1.0 + (y + 1) / QUAD_GRID_SIZE * 2.0;
+            for (var y = 0; y < es3fInstancedRenderingTests.QUAD_GRID_SIZE; y++)
+                for (var x = 0; x < es3fInstancedRenderingTests.QUAD_GRID_SIZE; x++) {
+                    /** @type {number} */ var fx0 = -1.0 + (x + 0) / es3fInstancedRenderingTests.QUAD_GRID_SIZE * 2.0 / this.m_numInstances;
+                    /** @type {number} */ var fx1 = -1.0 + (x + 1) / es3fInstancedRenderingTests.QUAD_GRID_SIZE * 2.0 / this.m_numInstances;
+                    /** @type {number} */ var fy0 = -1.0 + (y + 0) / es3fInstancedRenderingTests.QUAD_GRID_SIZE * 2.0;
+                    /** @type {number} */ var fy1 = -1.0 + (y + 1) / es3fInstancedRenderingTests.QUAD_GRID_SIZE * 2.0;
 
                     // Vertices of a quad's lower-left triangle: (fx0, fy0), (fx1, fy0) and (fx0, fy1)
                     this.m_gridVertexPositions.push(fx0);
@@ -336,19 +342,19 @@ define([
 
         // Instanced attributes: position offset and color RGB components.
 
-        if (this.m_instancingType == InstancingType.TYPE_ATTRIB_DIVISOR || this.m_instancingType == InstancingType.TYPE_MIXED) {
-            if (this.m_instancingType == InstancingType.TYPE_ATTRIB_DIVISOR) {
+        if (this.m_instancingType == es3fInstancedRenderingTests.InstancingType.TYPE_ATTRIB_DIVISOR || this.m_instancingType == es3fInstancedRenderingTests.InstancingType.TYPE_MIXED) {
+            if (this.m_instancingType == es3fInstancedRenderingTests.InstancingType.TYPE_ATTRIB_DIVISOR) {
                 // Offsets are such that the vertical bars are drawn next to each other.
                 for (var i = 0; i < this.m_numInstances; i++) {
                     this.m_instanceOffsets.push(i * 2.0 / this.m_numInstances);
 
-                    DE_STATIC_ASSERT(OFFSET_COMPONENTS >= 1 && OFFSET_COMPONENTS <= 4);
+                    es3fInstancedRenderingTests.DE_STATIC_ASSERT(es3fInstancedRenderingTests.OFFSET_COMPONENTS >= 1 && es3fInstancedRenderingTests.OFFSET_COMPONENTS <= 4);
 
-                    for (var j = 0; j < OFFSET_COMPONENTS - 1; j++)
+                    for (var j = 0; j < es3fInstancedRenderingTests.OFFSET_COMPONENTS - 1; j++)
                         this.m_instanceOffsets.push(0.0);
                 }
 
-                /** @type {number} */ var rInstances = Math.floor(this.m_numInstances / ATTRIB_DIVISOR_R) + (this.m_numInstances % ATTRIB_DIVISOR_R == 0 ? 0 : 1);
+                /** @type {number} */ var rInstances = Math.floor(this.m_numInstances / es3fInstancedRenderingTests.ATTRIB_DIVISOR_R) + (this.m_numInstances % es3fInstancedRenderingTests.ATTRIB_DIVISOR_R == 0 ? 0 : 1);
                 for (var i = 0; i < rInstances; i++) {
                     this.pushVarCompAttrib(this.m_instanceColorR, i / rInstances);
 
@@ -357,7 +363,7 @@ define([
                 }
             }
 
-            /** @type {number} */ var gInstances = Math.floor(this.m_numInstances / ATTRIB_DIVISOR_G) + (this.m_numInstances % ATTRIB_DIVISOR_G == 0 ? 0 : 1);
+            /** @type {number} */ var gInstances = Math.floor(this.m_numInstances / es3fInstancedRenderingTests.ATTRIB_DIVISOR_G) + (this.m_numInstances % es3fInstancedRenderingTests.ATTRIB_DIVISOR_G == 0 ? 0 : 1);
             for (var i = 0; i < gInstances; i++) {
                 this.pushVarCompAttrib(this.m_instanceColorG, i * 2.0 / gInstances);
 
@@ -365,7 +371,7 @@ define([
                     this.pushVarCompAttrib(this.m_instanceColorG, 0.0);
             }
 
-            /** @type {number} */ var bInstances = Math.floor(this.m_numInstances / ATTRIB_DIVISOR_B) + (this.m_numInstances % ATTRIB_DIVISOR_B == 0 ? 0 : 1);
+            /** @type {number} */ var bInstances = Math.floor(this.m_numInstances / es3fInstancedRenderingTests.ATTRIB_DIVISOR_B) + (this.m_numInstances % es3fInstancedRenderingTests.ATTRIB_DIVISOR_B == 0 ? 0 : 1);
             for (var i = 0; i < bInstances; i++) {
                 this.pushVarCompAttrib(this.m_instanceColorB, 1.0 - i / bInstances);
 
@@ -375,9 +381,9 @@ define([
         }
     };
 
-    InstancedRenderingCase.prototype.iterate = function() {
-        /** @type {number} */ var width = Math.min(gl.drawingBufferWidth, MAX_RENDER_WIDTH);
-        /** @type {number} */ var height = Math.min(gl.drawingBufferHeight, MAX_RENDER_HEIGHT);
+    es3fInstancedRenderingTests.InstancedRenderingCase.prototype.iterate = function() {
+        /** @type {number} */ var width = Math.min(gl.drawingBufferWidth, es3fInstancedRenderingTests.MAX_RENDER_WIDTH);
+        /** @type {number} */ var height = Math.min(gl.drawingBufferHeight, es3fInstancedRenderingTests.MAX_RENDER_HEIGHT);
 
         /** @type {number} */ var xOffsetMax = gl.drawingBufferWidth - width;
         /** @type {number} */ var yOffsetMax = gl.drawingBufferHeight - height;
@@ -420,7 +426,7 @@ define([
     * @param {number} location
     * @param {number} divisor
     */
-    InstancedRenderingCase.prototype.setupVarAttribPointer = function(attrPtr, location, divisor) {
+    es3fInstancedRenderingTests.InstancedRenderingCase.prototype.setupVarAttribPointer = function(attrPtr, location, divisor) {
         /** @type {boolean} */ var isFloatCase = gluShaderUtil.isDataTypeFloatOrVec(this.m_rgbAttrType);
         /** @type {boolean} */ var isIntCase = gluShaderUtil.isDataTypeIntOrIVec(this.m_rgbAttrType);
         /** @type {boolean} */ var isUintCase = gluShaderUtil.isDataTypeUintOrUVec(this.m_rgbAttrType);
@@ -471,7 +477,7 @@ define([
     };
 
 
-    InstancedRenderingCase.prototype.setupAndRender = function() {
+    es3fInstancedRenderingTests.InstancedRenderingCase.prototype.setupAndRender = function() {
         /** @type {number} */ var program = this.m_program.getProgram();
 
         gl.useProgram(program);
@@ -486,8 +492,8 @@ define([
         gl.bufferData(gl.ARRAY_BUFFER, bufferGridVertexPosition, gl.STATIC_DRAW);
         gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
 
-        if (this.m_instancingType == InstancingType.TYPE_ATTRIB_DIVISOR || this.m_instancingType == InstancingType.TYPE_MIXED) {
-            if (this.m_instancingType == InstancingType.TYPE_ATTRIB_DIVISOR) {
+        if (this.m_instancingType == es3fInstancedRenderingTests.InstancingType.TYPE_ATTRIB_DIVISOR || this.m_instancingType == es3fInstancedRenderingTests.InstancingType.TYPE_MIXED) {
+            if (this.m_instancingType == es3fInstancedRenderingTests.InstancingType.TYPE_ATTRIB_DIVISOR) {
                 // Position offset attribute is instanced with separate offset for every instance.
                 /** @type {number} */ var offsetLoc = gl.getAttribLocation(program, 'a_instanceOffset');
                 gl.enableVertexAttribArray(offsetLoc);
@@ -498,22 +504,22 @@ define([
                 gl.bindBuffer(gl.ARRAY_BUFFER, offsetLocGlBuffer);
                 gl.bufferData(gl.ARRAY_BUFFER, bufferOffsetLoc, gl.STATIC_DRAW);
 
-                gl.vertexAttribPointer(offsetLoc, OFFSET_COMPONENTS, gl.FLOAT, false, 0, this.m_instanceOffsets);
+                gl.vertexAttribPointer(offsetLoc, es3fInstancedRenderingTests.OFFSET_COMPONENTS, gl.FLOAT, false, 0, this.m_instanceOffsets);
 
                 /** @type {number} */ var rLoc = gl.getAttribLocation(program, 'a_instanceR');
-                this.setupVarAttribPointer(this.m_instanceColorR, rLoc, ATTRIB_DIVISOR_R);
+                this.setupVarAttribPointer(this.m_instanceColorR, rLoc, es3fInstancedRenderingTests.ATTRIB_DIVISOR_R);
             }
 
             /** @type {number} */ var gLoc = gl.getAttribLocation(program, 'a_instanceG');
-            this.setupVarAttribPointer(this.m_instanceColorG, gLoc, ATTRIB_DIVISOR_G);
+            this.setupVarAttribPointer(this.m_instanceColorG, gLoc, es3fInstancedRenderingTests.ATTRIB_DIVISOR_G);
 
             /** @type {number} */ var bLoc = gl.getAttribLocation(program, 'a_instanceB');
-            this.setupVarAttribPointer(this.m_instanceColorB, bLoc, ATTRIB_DIVISOR_B);
+            this.setupVarAttribPointer(this.m_instanceColorB, bLoc, es3fInstancedRenderingTests.ATTRIB_DIVISOR_B);
         }
 
         // Draw using appropriate function.
 
-        if (this.m_function == DrawFunction.FUNCTION_DRAW_ARRAYS_INSTANCED) {
+        if (this.m_function == es3fInstancedRenderingTests.DrawFunction.FUNCTION_DRAW_ARRAYS_INSTANCED) {
             /** @type {number} */ var numPositionComponents = 2;
             gl.drawArraysInstanced(gl.TRIANGLES, 0, Math.floor(this.m_gridVertexPositions.length / numPositionComponents), this.m_numInstances);
         }
@@ -532,7 +538,7 @@ define([
     /**
     * @param {tcuSurface.Surface} dst
     */
-    InstancedRenderingCase.prototype.computeReference = function(dst) {
+    es3fInstancedRenderingTests.InstancedRenderingCase.prototype.computeReference = function(dst) {
         /** @type {number} */ var wid = dst.getWidth();
         /** @type {number} */ var hei = dst.getHeight();
 
@@ -544,13 +550,13 @@ define([
 
             // Emulate attribute divisors if that is the case.
 
-            /** @type {number} */ var clrNdxR = this.m_instancingType == InstancingType.TYPE_ATTRIB_DIVISOR ? Math.floor(instanceNdx / ATTRIB_DIVISOR_R) : instanceNdx;
-            /** @type {number} */ var clrNdxG = this.m_instancingType == InstancingType.TYPE_ATTRIB_DIVISOR || this.m_instancingType == InstancingType.TYPE_MIXED ? Math.floor(instanceNdx / ATTRIB_DIVISOR_G) : instanceNdx;
-            /** @type {number} */ var clrNdxB = this.m_instancingType == InstancingType.TYPE_ATTRIB_DIVISOR || this.m_instancingType == InstancingType.TYPE_MIXED ? Math.floor(instanceNdx / ATTRIB_DIVISOR_B) : instanceNdx;
+            /** @type {number} */ var clrNdxR = this.m_instancingType == es3fInstancedRenderingTests.InstancingType.TYPE_ATTRIB_DIVISOR ? Math.floor(instanceNdx / es3fInstancedRenderingTests.ATTRIB_DIVISOR_R) : instanceNdx;
+            /** @type {number} */ var clrNdxG = this.m_instancingType == es3fInstancedRenderingTests.InstancingType.TYPE_ATTRIB_DIVISOR || this.m_instancingType == es3fInstancedRenderingTests.InstancingType.TYPE_MIXED ? Math.floor(instanceNdx / es3fInstancedRenderingTests.ATTRIB_DIVISOR_G) : instanceNdx;
+            /** @type {number} */ var clrNdxB = this.m_instancingType == es3fInstancedRenderingTests.InstancingType.TYPE_ATTRIB_DIVISOR || this.m_instancingType == es3fInstancedRenderingTests.InstancingType.TYPE_MIXED ? Math.floor(instanceNdx / es3fInstancedRenderingTests.ATTRIB_DIVISOR_B) : instanceNdx;
 
-            /** @type {number} */ var rInstances = this.m_instancingType == InstancingType.TYPE_ATTRIB_DIVISOR ? Math.floor(this.m_numInstances / ATTRIB_DIVISOR_R) + (this.m_numInstances % ATTRIB_DIVISOR_R == 0 ? 0 : 1) : this.m_numInstances;
-            /** @type {number} */ var gInstances = this.m_instancingType == InstancingType.TYPE_ATTRIB_DIVISOR || this.m_instancingType == InstancingType.TYPE_MIXED ? Math.floor(this.m_numInstances / ATTRIB_DIVISOR_G) + (this.m_numInstances % ATTRIB_DIVISOR_G == 0 ? 0 : 1) : this.m_numInstances;
-            /** @type {number} */ var bInstances = this.m_instancingType == InstancingType.TYPE_ATTRIB_DIVISOR || this.m_instancingType == InstancingType.TYPE_MIXED ? Math.floor(this.m_numInstances / ATTRIB_DIVISOR_B) + (this.m_numInstances % ATTRIB_DIVISOR_B == 0 ? 0 : 1) : this.m_numInstances;
+            /** @type {number} */ var rInstances = this.m_instancingType == es3fInstancedRenderingTests.InstancingType.TYPE_ATTRIB_DIVISOR ? Math.floor(this.m_numInstances / es3fInstancedRenderingTests.ATTRIB_DIVISOR_R) + (this.m_numInstances % es3fInstancedRenderingTests.ATTRIB_DIVISOR_R == 0 ? 0 : 1) : this.m_numInstances;
+            /** @type {number} */ var gInstances = this.m_instancingType == es3fInstancedRenderingTests.InstancingType.TYPE_ATTRIB_DIVISOR || this.m_instancingType == es3fInstancedRenderingTests.InstancingType.TYPE_MIXED ? Math.floor(this.m_numInstances / es3fInstancedRenderingTests.ATTRIB_DIVISOR_G) + (this.m_numInstances % es3fInstancedRenderingTests.ATTRIB_DIVISOR_G == 0 ? 0 : 1) : this.m_numInstances;
+            /** @type {number} */ var bInstances = this.m_instancingType == es3fInstancedRenderingTests.InstancingType.TYPE_ATTRIB_DIVISOR || this.m_instancingType == es3fInstancedRenderingTests.InstancingType.TYPE_MIXED ? Math.floor(this.m_numInstances / es3fInstancedRenderingTests.ATTRIB_DIVISOR_B) + (this.m_numInstances % es3fInstancedRenderingTests.ATTRIB_DIVISOR_B == 0 ? 0 : 1) : this.m_numInstances;
 
             // Calculate colors.
 
@@ -561,20 +567,20 @@ define([
             // Convert to integer and back if shader inputs are integers.
 
             if (gluShaderUtil.isDataTypeIntOrIVec(this.m_rgbAttrType)) {
-                /** @type {number} */var intR = (r * FLOAT_INT_SCALE + FLOAT_INT_BIAS);
-                /** @type {number} */var intG = (g * FLOAT_INT_SCALE + FLOAT_INT_BIAS);
-                /** @type {number} */var intB = (b * FLOAT_INT_SCALE + FLOAT_INT_BIAS);
-                r = (intR - FLOAT_INT_BIAS) / FLOAT_INT_SCALE;
-                g = (intG - FLOAT_INT_BIAS) / FLOAT_INT_SCALE;
-                b = (intB - FLOAT_INT_BIAS) / FLOAT_INT_SCALE;
+                /** @type {number} */var intR = (r * es3fInstancedRenderingTests.FLOAT_INT_SCALE + es3fInstancedRenderingTests.FLOAT_INT_BIAS);
+                /** @type {number} */var intG = (g * es3fInstancedRenderingTests.FLOAT_INT_SCALE + es3fInstancedRenderingTests.FLOAT_INT_BIAS);
+                /** @type {number} */var intB = (b * es3fInstancedRenderingTests.FLOAT_INT_SCALE + es3fInstancedRenderingTests.FLOAT_INT_BIAS);
+                r = (intR - es3fInstancedRenderingTests.FLOAT_INT_BIAS) / es3fInstancedRenderingTests.FLOAT_INT_SCALE;
+                g = (intG - es3fInstancedRenderingTests.FLOAT_INT_BIAS) / es3fInstancedRenderingTests.FLOAT_INT_SCALE;
+                b = (intB - es3fInstancedRenderingTests.FLOAT_INT_BIAS) / es3fInstancedRenderingTests.FLOAT_INT_SCALE;
             }
             else if (gluShaderUtil.isDataTypeUintOrUVec(this.m_rgbAttrType)) {
-                /** @type {number} */var uintR = (r * FLOAT_UINT_SCALE + FLOAT_UINT_BIAS);
-                /** @type {number} */var uintG = (g * FLOAT_UINT_SCALE + FLOAT_UINT_BIAS);
-                /** @type {number} */var uintB = (b * FLOAT_UINT_SCALE + FLOAT_UINT_BIAS);
-                r = (uintR - FLOAT_UINT_BIAS) / FLOAT_UINT_SCALE;
-                g = (uintG - FLOAT_UINT_BIAS) / FLOAT_UINT_SCALE;
-                b = (uintB - FLOAT_UINT_BIAS) / FLOAT_UINT_SCALE;
+                /** @type {number} */var uintR = (r * es3fInstancedRenderingTests.FLOAT_UINT_SCALE + es3fInstancedRenderingTests.FLOAT_UINT_BIAS);
+                /** @type {number} */var uintG = (g * es3fInstancedRenderingTests.FLOAT_UINT_SCALE + es3fInstancedRenderingTests.FLOAT_UINT_BIAS);
+                /** @type {number} */var uintB = (b * es3fInstancedRenderingTests.FLOAT_UINT_SCALE + es3fInstancedRenderingTests.FLOAT_UINT_BIAS);
+                r = (uintR - es3fInstancedRenderingTests.FLOAT_UINT_BIAS) / es3fInstancedRenderingTests.FLOAT_UINT_SCALE;
+                g = (uintG - es3fInstancedRenderingTests.FLOAT_UINT_BIAS) / es3fInstancedRenderingTests.FLOAT_UINT_SCALE;
+                b = (uintB - es3fInstancedRenderingTests.FLOAT_UINT_BIAS) / es3fInstancedRenderingTests.FLOAT_UINT_SCALE;
             }
 
             // Draw rectangle.
@@ -585,19 +591,19 @@ define([
         }
     };
 
-    var init = function() {
+    es3fInstancedRenderingTests.init = function() {
         var testGroup = tcuTestCase.runner.getState().testCases;
     /** @type {Array<number>} */ var instanceCounts = [1, 2, 4, 20];
 
-        for (var _function in DrawFunction) {
+        for (var _function in es3fInstancedRenderingTests.DrawFunction) {
             /** @type {?string} */ var functionName =
-                                       DrawFunction[_function] == DrawFunction.FUNCTION_DRAW_ARRAYS_INSTANCED ? 'draw_arrays_instanced' :
-                                       DrawFunction[_function] == DrawFunction.FUNCTION_DRAW_ELEMENTS_INSTANCED ? 'draw_elements_instanced' :
+                                       es3fInstancedRenderingTests.DrawFunction[_function] == es3fInstancedRenderingTests.DrawFunction.FUNCTION_DRAW_ARRAYS_INSTANCED ? 'draw_arrays_instanced' :
+                                       es3fInstancedRenderingTests.DrawFunction[_function] == es3fInstancedRenderingTests.DrawFunction.FUNCTION_DRAW_ELEMENTS_INSTANCED ? 'draw_elements_instanced' :
                                        null;
 
             /** @type {?string} */ var functionDesc =
-                                       DrawFunction[_function] == DrawFunction.FUNCTION_DRAW_ARRAYS_INSTANCED ? 'Use glDrawArraysInstanced()' :
-                                       DrawFunction[_function] == DrawFunction.FUNCTION_DRAW_ELEMENTS_INSTANCED ? 'Use glDrawElementsInstanced()' :
+                                       es3fInstancedRenderingTests.DrawFunction[_function] == es3fInstancedRenderingTests.DrawFunction.FUNCTION_DRAW_ARRAYS_INSTANCED ? 'Use glDrawArraysInstanced()' :
+                                       es3fInstancedRenderingTests.DrawFunction[_function] == es3fInstancedRenderingTests.DrawFunction.FUNCTION_DRAW_ELEMENTS_INSTANCED ? 'Use glDrawElementsInstanced()' :
                                        null;
 
             DE_ASSERT(functionName != null);
@@ -606,17 +612,17 @@ define([
             /** @type {TestCaseGroup} */ var functionGroup = new tcuTestCase.newTest(functionName, functionDesc);
             testGroup.addChild(functionGroup);
 
-            for (var instancingType in InstancingType) {
+            for (var instancingType in es3fInstancedRenderingTests.InstancingType) {
                 /** @type {?string} */ var instancingTypeName =
-                                                 InstancingType[instancingType] == InstancingType.TYPE_INSTANCE_ID ? 'instance_id' :
-                                                 InstancingType[instancingType] == InstancingType.TYPE_ATTRIB_DIVISOR ? 'attribute_divisor' :
-                                                 InstancingType[instancingType] == InstancingType.TYPE_MIXED ? 'mixed' :
+                                                 es3fInstancedRenderingTests.InstancingType[instancingType] == es3fInstancedRenderingTests.InstancingType.TYPE_INSTANCE_ID ? 'instance_id' :
+                                                 es3fInstancedRenderingTests.InstancingType[instancingType] == es3fInstancedRenderingTests.InstancingType.TYPE_ATTRIB_DIVISOR ? 'attribute_divisor' :
+                                                 es3fInstancedRenderingTests.InstancingType[instancingType] == es3fInstancedRenderingTests.InstancingType.TYPE_MIXED ? 'mixed' :
                                                  null;
 
                 /** @type {?string} */ var instancingTypeDesc =
-                                                 InstancingType[instancingType] == InstancingType.TYPE_INSTANCE_ID ? 'Use gl_InstanceID for instancing' :
-                                                 InstancingType[instancingType] == InstancingType.TYPE_ATTRIB_DIVISOR ? 'Use vertex attribute divisors for instancing' :
-                                                 InstancingType[instancingType] == InstancingType.TYPE_MIXED ? 'Use both gl_InstanceID and vertex attribute divisors for instancing' :
+                                                 es3fInstancedRenderingTests.InstancingType[instancingType] == es3fInstancedRenderingTests.InstancingType.TYPE_INSTANCE_ID ? 'Use gl_InstanceID for instancing' :
+                                                 es3fInstancedRenderingTests.InstancingType[instancingType] == es3fInstancedRenderingTests.InstancingType.TYPE_ATTRIB_DIVISOR ? 'Use vertex attribute divisors for instancing' :
+                                                 es3fInstancedRenderingTests.InstancingType[instancingType] == es3fInstancedRenderingTests.InstancingType.TYPE_MIXED ? 'Use both gl_InstanceID and vertex attribute divisors for instancing' :
                                                  null;
 
                 DE_ASSERT(instancingTypeName != null);
@@ -629,10 +635,10 @@ define([
 
                 for (var countNdx in instanceCounts) {
                     /** @type {string} */ var countName = instanceCounts[countNdx].toString() + '_instances';
-                    instancingTypeGroup.addChild(new InstancedRenderingCase(countName,
+                    instancingTypeGroup.addChild(new es3fInstancedRenderingTests.InstancedRenderingCase(countName,
                                                                              '',
-                                                                             DrawFunction[_function],
-                                                                             InstancingType[instancingType],
+                                                                             es3fInstancedRenderingTests.DrawFunction[_function],
+                                                                             es3fInstancedRenderingTests.InstancingType[instancingType],
                                                                              gluShaderUtil.DataType.FLOAT,
                                                                              instanceCounts[countNdx]));
                 }
@@ -674,15 +680,15 @@ define([
 
         for (var typeNdx in s_testTypes) {
             /** @type {gluShaderUtil.DataType} */ var type = s_testTypes[typeNdx];
-            typesGroup.addChild(new InstancedRenderingCase(gluShaderUtil.getDataTypeName(type), '',
-                                                            DrawFunction.FUNCTION_DRAW_ARRAYS_INSTANCED,
-                                                            InstancingType.TYPE_ATTRIB_DIVISOR,
+            typesGroup.addChild(new es3fInstancedRenderingTests.InstancedRenderingCase(gluShaderUtil.getDataTypeName(type), '',
+                                                            es3fInstancedRenderingTests.DrawFunction.FUNCTION_DRAW_ARRAYS_INSTANCED,
+                                                            es3fInstancedRenderingTests.InstancingType.TYPE_ATTRIB_DIVISOR,
                                                             type,
                                                             typeTestNumInstances));
         }
     };
 
-    var run = function(context) {
+    es3fInstancedRenderingTests.run = function(context) {
         gl = context;
         //Set up Test Root parameters
         var testName = 'instanced_rendering';
@@ -698,17 +704,15 @@ define([
 
         try {
             //Create test cases
-            init();
+            es3fInstancedRenderingTests.init();
             //Run test cases
             tcuTestCase.runTestCases();
         }
         catch (err) {
-            testFailedOptions('Failed to run tests', false);
+            testFailedOptions('Failed to es3fInstancedRenderingTests.run tests', false);
             tcuTestCase.runner.terminate();
         }
     };
 
-    return {
-        run: run
-    };
+    
 });

@@ -18,27 +18,31 @@
  *
  */
 
-define(function() {
+'use strict';
+goog.provide('framework.common.tcuPixelFormat');
+
+
+goog.scope(function() {
+
+var tcuPixelFormat = framework.common.tcuPixelFormat;
 
 /**
  * @constructor
  */
-var PixelFormat = function(r, g, b, a) {
+tcuPixelFormat.PixelFormat = function(r, g, b, a) {
     this.redBits = r || 0;
     this.greenBits = g || 0;
     this.blueBits = b || 0;
     this.alphaBits = a || 0;
 };
 
-PixelFormat.prototype.equals = function(r, g, b, a) {
+tcuPixelFormat.PixelFormat.prototype.equals = function(r, g, b, a) {
     return this.redBits === r &&
             this.greenBits === g &&
             this.blueBits === b &&
             this.alphaBits === a;
 };
 
-return {
-    PixelFormat: PixelFormat
-};
+
 
 });

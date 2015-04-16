@@ -1,9 +1,16 @@
-define([
-    'modules/shared/glsFboUtil',
-    'framework/common/tcuTestCase'
-], function(glsFboUtil, tcuTestCase) {
+'use strict';
+goog.provide('modules.shared.glsFboCompletenessTests');
+goog.require('modules.shared.glsFboUtil');
+goog.require('framework.common.tcuTestCase');
+
+
+goog.scope(function() {
+
+var glsFboCompletenessTests = modules.shared.glsFboCompletenessTests;
+var glsFboUtil = modules.shared.glsFboUtil;
+var tcuTestCase = framework.common.tcuTestCase;
     
-    var Context = function(argv) {
+    glsFboCompletenessTests.Context = function(argv) {
 
         argv = argv || {};
         
@@ -54,7 +61,7 @@ define([
         this.createSizeTests = function() {  };
         
         /*
-    						Context					(TestContext& testCtx,
+    						glsFboCompletenessTests.Context					(TestContext& testCtx,
 													 RenderContext& renderCtx,
 													 CheckerFactory& factory);
 													 
@@ -67,7 +74,7 @@ define([
         if (!argv.dont_construct) this._construct(argv);
     };
     
-    var TestBase = function(argv) {
+    glsFboCompletenessTests.TestBase = function(argv) {
 
         argv = argv || {};
 
@@ -76,7 +83,7 @@ define([
         this.getContext = this.getState;
 
         this._construct = function(argv) {
-            console.log("TestBase Constructor");
+            console.log("glsFboCompletenessTests.TestBase Constructor");
         };
         
         // GLenum attPoint, GLenum bufType
@@ -92,11 +99,11 @@ define([
         if (!argv.dont_construct) this._construct(argv);
 
     };
-    TestBase.prototype = new tcuTestCase.DeqpTest();
+    glsFboCompletenessTests.TestBase.prototype = new tcuTestCase.DeqpTest();
     
     return {
-        Context:  Context,
-        TestBase: TestBase,
+        glsFboCompletenessTests.Context:  glsFboCompletenessTests.Context,
+        glsFboCompletenessTests.TestBase: glsFboCompletenessTests.TestBase,
     }
     
 });

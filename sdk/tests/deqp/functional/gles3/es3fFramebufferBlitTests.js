@@ -17,32 +17,38 @@
  * limitations under the License.
  *
  */
-define([
-    'functional/gles3/es3fFboTestCase',
-    'functional/gles3/es3fFboTestUtil',
-    'framework/common/tcuTestCase',
-    'framework/common/tcuSurface',
-    'framework/common/tcuRGBA',
-    'framework/common/tcuImageCompare',
-    'framework/common/tcuTexture',
-    'framework/common/tcuTextureUtil',
-    'framework/delibs/debase/deMath',
-    'framework/opengl/gluTextureUtil'], function(
-        fboTestCase,
-        fboTestUtil,
-        tcuTestCase,
-        tcuSurface,
-        tcuRGBA,
-        tcuImageCompare,
-        tcuTexture,
-        tcuTextureUtil,
-        deMath,
-        gluTextureUtil) {
-    'use strict';
+'use strict';
+goog.provide('functional.gles3.es3fFramebufferBlitTests');
+goog.require('functional.gles3.es3fFboTestCase');
+goog.require('functional.gles3.es3fFboTestUtil');
+goog.require('framework.common.tcuTestCase');
+goog.require('framework.common.tcuSurface');
+goog.require('framework.common.tcuRGBA');
+goog.require('framework.common.tcuImageCompare');
+goog.require('framework.common.tcuTexture');
+goog.require('framework.common.tcuTextureUtil');
+goog.require('framework.delibs.debase.deMath');
+goog.require('framework.opengl.gluTextureUtil');
+
+
+goog.scope(function() {
+
+var es3fFramebufferBlitTests = functional.gles3.es3fFramebufferBlitTests;
+var es3fFboTestCase = functional.gles3.es3fFboTestCase;
+var es3fFboTestUtil = functional.gles3.es3fFboTestUtil;
+var tcuTestCase = framework.common.tcuTestCase;
+var tcuSurface = framework.common.tcuSurface;
+var tcuRGBA = framework.common.tcuRGBA;
+var tcuImageCompare = framework.common.tcuImageCompare;
+var tcuTexture = framework.common.tcuTexture;
+var tcuTextureUtil = framework.common.tcuTextureUtil;
+var deMath = framework.delibs.debase.deMath;
+var gluTextureUtil = framework.opengl.gluTextureUtil;
+    
 
     /** @type {WebGL2RenderingContext} */ var gl;
     /**
-    * BlitRectCase class, inherits from FboTestCase
+    * es3fFramebufferBlitTests.BlitRectCase class, inherits from FboTestCase
     * @constructor
     * @param {string} name
     * @param {string} description
@@ -53,7 +59,7 @@ define([
     * @param {Array<number>} dstRect
     * @param {number} cellSize
     */
-    var BlitRectCase = function(name, desc, filter, srcSize, srcRect, dstSize, dstRect, cellSize) {
+    es3fFramebufferBlitTests.BlitRectCase = function(name, desc, filter, srcSize, srcRect, dstSize, dstRect, cellSize) {
         fboTestCase.FboTestCase.call(this, name, desc);
         /** @const {number} */ this.m_filter = filter;
         /** @const {Array<number>} */ this.m_srcSize = srcSize;
@@ -65,13 +71,13 @@ define([
         /** @const {Array<number>} */ this.m_gridCellColorB = [0.7, 0.1, 0.5, 0.8];
     };
 
-    BlitRectCase.prototype = Object.create(fboTestCase.FboTestCase.prototype);
-    BlitRectCase.prototype.constructor = BlitRectCase;
+    es3fFramebufferBlitTests.BlitRectCase.prototype = Object.create(fboTestCase.FboTestCase.prototype);
+    es3fFramebufferBlitTests.BlitRectCase.prototype.constructor = es3fFramebufferBlitTests.BlitRectCase;
 
     /**
     * @param {tcuSurface.Surface} dst
     */
-    BlitRectCase.prototype.render = function(dst) {
+    es3fFramebufferBlitTests.BlitRectCase.prototype.render = function(dst) {
         /** @type {number} */ var colorFormat = gl.RGBA8;
 
         //TODO: implement Texture2DShader
@@ -175,7 +181,7 @@ define([
     * @param {tcuSurface.Surface} result
     * @return {boolean}
     */
-    BlitRectCase.prototype.compare = function(reference, result) {
+    es3fFramebufferBlitTests.BlitRectCase.prototype.compare = function(reference, result) {
         // TODO: implement
         // Use pixel-threshold compare for rect cases since 1px off will mean failure.
         //tcu::RGBA threshold = this.m_context.getRenderTarget().getPixelFormat().getColorThreshold() + tcu::RGBA(7,7,7,7);
@@ -184,7 +190,7 @@ define([
     };
 
     /**
-    * BlitNearestFilterConsistencyCase class, inherits from FboTestCase
+    * es3fFramebufferBlitTests.BlitNearestFilterConsistencyCase class, inherits from FboTestCase
     * @constructor
     * @param {string} name
     * @param {string} desc
@@ -193,19 +199,19 @@ define([
     * @param {Array<number>} dstSize
     * @param {Array<number>} dstRect
     */
-    var BlitNearestFilterConsistencyCase = function(name, desc, srcSize, srcRect, dstSize, dstRect) {
-        BlitRectCase.call(this, name, desc, gl.NEAREST, srcSize, srcRect, dstSize, dstRect, 1);
+    es3fFramebufferBlitTests.BlitNearestFilterConsistencyCase = function(name, desc, srcSize, srcRect, dstSize, dstRect) {
+        es3fFramebufferBlitTests.BlitRectCase.call(this, name, desc, gl.NEAREST, srcSize, srcRect, dstSize, dstRect, 1);
     };
 
-    BlitNearestFilterConsistencyCase.prototype = Object.create(BlitRectCase.prototype);
-    BlitNearestFilterConsistencyCase.prototype.constructor = BlitNearestFilterConsistencyCase;
+    es3fFramebufferBlitTests.BlitNearestFilterConsistencyCase.prototype = Object.create(es3fFramebufferBlitTests.BlitRectCase.prototype);
+    es3fFramebufferBlitTests.BlitNearestFilterConsistencyCase.prototype.constructor = es3fFramebufferBlitTests.BlitNearestFilterConsistencyCase;
 
     /**
     * @param {tcuSurface.Surface} reference
     * @param {tcuSurface.Surface} result
     * @return {boolean}
     */
-    BlitNearestFilterConsistencyCase.prototype.compare = function(reference, result) {
+    es3fFramebufferBlitTests.BlitNearestFilterConsistencyCase.prototype.compare = function(reference, result) {
         DE_ASSERT(reference.getWidth() == result.getWidth());
         DE_ASSERT(reference.getHeight() == result.getHeight());
 
@@ -343,21 +349,21 @@ define([
     };
 
     /**
-    * FramebufferBlitTests class, inherits from TestCase
+    * es3fFramebufferBlitTests.FramebufferBlitTests class, inherits from TestCase
     * @constructor
     * @param {string} name
     * @param {string} description
     * @param {boolean} useScreenSizedViewport
     */
-    var FramebufferBlitTests = function(name, description, useScreenSizedViewport) {
+    es3fFramebufferBlitTests.FramebufferBlitTests = function(name, description, useScreenSizedViewport) {
         // TODO: check this constructos
         tcuTestCase.DeqpTest.call(this, name, description);
     };
 
-    FramebufferBlitTests.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
-    FramebufferBlitTests.prototype.constructor = FramebufferBlitTests;
+    es3fFramebufferBlitTests.FramebufferBlitTests.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
+    es3fFramebufferBlitTests.FramebufferBlitTests.prototype.constructor = es3fFramebufferBlitTests.FramebufferBlitTests;
 
-    FramebufferBlitTests.prototype.init = function() {
+    es3fFramebufferBlitTests.FramebufferBlitTests.prototype.init = function() {
         /** @const {Array.number} */ var colorFormats = [
             // RGBA formats
             gl.RGBA32I,
@@ -475,8 +481,8 @@ define([
                 /** @type {Array<number>} */ var srcRect = copyRects[rectNdx].srcRect.swizzle(srcSwz[0], srcSwz[1], srcSwz[2], srcSwz[3]);
                 /** @type {Array<number>} */ var dstRect = copyRects[rectNdx].dstRect.swizzle(dstSwz[0], dstSwz[1], dstSwz[2], dstSwz[3]);
 
-                rectGroup.addChild(new BlitRectCase((name + '_nearest'), '', gl.NEAREST, srcSize, srcRect, dstSize, dstRect));
-                rectGroup.addChild(new BlitRectCase((name + '_linear'), '', gl.LINEAR, srcSize, srcRect, dstSize, dstRect));
+                rectGroup.addChild(new es3fFramebufferBlitTests.BlitRectCase((name + '_nearest'), '', gl.NEAREST, srcSize, srcRect, dstSize, dstRect));
+                rectGroup.addChild(new es3fFramebufferBlitTests.BlitRectCase((name + '_linear'), '', gl.LINEAR, srcSize, srcRect, dstSize, dstRect));
             }
         }
 
@@ -489,7 +495,7 @@ define([
                 /** @type {Array<number>} */ var srcRect = filterConsistencyRects[rectNdx].srcRect.swizzle(srcSwz[0], srcSwz[1], srcSwz[2], srcSwz[3]);
                 /** @type {Array<number>} */ var dstRect = filterConsistencyRects[rectNdx].dstRect.swizzle(dstSwz[0], dstSwz[1], dstSwz[2], dstSwz[3]);
 
-                rectGroup.addChild(new BlitNearestFilterConsistencyCase(name, 'Test consistency of the nearest filter', srcSize, srcRect, dstSize, dstRect));
+                rectGroup.addChild(new es3fFramebufferBlitTests.BlitNearestFilterConsistencyCase(name, 'Test consistency of the nearest filter', srcSize, srcRect, dstSize, dstRect));
             }
         }
 
@@ -514,7 +520,7 @@ define([
 
                 /** @type {string} */ var name = getFormatName(srcFormat) + '_to_' + getFormatName(dstFormat);
 
-                conversionGroup.addChild(new BlitColorConversionCase(name, '', srcFormat, dstFormat, [127, 113]));
+                conversionGroup.addChild(new es3fFramebufferBlitTests.BlitColorConversionCase(name, '', srcFormat, dstFormat, [127, 113]));
             }
         }
 
@@ -530,12 +536,12 @@ define([
             /** @type {boolean} */ var stencil = texFmt.order == tcuTexture.ChannelOrder.S || texFmt.order == tcuTexture.ChannelOrder.DS;
             /** @type {number} */ var buffers = (depth ? gl.DEPTH_BUFFER_BIT : 0) | (stencil ? gl.STENCIL_BUFFER_BIT : 0);
 
-            depthStencilGroup.addChild(new BlitDepthStencilCase((fmtName + '_basic'), '', format, buffers, [128, 128], [0, 0, 128, 128], buffers, [128, 128], [0, 0, 128, 128], buffers));
-            depthStencilGroup.addChild(new BlitDepthStencilCase((fmtName + '_scale'), '', format, buffers, [127, 119], [10, 30, 100, 70], buffers, [111, 130], [20, 5, 80, 130], buffers));
+            depthStencilGroup.addChild(new es3fFramebufferBlitTests.BlitDepthStencilCase((fmtName + '_basic'), '', format, buffers, [128, 128], [0, 0, 128, 128], buffers, [128, 128], [0, 0, 128, 128], buffers));
+            depthStencilGroup.addChild(new es3fFramebufferBlitTests.BlitDepthStencilCase((fmtName + '_scale'), '', format, buffers, [127, 119], [10, 30, 100, 70], buffers, [111, 130], [20, 5, 80, 130], buffers));
 
             if (depth && stencil) {
-                depthStencilGroup.addChild(new BlitDepthStencilCase((fmtName + '_depth_only'), '', format, buffers, [128, 128], [0, 0, 128, 128], buffers, [128, 128], [0, 0, 128, 128], gl.DEPTH_BUFFER_BIT));
-                depthStencilGroup.addChild(new BlitDepthStencilCase((fmtName + '_stencil_only'), '', format, buffers, [128, 128], [0, 0, 128, 128], buffers, [128, 128], [0, 0, 128, 128], gl.STENCIL_BUFFER_BIT));
+                depthStencilGroup.addChild(new es3fFramebufferBlitTests.BlitDepthStencilCase((fmtName + '_depth_only'), '', format, buffers, [128, 128], [0, 0, 128, 128], buffers, [128, 128], [0, 0, 128, 128], gl.DEPTH_BUFFER_BIT));
+                depthStencilGroup.addChild(new es3fFramebufferBlitTests.BlitDepthStencilCase((fmtName + '_stencil_only'), '', format, buffers, [128, 128], [0, 0, 128, 128], buffers, [128, 128], [0, 0, 128, 128], gl.STENCIL_BUFFER_BIT));
             }
         }
 
@@ -543,16 +549,16 @@ define([
         /**
          * @constructor
          * @param {string} name
-         * @param {BlitArea} area
+         * @param {es3fFramebufferBlitTests.BlitArea} area
          */
         var Area = function(name, area) {
             /** @type {string} name */ this.name = name;
-            /** @type {BlitArea} area */ this.area = area;
+            /** @type {es3fFramebufferBlitTests.BlitArea} area */ this.area = area;
         };
 
         /** @type {Array<Area>} */ var areas = [
-            new Area('scale', DefaultFramebufferBlitCase.AREA_SCALE),
-            new Area('out_of_bounds', DefaultFramebufferBlitCase.AREA_OUT_OF_BOUNDS)
+            new Area('scale', es3fFramebufferBlitTests.DefaultFramebufferBlitCase.AREA_SCALE),
+            new Area('out_of_bounds', es3fFramebufferBlitTests.DefaultFramebufferBlitCase.AREA_OUT_OF_BOUNDS)
         ];
 
         /** @type {TestCaseGroup} */ var defaultFbGroup = new tcuTestCase.newTest('default_framebuffer', 'Blits with default framebuffer');
@@ -570,22 +576,22 @@ define([
                 fmtClass != tcuTextureUtil.TextureChannelClass.SIGNED_FIXED_POINT)
                 continue; // Conversion not supported.
 
-            defaultFbGroup.addChild(new BlitDefaultFramebufferCase(getFormatName(format), '', format, filter));
+            defaultFbGroup.addChild(new es3fFramebufferBlitTests.BlitDefaultFramebufferCase(getFormatName(format), '', format, filter));
 
             for (var areaNdx = 0; areaNdx < areas.length; areaNdx++) {
                 /** @const {string} */ var name = areas[areaNdx].name;
                 /** @const {boolean} */ var addLinear = filterable;
-                /** @const {boolean} */ var addNearest = !addLinear || (areas[areaNdx].area != DefaultFramebufferBlitCase.AREA_OUT_OF_BOUNDS); // No need to check out-of-bounds with different filtering
+                /** @const {boolean} */ var addNearest = !addLinear || (areas[areaNdx].area != es3fFramebufferBlitTests.DefaultFramebufferBlitCase.AREA_OUT_OF_BOUNDS); // No need to check out-of-bounds with different filtering
 
                 if (addNearest) {
 
-                    defaultFbGroup.addChild(new DefaultFramebufferBlitCase((getFormatName(format) + '_nearest_' + name + '_blit_from_default'), '', format, gl.NEAREST, DefaultFramebufferBlitCase.BLIT_DEFAULT_TO_TARGET, areas[areaNdx].area));
-                    defaultFbGroup.addChild(new DefaultFramebufferBlitCase((getFormatName(format) + '_nearest_' + name + '_blit_to_default'), '', format, gl.NEAREST, DefaultFramebufferBlitCase.BLIT_TO_DEFAULT_FROM_TARGET, areas[areaNdx].area));
+                    defaultFbGroup.addChild(new es3fFramebufferBlitTests.DefaultFramebufferBlitCase((getFormatName(format) + '_nearest_' + name + '_blit_from_default'), '', format, gl.NEAREST, es3fFramebufferBlitTests.DefaultFramebufferBlitCase.BLIT_DEFAULT_TO_TARGET, areas[areaNdx].area));
+                    defaultFbGroup.addChild(new es3fFramebufferBlitTests.DefaultFramebufferBlitCase((getFormatName(format) + '_nearest_' + name + '_blit_to_default'), '', format, gl.NEAREST, es3fFramebufferBlitTests.DefaultFramebufferBlitCase.BLIT_TO_DEFAULT_FROM_TARGET, areas[areaNdx].area));
                 }
 
                 if (addLinear) {
-                    defaultFbGroup.addChild(new DefaultFramebufferBlitCase((getFormatName(format) + '_linear_' + name + '_blit_from_default'), '', format, gl.LINEAR, DefaultFramebufferBlitCase.BLIT_DEFAULT_TO_TARGET, areas[areaNdx].area));
-                    defaultFbGroup.addChild(new DefaultFramebufferBlitCase((getFormatName(format) + '_linear_' + name + '_blit_to_default'), '', format, gl.LINEAR, DefaultFramebufferBlitCase.BLIT_TO_DEFAULT_FROM_TARGET, areas[areaNdx].area));
+                    defaultFbGroup.addChild(new es3fFramebufferBlitTests.DefaultFramebufferBlitCase((getFormatName(format) + '_linear_' + name + '_blit_from_default'), '', format, gl.LINEAR, es3fFramebufferBlitTests.DefaultFramebufferBlitCase.BLIT_DEFAULT_TO_TARGET, areas[areaNdx].area));
+                    defaultFbGroup.addChild(new es3fFramebufferBlitTests.DefaultFramebufferBlitCase((getFormatName(format) + '_linear_' + name + '_blit_to_default'), '', format, gl.LINEAR, es3fFramebufferBlitTests.DefaultFramebufferBlitCase.BLIT_TO_DEFAULT_FROM_TARGET, areas[areaNdx].area));
                 }
             }
         }
@@ -595,7 +601,7 @@ define([
      * @param {tcuTexture.ChannelOrder} order
      * @return {Array<boolean>}
      */
-    var getChannelMask = function(order) {
+    es3fFramebufferBlitTests.getChannelMask = function(order) {
         switch (order) {
             case tcuTexture.ChannelOrder.R: return [true, false, false, false];
             case tcuTexture.ChannelOrder.RG: return [true, true, false, false];
@@ -610,7 +616,7 @@ define([
     };
 
     /**
-     * BlitColorConversionCase class, inherits from FboTestCase
+     * es3fFramebufferBlitTests.BlitColorConversionCase class, inherits from FboTestCase
      * @constructor
      * @param {string} name
      * @param {string} desc
@@ -618,17 +624,17 @@ define([
      * @param {number} dstFormat
      * @param {Array<number>} size
      */
-    var BlitColorConversionCase = function(name, desc, srcFormat, dstFormat, size) {
+    es3fFramebufferBlitTests.BlitColorConversionCase = function(name, desc, srcFormat, dstFormat, size) {
         fboTestCase.FboTestCase.call(this, name, desc);
         /** @type {number} */ this.m_srcFormat = srcFormat;
         /** @type {number} */ this.m_dstFormat = dstFormat;
         /** @type {Array<number>} */ this.m_size = size;
     };
 
-    BlitColorConversionCase.prototype = Object.create(fboTestCase.FboTestCase.prototype);
-    BlitColorConversionCase.prototype.constructor = BlitColorConversionCase;
+    es3fFramebufferBlitTests.BlitColorConversionCase.prototype = Object.create(fboTestCase.FboTestCase.prototype);
+    es3fFramebufferBlitTests.BlitColorConversionCase.prototype.constructor = es3fFramebufferBlitTests.BlitColorConversionCase;
 
-    BlitColorConversionCase.prototype.preCheck = function() {
+    es3fFramebufferBlitTests.BlitColorConversionCase.prototype.preCheck = function() {
         this.checkFormatSupport(this.m_srcFormat);
         this.checkFormatSupport(this.m_dstFormat);
     };
@@ -636,7 +642,7 @@ define([
     /**
      * @param {tcuSurface.Surface} dst
      */
-    BlitColorConversionCase.prototype.render = function(dst) {
+    es3fFramebufferBlitTests.BlitColorConversionCase.prototype.render = function(dst) {
         // TODO: implement
         /** @type {tcuTexture.TextureFormat} */ var srcFormat = new gluTextureUtil.mapGLInternalFormat(this.m_srcFormat);
         /** @type {tcuTexture.TextureFormat} */ var srcFormat = new gluTextureUtil.mapGLInternalFormat(this.m_dstFormat);
@@ -648,7 +654,7 @@ define([
         /** @type {tcuTextureUtil.TextureFormatInfo} */ var srcFmtRangeInfo = tcuTextureUtil.getTextureFormatInfo(srcFormat);
         /** @type {tcuTextureUtil.TextureFormatInfo} */ var dstFmtRangeInfo = tcuTextureUtil.getTextureFormatInfo(dstFormat);
 
-        /** @type {Array<boolean>} */ var copyMask = deMath.logicalAndBool(getChannelMask(srcFormat.order), getChannelMask(dstFormat.order));
+        /** @type {Array<boolean>} */ var copyMask = deMath.logicalAndBool(es3fFramebufferBlitTests.getChannelMask(srcFormat.order), es3fFramebufferBlitTests.getChannelMask(dstFormat.order));
         /** @type {Array<boolean>} */ var srcIsGreater = deMath.greaterThan(srcFmtRangeInfo.valueMax - srcFmtRangeInfo.valueMin, dstFmtRangeInfo.valueMax - dstFmtRangeInfo.valueMin);
 
         /** @type {tcuTexture.TextureFormatInfo} */ var srcRangeInfo =
@@ -730,7 +736,7 @@ define([
      * @param {tcuSurface.Surface} reference
      * @param {tcuSurface.Surface} result
      */
-    BlitColorConversionCase.prototype.compare = function(reference, result) {
+    es3fFramebufferBlitTests.BlitColorConversionCase.prototype.compare = function(reference, result) {
         /** @const {tcuTexture.TextureFormat} */ var srcFormat = gluTextureUtil.mapGLInternalFormat(m_srcFormat);
         /** @const {tcuTexture.TextureFormat} */ var dstFormat = gluTextureUtil.mapGLInternalFormat(m_dstFormat);
         /** @const {boolean} */ var srcIsSRGB = (srcFormat.order == tcuTexture.ChannelOrder.sRGBA);
@@ -762,7 +768,7 @@ define([
      * @param {Array<number>} dstRect IVec4
      * @param {number} copyBuffers deUint32
      */
-    var BlitDepthStencilCase = function(name, desc, format, srcBuffers, srcSize, srcRect, dstBuffers, dstSize, dstRect, copyBuffers) {
+    es3fFramebufferBlitTests.BlitDepthStencilCase = function(name, desc, format, srcBuffers, srcSize, srcRect, dstBuffers, dstSize, dstRect, copyBuffers) {
         fboTestCase.FboTestCase(this, name, desc);
         /** @type {number} */ this.m_format = format;
         /** @type {number} */ this.m_srcBuffers = srcBuffers;
@@ -774,13 +780,13 @@ define([
         /** @type {number} */ this.m_copyBuffers = copyBuffers;
     };
 
-    BlitDepthStencilCase.prototype = Object.create(fboTestCase.FboTestCase.prototype);
-    BlitDepthStencilCase.prototype.constructor = BlitDepthStencilCase;
+    es3fFramebufferBlitTests.BlitDepthStencilCase.prototype = Object.create(fboTestCase.FboTestCase.prototype);
+    es3fFramebufferBlitTests.BlitDepthStencilCase.prototype.constructor = es3fFramebufferBlitTests.BlitDepthStencilCase;
 
     /**
      * @protected
      */
-    BlitDepthStencilCase.prototype.preCheck = function() {
+    es3fFramebufferBlitTests.BlitDepthStencilCase.prototype.preCheck = function() {
         this.checkFormatSupport(this.m_format);
     };
 
@@ -788,7 +794,7 @@ define([
      * @protected
      * @param {tcuSurface.Surface} dst
      */
-    BlitDepthStencilCase.prototype.render = function(dst) {
+    es3fFramebufferBlitTests.BlitDepthStencilCase.prototype.render = function(dst) {
         /** @const {number} */ var colorFormat = gl.RGBA8;
         // TODO:implement GradientShader, Texture2DShader, FlatColorShader
         /** @type {GradientShader} */
@@ -937,19 +943,19 @@ define([
      * @param {number} format
      * @param {number} filter
      */
-    var BlitDefaultFramebufferCase = function(name, desc, format, filter) {
+    es3fFramebufferBlitTests.BlitDefaultFramebufferCase = function(name, desc, format, filter) {
         fboTestCase.FboTestCase(this, name, desc);
         /** @const {number} */ this.m_format;
         /** @const {number} */ this.m_filter;
     };
 
-    BlitDefaultFramebufferCase.prototype = Object.create(fboTestCase.FboTestCase.prototype);
-    BlitDefaultFramebufferCase.prototype.constructor = BlitDefaultFramebufferCase;
+    es3fFramebufferBlitTests.BlitDefaultFramebufferCase.prototype = Object.create(fboTestCase.FboTestCase.prototype);
+    es3fFramebufferBlitTests.BlitDefaultFramebufferCase.prototype.constructor = es3fFramebufferBlitTests.BlitDefaultFramebufferCase;
 
     /**
      * @protected
      */
-    BlitDefaultFramebufferCase.prototype.preCheck = function() {
+    es3fFramebufferBlitTests.BlitDefaultFramebufferCase.prototype.preCheck = function() {
         if (this.m_context.getRenderTarget().getNumSamples() > 0)
             throw new Error('Not supported in MSAA config');
 
@@ -960,7 +966,7 @@ define([
      * @protected
      * @param {tcuSurface.Surface} dst
      */
-    BlitDefaultFramebufferCase.prototype.render = function(dst) {
+    es3fFramebufferBlitTests.BlitDefaultFramebufferCase.prototype.render = function(dst) {
         // // TODO: implement
         /** @type {tcuTexture.TextureFormat} */ var colorFormat = gluTextureUtil.mapGLInternalFormat(m_format);
         /** @type {gluTextureUtil.TransferFormat} */ var transferFmt = gluTextureUtil.getTransferFormat(colorFormat);
@@ -1024,7 +1030,7 @@ define([
      * @param {tcuSurface.Surface} reference
      * @param {tcuSurface.Surface} result
      */
-    BlitDefaultFramebufferCase.prototype.compare = function(reference, result) {
+    es3fFramebufferBlitTests.BlitDefaultFramebufferCase.prototype.compare = function(reference, result) {
         /** @const {tcuRGBA.RGBA} */
         var threshold = tcuRGBA.max(fboTestUtil.getFormatThreshold(this.m_format), tcuRGBA.newRGBAComponents(12, 12, 12, 12));
 
@@ -1033,14 +1039,14 @@ define([
         return tcu.bilinearCompare('Result', 'Image comparison result', reference.getAccess(), result.getAccess(), threshold, null /*tcu::COMPARE_LOG_RESULT*/);
     };
 
-    /** @enum BlitDirection */
-    var BlitDirection = {
+    /** @enum es3fFramebufferBlitTests.BlitDirection */
+    es3fFramebufferBlitTests.BlitDirection = {
         BLIT_DEFAULT_TO_TARGET: 0,
         BLIT_TO_DEFAULT_FROM_TARGET: 1
     };
 
-    /** @enum BlitArea */
-    var BlitArea = {
+    /** @enum es3fFramebufferBlitTests.BlitArea */
+    es3fFramebufferBlitTests.BlitArea = {
         AREA_SCALE: 0,
         AREA_OUT_OF_BOUNDS: 1
     };
@@ -1051,24 +1057,24 @@ define([
      * @param {string} desc
      * @param {string} format
      * @param {string} filter
-     * @param {BlitDirection} dir
-     * @param {BlitArea} area
+     * @param {es3fFramebufferBlitTests.BlitDirection} dir
+     * @param {es3fFramebufferBlitTests.BlitArea} area
      */
-    var DefaultFramebufferBlitCase = function(name, desc, format, filter, dir, area) {
-        BlitDefaultFramebufferCase(this, name, desc, format, filter);
-        /** @const {BlitDirection} */ this.m_blitDir = dir;
-        /** @const {BlitArea} */ this.m_blitArea = area;
+    es3fFramebufferBlitTests.DefaultFramebufferBlitCase = function(name, desc, format, filter, dir, area) {
+        es3fFramebufferBlitTests.BlitDefaultFramebufferCase(this, name, desc, format, filter);
+        /** @const {es3fFramebufferBlitTests.BlitDirection} */ this.m_blitDir = dir;
+        /** @const {es3fFramebufferBlitTests.BlitArea} */ this.m_blitArea = area;
         /** @type {Array<number>} */ this.m_srcRect = [-1, -1, -1, -1];
         /** @type {Array<number>} */ this.m_dstRect = [-1, -1, -1, -1];
         /** @type {Array<number>} */ this.m_interestingArea = [-1, -1, -1, -1];
-        DE_ASSERT(dir < Object.keys(BlitDirection).length);
-        DE_ASSERT(area < Object.keys(BlitArea).length);
+        DE_ASSERT(dir < Object.keys(es3fFramebufferBlitTests.BlitDirection).length);
+        DE_ASSERT(area < Object.keys(es3fFramebufferBlitTests.BlitArea).length);
     };
 
-    DefaultFramebufferBlitCase.prototype = Object.create(BlitDefaultFramebufferCase.prototype);
-    DefaultFramebufferBlitCase.prototype.constructor = DefaultFramebufferBlitCase;
+    es3fFramebufferBlitTests.DefaultFramebufferBlitCase.prototype = Object.create(es3fFramebufferBlitTests.BlitDefaultFramebufferCase.prototype);
+    es3fFramebufferBlitTests.DefaultFramebufferBlitCase.prototype.constructor = es3fFramebufferBlitTests.DefaultFramebufferBlitCase;
 
-    DefaultFramebufferBlitCase.prototype.init = function() {
+    es3fFramebufferBlitTests.DefaultFramebufferBlitCase.prototype.init = function() {
         // requirements
         /** @const {number} */ var minViewportSize = 128;
         if (this.m_context.getRenderTarget().getWidth() < minViewportSize ||
@@ -1080,14 +1086,14 @@ define([
         this.m_viewportHeight = this.m_context.getRenderTarget().getHeight();
 
         // set proper areas
-        if (this.m_blitArea == BlitArea.AREA_SCALE) {
+        if (this.m_blitArea == es3fFramebufferBlitTests.BlitArea.AREA_SCALE) {
             this.m_srcRect = [10, 20, 65, 100];
             this.m_dstRect = [25, 30, 125, 94];
             this.m_interestingArea = [0, 0, 128, 128];
         }
-        else if (this.blitArea == BlitArea.AREA_OUT_OF_BOUNDS) {
+        else if (this.blitArea == es3fFramebufferBlitTests.BlitArea.AREA_OUT_OF_BOUNDS) {
             /** @const {Array<number>} */
-            var ubound = (this.m_blitDir == BlitDirection.BLIT_DEFAULT_TO_TARGET) ?
+            var ubound = (this.m_blitDir == es3fFramebufferBlitTests.BlitDirection.BLIT_DEFAULT_TO_TARGET) ?
                          ([128, 128]) :
                          ([this.m_context.getRenderTarget().getWidth(), this.m_context.getRenderTarget().getHeight()]);
 
@@ -1102,7 +1108,7 @@ define([
     /**
      * @param {tcuSurface.Surface} dst
      */
-    DefaultFramebufferBlitCase.prototype.render = function(dst) {
+    es3fFramebufferBlitTests.DefaultFramebufferBlitCase.prototype.render = function(dst) {
         // TOOD: implement
         /** @type {tcuTexture.TextureFormat} */ var colorFormat = gluTextureUtil.mapGLInternalFormat(m_format);
         /** @type {gluTextureUtil.TransferFormat} */ var transferFmt = gluTextureUtil.getTransferFormat(colorFormat);
@@ -1115,8 +1121,8 @@ define([
         /** @type {number} */ var fboTex = 0;
         /** @const {number} */ var fboTexW = 128;
         /** @const {number} */ var fboTexH = 128;
-        /** @const {number} */ var sourceWidth = (this.m_blitDir == BlitDirection.BLIT_DEFAULT_TO_TARGET) ? (getWidth()) : (fboTexW);
-        /** @const {number} */ var sourceHeight = (this.m_blitDir == BlitDirection.BLIT_DEFAULT_TO_TARGET) ? (getHeight()) : (fboTexH);
+        /** @const {number} */ var sourceWidth = (this.m_blitDir == es3fFramebufferBlitTests.BlitDirection.BLIT_DEFAULT_TO_TARGET) ? (getWidth()) : (fboTexW);
+        /** @const {number} */ var sourceHeight = (this.m_blitDir == es3fFramebufferBlitTests.BlitDirection.BLIT_DEFAULT_TO_TARGET) ? (getHeight()) : (fboTexH);
         /** @const {number} */ var gridRenderWidth = Math.min(256, sourceWidth);
         /** @const {number} */ var gridRenderHeight = Math.min(256, sourceHeight);
 
@@ -1139,8 +1145,8 @@ define([
         this.checkError();
         this.checkFramebufferStatus(gl.FRAMEBUFFER);
 
-        targetFbo = (this.m_blitDir == BlitDirection.BLIT_DEFAULT_TO_TARGET) ? (fbo) : (this.m_context.getRenderContext().getDefaultFramebuffer());
-        sourceFbo = (this.m_blitDir == BlitDirection.BLIT_DEFAULT_TO_TARGET) ? (this.m_context.getRenderContext().getDefaultFramebuffer()) : (fbo);
+        targetFbo = (this.m_blitDir == es3fFramebufferBlitTests.BlitDirection.BLIT_DEFAULT_TO_TARGET) ? (fbo) : (this.m_context.getRenderContext().getDefaultFramebuffer());
+        sourceFbo = (this.m_blitDir == es3fFramebufferBlitTests.BlitDirection.BLIT_DEFAULT_TO_TARGET) ? (this.m_context.getRenderContext().getDefaultFramebuffer()) : (fbo);
 
         // Render grid to source framebuffer
         // TODO: implement Texture2DShader
@@ -1201,7 +1207,7 @@ define([
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, targetFbo);
 
-        if (this.m_blitDir == BlitDirection.BLIT_TO_DEFAULT_FROM_TARGET)
+        if (this.m_blitDir == es3fFramebufferBlitTests.BlitDirection.BLIT_TO_DEFAULT_FROM_TARGET)
             this.readPixels(dst, this.m_interestingArea[0], this.m_interestingArea[1], this.m_interestingArea[2] - this.m_interestingArea[0], this.m_interestingArea[3] - this.m_interestingArea[1]);
         else
             this.readPixelsUsingFormat(dst, this.m_interestingArea[0], this.m_interestingArea[1], this.m_interestingArea[2] - this.m_interestingArea[0], this.m_interestingArea[3] - this.m_interestingArea[1], colorFormat, [1.0, 1.0, 1.0, 1.0], [0.0, 0.0, 0.0, 0.0]);
@@ -1209,12 +1215,12 @@ define([
         this.checkError();
     };
 
-    var run = function(context) {
+    es3fFramebufferBlitTests.run = function(context) {
         gl = context;
         //Set up root Test
         var state = tcuTestCase.runner.getState();
 
-        var test = new FramebufferBlitTests();
+        var test = new es3fFramebufferBlitTests.FramebufferBlitTests();
         var testName = test.fullName();
         var testDescription = test.getDescription();
         state.testCases = test;
@@ -1231,13 +1237,11 @@ define([
             tcuTestCase.runTestCases();
         }
         catch (err) {
-            testFailedOptions('Failed to run tests', false);
+            testFailedOptions('Failed to es3fFramebufferBlitTests.run tests', false);
             tcuTestCase.runner.terminate();
         }
     };
 
-    return {
-        run: run
-    };
+    
 
 });

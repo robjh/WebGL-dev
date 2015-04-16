@@ -18,12 +18,18 @@
  *
  */
 
-define(function() {
+'use strict';
+goog.provide('framework.referencerenderer.rrDefs');
+
+
+goog.scope(function() {
+
+var rrDefs = framework.referencerenderer.rrDefs;
 
 /**
  * @enum
  */
-var FaceType = {
+rrDefs.FaceType = {
     FACETYPE_FRONT: 0,
     FACETYPE_BACK: 1
 };
@@ -31,7 +37,7 @@ var FaceType = {
 /**
  * @enum
  */
-var IndexType = {
+rrDefs.IndexType = {
     INDEXTYPE_UINT8: 0,
     INDEXTYPE_UINT16: 1,
     INDEXTYPE_UINT32: 2
@@ -40,15 +46,11 @@ var IndexType = {
 /**
  * @enum
  */
-var ProvokingVertex = {
+rrDefs.ProvokingVertex = {
     PROVOKINGVERTEX_FIRST: 1,
     PROVOKINGVERTEX_LAST: 2           // \note valid value, "last vertex", not last of enum
 };
 
-return {
-    FaceType: FaceType,
-    IndexType: IndexType,
-    ProvokingVertex: ProvokingVertex
-};
+
 
 });

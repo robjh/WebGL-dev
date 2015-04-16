@@ -19,15 +19,46 @@
  */
 
 
-define(['framework/common/tcuTexture', 'framework/common/tcuTextureUtil', 'framework/common/tcuRGBA', 'framework/opengl/gluTextureUtil', 'framework/delibs/debase/deMath', 'framework/referencerenderer/rrShadingContext', 'framework/referencerenderer/rrFragmentPacket', 'framework/referencerenderer/rrVertexPacket', 'framework/referencerenderer/rrVertexAttrib', 'framework/opengl/gluShaderUtil', 'framework/opengl/simplereference/sglrReferenceContext', 'framework/opengl/simplereference/sglrShaderProgram', 'framework/referencerenderer/rrGenericVector'],
-    function(tcuTexture, tcuTextureUtil, tcuRGBA, gluTextureUtil, deMath, rrShadingContext,  rrFragmentPacket,  rrVertexPacket,  rrVertexAttrib,  gluShaderUtil, sglrReferenceContext, sglrShaderProgram, rrGenericVector) {
-    'use strict';
+'use strict';
+goog.provide('functional.gles3.es3fFboTestUtil');
+goog.require('framework.common.tcuTexture');
+goog.require('framework.common.tcuTextureUtil');
+goog.require('framework.common.tcuRGBA');
+goog.require('framework.opengl.gluTextureUtil');
+goog.require('framework.delibs.debase.deMath');
+goog.require('framework.referencerenderer.rrShadingContext');
+goog.require('framework.referencerenderer.rrFragmentPacket');
+goog.require('framework.referencerenderer.rrVertexPacket');
+goog.require('framework.referencerenderer.rrVertexAttrib');
+goog.require('framework.opengl.gluShaderUtil');
+goog.require('framework.opengl.simplereference.sglrReferenceContext');
+goog.require('framework.opengl.simplereference.sglrShaderProgram');
+goog.require('framework.referencerenderer.rrGenericVector');
+
+
+goog.scope(function() {
+
+var es3fFboTestUtil = functional.gles3.es3fFboTestUtil;
+var tcuTexture = framework.common.tcuTexture;
+var tcuTextureUtil = framework.common.tcuTextureUtil;
+var tcuRGBA = framework.common.tcuRGBA;
+var gluTextureUtil = framework.opengl.gluTextureUtil;
+var deMath = framework.delibs.debase.deMath;
+var rrShadingContext = framework.referencerenderer.rrShadingContext;
+var rrFragmentPacket = framework.referencerenderer.rrFragmentPacket;
+var rrVertexPacket = framework.referencerenderer.rrVertexPacket;
+var rrVertexAttrib = framework.referencerenderer.rrVertexAttrib;
+var gluShaderUtil = framework.opengl.gluShaderUtil;
+var sglrReferenceContext = framework.opengl.simplereference.sglrReferenceContext;
+var sglrShaderProgram = framework.opengl.simplereference.sglrShaderProgram;
+var rrGenericVector = framework.referencerenderer.rrGenericVector;
+    
 
     /**
      * @param {gluShaderUtil.DataType} type
      * @return {rrGenericVector.GenericVecType}
      */
-    var mapDataTypeToGenericVecType = function(type) {
+    es3fFboTestUtil.mapDataTypeToGenericVecType = function(type) {
         switch (type) {
             case gluShaderUtil.DataType.FLOAT_VEC4: return rrGenericVector.GenericVecType.FLOAT;
             case gluShaderUtil.DataType.INT_VEC4: return rrGenericVector.GenericVecType.INT32;
@@ -42,7 +73,7 @@ define(['framework/common/tcuTexture', 'framework/common/tcuTextureUtil', 'frame
      * @param {tcuTexture.deTypes} type
      * @return {Array<number>}
      */
-    var castVectorSaturate = function(input, type) {
+    es3fFboTestUtil.castVectorSaturate = function(input, type) {
         return [
             (input[0] + 0.5 >= type.max()) ? (type.max()) : ((input[0] - 0.5 <= type.min()) ? (type.min()) : (T(input[0]))),
             (input[1] + 0.5 >= type.max()) ? (type.max()) : ((input[1] - 0.5 <= type.min()) ? (type.min()) : (T(input[1]))),
@@ -52,18 +83,18 @@ define(['framework/common/tcuTexture', 'framework/common/tcuTextureUtil', 'frame
     };
 
     /**
-     * FlatColorShader inherits from sglrShaderProgram
+     * es3fFboTestUtil.FlatColorShader inherits from sglrShaderProgram
      * @constructor
      * @param {gluShaderUtil.DataType} outputType
      */
-    var FlatColorShader = function(outputType) {
+    es3fFboTestUtil.FlatColorShader = function(outputType) {
         /** @type {sglrShaderProgram.ShaderProgramDeclaration} */
         var decl = new sglrShaderProgram.ShaderProgramDeclaration();
         /** @type {gluShaderUtil.DataType} */ this.m_outputType = outputType;
 
         decl.pushVertexAttribute('a_position', rrGenericVector.GenericVecType.FLOAT);
         decl.pushVertexToFragmentVarying(rrGenericVector.GenericVecType.FLOAT);
-        decl.pushFragmentOutput(mapDataTypeToGenericVecType(outputType));
+        decl.pushFragmentOutput(es3fFboTestUtil.mapDataTypeToGenericVecType(outputType));
         decl.pushUniform('u_color', gluShaderUtil.DataType.FLOAT_VEC4);
         decl.pushVertexSource(
                             '#version 300 es\n' +
@@ -82,15 +113,15 @@ define(['framework/common/tcuTexture', 'framework/common/tcuTextureUtil', 'frame
         sglrShaderProgram.ShaderProgram.call(this, decl);
     };
 
-    FlatColorShader.prototype = Object.create(sglrShaderProgram.ShaderProgram.prototype);
-    FlatColorShader.prototype.constructor = FlatColorShader;
+    es3fFboTestUtil.FlatColorShader.prototype = Object.create(sglrShaderProgram.ShaderProgram.prototype);
+    es3fFboTestUtil.FlatColorShader.prototype.constructor = es3fFboTestUtil.FlatColorShader;
 
     /**
      * @param {Context} context
      * @param {number} program
      * @param {Array<number>} color
      */
-    FlatColorShader.prototype.setColor = function(context, program, color) {
+    es3fFboTestUtil.FlatColorShader.prototype.setColor = function(context, program, color) {
         /** @type {number */ var location = context.getUniformLocation(program, 'u_color');
 
         context.useProgram(program);
@@ -102,7 +133,7 @@ define(['framework/common/tcuTexture', 'framework/common/tcuTextureUtil', 'frame
      * @param {rrVertexPacket.VertexPacket} packets
      * @param {number} numPackets
      */
-    FlatColorShader.prototype.shadeVertices = function(inputs, packets, numPackets) {
+    es3fFboTestUtil.FlatColorShader.prototype.shadeVertices = function(inputs, packets, numPackets) {
         for (var packetNdx = 0; packetNdx < numPackets; ++packetNdx) {
             /** @type {rrVertexPacket.VertexPacket} */ var packet = packets[packetNdx];
             packet.position = rrVertexAttrib.readVertexAttribFloat(inputs[0], packet.instanceNdx, packet.vertexNdx);
@@ -114,11 +145,11 @@ define(['framework/common/tcuTexture', 'framework/common/tcuTextureUtil', 'frame
      * @param {number} numPackets
      * @param {rrShadingContext.FragmentShadingContext} context
      */
-    FlatColorShader.prototype.shadeFragments = function(packets, numPackets, context) {
+    es3fFboTestUtil.FlatColorShader.prototype.shadeFragments = function(packets, numPackets, context) {
         var cval = this.m_uniforms[0].value;
         /** @const {Array<number>} */ var color = [cval, cval, cval, cval];
-        /** @const {Array<number>} */ var icolor = castVectorSaturate(color, tcuTexture.deTypes.deInt32);
-        /** @const {Array<number>} */ var uicolor = castVectorSaturate(color, tcuTexture.deTypes.deUint32);
+        /** @const {Array<number>} */ var icolor = es3fFboTestUtil.castVectorSaturate(color, tcuTexture.deTypes.deInt32);
+        /** @const {Array<number>} */ var uicolor = es3fFboTestUtil.castVectorSaturate(color, tcuTexture.deTypes.deUint32);
 
         if (this.m_outputType == gluShaderUtil.DataType.FLOAT_VEC4)
         {
@@ -143,18 +174,18 @@ define(['framework/common/tcuTexture', 'framework/common/tcuTextureUtil', 'frame
     };
 
     /**
-     * GradientShader inherits from sglrShaderProgram
+     * es3fFboTestUtil.GradientShader inherits from sglrShaderProgram
      * @constructor
      * @param {gluShaderUtil.DataType} outputType
      */
-    var GradientShader = function(outputType) {
+    es3fFboTestUtil.GradientShader = function(outputType) {
         /** @type {sglrShaderProgram.ShaderProgramDeclaration} */
         var decl = new sglrShaderProgram.ShaderProgramDeclaration();
         /** @type {gluShaderUtil.DataType} */ this.m_outputType = outputType;
         decl.pushVertexAttribute('a_position', rrGenericVector.GenericVecType.FLOAT);
         decl.pushVertexAttribute('a_coord', rrGenericVector.GenericVecType.FLOAT);
         decl.pushVertexToFragmentVarying(rrGenericVector.GenericVecType.FLOAT);
-        decl.pushFragmentOutput(mapDataTypeToGenericVecType(outputType));
+        decl.pushFragmentOutput(es3fFboTestUtil.mapDataTypeToGenericVecType(outputType));
         decl.pushUniform('u_gradientMin', gluShaderUtil.DataType.FLOAT_VEC4);
         decl.pushUniform('u_gradientMax', gluShaderUtil.DataType.FLOAT_VEC4);
         decl.pushVertexSource('#version 300 es\n' +
@@ -183,8 +214,8 @@ define(['framework/common/tcuTexture', 'framework/common/tcuTextureUtil', 'frame
         sglrShaderProgram.ShaderProgram.call(this, decl);
     };
 
-    GradientShader.prototype = Object.create(sglrShaderProgram.ShaderProgram.prototype);
-    GradientShader.prototype.constructor = GradientShader;
+    es3fFboTestUtil.GradientShader.prototype = Object.create(sglrShaderProgram.ShaderProgram.prototype);
+    es3fFboTestUtil.GradientShader.prototype.constructor = es3fFboTestUtil.GradientShader;
 
     /**
      * @param {Context} ctx
@@ -192,7 +223,7 @@ define(['framework/common/tcuTexture', 'framework/common/tcuTextureUtil', 'frame
      * @param {Array<number>} gradientMin
      * @param {Array<number>} gradientMax
      */
-    GradientShader.prototype.setGradient = function(ctx, program, gradientMin, gradientMax) {
+    es3fFboTestUtil.GradientShader.prototype.setGradient = function(ctx, program, gradientMin, gradientMax) {
         ctx.useProgram(program);
         ctx.uniform4fv(ctx.getUniformLocation(program, 'u_gradientMin'), 1, gradientMin);
         ctx.uniform4fv(ctx.getUniformLocation(program, 'u_gradientMax'), 1, gradientMax);
@@ -203,7 +234,7 @@ define(['framework/common/tcuTexture', 'framework/common/tcuTextureUtil', 'frame
      * @param {rrVertexPacket.VertexPacket} packets
      * @param {number} numPackets
      */
-    GradientShader.prototype.shadeVertices = function(inputs, packets, numPackets) {
+    es3fFboTestUtil.GradientShader.prototype.shadeVertices = function(inputs, packets, numPackets) {
         for (var packetNdx = 0; packetNdx < numPackets; ++packetNdx) {
             /** @type {rrVertexPacket.VertexPacket} */ var packet = packets[packetNdx];
 
@@ -217,7 +248,7 @@ define(['framework/common/tcuTexture', 'framework/common/tcuTextureUtil', 'frame
      * @param {number} numPackets
      * @param {rrShadingContext.FragmentShadingContext} context
      */
-    GradientShader.prototype.shadeFragments = function(packets, numPackets, context) {
+    es3fFboTestUtil.GradientShader.prototype.shadeFragments = function(packets, numPackets, context) {
         var mnval = this.m_uniforms[0].value;
         var mxval = this.m_uniforms[1].value;
         /** @const {Array<number>} */ var gradientMin = [mnval, mnval, mnval, mnval];
@@ -233,8 +264,8 @@ define(['framework/common/tcuTexture', 'framework/common/tcuTextureUtil', 'frame
             /** @const {Array<number>} */ var fv = [f0, f1, 1.0 - f0, 1.0 - f1];
 
             /** @const {Array<number>} */ var color = gradientMin + (gradientMax - gradientMin) * fv;
-            /** @const {Array<number>} */ var icolor = castVectorSaturate(color, tcuTexture.deTypes.deInt32);
-            /** @const {Array<number>} */ var uicolor = castVectorSaturate(color, tcuTexture.deTypes.deUint32);
+            /** @const {Array<number>} */ var icolor = es3fFboTestUtil.castVectorSaturate(color, tcuTexture.deTypes.deInt32);
+            /** @const {Array<number>} */ var uicolor = es3fFboTestUtil.castVectorSaturate(color, tcuTexture.deTypes.deUint32);
 
             if (this.m_outputType == gluShaderUtil.DataType.FLOAT_VEC4)
                 rrShadingContext.writeFragmentOutput(context, packetNdx, fragNdx, 0, color);
@@ -252,7 +283,7 @@ define(['framework/common/tcuTexture', 'framework/common/tcuTextureUtil', 'frame
     * @param {gluShaderUtil.DataType} outputType
     * @return {string}
      */
-    var genTexFragmentShader = function(samplerTypes, outputType) {
+    es3fFboTestUtil.genTexFragmentShader = function(samplerTypes, outputType) {
         /** @type {string} */ var precision = 'highp';
         /** @type {string} */ var src = '';
 
@@ -292,14 +323,14 @@ define(['framework/common/tcuTexture', 'framework/common/tcuTextureUtil', 'frame
      * @param {gluShaderUtil.DataType} outputType
      * @return {sglrShaderProgram.ShaderProgramDeclaration}
      */
-    var genTexture2DShaderDecl = function(samplerTypes, outputType) {
+    es3fFboTestUtil.genTexture2DShaderDecl = function(samplerTypes, outputType) {
         /** @type {sglrShaderProgram.ShaderProgramDeclaration} */
         var decl = new sglrShaderProgram.ShaderProgramDeclaration();
 
         decl.pushVertexAttribute('a_position', rrGenericVector.GenericVecType.FLOAT);
         decl.pushVertexAttribute('a_coord', rrGenericVector.GenericVecType.FLOAT);
         decl.pushVertexToFragmentVarying(rrGenericVector.GenericVecType.FLOAT);
-        decl.pushFragmentOutput(mapDataTypeToGenericVecType(outputType));
+        decl.pushFragmentOutput(es3fFboTestUtil.mapDataTypeToGenericVecType(outputType));
 
         decl.pushVertexSource(
             '#version 300 es\n' +
@@ -312,7 +343,7 @@ define(['framework/common/tcuTexture', 'framework/common/tcuTextureUtil', 'frame
             '    v_coord = a_coord;\n' +
             '}\n');
 
-        decl.pushFragmentSource(genTexFragmentShader(samplerTypes, outputType));
+        decl.pushFragmentSource(es3fFboTestUtil.genTexFragmentShader(samplerTypes, outputType));
 
         decl.pushUniform('u_outScale0', gluShaderUtil.DataType.FLOAT_VEC4);
         decl.pushUniform('u_outBias0', gluShaderUtil.DataType.FLOAT_VEC4);
@@ -327,33 +358,33 @@ define(['framework/common/tcuTexture', 'framework/common/tcuTextureUtil', 'frame
     };
 
     /**
-     * For use in Texture2DShader
+     * For use in es3fFboTestUtil.Texture2DShader
      * @constructor
      */
-    var Input = function() {
+    es3fFboTestUtil.Input = function() {
         /** @type {number} */ this.unitNdx;
         /** @type {Array<number>} */ this.scale;
         /** @type {Array<number>} */ this.bias;
     };
 
     /**
-     * Texture2DShader inherits from sglrShaderProgram
+     * es3fFboTestUtil.Texture2DShader inherits from sglrShaderProgram
      * @constructor
      * @param {Array<gluShaderUtilDataType>} samplerTypes
      * @param {gluShaderUtil.DataType} outputType
      * @param {Array<number>} outScale - default [1.0, 1.0, 1.0, 1.0]
      * @param {Array<number>} outBias - default [0.0, 0.0, 0.0, 0.0]
      */
-    var Texture2DShader = function(samplerTypes, outputType, outScale, outBias) {
+    es3fFboTestUtil.Texture2DShader = function(samplerTypes, outputType, outScale, outBias) {
         if (outScale === undefined) outScale = [1.0, 1.0, 1.0, 1.0];
         if (outBias === undefined) outBias = [0.0, 0.0, 0.0, 0.0];
-        sglrShaderProgram.ShaderProgram.call(this, genTexture2DShaderDecl(samplerTypes, outputType));
-        /** @type {Array<Input>} */ this.m_inputs = [];
+        sglrShaderProgram.ShaderProgram.call(this, es3fFboTestUtil.genTexture2DShaderDecl(samplerTypes, outputType));
+        /** @type {Array<es3fFboTestUtil.Input>} */ this.m_inputs = [];
         /** @type {Array<number>} */ this.m_outScale = outScale;
         /** @type {Array<number>} */ this.m_outBias = outBias;
         /** @const {gluShaderUtil.DataType} */ this.m_outputType = outputType;
         for (var ndx = 0; ndx < samplerTypes.length; ndx++) {
-            var input = new Input();
+            var input = new es3fFboTestUtil.Input();
             input.unitNdx = ndx;
             input.scale = [1.0, 1.0, 1.0, 1.0];
             input.bias = [0.0, 0.0, 0.0, 0.0];
@@ -361,14 +392,14 @@ define(['framework/common/tcuTexture', 'framework/common/tcuTextureUtil', 'frame
         }
     };
 
-    Texture2DShader.prototype = Object.create(sglrShaderProgram.ShaderProgram.prototype);
-    Texture2DShader.prototype.constructor = Texture2DShader;
+    es3fFboTestUtil.Texture2DShader.prototype = Object.create(sglrShaderProgram.ShaderProgram.prototype);
+    es3fFboTestUtil.Texture2DShader.prototype.constructor = es3fFboTestUtil.Texture2DShader;
 
     /**
      * @param {number} inputNdx
      * @param {number} unitNdx
      */
-    Texture2DShader.prototype.setUnit = function(inputNdx, unitNdx) {
+    es3fFboTestUtil.Texture2DShader.prototype.setUnit = function(inputNdx, unitNdx) {
         this.m_inputs[inputNdx].unitNdx = unitNdx;
     };
 
@@ -377,7 +408,7 @@ define(['framework/common/tcuTexture', 'framework/common/tcuTextureUtil', 'frame
      * @param {Array<number>} scale
      * @param {Array<number>} bias
      */
-    Texture2DShader.prototype.setTexScaleBias = function(inputNdx, scale, bias) {
+    es3fFboTestUtil.Texture2DShader.prototype.setTexScaleBias = function(inputNdx, scale, bias) {
         this.m_inputs[inputNdx].scale = scale;
         this.m_inputs[inputNdx].bias = bias;
     };
@@ -386,7 +417,7 @@ define(['framework/common/tcuTexture', 'framework/common/tcuTextureUtil', 'frame
      * @param {Array<number>} scale
      * @param {Array<number>} bias
      */
-    Texture2DShader.prototype.setOutScaleBias = function(scale, bias) {
+    es3fFboTestUtil.Texture2DShader.prototype.setOutScaleBias = function(scale, bias) {
         this.m_outScale = scale;
         this.m_outBias = bias;
     };
@@ -395,7 +426,7 @@ define(['framework/common/tcuTexture', 'framework/common/tcuTextureUtil', 'frame
      * @param {Context} context
      * @param {number} program
      */
-    Texture2DShader.prototype.setUniforms = function(context, program) {
+    es3fFboTestUtil.Texture2DShader.prototype.setUniforms = function(context, program) {
         context.useProgram(program);
 
         for (var texNdx = 0; texNdx < this.m_inputs.length; texNdx++) {
@@ -417,7 +448,7 @@ define(['framework/common/tcuTexture', 'framework/common/tcuTextureUtil', 'frame
      * @param {rrVertexPacket.VertexPacket} packets
      * @param {number} numPackets
      */
-    Texture2DShader.prototype.shadeVertices = function(inputs, packets, numPackets) {
+    es3fFboTestUtil.Texture2DShader.prototype.shadeVertices = function(inputs, packets, numPackets) {
         // TODO: implement rrVertexAttrib.readVertexAttribFloat
         for (var packetNdx = 0; packetNdx < numPackets; ++packetNdx) {
             /** @type {rrVertexPacket.VertexPacket} */ var packet = packets[packetNdx];
@@ -431,7 +462,7 @@ define(['framework/common/tcuTexture', 'framework/common/tcuTextureUtil', 'frame
      * @param {number} numPackets
      * @param {rrShadingContext.FragmentShadingContext} context
      */
-    Texture2DShader.prototype.shadeFragments = function(packets, numPackets, context) {
+    es3fFboTestUtil.Texture2DShader.prototype.shadeFragments = function(packets, numPackets, context) {
         /** @type {number} */ var sval = this.m_uniforms[0].value;
         /** @type {number} */ var bval = this.m_uniforms[1].value;
         /** @type {Array<number>} */ var outScale = [sval, sval, sval, sval];
@@ -470,8 +501,8 @@ define(['framework/common/tcuTexture', 'framework/common/tcuTextureUtil', 'frame
             // write out
             for (var fragNdx = 0; fragNdx < 4; ++fragNdx) {
                 /** @const {Array<number>} */ var color = colors[fragNdx] * outScale + outBias;
-                /** @const {Array<number>} */ var icolor = castVectorSaturate(color, tcuTexture.deTypes.deInt32);
-                /** @const {Array<number>} */ var uicolor = castVectorSaturate(color, tcuTexture.deTypes.deUint32);
+                /** @const {Array<number>} */ var icolor = es3fFboTestUtil.castVectorSaturate(color, tcuTexture.deTypes.deInt32);
+                /** @const {Array<number>} */ var uicolor = es3fFboTestUtil.castVectorSaturate(color, tcuTexture.deTypes.deUint32);
 
                 if (this.m_outputType == gluShaderUtil.DataType.FLOAT_VEC4)
                     rrShadingContext.writeFragmentOutput(context, packetNdx, fragNdx, 0, color);
@@ -486,125 +517,125 @@ define(['framework/common/tcuTexture', 'framework/common/tcuTextureUtil', 'frame
     };
 
     /**
-     * TextureCubeShader inherits from sglrShaderProgram
+     * es3fFboTestUtil.TextureCubeShader inherits from sglrShaderProgram
      * @constructor
      * @param {gluShaderUtil.DataType} samplerType
      * @param {glu.DataType} outputType
      */
-    var TextureCubeShader = function(samplerType, outputType) {
+    es3fFboTestUtil.TextureCubeShader = function(samplerType, outputType) {
         /** @type {sglrShaderProgram.ShaderProgramDeclaration} */
         var decl = new sglrShaderProgram.ShaderProgramDeclaration();
 
         sglrShaderProgram.ShaderProgram.call(this, decl);
     };
 
-    TextureCubeShader.prototype = Object.create(sglrShaderProgram.ShaderProgram.prototype);
-    TextureCubeShader.prototype.constructor = TextureCubeShader;
+    es3fFboTestUtil.TextureCubeShader.prototype = Object.create(sglrShaderProgram.ShaderProgram.prototype);
+    es3fFboTestUtil.TextureCubeShader.prototype.constructor = es3fFboTestUtil.TextureCubeShader;
 
-    TextureCubeShader.prototype.setFace = function() {
+    es3fFboTestUtil.TextureCubeShader.prototype.setFace = function() {
         // TODO: implement
     };
 
-    TextureCubeShader.prototype.setTexScaleBias = function() {
+    es3fFboTestUtil.TextureCubeShader.prototype.setTexScaleBias = function() {
         // TODO: implement
     };
 
-    TextureCubeShader.prototype.setUniforms = function() {
+    es3fFboTestUtil.TextureCubeShader.prototype.setUniforms = function() {
         // TODO: implement
     };
 
-    TextureCubeShader.prototype.shadeVertices = function() {
+    es3fFboTestUtil.TextureCubeShader.prototype.shadeVertices = function() {
         // TODO: implement
     };
 
-    TextureCubeShader.prototype.shadeFragments = function() {
+    es3fFboTestUtil.TextureCubeShader.prototype.shadeFragments = function() {
         // TODO: implement
     };
 
     /**
-     * Texture2DArrayShader inherits from sglrShaderProgram
+     * es3fFboTestUtil.Texture2DArrayShader inherits from sglrShaderProgram
      * @constructor
      * @param {gluShaderUtil.DataType} samplerType
      * @param {glu.DataType} outputType
      */
-    var Texture2DArrayShader = function(samplerType, outputType) {
+    es3fFboTestUtil.Texture2DArrayShader = function(samplerType, outputType) {
         /** @type {sglrShaderProgram.ShaderProgramDeclaration} */
         var decl = new sglrShaderProgram.ShaderProgramDeclaration();
 
         sglrShaderProgram.ShaderProgram.call(this, decl);
     };
 
-    Texture2DArrayShader.prototype = Object.create(sglrShaderProgram.ShaderProgram.prototype);
-    Texture2DArrayShader.prototype.constructor = Texture2DArrayShader;
+    es3fFboTestUtil.Texture2DArrayShader.prototype = Object.create(sglrShaderProgram.ShaderProgram.prototype);
+    es3fFboTestUtil.Texture2DArrayShader.prototype.constructor = es3fFboTestUtil.Texture2DArrayShader;
 
-    Texture2DArrayShader.prototype.setLayer = function() {
+    es3fFboTestUtil.Texture2DArrayShader.prototype.setLayer = function() {
         // TODO: implement
     };
 
-    Texture2DArrayShader.prototype.setTexScaleBias = function() {
+    es3fFboTestUtil.Texture2DArrayShader.prototype.setTexScaleBias = function() {
         // TODO: implement
     };
 
-    Texture2DArrayShader.prototype.setUniforms = function() {
+    es3fFboTestUtil.Texture2DArrayShader.prototype.setUniforms = function() {
         // TODO: implement
     };
 
-    Texture2DArrayShader.prototype.shadeVertices = function() {
+    es3fFboTestUtil.Texture2DArrayShader.prototype.shadeVertices = function() {
         // TODO: implement
     };
 
-    Texture2DArrayShader.prototype.shadeFragments = function() {
+    es3fFboTestUtil.Texture2DArrayShader.prototype.shadeFragments = function() {
         // TODO: implement
     };
 
     /**
-     * Texture3DShader inherits from sglrShaderProgram
+     * es3fFboTestUtil.Texture3DShader inherits from sglrShaderProgram
      * @constructor
      * @param {gluShaderUtil.DataType} samplerType
      * @param {glu.DataType} outputType
      */
-    var Texture3DShader = function(samplerType, outputType) {
+    es3fFboTestUtil.Texture3DShader = function(samplerType, outputType) {
         /** @type {sglrShaderProgram.ShaderProgramDeclaration} */
         var decl = new sglrShaderProgram.ShaderProgramDeclaration();
 
         sglrShaderProgram.ShaderProgram.call(this, decl);
     };
 
-    Texture3DShader.prototype = Object.create(sglrShaderProgram.ShaderProgram.prototype);
-    Texture3DShader.prototype.constructor = Texture3DShader;
+    es3fFboTestUtil.Texture3DShader.prototype = Object.create(sglrShaderProgram.ShaderProgram.prototype);
+    es3fFboTestUtil.Texture3DShader.prototype.constructor = es3fFboTestUtil.Texture3DShader;
 
-    Texture3DShader.prototype.setDepth = function() {
+    es3fFboTestUtil.Texture3DShader.prototype.setDepth = function() {
         // TODO: implement
     };
 
-    Texture3DShader.prototype.setTexScaleBias = function() {
+    es3fFboTestUtil.Texture3DShader.prototype.setTexScaleBias = function() {
         // TODO: implement
     };
 
-    Texture3DShader.prototype.setUniforms = function() {
+    es3fFboTestUtil.Texture3DShader.prototype.setUniforms = function() {
         // TODO: implement
     };
 
-    Texture3DShader.prototype.shadeVertices = function() {
+    es3fFboTestUtil.Texture3DShader.prototype.shadeVertices = function() {
         // TODO: implement
     };
 
-    Texture3DShader.prototype.shadeFragments = function() {
+    es3fFboTestUtil.Texture3DShader.prototype.shadeFragments = function() {
         // TODO: implement
     };
 
     /**
-     * DepthGradientShader inherits from sglrShaderProgram
+     * es3fFboTestUtil.DepthGradientShader inherits from sglrShaderProgram
      * @constructor
      * @param {gluShaderUtil.DataType} samplerType
      */
-    var DepthGradientShader = function(samplerType) {
+    es3fFboTestUtil.DepthGradientShader = function(samplerType) {
         /** @type {sglrShaderProgram.ShaderProgramDeclaration} */
         var decl = new sglrShaderProgram.ShaderProgramDeclaration();
         decl.pushVertexAttribute('a_position', rrGenericVector.GenericVecType.FLOAT);
         decl.pushVertexAttribute('a_coord', rrGenericVector.GenericVecType.FLOAT);
         decl.pushVertexToFragmentVarying(rrGenericVector.GenericVecType.FLOAT);
-        decl.pushFragmentOutput(mapDataTypeToGenericVecType(outputType));
+        decl.pushFragmentOutput(es3fFboTestUtil.mapDataTypeToGenericVecType(outputType));
         decl.pushUniform('u_maxGradient', gluShaderUtil.DataType.FLOAT);
         decl.pushUniform('u_minGradient', gluShaderUtil.DataType.FLOAT);
         decl.pushUniform('u_color', gluShaderUtil.DataType.FLOAT_VEC4);
@@ -640,23 +671,23 @@ define(['framework/common/tcuTexture', 'framework/common/tcuTextureUtil', 'frame
         /** @const {sglrShaderProgram.UniformSlot} */ this.u_color = this.getUniformByName('u_color');
     };
 
-    DepthGradientShader.prototype = Object.create(sglrShaderProgram.ShaderProgram.prototype);
-    DepthGradientShader.prototype.constructor = DepthGradientShader;
+    es3fFboTestUtil.DepthGradientShader.prototype = Object.create(sglrShaderProgram.ShaderProgram.prototype);
+    es3fFboTestUtil.DepthGradientShader.prototype.constructor = es3fFboTestUtil.DepthGradientShader;
 
-    DepthGradientShader.prototype.setUniforms = function() {
+    es3fFboTestUtil.DepthGradientShader.prototype.setUniforms = function() {
         // TODO: implement
     };
 
-    DepthGradientShader.prototype.shadeVertices = function() {
+    es3fFboTestUtil.DepthGradientShader.prototype.shadeVertices = function() {
         // TODO: implement
     };
 
-    DepthGradientShader.prototype.shadeFragments = function() {
+    es3fFboTestUtil.DepthGradientShader.prototype.shadeFragments = function() {
         // TODO: implement
     };
 
 
-    var getFormatName = function(format) {
+    es3fFboTestUtil.getFormatName = function(format) {
         switch (format) {
             case gl.RGB565: return 'rgb565';
             case gl.RGB5_A1: return 'rgb5_a1';
@@ -719,7 +750,7 @@ define(['framework/common/tcuTexture', 'framework/common/tcuTextureUtil', 'frame
         }
     };
 
-    var getFramebufferReadFormat = function(format) {
+    es3fFboTestUtil.getFramebufferReadFormat = function(format) {
         switch (tcuTextureUtil.getTextureChannelClass(format.type)) {
             case tcuTextureUtil.TextureChannelClass.FLOATING_POINT:
                 return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.FLOAT);
@@ -735,7 +766,7 @@ define(['framework/common/tcuTexture', 'framework/common/tcuTextureUtil', 'frame
                 return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.SIGNED_INT32);
 
             default:
-                throw new Error('Unknown format in getFramebufferReadFormat()');
+                throw new Error('Unknown format in es3fFboTestUtil.getFramebufferReadFormat()');
         }
     };
 
@@ -744,7 +775,7 @@ define(['framework/common/tcuTexture', 'framework/common/tcuTextureUtil', 'frame
      * @param {TextureFormat} format
      * @param {Array<number>} value
      */
-    var clearColorBuffer = function(ctx, format, value) {
+    es3fFboTestUtil.clearColorBuffer = function(ctx, format, value) {
         // TODO: implement (ctx)
         /** @const @type {tcuTextureUtil.TextureChannelClass} */
         var fmtClass = tcuTextureUtil.getTextureChannelClass(format.type);
@@ -772,13 +803,13 @@ define(['framework/common/tcuTexture', 'framework/common/tcuTextureUtil', 'frame
      * @param {tcuTexture.TextureFormat} format
      * @return {tcuRGBA.RGBA}
      */
-    var getThresholdFromTextureFormat = function(format) {
+    es3fFboTestUtil.getThresholdFromTextureFormat = function(format) {
         /** @const @type {Array<number>} */ var bits = tcuTextureUtil.getTextureFormatMantissaBitDepth(format);
         return tcuRGBA.newRGBAComponents(
-            calculateU8ConversionError(bits[0]),
-            calculateU8ConversionError(bits[1]),
-            calculateU8ConversionError(bits[2]),
-            calculateU8ConversionError(bits[3])
+            es3fFboTestUtil.calculateU8ConversionError(bits[0]),
+            es3fFboTestUtil.calculateU8ConversionError(bits[1]),
+            es3fFboTestUtil.calculateU8ConversionError(bits[2]),
+            es3fFboTestUtil.calculateU8ConversionError(bits[3])
         );
     };
 
@@ -786,16 +817,16 @@ define(['framework/common/tcuTexture', 'framework/common/tcuTextureUtil', 'frame
      * @param {number} glFormat
      * @return {tcuRGBA}
      */
-    var getFormatThreshold = function(glFormat) {
+    es3fFboTestUtil.getFormatThreshold = function(glFormat) {
         /** @const @type {tcuTexture.TextureFormat} */ var format = gluTextureUtil.mapGLInternalFormat(glFormat);
-        return getThresholdFromTextureFormat(format);
+        return es3fFboTestUtil.getThresholdFromTextureFormat(format);
     };
 
     /**
      * @param {number} srcBits
      * @return {number}
      */
-    var getToSRGB8ConversionError = function(srcBits) {
+    es3fFboTestUtil.getToSRGB8ConversionError = function(srcBits) {
         // \note These are pre-computed based on simulation results.
         /* @const @type {Array<number>} */ var errors = [
             1,        // 0 bits - rounding
@@ -826,7 +857,7 @@ define(['framework/common/tcuTexture', 'framework/common/tcuTextureUtil', 'frame
      * @param {tcuTexture.TextureFormat} dst
      * @return {tcuRGBA.RGBA}
      */
-    var getToSRGBConversionThreshold = function(src, dst) {
+    es3fFboTestUtil.getToSRGBConversionThreshold = function(src, dst) {
         // Only SRGB8 and SRGB8_ALPHA8 formats are supported.
         DE_ASSERT(dst.type == tcuTexture.ChannelType.UNORM_INT8);
         DE_ASSERT(dst.order == tcuTexture.ChannelOrder.sRGB || dst.order == tcuTexture.ChannelOrder.sRGBA);
@@ -835,14 +866,14 @@ define(['framework/common/tcuTexture', 'framework/common/tcuTextureUtil', 'frame
         /** @const @type {boolean} */ var dstHasAlpha = dst.order == tcuTexture.ChannelOrder.sRGBA;
 
         return tcuRGBA.newRGBAComponents(
-            getToSRGB8ConversionError(bits[0]),
-            getToSRGB8ConversionError(bits[1]),
-            getToSRGB8ConversionError(bits[2]),
-            dstHasAlpha ? calculateU8ConversionError(bits[3]) : 0);
+            es3fFboTestUtil.getToSRGB8ConversionError(bits[0]),
+            es3fFboTestUtil.getToSRGB8ConversionError(bits[1]),
+            es3fFboTestUtil.getToSRGB8ConversionError(bits[2]),
+            dstHasAlpha ? es3fFboTestUtil.calculateU8ConversionError(bits[3]) : 0);
     };
 
     /**
-     * readPixels()
+     * es3fFboTestUtil.readPixels()
      * @param {Context} ctx
      * @param {tcuTexture.Texture} dst
      * @param {number} x
@@ -853,8 +884,8 @@ define(['framework/common/tcuTexture', 'framework/common/tcuTextureUtil', 'frame
      * @param {Array<number>} scale
      * @param {Array<number>} bias
      */
-    var readPixels = function(ctx, dst, x, y, width, height, format, scale, bias) {
-        /** @type {tcuTexture.TextureFormat} */ var readFormat = getFramebufferReadFormat(format);
+    es3fFboTestUtil.readPixels = function(ctx, dst, x, y, width, height, format, scale, bias) {
+        /** @type {tcuTexture.TextureFormat} */ var readFormat = es3fFboTestUtil.getFramebufferReadFormat(format);
         /** @type {gluTextureUtil.TransferFormat} */ var transferFmt = gluTextureUtil.getTransferFormat(readFormat);
         /** @type {number} */ var alignment = 4; // \note GL_PACK_ALIGNMENT = 4 is assumed.
         /** @type {number} */ var rowSize = deMath.deAlign32(readFormat.getPixelSize() * width, alignment);
@@ -888,7 +919,7 @@ define(['framework/common/tcuTexture', 'framework/common/tcuTextureUtil', 'frame
      * @param {number} srcBits
      * @return {number}
      */
-    var calculateU8ConversionError = function(srcBits) {
+    es3fFboTestUtil.calculateU8ConversionError = function(srcBits) {
         if (srcBits > 0) {
             /** @const @type {number} */ var clampedBits = deMath.clamp(srcBits, 0, 8);
             /** @const @type {number} */ var srcMaxValue = Math.max((1 << clampedBits) - 1, 1);
@@ -900,19 +931,6 @@ define(['framework/common/tcuTexture', 'framework/common/tcuTextureUtil', 'frame
             return 1;
     };
 
-    return {
-        getFormatName: getFormatName,
-        getFramebufferReadFormat: getFramebufferReadFormat,
-        FlatColorShader: FlatColorShader,
-        GradientShader: GradientShader,
-        Texture2DShader: Texture2DShader,
-        TextureCubeShader: TextureCubeShader,
-        Texture2DArrayShader: Texture2DArrayShader,
-        Texture3DShader: Texture3DShader,
-        DepthGradientShader: DepthGradientShader,
-        getFormatThreshold: getFormatThreshold,
-        getToSRGBConversionThreshold: getToSRGBConversionThreshold,
-        readPixels: readPixels
-    };
+    
 
 });

@@ -20,62 +20,74 @@
  * \file
  * \brief Reference renderer render state.
  *//*--------------------------------------------------------------------*/
-define(['framework/common/tcuTexture', 'framework/delibs/debase/deMath'
-	,'framework/referencerenderer/rrMultisamplePixelBufferAccess', 'framework/referencerenderer/rrDefs'], 
-	function(tcuTexture, deMath, rrMultisamplePixelBufferAccess, rrDefs) {
+'use strict';
+goog.provide('framework.referencerenderer.rrRenderState');
+goog.require('framework.common.tcuTexture');
+goog.require('framework.delibs.debase.deMath');
+goog.require('framework.referencerenderer.rrMultisamplePixelBufferAccess');
+goog.require('framework.referencerenderer.rrDefs');
+
+
+goog.scope(function() {
+
+var rrRenderState = framework.referencerenderer.rrRenderState;
+var tcuTexture = framework.common.tcuTexture;
+var deMath = framework.delibs.debase.deMath;
+var rrMultisamplePixelBufferAccess = framework.referencerenderer.rrMultisamplePixelBufferAccess;
+var rrDefs = framework.referencerenderer.rrDefs;
 
 /**
- * Enum for HorizontalFill values.
+ * Enum for rrRenderState.HorizontalFill values.
  * @enum {number}
  */
-var HorizontalFill =  {
+rrRenderState.HorizontalFill =  {
 	LEFT : 0,
 	RIGHT : 1
 };
 
 /**
- * Enum for VerticalFill values.
+ * Enum for rrRenderState.VerticalFill values.
  * @enum {number}
  */
-var VerticalFill = {
+rrRenderState.VerticalFill = {
 	TOP : 0,
 	BOTTOM : 1
 };
 
 /**
- * Enum for Winding values.
+ * Enum for rrRenderState.Winding values.
  * @enum {number}
  */
-var Winding = {
+rrRenderState.Winding = {
 	CCW : 0,
 	CC : 1
 };
 
 /**
- * Enum for CullMode values.
+ * Enum for rrRenderState.CullMode values.
  * @enum {number}
  */
-var CullMode = {
+rrRenderState.CullMode = {
 	NONE : 0,
 	BACK : 1,
 	FRONT : 2
 };
 
-/**Winding : Winding,
+/**rrRenderState.Winding : rrRenderState.Winding,
 
  * @constructor
  */
-var RasterizationState = function() {
-    /** @type {number} */ this.winding 		= Winding.CCW;        
-    /** @type {number} */ this.horizontalFill = HorizontalFill.LEFT;    
-    /** @type {number} */ this.verticalFill 	= VerticalFill.BOTTOM;
+rrRenderState.RasterizationState = function() {
+    /** @type {number} */ this.winding 		= rrRenderState.Winding.CCW;        
+    /** @type {number} */ this.horizontalFill = rrRenderState.HorizontalFill.LEFT;    
+    /** @type {number} */ this.verticalFill 	= rrRenderState.VerticalFill.BOTTOM;
 };
 
 /**
- * Enum for TestFunc values.
+ * Enum for rrRenderState.TestFunc values.
  * @enum {number}
  */
-var TestFunc = {
+rrRenderState.TestFunc = {
 	NEVER : 0,
 	ALWAYS : 1,
 	LESS : 2,
@@ -87,10 +99,10 @@ var TestFunc = {
 };
 
 /**
- * Enum for StencilOp values.
+ * Enum for rrRenderState.StencilOp values.
  * @enum {number}
  */
-var StencilOp = {
+rrRenderState.StencilOp = {
 	KEEP : 0,
 	ZERO : 1,
 	REPLACE : 2,
@@ -102,20 +114,20 @@ var StencilOp = {
 };
 
 /**
- * Enum for BlendMode values.
+ * Enum for rrRenderState.BlendMode values.
  * @enum {number}
  */
-var BlendMode = {
+rrRenderState.BlendMode = {
 	NONE : 0,		//!< No blending.
 	STANDARD : 1,	//!< Standard blending.
 	ADVANCED : 2		//!< Advanced blending mode, as defined in GL_KHR_blend_equation_advanced.
 };
 
 /**
- * Enum for BlendEquation values.
+ * Enum for rrRenderState.BlendEquation values.
  * @enum {number}
  */
-var BlendEquation = {
+rrRenderState.BlendEquation = {
 	ADD : 0,
 	SUBTRACT : 1,
 	REVERSE_SUBTRACT : 2,
@@ -124,10 +136,10 @@ var BlendEquation = {
 };
 
 /**
- * Enum for BlendEquationAdvanced values.
+ * Enum for rrRenderState.BlendEquationAdvanced values.
  * @enum {number}
  */
-var BlendEquationAdvanced = {
+rrRenderState.BlendEquationAdvanced = {
 	MULTIPLY : 0,
 	SCREEN : 1,
 	OVERLAY	: 2,
@@ -146,10 +158,10 @@ var BlendEquationAdvanced = {
 };
 
 /**
- * Enum for BlendFunc values.
+ * Enum for rrRenderState.BlendFunc values.
  * @enum {number}
  */
-var BlendFunc  = {
+rrRenderState.BlendFunc  = {
 	ZERO : 0,
 	ONE : 1,
 	SRC_COLOR : 2,
@@ -174,23 +186,23 @@ var BlendFunc  = {
 /**
  * @constructor
  */
-var StencilState = function() {
-	/** @type {number} */ this.func = TestFunc.ALWAYS;
+rrRenderState.StencilState = function() {
+	/** @type {number} */ this.func = rrRenderState.TestFunc.ALWAYS;
 	/** @type {number} */ this.ref = 0;
 	/** @type {number} */ this.compMask = ~0;
-	/** @type {number} */ this.sFail = StencilOp.KEEP;
-	/** @type {number} */ this.dpFail = StencilOp.KEEP;
-	/** @type {number} */ this.dpPass = StencilOp.KEEP;
+	/** @type {number} */ this.sFail = rrRenderState.StencilOp.KEEP;
+	/** @type {number} */ this.dpFail = rrRenderState.StencilOp.KEEP;
+	/** @type {number} */ this.dpPass = rrRenderState.StencilOp.KEEP;
 	/** @type {number} */ this.writeMask = ~0;
 };
 
 /**
  * @constructor
  */
-var BlendState = function() {
-	/** @type {number} */ this.equation = BlendEquation.ADD;
-	/** @type {number} */ this.srcFunc = BlendFunc.ONE;
-	/** @type {number} */ this.dstFunc = BlendFunc.ZERO;
+rrRenderState.BlendState = function() {
+	/** @type {number} */ this.equation = rrRenderState.BlendEquation.ADD;
+	/** @type {number} */ this.srcFunc = rrRenderState.BlendFunc.ONE;
+	/** @type {number} */ this.dstFunc = rrRenderState.BlendFunc.ZERO;
 };
 
 /**
@@ -200,7 +212,7 @@ var BlendState = function() {
  * @param {number} height_
  * @constructor
  */
-var WindowRectangle = function(left_, bottom_, width_, height_) {
+rrRenderState.WindowRectangle = function(left_, bottom_, width_, height_) {
 	this.left = left_;
 	this.bottom = bottom_;
 	this.width = width_;
@@ -210,25 +222,25 @@ var WindowRectangle = function(left_, bottom_, width_, height_) {
 /**
  * @constructor
  */
-var FragmentOperationState = function() {
+rrRenderState.FragmentOperationState = function() {
 	/** @type {boolean} */ this.scissorTestEnabled	= false;
-	/** @type {WindowRectangle} */ this.scissorRectangle = new WindowRectangle(0, 0, 1, 1);
+	/** @type {rrRenderState.WindowRectangle} */ this.scissorRectangle = new rrRenderState.WindowRectangle(0, 0, 1, 1);
 
 	/** @type {boolean} */ this.stencilTestEnabled	= false;
 
-	/** @type {StencilState} */ this.stencilStates = [];
+	/** @type {rrRenderState.StencilState} */ this.stencilStates = [];
     for (var type in rrDefs.FaceType)
-        this.stencilStates[rrDefs.FaceType[type]] = new StencilState();	
+        this.stencilStates[rrDefs.FaceType[type]] = new rrRenderState.StencilState();	
 
 	/** @type {boolean} */ this.depthTestEnabled = false;
-	/** @type {TestFunc} */ this.depthFunc = TestFunc.LESS;
+	/** @type {rrRenderState.TestFunc} */ this.depthFunc = rrRenderState.TestFunc.LESS;
 	/** @type {boolean} */ this.depthMask = true;
 
-	/** @type {BlendMode} */ this.blendMode = BlendMode.NONE;
-	/** @type {BlendState} */ this.blendRGBState = new BlendState();
-	/** @type {BlendState} */ this.blendAState = new BlendState();
+	/** @type {rrRenderState.BlendMode} */ this.blendMode = rrRenderState.BlendMode.NONE;
+	/** @type {rrRenderState.BlendState} */ this.blendRGBState = new rrRenderState.BlendState();
+	/** @type {rrRenderState.BlendState} */ this.blendAState = new rrRenderState.BlendState();
 	/** @type {Array.<number>} */ this.blendColor	= [0.0, 0.0, 0.0, 0.0];
-	/** @type {BlendEquationAdvanced} */ this.blendEquationAdvanced = null;
+	/** @type {rrRenderState.BlendEquationAdvanced} */ this.blendEquationAdvanced = null;
 
 	/** @type {boolean} */ this.sRGBEnabled = true;
 
@@ -246,29 +258,29 @@ var FragmentOperationState = function() {
 /**
  * @constructor
  */
-var PointState = function() {
+rrRenderState.PointState = function() {
 	/** @type {number} */ this.pointSize = 1.0;
 };
 
 /**
  * @constructor
  */
-var LineState = function() {
+rrRenderState.LineState = function() {
 	/** @type {number} */ this.lineWidth = 1.0;
 };
 
 /**
  * Constructor checks if the parameter has a "raw" member to detect if the instance is
- * of type WindowRectangle or MultisamplePixelBufferAccess.
- * @param {WindowRectangle|rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess} rect_
+ * of type rrRenderState.WindowRectangle or MultisamplePixelBufferAccess.
+ * @param {rrRenderState.WindowRectangle|rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess} rect_
  * @constructor
  */
-var ViewportState = function(rect_) {
+rrRenderState.ViewportState = function(rect_) {
 	/** @type {number} */ this.zn = 0.0;
 	/** @type {number} */ this.zf = 1.0;
 
 	if (rect_.raw) {
-		this.rect = new WindowRectangle(0,0, rect_.raw().getHeight(), 
+		this.rect = new rrRenderState.WindowRectangle(0,0, rect_.raw().getHeight(), 
 			rect_.raw().getDepth());
 	} else {
 		this.rect = rect_;
@@ -278,48 +290,27 @@ var ViewportState = function(rect_) {
 /**
  * @constructor
  */
-var RestartState = function() {
+rrRenderState.RestartState = function() {
 	/** @type {boolean} */ this.enabled = false;
 	/** @type {number} */ this.restartIndex = 0xFFFFFFFF;
 };
 
 /**
  * @constructor
- * @param {ViewportState} viewport_
+ * @param {rrRenderState.ViewportState} viewport_
  */
-var RenderState = function(viewport_) {
-	/** @type {CullMode} */ this.cullMode = CullMode.NONE;
+rrRenderState.RenderState = function(viewport_) {
+	/** @type {rrRenderState.CullMode} */ this.cullMode = rrRenderState.CullMode.NONE;
 	/** @type {number} */ this.provokingVertexConvention;
-	/** @type {ViewportState} */ this.viewport = viewport_;
+	/** @type {rrRenderState.ViewportState} */ this.viewport = viewport_;
 
-	/** @type {RasterizationState} */ this.rasterization = new RasterizationState();
-	/** @type {FragmentOperationState} */ this.fragOps = new FragmentOperationState();
-	/** @type {PointState} */ this.point = new PointState();
-	/** @type {LineState} */ this.line = new LineState();
-	/** @type {RestartState} */ this.restart = new RestartState();
+	/** @type {rrRenderState.RasterizationState} */ this.rasterization = new rrRenderState.RasterizationState();
+	/** @type {rrRenderState.FragmentOperationState} */ this.fragOps = new rrRenderState.FragmentOperationState();
+	/** @type {rrRenderState.PointState} */ this.point = new rrRenderState.PointState();
+	/** @type {rrRenderState.LineState} */ this.line = new rrRenderState.LineState();
+	/** @type {rrRenderState.RestartState} */ this.restart = new rrRenderState.RestartState();
 };
 
-return {
-	HorizontalFill : HorizontalFill,
-	VerticalFill : VerticalFill,
-	Winding : Winding,
-	CullMode : CullMode,
-	RasterizationState : RasterizationState,
-	TestFunc : TestFunc,
-	StencilOp : StencilOp,
-	BlendMode :BlendMode,
-	BlendEquation : BlendEquation,
-	BlendEquationAdvanced : BlendEquationAdvanced,
-	BlendFunc : BlendFunc,
-	StencilState : StencilState,
-	BlendState : BlendState,
-	WindowRectangle : WindowRectangle,
-	FragmentOperationState : FragmentOperationState,
-	PointState : PointState,
-	LineState : LineState,
-	ViewportState : ViewportState,
-	RestartState : RestartState,
-	RenderState: RenderState
-};
+
 
 });

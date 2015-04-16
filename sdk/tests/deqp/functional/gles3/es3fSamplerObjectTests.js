@@ -18,12 +18,22 @@
  *
  */
 
-define(['framework/common/tcuTestCase', 'modules/shared/glsSamplerObjectTest'], function(tcuTestCase, glsSamplerObjectTest) {
-    'use strict';
+'use strict';
+goog.provide('functional.gles3.es3fSamplerObjectTests');
+goog.require('framework.common.tcuTestCase');
+goog.require('modules.shared.glsSamplerObjectTest');
+
+
+goog.scope(function() {
+
+var es3fSamplerObjectTests = functional.gles3.es3fSamplerObjectTests;
+var tcuTestCase = framework.common.tcuTestCase;
+var glsSamplerObjectTest = modules.shared.glsSamplerObjectTest;
+    
     /** @type {WebGL2RenderingContext} */ var gl;
 
     // TODO: implement glsSamplerObjectTest and validate constructors
-    var init = function() {
+    es3fSamplerObjectTests.init = function() {
         var testGroup = tcuTestCase.runner.getState().testCases;
         /** @type {glsSamplerObjectTest.TestSpec} */ var simpleTestCases = [
             new glsSamplerObjectTest.TestSpec('diff_wrap_t', 'Different gl.TEXTURE_WRAP_T', gl.TEXTURE_2D,
@@ -276,7 +286,7 @@ define(['framework/common/tcuTestCase', 'modules/shared/glsSamplerObjectTest'], 
     };
 
 
-    var run = function(context) {
+    es3fSamplerObjectTests.run = function(context) {
         gl = context;
         //Set up Test Root parameters
         var testName = 'sampler_object';
@@ -292,18 +302,16 @@ define(['framework/common/tcuTestCase', 'modules/shared/glsSamplerObjectTest'], 
 
         try {
             //Create test cases
-            init();
+            es3fSamplerObjectTests.init();
             //Run test cases
             tcuTestCase.runTestCases();
         }
         catch (err) {
-            testFailedOptions('Failed to run tests', false);
+            testFailedOptions('Failed to es3fSamplerObjectTests.run tests', false);
             tcuTestCase.runner.terminate();
         }
     };
 
 
-    return {
-        run: run
-    };
+    
 });

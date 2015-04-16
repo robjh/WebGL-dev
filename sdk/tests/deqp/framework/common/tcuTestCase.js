@@ -22,16 +22,22 @@
  * This class allows one to create a hierarchy of tests and iterate over them.
  * It replaces TestCase and TestCaseGroup classes.
  */
-define(function() {
 'use strict';
+goog.provide('framework.common.tcuTestCase');
+
+
+goog.scope(function() {
+
+var tcuTestCase = framework.common.tcuTestCase;
+
 
 /**
  * A simple state machine.
  * The purpose of this this object is to break
  * long tests into small chunks that won't cause a timeout
  */
-var runner = (function() {
-'use strict';
+tcuTestCase.runner = (function() {
+
 
 /**
  * Indicates the state of an iteration operation.
@@ -43,7 +49,7 @@ var IterateResult = {
 
 /**
  * A general purpose bucket for string current execution state
- * runner doesn't modify this container.
+ * tcuTestCase.runner doesn't modify this container.
  */
 var state = {};
 
@@ -87,7 +93,7 @@ return {
  * @param {string} description
  * @param {string} spec
  */
-var DeqpTest = function(name, description, spec) {
+tcuTestCase.DeqpTest = function(name, description, spec) {
     this.name = name;
     this.description = description;
     this.spec = spec;
@@ -95,9 +101,9 @@ var DeqpTest = function(name, description, spec) {
     this.parentTest = null;
 };
 
-/** @type {runner.IterateResult} static property */ DeqpTest.lastResult = runner.IterateResult.STOP;
+/** @type {tcuTestCase.runner.IterateResult} static property */ tcuTestCase.DeqpTest.lastResult = tcuTestCase.runner.IterateResult.STOP;
 
- DeqpTest.prototype.addChild = function(test) {
+ tcuTestCase.DeqpTest.prototype.addChild = function(test) {
     test.parentTest = this;
 
     if (!this.spec)
@@ -119,7 +125,7 @@ var DeqpTest = function(name, description, spec) {
  * @param {string} pattern Optional pattern to search for
  * @return {Object} Test specification
  */
- DeqpTest.prototype.next = function(pattern) {
+ tcuTestCase.DeqpTest.prototype.next = function(pattern) {
     if (pattern)
         return this.find(pattern);
 
@@ -145,7 +151,7 @@ var DeqpTest = function(name, description, spec) {
  *
  * @return {string} Full test name.
  */
-DeqpTest.prototype.fullName = function() {
+tcuTestCase.DeqpTest.prototype.fullName = function() {
     if (this.parentTest)
         var parentName = this.parentTest.fullName();
         if (parentName)
@@ -158,7 +164,7 @@ DeqpTest.prototype.fullName = function() {
  *
  * @return {string} Test description.
  */
-DeqpTest.prototype.getDescription = function() {
+tcuTestCase.DeqpTest.prototype.getDescription = function() {
     return this.description;
 };
 
@@ -169,7 +175,7 @@ DeqpTest.prototype.getDescription = function() {
  * @param {string} pattern Regular expression to search for
  * @return {Object} Found test or null.
  */
-DeqpTest.prototype.find = function(pattern) {
+tcuTestCase.DeqpTest.prototype.find = function(pattern) {
     var test = null;
     while (true) {
         test = this.next();
@@ -184,7 +190,7 @@ DeqpTest.prototype.find = function(pattern) {
 /**
  * Reset the iterator.
  */
- DeqpTest.prototype.reset = function() {
+ tcuTestCase.DeqpTest.prototype.reset = function() {
     this.currentTest = 0;
 
     if (this.spec && this.spec.length)
@@ -198,12 +204,12 @@ DeqpTest.prototype.find = function(pattern) {
  *
  * @param {string} name Short test name
  * @param {string} description Description of the test
- * @param {(Array.<DeqpTest>|Object)} spec Test specification or an array of DeqpTests
+ * @param {(Array.<tcuTestCase.DeqpTest>|Object)} spec Test specification or an array of DeqpTests
  *
- * @return {DeqpTest} The new test
+ * @return {tcuTestCase.DeqpTest} The new test
  */
-var newTest = function(name, description, spec) {
-    var test = new DeqpTest(name, description, spec);
+tcuTestCase.newTest = function(name, description, spec) {
+    var test = new tcuTestCase.DeqpTest(name, description, spec);
 
     if (spec && spec.length) {
         for (var i = 0; i < spec.length; i++)
@@ -216,7 +222,7 @@ var newTest = function(name, description, spec) {
 /**
  * Reads the filter parameter from the URL to filter tests.
  */
-var getFilter = function() {
+tcuTestCase.getFilter = function() {
     var queryVars = window.location.search.substring(1).split('&');
 
     for (var i = 0; i < queryVars.length; i++) {
@@ -230,13 +236,13 @@ var getFilter = function() {
 /**
  * Run through the test cases giving time to system operation.
  */
-var runTestCases = function() {
-    var state = runner.getState();
+tcuTestCase.runTestCases = function() {
+    var state = tcuTestCase.runner.getState();
     if (state.filter === undefined)
-        state.filter = getFilter();
+        state.filter = tcuTestCase.getFilter();
 
     //Should we proceed with the next test?
-    if (DeqpTest.lastResult == runner.IterateResult.STOP) {
+    if (tcuTestCase.DeqpTest.lastResult == tcuTestCase.runner.IterateResult.STOP) {
         //If current test not defined, let's start with the root test.
         state.currentTest = state.currentTest ?
             state.currentTest.next(state.filter) :
@@ -247,7 +253,7 @@ var runTestCases = function() {
         try
         {
             //If proceeding with the next test, prepare it.
-            if (DeqpTest.lastResult == runner.IterateResult.STOP)
+            if (tcuTestCase.DeqpTest.lastResult == tcuTestCase.runner.IterateResult.STOP)
             {
                 //Update current test name
                 var fullTestName = state.currentTest.fullName();
@@ -267,12 +273,12 @@ var runTestCases = function() {
             if (state.currentTest.iterate !== undefined)
             {
                 debug('Start testcase: ' + fullTestName);
-                DeqpTest.lastResult = state.currentTest.iterate();
+                tcuTestCase.DeqpTest.lastResult = state.currentTest.iterate();
             }
             else if (state.currentTest.spec !== undefined && state.currentTest.spec.iterate !== undefined)
             {
                 debug('Start testcase: ' + fullTestName);
-                DeqpTest.lastResult = state.currentTest.spec.iterate();
+                tcuTestCase.DeqpTest.lastResult = state.currentTest.spec.iterate();
             }
         }
         catch (err)
@@ -283,17 +289,12 @@ var runTestCases = function() {
             bufferedLogToConsole(err);
         }
 
-        runner.runCallback(runTestCases);
+        tcuTestCase.runner.runCallback(tcuTestCase.runTestCases);
 
     } else
-        runner.terminate();
+        tcuTestCase.runner.terminate();
 };
 
-return {
-    DeqpTest: DeqpTest,
-    runner: runner,
-    newTest: newTest,
-    runTestCases: runTestCases
-};
+
 
 });

@@ -17,22 +17,28 @@
  * limitations under the License.
  *
  */
-define([
-    'functional/gles3/es3fFboTestCase',
-    'functional/gles3/es3fFboTestUtil',
-    'framework/common/tcuTestCase',
-    'framework/common/tcuSurface',
-    'framework/common/tcuTexture',
-    'framework/opengl/gluShaderUtil',
-    'framework/opengl/gluTextureUtil'], function(
-        fboTestCase,
-        fboTestUtil,
-        tcuTestCase,
-        tcuSurface,
-        tcuTexture,
-        gluShaderUtil,
-        gluTextureUtil) {
-    'use strict';
+'use strict';
+goog.provide('functional.gles3.es3fFboStencilbufferTests');
+goog.require('functional.gles3.es3fFboTestCase');
+goog.require('functional.gles3.es3fFboTestUtil');
+goog.require('framework.common.tcuTestCase');
+goog.require('framework.common.tcuSurface');
+goog.require('framework.common.tcuTexture');
+goog.require('framework.opengl.gluShaderUtil');
+goog.require('framework.opengl.gluTextureUtil');
+
+
+goog.scope(function() {
+
+var es3fFboStencilbufferTests = functional.gles3.es3fFboStencilbufferTests;
+var es3fFboTestCase = functional.gles3.es3fFboTestCase;
+var es3fFboTestUtil = functional.gles3.es3fFboTestUtil;
+var tcuTestCase = framework.common.tcuTestCase;
+var tcuSurface = framework.common.tcuSurface;
+var tcuTexture = framework.common.tcuTexture;
+var gluShaderUtil = framework.opengl.gluShaderUtil;
+var gluTextureUtil = framework.opengl.gluTextureUtil;
+    
 
     /**
      * @constructor
@@ -42,24 +48,24 @@ define([
      * @param {Array<number>} size
      * @param {boolean} useDepth
      */
-    var BasicFboStencilCase = function(name, desc, format, size, useDepth) {
+    es3fFboStencilbufferTests.BasicFboStencilCase = function(name, desc, format, size, useDepth) {
         fboTestCase.FboTestCase.call(this, name, desc);
         /** @type {number} */ this.m_format = format;
         /** @type {Array<number>} */ this.m_size = size;
         /** @type {boolean} */ this.m_useDepth = useDepth;
     };
 
-    BasicFboStencilCase.prototype = Object.create(fboTestCase.FboTestCase.prototype);
-    BasicFboStencilCase.prototype.constructor = BasicFboStencilCase;
+    es3fFboStencilbufferTests.BasicFboStencilCase.prototype = Object.create(fboTestCase.FboTestCase.prototype);
+    es3fFboStencilbufferTests.BasicFboStencilCase.prototype.constructor = es3fFboStencilbufferTests.BasicFboStencilCase;
 
-    BasicFboStencilCase.prototype.preCheck = function() {
+    es3fFboStencilbufferTests.BasicFboStencilCase.prototype.preCheck = function() {
         this.checkFormatSupport(this.m_format);
     };
 
     /**
      * @param {tcuSurface.Surface} dst
      */
-    BasicFboStencilCase.prototype.render = function(dst) {
+    es3fFboStencilbufferTests.BasicFboStencilCase.prototype.render = function(dst) {
         /** @const {number} */ var colorFormat = fl.RGBA8;
 
         /** @type {fboTestUtil.GradientShader} */ var gradShader = new fboTestUtil.GradientShader(gluShaderUtil.DataType.FLOAT_VEC4);
@@ -139,7 +145,7 @@ define([
      * @param {number} attachDepth
      * @param {number} useDepth
      */
-    var DepthStencilAttachCase = function(name, desc, attachDepth, attachStencil) {
+    es3fFboStencilbufferTests.DepthStencilAttachCase = function(name, desc, attachDepth, attachStencil) {
         fboTestCase.FboTestCase.call(this, name, desc);
         /** @type {number} */ this.m_attachDepth = attachDepth;
         /** @type {number} */ this.m_attachStencil = attachStencil;
@@ -148,13 +154,13 @@ define([
         DE_ASSERT(this.m_attachDepth != gl.DEPTH_STENCIL || this.m_attachStencil == gl.NONE);
     };
 
-    DepthStencilAttachCase.prototype = Object.create(fboTestCase.FboTestCase.prototype);
-    DepthStencilAttachCase.prototype.constructor = DepthStencilAttachCase;
+    es3fFboStencilbufferTests.DepthStencilAttachCase.prototype = Object.create(fboTestCase.FboTestCase.prototype);
+    es3fFboStencilbufferTests.DepthStencilAttachCase.prototype.constructor = es3fFboStencilbufferTests.DepthStencilAttachCase;
 
     /**
      * @param {tcuSurface.Surface} dst
      */
-    DepthStencilAttachCase.prototype.render = function(dst) {
+    es3fFboStencilbufferTests.DepthStencilAttachCase.prototype.render = function(dst) {
         /** @const {number} */ var colorFormat = gl.RGBA8;
         /** @const {number} */ var depthStencilFormat = gl.DEPTH24_STENCIL8;
         /** @const {number} */ var width = 128;
@@ -237,14 +243,14 @@ define([
     /**
      * @constructor
      */
-    var FboStencilTests = function() {
+    es3fFboStencilbufferTests.FboStencilTests = function() {
         tcuTestCase.DeqpTest.call(this, 'stencil', 'FBO Stencilbuffer tests');
     };
 
-    FboStencilTests.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
-    FboStencilTests.prototype.constructor = FboStencilTests;
+    es3fFboStencilbufferTests.FboStencilTests.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
+    es3fFboStencilbufferTests.FboStencilTests.prototype.constructor = es3fFboStencilbufferTests.FboStencilTests;
 
-    FboStencilTests.prototype.init = function() {
+    es3fFboStencilbufferTests.FboStencilTests.prototype.init = function() {
         /** @const {Array<number>} */ var stencilFormats = [
             gl.DEPTH32F_STENCIL8,
             gl.DEPTH24_STENCIL8,
@@ -260,10 +266,10 @@ define([
             /** @type {number} */ var format = stencilFormats[fmtNdx];
             /** @type {tcuTexture.TextureFormat} */ var texFmt = gluTextureUtil.mapGLInternalFormat(format);
 
-            basicGroup.addChild(new BasicFboStencilCase(fboTestUtil.getFormatName(format), '', format, [111, 132], false));
+            basicGroup.addChild(new es3fFboStencilbufferTests.BasicFboStencilCase(fboTestUtil.getFormatName(format), '', format, [111, 132], false));
 
             if (texFmt.order == tcuTexture.ChannelOrder.DS)
-                basicGroup.addChild(new BasicFboStencilCase(fboTestUtil.getFormatName(format) + '_depth'), '', format, [111, 132], true);
+                basicGroup.addChild(new es3fFboStencilbufferTests.BasicFboStencilCase(fboTestUtil.getFormatName(format) + '_depth'), '', format, [111, 132], true);
         }
 
         // .attach
@@ -271,18 +277,18 @@ define([
         var attachGroup = new tcuTestCase.newTest('attach', 'Attaching depth stencil');
         testGroup.addChild(attachGroup);
 
-        attachGroup.addChild(new DepthStencilAttachCase('depth_only', 'Only depth part of depth-stencil RBO attached', GL_DEPTH_ATTACHMENT, GL_NONE));
-        attachGroup.addChild(new DepthStencilAttachCase('stencil_only', 'Only stencil part of depth-stencil RBO attached', GL_NONE, GL_STENCIL_ATTACHMENT));
-        attachGroup.addChild(new DepthStencilAttachCase('depth_stencil_separate', 'Depth and stencil attached separately', GL_DEPTH_ATTACHMENT, GL_STENCIL_ATTACHMENT));
-        attachGroup.addChild(new DepthStencilAttachCase('depth_stencil_attachment', 'Depth and stencil attached with DEPTH_STENCIL_ATTACHMENT', GL_DEPTH_STENCIL_ATTACHMENT, GL_NONE));
+        attachGroup.addChild(new es3fFboStencilbufferTests.DepthStencilAttachCase('depth_only', 'Only depth part of depth-stencil RBO attached', GL_DEPTH_ATTACHMENT, GL_NONE));
+        attachGroup.addChild(new es3fFboStencilbufferTests.DepthStencilAttachCase('stencil_only', 'Only stencil part of depth-stencil RBO attached', GL_NONE, GL_STENCIL_ATTACHMENT));
+        attachGroup.addChild(new es3fFboStencilbufferTests.DepthStencilAttachCase('depth_stencil_separate', 'Depth and stencil attached separately', GL_DEPTH_ATTACHMENT, GL_STENCIL_ATTACHMENT));
+        attachGroup.addChild(new es3fFboStencilbufferTests.DepthStencilAttachCase('depth_stencil_attachment', 'Depth and stencil attached with DEPTH_STENCIL_ATTACHMENT', GL_DEPTH_STENCIL_ATTACHMENT, GL_NONE));
     };
 
-    var run = function(context) {
+    es3fFboStencilbufferTests.run = function(context) {
         gl = context;
         //Set up root Test
         var state = tcuTestCase.runner.getState();
 
-        var test = new FboStencilTests();
+        var test = new es3fFboStencilbufferTests.FboStencilTests();
         var testName = test.fullName();
         var testDescription = test.getDescription();
         state.testCases = test;
@@ -299,12 +305,10 @@ define([
             tcuTestCase.runTestCases();
         }
         catch (err) {
-            testFailedOptions('Failed to run tests', false);
+            testFailedOptions('Failed to es3fFboStencilbufferTests.run tests', false);
             tcuTestCase.runner.terminate();
         }
     };
 
-    return {
-        FboStencilTests: FboStencilTests
-    };
+    
 });

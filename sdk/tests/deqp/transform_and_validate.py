@@ -13,7 +13,7 @@ namespaceAlias = ''
 results = ''
 
 # Out directory for transformation
-outDirectory = '/home/malo/projects/webgl-tests/WebGL-dev-TESTS/WebGL-dev/sdk/tests/deqp'
+outDirectory = '/home/malo/projects/webgl-tests/ms3/WebGL-dev/sdk/tests/deqp'
 inDirectory  = '/home/malo/projects/webgl-tests/WebGL-dev/sdk/tests/deqp'
 
 # ---------------------------------------------------------------------------------------#
@@ -47,7 +47,8 @@ def buildClosureHeader (filepath, dependencies):
 	global provideFullNamespace 
 	global namespaceAlias 
 
-	header = 'goog.provide(\'' + provideFullNamespace + '\');\n'
+	header = '\'use strict\';\n'
+	header += 'goog.provide(\'' + provideFullNamespace + '\');\n'
 
 	for dep in dependencies:
 		if dep:
@@ -66,6 +67,11 @@ def buildClosureHeader (filepath, dependencies):
 # Finds the old header and replaces it with the new format build in the method
 # buildClosureHeader
 def replaceHeader (filepath, fileContentsUpdated, dependencies) :
+
+	# Replace 'use strict' string from file
+	fileContentsUpdated = re.sub('\'use strict\';', '', fileContentsUpdated)
+
+	# Replace define header from requirejs
 	searchObj = re.search(r'define[^{]*\{', fileContentsUpdated)
 	header = buildClosureHeader (filepath, dependencies)
 	fileContentsUpdated = fileContentsUpdated.replace(searchObj.group(), header)

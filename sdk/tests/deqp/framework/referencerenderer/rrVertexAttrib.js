@@ -18,18 +18,21 @@
  *
  */
 
-define([
-    'framework/delibs/debase/deMath',
-    'framework/common/tcuFloat',
-    'framework/referencerenderer/rrGenericVector'
-    ],
-    function(
-        deMath,
-        tcuFloat,
-        rrGenericVector
-    ) {
+'use strict';
+goog.provide('framework.referencerenderer.rrVertexAttrib');
+goog.require('framework.delibs.debase.deMath');
+goog.require('framework.common.tcuFloat');
+goog.require('framework.referencerenderer.rrGenericVector');
 
-    var DE_NULL = null;
+
+goog.scope(function() {
+
+var rrVertexAttrib = framework.referencerenderer.rrVertexAttrib;
+var deMath = framework.delibs.debase.deMath;
+var tcuFloat = framework.common.tcuFloat;
+var rrGenericVector = framework.referencerenderer.rrGenericVector;
+
+    rrVertexAttrib.DE_NULL = null;
 
     var DE_ASSERT = function(x) {
         if (!x)
@@ -37,10 +40,10 @@ define([
     };
 
     /**
-     * NormalOrder
+     * rrVertexAttrib.NormalOrder
      * @enum
      */
-    var NormalOrder = {
+    rrVertexAttrib.NormalOrder = {
         T0: 0,
         T1: 1,
         T2: 2,
@@ -48,10 +51,10 @@ define([
     };
 
     /**
-     * BGRAOrder
+     * rrVertexAttrib.BGRAOrder
      * @enum
      */
-    var BGRAOrder = {
+    rrVertexAttrib.BGRAOrder = {
         T0: 2,
         T1: 1,
         T2: 0,
@@ -59,17 +62,17 @@ define([
     };
 
     /**
-     * VertexAttribType enum
+     * rrVertexAttrib.VertexAttribType enum
      * @enum
      */
-    var VertexAttribType = {
-        // Can only be read as floats
+    rrVertexAttrib.VertexAttribType = {
+        // Can only be rrVertexAttrib.read as floats
         FLOAT: 0,
         HALF: 1,
         FIXED: 2,
         DOUBLE: 3,
 
-        // Can only be read as floats, will be normalized
+        // Can only be rrVertexAttrib.read as floats, will be normalized
         NONPURE_UNORM8: 4,
         NONPURE_UNORM16: 5,
         NONPURE_UNORM32: 6,
@@ -87,7 +90,7 @@ define([
         NONPURE_SNORM32_SCALE: 14,
         NONPURE_SNORM_2_10_10_10_REV_SCALE: 15,    //!< Packed format, only size = 4 is allowed
 
-        // can only be read as float, will not be normalized
+        // can only be rrVertexAttrib.read as float, will not be normalized
         NONPURE_UINT8: 16,
         NONPURE_UINT16: 17,
         NONPURE_UINT32: 18,
@@ -99,7 +102,7 @@ define([
         NONPURE_UINT_2_10_10_10_REV: 22,   //!< Packed format, only size = 4 is allowed
         NONPURE_INT_2_10_10_10_REV: 23,    //!< Packed format, only size = 4 is allowed
 
-        // can only be read as integers
+        // can only be rrVertexAttrib.read as integers
         PURE_UINT8: 24,
         PURE_UINT16: 25,
         PURE_UINT32: 26,
@@ -114,95 +117,95 @@ define([
         NONPURE_SNORM_2_10_10_10_REV_CLAMP_BGRA: 32,
         NONPURE_SNORM_2_10_10_10_REV_SCALE_BGRA: 33,
 
-        // can be read as anything
+        // can be rrVertexAttrib.read as anything
         DONT_CARE: 34                 //!< Do not enforce type checking when reading GENERIC attribute. Used for current client side attributes.
     };
 
     /**
-     * VertexAttrib class
+     * rrVertexAttrib.VertexAttrib class
      * @constructor
      */
-    var VertexAttrib = function() {
-        /** @type {VertexAttribType} */ this.type = VertexAttribType.FLOAT;
+    rrVertexAttrib.VertexAttrib = function() {
+        /** @type {rrVertexAttrib.VertexAttribType} */ this.type = rrVertexAttrib.VertexAttribType.FLOAT;
         /** @type {number} */ this.size = 0;
         /** @type {number} */ this.stride = 0;
         /** @type {number} */ this.instanceDivisor = 0;
-        /** @type {ArrayBuffer} */ this.pointer = DE_NULL;
+        /** @type {ArrayBuffer} */ this.pointer = rrVertexAttrib.DE_NULL;
         /** @type {Array.<number>} */ this.generic; //!< Generic attribute, used if pointer is null.
     };
 
     /**
-     * @param {VertexAttribType} type
+     * @param {rrVertexAttrib.VertexAttribType} type
      * @return {number}
      */
-    var getComponentSize = function(type) {
+    rrVertexAttrib.getComponentSize = function(type) {
         switch (type)
         {
-            case VertexAttribType.FLOAT: return 4;
-            case VertexAttribType.HALF: return 2;
-            case VertexAttribType.FIXED: return 4;
-            case VertexAttribType.DOUBLE: return 8; //sizeof(double);
-            case VertexAttribType.NONPURE_UNORM8: return 1;
-            case VertexAttribType.NONPURE_UNORM16: return 2;
-            case VertexAttribType.NONPURE_UNORM32: return 4;
-            case VertexAttribType.NONPURE_UNORM_2_10_10_10_REV: return 1; //sizeof(deUint32)/4;
-            case VertexAttribType.NONPURE_SNORM8_CLAMP: return 1;
-            case VertexAttribType.NONPURE_SNORM16_CLAMP: return 2;
-            case VertexAttribType.NONPURE_SNORM32_CLAMP: return 4;
-            case VertexAttribType.NONPURE_SNORM_2_10_10_10_REV_CLAMP: return 1; //sizeof(deUint32)/4;
-            case VertexAttribType.NONPURE_SNORM8_SCALE: return 1;
-            case VertexAttribType.NONPURE_SNORM16_SCALE: return 2;
-            case VertexAttribType.NONPURE_SNORM32_SCALE: return 4;
-            case VertexAttribType.NONPURE_SNORM_2_10_10_10_REV_SCALE: return 1; //sizeof(deUint32)/4;
-            case VertexAttribType.NONPURE_UINT8: return 1;
-            case VertexAttribType.NONPURE_UINT16: return 2;
-            case VertexAttribType.NONPURE_UINT32: return 4;
-            case VertexAttribType.NONPURE_INT8: return 1;
-            case VertexAttribType.NONPURE_INT16: return 2;
-            case VertexAttribType.NONPURE_INT32: return 4;
-            case VertexAttribType.NONPURE_UINT_2_10_10_10_REV: return 1; //sizeof(deUint32)/4;
-            case VertexAttribType.NONPURE_INT_2_10_10_10_REV: return 1; //sizeof(deUint32)/4;
-            case VertexAttribType.PURE_UINT8: return 1;
-            case VertexAttribType.PURE_UINT16: return 2;
-            case VertexAttribType.PURE_UINT32: return 4;
-            case VertexAttribType.PURE_INT8: return 1;
-            case VertexAttribType.PURE_INT16: return 2;
-            case VertexAttribType.PURE_INT32: return 4;
-            case VertexAttribType.NONPURE_UNORM8_BGRA: return 1;
-            case VertexAttribType.NONPURE_UNORM_2_10_10_10_REV_BGRA: return 1; //sizeof(deUint32)/4;
-            case VertexAttribType.NONPURE_SNORM_2_10_10_10_REV_CLAMP_BGRA: return 1; //sizeof(deUint32)/4;
-            case VertexAttribType.NONPURE_SNORM_2_10_10_10_REV_SCALE_BGRA: return 1; //sizeof(deUint32)/4;
+            case rrVertexAttrib.VertexAttribType.FLOAT: return 4;
+            case rrVertexAttrib.VertexAttribType.HALF: return 2;
+            case rrVertexAttrib.VertexAttribType.FIXED: return 4;
+            case rrVertexAttrib.VertexAttribType.DOUBLE: return 8; //sizeof(double);
+            case rrVertexAttrib.VertexAttribType.NONPURE_UNORM8: return 1;
+            case rrVertexAttrib.VertexAttribType.NONPURE_UNORM16: return 2;
+            case rrVertexAttrib.VertexAttribType.NONPURE_UNORM32: return 4;
+            case rrVertexAttrib.VertexAttribType.NONPURE_UNORM_2_10_10_10_REV: return 1; //sizeof(deUint32)/4;
+            case rrVertexAttrib.VertexAttribType.NONPURE_SNORM8_CLAMP: return 1;
+            case rrVertexAttrib.VertexAttribType.NONPURE_SNORM16_CLAMP: return 2;
+            case rrVertexAttrib.VertexAttribType.NONPURE_SNORM32_CLAMP: return 4;
+            case rrVertexAttrib.VertexAttribType.NONPURE_SNORM_2_10_10_10_REV_CLAMP: return 1; //sizeof(deUint32)/4;
+            case rrVertexAttrib.VertexAttribType.NONPURE_SNORM8_SCALE: return 1;
+            case rrVertexAttrib.VertexAttribType.NONPURE_SNORM16_SCALE: return 2;
+            case rrVertexAttrib.VertexAttribType.NONPURE_SNORM32_SCALE: return 4;
+            case rrVertexAttrib.VertexAttribType.NONPURE_SNORM_2_10_10_10_REV_SCALE: return 1; //sizeof(deUint32)/4;
+            case rrVertexAttrib.VertexAttribType.NONPURE_UINT8: return 1;
+            case rrVertexAttrib.VertexAttribType.NONPURE_UINT16: return 2;
+            case rrVertexAttrib.VertexAttribType.NONPURE_UINT32: return 4;
+            case rrVertexAttrib.VertexAttribType.NONPURE_INT8: return 1;
+            case rrVertexAttrib.VertexAttribType.NONPURE_INT16: return 2;
+            case rrVertexAttrib.VertexAttribType.NONPURE_INT32: return 4;
+            case rrVertexAttrib.VertexAttribType.NONPURE_UINT_2_10_10_10_REV: return 1; //sizeof(deUint32)/4;
+            case rrVertexAttrib.VertexAttribType.NONPURE_INT_2_10_10_10_REV: return 1; //sizeof(deUint32)/4;
+            case rrVertexAttrib.VertexAttribType.PURE_UINT8: return 1;
+            case rrVertexAttrib.VertexAttribType.PURE_UINT16: return 2;
+            case rrVertexAttrib.VertexAttribType.PURE_UINT32: return 4;
+            case rrVertexAttrib.VertexAttribType.PURE_INT8: return 1;
+            case rrVertexAttrib.VertexAttribType.PURE_INT16: return 2;
+            case rrVertexAttrib.VertexAttribType.PURE_INT32: return 4;
+            case rrVertexAttrib.VertexAttribType.NONPURE_UNORM8_BGRA: return 1;
+            case rrVertexAttrib.VertexAttribType.NONPURE_UNORM_2_10_10_10_REV_BGRA: return 1; //sizeof(deUint32)/4;
+            case rrVertexAttrib.VertexAttribType.NONPURE_SNORM_2_10_10_10_REV_CLAMP_BGRA: return 1; //sizeof(deUint32)/4;
+            case rrVertexAttrib.VertexAttribType.NONPURE_SNORM_2_10_10_10_REV_SCALE_BGRA: return 1; //sizeof(deUint32)/4;
             default:
-                throw new Error('getComponentSize - Invalid type');
+                throw new Error('rrVertexAttrib.getComponentSize - Invalid type');
                 return 0;
         }
     };
 
     /**
-     * isValidVertexAttrib function
-     * @param {VertexAttrib} vertexAttrib
+     * rrVertexAttrib.isValidVertexAttrib function
+     * @param {rrVertexAttrib.VertexAttrib} vertexAttrib
      * @return {boolean}
      */
-    var isValidVertexAttrib = function(vertexAttrib) {
+    rrVertexAttrib.isValidVertexAttrib = function(vertexAttrib) {
         // Trivial range checks.
-        if (!deMath.deInBounds32(vertexAttrib.type, 0, Object.keys(VertexAttribType).length) ||
+        if (!deMath.deInBounds32(vertexAttrib.type, 0, Object.keys(rrVertexAttrib.VertexAttribType).length) ||
             !deMath.deInRange32(vertexAttrib.size, 0, 4) ||
             vertexAttrib.instanceDivisor < 0)
             return false;
 
         // Generic attributes
-        if (!vertexAttrib.pointer && vertexAttrib.type != VertexAttribType.DONT_CARE)
+        if (!vertexAttrib.pointer && vertexAttrib.type != rrVertexAttrib.VertexAttribType.DONT_CARE)
             return false;
 
         // Packed formats
-        if ((vertexAttrib.type == VertexAttribType.NONPURE_INT_2_10_10_10_REV ||
-            vertexAttrib.type == VertexAttribType.NONPURE_UINT_2_10_10_10_REV ||
-            vertexAttrib.type == VertexAttribType.NONPURE_UNORM_2_10_10_10_REV ||
-            vertexAttrib.type == VertexAttribType.NONPURE_SNORM_2_10_10_10_REV_CLAMP ||
-            vertexAttrib.type == VertexAttribType.NONPURE_SNORM_2_10_10_10_REV_SCALE ||
-            vertexAttrib.type == VertexAttribType.NONPURE_UNORM_2_10_10_10_REV_BGRA ||
-            vertexAttrib.type == VertexAttribType.NONPURE_SNORM_2_10_10_10_REV_CLAMP_BGRA ||
-            vertexAttrib.type == VertexAttribType.NONPURE_SNORM_2_10_10_10_REV_SCALE_BGRA) &&
+        if ((vertexAttrib.type == rrVertexAttrib.VertexAttribType.NONPURE_INT_2_10_10_10_REV ||
+            vertexAttrib.type == rrVertexAttrib.VertexAttribType.NONPURE_UINT_2_10_10_10_REV ||
+            vertexAttrib.type == rrVertexAttrib.VertexAttribType.NONPURE_UNORM_2_10_10_10_REV ||
+            vertexAttrib.type == rrVertexAttrib.VertexAttribType.NONPURE_SNORM_2_10_10_10_REV_CLAMP ||
+            vertexAttrib.type == rrVertexAttrib.VertexAttribType.NONPURE_SNORM_2_10_10_10_REV_SCALE ||
+            vertexAttrib.type == rrVertexAttrib.VertexAttribType.NONPURE_UNORM_2_10_10_10_REV_BGRA ||
+            vertexAttrib.type == rrVertexAttrib.VertexAttribType.NONPURE_SNORM_2_10_10_10_REV_CLAMP_BGRA ||
+            vertexAttrib.type == rrVertexAttrib.VertexAttribType.NONPURE_SNORM_2_10_10_10_REV_SCALE_BGRA) &&
             vertexAttrib.size != 4)
             return false;
 
@@ -210,21 +213,21 @@ define([
     };
 
     /**
-     * readVertexAttrib function
-     * @param {VertexAttrib} vertexAttrib
+     * rrVertexAttrib.readVertexAttrib function
+     * @param {rrVertexAttrib.VertexAttrib} vertexAttrib
      * @param {number} instanceNdx
      * @param {number} vertexNdx
      * @param {rrGenericVector.GenericVecType} genericType
      * @return {TypedArray}
      */
-    var readVertexAttrib = function(vertexAttrib, instanceNdx, vertexNdx, genericType) {
-        DE_ASSERT(isValidVertexAttrib(vertexAttrib));
+    rrVertexAttrib.readVertexAttrib = function(vertexAttrib, instanceNdx, vertexNdx, genericType) {
+        DE_ASSERT(rrVertexAttrib.isValidVertexAttrib(vertexAttrib));
         /** @type {TypedArray} */ var dst;
 
         if (vertexAttrib.pointer)
         {
             /** @type {number} */ var elementNdx = (vertexAttrib.instanceDivisor != 0) ? (instanceNdx / vertexAttrib.instanceDivisor) : vertexNdx;
-            /** @type {number} */ var compSize = getComponentSize(vertexAttrib.type);
+            /** @type {number} */ var compSize = rrVertexAttrib.getComponentSize(vertexAttrib.type);
             /** @type {number} */ var stride = (vertexAttrib.stride != 0) ? (vertexAttrib.stride) : (vertexAttrib.size * compSize);
             /** @type {number} */ var byteOffset = elementNdx * stride;
 
@@ -242,7 +245,7 @@ define([
                     break;
             }
 
-            read(dst, vertexAttrib.type, vertexAttrib.size, new Uint8Array(vertexAttrib.pointer).subarray(byteOffset));
+            rrVertexAttrib.read(dst, vertexAttrib.type, vertexAttrib.size, new Uint8Array(vertexAttrib.pointer).subarray(byteOffset));
         }
         else
         {
@@ -253,12 +256,12 @@ define([
     };
 
     /**
-     * readHalf
+     * rrVertexAttrib.readHalf
      * @param {TypedArray} dst
      * @param {number} size
      * @param {Uint8Array} ptr
      */
-    var readHalf = function(dst, size, ptr) {
+    rrVertexAttrib.readHalf = function(dst, size, ptr) {
         var arraysize16 = 2; //2 bytes
 
         //Reinterpret ptr as a uint16 array,
@@ -275,12 +278,12 @@ define([
     };
 
     /**
-     * readFixed
+     * rrVertexAttrib.readFixed
      * @param {TypedArray} dst
      * @param {number} size
      * @param {Uint8Array} ptr
      */
-    var readFixed = function(dst, size, ptr) {
+    rrVertexAttrib.readFixed = function(dst, size, ptr) {
         var arraysize32 = 4; //4 bytes
 
         //Reinterpret ptr as a uint16 array,
@@ -298,12 +301,12 @@ define([
 
     /**
      * TODO: Check 64 bit numbers are handled ok
-     * readDouble
+     * rrVertexAttrib.readDouble
      * @param {TypedArray} dst
      * @param {number} size
      * @param {Uint8Array} ptr
      */
-    var readDouble = function(dst, size, ptr) {
+    rrVertexAttrib.readDouble = function(dst, size, ptr) {
         var arraysize64 = 8; //8 bytes
 
         //Reinterpret 'ptr' into 'aligned' as a float64 array,
@@ -320,14 +323,14 @@ define([
     };
 
     /**
-     * readUnormOrder
+     * rrVertexAttrib.readUnormOrder
      * @param {TypedArray} dst
      * @param {number} size
      * @param {Uint8Array} ptr
-     * @param {(NormalOrder|BGRAOrder)} order
+     * @param {(rrVertexAttrib.NormalOrder|rrVertexAttrib.BGRAOrder)} order
      * @param {TypedArray} readAsTypeArray
      */
-    var readUnormOrder = function(dst, size, ptr, order, readAsTypeArray) {
+    rrVertexAttrib.readUnormOrder = function(dst, size, ptr, order, readAsTypeArray) {
         var arrayelementsize = readAsTypeArray.BYTES_PER_ELEMENT;
 
         //Left shift within 32-bit range as 32-bit float.
@@ -348,14 +351,14 @@ define([
     };
 
     /**
-     * readOrder
+     * rrVertexAttrib.readOrder
      * @param {TypedArray} dst
      * @param {number} size
      * @param {Uint8Array} ptr
-     * @param {(NormalOrder|BGRAOrder)} order
+     * @param {(rrVertexAttrib.NormalOrder|rrVertexAttrib.BGRAOrder)} order
      * @param {TypedArray} readAsTypeArray
      */
-    var readOrder = function(dst, size, ptr, order, readAsTypeArray) {
+    rrVertexAttrib.readOrder = function(dst, size, ptr, order, readAsTypeArray) {
         var arrayelementsize = readAsTypeArray.BYTES_PER_ELEMENT;
 
         //Reinterpret aligned as an array the same type of readAsTypeArray
@@ -373,119 +376,113 @@ define([
     };
 
     /**
-     * TODO: Implement missing read functions.
+     * TODO: Implement missing rrVertexAttrib.read functions.
      * @param {TypedArray} dst
-     * @param {VertexAttribType} type
+     * @param {rrVertexAttrib.VertexAttribType} type
      * @param {number} size
      * @param {Uint8Array} ptr
      */
-    var read = function(dst, type, size, ptr) {
+    rrVertexAttrib.read = function(dst, type, size, ptr) {
         var order;
 
         switch (type) {
-            case VertexAttribType.FLOAT:
-                readOrder(dst, size, ptr, NormalOrder, Float32Array);
+            case rrVertexAttrib.VertexAttribType.FLOAT:
+                rrVertexAttrib.readOrder(dst, size, ptr, rrVertexAttrib.NormalOrder, Float32Array);
                 break;
-            case VertexAttribType.HALF:
-                readHalf(dst, size, ptr);
+            case rrVertexAttrib.VertexAttribType.HALF:
+                rrVertexAttrib.readHalf(dst, size, ptr);
                 break;
-            case VertexAttribType.FIXED:
-                readFixed(dst, size, ptr);
+            case rrVertexAttrib.VertexAttribType.FIXED:
+                rrVertexAttrib.readFixed(dst, size, ptr);
                 break;
-            case VertexAttribType.DOUBLE:
-                readDouble(dst, size, ptr);
+            case rrVertexAttrib.VertexAttribType.DOUBLE:
+                rrVertexAttrib.readDouble(dst, size, ptr);
                 break;
-            case VertexAttribType.NONPURE_UNORM8:
-                readUnormOrder(dst, size, ptr, NormalOrder, Uint8Array);
-            case VertexAttribType.NONPURE_UNORM16:
-                readUnormOrder(dst, size, ptr, NormalOrder, Uint16Array);
-            case VertexAttribType.NONPURE_UNORM32:
-                readUnormOrder(dst, size, ptr, NormalOrder, Uint32Array);
+            case rrVertexAttrib.VertexAttribType.NONPURE_UNORM8:
+                rrVertexAttrib.readUnormOrder(dst, size, ptr, rrVertexAttrib.NormalOrder, Uint8Array);
+            case rrVertexAttrib.VertexAttribType.NONPURE_UNORM16:
+                rrVertexAttrib.readUnormOrder(dst, size, ptr, rrVertexAttrib.NormalOrder, Uint16Array);
+            case rrVertexAttrib.VertexAttribType.NONPURE_UNORM32:
+                rrVertexAttrib.readUnormOrder(dst, size, ptr, rrVertexAttrib.NormalOrder, Uint32Array);
                 break;
-            case VertexAttribType.NONPURE_UNORM_2_10_10_10_REV:
-                readUnorm2101010RevOrder(dst, size, ptr, NormalOrder);
+            case rrVertexAttrib.VertexAttribType.NONPURE_UNORM_2_10_10_10_REV:
+                readUnorm2101010RevOrder(dst, size, ptr, rrVertexAttrib.NormalOrder);
                 break;
-            case VertexAttribType.NONPURE_SNORM8_CLAMP: //Int8
-            case VertexAttribType.NONPURE_SNORM16_CLAMP: //Int16
-            case VertexAttribType.NONPURE_SNORM32_CLAMP: //Int32
+            case rrVertexAttrib.VertexAttribType.NONPURE_SNORM8_CLAMP: //Int8
+            case rrVertexAttrib.VertexAttribType.NONPURE_SNORM16_CLAMP: //Int16
+            case rrVertexAttrib.VertexAttribType.NONPURE_SNORM32_CLAMP: //Int32
                 readSnormClamp(dst, size, ptr);
                 break;
-            case VertexAttribType.NONPURE_SNORM_2_10_10_10_REV_CLAMP:
-                readSnorm2101010RevClampOrder(dst, size, ptr, NormalOrder);
+            case rrVertexAttrib.VertexAttribType.NONPURE_SNORM_2_10_10_10_REV_CLAMP:
+                readSnorm2101010RevClampOrder(dst, size, ptr, rrVertexAttrib.NormalOrder);
                 break;
-            case VertexAttribType.NONPURE_SNORM8_SCALE: //Int8
-            case VertexAttribType.NONPURE_SNORM16_SCALE: //Int16
-            case VertexAttribType.NONPURE_SNORM32_SCALE: //Int32
+            case rrVertexAttrib.VertexAttribType.NONPURE_SNORM8_SCALE: //Int8
+            case rrVertexAttrib.VertexAttribType.NONPURE_SNORM16_SCALE: //Int16
+            case rrVertexAttrib.VertexAttribType.NONPURE_SNORM32_SCALE: //Int32
                 readSnormScale(dst, size, ptr);
                 break;
-            case VertexAttribType.NONPURE_SNORM_2_10_10_10_REV_SCALE:
-                readSnorm2101010RevScaleOrder(dst, size, ptr, NormalOrder);
+            case rrVertexAttrib.VertexAttribType.NONPURE_SNORM_2_10_10_10_REV_SCALE:
+                readSnorm2101010RevScaleOrder(dst, size, ptr, rrVertexAttrib.NormalOrder);
                 break;
-            case VertexAttribType.NONPURE_UINT_2_10_10_10_REV:
-                readUint2101010RevOrder(dst, size, ptr, NormalOrder);
+            case rrVertexAttrib.VertexAttribType.NONPURE_UINT_2_10_10_10_REV:
+                readUint2101010RevOrder(dst, size, ptr, rrVertexAttrib.NormalOrder);
                 break;
-            case VertexAttribType.NONPURE_INT_2_10_10_10_REV:
+            case rrVertexAttrib.VertexAttribType.NONPURE_INT_2_10_10_10_REV:
                 readInt2101010Rev(dst, size, ptr);
                 break;
-            case VertexAttribType.NONPURE_UNORM8_BGRA:
-                readUnormOrder(dst, size, ptr, BGRAOrder, Uint8Array);
+            case rrVertexAttrib.VertexAttribType.NONPURE_UNORM8_BGRA:
+                rrVertexAttrib.readUnormOrder(dst, size, ptr, rrVertexAttrib.BGRAOrder, Uint8Array);
                 break;
-            case VertexAttribType.NONPURE_UNORM_2_10_10_10_REV_BGRA:
-                readUnorm2101010RevOrder(dst, size, ptr, BGRAOrder);
+            case rrVertexAttrib.VertexAttribType.NONPURE_UNORM_2_10_10_10_REV_BGRA:
+                readUnorm2101010RevOrder(dst, size, ptr, rrVertexAttrib.BGRAOrder);
                 break;
-            case VertexAttribType.NONPURE_SNORM_2_10_10_10_REV_CLAMP_BGRA:
-                readSnorm2101010RevClampOrder(dst, size, ptr, BGRAOrder);
+            case rrVertexAttrib.VertexAttribType.NONPURE_SNORM_2_10_10_10_REV_CLAMP_BGRA:
+                readSnorm2101010RevClampOrder(dst, size, ptr, rrVertexAttrib.BGRAOrder);
                 break;
-            case VertexAttribType.NONPURE_SNORM_2_10_10_10_REV_SCALE_BGRA:
-                readSnorm2101010RevScaleOrder(dst, size, ptr, BGRAOrder);
+            case rrVertexAttrib.VertexAttribType.NONPURE_SNORM_2_10_10_10_REV_SCALE_BGRA:
+                readSnorm2101010RevScaleOrder(dst, size, ptr, rrVertexAttrib.BGRAOrder);
                 break;
-            case VertexAttribType.NONPURE_UINT8:
-                readOrder(dst, size, ptr, NormalOrder, Uint8Array);
+            case rrVertexAttrib.VertexAttribType.NONPURE_UINT8:
+                rrVertexAttrib.readOrder(dst, size, ptr, rrVertexAttrib.NormalOrder, Uint8Array);
                 break;
-            case VertexAttribType.NONPURE_UINT16:
-                readOrder(dst, size, ptr, NormalOrder, Uint16Array);
+            case rrVertexAttrib.VertexAttribType.NONPURE_UINT16:
+                rrVertexAttrib.readOrder(dst, size, ptr, rrVertexAttrib.NormalOrder, Uint16Array);
                 break;
-            case VertexAttribType.NONPURE_UINT32:
-                readOrder(dst, size, ptr, NormalOrder, Uint32Array);
+            case rrVertexAttrib.VertexAttribType.NONPURE_UINT32:
+                rrVertexAttrib.readOrder(dst, size, ptr, rrVertexAttrib.NormalOrder, Uint32Array);
                 break;
-            case VertexAttribType.NONPURE_INT8:
-                readOrder(dst, size, ptr, NormalOrder, Int8Array);
+            case rrVertexAttrib.VertexAttribType.NONPURE_INT8:
+                rrVertexAttrib.readOrder(dst, size, ptr, rrVertexAttrib.NormalOrder, Int8Array);
                 break;
-            case VertexAttribType.NONPURE_INT16:
-                readOrder(dst, size, ptr, NormalOrder, Int16Array);
+            case rrVertexAttrib.VertexAttribType.NONPURE_INT16:
+                rrVertexAttrib.readOrder(dst, size, ptr, rrVertexAttrib.NormalOrder, Int16Array);
                 break;
-            case VertexAttribType.NONPURE_INT32:
-                readOrder(dst, size, ptr, NormalOrder, Int32Array);
+            case rrVertexAttrib.VertexAttribType.NONPURE_INT32:
+                rrVertexAttrib.readOrder(dst, size, ptr, rrVertexAttrib.NormalOrder, Int32Array);
                 break;
-            case VertexAttribType.PURE_UINT8:
-                readOrder(dst, size, ptr, NormalOrder, Uint8Array);
+            case rrVertexAttrib.VertexAttribType.PURE_UINT8:
+                rrVertexAttrib.readOrder(dst, size, ptr, rrVertexAttrib.NormalOrder, Uint8Array);
                 break;
-            case VertexAttribType.PURE_UINT16:
-                readOrder(dst, size, ptr, NormalOrder, Uint16Array);
+            case rrVertexAttrib.VertexAttribType.PURE_UINT16:
+                rrVertexAttrib.readOrder(dst, size, ptr, rrVertexAttrib.NormalOrder, Uint16Array);
                 break;
-            case VertexAttribType.PURE_UINT32:
-                readOrder(dst, size, ptr, NormalOrder, Uint32Array);
+            case rrVertexAttrib.VertexAttribType.PURE_UINT32:
+                rrVertexAttrib.readOrder(dst, size, ptr, rrVertexAttrib.NormalOrder, Uint32Array);
                 break;
-            case VertexAttribType.PURE_INT8:
-                readOrder(dst, size, ptr, NormalOrder, Int8Array);
+            case rrVertexAttrib.VertexAttribType.PURE_INT8:
+                rrVertexAttrib.readOrder(dst, size, ptr, rrVertexAttrib.NormalOrder, Int8Array);
                 break;
-            case VertexAttribType.PURE_INT16:
-                readOrder(dst, size, ptr, NormalOrder, Int16Array);
+            case rrVertexAttrib.VertexAttribType.PURE_INT16:
+                rrVertexAttrib.readOrder(dst, size, ptr, rrVertexAttrib.NormalOrder, Int16Array);
                 break;
-            case VertexAttribType.PURE_INT32:
-                readOrder(dst, size, ptr, NormalOrder, Int32Array);
+            case rrVertexAttrib.VertexAttribType.PURE_INT32:
+                rrVertexAttrib.readOrder(dst, size, ptr, rrVertexAttrib.NormalOrder, Int32Array);
                 break;
 
             default:
-                throw new Error('read - Invalid type');
+                throw new Error('rrVertexAttrib.read - Invalid type');
         }
     };
 
-    return {
-        NormalOrder: NormalOrder,
-        BGRAOrder: BGRAOrder,
-        VertexAttribType: VertexAttribType,
-        VertexAttrib: VertexAttrib,
-        readVertexAttrib: readVertexAttrib
-    };
+    
 });

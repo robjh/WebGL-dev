@@ -18,15 +18,21 @@
  *
  */
 
-define(function() {
 'use strict';
+goog.provide('framework.delibs.debase.deUtil');
+
+
+goog.scope(function() {
+
+var deUtil = framework.delibs.debase.deUtil;
+
 
     /**
     * Add a push_unique function to Array. Will insert only if there is no equal element.
     * @param {Array} array Any array
     * @param {Object} object Any object
     */
-    var dePushUniqueToArray = function(array, object) {
+    deUtil.dePushUniqueToArray = function(array, object) {
         //Simplest implementation
         for (var i = 0; i < array.length; i++) {
             if (object.equals !== undefined)
@@ -39,7 +45,5 @@ define(function() {
         array.push(object);
     };
 
-    return {
-        dePushUniqueToArray: dePushUniqueToArray
-    };
+    
 });

@@ -18,34 +18,37 @@
  *
  */
 
-define([
-    'framework/opengl/gluShaderProgram',
-    'functional/gles3/es3fFboTestUtil',
-    'framework/opengl/gluShaderUtil',
-    'framework/delibs/debase/deRandom',
-    'framework/common/tcuTestCase',
-    'framework/opengl/gluTextureUtil',
-    'framework/common/tcuTexture',
-    'framework/common/tcuTextureUtil',
-    'framework/delibs/debase/deMath',
-    'framework/common/tcuImageCompare'
-],
-function(
-        gluShaderProgram,
-        es3fFboTestUtil,
-        gluShaderUtil,
-        deRandom,
-        tcuTestCase,
-        gluTextureUtil,
-        tcuTexture,
-        tcuTextureUtil,
-        deMath,
-        tcuImageCompare
-) {
-    'use strict';
+'use strict';
+goog.provide('functional.gles3.es3fFragmentOutputTests');
+goog.require('framework.opengl.gluShaderProgram');
+goog.require('functional.gles3.es3fFboTestUtil');
+goog.require('framework.opengl.gluShaderUtil');
+goog.require('framework.delibs.debase.deRandom');
+goog.require('framework.common.tcuTestCase');
+goog.require('framework.opengl.gluTextureUtil');
+goog.require('framework.common.tcuTexture');
+goog.require('framework.common.tcuTextureUtil');
+goog.require('framework.delibs.debase.deMath');
+goog.require('framework.common.tcuImageCompare');
+
+
+goog.scope(function() {
+
+var es3fFragmentOutputTests = functional.gles3.es3fFragmentOutputTests;
+var gluShaderProgram = framework.opengl.gluShaderProgram;
+var es3fFboTestUtil = functional.gles3.es3fFboTestUtil;
+var gluShaderUtil = framework.opengl.gluShaderUtil;
+var deRandom = framework.delibs.debase.deRandom;
+var tcuTestCase = framework.common.tcuTestCase;
+var gluTextureUtil = framework.opengl.gluTextureUtil;
+var tcuTexture = framework.common.tcuTexture;
+var tcuTextureUtil = framework.common.tcuTextureUtil;
+var deMath = framework.delibs.debase.deMath;
+var tcuImageCompare = framework.common.tcuImageCompare;
+    
     /** @type {WebGL2RenderingContext} */ var gl;
 
-    var GLU_EXPECT_NO_ERROR = function(error, message) {
+    es3fFragmentOutputTests.GLU_EXPECT_NO_ERROR = function(error, message) {
         assertMsgOptions(error === gl.NONE, message, false, true);
     };
 
@@ -54,19 +57,19 @@ function(
             throw new Error('Assert failed');
     };
 
-    var TCU_FAIL = function(msg) {
+    es3fFragmentOutputTests.TCU_FAIL = function(msg) {
         testFailedOptions(msg, true);
     };
 
     /**
-     * BufferSpec. Constructs the BufferSpec object
+     * es3fFragmentOutputTests.BufferSpec. Constructs the es3fFragmentOutputTests.BufferSpec object
      * @constructor
      * @param {WebGLRenderingContextBase.GLenum} format_
      * @param {number} width_
      * @param {number} height_
      * @param {number} samples_
      */
-    var BufferSpec = function(format_, width_, height_, samples_) {
+    es3fFragmentOutputTests.BufferSpec = function(format_, width_, height_, samples_) {
         this.format = format_;
         this.width = width_;
         this.height = height_;
@@ -74,14 +77,14 @@ function(
     };
 
     /**
-     * FragmentOutput. Constructs the FragmentOutput object
+     * es3fFragmentOutputTests.FragmentOutput. Constructs the es3fFragmentOutputTests.FragmentOutput object
      * @constructor
      * @param {gluShaderUtil.DataType} type_
      * @param {gluShaderUtil.precision} precision_
      * @param {number} location_
      * @param {number=} arrayLength_
      */
-    var FragmentOutput = function(type_, precision_, location_, arrayLength_) {
+    es3fFragmentOutputTests.FragmentOutput = function(type_, precision_, location_, arrayLength_) {
         this.type = type_;
         this.precision = precision_;
         this.location = location_;
@@ -89,33 +92,33 @@ function(
     };
 
     /**
-     * FragmentOutputCase. Constructs the FragmentOutputCase object
+     * es3fFragmentOutputTests.FragmentOutputCase. Constructs the es3fFragmentOutputTests.FragmentOutputCase object
      * @constructor
      * @param {string} name
      * @param {string} description
-     * @param {Array<BufferSpec>} fboSpec
-     * @param {Array<FragmentOutput>} outputs
+     * @param {Array<es3fFragmentOutputTests.BufferSpec>} fboSpec
+     * @param {Array<es3fFragmentOutputTests.FragmentOutput>} outputs
      * @return {Object} The currently modified object
      */
-    var FragmentOutputCase = function(name, description, fboSpec, outputs) {
+    es3fFragmentOutputTests.FragmentOutputCase = function(name, description, fboSpec, outputs) {
         tcuTestCase.DeqpTest.call(this, name, description);
-        /** @type {Array<BufferSpec>} */ this.m_fboSpec = fboSpec;
-        /** @type {Array<FragmentOutput>} */ this.m_outputs = outputs;
+        /** @type {Array<es3fFragmentOutputTests.BufferSpec>} */ this.m_fboSpec = fboSpec;
+        /** @type {Array<es3fFragmentOutputTests.FragmentOutput>} */ this.m_outputs = outputs;
         /** @type {gluShaderProgram.ShaderProgram} */ this.m_program = null;
         /** @type {WebGLFramebuffer} */ this.m_framebuffer = null;
 
         /** @type {WebGLRenderbuffer} */ this.m_renderbuffer = null;
     };
 
-    FragmentOutputCase.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
-    FragmentOutputCase.prototype.constructor = FragmentOutputCase;
+    es3fFragmentOutputTests.FragmentOutputCase.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
+    es3fFragmentOutputTests.FragmentOutputCase.prototype.constructor = es3fFragmentOutputTests.FragmentOutputCase;
 
     /**
-     * createProgram. Returns a ShaderProgram object
-     * @param {Array<FragmentOutput>} outputs
+     * es3fFragmentOutputTests.createProgram. Returns a ShaderProgram object
+     * @param {Array<es3fFragmentOutputTests.FragmentOutput>} outputs
      * @return {gluShaderProgram.ShaderProgram} program
      */
-    var createProgram = function(outputs) {
+    es3fFragmentOutputTests.createProgram = function(outputs) {
 
         var vtx = '';
         var frag = '';
@@ -123,7 +126,7 @@ function(
         vtx = '#version 300 es\n' + 'in highp vec4 a_position;\n';
         frag = '#version 300 es\n';
 
-    /** @type {FragmentOutput} */ var output = null;
+    /** @type {es3fFragmentOutputTests.FragmentOutput} */ var output = null;
     /** @type {boolean} */ var isArray = false;
      // Input-output declarations.
         for (var outNdx = 0; outNdx < outputs.length; outNdx++)
@@ -189,7 +192,7 @@ function(
         return program;
     };
 
-    FragmentOutputCase.prototype.init = function() {
+    es3fFragmentOutputTests.FragmentOutputCase.prototype.init = function() {
         // Check that all attachments are supported
         for (var iter = 0; iter < this.m_fboSpec.length; ++iter)
         {
@@ -200,7 +203,7 @@ function(
         }
 
         DE_ASSERT(!this.m_program);
-        this.m_program = createProgram(this.m_outputs);
+        this.m_program = es3fFragmentOutputTests.createProgram(this.m_outputs);
 
        // log << *m_program;
         if (!this.m_program.isOk())
@@ -226,18 +229,18 @@ function(
         for (var bufNdx = 0; bufNdx < /* m_renderbuffers.size() */ this.m_fboSpec.length; bufNdx++)
         {
             this.m_renderbuffer = gl.createRenderbuffer();
-            /** @type {BufferSpec} */ var bufSpec = this.m_fboSpec[bufNdx];
+            /** @type {es3fFragmentOutputTests.BufferSpec} */ var bufSpec = this.m_fboSpec[bufNdx];
             /** @type {number} */ var attachment = gl.COLOR_ATTACHMENT0 + bufNdx;
 
             gl.bindRenderbuffer(gl.RENDERBUFFER, this.m_renderbuffer);
             // gl.getInternalformatParameter(gl.RENDERBUFFER, bufSpec.format, gl.SAMPLES); // just for debugging purposes
 
             gl.renderbufferStorageMultisample(gl.RENDERBUFFER, bufSpec.samples, bufSpec.format, bufSpec.width, bufSpec.height);
-            GLU_EXPECT_NO_ERROR(gl.getError(), 'renderbufferStorageMultisample failed');
+            es3fFragmentOutputTests.GLU_EXPECT_NO_ERROR(gl.getError(), 'renderbufferStorageMultisample failed');
             gl.framebufferRenderbuffer(gl.FRAMEBUFFER, attachment, gl.RENDERBUFFER, this.m_renderbuffer);
         }
         /** @type {number} */ var fboStatus = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'After framebuffer and renderbuffer setup ');
+        es3fFragmentOutputTests.GLU_EXPECT_NO_ERROR(gl.getError(), 'After framebuffer and renderbuffer setup ');
 
         if (fboStatus == gl.FRAMEBUFFER_UNSUPPORTED)
             throw new Error('Framebuffer not supported');
@@ -247,19 +250,19 @@ function(
 
         // gl.bindRenderbuffer(gl.RENDERBUFFER, null); // TODO: maybe needed?
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'After init');
+        es3fFragmentOutputTests.GLU_EXPECT_NO_ERROR(gl.getError(), 'After es3fFragmentOutputTests.init');
     };
 
-    FragmentOutputCase.prototype.deinit = function() {
+    es3fFragmentOutputTests.FragmentOutputCase.prototype.deinit = function() {
         // TODO: implement?
     };
 
     /**
-     * getMinSize.
-     * @param {Array<BufferSpec>} fboSpec
+     * es3fFragmentOutputTests.getMinSize.
+     * @param {Array<es3fFragmentOutputTests.BufferSpec>} fboSpec
      * @return {Array<number>} minSize
      */
-    var getMinSize = function(fboSpec) {
+    es3fFragmentOutputTests.getMinSize = function(fboSpec) {
         /** @type {Array<number>} */ var minSize = [0x7fffffff, 0x7fffffff];
         for (var i = 0; i < fboSpec.length; i++)
         {
@@ -270,11 +273,11 @@ function(
     };
 
     /**
-     * getNumInputVectors. Returns the length of the array of all the outputs (FragmentOutput object)
-     * @param {Array<FragmentOutput>} outputs
+     * es3fFragmentOutputTests.getNumInputVectors. Returns the length of the array of all the outputs (es3fFragmentOutputTests.FragmentOutput object)
+     * @param {Array<es3fFragmentOutputTests.FragmentOutput>} outputs
      * @return {number} numVecs
      */
-    var getNumInputVectors = function(outputs) {
+    es3fFragmentOutputTests.getNumInputVectors = function(outputs) {
         /** @type {number} */ var numVecs = 0;
         for (var i = 0; i < outputs.length; i++)
             numVecs += (outputs[i].arrayLength > 0 ? outputs[i].arrayLength : 1);
@@ -282,11 +285,11 @@ function(
     };
 
     /**
-     * getFloatRange
+     * es3fFragmentOutputTests.getFloatRange
      * @param {gluShaderUtil.precision} precision
      * @return {Array<number>} Vec2
      */
-    var getFloatRange = function(precision) {
+    es3fFragmentOutputTests.getFloatRange = function(precision) {
         /** @type {Array<Array<number>>} */
         var ranges = // Vec2
         [
@@ -300,11 +303,11 @@ function(
     };
 
     /**
-     * getIntRange
+     * es3fFragmentOutputTests.getIntRange
      * @param {gluShaderUtil.precision} precision
      * @return {Array<number>} IVec2
      */
-    var getIntRange = function(precision) {
+    es3fFragmentOutputTests.getIntRange = function(precision) {
         /** @type {Array<Array<number>>} */
         var ranges = // IVec2
         [
@@ -318,11 +321,11 @@ function(
     };
 
     /**
-     * getUintRange
+     * es3fFragmentOutputTests.getUintRange
      * @param {gluShaderUtil.precision} precision
      * @return {Array<number>} UVec2
      */
-    var getUintRange = function(precision) {
+    es3fFragmentOutputTests.getUintRange = function(precision) {
         /** @type {Array<Array<number>>} */
         var ranges = // UVec2
         [
@@ -337,12 +340,12 @@ function(
     };
 
     /**
-     * readVec4
+     * es3fFragmentOutputTests.readVec4
      * @param {Array<number>} ptr
      * @param {number} numComponents
      * @return {Array<number>} Vec4
      */
-    var readVec4 = function(ptr, numComponents) {
+    es3fFragmentOutputTests.readVec4 = function(ptr, numComponents) {
         DE_ASSERT(numComponents >= 1);
         return [
                 ptr[0],
@@ -353,12 +356,12 @@ function(
     };
 
     /**
-     * readIVec4
+     * es3fFragmentOutputTests.readIVec4
      * @param {Array<number>} ptr
      * @param {number} numComponents
      * @return {Array<number>} IVec4
      */
-    var readIVec4 = function(ptr, numComponents) {
+    es3fFragmentOutputTests.readIVec4 = function(ptr, numComponents) {
         DE_ASSERT(numComponents >= 1);
         return [
                 ptr[0],
@@ -369,14 +372,14 @@ function(
     };
 
     /**
-     * renderFloatReference
+     * es3fFragmentOutputTests.renderFloatReference
      * @param {tcuTexture.PixelBufferAccess} dst
      * @param {number} gridWidth
      * @param {number} gridHeight
      * @param {number} numComponents
      * @param {Array<number>} vertices
      */
-    var renderFloatReference = function(dst, gridWidth, gridHeight, numComponents, vertices) {
+    es3fFragmentOutputTests.renderFloatReference = function(dst, gridWidth, gridHeight, numComponents, vertices) {
 
         /** @type {boolean} */ var isSRGB = dst.getFormat().order == tcuTexture.ChannelOrder.sRGB || dst.getFormat().order == tcuTexture.ChannelOrder.sRGBA;
         /** @type {number} */ var cellW = Math.floor(dst.getWidth() / (gridWidth - 1));
@@ -391,10 +394,10 @@ function(
                 /** @type {number} */ var xf = Math.floor((x - cellX * cellW + 0.5) / cellW);
                 /** @type {number} */ var yf = Math.floor((y - cellY * cellH + 0.5) / cellH);
 
-                /** @type {Array<number>} */ var v00 = readVec4([vertices[((cellY + 0) * gridWidth + cellX + 0) * numComponents]], numComponents); // Vec4
-                /** @type {Array<number>} */ var v01 = readVec4([vertices[((cellY + 1) * gridWidth + cellX + 0) * numComponents]], numComponents); // Vec4
-                /** @type {Array<number>} */ var v10 = readVec4([vertices[((cellY + 0) * gridWidth + cellX + 1) * numComponents]], numComponents); // Vec4
-                /** @type {Array<number>} */ var v11 = readVec4([vertices[((cellY + 1) * gridWidth + cellX + 1) * numComponents]], numComponents); // Vec4
+                /** @type {Array<number>} */ var v00 = es3fFragmentOutputTests.readVec4([vertices[((cellY + 0) * gridWidth + cellX + 0) * numComponents]], numComponents); // Vec4
+                /** @type {Array<number>} */ var v01 = es3fFragmentOutputTests.readVec4([vertices[((cellY + 1) * gridWidth + cellX + 0) * numComponents]], numComponents); // Vec4
+                /** @type {Array<number>} */ var v10 = es3fFragmentOutputTests.readVec4([vertices[((cellY + 0) * gridWidth + cellX + 1) * numComponents]], numComponents); // Vec4
+                /** @type {Array<number>} */ var v11 = es3fFragmentOutputTests.readVec4([vertices[((cellY + 1) * gridWidth + cellX + 1) * numComponents]], numComponents); // Vec4
 
                 /** @type {boolean} */ var tri = xf + yf >= 1.0;
                 /** @type {Array<number>} */ var v0 = tri ? v11 : v00; // Vec4&
@@ -410,14 +413,14 @@ function(
     };
 
     /**
-     * renderIntReference
+     * es3fFragmentOutputTests.renderIntReference
      * @param {tcuTexture.PixelBufferAccess} dst
      * @param {number} gridWidth
      * @param {number} gridHeight
      * @param {number} numComponents
      * @param {Array<number>} vertices
      */
-    var renderIntReference = function(dst, gridWidth, gridHeight, numComponents, vertices) {
+    es3fFragmentOutputTests.renderIntReference = function(dst, gridWidth, gridHeight, numComponents, vertices) {
 
         /** @type {number} */ var cellW = Math.floor(dst.getWidth() / (gridWidth - 1));
         /** @type {number} */ var cellH = Math.floor(dst.getHeight() / (gridHeight - 1));
@@ -428,7 +431,7 @@ function(
             {
                 /** @type {number} */ var cellX = deMath.clamp(Math.floor(x / cellW), 0, gridWidth - 2);
                 /** @type {number} */ var cellY = deMath.clamp(Math.floor(y / cellH), 0, gridHeight - 2);
-                /** @type {Array<number>} */ var c = readIVec4([vertices[(cellY * gridWidth + cellX + 1) * numComponents]], numComponents); // IVec4
+                /** @type {Array<number>} */ var c = es3fFragmentOutputTests.readIVec4([vertices[(cellY * gridWidth + cellX + 1) * numComponents]], numComponents); // IVec4
 
                 dst.setPixel(c, x, y);
             }
@@ -436,10 +439,10 @@ function(
     };
 
     /**
-     * s_swizzles
+     * es3fFragmentOutputTests.s_swizzles
      * @return {Array<Array<number>>}
      */
-    var s_swizzles = function() {
+    es3fFragmentOutputTests.s_swizzles = function() {
         var mat_swizzles = [
             [0, 1, 2, 3],
             [1, 2, 3, 0],
@@ -455,23 +458,23 @@ function(
     };
 
     /**
-     * swizzleVec. Returns an Array from a position contained in the Array s_swizzles []
+     * es3fFragmentOutputTests.swizzleVec. Returns an Array from a position contained in the Array es3fFragmentOutputTests.s_swizzles []
      * @param {Array<number>} vec
      * @param {number} swzNdx
      * @return {Array<number>} Swizzled array
      */
-    var swizzleVec = function(vec, swzNdx) {
-    /** @type {Array<number>} */ var swz = s_swizzles()[swzNdx % s_swizzles().length];
+    es3fFragmentOutputTests.swizzleVec = function(vec, swzNdx) {
+    /** @type {Array<number>} */ var swz = es3fFragmentOutputTests.s_swizzles()[swzNdx % es3fFragmentOutputTests.s_swizzles().length];
 
         return deMath.swizzle(vec, swz);
     };
 
     /**
-     * AttachmentData struct class
+     * es3fFragmentOutputTests.AttachmentData struct class
      * @constructor
      * @return {Object}
      */
-    var AttachmentData = function() {
+    es3fFragmentOutputTests.AttachmentData = function() {
         return {
         /** @type {tcuTexture.TextureFormat} */ format: null, //!< Actual format of attachment.
         /** @type {tcuTexture.TextureFormat} */ referenceFormat: null, //!< Used for reference rendering.
@@ -483,17 +486,17 @@ function(
         };
     };
 
-    FragmentOutputCase.prototype.iterate = function() {
+    es3fFragmentOutputTests.FragmentOutputCase.prototype.iterate = function() {
         // Compute grid size & index list.
         /** @type {number} */ var minCellSize = 8;
-        /** @type {Array<number>} */ var minBufSize = getMinSize(this.m_fboSpec); // IVec2
+        /** @type {Array<number>} */ var minBufSize = es3fFragmentOutputTests.getMinSize(this.m_fboSpec); // IVec2
         /** @type {number} */ var gridWidth = deMath.clamp(Math.floor(minBufSize[0] / minCellSize), 1, 255) + 1;
         /** @type {number} */ var gridHeight = deMath.clamp(Math.floor(minBufSize[1] / minCellSize), 1, 255) + 1;
         /** @type {number} */ var numVertices = gridWidth * gridHeight;
         /** @type {number} */ var numQuads = (gridWidth - 1) * (gridHeight - 1);
         /** @type {number} */ var numIndices = numQuads * 6;
 
-        /** @type {number} */ var numInputVecs = getNumInputVectors(this.m_outputs);
+        /** @type {number} */ var numInputVecs = es3fFragmentOutputTests.getNumInputVectors(this.m_outputs);
         /** @type {Array<Array<number>>} */ var inputs = []; // originally vector<vector<deUint32>
 
         for (var inputNdx = 0; inputNdx < numInputVecs; inputNdx++)
@@ -508,7 +511,7 @@ function(
         /** @type {number} */ var numAttachments = this.m_fboSpec.length;
 
         /** @type {Array<number>} */ var drawBuffers = []; // originally vector<deUint32>
-        /** @type {Array<AttachmentData>} */ var attachments = [];
+        /** @type {Array<es3fFragmentOutputTests.AttachmentData>} */ var attachments = [];
         /** @type {number} */ var attachmentW;
         /** @type {number} */ var attachmentH;
 
@@ -527,7 +530,7 @@ function(
             attachmentH = this.m_fboSpec[ndx].height;
 
             drawBuffers[ndx] = gl.COLOR_ATTACHMENT0 + ndx;
-            attachments[ndx] = new AttachmentData();
+            attachments[ndx] = new es3fFragmentOutputTests.AttachmentData();
             attachments[ndx].format = texFmt;
             attachments[ndx].readFormat = readFmt;
             attachments[ndx].referenceFormat = refFmt;
@@ -564,7 +567,7 @@ function(
                 positions[(y * gridWidth + x) * 4 + 3] = 1.0;
             }
         }
-        /** @type {FragmentOutput} */ var output;
+        /** @type {es3fFragmentOutputTests.FragmentOutput} */ var output;
         /** @type {boolean} */ var isArray;
         /** @type {boolean} */ var isFloat;
         /** @type {boolean} */ var isInt;
@@ -604,7 +607,7 @@ function(
                 /** @type {number} */ var pos = 0;
                if (isFloat)
                 {
-                    range = getFloatRange(output.precision); // Vec2
+                    range = es3fFragmentOutputTests.getFloatRange(output.precision); // Vec2
                     minVal = [range[0], range[0], range[0], range[0]]; // Vec4
                     maxVal = [range[1], range[1], range[1], range[1]]; // Vec4
 
@@ -628,7 +631,7 @@ function(
                             /** @type {number} */ var f0 = (xf + yf) * 0.5;
                             /** @type {number} */ var f1 = 0.5 + (xf - yf) * 0.5;
 
-                            /** @type {Array<number>} */ var f = swizzleVec([f0, f1, 1.0 - f0, 1.0 - f1], curInVec); // Vec4
+                            /** @type {Array<number>} */ var f = es3fFragmentOutputTests.swizzleVec([f0, f1, 1.0 - f0, 1.0 - f1], curInVec); // Vec4
                             c = deMath.multiply(deMath.add(minVal, deMath.subtract(maxVal, minVal)), f); // Vec4
 
                             pos = (y * gridWidth + x) * numScalars;
@@ -640,7 +643,7 @@ function(
                 }
                 else if (isInt)
                 {
-                    range = getIntRange(output.precision); // IVec2
+                    range = es3fFragmentOutputTests.getIntRange(output.precision); // IVec2
                     minVal = [range[0], range[0], range[0], range[0]]; // IVec4
                     maxVal = [range[1], range[1], range[1], range[1]]; // IVec4
 
@@ -666,7 +669,7 @@ function(
 
                     console.log('out ' + curInVec + ' value range: ' + minVal + ' -> ' + maxVal);
 
-                    rangeDiv = swizzleVec([gridWidth - 1, gridHeight - 1, gridWidth - 1, gridHeight - 1], curInVec); // IVec4
+                    rangeDiv = es3fFragmentOutputTests.swizzleVec([gridWidth - 1, gridHeight - 1, gridWidth - 1, gridHeight - 1], curInVec); // IVec4
                     for (var i = 0; i < 4; i++) {
                         // const IVec4 step = ((maxVal.cast<deInt64>() - minVal.cast<deInt64>()) / (rangeDiv.cast<deInt64>())).asInt();
                         step[i] = Math.floor((maxVal[i] - minVal[i]) / rangeDiv[i]); // TODO: check with the above line of code
@@ -678,7 +681,7 @@ function(
                         {
                             ix = gridWidth - x - 1;
                             iy = gridHeight - y - 1;
-                            c = deMath.add(minVal, deMath.multiply(step, swizzleVec([x, y, ix, iy], curInVec))); // IVec4
+                            c = deMath.add(minVal, deMath.multiply(step, es3fFragmentOutputTests.swizzleVec([x, y, ix, iy], curInVec))); // IVec4
 
                             pos = (y * gridWidth + x) * numScalars;
 
@@ -689,7 +692,7 @@ function(
                 }
                 else if (isUint)
                 {
-                    range = getUintRange(output.precision); // UVec2
+                    range = es3fFragmentOutputTests.getUintRange(output.precision); // UVec2
                     maxVal = [range[1], range[1], range[1], range[1]]; // UVec4
 
                     if (deMath.deInBounds32(output.location + vecNdx, 0, attachments.length))
@@ -706,7 +709,7 @@ function(
 
                     console.log('out ' + curInVec + ' value range: ' + minVal + ' -> ' + maxVal);
 
-                    rangeDiv = swizzleVec([gridWidth - 1, gridHeight - 1, gridWidth - 1, gridHeight - 1], curInVec); // IVec4
+                    rangeDiv = es3fFragmentOutputTests.swizzleVec([gridWidth - 1, gridHeight - 1, gridWidth - 1, gridHeight - 1], curInVec); // IVec4
 
                     for (var stepPos = 0; stepPos < maxVal.length; stepPos++) {
                         step[stepPos] = Math.floor(maxVal[stepPos] / rangeDiv[stepPos]);
@@ -720,7 +723,7 @@ function(
                         {
                             ix = gridWidth - x - 1;
                             iy = gridHeight - y - 1;
-                            c = deMath.multiply(step, swizzleVec([x, y, ix, iy], curInVec)); // UVec4
+                            c = deMath.multiply(step, es3fFragmentOutputTests.swizzleVec([x, y, ix, iy], curInVec)); // UVec4
                             pos = (y * gridWidth + x) * numScalars;
 
                             DE_ASSERT(deMath.boolAll(deMath.lessThanEqual(c, maxVal))); // TODO: sometimes crashes here, condition not asserted
@@ -743,7 +746,7 @@ function(
         gl.viewport(0, 0, viewportW, viewportH);
         gl.drawBuffers(drawBuffers);
         gl.disable(gl.DITHER); // Dithering causes issues with unorm formats. Those issues could be worked around in threshold, but it makes validation less accurate.
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'After program setup');
+        es3fFragmentOutputTests.GLU_EXPECT_NO_ERROR(gl.getError(), 'After program setup');
 
         /** @type {WebGLBuffer} */ var buffer = null;
         /** @type {string} */ var name;
@@ -770,9 +773,9 @@ function(
                 {
                     buffer = gl.createBuffer();
                     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-                    GLU_EXPECT_NO_ERROR(gl.getError(), 'bindBuffer');
+                    es3fFragmentOutputTests.GLU_EXPECT_NO_ERROR(gl.getError(), 'bindBuffer');
                     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(inputs[curInVec]), gl.STATIC_DRAW);
-                    GLU_EXPECT_NO_ERROR(gl.getError(), 'Attributes buffer setup');
+                    es3fFragmentOutputTests.GLU_EXPECT_NO_ERROR(gl.getError(), 'Attributes buffer setup');
 
                     gl.enableVertexAttribArray(loc);
                     if (isFloat)
@@ -795,23 +798,23 @@ function(
         // TCU_CHECK(posLoc >= 0);
         buffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'bindBuffer');
+        es3fFragmentOutputTests.GLU_EXPECT_NO_ERROR(gl.getError(), 'bindBuffer');
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'Attributes buffer setup');
+        es3fFragmentOutputTests.GLU_EXPECT_NO_ERROR(gl.getError(), 'Attributes buffer setup');
 
         gl.enableVertexAttribArray(posLoc);
         gl.vertexAttribPointer(posLoc, 4, gl.FLOAT, false, 0, 0); // offset = 0
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'After attribute setup');
+        es3fFragmentOutputTests.GLU_EXPECT_NO_ERROR(gl.getError(), 'After attribute setup');
 
         /** @type {WebGLBuffer} */ var indexObject = gl.createBuffer();
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexObject);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'bindBuffer');
+        es3fFragmentOutputTests.GLU_EXPECT_NO_ERROR(gl.getError(), 'bindBuffer');
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'bufferData');
+        es3fFragmentOutputTests.GLU_EXPECT_NO_ERROR(gl.getError(), 'bufferData');
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
 
         gl.drawElements(gl.TRIANGLES, numIndices, gl.UNSIGNED_SHORT, 0); // offset = 0
-        GLU_EXPECT_NO_ERROR(gl.getError(), 'glDrawElements');
+        es3fFragmentOutputTests.GLU_EXPECT_NO_ERROR(gl.getError(), 'glDrawElements');
 
         // Render reference images.
 
@@ -846,9 +849,9 @@ function(
                 /** @type {tcuTexture.PixelBufferAccess} */ var viewportBuf = tcuTextureUtil.getSubregion(buf, 0, 0, 0, viewportW, viewportH, 1);
 
                 if (isInt || isUint)
-                    renderIntReference(viewportBuf, gridWidth, gridHeight, scalarSize, inputData);
+                    es3fFragmentOutputTests.renderIntReference(viewportBuf, gridWidth, gridHeight, scalarSize, inputData);
                 else if (isFloat)
-                    renderFloatReference(viewportBuf, gridWidth, gridHeight, scalarSize, inputData);
+                    es3fFragmentOutputTests.renderFloatReference(viewportBuf, gridWidth, gridHeight, scalarSize, inputData);
                 else
                     DE_ASSERT(false);
 
@@ -979,7 +982,7 @@ function(
                 }
 
                 default:
-                    TCU_FAIL('Unsupported comparison');
+                    es3fFragmentOutputTests.TCU_FAIL('Unsupported comparison');
                     break;
             }
 
@@ -991,14 +994,14 @@ function(
     };
 
     /**
-     * createRandomCase. Constructs the createRandomCase, child class of FragmentOutputCase
+     * es3fFragmentOutputTests.createRandomCase. Constructs the es3fFragmentOutputTests.createRandomCase, child class of es3fFragmentOutputTests.FragmentOutputCase
      * @constructor
      * @param {number} minRenderTargets
      * @param {number} maxRenderTargets
      * @param {number} seed
-     * @return {FragmentOutputCase} The currently modified object
+     * @return {es3fFragmentOutputTests.FragmentOutputCase} The currently modified object
      */
-    var createRandomCase = function(minRenderTargets, maxRenderTargets, seed) {
+    es3fFragmentOutputTests.createRandomCase = function(minRenderTargets, maxRenderTargets, seed) {
 
         /** @type {Array<gluShaderUtil.DataType>} */
         var outputTypes = [
@@ -1071,8 +1074,8 @@ function(
                            ];
 
         /** @type {deRandom.Random} */ var rnd = new deRandom.Random(seed);
-        /** @type {Array<FragmentOutput>} */ var outputs = [];
-        /** @type {Array<BufferSpec>} */ var targets = [];
+        /** @type {Array<es3fFragmentOutputTests.FragmentOutput>} */ var outputs = [];
+        /** @type {Array<es3fFragmentOutputTests.BufferSpec>} */ var targets = [];
         /** @type {Array<gluShaderUtil.DataType>} */ var outTypes = [];
 
         /** @type {number} */ var numTargets = rnd.getInt(minRenderTargets, maxRenderTargets);
@@ -1093,7 +1096,7 @@ function(
             /** @type {gluShaderUtil.precision} */ var precision = precisionArray[0];
             /** @type {number} */ var numLocations = useArray ? arrayLen : 1;
 
-            outputs.push(new FragmentOutput(basicType, precision, curLoc, arrayLen));
+            outputs.push(new es3fFragmentOutputTests.FragmentOutput(basicType, precision, curLoc, arrayLen));
 
             for (var ndx = 0; ndx < numLocations; ndx++)
                 outTypes.push(basicType);
@@ -1128,14 +1131,14 @@ function(
             else
                 DE_ASSERT(false);
 
-            targets.push(new BufferSpec(format, width, height, samples));
+            targets.push(new es3fFragmentOutputTests.BufferSpec(format, width, height, samples));
         }
 
-        return new FragmentOutputCase(seed.toString(), '', targets, outputs);
+        return new es3fFragmentOutputTests.FragmentOutputCase(seed.toString(), '', targets, outputs);
 
     };
 
-    var init = function() {
+    es3fFragmentOutputTests.init = function() {
         var state = tcuTestCase.runner.getState();
         state.testCases = tcuTestCase.newTest(state.testName, 'Top level');
         /** @const @type {tcuTestCase.DeqpTest} */ var testGroup = state.testCases;
@@ -1208,7 +1211,7 @@ function(
         /** @const @type {number} */ var width = 64;
         /** @const @type {number} */ var height = 64;
         /** @const @type {number} */ var samples = 0;
-        /** @type {Array<BufferSpec>} */ var fboSpec = null;
+        /** @type {Array<es3fFragmentOutputTests.BufferSpec>} */ var fboSpec = null;
         /** @type {Array<gluShaderUtil.precision>} */ var prec;
         /** @type {string} */ var precName;
 
@@ -1222,7 +1225,7 @@ function(
             var fmtName = es3fFboTestUtil.getFormatName(format);
             fboSpec = [];
 
-            fboSpec.push(new BufferSpec(format, width, height, samples));
+            fboSpec.push(new es3fFragmentOutputTests.BufferSpec(format, width, height, samples));
 
             for (var precNdx = 0; precNdx < precisions.length; precNdx++)
             {
@@ -1230,10 +1233,10 @@ function(
                 precName = gluShaderUtil.getPrecisionName(prec);
 
                 // NOTE: Eliminated original OutputVec and toVec(), as it only returned an element of the outputs array in OutputVec
-                floatGroup.addChild(new FragmentOutputCase(fmtName + '_' + precName + '_float', '', fboSpec, [new FragmentOutput(gluShaderUtil.DataType.FLOAT, prec, 0)]));
-                floatGroup.addChild(new FragmentOutputCase(fmtName + '_' + precName + '_vec2', '', fboSpec, [new FragmentOutput(gluShaderUtil.DataType.FLOAT_VEC2, prec, 0)]));
-                floatGroup.addChild(new FragmentOutputCase(fmtName + '_' + precName + '_vec3', '', fboSpec, [new FragmentOutput(gluShaderUtil.DataType.FLOAT_VEC3, prec, 0)]));
-                floatGroup.addChild(new FragmentOutputCase(fmtName + '_' + precName + '_vec4', '', fboSpec, [new FragmentOutput(gluShaderUtil.DataType.FLOAT_VEC4, prec, 0)]));
+                floatGroup.addChild(new es3fFragmentOutputTests.FragmentOutputCase(fmtName + '_' + precName + '_float', '', fboSpec, [new es3fFragmentOutputTests.FragmentOutput(gluShaderUtil.DataType.FLOAT, prec, 0)]));
+                floatGroup.addChild(new es3fFragmentOutputTests.FragmentOutputCase(fmtName + '_' + precName + '_vec2', '', fboSpec, [new es3fFragmentOutputTests.FragmentOutput(gluShaderUtil.DataType.FLOAT_VEC2, prec, 0)]));
+                floatGroup.addChild(new es3fFragmentOutputTests.FragmentOutputCase(fmtName + '_' + precName + '_vec3', '', fboSpec, [new es3fFragmentOutputTests.FragmentOutput(gluShaderUtil.DataType.FLOAT_VEC3, prec, 0)]));
+                floatGroup.addChild(new es3fFragmentOutputTests.FragmentOutputCase(fmtName + '_' + precName + '_vec4', '', fboSpec, [new es3fFragmentOutputTests.FragmentOutput(gluShaderUtil.DataType.FLOAT_VEC4, prec, 0)]));
             }
         }
 
@@ -1246,17 +1249,17 @@ function(
             var fmtName = es3fFboTestUtil.getFormatName(format);
             fboSpec = [];
 
-            fboSpec.push(new BufferSpec(format, width, height, samples));
+            fboSpec.push(new es3fFragmentOutputTests.BufferSpec(format, width, height, samples));
 
             for (var precNdx = 0; precNdx < precisions.length; precNdx++)
             {
                 prec = precisions[precNdx];
                 precName = gluShaderUtil.getPrecisionName(prec);
 
-                fixedGroup.addChild(new FragmentOutputCase(fmtName + '_' + precName + '_float', '', fboSpec, [new FragmentOutput(gluShaderUtil.DataType.FLOAT, prec, 0)]));
-                fixedGroup.addChild(new FragmentOutputCase(fmtName + '_' + precName + '_vec2', '', fboSpec, [new FragmentOutput(gluShaderUtil.DataType.FLOAT_VEC2, prec, 0)]));
-                fixedGroup.addChild(new FragmentOutputCase(fmtName + '_' + precName + '_vec3', '', fboSpec, [new FragmentOutput(gluShaderUtil.DataType.FLOAT_VEC3, prec, 0)]));
-                fixedGroup.addChild(new FragmentOutputCase(fmtName + '_' + precName + '_vec4', '', fboSpec, [new FragmentOutput(gluShaderUtil.DataType.FLOAT_VEC4, prec, 0)]));
+                fixedGroup.addChild(new es3fFragmentOutputTests.FragmentOutputCase(fmtName + '_' + precName + '_float', '', fboSpec, [new es3fFragmentOutputTests.FragmentOutput(gluShaderUtil.DataType.FLOAT, prec, 0)]));
+                fixedGroup.addChild(new es3fFragmentOutputTests.FragmentOutputCase(fmtName + '_' + precName + '_vec2', '', fboSpec, [new es3fFragmentOutputTests.FragmentOutput(gluShaderUtil.DataType.FLOAT_VEC2, prec, 0)]));
+                fixedGroup.addChild(new es3fFragmentOutputTests.FragmentOutputCase(fmtName + '_' + precName + '_vec3', '', fboSpec, [new es3fFragmentOutputTests.FragmentOutput(gluShaderUtil.DataType.FLOAT_VEC3, prec, 0)]));
+                fixedGroup.addChild(new es3fFragmentOutputTests.FragmentOutputCase(fmtName + '_' + precName + '_vec4', '', fboSpec, [new es3fFragmentOutputTests.FragmentOutput(gluShaderUtil.DataType.FLOAT_VEC4, prec, 0)]));
             }
         }
 
@@ -1269,17 +1272,17 @@ function(
             var fmtName = es3fFboTestUtil.getFormatName(format);
             fboSpec = [];
 
-            fboSpec.push(new BufferSpec(format, width, height, samples));
+            fboSpec.push(new es3fFragmentOutputTests.BufferSpec(format, width, height, samples));
 
             for (var precNdx = 0; precNdx < precisions.length; precNdx++)
             {
                 prec = precisions[precNdx];
                 precName = gluShaderUtil.getPrecisionName(prec);
 
-                intGroup.addChild(new FragmentOutputCase(fmtName + '_' + precName + '_int', '', fboSpec, [new FragmentOutput(gluShaderUtil.DataType.INT, prec, 0)]));
-                intGroup.addChild(new FragmentOutputCase(fmtName + '_' + precName + '_ivec2', '', fboSpec, [new FragmentOutput(gluShaderUtil.DataType.INT_VEC2, prec, 0)]));
-                intGroup.addChild(new FragmentOutputCase(fmtName + '_' + precName + '_ivec3', '', fboSpec, [new FragmentOutput(gluShaderUtil.DataType.INT_VEC3, prec, 0)]));
-                intGroup.addChild(new FragmentOutputCase(fmtName + '_' + precName + '_ivec4', '', fboSpec, [new FragmentOutput(gluShaderUtil.DataType.INT_VEC4, prec, 0)]));
+                intGroup.addChild(new es3fFragmentOutputTests.FragmentOutputCase(fmtName + '_' + precName + '_int', '', fboSpec, [new es3fFragmentOutputTests.FragmentOutput(gluShaderUtil.DataType.INT, prec, 0)]));
+                intGroup.addChild(new es3fFragmentOutputTests.FragmentOutputCase(fmtName + '_' + precName + '_ivec2', '', fboSpec, [new es3fFragmentOutputTests.FragmentOutput(gluShaderUtil.DataType.INT_VEC2, prec, 0)]));
+                intGroup.addChild(new es3fFragmentOutputTests.FragmentOutputCase(fmtName + '_' + precName + '_ivec3', '', fboSpec, [new es3fFragmentOutputTests.FragmentOutput(gluShaderUtil.DataType.INT_VEC3, prec, 0)]));
+                intGroup.addChild(new es3fFragmentOutputTests.FragmentOutputCase(fmtName + '_' + precName + '_ivec4', '', fboSpec, [new es3fFragmentOutputTests.FragmentOutput(gluShaderUtil.DataType.INT_VEC4, prec, 0)]));
             }
         }
 
@@ -1292,17 +1295,17 @@ function(
             var fmtName = es3fFboTestUtil.getFormatName(format);
             fboSpec = [];
 
-            fboSpec.push(new BufferSpec(format, width, height, samples));
+            fboSpec.push(new es3fFragmentOutputTests.BufferSpec(format, width, height, samples));
 
             for (var precNdx = 0; precNdx < precisions.length; precNdx++)
             {
                 prec = precisions[precNdx];
                 precName = gluShaderUtil.getPrecisionName(prec);
 
-                uintGroup.addChild(new FragmentOutputCase(fmtName + '_' + precName + '_uint', '', fboSpec, [new FragmentOutput(gluShaderUtil.DataType.UINT, prec, 0)]));
-                uintGroup.addChild(new FragmentOutputCase(fmtName + '_' + precName + '_uvec2', '', fboSpec, [new FragmentOutput(gluShaderUtil.DataType.UINT_VEC2, prec, 0)]));
-                uintGroup.addChild(new FragmentOutputCase(fmtName + '_' + precName + '_uvec3', '', fboSpec, [new FragmentOutput(gluShaderUtil.DataType.UINT_VEC3, prec, 0)]));
-                uintGroup.addChild(new FragmentOutputCase(fmtName + '_' + precName + '_uvec4', '', fboSpec, [new FragmentOutput(gluShaderUtil.DataType.UINT_VEC4, prec, 0)]));
+                uintGroup.addChild(new es3fFragmentOutputTests.FragmentOutputCase(fmtName + '_' + precName + '_uint', '', fboSpec, [new es3fFragmentOutputTests.FragmentOutput(gluShaderUtil.DataType.UINT, prec, 0)]));
+                uintGroup.addChild(new es3fFragmentOutputTests.FragmentOutputCase(fmtName + '_' + precName + '_uvec2', '', fboSpec, [new es3fFragmentOutputTests.FragmentOutput(gluShaderUtil.DataType.UINT_VEC2, prec, 0)]));
+                uintGroup.addChild(new es3fFragmentOutputTests.FragmentOutputCase(fmtName + '_' + precName + '_uvec3', '', fboSpec, [new es3fFragmentOutputTests.FragmentOutput(gluShaderUtil.DataType.UINT_VEC3, prec, 0)]));
+                uintGroup.addChild(new es3fFragmentOutputTests.FragmentOutputCase(fmtName + '_' + precName + '_uvec4', '', fboSpec, [new es3fFragmentOutputTests.FragmentOutput(gluShaderUtil.DataType.UINT_VEC4, prec, 0)]));
 
             }
         }
@@ -1325,17 +1328,17 @@ function(
             fboSpec = [];
 
             for (var ndx = 0; ndx < numTargets; ndx++)
-                fboSpec.push(new BufferSpec(format, width, height, samples));
+                fboSpec.push(new es3fFragmentOutputTests.BufferSpec(format, width, height, samples));
 
             for (var precNdx = 0; precNdx < precisions.length; precNdx++)
             {
                 prec = precisions[precNdx];
                 precName = gluShaderUtil.getPrecisionName(prec);
 
-                arrayFloatGroup.addChild(new FragmentOutputCase(fmtName + '_' + precName + '_float', '', fboSpec, [new FragmentOutput(gluShaderUtil.DataType.FLOAT, prec, 0, numTargets)]));
-                arrayFloatGroup.addChild(new FragmentOutputCase(fmtName + '_' + precName + '_vec2', '', fboSpec, [new FragmentOutput(gluShaderUtil.DataType.FLOAT_VEC2, prec, 0, numTargets)]));
-                arrayFloatGroup.addChild(new FragmentOutputCase(fmtName + '_' + precName + '_vec3', '', fboSpec, [new FragmentOutput(gluShaderUtil.DataType.FLOAT_VEC3, prec, 0, numTargets)]));
-                arrayFloatGroup.addChild(new FragmentOutputCase(fmtName + '_' + precName + '_vec4', '', fboSpec, [new FragmentOutput(gluShaderUtil.DataType.FLOAT_VEC4, prec, 0, numTargets)]));
+                arrayFloatGroup.addChild(new es3fFragmentOutputTests.FragmentOutputCase(fmtName + '_' + precName + '_float', '', fboSpec, [new es3fFragmentOutputTests.FragmentOutput(gluShaderUtil.DataType.FLOAT, prec, 0, numTargets)]));
+                arrayFloatGroup.addChild(new es3fFragmentOutputTests.FragmentOutputCase(fmtName + '_' + precName + '_vec2', '', fboSpec, [new es3fFragmentOutputTests.FragmentOutput(gluShaderUtil.DataType.FLOAT_VEC2, prec, 0, numTargets)]));
+                arrayFloatGroup.addChild(new es3fFragmentOutputTests.FragmentOutputCase(fmtName + '_' + precName + '_vec3', '', fboSpec, [new es3fFragmentOutputTests.FragmentOutput(gluShaderUtil.DataType.FLOAT_VEC3, prec, 0, numTargets)]));
+                arrayFloatGroup.addChild(new es3fFragmentOutputTests.FragmentOutputCase(fmtName + '_' + precName + '_vec4', '', fboSpec, [new es3fFragmentOutputTests.FragmentOutput(gluShaderUtil.DataType.FLOAT_VEC4, prec, 0, numTargets)]));
         }
         }
 
@@ -1349,17 +1352,17 @@ function(
             fboSpec = [];
 
             for (var ndx = 0; ndx < numTargets; ndx++)
-                fboSpec.push(new BufferSpec(format, width, height, samples));
+                fboSpec.push(new es3fFragmentOutputTests.BufferSpec(format, width, height, samples));
 
             for (var precNdx = 0; precNdx < precisions.length; precNdx++)
             {
                 prec = precisions[precNdx];
                 precName = gluShaderUtil.getPrecisionName(prec);
 
-                arrayFixedGroup.addChild(new FragmentOutputCase(fmtName + '_' + precName + '_float', '', fboSpec, [new FragmentOutput(gluShaderUtil.DataType.FLOAT, prec, 0, numTargets)]));
-                arrayFixedGroup.addChild(new FragmentOutputCase(fmtName + '_' + precName + '_vec2', '', fboSpec, [new FragmentOutput(gluShaderUtil.DataType.FLOAT_VEC2, prec, 0, numTargets)]));
-                arrayFixedGroup.addChild(new FragmentOutputCase(fmtName + '_' + precName + '_vec3', '', fboSpec, [new FragmentOutput(gluShaderUtil.DataType.FLOAT_VEC3, prec, 0, numTargets)]));
-                arrayFixedGroup.addChild(new FragmentOutputCase(fmtName + '_' + precName + '_vec4', '', fboSpec, [new FragmentOutput(gluShaderUtil.DataType.FLOAT_VEC4, prec, 0, numTargets)]));
+                arrayFixedGroup.addChild(new es3fFragmentOutputTests.FragmentOutputCase(fmtName + '_' + precName + '_float', '', fboSpec, [new es3fFragmentOutputTests.FragmentOutput(gluShaderUtil.DataType.FLOAT, prec, 0, numTargets)]));
+                arrayFixedGroup.addChild(new es3fFragmentOutputTests.FragmentOutputCase(fmtName + '_' + precName + '_vec2', '', fboSpec, [new es3fFragmentOutputTests.FragmentOutput(gluShaderUtil.DataType.FLOAT_VEC2, prec, 0, numTargets)]));
+                arrayFixedGroup.addChild(new es3fFragmentOutputTests.FragmentOutputCase(fmtName + '_' + precName + '_vec3', '', fboSpec, [new es3fFragmentOutputTests.FragmentOutput(gluShaderUtil.DataType.FLOAT_VEC3, prec, 0, numTargets)]));
+                arrayFixedGroup.addChild(new es3fFragmentOutputTests.FragmentOutputCase(fmtName + '_' + precName + '_vec4', '', fboSpec, [new es3fFragmentOutputTests.FragmentOutput(gluShaderUtil.DataType.FLOAT_VEC4, prec, 0, numTargets)]));
             }
         }
 
@@ -1373,17 +1376,17 @@ function(
             fboSpec = [];
 
             for (var ndx = 0; ndx < numTargets; ndx++)
-                fboSpec.push(new BufferSpec(format, width, height, samples));
+                fboSpec.push(new es3fFragmentOutputTests.BufferSpec(format, width, height, samples));
 
             for (var precNdx = 0; precNdx < precisions.length; precNdx++)
             {
                 prec = precisions[precNdx];
                 precName = gluShaderUtil.getPrecisionName(prec);
 
-                arrayIntGroup.addChild(new FragmentOutputCase(fmtName + '_' + precName + '_int', '', fboSpec, [new FragmentOutput(gluShaderUtil.DataType.INT, prec, 0, numTargets)]));
-                arrayIntGroup.addChild(new FragmentOutputCase(fmtName + '_' + precName + '_ivec2', '', fboSpec, [new FragmentOutput(gluShaderUtil.DataType.INT_VEC2, prec, 0, numTargets)]));
-                arrayIntGroup.addChild(new FragmentOutputCase(fmtName + '_' + precName + '_ivec3', '', fboSpec, [new FragmentOutput(gluShaderUtil.DataType.INT_VEC3, prec, 0, numTargets)]));
-                arrayIntGroup.addChild(new FragmentOutputCase(fmtName + '_' + precName + '_ivec4', '', fboSpec, [new FragmentOutput(gluShaderUtil.DataType.INT_VEC4, prec, 0, numTargets)]));
+                arrayIntGroup.addChild(new es3fFragmentOutputTests.FragmentOutputCase(fmtName + '_' + precName + '_int', '', fboSpec, [new es3fFragmentOutputTests.FragmentOutput(gluShaderUtil.DataType.INT, prec, 0, numTargets)]));
+                arrayIntGroup.addChild(new es3fFragmentOutputTests.FragmentOutputCase(fmtName + '_' + precName + '_ivec2', '', fboSpec, [new es3fFragmentOutputTests.FragmentOutput(gluShaderUtil.DataType.INT_VEC2, prec, 0, numTargets)]));
+                arrayIntGroup.addChild(new es3fFragmentOutputTests.FragmentOutputCase(fmtName + '_' + precName + '_ivec3', '', fboSpec, [new es3fFragmentOutputTests.FragmentOutput(gluShaderUtil.DataType.INT_VEC3, prec, 0, numTargets)]));
+                arrayIntGroup.addChild(new es3fFragmentOutputTests.FragmentOutputCase(fmtName + '_' + precName + '_ivec4', '', fboSpec, [new es3fFragmentOutputTests.FragmentOutput(gluShaderUtil.DataType.INT_VEC4, prec, 0, numTargets)]));
             }
         }
 
@@ -1397,17 +1400,17 @@ function(
             fboSpec = [];
 
             for (var ndx = 0; ndx < numTargets; ndx++)
-                fboSpec.push(new BufferSpec(format, width, height, samples));
+                fboSpec.push(new es3fFragmentOutputTests.BufferSpec(format, width, height, samples));
 
             for (var precNdx = 0; precNdx < precisions.length; precNdx++)
             {
                 prec = precisions[precNdx];
                 precName = gluShaderUtil.getPrecisionName(prec);
 
-                arrayUintGroup.addChild(new FragmentOutputCase(fmtName + '_' + precName + '_uint', '', fboSpec, [new FragmentOutput(gluShaderUtil.DataType.UINT, prec, 0, numTargets)]));
-                arrayUintGroup.addChild(new FragmentOutputCase(fmtName + '_' + precName + '_uvec2', '', fboSpec, [new FragmentOutput(gluShaderUtil.DataType.UINT_VEC2, prec, 0, numTargets)]));
-                arrayUintGroup.addChild(new FragmentOutputCase(fmtName + '_' + precName + '_uvec3', '', fboSpec, [new FragmentOutput(gluShaderUtil.DataType.UINT_VEC3, prec, 0, numTargets)]));
-                arrayUintGroup.addChild(new FragmentOutputCase(fmtName + '_' + precName + '_uvec4', '', fboSpec, [new FragmentOutput(gluShaderUtil.DataType.UINT_VEC4, prec, 0, numTargets)]));
+                arrayUintGroup.addChild(new es3fFragmentOutputTests.FragmentOutputCase(fmtName + '_' + precName + '_uint', '', fboSpec, [new es3fFragmentOutputTests.FragmentOutput(gluShaderUtil.DataType.UINT, prec, 0, numTargets)]));
+                arrayUintGroup.addChild(new es3fFragmentOutputTests.FragmentOutputCase(fmtName + '_' + precName + '_uvec2', '', fboSpec, [new es3fFragmentOutputTests.FragmentOutput(gluShaderUtil.DataType.UINT_VEC2, prec, 0, numTargets)]));
+                arrayUintGroup.addChild(new es3fFragmentOutputTests.FragmentOutputCase(fmtName + '_' + precName + '_uvec3', '', fboSpec, [new es3fFragmentOutputTests.FragmentOutput(gluShaderUtil.DataType.UINT_VEC3, prec, 0, numTargets)]));
+                arrayUintGroup.addChild(new es3fFragmentOutputTests.FragmentOutputCase(fmtName + '_' + precName + '_uvec4', '', fboSpec, [new es3fFragmentOutputTests.FragmentOutput(gluShaderUtil.DataType.UINT_VEC4, prec, 0, numTargets)]));
             }
         }
         debug('Fragment Output Tests: arrayGroup Tests created');
@@ -1418,7 +1421,7 @@ function(
         testGroup.addChild(randomGroup);
 
         for (var seed = 0; seed < 100; seed++)
-            randomGroup.addChild(createRandomCase(2, 4, seed));
+            randomGroup.addChild(es3fFragmentOutputTests.createRandomCase(2, 4, seed));
 
         debug('Fragment Output Tests: randomGroup Tests created\n');
 
@@ -1427,7 +1430,7 @@ function(
     /**
      * Create and execute the test cases
      */
-    var run = function(context) {
+    es3fFragmentOutputTests.run = function(context) {
         gl = context;
       //Set up Test Root parameters
         var testName = 'fragment_output';
@@ -1442,18 +1445,16 @@ function(
         description(testDescription);
 
         try {
-            init(gl);
+            es3fFragmentOutputTests.init(gl);
             tcuTestCase.runTestCases();
         } catch (err) {
-            testFailedOptions('Failed to run tests', false);
+            testFailedOptions('Failed to es3fFragmentOutputTests.run tests', false);
             console.log(err);
             tcuTestCase.runner.terminate();
         }
 
     };
 
-    return {
-        run: run
-    };
+    
 
 });

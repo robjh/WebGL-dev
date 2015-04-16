@@ -18,16 +18,26 @@
  *
  */
 
-define(['framework/common/tcuTexture', 'framework/delibs/debase/deMath'], function(tcuTexture, deMath) {
-    'use strict';
+'use strict';
+goog.provide('framework.referencerenderer.rrVertexPacket');
+goog.require('framework.common.tcuTexture');
+goog.require('framework.delibs.debase.deMath');
 
-    var DE_NULL = null;
+
+goog.scope(function() {
+
+var rrVertexPacket = framework.referencerenderer.rrVertexPacket;
+var tcuTexture = framework.common.tcuTexture;
+var deMath = framework.delibs.debase.deMath;
+    
+
+    rrVertexPacket.DE_NULL = null;
 
     /**
-     * VertexPacket class. (Should only be created by VertexPacketAllocator)
+     * rrVertexPacket.VertexPacket class. (Should only be created by rrVertexPacket.VertexPacketAllocator)
      * @constructor
      */
-    var VertexPacket = function () {
+    rrVertexPacket.VertexPacket = function () {
         /** @type {number} */ this.instanceNdx;
         /** @type {number} */ this.vertexNdx;
         /** @type {Array.<number>} */ this.position; //!< Transformed position - must be written always.
@@ -37,41 +47,41 @@ define(['framework/common/tcuTexture', 'framework/delibs/debase/deMath'], functi
     };
 
     /**
-     * VertexPacketAllocator class
+     * rrVertexPacket.VertexPacketAllocator class
      * @constructor
      * @param {number} numberOfVertexOutputs
      */
-    var VertexPacketAllocator = function (numberOfVertexOutputs) {
+    rrVertexPacket.VertexPacketAllocator = function (numberOfVertexOutputs) {
         /** @type {number} */ this.m_numberOfVertexOutputs = numberOfVertexOutputs;
         /** @type {Uint8Array} */ this.m_allocations;
-        /** @type {Array.<VertexPacket>} */ this.m_singleAllocPool = [];
+        /** @type {Array.<rrVertexPacket.VertexPacket>} */ this.m_singleAllocPool = [];
     };
 
     /**
      * @return {number}
      */
-    VertexPacketAllocator.prototype.getNumVertexOutputs = function () {
+    rrVertexPacket.VertexPacketAllocator.prototype.getNumVertexOutputs = function () {
         return this.m_numberOfVertexOutputs;
     };
 
     /**
      * allocArray
      * @param {number} count
-     * @return {Array.<VertexPacket>}
+     * @return {Array.<rrVertexPacket.VertexPacket>}
      */
-    VertexPacketAllocator.prototype.allocArray = function (count) {
+    rrVertexPacket.VertexPacketAllocator.prototype.allocArray = function (count) {
         if (!count)
             return [];
 
         /** @type {number} */ var extraVaryings = (this.m_numberOfVertexOutputs == 0) ? (0) : (this.m_numberOfVertexOutputs - 1);
-        /** @type {number} TODO: Check what this size is used for */ //var packetSize = sizeof(VertexPacket) + extraVaryings * sizeof(GenericVec4);
+        /** @type {number} TODO: Check what this size is used for */ //var packetSize = sizeof(rrVertexPacket.VertexPacket) + extraVaryings * sizeof(GenericVec4);
 
-        /** @type {Array.<VertexPacket>} */ var retVal = [];
+        /** @type {Array.<rrVertexPacket.VertexPacket>} */ var retVal = [];
         /** @type {Uint8Array} TODO: same as above */ //var ptr = new deInt8[packetSize * count]; // throws bad_alloc => ok
 
         //run ctors
         for (var i = 0; i < count; ++i)
-            retVal.push(new VertexPacket());
+            retVal.push(new rrVertexPacket.VertexPacket());
 
         /** TODO: same as previous - this.m_allocations.push_back(ptr); */
 
@@ -79,21 +89,19 @@ define(['framework/common/tcuTexture', 'framework/delibs/debase/deMath'], functi
     };
 
     /**
-     * @return {VertexPacket}
+     * @return {rrVertexPacket.VertexPacket}
      */
-    VertexPacketAllocator.prototype.alloc = function () {
+    rrVertexPacket.VertexPacketAllocator.prototype.alloc = function () {
         /** @type {number} */ var poolSize = 8;
 
         if (this.m_singleAllocPool.length == 0)
             this.m_singleAllocPool = this.allocArray(poolSize);
 
-        /** @type {VertexPacket} */ var packet = this.m_singleAllocPool.pop();
+        /** @type {rrVertexPacket.VertexPacket} */ var packet = this.m_singleAllocPool.pop();
 
         return packet;
     };
 
-    return {
-        VertexPacketAllocator: VertexPacketAllocator
-    };
+    
 
 });

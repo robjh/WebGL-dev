@@ -18,8 +18,16 @@
  *
  */
 
-define(['framework/opengl/gluShaderUtil'], function(deqpUtils) {
-    'use strict';
+'use strict';
+goog.provide('framework.opengl.gluVarType');
+goog.require('framework.opengl.gluShaderUtil');
+
+
+goog.scope(function() {
+
+var gluVarType = framework.opengl.gluVarType;
+var gluShaderUtil = framework.opengl.gluShaderUtil;
+    
 
     var DE_ASSERT = function(x) {
         if (!x)
@@ -27,50 +35,50 @@ define(['framework/opengl/gluShaderUtil'], function(deqpUtils) {
     };
 
     /**
-    * VarType types enum
+    * gluVarType.VarType types enum
     * @enum {number}
     */
-    var Type = {
+    gluVarType.Type = {
        TYPE_BASIC: 0,
        TYPE_ARRAY: 1,
        TYPE_STRUCT: 2
     };
 
     /**
-    * TypeArray struct
-    * @param {VarType} elementType
+    * gluVarType.TypeArray struct
+    * @param {gluVarType.VarType} elementType
     * @param {number} arraySize
     */
-    var TypeArray = function(elementType, arraySize) {
-       /** @type {VarType} */ this.elementType = elementType;
+    gluVarType.TypeArray = function(elementType, arraySize) {
+       /** @type {gluVarType.VarType} */ this.elementType = elementType;
        /** @type {number} */ this.size = arraySize;
     };
 
     /**
-    * VarType class
+    * gluVarType.VarType class
     */
-    var VarType = function() {
-       /** @type {Type} */ this.m_type = undefined;
+    gluVarType.VarType = function() {
+       /** @type {gluVarType.Type} */ this.m_type = undefined;
        /** @type {deMath.deUint32} */ this.m_flags = 0;
 
        /*
         * m_data used to be a 'Data' union in C++. Using a var is enough here.
         * it will contain any necessary value.
         */
-       /** @type {(deqpUtils.DataType|TypeArray|StructType)} */
+       /** @type {(deqpUtils.DataType|gluVarType.TypeArray|gluVarType.StructType)} */
        this.m_data = undefined;
     };
 
-    VarType.UNSIZED_ARRAY = -1;
+    gluVarType.VarType.UNSIZED_ARRAY = -1;
 
     /**
-    * Creates a basic type VarType. Use this after the constructor call.
+    * Creates a basic type gluVarType.VarType. Use this after the constructor call.
     * @param {deqpUtils.DataType} basicType
     * @param {deMath.deUint32} flags
-    * @return {VarType} The currently modified object
+    * @return {gluVarType.VarType} The currently modified object
     */
-    VarType.prototype.VarTypeBasic = function(basicType, flags) {
-       this.m_type = Type.TYPE_BASIC;
+    gluVarType.VarType.prototype.VarTypeBasic = function(basicType, flags) {
+       this.m_type = gluVarType.Type.TYPE_BASIC;
        this.m_flags = flags;
        this.m_data = basicType;
 
@@ -78,26 +86,26 @@ define(['framework/opengl/gluShaderUtil'], function(deqpUtils) {
     };
 
     /**
-    * Creates an array type VarType. Use this after the constructor call.
-    * @param {VarType} elementType
+    * Creates an array type gluVarType.VarType. Use this after the constructor call.
+    * @param {gluVarType.VarType} elementType
     * @param {number} arraySize
-    * @return {VarType} The currently modified object
+    * @return {gluVarType.VarType} The currently modified object
     */
-    VarType.prototype.VarTypeArray = function(elementType, arraySize) {
-       this.m_type = Type.TYPE_ARRAY;
+    gluVarType.VarType.prototype.VarTypeArray = function(elementType, arraySize) {
+       this.m_type = gluVarType.Type.TYPE_ARRAY;
        this.m_flags = 0;
-       this.m_data = new TypeArray(elementType, arraySize);
+       this.m_data = new gluVarType.TypeArray(elementType, arraySize);
 
        return this;
     };
 
     /**
-    * Creates a struct type VarType. Use this after the constructor call.
-    * @param {StructType} structPtr
-    * @return {VarType} The currently modified object
+    * Creates a struct type gluVarType.VarType. Use this after the constructor call.
+    * @param {gluVarType.StructType} structPtr
+    * @return {gluVarType.VarType} The currently modified object
     */
-    VarType.prototype.VarTypeStruct = function(structPtr) {
-       this.m_type = Type.TYPE_STRUCT;
+    gluVarType.VarType.prototype.VarTypeStruct = function(structPtr) {
+       this.m_type = gluVarType.Type.TYPE_STRUCT;
        this.m_flags = 0;
        this.m_data = structPtr;
 
@@ -105,44 +113,44 @@ define(['framework/opengl/gluShaderUtil'], function(deqpUtils) {
     };
 
     /** isBasicType
-    * @return {boolean} true if the VarType represents a basic type.
+    * @return {boolean} true if the gluVarType.VarType represents a basic type.
     */
-    VarType.prototype.isBasicType = function() {
-       return this.m_type == Type.TYPE_BASIC;
+    gluVarType.VarType.prototype.isBasicType = function() {
+       return this.m_type == gluVarType.Type.TYPE_BASIC;
     };
 
     /** isArrayType
-    * @return {boolean} true if the VarType represents an array.
+    * @return {boolean} true if the gluVarType.VarType represents an array.
     */
-    VarType.prototype.isArrayType = function() {
-       return this.m_type == Type.TYPE_ARRAY;
+    gluVarType.VarType.prototype.isArrayType = function() {
+       return this.m_type == gluVarType.Type.TYPE_ARRAY;
     };
 
     /** isStructType
-    * @return {boolean} true if the VarType represents a struct.
+    * @return {boolean} true if the gluVarType.VarType represents a struct.
     */
-    VarType.prototype.isStructType = function() {
-       return this.m_type == Type.TYPE_STRUCT;
+    gluVarType.VarType.prototype.isStructType = function() {
+       return this.m_type == gluVarType.Type.TYPE_STRUCT;
     };
 
     /** getFlags
-    * @return {deUint32} returns the flags of the VarType.
+    * @return {deUint32} returns the flags of the gluVarType.VarType.
     */
-    VarType.prototype.getFlags = function() {
+    gluVarType.VarType.prototype.getFlags = function() {
        return this.m_flags;
     };
 
     /** getBasicType
-    * @return {deqpUtils.DataType} returns the basic data type of the VarType.
+    * @return {deqpUtils.DataType} returns the basic data type of the gluVarType.VarType.
     */
-    VarType.prototype.getBasicType = function() {
+    gluVarType.VarType.prototype.getBasicType = function() {
        return this.m_data;
     };
 
     /** getElementType
-    * @return {VarType} returns the VarType of the element in case of an Array.
+    * @return {gluVarType.VarType} returns the gluVarType.VarType of the element in case of an Array.
     */
-    VarType.prototype.getElementType = function() {
+    gluVarType.VarType.prototype.getElementType = function() {
        return this.m_data.elementType;
     };
 
@@ -150,21 +158,21 @@ define(['framework/opengl/gluShaderUtil'], function(deqpUtils) {
     * (not to be confused with a javascript array)
     * @return {number} returns the size of the array in case it is an array.
     */
-    VarType.prototype.getArraySize = function() {
+    gluVarType.VarType.prototype.getArraySize = function() {
        return this.m_data.size;
     };
 
     /** getStruct
-    * @return {StructType} returns the structure when it is a StructType.
+    * @return {gluVarType.StructType} returns the structure when it is a gluVarType.StructType.
     */
-    VarType.prototype.getStruct = function() {
+    gluVarType.VarType.prototype.getStruct = function() {
        return this.m_data;
     };
 
     /** getPrecision
-    * @return {StructType} returns the precision flag name.
+    * @return {gluVarType.StructType} returns the precision flag name.
     */
-    VarType.prototype.getPrecision = function() {
+    gluVarType.VarType.prototype.getPrecision = function() {
         return this.m_flags;
      };
 
@@ -172,29 +180,29 @@ define(['framework/opengl/gluShaderUtil'], function(deqpUtils) {
     * getScalarSize
     * @return {number} size of the scalar
     */
-    VarType.prototype.getScalarSize = function() {
+    gluVarType.VarType.prototype.getScalarSize = function() {
         switch (this.m_type)
         {
-            case Type.TYPE_BASIC:
+            case gluVarType.Type.TYPE_BASIC:
             {
                 return deqpUtils.getDataTypeScalarSize(this.getBasicType());
             }
 
             // TODO: check implementation below: return m_data.array.elementType->getScalarSize()*m_data.array.size;
-            case Type.TYPE_ARRAY:
+            case gluVarType.Type.TYPE_ARRAY:
             {
-                /** @type {TypeArray} */ var m_data = this.m_data;
+                /** @type {gluVarType.TypeArray} */ var m_data = this.m_data;
                 return m_data.elementType.getScalarSize() * m_data.size;
             }
 
-            case Type.TYPE_STRUCT:
+            case gluVarType.Type.TYPE_STRUCT:
             {
                 var size = 0;
 
-                /** @type {StructType} */ var struct = this.m_data;
+                /** @type {gluVarType.StructType} */ var struct = this.m_data;
 
                 // TODO: check loop conditions below
-                // for (StructType::ConstIterator iter = m_data.structPtr->begin(); iter != m_data.structPtr->end(); iter++)
+                // for (gluVarType.StructType::ConstIterator iter = m_data.structPtr->begin(); iter != m_data.structPtr->end(); iter++)
                 for (var iter = 0; struct.m_members[iter] < struct.getSize; iter++)
                     size += struct.getMember(iter).m_type.getScalarSize();
                 return size;
@@ -210,21 +218,21 @@ define(['framework/opengl/gluShaderUtil'], function(deqpUtils) {
     * is
     * @return {bool} returns true if the current object is equivalent to other.
     */
-    VarType.prototype.is = function(other) {
+    gluVarType.VarType.prototype.is = function(other) {
         if (this.m_type != other.m_type)
             return false;
 
         switch (this.m_type)
         {
-            case Type.TYPE_BASIC:
+            case gluVarType.Type.TYPE_BASIC:
                 return this.m_data.type == other.m_data.type &&
                        this.m_data.precision == other.m_data.precision;
 
-            case Type.TYPE_ARRAY:
+            case gluVarType.Type.TYPE_ARRAY:
                 return this.m_data.elementType == other.m_data.elementType &&
                        this.m_data.size == other.m_data.size;
 
-            case Type.TYPE_STRUCT:
+            case gluVarType.Type.TYPE_STRUCT:
                 return this.m_data === other.m_data;
 
             default:
@@ -237,55 +245,55 @@ define(['framework/opengl/gluShaderUtil'], function(deqpUtils) {
     * isnt
     * @return {bool} returns true if the current object is not equivalent to other.
     */
-    VarType.prototype.isnt = function(other) {
+    gluVarType.VarType.prototype.isnt = function(other) {
         return !(this.is(other));
     };
 
     /**
-     * Creates a basic type VarType.
+     * Creates a basic type gluVarType.VarType.
      * @param {deqpUtils.DataType} basicType
      * @param {deMath.deUint32} flags
-     * @return {VarType}
+     * @return {gluVarType.VarType}
      */
-    var newTypeBasic = function(basicType, flags) {
-       return new VarType().VarTypeBasic(basicType, flags);
+    gluVarType.newTypeBasic = function(basicType, flags) {
+       return new gluVarType.VarType().VarTypeBasic(basicType, flags);
     };
 
     /**
-    * Creates an array type VarType.
-    * @param {VarType} elementType
+    * Creates an array type gluVarType.VarType.
+    * @param {gluVarType.VarType} elementType
     * @param {number} arraySize
-    * @return {VarType}
+    * @return {gluVarType.VarType}
     */
-    var newTypeArray = function(elementType, arraySize) {
-       return new VarType().VarTypeArray(elementType, arraySize);
+    gluVarType.newTypeArray = function(elementType, arraySize) {
+       return new gluVarType.VarType().VarTypeArray(elementType, arraySize);
     };
 
     /**
-    * Creates a struct type VarType.
-    * @param {StructType} structPtr
-    * @return {VarType}
+    * Creates a struct type gluVarType.VarType.
+    * @param {gluVarType.StructType} structPtr
+    * @return {gluVarType.VarType}
     */
-    var newTypeStruct = function(structPtr) {
-        return new VarType().VarTypeStruct(structPtr);
+    gluVarType.newTypeStruct = function(structPtr) {
+        return new gluVarType.VarType().VarTypeStruct(structPtr);
     };
 
     /**
-     * StructMember class
+     * gluVarType.StructMember class
      */
-     var StructMember = function() {
+     gluVarType.StructMember = function() {
         /** @type {string} */ this.m_name;
-        /** @type {VarType} */ this.m_type;
+        /** @type {gluVarType.VarType} */ this.m_type;
         /** @type {deMath.deUint32} */ // this.m_flags = 0; // only in glsUniformBlockCase
      };
 
      /**
-      * Creates a StructMember. Use this after the constructor call.
+      * Creates a gluVarType.StructMember. Use this after the constructor call.
       * @param {string} name
-      * @param {VarType} type
-      * @return {StructMember} The currently modified object
+      * @param {gluVarType.VarType} type
+      * @return {gluVarType.StructMember} The currently modified object
       */
-      StructMember.prototype.Constructor = function(name, type) {
+      gluVarType.StructMember.prototype.Constructor = function(name, type) {
          this.m_type = type;
          this.m_name = name;
          // this.m_flags = flags; // only in glsUniformBlockCase
@@ -294,87 +302,87 @@ define(['framework/opengl/gluShaderUtil'], function(deqpUtils) {
       };
 
       /** getName
-       * @return {string} name of the StructMember object.
+       * @return {string} name of the gluVarType.StructMember object.
        */
-      StructMember.prototype.getName = function() {
+      gluVarType.StructMember.prototype.getName = function() {
           return this.m_name;
        };
 
       /** getType
-       * @return {string} type of the StructMember object.
+       * @return {string} type of the gluVarType.StructMember object.
        */
-      StructMember.prototype.getType = function() {
+      gluVarType.StructMember.prototype.getType = function() {
            return this.m_type;
         };
 
       /**  only in glsUniformBlockCase! getFlags
       * @return {deMath.deUint32} the flags in the member
       */
-      StructMember.prototype.getFlags = function() { return this.m_flags; };
+      gluVarType.StructMember.prototype.getFlags = function() { return this.m_flags; };
 
       /**
-       * Creates a StructMember.
+       * Creates a gluVarType.StructMember.
        * @param {string} name
-       * @param {VarType} type
-       * @return {StructMember}
+       * @param {gluVarType.VarType} type
+       * @return {gluVarType.StructMember}
        */
-       var newStructMember = function(name, type) {
-           return new StructMember().Constructor(name, type);
+       gluVarType.newStructMember = function(name, type) {
+           return new gluVarType.StructMember().Constructor(name, type);
        };
 
      /**
-      * StructType class
+      * gluVarType.StructType class
       */
-      var StructType = function() {
+      gluVarType.StructType = function() {
          /** @type {string} */ this.m_typeName = undefined;
-         /** @type {Array.<StructMember>} */ this.m_members = [];
+         /** @type {Array.<gluVarType.StructMember>} */ this.m_members = [];
       };
 
     /**
-     * Creates a StructType. Use this after the constructor call.
+     * Creates a gluVarType.StructType. Use this after the constructor call.
      * @param {string} name
-     * @return {StructType} The currently modified object
+     * @return {gluVarType.StructType} The currently modified object
      */
-      StructType.prototype.Constructor = function(name) {
+      gluVarType.StructType.prototype.Constructor = function(name) {
           /** @type {string}*/ this.m_typeName = this.setTypeName(name);
           return this;
      };
 
      /** hasTypeName
-      * Checks if the StructType m_typeName is defined
+      * Checks if the gluVarType.StructType m_typeName is defined
       * @return {boolean}
       **/
-      StructType.prototype.hasTypeName = function() {
+      gluVarType.StructType.prototype.hasTypeName = function() {
          return (this.m_typeName !== 'undefined');
      };
 
      /** setTypeName
       * @param {string} name
-      * @return {string} returns StructType.m_typeName
+      * @return {string} returns gluVarType.StructType.m_typeName
       **/
-      StructType.prototype.setTypeName = function(name) {
+      gluVarType.StructType.prototype.setTypeName = function(name) {
          return this.m_typeName = name;
      };
 
      /** getTypeName
      * @return {string}
      **/
-     StructType.prototype.getTypeName = function() {
+     gluVarType.StructType.prototype.getTypeName = function() {
          return this.m_typeName;
      };
 
      /** getNumMembers
      * @return {number}
      **/
-     StructType.prototype.getNumMembers = function() {
+     gluVarType.StructType.prototype.getNumMembers = function() {
          return this.m_members.length;
      };
 
      /** getMember
      * @param {number} memberNdx The index of the member to retrieve.
-     * @return {StructMember}
+     * @return {gluVarType.StructMember}
      **/
-     StructType.prototype.getMember = function(memberNdx) {
+     gluVarType.StructType.prototype.getMember = function(memberNdx) {
          if (memberNdx >= 0 && memberNdx < this.m_members.length)
              return this.m_members[memberNdx];
          else {
@@ -386,33 +394,33 @@ define(['framework/opengl/gluShaderUtil'], function(deqpUtils) {
      /** getSize
      * @return {number} The size of the m_members array.
      **/
-     StructType.prototype.getSize = function() {
+     gluVarType.StructType.prototype.getSize = function() {
          return this.m_members.length;
      };
 
      /** addMember
      * @param {string} name
-     * @param {VarType} type
+     * @param {gluVarType.VarType} type
      **/
-     StructType.prototype.addMember = function(name, type) {
-        var member = newStructMember(name, type);
+     gluVarType.StructType.prototype.addMember = function(name, type) {
+        var member = gluVarType.newStructMember(name, type);
          this.m_members.push(member);
      };
 
      /**
-      * Creates a StructType.
+      * Creates a gluVarType.StructType.
       * @param {string} name
-      * @return {StructType}
+      * @return {gluVarType.StructType}
       */
-      var newStructType = function(name) {
-          return new StructType().Constructor(name);
+      gluVarType.newStructType = function(name) {
+          return new gluVarType.StructType().Constructor(name);
       };
 
       /**
        * @param {number} level
        * @return {string}
        */
-    var indent = function(level) {
+    gluVarType.indent = function(level) {
         /** @type {string} */ var str = '';
         for (var i = 0; i < level; i++)
             str += '\t';
@@ -420,15 +428,15 @@ define(['framework/opengl/gluShaderUtil'], function(deqpUtils) {
     };
 
     /**
-     * @param {VarType} varType
+     * @param {gluVarType.VarType} varType
      * @param {string} name
      * @param {number} level
      * @return {string}
      */
-    var declareVariable = function(varType, name, level) {
+    gluVarType.declareVariable = function(varType, name, level) {
         /** @type {string} */ var str = '';
-        /** @type {VarType} */ var type = varType;
-        /** @type {VarType} */ var curType = type;
+        /** @type {gluVarType.VarType} */ var type = varType;
+        /** @type {gluVarType.VarType} */ var curType = type;
         /** @type {Array.<number>} */ var arraySizes = [];
 
         // Handle arrays.
@@ -446,12 +454,12 @@ define(['framework/opengl/gluShaderUtil'], function(deqpUtils) {
         }
         else if (curType.isStructType())
         {
-            /** @type {StructType} */ var structPtr = curType.getStruct();
+            /** @type {gluVarType.StructType} */ var structPtr = curType.getStruct();
 
             if (structPtr.hasTypeName())
                 str += structPtr.getTypeName();
             else
-                str += declareStructType(structPtr, level); // Generate inline declaration.
+                str += gluVarType.declareStructType(structPtr, level); // Generate inline declaration.
         }
         else
             DE_ASSERT(false);
@@ -462,7 +470,7 @@ define(['framework/opengl/gluShaderUtil'], function(deqpUtils) {
         for (var size = 0; size < arraySizes.length; size++)//std::vector<int>::const_iterator sizeIter = arraySizes.begin(); sizeIter != arraySizes.end(); sizeIter++)
         {
             /** @type {number} */ var arrSize = arraySizes[size];
-            if (arrSize == VarType.UNSIZED_ARRAY)
+            if (arrSize == gluVarType.VarType.UNSIZED_ARRAY)
                 str += '[]';
             else
                 str += '[' + arrSize + ']';
@@ -472,44 +480,31 @@ define(['framework/opengl/gluShaderUtil'], function(deqpUtils) {
     };
 
     /**
-     * @param {StructType} structType
+     * @param {gluVarType.StructType} structType
      * @param {number} level
      * @return {string}
      */
-    var declareStructType = function(structType, level_) {
+    gluVarType.declareStructType = function(structType, level_) {
         /** @type {string} */ var str = 'struct';
         var level = level_ || 0;
 
-        // Type name is optional.
+        // gluVarType.Type name is optional.
         if (structType.hasTypeName())
             str += ' ' + structType.getTypeName();
 
-        str += '\n' + indent(level) + '{\n';
+        str += '\n' + gluVarType.indent(level) + '{\n';
 
-        for (var memberNdx = 0; memberNdx < structType.getSize(); memberNdx++)//StructType::ConstIterator memberIter = decl.structPtr->begin(); memberIter != decl.structPtr->end(); memberIter++)
+        for (var memberNdx = 0; memberNdx < structType.getSize(); memberNdx++)//gluVarType.StructType::ConstIterator memberIter = decl.structPtr->begin(); memberIter != decl.structPtr->end(); memberIter++)
         {
-            /** @type {StructMember} */ var memberIter = structType.getMember(memberNdx);
-            str += indent(level + 1);
-            str += declareVariable(memberIter.getType(), memberIter.getName(), level + 1) + ';\n';
+            /** @type {gluVarType.StructMember} */ var memberIter = structType.getMember(memberNdx);
+            str += gluVarType.indent(level + 1);
+            str += gluVarType.declareVariable(memberIter.getType(), memberIter.getName(), level + 1) + ';\n';
         }
 
-        str += indent(level) + '}';
+        str += gluVarType.indent(level) + '}';
 
         return str;
     };
 
-    return {
-        Type: Type,
-        VarType: VarType,
-        StructMember: StructMember,
-        StructType: StructType,
-        newTypeBasic: newTypeBasic,
-        newTypeArray: newTypeArray,
-        newTypeStruct: newTypeStruct,
-        newStructMember: newStructMember,
-        newStructType: newStructType,
-        declareVariable: declareVariable,
-        declareStructType: declareStructType,
-        UNSIZED_ARRAY: VarType.UNSIZED_ARRAY //!< Array length for unsized arrays.
-    };
+    
 });

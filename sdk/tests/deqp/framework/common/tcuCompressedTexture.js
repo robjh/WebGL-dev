@@ -27,18 +27,28 @@
  * \param texFormat Generic texture format.
  * \return GL pixel transfer format.
  *//*--------------------------------------------------------------------*/
-define(['framework/common/tcuTexture', 'framework/delibs/debase/deMath'], function(tcuTexture, deMath) {
+'use strict';
+goog.provide('framework.common.tcuCompressedTexture');
+goog.require('framework.common.tcuTexture');
+goog.require('framework.delibs.debase.deMath');
+
+
+goog.scope(function() {
+
+var tcuCompressedTexture = framework.common.tcuCompressedTexture;
+var tcuTexture = framework.common.tcuTexture;
+var deMath = framework.delibs.debase.deMath;
 
     var DE_ASSERT = function(x) {
         if (!x)
             throw new Error('Assert failed');
     };
-    var DE_FALSE = false;
+    tcuCompressedTexture.DE_FALSE = false;
 
 /**
  * @enum
  */
-var Format = {
+tcuCompressedTexture.Format = {
     ETC1_RGB8: 0,
     EAC_R11: 1,
     EAC_SIGNED_R11: 2,
@@ -81,23 +91,23 @@ var Format = {
     ASTC_12x12_SRGB8_ALPHA8: 38
 };
 
-var divRoundUp = function(a, b) {
+tcuCompressedTexture.divRoundUp = function(a, b) {
     return Math.floor(a / b) + ((a % b) ? 1 : 0);
 };
 
-var isEtcFormat = function(fmt) {
+tcuCompressedTexture.isEtcFormat = function(fmt) {
     switch (fmt) {
-        case Format.ETC1_RGB8:
-        case Format.EAC_R11:
-        case Format.EAC_SIGNED_R11:
-        case Format.EAC_RG11:
-        case Format.EAC_SIGNED_RG11:
-        case Format.ETC2_RGB8:
-        case Format.ETC2_SRGB8:
-        case Format.ETC2_RGB8_PUNCHTHROUGH_ALPHA1:
-        case Format.ETC2_SRGB8_PUNCHTHROUGH_ALPHA1:
-        case Format.ETC2_EAC_RGBA8:
-        case Format.ETC2_EAC_SRGB8_ALPHA8:
+        case tcuCompressedTexture.Format.ETC1_RGB8:
+        case tcuCompressedTexture.Format.EAC_R11:
+        case tcuCompressedTexture.Format.EAC_SIGNED_R11:
+        case tcuCompressedTexture.Format.EAC_RG11:
+        case tcuCompressedTexture.Format.EAC_SIGNED_RG11:
+        case tcuCompressedTexture.Format.ETC2_RGB8:
+        case tcuCompressedTexture.Format.ETC2_SRGB8:
+        case tcuCompressedTexture.Format.ETC2_RGB8_PUNCHTHROUGH_ALPHA1:
+        case tcuCompressedTexture.Format.ETC2_SRGB8_PUNCHTHROUGH_ALPHA1:
+        case tcuCompressedTexture.Format.ETC2_EAC_RGBA8:
+        case tcuCompressedTexture.Format.ETC2_EAC_SRGB8_ALPHA8:
             return true;
 
         default:
@@ -105,7 +115,7 @@ var isEtcFormat = function(fmt) {
     }
 };
 
-var etcDecompressInternal = function() {
+tcuCompressedTexture.etcDecompressInternal = function() {
 
 var ETC2_BLOCK_WIDTH = 4;
 var ETC2_BLOCK_HEIGHT = 4;
@@ -277,8 +287,8 @@ var decompressEAC11Block = function(dst, src, signedMode)
 };
 
 var decompressEAC_R11 = function(/*const tcu::PixelBufferAccess&*/ dst, width, height, src, signedMode) {
-    /** @const */ var numBlocksX = divRoundUp(width, 4);
-    /** @const */ var numBlocksY = divRoundUp(height, 4);
+    /** @const */ var numBlocksX = tcuCompressedTexture.divRoundUp(width, 4);
+    /** @const */ var numBlocksY = tcuCompressedTexture.divRoundUp(height, 4);
     var dstPtr;
     var dstRowPitch = dst.getRowPitch();
     var dstPixelSize = ETC2_UNCOMPRESSED_PIXEL_SIZE_R11;
@@ -324,8 +334,8 @@ var decompressEAC_R11 = function(/*const tcu::PixelBufferAccess&*/ dst, width, h
 };
 
 var decompressEAC_RG11 = function(/*const tcu::PixelBufferAccess&*/ dst, width, height, src, signedMode) {
-    /** @const */ var numBlocksX = divRoundUp(width, 4);
-    /** @const */ var numBlocksY = divRoundUp(height, 4);
+    /** @const */ var numBlocksX = tcuCompressedTexture.divRoundUp(width, 4);
+    /** @const */ var numBlocksY = tcuCompressedTexture.divRoundUp(height, 4);
     var dstPtr;
     var dstRowPitch = dst.getRowPitch();
     var dstPixelSize = ETC2_UNCOMPRESSED_PIXEL_SIZE_RG11;
@@ -673,8 +683,8 @@ var decompressEAC8Block = function(dst, src) {
 };
 
 var decompressETC2 = function(/*const tcu::PixelBufferAccess&*/ dst, width, height, src) {
-    var numBlocksX = divRoundUp(width, 4);
-    var numBlocksY = divRoundUp(height, 4);
+    var numBlocksX = tcuCompressedTexture.divRoundUp(width, 4);
+    var numBlocksY = tcuCompressedTexture.divRoundUp(height, 4);
     var dstPtr = new Uint8Array(dst.m_data);
     var dstRowPitch = dst.getRowPitch();
     var dstPixelSize = ETC2_UNCOMPRESSED_PIXEL_SIZE_RGB8;
@@ -705,8 +715,8 @@ var decompressETC2 = function(/*const tcu::PixelBufferAccess&*/ dst, width, heig
 };
 
 var decompressETC2_EAC_RGBA8 = function(/*const tcu::PixelBufferAccess&*/ dst, width, height, src) {
-    var numBlocksX = divRoundUp(width, 4);
-    var numBlocksY = divRoundUp(height, 4);
+    var numBlocksX = tcuCompressedTexture.divRoundUp(width, 4);
+    var numBlocksY = tcuCompressedTexture.divRoundUp(height, 4);
     var dstPtr = new Uint8Array(dst.m_data);
     var dstRowPitch = dst.getRowPitch();
     var dstPixelSize = ETC2_UNCOMPRESSED_PIXEL_SIZE_RGBA8;
@@ -744,8 +754,8 @@ var decompressETC2_EAC_RGBA8 = function(/*const tcu::PixelBufferAccess&*/ dst, w
 };
 
 var decompressETC2_RGB8_PUNCHTHROUGH_ALPHA1 = function(/*const tcu::PixelBufferAccess&*/ dst, width, height, src) {
-    var numBlocksX = divRoundUp(width, 4);
-    var numBlocksY = divRoundUp(height, 4);
+    var numBlocksX = tcuCompressedTexture.divRoundUp(width, 4);
+    var numBlocksY = tcuCompressedTexture.divRoundUp(height, 4);
     var dstPtr = new Uint8Array(dst.m_data);
     var dstRowPitch = dst.getRowPitch();
     var dstPixelSize = ETC2_UNCOMPRESSED_PIXEL_SIZE_RGBA8;
@@ -793,17 +803,17 @@ return {
 /**
  * @constructor
  */
-var CompressedTexture = function(format, width, height, depth) {
+tcuCompressedTexture.CompressedTexture = function(format, width, height, depth) {
     this.setStorage(format, width, height, depth);
 };
 
-CompressedTexture.prototype.setStorage = function(format, width, height, depth) {
+tcuCompressedTexture.CompressedTexture.prototype.setStorage = function(format, width, height, depth) {
     this.m_format = format;
     this.m_width = width;
     this.m_height = height;
     this.m_depth = depth || 1;
 
-    if (isEtcFormat(this.m_format))
+    if (tcuCompressedTexture.isEtcFormat(this.m_format))
     {
         DE_ASSERT(this.m_depth == 1);
 
@@ -811,24 +821,24 @@ CompressedTexture.prototype.setStorage = function(format, width, height, depth) 
 
         switch (this.m_format)
         {
-            case Format.ETC1_RGB8: blockSizeMultiplier = 1; break;
-            case Format.EAC_R11: blockSizeMultiplier = 1; break;
-            case Format.EAC_SIGNED_R11: blockSizeMultiplier = 1; break;
-            case Format.EAC_RG11: blockSizeMultiplier = 2; break;
-            case Format.EAC_SIGNED_RG11: blockSizeMultiplier = 2; break;
-            case Format.ETC2_RGB8: blockSizeMultiplier = 1; break;
-            case Format.ETC2_SRGB8: blockSizeMultiplier = 1; break;
-            case Format.ETC2_RGB8_PUNCHTHROUGH_ALPHA1: blockSizeMultiplier = 1; break;
-            case Format.ETC2_SRGB8_PUNCHTHROUGH_ALPHA1: blockSizeMultiplier = 1; break;
-            case Format.ETC2_EAC_RGBA8: blockSizeMultiplier = 2; break;
-            case Format.ETC2_EAC_SRGB8_ALPHA8: blockSizeMultiplier = 2; break;
+            case tcuCompressedTexture.Format.ETC1_RGB8: blockSizeMultiplier = 1; break;
+            case tcuCompressedTexture.Format.EAC_R11: blockSizeMultiplier = 1; break;
+            case tcuCompressedTexture.Format.EAC_SIGNED_R11: blockSizeMultiplier = 1; break;
+            case tcuCompressedTexture.Format.EAC_RG11: blockSizeMultiplier = 2; break;
+            case tcuCompressedTexture.Format.EAC_SIGNED_RG11: blockSizeMultiplier = 2; break;
+            case tcuCompressedTexture.Format.ETC2_RGB8: blockSizeMultiplier = 1; break;
+            case tcuCompressedTexture.Format.ETC2_SRGB8: blockSizeMultiplier = 1; break;
+            case tcuCompressedTexture.Format.ETC2_RGB8_PUNCHTHROUGH_ALPHA1: blockSizeMultiplier = 1; break;
+            case tcuCompressedTexture.Format.ETC2_SRGB8_PUNCHTHROUGH_ALPHA1: blockSizeMultiplier = 1; break;
+            case tcuCompressedTexture.Format.ETC2_EAC_RGBA8: blockSizeMultiplier = 2; break;
+            case tcuCompressedTexture.Format.ETC2_EAC_SRGB8_ALPHA8: blockSizeMultiplier = 2; break;
 
             default:
                 throw new Error('Unsupported format ' + format);
                 break;
         }
 
-        this.m_array = new ArrayBuffer(blockSizeMultiplier * 8 * divRoundUp(this.m_width, 4) * divRoundUp(this.m_height, 4));
+        this.m_array = new ArrayBuffer(blockSizeMultiplier * 8 * tcuCompressedTexture.divRoundUp(this.m_width, 4) * tcuCompressedTexture.divRoundUp(this.m_height, 4));
         this.m_data = new Uint8Array(this.m_array);
     }
     // else if (isASTCFormat(this.m_format))
@@ -837,7 +847,7 @@ CompressedTexture.prototype.setStorage = function(format, width, height, depth) 
     //         throw tcu::InternalError("3D ASTC textures not currently supported");
 
     //     const IVec3 blockSize = getASTCBlockSize(this.m_format);
-    //     this.m_data.resize(ASTC_BLOCK_SIZE_BYTES * divRoundUp(this.m_width, blockSize.x()) * divRoundUp(this.m_height, blockSize.y()) * divRoundUp(this.m_depth, blockSize.z()));
+    //     this.m_data.resize(ASTC_BLOCK_SIZE_BYTES * tcuCompressedTexture.divRoundUp(this.m_width, blockSize.x()) * tcuCompressedTexture.divRoundUp(this.m_height, blockSize.y()) * tcuCompressedTexture.divRoundUp(this.m_depth, blockSize.z()));
     // }
     // else
     // {
@@ -850,22 +860,22 @@ CompressedTexture.prototype.setStorage = function(format, width, height, depth) 
 /*--------------------------------------------------------------------*//*!
  * \brief Get uncompressed texture format
  *//*--------------------------------------------------------------------*/
-CompressedTexture.prototype.getUncompressedFormat = function() {
-    if (isEtcFormat(this.m_format))
+tcuCompressedTexture.CompressedTexture.prototype.getUncompressedFormat = function() {
+    if (tcuCompressedTexture.isEtcFormat(this.m_format))
     {
         switch (this.m_format)
         {
-            case Format.ETC1_RGB8: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGB, tcuTexture.ChannelType.UNORM_INT8);
-            case Format.EAC_R11: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.R, tcuTexture.ChannelType.UNORM_INT16);
-            case Format.EAC_SIGNED_R11: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.R, tcuTexture.ChannelType.SNORM_INT16);
-            case Format.EAC_RG11: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RG, tcuTexture.ChannelType.UNORM_INT16);
-            case Format.EAC_SIGNED_RG11: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RG, tcuTexture.ChannelType.SNORM_INT16);
-            case Format.ETC2_RGB8: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGB, tcuTexture.ChannelType.UNORM_INT8);
-            case Format.ETC2_SRGB8: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.sRGB, tcuTexture.ChannelType.UNORM_INT8);
-            case Format.ETC2_RGB8_PUNCHTHROUGH_ALPHA1: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.UNORM_INT8);
-            case Format.ETC2_SRGB8_PUNCHTHROUGH_ALPHA1: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.sRGBA, tcuTexture.ChannelType.UNORM_INT8);
-            case Format.ETC2_EAC_RGBA8: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.UNORM_INT8);
-            case Format.ETC2_EAC_SRGB8_ALPHA8: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.sRGBA, tcuTexture.ChannelType.UNORM_INT8);
+            case tcuCompressedTexture.Format.ETC1_RGB8: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGB, tcuTexture.ChannelType.UNORM_INT8);
+            case tcuCompressedTexture.Format.EAC_R11: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.R, tcuTexture.ChannelType.UNORM_INT16);
+            case tcuCompressedTexture.Format.EAC_SIGNED_R11: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.R, tcuTexture.ChannelType.SNORM_INT16);
+            case tcuCompressedTexture.Format.EAC_RG11: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RG, tcuTexture.ChannelType.UNORM_INT16);
+            case tcuCompressedTexture.Format.EAC_SIGNED_RG11: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RG, tcuTexture.ChannelType.SNORM_INT16);
+            case tcuCompressedTexture.Format.ETC2_RGB8: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGB, tcuTexture.ChannelType.UNORM_INT8);
+            case tcuCompressedTexture.Format.ETC2_SRGB8: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.sRGB, tcuTexture.ChannelType.UNORM_INT8);
+            case tcuCompressedTexture.Format.ETC2_RGB8_PUNCHTHROUGH_ALPHA1: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.UNORM_INT8);
+            case tcuCompressedTexture.Format.ETC2_SRGB8_PUNCHTHROUGH_ALPHA1: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.sRGBA, tcuTexture.ChannelType.UNORM_INT8);
+            case tcuCompressedTexture.Format.ETC2_EAC_RGBA8: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.UNORM_INT8);
+            case tcuCompressedTexture.Format.ETC2_EAC_SRGB8_ALPHA8: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.sRGBA, tcuTexture.ChannelType.UNORM_INT8);
             default:
                 throw new Error('Unsupported format ' + this.m_format);
         }
@@ -888,27 +898,27 @@ CompressedTexture.prototype.getUncompressedFormat = function() {
  * \brief Decode to uncompressed pixel data
  * \param dst Destination buffer
  *//*--------------------------------------------------------------------*/
-CompressedTexture.prototype.decompress = function(/*const tcu::PixelBufferAccess&*/ dst) {
+tcuCompressedTexture.CompressedTexture.prototype.decompress = function(/*const tcu::PixelBufferAccess&*/ dst) {
     DE_ASSERT(dst.getWidth() == this.m_width && dst.getHeight() == this.m_height && dst.getDepth() == 1);
     var format = this.getUncompressedFormat();
     if (dst.getFormat().order != format.order || dst.getFormat().type != format.type)
         throw new Error('Formats do not match.');
 
-    if (isEtcFormat(this.m_format))
+    if (tcuCompressedTexture.isEtcFormat(this.m_format))
     {
         switch (this.m_format)
         {
-            // case Format.ETC1_RGB8:                            decompressETC1                                (dst, this.m_width, this.m_height, this.m_data);            break;
-            case Format.EAC_R11: etcDecompressInternal.decompressEAC_R11(dst, this.m_width, this.m_height, this.m_array, false); break;
-            case Format.EAC_SIGNED_R11: etcDecompressInternal.decompressEAC_R11(dst, this.m_width, this.m_height, this.m_array, true); break;
-            case Format.EAC_RG11: etcDecompressInternal.decompressEAC_RG11(dst, this.m_width, this.m_height, this.m_array, false); break;
-            case Format.EAC_SIGNED_RG11: etcDecompressInternal.decompressEAC_RG11(dst, this.m_width, this.m_height, this.m_array, true); break;
-            case Format.ETC2_RGB8: etcDecompressInternal.decompressETC2(dst, this.m_width, this.m_height, this.m_array); break;
-            case Format.ETC2_SRGB8: etcDecompressInternal.decompressETC2(dst, this.m_width, this.m_height, this.m_array); break;
-            case Format.ETC2_RGB8_PUNCHTHROUGH_ALPHA1: etcDecompressInternal.decompressETC2_RGB8_PUNCHTHROUGH_ALPHA1(dst, this.m_width, this.m_height, this.m_array); break;
-            case Format.ETC2_SRGB8_PUNCHTHROUGH_ALPHA1: etcDecompressInternal.decompressETC2_RGB8_PUNCHTHROUGH_ALPHA1(dst, this.m_width, this.m_height, this.m_array); break;
-            case Format.ETC2_EAC_RGBA8: etcDecompressInternal.decompressETC2_EAC_RGBA8(dst, this.m_width, this.m_height, this.m_array); break;
-            case Format.ETC2_EAC_SRGB8_ALPHA8: etcDecompressInternal.decompressETC2_EAC_RGBA8(dst, this.m_width, this.m_height, this.m_array); break;
+            // case tcuCompressedTexture.Format.ETC1_RGB8:                            decompressETC1                                (dst, this.m_width, this.m_height, this.m_data);            break;
+            case tcuCompressedTexture.Format.EAC_R11: tcuCompressedTexture.etcDecompressInternal.decompressEAC_R11(dst, this.m_width, this.m_height, this.m_array, false); break;
+            case tcuCompressedTexture.Format.EAC_SIGNED_R11: tcuCompressedTexture.etcDecompressInternal.decompressEAC_R11(dst, this.m_width, this.m_height, this.m_array, true); break;
+            case tcuCompressedTexture.Format.EAC_RG11: tcuCompressedTexture.etcDecompressInternal.decompressEAC_RG11(dst, this.m_width, this.m_height, this.m_array, false); break;
+            case tcuCompressedTexture.Format.EAC_SIGNED_RG11: tcuCompressedTexture.etcDecompressInternal.decompressEAC_RG11(dst, this.m_width, this.m_height, this.m_array, true); break;
+            case tcuCompressedTexture.Format.ETC2_RGB8: tcuCompressedTexture.etcDecompressInternal.decompressETC2(dst, this.m_width, this.m_height, this.m_array); break;
+            case tcuCompressedTexture.Format.ETC2_SRGB8: tcuCompressedTexture.etcDecompressInternal.decompressETC2(dst, this.m_width, this.m_height, this.m_array); break;
+            case tcuCompressedTexture.Format.ETC2_RGB8_PUNCHTHROUGH_ALPHA1: tcuCompressedTexture.etcDecompressInternal.decompressETC2_RGB8_PUNCHTHROUGH_ALPHA1(dst, this.m_width, this.m_height, this.m_array); break;
+            case tcuCompressedTexture.Format.ETC2_SRGB8_PUNCHTHROUGH_ALPHA1: tcuCompressedTexture.etcDecompressInternal.decompressETC2_RGB8_PUNCHTHROUGH_ALPHA1(dst, this.m_width, this.m_height, this.m_array); break;
+            case tcuCompressedTexture.Format.ETC2_EAC_RGBA8: tcuCompressedTexture.etcDecompressInternal.decompressETC2_EAC_RGBA8(dst, this.m_width, this.m_height, this.m_array); break;
+            case tcuCompressedTexture.Format.ETC2_EAC_SRGB8_ALPHA8: tcuCompressedTexture.etcDecompressInternal.decompressETC2_EAC_RGBA8(dst, this.m_width, this.m_height, this.m_array); break;
 
             default:
                 throw new Error('Unsupported format ' + this.m_format);
@@ -929,9 +939,6 @@ CompressedTexture.prototype.decompress = function(/*const tcu::PixelBufferAccess
         throw new Error('Unsupported format ' + this.m_format);
 };
 
-return {
-    Format: Format,
-    CompressedTexture: CompressedTexture
- };
+
 
  });

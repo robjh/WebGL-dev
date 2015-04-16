@@ -18,10 +18,16 @@
  *
  */
 
-define(function() {
-    'use strict';
+'use strict';
+goog.provide('framework.referencerenderer.rrFragmentPacket');
 
-    var NUM_FRAGMENTS_PER_PACKET = 4;
+
+goog.scope(function() {
+
+var rrFragmentPacket = framework.referencerenderer.rrFragmentPacket;
+    
+
+    rrFragmentPacket.NUM_FRAGMENTS_PER_PACKET = 4;
 
     /**
      * Fragment packet contains inputs and outputs for fragment shading.
@@ -35,7 +41,7 @@ define(function() {
      *  ndx = y*2 + x
      * @constructor
      */
-    var FragmentPacket = function () {
+    rrFragmentPacket.FragmentPacket = function () {
         /** @type {Array.<number>} */ this.position; //!< Position of (0,0) fragment.
         /** @type {number} */ this.coverage; //!< Coverage mask. (64-bit)
         /** @type {Array.<Array.<number>>} (clamped (0, 1)) */ this.barycentric = []; //!< Perspective-correct barycentric values.

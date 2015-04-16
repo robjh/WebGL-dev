@@ -18,9 +18,15 @@
  *
  */
 
-define(function() {
+'use strict';
+goog.provide('framework.referencerenderer.rrGenericVector');
 
-    var DE_NULL = null;
+
+goog.scope(function() {
+
+var rrGenericVector = framework.referencerenderer.rrGenericVector;
+
+    rrGenericVector.DE_NULL = null;
 
     var DE_ASSERT = function(x) {
         if (!x)
@@ -28,16 +34,14 @@ define(function() {
     };
 
     /**
-     * GenericVecType
+     * rrGenericVector.GenericVecType
      * @enum
      */
-    var GenericVecType = {
+    rrGenericVector.GenericVecType = {
         FLOAT: 0,
         UINT32: 1,
         INT32: 2
     };
 
-    return {
-        GenericVecType: GenericVecType
-    };
+    
 });
