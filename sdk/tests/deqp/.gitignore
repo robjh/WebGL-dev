@@ -1,0 +1,4 @@
+*.dep
+*.compiled
+*.txt
+*.config
