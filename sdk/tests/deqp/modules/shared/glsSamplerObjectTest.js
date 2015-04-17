@@ -99,23 +99,29 @@ var gluDefs = framework.opengl.gluDefs;
      * @constructor
      */
     glsSamplerObjectTest.SamplingState = function(minFilter, magFilter, wrapT, wrapS, wrapR, minLod, maxLod) {
-        /** @type {GLenum} */ this.minFilter = minFilter;
-        /** @type {GLenum} */ this.magFilter = magFilter;
-        /** @type {GLenum} */ this.wrapT = wrapT;
-        /** @type {GLenum} */ this.wrapS = wrapS;
-        /** @type {GLenum} */ this.wrapR = wrapR;
+        /** @type {number} */ this.minFilter = minFilter;
+        /** @type {number} */ this.magFilter = magFilter;
+        /** @type {number} */ this.wrapT = wrapT;
+        /** @type {number} */ this.wrapS = wrapS;
+        /** @type {number} */ this.wrapR = wrapR;
         /** @type {number} */ this.minLod = minLod;
         /** @type {number} */ this.maxLod = maxLod;
     };
 
     /**
      * @struct
+     * @param {string} name
+     * @param {string} desc
+     * @param {number} target
+     * @param {glsSamplerObjectTest.SamplingState} state1
+     * @param {glsSamplerObjectTest.SamplingState} state2
+     * @param {glsSamplerObjectTest.SamplingState=} state3
      * @constructor
      */
     glsSamplerObjectTest.TestSpec = function(name, desc, target, state1, state2, state3) {
         /** @type {string} */ this.name = name;
         /** @type {string} */ this.desc = desc;
-        /** @type {GLenum} */ this.target = target;
+        /** @type {number} */ this.target = target;
         /** @type {glsSamplerObjectTest.SamplingState} */ this.textureState = state1;
         /** @type {glsSamplerObjectTest.SamplingState} */ this.textureState2 = state3 !== undefined ? state2 : null; // merging TST and MTST structs
         /** @type {glsSamplerObjectTest.SamplingState} */ this.samplerState = state3 !== undefined ? state3 : state2;
@@ -129,7 +135,7 @@ var gluDefs = framework.opengl.gluDefs;
     glsSamplerObjectTest.TextureSamplerTest = function(spec) {
         tcuTestCase.DeqpTest.call(this, spec.name, spec.desc);
         /** @type {gluShaderProgram.ShaderProgram} */ this.m_program = null;
-        /** @type {GLenum} */ this.m_target = spec.target;
+        /** @type {number} */ this.m_target = spec.target;
         /** @type {glsSamplerObjectTest.SamplingState} */ this.m_textureState = spec.textureState;
         /** @type {glsSamplerObjectTest.SamplingState} */ this.m_samplerState = spec.samplerState;
         /** @type {deRandom.Random} */ this.m_random = new deRandom.Random(deString.deStringHash(spec.name));
@@ -327,7 +333,7 @@ var gluDefs = framework.opengl.gluDefs;
 
     /**
      * @private
-     * @param {GLenum} target
+     * @param {number} target
      * @param {glsSamplerObjectTest.SamplingState} state
      */
     glsSamplerObjectTest.TextureSamplerTest.setTextureState = function(target, state) {
@@ -483,7 +489,7 @@ var gluDefs = framework.opengl.gluDefs;
 
     /**
      * @private
-     * @param {GLenum} target
+     * @param {number} target
      * @return {number}
      */
     glsSamplerObjectTest.TextureSamplerTest.createTexture = function(target) {
@@ -504,7 +510,7 @@ var gluDefs = framework.opengl.gluDefs;
 
     /**
      * @private
-     * @param {GLenum} target
+     * @param {number} target
      * @return {?string}
      */
      glsSamplerObjectTest.TextureSamplerTest.selectVertexShader = function(target) {
@@ -550,7 +556,7 @@ var gluDefs = framework.opengl.gluDefs;
 
      /**
       * @private
-      * @param {GLenum} target
+      * @param {number} target
       * @return {?string}
       */
      glsSamplerObjectTest.TextureSamplerTest.selectFragmentShader = function(target) {
@@ -641,7 +647,7 @@ var gluDefs = framework.opengl.gluDefs;
     glsSamplerObjectTest.MultiTextureSamplerTest = function(spec) {
         tcuTestCase.DeqpTest.call(this, spec.name, spec.desc);
         /** @type {gluShaderProgram.ShaderProgram} */ this.m_program = null;
-        /** @type {GLenum} */ this.m_target = spec.target;
+        /** @type {number} */ this.m_target = spec.target;
         /** @type {glsSamplerObjectTest.SamplingState} */ this.m_textureState1 = spec.textureState;
         /** @type {glsSamplerObjectTest.SamplingState} */ this.m_textureState2 = spec.textureState2;
         /** @type {glsSamplerObjectTest.SamplingState} */ this.m_samplerState = spec.samplerState;
@@ -937,7 +943,7 @@ var gluDefs = framework.opengl.gluDefs;
 
     /**
      * @private
-     * @param {GLenum} target
+     * @param {number} target
      * @param {glsSamplerObjectTest.SamplingState} state
      */
     glsSamplerObjectTest.MultiTextureSamplerTest.setTextureState = function(target, state) {
@@ -1137,7 +1143,7 @@ var gluDefs = framework.opengl.gluDefs;
 
     /**
      * @private
-     * @param {GLenum} target
+     * @param {number} target
      * @param {number} id
      * @return {number}
      */
@@ -1160,7 +1166,7 @@ var gluDefs = framework.opengl.gluDefs;
 
     /**
      * @private
-     * @param {GLenum} target
+     * @param {number} target
      * @return {?string}
      */
     glsSamplerObjectTest.MultiTextureSamplerTest.selectVertexShader = function(target) {
@@ -1206,7 +1212,7 @@ var gluDefs = framework.opengl.gluDefs;
 
     /**
      * @private
-     * @param {GLenum} target
+     * @param {number} target
      * @return {?string}
      */
     glsSamplerObjectTest.MultiTextureSamplerTest.selectFragmentShader = function(target) {
