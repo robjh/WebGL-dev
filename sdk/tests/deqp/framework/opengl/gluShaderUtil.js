@@ -61,7 +61,7 @@ gluShaderUtil.getGLSLVersion = function(gl) {
  * @return {string}
  */
 gluShaderUtil.getGLSLVersionDeclaration = function(version) {
-    /** @type {Array.<string>} */ var s_decl =
+    /** @type {Array<string>} */ var s_decl =
     [
         '#version 100',
         '#version 300 es'
@@ -285,7 +285,7 @@ gluShaderUtil.getDataTypeScalarType = function(dataType) {
         case gluShaderUtil.DataType.UINT_SAMPLER_2D_ARRAY: return 'usampler2DArray';
         case gluShaderUtil.DataType.UINT_SAMPLER_3D: return 'usampler3D';
     }
-    throw Error('Unrecognized dataType ' + dataType);
+   throw new Error('Unrecognized datatype:' + dataType);
 };
 
 /**

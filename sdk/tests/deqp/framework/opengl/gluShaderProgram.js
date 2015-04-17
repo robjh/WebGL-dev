@@ -364,7 +364,7 @@ gluShaderProgram.FragmentSource = function(str) {
  * @constructor
  */
 gluShaderProgram.ProgramSources = function() {
-    /** @type {Array.<gluShaderProgram.ShaderInfo>} */ this.sources = [];
+    /** @type {Array<gluShaderProgram.ShaderInfo>} */ this.sources = [];
     this.attribLocationBindings = [];
     this.transformFeedbackVaryings = [];
     this.transformFeedbackBufferMode = 0;

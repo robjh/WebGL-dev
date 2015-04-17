@@ -43,7 +43,7 @@ var sglrReferenceContext = framework.opengl.simplereference.sglrReferenceContext
 var tcuPixelFormat = framework.common.tcuPixelFormat;
 var tcuImageCompare = framework.common.tcuImageCompare;
 var deString = framework.delibs.debase.deString;
-    
+
 
     /**
     * es3fFboTestCase.FboTestCase class, inherits from TestCase and sglrContextWrapper
@@ -213,7 +213,7 @@ var deString = framework.delibs.debase.deString;
                 // log << e;
                 // m_testCtx.setTestResult(QP_TEST_RESULT_NOT_SUPPORTED, 'Not supported');
                 assertMsgOptions(false, 'Not supported', true, false);
-                return tcuTestCase.runner.IterateResult.STOP;
+                return tcuTestCase.IterateResult.STOP;
             }
             else
                 throw new Error('Error: ' + e);
@@ -245,7 +245,7 @@ var deString = framework.delibs.debase.deString;
 
         assertMsgOptions(isOk, '', true, false);
 
-        return tcuTestCase.runner.IterateResult.STOP;
+        return tcuTestCase.IterateResult.STOP;
     };
 
 
@@ -355,5 +355,5 @@ var deString = framework.delibs.debase.deString;
         return false;
     };
 
-    
+
  });

@@ -316,7 +316,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
         ];
 
         /** @const {number} */ var sampleCounts = [2, 4, 8];
-        var testGroup = tcuTestCase.runner.getState().testCases;
+        var testGroup = tcuTestCase.runner.testCases;
         for (var sampleCntNdx in sampleCounts) {
             /** @type {number} */ var samples = sampleCounts[sampleCntNdx];
             /** @type {tcuTestCase.DeqpTest} */
@@ -336,14 +336,14 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
     es3fFboMultisampleTests.run = function(context) {
         gl = context;
         //Set up root Test
-        var state = tcuTestCase.runner.getState();
+        var state = tcuTestCase.runner;
 
         var test = new es3fFboMultisampleTests.FboMultisampleTests();
         var testName = test.fullName();
         var testDescription = test.getDescription();
-        state.testCases = test;
-        state.testName = testName;
 
+        state.testName = testName;
+        state.setRoot(test);
         //Set up name and description of this test series.
         setCurrentTestName(testName);
         description(testDescription);
