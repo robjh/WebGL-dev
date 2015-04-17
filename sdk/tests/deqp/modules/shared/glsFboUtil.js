@@ -18,7 +18,6 @@
  *
  */
 
-// glsFBOU
 define(['framework/opengl/gluTextureUtil'], function(gluTextureUtil) {
     'use strict';
 
@@ -60,44 +59,42 @@ define(['framework/opengl/gluTextureUtil'], function(gluTextureUtil) {
     
     };
     
+    
     // FormatDB& db, FormatExtEntries extFmts, const RenderContext* ctx
-    var addExtFormats = function(db, extFmts, ctx) {
-        const UniquePtr<ContextInfo> ctxInfo(ctx != DE_NULL ? ContextInfo::create(*ctx) : DE_NULL);
-        var ctxInfo = ctx ? ContextInfo.create(ctx) : null;
+    var addExtFormats = function(db, extFmts, gl_ctx) {
+        gl_ctx = gl_ctx || gl;
+        
+        // loop through the range, looking at the extentions.
+        for (var ext = extFmts.reset() ; ext = extFmts.current() ; extFmts.next()) { // look up FormatExtEntries
+            var supported = true;
+            var tokens = ext.extensions.split(/\s+/);
+            for (var i = tokens.length - 1 ; i-- ; ) { // all fmt's extentions
+                if (!isExtensionSupported(tokens[i], gl_ctx)) {
+                    supported = false;
+                    break;
+                }
+            }
+            if (supported) {
+                for (var format = ext.formats.reset() ; format = ext.formats.current ; ext.formats.next()) {
+                    db.addFormat(formatKeyInfo(format), FormatFlags(ext.flags));
+                }
+            }
+            
+        }
+        
     };
-    
-    /* TODO: This next. looks like helpers for FormatDB objects
-    
-void addExtFormats (FormatDB& db, FormatExtEntries extFmts, const RenderContext* ctx)
-{
-	const UniquePtr<ContextInfo> ctxInfo(ctx != DE_NULL ? ContextInfo::create(*ctx) : DE_NULL);
-	for (const FormatExtEntry* it = extFmts.begin(); it != extFmts.end(); it++)
-	{
-		bool supported = true;
-		if (ctxInfo)
-		{
-			istringstream tokenStream(string(it->extensions));
-			istream_iterator<string> tokens((tokenStream)), end;
 
-			while (tokens != end)
-			{
-				if (!ctxInfo->isExtensionSupported(tokens->c_str()))
-				{
-					supported = false;
-					break;
-				}
-				++tokens;
-			}
-		}
-		if (supported)
-			for (const FormatKey* i2 = it->formats.begin(); i2 != it->formats.end(); i2++)
-				db.addFormat(formatKeyInfo(*i2), FormatFlags(it->flags));
-	}
-}
+    // TODO: find a more befitting home for isExtensionSupported (a refugee of gluContextInfo) 
+    var isExtensionSupported = function(extName, gl_ctx) { // const char*
+        gl_ctx = gl_ctx || gl;
+        var extensions = gl_ctx.getSupportedExtensions();
+        for (var i = 0 ; i < extensions.length ; ++i) {
+            if (extensions[i] == extName) return true
+        }
+        return false;
+    };
 
-        --------------------------------------------------
-    //*/
-    
+
     var formatFlag = function(glenum, gl_ctx) {
         gl_ctx = gl_ctx || gl;
         
@@ -142,6 +139,8 @@ void addExtFormats (FormatDB& db, FormatExtEntries extFmts, const RenderContext*
         this.m_end   = argv.end   || argv.array.length;
         // @private
         this.m_array = argv.array;
+        // @private
+        this.m_index = this.m_begin;
     };
     Range.prototype.array = function() {
         return this.m_array;
@@ -157,7 +156,19 @@ void addExtFormats (FormatDB& db, FormatExtEntries extFmts, const RenderContext*
             first: id,
             second: this.m_array[id]
         };
-    }
+    };
+    Range.prototype.reset = function() {
+        this.m_index = this.m_begin;
+        return this.current();
+    };
+    Range.prototype.current = function() {
+        return this.m_index <= this.m_end ? this.m_array[this.m_index] : null;
+    };
+    Range.prototype.next = function() {
+        ++this.m_index;
+    };
+    
+    
     
     var ImageFormat = function(argv) {
         argv = argv || {};
@@ -370,10 +381,9 @@ void addExtFormats (FormatDB& db, FormatExtEntries extFmts, const RenderContext*
     var TextureLayerAttachment = function(argv) {
         argv = argv || {};
         
-            argv.type = argv.type ? argv.type | Config.s_types.ATT_TEXTURE_LAYER : Config.s_types.ATT_TEXTURE_LAYER;
-            TextureAttachment.call(this, argv);
-            this.layer = 0;
-        };
+        argv.type = argv.type ? argv.type | Config.s_types.ATT_TEXTURE_LAYER : Config.s_types.ATT_TEXTURE_LAYER;
+        TextureAttachment.call(this, argv);
+        this.layer = 0;
         
         if (!argv.dont_construct) this._construct(argv);
     };
@@ -451,7 +461,7 @@ void addExtFormats (FormatDB& db, FormatExtEntries extFmts, const RenderContext*
                     );
                 } else {
                     gl_ctx.renderbufferStorageMultisample(
-                    gl_ctx.RENDERBUFFER,
+                        gl_ctx.RENDERBUFFER,
                         cfg.numSamples,
                         cfg.internalFormat.format,
                         cfg.width, cfg.height
@@ -730,7 +740,7 @@ void addExtFormats (FormatDB& db, FormatExtEntries extFmts, const RenderContext*
     
     var Checker = function(argv) {
         argv = argv || {};
-        gl_ctx = argv.gl || gl;
+        var gl_ctx = argv.gl || gl;
         
         // Allowed return values for gl.CheckFramebufferStatus
         // formarly an std::set
