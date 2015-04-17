@@ -244,8 +244,6 @@ var tcuTextureUtil = framework.common.tcuTextureUtil;
 
     /**
      * @constructor
-     * @extends {rrShaders.VertexShader}
-     * @extends {rrShaders.FragmentShader}
      * @param {sglrShaderProgram.ShaderProgramDeclaration} decl
      */
     sglrShaderProgram.ShaderProgram = function (decl) {
@@ -313,6 +311,6 @@ var tcuTextureUtil = framework.common.tcuTextureUtil;
         return this.m_uniforms[0];
     };
 
-    
+
 
 });

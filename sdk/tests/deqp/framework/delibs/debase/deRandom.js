@@ -24,30 +24,28 @@
 'use strict';
 goog.provide('framework.delibs.debase.deRandom');
 
-
 goog.scope(function() {
 
 var deRandom = framework.delibs.debase.deRandom;
 
-
 /**
  * Array of pseudo random numbers based on seed
  * @constructor
+ * @struct
  */
 deRandom.deRandom = function() {
-    var x;
-    var y;
-    var z;
-    var w;
+    /** @type {number} */ this.x = 0;
+    /** @type {number} */ this.y = 0;
+    /** @type {number} */ this.z = 0;
+    /** @type {number} */ this.w = 0;
 };
 
 /**
  * deRandom.Random number generator init
- * @param {deRandom.Random} rnd Array to store random numbers
+ * @param {deRandom.deRandom} rnd Array to store random numbers
  * @param {number} seed Number for seed
  */
-deRandom.deRandom_init = function(rnd, seed)
-{
+deRandom.deRandom_init = function(rnd, seed) {
     rnd.x = (-seed ^ 123456789);
     rnd.y = (362436069 * seed);
     rnd.z = (521288629 ^ (seed >> 7));
@@ -57,11 +55,10 @@ deRandom.deRandom_init = function(rnd, seed)
 /**
  * Function to get random int
  * @param {deRandom.deRandom} rnd Initialised array of random numbers
- * @param {array} opts Min and max for range
- * @return {int} deRandom.Random int
+ * @param {Array<number>=} opts Min and max for range
+ * @return {number} deRandom.Random int
  */
-deRandom.deRandom_getInt = function(rnd, opts)
-{
+deRandom.deRandom_getInt = function(rnd, opts) {
     if (opts != undefined && opts[0] != undefined && opts[1] != undefined) {
         if (opts[0] == 0x80000000 && opts[1] == 0x7fffffff) {
             return deRandom.deRandom_getInt(rnd);
@@ -83,11 +80,10 @@ deRandom.deRandom_getInt = function(rnd, opts)
 /**
  * Function to get random float
  * @param {deRandom.deRandom} rnd Initialised array of random numbers
- * @param {array} opts Min and max for range
- * @return {float} deRandom.Random float
+ * @param {Array<number>=} opts Min and max for range
+ * @return {number} deRandom.Random float
  */
-deRandom.deRandom_getFloat = function(rnd, opts)
-{
+deRandom.deRandom_getFloat = function(rnd, opts) {
     if (opts != undefined && opts[0] != undefined && opts[1] != undefined) {
         if (opts[0] <= opts[1]) {
             return opts[0] + (opts[1] - opts[0]) * deRandom.deRandom_getFloat(rnd);
@@ -95,6 +91,7 @@ deRandom.deRandom_getFloat = function(rnd, opts)
     } else {
         return (deRandom.deRandom_getInt(rnd) & 0xFFFFFFF) / (0xFFFFFFF + 1);
     }
+    throw new Error('Invalid arguments');
 };
 
 /**
@@ -102,8 +99,7 @@ deRandom.deRandom_getFloat = function(rnd, opts)
  * @param {deRandom.deRandom} rnd Initialised array of random numbers
  * @return {boolean} deRandom.Random boolean
  */
-deRandom.deRandom_getBool = function(rnd)
-{
+deRandom.deRandom_getBool = function(rnd) {
     var val;
     val = deRandom.deRandom_getInt(rnd);
     return ((val & 0xFFFFFF) < 0x800000);
@@ -113,8 +109,7 @@ deRandom.deRandom_getBool = function(rnd)
  * Function to get a common base seed
  * @return {number} constant
  */
-deRandom.getBaseSeed = function()
-{
+deRandom.getBaseSeed = function() {
     return 42;
 };
 
@@ -148,8 +143,7 @@ deRandom.choose = function(rnd, elements, resultOut, num) {
  * @param {Iterator} weight Weight
  * @return {Iterator} Result output
  */
-deRandom.chooseWeighted = function(rnd, first, last, weight)
-{
+deRandom.chooseWeighted = function(rnd, first, last, weight) {
     throw new Error('Function not yet implemented');
 };
 
@@ -157,10 +151,9 @@ deRandom.chooseWeighted = function(rnd, first, last, weight)
  * TODO Function to deRandom.shuffle an array
  * @param {deRandom.deRandom} rnd Initialised array of random numbers
  * @param {Array} elements Array to deRandom.shuffle
- * @return {Iterator} Shuffled array
+ * @return {Array} Shuffled array
  */
-deRandom.shuffle = function(rnd, elements)
-{
+deRandom.shuffle = function(rnd, elements) {
     var index = elements.length;
 
     while (index > 0) {
@@ -184,7 +177,7 @@ deRandom.Random = function(seed) {
     /**
      * Instance of array of pseudo random numbers based on seeds
     */
-    this.m_rnd = new deRandom.deRandom;
+    this.m_rnd = new deRandom.deRandom();
 
     //initialise the random numbers based on seed
     deRandom.deRandom_init(this.m_rnd, seed);
@@ -194,19 +187,19 @@ deRandom.Random = function(seed) {
  * Function to get random boolean
  * @return {boolean} deRandom.Random boolean
  */
-deRandom.Random.prototype.getBool = function()  { return deRandom.deRandom_getBool(this.m_rnd) == true; };
+deRandom.Random.prototype.getBool = function() { return deRandom.deRandom_getBool(this.m_rnd) == true; };
 /**
  * Function to get random float
- * @param {number} min Min for range
- * @param {number} max Max for range
- * @return {float} deRandom.Random float
+ * @param {number=} min Min for range
+ * @param {number=} max Max for range
+ * @return {number} deRandom.Random float
  */
 deRandom.Random.prototype.getFloat = function(min, max) { return deRandom.deRandom_getFloat(this.m_rnd, [min, max]) };
 /**
  * Function to get random int
- * @param {number} min Min for range
- * @param {number} max Max for range
- * @return {int} deRandom.Random int
+ * @param {number=} min Min for range
+ * @param {number=} max Max for range
+ * @return {number} deRandom.Random int
  */
 deRandom.Random.prototype.getInt = function(min, max) {return deRandom.deRandom_getInt(this.m_rnd, [min, max])};
 /**
@@ -239,7 +232,5 @@ deRandom.Random.prototype.shuffle = function(elements) {return deRandom.shuffle(
 deRandom.Random.prototype.getBaseSeed = function() {
     return deRandom.getBaseSeed();
 };
-
-
 
 });

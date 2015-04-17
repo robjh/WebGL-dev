@@ -21,11 +21,9 @@
 'use strict';
 goog.provide('framework.opengl.gluShaderProgram');
 
-
 goog.scope(function() {
 
 var gluShaderProgram = framework.opengl.gluShaderProgram;
-
 
 /**
  * gluShaderProgram.Shader type enum
@@ -57,13 +55,15 @@ gluShaderProgram.getGLShaderType = function(gl, type) {
 /**
  * Declares shader information
  * @constructor
+ * @param {gluShaderProgram.shaderType=} type
+ * @param {string=} source
  */
 gluShaderProgram.ShaderInfo = function(type, source) {
-    this.type = type;               /** gluShaderProgram.Shader type. */
-    this.source = source;             /** gluShaderProgram.Shader source. */
-    this.infoLog;            /** Compile info log. */
-    this.compileOk = false;  /** Did compilation succeed? */
-    this.compileTimeUs = 0;  /** Compile time in microseconds (us). */
+    this.type = type; /** gluShaderProgram.Shader type. */
+    this.source = source; /** gluShaderProgram.Shader source. */
+    this.infoLog; /** Compile info log. */
+    this.compileOk = false; /** Did compilation succeed? */
+    this.compileTimeUs = 0; /** Compile time in microseconds (us). */
 };
 
 /**
@@ -94,7 +94,7 @@ gluShaderProgram.genFragmentSource = function(source) {
  */
 gluShaderProgram.Shader = function(gl, type) {
     this.gl = gl;
-    this.info = new gluShaderProgram.ShaderInfo();  /** Client-side clone of state for debug / perf reasons. */
+    this.info = new gluShaderProgram.ShaderInfo(); /** Client-side clone of state for debug / perf reasons. */
     this.info.type = type;
     this.shader = gl.createShader(gluShaderProgram.getGLShaderType(gl, type));
     assertMsgOptions(gl.getError() == gl.NO_ERROR, 'glCreateShader()', false, true);
@@ -148,14 +148,14 @@ gluShaderProgram.ProgramInfo = function() {
  * Inner methods: attach shaders, bind attributes location, link program and transform Feedback Varyings
  * @constructor
  * @param {WebGLRenderingContext} gl WebGL context
- * @param {WebGLProgram} programID
+ * @param {WebGLProgram=} programID
  */
 gluShaderProgram.Program = function(gl, programID) {
     this.gl = gl;
     this.program = programID;
     this.info = new gluShaderProgram.ProgramInfo();
 
-    if (programID == null) {
+    if (!programID) {
         this.program = gl.createProgram();
         assertMsgOptions(gl.getError() == gl.NO_ERROR, 'glCreateProgram()', false, true);
     }
@@ -261,7 +261,7 @@ gluShaderProgram.containerTypes = {
     PROGRAM_SOURCES: 6,
 
     CONTAINER_TYPE_LAST: 7,
-    ATTACHABLE_BEGIN: 0,     // ATTRIB_LOCATION_BINDING
+    ATTACHABLE_BEGIN: 0, // ATTRIB_LOCATION_BINDING
     ATTACHABLE_END: 5 + 1 // PROGRAM_SEPARABLE + 1
 };
 
@@ -420,7 +420,5 @@ gluShaderProgram.makeVtxFragSources = function(vertexSrc, fragmentSrc) {
     sources.sources.push(gluShaderProgram.genFragmentSource(fragmentSrc));
     return sources;
 };
-
-
 
 });

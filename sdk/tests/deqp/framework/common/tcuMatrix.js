@@ -24,7 +24,7 @@ goog.provide('framework.common.tcuMatrix');
 goog.scope(function() {
 
 var tcuMatrix = framework.common.tcuMatrix;
-    
+
 
     var DE_ASSERT = function(x) {
         if (!x)
@@ -66,11 +66,10 @@ var tcuMatrix = framework.common.tcuMatrix;
         var res = new tcuMatrix.Mat3([[0,0,0],[0,0,0],[0,0,0]]);
         var v = 0;
         for (row = 0; row < matrixA.length; row++)
-            for (col = 0; col < matrixB[row].length; col++)
-            {
+            for (col = 0; col < matrixB[row].length; col++) {
                 for (ndx = 0; ndx < matrixA[row]; ndx++)
                     v += matrixA.get(row, ndx) * matrixB.get(ndx, col);
                 res.set(row, col, v);
             }
-        
+    };
 });

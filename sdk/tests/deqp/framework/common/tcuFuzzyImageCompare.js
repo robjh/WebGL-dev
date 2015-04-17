@@ -20,11 +20,10 @@
 
 'use strict';
 goog.provide('framework.common.tcuFuzzyImageCompare');
-goog.require('framework.delibs.debase.deMath');
-goog.require('framework.delibs.debase.deRandom');
 goog.require('framework.common.tcuTexture');
 goog.require('framework.common.tcuTextureUtil');
-
+goog.require('framework.delibs.debase.deMath');
+goog.require('framework.delibs.debase.deRandom');
 
 goog.scope(function() {
 
@@ -33,7 +32,6 @@ var deMath = framework.delibs.debase.deMath;
 var deRandom = framework.delibs.debase.deRandom;
 var tcuTexture = framework.common.tcuTexture;
 var tcuTextureUtil = framework.common.tcuTextureUtil;
-    
 
     var DE_ASSERT = function(x) {
         if (!x)
@@ -45,9 +43,9 @@ var tcuTextureUtil = framework.common.tcuTextureUtil;
     /**
      * tcuFuzzyImageCompare.FuzzyCompareParams struct
      * @constructor
-     * @param {number} maxSampleSkip_
-     * @param {number} minErrThreshold_
-     * @param {number} errExp_
+     * @param {number=} maxSampleSkip_
+     * @param {number=} minErrThreshold_
+     * @param {number=} errExp_
      */
     tcuFuzzyImageCompare.FuzzyCompareParams = function(maxSampleSkip_, minErrThreshold_, errExp_) {
         /** @type {number} */ this.maxSampleSkip = maxSampleSkip_ === undefined ? 8 : maxSampleSkip_;
@@ -87,7 +85,7 @@ var tcuTextureUtil = framework.common.tcuTextureUtil;
 
     /**
      * @param {number} color
-     * @return {Array<deMath.deUint32>}
+     * @return {Array<number>}
      */
     tcuFuzzyImageCompare.toFloatVec = function(color) {
         return [tcuFuzzyImageCompare.getChannel(color, 0), tcuFuzzyImageCompare.getChannel(color, 1), tcuFuzzyImageCompare.getChannel(color, 2), tcuFuzzyImageCompare.getChannel(color, 3)];
@@ -126,7 +124,7 @@ var tcuTextureUtil = framework.common.tcuTextureUtil;
     tcuFuzzyImageCompare.readUnorm8 = function(src, x, y, NumChannels) {
         var start = src.getRowPitch() * y + x * NumChannels;
         var end = start + NumChannels;
-        /** @type {TypedArray} */ var ptr = src.getDataPtr().subarray(start, end);
+        /** @type {goog.TypedArray} */ var ptr = src.getDataPtr().subarray(start, end);
         /** @type {Uint32Array} */ var v = new Uint32Array(ptr); //Small buffer copy
 
         return v[0]; //Expected return value is 32-bit max, regardless if it's made of more than 4 channels one byte each.
@@ -166,7 +164,7 @@ var tcuTextureUtil = framework.common.tcuTextureUtil;
     };
 
     /**
-     * @param {ConstPixelBufferAccess} src
+     * @param {tcuTexture.ConstPixelBufferAccess} src
      * @param {number} u
      * @param {number} v
      * @param {number} NumChannels
@@ -196,8 +194,7 @@ var tcuTextureUtil = framework.common.tcuTextureUtil;
         /** @type {number} */ var dst = 0;
 
         // Interpolate.
-        for (var c = 0; c < NumChannels; c++)
-        {
+        for (var c = 0; c < NumChannels; c++) {
             /** @type {number}*/ var f = tcuFuzzyImageCompare.getChannel(p00, c) * (1.0 - a) * (1.0 - b) +
                 (tcuFuzzyImageCompare.getChannel(p10, c) * a * (1.0 - b)) +
                 (tcuFuzzyImageCompare.getChannel(p01, c) * (1.0 - a) * b) +
@@ -267,7 +264,7 @@ var tcuTextureUtil = framework.common.tcuTextureUtil;
      * @param {tcuFuzzyImageCompare.FuzzyCompareParams} params
      * @param {deRandom.Random} rnd
      * @param {number} pixel
-     * @param {ConstPixelBufferAccess} surface
+     * @param {tcuTexture.ConstPixelBufferAccess} surface
      * @param {number} x
      * @param {number} y
      * @param {number} NumChannels
@@ -388,8 +385,8 @@ var tcuTextureUtil = framework.common.tcuTextureUtil;
         // Clear error mask to green.
         tcuTextureUtil.clear(errorMask, [0.0, 1.0, 0.0, 1.0]);
 
-        /** @type {ConstPixelBufferAccess} */ var refAccess = refFiltered.getAccess();
-        /** @type {ConstPixelBufferAccess} */ var cmpAccess = cmpFiltered.getAccess();
+        /** @type {tcuTexture.ConstPixelBufferAccess} */ var refAccess = refFiltered.getAccess();
+        /** @type {tcuTexture.ConstPixelBufferAccess} */ var cmpAccess = cmpFiltered.getAccess();
 
         for (var y = 1; y < height - 1; y++) {
             for (var x = 1; x < width - 1; x += params.maxSampleSkip > 0 ? rnd.getInt(0, params.maxSampleSkip) : 1) {
@@ -415,7 +412,5 @@ var tcuTextureUtil = framework.common.tcuTextureUtil;
 
         return errSum;
     };
-
-
 
 });

@@ -41,8 +41,8 @@ var deString = framework.delibs.debase.deString;
 var deRandom = framework.delibs.debase.deRandom;
 var tcuImageCompare = framework.common.tcuImageCompare;
 var gluTextureUtil = framework.opengl.gluTextureUtil;
-    
-    /** @type {WebGL2RenderingContext} */ var gl;
+
+    /** @type {?WebGL2RenderingContext} */ var gl;
 
     /** @const @type {number} */ es3fInstancedRenderingTests.MAX_RENDER_WIDTH = 128;
     /** @const @type {number} */ es3fInstancedRenderingTests.MAX_RENDER_HEIGHT = 128;
@@ -79,7 +79,8 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
     // es3fInstancedRenderingTests.InstancedRenderingCase
 
     /**
-     * @enum es3fInstancedRenderingTests.DrawFunction
+     * es3fInstancedRenderingTests.DrawFunction
+     * @enum {number}
      */
     es3fInstancedRenderingTests.DrawFunction = {
             FUNCTION_DRAW_ARRAYS_INSTANCED: 0,
@@ -87,7 +88,8 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
     };
 
     /**
-     * @enum es3fInstancedRenderingTests.InstancingType
+     * es3fInstancedRenderingTests.InstancingType
+     * @enum {number}
      */
     es3fInstancedRenderingTests.InstancingType = {
             TYPE_INSTANCE_ID: 0,
@@ -99,6 +101,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
     /**
     * es3fInstancedRenderingTests.InstancedRenderingCase class, inherits from TestCase class
     * @constructor
+    * @extends {tcuTestCase.DeqpTest}
     * @param {string} name
     * @param {string} description
     * @param {es3fInstancedRenderingTests.DrawFunction} drawFunction
@@ -110,9 +113,9 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
         tcuTestCase.DeqpTest.call(this, name, description);
         /** @type {es3fInstancedRenderingTests.DrawFunction} */ this.m_function = drawFunction;
         /** @type {es3fInstancedRenderingTests.InstancingType} */ this.m_instancingType = instancingType;
-        /** @type {DataType} */ this.m_rgbAttrType = rgbAttrType;
+        /** @type {gluShaderUtil.DataType} */ this.m_rgbAttrType = rgbAttrType;
         /** @type {number} */ this.m_numInstances = numInstances;
-        /** @type {glu.ShaderProgram} */ this.m_program = null;
+        /** @type {gluShaderProgram.ShaderProgram} */ this.m_program = null;
         /** @type {Array<number>} */ this.m_gridVertexPositions = [];
         /** @type {Array<number>} */ this.m_gridIndices = [];
         /** @type {Array<number>} */ this.m_instanceOffsets = [];
@@ -413,7 +416,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
         // Compare.
 
         // Passing referenceImg.getAccess() and resultImg.getAccess() instead of referenceImg and resultImg
-        /** @type {boolean} */ var testOk = tcuImageCompare.fuzzyCompare('ComparisonResult', 'Image comparison result', referenceImg.getAccess(), resultImg.getAccess(), 0.05, gluShaderUtil.COMPARE_LOG_RESULT);
+    /** @type {boolean} */ var testOk = tcuImageCompare.fuzzyCompare('ComparisonResult', 'Image comparison result', referenceImg.getAccess(), resultImg.getAccess(), 0.05, null /*gluShaderUtil.COMPARE_LOG_RESULT*/);
 
         assertMsgOptions(testOk, '', true, false);
 
@@ -478,7 +481,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
 
 
     es3fInstancedRenderingTests.InstancedRenderingCase.prototype.setupAndRender = function() {
-        /** @type {number} */ var program = this.m_program.getProgram();
+        /** @type {WebGLProgram} */ var program = this.m_program.getProgram();
 
         gl.useProgram(program);
         // Setup attributes.
@@ -504,7 +507,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
                 gl.bindBuffer(gl.ARRAY_BUFFER, offsetLocGlBuffer);
                 gl.bufferData(gl.ARRAY_BUFFER, bufferOffsetLoc, gl.STATIC_DRAW);
 
-                gl.vertexAttribPointer(offsetLoc, es3fInstancedRenderingTests.OFFSET_COMPONENTS, gl.FLOAT, false, 0, this.m_instanceOffsets);
+                gl.vertexAttribPointer(offsetLoc, es3fInstancedRenderingTests.OFFSET_COMPONENTS, gl.FLOAT, false, 0, 0);
 
                 /** @type {number} */ var rLoc = gl.getAttribLocation(program, 'a_instanceR');
                 this.setupVarAttribPointer(this.m_instanceColorR, rLoc, es3fInstancedRenderingTests.ATTRIB_DIVISOR_R);
@@ -609,7 +612,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
             DE_ASSERT(functionName != null);
             DE_ASSERT(functionDesc != null);
 
-            /** @type {TestCaseGroup} */ var functionGroup = new tcuTestCase.newTest(functionName, functionDesc);
+            /** @type {tcuTestCase.DeqpTest} */ var functionGroup = new tcuTestCase.newTest(functionName, functionDesc);
             testGroup.addChild(functionGroup);
 
             for (var instancingType in es3fInstancedRenderingTests.InstancingType) {
@@ -628,7 +631,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
                 DE_ASSERT(instancingTypeName != null);
                 DE_ASSERT(instancingTypeDesc != null);
 
-                /** @type {TestCaseGroup} */
+                /** @type {tcuTestCase.DeqpTest} */
                 var instancingTypeGroup = new tcuTestCase.newTest(instancingTypeName, instancingTypeDesc);
 
                 functionGroup.addChild(instancingTypeGroup);
@@ -645,7 +648,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
             }
         }
 
-        /** @type {gluShaderUtil.DataType} */ var s_testTypes =
+        /** @type {Array<gluShaderUtil.DataType>} */ var s_testTypes =
         [
             gluShaderUtil.DataType.FLOAT,
             gluShaderUtil.DataType.FLOAT_VEC2,
@@ -674,7 +677,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
 
         /** @type {number} */ var typeTestNumInstances = 4;
 
-        /** @type {TestCaseGroup} */ var typesGroup = new tcuTestCase.newTest('types', 'Tests for instanced attributes of particular data types');
+        /** @type {tcuTestCase.DeqpTest} */ var typesGroup = new tcuTestCase.newTest('types', 'Tests for instanced attributes of particular data types');
 
         testGroup.addChild(typesGroup);
 
@@ -714,5 +717,5 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
         }
     };
 
-    
+
 });

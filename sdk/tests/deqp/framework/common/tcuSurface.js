@@ -23,13 +23,11 @@ goog.provide('framework.common.tcuSurface');
 goog.require('framework.common.tcuTexture');
 goog.require('framework.delibs.debase.deMath');
 
-
 goog.scope(function() {
 
 var tcuSurface = framework.common.tcuSurface;
 var tcuTexture = framework.common.tcuTexture;
 var deMath = framework.delibs.debase.deMath;
-    
 
 var DE_ASSERT = function(x) {
     if (!x)
@@ -56,7 +54,6 @@ tcuSurface.Surface = function(width, height) {
     }
 };
 
-
 tcuSurface.Surface.prototype.setSize = function(width, height) {
     /* TODO: Duplicated code from constructor */
     this.m_width = width;
@@ -71,7 +68,7 @@ tcuSurface.Surface.prototype.getWidth = function() { return this.m_width; };
 tcuSurface.Surface.prototype.getHeight = function() { return this.m_height; };
 
 /**
- * @param {Array<Number>} color Vec4 color
+ * @param {Array<number>} color Vec4 color
  */
 tcuSurface.Surface.prototype.setPixel = function(x, y, color) {
     DE_ASSERT(deMath.deInBounds32(x, 0, this.m_width));
@@ -97,7 +94,7 @@ tcuSurface.Surface.prototype.getPixel = function(x, y) {
 };
 
 /**
- * @return {PixelBufferAccess} Pixel Buffer Access object
+ * @return {tcuTexture.PixelBufferAccess} Pixel Buffer Access object
  */
 tcuSurface.Surface.prototype.getAccess = function() {
     return new tcuTexture.PixelBufferAccess({
@@ -115,7 +112,5 @@ tcuSurface.Surface.prototype.getSubAccess = function(x, y, width, height) {
      */
      throw new Error('Unimplemented');
 };
-
-
 
 });

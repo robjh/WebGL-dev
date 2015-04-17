@@ -20,12 +20,12 @@
 
 'use strict';
 goog.provide('framework.common.tcuImageCompare');
-goog.require('framework.common.tcuSurface');
-goog.require('framework.delibs.debase.deMath');
-goog.require('framework.common.tcuTexture');
-goog.require('framework.common.tcuFuzzyImageCompare');
 goog.require('framework.common.tcuBilinearImageCompare');
-
+goog.require('framework.common.tcuFuzzyImageCompare');
+goog.require('framework.common.tcuRGBA');
+goog.require('framework.common.tcuSurface');
+goog.require('framework.common.tcuTexture');
+goog.require('framework.delibs.debase.deMath');
 
 goog.scope(function() {
 
@@ -35,8 +35,11 @@ var deMath = framework.delibs.debase.deMath;
 var tcuTexture = framework.common.tcuTexture;
 var tcuFuzzyImageCompare = framework.common.tcuFuzzyImageCompare;
 var tcuBilinearImageCompare = framework.common.tcuBilinearImageCompare;
-    
+var tcuRGBA = framework.common.tcuRGBA;
 
+/**
+ * @enum
+ */
 tcuImageCompare.CompareLogMode = {
     EVERYTHING: 0,
     RESULT: 1,
@@ -94,21 +97,17 @@ tcuImageCompare.displayImages = function(result, reference, diff) {
  // * @param {Float32Array} scale (Vec4)
  // * @param {Float32Array} bias (Vec4)
  // */
-/*var computeScaleAndBias = function (reference, result, scale, bias) {
+/*var computeScaleAndBias = function(reference, result, scale, bias) {
     Vec4 minVal;
     Vec4 maxVal;
-    const float eps = 0.0001f;
-
-    {
+    const float eps = 0.0001f; {
         Vec4 refMin;
         Vec4 refMax;
         estimatePixelValueRange(reference, refMin, refMax);
 
-        minVal  = refMin;
-        maxVal  = refMax;
-    }
-
-    {
+        minVal = refMin;
+        maxVal = refMax;
+    } {
         Vec4 resMin;
         Vec4 resMax;
 
@@ -125,17 +124,13 @@ tcuImageCompare.displayImages = function(result, reference, diff) {
         maxVal[3] = de::max(maxVal[3], resMax[3]);
     }
 
-    for (int c = 0; c < 4; c++)
-    {
-        if (maxVal[c] - minVal[c] < eps)
-        {
-            scale[c]    = (maxVal[c] < eps) ? 1.0f : (1.0f / maxVal[c]);
-            bias[c]     = (c == 3) ? (1.0f - maxVal[c]*scale[c]) : (0.0f - minVal[c]*scale[c]);
-        }
-        else
-        {
-            scale[c]    = 1.0f / (maxVal[c] - minVal[c]);
-            bias[c]     = 0.0f - minVal[c]*scale[c];
+    for (int c = 0; c < 4; c++) {
+        if (maxVal[c] - minVal[c] < eps) {
+            scale[c] = (maxVal[c] < eps) ? 1.0f : (1.0f / maxVal[c]);
+            bias[c] = (c == 3) ? (1.0f - maxVal[c]*scale[c]) : (0.0f - minVal[c]*scale[c]);
+        } else {
+            scale[c] = 1.0f / (maxVal[c] - minVal[c]);
+            bias[c] = 0.0f - minVal[c]*scale[c];
         }
     }
 };*/
@@ -152,13 +147,13 @@ tcuImageCompare.displayImages = function(result, reference, diff) {
  * On failure error image is generated that shows where the failing pixels
  * are.
  *
- * \param log            Test log for results
- * \param imageSetName    Name for image set when logging results
- * \param imageSetDesc    Description for image set
- * \param reference        Reference image
- * \param result        Result image
- * \param threshold        Maximum allowed difference
- * \param logMode        Logging mode
+ * \param log Test log for results
+ * \param imageSetName Name for image set when logging results
+ * \param imageSetDesc Description for image set
+ * \param reference Reference image
+ * \param result Result image
+ * \param threshold Maximum allowed difference
+ * \param logMode Logging mode
  * \return true if comparison passes, false otherwise
  *//*--------------------------------------------------------------------*/
 tcuImageCompare.intThresholdCompare = function(/*const char* */imageSetName, /*const char* */imageSetDesc, /*const ConstPixelBufferAccess&*/ reference, /*const ConstPixelBufferAccess&*/ result, /*const UVec4&*/ threshold, /*tcuImageCompare.CompareLogMode*/ logMode) {
@@ -224,19 +219,16 @@ tcuImageCompare.floatUlpThresholdCompare = function(imageSetName, imageSetDesc, 
     assertMsgOptions(result.getWidth() == width && result.getHeight() == height && result.getDepth() == depth,
             'Reference and result images have different dimensions', false, true);
 
-    for (var z = 0; z < depth; z++)
-    {
-        for (var y = 0; y < height; y++)
-        {
-            for (var x = 0; x < width; x++)
-            {
+    for (var z = 0; z < depth; z++) {
+        for (var y = 0; y < height; y++) {
+            for (var x = 0; x < width; x++) {
                 /** @type {ArrayBuffer} */ var arrayBufferRef = new ArrayBuffer(4);
                 /** @type {ArrayBuffer} */ var arrayBufferCmp = new ArrayBuffer(4);
 
-                /** @type {Array<number>} */ var refPix = new Float32Array(arrayBufferRef); // Vec4
+                /** @type {Float32Array} */ var refPix = new Float32Array(arrayBufferRef); // Vec4
                 refPix = reference.getPixel(x, y, z); // getPixel returns a Vec4 pixel color
 
-                /** @type {Array<number>} */ var cmpPix = new Float32Array(arrayBufferCmp); // Vec4
+                /** @type {Float32Array} */ var cmpPix = new Float32Array(arrayBufferCmp); // Vec4
                 cmpPix = result.getPixel(x, y, z); // getPixel returns a Vec4 pixel color
 
                 /** @type {Uint32Array} */ var refBits = new Uint32Array(arrayBufferRef); // UVec4
@@ -253,7 +245,7 @@ tcuImageCompare.floatUlpThresholdCompare = function(imageSetName, imageSetDesc, 
 
                 maxDiff = deMath.max(maxDiff, diff);
 
-                errorMask.setPixel(isOk ? [0, 1, 0, 1] : [1, 0, 0, 1], x, y, z);
+                errorMask.setPixel(x, y, isOk ? [0, 1, 0, 1] : [1, 0, 0, 1]);
             }
         }
     }
@@ -265,12 +257,10 @@ tcuImageCompare.floatUlpThresholdCompare = function(imageSetName, imageSetDesc, 
         tcuImageCompare.displayImages(result, reference, errorMask.getAccess());
     }
 
-    /*if (!compareOk || logMode == COMPARE_LOG_EVERYTHING)
-    {
+    /*if (!compareOk || logMode == COMPARE_LOG_EVERYTHING) {
         // All formats except normalized unsigned fixed point ones need remapping in order to fit into unorm channels in logged images.
         if (tcu::getTextureChannelClass(reference.getFormat().type) != tcu::TEXTURECHANNELCLASS_UNSIGNED_FIXED_POINT ||
-            tcu::getTextureChannelClass(result.getFormat().type)    != tcu::TEXTURECHANNELCLASS_UNSIGNED_FIXED_POINT)
-        {
+            tcu::getTextureChannelClass(result.getFormat().type) != tcu::TEXTURECHANNELCLASS_UNSIGNED_FIXED_POINT) {
             computeScaleAndBias(reference, result, pixelScale, pixelBias);
             log << TestLog::Message << "Result and reference images are normalized with formula p * " << pixelScale << " + " << pixelBias << TestLog::EndMessage;
         }
@@ -279,18 +269,16 @@ tcuImageCompare.floatUlpThresholdCompare = function(imageSetName, imageSetDesc, 
             log << TestLog::Message << "Image comparison failed: max difference = " << maxDiff << ", threshold = " << threshold << TestLog::EndMessage;
 
         log << TestLog::ImageSet(imageSetName, imageSetDesc)
-            << TestLog::Image("Result",     "Result",       result,     pixelScale, pixelBias)
-            << TestLog::Image("Reference",  "Reference",    reference,  pixelScale, pixelBias)
-            << TestLog::Image("ErrorMask",  "Error mask",   errorMask)
+            << TestLog::Image("Result", "Result", result, pixelScale, pixelBias)
+            << TestLog::Image("Reference", "Reference", reference, pixelScale, pixelBias)
+            << TestLog::Image("ErrorMask", "Error mask", errorMask)
             << TestLog::EndImageSet;
-    }
-    else if (logMode == COMPARE_LOG_RESULT)
-    {
+    } else if (logMode == COMPARE_LOG_RESULT) {
         if (result.getFormat() != TextureFormat(TextureFormat::RGBA, TextureFormat::UNORM_INT8))
             computePixelScaleBias(result, pixelScale, pixelBias);
 
         log << TestLog::ImageSet(imageSetName, imageSetDesc)
-            << TestLog::Image("Result",     "Result",       result,     pixelScale, pixelBias)
+            << TestLog::Image("Result", "Result", result, pixelScale, pixelBias)
             << TestLog::EndImageSet;
     }*/
 
@@ -319,12 +307,9 @@ tcuImageCompare.floatThresholdCompare = function(imageSetName, imageSetDesc, ref
     assertMsgOptions(result.getWidth() == width && result.getHeight() == height && result.getDepth() == depth,
             'Reference and result images have different dimensions', false, true);
 
-    for (var z = 0; z < depth; z++)
-    {
-        for (var y = 0; y < height; y++)
-        {
-            for (var x = 0; x < width; x++)
-            {
+    for (var z = 0; z < depth; z++) {
+        for (var y = 0; y < height; y++) {
+            for (var x = 0; x < width; x++) {
                 var refPix = reference.getPixel(x, y, z); // Vec4
                 var cmpPix = result.getPixel(x, y, z); // Vec4
 
@@ -333,7 +318,7 @@ tcuImageCompare.floatThresholdCompare = function(imageSetName, imageSetDesc, ref
 
                 maxDiff = deMath.max(maxDiff, diff);
 
-                errorMask.setPixel(isOk ? [0, 1, 0, 1] : [1, 0, 0, 1], x, y, z);
+                errorMask.setPixel(x, y, isOk ? [0, 1, 0, 1] : [1, 0, 0, 1]);
             }
         }
     }
@@ -345,12 +330,10 @@ tcuImageCompare.floatThresholdCompare = function(imageSetName, imageSetDesc, ref
         tcuImageCompare.displayImages(result, reference, errorMask.getAccess());
     }
 
-    /*if (!compareOk || logMode == COMPARE_LOG_EVERYTHING)
-    {
+    /*if (!compareOk || logMode == COMPARE_LOG_EVERYTHING) {
         // All formats except normalized unsigned fixed point ones need remapping in order to fit into unorm channels in logged images.
         if (tcu::getTextureChannelClass(reference.getFormat().type) != tcu::TEXTURECHANNELCLASS_UNSIGNED_FIXED_POINT ||
-            tcu::getTextureChannelClass(result.getFormat().type)    != tcu::TEXTURECHANNELCLASS_UNSIGNED_FIXED_POINT)
-        {
+            tcu::getTextureChannelClass(result.getFormat().type) != tcu::TEXTURECHANNELCLASS_UNSIGNED_FIXED_POINT) {
             computeScaleAndBias(reference, result, pixelScale, pixelBias);
             log << TestLog::Message << "Result and reference images are normalized with formula p * " << pixelScale << " + " << pixelBias << TestLog::EndMessage;
         }
@@ -359,18 +342,16 @@ tcuImageCompare.floatThresholdCompare = function(imageSetName, imageSetDesc, ref
             log << TestLog::Message << "Image comparison failed: max difference = " << maxDiff << ", threshold = " << threshold << TestLog::EndMessage;
 
         log << TestLog::ImageSet(imageSetName, imageSetDesc)
-            << TestLog::Image("Result",     "Result",       result,     pixelScale, pixelBias)
-            << TestLog::Image("Reference",  "Reference",    reference,  pixelScale, pixelBias)
-            << TestLog::Image("ErrorMask",  "Error mask",   errorMask)
+            << TestLog::Image("Result", "Result", result, pixelScale, pixelBias)
+            << TestLog::Image("Reference", "Reference", reference, pixelScale, pixelBias)
+            << TestLog::Image("ErrorMask", "Error mask", errorMask)
             << TestLog::EndImageSet;
-    }
-    else if (logMode == COMPARE_LOG_RESULT)
-    {
+    } else if (logMode == COMPARE_LOG_RESULT) {
         if (result.getFormat() != TextureFormat(TextureFormat::RGBA, TextureFormat::UNORM_INT8))
             computePixelScaleBias(result, pixelScale, pixelBias);
 
         log << TestLog::ImageSet(imageSetName, imageSetDesc)
-            << TestLog::Image("Result",     "Result",       result,     pixelScale, pixelBias)
+            << TestLog::Image("Result", "Result", result, pixelScale, pixelBias)
             << TestLog::EndImageSet;
     }*/
 
@@ -386,13 +367,13 @@ tcuImageCompare.floatThresholdCompare = function(imageSetName, imageSetDesc, ref
  * On failure error image is generated that shows where the failing pixels
  * are.
  *
- * \param log            Test log for results
- * \param imageSetName    Name for image set when logging results
- * \param imageSetDesc    Description for image set
- * \param reference        Reference image
- * \param result        Result image
- * \param threshold        Maximum allowed difference
- * \param logMode        Logging mode
+ * \param log Test log for results
+ * \param imageSetName Name for image set when logging results
+ * \param imageSetDesc Description for image set
+ * \param reference Reference image
+ * \param result Result image
+ * \param threshold Maximum allowed difference
+ * \param logMode Logging mode
  * \return true if comparison passes, false otherwise
  *//*--------------------------------------------------------------------*/
 tcuImageCompare.pixelThresholdCompare = function(/*const char* */imageSetName, /*const char* */imageSetDesc, /*const Surface&*/ reference, /*const Surface&*/ result, /*const RGBA&*/ threshold, /*tcuImageCompare.CompareLogMode*/ logMode) {
@@ -406,11 +387,10 @@ tcuImageCompare.pixelThresholdCompare = function(/*const char* */imageSetName, /
   * @param {tcuTexture.ConstPixelBufferAccess} reference
   * @param {tcuTexture.ConstPixelBufferAccess} result
   * @param {number} threshold
-  * @param {deqpUtils.CompareLogMode} logMode
+  * @param {tcuImageCompare.CompareLogMode=} logMode
   * @return {boolean}
   */
-tcuImageCompare.fuzzyCompare = function(imageSetName, imageSetDesc, reference, result, threshold, logMode)
-{
+tcuImageCompare.fuzzyCompare = function(imageSetName, imageSetDesc, reference, result, threshold, logMode) {
     /** @type {tcuFuzzyImageCompare.FuzzyCompareParams} */ var params = new tcuFuzzyImageCompare.FuzzyCompareParams(); // Use defaults.
     /** @type {tcuTexture.TextureLevel} */ var errorMask = new tcuTexture.TextureLevel(
                                                                 new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGB,
@@ -434,8 +414,7 @@ tcuImageCompare.fuzzyCompare = function(imageSetName, imageSetDesc, reference, r
     }
 
     /*
-    if (!isOk || logMode == COMPARE_LOG_EVERYTHING)
-    {
+    if (!isOk || logMode == COMPARE_LOG_EVERYTHING) {
         // Generate more accurate error mask.
         params.maxSampleSkip = 0;
         tcuImageCompare.fuzzyCompare(params, reference, result, errorMask.getAccess());
@@ -447,18 +426,16 @@ tcuImageCompare.fuzzyCompare = function(imageSetName, imageSetDesc, reference, r
             log << TestLog::Message << "Image comparison failed: difference = " << difference << ", threshold = " << threshold << TestLog::EndMessage;
 
         log << TestLog::ImageSet(imageSetName, imageSetDesc)
-            << TestLog::Image("Result",        "Result",       result,     pixelScale, pixelBias)
-            << TestLog::Image("Reference",    "Reference", reference,    pixelScale, pixelBias)
-            << TestLog::Image("ErrorMask",    "Error mask",    errorMask)
+            << TestLog::Image("Result", "Result", result, pixelScale, pixelBias)
+            << TestLog::Image("Reference", "Reference", reference, pixelScale, pixelBias)
+            << TestLog::Image("ErrorMask", "Error mask", errorMask)
             << TestLog::EndImageSet;
-    }
-    else if (logMode == COMPARE_LOG_RESULT)
-    {
+    } else if (logMode == COMPARE_LOG_RESULT) {
         if (result.getFormat() != TextureFormat(TextureFormat::RGBA, TextureFormat::UNORM_INT8))
             computePixelScaleBias(result, pixelScale, pixelBias);
 
         log << TestLog::ImageSet(imageSetName, imageSetDesc)
-            << TestLog::Image("Result",        "Result",        result, pixelScale, pixelBias)
+            << TestLog::Image("Result", "Result", result, pixelScale, pixelBias)
             << TestLog::EndImageSet;
     }
     */
@@ -473,15 +450,14 @@ tcuImageCompare.fuzzyCompare = function(imageSetName, imageSetDesc, reference, r
  *
  * @param {string} imageSetName Name for image set when logging results
  * @param {string} imageSetDesc Description for image set
- * @param {ConstPixelBufferAccess} reference Reference image
- * @param {ConstPixelBufferAccess} result Result image
- * @param {RGBA} threshold Maximum local difference
+ * @param {tcuTexture.ConstPixelBufferAccess} reference Reference image
+ * @param {tcuTexture.ConstPixelBufferAccess} result Result image
+ * @param {tcuRGBA.RGBA} threshold Maximum local difference
  * @param {tcuImageCompare.CompareLogMode} logMode Logging mode
  * @return {boolean} if comparison passes, false otherwise
  */
-tcuImageCompare.bilinearCompare = function(imageSetName, imageSetDesc, reference, result, threshold, logMode)
-{
-    /* @type {TextureLevel} */
+tcuImageCompare.bilinearCompare = function(imageSetName, imageSetDesc, reference, result, threshold, logMode) {
+    /** @type {tcuTexture.TextureLevel} */
     var errorMask = new tcuTexture.TextureLevel(
         new tcuTexture.TextureFormat(
             tcuTexture.ChannelOrder.RGB,
@@ -489,14 +465,14 @@ tcuImageCompare.bilinearCompare = function(imageSetName, imageSetDesc, reference
         reference.getWidth(),
         reference.getHeight());
 
-    /* @type {bool} */
+    /** @type {boolean} */
     var isOk = tcuBilinearImageCompare.bilinearCompare(
         reference,
         result,
         errorMask,
         threshold);
 
-    if (!compareOk) {
+    if (!isOk) {
         debug('Image comparison failed: threshold = ' + threshold);
         tcuImageCompare.displayImages(result, reference, errorMask.getAccess());
     }
@@ -512,9 +488,9 @@ tcuImageCompare.bilinearCompare = function(imageSetName, imageSetDesc, reference
     //         log << TestLog::Message << "Image comparison failed, threshold = " << threshold << TestLog::EndMessage;
     //
     //     log << TestLog::ImageSet(imageSetName, imageSetDesc)
-    //         << TestLog::Image("Result",        "Result",        result,        pixelScale, pixelBias)
-    //         << TestLog::Image("Reference",    "Reference",    reference,    pixelScale, pixelBias)
-    //         << TestLog::Image("ErrorMask",    "Error mask",    errorMask)
+    //         << TestLog::Image("Result", "Result", result, pixelScale, pixelBias)
+    //         << TestLog::Image("Reference", "Reference", reference, pixelScale, pixelBias)
+    //         << TestLog::Image("ErrorMask", "Error mask", errorMask)
     //         << TestLog::EndImageSet;
     // }
     // else if (logMode == COMPARE_LOG_RESULT)
@@ -523,15 +499,11 @@ tcuImageCompare.bilinearCompare = function(imageSetName, imageSetDesc, reference
     //         computePixelScaleBias(result, pixelScale, pixelBias);
     //
     //     log << TestLog::ImageSet(imageSetName, imageSetDesc)
-    //         << TestLog::Image("Result",        "Result",        result, pixelScale, pixelBias)
+    //         << TestLog::Image("Result", "Result", result, pixelScale, pixelBias)
     //         << TestLog::EndImageSet;
     // }
 
     return isOk;
 };
-
-
-
-
 
 });

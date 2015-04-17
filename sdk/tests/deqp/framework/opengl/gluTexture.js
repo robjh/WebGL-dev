@@ -20,11 +20,10 @@
 
 'use strict';
 goog.provide('framework.opengl.gluTexture');
-goog.require('framework.opengl.gluTextureUtil');
-goog.require('framework.common.tcuTexture');
 goog.require('framework.common.tcuCompressedTexture');
+goog.require('framework.common.tcuTexture');
 goog.require('framework.delibs.debase.deMath');
-
+goog.require('framework.opengl.gluTextureUtil');
 
 goog.scope(function() {
 
@@ -33,7 +32,6 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
 var tcuTexture = framework.common.tcuTexture;
 var tcuCompressedTexture = framework.common.tcuCompressedTexture;
 var deMath = framework.delibs.debase.deMath;
-    
 
 var DE_ASSERT = function(x) {
     if (!x)
@@ -70,8 +68,7 @@ gluTexture.texture2DFromInternalFormat = function(gl, internalFormat, width, hei
     return tex;
 };
 
-gluTexture.computePixelStore = function(/*const tcu::TextureFormat&*/ format)
-{
+gluTexture.computePixelStore = function(/*const tcu::TextureFormat&*/ format) {
     var pixelSize = format.getPixelSize();
     if (deMath.deIsPowerOfTwo32(pixelSize))
         return Math.min(pixelSize, 8);
@@ -79,10 +76,8 @@ gluTexture.computePixelStore = function(/*const tcu::TextureFormat&*/ format)
         return 1;
 };
 
-gluTexture.cubeFaceToGLFace = function(/*tcu::CubeFace*/ face)
-{
-    switch (face)
-    {
+gluTexture.cubeFaceToGLFace = function(/*tcu::CubeFace*/ face) {
+    switch (face) {
         case tcuTexture.CubeFace.CUBEFACE_NEGATIVE_X: return gl.TEXTURE_CUBE_MAP_NEGATIVE_X;
         case tcuTexture.CubeFace.CUBEFACE_POSITIVE_X: return gl.TEXTURE_CUBE_MAP_POSITIVE_X;
         case tcuTexture.CubeFace.CUBEFACE_NEGATIVE_Y: return gl.TEXTURE_CUBE_MAP_NEGATIVE_Y;
@@ -105,8 +100,7 @@ gluTexture.Texture2D.prototype.upload = function() {
 
     var transferFormat = gluTextureUtil.getTransferFormat(this.m_refTexture.getFormat());
 
-    for (var levelNdx = 0; levelNdx < this.m_refTexture.getNumLevels(); levelNdx++)
-    {
+    for (var levelNdx = 0; levelNdx < this.m_refTexture.getNumLevels(); levelNdx++) {
         if (this.m_refTexture.isLevelEmpty(levelNdx))
             continue; // Don't upload.
 
@@ -123,6 +117,7 @@ gluTexture.Texture2D.prototype.upload = function() {
 
 /**
  * @constructor
+ * @extends {gluTexture.Texture2D}
  */
 gluTexture.TextureCube = function(gl, format, isCompressed, refTexture) {
     gluTexture.Texture2D.call(this, gl, format, isCompressed, refTexture);
@@ -143,10 +138,8 @@ gluTexture.TextureCube.prototype.upload = function() {
 
     var transferFormat = gluTextureUtil.getTransferFormat(this.m_refTexture.getFormat());
 
-    for (var face in tcuTexture.CubeFace)
-    {
-        for (var levelNdx = 0; levelNdx < this.m_refTexture.getNumLevels(); levelNdx++)
-        {
+    for (var face in tcuTexture.CubeFace) {
+        for (var levelNdx = 0; levelNdx < this.m_refTexture.getNumLevels(); levelNdx++) {
             if (this.m_refTexture.isLevelEmpty(tcuTexture.CubeFace[face], levelNdx))
                 continue; // Don't upload.
 
@@ -171,6 +164,7 @@ gluTexture.cubeFromInternalFormat = function(gl, internalFormat, size) {
 
 /**
  * @constructor
+ * @extends {gluTexture.Texture2D}
  */
 gluTexture.Texture2DArray = function(gl, format, isCompressed, refTexture) {
     gluTexture.Texture2D.call(this, gl, format, isCompressed, refTexture);
@@ -214,6 +208,7 @@ gluTexture.texture2DArrayFromInternalFormat = function(gl, internalFormat, width
 
 /**
  * @constructor
+ * @extends {gluTexture.Texture2D}
  */
 gluTexture.Texture3D = function(gl, format, isCompressed, refTexture) {
     gluTexture.Texture2D.call(this, gl, format, isCompressed, refTexture);
@@ -257,6 +252,7 @@ gluTexture.texture3DFromInternalFormat = function(gl, internalFormat, width, hei
 
 /**
  * @constructor
+ * @extends {gluTexture.Texture2D}
  */
 gluTexture.Compressed2D = function(gl, format, isCompressed, refTexture) {
     gluTexture.Texture2D.call(this, gl, format, isCompressed, refTexture);
@@ -279,6 +275,7 @@ gluTexture.Compressed2D.prototype.upload = function(level, source) {
 
 /**
  * @constructor
+ * @extends {gluTexture.Texture2D}
  */
 gluTexture.CompressedCube = function(gl, format, isCompressed, refTexture) {
     gluTexture.Texture2D.call(this, gl, format, isCompressed, refTexture);
@@ -325,7 +322,5 @@ gluTexture.compressedCubeFromInternalFormat = function(gl, format, size, compres
     tex.upload(0, compressed);
     return tex;
 };
-
-
 
 });

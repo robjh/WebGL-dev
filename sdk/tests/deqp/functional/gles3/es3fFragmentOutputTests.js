@@ -45,7 +45,7 @@ var tcuTexture = framework.common.tcuTexture;
 var tcuTextureUtil = framework.common.tcuTextureUtil;
 var deMath = framework.delibs.debase.deMath;
 var tcuImageCompare = framework.common.tcuImageCompare;
-    
+
     /** @type {WebGL2RenderingContext} */ var gl;
 
     es3fFragmentOutputTests.GLU_EXPECT_NO_ERROR = function(error, message) {
@@ -94,6 +94,7 @@ var tcuImageCompare = framework.common.tcuImageCompare;
     /**
      * es3fFragmentOutputTests.FragmentOutputCase. Constructs the es3fFragmentOutputTests.FragmentOutputCase object
      * @constructor
+     * @extends {tcuTestCase.DeqpTest}
      * @param {string} name
      * @param {string} description
      * @param {Array<es3fFragmentOutputTests.BufferSpec>} fboSpec
@@ -1455,6 +1456,6 @@ var tcuImageCompare = framework.common.tcuImageCompare;
 
     };
 
-    
+
 
 });

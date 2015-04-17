@@ -23,7 +23,6 @@ goog.provide('framework.common.tcuTextureUtil');
 goog.require('framework.common.tcuTexture');
 goog.require('framework.delibs.debase.deMath');
 
-
 goog.scope(function() {
 
 var tcuTextureUtil = framework.common.tcuTextureUtil;
@@ -35,13 +34,12 @@ var DE_ASSERT = function(x) {
         throw new Error('Assert failed');
 };
 
-tcuTextureUtil.linearInterpolate = function(t, minVal, maxVal)
-{
+tcuTextureUtil.linearInterpolate = function(t, minVal, maxVal) {
     return minVal + (maxVal - minVal) * t;
 };
 
 /**
- * @enum 
+ * @enum
  */
 tcuTextureUtil.Clear = {
     OPTIMIZE_THRESHOLD: 128,
@@ -70,7 +68,7 @@ tcuTextureUtil.fillRow = function(dst, y, z, pixelSize, pixel) {
 };
 
 /**
- * @param {PixelBufferAccess} access
+ * @param {tcuTexture.PixelBufferAccess} access
  * @param {Array.<number>} color
  */
 tcuTextureUtil.clear = function(access, color) {
@@ -87,8 +85,7 @@ tcuTextureUtil.clear = function(access, color) {
         for (var z = 0; z < access.getDepth(); z++)
             for (var y = 0; y < access.getHeight(); y++)
                 tcuTextureUtil.fillRow(access, y, z, pixelSize, pixel);
-    }
-    else {
+    } else {
         for (var z = 0; z < access.getDepth(); z++)
             for (var y = 0; y < access.getHeight(); y++)
                 for (var x = 0; x < access.getWidth(); x++)
@@ -110,8 +107,8 @@ tcuTextureUtil.TextureChannelClass = {
 };
 
 /** tcuTextureUtil.linearChannelToSRGB
- * @param {number} cl - a float in the C++ version
- * @return {Array}
+ * @param {number} cl
+ * @return {number}
  */
 tcuTextureUtil.linearChannelToSRGB = function(cl) {
     if (cl <= 0.0)
@@ -162,7 +159,7 @@ tcuTextureUtil.getTextureChannelClass = function(channelType) {
     case tcuTexture.ChannelType.HALF_FLOAT: return tcuTextureUtil.TextureChannelClass.FLOATING_POINT;
     case tcuTexture.ChannelType.FLOAT: return tcuTextureUtil.TextureChannelClass.FLOATING_POINT;
 
-    default: return tcuTextureUtil.TextureChannelClass.LAST;
+    default: throw new Error('Unrecognized channel type: ' + channelType);
     }
 
 };
@@ -232,7 +229,8 @@ tcuTextureUtil.fillWithComponentGradients3D = function(/*const PixelBufferAccess
 
 tcuTextureUtil.fillWithComponentGradients = function(/*const PixelBufferAccess&*/ access, /*const Vec4&*/ minVal, /*const Vec4&*/ maxVal) {
     if (access.getHeight() == 1 && access.getDepth() == 1)
-        fillWithComponentGradients1D(access, minVal, maxVal);
+        throw new Error('Inimplemented');
+        //fillWithComponentGradients1D(access, minVal, maxVal);
     else if (access.getDepth() == 1)
         tcuTextureUtil.fillWithComponentGradients2D(access, minVal, maxVal);
     else
@@ -375,8 +373,7 @@ tcuTextureUtil.select = function(a, b, cond) {
  */
 tcuTextureUtil.getChannelBitDepth = function(channelType) {
 
-    switch (channelType)
-    {
+    switch (channelType) {
         case tcuTexture.ChannelType.SNORM_INT8: return [8, 8, 8, 8];
         case tcuTexture.ChannelType.SNORM_INT16: return [16, 16, 16, 16];
         case tcuTexture.ChannelType.SNORM_INT32: return [32, 32, 32, 32];
@@ -418,8 +415,7 @@ tcuTextureUtil.getTextureFormatBitDepth = function(format) {
     /** @type {Array.<boolean>} */ var chnMask = [false, false, false, false]; // BVec4
     /** @type {Array.<number>} */ var chnSwz = [0, 1, 2, 3]; // IVec4
 
-    switch (format.order)
-    {
+    switch (format.order) {
         case tcuTexture.ChannelOrder.R: chnMask = [true, false, false, false]; break;
         case tcuTexture.ChannelOrder.A: chnMask = [false, false, false, true]; break;
         case tcuTexture.ChannelOrder.RA: chnMask = [true, false, false, true]; break;
@@ -545,7 +541,7 @@ tcuTextureUtil.getTextureFormatMantissaBitDepth = function(format) {
         default:
             DE_ASSERT(false);
     }
-    return tcuTextureUtil.select(chnBits.swizzle(chnSwz[0], chnSwz[1], chnSwz[2], chnSwz[3]), [0, 0, 0, 0], chnMask);
+    return tcuTextureUtil.select(deMath.swizzle(chnBits, [chnSwz[0], chnSwz[1], chnSwz[2], chnSwz[3]]), [0, 0, 0, 0], chnMask);
 };
 
 /**
@@ -591,32 +587,29 @@ tcuTextureUtil.getChannelMantissaBitDepth = function(channelType) {
  * @param {tcuTexture.PixelBufferAccess} src
  */
 tcuTextureUtil.copy = function(dst, src) {
-    var width   = dst.getWidth();
-    var height  = dst.getHeight();
-    var depth   = dst.getDepth();
+    var width = dst.getWidth();
+    var height = dst.getHeight();
+    var depth = dst.getDepth();
 
     DE_ASSERT(src.getWidth() == width && src.getHeight() == height && src.getDepth() == depth);
 
     if (src.getFormat() == dst.getFormat()) {
         var srcData = src.getDataPtr();
         var dstData = dst.getDataPtr();
-        
+
         dstData.set(srcData);
     } else {
-        var srcClass    = tcuTextureUtil.getTextureChannelClass(src.getFormat().type);
-        var dstClass    = tcuTextureUtil.getTextureChannelClass(dst.getFormat().type);
-        var                    srcIsInt    = srcClass == tcuTextureUtil.TextureChannelClass.SIGNED_INTEGER || srcClass == tcuTextureUtil.TextureChannelClass.UNSIGNED_INTEGER;
-        var                    dstIsInt    = dstClass == tcuTextureUtil.TextureChannelClass.SIGNED_INTEGER || dstClass == tcuTextureUtil.TextureChannelClass.UNSIGNED_INTEGER;
+        var srcClass = tcuTextureUtil.getTextureChannelClass(src.getFormat().type);
+        var dstClass = tcuTextureUtil.getTextureChannelClass(dst.getFormat().type);
+        var srcIsInt = srcClass == tcuTextureUtil.TextureChannelClass.SIGNED_INTEGER || srcClass == tcuTextureUtil.TextureChannelClass.UNSIGNED_INTEGER;
+        var dstIsInt = dstClass == tcuTextureUtil.TextureChannelClass.SIGNED_INTEGER || dstClass == tcuTextureUtil.TextureChannelClass.UNSIGNED_INTEGER;
 
-        if (srcIsInt && dstIsInt)
-        {
+        if (srcIsInt && dstIsInt) {
             for (var z = 0; z < depth; z++)
             for (var y = 0; y < height; y++)
             for (var x = 0; x < width; x++)
                 dst.setPixelInt(src.getPixelInt(x, y, z), x, y, z);
-        }
-        else
-        {
+        } else {
             for (var z = 0; z < depth; z++)
             for (var y = 0; y < height; y++)
             for (var x = 0; x < width; x++)
@@ -624,9 +617,5 @@ tcuTextureUtil.copy = function(dst, src) {
         }
     }
 };
-
-
-
-
 
 });

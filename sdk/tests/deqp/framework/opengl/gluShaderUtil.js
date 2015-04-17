@@ -22,12 +22,10 @@
 goog.provide('framework.opengl.gluShaderUtil');
 goog.require('framework.delibs.debase.deMath');
 
-
 goog.scope(function() {
 
 var gluShaderUtil = framework.opengl.gluShaderUtil;
 var deMath = framework.delibs.debase.deMath;
-    
 
 var DE_ASSERT = function(x) {
     if (!x)
@@ -200,11 +198,9 @@ gluShaderUtil.getDataTypeFloatScalars = function(dataType) {
  * @param {number} size
  * @return {gluShaderUtil.DataType}
  */
-gluShaderUtil.getDataTypeVector = function(scalarType, size)
-{
+gluShaderUtil.getDataTypeVector = function(scalarType, size) {
     //DE_ASSERT(deInRange32(size, 1, 4));
-    switch (scalarType)
-    {
+    switch (scalarType) {
         case gluShaderUtil.DataType.FLOAT:
         case gluShaderUtil.DataType.INT:
         case gluShaderUtil.DataType.UINT:
@@ -220,8 +216,7 @@ gluShaderUtil.getDataTypeVector = function(scalarType, size)
  * @param {number} vecSize
  * @return {gluShaderUtil.DataType}
  */
-gluShaderUtil.getDataTypeFloatVec = function(vecSize)
-{
+gluShaderUtil.getDataTypeFloatVec = function(vecSize) {
     return gluShaderUtil.getDataTypeVector(gluShaderUtil.DataType.FLOAT, vecSize);
 };
 
@@ -594,7 +589,7 @@ gluShaderUtil.getDataTypeMatrixNumColumns = function(dataType) {
  * @param {gluShaderUtil.DataType} dataType shader
  * @return {string} dataType name
  */
-gluShaderUtil.getDataTypeName = function(dataType)  {
+gluShaderUtil.getDataTypeName = function(dataType) {
     switch (dataType) {
         case gluShaderUtil.DataType.INVALID: return 'invalid';
 
@@ -651,12 +646,11 @@ gluShaderUtil.getDataTypeName = function(dataType)  {
 
 /**
  * Returns the gluShaderUtil.DataType from the GL type
- * @param {deMath.deUint32} glType
+ * @param {number} glType
  * @return {gluShaderUtil.DataType}
  */
 gluShaderUtil.getDataTypeFromGLType = function(glType) {
-    switch (glType)
-    {
+    switch (glType) {
         case gl.FLOAT: return gluShaderUtil.DataType.FLOAT;
         case gl.FLOAT_VEC2: return gluShaderUtil.DataType.FLOAT_VEC2;
         case gl.FLOAT_VEC3: return gluShaderUtil.DataType.FLOAT_VEC3;
@@ -712,7 +706,5 @@ gluShaderUtil.getDataTypeFromGLType = function(glType) {
             return gluShaderUtil.DataType.LAST;
     }
 };
-
-
 
 });

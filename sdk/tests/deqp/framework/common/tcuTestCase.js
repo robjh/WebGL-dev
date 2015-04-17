@@ -40,7 +40,6 @@ goog.scope(function() {
     /****************************************
     * Runner
     ***************************************/
-
     /**
     * A simple state machine.
     * The purpose of this this object is to break
@@ -51,7 +50,6 @@ goog.scope(function() {
         /** @type {tcuTestCase.DeqpTest} */ this.nextTest = null;
         /** @type {tcuTestCase.DeqpTest} */ this.testCases = null;
     };
-
     /**
     * @param {tcuTestCase.DeqpTest} root The root test of the test tree.
     */
@@ -109,7 +107,7 @@ goog.scope(function() {
     * @constructor
     * @param {string} name
     * @param {string} description
-    * @param {string} spec
+    * @param {Object} spec
     */
     tcuTestCase.DeqpTest = function(name, description, spec) {
         this.name = name;
@@ -276,8 +274,7 @@ goog.scope(function() {
         state.next();
 
         if (state.currentTest) {
-            try
-            {
+        try {
                 //If proceeding with the next test, prepare it.
                 if (tcuTestCase.lastResult == tcuTestCase.IterateResult.STOP)
                 {
@@ -296,19 +293,15 @@ goog.scope(function() {
 
                 //TODO: Improve this
                 //Run the test, save the result.
-                if (state.currentTest.iterate !== undefined)
-                {
+            if (state.currentTest.iterate !== undefined) {
                     debug('Start testcase: ' + fullTestName);
                     tcuTestCase.lastResult = state.currentTest.iterate();
-                }
-                else if (state.currentTestNdx.spec !== undefined && state.currentTestNdx.spec.iterate !== undefined)
-                {
+            } else if (state.currentTest.spec !== undefined && state.currentTest.spec.iterate !== undefined) {
                     debug('Start testcase: ' + fullTestName);
                     tcuTestCase.lastResult = state.currentTest.spec.iterate();
                 }
             }
-            catch (err)
-            {
+        catch (err) {
                 //If the exception was not thrown by a test check, log it, but don't throw it again
                 if (!(err instanceof TestFailedException))
                     testFailedOptions(err.message, false);

@@ -17,26 +17,20 @@
  * limitations under the License.
  *
  */
-
 'use strict';
-goog.provide('framework.common.tcuStringTemplate');
+goog.provide('framework.common.tcuMatrixUtil');
+goog.require('framework.common.tcuMatrix');
 
 goog.scope(function() {
 
-var tcuStringTemplate = framework.common.tcuStringTemplate;
+	var tcuMatrix = framework.common.tcuMatrix;
 
-tcuStringTemplate.escapeRegExp = function(string) {
-    return string.replace(/([.*+?^=!:$ {}()|\[\]\/\\])/g, '\\$1');
-};
-
-tcuStringTemplate.specialize = function(str, params) {
-    var dst = str;
-    for (var key in params) {
-        var value = params[key];
-        var re = new RegExp(tcuStringTemplate.escapeRegExp('\$\ {' + key + '\}'), 'g');
-        dst = dst.replace(re, value);
-    }
-    return dst;
-};
+    tcuMatrixUtil.translationMatrix = function(translation)
+    {
+        var res = new txuMatrix.Matrix([[0],[0]]);
+        for (var row = 0; row < translation.length; row++) {
+            res.set(row, translation.length + 1, translation[row]);
+        };
+    };
 
 });

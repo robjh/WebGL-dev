@@ -97,7 +97,7 @@ def build_target(target, namespace):
     global total_errors
     global total_warnings
     deps = read_file(dep_filename(target))
-    cmdLine = 'java -jar compiler.jar --compilation_level ADVANCED_OPTIMIZATIONS --warning_level VERBOSE'
+    cmdLine = 'java -jar compiler.jar --compilation_level ADVANCED_OPTIMIZATIONS --warning_level VERBOSE --jscomp_warning undefinedVars --externs compiler_additional_extern.js'
     for dep in deps.split('\n'):
         dep = dep.strip()
         if len(dep) > 0:
@@ -119,6 +119,23 @@ def build_all_targets():
     for target in targets.keys():
         build_target(target, targets[target])
 
+
+def format_target(target):
+    deps = read_file(dep_filename(target))
+    fixjsstyle = 'fixjsstyle-script.py'
+    reformat = 'reformatting_tool.py'
+    for dep in deps.split('\n'):
+        dep = dep.strip()
+        if len(dep) > 0 and not re.search('closure-library.*base\.js', dep):
+            print fixjsstyle + ' ' + dep
+            subprocess.call(['python', fixjsstyle, dep])
+            print reformat + ' -f ' + dep
+            subprocess.call(['python', reformat, '-f', dep])
+
+def format_all_targets():
+    for target in targets.keys():
+        format_target(target)
+
 def pass_or_fail():
     if total_errors + total_warnings == 0:
         print "Passed"
@@ -136,6 +153,12 @@ def main(argv):
             build_deps(target, targets[target])
         else:
             build_all_deps()
+    elif (argv[0] == 'format'):
+        if len(argv) == 2:
+            target = argv[1]
+            format_target(target)
+        else:
+            format_all_targets()
     elif (argv[0] == 'build'):
         if len(argv) == 2:
             target = argv[1]
