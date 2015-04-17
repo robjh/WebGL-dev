@@ -38,7 +38,7 @@ var tcuSurface = framework.common.tcuSurface;
 var tcuTexture = framework.common.tcuTexture;
 var gluShaderUtil = framework.opengl.gluShaderUtil;
 var gluTextureUtil = framework.opengl.gluTextureUtil;
-    
+
 
     /**
      * @constructor
@@ -261,7 +261,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
         ];
         var testGroup = tcuTestCase.runner.getState().testCases;
         // .basic
-        /** @type {TestCaseGroup} */
+        /** @type {tcuTestCase.DeqpTest} */
         var basicGroup = new tcuTestCase.newTest('basic', 'Basic stencil tests');
         testGroup.addChild(basicGroup);
 
@@ -276,7 +276,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
         }
 
         // .attach
-        /** @type {TestCaseGroup} */
+        /** @type {tcuTestCase.DeqpTest} */
         var attachGroup = new tcuTestCase.newTest('attach', 'Attaching depth stencil');
         testGroup.addChild(attachGroup);
 
@@ -313,5 +313,5 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
         }
     };
 
-    
+
 });

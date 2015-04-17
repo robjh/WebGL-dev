@@ -79,16 +79,16 @@ var rrVertexPacket = framework.referencerenderer.rrVertexPacket;
      * @param {number} numOutputs
      */
     rrShaders.VertexShader = function (numInputs, numOutputs) {
-        /** @type {Array.<rrShaders.VertexInputInfo> */ this.m_inputs = new Array(numInputs);
+        /** @type {Array.<rrShaders.VertexInputInfo>} */ this.m_inputs = new Array(numInputs);
         for(var ndx = 0; ndx < numInputs; ndx++) this.m_inputs[ndx] = new rrShaders.VertexInputInfo();
-        /** @type {Array.<rrShaders.VertexOutputInfo> */ this.m_outputs = new Array(numOutputs);
+        /** @type {Array.<rrShaders.VertexOutputInfo>} */ this.m_outputs = new Array(numOutputs);
         for(var ndx = 0; ndx < numOutputs; ndx++) this.m_outputs[ndx] = new rrShaders.VertexOutputInfo();
     };
 
     /**
      * shadeVertices - abstract function, to be implemented by children classes
      * @param {rrVertexAttrib.VertexAttrib} inputs
-     * @param {rrVertexPacket.VertexPacket} inputs
+     * @param {rrVertexPacket.VertexPacket} packets
      * @param {number} numPackets
      */
      rrShaders.VertexShader.prototype.shadeVertices = function(inputs, packets, numPackets) {
@@ -116,15 +116,15 @@ var rrVertexPacket = framework.referencerenderer.rrVertexPacket;
      * @param {number} numOutputs
      */
     rrShaders.FragmentShader = function (numInputs, numOutputs) {
-        /** @type {Array.<rrShaders.FragmentInputInfo> */ this.m_inputs = new Array(numInputs);
+        /** @type {Array.<rrShaders.FragmentInputInfo>} */ this.m_inputs = new Array(numInputs);
         for(var ndx = 0; ndx < numInputs; ndx++) this.m_inputs[ndx] = new rrShaders.FragmentInputInfo();
-        /** @type {Array.<rrShaders.FragmentOutputInfo> */ this.m_outputs = new Array(numOutputs);
+        /** @type {Array.<rrShaders.FragmentOutputInfo>} */ this.m_outputs = new Array(numOutputs);
         for(var ndx = 0; ndx < numOutputs; ndx++) this.m_outputs[ndx] = new rrShaders.FragmentOutputInfo();
     };
 
     /**
      * shadeFragments - abstract function, to be implemented by children classes
-     * @note numPackets must be greater than zero.
+     * note that numPackets must be greater than zero.
      * @param {Array.<rrFragmentPacket.FragmentPacket>} packets
      * @param {number} numPackets
      * @param {rrShadingContext.FragmentShadingContext} context
@@ -191,5 +191,5 @@ var rrVertexPacket = framework.referencerenderer.rrVertexPacket;
             this.m_shader.shadeFragment(packets[ndx]);
     };
 
-    
+
 });

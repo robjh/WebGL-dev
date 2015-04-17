@@ -29,7 +29,7 @@ goog.scope(function() {
 var rrVertexPacket = framework.referencerenderer.rrVertexPacket;
 var tcuTexture = framework.common.tcuTexture;
 var deMath = framework.delibs.debase.deMath;
-    
+
 
     rrVertexPacket.DE_NULL = null;
 
@@ -74,10 +74,10 @@ var deMath = framework.delibs.debase.deMath;
             return [];
 
         /** @type {number} */ var extraVaryings = (this.m_numberOfVertexOutputs == 0) ? (0) : (this.m_numberOfVertexOutputs - 1);
-        /** @type {number} TODO: Check what this size is used for */ //var packetSize = sizeof(rrVertexPacket.VertexPacket) + extraVaryings * sizeof(GenericVec4);
+        // /** @type {number} TODO: Check what this size is used for */ var packetSize = sizeof(rrVertexPacket.VertexPacket) + extraVaryings * sizeof(GenericVec4);
 
         /** @type {Array.<rrVertexPacket.VertexPacket>} */ var retVal = [];
-        /** @type {Uint8Array} TODO: same as above */ //var ptr = new deInt8[packetSize * count]; // throws bad_alloc => ok
+        // /** @type {Uint8Array} TODO: same as above */ var ptr = new deInt8[packetSize * count]; // throws bad_alloc => ok
 
         //run ctors
         for (var i = 0; i < count; ++i)
@@ -102,6 +102,6 @@ var deMath = framework.delibs.debase.deMath;
         return packet;
     };
 
-    
+
 
 });

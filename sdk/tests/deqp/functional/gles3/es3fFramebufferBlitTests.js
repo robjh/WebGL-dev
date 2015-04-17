@@ -44,7 +44,7 @@ var tcuTexture = framework.common.tcuTexture;
 var tcuTextureUtil = framework.common.tcuTextureUtil;
 var deMath = framework.delibs.debase.deMath;
 var gluTextureUtil = framework.opengl.gluTextureUtil;
-    
+
 
     /** @type {WebGL2RenderingContext} */ var gl;
     /**
@@ -469,7 +469,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
         /** @const {Array<number>} */ var dstSize = [132, 128];
 
         // Blit rectangle tests.
-        /** @type {TestCaseGroup} */ var rectGroup = new tcuTestCase.newTest('rect', 'Blit rectangle tests');
+        /** @type {tcuTestCase.DeqpTest} */ var rectGroup = new tcuTestCase.newTest('rect', 'Blit rectangle tests');
         testGroup.addChild(rectGroup);
         for (var rectNdx = 0; rectNdx < copyRects.length; rectNdx++) {
             for (var swzNdx = 0; swzNdx < swizzles.length; swzNdx++) {
@@ -498,7 +498,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
         }
 
         // .conversion
-        /** @type {TestCaseGroup} */ var conversionGroup = new tcuTestCase.newTest('conversion', 'Color conversion tests');
+        /** @type {tcuTestCase.DeqpTest} */ var conversionGroup = new tcuTestCase.newTest('conversion', 'Color conversion tests');
         testGroup.addChild(conversionGroup);
 
         for (var srcFmtNdx = 0; srcFmtNdx < colorFormats.length; srcFmtNdx++) {
@@ -523,7 +523,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
         }
 
         // .depth_stencil
-        /** @type {TestCaseGroup} */ var depthStencilGroup = new tcuTestCase.newTest('depth_stencil', 'Depth and stencil blits');
+        /** @type {tcuTestCase.DeqpTest} */ var depthStencilGroup = new tcuTestCase.newTest('depth_stencil', 'Depth and stencil blits');
         testGroup.addChild(depthStencilGroup);
 
         for (var fmtNdx = 0; fmtNdx < depthStencilFormats.length; fmtNdx++) {
@@ -559,7 +559,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
             new Area('out_of_bounds', es3fFramebufferBlitTests.DefaultFramebufferBlitCase.AREA_OUT_OF_BOUNDS)
         ];
 
-        /** @type {TestCaseGroup} */ var defaultFbGroup = new tcuTestCase.newTest('default_framebuffer', 'Blits with default framebuffer');
+        /** @type {tcuTestCase.DeqpTest} */ var defaultFbGroup = new tcuTestCase.newTest('default_framebuffer', 'Blits with default framebuffer');
         testGroup.addChild(defaultFbGroup);
 
         for (var fmtNdx = 0; fmtNdx < colorFormats.length; fmtNdx++) {
@@ -1237,6 +1237,6 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
         }
     };
 
-    
+
 
 });

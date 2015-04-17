@@ -22,6 +22,7 @@
 goog.provide('framework.common.tcuImageCompare');
 goog.require('framework.common.tcuBilinearImageCompare');
 goog.require('framework.common.tcuFuzzyImageCompare');
+goog.require('framework.common.tcuRGBA');
 goog.require('framework.common.tcuSurface');
 goog.require('framework.common.tcuTexture');
 goog.require('framework.delibs.debase.deMath');
@@ -34,6 +35,7 @@ var deMath = framework.delibs.debase.deMath;
 var tcuTexture = framework.common.tcuTexture;
 var tcuFuzzyImageCompare = framework.common.tcuFuzzyImageCompare;
 var tcuBilinearImageCompare = framework.common.tcuBilinearImageCompare;
+var tcuRGBA = framework.common.tcuRGBA;
 
 /**
  * @enum

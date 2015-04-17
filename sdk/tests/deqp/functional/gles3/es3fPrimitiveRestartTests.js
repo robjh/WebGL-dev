@@ -43,7 +43,7 @@ var deRandom = framework.delibs.debase.deRandom;
 var deString = framework.delibs.debase.deString;
 var tcuImageCompare = framework.common.tcuImageCompare;
 var gluTextureUtil = framework.opengl.gluTextureUtil;
-    
+
     /** @type {WebGL2RenderingContext} */ var gl;
     /** @const @type {number} */ es3fPrimitiveRestartTests.MAX_RENDER_WIDTH = 256;
     /** @const @type {number} */ es3fPrimitiveRestartTests.MAX_RENDER_HEIGHT = 256;
@@ -102,6 +102,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
     /**
     * es3fPrimitiveRestartTests.PrimitiveRestartCase class, inherits from TestCase class
     * @constructor
+    * @extends {tcuTestCase.DeqpTest}
     * @param {string} name
     * @param {string} description
     * @param {es3fPrimitiveRestartTests.PrimitiveType} primType
@@ -657,7 +658,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
                     if (deString.deIsStringEmpty(specialCaseGroupName))
                         specialCaseGroupName = 'basic';
 
-                    /** @type {TestCaseGroup} */ var specialCaseGroup = new tcuTestCase.newTest(specialCaseGroupName, '');
+                    /** @type {tcuTestCase.DeqpTest} */ var specialCaseGroup = new tcuTestCase.newTest(specialCaseGroupName, '');
                     testGroup.addChild(specialCaseGroup);
 
                     for (var primType in es3fPrimitiveRestartTests.PrimitiveType) {
@@ -672,7 +673,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
 
                         DE_ASSERT(primTypeName != null);
 
-                        /** @type {TestCaseGroup} */ var primTypeGroup = new tcuTestCase.newTest(es3fPrimitiveRestartTests.PrimitiveType[primType], '');
+                        /** @type {tcuTestCase.DeqpTest} */ var primTypeGroup = new tcuTestCase.newTest(es3fPrimitiveRestartTests.PrimitiveType[primType], '');
                         specialCaseGroup.addChild(primTypeGroup);
 
                         for (var indexType in es3fPrimitiveRestartTests.IndexType) {
@@ -683,7 +684,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
 
                             DE_ASSERT(indexTypeName != null);
 
-                            /** @type {TestCaseGroup} */ var indexTypeGroup = new tcuTestCase.newTest(indexTypeName, '');
+                            /** @type {tcuTestCase.DeqpTest} */ var indexTypeGroup = new tcuTestCase.newTest(indexTypeName, '');
                             primTypeGroup.addChild(indexTypeGroup);
 
                             for (var _function in es3fPrimitiveRestartTests.DrawFunction) {
@@ -737,5 +738,5 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
     };
 
 
-    
+
 });

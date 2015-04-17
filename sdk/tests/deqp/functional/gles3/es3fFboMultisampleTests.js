@@ -47,7 +47,7 @@ var tcuTextureUtil = framework.common.tcuTextureUtil;
 var deRandom = framework.delibs.debase.deRandom;
 var deMath = framework.delibs.debase.deMath;
 var gluTextureUtil = framework.opengl.gluTextureUtil;
-    
+
 
     /**
      * @constructor
@@ -319,7 +319,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
         var testGroup = tcuTestCase.runner.getState().testCases;
         for (var sampleCntNdx in sampleCounts) {
             /** @type {number} */ var samples = sampleCounts[sampleCntNdx];
-            /** @type {TestCaseGroup} */
+            /** @type {tcuTestCase.DeqpTest} */
             var sampleCountGroup = new tcuTestCase.newTest(samples + '_', '');
             testGroup.addChild(sampleCountGroup);
 
@@ -360,5 +360,5 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
         }
     };
 
-    
+
 });
