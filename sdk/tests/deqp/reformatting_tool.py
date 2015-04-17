@@ -158,6 +158,18 @@ rules = [
         'count': 0,
         'flags': re.MULTILINE
     },
+    { 
+        'pattern': r'\{WebGLRenderingContext.GLEnum\}',
+        'repl': '{number}',
+        'count': 0,
+        'flags': re.MULTILINE
+    },
+    { 
+        'pattern': r'\{WebGLRenderingContext\}',
+        'repl': '{WebGL2RenderingContext}',
+        'count': 0,
+        'flags': re.MULTILINE
+    },
 ]
 
 

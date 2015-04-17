@@ -1714,6 +1714,17 @@ tcuTexture.Texture2DView.prototype.sample = function(sampler, texCoord, lod) {
     return tcuTexture.sampleLevelArray2D(this.m_levels, this.m_numLevels, sampler, texCoord[0], texCoord[1], 0 /* depth */, lod);
 };
 
+/**
+ * @param {tcuTexture.Sampler} sampler
+ * @param {number} ref
+ * @param {Array<number>} texCoord
+ * @param {number} lod
+ * @return {number}
+ */
+tcuTexture.Texture2DView.prototype.sampleCompare = function(sampler, ref, texCoord, lod) {
+    throw new Error('Unimplemented');
+};
+
     /* TODO: Port
     Vec4 sample (const tcuTexture.Sampler& sampler, float s, float t, float lod) const;
     Vec4 sampleOffset (const tcuTexture.Sampler& sampler, float s, float t, float lod, const IVec2& offset) const;
@@ -1770,6 +1781,17 @@ tcuTexture.Texture2DArrayView.prototype.sample = function(sampler, texCoord, lod
 };
 
 /**
+ * @param {tcuTexture.Sampler} sampler
+ * @param {number} ref
+ * @param {Array<number>} texCoord
+ * @param {number} lod
+ * @return {number}
+ */
+tcuTexture.Texture2DArrayView.prototype.sampleCompare = function(sampler, ref, texCoord, lod) {
+    throw new Error('Unimplemented');
+};
+
+/**
  * @constructor
  * @param {number} numLevels
  * @param {Array<tcuTexture.ConstPixelBufferAccess>} levels
@@ -1815,6 +1837,17 @@ tcuTexture.Texture3DView.prototype.getSubView = function(baseLevel, maxLevel) {
  */
 tcuTexture.Texture3DView.prototype.sample = function(sampler, texCoord, lod) {
     return tcuTexture.sampleLevelArray3D(this.m_levels, this.m_numLevels, sampler, texCoord[0], texCoord[1], texCoord[2], lod);
+};
+
+/**
+ * @param {tcuTexture.Sampler} sampler
+ * @param {number} ref
+ * @param {Array<number>} texCoord
+ * @param {number} lod
+ * @return {number}
+ */
+tcuTexture.Texture3DView.prototype.sampleCompare = function(sampler, ref, texCoord, lod) {
+    throw new Error('Unimplemented');
 };
 
 /* TODO: All view classes are very similar. They should have a common base class */

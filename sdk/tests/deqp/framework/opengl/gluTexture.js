@@ -261,7 +261,7 @@ gluTexture.Compressed2D = function(gl, format, isCompressed, refTexture) {
 gluTexture.Compressed2D.prototype = Object.create(gluTexture.Texture2D.prototype);
 gluTexture.Compressed2D.prototype.constructor = gluTexture.Compressed2D;
 
-gluTexture.Compressed2D.prototype.upload = function(level, source) {
+gluTexture.Compressed2D.prototype.uploadLevel = function(level, source) {
     DE_ASSERT(this.m_isCompressed);
 
     if (this.m_glTexture == null)
@@ -284,7 +284,7 @@ gluTexture.CompressedCube = function(gl, format, isCompressed, refTexture) {
 gluTexture.CompressedCube.prototype = Object.create(gluTexture.Texture2D.prototype);
 gluTexture.CompressedCube.prototype.constructor = gluTexture.CompressedCube;
 
-gluTexture.CompressedCube.prototype.upload = function(level, source) {
+gluTexture.CompressedCube.prototype.uploadLevel = function(level, source) {
     DE_ASSERT(this.m_isCompressed);
 
     if (this.m_glTexture == null)
@@ -306,7 +306,7 @@ gluTexture.compressed2DFromInternalFormat = function(gl, format, width, height, 
     var tex = new gluTexture.Compressed2D(gl, gluTextureUtil.getGLFormat(format), true, new tcuTexture.Texture2D(compressed.getUncompressedFormat(), width, height));
     tex.m_refTexture.allocLevel(0);
     compressed.decompress(tex.m_refTexture.getLevel(0));
-    tex.upload(0, compressed);
+    tex.uploadLevel(0, compressed);
     return tex;
 };
 
@@ -319,7 +319,7 @@ gluTexture.compressedCubeFromInternalFormat = function(gl, format, size, compres
         DE_ASSERT(access.getRowPitch() == access.getFormat().getPixelSize() * access.getWidth());
         compressed.decompress(access);
     }
-    tex.upload(0, compressed);
+    tex.uploadLevel(0, compressed);
     return tex;
 };
 

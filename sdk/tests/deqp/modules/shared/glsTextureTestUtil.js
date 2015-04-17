@@ -28,6 +28,7 @@ goog.require('framework.opengl.gluShaderUtil');
 goog.require('framework.common.tcuStringTemplate');
 goog.require('framework.delibs.debase.deMath');
 goog.require('framework.common.tcuImageCompare');
+goog.require('framework.common.tcuPixelFormat');
 
 goog.scope(function() {
 
@@ -40,6 +41,7 @@ var gluShaderUtil = framework.opengl.gluShaderUtil;
 var tcuStringTemplate = framework.common.tcuStringTemplate;
 var deMath = framework.delibs.debase.deMath;
 var tcuImageCompare = framework.common.tcuImageCompare;
+var tcuPixelFormat = framework.common.tcuPixelFormat;
 
 var DE_ASSERT = function(x) {
     if (!x)
@@ -542,13 +544,7 @@ glsTextureTestUtil.ProgramLibrary.prototype.getProgram = function(program) {
     var fragSrc = tcuStringTemplate.specialize(fragShaderTemplate, params);
     // console.log(fragSrc);
     // console.log(vertSrc);
-    var sources = [];
-    sources.push(gluShaderProgram.genVertexSource(vertSrc));
-    sources.push(gluShaderProgram.genFragmentSource(fragSrc));
-    var programSources = {
-        sources: sources
-    };
-    var progObj = new gluShaderProgram.ShaderProgram(gl, programSources);
+    var progObj = new gluShaderProgram.ShaderProgram(gl, gluShaderProgram.makeVtxFragSources(vertSrc, fragSrc));
     // if (!progObj.isOk()) {
     //     // log << *progObj;
     //     testFailedOptions("Failed to create shader", true);
@@ -623,7 +619,7 @@ glsTextureTestUtil.TextureRenderer.prototype.renderQuad = function(texUnit, texC
             case glsTextureTestUtil.samplerType.SAMPLERTYPE_INT: progSpec = useBias ? glsTextureTestUtil.programType.PROGRAM_2D_INT_BIAS : glsTextureTestUtil.programType.PROGRAM_2D_INT; break;
             case glsTextureTestUtil.samplerType.SAMPLERTYPE_UINT: progSpec = useBias ? glsTextureTestUtil.programType.PROGRAM_2D_UINT_BIAS : glsTextureTestUtil.programType.PROGRAM_2D_UINT; break;
             case glsTextureTestUtil.samplerType.SAMPLERTYPE_SHADOW: progSpec = useBias ? glsTextureTestUtil.programType.PROGRAM_2D_SHADOW_BIAS : glsTextureTestUtil.programType.PROGRAM_2D_SHADOW; break;
-            default: DE_ASSERT(false);
+            default: throw new Error('Unrecognized sampler type:' + params.samplerType);
         }
     } else if (params.texType == glsTextureTestUtil.textureType.TEXTURETYPE_1D) {
         numComps = 1;
@@ -633,7 +629,7 @@ glsTextureTestUtil.TextureRenderer.prototype.renderQuad = function(texUnit, texC
             case glsTextureTestUtil.samplerType.SAMPLERTYPE_INT: progSpec = useBias ? glsTextureTestUtil.programType.PROGRAM_1D_INT_BIAS : glsTextureTestUtil.programType.PROGRAM_1D_INT; break;
             case glsTextureTestUtil.samplerType.SAMPLERTYPE_UINT: progSpec = useBias ? glsTextureTestUtil.programType.PROGRAM_1D_UINT_BIAS : glsTextureTestUtil.programType.PROGRAM_1D_UINT; break;
             case glsTextureTestUtil.samplerType.SAMPLERTYPE_SHADOW: progSpec = useBias ? glsTextureTestUtil.programType.PROGRAM_1D_SHADOW_BIAS : glsTextureTestUtil.programType.PROGRAM_1D_SHADOW; break;
-            default: DE_ASSERT(false);
+            default: throw new Error('Unrecognized sampler type:' + params.samplerType);
         }
     } else if (params.texType == glsTextureTestUtil.textureType.TEXTURETYPE_CUBE) {
         numComps = 3;
@@ -643,7 +639,7 @@ glsTextureTestUtil.TextureRenderer.prototype.renderQuad = function(texUnit, texC
             case glsTextureTestUtil.samplerType.SAMPLERTYPE_INT: progSpec = useBias ? glsTextureTestUtil.programType.PROGRAM_CUBE_INT_BIAS : glsTextureTestUtil.programType.PROGRAM_CUBE_INT; break;
             case glsTextureTestUtil.samplerType.SAMPLERTYPE_UINT: progSpec = useBias ? glsTextureTestUtil.programType.PROGRAM_CUBE_UINT_BIAS : glsTextureTestUtil.programType.PROGRAM_CUBE_UINT; break;
             case glsTextureTestUtil.samplerType.SAMPLERTYPE_SHADOW: progSpec = useBias ? glsTextureTestUtil.programType.PROGRAM_CUBE_SHADOW_BIAS : glsTextureTestUtil.programType.PROGRAM_CUBE_SHADOW; break;
-            default: DE_ASSERT(false);
+            default: throw new Error('Unrecognized sampler type:' + params.samplerType);
         }
     } else if (params.texType == glsTextureTestUtil.textureType.TEXTURETYPE_3D) {
         numComps = 3;
@@ -652,7 +648,7 @@ glsTextureTestUtil.TextureRenderer.prototype.renderQuad = function(texUnit, texC
             case glsTextureTestUtil.samplerType.SAMPLERTYPE_FLOAT: progSpec = useBias ? glsTextureTestUtil.programType.PROGRAM_3D_FLOAT_BIAS : glsTextureTestUtil.programType.PROGRAM_3D_FLOAT; break;
             case glsTextureTestUtil.samplerType.SAMPLERTYPE_INT: progSpec = useBias ? glsTextureTestUtil.programType.PROGRAM_3D_INT_BIAS : glsTextureTestUtil.programType.PROGRAM_3D_INT; break;
             case glsTextureTestUtil.samplerType.SAMPLERTYPE_UINT: progSpec = useBias ? glsTextureTestUtil.programType.PROGRAM_3D_UINT_BIAS : glsTextureTestUtil.programType.PROGRAM_3D_UINT; break;
-            default: DE_ASSERT(false);
+            default: throw new Error('Unrecognized sampler type:' + params.samplerType);
         }
     } else if (params.texType == glsTextureTestUtil.textureType.TEXTURETYPE_2D_ARRAY) {
         DE_ASSERT(!useBias); // \todo [2012-02-17 pyry] Support bias.
@@ -664,7 +660,7 @@ glsTextureTestUtil.TextureRenderer.prototype.renderQuad = function(texUnit, texC
             case glsTextureTestUtil.samplerType.SAMPLERTYPE_INT: progSpec = glsTextureTestUtil.programType.PROGRAM_2D_ARRAY_INT; break;
             case glsTextureTestUtil.samplerType.SAMPLERTYPE_UINT: progSpec = glsTextureTestUtil.programType.PROGRAM_2D_ARRAY_UINT; break;
             case glsTextureTestUtil.samplerType.SAMPLERTYPE_SHADOW: progSpec = glsTextureTestUtil.programType.PROGRAM_2D_ARRAY_SHADOW; break;
-            default: DE_ASSERT(false);
+            default: throw new Error('Unrecognized sampler type:' + params.samplerType);
         }
     } else if (params.texType == glsTextureTestUtil.textureType.TEXTURETYPE_CUBE_ARRAY) {
         DE_ASSERT(!useBias);
@@ -676,7 +672,7 @@ glsTextureTestUtil.TextureRenderer.prototype.renderQuad = function(texUnit, texC
             case glsTextureTestUtil.samplerType.SAMPLERTYPE_INT: progSpec = glsTextureTestUtil.programType.PROGRAM_CUBE_ARRAY_INT; break;
             case glsTextureTestUtil.samplerType.SAMPLERTYPE_UINT: progSpec = glsTextureTestUtil.programType.PROGRAM_CUBE_ARRAY_UINT; break;
             case glsTextureTestUtil.samplerType.SAMPLERTYPE_SHADOW: progSpec = glsTextureTestUtil.programType.PROGRAM_CUBE_ARRAY_SHADOW; break;
-            default: DE_ASSERT(false);
+            default: throw new Error('Unrecognized sampler type:' + params.samplerType);
         }
     } else if (params.texType == glsTextureTestUtil.textureType.TEXTURETYPE_1D_ARRAY) {
         DE_ASSERT(!useBias); // \todo [2012-02-17 pyry] Support bias.
@@ -688,7 +684,7 @@ glsTextureTestUtil.TextureRenderer.prototype.renderQuad = function(texUnit, texC
             case glsTextureTestUtil.samplerType.SAMPLERTYPE_INT: progSpec = glsTextureTestUtil.programType.PROGRAM_1D_ARRAY_INT; break;
             case glsTextureTestUtil.samplerType.SAMPLERTYPE_UINT: progSpec = glsTextureTestUtil.programType.PROGRAM_1D_ARRAY_UINT; break;
             case glsTextureTestUtil.samplerType.SAMPLERTYPE_SHADOW: progSpec = glsTextureTestUtil.programType.PROGRAM_1D_ARRAY_SHADOW; break;
-            default: DE_ASSERT(false);
+            default: throw new Error('Unrecognized sampler type:' + params.samplerType);
         }
     } else if (params.texType == glsTextureTestUtil.textureType.TEXTURETYPE_BUFFER) {
         numComps = 1;
@@ -697,12 +693,15 @@ glsTextureTestUtil.TextureRenderer.prototype.renderQuad = function(texUnit, texC
             case glsTextureTestUtil.samplerType.SAMPLERTYPE_FETCH_FLOAT: progSpec = glsTextureTestUtil.programType.PROGRAM_BUFFER_FLOAT; break;
             case glsTextureTestUtil.samplerType.SAMPLERTYPE_FETCH_INT: progSpec = glsTextureTestUtil.programType.PROGRAM_BUFFER_INT; break;
             case glsTextureTestUtil.samplerType.SAMPLERTYPE_FETCH_UINT: progSpec = glsTextureTestUtil.programType.PROGRAM_BUFFER_UINT; break;
-            default: DE_ASSERT(false);
+            default: throw new Error('Unrecognized sampler type:' + params.samplerType);
         }
     } else
-        DE_ASSERT(false);
+       throw new Error('Unrecognized texture type:' + params.texType);
 
-    /* glu::ShaderProgram* */ var program = this.m_programLibrary.getProgram(progSpec);
+    if (!progSpec)
+        throw new Error('Could not find program specification');
+
+    var program = this.m_programLibrary.getProgram(progSpec);
 
     // \todo [2012-09-26 pyry] Move to glsTextureTestUtil.ProgramLibrary and log unique programs only(?)
     /* TODO: Port logging
@@ -780,7 +779,7 @@ glsTextureTestUtil.TextureRenderer.prototype.renderQuad = function(texUnit, texC
 /**
  * @constructor
  * @param {tcuSurface.Surface} surface
- * @param {PixelFormat=} colorFmt
+ * @param {tcuPixelFormat.PixelFormat=} colorFmt
  * @param {number=} x
  * @param {number=} y
  * @param {number=} width
@@ -823,7 +822,7 @@ glsTextureTestUtil.SurfaceAccess.prototype.setPixel = function(color, x, y) {
  * @param {number} dwdy
  * @return {number}
  */
-glsTextureTestUtil.computeLodFromDerivates = function(/*LodMode*/ mode, dudx, dvdx, dwdx, dudy, dvdy, dwdy) {
+glsTextureTestUtil.computeLodFromDerivates3D = function(mode, dudx, dvdx, dwdx, dudy, dvdy, dwdy) {
     var p = 0;
     switch (mode) {
         case glsTextureTestUtil.lodMode.EXACT:
@@ -870,7 +869,7 @@ glsTextureTestUtil.computeNonProjectedTriLod = function(mode, dstSize, srcSize, 
     var dx = dstSize[0];
     var dy = dstSize[1];
 
-    return glsTextureTestUtil.computeLodFromDerivates(mode, dux / dx, dvx / dx, dwx / dx, duy / dy, dvy / dy, dwy / dy);
+    return glsTextureTestUtil.computeLodFromDerivates3D(mode, dux / dx, dvx / dx, dwx / dx, duy / dy, dvy / dy, dwy / dy);
 };
 
 /**
@@ -910,13 +909,13 @@ glsTextureTestUtil.triDerivateY = function(/*const tcu::Vec3&*/ s, /*const tcu::
 };
 
 /**
- * @param {tcuTexture.Texture2DView} src
+ * @param {(tcuTexture.Texture2DView|tcuTexture.Texture2DArrayView|framework.common.tcuTexture.TextureCubeView)} src
  * @param {glsTextureTestUtil.ReferenceParams} params
  * @param {Array<number>} texCoord Texture coordinates
  * @param {number} lod
  * @return {Array<number>} sample
  */
-glsTextureTestUtil.execSample = function(/*const tcu::Texture2DView&*/ src, /*const glsTextureTestUtil.ReferenceParams&*/ params, texCoord, lod) {
+glsTextureTestUtil.execSample = function(src, params, texCoord, lod) {
     if (params.samplerType == glsTextureTestUtil.samplerType.SAMPLERTYPE_SHADOW)
         return [src.sampleCompare(params.sampler, params.ref, texCoord, lod), 0, 0, 1];
     else
@@ -1033,6 +1032,37 @@ glsTextureTestUtil.sampleTexture2D = function(dst, src, texCoord, params) {
 };
 
 /**
+ * @param {glsTextureTestUtil.lodMode} mode
+ * @param {number} dudx
+ * @param {number} dvdx
+ * @param {number} dudy
+ * @param {number} dvdy
+ * @return {number}
+ */
+glsTextureTestUtil.computeLodFromDerivates2D = function(mode, dudx, dvdx, dudy, dvdy) {
+    var p = 0;
+    switch (mode) {
+        case glsTextureTestUtil.lodMode.EXACT:
+            p = Math.max(Math.sqrt(dudx * dudx + dvdx * dvdx), Math.sqrt(dudy * dudy + dvdy * dvdy));
+            break;
+
+        case glsTextureTestUtil.lodMode.MIN_BOUND:
+        case glsTextureTestUtil.lodMode.MAX_BOUND: {
+            var mu = Math.max(Math.abs(dudx), Math.abs(dudy));
+            var mv = Math.max(Math.abs(dvdx), Math.abs(dvdy));
+
+            p = (mode == glsTextureTestUtil.lodMode.MIN_BOUND) ? Math.max(mu, mv) : mu + mv;
+            break;
+        }
+
+        default:
+            throw new Error('Unrecognized mode:' + mode);
+    }
+
+    return Math.round(Math.log2(p));
+};
+
+/**
  * @param {glsTextureTestUtil.lodMode} lodModeParm
  * @param {Array<number>} coord
  * @param {Array<number>} coordDx
@@ -1070,7 +1100,7 @@ glsTextureTestUtil.computeCubeLodFromDerivates = function(lodModeParm, coord, co
         var dvdx = faceSize * 0.5 * (tcdx * ma - tc * madx) / (ma * ma);
         var dudy = faceSize * 0.5 * (scdy * ma - sc * mady) / (ma * ma);
         var dvdy = faceSize * 0.5 * (tcdy * ma - tc * mady) / (ma * ma);
-        return glsTextureTestUtil.computeLodFromDerivates(lodModeParm, dudx, dvdx, dudy, dvdy);
+        return glsTextureTestUtil.computeLodFromDerivates2D(lodModeParm, dudx, dvdx, dudy, dvdy);
     }
 };
 
@@ -1151,7 +1181,7 @@ glsTextureTestUtil.sampleTexture2DArray = function(dst,src, texCoord, params) {
     var rq = [texCoord[0+2], texCoord[3+2], texCoord[6+2], texCoord[9+2]];
 
     DE_ASSERT(!(params.flags.projected)); // \todo [2012-02-17 pyry] Support projected lookups.
-    glsTextureTestUtil.sampleTextureNonProjected2DArray(dst, src.getView(), sq, tq, rq, params);
+    glsTextureTestUtil.sampleTextureNonProjected2DArray(dst, src, sq, tq, rq, params);
 };
 
 /**

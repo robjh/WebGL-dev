@@ -42,7 +42,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
 
     /**
      * @constructor
-     * @extends {fboTestCase.FboTestCase}
+     * @extends {es3fFboTestCase.FboTestCase}
      * @param {string} name
      * @param {string} desc
      * @param {number} format
@@ -50,13 +50,13 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
      * @param {boolean} useDepth
      */
     es3fFboStencilbufferTests.BasicFboStencilCase = function(name, desc, format, size, useDepth) {
-        fboTestCase.FboTestCase.call(this, name, desc);
+        es3fFboTestCase.FboTestCase.call(this, name, desc);
         /** @type {number} */ this.m_format = format;
         /** @type {Array<number>} */ this.m_size = size;
         /** @type {boolean} */ this.m_useDepth = useDepth;
     };
 
-    es3fFboStencilbufferTests.BasicFboStencilCase.prototype = Object.create(fboTestCase.FboTestCase.prototype);
+    es3fFboStencilbufferTests.BasicFboStencilCase.prototype = Object.create(es3fFboTestCase.FboTestCase.prototype);
     es3fFboStencilbufferTests.BasicFboStencilCase.prototype.constructor = es3fFboStencilbufferTests.BasicFboStencilCase;
 
     es3fFboStencilbufferTests.BasicFboStencilCase.prototype.preCheck = function() {
@@ -69,8 +69,8 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
     es3fFboStencilbufferTests.BasicFboStencilCase.prototype.render = function(dst) {
         /** @const {number} */ var colorFormat = fl.RGBA8;
 
-        /** @type {fboTestUtil.GradientShader} */ var gradShader = new fboTestUtil.GradientShader(gluShaderUtil.DataType.FLOAT_VEC4);
-        /** @type {fboTestUtil.FlatColorShader} */ var flatShader = new fboTestUtil.FlatColorShader(gluShaderUtil.DataType.FLOAT_VEC4);
+        /** @type {es3fFboTestUtil.GradientShader} */ var gradShader = new es3fFboTestUtil.GradientShader(gluShaderUtil.DataType.FLOAT_VEC4);
+        /** @type {es3fFboTestUtil.FlatColorShader} */ var flatShader = new es3fFboTestUtil.FlatColorShader(gluShaderUtil.DataType.FLOAT_VEC4);
         /** @type {number} */ var flatShaderID = this.getCurrentContext().createProgram(flatShader);
         /** @type {number} */ var gradShaderID = this.getCurrentContext().createProgram(gradShader);
 
@@ -141,14 +141,14 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
 
     /**
      * @constructor
-     * @extends {fboTestCase.FboTestCase}
+     * @extends {es3fFboTestCase.FboTestCase}
      * @param {string} name
      * @param {string} desc
      * @param {number} attachDepth
      * @param {number} useDepth
      */
     es3fFboStencilbufferTests.DepthStencilAttachCase = function(name, desc, attachDepth, attachStencil) {
-        fboTestCase.FboTestCase.call(this, name, desc);
+        es3fFboTestCase.FboTestCase.call(this, name, desc);
         /** @type {number} */ this.m_attachDepth = attachDepth;
         /** @type {number} */ this.m_attachStencil = attachStencil;
         DE_ASSERT(this.m_attachDepth == gl.DEPTH_ATTACHMENT || this.m_attachDepth == gl.DEPTH_STENCIL_ATTACHMENT || this.m_attachDepth == gl.NONE);
@@ -156,7 +156,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
         DE_ASSERT(this.m_attachDepth != gl.DEPTH_STENCIL || this.m_attachStencil == gl.NONE);
     };
 
-    es3fFboStencilbufferTests.DepthStencilAttachCase.prototype = Object.create(fboTestCase.FboTestCase.prototype);
+    es3fFboStencilbufferTests.DepthStencilAttachCase.prototype = Object.create(es3fFboTestCase.FboTestCase.prototype);
     es3fFboStencilbufferTests.DepthStencilAttachCase.prototype.constructor = es3fFboStencilbufferTests.DepthStencilAttachCase;
 
     /**
@@ -170,8 +170,8 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
         /** @const {boolean} */ var hasDepth = this.m_attachDepth == gl.DEPTH_STENCIL || this.m_attachDepth == gl.DEPTH_ATTACHMENT;
         // /** @const {boolean} */ var hasStencil = this.m_attachDepth == gl.DEPTH_STENCIL || this.m_attachStencil == gl.DEPTH_STENCIL_ATTACHMENT); // commented out in original code
 
-        /** @type {fboTestUtil.GradientShader} */ var gradShader = fboTestUtil.GradientShader(gluShaderUtil.DataType.FLOAT_VEC4);
-        /** @type {fboTestUtil.FlatColorShader} */ var flatShader = fboTestUtil.FlatColorShader(gluShaderUtil.DataType.FLOAT_VEC4);
+        /** @type {es3fFboTestUtil.GradientShader} */ var gradShader = new es3fFboTestUtil.GradientShader(gluShaderUtil.DataType.FLOAT_VEC4);
+        /** @type {es3fFboTestUtil.FlatColorShader} */ var flatShader = new es3fFboTestUtil.FlatColorShader(gluShaderUtil.DataType.FLOAT_VEC4);
         /** @type {number} */ var flatShaderID = this.getCurrentContext().createProgram(flatShader);
         /** @type {number} */ var gradShaderID = this.getCurrentContext().createProgram(gradShader);
 
@@ -269,10 +269,10 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
             /** @type {number} */ var format = stencilFormats[fmtNdx];
             /** @type {tcuTexture.TextureFormat} */ var texFmt = gluTextureUtil.mapGLInternalFormat(format);
 
-            basicGroup.addChild(new es3fFboStencilbufferTests.BasicFboStencilCase(fboTestUtil.getFormatName(format), '', format, [111, 132], false));
+            basicGroup.addChild(new es3fFboStencilbufferTests.BasicFboStencilCase(es3fFboTestUtil.getFormatName(format), '', format, [111, 132], false));
 
             if (texFmt.order == tcuTexture.ChannelOrder.DS)
-                basicGroup.addChild(new es3fFboStencilbufferTests.BasicFboStencilCase(fboTestUtil.getFormatName(format) + '_depth'), '', format, [111, 132], true);
+                basicGroup.addChild(new es3fFboStencilbufferTests.BasicFboStencilCase(es3fFboTestUtil.getFormatName(format) + '_depth'), '', format, [111, 132], true);
         }
 
         // .attach

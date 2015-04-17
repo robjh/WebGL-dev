@@ -99,20 +99,21 @@ var tcuMatrix = framework.common.tcuMatrix;
         decl.pushVertexToFragmentVarying(rrGenericVector.GenericVecType.FLOAT);
         decl.pushFragmentOutput(es3fFboTestUtil.mapDataTypeToGenericVecType(outputType));
         decl.pushUniform('u_color', gluShaderUtil.DataType.FLOAT_VEC4);
-        decl.pushVertexSource(
-                            '#version 300 es\n' +
-                            'in highp vec4 a_position;\n' +
-                            'void main (void)\n' +
-                            '{\n' +
-                            '    gl_Position = a_position;\n' +
-                            '}\n');
-        decl.pushFragmentSource('#version 300 es\n' +
-                                'uniform highp vec4 u_color;\n' +
-                                'layout(location = 0) out highp ' + gluShaderUtil.getDataTypeName(outputType) + ' o_color;\n' +
-                                'void main (void)\n' +
-                                '{\n' +
-                                '    o_color = ' + gluShaderUtil.getDataTypeName(outputType) + '(u_color);\n' +
-                                '}\n');
+        decl.pushVertexSource(new sglrShaderProgram.VertexSource(
+            '#version 300 es\n' +
+            'in highp vec4 a_position;\n' +
+            'void main (void)\n' +
+            '{\n' +
+            '    gl_Position = a_position;\n' +
+            '}\n'));
+        decl.pushFragmentSource(new sglrShaderProgram.FragmentSource(
+            '#version 300 es\n' +
+            'uniform highp vec4 u_color;\n' +
+            'layout(location = 0) out highp ' + gluShaderUtil.getDataTypeName(outputType) + ' o_color;\n' +
+            'void main (void)\n' +
+            '{\n' +
+            '    o_color = ' + gluShaderUtil.getDataTypeName(outputType) + '(u_color);\n' +
+            '}\n'));
         sglrShaderProgram.ShaderProgram.call(this, decl);
     };
 
@@ -192,29 +193,31 @@ var tcuMatrix = framework.common.tcuMatrix;
         decl.pushFragmentOutput(es3fFboTestUtil.mapDataTypeToGenericVecType(outputType));
         decl.pushUniform('u_gradientMin', gluShaderUtil.DataType.FLOAT_VEC4);
         decl.pushUniform('u_gradientMax', gluShaderUtil.DataType.FLOAT_VEC4);
-        decl.pushVertexSource('#version 300 es\n' +
-                              'in highp vec4 a_position;\n' +
-                              'in highp vec4 a_coord;\n' +
-                              'out highp vec4 v_coord;\n' +
-                              'void main (void)\n' +
-                              '{\n' +
-                              '    gl_Position = a_position;\n' +
-                              '    v_coord = a_coord;\n' +
-                              '}\n');
-        decl.pushFragmentSource('#version 300 es\n' +
-                                'in highp vec4 v_coord;\n' +
-                                'uniform highp vec4 u_gradientMin;\n' +
-                                'uniform highp vec4 u_gradientMax;\n' +
-                                'layout(location = 0) out highp ' + gluShaderUtil.getDataTypeName(outputType) + ' o_color;\n' +
-                                'void main (void)\n' +
-                                '{\n' +
-                                '    highp float x = v_coord.x;\n' +
-                                '    highp float y = v_coord.y;\n' +
-                                '    highp float f0 = (x + y) * 0.5;\n' +
-                                '    highp float f1 = 0.5 + (x - y) * 0.5;\n' +
-                                '    highp vec4 fv = vec4(f0, f1, 1.0f-f0, 1.0f-f1);\n' +
-                                '    o_color = ' + gluShaderUtil.getDataTypeName(outputType) + '(u_gradientMin + (u_gradientMax-u_gradientMin)*fv);\n' +
-                                '}\n');
+        decl.pushVertexSource(new sglrShaderProgram.VertexSource(
+            '#version 300 es\n' +
+            'in highp vec4 a_position;\n' +
+            'in highp vec4 a_coord;\n' +
+            'out highp vec4 v_coord;\n' +
+            'void main (void)\n' +
+            '{\n' +
+            '    gl_Position = a_position;\n' +
+            '    v_coord = a_coord;\n' +
+            '}\n'));
+        decl.pushFragmentSource(new sglrShaderProgram.FragmentSource(
+            '#version 300 es\n' +
+            'in highp vec4 v_coord;\n' +
+            'uniform highp vec4 u_gradientMin;\n' +
+            'uniform highp vec4 u_gradientMax;\n' +
+            'layout(location = 0) out highp ' + gluShaderUtil.getDataTypeName(outputType) + ' o_color;\n' +
+            'void main (void)\n' +
+            '{\n' +
+            '    highp float x = v_coord.x;\n' +
+            '    highp float y = v_coord.y;\n' +
+            '    highp float f0 = (x + y) * 0.5;\n' +
+            '    highp float f1 = 0.5 + (x - y) * 0.5;\n' +
+            '    highp vec4 fv = vec4(f0, f1, 1.0f-f0, 1.0f-f1);\n' +
+            '    o_color = ' + gluShaderUtil.getDataTypeName(outputType) + '(u_gradientMin + (u_gradientMax-u_gradientMin)*fv);\n' +
+            '}\n'));
         sglrShaderProgram.ShaderProgram.call(this, decl);
     };
 
@@ -336,7 +339,7 @@ var tcuMatrix = framework.common.tcuMatrix;
         decl.pushVertexToFragmentVarying(rrGenericVector.GenericVecType.FLOAT);
         decl.pushFragmentOutput(es3fFboTestUtil.mapDataTypeToGenericVecType(outputType));
 
-        decl.pushVertexSource(
+        decl.pushVertexSource(new sglrShaderProgram.VertexSource(
             '#version 300 es\n' +
             'in highp vec4 a_position;\n' +
             'in highp vec2 a_coord;\n' +
@@ -345,9 +348,9 @@ var tcuMatrix = framework.common.tcuMatrix;
             '{\n' +
             '    gl_Position = a_position;\n' +
             '    v_coord = a_coord;\n' +
-            '}\n');
+            '}\n'));
 
-        decl.pushFragmentSource(es3fFboTestUtil.genTexFragmentShader(samplerTypes, outputType));
+        decl.pushFragmentSource(new sglrShaderProgram.FragmentSource(es3fFboTestUtil.genTexFragmentShader(samplerTypes, outputType)));
 
         decl.pushUniform('u_outScale0', gluShaderUtil.DataType.FLOAT_VEC4);
         decl.pushUniform('u_outBias0', gluShaderUtil.DataType.FLOAT_VEC4);
@@ -539,7 +542,7 @@ var tcuMatrix = framework.common.tcuMatrix;
         decl.pushUniform('u_sampler0', samplerType);
         decl.pushUniform('u_scale', gluShaderUtil.DataType.FLOAT_VEC4);
         decl.pushUniform('u_bias', gluShaderUtil.DataType.FLOAT_VEC4);
-        decl.pushVertexSource(
+        decl.pushVertexSource(new sglrShaderProgram.VertexSource(
             '#version 300 es\n' +
             'in highp vec4 a_position;\n' +
             'in mediump vec2 a_coord;\n' +
@@ -549,8 +552,8 @@ var tcuMatrix = framework.common.tcuMatrix;
             '{\n' +
             '    gl_Position = a_position;\n' +
             '    v_coord = u_coordMat * vec3(a_coord, 1.0);\n' +
-            '}\n');
-        decl.pushFragmentSource(
+            '}\n'));
+        decl.pushFragmentSource(new sglrShaderProgram.FragmentSource(
             '#version 300 es\n' +
             'uniform highp ' + gluShaderUtil.getDataTypeName(samplerType) + ' u_sampler0;\n' +
             'uniform highp vec4 u_scale;\n' +
@@ -560,7 +563,7 @@ var tcuMatrix = framework.common.tcuMatrix;
             'void main (void)\n' +
             '{\n' +
             '    o_color = ' + gluShaderUtil.getDataTypeName(outputType) + '(vec4(texture(u_sampler0, v_coord)) * u_scale + u_bias);\n' +
-            '}\n');
+            '}\n'));
         sglrShaderProgram.ShaderProgram.call(this, decl);
         /** @type {Array<number>} */ this.m_texScale = [1.0, 1.0, 1.0, 1.0];
         /** @type {Array<number>} */ this.m_texBias = [0.0, 0.0, 0.0, 0.0];
@@ -693,7 +696,7 @@ var tcuMatrix = framework.common.tcuMatrix;
         decl.pushUniform('u_scale', gluShaderUtil.DataType.FLOAT_VEC4);
         decl.pushUniform('u_bias', gluShaderUtil.DataType.FLOAT_VEC4);
         decl.pushUniform('u_layer', gluShaderUtil.DataType.INT);
-        decl.pushVertexSource(
+        decl.pushVertexSource(new sglrShaderProgram.VertexSource(
                 '#version 300 es\n' +
                 'in highp vec4 a_position;\n' +
                 'in highp vec2 a_coord;\n' +
@@ -702,8 +705,8 @@ var tcuMatrix = framework.common.tcuMatrix;
                 '{\n' +
                 '    gl_Position = a_position;\n' +
                 '    v_coord = a_coord;\n' +
-                '}\n');
-        decl.pushFragmentSource(
+                '}\n'));
+        decl.pushFragmentSource(new sglrShaderProgram.FragmentSource(
                 '#version 300 es\n' +
                 'uniform highp ' + gluShaderUtil.getDataTypeName(samplerType) + ' u_sampler0;\n' +
                 'uniform highp vec4 u_scale;\n' +
@@ -714,7 +717,7 @@ var tcuMatrix = framework.common.tcuMatrix;
                 'void main (void)\n' +
                 '{\n' +
                 '    o_color = ' + gluShaderUtil.getDataTypeName(outputType) + '(vec4(texture(u_sampler0, vec3(v_coord, u_layer))) * u_scale + u_bias);\n' +
-                '}\n');
+                '}\n'));
         sglrShaderProgram.ShaderProgram.call(this, decl);
         /** @type {Array<number>} */ this.m_texScale = [1.0, 1.0, 1.0, 1.0];
         /** @type {Array<number>} */ this.m_texBias = [0.0, 0.0, 0.0, 0.0];
@@ -826,7 +829,7 @@ var tcuMatrix = framework.common.tcuMatrix;
         decl.pushUniform('u_scale', gluShaderUtil.DataType.FLOAT_VEC4);
         decl.pushUniform('u_bias', gluShaderUtil.DataType.FLOAT_VEC4);
         decl.pushUniform('u_depth', gluShaderUtil.DataType.FLOAT);
-        decl.pushVertexSource(
+        decl.pushVertexSource(new sglrShaderProgram.VertexSource(
             '#version 300 es\n' +
             'in highp vec4 a_position;\n' +
             'in highp vec2 a_coord;\n' +
@@ -835,8 +838,8 @@ var tcuMatrix = framework.common.tcuMatrix;
             '{\n' +
             '    gl_Position = a_position;\n' +
             '    v_coord = a_coord;\n' +
-            '}\n');
-        decl.pushFragmentSource(
+            '}\n'));
+        decl.pushFragmentSource(new sglrShaderProgram.FragmentSource(
             '#version 300 es\n' +
             'uniform highp ' + gluShaderUtil.getDataTypeName(samplerType) + ' u_sampler0;\n' +
             'uniform highp vec4 u_scale;\n' +
@@ -847,7 +850,7 @@ var tcuMatrix = framework.common.tcuMatrix;
             'void main (void)\n' +
             '{\n' +
             '    o_color = ' + gluShaderUtil.getDataTypeName(outputType) + '(vec4(texture(u_sampler0, vec3(v_coord, u_depth))) * u_scale + u_bias);\n' +
-            '}\n');
+            '}\n'));
         sglrShaderProgram.ShaderProgram.call(this, decl);
         /** @type {Array<number>} */ this.m_texScale = [1.0, 1.0, 1.0, 1.0];
         /** @type {Array<number>} */ this.m_texBias = [0.0, 0.0, 0.0, 0.0];
@@ -946,19 +949,19 @@ var tcuMatrix = framework.common.tcuMatrix;
      * es3fFboTestUtil.DepthGradientShader inherits from sglrShaderProgram
      * @constructor
      * @extends {sglrShaderProgram.ShaderProgram}
-     * @param {gluShaderUtil.DataType} samplerType
+     * @param {gluShaderUtil.DataType} outputType
      */
-    es3fFboTestUtil.DepthGradientShader = function(samplerType) {
+    es3fFboTestUtil.DepthGradientShader = function(outputType) {
         /** @type {sglrShaderProgram.ShaderProgramDeclaration} */
         var decl = new sglrShaderProgram.ShaderProgramDeclaration();
-        decl.pushVertexAttribute('a_position', rrGenericVector.GenericVecType.FLOAT);
-        decl.pushVertexAttribute('a_coord', rrGenericVector.GenericVecType.FLOAT);
-        decl.pushVertexToFragmentVarying(rrGenericVector.GenericVecType.FLOAT);
-        decl.pushFragmentOutput(es3fFboTestUtil.mapDataTypeToGenericVecType(outputType));
-        decl.pushUniform('u_maxGradient', gluShaderUtil.DataType.FLOAT);
-        decl.pushUniform('u_minGradient', gluShaderUtil.DataType.FLOAT);
-        decl.pushUniform('u_color', gluShaderUtil.DataType.FLOAT_VEC4);
-        decl.pushVertexSource(
+        decl.pushVertexAttribute(new sglrShaderProgram.VertexAttribute('a_position', rrGenericVector.GenericVecType.FLOAT));
+        decl.pushVertexAttribute(new sglrShaderProgram.VertexAttribute('a_coord', rrGenericVector.GenericVecType.FLOAT));
+        decl.pushVertexToFragmentVarying(new sglrShaderProgram.VertexToFragmentVarying(rrGenericVector.GenericVecType.FLOAT));
+        decl.pushFragmentOutput(new sglrShaderProgram.FragmentOutput(es3fFboTestUtil.mapDataTypeToGenericVecType(outputType)));
+        decl.pushUniform(new sglrShaderProgram.Uniform('u_maxGradient', gluShaderUtil.DataType.FLOAT));
+        decl.pushUniform(new sglrShaderProgram.Uniform('u_minGradient', gluShaderUtil.DataType.FLOAT));
+        decl.pushUniform(new sglrShaderProgram.Uniform('u_color', gluShaderUtil.DataType.FLOAT_VEC4));
+        decl.pushVertexSource(new sglrShaderProgram.VertexSource(
                 '#version 300 es\n' +
                 'in highp vec4 a_position;\n' +
                 'in highp vec4 a_coord;\n' +
@@ -967,8 +970,8 @@ var tcuMatrix = framework.common.tcuMatrix;
                 '{\n' +
                 '    gl_Position = a_position;\n' +
                 '    v_coord = a_coord;\n' +
-                '}\n');
-        decl.pushFragmentSource(
+                '}\n'));
+        decl.pushFragmentSource(new sglrShaderProgram.FragmentSource(
                     '#version 300 es\n' +
                     'in highp vec4 v_coord;\n' +
                     'uniform highp float u_minGradient;\n' +
@@ -982,7 +985,7 @@ var tcuMatrix = framework.common.tcuMatrix;
                     '    highp float f0 = (x + y) * 0.5;\n' +
                     '    gl_FragDepth = u_minGradient + (u_maxGradient-u_minGradient)*f0;\n' +
                     '    o_color = ' + gluShaderUtil.getDataTypeName(outputType) + '(u_color);\n' +
-                    '}\n');
+                    '}\n'));
         this.m_outputType = outputType;
         sglrShaderProgram.ShaderProgram.call(this, decl);
         /** @const {sglrShaderProgram.UniformSlot} */ this.u_minGradient = this.getUniformByName('u_minGradient');
@@ -996,8 +999,8 @@ var tcuMatrix = framework.common.tcuMatrix;
     /**
      * @param {Context} ctx
      * @param {number} program
-     * @param {numbrer} gradientMin
-     * @param {numbrer} gradientMax
+     * @param {number} gradientMin
+     * @param {number} gradientMax
      * @param {Array<number>} color
      */
     es3fFboTestUtil.DepthGradientShader.prototype.setUniforms = function(ctx, program, gradientMin, gradientMax, color) {
@@ -1027,14 +1030,13 @@ var tcuMatrix = framework.common.tcuMatrix;
      * @param {rrShadingContext.FragmentShadingContext} context
      */
     es3fFboTestUtil.DepthGradientShader.prototype.shadeFragments = function(packets, numPackets, context) {
-        /** @const {number} */ var gradientMin = u_minGradient.value;
-        /** @const {number} */ var gradientMax = u_maxGradient.value;
-        var cval = u_color.value;
-        var ival = es3fFboTestUtil.castVectorSaturate(color, tcuTexture.deTypes.deInt32);
-        var uval = es3fFboTestUtil.castVectorSaturate(color, tcuTexture.deTypes.deUint32);
-
+        /** @const {number} */ var gradientMin = this.u_minGradient.value;
+        /** @const {number} */ var gradientMax = this.u_maxGradient.value;
+        var cval = this.u_color.value;
         /** @type {Array<number>} */ var color = [cval, cval, cval, cval];
+        var ival = es3fFboTestUtil.castVectorSaturate(color, tcuTexture.deTypes.deInt32);
         /** @type {Array<number>} */ var icolor = [ival, ival, ival, ival];
+        var uval = es3fFboTestUtil.castVectorSaturate(color, tcuTexture.deTypes.deUint32);
         /** @type {Array<number>} */ var uicolor = [uval, uval, uval, uval];
 
         // running this shader without a depth buffer does not make any sense
@@ -1146,7 +1148,7 @@ var tcuMatrix = framework.common.tcuMatrix;
 
     /**
      * @param {sglrContext} ctx
-     * @param {TextureFormat} format
+     * @param {tcuTexture.TextureFormat} format
      * @param {Array<number>} value
      */
     es3fFboTestUtil.clearColorBuffer = function(ctx, format, value) {
@@ -1157,15 +1159,15 @@ var tcuMatrix = framework.common.tcuMatrix;
             case tcuTextureUtil.TextureChannelClass.FLOATING_POINT:
             case tcuTextureUtil.TextureChannelClass.SIGNED_FIXED_POINT:
             case tcuTextureUtil.TextureChannelClass.UNSIGNED_FIXED_POINT:
-                ctx.clearBufferfv(gl.COLOR, 0, value.getPtr());
+                ctx.clearBufferfv(gl.COLOR, 0, value);
                 break;
 
             case tcuTextureUtil.TextureChannelClass.UNSIGNED_INTEGER:
-                ctx.clearBufferuiv(gl.COLOR, 0, value.asUint().getPtr());
+                ctx.clearBufferuiv(gl.COLOR, 0, value.asUint());
                 break;
 
             case tcuTextureUtil.TextureChannelClass.SIGNED_INTEGER:
-                ctx.clearBufferiv(gl.COLOR, 0, value.asInt().getPtr());
+                ctx.clearBufferiv(gl.COLOR, 0, value.asInt());
                 break;
 
             default:
@@ -1189,7 +1191,7 @@ var tcuMatrix = framework.common.tcuMatrix;
 
     /**
      * @param {number} glFormat
-     * @return {tcuRGBA}
+     * @return {tcuRGBA.RGBA}
      */
     es3fFboTestUtil.getFormatThreshold = function(glFormat) {
         /** @const @type {tcuTexture.TextureFormat} */ var format = gluTextureUtil.mapGLInternalFormat(glFormat);
@@ -1249,7 +1251,7 @@ var tcuMatrix = framework.common.tcuMatrix;
     /**
      * es3fFboTestUtil.readPixels()
      * @param {Context} ctx
-     * @param {tcuTexture.Texture} dst
+     * @param {tcuSurface.Surface} dst
      * @param {number} x
      * @param {number} y
      * @param {number} width
@@ -1286,7 +1288,7 @@ var tcuMatrix = framework.common.tcuMatrix;
 
         for (var yo = 0; yo < height; yo++)
         for (var xo = 0; xo < width; xo++)
-            dstAccess.setPixel(src.getPixel(xo, yo) * scale + bias, xo, yo);
+            dstAccess.setPixel(deMath.add(deMath.multiply(src.getPixel(xo, yo), [scale, scale, scale, scale]), [bias, bias, bias, bias]), xo, yo);
     };
 
     /**
