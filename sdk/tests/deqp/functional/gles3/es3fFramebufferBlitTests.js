@@ -469,8 +469,8 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
         /** @const {Array<number>} */ var dstSize = [132, 128];
 
         // Blit rectangle tests.
-        /** @type {tcuTestCase.DeqpTest} */ var rectGroup = new tcuTestCase.newTest('rect', 'Blit rectangle tests');
-        testGroup.addChild(rectGroup);
+        /** @type {tcuTestCase.DeqpTest} */ var rectGroup = tcuTestCase.newTest('rect', 'Blit rectangle tests');
+        this.addChild(rectGroup);
         for (var rectNdx = 0; rectNdx < copyRects.length; rectNdx++) {
             for (var swzNdx = 0; swzNdx < swizzles.length; swzNdx++) {
                 /** @type {string} */ var name = copyRects[rectNdx].name + (swizzles[swzNdx].name ? ('_' + swizzles[swzNdx].name) : '');
@@ -498,8 +498,8 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
         }
 
         // .conversion
-        /** @type {tcuTestCase.DeqpTest} */ var conversionGroup = new tcuTestCase.newTest('conversion', 'Color conversion tests');
-        testGroup.addChild(conversionGroup);
+        /** @type {tcuTestCase.DeqpTest} */ var conversionGroup = tcuTestCase.newTest('conversion', 'Color conversion tests');
+        this.addChild(conversionGroup);
 
         for (var srcFmtNdx = 0; srcFmtNdx < colorFormats.length; srcFmtNdx++) {
             for (var dstFmtNdx = 0; dstFmtNdx < colorFormats.length; dstFmtNdx++) {
@@ -523,8 +523,8 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
         }
 
         // .depth_stencil
-        /** @type {tcuTestCase.DeqpTest} */ var depthStencilGroup = new tcuTestCase.newTest('depth_stencil', 'Depth and stencil blits');
-        testGroup.addChild(depthStencilGroup);
+        /** @type {tcuTestCase.DeqpTest} */ var depthStencilGroup = tcuTestCase.newTest('depth_stencil', 'Depth and stencil blits');
+        this.addChild(depthStencilGroup);
 
         for (var fmtNdx = 0; fmtNdx < depthStencilFormats.length; fmtNdx++) {
             /** @type {number} */ var format = depthStencilFormats[fmtNdx];
@@ -559,8 +559,8 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
             new Area('out_of_bounds', es3fFramebufferBlitTests.DefaultFramebufferBlitCase.AREA_OUT_OF_BOUNDS)
         ];
 
-        /** @type {tcuTestCase.DeqpTest} */ var defaultFbGroup = new tcuTestCase.newTest('default_framebuffer', 'Blits with default framebuffer');
-        testGroup.addChild(defaultFbGroup);
+        /** @type {tcuTestCase.DeqpTest} */ var defaultFbGroup = tcuTestCase.newTest('default_framebuffer', 'Blits with default framebuffer');
+        this.addChild(defaultFbGroup);
 
         for (var fmtNdx = 0; fmtNdx < colorFormats.length; fmtNdx++) {
             /** @const {number} */ var format = colorFormats[fmtNdx];
@@ -1049,7 +1049,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
 
     /**
      * @constructor
-     * @extends {BlitDefaultDramebufferCase}
+     * @extends {BlitDefaultFramebufferCase}
      * @param {string} name
      * @param {string} desc
      * @param {string} format

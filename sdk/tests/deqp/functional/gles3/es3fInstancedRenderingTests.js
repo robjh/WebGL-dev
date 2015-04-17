@@ -612,7 +612,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
             DE_ASSERT(functionName != null);
             DE_ASSERT(functionDesc != null);
 
-            /** @type {tcuTestCase.DeqpTest} */ var functionGroup = new tcuTestCase.newTest(functionName, functionDesc);
+            /** @type {tcuTestCase.DeqpTest} */ var functionGroup = tcuTestCase.newTest(functionName, functionDesc);
             testGroup.addChild(functionGroup);
 
             for (var instancingType in es3fInstancedRenderingTests.InstancingType) {
@@ -632,7 +632,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
                 DE_ASSERT(instancingTypeDesc != null);
 
                 /** @type {tcuTestCase.DeqpTest} */
-                var instancingTypeGroup = new tcuTestCase.newTest(instancingTypeName, instancingTypeDesc);
+                var instancingTypeGroup = tcuTestCase.newTest(instancingTypeName, instancingTypeDesc);
 
                 functionGroup.addChild(instancingTypeGroup);
 
@@ -677,7 +677,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
 
         /** @type {number} */ var typeTestNumInstances = 4;
 
-        /** @type {tcuTestCase.DeqpTest} */ var typesGroup = new tcuTestCase.newTest('types', 'Tests for instanced attributes of particular data types');
+        /** @type {tcuTestCase.DeqpTest} */ var typesGroup = tcuTestCase.newTest('types', 'Tests for instanced attributes of particular data types');
 
         testGroup.addChild(typesGroup);
 

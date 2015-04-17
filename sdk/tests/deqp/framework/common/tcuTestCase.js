@@ -266,17 +266,12 @@ goog.scope(function() {
     *
     * @param {string} name Short test name
     * @param {string} description Description of the test
-    * @param {Object} spec Test specification
+    * @param {Object=} spec Test specification
     *
     * @return {tcuTestCase.DeqpTest} The new test
     */
     tcuTestCase.newTest = function(name, description, spec) {
         var test = new tcuTestCase.DeqpTest(name, description, spec);
-
-        if (spec && spec.length) {
-            for (var i = 0; i < spec.length; i++)
-                spec[i].parentTest = test;
-        }
 
         return test;
     };
@@ -286,7 +281,7 @@ goog.scope(function() {
     *
     * @param {string} name Short test name
     * @param {string} description Description of the test
-    * @param {Object} spec Test specification
+    * @param {Object=} spec Test specification
     *
     * @return {tcuTestCase.DeqpTest} The new test
     */
