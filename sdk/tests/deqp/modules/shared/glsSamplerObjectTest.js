@@ -47,7 +47,7 @@ var gluDrawUtil = framework.opengl.gluDrawUtil;
 var gluTextureUtil = framework.opengl.gluTextureUtil;
 var deString = framework.delibs.debase.deString;
 var gluDefs = framework.opengl.gluDefs;
-    
+
 
     var DE_ASSERT = function(expression) {
         if (!expression) throw new Error('Assert failed');
@@ -123,6 +123,7 @@ var gluDefs = framework.opengl.gluDefs;
 
     /**
      * @constructor
+     * @extends {tcuTestCase.DeqpTest}
      * @const @param {glsSamplerObjectTest.TestSpec} spec
      */
     glsSamplerObjectTest.TextureSamplerTest = function(spec) {
@@ -634,6 +635,7 @@ var gluDefs = framework.opengl.gluDefs;
 
     /**
      * @constructor
+     * @extends {tcuTestCase.DeqpTest}
      * @const @param {glsSamplerObjectTest.TestSpec} spec
      */
     glsSamplerObjectTest.MultiTextureSamplerTest = function(spec) {
@@ -1249,5 +1251,5 @@ var gluDefs = framework.opengl.gluDefs;
     };
 
 
-    
+
 });

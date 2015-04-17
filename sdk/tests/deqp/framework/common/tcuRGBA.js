@@ -231,7 +231,7 @@ var deMath = framework.delibs.debase.deMath;
     /**
      * @param {tcuRGBA.RGBA} a
      * @param {tcuRGBA.RGBA} b
-     * @return {boolean}
+     * @return {tcuRGBA.RGBA}
      */
     tcuRGBA.computeAbsDiff = function(a, b) {
         return tcuRGBA.newRGBAComponents(

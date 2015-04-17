@@ -55,7 +55,7 @@ var deRandom = framework.delibs.debase.deRandom;
 var rrVertexAttrib = framework.referencerenderer.rrVertexAttrib;
 var rrVertexPacket = framework.referencerenderer.rrVertexPacket;
 var rrGenericVector = framework.referencerenderer.rrGenericVector;
-    
+
 
     var DE_ASSERT = function(x) {
         if (!x)
@@ -980,7 +980,7 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
                     coord[0] = attribValue[0] + attribValue[2];
                     coord[1] = attribValue[1];
                     break;
-                case 4: 
+                case 4:
                     coord[0] = attribValue[0] + attribValue[2];
                     coord[1] = attribValue[1] + attribValue[3];
                     break;
@@ -2113,6 +2113,7 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
     /**
      * class glsVertexArrayTests.VertexArrayTest
      * @constructor
+     * @extends {tcuTestCase.DeqpTest}
      * @param {string} name
      * @param {string} description
      */
@@ -2553,6 +2554,6 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
         return false;
     };
 
-    
+
 
 });

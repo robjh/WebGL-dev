@@ -54,7 +54,7 @@ var sglrReferenceContext = framework.opengl.simplereference.sglrReferenceContext
 var sglrShaderProgram = framework.opengl.simplereference.sglrShaderProgram;
 var rrGenericVector = framework.referencerenderer.rrGenericVector;
 var tcuMatrix = framework.common.tcuMatrix;
-    
+
 
     /**
      * @param {gluShaderUtil.DataType} type
@@ -1202,7 +1202,7 @@ var tcuMatrix = framework.common.tcuMatrix;
      */
     es3fFboTestUtil.getToSRGB8ConversionError = function(srcBits) {
         // \note These are pre-computed based on simulation results.
-        /* @const @type {Array<number>} */ var errors = [
+        /** @const @type {Array<number>} */ var errors = [
             1,        // 0 bits - rounding
             255,    // 1 bits
             157,    // 2 bits
@@ -1305,6 +1305,6 @@ var tcuMatrix = framework.common.tcuMatrix;
             return 1;
     };
 
-    
+
 
 });

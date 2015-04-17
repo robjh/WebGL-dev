@@ -29,7 +29,7 @@ goog.scope(function() {
 var es3fSamplerObjectTests = functional.gles3.es3fSamplerObjectTests;
 var tcuTestCase = framework.common.tcuTestCase;
 var glsSamplerObjectTest = modules.shared.glsSamplerObjectTest;
-    
+
     /** @type {WebGL2RenderingContext} */ var gl;
 
     // TODO: implement glsSamplerObjectTest and validate constructors
@@ -66,7 +66,7 @@ var glsSamplerObjectTest = modules.shared.glsSamplerObjectTest;
             )
         ];
 
-        /** @type {TestCaseGroup} */ var simpleTexture2D = new tcuTestCase.newTest('single_tex_2d', 'Simple 2D texture with sampler');
+        /** @type {tcuTestCase.DeqpTest} */ var simpleTexture2D = new tcuTestCase.newTest('single_tex_2d', 'Simple 2D texture with sampler');
 
         for (var testNdx = 0; testNdx < simpleTestCases.length; testNdx++)
             simpleTexture2D.addChild(new glsSamplerObjectTest.TextureSamplerTest(simpleTestCases[testNdx]));
@@ -111,7 +111,7 @@ var glsSamplerObjectTest = modules.shared.glsSamplerObjectTest;
             )
         ];
 
-        /** @type {TestCaseGroup} */ var multiTexture2D = new tcuTestCase.newTest('multi_tex_2d', 'Multiple texture units 2D texture with sampler');
+        /** @type {tcuTestCase.DeqpTest} */ var multiTexture2D = new tcuTestCase.newTest('multi_tex_2d', 'Multiple texture units 2D texture with sampler');
 
         for (var testNdx = 0; testNdx < multiTestCases.length; testNdx++)
             multiTexture2D.addChild(new glsSamplerObjectTest.MultiTextureSamplerTest(multiTestCases[testNdx]));
@@ -149,7 +149,7 @@ var glsSamplerObjectTest = modules.shared.glsSamplerObjectTest;
             )
         ];
 
-        /** @type {TestCaseGroup} */ var simpleTexture3D = new tcuTestCase.newTest('single_tex_3d', 'Simple 3D texture with sampler');
+        /** @type {tcuTestCase.DeqpTest} */ var simpleTexture3D = new tcuTestCase.newTest('single_tex_3d', 'Simple 3D texture with sampler');
 
         for (var testNdx = 0; testNdx < simpleTestCases3D.length; testNdx++)
             simpleTexture3D.addChild(new glsSamplerObjectTest.TextureSamplerTest(simpleTestCases3D[testNdx]));
@@ -194,7 +194,7 @@ var glsSamplerObjectTest = modules.shared.glsSamplerObjectTest;
             )
         ];
 
-        /** @type {TestCaseGroup} */ var multiTexture3D = new tcuTestCase.newTest('multi_tex_3d', 'Multiple texture units 3D texture with sampler');
+        /** @type {tcuTestCase.DeqpTest} */ var multiTexture3D = new tcuTestCase.newTest('multi_tex_3d', 'Multiple texture units 3D texture with sampler');
 
         for (var testNdx = 0; testNdx < multiTestCases3D.length; testNdx++)
             multiTexture3D.addChild(new glsSamplerObjectTest.MultiTextureSamplerTest(multiTestCases3D[testNdx]));
@@ -232,7 +232,7 @@ var glsSamplerObjectTest = modules.shared.glsSamplerObjectTest;
             )
         ];
 
-        /** @type {TestCaseGroup} */ var simpleTextureCube = new tcuTestCase.newTest('single_cubemap', 'Simple cubemap texture with sampler');
+        /** @type {tcuTestCase.DeqpTest} */ var simpleTextureCube = new tcuTestCase.newTest('single_cubemap', 'Simple cubemap texture with sampler');
 
         for (var testNdx = 0; testNdx < simpleTestCasesCube.length; testNdx++)
             simpleTextureCube.addChild(new glsSamplerObjectTest.TextureSamplerTest(simpleTestCasesCube[testNdx]));
@@ -277,7 +277,7 @@ var glsSamplerObjectTest = modules.shared.glsSamplerObjectTest;
             )
         ];
 
-        /** @type {TestCaseGroup} */ var multiTextureCube = new tcuTestCase.newTest('multi_cubemap', 'Multiple texture units cubemap textures with sampler');
+        /** @type {tcuTestCase.DeqpTest} */ var multiTextureCube = new tcuTestCase.newTest('multi_cubemap', 'Multiple texture units cubemap textures with sampler');
 
         for (var testNdx = 0; testNdx < multiTestCasesCube.length; testNdx++)
             multiTextureCube.addChild(new glsSamplerObjectTest.MultiTextureSamplerTest(multiTestCasesCube[testNdx]));
@@ -313,5 +313,5 @@ var glsSamplerObjectTest = modules.shared.glsSamplerObjectTest;
     };
 
 
-    
+
 });

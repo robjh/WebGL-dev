@@ -2,3 +2,5 @@ textureformat.html
 transformfeedback.html
 uniformbuffers.html
 uniformapi.html
+instancedrenderingrests.html
+primitiverestarttests.html
