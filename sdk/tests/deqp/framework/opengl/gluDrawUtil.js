@@ -412,7 +412,7 @@ gluDrawUtil.BindingPoint = function(name, location) {
  */
 gluDrawUtil.bindingPointFromLocation = function(location) {
     return new gluDrawUtil.BindingPoint('', location);
-}
+};
 
 /**
  * bindingPointFromName
@@ -422,6 +422,6 @@ gluDrawUtil.bindingPointFromLocation = function(location) {
  */
 gluDrawUtil.bindingPointFromName = function(name, location) {
     return new gluDrawUtil.BindingPoint(name, location);
-}
+};
 
 });

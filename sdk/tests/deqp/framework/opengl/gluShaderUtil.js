@@ -41,8 +41,6 @@ gluShaderUtil.GLSLVersion = {
     V300_ES: 1 //!< GLSL ES 3.0
 };
 
-gluShaderUtil.GLSLVersion.V_LAST = Object.keys(gluShaderUtil.GLSLVersion).length;
-
 /**
  * gluShaderUtil.getGLSLVersion - Returns a gluShaderUtil.GLSLVersion based on a given webgl context.
  * @param {WebGL2RenderingContext} gl
@@ -84,8 +82,6 @@ gluShaderUtil.precision = {
     PRECISION_HIGHP: 2
 };
 
-gluShaderUtil.precision.PRECISION_LAST = Object.keys(gluShaderUtil.precision).length;
-
 gluShaderUtil.getPrecisionName = function(prec) {
     var s_names = [
         'lowp',
@@ -96,7 +92,6 @@ gluShaderUtil.getPrecisionName = function(prec) {
     return s_names[prec];
 };
 
-/** @const */ gluShaderUtil.deUint32_size = 4; //To replace all sizeof calls
 /**
  * The Type constants
  * @enum {number}
@@ -153,8 +148,6 @@ gluShaderUtil.DataType = {
     UINT_SAMPLER_3D: 40
 };
 
-gluShaderUtil.DataType.LAST = Object.keys(gluShaderUtil.DataType).length;
-
 /**
  * Returns type of float scalars
  * @param {gluShaderUtil.DataType} dataType
@@ -199,15 +192,30 @@ gluShaderUtil.getDataTypeFloatScalars = function(dataType) {
  * @return {gluShaderUtil.DataType}
  */
 gluShaderUtil.getDataTypeVector = function(scalarType, size) {
-    //DE_ASSERT(deInRange32(size, 1, 4));
+    var floats = [gluShaderUtil.DataType.FLOAT,
+                  gluShaderUtil.DataType.FLOAT_VEC2,
+                  gluShaderUtil.DataType.FLOAT_VEC3,
+                  gluShaderUtil.DataType.FLOAT_VEC4];
+    var ints = [gluShaderUtil.DataType.INT,
+                  gluShaderUtil.DataType.INT_VEC2,
+                  gluShaderUtil.DataType.INT_VEC3,
+                  gluShaderUtil.DataType.INT_VEC4];
+    var uints = [gluShaderUtil.DataType.UINT,
+                  gluShaderUtil.DataType.UINT_VEC2,
+                  gluShaderUtil.DataType.UINT_VEC3,
+                  gluShaderUtil.DataType.UINT_VEC4];
+    var bools = [gluShaderUtil.DataType.BOOL,
+                  gluShaderUtil.DataType.BOOL_VEC2,
+                  gluShaderUtil.DataType.BOOL_VEC3,
+                  gluShaderUtil.DataType.BOOL_VEC4];
+
     switch (scalarType) {
-        case gluShaderUtil.DataType.FLOAT:
-        case gluShaderUtil.DataType.INT:
-        case gluShaderUtil.DataType.UINT:
-        case gluShaderUtil.DataType.BOOL:
-            return scalarType + size - 1;
+        case gluShaderUtil.DataType.FLOAT: return floats[size - 1];
+        case gluShaderUtil.DataType.INT: return ints[size - 1];
+        case gluShaderUtil.DataType.UINT: return uints[size - 1];
+        case gluShaderUtil.DataType.BOOL: return bools[size - 1];
         default:
-            return gluShaderUtil.DataType.INVALID;
+            throw new Error('Scalar type is not a vectoe:' + scalarType);
     }
 };
 
@@ -541,7 +549,19 @@ gluShaderUtil.isDataTypeSampler = function(dataType) {
  */
 gluShaderUtil.getDataTypeMatrix = function(numCols, numRows) {
     DE_ASSERT(deMath.deInRange32(numCols, 2, 4) && deMath.deInRange32(numRows, 2, 4));
-    return (gluShaderUtil.DataType.FLOAT_MAT2 + (numCols - 2) * 3 + (numRows - 2));
+    var size = numRows.toString() + 'x' + numCols.toString();
+    var datatypes = {
+        '2x2': gluShaderUtil.DataType.FLOAT_MAT2,
+        '2x3': gluShaderUtil.DataType.FLOAT_MAT2X3,
+        '2x4': gluShaderUtil.DataType.FLOAT_MAT2X4,
+        '3x2': gluShaderUtil.DataType.FLOAT_MAT3X2,
+        '3x3': gluShaderUtil.DataType.FLOAT_MAT3,
+        '3x4': gluShaderUtil.DataType.FLOAT_MAT3X4,
+        '4x2': gluShaderUtil.DataType.FLOAT_MAT4X2,
+        '4x3': gluShaderUtil.DataType.FLOAT_MAT4X3,
+        '4x4': gluShaderUtil.DataType.FLOAT_MAT4
+    };
+    return datatypes[size];
 };
 
 /**
@@ -703,7 +723,7 @@ gluShaderUtil.getDataTypeFromGLType = function(glType) {
         case gl.UNSIGNED_INT_SAMPLER_3D: return gluShaderUtil.DataType.UINT_SAMPLER_3D;
 
         default:
-            return gluShaderUtil.DataType.LAST;
+            throw new Error('Unrecognized GL type:' + glType);
     }
 };
 
