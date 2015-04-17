@@ -53,7 +53,7 @@ function (
      * @param {number} numSamples
      */
     var FragmentShadingContext = function (varying0, varying1, varying2, outputArray, fragmentDepths, numFragmentOutputs, numSamples) {
-        /** @type {Array<Array<Array<number>>>} (GenericVec4*) */ this.varyings = [varying0, varying1, varying2]; //!< Vertex shader outputs. Pointer will be NULL if there is no such vertex.
+        /** @type {Array<Array<number>>} (GenericVec4**) */ this.varyings = [varying0, varying1, varying2]; //!< Vertex shader outputs. Pointer will be NULL if there is no such vertex.
         /** @type {Array<number>} (GenericVec4*) */ this.outputArray = outputArray; //!< Fragment output array
         /** @type {number} */ this.numFragmentOutputs = numFragmentOutputs; //!< Fragment output count
         /** @type {number} */ this.numSamples = numSamples; //!< Number of samples
@@ -234,4 +234,18 @@ function (
         context.fragmentDepths[(packetNdx * 4 + fragNdx) * context.numSamples + sampleNdx] = depthValue;
     };
 
+    return {
+        FragmentShadingContext: FragmentShadingContext,
+        writeFragmentOutput: writeFragmentOutput,
+        readPointVarying: readPointVarying,
+        readLineVarying: readLineVarying,
+        readTriangleVarying: readTriangleVarying,
+        readVarying: readVarying,
+        dFdxLocal: dFdxLocal,
+        dFdyLocal: dFdyLocal,
+        dFdxVarying: dFdxVarying,
+        dFdyVarying: dFdyVarying,
+        readFragmentDepth: readFragmentDepth,
+        writeFragmentDepth: writeFragmentDepth
+    };
 });

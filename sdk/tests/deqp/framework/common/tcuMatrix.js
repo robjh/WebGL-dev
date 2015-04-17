@@ -27,7 +27,7 @@
 
     /**
      * @constructor
-     * @param {Array} matrix
+     * @param {Array<Array<number>>} matrix
      */
     var Matrix = function(matrix) {
         this.matrix = matrix;
@@ -36,19 +36,36 @@
     };
 
     Matrix.prototype.set = function(x,y, value) {
-        this.array[x][y] = value;
-    }
+        this.matrix[x][y] = value;
+    };
 
     Matrix.prototype.get = function(x, y) {
-        return this.array[x][y];
-    }
+        return this.matrix[x][y];
+    };
 
+    /**
+     * @constructor
+     * @param {Array<Array<number>>} m3Matrix
+     */
     var Mat3 = function(m3Matrix) {
         DE_ASSERT(m3Matrix.length == 3);
         Matrix.call(this, m3Matrix);
     };
 
-    Mat3.prototype.operator = function(){}
+    Mat3.prototype = Object.create(Matrix.prototype);
+    Mat3.prototype.constructor = Mat3;
 
-    Mat3.prototype.multiply = functon(){}
-};
+    // Multiplication of two matrices.
+    Mat3.prototype.multiply = function(matrixA, matrixB) {
+        var res = new Mat3([[0,0,0],[0,0,0],[0,0,0]]);
+        var v = 0;
+        for (row = 0; row < matrixA.length; row++)
+            for (col = 0; col < matrixB[row].length; col++)
+            {
+                for (ndx = 0; ndx < matrixA[row]; ndx++)
+                    v += matrixA.get(row, ndx) * matrixB.get(ndx, col);
+                res.set(row, col, v);
+            }
+        return res;
+    };
+});
