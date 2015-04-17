@@ -283,7 +283,7 @@ var gluShaderUtil = framework.opengl.gluShaderUtil;
          */
         var parseError = function(errorStr) {
             // abort
-            throw 'glsShaderLibrary.Parser error: ' + errorStr + ' near ' + m_input.substr(m_curPtr, m_curPtr +80);
+            throw 'glsShaderLibrary.Parser error: ' + errorStr + ' near ' + m_input.substr(m_curPtr, m_curPtr + 80);
         };
 
         /**
@@ -301,7 +301,7 @@ var gluShaderUtil = framework.opengl.gluShaderUtil;
          * @return {number}
          */
         var parseIntLiteral = function(str) {
-            return parseInt(str);
+            return parseInt(str, 10);
         };
         var parseStringLiteral = function(str) {
         /**
@@ -641,9 +641,12 @@ var gluShaderUtil = framework.opengl.gluShaderUtil;
          * @param {Object} result
          */
         var parseValueElement = function(expectedDataType, result) {
-
-        /** @type {string} */ var scalarType = gluShaderUtil.getDataTypeScalarType(expectedDataType);
-        /** @type {number} */ var scalarSize = gluShaderUtil.getDataTypeScalarSize(expectedDataType);
+            /** @type {?string} */ var scalarType = null;
+            /** @type {number} */ var scalarSize = 0;
+            if (expectedDataType) {
+                scalarType = gluShaderUtil.getDataTypeScalarType(expectedDataType);
+                scalarSize = gluShaderUtil.getDataTypeScalarSize(expectedDataType);
+            }
 
             /** @type {Array<number>} */ var elems = [];
 
@@ -877,7 +880,7 @@ var gluShaderUtil = framework.opengl.gluShaderUtil;
                             case 'pass': return glsShaderLibraryCase.expectResult.EXPECT_PASS;
                             case 'compile_fail': return glsShaderLibraryCase.expectResult.EXPECT_COMPILE_FAIL;
                             case 'link_fail': return glsShaderLibraryCase.expectResult.EXPECT_LINK_FAIL;
-                            case 'compile_or_link_fail': return glsShaderLibraryCase.expectResult.EXPECT_COMPILE_OR_LINK_FAIL;
+                            case 'compile_or_link_fail': return glsShaderLibraryCase.expectResult.EXPECT_COMPILE_LINK_FAIL;
                             default:
                                 throw Error('invalid expected result value: ' + m_curTokenStr);
                         }
@@ -957,19 +960,19 @@ var gluShaderUtil = framework.opengl.gluShaderUtil;
 
             /**
              * no ShaderCase yet?
-             * @param {string} vert
-             * @param {string} frag
-             * @param {number} type
+             * @param {?string} vert
+             * @param {?string} frag
+             * @param {glsShaderLibraryCase.caseType} type
              * @return {Object}
              */
             var getShaderSpec = function(vert, frag, type) {
                 return {
-                /** @type {number} */ expectResult: expectResult,
-                /** @type {number} */ caseType: type,
+                /** @type {glsShaderLibraryCase.expectResult} */ expectResult: expectResult,
+                /** @type {glsShaderLibraryCase.caseType} */ caseType: type,
                 /** @type {Array<Object>} */ valueBlockList: valueBlockList,
                 /** @type {string} */ targetVersion: version,
-                /** @type {string} */ vertexSource: vert,
-                /** @type {string} */ fragmentSource: frag
+                /** @type {?string} */ vertexSource: vert,
+                /** @type {?string} */ fragmentSource: frag
                 };
             };
             getShaderSpec.bind(this);
@@ -994,7 +997,7 @@ var gluShaderUtil = framework.opengl.gluShaderUtil;
         };
 
         /**
-         * @param {Array<tcuTestCase.newTest>} shaderNodeList
+         * @param {Array<tcuTestCase.DeqpTest>} shaderNodeList
          */
         var parseShaderGroup = function(shaderNodeList) {
 

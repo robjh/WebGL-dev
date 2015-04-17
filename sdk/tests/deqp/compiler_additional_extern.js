@@ -41,4 +41,24 @@ function debug(msg){};
  */
 function testFailedOptions(msg, exthrow){};
 
+/**
+ * @param {string} msg
+ * @param {boolean} exthrow
+ */
+function testPassedOptions(msg, exthrow){};
+
+/**
+ * @param {string} msg
+ */
+function testFailed(msg){};
+
+/**
+ * @param {string} msg
+ */
+function testPassed(msg){};
+
 /** @type {WebGL2RenderingContext} */ var gl;
+/** @type {HTMLElement} */ var canvas;
+
+/** @type {{create3DContext: function(string):WebGL2RenderingContext,
+            loadTextFileAsync: function(string, function(boolean, string)) }} */ var WebGLTestUtils;

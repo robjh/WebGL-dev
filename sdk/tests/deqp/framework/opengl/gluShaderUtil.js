@@ -239,7 +239,7 @@ gluShaderUtil.isDataTypeBoolOrBVec = function(dataType) {
 
 /**
  * Returns type of scalar
- * @param {?gluShaderUtil.DataType} dataType shader
+ * @param {gluShaderUtil.DataType} dataType shader
  * @return {string} type of scalar type
  */
 gluShaderUtil.getDataTypeScalarType = function(dataType) {

@@ -171,7 +171,7 @@ gluDrawUtil.draw = function(gl, program, vertexArrays, primitives, callback) {
         if (callback)
             callback.beforeDrawCall();
 
-    	gl.drawArrays(gluDrawUtil.getPrimitiveGLType(primitives.type), 0, primitives.numElements);
+        gl.drawArrays(gluDrawUtil.getPrimitiveGLType(gl, primitives.type), 0, primitives.numElements);
 
         if (callback)
             callback.afterDrawCall();
@@ -341,6 +341,9 @@ gluDrawUtil.Pixel.prototype.equals = function(otherPixel) {
            this.rgba[3] == otherPixel.rgba[3];
 };
 
+/**
+ * @constructor
+ */
 gluDrawUtil.Surface = function() {
 };
 

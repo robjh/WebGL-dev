@@ -58,10 +58,6 @@ glsShaderLibraryCase.caseType = {
     CASETYPE_FRAGMENT_ONLY: 2 //!< "Both" case, fragment shader sub case.
 };
 
-glsShaderLibraryCase.BeforeDrawValidator = function() {
-    /* TODO : GLES 3.1: implement */
-};
-
 /**
  * glsShaderLibraryCase.BeforeDrawValidator target type enum
  * @enum {number}
@@ -112,7 +108,7 @@ glsShaderLibraryCase.supportsFragmentHighp = function(version) {
  * This functions builds a matching vertex shader for a 'both' case, when
  * the fragment shader is being tested.
  * We need to build attributes and varyings for each 'input'.
- * @param {Array<Object>} valueBlock
+ * @param { {values:Array}} valueBlock
  * @return {string} res
  */
 glsShaderLibraryCase.genVertexShader = function(valueBlock) {
@@ -129,7 +125,7 @@ glsShaderLibraryCase.genVertexShader = function(valueBlock) {
     res += vtxIn + ' highp vec4 dEQP_Position;\n';
 
     for (var ndx = 0; ndx < valueBlock.values.length; ndx++) {
-    /** @type {Array} */ var val = valueBlock.values[ndx];
+        var val = valueBlock.values[ndx];
         if (val.storageType === glsShaderLibraryCase.shaderCase.STORAGE_INPUT) {
             /** @type {string} */ var floatType = gluShaderUtil.getDataTypeFloatScalars(val.dataType);
             res += vtxIn + ' ' + floatType + ' a_' + val.valueName + ';\n';
@@ -149,7 +145,7 @@ glsShaderLibraryCase.genVertexShader = function(valueBlock) {
     res += ' {\n';
     res += '\tgl_Position = dEQP_Position;\n';
     for (var ndx = 0; ndx < valueBlock.values.length; ndx++) {
-    /** @type {Array} */ var val = valueBlock.values[ndx];
+        var val = valueBlock.values[ndx];
         if (val.storageType === glsShaderLibraryCase.shaderCase.STORAGE_INPUT) {
         /** @type {string} */ var name = val.valueName;
             if (gluShaderUtil.getDataTypeScalarType(val.dataType) === 'float')
@@ -164,7 +160,7 @@ glsShaderLibraryCase.genVertexShader = function(valueBlock) {
 };
 
 /**
- * @param {Array<Object>} valueBlock
+ * @param { {values:Array}} valueBlock
  * @param {boolean} useFloatTypes
  * @return {string} stream
  */
@@ -239,9 +235,9 @@ glsShaderLibraryCase.genCompareFunctions = function(valueBlock, useFloatTypes) {
 
 /**
  * @param {string} dstVec4Var
- * @param {Array<Object>} valueBlock
+ * @param { {values:Array}} valueBlock
  * @param {string} nonFloatNamePrefix
- * @param {string} checkVarName
+ * @param {?string=} checkVarName
  * @return {string} output
  */
 glsShaderLibraryCase.genCompareOp = function(dstVec4Var, valueBlock, nonFloatNamePrefix, checkVarName) {
@@ -283,7 +279,7 @@ glsShaderLibraryCase.genCompareOp = function(dstVec4Var, valueBlock, nonFloatNam
 };
 
 /**
- * @param {Array<Object>} valueBlock
+ * @param { {values:Array}} valueBlock
  * @return {string} shader
  */
 glsShaderLibraryCase.genFragmentShader = function(valueBlock) {
@@ -339,6 +335,9 @@ glsShaderLibraryCase.genFragmentShader = function(valueBlock) {
 
 glsShaderLibraryCase.caseRequirement = (function() {
 
+/**
+ * @constructor
+ */
 var CaseRequirement = function() {
 
 /**
@@ -440,7 +439,7 @@ glsShaderLibraryCase.injectExtensionRequirements = function(baseCode, shaderType
     if (extensions.length === 0)
         return baseCode;
 
-    /** @type {string} */ var splitLines = baseCode.split('\n');
+    /** @type {Array<string>} */ var splitLines = baseCode.split('\n');
     /** @type {boolean} */ var firstNonPreprocessorLine = true;
     /** @type {string} */ var resultBuf = '';
 
@@ -460,7 +459,7 @@ glsShaderLibraryCase.injectExtensionRequirements = function(baseCode, shaderType
 
 /** Specialize a shader for the vertex shader test case.
  * @param {string} src
- * @param {Array<Object>} valueBlock
+ * @param { {values:Array}} valueBlock
  * @return {string} withExt
  */
 glsShaderLibraryCase.specializeVertexShader = function(src, valueBlock) {
@@ -518,7 +517,7 @@ glsShaderLibraryCase.specializeVertexShader = function(src, valueBlock) {
 
 /** Specialize a shader only for the vertex test case.
  * @param {string} src
- * @param {Array<Object>} valueBlock
+ * @param { {values:Array}} valueBlock
  * @return {string} withExt
  */
 glsShaderLibraryCase.specializeVertexOnly = function(src, valueBlock) {
@@ -569,7 +568,7 @@ glsShaderLibraryCase.specializeVertexOnly = function(src, valueBlock) {
 
 /** Specialize a shader for the fragment shader test case.
  * @param {string} src
- * @param {Array<Object>} valueBlock
+ * @param { {values:Array}} valueBlock
  * @return {string} withExt
  */
 glsShaderLibraryCase.specializeFragmentShader = function(src, valueBlock) {
@@ -628,7 +627,7 @@ glsShaderLibraryCase.specializeFragmentShader = function(src, valueBlock) {
 
 /** Specialize a shader only for the fragment test case.
  * @param {string} src
- * @param {Array<Object>} valueBlock
+ * @param { {values:Array}} valueBlock
  * @return {string} withExt
  */
 glsShaderLibraryCase.specializeFragmentOnly = function(src, valueBlock) {
@@ -755,7 +754,7 @@ glsShaderLibraryCase.checkPixels = function(surface, minX, maxX, minY, maxY) {
 
     for (var y = minY; y <= maxY; y++) {
         for (var x = minX; x <= maxX; x++) {
-            /** @type {Pixel} */ var pixel = surface.getPixel(x, y);
+            /** @type {gluDrawUtil.Pixel} */ var pixel = surface.getPixel(x, y);
             // Note: we really do not want to involve alpha in the check comparison
             // \todo [2010-09-22 kalle] Do we know that alpha would be one? If yes, could use color constants white and black.
             /** @type {boolean} */ var isWhite = (pixel.getRed() == 255) && (pixel.getGreen() == 255) && (pixel.getBlue() == 255);
@@ -789,7 +788,7 @@ glsShaderLibraryCase.init = function() {
 
     if (!test.spec.valueBlockList.length)
         test.spec.valueBlockList.push(glsShaderLibraryCase.genValueBlock());
-    /** @type {Array<Object>} */ var valueBlock = test.spec.valueBlockList[0];
+    /** @type { {values:Array}} */ var valueBlock = test.spec.valueBlockList[0];
 
     if (test.spec.requirements)
         for (var ndx = 0; ndx < test.spec.requirements.length; ++ndx)
@@ -857,10 +856,10 @@ glsShaderLibraryCase.execute = function() {
 
     /** @type {boolean} */ var allCompilesOk = true;
     /** @type {boolean} */ var allLinksOk = true;
-    /** @type {string} */ var failReason = null;
+    /** @type {?string} */ var failReason = null;
 
     /** @type {number} */ var vertexProgramID = -1;
-    /** @type {Array<gluShaderProgram.Program.program>} */ var pipelineProgramIDs = [];
+    /** @type {Array<WebGLProgram>} */ var pipelineProgramIDs = [];
     /** @type {Array<gluShaderProgram.ShaderProgram>} */ var programs = [];
     var programPipeline;
 
@@ -869,26 +868,21 @@ glsShaderLibraryCase.execute = function() {
     debug('Start testcase: ' + test.fullName());
     assertMsgOptions(gl.getError() === gl.NO_ERROR, 'Start testcase: ' + test.fullName(), false, true);
 
-    if (!test.separatePrograms) {
     /** @type {gluShaderProgram.ShaderProgram} */ var program = new gluShaderProgram.ShaderProgram(gl, test.programs[0].programSources);
 
-        vertexProgramID = program.getProgram();
-        pipelineProgramIDs.push(program.getProgram());
-        programs.push(program);
+    vertexProgramID = program.getProgram();
+    pipelineProgramIDs.push(program.getProgram());
+    programs.push(program);
 
-        // Check that compile/link results are what we expect.
+    // Check that compile/link results are what we expect.
 
-        for (var i = 0; i < program.shaders.length; i++) {
-            if (!program.shaders[i].info.compileOk)
-                allCompilesOk = false;
-        }
-
-        if (!program.getProgramInfo().linkOk)
-            allLinksOk = false;
-
-    } else {
-        /* TODO: GLES 3.1: Port program pipeline code */
+    for (var i = 0; i < program.shaders.length; i++) {
+        if (!program.shaders[i].info.compileOk)
+            allCompilesOk = false;
     }
+
+    if (!program.getProgramInfo().linkOk)
+        allLinksOk = false;
 
     switch (spec.expectResult) {
         case glsShaderLibraryCase.expectResult.EXPECT_PASS:
@@ -947,13 +941,9 @@ glsShaderLibraryCase.execute = function() {
     // Setup viewport.
     gl.viewport(viewportX, viewportY, width, height);
 
-    if (spec.separatePrograms) {
-        /** TODO: GLES 3.1 implement */
-    } else {
-        // Start using program
-        gl.useProgram(vertexProgramID);
-        assertMsgOptions(gl.getError() === gl.NO_ERROR, 'glUseProgram()', false, true);
-    }
+    // Start using program
+    gl.useProgram(vertexProgramID);
+    assertMsgOptions(gl.getError() === gl.NO_ERROR, 'glUseProgram()', false, true);
 
     // Fetch location for positions positions.
     /** @type {number} */ var positionLoc = gl.getAttribLocation(vertexProgramID, 'dEQP_Position');
@@ -964,7 +954,7 @@ glsShaderLibraryCase.execute = function() {
 
     // Iterate all value blocks.
     for (var blockNdx = 0; blockNdx < spec.valueBlockList.length; blockNdx++) {
-    /** {Array<Object>} */ var block = spec.valueBlockList[blockNdx];
+    /** @type { {values:Array}} */ var block = spec.valueBlockList[blockNdx];
 
         // always render at least one pass even if there is no input/output data
         /** @const @type {number} */ var numRenderPasses = Math.max(block.arrayLength, 1);
@@ -972,24 +962,17 @@ glsShaderLibraryCase.execute = function() {
         // Iterate all array sub-cases.
         for (var arrayNdx = 0; arrayNdx < numRenderPasses; arrayNdx++) {
             /** @const @type {number} */ var numValues = block.values.length;
-            /** @type {gluDrawUtil.VertexArrayBinding} */ var vertexArrays = [];
+            /** @type {Array<gluDrawUtil.VertexArrayBinding>} */ var vertexArrays = [];
             /** @type {number} */ var attribValueNdx = 0;
-            /** @type {gl.enum} */ var postDrawError;
-            var beforeDrawValidator = (
-                new glsShaderLibraryCase.BeforeDrawValidator(
-                                        gl,
-                                        (spec.separatePrograms) ? (programPipeline.getPipeline()) : (vertexProgramID),
-                                        (spec.separatePrograms) ? (glsShaderLibraryCase.targetType.PIPELINE) : (glsShaderLibraryCase.targetType.PROGRAM)
-                                       )
-            );
+            /** @type {number} */ var postDrawError;
 
             vertexArrays.push(new gluDrawUtil.VertexArrayBinding(gl.FLOAT, positionLoc, 4, numVerticesPerDraw, s_positions));
 
             // Collect VA pointer for inputs
             for (var valNdx = 0; valNdx < numValues; valNdx++) {
-                /** @const @type {Array} */ var val = block.values[valNdx];
+                var val = block.values[valNdx];
                 /** @const @type {string} */ var valueName = val.valueName;
-                /** @const @type {string} */ var dataType = val.dataType;
+                /** @const @type {gluShaderUtil.DataType} */ var dataType = val.dataType;
                 /** @const @type {number} */ var scalarSize = gluShaderUtil.getDataTypeScalarSize(val.dataType);
 
                 if (val.storageType === glsShaderLibraryCase.shaderCase.STORAGE_INPUT) {
@@ -1023,8 +1006,8 @@ glsShaderLibraryCase.execute = function() {
                     }
 
                     if (gluShaderUtil.isDataTypeMatrix(dataType)) {
-                        /** @type {number} */ var numCols = gluShaderUtil.getDataTypeMatrixNumColumns(dataType);
-                        /** @type {number} */ var numRows = gluShaderUtil.getDataTypeMatrixNumRows(dataType);
+                        var numCols = gluShaderUtil.getDataTypeMatrixNumColumns(dataType);
+                        var numRows = gluShaderUtil.getDataTypeMatrixNumRows(dataType);
 
                         assertMsgOptions(scalarSize === numCols * numRows, 'Matrix size sanity check', false, true);
 
@@ -1064,25 +1047,17 @@ glsShaderLibraryCase.execute = function() {
 
             // Use program or pipeline
             if (spec.separatePrograms)
-                gl.useProgram(0);
+                gl.useProgram(null);
             else
                 gl.useProgram(vertexProgramID);
 
             // Draw.
-            if (tessellationPresent) {
-                gl.patchParameteri(gl.PATCH_VERTICES, 3);
-                assertMsgOptions(gl.getError() === gl.NO_ERROR, 'set patchParameteri(PATCH_VERTICES, 3)', false, true);
-            }
+            // if (tessellationPresent) {
+            //     gl.patchParameteri(gl.PATCH_VERTICES, 3);
+            //     assertMsgOptions(gl.getError() === gl.NO_ERROR, 'set patchParameteri(PATCH_VERTICES, 3)', false, true);
+            // }
 
-            gluDrawUtil.draw(gl,
-                 vertexProgramID,
-                 vertexArrays,
-                 (tessellationPresent) ?
-                    (gluDrawUtil.patches(s_indices)) :
-                    (gluDrawUtil.triangles(s_indices)),
-                 (spec.expectResult === glsShaderLibraryCase.expectResult.EXPECT_VALIDATION_FAIL) ?
-                    (beforeDrawValidator) :
-                    (null));
+            gluDrawUtil.draw(gl, vertexProgramID, vertexArrays, gluDrawUtil.triangles(s_indices));
 
             postDrawError = gl.getError();
 
@@ -1126,8 +1101,6 @@ glsShaderLibraryCase.execute = function() {
         }
     }
     gl.useProgram(null);
-    if (spec.separatePrograms)
-        gl.bindProgramPipeline(0);
 
     assertMsgOptions(gl.getError() === gl.NO_ERROR, '', true, true);
     setCurrentTestName('');

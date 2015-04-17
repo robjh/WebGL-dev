@@ -31,7 +31,7 @@ goog.scope(function() {
 
     /**
      * Reads the filter parameter from the URL to filter tests.
-     * @return {string | null}
+     * @return {?string }
      */
     tcuTestCase.getFilter = function() {
         var queryVars = window.location.search.substring(1).split('&');
@@ -67,22 +67,22 @@ goog.scope(function() {
         /** @type {tcuTestCase.DeqpTest} */ this.currentTest = null;
         /** @type {tcuTestCase.DeqpTest} */ this.nextTest = null;
         /** @type {tcuTestCase.DeqpTest} */ this.testCases = null;
-        /** @type {string | null} */ this.filter = tcuTestCase.getFilter();
+        /** @type {?string } */ this.filter = tcuTestCase.getFilter();
     };
 
     /**
     * @param {tcuTestCase.DeqpTest} root The root test of the test tree.
     */
-    tcuTestCase.Runner.prototype.setRoot = function (root) {
+    tcuTestCase.Runner.prototype.setRoot = function(root) {
         this.currentTest = null;
         this.testCases = root;
     };
 
     /**
     * Searches the test tree for the next executable test
-    * @return {tcuTestCase.DeqpTest | null}
+    * @return {?tcuTestCase.DeqpTest }
     */
-    tcuTestCase.Runner.prototype.next = function () {
+    tcuTestCase.Runner.prototype.next = function() {
 
         // First time? Use root test
         if (!this.currentTest) {
@@ -134,7 +134,7 @@ goog.scope(function() {
     * @constructor
     * @param {string} name
     * @param {string} description
-    * @param {Object} spec
+    * @param {Object=} spec
     */
     tcuTestCase.DeqpTest = function(name, description, spec) {
         this.name = name;
@@ -147,20 +147,20 @@ goog.scope(function() {
     };
 
     /**
-     * Abstract init function (each particular test will implement it)
+     * Abstract init function(each particular test will implement it)
      */
-    tcuTestCase.DeqpTest.prototype.init = function () {};
+    tcuTestCase.DeqpTest.prototype.init = function() {};
 
     /**
-     * Abstract iterate function (each particular test will implement it)
+     * Abstract iterate function(each particular test will implement it)
      * @return {tcuTestCase.IterateResult}
      */
-    tcuTestCase.DeqpTest.prototype.iterate = function () { return tcuTestCase.IterateResult.STOP; };
+    tcuTestCase.DeqpTest.prototype.iterate = function() { return tcuTestCase.IterateResult.STOP; };
 
     /**
     * Checks if the test is executable
     */
-    tcuTestCase.DeqpTest.prototype.isExecutable = function () {
+    tcuTestCase.DeqpTest.prototype.isExecutable = function() {
         return this.childrenTests.length == 0 || this.executeAlways;
     };
 
@@ -186,7 +186,7 @@ goog.scope(function() {
     /**
     * Returns the next test in the hierarchy of tests
     *
-    * @param {string | null} pattern Optional pattern to search for
+    * @param {?string } pattern Optional pattern to search for
     * @return {tcuTestCase.DeqpTest}
     */
     tcuTestCase.DeqpTest.prototype.next = function(pattern) {
@@ -237,7 +237,7 @@ goog.scope(function() {
     * Fast-forwards to a test whose full name matches the given pattern
     *
     * @param {string} pattern Regular expression to search for
-    * @return {tcuTestCase.DeqpTest | null} Found test or null.
+    * @return {?tcuTestCase.DeqpTest } Found test or null.
     */
     tcuTestCase.DeqpTest.prototype.find = function(pattern) {
         var test = null;
@@ -266,7 +266,7 @@ goog.scope(function() {
     *
     * @param {string} name Short test name
     * @param {string} description Description of the test
-    * @param {Object} spec Test specification
+    * @param {Object=} spec Test specification
     *
     * @return {tcuTestCase.DeqpTest} The new test
     */
@@ -306,8 +306,7 @@ goog.scope(function() {
         if (state.next()) {
             try {
                 // If proceeding with the next test, prepare it.
-                if (tcuTestCase.lastResult == tcuTestCase.IterateResult.STOP)
-                {
+                if (tcuTestCase.lastResult == tcuTestCase.IterateResult.STOP) {
                     // Update current test name
                     var fullTestName = state.currentTest.fullName();
                     setCurrentTestName(fullTestName);
