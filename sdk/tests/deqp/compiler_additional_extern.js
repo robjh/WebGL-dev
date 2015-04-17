@@ -40,3 +40,5 @@ function debug(msg){};
  * @param {boolean} exthrow
  */
 function testFailedOptions(msg, exthrow){};
+
+/** @type {WebGL2RenderingContext} */ var gl;

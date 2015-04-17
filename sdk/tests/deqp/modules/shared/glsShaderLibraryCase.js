@@ -21,10 +21,9 @@
 'use strict';
 goog.provide('modules.shared.glsShaderLibraryCase');
 goog.require('framework.common.tcuTestCase');
+goog.require('framework.opengl.gluDrawUtil');
 goog.require('framework.opengl.gluShaderProgram');
 goog.require('framework.opengl.gluShaderUtil');
-goog.require('framework.opengl.gluDrawUtil');
-
 
 goog.scope(function() {
 
@@ -33,7 +32,6 @@ var tcuTestCase = framework.common.tcuTestCase;
 var gluShaderProgram = framework.opengl.gluShaderProgram;
 var gluShaderUtil = framework.opengl.gluShaderUtil;
 var gluDrawUtil = framework.opengl.gluDrawUtil;
-    
 
     /** @const @type {number} */ glsShaderLibraryCase.VIEWPORT_WIDTH = 128;
     /** @const @type {number} */ glsShaderLibraryCase.VIEWPORT_HEIGHT = 128;
@@ -55,9 +53,9 @@ glsShaderLibraryCase.expectResult = {
  * @enum {number}
  */
 glsShaderLibraryCase.caseType = {
-    CASETYPE_COMPLETE: 0,         //!< Has all shaders specified separately.
-    CASETYPE_VERTEX_ONLY: 1,      //!< "Both" case, vertex shader sub case.
-    CASETYPE_FRAGMENT_ONLY: 2     //!< "Both" case, fragment shader sub case.
+    CASETYPE_COMPLETE: 0, //!< Has all shaders specified separately.
+    CASETYPE_VERTEX_ONLY: 1, //!< "Both" case, vertex shader sub case.
+    CASETYPE_FRAGMENT_ONLY: 2 //!< "Both" case, fragment shader sub case.
 };
 
 glsShaderLibraryCase.BeforeDrawValidator = function() {
@@ -78,11 +76,9 @@ glsShaderLibraryCase.targetType = {
  * @enum {number}
  */
 glsShaderLibraryCase.shaderCase = {
-    value: {
-        STORAGE_INPUT: 0,
-        STORAGE_OUTPUT: 1,
-        STORAGE_UNIFORM: 2
-    }
+    STORAGE_INPUT: 0,
+    STORAGE_OUTPUT: 1,
+    STORAGE_UNIFORM: 2
 };
 
 /**
@@ -116,7 +112,7 @@ glsShaderLibraryCase.supportsFragmentHighp = function(version) {
  * This functions builds a matching vertex shader for a 'both' case, when
  * the fragment shader is being tested.
  * We need to build attributes and varyings for each 'input'.
- * @param {Array.<Object>} valueBlock
+ * @param {Array<Object>} valueBlock
  * @return {string} res
  */
 glsShaderLibraryCase.genVertexShader = function(valueBlock) {
@@ -134,7 +130,7 @@ glsShaderLibraryCase.genVertexShader = function(valueBlock) {
 
     for (var ndx = 0; ndx < valueBlock.values.length; ndx++) {
     /** @type {Array} */ var val = valueBlock.values[ndx];
-        if (val.storageType === glsShaderLibraryCase.shaderCase.value.STORAGE_INPUT) {
+        if (val.storageType === glsShaderLibraryCase.shaderCase.STORAGE_INPUT) {
             /** @type {string} */ var floatType = gluShaderUtil.getDataTypeFloatScalars(val.dataType);
             res += vtxIn + ' ' + floatType + ' a_' + val.valueName + ';\n';
 
@@ -150,11 +146,11 @@ glsShaderLibraryCase.genVertexShader = function(valueBlock) {
     // - gl_Position = dEQP_Position;
     // - for each input: write attribute directly to varying
     res += 'void main()\n';
-    res += '{\n';
+    res += ' {\n';
     res += '\tgl_Position = dEQP_Position;\n';
     for (var ndx = 0; ndx < valueBlock.values.length; ndx++) {
     /** @type {Array} */ var val = valueBlock.values[ndx];
-        if (val.storageType === glsShaderLibraryCase.shaderCase.value.STORAGE_INPUT) {
+        if (val.storageType === glsShaderLibraryCase.shaderCase.STORAGE_INPUT) {
         /** @type {string} */ var name = val.valueName;
             if (gluShaderUtil.getDataTypeScalarType(val.dataType) === 'float')
                 res += '\t' + name + ' = a_' + name + ';\n';
@@ -168,7 +164,7 @@ glsShaderLibraryCase.genVertexShader = function(valueBlock) {
 };
 
 /**
- * @param {Array.<Object>} valueBlock
+ * @param {Array<Object>} valueBlock
  * @param {boolean} useFloatTypes
  * @return {string} stream
  */
@@ -178,17 +174,16 @@ glsShaderLibraryCase.genCompareFunctions = function(valueBlock, useFloatTypes) {
 
     for (var ndx = 0; ndx < valueBlock.values.length; ndx++) {
     /** @type {Array} */ var val = valueBlock.values[ndx];
-        if (val.storageType === glsShaderLibraryCase.shaderCase.value.STORAGE_OUTPUT)
+        if (val.storageType === glsShaderLibraryCase.shaderCase.STORAGE_OUTPUT)
             cmpTypeFound[gluShaderUtil.getDataTypeName(val.dataType)] = true;
 
     }
-    if (useFloatTypes)
-    {
+    if (useFloatTypes) {
         if (cmpTypeFound['bool']) stream += 'bool isOk (float a, bool b) { return ((a > 0.5) == b); }\n';
         if (cmpTypeFound['bvec2']) stream += 'bool isOk (vec2 a, bvec2 b) { return (greaterThan(a, vec2(0.5)) == b); }\n';
         if (cmpTypeFound['bvec3']) stream += 'bool isOk (vec3 a, bvec3 b) { return (greaterThan(a, vec3(0.5)) == b); }\n';
         if (cmpTypeFound['bvec4']) stream += 'bool isOk (vec4 a, bvec4 b) { return (greaterThan(a, vec4(0.5)) == b); }\n';
-        if (cmpTypeFound['int']) stream += 'bool isOk (float a, int b)  { float atemp = a+0.5; return (float(b) <= atemp && atemp <= float(b+1)); }\n';
+        if (cmpTypeFound['int']) stream += 'bool isOk (float a, int b) { float atemp = a+0.5; return (float(b) <= atemp && atemp <= float(b+1)); }\n';
         if (cmpTypeFound['ivec2']) stream += 'bool isOk (vec2 a, ivec2 b) { return (ivec2(floor(a + 0.5)) == b); }\n';
         if (cmpTypeFound['ivec3']) stream += 'bool isOk (vec3 a, ivec3 b) { return (ivec3(floor(a + 0.5)) == b); }\n';
         if (cmpTypeFound['ivec4']) stream += 'bool isOk (vec4 a, ivec4 b) { return (ivec4(floor(a + 0.5)) == b); }\n';
@@ -196,18 +191,16 @@ glsShaderLibraryCase.genCompareFunctions = function(valueBlock, useFloatTypes) {
         if (cmpTypeFound['uvec2']) stream += 'bool isOk (vec2 a, uvec2 b) { return (uvec2(floor(a + 0.5)) == b); }\n';
         if (cmpTypeFound['uvec3']) stream += 'bool isOk (vec3 a, uvec3 b) { return (uvec3(floor(a + 0.5)) == b); }\n';
         if (cmpTypeFound['uvec4']) stream += 'bool isOk (vec4 a, uvec4 b) { return (uvec4(floor(a + 0.5)) == b); }\n';
-    }
-    else
-    {
-        if (cmpTypeFound['bool']) stream += 'bool isOk (bool a, bool b)   { return (a == b); }\n';
+    } else {
+        if (cmpTypeFound['bool']) stream += 'bool isOk (bool a, bool b) { return (a == b); }\n';
         if (cmpTypeFound['bvec2']) stream += 'bool isOk (bvec2 a, bvec2 b) { return (a == b); }\n';
         if (cmpTypeFound['bvec3']) stream += 'bool isOk (bvec3 a, bvec3 b) { return (a == b); }\n';
         if (cmpTypeFound['bvec4']) stream += 'bool isOk (bvec4 a, bvec4 b) { return (a == b); }\n';
-        if (cmpTypeFound['int']) stream += 'bool isOk (int a, int b)     { return (a == b); }\n';
+        if (cmpTypeFound['int']) stream += 'bool isOk (int a, int b) { return (a == b); }\n';
         if (cmpTypeFound['ivec2']) stream += 'bool isOk (ivec2 a, ivec2 b) { return (a == b); }\n';
         if (cmpTypeFound['ivec3']) stream += 'bool isOk (ivec3 a, ivec3 b) { return (a == b); }\n';
         if (cmpTypeFound['ivec4']) stream += 'bool isOk (ivec4 a, ivec4 b) { return (a == b); }\n';
-        if (cmpTypeFound['uint']) stream += 'bool isOk (uint a, uint b)   { return (a == b); }\n';
+        if (cmpTypeFound['uint']) stream += 'bool isOk (uint a, uint b) { return (a == b); }\n';
         if (cmpTypeFound['uvec2']) stream += 'bool isOk (uvec2 a, uvec2 b) { return (a == b); }\n';
         if (cmpTypeFound['uvec3']) stream += 'bool isOk (uvec3 a, uvec3 b) { return (a == b); }\n';
         if (cmpTypeFound['uvec4']) stream += 'bool isOk (uvec4 a, uvec4 b) { return (a == b); }\n';
@@ -246,7 +239,7 @@ glsShaderLibraryCase.genCompareFunctions = function(valueBlock, useFloatTypes) {
 
 /**
  * @param {string} dstVec4Var
- * @param {Array.<Object>} valueBlock
+ * @param {Array<Object>} valueBlock
  * @param {string} nonFloatNamePrefix
  * @param {string} checkVarName
  * @return {string} output
@@ -260,18 +253,16 @@ glsShaderLibraryCase.genCompareOp = function(dstVec4Var, valueBlock, nonFloatNam
     /** @type {Array} */ var val = valueBlock.values[ndx];
     /** @type {string} */ var valueName = val.valueName;
 
-        if (val.storageType === glsShaderLibraryCase.shaderCase.value.STORAGE_OUTPUT) {
+        if (val.storageType === glsShaderLibraryCase.shaderCase.STORAGE_OUTPUT) {
             // Check if we're only interested in one variable (then skip if not the right one).
             if (checkVarName && (valueName !== checkVarName))
                 continue;
 
             // Prefix.
-            if (isFirstOutput)
-            {
+            if (isFirstOutput) {
                 output += 'bool RES = ';
                 isFirstOutput = false;
-            }
-            else
+            } else
                 output += 'RES = RES && ';
 
             // Generate actual comparison.
@@ -284,7 +275,7 @@ glsShaderLibraryCase.genCompareOp = function(dstVec4Var, valueBlock, nonFloatNam
     }
 
     if (isFirstOutput)
-        output += dstVec4Var + ' = vec4(1.0);\n';  // \todo [petri] Should we give warning if not expect-failure case?
+        output += dstVec4Var + ' = vec4(1.0);\n'; // \todo [petri] Should we give warning if not expect-failure case?
     else
         output += dstVec4Var + ' = vec4(RES, RES, RES, 1.0);\n';
 
@@ -292,7 +283,7 @@ glsShaderLibraryCase.genCompareOp = function(dstVec4Var, valueBlock, nonFloatNam
 };
 
 /**
- * @param {Array.<Object>} valueBlock
+ * @param {Array<Object>} valueBlock
  * @return {string} shader
  */
 glsShaderLibraryCase.genFragmentShader = function(valueBlock) {
@@ -311,8 +302,7 @@ glsShaderLibraryCase.genFragmentShader = function(valueBlock) {
     shader += 'precision ' + prec + ' int;\n';
     shader += '\n';
 
-    if (customColorOut)
-    {
+    if (customColorOut) {
         shader += 'layout(location = 0) out mediump vec4 dEQP_FragColor;\n';
         shader += '\n';
     }
@@ -326,8 +316,7 @@ glsShaderLibraryCase.genFragmentShader = function(valueBlock) {
     /** @type {string} */ var floatType = gluShaderUtil.getDataTypeFloatScalars(val.dataType);
     /** @type {string} */ var refType = gluShaderUtil.getDataTypeName(val.dataType);
 
-        if (val.storageType == glsShaderLibraryCase.shaderCase.value.STORAGE_OUTPUT)
-        {
+        if (val.storageType == glsShaderLibraryCase.shaderCase.STORAGE_OUTPUT) {
             if (gluShaderUtil.getDataTypeScalarType(val.dataType) === 'float')
                 shader += fragIn + ' ' + floatType + ' ' + val.valueName + ';\n';
             else
@@ -339,7 +328,7 @@ glsShaderLibraryCase.genFragmentShader = function(valueBlock) {
 
     shader += '\n';
     shader += 'void main()\n';
-    shader += '{\n';
+    shader += ' {\n';
 
     shader += '\t';
     shader += glsShaderLibraryCase.genCompareOp(customColorOut ? 'dEQP_FragColor' : 'gl_FragColor', valueBlock, 'v_', null);
@@ -425,12 +414,12 @@ return {
 /** Specialize a shader only for the vertex test case.
  * @param {string} baseCode
  * @param {number} shaderType
- * @param {Array.<Object>} requirements
+ * @param {Array<Object>} requirements
  * @return {string} resultBuf
  */
 glsShaderLibraryCase.injectExtensionRequirements = function(baseCode, shaderType, requirements) {
 /**
- * @param {Array.<Object>} requirements
+ * @param {Array<Object>} requirements
  * @param {number} shaderType
  * @return {string} buf
  */
@@ -458,8 +447,7 @@ glsShaderLibraryCase.injectExtensionRequirements = function(baseCode, shaderType
     for (var i = 0; i < splitLines.length; i++) {
         /** @const @type {boolean} */ var isPreprocessorDirective = (splitLines[i].match(/^\s*#/) !== null);
 
-        if (!isPreprocessorDirective && firstNonPreprocessorLine)
-        {
+        if (!isPreprocessorDirective && firstNonPreprocessorLine) {
             firstNonPreprocessorLine = false;
             resultBuf += extensions;
         }
@@ -472,7 +460,7 @@ glsShaderLibraryCase.injectExtensionRequirements = function(baseCode, shaderType
 
 /** Specialize a shader for the vertex shader test case.
  * @param {string} src
- * @param {Array.<Object>} valueBlock
+ * @param {Array<Object>} valueBlock
  * @return {string} withExt
  */
 glsShaderLibraryCase.specializeVertexShader = function(src, valueBlock) {
@@ -495,24 +483,17 @@ glsShaderLibraryCase.specializeVertexShader = function(src, valueBlock) {
     /** @type {string} */ var floatType = gluShaderUtil.getDataTypeFloatScalars(val.dataType);
     /** @type {string} */ var dataTypeName = gluShaderUtil.getDataTypeName(val.dataType);
 
-        if (val.storageType === glsShaderLibraryCase.shaderCase.value.STORAGE_INPUT)
-        {
-            if (gluShaderUtil.getDataTypeScalarType(val.dataType) === 'float')
-            {
+        if (val.storageType === glsShaderLibraryCase.shaderCase.STORAGE_INPUT) {
+            if (gluShaderUtil.getDataTypeScalarType(val.dataType) === 'float') {
                 decl += vtxIn + ' ' + floatType + ' ' + valueName + ';\n';
-            }
-            else
-            {
+            } else {
                 decl += vtxIn + ' ' + floatType + ' a_' + valueName + ';\n';
                 setup += dataTypeName + ' ' + valueName + ' = ' + dataTypeName + '(a_' + valueName + ');\n';
             }
-        }
-        else if (val.storageType === glsShaderLibraryCase.shaderCase.value.STORAGE_OUTPUT)
-        {
+        } else if (val.storageType === glsShaderLibraryCase.shaderCase.STORAGE_OUTPUT) {
             if (gluShaderUtil.getDataTypeScalarType(val.dataType) === 'float')
                 decl += vtxOut + ' ' + floatType + ' ' + valueName + ';\n';
-            else
-            {
+            else {
                 decl += vtxOut + ' ' + floatType + ' v_' + valueName + ';\n';
                 decl += dataTypeName + ' ' + valueName + ';\n';
 
@@ -523,11 +504,11 @@ glsShaderLibraryCase.specializeVertexShader = function(src, valueBlock) {
 
     /** @type {string} */
     var baseSrc = src
-                    .replace(/\$\{DECLARATIONS\}/g, decl)
-                    .replace(/\$\{DECLARATIONS:single-line\}/g, decl.replace(/\n/g, ' '))
-                    .replace(/\$\{SETUP\}/g, setup)
-                    .replace(/\$\{OUTPUT\}/g, output)
-                    .replace(/\$\{POSITION_FRAG_COLOR\}/g, 'gl_Position');
+                    .replace(/\$\ {DECLARATIONS\}/g, decl)
+                    .replace(/\$\ {DECLARATIONS:single-line\}/g, decl.replace(/\n/g, ' '))
+                    .replace(/\$\ {SETUP\}/g, setup)
+                    .replace(/\$\ {OUTPUT\}/g, output)
+                    .replace(/\$\ {POSITION_FRAG_COLOR\}/g, 'gl_Position');
 
     /** @type {string} */
     var withExt = glsShaderLibraryCase.injectExtensionRequirements(baseSrc, gluShaderProgram.shaderType.VERTEX, state.currentTest.spec.requirements);
@@ -537,7 +518,7 @@ glsShaderLibraryCase.specializeVertexShader = function(src, valueBlock) {
 
 /** Specialize a shader only for the vertex test case.
  * @param {string} src
- * @param {Array.<Object>} valueBlock
+ * @param {Array<Object>} valueBlock
  * @return {string} withExt
  */
 glsShaderLibraryCase.specializeVertexOnly = function(src, valueBlock) {
@@ -559,31 +540,26 @@ glsShaderLibraryCase.specializeVertexOnly = function(src, valueBlock) {
     /** @type {string} */ var valueName = val.valueName;
     /** @type {string} */ var type = gluShaderUtil.getDataTypeName(val.dataType);
 
-        if (val.storageType === glsShaderLibraryCase.shaderCase.value.STORAGE_INPUT)
-        {
-            if (gluShaderUtil.getDataTypeScalarType(val.dataType) === 'float')
-            {
+        if (val.storageType === glsShaderLibraryCase.shaderCase.STORAGE_INPUT) {
+            if (gluShaderUtil.getDataTypeScalarType(val.dataType) === 'float') {
                 decl += vtxIn + ' ' + type + ' ' + valueName + ';\n';
-            }
-            else
-            {
+            } else {
                 /** @type {string} */ var floatType = gluShaderUtil.getDataTypeFloatScalars(val.dataType);
 
                 decl += vtxIn + ' ' + floatType + ' a_' + valueName + ';\n';
                 setup += type + ' ' + valueName + ' = ' + type + '(a_' + valueName + ');\n';
             }
-        }
-        else if (val.storageType === glsShaderLibraryCase.shaderCase.value.STORAGE_UNIFORM &&
+        } else if (val.storageType === glsShaderLibraryCase.shaderCase.STORAGE_UNIFORM &&
                     !val.valueName.match('\\.'))
             decl += 'uniform ' + type + ' ' + valueName + ';\n';
     }
 
     /** @type {string} */
     var baseSrc = src
-                    .replace(/\$\{VERTEX_DECLARATIONS\}/g, decl)
-                    .replace(/\$\{VERTEX_DECLARATIONS:single-line\}/g, decl.replace(/\n/g, ' '))
-                    .replace(/\$\{VERTEX_SETUP\}/g, setup)
-                    .replace(/\$\{VERTEX_OUTPUT\}/g, output);
+                    .replace(/\$\ {VERTEX_DECLARATIONS\}/g, decl)
+                    .replace(/\$\ {VERTEX_DECLARATIONS:single-line\}/g, decl.replace(/\n/g, ' '))
+                    .replace(/\$\ {VERTEX_SETUP\}/g, setup)
+                    .replace(/\$\ {VERTEX_OUTPUT\}/g, output);
 
     /** @type {string} */
     var withExt = glsShaderLibraryCase.injectExtensionRequirements(baseSrc, gluShaderProgram.shaderType.VERTEX, state.currentTest.spec.requirements);
@@ -593,7 +569,7 @@ glsShaderLibraryCase.specializeVertexOnly = function(src, valueBlock) {
 
 /** Specialize a shader for the fragment shader test case.
  * @param {string} src
- * @param {Array.<Object>} valueBlock
+ * @param {Array<Object>} valueBlock
  * @return {string} withExt
  */
 glsShaderLibraryCase.specializeFragmentShader = function(src, valueBlock) {
@@ -620,19 +596,15 @@ glsShaderLibraryCase.specializeFragmentShader = function(src, valueBlock) {
     /** @type {string} */ var floatType = gluShaderUtil.getDataTypeFloatScalars(val.dataType);
     /** @type {string} */ var refType = gluShaderUtil.getDataTypeName(val.dataType);
 
-        if (val.storageType === glsShaderLibraryCase.shaderCase.value.STORAGE_INPUT)
-        {
+        if (val.storageType === glsShaderLibraryCase.shaderCase.STORAGE_INPUT) {
             if (gluShaderUtil.getDataTypeScalarType(val.dataType) === 'float')
                 decl += fragIn + ' ' + floatType + ' ' + valueName + ';\n';
-            else
-            {
+            else {
                 decl += fragIn + ' ' + floatType + ' v_' + valueName + ';\n';
                 var offset = gluShaderUtil.isDataTypeIntOrIVec(val.dataType) ? ' * 1.0025' : ''; // \todo [petri] bit of a hack to avoid errors in chop() due to varying interpolation
                 setup += refType + ' ' + valueName + ' = ' + refType + '(v_' + valueName + offset + ');\n';
             }
-        }
-        else if (val.storageType === glsShaderLibraryCase.shaderCase.value.STORAGE_OUTPUT)
-        {
+        } else if (val.storageType === glsShaderLibraryCase.shaderCase.STORAGE_OUTPUT) {
             decl += 'uniform ' + refType + ' ref_' + valueName + ';\n';
             decl += refType + ' ' + valueName + ';\n';
         }
@@ -642,11 +614,11 @@ glsShaderLibraryCase.specializeFragmentShader = function(src, valueBlock) {
 
     /** @type {string} */
     var baseSrc = src
-                    .replace(/\$\{DECLARATIONS\}/g, decl)
-                    .replace(/\$\{DECLARATIONS:single-line\}/g, decl.replace(/\n/g, ' '))
-                    .replace(/\$\{SETUP\}/g, setup)
-                    .replace(/\$\{OUTPUT\}/g, output)
-                    .replace(/\$\{POSITION_FRAG_COLOR\}/g, fragColor);
+                    .replace(/\$\ {DECLARATIONS\}/g, decl)
+                    .replace(/\$\ {DECLARATIONS:single-line\}/g, decl.replace(/\n/g, ' '))
+                    .replace(/\$\ {SETUP\}/g, setup)
+                    .replace(/\$\ {OUTPUT\}/g, output)
+                    .replace(/\$\ {POSITION_FRAG_COLOR\}/g, fragColor);
 
     /** @type {string} */
     var withExt = glsShaderLibraryCase.injectExtensionRequirements(baseSrc, gluShaderProgram.shaderType.FRAGMENT, state.currentTest.spec.requirements);
@@ -656,7 +628,7 @@ glsShaderLibraryCase.specializeFragmentShader = function(src, valueBlock) {
 
 /** Specialize a shader only for the fragment test case.
  * @param {string} src
- * @param {Array.<Object>} valueBlock
+ * @param {Array<Object>} valueBlock
  * @return {string} withExt
  */
 glsShaderLibraryCase.specializeFragmentOnly = function(src, valueBlock) {
@@ -680,20 +652,20 @@ glsShaderLibraryCase.specializeFragmentOnly = function(src, valueBlock) {
     /** @type {string} */ var floatType = gluShaderUtil.getDataTypeFloatScalars(val.dataType);
     /** @type {string} */ var refType = gluShaderUtil.getDataTypeName(val.dataType);
 
-        if (val.storageType === glsShaderLibraryCase.shaderCase.value.STORAGE_OUTPUT) {
+        if (val.storageType === glsShaderLibraryCase.shaderCase.STORAGE_OUTPUT) {
             decl += 'uniform ' + refType + ' ref_' + valueName + ';\n';
             decl += refType + ' ' + valueName + ';\n';
-        } else if (val.storageType === glsShaderLibraryCase.shaderCase.value.STORAGE_UNIFORM &&
+        } else if (val.storageType === glsShaderLibraryCase.shaderCase.STORAGE_UNIFORM &&
                    !valueName.match('\\.'))
             decl += 'uniform ' + refType + ' ' + valueName + ';\n';
     }
 
     /** @type {string} */
     var baseSrc = src
-                     .replace(/\$\{FRAGMENT_DECLARATIONS\}/g, decl)
-                     .replace(/\$\{FRAGMENT_DECLARATIONS:single-line\}/g, decl.replace(/\n/g, ' '))
-                     .replace(/\$\{FRAGMENT_OUTPUT\}/g, output)
-                     .replace(/\$\{FRAG_COLOR\}/g, fragColor);
+                     .replace(/\$\ {FRAGMENT_DECLARATIONS\}/g, decl)
+                     .replace(/\$\ {FRAGMENT_DECLARATIONS:single-line\}/g, decl.replace(/\n/g, ' '))
+                     .replace(/\$\ {FRAGMENT_OUTPUT\}/g, output)
+                     .replace(/\$\ {FRAG_COLOR\}/g, fragColor);
 
     /** @type {string} */
     var withExt = glsShaderLibraryCase.injectExtensionRequirements(baseSrc, gluShaderProgram.shaderType.FRAGMENT, state.currentTest.spec.requirements);
@@ -713,8 +685,7 @@ glsShaderLibraryCase.isTessellationPresent = function() {
 glsShaderLibraryCase.setUniformValue = function(gl, pipelinePrograms, name, val, arrayNdx) {
     /** @type {boolean} */ var foundAnyMatch = false;
 
-    for (var programNdx = 0; programNdx < pipelinePrograms.length; ++programNdx)
-    {
+    for (var programNdx = 0; programNdx < pipelinePrograms.length; ++programNdx) {
         /** @const @type {WebGLUniformLocation} */ var loc = gl.getUniformLocation(pipelinePrograms[programNdx], name);
         /** @const @type {number} */ var scalarSize = gluShaderUtil.getDataTypeScalarSize(val.dataType);
         /** @const @type {number} */ var elemNdx = (val.arrayLength === 1) ? (0) : (arrayNdx * scalarSize);
@@ -727,15 +698,14 @@ glsShaderLibraryCase.setUniformValue = function(gl, pipelinePrograms, name, val,
         gl.useProgram(pipelinePrograms[programNdx]);
 
         /** @type {Array} */ var element = val.elements.slice(elemNdx, elemNdx + scalarSize);
-        switch (val.dataType)
-        {
+        switch (val.dataType) {
             case gluShaderUtil.DataType.FLOAT: gl.uniform1fv(loc, new Float32Array(element)); break;
             case gluShaderUtil.DataType.FLOAT_VEC2: gl.uniform2fv(loc, new Float32Array(element)); break;
             case gluShaderUtil.DataType.FLOAT_VEC3: gl.uniform3fv(loc, new Float32Array(element)); break;
             case gluShaderUtil.DataType.FLOAT_VEC4: gl.uniform4fv(loc, new Float32Array(element)); break;
-            case gluShaderUtil.DataType.FLOAT_MAT2: gl.uniformMatrix2fv(loc, gl.FALSE, new Float32Array(element)); break;
-            case gluShaderUtil.DataType.FLOAT_MAT3: gl.uniformMatrix3fv(loc, gl.FALSE, new Float32Array(element)); break;
-            case gluShaderUtil.DataType.FLOAT_MAT4: gl.uniformMatrix4fv(loc, gl.FALSE, new Float32Array(element)); break;
+            case gluShaderUtil.DataType.FLOAT_MAT2: gl.uniformMatrix2fv(loc, false, new Float32Array(element)); break;
+            case gluShaderUtil.DataType.FLOAT_MAT3: gl.uniformMatrix3fv(loc, false, new Float32Array(element)); break;
+            case gluShaderUtil.DataType.FLOAT_MAT4: gl.uniformMatrix4fv(loc, false, new Float32Array(element)); break;
             case gluShaderUtil.DataType.INT: gl.uniform1iv(loc, new Int32Array(element)); break;
             case gluShaderUtil.DataType.INT_VEC2: gl.uniform2iv(loc, new Int32Array(element)); break;
             case gluShaderUtil.DataType.INT_VEC3: gl.uniform3iv(loc, new Int32Array(element)); break;
@@ -751,12 +721,12 @@ glsShaderLibraryCase.setUniformValue = function(gl, pipelinePrograms, name, val,
             case gluShaderUtil.DataType.UINT_VEC2: gl.uniform2uiv(loc, new Uint32Array(element)); break;
             case gluShaderUtil.DataType.UINT_VEC3: gl.uniform3uiv(loc, new Uint32Array(element)); break;
             case gluShaderUtil.DataType.UINT_VEC4: gl.uniform4uiv(loc, new Uint32Array(element)); break;
-            case gluShaderUtil.DataType.FLOAT_MAT2X3: gl.uniformMatrix2x3fv(loc, gl.FALSE, new Float32Array(element)); break;
-            case gluShaderUtil.DataType.FLOAT_MAT2X4: gl.uniformMatrix2x4fv(loc, gl.FALSE, new Float32Array(element)); break;
-            case gluShaderUtil.DataType.FLOAT_MAT3X2: gl.uniformMatrix3x2fv(loc, gl.FALSE, new Float32Array(element)); break;
-            case gluShaderUtil.DataType.FLOAT_MAT3X4: gl.uniformMatrix3x4fv(loc, gl.FALSE, new Float32Array(element)); break;
-            case gluShaderUtil.DataType.FLOAT_MAT4X2: gl.uniformMatrix4x2fv(loc, gl.FALSE, new Float32Array(element)); break;
-            case gluShaderUtil.DataType.FLOAT_MAT4X3: gl.uniformMatrix4x3fv(loc, gl.FALSE, new Float32Array(element)); break;
+            case gluShaderUtil.DataType.FLOAT_MAT2X3: gl.uniformMatrix2x3fv(loc, false, new Float32Array(element)); break;
+            case gluShaderUtil.DataType.FLOAT_MAT2X4: gl.uniformMatrix2x4fv(loc, false, new Float32Array(element)); break;
+            case gluShaderUtil.DataType.FLOAT_MAT3X2: gl.uniformMatrix3x2fv(loc, false, new Float32Array(element)); break;
+            case gluShaderUtil.DataType.FLOAT_MAT3X4: gl.uniformMatrix3x4fv(loc, false, new Float32Array(element)); break;
+            case gluShaderUtil.DataType.FLOAT_MAT4X2: gl.uniformMatrix4x2fv(loc, false, new Float32Array(element)); break;
+            case gluShaderUtil.DataType.FLOAT_MAT4X3: gl.uniformMatrix4x3fv(loc, false, new Float32Array(element)); break;
 
             default:
                 testFailed('Unknown data type ' + val.dataType);
@@ -819,13 +789,13 @@ glsShaderLibraryCase.init = function() {
 
     if (!test.spec.valueBlockList.length)
         test.spec.valueBlockList.push(glsShaderLibraryCase.genValueBlock());
-    /** @type {Array.<Object>} */ var valueBlock = test.spec.valueBlockList[0];
+    /** @type {Array<Object>} */ var valueBlock = test.spec.valueBlockList[0];
 
     if (test.spec.requirements)
         for (var ndx = 0; ndx < test.spec.requirements.length; ++ndx)
             test.spec.requirements[ndx].checkRequirements();
 
-    /** @type {Array.<gluShaderProgram.ShaderInfo>} */ var sources = [];
+    /** @type {Array<gluShaderProgram.ShaderInfo>} */ var sources = [];
 
     if (test.spec.caseType === glsShaderLibraryCase.caseType.CASETYPE_COMPLETE) {
     /** @type {string} */ var vertex = glsShaderLibraryCase.specializeVertexOnly(test.spec.vertexSource, valueBlock);
@@ -841,8 +811,7 @@ glsShaderLibraryCase.init = function() {
     }
 
     test.programs = [];
-    test.programs.push(
-        {
+    test.programs.push({
             programSources: {
                 sources: sources
             }
@@ -855,10 +824,9 @@ glsShaderLibraryCase.init = function() {
  * Execute a test case
  * @return {boolean} True if test case passed
  */
-glsShaderLibraryCase.execute = function()
-{
+glsShaderLibraryCase.execute = function() {
     /** @const @type {number} */ var quadSize = 1.0;
-    /** @const @type {Array.<number>} */
+    /** @const @type {Array<number>} */
     var s_positions = [
         -quadSize, -quadSize, 0.0, 1.0,
         -quadSize, +quadSize, 0.0, 1.0,
@@ -866,14 +834,14 @@ glsShaderLibraryCase.execute = function()
         +quadSize, +quadSize, 0.0, 1.0
     ];
 
-    /** @const @type {Array.<number>} */
+    /** @const @type {Array<number>} */
     var s_indices = [
         0, 1, 2,
         1, 3, 2
     ];
 
     var wtu = WebGLTestUtils;
-    /** @type {WebGLRenderingContext} */ var gl = wtu.create3DContext('canvas');
+    /** @type {WebGL2RenderingContext} */ var gl = wtu.create3DContext('canvas');
     /** @type {Object} */ var state = tcuTestCase.runner.getState();
     /** @type {Object} */ var test = state.currentTest;
     /** @type {Object} */ var spec = test.spec;
@@ -892,8 +860,8 @@ glsShaderLibraryCase.execute = function()
     /** @type {string} */ var failReason = null;
 
     /** @type {number} */ var vertexProgramID = -1;
-    /** @type {Array.<gluShaderProgram.Program.program>} */ var pipelineProgramIDs = [];
-    /** @type {Array.<gluShaderProgram.ShaderProgram>} */ var programs = [];
+    /** @type {Array<gluShaderProgram.Program.program>} */ var pipelineProgramIDs = [];
+    /** @type {Array<gluShaderProgram.ShaderProgram>} */ var programs = [];
     var programPipeline;
 
     // Set the name of the current test so testFailedOptions/testPassedOptions can use it.
@@ -901,8 +869,7 @@ glsShaderLibraryCase.execute = function()
     debug('Start testcase: ' + test.fullName());
     assertMsgOptions(gl.getError() === gl.NO_ERROR, 'Start testcase: ' + test.fullName(), false, true);
 
-    if (!test.separatePrograms)
-    {
+    if (!test.separatePrograms) {
     /** @type {gluShaderProgram.ShaderProgram} */ var program = new gluShaderProgram.ShaderProgram(gl, test.programs[0].programSources);
 
         vertexProgramID = program.getProgram();
@@ -919,14 +886,11 @@ glsShaderLibraryCase.execute = function()
         if (!program.getProgramInfo().linkOk)
             allLinksOk = false;
 
-    }
-    else
-    {
+    } else {
         /* TODO: GLES 3.1: Port program pipeline code */
     }
 
-    switch (spec.expectResult)
-    {
+    switch (spec.expectResult) {
         case glsShaderLibraryCase.expectResult.EXPECT_PASS:
         case glsShaderLibraryCase.expectResult.EXPECT_VALIDATION_FAIL:
             if (!allCompilesOk)
@@ -959,8 +923,7 @@ glsShaderLibraryCase.execute = function()
             return false;
     }
 
-    if (failReason != null)
-    {
+    if (failReason != null) {
         // \todo [2010-06-07 petri] These should be handled in the test case?
         bufferedLogToConsole('ERROR: ' + failReason);
 
@@ -984,12 +947,9 @@ glsShaderLibraryCase.execute = function()
     // Setup viewport.
     gl.viewport(viewportX, viewportY, width, height);
 
-    if (spec.separatePrograms)
-    {
+    if (spec.separatePrograms) {
         /** TODO: GLES 3.1 implement */
-    }
-    else
-    {
+    } else {
         // Start using program
         gl.useProgram(vertexProgramID);
         assertMsgOptions(gl.getError() === gl.NO_ERROR, 'glUseProgram()', false, true);
@@ -1003,16 +963,14 @@ glsShaderLibraryCase.execute = function()
     }
 
     // Iterate all value blocks.
-    for (var blockNdx = 0; blockNdx < spec.valueBlockList.length; blockNdx++)
-    {
-    /** {Array.<Object>} */ var block = spec.valueBlockList[blockNdx];
+    for (var blockNdx = 0; blockNdx < spec.valueBlockList.length; blockNdx++) {
+    /** {Array<Object>} */ var block = spec.valueBlockList[blockNdx];
 
         // always render at least one pass even if there is no input/output data
         /** @const @type {number} */ var numRenderPasses = Math.max(block.arrayLength, 1);
 
         // Iterate all array sub-cases.
-        for (var arrayNdx = 0; arrayNdx < numRenderPasses; arrayNdx++)
-        {
+        for (var arrayNdx = 0; arrayNdx < numRenderPasses; arrayNdx++) {
             /** @const @type {number} */ var numValues = block.values.length;
             /** @type {gluDrawUtil.VertexArrayBinding} */ var vertexArrays = [];
             /** @type {number} */ var attribValueNdx = 0;
@@ -1034,8 +992,7 @@ glsShaderLibraryCase.execute = function()
                 /** @const @type {string} */ var dataType = val.dataType;
                 /** @const @type {number} */ var scalarSize = gluShaderUtil.getDataTypeScalarSize(val.dataType);
 
-                if (val.storageType === glsShaderLibraryCase.shaderCase.value.STORAGE_INPUT)
-                {
+                if (val.storageType === glsShaderLibraryCase.shaderCase.STORAGE_INPUT) {
                     // Replicate values four times.
                 /** @type {Array} */ var scalars = [];
 
@@ -1076,8 +1033,7 @@ glsShaderLibraryCase.execute = function()
                         /** @type {Array} */ var colData = scalars.slice(i * colSize, (i + 1) * colSize);
                             vertexArrays.push(new gluDrawUtil.VertexArrayBinding(gl.FLOAT, attribLoc + i, numRows, numVerticesPerDraw, colData));
                         }
-                    }
-                    else
+                    } else
                             vertexArrays.push(new gluDrawUtil.VertexArrayBinding(gl.FLOAT, attribLoc, scalarSize, numVerticesPerDraw, scalars));
 
                     assertMsgOptions(gl.getError() === gl.NO_ERROR, 'set vertex attrib array', false, true);
@@ -1087,19 +1043,15 @@ glsShaderLibraryCase.execute = function()
             assertMsgOptions(gl.getError() === gl.NO_ERROR, 'before set uniforms', false, true);
 
             // set uniform values for outputs (refs).
-            for (var valNdx = 0; valNdx < numValues; valNdx++)
-            {
+            for (var valNdx = 0; valNdx < numValues; valNdx++) {
             /** @type {Array} */ var val1 = block.values[valNdx];
             /** @type {string} */ var valueName1 = val1.valueName;
 
-                if (val1.storageType === glsShaderLibraryCase.shaderCase.value.STORAGE_OUTPUT)
-                {
+                if (val1.storageType === glsShaderLibraryCase.shaderCase.STORAGE_OUTPUT) {
                     // Set reference value.
                     glsShaderLibraryCase.setUniformValue(gl, pipelineProgramIDs, 'ref_' + valueName1, val1, arrayNdx);
                     assertMsgOptions(gl.getError() === gl.NO_ERROR, 'set reference uniforms', false, true);
-                }
-                else if (val1.storageType === glsShaderLibraryCase.shaderCase.value.STORAGE_UNIFORM)
-                {
+                } else if (val1.storageType === glsShaderLibraryCase.shaderCase.STORAGE_UNIFORM) {
                     glsShaderLibraryCase.setUniformValue(gl, pipelineProgramIDs, valueName1, val1, arrayNdx);
                     assertMsgOptions(gl.getError() === gl.NO_ERROR, 'set uniforms', false, true);
                 }
@@ -1117,8 +1069,7 @@ glsShaderLibraryCase.execute = function()
                 gl.useProgram(vertexProgramID);
 
             // Draw.
-            if (tessellationPresent)
-            {
+            if (tessellationPresent) {
                 gl.patchParameteri(gl.PATCH_VERTICES, 3);
                 assertMsgOptions(gl.getError() === gl.NO_ERROR, 'set patchParameteri(PATCH_VERTICES, 3)', false, true);
             }
@@ -1206,7 +1157,5 @@ glsShaderLibraryCase.genValueBlock = function() {
     /** @type {number} */ arrayLength: 0
     };
 };
-
-
 
 });
