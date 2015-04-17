@@ -38,7 +38,8 @@ targets = {
     'uniformapi': 'functional.gles3.es3fUniformApiTests',
     'uniformbuffers': 'functional.gles3.es3fUniformBlockTests',
     'vertexarrays': 'functional.gles3.es3fVertexArrayTests',
-    'shaderlibrary': 'modules.shared.glsShaderLibrary'
+    'shaderlibrary': 'modules.shared.glsShaderLibrary',
+    'matrix': 'framework.common.tcuMatrix'
 }
 def dep_filename(target):
     return target + '.dep'
