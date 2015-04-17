@@ -45,12 +45,11 @@ var rrRenderer = framework.referencerenderer.rrRenderer;
 var rrDefs = framework.referencerenderer.rrDefs;
 var rrShaders = framework.referencerenderer.rrShaders;
 var rrRenderState = framework.referencerenderer.rrRenderState;
-var deMath = framework.delibs.debase.deMath;
 
 /**
  * @param {deMath.deUint32} type
- * @return {rrVertexAttrib.VertexAttribType} 
- * @throws {Error} 
+ * @return {rrVertexAttrib.VertexAttribType}
+ * @throws {Error}
  */
 sglrReferenceUtils.mapGLPureIntegerVertexAttributeType = function(/* deUint32 */ type){
 	switch (type)
@@ -71,9 +70,9 @@ sglrReferenceUtils.mapGLPureIntegerVertexAttributeType = function(/* deUint32 */
  * @param {boolean} normalizedInteger
  * @param {number} size
  * @return {rrVertexAttrib.VertexAttribType} converted value from type to VertexAttribType
- * @throws {Error} 
+ * @throws {Error}
  */
-sglrReferenceUtils.mapGLFloatVertexAttributeType = function(/* deUint32 */ type, /*bool*/ normalizedInteger, 
+sglrReferenceUtils.mapGLFloatVertexAttributeType = function(/* deUint32 */ type, /*bool*/ normalizedInteger,
 	/*int*/ size) {
 
 	/** @type{boolean} */ var useClampingNormalization = true;
@@ -93,7 +92,7 @@ sglrReferenceUtils.mapGLFloatVertexAttributeType = function(/* deUint32 */ type,
 			if (!normalizedInteger)
 				return rrVertexAttrib.VertexAttribType.NONPURE_UINT8;
 			else
-				return (!bgraComponentOrder) ? (rrVertexAttrib.VertexAttribType.NONPURE_UNORM8) 
+				return (!bgraComponentOrder) ? (rrVertexAttrib.VertexAttribType.NONPURE_UNORM8)
 					: (rrVertexAttrib.VertexAttribType.NONPURE_UNORM8_BGRA);
 
 		case gl.UNSIGNED_SHORT:
@@ -107,14 +106,14 @@ sglrReferenceUtils.mapGLFloatVertexAttributeType = function(/* deUint32 */ type,
 				return rrVertexAttrib.VertexAttribType.NONPURE_UINT32;
 			else
 				return rrVertexAttrib.VertexAttribType.NONPURE_UNORM32;
-		
+
 		case gl.UNSIGNED_INT_2_10_10_10_REV:
 			if (!normalizedInteger)
 				return rrVertexAttrib.VertexAttribType.NONPURE_UINT_2_10_10_10_REV;
 			else
-				return (!bgraComponentOrder) ? (rrVertexAttrib.VertexAttribType.NONPURE_UNORM_2_10_10_10_REV) 
+				return (!bgraComponentOrder) ? (rrVertexAttrib.VertexAttribType.NONPURE_UNORM_2_10_10_10_REV)
 					: (rrVertexAttrib.VertexAttribType.NONPURE_UNORM_2_10_10_10_REV_BGRA);
-		
+
 		case gl.BYTE:
 			if (!normalizedInteger)
 				return rrVertexAttrib.VertexAttribType.NONPURE_INT8;
@@ -138,28 +137,28 @@ sglrReferenceUtils.mapGLFloatVertexAttributeType = function(/* deUint32 */ type,
 				return rrVertexAttrib.VertexAttribType.NONPURE_SNORM32_CLAMP;
 			else
 				return rrVertexAttrib.VertexAttribType.NONPURE_SNORM32_SCALE;
-		
+
 		case gl.INT_2_10_10_10_REV:
 			if (!normalizedInteger)
 				return rrVertexAttrib.VertexAttribType.NONPURE_INT_2_10_10_10_REV;
 			else if (useClampingNormalization)
-				return (!bgraComponentOrder) ? (rrVertexAttrib.VertexAttribType.NONPURE_SNORM_2_10_10_10_REV_CLAMP) 
+				return (!bgraComponentOrder) ? (rrVertexAttrib.VertexAttribType.NONPURE_SNORM_2_10_10_10_REV_CLAMP)
 					: (rrVertexAttrib.VertexAttribType.NONPURE_SNORM_2_10_10_10_REV_CLAMP_BGRA);
 			else
-				return (!bgraComponentOrder) ? (rrVertexAttrib.VertexAttribType.NONPURE_SNORM_2_10_10_10_REV_SCALE) 
+				return (!bgraComponentOrder) ? (rrVertexAttrib.VertexAttribType.NONPURE_SNORM_2_10_10_10_REV_SCALE)
 					: (rrVertexAttrib.VertexAttribType.NONPURE_SNORM_2_10_10_10_REV_SCALE_BGRA);
 
 		default:
 			throw new Error("Value to do mapping not compatible");
-		
-	} 
+
+	}
 
 };
 
 /**
  * @param {number} size
- * @return {number} 
- * @throws {Error} 
+ * @return {number}
+ * @throws {Error}
  */
 sglrReferenceUtils.mapGLSize = function(/*int*/ size) {
 	switch (size)
@@ -179,8 +178,8 @@ sglrReferenceUtils.mapGLSize = function(/*int*/ size) {
 
 /**
  * @param {deMath.deUint32} type
- * @return {rrRenderer.PrimitiveType} 
- * @throws {Error} 
+ * @return {rrRenderer.PrimitiveType}
+ * @throws {Error}
  */
 sglrReferenceUtils.mapGLPrimitiveType = function(/*deUint32*/ type){
 	switch (type)
@@ -192,13 +191,13 @@ sglrReferenceUtils.mapGLPrimitiveType = function(/*deUint32*/ type){
 		case gl.LINE_STRIP:					return rrRenderer.PrimitiveType.LINE_STRIP;
 		case gl.LINE_LOOP:					return rrRenderer.PrimitiveType.LINE_LOOP;
 		case gl.POINTS:						return rrRenderer.PrimitiveType.POINTS;
-		
-		
+
+
 		case gl.LINES_ADJACENCY:			return rrRenderer.PrimitiveType.LINES_ADJACENCY;
 		case gl.LINE_STRIP_ADJACENCY:		return rrRenderer.PrimitiveType.LINE_STRIP_ADJACENCY;
 		case gl.TRIANGLES_ADJACENCY:		return rrRenderer.PrimitiveType.TRIANGLES_ADJACENCY;
 		case gl.TRIANGLE_STRIP_ADJACENCY:	return rrRenderer.PrimitiveType.TRIANGLE_STRIP_ADJACENCY;
-		
+
 		default:
 			throw new Error("Value to do mapping not compatible");
 	}
@@ -206,8 +205,8 @@ sglrReferenceUtils.mapGLPrimitiveType = function(/*deUint32*/ type){
 
 /**
  * @param {deMath.deUint32} type
- * @return {rrDefs.IndexType} 
- * @throws {Error} 
+ * @return {rrDefs.IndexType}
+ * @throws {Error}
  */
 sglrReferenceUtils.mapGLIndexType = function(/*deUint32*/ type) {
 	switch (type)
@@ -222,8 +221,8 @@ sglrReferenceUtils.mapGLIndexType = function(/*deUint32*/ type) {
 
 /**
  * @param {deMath.deUint32} primitive
- * @return {rrShaders.GeometryShaderOutputType} 
- * @throws {Error} 
+ * @return {rrShaders.GeometryShaderOutputType}
+ * @throws {Error}
  */
 sglrReferenceUtils.mapGLGeometryShaderOutputType = function(/* deUint32 */ primitive) {
 	switch (primitive) {
@@ -237,8 +236,8 @@ sglrReferenceUtils.mapGLGeometryShaderOutputType = function(/* deUint32 */ primi
 
 /**
  * @param {deMath.deUint32} primitive
- * @return {rrShaders.GeometryShaderInputType} 
- * @throws {Error} 
+ * @return {rrShaders.GeometryShaderInputType}
+ * @throws {Error}
  */
 sglrReferenceUtils.mapGLGeometryShaderInputType = function(/* deUint32 */ primitive) {
 	switch (primitive) {
@@ -260,8 +259,8 @@ sglrReferenceUtils.mapGLGeometryShaderInputType = function(/* deUint32 */ primit
 
 /**
  * @param {deMath.deUint32} func
- * @return {rrRenderState.TestFunc} 
- * @throws {Error} 
+ * @return {rrRenderState.TestFunc}
+ * @throws {Error}
  */
 sglrReferenceUtils.mapGLTestFunc = function(/* deUint32 */ func) {
 	switch (func) {
@@ -280,8 +279,8 @@ sglrReferenceUtils.mapGLTestFunc = function(/* deUint32 */ func) {
 
 /**
  * @param {deMath.deUint32} op
- * @return {rrRenderState.StencilOp} 
- * @throws {Error} 
+ * @return {rrRenderState.StencilOp}
+ * @throws {Error}
  */
 sglrReferenceUtils.mapGLStencilOp = function(/* deUint32 */ op) {
 	switch (op) {
@@ -300,8 +299,8 @@ sglrReferenceUtils.mapGLStencilOp = function(/* deUint32 */ op) {
 
 /**
  * @param {deMath.deUint32} equation
- * @return {rrRenderState.BlendEquation} 
- * @throws {Error} 
+ * @return {rrRenderState.BlendEquation}
+ * @throws {Error}
  */
 sglrReferenceUtils.mapGLBlendEquation = function(/* deUint32 */ equation) {
 	switch (equation) {
@@ -317,8 +316,8 @@ sglrReferenceUtils.mapGLBlendEquation = function(/* deUint32 */ equation) {
 
 /**
  * @param {deMath.deUint32} equation
- * @return {rrRenderState.BlendEquationAdvanced} 
- * @throws {Error} 
+ * @return {rrRenderState.BlendEquationAdvanced}
+ * @throws {Error}
  */
 sglrReferenceUtils.mapGLBlendEquationAdvanced = function(/* deUint32 */ equation) {
 	switch (equation) {
@@ -344,8 +343,8 @@ sglrReferenceUtils.mapGLBlendEquationAdvanced = function(/* deUint32 */ equation
 
 /**
  * @param {deMath.deUint32} func
- * @return {rrRenderState.BlendFunc} 
- * @throws {Error} 
+ * @return {rrRenderState.BlendFunc}
+ * @throws {Error}
  */
 sglrReferenceUtils.mapGLBlendFunc = function(/* deUint32 */ func) {
 	switch (func)
