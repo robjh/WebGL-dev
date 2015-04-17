@@ -34,7 +34,7 @@ var gluShaderProgram = framework.opengl.gluShaderProgram;
  * @param {(number|undefined)} location Binding location
  * @param {number} components Number of components per vertex
  * @param {number} elements Number of elements in the array
- * @param {Array.<number>} data Source data
+ * @param {Array<number>} data Source data
  */
 gluDrawUtil.VertexArrayBinding = function(type, location, components, elements, data) {
     this.type = type;
@@ -97,13 +97,13 @@ gluDrawUtil.namedBindingsToProgramLocations = function(gl, program, inputArray, 
  * Creates vertex buffer, binds it and draws elements
  * @param {WebGL2RenderingContext} gl WebGL context
  * @param {gluShaderProgram.ShaderProgram} program
- * @param {Array.<number>} vertexArrays
+ * @param {Array<number>} vertexArrays
  * @param {gluDrawUtil.PrimitiveList} primitives to gluDrawUtil.draw
  * @param { {beforeDrawCall:function(), afterDrawCall:function()}=} callback
  */
 gluDrawUtil.drawFromBuffers = function(gl, program, vertexArrays, primitives, callback) {
     /** TODO: finish implementation */
-    /** @type {Array.<WebGLBuffer>} */ var objects = [];
+    /** @type {Array<WebGLBuffer>} */ var objects = [];
 
     // Lower bindings to locations
     vertexArrays = gluDrawUtil.namedBindingsToProgramLocations(gl, program, vertexArrays);
@@ -147,7 +147,7 @@ gluDrawUtil.drawFromBuffers = function(gl, program, vertexArrays, primitives, ca
  */
 gluDrawUtil.draw = function(gl, program, vertexArrays, primitives, callback) {
     /** TODO: finish implementation */
-    /** @type {Array.<WebGLBuffer>} */ var objects = [];
+    /** @type {Array<WebGLBuffer>} */ var objects = [];
 
     for (var i = 0; i < vertexArrays.length; i++) {
         /** @type {WebGLBuffer} */ var buffer = gluDrawUtil.vertexBuffer(gl, vertexArrays[i]);
@@ -171,7 +171,7 @@ gluDrawUtil.draw = function(gl, program, vertexArrays, primitives, callback) {
         if (callback)
             callback.beforeDrawCall();
 
-    	gl.drawArrays(gluDrawUtil.getPrimitiveGLType(primitives.type), 0, primitives.numElements);
+        gl.drawArrays(gluDrawUtil.getPrimitiveGLType(gl, primitives.type), 0, primitives.numElements);
 
         if (callback)
             callback.afterDrawCall();
@@ -315,7 +315,7 @@ gluDrawUtil.vertexBuffer = function(gl, vertexArray) {
 };
 
 /**
- * @param {Array.<number>} rgba
+ * @param {Array<number>} rgba
  * @constructor
  */
 gluDrawUtil.Pixel = function(rgba) {
@@ -341,6 +341,9 @@ gluDrawUtil.Pixel.prototype.equals = function(otherPixel) {
            this.rgba[3] == otherPixel.rgba[3];
 };
 
+/**
+ * @constructor
+ */
 gluDrawUtil.Surface = function() {
 };
 
@@ -356,7 +359,7 @@ gluDrawUtil.Surface.prototype.readSurface = function(gl, x, y, width, height) {
 
 gluDrawUtil.Surface.prototype.getPixel = function(x, y) {
     /** @type {number} */ var base = (x + y * this.width) * 4;
-    /** @type {Array.<number>} */
+    /** @type {Array<number>} */
     var rgba = [
         this.buffer[base],
         this.buffer[base + 1],
@@ -401,7 +404,7 @@ gluDrawUtil.VertexComponentConversion = {
  * @param {number} numComponents_
  * @param {number} numElements_
  * @param {number} stride_
- * @const @param {Array.<number>} data_
+ * @const @param {Array<number>} data_
  */
 gluDrawUtil.VertexArrayPointer = function(componentType_, convert_, numComponents_, numElements_, stride_, data_) {
     this.componentType = componentType_;
