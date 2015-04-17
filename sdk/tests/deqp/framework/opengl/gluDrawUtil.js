@@ -20,26 +20,29 @@
 
 'use strict';
 goog.provide('framework.opengl.gluDrawUtil');
+goog.require('framework.opengl.gluShaderProgram');
 
 goog.scope(function() {
 
 var gluDrawUtil = framework.opengl.gluDrawUtil;
+var gluShaderProgram = framework.opengl.gluShaderProgram;
 
 /**
  * Description of a vertex array binding
  * @constructor
  * @param {number} type GL gluDrawUtil.Type of data
- * @param {string|number} location Binding location
+ * @param {(number|undefined)} location Binding location
  * @param {number} components Number of components per vertex
  * @param {number} elements Number of elements in the array
  * @param {Array.<number>} data Source data
  */
 gluDrawUtil.VertexArrayBinding = function(type, location, components, elements, data) {
     this.type = type;
-    this.location = location;
+    this.location = location === undefined ? -1 : location;
     this.components = components;
     this.elements = elements;
     this.data = data;
+    /** @type {?string} */ this.name = null;
 };
 
 /**
@@ -57,7 +60,6 @@ function vabFromBindingPointAndArrayPointer(binding, pointer) {
     var vaBinding = new gluDrawUtil.VertexArrayBinding(type, location, components, elements, data);
     vaBinding.componentType = pointer.componentType;
     vaBinding.name = binding.name;
-    vaBinding.bindingPointType = binding.type;
     vaBinding.convert = pointer.convert;
     vaBinding.stride = pointer.stride;
     return vaBinding;
@@ -65,20 +67,20 @@ function vabFromBindingPointAndArrayPointer(binding, pointer) {
 
 /**
  * ! Lower named bindings to locations and eliminate bindings that are not used by program.
- * @param {WebGLRenderingContext} gl WebGL context
- * @param {number} program ID, ID of the shader program
+ * @param {WebGL2RenderingContext} gl WebGL context
+ * @param {gluShaderProgram.ShaderProgram} program
  * @param {Array} inputArray - Array with the named binding locations
- * @param {Array} outputArray - Array with the lowered locations
+ * @param {Array=} outputArray - Array with the lowered locations
+ * @return {Array} outputArray
  */
 gluDrawUtil.namedBindingsToProgramLocations = function(gl, program, inputArray, outputArray) {
-    if (typeof outputArray === 'undefined')
-        outputArray = [];
+    outputArray = outputArray ||  [];
 
     for (var i = 0; i < inputArray.length; i++) {
         var cur = inputArray[i];
-        if (typeof cur.location === 'string') {
+        if (cur.name) {
             //assert(binding.location >= 0);
-            var location = gl.getAttribLocation(program.getProgram(), cur.location);
+            var location = gl.getAttribLocation(program.getProgram(), cur.name);
             if (location >= 0) {
                 // Add binding.location as an offset to accomodate matrices.
                 outputArray.push(new gluDrawUtil.VertexArrayBinding(cur.type, location, cur.components, cur.elements, cur.data));
@@ -93,11 +95,11 @@ gluDrawUtil.namedBindingsToProgramLocations = function(gl, program, inputArray, 
 
 /**
  * Creates vertex buffer, binds it and draws elements
- * @param {WebGLRenderingContext} gl WebGL context
- * @param {number} program ID, vertexProgramID
+ * @param {WebGL2RenderingContext} gl WebGL context
+ * @param {gluShaderProgram.ShaderProgram} program
  * @param {Array.<number>} vertexArrays
  * @param {gluDrawUtil.PrimitiveList} primitives to gluDrawUtil.draw
- * @param {function()=} callback
+ * @param {{beforeDrawCall:function(), afterDrawCall:function()}=} callback
  */
 gluDrawUtil.drawFromBuffers = function(gl, program, vertexArrays, primitives, callback) {
     /** TODO: finish implementation */
@@ -137,11 +139,11 @@ gluDrawUtil.drawFromBuffers = function(gl, program, vertexArrays, primitives, ca
 
 /**
  * Creates vertex buffer, binds it and draws elements
- * @param {WebGLRenderingContext} gl WebGL context
+ * @param {WebGL2RenderingContext} gl WebGL context
  * @param {number} program ID, vertexProgramID
- * @param {Array.<number>} vertexArrays
+ * @param {Array<gluDrawUtil.VertexArrayBinding>} vertexArrays
  * @param {gluDrawUtil.PrimitiveList} primitives to gluDrawUtil.draw
- * @param {function()=} callback
+ * @param {{beforeDrawCall:function(), afterDrawCall:function()}=} callback
  */
 gluDrawUtil.draw = function(gl, program, vertexArrays, primitives, callback) {
     /** TODO: finish implementation */
@@ -178,7 +180,7 @@ gluDrawUtil.draw = function(gl, program, vertexArrays, primitives, callback) {
 
 /**
  * Creates vertex buffer, binds it and draws elements
- * @param {WebGLRenderingContext} gl WebGL context
+ * @param {WebGL2RenderingContext} gl WebGL context
  * @param {gluDrawUtil.PrimitiveList} primitives Primitives to gluDrawUtil.draw
  * @param {number} offset
  */
@@ -213,7 +215,7 @@ gluDrawUtil.primitiveType = {
 
 /**
  * get GL type from primitive type
- * @param {WebGLRenderingContext} gl WebGL context
+ * @param {WebGL2RenderingContext} gl WebGL context
  * @param {gluDrawUtil.primitiveType} type gluDrawUtil.primitiveType
  * @return {number} GL primitive type
  */
@@ -226,10 +228,9 @@ gluDrawUtil.getPrimitiveGLType = function(gl, type) {
         case gluDrawUtil.primitiveType.LINE_STRIP: return gl.LINE_STRIP;
         case gluDrawUtil.primitiveType.LINE_LOOP: return gl.LINE_LOOP;
         case gluDrawUtil.primitiveType.POINTS: return gl.POINTS;
-        case gluDrawUtil.primitiveType.PATCHES: return gl.PATCHES;
+//        case gluDrawUtil.primitiveType.PATCHES: return gl.PATCHES;
         default:
-            testFailedOptions('Unknown primitive type ' + type, true);
-            return undefined;
+            throw new Error('Unknown primitive type ' + type);
     }
 };
 
@@ -262,7 +263,7 @@ gluDrawUtil.PrimitiveList = function(type, indices) {
 
 /**
  * Create Element Array Buffer
- * @param {WebGLRenderingContext} gl WebGL context
+ * @param {WebGL2RenderingContext} gl WebGL context
  * @param {gluDrawUtil.PrimitiveList} primitives to construct the buffer from
  * @return {WebGLBuffer} indexObject buffer with elements
  */
@@ -278,7 +279,7 @@ gluDrawUtil.indexBuffer = function(gl, primitives) {
 
 /**
  * Create Array Buffer
- * @param {WebGLRenderingContext} gl WebGL context
+ * @param {WebGL2RenderingContext} gl WebGL context
  * @param {gluDrawUtil.VertexArrayBinding} vertexArray primitives, Array buffer descriptor
  * @return {WebGLBuffer} buffer of vertices
  */
@@ -292,7 +293,6 @@ gluDrawUtil.vertexBuffer = function(gl, vertexArray) {
     assertMsgOptions(gl.getError() === gl.NO_ERROR, 'enableVertexAttribArray', false, true);
     gl.vertexAttribPointer(vertexArray.location, vertexArray.components, vertexArray.type, false, 0, 0);
     assertMsgOptions(gl.getError() === gl.NO_ERROR, 'vertexAttribPointer', false, true);
-    bufferedLogToConsole(vertexArray);
     return buffer;
 };
 
@@ -395,43 +395,33 @@ gluDrawUtil.VertexArrayPointer = function(componentType_, convert_, numComponent
 };
 
 /**
- * gluDrawUtil.Type
- * @enum
- */
-gluDrawUtil.Type = {
-    TYPE_LOCATION: 0, //!< Binding by numeric location.
-    TYPE_NAME: 1 //!< Binding by input name.
-};
-
-/**
  * gluDrawUtil.BindingPoint
  * @constructor
- * @param {gluDrawUtil.Type} type
  * @param {string} name
- * @param {number} location
+ * @param {number=} location
  */
-gluDrawUtil.BindingPoint = function(type, name, location) {
-    /** @type {gluDrawUtil.Type} */ this.type = type;
+gluDrawUtil.BindingPoint = function(name, location) {
     /** @type {string} */ this.name = name;
-    /** @type {number} */ this.location = location;
+    /** @type {(number|undefined)} */ this.location = location;
 };
 
 /**
  * bindingPointFromLocation
  * @param {number} location
+ * return {gluDrawUtil.BindingPoint}
  */
 function bindingPointFromLocation(location) {
-    return new gluDrawUtil.BindingPoint(gluDrawUtil.Type.TYPE_LOCATION, '', location);
+    return new gluDrawUtil.BindingPoint('', location);
 }
 
 /**
  * bindingPointFromName
  * @param {string} name
- * @param {number} location
+ * @param {number=} location
+ * return {gluDrawUtil.BindingPoint}
  */
 function bindingPointFromName(name, location) {
-    var loc = location === undefined ? 0 : location;
-    return new gluDrawUtil.BindingPoint(gluDrawUtil.Type.TYPE_LOCATION, name, loc);
+    return new gluDrawUtil.BindingPoint(name, location);
 }
 
 });

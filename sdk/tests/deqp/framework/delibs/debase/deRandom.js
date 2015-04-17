@@ -31,17 +31,18 @@ var deRandom = framework.delibs.debase.deRandom;
 /**
  * Array of pseudo random numbers based on seed
  * @constructor
+ * @struct
  */
 deRandom.deRandom = function() {
-    var x;
-    var y;
-    var z;
-    var w;
+    /** @type {number} */ this.x = 0;
+    /** @type {number} */ this.y = 0;
+    /** @type {number} */ this.z = 0;
+    /** @type {number} */ this.w = 0;
 };
 
 /**
  * deRandom.Random number generator init
- * @param {deRandom.Random} rnd Array to store random numbers
+ * @param {deRandom.deRandom} rnd Array to store random numbers
  * @param {number} seed Number for seed
  */
 deRandom.deRandom_init = function(rnd, seed) {
@@ -176,7 +177,7 @@ deRandom.Random = function(seed) {
     /**
      * Instance of array of pseudo random numbers based on seeds
     */
-    this.m_rnd = new deRandom.deRandom;
+    this.m_rnd = new deRandom.deRandom();
 
     //initialise the random numbers based on seed
     deRandom.deRandom_init(this.m_rnd, seed);
