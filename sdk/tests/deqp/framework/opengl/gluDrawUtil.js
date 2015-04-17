@@ -168,7 +168,13 @@ gluDrawUtil.draw = function(gl, program, vertexArrays, primitives, callback) {
 
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
     } else {
-    /** TODO: implement */
+        if (callback)
+            callback.beforeDrawCall();
+
+    	gl.drawArrays(gluDrawUtil.getPrimitiveGLType(primitives.type), 0, primitives.numElements);
+
+        if (callback)
+            callback.afterDrawCall();
     }
 
   assertMsgOptions(gl.getError() === gl.NO_ERROR, 'drawArrays', false, true);
@@ -235,30 +241,42 @@ gluDrawUtil.getPrimitiveGLType = function(gl, type) {
 };
 
 /**
- * Calls gluDrawUtil.PrimitiveList() to create primitive list for Triangles
+ * Calls gluDrawUtil.newPrimitiveListFromIndices() to create primitive list for Triangles
  * @param {Array<number>} indices
  */
 gluDrawUtil.triangles = function(indices) {
-    return new gluDrawUtil.PrimitiveList(gluDrawUtil.primitiveType.TRIANGLES, indices);
+    return gluDrawUtil.newPrimitiveListFromIndices(gluDrawUtil.primitiveType.TRIANGLES, indices);
 };
 
 /**
- * Calls gluDrawUtil.PrimitiveList() to create primitive list for Patches
+ * Calls gluDrawUtil.newPrimitiveListFromIndices() to create primitive list for Patches
  * @param {Array<number>} indices
  */
 gluDrawUtil.patches = function(indices) {
-    return new gluDrawUtil.PrimitiveList(gluDrawUtil.primitiveType.PATCHES, indices);
+    return gluDrawUtil.newPrimitiveListFromIndices(gluDrawUtil.primitiveType.PATCHES, indices);
 };
 
 /**
  * Creates primitive list for Triangles or Patches, depending on type
  * @param {gluDrawUtil.primitiveType} type gluDrawUtil.primitiveType
- * @param {Array<number>} indices
+ * @param {number} numElements
  * @constructor
  */
-gluDrawUtil.PrimitiveList = function(type, indices) {
+gluDrawUtil.PrimitiveList = function(type, numElements) {
     this.type = type;
-    this.indices = indices;
+    this.indices = 0;
+    this.numElements = numElements;
+};
+
+/**
+ * @param {gluDrawUtil.primitiveType} type
+ * @param {Array<number>} indices
+ * @return {gluDrawUtil.PrimitiveList}
+ */
+gluDrawUtil.newPrimitiveListFromIndices = function(type, indices) {
+    /** @type {gluDrawUtil.PrimitiveList} */ var primitiveList = new gluDrawUtil.PrimitiveList(type, 0);
+    primitiveList.indices = indices;
+    return primitiveList;
 };
 
 /**

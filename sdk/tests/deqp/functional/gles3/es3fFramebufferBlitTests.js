@@ -50,7 +50,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
     /**
     * es3fFramebufferBlitTests.BlitRectCase class, inherits from FboTestCase
     * @constructor
-    * @extends {fboTestCase.FboTestCase}
+    * @extends {es3fFboTestCase.FboTestCase}
     * @param {string} name
     * @param {string} description
     * @param {number} filter deUint32
@@ -61,7 +61,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
     * @param {number} cellSize
     */
     es3fFramebufferBlitTests.BlitRectCase = function(name, desc, filter, srcSize, srcRect, dstSize, dstRect, cellSize) {
-        fboTestCase.FboTestCase.call(this, name, desc);
+        es3fFboTestCase.FboTestCase.call(this, name, desc);
         /** @const {number} */ this.m_filter = filter;
         /** @const {Array<number>} */ this.m_srcSize = srcSize;
         /** @const {Array<number>} */ this.m_srcRect = srcRect;
@@ -72,7 +72,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
         /** @const {Array<number>} */ this.m_gridCellColorB = [0.7, 0.1, 0.5, 0.8];
     };
 
-    es3fFramebufferBlitTests.BlitRectCase.prototype = Object.create(fboTestCase.FboTestCase.prototype);
+    es3fFramebufferBlitTests.BlitRectCase.prototype = Object.create(es3fFboTestCase.FboTestCase.prototype);
     es3fFramebufferBlitTests.BlitRectCase.prototype.constructor = es3fFramebufferBlitTests.BlitRectCase;
 
     /**
@@ -81,11 +81,11 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
     es3fFramebufferBlitTests.BlitRectCase.prototype.render = function(dst) {
         /** @type {number} */ var colorFormat = gl.RGBA8;
 
-        /** @type {fboTestUtil.GradientShader} */
-        var gradShader = new fboTestUtil.GradientShader(
+        /** @type {es3fFboTestUtil.GradientShader} */
+        var gradShader = new es3fFboTestUtil.GradientShader(
             gluShaderUtil.DataType.TYPE_FLOAT_VEC4);
-        /** @type {fboTestUtil.Texture2DShader} */
-        var texShader = new fboTestUtil.Texture2DShader(
+        /** @type {es3fFboTestUtil.Texture2DShader} */
+        var texShader = new es3fFboTestUtil.Texture2DShader(
             [gluShaderUtil.DataType.TYPE_SAMPLER_2D],
             gluShaderUtil.DataType.TYPE_FLOAT_VEC4);
 
@@ -616,7 +616,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
     /**
      * es3fFramebufferBlitTests.BlitColorConversionCase class, inherits from FboTestCase
      * @constructor
-     * @extends {fboTestCase.FboTestCase}
+     * @extends {es3fFboTestCase.FboTestCase}
      * @param {string} name
      * @param {string} desc
      * @param {number} srcFormat
@@ -624,13 +624,13 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
      * @param {Array<number>} size
      */
     es3fFramebufferBlitTests.BlitColorConversionCase = function(name, desc, srcFormat, dstFormat, size) {
-        fboTestCase.FboTestCase.call(this, name, desc);
+        es3fFboTestCase.FboTestCase.call(this, name, desc);
         /** @type {number} */ this.m_srcFormat = srcFormat;
         /** @type {number} */ this.m_dstFormat = dstFormat;
         /** @type {Array<number>} */ this.m_size = size;
     };
 
-    es3fFramebufferBlitTests.BlitColorConversionCase.prototype = Object.create(fboTestCase.FboTestCase.prototype);
+    es3fFramebufferBlitTests.BlitColorConversionCase.prototype = Object.create(es3fFboTestCase.FboTestCase.prototype);
     es3fFramebufferBlitTests.BlitColorConversionCase.prototype.constructor = es3fFramebufferBlitTests.BlitColorConversionCase;
 
     es3fFramebufferBlitTests.BlitColorConversionCase.prototype.preCheck = function() {
@@ -643,10 +643,10 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
      */
     es3fFramebufferBlitTests.BlitColorConversionCase.prototype.render = function(dst) {
         /** @type {tcuTexture.TextureFormat} */ var srcFormat = new gluTextureUtil.mapGLInternalFormat(this.m_srcFormat);
-        /** @type {tcuTexture.TextureFormat} */ var srcFormat = new gluTextureUtil.mapGLInternalFormat(this.m_dstFormat);
+        /** @type {tcuTexture.TextureFormat} */ var dstFormat = new gluTextureUtil.mapGLInternalFormat(this.m_dstFormat);
 
         /** @type {gluShaderUtil.DataType} */ var srcOutputType = getFragmentOutputType(srcFormat);
-        /** @type {gluShaderUtil.DataType} */ var srcOutputType = getFragmentOutputType(dstFormat);
+        /** @type {gluShaderUtil.DataType} */ var dstOutputType = getFragmentOutputType(dstFormat);
 
         // Compute ranges \note Doesn't handle case where src or dest is not subset of the another!
         /** @type {tcuTextureUtil.TextureFormatInfo} */ var srcFmtRangeInfo = tcuTextureUtil.getTextureFormatInfo(srcFormat);
@@ -667,10 +667,10 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
                                                      tcuTextureUtil.select(dstFmtRangeInfo.lookupBias, srcFmtRangeInfo.lookupBias, deMath.logicalOrBool(deMath.logicalNotBool(copyMask), srcIsGreater)));
 
         // Shaders.
-        /** @type {fboTestUtil.GradientShader} */
-        var gradientToSrcShader = new fboTestUtil.GradientShader(srcOutputType);
-        /** @type {fboTestUtil.GradientShader} */
-        var gradientToDstShader = new fboTestUtil.GradientShader(dstOutputType);
+        /** @type {es3fFboTestUtil.GradientShader} */
+        var gradientToSrcShader = new es3fFboTestUtil.GradientShader(srcOutputType);
+        /** @type {es3fFboTestUtil.GradientShader} */
+        var gradientToDstShader = new es3fFboTestUtil.GradientShader(dstOutputType);
 
         /** @type {number} */ var gradShaderSrcID = this.getCurrentContext().createProgram(gradientToSrcShader);
         /** @type {number} */ var gradShaderDstID = this.getCurrentContext().createProgram(gradientToDstShader);
@@ -741,10 +741,10 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
         /** @type {tcuRGBA.RGBA} */ var threshold = new tcuRGBA.RGBA();
 
         if (dstIsSRGB)
-            threshold = fboTestUtil.getToSRGBConversionThreshold(srcFormat, dstFormat);
+            threshold = es3fFboTestUtil.getToSRGBConversionThreshold(srcFormat, dstFormat);
         else {
-            /** @const {tcuRGBA.RGBA} */ var srcMaxDiff = fboTestUtil.getFormatThreshold(srcFormat) * (srcIsSRGB ? 2 : 1);
-            /** @const {tcuRGBA.RGBA} */ var dstMaxDiff = fboTestUtil.getFormatThreshold(dstFormat);
+            /** @const {tcuRGBA.RGBA} */ var srcMaxDiff = es3fFboTestUtil.getFormatThreshold(srcFormat) * (srcIsSRGB ? 2 : 1);
+            /** @const {tcuRGBA.RGBA} */ var dstMaxDiff = es3fFboTestUtil.getFormatThreshold(dstFormat);
             threshold = tcuRGBA.max(srcMaxDiff, dstMaxDiff);
         }
 
@@ -754,7 +754,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
 
     /**
      * @constructor
-     * @extends {fboTestCase.FboTestCase}
+     * @extends {es3fFboTestCase.FboTestCase}
      * @param {string} name
      * @param {string} desc
      * @param {number} format deUint32
@@ -767,7 +767,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
      * @param {number} copyBuffers deUint32
      */
     es3fFramebufferBlitTests.BlitDepthStencilCase = function(name, desc, format, srcBuffers, srcSize, srcRect, dstBuffers, dstSize, dstRect, copyBuffers) {
-        fboTestCase.FboTestCase.call(this, name, desc);
+        es3fFboTestCase.FboTestCase.call(this, name, desc);
         /** @type {number} */ this.m_format = format;
         /** @type {number} */ this.m_srcBuffers = srcBuffers;
         /** @type {Array<number>} */ this.m_srcSize = srcSize;
@@ -778,7 +778,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
         /** @type {number} */ this.m_copyBuffers = copyBuffers;
     };
 
-    es3fFramebufferBlitTests.BlitDepthStencilCase.prototype = Object.create(fboTestCase.FboTestCase.prototype);
+    es3fFramebufferBlitTests.BlitDepthStencilCase.prototype = Object.create(es3fFboTestCase.FboTestCase.prototype);
     es3fFramebufferBlitTests.BlitDepthStencilCase.prototype.constructor = es3fFramebufferBlitTests.BlitDepthStencilCase;
 
     /**
@@ -795,13 +795,13 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
     es3fFramebufferBlitTests.BlitDepthStencilCase.prototype.render = function(dst) {
         /** @const {number} */ var colorFormat = gl.RGBA8;
         /** @type {GradientShader} */
-        var gradShader = new fboTestUtil.GradientShader(gluShaderUtil.DataType.FLOAT_VEC4);
+        var gradShader = new es3fFboTestUtil.GradientShader(gluShaderUtil.DataType.FLOAT_VEC4);
         /** @type {Texture2DShader} */
-        var texShader = new fboTestUtil.Texture2DShader(
+        var texShader = new es3fFboTestUtil.Texture2DShader(
             [gluShaderUtil.DataType.SAMPLER_2D] ,
             gluShaderUtil.DataType.FLOAT_VEC4);
         /** @type {FlatColorShader} */
-        var flatShader = new fboTestUtil.FlatColorShader(gluShaderUtil.DataType.FLOAT_VEC4);
+        var flatShader = new es3fFboTestUtil.FlatColorShader(gluShaderUtil.DataType.FLOAT_VEC4);
 
         /** @type {number} */ var flatShaderID = this.getCurrentContext().createProgram(flatShader);
         /** @type {number} */ var texShaderID = this.getCurrentContext().createProgram(texShader);
@@ -934,19 +934,19 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
 
     /**
      * @constructor
-     * @extends {fboTestCase.FboTestCase}
+     * @extends {es3fFboTestCase.FboTestCase}
      * @param {string} name
      * @param {string} desc
      * @param {number} format
      * @param {number} filter
      */
     es3fFramebufferBlitTests.BlitDefaultFramebufferCase = function(name, desc, format, filter) {
-        fboTestCase.FboTestCase.call(this, name, desc);
+        es3fFboTestCase.FboTestCase.call(this, name, desc);
         /** @const {number} */ this.m_format;
         /** @const {number} */ this.m_filter;
     };
 
-    es3fFramebufferBlitTests.BlitDefaultFramebufferCase.prototype = Object.create(fboTestCase.FboTestCase.prototype);
+    es3fFramebufferBlitTests.BlitDefaultFramebufferCase.prototype = Object.create(es3fFboTestCase.FboTestCase.prototype);
     es3fFramebufferBlitTests.BlitDefaultFramebufferCase.prototype.constructor = es3fFramebufferBlitTests.BlitDefaultFramebufferCase;
 
     /**
@@ -967,8 +967,8 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
         /** @type {tcuTexture.TextureFormat} */ var colorFormat = gluTextureUtil.mapGLInternalFormat(m_format);
         /** @type {gluTextureUtil.TransferFormat} */ var transferFmt = gluTextureUtil.getTransferFormat(colorFormat);
 
-        /** @type {fboTestUtil.GradientShader} */ var gradShader = new fboTestUtil.GradientShader(gluShaderUtil.DataType.FLOAT_VEC4);
-        /** @type {fboTestUtil.Texture2DShader} */ var texShader = new fboTestUtil.Texture2DShader([gluTextureUtil.getSampler2DType(colorFormat)], gluShaderUtil.DataType.FLOAT_VEC4);
+        /** @type {es3fFboTestUtil.GradientShader} */ var gradShader = new es3fFboTestUtil.GradientShader(gluShaderUtil.DataType.FLOAT_VEC4);
+        /** @type {es3fFboTestUtil.Texture2DShader} */ var texShader = new es3fFboTestUtil.Texture2DShader([gluTextureUtil.getSampler2DType(colorFormat)], gluShaderUtil.DataType.FLOAT_VEC4);
 
         /** @type {number} */ var gradShaderID = this.getCurrentContext().createProgram(gradShader);
         /** @type {number} */ var texShaderID = this.getCurrentContext().createProgram(texShader);
@@ -1028,7 +1028,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
      */
     es3fFramebufferBlitTests.BlitDefaultFramebufferCase.prototype.compare = function(reference, result) {
         /** @const {tcuRGBA.RGBA} */
-        var threshold = tcuRGBA.max(fboTestUtil.getFormatThreshold(this.m_format), tcuRGBA.newRGBAComponents(12, 12, 12, 12));
+        var threshold = tcuRGBA.max(es3fFboTestUtil.getFormatThreshold(this.m_format), tcuRGBA.newRGBAComponents(12, 12, 12, 12));
 
         //m_testCtx.getLog() << TestLog::Message << 'Comparing images, threshold: ' << threshold << TestLog::EndMessage;
 
@@ -1135,7 +1135,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, this.m_filter);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, this.m_filter);
-        gl.texImage2D(GL_TEXTURE_2D, 0, m_format, fboTexW, fboTexH, 0, transferFmt.format, transferFmt.dataType, DE_NULL);
+        gl.texImage2D(gl.TEXTURE_2D, 0, m_format, fboTexW, fboTexH, 0, transferFmt.format, transferFmt.dataType, DE_NULL);
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
         gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, fboTex, 0);
@@ -1146,32 +1146,32 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
         sourceFbo = (this.m_blitDir == es3fFramebufferBlitTests.BlitDirection.BLIT_DEFAULT_TO_TARGET) ? (this.m_context.getRenderContext().getDefaultFramebuffer()) : (fbo);
 
         // Render grid to source framebuffer
-        /** @type {fboTestUtil.Texture2DShader} */
-        var texShader = new fboTestUtil.Texture2DShader(
-            [gluShaderUtil.DataType.TYPE_SAMPLER_2D],
-            gluShaderUtil.DataType.TYPE_FLOAT_VEC4);
+        /** @type {es3fFboTestUtil.Texture2DShader} */
+        var texShader = new es3fFboTestUtil.Texture2DShader(
+            [gluShaderUtil.DataType.SAMPLER_2D],
+            gluShaderUtil.DataType.FLOAT_VEC4);
         /** @const {number} */ var texShaderID = this.getCurrentContext().createProgram(texShader);
         /** @const {number} */ var internalFormat = gl.RGBA8;
         /** @const {number} */ var format = gl.RGBA;
         /** @const {number} */ var dataType = gl.UNSIGNED_BYTE;
         /** @const {number} */ var gridTexW = 128;
         /** @const {number} */ var gridTexH = 128;
-        /** @type {number} */ var gridTex = 0;
+        /** @type {WebGLTexture} */ var gridTex = null;
         /** @type {tcuTexture.TextureLevel} */ var data = new tcuTexture.TextureLevel(gluTextueUtil.mapGLTransferFormat(format, dataType), gridTexW, gridTexH, 1);
 
         tcuTextureUtil.fillWithGrid(data.getAccess(), 9, [0.9, 0.5, 0.1, 0.9], [0.2, 0.8, 0.2, 0.7]);
 
         gridTex = gl.createTexture();
-        gl.BindTexture(gl.TEXTURE_2D, gridTex);
+        gl.bindTexture(gl.TEXTURE_2D, gridTex);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
         gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat, gridTexW, gridTexH, 0, format, dataType, data.getAccess().getDataPtr());
 
-        gl.BindFramebuffer(gl.FRAMEBUFFER, sourceFbo);
-        glViewport(0, 0, gridRenderWidth, gridRenderHeight);
-        glClearBufferfv(gl.COLOR, 0, [1.0, 0.0, 0.0, 1.0]);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, sourceFbo);
+        gl.viewport(0, 0, gridRenderWidth, gridRenderHeight);
+        gl.clearBufferfv(gl.COLOR, 0, [1.0, 0.0, 0.0, 1.0]);
 
         texShader.setUniforms(this.getCurrentContext(), texShaderID);
         // TODO: implement drawQuad
@@ -1180,8 +1180,8 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
 
         // Blit source framebuffer to destination
 
-        gl.bindFramebuffer(GL_READ_FRAMEBUFFER, sourceFbo);
-        gl.bindFramebuffer(GL_DRAW_FRAMEBUFFER, targetFbo);
+        gl.bindFramebuffer(gl.READ_FRAMEBUFFER, sourceFbo);
+        gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, targetFbo);
         this.checkError();
 
         if (targetClass == tcuTextureUtil.TextureChannelClass.SIGNED_FIXED_POINT ||

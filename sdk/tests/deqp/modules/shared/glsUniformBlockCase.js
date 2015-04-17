@@ -2042,7 +2042,7 @@ glsUniformBlockCase.copyUniformData = function(dstLayout, dstBlockPointers, srcL
     {
         // Compile failed.
         testFailedOptions('Compile failed', false);
-        return tcuTestCase.runner.IterateResult.STOP;
+        return tcuTestCase.IterateResult.STOP;
     }
 
     // Query layout from GL.
@@ -2062,7 +2062,7 @@ glsUniformBlockCase.copyUniformData = function(dstLayout, dstBlockPointers, srcL
     if (!this.checkLayoutIndices(glLayout) || !this.checkLayoutBounds(glLayout) || !this.compareTypes(refLayout, glLayout))
     {
         testFailedOptions('Invalid layout', false);
-        return tcuTestCase.runner.IterateResult.STOP; // It is not safe to use the given layout.
+        return tcuTestCase.IterateResult.STOP; // It is not safe to use the given layout.
     }
 
     // Verify all std140 blocks.
@@ -2172,7 +2172,7 @@ glsUniformBlockCase.copyUniformData = function(dstLayout, dstBlockPointers, srcL
     if (!renderOk)
         testFailedOptions('Image compare failed', false);
 
-    return tcuTestCase.runner.IterateResult.STOP;
+    return tcuTestCase.IterateResult.STOP;
 };
 
 /**
