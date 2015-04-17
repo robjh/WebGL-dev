@@ -21,16 +21,14 @@
 'use strict';
 goog.provide('framework.opengl.gluDrawUtil');
 
-
 goog.scope(function() {
 
 var gluDrawUtil = framework.opengl.gluDrawUtil;
 
-
 /**
  * Description of a vertex array binding
  * @constructor
- * @param {WebGLRenderingContext.GLEnum} type GL gluDrawUtil.Type of data
+ * @param {number} type GL gluDrawUtil.Type of data
  * @param {string|number} location Binding location
  * @param {number} components Number of components per vertex
  * @param {number} elements Number of elements in the array
@@ -76,21 +74,16 @@ gluDrawUtil.namedBindingsToProgramLocations = function(gl, program, inputArray, 
     if (typeof outputArray === 'undefined')
         outputArray = [];
 
-    for (var i = 0; i < inputArray.length; i++)
-    {
+    for (var i = 0; i < inputArray.length; i++) {
         var cur = inputArray[i];
-        if (typeof cur.location === 'string')
-        {
+        if (typeof cur.location === 'string') {
             //assert(binding.location >= 0);
             var location = gl.getAttribLocation(program.getProgram(), cur.location);
-            if (location >= 0)
-            {
+            if (location >= 0) {
                 // Add binding.location as an offset to accomodate matrices.
                 outputArray.push(new gluDrawUtil.VertexArrayBinding(cur.type, location, cur.components, cur.elements, cur.data));
             }
-        }
-        else
-        {
+        } else {
             outputArray.push(cur);
         }
     }
@@ -104,7 +97,7 @@ gluDrawUtil.namedBindingsToProgramLocations = function(gl, program, inputArray, 
  * @param {number} program ID, vertexProgramID
  * @param {Array.<number>} vertexArrays
  * @param {gluDrawUtil.PrimitiveList} primitives to gluDrawUtil.draw
- * @param {function()} callback
+ * @param {function()=} callback
  */
 gluDrawUtil.drawFromBuffers = function(gl, program, vertexArrays, primitives, callback) {
     /** TODO: finish implementation */
@@ -148,7 +141,7 @@ gluDrawUtil.drawFromBuffers = function(gl, program, vertexArrays, primitives, ca
  * @param {number} program ID, vertexProgramID
  * @param {Array.<number>} vertexArrays
  * @param {gluDrawUtil.PrimitiveList} primitives to gluDrawUtil.draw
- * @param {function()} callback
+ * @param {function()=} callback
  */
 gluDrawUtil.draw = function(gl, program, vertexArrays, primitives, callback) {
     /** TODO: finish implementation */
@@ -190,7 +183,7 @@ gluDrawUtil.draw = function(gl, program, vertexArrays, primitives, callback) {
  * @param {number} offset
  */
 gluDrawUtil.drawIndexed = function(gl, primitives, offset) {
-/** @type {WebGLRenderingContext.GLEnum} */ var mode = gluDrawUtil.getPrimitiveGLType(gl, primitives.type);
+/** @type {number} */ var mode = gluDrawUtil.getPrimitiveGLType(gl, primitives.type);
     /** TODO: C++ implementation supports different index types, we use only int16.
         Could it cause any issues?
 
@@ -222,7 +215,7 @@ gluDrawUtil.primitiveType = {
  * get GL type from primitive type
  * @param {WebGLRenderingContext} gl WebGL context
  * @param {gluDrawUtil.primitiveType} type gluDrawUtil.primitiveType
- * @return {WebGLRenderingContext.GLEnum} GL primitive type
+ * @return {number} GL primitive type
  */
 gluDrawUtil.getPrimitiveGLType = function(gl, type) {
     switch (type) {
@@ -242,7 +235,7 @@ gluDrawUtil.getPrimitiveGLType = function(gl, type) {
 
 /**
  * Calls gluDrawUtil.PrimitiveList() to create primitive list for Triangles
- * @param {number} indices
+ * @param {Array<number>} indices
  */
 gluDrawUtil.triangles = function(indices) {
     return new gluDrawUtil.PrimitiveList(gluDrawUtil.primitiveType.TRIANGLES, indices);
@@ -250,7 +243,7 @@ gluDrawUtil.triangles = function(indices) {
 
 /**
  * Calls gluDrawUtil.PrimitiveList() to create primitive list for Patches
- * @param {number} indices
+ * @param {Array<number>} indices
  */
 gluDrawUtil.patches = function(indices) {
     return new gluDrawUtil.PrimitiveList(gluDrawUtil.primitiveType.PATCHES, indices);
@@ -259,7 +252,7 @@ gluDrawUtil.patches = function(indices) {
 /**
  * Creates primitive list for Triangles or Patches, depending on type
  * @param {gluDrawUtil.primitiveType} type gluDrawUtil.primitiveType
- * @param {number} indices
+ * @param {Array<number>} indices
  * @constructor
  */
 gluDrawUtil.PrimitiveList = function(type, indices) {
@@ -358,8 +351,7 @@ gluDrawUtil.Surface.prototype.getPixel = function(x, y) {
 /**
  * @enum
  */
-gluDrawUtil.VertexComponentType =
-{
+gluDrawUtil.VertexComponentType = {
     // Standard types: all conversion types apply.
     VTX_COMP_UNSIGNED_INT8: 0,
     VTX_COMP_UNSIGNED_INT16: 1,
@@ -441,8 +433,5 @@ function bindingPointFromName(name, location) {
     var loc = location === undefined ? 0 : location;
     return new gluDrawUtil.BindingPoint(gluDrawUtil.Type.TYPE_LOCATION, name, loc);
 }
-
-
-
 
 });

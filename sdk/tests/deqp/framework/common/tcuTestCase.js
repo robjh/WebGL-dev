@@ -25,11 +25,9 @@
 'use strict';
 goog.provide('framework.common.tcuTestCase');
 
-
 goog.scope(function() {
 
 var tcuTestCase = framework.common.tcuTestCase;
-
 
 /**
  * A simple state machine.
@@ -37,7 +35,6 @@ var tcuTestCase = framework.common.tcuTestCase;
  * long tests into small chunks that won't cause a timeout
  */
 tcuTestCase.runner = (function() {
-
 
 /**
  * Indicates the state of an iteration operation.
@@ -91,7 +88,7 @@ return {
  * @constructor
  * @param {string} name
  * @param {string} description
- * @param {string} spec
+ * @param {Object=} spec
  */
 tcuTestCase.DeqpTest = function(name, description, spec) {
     this.name = name;
@@ -106,13 +103,11 @@ tcuTestCase.DeqpTest = function(name, description, spec) {
  tcuTestCase.DeqpTest.prototype.addChild = function(test) {
     test.parentTest = this;
 
-    if (!this.spec)
-    {
+    if (!this.spec) {
         this.spec = [];
     }
 
-    if (this.spec.length === undefined)
-    {
+    if (this.spec.length === undefined) {
         testFailedOptions('The spec object contains something besides an array', true);
     }
 
@@ -198,13 +193,12 @@ tcuTestCase.DeqpTest.prototype.find = function(pattern) {
             this.spec[i].reset();
 };
 
-
 /**
  * Defines a new test
  *
  * @param {string} name Short test name
  * @param {string} description Description of the test
- * @param {(Array.<tcuTestCase.DeqpTest>|Object)} spec Test specification or an array of DeqpTests
+ * @param {(Array.<tcuTestCase.DeqpTest>|Object)=} spec Test specification or an array of DeqpTests
  *
  * @return {tcuTestCase.DeqpTest} The new test
  */
@@ -250,11 +244,9 @@ tcuTestCase.runTestCases = function() {
     }
 
     if (state.currentTest) {
-        try
-        {
+        try {
             //If proceeding with the next test, prepare it.
-            if (tcuTestCase.DeqpTest.lastResult == tcuTestCase.runner.IterateResult.STOP)
-            {
+            if (tcuTestCase.DeqpTest.lastResult == tcuTestCase.runner.IterateResult.STOP) {
                 //Update current test name
                 var fullTestName = state.currentTest.fullName();
                 setCurrentTestName(fullTestName);
@@ -270,19 +262,15 @@ tcuTestCase.runTestCases = function() {
 
             //TODO: Improve this
             //Run the test, save the result.
-            if (state.currentTest.iterate !== undefined)
-            {
+            if (state.currentTest.iterate !== undefined) {
                 debug('Start testcase: ' + fullTestName);
                 tcuTestCase.DeqpTest.lastResult = state.currentTest.iterate();
-            }
-            else if (state.currentTest.spec !== undefined && state.currentTest.spec.iterate !== undefined)
-            {
+            } else if (state.currentTest.spec !== undefined && state.currentTest.spec.iterate !== undefined) {
                 debug('Start testcase: ' + fullTestName);
                 tcuTestCase.DeqpTest.lastResult = state.currentTest.spec.iterate();
             }
         }
-        catch (err)
-        {
+        catch (err) {
             //If the exception was not thrown by a test check, log it, but don't throw it again
             if (!(err instanceof TestFailedException))
                 testFailedOptions(err.message, false);
@@ -294,7 +282,5 @@ tcuTestCase.runTestCases = function() {
     } else
         tcuTestCase.runner.terminate();
 };
-
-
 
 });

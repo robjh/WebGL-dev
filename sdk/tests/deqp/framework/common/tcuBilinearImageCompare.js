@@ -31,7 +31,6 @@ var deMath = framework.delibs.debase.deMath;
 var tcuTexture = framework.common.tcuTexture;
 var tcuRGBA = framework.common.tcuRGBA;
 
-
     var DE_ASSERT = function(x) {
         if (!x)
             throw new Error('Assert failed');
@@ -289,7 +288,5 @@ var tcuRGBA = framework.common.tcuRGBA;
         else
             throw new Error('Unsupported format for bilinear comparison');
     };
-
-
 
 });

@@ -22,13 +22,6 @@
 goog.provide('framework.common.tcuRGBA');
 goog.require('framework.delibs.debase.deMath');
 
-
-/** @typedef { (Int8Array|Uint8Array|Uint8ClampedArray|Int16Array|Uint16Array|Int32Array|Uint32Array|Float32Array|Float64Array) } */
-TypedArray;
-
-/** @typedef { (Array<number>|TypedArray) } */
-NumberArray;
-
 goog.scope(function() {
 
 var tcuRGBA = framework.common.tcuRGBA;
@@ -113,7 +106,7 @@ var deMath = framework.delibs.debase.deMath;
 
     /**
      * Builds an tcuRGBA.RGBA object from a number array
-     * @param {NumberArray} v
+     * @param {goog.NumberArray} v
      * @return {tcuRGBA.RGBA}
      */
     tcuRGBA.newRGBAFromArray = function(v) {

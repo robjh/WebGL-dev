@@ -146,6 +146,18 @@ rules = [
         'count': 0,
         'flags': re.MULTILINE
     },
+    { 
+        'pattern': r'\{NumberArray\}',
+        'repl': '{goog.NumberArray}',
+        'count': 0,
+        'flags': re.MULTILINE
+    },
+    { 
+        'pattern': r'\{int\}',
+        'repl': '{number}',
+        'count': 0,
+        'flags': re.MULTILINE
+    },
 ]
 
 
@@ -165,6 +177,7 @@ def main(argv):
             analyze_sigle_file(argv[1])
     
 def analyze_sigle_file(dire):
+    print 'reformating ' + dire
     file_content = read_file(dire)
     new_file = re_analize_string_content(file_content)
     write_file(dire, new_file)

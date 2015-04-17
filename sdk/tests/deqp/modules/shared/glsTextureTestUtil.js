@@ -23,11 +23,11 @@ goog.provide('modules.shared.glsTextureTestUtil');
 goog.require('framework.opengl.gluDrawUtil');
 goog.require('framework.opengl.gluShaderProgram');
 goog.require('framework.common.tcuTexture');
+goog.require('framework.common.tcuSurface');
 goog.require('framework.opengl.gluShaderUtil');
 goog.require('framework.common.tcuStringTemplate');
 goog.require('framework.delibs.debase.deMath');
 goog.require('framework.common.tcuImageCompare');
-
 
 goog.scope(function() {
 
@@ -35,6 +35,7 @@ var glsTextureTestUtil = modules.shared.glsTextureTestUtil;
 var gluDrawUtil = framework.opengl.gluDrawUtil;
 var gluShaderProgram = framework.opengl.gluShaderProgram;
 var tcuTexture = framework.common.tcuTexture;
+var tcuSurface = framework.common.tcuSurface;
 var gluShaderUtil = framework.opengl.gluShaderUtil;
 var tcuStringTemplate = framework.common.tcuStringTemplate;
 var deMath = framework.delibs.debase.deMath;
@@ -107,10 +108,10 @@ glsTextureTestUtil.getSamplerType = function(format) {
 
 /**
  * @constructor
- * @param {canvas} canvas
- * @param {Number} preferredWidth
- * @param {Number} preferredHeight
- * @param {Number} seed
+ * @param {HTMLElement} canvas
+ * @param {number} preferredWidth
+ * @param {number} preferredHeight
+ * @param {number=} seed
  */
 glsTextureTestUtil.RandomViewport = function(canvas, preferredWidth, preferredHeight, seed) {
     this.x = 0;
@@ -144,9 +145,9 @@ glsTextureTestUtil.RenderParams = function(texType) {
  * @enum
  */
 glsTextureTestUtil.lodMode = {
-    EXACT: 0,        //!< Ideal lod computation.
-    MIN_BOUND: 1,        //!< Use estimation range minimum bound.
-    MAX_BOUND: 2        //!< Use estimation range maximum bound.
+    EXACT: 0, //!< Ideal lod computation.
+    MIN_BOUND: 1, //!< Use estimation range minimum bound.
+    MAX_BOUND: 2 //!< Use estimation range maximum bound.
 
 };
 
@@ -154,8 +155,8 @@ glsTextureTestUtil.lodMode = {
  * @constructor
  * @extends {glsTextureTestUtil.RenderParams}
  * @param {glsTextureTestUtil.textureType} texType
- * @param {tcuTexture.Sampler} sampler
- * @param {glsTextureTestUtil.lodMode} lodMode_
+ * @param {tcuTexture.Sampler=} sampler
+ * @param {glsTextureTestUtil.lodMode=} lodMode_
  */
 glsTextureTestUtil.ReferenceParams = function(texType, sampler, lodMode_) {
     glsTextureTestUtil.RenderParams.call(this, texType);
@@ -175,12 +176,11 @@ glsTextureTestUtil.ReferenceParams.prototype = Object.create(glsTextureTestUtil.
 glsTextureTestUtil.ReferenceParams.prototype.constructor = glsTextureTestUtil.ReferenceParams;
 
 /**
- * @param {Array<Number>} bottomLeft
- * @param {Array<Number>} topRight
- * @return {Array<Number>}
+ * @param {Array<number>} bottomLeft
+ * @param {Array<number>} topRight
+ * @return {Array<number>}
  */
-glsTextureTestUtil.computeQuadTexCoord2D = function(bottomLeft, topRight)
-{
+glsTextureTestUtil.computeQuadTexCoord2D = function(bottomLeft, topRight) {
     var dst = [];
     dst.length = 4 * 2;
 
@@ -194,7 +194,7 @@ glsTextureTestUtil.computeQuadTexCoord2D = function(bottomLeft, topRight)
 
 /**
  * @param {tcuTexture.CubeFace} face
- * @return {Array<Number>}
+ * @return {Array<number>}
  */
 glsTextureTestUtil.computeQuadTexCoordCube = function(face) {
     var texCoordNegX = [
@@ -246,10 +246,10 @@ glsTextureTestUtil.computeQuadTexCoordCube = function(face) {
 };
 
 /**
- * @param {Number} layerNdx
- * @param {Array<Number>} bottomLeft
- * @param {Array<Number>} topRight
- * @return {Array<Number>}
+ * @param {number} layerNdx
+ * @param {Array<number>} bottomLeft
+ * @param {Array<number>} topRight
+ * @return {Array<number>}
  */
 glsTextureTestUtil.computeQuadTexCoord2DArray = function(layerNdx, bottomLeft, topRight) {
     var dst = [];
@@ -264,10 +264,10 @@ glsTextureTestUtil.computeQuadTexCoord2DArray = function(layerNdx, bottomLeft, t
 };
 
 /**
- * @param {Array<Number>} a
- * @param {Array<Number>} b
- * @param {Array<Number>} c
- * @return {Array<Number>} a + (b - a) * c
+ * @param {Array<number>} a
+ * @param {Array<number>} b
+ * @param {Array<number>} c
+ * @return {Array<number>} a + (b - a) * c
  */
 glsTextureTestUtil.selectCoords = function(a, b, c) {
     var x1 = deMath.subtract(b, a);
@@ -277,10 +277,10 @@ glsTextureTestUtil.selectCoords = function(a, b, c) {
 };
 
 /**
- * @param {Array<Number>} p0
- * @param {Array<Number>} p1
- * @param {Array<Number>} dirSwz
- * @return {Array<Number>}
+ * @param {Array<number>} p0
+ * @param {Array<number>} p1
+ * @param {Array<number>} dirSwz
+ * @return {Array<number>}
  */
 glsTextureTestUtil.computeQuadTexCoord3D = function(p0, p1, dirSwz) {
     var dst = [];
@@ -386,28 +386,28 @@ glsTextureTestUtil.ProgramLibrary.prototype.getProgram = function(program) {
     //     return m_programs[program]; // Return from cache.
 
     var vertShaderTemplate =
-        '${VTX_HEADER}' +
-        '${VTX_IN} highp vec4 a_position;\n' +
-        '${VTX_IN} ${PRECISION} ${TEXCOORD_TYPE} a_texCoord;\n' +
-        '${VTX_OUT} ${PRECISION} ${TEXCOORD_TYPE} v_texCoord;\n' +
+        '$ {VTX_HEADER}' +
+        '$ {VTX_IN} highp vec4 a_position;\n' +
+        '$ {VTX_IN} $ {PRECISION} $ {TEXCOORD_TYPE} a_texCoord;\n' +
+        '$ {VTX_OUT} $ {PRECISION} $ {TEXCOORD_TYPE} v_texCoord;\n' +
         '\n' +
         'void main (void)\n' +
-        '{\n' +
-        '    gl_Position = a_position;\n' +
-        '    v_texCoord = a_texCoord;\n' +
+        ' {\n' +
+        ' gl_Position = a_position;\n' +
+        ' v_texCoord = a_texCoord;\n' +
         '}\n';
     var fragShaderTemplate =
-        '${FRAG_HEADER}' +
-        '${FRAG_IN} ${PRECISION} ${TEXCOORD_TYPE} v_texCoord;\n' +
-        'uniform ${PRECISION} float u_bias;\n' +
-        'uniform ${PRECISION} float u_ref;\n' +
-        'uniform ${PRECISION} vec4 u_colorScale;\n' +
-        'uniform ${PRECISION} vec4 u_colorBias;\n' +
-        'uniform ${PRECISION} ${SAMPLER_TYPE} u_sampler;\n' +
+        '$ {FRAG_HEADER}' +
+        '$ {FRAG_IN} $ {PRECISION} $ {TEXCOORD_TYPE} v_texCoord;\n' +
+        'uniform $ {PRECISION} float u_bias;\n' +
+        'uniform $ {PRECISION} float u_ref;\n' +
+        'uniform $ {PRECISION} vec4 u_colorScale;\n' +
+        'uniform $ {PRECISION} vec4 u_colorBias;\n' +
+        'uniform $ {PRECISION} $ {SAMPLER_TYPE} u_sampler;\n' +
         '\n' +
         'void main (void)\n' +
-        '{\n' +
-        '    ${FRAG_COLOR} = ${LOOKUP} * u_colorScale + u_colorBias;\n' +
+        ' {\n' +
+        ' $ {FRAG_COLOR} = $ {LOOKUP} * u_colorScale + u_colorBias;\n' +
         '}\n';
 
     var params = [];
@@ -438,9 +438,9 @@ glsTextureTestUtil.ProgramLibrary.prototype.getProgram = function(program) {
         var ext = null;
 
         // if (isCubeArray && glu::glslVersionIsES(m_glslVersion))
-        //     ext = "GL_EXT_texture_cube_map_array";
+        //     ext = "gl.EXT_texture_cube_map_array";
         // else if (isBuffer && glu::glslVersionIsES(m_glslVersion))
-        //     ext = "GL_EXT_texture_buffer";
+        //     ext = "gl.EXT_texture_buffer";
 
         var extension = '';
         if (ext)
@@ -556,7 +556,7 @@ glsTextureTestUtil.ProgramLibrary.prototype.getProgram = function(program) {
 
     // try
     // {
-    //     m_programs[program] =  progObj;
+    //     m_programs[program] = progObj;
     // }
     // catch (...)
     // {
@@ -568,36 +568,35 @@ glsTextureTestUtil.ProgramLibrary.prototype.getProgram = function(program) {
 };
 
 // public:
-//                                             glsTextureTestUtil.ProgramLibrary            (const glu::RenderContext& context, tcu::TestContext& testCtx, glu::GLSLVersion glslVersion, glu::Precision texCoordPrecision);
-//                                             ~glsTextureTestUtil.ProgramLibrary            (void);
+//                                             glsTextureTestUtil.ProgramLibrary (const glu::RenderContext& context, tcu::TestContext& testCtx, glu::GLSLVersion glslVersion, glu::Precision texCoordPrecision);
+//                                             ~glsTextureTestUtil.ProgramLibrary (void);
 
-//     glu::ShaderProgram*                        getProgram                (Program program);
-//     void                                    clear                    (void);
+//     glu::ShaderProgram*                        getProgram (Program program);
+//     void clear (void);
 
 // private:
-//                                             glsTextureTestUtil.ProgramLibrary            (const glsTextureTestUtil.ProgramLibrary& other);
-//     glsTextureTestUtil.ProgramLibrary&                            operator=                (const glsTextureTestUtil.ProgramLibrary& other);
+//                                             glsTextureTestUtil.ProgramLibrary (const glsTextureTestUtil.ProgramLibrary& other);
+//     glsTextureTestUtil.ProgramLibrary& operator= (const glsTextureTestUtil.ProgramLibrary& other);
 
-//     const glu::RenderContext&                m_context;
-//     tcu::TestContext&                        m_testCtx;
-//     glu::GLSLVersion                        m_glslVersion;
-//     glu::Precision                            m_texCoordPrecision;
-//     std::map<Program, glu::ShaderProgram*>    m_programs;
+//     const glu::RenderContext& m_context;
+//     tcu::TestContext& m_testCtx;
+//     glu::GLSLVersion m_glslVersion;
+//     glu::Precision m_texCoordPrecision;
+//     std::map<Program, glu::ShaderProgram*> m_programs;
 // };
-
 
 /**
  * @constructor
  * @param {string} version GL version
  * @param {gluShaderUtil.precision} precision
  */
-glsTextureTestUtil.TextureRenderer = function(version,  precision) {
+glsTextureTestUtil.TextureRenderer = function(version, precision) {
     this.m_programLibrary = new glsTextureTestUtil.ProgramLibrary(version, precision);
 };
 
 /**
- * @param {Number} texUnit
- * @param {Array<Number>} texCoord
+ * @param {number} texUnit
+ * @param {Array<number>} texCoord
  * @param {glsTextureTestUtil.RenderParams} params
  */
 glsTextureTestUtil.TextureRenderer.prototype.renderQuad = function(texUnit, texCoord, params) {
@@ -614,7 +613,7 @@ glsTextureTestUtil.TextureRenderer.prototype.renderQuad = function(texUnit, texC
     ];
     /** @const */ var indices = [0, 1, 2, 2, 1, 3];
 
-    /** @type {glsTextureTestUtil.programType} */ var progSpec = undefined;
+    /** @type {?glsTextureTestUtil.programType} */ var progSpec = null;
     var numComps = 0;
     if (params.texType == glsTextureTestUtil.textureType.TEXTURETYPE_2D) {
         numComps = 2;
@@ -741,9 +740,7 @@ glsTextureTestUtil.TextureRenderer.prototype.renderQuad = function(texUnit, texC
     //     log << TestLog::Message << "u_colorBias = " << params.colorBias << TestLog::EndMessage;
     // }
 
-    glsTextureTestUtil.GLU_EXPECT_NO_ERROR(gl.getError(), 'Set program state');
-
-    {
+    glsTextureTestUtil.GLU_EXPECT_NO_ERROR(gl.getError(), 'Set program state'); {
         var vertexArrays = [];
         // console.log(position);
         // console.log(texCoord);
@@ -763,31 +760,31 @@ glsTextureTestUtil.TextureRenderer.prototype.renderQuad = function(texUnit, texC
     }
 };
 // public:
-//                                 glsTextureTestUtil.TextureRenderer            (const glu::RenderContext& context, tcu::TestContext& testCtx, glu::GLSLVersion glslVersion, glu::Precision texCoordPrecision);
-//                                 ~glsTextureTestUtil.TextureRenderer        (void);
+//                                 glsTextureTestUtil.TextureRenderer (const glu::RenderContext& context, tcu::TestContext& testCtx, glu::GLSLVersion glslVersion, glu::Precision texCoordPrecision);
+//                                 ~glsTextureTestUtil.TextureRenderer (void);
 
-//     void                        clear                    (void); //!< Frees allocated resources. Destructor will call clear() as well.
+//     void clear (void); //!< Frees allocated resources. Destructor will call clear() as well.
 
-//     void                        renderQuad                (int texUnit, const float* texCoord, TextureType texType);
-//     void                        renderQuad                (int texUnit, const float* texCoord, const glsTextureTestUtil.RenderParams& params);
+//     void renderQuad (int texUnit, const float* texCoord, TextureType texType);
+//     void renderQuad (int texUnit, const float* texCoord, const glsTextureTestUtil.RenderParams& params);
 
 // private:
-//                                 glsTextureTestUtil.TextureRenderer            (const glsTextureTestUtil.TextureRenderer& other);
-//     glsTextureTestUtil.TextureRenderer&            operator=                (const glsTextureTestUtil.TextureRenderer& other);
+//                                 glsTextureTestUtil.TextureRenderer (const glsTextureTestUtil.TextureRenderer& other);
+//     glsTextureTestUtil.TextureRenderer& operator= (const glsTextureTestUtil.TextureRenderer& other);
 
-//     const glu::RenderContext&    m_renderCtx;
-//     tcu::TestContext&            m_testCtx;
-//     glsTextureTestUtil.ProgramLibrary                m_programLibrary;
+//     const glu::RenderContext& m_renderCtx;
+//     tcu::TestContext& m_testCtx;
+//     glsTextureTestUtil.ProgramLibrary m_programLibrary;
 // };
 
 /**
  * @constructor
  * @param {tcuSurface.Surface} surface
- * @param {PixelFormat} colorFmt
- * @param {Number} x
- * @param {Number} y
- * @param {Number} width
- * @param {Number} height
+ * @param {PixelFormat=} colorFmt
+ * @param {number=} x
+ * @param {number=} y
+ * @param {number=} width
+ * @param {number=} height
  */
 glsTextureTestUtil.SurfaceAccess = function(surface, colorFmt, x, y, width, height) {
     this.m_surface = surface;
@@ -798,15 +795,15 @@ glsTextureTestUtil.SurfaceAccess = function(surface, colorFmt, x, y, width, heig
     this.m_height = height || surface.getHeight();
 };
 
-/** @return {Number} */
+/** @return {number} */
 glsTextureTestUtil.SurfaceAccess.prototype.getWidth = function() { return this.m_width; };
-/** @return {Number} */
+/** @return {number} */
 glsTextureTestUtil.SurfaceAccess.prototype.getHeight = function() { return this.m_height; };
 
 /**
- * @param {Array<Number>} color
- * @param {Number} x
- * @param {Number} y
+ * @param {Array<number>} color
+ * @param {number} x
+ * @param {number} y
  */
 glsTextureTestUtil.SurfaceAccess.prototype.setPixel = function(color, x, y) {
     /* TODO: Apply color mask */
@@ -818,13 +815,13 @@ glsTextureTestUtil.SurfaceAccess.prototype.setPixel = function(color, x, y) {
 
 /**
  * @param {glsTextureTestUtil.lodMode} mode
- * @param {Number} dudx
- * @param {Number} dvdx
- * @param {Number} dwdx
- * @param {Number} dudy
- * @param {Number} dvdy
- * @param {Number} dwdy
- * @return {Number}
+ * @param {number} dudx
+ * @param {number} dvdx
+ * @param {number} dwdx
+ * @param {number} dudy
+ * @param {number} dvdy
+ * @param {number} dwdy
+ * @return {number}
  */
 glsTextureTestUtil.computeLodFromDerivates = function(/*LodMode*/ mode, dudx, dvdx, dwdx, dudy, dvdy, dwdy) {
     var p = 0;
@@ -852,12 +849,12 @@ glsTextureTestUtil.computeLodFromDerivates = function(/*LodMode*/ mode, dudx, dv
 
 /**
  * @param {glsTextureTestUtil.lodMode} mode
- * @param {Array<Number>} dstSize
- * @param {Array<Number>} srcSize
- * @param {Array<Number>} sq
- * @param {Array<Number>} tq
- * @param {Array<Number>} rq
- * @return {Number}
+ * @param {Array<number>} dstSize
+ * @param {Array<number>} srcSize
+ * @param {Array<number>} sq
+ * @param {Array<number>} tq
+ * @param {Array<number>=} rq
+ * @return {number}
  */
 glsTextureTestUtil.computeNonProjectedTriLod = function(mode, dstSize, srcSize, sq, tq, rq) {
     var dux = (sq[2] - sq[0]) * srcSize[0];
@@ -877,22 +874,22 @@ glsTextureTestUtil.computeNonProjectedTriLod = function(mode, dstSize, srcSize, 
 };
 
 /**
- * @param {Array<Number>} v
- * @param {Number} x
- * @param {Number} y
- * @return {Array<Number>}
+ * @param {Array<number>} v
+ * @param {number} x
+ * @param {number} y
+ * @return {number}
  */
 glsTextureTestUtil.triangleInterpolate = function(v, x, y) {
     return v[0] + (v[2] - v[0]) * x + (v[1] - v[0]) * y;
 };
 
 /**
- * @param {Array<Number>} s
- * @param {Array<Number>} w
- * @param {Number} wx
- * @param {Number} width
- * @param {Number} ny
- * @return {Number}
+ * @param {Array<number>} s
+ * @param {Array<number>} w
+ * @param {number} wx
+ * @param {number} width
+ * @param {number} ny
+ * @return {number}
  */
 glsTextureTestUtil.triDerivateX = function(/*const tcu::Vec3&*/ s, /*const tcu::Vec3&*/ w, wx, width, ny) {
     var d = w[1] * w[2] * (width * (ny - 1) + wx) - w[0] * (w[2] * width * ny + w[1] * wx);
@@ -900,12 +897,12 @@ glsTextureTestUtil.triDerivateX = function(/*const tcu::Vec3&*/ s, /*const tcu::
 };
 
 /**
- * @param {Array<Number>} s
- * @param {Array<Number>} w
- * @param {Number} wy
- * @param {Number} height
- * @param {Number} nx
- * @return {Number}
+ * @param {Array<number>} s
+ * @param {Array<number>} w
+ * @param {number} wy
+ * @param {number} height
+ * @param {number} nx
+ * @return {number}
  */
 glsTextureTestUtil.triDerivateY = function(/*const tcu::Vec3&*/ s, /*const tcu::Vec3&*/ w, wy, height, nx) {
     var d = w[1] * w[2] * (height * (nx - 1) + wy) - w[0] * (w[1] * height * nx + w[2] * wy);
@@ -915,12 +912,11 @@ glsTextureTestUtil.triDerivateY = function(/*const tcu::Vec3&*/ s, /*const tcu::
 /**
  * @param {tcuTexture.Texture2DView} src
  * @param {glsTextureTestUtil.ReferenceParams} params
- * @param {Array<Number>} texCoord Texture coordinates
- * @param {Number} lod
- * @return {Array<Number>} sample
+ * @param {Array<number>} texCoord Texture coordinates
+ * @param {number} lod
+ * @return {Array<number>} sample
  */
-glsTextureTestUtil.execSample = function(/*const tcu::Texture2DView&*/ src, /*const glsTextureTestUtil.ReferenceParams&*/ params, texCoord, lod)
-{
+glsTextureTestUtil.execSample = function(/*const tcu::Texture2DView&*/ src, /*const glsTextureTestUtil.ReferenceParams&*/ params, texCoord, lod) {
     if (params.samplerType == glsTextureTestUtil.samplerType.SAMPLERTYPE_SHADOW)
         return [src.sampleCompare(params.sampler, params.ref, texCoord, lod), 0, 0, 1];
     else
@@ -928,10 +924,10 @@ glsTextureTestUtil.execSample = function(/*const tcu::Texture2DView&*/ src, /*co
 };
 
 /**
- * @param {Array<Number>} pixel
- * @param {Array<Number>} scale
- * @param {Array<Number>} bias
- * return {Array<Number>}
+ * @param {Array<number>} pixel
+ * @param {Array<number>} scale
+ * @param {Array<number>} bias
+ * return {Array<number>}
  */
 glsTextureTestUtil.applyScaleAndBias = function(pixel, scale, bias) {
     var pixel1 = deMath.multiply(pixel, scale);
@@ -942,10 +938,9 @@ glsTextureTestUtil.applyScaleAndBias = function(pixel, scale, bias) {
 /**
  * @param {glsTextureTestUtil.SurfaceAccess} dst
  * @param {tcuTexture.Texture2DView} src
- * @param {Array<Number>} sq
- * @param {Array<Number>} tq
+ * @param {Array<number>} sq
+ * @param {Array<number>} tq
  * @param {glsTextureTestUtil.ReferenceParams} params
- * @return {Array<Number>} sample
  */
 glsTextureTestUtil.sampleTextureNonProjected2D = function(dst, src, sq, tq, params) {
     var lodBias = params.flags.use_bias ? params.bias : 0;
@@ -981,11 +976,10 @@ glsTextureTestUtil.sampleTextureNonProjected2D = function(dst, src, sq, tq, para
 /**
  * @param {glsTextureTestUtil.SurfaceAccess} dst
  * @param {tcuTexture.Texture2DArrayView} src
- * @param {Array<Number>} sq
- * @param {Array<Number>} tq
- * @param {Array<Number>} rq
+ * @param {Array<number>} sq
+ * @param {Array<number>} tq
+ * @param {Array<number>} rq
  * @param {glsTextureTestUtil.ReferenceParams} params
- * @return {Array<Number>} sample
  */
 glsTextureTestUtil.sampleTextureNonProjected2DArray = function(dst, src, sq, tq, rq, params) {
     var lodBias = (params.flags.use_bias) ? params.bias : 0;
@@ -1023,9 +1017,8 @@ glsTextureTestUtil.sampleTextureNonProjected2DArray = function(dst, src, sq, tq,
 /**
  * @param {glsTextureTestUtil.SurfaceAccess} dst
  * @param {tcuTexture.Texture2DView} src
- * @param {Array<Number>} texCoord
+ * @param {Array<number>} texCoord
  * @param {glsTextureTestUtil.ReferenceParams} params
- * @return {Array<Number>} sample
  */
 glsTextureTestUtil.sampleTexture2D = function(dst, src, texCoord, params) {
     var view = src.getSubView(params.baseLevel, params.maxLevel);
@@ -1033,7 +1026,7 @@ glsTextureTestUtil.sampleTexture2D = function(dst, src, texCoord, params) {
     var tq = [texCoord[0 + 1], texCoord[2 + 1], texCoord[4 + 1], texCoord[6 + 1]];
 
     if (params.flags.projected)
-    	throw new Error('Unimplemented');
+        throw new Error('Unimplemented');
         //sampleTextureProjected(dst, view, sq, tq, params);
     else
         glsTextureTestUtil.sampleTextureNonProjected2D(dst, view, sq, tq, params);
@@ -1041,11 +1034,11 @@ glsTextureTestUtil.sampleTexture2D = function(dst, src, texCoord, params) {
 
 /**
  * @param {glsTextureTestUtil.lodMode} lodModeParm
- * @param {Array<Number>} coord
- * @param {Array<Number>} coordDx
- * @param {Array<Number>} coordDy
- * @param {Number} faceSize
- * @return {Number}
+ * @param {Array<number>} coord
+ * @param {Array<number>} coordDx
+ * @param {Array<number>} coordDy
+ * @param {number} faceSize
+ * @return {number}
  */
 glsTextureTestUtil.computeCubeLodFromDerivates = function(lodModeParm, coord, coordDx, coordDy, faceSize) {
     var face = tcuTexture.selectCubeFace(coord);
@@ -1063,9 +1056,7 @@ glsTextureTestUtil.computeCubeLodFromDerivates = function(lodModeParm, coord, co
         case tcuTexture.CubeFace.CUBEFACE_POSITIVE_Z: maNdx = 2; sNdx = 0; tNdx = 1; break;
         default:
             throw new Error('Unrecognized face ' + face);
-    }
-
-    {
+    } {
         var sc = coord[sNdx];
         var tc = coord[tNdx];
         var ma = Math.abs(coord[maNdx]);
@@ -1086,11 +1077,10 @@ glsTextureTestUtil.computeCubeLodFromDerivates = function(lodModeParm, coord, co
 /**
  * @param {glsTextureTestUtil.SurfaceAccess} dst
  * @param {tcuTexture.TextureCubeView} src
- * @param {Array<Number>} sq
- * @param {Array<Number>} tq
- * @param {Array<Number>} rq
+ * @param {Array<number>} sq
+ * @param {Array<number>} tq
+ * @param {Array<number>} rq
  * @param {glsTextureTestUtil.ReferenceParams} params
- * @return {Array<Number>} sample
  */
 glsTextureTestUtil.sampleTextureCube_str = function(dst, src, sq, tq, rq, params) {
     var dstSize = [dst.getWidth(), dst.getHeight()];
@@ -1099,36 +1089,36 @@ glsTextureTestUtil.sampleTextureCube_str = function(dst, src, sq, tq, rq, params
     var srcSize = src.getSize();
 
     // Coordinates per triangle.
-    var        triS            = [ deMath.swizzle(sq, [0, 1, 2]), deMath.swizzle(sq, [3, 2, 1]) ];
-    var        triT            = [ deMath.swizzle(tq, [0, 1, 2]), deMath.swizzle(tq, [3, 2, 1]) ];
-    var        triR            = [ deMath.swizzle(rq, [0, 1, 2]), deMath.swizzle(rq, [3, 2, 1]) ];
-    var        triW            = [ deMath.swizzle(params.w, [0, 1, 2]), deMath.swizzle(params.w, [3, 2, 1]) ];
+    var triS = [ deMath.swizzle(sq, [0, 1, 2]), deMath.swizzle(sq, [3, 2, 1]) ];
+    var triT = [ deMath.swizzle(tq, [0, 1, 2]), deMath.swizzle(tq, [3, 2, 1]) ];
+    var triR = [ deMath.swizzle(rq, [0, 1, 2]), deMath.swizzle(rq, [3, 2, 1]) ];
+    var triW = [ deMath.swizzle(params.w, [0, 1, 2]), deMath.swizzle(params.w, [3, 2, 1]) ];
 
-    var            lodBias        = (params.flags.use_bias ? params.bias : 0);
+    var lodBias = (params.flags.use_bias ? params.bias : 0);
 
     for (var py = 0; py < dst.getHeight(); py++) {
         for (var px = 0; px < dst.getWidth(); px++) {
-            var        wx        = px + 0.5;
-            var        wy        = py + 0.5;
-            var        nx        = wx / dstW;
-            var        ny        = wy / dstH;
-            var     triNdx    = nx + ny >= 1 ? 1 : 0;
-            var        triNx    = triNdx ? 1 - nx : nx;
-            var        triNy    = triNdx ? 1 - ny : ny;
+            var wx = px + 0.5;
+            var wy = py + 0.5;
+            var nx = wx / dstW;
+            var ny = wy / dstH;
+            var triNdx = nx + ny >= 1 ? 1 : 0;
+            var triNx = triNdx ? 1 - nx : nx;
+            var triNy = triNdx ? 1 - ny : ny;
 
-            var    coord        = [glsTextureTestUtil.triangleInterpolate(triS[triNdx], triNx, triNy),
+            var coord = [glsTextureTestUtil.triangleInterpolate(triS[triNdx], triNx, triNy),
                                          glsTextureTestUtil.triangleInterpolate(triT[triNdx], triNx, triNy),
                                          glsTextureTestUtil.triangleInterpolate(triR[triNdx], triNx, triNy)];
-            var    coordDx        = [glsTextureTestUtil.triDerivateX(triS[triNdx], triW[triNdx], wx, dstW, triNy),
+            var coordDx = [glsTextureTestUtil.triDerivateX(triS[triNdx], triW[triNdx], wx, dstW, triNy),
                                          glsTextureTestUtil.triDerivateX(triT[triNdx], triW[triNdx], wx, dstW, triNy),
                                          glsTextureTestUtil.triDerivateX(triR[triNdx], triW[triNdx], wx, dstW, triNy)];
-            var    coordDy        = [glsTextureTestUtil.triDerivateY(triS[triNdx], triW[triNdx], wy, dstH, triNx),
+            var coordDy = [glsTextureTestUtil.triDerivateY(triS[triNdx], triW[triNdx], wy, dstH, triNx),
                                          glsTextureTestUtil.triDerivateY(triT[triNdx], triW[triNdx], wy, dstH, triNx),
                                          glsTextureTestUtil.triDerivateY(triR[triNdx], triW[triNdx], wy, dstH, triNx)];
 
-            var        lod        = deMath.clamp((glsTextureTestUtil.computeCubeLodFromDerivates(params.lodMode, coord, coordDx, coordDy, srcSize) + lodBias), params.minLod, params.maxLod);
+            var lod = deMath.clamp((glsTextureTestUtil.computeCubeLodFromDerivates(params.lodMode, coord, coordDx, coordDy, srcSize) + lodBias), params.minLod, params.maxLod);
 
-            var pixel  = glsTextureTestUtil.execSample(src, params, coord, lod);
+            var pixel = glsTextureTestUtil.execSample(src, params, coord, lod);
             dst.setPixel(glsTextureTestUtil.applyScaleAndBias(pixel, params.colorScale, params.colorBias), px, py);
         }
     }
@@ -1137,25 +1127,23 @@ glsTextureTestUtil.sampleTextureCube_str = function(dst, src, sq, tq, rq, params
 /**
  * @param {glsTextureTestUtil.SurfaceAccess} dst
  * @param {tcuTexture.TextureCubeView} src
- * @param {Array<Number>} texCoord
+ * @param {Array<number>} texCoord
  * @param {glsTextureTestUtil.ReferenceParams} params
- * @return {Array<Number>} sample
  */
 glsTextureTestUtil.sampleTextureCube = function(dst, src, texCoord, params) {
-    /*const tcu::TextureCubeView*/ var    view    = src.getSubView(params.baseLevel, params.maxLevel);
-    var                sq        = [texCoord[0+0], texCoord[3+0], texCoord[6+0], texCoord[9+0]];
-    var                tq        = [texCoord[0+1], texCoord[3+1], texCoord[6+1], texCoord[9+1]];
-    var                rq        = [texCoord[0+2], texCoord[3+2], texCoord[6+2], texCoord[9+2]];
+    /*const tcu::TextureCubeView*/ var view = src.getSubView(params.baseLevel, params.maxLevel);
+    var sq = [texCoord[0+0], texCoord[3+0], texCoord[6+0], texCoord[9+0]];
+    var tq = [texCoord[0+1], texCoord[3+1], texCoord[6+1], texCoord[9+1]];
+    var rq = [texCoord[0+2], texCoord[3+2], texCoord[6+2], texCoord[9+2]];
 
-    return glsTextureTestUtil.sampleTextureCube_str(dst, view, sq, tq, rq, params);
+    glsTextureTestUtil.sampleTextureCube_str(dst, view, sq, tq, rq, params);
 };
 
 /**
  * @param {glsTextureTestUtil.SurfaceAccess} dst
  * @param {tcuTexture.Texture2DArrayView} src
- * @param {Array<Number>} texCoord
+ * @param {Array<number>} texCoord
  * @param {glsTextureTestUtil.ReferenceParams} params
- * @return {Array<Number>} sample
  */
 glsTextureTestUtil.sampleTexture2DArray = function(dst,src, texCoord, params) {
     var sq = [texCoord[0+0], texCoord[3+0], texCoord[6+0], texCoord[9+0]];
@@ -1169,40 +1157,39 @@ glsTextureTestUtil.sampleTexture2DArray = function(dst,src, texCoord, params) {
 /**
  * @param {glsTextureTestUtil.SurfaceAccess} dst
  * @param {tcuTexture.Texture3DView} src
- * @param {Array<Number>} sq
- * @param {Array<Number>} tq
- * @param {Array<Number>} rq
+ * @param {Array<number>} sq
+ * @param {Array<number>} tq
+ * @param {Array<number>} rq
  * @param {glsTextureTestUtil.ReferenceParams} params
- * @return {Array<Number>} sample
  */
 glsTextureTestUtil.sampleTextureNonProjected3D = function(dst, src, sq, tq, rq, params) {
-    var        lodBias        = params.flags.use_bias ? params.bias : 0;
+    var lodBias = params.flags.use_bias ? params.bias : 0;
 
-    var    dstSize        = [dst.getWidth(), dst.getHeight()];
-    var    srcSize        = [src.getWidth(), src.getHeight(), src.getDepth()];
+    var dstSize = [dst.getWidth(), dst.getHeight()];
+    var srcSize = [src.getWidth(), src.getHeight(), src.getDepth()];
 
     // Coordinates and lod per triangle.
-    var    triS        = [ deMath.swizzle(sq, [0, 1, 2]), deMath.swizzle(sq, [3, 2, 1]) ];
-    var    triT        = [ deMath.swizzle(tq, [0, 1, 2]), deMath.swizzle(tq, [3, 2, 1]) ];
-    var    triR        = [ deMath.swizzle(rq, [0, 1, 2]), deMath.swizzle(rq, [3, 2, 1]) ];
-    var triLod    = [ deMath.clamp((glsTextureTestUtil.computeNonProjectedTriLod(params.lodMode, dstSize, srcSize, triS[0], triT[0], triR[0]) + lodBias), params.minLod, params.maxLod),
+    var triS = [ deMath.swizzle(sq, [0, 1, 2]), deMath.swizzle(sq, [3, 2, 1]) ];
+    var triT = [ deMath.swizzle(tq, [0, 1, 2]), deMath.swizzle(tq, [3, 2, 1]) ];
+    var triR = [ deMath.swizzle(rq, [0, 1, 2]), deMath.swizzle(rq, [3, 2, 1]) ];
+    var triLod = [ deMath.clamp((glsTextureTestUtil.computeNonProjectedTriLod(params.lodMode, dstSize, srcSize, triS[0], triT[0], triR[0]) + lodBias), params.minLod, params.maxLod),
                                 deMath.clamp((glsTextureTestUtil.computeNonProjectedTriLod(params.lodMode, dstSize, srcSize, triS[1], triT[1], triR[1]) + lodBias), params.minLod, params.maxLod) ];
 
     for (var y = 0; y < dst.getHeight(); y++) {
         for (var x = 0; x < dst.getWidth(); x++) {
-            var    yf        = (y + 0.5) / dst.getHeight();
-            var    xf        = (x + 0.5) / dst.getWidth();
+            var yf = (y + 0.5) / dst.getHeight();
+            var xf = (x + 0.5) / dst.getWidth();
 
-            var    triNdx    = xf + yf >= 1 ? 1 : 0; // Top left fill rule.
-            var    triX    = triNdx ? 1-xf : xf;
-            var    triY    = triNdx ? 1-yf : yf;
+            var triNdx = xf + yf >= 1 ? 1 : 0; // Top left fill rule.
+            var triX = triNdx ? 1-xf : xf;
+            var triY = triNdx ? 1-yf : yf;
 
-            var    s        = glsTextureTestUtil.triangleInterpolate(triS[triNdx], triX, triY);
-            var    t        = glsTextureTestUtil.triangleInterpolate(triT[triNdx], triX, triY);
-            var    r        = glsTextureTestUtil.triangleInterpolate(triR[triNdx], triX, triY);
-            var    lod        = triLod[triNdx];
+            var s = glsTextureTestUtil.triangleInterpolate(triS[triNdx], triX, triY);
+            var t = glsTextureTestUtil.triangleInterpolate(triT[triNdx], triX, triY);
+            var r = glsTextureTestUtil.triangleInterpolate(triR[triNdx], triX, triY);
+            var lod = triLod[triNdx];
 
-            var pixel  = src.sample(params.sampler, [s, t, r], lod);
+            var pixel = src.sample(params.sampler, [s, t, r], lod);
             dst.setPixel(glsTextureTestUtil.applyScaleAndBias(pixel, params.colorScale, params.colorBias), x, y);
         }
     }
@@ -1211,29 +1198,27 @@ glsTextureTestUtil.sampleTextureNonProjected3D = function(dst, src, sq, tq, rq, 
 /**
  * @param {glsTextureTestUtil.SurfaceAccess} dst
  * @param {tcuTexture.Texture3DView} src
- * @param {Array<Number>} texCoord
+ * @param {Array<number>} texCoord
  * @param {glsTextureTestUtil.ReferenceParams} params
- * @return {Array<Number>} sample
  */
 glsTextureTestUtil.sampleTexture3D = function(dst, src, texCoord, params) {
-    /*const tcu::TextureCubeView*/ var    view    = src.getSubView(params.baseLevel, params.maxLevel);
-    var                sq        = [texCoord[0+0], texCoord[3+0], texCoord[6+0], texCoord[9+0]];
-    var                tq        = [texCoord[0+1], texCoord[3+1], texCoord[6+1], texCoord[9+1]];
-    var                rq        = [texCoord[0+2], texCoord[3+2], texCoord[6+2], texCoord[9+2]];
+    /*const tcu::TextureCubeView*/ var view = src.getSubView(params.baseLevel, params.maxLevel);
+    var sq = [texCoord[0+0], texCoord[3+0], texCoord[6+0], texCoord[9+0]];
+    var tq = [texCoord[0+1], texCoord[3+1], texCoord[6+1], texCoord[9+1]];
+    var rq = [texCoord[0+2], texCoord[3+2], texCoord[6+2], texCoord[9+2]];
 
-    return glsTextureTestUtil.sampleTextureNonProjected3D(dst, view, sq, tq, rq, params);
+    glsTextureTestUtil.sampleTextureNonProjected3D(dst, view, sq, tq, rq, params);
 };
 
 /**
  * @param {tcuSurface.Surface} reference
  * @param {tcuSurface.Surface} rendered
- * @param {Array<Number>} threshold
+ * @param {Array<number>} threshold
  *
- * @return {bool}
+ * @return {boolean}
  */
 glsTextureTestUtil.compareImages = function(/*const tcu::Surface&*/ reference, /*const tcu::Surface&*/ rendered, /*tcu::RGBA*/ threshold) {
     return tcuImageCompare.pixelThresholdCompare("Result", "Image comparison result", reference, rendered, threshold, undefined /*tcu::COMPARE_LOG_RESULT*/);
 };
-
 
 });

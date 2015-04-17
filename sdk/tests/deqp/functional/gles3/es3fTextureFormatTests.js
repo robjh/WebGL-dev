@@ -19,19 +19,18 @@
  */
 'use strict';
 goog.provide('functional.gles3.es3fTextureFormatTests');
-goog.require('framework.opengl.gluShaderUtil');
-goog.require('framework.delibs.debase.deRandom');
-goog.require('framework.common.tcuTestCase');
+goog.require('framework.common.tcuCompressedTexture');
 goog.require('framework.common.tcuSurface');
+goog.require('framework.common.tcuTestCase');
+goog.require('framework.common.tcuTexture');
+goog.require('framework.common.tcuTextureUtil');
+goog.require('framework.delibs.debase.deMath');
+goog.require('framework.delibs.debase.deRandom');
+goog.require('framework.opengl.gluShaderUtil');
+goog.require('framework.opengl.gluStrUtil');
 goog.require('framework.opengl.gluTexture');
 goog.require('framework.opengl.gluTextureUtil');
-goog.require('framework.common.tcuTexture');
 goog.require('modules.shared.glsTextureTestUtil');
-goog.require('framework.common.tcuTextureUtil');
-goog.require('framework.opengl.gluStrUtil');
-goog.require('framework.delibs.debase.deMath');
-goog.require('framework.common.tcuCompressedTexture');
-
 
 goog.scope(function() {
 
@@ -48,7 +47,6 @@ var tcuTextureUtil = framework.common.tcuTextureUtil;
 var gluStrUtil = framework.opengl.gluStrUtil;
 var deMath = framework.delibs.debase.deMath;
 var tcuCompressedTexture = framework.common.tcuCompressedTexture;
-    
 
 /** @type {WebGL2RenderingContext} */ var gl;
 es3fTextureFormatTests.GLU_EXPECT_NO_ERROR = function(error, message) {
@@ -812,7 +810,7 @@ es3fTextureFormatTests.CompressedCubeFormatCase.prototype.iterate = function() {
 
 es3fTextureFormatTests.genTestCases = function() {
     var state = tcuTestCase.runner.getState();
-    state.testCases = tcuTestCase.newTest(state.testName, 'Top level');
+    state.testCases = tcuTestCase.newTest('texture_format', 'Top level');
     var unsizedGroup = tcuTestCase.newTest('unsized', 'Unsized formats');
     var sizedGroup = tcuTestCase.newTest('sized', 'Sized formats');
     var sized2DGroup = tcuTestCase.newTest('2d', 'Sized formats (2D)');
@@ -1151,7 +1149,5 @@ es3fTextureFormatTests.run = function(context) {
     }
 
 };
-
-
 
 });

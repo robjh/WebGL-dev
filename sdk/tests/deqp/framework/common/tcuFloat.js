@@ -22,12 +22,10 @@
 goog.provide('framework.common.tcuFloat');
 goog.require('framework.delibs.debase.deMath');
 
-
 goog.scope(function() {
 
 var tcuFloat = framework.common.tcuFloat;
 var deMath = framework.delibs.debase.deMath;
-
 
 var DE_ASSERT = function(x) {
     if (!x)
@@ -178,25 +176,16 @@ tcuFloat.FloatDescription.prototype.convert = function(other) {
     /** @type {number} */ var half;
     /** @type {number} */ var bias;
 
-    if (!(this.Flags & tcuFloat.FloatFlags.FLOAT_HAS_SIGN) && other.sign() < 0)
-    {
+    if (!(this.Flags & tcuFloat.FloatFlags.FLOAT_HAS_SIGN) && other.sign() < 0) {
         // Negative number, truncate to zero.
         return this.zero(+1);
-    }
-    else if (other.isInf())
-    {
+    } else if (other.isInf()) {
         return this.inf(other.sign());
-    }
-    else if (other.isNaN())
-    {
+    } else if (other.isNaN()) {
         return this.nan();
-    }
-    else if (other.isZero())
-    {
+    } else if (other.isZero()) {
         return this.zero(other.sign());
-    }
-    else
-    {
+    } else {
         /** @type {number} */ var eMin = 1 - this.ExponentBias;
         /** @type {number} */ var eMax = ((1 << this.ExponentBits) - 2) - this.ExponentBias;
 
@@ -205,17 +194,14 @@ tcuFloat.FloatDescription.prototype.convert = function(other) {
         /** @type {number} */ var m = other.mantissa();
 
         // Normalize denormalized values prior to conversion.
-        while (!deMath.binaryOp(m, deMath.shiftLeft(1, otherMantissaBits), deMath.BinaryOp.AND))
-        {
+        while (!deMath.binaryOp(m, deMath.shiftLeft(1, otherMantissaBits), deMath.BinaryOp.AND)) {
             m = deMath.shiftLeft(m, 1);
             e -= 1;
         }
 
-        if (e < eMin)
-        {
+        if (e < eMin) {
             // Underflow.
-            if ((this.Flags & tcuFloat.FloatFlags.FLOAT_SUPPORT_DENORM) && (eMin - e - 1 <= this.MantissaBits))
-            {
+            if ((this.Flags & tcuFloat.FloatFlags.FLOAT_SUPPORT_DENORM) && (eMin - e - 1 <= this.MantissaBits)) {
                 // Shift and round (RTE).
                 bitDiff = (otherMantissaBits - this.MantissaBits) + (eMin - e);
                 half = deMath.shiftLeft(1, (bitDiff - 1)) - 1;
@@ -232,17 +218,13 @@ tcuFloat.FloatDescription.prototype.convert = function(other) {
                     ),
                     new tcuFloat.FloatDescription(this.ExponentBits, this.MantissaBits, this.ExponentBias, this.Flags)
                 );
-            }
-            else
+            } else
                 return this.zero(other.sign());
-        }
-        else
-        {
+        } else {
             // Remove leading 1.
             m = deMath.binaryOp(m, deMath.binaryNot(deMath.shiftLeft(1, otherMantissaBits)), deMath.BinaryOp.AND);
 
-            if (this.MantissaBits < otherMantissaBits)
-            {
+            if (this.MantissaBits < otherMantissaBits) {
                 // Round mantissa (round to nearest even).
                 bitDiff = otherMantissaBits - this.MantissaBits;
                 half = deMath.shiftLeft(1, (bitDiff - 1)) - 1;
@@ -250,26 +232,20 @@ tcuFloat.FloatDescription.prototype.convert = function(other) {
 
                 m = deMath.shiftRight(m + half + bias, bitDiff);
 
-                if (deMath.binaryOp(m, deMath.shiftLeft(1, this.MantissaBits), deMath.BinaryOp.AND))
-                {
+                if (deMath.binaryOp(m, deMath.shiftLeft(1, this.MantissaBits), deMath.BinaryOp.AND)) {
                     // Overflow in mantissa.
                     m = 0;
                     e += 1;
                 }
-            }
-            else
-            {
+            } else {
                 bitDiff = this.MantissaBits - otherMantissaBits;
                 m = deMath.shiftLeft(m, bitDiff);
             }
 
-            if (e > eMax)
-            {
+            if (e > eMax) {
                 // Overflow.
                 return this.inf(other.sign());
-            }
-            else
-            {
+            } else {
                 DE_ASSERT(deMath.deInRange32(e, eMin, eMax));
                 DE_ASSERT(deMath.binaryOp((e + this.ExponentBias), deMath.binaryNot(deMath.shiftLeft(1, this.ExponentBits) - 1), deMath.BinaryOp.AND) == 0);
                 DE_ASSERT(deMath.binaryOp(m, deMath.binaryNot(deMath.shiftLeft(1, this.MantissaBits) - 1), deMath.BinaryOp.AND) == 0);
@@ -641,7 +617,5 @@ tcuFloat.halfFloatToNumberNoDenorm = function(half) {
     var x = tcuFloat.newDeFloatFromParameters(half, description16);
     return x.getValue();
 };
-
-
 
 });

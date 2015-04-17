@@ -20,10 +20,10 @@
 
 'use strict';
 goog.provide('framework.common.tcuFuzzyImageCompare');
-goog.require('framework.delibs.debase.deMath');
-goog.require('framework.delibs.debase.deRandom');
 goog.require('framework.common.tcuTexture');
 goog.require('framework.common.tcuTextureUtil');
+goog.require('framework.delibs.debase.deMath');
+goog.require('framework.delibs.debase.deRandom');
 
 goog.scope(function() {
 

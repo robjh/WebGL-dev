@@ -27,11 +27,9 @@ goog.TypedArray;
 /** @typedef { (Array<number>|goog.TypedArray) } */
 goog.NumberArray;
 
-
 goog.scope(function() {
 
 var deMath = framework.delibs.debase.deMath;
-
 
 var DE_ASSERT = function(x) {
     if (!x)
@@ -69,8 +67,7 @@ deMath.deCeilFloatToInt32 = function(a) {
  * @return {boolean} return True if input is a power-of-two value, false otherwise.
  * (Also returns true for zero).
  */
-deMath.deIsPowerOfTwo32 = function(a)
-{
+deMath.deIsPowerOfTwo32 = function(a) {
     return ((a & (a - 1)) == 0);
 };
 
@@ -91,12 +88,12 @@ deMath.deAlign32 = function(val, align) {
  * @return {number} The number of one bits in
  */
 deMath.dePop32 = function(a) {
-    /** @type {deMath.deUint32} */ var mask0 = 0x55555555; /* 1-bit values. */
-    /** @type {deMath.deUint32} */ var mask1 = 0x33333333; /* 2-bit values. */
-    /** @type {deMath.deUint32} */ var mask2 = 0x0f0f0f0f; /* 4-bit values. */
-    /** @type {deMath.deUint32} */ var mask3 = 0x00ff00ff; /* 8-bit values. */
-    /** @type {deMath.deUint32} */ var mask4 = 0x0000ffff; /* 16-bit values. */
-    /** @type {deMath.deUint32} */ var t = a & 0xFFFFFFFF; /* Crop to 32-bit value */
+    /** @type {number} */ var mask0 = 0x55555555; /* 1-bit values. */
+    /** @type {number} */ var mask1 = 0x33333333; /* 2-bit values. */
+    /** @type {number} */ var mask2 = 0x0f0f0f0f; /* 4-bit values. */
+    /** @type {number} */ var mask3 = 0x00ff00ff; /* 8-bit values. */
+    /** @type {number} */ var mask4 = 0x0000ffff; /* 16-bit values. */
+    /** @type {number} */ var t = a & 0xFFFFFFFF; /* Crop to 32-bit value */
     t = (t & mask0) + ((t >> 1) & mask0);
     t = (t & mask1) + ((t >> 2) & mask1);
     t = (t & mask2) + ((t >> 4) & mask2);
@@ -299,7 +296,6 @@ deMath.intersect = function(a, b) {
     return [x0, y0, w, h];
 };
 
-
 /** deMath.deMathHash
  * @param {number} a
  * @return {number}
@@ -322,8 +318,7 @@ deMath.deMathHash = function(a) {
 deMath.arrayToNumber = function(array) {
     /** @type {number} */ var result = 0;
 
-    for (var ndx = 0; ndx < array.length; ndx++)
-    {
+    for (var ndx = 0; ndx < array.length; ndx++) {
         result += array[ndx] * Math.pow(256, ndx);
     }
 
@@ -336,8 +331,7 @@ deMath.arrayToNumber = function(array) {
  * @param {number} number
  */
 deMath.numberToArray = function(array, number) {
-    for (var byteNdx = 0; byteNdx < array.length; byteNdx++)
-    {
+    for (var byteNdx = 0; byteNdx < array.length; byteNdx++) {
         /** @type {number} */ var acumzndx = !byteNdx ? number : Math.floor(number / Math.pow(256, byteNdx));
         array[byteNdx] = acumzndx & 0xFF;
     }
@@ -357,8 +351,7 @@ deMath.getBitRange = function(array, firstNdx, lastNdx) {
     /** @type {ArrayBuffer} */ var buffer = new ArrayBuffer(byteSize);
     /** @type {Uint8Array} */ var outArray = new Uint8Array(buffer);
 
-    for (var bitNdx = firstNdx; bitNdx < lastNdx; bitNdx++)
-    {
+    for (var bitNdx = firstNdx; bitNdx < lastNdx; bitNdx++) {
         /** @type {number} */ var sourceByte = Math.floor(bitNdx / 8);
         /** @type {number} */ var sourceBit = Math.floor(bitNdx % 8);
 
@@ -388,8 +381,7 @@ deMath.BinaryOp = {
  * @return {number}
  */
 deMath.doNativeBinaryOp = function(valueA, valueB, operation) {
-    switch (operation)
-    {
+    switch (operation) {
         case deMath.BinaryOp.AND:
             return valueA & valueB;
         case deMath.BinaryOp.OR:
@@ -433,13 +425,11 @@ deMath.binaryOp = function(valueA, valueB, binaryOpParm) {
 
     /** @type {number} */ var minLength = Math.min(inArrayA.length, inArrayB.length);
 
-    for (var byteNdx = 0; byteNdx < minLength; byteNdx++)
-    {
+    for (var byteNdx = 0; byteNdx < minLength; byteNdx++) {
         outArray[byteNdx] = deMath.doNativeBinaryOp(inArrayA[byteNdx], inArrayB[byteNdx], binaryOpParm);
     }
 
-    while (byteNdx < byteSize)
-    {
+    while (byteNdx < byteSize) {
         outArray[byteNdx] = largestArray[byteNdx];
         byteNdx++;
     }
@@ -470,8 +460,7 @@ deMath.binaryNot = function(value) {
 
     deMath.numberToArray(inArray, value);
 
-    for (var byteNdx = 0; byteNdx < byteSize; byteNdx++)
-    {
+    for (var byteNdx = 0; byteNdx < byteSize; byteNdx++) {
         outArray[byteNdx] = ~inArray[byteNdx];
     }
 
@@ -486,8 +475,7 @@ deMath.binaryNot = function(value) {
  * @param {number} steps
  * @return {number}
  */
-deMath.shiftLeft = function(value, steps)
-{
+deMath.shiftLeft = function(value, steps) {
     /** @type {number} */ var totalBitsRequired = Math.floor(Math.log2(value) + 1) + steps;
 
     if (totalBitsRequired < 32)
@@ -505,8 +493,7 @@ deMath.shiftLeft = function(value, steps)
 
     deMath.numberToArray(inArray, value);
 
-    for (var bitNdx = 0; bitNdx < totalBitsRequired; bitNdx++)
-    {
+    for (var bitNdx = 0; bitNdx < totalBitsRequired; bitNdx++) {
         /** @type {number} */ var sourceByte = Math.floor(bitNdx / 8);
         /** @type {number} */ var sourceBit = Math.floor(bitNdx % 8);
         /** @type {number} */ var newbitNdx = bitNdx + steps;
@@ -527,8 +514,7 @@ deMath.shiftLeft = function(value, steps)
  * @param {number} steps
  * @return {number}
  */
-deMath.shiftRight = function(value, steps)
-{
+deMath.shiftRight = function(value, steps) {
     /** @type {number} */ var totalBitsRequired = Math.floor(Math.log2(value) + 1); //additional bits not needed (will be 0) + steps;
 
     if (totalBitsRequired < 32)
@@ -544,8 +530,7 @@ deMath.shiftRight = function(value, steps)
 
     deMath.numberToArray(inArray, value);
 
-    for (var bitNdx = totalBitsRequired - 1; bitNdx >= steps; bitNdx--)
-    {
+    for (var bitNdx = totalBitsRequired - 1; bitNdx >= steps; bitNdx--) {
         /** @type {number} */ var sourceByte = Math.floor(bitNdx / 8);
         /** @type {number} */ var sourceBit = Math.floor(bitNdx % 8);
         /** @type {number} */ var newbitNdx = bitNdx - steps;
@@ -619,5 +604,4 @@ deMath.greaterThan = function(a, b) {
     return result;
 };
 
-    
 });

@@ -34,7 +34,6 @@ goog.require('framework.common.tcuTexture');
 goog.require('framework.common.tcuTextureUtil');
 goog.require('framework.opengl.gluShaderUtil');
 
-
 goog.scope(function() {
 
 var gluTextureUtil = framework.opengl.gluTextureUtil;
@@ -44,13 +43,13 @@ var tcuCompressedTexture = framework.common.tcuCompressedTexture;
 var gluShaderUtil = framework.opengl.gluShaderUtil;
 
 /**
- * @param {WebGL2RenderingContext.GLenum} format
- * @param {WebGL2RenderingContext.GLenum} dataType
+ * @param {number} format
+ * @param {number} dataType
  * @constructor
  */
 gluTextureUtil.TransferFormat = function(format, dataType) {
-    this.format = format;        //!< Pixel format.
-    this.dataType = dataType;    //!< Data type.
+    this.format = format; //!< Pixel format.
+    this.dataType = dataType; //!< Data type.
 };
 
 /**
@@ -68,8 +67,7 @@ gluTextureUtil.getTransferFormat = function(/* tcuTexture.TextureFormat */ texFo
     var type = gl.NONE;
     /*boolean*/ var isInt = false;
 
-    switch (texFormat.type)
-    {
+    switch (texFormat.type) {
         case tcuTexture.ChannelType.SIGNED_INT8:
         case tcuTexture.ChannelType.SIGNED_INT16:
         case tcuTexture.ChannelType.SIGNED_INT32:
@@ -85,8 +83,7 @@ gluTextureUtil.getTransferFormat = function(/* tcuTexture.TextureFormat */ texFo
             break;
     }
 
-    switch (texFormat.order)
-    {
+    switch (texFormat.order) {
         case tcuTexture.ChannelOrder.A: format = gl.ALPHA; break;
         case tcuTexture.ChannelOrder.L: format = gl.LUMINANCE; break;
         case tcuTexture.ChannelOrder.LA: format = gl.LUMINANCE_ALPHA; break;
@@ -104,8 +101,7 @@ gluTextureUtil.getTransferFormat = function(/* tcuTexture.TextureFormat */ texFo
             throw new Error('Unknown ChannelOrder ' + texFormat.order);
     }
 
-    switch (texFormat.type)
-    {
+    switch (texFormat.type) {
         case tcuTexture.ChannelType.SNORM_INT8: type = gl.BYTE; break;
         case tcuTexture.ChannelType.SNORM_INT16: type = gl.SHORT; break;
         case tcuTexture.ChannelType.UNORM_INT8: type = gl.UNSIGNED_BYTE; break;
@@ -127,11 +123,11 @@ gluTextureUtil.getTransferFormat = function(/* tcuTexture.TextureFormat */ texFo
         case tcuTexture.ChannelType.UNSIGNED_INT_999_E5_REV: type = gl.UNSIGNED_INT_5_9_9_9_REV; break;
         case tcuTexture.ChannelType.HALF_FLOAT: type = gl.HALF_FLOAT; break;
         case tcuTexture.ChannelType.FLOAT_UNSIGNED_INT_24_8_REV: type = gl.FLOAT_32_UNSIGNED_INT_24_8_REV; break;
-        case tcuTexture.ChannelType.UNSIGNED_INT_24_8: type = texFormat.order == tcuTexture.ChannelType.D ?
+        case tcuTexture.ChannelType.UNSIGNED_INT_24_8: type = texFormat.order == tcuTexture.ChannelOrder.D ?
                                                                  gl.UNSIGNED_INT : gl.UNSIGNED_INT_24_8; break;
 
         default:
-            throw new Error("Can't map texture format to GL transfer format " + tcuTexture.type);
+            throw new Error("Can't map texture format to GL transfer format " + texFormat.type);
     }
 
     return new gluTextureUtil.TransferFormat(format, type);
@@ -144,88 +140,86 @@ gluTextureUtil.getTransferFormat = function(/* tcuTexture.TextureFormat */ texFo
  * If no mapping is found, throws Error.
  *
  * @param {tcuTexture.TextureFormat} texFormat Generic texture format.
- * @return {WebGL2RenderingContext.GLenum} GL texture format.
+ * @return {number} GL texture format.
  * @throws {Error}
  */
-gluTextureUtil.getInternalFormat = function(/* tcuTexture.TextureFormat */ texFormat)
-{
+gluTextureUtil.getInternalFormat = function(texFormat) {
 
     var stringify = function(order, type) {
         return '' + order + ' ' + type;
     };
 
-    switch (stringify(texFormat.order, texFormat.type))
-    {
-        case stringify(texFormat.ChannelOrder.RGBA, texFormat.ChannelType.UNORM_SHORT_5551): return gl.RGB5_A1;
-        case stringify(texFormat.ChannelOrder.RGBA, texFormat.ChannelType.UNORM_SHORT_4444): return gl.RGBA4;
-        case stringify(texFormat.ChannelOrder.RGB, texFormat.ChannelType.UNORM_SHORT_565): return gl.RGB565;
-        case stringify(texFormat.ChannelOrder.D, texFormat.ChannelType.UNORM_INT16): return gl.DEPTH_COMPONENT16;
-        case stringify(texFormat.ChannelOrder.S, texFormat.ChannelType.UNSIGNED_INT8): return gl.STENCIL_INDEX8;
+    switch (stringify(texFormat.order, texFormat.type)) {
+        case stringify(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.UNORM_SHORT_5551): return gl.RGB5_A1;
+        case stringify(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.UNORM_SHORT_4444): return gl.RGBA4;
+        case stringify(tcuTexture.ChannelOrder.RGB, tcuTexture.ChannelType.UNORM_SHORT_565): return gl.RGB565;
+        case stringify(tcuTexture.ChannelOrder.D, tcuTexture.ChannelType.UNORM_INT16): return gl.DEPTH_COMPONENT16;
+        case stringify(tcuTexture.ChannelOrder.S, tcuTexture.ChannelType.UNSIGNED_INT8): return gl.STENCIL_INDEX8;
 
-        case stringify(texFormat.ChannelOrder.RGBA, texFormat.ChannelType.FLOAT): return gl.RGBA32F;
-        case stringify(texFormat.ChannelOrder.RGBA, texFormat.ChannelType.SIGNED_INT32): return gl.RGBA32I;
-        case stringify(texFormat.ChannelOrder.RGBA, texFormat.ChannelType.UNSIGNED_INT32): return gl.RGBA32UI;
-        case stringify(texFormat.ChannelOrder.RGBA, texFormat.ChannelType.UNORM_INT16): return gl.RGBA16;
-        case stringify(texFormat.ChannelOrder.RGBA, texFormat.ChannelType.SNORM_INT16): return gl.RGBA16_SNORM;
-        case stringify(texFormat.ChannelOrder.RGBA, texFormat.ChannelType.HALF_FLOAT): return gl.RGBA16F;
-        case stringify(texFormat.ChannelOrder.RGBA, texFormat.ChannelType.SIGNED_INT16): return gl.RGBA16I;
-        case stringify(texFormat.ChannelOrder.RGBA, texFormat.ChannelType.UNSIGNED_INT16): return gl.RGBA16UI;
-        case stringify(texFormat.ChannelOrder.RGBA, texFormat.ChannelType.UNORM_INT8): return gl.RGBA8;
-        case stringify(texFormat.ChannelOrder.RGBA, texFormat.ChannelType.SIGNED_INT8): return gl.RGBA8I;
-        case stringify(texFormat.ChannelOrder.RGBA, texFormat.ChannelType.UNSIGNED_INT8): return gl.RGBA8UI;
-        case stringify(texFormat.ChannelOrder.sRGBA, texFormat.ChannelType.UNORM_INT8): return gl.SRGB8_ALPHA8;
-        case stringify(texFormat.ChannelOrder.RGBA, texFormat.ChannelType.UNORM_INT_1010102_REV): return gl.RGB10_A2;
-        case stringify(texFormat.ChannelOrder.RGBA, texFormat.ChannelType.UNSIGNED_INT_1010102_REV): return gl.RGB10_A2UI;
-        case stringify(texFormat.ChannelOrder.RGBA, texFormat.ChannelType.SNORM_INT8): return gl.RGBA8_SNORM;
+        case stringify(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.FLOAT): return gl.RGBA32F;
+        case stringify(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.SIGNED_INT32): return gl.RGBA32I;
+        case stringify(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.UNSIGNED_INT32): return gl.RGBA32UI;
+        case stringify(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.UNORM_INT16): return gl.RGBA16;
+        case stringify(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.SNORM_INT16): return gl.RGBA16_SNORM;
+        case stringify(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.HALF_FLOAT): return gl.RGBA16F;
+        case stringify(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.SIGNED_INT16): return gl.RGBA16I;
+        case stringify(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.UNSIGNED_INT16): return gl.RGBA16UI;
+        case stringify(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.UNORM_INT8): return gl.RGBA8;
+        case stringify(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.SIGNED_INT8): return gl.RGBA8I;
+        case stringify(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.UNSIGNED_INT8): return gl.RGBA8UI;
+        case stringify(tcuTexture.ChannelOrder.sRGBA, tcuTexture.ChannelType.UNORM_INT8): return gl.SRGB8_ALPHA8;
+        case stringify(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.UNORM_INT_1010102_REV): return gl.RGB10_A2;
+        case stringify(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.UNSIGNED_INT_1010102_REV): return gl.RGB10_A2UI;
+        case stringify(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.SNORM_INT8): return gl.RGBA8_SNORM;
 
-        case stringify(texFormat.ChannelOrder.RGB, texFormat.ChannelType.UNORM_INT8): return gl.RGB8;
-        case stringify(texFormat.ChannelOrder.RGB, texFormat.ChannelType.UNSIGNED_INT_11F_11F_10F_REV): return gl.R11F_G11F_B10F;
-        case stringify(texFormat.ChannelOrder.RGB, texFormat.ChannelType.FLOAT): return gl.RGB32F;
-        case stringify(texFormat.ChannelOrder.RGB, texFormat.ChannelType.SIGNED_INT32): return gl.RGB32I;
-        case stringify(texFormat.ChannelOrder.RGB, texFormat.ChannelType.UNSIGNED_INT32): return gl.RGB32UI;
-        case stringify(texFormat.ChannelOrder.RGB, texFormat.ChannelType.UNORM_INT16): return gl.RGB16;
-        case stringify(texFormat.ChannelOrder.RGB, texFormat.ChannelType.SNORM_INT16): return gl.RGB16_SNORM;
-        case stringify(texFormat.ChannelOrder.RGB, texFormat.ChannelType.HALF_FLOAT): return gl.RGB16F;
-        case stringify(texFormat.ChannelOrder.RGB, texFormat.ChannelType.SIGNED_INT16): return gl.RGB16I;
-        case stringify(texFormat.ChannelOrder.RGB, texFormat.ChannelType.UNSIGNED_INT16): return gl.RGB16UI;
-        case stringify(texFormat.ChannelOrder.RGB, texFormat.ChannelType.SNORM_INT8): return gl.RGB8_SNORM;
-        case stringify(texFormat.ChannelOrder.RGB, texFormat.ChannelType.SIGNED_INT8): return gl.RGB8I;
-        case stringify(texFormat.ChannelOrder.RGB, texFormat.ChannelType.UNSIGNED_INT8): return gl.RGB8UI;
-        case stringify(texFormat.ChannelOrder.sRGB, texFormat.ChannelType.UNORM_INT8): return gl.SRGB8;
-        case stringify(texFormat.ChannelOrder.RGB, texFormat.ChannelType.UNSIGNED_INT_999_E5_REV): return gl.RGB9_E5;
-        case stringify(texFormat.ChannelOrder.RGB, texFormat.ChannelType.UNORM_INT_1010102_REV): return gl.RGB10;
+        case stringify(tcuTexture.ChannelOrder.RGB, tcuTexture.ChannelType.UNORM_INT8): return gl.RGB8;
+        case stringify(tcuTexture.ChannelOrder.RGB, tcuTexture.ChannelType.UNSIGNED_INT_11F_11F_10F_REV): return gl.R11F_G11F_B10F;
+        case stringify(tcuTexture.ChannelOrder.RGB, tcuTexture.ChannelType.FLOAT): return gl.RGB32F;
+        case stringify(tcuTexture.ChannelOrder.RGB, tcuTexture.ChannelType.SIGNED_INT32): return gl.RGB32I;
+        case stringify(tcuTexture.ChannelOrder.RGB, tcuTexture.ChannelType.UNSIGNED_INT32): return gl.RGB32UI;
+        case stringify(tcuTexture.ChannelOrder.RGB, tcuTexture.ChannelType.UNORM_INT16): return gl.RGB16;
+        case stringify(tcuTexture.ChannelOrder.RGB, tcuTexture.ChannelType.SNORM_INT16): return gl.RGB16_SNORM;
+        case stringify(tcuTexture.ChannelOrder.RGB, tcuTexture.ChannelType.HALF_FLOAT): return gl.RGB16F;
+        case stringify(tcuTexture.ChannelOrder.RGB, tcuTexture.ChannelType.SIGNED_INT16): return gl.RGB16I;
+        case stringify(tcuTexture.ChannelOrder.RGB, tcuTexture.ChannelType.UNSIGNED_INT16): return gl.RGB16UI;
+        case stringify(tcuTexture.ChannelOrder.RGB, tcuTexture.ChannelType.SNORM_INT8): return gl.RGB8_SNORM;
+        case stringify(tcuTexture.ChannelOrder.RGB, tcuTexture.ChannelType.SIGNED_INT8): return gl.RGB8I;
+        case stringify(tcuTexture.ChannelOrder.RGB, tcuTexture.ChannelType.UNSIGNED_INT8): return gl.RGB8UI;
+        case stringify(tcuTexture.ChannelOrder.sRGB, tcuTexture.ChannelType.UNORM_INT8): return gl.SRGB8;
+        case stringify(tcuTexture.ChannelOrder.RGB, tcuTexture.ChannelType.UNSIGNED_INT_999_E5_REV): return gl.RGB9_E5;
+        case stringify(tcuTexture.ChannelOrder.RGB, tcuTexture.ChannelType.UNORM_INT_1010102_REV): return gl.RGB10;
 
-        case stringify(texFormat.ChannelOrder.RG, texFormat.ChannelType.FLOAT): return gl.RG32F;
-        case stringify(texFormat.ChannelOrder.RG, texFormat.ChannelType.SIGNED_INT32): return gl.RG32I;
-        case stringify(texFormat.ChannelOrder.RG, texFormat.ChannelType.UNSIGNED_INT32): return gl.RG32UI;
-        case stringify(texFormat.ChannelOrder.RG, texFormat.ChannelType.UNORM_INT16): return gl.RG16;
-        case stringify(texFormat.ChannelOrder.RG, texFormat.ChannelType.SNORM_INT16): return gl.RG16_SNORM;
-        case stringify(texFormat.ChannelOrder.RG, texFormat.ChannelType.HALF_FLOAT): return gl.RG16F;
-        case stringify(texFormat.ChannelOrder.RG, texFormat.ChannelType.SIGNED_INT16): return gl.RG16I;
-        case stringify(texFormat.ChannelOrder.RG, texFormat.ChannelType.UNSIGNED_INT16): return gl.RG16UI;
-        case stringify(texFormat.ChannelOrder.RG, texFormat.ChannelType.UNORM_INT8): return gl.RG8;
-        case stringify(texFormat.ChannelOrder.RG, texFormat.ChannelType.SIGNED_INT8): return gl.RG8I;
-        case stringify(texFormat.ChannelOrder.RG, texFormat.ChannelType.UNSIGNED_INT8): return gl.RG8UI;
-        case stringify(texFormat.ChannelOrder.RG, texFormat.ChannelType.SNORM_INT8): return gl.RG8_SNORM;
+        case stringify(tcuTexture.ChannelOrder.RG, tcuTexture.ChannelType.FLOAT): return gl.RG32F;
+        case stringify(tcuTexture.ChannelOrder.RG, tcuTexture.ChannelType.SIGNED_INT32): return gl.RG32I;
+        case stringify(tcuTexture.ChannelOrder.RG, tcuTexture.ChannelType.UNSIGNED_INT32): return gl.RG32UI;
+        case stringify(tcuTexture.ChannelOrder.RG, tcuTexture.ChannelType.UNORM_INT16): return gl.RG16;
+        case stringify(tcuTexture.ChannelOrder.RG, tcuTexture.ChannelType.SNORM_INT16): return gl.RG16_SNORM;
+        case stringify(tcuTexture.ChannelOrder.RG, tcuTexture.ChannelType.HALF_FLOAT): return gl.RG16F;
+        case stringify(tcuTexture.ChannelOrder.RG, tcuTexture.ChannelType.SIGNED_INT16): return gl.RG16I;
+        case stringify(tcuTexture.ChannelOrder.RG, tcuTexture.ChannelType.UNSIGNED_INT16): return gl.RG16UI;
+        case stringify(tcuTexture.ChannelOrder.RG, tcuTexture.ChannelType.UNORM_INT8): return gl.RG8;
+        case stringify(tcuTexture.ChannelOrder.RG, tcuTexture.ChannelType.SIGNED_INT8): return gl.RG8I;
+        case stringify(tcuTexture.ChannelOrder.RG, tcuTexture.ChannelType.UNSIGNED_INT8): return gl.RG8UI;
+        case stringify(tcuTexture.ChannelOrder.RG, tcuTexture.ChannelType.SNORM_INT8): return gl.RG8_SNORM;
 
-        case stringify(texFormat.ChannelOrder.R, texFormat.ChannelType.FLOAT): return gl.R32F;
-        case stringify(texFormat.ChannelOrder.R, texFormat.ChannelType.SIGNED_INT32): return gl.R32I;
-        case stringify(texFormat.ChannelOrder.R, texFormat.ChannelType.UNSIGNED_INT32): return gl.R32UI;
-        case stringify(texFormat.ChannelOrder.R, texFormat.ChannelType.UNORM_INT16): return gl.R16;
-        case stringify(texFormat.ChannelOrder.R, texFormat.ChannelType.SNORM_INT16): return gl.R16_SNORM;
-        case stringify(texFormat.ChannelOrder.R, texFormat.ChannelType.HALF_FLOAT): return gl.R16F;
-        case stringify(texFormat.ChannelOrder.R, texFormat.ChannelType.SIGNED_INT16): return gl.R16I;
-        case stringify(texFormat.ChannelOrder.R, texFormat.ChannelType.UNSIGNED_INT16): return gl.R16UI;
-        case stringify(texFormat.ChannelOrder.R, texFormat.ChannelType.UNORM_INT8): return gl.R8;
-        case stringify(texFormat.ChannelOrder.R, texFormat.ChannelType.SIGNED_INT8): return gl.R8I;
-        case stringify(texFormat.ChannelOrder.R, texFormat.ChannelType.UNSIGNED_INT8): return gl.R8UI;
-        case stringify(texFormat.ChannelOrder.R, texFormat.ChannelType.SNORM_INT8): return gl.R8_SNORM;
+        case stringify(tcuTexture.ChannelOrder.R, tcuTexture.ChannelType.FLOAT): return gl.R32F;
+        case stringify(tcuTexture.ChannelOrder.R, tcuTexture.ChannelType.SIGNED_INT32): return gl.R32I;
+        case stringify(tcuTexture.ChannelOrder.R, tcuTexture.ChannelType.UNSIGNED_INT32): return gl.R32UI;
+        case stringify(tcuTexture.ChannelOrder.R, tcuTexture.ChannelType.UNORM_INT16): return gl.R16;
+        case stringify(tcuTexture.ChannelOrder.R, tcuTexture.ChannelType.SNORM_INT16): return gl.R16_SNORM;
+        case stringify(tcuTexture.ChannelOrder.R, tcuTexture.ChannelType.HALF_FLOAT): return gl.R16F;
+        case stringify(tcuTexture.ChannelOrder.R, tcuTexture.ChannelType.SIGNED_INT16): return gl.R16I;
+        case stringify(tcuTexture.ChannelOrder.R, tcuTexture.ChannelType.UNSIGNED_INT16): return gl.R16UI;
+        case stringify(tcuTexture.ChannelOrder.R, tcuTexture.ChannelType.UNORM_INT8): return gl.R8;
+        case stringify(tcuTexture.ChannelOrder.R, tcuTexture.ChannelType.SIGNED_INT8): return gl.R8I;
+        case stringify(tcuTexture.ChannelOrder.R, tcuTexture.ChannelType.UNSIGNED_INT8): return gl.R8UI;
+        case stringify(tcuTexture.ChannelOrder.R, tcuTexture.ChannelType.SNORM_INT8): return gl.R8_SNORM;
 
-        case stringify(texFormat.ChannelOrder.D, texFormat.ChannelType.FLOAT): return gl.DEPTH_COMPONENT32F;
-        case stringify(texFormat.ChannelOrder.D, texFormat.ChannelType.UNSIGNED_INT_24_8): return gl.DEPTH_COMPONENT24;
-        case stringify(texFormat.ChannelOrder.D, texFormat.ChannelType.UNSIGNED_INT32): return gl.DEPTH_COMPONENT32;
-        case stringify(texFormat.ChannelOrder.DS, texFormat.ChannelType.FLOAT_UNSIGNED_INT_24_8_REV): return gl.DEPTH32F_STENCIL8;
-        case stringify(texFormat.ChannelOrder.DS, texFormat.ChannelType.UNSIGNED_INT_24_8): return gl.DEPTH24_STENCIL8;
+        case stringify(tcuTexture.ChannelOrder.D, tcuTexture.ChannelType.FLOAT): return gl.DEPTH_COMPONENT32F;
+        case stringify(tcuTexture.ChannelOrder.D, tcuTexture.ChannelType.UNSIGNED_INT_24_8): return gl.DEPTH_COMPONENT24;
+        case stringify(tcuTexture.ChannelOrder.D, tcuTexture.ChannelType.UNSIGNED_INT32): return gl.DEPTH_COMPONENT32;
+        case stringify(tcuTexture.ChannelOrder.DS, tcuTexture.ChannelType.FLOAT_UNSIGNED_INT_24_8_REV): return gl.DEPTH32F_STENCIL8;
+        case stringify(tcuTexture.ChannelOrder.DS, tcuTexture.ChannelType.UNSIGNED_INT_24_8): return gl.DEPTH24_STENCIL8;
 
         default:
             throw new Error("Can't map texture format to GL internal format");
@@ -239,7 +233,7 @@ gluTextureUtil.getInternalFormat = function(/* tcuTexture.TextureFormat */ texFo
  * If no mapping is found, throws Error.
 
  * @param {tcuCompressedTexture.Format} format Generic compressed format.
- * @return {WebGL2RenderingContext.GLenum} GL compressed texture format.
+ * @return {number} GL compressed texture format.
  * @throws {Error}
  */
 gluTextureUtil.getGLFormat = function(/* tcuCompressedTexture.Format */ format) {
@@ -291,7 +285,7 @@ gluTextureUtil.getGLFormat = function(/* tcuCompressedTexture.Format */ format) 
 };
 
 /**
- * @param {deMath.deUint32} dataType
+ * @param {number} dataType
  * @param {boolean} normalized
  * @return {tcuTexture.ChannelType}
  * @throws {Error}
@@ -299,8 +293,7 @@ gluTextureUtil.getGLFormat = function(/* tcuCompressedTexture.Format */ format) 
 gluTextureUtil.mapGLChannelType = function(/* deMath.deUint32 */ dataType, /*boolean*/ normalized) {
     // \note Normalized bit is ignored where it doesn't apply.
 
-    switch (dataType)
-    {
+    switch (dataType) {
         case gl.UNSIGNED_BYTE: return normalized ? tcuTexture.ChannelType.UNORM_INT8 : tcuTexture.ChannelType.UNSIGNED_INT8;
         case gl.BYTE: return normalized ? tcuTexture.ChannelType.SNORM_INT8 : tcuTexture.ChannelType.SIGNED_INT8;
         case gl.UNSIGNED_SHORT: return normalized ? tcuTexture.ChannelType.UNORM_INT16 : tcuTexture.ChannelType.UNSIGNED_INT16;
@@ -329,13 +322,12 @@ gluTextureUtil.mapGLChannelType = function(/* deMath.deUint32 */ dataType, /*boo
  * Maps generic compressed format to GL compressed format enum value.
  * If no mapping is found, throws Error.
  *
- * @param {deMath.deUint32} format Generic compressed format.
- * @param {deMath.deUint32} dataType
+ * @param {number} format Generic compressed format.
+ * @param {number} dataType
  * @return {tcuTexture.TextureFormat} GL compressed texture format.
  * @throws {Error}
  */
-gluTextureUtil.mapGLTransferFormat = function(/*deMath.deUint32*/ format, /*deMath.deUint32*/ dataType)
-{
+gluTextureUtil.mapGLTransferFormat = function(/*deMath.deUint32*/ format, /*deMath.deUint32*/ dataType) {
     switch (format) {
         case gl.ALPHA: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.A, gluTextureUtil.mapGLChannelType(dataType, true));
         case gl.LUMINANCE: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.L, gluTextureUtil.mapGLChannelType(dataType, true));
@@ -362,17 +354,15 @@ gluTextureUtil.mapGLTransferFormat = function(/*deMath.deUint32*/ format, /*deMa
  * Map GL internal texture format to tcuTexture.TextureFormat.
  *
  * If no mapping is found, throws Error.
- * @param {deMath.deUint32} internalFormat
+ * @param {number} internalFormat
  * @return {tcuTexture.TextureFormat} GL compressed texture format.
  * @throws {Error}
  */
-gluTextureUtil.mapGLInternalFormat = function(/*deMath.deUint32*/ internalFormat)
-{
+gluTextureUtil.mapGLInternalFormat = function(/*deMath.deUint32*/ internalFormat) {
     if (internalFormat === undefined)
         throw new Error('internalformat is undefined');
 
-    switch (internalFormat)
-    {
+    switch (internalFormat) {
         case gl.RGB5_A1: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.UNORM_SHORT_5551);
         case gl.RGBA4: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.UNORM_SHORT_4444);
         case gl.RGB565: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGB, tcuTexture.ChannelType.UNORM_SHORT_565);
@@ -450,13 +440,11 @@ gluTextureUtil.mapGLInternalFormat = function(/*deMath.deUint32*/ internalFormat
 };
 
 /**
- * @param {deMath.deUint32} format
+ * @param {number} format
  * @return {boolean}
  */
-gluTextureUtil.isGLInternalColorFormatFilterable = function(/* deMath.deUint32 */ format)
-{
-    switch (format)
-    {
+gluTextureUtil.isGLInternalColorFormatFilterable = function(/* deMath.deUint32 */ format) {
+    switch (format) {
         case gl.R8:
         case gl.R8_SNORM:
         case gl.RG8:
@@ -521,10 +509,10 @@ gluTextureUtil.isGLInternalColorFormatFilterable = function(/* deMath.deUint32 *
 // {
 //     switch (wrapMode)
 //     {
-//         case gl.CLAMP_TO_EDGE:        return tcu::Sampler::CLAMP_TO_EDGE;
-//         case gl.CLAMP_TO_BORDER:    return tcu::Sampler::CLAMP_TO_BORDER;
-//         case gl.REPEAT:                return tcu::Sampler::REPEAT_GL;
-//         case gl.MIRRORED_REPEAT:    return tcu::Sampler::MIRRORED_REPEAT_GL;
+//         case gl.CLAMP_TO_EDGE: return tcu::Sampler::CLAMP_TO_EDGE;
+//         case gl.CLAMP_TO_BORDER: return tcu::Sampler::CLAMP_TO_BORDER;
+//         case gl.REPEAT: return tcu::Sampler::REPEAT_GL;
+//         case gl.MIRRORED_REPEAT: return tcu::Sampler::MIRRORED_REPEAT_GL;
 //         default:
 //             throw tcu::InternalError("Can't map GL wrap mode " + tcu::toHex(wrapMode).toString());
 //     }
@@ -534,12 +522,12 @@ gluTextureUtil.isGLInternalColorFormatFilterable = function(/* deMath.deUint32 *
 // {
 //     switch (filterMode)
 //     {
-//         case gl.NEAREST:                return tcu::Sampler::NEAREST;
-//         case gl.LINEAR:                    return tcu::Sampler::LINEAR;
-//         case gl.NEAREST_MIPMAP_NEAREST:    return tcu::Sampler::NEAREST_MIPMAP_NEAREST;
-//         case gl.NEAREST_MIPMAP_LINEAR:    return tcu::Sampler::NEAREST_MIPMAP_LINEAR;
-//         case gl.LINEAR_MIPMAP_NEAREST:    return tcu::Sampler::LINEAR_MIPMAP_NEAREST;
-//         case gl.LINEAR_MIPMAP_LINEAR:    return tcu::Sampler::LINEAR_MIPMAP_LINEAR;
+//         case gl.NEAREST: return tcu::Sampler::NEAREST;
+//         case gl.LINEAR: return tcu::Sampler::LINEAR;
+//         case gl.NEAREST_MIPMAP_NEAREST: return tcu::Sampler::NEAREST_MIPMAP_NEAREST;
+//         case gl.NEAREST_MIPMAP_LINEAR: return tcu::Sampler::NEAREST_MIPMAP_LINEAR;
+//         case gl.LINEAR_MIPMAP_NEAREST: return tcu::Sampler::LINEAR_MIPMAP_NEAREST;
+//         case gl.LINEAR_MIPMAP_LINEAR: return tcu::Sampler::LINEAR_MIPMAP_LINEAR;
 //         default:
 //             throw tcu::InternalError("Can't map GL filter mode" + tcu::toHex(filterMode).toString());
 //     }
@@ -550,9 +538,9 @@ gluTextureUtil.isGLInternalColorFormatFilterable = function(/* deMath.deUint32 *
 //  *
 //  * If no mapping is found, throws tcu::InternalError.
 //  *
-//  * \param wrapS        S-component wrap mode
-//  * \param minFilter    Minification filter mode
-//  * \param magFilter    Magnification filter mode
+//  * \param wrapS S-component wrap mode
+//  * \param minFilter Minification filter mode
+//  * \param magFilter Magnification filter mode
 //  * \return Sampler description.
 //  *//*--------------------------------------------------------------------*/
 // /*tcu::Sampler mapGLSampler (deUint32 wrapS, deUint32 minFilter, deUint32 magFilter)
@@ -566,10 +554,10 @@ gluTextureUtil.isGLInternalColorFormatFilterable = function(/* deMath.deUint32 *
 //  *
 //  * If no mapping is found, throws tcu::InternalError.
 //  *
-//  * \param wrapS        S-component wrap mode
-//  * \param wrapT        T-component wrap mode
-//  * \param minFilter    Minification filter mode
-//  * \param magFilter    Magnification filter mode
+//  * \param wrapS S-component wrap mode
+//  * \param wrapT T-component wrap mode
+//  * \param minFilter Minification filter mode
+//  * \param magFilter Magnification filter mode
 //  * \return Sampler description.
 //  *//*--------------------------------------------------------------------*/
 // tcu::Sampler mapGLSampler (deUint32 wrapS, deUint32 wrapT, deUint32 minFilter, deUint32 magFilter)
@@ -582,11 +570,11 @@ gluTextureUtil.isGLInternalColorFormatFilterable = function(/* deMath.deUint32 *
 //  *
 //  * If no mapping is found, throws tcu::InternalError.
 //  *
-//  * \param wrapS        S-component wrap mode
-//  * \param wrapT        T-component wrap mode
-//  * \param wrapR        R-component wrap mode
-//  * \param minFilter    Minification filter mode
-//  * \param magFilter    Magnification filter mode
+//  * \param wrapS S-component wrap mode
+//  * \param wrapT T-component wrap mode
+//  * \param wrapR R-component wrap mode
+//  * \param minFilter Minification filter mode
+//  * \param magFilter Magnification filter mode
 //  * \return Sampler description.
 //  *//*--------------------------------------------------------------------*/
 // tcu::Sampler mapGLSampler (deUint32 wrapS, deUint32 wrapT, deUint32 wrapR, deUint32 minFilter, deUint32 magFilter)
@@ -612,14 +600,14 @@ gluTextureUtil.isGLInternalColorFormatFilterable = function(/* deMath.deUint32 *
 // {
 //     switch (mode)
 //     {
-//         case gl.LESS:        return tcu::Sampler::COMPAREMODE_LESS;
-//         case gl.LEQUAL:        return tcu::Sampler::COMPAREMODE_LESS_OR_EQUAL;
-//         case gl.GREATER:    return tcu::Sampler::COMPAREMODE_GREATER;
-//         case gl.GEQUAL:        return tcu::Sampler::COMPAREMODE_GREATER_OR_EQUAL;
-//         case gl.EQUAL:        return tcu::Sampler::COMPAREMODE_EQUAL;
-//         case gl.NOTEQUAL:    return tcu::Sampler::COMPAREMODE_NOT_EQUAL;
-//         case gl.ALWAYS:        return tcu::Sampler::COMPAREMODE_ALWAYS;
-//         case gl.NEVER:        return tcu::Sampler::COMPAREMODE_NEVER;
+//         case gl.LESS: return tcu::Sampler::COMPAREMODE_LESS;
+//         case gl.LEQUAL: return tcu::Sampler::COMPAREMODE_LESS_OR_EQUAL;
+//         case gl.GREATER: return tcu::Sampler::COMPAREMODE_GREATER;
+//         case gl.GEQUAL: return tcu::Sampler::COMPAREMODE_GREATER_OR_EQUAL;
+//         case gl.EQUAL: return tcu::Sampler::COMPAREMODE_EQUAL;
+//         case gl.NOTEQUAL: return tcu::Sampler::COMPAREMODE_NOT_EQUAL;
+//         case gl.ALWAYS: return tcu::Sampler::COMPAREMODE_ALWAYS;
+//         case gl.NEVER: return tcu::Sampler::COMPAREMODE_NEVER;
 //         default:
 //             throw tcu::InternalError("Can't map GL compare mode " + tcu::toHex(mode).toString());
 //     }
@@ -638,10 +626,10 @@ gluTextureUtil.isGLInternalColorFormatFilterable = function(/* deMath.deUint32 *
 //     DE_ASSERT(wrapMode != tcu::Sampler::WRAPMODE_LAST);
 //     switch (wrapMode)
 //     {
-//         case tcu::Sampler::CLAMP_TO_EDGE:        return gl.CLAMP_TO_EDGE;
-//         case tcu::Sampler::CLAMP_TO_BORDER:        return gl.CLAMP_TO_BORDER;
-//         case tcu::Sampler::REPEAT_GL:            return gl.REPEAT;
-//         case tcu::Sampler::MIRRORED_REPEAT_GL:    return gl.MIRRORED_REPEAT;
+//         case tcu::Sampler::CLAMP_TO_EDGE: return gl.CLAMP_TO_EDGE;
+//         case tcu::Sampler::CLAMP_TO_BORDER: return gl.CLAMP_TO_BORDER;
+//         case tcu::Sampler::REPEAT_GL: return gl.REPEAT;
+//         case tcu::Sampler::MIRRORED_REPEAT_GL: return gl.MIRRORED_REPEAT;
 //         default:
 //             throw tcu::InternalError("Can't map wrap mode");
 //     }
@@ -660,12 +648,12 @@ gluTextureUtil.isGLInternalColorFormatFilterable = function(/* deMath.deUint32 *
 //     DE_ASSERT(filterMode != tcu::Sampler::FILTERMODE_LAST);
 //     switch (filterMode)
 //     {
-//         case tcu::Sampler::NEAREST:                    return gl.NEAREST;
-//         case tcu::Sampler::LINEAR:                    return gl.LINEAR;
-//         case tcu::Sampler::NEAREST_MIPMAP_NEAREST:    return gl.NEAREST_MIPMAP_NEAREST;
-//         case tcu::Sampler::NEAREST_MIPMAP_LINEAR:    return gl.NEAREST_MIPMAP_LINEAR;
-//         case tcu::Sampler::LINEAR_MIPMAP_NEAREST:    return gl.LINEAR_MIPMAP_NEAREST;
-//         case tcu::Sampler::LINEAR_MIPMAP_LINEAR:    return gl.LINEAR_MIPMAP_LINEAR;
+//         case tcu::Sampler::NEAREST: return gl.NEAREST;
+//         case tcu::Sampler::LINEAR: return gl.LINEAR;
+//         case tcu::Sampler::NEAREST_MIPMAP_NEAREST: return gl.NEAREST_MIPMAP_NEAREST;
+//         case tcu::Sampler::NEAREST_MIPMAP_LINEAR: return gl.NEAREST_MIPMAP_LINEAR;
+//         case tcu::Sampler::LINEAR_MIPMAP_NEAREST: return gl.LINEAR_MIPMAP_NEAREST;
+//         case tcu::Sampler::LINEAR_MIPMAP_LINEAR: return gl.LINEAR_MIPMAP_LINEAR;
 //         default:
 //             throw tcu::InternalError("Can't map filter mode");
 //     }
@@ -684,15 +672,15 @@ gluTextureUtil.isGLInternalColorFormatFilterable = function(/* deMath.deUint32 *
 //     DE_ASSERT(compareMode != tcu::Sampler::COMPAREMODE_NONE);
 //     switch (compareMode)
 //     {
-//         case tcu::Sampler::COMPAREMODE_NONE:                return gl.NONE;
-//         case tcu::Sampler::COMPAREMODE_LESS:                return gl.LESS;
-//         case tcu::Sampler::COMPAREMODE_LESS_OR_EQUAL:        return gl.LEQUAL;
-//         case tcu::Sampler::COMPAREMODE_GREATER:                return gl.GREATER;
-//         case tcu::Sampler::COMPAREMODE_GREATER_OR_EQUAL:    return gl.GEQUAL;
-//         case tcu::Sampler::COMPAREMODE_EQUAL:                return gl.EQUAL;
-//         case tcu::Sampler::COMPAREMODE_NOT_EQUAL:            return gl.NOTEQUAL;
-//         case tcu::Sampler::COMPAREMODE_ALWAYS:                return gl.ALWAYS;
-//         case tcu::Sampler::COMPAREMODE_NEVER:                return gl.NEVER;
+//         case tcu::Sampler::COMPAREMODE_NONE: return gl.NONE;
+//         case tcu::Sampler::COMPAREMODE_LESS: return gl.LESS;
+//         case tcu::Sampler::COMPAREMODE_LESS_OR_EQUAL: return gl.LEQUAL;
+//         case tcu::Sampler::COMPAREMODE_GREATER: return gl.GREATER;
+//         case tcu::Sampler::COMPAREMODE_GREATER_OR_EQUAL: return gl.GEQUAL;
+//         case tcu::Sampler::COMPAREMODE_EQUAL: return gl.EQUAL;
+//         case tcu::Sampler::COMPAREMODE_NOT_EQUAL: return gl.NOTEQUAL;
+//         case tcu::Sampler::COMPAREMODE_ALWAYS: return gl.ALWAYS;
+//         case tcu::Sampler::COMPAREMODE_NEVER: return gl.NEVER;
 //         default:
 //             throw tcu::InternalError("Can't map compare mode");
 //     }
@@ -706,10 +694,8 @@ gluTextureUtil.isGLInternalColorFormatFilterable = function(/* deMath.deUint32 *
  * @param {tcuTexture.CubeFace} face Cube face
  * @return {number} GL cube face
  */
-gluTextureUtil.getGLCubeFace = function(face)
-{
-    switch (face)
-    {
+gluTextureUtil.getGLCubeFace = function(face) {
+    switch (face) {
         case tcuTexture.CubeFace.CUBEFACE_NEGATIVE_X:
             return gl.TEXTURE_CUBE_MAP_NEGATIVE_X;
         case tcuTexture.CubeFace.CUBEFACE_POSITIVE_X:
@@ -739,10 +725,10 @@ gluTextureUtil.getGLCubeFace = function(face)
 // {
 //     using tcu::TextureFormat;
 
-//     if (format.order ==  tcuTexture.ChannelOrder.D || format.order ==  tcuTexture.ChannelOrder.DS)
+//     if (format.order == tcuTexture.ChannelOrder.D || format.order == tcuTexture.ChannelOrder.DS)
 //         return TYPE_SAMPLER_1D;
 
-//     if (format.order ==  tcuTexture.ChannelOrder.S)
+//     if (format.order == tcuTexture.ChannelOrder.S)
 //         return TYPE_LAST;
 
 //     switch (tcu::getTextureChannelClass(format.type))
@@ -777,8 +763,7 @@ gluTextureUtil.getSampler2DType = function(format) {
     if (format.order == tcuTexture.ChannelOrder.S)
     return Object.keys(gluShaderUtil.DataType).length;
 
-    switch (tcuTextureUtil.getTextureChannelClass(format.type))
-    {
+    switch (tcuTextureUtil.getTextureChannelClass(format.type)) {
         case tcuTextureUtil.TextureChannelClass.FLOATING_POINT:
         case tcuTextureUtil.TextureChannelClass.SIGNED_FIXED_POINT:
         case tcuTextureUtil.TextureChannelClass.UNSIGNED_FIXED_POINT:
@@ -807,10 +792,10 @@ gluTextureUtil.getSampler2DType = function(format) {
 // {
 //     using tcu::TextureFormat;
 
-//     if (format.order ==  tcuTexture.ChannelOrder.D || format.order ==  tcuTexture.ChannelOrder.DS)
+//     if (format.order == tcuTexture.ChannelOrder.D || format.order == tcuTexture.ChannelOrder.DS)
 //         return TYPE_SAMPLER_CUBE;
 
-//     if (format.order ==  tcuTexture.ChannelOrder.S)
+//     if (format.order == tcuTexture.ChannelOrder.S)
 //         return TYPE_LAST;
 
 //     switch (tcu::getTextureChannelClass(format.type))
@@ -843,10 +828,10 @@ gluTextureUtil.getSampler2DType = function(format) {
 // {
 //     using tcu::TextureFormat;
 
-//     if (format.order ==  tcuTexture.ChannelOrder.D || format.order ==  tcuTexture.ChannelOrder.DS)
+//     if (format.order == tcuTexture.ChannelOrder.D || format.order == tcuTexture.ChannelOrder.DS)
 //         return TYPE_SAMPLER_2D_ARRAY;
 
-//     if (format.order ==  tcuTexture.ChannelOrder.S)
+//     if (format.order == tcuTexture.ChannelOrder.S)
 //         return TYPE_LAST;
 
 //     switch (tcu::getTextureChannelClass(format.type))
@@ -879,10 +864,10 @@ gluTextureUtil.getSampler2DType = function(format) {
 // {
 //     using tcu::TextureFormat;
 
-//     if (format.order ==  tcuTexture.ChannelOrder.D || format.order ==  tcuTexture.ChannelOrder.DS)
+//     if (format.order == tcuTexture.ChannelOrder.D || format.order == tcuTexture.ChannelOrder.DS)
 //         return TYPE_SAMPLER_3D;
 
-//     if (format.order ==  tcuTexture.ChannelOrder.S)
+//     if (format.order == tcuTexture.ChannelOrder.S)
 //         return TYPE_LAST;
 
 //     switch (tcu::getTextureChannelClass(format.type))
@@ -915,10 +900,10 @@ gluTextureUtil.getSampler2DType = function(format) {
 // {
 //     using tcu::TextureFormat;
 
-//     if (format.order ==  tcuTexture.ChannelOrder.D || format.order ==  tcuTexture.ChannelOrder.DS)
+//     if (format.order == tcuTexture.ChannelOrder.D || format.order == tcuTexture.ChannelOrder.DS)
 //         return TYPE_SAMPLER_CUBE_ARRAY;
 
-//     if (format.order ==  tcuTexture.ChannelOrder.S)
+//     if (format.order == tcuTexture.ChannelOrder.S)
 //         return TYPE_LAST;
 
 //     switch (tcu::getTextureChannelClass(format.type))
@@ -941,9 +926,9 @@ gluTextureUtil.getSampler2DType = function(format) {
 
 // enum RenderableType
 // {
-//     RENDERABLE_COLOR    = (1<<0),
-//     RENDERABLE_DEPTH    = (1<<1),
-//     RENDERABLE_STENCIL    = (1<<2)
+//     RENDERABLE_COLOR = (1<<0),
+//     RENDERABLE_DEPTH = (1<<1),
+//     RENDERABLE_STENCIL = (1<<2)
 // };
 
 // static deUint32 getRenderableBitsES3 (const ContextInfo& contextInfo, deUint32 internalFormat)
@@ -1036,7 +1021,5 @@ gluTextureUtil.getSampler2DType = function(format) {
 
 //     return (renderable & RENDERABLE_COLOR) != 0;
 // }
-
-
 
 });

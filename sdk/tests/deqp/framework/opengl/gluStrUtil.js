@@ -21,7 +21,6 @@
 'use strict';
 goog.provide('framework.opengl.gluStrUtil');
 
-
 goog.scope(function() {
 
 var gluStrUtil = framework.opengl.gluStrUtil;
@@ -138,7 +137,5 @@ gluStrUtil.getTypeName = function(value) {
         default: return '';
     }
 };
-
-
 
 });
