@@ -634,7 +634,7 @@ var gluDefs = framework.opengl.gluDefs;
 
         assertMsgOptions(isOk, '', true, false);
 
-        return tcuTestCase.runner.IterateResult.STOP;
+        return tcuTestCase.IterateResult.STOP;
     };
 
     // glsSamplerObjectTest.MultiTextureSamplerTest
@@ -696,7 +696,7 @@ var gluDefs = framework.opengl.gluDefs;
 
         assertMsgOptions(isOk, '', true, false);
 
-        return tcuTestCase.runner.IterateResult.STOP;
+        return tcuTestCase.IterateResult.STOP;
     };
 
     /**

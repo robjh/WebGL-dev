@@ -259,7 +259,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
             gl.DEPTH24_STENCIL8,
             gl.STENCIL_INDEX8
         ];
-        var testGroup = tcuTestCase.runner.getState().testCases;
+        var testGroup = tcuTestCase.runner.testCases;
         // .basic
         /** @type {tcuTestCase.DeqpTest} */
         var basicGroup = new tcuTestCase.newTest('basic', 'Basic stencil tests');
@@ -289,14 +289,14 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
     es3fFboStencilbufferTests.run = function(context) {
         gl = context;
         //Set up root Test
-        var state = tcuTestCase.runner.getState();
+        var state = tcuTestCase.runner;
 
         var test = new es3fFboStencilbufferTests.FboStencilTests();
         var testName = test.fullName();
         var testDescription = test.getDescription();
-        state.testCases = test;
-        state.testName = testName;
 
+        state.testName = testName;
+        state.setRoot(test);
         //Set up name and description of this test series.
         setCurrentTestName(testName);
         description(testDescription);

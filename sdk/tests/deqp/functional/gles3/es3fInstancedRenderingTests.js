@@ -420,7 +420,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
 
         assertMsgOptions(testOk, '', true, false);
 
-        return tcuTestCase.runner.IterateResult.STOP;
+        return tcuTestCase.IterateResult.STOP;
     };
 
 
@@ -595,7 +595,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
     };
 
     es3fInstancedRenderingTests.init = function() {
-        var testGroup = tcuTestCase.runner.getState().testCases;
+        var testGroup = tcuTestCase.runner.testCases;
     /** @type {Array<number>} */ var instanceCounts = [1, 2, 4, 20];
 
         for (var _function in es3fInstancedRenderingTests.DrawFunction) {
@@ -696,10 +696,10 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
         //Set up Test Root parameters
         var testName = 'instanced_rendering';
         var testDescription = 'Instanced Rendering Tests';
-        var state = tcuTestCase.runner.getState();
+        var state = tcuTestCase.runner;
 
         state.testName = testName;
-        state.testCases = tcuTestCase.newTest(testName, testDescription, null);
+        state.setRoot(tcuTestCase.newTest(testName, testDescription, null));
 
         //Set up name and description of this test series.
         setCurrentTestName(testName);

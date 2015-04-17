@@ -1213,14 +1213,14 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
     es3fFramebufferBlitTests.run = function(context) {
         gl = context;
         //Set up root Test
-        var state = tcuTestCase.runner.getState();
+        var state = tcuTestCase.runner;
 
         var test = new es3fFramebufferBlitTests.FramebufferBlitTests();
         var testName = test.fullName();
         var testDescription = test.getDescription();
-        state.testCases = test;
-        state.testName = testName;
 
+        state.testName = testName;
+        state.setRoot(test);
         //Set up name and description of this test series.
         setCurrentTestName(testName);
         description(testDescription);
