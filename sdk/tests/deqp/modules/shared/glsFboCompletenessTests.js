@@ -48,7 +48,10 @@ define([
             glsFboUtil.addFormats(this.m_ctxFormats, fmtRange);
             glsFboUtil.addFormats(this.m_maxFormats, fmtRange);
         };
-        this.addExtFormats = function(extRange) {  };
+        this.addExtFormats = function(extRange) {
+            glsFboUtil.addExtFormats(this.m_ctxFormats, extRange, this.m_renderCtx);
+            glsFboUtil.addExtFormats(this.m_maxFormats, extRange);
+        };
         this.createRenderableTests = function() {  };
         this.createAttachmentTests = function() {  };
         this.createSizeTests = function() {  };
