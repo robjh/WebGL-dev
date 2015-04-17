@@ -103,7 +103,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
     * es3fPrimitiveRestartTests.PrimitiveRestartCase class, inherits from TestCase class
     * @constructor
     * @extends {tcuTestCase.DeqpTest}
-    * @param {string} name
+    * @param {?string} name
     * @param {string} description
     * @param {es3fPrimitiveRestartTests.PrimitiveType} primType
     * @param {es3fPrimitiveRestartTests.IndexType} indexType

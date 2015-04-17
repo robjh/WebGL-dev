@@ -416,7 +416,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
         // Compare.
 
         // Passing referenceImg.getAccess() and resultImg.getAccess() instead of referenceImg and resultImg
-    /** @type {boolean} */ var testOk = tcuImageCompare.fuzzyCompare('ComparisonResult', 'Image comparison result', referenceImg.getAccess(), resultImg.getAccess(), 0.05, null /*gluShaderUtil.COMPARE_LOG_RESULT*/);
+    /** @type {boolean} */ var testOk = tcuImageCompare.fuzzyCompare('ComparisonResult', 'Image comparison result', referenceImg.getAccess(), resultImg.getAccess(), 0.05 /*, gluShaderUtil.COMPARE_LOG_RESULT*/);
 
         assertMsgOptions(testOk, '', true, false);
 
