@@ -36,9 +36,11 @@ var gluShaderUtil = framework.opengl.gluShaderUtil;
     glsShaderLibrary.generateTestCases = function() {
     /** @type {glsShaderLibrary.Parser} */ var parser = new glsShaderLibrary.Parser();
         try {
-        /** @type {Object} */ var state = tcuTestCase.runner.getState();
+        /** @type {Object} */ var state = tcuTestCase.runner;
             var tree = parser.parse(state.testFile);
-            state.testCases = tcuTestCase.newTest(state.testName, 'Top level', tree);
+            var rootTest = tcuTestCase.newTest(state.testName, 'Top level');
+            rootTest.setChildren(tree);
+            state.setRoot(rootTest);
         }
         catch (err) {
             bufferedLogToConsole(err);
@@ -241,7 +243,7 @@ var gluShaderUtil = framework.opengl.gluShaderUtil;
             m_curTokenStr = '';
             advanceToken();
 
-            /** @type {Array.<tcuTestCase.newTest>} */ var nodeList = [];
+            /** @type {Array.<tcuTestCase.DeqpTest>} */ var nodeList = [];
 
             for (;;) {
 
@@ -822,7 +824,7 @@ var gluShaderUtil = framework.opengl.gluShaderUtil;
         };
 
         /**
-         * @param {Array.<tcuTestCase.newTest>} shaderNodeList
+         * @param {Array.<tcuTestCase.DeqpTest>} shaderNodeList
          */
         var parseShaderCase = function(shaderNodeList) {
 
@@ -1008,7 +1010,7 @@ var gluShaderUtil = framework.opengl.gluShaderUtil;
             /** @type {string} */ var description = parseStringLiteral(m_curTokenStr);
             advanceToken(Token.TOKEN_STRING);
 
-            /** @type {Array.<tcuTestCase.newTest>} */ var children = [];
+            /** @type {Array.<tcuTestCase.DeqpTest>} */ var children = [];
 
             for (;;) {
 
@@ -1027,9 +1029,9 @@ var gluShaderUtil = framework.opengl.gluShaderUtil;
 
             advanceToken(Token.TOKEN_END); // group end
 
-            /** @param {tcuTestCase.newTest}
-             *  Create group node
-             */ var groupNode = tcuTestCase.newTest(name, description, children);
+            /** @type {tcuTestCase.DeqpTest} */ var groupNode = tcuTestCase.newTest(name, description, null);
+            groupNode.setChildren(children);
+
             shaderNodeList.push(groupNode);
 
         };
@@ -1071,9 +1073,8 @@ var gluShaderUtil = framework.opengl.gluShaderUtil;
 glsShaderLibrary.run = function(testName, filter) {
     WebGLTestUtils.loadTextFileAsync(testName + '.test', function(success, content) {
         if (success) {
-            tcuTestCase.runner.getState().testFile = content;
-            tcuTestCase.runner.getState().testName = testName;
-            tcuTestCase.runner.getState().filter = filter;
+            tcuTestCase.runner.testFile = content;
+            tcuTestCase.runner.testName = testName;
             tcuTestCase.runner.runCallback(glsShaderLibrary.processTestFile);
         } else {
             testFailed('Failed to load test file: ' + testName);

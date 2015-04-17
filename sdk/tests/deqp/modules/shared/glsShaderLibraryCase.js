@@ -121,7 +121,7 @@ glsShaderLibraryCase.supportsFragmentHighp = function(version) {
  */
 glsShaderLibraryCase.genVertexShader = function(valueBlock) {
     /** @type {string} */ var res = '';
-    /** @type {Object} */ var state = tcuTestCase.runner.getState();
+    /** @type {Object} */ var state = tcuTestCase.runner;
     /** @type {boolean} */ var usesInout = glsShaderLibraryCase.usesShaderInoutQualifiers(state.currentTest.spec.targetVersion);
     /** @type {string} */ var vtxIn = usesInout ? 'in' : 'attribute';
     /** @type {string} */ var vtxOut = usesInout ? 'out' : 'varying';
@@ -297,7 +297,7 @@ glsShaderLibraryCase.genCompareOp = function(dstVec4Var, valueBlock, nonFloatNam
  */
 glsShaderLibraryCase.genFragmentShader = function(valueBlock) {
     /** @type {string} */ var shader = '';
-    /** @type {Object} */ var state = tcuTestCase.runner.getState();
+    /** @type {Object} */ var state = tcuTestCase.runner;
     /** @type {boolean} */ var usesInout = glsShaderLibraryCase.usesShaderInoutQualifiers(state.currentTest.spec.targetVersion);
     /** @type {string} */ var vtxIn = usesInout ? 'in' : 'attribute';
     /** @type {string} */ var vtxOut = usesInout ? 'out' : 'varying';
@@ -479,7 +479,7 @@ glsShaderLibraryCase.specializeVertexShader = function(src, valueBlock) {
     /** @type {string} */ var decl = '';
     /** @type {string} */ var setup = '';
     /** @type {string} */ var output = '';
-    /** @type {Object} */ var state = tcuTestCase.runner.getState();
+    /** @type {Object} */ var state = tcuTestCase.runner;
     /** @type {boolean} */ var usesInout = glsShaderLibraryCase.usesShaderInoutQualifiers(state.currentTest.spec.targetVersion);
     /** @type {string} */ var vtxIn = usesInout ? 'in' : 'attribute';
     /** @type {string} */ var vtxOut = usesInout ? 'out' : 'varying';
@@ -544,7 +544,7 @@ glsShaderLibraryCase.specializeVertexOnly = function(src, valueBlock) {
     /** @type {string} */ var decl = '';
     /** @type {string} */ var setup = '';
     /** @type {string} */ var output = '';
-    /** @type {Object} */ var state = tcuTestCase.runner.getState();
+    /** @type {Object} */ var state = tcuTestCase.runner;
     /** @type {boolean} */ var usesInout = glsShaderLibraryCase.usesShaderInoutQualifiers(state.currentTest.spec.targetVersion);
     /** @type {string} */ var vtxIn = usesInout ? 'in' : 'attribute';
 
@@ -601,7 +601,7 @@ glsShaderLibraryCase.specializeFragmentShader = function(src, valueBlock) {
     /** @type {string} */ var setup = '';
     /** @type {string} */ var output = '';
 
-    /** @type {Object} */ var state = tcuTestCase.runner.getState();
+    /** @type {Object} */ var state = tcuTestCase.runner;
 
     /** @type {boolean} */ var usesInout = glsShaderLibraryCase.usesShaderInoutQualifiers(state.currentTest.spec.targetVersion);
     /** @type {boolean} */ var customColorOut = usesInout;
@@ -662,7 +662,7 @@ glsShaderLibraryCase.specializeFragmentShader = function(src, valueBlock) {
 glsShaderLibraryCase.specializeFragmentOnly = function(src, valueBlock) {
     /** @type {string} */ var decl = '';
     /** @type {string} */ var output = '';
-    /** @type {Object} */ var state = tcuTestCase.runner.getState();
+    /** @type {Object} */ var state = tcuTestCase.runner;
     /** @type {boolean} */ var usesInout = glsShaderLibraryCase.usesShaderInoutQualifiers(state.currentTest.spec.targetVersion);
     /** @type {boolean} */ var customColorOut = usesInout;
     /** @type {string} */ var fragIn = usesInout ? 'in' : 'varying';
@@ -812,7 +812,7 @@ glsShaderLibraryCase.checkPixels = function(surface, minX, maxX, minY, maxY) {
  * Initialize a test case
  */
 glsShaderLibraryCase.init = function() {
-/** @type {Object} */ var state = tcuTestCase.runner.getState();
+/** @type {Object} */ var state = tcuTestCase.runner;
 /** @type {Object} */ var test = state.currentTest;
 
     bufferedLogToConsole('Processing ' + test.fullName());
@@ -874,7 +874,7 @@ glsShaderLibraryCase.execute = function()
 
     var wtu = WebGLTestUtils;
     /** @type {WebGLRenderingContext} */ var gl = wtu.create3DContext('canvas');
-    /** @type {Object} */ var state = tcuTestCase.runner.getState();
+    /** @type {Object} */ var state = tcuTestCase.runner;
     /** @type {Object} */ var test = state.currentTest;
     /** @type {Object} */ var spec = test.spec;
 
@@ -1185,9 +1185,8 @@ glsShaderLibraryCase.execute = function()
 };
 
 glsShaderLibraryCase.runTestCases = function() {
-/** @type {Object} */ var state = tcuTestCase.runner.getState();
-    state.currentTest = state.testCases.next(state.filter);
-    if (state.currentTest) {
+/** @type {Object} */ var state = tcuTestCase.runner;
+    if (state.next()) {
         try {
             glsShaderLibraryCase.init();
             glsShaderLibraryCase.execute();

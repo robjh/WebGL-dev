@@ -30,14 +30,13 @@ goog.require('framework.delibs.debase.deRandom');
 
 goog.scope(function() {
 
-var es3fUniformBlockTests = functional.gles3.es3fUniformBlockTests;
-var gluShaderUtil = framework.opengl.gluShaderUtil;
-var glsUniformBlockCase = modules.shared.glsUniformBlockCase;
-var glsRandomUniformBlockCase = modules.shared.glsRandomUniformBlockCase;
-var tcuTestCase = framework.common.tcuTestCase;
-var deMath = framework.delibs.debase.deMath;
-var deRandom = framework.delibs.debase.deRandom;
-    
+    var es3fUniformBlockTests = functional.gles3.es3fUniformBlockTests;
+    var gluShaderUtil = framework.opengl.gluShaderUtil;
+    var glsUniformBlockCase = modules.shared.glsUniformBlockCase;
+    var glsRandomUniformBlockCase = modules.shared.glsRandomUniformBlockCase;
+    var tcuTestCase = framework.common.tcuTestCase;
+    var deMath = framework.delibs.debase.deMath;
+    var deRandom = framework.delibs.debase.deRandom;
 
     /**
      * es3fUniformBlockTests.createRandomCaseGroup
@@ -344,7 +343,7 @@ var deRandom = framework.delibs.debase.deRandom;
      * @param {string} filter A filter to select particular tests.
      **/
     es3fUniformBlockTests.init = function() {
-        /** @const @type {tcuTestCase.DeqpTest} */ var testGroup = tcuTestCase.runner.getState().testCases;
+        /** @const @type {tcuTestCase.DeqpTest} */ var testGroup = tcuTestCase.runner.testCases;
 
         /** @type {gluShaderUtil.DataType} */
         var basicTypes = [
@@ -744,10 +743,10 @@ var deRandom = framework.delibs.debase.deRandom;
         //Set up Test Root parameters
         var testName = 'ubo';
         var testDescription = 'Uniform Block Tests';
-        var state = tcuTestCase.runner.getState();
+        var state = tcuTestCase.runner;
 
-        state.testName = testName;
-        state.testCases = tcuTestCase.newTest(testName, testDescription, null);
+        // TODO: state.testName = testName;
+        state.setRoot(tcuTestCase.newTest(testName, testDescription, null));
 
         //Set up name and description of this test series.
         setCurrentTestName(testName);

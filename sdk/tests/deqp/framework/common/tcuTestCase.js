@@ -30,8 +30,24 @@ goog.scope(function() {
     var tcuTestCase = framework.common.tcuTestCase;
 
     /**
-    * Indicates the state of an iteration operation.
-    */
+     * Reads the filter parameter from the URL to filter tests.
+     * @return {string | null}
+     */
+    tcuTestCase.getFilter = function() {
+        var queryVars = window.location.search.substring(1).split('&');
+
+        for (var i = 0; i < queryVars.length; i++) {
+            var value = queryVars[i].split('=');
+            if (decodeURIComponent(value[0]) === 'filter')
+                return decodeURIComponent(value[1]);
+        }
+        return null;
+    };
+
+    /**
+     * Indicates the state of an iteration operation.
+     * @enum
+     */
     tcuTestCase.IterateResult = {
         STOP: 0,
         CONTINUE: 1
@@ -40,38 +56,49 @@ goog.scope(function() {
     /****************************************
     * Runner
     ***************************************/
+
     /**
     * A simple state machine.
     * The purpose of this this object is to break
     * long tests into small chunks that won't cause a timeout
+    * @constructor
     */
     tcuTestCase.Runner = function() {
         /** @type {tcuTestCase.DeqpTest} */ this.currentTest = null;
         /** @type {tcuTestCase.DeqpTest} */ this.nextTest = null;
         /** @type {tcuTestCase.DeqpTest} */ this.testCases = null;
+        /** @type {string | null} */ this.filter = tcuTestCase.getFilter();
     };
+
     /**
     * @param {tcuTestCase.DeqpTest} root The root test of the test tree.
     */
-    tcuTestCase.setRoot = function (root) {
+    tcuTestCase.Runner.prototype.setRoot = function (root) {
         this.currentTest = null;
         this.testCases = root;
     };
 
     /**
     * Searches the test tree for the next executable test
-    * @return {tcuTestCase.DeqpTest}
+    * @return {tcuTestCase.DeqpTest | null}
     */
     tcuTestCase.Runner.prototype.next = function () {
 
-        if (!this.currentTest)
+        // First time? Use root test
+        if (!this.currentTest) {
             this.currentTest = this.testCases;
 
-        while (!this.currentTest.isExecutable()) {
-            // Should we proceed with the next test?
-            if (tcuTestCase.lastResult == tcuTestCase.IterateResult.STOP) {
-                this.currentTest = currentTest.next(this.filter);
-            }
+            // Root is executable? Use it
+            if (this.currentTest.isExecutable())
+                return this.currentTest;
+        }
+
+        // Should we proceed with the next test?
+        if (tcuTestCase.lastResult == tcuTestCase.IterateResult.STOP) {
+            // Look for next executable test
+            do {
+                this.currentTest = this.currentTest.next(this.filter);
+            } while (this.currentTest && !this.currentTest.isExecutable());
         }
 
         return this.currentTest;
@@ -96,7 +123,7 @@ goog.scope(function() {
 
     tcuTestCase.runner = new tcuTestCase.Runner();
 
-    /** @type {tcuTestCase.runner.IterateResult} */ tcuTestCase.lastResult = tcuTestCase.IterateResult.STOP;
+    /** @type {tcuTestCase.IterateResult} */ tcuTestCase.lastResult = tcuTestCase.IterateResult.STOP;
 
     /****************************************
     * DeqpTest
@@ -120,6 +147,17 @@ goog.scope(function() {
     };
 
     /**
+     * Abstract init function (each particular test will implement it)
+     */
+    tcuTestCase.DeqpTest.prototype.init = function () {};
+
+    /**
+     * Abstract iterate function (each particular test will implement it)
+     * @return {tcuTestCase.IterateResult}
+     */
+    tcuTestCase.DeqpTest.prototype.iterate = function () { return tcuTestCase.IterateResult.STOP; };
+
+    /**
     * Checks if the test is executable
     */
     tcuTestCase.DeqpTest.prototype.isExecutable = function () {
@@ -136,10 +174,20 @@ goog.scope(function() {
     };
 
     /**
+     * Sets the whole children tests array
+     * @param {Array<tcuTestCase.DeqpTest>} tests
+     */
+    tcuTestCase.DeqpTest.prototype.setChildren = function(tests) {
+        for (var test in tests)
+            tests[test].parentTest = this;
+        this.childrenTests = tests;
+    };
+
+    /**
     * Returns the next test in the hierarchy of tests
     *
-    * @param {string} pattern Optional pattern to search for
-    * @return {Object} Test specification
+    * @param {string | null} pattern Optional pattern to search for
+    * @return {tcuTestCase.DeqpTest}
     */
     tcuTestCase.DeqpTest.prototype.next = function(pattern) {
         if (pattern)
@@ -156,7 +204,7 @@ goog.scope(function() {
         // If no more children, get the next brother
         if (test == null && this.parentTest != null) {
             this.currentTestNdx = 0;
-            test = this.parentTest.next();
+            test = this.parentTest.next(null);
         }
 
         return test;
@@ -189,12 +237,12 @@ goog.scope(function() {
     * Fast-forwards to a test whose full name matches the given pattern
     *
     * @param {string} pattern Regular expression to search for
-    * @return {Object} Found test or null.
+    * @return {tcuTestCase.DeqpTest | null} Found test or null.
     */
     tcuTestCase.DeqpTest.prototype.find = function(pattern) {
         var test = null;
         while (true) {
-            test = this.next();
+            test = this.next(null);
             if (!test)
                 break;
             if (test.fullName().match(pattern))
@@ -250,66 +298,37 @@ goog.scope(function() {
     };
 
     /**
-    * Reads the filter parameter from the URL to filter tests.
-    */
-    tcuTestCase.getFilter = function() {
-        var queryVars = window.location.search.substring(1).split('&');
-
-        for (var i = 0; i < queryVars.length; i++) {
-            var value = queryVars[i].split('=');
-            if (decodeURIComponent(value[0]) === 'filter')
-                return decodeURIComponent(value[1]);
-        }
-        return null;
-    };
-
-    /**
     * Run through the test cases giving time to system operation.
     */
     tcuTestCase.runTestCases = function() {
-        var state = tcuTestCase.Runner;
-        if (state.filter === undefined)
-            state.filter = tcuTestCase.getFilter();
+        var state = tcuTestCase.runner;
 
-        state.next();
-
-        if (state.currentTest) {
-        try {
-                //If proceeding with the next test, prepare it.
+        if (state.next()) {
+            try {
+                // If proceeding with the next test, prepare it.
                 if (tcuTestCase.lastResult == tcuTestCase.IterateResult.STOP)
                 {
-                    //Update current test name
+                    // Update current test name
                     var fullTestName = state.currentTest.fullName();
                     setCurrentTestName(fullTestName);
                     bufferedLogToConsole('Start testcase: ' + fullTestName); //Show also in console so we can see which test crashed the browser's tab
 
-                    //TODO: Improve this
-                    //Initialize particular test if it exposes an init method
-                    if (state.currentTest.init !== undefined)
-                        state.currentTest.init();
-                    else if (state.currentTest.spec !== undefined && state.currentTest.spec.init !== undefined)
-                        state.currentTest.spec.init();
+                    // Initialize particular test
+                    state.currentTest.init();
                 }
 
-                //TODO: Improve this
-                //Run the test, save the result.
-            if (state.currentTest.iterate !== undefined) {
-                    debug('Start testcase: ' + fullTestName);
-                    tcuTestCase.lastResult = state.currentTest.iterate();
-            } else if (state.currentTest.spec !== undefined && state.currentTest.spec.iterate !== undefined) {
-                    debug('Start testcase: ' + fullTestName);
-                    tcuTestCase.lastResult = state.currentTest.spec.iterate();
-                }
+                // Run the test, save the result.
+                debug('Start testcase: ' + fullTestName);
+                tcuTestCase.lastResult = state.currentTest.iterate();
             }
-        catch (err) {
-                //If the exception was not thrown by a test check, log it, but don't throw it again
+            catch (err) {
+                // If the exception was not thrown by a test check, log it, but don't throw it again
                 if (!(err instanceof TestFailedException))
                     testFailedOptions(err.message, false);
                 bufferedLogToConsole(err);
             }
 
             tcuTestCase.runner.runCallback(tcuTestCase.runTestCases);
-
         } else
             tcuTestCase.runner.terminate();
     };
