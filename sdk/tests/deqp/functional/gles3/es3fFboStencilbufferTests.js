@@ -259,11 +259,11 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
             gl.DEPTH24_STENCIL8,
             gl.STENCIL_INDEX8
         ];
-        var testGroup = tcuTestCase.runner.testCases;
+
         // .basic
         /** @type {tcuTestCase.DeqpTest} */
-        var basicGroup = new tcuTestCase.newTest('basic', 'Basic stencil tests');
-        testGroup.addChild(basicGroup);
+        var basicGroup = tcuTestCase.newTest('basic', 'Basic stencil tests');
+        this.addChild(basicGroup);
 
         for (var fmtNdx = 0; fmtNdx < stencilFormats.length; fmtNdx++) {
             /** @type {number} */ var format = stencilFormats[fmtNdx];
@@ -277,8 +277,8 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
 
         // .attach
         /** @type {tcuTestCase.DeqpTest} */
-        var attachGroup = new tcuTestCase.newTest('attach', 'Attaching depth stencil');
-        testGroup.addChild(attachGroup);
+        var attachGroup = tcuTestCase.newTest('attach', 'Attaching depth stencil');
+        this.addChild(attachGroup);
 
         attachGroup.addChild(new es3fFboStencilbufferTests.DepthStencilAttachCase('depth_only', 'Only depth part of depth-stencil RBO attached', GL_DEPTH_ATTACHMENT, GL_NONE));
         attachGroup.addChild(new es3fFboStencilbufferTests.DepthStencilAttachCase('stencil_only', 'Only stencil part of depth-stencil RBO attached', GL_NONE, GL_STENCIL_ATTACHMENT));

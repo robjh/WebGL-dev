@@ -29,13 +29,12 @@ goog.require('framework.delibs.debase.deRandom');
 
 goog.scope(function() {
 
-var glsRandomUniformBlockCase = modules.shared.glsRandomUniformBlockCase;
-var gluShaderUtil = framework.opengl.gluShaderUtil;
-var glsUniformBlockCase = modules.shared.glsUniformBlockCase;
-var tcuTestCase = framework.common.tcuTestCase;
-var deMath = framework.delibs.debase.deMath;
-var deRandom = framework.delibs.debase.deRandom;
-    
+    var glsRandomUniformBlockCase = modules.shared.glsRandomUniformBlockCase;
+    var gluShaderUtil = framework.opengl.gluShaderUtil;
+    var glsUniformBlockCase = modules.shared.glsUniformBlockCase;
+    var tcuTestCase = framework.common.tcuTestCase;
+    var deMath = framework.delibs.debase.deMath;
+    var deRandom = framework.delibs.debase.deRandom;
 
     glsRandomUniformBlockCase.FeatureBits = {
         FEATURE_VECTORS: (1 << 0),

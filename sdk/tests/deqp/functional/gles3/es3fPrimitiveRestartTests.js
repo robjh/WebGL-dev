@@ -658,7 +658,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
                     if (deString.deIsStringEmpty(specialCaseGroupName))
                         specialCaseGroupName = 'basic';
 
-                    /** @type {tcuTestCase.DeqpTest} */ var specialCaseGroup = new tcuTestCase.newTest(specialCaseGroupName, '');
+                    /** @type {tcuTestCase.DeqpTest} */ var specialCaseGroup = tcuTestCase.newTest(specialCaseGroupName, '');
                     testGroup.addChild(specialCaseGroup);
 
                     for (var primType in es3fPrimitiveRestartTests.PrimitiveType) {
@@ -673,7 +673,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
 
                         DE_ASSERT(primTypeName != null);
 
-                        /** @type {tcuTestCase.DeqpTest} */ var primTypeGroup = new tcuTestCase.newTest(es3fPrimitiveRestartTests.PrimitiveType[primType], '');
+                        /** @type {tcuTestCase.DeqpTest} */ var primTypeGroup = tcuTestCase.newTest(es3fPrimitiveRestartTests.PrimitiveType[primType], '');
                         specialCaseGroup.addChild(primTypeGroup);
 
                         for (var indexType in es3fPrimitiveRestartTests.IndexType) {
@@ -684,11 +684,11 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
 
                             DE_ASSERT(indexTypeName != null);
 
-                            /** @type {tcuTestCase.DeqpTest} */ var indexTypeGroup = new tcuTestCase.newTest(indexTypeName, '');
+                            /** @type {tcuTestCase.DeqpTest} */ var indexTypeGroup = tcuTestCase.newTest(indexTypeName, '');
                             primTypeGroup.addChild(indexTypeGroup);
 
                             for (var _function in es3fPrimitiveRestartTests.DrawFunction) {
-                                /** @type {string} */ var functionName = es3fPrimitiveRestartTests.DrawFunction[_function] == es3fPrimitiveRestartTests.DrawFunction.FUNCTION_DRAW_ELEMENTS ? 'draw_elements' :
+                                /** @type {?string} */ var functionName = es3fPrimitiveRestartTests.DrawFunction[_function] == es3fPrimitiveRestartTests.DrawFunction.FUNCTION_DRAW_ELEMENTS ? 'draw_elements' :
                                                                          es3fPrimitiveRestartTests.DrawFunction[_function] == es3fPrimitiveRestartTests.DrawFunction.FUNCTION_DRAW_ELEMENTS_INSTANCED ? 'draw_elements_instanced' :
                                                                          es3fPrimitiveRestartTests.DrawFunction[_function] == es3fPrimitiveRestartTests.DrawFunction.FUNCTION_DRAW_RANGE_ELEMENTS ? 'draw_range_elements' :
                                                                          null;

@@ -316,12 +316,12 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
         ];
 
         /** @const {number} */ var sampleCounts = [2, 4, 8];
-        var testGroup = tcuTestCase.runner.testCases;
+
         for (var sampleCntNdx in sampleCounts) {
             /** @type {number} */ var samples = sampleCounts[sampleCntNdx];
             /** @type {tcuTestCase.DeqpTest} */
-            var sampleCountGroup = new tcuTestCase.newTest(samples + '_', '');
-            testGroup.addChild(sampleCountGroup);
+            var sampleCountGroup = tcuTestCase.newTest(samples + '_', '');
+            this.addChild(sampleCountGroup);
 
             // Color formats.
             for (var fmtNdx in colorFormats)
