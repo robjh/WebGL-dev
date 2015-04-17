@@ -40,14 +40,14 @@ var deMath = framework.delibs.debase.deMath;
     /**
      * Compute hash from string.
      * @param {string} str String to compute hash value for.
-     * @return {deMath.deUint32} Computed hash value.
+     * @return {number} Computed hash value.
      */
     deString.deStringHash = function(str) {
         /* \note [pyry] This hash is used in DT_GNU_HASH and is proven
         to be robust for symbol hashing. */
         /* \see http://sources.redhat.com/ml/binutils/2006-06/msg00418.html */
-        /** @type {deMath.deUint32} */ var hash = 5381;
-        /** @type {deMath.deUint32} */ var c;
+        /** @type {number} */ var hash = 5381;
+        /** @type {number} */ var c;
 
         DE_ASSERT(str != undefined);
         var i = 0;

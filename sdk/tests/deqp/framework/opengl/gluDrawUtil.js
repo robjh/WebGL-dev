@@ -51,7 +51,7 @@ gluDrawUtil.VertexArrayBinding = function(type, location, components, elements, 
  * @param {gluDrawUtil.VertexArrayPointer} pointer
  * @return {gluDrawUtil.VertexArrayBinding}
  */
-function vabFromBindingPointAndArrayPointer(binding, pointer) {
+gluDrawUtil.vabFromBindingPointAndArrayPointer = function(binding, pointer) {
     var type = gl.FLOAT;
     var location = binding.location;
     var components = pointer.numComponents;
@@ -410,7 +410,7 @@ gluDrawUtil.BindingPoint = function(name, location) {
  * @param {number} location
  * return {gluDrawUtil.BindingPoint}
  */
-function bindingPointFromLocation(location) {
+gluDrawUtil.bindingPointFromLocation = function(location) {
     return new gluDrawUtil.BindingPoint('', location);
 }
 
@@ -420,7 +420,7 @@ function bindingPointFromLocation(location) {
  * @param {number=} location
  * return {gluDrawUtil.BindingPoint}
  */
-function bindingPointFromName(name, location) {
+gluDrawUtil.bindingPointFromName = function(name, location) {
     return new gluDrawUtil.BindingPoint(name, location);
 }
 

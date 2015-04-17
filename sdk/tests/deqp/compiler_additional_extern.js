@@ -34,3 +34,9 @@ function assertMsgOptions(assertion, msg, verbose, exthrow) {};
  * @param {string} msg
  */
 function debug(msg){};
+
+/**
+ * @param {string} msg
+ * @param {boolean} exthrow
+ */
+function testFailedOptions(msg, exthrow){};
