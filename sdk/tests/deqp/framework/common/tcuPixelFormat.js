@@ -21,7 +21,6 @@
 'use strict';
 goog.provide('framework.common.tcuPixelFormat');
 
-
 goog.scope(function() {
 
 var tcuPixelFormat = framework.common.tcuPixelFormat;
@@ -42,7 +41,5 @@ tcuPixelFormat.PixelFormat.prototype.equals = function(r, g, b, a) {
             this.blueBits === b &&
             this.alphaBits === a;
 };
-
-
 
 });

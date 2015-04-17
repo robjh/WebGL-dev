@@ -74,7 +74,7 @@ function vabFromBindingPointAndArrayPointer(binding, pointer) {
  * @return {Array} outputArray
  */
 gluDrawUtil.namedBindingsToProgramLocations = function(gl, program, inputArray, outputArray) {
-    outputArray = outputArray ||  [];
+    outputArray = outputArray || [];
 
     for (var i = 0; i < inputArray.length; i++) {
         var cur = inputArray[i];
@@ -99,7 +99,7 @@ gluDrawUtil.namedBindingsToProgramLocations = function(gl, program, inputArray, 
  * @param {gluShaderProgram.ShaderProgram} program
  * @param {Array.<number>} vertexArrays
  * @param {gluDrawUtil.PrimitiveList} primitives to gluDrawUtil.draw
- * @param {{beforeDrawCall:function(), afterDrawCall:function()}=} callback
+ * @param { {beforeDrawCall:function(), afterDrawCall:function()}=} callback
  */
 gluDrawUtil.drawFromBuffers = function(gl, program, vertexArrays, primitives, callback) {
     /** TODO: finish implementation */
@@ -143,7 +143,7 @@ gluDrawUtil.drawFromBuffers = function(gl, program, vertexArrays, primitives, ca
  * @param {number} program ID, vertexProgramID
  * @param {Array<gluDrawUtil.VertexArrayBinding>} vertexArrays
  * @param {gluDrawUtil.PrimitiveList} primitives to gluDrawUtil.draw
- * @param {{beforeDrawCall:function(), afterDrawCall:function()}=} callback
+ * @param { {beforeDrawCall:function(), afterDrawCall:function()}=} callback
  */
 gluDrawUtil.draw = function(gl, program, vertexArrays, primitives, callback) {
     /** TODO: finish implementation */

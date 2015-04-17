@@ -45,7 +45,7 @@ gluShaderUtil.GLSLVersion.V_LAST = Object.keys(gluShaderUtil.GLSLVersion).length
 
 /**
  * gluShaderUtil.getGLSLVersion - Returns a gluShaderUtil.GLSLVersion based on a given webgl context.
- * @param {WebGLRenderingContext} gl
+ * @param {WebGL2RenderingContext} gl
  * @return {gluShaderUtil.GLSLVersion}
  */
 gluShaderUtil.getGLSLVersion = function(gl) {
