@@ -97,7 +97,7 @@ def build_target(target, namespace):
     global total_errors
     global total_warnings
     deps = read_file(dep_filename(target))
-    cmdLine = 'java -jar compiler.jar --compilation_level ADVANCED_OPTIMIZATIONS --warning_level VERBOSE --jscomp_warning undefinedVars --externs js-test-pre_extern.js'
+    cmdLine = 'java -jar compiler.jar --compilation_level ADVANCED_OPTIMIZATIONS --warning_level VERBOSE --jscomp_warning undefinedVars --externs compiler_additional_extern.js'
     for dep in deps.split('\n'):
         dep = dep.strip()
         if len(dep) > 0:
