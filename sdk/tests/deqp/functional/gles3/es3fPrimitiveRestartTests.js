@@ -636,12 +636,12 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
         assertMsgOptions(testOk, '', true, false);
         gl.useProgram(null);
 
-        return tcuTestCase.runner.IterateResult.STOP;
+        return tcuTestCase.IterateResult.STOP;
     };
 
 
     es3fPrimitiveRestartTests.init = function() {
-        var testGroup = tcuTestCase.runner.getState().testCases;
+        var testGroup = tcuTestCase.runner.testCases;
         for (var isRestartBeginCaseI = 0; isRestartBeginCaseI <= 1; isRestartBeginCaseI++) {
             for (var isRestartEndCaseI = 0; isRestartEndCaseI <= 1; isRestartEndCaseI++) {
                 for (var isDuplicateRestartCaseI = 0; isDuplicateRestartCaseI <= 1; isDuplicateRestartCaseI++) {
@@ -716,10 +716,10 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
         //Set up Test Root parameters
         var testName = 'primitive_restart';
         var testDescription = 'Primitive Restart Tests';
-        var state = tcuTestCase.runner.getState();
+        var state = tcuTestCase.runner;
 
         state.testName = testName;
-        state.testCases = tcuTestCase.newTest(testName, testDescription, null);
+        state.setRoot(tcuTestCase.newTest(testName, testDescription, null));
 
         //Set up name and description of this test series.
         setCurrentTestName(testName);
