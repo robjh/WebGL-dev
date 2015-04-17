@@ -165,6 +165,13 @@ goog.scope(function() {
     };
 
     /**
+     * Marks the test as always executable
+     */
+    tcuTestCase.DeqpTest.prototype.makeExecutable = function () {
+        this.executeAlways = true;
+    };
+
+    /**
     * Adds a child test to the test's children
     * @param {tcuTestCase.DeqpTest} test
     */
@@ -292,7 +299,7 @@ goog.scope(function() {
     */
     tcuTestCase.newExecutableTest = function(name, description, spec) {
         var test = tcuTestCase.newTest(name, description, spec);
-        test.executeAlways = true;
+        test.makeExecutable();
 
         return test;
     };
