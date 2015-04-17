@@ -72,5 +72,5 @@ var tcuMatrix = framework.common.tcuMatrix;
                     v += matrixA.get(row, ndx) * matrixB.get(ndx, col);
                 res.set(row, col, v);
             }
-        
+    }        
 });
