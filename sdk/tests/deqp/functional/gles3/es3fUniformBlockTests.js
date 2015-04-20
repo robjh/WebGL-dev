@@ -63,7 +63,7 @@ goog.scope(function() {
      * @param {string} name The name of the test
      * @param {string} description The description of the test
      * @param {glsUniformBlockCase.VarType} type The type of the block
-     * @param {glsUniformBlockCase.UniformLayout} layoutFlags
+     * @param {number} layoutFlags
      * @param {number} numInstances
      * @constructor
      */
@@ -98,6 +98,7 @@ goog.scope(function() {
      * @param {number} layoutFlags
      * @param {glsUniformBlockCase.BufferMode} bufferMode
      * @param {number} numInstances
+     * @constructor
      */
     es3fUniformBlockTests.BlockSingleStructCase = function(name, description, layoutFlags, bufferMode, numInstances) {
         glsUniformBlockCase.UniformBlockCase.call(this, name, description, bufferMode);
@@ -131,6 +132,7 @@ goog.scope(function() {
      * @param {number} layoutFlags
      * @param {glsUniformBlockCase.BufferMode} bufferMode
      * @param {number} numInstances
+     * @constructor
      */
     es3fUniformBlockTests.BlockSingleStructArrayCase = function(name, description, layoutFlags, bufferMode, numInstances) {
         glsUniformBlockCase.UniformBlockCase.call(this, name, description, bufferMode);
@@ -166,6 +168,7 @@ goog.scope(function() {
      * @param {number} layoutFlags
      * @param {glsUniformBlockCase.BufferMode} bufferMode
      * @param {number} numInstances
+     * @constructor
      */
     es3fUniformBlockTests.BlockSingleNestedStructCase = function(name, description, layoutFlags, bufferMode, numInstances) {
         glsUniformBlockCase.UniformBlockCase.call(this, name, description, bufferMode);
@@ -206,6 +209,7 @@ goog.scope(function() {
      * @param {number} layoutFlags
      * @param {glsUniformBlockCase.BufferMode} bufferMode
      * @param {number} numInstances
+     * @constructor
      */
     es3fUniformBlockTests.BlockSingleNestedStructArrayCase = function(name, description, layoutFlags, bufferMode, numInstances) {
         glsUniformBlockCase.UniformBlockCase.call(this, name, description, bufferMode);
@@ -247,6 +251,7 @@ goog.scope(function() {
      * @param {number} flagsB
      * @param {glsUniformBlockCase.BufferMode} bufferMode
      * @param {number} numInstances
+     * @constructor
      */
     es3fUniformBlockTests.BlockMultiBasicTypesCase = function(name, description, flagsA, flagsB, bufferMode, numInstances) {
         glsUniformBlockCase.UniformBlockCase.call(this, name, description, bufferMode);
@@ -288,6 +293,7 @@ goog.scope(function() {
      * @param {number} flagsB
      * @param {glsUniformBlockCase.BufferMode} bufferMode
      * @param {number} numInstances
+     * @constructor
      */
     es3fUniformBlockTests.BlockMultiNestedStructCase = function(name, description, flagsA, flagsB, bufferMode, numInstances) {
         glsUniformBlockCase.UniformBlockCase.call(this, name, description, bufferMode);
@@ -333,7 +339,6 @@ goog.scope(function() {
 
     /**
      * Creates the test hierarchy to be executed.
-     * @param {string} filter A filter to select particular tests.
      **/
     es3fUniformBlockTests.init = function() {
         /** @const @type {tcuTestCase.DeqpTest} */ var testGroup = tcuTestCase.runner.testCases;

@@ -101,6 +101,9 @@ glsUniformBlockCase.isSupportedGLSLVersion = function(version) {
     return version >= gluShaderUtil.GLSLVersion.V100_ES; //TODO: set this to V300_ES. Left this way for tests.
 };
 
+/**
+ * @enum 
+ */
 glsUniformBlockCase.UniformFlags = {
     PRECISION_LOW: (1 << 0),
     PRECISION_MEDIUM: (1 << 1),
@@ -337,6 +340,7 @@ glsUniformBlockCase.StructMember.prototype.getFlags = function() { return this.m
  * Creates a glsUniformBlockCase.StructMember with name, type and flags.
  * @param {string} name
  * @param {glsUniformBlockCase.VarType} type
+ * @param {number=} flags
  * @return {glsUniformBlockCase.StructMember}
  */
  glsUniformBlockCase.newStructMember = function(name, type, flags) {
@@ -346,6 +350,7 @@ glsUniformBlockCase.StructMember.prototype.getFlags = function() { return this.m
 /**
  * glsUniformBlockCase.StructType
  * @param {string} typeName
+ * @constructor
  */
 glsUniformBlockCase.StructType = function() {
     /** @type {string}*/ this.m_typeName;
@@ -398,7 +403,7 @@ glsUniformBlockCase.StructType.prototype.getSize = function() {
 /** addMember
 * @param {string} member_name
 * @param {glsUniformBlockCase.VarType} member_type
-* @param {number} member_flags
+* @param {number=} member_flags
 **/
 glsUniformBlockCase.StructType.prototype.addMember = function(member_name, member_type, member_flags) {
     var member = glsUniformBlockCase.newStructMember(member_name, member_type, member_flags);
@@ -418,7 +423,7 @@ glsUniformBlockCase.newStructType = function(name) {
 /** glsUniformBlockCase.Uniform
  * @param {string} name
  * @param {glsUniformBlockCase.VarType} type
- * @param {number} flags
+ * @param {number=} flags
  * @constructor
 **/
 glsUniformBlockCase.Uniform = function(name, type, flags) {
