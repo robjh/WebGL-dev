@@ -462,16 +462,18 @@ tcuImageCompare.bilinearCompare = function(imageSetName, imageSetDesc, reference
         reference.getWidth(),
         reference.getHeight());
 
+    var errorMask_ = tcuTexture.PixelBufferAccess.newFromTextureLevel(errorMask);
+
     /** @type {boolean} */
     var isOk = tcuBilinearImageCompare.bilinearCompare(
         reference,
         result,
-        errorMask,
+        errorMask_,
         threshold);
 
     if (!isOk) {
         debug('Image comparison failed: threshold = ' + threshold);
-        tcuImageCompare.displayImages(result, reference, errorMask.getAccess());
+        tcuImageCompare.displayImages(result, reference, errorMask_.getAccess());
     }
 
     // /* @type {Array<number>} */ var pixelBias = [0.0, 0.0, 0.0, 0.0];

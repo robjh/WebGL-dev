@@ -23,23 +23,23 @@ from sys import stdout, stderr, argv
 
 # List of targets (short target name, closure namespace)
 targets = {
-    # 'textureformat': 'functional.gles3.es3fTextureFormatTests',
-    # 'fboCompletenessTests': 'functional.gles3.es3fFboCompletenessTests',
-    # 'fbomultisampletests': 'functional.gles3.es3fFboMultisampleTests',
-    # 'fbostencilbuffertests': 'functional.gles3.es3fFboStencilbufferTests',
-    # 'fragmentoutput': 'functional.gles3.es3fFragmentOutputTests',
-    # 'framebufferblittests': 'functional.gles3.es3fFramebufferBlitTests',
-    # 'instancedrenderingtests': 'functional.gles3.es3fInstancedRenderingTests',
-    # 'pixelBufferObjectTest': 'functional.gles3.es3fPixelBufferObjectTest',
-    # 'primitiverestarttests': 'functional.gles3.es3fPrimitiveRestartTests',
-    'samplerobjecttests': 'functional.gles3.es3fSamplerObjectTests'
-    # 'testfloats': 'framework.common.tcuFloat',
-    # 'transformFeedbackTests': 'functional.gles3.es3fTransformFeedbackTests',
-    # 'uniformapi': 'functional.gles3.es3fUniformApiTests',
-    # 'uniformbuffers': 'functional.gles3.es3fUniformBlockTests',
-    # 'vertexarrays': 'functional.gles3.es3fVertexArrayTests',
-    # 'shaderlibrary': 'modules.shared.glsShaderLibrary',
-    # 'matrix': 'framework.common.tcuMatrix'
+     'textureformat': 'functional.gles3.es3fTextureFormatTests',
+     'fboCompletenessTests': 'functional.gles3.es3fFboCompletenessTests',
+     'fbomultisampletests': 'functional.gles3.es3fFboMultisampleTests',
+     'fbostencilbuffertests': 'functional.gles3.es3fFboStencilbufferTests',
+     'fragmentoutput': 'functional.gles3.es3fFragmentOutputTests',
+     'framebufferblittests': 'functional.gles3.es3fFramebufferBlitTests',
+     'instancedrenderingtests': 'functional.gles3.es3fInstancedRenderingTests',
+     'pixelBufferObjectTest': 'functional.gles3.es3fPixelBufferObjectTest',
+     'primitiverestarttests': 'functional.gles3.es3fPrimitiveRestartTests',
+     'samplerobjecttests': 'functional.gles3.es3fSamplerObjectTests',
+     'testfloats': 'framework.common.tcuFloat',
+     'transformFeedbackTests': 'functional.gles3.es3fTransformFeedbackTests',
+     'uniformapi': 'functional.gles3.es3fUniformApiTests',
+     'uniformbuffers': 'functional.gles3.es3fUniformBlockTests',
+     'vertexarrays': 'functional.gles3.es3fVertexArrayTests',
+     'shaderlibrary': 'modules.shared.glsShaderLibrary',
+     'matrix': 'framework.common.tcuMatrix'
 }
 def dep_filename(target):
     return target + '.dep'

@@ -383,7 +383,7 @@ var tcuTextureUtil = framework.common.tcuTextureUtil;
         /** @type {number} */ var errSum = 0.0;
 
         // Clear error mask to green.
-        tcuTextureUtil.clear(errorMask, [0.0, 1.0, 0.0, 1.0]);
+        tcuTextureUtil.clear(errorMask_, [0.0, 1.0, 0.0, 1.0]);
 
         /** @type {tcuTexture.ConstPixelBufferAccess} */ var refAccess = refFiltered.getAccess();
         /** @type {tcuTexture.ConstPixelBufferAccess} */ var cmpAccess = cmpFiltered.getAccess();

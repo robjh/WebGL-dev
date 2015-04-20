@@ -761,7 +761,7 @@ gluTextureUtil.getSampler2DType = function(format) {
     return gluShaderUtil.DataType.SAMPLER_2D;
 
     if (format.order == tcuTexture.ChannelOrder.S)
-        return Object.keys(gluShaderUtil.DataType).length;
+        return gluShaderUtil.DataType.INVALID;
 
     switch (tcuTextureUtil.getTextureChannelClass(format.type)) {
         case tcuTextureUtil.TextureChannelClass.FLOATING_POINT:
@@ -776,7 +776,7 @@ gluTextureUtil.getSampler2DType = function(format) {
             return gluShaderUtil.DataType.UINT_SAMPLER_2D;
 
         default:
-            return Object.keys(gluShaderUtil.DataType).length;
+            return gluShaderUtil.DataType.INVALID;
     }
 };
 
