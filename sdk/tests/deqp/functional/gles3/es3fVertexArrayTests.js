@@ -72,6 +72,7 @@ var glsVertexArrayTests = modules.shared.glsVertexArrayTests;
      */
     es3fVertexArrayTests.SingleVertexArrayStrideGroup = function (type) {
         tcuTestCase.DeqpTest.call(this, glsVertexArrayTests.deArray.inputTypeToString(type), glsVertexArrayTests.deArray.inputTypeToString(type));
+        this.makeExecutable();
         this.m_type = type;
     };
 
@@ -134,6 +135,7 @@ var glsVertexArrayTests = modules.shared.glsVertexArrayTests;
      */
     es3fVertexArrayTests.SingleVertexArrayStrideTests = function () {
         tcuTestCase.DeqpTest.call(this, "strides", "Single stride vertex atribute");
+        this.makeExecutable();
     };
 
     es3fVertexArrayTests.SingleVertexArrayStrideTests.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
@@ -161,6 +163,7 @@ var glsVertexArrayTests = modules.shared.glsVertexArrayTests;
      */
     es3fVertexArrayTests.SingleVertexArrayTestGroup = function () {
         tcuTestCase.DeqpTest.call(this, "single_attribute", "Single vertex atribute");
+        this.makeExecutable();
     };
 
     es3fVertexArrayTests.SingleVertexArrayTestGroup.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
@@ -182,6 +185,7 @@ var glsVertexArrayTests = modules.shared.glsVertexArrayTests;
      */
     es3fVertexArrayTests.SingleVertexArrayUsageGroup = function (usage) {
         tcuTestCase.DeqpTest.call(this, glsVertexArrayTests.deArray.usageTypeToString(usage), glsVertexArrayTests.deArray.usageTypeToString(usage));
+        this.makeExecutable();
         this.m_usage = usage;
     };
 
@@ -233,6 +237,7 @@ var glsVertexArrayTests = modules.shared.glsVertexArrayTests;
      */
     es3fVertexArrayTests.SingleVertexArrayUsageTests = function () {
         tcuTestCase.DeqpTest.call(this, "usages", "Single vertex atribute, usage");
+        this.makeExecutable();
     };
 
     es3fVertexArrayTests.SingleVertexArrayUsageTests.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
@@ -266,6 +271,7 @@ var glsVertexArrayTests = modules.shared.glsVertexArrayTests;
      */
     es3fVertexArrayTests.VertexArrayTestGroup = function () {
         tcuTestCase.DeqpTest.call(this, "vertex_arrays", "Vertex array and array tests");
+        this.makeExecutable();
     };
 
     es3fVertexArrayTests.VertexArrayTestGroup.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
@@ -286,7 +292,7 @@ var glsVertexArrayTests = modules.shared.glsVertexArrayTests;
     es3fVertexArrayTests.run = function(context) {
         gl = context;
         //Set up root Test
-        var state = tcuTestCase.runner.getState();
+        var state = tcuTestCase.runner;
 
         var test = new es3fVertexArrayTests.VertexArrayTestGroup();
         var testName = test.fullName();
@@ -299,8 +305,6 @@ var glsVertexArrayTests = modules.shared.glsVertexArrayTests;
         description(testDescription);
 
         try {
-            //Create test cases
-            test.init();
             //Run test cases
             tcuTestCase.runTestCases();
         }
@@ -309,7 +313,5 @@ var glsVertexArrayTests = modules.shared.glsVertexArrayTests;
             tcuTestCase.runner.terminate();
         }
     };
-
-    
 
 });

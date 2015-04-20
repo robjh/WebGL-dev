@@ -116,9 +116,9 @@ deMath.mirror = function(a) {
 };
 
 /**
- * @param {Array.<number>} a Source array
- * @param {Array.<number>} indices
- * @return {Array.<number>} Swizzled array
+ * @param {Array<number>} a Source array
+ * @param {Array<number>} indices
+ * @return {Array<number>} Swizzled array
  */
 deMath.swizzle = function(a, indices) {
     if (!indices.length)
@@ -131,9 +131,9 @@ deMath.swizzle = function(a, indices) {
 
 /**
  * Multiply two vectors, element by element
- * @param {Array.<number>} a
- * @param {Array.<number>} b
- * @return {Array.<number>} Result array
+ * @param {Array<number>} a
+ * @param {Array<number>} b
+ * @return {Array<number>} Result array
  */
 
 deMath.multiply = function(a, b) {
@@ -147,9 +147,9 @@ deMath.multiply = function(a, b) {
 
 /**
  * Add two vectors, element by element
- * @param {Array.<number>} a
- * @param {Array.<number>} b
- * @return {Array.<number>} Result array
+ * @param {Array<number>} a
+ * @param {Array<number>} b
+ * @return {Array<number>} Result array
  */
 
 deMath.add = function(a, b) {
@@ -163,9 +163,9 @@ deMath.add = function(a, b) {
 
 /**
  * Subtract two vectors, element by element
- * @param {Array.<number>} a
- * @param {Array.<number>} b
- * @return {Array.<number>} Result array
+ * @param {Array<number>} a
+ * @param {Array<number>} b
+ * @return {Array<number>} Result array
  */
 
 deMath.subtract = function(a, b) {
@@ -181,7 +181,7 @@ deMath.subtract = function(a, b) {
  * Calculate absolute difference between two vectors
  * @param {goog.NumberArray} a
  * @param {goog.NumberArray} b
- * @return {Array.<number>} abs(diff(a - b))
+ * @return {Array<number>} abs(diff(a - b))
  */
 deMath.absDiff = function(a, b) {
     if (a.length != b.length)
@@ -194,9 +194,9 @@ deMath.absDiff = function(a, b) {
 
 /**
  * Is a <= b (element by element)?
- * @param {Array.<number>} a
- * @param {Array.<number>} b
- * @return {Array.<boolean>} Result array of booleans
+ * @param {Array<number>} a
+ * @param {Array<number>} b
+ * @return {Array<boolean>} Result array of booleans
  */
 deMath.lessThanEqual = function(a, b) {
     if (a.length != b.length)
@@ -222,8 +222,8 @@ deMath.boolAll = function(a) {
 
 /**
  * deMath.assign(a, b) element by element
- * @param {Array.<number>} a
- * @return {Array.<number>}
+ * @param {Array<number>} a
+ * @return {Array<number>}
  */
 deMath.assign = function(a) {
     var dst = [];
@@ -234,9 +234,9 @@ deMath.assign = function(a) {
 
 /**
  * deMath.max(a, b) element by element
- * @param {Array.<number>} a
- * @param {Array.<number>} b
- * @return {Array.<number>}
+ * @param {Array<number>} a
+ * @param {Array<number>} b
+ * @return {Array<number>}
  */
 deMath.max = function(a, b) {
     if (a.length != b.length)
@@ -249,9 +249,9 @@ deMath.max = function(a, b) {
 
 /**
  * deMath.min(a, b) element by element
- * @param {Array.<number>} a
- * @param {Array.<number>} b
- * @return {Array.<number>}
+ * @param {Array<number>} a
+ * @param {Array<number>} b
+ * @return {Array<number>}
  */
 deMath.min = function(a, b) {
     if (a.length != b.length)
@@ -368,6 +368,9 @@ deMath.getBitRange = function(array, firstNdx, lastNdx) {
 
 //Bit operations with the help of arrays
 
+/**
+ * @enum
+ */
 deMath.BinaryOp = {
     AND: 0,
     OR: 1
@@ -386,6 +389,8 @@ deMath.doNativeBinaryOp = function(valueA, valueB, operation) {
             return valueA & valueB;
         case deMath.BinaryOp.OR:
             return valueA | valueB;
+        default:
+            throw new Error('Unknown operation:' + operation);
     }
 };
 

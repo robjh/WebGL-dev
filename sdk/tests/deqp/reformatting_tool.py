@@ -170,7 +170,12 @@ rules = [
         'count': 0,
         'flags': re.MULTILINE
     },
-]
+    { 
+        'pattern': r'\{Array.<',
+        'repl': '{Array<',
+        'count': 0,
+        'flags': re.MULTILINE
+    },]
 
 
 def main(argv):

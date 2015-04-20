@@ -233,6 +233,7 @@ var tcuTextureUtil = framework.common.tcuTextureUtil;
     };
 
     /**
+     * @constructor
      * sglrShaderProgram.UniformSlot
      */
     sglrShaderProgram.UniformSlot = function () {

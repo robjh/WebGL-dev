@@ -29,12 +29,12 @@ goog.scope(function() {
 var es3fSamplerObjectTests = functional.gles3.es3fSamplerObjectTests;
 var tcuTestCase = framework.common.tcuTestCase;
 var glsSamplerObjectTest = modules.shared.glsSamplerObjectTest;
-    
+
     /** @type {WebGL2RenderingContext} */ var gl;
 
     // TODO: implement glsSamplerObjectTest and validate constructors
     es3fSamplerObjectTests.init = function() {
-        var testGroup = tcuTestCase.runner.getState().testCases;
+        var testGroup = tcuTestCase.runner.testCases;
         /** @type {Array.<glsSamplerObjectTest.TestSpec>} */ var simpleTestCases = [
             new glsSamplerObjectTest.TestSpec('diff_wrap_t', 'Different gl.TEXTURE_WRAP_T', gl.TEXTURE_2D,
                 new glsSamplerObjectTest.SamplingState(gl.NEAREST, gl.NEAREST, gl.MIRRORED_REPEAT, gl.REPEAT, gl.REPEAT, -1000.0, 1000.0),
@@ -291,10 +291,10 @@ var glsSamplerObjectTest = modules.shared.glsSamplerObjectTest;
         //Set up Test Root parameters
         var testName = 'sampler_object';
         var testDescription = 'Sampler Object Tests';
-        var state = tcuTestCase.runner.getState();
+        var state = tcuTestCase.runner;
 
         state.testName = testName;
-        state.testCases = tcuTestCase.newTest(testName, testDescription, null);
+        state.setRoot(tcuTestCase.newTest(testName, testDescription, null));
 
         //Set up name and description of this test series.
         setCurrentTestName(testName);
@@ -313,5 +313,5 @@ var glsSamplerObjectTest = modules.shared.glsSamplerObjectTest;
     };
 
 
-    
+
 });

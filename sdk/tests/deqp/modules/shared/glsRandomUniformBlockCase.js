@@ -20,22 +20,20 @@
 
 'use strict';
 goog.provide('modules.shared.glsRandomUniformBlockCase');
-goog.require('framework.opengl.gluShaderUtil');
-goog.require('modules.shared.glsUniformBlockCase');
 goog.require('framework.common.tcuTestCase');
 goog.require('framework.delibs.debase.deMath');
 goog.require('framework.delibs.debase.deRandom');
-
+goog.require('framework.opengl.gluShaderUtil');
+goog.require('modules.shared.glsUniformBlockCase');
 
 goog.scope(function() {
 
-var glsRandomUniformBlockCase = modules.shared.glsRandomUniformBlockCase;
-var gluShaderUtil = framework.opengl.gluShaderUtil;
-var glsUniformBlockCase = modules.shared.glsUniformBlockCase;
-var tcuTestCase = framework.common.tcuTestCase;
-var deMath = framework.delibs.debase.deMath;
-var deRandom = framework.delibs.debase.deRandom;
-    
+    var glsRandomUniformBlockCase = modules.shared.glsRandomUniformBlockCase;
+    var gluShaderUtil = framework.opengl.gluShaderUtil;
+    var glsUniformBlockCase = modules.shared.glsUniformBlockCase;
+    var tcuTestCase = framework.common.tcuTestCase;
+    var deMath = framework.delibs.debase.deMath;
+    var deRandom = framework.delibs.debase.deRandom;
 
     glsRandomUniformBlockCase.FeatureBits = {
         FEATURE_VECTORS: (1 << 0),
@@ -52,7 +50,7 @@ var deRandom = framework.delibs.debase.deRandom;
         FEATURE_PACKED_LAYOUT: (1 << 11),
         FEATURE_SHARED_LAYOUT: (1 << 12),
         FEATURE_STD140_LAYOUT: (1 << 13),
-        FEATURE_MATRIX_LAYOUT: (1 << 14),    //!< Matrix layout flags.
+        FEATURE_MATRIX_LAYOUT: (1 << 14), //!< Matrix layout flags.
         FEATURE_ARRAYS_OF_ARRAYS: (1 << 15)
     };
 
@@ -61,8 +59,8 @@ var deRandom = framework.delibs.debase.deRandom;
      * @param {string} name
      * @param {string} description
      * @param {glsUniformBlockCase.BufferMode} bufferMode
-     * @param {deMath.deUint32} features
-     * @param {deMath.deUint32} seed
+     * @param {number} features
+     * @param {number} seed
      */
     glsRandomUniformBlockCase.RandomUniformBlockCase = function(name, description, bufferMode, features, seed) {
         glsUniformBlockCase.UniformBlockCase.call(this, name, description, bufferMode);
@@ -91,17 +89,15 @@ var deRandom = framework.delibs.debase.deRandom;
      * @param {boolean} arrayOk
      * @return {glsUniformBlockCase.VarType}
      */
-    glsRandomUniformBlockCase.RandomUniformBlockCase.prototype.generateType = function(rnd, typeDepth, arrayOk)
-    {
+    glsRandomUniformBlockCase.RandomUniformBlockCase.prototype.generateType = function(rnd, typeDepth, arrayOk) {
         /** @type {number} */ var structWeight = 0.1;
         /** @type {number} */ var arrayWeight = 0.1;
 
-        if (typeDepth < this.m_maxStructDepth && rnd.getFloat() < structWeight)
-        {
+        if (typeDepth < this.m_maxStructDepth && rnd.getFloat() < structWeight) {
             /** @type {number} */ var unusedVtxWeight = 0.15;
             /** @type {number} */ var unusedFragWeight = 0.15;
             /** @type {boolean} */ var unusedOk = (this.m_features & glsRandomUniformBlockCase.FeatureBits.FEATURE_UNUSED_MEMBERS) != 0;
-            /** @type {Array.<glsUniformBlockCase.VarType>} */ var memberTypes = [];
+            /** @type {Array<glsUniformBlockCase.VarType>} */ var memberTypes = [];
             /** @type {number} */ var numMembers = rnd.getInt(1, this.m_maxStructMembers);
 
             // Generate members first so nested struct declarations are in correct order.
@@ -112,9 +108,8 @@ var deRandom = framework.delibs.debase.deRandom;
             this.m_structNdx += 1;
 
             assertMsgOptions(this.m_blockNdx <= 'Z'.charCodeAt(0) - 'A'.charCodeAt(0), 'generateType', false, true);
-            for (var ndx = 0; ndx < numMembers; ndx++)
-            {
-                /** @type {deMath.deUint32} */ var flags = 0;
+            for (var ndx = 0; ndx < numMembers; ndx++) {
+                /** @type {number} */ var flags = 0;
 
                 flags |= (unusedOk && rnd.getFloat() < unusedVtxWeight) ? glsUniformBlockCase.UniformFlags.UNUSED_VERTEX : 0;
                 flags |= (unusedOk && rnd.getFloat() < unusedFragWeight) ? glsUniformBlockCase.UniformFlags.UNUSED_FRAGMENT : 0;
@@ -123,25 +118,20 @@ var deRandom = framework.delibs.debase.deRandom;
             }
 
             return glsUniformBlockCase.newVarTypeStruct(structType);
-        }
-        else if (this.m_maxArrayLength > 0 && arrayOk && rnd.getFloat() < arrayWeight)
-        {
+        } else if (this.m_maxArrayLength > 0 && arrayOk && rnd.getFloat() < arrayWeight) {
             /** @type {boolean} */ var arraysOfArraysOk = (this.m_features & glsRandomUniformBlockCase.FeatureBits.FEATURE_ARRAYS_OF_ARRAYS) != 0;
             /** @type {number} */ var arrayLength = rnd.getInt(1, this.m_maxArrayLength);
             /** @type {glsUniformBlockCase.VarType} */ var elementType = this.generateType(rnd, typeDepth, arraysOfArraysOk);
             return glsUniformBlockCase.newVarTypeArray(elementType, arrayLength);
-        }
-        else
-        {
-            /** @type {Array.<gluShaderUtil.DataType>} */ var typeCandidates = [];
+        } else {
+            /** @type {Array<gluShaderUtil.DataType>} */ var typeCandidates = [];
 
             typeCandidates.push(gluShaderUtil.DataType.FLOAT);
             typeCandidates.push(gluShaderUtil.DataType.INT);
             typeCandidates.push(gluShaderUtil.DataType.UINT);
             typeCandidates.push(gluShaderUtil.DataType.BOOL);
 
-            if (this.m_features & glsRandomUniformBlockCase.FeatureBits.FEATURE_VECTORS)
-            {
+            if (this.m_features & glsRandomUniformBlockCase.FeatureBits.FEATURE_VECTORS) {
                 typeCandidates.push(gluShaderUtil.DataType.FLOAT_VEC2);
                 typeCandidates.push(gluShaderUtil.DataType.FLOAT_VEC3);
                 typeCandidates.push(gluShaderUtil.DataType.FLOAT_VEC4);
@@ -156,8 +146,7 @@ var deRandom = framework.delibs.debase.deRandom;
                 typeCandidates.push(gluShaderUtil.DataType.BOOL_VEC4);
             }
 
-            if (this.m_features & glsRandomUniformBlockCase.FeatureBits.FEATURE_MATRICES)
-            {
+            if (this.m_features & glsRandomUniformBlockCase.FeatureBits.FEATURE_MATRICES) {
                 typeCandidates.push(gluShaderUtil.DataType.FLOAT_MAT2);
                 typeCandidates.push(gluShaderUtil.DataType.FLOAT_MAT2X3);
                 typeCandidates.push(gluShaderUtil.DataType.FLOAT_MAT3X2);
@@ -169,12 +158,11 @@ var deRandom = framework.delibs.debase.deRandom;
             }
 
             /** @type {gluShaderUtil.DataType} */ var type = rnd.choose(typeCandidates)[0];
-            /** @type {deMath.deUint32} */ var flags = 0;
+            /** @type {number} */ var flags = 0;
 
-            if (!gluShaderUtil.isDataTypeBoolOrBVec(type))
-            {
+            if (!gluShaderUtil.isDataTypeBoolOrBVec(type)) {
                 // Precision.
-                /** @type {Array.<deMath.deUint32>} */ var precisionCandidates = [glsUniformBlockCase.UniformFlags.PRECISION_LOW, glsUniformBlockCase.UniformFlags.PRECISION_MEDIUM, glsUniformBlockCase.UniformFlags.PRECISION_HIGH];
+                /** @type {Array<number>} */ var precisionCandidates = [glsUniformBlockCase.UniformFlags.PRECISION_LOW, glsUniformBlockCase.UniformFlags.PRECISION_MEDIUM, glsUniformBlockCase.UniformFlags.PRECISION_HIGH];
                 flags |= rnd.choose(precisionCandidates)[0];
             }
 
@@ -189,13 +177,11 @@ var deRandom = framework.delibs.debase.deRandom;
      * @param {number} ndx
      * @return {string}
      */
-    glsRandomUniformBlockCase.RandomUniformBlockCase.prototype.genName = function(first, last, ndx)
-    {
+    glsRandomUniformBlockCase.RandomUniformBlockCase.prototype.genName = function(first, last, ndx) {
         /** @type {string} */ var str = '';
         /** @type {number} */ var alphabetLen = last - first + 1;
 
-        while (ndx > alphabetLen)
-        {
+        while (ndx > alphabetLen) {
             str = String.fromCharCode(first + ((ndx - 1) % alphabetLen)) + str;
             ndx = Math.floor((ndx - 1) / alphabetLen);
         }
@@ -211,12 +197,11 @@ var deRandom = framework.delibs.debase.deRandom;
      * @param {glsUniformBlockCase.UniformBlock} block
      * @param {number} ndx
      */
-    glsRandomUniformBlockCase.RandomUniformBlockCase.prototype.generateUniform = function(rnd, block)
-    {
+    glsRandomUniformBlockCase.RandomUniformBlockCase.prototype.generateUniform = function(rnd, block) {
         /** @type {number} */ var unusedVtxWeight = 0.15;
         /** @type {number} */ var unusedFragWeight = 0.15;
         /** @type {boolean} */ var unusedOk = (this.m_features & glsRandomUniformBlockCase.FeatureBits.FEATURE_UNUSED_UNIFORMS) != 0;
-        /** @type {deMath.deUint32} */ var flags = 0;
+        /** @type {number} */ var flags = 0;
         /** @type {string} */ var name = this.genName('a'.charCodeAt(0), 'z'.charCodeAt(0), this.m_uniformNdx);
         /** @type {glsUniformBlockCase.VarType} */ var type = this.generateType(rnd, 0, true); //TODO: implement this.
 
@@ -231,7 +216,7 @@ var deRandom = framework.delibs.debase.deRandom;
     /**
      * generateBlock
      * @param {deRandom.Random} rnd
-     * @param {deMath.deUint32} layoutFlags
+     * @param {number} layoutFlags
      */
     glsRandomUniformBlockCase.RandomUniformBlockCase.prototype.generateBlock = function(rnd, layoutFlags) {
         assertMsgOptions(this.m_blockNdx <= 'z'.charCodeAt(0) - 'a'.charCodeAt(0), 'generateBlock', false, true);
@@ -248,7 +233,7 @@ var deRandom = framework.delibs.debase.deRandom;
             block.setInstanceName('block' + String.fromCharCode('A'.charCodeAt(0) + this.m_blockNdx));
 
         // Layout flag candidates.
-        /** @type {Array.<deMath.deUint32>} */ var layoutFlagCandidates = [];
+        /** @type {Array<number>} */ var layoutFlagCandidates = [];
         layoutFlagCandidates.push(0);
         if (this.m_features & glsRandomUniformBlockCase.FeatureBits.FEATURE_PACKED_LAYOUT)
             layoutFlagCandidates.push(glsUniformBlockCase.UniformFlags.LAYOUT_SHARED);
@@ -259,9 +244,8 @@ var deRandom = framework.delibs.debase.deRandom;
 
         layoutFlags |= rnd.choose(layoutFlagCandidates)[0]; //In Javascript, this function returns an array, so taking element 0.
 
-        if (this.m_features & glsRandomUniformBlockCase.FeatureBits.FEATURE_MATRIX_LAYOUT)
-        {
-            /** @type {Array.<deMath.deUint32>}*/ var matrixCandidates = [0, glsUniformBlockCase.UniformFlags.LAYOUT_ROW_MAJOR, glsUniformBlockCase.UniformFlags.LAYOUT_COLUMN_MAJOR];
+        if (this.m_features & glsRandomUniformBlockCase.FeatureBits.FEATURE_MATRIX_LAYOUT) {
+            /** @type {Array<number>}*/ var matrixCandidates = [0, glsUniformBlockCase.UniformFlags.LAYOUT_ROW_MAJOR, glsUniformBlockCase.UniformFlags.LAYOUT_COLUMN_MAJOR];
             layoutFlags |= rnd.choose(matrixCandidates)[0];
         }
 
@@ -292,7 +276,5 @@ var deRandom = framework.delibs.debase.deRandom;
         for (var ndx = 0; ndx < numFragBlocks; ndx++)
             this.generateBlock(rnd, glsUniformBlockCase.UniformFlags.DECLARE_FRAGMENT);
     };
-
-    
 
 });

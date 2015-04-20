@@ -116,10 +116,10 @@ deRandom.getBaseSeed = function() {
 /**
  * TODO Function to deRandom.choose random items from a list
  * @param {deRandom.deRandom} rnd Initialised array of random numbers
- * @param {Array.<Object>} elements Array segment already defined
- * @param {Array.<Object>} resultOut Array where to store the elements in. If undefined, default to array of (num) elements.
+ * @param {Array<Object>} elements Array segment already defined
+ * @param {Array<Object>} resultOut Array where to store the elements in. If undefined, default to array of (num) elements.
  * @param {number} num Number of items to store in resultOut. If undefined, default to 1.
- * @return {Array.<Object>} Even though result is stored in resultOut, return it here as well.
+ * @return {Array<Object>} Even though result is stored in resultOut, return it here as well.
  */
 deRandom.choose = function(rnd, elements, resultOut, num) {
     var items = num || 1;
@@ -204,10 +204,10 @@ deRandom.Random.prototype.getFloat = function(min, max) { return deRandom.deRand
 deRandom.Random.prototype.getInt = function(min, max) {return deRandom.deRandom_getInt(this.m_rnd, [min, max])};
 /**
  * TODO Function to deRandom.choose random items from a list
- * @param {Array.<Object>} elements Array segment already defined
- * @param {Array.<Object>} resultOut Array where to store the elements in. If undefined, default to array of (num) elements.
+ * @param {Array<Object>} elements Array segment already defined
+ * @param {Array<Object>} resultOut Array where to store the elements in. If undefined, default to array of (num) elements.
  * @param {number} num Number of items to store in resultOut. If undefined, default to 1.
- * @return {Array.<Object>} Even though result is stored in resultOut, return it here as well.
+ * @return {Array<Object>} Even though result is stored in resultOut, return it here as well.
  */
 deRandom.Random.prototype.choose = function(elements, resultOut, num) {return deRandom.choose(this.m_rnd, elements, resultOut, num)};
 /**

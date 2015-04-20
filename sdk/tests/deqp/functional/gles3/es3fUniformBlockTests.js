@@ -20,24 +20,22 @@
 
 'use strict';
 goog.provide('functional.gles3.es3fUniformBlockTests');
-goog.require('framework.opengl.gluShaderUtil');
-goog.require('modules.shared.glsUniformBlockCase');
-goog.require('modules.shared.glsRandomUniformBlockCase');
 goog.require('framework.common.tcuTestCase');
 goog.require('framework.delibs.debase.deMath');
 goog.require('framework.delibs.debase.deRandom');
-
+goog.require('framework.opengl.gluShaderUtil');
+goog.require('modules.shared.glsRandomUniformBlockCase');
+goog.require('modules.shared.glsUniformBlockCase');
 
 goog.scope(function() {
 
-var es3fUniformBlockTests = functional.gles3.es3fUniformBlockTests;
-var gluShaderUtil = framework.opengl.gluShaderUtil;
-var glsUniformBlockCase = modules.shared.glsUniformBlockCase;
-var glsRandomUniformBlockCase = modules.shared.glsRandomUniformBlockCase;
-var tcuTestCase = framework.common.tcuTestCase;
-var deMath = framework.delibs.debase.deMath;
-var deRandom = framework.delibs.debase.deRandom;
-    
+    var es3fUniformBlockTests = functional.gles3.es3fUniformBlockTests;
+    var gluShaderUtil = framework.opengl.gluShaderUtil;
+    var glsUniformBlockCase = modules.shared.glsUniformBlockCase;
+    var glsRandomUniformBlockCase = modules.shared.glsRandomUniformBlockCase;
+    var tcuTestCase = framework.common.tcuTestCase;
+    var deMath = framework.delibs.debase.deMath;
+    var deRandom = framework.delibs.debase.deRandom;
 
     /**
      * es3fUniformBlockTests.createRandomCaseGroup
@@ -45,9 +43,9 @@ var deRandom = framework.delibs.debase.deRandom;
      * @param {string} groupName
      * @param {string} description
      * @param {glsUniformBlockCase.BufferMode} bufferMode
-     * @param {deMath.deUint32} features
+     * @param {number} features
      * @param {number} numCases
-     * @param {deMath.deUint32} baseSeed
+     * @param {number} baseSeed
      */
     es3fUniformBlockTests.createRandomCaseGroup = function(parentGroup, groupName, description, bufferMode, features, numCases, baseSeed) {
         /** @type {tcuTestCase.DeqpTest} */
@@ -74,8 +72,7 @@ var deRandom = framework.delibs.debase.deRandom;
         block.addUniform(new glsUniformBlockCase.Uniform('var', type, 0));
         block.setFlags(layoutFlags);
 
-        if (numInstances > 0)
-        {
+        if (numInstances > 0) {
             block.setArraySize(numInstances);
             block.setInstanceName('block');
         }
@@ -97,7 +94,7 @@ var deRandom = framework.delibs.debase.deRandom;
      * es3fUniformBlockTests.BlockSingleStructCase constructor
      * @param {string} name The name of the test
      * @param {string} description The description of the test
-     * @param {deMath.deUint32} layoutFlags
+     * @param {number} layoutFlags
      * @param {glsUniformBlockCase.BufferMode} bufferMode
      * @param {number} numInstances
      */
@@ -120,8 +117,7 @@ var deRandom = framework.delibs.debase.deRandom;
         block.addUniform(new glsUniformBlockCase.Uniform('s', glsUniformBlockCase.newVarTypeStruct(typeS), 0));
         block.setFlags(this.m_layoutFlags);
 
-        if (this.m_numInstances > 0)
-        {
+        if (this.m_numInstances > 0) {
             block.setInstanceName('block');
             block.setArraySize(this.m_numInstances);
         }
@@ -131,7 +127,7 @@ var deRandom = framework.delibs.debase.deRandom;
      * es3fUniformBlockTests.BlockSingleStructArrayCase constructor
      * @param {string} name The name of the test
      * @param {string} description The description of the test
-     * @param {deMath.deUint32} layoutFlags
+     * @param {number} layoutFlags
      * @param {glsUniformBlockCase.BufferMode} bufferMode
      * @param {number} numInstances
      */
@@ -156,8 +152,7 @@ var deRandom = framework.delibs.debase.deRandom;
         block.addUniform(new glsUniformBlockCase.Uniform('v', glsUniformBlockCase.newVarTypeBasic(gluShaderUtil.DataType.FLOAT_VEC4, glsUniformBlockCase.UniformFlags.PRECISION_MEDIUM)));
         block.setFlags(this.m_layoutFlags);
 
-        if (this.m_numInstances > 0)
-        {
+        if (this.m_numInstances > 0) {
             block.setInstanceName('block');
             block.setArraySize(this.m_numInstances);
         }
@@ -167,7 +162,7 @@ var deRandom = framework.delibs.debase.deRandom;
      * es3fUniformBlockTests.BlockSingleNestedStructCase constructor
      * @param {string} name The name of the test
      * @param {string} description The description of the test
-     * @param {deMath.deUint32} layoutFlags
+     * @param {number} layoutFlags
      * @param {glsUniformBlockCase.BufferMode} bufferMode
      * @param {number} numInstances
      */
@@ -197,8 +192,7 @@ var deRandom = framework.delibs.debase.deRandom;
         block.addUniform(new glsUniformBlockCase.Uniform('u', glsUniformBlockCase.newVarTypeBasic(gluShaderUtil.DataType.UINT, glsUniformBlockCase.UniformFlags.PRECISION_HIGH), 0));
         block.setFlags(this.m_layoutFlags);
 
-        if (this.m_numInstances > 0)
-        {
+        if (this.m_numInstances > 0) {
             block.setInstanceName('block');
             block.setArraySize(this.m_numInstances);
         }
@@ -208,7 +202,7 @@ var deRandom = framework.delibs.debase.deRandom;
      * es3fUniformBlockTests.BlockSingleNestedStructArrayCase constructor
      * @param {string} name The name of the test
      * @param {string} description The description of the test
-     * @param {deMath.deUint32} layoutFlags
+     * @param {number} layoutFlags
      * @param {glsUniformBlockCase.BufferMode} bufferMode
      * @param {number} numInstances
      */
@@ -238,8 +232,7 @@ var deRandom = framework.delibs.debase.deRandom;
         block.addUniform(new glsUniformBlockCase.Uniform('u', glsUniformBlockCase.newVarTypeBasic(gluShaderUtil.DataType.UINT, glsUniformBlockCase.UniformFlags.PRECISION_HIGH), 0));
         block.setFlags(this.m_layoutFlags);
 
-        if (this.m_numInstances > 0)
-        {
+        if (this.m_numInstances > 0) {
             block.setInstanceName('block');
             block.setArraySize(this.m_numInstances);
         }
@@ -249,8 +242,8 @@ var deRandom = framework.delibs.debase.deRandom;
      * es3fUniformBlockTests.BlockMultiBasicTypesCase constructor
      * @param {string} name The name of the test
      * @param {string} description The description of the test
-     * @param {deMath.deUint32} flagsA
-     * @param {deMath.deUint32} flagsB
+     * @param {number} flagsA
+     * @param {number} flagsB
      * @param {glsUniformBlockCase.BufferMode} bufferMode
      * @param {number} numInstances
      */
@@ -280,8 +273,7 @@ var deRandom = framework.delibs.debase.deRandom;
         blockB.setInstanceName('blockB');
         blockB.setFlags(this.m_flagsB);
 
-        if (this.m_numInstances > 0)
-        {
+        if (this.m_numInstances > 0) {
             blockA.setArraySize(this.m_numInstances);
             blockB.setArraySize(this.m_numInstances);
         }
@@ -291,8 +283,8 @@ var deRandom = framework.delibs.debase.deRandom;
      * es3fUniformBlockTests.BlockMultiNestedStructCase constructor
      * @param {string} name The name of the test
      * @param {string} description The description of the test
-     * @param {deMath.deUint32} flagsA
-     * @param {deMath.deUint32} flagsB
+     * @param {number} flagsA
+     * @param {number} flagsB
      * @param {glsUniformBlockCase.BufferMode} bufferMode
      * @param {number} numInstances
      */
@@ -332,8 +324,7 @@ var deRandom = framework.delibs.debase.deRandom;
         blockB.setInstanceName('blockB');
         blockB.setFlags(this.m_flagsB);
 
-        if (this.m_numInstances > 0)
-        {
+        if (this.m_numInstances > 0) {
             blockA.setArraySize(this.m_numInstances);
             blockB.setArraySize(this.m_numInstances);
         }
@@ -344,7 +335,7 @@ var deRandom = framework.delibs.debase.deRandom;
      * @param {string} filter A filter to select particular tests.
      **/
     es3fUniformBlockTests.init = function() {
-        /** @const @type {tcuTestCase.DeqpTest} */ var testGroup = tcuTestCase.runner.getState().testCases;
+        /** @const @type {tcuTestCase.DeqpTest} */ var testGroup = tcuTestCase.runner.testCases;
 
         /** @type {gluShaderUtil.DataType} */
         var basicTypes = [
@@ -375,30 +366,21 @@ var deRandom = framework.delibs.debase.deRandom;
             gluShaderUtil.DataType.FLOAT_MAT4X3
         ];
 
-        /** @type {Array.<string, glsUniformBlockCase.UniformFlags>} */
-        var precisionFlags = [
-            { name: 'lowp', flags: glsUniformBlockCase.UniformFlags.PRECISION_LOW },
-            { name: 'mediump', flags: glsUniformBlockCase.UniformFlags.PRECISION_MEDIUM },
-            { name: 'highp', flags: glsUniformBlockCase.UniformFlags.PRECISION_HIGH }
+        /** @type {Array<string, glsUniformBlockCase.UniformFlags>} */
+        var precisionFlags = [ { name: 'lowp', flags: glsUniformBlockCase.UniformFlags.PRECISION_LOW }, { name: 'mediump', flags: glsUniformBlockCase.UniformFlags.PRECISION_MEDIUM }, { name: 'highp', flags: glsUniformBlockCase.UniformFlags.PRECISION_HIGH }
         ];
 
-        /** @type {Array.<string, glsUniformBlockCase.UniformFlags>} */
-        var layoutFlags = [
-            { name: 'shared', flags: glsUniformBlockCase.UniformFlags.LAYOUT_SHARED },
-            //{ name: 'packed', flags: glsUniformBlockCase.UniformFlags.LAYOUT_PACKED },
-            { name: 'std140', flags: glsUniformBlockCase.UniformFlags.LAYOUT_STD140 }
+        /** @type {Array<string, glsUniformBlockCase.UniformFlags>} */
+        var layoutFlags = [ { name: 'shared', flags: glsUniformBlockCase.UniformFlags.LAYOUT_SHARED },
+            /* { name: 'packed', flags: glsUniformBlockCase.UniformFlags.LAYOUT_PACKED }, */ { name: 'std140', flags: glsUniformBlockCase.UniformFlags.LAYOUT_STD140 }
         ];
 
-        /** @type {Array.<string, glsUniformBlockCase.UniformFlags>} */
-        var matrixFlags = [
-            { name: 'row_major', flags: glsUniformBlockCase.UniformFlags.LAYOUT_ROW_MAJOR },
-            { name: 'column_major', flags: glsUniformBlockCase.UniformFlags.LAYOUT_COLUMN_MAJOR }
+        /** @type {Array<string, glsUniformBlockCase.UniformFlags>} */
+        var matrixFlags = [ { name: 'row_major', flags: glsUniformBlockCase.UniformFlags.LAYOUT_ROW_MAJOR }, { name: 'column_major', flags: glsUniformBlockCase.UniformFlags.LAYOUT_COLUMN_MAJOR }
         ];
 
-        /** @type {Array.<string, glsUniformBlockCase.BufferMode>} */
-        var bufferModes = [
-            { name: 'per_block_buffer', mode: glsUniformBlockCase.BufferMode.BUFFERMODE_PER_BLOCK },
-            { name: 'single_buffer', mode: glsUniformBlockCase.BufferMode.BUFFERMODE_SINGLE }
+        /** @type {Array<string, glsUniformBlockCase.BufferMode>} */
+        var bufferModes = [ { name: 'per_block_buffer', mode: glsUniformBlockCase.BufferMode.BUFFERMODE_PER_BLOCK }, { name: 'single_buffer', mode: glsUniformBlockCase.BufferMode.BUFFERMODE_SINGLE }
         ];
 
         // ubo.single_basic_type
@@ -407,30 +389,25 @@ var deRandom = framework.delibs.debase.deRandom;
 
         testGroup.addChild(singleBasicTypeGroup);
 
-        for (var layoutFlagNdx = 0; layoutFlagNdx < layoutFlags.length; layoutFlagNdx++)
-        {
+        for (var layoutFlagNdx = 0; layoutFlagNdx < layoutFlags.length; layoutFlagNdx++) {
             /** @type {tcuTestCase.deqpTest} */
             var layoutGroup = new tcuTestCase.newTest(layoutFlags[layoutFlagNdx].name, '', null);
             singleBasicTypeGroup.addChild(layoutGroup);
 
-            for (var basicTypeNdx = 0; basicTypeNdx < basicTypes.length; basicTypeNdx++)
-            {
+            for (var basicTypeNdx = 0; basicTypeNdx < basicTypes.length; basicTypeNdx++) {
                 /** @type {gluShaderUtil.DataType} */ var type = basicTypes[basicTypeNdx];
                 /** @type {string} */ var typeName = gluShaderUtil.getDataTypeName(type);
 
                 if (gluShaderUtil.isDataTypeBoolOrBVec(type))
                     es3fUniformBlockTests.createBlockBasicTypeCases(layoutGroup, typeName, glsUniformBlockCase.newVarTypeBasic(type, 0), layoutFlags[layoutFlagNdx].flags);
-                else
-                {
+                else {
                     for (var precNdx = 0; precNdx < precisionFlags.length; precNdx++)
                         es3fUniformBlockTests.createBlockBasicTypeCases(layoutGroup, precisionFlags[precNdx].name + '_' + typeName,
                         glsUniformBlockCase.newVarTypeBasic(type, precisionFlags[precNdx].flags), layoutFlags[layoutFlagNdx].flags);
                 }
 
-                if (gluShaderUtil.isDataTypeMatrix(type))
-                {
-                    for (var matFlagNdx = 0; matFlagNdx < matrixFlags.length; matFlagNdx++)
-                    {
+                if (gluShaderUtil.isDataTypeMatrix(type)) {
+                    for (var matFlagNdx = 0; matFlagNdx < matrixFlags.length; matFlagNdx++) {
                         for (var precNdx = 0; precNdx < precisionFlags.length; precNdx++)
                             es3fUniformBlockTests.createBlockBasicTypeCases(layoutGroup, matrixFlags[matFlagNdx].name + '_' + precisionFlags[precNdx].name + '_' + typeName,
                             glsUniformBlockCase.newVarTypeBasic(type, precisionFlags[precNdx].flags), layoutFlags[layoutFlagNdx].flags | matrixFlags[matFlagNdx].flags);
@@ -445,14 +422,12 @@ var deRandom = framework.delibs.debase.deRandom;
         var singleBasicArrayGroup = tcuTestCase.newTest('single_basic_array', 'Single basic array variable in single buffer');
         testGroup.addChild(singleBasicArrayGroup);
 
-        for (var layoutFlagNdx = 0; layoutFlagNdx < layoutFlags.length; layoutFlagNdx++)
-        {
+        for (var layoutFlagNdx = 0; layoutFlagNdx < layoutFlags.length; layoutFlagNdx++) {
             /** @type {tcuTestCase.deqpTest} */
             var layoutGroup = new tcuTestCase.newTest(layoutFlags[layoutFlagNdx].name, '', null);
             singleBasicArrayGroup.addChild(layoutGroup);
 
-            for (var basicTypeNdx = 0; basicTypeNdx < basicTypes.length; basicTypeNdx++)
-            {
+            for (var basicTypeNdx = 0; basicTypeNdx < basicTypes.length; basicTypeNdx++) {
                 /** @type {gluShaderUtil.DataType} */ var type = basicTypes[basicTypeNdx];
                 /** @type {string} */ var typeName = gluShaderUtil.getDataTypeName(type);
                 /** @type {number} */ var arraySize = 3;
@@ -461,8 +436,7 @@ var deRandom = framework.delibs.debase.deRandom;
                     glsUniformBlockCase.newVarTypeArray(glsUniformBlockCase.newVarTypeBasic(type, gluShaderUtil.isDataTypeBoolOrBVec(type) ? 0 : glsUniformBlockCase.UniformFlags.PRECISION_HIGH), arraySize),
                     layoutFlags[layoutFlagNdx].flags);
 
-                if (gluShaderUtil.isDataTypeMatrix(type))
-                {
+                if (gluShaderUtil.isDataTypeMatrix(type)) {
                     for (var matFlagNdx = 0; matFlagNdx < matrixFlags.length; matFlagNdx++)
                         es3fUniformBlockTests.createBlockBasicTypeCases(layoutGroup, matrixFlags[matFlagNdx].name + '_' + typeName,
                         glsUniformBlockCase.newVarTypeArray(glsUniformBlockCase.newVarTypeBasic(type, glsUniformBlockCase.UniformFlags.PRECISION_HIGH), arraySize),
@@ -477,18 +451,15 @@ var deRandom = framework.delibs.debase.deRandom;
         var singleStructGroup = tcuTestCase.newTest('single_struct', 'Single struct in uniform block');
         testGroup.addChild(singleStructGroup);
 
-        for (var modeNdx = 0; modeNdx < bufferModes.length; modeNdx++)
-        {
+        for (var modeNdx = 0; modeNdx < bufferModes.length; modeNdx++) {
             /** @type {tcuTestCase.deqpTest} */
             var modeGroup = new tcuTestCase.newTest(bufferModes[modeNdx].name, '');
             singleStructGroup.addChild(modeGroup);
 
-            for (var layoutFlagNdx = 0; layoutFlagNdx < layoutFlags.length; layoutFlagNdx++)
-            {
-                for (var isArray = 0; isArray < 2; isArray++)
-                {
+            for (var layoutFlagNdx = 0; layoutFlagNdx < layoutFlags.length; layoutFlagNdx++) {
+                for (var isArray = 0; isArray < 2; isArray++) {
                     /** @type {string} */ var baseName = layoutFlags[layoutFlagNdx].name;
-                    /** @type {deMath.deUint32} */ var baseFlags = layoutFlags[layoutFlagNdx].flags;
+                    /** @type {number} */ var baseFlags = layoutFlags[layoutFlagNdx].flags;
 
                     if (bufferModes[modeNdx].mode == glsUniformBlockCase.BufferMode.BUFFERMODE_SINGLE && isArray == 0)
                         continue; // Doesn't make sense to add this variant.
@@ -511,18 +482,15 @@ var deRandom = framework.delibs.debase.deRandom;
         var singleStructArrayGroup = tcuTestCase.newTest('single_struct_array', 'Struct array in one uniform block');
         testGroup.addChild(singleStructArrayGroup);
 
-        for (var modeNdx = 0; modeNdx < bufferModes.length; modeNdx++)
-        {
+        for (var modeNdx = 0; modeNdx < bufferModes.length; modeNdx++) {
             /** @type {tcuTestCase.deqpTest} */
             var modeGroup = new tcuTestCase.newTest(bufferModes[modeNdx].name, '');
             singleStructArrayGroup.addChild(modeGroup);
 
-            for (var layoutFlagNdx = 0; layoutFlagNdx < layoutFlags.length; layoutFlagNdx++)
-            {
-                for (var isArray = 0; isArray < 2; isArray++)
-                {
+            for (var layoutFlagNdx = 0; layoutFlagNdx < layoutFlags.length; layoutFlagNdx++) {
+                for (var isArray = 0; isArray < 2; isArray++) {
                     /** @type {string} */ var baseName = layoutFlags[layoutFlagNdx].name;
-                    /** @type {deMath.deUint32} */ var baseFlags = layoutFlags[layoutFlagNdx].flags;
+                    /** @type {number} */ var baseFlags = layoutFlags[layoutFlagNdx].flags;
 
                     if (bufferModes[modeNdx].mode == glsUniformBlockCase.BufferMode.BUFFERMODE_SINGLE && isArray == 0)
                         continue; // Doesn't make sense to add this variant.
@@ -545,18 +513,15 @@ var deRandom = framework.delibs.debase.deRandom;
         var singleNestedStructGroup = tcuTestCase.newTest('single_nested_struct', 'Nested struct in one uniform block');
         testGroup.addChild(singleNestedStructGroup);
 
-        for (var modeNdx = 0; modeNdx < bufferModes.length; modeNdx++)
-        {
+        for (var modeNdx = 0; modeNdx < bufferModes.length; modeNdx++) {
             /** @type {tcuTestCase.deqpTest} */
             var modeGroup = new tcuTestCase.newTest(bufferModes[modeNdx].name, '');
             singleNestedStructGroup.addChild(modeGroup);
 
-            for (var layoutFlagNdx = 0; layoutFlagNdx < layoutFlags.length; layoutFlagNdx++)
-            {
-                for (var isArray = 0; isArray < 2; isArray++)
-                {
+            for (var layoutFlagNdx = 0; layoutFlagNdx < layoutFlags.length; layoutFlagNdx++) {
+                for (var isArray = 0; isArray < 2; isArray++) {
                     /** @type {string} */ var baseName = layoutFlags[layoutFlagNdx].name;
-                    /** @type {deMath.deUint32} */ var baseFlags = layoutFlags[layoutFlagNdx].flags;
+                    /** @type {number} */ var baseFlags = layoutFlags[layoutFlagNdx].flags;
 
                     if (bufferModes[modeNdx].mode == glsUniformBlockCase.BufferMode.BUFFERMODE_SINGLE && isArray == 0)
                         continue; // Doesn't make sense to add this variant.
@@ -579,18 +544,15 @@ var deRandom = framework.delibs.debase.deRandom;
         var singleNestedStructArrayGroup = tcuTestCase.newTest('single_nested_struct_array', 'Nested struct array in one uniform block');
         testGroup.addChild(singleNestedStructArrayGroup);
 
-        for (var modeNdx = 0; modeNdx < bufferModes.length; modeNdx++)
-        {
+        for (var modeNdx = 0; modeNdx < bufferModes.length; modeNdx++) {
             /** @type {tcuTestCase.deqpTest} */
             var modeGroup = new tcuTestCase.newTest(bufferModes[modeNdx].name, '');
             singleNestedStructArrayGroup.addChild(modeGroup);
 
-            for (var layoutFlagNdx = 0; layoutFlagNdx < layoutFlags.length; layoutFlagNdx++)
-            {
-                for (var isArray = 0; isArray < 2; isArray++)
-                {
+            for (var layoutFlagNdx = 0; layoutFlagNdx < layoutFlags.length; layoutFlagNdx++) {
+                for (var isArray = 0; isArray < 2; isArray++) {
                     /** @type {string} */ var baseName = layoutFlags[layoutFlagNdx].name;
-                    /** @type {deMath.deUint32} */ var baseFlags = layoutFlags[layoutFlagNdx].flags;
+                    /** @type {number} */ var baseFlags = layoutFlags[layoutFlagNdx].flags;
 
                     if (bufferModes[modeNdx].mode == glsUniformBlockCase.BufferMode.BUFFERMODE_SINGLE && isArray == 0)
                         continue; // Doesn't make sense to add this variant.
@@ -613,14 +575,12 @@ var deRandom = framework.delibs.debase.deRandom;
         var instanceArrayBasicTypeGroup = tcuTestCase.newTest('instance_array_basic_type', 'Single basic variable in instance array');
         testGroup.addChild(instanceArrayBasicTypeGroup);
 
-        for (var layoutFlagNdx = 0; layoutFlagNdx < layoutFlags.length; layoutFlagNdx++)
-        {
+        for (var layoutFlagNdx = 0; layoutFlagNdx < layoutFlags.length; layoutFlagNdx++) {
             /** @type {tcuTestCase.deqpTest} */
             var layoutGroup = new tcuTestCase.newTest(layoutFlags[layoutFlagNdx].name, '');
             instanceArrayBasicTypeGroup.addChild(layoutGroup);
 
-            for (var basicTypeNdx = 0; basicTypeNdx < basicTypes.length; basicTypeNdx++)
-            {
+            for (var basicTypeNdx = 0; basicTypeNdx < basicTypes.length; basicTypeNdx++) {
                 /** @type {gluShaderUtil.DataType} */ var type = basicTypes[basicTypeNdx];
                 /** @type {string} */ var typeName = gluShaderUtil.getDataTypeName(type);
                 /** @type {number} */ var numInstances = 3;
@@ -629,8 +589,7 @@ var deRandom = framework.delibs.debase.deRandom;
                     glsUniformBlockCase.newVarTypeBasic(type, gluShaderUtil.isDataTypeBoolOrBVec(type) ? 0 : glsUniformBlockCase.UniformFlags.PRECISION_HIGH),
                     layoutFlags[layoutFlagNdx].flags, numInstances);
 
-                if (gluShaderUtil.isDataTypeMatrix(type))
-                {
+                if (gluShaderUtil.isDataTypeMatrix(type)) {
                     for (var matFlagNdx = 0; matFlagNdx < matrixFlags.length; matFlagNdx++)
                         es3fUniformBlockTests.createBlockBasicTypeCases(layoutGroup, matrixFlags[matFlagNdx].name + '_' + typeName,
                         glsUniformBlockCase.newVarTypeBasic(type, glsUniformBlockCase.UniformFlags.PRECISION_HIGH), layoutFlags[layoutFlagNdx].flags | matrixFlags[matFlagNdx].flags,
@@ -645,18 +604,15 @@ var deRandom = framework.delibs.debase.deRandom;
         var multiBasicTypesGroup = tcuTestCase.newTest('multi_basic_types', 'Multiple buffers with basic types');
         testGroup.addChild(multiBasicTypesGroup);
 
-        for (var modeNdx = 0; modeNdx < bufferModes.length; modeNdx++)
-        {
+        for (var modeNdx = 0; modeNdx < bufferModes.length; modeNdx++) {
             /** @type {tcuTestCase.deqpTest} */
             var modeGroup = new tcuTestCase.newTest(bufferModes[modeNdx].name, '');
             multiBasicTypesGroup.addChild(modeGroup);
 
-            for (var layoutFlagNdx = 0; layoutFlagNdx < layoutFlags.length; layoutFlagNdx++)
-            {
-                for (var isArray = 0; isArray < 2; isArray++)
-                {
+            for (var layoutFlagNdx = 0; layoutFlagNdx < layoutFlags.length; layoutFlagNdx++) {
+                for (var isArray = 0; isArray < 2; isArray++) {
                     /** @type {string} */ var baseName = layoutFlags[layoutFlagNdx].name;
-                    /** @type {deMath.deUint32} */ var baseFlags = layoutFlags[layoutFlagNdx].flags;
+                    /** @type {number} */ var baseFlags = layoutFlags[layoutFlagNdx].flags;
 
                     if (isArray)
                         baseName += '_instance_array';
@@ -678,18 +634,15 @@ var deRandom = framework.delibs.debase.deRandom;
         var multiNestedStructGroup = tcuTestCase.newTest('multi_nested_struct', 'Multiple buffers with basic types');
         testGroup.addChild(multiNestedStructGroup);
 
-        for (var modeNdx = 0; modeNdx < bufferModes.length; modeNdx++)
-        {
+        for (var modeNdx = 0; modeNdx < bufferModes.length; modeNdx++) {
             /** @type {tcuTestCase.deqpTest} */
             var modeGroup = new tcuTestCase.newTest(bufferModes[modeNdx].name, '');
             multiNestedStructGroup.addChild(modeGroup);
 
-            for (var layoutFlagNdx = 0; layoutFlagNdx < layoutFlags.length; layoutFlagNdx++)
-            {
-                for (var isArray = 0; isArray < 2; isArray++)
-                {
+            for (var layoutFlagNdx = 0; layoutFlagNdx < layoutFlags.length; layoutFlagNdx++) {
+                for (var isArray = 0; isArray < 2; isArray++) {
                     /** @type {string} */ var baseName = layoutFlags[layoutFlagNdx].name;
-                    /** @type {deMath.deUint32} */ var baseFlags = layoutFlags[layoutFlagNdx].flags;
+                    /** @type {number} */ var baseFlags = layoutFlags[layoutFlagNdx].flags;
 
                     if (isArray)
                         baseName += '_instance_array';
@@ -706,34 +659,32 @@ var deRandom = framework.delibs.debase.deRandom;
         }
         bufferedLogToConsole('ubo.multi_nested_struct: Tests created');
 
-        // ubo.random
-        {
-             /** @type {deMath.deUint32} */ var allShaders = glsRandomUniformBlockCase.FeatureBits.FEATURE_VERTEX_BLOCKS | glsRandomUniformBlockCase.FeatureBits.FEATURE_FRAGMENT_BLOCKS | glsRandomUniformBlockCase.FeatureBits.FEATURE_SHARED_BLOCKS;
-             /** @type {deMath.deUint32} */ var allLayouts = glsRandomUniformBlockCase.FeatureBits.FEATURE_PACKED_LAYOUT | glsRandomUniformBlockCase.FeatureBits.FEATURE_SHARED_LAYOUT | glsRandomUniformBlockCase.FeatureBits.FEATURE_STD140_LAYOUT;
-             /** @type {deMath.deUint32} */ var allBasicTypes = glsRandomUniformBlockCase.FeatureBits.FEATURE_VECTORS | glsRandomUniformBlockCase.FeatureBits.FEATURE_MATRICES;
-             /** @type {deMath.deUint32} */ var unused = glsRandomUniformBlockCase.FeatureBits.FEATURE_UNUSED_MEMBERS | glsRandomUniformBlockCase.FeatureBits.FEATURE_UNUSED_UNIFORMS;
-             /** @type {deMath.deUint32} */ var matFlags = glsRandomUniformBlockCase.FeatureBits.FEATURE_MATRIX_LAYOUT;
-             /** @type {deMath.deUint32} */ var allFeatures = (~glsRandomUniformBlockCase.FeatureBits.FEATURE_ARRAYS_OF_ARRAYS & 0xFFFF);
+        /* ubo.random */
+         /** @type {number} */ var allShaders = glsRandomUniformBlockCase.FeatureBits.FEATURE_VERTEX_BLOCKS | glsRandomUniformBlockCase.FeatureBits.FEATURE_FRAGMENT_BLOCKS | glsRandomUniformBlockCase.FeatureBits.FEATURE_SHARED_BLOCKS;
+         /** @type {number} */ var allLayouts = glsRandomUniformBlockCase.FeatureBits.FEATURE_PACKED_LAYOUT | glsRandomUniformBlockCase.FeatureBits.FEATURE_SHARED_LAYOUT | glsRandomUniformBlockCase.FeatureBits.FEATURE_STD140_LAYOUT;
+         /** @type {number} */ var allBasicTypes = glsRandomUniformBlockCase.FeatureBits.FEATURE_VECTORS | glsRandomUniformBlockCase.FeatureBits.FEATURE_MATRICES;
+         /** @type {number} */ var unused = glsRandomUniformBlockCase.FeatureBits.FEATURE_UNUSED_MEMBERS | glsRandomUniformBlockCase.FeatureBits.FEATURE_UNUSED_UNIFORMS;
+         /** @type {number} */ var matFlags = glsRandomUniformBlockCase.FeatureBits.FEATURE_MATRIX_LAYOUT;
+         /** @type {number} */ var allFeatures = (~glsRandomUniformBlockCase.FeatureBits.FEATURE_ARRAYS_OF_ARRAYS & 0xFFFF);
 
-             /** @type {tcuTestCase.DeqpTest} */
-             var randomGroup = new tcuTestCase.newTest('random', 'Random Uniform Block cases');
-             testGroup.addChild(randomGroup);
+         /** @type {tcuTestCase.DeqpTest} */
+         var randomGroup = new tcuTestCase.newTest('random', 'Random Uniform Block cases');
+         testGroup.addChild(randomGroup);
 
-             // Basic types.
-             es3fUniformBlockTests.createRandomCaseGroup(randomGroup, 'scalar_types', 'Scalar types only, per-block buffers', glsUniformBlockCase.BufferMode.BUFFERMODE_PER_BLOCK, allShaders | allLayouts | unused, 25, 0);
-             es3fUniformBlockTests.createRandomCaseGroup(randomGroup, 'vector_types', 'Scalar and vector types only, per-block buffers', glsUniformBlockCase.BufferMode.BUFFERMODE_PER_BLOCK, allShaders | allLayouts | unused | glsRandomUniformBlockCase.FeatureBits.FEATURE_VECTORS, 25, 25);
-             es3fUniformBlockTests.createRandomCaseGroup(randomGroup, 'basic_types', 'All basic types, per-block buffers', glsUniformBlockCase.BufferMode.BUFFERMODE_PER_BLOCK, allShaders | allLayouts | unused | allBasicTypes | matFlags, 25, 50);
-             es3fUniformBlockTests.createRandomCaseGroup(randomGroup, 'basic_arrays', 'Arrays, per-block buffers', glsUniformBlockCase.BufferMode.BUFFERMODE_PER_BLOCK, allShaders | allLayouts | unused | allBasicTypes | matFlags | glsRandomUniformBlockCase.FeatureBits.FEATURE_ARRAYS, 25, 50);
+         // Basic types.
+         es3fUniformBlockTests.createRandomCaseGroup(randomGroup, 'scalar_types', 'Scalar types only, per-block buffers', glsUniformBlockCase.BufferMode.BUFFERMODE_PER_BLOCK, allShaders | allLayouts | unused, 25, 0);
+         es3fUniformBlockTests.createRandomCaseGroup(randomGroup, 'vector_types', 'Scalar and vector types only, per-block buffers', glsUniformBlockCase.BufferMode.BUFFERMODE_PER_BLOCK, allShaders | allLayouts | unused | glsRandomUniformBlockCase.FeatureBits.FEATURE_VECTORS, 25, 25);
+         es3fUniformBlockTests.createRandomCaseGroup(randomGroup, 'basic_types', 'All basic types, per-block buffers', glsUniformBlockCase.BufferMode.BUFFERMODE_PER_BLOCK, allShaders | allLayouts | unused | allBasicTypes | matFlags, 25, 50);
+         es3fUniformBlockTests.createRandomCaseGroup(randomGroup, 'basic_arrays', 'Arrays, per-block buffers', glsUniformBlockCase.BufferMode.BUFFERMODE_PER_BLOCK, allShaders | allLayouts | unused | allBasicTypes | matFlags | glsRandomUniformBlockCase.FeatureBits.FEATURE_ARRAYS, 25, 50);
 
-             es3fUniformBlockTests.createRandomCaseGroup(randomGroup, 'basic_instance_arrays', 'Basic instance arrays, per-block buffers', glsUniformBlockCase.BufferMode.BUFFERMODE_PER_BLOCK, allShaders | allLayouts | unused | allBasicTypes | matFlags | glsRandomUniformBlockCase.FeatureBits.FEATURE_INSTANCE_ARRAYS, 25, 75);
-             es3fUniformBlockTests.createRandomCaseGroup(randomGroup, 'nested_structs', 'Nested structs, per-block buffers', glsUniformBlockCase.BufferMode.BUFFERMODE_PER_BLOCK, allShaders | allLayouts | unused | allBasicTypes | matFlags | glsRandomUniformBlockCase.FeatureBits.FEATURE_STRUCTS, 25, 100);
-             es3fUniformBlockTests.createRandomCaseGroup(randomGroup, 'nested_structs_arrays', 'Nested structs, arrays, per-block buffers', glsUniformBlockCase.BufferMode.BUFFERMODE_PER_BLOCK, allShaders | allLayouts | unused | allBasicTypes | matFlags | glsRandomUniformBlockCase.FeatureBits.FEATURE_STRUCTS | glsRandomUniformBlockCase.FeatureBits.FEATURE_ARRAYS, 25, 150);
-             es3fUniformBlockTests.createRandomCaseGroup(randomGroup, 'nested_structs_instance_arrays', 'Nested structs, instance arrays, per-block buffers', glsUniformBlockCase.BufferMode.BUFFERMODE_PER_BLOCK, allShaders | allLayouts | unused | allBasicTypes | matFlags | glsRandomUniformBlockCase.FeatureBits.FEATURE_STRUCTS | glsRandomUniformBlockCase.FeatureBits.FEATURE_INSTANCE_ARRAYS, 25, 125);
-             es3fUniformBlockTests.createRandomCaseGroup(randomGroup, 'nested_structs_arrays_instance_arrays', 'Nested structs, instance arrays, per-block buffers', glsUniformBlockCase.BufferMode.BUFFERMODE_PER_BLOCK, allShaders | allLayouts | unused | allBasicTypes | matFlags | glsRandomUniformBlockCase.FeatureBits.FEATURE_STRUCTS | glsRandomUniformBlockCase.FeatureBits.FEATURE_ARRAYS | glsRandomUniformBlockCase.FeatureBits.FEATURE_INSTANCE_ARRAYS, 25, 175);
+         es3fUniformBlockTests.createRandomCaseGroup(randomGroup, 'basic_instance_arrays', 'Basic instance arrays, per-block buffers', glsUniformBlockCase.BufferMode.BUFFERMODE_PER_BLOCK, allShaders | allLayouts | unused | allBasicTypes | matFlags | glsRandomUniformBlockCase.FeatureBits.FEATURE_INSTANCE_ARRAYS, 25, 75);
+         es3fUniformBlockTests.createRandomCaseGroup(randomGroup, 'nested_structs', 'Nested structs, per-block buffers', glsUniformBlockCase.BufferMode.BUFFERMODE_PER_BLOCK, allShaders | allLayouts | unused | allBasicTypes | matFlags | glsRandomUniformBlockCase.FeatureBits.FEATURE_STRUCTS, 25, 100);
+         es3fUniformBlockTests.createRandomCaseGroup(randomGroup, 'nested_structs_arrays', 'Nested structs, arrays, per-block buffers', glsUniformBlockCase.BufferMode.BUFFERMODE_PER_BLOCK, allShaders | allLayouts | unused | allBasicTypes | matFlags | glsRandomUniformBlockCase.FeatureBits.FEATURE_STRUCTS | glsRandomUniformBlockCase.FeatureBits.FEATURE_ARRAYS, 25, 150);
+         es3fUniformBlockTests.createRandomCaseGroup(randomGroup, 'nested_structs_instance_arrays', 'Nested structs, instance arrays, per-block buffers', glsUniformBlockCase.BufferMode.BUFFERMODE_PER_BLOCK, allShaders | allLayouts | unused | allBasicTypes | matFlags | glsRandomUniformBlockCase.FeatureBits.FEATURE_STRUCTS | glsRandomUniformBlockCase.FeatureBits.FEATURE_INSTANCE_ARRAYS, 25, 125);
+         es3fUniformBlockTests.createRandomCaseGroup(randomGroup, 'nested_structs_arrays_instance_arrays', 'Nested structs, instance arrays, per-block buffers', glsUniformBlockCase.BufferMode.BUFFERMODE_PER_BLOCK, allShaders | allLayouts | unused | allBasicTypes | matFlags | glsRandomUniformBlockCase.FeatureBits.FEATURE_STRUCTS | glsRandomUniformBlockCase.FeatureBits.FEATURE_ARRAYS | glsRandomUniformBlockCase.FeatureBits.FEATURE_INSTANCE_ARRAYS, 25, 175);
 
-             es3fUniformBlockTests.createRandomCaseGroup(randomGroup, 'all_per_block_buffers', 'All random features, per-block buffers', glsUniformBlockCase.BufferMode.BUFFERMODE_PER_BLOCK, allFeatures, 50, 200);
-             es3fUniformBlockTests.createRandomCaseGroup(randomGroup, 'all_shared_buffer', 'All random features, shared buffer', glsUniformBlockCase .BufferMode.BUFFERMODE_SINGLE, allFeatures, 50, 250);
-         }
+         es3fUniformBlockTests.createRandomCaseGroup(randomGroup, 'all_per_block_buffers', 'All random features, per-block buffers', glsUniformBlockCase.BufferMode.BUFFERMODE_PER_BLOCK, allFeatures, 50, 200);
+         es3fUniformBlockTests.createRandomCaseGroup(randomGroup, 'all_shared_buffer', 'All random features, shared buffer', glsUniformBlockCase.BufferMode.BUFFERMODE_SINGLE, allFeatures, 50, 250);
          bufferedLogToConsole('ubo.random: Tests created');
     };
 
@@ -744,10 +695,10 @@ var deRandom = framework.delibs.debase.deRandom;
         //Set up Test Root parameters
         var testName = 'ubo';
         var testDescription = 'Uniform Block Tests';
-        var state = tcuTestCase.runner.getState();
+        var state = tcuTestCase.runner;
 
-        state.testName = testName;
-        state.testCases = tcuTestCase.newTest(testName, testDescription, null);
+        // TODO: state.testName = testName;
+        state.setRoot(tcuTestCase.newTest(testName, testDescription, null));
 
         //Set up name and description of this test series.
         setCurrentTestName(testName);
@@ -765,5 +716,4 @@ var deRandom = framework.delibs.debase.deRandom;
         }
     };
 
-    
 });

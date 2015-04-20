@@ -754,7 +754,7 @@ gluTextureUtil.getGLCubeFace = function(face) {
  * If no mapping is found, glu::TYPE_LAST is returned.
  *
  * @param {tcuTexture.TextureFormat} format
- * @return {DataType} GLSL 2D sampler type for format
+ * @return {gluShaderUtil.DataType} GLSL 2D sampler type for format
  */
 gluTextureUtil.getSampler2DType = function(format) {
     if (format.order == tcuTexture.ChannelOrder.D || format.order == tcuTexture.ChannelOrder.DS)

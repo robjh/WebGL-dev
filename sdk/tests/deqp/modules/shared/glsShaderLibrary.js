@@ -21,9 +21,8 @@
 'use strict';
 goog.provide('modules.shared.glsShaderLibrary');
 goog.require('framework.common.tcuTestCase');
-goog.require('modules.shared.glsShaderLibraryCase');
 goog.require('framework.opengl.gluShaderUtil');
-
+goog.require('modules.shared.glsShaderLibraryCase');
 
 goog.scope(function() {
 
@@ -31,14 +30,15 @@ var glsShaderLibrary = modules.shared.glsShaderLibrary;
 var tcuTestCase = framework.common.tcuTestCase;
 var glsShaderLibraryCase = modules.shared.glsShaderLibraryCase;
 var gluShaderUtil = framework.opengl.gluShaderUtil;
-    
 
     glsShaderLibrary.generateTestCases = function() {
     /** @type {glsShaderLibrary.Parser} */ var parser = new glsShaderLibrary.Parser();
         try {
-        /** @type {Object} */ var state = tcuTestCase.runner.getState();
+        /** @type {Object} */ var state = tcuTestCase.runner;
             var tree = parser.parse(state.testFile);
-            state.testCases = tcuTestCase.newTest(state.testName, 'Top level', tree);
+            var rootTest = tcuTestCase.newTest(state.testName, 'Top level');
+            rootTest.setChildren(tree);
+            state.setRoot(rootTest);
         }
         catch (err) {
             bufferedLogToConsole(err);
@@ -73,8 +73,8 @@ var gluShaderUtil = framework.opengl.gluShaderUtil;
 
     /**
      * Removes however many indents there are on the first line from all lines.
-     * @param {Array.<string>} arr
-     * @return {Array.<string>} output
+     * @param {string} str
+     * @return {string} output
      */
     glsShaderLibrary.removeExtraIndentation = function(str) {
         return glsShaderLibrary.removeExtraIndentationArray(
@@ -84,11 +84,11 @@ var gluShaderUtil = framework.opengl.gluShaderUtil;
 
     /**
      * Returns an array of strings without indentation.
-     * @param {Array.<string>} arr
-     * @return {Array.<string>} output
+     * @param {Array<string>} arr
+     * @return {Array<string>} output
      */
     glsShaderLibrary.removeExtraIndentationArray = function(arr) {
-    /** @type {Array.<string>} */ var output = [];
+    /** @type {Array<string>} */ var output = [];
 
         if (arr.length) {
 
@@ -241,7 +241,7 @@ var gluShaderUtil = framework.opengl.gluShaderUtil;
             m_curTokenStr = '';
             advanceToken();
 
-            /** @type {Array.<tcuTestCase.newTest>} */ var nodeList = [];
+            /** @type {Array<tcuTestCase.DeqpTest>} */ var nodeList = [];
 
             for (;;) {
 
@@ -283,7 +283,7 @@ var gluShaderUtil = framework.opengl.gluShaderUtil;
          */
         var parseError = function(errorStr) {
             // abort
-            throw 'glsShaderLibrary.Parser error: ' + errorStr + ' near ' + m_curPtr.substr(0, 80);
+            throw 'glsShaderLibrary.Parser error: ' + errorStr + ' near ' + m_input.substr(m_curPtr, m_curPtr + 80);
         };
 
         /**
@@ -301,7 +301,7 @@ var gluShaderUtil = framework.opengl.gluShaderUtil;
          * @return {number}
          */
         var parseIntLiteral = function(str) {
-            return parseInt(str);
+            return parseInt(str, 10);
         };
         var parseStringLiteral = function(str) {
         /**
@@ -435,7 +435,7 @@ var gluShaderUtil = framework.opengl.gluShaderUtil;
 
             } else if (m_input.charAt(m_curPtr) === '"' && m_input.charAt(m_curPtr + 1) === '"') { // shader source
 
-            /** @type {number} */ var p = m_curPtr + 2;
+                var p = m_curPtr + 2;
 
                 while (m_input.charAt(p) != '"' || m_input.charAt(p + 1) != '"') {
                     glsShaderLibrary.de_assert(p < m_input.length);
@@ -453,8 +453,8 @@ var gluShaderUtil = framework.opengl.gluShaderUtil;
 
             } else if (m_input.charAt(m_curPtr) === '"' || m_input.charAt(m_curPtr) === "'") {
 
-            /** @type {number} */ var delimitor = m_input.charAt(m_curPtr);
-            /** @type {number} */ var p = m_curPtr + 1;
+                /** @type {string} */ var delimitor = m_input.charAt(m_curPtr);
+                var p = m_curPtr + 1;
 
                 while (m_input.charAt(p) != delimitor) {
 
@@ -488,7 +488,7 @@ var gluShaderUtil = framework.opengl.gluShaderUtil;
                         case ')': return Token.TOKEN_RIGHT_PAREN;
                         case '[': return Token.TOKEN_LEFT_BRACKET;
                         case ']': return Token.TOKEN_RIGHT_BRACKET;
-                        case '{': return Token.TOKEN_LEFT_BRACE;
+                        case ' {': return Token.TOKEN_LEFT_BRACE;
                         case '}': return Token.TOKEN_RIGHT_BRACE;
 
                         default: return Token.TOKEN_INVALID;
@@ -514,6 +514,9 @@ var gluShaderUtil = framework.opengl.gluShaderUtil;
             };
         };
 
+        /**
+          * @param {Token=} tokenAssumed
+          */
         var advanceToken = function(tokenAssumed) {
             if (typeof(tokenAssumed) !== 'undefined') {
                 assumeToken(tokenAssumed);
@@ -626,7 +629,7 @@ var gluShaderUtil = framework.opengl.gluShaderUtil;
                 case Token.TOKEN_RIGHT_PAREN: return ')';
                 case Token.TOKEN_LEFT_BRACKET: return '[';
                 case Token.TOKEN_RIGHT_BRACKET: return ']';
-                case Token.TOKEN_LEFT_BRACE: return '{';
+                case Token.TOKEN_LEFT_BRACE: return ' {';
                 case Token.TOKEN_RIGHT_BRACE: return '}';
 
                 default: return '<unknown>';
@@ -634,15 +637,18 @@ var gluShaderUtil = framework.opengl.gluShaderUtil;
         };
 
         /**
-         * @param {string} expectedDataType
+         * @param {?gluShaderUtil.DataType} expectedDataType
          * @param {Object} result
          */
         var parseValueElement = function(expectedDataType, result) {
+            /** @type {?string} */ var scalarType = null;
+            /** @type {number} */ var scalarSize = 0;
+            if (expectedDataType) {
+                scalarType = gluShaderUtil.getDataTypeScalarType(expectedDataType);
+                scalarSize = gluShaderUtil.getDataTypeScalarSize(expectedDataType);
+            }
 
-        /** @type {string} */ var scalarType = gluShaderUtil.getDataTypeScalarType(expectedDataType);
-        /** @type {string} */ var scalarSize = gluShaderUtil.getDataTypeScalarSize(expectedDataType);
-
-            /** @type {Array.<number>} */ var elems = [];
+            /** @type {Array<number>} */ var elems = [];
 
             if (scalarSize > 1) {
                 glsShaderLibrary.de_assert(mapDataTypeToken(m_curToken) === expectedDataType);
@@ -665,7 +671,7 @@ var gluShaderUtil = framework.opengl.gluShaderUtil;
 
                 } else if (scalarType === 'int' || scalarType === 'uint') {
 
-                /** @type {number} */ var signMult = 1;
+                    var signMult = 1;
                     if (m_curToken === Token.TOKEN_MINUS) {
                         signMult = -1;
                         advanceToken();
@@ -709,22 +715,22 @@ var gluShaderUtil = framework.opengl.gluShaderUtil;
         * @type {Object}
         */
             var result = {
-            /** @type {string} */ dataType: null,
-            /** @type {string} */ storageType: null,
-            /** @type {string} */ valueName: null,
+            /** @type {?gluShaderUtil.DataType} */ dataType: null,
+            /** @type {?glsShaderLibraryCase.shaderCase} */ storageType: null,
+            /** @type {?string} */ valueName: null,
             /** @type {Array} */ elements: []
             };
 
             // parse storage
             switch (m_curToken) {
              case Token.TOKEN_UNIFORM:
-                result.storageType = glsShaderLibraryCase.shaderCase.value.STORAGE_UNIFORM;
+                result.storageType = glsShaderLibraryCase.shaderCase.STORAGE_UNIFORM;
                 break;
              case Token.TOKEN_INPUT:
-                result.storageType = glsShaderLibraryCase.shaderCase.value.STORAGE_INPUT;
+                result.storageType = glsShaderLibraryCase.shaderCase.STORAGE_INPUT;
                 break;
              case Token.TOKEN_OUTPUT:
-                result.storageType = glsShaderLibraryCase.shaderCase.value.STORAGE_OUTPUT;
+                result.storageType = glsShaderLibraryCase.shaderCase.STORAGE_OUTPUT;
                 break;
              default:
                 throw Error('unexpected token encountered when parsing value classifier');
@@ -822,7 +828,7 @@ var gluShaderUtil = framework.opengl.gluShaderUtil;
         };
 
         /**
-         * @param {Array.<tcuTestCase.newTest>} shaderNodeList
+         * @param {Array<tcuTestCase.DeqpTest>} shaderNodeList
          */
         var parseShaderCase = function(shaderNodeList) {
 
@@ -837,7 +843,7 @@ var gluShaderUtil = framework.opengl.gluShaderUtil;
             advanceToken(); // \note [pyry] All token types are allowed here.
 
             /**
-             * @type {Array.<Object>}
+             * @type {Array<Object>}
              * setup case
              */
             var valueBlockList = [];
@@ -874,7 +880,7 @@ var gluShaderUtil = framework.opengl.gluShaderUtil;
                             case 'pass': return glsShaderLibraryCase.expectResult.EXPECT_PASS;
                             case 'compile_fail': return glsShaderLibraryCase.expectResult.EXPECT_COMPILE_FAIL;
                             case 'link_fail': return glsShaderLibraryCase.expectResult.EXPECT_LINK_FAIL;
-                            case 'compile_or_link_fail': return glsShaderLibraryCase.expectResult.EXPECT_COMPILE_OR_LINK_FAIL;
+                            case 'compile_or_link_fail': return glsShaderLibraryCase.expectResult.EXPECT_COMPILE_LINK_FAIL;
                             default:
                                 throw Error('invalid expected result value: ' + m_curTokenStr);
                         }
@@ -954,19 +960,19 @@ var gluShaderUtil = framework.opengl.gluShaderUtil;
 
             /**
              * no ShaderCase yet?
-             * @param {string} vert
-             * @param {string} frag
-             * @param {number} type
+             * @param {?string} vert
+             * @param {?string} frag
+             * @param {glsShaderLibraryCase.caseType} type
              * @return {Object}
              */
             var getShaderSpec = function(vert, frag, type) {
                 return {
-                /** @type {number} */ expectResult: expectResult,
-                /** @type {number} */ caseType: type,
-                /** @type {Array.<Object>} */ valueBlockList: valueBlockList,
+                /** @type {glsShaderLibraryCase.expectResult} */ expectResult: expectResult,
+                /** @type {glsShaderLibraryCase.caseType} */ caseType: type,
+                /** @type {Array<Object>} */ valueBlockList: valueBlockList,
                 /** @type {string} */ targetVersion: version,
-                /** @type {string} */ vertexSource: vert,
-                /** @type {string} */ fragmentSource: frag
+                /** @type {?string} */ vertexSource: vert,
+                /** @type {?string} */ fragmentSource: frag
                 };
             };
             getShaderSpec.bind(this);
@@ -991,7 +997,7 @@ var gluShaderUtil = framework.opengl.gluShaderUtil;
         };
 
         /**
-         * @param {Array.<tcuTestCase.newTest>} shaderNodeList
+         * @param {Array<tcuTestCase.DeqpTest>} shaderNodeList
          */
         var parseShaderGroup = function(shaderNodeList) {
 
@@ -1008,7 +1014,7 @@ var gluShaderUtil = framework.opengl.gluShaderUtil;
             /** @type {string} */ var description = parseStringLiteral(m_curTokenStr);
             advanceToken(Token.TOKEN_STRING);
 
-            /** @type {Array.<tcuTestCase.newTest>} */ var children = [];
+            /** @type {Array<tcuTestCase.DeqpTest>} */ var children = [];
 
             for (;;) {
 
@@ -1027,9 +1033,9 @@ var gluShaderUtil = framework.opengl.gluShaderUtil;
 
             advanceToken(Token.TOKEN_END); // group end
 
-            /** @param {tcuTestCase.newTest}
-             *  Create group node
-             */ var groupNode = tcuTestCase.newTest(name, description, children);
+            /** @type {tcuTestCase.DeqpTest} */ var groupNode = tcuTestCase.newTest(name, description, null);
+            groupNode.setChildren(children);
+
             shaderNodeList.push(groupNode);
 
         };
@@ -1071,9 +1077,8 @@ var gluShaderUtil = framework.opengl.gluShaderUtil;
 glsShaderLibrary.run = function(testName, filter) {
     WebGLTestUtils.loadTextFileAsync(testName + '.test', function(success, content) {
         if (success) {
-            tcuTestCase.runner.getState().testFile = content;
-            tcuTestCase.runner.getState().testName = testName;
-            tcuTestCase.runner.getState().filter = filter;
+            tcuTestCase.runner.testFile = content;
+            tcuTestCase.runner.testName = testName;
             tcuTestCase.runner.runCallback(glsShaderLibrary.processTestFile);
         } else {
             testFailed('Failed to load test file: ' + testName);
@@ -1081,7 +1086,5 @@ glsShaderLibrary.run = function(testName, filter) {
         }
     });
 };
-
-
 
 });

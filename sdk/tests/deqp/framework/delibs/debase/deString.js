@@ -25,12 +25,10 @@
 goog.provide('framework.delibs.debase.deString');
 goog.require('framework.delibs.debase.deMath');
 
-
 goog.scope(function() {
 
 var deString = framework.delibs.debase.deString;
 var deMath = framework.delibs.debase.deMath;
-
 
     var DE_ASSERT = function(x) {
         if (!x)
@@ -39,7 +37,7 @@ var deMath = framework.delibs.debase.deMath;
 
     /**
      * Compute hash from string.
-     * @param {string} str String to compute hash value for.
+     * @param {?string} str String to compute hash value for.
      * @return {number} Computed hash value.
      */
     deString.deStringHash = function(str) {
@@ -50,14 +48,14 @@ var deMath = framework.delibs.debase.deMath;
         /** @type {number} */ var c;
 
         DE_ASSERT(str != undefined);
-        var i = 0;
-        while (i < str.length) //(c = (unsigned int)*str++) != 0)
-        {
-            c = str.charCodeAt(i); //trunc to 8-bit
-            hash = (hash << 5) + hash + c;
-            i++;
+        if (str !== null) {
+            var i = 0;
+            while (i < str.length) { //(c = (unsigned int)*str++) != 0)
+                c = str.charCodeAt(i); //trunc to 8-bit
+                hash = (hash << 5) + hash + c;
+                i++;
+            }
         }
-
         return hash;
     };
 
@@ -71,7 +69,5 @@ var deMath = framework.delibs.debase.deMath;
             return true;
         return false;
     };
-
-    
 
 });

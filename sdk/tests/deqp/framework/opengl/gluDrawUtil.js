@@ -34,7 +34,7 @@ var gluShaderProgram = framework.opengl.gluShaderProgram;
  * @param {(number|undefined)} location Binding location
  * @param {number} components Number of components per vertex
  * @param {number} elements Number of elements in the array
- * @param {Array.<number>} data Source data
+ * @param {Array<number>} data Source data
  */
 gluDrawUtil.VertexArrayBinding = function(type, location, components, elements, data) {
     this.type = type;
@@ -97,13 +97,13 @@ gluDrawUtil.namedBindingsToProgramLocations = function(gl, program, inputArray, 
  * Creates vertex buffer, binds it and draws elements
  * @param {WebGL2RenderingContext} gl WebGL context
  * @param {gluShaderProgram.ShaderProgram} program
- * @param {Array.<number>} vertexArrays
+ * @param {Array<number>} vertexArrays
  * @param {gluDrawUtil.PrimitiveList} primitives to gluDrawUtil.draw
  * @param { {beforeDrawCall:function(), afterDrawCall:function()}=} callback
  */
 gluDrawUtil.drawFromBuffers = function(gl, program, vertexArrays, primitives, callback) {
     /** TODO: finish implementation */
-    /** @type {Array.<WebGLBuffer>} */ var objects = [];
+    /** @type {Array<WebGLBuffer>} */ var objects = [];
 
     // Lower bindings to locations
     vertexArrays = gluDrawUtil.namedBindingsToProgramLocations(gl, program, vertexArrays);
@@ -147,7 +147,7 @@ gluDrawUtil.drawFromBuffers = function(gl, program, vertexArrays, primitives, ca
  */
 gluDrawUtil.draw = function(gl, program, vertexArrays, primitives, callback) {
     /** TODO: finish implementation */
-    /** @type {Array.<WebGLBuffer>} */ var objects = [];
+    /** @type {Array<WebGLBuffer>} */ var objects = [];
 
     for (var i = 0; i < vertexArrays.length; i++) {
         /** @type {WebGLBuffer} */ var buffer = gluDrawUtil.vertexBuffer(gl, vertexArrays[i]);
@@ -168,7 +168,13 @@ gluDrawUtil.draw = function(gl, program, vertexArrays, primitives, callback) {
 
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
     } else {
-    /** TODO: implement */
+        if (callback)
+            callback.beforeDrawCall();
+
+        gl.drawArrays(gluDrawUtil.getPrimitiveGLType(gl, primitives.type), 0, primitives.numElements);
+
+        if (callback)
+            callback.afterDrawCall();
     }
 
   assertMsgOptions(gl.getError() === gl.NO_ERROR, 'drawArrays', false, true);
@@ -235,30 +241,42 @@ gluDrawUtil.getPrimitiveGLType = function(gl, type) {
 };
 
 /**
- * Calls gluDrawUtil.PrimitiveList() to create primitive list for Triangles
+ * Calls gluDrawUtil.newPrimitiveListFromIndices() to create primitive list for Triangles
  * @param {Array<number>} indices
  */
 gluDrawUtil.triangles = function(indices) {
-    return new gluDrawUtil.PrimitiveList(gluDrawUtil.primitiveType.TRIANGLES, indices);
+    return gluDrawUtil.newPrimitiveListFromIndices(gluDrawUtil.primitiveType.TRIANGLES, indices);
 };
 
 /**
- * Calls gluDrawUtil.PrimitiveList() to create primitive list for Patches
+ * Calls gluDrawUtil.newPrimitiveListFromIndices() to create primitive list for Patches
  * @param {Array<number>} indices
  */
 gluDrawUtil.patches = function(indices) {
-    return new gluDrawUtil.PrimitiveList(gluDrawUtil.primitiveType.PATCHES, indices);
+    return gluDrawUtil.newPrimitiveListFromIndices(gluDrawUtil.primitiveType.PATCHES, indices);
 };
 
 /**
  * Creates primitive list for Triangles or Patches, depending on type
  * @param {gluDrawUtil.primitiveType} type gluDrawUtil.primitiveType
- * @param {Array<number>} indices
+ * @param {number} numElements
  * @constructor
  */
-gluDrawUtil.PrimitiveList = function(type, indices) {
+gluDrawUtil.PrimitiveList = function(type, numElements) {
     this.type = type;
-    this.indices = indices;
+    this.indices = 0;
+    this.numElements = numElements;
+};
+
+/**
+ * @param {gluDrawUtil.primitiveType} type
+ * @param {Array<number>} indices
+ * @return {gluDrawUtil.PrimitiveList}
+ */
+gluDrawUtil.newPrimitiveListFromIndices = function(type, indices) {
+    /** @type {gluDrawUtil.PrimitiveList} */ var primitiveList = new gluDrawUtil.PrimitiveList(type, 0);
+    primitiveList.indices = indices;
+    return primitiveList;
 };
 
 /**
@@ -297,7 +315,7 @@ gluDrawUtil.vertexBuffer = function(gl, vertexArray) {
 };
 
 /**
- * @param {Array.<number>} rgba
+ * @param {Array<number>} rgba
  * @constructor
  */
 gluDrawUtil.Pixel = function(rgba) {
@@ -323,6 +341,9 @@ gluDrawUtil.Pixel.prototype.equals = function(otherPixel) {
            this.rgba[3] == otherPixel.rgba[3];
 };
 
+/**
+ * @constructor
+ */
 gluDrawUtil.Surface = function() {
 };
 
@@ -338,7 +359,7 @@ gluDrawUtil.Surface.prototype.readSurface = function(gl, x, y, width, height) {
 
 gluDrawUtil.Surface.prototype.getPixel = function(x, y) {
     /** @type {number} */ var base = (x + y * this.width) * 4;
-    /** @type {Array.<number>} */
+    /** @type {Array<number>} */
     var rgba = [
         this.buffer[base],
         this.buffer[base + 1],
@@ -383,7 +404,7 @@ gluDrawUtil.VertexComponentConversion = {
  * @param {number} numComponents_
  * @param {number} numElements_
  * @param {number} stride_
- * @const @param {Array.<number>} data_
+ * @const @param {Array<number>} data_
  */
 gluDrawUtil.VertexArrayPointer = function(componentType_, convert_, numComponents_, numElements_, stride_, data_) {
     this.componentType = componentType_;
@@ -412,7 +433,7 @@ gluDrawUtil.BindingPoint = function(name, location) {
  */
 gluDrawUtil.bindingPointFromLocation = function(location) {
     return new gluDrawUtil.BindingPoint('', location);
-}
+};
 
 /**
  * bindingPointFromName
@@ -422,6 +443,6 @@ gluDrawUtil.bindingPointFromLocation = function(location) {
  */
 gluDrawUtil.bindingPointFromName = function(name, location) {
     return new gluDrawUtil.BindingPoint(name, location);
-}
+};
 
 });

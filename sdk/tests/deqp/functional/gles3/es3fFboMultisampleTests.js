@@ -51,7 +51,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
 
     /**
      * @constructor
-     * @extends {fboTestCase.FboTestCase}
+     * @extends {es3fFboTestCase.FboTestCase}
      * @param {string} name
      * @param {string} desc
      * @param {number} colorFormat
@@ -60,14 +60,14 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
      * @param {number} numSamples
      */
     es3fFboMultisampleTests.BasicFboMultisampleCase = function(name, desc, colorFormat, depthStencilFormat, size, numSamples) {
-        fboTestCase.FboTestCase.call(this, name, desc);
+        es3fFboTestCase.FboTestCase.call(this, name, desc);
         /** @type {number} */ this.m_colorFormat = colorFormat;
         /** @type {number} */ this.m_depthStencilFormat = depthStencilFormat;
         /** @type {Array<number>} */ this.m_size = size;
         /** @type {number} */ this.m_numSamples = numSamples;
     };
 
-    es3fFboMultisampleTests.BasicFboMultisampleCase.prototype = Object.create(fboTestCase.FboTestCase.prototype);
+    es3fFboMultisampleTests.BasicFboMultisampleCase.prototype = Object.create(es3fFboTestCase.FboTestCase.prototype);
     es3fFboMultisampleTests.BasicFboMultisampleCase.prototype.constructor = es3fFboMultisampleTests.BasicFboMultisampleCase;
 
     es3fFboMultisampleTests.BasicFboMultisampleCase.prototype.preCheck = function() {
@@ -89,8 +89,8 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
         /** @type {tcuTextureUtil.TextureFormatInfo} */ var colorFmtInfo = tcuTextureUtil.getTextureFormatInfo(colorFmt);
         /** @type {boolean} */ var depth = depthStencilFmt.order == tcuTexture.ChannelOrder.D || depthStencilFmt.order == tcuTexture.ChannelOrder.DS;
         /** @type {boolean} */ var stencil = depthStencilFmt.order == tcuTexture.ChannelOrder.S || depthStencilFmt.order == tcuTexture.ChannelOrder.DS;
-        /** @type {fboTestUtil.GradientShader} */ var gradShader = new fboTestUtil.GradientShader(fboTestUtil.getFragmentOutputType(colorFmt));
-        /** @type {fboTestUtil.FlatColorShader} */ var flatShader = new fboTestUtil.FlatColorShader(fboTestUtil.getFragmentOutputType(colorFmt));
+        /** @type {es3fFboTestUtil.GradientShader} */ var gradShader = new es3fFboTestUtil.GradientShader(es3fFboTestUtil.getFragmentOutputType(colorFmt));
+        /** @type {es3fFboTestUtil.FlatColorShader} */ var flatShader = new es3fFboTestUtil.FlatColorShader(es3fFboTestUtil.getFragmentOutputType(colorFmt));
         /** @type {number} */ var gradShaderID = this.getCurrentContext().createProgram(gradShader);
         /** @type {number} */ var flatShaderID = this.getCurrentContext().createProgram(flatShader);
         /** @type {number} */ var msaaFbo = 0;
@@ -250,7 +250,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
      * @return {boolean}
      */
     es3fFboMultisampleTests.BasicFboMultisampleCase.prototype.colorCompare = function(reference, result) {
-        /** @const {tcuRGBA.RGBA} */ var threshold = tcuRGBA.max(fboTestUtil.getFormatThreshold(this.m_colorFormat), tcuRGBA.newRGBAComponents(12, 12, 12, 12));
+        /** @const {tcuRGBA.RGBA} */ var threshold = tcuRGBA.max(es3fFboTestUtil.getFormatThreshold(this.m_colorFormat), tcuRGBA.newRGBAComponents(12, 12, 12, 12));
         return tcuImageCompare.bilinearCompare('Result', 'Image comparison result', reference.getAccess(), result.getAccess(), threshold, null /*tcu::COMPARE_LOG_RESULT*/);
     };
 
@@ -316,34 +316,34 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
         ];
 
         /** @const {number} */ var sampleCounts = [2, 4, 8];
-        var testGroup = tcuTestCase.runner.getState().testCases;
+
         for (var sampleCntNdx in sampleCounts) {
             /** @type {number} */ var samples = sampleCounts[sampleCntNdx];
             /** @type {tcuTestCase.DeqpTest} */
-            var sampleCountGroup = new tcuTestCase.newTest(samples + '_', '');
-            testGroup.addChild(sampleCountGroup);
+            var sampleCountGroup = tcuTestCase.newTest(samples + '_', '');
+            this.addChild(sampleCountGroup);
 
             // Color formats.
             for (var fmtNdx in colorFormats)
-                sampleCountGroup.addChild(new es3fFboMultisampleTests.BasicFboMultisampleCase(fboTestUtil.getFormatName(colorFormats[fmtNdx]), '', colorFormats[fmtNdx], gl.NONE, [119, 131], samples));
+                sampleCountGroup.addChild(new es3fFboMultisampleTests.BasicFboMultisampleCase(es3fFboTestUtil.getFormatName(colorFormats[fmtNdx]), '', colorFormats[fmtNdx], gl.NONE, [119, 131], samples));
 
             // Depth/stencil formats.
             for (var fmtNdx in depthStencilFormats)
-                sampleCountGroup.addChild(new es3fFboMultisampleTests.BasicFboMultisampleCase(fboTestUtil.getFormatName(depthStencilFormats[fmtNdx]), '', gl.RGBA8, depthStencilFormats[fmtNdx], [119, 131], samples));
+                sampleCountGroup.addChild(new es3fFboMultisampleTests.BasicFboMultisampleCase(es3fFboTestUtil.getFormatName(depthStencilFormats[fmtNdx]), '', gl.RGBA8, depthStencilFormats[fmtNdx], [119, 131], samples));
         }
     };
 
     es3fFboMultisampleTests.run = function(context) {
         gl = context;
         //Set up root Test
-        var state = tcuTestCase.runner.getState();
+        var state = tcuTestCase.runner;
 
         var test = new es3fFboMultisampleTests.FboMultisampleTests();
         var testName = test.fullName();
         var testDescription = test.getDescription();
-        state.testCases = test;
-        state.testName = testName;
 
+        state.testName = testName;
+        state.setRoot(test);
         //Set up name and description of this test series.
         setCurrentTestName(testName);
         description(testDescription);

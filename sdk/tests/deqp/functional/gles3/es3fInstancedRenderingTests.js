@@ -416,11 +416,11 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
         // Compare.
 
         // Passing referenceImg.getAccess() and resultImg.getAccess() instead of referenceImg and resultImg
-    /** @type {boolean} */ var testOk = tcuImageCompare.fuzzyCompare('ComparisonResult', 'Image comparison result', referenceImg.getAccess(), resultImg.getAccess(), 0.05, null /*gluShaderUtil.COMPARE_LOG_RESULT*/);
+    /** @type {boolean} */ var testOk = tcuImageCompare.fuzzyCompare('ComparisonResult', 'Image comparison result', referenceImg.getAccess(), resultImg.getAccess(), 0.05 /*, gluShaderUtil.COMPARE_LOG_RESULT*/);
 
         assertMsgOptions(testOk, '', true, false);
 
-        return tcuTestCase.runner.IterateResult.STOP;
+        return tcuTestCase.IterateResult.STOP;
     };
 
 
@@ -595,7 +595,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
     };
 
     es3fInstancedRenderingTests.init = function() {
-        var testGroup = tcuTestCase.runner.getState().testCases;
+        var testGroup = tcuTestCase.runner.testCases;
     /** @type {Array<number>} */ var instanceCounts = [1, 2, 4, 20];
 
         for (var _function in es3fInstancedRenderingTests.DrawFunction) {
@@ -612,7 +612,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
             DE_ASSERT(functionName != null);
             DE_ASSERT(functionDesc != null);
 
-            /** @type {tcuTestCase.DeqpTest} */ var functionGroup = new tcuTestCase.newTest(functionName, functionDesc);
+            /** @type {tcuTestCase.DeqpTest} */ var functionGroup = tcuTestCase.newTest(functionName, functionDesc);
             testGroup.addChild(functionGroup);
 
             for (var instancingType in es3fInstancedRenderingTests.InstancingType) {
@@ -632,7 +632,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
                 DE_ASSERT(instancingTypeDesc != null);
 
                 /** @type {tcuTestCase.DeqpTest} */
-                var instancingTypeGroup = new tcuTestCase.newTest(instancingTypeName, instancingTypeDesc);
+                var instancingTypeGroup = tcuTestCase.newTest(instancingTypeName, instancingTypeDesc);
 
                 functionGroup.addChild(instancingTypeGroup);
 
@@ -677,7 +677,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
 
         /** @type {number} */ var typeTestNumInstances = 4;
 
-        /** @type {tcuTestCase.DeqpTest} */ var typesGroup = new tcuTestCase.newTest('types', 'Tests for instanced attributes of particular data types');
+        /** @type {tcuTestCase.DeqpTest} */ var typesGroup = tcuTestCase.newTest('types', 'Tests for instanced attributes of particular data types');
 
         testGroup.addChild(typesGroup);
 
@@ -696,10 +696,10 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
         //Set up Test Root parameters
         var testName = 'instanced_rendering';
         var testDescription = 'Instanced Rendering Tests';
-        var state = tcuTestCase.runner.getState();
+        var state = tcuTestCase.runner;
 
         state.testName = testName;
-        state.testCases = tcuTestCase.newTest(testName, testDescription, null);
+        state.setRoot(tcuTestCase.newTest(testName, testDescription, null));
 
         //Set up name and description of this test series.
         setCurrentTestName(testName);
