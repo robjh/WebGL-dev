@@ -192,7 +192,7 @@ var _currentTestName;
 
 /**
  * Sets the current test name for usage within testPassedOptions/testFailedOptions.
- * @param {string} name The name to set as the current test name.
+ * @param {?string} name The name to set as the current test name.
  */
 function setCurrentTestName(name)
 {
@@ -627,4 +627,3 @@ function finishTest() {
   epilogue.src = basePath + "js-test-post.js";
   document.body.appendChild(epilogue);
 }
-

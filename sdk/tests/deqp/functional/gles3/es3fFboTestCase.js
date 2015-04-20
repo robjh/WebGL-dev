@@ -51,10 +51,11 @@ var deString = framework.delibs.debase.deString;
     * @extends {tcuTestCase.DeqpTest}
     * @param {string} name
     * @param {string} description
-    * @param {boolean} useScreenSizedViewport
+    * @param {boolean=} useScreenSizedViewport
     */
-    es3fFboTestCase.FboTestCase = function(name, description, useScreenSizedViewport /*= false */) {
+    es3fFboTestCase.FboTestCase = function(name, description, useScreenSizedViewport) {
         tcuTestCase.DeqpTest.call(this, name, description);
+        if (useScreenSizedViewport === undefined) useScreenSizedViewport = false;
         /** @type {number} */ this.m_viewportWidth = useScreenSizedViewport === undefined ? gl.drawingBufferWidth : 128;
         /** @type {number} */ this.m_viewportHeight = useScreenSizedViewport === undefined ? gl.drawingBufferHeight : 128;
         /** @type {Context} */ this.m_context = gl; // from TestCase
