@@ -341,7 +341,7 @@ var tcuTextureUtil = framework.common.tcuTextureUtil;
      * @param {tcuFuzzyImageCompare.FuzzyCompareParams} params
      * @param {tcuTexture.ConstPixelBufferAccess} ref
      * @param {tcuTexture.ConstPixelBufferAccess} cmp
-     * @param {tcuTexture.PixelBufferAccess} errorMask
+     * @param {?tcuTexture.TextureLevel} errorMask
      * @return {number}
      */
     tcuFuzzyImageCompare.fuzzyCompare = function(params, ref, cmp, errorMask) {
