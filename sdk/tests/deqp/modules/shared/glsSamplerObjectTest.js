@@ -152,7 +152,7 @@ var gluDefs = framework.opengl.gluDefs;
      * @param {number} y
      */
     glsSamplerObjectTest.TextureSamplerTest.prototype.renderReferences = function(textureRef, samplerRef, x, y) {
-        /** @type {WebGLTexture} */ var texture = glsSamplerObjectTest.TextureSamplerTest.createTexture(this.m_target);
+        /** @type {number} */ var texture = glsSamplerObjectTest.TextureSamplerTest.createTexture(this.m_target);
 
         gl.viewport(x, y, glsSamplerObjectTest.VIEWPORT_WIDTH, glsSamplerObjectTest.VIEWPORT_HEIGHT);
         gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glViewport(x, y, glsSamplerObjectTest.VIEWPORT_WIDTH, glsSamplerObjectTest.VIEWPORT_HEIGHT)');
@@ -184,13 +184,13 @@ var gluDefs = framework.opengl.gluDefs;
      * @param {number} y
      */
     glsSamplerObjectTest.TextureSamplerTest.prototype.renderResults = function(textureResult, samplerResult, x, y) {
-        /** @type {WebGLTexture} */ var texture = glsSamplerObjectTest.TextureSamplerTest.createTexture(this.m_target);
-        // * @type {?WebGLSampler}  var sampler = null;
+        /** @type {number} */ var texture = glsSamplerObjectTest.TextureSamplerTest.createTexture(this.m_target);
+        /** @type {number} */ var sampler = -1;
 
         gl.viewport(x, y, glsSamplerObjectTest.VIEWPORT_WIDTH, glsSamplerObjectTest.VIEWPORT_HEIGHT);
         gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glViewport(x, y, glsSamplerObjectTest.VIEWPORT_WIDTH, glsSamplerObjectTest.VIEWPORT_HEIGHT)');
 
-        /** @type {WebGLSampler} */ var sampler = gl.createSampler();
+        sampler = gl.createSampler();
         gluDefs.GLU_EXPECT_NO_ERROR(gl.getError(), 'glCreateSampler()');
         DE_ASSERT(sampler != -1);
 
@@ -356,7 +356,7 @@ var gluDefs = framework.opengl.gluDefs;
     /**
      * @private
      * @param {glsSamplerObjectTest.SamplingState} state
-     * @param {WebGLSampler} sampler
+     * @param {number} sampler
      */
     glsSamplerObjectTest.TextureSamplerTest.setSamplerState = function(state, sampler) {
         gl.samplerParameteri(sampler, gl.TEXTURE_MIN_FILTER, state.minFilter);
@@ -490,7 +490,7 @@ var gluDefs = framework.opengl.gluDefs;
     /**
      * @private
      * @param {number} target
-     * @return {WebGLTexture}
+     * @return {number}
      */
     glsSamplerObjectTest.TextureSamplerTest.createTexture = function(target) {
         switch (target) {

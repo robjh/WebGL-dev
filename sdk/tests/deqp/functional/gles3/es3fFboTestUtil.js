@@ -380,8 +380,8 @@ var tcuMatrix = framework.common.tcuMatrix;
      * @extends {sglrShaderProgram.ShaderProgram}
      * @param {Array<gluShaderUtilDataType>} samplerTypes
      * @param {gluShaderUtil.DataType} outputType
-     * @param {Array<number>=} outScale - default [1.0, 1.0, 1.0, 1.0]
-     * @param {Array<number>=} outBias - default [0.0, 0.0, 0.0, 0.0]
+     * @param {Array<number>} outScale - default [1.0, 1.0, 1.0, 1.0]
+     * @param {Array<number>} outBias - default [0.0, 0.0, 0.0, 0.0]
      */
     es3fFboTestUtil.Texture2DShader = function(samplerTypes, outputType, outScale, outBias) {
         if (outScale === undefined) outScale = [1.0, 1.0, 1.0, 1.0];

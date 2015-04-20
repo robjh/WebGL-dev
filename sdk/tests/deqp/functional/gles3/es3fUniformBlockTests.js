@@ -63,7 +63,7 @@ goog.scope(function() {
      * @param {string} name The name of the test
      * @param {string} description The description of the test
      * @param {glsUniformBlockCase.VarType} type The type of the block
-     * @param {glsUniformBlockCase.UniformLayout} layoutFlags
+     * @param {number} layoutFlags
      * @param {number} numInstances
      * @constructor
      */
@@ -82,6 +82,14 @@ goog.scope(function() {
     es3fUniformBlockTests.BlockBasicTypeCase.prototype = Object.create(glsUniformBlockCase.UniformBlockCase.prototype);
     es3fUniformBlockTests.BlockBasicTypeCase.prototype.constructor = es3fUniformBlockTests.BlockBasicTypeCase;
 
+    /**
+     * es3fUniformBlockTests.createBlockBasicTypeCases
+     * @param {tcuTestCase.DeqpTest} group
+     * @param {string} name
+     * @param {glsUniformBlockCase.VarType} type
+     * @param {number} layoutFlags
+     * @param {number=} numInstances
+     */
     es3fUniformBlockTests.createBlockBasicTypeCases = function(group, name, type, layoutFlags, numInstances) {
         group.addChild(new es3fUniformBlockTests.BlockBasicTypeCase(name + '_vertex', '', type, layoutFlags | glsUniformBlockCase.UniformFlags.DECLARE_VERTEX, numInstances));
         group.addChild(new es3fUniformBlockTests.BlockBasicTypeCase(name + '_fragment', '', type, layoutFlags | glsUniformBlockCase.UniformFlags.DECLARE_FRAGMENT, numInstances));
@@ -98,6 +106,7 @@ goog.scope(function() {
      * @param {number} layoutFlags
      * @param {glsUniformBlockCase.BufferMode} bufferMode
      * @param {number} numInstances
+     * @constructor
      */
     es3fUniformBlockTests.BlockSingleStructCase = function(name, description, layoutFlags, bufferMode, numInstances) {
         glsUniformBlockCase.UniformBlockCase.call(this, name, description, bufferMode);
@@ -131,6 +140,7 @@ goog.scope(function() {
      * @param {number} layoutFlags
      * @param {glsUniformBlockCase.BufferMode} bufferMode
      * @param {number} numInstances
+     * @constructor
      */
     es3fUniformBlockTests.BlockSingleStructArrayCase = function(name, description, layoutFlags, bufferMode, numInstances) {
         glsUniformBlockCase.UniformBlockCase.call(this, name, description, bufferMode);
@@ -166,6 +176,7 @@ goog.scope(function() {
      * @param {number} layoutFlags
      * @param {glsUniformBlockCase.BufferMode} bufferMode
      * @param {number} numInstances
+     * @constructor
      */
     es3fUniformBlockTests.BlockSingleNestedStructCase = function(name, description, layoutFlags, bufferMode, numInstances) {
         glsUniformBlockCase.UniformBlockCase.call(this, name, description, bufferMode);
@@ -206,6 +217,7 @@ goog.scope(function() {
      * @param {number} layoutFlags
      * @param {glsUniformBlockCase.BufferMode} bufferMode
      * @param {number} numInstances
+     * @constructor
      */
     es3fUniformBlockTests.BlockSingleNestedStructArrayCase = function(name, description, layoutFlags, bufferMode, numInstances) {
         glsUniformBlockCase.UniformBlockCase.call(this, name, description, bufferMode);
@@ -247,6 +259,7 @@ goog.scope(function() {
      * @param {number} flagsB
      * @param {glsUniformBlockCase.BufferMode} bufferMode
      * @param {number} numInstances
+     * @constructor
      */
     es3fUniformBlockTests.BlockMultiBasicTypesCase = function(name, description, flagsA, flagsB, bufferMode, numInstances) {
         glsUniformBlockCase.UniformBlockCase.call(this, name, description, bufferMode);
@@ -288,6 +301,7 @@ goog.scope(function() {
      * @param {number} flagsB
      * @param {glsUniformBlockCase.BufferMode} bufferMode
      * @param {number} numInstances
+     * @constructor
      */
     es3fUniformBlockTests.BlockMultiNestedStructCase = function(name, description, flagsA, flagsB, bufferMode, numInstances) {
         glsUniformBlockCase.UniformBlockCase.call(this, name, description, bufferMode);
@@ -333,12 +347,11 @@ goog.scope(function() {
 
     /**
      * Creates the test hierarchy to be executed.
-     * @param {string} filter A filter to select particular tests.
      **/
     es3fUniformBlockTests.init = function() {
         /** @const @type {tcuTestCase.DeqpTest} */ var testGroup = tcuTestCase.runner.testCases;
 
-        /** @type {gluShaderUtil.DataType} */
+        /** @type {Array.<gluShaderUtil.DataType>} */
         var basicTypes = [
             gluShaderUtil.DataType.FLOAT,
             gluShaderUtil.DataType.FLOAT_VEC2,
@@ -391,8 +404,8 @@ goog.scope(function() {
         testGroup.addChild(singleBasicTypeGroup);
 
         for (var layoutFlagNdx = 0; layoutFlagNdx < layoutFlags.length; layoutFlagNdx++) {
-            /** @type {tcuTestCase.deqpTest} */
-            var layoutGroup = new tcuTestCase.newTest(layoutFlags[layoutFlagNdx].name, '', null);
+            /** @type {tcuTestCase.DeqpTest} */
+            var layoutGroup = tcuTestCase.newTest(layoutFlags[layoutFlagNdx].name, '', null);
             singleBasicTypeGroup.addChild(layoutGroup);
 
             for (var basicTypeNdx = 0; basicTypeNdx < basicTypes.length; basicTypeNdx++) {
@@ -424,8 +437,8 @@ goog.scope(function() {
         testGroup.addChild(singleBasicArrayGroup);
 
         for (var layoutFlagNdx = 0; layoutFlagNdx < layoutFlags.length; layoutFlagNdx++) {
-            /** @type {tcuTestCase.deqpTest} */
-            var layoutGroup = new tcuTestCase.newTest(layoutFlags[layoutFlagNdx].name, '', null);
+            /** @type {tcuTestCase.DeqpTest} */
+            var layoutGroup = tcuTestCase.newTest(layoutFlags[layoutFlagNdx].name, '', null);
             singleBasicArrayGroup.addChild(layoutGroup);
 
             for (var basicTypeNdx = 0; basicTypeNdx < basicTypes.length; basicTypeNdx++) {
@@ -453,8 +466,8 @@ goog.scope(function() {
         testGroup.addChild(singleStructGroup);
 
         for (var modeNdx = 0; modeNdx < bufferModes.length; modeNdx++) {
-            /** @type {tcuTestCase.deqpTest} */
-            var modeGroup = new tcuTestCase.newTest(bufferModes[modeNdx].name, '');
+            /** @type {tcuTestCase.DeqpTest} */
+            var modeGroup = tcuTestCase.newTest(bufferModes[modeNdx].name, '');
             singleStructGroup.addChild(modeGroup);
 
             for (var layoutFlagNdx = 0; layoutFlagNdx < layoutFlags.length; layoutFlagNdx++) {
@@ -484,8 +497,8 @@ goog.scope(function() {
         testGroup.addChild(singleStructArrayGroup);
 
         for (var modeNdx = 0; modeNdx < bufferModes.length; modeNdx++) {
-            /** @type {tcuTestCase.deqpTest} */
-            var modeGroup = new tcuTestCase.newTest(bufferModes[modeNdx].name, '');
+            /** @type {tcuTestCase.DeqpTest} */
+            var modeGroup = tcuTestCase.newTest(bufferModes[modeNdx].name, '');
             singleStructArrayGroup.addChild(modeGroup);
 
             for (var layoutFlagNdx = 0; layoutFlagNdx < layoutFlags.length; layoutFlagNdx++) {
@@ -515,8 +528,8 @@ goog.scope(function() {
         testGroup.addChild(singleNestedStructGroup);
 
         for (var modeNdx = 0; modeNdx < bufferModes.length; modeNdx++) {
-            /** @type {tcuTestCase.deqpTest} */
-            var modeGroup = new tcuTestCase.newTest(bufferModes[modeNdx].name, '');
+            /** @type {tcuTestCase.DeqpTest} */
+            var modeGroup = tcuTestCase.newTest(bufferModes[modeNdx].name, '');
             singleNestedStructGroup.addChild(modeGroup);
 
             for (var layoutFlagNdx = 0; layoutFlagNdx < layoutFlags.length; layoutFlagNdx++) {
@@ -546,8 +559,8 @@ goog.scope(function() {
         testGroup.addChild(singleNestedStructArrayGroup);
 
         for (var modeNdx = 0; modeNdx < bufferModes.length; modeNdx++) {
-            /** @type {tcuTestCase.deqpTest} */
-            var modeGroup = new tcuTestCase.newTest(bufferModes[modeNdx].name, '');
+            /** @type {tcuTestCase.DeqpTest} */
+            var modeGroup = tcuTestCase.newTest(bufferModes[modeNdx].name, '');
             singleNestedStructArrayGroup.addChild(modeGroup);
 
             for (var layoutFlagNdx = 0; layoutFlagNdx < layoutFlags.length; layoutFlagNdx++) {
@@ -577,8 +590,8 @@ goog.scope(function() {
         testGroup.addChild(instanceArrayBasicTypeGroup);
 
         for (var layoutFlagNdx = 0; layoutFlagNdx < layoutFlags.length; layoutFlagNdx++) {
-            /** @type {tcuTestCase.deqpTest} */
-            var layoutGroup = new tcuTestCase.newTest(layoutFlags[layoutFlagNdx].name, '');
+            /** @type {tcuTestCase.DeqpTest} */
+            var layoutGroup = tcuTestCase.newTest(layoutFlags[layoutFlagNdx].name, '');
             instanceArrayBasicTypeGroup.addChild(layoutGroup);
 
             for (var basicTypeNdx = 0; basicTypeNdx < basicTypes.length; basicTypeNdx++) {
@@ -606,8 +619,8 @@ goog.scope(function() {
         testGroup.addChild(multiBasicTypesGroup);
 
         for (var modeNdx = 0; modeNdx < bufferModes.length; modeNdx++) {
-            /** @type {tcuTestCase.deqpTest} */
-            var modeGroup = new tcuTestCase.newTest(bufferModes[modeNdx].name, '');
+            /** @type {tcuTestCase.DeqpTest} */
+            var modeGroup = tcuTestCase.newTest(bufferModes[modeNdx].name, '');
             multiBasicTypesGroup.addChild(modeGroup);
 
             for (var layoutFlagNdx = 0; layoutFlagNdx < layoutFlags.length; layoutFlagNdx++) {
@@ -636,8 +649,8 @@ goog.scope(function() {
         testGroup.addChild(multiNestedStructGroup);
 
         for (var modeNdx = 0; modeNdx < bufferModes.length; modeNdx++) {
-            /** @type {tcuTestCase.deqpTest} */
-            var modeGroup = new tcuTestCase.newTest(bufferModes[modeNdx].name, '');
+            /** @type {tcuTestCase.DeqpTest} */
+            var modeGroup = tcuTestCase.newTest(bufferModes[modeNdx].name, '');
             multiNestedStructGroup.addChild(modeGroup);
 
             for (var layoutFlagNdx = 0; layoutFlagNdx < layoutFlags.length; layoutFlagNdx++) {
@@ -669,7 +682,7 @@ goog.scope(function() {
          /** @type {number} */ var allFeatures = (~glsRandomUniformBlockCase.FeatureBits.FEATURE_ARRAYS_OF_ARRAYS & 0xFFFF);
 
          /** @type {tcuTestCase.DeqpTest} */
-         var randomGroup = new tcuTestCase.newTest('random', 'Random Uniform Block cases');
+         var randomGroup = tcuTestCase.newTest('random', 'Random Uniform Block cases');
          testGroup.addChild(randomGroup);
 
          // Basic types.

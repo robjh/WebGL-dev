@@ -225,8 +225,11 @@ tcuImageCompare.floatUlpThresholdCompare = function(imageSetName, imageSetDesc, 
                 /** @type {ArrayBuffer} */ var arrayBufferRef = new ArrayBuffer(4);
                 /** @type {ArrayBuffer} */ var arrayBufferCmp = new ArrayBuffer(4);
 
-                /** @type {Array<number>} */ var refPix = reference.getPixel(x, y, z); // getPixel returns a Vec4 pixel color
-                /** @type {Array<number>} */ var cmpPix = result.getPixel(x, y, z); // getPixel returns a Vec4 pixel color
+                /** @type {Float32Array} */ var refPix = new Float32Array(arrayBufferRef); // Vec4
+                refPix = reference.getPixel(x, y, z); // getPixel returns a Vec4 pixel color
+
+                /** @type {Float32Array} */ var cmpPix = new Float32Array(arrayBufferCmp); // Vec4
+                cmpPix = result.getPixel(x, y, z); // getPixel returns a Vec4 pixel color
 
                 /** @type {Uint32Array} */ var refBits = new Uint32Array(arrayBufferRef); // UVec4
                 /** @type {Uint32Array} */ var cmpBits = new Uint32Array(arrayBufferCmp); // UVec4
@@ -395,12 +398,11 @@ tcuImageCompare.fuzzyCompare = function(imageSetName, imageSetDesc, reference, r
                                                                 reference.getWidth(),
                                                                 reference.getHeight()
                                                            );
-
     /** @type {number} */ var difference = tcuFuzzyImageCompare.fuzzyCompare(
                                                                 params,
                                                                 reference,
                                                                 result,
-                                                                errorMask.getAccess()
+                                                                tcuTexture.PixelBufferAccess.newFromTextureLevel(errorMask)
                                                                );
     /** @type {boolean} */ var isOk = difference <= threshold;
     /** @type {Array<number>} */ var pixelBias = [0.0, 0.0, 0.0, 0.0];
@@ -463,18 +465,16 @@ tcuImageCompare.bilinearCompare = function(imageSetName, imageSetDesc, reference
         reference.getWidth(),
         reference.getHeight());
 
-    var errorMask_ = tcuTexture.PixelBufferAccess.newFromTextureLevel(errorMask);
-
     /** @type {boolean} */
     var isOk = tcuBilinearImageCompare.bilinearCompare(
         reference,
         result,
-        errorMask_,
+        errorMask,
         threshold);
 
     if (!isOk) {
         debug('Image comparison failed: threshold = ' + threshold);
-        tcuImageCompare.displayImages(result, reference, errorMask_.getAccess());
+        tcuImageCompare.displayImages(result, reference, errorMask.getAccess());
     }
 
     // /* @type {Array<number>} */ var pixelBias = [0.0, 0.0, 0.0, 0.0];

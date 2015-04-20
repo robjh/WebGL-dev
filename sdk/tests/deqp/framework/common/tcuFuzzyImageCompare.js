@@ -347,7 +347,8 @@ var tcuTextureUtil = framework.common.tcuTextureUtil;
     tcuFuzzyImageCompare.fuzzyCompare = function(params, ref, cmp, errorMask) {
         DE_ASSERT(ref.getWidth() == cmp.getWidth() && ref.getHeight() == cmp.getHeight());
         DE_ASSERT(errorMask.getWidth() == ref.getWidth() && errorMask.getHeight() == ref.getHeight());
-
+        // TODO: this is a work around to debug/test (errorMask_)
+        var errorMask_ = tcuTexture.PixelBufferAccess.newFromTextureLevel(errorMask);
         if (!tcuFuzzyImageCompare.isFormatSupported(ref.getFormat()) || !tcuFuzzyImageCompare.isFormatSupported(cmp.getFormat()))
             throw new Error('Unsupported format in fuzzy comparison');
 
@@ -401,7 +402,7 @@ var tcuTextureUtil = framework.common.tcuTextureUtil;
                 /** @type {number} */ var red = err * 500.0;
                 /** @type {number} */ var luma = tcuFuzzyImageCompare.toGrayscale(cmp.getPixel(x, y));
                 /** @type {number} */ var rF = 0.7 + 0.3 * luma;
-                errorMask.setPixel([red * rF, (1.0 - red) * rF, 0.0, 1.0], x, y);
+                errorMask_.setPixel([red * rF, (1.0 - red) * rF, 0.0, 1.0], x, y);
 
             }
         }
