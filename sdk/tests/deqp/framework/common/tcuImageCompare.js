@@ -395,11 +395,12 @@ tcuImageCompare.fuzzyCompare = function(imageSetName, imageSetDesc, reference, r
                                                                 reference.getWidth(),
                                                                 reference.getHeight()
                                                            );
+
     /** @type {number} */ var difference = tcuFuzzyImageCompare.fuzzyCompare(
                                                                 params,
                                                                 reference,
                                                                 result,
-                                                                tcuTexture.PixelBufferAccess.newFromTextureLevel(errorMask)
+                                                                errorMask.getAccess()
                                                                );
     /** @type {boolean} */ var isOk = difference <= threshold;
     /** @type {Array<number>} */ var pixelBias = [0.0, 0.0, 0.0, 0.0];
