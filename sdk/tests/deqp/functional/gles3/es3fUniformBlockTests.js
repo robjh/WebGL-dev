@@ -49,7 +49,7 @@ goog.scope(function() {
      */
     es3fUniformBlockTests.createRandomCaseGroup = function(parentGroup, groupName, description, bufferMode, features, numCases, baseSeed) {
         /** @type {tcuTestCase.DeqpTest} */
-        var group = new tcuTestCase.newTest(groupName, description);
+        var group = tcuTestCase.newTest(groupName, description);
         parentGroup.addChild(group);
 
         baseSeed += (new deRandom.Random()).getBaseSeed();
@@ -65,6 +65,7 @@ goog.scope(function() {
      * @param {glsUniformBlockCase.VarType} type The type of the block
      * @param {glsUniformBlockCase.UniformLayout} layoutFlags
      * @param {number} numInstances
+     * @constructor
      */
     es3fUniformBlockTests.BlockBasicTypeCase = function(name, description, type, layoutFlags, numInstances) {
         glsUniformBlockCase.UniformBlockCase.call(this, name, description, glsUniformBlockCase.BufferMode.BUFFERMODE_PER_BLOCK);

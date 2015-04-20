@@ -61,6 +61,7 @@ goog.scope(function() {
      * @param {glsUniformBlockCase.BufferMode} bufferMode
      * @param {number} features
      * @param {number} seed
+     * @constructor
      */
     glsRandomUniformBlockCase.RandomUniformBlockCase = function(name, description, bufferMode, features, seed) {
         glsUniformBlockCase.UniformBlockCase.call(this, name, description, bufferMode);
