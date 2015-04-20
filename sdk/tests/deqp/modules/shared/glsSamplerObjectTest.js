@@ -413,7 +413,7 @@ var gluDefs = framework.opengl.gluDefs;
      * @return {number}
      */
     glsSamplerObjectTest.TextureSamplerTest.createTexture3D = function() {
-        /** @type {WebGLTexture} */ var texture = -1;
+        /** @type {WebGLTexture} */ var texture = null;
         /** @type {tcuTexture.Texture3D} */ var refTexture = new tcuTexture.Texture3D(
                                                                  new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA,
                                                                                               tcuTexture.ChannelType.UNORM_INT8),
@@ -447,7 +447,7 @@ var gluDefs = framework.opengl.gluDefs;
      * @return {number}
      */
     glsSamplerObjectTest.TextureSamplerTest.createTextureCube = function() {
-        /** @type {WebGLTexture} */ var texture = -1;
+        /** @type {WebGLTexture} */ var texture = null;
         /** @type {tcuTexture.TextureCube} */ var refTexture = new tcuTexture.TextureCube(
                                                                   new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA,
                                                                                                tcuTexture.ChannelType.UNORM_INT8),
@@ -991,7 +991,7 @@ var gluDefs = framework.opengl.gluDefs;
      * @return {number}
      */
     glsSamplerObjectTest.MultiTextureSamplerTest.createTexture2D = function(id) {
-        /** @type {WebGLTexture} */ var texture = -1;
+        /** @type {WebGLTexture} */ var texture = null;
         /** @type {tcuTexture.Texture2D} */ var refTexture = new tcuTexture.Texture2D(
                                                                  new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA,
                                                                                               tcuTexture.ChannelType.UNORM_INT8),
@@ -1038,7 +1038,7 @@ var gluDefs = framework.opengl.gluDefs;
      * @return {number}
      */
     glsSamplerObjectTest.MultiTextureSamplerTest.createTexture3D = function(id) {
-        /** @type {WebGLTexture} */ var texture = -1;
+        /** @type {WebGLTexture} */ var texture = null;
         /** @type {tcuTexture.Texture3D} */ var refTexture = new tcuTexture.Texture3D(
                                                                  new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA,
                                                                                               tcuTexture.ChannelType.UNORM_INT8),
@@ -1085,7 +1085,7 @@ var gluDefs = framework.opengl.gluDefs;
      * @return {number}
      */
     glsSamplerObjectTest.MultiTextureSamplerTest.createTextureCube = function(id) {
-        /** @type {WebGLTexture} */ var texture = -1;
+        /** @type {WebGLTexture} */ var texture = null;
         /** @type {tcuTexture.TextureCube} */ var refTexture = new tcuTexture.TextureCube(
                                                                      new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA,
                                                                                                   tcuTexture.ChannelType.UNORM_INT8),
