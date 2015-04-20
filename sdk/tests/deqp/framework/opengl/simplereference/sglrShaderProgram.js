@@ -240,7 +240,7 @@ var tcuTextureUtil = framework.common.tcuTextureUtil;
         /** @type {string} */ this.name = '';
         /** @type {gluShaderUtil.DataType} */ this.type = undefined;
         /** @type {number} */ this.value = '0';
-        /** @type {sglrReferenceContext.Texture} */ this.sampler = DE_NULL;
+        /** @type {sglrReferenceContext.Texture} */ this.sampler = null;
     };
 
     /**
