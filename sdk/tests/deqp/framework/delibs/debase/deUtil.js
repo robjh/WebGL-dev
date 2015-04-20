@@ -21,11 +21,9 @@
 'use strict';
 goog.provide('framework.delibs.debase.deUtil');
 
-
 goog.scope(function() {
 
 var deUtil = framework.delibs.debase.deUtil;
-
 
     /**
     * Add a push_unique function to Array. Will insert only if there is no equal element.
@@ -45,5 +43,4 @@ var deUtil = framework.delibs.debase.deUtil;
         array.push(object);
     };
 
-    
 });

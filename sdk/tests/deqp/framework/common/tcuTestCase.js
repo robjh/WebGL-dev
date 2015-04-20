@@ -167,7 +167,7 @@ goog.scope(function() {
     /**
      * Marks the test as always executable
      */
-    tcuTestCase.DeqpTest.prototype.makeExecutable = function () {
+    tcuTestCase.DeqpTest.prototype.makeExecutable = function() {
         this.executeAlways = true;
     };
 

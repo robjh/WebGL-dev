@@ -25,12 +25,10 @@
 goog.provide('framework.delibs.debase.deString');
 goog.require('framework.delibs.debase.deMath');
 
-
 goog.scope(function() {
 
 var deString = framework.delibs.debase.deString;
 var deMath = framework.delibs.debase.deMath;
-
 
     var DE_ASSERT = function(x) {
         if (!x)
@@ -71,7 +69,5 @@ var deMath = framework.delibs.debase.deMath;
             return true;
         return false;
     };
-
-
 
 });
