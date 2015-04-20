@@ -38,8 +38,7 @@ targets = {
     'uniformapi': 'functional.gles3.es3fUniformApiTests',
     'uniformbuffers': 'functional.gles3.es3fUniformBlockTests',
     'vertexarrays': 'functional.gles3.es3fVertexArrayTests',
-    'shaderlibrary': 'modules.shared.glsShaderLibrary',
-    'matrix': 'framework.common.tcuMatrix'
+    'shaderlibrary': 'modules.shared.glsShaderLibrary'
 }
 def dep_filename(target):
     return target + '.dep'
@@ -90,6 +89,14 @@ def build_deps(target, namespace):
 def build_all_deps():
     for target in targets.keys():
         build_deps(target, targets[target])
+
+def buildDepsFile():
+    # the parameter "--root_with_prefix" is the relative path from the file goog/base.js to the root of the .js files we
+    # are working on.
+    cmdBuildDeps = 'python ../closure-library/closure/bin/build/depswriter.py --root_with_prefix=". ../../../deqp"' #> deqp-deps.js
+
+    # Calls the python program that generates the google closure dependencies
+    write_to_file('deqp-deps.js', cmdBuildDeps, False)
 
 total_errors = 0
 total_warnings = 0
@@ -167,6 +174,8 @@ def main(argv):
         else:
             build_all_targets()
         pass_or_fail()
+    elif (argv[0] == 'depfile'):
+        buildDepsFile()
     else:
         target = argv[0]
         build_deps(target, targets[target])
