@@ -155,6 +155,7 @@ def main(argv):
     if len(argv) == 0:
         build_all_deps()
         build_all_targets()
+        buildDepsFile()
         pass_or_fail()
     elif (argv[0] == 'deps'):
         if len(argv) == 2:
