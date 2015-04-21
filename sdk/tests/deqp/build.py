@@ -37,6 +37,7 @@ targets = {
     'transformFeedbackTests': 'functional.gles3.es3fTransformFeedbackTests',
     'uniformapi': 'functional.gles3.es3fUniformApiTests',
     'uniformbuffers': 'functional.gles3.es3fUniformBlockTests',
+    'glsvaotests': 'modules.shared.glsVertexArrayTests',
     'vertexarrays': 'functional.gles3.es3fVertexArrayTests',
     'shaderlibrary': 'modules.shared.glsShaderLibrary',
     'matrix': 'framework.common.tcuMatrix'
