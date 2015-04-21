@@ -146,17 +146,18 @@ tcuImageCompare.displayImages = function(result, reference, diff) {
  *
  * On failure error image is generated that shows where the failing pixels
  * are.
- *
- * \param log Test log for results
- * \param imageSetName Name for image set when logging results
- * \param imageSetDesc Description for image set
- * \param reference Reference image
- * \param result Result image
- * \param threshold Maximum allowed difference
- * \param logMode Logging mode
- * \return true if comparison passes, false otherwise
- *//*--------------------------------------------------------------------*/
-tcuImageCompare.intThresholdCompare = function(/*const char* */imageSetName, /*const char* */imageSetDesc, /*const ConstPixelBufferAccess&*/ reference, /*const ConstPixelBufferAccess&*/ result, /*const UVec4&*/ threshold, /*tcuImageCompare.CompareLogMode*/ logMode) {
+ */
+
+ /**
+ * tcuImageCompare.intThresholdCompare
+ * @param {string} imageSetName
+ * @param {string} imageSetDesc
+ * @param {tcuTexture.ConstPixelBufferAccess} reference
+ * @param {tcuTexture.ConstPixelBufferAccess} result
+ * @param {Array<number>} threshold
+ * @return {boolean}
+ */
+tcuImageCompare.intThresholdCompare = function(imageSetName, imageSetDesc, reference, result, threshold) {
     var width = reference.getWidth();
     var height = reference.getHeight();
     var depth = reference.getDepth();
@@ -376,7 +377,7 @@ tcuImageCompare.floatThresholdCompare = function(imageSetName, imageSetDesc, ref
  * \return true if comparison passes, false otherwise
  *//*--------------------------------------------------------------------*/
 tcuImageCompare.pixelThresholdCompare = function(/*const char* */imageSetName, /*const char* */imageSetDesc, /*const Surface&*/ reference, /*const Surface&*/ result, /*const RGBA&*/ threshold, /*tcuImageCompare.CompareLogMode*/ logMode) {
-    return tcuImageCompare.intThresholdCompare(imageSetName, imageSetDesc, reference.getAccess(), result.getAccess(), threshold, logMode);
+    return tcuImageCompare.intThresholdCompare(imageSetName, imageSetDesc, reference.getAccess(), result.getAccess(), threshold);
 };
 
  /**
