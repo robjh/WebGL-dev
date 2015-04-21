@@ -1691,9 +1691,9 @@ sglrReferenceContext.ReferenceContext.prototype.getReadColorbuffer = function() 
         return this.m_defaultColorbuffer;
 };
 
-sglrReferenceContext.ReferenceContext.prototype.drawArrays = function(mode, first, count) {
-    this.drawArraysInstanced(mode, first, count, 1);
-};
+// sglrReferenceContext.ReferenceContext.prototype.drawArrays = function(mode, first, count) {
+//     this.drawArraysInstanced(mode, first, count, 1);
+// };
 
 sglrReferenceContext.ReferenceContext.prototype.checkFramebufferStatus = function(target) {
     if (this.condtionalSetError(target != gl.FRAMEBUFFER &&
@@ -1841,49 +1841,49 @@ sglrReferenceContext.ReferenceContext.prototype.predrawErrorChecks = function(mo
     return true;
 };
 
-sglrReferenceContext.ReferenceContext.prototype.drawArraysInstanced = function(mode, first, count, instanceCount) {
-    if (this.condtionalSetError(first < 0 || count < 0 || instanceCount < 0, gl.INVALID_VALUE))
-        return;
+// sglrReferenceContext.ReferenceContext.prototype.drawArraysInstanced = function(mode, first, count, instanceCount) {
+//     if (this.condtionalSetError(first < 0 || count < 0 || instanceCount < 0, gl.INVALID_VALUE))
+//         return;
 
-    if (!this.predrawErrorChecks(mode))
-        return;
+//     if (!this.predrawErrorChecks(mode))
+//         return;
 
-    // All is ok
-    var primitiveType = sglrReferenceUtils.mapGLPrimitiveType(mode);
+//     // All is ok
+//     var primitiveType = sglrReferenceUtils.mapGLPrimitiveType(mode);
 
-    this.drawWithReference(new rrRenderer.PrimitiveList(primitiveType, count, first), instanceCount);
-};
+//     this.drawWithReference(new rrRenderer.PrimitiveList(primitiveType, count, first), instanceCount);
+// };
 
-sglrReferenceContext.ReferenceContext.prototype.drawElements = function(mode, count, type, offset) {
-    this.drawElementsInstanced(mode, count, type, offset, 1);
-};
+// sglrReferenceContext.ReferenceContext.prototype.drawElements = function(mode, count, type, offset) {
+//     this.drawElementsInstanced(mode, count, type, offset, 1);
+// };
 
-sglrReferenceContext.ReferenceContext.prototype.drawElementsInstanced = function(mode, count, type, offset, instanceCount) {
-    this.drawElementsInstancedBaseVertex(mode, count, type, offset, instanceCount, 0);
-}
+// sglrReferenceContext.ReferenceContext.prototype.drawElementsInstanced = function(mode, count, type, offset, instanceCount) {
+//     this.drawElementsInstancedBaseVertex(mode, count, type, offset, instanceCount, 0);
+// }
 
-sglrReferenceContext.ReferenceContext.prototype.drawElementsInstancedBaseVertex = function(mode, count, type, offset, instanceCount, baseVertex) {
-    var vao = this.m_vertexArrayBinding;
+// sglrReferenceContext.ReferenceContext.prototype.drawElementsInstancedBaseVertex = function(mode, count, type, offset, instanceCount, baseVertex) {
+//     var vao = this.m_vertexArrayBinding;
 
-    if (this.condtionalSetError(type != gl.UNSIGNED_BYTE &&
-                type != gl.UNSIGNED_SHORT &&
-                type != gl.UNSIGNED_INT, gl.INVALID_ENUM))
-        return;
-    if (this.condtionalSetError(count < 0 || instanceCount < 0, gl.INVALID_VALUE))
-        return;
+//     if (this.condtionalSetError(type != gl.UNSIGNED_BYTE &&
+//                 type != gl.UNSIGNED_SHORT &&
+//                 type != gl.UNSIGNED_INT, gl.INVALID_ENUM))
+//         return;
+//     if (this.condtionalSetError(count < 0 || instanceCount < 0, gl.INVALID_VALUE))
+//         return;
 
-    if (!this.predrawErrorChecks(mode))
-        return;
+//     if (!this.predrawErrorChecks(mode))
+//         return;
 
-    if (this.condtionalSetError(count >0 && !vao.m_elementArrayBufferBinding, gl.INVALID_OPERATION))
-        return;
-    // All is ok
-    var primitiveType = sglrReferenceUtils.mapGLPrimitiveType(mode);
-    var data = vao.m_elementArrayBufferBinding.getData();
-    var indices = new rrRenderer.DrawIndices(data, sglrReferenceUtils.mapGLIndexType(type), baseVertex);
+//     if (this.condtionalSetError(count >0 && !vao.m_elementArrayBufferBinding, gl.INVALID_OPERATION))
+//         return;
+//     // All is ok
+//     var primitiveType = sglrReferenceUtils.mapGLPrimitiveType(mode);
+//     var data = vao.m_elementArrayBufferBinding.getData();
+//     var indices = new rrRenderer.DrawIndices(data, sglrReferenceUtils.mapGLIndexType(type), baseVertex);
 
-    this.drawWithReference(new rrRenderer.PrimitiveList(primitiveType, count, indices), instanceCount);
-};
+//     this.drawWithReference(new rrRenderer.PrimitiveList(primitiveType, count, indices), instanceCount);
+// };
 
 /**
  * @param {rrMultisampleConstPixelBufferAccess.MultisampleConstPixelBufferAccess} access
@@ -2253,200 +2253,200 @@ sglrReferenceContext.getPrimitiveBaseType = function(derivedType) {
     }
 };
 
-sglrReferenceContext.ReferenceContext.prototype.drawWithReference = function(primitives, instanceCount) {
-    // undefined results
-    if (!this.m_currentProgram)
-        return;
+// sglrReferenceContext.ReferenceContext.prototype.drawWithReference = function(primitives, instanceCount) {
+//     // undefined results
+//     if (!this.m_currentProgram)
+//         return;
 
-    var colorBuf0 = this.getDrawColorbuffer();
-    var depthBuf = this.getDrawDepthbuffer();
-    var stencilBuf = this.getDrawStencilbuffer();
-    var hasStencil = stencilBuf && !stencilBuf.isEmpty();
-    var stencilBits = (hasStencil) ? stencilBuf.raw().getFormat().getNumStencilBits() : (0);
+//     var colorBuf0 = this.getDrawColorbuffer();
+//     var depthBuf = this.getDrawDepthbuffer();
+//     var stencilBuf = this.getDrawStencilbuffer();
+//     var hasStencil = stencilBuf && !stencilBuf.isEmpty();
+//     var stencilBits = (hasStencil) ? stencilBuf.raw().getFormat().getNumStencilBits() : (0);
 
-    var renderTarget = new rrRenderer.RenderTarget(colorBuf0, depthBuf, stencilBuf);
-    var program = this.m_currentProgram.m_program;
-    var state = new rrRenderState.RenderState(colorBuf0);
+//     var renderTarget = new rrRenderer.RenderTarget(colorBuf0, depthBuf, stencilBuf);
+//     var program = this.m_currentProgram.m_program;
+//     var state = new rrRenderState.RenderState(colorBuf0);
 
-    var vertexAttribs = [];
+//     var vertexAttribs = [];
 
-    // Gen state
-    var baseType = sglrReferenceContext.getPrimitiveBaseType(primitives.getPrimitiveType());
-    var polygonOffsetEnabled = (baseType == rrRenderer.PrimitiveType.TRIANGLES) ? (this.m_polygonOffsetFillEnabled) : (false);
+//     // Gen state
+//     var baseType = sglrReferenceContext.getPrimitiveBaseType(primitives.getPrimitiveType());
+//     var polygonOffsetEnabled = (baseType == rrRenderer.PrimitiveType.TRIANGLES) ? (this.m_polygonOffsetFillEnabled) : (false);
 
-    //state.cullMode = m_cullMode
+//     //state.cullMode = m_cullMode
 
-    state.fragOps.scissorTestEnabled = this.m_scissorEnabled;
-    state.fragOps.scissorRectangle = new rrRenderState.WindowRectangle(this.m_scissorBox[0], this.m_scissorBox[1], this.m_scissorBox[2], this.m_scissorBox[3]);
+//     state.fragOps.scissorTestEnabled = this.m_scissorEnabled;
+//     state.fragOps.scissorRectangle = new rrRenderState.WindowRectangle(this.m_scissorBox[0], this.m_scissorBox[1], this.m_scissorBox[2], this.m_scissorBox[3]);
 
-    state.fragOps.numStencilBits = stencilBits;
-    state.fragOps.stencilTestEnabled = this.m_stencilTestEnabled;
+//     state.fragOps.numStencilBits = stencilBits;
+//     state.fragOps.stencilTestEnabled = this.m_stencilTestEnabled;
 
-    for (var key in rrDefs.FaceType) {
-        var faceType = rrDefs.FaceType[key];
-        state.fragOps.stencilStates[faceType].compMask = this.m_stencil[faceType].opMask;
-        state.fragOps.stencilStates[faceType].writeMask = this.m_stencil[faceType].writeMask;
-        state.fragOps.stencilStates[faceType].ref = this.m_stencil[faceType].ref;
-        state.fragOps.stencilStates[faceType].func = sglrReferenceUtils.mapGLTestFunc(this.m_stencil[faceType].func);
-        state.fragOps.stencilStates[faceType].sFail = sglrReferenceUtils.mapGLStencilOp(this.m_stencil[faceType].opStencilFail);
-        state.fragOps.stencilStates[faceType].dpFail = sglrReferenceUtils.mapGLStencilOp(this.m_stencil[faceType].opDepthFail);
-        state.fragOps.stencilStates[faceType].dpPass = sglrReferenceUtils.mapGLStencilOp(this.m_stencil[faceType].opDepthPass);
-    }
+//     for (var key in rrDefs.FaceType) {
+//         var faceType = rrDefs.FaceType[key];
+//         state.fragOps.stencilStates[faceType].compMask = this.m_stencil[faceType].opMask;
+//         state.fragOps.stencilStates[faceType].writeMask = this.m_stencil[faceType].writeMask;
+//         state.fragOps.stencilStates[faceType].ref = this.m_stencil[faceType].ref;
+//         state.fragOps.stencilStates[faceType].func = sglrReferenceUtils.mapGLTestFunc(this.m_stencil[faceType].func);
+//         state.fragOps.stencilStates[faceType].sFail = sglrReferenceUtils.mapGLStencilOp(this.m_stencil[faceType].opStencilFail);
+//         state.fragOps.stencilStates[faceType].dpFail = sglrReferenceUtils.mapGLStencilOp(this.m_stencil[faceType].opDepthFail);
+//         state.fragOps.stencilStates[faceType].dpPass = sglrReferenceUtils.mapGLStencilOp(this.m_stencil[faceType].opDepthPass);
+//     }
 
-    state.fragOps.depthTestEnabled = this.m_depthTestEnabled;
-    state.fragOps.depthFunc = sglrReferenceUtils.mapGLTestFunc(this.m_depthFunc);
-    state.fragOps.depthMask = this.m_depthMask;
+//     state.fragOps.depthTestEnabled = this.m_depthTestEnabled;
+//     state.fragOps.depthFunc = sglrReferenceUtils.mapGLTestFunc(this.m_depthFunc);
+//     state.fragOps.depthMask = this.m_depthMask;
 
-    state.fragOps.blendMode = this.m_blendEnabled ? rrRenderState.BlendMode.STANDARD : rrRenderState.BlendMode.NONE;
-    state.fragOps.blendRGBState.equation = sglrReferenceUtils.mapGLBlendEquation(this.m_blendModeRGB);
-    state.fragOps.blendRGBState.srcFunc = sglrReferenceUtils.mapGLBlendFunc(this.m_blendFactorSrcRGB);
-    state.fragOps.blendRGBState.dstFunc = sglrReferenceUtils.mapGLBlendFunc(this.m_blendFactorDstRGB);
-    state.fragOps.blendAState.equation = sglrReferenceUtils.mapGLBlendEquation(this.m_blendModeAlpha);
-    state.fragOps.blendAState.srcFunc = sglrReferenceUtils.mapGLBlendFunc(this.m_blendFactorSrcAlpha);
-    state.fragOps.blendAState.dstFunc = sglrReferenceUtils.mapGLBlendFunc(this.m_blendFactorDstAlpha);
-    state.fragOps.blendColor = this.m_blendColor;
+//     state.fragOps.blendMode = this.m_blendEnabled ? rrRenderState.BlendMode.STANDARD : rrRenderState.BlendMode.NONE;
+//     state.fragOps.blendRGBState.equation = sglrReferenceUtils.mapGLBlendEquation(this.m_blendModeRGB);
+//     state.fragOps.blendRGBState.srcFunc = sglrReferenceUtils.mapGLBlendFunc(this.m_blendFactorSrcRGB);
+//     state.fragOps.blendRGBState.dstFunc = sglrReferenceUtils.mapGLBlendFunc(this.m_blendFactorDstRGB);
+//     state.fragOps.blendAState.equation = sglrReferenceUtils.mapGLBlendEquation(this.m_blendModeAlpha);
+//     state.fragOps.blendAState.srcFunc = sglrReferenceUtils.mapGLBlendFunc(this.m_blendFactorSrcAlpha);
+//     state.fragOps.blendAState.dstFunc = sglrReferenceUtils.mapGLBlendFunc(this.m_blendFactorDstAlpha);
+//     state.fragOps.blendColor = this.m_blendColor;
 
-    state.fragOps.colorMask = this.m_colorMask;
+//     state.fragOps.colorMask = this.m_colorMask;
 
-    state.viewport.rect = new rrRenderState.WindowRectangle(this.m_viewport);
-    state.viewport.zn = this.m_depthRangeNear;
-    state.viewport.zf = this.m_depthRangeFar;
+//     state.viewport.rect = new rrRenderState.WindowRectangle(this.m_viewport);
+//     state.viewport.zn = this.m_depthRangeNear;
+//     state.viewport.zf = this.m_depthRangeFar;
 
-    //state.point.pointSize = this.m_pointSize;
-    state.line.lineWidth = this.m_lineWidth;
+//     //state.point.pointSize = this.m_pointSize;
+//     state.line.lineWidth = this.m_lineWidth;
 
-    state.fragOps.polygonOffsetEnabled = polygonOffsetEnabled;
-    state.fragOps.polygonOffsetFactor = this.m_polygonOffsetFactor;
-    state.fragOps.polygonOffsetUnits = this.m_polygonOffsetUnits;
+//     state.fragOps.polygonOffsetEnabled = polygonOffsetEnabled;
+//     state.fragOps.polygonOffsetFactor = this.m_polygonOffsetFactor;
+//     state.fragOps.polygonOffsetUnits = this.m_polygonOffsetUnits;
 
-    /* TODO: Check this logic */
-    var indexType = primitives.getIndexType();
+//     /* TODO: Check this logic */
+//     var indexType = primitives.getIndexType();
 
-    if (this.m_primitiveRestartFixedIndex && indexType) {
-        state.restart.enabled = true;
-        state.restart.restartIndex = sglrReferenceContext.getFixedRestartIndex(indexType);
-    } else {
-        state.restart.enabled = false;
-    }
+//     if (this.m_primitiveRestartFixedIndex && indexType) {
+//         state.restart.enabled = true;
+//         state.restart.restartIndex = sglrReferenceContext.getFixedRestartIndex(indexType);
+//     } else {
+//         state.restart.enabled = false;
+//     }
 
-    state.provokingVertexConvention = (this.m_provokingFirstVertexConvention) ? (rrDefs.ProvokingVertex.PROVOKINGVERTEX_FIRST) : (rrDefs.ProvokingVertex.PROVOKINGVERTEX_LAST);
+//     state.provokingVertexConvention = (this.m_provokingFirstVertexConvention) ? (rrDefs.ProvokingVertex.PROVOKINGVERTEX_FIRST) : (rrDefs.ProvokingVertex.PROVOKINGVERTEX_LAST);
 
-    // gen attributes
-    var vao = this.m_vertexArrayBinding;
+//     // gen attributes
+//     var vao = this.m_vertexArrayBinding;
 
-    for (var ndx = 0; ndx < vao.m_arrays.length; ++ndx) {
-        vertexAttribs[ndx] = new rrVertexAttrib.VertexAttrib();
-        if (!vao.m_arrays[ndx].enabled) {
-            vertexAttribs[ndx].type = rrVertexAttrib.VertexAttribType.DONT_CARE; // reading with wrong type is allowed, but results are undefined
-            vertexAttribs[ndx].generic = this.m_currentAttribs[ndx];
-        } else {
-            vertexAttribs[ndx].type = (vao.m_arrays[ndx].integer) ?
-                                                    (sglrReferenceUtils.mapGLPureIntegerVertexAttributeType(vao.m_arrays[ndx].type)) :
-                                                    (sglrReferenceUtils.mapGLFloatVertexAttributeType(vao.m_arrays[ndx].type, vao.m_arrays[ndx].normalized, vao.m_arrays[ndx].size));
-            vertexAttribs[ndx].size = sglrReferenceUtils.mapGLSize(vao.m_arrays[ndx].size);
-            vertexAttribs[ndx].stride = vao.m_arrays[ndx].stride;
-            vertexAttribs[ndx].instanceDivisor = vao.m_arrays[ndx].divisor;
-            vertexAttribs[ndx].pointer = vao.m_arrays[ndx].bufferBinding.getData();
-            vertexAttribs[ndx].offset = vao.m_arrays[ndx].offset;
-        }
-    }
+//     for (var ndx = 0; ndx < vao.m_arrays.length; ++ndx) {
+//         vertexAttribs[ndx] = new rrVertexAttrib.VertexAttrib();
+//         if (!vao.m_arrays[ndx].enabled) {
+//             vertexAttribs[ndx].type = rrVertexAttrib.VertexAttribType.DONT_CARE; // reading with wrong type is allowed, but results are undefined
+//             vertexAttribs[ndx].generic = this.m_currentAttribs[ndx];
+//         } else {
+//             vertexAttribs[ndx].type = (vao.m_arrays[ndx].integer) ?
+//                                                     (sglrReferenceUtils.mapGLPureIntegerVertexAttributeType(vao.m_arrays[ndx].type)) :
+//                                                     (sglrReferenceUtils.mapGLFloatVertexAttributeType(vao.m_arrays[ndx].type, vao.m_arrays[ndx].normalized, vao.m_arrays[ndx].size));
+//             vertexAttribs[ndx].size = sglrReferenceUtils.mapGLSize(vao.m_arrays[ndx].size);
+//             vertexAttribs[ndx].stride = vao.m_arrays[ndx].stride;
+//             vertexAttribs[ndx].instanceDivisor = vao.m_arrays[ndx].divisor;
+//             vertexAttribs[ndx].pointer = vao.m_arrays[ndx].bufferBinding.getData();
+//             vertexAttribs[ndx].offset = vao.m_arrays[ndx].offset;
+//         }
+//     }
 
-    // Set shader samplers
-    for (var uniformNdx = 0; uniformNdx < this.m_currentProgram.m_program.m_uniforms.length; ++uniformNdx) {
-        var texNdx = this.m_currentProgram.m_program.m_uniforms[uniformNdx].value;
+//     // Set shader samplers
+//     for (var uniformNdx = 0; uniformNdx < this.m_currentProgram.m_program.m_uniforms.length; ++uniformNdx) {
+//         var texNdx = this.m_currentProgram.m_program.m_uniforms[uniformNdx].value;
 
-        switch (this.m_currentProgram.m_program.m_uniforms[uniformNdx].type) {
-            case gluShaderUtil.DataType.SAMPLER_2D:
-            case gluShaderUtil.DataType.UINT_SAMPLER_2D:
-            case gluShaderUtil.DataType.INT_SAMPLER_2D: {
-                var tex = null;
+//         switch (this.m_currentProgram.m_program.m_uniforms[uniformNdx].type) {
+//             case gluShaderUtil.DataType.SAMPLER_2D:
+//             case gluShaderUtil.DataType.UINT_SAMPLER_2D:
+//             case gluShaderUtil.DataType.INT_SAMPLER_2D: {
+//                 var tex = null;
 
-                if (texNdx >= 0 && texNdx < this.m_textureUnits.length)
-                    tex = (this.m_textureUnits[texNdx].tex2DBinding) ? (this.m_textureUnits[texNdx].tex2DBinding) : (this.m_textureUnits[texNdx].default2DTex);
+//                 if (texNdx >= 0 && texNdx < this.m_textureUnits.length)
+//                     tex = (this.m_textureUnits[texNdx].tex2DBinding) ? (this.m_textureUnits[texNdx].tex2DBinding) : (this.m_textureUnits[texNdx].default2DTex);
 
-                if (tex && tex.isComplete()) {
-                    tex.updateView();
-                    this.m_currentProgram.m_program.m_uniforms[uniformNdx].sampler.tex2D = tex;
-                } else
-                    this.m_currentProgram.m_program.m_uniforms[uniformNdx].sampler.tex2D = this.m_emptyTex2D;
+//                 if (tex && tex.isComplete()) {
+//                     tex.updateView();
+//                     this.m_currentProgram.m_program.m_uniforms[uniformNdx].sampler.tex2D = tex;
+//                 } else
+//                     this.m_currentProgram.m_program.m_uniforms[uniformNdx].sampler.tex2D = this.m_emptyTex2D;
 
-                break;
-            }
-            /* TODO: Port
-            case gluShaderUtil.DataType.SAMPLER_CUBE:
-            case gluShaderUtil.DataType.UINT_SAMPLER_CUBE:
-            case gluShaderUtil.DataType.INT_SAMPLER_CUBE: {
-                rc::TextureCube* tex = DE_NULL;
+//                 break;
+//             }
+//             /* TODO: Port
+//             case gluShaderUtil.DataType.SAMPLER_CUBE:
+//             case gluShaderUtil.DataType.UINT_SAMPLER_CUBE:
+//             case gluShaderUtil.DataType.INT_SAMPLER_CUBE: {
+//                 rc::TextureCube* tex = DE_NULL;
 
-                if (texNdx >= 0 && (size_t)texNdx < this.m_textureUnits.length)
-                    tex = (this.m_textureUnits[texNdx].texCubeBinding) ? (this.m_textureUnits[texNdx].texCubeBinding) : (&this.m_textureUnits[texNdx].defaultCubeTex);
+//                 if (texNdx >= 0 && (size_t)texNdx < this.m_textureUnits.length)
+//                     tex = (this.m_textureUnits[texNdx].texCubeBinding) ? (this.m_textureUnits[texNdx].texCubeBinding) : (&this.m_textureUnits[texNdx].defaultCubeTex);
 
-                if (tex && tex.isComplete()) {
-                    tex.updateView();
-                    this.m_currentProgram.m_program.m_uniforms[uniformNdx].sampler.texCube = tex;
-                } else
-                    this.m_currentProgram.m_program.m_uniforms[uniformNdx].sampler.texCube = &this.m_emptyTexCube;
+//                 if (tex && tex.isComplete()) {
+//                     tex.updateView();
+//                     this.m_currentProgram.m_program.m_uniforms[uniformNdx].sampler.texCube = tex;
+//                 } else
+//                     this.m_currentProgram.m_program.m_uniforms[uniformNdx].sampler.texCube = &this.m_emptyTexCube;
 
-                break;
-            }
-            case gluShaderUtil.DataType.SAMPLER_2D_ARRAY:
-            case gluShaderUtil.DataType.UINT_SAMPLER_2D_ARRAY:
-            case gluShaderUtil.DataType.INT_SAMPLER_2D_ARRAY: {
-                rc::Texture2DArray* tex = DE_NULL;
+//                 break;
+//             }
+//             case gluShaderUtil.DataType.SAMPLER_2D_ARRAY:
+//             case gluShaderUtil.DataType.UINT_SAMPLER_2D_ARRAY:
+//             case gluShaderUtil.DataType.INT_SAMPLER_2D_ARRAY: {
+//                 rc::Texture2DArray* tex = DE_NULL;
 
-                if (texNdx >= 0 && (size_t)texNdx < this.m_textureUnits.length)
-                    tex = (this.m_textureUnits[texNdx].tex2DArrayBinding) ? (this.m_textureUnits[texNdx].tex2DArrayBinding) : (&this.m_textureUnits[texNdx].default2DArrayTex);
+//                 if (texNdx >= 0 && (size_t)texNdx < this.m_textureUnits.length)
+//                     tex = (this.m_textureUnits[texNdx].tex2DArrayBinding) ? (this.m_textureUnits[texNdx].tex2DArrayBinding) : (&this.m_textureUnits[texNdx].default2DArrayTex);
 
-                if (tex && tex.isComplete()) {
-                    tex.updateView();
-                    this.m_currentProgram.m_program.m_uniforms[uniformNdx].sampler.tex2DArray = tex;
-                } else
-                    this.m_currentProgram.m_program.m_uniforms[uniformNdx].sampler.tex2DArray = &this.m_emptyTex2DArray;
+//                 if (tex && tex.isComplete()) {
+//                     tex.updateView();
+//                     this.m_currentProgram.m_program.m_uniforms[uniformNdx].sampler.tex2DArray = tex;
+//                 } else
+//                     this.m_currentProgram.m_program.m_uniforms[uniformNdx].sampler.tex2DArray = &this.m_emptyTex2DArray;
 
-                break;
-            }
-            case gluShaderUtil.DataType.SAMPLER_3D:
-            case gluShaderUtil.DataType.UINT_SAMPLER_3D:
-            case gluShaderUtil.DataType.INT_SAMPLER_3D: {
-                rc::Texture3D* tex = DE_NULL;
+//                 break;
+//             }
+//             case gluShaderUtil.DataType.SAMPLER_3D:
+//             case gluShaderUtil.DataType.UINT_SAMPLER_3D:
+//             case gluShaderUtil.DataType.INT_SAMPLER_3D: {
+//                 rc::Texture3D* tex = DE_NULL;
 
-                if (texNdx >= 0 && (size_t)texNdx < m_textureUnits.length)
-                    tex = (this.m_textureUnits[texNdx].tex3DBinding) ? (this.m_textureUnits[texNdx].tex3DBinding) : (&this.m_textureUnits[texNdx].default3DTex);
+//                 if (texNdx >= 0 && (size_t)texNdx < m_textureUnits.length)
+//                     tex = (this.m_textureUnits[texNdx].tex3DBinding) ? (this.m_textureUnits[texNdx].tex3DBinding) : (&this.m_textureUnits[texNdx].default3DTex);
 
-                if (tex && tex.isComplete()) {
-                    tex.updateView();
-                    this.m_currentProgram.m_program.m_uniforms[uniformNdx].sampler.tex3D = tex;
-                } else
-                    this.m_currentProgram.m_program.m_uniforms[uniformNdx].sampler.tex3D = &this.m_emptyTex3D;
+//                 if (tex && tex.isComplete()) {
+//                     tex.updateView();
+//                     this.m_currentProgram.m_program.m_uniforms[uniformNdx].sampler.tex3D = tex;
+//                 } else
+//                     this.m_currentProgram.m_program.m_uniforms[uniformNdx].sampler.tex3D = &this.m_emptyTex3D;
 
-                break;
-            }
-            case gluShaderUtil.DataType.SAMPLER_CUBE_ARRAY:
-            case gluShaderUtil.DataType.UINT_SAMPLER_CUBE_ARRAY:
-            case gluShaderUtil.DataType.INT_SAMPLER_CUBE_ARRAY: {
-                rc::TextureCubeArray* tex = DE_NULL;
+//                 break;
+//             }
+//             case gluShaderUtil.DataType.SAMPLER_CUBE_ARRAY:
+//             case gluShaderUtil.DataType.UINT_SAMPLER_CUBE_ARRAY:
+//             case gluShaderUtil.DataType.INT_SAMPLER_CUBE_ARRAY: {
+//                 rc::TextureCubeArray* tex = DE_NULL;
 
-                if (texNdx >= 0 && (size_t)texNdx < m_textureUnits.length)
-                    tex = (this.m_textureUnits[texNdx].texCubeArrayBinding) ? (this.m_textureUnits[texNdx].texCubeArrayBinding) : (&this.m_textureUnits[texNdx].defaultCubeArrayTex);
+//                 if (texNdx >= 0 && (size_t)texNdx < m_textureUnits.length)
+//                     tex = (this.m_textureUnits[texNdx].texCubeArrayBinding) ? (this.m_textureUnits[texNdx].texCubeArrayBinding) : (&this.m_textureUnits[texNdx].defaultCubeArrayTex);
 
-                if (tex && tex.isComplete()) {
-                    tex.updateView();
-                    this.m_currentProgram.m_program.m_uniforms[uniformNdx].sampler.texCubeArray = tex;
-                } else
-                    this.m_currentProgram.m_program.m_uniforms[uniformNdx].sampler.texCubeArray = &this.m_emptyTexCubeArray;
+//                 if (tex && tex.isComplete()) {
+//                     tex.updateView();
+//                     this.m_currentProgram.m_program.m_uniforms[uniformNdx].sampler.texCubeArray = tex;
+//                 } else
+//                     this.m_currentProgram.m_program.m_uniforms[uniformNdx].sampler.texCubeArray = &this.m_emptyTexCubeArray;
 
-                break;
-            }
-            */
-            default:
-                // nothing
-                break;
-        }
-    }
+//                 break;
+//             }
+//             */
+//             default:
+//                 // nothing
+//                 break;
+//         }
+//     }
 
-    var command = new rrRenderer.DrawCommand(state, renderTarget, program, vertexAttribs.length, vertexAttribs, primitives);
-    rrRenderer.drawInstanced(command, instanceCount);
-};
+//     var command = new rrRenderer.DrawCommand(state, renderTarget, program, vertexAttribs.length, vertexAttribs, primitives);
+//     rrRenderer.drawInstanced(command, instanceCount);
+// };
 
 /**
  * createProgram
