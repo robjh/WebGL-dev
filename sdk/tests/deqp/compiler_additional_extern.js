@@ -7,7 +7,7 @@ function description(msg){};
 function finishTest(){};
 
 /**
- * @param {string} name
+ * @param {?string} name
  */
 function setCurrentTestName(name){};
 
