@@ -1671,7 +1671,7 @@ tcuTexture.CubeFaceCoords = function(face, coords) {
  * \brief 2D Texture View
  * @constructor
  * @param {number} numLevels
- * @param {Array<tcuTexture.ConstPixelBufferAccess>} levels
+ * @param {?Array<tcuTexture.ConstPixelBufferAccess>} levels
  */
 tcuTexture.Texture2DView = function(numLevels, levels) {
     this.m_numLevels = numLevels;
