@@ -61,11 +61,8 @@ goog.scope(function() {
      * @param {glsUniformBlockCase.BufferMode} bufferMode
      * @param {number} features
      * @param {number} seed
-<<<<<<< Updated upstream
-=======
      * @constructor
      * @extends {glsUniformBlockCase.UniformBlockCase}
->>>>>>> Stashed changes
      */
     glsRandomUniformBlockCase.RandomUniformBlockCase = function(name, description, bufferMode, features, seed) {
         glsUniformBlockCase.UniformBlockCase.call(this, name, description, bufferMode);
@@ -97,6 +94,7 @@ goog.scope(function() {
     glsRandomUniformBlockCase.RandomUniformBlockCase.prototype.generateType = function(rnd, typeDepth, arrayOk) {
         /** @type {number} */ var structWeight = 0.1;
         /** @type {number} */ var arrayWeight = 0.1;
+        /** @type {number} */ var flags;
 
         if (typeDepth < this.m_maxStructDepth && rnd.getFloat() < structWeight) {
             /** @type {number} */ var unusedVtxWeight = 0.15;
@@ -114,7 +112,7 @@ goog.scope(function() {
 
             assertMsgOptions(this.m_blockNdx <= 'Z'.charCodeAt(0) - 'A'.charCodeAt(0), 'generateType', false, true);
             for (var ndx = 0; ndx < numMembers; ndx++) {
-                /** @type {number} */ var flags = 0;
+                flags = 0;
 
                 flags |= (unusedOk && rnd.getFloat() < unusedVtxWeight) ? glsUniformBlockCase.UniformFlags.UNUSED_VERTEX : 0;
                 flags |= (unusedOk && rnd.getFloat() < unusedFragWeight) ? glsUniformBlockCase.UniformFlags.UNUSED_FRAGMENT : 0;
@@ -163,7 +161,7 @@ goog.scope(function() {
             }
 
             /** @type {gluShaderUtil.DataType} */ var type = rnd.choose(typeCandidates)[0];
-            /** @type {number} */ var flags = 0;
+            flags = 0;
 
             if (!gluShaderUtil.isDataTypeBoolOrBVec(type)) {
                 // Precision.
@@ -200,7 +198,6 @@ goog.scope(function() {
      * generateUniform
      * @param {deRandom.Random} rnd
      * @param {glsUniformBlockCase.UniformBlock} block
-     * @param {number} ndx
      */
     glsRandomUniformBlockCase.RandomUniformBlockCase.prototype.generateUniform = function(rnd, block) {
         /** @type {number} */ var unusedVtxWeight = 0.15;

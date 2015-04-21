@@ -39,22 +39,22 @@ goog.require('framework.referencerenderer.rrGenericVector');
 
 goog.scope(function() {
 
-var glsVertexArrayTests = modules.shared.glsVertexArrayTests;
-var tcuTestCase = framework.common.tcuTestCase;
-var tcuRGBA = framework.common.tcuRGBA;
-var tcuFloat = framework.common.tcuFloat;
-var tcuPixelFormat = framework.common.tcuPixelFormat;
-var tcuSurface = framework.common.tcuSurface;
-var tcuImageCompare = framework.common.tcuImageCompare;
-var gluShaderUtil = framework.opengl.gluShaderUtil;
-var sglrGLContext = framework.opengl.simplereference.sglrGLContext;
-var sglrReferenceContext = framework.opengl.simplereference.sglrReferenceContext;
-var sglrShaderProgram = framework.opengl.simplereference.sglrShaderProgram;
-var deMath = framework.delibs.debase.deMath;
-var deRandom = framework.delibs.debase.deRandom;
-var rrVertexAttrib = framework.referencerenderer.rrVertexAttrib;
-var rrVertexPacket = framework.referencerenderer.rrVertexPacket;
-var rrGenericVector = framework.referencerenderer.rrGenericVector;
+    var glsVertexArrayTests = modules.shared.glsVertexArrayTests;
+    var tcuTestCase = framework.common.tcuTestCase;
+    var tcuRGBA = framework.common.tcuRGBA;
+    var tcuFloat = framework.common.tcuFloat;
+    var tcuPixelFormat = framework.common.tcuPixelFormat;
+    var tcuSurface = framework.common.tcuSurface;
+    var tcuImageCompare = framework.common.tcuImageCompare;
+    var gluShaderUtil = framework.opengl.gluShaderUtil;
+    var sglrGLContext = framework.opengl.simplereference.sglrGLContext;
+    var sglrReferenceContext = framework.opengl.simplereference.sglrReferenceContext;
+    var sglrShaderProgram = framework.opengl.simplereference.sglrShaderProgram;
+    var deMath = framework.delibs.debase.deMath;
+    var deRandom = framework.delibs.debase.deRandom;
+    var rrVertexAttrib = framework.referencerenderer.rrVertexAttrib;
+    var rrVertexPacket = framework.referencerenderer.rrVertexPacket;
+    var rrGenericVector = framework.referencerenderer.rrGenericVector;
 
 
     var DE_ASSERT = function(x) {
@@ -462,12 +462,12 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
      * @constructor
      * @implements {glsVertexArrayTests.deArray}
      * @param {glsVertexArrayTests.deArray.Storage} storage
-     * @param {ReferenceRasterizerContext} context
+     * @param {sglrReferenceContext.ReferenceContext} context
      */
     glsVertexArrayTests.ContextArray = function (storage, context) {
         /** @type {glsVertexArrayTests.deArray.Storage} */ this.m_storage = storage;
-        /** @type {ReferenceRasterizerContext} */ this.m_ctx = context;
-        /** @type {deMath.deUint32} */ this.m_glBuffer = 0;
+        /** @type {sglrReferenceContext.ReferenceContext} */ this.m_ctx = context;
+        /** @type {number} (deUint32) */ this.m_glBuffer = 0;
 
         /** @type {boolean} */ this.m_bound = false;
         /** @type {number} */ this.m_attribNdx = 0;
@@ -907,7 +907,8 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
         }
 
         DE_ASSERT((firstVertex % 6) == 0);
-        this.m_ctx.drawArrays(glsVertexArrayTests.ContextArray.primitiveToGL(primitive), firstVertex, vertexCount - firstVertex);
+        //this.m_ctx.drawArrays(glsVertexArrayTests.ContextArray.primitiveToGL(primitive), firstVertex, vertexCount - firstVertex);
+        this.m_ctx.drawQuads(glsVertexArrayTests.ContextArray.primitiveToGL(primitive), firstVertex, vertexCount - firstVertex);
         glsVertexArrayTests.GLU_EXPECT_NO_ERROR(this.m_ctx.getError(), "gl.drawArrays()");
 
         for (var arrayNdx = 0; arrayNdx < this.m_arrays.length; arrayNdx++) {

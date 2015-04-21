@@ -23,14 +23,19 @@ goog.require('framework.common.tcuMatrix');
 
 goog.scope(function() {
 
+    var tcuMatrixUtil = framework.common.tcuMatrixUtil;
 	var tcuMatrix = framework.common.tcuMatrix;
 
-    tcuMatrixUtil.translationMatrix = function(translation)
+    /**
+     * @param {number} len
+     * @param {Array<number>} translation
+     */
+    tcuMatrixUtil.translationMatrix = function(len, translation)
     {
-        var res = new txuMatrix.Matrix([[0],[0]]);
-        for (var row = 0; row < translation.length; row++) {
-            res.set(row, translation.length + 1, translation[row]);
-        };
+        var res = new tcuMatrix.Matrix(len+1, len+1);
+        for (var row = 0; row < len; row++)
+            res.set(row,len, translation[row]);
+        return res;
     };
 
 });

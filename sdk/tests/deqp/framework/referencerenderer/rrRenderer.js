@@ -424,7 +424,7 @@ rrRenderer.generatePrimitiveIDs = function(list, /*rrRenderer.DrawContext&*/ dra
         list[i].generatePrimitiveIDs(drawContext.primitiveID++);
 };
 
-rrRenderer.flatshadeVertices =function(/*const Program&*/ program, /*ContainerType&*/ list) {
+rrRenderer.flatshadeVertices = function (/*const Program&*/ program, /*ContainerType&*/ list) {
     // flatshade
     var fragInputs = program.vertexShader.getOutputs();
 
@@ -570,7 +570,7 @@ rrRenderer.PrimitiveList = function (primitiveType, numElements, indices) {
         // !< primitive list for drawElements-like call
         this.m_indices = indices;
         this.m_indexType = indices.indexType;
-        this.m_baseVertex = indices.baseVertex;       
+        this.m_baseVertex = indices.baseVertex;
     }
 };
 
@@ -586,7 +586,7 @@ rrRenderer.PrimitiveList.prototype.getIndex = function(elementNdx) {
         return this.m_baseVertex + elementNdx;
 };
 
-rrRenderer.PrimitiveList.prototype.isRestartIndex = function(elementNdx, restartIndex) {
+rrRenderer.PrimitiveList.prototype.isRestartIndex = function (elementNdx, restartIndex) {
     // implicit index or explicit index (without base vertex) equals restart
     if (this.m_indices)
         return this.m_indices.readIndexArray(elementNdx) == restartIndex;
@@ -594,9 +594,9 @@ rrRenderer.PrimitiveList.prototype.isRestartIndex = function(elementNdx, restart
         return elementNdx == restartIndex;
 };
 
-rrRenderer.PrimitiveList.prototype.getNumElements = function() { return this.m_numElements;     };
-rrRenderer.PrimitiveList.prototype.getPrimitiveType = function() { return this.m_primitiveType; };
-rrRenderer.PrimitiveList.prototype.getIndexType = function() { return this.m_indexType; };
+rrRenderer.PrimitiveList.prototype.getNumElements = function() {return this.m_numElements;};
+rrRenderer.PrimitiveList.prototype.getPrimitiveType = function() {return this.m_primitiveType;};
+rrRenderer.PrimitiveList.prototype.getIndexType = function() {return this.m_indexType;};
 
 /**
  * @constructor
@@ -616,7 +616,7 @@ rrRenderer.DrawCommand = function(state_, renderTarget_, program_, numVertexAttr
     this.primitives        = primitives_;
 };
 
-rrRenderer.drawInstanced = function(/*const rrRenderer.DrawCommand&*/ command, numInstances) {
+rrRenderer.drawInstanced = function (/*const rrRenderer.DrawCommand&*/ command, numInstances) {
     // Do not run bad commands
     var validCommand = rrRenderer.isValidCommand(command, numInstances);
     if (!validCommand) {
@@ -732,7 +732,7 @@ rrRenderer.writeFragments = function(state, renderTarget, fragments) {
  */
 rrRenderer.drawQuads = function (state, renderTarget, program, vertexAttribs, first, count) {
     var primitives = new rrRenderer.PrimitiveList(gl.TRIANGLES, count * 2, first); // 2 rrRenderer.triangles per quad.
-    // Do not rrRenderer.draw if nothing to rrRenderer.draw
+    // Do not draw if nothing to draw
     if (primitives.getNumElements() == 0)
         return;
 
@@ -744,13 +744,13 @@ rrRenderer.drawQuads = function (state, renderTarget, program, vertexAttribs, fi
     drawContext.primitiveID = 0;
     var instanceID = 0;
 
-    var elementsPerTriangle = primitives.getNumElements();
-    for (var elementNdx = 0; elementNdx < elementsPerTriangle; ++elementNdx)
+    var numberOfPrimitives = primitives.getNumElements();
+    for (var elementNdx = 0; elementNdx < numberOfPrimitives; ++elementNdx)
     {
         var numVertexPackets = 0;
 
         // collect primitive vertices until restart
-        while (elementNdx < elementsPerTriangle &&
+        while (elementNdx < numberOfPrimitives &&
             !(state.restart.enabled && primitives.isRestartIndex(elementNdx, state.restart.restartIndex)))
         {
             // input
@@ -778,7 +778,13 @@ rrRenderer.drawQuads = function (state, renderTarget, program, vertexAttribs, fi
 
     // For each quad, we get a group of four vertex packets
     for (var quad = 0; quad < count; quad++) {
-        var topLeft = [vertexPackets[quad * 4].position[0], vertexPackets[quad * 4].position[1]];
+        var bottomLeftVertexNdx = 0;
+        var bottomRightVertexNdx = 1;
+        var topLeftVertexNdx = 2;
+        var topRightVertexNdx = 3;
+
+        var topLeft = [vertexPackets[(quad * 6) + topLeftVertexNdx].position[0], vertexPackets[(quad * 6) + topLeftVertexNdx].position[1]];
+        var bottomRight = [vertexPackets[(quad * 6) + bottomRightVertexNdx].position[0], vertexPackets[(quad * 6) + bottomRightVertexNdx].position[1]]
         var v0 = [topLeft[0], topLeft[1]];
         var v1 = [topLeft[0], bottomRight[1]];
         var v2 = [bottomRight[0], topLeft[1]];
@@ -786,11 +792,11 @@ rrRenderer.drawQuads = function (state, renderTarget, program, vertexAttribs, fi
         var width = bottomRight[0] - topLeft[0];
         var height = bottomRight[1] - topLeft[1];
 
-        // Generate two rrRenderer.triangles [v0, v1, v2] and [v1, v2, v3]
+        // Generate two rrRenderer.triangles [v0, v1, v2] and [v2, v1, v3]
         var shadingContextTopLeft = new rrShadingContext.FragmentShadingContext(vertexAttribs[0], vertexAttribs[1], vertexAttribs[2], null, 1);
         var packetsTopLeft = [];
 
-        var shadingContextBottomRight = new rrShadingContext.FragmentShadingContext(vertexAttribs[1], vertexAttribs[2], vertexAttribs[3], null, 1);
+        var shadingContextBottomRight = new rrShadingContext.FragmentShadingContext(vertexAttribs[2], vertexAttribs[1], vertexAttribs[3], null, 1);
         var packetsBottomRight = [];
         for (var i = 0; i < width; i++)
             for (var j = 0; j < height; j++) {
@@ -804,7 +810,7 @@ rrRenderer.drawQuads = function (state, renderTarget, program, vertexAttribs, fi
                     var b = rrRenderer.getBarycentricCoefficients([x, y], v0, v1, v2);
                     packetsTopLeft.push(new rrRenderer.FragmentPacket(b, [v0[0] + i, v0[1] + j]));
                 } else {
-                    var b = rrRenderer.getBarycentricCoefficients([x, y], v1, v2, v3);
+                    var b = rrRenderer.getBarycentricCoefficients([x, y], v2, v1, v3);
                     packetsBottomRight.push(new rrRenderer.FragmentPacket(b, [v0[0] + i, v0[1] + j]));
                 }
             }

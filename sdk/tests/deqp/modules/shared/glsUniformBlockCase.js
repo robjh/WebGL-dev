@@ -57,6 +57,7 @@ glsUniformBlockCase.TCU_FAIL = function(msg) {
 
 /**
  * Class to implement some pointers functionality.
+ * @constructor
  */
 glsUniformBlockCase.BlockPointers = function() {
     /** @type {ArrayBuffer} */ this.data = 0; //!< Data (vector<deUint8>).
@@ -101,6 +102,9 @@ glsUniformBlockCase.isSupportedGLSLVersion = function(version) {
     return version >= gluShaderUtil.GLSLVersion.V100_ES; //TODO: set this to V300_ES. Left this way for tests.
 };
 
+/**
+ * @enum {number}
+ */
 glsUniformBlockCase.UniformFlags = {
     PRECISION_LOW: (1 << 0),
     PRECISION_MEDIUM: (1 << 1),
@@ -141,6 +145,7 @@ glsUniformBlockCase.Type.TYPE_LAST = Object.keys(glsUniformBlockCase.Type).lengt
 * glsUniformBlockCase.TypeArray struct (nothing to do with JS's TypedArrays)
 * @param {glsUniformBlockCase.VarType} elementType
 * @param {number} arraySize
+* @constructor
 */
 glsUniformBlockCase.TypeArray = function(elementType, arraySize) {
     /** @type {glsUniformBlockCase.VarType} */ this.elementType = elementType;
@@ -148,8 +153,9 @@ glsUniformBlockCase.TypeArray = function(elementType, arraySize) {
 };
 
 /**
-* glsUniformBlockCase.VarType class
-*/
+ * glsUniformBlockCase.VarType class
+ * @constructor
+ */
 glsUniformBlockCase.VarType = function() {
     /** @type {glsUniformBlockCase.Type} */ this.m_type = glsUniformBlockCase.Type.TYPE_LAST;
     /** @type {number} */ this.m_flags = 0;
@@ -226,7 +232,7 @@ glsUniformBlockCase.VarType.prototype.isStructType = function() {
 };
 
 /** getFlags
-* @return {deUint32} returns the flags of the glsUniformBlockCase.VarType.
+* @return {number} returns the flags of the glsUniformBlockCase.VarType.
 **/
 glsUniformBlockCase.VarType.prototype.getFlags = function() {
     return this.m_flags;
@@ -292,9 +298,7 @@ glsUniformBlockCase.newVarTypeStruct = function(structPtr) {
 
 /** glsUniformBlockCase.StructMember
  * in the JSDoc annotations or if a number would do.
- * @param {string} name
- * @param {glsUniformBlockCase.VarType} type
- * @param {number} flags
+ * @constructor
 **/
 glsUniformBlockCase.StructMember = function() {
     /** @type {string} */ this.m_name;
@@ -344,7 +348,7 @@ glsUniformBlockCase.StructMember.prototype.getFlags = function() { return this.m
 
 /**
  * glsUniformBlockCase.StructType
- * @param {string} typeName
+ * @constructor
  */
 glsUniformBlockCase.StructType = function() {
     /** @type {string}*/ this.m_typeName;
@@ -397,7 +401,7 @@ glsUniformBlockCase.StructType.prototype.getSize = function() {
 /** addMember
 * @param {string} member_name
 * @param {glsUniformBlockCase.VarType} member_type
-* @param {number} member_flags
+* @param {number=} member_flags
 **/
 glsUniformBlockCase.StructType.prototype.addMember = function(member_name, member_type, member_flags) {
     var member = glsUniformBlockCase.newStructMember(member_name, member_type, member_flags);
@@ -417,7 +421,8 @@ glsUniformBlockCase.newStructType = function(name) {
 /** glsUniformBlockCase.Uniform
  * @param {string} name
  * @param {glsUniformBlockCase.VarType} type
- * @param {number} flags
+ * @param {number=} flags
+ * @constructor
 **/
 glsUniformBlockCase.Uniform = function(name, type, flags) {
     /** @type {string} */ this.m_name = name;
@@ -448,6 +453,7 @@ glsUniformBlockCase.Uniform.prototype.getFlags = function() {
 
 /** glsUniformBlockCase.UniformBlock
  * @param {string} blockName
+ * @constructor
 **/
 glsUniformBlockCase.UniformBlock = function(blockName) {
     /** @type {string} */ this.m_blockName = blockName;
@@ -550,6 +556,7 @@ glsUniformBlockCase.UniformBlock.prototype.countUniforms = function() {
 
 /**
  * glsUniformBlockCase.ShaderInterface
+ * @constructor
  */
 glsUniformBlockCase.ShaderInterface = function() {
     /** @type {Array<glsUniformBlockCase.StructType>} */ this.m_structs = [];
@@ -612,6 +619,9 @@ glsUniformBlockCase.ShaderInterface.prototype.getUniformBlock = function(ndx) {
     return this.m_uniformBlocks[ndx];
 };
 
+/**
+ * @constructor
+ */
 glsUniformBlockCase.BlockLayoutEntry = function() {
     return {
     /** @type {number} */ size: 0,
@@ -620,6 +630,9 @@ glsUniformBlockCase.BlockLayoutEntry = function() {
     };
 };
 
+/**
+ * @constructor
+ */
 glsUniformBlockCase.UniformLayoutEntry = function() {
     return {
     /** @type {string} */ name: '',
@@ -633,6 +646,9 @@ glsUniformBlockCase.UniformLayoutEntry = function() {
     };
 };
 
+/**
+ * @constructor
+ */
 glsUniformBlockCase.UniformLayout = function() {
     /** @type {Array<glsUniformBlockCase.BlockLayoutEntry>}*/ this.blocks = [];
     /** @type {Array<glsUniformBlockCase.UniformLayoutEntry>}*/ this.uniforms = [];
@@ -664,6 +680,9 @@ glsUniformBlockCase.UniformLayout.prototype.getBlockIndex = function(name) {
     return -1;
 };
 
+/**
+ * @enum {number}
+ */
 glsUniformBlockCase.BufferMode = {
     BUFFERMODE_SINGLE: 0, //!< Single buffer shared between uniform blocks.
     BUFFERMODE_PER_BLOCK: 1 //!< Per-block buffers
@@ -712,6 +731,9 @@ glsUniformBlockCase.LayoutFlagsFmt = function(flags_) {
     return str;
 };
 
+/**
+ * @constructor
+ */
 glsUniformBlockCase.UniformBufferManager = function(renderCtx) {
     this.m_renderCtx = renderCtx;
     /** @type {number} */ this.m_buffers = [];
@@ -735,6 +757,7 @@ glsUniformBlockCase.UniformBufferManager.prototype.allocBuffer = function() {
  * @param {string} description
  * @param {glsUniformBlockCase.BufferMode} bufferMode
  * @constructor
+ * @extends {tcuTestCase.DeqpTest}
  */
 glsUniformBlockCase.UniformBlockCase = function(name, description, bufferMode) {
     tcuTestCase.DeqpTest.call(this, name, description);
@@ -884,12 +907,18 @@ glsUniformBlockCase.mergeLayoutFlags = function(prevFlags, newFlags) {
  */
 glsUniformBlockCase.computeStd140Layout_B = function(layout, curOffset, curBlockNdx, curPrefix, type, layoutFlags) {
     /** @type {number} */ var baseAlignment = glsUniformBlockCase.computeStd140BaseAlignment(type);
+    /** @type {glsUniformBlockCase.UniformLayoutEntry} */ var entry;
+    /** @type {number} */ var stride;
+    /** @type {gluShaderUtil.DataType} */ var elemBasicType;
+    /** @type {boolean} */ var isRowMajor;
+    /** @type {number} */ var vecSize;
+    /** @type {number} */ var numVecs;
 
     curOffset = deMath.deAlign32(curOffset, baseAlignment);
 
     if (type.isBasicType()) {
         /** @type {gluShaderUtil.DataType} */ var basicType = type.getBasicType();
-        /** @type {glsUniformBlockCase.UniformLayoutEntry} */ var entry = new glsUniformBlockCase.UniformLayoutEntry();
+        entry = new glsUniformBlockCase.UniformLayoutEntry();
 
         entry.name = curPrefix;
         entry.type = basicType;
@@ -900,12 +929,12 @@ glsUniformBlockCase.computeStd140Layout_B = function(layout, curOffset, curBlock
 
         if (gluShaderUtil.isDataTypeMatrix(basicType)) {
             // Array of vectors as specified in rules 5 & 7.
-            /** @type {boolean} */ var isRowMajor = !!(layoutFlags & glsUniformBlockCase.UniformFlags.LAYOUT_ROW_MAJOR);
-            /** @type {number} */ var vecSize = isRowMajor ? gluShaderUtil.getDataTypeMatrixNumColumns(basicType) :
+            isRowMajor = !!(layoutFlags & glsUniformBlockCase.UniformFlags.LAYOUT_ROW_MAJOR);
+            vecSize = isRowMajor ? gluShaderUtil.getDataTypeMatrixNumColumns(basicType) :
             gluShaderUtil.getDataTypeMatrixNumRows(basicType);
-            /** @type {number} */ var numVecs = isRowMajor ? gluShaderUtil.getDataTypeMatrixNumRows(basicType) :
+            numVecs = isRowMajor ? gluShaderUtil.getDataTypeMatrixNumRows(basicType) :
             gluShaderUtil.getDataTypeMatrixNumColumns(basicType);
-            /** @type {number} */ var stride = glsUniformBlockCase.getDataTypeArrayStride(gluShaderUtil.getDataTypeFloatVec(vecSize));
+            stride = glsUniformBlockCase.getDataTypeArrayStride(gluShaderUtil.getDataTypeFloatVec(vecSize));
 
             entry.offset = curOffset;
             entry.matrixStride = stride;
@@ -925,9 +954,9 @@ glsUniformBlockCase.computeStd140Layout_B = function(layout, curOffset, curBlock
 
         if (elemType.isBasicType() && !gluShaderUtil.isDataTypeMatrix(elemType.getBasicType())) {
             // Array of scalars or vectors.
-            /** @type {gluShaderUtil.DataType} */ var elemBasicType = elemType.getBasicType();
-            /** @type {glsUniformBlockCase.UniformLayoutEntry} */ var entry = new glsUniformBlockCase.UniformLayoutEntry();
-            /** @type {number} */ var stride = glsUniformBlockCase.getDataTypeArrayStride(elemBasicType);
+            elemBasicType = elemType.getBasicType();
+            entry = new glsUniformBlockCase.UniformLayoutEntry();
+            stride = glsUniformBlockCase.getDataTypeArrayStride(elemBasicType);
 
             entry.name = curPrefix + '[0]'; // Array uniforms are always postfixed with [0]
             entry.type = elemBasicType;
@@ -942,14 +971,14 @@ glsUniformBlockCase.computeStd140Layout_B = function(layout, curOffset, curBlock
             layout.uniforms.push(entry);
         } else if (elemType.isBasicType() && gluShaderUtil.isDataTypeMatrix(elemType.getBasicType())) {
             // Array of matrices.
-            /** @type {gluShaderUtil.DataType} */ var elemBasicType = elemType.getBasicType();
-            /** @type {boolean} */ var isRowMajor = !!(layoutFlags & glsUniformBlockCase.UniformFlags.LAYOUT_ROW_MAJOR);
-            /** @type {number} */ var vecSize = isRowMajor ? gluShaderUtil.getDataTypeMatrixNumColumns(elemBasicType) :
+            elemBasicType = elemType.getBasicType();
+            isRowMajor = !!(layoutFlags & glsUniformBlockCase.UniformFlags.LAYOUT_ROW_MAJOR);
+            vecSize = isRowMajor ? gluShaderUtil.getDataTypeMatrixNumColumns(elemBasicType) :
             gluShaderUtil.getDataTypeMatrixNumRows(elemBasicType);
-            /** @type {number} */ var numVecs = isRowMajor ? gluShaderUtil.getDataTypeMatrixNumRows(elemBasicType) :
+            numVecs = isRowMajor ? gluShaderUtil.getDataTypeMatrixNumRows(elemBasicType) :
             gluShaderUtil.getDataTypeMatrixNumColumns(elemBasicType);
-            /** @type {number} */ var stride = glsUniformBlockCase.getDataTypeArrayStride(gluShaderUtil.getDataTypeFloatVec(vecSize));
-            /** @type {glsUniformBlockCase.UniformLayoutEntry} */ var entry = new glsUniformBlockCase.UniformLayoutEntry();
+            stride = glsUniformBlockCase.getDataTypeArrayStride(gluShaderUtil.getDataTypeFloatVec(vecSize));
+            entry = new glsUniformBlockCase.UniformLayoutEntry();
 
             entry.name = curPrefix + '[0]'; // Array uniforms are always postfixed with [0]
             entry.type = elemBasicType;
@@ -1341,7 +1370,7 @@ glsUniformBlockCase.generateDeclaration_B = function(type, name, indentLevel, un
     if (type.isBasicType())
         src += gluShaderUtil.getDataTypeName(type.getBasicType()) + ' ' + name;
     else if (type.isArrayType()) {
-        /** @type {number} */ var arraySizes = [];
+        /** @type {Array<number>} */ var arraySizes = [];
         /** @type {glsUniformBlockCase.VarType} */ var curType = type;
         while (curType.isArrayType()) {
             arraySizes.push(curType.getArraySize());
@@ -1529,6 +1558,7 @@ glsUniformBlockCase.generateValueSrc = function(entry, basePtr, elementNdx) {
  */
 glsUniformBlockCase.generateCompareSrc_A = function(resultVar, type, srcName, apiName, layout, basePtr, unusedMask) {
     /** @type {string} */ var src = '';
+    /** @type {string} */ var op;
 
     if (type.isBasicType() || (type.isArrayType() && type.getElementType().isBasicType())) {
         // Basic type or array of basic types.
@@ -1554,7 +1584,7 @@ glsUniformBlockCase.generateCompareSrc_A = function(resultVar, type, srcName, ap
         /** @type {glsUniformBlockCase.VarType} */ var elementType = type.getElementType();
 
         for (var elementNdx = 0; elementNdx < type.getArraySize(); elementNdx++) {
-            /** @type {string} */ var op = '[' + elementNdx + ']';
+            op = '[' + elementNdx + ']';
             src += glsUniformBlockCase.generateCompareSrc_A(resultVar, elementType, srcName + op, apiName + op, layout, basePtr, unusedMask);
         }
     } else {
@@ -1566,7 +1596,7 @@ glsUniformBlockCase.generateCompareSrc_A = function(resultVar, type, srcName, ap
             if (memberIter.getFlags() & unusedMask)
                 continue; // Skip member.
 
-            /** @type {string} */ var op = '.' + memberIter.getName();
+            op = '.' + memberIter.getName();
             src += glsUniformBlockCase.generateCompareSrc_A(resultVar, memberIter.getType(), srcName + op, apiName + op, layout, basePtr, unusedMask);
         }
     }
@@ -1728,13 +1758,17 @@ glsUniformBlockCase.getGLUniformLayout = function(gl, layout, program) {
 
     glsUniformBlockCase.GLU_EXPECT_NO_ERROR(gl.getError(), 'Failed to get number of uniforms and uniform blocks');
 
+    /** @type {glsUniformBlockCase.BlockLayoutEntry} */ var entry;
+    /** @type {number} */ var size;
+    /** @type {number} */ var nameLen;
+    /** @type {string} */ var nameBuf;
+    /** @type {number} */ var numBlockUniforms;
+
     // Block entries.
     //No need to allocate these beforehand: layout.blocks.resize(numActiveBlocks);
     for (var blockNdx = 0; blockNdx < numActiveBlocks; blockNdx++) {
-        /** @type {glsUniformBlockCase.BlockLayoutEntry} */ var entry = new glsUniformBlockCase.BlockLayoutEntry();
-        /** @type {number} */ var size;
-        /** @type {number} */ var nameLen;
-        /** @type {number} */ var numBlockUniforms;
+        entry = new glsUniformBlockCase.BlockLayoutEntry();
+        
 
         size = gl.getActiveUniformBlockParameter(program, blockNdx, gl.UNIFORM_BLOCK_DATA_SIZE);
         nameLen = gl.getActiveUniformBlockParameter(program, blockNdx, gl.UNIFORM_BLOCK_NAME_LENGTH);
@@ -1742,7 +1776,6 @@ glsUniformBlockCase.getGLUniformLayout = function(gl, layout, program) {
 
         glsUniformBlockCase.GLU_EXPECT_NO_ERROR(gl.getError(), 'glsUniformBlockCase.Uniform block query failed');
 
-        /** @type {string} */ var nameBuf;
         nameBuf = gl.getActiveUniformBlockName(program, blockNdx);
 
         entry.name = nameBuf;
@@ -1787,10 +1820,10 @@ glsUniformBlockCase.getGLUniformLayout = function(gl, layout, program) {
         // Translate to LayoutEntries
         // No resize needed. Will push them: layout.uniforms.resize(numActiveUniforms);
         for (var uniformNdx = 0; uniformNdx < numActiveUniforms; uniformNdx++) {
-            /** @type {glsUniformBlockCase.UniformLayoutEntry} */ var entry = new glsUniformBlockCase.UniformLayoutEntry();
-            /** @type {string} */ var nameBuf;
-            /** @type {number} */ var nameLen = 0;
-            /** @type {number} */ var size = 0;
+            entry = new glsUniformBlockCase.UniformLayoutEntry();
+            
+            nameLen = 0;
+            size = 0;
             /** @type {number} */ var type = gl.NONE;
 
             var uniform = gl.getActiveUniform(program, uniformNdx);
@@ -1824,7 +1857,7 @@ glsUniformBlockCase.getGLUniformLayout = function(gl, layout, program) {
 /**
  * glsUniformBlockCase.copyUniformData_A - Copies a source uniform buffer segment to a destination uniform buffer segment.
  * @param {glsUniformBlockCase.UniformLayoutEntry} dstEntry
- * @param {Uint8Array} dsrBlockPtr
+ * @param {Uint8Array} dstBlockPtr
  * @param {UniformLayoutentry} srcEntry
  * @param {Uint8Array} srcBlockPtr
  */
