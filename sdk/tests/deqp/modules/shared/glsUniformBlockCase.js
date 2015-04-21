@@ -730,6 +730,12 @@ glsUniformBlockCase.UniformBufferManager.prototype.allocBuffer = function() {
     return buf;
 };
 
+/**
+ * @param {string} name
+ * @param {string} description
+ * @param {glsUniformBlockCase.BufferMode} bufferMode
+ * @constructor
+ */
 glsUniformBlockCase.UniformBlockCase = function(name, description, bufferMode) {
     tcuTestCase.DeqpTest.call(this, name, description);
     /** @type {string} */ this.m_name = name;

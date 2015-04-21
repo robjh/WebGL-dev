@@ -20,18 +20,23 @@
 
 'use strict';
 goog.provide('framework.opengl.simplereference.sglrReferenceContext');
-goog.require('framework.referencerenderer.rrMultisamplePixelBufferAccess');
-goog.require('framework.common.tcuTexture');
-goog.require('framework.delibs.debase.deMath');
-goog.require('framework.opengl.gluTextureUtil');
-goog.require('framework.common.tcuTextureUtil');
+goog.require('framework.common.tcuMatrix');
+goog.require('framework.common.tcuMatrixUtil');
 goog.require('framework.common.tcuPixelFormat');
+goog.require('framework.common.tcuTexture');
+goog.require('framework.common.tcuTextureUtil');
+goog.require('framework.delibs.debase.deMath');
 goog.require('framework.opengl.gluShaderUtil');
-goog.require('framework.referencerenderer.rrRenderer');
+goog.require('framework.opengl.gluTextureUtil');
 goog.require('framework.referencerenderer.rrDefs');
-goog.require('framework.referencerenderer.rrVertexAttrib');
+goog.require('framework.referencerenderer.rrMultisamplePixelBufferAccess');
+goog.require('framework.referencerenderer.rrRenderer');
 goog.require('framework.referencerenderer.rrRenderState');
+goog.require('framework.referencerenderer.rrVertexAttrib');
 goog.require('framework.opengl.simplereference.sglrReferenceUtils');
+//goog.require('framework.opengl.simplereference.sglrShaderProgram');
+
+
 
 
 goog.scope(function() {
@@ -49,6 +54,7 @@ var rrDefs = framework.referencerenderer.rrDefs;
 var rrVertexAttrib = framework.referencerenderer.rrVertexAttrib;
 var rrRenderState = framework.referencerenderer.rrRenderState;
 var sglrReferenceUtils = framework.opengl.simplereference.sglrReferenceUtils;
+var sglrShaderProgram = framework.opengl.simplereference.sglrShaderProgram;
 
 sglrReferenceContext.rrMPBA = rrMultisamplePixelBufferAccess;
 
@@ -84,9 +90,9 @@ sglrReferenceContext.isMipmapFilter = function(/*const tcu::Sampler::FilterMode*
 
 sglrReferenceContext.getFixedRestartIndex = function(indexType) {
     switch (indexType) {
-        case rrDefs.INDEXTYPE_UINT8: return 0xFF;
-        case rrDefs.INDEXTYPE_UINT16: return 0xFFFF;
-        case rrDefs.INDEXTYPE_UINT32: return 0xFFFFFFFF;
+        case rrDefs.IndexType.INDEXTYPE_UINT8: return 0xFF;
+        case rrDefs.IndexType.INDEXTYPE_UINT16: return 0xFFFF;
+        case rrDefs.IndexType.INDEXTYPE_UINT32: return 0xFFFFFFFF;
         default:
             throw new Error('Unrecognized index type: ' + indexType);
         }
@@ -109,7 +115,7 @@ sglrReferenceContext.GenericVec4 = function(a, b, c, d) {
  * @param {deMath.deUint32} name
  * @param {ShaderProgram} program
  */
-ShaderProgramObjectContainer = function(program) {
+ sglrReferenceContext.ShaderProgramObjectContainer = function(program) {
     this.m_program = program;
     /** @type {boolean} */ this.m_deleteFlag = false;
 };
@@ -437,7 +443,7 @@ sglrReferenceContext.TexTarget = {
 
 /**
  * @param {sglrReferenceContext.TexTarget} target
- * @return {tcutexture.CubeFace}
+ * @return {tcuTexture.CubeFace}
  */
 sglrReferenceContext.texTargetToFace = function(target) {
     switch (target) {
@@ -850,8 +856,8 @@ sglrReferenceContext.ReferenceContext.prototype.bindTexture = function(target, t
     if (this.condtionalSetError((target != gl.TEXTURE_2D &&
                 target != gl.TEXTURE_CUBE_MAP &&
                 target != gl.TEXTURE_2D_ARRAY &&
-                target != gl.TEXTURE_3D &&
-                target != gl.TEXTURE_CUBE_MAP_ARRAY),
+                target != gl.TEXTURE_3D), // &&
+                // target != gl.TEXTURE_CUBE_MAP_ARRAY),
                 gl.INVALID_ENUM))
         return;
 
@@ -2291,7 +2297,7 @@ sglrReferenceContext.ReferenceContext.prototype.drawWithReference = function(pri
     state.fragOps.depthFunc = sglrReferenceUtils.mapGLTestFunc(this.m_depthFunc);
     state.fragOps.depthMask = this.m_depthMask;
 
-    state.fragOps.blendMode = this.m_blendEnabled ? rrRenderState.BlendMode.BLENDMODE_STANDARD : rrRenderState.BlendMode.BLENDMODE_NONE;
+    state.fragOps.blendMode = this.m_blendEnabled ? rrRenderState.BlendMode.STANDARD : rrRenderState.BlendMode.NONE;
     state.fragOps.blendRGBState.equation = sglrReferenceUtils.mapGLBlendEquation(this.m_blendModeRGB);
     state.fragOps.blendRGBState.srcFunc = sglrReferenceUtils.mapGLBlendFunc(this.m_blendFactorSrcRGB);
     state.fragOps.blendRGBState.dstFunc = sglrReferenceUtils.mapGLBlendFunc(this.m_blendFactorDstRGB);
@@ -2499,8 +2505,8 @@ sglrReferenceContext.ReferenceContext.prototype.drawQuads = function (first, cou
     var depthBuf = this.getDrawDepthbuffer();
     var stencilBuf = this.getDrawStencilbuffer();
     var hasStencil = (stencilBuf && !stencilBuf.isEmpty());
-    var stencilBits = (hasStencil) ? 
-    stencilBuf.raw().getFormat().getNumStencilBits() : 
+    var stencilBits = (hasStencil) ?
+    stencilBuf.raw().getFormat().getNumStencilBits() :
     (0);
 
     var renderTarget = new rrRenderer.RenderTarget(colorBuf0,
@@ -2611,7 +2617,7 @@ sglrReferenceContext.ReferenceContext.prototype.drawQuads = function (first, cou
 
                 break;
             }
-            /* TODO: Port        
+            /* TODO: Port
             case gluShaderUtil.DataType.SAMPLER_CUBE:
             case gluShaderUtil.DataType.UINT_SAMPLER_CUBE:
             case gluShaderUtil.DataType.INT_SAMPLER_CUBE:
@@ -2711,8 +2717,8 @@ sglrReferenceContext.ReferenceContext.prototype.drawQuad = function(topLeft, bot
     var depthBuf = this.getDrawDepthbuffer();
     var stencilBuf = this.getDrawStencilbuffer();
     var hasStencil = (stencilBuf && !stencilBuf.isEmpty());
-    var stencilBits = (hasStencil) ? 
-        stencilBuf.raw().getFormat().getNumStencilBits() : 
+    var stencilBits = (hasStencil) ?
+        stencilBuf.raw().getFormat().getNumStencilBits() :
         (0);
 
     var renderTarget = new rrRenderer.RenderTarget(colorBuf0,
@@ -2730,9 +2736,9 @@ sglrReferenceContext.ReferenceContext.prototype.drawQuad = function(topLeft, bot
 
     // Gen state
     var baseType = rrRenderer.PrimitiveType.TRIANGLES;
-    var polygonOffsetEnabled = 
-        (baseType == rrRenderer.PrimitiveType.TRIANGLES) ? 
-        (this.m_polygonOffsetFillEnabled) : 
+    var polygonOffsetEnabled =
+        (baseType == rrRenderer.PrimitiveType.TRIANGLES) ?
+        (this.m_polygonOffsetFillEnabled) :
         (false);
 
     //state.cullMode = m_cullMode
@@ -2971,7 +2977,7 @@ sglrReferenceContext.ReferenceContext.prototype.blitFramebuffer = function(srcX0
 
     // Multisampled read buffer is a special case
     if (this.getReadColorbuffer().getNumSamples() != 1) {
-        var error = blitResolveMultisampleFramebuffer(mask, srcRect, dstRect, swapSrcX ^ swapDstX, swapSrcY ^ swapDstY);
+        var error = this.blitResolveMultisampleFramebuffer(mask, srcRect, dstRect, swapSrcX ^ swapDstX, swapSrcY ^ swapDstY);
 
         if (error != gl.NO_ERROR)
             this.setError(error);
@@ -2992,9 +2998,9 @@ sglrReferenceContext.ReferenceContext.prototype.blitFramebuffer = function(srcX0
         var src = tcuTextureUtil.getSubregion(this.getReadColorbuffer().toSinglesampleAccess(), srcRect[0], srcRect[1], srcRect[2], srcRect[3]);
         var dst = tcuTextureUtil.getSubregion(this.getDrawColorbuffer().toSinglesampleAccess(), dstRect[0], dstRect[1], dstRect[2], dstRect[3]);
         var dstClass = tcuTextureUtil.getTextureChannelClass(dst.getFormat().type);
-        var dstIsFloat = dstClass == tcuTextureUtil.TextureChannelClass.TEXTURECHANNELCLASS_FLOATING_POINT ||
-                                                      dstClass == tcuTextureUtil.TextureChannelClass.TEXTURECHANNELCLASS_UNSIGNED_FIXED_POINT ||
-                                                      dstClass == tcuTextureUtil.TextureChannelClass.TEXTURECHANNELCLASS_SIGNED_FIXED_POINT;
+        var dstIsFloat = dstClass == tcuTextureUtil.TextureChannelClass.FLOATING_POINT ||
+                                                      dstClass == tcuTextureUtil.TextureChannelClass.UNSIGNED_FIXED_POINT ||
+                                                      dstClass == tcuTextureUtil.TextureChannelClass.SIGNED_FIXED_POINT;
         var sFilter = (scale && filter == gl.LINEAR) ? tcuTexture.FilterMode.LINEAR : tcuTexture.FilterMode.NEAREST;
         var sampler = new tcuTexture.Sampler(tcuTexture.WrapMode.CLAMP_TO_EDGE, tcuTexture.WrapMode.CLAMP_TO_EDGE, tcuTexture.WrapMode.CLAMP_TO_EDGE,
                                                      sFilter, sFilter, 0.0 /* lod threshold */, false /* non-normalized coords */);
