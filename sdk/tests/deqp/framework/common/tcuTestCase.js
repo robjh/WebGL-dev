@@ -46,7 +46,7 @@ goog.scope(function() {
 
     /**
      * Indicates the state of an iteration operation.
-     * @enum
+     * @enum {number}
      */
     tcuTestCase.IterateResult = {
         STOP: 0,
