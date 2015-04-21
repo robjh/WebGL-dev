@@ -35,18 +35,18 @@ goog.require('framework.common.tcuImageCompare');
 
 goog.scope(function() {
 
-var es3fTransformFeedbackTests = functional.gles3.es3fTransformFeedbackTests;
-var gluShaderUtil = framework.opengl.gluShaderUtil;
-var gluDrawUtil = framework.opengl.gluDrawUtil;
-var gluVarType = framework.opengl.gluVarType;
-var gluVarTypeUtil = framework.opengl.gluVarTypeUtil;
-var gluShaderProgram = framework.opengl.gluShaderProgram;
-var deRandom = framework.delibs.debase.deRandom;
-var deMath = framework.delibs.debase.deMath;
-var deString = framework.delibs.debase.deString;
-var tcuTestCase = framework.common.tcuTestCase;
-var tcuSurface = framework.common.tcuSurface;
-var tcuImageCompare = framework.common.tcuImageCompare;
+    var es3fTransformFeedbackTests = functional.gles3.es3fTransformFeedbackTests;
+    var gluShaderUtil = framework.opengl.gluShaderUtil;
+    var gluDrawUtil = framework.opengl.gluDrawUtil;
+    var gluVarType = framework.opengl.gluVarType;
+    var gluVarTypeUtil = framework.opengl.gluVarTypeUtil;
+    var gluShaderProgram = framework.opengl.gluShaderProgram;
+    var deRandom = framework.delibs.debase.deRandom;
+    var deMath = framework.delibs.debase.deMath;
+    var deString = framework.delibs.debase.deString;
+    var tcuTestCase = framework.common.tcuTestCase;
+    var tcuSurface = framework.common.tcuSurface;
+    var tcuImageCompare = framework.common.tcuImageCompare;
     
 
     /** @const @type {number} */ es3fTransformFeedbackTests.VIEWPORT_WIDTH = 128;
@@ -91,10 +91,6 @@ var tcuImageCompare = framework.common.tcuImageCompare;
             throw new Error(msg)
         }
     };
-    var DE_ASSERT = function(x) {
-        if (!x)
-            throw new Error('Assert failed');
-    };
 
     /**
      * Returns a es3fTransformFeedbackTests.Varying object, it's a struct, invoked in the C version as a function
@@ -104,10 +100,10 @@ var tcuImageCompare = framework.common.tcuImageCompare;
      * @return {Object}
      * @constructor
      */
-    es3fTransformFeedbackTests.Varying = function(name, type, es3fTransformFeedbackTests.interpolation) {
+    es3fTransformFeedbackTests.Varying = function(name, type, interpolation) {
         this.name = name;
         this.type = type;
-        this.interpolation = es3fTransformFeedbackTests.interpolation;
+        this.interpolation = interpolation;
     };
 
     /** es3fTransformFeedbackTests.findAttributeNameEquals
@@ -569,7 +565,7 @@ var tcuImageCompare = framework.common.tcuImageCompare;
                         case gluShaderUtil.precision.PRECISION_LOWP:    pos[0] = 0.25 * rnd.getInt(0, 4); break;
                         case gluShaderUtil.precision.PRECISION_MEDIUMP: pos[0] = rnd.getFloat(-1e3, 1e3); break;
                         case gluShaderUtil.precision.PRECISION_HIGHP:   pos[0] = rnd.getFloat(-1e5, 1e5); break;
-                        default: DE_ASSERT(false);
+                        default: throw new Error('Unknown precision: ' + precision);
                     }
                 }
                 else if (isInt)
@@ -580,7 +576,7 @@ var tcuImageCompare = framework.common.tcuImageCompare;
                         case gluShaderUtil.precision.PRECISION_LOWP:    pos[0] = rnd.getInt(-128, 127);     break;
                         case gluShaderUtil.precision.PRECISION_MEDIUMP: pos[0] = rnd.getInt(-32768, 32767); break;
                         case gluShaderUtil.precision.PRECISION_HIGHP:   pos[0] = rnd.getInt();              break;
-                        default: DE_ASSERT(false);
+                        default: throw new Error('Unknown precision: ' + precision);
                     }
                 }
                 else if (isUint)
@@ -591,7 +587,7 @@ var tcuImageCompare = framework.common.tcuImageCompare;
                         case gluShaderUtil.precision.PRECISION_LOWP:    pos[0] = rnd.getInt(0, 255);     break;
                         case gluShaderUtil.precision.PRECISION_MEDIUMP: pos[0] = rnd.getInt(0, 65535);   break;
                         case gluShaderUtil.precision.PRECISION_HIGHP:   pos[0] = Math.abs(rnd.getInt()); break;
-                        default: DE_ASSERT(false);
+                        default: throw new Error('Unknown precision: ' + precision);
                     }
                 }
             }
@@ -800,7 +796,7 @@ var tcuImageCompare = framework.common.tcuImageCompare;
                                 break;
                             }
                             default:
-                                DE_ASSERT(false);
+                                throw new Error('Unknown precision: ' + precision);
                         }
                     } else {
                         var outBuffer = new Uint32Array(buffers.output.buffer, buffers.output.offset + buffers.output.stride * outNdx + outOffset + compNdx * 4, 1);
@@ -974,7 +970,6 @@ var tcuImageCompare = framework.common.tcuImageCompare;
             for (var i = 0; i < this.m_outputBuffers.length; i++)
                 this.m_outputBuffers[i] = gl.createBuffer();
 
-            DE_ASSERT(!this.m_transformFeedback);
             if (this.m_transformFeedback != null) {
                 throw new Error('transformFeedback is already set.');
             }
@@ -1450,12 +1445,12 @@ var tcuImageCompare = framework.common.tcuImageCompare;
      * @param {es3fTransformFeedbackTests.interpolation} es3fTransformFeedbackTests.interpolation enum number in this javascript
      * @constructor
      */
-    es3fTransformFeedbackTests.BasicTypeCase = function(context, name, desc, bufferMode, primitiveType, type, precision, es3fTransformFeedbackTests.interpolation) {
+    es3fTransformFeedbackTests.BasicTypeCase = function(context, name, desc, bufferMode, primitiveType, type, precision, interpolation) {
 
         this._construct(context, name, desc, bufferMode, primitiveType);
 
-        this.m_progSpec.addVarying('v_varA', gluVarType.newTypeBasic(type, precision), es3fTransformFeedbackTests.interpolation);
-        this.m_progSpec.addVarying('v_varB', gluVarType.newTypeBasic(type, precision), es3fTransformFeedbackTests.interpolation);
+        this.m_progSpec.addVarying('v_varA', gluVarType.newTypeBasic(type, precision), interpolation);
+        this.m_progSpec.addVarying('v_varB', gluVarType.newTypeBasic(type, precision), interpolation);
 
         this.m_progSpec.addTransformFeedbackVarying('v_varA');
         this.m_progSpec.addTransformFeedbackVarying('v_varB');
@@ -1476,7 +1471,7 @@ var tcuImageCompare = framework.common.tcuImageCompare;
      * @param {es3fTransformFeedbackTests.interpolation} es3fTransformFeedbackTests.interpolation enum number in this javascript
      * @constructor
      */
-    es3fTransformFeedbackTests.BasicArrayCase = function(context, name, desc, bufferMode, primitiveType, type, precision, es3fTransformFeedbackTests.interpolation) {
+    es3fTransformFeedbackTests.BasicArrayCase = function(context, name, desc, bufferMode, primitiveType, type, precision, interpolation) {
 
         this._construct(context, name, desc, bufferMode, primitiveType);
 
@@ -1485,13 +1480,13 @@ var tcuImageCompare = framework.common.tcuImageCompare;
             // note For matrix types we need to use reduced array sizes or otherwise we will exceed maximum attribute (16)
             // or transform feedback component es3fTransformFeedbackTests.count (64).
             // On separate attribs mode maximum component es3fTransformFeedbackTests.count per varying is 4.
-            this.m_progSpec.addVarying('v_varA', gluVarType.newTypeArray(gluVarType.newTypeBasic(type, precision), 1), es3fTransformFeedbackTests.interpolation);
-            this.m_progSpec.addVarying('v_varB', gluVarType.newTypeArray(gluVarType.newTypeBasic(type, precision), 2), es3fTransformFeedbackTests.interpolation);
+            this.m_progSpec.addVarying('v_varA', gluVarType.newTypeArray(gluVarType.newTypeBasic(type, precision), 1), interpolation);
+            this.m_progSpec.addVarying('v_varB', gluVarType.newTypeArray(gluVarType.newTypeBasic(type, precision), 2), interpolation);
         }
         else
         {
-            this.m_progSpec.addVarying('v_varA', gluVarType.newTypeArray(gluVarType.newTypeBasic(type, precision), 3), es3fTransformFeedbackTests.interpolation);
-            this.m_progSpec.addVarying('v_varB', gluVarType.newTypeArray(gluVarType.newTypeBasic(type, precision), 4), es3fTransformFeedbackTests.interpolation);
+            this.m_progSpec.addVarying('v_varA', gluVarType.newTypeArray(gluVarType.newTypeBasic(type, precision), 3), interpolation);
+            this.m_progSpec.addVarying('v_varB', gluVarType.newTypeArray(gluVarType.newTypeBasic(type, precision), 4), interpolation);
         }
 
         this.m_progSpec.addTransformFeedbackVarying('v_varA');
@@ -1513,12 +1508,12 @@ var tcuImageCompare = framework.common.tcuImageCompare;
      * @param {es3fTransformFeedbackTests.interpolation} es3fTransformFeedbackTests.interpolation enum number in this javascript
      * @constructor
      */
-    es3fTransformFeedbackTests.ArrayElementCase = function(context, name, desc, bufferMode, primitiveType, type, precision, es3fTransformFeedbackTests.interpolation) {
+    es3fTransformFeedbackTests.ArrayElementCase = function(context, name, desc, bufferMode, primitiveType, type, precision, interpolation) {
 
         this._construct(context, name, desc, bufferMode, primitiveType);
 
-        this.m_progSpec.addVarying('v_varA', gluVarType.newTypeBasic(type, precision), es3fTransformFeedbackTests.interpolation);
-        this.m_progSpec.addVarying('v_varB', gluVarType.newTypeBasic(type, precision), es3fTransformFeedbackTests.interpolation);
+        this.m_progSpec.addVarying('v_varA', gluVarType.newTypeBasic(type, precision), interpolation);
+        this.m_progSpec.addVarying('v_varB', gluVarType.newTypeBasic(type, precision), interpolation);
 
         this.m_progSpec.addTransformFeedbackVarying('v_varA[1]');
         this.m_progSpec.addTransformFeedbackVarying('v_varB[0]');
@@ -1543,7 +1538,7 @@ var tcuImageCompare = framework.common.tcuImageCompare;
         this._construct(context, name, desc, bufferMode, primitiveType);
 
         var parent = {
-            es3fTransformFeedbackTests.init: this.init
+            init: this.init
         };
 
         this.init = function() {

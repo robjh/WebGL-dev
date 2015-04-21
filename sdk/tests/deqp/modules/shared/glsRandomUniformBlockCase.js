@@ -160,7 +160,7 @@ goog.scope(function() {
                 typeCandidates.push(gluShaderUtil.DataType.FLOAT_MAT4);
             }
 
-            /** @type {gluShaderUtil.DataType} */ var type = rnd.choose(typeCandidates)[0];
+            /** @type {gluShaderUtil.DataType} */ var type = (rnd.choose(typeCandidates)[0]);
             flags = 0;
 
             if (!gluShaderUtil.isDataTypeBoolOrBVec(type)) {

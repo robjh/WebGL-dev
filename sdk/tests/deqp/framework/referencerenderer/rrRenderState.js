@@ -119,8 +119,9 @@ rrRenderState.StencilOp = {
  */
 rrRenderState.BlendMode = {
 	NONE : 0,		//!< No blending.
-	STANDARD : 1,	//!< Standard blending.
-	ADVANCED : 2		//!< Advanced blending mode, as defined in GL_KHR_blend_equation_advanced.
+	STANDARD : 1	//!< Standard blending.
+// Advanced blending is not supported
+//	ADVANCED : 2		//!< Advanced blending mode, as defined in GL_KHR_blend_equation_advanced.
 };
 
 /**
@@ -135,27 +136,28 @@ rrRenderState.BlendEquation = {
 	MAX : 4
 };
 
-/**
- * Enum for rrRenderState.BlendEquationAdvanced values.
- * @enum {number}
- */
-rrRenderState.BlendEquationAdvanced = {
-	MULTIPLY : 0,
-	SCREEN : 1,
-	OVERLAY	: 2,
-	DARKEN : 3,
-	LIGHTEN : 4,
-	COLORDODGE : 5,
-	COLORBURN : 6,
-	HARDLIGHT : 7,
-	SOFTLIGHT : 8,
-	DIFFERENCE : 9,
-	EXCLUSION : 10,
-	HSL_HUE : 11,
-	HSL_SATURATION : 12,
-	HSL_COLOR : 13,
-	HSL_LUMINOSITY : 14
-};
+
+// /**
+//  * Enum for rrRenderState.BlendEquationAdvanced values.
+//  * @enum {number}
+//  */
+// rrRenderState.BlendEquationAdvanced = {
+// 	MULTIPLY : 0,
+// 	SCREEN : 1,
+// 	OVERLAY	: 2,
+// 	DARKEN : 3,
+// 	LIGHTEN : 4,
+// 	COLORDODGE : 5,
+// 	COLORBURN : 6,
+// 	HARDLIGHT : 7,
+// 	SOFTLIGHT : 8,
+// 	DIFFERENCE : 9,
+// 	EXCLUSION : 10,
+// 	HSL_HUE : 11,
+// 	HSL_SATURATION : 12,
+// 	HSL_COLOR : 13,
+// 	HSL_LUMINOSITY : 14
+// };
 
 /**
  * Enum for rrRenderState.BlendFunc values.
@@ -237,7 +239,7 @@ rrRenderState.FragmentOperationState = function() {
 
 	/** @type {boolean} */ this.stencilTestEnabled	= false;
 
-	/** @type {rrRenderState.StencilState} */ this.stencilStates = [];
+	/** @type {Array<rrRenderState.StencilState>} */ this.stencilStates = [];
     for (var type in rrDefs.FaceType)
         this.stencilStates[rrDefs.FaceType[type]] = new rrRenderState.StencilState();	
 
@@ -249,7 +251,7 @@ rrRenderState.FragmentOperationState = function() {
 	/** @type {rrRenderState.BlendState} */ this.blendRGBState = new rrRenderState.BlendState();
 	/** @type {rrRenderState.BlendState} */ this.blendAState = new rrRenderState.BlendState();
 	/** @type {Array.<number>} */ this.blendColor	= [0.0, 0.0, 0.0, 0.0];
-	/** @type {rrRenderState.BlendEquationAdvanced} */ this.blendEquationAdvanced = null;
+//	/** @type {rrRenderState.BlendEquationAdvanced} */ this.blendEquationAdvanced = null;
 
 	/** @type {boolean} */ this.sRGBEnabled = true;
 

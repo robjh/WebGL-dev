@@ -22,17 +22,10 @@
 goog.provide('framework.opengl.gluVarType');
 goog.require('framework.opengl.gluShaderUtil');
 
-
 goog.scope(function() {
 
 var gluVarType = framework.opengl.gluVarType;
 var gluShaderUtil = framework.opengl.gluShaderUtil;
-    
-
-    var DE_ASSERT = function(x) {
-        if (!x)
-            throw new Error('Assert failed');
-    };
 
     /**
     * gluVarType.VarType types enum
@@ -48,6 +41,7 @@ var gluShaderUtil = framework.opengl.gluShaderUtil;
     * gluVarType.TypeArray struct
     * @param {gluVarType.VarType} elementType
     * @param {number} arraySize
+    * @constructor
     */
     gluVarType.TypeArray = function(elementType, arraySize) {
        /** @type {gluVarType.VarType} */ this.elementType = elementType;
@@ -56,10 +50,11 @@ var gluShaderUtil = framework.opengl.gluShaderUtil;
 
     /**
     * gluVarType.VarType class
+    * @constructor
     */
     gluVarType.VarType = function() {
        /** @type {gluVarType.Type} */ this.m_type = undefined;
-       /** @type {deMath.deUint32} */ this.m_flags = 0;
+       /** @type {number} */ this.m_flags = 0;
 
        /*
         * m_data used to be a 'Data' union in C++. Using a var is enough here.
@@ -74,7 +69,7 @@ var gluShaderUtil = framework.opengl.gluShaderUtil;
     /**
     * Creates a basic type gluVarType.VarType. Use this after the constructor call.
     * @param {deqpUtils.DataType} basicType
-    * @param {deMath.deUint32} flags
+    * @param {number} flags
     * @return {gluVarType.VarType} The currently modified object
     */
     gluVarType.VarType.prototype.VarTypeBasic = function(basicType, flags) {
@@ -181,22 +176,18 @@ var gluShaderUtil = framework.opengl.gluShaderUtil;
     * @return {number} size of the scalar
     */
     gluVarType.VarType.prototype.getScalarSize = function() {
-        switch (this.m_type)
-        {
-            case gluVarType.Type.TYPE_BASIC:
-            {
+        switch (this.m_type) {
+            case gluVarType.Type.TYPE_BASIC: {
                 return deqpUtils.getDataTypeScalarSize(this.getBasicType());
             }
 
             // TODO: check implementation below: return m_data.array.elementType->getScalarSize()*m_data.array.size;
-            case gluVarType.Type.TYPE_ARRAY:
-            {
+            case gluVarType.Type.TYPE_ARRAY: {
                 /** @type {gluVarType.TypeArray} */ var m_data = this.m_data;
                 return m_data.elementType.getScalarSize() * m_data.size;
             }
 
-            case gluVarType.Type.TYPE_STRUCT:
-            {
+            case gluVarType.Type.TYPE_STRUCT: {
                 var size = 0;
 
                 /** @type {gluVarType.StructType} */ var struct = this.m_data;
@@ -209,21 +200,20 @@ var gluShaderUtil = framework.opengl.gluShaderUtil;
             }
 
             default:
-                // DE_ASSERT(false);
+                // throw new Error('Unexpected type.');
                 return 0;
         }
     };
 
     /**
     * is
-    * @return {bool} returns true if the current object is equivalent to other.
+    * @return {boolean} returns true if the current object is equivalent to other.
     */
     gluVarType.VarType.prototype.is = function(other) {
         if (this.m_type != other.m_type)
             return false;
 
-        switch (this.m_type)
-        {
+        switch (this.m_type) {
             case gluVarType.Type.TYPE_BASIC:
                 return this.m_data.type == other.m_data.type &&
                        this.m_data.precision == other.m_data.precision;
@@ -236,14 +226,14 @@ var gluShaderUtil = framework.opengl.gluShaderUtil;
                 return this.m_data === other.m_data;
 
             default:
-            //    DE_ASSERT(false);
+                // throw new Error('Unexpected type.');
                 return false;
         }
     };
 
     /**
     * isnt
-    * @return {bool} returns true if the current object is not equivalent to other.
+    * @return {boolean} returns true if the current object is not equivalent to other.
     */
     gluVarType.VarType.prototype.isnt = function(other) {
         return !(this.is(other));
@@ -252,7 +242,7 @@ var gluShaderUtil = framework.opengl.gluShaderUtil;
     /**
      * Creates a basic type gluVarType.VarType.
      * @param {deqpUtils.DataType} basicType
-     * @param {deMath.deUint32} flags
+     * @param {number} flags
      * @return {gluVarType.VarType}
      */
     gluVarType.newTypeBasic = function(basicType, flags) {
@@ -280,11 +270,12 @@ var gluShaderUtil = framework.opengl.gluShaderUtil;
 
     /**
      * gluVarType.StructMember class
+     * @constructor
      */
      gluVarType.StructMember = function() {
         /** @type {string} */ this.m_name;
         /** @type {gluVarType.VarType} */ this.m_type;
-        /** @type {deMath.deUint32} */ // this.m_flags = 0; // only in glsUniformBlockCase
+        /** @type {number} */ // this.m_flags = 0; // only in glsUniformBlockCase
      };
 
      /**
@@ -316,7 +307,7 @@ var gluShaderUtil = framework.opengl.gluShaderUtil;
         };
 
       /**  only in glsUniformBlockCase! getFlags
-      * @return {deMath.deUint32} the flags in the member
+      * @return {number} the flags in the member
       */
       gluVarType.StructMember.prototype.getFlags = function() { return this.m_flags; };
 
@@ -332,10 +323,11 @@ var gluShaderUtil = framework.opengl.gluShaderUtil;
 
      /**
       * gluVarType.StructType class
+      * @constructor
       */
       gluVarType.StructType = function() {
          /** @type {string} */ this.m_typeName = undefined;
-         /** @type {Array.<gluVarType.StructMember>} */ this.m_members = [];
+         /** @type {Array<gluVarType.StructMember>} */ this.m_members = [];
       };
 
     /**
@@ -437,38 +429,32 @@ var gluShaderUtil = framework.opengl.gluShaderUtil;
         /** @type {string} */ var str = '';
         /** @type {gluVarType.VarType} */ var type = varType;
         /** @type {gluVarType.VarType} */ var curType = type;
-        /** @type {Array.<number>} */ var arraySizes = [];
+        /** @type {Array<number>} */ var arraySizes = [];
 
         // Handle arrays.
-        while (curType.isArrayType())
-        {
+        while (curType.isArrayType()) {
             arraySizes.push(curType.getArraySize());
             curType = curType.getElementType();
         }
 
-        if (curType.isBasicType())
-        {
+        if (curType.isBasicType()) {
             if (curType.getPrecision() !== undefined)
                 str += deqpUtils.getPrecisionName(curType.getPrecision()) + ' ';
             str += deqpUtils.getDataTypeName(curType.getBasicType());
-        }
-        else if (curType.isStructType())
-        {
+        } else if (curType.isStructType()) {
             /** @type {gluVarType.StructType} */ var structPtr = curType.getStruct();
 
             if (structPtr.hasTypeName())
                 str += structPtr.getTypeName();
             else
                 str += gluVarType.declareStructType(structPtr, level); // Generate inline declaration.
-        }
-        else
-            DE_ASSERT(false);
+        } else
+            throw new Error('Unexpected type: ' + curType.getTypeName());
 
         str += ' ' + name;
 
         // Print array sizes.
-        for (var size = 0; size < arraySizes.length; size++)//std::vector<int>::const_iterator sizeIter = arraySizes.begin(); sizeIter != arraySizes.end(); sizeIter++)
-        {
+        for (var size = 0; size < arraySizes.length; size++) { //std::vector<int>::const_iterator sizeIter = arraySizes.begin(); sizeIter != arraySizes.end(); sizeIter++) {
             /** @type {number} */ var arrSize = arraySizes[size];
             if (arrSize == gluVarType.VarType.UNSIZED_ARRAY)
                 str += '[]';
@@ -492,10 +478,9 @@ var gluShaderUtil = framework.opengl.gluShaderUtil;
         if (structType.hasTypeName())
             str += ' ' + structType.getTypeName();
 
-        str += '\n' + gluVarType.indent(level) + '{\n';
+        str += '\n' + gluVarType.indent(level) + ' {\n';
 
-        for (var memberNdx = 0; memberNdx < structType.getSize(); memberNdx++)//gluVarType.StructType::ConstIterator memberIter = decl.structPtr->begin(); memberIter != decl.structPtr->end(); memberIter++)
-        {
+        for (var memberNdx = 0; memberNdx < structType.getSize(); memberNdx++) { //gluVarType.StructType::ConstIterator memberIter = decl.structPtr->begin(); memberIter != decl.structPtr->end(); memberIter++) {
             /** @type {gluVarType.StructMember} */ var memberIter = structType.getMember(memberNdx);
             str += gluVarType.indent(level + 1);
             str += gluVarType.declareVariable(memberIter.getType(), memberIter.getName(), level + 1) + ';\n';
@@ -506,5 +491,4 @@ var gluShaderUtil = framework.opengl.gluShaderUtil;
         return str;
     };
 
-    
 });

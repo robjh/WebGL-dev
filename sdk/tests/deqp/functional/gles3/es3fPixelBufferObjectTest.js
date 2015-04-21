@@ -69,15 +69,16 @@ var tcuImageCompare = framework.common.tcuImageCompare;
         this.description= '';
         this.useColorClear= false;
         this.renderTriangles= false;
-        this.framebufferType= undefined;
-        this.renderbufferFormat= undefined;
+        /** @type {es3fPixelBufferObjectTest.FramebufferType} */ this.framebufferType;
+        /** @type {number} */ this.renderbufferFormat;
     };
 
     /**
      * @constructor
+     * @extends {tcuTestCase.DeqpTest}
      * @param {es3fPixelBufferObjectTest.TestSpec} spec
      */
-    es3fPixelBufferObjectTest.ReadPixelsTest = function(gl, spec) {
+    es3fPixelBufferObjectTest.ReadPixelsTest = function(spec) {
         tcuTestCase.DeqpTest.call(this, spec.name, spec.description);
         this.m_random = new deRandom.Random(deString.deStringHash(spec.name));
         this.m_program = null;
@@ -211,19 +212,15 @@ var tcuImageCompare = framework.common.tcuImageCompare;
         gl.useProgram(this.m_program.getProgram());
         assertMsgOptions(gl.getError() === gl.NO_ERROR, 'useProgram failed ', false, true);
         
-        /** @type {number} */ var coordLoc = -1;
-        /** @type {number} */ var colorLoc = -1;
-        /** @type {number} */ var colorScaleLoc = -1;
-        
-        colorScaleLoc = gl.getUniformLocation(this.m_program, 'u_colorScale');
+        /** @type {WebGLUniformLocation} */ var colorScaleLoc = gl.getUniformLocation(this.m_program.getProgram(), 'u_colorScale');;
         assertMsgOptions(colorScaleLoc != -1, 'Could not find u_colorScale ', false, true);
         
         gl.uniform1f(colorScaleLoc, this.m_colorScale);
         
-        coordLoc = gl.getAttribLocation(this.m_program.getProgram(), 'a_position');
+        /** @type {number} */ var coordLoc = gl.getAttribLocation(this.m_program.getProgram(), 'a_position');
         assertMsgOptions(coordLoc != -1, 'Could not find a_position ', false, true);
         
-        colorLoc = gl.getAttribLocation(this.m_program.getProgram(), 'a_color');
+        /** @type {number} */ var colorLoc = gl.getAttribLocation(this.m_program.getProgram(), 'a_color');
         assertMsgOptions(colorLoc != -1, 'Could not find a_color ', false, true);
         
         gl.enableVertexAttribArray(colorLoc);
@@ -231,8 +228,8 @@ var tcuImageCompare = framework.common.tcuImageCompare;
         gl.enableVertexAttribArray(coordLoc);
         assertMsgOptions(gl.getError() === gl.NO_ERROR, 'enableVertexAttribArray failed ', false, true);
         
-        gl.vertexAttribPointer(coordLoc, 3, gl.FLOAT, false, 0, positions);
-        gl.vertexAttribPointer(colorLoc, 4, gl.FLOAT, false, 0, colors);
+        gl.vertexAttribPointer(coordLoc, 3, gl.FLOAT, false, 0, positions[0]);
+        gl.vertexAttribPointer(colorLoc, 4, gl.FLOAT, false, 0, colors[0]);
         
         gl.drawArrays(gl.TRIANGLES, 0, 3);
         
@@ -361,7 +358,7 @@ var tcuImageCompare = framework.common.tcuImageCompare;
             }
         }
         
-        /** @type {TextureFormat} */ var readFormat;
+        /** @type {tcuTexture.TextureFormat} */ var readFormat;
         /** @type {number} */ var readPixelsFormat;
         /** @type {number} */ var readPixelsType;
         /** @type {boolean} */ var floatCompare;
@@ -461,12 +458,12 @@ var tcuImageCompare = framework.common.tcuImageCompare;
         
         gl.deleteBuffer(pixelBuffer);
         
-        assertMsgOptions(isOk, this.getDescription(), true, true);
+        assertMsgOptions(isOk, this.getDescription(), true, true);//TODO
         
         return tcuTestCase.runner.IterateResult.STOP;
     }
 
-    es3fPixelBufferObjectTest.init = function(context)
+    es3fPixelBufferObjectTest.init = function()
     {
         var state = tcuTestCase.runner.getState();
         /** @type {tcuTestCase.DeqpTest} */ var testGroup = state.testCases;
@@ -493,7 +490,7 @@ var tcuImageCompare = framework.common.tcuImageCompare;
     	];
 
         for (var testNdx = 0; testNdx < nativeFramebufferTests.length; testNdx++)
-            nativeFramebufferGroup.addChild(new es3fPixelBufferObjectTest.ReadPixelsTest(context, nativeFramebufferTests[testNdx]));
+            nativeFramebufferGroup.addChild(new es3fPixelBufferObjectTest.ReadPixelsTest(nativeFramebufferTests[testNdx]));
 
         testGroup.addChild(nativeFramebufferGroup);
 
@@ -567,7 +564,7 @@ var tcuImageCompare = framework.common.tcuImageCompare;
                 testSpec.framebufferType= es3fPixelBufferObjectTest.FramebufferType.FRAMEBUFFERTYPE_RENDERBUFFER;
                 testSpec.renderbufferFormat= renderbufferFormats[formatNdx];
 
-                renderbufferGroup.addChild(new es3fPixelBufferObjectTest.ReadPixelsTest(context, testSpec));
+                renderbufferGroup.addChild(new es3fPixelBufferObjectTest.ReadPixelsTest(testSpec));
             }
         }
 
@@ -593,7 +590,7 @@ var tcuImageCompare = framework.common.tcuImageCompare;
 
         try {
             //Create test cases
-            es3fPixelBufferObjectTest.init(context);
+            es3fPixelBufferObjectTest.init();
             //Run test cases
             tcuTestCase.runTestCases();
         }

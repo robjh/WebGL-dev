@@ -27,11 +27,6 @@ goog.scope(function() {
 var gluShaderUtil = framework.opengl.gluShaderUtil;
 var deMath = framework.delibs.debase.deMath;
 
-var DE_ASSERT = function(x) {
-    if (!x)
-        throw new Error('Assert failed');
-};
-
 /**
  * ShadingLanguageVersion
  * @enum
@@ -61,14 +56,14 @@ gluShaderUtil.getGLSLVersion = function(gl) {
  * @return {string}
  */
 gluShaderUtil.getGLSLVersionDeclaration = function(version) {
-    /** @type {Array<string>} */ var s_decl =
+    /** @type {Array.<string>} */ var s_decl =
     [
         '#version 100',
         '#version 300 es'
     ];
 
     if (version > s_decl.length - 1)
-        DE_ASSERT(false);
+        throw new Error('Unsupported GLSL version.');
 
     return s_decl[version];
 };
@@ -548,7 +543,9 @@ gluShaderUtil.isDataTypeSampler = function(dataType) {
  * @return {gluShaderUtil.DataType}
  */
 gluShaderUtil.getDataTypeMatrix = function(numCols, numRows) {
-    DE_ASSERT(deMath.deInRange32(numCols, 2, 4) && deMath.deInRange32(numRows, 2, 4));
+    if (!(deMath.deInRange32(numCols, 2, 4) && deMath.deInRange32(numRows, 2, 4)))
+        throw new Error('Out of bounds: ('+numCols+','+numRows+')');
+        
     var size = numRows.toString() + 'x' + numCols.toString();
     var datatypes = {
         '2x2': gluShaderUtil.DataType.FLOAT_MAT2,
