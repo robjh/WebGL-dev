@@ -148,8 +148,9 @@ glsUniformBlockCase.TypeArray = function(elementType, arraySize) {
 };
 
 /**
-* glsUniformBlockCase.VarType class
-*/
+ * glsUniformBlockCase.VarType class
+ * @constructor
+ */
 glsUniformBlockCase.VarType = function() {
     /** @type {glsUniformBlockCase.Type} */ this.m_type = glsUniformBlockCase.Type.TYPE_LAST;
     /** @type {number} */ this.m_flags = 0;
@@ -345,6 +346,7 @@ glsUniformBlockCase.StructMember.prototype.getFlags = function() { return this.m
 /**
  * glsUniformBlockCase.StructType
  * @param {string} typeName
+ * @constructor
  */
 glsUniformBlockCase.StructType = function() {
     /** @type {string}*/ this.m_typeName;
@@ -397,7 +399,7 @@ glsUniformBlockCase.StructType.prototype.getSize = function() {
 /** addMember
 * @param {string} member_name
 * @param {glsUniformBlockCase.VarType} member_type
-* @param {number} member_flags
+* @param {number=} member_flags
 **/
 glsUniformBlockCase.StructType.prototype.addMember = function(member_name, member_type, member_flags) {
     var member = glsUniformBlockCase.newStructMember(member_name, member_type, member_flags);
@@ -417,7 +419,8 @@ glsUniformBlockCase.newStructType = function(name) {
 /** glsUniformBlockCase.Uniform
  * @param {string} name
  * @param {glsUniformBlockCase.VarType} type
- * @param {number} flags
+ * @param {number=} flags
+ * @constructor
 **/
 glsUniformBlockCase.Uniform = function(name, type, flags) {
     /** @type {string} */ this.m_name = name;
@@ -448,6 +451,7 @@ glsUniformBlockCase.Uniform.prototype.getFlags = function() {
 
 /** glsUniformBlockCase.UniformBlock
  * @param {string} blockName
+ * @constructor
 **/
 glsUniformBlockCase.UniformBlock = function(blockName) {
     /** @type {string} */ this.m_blockName = blockName;
@@ -664,6 +668,9 @@ glsUniformBlockCase.UniformLayout.prototype.getBlockIndex = function(name) {
     return -1;
 };
 
+/**
+ * @enum {number}
+ */
 glsUniformBlockCase.BufferMode = {
     BUFFERMODE_SINGLE: 0, //!< Single buffer shared between uniform blocks.
     BUFFERMODE_PER_BLOCK: 1 //!< Per-block buffers
@@ -735,6 +742,7 @@ glsUniformBlockCase.UniformBufferManager.prototype.allocBuffer = function() {
  * @param {string} description
  * @param {glsUniformBlockCase.BufferMode} bufferMode
  * @constructor
+ * @extends {tcuTestCase.DeqpTest}
  */
 glsUniformBlockCase.UniformBlockCase = function(name, description, bufferMode) {
     tcuTestCase.DeqpTest.call(this, name, description);
