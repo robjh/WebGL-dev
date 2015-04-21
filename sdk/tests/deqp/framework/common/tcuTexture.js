@@ -803,6 +803,107 @@ tcuTexture.ConstPixelBufferAccess.prototype.getFormat = function() { return this
  * @param {number} x
  * @param {number} y
  * @param {number=} z
+ * @return {number} stencil value
+ */
+tcuTexture.ConstPixelBufferAccess.prototype.getPixStencil = function(x, y, z) {
+    z = z || 0;
+
+    DE_ASSERT(deMath.deInBounds32(x, 0, this.m_width));
+    DE_ASSERT(deMath.deInBounds32(y, 0, this.m_height));
+    DE_ASSERT(deMath.deInBounds32(z, 0, this.m_depth));
+
+
+    var pixelSize = this.m_format.getPixelSize();
+    var arrayType = tcuTexture.getTypedArray(this.m_format.type);
+    var offset = z * this.m_slicePitch + y * this.m_rowPitch + x * pixelSize;
+    var pixelPtr = new arrayType(this.m_data, offset + this.m_offset);
+
+    switch (this.m_format.type)
+    {
+        case tcuTexture.ChannelType.UNSIGNED_INT_24_8:
+            switch (this.m_format.order)
+            {
+                case tcuTexture.ChannelOrder.S:      return (pixelPtr[0] >> 8) & 0xff;
+                case tcuTexture.ChannelOrder.DS:     return pixelPtr[0] & 0xff;
+
+                default:
+                    DE_ASSERT(false);
+                    return 0;
+            }
+
+        case tcuTexture.ChannelType.FLOAT_UNSIGNED_INT_24_8_REV:
+            DE_ASSERT(this.m_format.order == tcuTexture.ChannelOrder.DS);
+            var u32array = new Uint32Array(this.m_data, offset + this.m_offset + 4, 1);
+            return u32array[0] & 0xff;
+
+        default:
+        {
+            if (this.m_format.order == tcuTexture.ChannelOrder.S)
+                return tcuTexture.channelToInt(pixelPtr[0], this.m_format.type);
+            else
+            {
+                DE_ASSERT(this.m_format.order == tcuTexture.ChannelOrder.DS);
+                var stencilChannelIndex = 3;
+                return tcuTexture.channelToInt(pixelPtr[stencilChannelIndex], this.m_format.type);
+            }
+        }
+    }
+};
+
+/**
+ * @param {number} x
+ * @param {number} y
+ * @param {number=} z
+ * @return {number}
+ */
+tcuTexture.ConstPixelBufferAccess.prototype.getPixDepth = function(x, y, z) {
+    if (z == null)
+        z = 0;
+    DE_ASSERT(deMath.deInBounds32(x, 0, this.m_width));
+    DE_ASSERT(deMath.deInBounds32(y, 0, this.m_height));
+    DE_ASSERT(deMath.deInBounds32(z, 0, this.m_depth));
+
+    var pixelSize = this.m_format.getPixelSize();
+    var arrayType = tcuTexture.getTypedArray(this.m_format.type);
+    var offset = z * this.m_slicePitch + y * this.m_rowPitch + x * pixelSize;
+    var pixelPtr = new arrayType(this.m_data, offset + this.m_offset);
+
+    var ub = function(pixel, offset, count) {
+        return (pixel >> offset) & ((1 << count) - 1);
+    };
+    var nb = function(pixel, offset, count) {
+        return tcuTexture.channelToNormFloat(ub(pixel, offset, count), count);
+    };
+
+    // Packed formats.
+    switch (this.m_format.type) {
+        case tcuTexture.ChannelType.UNSIGNED_INT_24_8:
+            switch (this.m_format.order) {
+                case tcuTexture.ChannelOrder.D: // fall-through
+                case tcuTexture.ChannelOrder.DS:
+                    return nb(pixelPtr[0], 8, 24);
+                default:
+                    throw new Error('Unsupported tcuTexture.channel order ' + this.m_format.order);
+            }
+            break;
+
+        case tcuTexture.ChannelType.FLOAT_UNSIGNED_INT_24_8_REV: {
+            DE_ASSERT(this.m_format.order == tcuTexture.ChannelOrder.DS);
+            return pixelPtr[0];
+            break;
+        }
+
+        default: {
+            DE_ASSERT(this.m_format.order == tcuTexture.ChannelOrder.D || this.m_format.order == tcuTexture.ChannelOrder.DS);
+            return tcuTexture.channelToFloat(pixelPtr[0], this.m_format.type);
+        }
+    }
+};
+
+/**
+ * @param {number} x
+ * @param {number} y
+ * @param {number=} z
  * @return {Array<number>} Pixel value as Vec4
  */
 tcuTexture.ConstPixelBufferAccess.prototype.getPixel = function(x, y, z) {

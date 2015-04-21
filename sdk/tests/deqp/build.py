@@ -39,7 +39,9 @@ targets = {
     'uniformbuffers': 'functional.gles3.es3fUniformBlockTests',
     'vertexarrays': 'functional.gles3.es3fVertexArrayTests',
     'shaderlibrary': 'modules.shared.glsShaderLibrary',
-    'matrix': 'framework.common.tcuMatrix'
+    'matrix': 'framework.common.tcuMatrix',
+    'fragOps': 'framework.referencerenderer.rrFragmentOperations',
+    'renderer': 'framework.referencerenderer.rrRenderer'
 }
 def dep_filename(target):
     return target + '.dep'

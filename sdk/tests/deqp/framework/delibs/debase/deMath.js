@@ -24,7 +24,7 @@ goog.provide('framework.delibs.debase.deMath');
 /** @typedef { (Int8Array|Uint8Array|Uint8ClampedArray|Int16Array|Uint16Array|Int32Array|Uint32Array|Float32Array|Float64Array) } */
 goog.TypedArray;
 
-/** @typedef { (Array.<number>|goog.TypedArray) } */
+/** @typedef { (Array<number>|Array<boolean>|goog.TypedArray) } */
 goog.NumberArray;
 
 goog.scope(function() {
@@ -102,6 +102,19 @@ deMath.clamp = function(val, minParm, maxParm) {
     return Math.max(minParm, Math.min(val, maxParm));
 };
 
+/**
+ * @param {Array<number>} values
+ * @param {number} minParm
+ * @param {number} maxParm
+ * @return {Array<number>}
+ */
+deMath.clampVector = function(values, minParm, maxParm) {
+    var result = [];
+    for (var i = 0; i < values.length; i++)
+        result.push(deMath.clamp(values[i], minParm, maxParm));
+    return result;
+};
+
 deMath.imod = function(a, b) {
     var m = a % b;
     return m < 0 ? m + b : m;
@@ -112,8 +125,8 @@ deMath.mirror = function(a) {
 };
 
 /**
- * @param {Array.<number>} a Source array
- * @param {Array.<number>} indices
+ * @param {goog.NumberArray} a Source array
+ * @param {goog.NumberArray} indices
  * @return {Array.<number>} Swizzled array
  */
 deMath.swizzle = function(a, indices) {
@@ -127,8 +140,8 @@ deMath.swizzle = function(a, indices) {
 
 /**
  * Multiply two vectors, element by element
- * @param {Array.<number>} a
- * @param {Array.<number>} b
+ * @param {goog.NumberArray} a
+ * @param {goog.NumberArray} b
  * @return {Array.<number>} Result array
  */
 
@@ -143,8 +156,8 @@ deMath.multiply = function(a, b) {
 
 /**
  * Add two vectors, element by element
- * @param {Array.<number>} a
- * @param {Array.<number>} b
+ * @param {goog.NumberArray} a
+ * @param {goog.NumberArray} b
  * @return {Array.<number>} Result array
  */
 
@@ -159,8 +172,8 @@ deMath.add = function(a, b) {
 
 /**
  * Subtract two vectors, element by element
- * @param {Array.<number>} a
- * @param {Array.<number>} b
+ * @param {goog.NumberArray} a
+ * @param {goog.NumberArray} b
  * @return {Array.<number>} Result array
  */
 
@@ -190,8 +203,8 @@ deMath.absDiff = function(a, b) {
 
 /**
  * Is a <= b (element by element)?
- * @param {Array.<number>} a
- * @param {Array.<number>} b
+ * @param {goog.NumberArray} a
+ * @param {goog.NumberArray} b
  * @return {Array.<boolean>} Result array of booleans
  */
 deMath.lessThanEqual = function(a, b) {
@@ -218,7 +231,7 @@ deMath.boolAll = function(a) {
 
 /**
  * deMath.assign(a, b) element by element
- * @param {Array.<number>} a
+ * @param {goog.NumberArray} a
  * @return {Array.<number>}
  */
 deMath.assign = function(a) {
@@ -230,8 +243,8 @@ deMath.assign = function(a) {
 
 /**
  * deMath.max(a, b) element by element
- * @param {Array.<number>} a
- * @param {Array.<number>} b
+ * @param {goog.NumberArray} a
+ * @param {goog.NumberArray} b
  * @return {Array.<number>}
  */
 deMath.max = function(a, b) {
@@ -245,8 +258,8 @@ deMath.max = function(a, b) {
 
 /**
  * deMath.min(a, b) element by element
- * @param {Array.<number>} a
- * @param {Array.<number>} b
+ * @param {goog.NumberArray} a
+ * @param {goog.NumberArray} b
  * @return {Array.<number>}
  */
 deMath.min = function(a, b) {
@@ -273,8 +286,8 @@ deMath.rint = function(a) {
 
 /**
  * Find intersection of two rectangles
- * @param {Array.<number>} a Array [x, y, width, height]
- * @param {Array.<number>} b Array [x, y, width, height]
+ * @param {goog.NumberArray} a Array [x, y, width, height]
+ * @param {goog.NumberArray} b Array [x, y, width, height]
  * @return {Array.<number>}
  */
 deMath.intersect = function(a, b) {
