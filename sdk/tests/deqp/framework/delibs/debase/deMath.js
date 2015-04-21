@@ -31,9 +31,6 @@ goog.scope(function() {
 
 var deMath = framework.delibs.debase.deMath;
 
-/* Dummy type */
-deMath.deUint32 = function() {};
-
 deMath.deInRange32 = function(a, mn, mx) {
     return (a >= mn) && (a <= mx);
 };
