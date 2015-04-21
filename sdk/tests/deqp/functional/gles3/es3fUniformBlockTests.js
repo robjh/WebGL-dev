@@ -52,7 +52,7 @@ goog.scope(function() {
         var group = tcuTestCase.newTest(groupName, description);
         parentGroup.addChild(group);
 
-        baseSeed += (new deRandom.Random()).getBaseSeed();
+        baseSeed += deRandom.getBaseSeed();
 
         for (var ndx = 0; ndx < numCases; ndx++)
             group.addChild(new glsRandomUniformBlockCase.RandomUniformBlockCase('' + ndx, '', bufferMode, features, ndx + baseSeed));
@@ -92,6 +92,7 @@ goog.scope(function() {
      * @param {number=} numInstances
      */
     es3fUniformBlockTests.createBlockBasicTypeCases = function(group, name, type, layoutFlags, numInstances) {
+        numInstances = (numInstances === undefined) ? 0 : numInstances;
         group.addChild(new es3fUniformBlockTests.BlockBasicTypeCase(name + '_vertex', '', type, layoutFlags | glsUniformBlockCase.UniformFlags.DECLARE_VERTEX, numInstances));
         group.addChild(new es3fUniformBlockTests.BlockBasicTypeCase(name + '_fragment', '', type, layoutFlags | glsUniformBlockCase.UniformFlags.DECLARE_FRAGMENT, numInstances));
 
