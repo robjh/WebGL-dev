@@ -24,9 +24,8 @@ goog.require('framework.delibs.debase.deMath');
 
 goog.scope(function() {
 
-var tcuMatrix = framework.common.tcuMatrix;
-var deMath = framework.delibs.debase.deMath;
-
+    var tcuMatrix = framework.common.tcuMatrix;
+    var deMath = framework.delibs.debase.deMath;
 
     var DE_ASSERT = function(x) {
         if (!x)
@@ -47,7 +46,7 @@ var deMath = framework.delibs.debase.deMath;
             this.matrix[i] = [];
         for (var row = 0; row < rows; row++)
             for (var col = 0; col < cols; col++)
-                this.set(row, col, (row == col) ? 1 : 0) 
+                this.set(row, col, (row == col) ? 1 : 0)
     }
 
     /**

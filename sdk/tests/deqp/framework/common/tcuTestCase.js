@@ -125,7 +125,7 @@ goog.scope(function() {
 
     /** @type {tcuTestCase.IterateResult} */ tcuTestCase.lastResult = tcuTestCase.IterateResult.STOP;
 
-    /****************************************
+    /***************************************
     * DeqpTest
     ***************************************/
 
