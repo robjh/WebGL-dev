@@ -60,7 +60,7 @@ glsUniformBlockCase.TCU_FAIL = function(msg) {
  * @constructor
  */
 glsUniformBlockCase.BlockPointers = function() {
-    /** @type {ArrayBuffer} */ this.data = 0; //!< Data (vector<deUint8>).
+    /** @type {ArrayBuffer} */ this.data; //!< Data (vector<deUint8>).
     /** @type {Array<number>} */ this.offsets = []; //!< Reference block pointers (map<int, void*>).
     /** @type {Array<number>} */ this.sizes = [];
 };
@@ -157,7 +157,7 @@ glsUniformBlockCase.TypeArray = function(elementType, arraySize) {
  * @constructor
  */
 glsUniformBlockCase.VarType = function() {
-    /** @type {glsUniformBlockCase.Type} */ this.m_type = glsUniformBlockCase.Type.TYPE_LAST;
+    /** @type {number} */ this.m_type = glsUniformBlockCase.Type.TYPE_LAST;
     /** @type {number} */ this.m_flags = 0;
 
     /*
@@ -166,7 +166,7 @@ glsUniformBlockCase.VarType = function() {
      */
 
     /** @type {(gluShaderUtil.DataType|glsUniformBlockCase.TypeArray|glsUniformBlockCase.StructType)} */
-    this.m_data = undefined;
+    this.m_data;
 };
 
 /**
@@ -386,8 +386,7 @@ glsUniformBlockCase.StructType.prototype.getMember = function(memberNdx) {
     if (memberNdx >= 0 && memberNdx < this.m_members.length)
         return this.m_members[memberNdx];
     else {
-        DE_ASSERT(false); // "Error: Invalid member index for glsUniformBlockCase.StructType's members"
-        return undefined;
+        throw new Error("Invalid member index for glsUniformBlockCase.StructType's members");
     }
 };
 
@@ -541,8 +540,7 @@ glsUniformBlockCase.UniformBlock.prototype.getUniform = function(index) {
     if (index >= 0 && index < this.m_uniforms.length)
         return this.m_uniforms[index];
     else {
-        DE_ASSERT(false); //"Error: Invalid uniform index for glsUniformBlockCase.UniformBlock's uniforms"
-        return undefined;
+        throw new Error("Invalid uniform index for glsUniformBlockCase.UniformBlock's uniforms");
     }
 };
 
@@ -582,7 +580,7 @@ glsUniformBlockCase.ShaderInterface.prototype.findStruct = function(name) {
         if (this.m_structs[pos].getTypeName() == name)
             return this.m_structs[pos];
     }
-    return undefined;
+    return null;
 };
 
 /** getNamedStructs
@@ -642,7 +640,7 @@ glsUniformBlockCase.UniformLayoutEntry = function() {
     /** @type {number} */ offset: -1,
     /** @type {number} */ arrayStride: -1,
     /** @type {number} */ matrixStride: -1,
-    /** @type {number} */ isRowMajor: false
+    /** @type {boolean} */ isRowMajor: false
     };
 };
 
@@ -708,7 +706,7 @@ glsUniformBlockCase.PrecisionFlagsFmt = function(flags) {
 
 /**
  * glsUniformBlockCase.LayoutFlagsFmt
- * @param {number} flags
+ * @param {number} flags_
  * @return {string}
  */
 glsUniformBlockCase.LayoutFlagsFmt = function(flags_) {
@@ -2012,9 +2010,12 @@ glsUniformBlockCase.copyUniformData = function(dstLayout, dstBlockPointers, srcL
     // Use program.
     gl.useProgram(program.getProgram());
 
+    /** @type {number} */ var binding;
+    /** @type {number} */ var buffer;
+
     // Assign binding points to all active uniform blocks.
     for (var blockNdx = 0; blockNdx < glLayout.blocks.length; blockNdx++) {
-        /** @type {number} */ var binding = blockNdx; // \todo [2012-01-25 pyry] Randomize order?
+        binding = blockNdx; // \todo [2012-01-25 pyry] Randomize order?
         gl.uniformBlockBinding(program.getProgram(), blockNdx, binding);
     }
 
@@ -2041,8 +2042,8 @@ glsUniformBlockCase.copyUniformData = function(dstLayout, dstBlockPointers, srcL
         glsUniformBlockCase.copyUniformData(glLayout, glBlockPointers, refLayout, blockPointers);
 
         for (var blockNdx = 0; blockNdx < numBlocks; blockNdx++) {
-            /** @type {number} */ var buffer = bufferManager.allocBuffer();
-            /** @type {number} */ var binding = blockNdx;
+            buffer = bufferManager.allocBuffer();
+            binding = blockNdx;
 
             gl.bindBuffer(gl.UNIFORM_BUFFER, buffer);
             gl.bufferData(gl.UNIFORM_BUFFER, glBlockPointers.find(blockNdx) /*(glw::GLsizeiptr)glData[blockNdx].size(), &glData[blockNdx][0]*/, gl.STATIC_DRAW);
@@ -2077,7 +2078,7 @@ glsUniformBlockCase.copyUniformData = function(dstLayout, dstBlockPointers, srcL
         glsUniformBlockCase.copyUniformData(glLayout, glBlockPointers, refLayout, blockPointers);
 
         // Allocate buffer and upload data.
-        /** @type {number} */ var buffer = bufferManager.allocBuffer();
+        buffer = bufferManager.allocBuffer();
         gl.bindBuffer(gl.UNIFORM_BUFFER, buffer);
         if (glBlockPointers.data.length > 0 /*!glData.empty()*/)
             gl.bufferData(gl.UNIFORM_BUFFER, glBlockPointers.find(blockNdx) /*(glw::GLsizeiptr)glData.size(), &glData[0]*/, gl.STATIC_DRAW);
@@ -2086,7 +2087,7 @@ glsUniformBlockCase.copyUniformData = function(dstLayout, dstBlockPointers, srcL
 
         // Bind ranges to binding points.
         for (var blockNdx = 0; blockNdx < numBlocks; blockNdx++) {
-            /** @type {number} */ var binding = blockNdx;
+            binding = blockNdx;
             gl.bindBufferRange(gl.UNIFORM_BUFFER, binding, buffer, glBlockPointers.offsets[blockNdx], glLayout.blocks[blockNdx].size);
             glsUniformBlockCase.GLU_EXPECT_NO_ERROR(gl.getError(), 'glBindBufferRange(gl.UNIFORM_BUFFER) failed');
         }
