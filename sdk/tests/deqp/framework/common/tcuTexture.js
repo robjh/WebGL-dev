@@ -638,6 +638,140 @@ tcuTexture.lookup = function(access, i, j, k) {
  * @param {number} depth (integer)
  * @return {Array<number>} Vec4 pixel color
  */
+tcuTexture.sampleLinear2D = function(access, sampler, u, v, depth) {
+    /**
+     * @param {Array<number>} p00
+     * @param {Array<number>} p10
+     * @param {Array<number>} p01
+     * @param {Array<number>} p11
+     * @param {number} a
+     * @param {number} b
+     */
+    var interpolateQuad = function(p00, p10, p01, p11, a, b) {
+        var v1 = deMath.scale(p00, (1 - a) * (1 - b));
+        var v2 = deMath.scale(p10, a * (1 -b));
+        var v3 = deMath.scale(p01, (1 - a) * b);
+        var v4 = deMath.scale(p11, a * b);
+        return deMath.add(deMath.add(v1, v2), deMath.add(v3, v4));
+    };
+
+    var w = access.getWidth();
+    var h = access.getHeight();
+
+    var x0 = Math.floor(u-0.5);
+    var x1 = x0+1;
+    var y0 = Math.floor(v-0.5);
+    var y1 = y0+1;
+
+    var i0 =tcuTexture.wrap(sampler.wrapS, x0, w);
+    var i1 =tcuTexture.wrap(sampler.wrapS, x1, w);
+    var j0 =tcuTexture.wrap(sampler.wrapT, y0, h);
+    var j1 =tcuTexture.wrap(sampler.wrapT, y1, h);
+
+    var a = deMath.deFloatFrac(u-0.5);
+    var b = deMath.deFloatFrac(v-0.5);
+
+    var i0UseBorder = sampler.wrapS == tcuTexture.WrapMode.CLAMP_TO_BORDER && !deMath.deInBounds32(i0, 0, w);
+    var i1UseBorder = sampler.wrapS == tcuTexture.WrapMode.CLAMP_TO_BORDER && !deMath.deInBounds32(i1, 0, w);
+    var j0UseBorder = sampler.wrapT == tcuTexture.WrapMode.CLAMP_TO_BORDER && !deMath.deInBounds32(j0, 0, h);
+    var j1UseBorder = sampler.wrapT == tcuTexture.WrapMode.CLAMP_TO_BORDER && !deMath.deInBounds32(j1, 0, h);
+
+    // Border color for out-of-range coordinates if using CLAMP_TO_BORDER, otherwise execute lookups.
+    var p00 = (i0UseBorder || j0UseBorder) ? sampler.borderColor : tcuTexture.lookup(access, i0, j0, depth);
+    var p10 = (i1UseBorder || j0UseBorder) ? sampler.borderColor : tcuTexture.lookup(access, i1, j0, depth);
+    var p01 = (i0UseBorder || j1UseBorder) ? sampler.borderColor : tcuTexture.lookup(access, i0, j1, depth);
+    var p11 = (i1UseBorder || j1UseBorder) ? sampler.borderColor : tcuTexture.lookup(access, i1, j1, depth);
+
+    // Interpolate.
+    return interpolateQuad(p00, p10, p01, p11, a, b);
+};
+
+/**
+ * @param {tcuTexture.ConstPixelBufferAccess} access
+ * @param {tcuTexture.Sampler} sampler
+ * @param {number} u
+ * @param {number} v
+ * @param {number} w
+ * @return {Array<number>} Vec4 pixel color
+ */
+tcuTexture.sampleLinear3D = function(access, sampler, u, v, w) {
+    /**
+     * @param {Array<number>} p000
+     * @param {Array<number>} p100
+     * @param {Array<number>} p010
+     * @param {Array<number>} p110
+     * @param {Array<number>} p001
+     * @param {Array<number>} p101
+     * @param {Array<number>} p011
+     * @param {Array<number>} p111
+     * @param {number} a
+     * @param {number} b
+     * @param {number} c
+     */
+    var interpolateCube = function(p000, p100, p010, p110, p001, p101, p011, p111, a, b, c) {
+        var v1 = deMath.scale(p000, (1 - a) * (1 - b) * (1 - c));
+        var v2 = deMath.scale(p100, a * (1 - b) * (1 - c));
+        var v3 = deMath.scale(p010, (1 - a) * b * (1 - c));
+        var v4 = deMath.scale(p110, a * b * (1 - c));
+        var v5 = deMath.scale(p001, (1 - a) * (1 - b) * c);
+        var v6 = deMath.scale(p101, a * (1 - b) * c);
+        var v7 = deMath.scale(p011, (1 - a) * b * c);
+        var v8 = deMath.scale(p111, a * b * c);
+        return deMath.add(deMath.add(deMath.add(v1, v2), deMath.add(v3, v4)), deMath.add(deMath.add(v5, v6), deMath.add(v7, v8)));
+    };
+
+
+    var width   = access.getWidth();
+    var height  = access.getHeight();
+    var depth   = access.getDepth();
+
+    var x0 = Math.floor(u-0.5);
+    var x1 = x0+1;
+    var y0 = Math.floor(v-0.5);
+    var y1 = y0+1;
+    var z0 = Math.floor(w-0.5);
+    var z1 = z0+1;
+
+    var i0 = tcuTexture.wrap(sampler.wrapS, x0, width);
+    var i1 = tcuTexture.wrap(sampler.wrapS, x1, width);
+    var j0 = tcuTexture.wrap(sampler.wrapT, y0, height);
+    var j1 = tcuTexture.wrap(sampler.wrapT, y1, height);
+    var k0 = tcuTexture.wrap(sampler.wrapR, z0, depth);
+    var k1 = tcuTexture.wrap(sampler.wrapR, z1, depth);
+    
+    var a = deMath.deFloatFrac(u-0.5);
+    var b = deMath.deFloatFrac(v-0.5);
+    var c = deMath.deFloatFrac(w-0.5);
+
+    var i0UseBorder = sampler.wrapS == tcuTexture.WrapMode.CLAMP_TO_BORDER && !deMath.deInBounds32(i0, 0, width);
+    var i1UseBorder = sampler.wrapS == tcuTexture.WrapMode.CLAMP_TO_BORDER && !deMath.deInBounds32(i1, 0, width);
+    var j0UseBorder = sampler.wrapT == tcuTexture.WrapMode.CLAMP_TO_BORDER && !deMath.deInBounds32(j0, 0, height);
+    var j1UseBorder = sampler.wrapT == tcuTexture.WrapMode.CLAMP_TO_BORDER && !deMath.deInBounds32(j1, 0, height);
+    var k0UseBorder = sampler.wrapR == tcuTexture.WrapMode.CLAMP_TO_BORDER && !deMath.deInBounds32(k0, 0, depth);
+    var k1UseBorder = sampler.wrapR == tcuTexture.WrapMode.CLAMP_TO_BORDER && !deMath.deInBounds32(k1, 0, depth);
+
+    // Border color for out-of-range coordinates if using CLAMP_TO_BORDER, otherwise execute lookups.
+    var p000 = (i0UseBorder || j0UseBorder || k0UseBorder) ? sampler.borderColor : tcuTexture.lookup(access, i0, j0, k0);
+    var p100 = (i1UseBorder || j0UseBorder || k0UseBorder) ? sampler.borderColor : tcuTexture.lookup(access, i1, j0, k0);
+    var p010 = (i0UseBorder || j1UseBorder || k0UseBorder) ? sampler.borderColor : tcuTexture.lookup(access, i0, j1, k0);
+    var p110 = (i1UseBorder || j1UseBorder || k0UseBorder) ? sampler.borderColor : tcuTexture.lookup(access, i1, j1, k0);
+    var p001 = (i0UseBorder || j0UseBorder || k1UseBorder) ? sampler.borderColor : tcuTexture.lookup(access, i0, j0, k1);
+    var p101 = (i1UseBorder || j0UseBorder || k1UseBorder) ? sampler.borderColor : tcuTexture.lookup(access, i1, j0, k1);
+    var p011 = (i0UseBorder || j1UseBorder || k1UseBorder) ? sampler.borderColor : tcuTexture.lookup(access, i0, j1, k1);
+    var p111 = (i1UseBorder || j1UseBorder || k1UseBorder) ? sampler.borderColor : tcuTexture.lookup(access, i1, j1, k1);
+
+    // Interpolate.
+    return interpolateCube(p000, p100, p010, p110, p001, p101, p011, p111, a, b, c);
+};
+
+/**
+ * @param {tcuTexture.ConstPixelBufferAccess} access
+ * @param {tcuTexture.Sampler} sampler
+ * @param {number} u
+ * @param {number} v
+ * @param {number} depth (integer)
+ * @return {Array<number>} Vec4 pixel color
+ */
 tcuTexture.sampleNearest2D = function(access, sampler, u, v, depth) {
     var width = access.getWidth();
     var height = access.getHeight();
@@ -656,6 +790,7 @@ tcuTexture.sampleNearest2D = function(access, sampler, u, v, depth) {
 
     return tcuTexture.lookup(access, i, j, depth);
 };
+
 
 /**
  * @param {tcuTexture.ConstPixelBufferAccess} access
@@ -1081,10 +1216,9 @@ tcuTexture.ConstPixelBufferAccess.prototype.sample2D = function(sampler, filter,
 
     switch (filter) {
         case tcuTexture.FilterMode.NEAREST: return tcuTexture.sampleNearest2D(this, sampler, u, v, depth);
-        // case tcuTexture.Sampler::LINEAR: return sampleLinear2D (*this, sampler, u, v, depth);
-        // default:
-        //     DE_ASSERT(false);
-        //     return Vec4(0.0f);
+        case tcuTexture.FilterMode.LINEAR: return tcuTexture.sampleLinear2D(this, sampler, u, v, depth);
+        default:
+            throw new Error('Invalid filter:' + filter);
     }
     throw new Error('Unimplemented');
 };
@@ -1111,10 +1245,9 @@ tcuTexture.ConstPixelBufferAccess.prototype.sample3D = function(sampler, filter,
 
     switch (filter) {
         case tcuTexture.FilterMode.NEAREST: return tcuTexture.sampleNearest3D(this, sampler, u, v, w);
-        // case tcuTexture.Sampler::LINEAR: return sampleLinear3D (*this, sampler, u, v, w);
-        // default:
-        //     DE_ASSERT(false);
-        //     return Vec4(0.0f);
+        case tcuTexture.FilterMode.LINEAR: return tcuTexture.sampleLinear3D(this, sampler, u, v, w);
+        default:
+            throw new Error('Invalid filter:' + filter);
     }
     throw new Error('Unimplemented');
 };
@@ -1123,17 +1256,12 @@ tcuTexture.ConstPixelBufferAccess.prototype.sample3D = function(sampler, filter,
         // template<typename T>
         // Vector<T, 4> getPixelT (int x, int y, int z = 0) const;
 
-        // float getPixDepth (int x, int y, int z = 0) const;
-        // int getPixStencil (int x, int y, int z = 0) const;
 
-        // Vec4 sample1D (const tcuTexture.Sampler& sampler, tcuTexture.Sampler::tcuTexture.FilterMode filter, float s, int level) const;
         // Vec4 sample3D (const tcuTexture.Sampler& sampler, tcuTexture.Sampler::tcuTexture.FilterMode filter, float s, float t, float r) const;
 
-        // Vec4 sample1DOffset (const tcuTexture.Sampler& sampler, tcuTexture.Sampler::tcuTexture.FilterMode filter, float s, const IVec2& offset) const;
         // Vec4 sample2DOffset (const tcuTexture.Sampler& sampler, tcuTexture.Sampler::tcuTexture.FilterMode filter, float s, float t, const IVec3& offset) const;
         // Vec4 sample3DOffset (const tcuTexture.Sampler& sampler, tcuTexture.Sampler::tcuTexture.FilterMode filter, float s, float t, float r, const IVec3& offset) const;
 
-        // float sample1DCompare (const tcuTexture.Sampler& sampler, tcuTexture.Sampler::tcuTexture.FilterMode filter, float ref, float s, const IVec2& offset) const;
         // float sample2DCompare (const tcuTexture.Sampler& sampler, tcuTexture.Sampler::tcuTexture.FilterMode filter, float ref, float s, float t, const IVec3& offset) const;
     };
 

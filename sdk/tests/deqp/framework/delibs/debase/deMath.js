@@ -152,6 +152,19 @@ deMath.multiply = function(a, b) {
 };
 
 /**
+ * Multiply vector by a scalar
+ * @param {goog.NumberArray} a
+ * @param {number} b
+ * @return {Array<number>} Result array
+ */
+deMath.scale = function(a, b) {
+    var dst = [];
+    for (var i = 0; i < a.length; i++)
+        dst.push(a[i] * b);
+    return dst;
+};
+
+/**
  * Add two vectors, element by element
  * @param {goog.NumberArray} a
  * @param {goog.NumberArray} b
