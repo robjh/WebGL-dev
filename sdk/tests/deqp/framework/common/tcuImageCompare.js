@@ -135,7 +135,7 @@ tcuImageCompare.displayImages = function(result, reference, diff) {
     }
 };*/
 
-/*--------------------------------------------------------------------*//*!
+/**
  * \brief Per-pixel threshold-based comparison
  *
  * This compare computes per-pixel differences between result and reference
@@ -146,18 +146,16 @@ tcuImageCompare.displayImages = function(result, reference, diff) {
  *
  * On failure error image is generated that shows where the failing pixels
  * are.
+ *
+ * @param {string} imageSetName Name for image set when logging results
+ * @param {string} imageSetDesc Description for image set
+ * @param {tcuTexture.ConstPixelBufferAccess} reference Reference image
+ * @param {tcuTexture.ConstPixelBufferAccess}result Result image
+ * @param {Array<number>} threshold Maximum allowed difference
+ * @param {tcuImageCompare.CompareLogMode=} logMode
+ * @return {boolean} true if comparison passes, false otherwise
  */
-
- /**
- * tcuImageCompare.intThresholdCompare
- * @param {string} imageSetName
- * @param {string} imageSetDesc
- * @param {tcuTexture.ConstPixelBufferAccess} reference
- * @param {tcuTexture.ConstPixelBufferAccess} result
- * @param {Array<number>} threshold
- * @return {boolean}
- */
-tcuImageCompare.intThresholdCompare = function(imageSetName, imageSetDesc, reference, result, threshold) {
+tcuImageCompare.intThresholdCompare = function(imageSetName, imageSetDesc, reference, result, threshold, logMode) {
     var width = reference.getWidth();
     var height = reference.getHeight();
     var depth = reference.getDepth();
@@ -358,7 +356,7 @@ tcuImageCompare.floatThresholdCompare = function(imageSetName, imageSetDesc, ref
     return compareOk;
 };
 
-/*--------------------------------------------------------------------*//*!
+/**
  * \brief Per-pixel threshold-based comparison
  *
  * This compare computes per-pixel differences between result and reference
@@ -367,17 +365,16 @@ tcuImageCompare.floatThresholdCompare = function(imageSetName, imageSetDesc, ref
  * On failure error image is generated that shows where the failing pixels
  * are.
  *
- * \param log Test log for results
- * \param imageSetName Name for image set when logging results
- * \param imageSetDesc Description for image set
- * \param reference Reference image
- * \param result Result image
- * \param threshold Maximum allowed difference
- * \param logMode Logging mode
- * \return true if comparison passes, false otherwise
- *//*--------------------------------------------------------------------*/
-tcuImageCompare.pixelThresholdCompare = function(/*const char* */imageSetName, /*const char* */imageSetDesc, /*const Surface&*/ reference, /*const Surface&*/ result, /*const RGBA&*/ threshold, /*tcuImageCompare.CompareLogMode*/ logMode) {
-    return tcuImageCompare.intThresholdCompare(imageSetName, imageSetDesc, reference.getAccess(), result.getAccess(), threshold);
+ * @param {string} imageSetName Name for image set when logging results
+ * @param {string} imageSetDesc Description for image set
+ * @param {tcuSurface.Surface} reference Reference image
+ * @param {tcuSurface.Surface} result Result image
+ * @param {Array<number>} threshold Maximum allowed difference
+ * @param {tcuImageCompare.CompareLogMode=} logMode
+ * @return {boolean} true if comparison passes, false otherwise
+ */
+tcuImageCompare.pixelThresholdCompare = function(imageSetName, imageSetDesc, reference, result, threshold, logMode) {
+    return tcuImageCompare.intThresholdCompare(imageSetName, imageSetDesc, reference.getAccess(), result.getAccess(), threshold, logMode);
 };
 
  /**

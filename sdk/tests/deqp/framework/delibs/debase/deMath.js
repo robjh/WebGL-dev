@@ -31,12 +31,6 @@ goog.scope(function() {
 
 var deMath = framework.delibs.debase.deMath;
 
-/**
- * int32_size
- * @type {number}
- */
-deMath.int32_size = 4;
-
 deMath.deInRange32 = function(a, mn, mx) {
     return (a >= mn) && (a <= mx);
 };
@@ -154,6 +148,19 @@ deMath.multiply = function(a, b) {
     var dst = [];
     for (var i = 0; i < a.length; i++)
         dst.push(a[i] * b[i]);
+    return dst;
+};
+
+/**
+ * Multiply vector by a scalar
+ * @param {goog.NumberArray} a
+ * @param {number} b
+ * @return {Array<number>} Result array
+ */
+deMath.scale = function(a, b) {
+    var dst = [];
+    for (var i = 0; i < a.length; i++)
+        dst.push(a[i] * b);
     return dst;
 };
 

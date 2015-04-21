@@ -406,7 +406,7 @@ var tcuImageCompare = framework.common.tcuImageCompare;
                 /** @type {Array<number>} */ var v2 = tri ? v10 : v01; // Vec4&
                 /** @type {number} */ var s = tri ? 1.0 - xf : xf;
                 /** @type {number} */ var t = tri ? 1.0 - yf : yf;
-                /** @type {Array<number>} */ var color = deMath.add(v0, deMath.add(deMath.multiply((deMath.subtract(v1, v0)), s), deMath.multiply((deMath.subtract(v2, v0)), t))); // Vec4
+                /** @type {Array<number>} */ var color = deMath.add(v0, deMath.add(deMath.multiply((deMath.subtract(v1, v0)), [s, s, s, s]), deMath.multiply((deMath.subtract(v2, v0)), [t, t, t, t]))); // Vec4
 
                 dst.setPixel(isSRGB ? tcuTextureUtil.linearToSRGB(color) : color, x, y);
             }
@@ -481,7 +481,7 @@ var tcuImageCompare = framework.common.tcuImageCompare;
         /** @type {tcuTexture.TextureFormat} */ referenceFormat: null, //!< Used for reference rendering.
         /** @type {tcuTexture.TextureFormat} */ readFormat: null,
         /** @type {number} */ numWrittenChannels: 0,
-        /** @type {gluShaderUtil.Precision} */ outPrecision: null,
+        /** @type {gluShaderUtil.precision} */ outPrecision: gluShaderUtil.precision.PRECISION_LOWP,
         /** @type {ArrayBuffer} */ renderedData: null,
         /** @type {ArrayBuffer} */ referenceData: null
         };
@@ -846,7 +846,7 @@ var tcuImageCompare = framework.common.tcuImageCompare;
                         depth: 1,
                         data: attachments[location].referenceData // ArrayBuffer
                 };
-                /** @type {tcuTexture.PixelBufferAccess} */ var buf = tcuTexture.PixelBufferAccess(descriptor);
+                /** @type {tcuTexture.PixelBufferAccess} */ var buf = new tcuTexture.PixelBufferAccess(descriptor);
                 /** @type {tcuTexture.PixelBufferAccess} */ var viewportBuf = tcuTextureUtil.getSubregion(buf, 0, 0, 0, viewportW, viewportH, 1);
 
                 if (isInt || isUint)
@@ -868,7 +868,7 @@ var tcuImageCompare = framework.common.tcuImageCompare;
             attachmentH = this.m_fboSpec[attachNdx].height;
             /** @type {number} */ var numValidChannels = attachments[attachNdx].numWrittenChannels;
             /** @type {Array<boolean>} */ var cmpMask = [numValidChannels >= 1, numValidChannels >= 2, numValidChannels >= 3, numValidChannels >= 4];
-            /** @type {gluShaderUtil.Precision} */ var outPrecision = attachments[attachNdx].outPrecision;
+            /** @type {gluShaderUtil.precision} */ var outPrecision = attachments[attachNdx].outPrecision;
             /** @type {tcuTexture.TextureFormat} */ var format = attachments[attachNdx].format;
             /** @type {Object} */
             var renderedDescriptor = {
@@ -880,7 +880,7 @@ var tcuImageCompare = framework.common.tcuImageCompare;
                     slicePitch: 0,
                     data: attachments[attachNdx].renderedData // ArrayBuffer
             };
-            /** @type {tcuTexture.PixelBufferAccess} */ var rendered = tcuTexture.PixelBufferAccess(renderedDescriptor);
+            /** @type {tcuTexture.PixelBufferAccess} */ var rendered = new tcuTexture.PixelBufferAccess(renderedDescriptor);
             /** @type {gluTextureUtil.TransferFormat} */ var transferFmt = gluTextureUtil.getTransferFormat(attachments[attachNdx].readFormat);
             gl.readPixels(0, 0, attachmentW, attachmentH, transferFmt.format, transferFmt.dataType, rendered.getDataPtr());
 
@@ -892,7 +892,7 @@ var tcuImageCompare = framework.common.tcuImageCompare;
                     depth: 1,
                     data: attachments[attachNdx].referenceData // ArrayBuffer
             };
-            /** @type {tcuTexture.ConstPixelBufferAccess} */ var reference = tcuTexture.ConstPixelBufferAccess(referenceDescriptor);
+            /** @type {tcuTexture.ConstPixelBufferAccess} */ var reference = new tcuTexture.ConstPixelBufferAccess(referenceDescriptor);
             /** @type {tcuTextureUtil.TextureChannelClass} */ var texClass = tcuTextureUtil.getTextureChannelClass(format.type);
             /** @type {boolean} */ var isOk = true;
             name = 'Attachment ' + attachNdx;
@@ -929,13 +929,13 @@ var tcuImageCompare = framework.common.tcuImageCompare;
 
                     switch (outPrecision)
                     {
-                        case gluShaderUtil.Precision.PRECISION_LOWP:
+                        case gluShaderUtil.precision.PRECISION_LOWP:
                             precThreshold = (1 << 21);
                             break;
-                        case gluShaderUtil.Precision.PRECISION_MEDIUMP:
+                        case gluShaderUtil.precision.PRECISION_MEDIUMP:
                             precThreshold = (1 << 13);
                             break;
-                        case gluShaderUtil.Precision.PRECISION_HIGHP:
+                        case gluShaderUtil.precision.PRECISION_HIGHP:
                             precThreshold = 0;
                             break;
                         default:
@@ -991,7 +991,7 @@ var tcuImageCompare = framework.common.tcuImageCompare;
                 allLevelsOk = false;
         }
 
-        return tcuTestCase.runner.IterateResult.STOP;
+        return tcuTestCase.IterateResult.STOP;
     };
 
     /**
@@ -1110,7 +1110,7 @@ var tcuImageCompare = framework.common.tcuImageCompare;
         // Compute buffers.
         while (targets.length < numTargets)
         {
-            /** @type {Array<gluShaderUtil.DataType>} */ var outType = outTypes[targets.length];
+            /** @type {gluShaderUtil.DataType} */ var outType = outTypes[targets.length];
             /** @type {boolean} */ var isFloat = gluShaderUtil.isDataTypeFloatOrVec(outType);
             /** @type {boolean} */ var isInt = gluShaderUtil.isDataTypeIntOrIVec(outType);
             /** @type {boolean} */ var isUint = gluShaderUtil.isDataTypeUintOrUVec(outType);
@@ -1140,8 +1140,8 @@ var tcuImageCompare = framework.common.tcuImageCompare;
     };
 
     es3fFragmentOutputTests.init = function() {
-        var state = tcuTestCase.runner.getState();
-        state.testCases = tcuTestCase.newTest(state.testName, 'Top level');
+        var state = tcuTestCase.runner;
+        state.testCases = tcuTestCase.newTest('fragment_outputs', 'Top level');
         /** @const @type {tcuTestCase.DeqpTest} */ var testGroup = state.testCases;
 
         /** @type {Array<WebGLRenderingContextBase.GLenum>} */
@@ -1213,7 +1213,7 @@ var tcuImageCompare = framework.common.tcuImageCompare;
         /** @const @type {number} */ var height = 64;
         /** @const @type {number} */ var samples = 0;
         /** @type {Array<es3fFragmentOutputTests.BufferSpec>} */ var fboSpec = null;
-        /** @type {Array<gluShaderUtil.precision>} */ var prec;
+        /** @type {gluShaderUtil.precision} */ var prec;
         /** @type {string} */ var precName;
 
     // .float
@@ -1436,7 +1436,7 @@ var tcuImageCompare = framework.common.tcuImageCompare;
       //Set up Test Root parameters
         var testName = 'fragment_output';
         var testDescription = 'Fragment Output Tests';
-        var state = tcuTestCase.runner.getState();
+        var state = tcuTestCase.runner;
 
         state.testName = testName;
         state.testCases = tcuTestCase.newTest(testName, testDescription, null);
@@ -1446,7 +1446,7 @@ var tcuImageCompare = framework.common.tcuImageCompare;
         description(testDescription);
 
         try {
-            es3fFragmentOutputTests.init(gl);
+            es3fFragmentOutputTests.init();
             tcuTestCase.runTestCases();
         } catch (err) {
             testFailedOptions('Failed to es3fFragmentOutputTests.run tests', false);
