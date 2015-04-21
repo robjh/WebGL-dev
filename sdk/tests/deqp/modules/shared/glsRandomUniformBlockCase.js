@@ -197,7 +197,6 @@ goog.scope(function() {
      * generateUniform
      * @param {deRandom.Random} rnd
      * @param {glsUniformBlockCase.UniformBlock} block
-     * @param {number} ndx
      */
     glsRandomUniformBlockCase.RandomUniformBlockCase.prototype.generateUniform = function(rnd, block) {
         /** @type {number} */ var unusedVtxWeight = 0.15;

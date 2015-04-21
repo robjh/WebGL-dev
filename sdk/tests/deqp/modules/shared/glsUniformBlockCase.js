@@ -101,6 +101,9 @@ glsUniformBlockCase.isSupportedGLSLVersion = function(version) {
     return version >= gluShaderUtil.GLSLVersion.V100_ES; //TODO: set this to V300_ES. Left this way for tests.
 };
 
+/**
+ * @enum {number}
+ */
 glsUniformBlockCase.UniformFlags = {
     PRECISION_LOW: (1 << 0),
     PRECISION_MEDIUM: (1 << 1),

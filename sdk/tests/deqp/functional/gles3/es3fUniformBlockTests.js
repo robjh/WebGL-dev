@@ -387,20 +387,20 @@ goog.scope(function() {
             gluShaderUtil.DataType.FLOAT_MAT4X3
         ];
 
-        /** @type {Array<string, glsUniformBlockCase.UniformFlags>} */
+        /** @type {Array<Object.<string, glsUniformBlockCase.UniformFlags>>} */
         var precisionFlags = [ { name: 'lowp', flags: glsUniformBlockCase.UniformFlags.PRECISION_LOW }, { name: 'mediump', flags: glsUniformBlockCase.UniformFlags.PRECISION_MEDIUM }, { name: 'highp', flags: glsUniformBlockCase.UniformFlags.PRECISION_HIGH }
         ];
 
-        /** @type {Array<string, glsUniformBlockCase.UniformFlags>} */
+        /** @type {Array<Object.<string, glsUniformBlockCase.UniformFlags>>} */
         var layoutFlags = [ { name: 'shared', flags: glsUniformBlockCase.UniformFlags.LAYOUT_SHARED },
             /* { name: 'packed', flags: glsUniformBlockCase.UniformFlags.LAYOUT_PACKED }, */ { name: 'std140', flags: glsUniformBlockCase.UniformFlags.LAYOUT_STD140 }
         ];
 
-        /** @type {Array<string, glsUniformBlockCase.UniformFlags>} */
+        /** @type {Array<Object.<string, glsUniformBlockCase.UniformFlags>>} */
         var matrixFlags = [ { name: 'row_major', flags: glsUniformBlockCase.UniformFlags.LAYOUT_ROW_MAJOR }, { name: 'column_major', flags: glsUniformBlockCase.UniformFlags.LAYOUT_COLUMN_MAJOR }
         ];
 
-        /** @type {Array<string, glsUniformBlockCase.BufferMode>} */
+        /** @type {Array<Object.<string, glsUniformBlockCase.UniformFlags>>} */
         var bufferModes = [ { name: 'per_block_buffer', mode: glsUniformBlockCase.BufferMode.BUFFERMODE_PER_BLOCK }, { name: 'single_buffer', mode: glsUniformBlockCase.BufferMode.BUFFERMODE_SINGLE }
         ];
 
@@ -410,14 +410,27 @@ goog.scope(function() {
 
         testGroup.addChild(singleBasicTypeGroup);
 
+        /** @type {tcuTestCase.DeqpTest} */
+        var layoutGroup;
+        /** @type {gluShaderUtil.DataType} */ 
+        var type;
+        /** @type {string} */ 
+        var typeName;
+        /** @type {tcuTestCase.DeqpTest} */
+        var modeGroup;
+        /** @type {string} */ 
+        var baseName;
+        /** @type {number} */ 
+        var baseFlags;
+
         for (var layoutFlagNdx = 0; layoutFlagNdx < layoutFlags.length; layoutFlagNdx++) {
-            /** @type {tcuTestCase.DeqpTest} */
-            var layoutGroup = tcuTestCase.newTest(layoutFlags[layoutFlagNdx].name, '', null);
+            
+            layoutGroup = tcuTestCase.newTest(layoutFlags[layoutFlagNdx].name, '', null);
             singleBasicTypeGroup.addChild(layoutGroup);
 
             for (var basicTypeNdx = 0; basicTypeNdx < basicTypes.length; basicTypeNdx++) {
-                /** @type {gluShaderUtil.DataType} */ var type = basicTypes[basicTypeNdx];
-                /** @type {string} */ var typeName = gluShaderUtil.getDataTypeName(type);
+                type = basicTypes[basicTypeNdx];
+                typeName = gluShaderUtil.getDataTypeName(type);
 
                 if (gluShaderUtil.isDataTypeBoolOrBVec(type))
                     es3fUniformBlockTests.createBlockBasicTypeCases(layoutGroup, typeName, glsUniformBlockCase.newVarTypeBasic(type, 0), layoutFlags[layoutFlagNdx].flags);
@@ -444,13 +457,12 @@ goog.scope(function() {
         testGroup.addChild(singleBasicArrayGroup);
 
         for (var layoutFlagNdx = 0; layoutFlagNdx < layoutFlags.length; layoutFlagNdx++) {
-            /** @type {tcuTestCase.DeqpTest} */
-            var layoutGroup = tcuTestCase.newTest(layoutFlags[layoutFlagNdx].name, '', null);
+            layoutGroup = tcuTestCase.newTest(layoutFlags[layoutFlagNdx].name, '', null);
             singleBasicArrayGroup.addChild(layoutGroup);
 
             for (var basicTypeNdx = 0; basicTypeNdx < basicTypes.length; basicTypeNdx++) {
-                /** @type {gluShaderUtil.DataType} */ var type = basicTypes[basicTypeNdx];
-                /** @type {string} */ var typeName = gluShaderUtil.getDataTypeName(type);
+                type = basicTypes[basicTypeNdx];
+                typeName = gluShaderUtil.getDataTypeName(type);
                 /** @type {number} */ var arraySize = 3;
 
                 es3fUniformBlockTests.createBlockBasicTypeCases(layoutGroup, typeName,
@@ -473,14 +485,13 @@ goog.scope(function() {
         testGroup.addChild(singleStructGroup);
 
         for (var modeNdx = 0; modeNdx < bufferModes.length; modeNdx++) {
-            /** @type {tcuTestCase.DeqpTest} */
-            var modeGroup = tcuTestCase.newTest(bufferModes[modeNdx].name, '');
+            modeGroup = tcuTestCase.newTest(bufferModes[modeNdx].name, '');
             singleStructGroup.addChild(modeGroup);
 
             for (var layoutFlagNdx = 0; layoutFlagNdx < layoutFlags.length; layoutFlagNdx++) {
                 for (var isArray = 0; isArray < 2; isArray++) {
-                    /** @type {string} */ var baseName = layoutFlags[layoutFlagNdx].name;
-                    /** @type {number} */ var baseFlags = layoutFlags[layoutFlagNdx].flags;
+                    baseName = layoutFlags[layoutFlagNdx].name;
+                    baseFlags = layoutFlags[layoutFlagNdx].flags;
 
                     if (bufferModes[modeNdx].mode == glsUniformBlockCase.BufferMode.BUFFERMODE_SINGLE && isArray == 0)
                         continue; // Doesn't make sense to add this variant.
@@ -504,14 +515,13 @@ goog.scope(function() {
         testGroup.addChild(singleStructArrayGroup);
 
         for (var modeNdx = 0; modeNdx < bufferModes.length; modeNdx++) {
-            /** @type {tcuTestCase.DeqpTest} */
-            var modeGroup = tcuTestCase.newTest(bufferModes[modeNdx].name, '');
+            modeGroup = tcuTestCase.newTest(bufferModes[modeNdx].name, '');
             singleStructArrayGroup.addChild(modeGroup);
 
             for (var layoutFlagNdx = 0; layoutFlagNdx < layoutFlags.length; layoutFlagNdx++) {
                 for (var isArray = 0; isArray < 2; isArray++) {
-                    /** @type {string} */ var baseName = layoutFlags[layoutFlagNdx].name;
-                    /** @type {number} */ var baseFlags = layoutFlags[layoutFlagNdx].flags;
+                    baseName = layoutFlags[layoutFlagNdx].name;
+                    baseFlags = layoutFlags[layoutFlagNdx].flags;
 
                     if (bufferModes[modeNdx].mode == glsUniformBlockCase.BufferMode.BUFFERMODE_SINGLE && isArray == 0)
                         continue; // Doesn't make sense to add this variant.
@@ -535,14 +545,13 @@ goog.scope(function() {
         testGroup.addChild(singleNestedStructGroup);
 
         for (var modeNdx = 0; modeNdx < bufferModes.length; modeNdx++) {
-            /** @type {tcuTestCase.DeqpTest} */
-            var modeGroup = tcuTestCase.newTest(bufferModes[modeNdx].name, '');
+            modeGroup = tcuTestCase.newTest(bufferModes[modeNdx].name, '');
             singleNestedStructGroup.addChild(modeGroup);
 
             for (var layoutFlagNdx = 0; layoutFlagNdx < layoutFlags.length; layoutFlagNdx++) {
                 for (var isArray = 0; isArray < 2; isArray++) {
-                    /** @type {string} */ var baseName = layoutFlags[layoutFlagNdx].name;
-                    /** @type {number} */ var baseFlags = layoutFlags[layoutFlagNdx].flags;
+                    baseName = layoutFlags[layoutFlagNdx].name;
+                    baseFlags = layoutFlags[layoutFlagNdx].flags;
 
                     if (bufferModes[modeNdx].mode == glsUniformBlockCase.BufferMode.BUFFERMODE_SINGLE && isArray == 0)
                         continue; // Doesn't make sense to add this variant.
@@ -566,14 +575,13 @@ goog.scope(function() {
         testGroup.addChild(singleNestedStructArrayGroup);
 
         for (var modeNdx = 0; modeNdx < bufferModes.length; modeNdx++) {
-            /** @type {tcuTestCase.DeqpTest} */
-            var modeGroup = tcuTestCase.newTest(bufferModes[modeNdx].name, '');
+            modeGroup = tcuTestCase.newTest(bufferModes[modeNdx].name, '');
             singleNestedStructArrayGroup.addChild(modeGroup);
 
             for (var layoutFlagNdx = 0; layoutFlagNdx < layoutFlags.length; layoutFlagNdx++) {
                 for (var isArray = 0; isArray < 2; isArray++) {
-                    /** @type {string} */ var baseName = layoutFlags[layoutFlagNdx].name;
-                    /** @type {number} */ var baseFlags = layoutFlags[layoutFlagNdx].flags;
+                    baseName = layoutFlags[layoutFlagNdx].name;
+                    baseFlags = layoutFlags[layoutFlagNdx].flags;
 
                     if (bufferModes[modeNdx].mode == glsUniformBlockCase.BufferMode.BUFFERMODE_SINGLE && isArray == 0)
                         continue; // Doesn't make sense to add this variant.
@@ -597,13 +605,12 @@ goog.scope(function() {
         testGroup.addChild(instanceArrayBasicTypeGroup);
 
         for (var layoutFlagNdx = 0; layoutFlagNdx < layoutFlags.length; layoutFlagNdx++) {
-            /** @type {tcuTestCase.DeqpTest} */
-            var layoutGroup = tcuTestCase.newTest(layoutFlags[layoutFlagNdx].name, '');
+            layoutGroup = tcuTestCase.newTest(layoutFlags[layoutFlagNdx].name, '');
             instanceArrayBasicTypeGroup.addChild(layoutGroup);
 
             for (var basicTypeNdx = 0; basicTypeNdx < basicTypes.length; basicTypeNdx++) {
-                /** @type {gluShaderUtil.DataType} */ var type = basicTypes[basicTypeNdx];
-                /** @type {string} */ var typeName = gluShaderUtil.getDataTypeName(type);
+                type = basicTypes[basicTypeNdx];
+                typeName = gluShaderUtil.getDataTypeName(type);
                 /** @type {number} */ var numInstances = 3;
 
                 es3fUniformBlockTests.createBlockBasicTypeCases(layoutGroup, typeName,
@@ -626,14 +633,13 @@ goog.scope(function() {
         testGroup.addChild(multiBasicTypesGroup);
 
         for (var modeNdx = 0; modeNdx < bufferModes.length; modeNdx++) {
-            /** @type {tcuTestCase.DeqpTest} */
-            var modeGroup = tcuTestCase.newTest(bufferModes[modeNdx].name, '');
+            modeGroup = tcuTestCase.newTest(bufferModes[modeNdx].name, '');
             multiBasicTypesGroup.addChild(modeGroup);
 
             for (var layoutFlagNdx = 0; layoutFlagNdx < layoutFlags.length; layoutFlagNdx++) {
                 for (var isArray = 0; isArray < 2; isArray++) {
-                    /** @type {string} */ var baseName = layoutFlags[layoutFlagNdx].name;
-                    /** @type {number} */ var baseFlags = layoutFlags[layoutFlagNdx].flags;
+                    baseName = layoutFlags[layoutFlagNdx].name;
+                    baseFlags = layoutFlags[layoutFlagNdx].flags;
 
                     if (isArray)
                         baseName += '_instance_array';
@@ -656,14 +662,13 @@ goog.scope(function() {
         testGroup.addChild(multiNestedStructGroup);
 
         for (var modeNdx = 0; modeNdx < bufferModes.length; modeNdx++) {
-            /** @type {tcuTestCase.DeqpTest} */
-            var modeGroup = tcuTestCase.newTest(bufferModes[modeNdx].name, '');
+            modeGroup = tcuTestCase.newTest(bufferModes[modeNdx].name, '');
             multiNestedStructGroup.addChild(modeGroup);
 
             for (var layoutFlagNdx = 0; layoutFlagNdx < layoutFlags.length; layoutFlagNdx++) {
                 for (var isArray = 0; isArray < 2; isArray++) {
-                    /** @type {string} */ var baseName = layoutFlags[layoutFlagNdx].name;
-                    /** @type {number} */ var baseFlags = layoutFlags[layoutFlagNdx].flags;
+                    baseName = layoutFlags[layoutFlagNdx].name;
+                    baseFlags = layoutFlags[layoutFlagNdx].flags;
 
                     if (isArray)
                         baseName += '_instance_array';
