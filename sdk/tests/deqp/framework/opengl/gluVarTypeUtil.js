@@ -422,7 +422,7 @@ goog.scope(function() {
 
     /** gluVarTypeUtil.BasicTypeIterator
      * @param {gluVarType.VarType} type
-     * @return {gluVarType.Type}
+     * @constructor
      */
     gluVarTypeUtil.BasicTypeIterator = function(type) {
         gluVarTypeUtil.SubTypeIterator.call(this, type);
@@ -436,7 +436,7 @@ goog.scope(function() {
 
     /** gluVarTypeUtil.VectorTypeIterator
      * @param {gluVarType.VarType} type
-     * @return {gluVarType.Type}
+     * @constructor
      */
      gluVarTypeUtil.VectorTypeIterator = function(type) {
         gluVarTypeUtil.SubTypeIterator.call(this, type);
@@ -450,7 +450,7 @@ goog.scope(function() {
 
     /** gluVarTypeUtil.ScalarTypeIterator
      * @param {gluVarType.VarType} type
-     * @return {gluVarType.Type}
+     * @constructor
      */
      gluVarTypeUtil.ScalarTypeIterator = function(type) {
         gluVarTypeUtil.SubTypeIterator.call(this, type);
