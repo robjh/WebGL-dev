@@ -31,9 +31,6 @@ goog.scope(function() {
 
 var deMath = framework.delibs.debase.deMath;
 
-/* Dummy type */
-deMath.deUint32 = function() {};
-
 deMath.deInRange32 = function(a, mn, mx) {
     return (a >= mn) && (a <= mx);
 };
@@ -399,7 +396,7 @@ deMath.doNativeBinaryOp = function(valueA, valueB, operation) {
         case deMath.BinaryOp.OR:
             return valueA | valueB;
         default:
-            throw new Error('Unknown operation:' + operation);
+            throw new Error('Unknown operation: ' + operation);
     }
 };
 
@@ -563,8 +560,10 @@ deMath.shiftRight = function(value, steps) {
  * @return {Array.<boolean>}
  */
 deMath.logicalAndBool = function(a, b) {
-    if (!Array.isArray(a)) throw new Error('The first parameter is not an array: '  + a);
-    if (!Array.isArray(b)) throw new Error('The second parameter is not an array: ' + b);
+    if (!Array.isArray(a))
+        throw new Error('The first parameter is not an array: ('  + typeof(a) + ')' + a);
+    if (!Array.isArray(b)) 
+        throw new Error('The second parameter is not an array: (' + typeof(b) + ')' + b);
     if (a.length != b.length)
         throw new Error('The lengths of the passed arrays are not equivalent. ('+a.length+' != '+b.length+')');
     
@@ -585,8 +584,10 @@ deMath.logicalAndBool = function(a, b) {
  * @return {Array.<boolean>}
  */
 deMath.logicalOrBool = function(a, b) {
-    if (!Array.isArray(a)) throw new Error('The first parameter is not an array: '  + a);
-    if (!Array.isArray(b)) throw new Error('The second parameter is not an array: ' + b);
+    if (!Array.isArray(a))
+        throw new Error('The first parameter is not an array: ('  + typeof(a) + ')' + a);
+    if (!Array.isArray(b)) 
+        throw new Error('The second parameter is not an array: (' + typeof(b) + ')' + b);
     if (a.length != b.length)
         throw new Error('The lengths of the passed arrays are not equivalent. ('+a.length+' != '+b.length+')');
     
@@ -606,7 +607,8 @@ deMath.logicalOrBool = function(a, b) {
  * @return {Array.<boolean>}
  */
 deMath.logicalNotBool = function(a) {
-    if (!Array.isArray(a)) throw new Error('The passed value is not an array: ' + a);
+    if (!Array.isArray(a))
+        throw new Error('The passed value is not an array: (' + typeof(a) + ')' + a);
     
     /** @type {Array.<boolean>} */ var result = [];
     for (var i = 0; i < a.length; i++)
@@ -619,8 +621,10 @@ deMath.logicalNotBool = function(a) {
  * @return {Array.<boolean>}
  */
 deMath.greaterThan = function(a, b) {
-    if (!Array.isArray(a)) throw new Error('The first parameter is not an array: '  + a);
-    if (!Array.isArray(b)) throw new Error('The second parameter is not an array: ' + b);
+    if (!Array.isArray(a))
+        throw new Error('The first parameter is not an array: ('  + typeof(a) + ')' + a);
+    if (!Array.isArray(b)) 
+        throw new Error('The second parameter is not an array: (' + typeof(b) + ')' + b);
     if (a.length != b.length)
         throw new Error('The lengths of the passed arrays are not equivalent. ('+a.length+' != '+b.length+')');
     

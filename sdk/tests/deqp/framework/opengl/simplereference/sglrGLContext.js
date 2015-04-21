@@ -38,21 +38,21 @@ goog.require('framework.referencerenderer.rrVertexAttrib');
 
 goog.scope(function() {
 
-var sglrGLContext = framework.opengl.simplereference.sglrGLContext;
-var tcuTexture = framework.common.tcuTexture;
-var deUtil = framework.delibs.debase.deUtil;
-var deMath = framework.delibs.debase.deMath;
-var tcuTextureUtil = framework.common.tcuTextureUtil;
-var tcuPixelFormat = framework.common.tcuPixelFormat;
-var gluShaderProgram = framework.opengl.gluShaderProgram;
-var gluShaderUtil = framework.opengl.gluShaderUtil;
-var gluTextureUtil = framework.opengl.gluTextureUtil;
-var sglrShaderProgram = framework.opengl.simplereference.sglrShaderProgram;
-var rrDefs = framework.referencerenderer.rrDefs;
-var rrMultisamplePixelBufferAccess = framework.referencerenderer.rrMultisamplePixelBufferAccess;
-var rrRenderer = framework.referencerenderer.rrRenderer;
-var rrRenderState = framework.referencerenderer.rrRenderState;
-var rrVertexAttrib = framework.referencerenderer.rrVertexAttrib;
+    var sglrGLContext = framework.opengl.simplereference.sglrGLContext;
+    var tcuTexture = framework.common.tcuTexture;
+    var deUtil = framework.delibs.debase.deUtil;
+    var deMath = framework.delibs.debase.deMath;
+    var tcuTextureUtil = framework.common.tcuTextureUtil;
+    var tcuPixelFormat = framework.common.tcuPixelFormat;
+    var gluShaderProgram = framework.opengl.gluShaderProgram;
+    var gluShaderUtil = framework.opengl.gluShaderUtil;
+    var gluTextureUtil = framework.opengl.gluTextureUtil;
+    var sglrShaderProgram = framework.opengl.simplereference.sglrShaderProgram;
+    var rrDefs = framework.referencerenderer.rrDefs;
+    var rrMultisamplePixelBufferAccess = framework.referencerenderer.rrMultisamplePixelBufferAccess;
+    var rrRenderer = framework.referencerenderer.rrRenderer;
+    var rrRenderState = framework.referencerenderer.rrRenderState;
+    var rrVertexAttrib = framework.referencerenderer.rrVertexAttrib;
 
     sglrGLContext.DE_NULL = null;
 
@@ -71,7 +71,7 @@ var rrVertexAttrib = framework.referencerenderer.rrVertexAttrib;
     /**
      * sglrGLContext.GLContext wraps the standard WebGL context to be able to be used interchangeably with the ReferenceContext
      * @constructor
-     * @param {WebGL2RenderingContext}
+     * @param {WebGL2RenderingContext} context
      */
     sglrGLContext.GLContext = function(context) {
         this.m_context = context;
@@ -131,7 +131,7 @@ var rrVertexAttrib = framework.referencerenderer.rrVertexAttrib;
      * @return {WebGLProgram}
      */
     sglrGLContext.GLContext.prototype.createProgram = function (shader) {
-        /** @type {gluShaderProgram} */ var program = sglrGLContext.DE_NULL;
+        /** @type {gluShaderProgram.ShaderProgram} */ var program = null;
 
         program = new gluShaderProgram.ShaderProgram(
             this.m_context,

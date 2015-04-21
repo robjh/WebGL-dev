@@ -259,8 +259,7 @@ var glsVertexArrayTests = modules.shared.glsVertexArrayTests;
             glsVertexArrayTests.deArray.Usage.STREAM_READ,
             glsVertexArrayTests.deArray.Usage.DYNAMIC_READ];
 
-        for (var usageNdx = 0; usageNdx < usages.length; usageNdx++)
-        {
+        for (var usageNdx = 0; usageNdx < usages.length; usageNdx++) {
             this.addChild(new es3fVertexArrayTests.SingleVertexArrayUsageGroup(usages[usageNdx]));
         }
     };
@@ -307,8 +306,7 @@ var glsVertexArrayTests = modules.shared.glsVertexArrayTests;
         try {
             //Run test cases
             tcuTestCase.runTestCases();
-        }
-        catch (err) {
+        } catch (err) {
             testFailedOptions('Failed to es3fVertexArrayTests.run tests', false);
             tcuTestCase.runner.terminate();
         }

@@ -37,11 +37,13 @@ targets = {
     'transformFeedbackTests': 'functional.gles3.es3fTransformFeedbackTests',
     'uniformapi': 'functional.gles3.es3fUniformApiTests',
     'uniformbuffers': 'functional.gles3.es3fUniformBlockTests',
+    'glsvaotests': 'modules.shared.glsVertexArrayTests',
     'vertexarrays': 'functional.gles3.es3fVertexArrayTests',
     'shaderlibrary': 'modules.shared.glsShaderLibrary',
     'matrix': 'framework.common.tcuMatrix',
     'fragOps': 'framework.referencerenderer.rrFragmentOperations',
-    'renderer': 'framework.referencerenderer.rrRenderer'
+    'renderer': 'framework.referencerenderer.rrRenderer',
+	'matrixUtil': 'framework.common.tcuMatrixUtil'
 }
 def dep_filename(target):
     return target + '.dep'
