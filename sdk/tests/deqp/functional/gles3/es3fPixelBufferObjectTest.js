@@ -19,7 +19,6 @@
  */
 'use strict';
 goog.provide('functional.gles3.es3fPixelBufferObjectTest');
-goog.require('framework.opengl.gluDefs');
 goog.require('framework.opengl.gluShaderProgram');
 goog.require('framework.common.tcuTestCase');
 goog.require('framework.delibs.debase.deRandom');
@@ -33,7 +32,6 @@ goog.require('framework.common.tcuImageCompare');
 goog.scope(function() {
 
 var es3fPixelBufferObjectTest = functional.gles3.es3fPixelBufferObjectTest;
-var gluDefs = framework.opengl.gluDefs;
 var gluShaderProgram = framework.opengl.gluShaderProgram;
 var tcuTestCase = framework.common.tcuTestCase;
 var deRandom = framework.delibs.debase.deRandom;
