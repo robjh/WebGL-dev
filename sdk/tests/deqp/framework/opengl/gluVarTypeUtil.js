@@ -72,53 +72,53 @@ goog.scope(function() {
     gluVarTypeUtil.VarTokenizer.s_Token.length = Object.keys(gluVarTypeUtil.VarTokenizer.s_Token).length;
 
     gluVarTypeUtil.VarTokenizer.prototype.getToken = function() {
-        return m_token;
+        return this.m_token;
     };
     gluVarTypeUtil.VarTokenizer.prototype.getIdentifier = function() {
-        return m_str.substr(m_tokenStart, m_tokenLen);
+        return this.m_str.substr(this.m_tokenStart, this.m_tokenLen);
     };
     gluVarTypeUtil.VarTokenizer.prototype.getNumber = function() {
-        return parseInt(this.getIdentifier());
+        return parseInt(this.getIdentifier(), 10);
     };
     gluVarTypeUtil.VarTokenizer.prototype.getCurrentTokenStartLocation = function() {
-        return m_tokenStart;
+        return this.m_tokenStart;
     };
     gluVarTypeUtil.VarTokenizer.prototype.getCurrentTokenEndLocation = function() {
-        return m_tokenStart + m_tokenLen;
+        return this.m_tokenStart + this.m_tokenLen;
     };
 
     gluVarTypeUtil.VarTokenizer.prototype.advance = function() {
 
-        if (m_token == gluVarTypeUtil.VarTokenizer.s_Token.END) {
+        if (this.m_token == gluVarTypeUtil.VarTokenizer.s_Token.END) {
             throw new Error('No more tokens.');
         }
 
-        m_tokenStart += m_tokenLen;
-        m_token = gluVarTypeUtil.VarTokenizer.s_Token.LAST;
-        m_tokenLen = 1;
+        this.m_tokenStart += this.m_tokenLen;
+        this.m_token = gluVarTypeUtil.VarTokenizer.s_Token.length;
+        this.m_tokenLen = 1;
 
-        if (m_tokenStart >= m_str.length) {
-            m_token = gluVarTypeUtil.VarTokenizer.s_Token.END;
+        if (this.m_tokenStart >= this.m_str.length) {
+            this.m_token = gluVarTypeUtil.VarTokenizer.s_Token.END;
 
-        } else if (m_str[m_tokenStart] == '[') {
-            m_token = gluVarTypeUtil.VarTokenizer.s_Token.LEFT_BRACKET;
+        } else if (this.m_str[this.m_tokenStart] == '[') {
+            this.m_token = gluVarTypeUtil.VarTokenizer.s_Token.LEFT_BRACKET;
 
-        } else if (m_str[m_tokenStart] == ']') {
-            m_token = gluVarTypeUtil.VarTokenizer.s_Token.RIGHT_BRACKET;
+        } else if (this.m_str[this.m_tokenStart] == ']') {
+            this.m_token = gluVarTypeUtil.VarTokenizer.s_Token.RIGHT_BRACKET;
 
-        } else if (m_str[m_tokenStart] == '.') {
-            m_token = gluVarTypeUtil.VarTokenizer.s_Token.PERIOD;
+        } else if (this.m_str[this.m_tokenStart] == '.') {
+            this.m_token = gluVarTypeUtil.VarTokenizer.s_Token.PERIOD;
 
-        } else if (gluVarTypeUtil.isNum(m_str[m_tokenStart])) {
-            m_token = gluVarTypeUtil.VarTokenizer.s_Token.NUMBER;
-            while (gluVarTypeUtil.isNum(m_str[m_tokenStart + m_tokenLen])) {
-                m_tokenLen += 1;
+        } else if (gluVarTypeUtil.isNum(this.m_str[this.m_tokenStart])) {
+            this.m_token = gluVarTypeUtil.VarTokenizer.s_Token.NUMBER;
+            while (gluVarTypeUtil.isNum(this.m_str[this.m_tokenStart + this.m_tokenLen])) {
+                this.m_tokenLen += 1;
             }
 
-        } else if (gluVarTypeUtil.isIdentifierChar(m_str[m_tokenStart])) {
-            m_token = gluVarTypeUtil.VarTokenizer.s_Token.IDENTIFIER;
-            while (gluVarTypeUtil.isIdentifierChar(m_str[m_tokenStart + m_tokenLen])) {
-                m_tokenLen += 1;
+        } else if (gluVarTypeUtil.isIdentifierChar(this.m_str[this.m_tokenStart])) {
+            this.m_token = gluVarTypeUtil.VarTokenizer.s_Token.IDENTIFIER;
+            while (gluVarTypeUtil.isIdentifierChar(this.m_str[this.m_tokenStart + this.m_tokenLen])) {
+                this.m_tokenLen += 1;
             }
 
         } else {
@@ -138,7 +138,7 @@ goog.scope(function() {
         this.type = null;
         this.index = gluVarTypeUtil.VarTypeComponent.s_Type.length;
 
-        if (typeof(type_) != 'undefined' && typeof(index_) != 'undefined') {
+        if (typeof(type) != 'undefined' && typeof(index) != 'undefined') {
             this.type = type;
             this.index = index;
         }
@@ -227,19 +227,19 @@ goog.scope(function() {
     };
 
     gluVarTypeUtil.SubTypeAccess.prototype.member = function(ndx) {
-        return helper(gluVarTypeUtil.VarTypeComponent.s_Type.STRUCT_MEMBER);
+        return this.helper(gluVarTypeUtil.VarTypeComponent.s_Type.STRUCT_MEMBER, ndx);
     };
     gluVarTypeUtil.SubTypeAccess.prototype.element = function(ndx) {
-        return helper(gluVarTypeUtil.VarTypeComponent.s_Type.ARRAY_ELEMENT);
+        return this.helper(gluVarTypeUtil.VarTypeComponent.s_Type.ARRAY_ELEMENT, ndx);
     };
     gluVarTypeUtil.SubTypeAccess.prototype.column = function(ndx) {
-        return helper(gluVarTypeUtil.VarTypeComponent.s_Type.MATRIX_COLUMN);
+        return this.helper(gluVarTypeUtil.VarTypeComponent.s_Type.MATRIX_COLUMN, ndx);
     };
     gluVarTypeUtil.SubTypeAccess.prototype.component = function(ndx) {
-        return helper(gluVarTypeUtil.VarTypeComponent.s_Type.VECTOR_COMPONENT);
+        return this.helper(gluVarTypeUtil.VarTypeComponent.s_Type.VECTOR_COMPONENT, ndx);
     };
     gluVarTypeUtil.SubTypeAccess.prototype.parent = function() {
-        if (this.m_path.empty()) {
+        if (!this.m_path.length) {
             throw new Error;
         }
         this.m_path.pop();
@@ -256,7 +256,7 @@ goog.scope(function() {
         return this.m_path;
     };
     gluVarTypeUtil.SubTypeAccess.prototype.empty = function() {
-        return this.m_path.empty();
+        return !this.m_path.length;
     };
     gluVarTypeUtil.SubTypeAccess.prototype.is = function(other) {
         return (
@@ -307,18 +307,18 @@ goog.scope(function() {
             var parentType = gluVarTypeUtil.getVarType(this.m_type, this.m_path, 0, this.m_path.length - 1); // VarType
 
             if (curComp.type == gluVarTypeUtil.VarTypeComponent.s_Type.MATRIX_COLUMN) {
-                if (!deqpUtils.isDataTypeMatrix(parentType.getBasicType())) {
+                if (!gluShaderUtil.isDataTypeMatrix(parentType.getBasicType())) {
                     throw new Error('Isn\'t a matrix.');
                 }
-                if (curComp.index + 1 < deqpUtils.getDataTypeMatrixNumColumns(parentType.getBasicType())) {
+                if (curComp.index + 1 < gluShaderUtil.getDataTypeMatrixNumColumns(parentType.getBasicType())) {
                     break;
                 }
 
             } else if (curComp.type == gluVarTypeUtil.VarTypeComponent.s_Type.VECTOR_COMPONENT) {
-                if (!deqpUtils.isDataTypeVector(parentType.getBasicType())) {
+                if (!gluShaderUtil.isDataTypeVector(parentType.getBasicType())) {
                     throw new Error('Isn\'t a vector.');
                 }
-                if (curComp.index + 1 < deqpUtils.getDataTypeScalarSize(parentType.getBasicType())) {
+                if (curComp.index + 1 < gluShaderUtil.getDataTypeScalarSize(parentType.getBasicType())) {
                     break;
                 }
 
@@ -362,10 +362,10 @@ goog.scope(function() {
             if (curType.isBasicType()) {
                 var basicType = curType.getBasicType(); // DataType
 
-                if (deqpUtils.isDataTypeMatrix(basicType)) {
+                if (gluShaderUtil.isDataTypeMatrix(basicType)) {
                     this.m_path.push(new gluVarTypeUtil.VarTypeComponent(gluVarTypeUtil.VarTypeComponent.s_Type.MATRIX_COLUMN, 0));
 
-                } else if (deqpUtils.isDataTypeVector(basicType)) {
+                } else if (gluShaderUtil.isDataTypeVector(basicType)) {
                     this.m_path.push(new gluVarTypeUtil.VarTypeComponent(gluVarTypeUtil.VarTypeComponent.s_Type.VECTOR_COMPONENT, 0));
 
                 } else {
@@ -393,7 +393,7 @@ goog.scope(function() {
     gluVarTypeUtil.SubTypeIterator.prototype.next = function() {
         if (this.m_path.length > 0) {
             // Remove traversed nodes.
-            removeTraversed();
+            this.removeTraversed();
 
             if (this.m_path.length > 0)
                 this.findNext();
@@ -423,6 +423,7 @@ goog.scope(function() {
     /** gluVarTypeUtil.BasicTypeIterator
      * @param {gluVarType.VarType} type
      * @constructor
+     * @extends {gluVarTypeUtil.SubTypeIterator}
      */
     gluVarTypeUtil.BasicTypeIterator = function(type) {
         gluVarTypeUtil.SubTypeIterator.call(this, type);
@@ -437,20 +438,22 @@ goog.scope(function() {
     /** gluVarTypeUtil.VectorTypeIterator
      * @param {gluVarType.VarType} type
      * @constructor
+     * @extends {gluVarTypeUtil.SubTypeIterator}
      */
-     gluVarTypeUtil.VectorTypeIterator = function(type) {
+    gluVarTypeUtil.VectorTypeIterator = function(type) {
         gluVarTypeUtil.SubTypeIterator.call(this, type);
     };
     gluVarTypeUtil.VectorTypeIterator.prototype = Object.create(gluVarTypeUtil.SubTypeIterator.prototype);
     gluVarTypeUtil.VectorTypeIterator.prototype.constructor = gluVarTypeUtil.VectorTypeIterator;
     
     gluVarTypeUtil.VectorTypeIterator.prototype.isExpanded = function(type) {
-        return type.isBasicType() && deqpUtils.isDataTypeScalarOrVector(type.getBasicType());
+        return type.isBasicType() && gluShaderUtil.isDataTypeScalarOrVector(type.getBasicType());
     };
 
     /** gluVarTypeUtil.ScalarTypeIterator
      * @param {gluVarType.VarType} type
      * @constructor
+     * @extends {gluVarTypeUtil.SubTypeIterator}
      */
      gluVarTypeUtil.ScalarTypeIterator = function(type) {
         gluVarTypeUtil.SubTypeIterator.call(this, type);
@@ -459,7 +462,7 @@ goog.scope(function() {
     gluVarTypeUtil.ScalarTypeIterator.prototype.constructor = gluVarTypeUtil.ScalarTypeIterator;
     
     gluVarTypeUtil.ScalarTypeIterator.prototype.isExpanded = function(type) {
-        return type.isBasicType() && deqpUtils.isDataTypeScalar(type.getBasicType());
+        return type.isBasicType() && gluShaderUtil.isDataTypeScalar(type.getBasicType());
     };
 
     gluVarTypeUtil.inBounds = (function(x, a, b) { return a <= x && x < b; });
@@ -467,8 +470,8 @@ goog.scope(function() {
     /** gluVarTypeUtil.isValidTypePath
      * @param {gluVarType.VarType} type
      * @param {Array.<gluVarTypeUtil.VarTypeComponent>} array
-     * @param {number} begin
-     * @param {number} end
+     * @param {number=} begin
+     * @param {number=} end
      * @return {boolean}
      */
     gluVarTypeUtil.isValidTypePath = function(type, array, begin, end) {
@@ -495,7 +498,7 @@ goog.scope(function() {
                 if (
                     !curType.isArrayType() ||
                     (
-                        curType.getArraySize() != gluVarType.UNSIZED_ARRAY &&
+                        curType.getArraySize() != gluVarType.VarType.UNSIZED_ARRAY &&
                         !gluVarTypeUtil.inBounds(element.index, 0, curType.getArraySize())
                     )
                 ) {
@@ -527,20 +530,20 @@ goog.scope(function() {
 
             if (array[pathIter].type == gluVarTypeUtil.VarTypeComponent.s_Type.MATRIX_COLUMN)
             {
-                if (!deqpUtils.isDataTypeMatrix(basicType)) {
+                if (!gluShaderUtil.isDataTypeMatrix(basicType)) {
                     return false;
                 }
 
-                basicType = deqpUtils.getDataTypeFloatVec(deqpUtils.getDataTypeMatrixNumRows(basicType));
+                basicType = gluShaderUtil.getDataTypeFloatVec(gluShaderUtil.getDataTypeMatrixNumRows(basicType));
                 ++pathIter;
             }
 
             if (pathIter != end && array[pathIter].type == gluVarTypeUtil.VarTypeComponent.s_Type.VECTOR_COMPONENT)
             {
-                if (!deqpUtils.isDataTypeVector(basicType))
+                if (!gluShaderUtil.isDataTypeVector(basicType))
                     return false;
 
-                basicType = deqpUtils.getDataTypeScalarType(basicType);
+                basicType = gluShaderUtil.getDataTypeScalarType(basicType);
                 ++pathIter;
             }
         }
@@ -551,8 +554,8 @@ goog.scope(function() {
     /** gluVarTypeUtil.getVarType
      * @param {gluVarType.VarType} type
      * @param {Array.<gluVarTypeUtil.VarTypeComponent>} array
-     * @param {number} start
-     * @param {number} end
+     * @param {number=} start
+     * @param {number=} end
      * @return {gluVarType.VarType}
      */
     gluVarTypeUtil.getVarType = function(type, array, start, end) {
@@ -590,12 +593,12 @@ goog.scope(function() {
             var precision = curType.getPrecision(); // Precision
 
             if (element.type == gluVarTypeUtil.VarTypeComponent.s_Type.MATRIX_COLUMN) {
-                basicType = deqpUtils.getDataTypeFloatVec(deqpUtils.getDataTypeMatrixNumRows(basicType));
+                basicType = gluShaderUtil.getDataTypeFloatVec(gluShaderUtil.getDataTypeMatrixNumRows(basicType));
                 element = array[++pathIter];
             }
 
             if (pathIter != end && pathIter.type == gluVarTypeUtil.VarTypeComponent.s_Type.VECTOR_COMPONENT) {
-                basicType = deqpUtils.getDataTypeScalarType(basicType);
+                basicType = gluShaderUtil.getDataTypeScalarType(basicType);
                 element = array[++pathIter];
             }
 
@@ -673,12 +676,12 @@ goog.scope(function() {
                     if (!gluVarTypeUtil.inBounds(ndx, 0, curType.getArraySize())) throw new Error;
                     path.push(gluVarTypeUtil.VarTypeComponent(gluVarTypeUtil.VarTypeComponent.s_Type.ARRAY_ELEMENT, ndx));
 
-                } else if (curType.isBasicType() && deqpUtils.isDataTypeMatrix(curType.getBasicType())) {
-                    if (!gluVarTypeUtil.inBounds(ndx, 0, deqpUtils.getDataTypeMatrixNumColumns(curType.getBasicType()))) throw new Error;
+                } else if (curType.isBasicType() && gluShaderUtil.isDataTypeMatrix(curType.getBasicType())) {
+                    if (!gluVarTypeUtil.inBounds(ndx, 0, gluShaderUtil.getDataTypeMatrixNumColumns(curType.getBasicType()))) throw new Error;
                     path.push(gluVarTypeUtil.VarTypeComponent(gluVarTypeUtil.VarTypeComponent.s_Type.MATRIX_COLUMN, ndx));
 
-                } else if (curType.isBasicType() && deqpUtils.isDataTypeVector(curType.getBasicType())) {
-                    if (!gluVarTypeUtil.inBounds(ndx, 0, deqpUtils.getDataTypeScalarSize(curType.getBasicType()))) throw new Error;
+                } else if (curType.isBasicType() && gluShaderUtil.isDataTypeVector(curType.getBasicType())) {
+                    if (!gluVarTypeUtil.inBounds(ndx, 0, gluShaderUtil.getDataTypeScalarSize(curType.getBasicType()))) throw new Error;
                     path.push(gluVarTypeUtil.VarTypeComponent(gluVarTypeUtil.VarTypeComponent.s_Type.VECTOR_COMPONENT, ndx));
 
                 } else {

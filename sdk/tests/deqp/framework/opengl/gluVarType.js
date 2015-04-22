@@ -149,12 +149,12 @@ goog.scope(function() {
     };
 
     /** getBasicType
-     * @return {number} returns the basic data type of the gluVarType.VarType.
+     * @return {gluShaderUtil.DataType<number>} returns the basic data type of the gluVarType.VarType.
      */
     gluVarType.VarType.prototype.getBasicType = function() {
         if (!this.isBasicType())
             throw new Error('VarType is not a basic type.');
-        return /** @type {number} */ (this.m_data);
+        return /** @type {gluShaderUtil.DataType<number>} */ (this.m_data);
     };
     
     /** getPrecision
