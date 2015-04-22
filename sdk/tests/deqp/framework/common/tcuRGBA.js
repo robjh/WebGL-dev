@@ -57,13 +57,23 @@ var deMath = framework.delibs.debase.deMath;
      * Mask used as flags
      * Hopefully will not use typed arrays
      */
-    tcuRGBA.RGBA.Mask = function() {
+    tcuRGBA.RGBA.Mask = function () {
         return {
             RED: false,
             GREEN: false,
             BLUE: false,
             ALPHA: false
         };
+    };
+
+    /**
+     * @param {tcuRGBA.RGBA} other
+     */
+    tcuRGBA.RGBA.equals = function(other) {
+        return this.getRed() == other.getRed() &&
+        this.getGreen() == other.getGreen() &&
+        this.getBlue() == other.getBlue() &&
+        this.getAlpha() == other.getAlpha();
     };
 
     /**

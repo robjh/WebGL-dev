@@ -27,8 +27,9 @@ var deUtil = framework.delibs.debase.deUtil;
 
     /**
     * Add a push_unique function to Array. Will insert only if there is no equal element.
-    * @param {Array} array Any array
-    * @param {Object} object Any object
+    * @template T
+    * @param {Array<T>} array Any array
+    * @param {T} object Any object
     */
     deUtil.dePushUniqueToArray = function(array, object) {
         //Simplest implementation

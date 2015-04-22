@@ -32,10 +32,10 @@ goog.require('framework.opengl.simplereference.sglrReferenceContext');
 goog.require('framework.opengl.simplereference.sglrShaderProgram');
 goog.require('framework.delibs.debase.deMath');
 goog.require('framework.delibs.debase.deRandom');
+goog.require('framework.referencerenderer.rrGenericVector');
+goog.require('framework.referencerenderer.rrShadingContext');
 goog.require('framework.referencerenderer.rrVertexAttrib');
 goog.require('framework.referencerenderer.rrVertexPacket');
-goog.require('framework.referencerenderer.rrGenericVector');
-
 
 goog.scope(function() {
 
@@ -52,10 +52,10 @@ goog.scope(function() {
     var sglrShaderProgram = framework.opengl.simplereference.sglrShaderProgram;
     var deMath = framework.delibs.debase.deMath;
     var deRandom = framework.delibs.debase.deRandom;
+    var rrGenericVector = framework.referencerenderer.rrGenericVector;
+    var rrShadingContext = framework.referencerenderer.rrShadingContext;
     var rrVertexAttrib = framework.referencerenderer.rrVertexAttrib;
     var rrVertexPacket = framework.referencerenderer.rrVertexPacket;
-    var rrGenericVector = framework.referencerenderer.rrGenericVector;
-
 
     var DE_ASSERT = function(x) {
         if (!x)
@@ -93,20 +93,20 @@ goog.scope(function() {
      */
     glsVertexArrayTests.deArray.InputType = {
         FLOAT: 0,
-        FIXED: 1,
-        DOUBLE: 2,
+        /*FIXED: 1,
+        DOUBLE: 2,*/
 
-        BYTE: 3,
-        SHORT: 4,
+        BYTE: 1,
+        SHORT: 2,
 
-        UNSIGNED_BYTE: 5,
-        UNSIGNED_SHORT: 6,
+        UNSIGNED_BYTE: 3,
+        UNSIGNED_SHORT: 4,
 
-        INT: 7,
-        UNSIGNED_INT: 8,
-        HALF: 9,
-        UNSIGNED_INT_2_10_10_10: 10,
-        INT_2_10_10_10: 11
+        INT: 5,
+        UNSIGNED_INT: 6,
+        HALF: 7,
+        UNSIGNED_INT_2_10_10_10: 8,
+        INT_2_10_10_10: 9
     };
 
     /**
@@ -176,13 +176,13 @@ goog.scope(function() {
      * @param {glsVertexArrayTests.deArray.Target} target
      * @return {string}
      */
-    glsVertexArrayTests.deArray.targetToString = function (target) {
+    glsVertexArrayTests.deArray.targetToString = function(target) {
         DE_ASSERT(target < Object.keys(glsVertexArrayTests.deArray.Target).length);
 
         /** @type {Array<string>} */ var targets =
         [
-            "element_array",  // glsVertexArrayTests.deArray.Target.ELEMENT_ARRAY
-            "array"           // glsVertexArrayTests.deArray.Target.ARRAY
+            "element_array", // glsVertexArrayTests.deArray.Target.ELEMENT_ARRAY
+            "array" // glsVertexArrayTests.deArray.Target.ARRAY
         ];
         DE_ASSERT(targets.length == Object.keys(glsVertexArrayTests.deArray.Target).length);
 
@@ -193,26 +193,24 @@ goog.scope(function() {
      * @param {glsVertexArrayTests.deArray.InputType} type
      * @return {string}
      */
-    glsVertexArrayTests.deArray.inputTypeToString = function (type) {
+    glsVertexArrayTests.deArray.inputTypeToString = function(type) {
         DE_ASSERT(type < Object.keys(glsVertexArrayTests.deArray.InputType).length);
 
         /** @type {Array<string>} */ var types =
         [
-            "float",          // glsVertexArrayTests.deArray.InputType.FLOAT
-            "fixed",          // glsVertexArrayTests.deArray.InputType.FIXED
-            "double",         // glsVertexArrayTests.deArray.InputType.DOUBLE
+            "float", // glsVertexArrayTests.deArray.InputType.FLOAT
 
-            "byte",           // glsVertexArrayTests.deArray.InputType.BYTE
-            "short",          // glsVertexArrayTests.deArray.InputType.SHORT
+            "byte", // glsVertexArrayTests.deArray.InputType.BYTE
+            "short", // glsVertexArrayTests.deArray.InputType.SHORT
 
-            "unsigned_byte",  // glsVertexArrayTests.deArray.InputType.UNSIGNED_BYTE
+            "unsigned_byte", // glsVertexArrayTests.deArray.InputType.UNSIGNED_BYTE
             "unsigned_short", // glsVertexArrayTests.deArray.InputType.UNSIGNED_SHORT
 
-            "int",                    // glsVertexArrayTests.deArray.InputType.INT
-            "unsigned_int",           // glsVertexArrayTests.deArray.InputType.UNSIGNED_INT
-            "half",                   // glsVertexArrayTests.deArray.InputType.HALF
-            "usigned_int2_10_10_10",  // glsVertexArrayTests.deArray.InputType.UNSIGNED_INT_2_10_10_10
-            "int2_10_10_10"           // glsVertexArrayTests.deArray.InputType.INT_2_10_10_10
+            "int", // glsVertexArrayTests.deArray.InputType.INT
+            "unsigned_int", // glsVertexArrayTests.deArray.InputType.UNSIGNED_INT
+            "half", // glsVertexArrayTests.deArray.InputType.HALF
+            "usigned_int2_10_10_10", // glsVertexArrayTests.deArray.InputType.UNSIGNED_INT_2_10_10_10
+            "int2_10_10_10" // glsVertexArrayTests.deArray.InputType.INT_2_10_10_10
         ];
         DE_ASSERT(types.length == Object.keys(glsVertexArrayTests.deArray.InputType).length);
 
@@ -223,26 +221,26 @@ goog.scope(function() {
      * @param {glsVertexArrayTests.deArray.OutputType} type
      * @return {string}
      */
-    glsVertexArrayTests.deArray.outputTypeToString = function (type) {
+    glsVertexArrayTests.deArray.outputTypeToString = function(type) {
         DE_ASSERT(type < Object.keys(glsVertexArrayTests.deArray.OutputType).length);
 
         /** @type {Array<string>} */ var types =
         [
-            "float",       // glsVertexArrayTests.deArray.OutputType.FLOAT
-            "vec2",        // glsVertexArrayTests.deArray.OutputType.VEC2
-            "vec3",        // glsVertexArrayTests.deArray.OutputType.VEC3
-            "vec4",        // glsVertexArrayTests.deArray.OutputType.VEC4
+            "float", // glsVertexArrayTests.deArray.OutputType.FLOAT
+            "vec2", // glsVertexArrayTests.deArray.OutputType.VEC2
+            "vec3", // glsVertexArrayTests.deArray.OutputType.VEC3
+            "vec4", // glsVertexArrayTests.deArray.OutputType.VEC4
 
-            "int",         // glsVertexArrayTests.deArray.OutputType.INT
-            "uint",        // glsVertexArrayTests.deArray.OutputType.UINT
+            "int", // glsVertexArrayTests.deArray.OutputType.INT
+            "uint", // glsVertexArrayTests.deArray.OutputType.UINT
 
-            "ivec2",       // glsVertexArrayTests.deArray.OutputType.IVEC2
-            "ivec3",       // glsVertexArrayTests.deArray.OutputType.IVEC3
-            "ivec4",       // glsVertexArrayTests.deArray.OutputType.IVEC4
+            "ivec2", // glsVertexArrayTests.deArray.OutputType.IVEC2
+            "ivec3", // glsVertexArrayTests.deArray.OutputType.IVEC3
+            "ivec4", // glsVertexArrayTests.deArray.OutputType.IVEC4
 
-            "uvec2",       // glsVertexArrayTests.deArray.OutputType.UVEC2
-            "uvec3",       // glsVertexArrayTests.deArray.OutputType.UVEC3
-            "uvec4"        // glsVertexArrayTests.deArray.OutputType.UVEC4
+            "uvec2", // glsVertexArrayTests.deArray.OutputType.UVEC2
+            "uvec3", // glsVertexArrayTests.deArray.OutputType.UVEC3
+            "uvec4" // glsVertexArrayTests.deArray.OutputType.UVEC4
         ];
         DE_ASSERT(types.length == Object.keys(glsVertexArrayTests.deArray.OutputType).length);
 
@@ -253,23 +251,23 @@ goog.scope(function() {
      * @param {glsVertexArrayTests.deArray.Usage} usage
      * @return {string}
      */
-    glsVertexArrayTests.deArray.usageTypeToString = function (usage) {
+    glsVertexArrayTests.deArray.usageTypeToString = function(usage) {
         DE_ASSERT(usage < Object.keys(glsVertexArrayTests.deArray.Usage).length);
 
         /** @type {Array<string>} */ var usages =
         [
             "dynamic_draw", // glsVertexArrayTests.deArray.Usage.DYNAMIC_DRAW
-            "static_draw",  // glsVertexArrayTests.deArray.Usage.STATIC_DRAW
-            "stream_draw",  // glsVertexArrayTests.deArray.Usage.STREAM_DRAW
+            "static_draw", // glsVertexArrayTests.deArray.Usage.STATIC_DRAW
+            "stream_draw", // glsVertexArrayTests.deArray.Usage.STREAM_DRAW
 
-            "stream_read",  // glsVertexArrayTests.deArray.Usage.STREAM_READ
-            "stream_copy",  // glsVertexArrayTests.deArray.Usage.STREAM_COPY
+            "stream_read", // glsVertexArrayTests.deArray.Usage.STREAM_READ
+            "stream_copy", // glsVertexArrayTests.deArray.Usage.STREAM_COPY
 
-            "static_read",  // glsVertexArrayTests.deArray.Usage.STATIC_READ
-            "static_copy",  // glsVertexArrayTests.deArray.Usage.STATIC_COPY
+            "static_read", // glsVertexArrayTests.deArray.Usage.STATIC_READ
+            "static_copy", // glsVertexArrayTests.deArray.Usage.STATIC_COPY
 
             "dynamic_read", // glsVertexArrayTests.deArray.Usage.DYNAMIC_READ
-            "dynamic_copy"  // glsVertexArrayTests.deArray.Usage.DYNAMIC_COPY
+            "dynamic_copy" // glsVertexArrayTests.deArray.Usage.DYNAMIC_COPY
         ];
         DE_ASSERT(usages.length == Object.keys(glsVertexArrayTests.deArray.Usage).length);
 
@@ -280,13 +278,13 @@ goog.scope(function() {
      * @param {glsVertexArrayTests.deArray.Storage} storage
      * @return {string}
      */
-    glsVertexArrayTests.deArray.storageToString = function (storage) {
+    glsVertexArrayTests.deArray.storageToString = function(storage) {
         DE_ASSERT(storage < Object.keys(glsVertexArrayTests.deArray.Storage).length);
 
         /** @type {Array<string>} */ var storages =
         [
             "user_ptr", // glsVertexArrayTests.deArray.Storage.USER
-            "buffer"    // glsVertexArrayTests.deArray.Storage.BUFFER
+            "buffer" // glsVertexArrayTests.deArray.Storage.BUFFER
         ];
         DE_ASSERT(storages.length == Object.keys(glsVertexArrayTests.deArray.Storage).length);
 
@@ -297,15 +295,15 @@ goog.scope(function() {
      * @param {glsVertexArrayTests.deArray.Primitive} primitive
      * @return {string}
      */
-    glsVertexArrayTests.deArray.primitiveToString = function (primitive) {
+    glsVertexArrayTests.deArray.primitiveToString = function(primitive) {
         DE_ASSERT(primitive < Object.keys(glsVertexArrayTests.deArray.Primitive).length);
 
         /** @type {Array<string>} */ var primitives =
         [
-            "points",          // glsVertexArrayTests.deArray.Primitive.POINTS
-            "triangles",       // glsVertexArrayTests.deArray.Primitive.TRIANGLES
-            "triangle_fan",    // glsVertexArrayTests.deArray.Primitive.TRIANGLE_FAN
-            "triangle_strip"   // glsVertexArrayTests.deArray.Primitive.TRIANGLE_STRIP
+            "points", // glsVertexArrayTests.deArray.Primitive.POINTS
+            "triangles", // glsVertexArrayTests.deArray.Primitive.TRIANGLES
+            "triangle_fan", // glsVertexArrayTests.deArray.Primitive.TRIANGLE_FAN
+            "triangle_strip" // glsVertexArrayTests.deArray.Primitive.TRIANGLE_STRIP
         ];
         DE_ASSERT(primitives.length == Object.keys(glsVertexArrayTests.deArray.Primitive).length);
 
@@ -316,24 +314,22 @@ goog.scope(function() {
      * @param {glsVertexArrayTests.deArray.InputType} type
      * @return {number}
      */
-    glsVertexArrayTests.deArray.inputTypeSize = function (type) {
+    glsVertexArrayTests.deArray.inputTypeSize = function(type) {
         DE_ASSERT(type < Object.keys(glsVertexArrayTests.deArray.InputType).length);
 
         /** @type {Array<number>} */ var size =
         [
-            4,     // glsVertexArrayTests.deArray.InputType.FLOAT
-            4,     // glsVertexArrayTests.deArray.InputType.FIXED
-            8,     // glsVertexArrayTests.deArray.InputType.DOUBLE
+            4, // glsVertexArrayTests.deArray.InputType.FLOAT
 
-            8,     // glsVertexArrayTests.deArray.InputType.BYTE
-            16,    // glsVertexArrayTests.deArray.InputType.SHORT
+            8, // glsVertexArrayTests.deArray.InputType.BYTE
+            16, // glsVertexArrayTests.deArray.InputType.SHORT
 
-            8,     // glsVertexArrayTests.deArray.InputType.UNSIGNED_BYTE
-            16,    // glsVertexArrayTests.deArray.InputType.UNSIGNED_SHORT
+            8, // glsVertexArrayTests.deArray.InputType.UNSIGNED_BYTE
+            16, // glsVertexArrayTests.deArray.InputType.UNSIGNED_SHORT
 
-            32,    // glsVertexArrayTests.deArray.InputType.INT
-            32,    // glsVertexArrayTests.deArray.InputType.UNSIGNED_INT
-            16,    // glsVertexArrayTests.deArray.InputType.HALF
+            32, // glsVertexArrayTests.deArray.InputType.INT
+            32, // glsVertexArrayTests.deArray.InputType.UNSIGNED_INT
+            16, // glsVertexArrayTests.deArray.InputType.HALF
             32 / 4,// glsVertexArrayTests.deArray.InputType.UNSIGNED_INT_2_10_10_10
             32 / 4 // glsVertexArrayTests.deArray.InputType.INT_2_10_10_10
         ];
@@ -346,13 +342,13 @@ goog.scope(function() {
      * @param {glsVertexArrayTests.deArray.InputType} type
      * @return {boolean}
      */
-    glsVertexArrayTests.inputTypeIsFloatType = function (type) {
+    glsVertexArrayTests.inputTypeIsFloatType = function(type) {
         if (type == glsVertexArrayTests.deArray.InputType.FLOAT)
             return true;
-        if (type == glsVertexArrayTests.deArray.InputType.FIXED)
+        /*if (type == glsVertexArrayTests.deArray.InputType.FIXED)
             return true;
         if (type == glsVertexArrayTests.deArray.InputType.DOUBLE)
-            return true;
+            return true;*/
         if (type == glsVertexArrayTests.deArray.InputType.HALF)
             return true;
         return false;
@@ -362,7 +358,7 @@ goog.scope(function() {
      * @param {glsVertexArrayTests.deArray.OutputType} type
      * @return {boolean}
      */
-    glsVertexArrayTests.outputTypeIsFloatType = function (type) {
+    glsVertexArrayTests.outputTypeIsFloatType = function(type) {
         if (type == glsVertexArrayTests.deArray.OutputType.FLOAT
             || type == glsVertexArrayTests.deArray.OutputType.VEC2
             || type == glsVertexArrayTests.deArray.OutputType.VEC3
@@ -380,7 +376,7 @@ goog.scope(function() {
      * @param {Uint8Array} data
      * @param {glsVertexArrayTests.deArray.Usage} usage
      */
-    glsVertexArrayTests.deArray.prototype.data = function (target, size, data, usage) {};
+    glsVertexArrayTests.deArray.prototype.data = function(target, size, data, usage) {};
 
     /**
      * @param {glsVertexArrayTests.deArray.Target} target
@@ -388,7 +384,7 @@ goog.scope(function() {
      * @param {number} size
      * @param {Uint8Array} data
      */
-    glsVertexArrayTests.deArray.prototype.subdata = function (target, offset, size, data) {};
+    glsVertexArrayTests.deArray.prototype.subdata = function(target, offset, size, data) {};
 
     /**
      * @param {number} attribNdx
@@ -399,62 +395,62 @@ goog.scope(function() {
      * @param {boolean} normalized
      * @param {number} stride
      */
-    glsVertexArrayTests.deArray.prototype.bind = function (attribNdx, offset, size, inType, outType, normalized, stride) {};
+    glsVertexArrayTests.deArray.prototype.bind = function(attribNdx, offset, size, inType, outType, normalized, stride) {};
 
     /**
      * unBind
      */
-    glsVertexArrayTests.deArray.prototype.unBind = function () {};
+    glsVertexArrayTests.deArray.prototype.unBind = function() {};
 
     /**
      * @return {boolean}
      */
-    glsVertexArrayTests.deArray.prototype.isBound = function () {};
+    glsVertexArrayTests.deArray.prototype.isBound = function() {};
 
     /**
      * @return {number}
      */
-    glsVertexArrayTests.deArray.prototype.getComponentCount = function () {};
+    glsVertexArrayTests.deArray.prototype.getComponentCount = function() {};
 
     /**
      * @return {glsVertexArrayTests.deArray.Target}
      */
-    glsVertexArrayTests.deArray.prototype.getTarget = function () {};
+    glsVertexArrayTests.deArray.prototype.getTarget = function() {};
 
     /**
      * @return {glsVertexArrayTests.deArray.InputType}
      */
-    glsVertexArrayTests.deArray.prototype.getInputType = function () {};
+    glsVertexArrayTests.deArray.prototype.getInputType = function() {};
 
     /**
      * @return {glsVertexArrayTests.deArray.OutputType}
      */
-    glsVertexArrayTests.deArray.prototype.getOutputType = function () {};
+    glsVertexArrayTests.deArray.prototype.getOutputType = function() {};
 
     /**
      * @return {glsVertexArrayTests.deArray.Storage}
      */
-    glsVertexArrayTests.deArray.prototype.getStorageType = function () {};
+    glsVertexArrayTests.deArray.prototype.getStorageType = function() {};
 
     /**
      * @return {boolean}
      */
-    glsVertexArrayTests.deArray.prototype.getNormalized = function () {};
+    glsVertexArrayTests.deArray.prototype.getNormalized = function() {};
 
     /**
      * @return {number}
      */
-    glsVertexArrayTests.deArray.prototype.getStride = function () {};
+    glsVertexArrayTests.deArray.prototype.getStride = function() {};
 
     /**
      * @return {number}
      */
-    glsVertexArrayTests.deArray.prototype.getAttribNdx = function () {};
+    glsVertexArrayTests.deArray.prototype.getAttribNdx = function() {};
 
     /**
      * @param {number} attribNdx
      */
-    glsVertexArrayTests.deArray.prototype.setAttribNdx = function (attribNdx) {};
+    glsVertexArrayTests.deArray.prototype.setAttribNdx = function(attribNdx) {};
 
     //glsVertexArrayTests.ContextArray class, implements glsVertexArrayTests.deArray interface
 
@@ -462,11 +458,11 @@ goog.scope(function() {
      * @constructor
      * @implements {glsVertexArrayTests.deArray}
      * @param {glsVertexArrayTests.deArray.Storage} storage
-     * @param {sglrReferenceContext.ReferenceContext} context
+     * @param {sglrGLContext.GLContext | sglrReferenceContext.ReferenceContext} context
      */
-    glsVertexArrayTests.ContextArray = function (storage, context) {
+    glsVertexArrayTests.ContextArray = function(storage, context) {
         /** @type {glsVertexArrayTests.deArray.Storage} */ this.m_storage = storage;
-        /** @type {sglrReferenceContext.ReferenceContext} */ this.m_ctx = context;
+        /** @type {sglrGLContext.GLContext | sglrReferenceContext.ReferenceContext} */ this.m_ctx = context;
         /** @type {number} (deUint32) */ this.m_glBuffer = 0;
 
         /** @type {boolean} */ this.m_bound = false;
@@ -492,57 +488,57 @@ goog.scope(function() {
     /**
      * unBind
      */
-    glsVertexArrayTests.ContextArray.prototype.unBind = function () { this.m_bound = false; };
+    glsVertexArrayTests.ContextArray.prototype.unBind = function() { this.m_bound = false; };
 
     /**
      * @return {boolean}
      */
-    glsVertexArrayTests.ContextArray.prototype.isBound = function () { return this.m_bound; };
+    glsVertexArrayTests.ContextArray.prototype.isBound = function() { return this.m_bound; };
 
     /**
      * @return {number}
      */
-    glsVertexArrayTests.ContextArray.prototype.getComponentCount = function () { return this.m_componentCount; };
+    glsVertexArrayTests.ContextArray.prototype.getComponentCount = function() { return this.m_componentCount; };
 
     /**
      * @return {glsVertexArrayTests.deArray.Target}
      */
-    glsVertexArrayTests.ContextArray.prototype.getTarget = function () { return this.m_target; };
+    glsVertexArrayTests.ContextArray.prototype.getTarget = function() { return this.m_target; };
 
     /**
      * @return {glsVertexArrayTests.deArray.InputType}
      */
-    glsVertexArrayTests.ContextArray.prototype.getInputType = function () { return this.m_inputType; };
+    glsVertexArrayTests.ContextArray.prototype.getInputType = function() { return this.m_inputType; };
 
     /**
      * @return {glsVertexArrayTests.deArray.OutputType}
      */
-    glsVertexArrayTests.ContextArray.prototype.getOutputType = function () { return this.m_outputType; };
+    glsVertexArrayTests.ContextArray.prototype.getOutputType = function() { return this.m_outputType; };
 
     /**
      * @return {glsVertexArrayTests.deArray.Storage}
      */
-    glsVertexArrayTests.ContextArray.prototype.getStorageType = function () { return this.m_storage; };
+    glsVertexArrayTests.ContextArray.prototype.getStorageType = function() { return this.m_storage; };
 
     /**
      * @return {boolean}
      */
-    glsVertexArrayTests.ContextArray.prototype.getNormalized = function () { return this.m_normalize; };
+    glsVertexArrayTests.ContextArray.prototype.getNormalized = function() { return this.m_normalize; };
 
     /**
      * @return {number}
      */
-    glsVertexArrayTests.ContextArray.prototype.getStride = function () { return this.m_stride; };
+    glsVertexArrayTests.ContextArray.prototype.getStride = function() { return this.m_stride; };
 
     /**
      * @return {number}
      */
-    glsVertexArrayTests.ContextArray.prototype.getAttribNdx = function () { return this.m_attribNdx; };
+    glsVertexArrayTests.ContextArray.prototype.getAttribNdx = function() { return this.m_attribNdx; };
 
     /**
      * @param {number} attribNdx
      */
-    glsVertexArrayTests.ContextArray.prototype.setAttribNdx = function (attribNdx) { this.m_attribNdx = attribNdx; };
+    glsVertexArrayTests.ContextArray.prototype.setAttribNdx = function(attribNdx) { this.m_attribNdx = attribNdx; };
 
     /**
      * @param {glsVertexArrayTests.deArray.Target} target
@@ -550,7 +546,7 @@ goog.scope(function() {
      * @param {Uint8Array} ptr
      * @param {glsVertexArrayTests.deArray.Usage} usage
      */
-    glsVertexArrayTests.ContextArray.prototype.data = function (target, size, ptr, usage) {
+    glsVertexArrayTests.ContextArray.prototype.data = function(target, size, ptr, usage) {
         this.m_size = size;
         this.m_target = target;
 
@@ -561,13 +557,11 @@ goog.scope(function() {
             //No need for size param here, as opposed to GL ES.
             this.m_ctx.bufferData(glsVertexArrayTests.ContextArray.targetToGL(target), ptr, glsVertexArrayTests.ContextArray.usageToGL(usage));
             glsVertexArrayTests.GLU_EXPECT_NO_ERROR(this.m_ctx.getError(), "gl.bufferData()");
-        }
-        else if (this.m_storage == glsVertexArrayTests.deArray.Storage.USER) {
+        } else if (this.m_storage == glsVertexArrayTests.deArray.Storage.USER) {
             this.m_data = new Uint8Array(size);
             for(var i = 0; i < size; i++)
                 this.m_data[i] = ptr[i];
-        }
-        else
+        } else
             throw new Error('glsVertexArrayTests.ContextArray.prototype.data - Invalid storage type specified');
     };
 
@@ -577,17 +571,16 @@ goog.scope(function() {
      * @param {number} size
      * @param {Uint8Array} ptr
      */
-    glsVertexArrayTests.ContextArray.prototype.subdata =function (target, offset, size, ptr) {
+    glsVertexArrayTests.ContextArray.prototype.subdata =function(target, offset, size, ptr) {
         this.m_target = target;
 
         if (this.m_storage == glsVertexArrayTests.deArray.Storage.BUFFER) {
             this.m_ctx.bindBuffer(glsVertexArrayTests.ContextArray.targetToGL(target), this.m_glBuffer);
             glsVertexArrayTests.GLU_EXPECT_NO_ERROR(this.m_ctx.getError(), "gl.bindBuffer()");
 
-            this.m_ctx.bufferSubData(glsVertexArrayTests.ContextArray.targetToGL(target), offset, size, ptr);
+            this.m_ctx.bufferSubData(glsVertexArrayTests.ContextArray.targetToGL(target), offset, ptr);
             glsVertexArrayTests.GLU_EXPECT_NO_ERROR(this.m_ctx.getError(), "gl.bufferSubData()");
-        }
-        else if (this.m_storage == glsVertexArrayTests.deArray.Storage.USER)
+        } else if (this.m_storage == glsVertexArrayTests.deArray.Storage.USER)
             for(var i = offset; i < size; i++)
                 this.m_data[i] = ptr[i];
         else
@@ -603,25 +596,23 @@ goog.scope(function() {
      * @param {boolean} normalized
      * @param {number} stride
      */
-    glsVertexArrayTests.ContextArray.prototype.bind = function (attribNdx, offset, size, inType, outType, normalized, stride) {
-        this.m_attribNdx         = attribNdx;
-        this.m_bound             = true;
-        this.m_componentCount    = size;
-        this.m_inputType         = inType;
-        this.m_outputType        = outType;
-        this.m_normalize         = normalized;
-        this.m_stride            = stride;
-        this.m_offset            = offset;
+    glsVertexArrayTests.ContextArray.prototype.bind = function(attribNdx, offset, size, inType, outType, normalized, stride) {
+        this.m_attribNdx = attribNdx;
+        this.m_bound = true;
+        this.m_componentCount = size;
+        this.m_inputType = inType;
+        this.m_outputType = outType;
+        this.m_normalize = normalized;
+        this.m_stride = stride;
+        this.m_offset = offset;
     };
 
     /**
      * @param {glsVertexArrayTests.deArray.Target} target
      */
-    glsVertexArrayTests.ContextArray.prototype.bindIndexArray = function (target) {
+    glsVertexArrayTests.ContextArray.prototype.bindIndexArray = function(target) {
         if (this.m_storage == glsVertexArrayTests.deArray.Storage.USER) {
-        }
-        else if (this.m_storage == glsVertexArrayTests.deArray.Storage.BUFFER)
-        {
+        } else if (this.m_storage == glsVertexArrayTests.deArray.Storage.BUFFER) {
             this.m_ctx.bindBuffer(glsVertexArrayTests.ContextArray.targetToGL(target), this.m_glBuffer);
         }
     };
@@ -629,31 +620,24 @@ goog.scope(function() {
     /**
      * @param {number} loc
      */
-    glsVertexArrayTests.ContextArray.prototype.glBind = function (loc) {
-        if (this.m_storage == glsVertexArrayTests.deArray.Storage.BUFFER)
-        {
+    glsVertexArrayTests.ContextArray.prototype.glBind = function(loc) {
+        if (this.m_storage == glsVertexArrayTests.deArray.Storage.BUFFER) {
             this.m_ctx.bindBuffer(glsVertexArrayTests.ContextArray.targetToGL(this.m_target), this.m_glBuffer);
             glsVertexArrayTests.GLU_EXPECT_NO_ERROR(this.m_ctx.getError(), "gl.bindBuffer()");
 
-            if (!glsVertexArrayTests.inputTypeIsFloatType(this.m_inputType))
-            {
+            if (!glsVertexArrayTests.inputTypeIsFloatType(this.m_inputType)) {
                 // Input is not float type
 
-                if (glsVertexArrayTests.outputTypeIsFloatType(this.m_outputType))
-                {
+                if (glsVertexArrayTests.outputTypeIsFloatType(this.m_outputType)) {
                     // Output type is float type
                     this.m_ctx.vertexAttribPointer(loc, this.m_componentCount, glsVertexArrayTests.ContextArray.inputTypeToGL(this.m_inputType), this.m_normalize, this.m_stride, this.m_offset);
                     glsVertexArrayTests.GLU_EXPECT_NO_ERROR(this.m_ctx.getError(), "gl.vertexAttribPointer()");
-                }
-                else
-                {
+                } else {
                     // Output type is int type
                     this.m_ctx.vertexAttribIPointer(loc, this.m_componentCount, glsVertexArrayTests.ContextArray.inputTypeToGL(this.m_inputType), this.m_stride, this.m_offset);
                     glsVertexArrayTests.GLU_EXPECT_NO_ERROR(this.m_ctx.getError(), "gl.vertexAttribPointer()");
                 }
-            }
-            else
-            {
+            } else {
                 // Input type is float type
                 // Output type must be float type
                 DE_ASSERT(this.m_outputType == glsVertexArrayTests.deArray.OutputType.FLOAT || this.m_outputType == glsVertexArrayTests.deArray.OutputType.VEC2 || this.m_outputType == glsVertexArrayTests.deArray.OutputType.VEC3 || this.m_outputType == glsVertexArrayTests.deArray.OutputType.VEC4);
@@ -663,8 +647,7 @@ goog.scope(function() {
             }
 
             this.m_ctx.bindBuffer(glsVertexArrayTests.ContextArray.targetToGL(this.m_target), null);
-        }
-        else if (this.m_storage == glsVertexArrayTests.deArray.Storage.USER) {
+        } else if (this.m_storage == glsVertexArrayTests.deArray.Storage.USER) {
             this.m_ctx.bindBuffer(glsVertexArrayTests.ContextArray.targetToGL(this.m_target), null);
             glsVertexArrayTests.GLU_EXPECT_NO_ERROR(this.m_ctx.getError(), "gl.bindBuffer()");
 
@@ -675,14 +658,12 @@ goog.scope(function() {
                     // Output type is float type
                     this.m_ctx.vertexAttribPointer(loc, this.m_componentCount, glsVertexArrayTests.ContextArray.inputTypeToGL(this.m_inputType), this.m_normalize, this.m_stride, this.m_data.subarray(this.m_offset));
                     glsVertexArrayTests.GLU_EXPECT_NO_ERROR(this.m_ctx.getError(), "gl.vertexAttribPointer()");
-                }
-                else {
+                } else {
                     // Output type is int type
                     this.m_ctx.vertexAttribIPointer(loc, this.m_componentCount, glsVertexArrayTests.ContextArray.inputTypeToGL(this.m_inputType), this.m_stride, this.m_data.subarray(this.m_offset));
                     glsVertexArrayTests.GLU_EXPECT_NO_ERROR(this.m_ctx.getError(), "gl.vertexAttribIPointer()");
                 }
-            }
-            else {
+            } else {
                 // Input type is float type
 
                 // Output type must be float type
@@ -691,8 +672,7 @@ goog.scope(function() {
                 this.m_ctx.vertexAttribPointer(loc, this.m_componentCount, glsVertexArrayTests.ContextArray.inputTypeToGL(this.m_inputType), this.m_normalize, this.m_stride, this.m_data.subarray(this.m_offset));
                 glsVertexArrayTests.GLU_EXPECT_NO_ERROR(this.m_ctx.getError(), "gl.vertexAttribPointer()");
             }
-        }
-        else
+        } else
             throw new Error("glsVertexArrayTests.ContextArray.prototype.glBind - Invalid storage type specified");
     };
 
@@ -700,15 +680,15 @@ goog.scope(function() {
 
     /**
      * @param {glsVertexArrayTests.deArray.Target} target
-     * @return {GLenum}
+     * @return {number}
      */
-    glsVertexArrayTests.ContextArray.targetToGL = function (target) {
+    glsVertexArrayTests.ContextArray.targetToGL = function(target) {
         DE_ASSERT(target < Object.keys(glsVertexArrayTests.deArray.Target).length);
 
-        /** @type {Array<GLenum>} */ var targets =
+        /** @type {Array<number>} */ var targets =
         [
-            gl.ELEMENT_ARRAY_BUFFER,    // glsVertexArrayTests.deArray.Target.ELEMENT_ARRAY
-            gl.ARRAY_BUFFER             // glsVertexArrayTests.deArray.Target.ARRAY
+            gl.ELEMENT_ARRAY_BUFFER, // glsVertexArrayTests.deArray.Target.ELEMENT_ARRAY
+            gl.ARRAY_BUFFER // glsVertexArrayTests.deArray.Target.ARRAY
         ];
 
         return targets[target];
@@ -716,25 +696,25 @@ goog.scope(function() {
 
     /**
      * @param {glsVertexArrayTests.deArray.Usage} usage
-     * @return {GLenum}
+     * @return {number}
      */
-    glsVertexArrayTests.ContextArray.usageToGL = function (usage) {
+    glsVertexArrayTests.ContextArray.usageToGL = function(usage) {
         DE_ASSERT(usage < Object.keys(glsVertexArrayTests.deArray.Usage).length);
 
-        /** @type {Array<GLenum>} */ var usages =
+        /** @type {Array<number>} */ var usages =
         [
-            gl.DYNAMIC_DRAW,    // glsVertexArrayTests.deArray.Usage.DYNAMIC_DRAW
-            gl.STATIC_DRAW,     // glsVertexArrayTests.deArray.Usage.STATIC_DRAW
-            gl.STREAM_DRAW,     // glsVertexArrayTests.deArray.Usage.STREAM_DRAW
+            gl.DYNAMIC_DRAW, // glsVertexArrayTests.deArray.Usage.DYNAMIC_DRAW
+            gl.STATIC_DRAW, // glsVertexArrayTests.deArray.Usage.STATIC_DRAW
+            gl.STREAM_DRAW, // glsVertexArrayTests.deArray.Usage.STREAM_DRAW
 
-            gl.STREAM_READ,     // glsVertexArrayTests.deArray.Usage.STREAM_READ
-            gl.STREAM_COPY,     // glsVertexArrayTests.deArray.Usage.STREAM_COPY
+            gl.STREAM_READ, // glsVertexArrayTests.deArray.Usage.STREAM_READ
+            gl.STREAM_COPY, // glsVertexArrayTests.deArray.Usage.STREAM_COPY
 
-            gl.STATIC_READ,     // glsVertexArrayTests.deArray.Usage.STATIC_READ
-            gl.STATIC_COPY,     // glsVertexArrayTests.deArray.Usage.STATIC_COPY
+            gl.STATIC_READ, // glsVertexArrayTests.deArray.Usage.STATIC_READ
+            gl.STATIC_COPY, // glsVertexArrayTests.deArray.Usage.STATIC_COPY
 
-            gl.DYNAMIC_READ,    // glsVertexArrayTests.deArray.Usage.DYNAMIC_READ
-            gl.DYNAMIC_COPY     // glsVertexArrayTests.deArray.Usage.DYNAMIC_COPY
+            gl.DYNAMIC_READ, // glsVertexArrayTests.deArray.Usage.DYNAMIC_READ
+            gl.DYNAMIC_COPY // glsVertexArrayTests.deArray.Usage.DYNAMIC_COPY
         ];
         DE_ASSERT(usages.length == Object.keys(glsVertexArrayTests.deArray.Usage).length);
 
@@ -743,26 +723,25 @@ goog.scope(function() {
 
     /**
      * @param {glsVertexArrayTests.deArray.InputType} type
-     * @return {GLenum}
+     * @return {number}
      */
-    glsVertexArrayTests.ContextArray.inputTypeToGL = function (type) {
+    glsVertexArrayTests.ContextArray.inputTypeToGL = function(type) {
         DE_ASSERT(type < Object.keys(glsVertexArrayTests.deArray.InputType).length);
 
-        /** @type {Array<GLenum>} */ var types =
+        /** @type {Array<number>} */ var types =
         [
-            gl.FLOAT,               // glsVertexArrayTests.deArray.InputType.FLOAT
-            gl.FIXED,               // glsVertexArrayTests.deArray.InputType.FIXED
-            gl.DOUBLE,              // glsVertexArrayTests.deArray.InputType.DOUBLE
-            gl.BYTE,                // glsVertexArrayTests.deArray.InputType.BYTE
-            gl.SHORT,               // glsVertexArrayTests.deArray.InputType.SHORT
-            gl.UNSIGNED_BYTE,       // glsVertexArrayTests.deArray.InputType.UNSIGNED_BYTE
-            gl.UNSIGNED_SHORT,      // glsVertexArrayTests.deArray.InputType.UNSIGNED_SHORT
+            gl.FLOAT, // glsVertexArrayTests.deArray.InputType.FLOAT
 
-            gl.INT,                 // glsVertexArrayTests.deArray.InputType.INT
-            gl.UNSIGNED_INT,        // glsVertexArrayTests.deArray.InputType.UNSIGNED_INT
-            gl.HALF_FLOAT,          // glsVertexArrayTests.deArray.InputType.HALF
+            gl.BYTE, // glsVertexArrayTests.deArray.InputType.BYTE
+            gl.SHORT, // glsVertexArrayTests.deArray.InputType.SHORT
+            gl.UNSIGNED_BYTE, // glsVertexArrayTests.deArray.InputType.UNSIGNED_BYTE
+            gl.UNSIGNED_SHORT, // glsVertexArrayTests.deArray.InputType.UNSIGNED_SHORT
+
+            gl.INT, // glsVertexArrayTests.deArray.InputType.INT
+            gl.UNSIGNED_INT, // glsVertexArrayTests.deArray.InputType.UNSIGNED_INT
+            gl.HALF_FLOAT, // glsVertexArrayTests.deArray.InputType.HALF
             gl.UNSIGNED_INT_2_10_10_10_REV, // glsVertexArrayTests.deArray.InputType.UNSIGNED_INT_2_10_10_10
-            gl.INT_2_10_10_10_REV           // glsVertexArrayTests.deArray.InputType.INT_2_10_10_10
+            gl.INT_2_10_10_10_REV // glsVertexArrayTests.deArray.InputType.INT_2_10_10_10
         ];
         DE_ASSERT(types.length == Object.keys(glsVertexArrayTests.deArray.InputType).length);
 
@@ -773,26 +752,26 @@ goog.scope(function() {
      * @param {glsVertexArrayTests.deArray.OutputType} type
      * @return {string}
      */
-    glsVertexArrayTests.ContextArray.outputTypeToGLType = function (type) {
+    glsVertexArrayTests.ContextArray.outputTypeToGLType = function(type) {
         DE_ASSERT(type < Object.keys(glsVertexArrayTests.deArray.OutputType).length);
 
         /** @type {Array<string>} */ var types =
         [
-            "float",        // glsVertexArrayTests.deArray.OutputType.FLOAT
-            "vec2",         // glsVertexArrayTests.deArray.OutputType.VEC2
-            "vec3",         // glsVertexArrayTests.deArray.OutputType.VEC3
-            "vec4",         // glsVertexArrayTests.deArray.OutputType.VEC4
+            "float", // glsVertexArrayTests.deArray.OutputType.FLOAT
+            "vec2", // glsVertexArrayTests.deArray.OutputType.VEC2
+            "vec3", // glsVertexArrayTests.deArray.OutputType.VEC3
+            "vec4", // glsVertexArrayTests.deArray.OutputType.VEC4
 
-            "int",          // glsVertexArrayTests.deArray.OutputType.INT
-            "uint",         // glsVertexArrayTests.deArray.OutputType.UINT
+            "int", // glsVertexArrayTests.deArray.OutputType.INT
+            "uint", // glsVertexArrayTests.deArray.OutputType.UINT
 
-            "ivec2",        // glsVertexArrayTests.deArray.OutputType.IVEC2
-            "ivec3",        // glsVertexArrayTests.deArray.OutputType.IVEC3
-            "ivec4",        // glsVertexArrayTests.deArray.OutputType.IVEC4
+            "ivec2", // glsVertexArrayTests.deArray.OutputType.IVEC2
+            "ivec3", // glsVertexArrayTests.deArray.OutputType.IVEC3
+            "ivec4", // glsVertexArrayTests.deArray.OutputType.IVEC4
 
-            "uvec2",        // glsVertexArrayTests.deArray.OutputType.UVEC2
-            "uvec3",        // glsVertexArrayTests.deArray.OutputType.UVEC3
-            "uvec4"         // glsVertexArrayTests.deArray.OutputType.UVEC4
+            "uvec2", // glsVertexArrayTests.deArray.OutputType.UVEC2
+            "uvec3", // glsVertexArrayTests.deArray.OutputType.UVEC3
+            "uvec4" // glsVertexArrayTests.deArray.OutputType.UVEC4
         ];
         DE_ASSERT(types.length == Object.keys(glsVertexArrayTests.deArray.OutputType).length);
 
@@ -801,15 +780,15 @@ goog.scope(function() {
 
     /**
      * @param {glsVertexArrayTests.deArray.Primitive} primitive
-     * @return {GLenum}
+     * @return {number}
      */
-    glsVertexArrayTests.ContextArray.primitiveToGL = function (primitive) {
-        /** @type {Array<GLenum>} */ var primitives =
+    glsVertexArrayTests.ContextArray.primitiveToGL = function(primitive) {
+        /** @type {Array<number>} */ var primitives =
         [
-            gl.POINTS,          // glsVertexArrayTests.deArray.Primitive.POINTS
-            gl.TRIANGLES,       // glsVertexArrayTests.deArray.Primitive.TRIANGLES
-            gl.TRIANGLE_FAN,    // glsVertexArrayTests.deArray.Primitive.TRIANGLE_FAN
-            gl.TRIANGLE_STRIP   // glsVertexArrayTests.deArray.Primitive.TRIANGLE_STRIP
+            gl.POINTS, // glsVertexArrayTests.deArray.Primitive.POINTS
+            gl.TRIANGLES, // glsVertexArrayTests.deArray.Primitive.TRIANGLES
+            gl.TRIANGLE_FAN, // glsVertexArrayTests.deArray.Primitive.TRIANGLE_FAN
+            gl.TRIANGLE_STRIP // glsVertexArrayTests.deArray.Primitive.TRIANGLE_STRIP
         ];
         DE_ASSERT(primitives.length == Object.keys(glsVertexArrayTests.deArray.Primitive).length);
 
@@ -823,10 +802,10 @@ goog.scope(function() {
     glsVertexArrayTests.ContextArrayPack = function(drawContext) {
         /** @type {WebGLRenderingContextBase} */ this.m_renderCtx = gl;
         //TODO: Reference rasterizer implementation.
-        /** @type {GLContext} */ this.m_ctx = drawContext;
+        /** @type {sglrGLContext.GLContext | sglrReferenceContext.ReferenceContext} */ this.m_ctx = drawContext;
 
         /** @type {Array<glsVertexArrayTests.ContextArray>} */ this.m_arrays = [];
-        /** @type {ShaderProgram} */ this.m_program = glsVertexArrayTests.DE_NULL;
+        /** @type {sglrShaderProgram.ShaderProgram} */ this.m_program;
         /** @type {tcuSurface.Surface} */ this.m_screen = new tcuSurface.Surface(
             Math.min(512, canvas.width),
             Math.min(512, canvas.height)
@@ -836,14 +815,14 @@ goog.scope(function() {
     /**
      * @return {number}
      */
-    glsVertexArrayTests.ContextArrayPack.prototype.getArrayCount = function () {
+    glsVertexArrayTests.ContextArrayPack.prototype.getArrayCount = function() {
         return this.m_arrays.length;
     };
 
     /**
      * @param {glsVertexArrayTests.deArray.Storage} storage
      */
-    glsVertexArrayTests.ContextArrayPack.prototype.newArray = function (storage) {
+    glsVertexArrayTests.ContextArrayPack.prototype.newArray = function(storage) {
         this.m_arrays.push(new glsVertexArrayTests.ContextArray(storage, this.m_ctx));
     };
 
@@ -851,14 +830,14 @@ goog.scope(function() {
      * @param {number} i
      * @return {glsVertexArrayTests.ContextArray}
      */
-    glsVertexArrayTests.ContextArrayPack.prototype.getArray = function (i) {
+    glsVertexArrayTests.ContextArrayPack.prototype.getArray = function(i) {
         return this.m_arrays[i];
     };
 
     /**
      * updateProgram
      */
-    glsVertexArrayTests.ContextArrayPack.prototype.updateProgram = function () {
+    glsVertexArrayTests.ContextArrayPack.prototype.updateProgram = function() {
         this.m_program = new glsVertexArrayTests.ContextShaderProgram(this.m_renderCtx, this.m_arrays);
     };
 
@@ -870,8 +849,8 @@ goog.scope(function() {
      * @param {number} coordScale
      * @param {number} colorScale
      */
-    glsVertexArrayTests.ContextArrayPack.prototype.render = function (primitive, firstVertex, vertexCount, useVao, coordScale, colorScale) {
-        /** @type {number} */ var program = 0;
+    glsVertexArrayTests.ContextArrayPack.prototype.render = function(primitive, firstVertex, vertexCount, useVao, coordScale, colorScale) {
+        /** @type {number} */ var program;
         /** @type {number} */ var vaoID = 0;
 
         this.updateProgram();
@@ -893,12 +872,12 @@ goog.scope(function() {
             this.m_ctx.bindVertexArray(vaoID);
         }
 
+        /** @type {string} */ var attribName;
+        /** @type {number} */ var loc;
         for (var arrayNdx = 0; arrayNdx < this.m_arrays.length; arrayNdx++) {
             if (this.m_arrays[arrayNdx].isBound()) {
-                /** @type {string} */ var attribName;
                 attribName = 'a_' + this.m_arrays[arrayNdx].getAttribNdx();
-
-                /** @type {number} */ var loc = this.m_ctx.getAttribLocation(program, attribName);
+                loc = this.m_ctx.getAttribLocation(program, attribName);
                 this.m_ctx.enableVertexAttribArray(loc);
                 glsVertexArrayTests.GLU_EXPECT_NO_ERROR(this.m_ctx.getError(), "gl.enableVertexAttribArray()");
 
@@ -908,15 +887,13 @@ goog.scope(function() {
 
         DE_ASSERT((firstVertex % 6) == 0);
         //this.m_ctx.drawArrays(glsVertexArrayTests.ContextArray.primitiveToGL(primitive), firstVertex, vertexCount - firstVertex);
-        this.m_ctx.drawQuads(glsVertexArrayTests.ContextArray.primitiveToGL(primitive), firstVertex, vertexCount - firstVertex);
+        this.m_ctx.drawQuads(firstVertex, Math.floor(vertexCount - firstVertex) / 6);
         glsVertexArrayTests.GLU_EXPECT_NO_ERROR(this.m_ctx.getError(), "gl.drawArrays()");
 
         for (var arrayNdx = 0; arrayNdx < this.m_arrays.length; arrayNdx++) {
             if (this.m_arrays[arrayNdx].isBound()) {
-                /** @type {string} */ var attribName;
                 attribName = "a_" + this.m_arrays[arrayNdx].getAttribNdx();
-
-                /** @type {number} */ var loc = this.m_ctx.getAttribLocation(program, attribName);
+                loc = this.m_ctx.getAttribLocation(program, attribName);
 
                 this.m_ctx.disableVertexAttribArray(loc);
                 glsVertexArrayTests.GLU_EXPECT_NO_ERROR(this.m_ctx.getError(), "gl.disableVertexAttribArray()");
@@ -928,13 +905,13 @@ goog.scope(function() {
 
         this.m_ctx.deleteProgram(program);
         this.m_ctx.useProgram(null);
-        this.m_ctx.readPixels(this.m_screen, 0, 0, this.m_screen.getWidth(), this.m_screen.getHeight());
+        this.m_ctx.readPixels(0, 0, this.m_screen.getWidth(), this.m_screen.getHeight(), gl.RGBA, gl.UNSIGNED_BYTE, this.m_screen.getAccess().getDataPtr());
     };
 
     /**
      * @return {tcuSurface.Surface}
      */
-    glsVertexArrayTests.ContextArrayPack.prototype.getSurface = function () { return this.m_screen; };
+    glsVertexArrayTests.ContextArrayPack.prototype.getSurface = function() { return this.m_screen; };
 
     /**
      * glsVertexArrayTests.ContextShaderProgram class
@@ -943,13 +920,12 @@ goog.scope(function() {
      * @param {WebGLRenderingContextBase | sglrReferenceContext.ReferenceContext} ctx
      * @param {Array<glsVertexArrayTests.ContextArray>} arrays
      */
-    glsVertexArrayTests.ContextShaderProgram = function (ctx, arrays) {
+    glsVertexArrayTests.ContextShaderProgram = function(ctx, arrays) {
         sglrShaderProgram.ShaderProgram.call(this, this.createProgramDeclaration(ctx, arrays));
         this.m_componentCount = new Array(arrays.length);
         /** @type {Array<rrGenericVector.GenericVecType>} */ this.m_attrType = new Array(arrays.length);
 
-        for(var arrayNdx = 0; arrayNdx < arrays.length; arrayNdx++)
-        {
+        for(var arrayNdx = 0; arrayNdx < arrays.length; arrayNdx++) {
             this.m_componentCount[arrayNdx] = this.getComponentCount(arrays[arrayNdx].getOutputType());
             this.m_attrType[arrayNdx] = this.mapOutputType(arrays[arrayNdx].getOutputType());
         }
@@ -966,7 +942,7 @@ goog.scope(function() {
      * @param {boolean} isCoordinate
      * @param {number} numComponents
      */
-    glsVertexArrayTests.calcShaderColorCoord = function (coord, color, attribValue, isCoordinate, numComponents) {
+    glsVertexArrayTests.calcShaderColorCoord = function(coord, color, attribValue, isCoordinate, numComponents) {
         if (isCoordinate)
             switch (numComponents) {
                 case 1:
@@ -987,9 +963,7 @@ goog.scope(function() {
                     break;
                 default:
                     throw new Error('glsVertexArrayTests.calcShaderColorCoord - Invalid number of components');
-            }
-        else
-        {
+            } else {
             switch (numComponents) {
                 case 1:
                     color[0] = color[0] * attribValue[0];
@@ -1020,7 +994,7 @@ goog.scope(function() {
      * @param {Array<rrVertexPacket.VertexPacket>} packets
      * @param {number} numPackets
      */
-    glsVertexArrayTests.ContextShaderProgram.prototype.shadeVertices = function (inputs, packets, numPackets) {
+    glsVertexArrayTests.ContextShaderProgram.prototype.shadeVertices = function(inputs, packets, numPackets) {
         /** @type {number} */ var u_coordScale = this.getUniformByName("u_coordScale").value;
         /** @type {number} */ var u_colorScale = this.getUniformByName("u_colorScale").value;
 
@@ -1052,7 +1026,7 @@ goog.scope(function() {
      * @param {Array<rrFragmentPacket.FragmentPacket>} packets
      * @param {rrShadingContext.FragmentShadingContext} context
      */
-    glsVertexArrayTests.ContextShaderProgram.prototype.shadeFragments = function (packets, /*numPackets,*/ context) {
+    glsVertexArrayTests.ContextShaderProgram.prototype.shadeFragments = function(packets, /*numPackets,*/ context) {
         var varyingLocColor = 0;
 
         // Triangles are flashaded
@@ -1060,26 +1034,25 @@ goog.scope(function() {
 
         // Normal shading
         for (var packetNdx = 0; packetNdx < packets.length; ++packetNdx)
-            packets[packetNdx].color = rrShadingContext.readTriangleVarying(packets[packetNdx], context, varyingLocColor /*, 0*/);
+            packets[packetNdx].output = rrShadingContext.readTriangleVarying(packets[packetNdx], context, varyingLocColor /*, 0*/);
             /*for (int fragNdx = 0; fragNdx < 4; ++fragNdx)
                 rr::writeFragmentOutput(context, packetNdx, fragNdx, 0, color);*/
     };
 
     /**
-     * @param {Array<Array<glsVertexArrayTests.ContextArray>>} arrays
+     * @param {Array<glsVertexArrayTests.ContextArray>} arrays
      * @return string
      */
-    glsVertexArrayTests.ContextShaderProgram.prototype.genVertexSource = function (arrays) {
+    glsVertexArrayTests.ContextShaderProgram.prototype.genVertexSource = function(arrays) {
         var vertexShaderSrc = '';
         var params = [];
 
-        params["VTX_IN"]        = "in";
-        params["VTX_OUT"]       = "out";
-        params["FRAG_IN"]       = "in";
-        params["FRAG_COLOR"]    = "dEQP_FragColor";
-        params["VTX_HDR"]       = "#version 300 es\n";
-        params["FRAG_HDR"]      = "#version 300 es\nlayout(location = 0) out mediump vec4 dEQP_FragColor;\n";
-
+        params["VTX_IN"] = "in";
+        params["VTX_OUT"] = "out";
+        params["FRAG_IN"] = "in";
+        params["FRAG_COLOR"] = "dEQP_FragColor";
+        params["VTX_HDR"] = "#version 300 es\n";
+        params["FRAG_HDR"] = "#version 300 es\nlayout(location = 0) out mediump vec4 dEQP_FragColor;\n";
 
         vertexShaderSrc += params['VTX_HDR'];
 
@@ -1092,7 +1065,7 @@ goog.scope(function() {
         'uniform highp float u_colorScale;\n' +
         params['VTX_OUT'] + ' mediump vec4 v_color;\n' +
         'void main(void)\n' +
-        '{\n' +
+        ' {\n' +
         '\tgl_PointSize = 1.0;\n' +
         '\thighp vec2 coord = vec2(1.0, 1.0);\n' +
         '\thighp vec3 color = vec3(1.0, 1.0, 1.0);\n';
@@ -1149,8 +1122,7 @@ goog.scope(function() {
                 continue;
             }
 
-            switch (arrays[arrayNdx].getOutputType())
-            {
+            switch (arrays[arrayNdx].getOutputType()) {
                 case (glsVertexArrayTests.deArray.OutputType.FLOAT):
                     vertexShaderSrc +=
                     "\tcolor = color * a_" + arrays[arrayNdx].getAttribNdx() + ";\n";
@@ -1188,7 +1160,7 @@ goog.scope(function() {
     /**
      * @return {string}
      */
-    glsVertexArrayTests.ContextShaderProgram.prototype.genFragmentSource = function () {
+    glsVertexArrayTests.ContextShaderProgram.prototype.genFragmentSource = function() {
         var params = [];
 
         params["VTX_IN"] = "in";
@@ -1203,7 +1175,7 @@ goog.scope(function() {
         var fragmentShaderSrc = params['FRAG_HDR'] +
         params['FRAG_IN'] + ' mediump vec4 v_color;\n' +
         'void main(void)\n' +
-        '{\n' +
+        ' {\n' +
         '\t' + params['FRAG_COLOR'] + ' = v_color;\n' +
         '}\n';
 
@@ -1214,7 +1186,7 @@ goog.scope(function() {
      * @param {glsVertexArrayTests.deArray.OutputType} type
      * @return {rrGenericVector.GenericVecType}
      */
-    glsVertexArrayTests.ContextShaderProgram.prototype.mapOutputType = function (type) {
+    glsVertexArrayTests.ContextShaderProgram.prototype.mapOutputType = function(type) {
         switch (type) {
             case (glsVertexArrayTests.deArray.OutputType.FLOAT):
             case (glsVertexArrayTests.deArray.OutputType.VEC2):
@@ -1236,7 +1208,6 @@ goog.scope(function() {
 
             default:
                 throw new Error('Invalid output type');
-                return rrGenericVector.GenericVecType.LAST;
         }
     };
 
@@ -1244,7 +1215,7 @@ goog.scope(function() {
      * @param {glsVertexArrayTests.deArray.OutputType} type
      * @return {number}
      */
-    glsVertexArrayTests.ContextShaderProgram.prototype.getComponentCount = function (type) {
+    glsVertexArrayTests.ContextShaderProgram.prototype.getComponentCount = function(type) {
         switch (type) {
             case (glsVertexArrayTests.deArray.OutputType.FLOAT):
             case (glsVertexArrayTests.deArray.OutputType.INT):
@@ -1268,23 +1239,22 @@ goog.scope(function() {
 
             default:
                 throw new Error('Invalid output type');
-                return 0;
         }
     };
 
     /**
-     * @param {Array<Array<glsVertexArrayTests.ContextArray>>} arrays
      * @param {WebGLRenderingContextBase | sglrReferenceContext.ReferenceContext} ctx
+     * @param {Array<glsVertexArrayTests.ContextArray>} arrays
      * @return {sglrShaderProgram.ShaderProgramDeclaration}
      */
-    glsVertexArrayTests.ContextShaderProgram.prototype.createProgramDeclaration = function (ctx, arrays) {
+    glsVertexArrayTests.ContextShaderProgram.prototype.createProgramDeclaration = function(ctx, arrays) {
         /** @type {sglrShaderProgram.ShaderProgramDeclaration} */ var decl = new sglrShaderProgram.ShaderProgramDeclaration();
 
         for (var arrayNdx = 0; arrayNdx < arrays.length; arrayNdx++)
             decl.pushVertexAttribute(new sglrShaderProgram.VertexAttribute('a_' + arrayNdx, this.mapOutputType(arrays[arrayNdx].getOutputType())));
 
         decl.pushVertexToFragmentVarying(new sglrShaderProgram.VertexToFragmentVarying(rrGenericVector.GenericVecType.FLOAT));
-        decl.pushFragmentOutput(rrGenericVector.GenericVecType.FLOAT);
+        decl.pushFragmentOutput(new sglrShaderProgram.FragmentOutput(rrGenericVector.GenericVecType.FLOAT));
 
         decl.pushVertexSource(new sglrShaderProgram.VertexSource(this.genVertexSource(/*ctx,*/ arrays))); //TODO: Check if we need to review the support of a given GLSL version (we'd need the ctx)
         decl.pushFragmentSource(new sglrShaderProgram.FragmentSource(this.genFragmentSource(/*ctx*/)));
@@ -1299,28 +1269,25 @@ goog.scope(function() {
      * glsVertexArrayTests.GLValue class
      * @constructor
      */
-    glsVertexArrayTests.GLValue = function () {
-        /** @type {Array | TypedArray} */ this.m_value = new Array(1);
-        this.m_value[0] = 0;
-        /** @type {glsVertexArrayTests.deArray.InputType} */ this.m_type = undefined;
+    glsVertexArrayTests.GLValue = function() {
+        /** @type {goog.NumberArray} */ this.m_value = [0];
+        /** @type {glsVertexArrayTests.deArray.InputType} */ this.m_type;
     };
 
     /**
      * @param {Uint8Array} dst
      * @param {glsVertexArrayTests.GLValue} val
      */
-    glsVertexArrayTests.copyGLValueToArray = function (dst, val)
-    {
+    glsVertexArrayTests.copyGLValueToArray = function(dst, val) {
         /** @type {Uint8Array} */ var val8 = new Uint8Array(val.m_value.buffer); // TODO: Fix encapsulation issue
         dst.set(val8);
     };
 
     /**
      * @param {Uint8Array} dst
-     * @param {TypedArray} src
+     * @param {goog.NumberArray} src
      */
-    glsVertexArrayTests.copyArray = function (dst, src)
-    {
+    glsVertexArrayTests.copyArray = function(dst, src) {
         /** @type {Uint8Array} */ var src8 = new Uint8Array(src.buffer).subarray(src.offset, src.offset + src.byteLength); // TODO: Fix encapsulation issue
         dst.set(src8);
     };
@@ -1330,19 +1297,19 @@ goog.scope(function() {
      * @param {number} value
      * @param {glsVertexArrayTests.deArray.InputType} type
      */
-    glsVertexArrayTests.GLValue.typeToTypedArray = function (value, type) {
+    glsVertexArrayTests.GLValue.typeToTypedArray = function(value, type) {
         var array;
 
         switch (type) {
             case glsVertexArrayTests.deArray.InputType.FLOAT:
                 array = new Float32Array(1);
                 break;
-            case glsVertexArrayTests.deArray.InputType.FIXED:
+            /*case glsVertexArrayTests.deArray.InputType.FIXED:
                 array = new Int32Array(1);
                 break;
             case glsVertexArrayTests.deArray.InputType.DOUBLE:
                 array = new Float32Array(1); // 64-bit?
-                break;
+                break;*/
 
             case glsVertexArrayTests.deArray.InputType.BYTE:
                 array = new Int8Array(1);
@@ -1387,7 +1354,7 @@ goog.scope(function() {
      * @param {number} value
      * @param {glsVertexArrayTests.deArray.InputType} type
      */
-    glsVertexArrayTests.GLValue.create = function (value, type) {
+    glsVertexArrayTests.GLValue.create = function(value, type) {
         var v = new glsVertexArrayTests.GLValue();
         v.m_value = glsVertexArrayTests.GLValue.typeToTypedArray(value, type);
         v.m_type = type;
@@ -1399,7 +1366,7 @@ goog.scope(function() {
      * @param {number} value
      * @return {number}
      */
-    glsVertexArrayTests.GLValue.halfToFloat = function (value) {
+    glsVertexArrayTests.GLValue.halfToFloat = function(value) {
         return tcuFloat.halfFloatToNumberNoDenorm(value);
     };
 
@@ -1407,8 +1374,7 @@ goog.scope(function() {
      * @param {number} f
      * @return {number}
      */
-    glsVertexArrayTests.GLValue.floatToHalf = function (f)
-    {
+    glsVertexArrayTests.GLValue.floatToHalf = function(f) {
         // No denorm support.
         return tcuFloat.numberToHalfFloatNoDenorm(f);
     }
@@ -1418,19 +1384,19 @@ goog.scope(function() {
      * @param {glsVertexArrayTests.deArray.InputType} type
      * @return {glsVertexArrayTests.GLValue}
      */
-    glsVertexArrayTests.GLValue.getMaxValue = function (type) {
+    glsVertexArrayTests.GLValue.getMaxValue = function(type) {
         var value;
 
         switch (type) {
             case glsVertexArrayTests.deArray.InputType.FLOAT:
-                value =  127;
+                value = 127;
                 break;
-            case glsVertexArrayTests.deArray.InputType.FIXED:
+            /*case glsVertexArrayTests.deArray.InputType.FIXED:
                 value = 32760;
                 break;
             case glsVertexArrayTests.deArray.InputType.DOUBLE:
                 value = 127;
-                break;
+                break;*/
             case glsVertexArrayTests.deArray.InputType.BYTE:
                 value = 127;
                 break;
@@ -1464,19 +1430,19 @@ goog.scope(function() {
      * @param {glsVertexArrayTests.deArray.InputType} type
      * @return {glsVertexArrayTests.GLValue}
      */
-    glsVertexArrayTests.GLValue.getMinValue = function (type) {
+    glsVertexArrayTests.GLValue.getMinValue = function(type) {
         var value;
 
         switch (type) {
             case glsVertexArrayTests.deArray.InputType.FLOAT:
-                value =  -127;
+                value = -127;
                 break;
-            case glsVertexArrayTests.deArray.InputType.FIXED:
+            /*case glsVertexArrayTests.deArray.InputType.FIXED:
                 value = -32760;
                 break;
             case glsVertexArrayTests.deArray.InputType.DOUBLE:
                 value = -127;
-                break;
+                break;*/
             case glsVertexArrayTests.deArray.InputType.BYTE:
                 value = -127;
                 break;
@@ -1513,7 +1479,7 @@ goog.scope(function() {
      * @param {glsVertexArrayTests.GLValue} max
      * @return {glsVertexArrayTests.GLValue}
      */
-    glsVertexArrayTests.GLValue.getRandom = function (rnd, min, max) {
+    glsVertexArrayTests.GLValue.getRandom = function(rnd, min, max) {
         DE_ASSERT(min.getType() == max.getType());
 
         var minv = min.interpret();
@@ -1526,16 +1492,16 @@ goog.scope(function() {
 
         switch (type) {
             case glsVertexArrayTests.deArray.InputType.FLOAT:
-            case glsVertexArrayTests.deArray.InputType.DOUBLE:
+            //case glsVertexArrayTests.deArray.InputType.DOUBLE:
             case glsVertexArrayTests.deArray.InputType.HALF: {
                 return glsVertexArrayTests.GLValue.create(minv + rnd.getFloat() * (maxv - minv), type);
                 break;
             }
 
-            case glsVertexArrayTests.deArray.InputType.FIXED: {
+            /*case glsVertexArrayTests.deArray.InputType.FIXED: {
                 return minv == maxv ? min : glsVertexArrayTests.GLValue.create(minv + rnd.getInt() % (maxv - minv), type);
                 break;
-            }
+            }*/
 
             case glsVertexArrayTests.deArray.InputType.SHORT:
             case glsVertexArrayTests.deArray.InputType.UNSIGNED_SHORT:
@@ -1559,20 +1525,20 @@ goog.scope(function() {
      * @param {glsVertexArrayTests.deArray.InputType} type
      * @return {glsVertexArrayTests.GLValue}
      */
-    glsVertexArrayTests.GLValue.minValue = function (type) {
+    glsVertexArrayTests.GLValue.minValue = function(type) {
         switch (type) {
             case glsVertexArrayTests.deArray.InputType.FLOAT:
             case glsVertexArrayTests.deArray.InputType.BYTE:
             case glsVertexArrayTests.deArray.InputType.HALF:
-            case glsVertexArrayTests.deArray.InputType.DOUBLE:
+            //case glsVertexArrayTests.deArray.InputType.DOUBLE:
                 return glsVertexArrayTests.GLValue.create(4, type);
             case glsVertexArrayTests.deArray.InputType.SHORT:
             case glsVertexArrayTests.deArray.InputType.UNSIGNED_SHORT:
                 return glsVertexArrayTests.GLValue.create(4 * 256, type);
             case glsVertexArrayTests.deArray.InputType.UNSIGNED_BYTE:
                 return glsVertexArrayTests.GLValue.create(4 * 2, type);
-            case glsVertexArrayTests.deArray.InputType.FIXED:
-                return glsVertexArrayTests.GLValue.create(4 * 512, type);
+            /*case glsVertexArrayTests.deArray.InputType.FIXED:
+                return glsVertexArrayTests.GLValue.create(4 * 512, type);*/
             case glsVertexArrayTests.deArray.InputType.INT:
             case glsVertexArrayTests.deArray.InputType.UNSIGNED_INT:
                 return glsVertexArrayTests.GLValue.create(4 * 16777216, type);
@@ -1586,11 +1552,10 @@ goog.scope(function() {
      * @param {glsVertexArrayTests.GLValue} val
      * @return {glsVertexArrayTests.GLValue}
      */
-    glsVertexArrayTests.GLValue.abs = function (val)
-    {
+    glsVertexArrayTests.GLValue.abs = function(val) {
         var type = val.getType();
         switch(type) {
-            case glsVertexArrayTests.deArray.InputType.FIXED:
+            //case glsVertexArrayTests.deArray.InputType.FIXED:
             case glsVertexArrayTests.deArray.InputType.SHORT:
                 return glsVertexArrayTests.GLValue.create(0x7FFF & val.getValue(), type);
             case glsVertexArrayTests.deArray.InputType.BYTE:
@@ -1601,7 +1566,7 @@ goog.scope(function() {
                 return val;
             case glsVertexArrayTests.deArray.InputType.FLOAT:
             case glsVertexArrayTests.deArray.InputType.HALF:
-            case glsVertexArrayTests.deArray.InputType.DOUBLE:
+            //case glsVertexArrayTests.deArray.InputType.DOUBLE:
                 return glsVertexArrayTests.GLValue.create(Math.abs(val.interpret()), type);
             case glsVertexArrayTests.deArray.InputType.INT:
                 return glsVertexArrayTests.GLValue.create(0x7FFFFFFF & val.getValue(), type);
@@ -1613,7 +1578,7 @@ goog.scope(function() {
     /**
      * @return {glsVertexArrayTests.deArray.InputType}
      */
-    glsVertexArrayTests.GLValue.prototype.getType = function () {
+    glsVertexArrayTests.GLValue.prototype.getType = function() {
         return this.m_type;
     };
 
@@ -1621,7 +1586,7 @@ goog.scope(function() {
      * glsVertexArrayTests.GLValue.toFloat
      * @return {number}
      */
-    glsVertexArrayTests.GLValue.prototype.toFloat = function () {
+    glsVertexArrayTests.GLValue.prototype.toFloat = function() {
         return this.interpret();
     };
 
@@ -1629,7 +1594,7 @@ goog.scope(function() {
      * glsVertexArrayTests.GLValue.getValue
      * @return {number}
      */
-    glsVertexArrayTests.GLValue.prototype.getValue = function () {
+    glsVertexArrayTests.GLValue.prototype.getValue = function() {
         return this.m_value[0];
     };
 
@@ -1638,13 +1603,13 @@ goog.scope(function() {
      * Only some types require this.
      * @return {number}
      */
-    glsVertexArrayTests.GLValue.prototype.interpret = function () {
+    glsVertexArrayTests.GLValue.prototype.interpret = function() {
         if (this.m_type == glsVertexArrayTests.deArray.InputType.HALF)
             return glsVertexArrayTests.GLValue.halfToFloat(this.m_value[0]);
-        else if (this.m_type == glsVertexArrayTests.deArray.InputType.FIXED) {
+        /*else if (this.m_type == glsVertexArrayTests.deArray.InputType.FIXED) {
             var maxValue = 65536;
             return Math.floor((2 * this.m_value[0] + 1) / (maxValue - 1));
-        }
+        }*/
 
         return this.m_value[0];
     };
@@ -1653,7 +1618,7 @@ goog.scope(function() {
      * @param {glsVertexArrayTests.GLValue} other
      * @return {glsVertexArrayTests.GLValue}
      */
-    glsVertexArrayTests.GLValue.prototype.add = function (other) {
+    glsVertexArrayTests.GLValue.prototype.add = function(other) {
         return glsVertexArrayTests.GLValue.create(this.interpret() + other.interpret(), this.m_type);
     };
 
@@ -1661,7 +1626,7 @@ goog.scope(function() {
      * @param {glsVertexArrayTests.GLValue} other
      * @return {glsVertexArrayTests.GLValue}
      */
-    glsVertexArrayTests.GLValue.prototype.mul = function (other) {
+    glsVertexArrayTests.GLValue.prototype.mul = function(other) {
         return glsVertexArrayTests.GLValue.create(this.interpret() * other.interpret(), this.m_type);
     };
 
@@ -1669,7 +1634,7 @@ goog.scope(function() {
      * @param {glsVertexArrayTests.GLValue} other
      * @return {glsVertexArrayTests.GLValue}
      */
-    glsVertexArrayTests.GLValue.prototype.div = function (other) {
+    glsVertexArrayTests.GLValue.prototype.div = function(other) {
         return glsVertexArrayTests.GLValue.create(this.interpret() / other.interpret(), this.m_type);
     };
 
@@ -1677,7 +1642,7 @@ goog.scope(function() {
      * @param {glsVertexArrayTests.GLValue} other
      * @return {glsVertexArrayTests.GLValue}
      */
-    glsVertexArrayTests.GLValue.prototype.sub = function (other) {
+    glsVertexArrayTests.GLValue.prototype.sub = function(other) {
         return glsVertexArrayTests.GLValue.create(this.interpret() - other.interpret(), this.m_type);
     };
 
@@ -1685,7 +1650,7 @@ goog.scope(function() {
      * @param {glsVertexArrayTests.GLValue} other
      * @return {glsVertexArrayTests.GLValue}
      */
-    glsVertexArrayTests.GLValue.prototype.addToSelf = function (other) {
+    glsVertexArrayTests.GLValue.prototype.addToSelf = function(other) {
         this.m_value[0] = this.interpret() + other.interpret();
         return this;
     };
@@ -1694,7 +1659,7 @@ goog.scope(function() {
      * @param {glsVertexArrayTests.GLValue} other
      * @return {glsVertexArrayTests.GLValue}
      */
-    glsVertexArrayTests.GLValue.prototype.subToSelf = function (other) {
+    glsVertexArrayTests.GLValue.prototype.subToSelf = function(other) {
         this.m_value[0] = this.interpret() - other.interpret();
         return this;
     };
@@ -1703,7 +1668,7 @@ goog.scope(function() {
      * @param {glsVertexArrayTests.GLValue} other
      * @return {glsVertexArrayTests.GLValue}
      */
-    glsVertexArrayTests.GLValue.prototype.mulToSelf = function (other) {
+    glsVertexArrayTests.GLValue.prototype.mulToSelf = function(other) {
         this.m_value[0] = this.interpret() * other.interpret();
         return this;
     };
@@ -1712,7 +1677,7 @@ goog.scope(function() {
      * @param {glsVertexArrayTests.GLValue} other
      * @return {glsVertexArrayTests.GLValue}
      */
-    glsVertexArrayTests.GLValue.prototype.divToSelf = function (other) {
+    glsVertexArrayTests.GLValue.prototype.divToSelf = function(other) {
         this.m_value[0] = this.interpret() / other.interpret();
         return this;
     };
@@ -1721,7 +1686,7 @@ goog.scope(function() {
      * @param {glsVertexArrayTests.GLValue} other
      * @return {boolean}
      */
-    glsVertexArrayTests.GLValue.prototype.equals = function (other) {
+    glsVertexArrayTests.GLValue.prototype.equals = function(other) {
         return this.m_value[0] == other.getValue();
     };
 
@@ -1729,7 +1694,7 @@ goog.scope(function() {
      * @param {glsVertexArrayTests.GLValue} other
      * @return {boolean}
      */
-    glsVertexArrayTests.GLValue.prototype.lessThan = function (other) {
+    glsVertexArrayTests.GLValue.prototype.lessThan = function(other) {
         return this.interpret() < other.interpret();
     };
 
@@ -1737,7 +1702,7 @@ goog.scope(function() {
      * @param {glsVertexArrayTests.GLValue} other
      * @return {boolean}
      */
-    glsVertexArrayTests.GLValue.prototype.greaterThan = function (other) {
+    glsVertexArrayTests.GLValue.prototype.greaterThan = function(other) {
         return this.interpret() > other.interpret();
     };
 
@@ -1745,7 +1710,7 @@ goog.scope(function() {
      * @param {glsVertexArrayTests.GLValue} other
      * @return {boolean}
      */
-    glsVertexArrayTests.GLValue.prototype.lessOrEqualThan = function (other) {
+    glsVertexArrayTests.GLValue.prototype.lessOrEqualThan = function(other) {
         return this.interpret() <= other.interpret();
     };
 
@@ -1753,14 +1718,14 @@ goog.scope(function() {
      * @param {glsVertexArrayTests.GLValue} other
      * @return {boolean}
      */
-    glsVertexArrayTests.GLValue.prototype.greaterOrEqualThan = function (other) {
+    glsVertexArrayTests.GLValue.prototype.greaterOrEqualThan = function(other) {
         return this.interpret() >= other.interpret();
     };
 
     /**
      * glsVertexArrayTests.RandomArrayGenerator class. Contains static methods only
      */
-    glsVertexArrayTests.RandomArrayGenerator = function () {};
+    glsVertexArrayTests.RandomArrayGenerator = function() {};
 
     /**
      * glsVertexArrayTests.RandomArrayGenerator.setData
@@ -1770,7 +1735,7 @@ goog.scope(function() {
      * @param {glsVertexArrayTests.GLValue} min
      * @param {glsVertexArrayTests.GLValue} max
      */
-    glsVertexArrayTests.RandomArrayGenerator.setData = function (data, type, rnd, min, max) {
+    glsVertexArrayTests.RandomArrayGenerator.setData = function(data, type, rnd, min, max) {
         // Parameter type is not necessary, but we'll use it to assert the created glsVertexArrayTests.GLValue is of the correct type.
         /** @type {glsVertexArrayTests.GLValue} */ var value = glsVertexArrayTests.GLValue.getRandom(rnd, min, max);
         DE_ASSERT(value.getType() == type);
@@ -1789,7 +1754,7 @@ goog.scope(function() {
      * @param {glsVertexArrayTests.deArray.InputType} type
      * @return {ArrayBuffer}
      */
-    glsVertexArrayTests.RandomArrayGenerator.generateArray = function (seed, min, max, count, componentCount, stride, type) {
+    glsVertexArrayTests.RandomArrayGenerator.generateArray = function(seed, min, max, count, componentCount, stride, type) {
         /** @type {ArrayBuffer} */ var data;
         /** @type {Uint8Array} */ var data8;
 
@@ -1810,16 +1775,15 @@ goog.scope(function() {
         return data;
     };
 
-
-    /*{
-        static char*    generateQuads           (int seed, int count, int componentCount, int offset, int stride, Array::Primitive primitive, Array::InputType type, glsVertexArrayTests.GLValue min, glsVertexArrayTests.GLValue max);
-        static char*    generatePerQuad         (int seed, int count, int componentCount, int stride, Array::Primitive primitive, Array::InputType type, glsVertexArrayTests.GLValue min, glsVertexArrayTests.GLValue max);
+    /* {
+        static char*    generateQuads (int seed, int count, int componentCount, int offset, int stride, Array::Primitive primitive, Array::InputType type, glsVertexArrayTests.GLValue min, glsVertexArrayTests.GLValue max);
+        static char*    generatePerQuad (int seed, int count, int componentCount, int stride, Array::Primitive primitive, Array::InputType type, glsVertexArrayTests.GLValue min, glsVertexArrayTests.GLValue max);
 
     private:
         template<typename T>
-        static char*    createQuads     (int seed, int count, int componentCount, int offset, int stride, Array::Primitive primitive, T min, T max);
+        static char*    createQuads (int seed, int count, int componentCount, int offset, int stride, Array::Primitive primitive, T min, T max);
         template<typename T>
-        static char*    createPerQuads  (int seed, int count, int componentCount, int stride, Array::Primitive primitive, T min, T max);
+        static char*    createPerQuads (int seed, int count, int componentCount, int stride, Array::Primitive primitive, T min, T max);
         static char*    createQuadsPacked (int seed, int count, int componentCount, int offset, int stride, Array::Primitive primitive);
     };*/
 
@@ -1835,13 +1799,13 @@ goog.scope(function() {
      * @param {glsVertexArrayTests.GLValue} max
      * @return {ArrayBuffer}
      */
-    glsVertexArrayTests.RandomArrayGenerator.generateQuads = function (seed, count, componentCount, offset, stride, primitive, type, min, max) {
+    glsVertexArrayTests.RandomArrayGenerator.generateQuads = function(seed, count, componentCount, offset, stride, primitive, type, min, max) {
         /** @type {ArrayBuffer} */ var data;
 
         switch (type) {
             case glsVertexArrayTests.deArray.InputType.FLOAT:
-            case glsVertexArrayTests.deArray.InputType.FIXED:
-            case glsVertexArrayTests.deArray.InputType.DOUBLE:
+            /*case glsVertexArrayTests.deArray.InputType.FIXED:
+            case glsVertexArrayTests.deArray.InputType.DOUBLE:*/
             case glsVertexArrayTests.deArray.InputType.BYTE:
             case glsVertexArrayTests.deArray.InputType.SHORT:
             case glsVertexArrayTests.deArray.InputType.UNSIGNED_BYTE:
@@ -1874,13 +1838,13 @@ goog.scope(function() {
      * @param {glsVertexArrayTests.deArray.Primitive} primitive
      * @return {ArrayBuffer}
      */
-    glsVertexArrayTests.RandomArrayGenerator.createQuadsPacked = function (seed, count, componentCount, offset, stride, primitive) {
+    glsVertexArrayTests.RandomArrayGenerator.createQuadsPacked = function(seed, count, componentCount, offset, stride, primitive) {
         DE_ASSERT(componentCount == 4);
         //DE_UNREF(componentCount); // TODO: Check this
         /** @type {number} */ var quadStride = 0;
 
         if (stride == 0)
-            stride = deMath.deUint32_size;
+            stride = deMath.int32_size;
 
         switch (primitive) {
             case glsVertexArrayTests.deArray.Primitive.TRIANGLES:
@@ -1893,33 +1857,33 @@ goog.scope(function() {
         }
 
         /** @type {ArrayBuffer} */ var _data = new ArrayBuffer[offset + quadStride * (count - 1) + stride * 5 + componentCount * glsVertexArrayTests.deArray.inputTypeSize(glsVertexArrayTests.deArray.InputType.INT_2_10_10_10)]; // last element must be fully in the array
-        /** @type {Uint8Array} */ var resultData  = new Uint8Array(_data).subarray(offset);
+        /** @type {Uint8Array} */ var resultData = new Uint8Array(_data).subarray(offset);
 
-        /** @type {deMath.deUint32} */ var max = 1024;
-        /** @type {deMath.deUint32} */ var min = 10;
-        /** @type {deMath.deUint32} */ var max2 = 4;
+        /** @type {number} */ var max = 1024;
+        /** @type {number} */ var min = 10;
+        /** @type {number} */ var max2 = 4;
 
         var rnd = new deRandom.Random(seed);
 
         switch (primitive) {
             case glsVertexArrayTests.deArray.Primitive.TRIANGLES: {
                 for (var quadNdx = 0; quadNdx < count; quadNdx++) {
-                    /** @type {deMath.deUint32} */ var x1 = min + rnd.getInt() % (max - min);
-                    /** @type {deMath.deUint32} */ var x2 = min + rnd.getInt() % (max - x1);
+                    /** @type {number} */ var x1 = min + rnd.getInt() % (max - min);
+                    /** @type {number} */ var x2 = min + rnd.getInt() % (max - x1);
 
-                    /** @type {deMath.deUint32} */ var y1 = min + rnd.getInt() % (max - min);
-                    /** @type {deMath.deUint32} */ var y2 = min + rnd.getInt() % (max - y1);
+                    /** @type {number} */ var y1 = min + rnd.getInt() % (max - min);
+                    /** @type {number} */ var y2 = min + rnd.getInt() % (max - y1);
 
-                    /** @type {deMath.deUint32} */ var z  = min + rnd.getInt() % (max - min);
-                    /** @type {deMath.deUint32} */ var w  = rnd.getInt() % max2;
+                    /** @type {number} */ var z = min + rnd.getInt() % (max - min);
+                    /** @type {number} */ var w = rnd.getInt() % max2;
 
-                    /** @type {deMath.deUint32} */ var val1 = (w << 30) | (z << 20) | (y1 << 10) | x1;
-                    /** @type {deMath.deUint32} */ var val2 = (w << 30) | (z << 20) | (y1 << 10) | x2;
-                    /** @type {deMath.deUint32} */ var val3 = (w << 30) | (z << 20) | (y2 << 10) | x1;
+                    /** @type {number} */ var val1 = (w << 30) | (z << 20) | (y1 << 10) | x1;
+                    /** @type {number} */ var val2 = (w << 30) | (z << 20) | (y1 << 10) | x2;
+                    /** @type {number} */ var val3 = (w << 30) | (z << 20) | (y2 << 10) | x1;
 
-                    /** @type {deMath.deUint32} */ var val4 = (w << 30) | (z << 20) | (y2 << 10) | x1;
-                    /** @type {deMath.deUint32} */ var val5 = (w << 30) | (z << 20) | (y1 << 10) | x2;
-                    /** @type {deMath.deUint32} */ var val6 = (w << 30) | (z << 20) | (y2 << 10) | x2;
+                    /** @type {number} */ var val4 = (w << 30) | (z << 20) | (y2 << 10) | x1;
+                    /** @type {number} */ var val5 = (w << 30) | (z << 20) | (y1 << 10) | x2;
+                    /** @type {number} */ var val6 = (w << 30) | (z << 20) | (y2 << 10) | x2;
 
                     glsVertexArrayTests.copyArray(resultData.subarray(quadNdx * quadStride + stride * 0), new Uint32Array([val1]));
                     glsVertexArrayTests.copyArray(resultData.subarray(quadNdx * quadStride + stride * 1), new Uint32Array([val2]));
@@ -1951,7 +1915,7 @@ goog.scope(function() {
      * @param {glsVertexArrayTests.GLValue} max
      * @return {ArrayBuffer}
      */
-    glsVertexArrayTests.RandomArrayGenerator.createQuads = function (seed, count, componentCount, offset, stride, primitive, min, max) {
+    glsVertexArrayTests.RandomArrayGenerator.createQuads = function(seed, count, componentCount, offset, stride, primitive, min, max) {
         var componentStride = min.m_value.byteLength; //TODO: Fix encapsulation issue
         var quadStride = 0;
         var type = min.getType(); //Instead of using the template parameter.
@@ -2056,7 +2020,7 @@ goog.scope(function() {
      * @param {glsVertexArrayTests.GLValue} min
      * @param {glsVertexArrayTests.GLValue} max
      */
-    glsVertexArrayTests.RandomArrayGenerator.generatePerQuad = function (seed, count, componentCount, stride, primitive, type, min, max) {
+    glsVertexArrayTests.RandomArrayGenerator.generatePerQuad = function(seed, count, componentCount, stride, primitive, type, min, max) {
         /** @type {ArrayBuffer} */ var data = glsVertexArrayTests.DE_NULL;
 
         data = glsVertexArrayTests.RandomArrayGenerator.createPerQuads(seed, count, componentCount, stride, primitive, min, max);
@@ -2072,7 +2036,7 @@ goog.scope(function() {
      * @param {glsVertexArrayTests.GLValue} min
      * @param {glsVertexArrayTests.GLValue} max
      */
-    glsVertexArrayTests.RandomArrayGenerator.createPerQuads = function (seed, count, componentCount, stride, primitive, min, max) {
+    glsVertexArrayTests.RandomArrayGenerator.createPerQuads = function(seed, count, componentCount, stride, primitive, min, max) {
         var rnd = new deRandom.Random(seed);
 
         var componentStride = min.m_value.byteLength; //TODO: Fix encapsulation issue.
@@ -2141,9 +2105,9 @@ goog.scope(function() {
     /**
      * init
      */
-    glsVertexArrayTests.VertexArrayTest.prototype.init = function () {
+    glsVertexArrayTests.VertexArrayTest.prototype.init = function() {
         /** @type {number}*/ var renderTargetWidth = Math.min(512, canvas.width);
-        /** @type {number}*/ var renderTargetHeight  = Math.min(512, canvas.height);
+        /** @type {number}*/ var renderTargetHeight = Math.min(512, canvas.height);
         /** @type {sglrReferenceContext.ReferenceContextLimits} */ var limits = new sglrReferenceContext.ReferenceContextLimits(gl);
 
         //TODO: Reference rasterizer implementation.
@@ -2159,7 +2123,7 @@ goog.scope(function() {
     /**
      * compare
      */
-    glsVertexArrayTests.VertexArrayTest.prototype.compare = function () {
+    glsVertexArrayTests.VertexArrayTest.prototype.compare = function() {
         /** @type {tcuSurface.Surface} */ var ref = this.m_rrArrayPack.getSurface();
         /** @type {tcuSurface.Surface} */ var screen = this.m_glArrayPack.getSurface();
 
@@ -2167,8 +2131,7 @@ goog.scope(function() {
             // \todo [mika] Improve compare when using multisampling
             bufferedLogToConsole("Warning: Comparison of result from multisample render targets are not as strict as without multisampling. Might produce false positives!");
             this.m_isOk = tcuImageCompare.fuzzyCompare("Compare Results", "Compare Results", ref.getAccess(), screen.getAccess(), 1.5);
-        }
-        else {
+        } else {
             /** @type {tcuRGBA.RGBA} */ var threshold = new tcuRGBA.RGBA(this.m_maxDiffRed, this.m_maxDiffGreen, this.m_maxDiffBlue, 255);
             /** @type {tcuSurface.Surface} */ var error = new tcuSurface.Surface(ref.getWidth(), ref.getHeight());
 
@@ -2176,16 +2139,27 @@ goog.scope(function() {
 
             for (var y = 1; y < ref.getHeight()-1; y++) {
                 for (var x = 1; x < ref.getWidth()-1; x++) {
-                    /** @type {tcuRGBA.RGBA} */ var refPixel = ref.getPixel(x, y);
-                    /** @type {tcuRGBA.RGBA} */ var screenPixel = screen.getPixel(x, y);
+                    /** @type {tcuRGBA.RGBA} */ var refPixel = tcuRGBA.newRGBAFromArray(ref.getPixel(x, y));
+                    /** @type {tcuRGBA.RGBA} */ var screenPixel = tcuRGBA.newRGBAFromArray(screen.getPixel(x, y));
                     /** @type {boolean} */ var isOkPixel = false;
 
                     // Don't do comparisons for this pixel if it belongs to a one-pixel-thin part (i.e. it doesn't have similar-color neighbors in both x and y directions) in both result and reference.
                     // This fixes some false negatives.
-                    /** @type {boolean} */ var refThin = (!tcuRGBA.compareThreshold(refPixel, ref.getPixel(x - 1, y), threshold) && !tcuRGBA.compareThreshold(refPixel, ref.getPixel(x + 1, y), threshold)) ||
-                    (!tcuRGBA.compareThreshold(refPixel, ref.getPixel(x, y - 1), threshold) && !tcuRGBA.compareThreshold(refPixel, ref.getPixel(x, y + 1), threshold));
-                    /** @type {boolean} */ var screenThin = (!tcuRGBA.compareThreshold(screenPixel, screen.getPixel(x-1, y  ), threshold) && !tcuRGBA.compareThreshold(screenPixel, screen.getPixel(x + 1, y), threshold)) ||
-                    (!tcuRGBA.compareThreshold(screenPixel, screen.getPixel(x, y - 1), threshold) && !tcuRGBA.compareThreshold(screenPixel, screen.getPixel(x, y + 1), threshold));
+                    /** @type {boolean} */ var refThin = (
+                        !tcuRGBA.compareThreshold(refPixel, tcuRGBA.newRGBAFromArray(ref.getPixel(x - 1, y)), threshold) &&
+                        !tcuRGBA.compareThreshold(refPixel, tcuRGBA.newRGBAFromArray(ref.getPixel(x + 1, y)), threshold)
+                    ) || (
+                        !tcuRGBA.compareThreshold(refPixel, tcuRGBA.newRGBAFromArray(ref.getPixel(x, y - 1)), threshold) &&
+                        !tcuRGBA.compareThreshold(refPixel, tcuRGBA.newRGBAFromArray(ref.getPixel(x, y + 1)), threshold)
+                    );
+
+                    /** @type {boolean} */ var screenThin = (
+                        !tcuRGBA.compareThreshold(screenPixel, tcuRGBA.newRGBAFromArray(screen.getPixel(x - 1, y)), threshold) &&
+                        !tcuRGBA.compareThreshold(screenPixel, tcuRGBA.newRGBAFromArray(screen.getPixel(x + 1, y)), threshold)
+                    ) || (
+                        !tcuRGBA.compareThreshold(screenPixel, tcuRGBA.newRGBAFromArray(screen.getPixel(x, y - 1)), threshold) &&
+                        !tcuRGBA.compareThreshold(screenPixel, tcuRGBA.newRGBAFromArray(screen.getPixel(x, y + 1)), threshold)
+                    );
 
                     if (refThin && screenThin)
                         isOkPixel = true;
@@ -2193,7 +2167,7 @@ goog.scope(function() {
                         for (var dy = -1; dy < 2 && !isOkPixel; dy++) {
                             for (var dx = -1; dx < 2 && !isOkPixel; dx++) {
                                 // Check reference pixel against screen pixel
-                                /** @type {tcuRGBA.RGBA} */ var screenCmpPixel  = screen.getPixel(x + dx, y + dy);
+                                /** @type {tcuRGBA.RGBA} */ var screenCmpPixel = tcuRGBA.newRGBAFromArray(screen.getPixel(x + dx, y + dy));
                                 /** @type {deMath.deUint8} */ var r = Math.abs(refPixel.getRed() - screenCmpPixel.getRed());
                                 /** @type {deMath.deUint8} */ var g = Math.abs(refPixel.getGreen() - screenCmpPixel.getGreen());
                                 /** @type {deMath.deUint8} */ var b = Math.abs(refPixel.getBlue() - screenCmpPixel.getBlue());
@@ -2202,7 +2176,7 @@ goog.scope(function() {
                                     isOkPixel = true;
 
                                 // Check screen pixels against reference pixel
-                                /** @type {tcuRGBA.RGBA} */ var refCmpPixel = ref.getPixel(x+dx, y+dy);
+                                /** @type {tcuRGBA.RGBA} */ var refCmpPixel = tcuRGBA.newRGBAFromArray(ref.getPixel(x+dx, y+dy));
                                 r = Math.abs(refCmpPixel.getRed() - screenPixel.getRed());
                                 g = Math.abs(refCmpPixel.getGreen() - screenPixel.getGreen());
                                 b = Math.abs(refCmpPixel.getBlue() - screenPixel.getBlue());
@@ -2214,9 +2188,13 @@ goog.scope(function() {
                     }
 
                     if (isOkPixel)
-                        error.setPixel(x, y, tcuRGBA.RGBA(screen.getPixel(x, y).getRed(), (screen.getPixel(x, y).getGreen() + 255) / 2, screen.getPixel(x, y).getBlue(), 255));
+                        error.setPixel(x, y,
+                            [tcuRGBA.newRGBAFromArray(screen.getPixel(x, y)).getRed(),
+                            (tcuRGBA.newRGBAFromArray(screen.getPixel(x, y)).getGreen() + 255) / 2,
+                            tcuRGBA.newRGBAFromArray(screen.getPixel(x, y)).getBlue(), 255]
+                        );
                     else {
-                        error.setPixel(x, y, tcuRGBA.RGBA(255, 0, 0, 255));
+                        error.setPixel(x, y, [255, 0, 0, 255]);
                         this.m_isOk = false;
                     }
                 }
@@ -2225,18 +2203,15 @@ goog.scope(function() {
             if (!this.m_isOk) {
                 debug("Image comparison failed, threshold = (" + this.m_maxDiffRed + ", " + this.m_maxDiffGreen + ", " + this.m_maxDiffBlue + ")");
                 //log << TestLog::ImageSet("Compare result", "Result of rendering");
-                tcuImageCompare.displayImages("Result",     "Result",       screen);
-                tcuImageCompare.displayImages("Reference",  "Reference",    ref);
-                tcuImageCompare.displayImages("ErrorMask",  "Error mask",   error);
-            }
-            else {
+                tcuImageCompare.displayImages(screen.getAccess(), ref.getAccess(), error.getAccess());
+            } else {
                 //log << TestLog::ImageSet("Compare result", "Result of rendering")
-                tcuImageCompare.displayImages("Result", "Result", screen);
+                tcuImageCompare.displayImages(screen.getAccess(), null, null);
             }
         }
     };
 
-    //TODO: Is this actually used? -> glsVertexArrayTests.VertexArrayTest&                operator=           (const glsVertexArrayTests.VertexArrayTest& other);
+    //TODO: Is this actually used? -> glsVertexArrayTests.VertexArrayTest& operator= (const glsVertexArrayTests.VertexArrayTest& other);
 
     /**
      * glsVertexArrayTests.MultiVertexArrayTest class
@@ -2246,7 +2221,7 @@ goog.scope(function() {
      * @param {string} name
      * @param {string} desc
      */
-    glsVertexArrayTests.MultiVertexArrayTest = function (spec, name, desc) {
+    glsVertexArrayTests.MultiVertexArrayTest = function(spec, name, desc) {
         glsVertexArrayTests.VertexArrayTest.call(this, name, desc);
 
         /** @type {glsVertexArrayTests.MultiVertexArrayTest.Spec} */ this.m_spec = spec;
@@ -2260,7 +2235,7 @@ goog.scope(function() {
      * glsVertexArrayTests.MultiVertexArrayTest.Spec class
      * @constructor
      */
-    glsVertexArrayTests.MultiVertexArrayTest.Spec = function () {
+    glsVertexArrayTests.MultiVertexArrayTest.Spec = function() {
         /** @type {glsVertexArrayTests.deArray.Primitive} */ this.primitive = undefined;
         /** @type {number} */ this.drawCount = 0;
         /** @type {number} */ this.first = 0;
@@ -2281,7 +2256,7 @@ goog.scope(function() {
      * @param {glsVertexArrayTests.GLValue} min_
      * @param {glsVertexArrayTests.GLValue} max_
      */
-    glsVertexArrayTests.MultiVertexArrayTest.Spec.ArraySpec = function (inputType_, outputType_, storage_, usage_, componentCount_, offset_, stride_, normalize_, min_, max_) {
+    glsVertexArrayTests.MultiVertexArrayTest.Spec.ArraySpec = function(inputType_, outputType_, storage_, usage_, componentCount_, offset_, stride_, normalize_, min_, max_) {
         this.inputType = inputType_;
         this.outputType = outputType_;
         this.storage = storage_;
@@ -2298,7 +2273,7 @@ goog.scope(function() {
      * getName
      * @return {string}
      */
-    glsVertexArrayTests.MultiVertexArrayTest.Spec.prototype.getName = function () {
+    glsVertexArrayTests.MultiVertexArrayTest.Spec.prototype.getName = function() {
         var name = '';
 
         for (var ndx = 0; ndx < this.arrays.length; ++ndx) {
@@ -2345,7 +2320,7 @@ goog.scope(function() {
      * getName
      * @return {string}
      */
-    glsVertexArrayTests.MultiVertexArrayTest.Spec.prototype.getDesc = function () {
+    glsVertexArrayTests.MultiVertexArrayTest.Spec.prototype.getDesc = function() {
         var desc = '';
 
         for (var ndx = 0; ndx < this.arrays.length; ++ndx) {
@@ -2384,7 +2359,7 @@ goog.scope(function() {
      * iterate
      * @return {tcuTestCase.runner.IterateResult}
      */
-    glsVertexArrayTests.MultiVertexArrayTest.prototype.iterate = function () {
+    glsVertexArrayTests.MultiVertexArrayTest.prototype.iterate = function() {
         if (this.m_iteration == 0) {
             var primitiveSize = (this.m_spec.primitive == glsVertexArrayTests.deArray.Primitive.TRIANGLES) ? (6) : (1); // in non-indexed draw Triangles means rectangles
             var coordScale = 1.0;
@@ -2403,22 +2378,18 @@ goog.scope(function() {
                     coordScale = 1;
                 else
                     coordScale = 1 / 1024;
-            }
-            else if (arraySpec.inputType == glsVertexArrayTests.deArray.InputType.INT_2_10_10_10)
-            {
+            } else if (arraySpec.inputType == glsVertexArrayTests.deArray.InputType.INT_2_10_10_10) {
                 if (arraySpec.normalize)
                     coordScale = 1.0;
                 else
                     coordScale = 1.0 / 512.0;
-            }
-            else
+            } else
                 coordScale = arraySpec.normalize && !glsVertexArrayTests.inputTypeIsFloatType(arraySpec.inputType) ? 1.0 : 0.9 / arraySpec.max.toFloat();
 
             if (arraySpec.outputType == glsVertexArrayTests.deArray.OutputType.VEC3 || arraySpec.outputType == glsVertexArrayTests.deArray.OutputType.VEC4
                 || arraySpec.outputType == glsVertexArrayTests.deArray.OutputType.IVEC3 || arraySpec.outputType == glsVertexArrayTests.deArray.OutputType.IVEC4
                 || arraySpec.outputType == glsVertexArrayTests.deArray.OutputType.UVEC3 || arraySpec.outputType == glsVertexArrayTests.deArray.OutputType.UVEC4)
                 coordScale = coordScale * 0.5;
-
 
             // And other arrays are color-like
             for (var arrayNdx = 1; arrayNdx < this.m_spec.arrays.length; arrayNdx++) {
@@ -2436,7 +2407,7 @@ goog.scope(function() {
                 /** @type {number} */ var seed = arraySpec.inputType + 10 * arraySpec.outputType + 100 * arraySpec.storage + 1000 * this.m_spec.primitive + 10000 * arraySpec.usage + this.m_spec.drawCount + 12 * arraySpec.componentCount + arraySpec.stride + arraySpec.normalize;
                 /** @type {ArrayBuffer} */ var data = glsVertexArrayTests.DE_NULL;
                 /** @type {number} */ var stride = arraySpec.stride == 0 ? arraySpec.componentCount * glsVertexArrayTests.deArray.inputTypeSize(arraySpec.inputType) : arraySpec.stride;
-                /** @type {number} */ var bufferSize = arraySpec.offset + stride * (this.m_spec.drawCount * primitiveSize - 1) + arraySpec.componentCount  * glsVertexArrayTests.deArray.inputTypeSize(arraySpec.inputType);
+                /** @type {number} */ var bufferSize = arraySpec.offset + stride * (this.m_spec.drawCount * primitiveSize - 1) + arraySpec.componentCount * glsVertexArrayTests.deArray.inputTypeSize(arraySpec.inputType);
 
                 switch (this.m_spec.primitive) {
                     //          case glsVertexArrayTests.deArray.Primitive.POINTS:
@@ -2445,8 +2416,7 @@ goog.scope(function() {
                     case glsVertexArrayTests.deArray.Primitive.TRIANGLES:
                         if (arrayNdx == 0) {
                             data = glsVertexArrayTests.RandomArrayGenerator.generateQuads(seed, this.m_spec.drawCount, arraySpec.componentCount, arraySpec.offset, arraySpec.stride, this.m_spec.primitive, arraySpec.inputType, arraySpec.min, arraySpec.max);
-                        }
-                        else {
+                        } else {
                             DE_ASSERT(arraySpec.offset == 0); // \note [jarkko] it just hasn't been implemented
                             data = glsVertexArrayTests.RandomArrayGenerator.generatePerQuad(seed, this.m_spec.drawCount, arraySpec.componentCount, arraySpec.stride, this.m_spec.primitive, arraySpec.inputType, arraySpec.min, arraySpec.max);
                         }
@@ -2483,19 +2453,17 @@ goog.scope(function() {
                 else
                     throw new Error(err.message);
 
-                return tcuTestCase.runner.IterateResult.STOP;
+                return tcuTestCase.IterateResult.STOP;
             }
 
             this.m_iteration++;
-            return tcuTestCase.runner.IterateResult.CONTINUE;
-        }
-        else if (this.m_iteration == 1) {
+            return tcuTestCase.IterateResult.CONTINUE;
+        } else if (this.m_iteration == 1) {
             this.compare();
 
             if (this.m_isOk) {
                 testPassedOptions('', true);
-            }
-            else {
+            } else {
                 if (this.isUnalignedBufferOffsetTest())
                     testFailedOptions('Failed to draw with unaligned buffers', false); // QP_TEST_RESULT_COMPATIBILITY_WARNING
                 else if (this.isUnalignedBufferStrideTest())
@@ -2505,11 +2473,10 @@ goog.scope(function() {
             }
 
             this.m_iteration++;
-            return tcuTestCase.runner.IterateResult.STOP;
-        }
-        else {
+            return tcuTestCase.IterateResult.STOP;
+        } else {
             throw new Error('glsVertexArrayTests.MultiVertexArrayTest.iterate - Invalid iteration stage');
-            return tcuTestCase.runner.IterateResult.STOP;
+            return tcuTestCase.IterateResult.STOP;
         }
     };
 
@@ -2517,7 +2484,7 @@ goog.scope(function() {
      * isUnalignedBufferOffsetTest
      * @return {boolean}
      */
-    glsVertexArrayTests.MultiVertexArrayTest.prototype.isUnalignedBufferOffsetTest = function () {
+    glsVertexArrayTests.MultiVertexArrayTest.prototype.isUnalignedBufferOffsetTest = function() {
         // Buffer offsets should be data type size aligned
         for (var i = 0; i < this.m_spec.arrays.length; ++i) {
             if (this.m_spec.arrays[i].storage == glsVertexArrayTests.deArray.Storage.BUFFER) {
@@ -2538,7 +2505,7 @@ goog.scope(function() {
      * isUnalignedBufferStrideTest
      * @return {boolean}
      */
-    glsVertexArrayTests.MultiVertexArrayTest.prototype.isUnalignedBufferStrideTest = function () {
+    glsVertexArrayTests.MultiVertexArrayTest.prototype.isUnalignedBufferStrideTest = function() {
         // Buffer strides should be data type size aligned
         for (var i = 0; i < this.m_spec.arrays.length; ++i) {
             if (this.m_spec.arrays[i].storage == glsVertexArrayTests.deArray.Storage.BUFFER) {
@@ -2554,7 +2521,5 @@ goog.scope(function() {
         }
         return false;
     };
-
-
 
 });

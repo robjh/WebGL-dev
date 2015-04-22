@@ -35,7 +35,6 @@ goog.require('framework.referencerenderer.rrRenderer');
 goog.require('framework.referencerenderer.rrRenderState');
 goog.require('framework.referencerenderer.rrVertexAttrib');
 
-
 goog.scope(function() {
 
     var sglrGLContext = framework.opengl.simplereference.sglrGLContext;
@@ -89,7 +88,7 @@ goog.scope(function() {
             prototype = Object.getPrototypeOf(prototype);
         }
 
-        for(prototype in prototypes) {
+        for (prototype in prototypes) {
             var keys = Object.keys(prototypes[prototype]);
             for(var key in keys) {
                 var name = keys[key];
@@ -107,8 +106,8 @@ goog.scope(function() {
 
                 if (!exists) {
                     Object.getPrototypeOf(this)[name] = (
-                        function (originalobject, originalfunction) {
-                            return function () {
+                        function(originalobject, originalfunction) {
+                            return function() {
                                 return originalfunction.apply(originalobject, arguments);
                             };
                         }
@@ -119,18 +118,11 @@ goog.scope(function() {
     };
 
     /**
-     * Unimplemented error thrower
-     */
-    sglrGLContext.GLContext.prototype.notImplemented = function (name) {
-        throw new Error('Function ' + name + ' not yet implemented in sglrGLContext.GLContext');
-    };
-
-    /**
      * createProgram
      * @param {sglrShaderProgram.ShaderProgram} shader
-     * @return {WebGLProgram}
+     * @return {number}
      */
-    sglrGLContext.GLContext.prototype.createProgram = function (shader) {
+    sglrGLContext.GLContext.prototype.createProgram = function(shader) {
         /** @type {gluShaderProgram.ShaderProgram} */ var program = null;
 
         program = new gluShaderProgram.ShaderProgram(
@@ -147,14 +139,22 @@ goog.scope(function() {
         }
 
         this.m_programs.push(program);
-        return program.getProgram();
+        return this.m_programs.length - 1;
+    };
+
+    /**
+     * useProgram
+     * @param {number} shader
+     */
+    sglrGLContext.GLContext.prototype.useProgram = function(shader) {
+        this.m_context.useProgram(shader == null ? null : this.m_programs[shader].getProgram());
     };
 
     /**
      * createVertexArray - Creates a new vertex array object, stores it and returns the added array object.
      * @return {number} ID of created VAO
      */
-    sglrGLContext.GLContext.prototype.createVertexArray = function () {
+    sglrGLContext.GLContext.prototype.createVertexArray = function() {
         var currentlength = this.m_allocatedVaos.length;
 
         var createdArray = this.m_context.createVertexArray();
@@ -166,5 +166,4 @@ goog.scope(function() {
         return this.m_allocatedVaos[currentlength];
     };
 
-    
 });
