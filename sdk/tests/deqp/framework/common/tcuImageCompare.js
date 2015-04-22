@@ -152,10 +152,9 @@ tcuImageCompare.displayImages = function(result, reference, diff) {
  * @param {tcuTexture.ConstPixelBufferAccess} reference Reference image
  * @param {tcuTexture.ConstPixelBufferAccess}result Result image
  * @param {Array<number>} threshold Maximum allowed difference
- * @param {tcuImageCompare.CompareLogMode=} logMode
  * @return {boolean} true if comparison passes, false otherwise
  */
-tcuImageCompare.intThresholdCompare = function(imageSetName, imageSetDesc, reference, result, threshold, logMode) {
+tcuImageCompare.intThresholdCompare = function(imageSetName, imageSetDesc, reference, result, threshold) {
     var width = reference.getWidth();
     var height = reference.getHeight();
     var depth = reference.getDepth();
@@ -370,11 +369,10 @@ tcuImageCompare.floatThresholdCompare = function(imageSetName, imageSetDesc, ref
  * @param {tcuSurface.Surface} reference Reference image
  * @param {tcuSurface.Surface} result Result image
  * @param {Array<number>} threshold Maximum allowed difference
- * @param {tcuImageCompare.CompareLogMode=} logMode
  * @return {boolean} true if comparison passes, false otherwise
  */
-tcuImageCompare.pixelThresholdCompare = function(imageSetName, imageSetDesc, reference, result, threshold, logMode) {
-    return tcuImageCompare.intThresholdCompare(imageSetName, imageSetDesc, reference.getAccess(), result.getAccess(), threshold, logMode);
+tcuImageCompare.pixelThresholdCompare = function(imageSetName, imageSetDesc, reference, result, threshold) {
+    return tcuImageCompare.intThresholdCompare(imageSetName, imageSetDesc, reference.getAccess(), result.getAccess(), threshold);
 };
 
  /**
