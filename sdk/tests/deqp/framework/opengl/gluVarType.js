@@ -54,10 +54,10 @@ goog.scope(function() {
      */
     gluVarType.VarType = function() {
         /**
-         * @type {number}
+         * @type {gluShaderUtil.precision}
          * @private
          */
-        this.m_flags = 0;
+        this.m_flags;
 
         /**
          * @type {number}
@@ -82,7 +82,7 @@ goog.scope(function() {
     /**
      * Creates a basic type gluVarType.VarType. Use this after the constructor call.
      * @param {number} basicType
-     * @param {number} flags
+     * @param {gluShaderUtil.precision} flags
      * @return {gluVarType.VarType} The currently modified object
      */
     gluVarType.VarType.prototype.VarTypeBasic = function(basicType, flags) {
@@ -101,7 +101,6 @@ goog.scope(function() {
      */
     gluVarType.VarType.prototype.VarTypeArray = function(elementType, arraySize) {
         this.m_type = gluVarType.Type.TYPE_ARRAY;
-        this.m_flags = 0;
         this.m_data = new gluVarType.TypeArray(elementType, arraySize);
 
         return this;
@@ -114,7 +113,6 @@ goog.scope(function() {
      */
     gluVarType.VarType.prototype.VarTypeStruct = function(structPtr) {
         this.m_type = gluVarType.Type.TYPE_STRUCT;
-        this.m_flags = 0;
         this.m_data = structPtr;
 
         return this;
@@ -158,7 +156,7 @@ goog.scope(function() {
     };
     
     /** getPrecision
-     * @return {number} returns the precision flag.
+     * @return {gluShaderUtil.precision} returns the precision flag.
      */
     gluVarType.VarType.prototype.getPrecision = function() {
         if (!this.isBasicType())
@@ -266,7 +264,7 @@ goog.scope(function() {
     /**
      * Creates a basic type gluVarType.VarType.
      * @param {gluShaderUtil.DataType} basicType
-     * @param {number} flags
+     * @param {framework.opengl.gluShaderUtil.precision} flags
      * @return {gluVarType.VarType}
      */
     gluVarType.newTypeBasic = function(basicType, flags) {
@@ -439,7 +437,7 @@ goog.scope(function() {
     /**
      * @param {gluVarType.VarType} varType
      * @param {string} name
-     * @param {number} level
+     * @param {number=} level
      * @return {string}
      */
     gluVarType.declareVariable = function(varType, name, level) {
@@ -484,7 +482,7 @@ goog.scope(function() {
 
     /**
      * @param {gluVarType.StructType} structType
-     * @param {number} level
+     * @param {number=} level
      * @return {string}
      */
     gluVarType.declareStructType = function(structType, level) {

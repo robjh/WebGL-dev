@@ -134,15 +134,8 @@ goog.scope(function() {
      * @constructor
      */
     gluVarTypeUtil.VarTypeComponent = function(type, index) {
-
-        this.type = null;
-        this.index = gluVarTypeUtil.VarTypeComponent.s_Type.length;
-
-        if (typeof(type) != 'undefined' && typeof(index) != 'undefined') {
-            this.type = type;
-            this.index = index;
-        }
-
+        /** @type {gluVarTypeUtil.VarTypeComponent.s_Type} */ this.type = type;
+        this.index = index || 0;
     };
     
     gluVarTypeUtil.VarTypeComponent.prototype.is = function(other) {
@@ -161,7 +154,6 @@ goog.scope(function() {
         MATRIX_COLUMN: 2,
         VECTOR_COMPONENT: 3
     };
-    gluVarTypeUtil.VarTypeComponent.s_Type.length = Object.keys(gluVarTypeUtil.VarTypeComponent.s_Type).length;
 
     /**
      * Type path formatter.
@@ -597,8 +589,8 @@ goog.scope(function() {
                 element = array[++pathIter];
             }
 
-            if (pathIter != end && pathIter.type == gluVarTypeUtil.VarTypeComponent.s_Type.VECTOR_COMPONENT) {
-                basicType = gluShaderUtil.getDataTypeScalarType(basicType);
+            if (pathIter != end && element.type == gluVarTypeUtil.VarTypeComponent.s_Type.VECTOR_COMPONENT) {
+                basicType = gluShaderUtil.getDataTypeScalarTypeAsDataType(basicType);
                 element = array[++pathIter];
             }
 
@@ -660,13 +652,13 @@ goog.scope(function() {
                     throw new Error('Member not found in type: ' + memberName);
                 }
 
-                path.push(gluVarTypeUtil.VarTypeComponent(gluVarTypeUtil.VarTypeComponent.s_Type.STRUCT_MEMBER, ndx));
+                path.push(new gluVarTypeUtil.VarTypeComponent(gluVarTypeUtil.VarTypeComponent.s_Type.STRUCT_MEMBER, ndx));
                 tokenizer.advance();
 
             } else if (tokenizer.getToken() == gluVarTypeUtil.VarTokenizer.s_Token.LEFT_BRACKET) {
 
                 tokenizer.advance();
-                if (tokenizer.getToken() != gluVarTypeUtil.VarTokenizer.s_Token.TOKEN_NUMBER) {
+                if (tokenizer.getToken() != gluVarTypeUtil.VarTokenizer.s_Token.NUMBER) {
                     throw new Error();
                 }
 
@@ -674,15 +666,15 @@ goog.scope(function() {
 
                 if (curType.isArrayType()) {
                     if (!gluVarTypeUtil.inBounds(ndx, 0, curType.getArraySize())) throw new Error;
-                    path.push(gluVarTypeUtil.VarTypeComponent(gluVarTypeUtil.VarTypeComponent.s_Type.ARRAY_ELEMENT, ndx));
+                    path.push(new gluVarTypeUtil.VarTypeComponent(gluVarTypeUtil.VarTypeComponent.s_Type.ARRAY_ELEMENT, ndx));
 
                 } else if (curType.isBasicType() && gluShaderUtil.isDataTypeMatrix(curType.getBasicType())) {
                     if (!gluVarTypeUtil.inBounds(ndx, 0, gluShaderUtil.getDataTypeMatrixNumColumns(curType.getBasicType()))) throw new Error;
-                    path.push(gluVarTypeUtil.VarTypeComponent(gluVarTypeUtil.VarTypeComponent.s_Type.MATRIX_COLUMN, ndx));
+                    path.push(new gluVarTypeUtil.VarTypeComponent(gluVarTypeUtil.VarTypeComponent.s_Type.MATRIX_COLUMN, ndx));
 
                 } else if (curType.isBasicType() && gluShaderUtil.isDataTypeVector(curType.getBasicType())) {
                     if (!gluVarTypeUtil.inBounds(ndx, 0, gluShaderUtil.getDataTypeScalarSize(curType.getBasicType()))) throw new Error;
-                    path.push(gluVarTypeUtil.VarTypeComponent(gluVarTypeUtil.VarTypeComponent.s_Type.VECTOR_COMPONENT, ndx));
+                    path.push(new gluVarTypeUtil.VarTypeComponent(gluVarTypeUtil.VarTypeComponent.s_Type.VECTOR_COMPONENT, ndx));
 
                 } else {
                     //TCU_FAIL
