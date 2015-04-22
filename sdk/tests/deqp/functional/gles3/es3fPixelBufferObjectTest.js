@@ -456,17 +456,17 @@ var tcuImageCompare = framework.common.tcuImageCompare;
         
         gl.deleteBuffer(pixelBuffer);
         
-        assertMsgOptions(isOk, this.getDescription(), true, true);//TODO
+        assertMsgOptions(isOk, this.getDescription(), true, true);
         
-        return tcuTestCase.runner.IterateResult.STOP;
+        return tcuTestCase.IterateResult.STOP;;
     }
 
     es3fPixelBufferObjectTest.init = function()
     {
-        var state = tcuTestCase.runner.getState();
+        var state = tcuTestCase.runner;
         /** @type {tcuTestCase.DeqpTest} */ var testGroup = state.testCases;
 
-        /** @type {tcuTestCase.DeqpTest} */ var nativeFramebufferGroup = new tcuTestCase.newTest('native', 'Tests with reading from native framebuffer');
+        /** @type {tcuTestCase.DeqpTest} */ var nativeFramebufferGroup = tcuTestCase.newTest('native', 'Tests with reading from native framebuffer');
 
         var nativeFramebufferTests = [
     		{
@@ -492,7 +492,7 @@ var tcuImageCompare = framework.common.tcuImageCompare;
 
         testGroup.addChild(nativeFramebufferGroup);
 
-        /** @type {tcuTestCase.DeqpTest} */ var renderbufferGroup = new tcuTestCase.newTest('renderbuffer', 'Tests with reading from renderbuffer');
+        /** @type {tcuTestCase.DeqpTest} */ var renderbufferGroup = tcuTestCase.newTest('renderbuffer', 'Tests with reading from renderbuffer');
 
         var renderbufferFormats = [
             gl.RGBA8,
@@ -577,7 +577,7 @@ var tcuImageCompare = framework.common.tcuImageCompare;
         //Set up Test Root parameters
         var testName = 'pixel_buffer_object';
         var testDescription = 'Pixel Buffer Object Tests';
-        var state = tcuTestCase.runner.getState();
+        var state = tcuTestCase.runner;
 
         state.testName = testName;
         state.testCases = tcuTestCase.newTest(testName, testDescription, null);

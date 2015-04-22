@@ -563,7 +563,7 @@ function assertMsg(assertion, msg) {
  * Variation of the assertMsg function, with the option to not show (and thus not count) the test's pass result,
  * and throw or not a TestFailedException in case of failure.
  * @param {boolean} assertion If this is true, means success, else failure.
- * @param {string} msg The message to be shown in the result.
+ * @param {?string} msg The message to be shown in the result.
  * @param {boolean} verbose In case of success, determines if the test will show it's result and count in the results.
  * @param {boolean} exthrow In case of failure, determines if the function will throw a TestFailedException.
  */
