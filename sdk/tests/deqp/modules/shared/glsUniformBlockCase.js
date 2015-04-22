@@ -238,10 +238,10 @@ glsUniformBlockCase.VarType.prototype.getFlags = function() {
 };
 
 /** getBasicType
-* @return {gluShaderUtil.DataType|glsUniformBlockCase.StructType|glsUniformBlockCase.TypeArray} returns the basic data type of the glsUniformBlockCase.VarType.
+* @return {gluShaderUtil.DataType} returns the basic data type of the glsUniformBlockCase.VarType.
 **/
 glsUniformBlockCase.VarType.prototype.getBasicType = function() {
-    return this.m_data;
+    return /** @type {gluShaderUtil.DataType} */ (this.m_data);
 };
 
 /** getElementType
@@ -260,10 +260,10 @@ glsUniformBlockCase.VarType.prototype.getArraySize = function() {
 };
 
 /** getStruct
-* @return {gluShaderUtil.DataType|glsUniformBlockCase.StructType|glsUniformBlockCase.TypeArray} returns the structure when it is a glsUniformBlockCase.StructType.
+* @return {glsUniformBlockCase.StructType} returns the structure when it is a glsUniformBlockCase.StructType.
 **/
 glsUniformBlockCase.VarType.prototype.getStruct = function() {
-    return this.m_data;
+    return /** @type {glsUniformBlockCase.StructType} */ (this.m_data);
 };
 
 /**
@@ -1556,7 +1556,7 @@ glsUniformBlockCase.generateValueSrc = function(entry, basePtr, elementNdx) {
 glsUniformBlockCase.generateCompareSrc_A = function(resultVar, type, srcName, apiName, layout, basePtr, unusedMask) {
     /** @type {string} */ var src = '';
     /** @type {string} */ var op;
-    /** @type {glsUniformBlockCase.VarType} */ var elementType;
+    /** @type {glsUniformBlockCase.VarType|gluShaderUtil.DataType} */ var elementType;
 
     if (type.isBasicType() || (type.isArrayType() && type.getElementType().isBasicType())) {
         // Basic type or array of basic types.
