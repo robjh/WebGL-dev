@@ -456,7 +456,7 @@ var tcuImageCompare = framework.common.tcuImageCompare;
         
         gl.deleteBuffer(pixelBuffer);
         
-        assertMsgOptions(isOk, this.getDescription(), true, true);//TODO
+        assertMsgOptions(isOk, this.getDescription(), true, true);
         
         return tcuTestCase.IterateResult.STOP;;
     }
