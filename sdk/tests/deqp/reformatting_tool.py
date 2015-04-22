@@ -170,9 +170,21 @@ rules = [
         'count': 0,
         'flags': re.MULTILINE
     },
-    { 
+    {
         'pattern': r'\{Array.<',
         'repl': '{Array<',
+        'count': 0,
+        'flags': re.MULTILINE
+    },
+    { # remove most calls to functions formerly in the gluDefs file
+        'pattern': r'[\n\s*]?gluDefs.GLU_EXPECT_NO_ERROR\(gl[\w]*.getError\(\), \'[^\']*\'\);',
+        'repl': '',
+        'count': 0,
+        'flags': re.MULTILINE
+    },
+    { 
+        'pattern': r'[\n\s*]?gluDefs.GLU_CHECK_CALL\(function\(\)\s*{(.+)}\);',
+        'repl': r'\1',
         'count': 0,
         'flags': re.MULTILINE
     },]
