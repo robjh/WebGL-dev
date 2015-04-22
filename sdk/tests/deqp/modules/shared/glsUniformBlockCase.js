@@ -157,7 +157,7 @@ glsUniformBlockCase.TypeArray = function(elementType, arraySize) {
  * @constructor
  */
 glsUniformBlockCase.VarType = function() {
-    /** @type {number} */ this.m_type = glsUniformBlockCase.Type.TYPE_LAST;
+    /** @type {glsUniformBlockCase.Type} */ this.m_type;
     /** @type {number} */ this.m_flags = 0;
 
     /*
@@ -774,7 +774,7 @@ glsUniformBlockCase.UniformBlockCase.prototype.constructor = glsUniformBlockCase
  * @return {number}
  */
 glsUniformBlockCase.getDataTypeByteSize = function(type) {
-    return gluShaderUtil.getDataTypeScalarSize(type) * deMath.int32_size;
+    return gluShaderUtil.getDataTypeScalarSize(type) * deMath.INT32_SIZE;
 };
 
 /**
@@ -787,12 +787,12 @@ glsUniformBlockCase.getDataTypeByteAlignment = function(type) {
         case gluShaderUtil.DataType.FLOAT:
         case gluShaderUtil.DataType.INT:
         case gluShaderUtil.DataType.UINT:
-        case gluShaderUtil.DataType.BOOL: return 1 * deMath.int32_size;
+        case gluShaderUtil.DataType.BOOL: return 1 * deMath.INT32_SIZE;
 
         case gluShaderUtil.DataType.FLOAT_VEC2:
         case gluShaderUtil.DataType.INT_VEC2:
         case gluShaderUtil.DataType.UINT_VEC2:
-        case gluShaderUtil.DataType.BOOL_VEC2: return 2 * deMath.int32_size;
+        case gluShaderUtil.DataType.BOOL_VEC2: return 2 * deMath.INT32_SIZE;
 
         case gluShaderUtil.DataType.FLOAT_VEC3:
         case gluShaderUtil.DataType.INT_VEC3:
@@ -802,7 +802,7 @@ glsUniformBlockCase.getDataTypeByteAlignment = function(type) {
         case gluShaderUtil.DataType.FLOAT_VEC4:
         case gluShaderUtil.DataType.INT_VEC4:
         case gluShaderUtil.DataType.UINT_VEC4:
-        case gluShaderUtil.DataType.BOOL_VEC4: return 4 * deMath.int32_size;
+        case gluShaderUtil.DataType.BOOL_VEC4: return 4 * deMath.INT32_SIZE;
 
         default:
             DE_ASSERT(false);
@@ -819,7 +819,7 @@ glsUniformBlockCase.getDataTypeArrayStride = function(type) {
     DE_ASSERT(!gluShaderUtil.isDataTypeMatrix(type));
 
     /** @type {number} */ var baseStride = glsUniformBlockCase.getDataTypeByteSize(type);
-    /** @type {number} */ var vec4Alignment = deMath.int32_size * 4;
+    /** @type {number} */ var vec4Alignment = deMath.INT32_SIZE * 4;
 
     DE_ASSERT(baseStride <= vec4Alignment);
     return Math.max(baseStride, vec4Alignment); // Really? See rule 4.
@@ -843,7 +843,7 @@ glsUniformBlockCase.deRoundUp32 = function(a, b) {
  * @return {number}
  */
 glsUniformBlockCase.computeStd140BaseAlignment = function(type) {
-    /** @type {number} */ var vec4Alignment = deMath.int32_size;
+    /** @type {number} */ var vec4Alignment = deMath.INT32_SIZE;
 
     if (type.isBasicType()) {
         /** @type {gluShaderUtil.DataType} */ var basicType = type.getBasicType();
@@ -1069,7 +1069,7 @@ glsUniformBlockCase.generateValue = function(entry, basePtr, rnd) {
     /** @type {number} */ var numVecs = isMatrix ? (entry.isRowMajor ? gluShaderUtil.getDataTypeMatrixNumRows(entry.type) : gluShaderUtil.getDataTypeMatrixNumColumns(entry.type)) : 1;
     /** @type {number} */ var vecSize = scalarSize / numVecs;
     /** @type {boolean} */ var isArray = entry.size > 1;
-    /** @type {number} */ var compSize = deMath.int32_size;
+    /** @type {number} */ var compSize = deMath.INT32_SIZE;
 
     DE_ASSERT(scalarSize % numVecs == 0);
 
@@ -1493,7 +1493,7 @@ glsUniformBlockCase.generateValueSrc = function(entry, basePtr, elementNdx) {
     /** @type {number} */ var scalarSize = gluShaderUtil.getDataTypeScalarSize(entry.type);
     /** @type {boolean} */ var isArray = entry.size > 1;
     /** @type {Uint8Array} */ var elemPtr = basePtr.subarray(entry.offset + (isArray ? elementNdx * entry.arrayStride : 0));
-    /** @type {number} */ var compSize = deMath.int32_size;
+    /** @type {number} */ var compSize = deMath.INT32_SIZE;
 
     if (scalarSize > 1)
         src += gluShaderUtil.getDataTypeName(entry.type) + '(';
@@ -2353,7 +2353,7 @@ glsUniformBlockCase.UniformBlockCase.prototype.checkLayoutBounds = function(layo
         /** @type {number}*/ var numVecs = isMatrix ? (uniform.isRowMajor ? gluShaderUtil.getDataTypeMatrixNumRows(uniform.type) : gluShaderUtil.getDataTypeMatrixNumColumns(uniform.type)) : 1;
         /** @type {number}*/ var numComps = isMatrix ? (uniform.isRowMajor ? gluShaderUtil.getDataTypeMatrixNumColumns(uniform.type) : gluShaderUtil.getDataTypeMatrixNumRows(uniform.type)) : gluShaderUtil.getDataTypeScalarSize(uniform.type);
         /** @type {number}*/ var numElements = uniform.size;
-        /** @type {number}*/ var compSize = deMath.int32_size;
+        /** @type {number}*/ var compSize = deMath.INT32_SIZE;
         /** @type {number}*/ var vecSize = numComps * compSize;
 
         /** @type {number}*/ var minOffset = 0;
