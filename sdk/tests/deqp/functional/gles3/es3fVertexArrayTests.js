@@ -26,7 +26,6 @@ goog.require('framework.common.tcuTexture');
 goog.require('framework.delibs.debase.deMath');
 goog.require('framework.delibs.debase.deRandom');
 goog.require('framework.delibs.debase.deString');
-goog.require('framework.opengl.gluDefs');
 goog.require('framework.opengl.gluDrawUtil');
 goog.require('framework.opengl.gluShaderProgram');
 goog.require('framework.opengl.gluShaderUtil');
@@ -38,7 +37,6 @@ goog.require('modules.shared.glsVertexArrayTests');
 goog.scope(function() {
 
 var es3fVertexArrayTests = functional.gles3.es3fVertexArrayTests;
-var gluDefs = framework.opengl.gluDefs;
 var gluDrawUtil = framework.opengl.gluDrawUtil;
 var gluShaderUtil = framework.opengl.gluShaderUtil;
 var gluShaderProgram = framework.opengl.gluShaderProgram;

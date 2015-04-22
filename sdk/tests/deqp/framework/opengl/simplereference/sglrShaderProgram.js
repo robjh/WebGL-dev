@@ -22,6 +22,7 @@
 goog.provide('framework.opengl.simplereference.sglrShaderProgram');
 goog.require('framework.referencerenderer.rrShaders');
 goog.require('framework.referencerenderer.rrGenericVector');
+goog.require('framework.referencerenderer.rrDefs');
 goog.require('framework.common.tcuTexture');
 goog.require('framework.delibs.debase.deMath');
 goog.require('framework.opengl.gluTextureUtil');
@@ -41,6 +42,7 @@ goog.scope(function() {
     var gluShaderUtil = framework.opengl.gluShaderUtil;
     //var sglrReferenceContext = framework.opengl.simplereference.sglrReferenceContext;
     var tcuTextureUtil = framework.common.tcuTextureUtil;
+var rrDefs = framework.referencerenderer.rrDefs;
 
     var DE_ASSERT = function(x) {
         if (!x)
@@ -239,8 +241,8 @@ goog.scope(function() {
     sglrShaderProgram.UniformSlot = function () {
         /** @type {string} */ this.name = '';
         /** @type {gluShaderUtil.DataType} */ this.type = undefined;
-        /** @type {number} */ this.value = '0';
-        /** @type {sglrReferenceContext.Texture} */ this.sampler = null;
+        /** @type {number} */ this.value = 0;
+        /** @type {?rrDefs.Sampler} */ this.sampler = null;
     };
 
     /**

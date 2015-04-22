@@ -52,6 +52,8 @@ goog.scope(function() {
     var rrRenderState = framework.referencerenderer.rrRenderState;
     var sglrReferenceUtils = framework.opengl.simplereference.sglrReferenceUtils;
     var sglrShaderProgram = framework.opengl.simplereference.sglrShaderProgram;
+var tcuMatrix = framework.common.tcuMatrix;
+var tcuMatrixUtil = framework.common.tcuMatrixUtil;
 
     sglrReferenceContext.rrMPBA = rrMultisamplePixelBufferAccess;
 
@@ -186,6 +188,7 @@ goog.scope(function() {
 
     /**
     * @constructor
+ * @implements {rrDefs.Sampler}
     * @param {sglrReferenceContext.TextureType} type
     */
     sglrReferenceContext.Texture = function(type) {
@@ -206,6 +209,8 @@ goog.scope(function() {
                                                 [0, 0, 0, 0],
                                                 true);
     };
+sglrReferenceContext.Texture.prototype.sample = function(pos, lod) {throw new Error('Intentionally empty. Call method from child class instead'); };
+sglrReferenceContext.Texture.prototype.sample4 = function(packetTexcoords, lodBias) {throw new Error('Intentionally empty. Call method from child class instead'); };
 
     // sglrReferenceContext.Texture.prototype = Object.create(NamedObject.prototype);
     // sglrReferenceContext.Texture.prototype.constructor = sglrReferenceContext.Texture;
@@ -330,7 +335,7 @@ goog.scope(function() {
             this.m_view = new tcuTexture.Texture2DView(0, null);
     };
 
-    sglrReferenceContext.Texture2D.prototype.sample = function(s, t, lod) { return this.m_view.sample(this.getSampler(), [s, t], lod) };
+    sglrReferenceContext.Texture2D.prototype.sample = function(pos, lod) { return this.m_view.sample(this.getSampler(), pos, lod) };
 
     /**
     * @param {Array<Array<number>>} packetTexcoords 4 vec2 coordinates
@@ -2977,8 +2982,8 @@ goog.scope(function() {
         // Coordinate transformation:
         // Dst offset space -> dst rectangle space -> src rectangle space -> src offset space.
         var matrix = tcuMatrixUtil.translationMatrix([srcX0 - srcRect[0], srcY0 - srcRect[1]]);
-        matrix = matrix = matrix.multiply(new tcuMatrix.Mat3([(srcX1-srcX0) / (dstX1-dstX0), (srcY1-srcY0) / (dstY1-dstY0), 1]));
-        matrix = matrix * tcuMatrixUtil.translationMatrix([dstRect[0] - dstX0, dstRect[1] - dstY0]);
+    matrix = tcuMatrix.multiply(matrix, tcuMatrix.matrixFromVector(3, 3, [(srcX1-srcX0) / (dstX1-dstX0), (srcY1-srcY0) / (dstY1-dstY0), 1]));
+    matrix = tcuMatrix.multiply(matrix, tcuMatrixUtil.translationMatrix([dstRect[0] - dstX0, dstRect[1] - dstY0]));
         var transform = function(x, y) { return matrix.get(x, y); };
 
         if (mask & gl.COLOR_BUFFER_BIT) {

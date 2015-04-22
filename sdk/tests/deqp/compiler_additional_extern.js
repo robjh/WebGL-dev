@@ -24,7 +24,7 @@ var TestFailedException = function (message) {};
 
 /**
  * @param {boolean} assertion
- * @param {string} msg
+ * @param {?string} msg
  * @param {boolean} verbose
  * @param {boolean} exthrow
  */

@@ -55,7 +55,7 @@ goog.scope(function() {
      * @param {Array<number>} vector
      * @return {tcuMatrix.Matrix}
      */
-    tcuMatrix.MatrixFromVector = function(rows, cols, vector) {
+    tcuMatrix.matrixFromVector = function(rows, cols, vector) {
         var matrix = new tcuMatrix.Matrix(rows, cols);
         for (var row = 0; row < vector.length; row++)
             for (var col = 0; col < vector.length; col++)

@@ -27,14 +27,14 @@ goog.scope(function() {
 	var tcuMatrix = framework.common.tcuMatrix;
 
     /**
-     * @param {number} len
      * @param {Array<number>} translation
+     * @return {tcuMatrix.Matrix}
      */
-    tcuMatrixUtil.translationMatrix = function(len, translation)
-    {
-        var res = new tcuMatrix.Matrix(len+1, len+1);
+    tcuMatrixUtil.translationMatrix = function(translation) {
+        var len = translation.length;
+        var res = new tcuMatrix.Matrix(len + 1, len + 1);
         for (var row = 0; row < len; row++)
-            res.set(row,len, translation[row]);
+            res.set(row, len, translation[row]);
         return res;
     };
 

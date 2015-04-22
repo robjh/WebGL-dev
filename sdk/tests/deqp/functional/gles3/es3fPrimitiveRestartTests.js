@@ -69,7 +69,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
     };
 
     /**
-     * @enum es3fPrimitiveRestartTests.PrimitiveType
+     * @enum
      */
     es3fPrimitiveRestartTests.PrimitiveType = {
         PRIMITIVE_POINTS: 0,
@@ -82,7 +82,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
     };
 
     /**
-     * @enum es3fPrimitiveRestartTests.IndexType
+     * @enum
      */
     es3fPrimitiveRestartTests.IndexType = {
         INDEX_UNSIGNED_BYTE: 0,
@@ -91,7 +91,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
     };
 
     /**
-     * @enum es3fPrimitiveRestartTests.DrawFunction
+     * @enum
      */
     es3fPrimitiveRestartTests.DrawFunction = {
         FUNCTION_DRAW_ELEMENTS: 0,
@@ -107,7 +107,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
     * @param {string} description
     * @param {es3fPrimitiveRestartTests.PrimitiveType} primType
     * @param {es3fPrimitiveRestartTests.IndexType} indexType
-    * @param {es3fPrimitiveRestartTests.DrawFunction} function
+    * @param {es3fPrimitiveRestartTests.DrawFunction} _function
     * @param {boolean} beginWithRestart
     * @param {boolean} endWithRestart
     * @param {boolean} duplicateRestarts
@@ -120,7 +120,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
         /** @type {boolean} */ this.m_beginWithRestart = beginWithRestart; // Whether there will be restart indices at the beginning of the index array.
         /** @type {boolean} */ this.m_endWithRestart = endWithRestart; // Whether there will be restart indices at the end of the index array.
         /** @type {boolean} */ this.m_duplicateRestarts = duplicateRestarts; // Whether two consecutive restarts are used instead of one.
-        /** @type {ShaderProgram} */ this.m_program = null;
+        /** @type {gluShaderProgram.ShaderProgram} */ this.m_program = null;
 
         // \note Only one of the following index vectors is used (according to m_indexType).
         /** @type {Array<number>} */ this.m_indicesUB = []; //deUint8
@@ -139,7 +139,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
     * @param {number} count
     */
     es3fPrimitiveRestartTests.PrimitiveRestartCase.prototype.draw = function(startNdx, count) {
-        /** @type {es3fPrimitiveRestartTests.PrimitiveType} */ var primTypeGL;
+        /** @type {number} */ var primTypeGL;
 
         switch (this.m_primType) {
             case es3fPrimitiveRestartTests.PrimitiveType.PRIMITIVE_POINTS:
@@ -168,7 +168,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
                 primTypeGL = 0;
         }
 
-        /** @type {es3fPrimitiveRestartTests.IndexType} */ var indexTypeGL;
+        /** @type {number} */ var indexTypeGL;
 
         switch (this.m_indexType) {
             case es3fPrimitiveRestartTests.IndexType.INDEX_UNSIGNED_BYTE:
@@ -336,7 +336,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
     /**
     * Pointer to the index value at index indexNdx.
     * @param {number} indexNdx
-    * @return {Uint8Array|Uint16Array|Uint32}
+    * @return {Uint8Array|Uint16Array|Uint32Array}
     */
     es3fPrimitiveRestartTests.PrimitiveRestartCase.prototype.getIndexPtr = function(indexNdx) {
         //TODO: implement
@@ -602,7 +602,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
         gl.viewport(xOffset, yOffset, width, height);
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
 
-        /** @type {number} */ var program = this.m_program.getProgram();
+        var program = this.m_program.getProgram();
         gl.useProgram(program);
 
         // Setup position attribute.
@@ -631,7 +631,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
         gl.readPixels(xOffset, yOffset, refImg.m_width, refImg.m_height, refImgTransferFormat.format, refImgTransferFormat.dataType, referenceImg.m_pixels);
 
         // Compare.
-        /** @type {boolean} */ var testOk = tcuImageCompare.pixelThresholdCompare('ComparisonResult', 'Image comparison result', referenceImg, resultImg, [0, 0, 0, 0], /*COMPARE_LOG_RESULT*/ null);
+        /** @type {boolean} */ var testOk = tcuImageCompare.pixelThresholdCompare('ComparisonResult', 'Image comparison result', referenceImg, resultImg, [0, 0, 0, 0]);
 
         assertMsgOptions(testOk, '', true, false);
         gl.useProgram(null);
@@ -669,7 +669,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
                                                                  es3fPrimitiveRestartTests.PrimitiveType[primType] == es3fPrimitiveRestartTests.PrimitiveType.PRIMITIVE_TRIANGLE_STRIP ? 'triangle_strip' :
                                                                  es3fPrimitiveRestartTests.PrimitiveType[primType] == es3fPrimitiveRestartTests.PrimitiveType.PRIMITIVE_TRIANGLE_FAN ? 'triangle_fan' :
                                                                  es3fPrimitiveRestartTests.PrimitiveType[primType] == es3fPrimitiveRestartTests.PrimitiveType.PRIMITIVE_TRIANGLES ? 'triangles' :
-                                                                 null;
+                                                                 '';
 
                         DE_ASSERT(primTypeName != null);
 
@@ -680,7 +680,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
                             /** @type {string} */ var indexTypeName = es3fPrimitiveRestartTests.IndexType[indexType] == es3fPrimitiveRestartTests.IndexType.INDEX_UNSIGNED_BYTE ? 'unsigned_byte' :
                                                                       es3fPrimitiveRestartTests.IndexType[indexType] == es3fPrimitiveRestartTests.IndexType.INDEX_UNSIGNED_SHORT ? 'unsigned_short' :
                                                                       es3fPrimitiveRestartTests.IndexType[indexType] == es3fPrimitiveRestartTests.IndexType.INDEX_UNSIGNED_INT ? 'unsigned_int' :
-                                                                      null;
+                                                                      '';
 
                             DE_ASSERT(indexTypeName != null);
 
