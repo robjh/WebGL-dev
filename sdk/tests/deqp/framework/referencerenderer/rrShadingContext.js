@@ -47,9 +47,9 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
      *
      * Contains per-primitive information used in fragment shading
      * @constructor
-     * @param {Array<Array<number>>} varying0 (GenericVec4*)
-     * @param {Array<Array<number>>} varying1 (GenericVec4*)
-     * @param {Array<Array<number>>} varying2 (GenericVec4*)
+     * @param {Array<number>} varying0 (GenericVec4*)
+     * @param {Array<number>} varying1 (GenericVec4*)
+     * @param {Array<number>} varying2 (GenericVec4*)
      * @param {Array<number>} outputArray (GenericVec4*)
      * @param {Array<number>} fragmentDepths (float*)
      * @param {number} numFragmentOutputs
@@ -116,10 +116,23 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
      * @param {number} varyingLoc
      * @return {Array<number>} (Vector<T, 4>)
      */
-    rrShadingContext.readTriangleVarying = function (packet, context, varyingLoc /*, fragNdx*/) {
-        return   deMath.add(deMath.multiply(packet.barycentric[0]/*[fragNdx]*/, context.varyings[0][varyingLoc]),
-            deMath.add(deMath.multiply(packet.barycentric[1]/*[fragNdx]*/, context.varyings[1][varyingLoc]),
-            deMath.multiply(packet.barycentric[2]/*[fragNdx]*/, context.varyings[2][varyingLoc])));
+    rrShadingContext.readTriangleVarying = function (packet, context, varyingLoc) {
+        return deMath.add (
+            deMath.scale(
+                context.varyings[0][varyingLoc],
+                packet.barycentric[0]
+            ),
+            deMath.add(
+                deMath.scale(
+                    context.varyings[1][varyingLoc],
+                    packet.barycentric[1]
+                ),
+                deMath.scale(
+                    context.varyings[2][varyingLoc],
+                    packet.barycentric[2]
+                )
+            )
+        );
     };
 
     /**

@@ -695,7 +695,7 @@ rrRenderer.writeFragments = function(state, renderTarget, fragments) {
     var colorbuffer = renderTarget.colorBuffers[0].raw();
     for (var i = 0; i < fragments.length; i++) {
         var fragment = fragments[i];
-        colorbuffer.setPixel(fragment.output, 0, fragment.pixelCoord[0], fragment.pixelCoord[0]);
+        colorbuffer.setPixel(fragment.output, fragment.pixelCoord[0], fragment.pixelCoord[1], 0);
     }
 
 };
@@ -868,7 +868,7 @@ void FragmentProcessor::render (const rr::MultisamplePixelBufferAccess& msColorB
 /**
  */
 rrRenderer.drawQuads = function(state, renderTarget, program, vertexAttribs, first, count) {
-    var primitives = new rrRenderer.PrimitiveList(gl.TRIANGLES, count * 2, first); // 2 rrRenderer.triangles per quad.
+    var primitives = new rrRenderer.PrimitiveList(gl.TRIANGLES, count * 2 * 3, first); // 2 triangles per quad with 3 vertices each.
     // Do not draw if nothing to draw
     if (primitives.getNumElements() == 0)
         return;
@@ -920,8 +920,18 @@ rrRenderer.drawQuads = function(state, renderTarget, program, vertexAttribs, fir
         var topLeftVertexNdx = 2;
         var topRightVertexNdx = 3;
 
-        var topLeft = [vertexPackets[(quad * 6) + topLeftVertexNdx].position[0], vertexPackets[(quad * 6) + topLeftVertexNdx].position[1]];
-        var bottomRight = [vertexPackets[(quad * 6) + bottomRightVertexNdx].position[0], vertexPackets[(quad * 6) + bottomRightVertexNdx].position[1]]
+        var glToCanvasXCoordFactor = state.viewport.rect.width;
+        var glToCanvasYCoordFactor = -state.viewport.rect.height;
+
+        var topLeft = [
+            (state.viewport.rect.width / 2) + Math.floor(vertexPackets[(quad * 6) + topLeftVertexNdx].position[0] * glToCanvasXCoordFactor),
+            (state.viewport.rect.height / 2) + Math.floor(vertexPackets[(quad * 6) + topLeftVertexNdx].position[1] * glToCanvasYCoordFactor)
+        ];
+        var bottomRight = [
+            (state.viewport.rect.width / 2) + Math.floor(vertexPackets[(quad * 6) + bottomRightVertexNdx].position[0] * glToCanvasXCoordFactor),
+            (state.viewport.rect.height / 2) + Math.floor(vertexPackets[(quad * 6) + bottomRightVertexNdx].position[1] * glToCanvasYCoordFactor)
+        ];
+
         var v0 = [topLeft[0], topLeft[1]];
         var v1 = [topLeft[0], bottomRight[1]];
         var v2 = [bottomRight[0], topLeft[1]];
@@ -930,11 +940,12 @@ rrRenderer.drawQuads = function(state, renderTarget, program, vertexAttribs, fir
         var height = bottomRight[1] - topLeft[1];
 
         // Generate two rrRenderer.triangles [v0, v1, v2] and [v2, v1, v3]
-        var shadingContextTopLeft = new rrShadingContext.FragmentShadingContext(vertexAttribs[0], vertexAttribs[1], vertexAttribs[2], null, 1);
+        var shadingContextTopLeft = new rrShadingContext.FragmentShadingContext(vertexPackets[0].outputs, vertexPackets[1].outputs, vertexPackets[2].outputs, null, 1);
         var packetsTopLeft = [];
 
-        var shadingContextBottomRight = new rrShadingContext.FragmentShadingContext(vertexAttribs[2], vertexAttribs[1], vertexAttribs[3], null, 1);
+        var shadingContextBottomRight = new rrShadingContext.FragmentShadingContext(vertexPackets[2].outputs, vertexPackets[1].outputs, vertexPackets[3].outputs, null, 1);
         var packetsBottomRight = [];
+
         for (var i = 0; i < width; i++)
             for (var j = 0; j < height; j++) {
                 var x = v0[0] + i + 0.5;
@@ -948,7 +959,7 @@ rrRenderer.drawQuads = function(state, renderTarget, program, vertexAttribs, fir
                     packetsTopLeft.push(new rrFragmentOperations.Fragment(b, [v0[0] + i, v0[1] + j]));
                 } else {
                     var b = rrRenderer.getBarycentricCoefficients([x, y], v2, v1, v3);
-                    packetsBottomRight.push(new rrRenderer.FragmentPacket(b, [v0[0] + i, v0[1] + j]));
+                    packetsBottomRight.push(new rrFragmentOperations.Fragment(b, [v0[0] + i, v0[1] + j]));
                 }
             }
 

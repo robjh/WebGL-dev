@@ -86,7 +86,8 @@ tcuImageCompare.displayImages = function(result, reference, diff) {
 
     var contexts = tcuImageCompare.displayResultPane('console', w, h);
     contexts[0].putImageData(createImage(contexts[0], result), 0, 0);
-    contexts[1].putImageData(createImage(contexts[1], reference), 0, 0);
+    if (reference)
+        contexts[1].putImageData(createImage(contexts[1], reference), 0, 0);
     if (diff)
         contexts[2].putImageData(createImage(contexts[2], diff), 0, 0);
 };

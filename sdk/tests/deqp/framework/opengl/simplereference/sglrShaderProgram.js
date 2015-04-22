@@ -26,21 +26,21 @@ goog.require('framework.common.tcuTexture');
 goog.require('framework.delibs.debase.deMath');
 goog.require('framework.opengl.gluTextureUtil');
 goog.require('framework.opengl.gluShaderUtil');
-goog.require('framework.opengl.simplereference.sglrReferenceContext');
+//goog.require('framework.opengl.simplereference.sglrReferenceContext');
 goog.require('framework.common.tcuTextureUtil');
 
 
 goog.scope(function() {
 
-var sglrShaderProgram = framework.opengl.simplereference.sglrShaderProgram;
-var rrShaders = framework.referencerenderer.rrShaders;
-var rrGenericVector = framework.referencerenderer.rrGenericVector;
-var tcuTexture = framework.common.tcuTexture;
-var deMath = framework.delibs.debase.deMath;
-var gluTextureUtil = framework.opengl.gluTextureUtil;
-var gluShaderUtil = framework.opengl.gluShaderUtil;
-var sglrReferenceContext = framework.opengl.simplereference.sglrReferenceContext;
-var tcuTextureUtil = framework.common.tcuTextureUtil;
+    var sglrShaderProgram = framework.opengl.simplereference.sglrShaderProgram;
+    var rrShaders = framework.referencerenderer.rrShaders;
+    var rrGenericVector = framework.referencerenderer.rrGenericVector;
+    var tcuTexture = framework.common.tcuTexture;
+    var deMath = framework.delibs.debase.deMath;
+    var gluTextureUtil = framework.opengl.gluTextureUtil;
+    var gluShaderUtil = framework.opengl.gluShaderUtil;
+    //var sglrReferenceContext = framework.opengl.simplereference.sglrReferenceContext;
+    var tcuTextureUtil = framework.common.tcuTextureUtil;
 
     var DE_ASSERT = function(x) {
         if (!x)
@@ -70,7 +70,7 @@ var tcuTextureUtil = framework.common.tcuTextureUtil;
     /**
      * sglrShaderProgram.VertexToFragmentVarying
      * @constructor
-     * @param {rrGenericVector.GenericVecType} type_
+     * @param {rrGenericVector.GenericVecType=} type_
      */
     sglrShaderProgram.VertexToFragmentVarying = function (type_, flags) {
         this.type = type_;
