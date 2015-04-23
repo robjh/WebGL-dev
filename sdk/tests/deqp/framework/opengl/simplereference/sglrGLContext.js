@@ -120,7 +120,7 @@ goog.scope(function() {
     /**
      * createProgram
      * @param {sglrShaderProgram.ShaderProgram} shader
-     * @return {number}
+     * @return {WebGLProgram}
      */
     sglrGLContext.GLContext.prototype.createProgram = function(shader) {
         /** @type {gluShaderProgram.ShaderProgram} */ var program = null;
@@ -138,16 +138,7 @@ goog.scope(function() {
             testFailedOptions("Compile failed", true);
         }
 
-        this.m_programs.push(program);
-        return this.m_programs.length - 1;
-    };
-
-    /**
-     * useProgram
-     * @param {number} shader
-     */
-    sglrGLContext.GLContext.prototype.useProgram = function(shader) {
-        this.m_context.useProgram(shader == null ? null : this.m_programs[shader].getProgram());
+        return program.getProgram();
     };
 
     /**
@@ -164,6 +155,15 @@ goog.scope(function() {
         );
 
         return this.m_allocatedVaos[currentlength];
+    };
+
+    /**
+     * Draws quads from vertex arrays
+     * @param {number} first First vertex to begin drawing with
+     * @param {number} count How many quads to draw (array should provide first + (count * 4) vertices at least)
+     */
+    sglrGLContext.GLContext.prototype.drawQuads = function (first, count) {
+        this.m_context.drawArrays(gl.TRIANGLES, first, (count * 6) - first);
     };
 
 });

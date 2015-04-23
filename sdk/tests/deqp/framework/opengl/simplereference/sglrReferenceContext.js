@@ -721,13 +721,13 @@ sglrReferenceContext.Texture.prototype.sample4 = function(packetTexcoords, lodBi
         var samples = samples_;
         if (typeof samples_ == 'undefined')
             samples = 1;
-        this.m_colorbuffer = new tcuTexture.TextureLevel(sglrReferenceContext.toTextureFormat(colorBits), width, height, samples);
+        this.m_colorbuffer = new tcuTexture.TextureLevel(sglrReferenceContext.toTextureFormat(colorBits), samples, width, height);
 
         if (depthBits > 0)
-            this.m_depthbuffer = new tcuTexture.TextureLevel(sglrReferenceContext.getDepthFormat(depthBits), width, height, samples);
+            this.m_depthbuffer = new tcuTexture.TextureLevel(sglrReferenceContext.getDepthFormat(depthBits), samples, width, height);
 
         if (stencilBits > 0)
-            this.m_stencilbuffer = new tcuTexture.TextureLevel(sglrReferenceContext.getStencilFormat(stencilBits), width, height, samples);
+            this.m_stencilbuffer = new tcuTexture.TextureLevel(sglrReferenceContext.getStencilFormat(stencilBits), samples, width, height);
     };
 
     sglrReferenceContext.ReferenceContextBuffers.prototype.getColorbuffer = function() { return rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.fromMultisampleAccess(this.m_colorbuffer.getAccess()); }
