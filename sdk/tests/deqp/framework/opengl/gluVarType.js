@@ -119,7 +119,7 @@ goog.scope(function() {
 
         return this;
     };
-    
+
     /**
      * Creates a gluVarType.VarType, the same type as the passed in object.
      * Use this after the constructor call.
@@ -127,7 +127,7 @@ goog.scope(function() {
      * @return {gluVarType.VarType} The currently modified object
      */
     gluVarType.VarType.prototype.VarTypeClone = function(object) {
-        
+
         this.m_type = object.m_type;
 
         switch (this.m_type) {

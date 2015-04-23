@@ -1422,8 +1422,8 @@ goog.scope(function() {
 
         es3fTransformFeedbackTests.TransformFeedbackCase.call(this, name, desc, bufferMode, primitiveType);
 
-        this.m_progSpec.addVarying('v_varA', gluVarType.newTypeBasic(type, precision), interpolation);
-        this.m_progSpec.addVarying('v_varB', gluVarType.newTypeBasic(type, precision), interpolation);
+        this.m_progSpec.addVarying('v_varA', gluVarType.newTypeArray(gluVarType.newTypeBasic(type, precision), 3), interpolation);
+        this.m_progSpec.addVarying('v_varB', gluVarType.newTypeArray(gluVarType.newTypeBasic(type, precision), 4), interpolation);
 
         this.m_progSpec.addTransformFeedbackVarying('v_varA[1]');
         this.m_progSpec.addTransformFeedbackVarying('v_varB[0]');
