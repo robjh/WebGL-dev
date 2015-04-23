@@ -148,7 +148,7 @@ var deString = framework.delibs.debase.deString;
      * @param {number} y
      */
     glsSamplerObjectTest.TextureSamplerTest.prototype.renderReferences = function(textureRef, samplerRef, x, y) {
-        /** @type {number} */ var texture = glsSamplerObjectTest.TextureSamplerTest.createTexture(this.m_target);
+        /** @type {WebGLTexture} */ var texture = glsSamplerObjectTest.TextureSamplerTest.createTexture(this.m_target);
 
         gl.viewport(x, y, glsSamplerObjectTest.VIEWPORT_WIDTH, glsSamplerObjectTest.VIEWPORT_HEIGHT);
 
@@ -177,12 +177,11 @@ var deString = framework.delibs.debase.deString;
      * @param {number} y
      */
     glsSamplerObjectTest.TextureSamplerTest.prototype.renderResults = function(textureResult, samplerResult, x, y) {
-        /** @type {number} */ var texture = glsSamplerObjectTest.TextureSamplerTest.createTexture(this.m_target);
-        /** @type {number} */ var sampler = -1;
+        /** @type {WebGLTexture} */ var texture = glsSamplerObjectTest.TextureSamplerTest.createTexture(this.m_target);
 
         gl.viewport(x, y, glsSamplerObjectTest.VIEWPORT_WIDTH, glsSamplerObjectTest.VIEWPORT_HEIGHT);
 
-        sampler = gl.createSampler();
+        var sampler = gl.createSampler();
         DE_ASSERT(sampler != -1);
 
         gl.bindSampler(0, sampler);
@@ -217,8 +216,8 @@ var deString = framework.delibs.debase.deString;
      * @private
      */
     glsSamplerObjectTest.TextureSamplerTest.prototype.render = function() {
-        /** @type {number} */ var samplerLoc = -1;
-        /** @type {number} */ var scaleLoc = -1;
+        /** @type {WebGLUniformLocation} */ var samplerLoc;
+        /** @type {WebGLUniformLocation} */ var scaleLoc;
 
         gl.useProgram(this.m_program.getProgram());
 
@@ -327,7 +326,7 @@ var deString = framework.delibs.debase.deString;
     /**
      * @private
      * @param {glsSamplerObjectTest.SamplingState} state
-     * @param {number} sampler
+     * @param {WebGLSampler} sampler
      */
     glsSamplerObjectTest.TextureSamplerTest.setSamplerState = function(state, sampler) {
         gl.samplerParameteri(sampler, gl.TEXTURE_MIN_FILTER, state.minFilter);
@@ -369,7 +368,7 @@ var deString = framework.delibs.debase.deString;
 
     /**
      * @private
-     * @return {number}
+     * @return {WebGLTexture}
      */
     glsSamplerObjectTest.TextureSamplerTest.createTexture3D = function() {
         /** @type {WebGLTexture} */ var texture = null;
@@ -398,7 +397,8 @@ var deString = framework.delibs.debase.deString;
 
     /**
      * @private
-     * @return {number}
+     * @return {WebGLTexture
+     }
      */
     glsSamplerObjectTest.TextureSamplerTest.createTextureCube = function() {
         /** @type {WebGLTexture} */ var texture = null;
@@ -439,28 +439,31 @@ var deString = framework.delibs.debase.deString;
     /**
      * @private
      * @param {number} target
-     * @return {number}
+     * @return {WebGLTexture}
      */
     glsSamplerObjectTest.TextureSamplerTest.createTexture = function(target) {
+        /** @type {WebGLTexture} */ var texture;
         switch (target) {
             case gl.TEXTURE_2D:
-                return glsSamplerObjectTest.TextureSamplerTest.createTexture2D();
+                texture = glsSamplerObjectTest.TextureSamplerTest.createTexture2D();
 
             case gl.TEXTURE_3D:
-                return glsSamplerObjectTest.TextureSamplerTest.createTexture3D();
+                texture = glsSamplerObjectTest.TextureSamplerTest.createTexture3D();
 
             case gl.TEXTURE_CUBE_MAP:
-                return glsSamplerObjectTest.TextureSamplerTest.createTextureCube();
+                texture = glsSamplerObjectTest.TextureSamplerTest.createTextureCube();
 
             default:
                 DE_ASSERT(false);
         }
+
+        return texture;
     };
 
     /**
      * @private
      * @param {number} target
-     * @return {?string}
+     * @return {string}
      */
      glsSamplerObjectTest.TextureSamplerTest.selectVertexShader = function(target) {
          switch (target) {
@@ -499,14 +502,14 @@ var deString = framework.delibs.debase.deString;
 
              default:
                  DE_ASSERT(false);
-                 return null;
+                 return '';
          }
      };
 
      /**
       * @private
       * @param {number} target
-      * @return {?string}
+      * @return {string}
       */
      glsSamplerObjectTest.TextureSamplerTest.selectFragmentShader = function(target) {
          switch (target) {
@@ -539,13 +542,13 @@ var deString = framework.delibs.debase.deString;
 
              default:
                  DE_ASSERT(false);
-                 return null;
+                 return '';
          }
      };
 
     glsSamplerObjectTest.TextureSamplerTest.prototype.init = function() {
-        /** @const @type {?string} */ var vertexShaderTemplate = glsSamplerObjectTest.TextureSamplerTest.selectVertexShader(this.m_target);
-        /** @const @type {?string} */ var fragmentShaderTemplate = glsSamplerObjectTest.TextureSamplerTest.selectFragmentShader(this.m_target);
+        /** @const @type {string} */ var vertexShaderTemplate = glsSamplerObjectTest.TextureSamplerTest.selectVertexShader(this.m_target);
+        /** @const @type {string} */ var fragmentShaderTemplate = glsSamplerObjectTest.TextureSamplerTest.selectFragmentShader(this.m_target);
 
         DE_ASSERT(!this.m_program);
         this.m_program = new gluShaderProgram.ShaderProgram(gl,
@@ -575,9 +578,9 @@ var deString = framework.delibs.debase.deString;
         this.renderReferences(textureRef, samplerRef, x, y);
         this.renderResults(textureResult, samplerResult, x, y);
 
-        /** @type {boolean} */ var isOk = tcuImageCompare.pixelThresholdCompare('Sampler render result', 'Result from rendering with sampler', samplerRef, samplerResult, [0, 0, 0, 0], /*tcu::COMPARE_LOG_RESULT*/ null);
+        /** @type {boolean} */ var isOk = tcuImageCompare.pixelThresholdCompare('Sampler render result', 'Result from rendering with sampler', samplerRef, samplerResult, [0, 0, 0, 0]);
 
-        if (!tcuImageCompare.pixelThresholdCompare('Texture render result', 'Result from rendering with texture state', textureRef, textureResult, [0, 0, 0, 0], /*tcu::COMPARE_LOG_RESULT*/ null))
+        if (!tcuImageCompare.pixelThresholdCompare('Texture render result', 'Result from rendering with texture state', textureRef, textureResult, [0, 0, 0, 0]))
             isOk = false;
 
         assertMsgOptions(isOk, '', true, false);
@@ -606,8 +609,8 @@ var deString = framework.delibs.debase.deString;
     glsSamplerObjectTest.MultiTextureSamplerTest.prototype.constructor = glsSamplerObjectTest.MultiTextureSamplerTest;
 
     glsSamplerObjectTest.MultiTextureSamplerTest.prototype.init = function() {
-        /** @type {?string} */ var vertexShaderTemplate = glsSamplerObjectTest.MultiTextureSamplerTest.selectVertexShader(this.m_target);
-        /** @type {?string} */ var fragmentShaderTemplate = glsSamplerObjectTest.MultiTextureSamplerTest.selectFragmentShader(this.m_target);
+        /** @type {string} */ var vertexShaderTemplate = glsSamplerObjectTest.MultiTextureSamplerTest.selectVertexShader(this.m_target);
+        /** @type {string} */ var fragmentShaderTemplate = glsSamplerObjectTest.MultiTextureSamplerTest.selectFragmentShader(this.m_target);
 
         DE_ASSERT(!this.m_program);
         this.m_program = new gluShaderProgram.ShaderProgram(gl,
@@ -637,9 +640,9 @@ var deString = framework.delibs.debase.deString;
         this.renderReferences(textureRef, samplerRef, x, y);
         this.renderResults(textureResult, samplerResult, x, y);
 
-        /** @type {boolean} */ var isOk = tcuImageCompare.pixelThresholdCompare('Sampler render result', 'Result from rendering with sampler', samplerRef, samplerResult, [0, 0, 0, 0], /*tcu::COMPARE_LOG_RESULT*/ null);
+        /** @type {boolean} */ var isOk = tcuImageCompare.pixelThresholdCompare('Sampler render result', 'Result from rendering with sampler', samplerRef, samplerResult, [0, 0, 0, 0]);
 
-        if (!tcuImageCompare.pixelThresholdCompare('Texture render result', 'Result from rendering with texture state', textureRef, textureResult, [0, 0, 0, 0], /*tcu::COMPARE_LOG_RESULT*/ null))
+        if (!tcuImageCompare.pixelThresholdCompare('Texture render result', 'Result from rendering with texture state', textureRef, textureResult, [0, 0, 0, 0]))
             isOk = false;
 
         assertMsgOptions(isOk, '', true, false);
@@ -655,8 +658,8 @@ var deString = framework.delibs.debase.deString;
      * @param {number} y
      */
     glsSamplerObjectTest.MultiTextureSamplerTest.prototype.renderReferences = function(textureRef, samplerRef, x, y) {
-        /** @type {number} */ var texture1 = glsSamplerObjectTest.MultiTextureSamplerTest.createTexture(this.m_target, 0);
-        /** @type {number} */ var texture2 = glsSamplerObjectTest.MultiTextureSamplerTest.createTexture(this.m_target, 1);
+        /** @type {WebGLTexture} */ var texture1 = glsSamplerObjectTest.MultiTextureSamplerTest.createTexture(this.m_target, 0);
+        /** @type {WebGLTexture} */ var texture2 = glsSamplerObjectTest.MultiTextureSamplerTest.createTexture(this.m_target, 1);
 
         gl.viewport(x, y, glsSamplerObjectTest.VIEWPORT_WIDTH, glsSamplerObjectTest.VIEWPORT_HEIGHT);
 
@@ -697,13 +700,12 @@ var deString = framework.delibs.debase.deString;
      * @param {number} y
      */
     glsSamplerObjectTest.MultiTextureSamplerTest.prototype.renderResults = function(textureResult, samplerResult, x, y) {
-        /** @type {number} */ var texture1 = glsSamplerObjectTest.MultiTextureSamplerTest.createTexture(this.m_target, 0);
-        /** @type {number} */ var texture2 = glsSamplerObjectTest.MultiTextureSamplerTest.createTexture(this.m_target, 1);
-        /** @type {number} */ var sampler = -1;
+        /** @type {WebGLTexture} */ var texture1 = glsSamplerObjectTest.MultiTextureSamplerTest.createTexture(this.m_target, 0);
+        /** @type {WebGLTexture} */ var texture2 = glsSamplerObjectTest.MultiTextureSamplerTest.createTexture(this.m_target, 1);
 
         gl.viewport(x, y, glsSamplerObjectTest.VIEWPORT_WIDTH, glsSamplerObjectTest.VIEWPORT_HEIGHT);
 
-        sampler = gl.createSampler();
+        /** @type {WebGLSampler} */ var sampler = gl.createSampler();
         DE_ASSERT(sampler != -1);
 
         gl.bindSampler(0, sampler);
@@ -751,19 +753,16 @@ var deString = framework.delibs.debase.deString;
     };
 
     glsSamplerObjectTest.MultiTextureSamplerTest.prototype.render = function() {
-        /** @type {number} */ var samplerLoc1 = -1;
-        /** @type {number} */ var samplerLoc2 = -1;
-        /** @type {number} */ var scaleLoc = -1;
 
         gl.useProgram(this.m_program.getProgram());
 
-        samplerLoc1 = gl.getUniformLocation(this.m_program.getProgram(), 'u_sampler1');
+        /** @type {WebGLUniformLocation} */ var samplerLoc1 = gl.getUniformLocation(this.m_program.getProgram(), 'u_sampler1');
         DE_ASSERT(samplerLoc1 != -1);
 
-        samplerLoc2 = gl.getUniformLocation(this.m_program.getProgram(), 'u_sampler2');
+        /** @type {WebGLUniformLocation} */ var samplerLoc2 = gl.getUniformLocation(this.m_program.getProgram(), 'u_sampler2');
         DE_ASSERT(samplerLoc2 != -1);
 
-        scaleLoc = gl.getUniformLocation(this.m_program.getProgram(), 'u_posScale');
+        /** @type {WebGLUniformLocation} */ var scaleLoc = gl.getUniformLocation(this.m_program.getProgram(), 'u_posScale');
         DE_ASSERT(scaleLoc != -1);
 
         gl.clearColor(0.5, 0.5, 0.5, 1.0);
@@ -868,7 +867,7 @@ var deString = framework.delibs.debase.deString;
     /**
      * @private
      * @param {glsSamplerObjectTest.SamplingState} state
-     * @param {number} sampler
+     * @param {WebGLSampler} sampler
      */
     glsSamplerObjectTest.MultiTextureSamplerTest.setSamplerState = function(state, sampler) {
         gl.samplerParameteri(sampler, gl.TEXTURE_MIN_FILTER, state.minFilter);
@@ -883,7 +882,7 @@ var deString = framework.delibs.debase.deString;
     /**
      * @private
      * @param {number} id
-     * @return {number}
+     * @return {WebGLTexture    }
      */
     glsSamplerObjectTest.MultiTextureSamplerTest.createTexture2D = function(id) {
         /** @type {WebGLTexture} */ var texture = null;
@@ -924,7 +923,7 @@ var deString = framework.delibs.debase.deString;
     /**
      * @private
      * @param {number} id
-     * @return {number}
+     * @return {WebGLTexture}
      */
     glsSamplerObjectTest.MultiTextureSamplerTest.createTexture3D = function(id) {
         /** @type {WebGLTexture} */ var texture = null;
@@ -966,7 +965,7 @@ var deString = framework.delibs.debase.deString;
     /**
      * @private
      * @param {number} id
-     * @return {number}
+     * @return {WebGLTexture}
      */
     glsSamplerObjectTest.MultiTextureSamplerTest.createTextureCube = function(id) {
         /** @type {WebGLTexture} */ var texture = null;
@@ -1024,29 +1023,31 @@ var deString = framework.delibs.debase.deString;
      * @private
      * @param {number} target
      * @param {number} id
-     * @return {number}
+     * @return {WebGLTexture}
      */
     glsSamplerObjectTest.MultiTextureSamplerTest.createTexture = function(target, id) {
+        /** @type {WebGLTexture} */ var texture;
         switch (target) {
             case gl.TEXTURE_2D:
-                return glsSamplerObjectTest.MultiTextureSamplerTest.createTexture2D(id);
+                texture = glsSamplerObjectTest.MultiTextureSamplerTest.createTexture2D(id);
 
             case gl.TEXTURE_3D:
-                return glsSamplerObjectTest.MultiTextureSamplerTest.createTexture3D(id);
+                texture = glsSamplerObjectTest.MultiTextureSamplerTest.createTexture3D(id);
 
             case gl.TEXTURE_CUBE_MAP:
-                return glsSamplerObjectTest.MultiTextureSamplerTest.createTextureCube(id);
+                texture = glsSamplerObjectTest.MultiTextureSamplerTest.createTextureCube(id);
 
             default:
                 DE_ASSERT(false);
-                return -1;
         }
+
+        return texture;
     };
 
     /**
      * @private
      * @param {number} target
-     * @return {?string}
+     * @return {string}
      */
     glsSamplerObjectTest.MultiTextureSamplerTest.selectVertexShader = function(target) {
         switch (target) {
@@ -1085,14 +1086,14 @@ var deString = framework.delibs.debase.deString;
 
                 default:
                     DE_ASSERT(false);
-                    return null;
+                    return '';
             }
     };
 
     /**
      * @private
      * @param {number} target
-     * @return {?string}
+     * @return {string}
      */
     glsSamplerObjectTest.MultiTextureSamplerTest.selectFragmentShader = function(target) {
         switch (target) {
@@ -1131,7 +1132,7 @@ var deString = framework.delibs.debase.deString;
 
                 default:
                     DE_ASSERT(false);
-                    return null;
+                    return '';
             }
     };
 

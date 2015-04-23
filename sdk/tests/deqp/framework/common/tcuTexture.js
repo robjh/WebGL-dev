@@ -2194,6 +2194,7 @@ tcuTexture.Texture3D.prototype.constructor = tcuTexture.Texture3D;
 
 tcuTexture.Texture3D.prototype.getWidth = function() { return this.m_width; };
 tcuTexture.Texture3D.prototype.getHeight = function() { return this.m_height; };
+tcuTexture.Texture3D.prototype.getDepth = function() { return this.m_depth; };
 
 /**
  * @param {number} baseLevel
