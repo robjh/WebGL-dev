@@ -480,14 +480,14 @@ goog.scope(function() {
      */
     es3fTransformFeedbackTests.computeTransformFeedbackOutputs = function(transformFeedbackOutputs, attributes, varyings, transformFeedbackVaryings, bufferMode) {
 
-    /** @type {number} */ var accumulatedSize = 0;
+        /** @type {number} */ var accumulatedSize = 0;
 
         // transformFeedbackOutputs.resize(transformFeedbackVaryings.size());
         for (var varNdx = 0; varNdx < transformFeedbackVaryings.length; varNdx++) {
-        /** @type {string} */ var name = transformFeedbackVaryings[varNdx];
-        /** @type {number} */ var bufNdx = (bufferMode === gl.SEPARATE_ATTRIBS ? varNdx : 0);
-        /** @type {number} */ var offset = (bufferMode === gl.SEPARATE_ATTRIBS ? 0 : accumulatedSize);
-        /** @type {es3fTransformFeedbackTests.Output} */ var output = new es3fTransformFeedbackTests.Output();
+            /** @type {string} */ var name = transformFeedbackVaryings[varNdx];
+            /** @type {number} */ var bufNdx = (bufferMode === gl.SEPARATE_ATTRIBS ? varNdx : 0);
+            /** @type {number} */ var offset = (bufferMode === gl.SEPARATE_ATTRIBS ? 0 : accumulatedSize);
+            /** @type {es3fTransformFeedbackTests.Output} */ var output = new es3fTransformFeedbackTests.Output();
 
             output.name = name;
             output.bufferNdx = bufNdx;
