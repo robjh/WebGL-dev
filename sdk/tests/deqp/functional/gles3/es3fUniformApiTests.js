@@ -47,7 +47,7 @@ var deMath = framework.delibs.debase.deMath;
 var deString = framework.delibs.debase.deString;
 var deRandom = framework.delibs.debase.deRandom;
 
-    var gl = 0;
+    /** @type {WebGL2RenderingContext} */ var gl;
 
     var DE_ASSERT = function(x) {
         if (!x)
@@ -996,7 +996,8 @@ var deRandom = framework.delibs.debase.deRandom;
     //es3fUniformApiTests.UniformCase definitions
 
     /**
-     * @enum es3fUniformApiTests.Feature - Implemented as a function to create an object without unwanted properties.
+     * es3fUniformApiTests.Feature - Implemented as a function to create an object without unwanted properties.
+     * @enum {boolean}
      */
     es3fUniformApiTests.Feature = function() { return {
         // ARRAYUSAGE_ONLY_MIDDLE_INDEX: only middle index of each array is used in shader. If not given, use all indices.
@@ -1234,9 +1235,9 @@ var deRandom = framework.delibs.debase.deRandom;
         /** @type {number} */ var vertexTexUnitsRequired = this.m_caseShaderType != es3fUniformApiTests.CaseShaderType.FRAGMENT ? numSamplerUniforms : 0;
         /** @type {number} */ var fragmentTexUnitsRequired = this.m_caseShaderType != es3fUniformApiTests.CaseShaderType.VERTEX ? numSamplerUniforms : 0;
         /** @type {number} */ var combinedTexUnitsRequired = vertexTexUnitsRequired + fragmentTexUnitsRequired;
-        /** @type {number} */ var vertexTexUnitsSupported = gl.getParameter(gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS);
-        /** @type {number} */ var fragmentTexUnitsSupported = gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS);
-        /** @type {number} */ var combinedTexUnitsSupported = gl.getParameter(gl.MAX_COMBINED_TEXTURE_IMAGE_UNITS);
+        /** @type {number} */ var vertexTexUnitsSupported = /** @type {number} */ (gl.getParameter(gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS));
+        /** @type {number} */ var fragmentTexUnitsSupported = /** @type {number} */ (gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS));
+        /** @type {number} */ var combinedTexUnitsSupported = /** @type {number} */ (gl.getParameter(gl.MAX_COMBINED_TEXTURE_IMAGE_UNITS));
 
         DE_ASSERT(numSamplerUniforms <= es3fUniformApiTests.MAX_NUM_SAMPLER_UNIFORMS);
 
@@ -1259,10 +1260,13 @@ var deRandom = framework.delibs.debase.deRandom;
      * @return {number} Used to be output parameter. Sampler unit count
      */
     es3fUniformApiTests.UniformCase.prototype.generateBasicUniforms = function(basicUniformsDst, basicUniformReportsDst, varType, varName, isParentActive, samplerUnitCounter, rnd) {
+        
+        /** @type {es3fUniformApiTests.VarValue} */ var value;
+
         if (varType.isBasicType()) {
             /** @type {boolean} */ var isActive = isParentActive && (this.m_features.UNIFORMUSAGE_EVERY_OTHER ? basicUniformsDst.length % 2 == 0 : true);
             /** @type {gluShaderUtil.DataType} */ var type = varType.getBasicType();
-            /** @type {es3fUniformApiTests.VarValue} */ var value = this.m_features.UNIFORMVALUE_ZERO ? es3fUniformApiTests.generateZeroVarValue(type) :
+            value = this.m_features.UNIFORMVALUE_ZERO ? es3fUniformApiTests.generateZeroVarValue(type) :
             gluShaderUtil.isDataTypeSampler(type) ? es3fUniformApiTests.generateRandomVarValue(type, rnd, samplerUnitCounter++) :
                                                 es3fUniformApiTests.generateRandomVarValue(varType.getBasicType(), rnd);
 
@@ -1274,7 +1278,7 @@ var deRandom = framework.delibs.debase.deRandom;
             /** @type {Array<boolean>} */ var isElemActive = [];
 
             for (var elemNdx = 0; elemNdx < varType.getArraySize(); elemNdx++) {
-                /** @type {boolean} */ var indexedName = '' + varName + '[' + elemNdx + ']';
+                /** @type {string} */ var indexedName = '' + varName + '[' + elemNdx + ']';
                 /** @type {boolean} */ var isCurElemActive = isParentActive &&
                                                   (this.m_features.UNIFORMUSAGE_EVERY_OTHER ? basicUniformsDst.length % 2 == 0 : true) &&
                                                   (this.m_features.ARRAYUSAGE_ONLY_MIDDLE_INDEX ? elemNdx == Math.floor(size / 2) : true);
@@ -1284,7 +1288,7 @@ var deRandom = framework.delibs.debase.deRandom;
                 if (varType.getElementType().isBasicType()) {
                     // \note We don't want separate entries in basicUniformReportsDst for elements of basic-type arrays.
                     /** @type {gluShaderUtil.DataType} */ var elemBasicType = varType.getElementType().getBasicType();
-                    /** @type {es3fUniformApiTests.VarValue} */ var value = this.m_features.UNIFORMVALUE_ZERO ? es3fUniformApiTests.generateZeroVarValue(elemBasicType) :
+                    value = this.m_features.UNIFORMVALUE_ZERO ? es3fUniformApiTests.generateZeroVarValue(elemBasicType) :
                     gluShaderUtil.isDataTypeSampler(elemBasicType) ? es3fUniformApiTests.generateRandomVarValue(elemBasicType, rnd, samplerUnitCounter++) :
                                                         es3fUniformApiTests.generateRandomVarValue(elemBasicType, rnd);
 
@@ -1464,10 +1468,11 @@ var deRandom = framework.delibs.debase.deRandom;
         /** @type {number} */ var width = 32;
         /** @type {number} */ var height = 32;
         /** @type {Array<number>} */ var color = value.val.samplerV.fillColor;
+        /** @type {tcuTexture.TextureCube} */ var refTexture;
 
         if (value.type == gluShaderUtil.DataType.SAMPLER_2D) {
             /** @type {gluTexture.Texture2D} */ var texture = gluTexture.texture2DFromFormat(gl, gl.RGBA, gl.UNSIGNED_BYTE, width, height);
-            /** @type {tcuTexture.Texture2D} */ var refTexture = texture.getRefTexture();
+            refTexture = texture.getRefTexture();
             this.m_textures2d.push(texture);
 
             refTexture.allocLevel(0);
@@ -1484,7 +1489,7 @@ var deRandom = framework.delibs.debase.deRandom;
             DE_ASSERT(width == height);
 
             /** @type {gluTexture.TextureCube} */ var texture = gluTexture.cubeFromFormat(gl, gl.RGBA, gl.UNSIGNED_BYTE, width);
-            /** @type {tcuTexture.TextureCube} */ var refTexture = texture.getRefTexture();
+            refTexture = texture.getRefTexture();
             this.m_texturesCube.push(texture);
 
             for (var face in tcuTexture.CubeFace) {
