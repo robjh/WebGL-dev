@@ -108,6 +108,8 @@ def buildDepsFile():
 total_errors = 0
 total_warnings = 0
 
+results = dict()
+
 def build_target(target, namespace):
     global total_errors
     global total_warnings
@@ -123,17 +125,21 @@ def build_target(target, namespace):
     write_to_file(filename, cmdLine, True)
     compiled = read_file(filename)
     result = re.search(r'(\d*)\s*error\(s\),\s*(\d*)\s*warning\(s\)', compiled)
+    errors = 0
+    warnings = 0
     if result:
         print target + ': ' + result.group(0)
-        total_errors += int(result.group(1))
-        total_warnings += int(result.group(2))
+        errors = int(result.group(1))
+        warnings = int(result.group(2))
+        total_errors += errors
+        total_warnings += warnings
+    results[target] = [errors, warnings]
 
 
 
 def build_all_targets():
     for target in targets.keys():
         build_target(target, targets[target])
-
 
 def format_target(target):
     deps = read_file(dep_filename(target))
@@ -154,7 +160,14 @@ def format_all_targets():
 def pass_or_fail():
     if total_errors + total_warnings == 0:
         print "Passed"
-    else:
+    elif len(results) > 1: #display the summary only when building more than one target
+        for target in results:
+            errors = results[target][0]
+            warnings = results[target][1]
+            if errors + warnings == 0:
+                print target + ':\tPassed'
+            else:
+                print target + ':\terrors: ' + str(errors) + '\twarnings: ' + str(warnings)
         print "Compilation failed: " + str(total_errors) + ' error(s), ' + str(total_warnings) + ' warning(s)'  
 
 def main(argv):
