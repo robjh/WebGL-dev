@@ -44,7 +44,7 @@ goog.scope(function() {
     * @constructor
     */
     gluVarType.TypeArray = function(elementType, arraySize) {
-       /** @type {gluVarType.VarType} */ this.elementType = elementType;
+       /** @type {gluVarType.VarType} */ this.elementType = gluVarType.newClone(elementType);
        /** @type {number} */ this.size = arraySize;
     };
 
@@ -101,6 +101,8 @@ goog.scope(function() {
      */
     gluVarType.VarType.prototype.VarTypeArray = function(elementType, arraySize) {
         this.m_type = gluVarType.Type.TYPE_ARRAY;
+        if (!(arraySize >= 0 || arraySize == gluVarType.VarType.UNSIZED_ARRAY))
+            throw new Error('Illegal array size: ' + arraySize);
         this.m_data = new gluVarType.TypeArray(elementType, arraySize);
 
         return this;
@@ -114,6 +116,34 @@ goog.scope(function() {
     gluVarType.VarType.prototype.VarTypeStruct = function(structPtr) {
         this.m_type = gluVarType.Type.TYPE_STRUCT;
         this.m_data = structPtr;
+
+        return this;
+    };
+    
+    /**
+     * Creates a gluVarType.VarType, the same type as the passed in object.
+     * Use this after the constructor call.
+     * @param {gluVarType.VarType} object
+     * @return {gluVarType.VarType} The currently modified object
+     */
+    gluVarType.VarType.prototype.VarTypeClone = function(object) {
+        
+        this.m_type = object.m_type;
+
+        switch (this.m_type) {
+          case gluVarType.Type.TYPE_BASIC:
+            this.m_flags = object.m_flags;
+            this.m_data = object.m_data;
+            break;
+          case gluVarType.Type.TYPE_BASIC:
+            this.m_data = new gluVarType.TypeArray(object.m_data.elementType, object.m_data.size);
+            break;
+          case gluVarType.Type.TYPE_STRUCT:
+            this.m_data = object.m_data;
+            break;
+          default:
+            throw new Error('unknown type: ' + this.m_type);
+        }
 
         return this;
     };
@@ -287,6 +317,15 @@ goog.scope(function() {
     */
     gluVarType.newTypeStruct = function(structPtr) {
         return new gluVarType.VarType().VarTypeStruct(structPtr);
+    };
+
+    /**
+    * Creates a struct type gluVarType.VarType.
+    * @param {gluVarType.VarType} object
+    * @return {gluVarType.VarType}
+    */
+    gluVarType.newClone = function(object) {
+        return new gluVarType.VarType().VarTypeClone(object);
     };
 
     /**
