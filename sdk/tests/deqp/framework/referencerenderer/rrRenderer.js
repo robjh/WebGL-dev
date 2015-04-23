@@ -127,24 +127,26 @@ rrRenderer.DrawContext = function(id) {
 //     return Math.max(Math.abs(dzdx), Math.abs(dzdy));
 // };
 
-// rrRenderer.transformVertexClipCoordsToWindowCoords = function(/*const RenderState&*/ state, /*VertexPacket&*/ packet) {
-//     packet.position = [packet.position[0] / packet.position[3],
-//                                 packet.position[1] / packet.position[3],
-//                                 packet.position[2] / packet.position[3],
-//                                 1 / packet.position[3]];
-//     var viewport = state.viewport.rect;
-//     var halfW = viewport.width / 2;
-//     var halfH = viewport.height / 2;
-//     var oX = viewport.left + halfW;
-//     var oY = viewport.bottom + halfH;
-//     var zn = state.viewport.zn;
-//     var zf = state.viewport.zf;
+rrRenderer.transformVertexClipCoordsToWindowCoords = function(/*const RenderState&*/ state, /*VertexPacket&*/ packet) {
+    var transformed = [packet.position[0] / packet.position[3],
+                                packet.position[1] / packet.position[3],
+                                packet.position[2] / packet.position[3],
+                                1 / packet.position[3]];
+    var viewport = state.viewport.rect;
+    var halfW = viewport.width / 2;
+    var halfH = viewport.height / 2;
+    var oX = viewport.left + halfW;
+    var oY = viewport.bottom + halfH;
+    var zn = state.viewport.zn;
+    var zf = state.viewport.zf;
 
-//     packet.position = [packet.position[0] * halfW + oX,
-//                                 packet.position[1] * halfH + oY,
-//                                 packet.position[2] * (zf - zn) / 2 + (zn + zf) / 2,
-//                                 packet.position[3]];
-// };
+    return [
+        transformed[0] * halfW + oX,
+        viewport.height - (transformed[1] * halfH + oY),
+        transformed[2] * (zf - zn) / 2 + (zn + zf) / 2,
+        transformed[3]
+    ];
+};
 
 // rrRenderer.getFloatingPointMinimumResolvableDifference = function(maxZValue, /*tcu::TextureFormat::ChannelType*/ type) {
 //     if (type == tcuTexture.ChannelType.FLOAT) {
@@ -881,13 +883,13 @@ rrRenderer.drawQuads = function(state, renderTarget, program, vertexAttribs, fir
     drawContext.primitiveID = 0;
     var instanceID = 0;
 
-    var numberOfPrimitives = primitives.getNumElements();
-    for (var elementNdx = 0; elementNdx < numberOfPrimitives; ++elementNdx)
+    var numberOfVertices = primitives.getNumElements();
+    for (var elementNdx = 0; elementNdx < numberOfVertices; ++elementNdx)
     {
         var numVertexPackets = 0;
 
         // collect primitive vertices until restart
-        while (elementNdx < numberOfPrimitives &&
+        while (elementNdx < numberOfVertices &&
             !(state.restart.enabled && primitives.isRestartIndex(elementNdx, state.restart.restartIndex)))
         {
             // input
@@ -920,7 +922,7 @@ rrRenderer.drawQuads = function(state, renderTarget, program, vertexAttribs, fir
         var topLeftVertexNdx = 2;
         var topRightVertexNdx = 3;
 
-        var glToCanvasXCoordFactor = state.viewport.rect.width;
+        /*var glToCanvasXCoordFactor = state.viewport.rect.width;
         var glToCanvasYCoordFactor = -state.viewport.rect.height;
 
         var topLeft = [
@@ -930,7 +932,10 @@ rrRenderer.drawQuads = function(state, renderTarget, program, vertexAttribs, fir
         var bottomRight = [
             (state.viewport.rect.width / 2) + Math.floor(vertexPackets[(quad * 6) + bottomRightVertexNdx].position[0] * glToCanvasXCoordFactor),
             (state.viewport.rect.height / 2) + Math.floor(vertexPackets[(quad * 6) + bottomRightVertexNdx].position[1] * glToCanvasYCoordFactor)
-        ];
+        ];*/
+
+        var topLeft = rrRenderer.transformVertexClipCoordsToWindowCoords(state, vertexPackets[(quad * 6) + topLeftVertexNdx]);
+        var bottomRight = rrRenderer.transformVertexClipCoordsToWindowCoords(state, vertexPackets[(quad * 6) + bottomRightVertexNdx]);
 
         var v0 = [topLeft[0], topLeft[1]];
         var v1 = [topLeft[0], bottomRight[1]];
@@ -940,10 +945,18 @@ rrRenderer.drawQuads = function(state, renderTarget, program, vertexAttribs, fir
         var height = bottomRight[1] - topLeft[1];
 
         // Generate two rrRenderer.triangles [v0, v1, v2] and [v2, v1, v3]
-        var shadingContextTopLeft = new rrShadingContext.FragmentShadingContext(vertexPackets[0].outputs, vertexPackets[1].outputs, vertexPackets[2].outputs, null, 1);
+        var shadingContextTopLeft = new rrShadingContext.FragmentShadingContext(
+            vertexPackets[(quad * 6) + topLeftVertexNdx].outputs,
+            vertexPackets[(quad * 6) + bottomLeftVertexNdx].outputs,
+            vertexPackets[(quad * 6) + topRightVertexNdx].outputs, null, 1
+        );
         var packetsTopLeft = [];
 
-        var shadingContextBottomRight = new rrShadingContext.FragmentShadingContext(vertexPackets[2].outputs, vertexPackets[1].outputs, vertexPackets[3].outputs, null, 1);
+        var shadingContextBottomRight = new rrShadingContext.FragmentShadingContext(
+            vertexPackets[(quad * 6) + topRightVertexNdx].outputs,
+            vertexPackets[(quad * 6) + bottomLeftVertexNdx].outputs,
+            vertexPackets[(quad * 6) + bottomRightVertexNdx].outputs, null, 1
+        );
         var packetsBottomRight = [];
 
         for (var i = 0; i < width; i++)
@@ -969,80 +982,6 @@ rrRenderer.drawQuads = function(state, renderTarget, program, vertexAttribs, fir
         rrRenderer.writeFragments2(state, renderTarget, packetsTopLeft);
         rrRenderer.writeFragments2(state, renderTarget, packetsBottomRight);
     }
-};
-
-/**
- * @param {rrRenderState.RenderState} state
- * @param {rrRenderer.RenderTarget} renderTarget
- * @param {sglrShaderProgram.ShaderProgram} program
- * @param {Array<rrVertexAttrib.VertexAttrib>} vertexAttribs
- * @param {Array<number>} topLeft Coordinates of top left corner of the rectangle
- * @param {Array<number>} bottomRight Coordinates of bottom right corner of the rectangle
-*/
-rrRenderer.drawQuad = function(state, renderTarget, program, vertexAttribs, topLeft, bottomRight) {
-    var v0 = [topLeft[0], topLeft[1]];
-    var v1 = [topLeft[0], bottomRight[1]];
-    var v2 = [bottomRight[0], topLeft[1]];
-    var v3 = [bottomRight[0], bottomRight[1]];
-    var width = bottomRight[0] - topLeft[0];
-    var height = bottomRight[1] - topLeft[1];
-
-    /** @type {number} */ var u_coordScale = program.getUniformByName('u_coordScale').value;
-    /** @type {number} */ var u_colorScale = program.getUniformByName('u_colorScale').value;
-
-    // Normal shading
-    for (var packetNdx = 0; packetNdx < packets.length; ++packetNdx) {
-        // Calc output color
-        /** @type {Array<number>} */ var coord = [1.0, 1.0];
-        /** @type {Array<number>} */ var color = [1.0, 1.0, 1.0];
-
-        for (var attribNdx = 0; attribNdx < this.packets.length; attribNdx++) {
-            /** @type {number} */ var numComponents = this.m_componentCount[attribNdx];
-
-            calcShaderColorCoord(coord, color,
-                                 rrVertexAttrib.readVertexAttrib(
-                                     packets[attribNdx],
-                                     packet.instanceNdx,
-                                     packet.vertexNdx,
-                                     this.m_attrType[attribNdx]),
-                                 attribNdx == 0, numComponents);
-        }
-
-        // Transform position
-        packet.position = [u_coordScale * coord[0], u_coordScale * coord[1], 1.0, 1.0];
-
-        // Pass color to FS
-        packet.outputs[varyingLocColor] = [u_colorScale * color[0], u_colorScale * color[1], u_colorScale * color[2], 1.0];
-    }
-
-    // Generate two rrRenderer.triangles [v0, v1, v2] and [v1, v2, v3]
-    var shadingContextTopLeft = new rrShadingContext.FragmentShadingContext(vertexAttribs[0], vertexAttribs[1], vertexAttribs[2], null, 1);
-    var packetsTopLeft = [];
-
-    var shadingContextBottomRight = new rrShadingContext.FragmentShadingContext(vertexAttribs[1], vertexAttribs[2], vertexAttribs[3], null, 1);
-    var packetsBottomRight = [];
-    for (var i = 0; i < width; i++)
-        for (var j = 0; j < height; j++) {
-            var x = v0[0] + i + 0.5;
-            var y = v0[1] + j + 0.5;
-
-            var xf = (i + 0.5) / width;
-            var yf = (j + 0.5) / height;
-            var triNdx = xf + yf >= 1;
-            if (!triNdx) {
-                var b = rrRenderer.getBarycentricCoefficients([x, y], v0, v1, v2);
-                packetsTopLeft.push(new rrFragmentOperations.Fragment(b, [v0[0] + i, v0[1] + j]));
-            } else {
-                 var b = rrRenderer.getBarycentricCoefficients([x, y], v1, v2, v3);
-                packetsBottomRight.push(new rrFragmentOperations.Fragment(b, [v0[0] + i, v0[1] + j]));
-            }
-        }
-
-    program.fragmentShader.shadeFragments(packetsTopLeft, shadingContextTopLeft);
-    program.fragmentShader.shadeFragments(packetsBottomRight, shadingContextBottomRight);
-
-    rrRenderer.writeFragments(state, renderTarget, packetsTopLeft);
-    rrRenderer.writeFragments(state, renderTarget, packetsBottomRight);
 };
 
 });

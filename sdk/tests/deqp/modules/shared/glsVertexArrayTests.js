@@ -887,7 +887,7 @@ goog.scope(function() {
 
         DE_ASSERT((firstVertex % 6) == 0);
         //this.m_ctx.drawArrays(glsVertexArrayTests.ContextArray.primitiveToGL(primitive), firstVertex, vertexCount - firstVertex);
-        this.m_ctx.drawQuads(firstVertex, Math.floor(vertexCount - firstVertex) / 6);
+        this.m_ctx.drawQuads(firstVertex, Math.floor((vertexCount - firstVertex) / 6));
         glsVertexArrayTests.GLU_EXPECT_NO_ERROR(this.m_ctx.getError(), "gl.drawArrays()");
 
         for (var arrayNdx = 0; arrayNdx < this.m_arrays.length; arrayNdx++) {
