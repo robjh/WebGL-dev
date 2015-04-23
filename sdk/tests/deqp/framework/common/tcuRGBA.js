@@ -67,16 +67,6 @@ var deMath = framework.delibs.debase.deMath;
     };
 
     /**
-     * @param {tcuRGBA.RGBA} other
-     */
-    tcuRGBA.RGBA.equals = function(other) {
-        return this.getRed() == other.getRed() &&
-        this.getGreen() == other.getGreen() &&
-        this.getBlue() == other.getBlue() &&
-        this.getAlpha() == other.getAlpha();
-    };
-
-    /**
      * Builds an tcuRGBA.RGBA object from color components
      * @param {number} r
      * @param {number} g

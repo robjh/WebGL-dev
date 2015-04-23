@@ -115,7 +115,7 @@ goog.scope(function() {
      * Returns an es3fTransformFeedbackTests.Attribute or es3fTransformFeedbackTests.Varying object which matches its name with the passed string value in the function
      * @param {Array<es3fTransformFeedbackTests.Attribute> || Array.<es3fTransformFeedbackTests.Varying>} array
      * @param {string} name
-     * @return {es3fTransformFeedbackTests.Attribute || es3fTransformFeedbackTests.Varying}
+     * @return { (es3fTransformFeedbackTests.Attribute | es3fTransformFeedbackTests.Varying | null)}
      */
     es3fTransformFeedbackTests.findAttributeNameEquals = function(array, name) {
         for (var pos = 0; pos < array.length; pos++) {
@@ -123,7 +123,7 @@ goog.scope(function() {
                 return array[pos];
             }
         }
-        throw new Error('Attribute "' + name + '" not found');
+        return null;
     };
 
     /**
@@ -854,8 +854,8 @@ goog.scope(function() {
      */
     es3fTransformFeedbackTests.TransformFeedbackCase = function(name, desc, bufferMode, primitiveType) {
         tcuTestCase.DeqpTest.call(this, name, desc);
-        this.m_bufferMode = bufferMode || 0;
-        this.m_primitiveType = primitiveType || null;
+        this.m_bufferMode = bufferMode;
+        this.m_primitiveType = primitiveType;
         this.m_progSpec = new es3fTransformFeedbackTests.ProgramSpec();
 
         // Derived from es3fTransformFeedbackTests.ProgramSpec in es3fTransformFeedbackTests.init()
@@ -871,6 +871,8 @@ goog.scope(function() {
 
         this.m_iterNdx = 0; // int
     };
+
+    setParentClass(es3fTransformFeedbackTests.TransformFeedbackCase, tcuTestCase.DeqpTest);
 
     es3fTransformFeedbackTests.TransformFeedbackCase.prototype.init = function() {
         this.m_program = es3fTransformFeedbackTests.createVertexCaptureProgram(
@@ -1306,8 +1308,6 @@ goog.scope(function() {
         ]
     };
 
-    setParentClass(es3fTransformFeedbackTests.TransformFeedbackCase, tcuTestCase.DeqpTest);
-
     es3fTransformFeedbackTests.hasArraysInTFVaryings = function(spec) {
 
         for (var i = 0 ; i < spec.getTransformFeedbackVaryings().length ; ++i) {
@@ -1435,7 +1435,7 @@ goog.scope(function() {
     setParentClass(es3fTransformFeedbackTests.ArrayElementCase, es3fTransformFeedbackTests.TransformFeedbackCase);
 
     /** es3fTransformFeedbackTests.RandomCase
-     *  @extends {es3fTransformFeedbackTests.TransformFeedbackCase}
+     * @extends {es3fTransformFeedbackTests.TransformFeedbackCase}
      * @param {string} name
      * @param {string} desc
      * @param {number} bufferMode
@@ -1446,158 +1446,159 @@ goog.scope(function() {
     es3fTransformFeedbackTests.RandomCase = function(name, desc, bufferMode, primitiveType, seed) {
         es3fTransformFeedbackTests.TransformFeedbackCase.call(this,name, desc, bufferMode, primitiveType);
 
-        this.init = function() {
-
-            /** @type {number} */
-            var seed = /*deString.deStringHash(getName()) ^ */ deMath.deMathHash(this.m_iterNdx);
-
-            /** @type {Array<gluShaderUtil.DataType>} */
-            var typeCandidates = [
-                gluShaderUtil.DataType.FLOAT,
-                gluShaderUtil.DataType.FLOAT_VEC2,
-                gluShaderUtil.DataType.FLOAT_VEC3,
-                gluShaderUtil.DataType.FLOAT_VEC4,
-                gluShaderUtil.DataType.INT,
-                gluShaderUtil.DataType.INT_VEC2,
-                gluShaderUtil.DataType.INT_VEC3,
-                gluShaderUtil.DataType.INT_VEC4,
-                gluShaderUtil.DataType.UINT,
-                gluShaderUtil.DataType.UINT_VEC2,
-                gluShaderUtil.DataType.UINT_VEC3,
-                gluShaderUtil.DataType.UINT_VEC4,
-
-                gluShaderUtil.DataType.FLOAT_MAT2,
-                gluShaderUtil.DataType.FLOAT_MAT2X3,
-                gluShaderUtil.DataType.FLOAT_MAT2X4,
-
-                gluShaderUtil.DataType.FLOAT_MAT3X2,
-                gluShaderUtil.DataType.FLOAT_MAT3,
-                gluShaderUtil.DataType.FLOAT_MAT3X4,
-
-                gluShaderUtil.DataType.FLOAT_MAT4X2,
-                gluShaderUtil.DataType.FLOAT_MAT4X3,
-                gluShaderUtil.DataType.FLOAT_MAT4
-            ];
-
-            /** @type {Array<gluShaderUtil.precision>} */
-            var precisions = [
-                gluShaderUtil.precision.PRECISION_LOWP,
-                gluShaderUtil.precision.PRECISION_MEDIUMP,
-                gluShaderUtil.precision.PRECISION_HIGHP
-            ];
-
-            var interpModes = [ {name: 'smooth', interp: es3fTransformFeedbackTests.interpolation.SMOOTH}, {name: 'flat', interp: es3fTransformFeedbackTests.interpolation.FLAT}, {name: 'centroid', interp: es3fTransformFeedbackTests.interpolation.CENTROID}
-            ];
-
-            /** @type {number} */  var maxAttributeVectors = 16;
-           //** @type {number} */  var maxTransformFeedbackComponents = 64; // note It is enough to limit attribute set size.
-            /** @type {boolean} */ var isSeparateMode = (this.m_bufferMode === gl.SEPARATE_ATTRIBS);
-            /** @type {number} */  var maxTransformFeedbackVars = isSeparateMode ? 4 : maxAttributeVectors;
-            /** @type {number} */  var arrayWeight = 0.3;
-            /** @type {number} */  var positionWeight = 0.7;
-            /** @type {number} */  var pointSizeWeight = 0.1;
-            /** @type {number} */  var captureFullArrayWeight = 0.5;
-
-            /** @type {deRandom.Random} */
-                                   var rnd = new deRandom.Random(seed);
-            /** @type {boolean} */ var usePosition = rnd.getFloat() < positionWeight;
-            /** @type {boolean} */ var usePointSize = rnd.getFloat() < pointSizeWeight;
-            /** @type {number} */  var numAttribVectorsToUse = rnd.getInt(
-                1, maxAttributeVectors - 1/*position*/ - (usePointSize ? 1 : 0)
-            );
-
-            /** @type {number} */  var numAttributeVectors = 0;
-            /** @type {number} */  var varNdx = 0;
-
-            // Generate varyings.
-            while (numAttributeVectors < numAttribVectorsToUse) {
-                /** @type {number} */
-                var maxVecs = isSeparateMode ? Math.min(2 /*at most 2*mat2*/, numAttribVectorsToUse - numAttributeVectors) : numAttribVectorsToUse - numAttributeVectors;
-                /** @type {gluShaderUtil.DataType} */
-                var begin = typeCandidates[0];
-                /** @type {number} */
-                var endCandidates = begin + (
-                    maxVecs >= 4 ? 21 : (
-                        maxVecs >= 3 ? 18 : (
-                            maxVecs >= 2 ? (isSeparateMode ? 13 : 15) : 12
-                        )
-                    )
-                );
-                /** @type {gluShaderUtil.DataType} */
-                var end = typeCandidates[endCandidates];
-
-                /** @type {gluShaderUtil.DataType} */
-                var type = rnd.choose(typeCandidates)[0];
-
-                /** @type {gluShaderUtil.precision} */
-                var precision = rnd.choose(precisions)[0];
-
-                /** @type {es3fTransformFeedbackTests.interpolation} */
-                var interp = (type === gluShaderUtil.DataType.FLOAT)
-                           ? rnd.choose(interpModes)[0].interp
-                           : es3fTransformFeedbackTests.interpolation.FLAT;
-
-                /** @type {number} */
-                var numVecs = gluShaderUtil.isDataTypeMatrix(type) ? gluShaderUtil.getDataTypeMatrixNumColumns(type) : 1;
-                /** @type {number} */
-                var numComps = gluShaderUtil.getDataTypeScalarSize(type);
-                /** @type {number} */
-                var maxArrayLen = Math.max(1, isSeparateMode ? (4 / numComps) : (maxVecs / numVecs));
-                /** @type {boolean} */
-                var useArray = rnd.getFloat() < arrayWeight;
-                /** @type {number} */
-                var arrayLen = useArray ? rnd.getInt(1, maxArrayLen) : 1;
-                /** @type {string} */
-                var name = 'v_var' + varNdx;
-
-                if (useArray)
-                    this.m_progSpec.addVarying(name, gluVarType.newTypeArray(gluVarType.newTypeBasic(type, precision), arrayLen), interp);
-                else
-                    this.m_progSpec.addVarying(name, gluVarType.newTypeBasic(type, precision), interp);
-
-                numAttributeVectors += arrayLen * numVecs;
-                varNdx += 1;
-            }
-
-            // Generate transform feedback candidate set.
-            /** @type {Array<string>} */ var tfCandidates =[];
-
-            if (usePosition) tfCandidates.push('gl_Position');
-            if (usePointSize) tfCandidates.push('gl_PointSize');
-
-            for (var ndx = 0; ndx < varNdx; ndx++) {
-                /** @type {es3fTransformFeedbackTests.Varying} */
-                var varying = this.m_progSpec.getVaryings()[ndx];
-
-                if (varying.type.isArrayType()) {
-                    /** @type {boolean} */
-                    var captureFull = rnd.getFloat() < captureFullArrayWeight;
-
-                    if (captureFull) {
-                        tfCandidates.push(varying.name);
-                    } else {
-                        /** @type {number} */
-                        var numElem = varying.type.getArraySize();
-                        for (var elemNdx = 0; elemNdx < numElem; elemNdx++)
-                            tfCandidates.push(varying.name + '[' + elemNdx + ']');
-                    }
-                } else
-                    tfCandidates.push(varying.name);
-            }
-
-            // Pick random selection.
-            var tfVaryings = [];
-            rnd.choose(tfCandidates, tfVaryings, Math.min(tfCandidates.length, maxTransformFeedbackVars));
-            rnd.shuffle(tfVaryings);
-            for (var i = 0; i < tfVaryings.length; i++)
-                this.m_progSpec.addTransformFeedbackVarying(tfVaryings[i]);
-
-            es3fTransformFeedbackTests.TransformFeedbackCase.prototype.init.call(this);
-
-        };
     };
 
     setParentClass(es3fTransformFeedbackTests.RandomCase, es3fTransformFeedbackTests.TransformFeedbackCase);
+
+    es3fTransformFeedbackTests.RandomCase.prototype.init = function() {
+
+        /** @type {number} */
+        var seed = /*deString.deStringHash(getName()) ^ */ deMath.deMathHash(this.m_iterNdx);
+
+        /** @type {Array<gluShaderUtil.DataType>} */
+        var typeCandidates = [
+            gluShaderUtil.DataType.FLOAT,
+            gluShaderUtil.DataType.FLOAT_VEC2,
+            gluShaderUtil.DataType.FLOAT_VEC3,
+            gluShaderUtil.DataType.FLOAT_VEC4,
+            gluShaderUtil.DataType.INT,
+            gluShaderUtil.DataType.INT_VEC2,
+            gluShaderUtil.DataType.INT_VEC3,
+            gluShaderUtil.DataType.INT_VEC4,
+            gluShaderUtil.DataType.UINT,
+            gluShaderUtil.DataType.UINT_VEC2,
+            gluShaderUtil.DataType.UINT_VEC3,
+            gluShaderUtil.DataType.UINT_VEC4,
+
+            gluShaderUtil.DataType.FLOAT_MAT2,
+            gluShaderUtil.DataType.FLOAT_MAT2X3,
+            gluShaderUtil.DataType.FLOAT_MAT2X4,
+
+            gluShaderUtil.DataType.FLOAT_MAT3X2,
+            gluShaderUtil.DataType.FLOAT_MAT3,
+            gluShaderUtil.DataType.FLOAT_MAT3X4,
+
+            gluShaderUtil.DataType.FLOAT_MAT4X2,
+            gluShaderUtil.DataType.FLOAT_MAT4X3,
+            gluShaderUtil.DataType.FLOAT_MAT4
+        ];
+
+        /** @type {Array<gluShaderUtil.precision>} */
+        var precisions = [
+            gluShaderUtil.precision.PRECISION_LOWP,
+            gluShaderUtil.precision.PRECISION_MEDIUMP,
+            gluShaderUtil.precision.PRECISION_HIGHP
+        ];
+
+        var interpModes = [ {name: 'smooth', interp: es3fTransformFeedbackTests.interpolation.SMOOTH}, {name: 'flat', interp: es3fTransformFeedbackTests.interpolation.FLAT}, {name: 'centroid', interp: es3fTransformFeedbackTests.interpolation.CENTROID}
+        ];
+
+        /** @type {number} */  var maxAttributeVectors = 16;
+       //** @type {number} */  var maxTransformFeedbackComponents = 64; // note It is enough to limit attribute set size.
+        /** @type {boolean} */ var isSeparateMode = (this.m_bufferMode === gl.SEPARATE_ATTRIBS);
+        /** @type {number} */  var maxTransformFeedbackVars = isSeparateMode ? 4 : maxAttributeVectors;
+        /** @type {number} */  var arrayWeight = 0.3;
+        /** @type {number} */  var positionWeight = 0.7;
+        /** @type {number} */  var pointSizeWeight = 0.1;
+        /** @type {number} */  var captureFullArrayWeight = 0.5;
+
+        /** @type {deRandom.Random} */
+                               var rnd = new deRandom.Random(seed);
+        /** @type {boolean} */ var usePosition = rnd.getFloat() < positionWeight;
+        /** @type {boolean} */ var usePointSize = rnd.getFloat() < pointSizeWeight;
+        /** @type {number} */  var numAttribVectorsToUse = rnd.getInt(
+            1, maxAttributeVectors - 1/*position*/ - (usePointSize ? 1 : 0)
+        );
+
+        /** @type {number} */  var numAttributeVectors = 0;
+        /** @type {number} */  var varNdx = 0;
+
+        // Generate varyings.
+        while (numAttributeVectors < numAttribVectorsToUse) {
+            /** @type {number} */
+            var maxVecs = isSeparateMode ? Math.min(2 /*at most 2*mat2*/, numAttribVectorsToUse - numAttributeVectors) : numAttribVectorsToUse - numAttributeVectors;
+            /** @type {gluShaderUtil.DataType} */
+            var begin = typeCandidates[0];
+            /** @type {number} */
+            var endCandidates = begin + (
+                maxVecs >= 4 ? 21 : (
+                    maxVecs >= 3 ? 18 : (
+                        maxVecs >= 2 ? (isSeparateMode ? 13 : 15) : 12
+                    )
+                )
+            );
+            /** @type {gluShaderUtil.DataType} */
+            var end = typeCandidates[endCandidates];
+
+            /** @type {gluShaderUtil.DataType} */
+            var type = rnd.choose(typeCandidates)[0];
+
+            /** @type {gluShaderUtil.precision} */
+            var precision = rnd.choose(precisions)[0];
+
+            /** @type {es3fTransformFeedbackTests.interpolation} */
+            var interp = (type === gluShaderUtil.DataType.FLOAT)
+                       ? rnd.choose(interpModes)[0].interp
+                       : es3fTransformFeedbackTests.interpolation.FLAT;
+
+            /** @type {number} */
+            var numVecs = gluShaderUtil.isDataTypeMatrix(type) ? gluShaderUtil.getDataTypeMatrixNumColumns(type) : 1;
+            /** @type {number} */
+            var numComps = gluShaderUtil.getDataTypeScalarSize(type);
+            /** @type {number} */
+            var maxArrayLen = Math.max(1, isSeparateMode ? (4 / numComps) : (maxVecs / numVecs));
+            /** @type {boolean} */
+            var useArray = rnd.getFloat() < arrayWeight;
+            /** @type {number} */
+            var arrayLen = useArray ? rnd.getInt(1, maxArrayLen) : 1;
+            /** @type {string} */
+            var name = 'v_var' + varNdx;
+
+            if (useArray)
+                this.m_progSpec.addVarying(name, gluVarType.newTypeArray(gluVarType.newTypeBasic(type, precision), arrayLen), interp);
+            else
+                this.m_progSpec.addVarying(name, gluVarType.newTypeBasic(type, precision), interp);
+
+            numAttributeVectors += arrayLen * numVecs;
+            varNdx += 1;
+        }
+
+        // Generate transform feedback candidate set.
+        /** @type {Array<string>} */ var tfCandidates =[];
+
+        if (usePosition) tfCandidates.push('gl_Position');
+        if (usePointSize) tfCandidates.push('gl_PointSize');
+
+        for (var ndx = 0; ndx < varNdx; ndx++) {
+            /** @type {es3fTransformFeedbackTests.Varying} */
+            var varying = this.m_progSpec.getVaryings()[ndx];
+
+            if (varying.type.isArrayType()) {
+                /** @type {boolean} */
+                var captureFull = rnd.getFloat() < captureFullArrayWeight;
+
+                if (captureFull) {
+                    tfCandidates.push(varying.name);
+                } else {
+                    /** @type {number} */
+                    var numElem = varying.type.getArraySize();
+                    for (var elemNdx = 0; elemNdx < numElem; elemNdx++)
+                        tfCandidates.push(varying.name + '[' + elemNdx + ']');
+                }
+            } else
+                tfCandidates.push(varying.name);
+        }
+
+        // Pick random selection.
+        var tfVaryings = [];
+        rnd.choose(tfCandidates, tfVaryings, Math.min(tfCandidates.length, maxTransformFeedbackVars));
+        rnd.shuffle(tfVaryings);
+        for (var i = 0; i < tfVaryings.length; i++)
+            this.m_progSpec.addTransformFeedbackVarying(tfVaryings[i]);
+
+        es3fTransformFeedbackTests.TransformFeedbackCase.prototype.init.call(this);
+
+    };
 
     /**
      * Creates the test in order to be executed
