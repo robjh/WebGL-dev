@@ -324,11 +324,11 @@ goog.scope(function() {
 
                     // Initialize particular test
                     state.currentTest.init();
-                }
 
-                //If it's a leaf test, notify of it's execution.
-                if (state.currentTest.isLeaf())
-                    debug('Start testcase: ' + fullTestName);
+                    //If it's a leaf test, notify of it's execution.
+                    if (state.currentTest.isLeaf())
+                        debug('Start testcase: ' + fullTestName);
+                }
 
                 // Run the test, save the result.
                 tcuTestCase.lastResult = state.currentTest.iterate();

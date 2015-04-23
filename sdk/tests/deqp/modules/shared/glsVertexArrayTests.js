@@ -2435,7 +2435,7 @@ goog.scope(function() {
             }
 
             try {
-                //this.m_glArrayPack.render(this.m_spec.primitive, this.m_spec.first, this.m_spec.drawCount * primitiveSize, useVao, coordScale, colorScale);
+                this.m_glArrayPack.render(this.m_spec.primitive, this.m_spec.first, this.m_spec.drawCount * primitiveSize, useVao, coordScale, colorScale);
                 this.m_rrArrayPack.render(this.m_spec.primitive, this.m_spec.first, this.m_spec.drawCount * primitiveSize, useVao, coordScale, colorScale);
             }
             catch (err) {
