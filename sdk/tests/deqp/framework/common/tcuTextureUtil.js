@@ -67,8 +67,8 @@ tcuTextureUtil.linearChannelToSRGB = function(cl) {
 };
 
 /** tcuTextureUtil.linearToSRGB
- * @param {Array.<number>} cl
- * @return {Array.<number>}
+ * @param {Array<number>} cl
+ * @return {Array<number>}
  */
 tcuTextureUtil.linearToSRGB = function(cl) {
     return [tcuTextureUtil.linearChannelToSRGB(cl[0]),
@@ -314,7 +314,7 @@ tcuTextureUtil.select = function(a, b, cond) {
 
 /** tcuTextureUtil.getChannelBitDepth
  * @param {tcuTexture.ChannelType} channelType
- * @return {Array.<number>}
+ * @return {Array<number>}
  */
 tcuTextureUtil.getChannelBitDepth = function(channelType) {
 
@@ -352,13 +352,13 @@ tcuTextureUtil.getChannelBitDepth = function(channelType) {
 
 /** tcuTextureUtil.getTextureFormatBitDepth
  * @param {tcuTexture.TextureFormat} format
- * @return {Array.<number>}
+ * @return {Array<number>}
  */
 tcuTextureUtil.getTextureFormatBitDepth = function(format) {
 
-    /** @type {Array.<number>} */ var chnBits = tcuTextureUtil.getChannelBitDepth(format.type); // IVec4
-    /** @type {Array.<boolean>} */ var chnMask = [false, false, false, false]; // BVec4
-    /** @type {Array.<number>} */ var chnSwz = [0, 1, 2, 3]; // IVec4
+    /** @type {Array<number>} */ var chnBits = tcuTextureUtil.getChannelBitDepth(format.type); // IVec4
+    /** @type {Array<boolean>} */ var chnMask = [false, false, false, false]; // BVec4
+    /** @type {Array<number>} */ var chnSwz = [0, 1, 2, 3]; // IVec4
 
     switch (format.order) {
         case tcuTexture.ChannelOrder.R: chnMask = [true, false, false, false]; break;

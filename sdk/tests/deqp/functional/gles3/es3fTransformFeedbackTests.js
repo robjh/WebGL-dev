@@ -20,17 +20,17 @@
 
 'use strict';
 goog.provide('functional.gles3.es3fTransformFeedbackTests');
-goog.require('framework.opengl.gluShaderUtil');
+goog.require('framework.common.tcuImageCompare');
+goog.require('framework.common.tcuSurface');
+goog.require('framework.common.tcuTestCase');
+goog.require('framework.delibs.debase.deMath');
+goog.require('framework.delibs.debase.deRandom');
+goog.require('framework.delibs.debase.deString');
 goog.require('framework.opengl.gluDrawUtil');
+goog.require('framework.opengl.gluShaderProgram');
+goog.require('framework.opengl.gluShaderUtil');
 goog.require('framework.opengl.gluVarType');
 goog.require('framework.opengl.gluVarTypeUtil');
-goog.require('framework.opengl.gluShaderProgram');
-goog.require('framework.delibs.debase.deRandom');
-goog.require('framework.delibs.debase.deMath');
-goog.require('framework.delibs.debase.deString');
-goog.require('framework.common.tcuTestCase');
-goog.require('framework.common.tcuSurface');
-goog.require('framework.common.tcuImageCompare');
 
 goog.scope(function() {
 
@@ -68,7 +68,6 @@ goog.scope(function() {
         CENTROID: 2
 
     };
-
 
     /**
      * Returns es3fTransformFeedbackTests.interpolation name: smooth, flat or centroid
@@ -1104,7 +1103,7 @@ goog.scope(function() {
         gl.beginQuery(gl.TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN, primitiveQuery);
         es3fTransformFeedbackTests.GLU_EXPECT_NO_ERROR(gl, gl.getError(), 'glBeginQuery(gl.TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN)');
 
-        // Draw 
+        // Draw
         var offset = 0;
         var tfEnabled = true;
 
@@ -1133,7 +1132,7 @@ goog.scope(function() {
 
             gl.endTransformFeedback();
             es3fTransformFeedbackTests.GLU_EXPECT_NO_ERROR(gl, gl.getError(), 'render');
-        };
+        }
 
         gl.endQuery(gl.TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN);
         es3fTransformFeedbackTests.GLU_EXPECT_NO_ERROR(gl, gl.getError(), 'glEndQuery(gl.TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN)');
@@ -1279,27 +1278,27 @@ goog.scope(function() {
     }; // runTest();
 
     es3fTransformFeedbackTests.dc = function(numElements, tfEnabled) {
-        return new es3fTransformFeedbackTests.DrawCall(numElements,tfEnabled);
+        return new es3fTransformFeedbackTests.DrawCall(numElements, tfEnabled);
     };
 
     // static data
     es3fTransformFeedbackTests.TransformFeedbackCase.s_iterate = {
 
         testCases: {
-            elemCount1: [es3fTransformFeedbackTests.dc( 1, true )],
-            elemCount2: [es3fTransformFeedbackTests.dc( 2, true )],
-            elemCount3: [es3fTransformFeedbackTests.dc( 3, true )],
-            elemCount4: [es3fTransformFeedbackTests.dc( 4, true )],
-            elemCount123: [es3fTransformFeedbackTests.dc(123, true )],
-            basicPause1: [es3fTransformFeedbackTests.dc( 64, true ), es3fTransformFeedbackTests.dc( 64, false), es3fTransformFeedbackTests.dc( 64, true)],
-            basicPause2: [es3fTransformFeedbackTests.dc( 13, true ), es3fTransformFeedbackTests.dc( 5, true ), es3fTransformFeedbackTests.dc( 17, false),
-                           es3fTransformFeedbackTests.dc( 3, true ), es3fTransformFeedbackTests.dc( 7, false)],
-            startPaused: [es3fTransformFeedbackTests.dc(123, false), es3fTransformFeedbackTests.dc(123, true )],
-            random1: [es3fTransformFeedbackTests.dc( 65, true ), es3fTransformFeedbackTests.dc(135, false), es3fTransformFeedbackTests.dc( 74, true),
-                           es3fTransformFeedbackTests.dc( 16, false), es3fTransformFeedbackTests.dc(226, false), es3fTransformFeedbackTests.dc( 9, true),
+            elemCount1: [es3fTransformFeedbackTests.dc(1, true)],
+            elemCount2: [es3fTransformFeedbackTests.dc(2, true)],
+            elemCount3: [es3fTransformFeedbackTests.dc(3, true)],
+            elemCount4: [es3fTransformFeedbackTests.dc(4, true)],
+            elemCount123: [es3fTransformFeedbackTests.dc(123, true)],
+            basicPause1: [es3fTransformFeedbackTests.dc(64, true), es3fTransformFeedbackTests.dc(64, false), es3fTransformFeedbackTests.dc(64, true)],
+            basicPause2: [es3fTransformFeedbackTests.dc(13, true), es3fTransformFeedbackTests.dc(5, true), es3fTransformFeedbackTests.dc(17, false),
+                           es3fTransformFeedbackTests.dc(3, true), es3fTransformFeedbackTests.dc(7, false)],
+            startPaused: [es3fTransformFeedbackTests.dc(123, false), es3fTransformFeedbackTests.dc(123, true)],
+            random1: [es3fTransformFeedbackTests.dc(65, true), es3fTransformFeedbackTests.dc(135, false), es3fTransformFeedbackTests.dc(74, true),
+                           es3fTransformFeedbackTests.dc(16, false), es3fTransformFeedbackTests.dc(226, false), es3fTransformFeedbackTests.dc(9, true),
                            es3fTransformFeedbackTests.dc(174, false)],
-            random2: [es3fTransformFeedbackTests.dc(217, true ), es3fTransformFeedbackTests.dc(171, true ), es3fTransformFeedbackTests.dc(147, true),
-                           es3fTransformFeedbackTests.dc(152, false), es3fTransformFeedbackTests.dc( 55, true )]
+            random2: [es3fTransformFeedbackTests.dc(217, true), es3fTransformFeedbackTests.dc(171, true), es3fTransformFeedbackTests.dc(147, true),
+                           es3fTransformFeedbackTests.dc(152, false), es3fTransformFeedbackTests.dc(55, true)]
         },
         iterations: [
             'elemCount1', 'elemCount2', 'elemCount3', 'elemCount4', 'elemCount1234',
@@ -1310,7 +1309,7 @@ goog.scope(function() {
 
     es3fTransformFeedbackTests.hasArraysInTFVaryings = function(spec) {
 
-        for (var i = 0 ; i < spec.getTransformFeedbackVaryings().length ; ++i) {
+        for (var i = 0; i < spec.getTransformFeedbackVaryings().length; ++i) {
             var tfVar = spec.getTransformFeedbackVaryings()[i];
             var varName = gluVarTypeUtil.parseVariableName(tfVar);
 
@@ -1421,7 +1420,7 @@ goog.scope(function() {
      */
     es3fTransformFeedbackTests.ArrayElementCase = function(name, desc, bufferMode, primitiveType, type, precision, interpolation) {
 
-        es3fTransformFeedbackTests.TransformFeedbackCase.call(this,name, desc, bufferMode, primitiveType);
+        es3fTransformFeedbackTests.TransformFeedbackCase.call(this, name, desc, bufferMode, primitiveType);
 
         this.m_progSpec.addVarying('v_varA', gluVarType.newTypeBasic(type, precision), interpolation);
         this.m_progSpec.addVarying('v_varB', gluVarType.newTypeBasic(type, precision), interpolation);
@@ -1444,7 +1443,7 @@ goog.scope(function() {
      * @constructor
      */
     es3fTransformFeedbackTests.RandomCase = function(name, desc, bufferMode, primitiveType, seed) {
-        es3fTransformFeedbackTests.TransformFeedbackCase.call(this,name, desc, bufferMode, primitiveType);
+        es3fTransformFeedbackTests.TransformFeedbackCase.call(this, name, desc, bufferMode, primitiveType);
 
     };
 
@@ -1493,25 +1492,25 @@ goog.scope(function() {
         var interpModes = [ {name: 'smooth', interp: es3fTransformFeedbackTests.interpolation.SMOOTH}, {name: 'flat', interp: es3fTransformFeedbackTests.interpolation.FLAT}, {name: 'centroid', interp: es3fTransformFeedbackTests.interpolation.CENTROID}
         ];
 
-        /** @type {number} */  var maxAttributeVectors = 16;
+        /** @type {number} */ var maxAttributeVectors = 16;
        //** @type {number} */  var maxTransformFeedbackComponents = 64; // note It is enough to limit attribute set size.
         /** @type {boolean} */ var isSeparateMode = (this.m_bufferMode === gl.SEPARATE_ATTRIBS);
-        /** @type {number} */  var maxTransformFeedbackVars = isSeparateMode ? 4 : maxAttributeVectors;
-        /** @type {number} */  var arrayWeight = 0.3;
-        /** @type {number} */  var positionWeight = 0.7;
-        /** @type {number} */  var pointSizeWeight = 0.1;
-        /** @type {number} */  var captureFullArrayWeight = 0.5;
+        /** @type {number} */ var maxTransformFeedbackVars = isSeparateMode ? 4 : maxAttributeVectors;
+        /** @type {number} */ var arrayWeight = 0.3;
+        /** @type {number} */ var positionWeight = 0.7;
+        /** @type {number} */ var pointSizeWeight = 0.1;
+        /** @type {number} */ var captureFullArrayWeight = 0.5;
 
         /** @type {deRandom.Random} */
                                var rnd = new deRandom.Random(seed);
         /** @type {boolean} */ var usePosition = rnd.getFloat() < positionWeight;
         /** @type {boolean} */ var usePointSize = rnd.getFloat() < pointSizeWeight;
-        /** @type {number} */  var numAttribVectorsToUse = rnd.getInt(
+        /** @type {number} */ var numAttribVectorsToUse = rnd.getInt(
             1, maxAttributeVectors - 1/*position*/ - (usePointSize ? 1 : 0)
         );
 
-        /** @type {number} */  var numAttributeVectors = 0;
-        /** @type {number} */  var varNdx = 0;
+        /** @type {number} */ var numAttributeVectors = 0;
+        /** @type {number} */ var varNdx = 0;
 
         // Generate varyings.
         while (numAttributeVectors < numAttribVectorsToUse) {
@@ -1537,9 +1536,9 @@ goog.scope(function() {
             var precision = rnd.choose(precisions)[0];
 
             /** @type {es3fTransformFeedbackTests.interpolation} */
-            var interp = (type === gluShaderUtil.DataType.FLOAT)
-                       ? rnd.choose(interpModes)[0].interp
-                       : es3fTransformFeedbackTests.interpolation.FLAT;
+            var interp = (type === gluShaderUtil.DataType.FLOAT) ?
+                       rnd.choose(interpModes)[0].interp :
+                       es3fTransformFeedbackTests.interpolation.FLAT;
 
             /** @type {number} */
             var numVecs = gluShaderUtil.isDataTypeMatrix(type) ? gluShaderUtil.getDataTypeMatrixNumColumns(type) : 1;
@@ -1564,7 +1563,7 @@ goog.scope(function() {
         }
 
         // Generate transform feedback candidate set.
-        /** @type {Array<string>} */ var tfCandidates =[];
+        /** @type {Array<string>} */ var tfCandidates = [];
 
         if (usePosition) tfCandidates.push('gl_Position');
         if (usePointSize) tfCandidates.push('gl_PointSize');

@@ -64,7 +64,7 @@ goog.scope(function() {
          * @private
          */
         this.m_type = -1;
-       
+
         /**
          * m_data used to be a 'Data' union in C++. Using a var is enough here.
          * it will contain any necessary value.
@@ -72,7 +72,7 @@ goog.scope(function() {
          * case TYPE_ARRAY: gluVarType.TypeArray
          * case TYPE_STRUCT: gluVarType.StructType
          * @private
-         * @type {(number|gluVarType.TypeArray|gluVarType.StructType)} 
+         * @type {(number|gluVarType.TypeArray|gluVarType.StructType)}
         */
         this.m_data = null;
     };
@@ -154,7 +154,7 @@ goog.scope(function() {
             throw new Error('VarType is not a basic type.');
         return /** @type {gluShaderUtil.DataType<number>} */ (this.m_data);
     };
-    
+
     /** getPrecision
      * @return {gluShaderUtil.precision} returns the precision flag.
      */
@@ -191,7 +191,6 @@ goog.scope(function() {
             throw new Error('VarType is not a struct type.');
         return /** @type {gluVarType.StructType} */ (this.m_data);
     };
-
 
     /**
      * getScalarSize

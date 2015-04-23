@@ -126,7 +126,7 @@ deMath.mirror = function(a) {
 /**
  * @param {goog.NumberArray} a Source array
  * @param {goog.NumberArray} indices
- * @return {Array.<number>} Swizzled array
+ * @return {Array<number>} Swizzled array
  */
 deMath.swizzle = function(a, indices) {
     if (!indices.length)
@@ -141,7 +141,7 @@ deMath.swizzle = function(a, indices) {
  * Multiply two vectors, element by element
  * @param {goog.NumberArray} a
  * @param {goog.NumberArray} b
- * @return {Array.<number>} Result array
+ * @return {Array<number>} Result array
  */
 
 deMath.multiply = function(a, b) {
@@ -170,7 +170,7 @@ deMath.scale = function(a, b) {
  * Add two vectors, element by element
  * @param {goog.NumberArray} a
  * @param {goog.NumberArray} b
- * @return {Array.<number>} Result array
+ * @return {Array<number>} Result array
  */
 
 deMath.add = function(a, b) {
@@ -186,7 +186,7 @@ deMath.add = function(a, b) {
  * Subtract two vectors, element by element
  * @param {goog.NumberArray} a
  * @param {goog.NumberArray} b
- * @return {Array.<number>} Result array
+ * @return {Array<number>} Result array
  */
 
 deMath.subtract = function(a, b) {
@@ -202,7 +202,7 @@ deMath.subtract = function(a, b) {
  * Calculate absolute difference between two vectors
  * @param {goog.NumberArray} a
  * @param {goog.NumberArray} b
- * @return {Array.<number>} abs(diff(a - b))
+ * @return {Array<number>} abs(diff(a - b))
  */
 deMath.absDiff = function(a, b) {
     if (a.length != b.length)
@@ -217,7 +217,7 @@ deMath.absDiff = function(a, b) {
  * Is a <= b (element by element)?
  * @param {goog.NumberArray} a
  * @param {goog.NumberArray} b
- * @return {Array.<boolean>} Result array of booleans
+ * @return {Array<boolean>} Result array of booleans
  */
 deMath.lessThanEqual = function(a, b) {
     if (a.length != b.length)
@@ -230,7 +230,7 @@ deMath.lessThanEqual = function(a, b) {
 
 /**
  * Are all values in the array true?
- * @param {Array.<boolean>} a
+ * @param {Array<boolean>} a
  * @return {boolean}
  */
 
@@ -244,7 +244,7 @@ deMath.boolAll = function(a) {
 /**
  * deMath.assign(a, b) element by element
  * @param {goog.NumberArray} a
- * @return {Array.<number>}
+ * @return {Array<number>}
  */
 deMath.assign = function(a) {
     var dst = [];
@@ -257,7 +257,7 @@ deMath.assign = function(a) {
  * deMath.max(a, b) element by element
  * @param {goog.NumberArray} a
  * @param {goog.NumberArray} b
- * @return {Array.<number>}
+ * @return {Array<number>}
  */
 deMath.max = function(a, b) {
     if (a.length != b.length)
@@ -272,7 +272,7 @@ deMath.max = function(a, b) {
  * deMath.min(a, b) element by element
  * @param {goog.NumberArray} a
  * @param {goog.NumberArray} b
- * @return {Array.<number>}
+ * @return {Array<number>}
  */
 deMath.min = function(a, b) {
     if (a.length != b.length)
@@ -300,7 +300,7 @@ deMath.rint = function(a) {
  * Find intersection of two rectangles
  * @param {goog.NumberArray} a Array [x, y, width, height]
  * @param {goog.NumberArray} b Array [x, y, width, height]
- * @return {Array.<number>}
+ * @return {Array<number>}
  */
 deMath.intersect = function(a, b) {
     if (a.length != 4)
@@ -570,20 +570,19 @@ deMath.shiftRight = function(value, steps) {
 };
 
 /** deMath.logicalAndBool over two arrays of booleans
- * @param {Array.<boolean>} a
- * @param {Array.<boolean>} b
- * @return {Array.<boolean>}
+ * @param {Array<boolean>} a
+ * @param {Array<boolean>} b
+ * @return {Array<boolean>}
  */
 deMath.logicalAndBool = function(a, b) {
     if (!Array.isArray(a))
-        throw new Error('The first parameter is not an array: ('  + typeof(a) + ')' + a);
-    if (!Array.isArray(b)) 
+        throw new Error('The first parameter is not an array: (' + typeof(a) + ')' + a);
+    if (!Array.isArray(b))
         throw new Error('The second parameter is not an array: (' + typeof(b) + ')' + b);
     if (a.length != b.length)
-        throw new Error('The lengths of the passed arrays are not equivalent. ('+a.length+' != '+b.length+')');
-    
-    
-    /** @type {Array.<boolean>} */ var result = [];
+        throw new Error('The lengths of the passed arrays are not equivalent. (' + a.length + ' != ' + b.length + ')');
+
+    /** @type {Array<boolean>} */ var result = [];
     for (var i = 0; i < a.length; i++) {
         if (a[i] & b[i])
             result.push(true);
@@ -594,20 +593,19 @@ deMath.logicalAndBool = function(a, b) {
 };
 
 /** deMath.logicalOrBool over two arrays of booleans
- * @param {Array.<boolean>} a
- * @param {Array.<boolean>} b
- * @return {Array.<boolean>}
+ * @param {Array<boolean>} a
+ * @param {Array<boolean>} b
+ * @return {Array<boolean>}
  */
 deMath.logicalOrBool = function(a, b) {
     if (!Array.isArray(a))
-        throw new Error('The first parameter is not an array: ('  + typeof(a) + ')' + a);
-    if (!Array.isArray(b)) 
+        throw new Error('The first parameter is not an array: (' + typeof(a) + ')' + a);
+    if (!Array.isArray(b))
         throw new Error('The second parameter is not an array: (' + typeof(b) + ')' + b);
     if (a.length != b.length)
-        throw new Error('The lengths of the passed arrays are not equivalent. ('+a.length+' != '+b.length+')');
-    
-    
-    /** @type {Array.<boolean>} */ var result = [];
+        throw new Error('The lengths of the passed arrays are not equivalent. (' + a.length + ' != ' + b.length + ')');
+
+    /** @type {Array<boolean>} */ var result = [];
     for (var i = 0; i < a.length; i++) {
         if (a[i] | b[i])
             result.push(true);
@@ -618,32 +616,32 @@ deMath.logicalOrBool = function(a, b) {
 };
 
 /** deMath.logicalNotBool over an array of booleans
- * @param {Array.<boolean>} a
- * @return {Array.<boolean>}
+ * @param {Array<boolean>} a
+ * @return {Array<boolean>}
  */
 deMath.logicalNotBool = function(a) {
     if (!Array.isArray(a))
         throw new Error('The passed value is not an array: (' + typeof(a) + ')' + a);
-    
-    /** @type {Array.<boolean>} */ var result = [];
+
+    /** @type {Array<boolean>} */ var result = [];
     for (var i = 0; i < a.length; i++)
         result.push(!a[i]);
     return result;
 };
 
 /** deMath.greaterThan over two arrays of booleans
- * @param {Array.<boolean>} a
- * @return {Array.<boolean>}
+ * @param {Array<boolean>} a
+ * @return {Array<boolean>}
  */
 deMath.greaterThan = function(a, b) {
     if (!Array.isArray(a))
-        throw new Error('The first parameter is not an array: ('  + typeof(a) + ')' + a);
-    if (!Array.isArray(b)) 
+        throw new Error('The first parameter is not an array: (' + typeof(a) + ')' + a);
+    if (!Array.isArray(b))
         throw new Error('The second parameter is not an array: (' + typeof(b) + ')' + b);
     if (a.length != b.length)
-        throw new Error('The lengths of the passed arrays are not equivalent. ('+a.length+' != '+b.length+')');
-    
-    /** @type {Array.<boolean>} */ var result = [];
+        throw new Error('The lengths of the passed arrays are not equivalent. (' + a.length + ' != ' + b.length + ')');
+
+    /** @type {Array<boolean>} */ var result = [];
     for (var i = 0; i < a.length; i++)
         result.push(a[i] > b[i]);
     return result;
