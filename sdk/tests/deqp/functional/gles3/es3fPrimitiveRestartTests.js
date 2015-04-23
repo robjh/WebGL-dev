@@ -18,19 +18,16 @@
  *
  */
 
-
-
 'use strict';
 goog.provide('functional.gles3.es3fPrimitiveRestartTests');
-goog.require('framework.common.tcuTestCase');
-goog.require('framework.opengl.gluShaderProgram');
+goog.require('framework.common.tcuImageCompare');
 goog.require('framework.common.tcuSurface');
+goog.require('framework.common.tcuTestCase');
 goog.require('framework.delibs.debase.deMath');
 goog.require('framework.delibs.debase.deRandom');
 goog.require('framework.delibs.debase.deString');
-goog.require('framework.common.tcuImageCompare');
+goog.require('framework.opengl.gluShaderProgram');
 goog.require('framework.opengl.gluTextureUtil');
-
 
 goog.scope(function() {
 
@@ -199,12 +196,9 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
 
         if (this.m_function == es3fPrimitiveRestartTests.DrawFunction.FUNCTION_DRAW_ELEMENTS) {
             gl.drawElements(primTypeGL, count - 1, indexTypeGL, 0);
-        }
-        else if (this.m_function == es3fPrimitiveRestartTests.DrawFunction.FUNCTION_DRAW_ELEMENTS_INSTANCED) {
+        } else if (this.m_function == es3fPrimitiveRestartTests.DrawFunction.FUNCTION_DRAW_ELEMENTS_INSTANCED) {
             gl.drawElementsInstanced(primTypeGL, count, indexTypeGL, 0, 1);
-        }
-
-        else {
+        } else {
             DE_ASSERT(this.m_function == es3fPrimitiveRestartTests.DrawFunction.FUNCTION_DRAW_RANGE_ELEMENTS);
 
             // Find the largest non-restart index in the index array (for glDrawRangeElements() end parameter).
@@ -285,16 +279,13 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
         if (this.m_indexType == es3fPrimitiveRestartTests.IndexType.INDEX_UNSIGNED_BYTE) {
             DE_ASSERT(deMath.deInRange32(index, 0, es3fPrimitiveRestartTests.MAX_UNSIGNED_BYTE));
             this.m_indicesUB.push(index); // deUint8
-        }
-        else if (this.m_indexType == es3fPrimitiveRestartTests.IndexType.INDEX_UNSIGNED_SHORT) {
+        } else if (this.m_indexType == es3fPrimitiveRestartTests.IndexType.INDEX_UNSIGNED_SHORT) {
             DE_ASSERT(deMath.deInRange32(index, 0, es3fPrimitiveRestartTests.MAX_UNSIGNED_SHORT));
             this.m_indicesUS.push(index); // deUint16
-        }
-        else if (this.m_indexType == es3fPrimitiveRestartTests.IndexType.INDEX_UNSIGNED_INT) {
+        } else if (this.m_indexType == es3fPrimitiveRestartTests.IndexType.INDEX_UNSIGNED_INT) {
             DE_ASSERT(deMath.deInRange32(index, 0, es3fPrimitiveRestartTests.MAX_UNSIGNED_INT));
             this.m_indicesUI.push(index); // // deUint32
-        }
-        else
+        } else
             DE_ASSERT(false);
     };
 
@@ -364,8 +355,8 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
             'in highp vec4 a_position;\n' +
             '\n' +
             'void main()\n' +
-            '{\n' +
-            '	gl_Position = a_position;\n' +
+            ' {\n' +
+            ' gl_Position = a_position;\n' +
             '}\n';
 
             /** @type {string} */ var fragShaderSource =
@@ -373,8 +364,8 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
             'layout(location = 0) out mediump vec4 o_color;\n' +
             '\n' +
             'void main()\n' +
-            '{\n' +
-            '	o_color = vec4(1.0f);\n' +
+            ' {\n' +
+            ' o_color = vec4(1.0f);\n' +
             '}\n';
 
         DE_ASSERT(!this.m_program);
@@ -438,8 +429,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
                         this.addIndex(restartIndex);
                 }
             }
-        }
-        else if (this.m_primType == es3fPrimitiveRestartTests.PrimitiveType.PRIMITIVE_LINE_STRIP || this.m_primType == es3fPrimitiveRestartTests.PrimitiveType.PRIMITIVE_LINE_LOOP || this.m_primType == es3fPrimitiveRestartTests.PrimitiveType.PRIMITIVE_LINES) {
+        } else if (this.m_primType == es3fPrimitiveRestartTests.PrimitiveType.PRIMITIVE_LINE_STRIP || this.m_primType == es3fPrimitiveRestartTests.PrimitiveType.PRIMITIVE_LINE_LOOP || this.m_primType == es3fPrimitiveRestartTests.PrimitiveType.PRIMITIVE_LINES) {
             // Generate a numRows x numCols arrangement of line polygons of different vertex counts.
 
             curIndex = 0;
@@ -470,8 +460,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
                     }
                 }
             }
-        }
-        else if (this.m_primType == es3fPrimitiveRestartTests.PrimitiveType.PRIMITIVE_TRIANGLE_STRIP) {
+        } else if (this.m_primType == es3fPrimitiveRestartTests.PrimitiveType.PRIMITIVE_TRIANGLE_STRIP) {
             // Generate a number of horizontal triangle strips of different lengths.
 
             curIndex = 0;
@@ -496,9 +485,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
                         this.addIndex(restartIndex);
                 }
             }
-        }
-        else if (this.m_primType == es3fPrimitiveRestartTests.PrimitiveType.PRIMITIVE_TRIANGLE_FAN)
-        {
+        } else if (this.m_primType == es3fPrimitiveRestartTests.PrimitiveType.PRIMITIVE_TRIANGLE_FAN) {
             // Generate a numRows x numCols arrangement of triangle fan polygons of different vertex counts.
 
             curIndex = 0;
@@ -534,8 +521,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
                     }
                 }
             }
-        }
-        else if (this.m_primType == es3fPrimitiveRestartTests.PrimitiveType.PRIMITIVE_TRIANGLES) {
+        } else if (this.m_primType == es3fPrimitiveRestartTests.PrimitiveType.PRIMITIVE_TRIANGLES) {
             // Generate a number of rows with (potentially incomplete) triangles.
 
             curIndex = 0;
@@ -560,8 +546,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
                         this.addIndex(restartIndex);
                 }
             }
-        }
-        else
+        } else
             DE_ASSERT(false);
 
         // If testing a case with restart at end, add it there.
@@ -638,7 +623,6 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
 
         return tcuTestCase.IterateResult.STOP;
     };
-
 
     es3fPrimitiveRestartTests.init = function() {
         var testGroup = tcuTestCase.runner.testCases;
@@ -736,7 +720,5 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
             tcuTestCase.runner.terminate();
         }
     };
-
-
 
 });

@@ -241,7 +241,7 @@ glsUniformBlockCase.VarType.prototype.getFlags = function() {
 * @return {gluShaderUtil.DataType} returns the basic data type of the glsUniformBlockCase.VarType.
 **/
 glsUniformBlockCase.VarType.prototype.getBasicType = function() {
-    return this.m_data;
+    return /** @type {gluShaderUtil.DataType} */ (this.m_data);
 };
 
 /** getElementType
@@ -263,7 +263,7 @@ glsUniformBlockCase.VarType.prototype.getArraySize = function() {
 * @return {glsUniformBlockCase.StructType} returns the structure when it is a glsUniformBlockCase.StructType.
 **/
 glsUniformBlockCase.VarType.prototype.getStruct = function() {
-    return this.m_data;
+    return /** @type {glsUniformBlockCase.StructType} */ (this.m_data);
 };
 
 /**
@@ -1556,7 +1556,7 @@ glsUniformBlockCase.generateValueSrc = function(entry, basePtr, elementNdx) {
 glsUniformBlockCase.generateCompareSrc_A = function(resultVar, type, srcName, apiName, layout, basePtr, unusedMask) {
     /** @type {string} */ var src = '';
     /** @type {string} */ var op;
-    /** @type {gluShaderUtil.DataType} */ var elementType;
+    /** @type {glsUniformBlockCase.VarType|gluShaderUtil.DataType} */ var elementType;
 
     if (type.isBasicType() || (type.isArrayType() && type.getElementType().isBasicType())) {
         // Basic type or array of basic types.
@@ -1767,7 +1767,6 @@ glsUniformBlockCase.getGLUniformLayout = function(gl, layout, program) {
     //No need to allocate these beforehand: layout.blocks.resize(numActiveBlocks);
     for (var blockNdx = 0; blockNdx < numActiveBlocks; blockNdx++) {
         entryBlock = new glsUniformBlockCase.BlockLayoutEntry();
-
 
         size = /** @type {number} */ (gl.getActiveUniformBlockParameter(program, blockNdx, gl.UNIFORM_BLOCK_DATA_SIZE));
         // nameLen not used so this line is removed.
@@ -2438,7 +2437,7 @@ glsUniformBlockCase.UniformBlockCase.prototype.render = function(program) {
 
     gl.viewport(viewportX, viewportY, viewportW, viewportH);
 
-    // Access 
+    // Access
     var posLoc = gl.getAttribLocation(program.program.program, 'a_position');
     var posArray = [new gluDrawUtil.VertexArrayBinding(gl.FLOAT, posLoc, 4, 4, position)];
     gluDrawUtil.drawFromBuffers(gl, program, posArray, gluDrawUtil.triangles(indices));

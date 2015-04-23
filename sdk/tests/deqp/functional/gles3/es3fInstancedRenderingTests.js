@@ -20,15 +20,14 @@
 
 'use strict';
 goog.provide('functional.gles3.es3fInstancedRenderingTests');
-goog.require('framework.opengl.gluShaderUtil');
-goog.require('framework.opengl.gluShaderProgram');
-goog.require('framework.common.tcuTestCase');
-goog.require('framework.common.tcuSurface');
-goog.require('framework.delibs.debase.deString');
-goog.require('framework.delibs.debase.deRandom');
 goog.require('framework.common.tcuImageCompare');
+goog.require('framework.common.tcuSurface');
+goog.require('framework.common.tcuTestCase');
+goog.require('framework.delibs.debase.deRandom');
+goog.require('framework.delibs.debase.deString');
+goog.require('framework.opengl.gluShaderProgram');
+goog.require('framework.opengl.gluShaderUtil');
 goog.require('framework.opengl.gluTextureUtil');
-
 
 goog.scope(function() {
 
@@ -62,13 +61,11 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
     /** @const @type {number} */es3fInstancedRenderingTests.FLOAT_UINT_SCALE = 100.0;
     /** @const @type {number} */es3fInstancedRenderingTests.FLOAT_UINT_BIAS = 0.0;
 
-    var DE_ASSERT = function(expression)
-    {
+    var DE_ASSERT = function(expression) {
         if (!expression) throw new Error('Assert failed');
     };
 
-    es3fInstancedRenderingTests.DE_STATIC_ASSERT = function(expression)
-    {
+    es3fInstancedRenderingTests.DE_STATIC_ASSERT = function(expression) {
         if (!expression) throw new Error('Assert failed');
     };
 
@@ -96,7 +93,6 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
             TYPE_ATTRIB_DIVISOR: 1,
             TYPE_MIXED: 2
     };
-
 
     /**
     * es3fInstancedRenderingTests.InstancedRenderingCase class, inherits from TestCase class
@@ -216,20 +212,16 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
             if (isFloatCase) {
                 colorGExpression = 'a_instanceG' + swizzleFirst;
                 colorBExpression = 'a_instanceB' + swizzleFirst;
-            }
-            else if (isIntCase) {
+            } else if (isIntCase) {
                 colorGExpression = '(float(a_instanceG' + swizzleFirst + ') - ' + floatIntBiasStr + ') / ' + floatIntScaleStr;
                 colorBExpression = '(float(a_instanceB' + swizzleFirst + ') - ' + floatIntBiasStr + ') / ' + floatIntScaleStr;
-            }
-            else if (isUintCase) {
+            } else if (isUintCase) {
                 colorGExpression = '(float(a_instanceG' + swizzleFirst + ') - ' + floatUintBiasStr + ') / ' + floatUintScaleStr;
                 colorBExpression = '(float(a_instanceB' + swizzleFirst + ') - ' + floatUintBiasStr + ') / ' + floatUintScaleStr;
-            }
-            else if (isMatCase) {
+            } else if (isMatCase) {
                 colorGExpression = 'a_instanceG[0][0]';
                 colorBExpression = 'a_instanceB[0][0]';
-            }
-            else
+            } else
                 DE_ASSERT(false);
 
             instanceAttribs += 'in mediump ' + typeName + ' a_instanceG;\n';
@@ -248,12 +240,12 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
             'out mediump vec4 v_color;\n' +
             '\n' +
             'void main()\n' +
-            '{\n' +
-            '	gl_Position = ' + posExpression + ';\n' +
-            '	v_color.r = ' + colorRExpression + ';\n' +
-            '	v_color.g = ' + colorGExpression + ';\n' +
-            '	v_color.b = ' + colorBExpression + ';\n' +
-            '	v_color.a = 1.0;\n' +
+            ' {\n' +
+            ' gl_Position = ' + posExpression + ';\n' +
+            ' v_color.r = ' + colorRExpression + ';\n' +
+            ' v_color.g = ' + colorGExpression + ';\n' +
+            ' v_color.b = ' + colorBExpression + ';\n' +
+            ' v_color.a = 1.0;\n' +
             '}\n';
 
         /** @type {string} */ var fragShaderSource =
@@ -262,8 +254,8 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
             'in mediump vec4 v_color;\n' +
             '\n' +
             'void main()\n' +
-            '{\n' +
-            '	o_color = v_color;\n' +
+            ' {\n' +
+            ' o_color = v_color;\n' +
             '}\n';
 
         // Create shader program and log it.
@@ -312,8 +304,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
                     this.m_gridIndices.push(ndx01);
                     this.m_gridIndices.push(ndx10);
                 }
-        }
-        else {
+        } else {
             DE_ASSERT(this.m_function == es3fInstancedRenderingTests.DrawFunction.FUNCTION_DRAW_ARRAYS_INSTANCED);
 
             // Vertex positions. Positions form a vertical bar of width <screen width>/<number of instances>.
@@ -423,7 +414,6 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
         return tcuTestCase.IterateResult.STOP;
     };
 
-
     /**
     * @param {Array<number>} attrPtr
     * @param {number} location
@@ -449,22 +439,19 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
                 gl.bufferData(gl.ARRAY_BUFFER, bufferCurLoc, gl.STATIC_DRAW);
 
                 gl.vertexAttribPointer(curLoc, typeSize, gl.FLOAT, false, 0, 0);
-            }
-            else if (isIntCase) {
+            } else if (isIntCase) {
                 var bufferCurLoc = new Int32Array(this.m_gridVertexPositions);
                 gl.bindBuffer(gl.ARRAY_BUFFER, curLocGlBuffer);
                 gl.bufferData(gl.ARRAY_BUFFER, bufferCurLoc, gl.STATIC_DRAW);
 
                 gl.vertexAttribIPointer(curLoc, typeSize, gl.INT, 0, 0);
-            }
-            else if (isUintCase) {
+            } else if (isUintCase) {
                 var bufferCurLoc = new Uint32Array(this.m_gridVertexPositions);
                 gl.bindBuffer(gl.ARRAY_BUFFER, curLocGlBuffer);
                 gl.bufferData(gl.ARRAY_BUFFER, bufferCurLoc, gl.STATIC_DRAW);
 
                 gl.vertexAttribIPointer(curLoc, typeSize, gl.UNSIGNED_INT, 0, 0);
-            }
-            else if (isMatCase) {
+            } else if (isMatCase) {
                 /** @type {number} */ var numRows = gluShaderUtil.getDataTypeMatrixNumRows(this.m_rgbAttrType);
                 /** @type {number} */ var numCols = gluShaderUtil.getDataTypeMatrixNumColumns(this.m_rgbAttrType);
 
@@ -473,12 +460,10 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
                 gl.bufferData(gl.ARRAY_BUFFER, bufferCurLoc, gl.STATIC_DRAW);
 
                 gl.vertexAttribPointer(curLoc, numRows, gl.FLOAT, false, numCols * numRows * 4, 0);
-            }
-            else
+            } else
                 DE_ASSERT(false);
         }
     };
-
 
     es3fInstancedRenderingTests.InstancedRenderingCase.prototype.setupAndRender = function() {
         /** @type {WebGLProgram} */ var program = this.m_program.getProgram();
@@ -525,8 +510,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
         if (this.m_function == es3fInstancedRenderingTests.DrawFunction.FUNCTION_DRAW_ARRAYS_INSTANCED) {
             /** @type {number} */ var numPositionComponents = 2;
             gl.drawArraysInstanced(gl.TRIANGLES, 0, Math.floor(this.m_gridVertexPositions.length / numPositionComponents), this.m_numInstances);
-        }
-        else {
+        } else {
             var gridIndicesGLBuffer = gl.createBuffer();
             var bufferGridIndices = new Uint16Array(this.m_gridIndices);
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gridIndicesGLBuffer);
@@ -536,7 +520,6 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
         }
         gl.useProgram(null);
     };
-
 
     /**
     * @param {tcuSurface.Surface} dst
@@ -576,8 +559,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
                 r = (intR - es3fInstancedRenderingTests.FLOAT_INT_BIAS) / es3fInstancedRenderingTests.FLOAT_INT_SCALE;
                 g = (intG - es3fInstancedRenderingTests.FLOAT_INT_BIAS) / es3fInstancedRenderingTests.FLOAT_INT_SCALE;
                 b = (intB - es3fInstancedRenderingTests.FLOAT_INT_BIAS) / es3fInstancedRenderingTests.FLOAT_INT_SCALE;
-            }
-            else if (gluShaderUtil.isDataTypeUintOrUVec(this.m_rgbAttrType)) {
+            } else if (gluShaderUtil.isDataTypeUintOrUVec(this.m_rgbAttrType)) {
                 /** @type {number} */var uintR = (r * es3fInstancedRenderingTests.FLOAT_UINT_SCALE + es3fInstancedRenderingTests.FLOAT_UINT_BIAS);
                 /** @type {number} */var uintG = (g * es3fInstancedRenderingTests.FLOAT_UINT_SCALE + es3fInstancedRenderingTests.FLOAT_UINT_BIAS);
                 /** @type {number} */var uintB = (b * es3fInstancedRenderingTests.FLOAT_UINT_SCALE + es3fInstancedRenderingTests.FLOAT_UINT_BIAS);
@@ -716,6 +698,5 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
             tcuTestCase.runner.terminate();
         }
     };
-
 
 });

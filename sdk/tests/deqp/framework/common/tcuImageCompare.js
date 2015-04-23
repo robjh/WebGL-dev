@@ -151,7 +151,7 @@ tcuImageCompare.displayImages = function(result, reference, diff) {
  * @param {string} imageSetName Name for image set when logging results
  * @param {string} imageSetDesc Description for image set
  * @param {tcuTexture.ConstPixelBufferAccess} reference Reference image
- * @param {tcuTexture.ConstPixelBufferAccess}result Result image
+ * @param {tcuTexture.ConstPixelBufferAccess} result Result image
  * @param {Array<number>} threshold Maximum allowed difference
  * @param {tcuImageCompare.CompareLogMode=} logMode
  * @return {boolean} true if comparison passes, false otherwise
@@ -228,7 +228,6 @@ tcuImageCompare.floatUlpThresholdCompare = function(imageSetName, imageSetDesc, 
                 /** @type {Array<number>} */ var refPix = reference.getPixel(x, y, z); // getPixel returns a Vec4 pixel color
 
                 /** @type {Array<number>} */ var cmpPix = result.getPixel(x, y, z); // getPixel returns a Vec4 pixel color
-
 
                 /** @type {Uint32Array} */ var refBits = new Uint32Array(arrayBufferRef); // UVec4
                 /** @type {Uint32Array} */ var cmpBits = new Uint32Array(arrayBufferCmp); // UVec4

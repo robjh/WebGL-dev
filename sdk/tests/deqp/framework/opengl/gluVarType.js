@@ -44,7 +44,7 @@ goog.scope(function() {
     * @constructor
     */
     gluVarType.TypeArray = function(elementType, arraySize) {
-       /** @type {gluVarType.VarType} */ this.elementType = elementType;
+       /** @type {gluVarType.VarType} */ this.elementType = gluVarType.newClone(elementType);
        /** @type {number} */ this.size = arraySize;
     };
 
@@ -54,17 +54,17 @@ goog.scope(function() {
      */
     gluVarType.VarType = function() {
         /**
-         * @type {number}
+         * @type {gluShaderUtil.precision}
          * @private
          */
-        this.m_flags = 0;
+        this.m_flags;
 
         /**
          * @type {number}
          * @private
          */
         this.m_type = -1;
-       
+
         /**
          * m_data used to be a 'Data' union in C++. Using a var is enough here.
          * it will contain any necessary value.
@@ -72,7 +72,7 @@ goog.scope(function() {
          * case TYPE_ARRAY: gluVarType.TypeArray
          * case TYPE_STRUCT: gluVarType.StructType
          * @private
-         * @type {(number|gluVarType.TypeArray|gluVarType.StructType)} 
+         * @type {(number|gluVarType.TypeArray|gluVarType.StructType)}
         */
         this.m_data = null;
     };
@@ -82,7 +82,7 @@ goog.scope(function() {
     /**
      * Creates a basic type gluVarType.VarType. Use this after the constructor call.
      * @param {number} basicType
-     * @param {number} flags
+     * @param {gluShaderUtil.precision} flags
      * @return {gluVarType.VarType} The currently modified object
      */
     gluVarType.VarType.prototype.VarTypeBasic = function(basicType, flags) {
@@ -101,7 +101,8 @@ goog.scope(function() {
      */
     gluVarType.VarType.prototype.VarTypeArray = function(elementType, arraySize) {
         this.m_type = gluVarType.Type.TYPE_ARRAY;
-        this.m_flags = 0;
+        if (!(arraySize >= 0 || arraySize == gluVarType.VarType.UNSIZED_ARRAY))
+            throw new Error('Illegal array size: ' + arraySize);
         this.m_data = new gluVarType.TypeArray(elementType, arraySize);
 
         return this;
@@ -114,8 +115,35 @@ goog.scope(function() {
      */
     gluVarType.VarType.prototype.VarTypeStruct = function(structPtr) {
         this.m_type = gluVarType.Type.TYPE_STRUCT;
-        this.m_flags = 0;
         this.m_data = structPtr;
+
+        return this;
+    };
+    
+    /**
+     * Creates a gluVarType.VarType, the same type as the passed in object.
+     * Use this after the constructor call.
+     * @param {gluVarType.VarType} object
+     * @return {gluVarType.VarType} The currently modified object
+     */
+    gluVarType.VarType.prototype.VarTypeClone = function(object) {
+        
+        this.m_type = object.m_type;
+
+        switch (this.m_type) {
+          case gluVarType.Type.TYPE_BASIC:
+            this.m_flags = object.m_flags;
+            this.m_data = object.m_data;
+            break;
+          case gluVarType.Type.TYPE_BASIC:
+            this.m_data = new gluVarType.TypeArray(object.m_data.elementType, object.m_data.size);
+            break;
+          case gluVarType.Type.TYPE_STRUCT:
+            this.m_data = object.m_data;
+            break;
+          default:
+            throw new Error('unknown type: ' + this.m_type);
+        }
 
         return this;
     };
@@ -156,9 +184,9 @@ goog.scope(function() {
             throw new Error('VarType is not a basic type.');
         return /** @type {gluShaderUtil.DataType<number>} */ (this.m_data);
     };
-    
+
     /** getPrecision
-     * @return {number} returns the precision flag.
+     * @return {gluShaderUtil.precision} returns the precision flag.
      */
     gluVarType.VarType.prototype.getPrecision = function() {
         if (!this.isBasicType())
@@ -193,7 +221,6 @@ goog.scope(function() {
             throw new Error('VarType is not a struct type.');
         return /** @type {gluVarType.StructType} */ (this.m_data);
     };
-
 
     /**
      * getScalarSize
@@ -266,7 +293,7 @@ goog.scope(function() {
     /**
      * Creates a basic type gluVarType.VarType.
      * @param {gluShaderUtil.DataType} basicType
-     * @param {number} flags
+     * @param {framework.opengl.gluShaderUtil.precision} flags
      * @return {gluVarType.VarType}
      */
     gluVarType.newTypeBasic = function(basicType, flags) {
@@ -290,6 +317,15 @@ goog.scope(function() {
     */
     gluVarType.newTypeStruct = function(structPtr) {
         return new gluVarType.VarType().VarTypeStruct(structPtr);
+    };
+
+    /**
+    * Creates a struct type gluVarType.VarType.
+    * @param {gluVarType.VarType} object
+    * @return {gluVarType.VarType}
+    */
+    gluVarType.newClone = function(object) {
+        return new gluVarType.VarType().VarTypeClone(object);
     };
 
     /**
@@ -439,7 +475,7 @@ goog.scope(function() {
     /**
      * @param {gluVarType.VarType} varType
      * @param {string} name
-     * @param {number} level
+     * @param {number=} level
      * @return {string}
      */
     gluVarType.declareVariable = function(varType, name, level) {
@@ -484,7 +520,7 @@ goog.scope(function() {
 
     /**
      * @param {gluVarType.StructType} structType
-     * @param {number} level
+     * @param {number=} level
      * @return {string}
      */
     gluVarType.declareStructType = function(structType, level) {

@@ -1535,7 +1535,8 @@ var deRandom = framework.delibs.debase.deRandom;
 
             bufferedLogToConsole('// Got name = ' + reportedNameStr + ', size = ' + reportedSize + ', type = ' + gluShaderUtil.getDataTypeName(reportedType));
 
-            if (reportedNameStr.indexOf('gl_') == -1) // Ignore built-in uniforms. {
+            // Ignore built-in uniforms.
+            if (reportedNameStr.indexOf('gl_') == -1)  {
                 /** @type {number} */ var referenceNdx;
                 for (referenceNdx = 0; referenceNdx < basicUniformReportsRef.length; referenceNdx++) {
                     if (basicUniformReportsRef[referenceNdx].name == reportedNameStr)

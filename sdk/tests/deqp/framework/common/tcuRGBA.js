@@ -57,23 +57,13 @@ var deMath = framework.delibs.debase.deMath;
      * Mask used as flags
      * Hopefully will not use typed arrays
      */
-    tcuRGBA.RGBA.Mask = function () {
+    tcuRGBA.RGBA.Mask = function() {
         return {
             RED: false,
             GREEN: false,
             BLUE: false,
             ALPHA: false
         };
-    };
-
-    /**
-     * @param {tcuRGBA.RGBA} other
-     */
-    tcuRGBA.RGBA.equals = function(other) {
-        return this.getRed() == other.getRed() &&
-        this.getGreen() == other.getGreen() &&
-        this.getBlue() == other.getBlue() &&
-        this.getAlpha() == other.getAlpha();
     };
 
     /**
@@ -191,7 +181,7 @@ var deMath = framework.delibs.debase.deMath;
     tcuRGBA.RGBA.prototype.toBytes = function(bytes) { var result = new Uint8Array(this.m_value); bytes[0] = result[0]; bytes[1] = result[1]; bytes[2] = result[2]; bytes[3] = result[3]; };
 
     /**
-     * @return {Array.<number>}
+     * @return {Array<number>}
      */
     tcuRGBA.RGBA.prototype.toVec = function() {
         return [
@@ -203,7 +193,7 @@ var deMath = framework.delibs.debase.deMath;
     };
 
     /**
-     * @return {Array.<number>}
+     * @return {Array<number>}
      */
     tcuRGBA.RGBA.prototype.toIVec = function() {
         return [

@@ -39,61 +39,6 @@ tcuTextureUtil.linearInterpolate = function(t, minVal, maxVal) {
 };
 
 /**
- * @enum
- */
-tcuTextureUtil.Clear = {
-    OPTIMIZE_THRESHOLD: 128,
-    OPTIMIZE_MAX_PIXEL_SIZE: 8
-};
-
-/**
- * @param {tcuTexture.PixelBufferAccess} dst
- * @param {number} y
- * @param {number} z
- * @param {number} pixelSize
- * @param {ArrayBuffer} pixel
- */
-tcuTextureUtil.fillRow = function(dst, y, z, pixelSize, pixel) {
-    var start = z * dst.getSlicePitch() + y * dst.getRowPitch();
-    /** @type {ArrayBuffer} */ var dstPtr = dst.getBuffer();
-    var width = dst.getWidth();
-
-    //TODO: Optimize this for pixel sizes 8 and 4
-    /** @type {Uint8Array} */ var dstPtr8 = new Uint8Array(dstPtr);
-    /** @type {Uint8Array} */ var pixel8 = new Uint8Array(pixel);
-
-    for (var i = 0; i < width; i++)
-        for (var c = 0; c < pixelSize; c++)
-            dstPtr8[start + (i * pixelSize + c)] = pixel8[c];
-};
-
-/**
- * @param {tcuTexture.PixelBufferAccess} access
- * @param {Array.<number>} color
- */
-tcuTextureUtil.clear = function(access, color) {
-    /** @type {number} */ var pixelSize = access.getFormat().getPixelSize();
-
-    if (access.getWidth() * access.getHeight() * access.getDepth() >= tcuTextureUtil.Clear.OPTIMIZE_THRESHOLD &&
-        pixelSize < tcuTextureUtil.Clear.OPTIMIZE_MAX_PIXEL_SIZE) {
-        // Convert to destination format.
-        /** @type {ArrayBuffer} */ var pixel = new ArrayBuffer(tcuTextureUtil.Clear.OPTIMIZE_MAX_PIXEL_SIZE);
-
-        DE_ASSERT(pixel.byteLength == tcuTextureUtil.Clear.OPTIMIZE_MAX_PIXEL_SIZE);
-        tcuTexture.PixelBufferAccess.newFromTextureFormat(access.getFormat(), 1, 1, 1, 0, 0, pixel).setPixel(color, 0, 0);
-
-        for (var z = 0; z < access.getDepth(); z++)
-            for (var y = 0; y < access.getHeight(); y++)
-                tcuTextureUtil.fillRow(access, y, z, pixelSize, pixel);
-    } else {
-        for (var z = 0; z < access.getDepth(); z++)
-            for (var y = 0; y < access.getHeight(); y++)
-                for (var x = 0; x < access.getWidth(); x++)
-                    access.setPixel(color, x, y, z);
-    }
-};
-
-/**
  * Enums for tcuTextureUtil.TextureChannelClass
  * @enum {number}
  */
@@ -122,8 +67,8 @@ tcuTextureUtil.linearChannelToSRGB = function(cl) {
 };
 
 /** tcuTextureUtil.linearToSRGB
- * @param {Array.<number>} cl
- * @return {Array.<number>}
+ * @param {Array<number>} cl
+ * @return {Array<number>}
  */
 tcuTextureUtil.linearToSRGB = function(cl) {
     return [tcuTextureUtil.linearChannelToSRGB(cl[0]),
@@ -369,7 +314,7 @@ tcuTextureUtil.select = function(a, b, cond) {
 
 /** tcuTextureUtil.getChannelBitDepth
  * @param {tcuTexture.ChannelType} channelType
- * @return {Array.<number>}
+ * @return {Array<number>}
  */
 tcuTextureUtil.getChannelBitDepth = function(channelType) {
 
@@ -407,13 +352,13 @@ tcuTextureUtil.getChannelBitDepth = function(channelType) {
 
 /** tcuTextureUtil.getTextureFormatBitDepth
  * @param {tcuTexture.TextureFormat} format
- * @return {Array.<number>}
+ * @return {Array<number>}
  */
 tcuTextureUtil.getTextureFormatBitDepth = function(format) {
 
-    /** @type {Array.<number>} */ var chnBits = tcuTextureUtil.getChannelBitDepth(format.type); // IVec4
-    /** @type {Array.<boolean>} */ var chnMask = [false, false, false, false]; // BVec4
-    /** @type {Array.<number>} */ var chnSwz = [0, 1, 2, 3]; // IVec4
+    /** @type {Array<number>} */ var chnBits = tcuTextureUtil.getChannelBitDepth(format.type); // IVec4
+    /** @type {Array<boolean>} */ var chnMask = [false, false, false, false]; // BVec4
+    /** @type {Array<number>} */ var chnSwz = [0, 1, 2, 3]; // IVec4
 
     switch (format.order) {
         case tcuTexture.ChannelOrder.R: chnMask = [true, false, false, false]; break;

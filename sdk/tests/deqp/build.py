@@ -98,10 +98,12 @@ def build_all_deps():
 def buildDepsFile():
     # the parameter "--root_with_prefix" is the relative path from the file goog/base.js to the root of the .js files we
     # are working on.
-    cmdBuildDeps = 'python ../closure-library/closure/bin/build/depswriter.py --root_with_prefix=". ../../../deqp"' #> deqp-deps.js
+    cmdBuildDeps = 'python ../closure-library/closure/bin/build/depswriter.py --root_with_prefix=". ../../../deqp" > deqp-deps.js'
 
     # Calls the python program that generates the google closure dependencies
-    write_to_file('deqp-deps.js', cmdBuildDeps, False)
+    # write_to_file('deqp-deps.js', cmdBuildDeps, False)
+    proc = subprocess.Popen(cmdBuildDeps, shell=True, stdout=subprocess.PIPE, stderr=None)
+    proc.wait()
 
 total_errors = 0
 total_warnings = 0
