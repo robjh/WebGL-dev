@@ -145,8 +145,8 @@ var glsVertexArrayTests = modules.shared.glsVertexArrayTests;
             glsVertexArrayTests.deArray.InputType.SHORT,
             glsVertexArrayTests.deArray.InputType.BYTE,
             /*glsVertexArrayTests.deArray.InputType.UNSIGNED_SHORT,
-            glsVertexArrayTests.deArray.InputType.UNSIGNED_BYTE,*/
-            glsVertexArrayTests.deArray.InputType.FIXED,
+            glsVertexArrayTests.deArray.InputType.UNSIGNED_BYTE,
+            glsVertexArrayTests.deArray.InputType.FIXED,*/
             glsVertexArrayTests.deArray.InputType.INT_2_10_10_10];
 
         for (var inputTypeNdx = 0; inputTypeNdx < inputTypes.length; inputTypeNdx++)
@@ -196,7 +196,7 @@ var glsVertexArrayTests = modules.shared.glsVertexArrayTests;
     es3fVertexArrayTests.SingleVertexArrayUsageGroup.prototype.init = function() {
         /** @type {Array.<number>} */ var counts = [1, 256];
         /** @type {Array.<number>} */ var strides = [0, -1, 17, 32]; // Tread negative value as sizeof input. Same as 0, but done outside of GL.
-        /** @type {glsVertexArrayTests.deArray.InputType} */ var inputTypes = [glsVertexArrayTests.deArray.InputType.FLOAT, glsVertexArrayTests.deArray.InputType.FIXED, glsVertexArrayTests.deArray.InputType.SHORT, glsVertexArrayTests.deArray.InputType.BYTE];
+        /** @type {glsVertexArrayTests.deArray.InputType} */ var inputTypes = [glsVertexArrayTests.deArray.InputType.FLOAT, /*glsVertexArrayTests.deArray.InputType.FIXED,*/ glsVertexArrayTests.deArray.InputType.SHORT, glsVertexArrayTests.deArray.InputType.BYTE];
 
         for (var inputTypeNdx = 0; inputTypeNdx < inputTypes.length; inputTypeNdx++) {
             for (var countNdx = 0; countNdx < counts.length; countNdx++) {

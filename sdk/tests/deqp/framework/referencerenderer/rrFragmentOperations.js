@@ -465,11 +465,11 @@ rrFragmentOperations.executeColorWrite = function(inputFragments, isSRGB, colorB
             var frag = inputFragments[i];
             if (frag.isAlive) {
                 var combinedColor = frag.blendedRGB.slice();
-                combinedColor[4] = frag.blendedA;
+                combinedColor[3] = frag.blendedA;
                 if (isSRGB)
                     combinedColor = tcuTextureUtil.linearToSRGB(combinedColor);
 
-                colorBuffer.setPixel(combinedColor, 1, frag.pixelCoord[0], frag.pixelCoord[1]);
+                colorBuffer.setPixel(combinedColor, 0, frag.pixelCoord[0], frag.pixelCoord[1]);
         }
     }
 };
