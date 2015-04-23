@@ -20,16 +20,14 @@
 
 'use strict';
 goog.provide('framework.opengl.gluVarTypeUtil');
-goog.require('framework.opengl.gluVarType');
 goog.require('framework.opengl.gluShaderUtil');
-
+goog.require('framework.opengl.gluVarType');
 
 goog.scope(function() {
 
     var gluVarTypeUtil = framework.opengl.gluVarTypeUtil;
     var gluVarType = framework.opengl.gluVarType;
     var gluShaderUtil = framework.opengl.gluShaderUtil;
-    
 
     gluVarTypeUtil.isNum = function(c) { return /^[0-9]$/.test(c); };
     gluVarTypeUtil.isAlpha = function(c) { return /^[a-zA-Z]$/.test(c); };
@@ -134,17 +132,10 @@ goog.scope(function() {
      * @constructor
      */
     gluVarTypeUtil.VarTypeComponent = function(type, index) {
-
-        this.type = null;
-        this.index = gluVarTypeUtil.VarTypeComponent.s_Type.length;
-
-        if (typeof(type) != 'undefined' && typeof(index) != 'undefined') {
-            this.type = type;
-            this.index = index;
-        }
-
+        /** @type {gluVarTypeUtil.VarTypeComponent.s_Type} */ this.type = type;
+        this.index = index || 0;
     };
-    
+
     gluVarTypeUtil.VarTypeComponent.prototype.is = function(other) {
         return this.type == other.type && this.index == other.index;
     };
@@ -161,12 +152,11 @@ goog.scope(function() {
         MATRIX_COLUMN: 2,
         VECTOR_COMPONENT: 3
     };
-    gluVarTypeUtil.VarTypeComponent.s_Type.length = Object.keys(gluVarTypeUtil.VarTypeComponent.s_Type).length;
 
     /**
      * Type path formatter.
      * @param {gluVarType.VarType} type_
-     * @param {Array.<gluVarTypeUtil.VarTypeComponent>} path_
+     * @param {Array<gluVarTypeUtil.VarTypeComponent>} path_
      * @constructor
      */
     gluVarTypeUtil.TypeAccessFormat = function(type_, path_) {
@@ -190,8 +180,7 @@ goog.scope(function() {
                     str += '[' + iter.index + ']';
                     break;
 
-                case gluVarTypeUtil.VarTypeComponent.s_Type.STRUCT_MEMBER:
-                {
+                case gluVarTypeUtil.VarTypeComponent.s_Type.STRUCT_MEMBER: {
                     var member = curType.getStruct().getMember(i);
                     str += '.' + member.getName();
                     curType = member.getType();
@@ -213,7 +202,7 @@ goog.scope(function() {
     gluVarTypeUtil.SubTypeAccess = function(type) {
 
         this.m_type = null; // VarType
-        this.m_path = [];   // TypeComponentVector
+        this.m_path = []; // TypeComponentVector
 
     };
 
@@ -271,8 +260,6 @@ goog.scope(function() {
         );
     };
 
-
-
     /**
      * Subtype iterator parent class.
      * basic usage for all child classes:
@@ -284,19 +271,21 @@ goog.scope(function() {
     gluVarTypeUtil.SubTypeIterator = function(type) {
 
         /** @private */
-        this.m_type = null;  // const VarType*
+        this.m_type = null; // const VarType*
         /** @private */
-        this.m_path = [];    // TypeComponentVector
+        this.m_path = []; // TypeComponentVector
 
         if (type) {
             this.m_type = type;
             this.findNext();
         }
 
-        this.isExpanded = null;
-
     };
-    
+
+    gluVarTypeUtil.SubTypeIterator.prototype.isExpanded = function(type) {
+        throw new Error('This function must be overriden in child class');
+    };
+
     /** removeTraversed
      * @private
      */
@@ -417,8 +406,6 @@ goog.scope(function() {
         var x = new gluVarTypeUtil.TypeAccessFormat(this.m_type, this.m_path);
         return x.toString();
     };
-    
-    
 
     /** gluVarTypeUtil.BasicTypeIterator
      * @param {gluVarType.VarType} type
@@ -430,7 +417,7 @@ goog.scope(function() {
     };
     gluVarTypeUtil.BasicTypeIterator.prototype = Object.create(gluVarTypeUtil.SubTypeIterator.prototype);
     gluVarTypeUtil.BasicTypeIterator.prototype.constructor = gluVarTypeUtil.BasicTypeIterator;
-    
+
     gluVarTypeUtil.BasicTypeIterator.prototype.isExpanded = function(type) {
         return type.isBasicType();
     };
@@ -445,7 +432,7 @@ goog.scope(function() {
     };
     gluVarTypeUtil.VectorTypeIterator.prototype = Object.create(gluVarTypeUtil.SubTypeIterator.prototype);
     gluVarTypeUtil.VectorTypeIterator.prototype.constructor = gluVarTypeUtil.VectorTypeIterator;
-    
+
     gluVarTypeUtil.VectorTypeIterator.prototype.isExpanded = function(type) {
         return type.isBasicType() && gluShaderUtil.isDataTypeScalarOrVector(type.getBasicType());
     };
@@ -460,7 +447,7 @@ goog.scope(function() {
     };
     gluVarTypeUtil.ScalarTypeIterator.prototype = Object.create(gluVarTypeUtil.SubTypeIterator.prototype);
     gluVarTypeUtil.ScalarTypeIterator.prototype.constructor = gluVarTypeUtil.ScalarTypeIterator;
-    
+
     gluVarTypeUtil.ScalarTypeIterator.prototype.isExpanded = function(type) {
         return type.isBasicType() && gluShaderUtil.isDataTypeScalar(type.getBasicType());
     };
@@ -469,7 +456,7 @@ goog.scope(function() {
 
     /** gluVarTypeUtil.isValidTypePath
      * @param {gluVarType.VarType} type
-     * @param {Array.<gluVarTypeUtil.VarTypeComponent>} array
+     * @param {Array<gluVarTypeUtil.VarTypeComponent>} array
      * @param {number=} begin
      * @param {number=} end
      * @return {boolean}
@@ -528,8 +515,7 @@ goog.scope(function() {
 
             var basicType = curType.getBasicType(); // DataType
 
-            if (array[pathIter].type == gluVarTypeUtil.VarTypeComponent.s_Type.MATRIX_COLUMN)
-            {
+            if (array[pathIter].type == gluVarTypeUtil.VarTypeComponent.s_Type.MATRIX_COLUMN) {
                 if (!gluShaderUtil.isDataTypeMatrix(basicType)) {
                     return false;
                 }
@@ -538,8 +524,7 @@ goog.scope(function() {
                 ++pathIter;
             }
 
-            if (pathIter != end && array[pathIter].type == gluVarTypeUtil.VarTypeComponent.s_Type.VECTOR_COMPONENT)
-            {
+            if (pathIter != end && array[pathIter].type == gluVarTypeUtil.VarTypeComponent.s_Type.VECTOR_COMPONENT) {
                 if (!gluShaderUtil.isDataTypeVector(basicType))
                     return false;
 
@@ -553,7 +538,7 @@ goog.scope(function() {
 
     /** gluVarTypeUtil.getVarType
      * @param {gluVarType.VarType} type
-     * @param {Array.<gluVarTypeUtil.VarTypeComponent>} array
+     * @param {Array<gluVarTypeUtil.VarTypeComponent>} array
      * @param {number=} start
      * @param {number=} end
      * @return {gluVarType.VarType}
@@ -561,7 +546,7 @@ goog.scope(function() {
     gluVarTypeUtil.getVarType = function(type, array, start, end) {
 
         if (typeof(start) == 'undefined') start = 0;
-        if (typeof(end)   == 'undefined') end   = array.length;
+        if (typeof(end) == 'undefined') end = array.length;
 
         if (!gluVarTypeUtil.isValidTypePath(type, array, start, end)) {
             throw new Error('Type is invalid');
@@ -597,8 +582,8 @@ goog.scope(function() {
                 element = array[++pathIter];
             }
 
-            if (pathIter != end && pathIter.type == gluVarTypeUtil.VarTypeComponent.s_Type.VECTOR_COMPONENT) {
-                basicType = gluShaderUtil.getDataTypeScalarType(basicType);
+            if (pathIter != end && element.type == gluVarTypeUtil.VarTypeComponent.s_Type.VECTOR_COMPONENT) {
+                basicType = gluShaderUtil.getDataTypeScalarTypeAsDataType(basicType);
                 element = array[++pathIter];
             }
 
@@ -660,13 +645,13 @@ goog.scope(function() {
                     throw new Error('Member not found in type: ' + memberName);
                 }
 
-                path.push(gluVarTypeUtil.VarTypeComponent(gluVarTypeUtil.VarTypeComponent.s_Type.STRUCT_MEMBER, ndx));
+                path.push(new gluVarTypeUtil.VarTypeComponent(gluVarTypeUtil.VarTypeComponent.s_Type.STRUCT_MEMBER, ndx));
                 tokenizer.advance();
 
             } else if (tokenizer.getToken() == gluVarTypeUtil.VarTokenizer.s_Token.LEFT_BRACKET) {
 
                 tokenizer.advance();
-                if (tokenizer.getToken() != gluVarTypeUtil.VarTokenizer.s_Token.TOKEN_NUMBER) {
+                if (tokenizer.getToken() != gluVarTypeUtil.VarTokenizer.s_Token.NUMBER) {
                     throw new Error();
                 }
 
@@ -674,15 +659,15 @@ goog.scope(function() {
 
                 if (curType.isArrayType()) {
                     if (!gluVarTypeUtil.inBounds(ndx, 0, curType.getArraySize())) throw new Error;
-                    path.push(gluVarTypeUtil.VarTypeComponent(gluVarTypeUtil.VarTypeComponent.s_Type.ARRAY_ELEMENT, ndx));
+                    path.push(new gluVarTypeUtil.VarTypeComponent(gluVarTypeUtil.VarTypeComponent.s_Type.ARRAY_ELEMENT, ndx));
 
                 } else if (curType.isBasicType() && gluShaderUtil.isDataTypeMatrix(curType.getBasicType())) {
                     if (!gluVarTypeUtil.inBounds(ndx, 0, gluShaderUtil.getDataTypeMatrixNumColumns(curType.getBasicType()))) throw new Error;
-                    path.push(gluVarTypeUtil.VarTypeComponent(gluVarTypeUtil.VarTypeComponent.s_Type.MATRIX_COLUMN, ndx));
+                    path.push(new gluVarTypeUtil.VarTypeComponent(gluVarTypeUtil.VarTypeComponent.s_Type.MATRIX_COLUMN, ndx));
 
                 } else if (curType.isBasicType() && gluShaderUtil.isDataTypeVector(curType.getBasicType())) {
                     if (!gluVarTypeUtil.inBounds(ndx, 0, gluShaderUtil.getDataTypeScalarSize(curType.getBasicType()))) throw new Error;
-                    path.push(gluVarTypeUtil.VarTypeComponent(gluVarTypeUtil.VarTypeComponent.s_Type.VECTOR_COMPONENT, ndx));
+                    path.push(new gluVarTypeUtil.VarTypeComponent(gluVarTypeUtil.VarTypeComponent.s_Type.VECTOR_COMPONENT, ndx));
 
                 } else {
                     //TCU_FAIL
@@ -704,7 +689,5 @@ goog.scope(function() {
         return path;
 
     };
-
-    
 
 });

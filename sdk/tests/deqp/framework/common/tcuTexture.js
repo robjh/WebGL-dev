@@ -649,7 +649,7 @@ tcuTexture.sampleLinear2D = function(access, sampler, u, v, depth) {
      */
     var interpolateQuad = function(p00, p10, p01, p11, a, b) {
         var v1 = deMath.scale(p00, (1 - a) * (1 - b));
-        var v2 = deMath.scale(p10, a * (1 -b));
+        var v2 = deMath.scale(p10, a * (1 - b));
         var v3 = deMath.scale(p01, (1 - a) * b);
         var v4 = deMath.scale(p11, a * b);
         return deMath.add(deMath.add(v1, v2), deMath.add(v3, v4));
@@ -658,18 +658,18 @@ tcuTexture.sampleLinear2D = function(access, sampler, u, v, depth) {
     var w = access.getWidth();
     var h = access.getHeight();
 
-    var x0 = Math.floor(u-0.5);
-    var x1 = x0+1;
-    var y0 = Math.floor(v-0.5);
-    var y1 = y0+1;
+    var x0 = Math.floor(u - 0.5);
+    var x1 = x0 + 1;
+    var y0 = Math.floor(v - 0.5);
+    var y1 = y0 + 1;
 
-    var i0 =tcuTexture.wrap(sampler.wrapS, x0, w);
-    var i1 =tcuTexture.wrap(sampler.wrapS, x1, w);
-    var j0 =tcuTexture.wrap(sampler.wrapT, y0, h);
-    var j1 =tcuTexture.wrap(sampler.wrapT, y1, h);
+    var i0 = tcuTexture.wrap(sampler.wrapS, x0, w);
+    var i1 = tcuTexture.wrap(sampler.wrapS, x1, w);
+    var j0 = tcuTexture.wrap(sampler.wrapT, y0, h);
+    var j1 = tcuTexture.wrap(sampler.wrapT, y1, h);
 
-    var a = deMath.deFloatFrac(u-0.5);
-    var b = deMath.deFloatFrac(v-0.5);
+    var a = deMath.deFloatFrac(u - 0.5);
+    var b = deMath.deFloatFrac(v - 0.5);
 
     var i0UseBorder = sampler.wrapS == tcuTexture.WrapMode.CLAMP_TO_BORDER && !deMath.deInBounds32(i0, 0, w);
     var i1UseBorder = sampler.wrapS == tcuTexture.WrapMode.CLAMP_TO_BORDER && !deMath.deInBounds32(i1, 0, w);
@@ -720,17 +720,16 @@ tcuTexture.sampleLinear3D = function(access, sampler, u, v, w) {
         return deMath.add(deMath.add(deMath.add(v1, v2), deMath.add(v3, v4)), deMath.add(deMath.add(v5, v6), deMath.add(v7, v8)));
     };
 
+    var width = access.getWidth();
+    var height = access.getHeight();
+    var depth = access.getDepth();
 
-    var width   = access.getWidth();
-    var height  = access.getHeight();
-    var depth   = access.getDepth();
-
-    var x0 = Math.floor(u-0.5);
-    var x1 = x0+1;
-    var y0 = Math.floor(v-0.5);
-    var y1 = y0+1;
-    var z0 = Math.floor(w-0.5);
-    var z1 = z0+1;
+    var x0 = Math.floor(u - 0.5);
+    var x1 = x0 + 1;
+    var y0 = Math.floor(v - 0.5);
+    var y1 = y0 + 1;
+    var z0 = Math.floor(w - 0.5);
+    var z1 = z0 + 1;
 
     var i0 = tcuTexture.wrap(sampler.wrapS, x0, width);
     var i1 = tcuTexture.wrap(sampler.wrapS, x1, width);
@@ -738,10 +737,10 @@ tcuTexture.sampleLinear3D = function(access, sampler, u, v, w) {
     var j1 = tcuTexture.wrap(sampler.wrapT, y1, height);
     var k0 = tcuTexture.wrap(sampler.wrapR, z0, depth);
     var k1 = tcuTexture.wrap(sampler.wrapR, z1, depth);
-    
-    var a = deMath.deFloatFrac(u-0.5);
-    var b = deMath.deFloatFrac(v-0.5);
-    var c = deMath.deFloatFrac(w-0.5);
+
+    var a = deMath.deFloatFrac(u - 0.5);
+    var b = deMath.deFloatFrac(v - 0.5);
+    var c = deMath.deFloatFrac(w - 0.5);
 
     var i0UseBorder = sampler.wrapS == tcuTexture.WrapMode.CLAMP_TO_BORDER && !deMath.deInBounds32(i0, 0, width);
     var i1UseBorder = sampler.wrapS == tcuTexture.WrapMode.CLAMP_TO_BORDER && !deMath.deInBounds32(i1, 0, width);
@@ -790,7 +789,6 @@ tcuTexture.sampleNearest2D = function(access, sampler, u, v, depth) {
 
     return tcuTexture.lookup(access, i, j, depth);
 };
-
 
 /**
  * @param {tcuTexture.ConstPixelBufferAccess} access
@@ -947,19 +945,16 @@ tcuTexture.ConstPixelBufferAccess.prototype.getPixStencil = function(x, y, z) {
     DE_ASSERT(deMath.deInBounds32(y, 0, this.m_height));
     DE_ASSERT(deMath.deInBounds32(z, 0, this.m_depth));
 
-
     var pixelSize = this.m_format.getPixelSize();
     var arrayType = tcuTexture.getTypedArray(this.m_format.type);
     var offset = z * this.m_slicePitch + y * this.m_rowPitch + x * pixelSize;
     var pixelPtr = new arrayType(this.m_data, offset + this.m_offset);
 
-    switch (this.m_format.type)
-    {
+    switch (this.m_format.type) {
         case tcuTexture.ChannelType.UNSIGNED_INT_24_8:
-            switch (this.m_format.order)
-            {
-                case tcuTexture.ChannelOrder.S:      return (pixelPtr[0] >> 8) & 0xff;
-                case tcuTexture.ChannelOrder.DS:     return pixelPtr[0] & 0xff;
+            switch (this.m_format.order) {
+                case tcuTexture.ChannelOrder.S: return (pixelPtr[0] >> 8) & 0xff;
+                case tcuTexture.ChannelOrder.DS: return pixelPtr[0] & 0xff;
 
                 default:
                     DE_ASSERT(false);
@@ -971,12 +966,10 @@ tcuTexture.ConstPixelBufferAccess.prototype.getPixStencil = function(x, y, z) {
             var u32array = new Uint32Array(this.m_data, offset + this.m_offset + 4, 1);
             return u32array[0] & 0xff;
 
-        default:
-        {
+        default: {
             if (this.m_format.order == tcuTexture.ChannelOrder.S)
                 return tcuTexture.channelToInt(pixelPtr[0], this.m_format.type);
-            else
-            {
+            else {
                 DE_ASSERT(this.m_format.order == tcuTexture.ChannelOrder.DS);
                 var stencilChannelIndex = 3;
                 return tcuTexture.channelToInt(pixelPtr[stencilChannelIndex], this.m_format.type);
@@ -1255,7 +1248,6 @@ tcuTexture.ConstPixelBufferAccess.prototype.sample3D = function(sampler, filter,
     /* TODO: do we need any of these? */ {
         // template<typename T>
         // Vector<T, 4> getPixelT (int x, int y, int z = 0) const;
-
 
         // Vec4 sample3D (const tcuTexture.Sampler& sampler, tcuTexture.Sampler::tcuTexture.FilterMode filter, float s, float t, float r) const;
 
@@ -1549,6 +1541,7 @@ tcuTexture.PixelBufferAccess.prototype.setPixelInt = function(color, x, y, z) {
         }
     }
 };
+
 /**
  * @param {Array<number>=} color Vec4 color to set, optional.
  * @param {Array<number>=} x Range in x axis, optional.
@@ -1557,31 +1550,37 @@ tcuTexture.PixelBufferAccess.prototype.setPixelInt = function(color, x, y, z) {
  */
 tcuTexture.PixelBufferAccess.prototype.clear = function(color, x, y, z) {
     var c = color || [0, 0, 0, 0];
-    /** @type {ArrayBuffer} */ var pixel = new ArrayBuffer(16);
-    tcuTexture.PixelBufferAccess.newFromTextureFormat(this.getFormat(), 1, 1, 1, 0, 0, pixel).setPixel(c, 0, 0);
-    var pixelSize = this.m_format.getPixelSize();
-    var arrayType = tcuTexture.getTypedArray(this.m_format.type);
-    var dst = this.getDataPtr();
-    var src = new arrayType(pixel);
     var numChannels = tcuTexture.getNumUsedChannels(this.m_format.order);
-    var elemSize = arrayType.BYTES_PER_ELEMENT;
     var range_x = x || [0, this.m_width];
     var range_y = y || [0, this.m_height];
     var range_z = z || [0, this.m_depth];
+    var pixelSize = this.m_format.getPixelSize();
+    var width = range_x[1] - range_x[0];
+    var height = range_y[1] - range_y[0];
+    var depth = range_z[1] - range_z[0];
 
-    for (var slice = range_z[0]; slice < range_z[1]; slice++) {
-        var slice_offset = slice * this.m_slicePitch;
-        for (var row = range_y[0]; row < range_y[1]; row++) {
-            var row_offset = row * this.m_rowPitch;
-            for (var col = range_x[0]; col < range_x[1]; col++) {
-                var col_offset = col * pixelSize;
-                var index = (slice_offset + row_offset + col_offset) / elemSize;
-                for (var i = 0; i < numChannels; i++) {
-                    dst[index + i] = src[i];
-                }
-            }
+    //copy first pixel over other pixels in the row
+    var fillRow = function(pixelPtr, numChannels, width) {
+        for (var i = 1; i < width; i++)
+            for (var c = 0; c < numChannels; c++)
+                pixelPtr[i * numChannels + c] = pixelPtr[c];
+    };
+    // copy first row to other rows in all planes
+    var fillPlanes = function(buffer, arrayType, src, offset, rowStride, planeStride, width, height, depth) {
+        for (var j = 0; j < depth; j++)
+        for (var i = (j == 0 ? 1 : 0); i < height; i++) {
+            var dst = new arrayType(buffer, offset + i * rowStride + j * planeStride, width);
+            dst.set(src);
         }
-    }
+    };
+
+    this.setPixel(c, range_x[0], range_y[0], range_z[0]);
+    var arrayType = tcuTexture.getTypedArray(this.m_format.type);
+    var offset = range_z[0] * this.m_slicePitch + range_y[0] * this.m_rowPitch + range_x[0] * pixelSize;
+    var pixelPtr = new arrayType(this.m_data, offset + this.m_offset, width * numChannels);
+
+    fillRow(pixelPtr, numChannels, width);
+    fillPlanes(this.m_data, arrayType, pixelPtr, offset + this.m_offset, this.m_rowPitch, this.m_slicePitch, width * numChannels, height, depth);
 };
 
 /**
@@ -1802,36 +1801,32 @@ tcuTexture.sampleLevelArray2D = function(levels, numLevels, sampler, s, t, depth
 
     switch (filterMode) {
         case tcuTexture.FilterMode.NEAREST: return levels[0].sample2D(sampler, filterMode, s, t, depth);
-        /* TODO: Implement other filters */
-        // case tcuTexture.Sampler::LINEAR: return levels[0].sample2D(sampler, filterMode, s, t, depth);
+        case tcuTexture.FilterMode.LINEAR: return levels[0].sample2D(sampler, filterMode, s, t, depth);
 
-        // case tcuTexture.Sampler::NEAREST_MIPMAP_NEAREST:
-        // case tcuTexture.Sampler::LINEAR_MIPMAP_NEAREST:
-        // {
-        //     int maxLevel = (int)numLevels-1;
-        //     int level = deClamp32((int)deFloatCeil(lod + 0.5f) - 1, 0, maxLevel);
-        //     tcuTexture.Sampler::tcuTexture.FilterMode levelFilter = (filterMode == tcuTexture.Sampler::LINEAR_MIPMAP_NEAREST) ? tcuTexture.Sampler::LINEAR : tcuTexture.Sampler::NEAREST;
+        case tcuTexture.FilterMode.NEAREST_MIPMAP_NEAREST:
+        case tcuTexture.FilterMode.LINEAR_MIPMAP_NEAREST: {
+            var maxLevel = numLevels - 1;
+            var level = deMath.clamp(Math.ceil(lod + 0.5) - 1, 0, maxLevel);
+            var levelFilter = (filterMode == tcuTexture.FilterMode.LINEAR_MIPMAP_NEAREST) ? tcuTexture.FilterMode.LINEAR : tcuTexture.FilterMode.NEAREST;
 
-        //     return levels[level].sample2D(sampler, levelFilter, s, t, depth);
-        // }
+            return levels[level].sample2D(sampler, levelFilter, s, t, depth);
+        }
 
-        // case tcuTexture.Sampler::NEAREST_MIPMAP_LINEAR:
-        // case tcuTexture.Sampler::LINEAR_MIPMAP_LINEAR:
-        // {
-        //     int maxLevel = (int)numLevels-1;
-        //     int level0 = deClamp32((int)deFloatFloor(lod), 0, maxLevel);
-        //     int level1 = de::min(maxLevel, level0 + 1);
-        //     tcuTexture.Sampler::tcuTexture.FilterMode levelFilter = (filterMode == tcuTexture.Sampler::LINEAR_MIPMAP_LINEAR) ? tcuTexture.Sampler::LINEAR : tcuTexture.Sampler::NEAREST;
-        //     float f = deFloatFrac(lod);
-        //     tcu::Vec4 t0 = levels[level0].sample2D(sampler, levelFilter, s, t, depth);
-        //     tcu::Vec4 t1 = levels[level1].sample2D(sampler, levelFilter, s, t, depth);
+        case tcuTexture.FilterMode.NEAREST_MIPMAP_LINEAR:
+        case tcuTexture.FilterMode.LINEAR_MIPMAP_LINEAR: {
+            var maxLevel = numLevels - 1;
+            var level0 = deMath.clamp(Math.ceil(lod + 0.5) - 1, 0, maxLevel);
+            var level1 = Math.min(maxLevel, level0 + 1);
+            var levelFilter = (filterMode == tcuTexture.FilterMode.LINEAR_MIPMAP_LINEAR) ? tcuTexture.FilterMode.LINEAR : tcuTexture.FilterMode.NEAREST;
+            var f = deMath.deFloatFrac(lod);
+            var t0 = levels[level0].sample2D(sampler, levelFilter, s, t, depth);
+            var t1 = levels[level1].sample2D(sampler, levelFilter, s, t, depth);
 
-        //     return t0*(1.0f - f) + t1*f;
-        // }
+            return deMath.add(deMath.scale(t0, 1 - f), deMath.scale(t1, f));
+        }
 
-        // default:
-        //     DE_ASSERT(false);
-        //     return Vec4(0.0f);
+        default:
+            throw new Error('Invalid filter mode:' + filterMode);
     }
     throw new Error('Unimplemented');
 };
@@ -1852,35 +1847,32 @@ tcuTexture.sampleLevelArray3D = function(levels, numLevels, sampler, s, t, r, lo
 
     switch (filterMode) {
         case tcuTexture.FilterMode.NEAREST: return levels[0].sample3D(sampler, filterMode, s, t, r);
-        // case tcuTexture.Sampler::LINEAR: return levels[0].sample3D(sampler, filterMode, s, t, r);
+        case tcuTexture.FilterMode.LINEAR: return levels[0].sample3D(sampler, filterMode, s, t, r);
 
-        // case tcuTexture.Sampler::NEAREST_MIPMAP_NEAREST:
-        // case tcuTexture.Sampler::LINEAR_MIPMAP_NEAREST:
-        // {
-        //     int maxLevel = (int)numLevels-1;
-        //     int level = deClamp32((int)deFloatCeil(lod + 0.5f) - 1, 0, maxLevel);
-        //     tcuTexture.Sampler::tcuTexture.FilterMode levelFilter = (filterMode == tcuTexture.Sampler::LINEAR_MIPMAP_NEAREST) ? tcuTexture.Sampler::LINEAR : tcuTexture.Sampler::NEAREST;
+        case tcuTexture.FilterMode.NEAREST_MIPMAP_NEAREST:
+        case tcuTexture.FilterMode.LINEAR_MIPMAP_NEAREST: {
+            var maxLevel = numLevels - 1;
+            var level = deMath.clamp(Math.ceil(lod + 0.5) - 1, 0, maxLevel);
+            var levelFilter = (filterMode == tcuTexture.FilterMode.LINEAR_MIPMAP_NEAREST) ? tcuTexture.FilterMode.LINEAR : tcuTexture.FilterMode.NEAREST;
 
-        //     return levels[level].sample3D(sampler, levelFilter, s, t, r);
-        // }
+            return levels[level].sample3D(sampler, levelFilter, s, t, r);
+        }
 
-        // case tcuTexture.Sampler::NEAREST_MIPMAP_LINEAR:
-        // case tcuTexture.Sampler::LINEAR_MIPMAP_LINEAR:
-        // {
-        //     int maxLevel = (int)numLevels-1;
-        //     int level0 = deClamp32((int)deFloatFloor(lod), 0, maxLevel);
-        //     int level1 = de::min(maxLevel, level0 + 1);
-        //     tcuTexture.Sampler::tcuTexture.FilterMode levelFilter = (filterMode == tcuTexture.Sampler::LINEAR_MIPMAP_LINEAR) ? tcuTexture.Sampler::LINEAR : tcuTexture.Sampler::NEAREST;
-        //     float f = deFloatFrac(lod);
-        //     tcu::Vec4 t0 = levels[level0].sample3D(sampler, levelFilter, s, t, r);
-        //     tcu::Vec4 t1 = levels[level1].sample3D(sampler, levelFilter, s, t, r);
+        case tcuTexture.FilterMode.NEAREST_MIPMAP_LINEAR:
+        case tcuTexture.FilterMode.LINEAR_MIPMAP_LINEAR: {
+            var maxLevel = numLevels - 1;
+            var level0 = deMath.clamp(Math.ceil(lod + 0.5) - 1, 0, maxLevel);
+            var level1 = Math.min(maxLevel, level0 + 1);
+            var levelFilter = (filterMode == tcuTexture.FilterMode.LINEAR_MIPMAP_LINEAR) ? tcuTexture.FilterMode.LINEAR : tcuTexture.FilterMode.NEAREST;
+            var f = deMath.deFloatFrac(lod);
+            var t0 = levels[level0].sample3D(sampler, levelFilter, s, t, r);
+            var t1 = levels[level1].sample3D(sampler, levelFilter, s, t, r);
 
-        //     return t0*(1.0f - f) + t1*f;
-        // }
+            return deMath.add(deMath.scale(t0, 1 - f), deMath.scale(t1, f));
+        }
 
-        // default:
-        //     DE_ASSERT(false);
-        //     return Vec4(0.0f);
+        default:
+           throw new Error('Invalid filter mode:' + filterMode);
     }
     throw new Error('Unimplemented');
 };
@@ -1900,7 +1892,7 @@ tcuTexture.CubeFaceCoords = function(face, coords) {
  * \brief 2D Texture View
  * @constructor
  * @param {number} numLevels
- * @param {Array<tcuTexture.ConstPixelBufferAccess>} levels
+ * @param {?Array<tcuTexture.ConstPixelBufferAccess>} levels
  */
 tcuTexture.Texture2DView = function(numLevels, levels) {
     this.m_numLevels = numLevels;

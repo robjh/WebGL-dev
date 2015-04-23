@@ -56,7 +56,7 @@ gluShaderUtil.getGLSLVersion = function(gl) {
  * @return {string}
  */
 gluShaderUtil.getGLSLVersionDeclaration = function(version) {
-    /** @type {Array.<string>} */ var s_decl =
+    /** @type {Array<string>} */ var s_decl =
     [
         '#version 100',
         '#version 300 es'
@@ -544,8 +544,8 @@ gluShaderUtil.isDataTypeSampler = function(dataType) {
  */
 gluShaderUtil.getDataTypeMatrix = function(numCols, numRows) {
     if (!(deMath.deInRange32(numCols, 2, 4) && deMath.deInRange32(numRows, 2, 4)))
-        throw new Error('Out of bounds: ('+numCols+','+numRows+')');
-        
+        throw new Error('Out of bounds: (' + numCols + ',' + numRows + ')');
+
     var size = numRows.toString() + 'x' + numCols.toString();
     var datatypes = {
         '2x2': gluShaderUtil.DataType.FLOAT_MAT2,

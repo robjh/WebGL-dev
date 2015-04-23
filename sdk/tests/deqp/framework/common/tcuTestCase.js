@@ -247,9 +247,9 @@ goog.scope(function() {
     * @return {?tcuTestCase.DeqpTest } Found test or null.
     */
     tcuTestCase.DeqpTest.prototype.find = function(pattern) {
-        var test = null;
+        var test = this;
         while (true) {
-            test = this.next(null);
+            test = test.next(null);
             if (!test)
                 break;
             if (test.fullName().match(pattern))

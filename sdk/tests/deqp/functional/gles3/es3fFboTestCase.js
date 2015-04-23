@@ -85,7 +85,7 @@ var deString = framework.delibs.debase.deString;
     * @param {tcuSurface.Surface} result
     */
     es3fFboTestCase.FboTestCase.prototype.compare = function(reference, result) {
-        return tcuImageCompare.fuzzyCompare('Result', 'Image comparison result', reference, result, 0.05, null /*tcu::COMPARE_LOG_RESULT*/);
+        return tcuImageCompare.fuzzyCompare('Result', 'Image comparison result', reference, result, 0.05 /*, tcu::COMPARE_LOG_RESULT*/);
     };
 
     /**
