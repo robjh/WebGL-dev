@@ -1768,7 +1768,6 @@ glsUniformBlockCase.getGLUniformLayout = function(gl, layout, program) {
     for (var blockNdx = 0; blockNdx < numActiveBlocks; blockNdx++) {
         entryBlock = new glsUniformBlockCase.BlockLayoutEntry();
 
-
         size = /** @type {number} */ (gl.getActiveUniformBlockParameter(program, blockNdx, gl.UNIFORM_BLOCK_DATA_SIZE));
         // nameLen not used so this line is removed.
         // nameLen = gl.getActiveUniformBlockParameter(program, blockNdx, gl.UNIFORM_BLOCK_NAME_LENGTH); // TODO: UNIFORM_BLOCK_NAME_LENGTH is removed in WebGL2
@@ -2438,7 +2437,7 @@ glsUniformBlockCase.UniformBlockCase.prototype.render = function(program) {
 
     gl.viewport(viewportX, viewportY, viewportW, viewportH);
 
-    // Access 
+    // Access
     var posLoc = gl.getAttribLocation(program.program.program, 'a_position');
     var posArray = [new gluDrawUtil.VertexArrayBinding(gl.FLOAT, posLoc, 4, 4, position)];
     gluDrawUtil.drawFromBuffers(gl, program, posArray, gluDrawUtil.triangles(indices));

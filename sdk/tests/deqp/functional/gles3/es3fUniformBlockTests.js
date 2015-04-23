@@ -359,7 +359,7 @@ goog.scope(function() {
     es3fUniformBlockTests.init = function() {
         /** @const @type {tcuTestCase.DeqpTest} */ var testGroup = tcuTestCase.runner.testCases;
 
-        /** @type {Array.<gluShaderUtil.DataType>} */
+        /** @type {Array<gluShaderUtil.DataType>} */
         var basicTypes = [
             gluShaderUtil.DataType.FLOAT,
             gluShaderUtil.DataType.FLOAT_VEC2,
@@ -413,19 +413,19 @@ goog.scope(function() {
 
         /** @type {tcuTestCase.DeqpTest} */
         var layoutGroup;
-        /** @type {gluShaderUtil.DataType} */ 
+        /** @type {gluShaderUtil.DataType} */
         var type;
-        /** @type {string} */ 
+        /** @type {string} */
         var typeName;
         /** @type {tcuTestCase.DeqpTest} */
         var modeGroup;
-        /** @type {string} */ 
+        /** @type {string} */
         var baseName;
-        /** @type {number} */ 
+        /** @type {number} */
         var baseFlags;
 
         for (var layoutFlagNdx = 0; layoutFlagNdx < layoutFlags.length; layoutFlagNdx++) {
-            
+
             layoutGroup = tcuTestCase.newTest(layoutFlags[layoutFlagNdx].name, '', null);
             singleBasicTypeGroup.addChild(layoutGroup);
 
