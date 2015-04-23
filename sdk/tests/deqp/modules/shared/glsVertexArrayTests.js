@@ -1029,14 +1029,11 @@ goog.scope(function() {
     glsVertexArrayTests.ContextShaderProgram.prototype.shadeFragments = function(packets, /*numPackets,*/ context) {
         var varyingLocColor = 0;
 
-        // Triangles are flashaded
-        //var color = rrShadingContext.readTriangleVarying(packets[0], context, varyingLocColor, 0);
-
         // Normal shading
-        for (var packetNdx = 0; packetNdx < packets.length; ++packetNdx)
+        for (var packetNdx = 0; packetNdx < packets.length; ++packetNdx) {
             packets[packetNdx].output = rrShadingContext.readTriangleVarying(packets[packetNdx], context, varyingLocColor /*, 0*/);
-            /*for (int fragNdx = 0; fragNdx < 4; ++fragNdx)
-                rr::writeFragmentOutput(context, packetNdx, fragNdx, 0, color);*/
+            packets[packetNdx].value = packets[packetNdx].output;
+        }
     };
 
     /**

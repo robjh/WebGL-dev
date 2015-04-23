@@ -695,7 +695,7 @@ rrRenderer.writeFragments = function(state, renderTarget, fragments) {
     var colorbuffer = renderTarget.colorBuffers[0].raw();
     for (var i = 0; i < fragments.length; i++) {
         var fragment = fragments[i];
-        colorbuffer.setPixel(fragment.output, fragment.pixelCoord[0], fragment.pixelCoord[1], 0);
+        colorbuffer.setPixel(fragment.output, 0, fragment.pixelCoord[0], fragment.pixelCoord[1]);
     }
 
 };
@@ -727,7 +727,7 @@ void FragmentProcessor::render (const rr::MultisamplePixelBufferAccess& msColorB
     var doDepthTest = hasDepth && state.depthTestEnabled;
     var doStencilTest = hasStencil && state.stencilTestEnabled;
 
-    var colorbufferClass = tcuTextureUtil.getTextureChannelClass(colorBuffer.raw().getFormat().type);
+    var colorbufferClass = tcuTextureUtil.getTextureChannelClass(colorBuffer.getFormat().type);
     var fragmentDataType = rrGenericVector.GenericVecType.FLOAT;
     switch (colorbufferClass) {
         case tcuTextureUtil.TextureChannelClass.SIGNED_INTEGER:
@@ -966,8 +966,8 @@ rrRenderer.drawQuads = function(state, renderTarget, program, vertexAttribs, fir
         program.fragmentShader.shadeFragments(packetsTopLeft, shadingContextTopLeft);
         program.fragmentShader.shadeFragments(packetsBottomRight, shadingContextBottomRight);
 
-        rrRenderer.writeFragments(state, renderTarget, packetsTopLeft);
-        rrRenderer.writeFragments(state, renderTarget, packetsBottomRight);
+        rrRenderer.writeFragments2(state, renderTarget, packetsTopLeft);
+        rrRenderer.writeFragments2(state, renderTarget, packetsBottomRight);
     }
 };
 

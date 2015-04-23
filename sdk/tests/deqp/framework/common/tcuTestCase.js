@@ -159,9 +159,17 @@ goog.scope(function() {
 
     /**
     * Checks if the test is executable
+    * @return {boolean}
     */
     tcuTestCase.DeqpTest.prototype.isExecutable = function() {
         return this.childrenTests.length == 0 || this.executeAlways;
+    };
+
+    /**
+     * Checks if the test is a leaf
+     */
+    tcuTestCase.DeqpTest.prototype.isLeaf = function() {
+        return this.childrenTests.length == 0;
     };
 
     /**
@@ -308,18 +316,21 @@ goog.scope(function() {
         if (state.next()) {
             try {
                 // If proceeding with the next test, prepare it.
+                var fullTestName = state.currentTest.fullName();
                 if (tcuTestCase.lastResult == tcuTestCase.IterateResult.STOP) {
                     // Update current test name
-                    var fullTestName = state.currentTest.fullName();
                     setCurrentTestName(fullTestName);
-                    bufferedLogToConsole('Start testcase: ' + fullTestName); //Show also in console so we can see which test crashed the browser's tab
+                    bufferedLogToConsole('Init testcase: ' + fullTestName); //Show also in console so we can see which test crashed the browser's tab
 
                     // Initialize particular test
                     state.currentTest.init();
                 }
 
+                //If it's a leaf test, notify of it's execution.
+                if (state.currentTest.isLeaf())
+                    debug('Start testcase: ' + fullTestName);
+
                 // Run the test, save the result.
-                debug('Start testcase: ' + fullTestName);
                 tcuTestCase.lastResult = state.currentTest.iterate();
             }
             catch (err) {
