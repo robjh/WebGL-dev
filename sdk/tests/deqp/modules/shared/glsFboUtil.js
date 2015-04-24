@@ -131,22 +131,44 @@ goog.scope(function() {
         }
     };
     
-    glsFboUtil.FormatExtEntry = function(argv) {
-        argv = argv || {};
-        this.extensions = argv.extensions || null;
-        this.flags      = argv.flags      || null;
-        this.formats    = argv.formats    || null;
+    /**
+     * glsFboUtil.FormatExtEntry
+     * @constructor
+     * @struct
+     * @param {string=} extensions
+     * @param {number=} flags
+     * @param {glsFboUtil.Range=} formats
+     */
+    glsFboUtil.FormatExtEntry = function(extensions,flags,formats) {
+        this.extensions = null;
+        this.flags = null;
+        this.formats = null;
+        
+        if (extensions !== undefined) {
+            this.extensions = extensions;
+            if (flags !== undefined) {
+                this.flags = flags;
+                if (formats !== undefined)
+                    this.formats = formats;
+            }
+        }
+            
     };
     
-    // this wont work if argv.array is an object
-    glsFboUtil.Range = function(argv) {
-        argv = argv || {};
+    // this wont work if the array param is an object
+    /**
+     * glsFboUtil.Range
+     * @param {array} array
+     * @param {number=} begin
+     * @param {number=} end
+     */
+    glsFboUtil.Range = function(array, begin, end) {
         // @private
-        this.m_begin = argv.begin || 0;
+        this.m_begin = ( begin === undefined ? 0 : begin );
         // @private
-        this.m_end   = argv.end   || argv.array.length;
+        this.m_end   = end ? array.length;
         // @private
-        this.m_array = argv.array;
+        this.m_array = array;
         // @private
         this.m_index = this.m_begin;
     };
@@ -178,12 +200,10 @@ goog.scope(function() {
     
     
     
-    glsFboUtil.ImageFormat = function(argv) {
-        argv = argv || {};
-        
-        this.m_format      = argv.format || null;
+    glsFboUtil.ImageFormat = function(format, unsizedType) {
+        this.m_format      = format || null;
         //! Type if format is unsized, GL_NONE if sized.
-        this.m_unsizedType = argv.unsizedType || null;
+        this.m_unsizedType = unsizedType || null;
         
     };
     glsFboUtil.ImageFormat.prototype.lessthan = function(other) {
@@ -211,13 +231,17 @@ goog.scope(function() {
         });
     };
     
-    glsFboUtil.Config = function(argv) {
-        argv = argv || {};
-        
-        this.type = argv.type ? argv.type | glsFboUtil.Config.s_types.CONFIG : glsFboUtil.Config.s_types.CONFIG;
-        this.target = argv.target || glsFboUtil.Config.s_target.NONE;
-        
+    /**
+     * glsFboUtil.Config Class.
+     * @constructor
+     */
+    glsFboUtil.Config = function() {
+        this.type = glsFboUtil.Config.s_types.CONFIG;
+        this.target = glsFboUtil.Config.s_target.NONE;
     };
+    /**
+     * @emum {number}
+     */
     glsFboUtil.Config.s_target = {
         NONE:              0,
         RENDERBUFFER:      1,
@@ -254,146 +278,178 @@ goog.scope(function() {
         UNUSED:          0xFFE0E00E,
     };
     
-    glsFboUtil.Image = function(argv) {
-        argv = argv || {};
+    /**
+     * glsFboUtil.Image Class.
+     * @constructor
+     . @extends {glsFboUtil.Config}
+     */
+    glsFboUtil.Image = function() {
+        glsFboUtil.Config.call(this);
         
-        argv.type = argv.type ? argv.type | glsFboUtil.Config.s_types.IMAGE : glsFboUtil.Config.s_types.IMAGE;
-        glsFboUtil.Config.call(this, argv);
-        
+        this.type  |= glsFboUtil.Config.s_types.IMAGE;
         this.width  = 0;
         this.height = 0;
         this.internalFormat = new glsFboUtil.ImageFormat();
         
     };
     
-    glsFboUtil.RenderBuffer = function(argv) {
-        argv = argv || {};
+    /**
+     * glsFboUtil.RenderBuffer Class.
+     * @constructor
+     . @extends {glsFboUtil.Image}
+     */
+    glsFboUtil.RenderBuffer = function() {
+        glsFboUtil.Image.call(this);
         
-        argv.type   = argv.type ? argv.type | glsFboUtil.Config.s_types.RENDERBUFFER : glsFboUtil.Config.s_types.RENDERBUFFER;
-        argv.target = argv.target || glsFboUtil.Config.s_target.RENDERBUFFER;
-        glsFboUtil.Image.call(this, argv);
-        
+        this.type  |= glsFboUtil.Config.s_types.RENDERBUFFER;
+        this.target = glsFboUtil.Config.s_target.RENDERBUFFER;
         this.numSamples = 0;
         
     };
     
-    glsFboUtil.Texture = function(argv) {
-        argv = argv || {};
+    /**
+     * glsFboUtil.Texture Class.
+     * @constructor
+     . @extends {glsFboUtil.Image}
+     */
+    glsFboUtil.Texture = function() {
+        glsFboUtil.Image.call(this);
         
-        argv.type = argv.type ? argv.type | glsFboUtil.Config.s_types.TEXTURE : glsFboUtil.Config.s_types.TEXTURE;
-        glsFboUtil.Image.call(this, argv);
+        this.type |= glsFboUtil.Config.s_types.TEXTURE;
         this.numLevels = 1;
-        
     };
     
-    glsFboUtil.TextureFlat = function(argv) {
-        argv = argv || {};
+    /**
+     * glsFboUtil.TextureFlat Class.
+     * @constructor
+     . @extends {glsFboUtil.Texture}
+     */
+    glsFboUtil.TextureFlat = function() {
+        glsFboUtil.Texture.call(this);
         
-        argv.type = argv.type ? argv.type | glsFboUtil.Config.s_types.TEXTURE_FLAT : glsFboUtil.Config.s_types.TEXTURE_FLAT;
-        glsFboUtil.Texture.call(this, argv);
-        
+        this.type |= glsFboUtil.Config.s_types.TEXTURE_FLAT;
     };
     
-    glsFboUtil.Texture2D = function(argv) {
-        argv = argv || {};
+    /**
+     * glsFboUtil.Texture2D Class.
+     * @constructor
+     . @extends {glsFboUtil.TextureFlat}
+     */
+    glsFboUtil.Texture2D = function() {
+        glsFboUtil.TextureFlat.call(this);
         
-        argv.target = argv.target || glsFboUtil.Config.s_target.TEXTURE_2D;
-        argv.type = argv.type ? argv.type | glsFboUtil.Config.s_types.TEXTURE_2D : glsFboUtil.Config.s_types.TEXTURE_2D;
-        glsFboUtil.TextureFlat.call(this, argv);
-        
+        this.type  |= glsFboUtil.Config.s_types.TEXTURE_2D;
+        this.target = glsFboUtil.Config.s_target.TEXTURE_2D;
     };
     
-    glsFboUtil.TextureCubeMap = function(argv) {
-        argv = argv || {};
-        
-        argv.target = argv.target || glsFboUtil.Config.s_target.TEXTURE_CUBE_MAP;
-        argv.type = argv.type ? argv.type | glsFboUtil.Config.s_types.TEXTURE_CUBE_MAP : glsFboUtil.Config.s_types.TEXTURE_CUBE_MAP;
-        glsFboUtil.TextureFlat.call(this, argv);
-        
+    /**
+     * glsFboUtil.TextureCubeMap Class.
+     * @constructor
+     . @extends {glsFboUtil.TextureFlat}
+     */
+    glsFboUtil.TextureCubeMap = function() {
+        glsFboUtil.TextureFlat.call(this);
+        this.type  |= glsFboUtil.Config.s_types.TEXTURE_CUBE_MAP;
+        this.target = glsFboUtil.Config.s_target.TEXTURE_CUBE_MAP;
     };
     
-    glsFboUtil.TextureLayered = function(argv) {
-        argv = argv || {};
+    /**
+     * glsFboUtil.TextureLayered Class.
+     * @constructor
+     . @extends {glsFboUtil.Texture}
+     */
+    glsFboUtil.TextureLayered = function() {
+        glsFboUtil.Texture.call(this);
         
-        argv.type = argv.type ? argv.type | glsFboUtil.Config.s_types.TEXTURE_LAYERED : glsFboUtil.Config.s_types.TEXTURE_LAYERED;
-        glsFboUtil.Texture.call(this, argv);
+        this.type |= glsFboUtil.Config.s_types.TEXTURE_LAYERED;
         this.numLayers = 1;
-        
     };
     
-    glsFboUtil.Texture3D = function(argv) {
-        argv = argv || {};
-        
-        argv.target = argv.target || glsFboUtil.Config.s_target.TEXTURE_3D;
-        argv.type = argv.type ? argv.type | glsFboUtil.Config.s_types.TEXTURE_3D : glsFboUtil.Config.s_types.TEXTURE_3D;
-        glsFboUtil.TextureLayered.call(this, argv);
-            
+    /**
+     * glsFboUtil.Texture3D Class.
+     * @constructor
+     . @extends {glsFboUtil.TextureLayered}
+     */
+    glsFboUtil.Texture3D = function() {
+        glsFboUtil.TextureLayered.call(this);
+        this.type  |= glsFboUtil.Config.s_types.TEXTURE_3D;
+        this.target = glsFboUtil.Config.s_target.TEXTURE_3D;
     };
     
-    glsFboUtil.Texture2DArray = function(argv) {
-        argv = argv || {};
-        
-        argv.target = argv.target || glsFboUtil.Config.s_target.TEXTURE_2D_ARRAY;
-        argv.type = argv.type ? argv.type | glsFboUtil.Config.s_types.TEXTURE_2D_ARRAY : glsFboUtil.Config.s_types.TEXTURE_2D_ARRAY;
-        glsFboUtil.TextureLayered.call(this, argv);
-            
+    /**
+     * glsFboUtil.Texture2DArray Class.
+     * @constructor
+     . @extends {glsFboUtil.TextureLayered}
+     */
+    glsFboUtil.Texture2DArray = function() {
+        glsFboUtil.TextureLayered.call(this);
+        this.type  |= glsFboUtil.Config.s_types.TEXTURE_2D_ARRAY;
+        this.target = glsFboUtil.Config.s_target.TEXTURE_2D_ARRAY;
     };
     
     
-    // Attachments
-    glsFboUtil.Attachment = function(argv) {
-        argv = argv || {};
-        
-        argv.type = argv.type ? argv.type | glsFboUtil.Config.s_types.ATTACHMENT : glsFboUtil.Config.s_types.ATTACHMENT;
-        argv.target = argv.target || glsFboUtil.Config.s_target.FRAMEBUFFER;
-        glsFboUtil.Config.call(this, argv);
+    /**
+     * glsFboUtil.Attachment Class.
+     * @constructor
+     . @extends {glsFboUtil.Config}
+     */
+    glsFboUtil.Attachment = function() {
+        glsFboUtil.Config.call(this, type, target);
+        this.type  |= glsFboUtil.Config.s_types.ATTACHMENT;
+        this.target = glsFboUtil.Config.s_target.FRAMEBUFFER;
         this.imageName = 0;
-        
     };
     // this function is declared, but has no definition/is unused in the c++
     // glsFboUtil.Attachment.prototype.isComplete = function(attPoint, image, vfr) { };
     
-    glsFboUtil.RenderbufferAttachment = function(argv) {
-        argv = argv || {};
-        
-        argv.type = argv.type ? argv.type | glsFboUtil.Config.s_types.ATT_RENDERBUFFER : glsFboUtil.Config.s_types.ATT_RENDERBUFFER;
-        glsFboUtil.Attachment.call(this, argv);
+    /**
+     * glsFboUtil.RenderBufferAttachments Class.
+     * @constructor
+     . @extends {glsFboUtil.Attachment}
+     */
+    glsFboUtil.RenderbufferAttachment = function() {
+        glsFboUtil.Attachment.call(this);
+        this.type |= glsFboUtil.Config.s_types.ATT_RENDERBUFFER;
         this.renderbufferTarget = glsFboUtil.Config.s_target.RENDERBUFFER;
-        
     };
     glsFboUtil.RenderbufferAttachment.prototype = Object.create(glsFboUtil.Attachment.prototype);
     glsFboUtil.RenderbufferAttachment.prototype.constructor = glsFboUtil.RenderbufferAttachment;
     
-    glsFboUtil.TextureAttachment = function(argv) {
-        argv = argv || {};
-        
-        argv.type = argv.type ? argv.type | glsFboUtil.Config.s_types.ATT_TEXTURE : glsFboUtil.Config.s_types.ATT_TEXTURE;
-        glsFboUtil.Attachment.call(this, argv);
+    /**
+     * glsFboUtil.TextureAttachment Class.
+     * @constructor
+     . @extends {glsFboUtil.Attachment}
+     */
+    glsFboUtil.TextureAttachment = function() {
+        glsFboUtil.Attachment.call(this);
+        this.type |= glsFboUtil.Config.s_types.ATT_TEXTURE;
         this.level = 0;
-        
     };
     glsFboUtil.TextureAttachment.prototype = Object.create(glsFboUtil.Attachment.prototype);
     glsFboUtil.TextureAttachment.prototype.constructor = glsFboUtil.TextureAttachment;
     
-    glsFboUtil.TextureFlatAttachment = function(argv) {
-        argv = argv || {};
-        
-        argv.type = argv.type ? argv.type | glsFboUtil.Config.s_types.ATT_TEXTURE_FLAT : glsFboUtil.Config.s_types.ATT_TEXTURE_FLAT;
-        glsFboUtil.TextureAttachment.call(this, argv);
+    /**
+     * glsFboUtil.TextureFlatAttachment Class.
+     * @constructor
+     . @extends {glsFboUtil.TextureAttachment}
+     */
+    glsFboUtil.TextureFlatAttachment = function() {
+        glsFboUtil.TextureAttachment.call(this);
+        this.type |= glsFboUtil.Config.s_types.ATT_TEXTURE_FLAT;
         this.texTarget = glsFboUtil.Config.s_target.NONE;
-        
     };
     glsFboUtil.TextureFlatAttachment.prototype = Object.create(glsFboUtil.TextureAttachment.prototype);
     glsFboUtil.TextureFlatAttachment.prototype.constructor = glsFboUtil.TextureFlatAttachment;
     
-    glsFboUtil.TextureLayerAttachment = function(argv) {
-        argv = argv || {};
-        
-        argv.type = argv.type ? argv.type | glsFboUtil.Config.s_types.ATT_TEXTURE_LAYER : glsFboUtil.Config.s_types.ATT_TEXTURE_LAYER;
-        glsFboUtil.TextureAttachment.call(this, argv);
+    /**
+     * glsFboUtil.TextureLayerAttachment Class.
+     * @constructor
+     . @extends {glsFboUtil.TextureLayerAttachment}
+     */
+    glsFboUtil.TextureLayerAttachment = function() {
+        glsFboUtil.TextureAttachment.call(this);
+        this.type |= glsFboUtil.Config.s_types.ATT_TEXTURE_LAYER;
         this.layer = 0;
-        
-        if (!argv.dont_construct) this._construct(argv);
     };
     glsFboUtil.TextureLayerAttachment.prototype = Object.create(glsFboUtil.TextureAttachment.prototype);
     glsFboUtil.TextureLayerAttachment.prototype.constructor = glsFboUtil.TextureLayerAttachment;
@@ -633,14 +689,11 @@ goog.scope(function() {
         REQUIRED_RENDERABLE:  0x20, //< Without this, renderability is allowed, not required.
     };
     
-    glsFboUtil.Framebuffer = function(argv) {
-        argv = argv || {};
-        
-        this.attachments = argv.attachments  || {};
-        this.textures    = argv.textures     || {};
-        this.rbos        = argv.rbos         || {};
-        this.m_gl        = argv.gl           || gl;
-        
+    glsFboUtil.Framebuffer = function(attachments, textures, rbos, gl_ctx) {
+        this.attachments = attachments  || {};
+        this.textures    = textures     || {};
+        this.rbos        = rbos         || {};
+        this.m_gl        = gl_ctx       || gl;
     };
     glsFboUtil.Framebuffer.prototype.attach = function(attPoint, att) {
         if (!att) {
