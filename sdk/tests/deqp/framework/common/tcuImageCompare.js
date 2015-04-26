@@ -46,22 +46,39 @@ tcuImageCompare.CompareLogMode = {
     ON_ERROR: 2
 };
 
-tcuImageCompare.displayResultPane = function(id, width, height) {
+/**
+ * @param {string} id HTML element name
+ * @param {number} width Canvas width
+ * @param {number} height Canvas height
+ * @param {bool=} displayRef True if we display [result, ref, error] canvases, False if we display [result] only. Default True.
+ * @return {Array} Array of drawing contexts - one per canvas.
+ */
+tcuImageCompare.displayResultPane = function(id, width, height, displayRef) {
+    if (displayRef == undefined) displayRef = true;
     tcuImageCompare.displayResultPane.counter = tcuImageCompare.displayResultPane.counter || 0;
     var i = tcuImageCompare.displayResultPane.counter++;
     var elem = document.getElementById(id);
     var span = document.createElement('span');
     elem.appendChild(span);
-    span.innerHTML = '<table><tr><td>Result</td><td>Reference</td><td>Error mask</td></tr>' +
-                            '<tr><td><canvas id="result' + i + '" width=' + width + ' height=' + height + '</td><td><canvas id="reference' + i + '" width=' + width + ' height=' + height + '</td><td><canvas id="diff' + i + '" width=' + width + ' height=' + height + '</td>' +
-                     '</table>';
-    var canvasResult = document.getElementById('result' + i);
-    var ctxResult = canvasResult.getContext('2d');
-    var canvasRef = document.getElementById('reference' + i);
-    var ctxRef = canvasRef.getContext('2d');
-    var canvasDiff = document.getElementById('diff' + i);
-    var ctxDiff = canvasDiff.getContext('2d');
-    return [ctxResult, ctxRef, ctxDiff];
+    if (displayRef) {
+        span.innerHTML = '<table><tr><td>Result</td><td>Reference</td><td>Error mask</td></tr>' +
+                                '<tr><td><canvas id="result' + i + '" width=' + width + ' height=' + height + '</td><td><canvas id="reference' + i + '" width=' + width + ' height=' + height + '</td><td><canvas id="diff' + i + '" width=' + width + ' height=' + height + '</td>' +
+                         '</table>';
+        var canvasResult = document.getElementById('result' + i);
+        var ctxResult = canvasResult.getContext('2d');
+        var canvasRef = document.getElementById('reference' + i);
+        var ctxRef = canvasRef.getContext('2d');
+        var canvasDiff = document.getElementById('diff' + i);
+        var ctxDiff = canvasDiff.getContext('2d');
+        return [ctxResult, ctxRef, ctxDiff];                         
+    } else {
+        span.innerHTML = '<table><tr><td>Result</td></tr>' +
+                                '<tr><td><canvas id="result' + i + '" width=' + width + ' height=' + height + '</td>' +
+                         '</table>';        
+        var canvasResult = document.getElementById('result' + i);
+        var ctxResult = canvasResult.getContext('2d');
+        return [ctxResult];                         
+    }
 };
 
 tcuImageCompare.displayImages = function(result, reference, diff) {
@@ -72,7 +89,7 @@ tcuImageCompare.displayImages = function(result, reference, diff) {
         var index = 0;
         for (var y = 0; y < h; y++) {
             for (var x = 0; x < w; x++) {
-                var pixel = src.getPixelInt(x, y, 0);
+                var pixel = src.getPixelInt(x, h - y - 1, 0);
                 for (var i = 0; i < 4; i++) {
                     imgData.data[index] = pixel[i];
                     index = index + 1;
@@ -84,7 +101,7 @@ tcuImageCompare.displayImages = function(result, reference, diff) {
     var w = result.getWidth();
     var h = result.getHeight();
 
-    var contexts = tcuImageCompare.displayResultPane('console', w, h);
+    var contexts = tcuImageCompare.displayResultPane('console', w, h, reference != null);
     contexts[0].putImageData(createImage(contexts[0], result), 0, 0);
     if (reference)
         contexts[1].putImageData(createImage(contexts[1], reference), 0, 0);

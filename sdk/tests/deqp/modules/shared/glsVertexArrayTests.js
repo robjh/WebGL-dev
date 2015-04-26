@@ -1794,9 +1794,10 @@ goog.scope(function() {
      * @param {glsVertexArrayTests.deArray.InputType} type
      * @param {glsVertexArrayTests.GLValue} min
      * @param {glsVertexArrayTests.GLValue} max
+     * @param {number} scale Coordinate scaling factor    
      * @return {ArrayBuffer}
      */
-    glsVertexArrayTests.RandomArrayGenerator.generateQuads = function(seed, count, componentCount, offset, stride, primitive, type, min, max) {
+    glsVertexArrayTests.RandomArrayGenerator.generateQuads = function(seed, count, componentCount, offset, stride, primitive, type, min, max, scale) {
         /** @type {ArrayBuffer} */ var data;
 
         switch (type) {
@@ -1810,7 +1811,7 @@ goog.scope(function() {
             case glsVertexArrayTests.deArray.InputType.UNSIGNED_INT:
             case glsVertexArrayTests.deArray.InputType.INT:
             case glsVertexArrayTests.deArray.InputType.HALF:
-                data = glsVertexArrayTests.RandomArrayGenerator.createQuads(seed, count, componentCount, offset, stride, primitive, min, max);
+                data = glsVertexArrayTests.RandomArrayGenerator.createQuads(seed, count, componentCount, offset, stride, primitive, min, max, scale);
                 break;
 
             case glsVertexArrayTests.deArray.InputType.INT_2_10_10_10:
@@ -1910,9 +1911,10 @@ goog.scope(function() {
      * @param {glsVertexArrayTests.deArray.Primitive} primitive
      * @param {glsVertexArrayTests.GLValue} min
      * @param {glsVertexArrayTests.GLValue} max
+     * @param {number} scale Coordinate scaling factor
      * @return {ArrayBuffer}
      */
-    glsVertexArrayTests.RandomArrayGenerator.createQuads = function(seed, count, componentCount, offset, stride, primitive, min, max) {
+    glsVertexArrayTests.RandomArrayGenerator.createQuads = function(seed, count, componentCount, offset, stride, primitive, min, max, scale) {
         var componentStride = min.m_value.byteLength; //TODO: Fix encapsulation issue
         var quadStride = 0;
         var type = min.getType(); //Instead of using the template parameter.
@@ -1967,23 +1969,55 @@ goog.scope(function() {
                         break;
                     }
 
+                    x2 = x1.add(x2);
+                    y2 = y1.add(y2);
+
+                    /**
+                     * Transform GL vertex coordinates so that after vertex shading the vertices will be rounded.
+                     * We want to avoid quads that cover a pixel partially
+                     */
+                    var round = function(pos, scale, offset, range) {
+                        // Perform the same transformation as the vertex shader
+                        var val = (pos.interpret() + offset) * scale;
+                        var half = range/2;
+                        val = val * half + half;
+                        // Round it
+                        val = Math.round(val);
+                        // And reverse the vertex shading transformation
+                        val = (val - half) / half;
+                        val = val / scale - offset;
+                        return glsVertexArrayTests.GLValue.create(val, pos.m_type);
+                    };
+
+                    var viewport = gl.getParameter(gl.VIEWPORT);
+                    var offset = 0;
+                    if (componentCount > 2)
+                        offset = z.interpret();
+                    x1 = round(x1, scale, offset, viewport[2]);
+                    x2 = round(x2, scale, offset, viewport[2]);
+                    offset = 1;
+                    if (componentCount > 3)
+                        offset = w.interpret();
+                    y1 = round(y1, scale, offset, viewport[3]);
+                    y2 = round(y2, scale, offset, viewport[3]);
+
                     glsVertexArrayTests.copyGLValueToArray(resultData.subarray(quadNdx * quadStride), x1);
                     glsVertexArrayTests.copyGLValueToArray(resultData.subarray(quadNdx * quadStride + componentStride), y1);
 
-                    glsVertexArrayTests.copyGLValueToArray(resultData.subarray(quadNdx * quadStride + stride), x1.add(x2));
+                    glsVertexArrayTests.copyGLValueToArray(resultData.subarray(quadNdx * quadStride + stride), x2);
                     glsVertexArrayTests.copyGLValueToArray(resultData.subarray(quadNdx * quadStride + stride + componentStride), y1);
 
                     glsVertexArrayTests.copyGLValueToArray(resultData.subarray(quadNdx * quadStride + stride * 2), x1);
-                    glsVertexArrayTests.copyGLValueToArray(resultData.subarray(quadNdx * quadStride + stride * 2 + componentStride), y1.add(y2));
+                    glsVertexArrayTests.copyGLValueToArray(resultData.subarray(quadNdx * quadStride + stride * 2 + componentStride), y2);
 
                     glsVertexArrayTests.copyGLValueToArray(resultData.subarray(quadNdx * quadStride + stride * 3), x1);
-                    glsVertexArrayTests.copyGLValueToArray(resultData.subarray(quadNdx * quadStride + stride * 3 + componentStride), y1.add(y2));
+                    glsVertexArrayTests.copyGLValueToArray(resultData.subarray(quadNdx * quadStride + stride * 3 + componentStride), y2);
 
-                    glsVertexArrayTests.copyGLValueToArray(resultData.subarray(quadNdx * quadStride + stride * 4), x1.add(x2));
+                    glsVertexArrayTests.copyGLValueToArray(resultData.subarray(quadNdx * quadStride + stride * 4), x2);
                     glsVertexArrayTests.copyGLValueToArray(resultData.subarray(quadNdx * quadStride + stride * 4 + componentStride), y1);
 
-                    glsVertexArrayTests.copyGLValueToArray(resultData.subarray(quadNdx * quadStride + stride * 5), x1.add(x2));
-                    glsVertexArrayTests.copyGLValueToArray(resultData.subarray(quadNdx * quadStride + stride * 5 + componentStride), y1.add(y2));
+                    glsVertexArrayTests.copyGLValueToArray(resultData.subarray(quadNdx * quadStride + stride * 5), x2);
+                    glsVertexArrayTests.copyGLValueToArray(resultData.subarray(quadNdx * quadStride + stride * 5 + componentStride), y2);
 
                     if (componentCount > 2) {
                         for (var i = 0; i < 6; i++)
@@ -2412,7 +2446,7 @@ goog.scope(function() {
                     //              break;
                     case glsVertexArrayTests.deArray.Primitive.TRIANGLES:
                         if (arrayNdx == 0) {
-                            data = glsVertexArrayTests.RandomArrayGenerator.generateQuads(seed, this.m_spec.drawCount, arraySpec.componentCount, arraySpec.offset, arraySpec.stride, this.m_spec.primitive, arraySpec.inputType, arraySpec.min, arraySpec.max);
+                            data = glsVertexArrayTests.RandomArrayGenerator.generateQuads(seed, this.m_spec.drawCount, arraySpec.componentCount, arraySpec.offset, arraySpec.stride, this.m_spec.primitive, arraySpec.inputType, arraySpec.min, arraySpec.max, coordScale);
                         } else {
                             DE_ASSERT(arraySpec.offset == 0); // \note [jarkko] it just hasn't been implemented
                             data = glsVertexArrayTests.RandomArrayGenerator.generatePerQuad(seed, this.m_spec.drawCount, arraySpec.componentCount, arraySpec.stride, this.m_spec.primitive, arraySpec.inputType, arraySpec.min, arraySpec.max);

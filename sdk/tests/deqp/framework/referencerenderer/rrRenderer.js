@@ -142,7 +142,7 @@ rrRenderer.transformVertexClipCoordsToWindowCoords = function(/*const RenderStat
 
     return [
         transformed[0] * halfW + oX,
-        viewport.height - (transformed[1] * halfH + oY),
+        transformed[1] * halfH + oY,
         transformed[2] * (zf - zn) / 2 + (zn + zf) / 2,
         transformed[3]
     ];
@@ -884,55 +884,28 @@ rrRenderer.drawQuads = function(state, renderTarget, program, vertexAttribs, fir
     var instanceID = 0;
 
     var numberOfVertices = primitives.getNumElements();
-    for (var elementNdx = 0; elementNdx < numberOfVertices; ++elementNdx)
-    {
-        var numVertexPackets = 0;
+    var numVertexPackets = 0;
+    for (var elementNdx = 0; elementNdx < numberOfVertices; ++elementNdx) {
 
-        // collect primitive vertices until restart
-        while (elementNdx < numberOfVertices &&
-            !(state.restart.enabled && primitives.isRestartIndex(elementNdx, state.restart.restartIndex)))
-        {
-            // input
-            vertexPackets[numVertexPackets].instanceNdx = instanceID;
-            vertexPackets[numVertexPackets].vertexNdx = primitives.getIndex(elementNdx);
+        // input
+        vertexPackets[numVertexPackets].instanceNdx = instanceID;
+        vertexPackets[numVertexPackets].vertexNdx = primitives.getIndex(elementNdx);
 
-            // output
-            vertexPackets[numVertexPackets].pointSize = state.point.pointSize; // default value from the current state
-            vertexPackets[numVertexPackets].position = [0, 0, 0, 0]; // no undefined values
+        // output
+        vertexPackets[numVertexPackets].pointSize = state.point.pointSize; // default value from the current state
+        vertexPackets[numVertexPackets].position = [0, 0, 0, 0]; // no undefined values
 
-            ++numVertexPackets;
-            ++elementNdx;
-        }
+        ++numVertexPackets;
 
-        // Duplicated restart shade
-        if (numVertexPackets == 0)
-            continue;
-
-        // \todo Vertex cache?
-
-        // Transform vertices
-
-        program.shadeVertices(vertexAttribs, vertexPackets, numVertexPackets);
     }
+    program.shadeVertices(vertexAttribs, vertexPackets, numVertexPackets);
 
     // For each quad, we get a group of four vertex packets
     for (var quad = 0; quad < count; quad++) {
-        var bottomLeftVertexNdx = 0;
-        var bottomRightVertexNdx = 1;
-        var topLeftVertexNdx = 2;
-        var topRightVertexNdx = 3;
-
-        /*var glToCanvasXCoordFactor = state.viewport.rect.width;
-        var glToCanvasYCoordFactor = -state.viewport.rect.height;
-
-        var topLeft = [
-            (state.viewport.rect.width / 2) + Math.floor(vertexPackets[(quad * 6) + topLeftVertexNdx].position[0] * glToCanvasXCoordFactor),
-            (state.viewport.rect.height / 2) + Math.floor(vertexPackets[(quad * 6) + topLeftVertexNdx].position[1] * glToCanvasYCoordFactor)
-        ];
-        var bottomRight = [
-            (state.viewport.rect.width / 2) + Math.floor(vertexPackets[(quad * 6) + bottomRightVertexNdx].position[0] * glToCanvasXCoordFactor),
-            (state.viewport.rect.height / 2) + Math.floor(vertexPackets[(quad * 6) + bottomRightVertexNdx].position[1] * glToCanvasYCoordFactor)
-        ];*/
+        var bottomLeftVertexNdx = 1;
+        var bottomRightVertexNdx = 5;
+        var topLeftVertexNdx = 0;
+        var topRightVertexNdx = 2;
 
         var topLeft = rrRenderer.transformVertexClipCoordsToWindowCoords(state, vertexPackets[(quad * 6) + topLeftVertexNdx]);
         var bottomRight = rrRenderer.transformVertexClipCoordsToWindowCoords(state, vertexPackets[(quad * 6) + bottomRightVertexNdx]);
