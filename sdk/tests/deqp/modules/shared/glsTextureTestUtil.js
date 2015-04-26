@@ -698,7 +698,7 @@ glsTextureTestUtil.TextureRenderer.prototype.renderQuad = function(texUnit, texC
     } else
        throw new Error('Unrecognized texture type:' + params.texType);
 
-    if (!progSpec)
+    if (progSpec === null)
         throw new Error('Could not find program specification');
 
     var program = this.m_programLibrary.getProgram(progSpec);

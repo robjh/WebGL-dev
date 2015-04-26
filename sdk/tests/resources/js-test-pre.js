@@ -217,7 +217,7 @@ function testPassedOptions(msg, addSpan)
 {
     if (addSpan)
 	{
-        reportTestResultsToHarness(true, msg);
+        reportTestResultsToHarness(true, _currentTestName + ": " + msg);
         _addSpan('<span><span class="pass">PASS</span> ' + escapeHTML(_currentTestName) + ": " + escapeHTML(msg) + '</span>');
 	}
     if (_jsTestPreVerboseLogging) {
@@ -232,7 +232,7 @@ function testPassedOptions(msg, addSpan)
  */
 function testFailedOptions(msg, exthrow)
 {
-    reportTestResultsToHarness(false, msg);
+    reportTestResultsToHarness(false, _currentTestName + ": " + msg);
     _addSpan('<span><span class="fail">FAIL</span> ' + escapeHTML(_currentTestName) + ": " + escapeHTML(msg) + '</span>');
     _bufferedLogToConsole('FAIL ' + msg);
     _flushBufferedLogsToConsole();
@@ -596,6 +596,11 @@ function webglHarnessCollectGarbage() {
 
     if (window.gc) {
         window.gc();
+        return;
+    }
+
+    if (window.CollectGarbage) {
+        CollectGarbage();
         return;
     }
 

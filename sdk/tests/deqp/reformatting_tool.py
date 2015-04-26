@@ -81,7 +81,7 @@ rules = [
         'flags': re.MULTILINE
     },
     {
-        'pattern': r'(?<=\S){',
+        'pattern': r'(?<=\)){',
         'repl': ' {',
         'count': 0,
         'flags': re.MULTILINE
