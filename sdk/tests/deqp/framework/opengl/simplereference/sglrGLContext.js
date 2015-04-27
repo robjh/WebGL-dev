@@ -70,9 +70,11 @@ goog.scope(function() {
     /**
      * sglrGLContext.GLContext wraps the standard WebGL context to be able to be used interchangeably with the ReferenceContext
      * @constructor
+     * @extends {WebGL2RenderingContext}
      * @param {WebGL2RenderingContext} context
+     * @param {Array<number>=} viewport
      */
-    sglrGLContext.GLContext = function(context) {
+    sglrGLContext.GLContext = function(context, viewport) {
         this.m_context = context;
         this.m_programs = [];
         this.m_allocatedVaos = [];
@@ -115,6 +117,9 @@ goog.scope(function() {
                 }
             }
         }
+
+        if (viewport)
+            gl.viewport(viewport[0], viewport[1], viewport[2], viewport[3]);
     };
 
     /**
@@ -166,4 +171,23 @@ goog.scope(function() {
         this.m_context.drawArrays(gl.TRIANGLES, first, (count * 6) - first);
     };
 
+/**
+ * @param  ctx GL-like context
+ * @param {string} name
+ * @return {boolean}
+ */
+sglrGLContext.isExtensionSupported = function(ctx, name) {
+    var extns = ctx.getSupportedExtensions();
+    var found = false;
+    if (extns) {
+        var index = extns.indexOf(name);
+        if (index != -1)
+            found = true;
+    }
+    return found;
+};
+
 });
+
+
+

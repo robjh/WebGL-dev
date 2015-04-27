@@ -716,6 +716,11 @@ sglrReferenceContext.Texture.prototype.sample4 = function(packetTexcoords, lodBi
     /**
     * @constructor
     * @param {tcuPixelFormat.PixelFormat} colorBits
+    * @param {number} depthBits
+    * @param {number} stencilBits
+    * @param {number} width
+    * @param {number} height
+    * @param {number=} samples_
     */
     sglrReferenceContext.ReferenceContextBuffers = function(colorBits, depthBits, stencilBits, width, height, samples_) {
         var samples = samples_;
@@ -1476,6 +1481,8 @@ sglrReferenceContext.Texture.prototype.sample4 = function(packetTexcoords, lodBi
     sglrReferenceContext.ReferenceContext.prototype.uniform4iv = function(location, x) {
         return this.uniformValue(location, gluShaderUtil.DataType.INT, x);
     };
+
+    sglrReferenceContext.ReferenceContext.getSupportedExtensions = function() { return []; };
 
     /** transpose matrix 'x' of 'size' columns and rows */
     sglrReferenceContext.trans = function(size, x) {

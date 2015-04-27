@@ -63,24 +63,6 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
         /** @type {Array<number>} (float*) */ this.fragmentDepths = fragmentDepths; //!< Fragment packet depths. Pointer will be NULL if there is no depth buffer. Each sample has per-sample depth values
     };
 
-    // Write output
-
-    /**
-     * rrShadingContext.writeFragmentOutput
-     * @param {rrShadingContext.FragmentShadingContext} context
-     * @param {number} packetNdx
-     * @param {number} fragNdx
-     * @param {number} outputNdx
-     * @param {Object} value
-     */
-    rrShadingContext.writeFragmentOutput = function (context, packetNdx, fragNdx, outputNdx, value) {
-        DE_ASSERT(packetNdx >= 0);
-        DE_ASSERT(fragNdx >= 0 && fragNdx < 4);
-        DE_ASSERT(outputNdx >= 0 && outputNdx < context.numFragmentOutputs);
-
-        context.outputArray[outputNdx + context.numFragmentOutputs * (fragNdx + packetNdx * 4)] = value;
-    };
-
     // Read Varying
 
     /**
@@ -222,33 +204,4 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
 
     // Fragent depth
 
-    /**
-     * rrShadingContext.readFragmentDepth
-     * @param {rrShadingContext.FragmentShadingContext} context
-     * @param {number} packetNdx
-     * @param {number} fragNdx
-     * @param {number} sampleNdx
-     * @return {number}
-     */
-    rrShadingContext.readFragmentDepth = function (context, packetNdx, fragNdx, sampleNdx) {
-        // Reading or writing to fragment depth values while there is no depth buffer is legal but not supported by rr
-        DE_ASSERT(context.fragmentDepths);
-        return context.fragmentDepths[(packetNdx * 4 + fragNdx) * context.numSamples + sampleNdx];
-    };
-
-    /**
-     * rrShadingContext.writeFragmentDepth
-     * @param {rrShadingContext.FragmentShadingContext} context
-     * @param {number} packetNdx
-     * @param {number} fragNdx
-     * @param {number} sampleNdx
-     * @param {number} depthValue
-     */
-    rrShadingContext.writeFragmentDepth = function (context, packetNdx, fragNdx, sampleNdx, depthValue) {
-        // Reading or writing to fragment depth values while there is no depth buffer is legal but not supported by rr
-        DE_ASSERT(context.fragmentDepths);
-        context.fragmentDepths[(packetNdx * 4 + fragNdx) * context.numSamples + sampleNdx] = depthValue;
-    };
-
-    
 });

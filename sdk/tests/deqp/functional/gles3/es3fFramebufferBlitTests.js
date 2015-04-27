@@ -29,7 +29,7 @@ goog.require('framework.common.tcuTexture');
 goog.require('framework.common.tcuTextureUtil');
 goog.require('framework.delibs.debase.deMath');
 goog.require('framework.opengl.gluTextureUtil');
-
+goog.require('framework.opengl.gluShaderUtil');
 
 goog.scope(function() {
 
@@ -44,6 +44,7 @@ var tcuTexture = framework.common.tcuTexture;
 var tcuTextureUtil = framework.common.tcuTextureUtil;
 var deMath = framework.delibs.debase.deMath;
 var gluTextureUtil = framework.opengl.gluTextureUtil;
+var gluShaderUtil = framework.opengl.gluShaderUtil;
 
 
     /** @type {WebGL2RenderingContext} */ var gl;
@@ -52,7 +53,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
     * @constructor
     * @extends {es3fFboTestCase.FboTestCase}
     * @param {string} name
-    * @param {string} description
+    * @param {string} desc
     * @param {number} filter deUint32
     * @param {Array<number>} srcSize
     * @param {Array<number>} srcRect
@@ -83,11 +84,11 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
 
         /** @type {es3fFboTestUtil.GradientShader} */
         var gradShader = new es3fFboTestUtil.GradientShader(
-            gluShaderUtil.DataType.TYPE_FLOAT_VEC4);
+            gluShaderUtil.DataType.FLOAT_VEC4);
         /** @type {es3fFboTestUtil.Texture2DShader} */
         var texShader = new es3fFboTestUtil.Texture2DShader(
-            [gluShaderUtil.DataType.TYPE_SAMPLER_2D],
-            gluShaderUtil.DataType.TYPE_FLOAT_VEC4);
+            [gluShaderUtil.DataType.SAMPLER_2D],
+            gluShaderUtil.DataType.FLOAT_VEC4);
 
         /** @type {number} */ var gradShaderID = this.getCurrentContext().createProgram(gradShader);
         /** @type {number} */ var texShaderID = this.getCurrentContext().createProgram(texShader);
@@ -1232,6 +1233,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
             tcuTestCase.runTestCases();
         }
         catch (err) {
+            console.log(err);
             testFailedOptions('Failed to es3fFramebufferBlitTests.run tests', false);
             tcuTestCase.runner.terminate();
         }

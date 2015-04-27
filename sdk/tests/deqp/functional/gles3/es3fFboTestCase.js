@@ -26,9 +26,12 @@ goog.require('framework.common.tcuSurface');
 goog.require('framework.common.tcuTexture');
 goog.require('framework.referencerenderer.rrRenderer');
 goog.require('framework.opengl.simplereference.sglrReferenceContext');
+goog.require('framework.opengl.simplereference.sglrGLContext');
 goog.require('framework.common.tcuPixelFormat');
 goog.require('framework.common.tcuImageCompare');
 goog.require('framework.delibs.debase.deString');
+goog.require('functional.gles3.es3fFboTestUtil');
+goog.require('framework.delibs.debase.deRandom');
 
 
 goog.scope(function() {
@@ -43,7 +46,17 @@ var sglrReferenceContext = framework.opengl.simplereference.sglrReferenceContext
 var tcuPixelFormat = framework.common.tcuPixelFormat;
 var tcuImageCompare = framework.common.tcuImageCompare;
 var deString = framework.delibs.debase.deString;
+var sglrGLContext = framework.opengl.simplereference.sglrGLContext;
+var es3fFboTestUtil = functional.gles3.es3fFboTestUtil;
+var deRandom = framework.delibs.debase.deRandom;
 
+/** @typedef {(sglrGLContext.GLContext | WebGL2RenderingContext | sglrReferenceContext.ReferenceContext)} */
+es3fFboTestCase.Context;
+
+var DE_ASSERT = function(x) {
+    if (!x)
+        throw new Error('Assert failed');
+};
 
     /**
     * es3fFboTestCase.FboTestCase class, inherits from TestCase and sglrContextWrapper
@@ -51,14 +64,13 @@ var deString = framework.delibs.debase.deString;
     * @extends {tcuTestCase.DeqpTest}
     * @param {string} name
     * @param {string} description
-    * @param {boolean} useScreenSizedViewport
+    * @param {boolean=} useScreenSizedViewport
     */
     es3fFboTestCase.FboTestCase = function(name, description, useScreenSizedViewport /*= false */) {
         tcuTestCase.DeqpTest.call(this, name, description);
         /** @type {number} */ this.m_viewportWidth = useScreenSizedViewport === undefined ? gl.drawingBufferWidth : 128;
         /** @type {number} */ this.m_viewportHeight = useScreenSizedViewport === undefined ? gl.drawingBufferHeight : 128;
-        /** @type {Context} */ this.m_context = gl; // from TestCase
-        /** @type {sglrReferenceContext.ReferenceContext|sglrGLContext.GLContext} */ this.m_curCtx = null; // from sglrContextWrapper
+        /** @type {es3fFboTestCase.Context} */ this.m_curCtx = null;
     };
 
     es3fFboTestCase.FboTestCase.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
@@ -66,7 +78,7 @@ var deString = framework.delibs.debase.deString;
 
     /**
      * Sets the current context (inherited from sglrContextWrapper)
-     * @param {Context} context
+     * @param {es3fFboTestCase.Context} context
      */
     es3fFboTestCase.FboTestCase.prototype.setContext = function(context) {
         this.m_curCtx = context;
@@ -74,7 +86,7 @@ var deString = framework.delibs.debase.deString;
 
     /**
      * Gets the current context (inherited from sglrContextWrapper)
-     * @return {Context}
+     * @return {es3fFboTestCase.Context}
      */
     es3fFboTestCase.FboTestCase.prototype.getCurrentContext = function() {
         return this.m_curCtx;
@@ -85,19 +97,19 @@ var deString = framework.delibs.debase.deString;
     * @param {tcuSurface.Surface} result
     */
     es3fFboTestCase.FboTestCase.prototype.compare = function(reference, result) {
-        return tcuImageCompare.fuzzyCompare('Result', 'Image comparison result', reference, result, 0.05 /*, tcu::COMPARE_LOG_RESULT*/);
+        return tcuImageCompare.fuzzyCompare('Result', 'Image comparison result', reference.getAccess(), result.getAccess(), 0.05 /*, tcu::COMPARE_LOG_RESULT*/);
     };
 
     /**
     * @param {number} sizedFormat deUint32
     */
     es3fFboTestCase.FboTestCase.prototype.checkFormatSupport = function(sizedFormat) {
-        /** @const @type {boolean} */ var isCoreFormat = isRequiredFormat(sizedFormat);
-        /** @const @type {Array<string>} */ var requiredExts = (!isCoreFormat) ? getEnablingExtensions(sizedFormat) : [];
+        /** @const @type {boolean} */ var isCoreFormat = es3fFboTestCase.isRequiredFormat(sizedFormat);
+        /** @const @type {Array<string>} */ var requiredExts = (!isCoreFormat) ? es3fFboTestCase.getEnablingExtensions(sizedFormat) : [];
 
         // Check that we don't try to use invalid formats.
-        DE_ASSERT(isCoreFormat || !deString.deIsStringEmpty(requiredExts));
-        if (!deString.deIsStringEmpty(requiredExts) && !isAnyExtensionSupported(this.m_context, requiredExts))
+        DE_ASSERT(isCoreFormat || requiredExts);
+        if (requiredExts && !es3fFboTestCase.isAnyExtensionSupported(gl, requiredExts))
             throw new Error('Format not supported');
     };
 
@@ -106,11 +118,11 @@ var deString = framework.delibs.debase.deString;
     * @param {number} numSamples
     */
     es3fFboTestCase.FboTestCase.prototype.checkSampleCount = function(sizedFormat, numSamples) {
-        /** @const @type {number} */ var minSampleCount = getMinimumSampleCount(sizedFormat);
+        /** @const @type {number} */ var minSampleCount = es3fFboTestCase.getMinimumSampleCount(sizedFormat);
 
         if (numSamples > minSampleCount) {
             // Exceeds spec-mandated minimum - need to check.
-            /** @const @type {Array<number>} */ var supportedSampleCounts = querySampleCounts(this.m_context.getRenderContext().getFunctions(), sizedFormat);
+            /** @const @type {Array<number>} */ var supportedSampleCounts = es3fFboTestCase.querySampleCounts(sizedFormat);
 
             if (supportedSampleCounts.indexOf(numSamples) == -1)
                 throw new Error('Sample count not supported');
@@ -123,12 +135,12 @@ var deString = framework.delibs.debase.deString;
     * @param {number} y
     * @param {number} width
     * @param {number} height
-    * @param {tcuTextureTextureFormat} format
+    * @param {tcuTexture.TextureFormat} format
     * @param {Array<number>} scale Vec4
     * @param {Array<number>} bias Vec4
     */
     es3fFboTestCase.FboTestCase.prototype.readPixelsUsingFormat = function(dst, x, y, width, height, format, scale, bias) {
-        fboTestUtil.readPixels(getCurrentContext(), dst, x, y, width, height, format, scale, bias);
+        es3fFboTestUtil.readPixels(this.getCurrentContext(), dst, x, y, width, height, format, scale, bias);
     };
 
     /**
@@ -139,50 +151,41 @@ var deString = framework.delibs.debase.deString;
     * @param {number} height
     */
     es3fFboTestCase.FboTestCase.prototype.readPixels = function(dst, x, y, width, height) {
-        getCurrentContext().readPixels(dst, x, y, width, height);
+        this.getCurrentContext().readPixels(dst, x, y, width, height);
     };
 
     /**
     * @param {number} target deUint32
     */
     es3fFboTestCase.FboTestCase.prototype.checkFramebufferStatus = function(target) {
-        /** @type {number} */ var status = gl.checkFramebufferStatus(target);
+        /** @type {number} */ var status = this.getCurrentContext().checkFramebufferStatus(target);
         if (status != gl.FRAMEBUFFER_COMPLETE)
             throw new Error('Framebuffer Status: ' + status);
     };
 
     es3fFboTestCase.FboTestCase.prototype.checkError = function() {
-        /** @type {number} */ var err = gl.getError();
+        /** @type {number} */ var err = this.getCurrentContext().getError();
             if (err != gl.NO_ERROR)
                 throw new Error('glError: ' + err);
     };
 
     /**
     * @param {tcuTexture.TextureFormat} format
-    * @param {Array<number>} value Vec4
+    * @param {Array<number>=} value Vec4
     */
     es3fFboTestCase.FboTestCase.prototype.clearColorBuffer = function(format, value) {
         if (value === undefined) value = [0.0, 0.0, 0.0, 0.0];
-        fboTestUtil.clearColorBuffer(getCurrentContext(), format, value);
+        es3fFboTestUtil.clearColorBuffer(this.getCurrentContext(), format, value);
     };
 
 
     es3fFboTestCase.FboTestCase.prototype.iterate = function() {
-
-        var renderCtx = gl;
-
-        //const tcu::RenderTarget&    renderTarget    = renderCtx.getRenderTarget();
-
-        /** @type {RenderTarget} */ var renderTarget = renderCtx.getRenderTarget();
-
-        //TestLog&                    log                = m_testCtx.getLog();
-
         // Viewport.
         /** @type {deRandom.Random} */ var rnd = new deRandom.Random(deString.deStringHash(this.name));
-        /** @type {number} */ var width = Math.min(renderTarget.getWidth(), this.m_viewportWidth);
-        /** @type {number} */ var height = Math.min(renderTarget.getHeight(), this.m_viewportHeight);
-        /** @type {number} */ var x = rnd.getInt(0, renderTarget.getWidth() - width);
-        /** @type {number} */ var y = rnd.getInt(0, renderTarget.getHeight() - height);
+        /** @type {number} */ var width = Math.min(gl.drawingBufferWidth, this.m_viewportWidth);
+        /** @type {number} */ var height = Math.min(gl.drawingBufferHeight, this.m_viewportHeight);
+        /** @type {number} */ var x = rnd.getInt(0, gl.drawingBufferWidth - width);
+        /** @type {number} */ var y = rnd.getInt(0, gl.drawingBufferHeight - height);
 
         // Surface format and storage is choosen by render().
         /** @type {tcuSurface.Surface} */ var reference = new tcuSurface.Surface(width, height);
@@ -193,22 +196,20 @@ var deString = framework.delibs.debase.deString;
 
         // Render using GLES3.
         try {
-            /** @type {GLContext} */ var context = new sglrReferenceContext.GLContext(
-                                                            renderCtx,
-                                                            null /*log*/,
-                                                            sglrReferenceContext.GLContext.LOG_CALLS,
+            /** @type {sglrGLContext.GLContext} */ var context = new sglrGLContext.GLContext(
+                                                            gl,
                                                             [x, y, width, height]);
             this.setContext(context);
             this.render(result);
 
             // Check error.
-            /** @type {number} */ var err = gl.getError();
+            /** @type {number} */ var err = context.getError();
             if (err != gl.NO_ERROR)
-                throw new Error('glError: err');
+                throw new Error('glError: ' + context);
 
             this.setContext(null);
         }
-        catch (/** @const @type {fboTestUtil.FboIncompleteException} */ e) {
+        catch (/** @const @type {es3fFboTestUtil.FboIncompleteException} */ e) {
             if (e.getReason() == gl.FRAMEBUFFER_UNSUPPORTED) {
                 // log << e;
                 // m_testCtx.setTestResult(QP_TEST_RESULT_NOT_SUPPORTED, 'Not supported');
@@ -216,28 +217,29 @@ var deString = framework.delibs.debase.deString;
                 return tcuTestCase.IterateResult.STOP;
             }
             else
-                throw new Error('Error: ' + e);
+                throw e;
         }
 
         // Render reference.
+        /** @type {number} */ var alphaBits = /** @type{number} */ (gl.getParameter(gl.ALPHA_BITS));
         /** @type {sglrReferenceContext.ReferenceContextBuffers} */
         var buffers = new sglrReferenceContext.ReferenceContextBuffers(new tcuPixelFormat.PixelFormat(
                                                                             8,
                                                                             8,
                                                                             8,
-                                                                            renderTarget.getPixelFormat().alphaBits ? 8 : 0),
-                                                                       renderTarget.getDepthBits(),
-                                                                       renderTarget.getStencilBits(),
+                                                                            alphaBits > 0 ? 8 : 0),
+                                                                       /** @type{number} */ (gl.getParameter(gl.DEPTH_BITS)),
+                                                                       /** @type{number} */ (gl.getParameter(gl.STENCIL_BITS)), 
                                                                        width,
                                                                        height);
         /** @type {sglrReferenceContext.ReferenceContext} */
-        var context = new sglrReferenceContext.ReferenceContext(new sglrReferenceContext.ReferenceContextLimits(renderCtx),
+        var refContext = new sglrReferenceContext.ReferenceContext(new sglrReferenceContext.ReferenceContextLimits(gl),
                                                                 buffers.getColorbuffer(),
                                                                 buffers.getDepthbuffer(),
                                                                 buffers.getStencilbuffer());
 
-        this.setContext(context);
-        render(reference);
+        this.setContext(refContext);
+        this.render(reference);
         this.setContext(null);
 
 
@@ -253,7 +255,7 @@ var deString = framework.delibs.debase.deString;
     * @param {number} format deUint32
     * @return {boolean}
     */
-    es3fFboTestCase.FboTestCase.isRequiredFormat = function(format) {
+    es3fFboTestCase.isRequiredFormat = function(format) {
         switch (format) {
             // Color-renderable formats
             case gl.RGBA32I:
@@ -310,10 +312,10 @@ var deString = framework.delibs.debase.deString;
     * @param {number} format deUint32
     * @return {Array<string>}
     */
-    es3fFboTestCase.FboTestCase.getEnablingExtensions = function(format) {
+    es3fFboTestCase.getEnablingExtensions = function(format) {
         /** @return {Array<string>} */ var out = [];
 
-        DE_ASSERT(!isRequiredFormat(format));
+        DE_ASSERT(!es3fFboTestCase.isRequiredFormat(format));
 
         switch (format) {
             case gl.RGB16F:
@@ -340,20 +342,88 @@ var deString = framework.delibs.debase.deString;
     };
 
     /**
-    * @param {Context} context
+    * @param {es3fFboTestCase.Context} context
     * @param {Array<string>} requiredExts
     * @return {boolean}
     */
-    es3fFboTestCase.FboTestCase.isAnyExtensionSupported = function(context, requiredExts) {
+    es3fFboTestCase.isAnyExtensionSupported = function(context, requiredExts) {
         for (var iter in requiredExts) {
             /** @const @type {string} */ var extension = iter;
 
-            if (context.getContextInfo().isExtensionSupported(extension))
+            /** @type {WebGL2RenderingContext} */ var test = new WebGL2RenderingContext();
+            if (sglrGLContext.isExtensionSupported(test, extension))
                 return true;
         }
 
         return false;
     };
 
+/**
+ * @param {number} format GL format
+ * @return {number}
+ */
+es3fFboTestCase.getMinimumSampleCount = function(format) {
+    switch (format)    {
+        // Core formats
+        case gl.RGBA32I:
+        case gl.RGBA32UI:
+        case gl.RGBA16I:
+        case gl.RGBA16UI:
+        case gl.RGBA8:
+        case gl.RGBA8I:
+        case gl.RGBA8UI:
+        case gl.SRGB8_ALPHA8:
+        case gl.RGB10_A2:
+        case gl.RGB10_A2UI:
+        case gl.RGBA4:
+        case gl.RGB5_A1:
+        case gl.RGB8:
+        case gl.RGB565:
+        case gl.RG32I:
+        case gl.RG32UI:
+        case gl.RG16I:
+        case gl.RG16UI:
+        case gl.RG8:
+        case gl.RG8I:
+        case gl.RG8UI:
+        case gl.R32I:
+        case gl.R32UI:
+        case gl.R16I:
+        case gl.R16UI:
+        case gl.R8:
+        case gl.R8I:
+        case gl.R8UI:
+        case gl.DEPTH_COMPONENT32F:
+        case gl.DEPTH_COMPONENT24:
+        case gl.DEPTH_COMPONENT16:
+        case gl.DEPTH32F_STENCIL8:
+        case gl.DEPTH24_STENCIL8:
+        case gl.STENCIL_INDEX8:
+            return 4;
 
- });
+        // gl.EXT_color_buffer_float
+        case gl.R11F_G11F_B10F:
+        case gl.RG16F:
+        case gl.R16F:
+            return 4;
+
+        case gl.RGBA32F:
+        case gl.RGBA16F:
+        case gl.RG32F:
+        case gl.R32F:
+            return 0;
+
+        // gl.EXT_color_buffer_half_float
+        case gl.RGB16F:
+            return 0;
+
+        default:
+            throw new Error("Unknown format:" + format);
+    }
+};
+
+es3fFboTestCase.querySampleCounts = function(format) {
+    return gl.getInternalformatParameter(gl.RENDERBUFFER, format, gl.SAMPLES);
+}
+
+});
