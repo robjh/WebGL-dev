@@ -33,7 +33,7 @@ tcuStringTemplate.specialize = function(str, params) {
     var dst = str;
     for (var key in params) {
         var value = params[key];
-        var re = new RegExp(tcuStringTemplate.escapeRegExp('\$\ {' + key + '\}'), 'g');
+        var re = new RegExp(tcuStringTemplate.escapeRegExp('\$\{' + key + '\}'), 'g');
         dst = dst.replace(re, value);
     }
     return dst;

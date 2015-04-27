@@ -388,10 +388,10 @@ glsTextureTestUtil.ProgramLibrary.prototype.getProgram = function(program) {
     //     return m_programs[program]; // Return from cache.
 
     var vertShaderTemplate =
-        '$ {VTX_HEADER}' +
-        '$ {VTX_IN} highp vec4 a_position;\n' +
-        '$ {VTX_IN} $ {PRECISION} $ {TEXCOORD_TYPE} a_texCoord;\n' +
-        '$ {VTX_OUT} $ {PRECISION} $ {TEXCOORD_TYPE} v_texCoord;\n' +
+        '${VTX_HEADER}' +
+        '${VTX_IN} highp vec4 a_position;\n' +
+        '${VTX_IN} ${PRECISION} ${TEXCOORD_TYPE} a_texCoord;\n' +
+        '${VTX_OUT} ${PRECISION} ${TEXCOORD_TYPE} v_texCoord;\n' +
         '\n' +
         'void main (void)\n' +
         ' {\n' +
@@ -399,17 +399,17 @@ glsTextureTestUtil.ProgramLibrary.prototype.getProgram = function(program) {
         ' v_texCoord = a_texCoord;\n' +
         '}\n';
     var fragShaderTemplate =
-        '$ {FRAG_HEADER}' +
-        '$ {FRAG_IN} $ {PRECISION} $ {TEXCOORD_TYPE} v_texCoord;\n' +
-        'uniform $ {PRECISION} float u_bias;\n' +
-        'uniform $ {PRECISION} float u_ref;\n' +
-        'uniform $ {PRECISION} vec4 u_colorScale;\n' +
-        'uniform $ {PRECISION} vec4 u_colorBias;\n' +
-        'uniform $ {PRECISION} $ {SAMPLER_TYPE} u_sampler;\n' +
+        '${FRAG_HEADER}' +
+        '${FRAG_IN} ${PRECISION} ${TEXCOORD_TYPE} v_texCoord;\n' +
+        'uniform ${PRECISION} float u_bias;\n' +
+        'uniform ${PRECISION} float u_ref;\n' +
+        'uniform ${PRECISION} vec4 u_colorScale;\n' +
+        'uniform ${PRECISION} vec4 u_colorBias;\n' +
+        'uniform ${PRECISION} ${SAMPLER_TYPE} u_sampler;\n' +
         '\n' +
         'void main (void)\n' +
         ' {\n' +
-        ' $ {FRAG_COLOR} = $ {LOOKUP} * u_colorScale + u_colorBias;\n' +
+        ' ${FRAG_COLOR} = ${LOOKUP} * u_colorScale + u_colorBias;\n' +
         '}\n';
 
     var params = [];

@@ -503,11 +503,11 @@ glsShaderLibraryCase.specializeVertexShader = function(src, valueBlock) {
 
     /** @type {string} */
     var baseSrc = src
-                    .replace(/\$\ {DECLARATIONS\}/g, decl)
-                    .replace(/\$\ {DECLARATIONS:single-line\}/g, decl.replace(/\n/g, ' '))
-                    .replace(/\$\ {SETUP\}/g, setup)
-                    .replace(/\$\ {OUTPUT\}/g, output)
-                    .replace(/\$\ {POSITION_FRAG_COLOR\}/g, 'gl_Position');
+                    .replace(/\$\{DECLARATIONS\}/g, decl)
+                    .replace(/\$\{DECLARATIONS:single-line\}/g, decl.replace(/\n/g, ' '))
+                    .replace(/\$\{SETUP\}/g, setup)
+                    .replace(/\$\{OUTPUT\}/g, output)
+                    .replace(/\$\{POSITION_FRAG_COLOR\}/g, 'gl_Position');
 
     /** @type {string} */
     var withExt = glsShaderLibraryCase.injectExtensionRequirements(baseSrc, gluShaderProgram.shaderType.VERTEX, state.currentTest.spec.requirements);
@@ -555,10 +555,10 @@ glsShaderLibraryCase.specializeVertexOnly = function(src, valueBlock) {
 
     /** @type {string} */
     var baseSrc = src
-                    .replace(/\$\ {VERTEX_DECLARATIONS\}/g, decl)
-                    .replace(/\$\ {VERTEX_DECLARATIONS:single-line\}/g, decl.replace(/\n/g, ' '))
-                    .replace(/\$\ {VERTEX_SETUP\}/g, setup)
-                    .replace(/\$\ {VERTEX_OUTPUT\}/g, output);
+                    .replace(/\$\{VERTEX_DECLARATIONS\}/g, decl)
+                    .replace(/\$\{VERTEX_DECLARATIONS:single-line\}/g, decl.replace(/\n/g, ' '))
+                    .replace(/\$\{VERTEX_SETUP\}/g, setup)
+                    .replace(/\$\{VERTEX_OUTPUT\}/g, output);
 
     /** @type {string} */
     var withExt = glsShaderLibraryCase.injectExtensionRequirements(baseSrc, gluShaderProgram.shaderType.VERTEX, state.currentTest.spec.requirements);
@@ -613,11 +613,11 @@ glsShaderLibraryCase.specializeFragmentShader = function(src, valueBlock) {
 
     /** @type {string} */
     var baseSrc = src
-                    .replace(/\$\ {DECLARATIONS\}/g, decl)
-                    .replace(/\$\ {DECLARATIONS:single-line\}/g, decl.replace(/\n/g, ' '))
-                    .replace(/\$\ {SETUP\}/g, setup)
-                    .replace(/\$\ {OUTPUT\}/g, output)
-                    .replace(/\$\ {POSITION_FRAG_COLOR\}/g, fragColor);
+                    .replace(/\$\{DECLARATIONS\}/g, decl)
+                    .replace(/\$\{DECLARATIONS:single-line\}/g, decl.replace(/\n/g, ' '))
+                    .replace(/\$\{SETUP\}/g, setup)
+                    .replace(/\$\{OUTPUT\}/g, output)
+                    .replace(/\$\{POSITION_FRAG_COLOR\}/g, fragColor);
 
     /** @type {string} */
     var withExt = glsShaderLibraryCase.injectExtensionRequirements(baseSrc, gluShaderProgram.shaderType.FRAGMENT, state.currentTest.spec.requirements);
@@ -661,10 +661,10 @@ glsShaderLibraryCase.specializeFragmentOnly = function(src, valueBlock) {
 
     /** @type {string} */
     var baseSrc = src
-                     .replace(/\$\ {FRAGMENT_DECLARATIONS\}/g, decl)
-                     .replace(/\$\ {FRAGMENT_DECLARATIONS:single-line\}/g, decl.replace(/\n/g, ' '))
-                     .replace(/\$\ {FRAGMENT_OUTPUT\}/g, output)
-                     .replace(/\$\ {FRAG_COLOR\}/g, fragColor);
+                     .replace(/\$\{FRAGMENT_DECLARATIONS\}/g, decl)
+                     .replace(/\$\{FRAGMENT_DECLARATIONS:single-line\}/g, decl.replace(/\n/g, ' '))
+                     .replace(/\$\{FRAGMENT_OUTPUT\}/g, output)
+                     .replace(/\$\{FRAG_COLOR\}/g, fragColor);
 
     /** @type {string} */
     var withExt = glsShaderLibraryCase.injectExtensionRequirements(baseSrc, gluShaderProgram.shaderType.FRAGMENT, state.currentTest.spec.requirements);
