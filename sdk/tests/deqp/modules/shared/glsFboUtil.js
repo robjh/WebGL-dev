@@ -71,25 +71,25 @@ goog.scope(function() {
     // glsFboUtil.FormatDB& db, FormatExtEntries extFmts, const RenderContext* ctx
     glsFboUtil.addExtFormats = function(db, extFmts, gl_ctx) {
         gl_ctx = gl_ctx || gl;
-        
+
         // loop through the range, looking at the extentions.
         for (var ext = extFmts.reset() ; ext = extFmts.current() ; extFmts.next()) { // look up FormatExtEntries
-            var supported = true;
             var tokens = ext.extensions.split(/\s+/);
-            for (var i = tokens.length - 1 ; i-- ; ) { // all fmt's extentions
-                if (!glsFboUtil.isExtensionSupported(tokens[i], gl_ctx)) {
-                    supported = false;
-                    break;
-                }
-            }
+
+            var supported = function() {
+                for (var i = tokens.length - 1 ; i-- ; )
+                    if (!glsFboUtil.isExtensionSupported(tokens[i], gl_ctx)) return false;
+                return true;
+            }();
+
             if (supported) {
                 for (var format = ext.formats.reset() ; format = ext.formats.current ; ext.formats.next()) {
                     db.addFormat(glsFboUtil.formatKeyInfo(format), glsFboUtil.FormatFlags(ext.flags));
                 }
             }
-            
+
         }
-        
+
     };
 
     // TODO: find a more befitting home for glsFboUtil.isExtensionSupported (a refugee of gluContextInfo) 
@@ -281,40 +281,35 @@ goog.scope(function() {
     /**
      * glsFboUtil.Image Class.
      * @constructor
-     . @extends {glsFboUtil.Config}
+     * @extends {glsFboUtil.Config}
      */
     glsFboUtil.Image = function() {
         glsFboUtil.Config.call(this);
-        
         this.type  |= glsFboUtil.Config.s_types.IMAGE;
         this.width  = 0;
         this.height = 0;
         this.internalFormat = new glsFboUtil.ImageFormat();
-        
     };
     
     /**
      * glsFboUtil.RenderBuffer Class.
      * @constructor
-     . @extends {glsFboUtil.Image}
+     * @extends {glsFboUtil.Image}
      */
     glsFboUtil.RenderBuffer = function() {
         glsFboUtil.Image.call(this);
-        
         this.type  |= glsFboUtil.Config.s_types.RENDERBUFFER;
         this.target = glsFboUtil.Config.s_target.RENDERBUFFER;
         this.numSamples = 0;
-        
     };
     
     /**
      * glsFboUtil.Texture Class.
      * @constructor
-     . @extends {glsFboUtil.Image}
+     * @extends {glsFboUtil.Image}
      */
     glsFboUtil.Texture = function() {
         glsFboUtil.Image.call(this);
-        
         this.type |= glsFboUtil.Config.s_types.TEXTURE;
         this.numLevels = 1;
     };
@@ -322,22 +317,20 @@ goog.scope(function() {
     /**
      * glsFboUtil.TextureFlat Class.
      * @constructor
-     . @extends {glsFboUtil.Texture}
+     * @extends {glsFboUtil.Texture}
      */
     glsFboUtil.TextureFlat = function() {
         glsFboUtil.Texture.call(this);
-        
         this.type |= glsFboUtil.Config.s_types.TEXTURE_FLAT;
     };
     
     /**
      * glsFboUtil.Texture2D Class.
      * @constructor
-     . @extends {glsFboUtil.TextureFlat}
+     * @extends {glsFboUtil.TextureFlat}
      */
     glsFboUtil.Texture2D = function() {
         glsFboUtil.TextureFlat.call(this);
-        
         this.type  |= glsFboUtil.Config.s_types.TEXTURE_2D;
         this.target = glsFboUtil.Config.s_target.TEXTURE_2D;
     };
@@ -345,7 +338,7 @@ goog.scope(function() {
     /**
      * glsFboUtil.TextureCubeMap Class.
      * @constructor
-     . @extends {glsFboUtil.TextureFlat}
+     * @extends {glsFboUtil.TextureFlat}
      */
     glsFboUtil.TextureCubeMap = function() {
         glsFboUtil.TextureFlat.call(this);
@@ -356,11 +349,10 @@ goog.scope(function() {
     /**
      * glsFboUtil.TextureLayered Class.
      * @constructor
-     . @extends {glsFboUtil.Texture}
+     * @extends {glsFboUtil.Texture}
      */
     glsFboUtil.TextureLayered = function() {
         glsFboUtil.Texture.call(this);
-        
         this.type |= glsFboUtil.Config.s_types.TEXTURE_LAYERED;
         this.numLayers = 1;
     };
@@ -368,7 +360,7 @@ goog.scope(function() {
     /**
      * glsFboUtil.Texture3D Class.
      * @constructor
-     . @extends {glsFboUtil.TextureLayered}
+     * @extends {glsFboUtil.TextureLayered}
      */
     glsFboUtil.Texture3D = function() {
         glsFboUtil.TextureLayered.call(this);
@@ -379,7 +371,7 @@ goog.scope(function() {
     /**
      * glsFboUtil.Texture2DArray Class.
      * @constructor
-     . @extends {glsFboUtil.TextureLayered}
+     * @extends {glsFboUtil.TextureLayered}
      */
     glsFboUtil.Texture2DArray = function() {
         glsFboUtil.TextureLayered.call(this);
@@ -391,10 +383,10 @@ goog.scope(function() {
     /**
      * glsFboUtil.Attachment Class.
      * @constructor
-     . @extends {glsFboUtil.Config}
+     * @extends {glsFboUtil.Config}
      */
     glsFboUtil.Attachment = function() {
-        glsFboUtil.Config.call(this, type, target);
+        glsFboUtil.Config.call(this);
         this.type  |= glsFboUtil.Config.s_types.ATTACHMENT;
         this.target = glsFboUtil.Config.s_target.FRAMEBUFFER;
         this.imageName = 0;
@@ -405,7 +397,7 @@ goog.scope(function() {
     /**
      * glsFboUtil.RenderBufferAttachments Class.
      * @constructor
-     . @extends {glsFboUtil.Attachment}
+     * @extends {glsFboUtil.Attachment}
      */
     glsFboUtil.RenderbufferAttachment = function() {
         glsFboUtil.Attachment.call(this);
@@ -418,7 +410,7 @@ goog.scope(function() {
     /**
      * glsFboUtil.TextureAttachment Class.
      * @constructor
-     . @extends {glsFboUtil.Attachment}
+     * @extends {glsFboUtil.Attachment}
      */
     glsFboUtil.TextureAttachment = function() {
         glsFboUtil.Attachment.call(this);
@@ -431,7 +423,7 @@ goog.scope(function() {
     /**
      * glsFboUtil.TextureFlatAttachment Class.
      * @constructor
-     . @extends {glsFboUtil.TextureAttachment}
+     * @extends {glsFboUtil.TextureAttachment}
      */
     glsFboUtil.TextureFlatAttachment = function() {
         glsFboUtil.TextureAttachment.call(this);
@@ -444,7 +436,7 @@ goog.scope(function() {
     /**
      * glsFboUtil.TextureLayerAttachment Class.
      * @constructor
-     . @extends {glsFboUtil.TextureLayerAttachment}
+     * @extends {glsFboUtil.TextureLayerAttachment}
      */
     glsFboUtil.TextureLayerAttachment = function() {
         glsFboUtil.TextureAttachment.call(this);
@@ -717,20 +709,14 @@ goog.scope(function() {
         return null;
     };
     
-    glsFboUtil.FboBuilder = function(argv) {
-        argv = argv || {};
-        
-        parent._construct(argv);
+    glsFboUtil.FboBuilder = function(fbo, target) {
+        glsFboUtil.Framebuffer.call(this);
             
-        if (argv.fbo === undefined || argv.target === undefined) {
-            throw new Error('Invalid args.');
-        }
-            
-        this.m_target  = argv.target;
+        this.m_target  = target;
         this.m_configs = [];
         this.m_error   = this.m_gl.NO_ERROR;
         
-        this.m_gl.bindFramebuffer(this.m_target, argv.fbo);
+        this.m_gl.bindFramebuffer(this.m_target, fbo);
     
     };
     glsFboUtil.FboBuilder.prototype = Object.create(glsFboUtil.Framebuffer.prototype);
@@ -799,9 +785,8 @@ goog.scope(function() {
     
     
     
-    glsFboUtil.Checker = function(argv) {
-        argv = argv || {};
-        var gl_ctx = argv.gl || gl;
+    glsFboUtil.Checker = function(gl_ctx) {
+        var gl_ctx = gl_ctx || gl;
         
         // Allowed return values for gl.CheckFramebufferStatus
         // formarly an std::set
@@ -828,9 +813,7 @@ goog.scope(function() {
     
     
     
-    glsFboUtil.CheckerFactory = function(argv) {
-        argv = argv || {};
-        
+    glsFboUtil.CheckerFactory = function() {
         if (typeof(this.createChecker) != 'function')
             throw new Error('Unimplemented virtual function: glsFboUtil.CheckerFactory::createChecker');
     };

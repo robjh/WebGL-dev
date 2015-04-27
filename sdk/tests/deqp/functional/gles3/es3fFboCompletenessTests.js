@@ -8,9 +8,9 @@ goog.require('modules.shared.glsFboCompletenessTests');
 
 goog.scope(function() {
 
-var es3fFboCompletenessTests = functional.gles3.es3fFboCompletenessTests;
-var glsFboUtil = modules.shared.glsFboUtil;
-var glsFboCompletenessTests = modules.shared.glsFboCompletenessTests;
+    var es3fFboCompletenessTests = functional.gles3.es3fFboCompletenessTests;
+    var glsFboUtil = modules.shared.glsFboUtil;
+    var glsFboCompletenessTests = modules.shared.glsFboCompletenessTests;
     
 
     es3fFboCompletenessTests.s_es3ColorRenderables = [
@@ -137,83 +137,87 @@ var glsFboCompletenessTests = modules.shared.glsFboCompletenessTests;
     ];
 
 
-    es3fFboCompletenessTests.ES3Checker = (function(argv) {
-        argv = argv || {};
+    es3fFboCompletenessTests.ES3Checker = function() {
+        glsFboUtil.Checker.call(this);
+        var this.m_numSamples -1; // GLsizei
+        var this.m_depthStencilImage = 0; // GLuint
+        var this.m_depthStencilType = gl.NONE; // GLenum
+    };
+    es3fFboCompletenessTests.ES3Checker.prototype = Object.create(glsFboUtil.Checker.prototype);
+    es3fFboCompletenessTests.ES3Checker.prototype.constructor = es3fFboCompletenessTests.ES3Checker;
+    
 
-        var parent = {
-            _construct: this._construct
-        };
+    es3fFboCompletenessTests.ES3Checker.prototype.check = function(attPoint, attachment, image) {
+        // TODO find imageNumSamples
+        var imgSamples = imageNumSamples(image);
 
-        var m_numSamples; // GLsizei
-        var m_depthStencilImage; // GLuint
-        var m_depthStencilType; // GLenum
+        if (this.m_numSamples == -1) {
+            this.m_numSamples = imgSamples;
+        } else {
+            // GLES3: "The value of RENDERBUFFER_SAMPLES is the same for all attached
+            // renderbuffers and, if the attached images are a mix of renderbuffers
+            // and textures, the value of RENDERBUFFER_SAMPLES is zero."
+            //
+            // On creating a renderbuffer: "If _samples_ is zero, then
+            // RENDERBUFFER_SAMPLES is set to zero. Otherwise [...] the resulting
+            // value for RENDERBUFFER_SAMPLES is guaranteed to be greater than or
+            // equal to _samples_ and no more than the next larger sample count
+            // supported by the implementation."
 
-        this._construct = (function() {
-            parent._construct();
-            m_numSamples = -1;
-            m_depthStencilImage = 0;
-            m_depthStencilType = gl.NONE;
-        });
+            // Either all attachments are zero-sample renderbuffers and/or
+            // textures, or none of them are.
+            this.require(
+                (this.m_numSamples == 0) == (imgSamples == 0),
+                gl.FRAMEBUFFER_INCOMPLETE_MULTISAMPLE
+            );
 
-        if (!argv.dont_construct) {
-            this._construct();
+            // If the attachments requested a different number of samples, the
+            // implementation is allowed to report this as incomplete. However, it
+            // is also possible that despite the different requests, the
+            // implementation allocated the same number of samples to both. Hence
+            // reporting the framebuffer as complete is also legal.
+            canRequire(
+                this.m_numSamples == imgSamples,
+                gl.FRAMEBUFFER_INCOMPLETE_MULTISAMPLE
+            );
         }
 
-        this.check = (function(attPoint, attachment, image) {
-            // TODO find imageNumSamples
-            var imgSamples = imageNumSamples(image);
+        // "Depth and stencil attachments, if present, are the same image."
+        if (attPoint == gl.DEPTH_ATTACHMENT || attPoint == gl.STENCIL_ATTACHMENT) {
+            if (this.m_depthStencilImage == 0) {
+                this.m_depthStencilImage = att.imageName;
+                this.m_depthStencilType  = attachmentType(att);
 
-            if (m_numSamples == -1) {
-                m_numSamples = imgSamples;
             } else {
-                // GLES3: "The value of RENDERBUFFER_SAMPLES is the same for all attached
-                // renderbuffers and, if the attached images are a mix of renderbuffers
-                // and textures, the value of RENDERBUFFER_SAMPLES is zero."
-                //
-                // On creating a renderbuffer: "If _samples_ is zero, then
-                // RENDERBUFFER_SAMPLES is set to zero. Otherwise [...] the resulting
-                // value for RENDERBUFFER_SAMPLES is guaranteed to be greater than or
-                // equal to _samples_ and no more than the next larger sample count
-                // supported by the implementation."
-
-                // Either all attachments are zero-sample renderbuffers and/or
-                // textures, or none of them are.
                 this.require(
-                    (m_numSamples == 0) == (imgSamples == 0),
-                    gl.FRAMEBUFFER_INCOMPLETE_MULTISAMPLE
-                );
-
-                // If the attachments requested a different number of samples, the
-                // implementation is allowed to report this as incomplete. However, it
-                // is also possible that despite the different requests, the
-                // implementation allocated the same number of samples to both. Hence
-                // reporting the framebuffer as complete is also legal.
-                canRequire(
-                    m_numSamples == imgSamples,
-                    gl.FRAMEBUFFER_INCOMPLETE_MULTISAMPLE
+                    this.m_depthStencilImage == att.imageName && this.m_depthStencilType == attachmentType(att),
+                    gl.FRAMEBUFFER_UNSUPPORTED
                 );
             }
+        }
 
-            // "Depth and stencil attachments, if present, are the same image."
-            if (attPoint == gl.DEPTH_ATTACHMENT || attPoint == gl.STENCIL_ATTACHMENT) {
-                if (m_depthStencilImage == 0) {
-                    m_depthStencilImage = att.imageName;
-                    m_depthStencilType  = attachmentType(att);
+    };
 
-                } else {
-                    this.require(
-                        m_depthStencilImage == att.imageName && m_depthStencilType == attachmentType(att),
-                        gl.FRAMEBUFFER_UNSUPPORTED
-                    );
-                }
-            }
 
-        });
 
-    });
-    es3fFboCompletenessTests.ES3Checker.prototype = new glsFboUtil.Checker({dont_construct: true});
 
-    es3fFboCompletenessTests.numLayersParams = (function(textureKind, numLayers, attachmentLayer) {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    es3fFboCompletenessTests.numLayersParams = function(textureKind, numLayers, attachmentLayer) {
         if (typeof(attachmentLayer) == 'undefined') {
             textureKind     = null;
             numLayers       = null;
@@ -224,25 +228,25 @@ var glsFboCompletenessTests = modules.shared.glsFboCompletenessTests;
             numLayers:       numLayers,       //< Number of layers in texture
             attachmentLayer: attachmentLayer  //< Layer referenced by attachment
         };
-    });
+    };
     // returns a string.
     // takes const NumLayersParams&
-    es3fFboCompletenessTests.numLayersParams.getName = (function(params) {
+    es3fFboCompletenessTests.numLayersParams.getName = function(params) {
         return (
             (params.textureKind == gl.TEXTURE_3D ? '3d' : '2darr') + '_' +
             params.numLayers + '_' +
             params.attachmentLayer
         );
-    });
+    };
     // returns a string.
     // takes const NumLayersParams&
-    es3fFboCompletenessTests.numLayersParams.getDescription = (function(params) {
+    es3fFboCompletenessTests.numLayersParams.getDescription = function(params) {
         return (
             (params.textureKind == gl.TEXTURE_3D ? '3D Texture' : '2D Array Texture') + ', ' +
             params.numLayers + ' layers, ' +
             'attached layer ' + params.attachmentLayer + '.'
         );
-    });
+    };
 
 
 
@@ -262,36 +266,31 @@ var glsFboCompletenessTests = modules.shared.glsFboCompletenessTests;
     
     
 
-    es3fFboCompletenessTests.NumLayersTest = (function(argv) {
-        argv = argv || {};
-
-        this.build = (function(builder, gl_ctx) {
-            
-            var gl_ctx = gl_ctx || gl;
-            
-            var target = gl_ctx.COLOR_ATTACHMENT0;
-            var texCfg = builder.makeConfig(
-                function(kind) {
-                    if (kind == gl_ctx.TEXTURE_3D) {
-                        return glsFboUtil.Texture3D;
-                    }
-                    if (kind == gl_ctx.TEXTURE_2D_ARRAY) {
-                        return glsFboUtil.Texture2DArray;
-                    }
-                    throw new Error('Impossible case');
-                }(this.m_params.textureKind)
-            );
-            
-            
-            texCfg.internalFormat = this.getDefaultFormat(target, gl_ctx.TEXTURE);
-            
-        });
-
-        if (!argv.dont_construct) this._construct(argv);
-    });
+    es3fFboCompletenessTests.NumLayersTest = function() {};
     // TODO: implement glsFboCompletenessTests class
 //    es3fFboCompletenessTests.NumLayersTest.prototype = new glsFboCompletenessTests({dont_construct: true});
-
+    
+    es3fFboCompletenessTests.NumLayersTest.prototype.build = function(builder, gl_ctx) {
+            
+        var gl_ctx = gl_ctx || gl;
+            
+        var target = gl_ctx.COLOR_ATTACHMENT0;
+        var texCfg = builder.makeConfig(
+            function(kind) {
+                if (kind == gl_ctx.TEXTURE_3D) {
+                    return glsFboUtil.Texture3D;
+                }
+                if (kind == gl_ctx.TEXTURE_2D_ARRAY) {
+                    return glsFboUtil.Texture2DArray;
+                }
+                throw new Error('Impossible case');
+            }(this.m_params.textureKind)
+        );
+            
+            
+        texCfg.internalFormat = this.getDefaultFormat(target, gl_ctx.TEXTURE);
+            
+    };
 
 
 
