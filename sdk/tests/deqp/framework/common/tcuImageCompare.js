@@ -50,7 +50,7 @@ tcuImageCompare.CompareLogMode = {
  * @param {string} id HTML element name
  * @param {number} width Canvas width
  * @param {number} height Canvas height
- * @param {bool=} displayRef True if we display [result, ref, error] canvases, False if we display [result] only. Default True.
+ * @param {boolean=} displayRef True if we display [result, ref, error] canvases, False if we display [result] only. Default True.
  * @return {Array} Array of drawing contexts - one per canvas.
  */
 tcuImageCompare.displayResultPane = function(id, width, height, displayRef) {
