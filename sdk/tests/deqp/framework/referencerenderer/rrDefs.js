@@ -63,11 +63,4 @@ rrDefs.Sampler = function() {};
  */
 rrDefs.Sampler.prototype.sample = function(pos, lod) {};
 
-/**
- * @param {Array<Array<number>>} packetTexcoords 4 coordinates
- * @param {number} lodBias
- * @return {Array<Array<number>>} 4 vec4 samples
- */
-sglrReferenceContext.Texture2D.prototype.sample4 = function(packetTexcoords, lodBias) {};
-
 });
