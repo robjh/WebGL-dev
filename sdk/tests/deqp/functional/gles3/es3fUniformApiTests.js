@@ -340,7 +340,7 @@ var deRandom = framework.delibs.debase.deRandom;
     };
 
     /**
-     * @enum
+     * @enum {number}
      */
     es3fUniformApiTests.CaseShaderType = {
         VERTEX: 0,
@@ -1220,7 +1220,7 @@ var deRandom = framework.delibs.debase.deRandom;
     es3fUniformApiTests.UniformCase.prototype.newA = function(caseShaderType, uniformCollection) {
        this.m_caseShaderType = caseShaderType;
        this.m_uniformCollection = uniformCollection;
-       this.m_features = 0;
+       this.m_features = null;
 
        return this;
     };
@@ -2190,7 +2190,7 @@ var deRandom = framework.delibs.debase.deRandom;
 
     /**
      * @param {es3fUniformApiTests.CaseType} caseType
-     * @return {string}
+     * @return {string|null}
      */
     es3fUniformApiTests.UniformInfoQueryCase.getCaseTypeName = function(caseType) {
         switch (caseType) {
@@ -2205,7 +2205,7 @@ var deRandom = framework.delibs.debase.deRandom;
 
     /**
      * @param {es3fUniformApiTests.CaseType} caseType
-     * @return {string}
+     * @return {string|null}
      */
     es3fUniformApiTests.UniformInfoQueryCase.getCaseTypeDescription = function(caseType) {
        switch (caseType) {
@@ -2323,7 +2323,7 @@ var deRandom = framework.delibs.debase.deRandom;
      * @param {es3fUniformApiTests.UniformCollection} uniformCollection (SharedPtr)
      * @param {es3fUniformApiTests.ValueToCheck} valueToCheck
      * @param {es3fUniformApiTests.CheckMethod} checkMethod
-     * @param {es3fUniformApiTests.AssignMethod} assignMethod
+     * @param {?es3fUniformApiTests.AssignMethod} assignMethod
      * @param {es3fUniformApiTests.Feature} additionalFeatures
      * @extends {es3fUniformApiTests.UniformCase}
      */
@@ -2346,7 +2346,7 @@ var deRandom = framework.delibs.debase.deRandom;
 
     /**
      * @param {es3fUniformApiTests.ValueToCheck} valueToCheck
-     * @return {string}
+     * @return {string|null}
      */
     es3fUniformApiTests.UniformValueCase.getValueToCheckName = function(valueToCheck) {
         switch (valueToCheck) {
@@ -2358,7 +2358,7 @@ var deRandom = framework.delibs.debase.deRandom;
 
     /**
      * @param {es3fUniformApiTests.ValueToCheck} valueToCheck
-     * @return {string}
+     * @return {string|null}
      */
     es3fUniformApiTests.UniformValueCase.getValueToCheckDescription = function(valueToCheck) {
         switch (valueToCheck) {
@@ -2370,7 +2370,7 @@ var deRandom = framework.delibs.debase.deRandom;
 
     /**
      * @param {es3fUniformApiTests.CheckMethod} checkMethod
-     * @return {string}
+     * @return {string|null}
      */
     es3fUniformApiTests.UniformValueCase.getCheckMethodName = function(checkMethod) {
         switch (checkMethod) {
@@ -2382,7 +2382,7 @@ var deRandom = framework.delibs.debase.deRandom;
 
     /**
      * @param {es3fUniformApiTests.CheckMethod} checkMethod
-     * @return {string}
+     * @return {string|null}
      */
     es3fUniformApiTests.UniformValueCase.getCheckMethodDescription = function(checkMethod) {
         switch (checkMethod) {
@@ -2394,7 +2394,7 @@ var deRandom = framework.delibs.debase.deRandom;
 
     /**
      * @param {es3fUniformApiTests.AssignMethod} assignMethod
-     * @return {string}
+     * @return {string|null}
      */
     es3fUniformApiTests.UniformValueCase.getAssignMethodName = function(assignMethod) {
         switch (assignMethod) {
@@ -2406,7 +2406,7 @@ var deRandom = framework.delibs.debase.deRandom;
 
     /**
      * @param {es3fUniformApiTests.AssignMethod} assignMethod
-     * @return {string}
+     * @return {string|null}
      */
     es3fUniformApiTests.UniformValueCase.getAssignMethodDescription = function(assignMethod) {
         switch (assignMethod) {
@@ -2659,6 +2659,18 @@ var deRandom = framework.delibs.debase.deRandom;
         /** @type {es3fUniformApiTests.UniformCollection} (SharedPtr) */ var uniformCollection;
         /** @type {es3fUniformApiTests.Feature} */ var features;
         /** @type {tcuTestCase.DeqpTest} */ var collectionTestGroup;
+        /** @type {string} */ var collName;
+        /** @type {es3fUniformApiTests.CheckMethod} */ var checkMethod;
+        /** @type {tcuTestCase.DeqpTest} */ var checkMethodGroup;
+        /** @type {string} */ var collectionGroupName;
+        /** @type {boolean} */ var containsBooleans;
+        /** @type {boolean} */ var varyBoolApiType;
+        /** @type {number} */ var numBoolVariations;
+        /** @type {es3fUniformApiTests.Feature} */ var booleanTypeFeat;
+        /** @type {string} */ var booleanTypeName;
+        /** @type {tcuTestCase.DeqpTest} */ var unusedUniformsGroup;
+
+        /** @type {Array<string>} */ var shaderTypes = Object.keys(es3fUniformApiTests.CaseShaderType);
 
         for (var caseTypeI in es3fUniformApiTests.CaseType) {
             /** @type {es3fUniformApiTests.CaseType} */ var caseType = es3fUniformApiTests.CaseType[caseTypeI];
@@ -2671,21 +2683,21 @@ var deRandom = framework.delibs.debase.deRandom;
 
                 for (var referToFirstArrayElemWithoutIndexI = 0; referToFirstArrayElemWithoutIndexI < numArrayFirstElemNameCases; referToFirstArrayElemWithoutIndexI++) {
                     collectionGroup = defaultUniformCollections[collectionGroupNdx];
-                    /** @type {string} */ var collectionGroupName = collectionGroup.name + (referToFirstArrayElemWithoutIndexI == 0 ? '' : '_first_elem_without_brackets');
+                    collectionGroupName = collectionGroup.name + (referToFirstArrayElemWithoutIndexI == 0 ? '' : '_first_elem_without_brackets');
                     collectionTestGroup = tcuTestCase.newTest(collectionGroupName, '');
                     caseTypeGroup.addChild(collectionTestGroup);
 
                     for (var collectionNdx = 0; collectionNdx < collectionGroup.cases.length; collectionNdx++) {
                         collectionCase = collectionGroup.cases[collectionNdx];
 
-                        for (var shaderType = 0; shaderType < Object.keys(es3fUniformApiTests.CaseShaderType).length; shaderType++) {
-                            name = collectionCase.namePrefix + es3fUniformApiTests.getCaseShaderTypeName(shaderType);
+                        for (var i = 0; i < shaderTypes.length; i++) {
+                            name = collectionCase.namePrefix + es3fUniformApiTests.getCaseShaderTypeName(es3fUniformApiTests.CaseShaderType[shaderTypes[i]]);
                             uniformCollection = collectionCase.uniformCollection;
 
                             features = new es3fUniformApiTests.Feature();
                             features.ARRAY_FIRST_ELEM_NAME_NO_INDEX = referToFirstArrayElemWithoutIndexI != 0;
 
-                            collectionTestGroup.addChild(new es3fUniformApiTests.UniformInfoQueryCase(name, '', shaderType, uniformCollection, caseType, features));
+                            collectionTestGroup.addChild(new es3fUniformApiTests.UniformInfoQueryCase(name, '', es3fUniformApiTests.CaseShaderType[shaderTypes[i]], uniformCollection, caseType, features));
                         }
                     }
                 }
@@ -2693,25 +2705,25 @@ var deRandom = framework.delibs.debase.deRandom;
 
             // Info-querying cases when unused uniforms are present.
 
-            /** @type {tcuTestCase.DeqpTest} */
-            var unusedUniformsGroup = tcuTestCase.newTest('unused_uniforms', 'Test with unused uniforms');
+            unusedUniformsGroup = tcuTestCase.newTest('unused_uniforms', 'Test with unused uniforms');
             caseTypeGroup.addChild(unusedUniformsGroup);
 
             collectionGroup = defaultUniformCollections[UniformCollections.ARRAY_IN_STRUCT];
 
             for (var collectionNdx = 0; collectionNdx < collectionGroup.cases.length; collectionNdx++) {
                 collectionCase = collectionGroup.cases[collectionNdx];
-                /** @type {string} */ var collName = collectionCase.namePrefix;
+                collName = collectionCase.namePrefix;
                 uniformCollection = collectionCase.uniformCollection;
 
-                for (var shaderType = 0; shaderType < Object.keys(es3fUniformApiTests.CaseShaderType).length; shaderType++) {
-                    name = collName + es3fUniformApiTests.getCaseShaderTypeName(shaderType);
+                
+                for (var i = 0; i < shaderTypes.length; i++) {
+                    name = collName + es3fUniformApiTests.getCaseShaderTypeName(es3fUniformApiTests.CaseShaderType[shaderTypes[i]]);
 
                     features = new es3fUniformApiTests.Feature();
                     features.UNIFORMUSAGE_EVERY_OTHER = true;
                     features.ARRAYUSAGE_ONLY_MIDDLE_INDEX = true;
 
-                    unusedUniformsGroup.addChild(new es3fUniformApiTests.UniformInfoQueryCase(name, '', shaderType, uniformCollection, caseType, features));
+                    unusedUniformsGroup.addChild(new es3fUniformApiTests.UniformInfoQueryCase(name, '', es3fUniformApiTests.CaseShaderType[shaderTypes[i]], uniformCollection, caseType, features));
                 }
             }
         }
@@ -2728,8 +2740,8 @@ var deRandom = framework.delibs.debase.deRandom;
         valueGroup.addChild(initialValuesGroup);
 
         for (var checkMethodI in es3fUniformApiTests.CheckMethod) {
-            /** @type {es3fUniformApiTests.CheckMethod} */ var checkMethod = es3fUniformApiTests.CheckMethod[checkMethodI];
-            /** @type {tcuTestCase.DeqpTest} */ var checkMethodGroup = tcuTestCase.newTest(es3fUniformApiTests.UniformValueCase.getCheckMethodName(checkMethod), es3fUniformApiTests.UniformValueCase.getCheckMethodDescription(checkMethod));
+            checkMethod = es3fUniformApiTests.CheckMethod[checkMethodI];
+            checkMethodGroup = tcuTestCase.newTest(es3fUniformApiTests.UniformValueCase.getCheckMethodName(checkMethod), es3fUniformApiTests.UniformValueCase.getCheckMethodDescription(checkMethod));
             initialValuesGroup.addChild(checkMethodGroup);
 
             for (var collectionGroupNdx = 0; collectionGroupNdx < Object.keys(UniformCollections).length; collectionGroupNdx++) {
@@ -2739,30 +2751,30 @@ var deRandom = framework.delibs.debase.deRandom;
 
                 for (var collectionNdx = 0; collectionNdx < collectionGroup.cases.length; collectionNdx++) {
                     collectionCase = collectionGroup.cases[collectionNdx];
-                    /** @type {string} */ var collName = collectionCase.namePrefix;
+                    collName = collectionCase.namePrefix;
                     uniformCollection = collectionCase.uniformCollection;
-                    /** @type {boolean} */ var containsBooleans = uniformCollection.containsMatchingBasicType(gluShaderUtil.isDataTypeBoolOrBVec);
-                    /** @type {boolean} */ var varyBoolApiType = checkMethod == es3fUniformApiTests.CheckMethod.GET_UNIFORM && containsBooleans &&
+                    containsBooleans = uniformCollection.containsMatchingBasicType(gluShaderUtil.isDataTypeBoolOrBVec);
+                    varyBoolApiType = checkMethod == es3fUniformApiTests.CheckMethod.GET_UNIFORM && containsBooleans &&
                                                                 (collectionGroupNdx == UniformCollections.BASIC || collectionGroupNdx == UniformCollections.BASIC_ARRAY);
-                    /** @type {number} */ var numBoolVariations = varyBoolApiType ? 3 : 1;
+                    numBoolVariations = varyBoolApiType ? 3 : 1;
 
                     if (checkMethod == es3fUniformApiTests.CheckMethod.RENDER && uniformCollection.containsSeveralSamplerTypes())
                         continue; // \note Samplers' initial API values (i.e. their texture units) are 0, and no two samplers of different types shall have same unit when rendering.
 
                     for (var booleanTypeI = 0; booleanTypeI < numBoolVariations; booleanTypeI++) {
-                        /** @type {es3fUniformApiTests.Feature} */ var booleanTypeFeat = new es3fUniformApiTests.Feature();
+                        booleanTypeFeat = new es3fUniformApiTests.Feature();
                         booleanTypeFeat.BOOLEANAPITYPE_INT = booleanTypeI == 1;
                         booleanTypeFeat.BOOLEANAPITYPE_UINT = booleanTypeI == 2;
 
-                        /** @type {string} */ var booleanTypeName = booleanTypeI == 1 ? 'int' :
+                        booleanTypeName = booleanTypeI == 1 ? 'int' :
                                                             booleanTypeI == 2 ? 'uint' :
                                                             'float';
                         /** @type {string} */ var nameWithApiType = varyBoolApiType ? collName + 'api_' + booleanTypeName + '_' : collName;
 
-                        for (var shaderType = 0; shaderType < Object.keys(es3fUniformApiTests.CaseShaderType).length; shaderType++) {
-                            name = nameWithApiType + es3fUniformApiTests.getCaseShaderTypeName(shaderType);
-                            collectionTestGroup.addChild(new es3fUniformApiTests.UniformValueCase(name, '', shaderType, uniformCollection,
-                                                                                es3fUniformApiTests.ValueToCheck.INITIAL, checkMethod, undefined, booleanTypeFeat));
+                        for (var i = 0; i < shaderTypes.length; i++) {
+                            name = nameWithApiType + es3fUniformApiTests.getCaseShaderTypeName(es3fUniformApiTests.CaseShaderType[shaderTypes[i]]);
+                            collectionTestGroup.addChild(new es3fUniformApiTests.UniformValueCase(name, '', es3fUniformApiTests.CaseShaderType[shaderTypes[i]], uniformCollection,
+                                                                                es3fUniformApiTests.ValueToCheck.INITIAL, checkMethod, null, booleanTypeFeat));
                         }
                     }
                 }
@@ -2781,27 +2793,27 @@ var deRandom = framework.delibs.debase.deRandom;
             assignedValuesGroup.addChild(assignMethodGroup);
 
             for (var checkMethodI in es3fUniformApiTests.CheckMethod) {
-                /** @type {es3fUniformApiTests.CheckMethod} */ var checkMethod = es3fUniformApiTests.CheckMethod[checkMethodI];
-                /** @type {tcuTestCase.DeqpTest} */ var checkMethodGroup = tcuTestCase.newTest(es3fUniformApiTests.UniformValueCase.getCheckMethodName(checkMethod), es3fUniformApiTests.UniformValueCase.getCheckMethodDescription(checkMethod));
+                checkMethod = es3fUniformApiTests.CheckMethod[checkMethodI];
+                checkMethodGroup = tcuTestCase.newTest(es3fUniformApiTests.UniformValueCase.getCheckMethodName(checkMethod), es3fUniformApiTests.UniformValueCase.getCheckMethodDescription(checkMethod));
                 assignMethodGroup.addChild(checkMethodGroup);
 
                 for (var collectionGroupNdx = 0; collectionGroupNdx < Object.keys(UniformCollections).length; collectionGroupNdx++) {
                     /** @type {number} */ var numArrayFirstElemNameCases = checkMethod == es3fUniformApiTests.CheckMethod.GET_UNIFORM && collectionGroupNdx == UniformCollections.BASIC_ARRAY ? 2 : 1;
 
                     for (var referToFirstArrayElemWithoutIndexI = 0; referToFirstArrayElemWithoutIndexI < numArrayFirstElemNameCases; referToFirstArrayElemWithoutIndexI++) {
-                        /** @type {UniformCollectionGroup} */ var collectionGroup = defaultUniformCollections[collectionGroupNdx];
-                        /** @type {string} */ var collectionGroupName = collectionGroup.name + (referToFirstArrayElemWithoutIndexI == 0 ? '' : '_first_elem_without_brackets');
+                        collectionGroup = defaultUniformCollections[collectionGroupNdx];
+                        collectionGroupName = collectionGroup.name + (referToFirstArrayElemWithoutIndexI == 0 ? '' : '_first_elem_without_brackets');
                         collectionTestGroup = tcuTestCase.newTest(collectionGroupName, '');
                         checkMethodGroup.addChild(collectionTestGroup);
 
                         for (var collectionNdx = 0; collectionNdx < collectionGroup.cases.length; collectionNdx++) {
                             collectionCase = collectionGroup.cases[collectionNdx];
-                            /** @type {string} */ var collName = collectionCase.namePrefix;
+                            collName = collectionCase.namePrefix;
                             uniformCollection = collectionCase.uniformCollection;
-                            /** @type {boolean} */ var containsBooleans = uniformCollection.containsMatchingBasicType(gluShaderUtil.isDataTypeBoolOrBVec);
-                            /** @type {boolean} */ var varyBoolApiType = checkMethod == es3fUniformApiTests.CheckMethod.GET_UNIFORM && containsBooleans &&
+                            containsBooleans = uniformCollection.containsMatchingBasicType(gluShaderUtil.isDataTypeBoolOrBVec);
+                            varyBoolApiType = checkMethod == es3fUniformApiTests.CheckMethod.GET_UNIFORM && containsBooleans &&
                                                                             (collectionGroupNdx == UniformCollections.BASIC || collectionGroupNdx == UniformCollections.BASIC_ARRAY);
-                            /** @type {number} */ var numBoolVariations = varyBoolApiType ? 3 : 1;
+                            numBoolVariations = varyBoolApiType ? 3 : 1;
                             /** @type {boolean} */ var containsMatrices = uniformCollection.containsMatchingBasicType(gluShaderUtil.isDataTypeMatrix);
                             /** @type {boolean} */ var varyMatrixMode = containsMatrices &&
                                                                             (collectionGroupNdx == UniformCollections.BASIC || collectionGroupNdx == UniformCollections.BASIC_ARRAY);
@@ -2811,11 +2823,11 @@ var deRandom = framework.delibs.debase.deRandom;
                                 continue;
 
                             for (var booleanTypeI = 0; booleanTypeI < numBoolVariations; booleanTypeI++) {
-                                /** @type {es3fUniformApiTests.Feature} */ var booleanTypeFeat = new es3fUniformApiTests.Feature();
+                                booleanTypeFeat = new es3fUniformApiTests.Feature();
                                 booleanTypeFeat.BOOLEANAPITYPE_INT = booleanTypeI == 1;
                                 booleanTypeFeat.BOOLEANAPITYPE_UINT = booleanTypeI == 2;
 
-                                /** @type {string} */ var booleanTypeName = booleanTypeI == 1 ? 'int' :
+                                booleanTypeName = booleanTypeI == 1 ? 'int' :
                                                                         booleanTypeI == 2 ? 'uint' :
                                                                         'float';
                                 /** @type {string} */ var nameWithBoolType = varyBoolApiType ? collName + 'api_' + booleanTypeName + '_' : collName;
@@ -2823,13 +2835,13 @@ var deRandom = framework.delibs.debase.deRandom;
                                 for (var matrixTypeI = 0; matrixTypeI < numMatVariations; matrixTypeI++) {
                                     /** @type {string} */ var nameWithMatrixType = nameWithBoolType + (matrixTypeI == 1 ? 'row_major_' : '');
 
-                                    for (var shaderType = 0; shaderType < Object.keys(es3fUniformApiTests.CaseShaderType).length; shaderType++) {
-                                        name = nameWithMatrixType + es3fUniformApiTests.getCaseShaderTypeName(shaderType);
+                                    for (var i = 0; i < shaderTypes.length; i++) {
+                                        name = nameWithMatrixType + es3fUniformApiTests.getCaseShaderTypeName(es3fUniformApiTests.CaseShaderType[shaderTypes[i]]);
 
                                         booleanTypeFeat.ARRAY_FIRST_ELEM_NAME_NO_INDEX = referToFirstArrayElemWithoutIndexI != 0;
                                         booleanTypeFeat.MATRIXMODE_ROWMAJOR = matrixTypeI == 1;
 
-                                        collectionTestGroup.addChild(new es3fUniformApiTests.UniformValueCase(name, '', shaderType, uniformCollection,
+                                        collectionTestGroup.addChild(new es3fUniformApiTests.UniformValueCase(name, '', es3fUniformApiTests.CaseShaderType[shaderTypes[i]], uniformCollection,
                                                                                             es3fUniformApiTests.ValueToCheck.ASSIGNED, checkMethod, assignMethod, booleanTypeFeat));
                                     }
                                 }
@@ -2869,12 +2881,12 @@ var deRandom = framework.delibs.debase.deRandom;
 
                 for (var collectionNdx = 0; collectionNdx < collectionGroup.cases.length; collectionNdx++) {
                     collectionCase = collectionGroup.cases[collectionNdx];
-                    /** @type {string} */ var collName = collectionCase.namePrefix;
+                    collName = collectionCase.namePrefix;
                     uniformCollection = collectionCase.uniformCollection;
 
-                    for (var shaderType = 0; shaderType < Object.keys(es3fUniformApiTests.CaseShaderType).length; shaderType++) {
-                        name = collName + es3fUniformApiTests.getCaseShaderTypeName(shaderType);
-                        collectionTestGroup.addChild(new es3fUniformApiTests.UniformValueCase(name, '', shaderType, uniformCollection,
+                    for (var i = 0; i < shaderTypes.length; i++) {
+                        name = collName + es3fUniformApiTests.getCaseShaderTypeName(es3fUniformApiTests.CaseShaderType[shaderTypes[i]]);
+                        collectionTestGroup.addChild(new es3fUniformApiTests.UniformValueCase(name, '', es3fUniformApiTests.CaseShaderType[shaderTypes[i]], uniformCollection,
                                                                             es3fUniformApiTests.ValueToCheck.ASSIGNED, es3fUniformApiTests.CheckMethod.GET_UNIFORM, es3fUniformApiTests.AssignMethod.POINTER,
                                                                             arrayAssignMode));
                     }
@@ -2884,24 +2896,24 @@ var deRandom = framework.delibs.debase.deRandom;
 
         // Value checking cases when unused uniforms are present.
 
-        /** @type {tcuTestCase.DeqpTest} */ var unusedUniformsGroup = tcuTestCase.newTest('unused_uniforms', 'Test with unused uniforms');
+        unusedUniformsGroup = tcuTestCase.newTest('unused_uniforms', 'Test with unused uniforms');
         assignedValuesGroup.addChild(unusedUniformsGroup);
 
         collectionGroup = defaultUniformCollections[UniformCollections.ARRAY_IN_STRUCT];
 
         for (var collectionNdx = 0; collectionNdx < collectionGroup.cases.length; collectionNdx++) {
             collectionCase = collectionGroup.cases[collectionNdx];
-            /** @type {string} */ var collName = collectionCase.namePrefix;
+            collName = collectionCase.namePrefix;
             uniformCollection = collectionCase.uniformCollection;
 
-            for (var shaderType = 0; shaderType < Object.keys(es3fUniformApiTests.CaseShaderType).length; shaderType++) {
-                name = collName + es3fUniformApiTests.getCaseShaderTypeName(shaderType);
+            for (var i = 0; i < shaderTypes.length; i++) {
+                name = collName + es3fUniformApiTests.getCaseShaderTypeName(es3fUniformApiTests.CaseShaderType[shaderTypes[i]]);
 
                 features = new es3fUniformApiTests.Feature();
                 features.ARRAYUSAGE_ONLY_MIDDLE_INDEX = true;
                 features.UNIFORMUSAGE_EVERY_OTHER = true;
 
-                unusedUniformsGroup.addChild(new es3fUniformApiTests.UniformValueCase(name, '', shaderType, uniformCollection,
+                unusedUniformsGroup.addChild(new es3fUniformApiTests.UniformValueCase(name, '', es3fUniformApiTests.CaseShaderType[shaderTypes[i]], uniformCollection,
                                                                     es3fUniformApiTests.ValueToCheck.ASSIGNED, es3fUniformApiTests.CheckMethod.GET_UNIFORM, es3fUniformApiTests.AssignMethod.POINTER,
                                                                     features));
             }
