@@ -1593,7 +1593,7 @@ var deRandom = framework.delibs.debase.deRandom;
                     DE_ASSERT(reference.minSize >= 1 || (reference.minSize == 0 && !reference.isUsedInShader));
                     DE_ASSERT(reference.minSize <= reference.maxSize);
 
-                    if (es3fUniformApiTests.BasicUniformReportGL.findWithName(basicUniformReportsDst, reportedNameStr) !== undefined) {
+                    if (es3fUniformApiTests.BasicUniformReportGL.findWithName(basicUniformReportsDst, reportedNameStr) !== null) {
                         bufferedLogToConsole('// FAILURE: same uniform name reported twice');
                         success = false;
                     }
@@ -1616,7 +1616,7 @@ var deRandom = framework.delibs.debase.deRandom;
 
         for (var i = 0; i < basicUniformReportsRef.length; i++) {
             /** @type {es3fUniformApiTests.BasicUniformReportRef} */ var expected = basicUniformReportsRef[i];
-            if (expected.isUsedInShader && es3fUniformApiTests.BasicUniformReportGL.findWithName(basicUniformReportsDst, expected.name) === undefined) {
+            if (expected.isUsedInShader && es3fUniformApiTests.BasicUniformReportGL.findWithName(basicUniformReportsDst, expected.name) === null) {
                 bufferedLogToConsole('// FAILURE: uniform with name ' + expected.name + ' was not reported by GL');
                 success = false;
             }
@@ -1718,7 +1718,7 @@ var deRandom = framework.delibs.debase.deRandom;
             /** @type {string} */ var uniformName = uniformResult.name;
             uniformsResult = es3fUniformApiTests.BasicUniformReportGL.findWithName(uniformsResults, uniformName);
 
-            if (uniformsResult !== undefined) {
+            if (uniformsResult !== null) {
                 bufferedLogToConsole('// Checking uniform ' + uniformName);
 
                 if (uniformResult.index != uniformsResult.index) {
@@ -1748,7 +1748,7 @@ var deRandom = framework.delibs.debase.deRandom;
             /** @type {string} */ var uniformsName = uniformsResult.name;
             /** @type {es3fUniformApiTests.BasicUniformReportGL} */ var uniformsResultIt = es3fUniformApiTests.BasicUniformReportGL.findWithName(uniformsResults, uniformsName);
 
-            if (uniformsResultIt === undefined) {
+            if (uniformsResultIt === null) {
                 bufferedLogToConsole('// FAILURE: uniform ' + uniformsName + ' was reported active by glGetUniformIndices() but not by glGetActiveUniform()');
                 success = false;
             }
@@ -1895,7 +1895,7 @@ var deRandom = framework.delibs.debase.deRandom;
 
                 if (isArrayMember) {
                     /** @type {es3fUniformApiTests.BasicUniform} */ var elemUnif = es3fUniformApiTests.BasicUniform.findWithName(basicUniforms, curName);
-                    if (elemUnif === undefined)
+                    if (elemUnif === null)
                         continue;
                     unifValue = elemUnif.finalValue;
                 } else
