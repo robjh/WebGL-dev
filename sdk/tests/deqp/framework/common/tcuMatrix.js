@@ -81,6 +81,17 @@ goog.scope(function () {
     }
     
     /**
+     * @return {Array<number>}
+     */
+    tcuMatrix.Matrix.prototype.getColumnMajorData = function () {
+        /** @type {Array<number>} */ var a = [];
+        for (var col = 0; col < this.cols; col++)
+            for (var row = 0; row < this.rows; row++)
+                a.push(this.get(row, col));
+        return a;
+    }
+    
+    /**
      * @param {tcuMatrix.Matrix} matrixA
      * @param {tcuMatrix.Matrix} matrixB
      * @return {tcuMatrix.Matrix}
