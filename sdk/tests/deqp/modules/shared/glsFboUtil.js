@@ -69,8 +69,8 @@ goog.scope(function() {
     
     
     // glsFboUtil.FormatDB& db, FormatExtEntries extFmts, const RenderContext* ctx
-    glsFboUtil.addExtFormats = function(db, extFmts, gl_ctx) {
-        gl_ctx = gl_ctx || gl;
+    glsFboUtil.addExtFormats = function(db, extFmts, gl) {
+        if (!(gl = gl || window.gl)) throw new Error('Invalid gl object');
 
         // loop through the range, looking at the extentions.
         for (var ext = extFmts.reset() ; ext = extFmts.current() ; extFmts.next()) { // look up FormatExtEntries
@@ -78,7 +78,7 @@ goog.scope(function() {
 
             var supported = function() {
                 for (var i = tokens.length - 1 ; i-- ; )
-                    if (!glsFboUtil.isExtensionSupported(tokens[i], gl_ctx)) return false;
+                    if (!glsFboUtil.isExtensionSupported(tokens[i], gl)) return false;
                 return true;
             }();
 
@@ -93,9 +93,9 @@ goog.scope(function() {
     };
 
     // TODO: find a more befitting home for glsFboUtil.isExtensionSupported (a refugee of gluContextInfo) 
-    glsFboUtil.isExtensionSupported = function(extName, gl_ctx) { // const char*
-        gl_ctx = gl_ctx || gl;
-        var extensions = gl_ctx.getSupportedExtensions();
+    glsFboUtil.isExtensionSupported = function(extName, gl) { // const char*
+        if (!(gl = gl || window.gl)) throw new Error('Invalid gl object');
+        var extensions = gl.getSupportedExtensions();
         for (var i = 0 ; i < extensions.length ; ++i) {
             if (extensions[i] == extName) return true
         }
@@ -103,22 +103,22 @@ goog.scope(function() {
     };
 
 
-    glsFboUtil.formatFlag = function(glenum, gl_ctx) {
-        gl_ctx = gl_ctx || gl;
+    glsFboUtil.formatFlag = function(glenum, gl) {
+        if (!(gl = gl || window.gl)) throw new Error('Invalid gl object');
         
         switch (glenum) {
-         case gl_ctx.NONE:
+         case gl.NONE:
             return glsFboUtil.FormatFlags.ANY_FORMAT;
-         case gl_ctx.RENDERBUFFER:
+         case gl.RENDERBUFFER:
             return glsFboUtil.FormatFlags.RENDERBUFFER_VALID;
-         case gl_ctx.TEXTURE:
+         case gl.TEXTURE:
             return glsFboUtil.FormatFlags.TEXTURE_VALID;
-         case gl_ctx.STENCIL_ATTACHMENT:
+         case gl.STENCIL_ATTACHMENT:
             return glsFboUtil.FormatFlags.STENCIL_RENDERABLE;
-         case gl_ctx.DEPTH_ATTACHMENT:
+         case gl.DEPTH_ATTACHMENT:
             return glsFboUtil.FormatFlags.DEPTH_RENDERABLE;
          default:
-            if (glenum < gl_ctx.COLOR_ATTACHMENT0 || glenum > gl_ctx.COLOR_ATTACHMENT15)
+            if (glenum < gl.COLOR_ATTACHMENT0 || glenum > gl.COLOR_ATTACHMENT15)
                 throw new Error('glenum out of range');
         }
         return glsFboUtil.FormatFlags.COLOR_RENDERABLE;
@@ -166,7 +166,7 @@ goog.scope(function() {
         // @private
         this.m_begin = ( begin === undefined ? 0 : begin );
         // @private
-        this.m_end   = end ? array.length;
+        this.m_end   = end || array.length;
         // @private
         this.m_array = array;
         // @private
@@ -198,6 +198,15 @@ goog.scope(function() {
         ++this.m_index;
     };
     
+    /**
+     * glsFboUtil.rangeArray
+     * replaces the macro GLS_ARRAY_RANGE
+     * @param {array} array
+     * @return {glsFboUtil.Range}
+     */
+    glsFboUtil.rangeArray = function(array) {
+        return new Range(array);
+    };
     
     
     glsFboUtil.ImageFormat = function(format, unsizedType) {
@@ -212,10 +221,10 @@ goog.scope(function() {
             (this.m_format == other.m_format && this.m_unsizeType < other.m_unsizedType)
         );
     };
-    glsFboUtil.ImageFormat.prototype.none = function(gl_ctx) {
-        gl_ctx = gl_ctx || gl;
-        this.m_format      = gl_ctx.NONE;
-        this.m_unsizedType = gl_ctx.NONE;
+    glsFboUtil.ImageFormat.prototype.none = function(gl) {
+        if (!(gl = gl || window.gl)) throw new Error('Invalid gl object');
+        this.m_format      = gl.NONE;
+        this.m_unsizedType = gl.NONE;
     };
     glsFboUtil.ImageFormat.none = function() {
         var obj = new glsFboUtil.ImageFormat();
@@ -258,7 +267,7 @@ goog.scope(function() {
     // look for the bit to see if an object inherits that class.
     glsFboUtil.Config.s_types = {
         CONFIG:            0x000001,
-        
+
         IMAGE:             0x000010,
         RENDERBUFFER:      0x000020,
         TEXTURE:           0x000040,
@@ -268,16 +277,16 @@ goog.scope(function() {
         TEXTURE_LAYERED:   0x000400,
         TEXTURE_3D:        0x000800,
         TEXTURE_2D_ARRAY:  0x001000,
-        
+
         ATTACHMENT:        0x010000,
         ATT_RENDERBUFFER:  0x020000,
         ATT_TEXTURE:       0x040000,
         ATT_TEXTURE_FLAT:  0x080000,
         ATT_TEXTURE_LAYER: 0x100000,
-        
+
         UNUSED:          0xFFE0E00E,
     };
-    
+
     /**
      * glsFboUtil.Image Class.
      * @constructor
@@ -450,34 +459,34 @@ goog.scope(function() {
     // these are a collection of helper functions for creating various gl textures.
     glsFboUtil.glsup = function() {
     
-        var glInit = function(cfg, gl_ctx) {
+        var glInit = function(cfg, gl) {
             if (cfg.target == glsFboUtil.Config.s_target.TEXTURE_2D) {
-                glInitFlat(cfg, glTarget, gl_ctx);
+                glInitFlat(cfg, glTarget, gl);
                 
             } else if (cfg.target == glsFboUtil.Config.s_target.TEXTURE_CUBE_MAP) {
                 for (
-                    var i = gl_ctx.TEXTURE_CUBE_MAP_NEGATIVE_X;
-                    i <= gl_ctx.TEXTURE_CUBE_MAP_POSITIVE_Z;
+                    var i = gl.TEXTURE_CUBE_MAP_NEGATIVE_X;
+                    i <= gl.TEXTURE_CUBE_MAP_POSITIVE_Z;
                     ++i
                 ) {
-                    glInitFlat(cfg, i, gl_ctx);
+                    glInitFlat(cfg, i, gl);
                 }
                 
             } else if (cfg.target == glsFboUtil.Config.s_target.TEXTURE_3D) {
-                glInitLayered(cfg, 2, gl_ctx);
+                glInitLayered(cfg, 2, gl);
             
             } else if (cfg.target == glsFboUtil.Config.s_target.TEXTURE_2D_ARRAY) {
-                glInitLayered(cfg, 1, gl_ctx);
+                glInitLayered(cfg, 1, gl);
             
             }
         };
         
-        var glInitFlat = function(cfg, target, gl_ctx) {
-            var format = glsFboUtil.transferImageFormat(cfg.internalFormat, gl_ctx);
+        var glInitFlat = function(cfg, target, gl) {
+            var format = glsFboUtil.transferImageFormat(cfg.internalFormat, gl);
             var w = cfg.width;
             var h = cfg.height;
             for (var level = 0; level < cfg.numLevels; ++level) {
-                gl_ctx.texImage2D(
+                gl.texImage2D(
                     target, level, cfg.internalFormat.format,
                     w, h, 0,format.format, format.dataType
                 );
@@ -486,13 +495,13 @@ goog.scope(function() {
             }
         };
         
-        var glInitLayered = function(cfg, depth_divider, gl_ctx) {
-            var format = glsFboUtil.transferImageFormat(cfg.internalFormat, gl_ctx);
+        var glInitLayered = function(cfg, depth_divider, gl) {
+            var format = glsFboUtil.transferImageFormat(cfg.internalFormat, gl);
             var w = cfg.width;
             var h = cfg.height;
             var depth = cfg.numLayers;
             for (var level = 0; level < cfg.numLevels; ++level) {
-                gl_ctx.texImage3D(
+                gl.texImage3D(
                     glTarget(cfg), level, cfg.internalFormat.format,
                     w, h, depth, 0, format.format, format.dataType
                 );
@@ -502,54 +511,54 @@ goog.scope(function() {
             }
         };
     
-        var glCreate = function(cfg, gl_ctx) {
-            gl_ctx = gl_ctx || gl;
+        var glCreate = function(cfg, gl) {
+            if (!(gl = gl || window.gl)) throw new Error('Invalid gl object');
             
             if (cfg.type & glsFboUtil.Config.s_types.RENDERBUFFER) {
-                var ret = gl_ctx.createRenderBuffer();
-                gl_ctx.bindRenderBuffer(gl.RENDERBUFFER, ret);
+                var ret = gl.createRenderBuffer();
+                gl.bindRenderBuffer(gl.RENDERBUFFER, ret);
                 
                 if (cfg.numSamples == 0) {
-                    gl_ctx.renderBufferStorage(
-                        gl_ctx.RENDERBUFFER,
+                    gl.renderBufferStorage(
+                        gl.RENDERBUFFER,
                         cfg.internalFormat.format,
                         cfg.width, cfg.height
                     );
                 } else {
-                    gl_ctx.renderbufferStorageMultisample(
-                        gl_ctx.RENDERBUFFER,
+                    gl.renderbufferStorageMultisample(
+                        gl.RENDERBUFFER,
                         cfg.numSamples,
                         cfg.internalFormat.format,
                         cfg.width, cfg.height
                     );
                 }
-                gl_ctx.bindRenderbuffer(gl_ctx.RENDERBUFFER, 0);
+                gl.bindRenderbuffer(gl.RENDERBUFFER, 0);
                 
             } else if (cfg.type & glsFboUtil.Config.s_types.TEXTURE) {
-                var ret = gl_ctx.createTexture();
-                gl_ctx.bindTexture(glTarget(cfg, gl_ctx), ret);
-                glInit(tex, gl_ctx);
-                gl_ctx.bindTexture(glTarget(cfg, gl_ctx), 0);
+                var ret = gl.createTexture();
+                gl.bindTexture(glTarget(cfg, gl), ret);
+                glInit(tex, gl);
+                gl.bindTexture(glTarget(cfg, gl), 0);
             
             } else {
                 throw new Error('Impossible image type');
             }
         };
-    
-        var glTarget = function(cfg, gl_ctx) {
-            gl_ctx = gl_ctx || gl;
+        
+        var glTarget = function(cfg, gl) {
+            if (!(gl = gl || window.gl)) throw new Error('Invalid gl object');
             switch(cfg.target) {
-                case glsFboUtil.Config.s_target.RENDERBUFFER:     return gl_ctx.RENDERBUFFER;
-                case glsFboUtil.Config.s_target.TEXTURE_2D:       return gl_ctx.TEXTURE_2D;
-                case glsFboUtil.Config.s_target.TEXTURE_CUBE_MAP: return gl_ctx.TEXTURE_CUBE_MAP;
-                case glsFboUtil.Config.s_target.TEXTURE_3D:       return gl_ctx.TEXTURE_3D;
-                case glsFboUtil.Config.s_target.TEXTURE_2D_ARRAY: return gl_ctx.TEXTURE_2D_ARRAY;
+                case glsFboUtil.Config.s_target.RENDERBUFFER:     return gl.RENDERBUFFER;
+                case glsFboUtil.Config.s_target.TEXTURE_2D:       return gl.TEXTURE_2D;
+                case glsFboUtil.Config.s_target.TEXTURE_CUBE_MAP: return gl.TEXTURE_CUBE_MAP;
+                case glsFboUtil.Config.s_target.TEXTURE_3D:       return gl.TEXTURE_3D;
+                case glsFboUtil.Config.s_target.TEXTURE_2D_ARRAY: return gl.TEXTURE_2D_ARRAY;
                 default: throw new Error('Impossible image type.');
             }
-            return gl_ctx.NONE;
+            return gl.NONE;
         };
         
-        var glDelete = function(cfg, img, gl_ctx) {
+        var glDelete = function(cfg, img, gl) {
             if (cfg.type & glsFboUtil.Config.s_types.RENDERBUFFER)
                 gl.deleteRenderbuffers(1, img);
             else if (cfg.type & glsFboUtil.Config.s_types.TEXTURE)
@@ -565,8 +574,12 @@ goog.scope(function() {
     
     }();
     
-    glsFboUtil.attachAttachment = function(att, attPoint, gl_ctx) {
-        gl_ctx = gl_ctx || gl;
+    glsFboUtil.imageNumSamples = function(img) {
+        return (img.numSamples != undefined) ? img.numSamples : 0;
+    };
+    
+    glsFboUtil.attachAttachment = function(att, attPoint, gl) {
+        if (!(gl = gl || window.gl)) throw new Error('Invalid gl object');
         
         var mask = (
             glsFboUtil.Config.s_types.ATT_RENDERBUFFER |
@@ -576,17 +589,17 @@ goog.scope(function() {
         
         switch (att.type & mask) {
             case glsFboUtil.Config.s_types.ATT_RENDERBUFFER:
-                gl_ctx.framebufferRenderbuffer(
+                gl.framebufferRenderbuffer(
                     att.target, attPoint, att.renderbufferTarget, att.imageName
                 );
                 break;
             case glsFboUtil.Config.s_types.ATT_TEXTURE_FLAT:
-                gl_ctx.framebufferTexture2D(
+                gl.framebufferTexture2D(
                     att.target, attPoint, att.texTarget, att.imageName, att.level
                 );
                 break;
             case glsFboUtil.Config.s_types.ATT_TEXURE_LAYER:
-                gl_ctx.framebufferTextureLayer(
+                gl.framebufferTextureLayer(
                     att.target, attPoint, att.imageName, att.level, att.layer
                 );
                 break;
@@ -596,17 +609,17 @@ goog.scope(function() {
         
     };
 
-    glsFboUtil.attachmentType = function(att, gl_ctx) {
-        gl_ctx = gl_ctx || gl;
+    glsFboUtil.attachmentType = function(att, gl) {
+        if (!(gl = gl || window.gl)) throw new Error('Invalid gl object');
         
         if (att.type & glsFboUtil.Config.s_types.ATT_RENDERBUFFER) {
-            return gl_ctx.RENDERBUFFER;
+            return gl.RENDERBUFFER;
         }
         if (att.type & glsFboUtil.Config.s_types.ATT_TEXTURE) {
-            return gl_ctx.TEXTURE;
+            return gl.TEXTURE;
         }
         throw new Error('Impossible attachment type.');
-        return gl_ctx.NONE;
+        return gl.NONE;
         
     };
     
@@ -618,8 +631,8 @@ goog.scope(function() {
     };
     
     
-    glsFboUtil.checkAttachmentCompleteness = function(cctx, att, attPoint, image, db, gl_ctx) {
-        gl_ctx = gl_ctx || gl;
+    glsFboUtil.checkAttachmentCompleteness = function(cctx, att, attPoint, image, db, gl) {
+        if (!(gl = gl || window.gl)) throw new Error('Invalid gl object');
     
         // GLES2 4.4.5 / GLES3 4.4.4, "glsFboUtil.Framebuffer attachment completeness"
         if (
@@ -639,14 +652,14 @@ goog.scope(function() {
             // number of layers in the texture.
             cctx.require(
                 glsFboUtil.textureLayer(att) < image.numLayers,
-                gl_ctx.FRAMEBUFFER_INCOMPLETE_ATTACHMENT
+                gl.FRAMEBUFFER_INCOMPLETE_ATTACHMENT
             );
         }
         
         // "The width and height of image are non-zero."
         cctx.require(
             image.width > 0 && image.height > 0,
-            gl_ctx.FRAMEBUFFER_INCOMPLETE_ATTACHMENT
+            gl.FRAMEBUFFER_INCOMPLETE_ATTACHMENT
         );
 
         // Check for renderability
@@ -656,17 +669,18 @@ goog.scope(function() {
         // completeness check _must_ fail.
         cctx.require(
             (flags & glsFboUtil.formatFlag(attPoint)) != 0,
-            gl_ctx.FRAMEBUFFER_INCOMPLETE_ATTACHMENT
+            gl.FRAMEBUFFER_INCOMPLETE_ATTACHMENT
         );
         
         // If the format is only optionally renderable, the completeness check _can_ fail.
         cctx.canRequire(
             (flags & glsFboUtil.FormatFlags.REQUIRED_RENDERABLE) != 0,
-            gl_ctx.FRAMEBUFFER_INCOMPLETE_ATTACHMENT
+            gl.FRAMEBUFFER_INCOMPLETE_ATTACHMENT
         );
         
     };
     
+    // replaces GLS_UNSIZED_FORMATKEY
     glsFboUtil.formatkey = function(format, type) {
         return (type << 16 | format) & 0xFFFFFFFF;
     };
@@ -681,11 +695,11 @@ goog.scope(function() {
         REQUIRED_RENDERABLE:  0x20, //< Without this, renderability is allowed, not required.
     };
     
-    glsFboUtil.Framebuffer = function(attachments, textures, rbos, gl_ctx) {
+    glsFboUtil.Framebuffer = function(attachments, textures, rbos, gl) {
         this.attachments = attachments  || {};
         this.textures    = textures     || {};
         this.rbos        = rbos         || {};
-        this.m_gl        = gl_ctx       || gl;
+        this.m_gl        = gl       || gl;
     };
     glsFboUtil.Framebuffer.prototype.attach = function(attPoint, att) {
         if (!att) {
@@ -785,12 +799,12 @@ goog.scope(function() {
     
     
     
-    glsFboUtil.Checker = function(gl_ctx) {
-        var gl_ctx = gl_ctx || gl;
+    glsFboUtil.Checker = function(gl) {
+        if (!(gl = gl || window.gl)) throw new Error('Invalid gl object');
         
         // Allowed return values for gl.CheckFramebufferStatus
         // formarly an std::set
-        var m_statusCodes = [gl_ctx.FRAMEBUFFER_COMPLETE];
+        var m_statusCodes = [gl.FRAMEBUFFER_COMPLETE];
         
         // this.check = function(attPoint, attachment, image) =0; virtual
         if (typeof(this.check) != 'function')
@@ -820,9 +834,9 @@ goog.scope(function() {
     
     
     
-    glsFboUtil.transferImageFormat = function(imgFormat, gl_ctx) {
-        gl_ctx = gl_ctx || gl;
-        if (imgFormat.unsizedType == gl_ctx.NONE)
+    glsFboUtil.transferImageFormat = function(imgFormat, gl) {
+        if (!(gl = gl || window.gl)) throw new Error('Invalid gl object');
+        if (imgFormat.unsizedType == gl.NONE)
             return gluTextureUtil.getTransferFormat(mapGLInternalFormat(imgFormat.format));
         else
             return new gluTextureUtil.TransferFormat(imgFormat.format, imgFormat.unsizedType);

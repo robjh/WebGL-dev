@@ -21,46 +21,27 @@
     var wtu = WebGLTestUtils;
     var gl = wtu.create3DContext('canvas', {preserveDrawingBuffer: true}, 2);
 
-
-
-        var gldisable = (function(name) {
-            return (function(a1,a2,a3,a4,a5,a6,a7,a8) {
-                var args = [name+'('];
-                if (a1 !== undefined) { args.push(a1); if (a2 !== undefined) { args.push(a2);
-                if (a3 !== undefined) { args.push(a3); if (a4 !== undefined) { args.push(a4);
-                if (a5 !== undefined) { args.push(a5); if (a6 !== undefined) { args.push(a6);
-                if (a7 !== undefined) { args.push(a7); if (a8 !== undefined) { args.push(a8);
-                }} }} }} }} // just some brackets. pretend theyre not here.
-                args.push(')');
-                console.log.apply(console, args);
-            });
-        });
-        /*
-        gl.bindTransformFeedback = gldisable('bindTransformFeedback');
-        gl.bufferData            = gldisable('bufferData');
-        gl.bindBufferBase        = gldisable('bindBufferBase');
-        gl.beginQuery            = gldisable('beginQuery');
-        gl.getBufferSubData      = gldisable('getBufferSubData');
-        gl.linkProgram           = gldisable('linkProgram');
-        gl.getError = function() {
-            return gl.NO_ERROR;
+    var gldisable = function(name) {
+        return function(a1,a2,a3,a4,a5,a6,a7,a8) {
+            var args = [name+'('];
+            if (a1 !== undefined) { args.push(a1); if (a2 !== undefined) { args.push(a2);
+            if (a3 !== undefined) { args.push(a3); if (a4 !== undefined) { args.push(a4);
+            if (a5 !== undefined) { args.push(a5); if (a6 !== undefined) { args.push(a6);
+            if (a7 !== undefined) { args.push(a7); if (a8 !== undefined) { args.push(a8);
+            }} }} }} }} // just some brackets. pretend theyre not here.
+            args.push(')');
+            console.log.apply(console, args);
         };
-        //*/
+    };
 
-        try {
-        //    tft.run(gl);
-        }
-        catch(err) {
-        //    bufferedLogToConsole(err);
-        }
-
-
-        var fboct = functional.gles3.es3fFboCompletenessTests;
-        var params = fboct.tmp.numLayersParams(gl.TEXTURE_2D_ARRAY, 4, 2);
-        console.log(fboct.tmp.numLayersParams.getName(params));
-        console.log(fboct.tmp.numLayersParams.getDescription(params));
-
-        var testBase = new fboct.tmp.TestBase();
+    functional.gles3.es3fFboCompletenessTests.initGlDependents();
+    console.log(functional.gles3.es3fFboCompletenessTests.s_es3ColorRenderables);
+    try {
+        functional.gles3.es3fFboCompletenessTests.run(gl);
+    }
+    catch(err) {
+        bufferedLogToConsole(err);
+    }
 
 </script>
 </body>

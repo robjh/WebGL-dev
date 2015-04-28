@@ -18,40 +18,38 @@
 <canvas id="canvas" width="320" height="240"></canvas>
 <script>
 
+    var wtu = WebGLTestUtils;
+    var gl = wtu.create3DContext('canvas', {preserveDrawingBuffer: true}, 2);
 
-
-        var wtu = WebGLTestUtils;
-        var gl = wtu.create3DContext('canvas', {preserveDrawingBuffer: true}, 2);
-
-        var gldisable = (function(name) {
-            return (function(a1,a2,a3,a4,a5,a6,a7,a8) {
-                var args = [name+'('];
-                if (a1 !== undefined) { args.push(a1); if (a2 !== undefined) { args.push(a2);
-                if (a3 !== undefined) { args.push(a3); if (a4 !== undefined) { args.push(a4);
-                if (a5 !== undefined) { args.push(a5); if (a6 !== undefined) { args.push(a6);
-                if (a7 !== undefined) { args.push(a7); if (a8 !== undefined) { args.push(a8);
-                }} }} }} }} // just some brackets. pretend theyre not here.
-                args.push(')');
-                console.log.apply(console, args);
-            });
-        });
-
-        gl.bindTransformFeedback = gldisable('bindTransformFeedback');
-        gl.bufferData            = gldisable('bufferData');
-        gl.bindBufferBase        = gldisable('bindBufferBase');
-        gl.beginQuery            = gldisable('beginQuery');
-        gl.getBufferSubData      = gldisable('getBufferSubData');
-        gl.linkProgram           = gldisable('linkProgram');
-        gl.getError = function() {
-            return gl.NO_ERROR;
+    var gldisable = function(name) {
+        return function(a1,a2,a3,a4,a5,a6,a7,a8) {
+            var args = [name+'('];
+            if (a1 !== undefined) { args.push(a1); if (a2 !== undefined) { args.push(a2);
+            if (a3 !== undefined) { args.push(a3); if (a4 !== undefined) { args.push(a4);
+            if (a5 !== undefined) { args.push(a5); if (a6 !== undefined) { args.push(a6);
+            if (a7 !== undefined) { args.push(a7); if (a8 !== undefined) { args.push(a8);
+            }} }} }} }} // just some brackets. pretend theyre not here.
+            args.push(')');
+            console.log.apply(console, args);
         };
+    };
 
-        try {
-            functional.gles3.es3fTransformFeedbackTests.run(gl);
-        }
-        catch(err) {
-            bufferedLogToConsole(err);
-        }
+    gl.bindTransformFeedback = gldisable('bindTransformFeedback');
+    gl.bufferData            = gldisable('bufferData');
+    gl.bindBufferBase        = gldisable('bindBufferBase');
+    gl.beginQuery            = gldisable('beginQuery');
+    gl.getBufferSubData      = gldisable('getBufferSubData');
+    gl.linkProgram           = gldisable('linkProgram');
+    gl.getError = function() {
+        return gl.NO_ERROR;
+    };
+
+    try {
+        functional.gles3.es3fTransformFeedbackTests.run(gl);
+    }
+    catch(err) {
+        bufferedLogToConsole(err);
+    }
 
 </script>
 </body>
