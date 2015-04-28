@@ -21,7 +21,6 @@
 'use strict';
 goog.provide('framework.referencerenderer.rrDefs');
 
-
 goog.scope(function() {
 
 var rrDefs = framework.referencerenderer.rrDefs;
@@ -58,7 +57,7 @@ rrDefs.Sampler = function() {};
 
 /**
  * @param {Array<number>} pos
- * @param {number} lod
+ * @param {number=} lod
  * @return {Array<number>}
  */
 rrDefs.Sampler.prototype.sample = function(pos, lod) {};
@@ -68,6 +67,6 @@ rrDefs.Sampler.prototype.sample = function(pos, lod) {};
  * @param {number} lodBias
  * @return {Array<Array<number>>} 4 vec4 samples
  */
-sglrReferenceContext.Texture2D.prototype.sample4 = function(packetTexcoords, lodBias) {};
+rrDefs.Sampler.prototype.sample4 = function(packetTexcoords, lodBias) {};
 
 });

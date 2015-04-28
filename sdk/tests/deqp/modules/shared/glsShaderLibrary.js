@@ -488,7 +488,7 @@ var gluShaderUtil = framework.opengl.gluShaderUtil;
                         case ')': return Token.TOKEN_RIGHT_PAREN;
                         case '[': return Token.TOKEN_LEFT_BRACKET;
                         case ']': return Token.TOKEN_RIGHT_BRACKET;
-                        case ' {': return Token.TOKEN_LEFT_BRACE;
+                        case '{': return Token.TOKEN_LEFT_BRACE;
                         case '}': return Token.TOKEN_RIGHT_BRACE;
 
                         default: return Token.TOKEN_INVALID;

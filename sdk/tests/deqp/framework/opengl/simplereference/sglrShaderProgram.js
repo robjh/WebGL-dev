@@ -51,7 +51,8 @@ var rrDefs = framework.referencerenderer.rrDefs;
 
     /**
      * sglrShaderProgram.VaryingFlags
-     * @enum
+     * @constructor
+     * @struct
      */
     sglrShaderProgram.VaryingFlags = function() {
         this.NONE = true; //TODO: is NONE necessary?
@@ -73,6 +74,7 @@ var rrDefs = framework.referencerenderer.rrDefs;
      * sglrShaderProgram.VertexToFragmentVarying
      * @constructor
      * @param {rrGenericVector.GenericVecType=} type_
+     * @param {sglrShaderProgram.VaryingFlags=} flags
      */
     sglrShaderProgram.VertexToFragmentVarying = function (type_, flags) {
         this.type = type_;

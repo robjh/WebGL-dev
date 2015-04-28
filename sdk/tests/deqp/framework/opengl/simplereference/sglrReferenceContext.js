@@ -716,6 +716,11 @@ sglrReferenceContext.Texture.prototype.sample4 = function(packetTexcoords, lodBi
     /**
     * @constructor
     * @param {tcuPixelFormat.PixelFormat} colorBits
+    * @param {number} depthBits
+    * @param {number} stencilBits
+    * @param {number} width
+    * @param {number} height
+    * @param {number=} samples_
     */
     sglrReferenceContext.ReferenceContextBuffers = function(colorBits, depthBits, stencilBits, width, height, samples_) {
         var samples = samples_;
@@ -1476,6 +1481,8 @@ sglrReferenceContext.Texture.prototype.sample4 = function(packetTexcoords, lodBi
     sglrReferenceContext.ReferenceContext.prototype.uniform4iv = function(location, x) {
         return this.uniformValue(location, gluShaderUtil.DataType.INT, x);
     };
+
+    sglrReferenceContext.ReferenceContext.getSupportedExtensions = function() { return []; };
 
     /** transpose matrix 'x' of 'size' columns and rows */
     sglrReferenceContext.trans = function(size, x) {
@@ -2492,11 +2499,6 @@ sglrReferenceContext.Texture.prototype.sample4 = function(packetTexcoords, lodBi
         if (!this.m_currentProgram)
             return;
 
-        // Check we have enough vertices in the array
-        var vao = this.m_vertexArrayBinding;
-
-        assertMsgOptions(vao.m_arrays.length >= first + (count * 6), 'Not enough vertices to draw all quads', false, true);
-
         var colorBuf0 = this.getDrawColorbuffer();
         var depthBuf = this.getDrawDepthbuffer();
         var stencilBuf = this.getDrawStencilbuffer();
@@ -2573,6 +2575,7 @@ sglrReferenceContext.Texture.prototype.sample4 = function(packetTexcoords, lodBi
         state.provokingVertexConvention = (this.m_provokingFirstVertexConvention) ? (rrDefs.ProvokingVertex.PROVOKINGVERTEX_FIRST) : (rrDefs.ProvokingVertex.PROVOKINGVERTEX_LAST);
 
         // gen attributes
+        var vao = this.m_vertexArrayBinding;
         for (var ndx = 0; ndx < vao.m_arrays.length; ++ndx) {
             vertexAttribs[ndx] = new rrVertexAttrib.VertexAttrib();
             if (!vao.m_arrays[ndx].enabled) {

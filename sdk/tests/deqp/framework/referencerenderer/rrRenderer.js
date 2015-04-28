@@ -697,7 +697,7 @@ rrRenderer.writeFragments = function(state, renderTarget, fragments) {
     var colorbuffer = renderTarget.colorBuffers[0].raw();
     for (var i = 0; i < fragments.length; i++) {
         var fragment = fragments[i];
-        colorbuffer.setPixel(fragment.output, 0, fragment.pixelCoord[0], fragment.pixelCoord[1]);
+        colorbuffer.setPixel(fragment.value, 0, fragment.pixelCoord[0], fragment.pixelCoord[1]);
     }
 
 };
@@ -868,6 +868,39 @@ void FragmentProcessor::render (const rr::MultisamplePixelBufferAccess& msColorB
 };
 
 /**
+ * Determines the index of the corresponding vertex according to top/right conditions.
+ * @param {boolean} isTop
+ * @param {boolean} isRight
+ * @return {number}
+ */
+rrRenderer.getIndexOfCorner = function (isTop, isRight, vertexPackets) {
+    var x = null;
+    var y = null;
+
+    var xcriteria = isRight ? Math.max : Math.min;
+    var ycriteria = isTop ? Math.max : Math.min;
+
+    // Determine corner values
+    for(var i = 0; i < 6; i++) {
+        x = x != null ? xcriteria(vertexPackets[i].position[0], x) : vertexPackets[i].position[0];
+        y = y != null ? ycriteria(vertexPackets[i].position[1], y) : vertexPackets[i].position[1];
+    }
+
+    // Search for mathing vertex
+    for(var v = 0; v < 6; v++)
+        if (vertexPackets[v].position[0] == x && vertexPackets[v].position[1] == y)
+            return v;
+
+    throw new Error('Corner not found');
+};
+
+/**
+ * @param {} state
+ * @param {} renderTarget
+ * @param {} program
+ * @param {} vertexAttribs
+ * @param {number} first Index of first quad vertex
+ * @param {number} count Number of quads to draw
  */
 rrRenderer.drawQuads = function(state, renderTarget, program, vertexAttribs, first, count) {
     var primitives = new rrRenderer.PrimitiveList(gl.TRIANGLES, count * 2 * 3, first); // 2 triangles per quad with 3 vertices each.
@@ -900,52 +933,61 @@ rrRenderer.drawQuads = function(state, renderTarget, program, vertexAttribs, fir
     }
     program.shadeVertices(vertexAttribs, vertexPackets, numVertexPackets);
 
-    // For each quad, we get a group of four vertex packets
+    // For each quad, we get a group of six vertex packets
     for (var quad = 0; quad < count; quad++) {
-        var bottomLeftVertexNdx = 1;
-        var bottomRightVertexNdx = 5;
-        var topLeftVertexNdx = 0;
-        var topRightVertexNdx = 2;
+        var quadoffset = quad * 6;
+        var quadPackets = [vertexPackets[quadoffset], vertexPackets[quadoffset + 1], vertexPackets[quadoffset + 2],
+            vertexPackets[quadoffset + 3], vertexPackets[quadoffset + 4], vertexPackets[quadoffset + 5]];
 
-        var topLeft = rrRenderer.transformVertexClipCoordsToWindowCoords(state, vertexPackets[(quad * 6) + topLeftVertexNdx]);
-        var bottomRight = rrRenderer.transformVertexClipCoordsToWindowCoords(state, vertexPackets[(quad * 6) + bottomRightVertexNdx]);
+        var bottomLeftVertexNdx = rrRenderer.getIndexOfCorner(false, false, quadPackets);
+        var bottomRightVertexNdx = rrRenderer.getIndexOfCorner(false, true, quadPackets);
+        var topLeftVertexNdx = rrRenderer.getIndexOfCorner(true, false, quadPackets);
+        var topRightVertexNdx = rrRenderer.getIndexOfCorner(true, true, quadPackets);
+
+        var topLeft = rrRenderer.transformVertexClipCoordsToWindowCoords(state, quadPackets[topLeftVertexNdx]);
+        var bottomRight = rrRenderer.transformVertexClipCoordsToWindowCoords(state, quadPackets[bottomRightVertexNdx]);
+
+        topLeft[0] = Math.round(topLeft[0]);
+        topLeft[1] = Math.round(topLeft[1]);
+        bottomRight[0] = Math.round(bottomRight[0]);
+        bottomRight[1] = Math.round(bottomRight[1]);
 
         var v0 = [topLeft[0], topLeft[1]];
         var v1 = [topLeft[0], bottomRight[1]];
         var v2 = [bottomRight[0], topLeft[1]];
         var v3 = [bottomRight[0], bottomRight[1]];
         var width = bottomRight[0] - topLeft[0];
-        var height = bottomRight[1] - topLeft[1];
+        var height = topLeft[1] - bottomRight[1];
 
         // Generate two rrRenderer.triangles [v0, v1, v2] and [v2, v1, v3]
         var shadingContextTopLeft = new rrShadingContext.FragmentShadingContext(
-            vertexPackets[(quad * 6) + topLeftVertexNdx].outputs,
-            vertexPackets[(quad * 6) + bottomLeftVertexNdx].outputs,
-            vertexPackets[(quad * 6) + topRightVertexNdx].outputs, null, 1
+            quadPackets[topLeftVertexNdx].outputs,
+            quadPackets[bottomLeftVertexNdx].outputs,
+            quadPackets[topRightVertexNdx].outputs, null, 1
         );
         var packetsTopLeft = [];
 
         var shadingContextBottomRight = new rrShadingContext.FragmentShadingContext(
-            vertexPackets[(quad * 6) + topRightVertexNdx].outputs,
-            vertexPackets[(quad * 6) + bottomLeftVertexNdx].outputs,
-            vertexPackets[(quad * 6) + bottomRightVertexNdx].outputs, null, 1
+            quadPackets[topRightVertexNdx].outputs,
+            quadPackets[bottomLeftVertexNdx].outputs,
+            quadPackets[bottomRightVertexNdx].outputs, null, 1
         );
         var packetsBottomRight = [];
 
         for (var i = 0; i < width; i++)
             for (var j = 0; j < height; j++) {
                 var x = v0[0] + i + 0.5;
-                var y = v0[1] + j + 0.5;
+                var y = v1[1] + j + 0.5;
 
                 var xf = (i + 0.5) / width;
                 var yf = (j + 0.5) / height;
                 var triNdx = xf + yf >= 1;
                 if (!triNdx) {
                     var b = rrRenderer.getBarycentricCoefficients([x, y], v0, v1, v2);
-                    packetsTopLeft.push(new rrFragmentOperations.Fragment(b, [v0[0] + i, v0[1] + j]));
+                    packetsTopLeft.push(new rrFragmentOperations.Fragment(b, [v0[0] + i, v1[1] + j]));
                 } else {
                     var b = rrRenderer.getBarycentricCoefficients([x, y], v2, v1, v3);
-                    packetsBottomRight.push(new rrFragmentOperations.Fragment(b, [v0[0] + i, v0[1] + j]));
+                    packetsBottomRight.push(new rrFragmentOperations.Fragment(b, [v0[0] + i, v1[1] + j]));
                 }
             }
 

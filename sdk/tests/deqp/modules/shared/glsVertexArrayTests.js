@@ -1021,19 +1021,16 @@ goog.scope(function() {
         }
     }
 
-    // REMOVED: @param {number} numPackets
     /**
      * @param {Array<rrFragmentPacket.FragmentPacket>} packets
      * @param {rrShadingContext.FragmentShadingContext} context
      */
-    glsVertexArrayTests.ContextShaderProgram.prototype.shadeFragments = function(packets, /*numPackets,*/ context) {
+    glsVertexArrayTests.ContextShaderProgram.prototype.shadeFragments = function(packets, context) {
         var varyingLocColor = 0;
 
         // Normal shading
-        for (var packetNdx = 0; packetNdx < packets.length; ++packetNdx) {
-            packets[packetNdx].output = rrShadingContext.readTriangleVarying(packets[packetNdx], context, varyingLocColor /*, 0*/);
-            packets[packetNdx].value = packets[packetNdx].output;
-        }
+        for (var packetNdx = 0; packetNdx < packets.length; ++packetNdx)
+            packets[packetNdx].value = rrShadingContext.readTriangleVarying(packets[packetNdx], context, varyingLocColor);
     };
 
     /**
