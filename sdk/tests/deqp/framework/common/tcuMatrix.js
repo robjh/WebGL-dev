@@ -17,12 +17,12 @@
  * limitations under the License.
  *
  */
- 'use strict';
+'use strict';
 goog.provide('framework.common.tcuMatrix');
 goog.require('framework.delibs.debase.deMath');
 
 
-goog.scope(function() {
+goog.scope(function () {
 
     var tcuMatrix = framework.common.tcuMatrix;
     var deMath = framework.delibs.debase.deMath;
@@ -99,6 +99,44 @@ goog.scope(function() {
             }
         return res;
     };
+    
+    /**
+     * @param {tcuMatrix.Matrix} mtx
+     * @param {Array<number>} vec
+     * @return {Array<number>}
+     */
+    tcuMatrix.multiplyMatVec = function(mtx, vec) {
+        /** @type {Array<number>} */ var res = [];
+        /** @type {number} */ var value;
+        for (var row = 0; row < mtx.rows; row++)
+        {
+            value = 0;
+            for (var col = 0; col < mtx.cols; col++)
+                value += mtx.get(row, col) * vec[col]
+            res[row] = value;
+        }
+        
+        return res;
+    };
+
+    /**
+     * @param {Array<number>} vec
+     * @param {tcuMatrix.Matrix} mtx
+     * @return {Array<number>}
+     */
+    tcuMatrix.multiplyVecMat = function(vec, mtx) {
+        /** @type {Array<number>} */ var res = [];
+        /** @type {number} */ var value;
+        for (var col = 0; col < mtx.cols; col++)
+        {
+            value = 0;
+            for (var row = 0; row < mtx.rows; row++)
+                value += mtx.get(row, col) * vec[row]
+            res[col] = value;
+        }
+        
+        return res;
+    };
 
     /**
      * @constructor
@@ -110,6 +148,5 @@ goog.scope(function() {
 
     tcuMatrix.Mat3.prototype = Object.create(tcuMatrix.Matrix.prototype);
     tcuMatrix.Mat3.prototype.constructor = tcuMatrix.Mat3;
-
-    tcuMatrix.Mat3.prototype.multiplyMatVec = function(){}; //TODO
+    
 });
