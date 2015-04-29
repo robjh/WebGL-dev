@@ -22,18 +22,17 @@
 goog.provide('framework.referencerenderer.rrShadingContext');
 goog.require('framework.delibs.debase.deMath');
 goog.require('framework.referencerenderer.rrDefs');
-goog.require('framework.referencerenderer.rrFragmentPacket');
+goog.require('framework.referencerenderer.rrFragmentOperations');
 goog.require('framework.referencerenderer.rrGenericVector');
 
 
 goog.scope(function() {
 
-var rrShadingContext = framework.referencerenderer.rrShadingContext;
-var deMath = framework.delibs.debase.deMath;
-var rrDefs = framework.referencerenderer.rrDefs;
-var rrFragmentPacket = framework.referencerenderer.rrFragmentPacket;
-var rrGenericVector = framework.referencerenderer.rrGenericVector;
-    
+    var rrShadingContext = framework.referencerenderer.rrShadingContext;
+    var deMath = framework.delibs.debase.deMath;
+    var rrDefs = framework.referencerenderer.rrDefs;
+    var rrFragmentOperations = framework.referencerenderer.rrFragmentOperations;
+    var rrGenericVector = framework.referencerenderer.rrGenericVector;
 
     var DE_ASSERT = function(x) {
         if (!x)
@@ -66,7 +65,7 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
     // Read Varying
 
     /**
-     * @param {rrFragmentPacket.FragmentPacket} packet
+     * @param {rrFragmentOperations.Fragment} packet
      * @param {rrShadingContext.FragmentShadingContext} context
      * @param {number} varyingLoc
      * @param {number} fragNdx
@@ -80,7 +79,7 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
     };
 
     /**
-     * @param {rrFragmentPacket.FragmentPacket} packet
+     * @param {rrFragmentOperations.Fragment} packet
      * @param {rrShadingContext.FragmentShadingContext} context
      * @param {number} varyingLoc
      * @param {number} fragNdx
@@ -93,7 +92,7 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
 
     //REMOVED: @param {number} fragNdx
     /**
-     * @param {rrFragmentPacket.FragmentPacket} packet
+     * @param {rrFragmentOperations.Fragment} packet
      * @param {rrShadingContext.FragmentShadingContext} context
      * @param {number} varyingLoc
      * @return {Array<number>} (Vector<T, 4>)
@@ -118,7 +117,7 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
     };
 
     /**
-     * @param {rrFragmentPacket.FragmentPacket} packet
+     * @param {rrFragmentOperations.Fragment} packet
      * @param {rrShadingContext.FragmentShadingContext} context
      * @param {number} varyingLoc
      * @param {number} fragNdx
@@ -169,7 +168,7 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
     /**
      * rrShadingContext.dFdxVarying
      * @param {Array<Array<number>>} outFragmentdFdx
-     * @param {rrFragmentPacket.FragmentPacket} packet
+     * @param {rrFragmentOperations.Fragment} packet
      * @param {rrShadingContext.FragmentShadingContext} context
      * @param {number} varyingLoc
      */
@@ -187,7 +186,7 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
     /**
      * rrShadingContext.dFdyVarying
      * @param {Array<Array<number>>} outFragmentdFdy
-     * @param {rrFragmentPacket.FragmentPacket} packet
+     * @param {rrFragmentOperations.Fragment} packet
      * @param {rrShadingContext.FragmentShadingContext} context
      * @param {number} varyingLoc
      */
