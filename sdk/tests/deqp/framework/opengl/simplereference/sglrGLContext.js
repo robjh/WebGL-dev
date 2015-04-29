@@ -181,21 +181,21 @@ goog.scope(function() {
         return this.m_context.getParameter(gl.VIEWPORT)[3];
     };
 
-/**
- * @param  ctx GL-like context
- * @param {string} name
- * @return {boolean}
- */
-sglrGLContext.isExtensionSupported = function(ctx, name) {
-    var extns = ctx.getSupportedExtensions();
-    var found = false;
-    if (extns) {
-        var index = extns.indexOf(name);
-        if (index != -1)
-            found = true;
-    }
-    return found;
-};
+    /**
+    * @param ctx GL-like context
+    * @param {string} name
+    * @return {boolean}
+    */
+    sglrGLContext.isExtensionSupported = function(ctx, name) {
+        var extns = ctx.getSupportedExtensions();
+        var found = false;
+        if (extns) {
+            var index = extns.indexOf(name);
+            if (index != -1)
+                found = true;
+        }
+        return found;
+    };
 
 });
 
