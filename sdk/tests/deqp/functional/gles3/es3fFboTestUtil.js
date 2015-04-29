@@ -775,11 +775,9 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
      */
     es3fFboTestUtil.Texture2DArrayShader.prototype.shadeFragments = function(packet, context) {
         var numPackets = packet.length;
-        var sval = this.m_uniforms[1].value;
-        var bval = this.m_uniforms[2].value;
-        /** @const {Array<number>} */ var texScale = [sval, sval, sval, sval];
-        /** @const {Array<number>} */ var texBias = [bval, bval, bval, bval];
-        /** @const {number} */ var layer = this.m_uniforms[3].value;
+        /** @const {Array<number>} */ var texScale = this.m_uniforms[1].value;
+        /** @const {Array<number>} */ var texBias = this.m_uniforms[2].value;
+        /** @const {number} */ var layer = this.m_uniforms[3].value[0];
 
         var texCoords = [];
         var colors = [];
@@ -903,11 +901,9 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
      */
     es3fFboTestUtil.Texture3DShader.prototype.shadeFragments = function(packet, context) {
         var numPackets = packet.length;
-        var sval = this.m_uniforms[1].value;
-        var bval = this.m_uniforms[2].value;
-        /** @const {Array<number>} */ var texScale = [sval, sval, sval, sval];
-        /** @const {Array<number>} */ var texBias = [bval, bval, bval, bval];
-        /** @const {number} */ var depth = this.m_uniforms[3].value;
+        /** @const {Array<number>} */ var texScale = this.m_uniforms[1].value;
+        /** @const {Array<number>} */ var texBias = this.m_uniforms[2].value;
+        /** @const {number} */ var depth = this.m_uniforms[3].value[0];
 
         var texCoords = [];
         var colors = [];
@@ -976,9 +972,9 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
                     '}\n'));
         this.m_outputType = outputType;
         sglrShaderProgram.ShaderProgram.call(this, decl);
-        /** @const {sglrShaderProgram.UniformSlot} */ this.u_minGradient = this.getUniformByName('u_minGradient');
-        /** @const {sglrShaderProgram.UniformSlot} */ this.u_maxGradient = this.getUniformByName('u_maxGradient');
-        /** @const {sglrShaderProgram.UniformSlot} */ this.u_color = this.getUniformByName('u_color');
+        /** @const {sglrShaderProgram.Uniform} */ this.u_minGradient = this.getUniformByName('u_minGradient');
+        /** @const {sglrShaderProgram.Uniform} */ this.u_maxGradient = this.getUniformByName('u_maxGradient');
+        /** @const {sglrShaderProgram.Uniform} */ this.u_color = this.getUniformByName('u_color');
     };
 
     es3fFboTestUtil.DepthGradientShader.prototype = Object.create(sglrShaderProgram.ShaderProgram.prototype);
@@ -1018,17 +1014,11 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
      */
     es3fFboTestUtil.DepthGradientShader.prototype.shadeFragments = function(packet, context) {
         var numPackets = packet.length;
-        /** @const {number} */ var gradientMin = this.u_minGradient.value;
-        /** @const {number} */ var gradientMax = this.u_maxGradient.value;
-        var cval = this.u_color.value;
-        /** @type {Array<number>} */ var color = [cval, cval, cval, cval];
-        var ival = es3fFboTestUtil.castVectorSaturate(color, tcuTexture.deTypes.deInt32);
-        /** @type {Array<number>} */ var icolor = [ival, ival, ival, ival];
-        var uval = es3fFboTestUtil.castVectorSaturate(color, tcuTexture.deTypes.deUint32);
-        /** @type {Array<number>} */ var uicolor = [uval, uval, uval, uval];
-
-        // running this shader without a depth buffer does not make any sense
-        DE_ASSERT(context.fragmentDepths);
+        /** @const {number} */ var gradientMin = this.u_minGradient.value[0];
+        /** @const {number} */ var gradientMax = this.u_maxGradient.value[0];
+        /** @type {Array<number>} */ var color = this.u_color.value;
+        /** @type {Array<number>} */ var icolor = es3fFboTestUtil.castVectorSaturate(color, tcuTexture.deTypes.deInt32);
+        /** @type {Array<number>} */ var uicolor = es3fFboTestUtil.castVectorSaturate(color, tcuTexture.deTypes.deUint32);
 
         for (var packetNdx = 0; packetNdx < numPackets; ++packetNdx)
             /** @type {Array<number>} */ var coord = rrShadingContext.readTriangleVarying(packet[packetNdx], context, 0);
