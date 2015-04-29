@@ -247,33 +247,37 @@ goog.scope(function() {
     // TODO: implement glsFboCompletenessTests class
 //    es3fFboCompletenessTests.NumLayersTest.prototype = new glsFboCompletenessTests({dont_construct: true});
     
-    es3fFboCompletenessTests.NumLayersTest.prototype.build = function(builder, gl_ctx) {
-            
-        var gl_ctx = gl_ctx || gl;
-            
-        var target = gl_ctx.COLOR_ATTACHMENT0;
+    es3fFboCompletenessTests.NumLayersTest.prototype.build = function(builder, gl) {
+
+        if (!(gl = gl || window.gl)) throw new Error('Invalid gl object');
+
+        var target = gl.COLOR_ATTACHMENT0;
         var texCfg = builder.makeConfig(
             function(kind) {
-                if (kind == gl_ctx.TEXTURE_3D) {
-                    return glsFboUtil.Texture3D;
+                switch (kind) {
+                    case gl.TEXTURE_3D: return glsFboUtil.Texture3D;
+                    case gl.TEXTURE_2D_ARRAY: return glsFboUtil.Texture2DArray;
+                    default: throw new Error('Impossible case');
                 }
-                if (kind == gl_ctx.TEXTURE_2D_ARRAY) {
-                    return glsFboUtil.Texture2DArray;
-                }
-                throw new Error('Impossible case');
             }(this.m_params.textureKind)
         );
-            
-            
-        texCfg.internalFormat = this.getDefaultFormat(target, gl_ctx.TEXTURE);
-            
+  
+        texCfg.internalFormat = this.getDefaultFormat(target, gl.TEXTURE);
+
     };
 
 
 
 
     es3fFboCompletenessTests.init = function() {
-        console.log(':)');
+    
+        /** @const @type {tcuTestCase.DeqpTest} */
+        var testGroup = tcuTestCase.runner.testCases;
+        
+        // create Renderable tests
+        // create Attachment tests
+        // create Size tests
+        
     };
 
     es3fFboCompletenessTests.run = function() {
