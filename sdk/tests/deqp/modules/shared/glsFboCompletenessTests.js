@@ -1,6 +1,7 @@
 'use strict';
 goog.provide('modules.shared.glsFboCompletenessTests');
 goog.require('modules.shared.glsFboUtil');
+goog.provide('framework.opengl.gluObjectWrapper');
 goog.require('framework.common.tcuTestCase');
 
 
@@ -8,6 +9,7 @@ goog.scope(function() {
 
     var glsFboCompletenessTests = modules.shared.glsFboCompletenessTests;
     var glsFboUtil = modules.shared.glsFboUtil;
+    var gluObjectWrapper = framework.opengl.gluObjectWrapper;
     var tcuTestCase = framework.common.tcuTestCase;
     
     // TestContext& testCtx, RenderContext& renderCtx, CheckerFactory& factory
@@ -37,7 +39,6 @@ goog.scope(function() {
 													 RenderContext& renderCtx,
 													 CheckerFactory& factory);
 													 
-	void					addFormats				(FormatEntries fmtRange);
 	void					addExtFormats			(FormatExtEntries extRange);
 	TestCaseGroup*			createRenderableTests	(void);
 	TestCaseGroup*			createAttachmentTests	(void);
@@ -84,6 +85,10 @@ goog.scope(function() {
         glsFboUtil.addFormats(this.m_ctxFormats, fmtRange);
         glsFboUtil.addFormats(this.m_maxFormats, fmtRange);
     };
+    glsFboCompletenessTests.Context.addExtFormats = function(extRange) {
+        glsFboUtil.addExtFormats(this.m_ctxFormats, extRange, this.m_renderCtx);
+        glsFboUtil.addExtFormats(this.m_maxFormats, extRange, this.m_renderCtx);
+    }
     
     
     
@@ -108,6 +113,15 @@ goog.scope(function() {
             return glsFboUtil.ImageFormat.none();
         }
         
+    };
+  
+    // a quick note to work around the absense of these functions:
+//    glsFboCompletenessTests.TestBase.pass
+//    glsFboCompletenessTests.TestBase.warning
+//    glsFboCompletenessTests.TestBase.fail
+    
+    glsFboCompletenessTests.TestBase.prototype.iterate = function() {
+        var fbo = new gluObjectWrapper.Framebuffer(window.gl);
     };
     
     /*

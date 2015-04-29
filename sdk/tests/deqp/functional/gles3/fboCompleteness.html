@@ -34,8 +34,8 @@
         };
     };
 
-    functional.gles3.es3fFboCompletenessTests.initGlDependents();
-    console.log(functional.gles3.es3fFboCompletenessTests.s_es3ColorRenderables);
+    functional.gles3.es3fFboCompletenessTests.initGlDependents(gl);
+    
     try {
         functional.gles3.es3fFboCompletenessTests.run(gl);
     }
