@@ -93,24 +93,27 @@ var DE_ASSERT = function(x) {
     };
 
     /**
-    * @param {tcuSurface.Surface} reference
-    * @param {tcuSurface.Surface} result
-    */
+     * @param {tcuSurface.Surface} reference
+     * @param {tcuSurface.Surface} result
+     */
     es3fFboTestCase.FboTestCase.prototype.compare = function(reference, result) {
         return tcuImageCompare.fuzzyCompare('Result', 'Image comparison result', reference.getAccess(), result.getAccess(), 0.05 /*, tcu::COMPARE_LOG_RESULT*/);
     };
 
     /**
-    * @param {number} sizedFormat deUint32
-    */
+     * @param {number} sizedFormat
+     */
     es3fFboTestCase.FboTestCase.prototype.checkFormatSupport = function(sizedFormat) {
         /** @const @type {boolean} */ var isCoreFormat = es3fFboTestCase.isRequiredFormat(sizedFormat);
         /** @const @type {Array<string>} */ var requiredExts = (!isCoreFormat) ? es3fFboTestCase.getEnablingExtensions(sizedFormat) : [];
 
         // Check that we don't try to use invalid formats.
         DE_ASSERT(isCoreFormat || requiredExts);
-        if (requiredExts && !es3fFboTestCase.isAnyExtensionSupported(gl, requiredExts))
-            throw new Error('Format not supported');
+        if (requiredExts.length > 0 && !es3fFboTestCase.isAnyExtensionSupported(gl, requiredExts)) {
+            var msg = 'SKIP: Format ' + wtu.glEnumToString(gl, sizedFormat) + ' not supported';
+            debug(msg);
+            throw new TestFailedException(msg);
+        }
     };
 
     /**
@@ -151,7 +154,8 @@ var DE_ASSERT = function(x) {
     * @param {number} height
     */
     es3fFboTestCase.FboTestCase.prototype.readPixels = function(dst, x, y, width, height) {
-        this.getCurrentContext().readPixels(dst, x, y, width, height);
+        dst.setSize(width, height);
+        this.getCurrentContext().readPixels(x, y, width, height, gl.RGBA, gl.UNSIGNED_BYTE, dst.getAccess().getBuffer());
     };
 
     /**
@@ -254,7 +258,7 @@ var DE_ASSERT = function(x) {
 
 
     /**
-    * @param {number} format deUint32
+    * @param {number} format
     * @return {boolean}
     */
     es3fFboTestCase.isRequiredFormat = function(format) {
@@ -352,8 +356,7 @@ var DE_ASSERT = function(x) {
         for (var iter in requiredExts) {
             /** @const @type {string} */ var extension = iter;
 
-            /** @type {WebGL2RenderingContext} */ var test = new WebGL2RenderingContext();
-            if (sglrGLContext.isExtensionSupported(test, extension))
+            if (sglrGLContext.isExtensionSupported(gl, extension))
                 return true;
         }
 

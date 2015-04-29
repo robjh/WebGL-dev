@@ -345,8 +345,11 @@ var tcuTextureUtil = framework.common.tcuTextureUtil;
      * @return {number}
      */
     tcuFuzzyImageCompare.fuzzyCompare = function(params, ref, cmp, errorMask) {
-        DE_ASSERT(ref.getWidth() == cmp.getWidth() && ref.getHeight() == cmp.getHeight());
-        DE_ASSERT(errorMask.getWidth() == ref.getWidth() && errorMask.getHeight() == ref.getHeight());
+         assertMsgOptions(ref.getWidth() == cmp.getWidth() && ref.getHeight() == cmp.getHeight(),
+            'Reference and result images have different dimensions', false, true);
+
+         assertMsgOptions(ref.getWidth() == errorMask.getWidth() && ref.getHeight() == errorMask.getHeight(),
+            'Reference and error mask images have different dimensions', false, true);
 
         if (!tcuFuzzyImageCompare.isFormatSupported(ref.getFormat()) || !tcuFuzzyImageCompare.isFormatSupported(cmp.getFormat()))
             throw new Error('Unsupported format in fuzzy comparison');

@@ -377,6 +377,8 @@ sglrReferenceContext.Texture.prototype.sample4 = function(packetTexcoords, lodBi
         this.textureType = null;
     };
 
+    sglrReferenceContext.TextureContainer.prototype.getType = function() { return this.textureType; };
+
     sglrReferenceContext.TextureContainer.prototype.init = function(target) {
         switch(target) {
             case gl.TEXTURE_2D:
@@ -751,7 +753,7 @@ sglrReferenceContext.Texture.prototype.sample4 = function(packetTexcoords, lodBi
         this.m_defaultColorbuffer = colorbuffer;
         this.m_defaultDepthbuffer = depthbuffer;
         this.m_defaultStencilbuffer = stencilbuffer;
-        this.m_viewport = [0, 0, colorbuffer.raw().getHeight(), colorbuffer.raw().getWidth()];
+        this.m_viewport = [0, 0, colorbuffer.raw().getHeight(), colorbuffer.raw().getDepth()];
         this.m_textureUnits = [];
         for (var i = 0; i < this.m_limits.maxTextureImageUnits; i++)
             this.m_textureUnits.push(new sglrReferenceContext.TextureUnit());
@@ -1412,7 +1414,7 @@ sglrReferenceContext.Texture.prototype.sample4 = function(packetTexcoords, lodBi
 
         if (this.condtionalSetError(!uniform, gl.INVALID_OPERATION))
             return;
-        
+
         if (gluShaderUtil.isDataTypeSampler(uniform.type)) {
             if (this.condtionalSetError(type != gluShaderUtil.DataType.INT, gl.INVALID_OPERATION))
                 return;
@@ -1585,7 +1587,7 @@ sglrReferenceContext.Texture.prototype.sample4 = function(packetTexcoords, lodBi
     /**
      * @param {number} location
      * @param {Array<number>} x
-     */    
+     */
     sglrReferenceContext.ReferenceContext.prototype.uniformMatrix3fv = function(location, transpose, x) {
         return this.uniformValue(location, gluShaderUtil.DataType.FLOAT_MAT3, transpose ? sglrReferenceContext.trans(3, x) : x);
     };
@@ -1761,15 +1763,17 @@ sglrReferenceContext.Texture.prototype.sample4 = function(packetTexcoords, lodBi
 
         switch (attachment.type) {
             case sglrReferenceContext.AttachmentType.ATTACHMENTTYPE_TEXTURE: {
-                var texture = attachment.object;
+                var container = attachment.object;
+                var type = container.getType();
+                var texture = container.texture;
 
-                if (texture.getType() == sglrReferenceContext.TextureType.TYPE_2D)
+                if (type == sglrReferenceContext.TextureType.TYPE_2D)
                     return texture.getLevel(attachment.level);
-                else if (texture.getType() == sglrReferenceContext.TextureType.TYPE_CUBE_MAP)
+                else if (type == sglrReferenceContext.TextureType.TYPE_CUBE_MAP)
                     return texture.getFace(attachment.level, sglrReferenceContext.texTargetToFace(attachment.texTarget));
-                else if (texture.getType() == sglrReferenceContext.TextureType.TYPE_2D_ARRAY ||
-                        texture.getType() == sglrReferenceContext.TextureType.TYPE_3D ||
-                        texture.getType() == sglrReferenceContext.TextureType.TYPE_CUBE_MAP_ARRAY) {
+                else if (type == sglrReferenceContext.TextureType.TYPE_2D_ARRAY ||
+                        type == sglrReferenceContext.TextureType.TYPE_3D ||
+                        type== sglrReferenceContext.TextureType.TYPE_CUBE_MAP_ARRAY) {
                     var level = texture.getLevel(attachment.level);
 
                     return new tcuTexture.PixelBufferAccess({
@@ -2265,10 +2269,10 @@ sglrReferenceContext.Texture.prototype.sample4 = function(packetTexcoords, lodBi
                 if (this.condtionalSetError(level != 0, gl.INVALID_VALUE))
                     return;
 
-                if (texture.getType() == sglrReferenceContext.TextureType.TYPE_2D)
+                if (texture.getType() == sglrReferenceContext.TextureType.TYPE_2D) {
                     if (this.condtionalSetError(fboTexTarget != sglrReferenceContext.TexTarget.TEXTARGET_2D, gl.INVALID_OPERATION))
                         return;
-                else {
+                } else {
                     if (texture.getType() == sglrReferenceContext.TextureType.TYPE_CUBE_MAP)
                         throw new Error("Unsupported texture type");
                     if (this.condtionalSetError(!deMath.deInRange32(fboTexTarget, sglrReferenceContext.TexTarget.TEXTARGET_CUBE_MAP_POSITIVE_X, sglrReferenceContext.TexTarget.TEXTARGET_CUBE_MAP_NEGATIVE_Z), gl.INVALID_OPERATION))
@@ -2564,7 +2568,7 @@ sglrReferenceContext.Texture.prototype.sample4 = function(packetTexcoords, lodBi
     * @param {sglrShaderProgram.ShaderProgram} program
     * @return {sglrShaderProgram.ShaderProgram}
     */
-    sglrReferenceContext.ReferenceContext.prototype.createProgram = function (program) {
+    sglrReferenceContext.ReferenceContext.prototype.createProgram = function(program) {
         return program;
     };
 
@@ -2572,7 +2576,7 @@ sglrReferenceContext.Texture.prototype.sample4 = function(packetTexcoords, lodBi
      * deleteProgram
      * @param {sglrShaderProgram.ShaderProgram} program
      */
-    sglrReferenceContext.ReferenceContext.prototype.deleteProgram = function (program) {};
+    sglrReferenceContext.ReferenceContext.prototype.deleteProgram = function(program) {};
 
     /**
     * @param {sglrShaderProgram.ShaderProgram} program
@@ -2586,7 +2590,7 @@ sglrReferenceContext.Texture.prototype.sample4 = function(packetTexcoords, lodBi
     * @param {number} first First vertex to begin drawing with
     * @param {number} count How many quads to draw (array should provide first + (count * 4) vertices at least)
     */
-    sglrReferenceContext.ReferenceContext.prototype.drawQuads = function (first, count) {
+    sglrReferenceContext.ReferenceContext.prototype.drawQuads = function(first, count) {
         // undefined results
         if (!this.m_currentProgram)
             return;
@@ -2595,9 +2599,7 @@ sglrReferenceContext.Texture.prototype.sample4 = function(packetTexcoords, lodBi
         var depthBuf = this.getDrawDepthbuffer();
         var stencilBuf = this.getDrawStencilbuffer();
         var hasStencil = (stencilBuf && !stencilBuf.isEmpty());
-        var stencilBits = (hasStencil) ?
-        stencilBuf.raw().getFormat().getNumStencilBits() :
-        (0);
+        var stencilBits = (hasStencil) ? stencilBuf.raw().getFormat().getNumStencilBits() : 0;
 
         var renderTarget = new rrRenderer.RenderTarget(colorBuf0,
                                                     depthBuf,
@@ -2673,14 +2675,13 @@ sglrReferenceContext.Texture.prototype.sample4 = function(packetTexcoords, lodBi
             if (!vao.m_arrays[ndx].enabled) {
                 vertexAttribs[ndx].type = rrVertexAttrib.VertexAttribType.DONT_CARE; // reading with wrong type is allowed, but results are undefined
                 vertexAttribs[ndx].generic = this.m_currentAttribs[ndx];
-            }
-            else {
+            } else {
                 vertexAttribs[ndx].type = (vao.m_arrays[ndx].integer) ?
                 (sglrReferenceUtils.mapGLPureIntegerVertexAttributeType(vao.m_arrays[ndx].type)) :
                 (sglrReferenceUtils.mapGLFloatVertexAttributeType(vao.m_arrays[ndx].type, vao.m_arrays[ndx].normalized, vao.m_arrays[ndx].size, this.getType()));
                 vertexAttribs[ndx].size = sglrReferenceUtils.mapGLSize(vao.m_arrays[ndx].size);
                 vertexAttribs[ndx].stride = vao.m_arrays[ndx].stride;
-                vertexAttribs[ndx].instanceDivisor  = vao.m_arrays[ndx].divisor;
+                vertexAttribs[ndx].instanceDivisor = vao.m_arrays[ndx].divisor;
                 vertexAttribs[ndx].pointer = vao.m_arrays[ndx].bufferBinding.getData();
                 vertexAttribs[ndx].offset = vao.m_arrays[ndx].offset;
             }
@@ -2697,90 +2698,77 @@ sglrReferenceContext.Texture.prototype.sample4 = function(packetTexcoords, lodBi
                     var tex = null;
 
                     if (texNdx >= 0 && texNdx < this.m_textureUnits.length)
-                        tex = (this.m_textureUnits[texNdx].tex2DBinding) ? (this.m_textureUnits[texNdx].tex2DBinding) : (this.m_textureUnits[texNdx].default2DTex);
+                        tex = this.m_textureUnits[texNdx].tex2DBinding.texture;
 
                     if (tex && tex.isComplete()) {
                         tex.updateView();
-                        this.m_currentProgram.m_uniforms[uniformNdx].sampler.tex2D = tex;
-                    }
-                    else
-                        this.m_currentProgram.m_uniforms[uniformNdx].sampler.tex2D = this.m_emptyTex2D;
+                        this.m_currentProgram.m_uniforms[uniformNdx].sampler = tex;
+                    } else
+                        this.m_currentProgram.m_uniforms[uniformNdx].sampler = this.m_emptyTex2D;
 
                     break;
                 }
                 /* TODO: Port
                 case gluShaderUtil.DataType.SAMPLER_CUBE:
                 case gluShaderUtil.DataType.UINT_SAMPLER_CUBE:
-                case gluShaderUtil.DataType.INT_SAMPLER_CUBE:
-                {
+                case gluShaderUtil.DataType.INT_SAMPLER_CUBE:{
                     rc::TextureCube* tex = DE_NULL;
 
                     if (texNdx >= 0 && (size_t)texNdx < this.m_textureUnits.length)
                         tex = (this.m_textureUnits[texNdx].texCubeBinding) ? (this.m_textureUnits[texNdx].texCubeBinding) : (&this.m_textureUnits[texNdx].defaultCubeTex);
 
-                    if (tex && tex.isComplete())
-                    {
+                    if (tex && tex.isComplete()) {
                         tex.updateView();
                         this.m_currentProgram.m_uniforms[uniformNdx].sampler.texCube = tex;
-                    }
-                    else
+                    } else
                         this.m_currentProgram.m_uniforms[uniformNdx].sampler.texCube = &this.m_emptyTexCube;
 
                     break;
                 }
                 case gluShaderUtil.DataType.SAMPLER_2D_ARRAY:
                 case gluShaderUtil.DataType.UINT_SAMPLER_2D_ARRAY:
-                case gluShaderUtil.DataType.INT_SAMPLER_2D_ARRAY:
-                {
+                case gluShaderUtil.DataType.INT_SAMPLER_2D_ARRAY:{
                     rc::Texture2DArray* tex = DE_NULL;
 
                     if (texNdx >= 0 && (size_t)texNdx < this.m_textureUnits.length)
                         tex = (this.m_textureUnits[texNdx].tex2DArrayBinding) ? (this.m_textureUnits[texNdx].tex2DArrayBinding) : (&this.m_textureUnits[texNdx].default2DArrayTex);
 
-                    if (tex && tex.isComplete())
-                    {
+                    if (tex && tex.isComplete()) {
                         tex.updateView();
                         this.m_currentProgram.m_uniforms[uniformNdx].sampler.tex2DArray = tex;
-                    }
-                    else
+                    } else
                         this.m_currentProgram.m_uniforms[uniformNdx].sampler.tex2DArray = &this.m_emptyTex2DArray;
 
                     break;
                 }
                 case gluShaderUtil.DataType.SAMPLER_3D:
                 case gluShaderUtil.DataType.UINT_SAMPLER_3D:
-                case gluShaderUtil.DataType.INT_SAMPLER_3D:
-                {
+                case gluShaderUtil.DataType.INT_SAMPLER_3D:{
                     rc::Texture3D* tex = DE_NULL;
 
                     if (texNdx >= 0 && (size_t)texNdx < m_textureUnits.length)
                         tex = (this.m_textureUnits[texNdx].tex3DBinding) ? (this.m_textureUnits[texNdx].tex3DBinding) : (&this.m_textureUnits[texNdx].default3DTex);
 
-                    if (tex && tex.isComplete())
-                    {
+                    if (tex && tex.isComplete()) {
                         tex.updateView();
                         this.m_currentProgram.m_uniforms[uniformNdx].sampler.tex3D = tex;
-                    }
-                    else
+                    } else
                         this.m_currentProgram.m_uniforms[uniformNdx].sampler.tex3D = &this.m_emptyTex3D;
 
                     break;
                 }
                 case gluShaderUtil.DataType.SAMPLER_CUBE_ARRAY:
                 case gluShaderUtil.DataType.UINT_SAMPLER_CUBE_ARRAY:
-                case gluShaderUtil.DataType.INT_SAMPLER_CUBE_ARRAY:
-                {
+                case gluShaderUtil.DataType.INT_SAMPLER_CUBE_ARRAY:{
                     rc::TextureCubeArray* tex = DE_NULL;
 
                     if (texNdx >= 0 && (size_t)texNdx < m_textureUnits.length)
                         tex = (this.m_textureUnits[texNdx].texCubeArrayBinding) ? (this.m_textureUnits[texNdx].texCubeArrayBinding) : (&this.m_textureUnits[texNdx].defaultCubeArrayTex);
 
-                    if (tex && tex.isComplete())
-                    {
+                    if (tex && tex.isComplete()) {
                         tex.updateView();
                         this.m_currentProgram.m_uniforms[uniformNdx].sampler.texCubeArray = tex;
-                    }
-                    else
+                    } else
                         this.m_currentProgram.m_uniforms[uniformNdx].sampler.texCubeArray = &this.m_emptyTexCubeArray;
 
                     break;
@@ -3082,8 +3070,8 @@ sglrReferenceContext.Texture.prototype.sample4 = function(packetTexcoords, lodBi
         var transform = function(x, y) { return matrix.get(x, y); };
 
         if (mask & gl.COLOR_BUFFER_BIT) {
-            var src = tcuTextureUtil.getSubregion(this.getReadColorbuffer().toSinglesampleAccess(), srcRect[0], srcRect[1], srcRect[2], srcRect[3]);
-            var dst = tcuTextureUtil.getSubregion(this.getDrawColorbuffer().toSinglesampleAccess(), dstRect[0], dstRect[1], dstRect[2], dstRect[3]);
+            var src = tcuTextureUtil.getSubregion(this.getReadColorbuffer().toSinglesampleAccess(), srcRect[0], srcRect[1], 0, srcRect[2], srcRect[3], 1);
+            var dst = tcuTextureUtil.getSubregion(this.getDrawColorbuffer().toSinglesampleAccess(), dstRect[0], dstRect[1], 0, dstRect[2], dstRect[3], 1);
             var dstClass = tcuTextureUtil.getTextureChannelClass(dst.getFormat().type);
             var dstIsFloat = dstClass == tcuTextureUtil.TextureChannelClass.FLOATING_POINT ||
                                                         dstClass == tcuTextureUtil.TextureChannelClass.UNSIGNED_FIXED_POINT ||
@@ -3203,7 +3191,7 @@ sglrReferenceContext.Texture.prototype.sample4 = function(packetTexcoords, lodBi
                 return;
             data = this.m_pixelUnpackBufferBinding.getData();
             offset = pixels;
-        } else {
+        } else if (pixels) {
             if (pixels instanceof ArrayBuffer) {
                 data = pixels;
                 offset = 0;
@@ -3236,14 +3224,14 @@ sglrReferenceContext.Texture.prototype.sample4 = function(packetTexcoords, lodBi
             if (this.condtionalSetError(level > Math.log2(this.m_limits.maxTexture2DSize), gl.INVALID_VALUE))
                 return;
 
-            var texture = unit.tex2DBinding ? unit.tex2DBinding : unit.default2DTex;
+            var texture = unit.tex2DBinding.texture;
 
             if (texture.isImmutable()) {
                 if (this.condtionalSetError(!texture.hasLevel(level), gl.INVALID_OPERATION))
                     return;
 
                 var texLevel = texture.getLevel(level);
-                var dst = tcuTexture.newFromTextureLevel(texture.getLevel(level));
+                var dst = tcuTexture.PixelBufferAccess.newFromTextureLevel(texture.getLevel(level));
                 if (this.condtionalSetError(storageFmt != dst.getFormat() ||
                             width != dst.getWidth() ||
                             height != dst.getHeight(), gl.INVALID_OPERATION))
@@ -3252,13 +3240,13 @@ sglrReferenceContext.Texture.prototype.sample4 = function(packetTexcoords, lodBi
                 texture.allocLevel(level, storageFmt, width, height);
 
             if (data) {
-                var src = new tcuTexture.tcuTexture.PixelBufferAccess({
+                var src = new tcuTexture.PixelBufferAccess({
                     format: transferFmt,
                     width: width,
                     height: height,
                     data: data,
                     offset: offset});
-                var dst = tcuTexture.newFromTextureLevel(texture.getLevel(level));
+                var dst = texture.getLevel(level);
 
                 if (isDstFloatDepthFormat)
                     sglrReferenceContext.depthValueFloatClampCopy(dst, src);
@@ -3266,7 +3254,7 @@ sglrReferenceContext.Texture.prototype.sample4 = function(packetTexcoords, lodBi
                     tcuTextureUtil.copy(dst, src);
             } else {
                 // No data supplied, clear to black.
-                var dst = tcuTexture.newFromTextureLevel(texture.getLevel(level));
+                var dst = tcuTexture.PixelBufferAccess.newFromTextureLevel(texture.getLevel(level));
                 dst.clear([0.0, 0.0, 0.0, 1.0]);
             }
         }
@@ -3437,4 +3425,109 @@ sglrReferenceContext.Texture.prototype.sample4 = function(packetTexcoords, lodBi
         else
             this.setError(gl.INVALID_ENUM);
     };
+
+    /**
+     * @param {number} value
+     * @return {?tcuTexture.WrapMode}
+     */
+    sglrReferenceContext.mapGLWrapMode = function(value) {
+        switch (value)
+        {
+            case gl.CLAMP_TO_EDGE:      return tcuTexture.WrapMode.CLAMP_TO_EDGE;
+            case gl.REPEAT:             return tcuTexture.WrapMode.REPEAT_GL;
+            case gl.MIRRORED_REPEAT:    return tcuTexture.WrapMode.MIRRORED_REPEAT_GL;
+        }
+        return null;
+    };
+
+     /**
+     * @param {number} value
+     * @return {?tcuTexture.FilterMode}
+     */
+    sglrReferenceContext.mapGLFilterMode = function(value) {
+        switch (value)
+        {
+            case gl.NEAREST:                return tcuTexture.FilterMode.NEAREST;
+            case gl.LINEAR:                 return tcuTexture.FilterMode.LINEAR;
+            case gl.NEAREST_MIPMAP_NEAREST: return tcuTexture.FilterMode.NEAREST_MIPMAP_NEAREST;
+            case gl.NEAREST_MIPMAP_LINEAR:  return tcuTexture.FilterMode.NEAREST_MIPMAP_LINEAR;
+            case gl.LINEAR_MIPMAP_NEAREST:  return tcuTexture.FilterMode.LINEAR_MIPMAP_NEAREST;
+            case gl.LINEAR_MIPMAP_LINEAR:   return tcuTexture.FilterMode.LINEAR_MIPMAP_LINEAR;
+        }
+        return null;
+    };
+
+    sglrReferenceContext.ReferenceContext.prototype.texParameteri = function(target, pname, value) {
+        var unit = this.m_textureUnits[this.m_activeTexture];
+        var container = null;
+
+        switch (target) {
+            case gl.TEXTURE_2D: container = unit.tex2DBinding; break;
+            case gl.TEXTURE_CUBE_MAP: container = unit.texCubeBinding; break;
+            case gl.TEXTURE_2D_ARRAY: container = unit.tex2DArrayBinding; break;
+            case gl.TEXTURE_3D: container = unit.tex3DBinding; break;
+            case gl.TEXTURE_CUBE_MAP_ARRAY: container = unit.texCubeArrayBinding; break;
+
+            default: this.setError(gl.INVALID_ENUM);
+        };
+
+        if (!container)
+            return;
+
+        var texture = container.texture;
+
+        switch (pname) {
+            case gl.TEXTURE_WRAP_S:{
+                var wrapS = sglrReferenceContext.mapGLWrapMode(value);
+                if (this.condtionalSetError(null == wrapS, gl.INVALID_VALUE))
+                    return;
+                texture.getSampler().wrapS = wrapS;
+                break;
+            }
+
+            case gl.TEXTURE_WRAP_T:{
+                var wrapT = sglrReferenceContext.mapGLWrapMode(value);
+                if (this.condtionalSetError(null == wrapT, gl.INVALID_VALUE))
+                    return;
+                texture.getSampler().wrapT = wrapT;
+                break;
+            }
+
+            case gl.TEXTURE_WRAP_R:{
+                var wrapR = sglrReferenceContext.mapGLWrapMode(value);
+                if (this.condtionalSetError(null == wrapR, gl.INVALID_VALUE))
+                    return;
+                texture.getSampler().wrapR = wrapR;
+                break;
+            }
+
+            case gl.TEXTURE_MIN_FILTER:{
+                var minMode = sglrReferenceContext.mapGLFilterMode(value);
+                if (this.condtionalSetError(null == minMode, gl.INVALID_VALUE))
+                    return;
+                texture.getSampler().minFilter = minMode;
+                break;
+            }
+
+            case gl.TEXTURE_MAG_FILTER:{
+                var magMode = sglrReferenceContext.mapGLFilterMode(value);
+                if (this.condtionalSetError(null == magMode, gl.INVALID_VALUE))
+                    return;
+                texture.getSampler().minFilter = magMode;
+                break;
+            }
+
+            case gl.TEXTURE_MAX_LEVEL:{
+                if (this.condtionalSetError(value < 0, gl.INVALID_VALUE))
+                    return;
+                texture.setMaxLevel(value);
+                break;
+            }
+
+            default:
+                this.setError(gl.INVALID_ENUM);
+                return;
+        }
+    };
+
 });
