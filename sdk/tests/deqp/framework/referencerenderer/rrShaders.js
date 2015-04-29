@@ -126,10 +126,9 @@ var rrVertexPacket = framework.referencerenderer.rrVertexPacket;
      * shadeFragments - abstract function, to be implemented by children classes
      * note that numPackets must be greater than zero.
      * @param {Array.<rrFragmentPacket.FragmentPacket>} packets
-     * @param {number} numPackets
      * @param {rrShadingContext.FragmentShadingContext} context
      */
-    rrShaders.FragmentShader.prototype.shadeFragments = function(packets, numPackets, context) {};
+    rrShaders.FragmentShader.prototype.shadeFragments = function(packets, context) {};
 
     /**
      * getInputs

@@ -155,7 +155,7 @@ var DE_ASSERT = function(x) {
     };
 
     /**
-    * @param {number} target deUint32
+    * @param {number} target
     */
     es3fFboTestCase.FboTestCase.prototype.checkFramebufferStatus = function(target) {
         /** @type {number} */ var status = this.getCurrentContext().checkFramebufferStatus(target);
@@ -192,33 +192,35 @@ var DE_ASSERT = function(x) {
         /** @type {tcuSurface.Surface} */ var result = new tcuSurface.Surface(width, height);
 
         // Call preCheck() that can throw exception if some requirement is not met.
-        this.preCheck();
+        if (this.preCheck)
+            this.preCheck();
 
         // Render using GLES3.
-        try {
-            /** @type {sglrGLContext.GLContext} */ var context = new sglrGLContext.GLContext(
-                                                            gl,
-                                                            [x, y, width, height]);
-            this.setContext(context);
-            this.render(result);
+        // TODO: enable
+        // try {
+        //     /** @type {sglrGLContext.GLContext} */ var context = new sglrGLContext.GLContext(
+        //                                                     gl,
+        //                                                     [x, y, width, height]);
+        //     this.setContext(context);
+        //     this.render(result);
 
-            // Check error.
-            /** @type {number} */ var err = context.getError();
-            if (err != gl.NO_ERROR)
-                throw new Error('glError: ' + context);
+        //     // Check error.
+        //     /** @type {number} */ var err = context.getError();
+        //     if (err != gl.NO_ERROR)
+        //         throw new Error('glError: ' + context);
 
-            this.setContext(null);
-        }
-        catch (/** @const @type {es3fFboTestUtil.FboIncompleteException} */ e) {
-            if (e.getReason() == gl.FRAMEBUFFER_UNSUPPORTED) {
-                // log << e;
-                // m_testCtx.setTestResult(QP_TEST_RESULT_NOT_SUPPORTED, 'Not supported');
-                assertMsgOptions(false, 'Not supported', true, false);
-                return tcuTestCase.IterateResult.STOP;
-            }
-            else
-                throw e;
-        }
+        //     this.setContext(null);
+        // }
+        // catch (e) {
+        //     if (e instanceof es3fFboTestUtil.FboIncompleteException)
+        //         if (e.getReason() == gl.FRAMEBUFFER_UNSUPPORTED) {
+        //             // log << e;
+        //             // m_testCtx.setTestResult(QP_TEST_RESULT_NOT_SUPPORTED, 'Not supported');
+        //             assertMsgOptions(false, 'Not supported', true, false);
+        //             return tcuTestCase.IterateResult.STOP;
+        //         }
+        //     throw e;
+        // }
 
         // Render reference.
         /** @type {number} */ var alphaBits = /** @type{number} */ (gl.getParameter(gl.ALPHA_BITS));
@@ -237,7 +239,7 @@ var DE_ASSERT = function(x) {
                                                                 buffers.getColorbuffer(),
                                                                 buffers.getDepthbuffer(),
                                                                 buffers.getStencilbuffer());
-
+        refContext.getError();
         this.setContext(refContext);
         this.render(reference);
         this.setContext(null);

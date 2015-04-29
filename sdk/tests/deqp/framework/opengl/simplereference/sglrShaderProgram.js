@@ -257,8 +257,8 @@ var rrDefs = framework.referencerenderer.rrDefs;
         this.fragmentShader = new rrShaders.FragmentShader(decl.getFragmentInputCount(), decl.getFragmentOutputCount());
         this.fragmentShader.shadeFragments = this.shadeFragments;
 
-        /** @type {Array<string>} */ this.m_attributeNames = new Array(decl.getFragmentInputCount());
-        /** @type {Array<sglrShaderProgram.UniformSlot>} */ this.m_uniforms = new Array(decl.m_uniforms.length);
+        /** @type {Array<string>} */ this.m_attributeNames = [];
+        /** @type {Array<sglrShaderProgram.UniformSlot>} */ this.m_uniforms = [];
         /** @type {string} */ this.m_vertSrc = decl.m_vertexSource;
         /** @type {string} */ this.m_fragSrc = decl.m_fragmentSource;
 
@@ -285,6 +285,12 @@ var rrDefs = framework.referencerenderer.rrDefs;
 
         for (var ndx = 0; ndx < decl.m_uniforms.length; ++ndx)
             this.m_uniforms[ndx] = new sglrShaderProgram.Uniform(decl.m_uniforms[ndx].name, decl.m_uniforms[ndx].type);
+
+        // Pass references to allow vertex and fragment shader access this class members
+        this.vertexShader.m_uniforms = this.m_uniforms;
+        this.fragmentShader.m_uniforms = this.m_uniforms;
+        this.fragmentShader.m_container = this;
+        this.fragmentShader.m_container = this;
     };
 
     /**

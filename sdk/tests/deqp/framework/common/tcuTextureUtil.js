@@ -185,12 +185,16 @@ tcuTextureUtil.fillWithComponentGradients = function(/*const PixelBufferAccess&*
 /**
  * Create tcuTextureUtil.TextureFormatInfo.
  * @constructor
+ * @param {Array<number>} valueMin
+ * @param {Array<number>} valueMax
+ * @param {Array<number>} lookupScale
+ * @param {Array<number>} lookupBias
  */
 tcuTextureUtil.TextureFormatInfo = function(valueMin, valueMax, lookupScale, lookupBias) {
-    this.valueMin = valueMin;
-    this.valueMax = valueMax;
-    this.lookupScale = lookupScale;
-    this.lookupBias = lookupBias;
+    /** @type {Array<number>} */ this.valueMin = valueMin;
+    /** @type {Array<number>} */ this.valueMax = valueMax;
+    /** @type {Array<number>} */ this.lookupScale = lookupScale;
+    /** @type {Array<number>} */ this.lookupBias = lookupBias;
 };
 
 /*static Vec2*/ tcuTextureUtil.getChannelValueRange = function(/*TextureFormat::ChannelType*/ channelType) {
@@ -522,8 +526,7 @@ tcuTextureUtil.getChannelMantissaBitDepth = function(channelType) {
         case tcuTexture.ChannelType.UNSIGNED_INT_11F_11F_10F_REV: return [6, 6, 5, 0];
         case tcuTexture.ChannelType.FLOAT_UNSIGNED_INT_24_8_REV: return [23, 0, 0, 8];
         default:
-            DE_ASSERT(false);
-            return [0, 0, 0, 0];
+            throw new Error('Invalid channelType: ' + channelType);
     }
 };
 

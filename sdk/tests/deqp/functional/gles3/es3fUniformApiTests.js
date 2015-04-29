@@ -61,7 +61,8 @@ var deRandom = framework.delibs.debase.deRandom;
 
     es3fUniformApiTests.DE_NULL = null;
 
-    /** @typedef {function(gluShaderUtil.DataType): boolean} dataTypePredicate (callback) */
+    /** @typedef {function(gluShaderUtil.DataType): boolean} */
+    es3fUniformApiTests.dataTypePredicate;
 
     /** @type {number} */ es3fUniformApiTests.MAX_RENDER_WIDTH = 32;
     /** @type {number} */ es3fUniformApiTests.MAX_RENDER_HEIGHT = 32;
@@ -213,7 +214,7 @@ var deRandom = framework.delibs.debase.deRandom;
 
    /**
     * @param {gluVarType.VarType} type
-    * @param {dataTypePredicate} predicate
+    * @param {es3fUniformApiTests.dataTypePredicate} predicate
     * @return {boolean}
     */
     es3fUniformApiTests.typeContainsMatchingBasicType = function(type, predicate) {
@@ -269,16 +270,15 @@ var deRandom = framework.delibs.debase.deRandom;
         }
     };
 
-    /**
-     * @typedef { {type: gluVarType.VarType, ndx: number}} VarTypeWithIndex
-     */
+    /** @typedef { {type: gluVarType.VarType, ndx: number}} */
+    es3fUniformApiTests.VarTypeWithIndex;
 
     /**
      * @param {number} maxDepth
      * @param {number} curStructIdx Out parameter, instead returning it in the VarTypeWithIndex structure.
      * @param {Array<gluVarType.StructType>} structTypesDst
      * @param {deRandom.Random} rnd
-     * @return {gluVarType.VarType}
+     * @return {es3fUniformApiTests.VarTypeWithIndex}
      */
     es3fUniformApiTests.generateRandomType = function(maxDepth, curStructIdx, structTypesDst, rnd) {
         /** @type {boolean} */ var isStruct = maxDepth > 0 && rnd.getFloat() < 0.2;
@@ -289,7 +289,7 @@ var deRandom = framework.delibs.debase.deRandom;
             /** @type {gluVarType.StructType} */ var structType = gluVarType.newStructType('structType' + curStructIdx++);
 
             for (var i = 0; i < numMembers; i++) {
-                /** @type {VarTypeWithIndex} */ var typeWithIndex = es3fUniformApiTests.generateRandomType(maxDepth - 1, curStructIdx, structTypesDst, rnd);
+                /** @type {es3fUniformApiTests.VarTypeWithIndex} */ var typeWithIndex = es3fUniformApiTests.generateRandomType(maxDepth - 1, curStructIdx, structTypesDst, rnd);
                 curStructIdx = typeWithIndex.ndx;
                 structType.addMember('m' + i, typeWithIndex.type);
             }
@@ -417,7 +417,7 @@ var deRandom = framework.delibs.debase.deRandom;
     };
 
     /**
-     * @param {dataTypePredicate} predicate
+     * @param {es3fUniformApiTests.dataTypePredicate} predicate
      * @return {boolean}
      */
     es3fUniformApiTests.UniformCollection.prototype.containsMatchingBasicType = function(predicate) {
@@ -1373,7 +1373,7 @@ var deRandom = framework.delibs.debase.deRandom;
         /** @type {Array<gluShaderUtil.DataType>} */ var samplerTypes = this.m_uniformCollection.getSamplerTypes();
 
         for (var compFuncNdx = 0; compFuncNdx < compareFuncs.length; compFuncNdx++) {
-            /** @type {Array<dataTypePredicate>} */ var typeReq = compareFuncs[compFuncNdx].requiringTypes;
+            /** @type {Array<es3fUniformApiTests.dataTypePredicate>} */ var typeReq = compareFuncs[compFuncNdx].requiringTypes;
             /** @type {boolean} */ var containsTypeSampler = false;
 
             for (var i = 0; i < samplerTypes.length; i++) {
@@ -1593,7 +1593,7 @@ var deRandom = framework.delibs.debase.deRandom;
                     DE_ASSERT(reference.minSize >= 1 || (reference.minSize == 0 && !reference.isUsedInShader));
                     DE_ASSERT(reference.minSize <= reference.maxSize);
 
-                    if (es3fUniformApiTests.BasicUniformReportGL.findWithName(basicUniformReportsDst, reportedNameStr) !== undefined) {
+                    if (es3fUniformApiTests.BasicUniformReportGL.findWithName(basicUniformReportsDst, reportedNameStr) !== null) {
                         bufferedLogToConsole('// FAILURE: same uniform name reported twice');
                         success = false;
                     }
@@ -1616,7 +1616,7 @@ var deRandom = framework.delibs.debase.deRandom;
 
         for (var i = 0; i < basicUniformReportsRef.length; i++) {
             /** @type {es3fUniformApiTests.BasicUniformReportRef} */ var expected = basicUniformReportsRef[i];
-            if (expected.isUsedInShader && es3fUniformApiTests.BasicUniformReportGL.findWithName(basicUniformReportsDst, expected.name) === undefined) {
+            if (expected.isUsedInShader && es3fUniformApiTests.BasicUniformReportGL.findWithName(basicUniformReportsDst, expected.name) === null) {
                 bufferedLogToConsole('// FAILURE: uniform with name ' + expected.name + ' was not reported by GL');
                 success = false;
             }
@@ -1718,7 +1718,7 @@ var deRandom = framework.delibs.debase.deRandom;
             /** @type {string} */ var uniformName = uniformResult.name;
             uniformsResult = es3fUniformApiTests.BasicUniformReportGL.findWithName(uniformsResults, uniformName);
 
-            if (uniformsResult !== undefined) {
+            if (uniformsResult !== null) {
                 bufferedLogToConsole('// Checking uniform ' + uniformName);
 
                 if (uniformResult.index != uniformsResult.index) {
@@ -1748,7 +1748,7 @@ var deRandom = framework.delibs.debase.deRandom;
             /** @type {string} */ var uniformsName = uniformsResult.name;
             /** @type {es3fUniformApiTests.BasicUniformReportGL} */ var uniformsResultIt = es3fUniformApiTests.BasicUniformReportGL.findWithName(uniformsResults, uniformsName);
 
-            if (uniformsResultIt === undefined) {
+            if (uniformsResultIt === null) {
                 bufferedLogToConsole('// FAILURE: uniform ' + uniformsName + ' was reported active by glGetUniformIndices() but not by glGetActiveUniform()');
                 success = false;
             }
@@ -1787,13 +1787,13 @@ var deRandom = framework.delibs.debase.deRandom;
 
             value.type = uniform.type;
 
-            var result = gl.getUniform(programGL, location);
+            var result = /** @type{number} */ (gl.getUniform(programGL, location));
 
             if (gluShaderUtil.isDataTypeSampler(uniform.type)) {
                 value.val = new es3fUniformApiTests.SamplerV();
                 value.val.samplerV.unit = result;
             } else
-                value.val = result.length === undefined ? [result] : result;
+                value.val = /** @type {Array<number>} */ (result.length === undefined ? [result] : result);
 
             valuesDst.push(value);
 
@@ -1895,7 +1895,7 @@ var deRandom = framework.delibs.debase.deRandom;
 
                 if (isArrayMember) {
                     /** @type {es3fUniformApiTests.BasicUniform} */ var elemUnif = es3fUniformApiTests.BasicUniform.findWithName(basicUniforms, curName);
-                    if (elemUnif === undefined)
+                    if (elemUnif === null)
                         continue;
                     unifValue = elemUnif.finalValue;
                 } else
@@ -2009,9 +2009,9 @@ var deRandom = framework.delibs.debase.deRandom;
                 }
             } else if (gluShaderUtil.isDataTypeSampler(valuesToAssign[0].type)) {
                 if (assignByValue)
-                   gl.uniform1i(location, uniform.finalValue.val);
+                   gl.uniform1i(location, uniform.finalValue.val.samplerV.unit);
                 else {
-                    /** @type {number} (GLint) */ var unit = uniform.finalValue.val;
+                    /** @type {Array<number>} */ var unit = /** @type {Array<number>} */ (uniform.finalValue.val);
                    gl.uniform1iv(location, unit);
                 }
             } else
@@ -2566,7 +2566,7 @@ var deRandom = framework.delibs.debase.deRandom;
      * Initializes the tests to be performed.
      */
     es3fUniformApiTests.init = function() {
-        var state = tcuTestCase.runner.getState();
+        var state = tcuTestCase.runner;
         var testGroup = state.testCases;
 
         // Generate sets of UniformCollections that are used by several cases.
@@ -2938,7 +2938,7 @@ var deRandom = framework.delibs.debase.deRandom;
         //Set up Test Root parameters
         var testName = 'uniform_api';
         var testDescription = 'es3fUniformApiTests.Uniform API Tests';
-        var state = tcuTestCase.runner.getState();
+        var state = tcuTestCase.runner;
 
         state.testName = testName;
         state.testCases = tcuTestCase.newTest(testName, testDescription, null);
