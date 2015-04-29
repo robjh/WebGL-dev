@@ -1,7 +1,7 @@
 'use strict';
 goog.provide('modules.shared.glsFboCompletenessTests');
 goog.require('modules.shared.glsFboUtil');
-goog.provide('framework.opengl.gluObjectWrapper');
+goog.require('framework.opengl.gluObjectWrapper');
 goog.require('framework.common.tcuTestCase');
 
 
