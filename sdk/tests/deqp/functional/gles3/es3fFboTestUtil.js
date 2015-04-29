@@ -168,35 +168,35 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
 
     /**
      * @param {rrFragmentOperations.Fragment} packet
-     * @param {number} numPackets
      * @param {rrShadingContext.FragmentShadingContext} context
      */
-    es3fFboTestUtil.FlatColorShader.prototype.shadeFragments = function(packet, numPackets, context) {
+    es3fFboTestUtil.FlatColorShader.prototype.shadeFragments = function(packet, context) {
+        var numPackets = packet.length;
         var cval = this.m_uniforms[0].value;
         /** @const {Array<number>} */ var color = [cval, cval, cval, cval];
         /** @const {Array<number>} */ var icolor = es3fFboTestUtil.castVectorSaturate(color, tcuTexture.deTypes.deInt32);
         /** @const {Array<number>} */ var uicolor = es3fFboTestUtil.castVectorSaturate(color, tcuTexture.deTypes.deUint32);
 
-        if (this.m_outputType == gluShaderUtil.DataType.FLOAT_VEC4)
+        if (this.m_container.m_outputType == gluShaderUtil.DataType.FLOAT_VEC4)
         {
             for (var packetNdx = 0; packetNdx < numPackets; ++packetNdx)
                 for (var fragNdx = 0; fragNdx < 4; ++fragNdx)
                     packet[packetNdx].value = color;
         }
-        else if (this.m_outputType == gluShaderUtil.DataType.INT_VEC4)
+        else if (this.m_container.m_outputType == gluShaderUtil.DataType.INT_VEC4)
         {
             for (var packetNdx = 0; packetNdx < numPackets; ++packetNdx)
                 for (var fragNdx = 0; fragNdx < 4; ++fragNdx)
                     packet[packetNdx].value = icolor;
         }
-        else if (this.m_outputType == gluShaderUtil.DataType.UINT_VEC4)
+        else if (this.m_container.m_outputType == gluShaderUtil.DataType.UINT_VEC4)
         {
             for (var packetNdx = 0; packetNdx < numPackets; ++packetNdx)
                 for (var fragNdx = 0; fragNdx < 4; ++fragNdx)
                     packet[packetNdx].value = uicolor;
         }
         else
-            throw new Error('Invalid output type: ' + this.m_outputType);
+            throw new Error('Invalid output type: ' + this.m_container.m_outputType);
     };
 
     /**
@@ -274,16 +274,14 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
 
     /**
      * @param {rrFragmentOperations.Fragment} packet
-     * @param {number} numPackets
      * @param {rrShadingContext.FragmentShadingContext} context
      */
-    es3fFboTestUtil.GradientShader.prototype.shadeFragments = function(packet, numPackets, context) {
-        var mnval = this.m_uniforms[0].value;
-        var mxval = this.m_uniforms[1].value;
-        /** @const {Array<number>} */ var gradientMin = [mnval, mnval, mnval, mnval];
-        /** @const {Array<number>} */ var gradientMax = [mxval, mxval, mxval, mxval];
+    es3fFboTestUtil.GradientShader.prototype.shadeFragments = function(packet, context) {
+        var numPackets = packet.length;
+        /** @const {Array<number>} */ var gradientMin = this.m_uniforms[0].value;
+        /** @const {Array<number>} */ var gradientMax = this.m_uniforms[1].value;
 
-        for (var packetNdx = 0; packetNdx < numPackets; ++packetNdx)
+        for (var packetNdx = 0; packetNdx < numPackets; ++packetNdx) {
             /** @const {Array<number>} */ var coord = rrShadingContext.readTriangleVarying(packet[packetNdx], context, 0);
             /** @const {number} */ var x = coord[0];
             /** @const {number} */ var y = coord[1];
@@ -295,14 +293,15 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
             /** @const {Array<number>} */ var icolor = es3fFboTestUtil.castVectorSaturate(color, tcuTexture.deTypes.deInt32);
             /** @const {Array<number>} */ var uicolor = es3fFboTestUtil.castVectorSaturate(color, tcuTexture.deTypes.deUint32);
 
-            if (this.m_outputType == gluShaderUtil.DataType.FLOAT_VEC4)
+            if (this.m_container.m_outputType == gluShaderUtil.DataType.FLOAT_VEC4)
                 packet[packetNdx].value = color;
-            else if (this.m_outputType == gluShaderUtil.DataType.INT_VEC4)
+            else if (this.m_container.m_outputType == gluShaderUtil.DataType.INT_VEC4)
                 packet[packetNdx].value = icolor;
-            else if (this.m_outputType == gluShaderUtil.DataType.UINT_VEC4)
+            else if (this.m_container.m_outputType == gluShaderUtil.DataType.UINT_VEC4)
                 packet[packetNdx].value = uicolor;
             else
-                throw new Error('Invalid output type: ' + this.m_outputType);
+                throw new Error('Invalid output type: ' + this.m_container.m_outputType);
+        }
     };
 
     /**
@@ -487,10 +486,10 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
 
     /**
      * @param {rrFragmentOperations.Fragment} packet
-     * @param {number} numPackets
      * @param {rrShadingContext.FragmentShadingContext} context
      */
-    es3fFboTestUtil.Texture2DShader.prototype.shadeFragments = function(packet, numPackets, context) {
+    es3fFboTestUtil.Texture2DShader.prototype.shadeFragments = function(packet, context) {
+        var numPackets = packet.length;
         /** @type {number} */ var sval = this.m_uniforms[0].value;
         /** @type {number} */ var bval = this.m_uniforms[1].value;
         /** @type {Array<number>} */ var outScale = [sval, sval, sval, sval];
@@ -526,11 +525,11 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
             /** @const {Array<number>} */ var icolor = es3fFboTestUtil.castVectorSaturate(color, tcuTexture.deTypes.deInt32);
             /** @const {Array<number>} */ var uicolor = es3fFboTestUtil.castVectorSaturate(color, tcuTexture.deTypes.deUint32);
 
-            if (this.m_outputType == gluShaderUtil.DataType.FLOAT_VEC4)
+            if (this.m_container.m_outputType == gluShaderUtil.DataType.FLOAT_VEC4)
                 packet[packetNdx].value = color;
-            else if (this.m_outputType == gluShaderUtil.DataType.INT_VEC4)
+            else if (this.m_container.m_outputType == gluShaderUtil.DataType.INT_VEC4)
                 packet[packetNdx].value = icolor;
-            else if (this.m_outputType == gluShaderUtil.DataType.UINT_VEC4)
+            else if (this.m_container.m_outputType == gluShaderUtil.DataType.UINT_VEC4)
                 packet[packetNdx].value = uicolor;
         }
     };
@@ -650,10 +649,10 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
 
     /**
      * @param {rrFragmentOperations.Fragment} packet
-     * @param {number} numPackets
      * @param {rrShadingContext.FragmentShadingContext} context
      */
-    es3fFboTestUtil.TextureCubeShader.prototype.shadeFragments = function(packet, numPackets, context) {
+    es3fFboTestUtil.TextureCubeShader.prototype.shadeFragments = function(packet, context) {
+        var numPackets = packet.length;
         var sval = this.m_uniforms[2].value;
         var bval = this.m_uniforms[3].value;
         /** @const {Array<number>} */ var texScale = [sval, sval, sval, sval];
@@ -674,11 +673,11 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
             var icolor = es3fFboTestUtil.castVectorSaturate(color, tcuTexture.deTypes.deInt32);
             var uicolor = es3fFboTestUtil.castVectorSaturate(color, tcuTexture.deTypes.deUint32);
 
-            if (this.m_outputType == gluShaderUtil.DataType.FLOAT_VEC4)
+            if (this.m_container.m_outputType == gluShaderUtil.DataType.FLOAT_VEC4)
                 packet[packetNdx].value = color;
-            else if (this.m_outputType == gluShaderUtil.DataType.INT_VEC4)
+            else if (this.m_container.m_outputType == gluShaderUtil.DataType.INT_VEC4)
                 packet[packetNdx].value = icolor;
-            else if (this.m_outputType == gluShaderUtil.DataType.UINT_VEC4)
+            else if (this.m_container.m_outputType == gluShaderUtil.DataType.UINT_VEC4)
                 packet[packetNdx].value = uicolor;
         }
     };
@@ -776,10 +775,10 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
 
     /**
      * @param {rrFragmentOperations.Fragment} packet
-     * @param {number} numPackets
      * @param {rrShadingContext.FragmentShadingContext} context
      */
-    es3fFboTestUtil.Texture2DArrayShader.prototype.shadeFragments = function(packet, numPackets, context) {
+    es3fFboTestUtil.Texture2DArrayShader.prototype.shadeFragments = function(packet, context) {
+        var numPackets = packet.length;
         var sval = this.m_uniforms[1].value;
         var bval = this.m_uniforms[2].value;
         /** @const {Array<number>} */ var texScale = [sval, sval, sval, sval];
@@ -801,11 +800,11 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
             /** @const {Array<number>} */ var icolor = es3fFboTestUtil.castVectorSaturate(color, tcuTexture.deTypes.deInt32);
             /** @const {Array<number>} */ var uicolor = es3fFboTestUtil.castVectorSaturate(color, tcuTexture.deTypes.deUint32);
 
-            if (this.m_outputType == gluShaderUtil.DataType.FLOAT_VEC4)
+            if (this.m_container.m_outputType == gluShaderUtil.DataType.FLOAT_VEC4)
                 packet[packetNdx].value = color;
-            else if (this.m_outputType == gluShaderUtil.DataType.INT_VEC4)
+            else if (this.m_container.m_outputType == gluShaderUtil.DataType.INT_VEC4)
                 packet[packetNdx].value = icolor;
-            else if (this.m_outputType == gluShaderUtil.DataType.UINT_VEC4)
+            else if (this.m_container.m_outputType == gluShaderUtil.DataType.UINT_VEC4)
                 packet[packetNdx].value = uicolor;
         }
     };
@@ -904,10 +903,10 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
 
     /**
      * @param {rrFragmentOperations.Fragment} packet
-     * @param {number} numPackets
      * @param {rrShadingContext.FragmentShadingContext} context
      */
-    es3fFboTestUtil.Texture3DShader.prototype.shadeFragments = function(packet, numPackets, context) {
+    es3fFboTestUtil.Texture3DShader.prototype.shadeFragments = function(packet, context) {
+        var numPackets = packet.length;
         var sval = this.m_uniforms[1].value;
         var bval = this.m_uniforms[2].value;
         /** @const {Array<number>} */ var texScale = [sval, sval, sval, sval];
@@ -929,11 +928,11 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
             /** @const {Array<number>} */ var icolor = es3fFboTestUtil.castVectorSaturate(color, tcuTexture.deTypes.deInt32);
             /** @const {Array<number>} */ var uicolor = es3fFboTestUtil.castVectorSaturate(color, tcuTexture.deTypes.deUint32);
 
-            if (this.m_outputType == gluShaderUtil.DataType.FLOAT_VEC4)
+            if (this.m_container.m_outputType == gluShaderUtil.DataType.FLOAT_VEC4)
                 packet[packetNdx].value = color;
-            else if (this.m_outputType == gluShaderUtil.DataType.INT_VEC4)
+            else if (this.m_container.m_outputType == gluShaderUtil.DataType.INT_VEC4)
                 packet[packetNdx].value = icolor;
-            else if (this.m_outputType == gluShaderUtil.DataType.UINT_VEC4)
+            else if (this.m_container.m_outputType == gluShaderUtil.DataType.UINT_VEC4)
                 packet[packetNdx].value = uicolor;
         }
     };
@@ -1019,10 +1018,10 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
 
     /**
      * @param {rrFragmentOperations.Fragment} packet
-     * @param {number} numPackets
      * @param {rrShadingContext.FragmentShadingContext} context
      */
-    es3fFboTestUtil.DepthGradientShader.prototype.shadeFragments = function(packet, numPackets, context) {
+    es3fFboTestUtil.DepthGradientShader.prototype.shadeFragments = function(packet, context) {
+        var numPackets = packet.length;
         /** @const {number} */ var gradientMin = this.u_minGradient.value;
         /** @const {number} */ var gradientMax = this.u_maxGradient.value;
         var cval = this.u_color.value;
@@ -1043,11 +1042,11 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
 
             packet[packetNdx].sampleDepths[0] = gradientMin + (gradientMax - gradientMin) * f0;
 
-            if (this.m_outputType == gluShaderUtil.DataType.FLOAT_VEC4)
+            if (this.m_container.m_outputType == gluShaderUtil.DataType.FLOAT_VEC4)
                 packet[packetNdx].value = color;
-            else if (this.m_outputType == gluShaderUtil.DataType.INT_VEC4)
+            else if (this.m_container.m_outputType == gluShaderUtil.DataType.INT_VEC4)
                 packet[packetNdx].value = icolor;
-            else if (this.m_outputType == gluShaderUtil.DataType.UINT_VEC4)
+            else if (this.m_container.m_outputType == gluShaderUtil.DataType.UINT_VEC4)
                 packet[packetNdx].value = uicolor;
     };
 

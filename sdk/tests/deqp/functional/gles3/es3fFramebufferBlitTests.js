@@ -207,7 +207,7 @@ var DE_ASSERT = function(x) {
         {
             var pixels = new tcuSurface.Surface(this.m_dstSize[0], this.m_dstSize[1]);
             var access = pixels.getAccess();
-            ctx.readPixels(0, 0, this.m_dstSize[0], this.m_dstSize[1], gl.RGBA, gl.UNSIGNED_BYTE, access);
+            ctx.readPixels(0, 0, this.m_dstSize[0], this.m_dstSize[1], gl.RGBA, gl.UNSIGNED_BYTE, access.getBuffer());
             tcuImageCompare.displayImages(access);
         }
         // Fill source with grid pattern.
