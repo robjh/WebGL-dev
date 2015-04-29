@@ -22,24 +22,22 @@
 goog.provide('framework.referencerenderer.rrShadingContext');
 goog.require('framework.delibs.debase.deMath');
 goog.require('framework.referencerenderer.rrDefs');
+goog.require('framework.referencerenderer.rrFragmentOperations');
 goog.require('framework.referencerenderer.rrGenericVector');
 goog.require('framework.referencerenderer.rrFragmentOperations');
 
 goog.scope(function() {
 
-var rrShadingContext = framework.referencerenderer.rrShadingContext;
-var deMath = framework.delibs.debase.deMath;
-var rrDefs = framework.referencerenderer.rrDefs;
-var rrGenericVector = framework.referencerenderer.rrGenericVector;
-var rrFragmentOperations = framework.referencerenderer.rrFragmentOperations;
-    
+    var rrShadingContext = framework.referencerenderer.rrShadingContext;
+    var deMath = framework.delibs.debase.deMath;
+    var rrDefs = framework.referencerenderer.rrDefs;
+    var rrFragmentOperations = framework.referencerenderer.rrFragmentOperations;
+    var rrGenericVector = framework.referencerenderer.rrGenericVector;
 
     var DE_ASSERT = function(x) {
         if (!x)
             throw new Error('Assert failed');
     };
-
-    rrShadingContext.DE_NULL = null;
 
     /**
      * Fragment shading context

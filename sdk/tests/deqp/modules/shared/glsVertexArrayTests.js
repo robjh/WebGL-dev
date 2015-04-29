@@ -32,6 +32,7 @@ goog.require('framework.opengl.simplereference.sglrReferenceContext');
 goog.require('framework.opengl.simplereference.sglrShaderProgram');
 goog.require('framework.delibs.debase.deMath');
 goog.require('framework.delibs.debase.deRandom');
+goog.require('framework.referencerenderer.rrFragmentOperations');
 goog.require('framework.referencerenderer.rrGenericVector');
 goog.require('framework.referencerenderer.rrShadingContext');
 goog.require('framework.referencerenderer.rrVertexAttrib');
@@ -52,6 +53,7 @@ goog.scope(function() {
     var sglrShaderProgram = framework.opengl.simplereference.sglrShaderProgram;
     var deMath = framework.delibs.debase.deMath;
     var deRandom = framework.delibs.debase.deRandom;
+    var rrFragmentOperations = framework.referencerenderer.rrFragmentOperations;
     var rrGenericVector = framework.referencerenderer.rrGenericVector;
     var rrShadingContext = framework.referencerenderer.rrShadingContext;
     var rrVertexAttrib = framework.referencerenderer.rrVertexAttrib;
@@ -850,7 +852,7 @@ goog.scope(function() {
      * @param {number} colorScale
      */
     glsVertexArrayTests.ContextArrayPack.prototype.render = function(primitive, firstVertex, vertexCount, useVao, coordScale, colorScale) {
-        /** @type {number} */ var program;
+        var program;
         /** @type {number} */ var vaoID = 0;
 
         this.updateProgram();
@@ -1019,10 +1021,10 @@ goog.scope(function() {
             // Pass color to FS
             packet.outputs[varyingLocColor] = [u_colorScale * color[0], u_colorScale * color[1], u_colorScale * color[2], 1.0];
         }
-    }
+    };
 
     /**
-     * @param {Array<rrFragmentPacket.FragmentPacket>} packets
+     * @param {Array<rrFragmentOperations.Fragment>} packets
      * @param {rrShadingContext.FragmentShadingContext} context
      */
     glsVertexArrayTests.ContextShaderProgram.prototype.shadeFragments = function(packets, context) {
@@ -1835,11 +1837,11 @@ goog.scope(function() {
      */
     glsVertexArrayTests.RandomArrayGenerator.createQuadsPacked = function(seed, count, componentCount, offset, stride, primitive) {
         DE_ASSERT(componentCount == 4);
-        //DE_UNREF(componentCount); // TODO: Check this
+
         /** @type {number} */ var quadStride = 0;
 
         if (stride == 0)
-            stride = deMath.int32_size;
+            stride = deMath.INT32_SIZE;
 
         switch (primitive) {
             case glsVertexArrayTests.deArray.Primitive.TRIANGLES:
@@ -1938,9 +1940,12 @@ goog.scope(function() {
         switch (primitive) {
             case glsVertexArrayTests.deArray.Primitive.TRIANGLES: {
                 for (var quadNdx = 0; quadNdx < count; ++quadNdx) {
-                    /** @type {glsVertexArrayTests.GLValue} */ var x1, x2 = null;
-                    /** @type {glsVertexArrayTests.GLValue} */ var y1, y2 = null;
-                    /** @type {glsVertexArrayTests.GLValue} */ var z, w = null;
+                    /** @type {glsVertexArrayTests.GLValue} */ var x1 = null;
+                    /** @type {glsVertexArrayTests.GLValue} */ var x2 = null;
+                    /** @type {glsVertexArrayTests.GLValue} */ var y1 = null;
+                    /** @type {glsVertexArrayTests.GLValue} */ var y2 = null;
+                    /** @type {glsVertexArrayTests.GLValue} */ var z = null;
+                    /** @type {glsVertexArrayTests.GLValue} */ var w = null;
 
                     // attempt to find a good (i.e not extremely small) quad
                     for (var attemptNdx = 0; attemptNdx < 4; ++attemptNdx) {
@@ -1987,16 +1992,16 @@ goog.scope(function() {
                     };
 
                     var viewport = gl.getParameter(gl.VIEWPORT);
-                    var offset = 0;
+                    var voffset = 0;
                     if (componentCount > 2)
-                        offset = z.interpret();
-                    x1 = round(x1, scale, offset, viewport[2]);
-                    x2 = round(x2, scale, offset, viewport[2]);
-                    offset = 1;
+                        voffset = z.interpret();
+                    x1 = round(x1, scale, voffset, viewport[2]);
+                    x2 = round(x2, scale, voffset, viewport[2]);
+                    voffset = 1;
                     if (componentCount > 3)
-                        offset = w.interpret();
-                    y1 = round(y1, scale, offset, viewport[3]);
-                    y2 = round(y2, scale, offset, viewport[3]);
+                        voffset = w.interpret();
+                    y1 = round(y1, scale, voffset, viewport[3]);
+                    y2 = round(y2, scale, voffset, viewport[3]);
 
                     glsVertexArrayTests.copyGLValueToArray(resultData.subarray(quadNdx * quadStride), x1);
                     glsVertexArrayTests.copyGLValueToArray(resultData.subarray(quadNdx * quadStride + componentStride), y1);
@@ -2115,12 +2120,11 @@ goog.scope(function() {
 
         this.m_pixelformat = new tcuPixelFormat.PixelFormat(gl.getParameter(gl.RED_BITS), gl.getParameter(gl.GREEN_BITS), gl.getParameter(gl.BLUE_BITS), gl.getParameter(gl.ALPHA_BITS));
 
-        //TODO: Reference rasterizer implementation.
-        /** @type {sglrReferenceContext.ReferenceContextBuffers} */ this.m_refBuffers = glsVertexArrayTests.DE_NULL;
-        /** @type {sglrReferenceContext.ReferenceContext} */ this.m_refContext = glsVertexArrayTests.DE_NULL;
-        /** @type {GLContext} */ this.m_glesContext = glsVertexArrayTests.DE_NULL;
-        /** @type {glsVertexArrayTests.ContextArrayPack} */ this.m_glArrayPack = glsVertexArrayTests.DE_NULL;
-        /** @type {glsVertexArrayTests.ContextArrayPack} */ this.m_rrArrayPack = glsVertexArrayTests.DE_NULL;
+        /** @type {sglrReferenceContext.ReferenceContextBuffers} */ this.m_refBuffers = null;
+        /** @type {sglrReferenceContext.ReferenceContext} */ this.m_refContext = null;
+        /** @type {sglrGLContext.GLContext} */ this.m_glesContext = null;
+        /** @type {glsVertexArrayTests.ContextArrayPack} */ this.m_glArrayPack = null;
+        /** @type {glsVertexArrayTests.ContextArrayPack} */ this.m_rrArrayPack = null;
         /** @type {boolean} */ this.m_isOk = false;
         /** @type {number} */ this.m_maxDiffRed = deMath.deCeilFloatToInt32(256.0 * (2.0 / (1 << this.m_pixelformat.redBits)));
         /** @type {number} */ this.m_maxDiffGreen = deMath.deCeilFloatToInt32(256.0 * (2.0 / (1 << this.m_pixelformat.greenBits)));
@@ -2138,13 +2142,11 @@ goog.scope(function() {
         /** @type {number}*/ var renderTargetHeight = Math.min(512, canvas.height);
         /** @type {sglrReferenceContext.ReferenceContextLimits} */ var limits = new sglrReferenceContext.ReferenceContextLimits(gl);
 
-        //TODO: Reference rasterizer implementation.
         this.m_glesContext = new sglrGLContext.GLContext(gl);
         this.m_refBuffers = new sglrReferenceContext.ReferenceContextBuffers(this.m_pixelformat, 0, 0, renderTargetWidth, renderTargetHeight);
         this.m_refContext = new sglrReferenceContext.ReferenceContext(limits, this.m_refBuffers.getColorbuffer(), this.m_refBuffers.getDepthbuffer(), this.m_refBuffers.getStencilbuffer());
 
         this.m_glArrayPack = new glsVertexArrayTests.ContextArrayPack(this.m_glesContext);
-        //TODO: Reference rasterizer implementation.
         this.m_rrArrayPack = new glsVertexArrayTests.ContextArrayPack(this.m_refContext);
     };
 
@@ -2155,12 +2157,12 @@ goog.scope(function() {
         /** @type {tcuSurface.Surface} */ var ref = this.m_rrArrayPack.getSurface();
         /** @type {tcuSurface.Surface} */ var screen = this.m_glArrayPack.getSurface();
 
-        if (this.m_glesContext.getParameter(gl.SAMPLES) > 1) {
+        if (/** @type {number} */ (this.m_glesContext.getParameter(gl.SAMPLES)) > 1) {
             // \todo [mika] Improve compare when using multisampling
             bufferedLogToConsole("Warning: Comparison of result from multisample render targets are not as strict as without multisampling. Might produce false positives!");
             this.m_isOk = tcuImageCompare.fuzzyCompare("Compare Results", "Compare Results", ref.getAccess(), screen.getAccess(), 1.5);
         } else {
-            /** @type {tcuRGBA.RGBA} */ var threshold = new tcuRGBA.RGBA(this.m_maxDiffRed, this.m_maxDiffGreen, this.m_maxDiffBlue, 255);
+            /** @type {tcuRGBA.RGBA} */ var threshold = tcuRGBA.newRGBAComponents(this.m_maxDiffRed, this.m_maxDiffGreen, this.m_maxDiffBlue, 255);
             /** @type {tcuSurface.Surface} */ var error = new tcuSurface.Surface(ref.getWidth(), ref.getHeight());
 
             this.m_isOk = true;
@@ -2196,9 +2198,9 @@ goog.scope(function() {
                             for (var dx = -1; dx < 2 && !isOkPixel; dx++) {
                                 // Check reference pixel against screen pixel
                                 /** @type {tcuRGBA.RGBA} */ var screenCmpPixel = tcuRGBA.newRGBAFromArray(screen.getPixel(x + dx, y + dy));
-                                /** @type {deMath.deUint8} */ var r = Math.abs(refPixel.getRed() - screenCmpPixel.getRed());
-                                /** @type {deMath.deUint8} */ var g = Math.abs(refPixel.getGreen() - screenCmpPixel.getGreen());
-                                /** @type {deMath.deUint8} */ var b = Math.abs(refPixel.getBlue() - screenCmpPixel.getBlue());
+                                /** @type {number} (8-bit) */ var r = Math.abs(refPixel.getRed() - screenCmpPixel.getRed());
+                                /** @type {number} (8-bit) */ var g = Math.abs(refPixel.getGreen() - screenCmpPixel.getGreen());
+                                /** @type {number} (8-bit) */ var b = Math.abs(refPixel.getBlue() - screenCmpPixel.getBlue());
 
                                 if (r <= this.m_maxDiffRed && g <= this.m_maxDiffGreen && b <= this.m_maxDiffBlue)
                                     isOkPixel = true;
@@ -2264,7 +2266,7 @@ goog.scope(function() {
      * @constructor
      */
     glsVertexArrayTests.MultiVertexArrayTest.Spec = function() {
-        /** @type {glsVertexArrayTests.deArray.Primitive} */ this.primitive = undefined;
+        /** @type {glsVertexArrayTests.deArray.Primitive} */ this.primitive;
         /** @type {number} */ this.drawCount = 0;
         /** @type {number} */ this.first = 0;
         /** @type {Array<glsVertexArrayTests.MultiVertexArrayTest.Spec.ArraySpec>} */ this.arrays = [];
@@ -2385,7 +2387,7 @@ goog.scope(function() {
 
     /**
      * iterate
-     * @return {tcuTestCase.runner.IterateResult}
+     * @return {tcuTestCase.IterateResult}
      */
     glsVertexArrayTests.MultiVertexArrayTest.prototype.iterate = function() {
         if (this.m_iteration == 0) {
@@ -2503,7 +2505,7 @@ goog.scope(function() {
             this.m_iteration++;
             return tcuTestCase.IterateResult.STOP;
         } else {
-            throw new Error('glsVertexArrayTests.MultiVertexArrayTest.iterate - Invalid iteration stage');
+            testFailedOptions('glsVertexArrayTests.MultiVertexArrayTest.iterate - Invalid iteration stage', false);
             return tcuTestCase.IterateResult.STOP;
         }
     };
