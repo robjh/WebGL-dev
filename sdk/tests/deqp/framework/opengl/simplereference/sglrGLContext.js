@@ -171,6 +171,16 @@ goog.scope(function() {
         this.m_context.drawArrays(gl.TRIANGLES, first, (count * 6) - first);
     };
 
+
+
+    sglrGLContext.GLContext.prototype.getWidth = function () {
+        return this.m_context.getParameter(gl.VIEWPORT)[2];
+    };
+
+    sglrGLContext.GLContext.prototype.getHeight = function () {
+        return this.m_context.getParameter(gl.VIEWPORT)[3];
+    };
+
 /**
  * @param  ctx GL-like context
  * @param {string} name

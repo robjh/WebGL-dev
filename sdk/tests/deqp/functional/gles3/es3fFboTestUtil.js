@@ -73,6 +73,9 @@ es3fFboTestUtil.FboIncompleteException = function (reason) {
    this.name = "es3fFboTestUtil.FboIncompleteException";
 };
 
+/** @typedef { (WebGL2RenderingContext|sglrReferenceContext.ReferenceContext)} */
+es3fFboTestUtil.Context;
+
 es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return this.reason; };
 
     /**
@@ -148,7 +151,7 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
         /** @type {number} */ var location = context.getUniformLocation(program, 'u_color');
 
         context.useProgram(program);
-        context.uniform4fv(location, 1, color);
+        context.uniform4fv(location, color);
     };
 
     /**
@@ -244,15 +247,15 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
     es3fFboTestUtil.GradientShader.prototype.constructor = es3fFboTestUtil.GradientShader;
 
     /**
-     * @param ctx GL-like context
+     * @param {es3fFboTestUtil.Context} ctx GL-like context
      * @param program GL program
      * @param {Array<number>} gradientMin
      * @param {Array<number>} gradientMax
      */
     es3fFboTestUtil.GradientShader.prototype.setGradient = function(ctx, program, gradientMin, gradientMax) {
         ctx.useProgram(program);
-        ctx.uniform4fv(ctx.getUniformLocation(program, 'u_gradientMin'), 1, gradientMin);
-        ctx.uniform4fv(ctx.getUniformLocation(program, 'u_gradientMax'), 1, gradientMax);
+        ctx.uniform4fv(ctx.getUniformLocation(program, 'u_gradientMin'), gradientMin);
+        ctx.uniform4fv(ctx.getUniformLocation(program, 'u_gradientMax'), gradientMax);
     };
 
     /**
@@ -328,7 +331,7 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
         src += '\n' +
                'void main (void)\n' +
                '{\n' +
-               '    ' << precision << ' vec4 out0 = vec4(0.0);\n';
+               '    ' + precision + ' vec4 out0 = vec4(0.0);\n';
 
         // Texture input fetch and combine.
         for (var inNdx = 0; inNdx < samplerTypes.length; inNdx++)
@@ -397,8 +400,8 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
      * @extends {sglrShaderProgram.ShaderProgram}
      * @param {Array<gluShaderUtil.DataType>} samplerTypes
      * @param {gluShaderUtil.DataType} outputType
-     * @param {Array<number>} outScale - default [1.0, 1.0, 1.0, 1.0]
-     * @param {Array<number>} outBias - default [0.0, 0.0, 0.0, 0.0]
+     * @param {Array<number>=} outScale - default [1.0, 1.0, 1.0, 1.0]
+     * @param {Array<number>=} outBias - default [0.0, 0.0, 0.0, 0.0]
      */
     es3fFboTestUtil.Texture2DShader = function(samplerTypes, outputType, outScale, outBias) {
         if (outScale === undefined) outScale = [1.0, 1.0, 1.0, 1.0];
@@ -460,12 +463,12 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
             /** @type {string} */ var biasName = 'u_texBias' + texNdx;
 
             context.uniform1i(context.getUniformLocation(program, samplerName), this.m_inputs[texNdx].unitNdx);
-            context.uniform4fv(context.getUniformLocation(program, scaleName), 1, this.m_inputs[texNdx].scale);
-            context.uniform4fv(context.getUniformLocation(program, biasName), 1, this.m_inputs[texNdx].bias);
+            context.uniform4fv(context.getUniformLocation(program, scaleName), this.m_inputs[texNdx].scale);
+            context.uniform4fv(context.getUniformLocation(program, biasName), this.m_inputs[texNdx].bias);
         }
 
-        context.uniform4fv(context.getUniformLocation(program, 'u_outScale0'), 1, this.m_outScale);
-        context.uniform4fv(context.getUniformLocation(program, 'u_outBias0'), 1, this.m_outBias);
+        context.uniform4fv(context.getUniformLocation(program, 'u_outScale0'), this.m_outScale);
+        context.uniform4fv(context.getUniformLocation(program, 'u_outBias0'), this.m_outBias);
     };
 
     /**
@@ -600,7 +603,7 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
             // Face +Z: (x, y, 1) -> (+(2*x-1), -(2*y-1), +1)
             [[2.0, 0.0, -1.0], [0.0, -2.0, 1.0], [0.0, 0.0, 1.0]]];
         DE_ASSERT(deMath.deInBounds32(face, 0, Object.keys(tcuTexture.CubeFace).length));
-        this.m_coordMat = new tcuMatrix.Mat3(s_cubeTransforms[face]);
+        this.m_coordMat = /** @type {tcuMatrix.Mat3} */ (tcuMatrix.matrixFromVector(3, 3, s_cubeTransforms[face]));
     };
 
     /**
@@ -620,9 +623,9 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
         ctx.useProgram(program);
 
         ctx.uniform1i(ctx.getUniformLocation(program, 'u_sampler0'), 0);
-        ctx.uniformMatrix3fv(ctx.getUniformLocation(program, 'u_coordMat'), 1, false, this.m_coordMat.getColumnMajorData());
-        ctx.uniform4fv(ctx.getUniformLocation(program, 'u_scale'), 1, this.m_texScale);
-        ctx.uniform4fv(ctx.getUniformLocation(program, 'u_bias'), 1, this.m_texBias);
+        ctx.uniformMatrix3fv(ctx.getUniformLocation(program, 'u_coordMat'), false, this.m_coordMat.getColumnMajorData());
+        ctx.uniform4fv(ctx.getUniformLocation(program, 'u_scale'), this.m_texScale);
+        ctx.uniform4fv(ctx.getUniformLocation(program, 'u_bias'), this.m_texBias);
     };
 
     /**
@@ -631,7 +634,7 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
      * @param {number} numPackets
      */
     es3fFboTestUtil.TextureCubeShader.prototype.shadeVertices = function(inputs, packets, numPackets) {
-        /** @type {tcuMatrix.Mat3} */ var texCoordMat = new tcuMatrix.Mat3(this.m_uniforms[0].value);
+        /** @type {tcuMatrix.Matrix} */ var texCoordMat = tcuMatrix.matrixFromVector(3, 3, this.m_uniforms[0].value);
 
         for (var packetNdx = 0; packetNdx < numPackets; ++packetNdx) {
             /** @type {rrVertexPacket.VertexPacket} */ var packet = packets[packetNdx];
@@ -745,7 +748,7 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
         this.m_texBias = bias;
     };
     /**
-     * @param ctx GL-like context
+     * @param {es3fFboTestUtil.Context} ctx GL-like context
      * @param program
      */
     es3fFboTestUtil.Texture2DArrayShader.prototype.setUniforms = function(ctx, program) {
@@ -753,8 +756,8 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
 
         ctx.uniform1i(ctx.getUniformLocation(program, 'u_sampler0'), 0);
         ctx.uniform1i(ctx.getUniformLocation(program, 'u_layer'), this.m_layer);
-        ctx.uniform4fv(ctx.getUniformLocation(program, 'u_scale'), 1, this.m_texScale);
-        ctx.uniform4fv(ctx.getUniformLocation(program, 'u_bias'), 1, this.m_texBias);
+        ctx.uniform4fv(ctx.getUniformLocation(program, 'u_scale'), this.m_texScale);
+        ctx.uniform4fv(ctx.getUniformLocation(program, 'u_bias'), this.m_texBias);
     };
 
     /**
@@ -881,8 +884,8 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
         context.useProgram(program);
         context.uniform1i(context.getUniformLocation(program, 'u_sampler0'), 0);
         context.uniform1f(context.getUniformLocation(program, 'u_depth'), this.m_depth);
-        context.uniform4fv(context.getUniformLocation(program, 'u_scale'), 1, this.m_texScale);
-        context.uniform4fv(context.getUniformLocation(program, 'u_bias'), 1, this.m_texBias);
+        context.uniform4fv(context.getUniformLocation(program, 'u_scale'), this.m_texScale);
+        context.uniform4fv(context.getUniformLocation(program, 'u_bias'), this.m_texBias);
     };
 
     /**
@@ -995,9 +998,9 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
      */
     es3fFboTestUtil.DepthGradientShader.prototype.setUniforms = function(ctx, program, gradientMin, gradientMax, color) {
         ctx.useProgram(program);
-        ctx.uniform1fv(ctx.getUniformLocation(program, 'u_minGradient'), 1, gradientMin);
-        ctx.uniform1fv(ctx.getUniformLocation(program, 'u_maxGradient'), 1, gradientMax);
-        ctx.uniform4fv(ctx.getUniformLocation(program, 'u_color'), 1, color);
+        ctx.uniform1fv(ctx.getUniformLocation(program, 'u_minGradient'), gradientMin);
+        ctx.uniform1fv(ctx.getUniformLocation(program, 'u_maxGradient'), gradientMax);
+        ctx.uniform4fv(ctx.getUniformLocation(program, 'u_color'), color);
     };
 
     /**
@@ -1112,6 +1115,32 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
         }
     };
 
+    /**
+     * @param {tcuTexture.TextureFormat} format
+     * @return {gluShaderUtil.DataType}
+     */
+    es3fFboTestUtil.getFragmentOutputType = function(format) {
+        switch (tcuTextureUtil.getTextureChannelClass(format.type)) {
+            case tcuTextureUtil.TextureChannelClass.FLOATING_POINT:
+            case tcuTextureUtil.TextureChannelClass.SIGNED_FIXED_POINT:
+            case tcuTextureUtil.TextureChannelClass.UNSIGNED_FIXED_POINT:
+                return gluShaderUtil.DataType.FLOAT_VEC4;
+
+            case tcuTextureUtil.TextureChannelClass.UNSIGNED_INTEGER:
+                return gluShaderUtil.DataType.UINT_VEC4;
+
+            case tcuTextureUtil.TextureChannelClass.SIGNED_INTEGER:
+                return gluShaderUtil.DataType.INT_VEC4;
+
+            default:
+                throw new Error("Unknown format");
+        }
+    };
+
+    /**
+     * @param {tcuTexture.TextureFormat} format
+     * @return {tcuTexture.TextureFormat}
+     */
     es3fFboTestUtil.getFramebufferReadFormat = function(format) {
         switch (tcuTextureUtil.getTextureChannelClass(format.type)) {
             case tcuTextureUtil.TextureChannelClass.FLOATING_POINT:
@@ -1133,7 +1162,7 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
     };
 
     /**
-     * @param ctx GL-like context
+     * @param {es3fFboTestUtil.Context} ctx GL-like context
      * @param {tcuTexture.TextureFormat} format
      * @param {Array<number>} value
      */

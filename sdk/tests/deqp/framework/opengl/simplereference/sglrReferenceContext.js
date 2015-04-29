@@ -755,6 +755,7 @@ sglrReferenceContext.Texture.prototype.sample4 = function(packetTexcoords, lodBi
         this.m_textureUnits = [];
         for (var i = 0; i < this.m_limits.maxTextureImageUnits; i++)
             this.m_textureUnits.push(new sglrReferenceContext.TextureUnit());
+        this.m_activeTexture = 0;
         this.m_lastError = gl.NO_ERROR;
         // this.m_textures = new ObjectManager();
         this.m_pixelUnpackRowLength = 0;
@@ -805,7 +806,6 @@ sglrReferenceContext.Texture.prototype.sample4 = function(packetTexcoords, lodBi
         this.m_readFramebufferBinding = null;
         this.m_drawFramebufferBinding = null;
         this.m_renderbufferBinding = null;
-        this.m_programs = [];
         this.m_currentProgram = null;
         this.m_currentAttribs = [];
         for (var i = 0; i < this.m_limits.maxVertexAttribs; i++)
@@ -1267,7 +1267,7 @@ sglrReferenceContext.Texture.prototype.sample4 = function(packetTexcoords, lodBi
     };
 
     sglrReferenceContext.ReferenceContext.prototype.createVertexArray = function() { return new sglrReferenceContext.VertexArray(this.m_limits.maxVertexAttribs); };
-    sglrReferenceContext.ReferenceContext.prototype.deleteVertexArray = function() {};
+    sglrReferenceContext.ReferenceContext.prototype.deleteVertexArray = function(array) {};
 
     sglrReferenceContext.ReferenceContext.prototype.vertexAttribPointer = function(index, rawSize, type, normalized, stride, offset) {
         var allowBGRA = false;
@@ -1391,11 +1391,11 @@ sglrReferenceContext.Texture.prototype.sample4 = function(packetTexcoords, lodBi
     };
 
     sglrReferenceContext.ReferenceContext.prototype.getAttribLocation = function(program, name) {
-        if (this.condtionalSetError(!(program >= 0), gl.INVALID_OPERATION))
+        if (this.condtionalSetError(!(program), gl.INVALID_OPERATION))
             return -1;
 
-        for (var i = 0; i < this.m_programs[program].m_attributeNames.length; i++)
-            if (this.m_programs[program].m_attributeNames[i] === name)
+        for (var i = 0; i < program.m_attributeNames.length; i++)
+            if (program.m_attributeNames[i] === name)
                 return i;
 
         return -1;
@@ -1412,74 +1412,154 @@ sglrReferenceContext.Texture.prototype.sample4 = function(packetTexcoords, lodBi
 
         if (this.condtionalSetError(!uniform, gl.INVALID_OPERATION))
             return;
-        if (this.condtionalSetError(uniform.type != type, gl.INVALID_OPERATION))
+        
+        if (gluShaderUtil.isDataTypeSampler(uniform.type)) {
+            if (this.condtionalSetError(type != gluShaderUtil.DataType.INT, gl.INVALID_OPERATION))
+                return;
+        } else if (this.condtionalSetError(uniform.type != type, gl.INVALID_OPERATION))
             return;
         /* TODO: Do we need to copy objects? */
         uniform.value = value;
     };
 
+    /**
+     * @param {number} location
+     * @param {number} x
+     */
     sglrReferenceContext.ReferenceContext.prototype.uniform1f = function(location, x) {
         return this.uniformValue(location, gluShaderUtil.DataType.FLOAT, [x]);
     };
 
+    /**
+     * @param {number} location
+     * @param {Array<number>} x
+     */
     sglrReferenceContext.ReferenceContext.prototype.uniform1fv = function(location, x) {
         return this.uniformValue(location, gluShaderUtil.DataType.FLOAT, x);
     };
 
+    /**
+     * @param {number} location
+     * @param {number} x
+     */
     sglrReferenceContext.ReferenceContext.prototype.uniform1i = function(location, x) {
         return this.uniformValue(location, gluShaderUtil.DataType.INT, [x]);
     };
 
+    /**
+     * @param {number} location
+     * @param {Array<number>} x
+     */
     sglrReferenceContext.ReferenceContext.prototype.uniform1iv = function(location, x) {
         return this.uniformValue(location, gluShaderUtil.DataType.INT, x);
     };
 
+    /**
+     * @param {number} location
+     * @param {number} x
+     * @param {number} y
+     */
     sglrReferenceContext.ReferenceContext.prototype.uniform2f = function(location, x, y) {
-        return this.uniformValue(location, gluShaderUtil.DataType.FLOAT, [x, y]);
+        return this.uniformValue(location, gluShaderUtil.DataType.FLOAT_VEC2, [x, y]);
     };
 
+    /**
+     * @param {number} location
+     * @param {Array<number>} x
+     */
     sglrReferenceContext.ReferenceContext.prototype.uniform2fv = function(location, x) {
-        return this.uniformValue(location, gluShaderUtil.DataType.FLOAT, x);
+        return this.uniformValue(location, gluShaderUtil.DataType.FLOAT_VEC2, x);
     };
 
+    /**
+     * @param {number} location
+     * @param {number} x
+     * @param {number} y
+     */
     sglrReferenceContext.ReferenceContext.prototype.uniform2i = function(location, x, y) {
-        return this.uniformValue(location, gluShaderUtil.DataType.INT, [x, y]);
+        return this.uniformValue(location, gluShaderUtil.DataType.INT_VEC2, [x, y]);
     };
 
+    /**
+     * @param {number} location
+     * @param {Array<number>} x
+     */
     sglrReferenceContext.ReferenceContext.prototype.uniform2iv = function(location, x) {
-        return this.uniformValue(location, gluShaderUtil.DataType.INT, x);
+        return this.uniformValue(location, gluShaderUtil.DataType.INT_VEC2, x);
     };
 
+    /**
+     * @param {number} location
+     * @param {number} x
+     * @param {number} y
+     * @param {number} z
+     */
     sglrReferenceContext.ReferenceContext.prototype.uniform3f = function(location, x, y, z) {
-        return this.uniformValue(location, gluShaderUtil.DataType.FLOAT, [x, y, z]);
+        return this.uniformValue(location, gluShaderUtil.DataType.FLOAT_VEC3, [x, y, z]);
     };
 
+    /**
+     * @param {number} location
+     * @param {Array<number>} x
+     */
     sglrReferenceContext.ReferenceContext.prototype.uniform3fv = function(location, x) {
-        return this.uniformValue(location, gluShaderUtil.DataType.FLOAT, x);
+        return this.uniformValue(location, gluShaderUtil.DataType.FLOAT_VEC3, x);
     };
 
+    /**
+     * @param {number} location
+     * @param {number} x
+     * @param {number} y
+     * @param {number} z
+     */
     sglrReferenceContext.ReferenceContext.prototype.uniform3i = function(location, x, y, z) {
-        return this.uniformValue(location, gluShaderUtil.DataType.INT, [x, y, z]);
+        return this.uniformValue(location, gluShaderUtil.DataType.INT_VEC3, [x, y, z]);
     };
 
+    /**
+     * @param {number} location
+     * @param {Array<number>} x
+     */
     sglrReferenceContext.ReferenceContext.prototype.uniform3iv = function(location, x) {
-        return this.uniformValue(location, gluShaderUtil.DataType.INT, x);
+        return this.uniformValue(location, gluShaderUtil.DataType.INT_VEC3, x);
     };
 
+    /**
+     * @param {number} location
+     * @param {number} x
+     * @param {number} y
+     * @param {number} z
+     * @param {number} w
+     */
     sglrReferenceContext.ReferenceContext.prototype.uniform4f = function(location, x, y, z, w) {
-        return this.uniformValue(location, gluShaderUtil.DataType.FLOAT, [x, y, z, w]);
+        return this.uniformValue(location, gluShaderUtil.DataType.FLOAT_VEC4, [x, y, z, w]);
     };
 
+    /**
+     * @param {number} location
+     * @param {Array<number>} x
+     */
     sglrReferenceContext.ReferenceContext.prototype.uniform4fv = function(location, x) {
-        return this.uniformValue(location, gluShaderUtil.DataType.FLOAT, x);
+        return this.uniformValue(location, gluShaderUtil.DataType.FLOAT_VEC4, x);
     };
 
+    /**
+     * @param {number} location
+     * @param {number} x
+     * @param {number} y
+     * @param {number} z
+     * @param {number} w
+     */
     sglrReferenceContext.ReferenceContext.prototype.uniform4i = function(location, x, y, z, w) {
-        return this.uniformValue(location, gluShaderUtil.DataType.INT, [x, y, z, w]);
+        return this.uniformValue(location, gluShaderUtil.DataType.INT_VEC4, [x, y, z, w]);
     };
 
+    /**
+     * @param {number} location
+     * @param {Array<number>} x
+     */
     sglrReferenceContext.ReferenceContext.prototype.uniform4iv = function(location, x) {
-        return this.uniformValue(location, gluShaderUtil.DataType.INT, x);
+        return this.uniformValue(location, gluShaderUtil.DataType.INT_VEC4, x);
     };
 
     sglrReferenceContext.ReferenceContext.getSupportedExtensions = function() { return []; };
@@ -1494,24 +1574,36 @@ sglrReferenceContext.Texture.prototype.sample4 = function(packetTexcoords, lodBi
         return result;
     };
 
+    /**
+     * @param {number} location
+     * @param {Array<number>} x
+     */
     sglrReferenceContext.ReferenceContext.prototype.uniformMatrix2fv = function(location, transpose, x) {
-        return this.uniformValue(location, gluShaderUtil.DataType.FLOAT, transpose ? sglrReferenceContext.trans(2, x) : x);
+        return this.uniformValue(location, gluShaderUtil.DataType.FLOAT_MAT2, transpose ? sglrReferenceContext.trans(2, x) : x);
     };
 
+    /**
+     * @param {number} location
+     * @param {Array<number>} x
+     */    
     sglrReferenceContext.ReferenceContext.prototype.uniformMatrix3fv = function(location, transpose, x) {
-        return this.uniformValue(location, gluShaderUtil.DataType.FLOAT, transpose ? sglrReferenceContext.trans(3, x) : x);
+        return this.uniformValue(location, gluShaderUtil.DataType.FLOAT_MAT3, transpose ? sglrReferenceContext.trans(3, x) : x);
     };
 
+    /**
+     * @param {number} location
+     * @param {Array<number>} x
+     */
     sglrReferenceContext.ReferenceContext.prototype.uniformMatrix4fv = function(location, transpose, x) {
-        return this.uniformValue(location, gluShaderUtil.DataType.FLOAT, transpose ? sglrReferenceContext.trans(4, x) : x);
+        return this.uniformValue(location, gluShaderUtil.DataType.FLOAT_MAT4, transpose ? sglrReferenceContext.trans(4, x) : x);
     };
 
     sglrReferenceContext.ReferenceContext.prototype.getUniformLocation = function(program, name) {
-        if (this.condtionalSetError(!(program >= 0), gl.INVALID_OPERATION))
+        if (this.condtionalSetError(!program, gl.INVALID_OPERATION))
             return -1;
 
-        for (var i = 0; i < this.m_programs[program].m_uniforms.length; i++)
-            if (this.m_programs[program].m_uniforms[i].name === name)
+        for (var i = 0; i < program.m_uniforms.length; i++)
+            if (program.m_uniforms[i].name === name)
                 return i;
 
         return -1;
@@ -1578,6 +1670,8 @@ sglrReferenceContext.Texture.prototype.sample4 = function(packetTexcoords, lodBi
     };
 
     sglrReferenceContext.ReferenceContext.prototype.createBuffer = function() { return new sglrReferenceContext.DataBuffer(); };
+
+    sglrReferenceContext.ReferenceContext.prototype.deleteBuffer = function(buffer) {};
 
     sglrReferenceContext.ReferenceContext.prototype.bufferData = function(target, input, usage) {
         if (this.condtionalSetError(!sglrReferenceContext.isValidBufferTarget(target), gl.INVALID_ENUM))
@@ -2468,25 +2562,23 @@ sglrReferenceContext.Texture.prototype.sample4 = function(packetTexcoords, lodBi
     /**
     * createProgram
     * @param {sglrShaderProgram.ShaderProgram} program
-    * @return {number}
+    * @return {sglrShaderProgram.ShaderProgram}
     */
     sglrReferenceContext.ReferenceContext.prototype.createProgram = function (program) {
-        //Push and return position
-        this.m_programs.push(program);
-        return this.m_programs.length - 1;
+        return program;
     };
 
     /**
      * deleteProgram
-     * @param {number} program
+     * @param {sglrShaderProgram.ShaderProgram} program
      */
-    sglrReferenceContext.ReferenceContext.prototype.deleteProgram = function () {};
+    sglrReferenceContext.ReferenceContext.prototype.deleteProgram = function (program) {};
 
     /**
-    * @param {number} program
+    * @param {sglrShaderProgram.ShaderProgram} program
     */
     sglrReferenceContext.ReferenceContext.prototype.useProgram = function(program) {
-        this.m_currentProgram = program == null ? null : this.m_programs[program];
+        this.m_currentProgram = program;
     };
 
     /**

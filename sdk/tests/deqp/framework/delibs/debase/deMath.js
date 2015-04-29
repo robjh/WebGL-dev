@@ -630,7 +630,8 @@ deMath.logicalNotBool = function(a) {
 };
 
 /** deMath.greaterThan over two arrays of booleans
- * @param {Array<boolean>} a
+ * @param {Array<number>} a
+ * @param {Array<number>} b
  * @return {Array<boolean>}
  */
 deMath.greaterThan = function(a, b) {

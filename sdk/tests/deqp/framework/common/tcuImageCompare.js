@@ -467,7 +467,7 @@ tcuImageCompare.fuzzyCompare = function(imageSetName, imageSetDesc, reference, r
  * @param {tcuTexture.ConstPixelBufferAccess} reference Reference image
  * @param {tcuTexture.ConstPixelBufferAccess} result Result image
  * @param {tcuRGBA.RGBA} threshold Maximum local difference
- * @param {tcuImageCompare.CompareLogMode} logMode Logging mode
+ * @param {tcuImageCompare.CompareLogMode=} logMode Logging mode
  * @return {boolean} if comparison passes, false otherwise
  */
 tcuImageCompare.bilinearCompare = function(imageSetName, imageSetDesc, reference, result, threshold, logMode) {
