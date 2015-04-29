@@ -271,13 +271,11 @@ goog.scope(function() {
      * @return {boolean}
      */
     tcuBilinearImageCompare.bilinearCompare = function(reference, result, errorMask, threshold) {
-        DE_ASSERT(reference.getWidth() == result.getWidth() &&
-                  reference.getHeight() == result.getHeight() &&
-                  reference.getDepth() == result.getDepth() &&
-                  reference.getFormat() == result.getFormat());
-        DE_ASSERT(reference.getWidth() == errorMask.getWidth() &&
-                  reference.getHeight() == errorMask.getHeight() &&
-                  reference.getDepth() == errorMask.getDepth());
+        assertMsgOptions(result.getWidth() == reference.getWidth() && result.getHeight() == reference.getHeight() && result.getDepth() == reference.getDepth(),
+            'Reference and result images have different dimensions', false, true);
+
+        assertMsgOptions(errorMask.getWidth() == reference.getWidth() && errorMask.getHeight() == reference.getHeight() && errorMask.getDepth() == reference.getDepth(),
+            'Reference and error mask images have different dimensions', false, true);
 
         /** @type {boolean} */ var isEqual = reference.getFormat().isEqual(
             new tcuTexture.TextureFormat(

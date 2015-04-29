@@ -99,10 +99,10 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
      */
     es3fFboTestUtil.castVectorSaturate = function(input, type) {
         return [
-            (input[0] + 0.5 >= type.max) ? (type.max) : ((input[0] - 0.5 <= type.min) ? (type.min) : (input[0])),
-            (input[1] + 0.5 >= type.max) ? (type.max) : ((input[1] - 0.5 <= type.min) ? (type.min) : (input[1])),
-            (input[2] + 0.5 >= type.max) ? (type.max) : ((input[2] - 0.5 <= type.min) ? (type.min) : (input[2])),
-            (input[3] + 0.5 >= type.max) ? (type.max) : ((input[3] - 0.5 <= type.min) ? (type.min) : (input[3]))
+            (input[0] + 0.5 >= type.max) ? (type.max) : ((input[0] - 0.5 <= type.min) ? (type.min) : Math.round(input[0])),
+            (input[1] + 0.5 >= type.max) ? (type.max) : ((input[1] - 0.5 <= type.min) ? (type.min) : Math.round(input[1])),
+            (input[2] + 0.5 >= type.max) ? (type.max) : ((input[2] - 0.5 <= type.min) ? (type.min) : Math.round(input[2])),
+            (input[3] + 0.5 >= type.max) ? (type.max) : ((input[3] - 0.5 <= type.min) ? (type.min) : Math.round(input[3]))
         ];
     };
 
@@ -490,10 +490,8 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
      */
     es3fFboTestUtil.Texture2DShader.prototype.shadeFragments = function(packet, context) {
         var numPackets = packet.length;
-        /** @type {number} */ var sval = this.m_uniforms[0].value;
-        /** @type {number} */ var bval = this.m_uniforms[1].value;
-        /** @type {Array<number>} */ var outScale = [sval, sval, sval, sval];
-        /** @type {Array<number>} */ var outBias = [bval, bval, bval, bval];
+        /** @type {Array<number>} */ var outScale = this.m_uniforms[0].value;
+        /** @type {Array<number>} */ var outBias = this.m_uniforms[1].value;
 
         var texCoords = [];
         var colors = [];
@@ -510,10 +508,8 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
             for (var ndx = 0; ndx < this.m_inputs.length; ndx++) {
                 var tex = this.m_uniforms[2 + ndx * 3].sampler;
 
-                sval = this.m_uniforms[2 + ndx * 3 + 1].value;
-                bval = this.m_uniforms[2 + ndx * 3 + 2].value;
-                /** @const {Array<number>} */ var scale = [sval, sval, sval, sval];
-                /** @const {Array<number>} */ var bias = [bval, bval, bval, bval];
+                /** @const {Array<number>} */ var scale = this.m_uniforms[2 + ndx * 3 + 1].value;
+                /** @const {Array<number>} */ var bias = this.m_uniforms[2 + ndx * 3 + 2].value;
 
                 var tmpColors = tex.sample(texCoords);
 
@@ -1279,7 +1275,7 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
         /** @type {gluTextureUtil.TransferFormat} */ var transferFmt = gluTextureUtil.getTransferFormat(readFormat);
         /** @type {number} */ var alignment = 4; // \note GL_PACK_ALIGNMENT = 4 is assumed.
         /** @type {number} */ var rowSize = deMath.deAlign32(readFormat.getPixelSize() * width, alignment);
-        /** @type {Array<number>} */ var data = [];
+        var data = new ArrayBuffer(rowSize * height);
 
         ctx.readPixels(x, y, width, height, transferFmt.format, transferFmt.dataType, data);
 
@@ -1302,7 +1298,7 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
 
         for (var yo = 0; yo < height; yo++)
         for (var xo = 0; xo < width; xo++)
-            dstAccess.setPixel(deMath.add(deMath.multiply(src.getPixel(xo, yo), [scale, scale, scale, scale]), [bias, bias, bias, bias]), xo, yo);
+            dstAccess.setPixel(deMath.add(deMath.multiply(src.getPixel(xo, yo), scale), bias), xo, yo);
     };
 
     /**
