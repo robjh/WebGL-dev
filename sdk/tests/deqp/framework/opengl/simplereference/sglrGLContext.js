@@ -20,19 +20,19 @@
 
 'use strict';
 goog.provide('framework.opengl.simplereference.sglrGLContext');
-goog.require('framework.common.tcuTexture');
-goog.require('framework.delibs.debase.deUtil');
-goog.require('framework.delibs.debase.deMath');
-goog.require('framework.common.tcuTextureUtil');
 goog.require('framework.common.tcuPixelFormat');
+goog.require('framework.common.tcuTexture');
+goog.require('framework.common.tcuTextureUtil');
+goog.require('framework.delibs.debase.deMath');
+goog.require('framework.delibs.debase.deUtil');
 goog.require('framework.opengl.gluShaderProgram');
 goog.require('framework.opengl.gluShaderUtil');
 goog.require('framework.opengl.gluTextureUtil');
 goog.require('framework.opengl.simplereference.sglrShaderProgram');
 goog.require('framework.referencerenderer.rrDefs');
 goog.require('framework.referencerenderer.rrMultisamplePixelBufferAccess');
-goog.require('framework.referencerenderer.rrRenderer');
 goog.require('framework.referencerenderer.rrRenderState');
+goog.require('framework.referencerenderer.rrRenderer');
 goog.require('framework.referencerenderer.rrVertexAttrib');
 
 goog.scope(function() {
@@ -92,15 +92,15 @@ goog.scope(function() {
 
         for (prototype in prototypes) {
             var keys = Object.keys(prototypes[prototype]);
-            for(var key in keys) {
+            for (var key in keys) {
                 var name = keys[key];
 
                 var exists = false;
                 var selfkeys = Object.keys(sglrGLContext.GLContext.prototype);
-                for(var selfkey in selfkeys) {
+                for (var selfkey in selfkeys) {
                     var selfname = selfkeys[selfkey];
 
-                    if(selfname == name) {
+                    if (selfname == name) {
                         exists = true;
                         break;
                     }
@@ -140,7 +140,7 @@ goog.scope(function() {
 
         if (!program.isOk()) {
             bufferedLogToConsole(program.toString());
-            testFailedOptions("Compile failed", true);
+            testFailedOptions('Compile failed', true);
         }
 
         return program.getProgram();
@@ -167,37 +167,33 @@ goog.scope(function() {
      * @param {number} first First vertex to begin drawing with
      * @param {number} count How many quads to draw (array should provide first + (count * 4) vertices at least)
      */
-    sglrGLContext.GLContext.prototype.drawQuads = function (first, count) {
+    sglrGLContext.GLContext.prototype.drawQuads = function(first, count) {
         this.m_context.drawArrays(gl.TRIANGLES, first, (count * 6) - first);
     };
 
-
-
-    sglrGLContext.GLContext.prototype.getWidth = function () {
+    sglrGLContext.GLContext.prototype.getWidth = function() {
         return this.m_context.getParameter(gl.VIEWPORT)[2];
     };
 
-    sglrGLContext.GLContext.prototype.getHeight = function () {
+    sglrGLContext.GLContext.prototype.getHeight = function() {
         return this.m_context.getParameter(gl.VIEWPORT)[3];
     };
 
-/**
- * @param  ctx GL-like context
- * @param {string} name
- * @return {boolean}
- */
-sglrGLContext.isExtensionSupported = function(ctx, name) {
-    var extns = ctx.getSupportedExtensions();
-    var found = false;
-    if (extns) {
-        var index = extns.indexOf(name);
-        if (index != -1)
-            found = true;
-    }
-    return found;
-};
+    /**
+    * @param ctx GL-like context
+    * @param {string} name
+    * @return {boolean}
+    */
+    sglrGLContext.isExtensionSupported = function(ctx, name) {
+        var extns = ctx.getSupportedExtensions();
+        var found = false;
+        if (extns) {
+            var index = extns.indexOf(name);
+            if (index != -1)
+                found = true;
+        }
+        return found;
+    };
 
 });
-
-
 

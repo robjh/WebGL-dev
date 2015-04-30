@@ -20,19 +20,18 @@
 
 'use strict';
 goog.provide('functional.gles3.es3fFboTestCase');
-goog.require('framework.common.tcuTestCase');
-goog.require('framework.delibs.debase.deMath');
-goog.require('framework.common.tcuSurface');
-goog.require('framework.common.tcuTexture');
-goog.require('framework.referencerenderer.rrRenderer');
-goog.require('framework.opengl.simplereference.sglrReferenceContext');
-goog.require('framework.opengl.simplereference.sglrGLContext');
-goog.require('framework.common.tcuPixelFormat');
 goog.require('framework.common.tcuImageCompare');
-goog.require('framework.delibs.debase.deString');
-goog.require('functional.gles3.es3fFboTestUtil');
+goog.require('framework.common.tcuPixelFormat');
+goog.require('framework.common.tcuSurface');
+goog.require('framework.common.tcuTestCase');
+goog.require('framework.common.tcuTexture');
+goog.require('framework.delibs.debase.deMath');
 goog.require('framework.delibs.debase.deRandom');
-
+goog.require('framework.delibs.debase.deString');
+goog.require('framework.opengl.simplereference.sglrGLContext');
+goog.require('framework.opengl.simplereference.sglrReferenceContext');
+goog.require('framework.referencerenderer.rrRenderer');
+goog.require('functional.gles3.es3fFboTestUtil');
 
 goog.scope(function() {
 
@@ -93,24 +92,27 @@ var DE_ASSERT = function(x) {
     };
 
     /**
-    * @param {tcuSurface.Surface} reference
-    * @param {tcuSurface.Surface} result
-    */
+     * @param {tcuSurface.Surface} reference
+     * @param {tcuSurface.Surface} result
+     */
     es3fFboTestCase.FboTestCase.prototype.compare = function(reference, result) {
         return tcuImageCompare.fuzzyCompare('Result', 'Image comparison result', reference.getAccess(), result.getAccess(), 0.05 /*, tcu::COMPARE_LOG_RESULT*/);
     };
 
     /**
-    * @param {number} sizedFormat deUint32
-    */
+     * @param {number} sizedFormat
+     */
     es3fFboTestCase.FboTestCase.prototype.checkFormatSupport = function(sizedFormat) {
         /** @const @type {boolean} */ var isCoreFormat = es3fFboTestCase.isRequiredFormat(sizedFormat);
         /** @const @type {Array<string>} */ var requiredExts = (!isCoreFormat) ? es3fFboTestCase.getEnablingExtensions(sizedFormat) : [];
 
         // Check that we don't try to use invalid formats.
         DE_ASSERT(isCoreFormat || requiredExts);
-        if (requiredExts && !es3fFboTestCase.isAnyExtensionSupported(gl, requiredExts))
-            throw new Error('Format not supported');
+        if (requiredExts.length > 0 && !es3fFboTestCase.isAnyExtensionSupported(gl, requiredExts)) {
+            var msg = 'SKIP: Format ' + wtu.glEnumToString(gl, sizedFormat) + ' not supported';
+            debug(msg);
+            throw new TestFailedException(msg);
+        }
     };
 
     /**
@@ -151,7 +153,8 @@ var DE_ASSERT = function(x) {
     * @param {number} height
     */
     es3fFboTestCase.FboTestCase.prototype.readPixels = function(dst, x, y, width, height) {
-        this.getCurrentContext().readPixels(dst, x, y, width, height);
+        dst.setSize(width, height);
+        this.getCurrentContext().readPixels(x, y, width, height, gl.RGBA, gl.UNSIGNED_BYTE, dst.getAccess().getBuffer());
     };
 
     /**
@@ -177,7 +180,6 @@ var DE_ASSERT = function(x) {
         if (value === undefined) value = [0.0, 0.0, 0.0, 0.0];
         es3fFboTestUtil.clearColorBuffer(this.getCurrentContext(), format, value);
     };
-
 
     es3fFboTestCase.FboTestCase.prototype.iterate = function() {
         // Viewport.
@@ -223,15 +225,15 @@ var DE_ASSERT = function(x) {
         // }
 
         // Render reference.
-        /** @type {number} */ var alphaBits = /** @type{number} */ (gl.getParameter(gl.ALPHA_BITS));
+        /** @type {number} */ var alphaBits = /** @type {number} */ (gl.getParameter(gl.ALPHA_BITS));
         /** @type {sglrReferenceContext.ReferenceContextBuffers} */
         var buffers = new sglrReferenceContext.ReferenceContextBuffers(new tcuPixelFormat.PixelFormat(
                                                                             8,
                                                                             8,
                                                                             8,
                                                                             alphaBits > 0 ? 8 : 0),
-                                                                       /** @type{number} */ (gl.getParameter(gl.DEPTH_BITS)),
-                                                                       /** @type{number} */ (gl.getParameter(gl.STENCIL_BITS)), 
+                                                                       /** @type {number} */ (gl.getParameter(gl.DEPTH_BITS)),
+                                                                       /** @type {number} */ (gl.getParameter(gl.STENCIL_BITS)),
                                                                        width,
                                                                        height);
         /** @type {sglrReferenceContext.ReferenceContext} */
@@ -244,7 +246,6 @@ var DE_ASSERT = function(x) {
         this.render(reference);
         this.setContext(null);
 
-
         /** @type {boolean} */ var isOk = this.compare(reference, result);
 
         assertMsgOptions(isOk, '', true, false);
@@ -252,9 +253,8 @@ var DE_ASSERT = function(x) {
         return tcuTestCase.IterateResult.STOP;
     };
 
-
     /**
-    * @param {number} format deUint32
+    * @param {number} format
     * @return {boolean}
     */
     es3fFboTestCase.isRequiredFormat = function(format) {
@@ -321,20 +321,20 @@ var DE_ASSERT = function(x) {
 
         switch (format) {
             case gl.RGB16F:
-                out.push('GL_EXT_color_buffer_half_float');
+                out.push('gl.EXT_color_buffer_half_float');
                 break;
 
             case gl.RGBA16F:
             case gl.RG16F:
             case gl.R16F:
-                out.push('GL_EXT_color_buffer_half_float');
+                out.push('gl.EXT_color_buffer_half_float');
 
             case gl.RGBA32F:
             case gl.RGB32F:
             case gl.R11F_G11F_B10F:
             case gl.RG32F:
             case gl.R32F:
-                out.push('GL_EXT_color_buffer_float');
+                out.push('gl.EXT_color_buffer_float');
 
             default:
                 break;
@@ -352,8 +352,7 @@ var DE_ASSERT = function(x) {
         for (var iter in requiredExts) {
             /** @const @type {string} */ var extension = iter;
 
-            /** @type {WebGL2RenderingContext} */ var test = new WebGL2RenderingContext();
-            if (sglrGLContext.isExtensionSupported(test, extension))
+            if (sglrGLContext.isExtensionSupported(gl, extension))
                 return true;
         }
 
@@ -365,7 +364,7 @@ var DE_ASSERT = function(x) {
  * @return {number}
  */
 es3fFboTestCase.getMinimumSampleCount = function(format) {
-    switch (format)    {
+    switch (format) {
         // Core formats
         case gl.RGBA32I:
         case gl.RGBA32UI:
@@ -420,12 +419,12 @@ es3fFboTestCase.getMinimumSampleCount = function(format) {
             return 0;
 
         default:
-            throw new Error("Unknown format:" + format);
+            throw new Error('Unknown format:' + format);
     }
 };
 
 es3fFboTestCase.querySampleCounts = function(format) {
     return gl.getInternalformatParameter(gl.RENDERBUFFER, format, gl.SAMPLES);
-}
+};
 
 });

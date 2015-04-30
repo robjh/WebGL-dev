@@ -249,10 +249,10 @@ var deMath = framework.delibs.debase.deMath;
      */
     tcuRGBA.multiply = function(a, b) {
         return tcuRGBA.newRGBAComponents(
-            deMath.clamp(a.getRed()    * b,    0, 255),
-            deMath.clamp(a.getGreen()  * b,    0, 255),
-            deMath.clamp(a.getBlue()   * b,    0, 255),
-            deMath.clamp(a.getAlpha()  * b,    0, 255));        
+            deMath.clamp(a.getRed() * b, 0, 255),
+            deMath.clamp(a.getGreen() * b, 0, 255),
+            deMath.clamp(a.getBlue() * b, 0, 255),
+            deMath.clamp(a.getAlpha() * b, 0, 255));
     };
 
     /**

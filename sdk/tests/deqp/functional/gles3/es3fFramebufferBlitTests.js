@@ -51,15 +51,15 @@ var DE_ASSERT = function(x) {
         throw new Error('Assert failed');
 };
 
-    es3fFramebufferBlitTests.drawQuad = function (ctx, program, p0, p1) {
+    es3fFramebufferBlitTests.drawQuad = function(ctx, program, p0, p1) {
         // Vertex data.
         var hz = (p0[2] + p1[2]) * 0.5;
         var position = [
             p0[0], p0[1], p0[2], 1.0,
-            p0[0], p1[1], hz,     1.0,
-            p1[0], p0[1], hz,     1.0,
-            p1[0], p0[1], hz,     1.0,
-            p0[0], p1[1], hz,     1.0,
+            p0[0], p1[1], hz, 1.0,
+            p1[0], p0[1], hz, 1.0,
+            p1[0], p0[1], hz, 1.0,
+            p0[0], p1[1], hz, 1.0,
             p1[0], p1[1], p1[2], 1.0
         ];
         var coord = [
@@ -71,11 +71,11 @@ var DE_ASSERT = function(x) {
             1.0, 1.0
         ];
 
-        var posLoc      = ctx.getAttribLocation(program, "a_position");
+        var posLoc = ctx.getAttribLocation(program, 'a_position');
         if (posLoc == -1)
-            throw new Error("a_position attribute is not defined.");
+            throw new Error('a_position attribute is not defined.');
 
-        var coordLoc    = ctx.getAttribLocation(program, "a_coord");
+        var coordLoc = ctx.getAttribLocation(program, 'a_coord');
         var vaoID;
         var bufIDs = [];
 
@@ -196,15 +196,13 @@ var DE_ASSERT = function(x) {
         this.checkError();
         this.checkFramebufferStatus(gl.FRAMEBUFFER);
 
-
         // Fill destination with gradient.
         ctx.bindFramebuffer(gl.FRAMEBUFFER, dstFbo);
         ctx.viewport(0, 0, this.m_dstSize[0], this.m_dstSize[1]);
 
         es3fFramebufferBlitTests.drawQuad(ctx, gradShaderID, [-1, -1, 0], [1, 1, 0]);
 
-        //TODO: remove
-        {
+        /* TODO: remove */ {
             var pixels = new tcuSurface.Surface(this.m_dstSize[0], this.m_dstSize[1]);
             var access = pixels.getAccess();
             ctx.readPixels(0, 0, this.m_dstSize[0], this.m_dstSize[1], gl.RGBA, gl.UNSIGNED_BYTE, access.getBuffer());
@@ -233,6 +231,12 @@ var DE_ASSERT = function(x) {
 
         es3fFramebufferBlitTests.drawQuad(ctx, texShaderID, [-1, -1, 0], [1, 1, 0]);
 
+       /* TODO: remove */ {
+            var pixels = new tcuSurface.Surface(this.m_srcSize[0], this.m_srcSize[1]);
+            var access = pixels.getAccess();
+            ctx.readPixels(0, 0, this.m_srcSize[0], this.m_srcSize[1], gl.RGBA, gl.UNSIGNED_BYTE, access.getBuffer());
+            tcuImageCompare.displayImages(access);
+        }
 
         // Perform copy.
         ctx.bindFramebuffer(gl.READ_FRAMEBUFFER, srcFbo);
@@ -244,6 +248,12 @@ var DE_ASSERT = function(x) {
         // Read back results.
         ctx.bindFramebuffer(gl.READ_FRAMEBUFFER, dstFbo);
 
+      /* TODO: remove */ {
+            var pixels = new tcuSurface.Surface(this.m_dstSize[0], this.m_dstSize[1]);
+            var access = pixels.getAccess();
+            ctx.readPixels(0, 0, this.m_dstSize[0], this.m_dstSize[1], gl.RGBA, gl.UNSIGNED_BYTE, access.getBuffer());
+            tcuImageCompare.displayImages(access);
+        }
         this.readPixelsUsingFormat(dst, 0, 0, this.m_dstSize[0], this.m_dstSize[1],
                                           gluTextureUtil.mapGLInternalFormat(colorFormat),
                                           [1.0, 1.0, 1.0, 1.0],
@@ -285,8 +295,8 @@ var DE_ASSERT = function(x) {
     * @return {boolean}
     */
     es3fFramebufferBlitTests.BlitNearestFilterConsistencyCase.prototype.compare = function(reference, result) {
-        DE_ASSERT(reference.getWidth() == result.getWidth());
-        DE_ASSERT(reference.getHeight() == result.getHeight());
+        assertMsgOptions(result.getWidth() == reference.getWidth() && result.getHeight() == reference.getHeight(),
+            'Reference and result images have different dimensions', false, true);
 
         // Image origin must be visible (for baseColor)
         DE_ASSERT(Math.min(this.m_dstRect[0], this.m_dstRect[2]) >= 0);
@@ -294,7 +304,7 @@ var DE_ASSERT = function(x) {
         /** @const {tcuRGBA.RGBA} */ var cellColorA = tcuRGBA.newRGBAFromArray(this.m_gridCellColorA);
         /** @const {tcuRGBA.RGBA} */ var cellColorB = tcuRGBA.newRGBAFromArray(this.m_gridCellColorB);
         // TODO: implement
-        // const tcu::RGBA        threshold        = this.m_context.getRenderTarget().getPixelFormat().getColorThreshold() + tcu::RGBA(7,7,7,7);
+        // const tcu::RGBA threshold = this.m_context.getRenderTarget().getPixelFormat().getColorThreshold() + tcu::RGBA(7,7,7,7);
         /** @type {tcuRGBA.RGBA} */ var threshold = tcuRGBA.newRGBAComponents(7, 7, 7, 7);
         /** @const {Array<number>} */  //IVec4.xyzw
         var destinationArea = [
@@ -351,8 +361,8 @@ var DE_ASSERT = function(x) {
             //     << 'Expected either ' << cellColorA << ' or ' << cellColorB << '.'
             //     << tcu::TestLog::EndMessage
             //     << tcu::TestLog::ImageSet('Result', 'Image verification result')
-            //     << tcu::TestLog::Image('Result',    'Result',        result)
-            //     << tcu::TestLog::Image('ErrorMask',    'Error mask',    errorMask)
+            //     << tcu::TestLog::Image('Result', 'Result', result)
+            //     << tcu::TestLog::Image('ErrorMask', 'Error mask', errorMask)
             //     << tcu::TestLog::EndImageSet;
             return false;
         }
@@ -403,8 +413,8 @@ var DE_ASSERT = function(x) {
         //         << 'Image verification failed, nearest filter is not consistent.'
         //         << tcu::TestLog::EndMessage
         //         << tcu::TestLog::ImageSet('Result', 'Image verification result')
-        //         << tcu::TestLog::Image('Result',    'Result',        result)
-        //         << tcu::TestLog::Image('ErrorMask',    'Error mask',    errorMask)
+        //         << tcu::TestLog::Image('Result', 'Result', result)
+        //         << tcu::TestLog::Image('ErrorMask', 'Error mask', errorMask)
         //         << tcu::TestLog::EndImageSet;
         // }
         // else
@@ -471,7 +481,7 @@ var DE_ASSERT = function(x) {
             gl.R8I,
             gl.R8UI,
 
-            // GL_EXT_color_buffer_float
+            // gl.EXT_color_buffer_float
             gl.RGBA32F,
             gl.RGBA16F,
             gl.R11F_G11F_B10F,
@@ -745,8 +755,8 @@ var DE_ASSERT = function(x) {
         /** @type {es3fFboTestUtil.GradientShader} */
         var gradientToDstShader = new es3fFboTestUtil.GradientShader(dstOutputType);
 
-        var gradShaderSrcID = this.getCurrentContext().createProgram(gradientToSrcShader);
-        var gradShaderDstID = this.getCurrentContext().createProgram(gradientToDstShader);
+        var gradShaderSrcID = ctx.createProgram(gradientToSrcShader);
+        var gradShaderDstID = ctx.createProgram(gradientToDstShader);
 
         var srcFbo;
         var dstFbo;
@@ -782,15 +792,24 @@ var DE_ASSERT = function(x) {
 
         // Render gradients.
         ctx.bindFramebuffer(gl.FRAMEBUFFER, srcFbo);
-        gradientToDstShader.setGradient(this.getCurrentContext(), gradShaderDstID, dstRangeInfo.valueMax, dstRangeInfo.valueMin);
+        gradientToDstShader.setGradient(ctx, gradShaderDstID, dstRangeInfo.valueMin, dstRangeInfo.valueMax);
 
         es3fFramebufferBlitTests.drawQuad(ctx, gradShaderDstID, [-1, -1, 0], [1, 1, 0]);
-
+        /* TODO: remove */ {
+            var pixels = new tcuSurface.Surface(this.m_size[0], this.m_size[1]);
+            this.readPixelsUsingFormat(pixels, 0, 0, this.m_size[0], this.m_size[1], dstFormat, dstRangeInfo.lookupScale, dstRangeInfo.lookupBias);
+            tcuImageCompare.displayImages(pixels.getAccess());
+        }
 
         ctx.bindFramebuffer(gl.FRAMEBUFFER, dstFbo);
-        gradientToSrcShader.setGradient(this.getCurrentContext(), gradShaderSrcID, srcRangeInfo.valueMin, dstRangeInfo.valueMax);
+        gradientToSrcShader.setGradient(ctx, gradShaderSrcID, srcRangeInfo.valueMin, dstRangeInfo.valueMax);
         es3fFramebufferBlitTests.drawQuad(ctx, gradShaderSrcID, [-1, -1, 0], [1, 1, 0]);
 
+        /* TODO: remove */ {
+            var pixels = new tcuSurface.Surface(this.m_size[0], this.m_size[1]);
+            this.readPixelsUsingFormat(pixels, 0, 0, this.m_size[0], this.m_size[1], dstFormat, dstRangeInfo.lookupScale, dstRangeInfo.lookupBias);
+            tcuImageCompare.displayImages(pixels.getAccess());
+        }
 
         // Execute copy.
         ctx.bindFramebuffer(gl.READ_FRAMEBUFFER, srcFbo);
@@ -801,6 +820,11 @@ var DE_ASSERT = function(x) {
         // Read results.
         ctx.bindFramebuffer(gl.READ_FRAMEBUFFER, dstFbo);
         this.readPixelsUsingFormat(dst, 0, 0, this.m_size[0], this.m_size[1], dstFormat, dstRangeInfo.lookupScale, dstRangeInfo.lookupBias);
+
+        /* TODO: remove */ {
+            tcuImageCompare.displayImages(dst.getAccess());
+        }
+
     };
 
     /**
@@ -1005,6 +1029,9 @@ var DE_ASSERT = function(x) {
 
         }
         this.readPixelsUsingFormat(dst, 0, 0, this.m_dstSize[0], this.m_dstSize[1], gluTextureUtil.mapGLInternalFormat(colorFormat), [1.0, 1.0, 1.0, 1.0], [0.0, 0.0, 0.0, 0.0]);
+        /* TODO: remove */ {
+            tcuImageCompare.displayImages(dst.getAccess());
+        }
 
     };
 
@@ -1018,8 +1045,8 @@ var DE_ASSERT = function(x) {
      */
     es3fFramebufferBlitTests.BlitDefaultFramebufferCase = function(name, desc, format, filter) {
         es3fFboTestCase.FboTestCase.call(this, name, desc);
-        /** @const {number} */ this.m_format;
-        /** @const {number} */ this.m_filter;
+        /** @const {number} */ this.m_format = format;
+        /** @const {number} */ this.m_filter = filter;
     };
 
     es3fFramebufferBlitTests.BlitDefaultFramebufferCase.prototype = Object.create(es3fFboTestCase.FboTestCase.prototype);
@@ -1075,6 +1102,12 @@ var DE_ASSERT = function(x) {
         ctx.bindFramebuffer(gl.FRAMEBUFFER, null);
 
         es3fFramebufferBlitTests.drawQuad(ctx, gradShaderID, [-1, -1, 0], [1, 1, 0]);
+        /* TODO: remove */ {
+            var pixels = new tcuSurface.Surface(ctx.getWidth(), ctx.getHeight());
+            var access = pixels.getAccess();
+            ctx.readPixels(0, 0, ctx.getWidth(), ctx.getHeight(), gl.RGBA, gl.UNSIGNED_BYTE, access.getBuffer());
+            tcuImageCompare.displayImages(access);
+        }
 
         // Blit gradient from screen to fbo.
         ctx.bindFramebuffer(gl.DRAW_FRAMEBUFFER, fbo);
@@ -1085,6 +1118,12 @@ var DE_ASSERT = function(x) {
         ctx.clearBufferfv(gl.COLOR, 0, [1.0, 0.0, 0.0, 1.0]);
 
         es3fFramebufferBlitTests.drawQuad(ctx, texShaderID, [-1, -1, 0], [1, 1, 0]);
+        /* TODO: remove */ {
+            var pixels = new tcuSurface.Surface(texW, texH);
+            var access = pixels.getAccess();
+            ctx.readPixels(0, 0, texW, texH, gl.RGBA, gl.UNSIGNED_BYTE, access.getBuffer());
+            tcuImageCompare.displayImages(access);
+        }
 
         // Blit fbo to right half.
         ctx.bindFramebuffer(gl.READ_FRAMEBUFFER, fbo);
@@ -1092,6 +1131,12 @@ var DE_ASSERT = function(x) {
 
         ctx.bindFramebuffer(gl.READ_FRAMEBUFFER, null);
         this.readPixels(dst, 0, 0, ctx.getWidth(), ctx.getHeight());
+        /* TODO: remove */ {
+            var pixels = new tcuSurface.Surface(ctx.getWidth(), ctx.getHeight());
+            var access = pixels.getAccess();
+            ctx.readPixels(0, 0, ctx.getWidth(), ctx.getHeight(), gl.RGBA, gl.UNSIGNED_BYTE, access.getBuffer());
+            tcuImageCompare.displayImages(access);
+        }
     };
 
     /**
@@ -1158,8 +1203,7 @@ var DE_ASSERT = function(x) {
             this.m_srcRect = [10, 20, 65, 100];
             this.m_dstRect = [25, 30, 125, 94];
             this.m_interestingArea = [0, 0, 128, 128];
-        }
-        else if (this.m_blitArea == es3fFramebufferBlitTests.BlitArea.AREA_OUT_OF_BOUNDS) {
+        } else if (this.m_blitArea == es3fFramebufferBlitTests.BlitArea.AREA_OUT_OF_BOUNDS) {
             /** @const {Array<number>} */
             var ubound = (this.m_blitDir == es3fFramebufferBlitTests.BlitDirection.BLIT_DEFAULT_TO_TARGET) ?
                          ([128, 128]) :
@@ -1246,6 +1290,12 @@ var DE_ASSERT = function(x) {
         texShader.setUniforms(this.getCurrentContext(), texShaderID);
 
         es3fFramebufferBlitTests.drawQuad(ctx, texShaderID, [-1, -1, 0], [1, 1, 0]);
+        /* TODO: remove */ {
+            var pixels = new tcuSurface.Surface(gridRenderWidth, gridRenderHeight);
+            var access = pixels.getAccess();
+            ctx.readPixels(0, 0, gridRenderWidth, gridRenderHeight, gl.RGBA, gl.UNSIGNED_BYTE, access.getBuffer());
+            tcuImageCompare.displayImages(access);
+        }
 
         ctx.useProgram(null);
 
@@ -1278,6 +1328,10 @@ var DE_ASSERT = function(x) {
         else
             this.readPixelsUsingFormat(dst, this.m_interestingArea[0], this.m_interestingArea[1], this.m_interestingArea[2] - this.m_interestingArea[0], this.m_interestingArea[3] - this.m_interestingArea[1], colorFormat, [1.0, 1.0, 1.0, 1.0], [0.0, 0.0, 0.0, 0.0]);
 
+        /* TODO: remove */ {
+            tcuImageCompare.displayImages(dst.getAccess());
+        }
+
         this.checkError();
     };
 
@@ -1308,7 +1362,5 @@ var DE_ASSERT = function(x) {
             tcuTestCase.runner.terminate();
         }
     };
-
-
 
 });

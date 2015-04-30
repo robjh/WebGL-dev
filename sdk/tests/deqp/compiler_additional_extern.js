@@ -1,6 +1,6 @@
 
 /**
- * @param {string} msg
+ * @param {?string} msg
  */
 function description(msg){};
 

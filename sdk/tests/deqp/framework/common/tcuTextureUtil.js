@@ -541,7 +541,7 @@ tcuTextureUtil.copy = function(dst, src) {
 
     DE_ASSERT(src.getWidth() == width && src.getHeight() == height && src.getDepth() == depth);
 
-    if (src.getFormat() == dst.getFormat()) {
+    if (src.getFormat().isEqual(dst.getFormat())) {
         var srcData = src.getDataPtr();
         var dstData = dst.getDataPtr();
 

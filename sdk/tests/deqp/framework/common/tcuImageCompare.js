@@ -70,14 +70,14 @@ tcuImageCompare.displayResultPane = function(id, width, height, displayRef) {
         var ctxRef = canvasRef.getContext('2d');
         var canvasDiff = document.getElementById('diff' + i);
         var ctxDiff = canvasDiff.getContext('2d');
-        return [ctxResult, ctxRef, ctxDiff];                         
+        return [ctxResult, ctxRef, ctxDiff];
     } else {
         span.innerHTML = '<table><tr><td>Result</td></tr>' +
                                 '<tr><td><canvas id="result' + i + '" width=' + width + ' height=' + height + '</td>' +
-                         '</table>';        
+                         '</table>';
         var canvasResult = document.getElementById('result' + i);
         var ctxResult = canvasResult.getContext('2d');
-        return [ctxResult];                         
+        return [ctxResult];
     }
 };
 

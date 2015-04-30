@@ -47,7 +47,7 @@ rrDefs.IndexType = {
  */
 rrDefs.ProvokingVertex = {
     PROVOKINGVERTEX_FIRST: 1,
-    PROVOKINGVERTEX_LAST: 2           // \note valid value, "last vertex", not last of enum
+    PROVOKINGVERTEX_LAST: 2 // \note valid value, "last vertex", not last of enum
 };
 
 /**

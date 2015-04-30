@@ -20,10 +20,9 @@
 
 'use strict';
 goog.provide('framework.referencerenderer.rrVertexAttrib');
-goog.require('framework.delibs.debase.deMath');
 goog.require('framework.common.tcuFloat');
+goog.require('framework.delibs.debase.deMath');
 goog.require('framework.referencerenderer.rrGenericVector');
-
 
 goog.scope(function() {
 
@@ -76,19 +75,19 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
         NONPURE_UNORM8: 4,
         NONPURE_UNORM16: 5,
         NONPURE_UNORM32: 6,
-        NONPURE_UNORM_2_10_10_10_REV: 7,          //!< Packed format, only size = 4 is allowed
+        NONPURE_UNORM_2_10_10_10_REV: 7, //!< Packed format, only size = 4 is allowed
 
         // Clamped formats, GLES3-style conversion: max{c / (2^(b-1) - 1), -1 }
         NONPURE_SNORM8_CLAMP: 8,
         NONPURE_SNORM16_CLAMP: 9,
         NONPURE_SNORM32_CLAMP: 10,
-        NONPURE_SNORM_2_10_10_10_REV_CLAMP: 11,    //!< Packed format, only size = 4 is allowed
+        NONPURE_SNORM_2_10_10_10_REV_CLAMP: 11, //!< Packed format, only size = 4 is allowed
 
         // Scaled formats, GLES2-style conversion: (2c + 1) / (2^b - 1)
         NONPURE_SNORM8_SCALE: 12,
         NONPURE_SNORM16_SCALE: 13,
         NONPURE_SNORM32_SCALE: 14,
-        NONPURE_SNORM_2_10_10_10_REV_SCALE: 15,    //!< Packed format, only size = 4 is allowed
+        NONPURE_SNORM_2_10_10_10_REV_SCALE: 15, //!< Packed format, only size = 4 is allowed
 
         // can only be rrVertexAttrib.read as float, will not be normalized
         NONPURE_UINT8: 16,
@@ -99,8 +98,8 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
         NONPURE_INT16: 20,
         NONPURE_INT32: 21,
 
-        NONPURE_UINT_2_10_10_10_REV: 22,   //!< Packed format, only size = 4 is allowed
-        NONPURE_INT_2_10_10_10_REV: 23,    //!< Packed format, only size = 4 is allowed
+        NONPURE_UINT_2_10_10_10_REV: 22, //!< Packed format, only size = 4 is allowed
+        NONPURE_INT_2_10_10_10_REV: 23, //!< Packed format, only size = 4 is allowed
 
         // can only be rrVertexAttrib.read as integers
         PURE_UINT8: 24,
@@ -111,14 +110,14 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
         PURE_INT16: 28,
         PURE_INT32: 29,
 
-        // reordered formats of GL_ARB_vertex_array_bgra
+        // reordered formats of gl.ARB_vertex_array_bgra
         NONPURE_UNORM8_BGRA: 30,
         NONPURE_UNORM_2_10_10_10_REV_BGRA: 31,
         NONPURE_SNORM_2_10_10_10_REV_CLAMP_BGRA: 32,
         NONPURE_SNORM_2_10_10_10_REV_SCALE_BGRA: 33,
 
         // can be rrVertexAttrib.read as anything
-        DONT_CARE: 34                 //!< Do not enforce type checking when reading GENERIC attribute. Used for current client side attributes.
+        DONT_CARE: 34 //!< Do not enforce type checking when reading GENERIC attribute. Used for current client side attributes.
     };
 
     /**
@@ -131,7 +130,7 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
         /** @type {number} */ this.stride = 0;
         /** @type {number} */ this.instanceDivisor = 0;
         /** @type {ArrayBuffer} */ this.pointer = rrVertexAttrib.DE_NULL;
-        /** @type {Array.<number>} */ this.generic; //!< Generic attribute, used if pointer is null.
+        /** @type {Array<number>} */ this.generic; //!< Generic attribute, used if pointer is null.
     };
 
     /**
@@ -139,8 +138,7 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
      * @return {number}
      */
     rrVertexAttrib.getComponentSize = function(type) {
-        switch (type)
-        {
+        switch (type) {
             case rrVertexAttrib.VertexAttribType.FLOAT: return 4;
             case rrVertexAttrib.VertexAttribType.HALF: return 2;
             case rrVertexAttrib.VertexAttribType.FIXED: return 4;
@@ -218,14 +216,13 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
      * @param {number} instanceNdx
      * @param {number} vertexNdx
      * @param {rrGenericVector.GenericVecType} genericType
-     * @return {TypedArray}
+     * @return {goog.NumberArray}
      */
     rrVertexAttrib.readVertexAttrib = function(vertexAttrib, instanceNdx, vertexNdx, genericType) {
         DE_ASSERT(rrVertexAttrib.isValidVertexAttrib(vertexAttrib));
-        /** @type {TypedArray} */ var dst;
+        /** @type {goog.NumberArray} */ var dst;
 
-        if (vertexAttrib.pointer)
-        {
+        if (vertexAttrib.pointer) {
             /** @type {number} */ var elementNdx = (vertexAttrib.instanceDivisor != 0) ? (instanceNdx / vertexAttrib.instanceDivisor) : vertexNdx;
             /** @type {number} */ var compSize = rrVertexAttrib.getComponentSize(vertexAttrib.type);
             /** @type {number} */ var stride = (vertexAttrib.stride != 0) ? (vertexAttrib.stride) : (vertexAttrib.size * compSize);
@@ -246,9 +243,7 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
             }
 
             rrVertexAttrib.read(dst, vertexAttrib.type, vertexAttrib.size, new Uint8Array(vertexAttrib.pointer).subarray(byteOffset));
-        }
-        else
-        {
+        } else{
             dst = new Uint32Array(vertexAttrib.generic);
         }
 
@@ -257,7 +252,7 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
 
     /**
      * rrVertexAttrib.readHalf
-     * @param {TypedArray} dst
+     * @param {goog.NumberArray} dst
      * @param {number} size
      * @param {Uint8Array} ptr
      */
@@ -279,7 +274,7 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
 
     /**
      * rrVertexAttrib.readFixed
-     * @param {TypedArray} dst
+     * @param {goog.NumberArray} dst
      * @param {number} size
      * @param {Uint8Array} ptr
      */
@@ -293,16 +288,16 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
             (ptr.byteOffset + ptr.byteLength) / arraysize32);
 
         //Reinterpret aligned's values into the dst vector.
-        dst[0] = aligned[0] / Float32Array([1 << 16])[0];
-        if (size >= 2) dst[1] = aligned[1] / Float32Array([1 << 16])[0];
-        if (size >= 3) dst[2] = aligned[2] / Float32Array([1 << 16])[0];
-        if (size >= 4) dst[3] = aligned[3] / Float32Array([1 << 16])[0];
+        dst[0] = aligned[0] / (1 << 16);
+        if (size >= 2) dst[1] = aligned[1] / (1 << 16);
+        if (size >= 3) dst[2] = aligned[2] / (1 << 16);
+        if (size >= 4) dst[3] = aligned[3] / (1 << 16);
     };
 
     /**
      * TODO: Check 64 bit numbers are handled ok
      * rrVertexAttrib.readDouble
-     * @param {TypedArray} dst
+     * @param {goog.NumberArray} dst
      * @param {number} size
      * @param {Uint8Array} ptr
      */
@@ -324,11 +319,11 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
 
     /**
      * rrVertexAttrib.readUnormOrder
-     * @param {TypedArray} dst
+     * @param {goog.NumberArray} dst
      * @param {number} size
      * @param {Uint8Array} ptr
-     * @param {(rrVertexAttrib.NormalOrder|rrVertexAttrib.BGRAOrder)} order
-     * @param {TypedArray} readAsTypeArray
+     * @param order NormalOrder or BGRAOrder
+     * @param readAsTypeArray Typed Array type
      */
     rrVertexAttrib.readUnormOrder = function(dst, size, ptr, order, readAsTypeArray) {
         var arrayelementsize = readAsTypeArray.BYTES_PER_ELEMENT;
@@ -352,11 +347,11 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
 
     /**
      * rrVertexAttrib.readOrder
-     * @param {TypedArray} dst
+     * @param {goog.NumberArray} dst
      * @param {number} size
      * @param {Uint8Array} ptr
-     * @param {(rrVertexAttrib.NormalOrder|rrVertexAttrib.BGRAOrder)} order
-     * @param {TypedArray} readAsTypeArray
+     * @param order NormalOrder or BGRAOrder
+     * @param readAsTypeArray Typed Array type
      */
     rrVertexAttrib.readOrder = function(dst, size, ptr, order, readAsTypeArray) {
         var arrayelementsize = readAsTypeArray.BYTES_PER_ELEMENT;
@@ -377,7 +372,7 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
 
     /**
      * TODO: Implement missing rrVertexAttrib.read functions.
-     * @param {TypedArray} dst
+     * @param {goog.NumberArray} dst
      * @param {rrVertexAttrib.VertexAttribType} type
      * @param {number} size
      * @param {Uint8Array} ptr
@@ -484,5 +479,4 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
         }
     };
 
-    
 });

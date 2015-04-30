@@ -81,9 +81,14 @@ goog.scope(function() {
      * init
      */
     es3fVertexArrayTests.SingleVertexArrayUsageGroup.prototype.init = function() {
-        /** @type {Array.<number>} */ var counts = [1, 256];
-        /** @type {Array.<number>} */ var strides = [0, -1, 17, 32]; // Tread negative value as sizeof input. Same as 0, but done outside of GL.
-        /** @type {glsVertexArrayTests.deArray.InputType} */ var inputTypes = [glsVertexArrayTests.deArray.InputType.FLOAT, /*glsVertexArrayTests.deArray.InputType.FIXED,*/ glsVertexArrayTests.deArray.InputType.SHORT, glsVertexArrayTests.deArray.InputType.BYTE];
+        /** @type {Array<number>} */ var counts = [1, 256];
+        /** @type {Array<number>} */ var strides = [0, -1, 17, 32]; // Treat negative value as sizeof input. Same as 0, but done outside of GL.
+        /** @type {Array<glsVertexArrayTests.deArray.InputType>} */ var inputTypes = [
+            glsVertexArrayTests.deArray.InputType.FLOAT,
+            /*glsVertexArrayTests.deArray.InputType.FIXED,*/
+            glsVertexArrayTests.deArray.InputType.SHORT,
+            glsVertexArrayTests.deArray.InputType.BYTE
+        ];
 
         for (var inputTypeNdx = 0; inputTypeNdx < inputTypes.length; inputTypeNdx++) {
             for (var countNdx = 0; countNdx < counts.length; countNdx++) {
@@ -136,11 +141,11 @@ goog.scope(function() {
     es3fVertexArrayTests.SingleVertexArrayUsageTests.prototype.constructor = es3fVertexArrayTests.SingleVertexArrayUsageTests;
 
     /**
-     * es3fVertexArrayTests.SingleVertexArrayUsageTests.init
+     * SingleVertexArrayUsageTests.init
      */
     es3fVertexArrayTests.SingleVertexArrayUsageTests.prototype.init = function() {
         // Test usage
-        /** @type {glsVertexArrayTests.deArray.Usage} */ var usages = [
+        /** @type {Array<glsVertexArrayTests.deArray.Usage>} */ var usages = [
             glsVertexArrayTests.deArray.Usage.STATIC_DRAW,
             glsVertexArrayTests.deArray.Usage.STREAM_DRAW,
             glsVertexArrayTests.deArray.Usage.DYNAMIC_DRAW,
@@ -180,9 +185,10 @@ goog.scope(function() {
      * init
      */
     es3fVertexArrayTests.SingleVertexArrayStrideGroup.prototype.init = function () {
-        /** @type {glsVertexArrayTests.deArray.Storage} */ var storages = [
+        /** @type {Array<glsVertexArrayTests.deArray.Storage>} */ var storages = [
             // User storage not supported in WebGL - glsVertexArrayTests.deArray.Storage.USER,
-            glsVertexArrayTests.deArray.Storage.BUFFER];
+            glsVertexArrayTests.deArray.Storage.BUFFER
+        ];
         var counts = [1, 256];
         var strides = [/*0,*/ -1, 17, 32]; // Tread negative value as sizeof input. Same as 0, but done outside of GL.
 
@@ -247,7 +253,7 @@ goog.scope(function() {
     es3fVertexArrayTests.SingleVertexArrayStrideTests.prototype.constructor = es3fVertexArrayTests.SingleVertexArrayStrideTests;
 
     es3fVertexArrayTests.SingleVertexArrayStrideTests.prototype.init = function() {
-        /** @type {glsVertexArrayTests.deArray.InputType} */ var inputTypes = [
+        /** @type {Array<glsVertexArrayTests.deArray.InputType>} */ var inputTypes = [
             glsVertexArrayTests.deArray.InputType.FLOAT,
             glsVertexArrayTests.deArray.InputType.SHORT,
             glsVertexArrayTests.deArray.InputType.BYTE,
@@ -287,7 +293,7 @@ goog.scope(function() {
     /**
      * init
      */
-    es3fVertexArrayTests.SingleVertexArrayFirstGroup.init = function () {
+    es3fVertexArrayTests.SingleVertexArrayFirstGroup.prototype.init = function () {
         var counts = [5, 256];
         var firsts = [6, 24];
         var offsets = [1, 16, 17];
@@ -413,14 +419,8 @@ goog.scope(function() {
                         strides[strideNdx]
                     );
                     var alignment = packed ?
-                        glsVertexArrayTests.deArray.inputTypeSize(
-                            this.m_type
-                        ) * componentCount) :
-                        (
-                            glsVertexArrayTests.deArray.inputTypeSize(
-                                this.m_type
-                            )
-                        );
+                        glsVertexArrayTests.deArray.inputTypeSize(this.m_type) * componentCount :
+                        glsVertexArrayTests.deArray.inputTypeSize(this.m_type);
 
                     var aligned = ((stride % alignment) == 0) &&
                         ((offsets[offsetNdx] % alignment) == 0);
@@ -558,7 +558,7 @@ goog.scope(function() {
      * @constructor
      * @extends {tcuTestCase.DeqpTest}
      */
-    var es3fVertexArrayTests.SingleVertexArrayNormalizeTests = function () {
+    es3fVertexArrayTests.SingleVertexArrayNormalizeTests = function () {
         tcuTestCase.DeqpTest.call(this, "normalize", "Single normalize vertex atribute");
         this.makeExecutable();
     };
@@ -571,7 +571,7 @@ goog.scope(function() {
      */
     es3fVertexArrayTests.SingleVertexArrayNormalizeTests.prototype.init = function () {
         // Test normalization with different input types, component counts and storage
-        /** @type {glsVertexArrayTests.deArray.InputType} */ var inputTypes = [
+        /** @type {Array<glsVertexArrayTests.deArray.InputType>} */ var inputTypes = [
             glsVertexArrayTests.deArray.InputType.FLOAT,
             glsVertexArrayTests.deArray.InputType.SHORT,
             glsVertexArrayTests.deArray.InputType.BYTE,
@@ -645,7 +645,7 @@ goog.scope(function() {
                         var inputIsUnignedInteger =
                             this.m_type == glsVertexArrayTests.deArray.InputType.UNSIGNED_INT ||
                             this.m_type == glsVertexArrayTests.deArray.InputType.UNSIGNED_SHORT ||
-                            this.m_type == glsVertexArrayTests.deArray.InputType.INPUTTYPE_UNSIGNED_BYTE;
+                            this.m_type == glsVertexArrayTests.deArray.InputType.UNSIGNED_BYTE;
 
                         var outputIsSignedInteger =
                             outputTypes[outputTypeNdx] == glsVertexArrayTests.deArray.OutputType.IVEC2 ||
@@ -659,8 +659,7 @@ goog.scope(function() {
 
                         // If input type is float type and output type is int type skip
                         if ((this.m_type == glsVertexArrayTests.deArray.InputType.FLOAT ||
-                            this.m_type == glsVertexArrayTests.deArray.InputType.HALF ||
-                            this.m_type == glsVertexArrayTests.deArray.InputType.FIXED) &&
+                            this.m_type == glsVertexArrayTests.deArray.InputType.HALF) &&
                             (outputTypes[outputTypeNdx] >= glsVertexArrayTests.deArray.OutputType.INT))
                             continue;
 
@@ -730,7 +729,6 @@ goog.scope(function() {
             glsVertexArrayTests.deArray.InputType.BYTE,
             glsVertexArrayTests.deArray.InputType.UNSIGNED_SHORT,
             glsVertexArrayTests.deArray.InputType.UNSIGNED_BYTE,
-            glsVertexArrayTests.deArray.InputType.FIXED,
             glsVertexArrayTests.deArray.InputType.UNSIGNED_INT,
             glsVertexArrayTests.deArray.InputType.INT,
             glsVertexArrayTests.deArray.InputType.HALF,
@@ -782,7 +780,7 @@ goog.scope(function() {
     es3fVertexArrayTests.MultiVertexArrayCountTests.prototype.constructor = es3fVertexArrayTests.MultiVertexArrayCountTests;
 
     /**
-     * @param {MultiVertexArrayTest::Spec} spec
+     * @param {glsVertexArrayTests.MultiVertexArrayTest.Spec} spec
      * @return {string}
      */
     es3fVertexArrayTests.MultiVertexArrayCountTests.prototype.getTestName = function (spec) {
@@ -843,7 +841,7 @@ goog.scope(function() {
     es3fVertexArrayTests.MultiVertexArrayStorageTests.prototype.constructor = es3fVertexArrayTests.MultiVertexArrayStorageTests;
 
     /**
-     * @param {MultiVertexArrayTest::Spec} spec
+     * @param {glsVertexArrayTests.MultiVertexArrayTest.Spec} spec
      * @return {string}
      */
     es3fVertexArrayTests.MultiVertexArrayStorageTests.prototype.getTestName = function (spec) {
@@ -857,7 +855,7 @@ goog.scope(function() {
     };
 
     /**
-     * @param {MultiVertexArrayTest::Spec} spec
+     * @param {glsVertexArrayTests.MultiVertexArrayTest.Spec} spec
      * @param {number} depth
      */
     es3fVertexArrayTests.MultiVertexArrayStorageTests.prototype.addStorageCases = function (spec, depth) {
@@ -904,7 +902,7 @@ goog.scope(function() {
                 glsVertexArrayTests.GLValue.getMaxValue(glsVertexArrayTests.deArray.InputType.FLOAT)
             );
 
-            _spec = spec;
+            var _spec = spec;
             _spec.arrays.push(arraySpec);
             this.addStorageCases(_spec, depth - 1);
         }
@@ -940,7 +938,7 @@ goog.scope(function() {
     es3fVertexArrayTests.MultiVertexArrayStrideTests.prototype.constructor = es3fVertexArrayTests.MultiVertexArrayStrideTests;
 
     /**
-     * @param {MultiVertexArrayTest::Spec} spec
+     * @param {glsVertexArrayTests.MultiVertexArrayTest.Spec} spec
      * @return {string}
      */
     es3fVertexArrayTests.MultiVertexArrayStrideTests.prototype.getTestName = function (spec) {
@@ -961,7 +959,7 @@ goog.scope(function() {
     /**
      * init
      */
-    es3fVertexArrayTests.MultiVertexArrayStrideTests.prototype.init () {
+    es3fVertexArrayTests.MultiVertexArrayStrideTests.prototype.init = function () {
         // Test different strides, with multiple arrays, input types??
         var arrayCounts = [3];
 
@@ -976,7 +974,7 @@ goog.scope(function() {
     };
 
     /**
-     * @param {MultiVertexArrayTest::Spec} spec
+     * @param {glsVertexArrayTests.MultiVertexArrayTest.Spec} spec
      * @param {number} depth
      */
     es3fVertexArrayTests.MultiVertexArrayStrideTests.prototype.addStrideCases = function (spec, depth) {
@@ -1002,7 +1000,9 @@ goog.scope(function() {
                 glsVertexArrayTests.deArray.Usage.DYNAMIC_DRAW,
                 componentCount,
                 0,
-                (strides[strideNdx] >= 0 ? strides[strideNdx] : componentCount * Array::inputTypeSize(glsVertexArrayTests.deArray.InputType.FLOAT)),
+                strides[strideNdx] >= 0 ?
+                strides[strideNdx] :
+                componentCount * glsVertexArrayTests.deArray.inputTypeSize(glsVertexArrayTests.deArray.InputType.FLOAT),
                 false,
                 glsVertexArrayTests.GLValue.getMinValue(glsVertexArrayTests.deArray.InputType.FLOAT),
                 glsVertexArrayTests.GLValue.getMaxValue(glsVertexArrayTests.deArray.InputType.FLOAT)
@@ -1027,7 +1027,7 @@ goog.scope(function() {
     es3fVertexArrayTests.MultiVertexArrayOutputTests.prototype.constructor = es3fVertexArrayTests.MultiVertexArrayOutputTests;
 
     /**
-     * @param {MultiVertexArrayTest::Spec} spec
+     * @param {glsVertexArrayTests.MultiVertexArrayTest.Spec} spec
      * @return {string}
      */
     es3fVertexArrayTests.MultiVertexArrayOutputTests.prototype.getTestName = function (spec) {
@@ -1063,7 +1063,7 @@ goog.scope(function() {
     };
 
     /**
-     * @param {MultiVertexArrayTest::Spec} spec
+     * @param {glsVertexArrayTests.MultiVertexArrayTest.Spec} spec
      * @param {number} depth
      */
     es3fVertexArrayTests.MultiVertexArrayOutputTests.prototype.addInputTypeCases = function (spec, depth) {
@@ -1079,7 +1079,6 @@ goog.scope(function() {
         }
 
         var inputTypes = [
-            glsVertexArrayTests.deArray.InputType.FIXED,
             glsVertexArrayTests.deArray.InputType.BYTE,
             glsVertexArrayTests.deArray.InputType.SHORT,
             glsVertexArrayTests.deArray.InputType.UNSIGNED_BYTE,
@@ -1131,8 +1130,9 @@ goog.scope(function() {
     /**
      * es3fVertexArrayTests.VertexArrayTestGroup
      * @constructor
+     * @extends {tcuTestCase.DeqpTest}
      */
-    es3fVertexArrayTests.VertexArrayTestGroup = function() {
+    es3fVertexArrayTests.VertexArrayTestGroup = function () {
         tcuTestCase.DeqpTest.call(this, 'vertex_arrays', 'Vertex array and array tests');
         this.makeExecutable();
     };
@@ -1150,7 +1150,7 @@ goog.scope(function() {
 
     /**
      * Create and execute the test cases
-     * @param {WebGLRenderingContextBase} context
+     * @param {WebGL2RenderingContext} context
      */
     es3fVertexArrayTests.run = function(context) {
         gl = context;
