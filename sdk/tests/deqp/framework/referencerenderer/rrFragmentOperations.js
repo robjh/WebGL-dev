@@ -46,13 +46,13 @@ rrFragmentOperations.isInsideRect = function(point, rect) {
 /**
  * @constructor
  */
-rrFragmentOperations.Fragment = function(coefficents, coords) {
+rrFragmentOperations.Fragment = function(coefficents, coords, depth) {
     /** @type {Array<number>} */ this.barycentric = coefficents;
     /** @type {Array<number>} */ this.pixelCoord = coords;
     /** @type {boolean} */ this.isAlive = true;
     /** @type {boolean} */ this.stencilPassed = true;
     /** @type {boolean} */ this.depthPassed = true;
-    /** @type {Array<number>} */ this.sampleDepths = [];
+    /** @type {Array<number>} */ this.sampleDepths = [depth];
     /** @type {Array<number>} */ this.clampedBlendSrcColor = [];
     /** @type {Array<number>} */ this.clampedBlendSrc1Color = [];
     /** @type {Array<number>} */ this.clampedBlendDstColor = [];

@@ -976,7 +976,11 @@ var DE_ASSERT = function(x) {
         ctx.stencilOp(gl.KEEP, gl.KEEP, gl.REPLACE);
         ctx.stencilFunc(gl.ALWAYS, 7, 0xff);
 
-        es3fFramebufferBlitTests.drawQuad(ctx, gradShaderID, [-1, -1, 0], [1, 1, 0]);
+        es3fFramebufferBlitTests.drawQuad(ctx, gradShaderID, [-1, -1, -1], [1, 1, 1]);
+        /* TODO: remove */ {
+            this.readPixelsUsingFormat(dst, 0, 0, this.m_srcSize[0], this.m_srcSize[1], gluTextureUtil.mapGLInternalFormat(colorFormat), [1.0, 1.0, 1.0, 1.0], [0.0, 0.0, 0.0, 0.0]);
+            tcuImageCompare.displayImages(dst.getAccess());
+        }
 
         // Fill destination with grid pattern, depth = 0 and stencil = 1
         /** @const {number} */ var format = gl.RGBA;
@@ -1001,6 +1005,10 @@ var DE_ASSERT = function(x) {
         ctx.stencilFunc(gl.ALWAYS, 1, 0xff);
 
         es3fFramebufferBlitTests.drawQuad(ctx, texShaderID, [-1, -1, 0], [1, 1, 0]);
+        /* TODO: remove */ {
+            this.readPixelsUsingFormat(dst, 0, 0, this.m_dstSize[0], this.m_dstSize[1], gluTextureUtil.mapGLInternalFormat(colorFormat), [1.0, 1.0, 1.0, 1.0], [0.0, 0.0, 0.0, 0.0]);
+            tcuImageCompare.displayImages(dst.getAccess());
+        }
 
         // Perform copy.
         ctx.bindFramebuffer(gl.READ_FRAMEBUFFER, srcFbo);
@@ -1016,6 +1024,10 @@ var DE_ASSERT = function(x) {
         flatShader.setColor(this.getCurrentContext(), flatShaderID, [0.0, 0.0, 1.0, 1.0]);
 
         es3fFramebufferBlitTests.drawQuad(ctx, flatShaderID, [-1, -1, 0], [1, 1, 0]);
+        /* TODO: remove */ {
+            this.readPixelsUsingFormat(dst, 0, 0, this.m_dstSize[0], this.m_dstSize[1], gluTextureUtil.mapGLInternalFormat(colorFormat), [1.0, 1.0, 1.0, 1.0], [0.0, 0.0, 0.0, 0.0]);
+            tcuImageCompare.displayImages(dst.getAccess());
+        }
 
         if (this.m_dstBuffers & gl.STENCIL_BUFFER_BIT) {
             // Render green color where stencil == 6.

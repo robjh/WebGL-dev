@@ -1069,7 +1069,8 @@ sglrReferenceContext.Texture.prototype.sample4 = function(packetTexcoords, lodBi
         if (this.condtionalSetError(!setFront && !setBack, gl.INVALID_ENUM))
             return;
 
-        for (var type in rrDefs.FaceType) {
+        for (var key in rrDefs.FaceType) {
+            var type = rrDefs.FaceType[key];
             if ((type == rrDefs.FaceType.FACETYPE_FRONT && setFront) ||
                 (type == rrDefs.FaceType.FACETYPE_BACK && setBack)) {
                 this.m_stencil[type].func = func;
@@ -1130,7 +1131,8 @@ sglrReferenceContext.Texture.prototype.sample4 = function(packetTexcoords, lodBi
         if (this.condtionalSetError(!setFront && !setBack, gl.INVALID_ENUM))
             return;
 
-    for (var type in rrDefs.FaceType) {
+    for (var key in rrDefs.FaceType) {
+            var type = rrDefs.FaceType[key];
             if ((type == rrDefs.FaceType.FACETYPE_FRONT && setFront) ||
                 (type == rrDefs.FaceType.FACETYPE_BACK && setBack)) {
                 this.m_stencil[type].opStencilFail = sfail;
