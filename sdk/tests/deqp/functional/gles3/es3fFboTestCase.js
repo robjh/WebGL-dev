@@ -109,7 +109,7 @@ var DE_ASSERT = function(x) {
         // Check that we don't try to use invalid formats.
         DE_ASSERT(isCoreFormat || requiredExts);
         if (requiredExts.length > 0 && !es3fFboTestCase.isAnyExtensionSupported(gl, requiredExts)) {
-            var msg = 'SKIP: Format ' + wtu.glEnumToString(gl, sizedFormat) + ' not supported';
+            var msg = 'SKIP: Format ' + WebGLTestUtils.glEnumToString(gl, sizedFormat) + ' not supported';
             debug(msg);
             throw new TestFailedException(msg);
         }
