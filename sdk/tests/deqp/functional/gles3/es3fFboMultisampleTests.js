@@ -20,18 +20,17 @@
 
 'use strict';
 goog.provide('functional.gles3.es3fFboMultisampleTests');
-goog.require('functional.gles3.es3fFboTestCase');
-goog.require('functional.gles3.es3fFboTestUtil');
-goog.require('framework.common.tcuTestCase');
-goog.require('framework.common.tcuSurface');
-goog.require('framework.common.tcuRGBA');
 goog.require('framework.common.tcuImageCompare');
+goog.require('framework.common.tcuRGBA');
+goog.require('framework.common.tcuSurface');
+goog.require('framework.common.tcuTestCase');
 goog.require('framework.common.tcuTexture');
 goog.require('framework.common.tcuTextureUtil');
-goog.require('framework.delibs.debase.deRandom');
 goog.require('framework.delibs.debase.deMath');
+goog.require('framework.delibs.debase.deRandom');
 goog.require('framework.opengl.gluTextureUtil');
-
+goog.require('functional.gles3.es3fFboTestCase');
+goog.require('functional.gles3.es3fFboTestUtil');
 
 goog.scope(function() {
 
@@ -149,7 +148,6 @@ var DE_ASSERT = function(x) {
 
         this.checkError();
         this.checkFramebufferStatus(gl.FRAMEBUFFER);
-
 
         ctx.bindFramebuffer(gl.FRAMEBUFFER, msaaFbo);
         ctx.viewport(0, 0, this.m_size[0], this.m_size[1]);
@@ -303,7 +301,7 @@ var DE_ASSERT = function(x) {
             // R formats
             gl.R8,
 
-            // GL_EXT_color_buffer_float
+            // gl.EXT_color_buffer_float
             gl.RGBA32F,
             gl.RGBA16F,
             gl.R11F_G11F_B10F,
@@ -366,6 +364,5 @@ var DE_ASSERT = function(x) {
             tcuTestCase.runner.terminate();
         }
     };
-
 
 });
