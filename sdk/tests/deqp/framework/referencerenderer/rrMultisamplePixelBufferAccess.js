@@ -21,9 +21,8 @@
 'use strict';
 goog.provide('framework.referencerenderer.rrMultisamplePixelBufferAccess');
 goog.require('framework.common.tcuTexture');
-goog.require('framework.delibs.debase.deMath');
 goog.require('framework.common.tcuTextureUtil');
-
+goog.require('framework.delibs.debase.deMath');
 
 goog.scope(function() {
 
@@ -100,7 +99,7 @@ rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.prototype.getSubregi
  */
 rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.prototype.getBufferSize = function() {
     return [0, 0, this.raw().getHeight(), this.raw().getDepth()];
-}
+};
 
 /**
  * @param {tcuTexture.PixelBufferAccess} dst
@@ -138,7 +137,5 @@ rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.prototype.resolveMul
 rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.prototype.clear = function(color) {
     this.raw().clear(color);
 };
-
-
 
 });

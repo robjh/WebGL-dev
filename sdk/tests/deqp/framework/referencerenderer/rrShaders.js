@@ -27,7 +27,6 @@ goog.require('framework.referencerenderer.rrShadingContext');
 goog.require('framework.referencerenderer.rrVertexAttrib');
 goog.require('framework.referencerenderer.rrVertexPacket');
 
-
 goog.scope(function() {
 
 var rrShaders = framework.referencerenderer.rrShaders;
@@ -42,7 +41,7 @@ var rrVertexPacket = framework.referencerenderer.rrVertexPacket;
      * Vertex shader input information
      * @constructor
      */
-    rrShaders.VertexInputInfo = function () {
+    rrShaders.VertexInputInfo = function() {
         /** @type {rrGenericVector.GenericVecType} */ this.type;
     };
 
@@ -50,16 +49,16 @@ var rrVertexPacket = framework.referencerenderer.rrVertexPacket;
      * Shader varying information
      * @constructor
      */
-    rrShaders.VertexVaryingInfo = function () {
+    rrShaders.VertexVaryingInfo = function() {
         /** @type {rrGenericVector.GenericVecType} */ this.type;
-        /** @type {boolean} */ var flatshade   = false;
+        /** @type {boolean} */ var flatshade = false;
     };
 
     /**
      * Fragment shader output information
      * @constructor
      */
-    rrShaders.FragmentOutputInfo = function () {
+    rrShaders.FragmentOutputInfo = function() {
         //Sensible defaults
         /** @type {rrGenericVector.GenericVecType} */ this.type;
     };
@@ -73,25 +72,24 @@ var rrVertexPacket = framework.referencerenderer.rrVertexPacket;
      * @param {number} numInputs
      * @param {number} numOutputs
      */
-    rrShaders.VertexShader = function (numInputs, numOutputs) {
-        /** @type {Array.<rrShaders.VertexInputInfo>} */ this.m_inputs = [];
-        for(var ndx = 0; ndx < numInputs; ndx++) this.m_inputs[ndx] = new rrShaders.VertexInputInfo();
-        /** @type {Array.<rrShaders.VertexVaryingInfo>} */ this.m_outputs = [];
-        for(var ndx = 0; ndx < numOutputs; ndx++) this.m_outputs[ndx] = new rrShaders.VertexVaryingInfo();
+    rrShaders.VertexShader = function(numInputs, numOutputs) {
+        /** @type {Array<rrShaders.VertexInputInfo>} */ this.m_inputs = [];
+        for (var ndx = 0; ndx < numInputs; ndx++) this.m_inputs[ndx] = new rrShaders.VertexInputInfo();
+        /** @type {Array<rrShaders.VertexVaryingInfo>} */ this.m_outputs = [];
+        for (var ndx = 0; ndx < numOutputs; ndx++) this.m_outputs[ndx] = new rrShaders.VertexVaryingInfo();
     };
-
 
      /**
       * getInputs
-      * @return {Array.<rrShaders.VertexInputInfo>}
+      * @return {Array<rrShaders.VertexInputInfo>}
       */
-     rrShaders.VertexShader.prototype.getInputs = function () {return this.m_inputs;};
+     rrShaders.VertexShader.prototype.getInputs = function() {return this.m_inputs;};
 
      /**
       * getOutputs
-      * @return {Array.<rrShaders.VertexVaryingInfo>}
+      * @return {Array<rrShaders.VertexVaryingInfo>}
       */
-    rrShaders.VertexShader.prototype.getOutputs = function () {return this.m_outputs;}
+    rrShaders.VertexShader.prototype.getOutputs = function() {return this.m_outputs;};
 
     /**
      * Fragment shader interface
@@ -102,25 +100,24 @@ var rrVertexPacket = framework.referencerenderer.rrVertexPacket;
      * @param {number} numInputs
      * @param {number} numOutputs
      */
-    rrShaders.FragmentShader = function (numInputs, numOutputs) {
-        /** @type {Array.<rrShaders.VertexVaryingInfo>} */ this.m_inputs = [];
-        for(var ndx = 0; ndx < numInputs; ndx++) this.m_inputs[ndx] = new rrShaders.VertexVaryingInfo();
-        /** @type {Array.<rrShaders.FragmentOutputInfo>} */ this.m_outputs = [];
-        for(var ndx = 0; ndx < numOutputs; ndx++) this.m_outputs[ndx] = new rrShaders.FragmentOutputInfo();
+    rrShaders.FragmentShader = function(numInputs, numOutputs) {
+        /** @type {Array<rrShaders.VertexVaryingInfo>} */ this.m_inputs = [];
+        for (var ndx = 0; ndx < numInputs; ndx++) this.m_inputs[ndx] = new rrShaders.VertexVaryingInfo();
+        /** @type {Array<rrShaders.FragmentOutputInfo>} */ this.m_outputs = [];
+        for (var ndx = 0; ndx < numOutputs; ndx++) this.m_outputs[ndx] = new rrShaders.FragmentOutputInfo();
         /** @type {*} */ this.m_container; // owner object
     };
 
-
     /**
      * getInputs
-     * @return {Array.<rrShaders.VertexVaryingInfo>}
+     * @return {Array<rrShaders.VertexVaryingInfo>}
      */
-    rrShaders.FragmentShader.prototype.getInputs = function () {return this.m_inputs;};
+    rrShaders.FragmentShader.prototype.getInputs = function() {return this.m_inputs;};
 
     /**
      * getOutputs
-     * @return {Array.<rrShaders.FragmentOutputInfo>}
+     * @return {Array<rrShaders.FragmentOutputInfo>}
      */
-    rrShaders.FragmentShader.prototype.getOutputs = function () {return this.m_outputs;}
+    rrShaders.FragmentShader.prototype.getOutputs = function() {return this.m_outputs;};
 
 });

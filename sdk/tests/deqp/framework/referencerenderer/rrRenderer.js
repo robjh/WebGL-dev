@@ -23,15 +23,15 @@ goog.provide('framework.referencerenderer.rrRenderer');
 goog.require('framework.common.tcuTexture');
 goog.require('framework.common.tcuTextureUtil');
 goog.require('framework.delibs.debase.deMath');
+goog.require('framework.opengl.simplereference.sglrShaderProgram');
 goog.require('framework.referencerenderer.rrDefs');
 goog.require('framework.referencerenderer.rrFragmentOperations');
 goog.require('framework.referencerenderer.rrGenericVector');
 goog.require('framework.referencerenderer.rrMultisamplePixelBufferAccess');
 goog.require('framework.referencerenderer.rrRenderState');
 goog.require('framework.referencerenderer.rrShadingContext');
-goog.require('framework.referencerenderer.rrVertexPacket');
-goog.require('framework.opengl.simplereference.sglrShaderProgram');
 goog.require('framework.referencerenderer.rrVertexAttrib');
+goog.require('framework.referencerenderer.rrVertexPacket');
 
 goog.scope(function() {
 
@@ -63,7 +63,6 @@ rrRenderer.PrimitiveType = {
 
     POINTS: 6 //!< Points
 };
-
 
 // /**
 //  * @constructor
@@ -232,7 +231,7 @@ rrRenderer.PrimitiveList.prototype.getIndex = function(elementNdx) {
         return this.m_baseVertex + elementNdx;
 };
 
-rrRenderer.PrimitiveList.prototype.isRestartIndex = function (elementNdx, restartIndex) {
+rrRenderer.PrimitiveList.prototype.isRestartIndex = function(elementNdx, restartIndex) {
     // implicit index or explicit index (without base vertex) equals restart
     if (this.m_indices)
         return this.m_indices.readIndexArray(elementNdx) == restartIndex;
@@ -243,7 +242,6 @@ rrRenderer.PrimitiveList.prototype.isRestartIndex = function (elementNdx, restar
 rrRenderer.PrimitiveList.prototype.getNumElements = function() {return this.m_numElements;};
 rrRenderer.PrimitiveList.prototype.getPrimitiveType = function() {return this.m_primitiveType;};
 rrRenderer.PrimitiveList.prototype.getIndexType = function() {return this.m_indexType;};
-
 
 rrRenderer.getBarycentricCoefficients = function(v, v1, v2, v3) {
     var b = [];
@@ -452,7 +450,7 @@ void FragmentProcessor::render (const rr::MultisamplePixelBufferAccess& msColorB
  * @param {boolean} isRight
  * @return {number}
  */
-rrRenderer.getIndexOfCorner = function (isTop, isRight, vertexPackets) {
+rrRenderer.getIndexOfCorner = function(isTop, isRight, vertexPackets) {
     var x = null;
     var y = null;
 
@@ -460,13 +458,13 @@ rrRenderer.getIndexOfCorner = function (isTop, isRight, vertexPackets) {
     var ycriteria = isTop ? Math.max : Math.min;
 
     // Determine corner values
-    for(var i = 0; i < 6; i++) {
+    for (var i = 0; i < 6; i++) {
         x = x != null ? xcriteria(vertexPackets[i].position[0], x) : vertexPackets[i].position[0];
         y = y != null ? ycriteria(vertexPackets[i].position[1], y) : vertexPackets[i].position[1];
     }
 
     // Search for mathing vertex
-    for(var v = 0; v < 6; v++)
+    for (var v = 0; v < 6; v++)
         if (vertexPackets[v].position[0] == x && vertexPackets[v].position[1] == y)
             return v;
 

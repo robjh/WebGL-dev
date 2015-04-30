@@ -20,19 +20,18 @@
 
 'use strict';
 goog.provide('framework.opengl.simplereference.sglrShaderProgram');
-goog.require('framework.referencerenderer.rrShaders');
-goog.require('framework.referencerenderer.rrGenericVector');
-goog.require('framework.referencerenderer.rrDefs');
 goog.require('framework.common.tcuTexture');
-goog.require('framework.delibs.debase.deMath');
-goog.require('framework.opengl.gluTextureUtil');
-goog.require('framework.opengl.gluShaderUtil');
 goog.require('framework.common.tcuTextureUtil');
+goog.require('framework.delibs.debase.deMath');
+goog.require('framework.opengl.gluShaderUtil');
+goog.require('framework.opengl.gluTextureUtil');
+goog.require('framework.referencerenderer.rrDefs');
 goog.require('framework.referencerenderer.rrFragmentOperations');
+goog.require('framework.referencerenderer.rrGenericVector');
+goog.require('framework.referencerenderer.rrShaders');
+goog.require('framework.referencerenderer.rrShadingContext');
 goog.require('framework.referencerenderer.rrVertexAttrib');
 goog.require('framework.referencerenderer.rrVertexPacket');
-goog.require('framework.referencerenderer.rrShadingContext');
-
 
 goog.scope(function() {
 
@@ -71,7 +70,7 @@ goog.scope(function() {
      * @param {string} name_
      * @param {rrGenericVector.GenericVecType} type_
      */
-    sglrShaderProgram.VertexAttribute = function (name_, type_) {
+    sglrShaderProgram.VertexAttribute = function(name_, type_) {
         this.name = name_;
         this.type = type_;
     };
@@ -82,7 +81,7 @@ goog.scope(function() {
      * @param {rrGenericVector.GenericVecType} type_
      * @param {sglrShaderProgram.VaryingFlags=} flags
      */
-    sglrShaderProgram.VertexToFragmentVarying = function (type_, flags) {
+    sglrShaderProgram.VertexToFragmentVarying = function(type_, flags) {
         this.type = type_;
         this.flatshade = flags === undefined ? new sglrShaderProgram.VaryingFlags().FLATSHADE : flags.FLATSHADE;
     };
@@ -92,7 +91,7 @@ goog.scope(function() {
      * @constructor
      * @param {rrGenericVector.GenericVecType} type_
      */
-    sglrShaderProgram.FragmentOutput = function (type_) {
+    sglrShaderProgram.FragmentOutput = function(type_) {
         this.type = type_;
     };
 
@@ -102,7 +101,7 @@ goog.scope(function() {
      * @param {string} name_
      * @param {gluShaderUtil.DataType} type_
      */
-    sglrShaderProgram.Uniform = function (name_, type_) {
+    sglrShaderProgram.Uniform = function(name_, type_) {
         this.name = name_;
         this.type = type_;
         /** @type {Array<number>} */ this.value;
@@ -114,7 +113,7 @@ goog.scope(function() {
      * @constructor
      * @param {string} str
      */
-    sglrShaderProgram.VertexSource = function (str) {
+    sglrShaderProgram.VertexSource = function(str) {
         this.source = str;
     };
 
@@ -123,7 +122,7 @@ goog.scope(function() {
      * @constructor
      * @param {string} str
      */
-    sglrShaderProgram.FragmentSource = function (str) {
+    sglrShaderProgram.FragmentSource = function(str) {
         this.source = str;
     };
 
@@ -131,7 +130,7 @@ goog.scope(function() {
      * sglrShaderProgram.ShaderProgramDeclaration
      * @constructor
      */
-    sglrShaderProgram.ShaderProgramDeclaration = function () {
+    sglrShaderProgram.ShaderProgramDeclaration = function() {
         /** @type {Array<sglrShaderProgram.VertexAttribute>} */ this.m_vertexAttributes = [];
         /** @type {Array<sglrShaderProgram.VertexToFragmentVarying>} */ this.m_vertexToFragmentVaryings = [];
         /** @type {Array<sglrShaderProgram.FragmentOutput>} */ this.m_fragmentOutputs = [];
@@ -148,7 +147,7 @@ goog.scope(function() {
      * @param {sglrShaderProgram.VertexAttribute} v
      * @return {sglrShaderProgram.ShaderProgramDeclaration}
      */
-    sglrShaderProgram.ShaderProgramDeclaration.prototype.pushVertexAttribute = function (v) {
+    sglrShaderProgram.ShaderProgramDeclaration.prototype.pushVertexAttribute = function(v) {
         this.m_vertexAttributes.push(v);
         return this;
     };
@@ -158,7 +157,7 @@ goog.scope(function() {
      * @param {sglrShaderProgram.VertexToFragmentVarying} v
      * @return {sglrShaderProgram.ShaderProgramDeclaration}
      */
-    sglrShaderProgram.ShaderProgramDeclaration.prototype.pushVertexToFragmentVarying = function (v) {
+    sglrShaderProgram.ShaderProgramDeclaration.prototype.pushVertexToFragmentVarying = function(v) {
         this.m_vertexToFragmentVaryings.push(v);
         return this;
     };
@@ -168,7 +167,7 @@ goog.scope(function() {
      * @param {sglrShaderProgram.FragmentOutput} v
      * @return {sglrShaderProgram.ShaderProgramDeclaration}
      */
-    sglrShaderProgram.ShaderProgramDeclaration.prototype.pushFragmentOutput = function (v) {
+    sglrShaderProgram.ShaderProgramDeclaration.prototype.pushFragmentOutput = function(v) {
         this.m_fragmentOutputs.push(v);
         return this;
     };
@@ -178,7 +177,7 @@ goog.scope(function() {
      * @param {sglrShaderProgram.Uniform} v
      * @return {sglrShaderProgram.ShaderProgramDeclaration}
      */
-    sglrShaderProgram.ShaderProgramDeclaration.prototype.pushUniform = function (v) {
+    sglrShaderProgram.ShaderProgramDeclaration.prototype.pushUniform = function(v) {
         this.m_uniforms.push(v);
         return this;
     };
@@ -186,7 +185,7 @@ goog.scope(function() {
     /**
      * @param {sglrShaderProgram.VertexSource} c
      */
-    sglrShaderProgram.ShaderProgramDeclaration.prototype.pushVertexSource = function (c) {
+    sglrShaderProgram.ShaderProgramDeclaration.prototype.pushVertexSource = function(c) {
         DE_ASSERT(!this.m_vertexShaderSet);
         this.m_vertexSource = c.source;
         this.m_vertexShaderSet = true;
@@ -196,7 +195,7 @@ goog.scope(function() {
     /**
      * @param {sglrShaderProgram.FragmentSource} c
      */
-    sglrShaderProgram.ShaderProgramDeclaration.prototype.pushFragmentSource = function (c) {
+    sglrShaderProgram.ShaderProgramDeclaration.prototype.pushFragmentSource = function(c) {
         DE_ASSERT(!this.m_fragmentSource);
         this.m_fragmentSource = c.source;
         this.m_fragmentShaderSet = true;
@@ -206,7 +205,7 @@ goog.scope(function() {
     /**
      * @return {boolean}
      */
-    sglrShaderProgram.ShaderProgramDeclaration.prototype.valid = function () {
+    sglrShaderProgram.ShaderProgramDeclaration.prototype.valid = function() {
         if (!this.m_vertexShaderSet || !this.m_fragmentShaderSet)
             return false;
 
@@ -219,28 +218,28 @@ goog.scope(function() {
     /**
      * @return {number}
      */
-    sglrShaderProgram.ShaderProgramDeclaration.prototype.getVertexInputCount = function () {
+    sglrShaderProgram.ShaderProgramDeclaration.prototype.getVertexInputCount = function() {
         return this.m_vertexAttributes.length;
     };
 
     /**
      * @return {number}
      */
-    sglrShaderProgram.ShaderProgramDeclaration.prototype.getVertexOutputCount = function () {
+    sglrShaderProgram.ShaderProgramDeclaration.prototype.getVertexOutputCount = function() {
         return this.m_vertexToFragmentVaryings.length;
     };
 
     /**
      * @return {number}
      */
-    sglrShaderProgram.ShaderProgramDeclaration.prototype.getFragmentInputCount = function () {
+    sglrShaderProgram.ShaderProgramDeclaration.prototype.getFragmentInputCount = function() {
         return this.m_vertexToFragmentVaryings.length;
     };
 
     /**
      * @return {number}
      */
-    sglrShaderProgram.ShaderProgramDeclaration.prototype.getFragmentOutputCount = function () {
+    sglrShaderProgram.ShaderProgramDeclaration.prototype.getFragmentOutputCount = function() {
         return this.m_fragmentOutputs.length;
     };
 
@@ -248,7 +247,7 @@ goog.scope(function() {
      * @constructor
      * @param {sglrShaderProgram.ShaderProgramDeclaration} decl
      */
-    sglrShaderProgram.ShaderProgram = function (decl) {
+    sglrShaderProgram.ShaderProgram = function(decl) {
         this.vertexShader = new rrShaders.VertexShader(decl.getVertexInputCount(), decl.getVertexOutputCount());
         this.fragmentShader = new rrShaders.FragmentShader(decl.getFragmentInputCount(), decl.getFragmentOutputCount());
 
@@ -262,7 +261,7 @@ goog.scope(function() {
         // Set up shader IO
 
         for (var ndx = 0; ndx < decl.m_vertexAttributes.length; ++ndx) {
-            this.vertexShader.m_inputs[ndx].type  = decl.m_vertexAttributes[ndx].type;
+            this.vertexShader.m_inputs[ndx].type = decl.m_vertexAttributes[ndx].type;
             this.m_attributeNames[ndx] = decl.m_vertexAttributes[ndx].name;
         }
 
@@ -285,14 +284,14 @@ goog.scope(function() {
     /**
      * @return {rrShaders.VertexShader}
      */
-    sglrShaderProgram.ShaderProgram.prototype.getVertexShader = function () {
+    sglrShaderProgram.ShaderProgram.prototype.getVertexShader = function() {
         return this.vertexShader;
     };
 
     /**
      * @return {rrShaders.FragmentShader}
      */
-    sglrShaderProgram.ShaderProgram.prototype.getFragmentShader = function () {
+    sglrShaderProgram.ShaderProgram.prototype.getFragmentShader = function() {
         return this.fragmentShader;
     };
 
@@ -300,14 +299,14 @@ goog.scope(function() {
      * @param {string} name
      * @return {sglrShaderProgram.Uniform}
      */
-    sglrShaderProgram.ShaderProgram.prototype.getUniformByName = function (name) {
+    sglrShaderProgram.ShaderProgram.prototype.getUniformByName = function(name) {
         DE_ASSERT(name);
 
         for (var ndx = 0; ndx < this.m_uniforms.length; ++ndx)
             if (this.m_uniforms[ndx].name == name)
                 return this.m_uniforms[ndx];
 
-        throw new Error("Invalid uniform name, uniform not found.");
+        throw new Error('Invalid uniform name, uniform not found.');
     };
 
     /**

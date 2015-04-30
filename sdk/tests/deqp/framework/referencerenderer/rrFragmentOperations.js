@@ -20,10 +20,10 @@
 
 'use strict';
 goog.provide('framework.referencerenderer.rrFragmentOperations');
-goog.require('framework.delibs.debase.deMath');
-goog.require('framework.referencerenderer.rrRenderState');
 goog.require('framework.common.tcuTexture');
 goog.require('framework.common.tcuTextureUtil');
+goog.require('framework.delibs.debase.deMath');
+goog.require('framework.referencerenderer.rrRenderState');
 
 goog.scope(function() {
 
@@ -34,7 +34,7 @@ var tcuTexture = framework.common.tcuTexture;
 var tcuTextureUtil = framework.common.tcuTextureUtil;
 
 // Return oldValue with the bits indicated by mask replaced by corresponding bits of newValue.
-rrFragmentOperations.maskedBitReplace = function(oldValue, newValue, mask){
+rrFragmentOperations.maskedBitReplace = function(oldValue, newValue, mask) {
     return (oldValue & ~mask) | (newValue & mask);
 };
 
@@ -50,20 +50,20 @@ rrFragmentOperations.Fragment = function(coefficents, coords) {
     /** @type {Array<number>} */ this.barycentric = coefficents;
     /** @type {Array<number>} */ this.pixelCoord = coords;
     /** @type {boolean} */ this.isAlive = true;
-    /** @type {boolean} */ this.stencilPassed = true;    
+    /** @type {boolean} */ this.stencilPassed = true;
     /** @type {boolean} */ this.depthPassed = true;
     /** @type {Array<number>} */ this.sampleDepths = [];
-    /** @type {Array<number>} */  this.clampedBlendSrcColor = [];
-    /** @type {Array<number>} */  this.clampedBlendSrc1Color = [];
-    /** @type {Array<number>} */  this.clampedBlendDstColor = [];
-    /** @type {Array<number>} */  this.blendSrcFactorRGB = [];
+    /** @type {Array<number>} */ this.clampedBlendSrcColor = [];
+    /** @type {Array<number>} */ this.clampedBlendSrc1Color = [];
+    /** @type {Array<number>} */ this.clampedBlendDstColor = [];
+    /** @type {Array<number>} */ this.blendSrcFactorRGB = [];
     /** @type {number} */ this.blendSrcFactorA = NaN;
     /** @type {Array<number>} */ this.blendDstFactorRGB = [];
     /** @type {number} */ this.blendDstFactorA = NaN;
     /** @type {Array<number>} */ this.blendedRGB = [];
     /** @type {number} */ this.blendedA = NaN;
-    /** @type {Array<number>} */ this.signedValue = [];        //!< integer targets
-    /** @type {Array<number>} */ this.unsignedValue = [];      //!< unsigned integer targets
+    /** @type {Array<number>} */ this.signedValue = []; //!< integer targets
+    /** @type {Array<number>} */ this.unsignedValue = []; //!< unsigned integer targets
     /** @type {Array<number>} */ this.value = []; /*TODO: what type should it be? */
     /** @type {Array<number>} */ this.value1 = []; /*TODO: what type should it be? */
 };
@@ -145,21 +145,21 @@ rrFragmentOperations.executeStencilSFail = function(inputFragments, stencilState
     };
 
     switch (stencilState.sFail) {
-        case rrRenderState.StencilOp.KEEP: 
+        case rrRenderState.StencilOp.KEEP:
             sample_register_sfail(function(stencilBufferValue, numStencilBits) { return stencilBufferValue;}); break;
-        case rrRenderState.StencilOp.ZERO: 
+        case rrRenderState.StencilOp.ZERO:
             sample_register_sfail(function(stencilBufferValue, numStencilBits) { return 0;}); break;
-        case rrRenderState.StencilOp.REPLACE: 
+        case rrRenderState.StencilOp.REPLACE:
             sample_register_sfail(function(stencilBufferValue, numStencilBits) { return clampedStencilRef;}); break;
-        case rrRenderState.StencilOp.INCR: 
+        case rrRenderState.StencilOp.INCR:
             sample_register_sfail(function(stencilBufferValue, numStencilBits) { return deMath.clamp(stencilBufferValue + 1, 0, (1 << numStencilBits) - 1);}); break;
-        case rrRenderState.StencilOp.DECR: 
+        case rrRenderState.StencilOp.DECR:
             sample_register_sfail(function(stencilBufferValue, numStencilBits) { return deMath.clamp(stencilBufferValue - 1, 0, (1 << numStencilBits) - 1);}); break;
-        case rrRenderState.StencilOp.INCR_WRAP: 
+        case rrRenderState.StencilOp.INCR_WRAP:
             sample_register_sfail(function(stencilBufferValue, numStencilBits) { return (stencilBufferValue + 1) & ((1 << numStencilBits) - 1);}); break;
-        case rrRenderState.StencilOp.DECR_WRAP: 
+        case rrRenderState.StencilOp.DECR_WRAP:
             sample_register_sfail(function(stencilBufferValue, numStencilBits) { return (stencilBufferValue - 1) & ((1 << numStencilBits) - 1);}); break;
-        case rrRenderState.StencilOp.INVERT: 
+        case rrRenderState.StencilOp.INVERT:
             sample_register_sfail(function(stencilBufferValue, numStencilBits) { return (~stencilBufferValue) & ((1 << numStencilBits) - 1);}); break;
         default:
             throw new Error('Unrecognized stencil op:' + stencilState.sFail);

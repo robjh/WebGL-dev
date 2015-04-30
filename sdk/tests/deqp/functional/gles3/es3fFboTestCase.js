@@ -20,19 +20,18 @@
 
 'use strict';
 goog.provide('functional.gles3.es3fFboTestCase');
-goog.require('framework.common.tcuTestCase');
-goog.require('framework.delibs.debase.deMath');
-goog.require('framework.common.tcuSurface');
-goog.require('framework.common.tcuTexture');
-goog.require('framework.referencerenderer.rrRenderer');
-goog.require('framework.opengl.simplereference.sglrReferenceContext');
-goog.require('framework.opengl.simplereference.sglrGLContext');
-goog.require('framework.common.tcuPixelFormat');
 goog.require('framework.common.tcuImageCompare');
-goog.require('framework.delibs.debase.deString');
-goog.require('functional.gles3.es3fFboTestUtil');
+goog.require('framework.common.tcuPixelFormat');
+goog.require('framework.common.tcuSurface');
+goog.require('framework.common.tcuTestCase');
+goog.require('framework.common.tcuTexture');
+goog.require('framework.delibs.debase.deMath');
 goog.require('framework.delibs.debase.deRandom');
-
+goog.require('framework.delibs.debase.deString');
+goog.require('framework.opengl.simplereference.sglrGLContext');
+goog.require('framework.opengl.simplereference.sglrReferenceContext');
+goog.require('framework.referencerenderer.rrRenderer');
+goog.require('functional.gles3.es3fFboTestUtil');
 
 goog.scope(function() {
 
@@ -182,7 +181,6 @@ var DE_ASSERT = function(x) {
         es3fFboTestUtil.clearColorBuffer(this.getCurrentContext(), format, value);
     };
 
-
     es3fFboTestCase.FboTestCase.prototype.iterate = function() {
         // Viewport.
         /** @type {deRandom.Random} */ var rnd = new deRandom.Random(deString.deStringHash(this.name));
@@ -227,15 +225,15 @@ var DE_ASSERT = function(x) {
         // }
 
         // Render reference.
-        /** @type {number} */ var alphaBits = /** @type{number} */ (gl.getParameter(gl.ALPHA_BITS));
+        /** @type {number} */ var alphaBits = /** @type {number} */ (gl.getParameter(gl.ALPHA_BITS));
         /** @type {sglrReferenceContext.ReferenceContextBuffers} */
         var buffers = new sglrReferenceContext.ReferenceContextBuffers(new tcuPixelFormat.PixelFormat(
                                                                             8,
                                                                             8,
                                                                             8,
                                                                             alphaBits > 0 ? 8 : 0),
-                                                                       /** @type{number} */ (gl.getParameter(gl.DEPTH_BITS)),
-                                                                       /** @type{number} */ (gl.getParameter(gl.STENCIL_BITS)), 
+                                                                       /** @type {number} */ (gl.getParameter(gl.DEPTH_BITS)),
+                                                                       /** @type {number} */ (gl.getParameter(gl.STENCIL_BITS)),
                                                                        width,
                                                                        height);
         /** @type {sglrReferenceContext.ReferenceContext} */
@@ -248,14 +246,12 @@ var DE_ASSERT = function(x) {
         this.render(reference);
         this.setContext(null);
 
-
         /** @type {boolean} */ var isOk = this.compare(reference, result);
 
         assertMsgOptions(isOk, '', true, false);
 
         return tcuTestCase.IterateResult.STOP;
     };
-
 
     /**
     * @param {number} format
@@ -325,20 +321,20 @@ var DE_ASSERT = function(x) {
 
         switch (format) {
             case gl.RGB16F:
-                out.push('GL_EXT_color_buffer_half_float');
+                out.push('gl.EXT_color_buffer_half_float');
                 break;
 
             case gl.RGBA16F:
             case gl.RG16F:
             case gl.R16F:
-                out.push('GL_EXT_color_buffer_half_float');
+                out.push('gl.EXT_color_buffer_half_float');
 
             case gl.RGBA32F:
             case gl.RGB32F:
             case gl.R11F_G11F_B10F:
             case gl.RG32F:
             case gl.R32F:
-                out.push('GL_EXT_color_buffer_float');
+                out.push('gl.EXT_color_buffer_float');
 
             default:
                 break;
@@ -368,7 +364,7 @@ var DE_ASSERT = function(x) {
  * @return {number}
  */
 es3fFboTestCase.getMinimumSampleCount = function(format) {
-    switch (format)    {
+    switch (format) {
         // Core formats
         case gl.RGBA32I:
         case gl.RGBA32UI:
@@ -423,12 +419,12 @@ es3fFboTestCase.getMinimumSampleCount = function(format) {
             return 0;
 
         default:
-            throw new Error("Unknown format:" + format);
+            throw new Error('Unknown format:' + format);
     }
 };
 
 es3fFboTestCase.querySampleCounts = function(format) {
     return gl.getInternalformatParameter(gl.RENDERBUFFER, format, gl.SAMPLES);
-}
+};
 
 });

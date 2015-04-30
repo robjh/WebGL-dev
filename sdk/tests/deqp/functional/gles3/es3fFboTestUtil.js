@@ -18,25 +18,23 @@
  *
  */
 
-
 'use strict';
 goog.provide('functional.gles3.es3fFboTestUtil');
+goog.require('framework.common.tcuMatrix');
+goog.require('framework.common.tcuRGBA');
+goog.require('framework.common.tcuSurface');
 goog.require('framework.common.tcuTexture');
 goog.require('framework.common.tcuTextureUtil');
-goog.require('framework.common.tcuRGBA');
-goog.require('framework.opengl.gluTextureUtil');
 goog.require('framework.delibs.debase.deMath');
-goog.require('framework.referencerenderer.rrShadingContext');
-goog.require('framework.referencerenderer.rrVertexPacket');
-goog.require('framework.referencerenderer.rrVertexAttrib');
 goog.require('framework.opengl.gluShaderUtil');
+goog.require('framework.opengl.gluTextureUtil');
 goog.require('framework.opengl.simplereference.sglrReferenceContext');
 goog.require('framework.opengl.simplereference.sglrShaderProgram');
-goog.require('framework.referencerenderer.rrGenericVector');
-goog.require('framework.common.tcuMatrix');
 goog.require('framework.referencerenderer.rrFragmentOperations');
-goog.require('framework.common.tcuSurface');
-
+goog.require('framework.referencerenderer.rrGenericVector');
+goog.require('framework.referencerenderer.rrShadingContext');
+goog.require('framework.referencerenderer.rrVertexAttrib');
+goog.require('framework.referencerenderer.rrVertexPacket');
 
 goog.scope(function() {
 
@@ -62,15 +60,14 @@ var DE_ASSERT = function(x) {
         throw new Error('Assert failed');
 };
 
-
 /**
  * Defines the exception type for a test failure.
  * @constructor
  * @param {number} reason The error code.
  */
-es3fFboTestUtil.FboIncompleteException = function (reason) {
+es3fFboTestUtil.FboIncompleteException = function(reason) {
    this.reason = reason;
-   this.name = "es3fFboTestUtil.FboIncompleteException";
+   this.name = 'es3fFboTestUtil.FboIncompleteException';
 };
 
 /** @typedef { (WebGL2RenderingContext|sglrReferenceContext.ReferenceContext)} */
@@ -126,7 +123,7 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
             'in highp vec4 a_position;\n' +
             'void main (void)\n' +
             '{\n' +
-            '    gl_Position = a_position;\n' +
+            ' gl_Position = a_position;\n' +
             '}\n'));
         decl.pushFragmentSource(new sglrShaderProgram.FragmentSource(
             '#version 300 es\n' +
@@ -134,7 +131,7 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
             'layout(location = 0) out highp ' + gluShaderUtil.getDataTypeName(outputType) + ' o_color;\n' +
             'void main (void)\n' +
             '{\n' +
-            '    o_color = ' + gluShaderUtil.getDataTypeName(outputType) + '(u_color);\n' +
+            ' o_color = ' + gluShaderUtil.getDataTypeName(outputType) + '(u_color);\n' +
             '}\n'));
         sglrShaderProgram.ShaderProgram.call(this, decl);
     };
@@ -176,22 +173,16 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
         /** @const {Array<number>} */ var icolor = es3fFboTestUtil.castVectorSaturate(color, tcuTexture.deTypes.deInt32);
         /** @const {Array<number>} */ var uicolor = es3fFboTestUtil.castVectorSaturate(color, tcuTexture.deTypes.deUint32);
 
-        if (this.m_outputType == gluShaderUtil.DataType.FLOAT_VEC4)
-        {
+        if (this.m_outputType == gluShaderUtil.DataType.FLOAT_VEC4) {
             for (var packetNdx = 0; packetNdx < numPackets; ++packetNdx)
                 packet[packetNdx].value = color;
-        }
-        else if (this.m_outputType == gluShaderUtil.DataType.INT_VEC4)
-        {
+        } else if (this.m_outputType == gluShaderUtil.DataType.INT_VEC4) {
             for (var packetNdx = 0; packetNdx < numPackets; ++packetNdx)
                 packet[packetNdx].value = icolor;
-        }
-        else if (this.m_outputType == gluShaderUtil.DataType.UINT_VEC4)
-        {
+        } else if (this.m_outputType == gluShaderUtil.DataType.UINT_VEC4) {
             for (var packetNdx = 0; packetNdx < numPackets; ++packetNdx)
                 packet[packetNdx].value = uicolor;
-        }
-        else
+        } else
             throw new Error('Invalid output type: ' + this.m_outputType);
     };
 
@@ -218,8 +209,8 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
             'out highp vec4 v_coord;\n' +
             'void main (void)\n' +
             '{\n' +
-            '    gl_Position = a_position;\n' +
-            '    v_coord = a_coord;\n' +
+            ' gl_Position = a_position;\n' +
+            ' v_coord = a_coord;\n' +
             '}\n'));
         decl.pushFragmentSource(new sglrShaderProgram.FragmentSource(
             '#version 300 es\n' +
@@ -229,12 +220,12 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
             'layout(location = 0) out highp ' + gluShaderUtil.getDataTypeName(outputType) + ' o_color;\n' +
             'void main (void)\n' +
             '{\n' +
-            '    highp float x = v_coord.x;\n' +
-            '    highp float y = v_coord.y;\n' +
-            '    highp float f0 = (x + y) * 0.5;\n' +
-            '    highp float f1 = 0.5 + (x - y) * 0.5;\n' +
-            '    highp vec4 fv = vec4(f0, f1, 1.0f-f0, 1.0f-f1);\n' +
-            '    o_color = ' + gluShaderUtil.getDataTypeName(outputType) + '(u_gradientMin + (u_gradientMax-u_gradientMin)*fv);\n' +
+            ' highp float x = v_coord.x;\n' +
+            ' highp float y = v_coord.y;\n' +
+            ' highp float f0 = (x + y) * 0.5;\n' +
+            ' highp float f1 = 0.5 + (x - y) * 0.5;\n' +
+            ' highp vec4 fv = vec4(f0, f1, 1.0f-f0, 1.0f-f1);\n' +
+            ' o_color = ' + gluShaderUtil.getDataTypeName(outputType) + '(u_gradientMin + (u_gradientMax-u_gradientMin)*fv);\n' +
             '}\n'));
         sglrShaderProgram.ShaderProgram.call(this, decl);
     };
@@ -326,7 +317,7 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
         src += '\n' +
                'void main (void)\n' +
                '{\n' +
-               '    ' + precision + ' vec4 out0 = vec4(0.0);\n';
+               ' ' + precision + ' vec4 out0 = vec4(0.0);\n';
 
         // Texture input fetch and combine.
         for (var inNdx = 0; inNdx < samplerTypes.length; inNdx++)
@@ -334,7 +325,7 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
                    'texture(u_sampler' + inNdx + ', v_coord)) * u_texScale' + inNdx + ' + u_texBias' + inNdx + ';\n';
 
         // Write output.
-        src += '    o_color0 = ' + gluShaderUtil.getDataTypeName(outputType) + '(out0 * u_outScale0 + u_outBias0);\n' +
+        src += ' o_color0 = ' + gluShaderUtil.getDataTypeName(outputType) + '(out0 * u_outScale0 + u_outBias0);\n' +
                '}\n';
 
         return src;
@@ -361,8 +352,8 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
             'out highp vec2 v_coord;\n' +
             'void main(void)\n' +
             '{\n' +
-            '    gl_Position = a_position;\n' +
-            '    v_coord = a_coord;\n' +
+            ' gl_Position = a_position;\n' +
+            ' v_coord = a_coord;\n' +
             '}\n'));
 
         decl.pushFragmentSource(new sglrShaderProgram.FragmentSource(es3fFboTestUtil.genTexFragmentShader(samplerTypes, outputType)));
@@ -552,8 +543,8 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
             'out mediump vec3 v_coord;\n' +
             'void main (void)\n' +
             '{\n' +
-            '    gl_Position = a_position;\n' +
-            '    v_coord = u_coordMat * vec3(a_coord, 1.0);\n' +
+            ' gl_Position = a_position;\n' +
+            ' v_coord = u_coordMat * vec3(a_coord, 1.0);\n' +
             '}\n'));
         decl.pushFragmentSource(new sglrShaderProgram.FragmentSource(
             '#version 300 es\n' +
@@ -564,7 +555,7 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
             'layout(location = 0) out highp ' + gluShaderUtil.getDataTypeName(outputType) + ' o_color;\n' +
             'void main (void)\n' +
             '{\n' +
-            '    o_color = ' + gluShaderUtil.getDataTypeName(outputType) + '(vec4(texture(u_sampler0, v_coord)) * u_scale + u_bias);\n' +
+            ' o_color = ' + gluShaderUtil.getDataTypeName(outputType) + '(vec4(texture(u_sampler0, v_coord)) * u_scale + u_bias);\n' +
             '}\n'));
         sglrShaderProgram.ShaderProgram.call(this, decl);
         /** @type {Array<number>} */ this.m_texScale = [1.0, 1.0, 1.0, 1.0];
@@ -607,8 +598,8 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
     };
 
     /**
-     * @param  ctx GL-like context
-     * @param  program
+     * @param ctx GL-like context
+     * @param program
      */
     es3fFboTestUtil.TextureCubeShader.prototype.setUniforms = function(ctx, program) {
         ctx.useProgram(program);
@@ -699,8 +690,8 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
                 'out highp vec2 v_coord;\n' +
                 'void main (void)\n' +
                 '{\n' +
-                '    gl_Position = a_position;\n' +
-                '    v_coord = a_coord;\n' +
+                ' gl_Position = a_position;\n' +
+                ' v_coord = a_coord;\n' +
                 '}\n'));
         decl.pushFragmentSource(new sglrShaderProgram.FragmentSource(
                 '#version 300 es\n' +
@@ -712,7 +703,7 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
                 'layout(location = 0) out highp ' + gluShaderUtil.getDataTypeName(outputType) + ' o_color;\n' +
                 'void main (void)\n' +
                 '{\n' +
-                '    o_color = ' + gluShaderUtil.getDataTypeName(outputType) + '(vec4(texture(u_sampler0, vec3(v_coord, u_layer))) * u_scale + u_bias);\n' +
+                ' o_color = ' + gluShaderUtil.getDataTypeName(outputType) + '(vec4(texture(u_sampler0, vec3(v_coord, u_layer))) * u_scale + u_bias);\n' +
                 '}\n'));
         sglrShaderProgram.ShaderProgram.call(this, decl);
         /** @type {Array<number>} */ this.m_texScale = [1.0, 1.0, 1.0, 1.0];
@@ -824,8 +815,8 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
             'out highp vec2 v_coord;\n' +
             'void main (void)\n' +
             '{\n' +
-            '    gl_Position = a_position;\n' +
-            '    v_coord = a_coord;\n' +
+            ' gl_Position = a_position;\n' +
+            ' v_coord = a_coord;\n' +
             '}\n'));
         decl.pushFragmentSource(new sglrShaderProgram.FragmentSource(
             '#version 300 es\n' +
@@ -837,7 +828,7 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
             'layout(location = 0) out highp ' + gluShaderUtil.getDataTypeName(outputType) + ' o_color;\n' +
             'void main (void)\n' +
             '{\n' +
-            '    o_color = ' + gluShaderUtil.getDataTypeName(outputType) + '(vec4(texture(u_sampler0, vec3(v_coord, u_depth))) * u_scale + u_bias);\n' +
+            ' o_color = ' + gluShaderUtil.getDataTypeName(outputType) + '(vec4(texture(u_sampler0, vec3(v_coord, u_depth))) * u_scale + u_bias);\n' +
             '}\n'));
         sglrShaderProgram.ShaderProgram.call(this, decl);
         /** @type {Array<number>} */ this.m_texScale = [1.0, 1.0, 1.0, 1.0];
@@ -866,8 +857,8 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
     };
 
     /**
-     * @param  context GL-like context
-     * @param  program
+     * @param context GL-like context
+     * @param program
      */
     es3fFboTestUtil.Texture3DShader.prototype.setUniforms = function(context, program) {
         context.useProgram(program);
@@ -948,8 +939,8 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
                 'out highp vec4 v_coord;\n' +
                 'void main (void)\n' +
                 '{\n' +
-                '    gl_Position = a_position;\n' +
-                '    v_coord = a_coord;\n' +
+                ' gl_Position = a_position;\n' +
+                ' v_coord = a_coord;\n' +
                 '}\n'));
         decl.pushFragmentSource(new sglrShaderProgram.FragmentSource(
                     '#version 300 es\n' +
@@ -960,11 +951,11 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
                     'layout(location = 0) out highp ' + gluShaderUtil.getDataTypeName(outputType) + ' o_color;\n' +
                     'void main (void)\n' +
                     '{\n' +
-                    '    highp float x = v_coord.x;\n' +
-                    '    highp float y = v_coord.y;\n' +
-                    '    highp float f0 = (x + y) * 0.5;\n' +
-                    '    gl_FragDepth = u_minGradient + (u_maxGradient-u_minGradient)*f0;\n' +
-                    '    o_color = ' + gluShaderUtil.getDataTypeName(outputType) + '(u_color);\n' +
+                    ' highp float x = v_coord.x;\n' +
+                    ' highp float y = v_coord.y;\n' +
+                    ' highp float f0 = (x + y) * 0.5;\n' +
+                    ' gl_FragDepth = u_minGradient + (u_maxGradient-u_minGradient)*f0;\n' +
+                    ' o_color = ' + gluShaderUtil.getDataTypeName(outputType) + '(u_color);\n' +
                     '}\n'));
         this.m_outputType = outputType;
         sglrShaderProgram.ShaderProgram.call(this, decl);
@@ -977,7 +968,7 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
     es3fFboTestUtil.DepthGradientShader.prototype.constructor = es3fFboTestUtil.DepthGradientShader;
 
     /**
-     * @param  ctx GL-like context
+     * @param ctx GL-like context
      * @param program
      * @param {number} gradientMin
      * @param {number} gradientMax
@@ -1031,7 +1022,6 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
             else if (this.m_outputType == gluShaderUtil.DataType.UINT_VEC4)
                 packet[packetNdx].value = uicolor;
     };
-
 
     es3fFboTestUtil.getFormatName = function(format) {
         switch (format) {
@@ -1114,7 +1104,7 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
                 return gluShaderUtil.DataType.INT_VEC4;
 
             default:
-                throw new Error("Unknown format");
+                throw new Error('Unknown format');
         }
     };
 
@@ -1201,19 +1191,19 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
     es3fFboTestUtil.getToSRGB8ConversionError = function(srcBits) {
         // \note These are pre-computed based on simulation results.
         /** @const @type {Array<number>} */ var errors = [
-            1,        // 0 bits - rounding
-            255,    // 1 bits
-            157,    // 2 bits
-            106,    // 3 bits
-            74,        // 4 bits
-            51,        // 5 bits
-            34,        // 6 bits
-            22,        // 7 bits
-            13,        // 8 bits
-            7,        // 9 bits
-            4,        // 10 bits
-            3,        // 11 bits
-            2        // 12 bits
+            1, // 0 bits - rounding
+            255, // 1 bits
+            157, // 2 bits
+            106, // 3 bits
+            74, // 4 bits
+            51, // 5 bits
+            34, // 6 bits
+            22, // 7 bits
+            13, // 8 bits
+            7, // 9 bits
+            4, // 10 bits
+            3, // 11 bits
+            2 // 12 bits
             // 1 from this on
         ];
 
@@ -1259,7 +1249,7 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
     es3fFboTestUtil.readPixels = function(ctx, dst, x, y, width, height, format, scale, bias) {
         /** @type {tcuTexture.TextureFormat} */ var readFormat = es3fFboTestUtil.getFramebufferReadFormat(format);
         /** @type {gluTextureUtil.TransferFormat} */ var transferFmt = gluTextureUtil.getTransferFormat(readFormat);
-        /** @type {number} */ var alignment = 4; // \note GL_PACK_ALIGNMENT = 4 is assumed.
+        /** @type {number} */ var alignment = 4; // \note gl.PACK_ALIGNMENT = 4 is assumed.
         /** @type {number} */ var rowSize = deMath.deAlign32(readFormat.getPixelSize() * width, alignment);
         var data = new ArrayBuffer(rowSize * height);
 
@@ -1298,11 +1288,8 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
             /** @const @type {number} */ var error = Math.floor(Math.ceil(255.0 * 2.0 / srcMaxValue));
 
             return deMath.clamp(error, 0, 255);
-        }
-        else
+        } else
             return 1;
     };
-
-
 
 });

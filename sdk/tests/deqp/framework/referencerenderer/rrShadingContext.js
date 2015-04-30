@@ -20,11 +20,11 @@
 
 'use strict';
 goog.provide('framework.referencerenderer.rrShadingContext');
+goog.require('framework.referencerenderer.rrFragmentOperations');
 goog.require('framework.delibs.debase.deMath');
 goog.require('framework.referencerenderer.rrDefs');
 goog.require('framework.referencerenderer.rrFragmentOperations');
 goog.require('framework.referencerenderer.rrGenericVector');
-goog.require('framework.referencerenderer.rrFragmentOperations');
 
 goog.scope(function() {
 
@@ -48,7 +48,7 @@ goog.scope(function() {
      * @param {Array<Array<number>>} varying1 (GenericVec4*)
      * @param {Array<Array<number>>} varying2 (GenericVec4*)
      */
-    rrShadingContext.FragmentShadingContext = function (varying0, varying1, varying2) {
+    rrShadingContext.FragmentShadingContext = function(varying0, varying1, varying2) {
         /** @type {Array<Array<Array<number>>>} */ this.varyings = [varying0, varying1, varying2]; //!< Vertex shader outputs. Pointer will be NULL if there is no such vertex.
     };
 
@@ -60,8 +60,8 @@ goog.scope(function() {
      * @param {number} varyingLoc
      * @return {Array<number>} (Vector<T, 4>)
      */
-    rrShadingContext.readTriangleVarying = function (packet, context, varyingLoc) {
-        return deMath.add (
+    rrShadingContext.readTriangleVarying = function(packet, context, varyingLoc) {
+        return deMath.add(
             deMath.scale(
                 context.varyings[0][varyingLoc],
                 packet.barycentric[0]
@@ -85,7 +85,7 @@ goog.scope(function() {
      * @param {number} varyingLoc
      * @return {Array<number>} (Vector<T, 4>)
      */
-    rrShadingContext.readVarying = function (packet, context, varyingLoc) {
+    rrShadingContext.readVarying = function(packet, context, varyingLoc) {
         return rrShadingContext.readTriangleVarying(packet, context, varyingLoc);
     };
 
