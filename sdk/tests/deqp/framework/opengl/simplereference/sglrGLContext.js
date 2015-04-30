@@ -71,13 +71,12 @@ goog.scope(function() {
      * sglrGLContext.GLContext wraps the standard WebGL context to be able to be used interchangeably with the ReferenceContext
      * @constructor
      * @extends {WebGL2RenderingContext}
-     * @param {WebGL2RenderingContext} context
+     * @param {!WebGL2RenderingContext} context
      * @param {Array<number>=} viewport
      */
     sglrGLContext.GLContext = function(context, viewport) {
         this.m_context = context;
         this.m_programs = [];
-        this.m_allocatedVaos = [];
 
         // Copy all properties from the context.
 
@@ -124,10 +123,14 @@ goog.scope(function() {
 
     /**
      * createProgram
-     * @param {sglrShaderProgram.ShaderProgram} shader
-     * @return {WebGLProgram}
+     * @override
+     * @param {sglrShaderProgram.ShaderProgram=} shader
+     * @return {!WebGLProgram}
      */
     sglrGLContext.GLContext.prototype.createProgram = function(shader) {
+        /* TODO: do we need to keep the program object somewhere so that
+         * the garbage collector doesn't remove it?
+         */
         /** @type {gluShaderProgram.ShaderProgram} */ var program = null;
 
         program = new gluShaderProgram.ShaderProgram(
@@ -144,22 +147,6 @@ goog.scope(function() {
         }
 
         return program.getProgram();
-    };
-
-    /**
-     * createVertexArray - Creates a new vertex array object, stores it and returns the added array object.
-     * @return {number} ID of created VAO
-     */
-    sglrGLContext.GLContext.prototype.createVertexArray = function() {
-        var currentlength = this.m_allocatedVaos.length;
-
-        var createdArray = this.m_context.createVertexArray();
-        deUtil.dePushUniqueToArray(
-            this.m_allocatedVaos,
-            createdArray
-        );
-
-        return this.m_allocatedVaos[currentlength];
     };
 
     /**
