@@ -218,11 +218,11 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
      * @param {number} instanceNdx
      * @param {number} vertexNdx
      * @param {rrGenericVector.GenericVecType} genericType
-     * @return {TypedArray}
+     * @return {goog.NumberArray}
      */
     rrVertexAttrib.readVertexAttrib = function(vertexAttrib, instanceNdx, vertexNdx, genericType) {
         DE_ASSERT(rrVertexAttrib.isValidVertexAttrib(vertexAttrib));
-        /** @type {TypedArray} */ var dst;
+        /** @type {goog.NumberArray} */ var dst;
 
         if (vertexAttrib.pointer)
         {
@@ -257,7 +257,7 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
 
     /**
      * rrVertexAttrib.readHalf
-     * @param {TypedArray} dst
+     * @param {goog.NumberArray} dst
      * @param {number} size
      * @param {Uint8Array} ptr
      */
@@ -279,7 +279,7 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
 
     /**
      * rrVertexAttrib.readFixed
-     * @param {TypedArray} dst
+     * @param {goog.NumberArray} dst
      * @param {number} size
      * @param {Uint8Array} ptr
      */
@@ -293,16 +293,16 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
             (ptr.byteOffset + ptr.byteLength) / arraysize32);
 
         //Reinterpret aligned's values into the dst vector.
-        dst[0] = aligned[0] / Float32Array([1 << 16])[0];
-        if (size >= 2) dst[1] = aligned[1] / Float32Array([1 << 16])[0];
-        if (size >= 3) dst[2] = aligned[2] / Float32Array([1 << 16])[0];
-        if (size >= 4) dst[3] = aligned[3] / Float32Array([1 << 16])[0];
+        dst[0] = aligned[0] / (1 << 16);
+        if (size >= 2) dst[1] = aligned[1] / (1 << 16);
+        if (size >= 3) dst[2] = aligned[2] / (1 << 16);
+        if (size >= 4) dst[3] = aligned[3] / (1 << 16);
     };
 
     /**
      * TODO: Check 64 bit numbers are handled ok
      * rrVertexAttrib.readDouble
-     * @param {TypedArray} dst
+     * @param {goog.NumberArray} dst
      * @param {number} size
      * @param {Uint8Array} ptr
      */
@@ -324,11 +324,11 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
 
     /**
      * rrVertexAttrib.readUnormOrder
-     * @param {TypedArray} dst
+     * @param {goog.NumberArray} dst
      * @param {number} size
      * @param {Uint8Array} ptr
-     * @param {(rrVertexAttrib.NormalOrder|rrVertexAttrib.BGRAOrder)} order
-     * @param {TypedArray} readAsTypeArray
+     * @param order NormalOrder or BGRAOrder
+     * @param readAsTypeArray Typed Array type
      */
     rrVertexAttrib.readUnormOrder = function(dst, size, ptr, order, readAsTypeArray) {
         var arrayelementsize = readAsTypeArray.BYTES_PER_ELEMENT;
@@ -352,11 +352,11 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
 
     /**
      * rrVertexAttrib.readOrder
-     * @param {TypedArray} dst
+     * @param {goog.NumberArray} dst
      * @param {number} size
      * @param {Uint8Array} ptr
-     * @param {(rrVertexAttrib.NormalOrder|rrVertexAttrib.BGRAOrder)} order
-     * @param {TypedArray} readAsTypeArray
+     * @param order NormalOrder or BGRAOrder
+     * @param readAsTypeArray Typed Array type
      */
     rrVertexAttrib.readOrder = function(dst, size, ptr, order, readAsTypeArray) {
         var arrayelementsize = readAsTypeArray.BYTES_PER_ELEMENT;
@@ -377,7 +377,7 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
 
     /**
      * TODO: Implement missing rrVertexAttrib.read functions.
-     * @param {TypedArray} dst
+     * @param {goog.NumberArray} dst
      * @param {rrVertexAttrib.VertexAttribType} type
      * @param {number} size
      * @param {Uint8Array} ptr

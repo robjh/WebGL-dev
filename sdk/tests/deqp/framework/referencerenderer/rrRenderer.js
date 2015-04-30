@@ -570,8 +570,8 @@ rrRenderer.drawQuads = function(state, renderTarget, program, vertexAttribs, fir
                 }
             }
 
-        program.fragmentShader.shadeFragments(packetsTopLeft, shadingContextTopLeft);
-        program.fragmentShader.shadeFragments(packetsBottomRight, shadingContextBottomRight);
+        program.shadeFragments(packetsTopLeft, shadingContextTopLeft);
+        program.shadeFragments(packetsBottomRight, shadingContextBottomRight);
 
         rrRenderer.writeFragments2(state, renderTarget, packetsTopLeft);
         rrRenderer.writeFragments2(state, renderTarget, packetsBottomRight);

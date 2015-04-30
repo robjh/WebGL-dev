@@ -40,10 +40,10 @@ var deMath = framework.delibs.debase.deMath;
     rrVertexPacket.VertexPacket = function () {
         /** @type {number} */ this.instanceNdx;
         /** @type {number} */ this.vertexNdx;
-        /** @type {Array.<number>} */ this.position; //!< Transformed position - must be written always.
+        /** @type {goog.NumberArray} */ this.position; //!< Transformed position - must be written always.
         /** @type {number} */ this.pointSize; //!< Point size, required when rendering points.
         // /** @type {number} */ this.primitiveID; //!< Geometry shader output (Not used in webGL)
-        /** @type {Array.<Array.<number>>} */ this.outputs = [[0, 0, 0, 0]];
+        /** @type {Array<goog.NumberArray>} */ this.outputs = [[0, 0, 0, 0]];
     };
 
     /**

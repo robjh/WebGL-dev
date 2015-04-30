@@ -27,8 +27,11 @@ goog.require('framework.common.tcuTexture');
 goog.require('framework.delibs.debase.deMath');
 goog.require('framework.opengl.gluTextureUtil');
 goog.require('framework.opengl.gluShaderUtil');
-//goog.require('framework.opengl.simplereference.sglrReferenceContext');
 goog.require('framework.common.tcuTextureUtil');
+goog.require('framework.referencerenderer.rrFragmentOperations');
+goog.require('framework.referencerenderer.rrVertexAttrib');
+goog.require('framework.referencerenderer.rrVertexPacket');
+goog.require('framework.referencerenderer.rrShadingContext');
 
 
 goog.scope(function() {
@@ -40,9 +43,12 @@ goog.scope(function() {
     var deMath = framework.delibs.debase.deMath;
     var gluTextureUtil = framework.opengl.gluTextureUtil;
     var gluShaderUtil = framework.opengl.gluShaderUtil;
-    //var sglrReferenceContext = framework.opengl.simplereference.sglrReferenceContext;
     var tcuTextureUtil = framework.common.tcuTextureUtil;
-var rrDefs = framework.referencerenderer.rrDefs;
+    var rrDefs = framework.referencerenderer.rrDefs;
+    var rrFragmentOperations = framework.referencerenderer.rrFragmentOperations;
+    var rrVertexAttrib = framework.referencerenderer.rrVertexAttrib;
+    var rrVertexPacket = framework.referencerenderer.rrVertexPacket;
+    var rrShadingContext = framework.referencerenderer.rrShadingContext;
 
     var DE_ASSERT = function(x) {
         if (!x)
@@ -73,7 +79,7 @@ var rrDefs = framework.referencerenderer.rrDefs;
     /**
      * sglrShaderProgram.VertexToFragmentVarying
      * @constructor
-     * @param {rrGenericVector.GenericVecType=} type_
+     * @param {rrGenericVector.GenericVecType} type_
      * @param {sglrShaderProgram.VaryingFlags=} flags
      */
     sglrShaderProgram.VertexToFragmentVarying = function (type_, flags) {
@@ -244,9 +250,7 @@ var rrDefs = framework.referencerenderer.rrDefs;
      */
     sglrShaderProgram.ShaderProgram = function (decl) {
         this.vertexShader = new rrShaders.VertexShader(decl.getVertexInputCount(), decl.getVertexOutputCount());
-        this.vertexShader.shadeVertices = this.shadeVertices;
         this.fragmentShader = new rrShaders.FragmentShader(decl.getFragmentInputCount(), decl.getFragmentOutputCount());
-        this.fragmentShader.shadeFragments = this.shadeFragments;
 
         /** @type {Array<string>} */ this.m_attributeNames = [];
         /** @type {Array<sglrShaderProgram.Uniform>} */ this.m_uniforms = [];
@@ -276,12 +280,6 @@ var rrDefs = framework.referencerenderer.rrDefs;
 
         for (var ndx = 0; ndx < decl.m_uniforms.length; ++ndx)
             this.m_uniforms[ndx] = new sglrShaderProgram.Uniform(decl.m_uniforms[ndx].name, decl.m_uniforms[ndx].type);
-
-        // Pass references to allow vertex and fragment shader access this class members
-        this.vertexShader.m_uniforms = this.m_uniforms;
-        this.fragmentShader.m_uniforms = this.m_uniforms;
-        this.fragmentShader.m_container = this;
-        this.fragmentShader.m_container = this;
     };
 
     /**
@@ -309,10 +307,26 @@ var rrDefs = framework.referencerenderer.rrDefs;
             if (this.m_uniforms[ndx].name == name)
                 return this.m_uniforms[ndx];
 
-
         throw new Error("Invalid uniform name, uniform not found.");
     };
 
+    /**
+     * shadeFragments - abstract function, to be implemented by children classes
+     * @param {Array<rrFragmentOperations.Fragment>} packets
+     * @param {rrShadingContext.FragmentShadingContext} context
+     */
+    sglrShaderProgram.ShaderProgram.prototype.shadeFragments = function(packets, context) {
+        throw new Error('This function needs to be overwritten in a child class.');
+    };
 
+    /**
+     * shadeVertices - abstract function, to be implemented by children classes
+     * @param {Array<rrVertexAttrib.VertexAttrib>} inputs
+     * @param {Array<rrVertexPacket.VertexPacket>} packets
+     * @param {number} numPackets
+     */
+     sglrShaderProgram.ShaderProgram.prototype.shadeVertices = function(inputs, packets, numPackets) {
+        throw new Error('This function needs to be overwritten in a child class.');
+     };
 
 });
