@@ -1134,7 +1134,7 @@ tcuTexture.ConstPixelBufferAccess.prototype.getPixel = function(x, y, z) {
 /**
  * @param {number} x
  * @param {number} y
- * @param {number} z
+ * @param {number=} z
  * @return {Array<number>} Pixel value as Vec4
  */
 tcuTexture.ConstPixelBufferAccess.prototype.getPixelInt = function(x, y, z) {

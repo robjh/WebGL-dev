@@ -24,7 +24,7 @@ goog.require('framework.delibs.debase.deMath');
 goog.require('framework.referencerenderer.rrDefs');
 goog.require('framework.referencerenderer.rrFragmentOperations');
 goog.require('framework.referencerenderer.rrGenericVector');
-
+goog.require('framework.referencerenderer.rrFragmentOperations');
 
 goog.scope(function() {
 
@@ -39,58 +39,21 @@ goog.scope(function() {
             throw new Error('Assert failed');
     };
 
-    rrShadingContext.DE_NULL = null;
-
     /**
      * Fragment shading context
      *
      * Contains per-primitive information used in fragment shading
      * @constructor
-     * @param {Array<number>} varying0 (GenericVec4*)
-     * @param {Array<number>} varying1 (GenericVec4*)
-     * @param {Array<number>} varying2 (GenericVec4*)
-     * @param {Array<number>} outputArray (GenericVec4*)
-     * @param {Array<number>} fragmentDepths (float*)
-     * @param {number} numFragmentOutputs
-     * @param {number} numSamples
+     * @param {Array<Array<number>>} varying0 (GenericVec4*)
+     * @param {Array<Array<number>>} varying1 (GenericVec4*)
+     * @param {Array<Array<number>>} varying2 (GenericVec4*)
      */
-    rrShadingContext.FragmentShadingContext = function (varying0, varying1, varying2, outputArray, fragmentDepths, numFragmentOutputs, numSamples) {
-        /** @type {Array<Array<number>>} (GenericVec4**) */ this.varyings = [varying0, varying1, varying2]; //!< Vertex shader outputs. Pointer will be NULL if there is no such vertex.
-        /** @type {Array<number>} (GenericVec4*) */ this.outputArray = outputArray; //!< Fragment output array
-        /** @type {number} */ this.numFragmentOutputs = numFragmentOutputs; //!< Fragment output count
-        /** @type {number} */ this.numSamples = numSamples; //!< Number of samples
-        /** @type {Array<number>} (float*) */ this.fragmentDepths = fragmentDepths; //!< Fragment packet depths. Pointer will be NULL if there is no depth buffer. Each sample has per-sample depth values
+    rrShadingContext.FragmentShadingContext = function (varying0, varying1, varying2) {
+        /** @type {Array<Array<Array<number>>>} */ this.varyings = [varying0, varying1, varying2]; //!< Vertex shader outputs. Pointer will be NULL if there is no such vertex.
     };
 
     // Read Varying
 
-    /**
-     * @param {rrFragmentOperations.Fragment} packet
-     * @param {rrShadingContext.FragmentShadingContext} context
-     * @param {number} varyingLoc
-     * @param {number} fragNdx
-     * @return {Array<number>} (Vector<T, 4>)
-     */
-    rrShadingContext.readPointVarying = function (packet, context, varyingLoc, fragNdx) {
-        //DE_UNREF(fragNdx);
-        //DE_UNREF(packet);
-
-        return context.varyings[0][varyingLoc];
-    };
-
-    /**
-     * @param {rrFragmentOperations.Fragment} packet
-     * @param {rrShadingContext.FragmentShadingContext} context
-     * @param {number} varyingLoc
-     * @param {number} fragNdx
-     * @return {Array<number>} (Vector<T, 4>)
-     */
-    rrShadingContext.readLineVarying = function (packet, context, varyingLoc, fragNdx) {
-        return   packet.barycentric[0][fragNdx] * context.varyings[0][varyingLoc] +
-            packet.barycentric[1][fragNdx] * context.varyings[1][varyingLoc];
-    };
-
-    //REMOVED: @param {number} fragNdx
     /**
      * @param {rrFragmentOperations.Fragment} packet
      * @param {rrShadingContext.FragmentShadingContext} context
@@ -120,85 +83,10 @@ goog.scope(function() {
      * @param {rrFragmentOperations.Fragment} packet
      * @param {rrShadingContext.FragmentShadingContext} context
      * @param {number} varyingLoc
-     * @param {number} fragNdx
      * @return {Array<number>} (Vector<T, 4>)
      */
-    rrShadingContext.readVarying = function (packet, context, varyingLoc, fragNdx) {
-        if (context.varyings[1] == rrShadingContext.DE_NULL) return rrShadingContext.readPointVarying(packet, context, varyingLoc, fragNdx);
-        if (context.varyings[2] == rrShadingContext.DE_NULL) return rrShadingContext.readLineVarying(packet, context, varyingLoc, fragNdx);
-        return rrShadingContext.readTriangleVarying(packet, context, varyingLoc, fragNdx);
-    };
-
-    // Derivative
-
-    /**
-     * rrShadingContext.dFdxLocal
-     * @param {Array<Array<number>>} outFragmentdFdx
-     * @param {Array<Array<number>>} func
-     */
-    rrShadingContext.dFdxLocal = function (outFragmentdFdx, func) {
-        /** @type {Array<Array<number>>} */ var dFdx = [
-            deMath.subtract(func[1], func[0]),
-            deMath.subtract(func[3], func[2])
-        ];
-
-        outFragmentdFdx[0] = deMath.assign(dFdx[0]);
-        outFragmentdFdx[1] = deMath.assign(dFdx[0]);
-        outFragmentdFdx[2] = deMath.assign(dFdx[1]);
-        outFragmentdFdx[3] = deMath.assign(dFdx[1]);
-    };
-
-    /**
-     * rrShadingContext.dFdyLocal
-     * @param {Array<Array<number>>} outFragmentdFdy
-     * @param {Array<Array<number>>} func
-     */
-    rrShadingContext.dFdyLocal = function (outFragmentdFdy, func) {
-        /** @type {Array<Array<number>>} */ var dFdy = [
-            deMath.subtract(func[2], func[0]),
-            deMath.subtract(func[3], func[1])
-        ];
-
-        outFragmentdFdy[0] = deMath.assign(dFdy[0]);
-        outFragmentdFdy[1] = deMath.assign(dFdy[1]);
-        outFragmentdFdy[2] = deMath.assign(dFdy[0]);
-        outFragmentdFdy[3] = deMath.assign(dFdy[1]);
-    };
-
-    /**
-     * rrShadingContext.dFdxVarying
-     * @param {Array<Array<number>>} outFragmentdFdx
-     * @param {rrFragmentOperations.Fragment} packet
-     * @param {rrShadingContext.FragmentShadingContext} context
-     * @param {number} varyingLoc
-     */
-    rrShadingContext.dFdxVarying = function (outFragmentdFdx, packet, context, varyingLoc) {
-        /** @type {Array<Array<number>>} */ var func = [
-            rrShadingContext.readVarying(packet, context, varyingLoc, 0),
-            rrShadingContext.readVarying(packet, context, varyingLoc, 1),
-            rrShadingContext.readVarying(packet, context, varyingLoc, 2),
-            rrShadingContext.readVarying(packet, context, varyingLoc, 3)
-        ];
-
-        rrShadingContext.dFdxLocal(outFragmentdFdx, func);
-    };
-
-    /**
-     * rrShadingContext.dFdyVarying
-     * @param {Array<Array<number>>} outFragmentdFdy
-     * @param {rrFragmentOperations.Fragment} packet
-     * @param {rrShadingContext.FragmentShadingContext} context
-     * @param {number} varyingLoc
-     */
-    rrShadingContext.dFdyVarying = function (outFragmentdFdy, packet, context, varyingLoc) {
-        /** @type {Array<Array<number>>} */ var func = [
-            rrShadingContext.readVarying(packet, context, varyingLoc, 0),
-            rrShadingContext.readVarying(packet, context, varyingLoc, 1),
-            rrShadingContext.readVarying(packet, context, varyingLoc, 2),
-            rrShadingContext.readVarying(packet, context, varyingLoc, 3)
-        ];
-
-        rrShadingContext.dFdyLocal(outFragmentdFdy, func);
+    rrShadingContext.readVarying = function (packet, context, varyingLoc) {
+        return rrShadingContext.readTriangleVarying(packet, context, varyingLoc);
     };
 
     // Fragent depth

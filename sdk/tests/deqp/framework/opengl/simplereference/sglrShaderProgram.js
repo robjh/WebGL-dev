@@ -99,6 +99,8 @@ var rrDefs = framework.referencerenderer.rrDefs;
     sglrShaderProgram.Uniform = function (name_, type_) {
         this.name = name_;
         this.type = type_;
+        /** @type {Array<number>} */ this.value;
+        /** @type {?rrDefs.Sampler} */ this.sampler = null;
     };
 
     /**
@@ -238,17 +240,6 @@ var rrDefs = framework.referencerenderer.rrDefs;
 
     /**
      * @constructor
-     * sglrShaderProgram.UniformSlot
-     */
-    sglrShaderProgram.UniformSlot = function () {
-        /** @type {string} */ this.name = '';
-        /** @type {gluShaderUtil.DataType} */ this.type = undefined;
-        /** @type {number} */ this.value = 0;
-        /** @type {?rrDefs.Sampler} */ this.sampler = null;
-    };
-
-    /**
-     * @constructor
      * @param {sglrShaderProgram.ShaderProgramDeclaration} decl
      */
     sglrShaderProgram.ShaderProgram = function (decl) {
@@ -258,7 +249,7 @@ var rrDefs = framework.referencerenderer.rrDefs;
         this.fragmentShader.shadeFragments = this.shadeFragments;
 
         /** @type {Array<string>} */ this.m_attributeNames = [];
-        /** @type {Array<sglrShaderProgram.UniformSlot>} */ this.m_uniforms = [];
+        /** @type {Array<sglrShaderProgram.Uniform>} */ this.m_uniforms = [];
         /** @type {string} */ this.m_vertSrc = decl.m_vertexSource;
         /** @type {string} */ this.m_fragSrc = decl.m_fragmentSource;
 
@@ -309,7 +300,7 @@ var rrDefs = framework.referencerenderer.rrDefs;
 
     /**
      * @param {string} name
-     * @return {sglrShaderProgram.UniformSlot}
+     * @return {sglrShaderProgram.Uniform}
      */
     sglrShaderProgram.ShaderProgram.prototype.getUniformByName = function (name) {
         DE_ASSERT(name);
@@ -318,8 +309,8 @@ var rrDefs = framework.referencerenderer.rrDefs;
             if (this.m_uniforms[ndx].name == name)
                 return this.m_uniforms[ndx];
 
-        DE_ASSERT(!"Invalid uniform name, uniform not found.");
-        return this.m_uniforms[0];
+
+        throw new Error("Invalid uniform name, uniform not found.");
     };
 
 

@@ -22,11 +22,11 @@
 goog.provide('framework.referencerenderer.rrShaders');
 goog.require('framework.common.tcuTexture');
 goog.require('framework.delibs.debase.deMath');
-goog.require('framework.referencerenderer.rrFragmentPacket');
 goog.require('framework.referencerenderer.rrGenericVector');
 goog.require('framework.referencerenderer.rrShadingContext');
 goog.require('framework.referencerenderer.rrVertexAttrib');
 goog.require('framework.referencerenderer.rrVertexPacket');
+goog.require('framework.referencerenderer.rrFragmentOperations');
 
 
 goog.scope(function() {
@@ -34,11 +34,11 @@ goog.scope(function() {
 var rrShaders = framework.referencerenderer.rrShaders;
 var tcuTexture = framework.common.tcuTexture;
 var deMath = framework.delibs.debase.deMath;
-var rrFragmentPacket = framework.referencerenderer.rrFragmentPacket;
 var rrGenericVector = framework.referencerenderer.rrGenericVector;
 var rrShadingContext = framework.referencerenderer.rrShadingContext;
 var rrVertexAttrib = framework.referencerenderer.rrVertexAttrib;
 var rrVertexPacket = framework.referencerenderer.rrVertexPacket;
+var rrFragmentOperations = framework.referencerenderer.rrFragmentOperations;
 
     /**
      * Vertex shader input information
@@ -79,10 +79,11 @@ var rrVertexPacket = framework.referencerenderer.rrVertexPacket;
      * @param {number} numOutputs
      */
     rrShaders.VertexShader = function (numInputs, numOutputs) {
-        /** @type {Array.<rrShaders.VertexInputInfo>} */ this.m_inputs = new Array(numInputs);
+        /** @type {Array.<rrShaders.VertexInputInfo>} */ this.m_inputs = [];
         for(var ndx = 0; ndx < numInputs; ndx++) this.m_inputs[ndx] = new rrShaders.VertexInputInfo();
-        /** @type {Array.<rrShaders.VertexOutputInfo>} */ this.m_outputs = new Array(numOutputs);
+        /** @type {Array.<rrShaders.VertexOutputInfo>} */ this.m_outputs = [];
         for(var ndx = 0; ndx < numOutputs; ndx++) this.m_outputs[ndx] = new rrShaders.VertexOutputInfo();
+        /** @type {*} */ this.m_container; // owner object
     };
 
     /**
@@ -116,16 +117,17 @@ var rrVertexPacket = framework.referencerenderer.rrVertexPacket;
      * @param {number} numOutputs
      */
     rrShaders.FragmentShader = function (numInputs, numOutputs) {
-        /** @type {Array.<rrShaders.FragmentInputInfo>} */ this.m_inputs = new Array(numInputs);
+        /** @type {Array.<rrShaders.FragmentInputInfo>} */ this.m_inputs = [];
         for(var ndx = 0; ndx < numInputs; ndx++) this.m_inputs[ndx] = new rrShaders.FragmentInputInfo();
-        /** @type {Array.<rrShaders.FragmentOutputInfo>} */ this.m_outputs = new Array(numOutputs);
+        /** @type {Array.<rrShaders.FragmentOutputInfo>} */ this.m_outputs = [];
         for(var ndx = 0; ndx < numOutputs; ndx++) this.m_outputs[ndx] = new rrShaders.FragmentOutputInfo();
+        /** @type {*} */ this.m_container; // owner object
     };
 
     /**
      * shadeFragments - abstract function, to be implemented by children classes
      * note that numPackets must be greater than zero.
-     * @param {Array.<rrFragmentPacket.FragmentPacket>} packets
+     * @param {Array.<rrFragmentOperations.Fragment>} packets
      * @param {rrShadingContext.FragmentShadingContext} context
      */
     rrShaders.FragmentShader.prototype.shadeFragments = function(packets, context) {};

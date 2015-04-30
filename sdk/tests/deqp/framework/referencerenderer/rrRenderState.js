@@ -208,10 +208,10 @@ rrRenderState.BlendState = function() {
 };
 
 /**
- * @param {number} left_
- * @param {number} bottom_
- * @param {number} width_
- * @param {number} height_
+ * @param {(Array<number>|number)} left_
+ * @param {number=} bottom_
+ * @param {number=} width_
+ * @param {number=} height_
  * @constructor
  */
 rrRenderState.WindowRectangle = function(left_, bottom_, width_, height_) {

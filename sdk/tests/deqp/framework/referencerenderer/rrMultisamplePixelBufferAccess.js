@@ -45,6 +45,7 @@ var DE_ASSERT = function(x) {
  * Prevents accidental usage of non-multisampled buffer as multisampled
  * with PixelBufferAccess.
  * @constructor
+ * @param {tcuTexture.PixelBufferAccess=} rawAccess
  */
 rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess = function(rawAccess) {
     this.m_access = rawAccess || new tcuTexture.PixelBufferAccess({
