@@ -19,14 +19,13 @@
  */
 'use strict';
 goog.provide('functional.gles3.es3fFboStencilbufferTests');
-goog.require('functional.gles3.es3fFboTestCase');
-goog.require('functional.gles3.es3fFboTestUtil');
-goog.require('framework.common.tcuTestCase');
 goog.require('framework.common.tcuSurface');
+goog.require('framework.common.tcuTestCase');
 goog.require('framework.common.tcuTexture');
 goog.require('framework.opengl.gluShaderUtil');
 goog.require('framework.opengl.gluTextureUtil');
-
+goog.require('functional.gles3.es3fFboTestCase');
+goog.require('functional.gles3.es3fFboTestUtil');
 
 goog.scope(function() {
 
@@ -39,6 +38,12 @@ var tcuTexture = framework.common.tcuTexture;
 var gluShaderUtil = framework.opengl.gluShaderUtil;
 var gluTextureUtil = framework.opengl.gluTextureUtil;
 
+/** @type {WebGL2RenderingContext} */ var gl;
+
+var DE_ASSERT = function(x) {
+    if (!x)
+        throw new Error('Assert failed');
+};
 
     /**
      * @constructor
@@ -67,48 +72,49 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
      * @param {tcuSurface.Surface} dst
      */
     es3fFboStencilbufferTests.BasicFboStencilCase.prototype.render = function(dst) {
-        /** @const {number} */ var colorFormat = fl.RGBA8;
+        var ctx = this.getCurrentContext();
+        /** @const {number} */ var colorFormat = gl.RGBA8;
 
         /** @type {es3fFboTestUtil.GradientShader} */ var gradShader = new es3fFboTestUtil.GradientShader(gluShaderUtil.DataType.FLOAT_VEC4);
         /** @type {es3fFboTestUtil.FlatColorShader} */ var flatShader = new es3fFboTestUtil.FlatColorShader(gluShaderUtil.DataType.FLOAT_VEC4);
-        /** @type {number} */ var flatShaderID = this.getCurrentContext().createProgram(flatShader);
-        /** @type {number} */ var gradShaderID = this.getCurrentContext().createProgram(gradShader);
+        var flatShaderID = this.getCurrentContext().createProgram(flatShader);
+        var gradShaderID = this.getCurrentContext().createProgram(gradShader);
 
-        /** @type {number} */ var fbo = 0;
-        /** @type {number} */ var colorRbo = 0;
-        /** @type {number} */ var depthStencilRbo = 0;
+        var fbo = 0;
+        var colorRbo = 0;
+        var depthStencilRbo = 0;
 
         // Colorbuffer.
-        colorRbo = gl.createRenderbuffer();
-        gl.bindRenderbuffer(gl.RENDERBUFFER, colorRbo);
-        gl.renderbufferStorage(gl.RENDERBUFFER, colorFormat, this.m_size[0], this.m_size[1]);
+        colorRbo = ctx.createRenderbuffer();
+        ctx.bindRenderbuffer(gl.RENDERBUFFER, colorRbo);
+        ctx.renderbufferStorage(gl.RENDERBUFFER, colorFormat, this.m_size[0], this.m_size[1]);
 
         // Stencil (and depth) buffer.
-        depthStencilRbo = gl.createRenderbuffer();
-        gl.bindRenderbuffer(gl.RENDERBUFFER, depthStencilRbo);
-        gl.renderbufferStorage(gl.RENDERBUFFER, this.m_format, this.m_size[0], this.m_size[1]);
+        depthStencilRbo = ctx.createRenderbuffer();
+        ctx.bindRenderbuffer(gl.RENDERBUFFER, depthStencilRbo);
+        ctx.renderbufferStorage(gl.RENDERBUFFER, this.m_format, this.m_size[0], this.m_size[1]);
 
         // Framebuffer.
-        fbo = gl.createFramebuffers();
-        gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
-        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, colorRbo);
-        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.STENCIL_ATTACHMENT, gl.RENDERBUFFER, depthStencilRbo);
+        fbo = ctx.createFramebuffer();
+        ctx.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+        ctx.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, colorRbo);
+        ctx.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.STENCIL_ATTACHMENT, gl.RENDERBUFFER, depthStencilRbo);
         if (this.m_useDepth)
-            glFramebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, depthStencilRbo);
+            ctx.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, depthStencilRbo);
         this.checkError();
         this.checkFramebufferStatus(gl.FRAMEBUFFER);
 
-        gl.viewport(0, 0, this.m_size[0], this.m_size[1]);
+        ctx.viewport(0, 0, this.m_size[0], this.m_size[1]);
 
         // Clear framebuffer.
-        gl.clearBufferfv(gl.COLOR, 0, [0.0, 0.0, 0.0, 0.0]);
-        gl.clearBufferfi(gl.DEPTH_STENCIL, 0, 1.0, 0);
+        ctx.clearBufferfv(gl.COLOR, 0, [0.0, 0.0, 0.0, 0.0]);
+        ctx.clearBufferfi(gl.DEPTH_STENCIL, 0, 1.0, 0);
 
         // Render intersecting quads - increment stencil on depth pass
-        gl.enable(gl.DEPTH_TEST);
-        gl.enable(gl.STENCIL_TEST);
-        gl.stencilFunc(gl.ALWAYS, 0, 0xff);
-        gl.stencilOp(gl.KEEP, gl.KEEP, gl.INCR);
+        ctx.enable(gl.DEPTH_TEST);
+        ctx.enable(gl.STENCIL_TEST);
+        ctx.stencilFunc(gl.ALWAYS, 0, 0xff);
+        ctx.stencilOp(gl.KEEP, gl.KEEP, gl.INCR);
 
         flatShader.setColor(this.getCurrentContext(), flatShaderID, [1.0, 0.0, 0.0, 1.0]);
         // TODO: drawQuad
@@ -118,21 +124,20 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
         // TODO: drawQuad
         //sglr::drawQuad(this.getCurrentContext(), gradShaderID, [-1.0, -1.0, -1.0], [1.0, 1.0, 1.0]);
 
-        gl.disable(gl.DEPTH_TEST);
+        ctx.disable(gl.DEPTH_TEST);
 
         // Draw quad with stencil test (stencil == 1 or 2 depending on depth) - decrement on stencil failure
-        gl.stencilFunc(gl.EQUAL, this.m_useDepth ? 2 : 1, 0xff);
-        gl.stencilOp(gl.DECR, gl.KEEP, gl.KEEP);
+        ctx.stencilFunc(gl.EQUAL, this.m_useDepth ? 2 : 1, 0xff);
+        ctx.stencilOp(gl.DECR, gl.KEEP, gl.KEEP);
 
         flatShader.setColor(this.getCurrentContext(), flatShaderID, [0.0, 1.0, 0.0, 1.0]);
         // TODO: drawQuad
         //sglr::drawQuad(this.getCurrentContext(), flatShaderID, [-0.5, -0.5, 0.0], [0.5, 0.5, 0.0]);
 
         // Draw quad with stencil test where stencil > 1 or 2 depending on depth buffer
-        gl.stencilFunc(gl.GREATER, this.m_useDepth ? 1 : 2, 0xff);
+        ctx.stencilFunc(gl.GREATER, this.m_useDepth ? 1 : 2, 0xff);
 
         flatShader.setColor(this.getCurrentContext(), flatShaderID, [0.0, 0.0, 1.0, 1.0]);
-
 
         //sglr::drawQuad(this.getCurrentContext(), flatShaderID, Vec3(-1.0f, -1.0f, 0.0f), Vec3(+1.0f, +1.0f, 0.0f));
 
@@ -145,7 +150,6 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
      * @param {string} name
      * @param {string} desc
      * @param {number} attachDepth
-     * @param {number} useDepth
      */
     es3fFboStencilbufferTests.DepthStencilAttachCase = function(name, desc, attachDepth, attachStencil) {
         es3fFboTestCase.FboTestCase.call(this, name, desc);
@@ -163,6 +167,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
      * @param {tcuSurface.Surface} dst
      */
     es3fFboStencilbufferTests.DepthStencilAttachCase.prototype.render = function(dst) {
+        var ctx = this.getCurrentContext();
         /** @const {number} */ var colorFormat = gl.RGBA8;
         /** @const {number} */ var depthStencilFormat = gl.DEPTH24_STENCIL8;
         /** @const {number} */ var width = 128;
@@ -172,68 +177,68 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
 
         /** @type {es3fFboTestUtil.GradientShader} */ var gradShader = new es3fFboTestUtil.GradientShader(gluShaderUtil.DataType.FLOAT_VEC4);
         /** @type {es3fFboTestUtil.FlatColorShader} */ var flatShader = new es3fFboTestUtil.FlatColorShader(gluShaderUtil.DataType.FLOAT_VEC4);
-        /** @type {number} */ var flatShaderID = this.getCurrentContext().createProgram(flatShader);
-        /** @type {number} */ var gradShaderID = this.getCurrentContext().createProgram(gradShader);
+        var flatShaderID = this.getCurrentContext().createProgram(flatShader);
+        var gradShaderID = this.getCurrentContext().createProgram(gradShader);
 
-        /** @type {number} */ var fbo = 0;
-        /** @type {number} */ var colorRbo = 0;
-        /** @type {number} */ var depthStencilRbo = 0;
+        var fbo = 0;
+        var colorRbo = 0;
+        var depthStencilRbo = 0;
 
         // Colorbuffer.
-        colorRbo = gl.createRenderbuffer();
-        gl.bindRenderbuffer(gl.RENDERBUFFER, colorRbo);
-        gl.renderbufferStorage(gl.RENDERBUFFER, colorFormat, width, height);
+        colorRbo = ctx.createRenderbuffer();
+        ctx.bindRenderbuffer(gl.RENDERBUFFER, colorRbo);
+        ctx.renderbufferStorage(gl.RENDERBUFFER, colorFormat, width, height);
 
         // Depth-stencil buffer.
-        depthStencilRbo = gl.createRenderbuffer();
-        gl.bindRenderbuffer(gl.RENDERBUFFER, depthStencilRbo);
-        gl.renderbufferStorage(gl.RENDERBUFFER, depthStencilFormat, width, height);
+        depthStencilRbo = ctx.createRenderbuffer();
+        ctx.bindRenderbuffer(gl.RENDERBUFFER, depthStencilRbo);
+        ctx.renderbufferStorage(gl.RENDERBUFFER, depthStencilFormat, width, height);
 
         // Framebuffer.
-        fbo = gl.createFramebuffer();
-        gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
-        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, colorRbo);
+        fbo = ctx.createFramebuffer();
+        ctx.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+        ctx.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, colorRbo);
 
         if (this.m_attachDepth != gl.NONE)
-            glFramebufferRenderbuffer(gl.FRAMEBUFFER, this.m_attachDepth, gl.RENDERBUFFER, depthStencilRbo);
+            ctx.framebufferRenderbuffer(gl.FRAMEBUFFER, this.m_attachDepth, gl.RENDERBUFFER, depthStencilRbo);
         if (this.m_attachStencil != gl.NONE)
-            glFramebufferRenderbuffer(gl.FRAMEBUFFER, this.m_attachStencil, GL_RENDERBUFFER, depthStencilRbo);
+            ctx.framebufferRenderbuffer(gl.FRAMEBUFFER, this.m_attachStencil, gl.RENDERBUFFER, depthStencilRbo);
 
         this.checkError();
         this.checkFramebufferStatus(gl.FRAMEBUFFER);
 
-        gl.viewport(0, 0, width, height);
+        ctx.viewport(0, 0, width, height);
 
         // Clear framebuffer.
-        gl.clearBufferfv(gl.COLOR, 0, [0.0, 0.0, 0.0, 0.0]);
-        gl.clearBufferfi(gl.DEPTH_STENCIL, 0, 1.0, 0);
+        ctx.clearBufferfv(gl.COLOR, 0, [0.0, 0.0, 0.0, 0.0]);
+        ctx.clearBufferfi(gl.DEPTH_STENCIL, 0, 1.0, 0);
 
         // Render intersecting quads - increment stencil on depth pass
-        gl.enable(gl.DEPTH_TEST);
-        gl.enable(gl.STENCIL_TEST);
-        gl.stencilFunc(gl.ALWAYS, 0, 0xff);
-        gl.stencilOp(gl.KEEP, gl.KEEP, gl.INCR);
+        ctx.enable(gl.DEPTH_TEST);
+        ctx.enable(gl.STENCIL_TEST);
+        ctx.stencilFunc(gl.ALWAYS, 0, 0xff);
+        ctx.stencilOp(gl.KEEP, gl.KEEP, gl.INCR);
 
         flatShader.setColor(this.getCurrentContext(), flatShaderID, [1.0, 0.0, 0.0, 1.0]);
         // TODO: implement drawQuad
-        //sglr::drawQuad(this.getCurrentContext(), flatShaderID, [-1.0, -1.0,  0.0], [1.0, 1.0, 0.0]);
+        //sglr::drawQuad(this.getCurrentContext(), flatShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
 
         gradShader.setGradient(this.getCurrentContext(), gradShaderID, [0.0, 0.0, 0.0, 0.0], [1.0, 1.0, 1.0, 1.0]);
         // TODO: implement drawQuad
         //sglr::drawQuad(this.getCurrentContext(), gradShaderID, [-1.0, -1.0, -1.0], [1.0, 1.0, 1.0]);
 
-        gl.disable(gl.DEPTH_TEST);
+        ctx.disable(gl.DEPTH_TEST);
 
         // Draw quad with stencil test (stencil == 1 or 2 depending on depth) - decrement on stencil failure
-        gl.stencilFunc(gl.EQUAL, hasDepth ? 2 : 1, 0xff);
-        gl.stencilOp(gl.DECR, gl.KEEP, gl.KEEP);
+        ctx.stencilFunc(gl.EQUAL, hasDepth ? 2 : 1, 0xff);
+        ctx.stencilOp(gl.DECR, gl.KEEP, gl.KEEP);
 
         flatShader.setColor(this.getCurrentContext(), flatShaderID, [0.0, 1.0, 0.0, 1.0]);
         // TODO: implement drawQuad
         //sglr::drawQuad(this.getCurrentContext(), flatShaderID, [-0.5, -0.5, 0.0], [0.5, 0.5, 0.0]);
 
         // Draw quad with stencil test where stencil > 1 or 2 depending on depth buffer
-        gl.stencilFunc(gl.GREATER, hasDepth ? 1 : 2, 0xff);
+        ctx.stencilFunc(gl.GREATER, hasDepth ? 1 : 2, 0xff);
 
         flatShader.setColor(this.getCurrentContext(), flatShaderID, [0.0, 0.0, 1.0, 1.0]);
         // TODO: implement drawQuad
@@ -272,7 +277,7 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
             basicGroup.addChild(new es3fFboStencilbufferTests.BasicFboStencilCase(es3fFboTestUtil.getFormatName(format), '', format, [111, 132], false));
 
             if (texFmt.order == tcuTexture.ChannelOrder.DS)
-                basicGroup.addChild(new es3fFboStencilbufferTests.BasicFboStencilCase(es3fFboTestUtil.getFormatName(format) + '_depth'), '', format, [111, 132], true);
+                basicGroup.addChild(new es3fFboStencilbufferTests.BasicFboStencilCase(es3fFboTestUtil.getFormatName(format) + '_depth', '', format, [111, 132], true));
         }
 
         // .attach
@@ -280,10 +285,10 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
         var attachGroup = tcuTestCase.newTest('attach', 'Attaching depth stencil');
         this.addChild(attachGroup);
 
-        attachGroup.addChild(new es3fFboStencilbufferTests.DepthStencilAttachCase('depth_only', 'Only depth part of depth-stencil RBO attached', GL_DEPTH_ATTACHMENT, GL_NONE));
-        attachGroup.addChild(new es3fFboStencilbufferTests.DepthStencilAttachCase('stencil_only', 'Only stencil part of depth-stencil RBO attached', GL_NONE, GL_STENCIL_ATTACHMENT));
-        attachGroup.addChild(new es3fFboStencilbufferTests.DepthStencilAttachCase('depth_stencil_separate', 'Depth and stencil attached separately', GL_DEPTH_ATTACHMENT, GL_STENCIL_ATTACHMENT));
-        attachGroup.addChild(new es3fFboStencilbufferTests.DepthStencilAttachCase('depth_stencil_attachment', 'Depth and stencil attached with DEPTH_STENCIL_ATTACHMENT', GL_DEPTH_STENCIL_ATTACHMENT, GL_NONE));
+        attachGroup.addChild(new es3fFboStencilbufferTests.DepthStencilAttachCase('depth_only', 'Only depth part of depth-stencil RBO attached', gl.DEPTH_ATTACHMENT, gl.NONE));
+        attachGroup.addChild(new es3fFboStencilbufferTests.DepthStencilAttachCase('stencil_only', 'Only stencil part of depth-stencil RBO attached', gl.NONE, gl.STENCIL_ATTACHMENT));
+        attachGroup.addChild(new es3fFboStencilbufferTests.DepthStencilAttachCase('depth_stencil_separate', 'Depth and stencil attached separately', gl.DEPTH_ATTACHMENT, gl.STENCIL_ATTACHMENT));
+        attachGroup.addChild(new es3fFboStencilbufferTests.DepthStencilAttachCase('depth_stencil_attachment', 'Depth and stencil attached with DEPTH_STENCIL_ATTACHMENT', gl.DEPTH_STENCIL_ATTACHMENT, gl.NONE));
     };
 
     es3fFboStencilbufferTests.run = function(context) {
@@ -312,6 +317,5 @@ var gluTextureUtil = framework.opengl.gluTextureUtil;
             tcuTestCase.runner.terminate();
         }
     };
-
 
 });

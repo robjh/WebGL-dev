@@ -197,6 +197,7 @@ var DE_ASSERT = function(x) {
         if (this.preCheck)
             this.preCheck();
 
+        debug('TODO: Enable rendering with WebGL');
         // Render using GLES3.
         // TODO: enable
         // try {

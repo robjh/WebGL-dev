@@ -175,7 +175,6 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
             case rrVertexAttrib.VertexAttribType.NONPURE_SNORM_2_10_10_10_REV_SCALE_BGRA: return 1; //sizeof(deUint32)/4;
             default:
                 throw new Error('rrVertexAttrib.getComponentSize - Invalid type');
-                return 0;
         }
     };
 
@@ -243,7 +242,7 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
             }
 
             rrVertexAttrib.read(dst, vertexAttrib.type, vertexAttrib.size, new Uint8Array(vertexAttrib.pointer).subarray(byteOffset));
-        } else{
+        } else {
             dst = new Uint32Array(vertexAttrib.generic);
         }
 

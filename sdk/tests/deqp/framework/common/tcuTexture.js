@@ -1172,7 +1172,7 @@ tcuTexture.ConstPixelBufferAccess.prototype.getPixelInt = function(x, y, z) {
         case tcuTexture.ChannelType.UNSIGNED_INT_24_8:
             switch (this.m_format.order) {
                 case tcuTexture.ChannelOrder.D: return [ub(pixel, 8, 24), 0, 0, 1];
-                case tcuTexture.ChannelOrder.S:  return [0, 0, 0, ub(pixel, 8, 24)];
+                case tcuTexture.ChannelOrder.S: return [0, 0, 0, ub(pixel, 8, 24)];
                 case tcuTexture.ChannelOrder.DS: return [ub(pixel, 8, 24), 0, 0, ub(pixel, 0, 8)];
                 default:
                     DE_ASSERT(false);
