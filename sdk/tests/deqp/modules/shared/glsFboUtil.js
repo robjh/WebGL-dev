@@ -54,6 +54,12 @@ goog.scope(function() {
         return (map[key] !== undefined) ? map[key] : fallback;
     };
     
+    glsFboUtil.contains = function(array, item) {
+        for (var i = array.length ; i-- ; )
+            if (array[i] == item) return true;
+        return false;
+    };
+    
     // db is a glsFboUtil.FormatDB, stdFmts is a range object
     glsFboUtil.addFormats = function(db, stdFmts) {
     
@@ -66,7 +72,6 @@ goog.scope(function() {
 	    }
     
     };
-    
     
     // glsFboUtil.FormatDB& db, FormatExtEntries extFmts, const RenderContext* ctx
     glsFboUtil.addExtFormats = function(db, extFmts, gl) {
@@ -723,9 +728,10 @@ goog.scope(function() {
         return null;
     };
     
-    glsFboUtil.FboBuilder = function(fbo, target) {
+    glsFboUtil.FboBuilder = function(fbo, target, gl) {
         glsFboUtil.Framebuffer.call(this);
-            
+        
+        this.m_gl      = gl || window.gl;
         this.m_target  = target;
         this.m_configs = [];
         this.m_error   = this.m_gl.NO_ERROR;
