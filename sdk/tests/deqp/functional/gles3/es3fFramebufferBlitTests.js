@@ -1036,6 +1036,10 @@ var DE_ASSERT = function(x) {
 
         }
         this.readPixelsUsingFormat(dst, 0, 0, this.m_dstSize[0], this.m_dstSize[1], gluTextureUtil.mapGLInternalFormat(colorFormat), [1.0, 1.0, 1.0, 1.0], [0.0, 0.0, 0.0, 0.0]);
+        //TODO: remove
+        {
+            tcuImageCompare.displayImages(dst.getAccess());
+        }
 
     };
 

@@ -172,28 +172,24 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
      */
     es3fFboTestUtil.FlatColorShader.prototype.shadeFragments = function(packet, context) {
         var numPackets = packet.length;
-        var cval = this.m_uniforms[0].value;
-        /** @const {Array<number>} */ var color = [cval, cval, cval, cval];
+        /** @const {Array<number>} */ var color = this.m_uniforms[0].value;
         /** @const {Array<number>} */ var icolor = es3fFboTestUtil.castVectorSaturate(color, tcuTexture.deTypes.deInt32);
         /** @const {Array<number>} */ var uicolor = es3fFboTestUtil.castVectorSaturate(color, tcuTexture.deTypes.deUint32);
 
         if (this.m_container.m_outputType == gluShaderUtil.DataType.FLOAT_VEC4)
         {
             for (var packetNdx = 0; packetNdx < numPackets; ++packetNdx)
-                for (var fragNdx = 0; fragNdx < 4; ++fragNdx)
-                    packet[packetNdx].value = color;
+                packet[packetNdx].value = color;
         }
         else if (this.m_container.m_outputType == gluShaderUtil.DataType.INT_VEC4)
         {
             for (var packetNdx = 0; packetNdx < numPackets; ++packetNdx)
-                for (var fragNdx = 0; fragNdx < 4; ++fragNdx)
-                    packet[packetNdx].value = icolor;
+                packet[packetNdx].value = icolor;
         }
         else if (this.m_container.m_outputType == gluShaderUtil.DataType.UINT_VEC4)
         {
             for (var packetNdx = 0; packetNdx < numPackets; ++packetNdx)
-                for (var fragNdx = 0; fragNdx < 4; ++fragNdx)
-                    packet[packetNdx].value = uicolor;
+                packet[packetNdx].value = uicolor;
         }
         else
             throw new Error('Invalid output type: ' + this.m_container.m_outputType);
