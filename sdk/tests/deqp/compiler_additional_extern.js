@@ -61,4 +61,5 @@ function testPassed(msg){};
 /** @type {HTMLElement} */ var canvas;
 
 /** @type {{create3DContext: function(string):WebGL2RenderingContext,
-            loadTextFileAsync: function(string, function(boolean, string)) }} */ var WebGLTestUtils;
+            loadTextFileAsync: function(string, function(boolean, string)),
+            glEnumToString: function(WebGL2RenderingContext, number):string }} */ var WebGLTestUtils;

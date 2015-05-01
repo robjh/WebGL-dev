@@ -1171,17 +1171,17 @@ tcuTexture.ConstPixelBufferAccess.prototype.getPixelInt = function(x, y, z) {
 
         case tcuTexture.ChannelType.UNSIGNED_INT_24_8:
             switch (this.m_format.order) {
-                // \note Stencil is always ignored.
                 case tcuTexture.ChannelOrder.D: return [ub(pixel, 8, 24), 0, 0, 1];
-                case tcuTexture.ChannelOrder.DS: return [ub(pixel, 8, 24), 0, 0, 1 /* (float)ub(0, 8) */];
+                case tcuTexture.ChannelOrder.S: return [0, 0, 0, ub(pixel, 8, 24)];
+                case tcuTexture.ChannelOrder.DS: return [ub(pixel, 8, 24), 0, 0, ub(pixel, 0, 8)];
                 default:
                     DE_ASSERT(false);
             }
 
         case tcuTexture.ChannelType.FLOAT_UNSIGNED_INT_24_8_REV: {
             DE_ASSERT(this.m_format.order == tcuTexture.ChannelOrder.DS);
-            // \note Stencil is ignored.
-            return [pixel, 0, 0, 1];
+            var u32array = new Uint32Array(this.m_data, offset + 4, 1);
+            return [pixel, 0, 0, ub(u32array[0], 0, 8)];
         }
 
         default:

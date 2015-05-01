@@ -84,69 +84,28 @@ rrRenderer.DrawContext = function(id) {
 
 };
 
-// rrRenderer.makeSharedVertexDistinct = function(packet, vertices, vpalloc) {
-//     if (!vertices[packet])
-//         vertices[packet] = true;
-//     else {
-//         var newPacket = vpalloc.alloc();
-//         // copy packet output values
-//         newPacket.position = packet.position;
-//         newPacket.pointSize = packet.pointSize;
-//         newPacket.primitiveID = packet.primitiveID;
-
-//         for (var outputNdx = 0; outputNdx < vpalloc.getNumVertexOutputs(); ++outputNdx)
-//             newPacket.outputs[outputNdx] = packet.outputs[outputNdx];
-
-//         // no need to insert new packet to "vertices" as newPacket is unique
-//         packet = newPacket;
-//     }
-//     return packet;
-// };
-
-// rrRenderer.findTriangleVertexDepthSlope = function(p, v0, v1) {
-//     // screen space
-//     var ssp = deMath.swizzle(p, [0, 1, 2]);
-//     var ssv0 = deMath.swizzle(v0, [0, 1, 2]);
-//     var ssv1 = deMath.swizzle(v1, [0, 1, 2]);
-
-//     // dx & dy
-
-//     var a = deMath.subtract(deMath.swizzle(ssv0, [0, 1, 2]), deMath.swizzle(ssp, [0, 1, 2]));
-//     var b = deMath.subtract(deMath.swizzle(ssv1, [0, 1, 2]), deMath.swizzle(ssp, [0, 1, 2]));
-//     var epsilon = 0.0001;
-//     var det = (a[0] * b[1] - b[0] * a[1]);
-
-//     // degenerate triangle, it won't generate any fragments anyway. Return value doesn't matter
-//     if (Math.abs(det) < epsilon)
-//         return 0;
-
-//     var dxDir = [b[1] / det, -a[1] / det];
-//     var dyDir = [-b[0] / det, a[0] / det];
-
-//     var dzdx = dxDir[0] * a[2] + dxDir[1] * b[2];
-//     var dzdy = dyDir[0] * a[2] + dyDir[1] * b[2];
-
-//     // approximate using max(|dz/dx|, |dz/dy|)
-//     return Math.max(Math.abs(dzdx), Math.abs(dzdy));
-// };
-
-rrRenderer.transformVertexClipCoordsToWindowCoords = function(/*const RenderState&*/ state, /*VertexPacket&*/ packet) {
+/**
+ * Transform [x, y] to window (pixel) coordinates.
+ * z and w are unchanged
+ * @param {rrRenderState.RenderState} state
+ * @param {rrVertexPacket.VertexPacket} packet
+ * Wreturn {Array<number>}
+ */
+rrRenderer.transformGLToWindowCoords = function(state, packet) {
     var transformed = [packet.position[0] / packet.position[3],
                                 packet.position[1] / packet.position[3],
-                                packet.position[2] / packet.position[3],
-                                1 / packet.position[3]];
+                                packet.position[2],
+                                packet.position[3]];
     var viewport = state.viewport.rect;
     var halfW = viewport.width / 2;
     var halfH = viewport.height / 2;
     var oX = viewport.left + halfW;
     var oY = viewport.bottom + halfH;
-    var zn = state.viewport.zn;
-    var zf = state.viewport.zf;
 
     return [
         transformed[0] * halfW + oX,
         transformed[1] * halfH + oY,
-        transformed[2] * (zf - zn) / 2 + (zn + zf) / 2,
+        transformed[2],
         transformed[3]
     ];
 };
@@ -471,6 +430,13 @@ rrRenderer.getIndexOfCorner = function(isTop, isRight, vertexPackets) {
     throw new Error('Corner not found');
 };
 
+rrRenderer.calculateDepth = function(x, y, depths) {
+    var d1 = x * depths[0] + (1 - x) * depths[1];
+    var d2 = x * depths[2] + (1 - x) * depths[3];
+    var d = y * d1 + (1 - y) * d2;
+    return d;
+};
+
 /**
  * @param {rrRenderState.RenderState} state
  * @param {rrRenderer.RenderTarget} renderTarget
@@ -521,18 +487,18 @@ rrRenderer.drawQuads = function(state, renderTarget, program, vertexAttribs, fir
         var topLeftVertexNdx = rrRenderer.getIndexOfCorner(true, false, quadPackets);
         var topRightVertexNdx = rrRenderer.getIndexOfCorner(true, true, quadPackets);
 
-        var topLeft = rrRenderer.transformVertexClipCoordsToWindowCoords(state, quadPackets[topLeftVertexNdx]);
-        var bottomRight = rrRenderer.transformVertexClipCoordsToWindowCoords(state, quadPackets[bottomRightVertexNdx]);
+        var topLeft = rrRenderer.transformGLToWindowCoords(state, quadPackets[topLeftVertexNdx]);
+        var bottomRight = rrRenderer.transformGLToWindowCoords(state, quadPackets[bottomRightVertexNdx]);
 
         topLeft[0] = Math.round(topLeft[0]);
         topLeft[1] = Math.round(topLeft[1]);
         bottomRight[0] = Math.round(bottomRight[0]);
         bottomRight[1] = Math.round(bottomRight[1]);
 
-        var v0 = [topLeft[0], topLeft[1]];
-        var v1 = [topLeft[0], bottomRight[1]];
-        var v2 = [bottomRight[0], topLeft[1]];
-        var v3 = [bottomRight[0], bottomRight[1]];
+        var v0 = [topLeft[0], topLeft[1], quadPackets[topLeftVertexNdx].position[2]];
+        var v1 = [topLeft[0], bottomRight[1], quadPackets[topRightVertexNdx].position[2]];
+        var v2 = [bottomRight[0], topLeft[1], quadPackets[bottomLeftVertexNdx].position[2]];
+        var v3 = [bottomRight[0], bottomRight[1], quadPackets[bottomRightVertexNdx].position[2]];
         var width = bottomRight[0] - topLeft[0];
         var height = topLeft[1] - bottomRight[1];
 
@@ -558,13 +524,14 @@ rrRenderer.drawQuads = function(state, renderTarget, program, vertexAttribs, fir
 
                 var xf = (i + 0.5) / width;
                 var yf = (j + 0.5) / height;
+                var depth = rrRenderer.calculateDepth(xf, yf, [v0[2], v1[2], v2[2], v3[2]]);
                 var triNdx = xf + yf >= 1;
                 if (!triNdx) {
                     var b = rrRenderer.getBarycentricCoefficients([x, y], v0, v1, v2);
-                    packetsTopLeft.push(new rrFragmentOperations.Fragment(b, [v0[0] + i, v1[1] + j]));
+                    packetsTopLeft.push(new rrFragmentOperations.Fragment(b, [v0[0] + i, v1[1] + j], depth));
                 } else {
                     var b = rrRenderer.getBarycentricCoefficients([x, y], v2, v1, v3);
-                    packetsBottomRight.push(new rrFragmentOperations.Fragment(b, [v0[0] + i, v1[1] + j]));
+                    packetsBottomRight.push(new rrFragmentOperations.Fragment(b, [v0[0] + i, v1[1] + j], depth));
                 }
             }
 
