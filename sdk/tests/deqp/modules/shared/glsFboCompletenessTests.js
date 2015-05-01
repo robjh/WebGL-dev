@@ -93,18 +93,17 @@ goog.scope(function() {
     
     
     
-    glsFboCompletenessTests.TestBase = function() {
-        tcuTestCase.DeqpTest.call(this);
-        this.params = null;
+    glsFboCompletenessTests.TestBase = function(name, desc, params) {
+        tcuTestCase.DeqpTest.call(this, name, desc);
+        this.params = params;
 
         this.getContext = this.getState;
 
-        console.log("glsFboCompletenessTests.TestBase Constructor");
-        
+    //  console.log("glsFboCompletenessTests.TestBase Constructor");
     };
     glsFboCompletenessTests.TestBase.prototype = Object.create(tcuTestCase.DeqpTest);
     glsFboCompletenessTests.TestBase.prototype.constructor = glsFboCompletenessTests.TestBase;
-    
+
     // GLenum attPoint, GLenum bufType
     glsFboCompletenessTests.TestBase.getDefaultFormat = function(attPoint, bufType, gl) {
         gl = gl || window.gl;
@@ -122,7 +121,7 @@ goog.scope(function() {
     
     glsFboCompletenessTests.TestBase.prototype.iterate = function() {
         var gl = window.gl;
-        
+        debugger; //TODO remove
         var fbo = new gluObjectWrapper.Framebuffer(gl);
         var builder = new glsFboUtil.FboBuilder(gbo.get(), gl.FRAMEBUFFER, gl);
         var ret = this.build(builder);

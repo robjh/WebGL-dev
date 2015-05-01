@@ -34,7 +34,7 @@ goog.scope(function() {
             glsFboUtil.formatkey(gl.RGBA,  gl.UNSIGNED_SHORT_4_4_4_4),
             glsFboUtil.formatkey(gl.RGBA,  gl.UNSIGNED_SHORT_5_5_5_1),
             glsFboUtil.formatkey(gl.RGB,   gl.UNSIGNED_BYTE),
-            glsFboUtil.formatkey(gl.RGB,   gl.UNSIGNED_SHORT_5_6_5),
+            glsFboUtil.formatkey(gl.RGB,   gl.UNSIGNED_SHORT_5_6_5)
         ];
 
         es3fFboCompletenessTests.s_es3DepthRenderables = [
@@ -53,13 +53,13 @@ goog.scope(function() {
         es3fFboCompletenessTests.s_es3StencilRenderables = [
             // "...or one of the formats from table 3.13 whose base internal format is
             // DEPTH_STENCIL."
-            gl.DEPTH24_STENCIL8, gl.DEPTH32F_STENCIL8,
+            gl.DEPTH24_STENCIL8, gl.DEPTH32F_STENCIL8
         ];
 
         es3fFboCompletenessTests.s_es3TextureFloatFormats = [
             gl.RGBA32F, gl.RGBA16F, gl.R11F_G11F_B10F,
             gl.RG32F,   gl.RG16F,   gl.R32F,  gl.R16F,
-            gl.RGBA16F, gl.RGB16F,  gl.RG16F, gl.R16F,
+            gl.RGBA16F, gl.RGB16F,  gl.RG16F, gl.R16F
         ];
 
     // Array<Array<number>>
@@ -116,12 +116,12 @@ goog.scope(function() {
 
         // GL_EXT_color_buffer_float
         es3fFboCompletenessTests.s_extColorBufferFloatFormats = [
-            gl.RGBA32F, gl.RGBA16F, gl.R11F_G11F_B10F, gl.RG32F, gl.RG16F, gl.R32F, gl.R16F,
+            gl.RGBA32F, gl.RGBA16F, gl.R11F_G11F_B10F, gl.RG32F, gl.RG16F, gl.R32F, gl.R16F
         ];
 
         // GL_OES_texture_stencil8
         es3fFboCompletenessTests.s_extOESTextureStencil8 = [
-            gl.STENCIL_INDEX8,
+            gl.STENCIL_INDEX8
         ];
 
         es3fFboCompletenessTests.s_es3ExtFormats = [
@@ -148,7 +148,7 @@ goog.scope(function() {
      */
     es3fFboCompletenessTests.ES3Checker = function() {
         glsFboUtil.Checker.call(this, gl);
-        /** @type {number} */ this.m_numSamples -1; // GLsizei
+        /** @type {number} */ this.m_numSamples = -1; // GLsizei
         /** @type {number} */ this.m_depthStencilImage = 0; // GLuint
         /** @type {number} */ this.m_depthStencilType = gl.NONE; // GLenum
     };
@@ -243,9 +243,14 @@ goog.scope(function() {
     };
 
 
-    es3fFboCompletenessTests.NumLayersTest = function() {};
-    // TODO: implement glsFboCompletenessTests class
-//    es3fFboCompletenessTests.NumLayersTest.prototype = new glsFboCompletenessTests({dont_construct: true});
+    es3fFboCompletenessTests.NumLayersTest = function(fboc, name, desc, params) {
+        glsFboCompletenessTests.TestBase.call(this, name, desc, params);
+    };
+    
+    es3fFboCompletenessTests.NumLayersTest.prototype = Object.create(glsFboCompletenessTests.TestBase.prototype);
+    es3fFboCompletenessTests.NumLayersTest.prototype.constructor = es3fFboCompletenessTests.NumLayersTest;
+
+
     
     es3fFboCompletenessTests.NumLayersTest.prototype.build = function(builder, gl) {
 
@@ -261,11 +266,24 @@ goog.scope(function() {
                 }
             }(this.m_params.textureKind)
         );
-  
+
         texCfg.internalFormat = this.getDefaultFormat(target, gl.TEXTURE);
+        texCfg.width = 64;
+        texCfg.height = 64;
+        texCfg.numLayers = this.m_params.numLayers;
+        var tex = builder.glCreateTexture(texCfg);
 
+        var att = builder.makeConfig(glsFboUtil.TextureLayerAttachment);
+        att.layer = this.m_params.attachmentLayer;
+        att.imageName = tex;
+
+        builder.glAttach(target, att);
+
+    //  return tcuTestCase.IterateResult.STOP;
     };
-
+//es3fFboCompletenessTests.NumLayersTest.prototype.isExecutable = function() {
+//    return false;
+//};
 
 
 
@@ -278,6 +296,30 @@ goog.scope(function() {
         // create Attachment tests
         // create Size tests
         
+        /** @type {tcuTestCase.DeqpTest} */
+        var layerTests = tcuTestCase.newTest('layer', 'Tests for layer attachments');
+        
+        /**
+         * @static
+         */
+        var s_latersParams = [
+            new es3fFboCompletenessTests.numLayersParams(gl.TEXTURE_2D_ARRAY, 1,  0),
+            new es3fFboCompletenessTests.numLayersParams(gl.TEXTURE_2D_ARRAY, 1,  3),
+            new es3fFboCompletenessTests.numLayersParams(gl.TEXTURE_2D_ARRAY, 4,  3),
+            new es3fFboCompletenessTests.numLayersParams(gl.TEXTURE_2D_ARRAY, 4, 15),
+            new es3fFboCompletenessTests.numLayersParams(gl.TEXTURE_3D,       1,  0),
+            new es3fFboCompletenessTests.numLayersParams(gl.TEXTURE_3D,       1, 15),
+            new es3fFboCompletenessTests.numLayersParams(gl.TEXTURE_3D,       4, 15),
+            new es3fFboCompletenessTests.numLayersParams(gl.TEXTURE_3D,      64, 15)
+        ];
+        
+        for (var i = 0 ; i < s_latersParams.length ; ++i) {
+            var name = 'name';
+            var desc = 'desc';
+            layerTests.addChild(new es3fFboCompletenessTests.NumLayersTest(this.m_fboc, name, desc, s_latersParams[i]));
+        }
+        
+        testGroup.addChild(layerTests);
     };
 
     es3fFboCompletenessTests.run = function() {

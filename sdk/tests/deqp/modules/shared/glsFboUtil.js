@@ -254,7 +254,7 @@ goog.scope(function() {
         this.target = glsFboUtil.Config.s_target.NONE;
     };
     /**
-     * @emum {number}
+     * @enum {number}
      */
     glsFboUtil.Config.s_target = {
         NONE:              0,
@@ -289,7 +289,7 @@ goog.scope(function() {
         ATT_TEXTURE_FLAT:  0x080000,
         ATT_TEXTURE_LAYER: 0x100000,
 
-        UNUSED:          0xFFE0E00E,
+        UNUSED:          0xFFE0E00E
     };
 
     /**
@@ -574,7 +574,7 @@ goog.scope(function() {
         
         return {
             create: glCreate,
-            remove: glDelete,
+            remove: glDelete
         };
     
     }();
@@ -697,7 +697,7 @@ goog.scope(function() {
         STENCIL_RENDERABLE:   0x04,
         RENDERBUFFER_VALID:   0x08,
         TEXTURE_VALID:        0x10,
-        REQUIRED_RENDERABLE:  0x20, //< Without this, renderability is allowed, not required.
+        REQUIRED_RENDERABLE:  0x20  //< Without this, renderability is allowed, not required.
     };
     
     glsFboUtil.Framebuffer = function(attachments, textures, rbos, gl) {
