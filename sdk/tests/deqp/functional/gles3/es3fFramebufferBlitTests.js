@@ -34,84 +34,23 @@ goog.require('framework.referencerenderer.rrUtil');
 
 goog.scope(function() {
 
-var es3fFramebufferBlitTests = functional.gles3.es3fFramebufferBlitTests;
-var es3fFboTestCase = functional.gles3.es3fFboTestCase;
-var es3fFboTestUtil = functional.gles3.es3fFboTestUtil;
-var tcuTestCase = framework.common.tcuTestCase;
-var tcuSurface = framework.common.tcuSurface;
-var tcuRGBA = framework.common.tcuRGBA;
-var tcuImageCompare = framework.common.tcuImageCompare;
-var tcuTexture = framework.common.tcuTexture;
-var tcuTextureUtil = framework.common.tcuTextureUtil;
-var deMath = framework.delibs.debase.deMath;
-var gluTextureUtil = framework.opengl.gluTextureUtil;
-var gluShaderUtil = framework.opengl.gluShaderUtil;
-var rrUtil = framework.referencerenderer.rrUtil;
+    var es3fFramebufferBlitTests = functional.gles3.es3fFramebufferBlitTests;
+    var es3fFboTestCase = functional.gles3.es3fFboTestCase;
+    var es3fFboTestUtil = functional.gles3.es3fFboTestUtil;
+    var tcuTestCase = framework.common.tcuTestCase;
+    var tcuSurface = framework.common.tcuSurface;
+    var tcuRGBA = framework.common.tcuRGBA;
+    var tcuImageCompare = framework.common.tcuImageCompare;
+    var tcuTexture = framework.common.tcuTexture;
+    var tcuTextureUtil = framework.common.tcuTextureUtil;
+    var deMath = framework.delibs.debase.deMath;
+    var gluTextureUtil = framework.opengl.gluTextureUtil;
+    var gluShaderUtil = framework.opengl.gluShaderUtil;
+    var rrUtil = framework.referencerenderer.rrUtil;
 
-var DE_ASSERT = function(x) {
-    if (!x)
-        throw new Error('Assert failed');
-};
-
-    rrUtil.drawQuad = function(ctx, program, p0, p1) {
-        // Vertex data.
-        var hz = (p0[2] + p1[2]) * 0.5;
-        var position = [
-            p0[0], p0[1], p0[2], 1.0,
-            p0[0], p1[1], hz, 1.0,
-            p1[0], p0[1], hz, 1.0,
-            p1[0], p0[1], hz, 1.0,
-            p0[0], p1[1], hz, 1.0,
-            p1[0], p1[1], p1[2], 1.0
-        ];
-        var coord = [
-            0.0, 0.0,
-            0.0, 1.0,
-            1.0, 0.0,
-            1.0, 0.0,
-            0.0, 1.0,
-            1.0, 1.0
-        ];
-
-        var posLoc = ctx.getAttribLocation(program, 'a_position');
-        if (posLoc == -1)
-            throw new Error('a_position attribute is not defined.');
-
-        var coordLoc = ctx.getAttribLocation(program, 'a_coord');
-        var vaoID;
-        var bufIDs = [];
-
-        vaoID = ctx.createVertexArray();
-        ctx.bindVertexArray(vaoID);
-
-        bufIDs[0] = ctx.createBuffer();
-        bufIDs[1] = ctx.createBuffer();
-
-        ctx.useProgram(program);
-        ctx.bindBuffer(gl.ARRAY_BUFFER, bufIDs[0]);
-        ctx.bufferData(gl.ARRAY_BUFFER, new Float32Array(position), gl.STATIC_DRAW);
-
-        ctx.enableVertexAttribArray(posLoc);
-        ctx.vertexAttribPointer(posLoc, 4, gl.FLOAT, false, 0, 0);
-
-        ctx.bindBuffer(gl.ARRAY_BUFFER, null);
-
-        if (coordLoc >= 0) {
-            ctx.bindBuffer(gl.ARRAY_BUFFER, bufIDs[1]);
-            ctx.bufferData(gl.ARRAY_BUFFER, new Float32Array(coord), gl.STATIC_DRAW);
-
-            ctx.enableVertexAttribArray(coordLoc);
-            ctx.vertexAttribPointer(coordLoc, 2, gl.FLOAT, false, 0, 0);
-
-            ctx.bindBuffer(gl.ARRAY_BUFFER, null);
-        }
-
-        ctx.drawQuads(0, 1);
-
-        ctx.bindVertexArray(null);
-        ctx.deleteBuffer(bufIDs[0]);
-        ctx.deleteBuffer(bufIDs[1]);
-        ctx.deleteVertexArray(vaoID);
+    var DE_ASSERT = function(x) {
+        if (!x)
+            throw new Error('Assert failed');
     };
 
     /** @type {WebGL2RenderingContext} */ var gl;

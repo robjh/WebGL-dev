@@ -24,26 +24,28 @@ goog.require('framework.common.tcuTestCase');
 goog.require('framework.common.tcuTexture');
 goog.require('framework.opengl.gluShaderUtil');
 goog.require('framework.opengl.gluTextureUtil');
+goog.require('framework.referencerenderer.rrUtil');
 goog.require('functional.gles3.es3fFboTestCase');
 goog.require('functional.gles3.es3fFboTestUtil');
 
 goog.scope(function() {
 
-var es3fFboStencilbufferTests = functional.gles3.es3fFboStencilbufferTests;
-var es3fFboTestCase = functional.gles3.es3fFboTestCase;
-var es3fFboTestUtil = functional.gles3.es3fFboTestUtil;
-var tcuTestCase = framework.common.tcuTestCase;
-var tcuSurface = framework.common.tcuSurface;
-var tcuTexture = framework.common.tcuTexture;
-var gluShaderUtil = framework.opengl.gluShaderUtil;
-var gluTextureUtil = framework.opengl.gluTextureUtil;
+    var es3fFboStencilbufferTests = functional.gles3.es3fFboStencilbufferTests;
+    var es3fFboTestCase = functional.gles3.es3fFboTestCase;
+    var es3fFboTestUtil = functional.gles3.es3fFboTestUtil;
+    var tcuTestCase = framework.common.tcuTestCase;
+    var tcuSurface = framework.common.tcuSurface;
+    var tcuTexture = framework.common.tcuTexture;
+    var rrUtil = framework.referencerenderer.rrUtil;
+    var gluShaderUtil = framework.opengl.gluShaderUtil;
+    var gluTextureUtil = framework.opengl.gluTextureUtil;
 
-/** @type {WebGL2RenderingContext} */ var gl;
+    /** @type {WebGL2RenderingContext} */ var gl;
 
-var DE_ASSERT = function(x) {
-    if (!x)
-        throw new Error('Assert failed');
-};
+    var DE_ASSERT = function(x) {
+        if (!x)
+            throw new Error('Assert failed');
+    };
 
     /**
      * @constructor
@@ -118,11 +120,11 @@ var DE_ASSERT = function(x) {
 
         flatShader.setColor(this.getCurrentContext(), flatShaderID, [1.0, 0.0, 0.0, 1.0]);
         // TODO: drawQuad
-        //sglr::drawQuad(this.getCurrentContext(), flatShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
+        rrUtil.drawQuad(this.getCurrentContext(), flatShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
 
         gradShader.setGradient(this.getCurrentContext(), gradShaderID, [0.0, 0.0, 0.0, 0.0], [1.0, 1.0, 1.0, 1.0]);
         // TODO: drawQuad
-        //sglr::drawQuad(this.getCurrentContext(), gradShaderID, [-1.0, -1.0, -1.0], [1.0, 1.0, 1.0]);
+        rrUtil.drawQuad(this.getCurrentContext(), gradShaderID, [-1.0, -1.0, -1.0], [1.0, 1.0, 1.0]);
 
         ctx.disable(gl.DEPTH_TEST);
 
@@ -132,14 +134,14 @@ var DE_ASSERT = function(x) {
 
         flatShader.setColor(this.getCurrentContext(), flatShaderID, [0.0, 1.0, 0.0, 1.0]);
         // TODO: drawQuad
-        //sglr::drawQuad(this.getCurrentContext(), flatShaderID, [-0.5, -0.5, 0.0], [0.5, 0.5, 0.0]);
+        rrUtil.drawQuad(this.getCurrentContext(), flatShaderID, [-0.5, -0.5, 0.0], [0.5, 0.5, 0.0]);
 
         // Draw quad with stencil test where stencil > 1 or 2 depending on depth buffer
         ctx.stencilFunc(gl.GREATER, this.m_useDepth ? 1 : 2, 0xff);
 
         flatShader.setColor(this.getCurrentContext(), flatShaderID, [0.0, 0.0, 1.0, 1.0]);
 
-        //sglr::drawQuad(this.getCurrentContext(), flatShaderID, Vec3(-1.0f, -1.0f, 0.0f), Vec3(+1.0f, +1.0f, 0.0f));
+        rrUtil.drawQuad(this.getCurrentContext(), flatShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
 
         this.readPixels(dst, 0, 0, this.m_size[0], this.m_size[1], gluTextureUtil.mapGLInternalFormat(colorFormat), [1.0, 1.0, 1.0, 1.0], [0.0, 0.0, 0.0, 0.0]);
     };
