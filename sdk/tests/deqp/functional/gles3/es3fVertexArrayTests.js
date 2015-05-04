@@ -1033,7 +1033,7 @@ goog.scope(function() {
     es3fVertexArrayTests.MultiVertexArrayOutputTests.prototype.getTestName = function (spec) {
         var name = '';
 
-        name += spec.arrays.size();
+        name += spec.arrays.length;
 
         for (var arrayNdx = 0; arrayNdx < spec.arrays.length; arrayNdx++) {
             name += "_" +

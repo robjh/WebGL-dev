@@ -30,6 +30,7 @@ goog.require('framework.common.tcuTextureUtil');
 goog.require('framework.delibs.debase.deMath');
 goog.require('framework.opengl.gluTextureUtil');
 goog.require('framework.opengl.gluShaderUtil');
+goog.require('framework.referencerenderer.rrUtil');
 
 goog.scope(function() {
 
@@ -45,13 +46,14 @@ var tcuTextureUtil = framework.common.tcuTextureUtil;
 var deMath = framework.delibs.debase.deMath;
 var gluTextureUtil = framework.opengl.gluTextureUtil;
 var gluShaderUtil = framework.opengl.gluShaderUtil;
+var rrUtil = framework.referencerenderer.rrUtil;
 
 var DE_ASSERT = function(x) {
     if (!x)
         throw new Error('Assert failed');
 };
 
-    es3fFramebufferBlitTests.drawQuad = function(ctx, program, p0, p1) {
+    rrUtil.drawQuad = function(ctx, program, p0, p1) {
         // Vertex data.
         var hz = (p0[2] + p1[2]) * 0.5;
         var position = [
@@ -200,7 +202,7 @@ var DE_ASSERT = function(x) {
         ctx.bindFramebuffer(gl.FRAMEBUFFER, dstFbo);
         ctx.viewport(0, 0, this.m_dstSize[0], this.m_dstSize[1]);
 
-        es3fFramebufferBlitTests.drawQuad(ctx, gradShaderID, [-1, -1, 0], [1, 1, 0]);
+        rrUtil.drawQuad(ctx, gradShaderID, [-1, -1, 0], [1, 1, 0]);
 
         /* TODO: remove */ {
             var pixels = new tcuSurface.Surface(this.m_dstSize[0], this.m_dstSize[1]);
@@ -229,7 +231,7 @@ var DE_ASSERT = function(x) {
         ctx.bindFramebuffer(gl.FRAMEBUFFER, srcFbo);
         ctx.viewport(0, 0, this.m_srcSize[0], this.m_srcSize[1]);
 
-        es3fFramebufferBlitTests.drawQuad(ctx, texShaderID, [-1, -1, 0], [1, 1, 0]);
+        rrUtil.drawQuad(ctx, texShaderID, [-1, -1, 0], [1, 1, 0]);
 
        /* TODO: remove */ {
             var pixels = new tcuSurface.Surface(this.m_srcSize[0], this.m_srcSize[1]);
@@ -794,7 +796,7 @@ var DE_ASSERT = function(x) {
         ctx.bindFramebuffer(gl.FRAMEBUFFER, srcFbo);
         gradientToDstShader.setGradient(ctx, gradShaderDstID, dstRangeInfo.valueMin, dstRangeInfo.valueMax);
 
-        es3fFramebufferBlitTests.drawQuad(ctx, gradShaderDstID, [-1, -1, 0], [1, 1, 0]);
+        rrUtil.drawQuad(ctx, gradShaderDstID, [-1, -1, 0], [1, 1, 0]);
         /* TODO: remove */ {
             var pixels = new tcuSurface.Surface(this.m_size[0], this.m_size[1]);
             this.readPixelsUsingFormat(pixels, 0, 0, this.m_size[0], this.m_size[1], dstFormat, dstRangeInfo.lookupScale, dstRangeInfo.lookupBias);
@@ -803,7 +805,7 @@ var DE_ASSERT = function(x) {
 
         ctx.bindFramebuffer(gl.FRAMEBUFFER, dstFbo);
         gradientToSrcShader.setGradient(ctx, gradShaderSrcID, srcRangeInfo.valueMin, dstRangeInfo.valueMax);
-        es3fFramebufferBlitTests.drawQuad(ctx, gradShaderSrcID, [-1, -1, 0], [1, 1, 0]);
+        rrUtil.drawQuad(ctx, gradShaderSrcID, [-1, -1, 0], [1, 1, 0]);
 
         /* TODO: remove */ {
             var pixels = new tcuSurface.Surface(this.m_size[0], this.m_size[1]);
@@ -976,7 +978,7 @@ var DE_ASSERT = function(x) {
         ctx.stencilOp(gl.KEEP, gl.KEEP, gl.REPLACE);
         ctx.stencilFunc(gl.ALWAYS, 7, 0xff);
 
-        es3fFramebufferBlitTests.drawQuad(ctx, gradShaderID, [-1, -1, -1], [1, 1, 1]);
+        rrUtil.drawQuad(ctx, gradShaderID, [-1, -1, -1], [1, 1, 1]);
         /* TODO: remove */ {
             this.readPixelsUsingFormat(dst, 0, 0, this.m_srcSize[0], this.m_srcSize[1], gluTextureUtil.mapGLInternalFormat(colorFormat), [1.0, 1.0, 1.0, 1.0], [0.0, 0.0, 0.0, 0.0]);
             tcuImageCompare.displayImages(dst.getAccess());
@@ -1004,7 +1006,7 @@ var DE_ASSERT = function(x) {
         ctx.viewport(0, 0, this.m_dstSize[0], this.m_dstSize[1]);
         ctx.stencilFunc(gl.ALWAYS, 1, 0xff);
 
-        es3fFramebufferBlitTests.drawQuad(ctx, texShaderID, [-1, -1, 0], [1, 1, 0]);
+        rrUtil.drawQuad(ctx, texShaderID, [-1, -1, 0], [1, 1, 0]);
         /* TODO: remove */ {
             this.readPixelsUsingFormat(dst, 0, 0, this.m_dstSize[0], this.m_dstSize[1], gluTextureUtil.mapGLInternalFormat(colorFormat), [1.0, 1.0, 1.0, 1.0], [0.0, 0.0, 0.0, 0.0]);
             tcuImageCompare.displayImages(dst.getAccess());
@@ -1023,7 +1025,7 @@ var DE_ASSERT = function(x) {
 
         flatShader.setColor(this.getCurrentContext(), flatShaderID, [0.0, 0.0, 1.0, 1.0]);
 
-        es3fFramebufferBlitTests.drawQuad(ctx, flatShaderID, [-1, -1, 0], [1, 1, 0]);
+        rrUtil.drawQuad(ctx, flatShaderID, [-1, -1, 0], [1, 1, 0]);
         /* TODO: remove */ {
             this.readPixelsUsingFormat(dst, 0, 0, this.m_dstSize[0], this.m_dstSize[1], gluTextureUtil.mapGLInternalFormat(colorFormat), [1.0, 1.0, 1.0, 1.0], [0.0, 0.0, 0.0, 0.0]);
             tcuImageCompare.displayImages(dst.getAccess());
@@ -1037,7 +1039,7 @@ var DE_ASSERT = function(x) {
 
             flatShader.setColor(this.getCurrentContext(), flatShaderID, [0.0, 1.0, 0.0, 1.0]);
 
-            es3fFramebufferBlitTests.drawQuad(ctx, flatShaderID, [-1, -1, 0], [1, 1, 0]);
+            rrUtil.drawQuad(ctx, flatShaderID, [-1, -1, 0], [1, 1, 0]);
 
         }
         this.readPixelsUsingFormat(dst, 0, 0, this.m_dstSize[0], this.m_dstSize[1], gluTextureUtil.mapGLInternalFormat(colorFormat), [1.0, 1.0, 1.0, 1.0], [0.0, 0.0, 0.0, 0.0]);
@@ -1113,7 +1115,7 @@ var DE_ASSERT = function(x) {
         // Render gradient to screen.
         ctx.bindFramebuffer(gl.FRAMEBUFFER, null);
 
-        es3fFramebufferBlitTests.drawQuad(ctx, gradShaderID, [-1, -1, 0], [1, 1, 0]);
+        rrUtil.drawQuad(ctx, gradShaderID, [-1, -1, 0], [1, 1, 0]);
         /* TODO: remove */ {
             var pixels = new tcuSurface.Surface(ctx.getWidth(), ctx.getHeight());
             var access = pixels.getAccess();
@@ -1129,7 +1131,7 @@ var DE_ASSERT = function(x) {
         ctx.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
         ctx.clearBufferfv(gl.COLOR, 0, [1.0, 0.0, 0.0, 1.0]);
 
-        es3fFramebufferBlitTests.drawQuad(ctx, texShaderID, [-1, -1, 0], [1, 1, 0]);
+        rrUtil.drawQuad(ctx, texShaderID, [-1, -1, 0], [1, 1, 0]);
         /* TODO: remove */ {
             var pixels = new tcuSurface.Surface(texW, texH);
             var access = pixels.getAccess();
@@ -1301,7 +1303,7 @@ var DE_ASSERT = function(x) {
 
         texShader.setUniforms(this.getCurrentContext(), texShaderID);
 
-        es3fFramebufferBlitTests.drawQuad(ctx, texShaderID, [-1, -1, 0], [1, 1, 0]);
+        rrUtil.drawQuad(ctx, texShaderID, [-1, -1, 0], [1, 1, 0]);
         /* TODO: remove */ {
             var pixels = new tcuSurface.Surface(gridRenderWidth, gridRenderHeight);
             var access = pixels.getAccess();
