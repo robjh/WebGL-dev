@@ -244,7 +244,12 @@ goog.scope(function() {
 
 
     es3fFboCompletenessTests.NumLayersTest = function(fboc, name, desc, params) {
+        try {
         glsFboCompletenessTests.TestBase.call(this, name, desc, params);
+        } catch (error) {
+            debugger;
+        }
+        this.makeExecutable();
     };
     
     es3fFboCompletenessTests.NumLayersTest.prototype = Object.create(glsFboCompletenessTests.TestBase.prototype);
@@ -303,14 +308,14 @@ goog.scope(function() {
          * @static
          */
         var s_latersParams = [
-            new es3fFboCompletenessTests.numLayersParams(gl.TEXTURE_2D_ARRAY, 1,  0),
-            new es3fFboCompletenessTests.numLayersParams(gl.TEXTURE_2D_ARRAY, 1,  3),
-            new es3fFboCompletenessTests.numLayersParams(gl.TEXTURE_2D_ARRAY, 4,  3),
-            new es3fFboCompletenessTests.numLayersParams(gl.TEXTURE_2D_ARRAY, 4, 15),
-            new es3fFboCompletenessTests.numLayersParams(gl.TEXTURE_3D,       1,  0),
-            new es3fFboCompletenessTests.numLayersParams(gl.TEXTURE_3D,       1, 15),
-            new es3fFboCompletenessTests.numLayersParams(gl.TEXTURE_3D,       4, 15),
-            new es3fFboCompletenessTests.numLayersParams(gl.TEXTURE_3D,      64, 15)
+            es3fFboCompletenessTests.numLayersParams(gl.TEXTURE_2D_ARRAY, 1,  0),
+            es3fFboCompletenessTests.numLayersParams(gl.TEXTURE_2D_ARRAY, 1,  3),
+            es3fFboCompletenessTests.numLayersParams(gl.TEXTURE_2D_ARRAY, 4,  3),
+            es3fFboCompletenessTests.numLayersParams(gl.TEXTURE_2D_ARRAY, 4, 15),
+            es3fFboCompletenessTests.numLayersParams(gl.TEXTURE_3D,       1,  0),
+            es3fFboCompletenessTests.numLayersParams(gl.TEXTURE_3D,       1, 15),
+            es3fFboCompletenessTests.numLayersParams(gl.TEXTURE_3D,       4, 15),
+            es3fFboCompletenessTests.numLayersParams(gl.TEXTURE_3D,      64, 15)
         ];
         
         for (var i = 0 ; i < s_latersParams.length ; ++i) {
