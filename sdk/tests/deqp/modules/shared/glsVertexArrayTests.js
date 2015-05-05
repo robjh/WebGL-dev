@@ -1414,8 +1414,8 @@ goog.scope(function() {
             case glsVertexArrayTests.deArray.InputType.HALF:
                 value = 256;
                 break;
-            default:
-                throw new Error('glsVertexArrayTests.GLValue.getMaxValue - Invalid InputType');
+            default: //Original code returns garbage-filled GLValues
+                return new glsVertexArrayTests.GLValue();
         }
 
         return glsVertexArrayTests.GLValue.create(value, type);
@@ -1461,8 +1461,8 @@ goog.scope(function() {
                 value = -256;
                 break;
 
-            default:
-                throw new Error('glsVertexArrayTests.GLValue.getMinValue - Invalid InputType');
+            default: //Original code returns garbage-filled GLValues
+                return new glsVertexArrayTests.GLValue();
         }
 
         return glsVertexArrayTests.GLValue.create(value, type);
@@ -1853,7 +1853,7 @@ goog.scope(function() {
                 break;
         }
 
-        /** @type {ArrayBuffer} */ var _data = new ArrayBuffer[offset + quadStride * (count - 1) + stride * 5 + componentCount * glsVertexArrayTests.deArray.inputTypeSize(glsVertexArrayTests.deArray.InputType.INT_2_10_10_10)]; // last element must be fully in the array
+        /** @type {ArrayBuffer} */ var _data = new ArrayBuffer(offset + quadStride * (count - 1) + stride * 5 + componentCount * glsVertexArrayTests.deArray.inputTypeSize(glsVertexArrayTests.deArray.InputType.INT_2_10_10_10)); // last element must be fully in the array
         /** @type {Uint8Array} */ var resultData = new Uint8Array(_data).subarray(offset);
 
         /** @type {number} */ var max = 1024;
