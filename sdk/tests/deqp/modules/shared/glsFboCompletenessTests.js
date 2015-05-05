@@ -101,7 +101,7 @@ goog.scope(function() {
 
     //  console.log("glsFboCompletenessTests.TestBase Constructor");
     };
-    glsFboCompletenessTests.TestBase.prototype = Object.create(tcuTestCase.DeqpTest);
+    glsFboCompletenessTests.TestBase.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
     glsFboCompletenessTests.TestBase.prototype.constructor = glsFboCompletenessTests.TestBase;
 
     // GLenum attPoint, GLenum bufType
