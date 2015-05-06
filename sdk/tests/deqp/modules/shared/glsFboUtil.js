@@ -73,7 +73,7 @@ goog.scope(function() {
     
     };
     
-    // glsFboUtil.FormatDB& db, FormatExtEntries extFmts, const RenderContext* ctx
+    // glsFboUtil.FormatDB& db, FormatExtEntries (Range) extFmts, const RenderContext* ctx
     glsFboUtil.addExtFormats = function(db, extFmts, gl) {
         if (!(gl = gl || window.gl)) throw new Error('Invalid gl object');
 

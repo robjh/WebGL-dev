@@ -139,6 +139,8 @@ goog.scope(function() {
                 formats:    new glsFboUtil.Range({ array: es3fFboCompletenessTests.s_extOESTextureStencil8 })
             }
         ];
+        
+        glsFboCompletenessTests.initGlDependents(gl);
     };
     
     
@@ -242,21 +244,17 @@ goog.scope(function() {
         );
     };
 
-
-    es3fFboCompletenessTests.NumLayersTest = function(fboc, name, desc, params) {
-        try {
+    // string, string, glsFboCompleteness::context, params.
+    es3fFboCompletenessTests.NumLayersTest = function(name, desc, ctx, params) {
         glsFboCompletenessTests.TestBase.call(this, name, desc, params);
-        } catch (error) {
-            debugger;
-        }
-        this.makeExecutable();
+        this.m_ctx = ctx;
     };
     
     es3fFboCompletenessTests.NumLayersTest.prototype = Object.create(glsFboCompletenessTests.TestBase.prototype);
     es3fFboCompletenessTests.NumLayersTest.prototype.constructor = es3fFboCompletenessTests.NumLayersTest;
 
 
-    
+
     es3fFboCompletenessTests.NumLayersTest.prototype.build = function(builder, gl) {
 
         if (!(gl = gl || window.gl)) throw new Error('Invalid gl object');
@@ -294,6 +292,9 @@ goog.scope(function() {
 
     es3fFboCompletenessTests.init = function() {
     
+        //(testCtx, renderCtx, factory) {
+        var fboCtx = new glsFboCompletenessTests.Context(null, gl, null);
+    
         /** @const @type {tcuTestCase.DeqpTest} */
         var testGroup = tcuTestCase.runner.testCases;
         
@@ -321,15 +322,15 @@ goog.scope(function() {
         for (var i = 0 ; i < s_latersParams.length ; ++i) {
             var name = 'name';
             var desc = 'desc';
-            layerTests.addChild(new es3fFboCompletenessTests.NumLayersTest(this.m_fboc, name, desc, s_latersParams[i]));
+            layerTests.addChild(new es3fFboCompletenessTests.NumLayersTest(name, desc, fboCtx, s_latersParams[i]));
         }
         
         testGroup.addChild(layerTests);
     };
 
     es3fFboCompletenessTests.run = function() {
-        var testName = 'FboCompleteness';
-        var testDescription = 'Fbo Completeness Tests';
+        var testName = 'completeness';
+        var testDescription = 'Completeness tests';
         var state = tcuTestCase.runner;
 
         state.testName = testName;
