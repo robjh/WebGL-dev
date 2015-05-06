@@ -529,7 +529,7 @@ goog.scope(function() {
                 var arraySpec = new glsVertexArrayTests.MultiVertexArrayTest.Spec.ArraySpec(
                     this.m_type,
                     glsVertexArrayTests.deArray.OutputType.VEC4,
-                    glsVertexArrayTests.deArray.Storage.USER,
+                    glsVertexArrayTests.deArray.Storage.BUFFER, //No USER Storage support in WebGL2
                     glsVertexArrayTests.deArray.Usage.DYNAMIC_DRAW,
                     componentCount,
                     0,
@@ -624,7 +624,7 @@ goog.scope(function() {
             glsVertexArrayTests.deArray.OutputType.UVEC3,
             glsVertexArrayTests.deArray.OutputType.UVEC4
         ];
-        var storages = [glsVertexArrayTests.deArray.Storage.USER];
+        var storages = [glsVertexArrayTests.deArray.Storage.BUFFER]; //No USER storage support in WebGL2
         var counts = [1, 256];
 
         for (var outputTypeNdx = 0; outputTypeNdx < outputTypes.length; outputTypeNdx++) {
@@ -805,7 +805,7 @@ goog.scope(function() {
                 var arraySpec = new glsVertexArrayTests.MultiVertexArrayTest.Spec.ArraySpec(
                     glsVertexArrayTests.deArray.InputType.FLOAT,
                     glsVertexArrayTests.deArray.OutputType.VEC2,
-                    glsVertexArrayTests.deArray.Storage.USER,
+                    glsVertexArrayTests.deArray.Storage.BUFFER, // No USER storage support in WebGL2
                     glsVertexArrayTests.deArray.Usage.DYNAMIC_DRAW,
                     2,
                     0,
