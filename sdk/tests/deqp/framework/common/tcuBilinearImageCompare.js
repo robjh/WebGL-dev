@@ -137,10 +137,10 @@ goog.scope(function() {
         /** @type {number} */ var fx1 = u - (x0 << tcuBilinearImageCompare.NUM_SUBPIXEL_BITS);
         /** @type {number} */ var fy1 = v - (y0 << tcuBilinearImageCompare.NUM_SUBPIXEL_BITS);
 
-        /** @type {goog.TypedArray} */ var channelsP00 = tcuBilinearImageCompare.readRGBA8(access, x0, y0);
-        /** @type {goog.TypedArray} */ var channelsP10 = tcuBilinearImageCompare.readRGBA8(access, x1, y0);
-        /** @type {goog.TypedArray} */ var channelsP01 = tcuBilinearImageCompare.readRGBA8(access, x0, y1);
-        /** @type {goog.TypedArray} */ var channelsP11 = tcuBilinearImageCompare.readRGBA8(access, x1, y1);
+        /** @type {tcuRGBA.RGBA} */ var channelsP00 = tcuBilinearImageCompare.readRGBA8(access, x0, y0);
+        /** @type {tcuRGBA.RGBA} */ var channelsP10 = tcuBilinearImageCompare.readRGBA8(access, x1, y0);
+        /** @type {tcuRGBA.RGBA} */ var channelsP01 = tcuBilinearImageCompare.readRGBA8(access, x0, y1);
+        /** @type {tcuRGBA.RGBA} */ var channelsP11 = tcuBilinearImageCompare.readRGBA8(access, x1, y1);
 
         /** @type {Array<number>} */ var res = [];
 
