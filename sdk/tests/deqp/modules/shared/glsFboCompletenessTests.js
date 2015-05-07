@@ -36,10 +36,10 @@ goog.scope(function() {
         ];
         
         /**
-         * s_oesPackedDepthStencilSizedFormats
+         * s_oesPackedDepthStencilTexFormats
          * @type {Array<number>}
          */
-        glsFboCompletenessTests.s_oesPackedDepthStencilSizedFormats = [
+        glsFboCompletenessTests.s_oesPackedDepthStencilTexFormats = [
             glsFboUtil.formatkey(gl.DEPTH_STENCIL, gl.UNSIGNED_INT_24_8)
         ];
         
@@ -393,10 +393,10 @@ goog.scope(function() {
 
         this.m_testCtx    = testCtx;
         this.m_renderCtx  = renderCtx;
-        this.m_minFormats = null;
-        this.m_ctxFormats = null;
-        this.m_maxFormats = null;
-        this.m_verifier   = null;
+        this.m_ctxFormats = new glsFboUtil.FormatDB();
+        this.m_minFormats = new glsFboUtil.FormatDB();
+        this.m_maxFormats = new glsFboUtil.FormatDB();
+        this.m_verifier   = null; // glsFboUtil.FboVerifier unimplemented?
         this.m_haveMultiColorAtts = false;
            
         // FormatExtEntries 

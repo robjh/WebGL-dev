@@ -88,8 +88,8 @@ goog.scope(function() {
             }();
 
             if (supported) {
-                for (var format = ext.formats.reset() ; format = ext.formats.current ; ext.formats.next()) {
-                    db.addFormat(glsFboUtil.formatKeyInfo(format), glsFboUtil.FormatFlags(ext.flags));
+                for (var format = ext.formats.reset() ; format = ext.formats.current() ; ext.formats.next()) {
+                    db.addFormat(glsFboUtil.formatKeyInfo(format), ext.flags);
                 }
             }
 
@@ -123,8 +123,10 @@ goog.scope(function() {
          case gl.DEPTH_ATTACHMENT:
             return glsFboUtil.FormatFlags.DEPTH_RENDERABLE;
          default:
-            if (glenum < gl.COLOR_ATTACHMENT0 || glenum > gl.COLOR_ATTACHMENT15)
+            if (glenum < gl.COLOR_ATTACHMENT0 || glenum > gl.COLOR_ATTACHMENT15) {
+                debugger;
                 throw new Error('glenum out of range');
+            }
         }
         return glsFboUtil.FormatFlags.COLOR_RENDERABLE;
     };
@@ -197,7 +199,7 @@ goog.scope(function() {
         return this.current();
     };
     glsFboUtil.Range.prototype.current = function() {
-        return this.m_index <= this.m_end ? this.m_array[this.m_index] : null;
+        return this.m_index < this.m_end ? this.m_array[this.m_index] : null;
     };
     glsFboUtil.Range.prototype.next = function() {
         ++this.m_index;
@@ -210,7 +212,8 @@ goog.scope(function() {
      * @return {glsFboUtil.Range}
      */
     glsFboUtil.rangeArray = function(array) {
-        return new Range(array);
+        if (!array) debugger;//TODO: remove
+        return new glsFboUtil.Range(array);
     };
     
     
@@ -493,7 +496,7 @@ goog.scope(function() {
             for (var level = 0; level < cfg.numLevels; ++level) {
                 gl.texImage2D(
                     target, level, cfg.internalFormat.format,
-                    w, h, 0,format.format, format.dataType
+                    w, h, 0,format.format, format.dataType, null
                 );
                 w = Math.max(1, w / 2);
                 h = Math.max(1, h / 2);
@@ -508,11 +511,11 @@ goog.scope(function() {
             for (var level = 0; level < cfg.numLevels; ++level) {
                 gl.texImage3D(
                     glTarget(cfg), level, cfg.internalFormat.format,
-                    w, h, depth, 0, format.format, format.dataType
+                    w, h, depth, 0, format.format, format.dataType, null
                 );
                 w = Math.max(1, w / 2);
                 h = Math.max(1, h / 2);
-                depth = dMath.max(1, depth / depth_divider);
+                depth = Math.max(1, depth / depth_divider);
             }
         };
     
@@ -542,7 +545,7 @@ goog.scope(function() {
             } else if (cfg.type & glsFboUtil.Config.s_types.TEXTURE) {
                 var ret = gl.createTexture();
                 gl.bindTexture(glTarget(cfg, gl), ret);
-                glInit(tex, gl);
+                glInit(cfg, gl);
                 gl.bindTexture(glTarget(cfg, gl), 0);
             
             } else {
@@ -704,7 +707,7 @@ goog.scope(function() {
         this.attachments = attachments  || {};
         this.textures    = textures     || {};
         this.rbos        = rbos         || {};
-        this.m_gl        = gl       || gl;
+        this.m_gl        = gl           || gl;
     };
     glsFboUtil.Framebuffer.prototype.attach = function(attPoint, att) {
         if (!att) {
@@ -771,7 +774,7 @@ goog.scope(function() {
     // const glsFboUtil.Texture& texCfg
     glsFboUtil.FboBuilder.prototype.glCreateTexture = function(texCfg) {
         var texName = glsFboUtil.glsup.create(texCfg, this.m_gl);
-        checkError();
+        this.checkError();
         this.setTexture(texName, texCfg);
         return texName;
     };
@@ -779,7 +782,7 @@ goog.scope(function() {
     // const Renderbuffer& rbCfg
     glsFboUtil.FboBuilder.prototype.glCreateRbo = function(rbCfg) {
         var rbName = glsFboUtil.glsup.create(rbCfg, this.m_gl);
-        checkError();
+        this.checkError();
         this.setRbo(rbName, rbCfg);
         return rbName;
     };
@@ -846,6 +849,50 @@ goog.scope(function() {
             return gluTextureUtil.getTransferFormat(mapGLInternalFormat(imgFormat.format));
         else
             return new gluTextureUtil.TransferFormat(imgFormat.format, imgFormat.unsizedType);
+    };
+    
+    // FormatDB, CheckerFactory
+    glsFboUtil.FboVerifier = function(formats, factory) {
+        this.m_formats = formats;
+        this.m_factory = factory;
+    };
+    // config::Framebuffer
+    glsFboUtil.FboVerifier.prototype.validStatusCodes = function(cfg, gl) {
+        if (!(gl = gl || window.gl)) throw new Error('Invalid gl object');
+        
+        /** @type {glsFboUtil.Checker} */
+        var cctx = this.m_factory.createChecker();
+        
+        for (var id in cfg.textures) {
+            var flags = this.m_formats.getFormatInfo(cfg.textures[id], glsFboUtil.FormatFlags.ANY_FORMAT);
+            var textureIsValid = (flags & glsFboUtil.FormatFlags.TEXTURE_VALID) != 0;
+            cctx.require(textureIsValid, gl.INVALID_ENUM);
+            cctx.require(textureIsValid, gl.INVALID_OPERATION);
+            cctx.require(textureIsValid, gl.INVALID_VALUE);
+        }
+        
+        for (var id in cfg.rbos) {
+            var flags = this.m_formats.getFormatInfo(cfg.rbos[id], glsFboUtil.FormatFlags.ANY_FORMAT);
+            var rboIsValid = (flags & glsFboUtil.FormatFlags.RENDERBUFFER_VALID) != 0;
+            cctx.require(rboIsValid, gl.INVALID_ENUM);
+        }
+        
+        var count = 0;
+        for (var attPoint in cfg.attachments) {
+            var att = cfg.attachments[attPoint];
+            /** @type{glsFboUtil.Image}*/
+            var image = cfg.getImage(glsFboUtil.attachmentType(att, gl), att.imageName);
+            glsFboUtil.checkAttachmentCompleteness(cctx, att, attPoint, image, db, this.m_formats, gl);
+            cctx.check(attPoint, att, image);
+            ++count;
+        }
+        
+        // "There is at least one image attached to the framebuffer."
+	    // TODO: support XXX_framebuffer_no_attachments
+	    cctx.require(count > 0, gl.FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT);
+    
+        return cctx.getStatusCodes();
+    
     };
     
     
