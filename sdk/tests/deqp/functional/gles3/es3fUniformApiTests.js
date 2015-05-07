@@ -20,17 +20,17 @@
 
 'use strict';
 goog.provide('functional.gles3.es3fUniformApiTests');
-goog.require('framework.opengl.gluDrawUtil');
-goog.require('framework.opengl.gluShaderUtil');
-goog.require('framework.opengl.gluShaderProgram');
-goog.require('framework.opengl.gluTexture');
-goog.require('framework.opengl.gluVarType');
-goog.require('framework.common.tcuTestCase');
 goog.require('framework.common.tcuSurface');
+goog.require('framework.common.tcuTestCase');
 goog.require('framework.common.tcuTexture');
 goog.require('framework.delibs.debase.deMath');
-goog.require('framework.delibs.debase.deString');
 goog.require('framework.delibs.debase.deRandom');
+goog.require('framework.delibs.debase.deString');
+goog.require('framework.opengl.gluDrawUtil');
+goog.require('framework.opengl.gluShaderProgram');
+goog.require('framework.opengl.gluShaderUtil');
+goog.require('framework.opengl.gluTexture');
+goog.require('framework.opengl.gluVarType');
 
 goog.scope(function() {
 
@@ -292,7 +292,7 @@ goog.scope(function() {
         } else {
             /** @type {gluShaderUtil.DataType} */ var basicType = es3fUniformApiTests.s_testDataTypes[rnd.getInt(0, es3fUniformApiTests.s_testDataTypes.length - 1)];
             /** @type {gluShaderUtil.precision} */ var precision;
-            if (!gluShaderUtil.isDataTypeBoolOrBVec(basicType)) 
+            if (!gluShaderUtil.isDataTypeBoolOrBVec(basicType))
                 precision = gluShaderUtil.precision.PRECISION_MEDIUMP;
             return (isArray ? {
                 type: gluVarType.newTypeArray(gluVarType.newTypeBasic(basicType, precision), rnd.getInt(1, 5)),
@@ -449,7 +449,7 @@ goog.scope(function() {
         if (nameSuffix === undefined) nameSuffix = '';
         /** @type {es3fUniformApiTests.UniformCollection} */ var res = new es3fUniformApiTests.UniformCollection();
         /** @type {gluShaderUtil.precision} */ var prec;
-        if (!gluShaderUtil.isDataTypeBoolOrBVec(type)) 
+        if (!gluShaderUtil.isDataTypeBoolOrBVec(type))
             prec = gluShaderUtil.precision.PRECISION_MEDIUMP;
         res.m_uniforms.push(new es3fUniformApiTests.Uniform('u_var' + nameSuffix, gluVarType.newTypeBasic(type, prec)));
         return res;
@@ -464,7 +464,7 @@ goog.scope(function() {
         if (nameSuffix === undefined) nameSuffix = '';
         /** @type {es3fUniformApiTests.UniformCollection} */ var res = new es3fUniformApiTests.UniformCollection();
         /** @type {gluShaderUtil.precision} */ var prec;
-        if (!gluShaderUtil.isDataTypeBoolOrBVec(type)) 
+        if (!gluShaderUtil.isDataTypeBoolOrBVec(type))
             prec = gluShaderUtil.precision.PRECISION_MEDIUMP;
         res.m_uniforms.push(new es3fUniformApiTests.Uniform('u_var' + nameSuffix, gluVarType.newTypeArray(gluVarType.newTypeBasic(type, prec), 3)));
         return res;
@@ -481,10 +481,10 @@ goog.scope(function() {
         if (nameSuffix === undefined) nameSuffix = '';
         /** @type {es3fUniformApiTests.UniformCollection} */ var res = new es3fUniformApiTests.UniformCollection();
         /** @type {gluShaderUtil.precision} */ var prec0;
-        if (!gluShaderUtil.isDataTypeBoolOrBVec(type0)) 
+        if (!gluShaderUtil.isDataTypeBoolOrBVec(type0))
             prec0 = gluShaderUtil.precision.PRECISION_MEDIUMP;
         /** @type {gluShaderUtil.precision} */ var prec1;
-        if (!gluShaderUtil.isDataTypeBoolOrBVec(type1)) 
+        if (!gluShaderUtil.isDataTypeBoolOrBVec(type1))
             prec1 = gluShaderUtil.precision.PRECISION_MEDIUMP;
 
         /** @type {gluVarType.StructType} */ var structType = gluVarType.newStructType('structType' + nameSuffix);
@@ -525,10 +525,10 @@ goog.scope(function() {
         if (nameSuffix === undefined) nameSuffix = '';
         /** @type {es3fUniformApiTests.UniformCollection} */ var res = new es3fUniformApiTests.UniformCollection();
         /** @type {gluShaderUtil.precision} */ var prec0;
-        if (!gluShaderUtil.isDataTypeBoolOrBVec(type0)) 
+        if (!gluShaderUtil.isDataTypeBoolOrBVec(type0))
             prec0 = gluShaderUtil.precision.PRECISION_MEDIUMP;
         /** @type {gluShaderUtil.precision} */ var prec1;
-        if (!gluShaderUtil.isDataTypeBoolOrBVec(type1)) 
+        if (!gluShaderUtil.isDataTypeBoolOrBVec(type1))
             prec1 = gluShaderUtil.precision.PRECISION_MEDIUMP;
         /** @type {gluVarType.StructType} */ var structType = gluVarType.newStructType('structType' + nameSuffix);
         /** @type {gluVarType.StructType} */ var subStructType = gluVarType.newStructType('subStructType' + nameSuffix);
@@ -973,7 +973,7 @@ goog.scope(function() {
 
     /**
      * @param {es3fUniformApiTests.CaseShaderType} type
-     * @return {string|null}
+     * @return {?string}
      */
     es3fUniformApiTests.getCaseShaderTypeName = function(type) {
         switch (type) {
@@ -999,7 +999,7 @@ goog.scope(function() {
      * es3fUniformApiTests.Feature - Implemented as a function to create an object without unwanted properties.
      * @constructor
      */
-    es3fUniformApiTests.Feature = function() { 
+    es3fUniformApiTests.Feature = function() {
         // ARRAYUSAGE_ONLY_MIDDLE_INDEX: only middle index of each array is used in shader. If not given, use all indices.
         this.ARRAYUSAGE_ONLY_MIDDLE_INDEX = false;
 
@@ -1024,7 +1024,7 @@ goog.scope(function() {
         this.UNIFORMVALUE_ZERO = false;
 
         // ARRAY_FIRST_ELEM_NAME_NO_INDEX: in certain API functions, when referring to the first element of an array, use just the array name without [0] at the end.
-        this.ARRAY_FIRST_ELEM_NAME_NO_INDEX= false;
+        this.ARRAY_FIRST_ELEM_NAME_NO_INDEX = false;
     };
 
     // A basic uniform is a uniform (possibly struct or array member) whose type is a basic type (e.g. float, ivec4, sampler2d).
@@ -1089,7 +1089,7 @@ goog.scope(function() {
         this.maxSize = maxS;
 
         assertMsgOptions(
-            this.minSize <= this.maxSize, 
+            this.minSize <= this.maxSize,
             'es3fUniformApiTests.BasicUniformReportRef.prototype.constructor_A - min size not smaller or equal than max size',
             false,
             true
@@ -1751,12 +1751,12 @@ goog.scope(function() {
 
             reportedType = gluShaderUtil.getDataTypeFromGLType(reportedTypeGL);
 
-            checkMessage(reportedType !== undefined, "Invalid uniform type");
+            checkMessage(reportedType !== undefined, 'Invalid uniform type');
 
             bufferedLogToConsole('// Got name = ' + reportedNameStr + ', size = ' + reportedSize + ', type = ' + gluShaderUtil.getDataTypeName(reportedType));
 
             // Ignore built-in uniforms.
-            if (reportedNameStr.indexOf('gl_') == -1)  {
+            if (reportedNameStr.indexOf('gl_') == -1) {
                 /** @type {number} */ var referenceNdx;
                 for (referenceNdx = 0; referenceNdx < basicUniformReportsRef.length; referenceNdx++) {
                     if (basicUniformReportsRef[referenceNdx].name == reportedNameStr)
@@ -2001,7 +2001,7 @@ goog.scope(function() {
 
             value.type = uniform.type;
 
-            var result = /** @type{number} */ (gl.getUniform(programGL, location));
+            var result = /** @type {number} */ (gl.getUniform(programGL, location));
 
             if (gluShaderUtil.isDataTypeSampler(uniform.type)) {
                 value.val = new es3fUniformApiTests.SamplerV();
@@ -2152,10 +2152,10 @@ goog.scope(function() {
             if (gluShaderUtil.isDataTypeFloatOrVec(valuesToAssign[0].type)) {
                 if (assignByValue) {
                     switch (typeSize) {
-                        case 1:gl.uniform1f(location, valuesToAssign[0].val[0]); break;
-                        case 2:gl.uniform2f(location, valuesToAssign[0].val[0], valuesToAssign[0].val[1]); break;
-                        case 3:gl.uniform3f(location, valuesToAssign[0].val[0], valuesToAssign[0].val[1], valuesToAssign[0].val[2]); break;
-                        case 4:gl.uniform4f(location, valuesToAssign[0].val[0], valuesToAssign[0].val[1], valuesToAssign[0].val[2], valuesToAssign[0].val[3]); break;
+                        case 1: gl.uniform1f(location, valuesToAssign[0].val[0]); break;
+                        case 2: gl.uniform2f(location, valuesToAssign[0].val[0], valuesToAssign[0].val[1]); break;
+                        case 3: gl.uniform3f(location, valuesToAssign[0].val[0], valuesToAssign[0].val[1], valuesToAssign[0].val[2]); break;
+                        case 4: gl.uniform4f(location, valuesToAssign[0].val[0], valuesToAssign[0].val[1], valuesToAssign[0].val[2], valuesToAssign[0].val[3]); break;
                         default:
                             throw new Error('es3fUniformApiTests.UniformCase.prototype.assignUniforms - Invalid type size');
                     }
@@ -2165,10 +2165,10 @@ goog.scope(function() {
                         buffer[i] = valuesToAssign[Math.floor(i / typeSize)].val[i % typeSize];
 
                     switch (typeSize) {
-                        case 1:gl.uniform1fv(location, buffer); break;
-                        case 2:gl.uniform2fv(location, buffer); break;
-                        case 3:gl.uniform3fv(location, buffer); break;
-                        case 4:gl.uniform4fv(location, buffer); break;
+                        case 1: gl.uniform1fv(location, buffer); break;
+                        case 2: gl.uniform2fv(location, buffer); break;
+                        case 3: gl.uniform3fv(location, buffer); break;
+                        case 4: gl.uniform4fv(location, buffer); break;
                         default:
                             throw new Error('es3fUniformApiTests.UniformCase.prototype.assignUniforms - Invalid type size');
                     }
@@ -2185,25 +2185,25 @@ goog.scope(function() {
                     buffer[i] = valuesToAssign[Math.floor(i / typeSize)].val[i % typeSize];
 
                 switch (uniform.type) {
-                    case gluShaderUtil.DataType.FLOAT_MAT2:gl.uniformMatrix2fv(location, transposeGL, new Float32Array(buffer)); break;
-                    case gluShaderUtil.DataType.FLOAT_MAT3:gl.uniformMatrix3fv(location, transposeGL, new Float32Array(buffer)); break;
-                    case gluShaderUtil.DataType.FLOAT_MAT4:gl.uniformMatrix4fv(location, transposeGL, new Float32Array(buffer)); break;
-                    case gluShaderUtil.DataType.FLOAT_MAT2X3:gl.uniformMatrix2x3fv(location, transposeGL, new Float32Array(buffer)); break;
-                    case gluShaderUtil.DataType.FLOAT_MAT2X4:gl.uniformMatrix2x4fv(location, transposeGL, new Float32Array(buffer)); break;
-                    case gluShaderUtil.DataType.FLOAT_MAT3X2:gl.uniformMatrix3x2fv(location, transposeGL, new Float32Array(buffer)); break;
-                    case gluShaderUtil.DataType.FLOAT_MAT3X4:gl.uniformMatrix3x4fv(location, transposeGL, new Float32Array(buffer)); break;
-                    case gluShaderUtil.DataType.FLOAT_MAT4X2:gl.uniformMatrix4x2fv(location, transposeGL, new Float32Array(buffer)); break;
-                    case gluShaderUtil.DataType.FLOAT_MAT4X3:gl.uniformMatrix4x3fv(location, transposeGL, new Float32Array(buffer)); break;
+                    case gluShaderUtil.DataType.FLOAT_MAT2: gl.uniformMatrix2fv(location, transposeGL, new Float32Array(buffer)); break;
+                    case gluShaderUtil.DataType.FLOAT_MAT3: gl.uniformMatrix3fv(location, transposeGL, new Float32Array(buffer)); break;
+                    case gluShaderUtil.DataType.FLOAT_MAT4: gl.uniformMatrix4fv(location, transposeGL, new Float32Array(buffer)); break;
+                    case gluShaderUtil.DataType.FLOAT_MAT2X3: gl.uniformMatrix2x3fv(location, transposeGL, new Float32Array(buffer)); break;
+                    case gluShaderUtil.DataType.FLOAT_MAT2X4: gl.uniformMatrix2x4fv(location, transposeGL, new Float32Array(buffer)); break;
+                    case gluShaderUtil.DataType.FLOAT_MAT3X2: gl.uniformMatrix3x2fv(location, transposeGL, new Float32Array(buffer)); break;
+                    case gluShaderUtil.DataType.FLOAT_MAT3X4: gl.uniformMatrix3x4fv(location, transposeGL, new Float32Array(buffer)); break;
+                    case gluShaderUtil.DataType.FLOAT_MAT4X2: gl.uniformMatrix4x2fv(location, transposeGL, new Float32Array(buffer)); break;
+                    case gluShaderUtil.DataType.FLOAT_MAT4X3: gl.uniformMatrix4x3fv(location, transposeGL, new Float32Array(buffer)); break;
                     default:
                         throw new Error('es3fUniformApiTests.UniformCase.prototype.assignUniforms - Invalid uniform type');
                 }
             } else if (gluShaderUtil.isDataTypeIntOrIVec(valuesToAssign[0].type)) {
                 if (assignByValue) {
                     switch (typeSize) {
-                        case 1:gl.uniform1i(location, valuesToAssign[0].val[0]); break;
-                        case 2:gl.uniform2i(location, valuesToAssign[0].val[0], valuesToAssign[0].val[1]); break;
-                        case 3:gl.uniform3i(location, valuesToAssign[0].val[0], valuesToAssign[0].val[1], valuesToAssign[0].val[2]); break;
-                        case 4:gl.uniform4i(location, valuesToAssign[0].val[0], valuesToAssign[0].val[1], valuesToAssign[0].val[2], valuesToAssign[0].val[3]); break;
+                        case 1: gl.uniform1i(location, valuesToAssign[0].val[0]); break;
+                        case 2: gl.uniform2i(location, valuesToAssign[0].val[0], valuesToAssign[0].val[1]); break;
+                        case 3: gl.uniform3i(location, valuesToAssign[0].val[0], valuesToAssign[0].val[1], valuesToAssign[0].val[2]); break;
+                        case 4: gl.uniform4i(location, valuesToAssign[0].val[0], valuesToAssign[0].val[1], valuesToAssign[0].val[2], valuesToAssign[0].val[3]); break;
                         default:
                             throw new Error('es3fUniformApiTests.UniformCase.prototype.assignUniforms - Invalid type size');
                     }
@@ -2213,10 +2213,10 @@ goog.scope(function() {
                         buffer[i] = valuesToAssign[Math.floor(i / typeSize)].val[i % typeSize];
 
                     switch (typeSize) {
-                        case 1:gl.uniform1iv(location, buffer); break;
-                        case 2:gl.uniform2iv(location, buffer); break;
-                        case 3:gl.uniform3iv(location, buffer); break;
-                        case 4:gl.uniform4iv(location, buffer); break;
+                        case 1: gl.uniform1iv(location, buffer); break;
+                        case 2: gl.uniform2iv(location, buffer); break;
+                        case 3: gl.uniform3iv(location, buffer); break;
+                        case 4: gl.uniform4iv(location, buffer); break;
                         default:
                             throw new Error('es3fUniformApiTests.UniformCase.prototype.assignUniforms - Invalid type size');
                     }
@@ -2224,10 +2224,10 @@ goog.scope(function() {
             } else if (gluShaderUtil.isDataTypeUintOrUVec(valuesToAssign[0].type)) {
                 if (assignByValue) {
                     switch (typeSize) {
-                        case 1:gl.uniform1ui(location, valuesToAssign[0].val[0]); break;
-                        case 2:gl.uniform2ui(location, valuesToAssign[0].val[0], valuesToAssign[0].val[1]); break;
-                        case 3:gl.uniform3ui(location, valuesToAssign[0].val[0], valuesToAssign[0].val[1], valuesToAssign[0].val[2]); break;
-                        case 4:gl.uniform4ui(location, valuesToAssign[0].val[0], valuesToAssign[0].val[1], valuesToAssign[0].val[2], valuesToAssign[0].val[3]); break;
+                        case 1: gl.uniform1ui(location, valuesToAssign[0].val[0]); break;
+                        case 2: gl.uniform2ui(location, valuesToAssign[0].val[0], valuesToAssign[0].val[1]); break;
+                        case 3: gl.uniform3ui(location, valuesToAssign[0].val[0], valuesToAssign[0].val[1], valuesToAssign[0].val[2]); break;
+                        case 4: gl.uniform4ui(location, valuesToAssign[0].val[0], valuesToAssign[0].val[1], valuesToAssign[0].val[2], valuesToAssign[0].val[3]); break;
                         default:
                             throw new Error('es3fUniformApiTests.UniformCase.prototype.assignUniforms - Invalid type size');
                     }
@@ -2237,10 +2237,10 @@ goog.scope(function() {
                         buffer[i] = valuesToAssign[Math.floor(i / typeSize)].val[i % typeSize];
 
                     switch (typeSize) {
-                        case 1:gl.uniform1uiv(location, buffer); break;
-                        case 2:gl.uniform2uiv(location, buffer); break;
-                        case 3:gl.uniform3uiv(location, buffer); break;
-                        case 4:gl.uniform4uiv(location, buffer); break;
+                        case 1: gl.uniform1uiv(location, buffer); break;
+                        case 2: gl.uniform2uiv(location, buffer); break;
+                        case 3: gl.uniform3uiv(location, buffer); break;
+                        case 4: gl.uniform4uiv(location, buffer); break;
                         default:
                             throw new Error('es3fUniformApiTests.UniformCase.prototype.assignUniforms - Invalid type size');
                     }
@@ -2432,7 +2432,7 @@ goog.scope(function() {
 
     /**
      * @param {es3fUniformApiTests.CaseType} caseType
-     * @return {string|null}
+     * @return {?string}
      */
     es3fUniformApiTests.UniformInfoQueryCase.getCaseTypeName = function(caseType) {
         switch (caseType) {
@@ -2446,7 +2446,7 @@ goog.scope(function() {
 
     /**
      * @param {es3fUniformApiTests.CaseType} caseType
-     * @return {string|null}
+     * @return {?string}
      */
     es3fUniformApiTests.UniformInfoQueryCase.getCaseTypeDescription = function(caseType) {
        switch (caseType) {
@@ -2598,7 +2598,7 @@ goog.scope(function() {
 
     /**
      * @param {es3fUniformApiTests.ValueToCheck} valueToCheck
-     * @return {string|null}
+     * @return {?string}
      */
     es3fUniformApiTests.UniformValueCase.getValueToCheckName = function(valueToCheck) {
         switch (valueToCheck) {
@@ -2610,7 +2610,7 @@ goog.scope(function() {
 
     /**
      * @param {es3fUniformApiTests.ValueToCheck} valueToCheck
-     * @return {string|null}
+     * @return {?string}
      */
     es3fUniformApiTests.UniformValueCase.getValueToCheckDescription = function(valueToCheck) {
         switch (valueToCheck) {
@@ -2622,7 +2622,7 @@ goog.scope(function() {
 
     /**
      * @param {es3fUniformApiTests.CheckMethod} checkMethod
-     * @return {string|null}
+     * @return {?string}
      */
     es3fUniformApiTests.UniformValueCase.getCheckMethodName = function(checkMethod) {
         switch (checkMethod) {
@@ -2634,7 +2634,7 @@ goog.scope(function() {
 
     /**
      * @param {es3fUniformApiTests.CheckMethod} checkMethod
-     * @return {string|null}
+     * @return {?string}
      */
     es3fUniformApiTests.UniformValueCase.getCheckMethodDescription = function(checkMethod) {
         switch (checkMethod) {
@@ -2646,7 +2646,7 @@ goog.scope(function() {
 
     /**
      * @param {es3fUniformApiTests.AssignMethod} assignMethod
-     * @return {string|null}
+     * @return {?string}
      */
     es3fUniformApiTests.UniformValueCase.getAssignMethodName = function(assignMethod) {
         switch (assignMethod) {
@@ -2658,7 +2658,7 @@ goog.scope(function() {
 
     /**
      * @param {es3fUniformApiTests.AssignMethod} assignMethod
-     * @return {string|null}
+     * @return {?string}
      */
     es3fUniformApiTests.UniformValueCase.getAssignMethodDescription = function(assignMethod) {
         switch (assignMethod) {
@@ -2982,7 +2982,7 @@ goog.scope(function() {
                 collName = collectionCase.namePrefix;
                 uniformCollection = collectionCase.uniformCollection;
 
-                
+
                 for (var i = 0; i < shaderTypes.length; i++) {
                     name = collName + es3fUniformApiTests.getCaseShaderTypeName(es3fUniformApiTests.CaseShaderType[shaderTypes[i]]);
 
@@ -3128,7 +3128,7 @@ goog.scope(function() {
         arrayAssignFullMode.ARRAYASSIGN_BLOCKS_OF_TWO = true;
 
         var arrayAssignGroups =
-        [ {arrayAssignMode: arrayAssignFullMode, name: 'basic_array_assign_full', description: 'Assign entire basic-type arrays per glUniform*v() call'}, {arrayAssignMode: arrayAssignBlocksOfTwo, name: 'basic_array_assign_partial', description: 'Assign two elements of a basic-type array per glUniform*v() call'}
+        [{arrayAssignMode: arrayAssignFullMode, name: 'basic_array_assign_full', description: 'Assign entire basic-type arrays per glUniform*v() call'}, {arrayAssignMode: arrayAssignBlocksOfTwo, name: 'basic_array_assign_partial', description: 'Assign two elements of a basic-type array per glUniform*v() call'}
         ];
 
         for (var arrayAssignGroupNdx = 0; arrayAssignGroupNdx < arrayAssignGroups.length; arrayAssignGroupNdx++) {
