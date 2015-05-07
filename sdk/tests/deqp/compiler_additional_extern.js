@@ -23,6 +23,13 @@ function bufferedLogToConsole(msg){};
 var TestFailedException = function (message) {};
 
 /**
+ * Shows a message in case expression test fails.
+ * @param {boolean} exp
+ * @param {string} message
+ */
+function checkMessage(exp, message) {};
+
+/**
  * @param {boolean} assertion
  * @param {?string} msg
  * @param {boolean} verbose

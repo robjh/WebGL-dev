@@ -34,32 +34,20 @@ goog.require('framework.delibs.debase.deRandom');
 
 goog.scope(function() {
 
-var es3fUniformApiTests = functional.gles3.es3fUniformApiTests;
-var gluDrawUtil = framework.opengl.gluDrawUtil;
-var gluShaderUtil = framework.opengl.gluShaderUtil;
-var gluShaderProgram = framework.opengl.gluShaderProgram;
-var gluTexture = framework.opengl.gluTexture;
-var gluVarType = framework.opengl.gluVarType;
-var tcuTestCase = framework.common.tcuTestCase;
-var tcuSurface = framework.common.tcuSurface;
-var tcuTexture = framework.common.tcuTexture;
-var deMath = framework.delibs.debase.deMath;
-var deString = framework.delibs.debase.deString;
-var deRandom = framework.delibs.debase.deRandom;
+    var es3fUniformApiTests = functional.gles3.es3fUniformApiTests;
+    var gluDrawUtil = framework.opengl.gluDrawUtil;
+    var gluShaderUtil = framework.opengl.gluShaderUtil;
+    var gluShaderProgram = framework.opengl.gluShaderProgram;
+    var gluTexture = framework.opengl.gluTexture;
+    var gluVarType = framework.opengl.gluVarType;
+    var tcuTestCase = framework.common.tcuTestCase;
+    var tcuSurface = framework.common.tcuSurface;
+    var tcuTexture = framework.common.tcuTexture;
+    var deMath = framework.delibs.debase.deMath;
+    var deString = framework.delibs.debase.deString;
+    var deRandom = framework.delibs.debase.deRandom;
 
     /** @type {WebGL2RenderingContext} */ var gl;
-
-    var DE_ASSERT = function(x) {
-        if (!x)
-            throw new Error('Assert failed');
-    };
-
-    es3fUniformApiTests.DE_STATIC_ASSERT = function(x) {
-        if (!x)
-            throw new Error('Assert failed');
-    };
-
-    es3fUniformApiTests.DE_NULL = null;
 
     /** @typedef {function(gluShaderUtil.DataType): boolean} */
     es3fUniformApiTests.dataTypePredicate;
@@ -154,8 +142,7 @@ var deRandom = framework.delibs.debase.deRandom;
                 return 4;
 
             default:
-                DE_ASSERT(false);
-                return 0;
+                throw new Error('es3fUniformApiTests.getSamplerNumLookupDimensions - Invalid type');
         }
     };
 
@@ -189,8 +176,7 @@ var deRandom = framework.delibs.debase.deRandom;
                 return gluShaderUtil.DataType.FLOAT;
 
             default:
-                DE_ASSERT(false);
-                return gluShaderUtil.DataType.INVALID;
+                throw new Error('es3fUniformApiTests.getSamplerLookupReturnType - Invalid type');
         }
     };
 
@@ -223,7 +209,7 @@ var deRandom = framework.delibs.debase.deRandom;
         else if (type.isArrayType())
             return es3fUniformApiTests.typeContainsMatchingBasicType(type.getElementType(), predicate);
         else {
-            DE_ASSERT(type.isStructType());
+            assertMsgOptions(type.isStructType(), 'es3fUniformApiTests.typeContainsMatchingBasicType - not a struct type', false, true);
             /** @type {gluVarType.StructType} */ var structType = type.getStruct();
             for (var i = 0; i < structType.getSize(); i++)
                 if (es3fUniformApiTests.typeContainsMatchingBasicType(structType.getMember(i).getType(), predicate))
@@ -244,7 +230,7 @@ var deRandom = framework.delibs.debase.deRandom;
         } else if (type.isArrayType())
             es3fUniformApiTests.getDistinctSamplerTypes(dst, type.getElementType());
         else {
-            DE_ASSERT(type.isStructType());
+            assertMsgOptions(type.isStructType(), 'es3fUniformApiTests.getDistinctSamplerTypes - not a struct type', false, true);
             /** @type {gluVarType.StructType} */ var structType = type.getStruct();
             for (var i = 0; i < structType.getSize(); i++)
                 es3fUniformApiTests.getDistinctSamplerTypes(dst, structType.getMember(i).getType());
@@ -261,7 +247,7 @@ var deRandom = framework.delibs.debase.deRandom;
         else if (type.isArrayType())
             return es3fUniformApiTests.getNumSamplersInType(type.getElementType()) * type.getArraySize();
         else {
-            DE_ASSERT(type.isStructType());
+            assertMsgOptions(type.isStructType(), 'es3fUniformApiTests.getNumSamplersInType - not a struct type', false, true);
             /** @type {gluVarType.StructType} */ var structType = type.getStruct();
             /** @type {number} */ var sum = 0;
             for (var i = 0; i < structType.getSize(); i++)
@@ -612,7 +598,7 @@ var deRandom = framework.delibs.debase.deRandom;
         /** @type {Array<gluShaderUtil.DataType>} */ var types1 = [gluShaderUtil.DataType.FLOAT_VEC4, gluShaderUtil.DataType.INT_VEC4, gluShaderUtil.DataType.BOOL];
         /** @type {es3fUniformApiTests.UniformCollection} */ var res = new es3fUniformApiTests.UniformCollection();
 
-        es3fUniformApiTests.DE_STATIC_ASSERT(types0.length == types1.length);
+        assertMsgOptions(types0.length == types1.length, 'es3fUniformApiTests.UniformCollection.multipleNestedArraysStructs - lengths are not the same', false, true);
 
         for (var i = 0; i < types0.length; i++) {
             /** @type {es3fUniformApiTests.UniformCollection} */ var sub = es3fUniformApiTests.UniformCollection.nestedArraysStructs(types0[i], types1[i], '_' + i + nameSuffix);
@@ -640,7 +626,7 @@ var deRandom = framework.delibs.debase.deRandom;
             do {
                 var temp = es3fUniformApiTests.generateRandomType(3, structIdx, structTypes, rnd);
                 structIdx = temp.ndx;
-                uniform.type = (/*TODO: What's this? 'u_var' + i,*/ temp.type);
+                uniform.type = temp.type;
             } while (res.getNumSamplers() + es3fUniformApiTests.getNumSamplersInType(uniform.type) > es3fUniformApiTests.MAX_NUM_SAMPLER_UNIFORMS);
 
             res.addUniform(uniform);
@@ -656,7 +642,7 @@ var deRandom = framework.delibs.debase.deRandom;
      * @return {es3fUniformApiTests.VarValue}
      */
     es3fUniformApiTests.getSamplerFillValue = function(sampler) {
-        DE_ASSERT(gluShaderUtil.isDataTypeSampler(sampler.type));
+        assertMsgOptions(gluShaderUtil.isDataTypeSampler(sampler.type), 'es3fUniformApiTests.getSamplerFillValue - not a sampler type', false, true);
 
         /** @type {es3fUniformApiTests.VarValue} */ var result = new es3fUniformApiTests.VarValue();
         result.type = es3fUniformApiTests.getSamplerLookupReturnType(sampler.type);
@@ -678,7 +664,7 @@ var deRandom = framework.delibs.debase.deRandom;
                 result.val[0] = sampler.val.samplerV.fillColor[0];
                 break;
             default:
-                DE_ASSERT(false);
+                throw new Error('es3fUniformApiTests.getSamplerFillValue - Invalid type');
         }
 
         return result;
@@ -689,7 +675,7 @@ var deRandom = framework.delibs.debase.deRandom;
      * @return {es3fUniformApiTests.VarValue}
      */
     es3fUniformApiTests.getSamplerUnitValue = function(sampler) {
-        DE_ASSERT(gluShaderUtil.isDataTypeSampler(sampler.type));
+        assertMsgOptions(gluShaderUtil.isDataTypeSampler(sampler.type), 'es3fUniformApiTests.getSamplerUnitValue - not a sampler type', false, true);
 
         /** @type {es3fUniformApiTests.VarValue} */ var result = new es3fUniformApiTests.VarValue();
         result.type = gluShaderUtil.DataType.INT;
@@ -711,7 +697,7 @@ var deRandom = framework.delibs.debase.deRandom;
      * @return {es3fUniformApiTests.VarValue}
      */
     es3fUniformApiTests.getTransposeMatrix = function(original) {
-        DE_ASSERT(gluShaderUtil.isDataTypeMatrix(original.type));
+        assertMsgOptions(gluShaderUtil.isDataTypeMatrix(original.type), 'es3fUniformApiTests.getTransposeMatrix - not a matrix', false, true);
 
         /** @type {number} */ var rows = gluShaderUtil.getDataTypeMatrixNumRows(original.type);
         /** @type {number} */ var cols = gluShaderUtil.getDataTypeMatrixNumColumns(original.type);
@@ -751,7 +737,7 @@ var deRandom = framework.delibs.debase.deRandom;
             else if (gluShaderUtil.isDataTypeSampler((value.type)))
                 result += es3fUniformApiTests.shaderVarValueStr(es3fUniformApiTests.getSamplerFillValue(value));
             else
-                DE_ASSERT(false);
+                throw new Error('es3fUniformApiTests.shaderVarValueStr - invalid type');
         }
 
         if (numElems > 1)
@@ -785,7 +771,7 @@ var deRandom = framework.delibs.debase.deRandom;
             else if (gluShaderUtil.isDataTypeSampler(value.type))
                 result += value.val.samplerV.unit;
             else
-                DE_ASSERT(false);
+                throw new Error('es3fUniformApiTests.apiVarValueStr - Invalid type');
         }
 
         if (numElems > 1)
@@ -807,7 +793,10 @@ var deRandom = framework.delibs.debase.deRandom;
         /** @type {es3fUniformApiTests.VarValue} */ var result = new es3fUniformApiTests.VarValue();
         result.type = type;
 
-        DE_ASSERT((samplerUnit >= 0) == (gluShaderUtil.isDataTypeSampler(type)));
+        assertMsgOptions(
+            (samplerUnit >= 0) == (gluShaderUtil.isDataTypeSampler(type)),
+            'es3fUniformApiTests.generateRandomVarValue - sampler units do not match type', false, true
+        );
 
         if (gluShaderUtil.isDataTypeFloatOrVec(type) || gluShaderUtil.isDataTypeMatrix(type)) {
             for (var i = 0; i < numElems; i++)
@@ -835,11 +824,11 @@ var deRandom = framework.delibs.debase.deRandom;
                     case gluShaderUtil.DataType.INT: result.val.samplerV.fillColor[i] = rnd.getInt(-10, 10); break;
                     case gluShaderUtil.DataType.UINT: result.val.samplerV.fillColor[i] = rnd.getInt(0, 10); break;
                     default:
-                        DE_ASSERT(false);
+                        throw new Error('es3fUniformApiTests.generateRandomVarValue - Invalid scalar type');
                 }
             }
         } else
-            DE_ASSERT(false);
+            throw new Error('es3fUniformApiTests.generateRandomVarValue - Invalid type');
 
         return result;
     };
@@ -879,11 +868,11 @@ var deRandom = framework.delibs.debase.deRandom;
                     case gluShaderUtil.DataType.INT: result.val.samplerV.fillColor[i] = -2 + i; break;
                     case gluShaderUtil.DataType.UINT: result.val.samplerV.fillColor[i] = 4 + i; break;
                     default:
-                        DE_ASSERT(false);
+                        throw new Error('es3fUniformApiTests.generateZeroVarValue - Invalid scalar type');
                 }
             }
         } else
-            DE_ASSERT(false);
+            throw new Error('es3fUniformApiTests.generateZeroVarValue - Invalid type');
 
         return result;
     };
@@ -897,7 +886,7 @@ var deRandom = framework.delibs.debase.deRandom;
         /** @type {number} */ var size = gluShaderUtil.getDataTypeScalarSize(a.type);
         /** @type {number} */ var floatThreshold = 0.05;
 
-        DE_ASSERT(a.type == b.type);
+        assertMsgOptions(a.type == b.type, 'es3fUniformApiTests.apiVarValueEquals - types are different', false, true);
 
         if (gluShaderUtil.isDataTypeFloatOrVec(a.type) || gluShaderUtil.isDataTypeMatrix(a.type)) {
             for (var i = 0; i < size; i++)
@@ -919,7 +908,7 @@ var deRandom = framework.delibs.debase.deRandom;
             if (a.val.samplerV.unit != b.val.samplerV.unit)
                 return false;
         } else
-            DE_ASSERT(false);
+            throw new Error('es3fUniformApiTests.apiVarValueEquals - Invalid type');
 
         return true;
     };
@@ -931,7 +920,12 @@ var deRandom = framework.delibs.debase.deRandom;
      * @return {es3fUniformApiTests.VarValue}
      */
     es3fUniformApiTests.getRandomBoolRepresentation = function(boolValue, targetScalarType, rnd) {
-        DE_ASSERT(gluShaderUtil.isDataTypeBoolOrBVec(boolValue.type));
+        assertMsgOptions(
+            gluShaderUtil.isDataTypeBoolOrBVec(boolValue.type),
+            'es3fUniformApiTests.getRandomBoolRepresentation - Data type not boolean or boolean vector',
+            false,
+            true
+        );
 
         /** @type {number} */ var size = gluShaderUtil.getDataTypeScalarSize(boolValue.type);
         /** @type {gluShaderUtil.DataType} */ var targetType = size == 1 ? targetScalarType : gluShaderUtil.getDataTypeVector(targetScalarType, size);
@@ -971,7 +965,7 @@ var deRandom = framework.delibs.debase.deRandom;
                 break;
 
             default:
-                DE_ASSERT(false);
+                throw new Error('es3fUniformApiTests.getRandomBoolRepresentation - Invalid type');
         }
 
         return result;
@@ -987,8 +981,7 @@ var deRandom = framework.delibs.debase.deRandom;
             case es3fUniformApiTests.CaseShaderType.FRAGMENT: return 'fragment';
             case es3fUniformApiTests.CaseShaderType.BOTH: return 'both';
             default:
-                DE_ASSERT(false);
-                return es3fUniformApiTests.DE_NULL;
+                throw new Error('es3fUniformApiTests.getCaseShaderTypeName - Invalid shader type');
         }
     };
 
@@ -1095,7 +1088,12 @@ var deRandom = framework.delibs.debase.deRandom;
         this.minSize = minS;
         this.maxSize = maxS;
 
-        DE_ASSERT(this.minSize <= this.maxSize);
+        assertMsgOptions(
+            this.minSize <= this.maxSize, 
+            'es3fUniformApiTests.BasicUniformReportRef.prototype.constructor_A - min size not smaller or equal than max size',
+            false,
+            true
+        );
 
         return this;
     };
@@ -1273,7 +1271,12 @@ var deRandom = framework.delibs.debase.deRandom;
         /** @type {number} */ var fragmentTexUnitsSupported = /** @type {number} */ (gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS));
         /** @type {number} */ var combinedTexUnitsSupported = /** @type {number} */ (gl.getParameter(gl.MAX_COMBINED_TEXTURE_IMAGE_UNITS));
 
-        DE_ASSERT(numSamplerUniforms <= es3fUniformApiTests.MAX_NUM_SAMPLER_UNIFORMS);
+        assertMsgOptions(
+            numSamplerUniforms <= es3fUniformApiTests.MAX_NUM_SAMPLER_UNIFORMS,
+            'es3fUniformApiTests.UniformCase.prototype.init - sampler uniforms exceed MAX_NUM_SAMPLER_UNIFORMS',
+            false,
+            true
+        );
 
         if (vertexTexUnitsRequired > vertexTexUnitsSupported)
             testFailedOptions('' + vertexTexUnitsRequired + ' vertex texture units required, ' + vertexTexUnitsSupported + ' supported', true);
@@ -1294,7 +1297,6 @@ var deRandom = framework.delibs.debase.deRandom;
      * @return {number} Used to be output parameter. Sampler unit count
      */
     es3fUniformApiTests.UniformCase.prototype.generateBasicUniforms = function(basicUniformsDst, basicUniformReportsDst, varType, varName, isParentActive, samplerUnitCounter, rnd) {
-        
         /** @type {es3fUniformApiTests.VarValue} */ var value;
 
         if (varType.isBasicType()) {
@@ -1338,7 +1340,12 @@ var deRandom = framework.delibs.debase.deRandom;
                 basicUniformReportsDst.push(new es3fUniformApiTests.BasicUniformReportRef(arrayRootName, varType.getElementType().getBasicType(), isParentActive && minSize > 0).constructor_A(minSize, size));
             }
         } else {
-            DE_ASSERT(varType.isStructType());
+            assertMsgOptions(
+                varType.isStructType(),
+                'es3fUniformApiTests.UniformCase.prototype.generateBasicUniforms - not a struct type',
+                false,
+                true
+            );
 
             /** @type {gluVarType.StructType} */ var structType = varType.getStruct();
 
@@ -1366,8 +1373,178 @@ var deRandom = framework.delibs.debase.deRandom;
 
         dst += '\n';
 
-        var compareFuncs =
-        [ { requiringTypes: [gluShaderUtil.isDataTypeFloatOrVec, gluShaderUtil.isDataTypeMatrix], definition: 'mediump float compare_float (mediump float a, mediump float b) { return abs(a - b) < 0.05 ? 1.0 : 0.0; }'}, { requiringTypes: [function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.FLOAT_VEC2, t);}, function(t) {return es3fUniformApiTests.dataTypeIsMatrixWithNRows(2, t);}], definition: 'mediump float compare_vec2 (mediump vec2 a, mediump vec2 b) { return compare_float(a.x, b.x)*compare_float(a.y, b.y); }'}, { requiringTypes: [function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.FLOAT_VEC3, t);}, function(t) {return es3fUniformApiTests.dataTypeIsMatrixWithNRows(3, t);}], definition: 'mediump float compare_vec3 (mediump vec3 a, mediump vec3 b) { return compare_float(a.x, b.x)*compare_float(a.y, b.y)*compare_float(a.z, b.z); }'}, { requiringTypes: [function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.FLOAT_VEC4, t);}, function(t) {return es3fUniformApiTests.dataTypeIsMatrixWithNRows(4, t);}], definition: 'mediump float compare_vec4 (mediump vec4 a, mediump vec4 b) { return compare_float(a.x, b.x)*compare_float(a.y, b.y)*compare_float(a.z, b.z)*compare_float(a.w, b.w); }'}, { requiringTypes: [function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.FLOAT_MAT2, t);}, function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}], definition: 'mediump float compare_mat2 (mediump mat2 a, mediump mat2 b) { return compare_vec2(a[0], b[0])*compare_vec2(a[1], b[1]); }'}, { requiringTypes: [function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.FLOAT_MAT2X3, t);}, function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}], definition: 'mediump float compare_mat2x3 (mediump mat2x3 a, mediump mat2x3 b) { return compare_vec3(a[0], b[0])*compare_vec3(a[1], b[1]); }'}, { requiringTypes: [function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.FLOAT_MAT2X4, t);}, function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}], definition: 'mediump float compare_mat2x4 (mediump mat2x4 a, mediump mat2x4 b) { return compare_vec4(a[0], b[0])*compare_vec4(a[1], b[1]); }'}, { requiringTypes: [function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.FLOAT_MAT3X2, t);}, function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}], definition: 'mediump float compare_mat3x2 (mediump mat3x2 a, mediump mat3x2 b) { return compare_vec2(a[0], b[0])*compare_vec2(a[1], b[1])*compare_vec2(a[2], b[2]); }'}, { requiringTypes: [function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.FLOAT_MAT3, t);}, function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}], definition: 'mediump float compare_mat3 (mediump mat3 a, mediump mat3 b) { return compare_vec3(a[0], b[0])*compare_vec3(a[1], b[1])*compare_vec3(a[2], b[2]); }'}, { requiringTypes: [function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.FLOAT_MAT3X4, t);}, function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}], definition: 'mediump float compare_mat3x4 (mediump mat3x4 a, mediump mat3x4 b) { return compare_vec4(a[0], b[0])*compare_vec4(a[1], b[1])*compare_vec4(a[2], b[2]); }'}, { requiringTypes: [function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.FLOAT_MAT4X2, t);}, function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}], definition: 'mediump float compare_mat4x2 (mediump mat4x2 a, mediump mat4x2 b) { return compare_vec2(a[0], b[0])*compare_vec2(a[1], b[1])*compare_vec2(a[2], b[2])*compare_vec2(a[3], b[3]); }'}, { requiringTypes: [function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.FLOAT_MAT4X3, t);}, function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}], definition: 'mediump float compare_mat4x3 (mediump mat4x3 a, mediump mat4x3 b) { return compare_vec3(a[0], b[0])*compare_vec3(a[1], b[1])*compare_vec3(a[2], b[2])*compare_vec3(a[3], b[3]); }'}, { requiringTypes: [function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.FLOAT_MAT4, t);}, function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}], definition: 'mediump float compare_mat4 (mediump mat4 a, mediump mat4 b) { return compare_vec4(a[0], b[0])*compare_vec4(a[1], b[1])*compare_vec4(a[2], b[2])*compare_vec4(a[3], b[3]); }'}, { requiringTypes: [function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.INT, t);}, function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}], definition: 'mediump float compare_int (mediump int a, mediump int b) { return a == b ? 1.0 : 0.0; }'}, { requiringTypes: [function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.INT_VEC2, t);}, function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}], definition: 'mediump float compare_ivec2 (mediump ivec2 a, mediump ivec2 b) { return a == b ? 1.0 : 0.0; }'}, { requiringTypes: [function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.INT_VEC3, t);}, function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}], definition: 'mediump float compare_ivec3 (mediump ivec3 a, mediump ivec3 b) { return a == b ? 1.0 : 0.0; }'}, { requiringTypes: [function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.INT_VEC4, t);}, function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}], definition: 'mediump float compare_ivec4 (mediump ivec4 a, mediump ivec4 b) { return a == b ? 1.0 : 0.0; }'}, { requiringTypes: [function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.UINT, t);}, function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}], definition: 'mediump float compare_uint (mediump uint a, mediump uint b) { return a == b ? 1.0 : 0.0; }'}, { requiringTypes: [function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.UINT_VEC2, t);}, function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}], definition: 'mediump float compare_uvec2 (mediump uvec2 a, mediump uvec2 b) { return a == b ? 1.0 : 0.0; }'}, { requiringTypes: [function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.UINT_VEC3, t);}, function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}], definition: 'mediump float compare_uvec3 (mediump uvec3 a, mediump uvec3 b) { return a == b ? 1.0 : 0.0; }'}, { requiringTypes: [function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.UINT_VEC4, t);}, function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}], definition: 'mediump float compare_uvec4 (mediump uvec4 a, mediump uvec4 b) { return a == b ? 1.0 : 0.0; }'}, { requiringTypes: [function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.BOOL, t);}, function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}], definition: 'mediump float compare_bool (bool a, bool b) { return a == b ? 1.0 : 0.0; }'}, { requiringTypes: [function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.BOOL_VEC2, t);}, function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}], definition: 'mediump float compare_bvec2 (bvec2 a, bvec2 b) { return a == b ? 1.0 : 0.0; }'}, { requiringTypes: [function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.BOOL_VEC3, t);}, function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}], definition: 'mediump float compare_bvec3 (bvec3 a, bvec3 b) { return a == b ? 1.0 : 0.0; }'}, { requiringTypes: [function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.BOOL_VEC4, t);}, function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}], definition: 'mediump float compare_bvec4 (bvec4 a, bvec4 b) { return a == b ? 1.0 : 0.0; }'}
+        var compareFuncs = [
+            {
+                requiringTypes: [gluShaderUtil.isDataTypeFloatOrVec, gluShaderUtil.isDataTypeMatrix],
+                definition: 'mediump float compare_float (mediump float a, mediump float b) { return abs(a - b) < 0.05 ? 1.0 : 0.0; }'
+            },
+            {
+                requiringTypes: [
+                    function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.FLOAT_VEC2, t);},
+                    function(t) {return es3fUniformApiTests.dataTypeIsMatrixWithNRows(2, t);}
+                ],
+                definition: 'mediump float compare_vec2 (mediump vec2 a, mediump vec2 b) { return compare_float(a.x, b.x)*compare_float(a.y, b.y); }'
+            },
+            {
+                requiringTypes: [
+                    function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.FLOAT_VEC3, t);},
+                    function(t) {return es3fUniformApiTests.dataTypeIsMatrixWithNRows(3, t);}
+                ],
+                definition: 'mediump float compare_vec3 (mediump vec3 a, mediump vec3 b) { return compare_float(a.x, b.x)*compare_float(a.y, b.y)*compare_float(a.z, b.z); }'
+            },
+            {
+                requiringTypes: [
+                    function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.FLOAT_VEC4, t);},
+                    function(t) {return es3fUniformApiTests.dataTypeIsMatrixWithNRows(4, t);}],
+                definition: 'mediump float compare_vec4 (mediump vec4 a, mediump vec4 b) { return compare_float(a.x, b.x)*compare_float(a.y, b.y)*compare_float(a.z, b.z)*compare_float(a.w, b.w); }'
+            },
+            {
+                requiringTypes: [
+                    function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.FLOAT_MAT2, t);},
+                    function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}
+                ],
+                definition: 'mediump float compare_mat2 (mediump mat2 a, mediump mat2 b) { return compare_vec2(a[0], b[0])*compare_vec2(a[1], b[1]); }'
+            },
+            {
+                requiringTypes: [
+                    function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.FLOAT_MAT2X3, t);},
+                    function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}
+                ],
+                definition: 'mediump float compare_mat2x3 (mediump mat2x3 a, mediump mat2x3 b) { return compare_vec3(a[0], b[0])*compare_vec3(a[1], b[1]); }'
+            },
+            {
+                requiringTypes: [
+                    function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.FLOAT_MAT2X4, t);},
+                    function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}
+                ],
+                definition: 'mediump float compare_mat2x4 (mediump mat2x4 a, mediump mat2x4 b) { return compare_vec4(a[0], b[0])*compare_vec4(a[1], b[1]); }'
+            },
+            {
+                requiringTypes: [
+                    function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.FLOAT_MAT3X2, t);},
+                    function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}
+                ],
+                definition: 'mediump float compare_mat3x2 (mediump mat3x2 a, mediump mat3x2 b) { return compare_vec2(a[0], b[0])*compare_vec2(a[1], b[1])*compare_vec2(a[2], b[2]); }'
+            },
+            {
+                requiringTypes: [
+                    function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.FLOAT_MAT3, t);},
+                    function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}
+                ],
+                definition: 'mediump float compare_mat3 (mediump mat3 a, mediump mat3 b) { return compare_vec3(a[0], b[0])*compare_vec3(a[1], b[1])*compare_vec3(a[2], b[2]); }'
+            },
+            {
+                requiringTypes: [
+                    function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.FLOAT_MAT3X4, t);},
+                    function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}
+                ],
+                definition: 'mediump float compare_mat3x4 (mediump mat3x4 a, mediump mat3x4 b) { return compare_vec4(a[0], b[0])*compare_vec4(a[1], b[1])*compare_vec4(a[2], b[2]); }'
+            },
+            {
+                requiringTypes: [
+                    function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.FLOAT_MAT4X2, t);},
+                    function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}
+                ],
+                definition: 'mediump float compare_mat4x2 (mediump mat4x2 a, mediump mat4x2 b) { return compare_vec2(a[0], b[0])*compare_vec2(a[1], b[1])*compare_vec2(a[2], b[2])*compare_vec2(a[3], b[3]); }'
+            },
+            {
+                requiringTypes: [
+                    function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.FLOAT_MAT4X3, t);},
+                    function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}
+                ],
+                definition: 'mediump float compare_mat4x3 (mediump mat4x3 a, mediump mat4x3 b) { return compare_vec3(a[0], b[0])*compare_vec3(a[1], b[1])*compare_vec3(a[2], b[2])*compare_vec3(a[3], b[3]); }'
+            },
+            {
+                requiringTypes: [
+                    function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.FLOAT_MAT4, t);},
+                    function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}
+                ],
+                definition: 'mediump float compare_mat4 (mediump mat4 a, mediump mat4 b) { return compare_vec4(a[0], b[0])*compare_vec4(a[1], b[1])*compare_vec4(a[2], b[2])*compare_vec4(a[3], b[3]); }'
+            },
+            {
+                requiringTypes: [
+                    function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.INT, t);},
+                    function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}
+                ],
+                definition: 'mediump float compare_int (mediump int a, mediump int b) { return a == b ? 1.0 : 0.0; }'
+            },
+            {
+                requiringTypes: [
+                    function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.INT_VEC2, t);},
+                    function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}
+                ],
+                definition: 'mediump float compare_ivec2 (mediump ivec2 a, mediump ivec2 b) { return a == b ? 1.0 : 0.0; }'
+            },
+            {
+                requiringTypes: [
+                    function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.INT_VEC3, t);},
+                    function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}
+                ],
+                definition: 'mediump float compare_ivec3 (mediump ivec3 a, mediump ivec3 b) { return a == b ? 1.0 : 0.0; }'
+            },
+            {
+                requiringTypes: [
+                    function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.INT_VEC4, t);},
+                    function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}
+                ],
+                definition: 'mediump float compare_ivec4 (mediump ivec4 a, mediump ivec4 b) { return a == b ? 1.0 : 0.0; }'
+            },
+            {
+                requiringTypes: [
+                    function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.UINT, t);},
+                    function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}
+                ],
+                definition: 'mediump float compare_uint (mediump uint a, mediump uint b) { return a == b ? 1.0 : 0.0; }'
+            },
+            {
+                requiringTypes: [
+                    function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.UINT_VEC2, t);},
+                    function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}
+                ],
+                definition: 'mediump float compare_uvec2 (mediump uvec2 a, mediump uvec2 b) { return a == b ? 1.0 : 0.0; }'
+            },
+            {
+                requiringTypes: [
+                    function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.UINT_VEC3, t);},
+                    function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}
+                ],
+                definition: 'mediump float compare_uvec3 (mediump uvec3 a, mediump uvec3 b) { return a == b ? 1.0 : 0.0; }'
+            },
+            {
+                requiringTypes: [
+                    function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.UINT_VEC4, t);},
+                    function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}
+                ],
+                definition: 'mediump float compare_uvec4 (mediump uvec4 a, mediump uvec4 b) { return a == b ? 1.0 : 0.0; }'
+            },
+            {
+                requiringTypes: [
+                    function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.BOOL, t);},
+                    function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}
+                ],
+                definition: 'mediump float compare_bool (bool a, bool b) { return a == b ? 1.0 : 0.0; }'
+            },
+            {
+                requiringTypes: [
+                    function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.BOOL_VEC2, t);},
+                    function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}
+                ],
+                definition: 'mediump float compare_bvec2 (bvec2 a, bvec2 b) { return a == b ? 1.0 : 0.0; }'
+            },
+            {
+                requiringTypes: [
+                    function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.BOOL_VEC3, t);},
+                    function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}
+                ],
+                definition: 'mediump float compare_bvec3 (bvec3 a, bvec3 b) { return a == b ? 1.0 : 0.0; }'
+            },
+            {
+                requiringTypes: [
+                    function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.BOOL_VEC4, t);},
+                    function(t) {return es3fUniformApiTests.dataTypeEquals(gluShaderUtil.DataType.INVALID, t);}
+                ],
+                definition: 'mediump float compare_bvec4 (bvec4 a, bvec4 b) { return a == b ? 1.0 : 0.0; }'
+            }
         ];
 
         /** @type {Array<gluShaderUtil.DataType>} */ var samplerTypes = this.m_uniformCollection.getSamplerTypes();
@@ -1438,9 +1615,9 @@ var deRandom = framework.delibs.debase.deRandom;
         /** @type {boolean} */ var isVertexCase = this.m_caseShaderType == es3fUniformApiTests.CaseShaderType.VERTEX || this.m_caseShaderType == es3fUniformApiTests.CaseShaderType.BOTH;
         /** @type {string} */ var result = '';
 
-        result += '#version 300 es\n' + //WebGL2.0
-                  'in highp vec4 a_position;\n' + //WebGL2.0
-                  'out mediump float v_vtxOut;\n' + //WebGL2.0
+        result += '#version 300 es\n' +
+                  'in highp vec4 a_position;\n' +
+                  'out mediump float v_vtxOut;\n' +
                   '\n';
 
         if (isVertexCase)
@@ -1468,15 +1645,15 @@ var deRandom = framework.delibs.debase.deRandom;
         /**@type {boolean} */ var isFragmentCase = this.m_caseShaderType == es3fUniformApiTests.CaseShaderType.FRAGMENT || this.m_caseShaderType == es3fUniformApiTests.CaseShaderType.BOTH;
         /**@type {string} */ var result = '';
 
-        result += '#version 300 es\n' + //WebGL2.0
-                  'in mediump float v_vtxOut;\n' + //WebGL2.0
+        result += '#version 300 es\n' +
+                  'in mediump float v_vtxOut;\n' +
                   '\n';
 
         if (isFragmentCase)
             result = this.writeUniformDefinitions(result);
 
         result += '\n' +
-                  'layout(location = 0) out mediump vec4 dEQP_FragColor;\n' + //WebGL2.0
+                  'layout(location = 0) out mediump vec4 dEQP_FragColor;\n' +
                   '\n' +
                   'void main (void)\n' +
                   ' {\n' +
@@ -1497,7 +1674,10 @@ var deRandom = framework.delibs.debase.deRandom;
     es3fUniformApiTests.UniformCase.prototype.setupTexture = function(value) {
         // \note No handling for samplers other than 2D or cube.
 
-        DE_ASSERT(es3fUniformApiTests.getSamplerLookupReturnType(value.type) == gluShaderUtil.DataType.FLOAT_VEC4);
+        assertMsgOptions(
+            es3fUniformApiTests.getSamplerLookupReturnType(value.type) == gluShaderUtil.DataType.FLOAT_VEC4,
+            'es3fUniformApiTests.UniformCase.prototype.setupTexture - sampler return type should be vec4f', false, true
+        );
 
         /** @type {number} */ var width = 32;
         /** @type {number} */ var height = 32;
@@ -1521,7 +1701,7 @@ var deRandom = framework.delibs.debase.deRandom;
            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
         } else if (value.type == gluShaderUtil.DataType.SAMPLER_CUBE) {
-            DE_ASSERT(width == height);
+            assertMsgOptions(width == height, 'es3fUniformApiTests.UniformCase.prototype.setupTexture - non square texture', false, true);
 
             texture = gluTexture.cubeFromFormat(gl, gl.RGBA, gl.UNSIGNED_BYTE, width);
             refTexture = texture.getRefTexture();
@@ -1540,7 +1720,7 @@ var deRandom = framework.delibs.debase.deRandom;
            gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
            gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
         } else
-            DE_ASSERT(false);
+            throw new Error('es3fUniformApiTests.UniformCase.prototype.setupTexture - Invalid sampler type');
     };
 
     /**
@@ -1571,7 +1751,7 @@ var deRandom = framework.delibs.debase.deRandom;
 
             reportedType = gluShaderUtil.getDataTypeFromGLType(reportedTypeGL);
 
-            //TODO: TCU_CHECK_MSG(reportedType !== undefined, "Invalid uniform type");
+            checkMessage(reportedType !== undefined, "Invalid uniform type");
 
             bufferedLogToConsole('// Got name = ' + reportedNameStr + ', size = ' + reportedSize + ', type = ' + gluShaderUtil.getDataTypeName(reportedType));
 
@@ -1589,9 +1769,24 @@ var deRandom = framework.delibs.debase.deRandom;
                 } else {
                     /** @type {es3fUniformApiTests.BasicUniformReportRef} */ var reference = basicUniformReportsRef[referenceNdx];
 
-                    DE_ASSERT(reference.type !== undefined);
-                    DE_ASSERT(reference.minSize >= 1 || (reference.minSize == 0 && !reference.isUsedInShader));
-                    DE_ASSERT(reference.minSize <= reference.maxSize);
+                    assertMsgOptions(
+                        reference.type !== undefined,
+                        'es3fUniformApiTests.UniformCase.prototype.getActiveUniformsOneByOne - type is undefined',
+                        false,
+                        true
+                    );
+                    assertMsgOptions(
+                        reference.minSize >= 1 || (reference.minSize == 0 && !reference.isUsedInShader),
+                        'es3fUniformApiTests.UniformCase.prototype.getActiveUniformsOneByOne - uniform min size does not match usage in shader',
+                        false,
+                        true
+                    );
+                    assertMsgOptions(
+                        reference.minSize <= reference.maxSize,
+                        'es3fUniformApiTests.UniformCase.prototype.getActiveUniformsOneByOne - uniform min size bigger than max size',
+                        false,
+                        true
+                    );
 
                     if (es3fUniformApiTests.BasicUniformReportGL.findWithName(basicUniformReportsDst, reportedNameStr) !== null) {
                         bufferedLogToConsole('// FAILURE: same uniform name reported twice');
@@ -1677,14 +1872,35 @@ var deRandom = framework.delibs.debase.deRandom;
                 /** @type {number} */ var reportedNameLength = reference.name.length;
                 /** @type {number} */ var reportedSize = uniformSizeBuf[validNdx];
                 /** @type {gluShaderUtil.DataType} */ var reportedType = gluShaderUtil.getDataTypeFromGLType(uniformTypeBuf[validNdx]);
+                /** @type {string} */ var reportedNameStr = reference.name;
 
                 bufferedLogToConsole('// Got name size = ' + reportedSize +
                     ', type = ' + gluShaderUtil.getDataTypeName(reportedType) +
                     ' for the uniform at index ' + reportedIndex + ' (' + reference.name + ')');
 
-                DE_ASSERT(reference.type !== undefined);
-                DE_ASSERT(reference.minSize >= 1 || (reference.minSize == 0 && !reference.isUsedInShader));
-                DE_ASSERT(reference.minSize <= reference.maxSize);
+                assertMsgOptions(
+                    reference.type !== undefined,
+                    'es3fUniformApiTests.UniformCase.prototype.getActiveUniforms - type is undefined',
+                    false,
+                    true
+                );
+                assertMsgOptions(
+                    reference.minSize >= 1 || (reference.minSize == 0 && !reference.isUsedInShader),
+                    'es3fUniformApiTests.UniformCase.prototype.getActiveUniforms - uniform min size does not match usage in shader',
+                    false,
+                    true
+                );
+                assertMsgOptions(
+                    reference.minSize <= reference.maxSize,
+                    'es3fUniformApiTests.UniformCase.prototype.getActiveUniforms - uniform min size bigger than max size',
+                    false,
+                    true
+                );
+
+                if (es3fUniformApiTests.BasicUniformReportGL.findWithName(basicUniformReportsDst, reportedNameStr) !== null) {
+                    bufferedLogToConsole('// FAILURE: same uniform name reported twice');
+                    success = false;
+                }
                 basicUniformReportsDst.push(new es3fUniformApiTests.BasicUniformReportGL(reference.name, reportedNameLength, reportedSize, reportedType, reportedIndex));
 
                 if (reportedType != reference.type) {
@@ -1773,8 +1989,6 @@ var deRandom = framework.delibs.debase.deRandom;
             /** @type {number} */ var size = gluShaderUtil.getDataTypeScalarSize(uniform.type);
             /** @type {es3fUniformApiTests.VarValue} */ var value = new es3fUniformApiTests.VarValue();
 
-            //TODO: deMemset(&value, 0xcd, sizeof(value)); // Initialize to known garbage.
-
             if (!location) {
                 value.type = gluShaderUtil.DataType.INVALID;
                 valuesDst.push(value);
@@ -1811,7 +2025,12 @@ var deRandom = framework.delibs.debase.deRandom;
     es3fUniformApiTests.UniformCase.prototype.checkUniformDefaultValues = function(values, basicUniforms) {
         /** @type {boolean} */ var success = true;
 
-        DE_ASSERT(values.length == basicUniforms.length);
+        assertMsgOptions(
+            values.length == basicUniforms.length,
+            'es3fUniformApiTests.UniformCase.prototype.checkUniformDefaultValues - lengths do not match',
+            false,
+            true
+        );
 
         for (var unifNdx = 0; unifNdx < basicUniforms.length; unifNdx++) {
             /** @type {es3fUniformApiTests.BasicUniform} */ var uniform = basicUniforms[unifNdx];
@@ -1848,7 +2067,7 @@ var deRandom = framework.delibs.debase.deRandom;
                     success = false;
                 }
             } else
-                DE_ASSERT(false);
+                throw new Error('es3fUniformApiTests.UniformCase.prototype.checkUniformDefaultValues - invalid uniform type');
         }
 
         return success;
@@ -1875,8 +2094,18 @@ var deRandom = framework.delibs.debase.deRandom;
                                                         this.m_features.ARRAYASSIGN_BLOCKS_OF_TWO ? (uniform.elemNdx % 2 == 0 ? 2 : 0) :
                                                         /* Default: assign array elements separately */ 1;
 
-            DE_ASSERT(numValuesToAssign >= 0);
-            DE_ASSERT(numValuesToAssign == 1 || isArrayMember);
+            assertMsgOptions(
+                numValuesToAssign >= 0,
+                'es3fUniformApiTests.UniformCase.prototype.assignUniforms - number of values to assign not a positive integer',
+                false,
+                true
+            );
+            assertMsgOptions(
+                numValuesToAssign == 1 || isArrayMember,
+                'es3fUniformApiTests.UniformCase.prototype.assignUniforms - not an array member and number of values to assign not 1',
+                false,
+                true
+            );
 
             if (numValuesToAssign == 0) {
                 bufferedLogToConsole('// es3fUniformApiTests.Uniform ' + uniform.name + ' is covered by another glUniform*v() call to the same array');
@@ -1913,7 +2142,12 @@ var deRandom = framework.delibs.debase.deRandom;
                     bufferedLogToConsole('// Texture for the sampler uniform ' + curName + ' will be filled with color ' + es3fUniformApiTests.apiVarValueStr(es3fUniformApiTests.getSamplerFillValue(uniform.finalValue)));
             }
 
-            DE_ASSERT(valuesToAssign.length > 0);
+            assertMsgOptions(
+                valuesToAssign.length > 0,
+                'es3fUniformApiTests.UniformCase.prototype.assignUniforms - values quantity less than one',
+                false,
+                true
+            );
 
             if (gluShaderUtil.isDataTypeFloatOrVec(valuesToAssign[0].type)) {
                 if (assignByValue) {
@@ -1923,7 +2157,7 @@ var deRandom = framework.delibs.debase.deRandom;
                         case 3:gl.uniform3f(location, valuesToAssign[0].val[0], valuesToAssign[0].val[1], valuesToAssign[0].val[2]); break;
                         case 4:gl.uniform4f(location, valuesToAssign[0].val[0], valuesToAssign[0].val[1], valuesToAssign[0].val[2], valuesToAssign[0].val[3]); break;
                         default:
-                            DE_ASSERT(false);
+                            throw new Error('es3fUniformApiTests.UniformCase.prototype.assignUniforms - Invalid type size');
                     }
                 } else {
                     buffer = new Array(valuesToAssign.length * typeSize);
@@ -1936,11 +2170,15 @@ var deRandom = framework.delibs.debase.deRandom;
                         case 3:gl.uniform3fv(location, buffer); break;
                         case 4:gl.uniform4fv(location, buffer); break;
                         default:
-                            DE_ASSERT(false);
+                            throw new Error('es3fUniformApiTests.UniformCase.prototype.assignUniforms - Invalid type size');
                     }
                 }
             } else if (gluShaderUtil.isDataTypeMatrix(valuesToAssign[0].type)) {
-                DE_ASSERT(!assignByValue);
+                assertMsgOptions(
+                    !assignByValue,
+                    'es3fUniformApiTests.UniformCase.prototype.assignUniforms - assigning by value in matrix type',
+                    false, true
+                );
 
                 buffer = new Array(valuesToAssign.length * typeSize);
                 for (var i = 0; i < buffer.length; i++)
@@ -1957,7 +2195,7 @@ var deRandom = framework.delibs.debase.deRandom;
                     case gluShaderUtil.DataType.FLOAT_MAT4X2:gl.uniformMatrix4x2fv(location, transposeGL, new Float32Array(buffer)); break;
                     case gluShaderUtil.DataType.FLOAT_MAT4X3:gl.uniformMatrix4x3fv(location, transposeGL, new Float32Array(buffer)); break;
                     default:
-                        DE_ASSERT(false);
+                        throw new Error('es3fUniformApiTests.UniformCase.prototype.assignUniforms - Invalid uniform type');
                 }
             } else if (gluShaderUtil.isDataTypeIntOrIVec(valuesToAssign[0].type)) {
                 if (assignByValue) {
@@ -1967,7 +2205,7 @@ var deRandom = framework.delibs.debase.deRandom;
                         case 3:gl.uniform3i(location, valuesToAssign[0].val[0], valuesToAssign[0].val[1], valuesToAssign[0].val[2]); break;
                         case 4:gl.uniform4i(location, valuesToAssign[0].val[0], valuesToAssign[0].val[1], valuesToAssign[0].val[2], valuesToAssign[0].val[3]); break;
                         default:
-                            DE_ASSERT(false);
+                            throw new Error('es3fUniformApiTests.UniformCase.prototype.assignUniforms - Invalid type size');
                     }
                 } else {
                     buffer = new Array(valuesToAssign.length * typeSize);
@@ -1980,7 +2218,7 @@ var deRandom = framework.delibs.debase.deRandom;
                         case 3:gl.uniform3iv(location, buffer); break;
                         case 4:gl.uniform4iv(location, buffer); break;
                         default:
-                            DE_ASSERT(false);
+                            throw new Error('es3fUniformApiTests.UniformCase.prototype.assignUniforms - Invalid type size');
                     }
                 }
             } else if (gluShaderUtil.isDataTypeUintOrUVec(valuesToAssign[0].type)) {
@@ -1991,7 +2229,7 @@ var deRandom = framework.delibs.debase.deRandom;
                         case 3:gl.uniform3ui(location, valuesToAssign[0].val[0], valuesToAssign[0].val[1], valuesToAssign[0].val[2]); break;
                         case 4:gl.uniform4ui(location, valuesToAssign[0].val[0], valuesToAssign[0].val[1], valuesToAssign[0].val[2], valuesToAssign[0].val[3]); break;
                         default:
-                            DE_ASSERT(false);
+                            throw new Error('es3fUniformApiTests.UniformCase.prototype.assignUniforms - Invalid type size');
                     }
                 } else {
                     buffer = new Array(valuesToAssign.length * typeSize);
@@ -2004,7 +2242,7 @@ var deRandom = framework.delibs.debase.deRandom;
                         case 3:gl.uniform3uiv(location, buffer); break;
                         case 4:gl.uniform4uiv(location, buffer); break;
                         default:
-                            DE_ASSERT(false);
+                            throw new Error('es3fUniformApiTests.UniformCase.prototype.assignUniforms - Invalid type size');
                     }
                 }
             } else if (gluShaderUtil.isDataTypeSampler(valuesToAssign[0].type)) {
@@ -2015,7 +2253,7 @@ var deRandom = framework.delibs.debase.deRandom;
                    gl.uniform1iv(location, unit);
                 }
             } else
-                DE_ASSERT(false);
+                throw new Error('es3fUniformApiTests.UniformCase.prototype.assignUniforms - Invalid uniform type');
         }
     };
 
@@ -2067,7 +2305,11 @@ var deRandom = framework.delibs.debase.deRandom;
             if (gluShaderUtil.isDataTypeSampler(basicUniforms[i].type)) {
                 for (var j = 0; j < i; j++) {
                     if (gluShaderUtil.isDataTypeSampler(basicUniforms[j].type) && basicUniforms[i].type != basicUniforms[j].type)
-                        DE_ASSERT(basicUniforms[i].finalValue.val.samplerV.unit != basicUniforms[j].finalValue.val.samplerV.unit);
+                        assertMsgOptions(
+                            basicUniforms[i].finalValue.val.samplerV.unit != basicUniforms[j].finalValue.val.samplerV.unit,
+                            'es3fUniformApiTests.UniformCase.prototype.renderTest - sampler units have the same texture unit',
+                            false, true
+                        );
                 }
             }
         }
@@ -2103,7 +2345,7 @@ var deRandom = framework.delibs.debase.deRandom;
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gl_index_buffer);
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
 
-       gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
+        gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
 
         gl.readPixels(viewportX, viewportY, viewportW, viewportH, gl.RGBA, gl.UNSIGNED_BYTE, renderedImg.getAccess().getDataPtr());
 
@@ -2198,8 +2440,7 @@ var deRandom = framework.delibs.debase.deRandom;
             case es3fUniformApiTests.CaseType.INDICES_UNIFORMSIV: return 'indices_active_uniformsiv';
             case es3fUniformApiTests.CaseType.CONSISTENCY: return 'consistency';
             default:
-                DE_ASSERT(false);
-                return es3fUniformApiTests.DE_NULL;
+                throw new Error('Invalid type');
         }
     };
 
@@ -2213,8 +2454,7 @@ var deRandom = framework.delibs.debase.deRandom;
            case es3fUniformApiTests.CaseType.INDICES_UNIFORMSIV: return 'Test glGetUniformIndices() along with glGetActiveUniforms()';
            case es3fUniformApiTests.CaseType.CONSISTENCY: return 'Check consistency between results from glGetActiveUniform() and glGetUniformIndices() + glGetActiveUniforms()';
            default:
-               DE_ASSERT(false);
-               return es3fUniformApiTests.DE_NULL;
+               throw new Error('Invalid type');
        }
     };
 
@@ -2237,9 +2477,6 @@ var deRandom = framework.delibs.debase.deRandom;
      * @return {boolean}
      */
     es3fUniformApiTests.UniformInfoQueryCase.prototype.test = function(basicUniforms, basicUniformReportsRef, program, rnd) {
-        //TODO: DE_UNREF(basicUniforms);
-        //TODO: DE_UNREF(rnd);
-
         /** @type {WebGLProgram} */ var programGL = program.getProgram();
         /** @type {Array<es3fUniformApiTests.BasicUniformReportGL>} */ var basicUniformReportsUniform = [];
         /** @type {Array<es3fUniformApiTests.BasicUniformReportGL>} */ var basicUniformReportsUniforms = [];
@@ -2255,7 +2492,12 @@ var deRandom = framework.delibs.debase.deRandom;
                 if (this.m_caseType == es3fUniformApiTests.CaseType.UNIFORM)
                     return false;
                 else {
-                    DE_ASSERT(this.m_caseType == es3fUniformApiTests.CaseType.CONSISTENCY);
+                    assertMsgOptions(
+                        this.m_caseType == es3fUniformApiTests.CaseType.CONSISTENCY,
+                        'es3fUniformApiTests.UniformInfoQueryCase.prototype.test - case type is not consistency',
+                        false,
+                        true
+                    );
                     bufferedLogToConsole('// Note: this is a consistency case, so ignoring above failure(s)');
                 }
             }
@@ -2271,7 +2513,12 @@ var deRandom = framework.delibs.debase.deRandom;
                 if (this.m_caseType == es3fUniformApiTests.CaseType.INDICES_UNIFORMSIV)
                     return false;
                 else {
-                    DE_ASSERT(this.m_caseType == es3fUniformApiTests.CaseType.CONSISTENCY);
+                    assertMsgOptions(
+                        this.m_caseType == es3fUniformApiTests.CaseType.CONSISTENCY,
+                        'es3fUniformApiTests.UniformInfoQueryCase.prototype.test - case type is not consistency',
+                        false,
+                        true
+                    );
                     bufferedLogToConsole('// Note: this is a consistency case, so ignoring above failure(s)');
                 }
             }
@@ -2337,7 +2584,12 @@ var deRandom = framework.delibs.debase.deRandom;
         this.m_valueToCheck = valueToCheck;
         this.m_checkMethod = checkMethod;
 
-        DE_ASSERT(!(assignMethod === undefined && valueToCheck == es3fUniformApiTests.ValueToCheck.ASSIGNED));
+        assertMsgOptions(
+            !(assignMethod === undefined && valueToCheck == es3fUniformApiTests.ValueToCheck.ASSIGNED),
+            'es3fUniformApiTests.UniformValueCase - assign method is undefined when value to check requires it',
+            false,
+            true
+        );
     };
 
     es3fUniformApiTests.UniformValueCase.prototype = Object.create(es3fUniformApiTests.UniformCase.prototype);
@@ -2352,7 +2604,7 @@ var deRandom = framework.delibs.debase.deRandom;
         switch (valueToCheck) {
             case es3fUniformApiTests.ValueToCheck.INITIAL: return 'initial';
             case es3fUniformApiTests.ValueToCheck.ASSIGNED: return 'assigned';
-            default: DE_ASSERT(false); return es3fUniformApiTests.DE_NULL;
+            default: throw new Error('es3fUniformApiTests.UniformValueCase.getValueToCheckName - Invalid value to check option');
         }
     };
 
@@ -2364,7 +2616,7 @@ var deRandom = framework.delibs.debase.deRandom;
         switch (valueToCheck) {
             case es3fUniformApiTests.ValueToCheck.INITIAL: return 'Check initial uniform values (zeros)';
             case es3fUniformApiTests.ValueToCheck.ASSIGNED: return 'Check assigned uniform values';
-            default: DE_ASSERT(false); return es3fUniformApiTests.DE_NULL;
+            default: throw new Error('es3fUniformApiTests.UniformValueCase.getValueToCheckDescription - Invalid value to check option');
         }
     };
 
@@ -2376,7 +2628,7 @@ var deRandom = framework.delibs.debase.deRandom;
         switch (checkMethod) {
             case es3fUniformApiTests.CheckMethod.GET_UNIFORM: return 'get_uniform';
             case es3fUniformApiTests.CheckMethod.RENDER: return 'render';
-            default: DE_ASSERT(false); return es3fUniformApiTests.DE_NULL;
+            default: throw new Error('es3fUniformApiTests.UniformValueCase.getCheckMethodName - Invalid check method');
         }
     };
 
@@ -2388,7 +2640,7 @@ var deRandom = framework.delibs.debase.deRandom;
         switch (checkMethod) {
             case es3fUniformApiTests.CheckMethod.GET_UNIFORM: return 'Verify values with glGetUniform*()';
             case es3fUniformApiTests.CheckMethod.RENDER: return 'Verify values by rendering';
-            default: DE_ASSERT(false); return es3fUniformApiTests.DE_NULL;
+            default: throw new Error('es3fUniformApiTests.UniformValueCase.getCheckMethodDescription - Invalid check method');
         }
     };
 
@@ -2400,7 +2652,7 @@ var deRandom = framework.delibs.debase.deRandom;
         switch (assignMethod) {
             case es3fUniformApiTests.AssignMethod.POINTER: return 'by_pointer';
             case es3fUniformApiTests.AssignMethod.VALUE: return 'by_value';
-            default: DE_ASSERT(false); return es3fUniformApiTests.DE_NULL;
+            default: throw new Error('es3fUniformApiTests.UniformValueCase.getAssignMethodName - Invalid assign method');
         }
     };
 
@@ -2412,7 +2664,7 @@ var deRandom = framework.delibs.debase.deRandom;
         switch (assignMethod) {
             case es3fUniformApiTests.AssignMethod.POINTER: return 'Assign values by-pointer';
             case es3fUniformApiTests.AssignMethod.VALUE: return 'Assign values by-value';
-            default: DE_ASSERT(false); return es3fUniformApiTests.DE_NULL;
+            default: throw new Error('es3fUniformApiTests.UniformValueCase.getAssignMethodDescription - Invalid assign method');
         }
     };
 
@@ -2425,15 +2677,17 @@ var deRandom = framework.delibs.debase.deRandom;
      * @return {boolean}
      */
     es3fUniformApiTests.UniformValueCase.prototype.test = function(basicUniforms, basicUniformReportsRef, program, rnd) {
-        //TODO: DE_UNREF(basicUniformReportsRef);
-
         /** @type {WebGLProgram} */ var programGL = program.getProgram();
 
         if (this.m_valueToCheck == es3fUniformApiTests.ValueToCheck.ASSIGNED) {
             //TODO: const ScopedLogSection section(log, "UniformAssign", "es3fUniformApiTests.Uniform value assignments");
             this.assignUniforms(basicUniforms, programGL, rnd);
         } else
-            DE_ASSERT(this.m_valueToCheck == es3fUniformApiTests.ValueToCheck.INITIAL);
+            assertMsgOptions(
+                this.m_valueToCheck == es3fUniformApiTests.ValueToCheck.INITIAL,
+                'es3fUniformApiTests.UniformValueCase.prototype.test - value to check not initial',
+                false, true
+            );
 
         /** @type {boolean}*/ var success;
 
@@ -2453,7 +2707,11 @@ var deRandom = framework.delibs.debase.deRandom;
                 if (!success)
                     return false;
             } else {
-                DE_ASSERT(this.m_valueToCheck == es3fUniformApiTests.ValueToCheck.INITIAL);
+                assertMsgOptions(
+                    this.m_valueToCheck == es3fUniformApiTests.ValueToCheck.INITIAL,
+                    'es3fUniformApiTests.UniformValueCase.prototype.test - value to check not initial',
+                    false, true
+                );
 
                 //TODO: const ScopedLogSection section(log, "ValueCheck", "Verify that the uniforms have correct initial values (zeros)");
                 success = this.checkUniformDefaultValues(values, basicUniforms);
@@ -2462,7 +2720,11 @@ var deRandom = framework.delibs.debase.deRandom;
                     return false;
             }
         } else {
-            DE_ASSERT(this.m_checkMethod == es3fUniformApiTests.CheckMethod.RENDER);
+            assertMsgOptions(
+                this.m_checkMethod == es3fUniformApiTests.CheckMethod.RENDER,
+                'es3fUniformApiTests.UniformValueCase.prototype.test - check method different than RENDER',
+                false, true
+            );
 
             //TODO: const ScopedLogSection section(log, "RenderTest", "Render test");
             success = this.renderTest(basicUniforms, program, rnd);
@@ -2633,7 +2895,12 @@ var deRandom = framework.delibs.debase.deRandom;
                 else if (dataType == gluShaderUtil.DataType.SAMPLER_2D)
                     secondDataType = gluShaderUtil.DataType.SAMPLER_CUBE;
 
-                DE_ASSERT(secondDataType !== undefined);
+                assertMsgOptions(
+                    secondDataType !== undefined,
+                    'es3fUniformApiTests.init - second data type undefined',
+                    false, true
+                );
+
                 /** @type {string} */ var secondTypeName = gluShaderUtil.getDataTypeName(secondDataType);
                 name = typeName + '_' + secondTypeName;
 
@@ -2643,9 +2910,9 @@ var deRandom = framework.delibs.debase.deRandom;
                 defaultUniformCollections[UniformCollections.NESTED_STRUCTS_ARRAYS].cases.push(new es3fUniformApiTests.UniformCollectionCase(name, es3fUniformApiTests.UniformCollection.nestedArraysStructs(dataType, secondDataType)));
             }
         }
-        defaultUniformCollections[UniformCollections.MULTIPLE_BASIC].cases.push(new es3fUniformApiTests.UniformCollectionCase(es3fUniformApiTests.DE_NULL, es3fUniformApiTests.UniformCollection.multipleBasic()));
-        defaultUniformCollections[UniformCollections.MULTIPLE_BASIC_ARRAY].cases.push(new es3fUniformApiTests.UniformCollectionCase(es3fUniformApiTests.DE_NULL, es3fUniformApiTests.UniformCollection.multipleBasicArray()));
-        defaultUniformCollections[UniformCollections.MULTIPLE_NESTED_STRUCTS_ARRAYS].cases.push(new es3fUniformApiTests.UniformCollectionCase(es3fUniformApiTests.DE_NULL, es3fUniformApiTests.UniformCollection.multipleNestedArraysStructs()));
+        defaultUniformCollections[UniformCollections.MULTIPLE_BASIC].cases.push(new es3fUniformApiTests.UniformCollectionCase(null, es3fUniformApiTests.UniformCollection.multipleBasic()));
+        defaultUniformCollections[UniformCollections.MULTIPLE_BASIC_ARRAY].cases.push(new es3fUniformApiTests.UniformCollectionCase(null, es3fUniformApiTests.UniformCollection.multipleBasicArray()));
+        defaultUniformCollections[UniformCollections.MULTIPLE_NESTED_STRUCTS_ARRAYS].cases.push(new es3fUniformApiTests.UniformCollectionCase(null, es3fUniformApiTests.UniformCollection.multipleNestedArraysStructs()));
 
         // Info-query cases (check info returned by e.g. glGetActiveUniforms()).
 
