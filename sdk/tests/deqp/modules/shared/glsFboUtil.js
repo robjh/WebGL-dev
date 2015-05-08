@@ -62,7 +62,6 @@ goog.scope(function() {
     
     // db is a glsFboUtil.FormatDB, stdFmts is a range object
     glsFboUtil.addFormats = function(db, stdFmts) {
-    
         for (var i = stdFmts.begin(); i < stdFmts.end(); ++i) {
             var stdFmt_current = stdFmts.get(i);
 		    for (var j = stdFmt_current.second.begin(); j < stdFmt_current.second.end(); ++j) {
@@ -212,7 +211,6 @@ goog.scope(function() {
      * @return {glsFboUtil.Range}
      */
     glsFboUtil.rangeArray = function(array) {
-        if (!array) debugger;//TODO: remove
         return new glsFboUtil.Range(array);
     };
     
@@ -291,7 +289,7 @@ goog.scope(function() {
         ATT_TEXTURE:       0x040000,
         ATT_TEXTURE_FLAT:  0x080000,
         ATT_TEXTURE_LAYER: 0x100000,
-
+        
         UNUSED:          0xFFE0E00E
     };
 
@@ -546,7 +544,7 @@ goog.scope(function() {
                 var ret = gl.createTexture();
                 gl.bindTexture(glTarget(cfg, gl), ret);
                 glInit(cfg, gl);
-                gl.bindTexture(glTarget(cfg, gl), 0);
+            //    gl.bindTexture(glTarget(cfg, gl), null); // this line is causing problems
             
             } else {
                 throw new Error('Impossible image type');
@@ -606,7 +604,7 @@ goog.scope(function() {
                     att.target, attPoint, att.texTarget, att.imageName, att.level
                 );
                 break;
-            case glsFboUtil.Config.s_types.ATT_TEXURE_LAYER:
+            case glsFboUtil.Config.s_types.ATT_TEXTURE_LAYER:
                 gl.framebufferTextureLayer(
                     att.target, attPoint, att.imageName, att.level, att.layer
                 );
@@ -725,7 +723,6 @@ goog.scope(function() {
     glsFboUtil.Framebuffer.prototype.getImage = function(type, imgName) {
         switch (type) {
             case this.m_gl.TEXTURE:      return glsFboUtil.lookupDefault(this.textures, imgName, null);
-            case this.m_gl.RENDERBUFFER: return glsFboUtil.lookupDefault(this.rbos,     imgName, null);
             default: throw new Error ('Bad image type.');
         }
         return null;
@@ -813,7 +810,8 @@ goog.scope(function() {
         
         // Allowed return values for gl.CheckFramebufferStatus
         // formarly an std::set
-        var m_statusCodes = [gl.FRAMEBUFFER_COMPLETE];
+        // @private
+        this.m_statusCodes = [gl.FRAMEBUFFER_COMPLETE];
         
         // this.check = function(attPoint, attachment, image) =0; virtual
         if (typeof(this.check) != 'function')
@@ -822,16 +820,16 @@ goog.scope(function() {
     glsFboUtil.Checker.prototype.require = function(condition, error) {
         if (!condition) {
             glsFboUtil.remove_from_array(m_statusCodes, gl.FRAMEBUFFER_COMPLETE);
-            m_statusCodes.push(error);
+            this.m_statusCodes.push(error);
         }
     };
     glsFboUtil.Checker.prototype.canRequire = function(condition, error) {
         if (!condition) {
-            m_statusCodes.push(error);
+            this.m_statusCodes.push(error);
         }
     };
     glsFboUtil.Checker.prototype.getStatusCodes = function() {
-        return m_statusCodes;
+        return this.m_statusCodes;
     };
     
     
@@ -861,7 +859,7 @@ goog.scope(function() {
         if (!(gl = gl || window.gl)) throw new Error('Invalid gl object');
         
         /** @type {glsFboUtil.Checker} */
-        var cctx = this.m_factory.createChecker();
+        var cctx = this.m_factory();
         
         for (var id in cfg.textures) {
             var flags = this.m_formats.getFormatInfo(cfg.textures[id], glsFboUtil.FormatFlags.ANY_FORMAT);
@@ -882,7 +880,7 @@ goog.scope(function() {
             var att = cfg.attachments[attPoint];
             /** @type{glsFboUtil.Image}*/
             var image = cfg.getImage(glsFboUtil.attachmentType(att, gl), att.imageName);
-            glsFboUtil.checkAttachmentCompleteness(cctx, att, attPoint, image, db, this.m_formats, gl);
+            glsFboUtil.checkAttachmentCompleteness(cctx, att, attPoint, image, this.m_formats, gl);
             cctx.check(attPoint, att, image);
             ++count;
         }

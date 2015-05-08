@@ -33,7 +33,8 @@
             console.log.apply(console, args);
         };
     };
-
+    gl.framebufferTextureLayer = gldisable('framebufferTextureLayer');
+    
     functional.gles3.es3fFboCompletenessTests.initGlDependents(gl);
     
     try {

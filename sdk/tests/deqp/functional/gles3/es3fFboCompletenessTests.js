@@ -293,7 +293,9 @@ goog.scope(function() {
     es3fFboCompletenessTests.init = function() {
     
         //(testCtx, renderCtx, factory) {
-        var fboCtx = new glsFboCompletenessTests.Context(null, gl, null);
+        var fboCtx = new glsFboCompletenessTests.Context(null, gl, function() {
+            return new es3fFboCompletenessTests.ES3Checker()
+        });
     
         /** @const @type {tcuTestCase.DeqpTest} */
         var testGroup = tcuTestCase.runner.testCases;

@@ -396,7 +396,7 @@ goog.scope(function() {
         this.m_ctxFormats = new glsFboUtil.FormatDB();
         this.m_minFormats = new glsFboUtil.FormatDB();
         this.m_maxFormats = new glsFboUtil.FormatDB();
-        this.m_verifier   = null; // glsFboUtil.FboVerifier unimplemented?
+        this.m_verifier   = new glsFboUtil.FboVerifier(this.m_ctxFormats, factory);
         this.m_haveMultiColorAtts = false;
            
         // FormatExtEntries 
@@ -514,7 +514,7 @@ goog.scope(function() {
     
     glsFboCompletenessTests.TestBase.prototype.iterate = function() {
         var gl = window.gl;
-        debugger; //TODO remove
+        
         var fbo = new gluObjectWrapper.Framebuffer(gl);
         var builder = new glsFboUtil.FboBuilder(fbo.get(), gl.FRAMEBUFFER, gl);
         var ret = this.build(builder);
@@ -539,22 +539,22 @@ goog.scope(function() {
                 msg += (it == statuses.length ? ' or ' : ', ');
             }
         }
-        msg += glsFboCompletenessTests.statusName(err) + '.';
+     //   msg += glsFboCompletenessTests.statusName(err) + '.';
         bufferedLogToConsole(msg);
         
-        bufferedLogToConsole(
-            'Received ' + glsFboCompletenessTests.statusName(glStatus) + '.'
-        );
+     //   bufferedLogToConsole(
+     //       'Received ' + glsFboCompletenessTests.statusName(glStatus) + '.'
+     //   );
         
         if (!glsFboUtil.contains(statuses, glStatus)) {
             // the returned status value was not acceptable.
             if (glStatus == gl.FRAMEBUFFER_COMPLETE) {
-                throw new Error('Framebuffer checked as complete, expected incomplete');
+                throw new TestFailedException('Framebuffer checked as complete, expected incomplete');
             } else if (statuses.length == 1 && glsFboUtil.contains(statuses, gl.FRAMEBUFFER_COMPLETE)) {
-                throw new Error('Framebuffer checked as incomplete, expected complete');
+                throw new TestFailedException('Framebuffer checked as incomplete, expected complete');
             } else {
                 // An incomplete status is allowed, but not _this_ incomplete status.
-                throw new Error('Framebuffer checked as incomplete, but with wrong status');
+                throw new TestFailedException('Framebuffer checked as incomplete, but with wrong status');
             }
         } else if (
             glStatus != gl.FRAMEBUFFER_COMPLETE &&
