@@ -21,13 +21,12 @@ var wtu = WebGLTestUtils;
 var gl = wtu.create3DContext('canvas', {preserveDrawingBuffer: true}, 2);
 
 
-    try {
-        functional.gles3.es3fUniformBlockTests.run();
-    }
-    catch(err)
-    {
-        bufferedLogToConsole(err);
-    }
+try {
+    functional.gles3.es3fUniformBlockTests.run();
+}
+catch(err) {
+    bufferedLogToConsole(err);
+}
 
 </script>
 </body>
