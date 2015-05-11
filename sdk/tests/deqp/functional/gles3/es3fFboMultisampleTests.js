@@ -29,6 +29,7 @@ goog.require('framework.common.tcuTextureUtil');
 goog.require('framework.delibs.debase.deMath');
 goog.require('framework.delibs.debase.deRandom');
 goog.require('framework.opengl.gluTextureUtil');
+goog.require('framework.referencerenderer.rrUtil');
 goog.require('functional.gles3.es3fFboTestCase');
 goog.require('functional.gles3.es3fFboTestUtil');
 
@@ -46,6 +47,7 @@ var tcuTextureUtil = framework.common.tcuTextureUtil;
 var deRandom = framework.delibs.debase.deRandom;
 var deMath = framework.delibs.debase.deMath;
 var gluTextureUtil = framework.opengl.gluTextureUtil;
+var rrUtil = framework.referencerenderer.rrUtil;
 
 /** @type {WebGL2RenderingContext} */ var gl;
 
@@ -159,7 +161,7 @@ var DE_ASSERT = function(x) {
         ctx.enable(gl.DEPTH_TEST);
         gradShader.setGradient(this.getCurrentContext(), gradShaderID, colorFmtInfo.valueMin, colorFmtInfo.valueMax);
         // TODO: implement drawQuad
-        //sglr::drawQuad(this.getCurrentContext(), gradShaderID, [-1.0, -1.0, -1.0], [1.0, 1.0, 1.0]);
+        rrUtil.drawQuad(this.getCurrentContext(), gradShaderID, [-1.0, -1.0, -1.0], [1.0, 1.0, 1.0]);
 
         // Render random-colored quads.
         /** @const {number} */ var numQuads = 8;
@@ -184,7 +186,7 @@ var DE_ASSERT = function(x) {
 
             flatShader.setColor(this.getCurrentContext(), flatShaderID, deMath.add(deMath.multiply([r, g, b, a], deMath.subtract(colorFmtInfo.valueMax, colorFmtInfo.valueMin)), colorFmtInfo.valueMin));
             // TODO: implement drawQuad
-            //sglr::drawQuad(this.getCurrentContext(), flatShaderID, [x0, y0, z0], [x1, y1, z1]);
+            rrUtil.drawQuad(this.getCurrentContext(), flatShaderID, [x0, y0, z0], [x1, y1, z1]);
         }
 
         ctx.disable(gl.DEPTH_TEST);
@@ -217,7 +219,7 @@ var DE_ASSERT = function(x) {
 
                 flatShader.setColor(this.getCurrentContext(), flatShaderID, deMath.add(deMath.multiply([0.0, 0.0, c, 1.0], deMath.subtract(colorFmtInfo.valueMax, colorFmtInfo.valueMin)), colorFmtInfo.valueMin));
                 // TODO: implement drawQuad
-                //sglr::drawQuad(this.getCurrentContext(), flatShaderID, [-1.0, -1.0, d], [1.0, 1.0, d]);
+                rrUtil.drawQuad(this.getCurrentContext(), flatShaderID, [-1.0, -1.0, d], [1.0, 1.0, d]);
             }
 
             ctx.disable(gl.DEPTH_TEST);
@@ -238,9 +240,9 @@ var DE_ASSERT = function(x) {
 
                 ctx.stencilFunc(gl.EQUAL, s, 0xff);
 
-                flatShader.setColor(this.getCurrentContext(), flatShaderID, deMath.add(deMath.multiply([0.0, c, 0.0, 1.0], deMath.substract(colorFmtInfo.valueMax, colorFmtInfo.valueMin)), colorFmtInfo.valueMin));
+                flatShader.setColor(this.getCurrentContext(), flatShaderID, deMath.add(deMath.multiply([0.0, c, 0.0, 1.0], deMath.subtract(colorFmtInfo.valueMax, colorFmtInfo.valueMin)), colorFmtInfo.valueMin));
                 // TODO: implement drawQuad
-                //sglr::drawQuad(this.getCurrentContext(), flatShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
+                rrUtil.drawQuad(this.getCurrentContext(), flatShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
             }
 
             ctx.disable(gl.STENCIL_TEST);
@@ -268,7 +270,7 @@ var DE_ASSERT = function(x) {
         if (this.m_depthStencilFormat != gl.NONE)
             return this.compare(reference, result); // FboTestCase.compare
         else
-            return colorCompare(reference, result);
+            return this.colorCompare(reference, result);
     };
 
     /**

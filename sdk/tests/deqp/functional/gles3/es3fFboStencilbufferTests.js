@@ -223,11 +223,11 @@ goog.scope(function() {
 
         flatShader.setColor(this.getCurrentContext(), flatShaderID, [1.0, 0.0, 0.0, 1.0]);
         // TODO: implement drawQuad
-        //sglr::drawQuad(this.getCurrentContext(), flatShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
+        rrUtil.drawQuad(this.getCurrentContext(), flatShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
 
         gradShader.setGradient(this.getCurrentContext(), gradShaderID, [0.0, 0.0, 0.0, 0.0], [1.0, 1.0, 1.0, 1.0]);
         // TODO: implement drawQuad
-        //sglr::drawQuad(this.getCurrentContext(), gradShaderID, [-1.0, -1.0, -1.0], [1.0, 1.0, 1.0]);
+        rrUtil.drawQuad(this.getCurrentContext(), gradShaderID, [-1.0, -1.0, -1.0], [1.0, 1.0, 1.0]);
 
         ctx.disable(gl.DEPTH_TEST);
 
@@ -237,14 +237,14 @@ goog.scope(function() {
 
         flatShader.setColor(this.getCurrentContext(), flatShaderID, [0.0, 1.0, 0.0, 1.0]);
         // TODO: implement drawQuad
-        //sglr::drawQuad(this.getCurrentContext(), flatShaderID, [-0.5, -0.5, 0.0], [0.5, 0.5, 0.0]);
+        rrUtil.drawQuad(this.getCurrentContext(), flatShaderID, [-0.5, -0.5, 0.0], [0.5, 0.5, 0.0]);
 
         // Draw quad with stencil test where stencil > 1 or 2 depending on depth buffer
         ctx.stencilFunc(gl.GREATER, hasDepth ? 1 : 2, 0xff);
 
         flatShader.setColor(this.getCurrentContext(), flatShaderID, [0.0, 0.0, 1.0, 1.0]);
         // TODO: implement drawQuad
-        //sglr::drawQuad(this.getCurrentContext(), flatShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
+        rrUtil.drawQuad(this.getCurrentContext(), flatShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
 
         this.readPixels(dst, 0, 0, width, height, gluTextureUtil.mapGLInternalFormat(colorFormat), [1.0, 1.0, 1.0, 1.0], [0.0, 0.0, 0.0, 0.0]);
     };
