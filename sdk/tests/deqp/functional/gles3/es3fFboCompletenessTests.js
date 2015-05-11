@@ -288,6 +288,130 @@ goog.scope(function() {
 //    return false;
 //};
 
+    /**
+     * @enum
+     */
+    es3fFboCompletenessTests.e_samples = {
+        NONE: -2,
+        TEXTURE: -1
+    };
+    
+    es3fFboCompletenessTests.numSamplesParams = function(colour,depth,stencil) {
+        var ret = {
+            numSamples: new Array(3)
+        };
+        if (colour !== undefined) {
+            ret.numSamples[0] = colour;
+            if (depth !== undefined) {
+                ret.numSamples[1] = depth;
+                if (stencil !== undefined) {
+                    ret.numSamples[2] = stencil;
+                }
+            }
+        }
+        return ret;
+    };
+    
+    /**
+     * es3fFboCompletenessTests.numSamplesParams.getName
+     * @return {string}
+    // takes const numSamplesParams&
+     */
+    es3fFboCompletenessTests.numSamplesParams.getName = function(params) {
+        var out = '';
+        
+        var first = true;
+        for (var i = 0 ; i < 3 ; ++i) {
+            if (first)
+                first = false;
+            else
+                out += '_';
+            
+            switch (params.numSamples[i]) {
+                case es3fFboCompletenessTests.e_samples.NONE: out += 'none'; break;
+                case es3fFboCompletenessTests.e_samples.TEXTURE: out += 'tex'; break;
+                default:  out += 'rbo'; break;
+            }
+        }
+        return out;
+    };
+    // returns a string.
+    // takes const numSamplesParams&
+    es3fFboCompletenessTests.numSamplesParams.getDescription = function(params) {
+        var out = '';
+        var names = ['color', 'depth', 'stencil'];
+        var first = true;
+        
+        for (var i = 0 ; i < 3 ; ++i) {
+            if (first)
+                first = false;
+            else
+                out += ', ';
+        
+            if (params.numSamples[i] == es3fFboCompletenessTests.e_samples.TEXTURE) {
+                out += 'texture ' + names[i] + ' attachment';
+            } else {
+                out += params.numSamples[i] + '-sample renderbuffer ' + names[i] + ' attachment';
+            }
+        }
+        return out;
+    };
+    
+    es3fFboCompletenessTests.NumSamplesTest = function(name, desc, ctx, params) {
+        glsFboCompletenessTests.TestBase.call(this, name, desc, params);
+        this.m_ctx = ctx;
+    };
+    
+    es3fFboCompletenessTests.NumSamplesTest.prototype = Object.create(glsFboCompletenessTests.TestBase.prototype);
+    es3fFboCompletenessTests.NumSamplesTest.prototype.constructor = es3fFboCompletenessTests.NumSamplesTest;
+
+    es3fFboCompletenessTests.NumSamplesTest.prototype.build = function(builder, gl) {
+        if (!(gl = gl || window.gl)) throw new Error('Invalid gl object');
+        
+        var s_targets = [
+            gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT1, gl.DEPTH_ATTACHMENT
+        ];
+        // Non-integer formats for each attachment type.
+        // \todo [2013-12-17 lauri] Add fixed/floating/integer metadata for formats so
+        // we can pick one smartly or maybe try several.
+        var s_formats = [
+            gl.RGBA8, gl.RGB565, gl.DEPTH_COMPONENT24
+        ];
+        
+        var l = s_targets.length;
+        if (this.m_params.numSamples.length != l)
+            throw new Error('Wrong number of params.');
+        
+        for (var i = 0 ; i < l ; ++i) {
+            var target = s_targets[i];
+            var fmt = new glsFboUtil.ImageFormat(s_formats[i], gl.NONE);
+            
+            var ns = this.m_params.numSamples[i];
+            if (ns == es3fFboCompletenessTests.e_samples.NONE)
+                continue;
+            if (ns == es3fFboCompletenessTests.e_samples.TEXTURE) {
+                this.attachTargetToNew(target, gl.TEXTURE, fmt, 64, 64, builder, gl);
+            } else {
+                var rboCfg = builder.makeConfig(glsFboUtil.Renderbuffer);
+                rboCfg.internalFormat = fmt;
+                rboCfg.width = rboCfg.height = 64;
+                rboCfg.numSamples = ns;
+                
+                var rbo = builder.glCreateRbo(rboCfg);
+                // Implementations do not necessarily support sample sizes greater than 1.
+                if (builder.getError() == gl.INVALID_OPERATION) {
+                    throw new Error('Unsupported number of samples.');
+                }
+                var att = builder.makeConfig(glsFboUtil.RenderbufferAttachment);
+                att.imageName = rbo;
+                builder.glAttach(target, att);
+            }
+        }
+        
+        return true;
+    };
+
+
 
 
     es3fFboCompletenessTests.init = function() {
@@ -307,9 +431,7 @@ goog.scope(function() {
         /** @type {tcuTestCase.DeqpTest} */
         var layerTests = tcuTestCase.newTest('layer', 'Tests for layer attachments');
         
-        /**
-         * @static
-         */
+        /** @static */
         var s_latersParams = [
             es3fFboCompletenessTests.numLayersParams(gl.TEXTURE_2D_ARRAY, 1,  0),
             es3fFboCompletenessTests.numLayersParams(gl.TEXTURE_2D_ARRAY, 1,  3),
@@ -326,8 +448,37 @@ goog.scope(function() {
             var desc = 'desc';
             layerTests.addChild(new es3fFboCompletenessTests.NumLayersTest(name, desc, fboCtx, s_latersParams[i]));
         }
-        
         testGroup.addChild(layerTests);
+        
+        /** @type {tcuTestCase.DeqpTest} */
+        var sampleTests = tcuTestCase.newTest('sample', 'Tests for multisample attachments');
+        // some short hand
+        var samples = es3fFboCompletenessTests.e_samples;
+        // sample tests
+        /** @static */
+        var s_samplesParams = [
+            es3fFboCompletenessTests.numSamplesParams(0,  samples.NONE,     samples.NONE),
+            es3fFboCompletenessTests.numSamplesParams(1,  samples.NONE,     samples.NONE),
+            es3fFboCompletenessTests.numSamplesParams(2,  samples.NONE,     samples.NONE),
+            es3fFboCompletenessTests.numSamplesParams(0,  samples.TEXTURE,  samples.NONE),
+            es3fFboCompletenessTests.numSamplesParams(1,  samples.TEXTURE,  samples.NONE),
+            es3fFboCompletenessTests.numSamplesParams(2,  samples.TEXTURE,  samples.NONE),
+            es3fFboCompletenessTests.numSamplesParams(2,  1,                samples.NONE),
+            es3fFboCompletenessTests.numSamplesParams(2,  2,                samples.NONE),
+            es3fFboCompletenessTests.numSamplesParams(0,  0,                samples.TEXTURE),
+            es3fFboCompletenessTests.numSamplesParams(1,  2,                0),
+            es3fFboCompletenessTests.numSamplesParams(2,  2,                0),
+            es3fFboCompletenessTests.numSamplesParams(1,  1,                1),
+            es3fFboCompletenessTests.numSamplesParams(1,  2,                4)
+        ];
+        
+        for (var i = 0 ; i < s_samplesParams.length ; ++i) {
+            var name = 'name';
+            var desc = 'desc';
+            sampleTests.addChild(new es3fFboCompletenessTests.NumSamplesTest(name, desc, fboCtx, s_samplesParams[i]));
+        }
+        testGroup.addChild(sampleTests);
+        
     };
 
     es3fFboCompletenessTests.run = function() {

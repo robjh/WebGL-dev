@@ -307,11 +307,11 @@ goog.scope(function() {
     };
     
     /**
-     * glsFboUtil.RenderBuffer Class.
+     * glsFboUtil.Renderbuffer Class.
      * @constructor
      * @extends {glsFboUtil.Image}
      */
-    glsFboUtil.RenderBuffer = function() {
+    glsFboUtil.Renderbuffer = function() {
         glsFboUtil.Image.call(this);
         this.type  |= glsFboUtil.Config.s_types.RENDERBUFFER;
         this.target = glsFboUtil.Config.s_target.RENDERBUFFER;
@@ -521,11 +521,11 @@ goog.scope(function() {
             if (!(gl = gl || window.gl)) throw new Error('Invalid gl object');
             
             if (cfg.type & glsFboUtil.Config.s_types.RENDERBUFFER) {
-                var ret = gl.createRenderBuffer();
-                gl.bindRenderBuffer(gl.RENDERBUFFER, ret);
+                var ret = gl.createRenderbuffer();
+                gl.bindRenderbuffer(gl.RENDERBUFFER, ret);
                 
                 if (cfg.numSamples == 0) {
-                    gl.renderBufferStorage(
+                    gl.renderbufferStorage(
                         gl.RENDERBUFFER,
                         cfg.internalFormat.format,
                         cfg.width, cfg.height
@@ -538,13 +538,13 @@ goog.scope(function() {
                         cfg.width, cfg.height
                     );
                 }
-                gl.bindRenderbuffer(gl.RENDERBUFFER, 0);
+                gl.bindRenderbuffer(gl.RENDERBUFFER, null);
                 
             } else if (cfg.type & glsFboUtil.Config.s_types.TEXTURE) {
                 var ret = gl.createTexture();
                 gl.bindTexture(glTarget(cfg, gl), ret);
                 glInit(cfg, gl);
-            //    gl.bindTexture(glTarget(cfg, gl), null); // this line is causing problems
+                gl.bindTexture(glTarget(cfg, gl), null);
             
             } else {
                 throw new Error('Impossible image type');
@@ -722,7 +722,7 @@ goog.scope(function() {
     };
     glsFboUtil.Framebuffer.prototype.getImage = function(type, imgName) {
         switch (type) {
-            case this.m_gl.TEXTURE:      return glsFboUtil.lookupDefault(this.textures, imgName, null);
+            case this.m_gl.TEXTURE: return glsFboUtil.lookupDefault(this.textures, imgName, null);
             default: throw new Error ('Bad image type.');
         }
         return null;
@@ -819,7 +819,7 @@ goog.scope(function() {
     };
     glsFboUtil.Checker.prototype.require = function(condition, error) {
         if (!condition) {
-            glsFboUtil.remove_from_array(m_statusCodes, gl.FRAMEBUFFER_COMPLETE);
+            glsFboUtil.remove_from_array(this.m_statusCodes, gl.FRAMEBUFFER_COMPLETE);
             this.m_statusCodes.push(error);
         }
     };

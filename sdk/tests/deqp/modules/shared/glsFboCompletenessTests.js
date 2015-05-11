@@ -506,6 +506,68 @@ goog.scope(function() {
         return formats;
         
     };
+    
+    // GLenum bufType, ImageFormat format, GLsizei width, GLsizei height, FboBuilder& builder
+    glsFboCompletenessTests.makeImage = function(bufType, format, width, height, builder, gl) {
+        var gl = gl || window.gl;
+        var image = 0;
+        switch (bufType) {
+            case gl.NONE:
+                return null;
+                break;
+            case gl.RENDERBUFFER:
+                image = builder.makeConfig(glsFboUtil.Renderbuffer);
+                break;
+            case gl.TEXTURE:
+                image = builder.makeConfig(glsFboUtil.Texture2D);
+                break;
+            default:
+                debugger;
+                throw new Error("Impossible case");
+        }
+        image.unternalFormat = format;
+        image.width = width;
+        image.height = height;
+        return image;
+    };
+    // GLenum bufType, ImageFormat format, GLsizei width, GLsizei height, FboBuilder& builder
+    glsFboCompletenessTests.makeAttachment = function(bufType, format, width, height, builder, gl) {
+        var gl = gl || window.gl;
+        var cfg = glsFboCompletenessTests.makeImage(bufType, format, width, height, builder, gl);
+        var att = 0;
+        var img = 0;
+        
+        var mask = glsFboUtil.Config.s_types.RENDERBUFFER | glsFboUtil.Config.s_types.TEXTURE2D;
+        
+        switch (cfg.type & mask) {
+            case glsFboUtil.Config.s_types.RENDERBUFFER:
+                img = builder.glCreateRbo(config);
+                att = builder.makeConfig(glsFboUtil.RenderbufferAttachment);
+                break;
+            case glsFboUtil.Config.s_types.TEXTURE2D:
+                img = builder.glCreateTexture(config);
+                att = builder.makeConfig(glsFboUtil.TextureFlatAttachment);
+                att.texTarget = gl.TEXTURE_2D;
+            default:
+                if (config != null) throw new Error('Unsupported config.');
+                return null;
+        }
+        att.imageName = img;
+        return att;
+    };
+    
+    //GLenum target, GLenum bufType, ImageFormat format, GLsizei width, GLsizei height, FboBuilder& builder, webglctx
+    glsFboCompletenessTests.TestBase.prototype.attachTargetToNew = function(
+        target, bufType, format, width, height, builder, gl
+    ) {
+        var imgFmt = format;
+        if (imgFmt == gl.NONE)
+            imgFmt = this.getDefaultFormat(target, bufType, gl);
+        var att = glsFboCompletenessTests.makeAttachment(bufType, imgFmt, width, height, builder, gl);
+        builder.glAttach(target, att);
+    };
+    
+    
   
     // a quick note to work around the absense of these functions:
 //    glsFboCompletenessTests.TestBase.pass
@@ -562,8 +624,10 @@ goog.scope(function() {
         ) {
             // TODO: handle this properly, it should result in the test issuing a warning
             bufferedLogToConsole('Framebuffer object could have checked as complete but did not.');
+            
         } else {
             // pass
+            return true;
         }
         return ret;
     };

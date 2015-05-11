@@ -35,6 +35,10 @@
     };
     gl.framebufferTextureLayer = gldisable('framebufferTextureLayer');
     
+//    gl.bindTexture = function(target, name) {
+//        if (name) gl.prototype.bindTexture.call(gl, target, name);
+//    };
+    
     functional.gles3.es3fFboCompletenessTests.initGlDependents(gl);
     
     try {
