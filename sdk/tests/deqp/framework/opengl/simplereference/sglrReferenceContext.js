@@ -75,18 +75,37 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     sglrReferenceContext.MAX_TEXTURE_SIZE_LOG2 = 14;
     sglrReferenceContext.MAX_TEXTURE_SIZE = 1 << sglrReferenceContext.MAX_TEXTURE_SIZE_LOG2;
 
+    /**
+     * @param {number} width
+     * @param {number} height
+     * @return {number}
+     */
     sglrReferenceContext.getNumMipLevels2D = function(width, height) {
         return Math.floor(Math.log2(Math.max(width, height)) + 1);
     };
 
+    /**
+     * @param {number} baseLevelSize
+     * @param {number} levelNdx
+     * @return {number}
+     */
     sglrReferenceContext.getMipLevelSize = function(baseLevelSize, levelNdx) {
         return Math.max(baseLevelSize >> levelNdx, 1);
     };
 
+    /**
+     * @param {tcuTexture.FilterMode} mode
+     * @return {boolean}
+     */
     sglrReferenceContext.isMipmapFilter = function(/*const tcu::Sampler::FilterMode*/ mode) {
         return mode != tcuTexture.FilterMode.NEAREST && mode != tcuTexture.FilterMode.LINEAR;
     };
 
+    /**
+     * @param {rrDefs.IndexType} indexType
+     * @return {number}
+     * @throws {Error}
+     */
     sglrReferenceContext.getFixedRestartIndex = function(indexType) {
         switch (indexType) {
             case rrDefs.IndexType.INDEXTYPE_UINT8: return 0xFF;
@@ -119,6 +138,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     };
 
     /**
+    * @param {WebGL2RenderingContext} gl
     * @constructor
     */
     sglrReferenceContext.ReferenceContextLimits = function(gl) {
@@ -188,7 +208,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
 
     /**
     * @constructor
- * @implements {rrDefs.Sampler}
+    * @implements {rrDefs.Sampler}
     * @param {sglrReferenceContext.TextureType} type
     */
     sglrReferenceContext.Texture = function(type) {
@@ -233,7 +253,17 @@ sglrReferenceContext.Texture.prototype.sample4 = function(packetTexcoords, lodBi
         this.m_access = [];
     };
 
+    /**
+     * @param {number} level
+     * @return {boolean}
+     */
     sglrReferenceContext.TextureLevelArray.prototype.hasLevel = function(level) { return this.m_data[level] != null; };
+    
+    /**
+     * @param {number} level
+     * @return {number}
+     * @throws {Error}
+     */
     sglrReferenceContext.TextureLevelArray.prototype.getLevel = function(level) {
         if (!this.hasLevel(level))
             throw new Error('Level: ' + level + ' is not defined.');
@@ -241,8 +271,18 @@ sglrReferenceContext.Texture.prototype.sample4 = function(packetTexcoords, lodBi
         return this.m_access[level];
     };
 
+    /**
+     * @return {number}
+     */
     sglrReferenceContext.TextureLevelArray.prototype.getLevels = function() { return this.m_access; };
 
+    /**
+     * @param {number} level
+     * @param {number} format
+     * @param {number} width
+     * @param {number} height
+     * @param {number} depth
+     */
     sglrReferenceContext.TextureLevelArray.prototype.allocLevel = function(level, format, width, height, depth) {
         var dataSize = format.getPixelSize() * width * height * depth;
         if (this.hasLevel(level))
@@ -257,6 +297,9 @@ sglrReferenceContext.Texture.prototype.sample4 = function(packetTexcoords, lodBi
             data: this.m_data[level]});
     };
 
+    /**
+     * @param {number} level
+     */
     sglrReferenceContext.TextureLevelArray.prototype.clearLevel = function(level) {
         delete this.m_data[level];
         delete this.m_access[level];
@@ -287,6 +330,10 @@ sglrReferenceContext.Texture.prototype.sample4 = function(packetTexcoords, lodBi
     sglrReferenceContext.Texture2D.prototype.hasLevel = function(level) { return this.m_levels.hasLevel(level); };
     sglrReferenceContext.Texture2D.prototype.getLevel = function(level) { return this.m_levels.getLevel(level); };
     sglrReferenceContext.Texture2D.prototype.allocLevel = function(level, format, width, height) { this.m_levels.allocLevel(level, format, width, height, 1); };
+    
+    /**
+     * @return {boolean}
+     */
     sglrReferenceContext.Texture2D.prototype.isComplete = function() {
         var baseLevel = this.getBaseLevel();
 
@@ -335,10 +382,16 @@ sglrReferenceContext.Texture.prototype.sample4 = function(packetTexcoords, lodBi
             this.m_view = new tcuTexture.Texture2DView(0, null);
     };
 
+    /**
+     * @param {number} pos
+     * @param {number} lod
+     * @return {number}
+     */
     sglrReferenceContext.Texture2D.prototype.sample = function(pos, lod) { return this.m_view.sample(this.getSampler(), pos, lod) };
 
     /**
     * @param {Array<Array<number>>} packetTexcoords 4 vec2 coordinates
+    * @param {lodBias_} number
     * @return {Array<Array<number>>} 4 vec4 samples
     */
     sglrReferenceContext.Texture2D.prototype.sample4 = function(packetTexcoords, lodBias_) {
@@ -377,8 +430,15 @@ sglrReferenceContext.Texture.prototype.sample4 = function(packetTexcoords, lodBi
         this.textureType = null;
     };
 
+    /**
+     * @return {sglrReferenceContext.Texture2D}
+     */
     sglrReferenceContext.TextureContainer.prototype.getType = function() { return this.textureType; };
 
+    /**
+     * @param {number} target
+     * @throws {Error}
+     */
     sglrReferenceContext.TextureContainer.prototype.init = function(target) {
         switch (target) {
             case gl.TEXTURE_2D:
@@ -411,6 +471,11 @@ sglrReferenceContext.Texture.prototype.sample4 = function(packetTexcoords, lodBi
         ATTACHMENTPOINT_STENCIL: 2
     };
 
+    /**
+     * @param {number} attachment
+     * @return {sglrReferenceContext.AttachmentPoint}
+     * @throws {Error}
+     */
     sglrReferenceContext.mapGLAttachmentPoint = function(attachment) {
         switch (attachment) {
             case gl.COLOR_ATTACHMENT0: return sglrReferenceContext.AttachmentPoint.ATTACHMENTPOINT_COLOR0;
@@ -445,9 +510,9 @@ sglrReferenceContext.Texture.prototype.sample4 = function(packetTexcoords, lodBi
     };
 
     /**
-    * @param {sglrReferenceContext.TexTarget} target
-    * @return {?tcuTexture.CubeFace}
-    */
+     * @param {sglrReferenceContext.TexTarget} target
+     * @return {?tcuTexture.CubeFace}
+     */
     sglrReferenceContext.texTargetToFace = function(target) {
         switch (target) {
             case sglrReferenceContext.TexTarget.TEXTARGET_CUBE_MAP_NEGATIVE_X: return tcuTexture.CubeFace.CUBEFACE_NEGATIVE_X;
@@ -460,6 +525,11 @@ sglrReferenceContext.Texture.prototype.sample4 = function(packetTexcoords, lodBi
         }
     };
 
+    /**
+     * @param {sglrReferenceContext.TexTarget} target
+     * @return {sglrReferenceContext.TexTarget}
+     * @throws {Error}
+     */
     sglrReferenceContext.mapGLFboTexTarget = function(target) {
         switch (target) {
             case gl.TEXTURE_2D: return sglrReferenceContext.TexTarget.TEXTARGET_2D;
@@ -525,18 +595,37 @@ sglrReferenceContext.Texture.prototype.sample4 = function(packetTexcoords, lodBi
 
     /**
     * @param {tcuTexture.TextureFormat} format
+    * @param {number} width
+    * @param {number} height
     */
     sglrReferenceContext.Renderbuffer.prototype.setStorage = function(format, width, height) {
         this.m_data = new tcuTexture.TextureLevel(format, width, height);
     };
+
+    /**
+     * @return {number} 
+     */
     sglrReferenceContext.Renderbuffer.prototype.getWidth = function() { return this.m_data.getWidth(); };
+    
+    /**
+     * @return {number} 
+     */
     sglrReferenceContext.Renderbuffer.prototype.getHeight = function() { return this.m_data.getHeight(); };
+    
+    /**
+     * @return {number} 
+     */
     sglrReferenceContext.Renderbuffer.prototype.getFormat = function() { return this.m_data.getFormat(); };
+    
+    /**
+     * @return {number} 
+     */
     sglrReferenceContext.Renderbuffer.prototype.getAccess = function() { return this.m_data.getAccess(); };
 
     /**
-    * @constructor
-    */
+     * @constructor
+     * @param {number} maxVertexAttribs
+     */
     sglrReferenceContext.VertexArray = function(maxVertexAttribs) {
         /** @constructor */
         var VertexAttribArray = function() {
@@ -566,15 +655,29 @@ sglrReferenceContext.Texture.prototype.sample4 = function(packetTexcoords, lodBi
         /** @type {?ArrayBuffer} */ this.m_data = null;
     };
 
+    /**
+     * @param {number} size
+     */
     sglrReferenceContext.DataBuffer.prototype.setStorage = function(size) {this.m_data = new ArrayBuffer(size); };
+    
+    /**
+     * @return {number}
+     */
     sglrReferenceContext.DataBuffer.prototype.getSize = function() {
         var size = 0;
         if (this.m_data)
             size = this.m_data.byteLength;
         return size;
     };
+
+    /**
+     * @return {number}
+     */
     sglrReferenceContext.DataBuffer.prototype.getData = function() { return this.m_data; };
 
+    /**
+     * @param {number} data
+     */
     sglrReferenceContext.DataBuffer.prototype.setData = function(data) {
         var buffer;
         var offset = 0;
@@ -592,6 +695,10 @@ sglrReferenceContext.Texture.prototype.sample4 = function(packetTexcoords, lodBi
         this.m_data = buffer.slice(offset, offset + byteLength);
     };
 
+    /**
+     * @param {number} offset
+     * @param {goog.NumberArray} data
+     */
     sglrReferenceContext.DataBuffer.prototype.setSubData = function(offset, data) {
         var buffer;
         var srcOffset = 0;
@@ -675,9 +782,10 @@ sglrReferenceContext.Texture.prototype.sample4 = function(packetTexcoords, lodBi
     };
 
     /**
-    * @param {tcuPixelFormat.PixelFormat} pixelFmt
-    * @return {tcuTexture.TextureFormat}
-    */
+     * @param {tcuPixelFormat.PixelFormat} pixelFmt
+     * @return {tcuTexture.TextureFormat}
+     * @throws {Error}
+     */
     sglrReferenceContext.toTextureFormat = function(pixelFmt) {
         if (pixelFmt.equals(8, 8, 8, 8))
             return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.UNORM_INT8);
@@ -693,6 +801,11 @@ sglrReferenceContext.Texture.prototype.sample4 = function(packetTexcoords, lodBi
         throw new Error('Could not map pixel format:' + pixelFmt);
     };
 
+    /**
+     * @param {number} depthBits
+     * @return {tcuTexture.TextureFormat}
+     * @throws {Error}
+     */
     sglrReferenceContext.getDepthFormat = function(depthBits) {
         switch (depthBits) {
             case 8: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.D, tcuTexture.ChannelType.UNORM_INT8);
@@ -704,6 +817,11 @@ sglrReferenceContext.Texture.prototype.sample4 = function(packetTexcoords, lodBi
         }
     };
 
+    /**
+     * @param {number} stencilBits
+     * @return {tcuTexture.TextureFormat}
+     * @throws {Error}
+     */
     sglrReferenceContext.getStencilFormat = function(stencilBits) {
         switch (stencilBits) {
             case 8: return new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.S, tcuTexture.ChannelType.UNSIGNED_INT8);
@@ -737,8 +855,19 @@ sglrReferenceContext.Texture.prototype.sample4 = function(packetTexcoords, lodBi
             this.m_stencilbuffer = new tcuTexture.TextureLevel(sglrReferenceContext.getStencilFormat(stencilBits), samples, width, height);
     };
 
+    /**
+     * @return {rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess}
+     */
     sglrReferenceContext.ReferenceContextBuffers.prototype.getColorbuffer = function() { return rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.fromMultisampleAccess(this.m_colorbuffer.getAccess()); };
+    
+    /**
+     * @return {?rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess}
+     */
     sglrReferenceContext.ReferenceContextBuffers.prototype.getDepthbuffer = function() { return this.m_depthbuffer !== undefined ? rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.fromMultisampleAccess(this.m_depthbuffer.getAccess()) : null; };
+    
+    /**
+     * @return {?rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess}
+     */
     sglrReferenceContext.ReferenceContextBuffers.prototype.getStencilbuffer = function() { return this.m_stencilbuffer !== undefined ? rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.fromMultisampleAccess(this.m_stencilbuffer.getAccess()) : null; };
 
     /**
@@ -833,6 +962,8 @@ sglrReferenceContext.Texture.prototype.sample4 = function(packetTexcoords, lodBi
         /** @type {number} */ this.m_maxLevel;
     };
 
+    /**
+    
     sglrReferenceContext.ReferenceContext.prototype.getWidth = function() { return this.m_defaultColorbuffer.raw().getHeight(); };
     sglrReferenceContext.ReferenceContext.prototype.getHeight = function() { return this.m_defaultColorbuffer.raw().getDepth(); };
     sglrReferenceContext.ReferenceContext.prototype.viewport = function(x, y, width, height) { this.m_viewport = [x, y, width, height]; };
@@ -857,6 +988,10 @@ sglrReferenceContext.Texture.prototype.sample4 = function(packetTexcoords, lodBi
         return err;
     };
 
+    /**
+     * @param {boolean} condition
+     * @param {number} error
+     */
     sglrReferenceContext.ReferenceContext.prototype.condtionalSetError = function(condition, error) {
         if (condition)
             this.setError(error);
