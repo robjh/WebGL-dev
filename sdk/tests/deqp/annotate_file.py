@@ -1,9 +1,16 @@
 #!/usr/bin/env python
+
+# version 0.1 - Add stub comments to uncommented methods
+
 import sys 
 import re
 import os
 from subprocess import Popen, PIPE
 from sys import stdout, stderr, argv
+
+
+
+
 
 # Regular expressions to pull required portions of code.
 # find function contents (commnets included). Replace 'sglrReferenceContext'
@@ -20,7 +27,7 @@ filepath = ''
 namespace = 'sglrReferenceContext'
 
 tab = '    '
-beginComment = '\n\n' + tab + '/**'
+beginComment = '\n' + tab + '/**'
 endComment = '\n' + tab + '*/\n' + tab
 
 def displayUsage ():
@@ -39,7 +46,8 @@ def addCommentsHeader (matchobj):
 			p = re.compile(r'((?<=(function\())(\w|,|\s)*)')
 			parameters = re.search(p, strContents)
 			for param in parameters.group().split(','):
-				commentHeader = (commentHeader + '\n' + tab + '* @param {number} ' + param)
+				if param:
+					commentHeader = (commentHeader + '\n' + tab + '* @param {number} ' + param)
 
 			# Append return annotation
 			if 'return' in strContents:
