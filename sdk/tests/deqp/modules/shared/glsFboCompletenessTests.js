@@ -2,6 +2,7 @@
 goog.provide('modules.shared.glsFboCompletenessTests');
 goog.require('modules.shared.glsFboUtil');
 goog.require('framework.opengl.gluObjectWrapper');
+goog.require('framework.opengl.gluStrUtil');
 goog.require('framework.common.tcuTestCase');
 
 
@@ -10,6 +11,7 @@ goog.scope(function() {
     var glsFboCompletenessTests = modules.shared.glsFboCompletenessTests;
     var glsFboUtil = modules.shared.glsFboUtil;
     var gluObjectWrapper = framework.opengl.gluObjectWrapper;
+    var gluStrUtil = framework.opengl.gluStrUtil;
     var tcuTestCase = framework.common.tcuTestCase;
 
     
@@ -464,7 +466,43 @@ goog.scope(function() {
     glsFboCompletenessTests.Context.prototype.addExtFormats = function(extRange) {
         glsFboUtil.addExtFormats(this.m_ctxFormats, extRange, this.m_renderCtx);
         glsFboUtil.addExtFormats(this.m_maxFormats, extRange, this.m_renderCtx);
-    }
+    };
+    
+    glsFboCompletenessTests.Context.prototype.createRenderableTests = function(gl) {
+        
+        /** @type {tcuTestCase.DeqpTest} */
+        var layerTests = tcuTestCase.newTest('renderable', 'Tests for support of renderable image formats');
+        /** @type {tcuTestCase.DeqpTest} */
+        var layerTests = tcuTestCase.newTest('renderbuffer', 'Tests for renderbuffer formats');
+        /** @type {tcuTestCase.DeqpTest} */
+        var layerTests = tcuTestCase.newTest('texture', 'Tests for texture formats');
+        
+        var attPoints = [
+            [gl.DEPTH_ATTACHMENT,   "depth",   "Tests for depth attachments"],
+            [gl.STENCIL_ATTACHMENT, "stencil", "Tests for stencil attachments"],
+            [gl.COLOR_ATTACHMENT0,  "color0",  "Tests for color attachments"]
+        ];
+        
+        // At each attachment point, iterate through all the possible formats to
+        // detect both false positives and false negatives.
+        var rboFmts = m_maxFormats.getFormats(glsFboUtil.FormatFlags.ANY_FORMAT);
+        var texFmts = m_maxFormats.getFormats(glsFboUtil.FormatFlags.ANY_FORMAT);
+        
+        for (var i = attPoints.length - 1 ; --i ; ) {
+            var rbAttTests  = new tcuTestCase.newTest(attPoints[i][1], attPoints[i][2]);
+            var texAttTests = new tcuTestCase.newTest(attPoints[i][1], attPoints[i][2]);
+            
+            var l = rbAttTests.length;
+            for (var j = 0 ; j < l ; ++j) {
+                var params = glsFboCompletenessTests.renderableParams(attPoints[i][0], gl.RENDERBUFFER, rbAttTests[j]);
+            }
+        }
+        // TODO: finish this function. Leaving it on tuesday I've just added renderableParams,
+        // RenderableTest needs doing now.
+        
+    };
+    
+    
     
     
     
@@ -534,23 +572,25 @@ goog.scope(function() {
     glsFboCompletenessTests.makeAttachment = function(bufType, format, width, height, builder, gl) {
         var gl = gl || window.gl;
         var cfg = glsFboCompletenessTests.makeImage(bufType, format, width, height, builder, gl);
+        if (cfg == null) return null;
+        
         var att = 0;
         var img = 0;
         
-        var mask = glsFboUtil.Config.s_types.RENDERBUFFER | glsFboUtil.Config.s_types.TEXTURE2D;
+        var mask = glsFboUtil.Config.s_types.RENDERBUFFER | glsFboUtil.Config.s_types.TEXTURE_2D;
         
         switch (cfg.type & mask) {
             case glsFboUtil.Config.s_types.RENDERBUFFER:
-                img = builder.glCreateRbo(config);
+                img = builder.glCreateRbo(cfg);
                 att = builder.makeConfig(glsFboUtil.RenderbufferAttachment);
                 break;
-            case glsFboUtil.Config.s_types.TEXTURE2D:
-                img = builder.glCreateTexture(config);
+            case glsFboUtil.Config.s_types.TEXTURE_2D:
+                img = builder.glCreateTexture(cfg);
                 att = builder.makeConfig(glsFboUtil.TextureFlatAttachment);
                 att.texTarget = gl.TEXTURE_2D;
+                break;
             default:
-                if (config != null) throw new Error('Unsupported config.');
-                return null;
+                throw new Error('Unsupported config.');
         }
         att.imageName = img;
         return att;
@@ -631,6 +671,52 @@ goog.scope(function() {
         }
         return ret;
     };
+    
+    
+    
+    glsFboCompletenessTests.formatName(format, gl) {
+        if (!(gl = gl || window.gl)) throw new Error ('Invalid GL object');
+        
+        var s = gluStrUtil.getPixelFormatName(format.format).substr(3).toLowerCase();
+        
+        if (format.unsizedType != gl.NONE)
+            s += '_' + gluStrUtil.getTypeName(format.unsizedType).substr(3).toLowerCase();
+        
+        return s;
+    };
+    glsFboCompletenessTests.formatDesc(format, gl) {
+        if (!(gl = gl || window.gl)) throw new Error ('Invalid GL object');
+        
+        var s = gluStrUtil.getPixelFormatName(format.format);
+        
+        if (format.unsizedType != gl.NONE)
+            s += ' with type ' + gluStrUtil.getTypeName(format.unsizedType);
+        
+        return s;
+    };
+    glsFboCompletenessTests.renderableParams = function(attPoint,bufType,format) {
+        var ret = {
+            attPoint: attPoint,
+            bufType:  bufType,
+            format:   format
+        };
+        return ret;
+    };
+    
+    /**
+     * glsFboCompletenessTests.numSamplesParams.getName
+     * @return {string}
+    // takes const numSamplesParams&
+     */
+    glsFboCompletenessTests.renderableParams.getName = function(params) {
+        return glsFboCompletenessTests.formatName(params.format);
+    };
+    // returns a string.
+    // takes const numSamplesParams&
+    glsFboCompletenessTests.renderableParams.getDescription = function(params) {
+        return glsFboCompletenessTests.formatdesc(params.format);
+    };
+    
     
     /*
     return {

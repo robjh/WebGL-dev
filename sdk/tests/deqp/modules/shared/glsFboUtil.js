@@ -55,7 +55,8 @@ goog.scope(function() {
     };
     
     glsFboUtil.contains = function(array, item) {
-        for (var i = array.length ; i-- ; )
+        var l = array.length;
+        for (var i = 0 ; i < l ; ++i)
             if (array[i] == item) return true;
         return false;
     };
