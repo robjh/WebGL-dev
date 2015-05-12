@@ -142,6 +142,7 @@ var DE_ASSERT = function(x) {
     * @param {Array<number>} bias Vec4
     */
     es3fFboTestCase.FboTestCase.prototype.readPixelsUsingFormat = function(dst, x, y, width, height, format, scale, bias) {
+        dst.setSize(width, height);
         es3fFboTestUtil.readPixels(this.getCurrentContext(), dst, x, y, width, height, format, scale, bias);
     };
 
@@ -207,12 +208,12 @@ var DE_ASSERT = function(x) {
 
             this.setContext(context);
             this.render(result);
-        
+
             // Check error.
             /** @type {number} */ var err = context.getError();
             if (err != gl.NO_ERROR)
                 throw new Error('glError: ' + context);
-        
+
             this.setContext(null);
         }
         catch (e) {
@@ -247,7 +248,7 @@ var DE_ASSERT = function(x) {
         this.setContext(refContext);
         this.render(reference);
         this.setContext(null);
-debugger;
+
         /** @type {boolean} */ var isOk = es3fFboTestCase.FboTestCase.compare(reference, result);
 
         assertMsgOptions(isOk, '', true, false);

@@ -169,6 +169,7 @@ goog.scope(function() {
      * @param {tcuSurface.Surface} dst
      */
     es3fFboStencilbufferTests.DepthStencilAttachCase.prototype.render = function(dst) {
+
         var ctx = this.getCurrentContext();
         /** @const {number} */ var colorFormat = gl.RGBA8;
         /** @const {number} */ var depthStencilFormat = gl.DEPTH24_STENCIL8;
@@ -246,7 +247,7 @@ goog.scope(function() {
         // TODO: implement drawQuad
         rrUtil.drawQuad(this.getCurrentContext(), flatShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
 
-        this.readPixels(dst, 0, 0, width, height, gluTextureUtil.mapGLInternalFormat(colorFormat), [1.0, 1.0, 1.0, 1.0], [0.0, 0.0, 0.0, 0.0]);
+        this.readPixelsUsingFormat(dst, 0, 0, width, height, gluTextureUtil.mapGLInternalFormat(colorFormat), [1.0, 1.0, 1.0, 1.0], [0.0, 0.0, 0.0, 0.0]);
     };
 
     /**
