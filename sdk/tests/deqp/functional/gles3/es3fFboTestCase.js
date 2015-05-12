@@ -95,8 +95,8 @@ var DE_ASSERT = function(x) {
      * @param {tcuSurface.Surface} reference
      * @param {tcuSurface.Surface} result
      */
-    es3fFboTestCase.FboTestCase.prototype.compare = function(reference, result) {
-        return tcuImageCompare.fuzzyCompare('Result', 'Image comparison result', reference.getAccess(), result.getAccess(), 0.05 /*, tcu::COMPARE_LOG_RESULT*/);
+    es3fFboTestCase.FboTestCase.compare = function(reference, result) {
+        return tcuImageCompare.fuzzyCompare('Result', 'Image comparison result', reference.getAccess(), result.getAccess(), 0.05, tcuImageCompare.CompareLogMode.RESULT);
     };
 
     /**
@@ -204,14 +204,15 @@ var DE_ASSERT = function(x) {
             /** @type {sglrGLContext.GLContext} */ var context = new sglrGLContext.GLContext(
                                                             gl,
                                                             [x, y, width, height]);
+
             this.setContext(context);
             this.render(result);
-
+        
             // Check error.
             /** @type {number} */ var err = context.getError();
             if (err != gl.NO_ERROR)
                 throw new Error('glError: ' + context);
-
+        
             this.setContext(null);
         }
         catch (e) {
@@ -246,8 +247,8 @@ var DE_ASSERT = function(x) {
         this.setContext(refContext);
         this.render(reference);
         this.setContext(null);
-
-        /** @type {boolean} */ var isOk = this.compare(reference, result);
+debugger;
+        /** @type {boolean} */ var isOk = es3fFboTestCase.FboTestCase.compare(reference, result);
 
         assertMsgOptions(isOk, '', true, false);
 

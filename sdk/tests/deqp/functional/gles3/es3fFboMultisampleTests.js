@@ -248,7 +248,7 @@ var DE_ASSERT = function(x) {
             ctx.disable(gl.STENCIL_TEST);
         }
 
-        this.readPixels(dst, 0, 0, this.m_size[0], this.m_size[1], colorFmt, colorFmtInfo.lookupScale, colorFmtInfo.lookupBias);
+        this.readPixelsUsingFormat(dst, 0, 0, this.m_size[0], this.m_size[1], colorFmt, colorFmtInfo.lookupScale, colorFmtInfo.lookupBias);
     };
 
     /**
@@ -258,7 +258,7 @@ var DE_ASSERT = function(x) {
      */
     es3fFboMultisampleTests.BasicFboMultisampleCase.prototype.colorCompare = function(reference, result) {
         /** @const {tcuRGBA.RGBA} */ var threshold = tcuRGBA.max(es3fFboTestUtil.getFormatThreshold(this.m_colorFormat), tcuRGBA.newRGBAComponents(12, 12, 12, 12));
-        return tcuImageCompare.bilinearCompare('Result', 'Image comparison result', reference.getAccess(), result.getAccess(), threshold, null /*tcu::COMPARE_LOG_RESULT*/);
+        return tcuImageCompare.bilinearCompare('Result', 'Image comparison result', reference.getAccess(), result.getAccess(), threshold, tcuImageCompare.CompareLogMode.RESULT);
     };
 
     /**
@@ -268,7 +268,7 @@ var DE_ASSERT = function(x) {
      */
     es3fFboMultisampleTests.BasicFboMultisampleCase.prototype.compare = function(reference, result) {
         if (this.m_depthStencilFormat != gl.NONE)
-            return this.compare(reference, result); // FboTestCase.compare
+            return es3fFboTestCase.FboTestCase.compare(reference, result); // FboTestCase.compare
         else
             return this.colorCompare(reference, result);
     };
@@ -285,7 +285,7 @@ var DE_ASSERT = function(x) {
     es3fFboMultisampleTests.FboMultisampleTests.prototype.constructor = es3fFboMultisampleTests.FboMultisampleTests;
 
     es3fFboMultisampleTests.FboMultisampleTests.prototype.init = function() {
-        /** @const {number} */ var colorFormats = [
+        /** @const {Array<number>} */ var colorFormats = [
             // RGBA formats
             gl.RGBA8,
             gl.SRGB8_ALPHA8,
@@ -313,7 +313,7 @@ var DE_ASSERT = function(x) {
             gl.R16F
         ];
 
-        /** @const {number} */ var depthStencilFormats = [
+        /** @const {Array<number>} */ var depthStencilFormats = [
             gl.DEPTH_COMPONENT32F,
             gl.DEPTH_COMPONENT24,
             gl.DEPTH_COMPONENT16,
@@ -322,12 +322,12 @@ var DE_ASSERT = function(x) {
             gl.STENCIL_INDEX8
         ];
 
-        /** @const {number} */ var sampleCounts = [2, 4, 8];
+        /** @const {Array<number>} */ var sampleCounts = [2, 4, 8];
 
         for (var sampleCntNdx in sampleCounts) {
             /** @type {number} */ var samples = sampleCounts[sampleCntNdx];
             /** @type {tcuTestCase.DeqpTest} */
-            var sampleCountGroup = tcuTestCase.newTest(samples + '_', '');
+            var sampleCountGroup = tcuTestCase.newTest(samples + '_samples', '');
             this.addChild(sampleCountGroup);
 
             // Color formats.
