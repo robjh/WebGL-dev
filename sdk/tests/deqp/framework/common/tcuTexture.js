@@ -1722,6 +1722,7 @@ tcuTexture.PixelBufferAccess.prototype.setPixStencil = function(stencil, x, y, z
 /**
  * newFromTextureLevel
  * @param {tcuTexture.TextureLevel} level
+ * @return {tcuTexture.PixelBufferAccess}
  */
 tcuTexture.PixelBufferAccess.newFromTextureLevel = function(level) {
     var descriptor = new Object();
