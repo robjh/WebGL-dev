@@ -60,7 +60,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     /**
     * @param {number} error
     * @param {number}  message
-    * @throws {Error} 
+    * @throws {Error}
     */
     sglrReferenceContext.GLU_EXPECT_NO_ERROR = function(error, message) {
         if (error !== gl.NONE) {
@@ -147,13 +147,13 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     * @constructor
     */
     sglrReferenceContext.ReferenceContextLimits = function(gl) {
-        this.maxTextureImageUnits = 16;
-        this.maxTexture2DSize = 2048;
-        this.maxTextureCubeSize = 2048;
-        this.maxTexture2DArrayLayers = 256;
-        this.maxTexture3DSize = 256;
-        this.maxRenderbufferSize = 2048;
-        this.maxVertexAttribs = 16;
+        /** @type {*} */ this.maxTextureImageUnits = 16;
+        /** @type {*} */ this.maxTexture2DSize = 2048;
+        /** @type {*} */ this.maxTextureCubeSize = 2048;
+        /** @type {*} */ this.maxTexture2DArrayLayers = 256;
+        /** @type {*} */ this.maxTexture3DSize = 256;
+        /** @type {*} */ this.maxRenderbufferSize = 2048;
+        /** @type {*} */ this.maxVertexAttribs = 16;
 
         if (gl) {
             this.maxTextureImageUnits = gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS);
@@ -238,14 +238,14 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     /**
     * @param {number} pos
     * @param {number}  lod
-    * @throws {Error} 
+    * @throws {Error}
     */
     sglrReferenceContext.Texture.prototype.sample = function(pos, lod) {throw new Error('Intentionally empty. Call method from child class instead'); };
 
     /**
     * @param {number} packetTexcoords
     * @param {number}  lodBias
-    * @throws {Error} 
+    * @throws {Error}
     */
     sglrReferenceContext.Texture.prototype.sample4 = function(packetTexcoords, lodBias) {throw new Error('Intentionally empty. Call method from child class instead'); };
 
@@ -253,43 +253,42 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     // sglrReferenceContext.Texture.prototype.constructor = sglrReferenceContext.Texture;
 
     /**
-    * @return {number} 
+    * @return {number}
     */
-
     sglrReferenceContext.Texture.prototype.getType = function() { return this.m_type; };
-    
+
     /**
-    * @return {number} 
+    * @return {number}
     */
     sglrReferenceContext.Texture.prototype.getBaseLevel = function() { return this.m_baseLevel; };
-    
+
     /**
-    * @return {number} 
+    * @return {number}
     */
     sglrReferenceContext.Texture.prototype.getMaxLevel = function() { return this.m_maxLevel; };
-    
+
     /**
-    * @return {number} 
+    * @return {boolean}
     */
     sglrReferenceContext.Texture.prototype.isImmutable = function() { return this.m_immutable; };
-    
+
     /**
     * @param {number} baseLevel
     */
     sglrReferenceContext.Texture.prototype.setBaseLevel = function(baseLevel) { this.m_baseLevel = baseLevel; };
-    
+
     /**
     * @param {number} maxLevel
     */
     sglrReferenceContext.Texture.prototype.setMaxLevel = function(maxLevel) { this.m_maxLevel = maxLevel; };
-    
+
     /**
     */
     sglrReferenceContext.Texture.prototype.setImmutable = function() { this.m_immutable = true; };
 
-    
+
     /**
-    * @return {number} 
+    * @return {tcuTexture.Sampler}
     */
     sglrReferenceContext.Texture.prototype.getSampler = function() { return this.m_sampler; };
 
@@ -298,7 +297,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     */
     sglrReferenceContext.TextureLevelArray = function() {
         this.m_data = [];
-        this.m_access = [];
+        /** @type {Array<tcuTexture.PixelBufferAccess>} */ this.m_access = [];
     };
 
     /**
@@ -306,10 +305,10 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
      * @return {boolean}
      */
     sglrReferenceContext.TextureLevelArray.prototype.hasLevel = function(level) { return this.m_data[level] != null; };
-    
+
     /**
      * @param {number} level
-     * @return {number}
+     * @return {tcuTexture.PixelBufferAccess}
      * @throws {Error}
      */
     sglrReferenceContext.TextureLevelArray.prototype.getLevel = function(level) {
@@ -320,13 +319,13 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     };
 
     /**
-     * @return {number}
+     * @return {Array<tcuTexture.PixelBufferAccess>}
      */
     sglrReferenceContext.TextureLevelArray.prototype.getLevels = function() { return this.m_access; };
 
     /**
      * @param {number} level
-     * @param {number} format
+     * @param {tcuTexture.TextureFormat} format
      * @param {number} width
      * @param {number} height
      * @param {number} depth
@@ -353,7 +352,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         delete this.m_access[level];
     };
 
-    
+
     /**
     */
     sglrReferenceContext.TextureLevelArray.prototype.clear = function() {
@@ -374,34 +373,34 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         this.m_levels = new sglrReferenceContext.TextureLevelArray();
     };
 
-    
+
     /**
     */
     sglrReferenceContext.Texture2D.prototype = Object.create(sglrReferenceContext.Texture.prototype);
     sglrReferenceContext.Texture2D.prototype.constructor = sglrReferenceContext.Texture2D;
 
     sglrReferenceContext.Texture2D.prototype.clearLevels = function() { this.m_levels.clear(); };
-    
+
     /**
     * @param {number} level
-    * @return {number} 
+    * @return {boolean}
     */
     sglrReferenceContext.Texture2D.prototype.hasLevel = function(level) { return this.m_levels.hasLevel(level); };
-    
+
     /**
     * @param {number} level
-    * @return {number} 
+    * @return {tcuTexture.PixelBufferAccess}
     */
     sglrReferenceContext.Texture2D.prototype.getLevel = function(level) { return this.m_levels.getLevel(level); };
-    
+
     /**
     * @param {number} level
-    * @param {number}  format
+    * @param {?tcuTexture.TextureFormat}  format
     * @param {number}  width
     * @param {number}  height
     */
     sglrReferenceContext.Texture2D.prototype.allocLevel = function(level, format, width, height) { this.m_levels.allocLevel(level, format, width, height, 1); };
-    
+
     /**
      * @return {boolean}
      */
@@ -454,15 +453,15 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     };
 
     /**
-     * @param {number} pos
+     * @param {?Array<number>} pos
      * @param {number} lod
-     * @return {number}
+     * @return {?Array<number>}
      */
     sglrReferenceContext.Texture2D.prototype.sample = function(pos, lod) { return this.m_view.sample(this.getSampler(), pos, lod) };
 
     /**
     * @param {Array<Array<number>>} packetTexcoords 4 vec2 coordinates
-    * @param {lodBias_} number
+    * @param {number} lodBias_
     * @return {Array<Array<number>>} 4 vec4 samples
     */
     sglrReferenceContext.Texture2D.prototype.sample4 = function(packetTexcoords, lodBias_) {
@@ -674,22 +673,22 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     };
 
     /**
-     * @return {number} 
+     * @return {number}
      */
     sglrReferenceContext.Renderbuffer.prototype.getWidth = function() { return this.m_data.getWidth(); };
-    
+
     /**
-     * @return {number} 
+     * @return {number}
      */
     sglrReferenceContext.Renderbuffer.prototype.getHeight = function() { return this.m_data.getHeight(); };
-    
+
     /**
-     * @return {number} 
+     * @return {?tcuTexture.TextureFormat}
      */
     sglrReferenceContext.Renderbuffer.prototype.getFormat = function() { return this.m_data.getFormat(); };
-    
+
     /**
-     * @return {number} 
+     * @return {number}
      */
     sglrReferenceContext.Renderbuffer.prototype.getAccess = function() { return this.m_data.getAccess(); };
 
@@ -730,7 +729,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
      * @param {number} size
      */
     sglrReferenceContext.DataBuffer.prototype.setStorage = function(size) {this.m_data = new ArrayBuffer(size); };
-    
+
     /**
      * @return {number}
      */
@@ -742,12 +741,12 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     };
 
     /**
-     * @return {number}
+     * @return {?ArrayBuffer}
      */
     sglrReferenceContext.DataBuffer.prototype.getData = function() { return this.m_data; };
 
     /**
-     * @param {number} data
+     * @param {ArrayBuffer|goog.NumberArray} data
      */
     sglrReferenceContext.DataBuffer.prototype.setData = function(data) {
         var buffer;
@@ -930,12 +929,12 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
      * @return {rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess}
      */
     sglrReferenceContext.ReferenceContextBuffers.prototype.getColorbuffer = function() { return rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.fromMultisampleAccess(this.m_colorbuffer.getAccess()); };
-    
+
     /**
      * @return {?rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess}
      */
     sglrReferenceContext.ReferenceContextBuffers.prototype.getDepthbuffer = function() { return this.m_depthbuffer !== undefined ? rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.fromMultisampleAccess(this.m_depthbuffer.getAccess()) : null; };
-    
+
     /**
      * @return {?rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess}
      */
@@ -1033,14 +1032,14 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         /** @type {number} */ this.m_maxLevel;
     };
 
-    
+
     sglrReferenceContext.ReferenceContext.prototype.getWidth = function() { return this.m_defaultColorbuffer.raw().getHeight(); };
-    
+
     /**
-    * @return {number} 
+    * @return {number}
     */
     sglrReferenceContext.ReferenceContext.prototype.getHeight = function() { return this.m_defaultColorbuffer.raw().getDepth(); };
-    
+
     /**
     * @param {number} x
     * @param {number}  y
@@ -1048,7 +1047,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     * @param {number}  height
     */
     sglrReferenceContext.ReferenceContext.prototype.viewport = function(x, y, width, height) { this.m_viewport = [x, y, width, height]; };
-    
+
     /**
     * @param {number} texture
     */
@@ -1059,7 +1058,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
             this.setError(gl.INVALID_ENUM);
     };
 
-    
+
     /**
     * @param {number} error
     */
@@ -1138,10 +1137,10 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         }
     };
 
-    
+
     /**
     * @param {number} unitNdx
-    * @param {number}  texture
+    * @param {?sglrReferenceContext.TextureContainer}  texture
     */
     sglrReferenceContext.ReferenceContext.prototype.setTex2DBinding = function(unitNdx, texture) {
         if (this.m_textureUnits[unitNdx].tex2DBinding) {
@@ -1155,17 +1154,16 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         }
     };
 
-    
+
     /**
-    * @return {number} 
+    * @return {sglrReferenceContext.TextureContainer}
     */
     sglrReferenceContext.ReferenceContext.prototype.createTexture = function() { return new sglrReferenceContext.TextureContainer(); };
 
-    
+
     /**
     * @param {number} target
     * @param {number}  fbo
-    * @return {number} 
     */
     sglrReferenceContext.ReferenceContext.prototype.bindFramebuffer = function(target, fbo) {
         if (this.condtionalSetError((target != gl.FRAMEBUFFER &&
@@ -1185,17 +1183,16 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         }
     };
 
-    
+
     /**
-    * @return {number} 
+    * @return {sglrReferenceContext.Framebuffer}
     */
     sglrReferenceContext.ReferenceContext.prototype.createFramebuffer = function() { return new sglrReferenceContext.Framebuffer(); };
 
-    
+
     /**
     * @param {number} target
     * @param {number}  rbo
-    * @return {number} 
     */
     sglrReferenceContext.ReferenceContext.prototype.bindRenderbuffer = function(target, rbo) {
         if (this.condtionalSetError(target != gl.RENDERBUFFER, gl.INVALID_ENUM))
@@ -1204,17 +1201,16 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         this.m_renderbufferBinding = rbo;
     };
 
-    
+
     /**
-    * @return {number} 
+    * @return {sglrReferenceContext.Renderbuffer}
     */
     sglrReferenceContext.ReferenceContext.prototype.createRenderbuffer = function() { return new sglrReferenceContext.Renderbuffer(); };
 
-    
+
     /**
     * @param {number} pname
     * @param {number}  param
-    * @return {number} 
     */
     sglrReferenceContext.ReferenceContext.prototype.pixelStorei = function(pname, param) {
         switch (pname) {
@@ -1258,7 +1254,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         }
     };
 
-    
+
     /**
     * @param {number} red
     * @param {number}  green
@@ -1272,7 +1268,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
                             deMath.clamp(alpha, 0, 1)];
     };
 
-    
+
     /**
     * @param {number} depth
     */
@@ -1280,7 +1276,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         this.m_clearDepth = deMath.clamp(depth, 0, 1);
     };
 
-    
+
     /**
     * @param {number} stencil
     */
@@ -1288,13 +1284,12 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         this.m_clearStencil = stencil;
     };
 
-    
+
     /**
     * @param {number} x
     * @param {number}  y
     * @param {number}  width
     * @param {number}  height
-    * @return {number} 
     */
     sglrReferenceContext.ReferenceContext.prototype.scissor = function(x, y, width, height) {
         if (this.condtionalSetError(width < 0 || height < 0, gl.INVALID_VALUE))
@@ -1302,7 +1297,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         this.m_scissorBox = [x, y, width, height];
     };
 
-    
+
     /**
     * @param {number} cap
     */
@@ -1324,7 +1319,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         }
     };
 
-    
+
     /**
     * @param {number} cap
     */
@@ -1346,7 +1341,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         }
     };
 
-    
+
     /**
     * @param {number} func
     * @param {number}  ref
@@ -1356,13 +1351,12 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         this.stencilFuncSeparate(gl.FRONT_AND_BACK, func, ref, mask);
     };
 
-    
+
     /**
     * @param {number} face
     * @param {number}  func
     * @param {number}  ref
     * @param {number}  mask
-    * @return {number} 
     */
     sglrReferenceContext.ReferenceContext.prototype.stencilFuncSeparate = function(face, func, ref, mask) {
         var setFront = face == gl.FRONT || face == gl.FRONT_AND_BACK;
@@ -1384,10 +1378,10 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         }
     };
 
-    
+
     /**
     * @param {number} func
-    * @return {number} 
+    * @return {boolean}
     */
     sglrReferenceContext.isValidCompareFunc = function(func) {
         switch (func) {
@@ -1406,10 +1400,10 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         }
     };
 
-    
+
     /**
     * @param {number} op
-    * @return {number} 
+    * @return {boolean}
     */
     sglrReferenceContext.isValidStencilOp = function(op) {
         switch (op) {
@@ -1428,7 +1422,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         }
     };
 
-    
+
     /**
     * @param {number} sfail
     * @param {number}  dpfail
@@ -1438,13 +1432,12 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         this.stencilOpSeparate(gl.FRONT_AND_BACK, sfail, dpfail, dppass);
     };
 
-    
+
     /**
     * @param {number} face
     * @param {number}  sfail
     * @param {number}  dpfail
     * @param {number}  dppass
-    * @return {number} 
     */
     sglrReferenceContext.ReferenceContext.prototype.stencilOpSeparate = function(face, sfail, dpfail, dppass) {
         var setFront = face == gl.FRONT || face == gl.FRONT_AND_BACK;
@@ -1470,10 +1463,9 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         }
     };
 
-    
+
     /**
     * @param {number} func
-    * @return {number} 
     */
     sglrReferenceContext.ReferenceContext.prototype.depthFunc = function(func) {
         if (this.condtionalSetError(!sglrReferenceContext.isValidCompareFunc(func), gl.INVALID_ENUM))
@@ -1481,7 +1473,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         this.m_depthFunc = func;
     };
 
-    
+
     /**
     * @param {number} n
     * @param {number}  f
@@ -1491,7 +1483,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         this.m_depthRangeFar = deMath.clamp(f, 0, 1);
     };
 
-    
+
     /**
     * @param {number} factor
     * @param {number}  units
@@ -1501,10 +1493,10 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         this.m_polygonOffsetUnits = units;
     };
 
-    
+
     /**
     * @param {number} mode
-    * @return {number} 
+    * @return {boolean}
     */
     sglrReferenceContext.isValidBlendEquation = function(mode) {
         return mode == gl.FUNC_ADD ||
@@ -1514,10 +1506,10 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
             mode == gl.MAX;
     };
 
-    
+
     /**
     * @param {number} factor
-    * @return {number} 
+    * @return {boolean}
     */
     sglrReferenceContext.isValidBlendFactor = function(factor) {
         switch (factor) {
@@ -1543,10 +1535,9 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         }
     };
 
-    
+
     /**
     * @param {number} mode
-    * @return {number} 
     */
     sglrReferenceContext.ReferenceContext.prototype.blendEquation = function(mode) {
         if (this.condtionalSetError(!sglrReferenceContext.isValidBlendEquation(mode), gl.INVALID_ENUM))
@@ -1555,11 +1546,10 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         this.m_blendModeAlpha = mode;
     };
 
-    
+
     /**
     * @param {number} modeRGB
     * @param {number}  modeAlpha
-    * @return {number} 
     */
     sglrReferenceContext.ReferenceContext.prototype.blendEquationSeparate = function(modeRGB, modeAlpha) {
         if (this.condtionalSetError(!sglrReferenceContext.isValidBlendEquation(modeRGB) ||
@@ -1571,11 +1561,10 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         this.m_blendModeAlpha = modeAlpha;
     };
 
-    
+
     /**
     * @param {number} src
     * @param {number}  dst
-    * @return {number} 
     */
     sglrReferenceContext.ReferenceContext.prototype.blendFunc = function(src, dst) {
         if (this.condtionalSetError(!sglrReferenceContext.isValidBlendFactor(src) ||
@@ -1589,13 +1578,12 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         this.m_blendFactorDstAlpha = dst;
     };
 
-    
+
     /**
     * @param {number} srcRGB
     * @param {number}  dstRGB
     * @param {number}  srcAlpha
     * @param {number}  dstAlpha
-    * @return {number} 
     */
     sglrReferenceContext.ReferenceContext.prototype.blendFuncSeparate = function(srcRGB, dstRGB, srcAlpha, dstAlpha) {
         if (this.condtionalSetError(!sglrReferenceContext.isValidBlendFactor(srcRGB) ||
@@ -1611,7 +1599,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         this.m_blendFactorDstAlpha = dstAlpha;
     };
 
-    
+
     /**
     * @param {number} red
     * @param {number}  green
@@ -1625,7 +1613,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
                             deMath.clamp(alpha, 0, 1)];
     };
 
-    
+
     /**
     * @param {number} r
     * @param {number}  g
@@ -1636,7 +1624,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         this.m_colorMask = [r, g, b, a];
     };
 
-    
+
     /**
     * @param {number} mask
     */
@@ -1644,7 +1632,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         this.m_depthMask = mask;
     };
 
-    
+
     /**
     * @param {number} mask
     */
@@ -1652,11 +1640,10 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         this.stencilMaskSeparate(gl.FRONT_AND_BACK, mask);
     };
 
-    
+
     /**
     * @param {number} face
     * @param {number}  mask
-    * @return {number} 
     */
     sglrReferenceContext.ReferenceContext.prototype.stencilMaskSeparate = function(face, mask) {
         var setFront = face == gl.FRONT || face == gl.FRONT_AND_BACK;
@@ -1669,7 +1656,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         if (setBack) this.m_stencil[rrDefs.FaceType.FACETYPE_BACK].writeMask = mask;
     };
 
-    
+
     /**
     * @param {number} array
     */
@@ -1680,18 +1667,18 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
             this.m_vertexArrayBinding = this.m_defaultVAO;
     };
 
-    
+
     /**
-    * @return {number} 
+    * @return {sglrReferenceContext.VertexArray}
     */
     sglrReferenceContext.ReferenceContext.prototype.createVertexArray = function() { return new sglrReferenceContext.VertexArray(this.m_limits.maxVertexAttribs); };
-    
+
     /**
     * @param {number} array
     */
     sglrReferenceContext.ReferenceContext.prototype.deleteVertexArray = function(array) {};
 
-    
+
     /**
     * @param {number} index
     * @param {number}  rawSize
@@ -1699,7 +1686,6 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     * @param {number}  normalized
     * @param {number}  stride
     * @param {number}  offset
-    * @return {number} 
     */
     sglrReferenceContext.ReferenceContext.prototype.vertexAttribPointer = function(index, rawSize, type, normalized, stride, offset) {
         var allowBGRA = false;
@@ -1736,14 +1722,13 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         array.bufferBinding = this.m_arrayBufferBinding;
     };
 
-    
+
     /**
     * @param {number} index
     * @param {number}  size
     * @param {number}  type
     * @param {number}  stride
     * @param {number}  offset
-    * @return {number} 
     */
     sglrReferenceContext.ReferenceContext.prototype.vertexAttribIPointer = function(index, size, type, stride, offset) {
         if (this.condtionalSetError(index >= this.m_limits.maxVertexAttribs, gl.INVALID_VALUE))
@@ -1771,10 +1756,9 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         array.bufferBinding = this.m_arrayBufferBinding;
     };
 
-    
+
     /**
     * @param {number} index
-    * @return {number} 
     */
     sglrReferenceContext.ReferenceContext.prototype.enableVertexAttribArray = function(index) {
         if (this.condtionalSetError(index >= this.m_limits.maxVertexAttribs, gl.INVALID_VALUE))
@@ -1783,10 +1767,9 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         this.m_vertexArrayBinding.m_arrays[index].enabled = true;
     };
 
-    
+
     /**
     * @param {number} index
-    * @return {number} 
     */
     sglrReferenceContext.ReferenceContext.prototype.disableVertexAttribArray = function(index) {
         if (this.condtionalSetError(index >= this.m_limits.maxVertexAttribs, gl.INVALID_VALUE))
@@ -1795,11 +1778,10 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         this.m_vertexArrayBinding.m_arrays[index].enabled = false;
     };
 
-    
+
     /**
     * @param {number} index
     * @param {number}  divisor
-    * @return {number} 
     */
     sglrReferenceContext.ReferenceContext.prototype.vertexAttribDivisor = function(index, divisor) {
         if (this.condtionalSetError(index >= this.m_limits.maxVertexAttribs, gl.INVALID_VALUE))
@@ -1808,11 +1790,10 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         this.m_vertexArrayBinding.m_arrays[index].divisor = divisor;
     };
 
-    
+
     /**
     * @param {number} index
     * @param {number}  x
-    * @return {number} 
     */
     sglrReferenceContext.ReferenceContext.prototype.vertexAttrib1f = function(index, x) {
         if (this.condtionalSetError(index >= this.m_limits.maxVertexAttribs, gl.INVALID_VALUE))
@@ -1821,12 +1802,11 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         this.m_currentAttribs[index] = new sglrReferenceContext.GenericVec4(x, 0, 0, 1);
     };
 
-    
+
     /**
     * @param {number} index
     * @param {number}  x
     * @param {number}  y
-    * @return {number} 
     */
     sglrReferenceContext.ReferenceContext.prototype.vertexAttrib2f = function(index, x, y) {
         if (this.condtionalSetError(index >= this.m_limits.maxVertexAttribs, gl.INVALID_VALUE))
@@ -1835,13 +1815,12 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         this.m_currentAttribs[index] = new sglrReferenceContext.GenericVec4(x, y, 0, 1);
     };
 
-    
+
     /**
     * @param {number} index
     * @param {number}  x
     * @param {number}  y
     * @param {number}  z
-    * @return {number} 
     */
     sglrReferenceContext.ReferenceContext.prototype.vertexAttrib3f = function(index, x, y, z) {
         if (this.condtionalSetError(index >= this.m_limits.maxVertexAttribs, gl.INVALID_VALUE))
@@ -1849,14 +1828,13 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
 
         this.m_currentAttribs[index] = new sglrReferenceContext.GenericVec4(x, y, z, 1);
     };
-    
+
     /**
     * @param {number} index
     * @param {number}  x
     * @param {number}  y
     * @param {number}  z
     * @param {number}  w
-    * @return {number} 
     */
     sglrReferenceContext.ReferenceContext.prototype.vertexAttrib4f = function(index, x, y, z, w) {
         if (this.condtionalSetError(index >= this.m_limits.maxVertexAttribs, gl.INVALID_VALUE))
@@ -1864,14 +1842,13 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
 
         this.m_currentAttribs[index] = new sglrReferenceContext.GenericVec4(x, y, z, w);
     };
-    
+
     /**
     * @param {number} index
     * @param {number}  x
     * @param {number}  y
     * @param {number}  z
     * @param {number}  w
-    * @return {number} 
     */
     sglrReferenceContext.ReferenceContext.prototype.vertexAttribI4i = function(index, x, y, z, w) {
         if (this.condtionalSetError(index >= this.m_limits.maxVertexAttribs, gl.INVALID_VALUE))
@@ -1879,14 +1856,13 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
 
         this.m_currentAttribs[index] = new sglrReferenceContext.GenericVec4(x, y, z, w);
     };
-    
+
     /**
     * @param {number} index
     * @param {number}  x
     * @param {number}  y
     * @param {number}  z
     * @param {number}  w
-    * @return {number} 
     */
     sglrReferenceContext.ReferenceContext.prototype.vertexAttribI4ui = function(index, x, y, z, w) {
         if (this.condtionalSetError(index >= this.m_limits.maxVertexAttribs, gl.INVALID_VALUE))
@@ -1895,11 +1871,11 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         this.m_currentAttribs[index] = new sglrReferenceContext.GenericVec4(x, y, z, w);
     };
 
-    
+
     /**
-    * @param {number} program
-    * @param {number}  name
-    * @return {number} 
+    * @param {sglrShaderProgram.ShaderProgram} program
+    * @param {string}  name
+    * @return {number}
     */
     sglrReferenceContext.ReferenceContext.prototype.getAttribLocation = function(program, name) {
         if (this.condtionalSetError(!(program), gl.INVALID_OPERATION))
@@ -1912,12 +1888,11 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         return -1;
     };
 
-    
+
     /**
     * @param {number} location
     * @param {number}  type
     * @param {number}  value
-    * @return {number} 
     */
     sglrReferenceContext.ReferenceContext.prototype.uniformValue = function(location, type, value) {
         if (this.condtionalSetError(!this.m_currentProgram, gl.INVALID_OPERATION))
@@ -2080,9 +2055,9 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         return this.uniformValue(location, gluShaderUtil.DataType.INT_VEC4, x);
     };
 
-    
+
     /**
-    * @return {number} 
+    * @return {Array<number>}
     */
     sglrReferenceContext.ReferenceContext.getSupportedExtensions = function() { return []; };
 
@@ -2120,11 +2095,11 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         return this.uniformValue(location, gluShaderUtil.DataType.FLOAT_MAT4, transpose ? sglrReferenceContext.trans(4, x) : x);
     };
 
-    
+
     /**
-    * @param {number} program
-    * @param {number}  name
-    * @return {number} 
+    * @param {sglrShaderProgram.ShaderProgram} program
+    * @param {string}  name
+    * @return {number}
     */
     sglrReferenceContext.ReferenceContext.prototype.getUniformLocation = function(program, name) {
         if (this.condtionalSetError(!program, gl.INVALID_OPERATION))
@@ -2137,10 +2112,9 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         return -1;
     };
 
-    
+
     /**
     * @param {number} w
-    * @return {number} 
     */
     sglrReferenceContext.ReferenceContext.prototype.lineWidth = function(w) {
         if (this.condtionalSetError(w < 0, gl.INVALID_VALUE))
@@ -2148,10 +2122,10 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         this.m_lineWidth = w;
     };
 
-    
+
     /**
     * @param {number} target
-    * @return {number} 
+    * @return {boolean}
     */
     sglrReferenceContext.isValidBufferTarget = function(target) {
         switch (target) {
@@ -2170,11 +2144,11 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         }
     };
 
-    
+
     /**
     * @param {number} target
     * @param {number}  buffer
-    * @throws {Error} 
+    * @throws {Error}
     */
     sglrReferenceContext.ReferenceContext.prototype.setBufferBinding = function(target, buffer) {
         switch (target) {
@@ -2191,11 +2165,11 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         }
     };
 
-    
+
     /**
     * @param {number} target
-    * @return {number} 
-    * @throws {Error} 
+    * @return {number}
+    * @throws {Error}
     */
     sglrReferenceContext.ReferenceContext.prototype.getBufferBinding = function(target) {
         switch (target) {
@@ -2212,11 +2186,10 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         }
     };
 
-    
+
     /**
     * @param {number} target
     * @param {number}  buffer
-    * @return {number} 
     */
     sglrReferenceContext.ReferenceContext.prototype.bindBuffer = function(target, buffer) {
         if (this.condtionalSetError(!sglrReferenceContext.isValidBufferTarget(target), gl.INVALID_ENUM))
@@ -2225,24 +2198,23 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         this.setBufferBinding(target, buffer);
     };
 
-    
+
     /**
-    * @return {number} 
+    * @return {sglrReferenceContext.DataBuffer}
     */
     sglrReferenceContext.ReferenceContext.prototype.createBuffer = function() { return new sglrReferenceContext.DataBuffer(); };
 
-    
+
     /**
     * @param {number} buffer
     */
     sglrReferenceContext.ReferenceContext.prototype.deleteBuffer = function(buffer) {};
 
-    
+
     /**
     * @param {number} target
     * @param {number}  input
     * @param {number}  usage
-    * @return {number} 
     */
     sglrReferenceContext.ReferenceContext.prototype.bufferData = function(target, input, usage) {
         if (this.condtionalSetError(!sglrReferenceContext.isValidBufferTarget(target), gl.INVALID_ENUM))
@@ -2260,12 +2232,11 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         }
     };
 
-    
+
     /**
     * @param {number} target
     * @param {number}  offset
     * @param {number}  data
-    * @return {number} 
     */
     sglrReferenceContext.ReferenceContext.prototype.bufferSubData = function(target, offset, data) {
         if (this.condtionalSetError(!sglrReferenceContext.isValidBufferTarget(target), gl.INVALID_ENUM))
@@ -2281,7 +2252,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         buffer.setSubData(offset, data);
     };
 
-    
+
     /**
     * @param {number} x
     * @param {number}  y
@@ -2290,7 +2261,6 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     * @param {number}  format
     * @param {number}  type
     * @param {number}  pixels
-    * @return {number} 
     */
     sglrReferenceContext.ReferenceContext.prototype.readPixels = function(x, y, width, height, format, type, pixels) {
         var src = this.getReadColorbuffer();
@@ -2335,17 +2305,17 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         src.resolveMultisampleColorBuffer(tcuTextureUtil.getSubregion(dst, 0, 0, 0, copyWidth, copyHeight, 1));
     };
 
-    
+
     /**
-    * @return {number} 
+    * @return {number}
     */
     sglrReferenceContext.ReferenceContext.prototype.getType = function() {
         return this.m_type;
     };
 
-    
+
     /**
-    * @return {number} 
+    * @return {number}
     */
     sglrReferenceContext.nullAccess = function() {
         return new tcuTexture.PixelBufferAccess({
@@ -2353,11 +2323,11 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
             height: 0});
     };
 
-    
+
     /**
     * @param {number} framebuffer
     * @param {number}  point
-    * @return {number} 
+    * @return {number}
     */
     sglrReferenceContext.ReferenceContext.prototype.getFboAttachment = function(framebuffer, point) {
         var attachment = framebuffer.getAttachment(point);
@@ -2400,9 +2370,9 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         }
     };
 
-    
+
     /**
-    * @return {number} 
+    * @return {number}
     */
     sglrReferenceContext.ReferenceContext.prototype.getReadColorbuffer = function() {
         if (this.m_readFramebufferBinding)
@@ -2543,6 +2513,10 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
             return gl.FRAMEBUFFER_COMPLETE;
     };
 
+    /**
+     * @param {number}
+     * @return {boolean}
+     */
     sglrReferenceContext.ReferenceContext.prototype.predrawErrorChecks = function(mode) {
         if (this.condtionalSetError(mode != gl.POINTS &&
                     mode != gl.LINE_STRIP && mode != gl.LINE_LOOP && mode != gl.LINES &&
@@ -2611,9 +2585,9 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     */
     sglrReferenceContext.getBufferRect = function(access) { return [0, 0, access.raw().getHeight(), access.raw().getDepth()]; };
 
-    
+
     /**
-    * @return {number} 
+    * @return {number}
     */
     sglrReferenceContext.ReferenceContext.prototype.getDrawColorbuffer = function() {
         if (this.m_drawFramebufferBinding)
@@ -2621,9 +2595,9 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         return this.m_defaultColorbuffer;
     };
 
-    
+
     /**
-    * @return {number} 
+    * @return {number}
     */
     sglrReferenceContext.ReferenceContext.prototype.getDrawDepthbuffer = function() {
         if (this.m_drawFramebufferBinding)
@@ -2631,9 +2605,9 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         return this.m_defaultDepthbuffer;
     };
 
-    
+
     /**
-    * @return {number} 
+    * @return {number}
     */
     sglrReferenceContext.ReferenceContext.prototype.getDrawStencilbuffer = function() {
         if (this.m_drawFramebufferBinding)
@@ -2641,9 +2615,9 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         return this.m_defaultStencilbuffer;
     };
 
-    
+
     /**
-    * @return {number} 
+    * @return {number}
     */
     sglrReferenceContext.ReferenceContext.prototype.getReadColorbuffer = function() {
         if (this.m_readFramebufferBinding)
@@ -2651,9 +2625,9 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         return this.m_defaultColorbuffer;
     };
 
-    
+
     /**
-    * @return {number} 
+    * @return {number}
     */
     sglrReferenceContext.ReferenceContext.prototype.getReadDepthbuffer = function() {
         if (this.m_readFramebufferBinding)
@@ -2661,9 +2635,9 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         return this.m_defaultDepthbuffer;
     };
 
-    
+
     /**
-    * @return {number} 
+    * @return {number}
     */
     sglrReferenceContext.ReferenceContext.prototype.getReadStencilbuffer = function() {
         if (this.m_readFramebufferBinding)
@@ -2684,18 +2658,17 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         access.raw().setPixStencil((oldVal & ~writeMask) | (stencil & writeMask), s, x, y);
     };
 
-    
+
     /**
     * @param {number} bits
     * @param {number}  s
-    * @return {number} 
+    * @return {number}
     */
     sglrReferenceContext.maskStencil = function(bits, s) { return s & ((1 << bits) - 1); };
 
-    
+
     /**
     * @param {number} buffers
-    * @return {number} 
     */
     sglrReferenceContext.ReferenceContext.prototype.clear = function(buffers) {
         if (this.condtionalSetError((buffers & ~(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT)) != 0, gl.INVALID_VALUE))
@@ -2760,13 +2733,12 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         }
     };
 
-    
+
     /**
     * @param {number} buffer
     * @param {number}  drawbuffer
     * @param {number}  value
-    * @return {number} 
-    * @throws {Error} 
+    * @throws {Error}
     */
     sglrReferenceContext.ReferenceContext.prototype.clearBufferiv = function(buffer, drawbuffer, value) {
         if (this.condtionalSetError(buffer != gl.COLOR && buffer != gl.STENCIL, gl.INVALID_ENUM))
@@ -2813,13 +2785,12 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         }
     };
 
-    
+
     /**
     * @param {number} buffer
     * @param {number}  drawbuffer
     * @param {number}  value
-    * @return {number} 
-    * @throws {Error} 
+    * @throws {Error}
     */
     sglrReferenceContext.ReferenceContext.prototype.clearBufferfv = function(buffer, drawbuffer, value) {
         if (this.condtionalSetError(buffer != gl.COLOR && buffer != gl.DEPTH, gl.INVALID_ENUM))
@@ -2866,12 +2837,11 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         }
     };
 
-    
+
     /**
     * @param {number} buffer
     * @param {number}  drawbuffer
     * @param {number}  value
-    * @return {number} 
     */
     sglrReferenceContext.ReferenceContext.prototype.clearBufferuiv = function(buffer, drawbuffer, value) {
         if (this.condtionalSetError(buffer != gl.COLOR, gl.INVALID_ENUM))
@@ -2900,13 +2870,12 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         }
     };
 
-    
+
     /**
     * @param {number} buffer
     * @param {number}  drawbuffer
     * @param {number}  depth
     * @param {number}  stencil
-    * @return {number} 
     */
     sglrReferenceContext.ReferenceContext.prototype.clearBufferfi = function(buffer, drawbuffer, depth, stencil) {
         if (this.condtionalSetError(buffer != gl.DEPTH_STENCIL, gl.INVALID_ENUM))
@@ -2915,15 +2884,14 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         this.clearBufferiv(gl.STENCIL, drawbuffer, [stencil]);
     };
 
-    
+
     /**
     * @param {number} target
     * @param {number}  attachment
     * @param {number}  textarget
     * @param {number}  texture
     * @param {number}  level
-    * @return {number} 
-    * @throws {Error} 
+    * @throws {Error}
     */
     sglrReferenceContext.ReferenceContext.prototype.framebufferTexture2D = function(target, attachment, textarget, texture, level) {
         if (attachment == gl.DEPTH_STENCIL_ATTACHMENT) {
@@ -2973,13 +2941,12 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         }
     };
 
-    
+
     /**
     * @param {number} target
     * @param {number}  attachment
     * @param {number}  renderbuffertarget
     * @param {number}  renderbuffer
-    * @return {number} 
     */
     sglrReferenceContext.ReferenceContext.prototype.framebufferRenderbuffer = function(target, attachment, renderbuffertarget, renderbuffer) {
         if (attachment == gl.DEPTH_STENCIL_ATTACHMENT) {
@@ -3016,13 +2983,13 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         }
     };
 
-    
+
     /**
     * @param {number} target
     * @param {number}  internalformat
     * @param {number}  width
     * @param {number}  height
-    * @return {number} 
+    * @return {number}
     */
     sglrReferenceContext.ReferenceContext.prototype.renderbufferStorage = function(target, internalformat, width, height) {
         var format = gluTextureUtil.mapGLInternalFormat(internalformat);
@@ -3296,27 +3263,27 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         rrRenderer.drawQuads(state, renderTarget, program, vertexAttribs, first, count);
     };
 
-    
+
     /**
     * @param {number} rect
-    * @return {number} 
+    * @return {number}
     */
     sglrReferenceContext.isEmpty = function(rect) { return rect[2] == 0 || rect[3] == 0; };
 
-    
+
     /**
     * @param {number} mask
     * @param {number}  srcRect
     * @param {number}  dstRect
     * @param {number}  flipX
     * @param {number}  flipY
-    * @throws {Error} 
+    * @throws {Error}
     */
     sglrReferenceContext.ReferenceContext.prototype.blitResolveMultisampleFramebuffer = function(mask, srcRect, dstRect, flipX, flipY) {
         throw new Error('Unimplemented');
     };
 
-    
+
     /**
     * @param {number} srcX0
     * @param {number}  srcY0
@@ -3328,7 +3295,6 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     * @param {number}  dstY1
     * @param {number}  mask
     * @param {number}  filter
-    * @return {number} 
     */
     sglrReferenceContext.ReferenceContext.prototype.blitFramebuffer = function(srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter) {
         // p0 in inclusive, p1 exclusive.
@@ -3490,10 +3456,10 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         }
     };
 
-    
+
     /**
     * @param {number} internalFormat
-    * @return {number} 
+    * @return {number}
     */
     sglrReferenceContext.mapInternalFormat = function(internalFormat) {
         switch (internalFormat) {
@@ -3528,7 +3494,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         }
     };
 
-    
+
     /**
     * @param {number} target
     * @param {number}  level
@@ -3817,12 +3783,11 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         return null;
     };
 
-    
+
     /**
     * @param {number} target
     * @param {number}  pname
     * @param {number}  value
-    * @return {number} 
     */
     sglrReferenceContext.ReferenceContext.prototype.texParameteri = function(target, pname, value) {
         var unit = this.m_textureUnits[this.m_activeTexture];
