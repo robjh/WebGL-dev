@@ -68,7 +68,10 @@ rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.prototype.toSinglesa
                                   slicePitch: this.m_access.getSlicePitch() * this.m_access.getDepth(),
                                   data: this.m_access.m_data});
 };
-
+/**
+ * @param {TODO:FIX_TYPE}
+ * @return {rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess}
+ */
 rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.fromSinglesampleAccess = function(original) {
     return new rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess(
                 new tcuTexture.PixelBufferAccess({

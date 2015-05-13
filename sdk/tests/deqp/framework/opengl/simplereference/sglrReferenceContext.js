@@ -948,72 +948,72 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     * @constructor
     */
     sglrReferenceContext.ReferenceContext = function(limits, colorbuffer, depthbuffer, stencilbuffer) {
-        this.m_limits = limits;
-        this.m_defaultColorbuffer = colorbuffer;
-        this.m_defaultDepthbuffer = depthbuffer;
-        this.m_defaultStencilbuffer = stencilbuffer;
-        this.m_viewport = [0, 0, colorbuffer.raw().getHeight(), colorbuffer.raw().getDepth()];
-        this.m_textureUnits = [];
+        /** @type {sglrReferenceContext.ReferenceContextLimits} */ this.m_limits = limits;
+        /** @type {rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess} */ this.m_defaultColorbuffer = colorbuffer;
+        /** @type {rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess} */ this.m_defaultDepthbuffer = depthbuffer;
+        /** @type {rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess} */ this.m_defaultStencilbuffer = stencilbuffer;
+        /** @type {Array<number>} */ this.m_viewport = [0, 0, colorbuffer.raw().getHeight(), colorbuffer.raw().getDepth()];
+        /** @type {Array<sglrReferenceContext.TextureUnit>} */ this.m_textureUnits = [];
         for (var i = 0; i < this.m_limits.maxTextureImageUnits; i++)
             this.m_textureUnits.push(new sglrReferenceContext.TextureUnit());
-        this.m_activeTexture = 0;
-        this.m_lastError = gl.NO_ERROR;
+        /** @type {number} */ this.m_activeTexture = 0;
+        /** @type {number} */ this.m_lastError = gl.NO_ERROR;
         // this.m_textures = new ObjectManager();
-        this.m_pixelUnpackRowLength = 0;
-        this.m_pixelUnpackSkipRows = 0;
-        this.m_pixelUnpackSkipPixels = 0;
-        this.m_pixelUnpackImageHeight = 0;
-        this.m_pixelUnpackSkipImages = 0;
-        this.m_pixelUnpackAlignment = 4;
-        this.m_pixelPackAlignment = 4;
-        this.m_clearColor = [0, 0, 0, 0];
-        this.m_clearDepth = 1;
-        this.m_clearStencil = 0;
-        this.m_scissorBox = this.m_viewport;
-        this.m_blendEnabled = false;
-        this.m_scissorEnabled = false;
-        this.m_depthTestEnabled = false;
-        this.m_stencilTestEnabled = false;
-        this.m_polygonOffsetFillEnabled = false;
-        this.m_primitiveRestartFixedIndex = true; //always on
-        this.m_primitiveRestartSettableIndex = true; //always on
-        this.m_stencil = [];
+        /** @type {number} */ this.m_pixelUnpackRowLength = 0;
+        /** @type {number} */ this.m_pixelUnpackSkipRows = 0;
+        /** @type {number} */ this.m_pixelUnpackSkipPixels = 0;
+        /** @type {number} */ this.m_pixelUnpackImageHeight = 0;
+        /** @type {number} */ this.m_pixelUnpackSkipImages = 0;
+        /** @type {number} */ this.m_pixelUnpackAlignment = 4;
+        /** @type {number} */ this.m_pixelPackAlignment = 4;
+        /** @type {Array<number>} */ this.m_clearColor = [0, 0, 0, 0];
+        /** @type {number} */ this.m_clearDepth = 1;
+        /** @type {number} */ this.m_clearStencil = 0;
+        /** @type {Array<number>} */ this.m_scissorBox = this.m_viewport;
+        /** @type {boolean} */ this.m_blendEnabled = false;
+        /** @type {boolean} */ this.m_scissorEnabled = false;
+        /** @type {boolean} */ this.m_depthTestEnabled = false;
+        /** @type {boolean} */ this.m_stencilTestEnabled = false;
+        /** @type {boolean} */ this.m_polygonOffsetFillEnabled = false;
+        /** @type {boolean} */ this.m_primitiveRestartFixedIndex = true; //always on
+        /** @type {boolean} */ this.m_primitiveRestartSettableIndex = true; //always on
+        /** @type {sglrReferenceContext.StencilState} */ this.m_stencil = [];
         for (var type in rrDefs.FaceType)
             this.m_stencil[rrDefs.FaceType[type]] = new sglrReferenceContext.StencilState();
-        this.m_depthFunc = gl.LESS;
-        this.m_depthRangeNear = 0;
-        this.m_depthRangeFar = 1;
-        this.m_polygonOffsetFactor = 0;
-        this.m_polygonOffsetUnits = 0;
-        this.m_blendModeRGB = gl.FUNC_ADD;
-        this.m_blendModeAlpha = gl.FUNC_ADD;
-        this.m_blendFactorSrcRGB = gl.ONE;
-        this.m_blendFactorDstRGB = gl.ZERO;
-        this.m_blendFactorSrcAlpha = gl.ONE;
-        this.m_blendFactorDstAlpha = gl.ZERO;
-        this.m_blendColor = [0, 0, 0, 0];
-        this.m_colorMask = [true, true, true, true];
-        this.m_depthMask = true;
-        this.m_defaultVAO = new sglrReferenceContext.VertexArray(this.m_limits.maxVertexAttribs);
-        this.m_vertexArrayBinding = this.m_defaultVAO;
-        this.m_arrayBufferBinding = null;
-        this.m_copyReadBufferBinding = null;
-        this.m_copyWriteBufferBinding = null;
-        this.m_drawIndirectBufferBinding = null;
-        this.m_pixelPackBufferBinding = null;
-        this.m_pixelUnpackBufferBinding = null;
-        this.m_transformFeedbackBufferBinding = null;
-        this.m_uniformBufferBinding = null;
-        this.m_readFramebufferBinding = null;
-        this.m_drawFramebufferBinding = null;
-        this.m_renderbufferBinding = null;
-        this.m_currentProgram = null;
-        this.m_currentAttribs = [];
+        /** @type {number} */ this.m_depthFunc = gl.LESS;
+        /** @type {number} */ this.m_depthRangeNear = 0;
+        /** @type {number} */ this.m_depthRangeFar = 1;
+        /** @type {number} */ this.m_polygonOffsetFactor = 0;
+        /** @type {number} */ this.m_polygonOffsetUnits = 0;
+        /** @type {number} */ this.m_blendModeRGB = gl.FUNC_ADD;
+        /** @type {number} */ this.m_blendModeAlpha = gl.FUNC_ADD;
+        /** @type {number} */ this.m_blendFactorSrcRGB = gl.ONE;
+        /** @type {number} */ this.m_blendFactorDstRGB = gl.ZERO;
+        /** @type {number} */ this.m_blendFactorSrcAlpha = gl.ONE;
+        /** @type {number} */ this.m_blendFactorDstAlpha = gl.ZERO;
+        /** @type {Array<number>} */ this.m_blendColor = [0, 0, 0, 0];
+        /** @type {Array<boolean>} */ this.m_colorMask = [true, true, true, true];
+        /** @type {boolean} */ this.m_depthMask = true;
+        /** @type {sglrReferenceContext.VertexArray} */ this.m_defaultVAO = new sglrReferenceContext.VertexArray(this.m_limits.maxVertexAttribs);
+        /** @type {sglrReferenceContext.VertexArray} */ this.m_vertexArrayBinding = this.m_defaultVAO;
+        /** @type {sglrReferenceContext.DataBuffer} */ this.m_arrayBufferBinding = null;
+        /** @type {sglrReferenceContext.DataBuffer} */ this.m_copyReadBufferBinding = null;
+        /** @type {sglrReferenceContext.DataBuffer} */ this.m_copyWriteBufferBinding = null;
+        /** @type {sglrReferenceContext.DataBuffer} */ this.m_drawIndirectBufferBinding = null;
+        /** @type {sglrReferenceContext.DataBuffer} */ this.m_pixelPackBufferBinding = null;
+        /** @type {sglrReferenceContext.DataBuffer} */ this.m_pixelUnpackBufferBinding = null;
+        /** @type {sglrReferenceContext.DataBuffer} */ this.m_transformFeedbackBufferBinding = null;
+        /** @type {sglrReferenceContext.DataBuffer} */ this.m_uniformBufferBinding = null;
+        /** @type {sglrReferenceContext.Framebuffer} */ this.m_readFramebufferBinding = null;
+        /** @type {sglrReferenceContext.Framebuffer} */ this.m_drawFramebufferBinding = null;
+        /** @type {sglrReferenceContext.Renderbuffer} */ this.m_renderbufferBinding = null;
+        /** @type {sglrReferenceContext.ShaderProgramObjectContainer} */ this.m_currentProgram = null;
+        /** @type {Array<sglrReferenceContext.GenericVec4>} */ this.m_currentAttribs = [];
         for (var i = 0; i < this.m_limits.maxVertexAttribs; i++)
             this.m_currentAttribs.push(new sglrReferenceContext.GenericVec4());
-        this.m_lineWidth = 1;
+        /** @type {number} */ this.m_lineWidth = 1;
 
-        this.m_emptyTex2D = new sglrReferenceContext.TextureContainer();
+        /** @type {sglrReferenceContext.TextureContainer} */ this.m_emptyTex2D = new sglrReferenceContext.TextureContainer();
         this.m_emptyTex2D.init(gl.TEXTURE_2D);
         this.m_emptyTex2D.texture.getSampler().wrapS = tcuTexture.WrapMode.CLAMP_TO_EDGE;
         this.m_emptyTex2D.texture.getSampler().wrapT = tcuTexture.WrapMode.CLAMP_TO_EDGE;
@@ -1163,7 +1163,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
 
     /**
     * @param {number} target
-    * @param {number}  fbo
+    * @param {framework.opengl.simplereference.sglrReferenceContext.Framebuffer}  fbo
     */
     sglrReferenceContext.ReferenceContext.prototype.bindFramebuffer = function(target, fbo) {
         if (this.condtionalSetError((target != gl.FRAMEBUFFER &&
@@ -1891,8 +1891,8 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
 
     /**
     * @param {number} location
-    * @param {number}  type
-    * @param {number}  value
+    * @param {gluShaderUtil.DataType}  type
+    * @param {Array<number>}  value
     */
     sglrReferenceContext.ReferenceContext.prototype.uniformValue = function(location, type, value) {
         if (this.condtionalSetError(!this.m_currentProgram, gl.INVALID_OPERATION))
@@ -2168,7 +2168,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
 
     /**
     * @param {number} target
-    * @return {number}
+    * @return {sglrReferenceContext.DataBuffer}
     * @throws {Error}
     */
     sglrReferenceContext.ReferenceContext.prototype.getBufferBinding = function(target) {
@@ -2372,7 +2372,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
 
 
     /**
-    * @return {number}
+    * @return {rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess}
     */
     sglrReferenceContext.ReferenceContext.prototype.getReadColorbuffer = function() {
         if (this.m_readFramebufferBinding)
@@ -2587,7 +2587,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
 
 
     /**
-    * @return {number}
+    * @return {rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess}
     */
     sglrReferenceContext.ReferenceContext.prototype.getDrawColorbuffer = function() {
         if (this.m_drawFramebufferBinding)
@@ -2597,7 +2597,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
 
 
     /**
-    * @return {number}
+    * @return {rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess}
     */
     sglrReferenceContext.ReferenceContext.prototype.getDrawDepthbuffer = function() {
         if (this.m_drawFramebufferBinding)
@@ -2607,7 +2607,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
 
 
     /**
-    * @return {number}
+    * @return {rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess}
     */
     sglrReferenceContext.ReferenceContext.prototype.getDrawStencilbuffer = function() {
         if (this.m_drawFramebufferBinding)
@@ -2617,7 +2617,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
 
 
     /**
-    * @return {number}
+    * @return {rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess}
     */
     sglrReferenceContext.ReferenceContext.prototype.getReadColorbuffer = function() {
         if (this.m_readFramebufferBinding)
@@ -2627,7 +2627,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
 
 
     /**
-    * @return {number}
+    * @return {rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess}
     */
     sglrReferenceContext.ReferenceContext.prototype.getReadDepthbuffer = function() {
         if (this.m_readFramebufferBinding)
@@ -2637,7 +2637,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
 
 
     /**
-    * @return {number}
+    * @return {rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess}
     */
     sglrReferenceContext.ReferenceContext.prototype.getReadStencilbuffer = function() {
         if (this.m_readFramebufferBinding)
@@ -3265,7 +3265,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
 
 
     /**
-    * @param {number} rect
+    * @param {Array<number>} rect
     * @return {number}
     */
     sglrReferenceContext.isEmpty = function(rect) { return rect[2] == 0 || rect[3] == 0; };
@@ -3273,10 +3273,10 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
 
     /**
     * @param {number} mask
-    * @param {number}  srcRect
-    * @param {number}  dstRect
-    * @param {number}  flipX
-    * @param {number}  flipY
+    * @param {Array<number>}  srcRect
+    * @param {Array<number>}  dstRect
+    * @param {boolean}  flipX
+    * @param {boolean}  flipY
     * @throws {Error}
     */
     sglrReferenceContext.ReferenceContext.prototype.blitResolveMultisampleFramebuffer = function(mask, srcRect, dstRect, flipX, flipY) {
@@ -3299,21 +3299,21 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     sglrReferenceContext.ReferenceContext.prototype.blitFramebuffer = function(srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter) {
         // p0 in inclusive, p1 exclusive.
         // Negative width/height means swap.
-        var swapSrcX = srcX1 < srcX0;
-        var swapSrcY = srcY1 < srcY0;
-        var swapDstX = dstX1 < dstX0;
-        var swapDstY = dstY1 < dstY0;
-        var srcW = Math.abs(srcX1 - srcX0);
-        var srcH = Math.abs(srcY1 - srcY0);
-        var dstW = Math.abs(dstX1 - dstX0);
-        var dstH = Math.abs(dstY1 - dstY0);
-        var scale = srcW != dstW || srcH != dstH;
-        var srcOriginX = swapSrcX ? srcX1 : srcX0;
-        var srcOriginY = swapSrcY ? srcY1 : srcY0;
-        var dstOriginX = swapDstX ? dstX1 : dstX0;
-        var dstOriginY = swapDstY ? dstY1 : dstY0;
-        var srcRect = [srcOriginX, srcOriginY, srcW, srcH];
-        var dstRect = [dstOriginX, dstOriginY, dstW, dstH];
+        /** @type {boolean} */ var swapSrcX = srcX1 < srcX0;
+        /** @type {boolean} */ var swapSrcY = srcY1 < srcY0;
+        /** @type {boolean} */ var swapDstX = dstX1 < dstX0;
+        /** @type {boolean} */ var swapDstY = dstY1 < dstY0;
+        /** @type {number} */ var srcW = Math.abs(srcX1 - srcX0);
+        /** @type {number} */ var srcH = Math.abs(srcY1 - srcY0);
+        /** @type {number} */ var dstW = Math.abs(dstX1 - dstX0);
+        /** @type {number} */ var dstH = Math.abs(dstY1 - dstY0);
+        /** @type {boolean} */ var scale = srcW != dstW || srcH != dstH;
+        /** @type {number} */ var srcOriginX = swapSrcX ? srcX1 : srcX0;
+        /** @type {number} */ var srcOriginY = swapSrcY ? srcY1 : srcY0;
+        /** @type {number} */ var dstOriginX = swapDstX ? dstX1 : dstX0;
+        /** @type {number} */ var dstOriginY = swapDstY ? dstY1 : dstY0;
+        /** @type {Array<number>} */ var srcRect = [srcOriginX, srcOriginY, srcW, srcH];
+        /** @type {Array<number>} */ var dstRect = [dstOriginX, dstOriginY, dstW, dstH];
 
         if (this.condtionalSetError(filter != gl.NEAREST && filter != gl.LINEAR, gl.INVALID_ENUM))
             return;
@@ -3363,7 +3363,9 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
 
         // Multisampled read buffer is a special case
         if (this.getReadColorbuffer().getNumSamples() != 1) {
-            var error = this.blitResolveMultisampleFramebuffer(mask, srcRect, dstRect, swapSrcX ^ swapDstX, swapSrcY ^ swapDstY);
+            var swapX = swapSrcX ^ swapDstX ? true : false;
+            var swapY = swapSrcY ^ swapDstY ? true : false;
+            var error = this.blitResolveMultisampleFramebuffer(mask, srcRect, dstRect, swapX, swapY);
 
             if (error != gl.NO_ERROR)
                 this.setError(error);
@@ -3459,7 +3461,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
 
     /**
     * @param {number} internalFormat
-    * @return {number}
+    * @return {tcuTexture.TextureFormat}
     */
     sglrReferenceContext.mapInternalFormat = function(internalFormat) {
         switch (internalFormat) {
