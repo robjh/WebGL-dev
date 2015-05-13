@@ -384,7 +384,7 @@ goog.scope(function() {
                 'GL_EXT_texture_type_2_10_10_10_REV GL_OES_required_internalformat',
                 fmt.TEXTURE_VALID, // explicitly unrenderable
                 glsFboUtil.rangeArray(glsFboCompletenessTests.s_oesRequiredInternalFormat10bitColorFormats)
-            ),
+            )
         ];
         
     }; // initGlDependents ----------------------------------------
@@ -736,7 +736,7 @@ goog.scope(function() {
     
     
     
-    glsFboCompletenessTests.formatName(format, gl) {
+    glsFboCompletenessTests.formatName = function (format, gl) {
         if (!(gl = gl || window.gl)) throw new Error ('Invalid GL object');
         
         var s = gluStrUtil.getPixelFormatName(format.format).substr(3).toLowerCase();
@@ -746,7 +746,7 @@ goog.scope(function() {
         
         return s;
     };
-    glsFboCompletenessTests.formatDesc(format, gl) {
+    glsFboCompletenessTests.formatDesc = function (format, gl) {
         if (!(gl = gl || window.gl)) throw new Error ('Invalid GL object');
         
         var s = gluStrUtil.getPixelFormatName(format.format);
@@ -829,7 +829,7 @@ goog.scope(function() {
     
     es3fFboCompletenessTests.AttachmentTest.prototype.makeDepthAndStencil = function(builder, gl) {
         
-        if (this.m_params.stencilKind == this.m)params.depthKind) {
+        if (this.m_params.stencilKind == this.m_params.depthKind) {
             // If there is a common stencil+depth -format, try to use a common
             // image for both attachments.
             var flags = glsFboUtil.FormatFlags.DEPTH_RENDERABLE   |
@@ -847,7 +847,6 @@ goog.scope(function() {
         }
         // Either the kinds were separate, or a suitable format was not found.
         // Create separate images.
-        es3fFboCompletenessTests.AttachmentTest.prototype.makeDepthAndStencil = function(builder, gl) {
         this.attachTargetToNew(gl.STENCIL_ATTACHMENT, this.m_params.stencilKind,
                                glsFboUtil.ImageFormat.none(), 64, 64, builder, gl);
         this.attachTargetToNew(gl.DEPTH_ATTACHMENT, this.m_params.depthKind,
