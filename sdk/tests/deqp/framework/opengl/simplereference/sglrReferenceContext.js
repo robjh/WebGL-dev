@@ -580,7 +580,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     };
 
     /**
-     * @param {sglrReferenceContext.TexTarget} target
+     * @param {?sglrReferenceContext.TexTarget} target
      * @return {?tcuTexture.CubeFace}
      */
     sglrReferenceContext.texTargetToFace = function(target) {
@@ -1007,7 +1007,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         /** @type {sglrReferenceContext.Framebuffer} */ this.m_readFramebufferBinding = null;
         /** @type {sglrReferenceContext.Framebuffer} */ this.m_drawFramebufferBinding = null;
         /** @type {sglrReferenceContext.Renderbuffer} */ this.m_renderbufferBinding = null;
-        /** @type {sglrReferenceContext.ShaderProgramObjectContainer} */ this.m_currentProgram = null;
+        /** @type {sglrShaderProgram.ShaderProgram} */ this.m_currentProgram = null;
         /** @type {Array<sglrReferenceContext.GenericVec4>} */ this.m_currentAttribs = [];
         for (var i = 0; i < this.m_limits.maxVertexAttribs; i++)
             this.m_currentAttribs.push(new sglrReferenceContext.GenericVec4());
@@ -2236,7 +2236,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     /**
     * @param {number} target
     * @param {number}  offset
-    * @param {number}  data
+    * @param {goog.NumberArray}  data
     */
     sglrReferenceContext.ReferenceContext.prototype.bufferSubData = function(target, offset, data) {
         if (this.condtionalSetError(!sglrReferenceContext.isValidBufferTarget(target), gl.INVALID_ENUM))
@@ -2260,7 +2260,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     * @param {number}  height
     * @param {number}  format
     * @param {number}  type
-    * @param {number}  pixels
+    * @param {goog.NumberArray}  pixels
     */
     sglrReferenceContext.ReferenceContext.prototype.readPixels = function(x, y, width, height, format, type, pixels) {
         var src = this.getReadColorbuffer();
@@ -2315,7 +2315,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
 
 
     /**
-    * @return {number}
+    * @return {tcuTexture.PixelBufferAccess}
     */
     sglrReferenceContext.nullAccess = function() {
         return new tcuTexture.PixelBufferAccess({
@@ -2325,9 +2325,9 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
 
 
     /**
-    * @param {number} framebuffer
-    * @param {number}  point
-    * @return {number}
+    * @param {sglrReferenceContext.Framebuffer} framebuffer
+    * @param {sglrReferenceContext.AttachmentPoint}  point
+    * @return {tcuTexture.PixelBufferAccess}
     */
     sglrReferenceContext.ReferenceContext.prototype.getFboAttachment = function(framebuffer, point) {
         var attachment = framebuffer.getAttachment(point);
@@ -2385,6 +2385,10 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     //     this.drawArraysInstanced(mode, first, count, 1);
     // };
 
+    /**
+     * @param {number} target
+     * @return {number}
+     */
     sglrReferenceContext.ReferenceContext.prototype.checkFramebufferStatus = function(target) {
         if (this.condtionalSetError(target != gl.FRAMEBUFFER &&
                     target != gl.DRAW_FRAMEBUFFER &&
@@ -2514,7 +2518,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     };
 
     /**
-     * @param {number}
+     * @param {number} mode
      * @return {boolean}
      */
     sglrReferenceContext.ReferenceContext.prototype.predrawErrorChecks = function(mode) {
@@ -2613,16 +2617,6 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         if (this.m_drawFramebufferBinding)
             return rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.fromSinglesampleAccess(this.getFboAttachment(this.m_drawFramebufferBinding, sglrReferenceContext.AttachmentPoint.ATTACHMENTPOINT_STENCIL));
         return this.m_defaultStencilbuffer;
-    };
-
-
-    /**
-    * @return {rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess}
-    */
-    sglrReferenceContext.ReferenceContext.prototype.getReadColorbuffer = function() {
-        if (this.m_readFramebufferBinding)
-            return rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.fromSinglesampleAccess(this.getFboAttachment(this.m_readFramebufferBinding, sglrReferenceContext.AttachmentPoint.ATTACHMENTPOINT_COLOR0));
-        return this.m_defaultColorbuffer;
     };
 
 
@@ -2737,7 +2731,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     /**
     * @param {number} buffer
     * @param {number}  drawbuffer
-    * @param {number}  value
+    * @param {Array<number>}  value
     * @throws {Error}
     */
     sglrReferenceContext.ReferenceContext.prototype.clearBufferiv = function(buffer, drawbuffer, value) {
@@ -2789,7 +2783,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     /**
     * @param {number} buffer
     * @param {number}  drawbuffer
-    * @param {number}  value
+    * @param {Array<number>}  value
     * @throws {Error}
     */
     sglrReferenceContext.ReferenceContext.prototype.clearBufferfv = function(buffer, drawbuffer, value) {
@@ -2888,8 +2882,8 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     /**
     * @param {number} target
     * @param {number}  attachment
-    * @param {number}  textarget
-    * @param {number}  texture
+    * @param {sglrReferenceContext.TexTarget}  textarget
+    * @param {sglrReferenceContext.Texture}  texture
     * @param {number}  level
     * @throws {Error}
     */
@@ -2989,7 +2983,6 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     * @param {number}  internalformat
     * @param {number}  width
     * @param {number}  height
-    * @return {number}
     */
     sglrReferenceContext.ReferenceContext.prototype.renderbufferStorage = function(target, internalformat, width, height) {
         var format = gluTextureUtil.mapGLInternalFormat(internalformat);
@@ -3266,7 +3259,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
 
     /**
     * @param {Array<number>} rect
-    * @return {number}
+    * @return {boolean}
     */
     sglrReferenceContext.isEmpty = function(rect) { return rect[2] == 0 || rect[3] == 0; };
 
