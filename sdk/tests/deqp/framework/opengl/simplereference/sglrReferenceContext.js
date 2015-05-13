@@ -3547,7 +3547,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
             if (this.condtionalSetError(level > Math.log2(this.m_limits.maxTexture2DSize), gl.INVALID_VALUE))
                 return;
 
-            var texture = unit.tex2DBinding.texture;
+            /** @type {number} */ var texture = unit.tex2DBinding.texture;
 
             if (texture.isImmutable()) {
                 if (this.condtionalSetError(!texture.hasLevel(level), gl.INVALID_OPERATION))
