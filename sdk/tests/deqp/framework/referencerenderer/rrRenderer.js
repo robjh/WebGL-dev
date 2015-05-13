@@ -284,7 +284,7 @@ void FragmentProcessor::render (const rr::MultisamplePixelBufferAccess& msColorB
         throw new Error('Attachment must have the same depth');
 
     var stencilState = state.stencilStates[fragmentFacing];
-    var colorMaskFactor = [state.colorMask[0] ? true : false, state.colorMask[1] ? true : false, state.colorMask[2] ? true : false, state.colorMask[3] ? true : false];
+    var colorMaskFactor = [state.colorMask[0] ? 1 : 0, state.colorMask[1] ? 1 : 0, state.colorMask[2] ? 1 : 0, state.colorMask[3] ? 1 : 0];
     var colorMaskNegationFactor = [state.colorMask[0] ? false : true, state.colorMask[1] ? false : true, state.colorMask[2] ? false : true, state.colorMask[3] ? false : true];
     var sRGBTarget = false;
 
@@ -355,7 +355,7 @@ void FragmentProcessor::render (const rr::MultisamplePixelBufferAccess& msColorB
                     var frag = fragments[i];
                     if (frag.isAlive) {
                         frag.blendedRGB = deMath.swizzle(frag.value, [0, 1, 2]);
-                        frag.blendedA = frag.value[3];
+                        frag.blendedA = deMath.clamp(frag.value[3], 0, 1);
                     }
                 }
             }

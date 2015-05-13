@@ -29,6 +29,7 @@ goog.require('framework.common.tcuTextureUtil');
 goog.require('framework.delibs.debase.deMath');
 goog.require('framework.delibs.debase.deRandom');
 goog.require('framework.opengl.gluTextureUtil');
+goog.require('framework.referencerenderer.rrUtil');
 goog.require('functional.gles3.es3fFboTestCase');
 goog.require('functional.gles3.es3fFboTestUtil');
 
@@ -46,6 +47,7 @@ var tcuTextureUtil = framework.common.tcuTextureUtil;
 var deRandom = framework.delibs.debase.deRandom;
 var deMath = framework.delibs.debase.deMath;
 var gluTextureUtil = framework.opengl.gluTextureUtil;
+var rrUtil = framework.referencerenderer.rrUtil;
 
 /** @type {WebGL2RenderingContext} */ var gl;
 
@@ -159,7 +161,7 @@ var DE_ASSERT = function(x) {
         ctx.enable(gl.DEPTH_TEST);
         gradShader.setGradient(this.getCurrentContext(), gradShaderID, colorFmtInfo.valueMin, colorFmtInfo.valueMax);
         // TODO: implement drawQuad
-        //sglr::drawQuad(this.getCurrentContext(), gradShaderID, [-1.0, -1.0, -1.0], [1.0, 1.0, 1.0]);
+        rrUtil.drawQuad(this.getCurrentContext(), gradShaderID, [-1.0, -1.0, -1.0], [1.0, 1.0, 1.0]);
 
         // Render random-colored quads.
         /** @const {number} */ var numQuads = 8;
@@ -184,7 +186,7 @@ var DE_ASSERT = function(x) {
 
             flatShader.setColor(this.getCurrentContext(), flatShaderID, deMath.add(deMath.multiply([r, g, b, a], deMath.subtract(colorFmtInfo.valueMax, colorFmtInfo.valueMin)), colorFmtInfo.valueMin));
             // TODO: implement drawQuad
-            //sglr::drawQuad(this.getCurrentContext(), flatShaderID, [x0, y0, z0], [x1, y1, z1]);
+            rrUtil.drawQuad(this.getCurrentContext(), flatShaderID, [x0, y0, z0], [x1, y1, z1]);
         }
 
         ctx.disable(gl.DEPTH_TEST);
@@ -217,7 +219,7 @@ var DE_ASSERT = function(x) {
 
                 flatShader.setColor(this.getCurrentContext(), flatShaderID, deMath.add(deMath.multiply([0.0, 0.0, c, 1.0], deMath.subtract(colorFmtInfo.valueMax, colorFmtInfo.valueMin)), colorFmtInfo.valueMin));
                 // TODO: implement drawQuad
-                //sglr::drawQuad(this.getCurrentContext(), flatShaderID, [-1.0, -1.0, d], [1.0, 1.0, d]);
+                rrUtil.drawQuad(this.getCurrentContext(), flatShaderID, [-1.0, -1.0, d], [1.0, 1.0, d]);
             }
 
             ctx.disable(gl.DEPTH_TEST);
@@ -238,15 +240,15 @@ var DE_ASSERT = function(x) {
 
                 ctx.stencilFunc(gl.EQUAL, s, 0xff);
 
-                flatShader.setColor(this.getCurrentContext(), flatShaderID, deMath.add(deMath.multiply([0.0, c, 0.0, 1.0], deMath.substract(colorFmtInfo.valueMax, colorFmtInfo.valueMin)), colorFmtInfo.valueMin));
+                flatShader.setColor(this.getCurrentContext(), flatShaderID, deMath.add(deMath.multiply([0.0, c, 0.0, 1.0], deMath.subtract(colorFmtInfo.valueMax, colorFmtInfo.valueMin)), colorFmtInfo.valueMin));
                 // TODO: implement drawQuad
-                //sglr::drawQuad(this.getCurrentContext(), flatShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
+                rrUtil.drawQuad(this.getCurrentContext(), flatShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
             }
 
             ctx.disable(gl.STENCIL_TEST);
         }
 
-        this.readPixels(dst, 0, 0, this.m_size[0], this.m_size[1], colorFmt, colorFmtInfo.lookupScale, colorFmtInfo.lookupBias);
+        this.readPixelsUsingFormat(dst, 0, 0, this.m_size[0], this.m_size[1], colorFmt, colorFmtInfo.lookupScale, colorFmtInfo.lookupBias);
     };
 
     /**
@@ -256,7 +258,7 @@ var DE_ASSERT = function(x) {
      */
     es3fFboMultisampleTests.BasicFboMultisampleCase.prototype.colorCompare = function(reference, result) {
         /** @const {tcuRGBA.RGBA} */ var threshold = tcuRGBA.max(es3fFboTestUtil.getFormatThreshold(this.m_colorFormat), tcuRGBA.newRGBAComponents(12, 12, 12, 12));
-        return tcuImageCompare.bilinearCompare('Result', 'Image comparison result', reference.getAccess(), result.getAccess(), threshold, null /*tcu::COMPARE_LOG_RESULT*/);
+        return tcuImageCompare.bilinearCompare('Result', 'Image comparison result', reference.getAccess(), result.getAccess(), threshold, tcuImageCompare.CompareLogMode.RESULT);
     };
 
     /**
@@ -266,9 +268,9 @@ var DE_ASSERT = function(x) {
      */
     es3fFboMultisampleTests.BasicFboMultisampleCase.prototype.compare = function(reference, result) {
         if (this.m_depthStencilFormat != gl.NONE)
-            return this.compare(reference, result); // FboTestCase.compare
+            return es3fFboTestCase.FboTestCase.compare(reference, result); // FboTestCase.compare
         else
-            return colorCompare(reference, result);
+            return this.colorCompare(reference, result);
     };
 
     /**
@@ -283,7 +285,7 @@ var DE_ASSERT = function(x) {
     es3fFboMultisampleTests.FboMultisampleTests.prototype.constructor = es3fFboMultisampleTests.FboMultisampleTests;
 
     es3fFboMultisampleTests.FboMultisampleTests.prototype.init = function() {
-        /** @const {number} */ var colorFormats = [
+        /** @const {Array<number>} */ var colorFormats = [
             // RGBA formats
             gl.RGBA8,
             gl.SRGB8_ALPHA8,
@@ -311,7 +313,7 @@ var DE_ASSERT = function(x) {
             gl.R16F
         ];
 
-        /** @const {number} */ var depthStencilFormats = [
+        /** @const {Array<number>} */ var depthStencilFormats = [
             gl.DEPTH_COMPONENT32F,
             gl.DEPTH_COMPONENT24,
             gl.DEPTH_COMPONENT16,
@@ -320,12 +322,12 @@ var DE_ASSERT = function(x) {
             gl.STENCIL_INDEX8
         ];
 
-        /** @const {number} */ var sampleCounts = [2, 4, 8];
+        /** @const {Array<number>} */ var sampleCounts = [2, 4, 8];
 
         for (var sampleCntNdx in sampleCounts) {
             /** @type {number} */ var samples = sampleCounts[sampleCntNdx];
             /** @type {tcuTestCase.DeqpTest} */
-            var sampleCountGroup = tcuTestCase.newTest(samples + '_', '');
+            var sampleCountGroup = tcuTestCase.newTest(samples + '_samples', '');
             this.addChild(sampleCountGroup);
 
             // Color formats.

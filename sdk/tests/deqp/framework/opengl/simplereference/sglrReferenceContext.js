@@ -3042,6 +3042,17 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     };
 
     /**
+     * @param {number} target
+     * @param {number} samples
+     * @param {number} internalformat
+     * @param {number} width
+     * @param {number} height
+     */
+    sglrReferenceContext.ReferenceContext.prototype.renderbufferStorageMultisample = function(target, samples, internalformat, width, height) {
+        this.renderbufferStorage(target, internalformat, width, height);
+    };
+
+    /**
     * @param {rrRenderer.PrimitiveType} derivedType
     * @return {rrRenderer.PrimitiveType}
     */
