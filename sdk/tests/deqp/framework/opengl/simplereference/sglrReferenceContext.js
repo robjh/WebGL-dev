@@ -2147,7 +2147,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
 
     /**
     * @param {number} target
-    * @param {number}  buffer
+    * @param {sglrReferenceContext.DataBuffer} buffer
     * @throws {Error}
     */
     sglrReferenceContext.ReferenceContext.prototype.setBufferBinding = function(target, buffer) {
@@ -2189,7 +2189,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
 
     /**
     * @param {number} target
-    * @param {number}  buffer
+    * @param {sglrReferenceContext.DataBuffer}  buffer
     */
     sglrReferenceContext.ReferenceContext.prototype.bindBuffer = function(target, buffer) {
         if (this.condtionalSetError(!sglrReferenceContext.isValidBufferTarget(target), gl.INVALID_ENUM))
@@ -2213,8 +2213,8 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
 
     /**
     * @param {number} target
-    * @param {number}  input
-    * @param {number}  usage
+    * @param {number|goog.NumberArray} input
+    * @param {number} usage
     */
     sglrReferenceContext.ReferenceContext.prototype.bufferData = function(target, input, usage) {
         if (this.condtionalSetError(!sglrReferenceContext.isValidBufferTarget(target), gl.INVALID_ENUM))
