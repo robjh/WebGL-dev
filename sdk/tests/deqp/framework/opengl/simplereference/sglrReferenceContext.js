@@ -977,7 +977,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         /** @type {boolean} */ this.m_polygonOffsetFillEnabled = false;
         /** @type {boolean} */ this.m_primitiveRestartFixedIndex = true; //always on
         /** @type {boolean} */ this.m_primitiveRestartSettableIndex = true; //always on
-        /** @type {sglrReferenceContext.StencilState} */ this.m_stencil = [];
+        /** @type {sglrReferenceContext.StencilState} */ this.m_stencil;
         for (var type in rrDefs.FaceType)
             this.m_stencil[rrDefs.FaceType[type]] = new sglrReferenceContext.StencilState();
         /** @type {number} */ this.m_depthFunc = gl.LESS;
