@@ -30,7 +30,7 @@ goog.scope(function() {
     var sglrReferenceContext = framework.opengl.simplereference.sglrReferenceContext;
 
     /**
-     * @param {sglrGLContext.GLContext|sglrReferenceContext.ReferenceContext} ctx
+     * @param {sglrGLContext.GLContext | WebGL2RenderingContext | sglrReferenceContext.ReferenceContext} ctx
      * @param {number|Object} program
      * @param {Array<number>} p0
      * @param {Array<number>} p1

@@ -384,7 +384,7 @@ goog.scope(function() {
                 'GL_EXT_texture_type_2_10_10_10_REV GL_OES_required_internalformat',
                 fmt.TEXTURE_VALID, // explicitly unrenderable
                 glsFboUtil.rangeArray(glsFboCompletenessTests.s_oesRequiredInternalFormat10bitColorFormats)
-            ),
+            )
         ];
         
     }; // initGlDependents ----------------------------------------
@@ -471,11 +471,11 @@ goog.scope(function() {
     glsFboCompletenessTests.Context.prototype.createRenderableTests = function(gl) {
         
         /** @type {tcuTestCase.DeqpTest} */
-        var layerTests = tcuTestCase.newTest('renderable', 'Tests for support of renderable image formats');
+        var renderableTests = tcuTestCase.newTest('renderable', 'Tests for support of renderable image formats');
         /** @type {tcuTestCase.DeqpTest} */
-        var layerTests = tcuTestCase.newTest('renderbuffer', 'Tests for renderbuffer formats');
+        var rbRenderableTests = tcuTestCase.newTest('renderbuffer', 'Tests for renderbuffer formats');
         /** @type {tcuTestCase.DeqpTest} */
-        var layerTests = tcuTestCase.newTest('texture', 'Tests for texture formats');
+        var texRenderableTests = tcuTestCase.newTest('texture', 'Tests for texture formats');
         
         var attPoints = [
             [gl.DEPTH_ATTACHMENT,   "depth",   "Tests for depth attachments"],
@@ -488,20 +488,82 @@ goog.scope(function() {
         var rboFmts = m_maxFormats.getFormats(glsFboUtil.FormatFlags.ANY_FORMAT);
         var texFmts = m_maxFormats.getFormats(glsFboUtil.FormatFlags.ANY_FORMAT);
         
-        for (var i = attPoints.length - 1 ; --i ; ) {
+        for (var i = 0, l_attPoints = attPoints.length ; i < l_attPoints ; ++i ) {
             var rbAttTests  = new tcuTestCase.newTest(attPoints[i][1], attPoints[i][2]);
             var texAttTests = new tcuTestCase.newTest(attPoints[i][1], attPoints[i][2]);
             
-            var l = rbAttTests.length;
-            for (var j = 0 ; j < l ; ++j) {
-                var params = glsFboCompletenessTests.renderableParams(attPoints[i][0], gl.RENDERBUFFER, rbAttTests[j]);
+            for (var j = 0, l_rboFmts = rboFmts.length ; j < l_rboFmts ; ++j) {
+                var params = glsFboCompletenessTests.renderableParams(
+                    attPoints[i][0], gl.RENDERBUFFER, rboFmts[j]
+                );
+                rbAttTests.addChild(
+                    new glsFboCompletenessTests.RenderableTest(
+                        glsFboCompletenessTests.renderableParams.getName(params),
+                        glsFboCompletenessTests.renderableParams.getDescription(params),
+                        this, params
+                    )
+                );
             }
+            rbRenderableTests.addChild(rbAttTests);
+            
+            for (var j = 0, l_texFmts = texFmts.length ; j < l_texFmts ; ++j) {
+                var params = glsFboCompletenessTests.renderableParams(
+                    attPoints[i][0], gl.TEXTURE, texFmts[j]
+                );
+                texAttTests.addChild(
+                    new glsFboCompletenessTests.RenderableTest(
+                        glsFboCompletenessTests.renderableParams.getName(params),
+                        glsFboCompletenessTests.renderableParams.getDescription(params),
+                        this, params
+                    )
+                );
+            }
+            texRenderableTests.addChild(texAttTests);
+            
         }
-        // TODO: finish this function. Leaving it on tuesday I've just added renderableParams,
-        // RenderableTest needs doing now.
+        renderableTests.addChild(rbRenderableTests);
+        renderableTests.addChild(texRenderableTests);
         
+        return renderableTests;
     };
     
+    glsFboCompletenessTests.Context.prototype.createAttachmentTests = function(gl) {
+    
+        var attCombTests = tcuTestCase.newTest('attachment_combinations', 'Tests for attachment combinations');
+        
+        s_bufTypes = [gl.NONE, gl.RENDERBUFFER, gl.TEXTURE];
+        ls_bufTypes = s_bufTypes.length;
+        
+        for (var col0 = 0 ; col0 < ls_bufTypes ; ++col0)
+            for (var coln = 0 ; coln < ls_bufTypes ; ++coln)
+                for (var dep = 0 ; dep < ls_bufTypes ; ++dep)
+                    for (var stc = 0 ; stc < ls_bufTypes ; ++stc) {
+                        var params = glsFboCompletenessTests.attachmentParams(
+                            s_bufTypes[col0], s_bufTypes[coln], s_bufTypes[dep], s_bufTypes[stc]
+                        );
+                        attCombTests.addChild(new AttachmentTest(
+                            glsFboCompletenessTests.attachmentParams.getName(params),
+                            glsFboCompletenessTests.attachmentParams.getDescription(params),
+                            this, params
+                        ));
+                    }
+        return attCombTests;
+    };
+    
+    glsFboCompletenessTests.Context.prototype.createSizeTests = function(gl) {
+    
+        var sizeTests = tcuTestCase.newTest('size', 'Tests for attachment sizes');
+        
+        sizeTests.addChild(new glsFboCompletenessTests.EmptyImageTest(
+            'zero', 'Test for zero-sized image attachment', this
+        ));
+        sizeTests.addChild(new glsFboCompletenessTests.DistinctSizeTest(
+            'distinct', 'Test for attachments with different sizes', this
+        ));
+        
+        return sizeTests;
+    
+    };
     
     
     
@@ -674,7 +736,7 @@ goog.scope(function() {
     
     
     
-    glsFboCompletenessTests.formatName(format, gl) {
+    glsFboCompletenessTests.formatName = function (format, gl) {
         if (!(gl = gl || window.gl)) throw new Error ('Invalid GL object');
         
         var s = gluStrUtil.getPixelFormatName(format.format).substr(3).toLowerCase();
@@ -684,7 +746,7 @@ goog.scope(function() {
         
         return s;
     };
-    glsFboCompletenessTests.formatDesc(format, gl) {
+    glsFboCompletenessTests.formatDesc = function (format, gl) {
         if (!(gl = gl || window.gl)) throw new Error ('Invalid GL object');
         
         var s = gluStrUtil.getPixelFormatName(format.format);
@@ -694,6 +756,8 @@ goog.scope(function() {
         
         return s;
     };
+    
+    
     glsFboCompletenessTests.renderableParams = function(attPoint,bufType,format) {
         var ret = {
             attPoint: attPoint,
@@ -702,7 +766,6 @@ goog.scope(function() {
         };
         return ret;
     };
-    
     /**
      * glsFboCompletenessTests.numSamplesParams.getName
      * @return {string}
@@ -715,6 +778,128 @@ goog.scope(function() {
     // takes const numSamplesParams&
     glsFboCompletenessTests.renderableParams.getDescription = function(params) {
         return glsFboCompletenessTests.formatdesc(params.format);
+    };
+    
+    es3fFboCompletenessTests.RenderableTest = function(name, desc, ctx, params) {
+        glsFboCompletenessTests.TestBase.call(this, name, desc, params);
+        this.m_ctx = ctx;
+    };
+    es3fFboCompletenessTests.RenderableTest.prototype = Object.create(glsFboCompletenessTests.TestBase.prototype);
+    es3fFboCompletenessTests.RenderableTest.prototype.constructor = es3fFboCompletenessTests.RenderableTest;
+
+    es3fFboCompletenessTests.RenderableTest.prototype.build = function(builder, gl) {
+        this.attachTargetToNew(this.m_params.attPoint, this.m_params.bufType, this.m_params.format, 64, 64, builder, gl);
+        return true;
+    };
+    
+    
+    glsFboCompletenessTests.attTypeName = function(bufType, gl) {
+        if (!(gl = gl || window.gl)) throw new Error ('Invalid GL object');
+        switch(bufType) {
+            case gl.NONE:         return 'none';
+            case gl.RENDERBUFFER: return 'rbo';
+            case gl.TEXTURE:      return 'tex';
+            default: break;
+        }
+        throw new Error('Impossible case');
+    };
+    glsFboCompletenessTests.attachmentParams = function(color0Kind, colornKind, depthKind, stencilKind) {
+        var ret = {
+            color0Kind:  color0Kind,
+            colornKind:  colornKind,
+            depthKind:   depthKind,
+            stencilKind: stencilKind
+        };
+        return ret;
+    };
+    glsFboCompletenessTests.attachmentParams.getName = function(params) {
+        return (glsFboCompletenessTests.attTypeName(params.color0Kind) + '_' +
+                glsFboCompletenessTests.attTypeName(params.colornKind) + '_' +
+                glsFboCompletenessTests.attTypeName(params.depthKind) + '_' +
+                glsFboCompletenessTests.attTypeName(params.stencilKind));
+    };
+    glsFboCompletenessTests.attachmentParams.getDescription = glsFboCompletenessTests.attachmentParams.getName;
+    
+    es3fFboCompletenessTests.AttachmentTest = function(name, desc, ctx, params) {
+        glsFboCompletenessTests.TestBase.call(this, name, desc, params);
+        this.m_ctx = ctx;
+    };
+    es3fFboCompletenessTests.AttachmentTest.prototype = Object.create(glsFboCompletenessTests.TestBase.prototype);
+    es3fFboCompletenessTests.AttachmentTest.prototype.constructor = es3fFboCompletenessTests.AttachmentTest;
+    
+    es3fFboCompletenessTests.AttachmentTest.prototype.makeDepthAndStencil = function(builder, gl) {
+        
+        if (this.m_params.stencilKind == this.m_params.depthKind) {
+            // If there is a common stencil+depth -format, try to use a common
+            // image for both attachments.
+            var flags = glsFboUtil.FormatFlags.DEPTH_RENDERABLE   |
+                        glsFboUtil.FormatFlags.STENCIL_RENDERABLE | 
+                        glsFboUtil.formatFlag(this.m_params.stencilKind, gl);
+            
+            var formats = this.m_ctx.getMinFormats().getformats(flags);
+            if (formats.length) {
+                var format = formats[0];
+                att = es3fFboCompletenessTests.makeAttachment(this.m_params.depthKind, format, 64, 64, builder. gl);
+                builder.glAttach(gl.DEPTH_ATTACHMENT, att);
+                builder.glAttach(gl.STENCIL_ATTACHMENT, att);
+                return;
+            }
+        }
+        // Either the kinds were separate, or a suitable format was not found.
+        // Create separate images.
+        this.attachTargetToNew(gl.STENCIL_ATTACHMENT, this.m_params.stencilKind,
+                               glsFboUtil.ImageFormat.none(), 64, 64, builder, gl);
+        this.attachTargetToNew(gl.DEPTH_ATTACHMENT, this.m_params.depthKind,
+                               glsFboUtil.ImageFormat.none(), 64, 64, builder, gl);
+    };
+    
+    es3fFboCompletenessTests.AttachmentTest.prototype.build = function(builder, gl) {
+        
+        this.attachTargetToNew(gl.COLOR_ATTACHMENT0, this.m_params.color0Kind,
+                               glsFboUtil.ImageFormat.none(), 64, 64, builder, gl);
+        
+        if (this.m_params.colornkind != gl.NONE) {
+            if (this.m_ctx.haveMultiColorAtts())
+                throw new Error('Multiple attachments not supported');
+            var matAttachments = gl.getParameter(gl.MAX_COLOR_ATTACHMENTS);
+            
+            for (var i = 0 ; i < maxAttachments ; ++i) {
+                this.attachTargetToNew(gl.COLOR_ATTACHMENT0 + i, this.m_params.colornKind,
+                                       glsFboUtil.ImageFormat.none(), 64, 64, builder, gl);
+            }
+        }
+        
+        this.makeDepthAndStencil(builder, gl);
+        
+        return true;
+    };
+    
+    es3fFboCompletenessTests.EmptyImageTest = function(name, desc, ctx) {
+        glsFboCompletenessTests.TestBase.call(this, name, desc, null);
+        this.m_ctx = ctx;
+    };
+    es3fFboCompletenessTests.EmptyImageTest.prototype = Object.create(glsFboCompletenessTests.TestBase.prototype);
+    es3fFboCompletenessTests.EmptyImageTest.prototype.constructor = es3fFboCompletenessTests.EmptyImageTest;
+
+    es3fFboCompletenessTests.EmptyImageTest.prototype.build = function(builder, gl) {
+        this.attachTargetToNew(gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, 
+                               glsFboUtil.ImageFormat.none(), 0, 0, builder, gl);
+        return true;
+    };
+    
+    es3fFboCompletenessTests.DistinctSizeTest = function(name, desc, ctx) {
+        glsFboCompletenessTests.TestBase.call(this, name, desc, null);
+        this.m_ctx = ctx;
+    };
+    es3fFboCompletenessTests.DistinctSizeTest.prototype = Object.create(glsFboCompletenessTests.TestBase.prototype);
+    es3fFboCompletenessTests.DistinctSizeTest.prototype.constructor = es3fFboCompletenessTests.DistinctSizeTest;
+
+    es3fFboCompletenessTests.DistinctSizeTest.prototype.build = function(builder, gl) {
+        attachTargetToNew(gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER,
+                          glsFboUtil.ImageFormat.none(), 64, 64, builder);
+        attachTargetToNew(gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER,
+                          glsFboUtil.ImageFormat.none(), 128, 128, builder);
+        return true;
     };
     
     

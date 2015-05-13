@@ -25,6 +25,8 @@ goog.require('framework.common.tcuPixelFormat');
 goog.require('framework.common.tcuSurface');
 goog.require('framework.opengl.gluDrawUtil');
 goog.require('framework.common.tcuImageCompare');
+goog.require('framework.opengl.simplereference.sglrShaderProgram');
+goog.require('framework.referencerenderer.rrGenericVector');
 
 goog.scope(function () {
     var sglrReferenceContextTest = framework.opengl.simplereference.sglrReferenceContextTest;
@@ -34,6 +36,8 @@ goog.scope(function () {
     var gluDrawUtil = framework.opengl.gluDrawUtil;
     var tcuSurface = framework.common.tcuSurface;
     var tcuImageCompare = framework.common.tcuImageCompare;
+    var sglrShaderProgram = framework.opengl.simplereference.sglrShaderProgram;
+    var rrGenericVector = framework.referencerenderer.rrGenericVector;
     
     /**
      * @constructor
@@ -209,13 +213,163 @@ goog.scope(function () {
         if (numFailedPixels > 0)
             throw new Error('Image comparison failed, got ' + numFailedPixels + ' non-equal pixels.');
         
+        return tcuTestCase.IterateResult.STOP;
+    };
+    
+    /**
+     * @constructor
+     * @extends {tcuTestCase.DeqpTest}
+     * @param {string} name
+     * @param {string} description
+     */
+    sglrReferenceContextTest.Shader = function (name, description) {
+        tcuTestCase.DeqpTest.call(this, name, description);
+    };
+    
+    sglrReferenceContextTest.Shader.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
+    sglrReferenceContextTest.Shader.prototype.constructor = sglrReferenceContextTest.Shader;
+    
+    sglrReferenceContextTest.Shader.prototype.init = function () {};
+    
+    sglrReferenceContextTest.Shader.prototype.iterate = function () {
+        var limits = new sglrReferenceContext.ReferenceContextLimits(gl);
+        var format = new tcuPixelFormat.PixelFormat(8,8,8,8);
+        var width = 200;
+        var height = 188;
+        var samples = 1;
+        var buffers = new sglrReferenceContext.ReferenceContextBuffers(format, 24, 8, width, height, samples);
+        var ctx = new sglrReferenceContext.ReferenceContext(limits, buffers.getColorbuffer(), buffers.getDepthbuffer(), buffers.getStencilbuffer());
+        ctx.clearColor(0, 0, 1, 1);
+        ctx.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT|gl.STENCIL_BUFFER_BIT);
+        
+        var vertices = [
+            0, 1, -1,
+            -1, -1, -1,
+            1, -1, -1
+        ];
+        
+        var squareVerticesBuffer = ctx.createBuffer();
+        ctx.bindFramebuffer(gl.FRAMEBUFFER, squareVerticesBuffer);
+        
+        var colors = [
+            1,0,0,1,
+            0,1,0,1,
+            0,0,1,1
+        ];
+        
+        var squareColorsBuffer = ctx.createBuffer();
+        ctx.bindBuffer(gl.ARRAY_BUFFER, squareColorsBuffer);
+        
+        /** @type {sglrShaderProgram.ShaderProgramDeclaration} */ var progDecl = new sglrShaderProgram.ShaderProgramDeclaration();
+        
+        progDecl.pushVertexAttribute(new sglrShaderProgram.VertexAttribute('aVertexPosition', rrGenericVector.GenericVecType.FLOAT));
+        
+        /** @type {sglrReferenceContextTest.ContextShaderProgram} */ var program = new sglrReferenceContextTest.ContextShaderProgram(progDecl);
+        
+        //Create program
+        ctx.createProgram(program);
+        
+        //Use program
+        ctx.useProgram(program);
+        
+        var vertexPositionAttribute = ctx.getAttribLocation(program, 'aVertexPosition');
+        ctx.enableVertexAttribArray(vertexPositionAttribute);
         
         
         return tcuTestCase.IterateResult.STOP;
     };
     
     
+    /**
+     * @constructor
+     * @extends {sglrShaderProgram.ShaderProgram}
+     * @param {WebGLRenderingContextBase | sglrReferenceContext.ReferenceContext} ctx
+     * @param {Array<glsVertexArrayTests.ContextArray>} arrays
+     */
+    sglrReferenceContextTest.ContextShaderProgram = function(progDecl) {
+        sglrShaderProgram.ShaderProgram.call(this, progDecl);
+    };
+
+    sglrReferenceContextTest.ContextShaderProgram.prototype = Object.create(sglrShaderProgram.ShaderProgram.prototype);
+    sglrReferenceContextTest.ContextShaderProgram.prototype.constructor = sglrReferenceContextTest.ContextShaderProgram;
     
+    /**
+     * @param {Array<rrVertexAttrib.VertexAttrib>} inputs
+     * @param {Array<rrVertexPacket.VertexPacket>} packets
+     * @param {number} numPackets
+     */
+    sglrReferenceContextTest.ContextShaderProgram.prototype.shadeVertex = function(inputs, packets, numPackets) {
+        /** @type {number} */ var u_coordScale = this.getUniformByName("u_coordScale").value;
+        /** @type {number} */ var u_colorScale = this.getUniformByName("u_colorScale").value;
+
+        for (var packetNdx = 0; packetNdx < numPackets; ++packetNdx) {
+            /** @type {number} */ var varyingLocColor = 0;
+
+            /** @type {rrVertexPacket.VertexPacket} */ var packet = packets[packetNdx];
+
+            // Calc output color
+            /** @type {Array<number>} */ var coord = [1.0, 1.0];
+            /** @type {Array<number>} */ var color = [1.0, 1.0, 1.0];
+
+            for (var attribNdx = 0; attribNdx < this.m_attrType.length; attribNdx++) {
+                /** @type {number} */ var numComponents = this.m_componentCount[attribNdx];
+
+                glsVertexArrayTests.calcShaderColorCoord(coord, color, rrVertexAttrib.readVertexAttrib(inputs[attribNdx], packet.instanceNdx, packet.vertexNdx, this.m_attrType[attribNdx]), attribNdx == 0, numComponents);
+            }
+
+            // Transform position
+            packet.position = [u_coordScale * coord[0], u_coordScale * coord[1], 1.0, 1.0];
+
+            // Pass color to FS
+            packet.outputs[varyingLocColor] = [u_colorScale * color[0], u_colorScale * color[1], u_colorScale * color[2], 1.0];
+        }
+    };
+
+    /**
+     * @param {Array<rrFragmentOperations.Fragment>} packets
+     * @param {rrShadingContext.FragmentShadingContext} context
+     */
+    sglrReferenceContextTest.ContextShaderProgram.prototype.shadeFragments = function(packets, context) {
+        var varyingLocColor = 0;
+
+        // Normal shading
+        for (var packetNdx = 0; packetNdx < packets.length; ++packetNdx)
+            packets[packetNdx].value = rrShadingContext.readTriangleVarying(packets[packetNdx], context, varyingLocColor);
+    };
+    
+    /**
+     * glsVertexArrayTests.ContextShaderProgram.shadeVertices
+     * @param {Array<rrVertexAttrib.VertexAttrib>} inputs
+     * @param {Array<rrVertexPacket.VertexPacket>} packets
+     * @param {number} numPackets
+     */
+    sglrReferenceContextTest.ContextShaderProgram.prototype.shadeVertices = function(inputs, packets, numPackets) {
+        /** @type {number} */ var u_coordScale = this.getUniformByName("u_coordScale").value;
+        /** @type {number} */ var u_colorScale = this.getUniformByName("u_colorScale").value;
+
+        for (var packetNdx = 0; packetNdx < numPackets; ++packetNdx) {
+            /** @type {number} */ var varyingLocColor = 0;
+
+            /** @type {rrVertexPacket.VertexPacket} */ var packet = packets[packetNdx];
+
+            // Calc output color
+            /** @type {Array<number>} */ var coord = [1.0, 1.0];
+            /** @type {Array<number>} */ var color = [1.0, 1.0, 1.0];
+
+            for (var attribNdx = 0; attribNdx < this.m_attrType.length; attribNdx++) {
+                /** @type {number} */ var numComponents = this.m_componentCount[attribNdx];
+
+                glsVertexArrayTests.calcShaderColorCoord(coord, color, rrVertexAttrib.readVertexAttrib(inputs[attribNdx], packet.instanceNdx, packet.vertexNdx, this.m_attrType[attribNdx]), attribNdx == 0, numComponents);
+            }
+
+            // Transform position
+            packet.position = [u_coordScale * coord[0], u_coordScale * coord[1], 1.0, 1.0];
+
+            // Pass color to FS
+            packet.outputs[varyingLocColor] = [u_colorScale * color[0], u_colorScale * color[1], u_colorScale * color[2], 1.0];
+        }
+    };
+
     sglrReferenceContextTest.init = function() {
         var state = tcuTestCase.runner;
         /** @type {tcuTestCase.DeqpTest} */ var testGroup = state.testCases;
@@ -224,6 +378,7 @@ goog.scope(function () {
         
         referenceContextGroup.addChild(new sglrReferenceContextTest.ClearContext('clear_context', 'Clear Context Test'));
         referenceContextGroup.addChild(new sglrReferenceContextTest.Framebuffer('Framebuffer', 'Framebuffer Test'));
+        referenceContextGroup.addChild(new sglrReferenceContextTest.Shader('Shaders', 'Shaders'));
         
         testGroup.addChild(referenceContextGroup);
     

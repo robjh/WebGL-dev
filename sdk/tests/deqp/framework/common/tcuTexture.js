@@ -93,8 +93,8 @@ tcuTexture.ChannelType = {
 
 /**
  * Contruct texture format
- * @param {tcuTexture.ChannelOrder} order
- * @param {tcuTexture.ChannelType} type
+ * @param {?tcuTexture.ChannelOrder} order
+ * @param {?tcuTexture.ChannelType} type
  *
  * @constructor
  */
@@ -146,7 +146,7 @@ tcuTexture.TextureFormat.prototype.getNumStencilBits = function() {
 
 /**
  * Get TypedArray type that can be used to access texture.
- * @param {tcuTexture.ChannelType} type
+ * @param {?tcuTexture.ChannelType} type
  * @return TypedArray that supports the tcuTexture.channel type.
  */
 tcuTexture.getTypedArray = function(type) {
@@ -1722,6 +1722,7 @@ tcuTexture.PixelBufferAccess.prototype.setPixStencil = function(stencil, x, y, z
 /**
  * newFromTextureLevel
  * @param {tcuTexture.TextureLevel} level
+ * @return {tcuTexture.PixelBufferAccess}
  */
 tcuTexture.PixelBufferAccess.newFromTextureLevel = function(level) {
     var descriptor = new Object();

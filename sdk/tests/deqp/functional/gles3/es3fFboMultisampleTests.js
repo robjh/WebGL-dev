@@ -160,7 +160,7 @@ var DE_ASSERT = function(x) {
         // Fill MSAA fbo with gradient, depth = [-1..1]
         ctx.enable(gl.DEPTH_TEST);
         gradShader.setGradient(this.getCurrentContext(), gradShaderID, colorFmtInfo.valueMin, colorFmtInfo.valueMax);
-        // TODO: implement drawQuad
+
         rrUtil.drawQuad(this.getCurrentContext(), gradShaderID, [-1.0, -1.0, -1.0], [1.0, 1.0, 1.0]);
 
         // Render random-colored quads.
@@ -185,7 +185,6 @@ var DE_ASSERT = function(x) {
             /** @type {number} */ var z1 = rnd.getFloat(-1.0, 1.0);
 
             flatShader.setColor(this.getCurrentContext(), flatShaderID, deMath.add(deMath.multiply([r, g, b, a], deMath.subtract(colorFmtInfo.valueMax, colorFmtInfo.valueMin)), colorFmtInfo.valueMin));
-            // TODO: implement drawQuad
             rrUtil.drawQuad(this.getCurrentContext(), flatShaderID, [x0, y0, z0], [x1, y1, z1]);
         }
 
@@ -218,7 +217,6 @@ var DE_ASSERT = function(x) {
                 c = ndx / (numSteps - 1);
 
                 flatShader.setColor(this.getCurrentContext(), flatShaderID, deMath.add(deMath.multiply([0.0, 0.0, c, 1.0], deMath.subtract(colorFmtInfo.valueMax, colorFmtInfo.valueMin)), colorFmtInfo.valueMin));
-                // TODO: implement drawQuad
                 rrUtil.drawQuad(this.getCurrentContext(), flatShaderID, [-1.0, -1.0, d], [1.0, 1.0, d]);
             }
 
@@ -241,7 +239,6 @@ var DE_ASSERT = function(x) {
                 ctx.stencilFunc(gl.EQUAL, s, 0xff);
 
                 flatShader.setColor(this.getCurrentContext(), flatShaderID, deMath.add(deMath.multiply([0.0, c, 0.0, 1.0], deMath.subtract(colorFmtInfo.valueMax, colorFmtInfo.valueMin)), colorFmtInfo.valueMin));
-                // TODO: implement drawQuad
                 rrUtil.drawQuad(this.getCurrentContext(), flatShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
             }
 
