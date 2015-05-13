@@ -146,7 +146,7 @@ tcuTexture.TextureFormat.prototype.getNumStencilBits = function() {
 
 /**
  * Get TypedArray type that can be used to access texture.
- * @param {tcuTexture.ChannelType} type
+ * @param {?tcuTexture.ChannelType} type
  * @return TypedArray that supports the tcuTexture.channel type.
  */
 tcuTexture.getTypedArray = function(type) {
