@@ -711,7 +711,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
             this.bufferBinding = null;
         };
 
-        this.m_elementArrayBufferBinding = null;
+        /** @type {sglrReferenceContext.DataBuffer} */ this.m_elementArrayBufferBinding = null;
 
         this.m_arrays = [];
         for (var i = 0; i < maxVertexAttribs; i++)
@@ -1192,7 +1192,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
 
     /**
     * @param {number} target
-    * @param {number}  rbo
+    * @param {sglrReferenceContext.Renderbuffer}  rbo
     */
     sglrReferenceContext.ReferenceContext.prototype.bindRenderbuffer = function(target, rbo) {
         if (this.condtionalSetError(target != gl.RENDERBUFFER, gl.INVALID_ENUM))
@@ -1626,7 +1626,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
 
 
     /**
-    * @param {number} mask
+    * @param {boolean} mask
     */
     sglrReferenceContext.ReferenceContext.prototype.depthMask = function(mask) {
         this.m_depthMask = mask;
@@ -1658,7 +1658,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
 
 
     /**
-    * @param {number} array
+    * @param {sglrReferenceContext.VertexArray} array
     */
     sglrReferenceContext.ReferenceContext.prototype.bindVertexArray = function(array) {
         if (array)
@@ -2147,7 +2147,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
 
     /**
     * @param {number} target
-    * @param {number}  buffer
+    * @param {sglrReferenceContext.DataBuffer}  buffer
     * @throws {Error}
     */
     sglrReferenceContext.ReferenceContext.prototype.setBufferBinding = function(target, buffer) {
