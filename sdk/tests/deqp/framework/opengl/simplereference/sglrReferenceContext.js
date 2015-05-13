@@ -147,22 +147,22 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     * @constructor
     */
     sglrReferenceContext.ReferenceContextLimits = function(gl) {
-        /** @type {*} */ this.maxTextureImageUnits = 16;
-        /** @type {*} */ this.maxTexture2DSize = 2048;
-        /** @type {*} */ this.maxTextureCubeSize = 2048;
-        /** @type {*} */ this.maxTexture2DArrayLayers = 256;
-        /** @type {*} */ this.maxTexture3DSize = 256;
-        /** @type {*} */ this.maxRenderbufferSize = 2048;
-        /** @type {*} */ this.maxVertexAttribs = 16;
+        /** @type {number} */ this.maxTextureImageUnits = 16;
+        /** @type {number} */ this.maxTexture2DSize = 2048;
+        /** @type {number} */ this.maxTextureCubeSize = 2048;
+        /** @type {number} */ this.maxTexture2DArrayLayers = 256;
+        /** @type {number} */ this.maxTexture3DSize = 256;
+        /** @type {number} */ this.maxRenderbufferSize = 2048;
+        /** @type {number} */ this.maxVertexAttribs = 16;
 
         if (gl) {
-            this.maxTextureImageUnits = gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS);
-            this.maxTexture2DSize = gl.getParameter(gl.MAX_TEXTURE_SIZE);
-            this.maxTextureCubeSize = gl.getParameter(gl.MAX_CUBE_MAP_TEXTURE_SIZE);
-            this.maxRenderbufferSize = gl.getParameter(gl.MAX_RENDERBUFFER_SIZE);
-            this.maxVertexAttribs = gl.getParameter(gl.MAX_VERTEX_ATTRIBS);
-            this.maxTexture2DArrayLayers = gl.getParameter(gl.MAX_ARRAY_TEXTURE_LAYERS);
-            this.maxTexture3DSize = gl.getParameter(gl.MAX_3D_TEXTURE_SIZE);
+            this.maxTextureImageUnits = /** @type {number} */ (gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS));
+            this.maxTexture2DSize = /** @type {number} */ (gl.getParameter(gl.MAX_TEXTURE_SIZE));
+            this.maxTextureCubeSize = /** @type {number} */ (gl.getParameter(gl.MAX_CUBE_MAP_TEXTURE_SIZE));
+            this.maxRenderbufferSize = /** @type {number} */ (gl.getParameter(gl.MAX_RENDERBUFFER_SIZE));
+            this.maxVertexAttribs = /** @type {number} */ (gl.getParameter(gl.MAX_VERTEX_ATTRIBS));
+            this.maxTexture2DArrayLayers = /** @type {number} */ (gl.getParameter(gl.MAX_ARRAY_TEXTURE_LAYERS));
+            this.maxTexture3DSize = /** @type {number} */ (gl.getParameter(gl.MAX_3D_TEXTURE_SIZE));
 
             // Limit texture sizes to supported values
             this.maxTexture2DSize = Math.min(this.maxTexture2DSize, sglrReferenceContext.MAX_TEXTURE_SIZE);
