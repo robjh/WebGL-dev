@@ -93,8 +93,8 @@ tcuTexture.ChannelType = {
 
 /**
  * Contruct texture format
- * @param {tcuTexture.ChannelOrder} order
- * @param {tcuTexture.ChannelType} type
+ * @param {?tcuTexture.ChannelOrder} order
+ * @param {?tcuTexture.ChannelType} type
  *
  * @constructor
  */

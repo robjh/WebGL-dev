@@ -361,7 +361,6 @@ goog.scope(function() {
         glsFboCompletenessTests.TestBase.call(this, name, desc, params);
         this.m_ctx = ctx;
     };
-    
     es3fFboCompletenessTests.NumSamplesTest.prototype = Object.create(glsFboCompletenessTests.TestBase.prototype);
     es3fFboCompletenessTests.NumSamplesTest.prototype.constructor = es3fFboCompletenessTests.NumSamplesTest;
 

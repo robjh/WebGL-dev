@@ -488,7 +488,7 @@ rrFragmentOperations.executeMaskedColorWrite = function(inputFragments, colorMas
                 var fragSampleNdx = 0;
                 var originalColor = colorBuffer.getPixel(fragSampleNdx, frag.pixelCoord[0], frag.pixelCoord[1]);
                 var newColor = frag.blendedRGB.slice();
-                newColor[4] = frag.blendedA;
+                newColor[3] = frag.blendedA;
 
                 if (isSRGB)
                     newColor = tcuTextureUtil.linearToSRGB(newColor);

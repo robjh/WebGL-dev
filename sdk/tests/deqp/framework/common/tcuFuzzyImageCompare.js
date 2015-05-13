@@ -378,10 +378,10 @@ var tcuTextureUtil = framework.common.tcuTextureUtil;
      * @return {number}
      */
     tcuFuzzyImageCompare.fuzzyCompare = function(params, ref, cmp, errorMask) {
-         assertMsgOptions(ref.getWidth() == cmp.getWidth() && ref.getHeight() == cmp.getHeight(),
+        assertMsgOptions(ref.getWidth() == cmp.getWidth() && ref.getHeight() == cmp.getHeight(),
             'Reference and result images have different dimensions', false, true);
 
-         assertMsgOptions(ref.getWidth() == errorMask.getWidth() && ref.getHeight() == errorMask.getHeight(),
+        assertMsgOptions(ref.getWidth() == errorMask.getWidth() && ref.getHeight() == errorMask.getHeight(),
             'Reference and error mask images have different dimensions', false, true);
 
         if (!tcuFuzzyImageCompare.isFormatSupported(ref.getFormat()) || !tcuFuzzyImageCompare.isFormatSupported(cmp.getFormat()))

@@ -317,7 +317,7 @@ tcuTextureUtil.select = function(a, b, cond) {
 };
 
 /** tcuTextureUtil.getChannelBitDepth
- * @param {tcuTexture.ChannelType} channelType
+ * @param {?tcuTexture.ChannelType} channelType
  * @return {Array<number>}
  */
 tcuTextureUtil.getChannelBitDepth = function(channelType) {
@@ -494,7 +494,7 @@ tcuTextureUtil.getTextureFormatMantissaBitDepth = function(format) {
 };
 
 /**
- * @param {tcuTexture.ChannelType} channelType
+ * @param {?tcuTexture.ChannelType} channelType
  * @return {Array<number>}
  */
 tcuTextureUtil.getChannelMantissaBitDepth = function(channelType) {
