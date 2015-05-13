@@ -3266,7 +3266,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
 
     /**
     * @param {Array<number>} rect
-    * @return {number}
+    * @return {boolean}
     */
     sglrReferenceContext.isEmpty = function(rect) { return rect[2] == 0 || rect[3] == 0; };
 

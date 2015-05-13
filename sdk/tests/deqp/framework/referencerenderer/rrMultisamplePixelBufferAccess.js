@@ -69,7 +69,7 @@ rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.prototype.toSinglesa
                                   data: this.m_access.m_data});
 };
 /**
- * @param {TODO:FIX_TYPE}
+ * @param {tcuTexture.PixelBufferAccess} original
  * @return {rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess}
  */
 rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.fromSinglesampleAccess = function(original) {
