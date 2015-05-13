@@ -236,14 +236,14 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     };
 
     /**
-    * @param {number} pos
-    * @param {number}  lod
+    * @param {Array<number>} pos
+    * @param {number=}  lod
     * @throws {Error}
     */
     sglrReferenceContext.Texture.prototype.sample = function(pos, lod) {throw new Error('Intentionally empty. Call method from child class instead'); };
 
     /**
-    * @param {number} packetTexcoords
+    * @param {Array<Array<number>>} packetTexcoords
     * @param {number}  lodBias
     * @throws {Error}
     */
@@ -453,9 +453,9 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     };
 
     /**
-     * @param {?Array<number>} pos
-     * @param {number} lod
-     * @return {?Array<number>}
+     * @param {Array<number>} pos
+     * @param {number=} lod
+     * @return {Array<number>}
      */
     sglrReferenceContext.Texture2D.prototype.sample = function(pos, lod) { return this.m_view.sample(this.getSampler(), pos, lod) };
 
@@ -977,7 +977,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         /** @type {boolean} */ this.m_polygonOffsetFillEnabled = false;
         /** @type {boolean} */ this.m_primitiveRestartFixedIndex = true; //always on
         /** @type {boolean} */ this.m_primitiveRestartSettableIndex = true; //always on
-        /** @type {sglrReferenceContext.StencilState} */ this.m_stencil = [];
+        /** @type {Array<sglrReferenceContext.StencilState>} */ this.m_stencil = [];
         for (var type in rrDefs.FaceType)
             this.m_stencil[rrDefs.FaceType[type]] = new sglrReferenceContext.StencilState();
         /** @type {number} */ this.m_depthFunc = gl.LESS;
@@ -3083,7 +3083,8 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         *   this.m_currentProgram.getVertexShader(),
         *   this.m_currentProgram.getFragmentShader());*/
 
-        var state = new rrRenderState.RenderState(colorBuf0);
+        var viewportState = new rrRenderState.ViewportState(colorBuf0)
+        var state = new rrRenderState.RenderState(viewportState);
 
         var vertexAttribs = [];
 
