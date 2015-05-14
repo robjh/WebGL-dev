@@ -321,7 +321,7 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
      * @param {goog.NumberArray} dst
      * @param {number} size
      * @param {Uint8Array} ptr
-     * @param {rrVertexAttrib.NormalOrder|rrVertexAttrib.BGRAOrder} order
+     * @param {Object<rrVertexAttrib.NormalOrder|rrVertexAttrib.BGRAOrder>} order
      */
     rrVertexAttrib.readUnorm2101010RevOrder = function(dst, size, ptr, order) {
         var arraysize32 = 4; //4 bytes
@@ -348,8 +348,8 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
      * @param {goog.NumberArray} dst
      * @param {number} size
      * @param {Uint8Array} ptr
-     * @param {rrVertexAttrib.NormalOrder|rrVertexAttrib.BGRAOrder} order
-     * @param {goog.NumberArray} readAsTypeArray
+     * @param {Object<rrVertexAttrib.NormalOrder|rrVertexAttrib.BGRAOrder>} order
+     * @param readAsTypeArray
      */
     rrVertexAttrib.readUnormOrder = function(dst, size, ptr, order, readAsTypeArray) {
         var arrayelementsize = readAsTypeArray.BYTES_PER_ELEMENT;
@@ -403,7 +403,7 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
      * @param {goog.NumberArray} dst
      * @param {number} size
      * @param {Uint8Array} ptr
-     * @param order NormalOrder or BGRAOrder
+     * @param {Object<rrVertexAttrib.NormalOrder|rrVertexAttrib.BGRAOrder>} order NormalOrder or BGRAOrder
      * @param readAsTypeArray Typed Array type
      */
     rrVertexAttrib.readOrder = function(dst, size, ptr, order, readAsTypeArray) {
