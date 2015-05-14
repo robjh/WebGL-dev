@@ -225,7 +225,7 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
             /** @type {number} */ var elementNdx = (vertexAttrib.instanceDivisor != 0) ? (instanceNdx / vertexAttrib.instanceDivisor) : vertexNdx;
             /** @type {number} */ var compSize = rrVertexAttrib.getComponentSize(vertexAttrib.type);
             /** @type {number} */ var stride = (vertexAttrib.stride != 0) ? (vertexAttrib.stride) : (vertexAttrib.size * compSize);
-            /** @type {number} */ var byteOffset = elementNdx * stride;
+            /** @type {number} */ var byteOffset = vertexAttrib.offset + (elementNdx * stride);
 
             dst = [0, 0, 0, 1]; // defaults
 

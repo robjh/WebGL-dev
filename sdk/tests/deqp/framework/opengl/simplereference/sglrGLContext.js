@@ -152,7 +152,7 @@ goog.scope(function() {
     /**
      * Draws quads from vertex arrays
      * @param {number} first First vertex to begin drawing with
-     * @param {number} count How many quads to draw (array should provide first + (count * 4) vertices at least)
+     * @param {number} count How many quads to draw (array should provide first + (count * 6) vertices at least)
      */
     sglrGLContext.GLContext.prototype.drawQuads = function(first, count) {
         this.m_context.drawArrays(gl.TRIANGLES, first, (count * 6) - first);

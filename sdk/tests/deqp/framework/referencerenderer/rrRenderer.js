@@ -446,7 +446,10 @@ rrRenderer.calculateDepth = function(x, y, depths) {
  * @param {number} count Number of quads to draw
  */
 rrRenderer.drawQuads = function(state, renderTarget, program, vertexAttribs, first, count) {
-    var primitives = new rrRenderer.PrimitiveList(rrRenderer.PrimitiveType.TRIANGLES, count * 2 * 3, first); // 2 triangles per quad with 3 vertices each.
+    //The count of primitives to draw depends on which vertex we start to draw first.
+    count = Math.floor(((count * 6) - first) / 6);
+    
+    var primitives = new rrRenderer.PrimitiveList(rrRenderer.PrimitiveType.TRIANGLES, count * 6, first); // 2 triangles per quad with 3 vertices each = 6 vertices.
     // Do not draw if nothing to draw
     if (primitives.getNumElements() == 0)
         return;

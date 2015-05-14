@@ -3061,7 +3061,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     /**
     * Draws quads from vertex arrays
     * @param {number} first First vertex to begin drawing with
-    * @param {number} count How many quads to draw (array should provide first + (count * 4) vertices at least)
+    * @param {number} count How many quads to draw (array should provide first + (count * 6) vertices at least)
     */
     sglrReferenceContext.ReferenceContext.prototype.drawQuads = function(first, count) {
         // undefined results
