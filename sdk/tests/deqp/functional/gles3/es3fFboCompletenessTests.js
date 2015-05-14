@@ -423,9 +423,9 @@ goog.scope(function() {
         /** @const @type {tcuTestCase.DeqpTest} */
         var testGroup = tcuTestCase.runner.testCases;
         
-        // create Renderable tests
-        // create Attachment tests
-        // create Size tests
+        testGroup.addChild(fboCtx.createRenderableTests(gl));
+        testGroup.addChild(fboCtx.createAttachmentTests(gl));
+        testGroup.addChild(fboCtx.createSizeTests(gl));
         
         /** @type {tcuTestCase.DeqpTest} */
         var layerTests = tcuTestCase.newTest('layer', 'Tests for layer attachments');

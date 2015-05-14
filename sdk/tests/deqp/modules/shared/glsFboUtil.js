@@ -124,7 +124,6 @@ goog.scope(function() {
             return glsFboUtil.FormatFlags.DEPTH_RENDERABLE;
          default:
             if (glenum < gl.COLOR_ATTACHMENT0 || glenum > gl.COLOR_ATTACHMENT15) {
-                debugger;
                 throw new Error('glenum out of range');
             }
         }

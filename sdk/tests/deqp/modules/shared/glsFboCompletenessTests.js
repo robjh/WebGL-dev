@@ -2,7 +2,7 @@
 goog.provide('modules.shared.glsFboCompletenessTests');
 goog.require('modules.shared.glsFboUtil');
 goog.require('framework.opengl.gluObjectWrapper');
-goog.require('framework.opengl.gluStrUtil');
+//goog.require('framework.opengl.gluStrUtil');
 goog.require('framework.common.tcuTestCase');
 
 
@@ -11,8 +11,123 @@ goog.scope(function() {
     var glsFboCompletenessTests = modules.shared.glsFboCompletenessTests;
     var glsFboUtil = modules.shared.glsFboUtil;
     var gluObjectWrapper = framework.opengl.gluObjectWrapper;
-    var gluStrUtil = framework.opengl.gluStrUtil;
+//  var gluStrUtil = framework.opengl.gluStrUtil;
     var tcuTestCase = framework.common.tcuTestCase;
+
+    // TODO: gluStrUtil doesnt exist yet. If it ever does, remove these in favour of it.
+    var gluStrUtil = {
+        getTypeName: function(value, gl) {
+            switch (value) {
+                case gl.BYTE:                            return 'GL_BYTE';
+                case gl.UNSIGNED_BYTE:                   return 'GL_UNSIGNED_BYTE';
+                case gl.SHORT:                           return 'GL_SHORT';
+                case gl.UNSIGNED_SHORT:                  return 'GL_UNSIGNED_SHORT';
+                case gl.INT:                             return 'GL_INT';
+                case gl.UNSIGNED_INT:                    return 'GL_UNSIGNED_INT';
+                case gl.FLOAT:                           return 'GL_FLOAT';
+                case gl.FIXED:                           return 'GL_FIXED';
+                case gl.UNSIGNED_SHORT_5_6_5:            return 'GL_UNSIGNED_SHORT_5_6_5';
+                case gl.UNSIGNED_SHORT_4_4_4_4:          return 'GL_UNSIGNED_SHORT_4_4_4_4';
+                case gl.UNSIGNED_SHORT_5_5_5_1:          return 'GL_UNSIGNED_SHORT_5_5_5_1';
+                case gl.HALF_FLOAT:                      return 'GL_HALF_FLOAT';
+                case gl.INT_2_10_10_10_REV:              return 'GL_INT_2_10_10_10_REV';
+                case gl.UNSIGNED_INT_2_10_10_10_REV:     return 'GL_UNSIGNED_INT_2_10_10_10_REV';
+                case gl.UNSIGNED_INT_10F_11F_11F_REV:    return 'GL_UNSIGNED_INT_10F_11F_11F_REV';
+                case gl.UNSIGNED_INT_5_9_9_9_REV:        return 'GL_UNSIGNED_INT_5_9_9_9_REV';
+                case gl.UNSIGNED_INT_24_8:               return 'GL_UNSIGNED_INT_24_8';
+                case gl.FLOAT_32_UNSIGNED_INT_24_8_REV:  return 'GL_FLOAT_32_UNSIGNED_INT_24_8_REV';
+                case gl.SIGNED_NORMALIZED:               return 'GL_SIGNED_NORMALIZED';
+                case gl.UNSIGNED_NORMALIZED:             return 'GL_UNSIGNED_NORMALIZED';
+                case gl.HALF_FLOAT_OES:                  return 'GL_HALF_FLOAT_OES';
+                default:                                 return '';
+            };
+        },
+        getPixelFormatName: function(value, gl) {
+            switch (value) {
+                case gl.LUMINANCE:           return 'GL_LUMINANCE';
+                case gl.LUMINANCE_ALPHA:     return 'GL_LUMINANCE_ALPHA';
+                case gl.ALPHA:               return 'GL_ALPHA';
+                case gl.RGB:                 return 'GL_RGB';
+                case gl.RGBA:                return 'GL_RGBA';
+                case gl.RGBA4:               return 'GL_RGBA4';
+                case gl.RGB5_A1:             return 'GL_RGB5_A1';
+                case gl.RGB565:              return 'GL_RGB565';
+                case gl.DEPTH_COMPONENT16:   return 'GL_DEPTH_COMPONENT16';
+                case gl.STENCIL_INDEX8:      return 'GL_STENCIL_INDEX8';
+                case gl.RG:                  return 'GL_RG';
+                case gl.RED:                 return 'GL_RED';
+                case gl.RGBA_INTEGER:        return 'GL_RGBA_INTEGER';
+                case gl.RGB_INTEGER:         return 'GL_RGB_INTEGER';
+                case gl.RG_INTEGER:          return 'GL_RG_INTEGER';
+                case gl.RED_INTEGER:         return 'GL_RED_INTEGER';
+                case gl.DEPTH_COMPONENT:     return 'GL_DEPTH_COMPONENT';
+                case gl.DEPTH_STENCIL:       return 'GL_DEPTH_STENCIL';
+                case gl.RGBA32F:             return 'GL_RGBA32F';
+                case gl.RGBA32I:             return 'GL_RGBA32I';
+                case gl.RGBA32UI:            return 'GL_RGBA32UI';
+                case gl.RGBA16:              return 'GL_RGBA16';
+                case gl.RGBA16_SNORM:        return 'GL_RGBA16_SNORM';
+                case gl.RGBA16F:             return 'GL_RGBA16F';
+                case gl.RGBA16I:             return 'GL_RGBA16I';
+                case gl.RGBA16UI:            return 'GL_RGBA16UI';
+                case gl.RGBA8:               return 'GL_RGBA8';
+                case gl.RGBA8I:              return 'GL_RGBA8I';
+                case gl.RGBA8UI:             return 'GL_RGBA8UI';
+                case gl.SRGB8_ALPHA8:        return 'GL_SRGB8_ALPHA8';
+                case gl.RGB10_A2:            return 'GL_RGB10_A2';
+                case gl.RGB10_A2UI:          return 'GL_RGB10_A2UI';
+                case gl.RGBA8_SNORM:         return 'GL_RGBA8_SNORM';
+                case gl.RGB8:                return 'GL_RGB8';
+                case gl.R11F_G11F_B10F:      return 'GL_R11F_G11F_B10F';
+                case gl.RGB32F:              return 'GL_RGB32F';
+                case gl.RGB32I:              return 'GL_RGB32I';
+                case gl.RGB32UI:             return 'GL_RGB32UI';
+                case gl.RGB16:               return 'GL_RGB16';
+                case gl.RGB16_SNORM:         return 'GL_RGB16_SNORM';
+                case gl.RGB16F:              return 'GL_RGB16F';
+                case gl.RGB16I:              return 'GL_RGB16I';
+                case gl.RGB16UI:             return 'GL_RGB16UI';
+                case gl.RGB8_SNORM:          return 'GL_RGB8_SNORM';
+                case gl.RGB8I:               return 'GL_RGB8I';
+                case gl.RGB8UI:              return 'GL_RGB8UI';
+                case gl.SRGB8:               return 'GL_SRGB8';
+                case gl.RGB9_E5:             return 'GL_RGB9_E5';
+                case gl.RG32F:               return 'GL_RG32F';
+                case gl.RG32I:               return 'GL_RG32I';
+                case gl.RG32UI:              return 'GL_RG32UI';
+                case gl.RG16:                return 'GL_RG16';
+                case gl.RG16_SNORM:          return 'GL_RG16_SNORM';
+                case gl.RG16F:               return 'GL_RG16F';
+                case gl.RG16I:               return 'GL_RG16I';
+                case gl.RG16UI:              return 'GL_RG16UI';
+                case gl.RG8:                 return 'GL_RG8';
+                case gl.RG8I:                return 'GL_RG8I';
+                case gl.RG8UI:               return 'GL_RG8UI';
+                case gl.RG8_SNORM:           return 'GL_RG8_SNORM';
+                case gl.R32F:                return 'GL_R32F';
+                case gl.R32I:                return 'GL_R32I';
+                case gl.R32UI:               return 'GL_R32UI';
+                case gl.R16:                 return 'GL_R16';
+                case gl.R16_SNORM:           return 'GL_R16_SNORM';
+                case gl.R16F:                return 'GL_R16F';
+                case gl.R16I:                return 'GL_R16I';
+                case gl.R16UI:               return 'GL_R16UI';
+                case gl.R8:                  return 'GL_R8';
+                case gl.R8I:                 return 'GL_R8I';
+                case gl.R8UI:                return 'GL_R8UI';
+                case gl.R8_SNORM:            return 'GL_R8_SNORM';
+                case gl.DEPTH_COMPONENT32F:  return 'GL_DEPTH_COMPONENT32F';
+                case gl.DEPTH_COMPONENT24:   return 'GL_DEPTH_COMPONENT24';
+                case gl.DEPTH32F_STENCIL8:   return 'GL_DEPTH32F_STENCIL8';
+                case gl.DEPTH24_STENCIL8:    return 'GL_DEPTH24_STENCIL8';
+                case gl.RGB10:               return 'GL_RGB10';
+                case gl.DEPTH_COMPONENT32:   return 'GL_DEPTH_COMPONENT32';
+                case gl.SRGB:                return 'GL_SRGB';
+                case gl.SRGB_ALPHA:          return 'GL_SRGB_ALPHA';
+                default: '';
+            };
+        }
+    };
 
     
     glsFboCompletenessTests.initGlDependents = function(gl) {
@@ -413,14 +528,14 @@ goog.scope(function() {
     this.createSizeTests = function() {  };
     //*/
     /*
-    						glsFboCompletenessTests.Context					(TestContext& testCtx,
-													 RenderContext& renderCtx,
-													 CheckerFactory& factory);
-													 
-	void					addExtFormats			(FormatExtEntries extRange);
-	TestCaseGroup*			createRenderableTests	(void);
-	TestCaseGroup*			createAttachmentTests	(void);
-	TestCaseGroup*			createSizeTests			(void);
+                            glsFboCompletenessTests.Context                    (TestContext& testCtx,
+                                                     RenderContext& renderCtx,
+                                                     CheckerFactory& factory);
+                                                     
+    void                    addExtFormats            (FormatExtEntries extRange);
+    TestCaseGroup*            createRenderableTests    (void);
+    TestCaseGroup*            createAttachmentTests    (void);
+    TestCaseGroup*            createSizeTests            (void);
         //*/
     };
     
@@ -478,15 +593,15 @@ goog.scope(function() {
         var texRenderableTests = tcuTestCase.newTest('texture', 'Tests for texture formats');
         
         var attPoints = [
-            [gl.DEPTH_ATTACHMENT,   "depth",   "Tests for depth attachments"],
-            [gl.STENCIL_ATTACHMENT, "stencil", "Tests for stencil attachments"],
-            [gl.COLOR_ATTACHMENT0,  "color0",  "Tests for color attachments"]
+            [gl.DEPTH_ATTACHMENT,   'depth',   'Tests for depth attachments'],
+            [gl.STENCIL_ATTACHMENT, 'stencil', 'Tests for stencil attachments'],
+            [gl.COLOR_ATTACHMENT0,  'color0',  'Tests for color attachments']
         ];
         
         // At each attachment point, iterate through all the possible formats to
         // detect both false positives and false negatives.
-        var rboFmts = m_maxFormats.getFormats(glsFboUtil.FormatFlags.ANY_FORMAT);
-        var texFmts = m_maxFormats.getFormats(glsFboUtil.FormatFlags.ANY_FORMAT);
+        var rboFmts = this.m_maxFormats.getFormats(glsFboUtil.FormatFlags.ANY_FORMAT);
+        var texFmts = this.m_maxFormats.getFormats(glsFboUtil.FormatFlags.ANY_FORMAT);
         
         for (var i = 0, l_attPoints = attPoints.length ; i < l_attPoints ; ++i ) {
             var rbAttTests  = new tcuTestCase.newTest(attPoints[i][1], attPoints[i][2]);
@@ -531,8 +646,8 @@ goog.scope(function() {
     
         var attCombTests = tcuTestCase.newTest('attachment_combinations', 'Tests for attachment combinations');
         
-        s_bufTypes = [gl.NONE, gl.RENDERBUFFER, gl.TEXTURE];
-        ls_bufTypes = s_bufTypes.length;
+        var s_bufTypes = [gl.NONE, gl.RENDERBUFFER, gl.TEXTURE];
+        var ls_bufTypes = s_bufTypes.length;
         
         for (var col0 = 0 ; col0 < ls_bufTypes ; ++col0)
             for (var coln = 0 ; coln < ls_bufTypes ; ++coln)
@@ -541,7 +656,7 @@ goog.scope(function() {
                         var params = glsFboCompletenessTests.attachmentParams(
                             s_bufTypes[col0], s_bufTypes[coln], s_bufTypes[dep], s_bufTypes[stc]
                         );
-                        attCombTests.addChild(new AttachmentTest(
+                        attCombTests.addChild(new glsFboCompletenessTests.AttachmentTest(
                             glsFboCompletenessTests.attachmentParams.getName(params),
                             glsFboCompletenessTests.attachmentParams.getDescription(params),
                             this, params
@@ -575,7 +690,7 @@ goog.scope(function() {
 
         this.getContext = this.getState;
 
-    //  console.log("glsFboCompletenessTests.TestBase Constructor");
+    //  console.log('glsFboCompletenessTests.TestBase Constructor');
     };
     glsFboCompletenessTests.TestBase.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
     glsFboCompletenessTests.TestBase.prototype.constructor = glsFboCompletenessTests.TestBase;
@@ -622,8 +737,7 @@ goog.scope(function() {
                 image = builder.makeConfig(glsFboUtil.Texture2D);
                 break;
             default:
-                debugger;
-                throw new Error("Impossible case");
+                throw new Error('Impossible case');
         }
         image.unternalFormat = format;
         image.width = width;
@@ -681,7 +795,7 @@ goog.scope(function() {
         
         var fbo = new gluObjectWrapper.Framebuffer(gl);
         var builder = new glsFboUtil.FboBuilder(fbo.get(), gl.FRAMEBUFFER, gl);
-        var ret = this.build(builder);
+        var ret = this.build(builder, gl);
         var statuses = this.m_ctx.getVerifier().validStatusCodes(builder);
         
         var glStatus = builder.getError();
@@ -739,20 +853,20 @@ goog.scope(function() {
     glsFboCompletenessTests.formatName = function (format, gl) {
         if (!(gl = gl || window.gl)) throw new Error ('Invalid GL object');
         
-        var s = gluStrUtil.getPixelFormatName(format.format).substr(3).toLowerCase();
+        var s = gluStrUtil.getPixelFormatName(format.format, gl).substr(3).toLowerCase();
         
         if (format.unsizedType != gl.NONE)
-            s += '_' + gluStrUtil.getTypeName(format.unsizedType).substr(3).toLowerCase();
+            s += '_' + gluStrUtil.getTypeName(format.unsizedType, gl).substr(3).toLowerCase();
         
         return s;
     };
     glsFboCompletenessTests.formatDesc = function (format, gl) {
         if (!(gl = gl || window.gl)) throw new Error ('Invalid GL object');
         
-        var s = gluStrUtil.getPixelFormatName(format.format);
+        var s = gluStrUtil.getPixelFormatName(format.format, gl);
         
         if (format.unsizedType != gl.NONE)
-            s += ' with type ' + gluStrUtil.getTypeName(format.unsizedType);
+            s += ' with type ' + gluStrUtil.getTypeName(format.unsizedType, gl);
         
         return s;
     };
@@ -777,17 +891,17 @@ goog.scope(function() {
     // returns a string.
     // takes const numSamplesParams&
     glsFboCompletenessTests.renderableParams.getDescription = function(params) {
-        return glsFboCompletenessTests.formatdesc(params.format);
+        return glsFboCompletenessTests.formatDesc(params.format);
     };
     
-    es3fFboCompletenessTests.RenderableTest = function(name, desc, ctx, params) {
+    glsFboCompletenessTests.RenderableTest = function(name, desc, ctx, params) {
         glsFboCompletenessTests.TestBase.call(this, name, desc, params);
         this.m_ctx = ctx;
     };
-    es3fFboCompletenessTests.RenderableTest.prototype = Object.create(glsFboCompletenessTests.TestBase.prototype);
-    es3fFboCompletenessTests.RenderableTest.prototype.constructor = es3fFboCompletenessTests.RenderableTest;
+    glsFboCompletenessTests.RenderableTest.prototype = Object.create(glsFboCompletenessTests.TestBase.prototype);
+    glsFboCompletenessTests.RenderableTest.prototype.constructor = glsFboCompletenessTests.RenderableTest;
 
-    es3fFboCompletenessTests.RenderableTest.prototype.build = function(builder, gl) {
+    glsFboCompletenessTests.RenderableTest.prototype.build = function(builder, gl) {
         this.attachTargetToNew(this.m_params.attPoint, this.m_params.bufType, this.m_params.format, 64, 64, builder, gl);
         return true;
     };
@@ -820,14 +934,14 @@ goog.scope(function() {
     };
     glsFboCompletenessTests.attachmentParams.getDescription = glsFboCompletenessTests.attachmentParams.getName;
     
-    es3fFboCompletenessTests.AttachmentTest = function(name, desc, ctx, params) {
+    glsFboCompletenessTests.AttachmentTest = function(name, desc, ctx, params) {
         glsFboCompletenessTests.TestBase.call(this, name, desc, params);
         this.m_ctx = ctx;
     };
-    es3fFboCompletenessTests.AttachmentTest.prototype = Object.create(glsFboCompletenessTests.TestBase.prototype);
-    es3fFboCompletenessTests.AttachmentTest.prototype.constructor = es3fFboCompletenessTests.AttachmentTest;
+    glsFboCompletenessTests.AttachmentTest.prototype = Object.create(glsFboCompletenessTests.TestBase.prototype);
+    glsFboCompletenessTests.AttachmentTest.prototype.constructor = glsFboCompletenessTests.AttachmentTest;
     
-    es3fFboCompletenessTests.AttachmentTest.prototype.makeDepthAndStencil = function(builder, gl) {
+    glsFboCompletenessTests.AttachmentTest.prototype.makeDepthAndStencil = function(builder, gl) {
         
         if (this.m_params.stencilKind == this.m_params.depthKind) {
             // If there is a common stencil+depth -format, try to use a common
@@ -839,7 +953,7 @@ goog.scope(function() {
             var formats = this.m_ctx.getMinFormats().getformats(flags);
             if (formats.length) {
                 var format = formats[0];
-                att = es3fFboCompletenessTests.makeAttachment(this.m_params.depthKind, format, 64, 64, builder. gl);
+                att = glsFboCompletenessTests.makeAttachment(this.m_params.depthKind, format, 64, 64, builder. gl);
                 builder.glAttach(gl.DEPTH_ATTACHMENT, att);
                 builder.glAttach(gl.STENCIL_ATTACHMENT, att);
                 return;
@@ -853,7 +967,7 @@ goog.scope(function() {
                                glsFboUtil.ImageFormat.none(), 64, 64, builder, gl);
     };
     
-    es3fFboCompletenessTests.AttachmentTest.prototype.build = function(builder, gl) {
+    glsFboCompletenessTests.AttachmentTest.prototype.build = function(builder, gl) {
         
         this.attachTargetToNew(gl.COLOR_ATTACHMENT0, this.m_params.color0Kind,
                                glsFboUtil.ImageFormat.none(), 64, 64, builder, gl);
@@ -874,31 +988,31 @@ goog.scope(function() {
         return true;
     };
     
-    es3fFboCompletenessTests.EmptyImageTest = function(name, desc, ctx) {
+    glsFboCompletenessTests.EmptyImageTest = function(name, desc, ctx) {
         glsFboCompletenessTests.TestBase.call(this, name, desc, null);
         this.m_ctx = ctx;
     };
-    es3fFboCompletenessTests.EmptyImageTest.prototype = Object.create(glsFboCompletenessTests.TestBase.prototype);
-    es3fFboCompletenessTests.EmptyImageTest.prototype.constructor = es3fFboCompletenessTests.EmptyImageTest;
+    glsFboCompletenessTests.EmptyImageTest.prototype = Object.create(glsFboCompletenessTests.TestBase.prototype);
+    glsFboCompletenessTests.EmptyImageTest.prototype.constructor = glsFboCompletenessTests.EmptyImageTest;
 
-    es3fFboCompletenessTests.EmptyImageTest.prototype.build = function(builder, gl) {
+    glsFboCompletenessTests.EmptyImageTest.prototype.build = function(builder, gl) {
         this.attachTargetToNew(gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, 
                                glsFboUtil.ImageFormat.none(), 0, 0, builder, gl);
         return true;
     };
     
-    es3fFboCompletenessTests.DistinctSizeTest = function(name, desc, ctx) {
+    glsFboCompletenessTests.DistinctSizeTest = function(name, desc, ctx) {
         glsFboCompletenessTests.TestBase.call(this, name, desc, null);
         this.m_ctx = ctx;
     };
-    es3fFboCompletenessTests.DistinctSizeTest.prototype = Object.create(glsFboCompletenessTests.TestBase.prototype);
-    es3fFboCompletenessTests.DistinctSizeTest.prototype.constructor = es3fFboCompletenessTests.DistinctSizeTest;
+    glsFboCompletenessTests.DistinctSizeTest.prototype = Object.create(glsFboCompletenessTests.TestBase.prototype);
+    glsFboCompletenessTests.DistinctSizeTest.prototype.constructor = glsFboCompletenessTests.DistinctSizeTest;
 
-    es3fFboCompletenessTests.DistinctSizeTest.prototype.build = function(builder, gl) {
-        attachTargetToNew(gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER,
-                          glsFboUtil.ImageFormat.none(), 64, 64, builder);
-        attachTargetToNew(gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER,
-                          glsFboUtil.ImageFormat.none(), 128, 128, builder);
+    glsFboCompletenessTests.DistinctSizeTest.prototype.build = function(builder, gl) {
+        this.attachTargetToNew(gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER,
+                               glsFboUtil.ImageFormat.none(), 64, 64, builder, gl);
+        this.attachTargetToNew(gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER,
+                               glsFboUtil.ImageFormat.none(), 128, 128, builder, gl);
         return true;
     };
     
