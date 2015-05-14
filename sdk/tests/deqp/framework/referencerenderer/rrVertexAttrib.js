@@ -317,6 +317,28 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
     };
 
     /**
+     * rrVertexAttrib.readUint2101010Rev
+     * @param {goog.NumberArray} dst
+     * @param {number} size
+     * @param {Uint8Array} ptr
+     */
+    rrVertexAttrib.readUint2101010Rev = function(dst, size, ptr) {
+        var arraysize32 = 4; //4 bytes
+
+        //Reinterpret aligned as an value of 4 bytes
+        //but with ptr's buffer, assuming ptr is an 8-bit element array,
+        //and convert to 32-bit uint value.
+        var aligned = new Uint32Array(ptr.buffer).subarray(
+            ptr.byteOffset / arraysize32,
+            (ptr.byteOffset + ptr.byteLength) / arraysize32)[0];
+
+            dst[order.T0] = deMath.binaryOp(deMath.shiftRight(aligned,  0), deMath.shiftLeft(1, 10) - 1, deMath.BinaryOp.AND) / range10;
+            if (size >= 2) dst[order.T1] = deMath.binaryOp(deMath.shiftRight(aligned,  10), deMath.shiftLeft(1, 10) - 1, deMath.BinaryOp.AND) / range10;
+           if (size >= 3) dst[order.T2] = deMath.binaryOp(deMath.shiftRight(aligned,  20), deMath.shiftLeft(1, 10) - 1, deMath.BinaryOp.AND) / range10;
+           if (size >= 4) dst[order.T3] = deMath.binaryOp(deMath.shiftRight(aligned,  30), deMath.shiftLeft(1, 10) - 1, deMath.BinaryOp.AND) / range2;
+    };
+
+    /**
      * rrVertexAttrib.readUnorm2101010RevOrder
      * @param {goog.NumberArray} dst
      * @param {number} size
@@ -483,7 +505,7 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
                 rrVertexAttrib.readSnorm2101010RevScaleOrder(dst, size, ptr, rrVertexAttrib.NormalOrder);
                 break;
             case rrVertexAttrib.VertexAttribType.NONPURE_UINT_2_10_10_10_REV:
-                rrVertexAttrib.readUint2101010RevOrder(dst, size, ptr, rrVertexAttrib.NormalOrder);
+                rrVertexAttrib.readUint2101010Rev(dst, size, ptr, rrVertexAttrib.NormalOrder);
                 break;
             case rrVertexAttrib.VertexAttribType.NONPURE_INT_2_10_10_10_REV:
                 rrVertexAttrib.readInt2101010Rev(dst, size, ptr);

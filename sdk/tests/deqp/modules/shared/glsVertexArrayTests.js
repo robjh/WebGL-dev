@@ -319,12 +319,11 @@ goog.scope(function() {
     glsVertexArrayTests.deArray.inputTypeSize = function(type) {
         DE_ASSERT(type < Object.keys(glsVertexArrayTests.deArray.InputType).length);
 
-        /** @type {Array<number>} */ var size =
-        [
+        /** @type {Array<number>} */ var size = [
             4, // glsVertexArrayTests.deArray.InputType.FLOAT
 
             1, // glsVertexArrayTests.deArray.InputType.BYTE
-            1, // glsVertexArrayTests.deArray.InputType.SHORT
+            2, // glsVertexArrayTests.deArray.InputType.SHORT
 
             1, // glsVertexArrayTests.deArray.InputType.UNSIGNED_BYTE
             2, // glsVertexArrayTests.deArray.InputType.UNSIGNED_SHORT
@@ -332,7 +331,7 @@ goog.scope(function() {
             4, // glsVertexArrayTests.deArray.InputType.INT
             4, // glsVertexArrayTests.deArray.InputType.UNSIGNED_INT
             2, // glsVertexArrayTests.deArray.InputType.HALF
-            4 / 4,// glsVertexArrayTests.deArray.InputType.UNSIGNED_INT_2_10_10_10
+            4 / 4, // glsVertexArrayTests.deArray.InputType.UNSIGNED_INT_2_10_10_10
             4 / 4 // glsVertexArrayTests.deArray.InputType.INT_2_10_10_10
         ];
         DE_ASSERT(size.length == Object.keys(glsVertexArrayTests.deArray.InputType).length);
@@ -2142,9 +2141,10 @@ goog.scope(function() {
         /** @type {number}*/ var renderTargetHeight = Math.min(512, canvas.height);
         /** @type {sglrReferenceContext.ReferenceContextLimits} */ var limits = new sglrReferenceContext.ReferenceContextLimits(gl);
 
-        this.m_glesContext = new sglrGLContext.GLContext(gl);
+        //this.m_glesContext = new sglrGLContext.GLContext(gl);
         this.m_refBuffers = new sglrReferenceContext.ReferenceContextBuffers(this.m_pixelformat, 0, 0, renderTargetWidth, renderTargetHeight);
         this.m_refContext = new sglrReferenceContext.ReferenceContext(limits, this.m_refBuffers.getColorbuffer(), this.m_refBuffers.getDepthbuffer(), this.m_refBuffers.getStencilbuffer());
+        this.m_glesContext = this.m_refContext;
 
         this.m_glArrayPack = new glsVertexArrayTests.ContextArrayPack(this.m_glesContext);
         this.m_rrArrayPack = new glsVertexArrayTests.ContextArrayPack(this.m_refContext);
@@ -2157,7 +2157,7 @@ goog.scope(function() {
         /** @type {tcuSurface.Surface} */ var ref = this.m_rrArrayPack.getSurface();
         /** @type {tcuSurface.Surface} */ var screen = this.m_glArrayPack.getSurface();
 
-        if (/** @type {number} */ (this.m_glesContext.getParameter(gl.SAMPLES)) > 1) {
+        if (/** @type {number} */ false /*(this.m_glesContext.getParameter(gl.SAMPLES)) > 1*/) {
             // \todo [mika] Improve compare when using multisampling
             bufferedLogToConsole("Warning: Comparison of result from multisample render targets are not as strict as without multisampling. Might produce false positives!");
             this.m_isOk = tcuImageCompare.fuzzyCompare("Compare Results", "Compare Results", ref.getAccess(), screen.getAccess(), 1.5);
@@ -2194,6 +2194,8 @@ goog.scope(function() {
                     if (refThin && screenThin)
                         isOkPixel = true;
                     else {
+                        //NOTE: This will ignore lines less than three pixels wide, so
+                        //even if there's a difference, the test will pass.
                         for (var dy = -1; dy < 2 && !isOkPixel; dy++) {
                             for (var dx = -1; dx < 2 && !isOkPixel; dx++) {
                                 // Check reference pixel against screen pixel
@@ -2236,7 +2238,7 @@ goog.scope(function() {
                 tcuImageCompare.displayImages(screen.getAccess(), ref.getAccess(), error.getAccess());
             } else {
                 //log << TestLog::ImageSet("Compare result", "Result of rendering")
-                tcuImageCompare.displayImages(screen.getAccess(), null, null);
+                tcuImageCompare.displayImages(screen.getAccess(), ref.getAccess(), null);
             }
         }
     };
