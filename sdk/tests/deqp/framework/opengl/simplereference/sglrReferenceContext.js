@@ -3083,8 +3083,8 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         *   this.m_currentProgram.getVertexShader(),
         *   this.m_currentProgram.getFragmentShader());*/
 
-        var viewportState = new rrRenderState.ViewportState(colorBuf0)
-        var state = new rrRenderState.RenderState(viewportState);
+        //var viewportState = new rrRenderState.ViewportState(colorBuf0);
+        var state = new rrRenderState.RenderState(colorBuf0);
 
         var vertexAttribs = [];
 
