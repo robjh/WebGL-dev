@@ -321,7 +321,7 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
      * @param {goog.NumberArray} dst
      * @param {number} size
      * @param {Uint8Array} ptr
-     * @param {NormalOrder|BGRAOrder} order
+     * @param {rrVertexAttrib.NormalOrder|rrVertexAttrib.BGRAOrder} order
      */
     rrVertexAttrib.readUnorm2101010RevOrder = function(dst, size, ptr, order) {
         var arraysize32 = 4; //4 bytes
@@ -348,7 +348,7 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
      * @param {goog.NumberArray} dst
      * @param {number} size
      * @param {Uint8Array} ptr
-     * @param {NormalOrder|BGRAOrder} order
+     * @param {rrVertexAttrib.NormalOrder|rrVertexAttrib.BGRAOrder} order
      * @param {goog.NumberArray} readAsTypeArray
      */
     rrVertexAttrib.readUnormOrder = function(dst, size, ptr, order, readAsTypeArray) {
