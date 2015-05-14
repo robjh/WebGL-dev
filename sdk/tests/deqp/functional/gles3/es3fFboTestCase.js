@@ -201,31 +201,31 @@ var DE_ASSERT = function(x) {
         debug('TODO: Enable rendering with WebGL');
         // Render using GLES3.
         // TODO: enable
-        try {
-            /** @type {sglrGLContext.GLContext} */ var context = new sglrGLContext.GLContext(
-                                                            gl,
-                                                            [x, y, width, height]);
-
-            this.setContext(context);
-            this.render(result);
-
-            // Check error.
-            /** @type {number} */ var err = context.getError();
-            if (err != gl.NO_ERROR)
-                throw new Error('glError: ' + context);
-
-            this.setContext(null);
-        }
-        catch (e) {
-            if (e instanceof es3fFboTestUtil.FboIncompleteException)
-                if (e.getReason() == gl.FRAMEBUFFER_UNSUPPORTED) {
-                    // log << e;
-                    // m_testCtx.setTestResult(QP_TEST_RESULT_NOT_SUPPORTED, 'Not supported');
-                    assertMsgOptions(false, 'Not supported', true, false);
-                    return tcuTestCase.IterateResult.STOP;
-                }
-            throw e;
-        }
+        // try {
+        //     /** @type {sglrGLContext.GLContext} */ var context = new sglrGLContext.GLContext(
+        //                                                     gl,
+        //                                                     [x, y, width, height]);
+        //
+        //     this.setContext(context);
+        //     this.render(result);
+        //
+        //     // Check error.
+        //     /** @type {number} */ var err = context.getError();
+        //     if (err != gl.NO_ERROR)
+        //         throw new Error('glError: ' + context);
+        //
+        //     this.setContext(null);
+        // }
+        // catch (e) {
+        //     if (e instanceof es3fFboTestUtil.FboIncompleteException)
+        //         if (e.getReason() == gl.FRAMEBUFFER_UNSUPPORTED) {
+        //             // log << e;
+        //             // m_testCtx.setTestResult(QP_TEST_RESULT_NOT_SUPPORTED, 'Not supported');
+        //             assertMsgOptions(false, 'Not supported', true, false);
+        //             return tcuTestCase.IterateResult.STOP;
+        //         }
+        //     throw e;
+        // }
 
         // Render reference.
         /** @type {number} */ var alphaBits = /** @type {number} */ (gl.getParameter(gl.ALPHA_BITS));

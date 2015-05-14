@@ -81,6 +81,11 @@ tcuImageCompare.displayResultPane = function(id, width, height, displayRef) {
     }
 };
 
+/**
+ * @param {framework.common.tcuTexture.ConstPixelBufferAccess} result
+ * @param {framework.common.tcuTexture.ConstPixelBufferAccess=} reference
+ * @param {framework.common.tcuTexture.ConstPixelBufferAccess=} diff
+ */
 tcuImageCompare.displayImages = function(result, reference, diff) {
     var createImage = function(ctx, src) {
         var w = src.getWidth();

@@ -265,10 +265,10 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
             (ptr.byteOffset + ptr.byteLength) / arraysize16);
 
         //Reinterpret aligned's values into the dst vector.
-        dst[0] = tcuFloat.newFloat32From16(aligned[0]);
-        if (size >= 2) dst[1] = tcuFloat.newFloat32From16(aligned[1]);
-        if (size >= 3) dst[2] = tcuFloat.newFloat32From16(aligned[2]);
-        if (size >= 4) dst[3] = tcuFloat.newFloat32From16(aligned[3]);
+        dst[0] = tcuFloat.newFloat32From16(aligned[0]).getValue();
+        if (size >= 2) dst[1] = tcuFloat.newFloat32From16(aligned[1]).getValue();
+        if (size >= 3) dst[2] = tcuFloat.newFloat32From16(aligned[2]).getValue();
+        if (size >= 4) dst[3] = tcuFloat.newFloat32From16(aligned[3]).getValue();
     };
 
     /**
@@ -317,12 +317,39 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
     };
 
     /**
+     * rrVertexAttrib.readUnorm2101010RevOrder
+     * @param {goog.NumberArray} dst
+     * @param {number} size
+     * @param {Uint8Array} ptr
+     * @param {NormalOrder|BGRAOrder} order
+     */
+    rrVertexAttrib.readUnorm2101010RevOrder = function(dst, size, ptr, order) {
+        var arraysize32 = 4; //4 bytes
+
+        //Left shift within 32-bit range as 32-bit int.
+        var range10 = new Uint32Array([deMath.shiftLeft(1, 10) - 1])[0];
+        var range2 = new Uint32Array([deMath.shiftLeft(1, 2) - 1])[0];
+
+        //Reinterpret aligned as an value of 4 bytes
+        //but with ptr's buffer, assuming ptr is an 8-bit element array,
+        //and convert to 32-bit uint value.
+        var aligned = new Uint32Array(ptr.buffer).subarray(
+            ptr.byteOffset / arraysize32,
+            (ptr.byteOffset + ptr.byteLength) / arraysize32)[0];
+
+        dst[order.T0] = deMath.binaryOp(deMath.shiftRight(aligned,  0), deMath.shiftLeft(1, 10) - 1, deMath.BinaryOp.AND) / range10;
+        if (size >= 2) dst[order.T1] = deMath.binaryOp(deMath.shiftRight(aligned,  10), deMath.shiftLeft(1, 10) - 1, deMath.BinaryOp.AND) / range10;
+        if (size >= 3) dst[order.T2] = deMath.binaryOp(deMath.shiftRight(aligned,  20), deMath.shiftLeft(1, 10) - 1, deMath.BinaryOp.AND) / range10;
+        if (size >= 4) dst[order.T3] = deMath.binaryOp(deMath.shiftRight(aligned,  30), deMath.shiftLeft(1, 10) - 1, deMath.BinaryOp.AND) / range2;
+    };
+
+    /**
      * rrVertexAttrib.readUnormOrder
      * @param {goog.NumberArray} dst
      * @param {number} size
      * @param {Uint8Array} ptr
-     * @param order NormalOrder or BGRAOrder
-     * @param readAsTypeArray Typed Array type
+     * @param {NormalOrder|BGRAOrder} order
+     * @param {goog.NumberArray} readAsTypeArray
      */
     rrVertexAttrib.readUnormOrder = function(dst, size, ptr, order, readAsTypeArray) {
         var arrayelementsize = readAsTypeArray.BYTES_PER_ELEMENT;
@@ -342,6 +369,33 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
         if (size >= 2) dst[order.T1] = aligned[1] / range;
         if (size >= 3) dst[order.T2] = aligned[2] / range;
         if (size >= 4) dst[order.T3] = aligned[3] / range;
+    };
+
+    /**
+     * rrVertexAttrib.readSnormClamp
+     * @param {goog.NumberArray} dst
+     * @param {number} size
+     * @param {Uint8Array} ptr
+     * @param {goog.NumberArray} readAsTypeArray
+     */
+    rrVertexAttrib.readSnormClamp = function(dst, size, ptr, readAsTypeArray) {
+        var arrayelementsize = readAsTypeArray.BYTES_PER_ELEMENT;
+
+        //Left shift within 32-bit range as 32-bit float.
+        var range = new Float32Array([deMath.shiftLeft(1, arrayelementsize * 8 - 1) - 1])[0];
+
+        //Reinterpret aligned as an array the same type of readAsTypeArray
+        //but with ptr's buffer, assuming ptr is an 8-bit element array,
+        //and convert to 32-bit float values.
+        var aligned = new Float32Array(new readAsTypeArray(ptr.buffer).subarray(
+            ptr.byteOffset / arrayelementsize,
+            (ptr.byteOffset + ptr.byteLength) / arrayelementsize));
+
+        //Reinterpret aligned's values into the dst vector.
+        dst[0] = Math.max(-1, aligned[0] / range);
+        if (size >= 2) dst[1] = Math.max(-1, aligned[1] / range);
+        if (size >= 3) dst[2] = Math.max(-1, aligned[2] / range);
+        if (size >= 4) dst[3] = Math.max(-1, aligned[3] / range);
     };
 
     /**
@@ -394,47 +448,57 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
                 break;
             case rrVertexAttrib.VertexAttribType.NONPURE_UNORM8:
                 rrVertexAttrib.readUnormOrder(dst, size, ptr, rrVertexAttrib.NormalOrder, Uint8Array);
+                break;
             case rrVertexAttrib.VertexAttribType.NONPURE_UNORM16:
                 rrVertexAttrib.readUnormOrder(dst, size, ptr, rrVertexAttrib.NormalOrder, Uint16Array);
+                break;
             case rrVertexAttrib.VertexAttribType.NONPURE_UNORM32:
                 rrVertexAttrib.readUnormOrder(dst, size, ptr, rrVertexAttrib.NormalOrder, Uint32Array);
                 break;
             case rrVertexAttrib.VertexAttribType.NONPURE_UNORM_2_10_10_10_REV:
-                readUnorm2101010RevOrder(dst, size, ptr, rrVertexAttrib.NormalOrder);
+                rrVertexAttrib.readUnorm2101010RevOrder(dst, size, ptr, rrVertexAttrib.NormalOrder);
                 break;
             case rrVertexAttrib.VertexAttribType.NONPURE_SNORM8_CLAMP: //Int8
+                rrVertexAttrib.readSnormClamp(dst, size, ptr, Int8Array);
+                break;
             case rrVertexAttrib.VertexAttribType.NONPURE_SNORM16_CLAMP: //Int16
+                rrVertexAttrib.readSnormClamp(dst, size, ptr, Int16Array);
+                break;
             case rrVertexAttrib.VertexAttribType.NONPURE_SNORM32_CLAMP: //Int32
-                readSnormClamp(dst, size, ptr);
+                rrVertexAttrib.readSnormClamp(dst, size, ptr, Int32Array);
                 break;
             case rrVertexAttrib.VertexAttribType.NONPURE_SNORM_2_10_10_10_REV_CLAMP:
-                readSnorm2101010RevClampOrder(dst, size, ptr, rrVertexAttrib.NormalOrder);
+                rrVertexAttrib.readSnorm2101010RevClampOrder(dst, size, ptr, rrVertexAttrib.NormalOrder);
                 break;
             case rrVertexAttrib.VertexAttribType.NONPURE_SNORM8_SCALE: //Int8
+                rrVertexAttrib.readSnormScale(dst, size, ptr, Int8Array);
+                break;
             case rrVertexAttrib.VertexAttribType.NONPURE_SNORM16_SCALE: //Int16
+                rrVertexAttrib.readSnormScale(dst, size, ptr, Int16Array);
+                break;
             case rrVertexAttrib.VertexAttribType.NONPURE_SNORM32_SCALE: //Int32
-                readSnormScale(dst, size, ptr);
+                rrVertexAttrib.readSnormScale(dst, size, ptr, Int32Array);
                 break;
             case rrVertexAttrib.VertexAttribType.NONPURE_SNORM_2_10_10_10_REV_SCALE:
-                readSnorm2101010RevScaleOrder(dst, size, ptr, rrVertexAttrib.NormalOrder);
+                rrVertexAttrib.readSnorm2101010RevScaleOrder(dst, size, ptr, rrVertexAttrib.NormalOrder);
                 break;
             case rrVertexAttrib.VertexAttribType.NONPURE_UINT_2_10_10_10_REV:
-                readUint2101010RevOrder(dst, size, ptr, rrVertexAttrib.NormalOrder);
+                rrVertexAttrib.readUint2101010RevOrder(dst, size, ptr, rrVertexAttrib.NormalOrder);
                 break;
             case rrVertexAttrib.VertexAttribType.NONPURE_INT_2_10_10_10_REV:
-                readInt2101010Rev(dst, size, ptr);
+                rrVertexAttrib.readInt2101010Rev(dst, size, ptr);
                 break;
             case rrVertexAttrib.VertexAttribType.NONPURE_UNORM8_BGRA:
                 rrVertexAttrib.readUnormOrder(dst, size, ptr, rrVertexAttrib.BGRAOrder, Uint8Array);
                 break;
             case rrVertexAttrib.VertexAttribType.NONPURE_UNORM_2_10_10_10_REV_BGRA:
-                readUnorm2101010RevOrder(dst, size, ptr, rrVertexAttrib.BGRAOrder);
+                rrVertexAttrib.readUnorm2101010RevOrder(dst, size, ptr, rrVertexAttrib.BGRAOrder);
                 break;
             case rrVertexAttrib.VertexAttribType.NONPURE_SNORM_2_10_10_10_REV_CLAMP_BGRA:
-                readSnorm2101010RevClampOrder(dst, size, ptr, rrVertexAttrib.BGRAOrder);
+                rrVertexAttrib.readSnorm2101010RevClampOrder(dst, size, ptr, rrVertexAttrib.BGRAOrder);
                 break;
             case rrVertexAttrib.VertexAttribType.NONPURE_SNORM_2_10_10_10_REV_SCALE_BGRA:
-                readSnorm2101010RevScaleOrder(dst, size, ptr, rrVertexAttrib.BGRAOrder);
+                rrVertexAttrib.readSnorm2101010RevScaleOrder(dst, size, ptr, rrVertexAttrib.BGRAOrder);
                 break;
             case rrVertexAttrib.VertexAttribType.NONPURE_UINT8:
                 rrVertexAttrib.readOrder(dst, size, ptr, rrVertexAttrib.NormalOrder, Uint8Array);

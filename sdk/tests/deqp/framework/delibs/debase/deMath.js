@@ -425,6 +425,8 @@ deMath.doNativeBinaryOp = function(valueA, valueB, operation) {
  * @return {number}
  */
 deMath.binaryOp = function(valueA, valueB, binaryOpParm) {
+    valueA = valueA < 0 ? new Uint32Array([valueA])[0] : valueA;
+    valueB = valueB < 0 ? new Uint32Array([valueB])[0] : valueB;
     /** @type {number} */ var valueABitSize = Math.floor(Math.log2(valueA) + 1);
     /** @type {number} */ var valueBBitSize = Math.floor(Math.log2(valueB) + 1);
     /** @type {number} */ var bitsSize = Math.max(valueABitSize, valueBBitSize);

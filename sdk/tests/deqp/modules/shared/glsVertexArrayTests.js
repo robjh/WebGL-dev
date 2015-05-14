@@ -323,17 +323,17 @@ goog.scope(function() {
         [
             4, // glsVertexArrayTests.deArray.InputType.FLOAT
 
-            8, // glsVertexArrayTests.deArray.InputType.BYTE
-            16, // glsVertexArrayTests.deArray.InputType.SHORT
+            1, // glsVertexArrayTests.deArray.InputType.BYTE
+            1, // glsVertexArrayTests.deArray.InputType.SHORT
 
-            8, // glsVertexArrayTests.deArray.InputType.UNSIGNED_BYTE
-            16, // glsVertexArrayTests.deArray.InputType.UNSIGNED_SHORT
+            1, // glsVertexArrayTests.deArray.InputType.UNSIGNED_BYTE
+            2, // glsVertexArrayTests.deArray.InputType.UNSIGNED_SHORT
 
-            32, // glsVertexArrayTests.deArray.InputType.INT
-            32, // glsVertexArrayTests.deArray.InputType.UNSIGNED_INT
-            16, // glsVertexArrayTests.deArray.InputType.HALF
-            32 / 4,// glsVertexArrayTests.deArray.InputType.UNSIGNED_INT_2_10_10_10
-            32 / 4 // glsVertexArrayTests.deArray.InputType.INT_2_10_10_10
+            4, // glsVertexArrayTests.deArray.InputType.INT
+            4, // glsVertexArrayTests.deArray.InputType.UNSIGNED_INT
+            2, // glsVertexArrayTests.deArray.InputType.HALF
+            4 / 4,// glsVertexArrayTests.deArray.InputType.UNSIGNED_INT_2_10_10_10
+            4 / 4 // glsVertexArrayTests.deArray.InputType.INT_2_10_10_10
         ];
         DE_ASSERT(size.length == Object.keys(glsVertexArrayTests.deArray.InputType).length);
 
@@ -1284,7 +1284,7 @@ goog.scope(function() {
      * @param {goog.NumberArray} src
      */
     glsVertexArrayTests.copyArray = function(dst, src) {
-        /** @type {Uint8Array} */ var src8 = new Uint8Array(src.buffer).subarray(src.offset, src.offset + src.byteLength); // TODO: Fix encapsulation issue
+        /** @type {Uint8Array} */ var src8 = new Uint8Array(src.buffer).subarray(src.byteOffset, src.byteOffset + src.byteLength); // TODO: Fix encapsulation issue
         dst.set(src8);
     };
 

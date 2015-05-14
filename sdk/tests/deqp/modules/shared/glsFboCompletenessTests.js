@@ -499,7 +499,7 @@ goog.scope(function() {
                 'GL_EXT_texture_type_2_10_10_10_REV GL_OES_required_internalformat',
                 fmt.TEXTURE_VALID, // explicitly unrenderable
                 glsFboUtil.rangeArray(glsFboCompletenessTests.s_oesRequiredInternalFormat10bitColorFormats)
-            ),
+            )
         ];
         
     }; // initGlDependents ----------------------------------------
@@ -850,7 +850,7 @@ goog.scope(function() {
     
     
     
-    glsFboCompletenessTests.formatName = function(format, gl) {
+    glsFboCompletenessTests.formatName = function (format, gl) {
         if (!(gl = gl || window.gl)) throw new Error ('Invalid GL object');
         
         var s = gluStrUtil.getPixelFormatName(format.format, gl).substr(3).toLowerCase();
@@ -860,7 +860,7 @@ goog.scope(function() {
         
         return s;
     };
-    glsFboCompletenessTests.formatDesc = function(format, gl) {
+    glsFboCompletenessTests.formatDesc = function (format, gl) {
         if (!(gl = gl || window.gl)) throw new Error ('Invalid GL object');
         
         var s = gluStrUtil.getPixelFormatName(format.format, gl);
