@@ -445,12 +445,14 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
         if (size >= 4) dst[order.T3] = aligned[3] / range;
     };
 
+
+    // TODO: type for readAsTypeArray
     /**
      * rrVertexAttrib.readSnormClamp
      * @param {goog.NumberArray} dst
      * @param {number} size
      * @param {Uint8Array} ptr
-     * @param {goog.NumberArray} readAsTypeArray
+     * @param {Object<goog.NumberArray>} readAsTypeArray
      */
     rrVertexAttrib.readSnormClamp = function(dst, size, ptr, readAsTypeArray) {
         var arrayelementsize = readAsTypeArray.BYTES_PER_ELEMENT;
