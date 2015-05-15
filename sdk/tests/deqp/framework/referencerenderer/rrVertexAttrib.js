@@ -258,27 +258,27 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
     rrVertexAttrib.extendSign = function(integerLen, integer_) {
         return new Uint32Array([
             deMath.binaryOp(
-                0 - 
+                0 -
                 //new Int32Array([
-                    deMath.shiftLeft(                    
+                    deMath.shiftLeft(
                         deMath.binaryOp(
                             integer_,
                             deMath.shiftLeft(
                                 1,
                                 (integerLen - 1)
-                            ),                        
+                            ),
                             deMath.BinaryOp.AND
                         ),
                         1
                     )
                 //])[0]
                 ,
-                integer,
+                integer_,
                 deMath.BinaryOp.OR
             )
         ])[0];
     };
-    
+
     /**
      * rrVertexAttrib.readHalf
      * @param {goog.NumberArray} dst
@@ -376,14 +376,14 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
      */
     rrVertexAttrib.readInt2101010Rev = function(dst, size, ptr) {
         var arraysize32 = 4; //4 bytes
-        
+
         //Reinterpret aligned as an value of 4 bytes
         //but with ptr's buffer, assuming ptr is an 8-bit element array,
         //and convert to 32-bit uint value.
         var aligned = new Uint32Array(ptr.buffer).subarray(
             ptr.byteOffset / arraysize32,
             (ptr.byteOffset + ptr.byteLength) / arraysize32)[0];
-            
+
         dst[0] = rrVertexAttrib.extendSign(10, deMath.binaryOp(deMath.shiftRight(aligned,  0), deMath.shiftLeft(1, 10) - 1, deMath.BinaryOp.AND));
         if (size >= 2) dst[1] = rrVertexAttrib.extendSign(10, deMath.binaryOp(deMath.shiftRight(aligned,  10), deMath.shiftLeft(1, 10) - 1, deMath.BinaryOp.AND));
         if (size >= 3) dst[2] = rrVertexAttrib.extendSign(10, deMath.binaryOp(deMath.shiftRight(aligned,  20), deMath.shiftLeft(1, 10) - 1, deMath.BinaryOp.AND));
