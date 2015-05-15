@@ -176,12 +176,12 @@ goog.scope(function() {
 
         rrUtil.drawQuad(ctx, texShaderID, [-1, -1, 0], [1, 1, 0]);
 
-       /* TODO: remove */ /*{
+       /* TODO: remove */ {
             var pixels = new tcuSurface.Surface(this.m_srcSize[0], this.m_srcSize[1]);
             var access = pixels.getAccess();
             ctx.readPixels(0, 0, this.m_srcSize[0], this.m_srcSize[1], gl.RGBA, gl.UNSIGNED_BYTE, access.getBuffer());
             tcuImageCompare.displayImages(access);
-        }*/
+        }
 
         // Perform copy.
         ctx.bindFramebuffer(gl.READ_FRAMEBUFFER, srcFbo);
@@ -193,12 +193,12 @@ goog.scope(function() {
         // Read back results.
         ctx.bindFramebuffer(gl.READ_FRAMEBUFFER, dstFbo);
 
-      /* TODO: remove */ /*{
+      /* TODO: remove */ {
             var pixels = new tcuSurface.Surface(this.m_dstSize[0], this.m_dstSize[1]);
             var access = pixels.getAccess();
             ctx.readPixels(0, 0, this.m_dstSize[0], this.m_dstSize[1], gl.RGBA, gl.UNSIGNED_BYTE, access.getBuffer());
             tcuImageCompare.displayImages(access);
-        }*/
+        }
         this.readPixelsUsingFormat(dst, 0, 0, this.m_dstSize[0], this.m_dstSize[1],
                                           gluTextureUtil.mapGLInternalFormat(colorFormat),
                                           [1.0, 1.0, 1.0, 1.0],
@@ -740,21 +740,21 @@ goog.scope(function() {
         gradientToDstShader.setGradient(ctx, gradShaderDstID, dstRangeInfo.valueMin, dstRangeInfo.valueMax);
 
         rrUtil.drawQuad(ctx, gradShaderDstID, [-1, -1, 0], [1, 1, 0]);
-        /* TODO: remove */ /*{
+        /* TODO: remove */ {
             var pixels = new tcuSurface.Surface(this.m_size[0], this.m_size[1]);
             this.readPixelsUsingFormat(pixels, 0, 0, this.m_size[0], this.m_size[1], dstFormat, dstRangeInfo.lookupScale, dstRangeInfo.lookupBias);
             tcuImageCompare.displayImages(pixels.getAccess());
-        }*/
+        }
 
         ctx.bindFramebuffer(gl.FRAMEBUFFER, dstFbo);
         gradientToSrcShader.setGradient(ctx, gradShaderSrcID, srcRangeInfo.valueMin, dstRangeInfo.valueMax);
         rrUtil.drawQuad(ctx, gradShaderSrcID, [-1, -1, 0], [1, 1, 0]);
 
-        /* TODO: remove */ /*{
+        /* TODO: remove */ {
             var pixels = new tcuSurface.Surface(this.m_size[0], this.m_size[1]);
             this.readPixelsUsingFormat(pixels, 0, 0, this.m_size[0], this.m_size[1], dstFormat, dstRangeInfo.lookupScale, dstRangeInfo.lookupBias);
             tcuImageCompare.displayImages(pixels.getAccess());
-        } */
+        } 
 
         // Execute copy.
         ctx.bindFramebuffer(gl.READ_FRAMEBUFFER, srcFbo);
@@ -932,7 +932,7 @@ goog.scope(function() {
         /** @const {number} */ var dataType = gl.UNSIGNED_BYTE;
         /** @const {number} */ var texW = this.m_srcSize[0];
         /** @const {number} */ var texH = this.m_srcSize[1];
-        /** @type {WebGLTexture|sglrReferenceContext.TextureContainer} */ var gridTex;
+        /** @type {WebGLTexture|sglrReferenceContext.TextureContainer} */ var gridTex = 0;
         /** @type {tcuTexture.TextureLevel} */ var data = new tcuTexture.TextureLevel(gluTextureUtil.mapGLTransferFormat(format, dataType), texW, texH, 1);
 
         tcuTextureUtil.fillWithGrid(data.getAccess(), 8, [0.2, 0.7, 0.1, 1.0], [0.7, 0.1, 0.5, 0.8]);
@@ -1059,12 +1059,12 @@ goog.scope(function() {
         ctx.bindFramebuffer(gl.FRAMEBUFFER, null);
 
         rrUtil.drawQuad(ctx, gradShaderID, [-1, -1, 0], [1, 1, 0]);
-        /* TODO: remove */ /*{
+        /* TODO: remove */ {
             var pixels = new tcuSurface.Surface(ctx.getWidth(), ctx.getHeight());
             var access = pixels.getAccess();
             ctx.readPixels(0, 0, ctx.getWidth(), ctx.getHeight(), gl.RGBA, gl.UNSIGNED_BYTE, access.getBuffer());
             tcuImageCompare.displayImages(access);
-        }*/
+        }
 
         // Blit gradient from screen to fbo.
         ctx.bindFramebuffer(gl.DRAW_FRAMEBUFFER, fbo);
@@ -1075,12 +1075,12 @@ goog.scope(function() {
         ctx.clearBufferfv(gl.COLOR, 0, [1.0, 0.0, 0.0, 1.0]);
 
         rrUtil.drawQuad(ctx, texShaderID, [-1, -1, 0], [1, 1, 0]);
-        /* TODO: remove */ /*{
+        /* TODO: remove */ {
             var pixels = new tcuSurface.Surface(texW, texH);
             var access = pixels.getAccess();
             ctx.readPixels(0, 0, texW, texH, gl.RGBA, gl.UNSIGNED_BYTE, access.getBuffer());
             tcuImageCompare.displayImages(access);
-        }*/
+        }
 
         // Blit fbo to right half.
         ctx.bindFramebuffer(gl.READ_FRAMEBUFFER, fbo);
