@@ -250,6 +250,36 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
     };
 
     /**
+     * extendSign
+     * @param {number} integerLen
+     * @param {number} integer_ (deUint32)
+     * @return {number} (deUint32)
+     */
+    rrVertexAttrib.extendSign = function(integerLen, integer_) {
+        return new Uint32Array([
+            deMath.binaryOp(
+                0 - 
+                //new Int32Array([
+                    deMath.shiftLeft(                    
+                        deMath.binaryOp(
+                            integer_,
+                            deMath.shiftLeft(
+                                1,
+                                (integerLen - 1)
+                            ),                        
+                            deMath.BinaryOp.AND
+                        ),
+                        1
+                    )
+                //])[0]
+                ,
+                integer,
+                deMath.BinaryOp.OR
+            )
+        ])[0];
+    };
+    
+    /**
      * rrVertexAttrib.readHalf
      * @param {goog.NumberArray} dst
      * @param {number} size
@@ -277,7 +307,7 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
      * @param {number} size
      * @param {Uint8Array} ptr
      */
-    rrVertexAttrib.readFixed = function(dst, size, ptr) {
+    /*rrVertexAttrib.readFixed = function(dst, size, ptr) {
         var arraysize32 = 4; //4 bytes
 
         //Reinterpret ptr as a uint16 array,
@@ -291,7 +321,7 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
         if (size >= 2) dst[1] = aligned[1] / (1 << 16);
         if (size >= 3) dst[2] = aligned[2] / (1 << 16);
         if (size >= 4) dst[3] = aligned[3] / (1 << 16);
-    };
+    };*/
 
     /**
      * TODO: Check 64 bit numbers are handled ok
@@ -300,7 +330,7 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
      * @param {number} size
      * @param {Uint8Array} ptr
      */
-    rrVertexAttrib.readDouble = function(dst, size, ptr) {
+    /*rrVertexAttrib.readDouble = function(dst, size, ptr) {
         var arraysize64 = 8; //8 bytes
 
         //Reinterpret 'ptr' into 'aligned' as a float64 array,
@@ -314,7 +344,7 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
         if (size >= 2) dst[1] = aligned[1];
         if (size >= 3) dst[2] = aligned[2];
         if (size >= 4) dst[3] = aligned[3];
-    };
+    };*/
 
     /**
      * rrVertexAttrib.readUint2101010Rev
@@ -332,10 +362,32 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
             ptr.byteOffset / arraysize32,
             (ptr.byteOffset + ptr.byteLength) / arraysize32)[0];
 
-            dst[order.T0] = deMath.binaryOp(deMath.shiftRight(aligned,  0), deMath.shiftLeft(1, 10) - 1, deMath.BinaryOp.AND) / range10;
-            if (size >= 2) dst[order.T1] = deMath.binaryOp(deMath.shiftRight(aligned,  10), deMath.shiftLeft(1, 10) - 1, deMath.BinaryOp.AND) / range10;
-           if (size >= 3) dst[order.T2] = deMath.binaryOp(deMath.shiftRight(aligned,  20), deMath.shiftLeft(1, 10) - 1, deMath.BinaryOp.AND) / range10;
-           if (size >= 4) dst[order.T3] = deMath.binaryOp(deMath.shiftRight(aligned,  30), deMath.shiftLeft(1, 10) - 1, deMath.BinaryOp.AND) / range2;
+        dst[0] = deMath.binaryOp(deMath.shiftRight(aligned,  0), deMath.shiftLeft(1, 10) - 1, deMath.BinaryOp.AND);
+        if (size >= 2) dst[1] = deMath.binaryOp(deMath.shiftRight(aligned,  10), deMath.shiftLeft(1, 10) - 1, deMath.BinaryOp.AND);
+        if (size >= 3) dst[2] = deMath.binaryOp(deMath.shiftRight(aligned,  20), deMath.shiftLeft(1, 10) - 1, deMath.BinaryOp.AND);
+        if (size >= 4) dst[3] = deMath.binaryOp(deMath.shiftRight(aligned,  30), deMath.shiftLeft(1, 2) - 1, deMath.BinaryOp.AND);
+    };
+
+    /**
+     * rrVertexAttrib.readInt2101010Rev
+     * @param {goog.NumberArray} dst
+     * @param {number} size
+     * @param {Uint8Array} ptr
+     */
+    rrVertexAttrib.readInt2101010Rev = function(dst, size, ptr) {
+        var arraysize32 = 4; //4 bytes
+        
+        //Reinterpret aligned as an value of 4 bytes
+        //but with ptr's buffer, assuming ptr is an 8-bit element array,
+        //and convert to 32-bit uint value.
+        var aligned = new Uint32Array(ptr.buffer).subarray(
+            ptr.byteOffset / arraysize32,
+            (ptr.byteOffset + ptr.byteLength) / arraysize32)[0];
+            
+        dst[0] = rrVertexAttrib.extendSign(10, deMath.binaryOp(deMath.shiftRight(aligned,  0), deMath.shiftLeft(1, 10) - 1, deMath.BinaryOp.AND));
+        if (size >= 2) dst[1] = rrVertexAttrib.extendSign(10, deMath.binaryOp(deMath.shiftRight(aligned,  10), deMath.shiftLeft(1, 10) - 1, deMath.BinaryOp.AND));
+        if (size >= 3) dst[2] = rrVertexAttrib.extendSign(10, deMath.binaryOp(deMath.shiftRight(aligned,  20), deMath.shiftLeft(1, 10) - 1, deMath.BinaryOp.AND));
+        if (size >= 4) dst[3] = rrVertexAttrib.extendSign(2, deMath.binaryOp(deMath.shiftRight(aligned,  30), deMath.shiftLeft(1, 2) - 1, deMath.BinaryOp.AND));
     };
 
     /**
@@ -362,7 +414,7 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
         dst[order.T0] = deMath.binaryOp(deMath.shiftRight(aligned,  0), deMath.shiftLeft(1, 10) - 1, deMath.BinaryOp.AND) / range10;
         if (size >= 2) dst[order.T1] = deMath.binaryOp(deMath.shiftRight(aligned,  10), deMath.shiftLeft(1, 10) - 1, deMath.BinaryOp.AND) / range10;
         if (size >= 3) dst[order.T2] = deMath.binaryOp(deMath.shiftRight(aligned,  20), deMath.shiftLeft(1, 10) - 1, deMath.BinaryOp.AND) / range10;
-        if (size >= 4) dst[order.T3] = deMath.binaryOp(deMath.shiftRight(aligned,  30), deMath.shiftLeft(1, 10) - 1, deMath.BinaryOp.AND) / range2;
+        if (size >= 4) dst[order.T3] = deMath.binaryOp(deMath.shiftRight(aligned,  30), deMath.shiftLeft(1, 2) - 1, deMath.BinaryOp.AND) / range2;
     };
 
     /**
