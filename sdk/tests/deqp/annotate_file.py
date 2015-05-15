@@ -102,11 +102,8 @@ def addAnnotationsToFunctions (filepath, namespace):
 def main(argv):
     if len(argv) != 2:
         displayUsage()
-        build_all_targets()
-        buildDepsFile()
-        pass_or_fail()
     else:
-    	addAnnotationsToFunctions(argv[0], argv[1])
+    	collectTypesFromNamespace(argv[0])
 
 if __name__ == '__main__': 
     main(sys.argv[1:])
