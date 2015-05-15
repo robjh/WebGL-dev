@@ -143,9 +143,10 @@ rrRenderer.RenderTarget = function(colorMultisampleBuffer, depthMultisampleBuffe
  * @param {number=} baseVertex_
  */
 rrRenderer.DrawIndices = function(data, type, baseVertex_) {
-    this.data = data;
-    this.baseVertex = baseVertex_ || 0;
-    this.indexType = type;
+    /** @type {ArrayBuffer} */ this.data = data;
+    /** @type {number} */ this.baseVertex = baseVertex_ || 0;
+    /** @type {rrDefs.IndexType} */ this.indexType = type;
+    /** @type {goog.NumberArray} */ this.access = null;
     switch (type) {
         case rrDefs.IndexType.INDEXTYPE_UINT8: this.access = new Uint8Array(data); break;
         case rrDefs.IndexType.INDEXTYPE_UINT16: this.access = new Uint16Array(data); break;
@@ -154,6 +155,9 @@ rrRenderer.DrawIndices = function(data, type, baseVertex_) {
     }
 };
 
+/**
+ * @return {number}
+ */
 rrRenderer.DrawIndices.prototype.readIndexArray = function(index) { return this.access[index]; };
 
 /**
@@ -179,6 +183,10 @@ rrRenderer.PrimitiveList = function(primitiveType, numElements, indices) {
     }
 };
 
+/**
+ * @param {number} elementNdx
+ * @return {number}
+ */
 rrRenderer.PrimitiveList.prototype.getIndex = function(elementNdx) {
     if (this.m_indices) {
         var index = this.m_baseVertex + this.m_indices.readIndexArray(elementNdx);
@@ -190,6 +198,11 @@ rrRenderer.PrimitiveList.prototype.getIndex = function(elementNdx) {
         return this.m_baseVertex + elementNdx;
 };
 
+/**
+ * @param {number} elementNdx
+ * @param {number} restartIndex
+ * @return {boolean}
+ */
 rrRenderer.PrimitiveList.prototype.isRestartIndex = function(elementNdx, restartIndex) {
     // implicit index or explicit index (without base vertex) equals restart
     if (this.m_indices)
@@ -198,10 +211,28 @@ rrRenderer.PrimitiveList.prototype.isRestartIndex = function(elementNdx, restart
         return elementNdx == restartIndex;
 };
 
+/*
+ * @return {number}
+ */
 rrRenderer.PrimitiveList.prototype.getNumElements = function() {return this.m_numElements;};
+
+/*
+ * @return {rrDefs.PrimitiveType}
+ */
 rrRenderer.PrimitiveList.prototype.getPrimitiveType = function() {return this.m_primitiveType;};
+
+/*
+ * @return {rrDefs.IndexType}
+ */
 rrRenderer.PrimitiveList.prototype.getIndexType = function() {return this.m_indexType;};
 
+/**
+ * @param {Array<number>} v
+ * @param {Array<number>} v1
+ * @param {Array<number>} v2
+ * @param {Array<number>} v3
+ * @return {Array<number>}
+ */
 rrRenderer.getBarycentricCoefficients = function(v, v1, v2, v3) {
     var b = [];
 
@@ -430,6 +461,12 @@ rrRenderer.getIndexOfCorner = function(isTop, isRight, vertexPackets) {
     throw new Error('Corner not found');
 };
 
+/**
+ * @param {number} x
+ * @param {number} y
+ * @param {Array<number>} depths
+ * @return {number}
+ */ 
 rrRenderer.calculateDepth = function(x, y, depths) {
     var d1 = x * depths[0] + (1 - x) * depths[1];
     var d2 = x * depths[2] + (1 - x) * depths[3];
@@ -448,7 +485,7 @@ rrRenderer.calculateDepth = function(x, y, depths) {
 rrRenderer.drawQuads = function(state, renderTarget, program, vertexAttribs, first, count) {
     //The count of primitives to draw depends on which vertex we start to draw first.
     count = Math.floor(((count * 6) - first) / 6);
-    
+
     var primitives = new rrRenderer.PrimitiveList(rrRenderer.PrimitiveType.TRIANGLES, count * 6, first); // 2 triangles per quad with 3 vertices each = 6 vertices.
     // Do not draw if nothing to draw
     if (primitives.getNumElements() == 0)

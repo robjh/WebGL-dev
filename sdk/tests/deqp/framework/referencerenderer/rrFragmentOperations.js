@@ -33,11 +33,21 @@ var rrRenderState = framework.referencerenderer.rrRenderState;
 var tcuTexture = framework.common.tcuTexture;
 var tcuTextureUtil = framework.common.tcuTextureUtil;
 
-// Return oldValue with the bits indicated by mask replaced by corresponding bits of newValue.
+/** Return oldValue with the bits indicated by mask replaced by corresponding bits of newValue.
+ * @param {number} oldValue
+ * @param {number} newValue
+ * @param {number} mask
+ * @return {number}
+ */
 rrFragmentOperations.maskedBitReplace = function(oldValue, newValue, mask) {
     return (oldValue & ~mask) | (newValue & mask);
 };
 
+/**
+ * @param {Array<number>} point
+ * @param {?} rect
+ * @return {boolean}
+ */
 rrFragmentOperations.isInsideRect = function(point, rect) {
     return deMath.deInBounds32(point[0], rect.left, rect.left + rect.width) &&
            deMath.deInBounds32(point[1], rect.bottom, rect.bottom + rect.height);
@@ -45,6 +55,9 @@ rrFragmentOperations.isInsideRect = function(point, rect) {
 
 /**
  * @constructor
+ * @param {Array<number>} coefficents
+ * @param {Array<number>} coords
+ * @param {number} depth
  */
 rrFragmentOperations.Fragment = function(coefficents, coords, depth) {
     /** @type {Array<number>} */ this.barycentric = coefficents;
