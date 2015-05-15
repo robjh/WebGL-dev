@@ -143,7 +143,7 @@ goog.scope(function() {
 
         rrUtil.drawQuad(this.getCurrentContext(), flatShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
 
-        this.readPixels(dst, 0, 0, this.m_size[0], this.m_size[1], gluTextureUtil.mapGLInternalFormat(colorFormat), [1.0, 1.0, 1.0, 1.0], [0.0, 0.0, 0.0, 0.0]);
+        this.readPixelsUsingFormat(dst, 0, 0, this.m_size[0], this.m_size[1], gluTextureUtil.mapGLInternalFormat(colorFormat), [1.0, 1.0, 1.0, 1.0], [0.0, 0.0, 0.0, 0.0]);
     };
 
     /**
@@ -244,7 +244,7 @@ goog.scope(function() {
         ctx.stencilFunc(gl.GREATER, hasDepth ? 1 : 2, 0xff);
 
         flatShader.setColor(this.getCurrentContext(), flatShaderID, [0.0, 0.0, 1.0, 1.0]);
-        
+
         rrUtil.drawQuad(this.getCurrentContext(), flatShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
 
         this.readPixelsUsingFormat(dst, 0, 0, width, height, gluTextureUtil.mapGLInternalFormat(colorFormat), [1.0, 1.0, 1.0, 1.0], [0.0, 0.0, 0.0, 0.0]);

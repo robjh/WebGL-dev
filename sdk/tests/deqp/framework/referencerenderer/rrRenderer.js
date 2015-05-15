@@ -164,16 +164,15 @@ rrRenderer.DrawIndices.prototype.readIndexArray = function(index) { return this.
  * @constructor
  * @param {rrRenderer.PrimitiveType} primitiveType
  * @param {number} numElements
- * @param { (number|rrRenderer.DrawIndices) } indices
+ * @param {(number|rrRenderer.DrawIndices)} indices
  */
 rrRenderer.PrimitiveList = function(primitiveType, numElements, indices) {
-    this.m_primitiveType = primitiveType;
-    this.m_numElements = numElements;
-
+    /** @type {rrRenderer.PrimitiveType} */ this.m_primitiveType = primitiveType;
+    /** @type {number} */ this.m_numElements = numElements;
     if (typeof indices == 'number') {
         // !< primitive list for drawArrays-like call
         this.m_indices = null;
-        this.m_indexType = undefined;
+        this.m_indexType = null;
         this.m_baseVertex = indices;
     } else {
         // !< primitive list for drawElements-like call
@@ -217,12 +216,12 @@ rrRenderer.PrimitiveList.prototype.isRestartIndex = function(elementNdx, restart
 rrRenderer.PrimitiveList.prototype.getNumElements = function() {return this.m_numElements;};
 
 /**
- * @return {rrDefs.PrimitiveType}
+ * @return {rrRenderer.PrimitiveType}
  */
 rrRenderer.PrimitiveList.prototype.getPrimitiveType = function() {return this.m_primitiveType;};
 
 /**
- * @return {rrDefs.IndexType}
+ * @return {?rrDefs.IndexType}
  */
 rrRenderer.PrimitiveList.prototype.getIndexType = function() {return this.m_indexType;};
 

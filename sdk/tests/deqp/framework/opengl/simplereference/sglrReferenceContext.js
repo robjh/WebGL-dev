@@ -2835,7 +2835,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     /**
     * @param {number} buffer
     * @param {number}  drawbuffer
-    * @param {number}  value
+    * @param {Array<number>}  value
     */
     sglrReferenceContext.ReferenceContext.prototype.clearBufferuiv = function(buffer, drawbuffer, value) {
         if (this.condtionalSetError(buffer != gl.COLOR, gl.INVALID_ENUM))
