@@ -183,10 +183,16 @@ goog.scope(function() {
     };
 
     /**
-     *
+     * @param {number} x
+     * @param {number} y
+     * @param {number} width
+     * @param {number} height
+     * @param {number} format
+     * @param {number} dataType
+     * @param {ArrayBuffer|ArrayBufferView} data
      */
     sglrGLContext.GLContext.prototype.readPixels = function (x, y, width, height, format, dataType, data) {
-        var dataArr;
+        /** @type {ArrayBufferView} */ var dataArr;
         if (!ArrayBuffer.isView(data)) {
             var type = gluTextureUtil.mapGLChannelType(dataType, true);
             var dataArrType = tcuTexture.getTypedArray(type);

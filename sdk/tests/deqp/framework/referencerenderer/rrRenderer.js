@@ -211,17 +211,17 @@ rrRenderer.PrimitiveList.prototype.isRestartIndex = function(elementNdx, restart
         return elementNdx == restartIndex;
 };
 
-/*
+/**
  * @return {number}
  */
 rrRenderer.PrimitiveList.prototype.getNumElements = function() {return this.m_numElements;};
 
-/*
+/**
  * @return {rrDefs.PrimitiveType}
  */
 rrRenderer.PrimitiveList.prototype.getPrimitiveType = function() {return this.m_primitiveType;};
 
-/*
+/**
  * @return {rrDefs.IndexType}
  */
 rrRenderer.PrimitiveList.prototype.getIndexType = function() {return this.m_indexType;};
@@ -466,7 +466,7 @@ rrRenderer.getIndexOfCorner = function(isTop, isRight, vertexPackets) {
  * @param {number} y
  * @param {Array<number>} depths
  * @return {number}
- */ 
+ */
 rrRenderer.calculateDepth = function(x, y, depths) {
     var d1 = x * depths[0] + (1 - x) * depths[1];
     var d2 = x * depths[2] + (1 - x) * depths[3];
