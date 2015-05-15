@@ -182,5 +182,22 @@ goog.scope(function() {
         return found;
     };
 
+    /**
+     *
+     */
+    sglrGLContext.GLContext.prototype.readPixels = function (x, y, width, height, format, dataType, data) {
+        var dataArr;
+        if (!ArrayBuffer.isView(data)) {
+            var type = gluTextureUtil.mapGLChannelType(dataType, true);
+            var dataArrType = tcuTexture.getTypedArray(type);
+            dataArr = new dataArrType(data);
+        } else {
+            dataArr = data
+        }
+
+        this.m_context.readPixels(x, y, width, height, format, dataType, dataArr);
+
+    }
+
 });
 
