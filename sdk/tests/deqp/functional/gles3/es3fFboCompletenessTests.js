@@ -158,7 +158,7 @@ goog.scope(function() {
     es3fFboCompletenessTests.ES3Checker.prototype.constructor = es3fFboCompletenessTests.ES3Checker;
     
 
-    es3fFboCompletenessTests.ES3Checker.prototype.check = function(attPoint, attachment, image) {
+    es3fFboCompletenessTests.ES3Checker.prototype.check = function(attPoint, att, image) {
 
         var imgSamples = glsFboUtil.imageNumSamples(image);
 
@@ -197,11 +197,11 @@ goog.scope(function() {
         if (attPoint == gl.DEPTH_ATTACHMENT || attPoint == gl.STENCIL_ATTACHMENT) {
             if (this.m_depthStencilImage == 0) {
                 this.m_depthStencilImage = att.imageName;
-                this.m_depthStencilType  = attachmentType(att);
+                this.m_depthStencilType  = glsFboUtil.attachmentType(att);
 
             } else {
                 this.require(
-                    this.m_depthStencilImage == att.imageName && this.m_depthStencilType == attachmentType(att),
+                    this.m_depthStencilImage == att.imageName && this.m_depthStencilType == glsFboUtil.attachmentType(att),
                     gl.FRAMEBUFFER_UNSUPPORTED
                 );
             }
@@ -427,6 +427,7 @@ goog.scope(function() {
         testGroup.addChild(fboCtx.createAttachmentTests(gl));
         testGroup.addChild(fboCtx.createSizeTests(gl));
         
+        
         /** @type {tcuTestCase.DeqpTest} */
         var layerTests = tcuTestCase.newTest('layer', 'Tests for layer attachments');
         
@@ -445,7 +446,11 @@ goog.scope(function() {
         for (var i = 0 ; i < s_latersParams.length ; ++i) {
             var name = 'name';
             var desc = 'desc';
-            layerTests.addChild(new es3fFboCompletenessTests.NumLayersTest(name, desc, fboCtx, s_latersParams[i]));
+            layerTests.addChild(new es3fFboCompletenessTests.NumLayersTest(
+                es3fFboCompletenessTests.numLayersParams.getName(s_latersParams[i]),
+                es3fFboCompletenessTests.numLayersParams.getDescription(s_latersParams[i]),
+                fboCtx, s_latersParams[i]
+            ));
         }
         testGroup.addChild(layerTests);
         
@@ -474,7 +479,11 @@ goog.scope(function() {
         for (var i = 0 ; i < s_samplesParams.length ; ++i) {
             var name = 'name';
             var desc = 'desc';
-            sampleTests.addChild(new es3fFboCompletenessTests.NumSamplesTest(name, desc, fboCtx, s_samplesParams[i]));
+            sampleTests.addChild(new es3fFboCompletenessTests.NumSamplesTest(
+                es3fFboCompletenessTests.numSamplesParams.getName(s_samplesParams[i]),
+                es3fFboCompletenessTests.numSamplesParams.getDescription(s_samplesParams[i]),
+                fboCtx, s_samplesParams[i]
+            ));
         }
         testGroup.addChild(sampleTests);
         
