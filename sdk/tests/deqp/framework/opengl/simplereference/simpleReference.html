@@ -21,6 +21,12 @@
 var wtu = WebGLTestUtils;
 var gl = wtu.create3DContext('canvas', {preserveDrawingBuffer: true}, 2);
 
+/**
+ * @param {string} id
+ * @param {number} width
+ * @param {number} height
+ * @return {Array<number>}
+ */
 var displayResultPane = function(id, width, height) {
     displayResultPane.counter = displayResultPane.counter || 0;
     var i = displayResultPane.counter++;
@@ -39,15 +45,29 @@ var displayResultPane = function(id, width, height) {
     return [ctxResult, ctxRef, ctxDiff];
 };
 
+/**
+ * @param {number} w
+ * @param {number} h
+ * @param {Array<number>} image
+ * @return
+ */
 var displayImage = function(w, h, image) {
+
+    /**
+     * @param {sglrReferenceContext.ReferenceContext|sglrGLContext.GLContext} ctx
+     * @param {number} w
+     * @param {number} h
+     * @param {number} image
+     * @return {ImageData}
+     */
     var createImage = function(ctx, w, h, src) {
-        var imgData = ctx.createImageData(w, h);
+        /** @type {ImageData} */ var imgData = ctx.createImageData(w, h);
         var index = 0;
         for (var y = 0; y < h; y++) {
             for (var x = 0; x < w; x++) {
                 var offset = 4 * (y * w + x);
                 for (var i = 0; i < 4; i++) {
-                    imgData.data[index] = image[offset + i];
+                    imgData.data[index] = src[offset + i];
                     index = index + 1;
                 }
             }
@@ -107,9 +127,9 @@ var displayImage = function(w, h, image) {
             var buffers = new sglrReferenceContext.ReferenceContextBuffers(format, 24, 8, width, height, samples);
             var ctx = new sglrReferenceContext.ReferenceContext(limits, buffers.getColorbuffer(), buffers.getDepthbuffer(), buffers.getStencilbuffer());
             ctx.clearColor(0, 0, 1, 1);
-            ctx.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT|gl.STENCIL_BUFFER_BIT);            
+            ctx.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT|gl.STENCIL_BUFFER_BIT);
             var fbo = ctx.createFramebuffer();
-            var rbo = ctx.createRenderbuffer();            
+            var rbo = ctx.createRenderbuffer();
             ctx.bindFramebuffer(gl.FRAMEBUFFER, fbo);
             ctx.bindRenderbuffer(gl.RENDERBUFFER, rbo);
             ctx.renderbufferStorage(gl.RENDERBUFFER, gl.RGBA8, width, height);

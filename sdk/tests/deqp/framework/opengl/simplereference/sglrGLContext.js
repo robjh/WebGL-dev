@@ -158,10 +158,16 @@ goog.scope(function() {
         this.m_context.drawArrays(gl.TRIANGLES, first, (count * 6) - first);
     };
 
+    /**
+     * @return {number}
+     */
     sglrGLContext.GLContext.prototype.getWidth = function() {
         return this.m_context.getParameter(gl.VIEWPORT)[2];
     };
 
+    /**
+     * @return {number}
+     */
     sglrGLContext.GLContext.prototype.getHeight = function() {
         return this.m_context.getParameter(gl.VIEWPORT)[3];
     };
@@ -206,4 +212,3 @@ goog.scope(function() {
     }
 
 });
-

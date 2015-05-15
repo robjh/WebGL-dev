@@ -92,7 +92,7 @@ goog.scope(function() {
      * @param {rrGenericVector.GenericVecType} type_
      */
     sglrShaderProgram.FragmentOutput = function(type_) {
-        this.type = type_;
+        /** @type {rrGenericVector.GenericVecType} */ this.type = type_;
     };
 
     /**
@@ -102,8 +102,8 @@ goog.scope(function() {
      * @param {gluShaderUtil.DataType} type_
      */
     sglrShaderProgram.Uniform = function(name_, type_) {
-        this.name = name_;
-        this.type = type_;
+        /** @type {string} */ this.name = name_;
+        /** @type {gluShaderUtil.DataType} */ this.type = type_;
         /** @type {Array<number>} */ this.value;
         /** @type {?rrDefs.Sampler} */ this.sampler = null;
     };
@@ -114,7 +114,7 @@ goog.scope(function() {
      * @param {string} str
      */
     sglrShaderProgram.VertexSource = function(str) {
-        this.source = str;
+        /** @type {string} */ this.source = str;
     };
 
     /**
@@ -123,7 +123,7 @@ goog.scope(function() {
      * @param {string} str
      */
     sglrShaderProgram.FragmentSource = function(str) {
-        this.source = str;
+        /** @type {string} */ this.source = str;
     };
 
     /**
@@ -184,6 +184,7 @@ goog.scope(function() {
 
     /**
      * @param {sglrShaderProgram.VertexSource} c
+     * @return {sglrShaderProgram.ShaderProgramDeclaration}
      */
     sglrShaderProgram.ShaderProgramDeclaration.prototype.pushVertexSource = function(c) {
         DE_ASSERT(!this.m_vertexShaderSet);
@@ -194,11 +195,12 @@ goog.scope(function() {
 
     /**
      * @param {sglrShaderProgram.FragmentSource} c
+     * @return {sglrShaderProgram.ShaderProgramDeclaration}
      */
     sglrShaderProgram.ShaderProgramDeclaration.prototype.pushFragmentSource = function(c) {
         DE_ASSERT(!this.m_fragmentSource);
-        this.m_fragmentSource = c.source;
-        this.m_fragmentShaderSet = true;
+        /** @type {sglrShaderProgram.FragmentSource} */ this.m_fragmentSource = c.source;
+        /** @type {boolean} */ this.m_fragmentShaderSet = true;
         return this;
     };
 
@@ -248,8 +250,8 @@ goog.scope(function() {
      * @param {sglrShaderProgram.ShaderProgramDeclaration} decl
      */
     sglrShaderProgram.ShaderProgram = function(decl) {
-        this.vertexShader = new rrShaders.VertexShader(decl.getVertexInputCount(), decl.getVertexOutputCount());
-        this.fragmentShader = new rrShaders.FragmentShader(decl.getFragmentInputCount(), decl.getFragmentOutputCount());
+        /** @type {rrShaders.VertexShader} */ this.vertexShader = new rrShaders.VertexShader(decl.getVertexInputCount(), decl.getVertexOutputCount());
+        /** @type {rrShaders.FragmentShader} */ this.fragmentShader = new rrShaders.FragmentShader(decl.getFragmentInputCount(), decl.getFragmentOutputCount());
 
         /** @type {Array<string>} */ this.m_attributeNames = [];
         /** @type {Array<sglrShaderProgram.Uniform>} */ this.m_uniforms = [];
@@ -298,6 +300,7 @@ goog.scope(function() {
     /**
      * @param {string} name
      * @return {sglrShaderProgram.Uniform}
+     * @throws {Error}
      */
     sglrShaderProgram.ShaderProgram.prototype.getUniformByName = function(name) {
         DE_ASSERT(name);
@@ -313,6 +316,7 @@ goog.scope(function() {
      * shadeFragments - abstract function, to be implemented by children classes
      * @param {Array<rrFragmentOperations.Fragment>} packets
      * @param {rrShadingContext.FragmentShadingContext} context
+     * @throws {Error}
      */
     sglrShaderProgram.ShaderProgram.prototype.shadeFragments = function(packets, context) {
         throw new Error('This function needs to be overwritten in a child class.');
@@ -323,6 +327,7 @@ goog.scope(function() {
      * @param {Array<rrVertexAttrib.VertexAttrib>} inputs
      * @param {Array<rrVertexPacket.VertexPacket>} packets
      * @param {number} numPackets
+     * @throws {Error}
      */
      sglrShaderProgram.ShaderProgram.prototype.shadeVertices = function(inputs, packets, numPackets) {
         throw new Error('This function needs to be overwritten in a child class.');
