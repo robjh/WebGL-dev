@@ -33,6 +33,21 @@ endComment = '\n' + tab + '*/\n' + tab
 def displayUsage ():
 	print 'Usage: python annotate_file.py <filepath> <namespace>\n'
 
+def collectTypesFromNamespace (filepath):
+	domain = [];
+	globalVars = [];
+	objects = [];
+	functions = [];
+
+	fileHandler = open(filepath, 'rU')
+
+	lines = fileHandler.readlines()
+
+	for (currentLine in lines):
+		print currentLine;
+
+
+
 def addCommentsHeader (matchobj):
 	strContents = matchobj.group() 
 	commentHeader = ''

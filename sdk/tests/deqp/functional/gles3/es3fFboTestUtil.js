@@ -1251,8 +1251,7 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
         /** @type {gluTextureUtil.TransferFormat} */ var transferFmt = gluTextureUtil.getTransferFormat(readFormat);
         /** @type {number} */ var alignment = 4; // \note gl.PACK_ALIGNMENT = 4 is assumed.
         /** @type {number} */ var rowSize = deMath.deAlign32(readFormat.getPixelSize() * width, alignment);
-        var dataArr = tcuTexture.getTypedArray(readFormat.type);
-        var data = new dataArr(rowSize * height);
+        var data = new ArrayBuffer(rowSize * height);
         ctx.readPixels(x, y, width, height, transferFmt.format, transferFmt.dataType, data);
 
         // Convert to surface.
