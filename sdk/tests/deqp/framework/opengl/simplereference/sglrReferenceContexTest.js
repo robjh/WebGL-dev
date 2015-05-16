@@ -27,6 +27,8 @@ goog.require('framework.opengl.gluDrawUtil');
 goog.require('framework.common.tcuImageCompare');
 goog.require('framework.opengl.simplereference.sglrShaderProgram');
 goog.require('framework.referencerenderer.rrGenericVector');
+goog.require('framework.referencerenderer.rrVertexAttrib');
+goog.require('framework.referencerenderer.rrShadingContext');
 
 goog.scope(function () {
     var sglrReferenceContextTest = framework.opengl.simplereference.sglrReferenceContextTest;
@@ -38,6 +40,8 @@ goog.scope(function () {
     var tcuImageCompare = framework.common.tcuImageCompare;
     var sglrShaderProgram = framework.opengl.simplereference.sglrShaderProgram;
     var rrGenericVector = framework.referencerenderer.rrGenericVector;
+    var rrVertexAttrib = framework.referencerenderer.rrVertexAttrib;
+    var rrShadingContext = framework.referencerenderer.rrShadingContext;
     
     /**
      * @constructor
@@ -243,26 +247,47 @@ goog.scope(function () {
         ctx.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT|gl.STENCIL_BUFFER_BIT);
         
         var vertices = [
-            0, 1, -1,
-            -1, -1, -1,
-            1, -1, -1
+            -0.5, 0.5,
+            0.5, 0.5,
+            -0.5, -0.5,
+            0.5, 0.5,
+            0.5, -0.5,
+            -0.5, -0.5
         ];
         
+        var vertices32 = new Float32Array(vertices);
+        
         var squareVerticesBuffer = ctx.createBuffer();
-        ctx.bindFramebuffer(gl.FRAMEBUFFER, squareVerticesBuffer);
+        ctx.bindBuffer(gl.ARRAY_BUFFER, squareVerticesBuffer);
+        ctx.bufferData(gl.ARRAY_BUFFER, vertices32, gl.STATIC_DRAW);
+        
         
         var colors = [
             1,0,0,1,
             0,1,0,1,
+            0,0,1,1,
+            0,1,0,1,
+            1,1,1,1,
             0,0,1,1
         ];
         
+        var colors32 = new Float32Array(colors);
+        
         var squareColorsBuffer = ctx.createBuffer();
         ctx.bindBuffer(gl.ARRAY_BUFFER, squareColorsBuffer);
+        ctx.bufferData(gl.ARRAY_BUFFER, colors32, gl.STATIC_DRAW);
         
         /** @type {sglrShaderProgram.ShaderProgramDeclaration} */ var progDecl = new sglrShaderProgram.ShaderProgramDeclaration();
         
         progDecl.pushVertexAttribute(new sglrShaderProgram.VertexAttribute('aVertexPosition', rrGenericVector.GenericVecType.FLOAT));
+        
+        progDecl.pushVertexAttribute(new sglrShaderProgram.VertexAttribute('aVertexColor', rrGenericVector.GenericVecType.FLOAT));
+        
+        progDecl.pushVertexSource('');
+        
+        progDecl.pushFragmentOutput(new sglrShaderProgram.FragmentOutput(rrGenericVector.GenericVecType.FLOAT));
+        
+        progDecl.pushFragmentSource('');
         
         /** @type {sglrReferenceContextTest.ContextShaderProgram} */ var program = new sglrReferenceContextTest.ContextShaderProgram(progDecl);
         
@@ -273,8 +298,24 @@ goog.scope(function () {
         ctx.useProgram(program);
         
         var vertexPositionAttribute = ctx.getAttribLocation(program, 'aVertexPosition');
+        var vertexColorAttribute = ctx.getAttribLocation(program, 'aVertexColor');
         ctx.enableVertexAttribArray(vertexPositionAttribute);
+        ctx.enableVertexAttribArray(vertexColorAttribute);
         
+        ctx.bindBuffer(gl.ARRAY_BUFFER, squareVerticesBuffer);
+        ctx.vertexAttribPointer(vertexPositionAttribute, 2, gl.FLOAT, false, 0, 0);
+        
+        ctx.bindBuffer(gl.ARRAY_BUFFER, squareColorsBuffer);
+        ctx.vertexAttribPointer(vertexColorAttribute, 4, gl.FLOAT, false, 0, 0);
+        
+        ctx.drawQuads(0, 1);
+        
+        var pixels = new tcuSurface.Surface(width, height);
+        ctx.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels.getAccess().getBuffer());
+        
+        var access = pixels.getAccess();
+        
+        tcuImageCompare.displayImages(access, null, null);
         
         return tcuTestCase.IterateResult.STOP;
     };
@@ -298,10 +339,7 @@ goog.scope(function () {
      * @param {Array<rrVertexPacket.VertexPacket>} packets
      * @param {number} numPackets
      */
-    sglrReferenceContextTest.ContextShaderProgram.prototype.shadeVertex = function(inputs, packets, numPackets) {
-        /** @type {number} */ var u_coordScale = this.getUniformByName("u_coordScale").value;
-        /** @type {number} */ var u_colorScale = this.getUniformByName("u_colorScale").value;
-
+    sglrReferenceContextTest.ContextShaderProgram.prototype.shadeVertices = function(inputs, packets, numPackets) {
         for (var packetNdx = 0; packetNdx < numPackets; ++packetNdx) {
             /** @type {number} */ var varyingLocColor = 0;
 
@@ -311,17 +349,26 @@ goog.scope(function () {
             /** @type {Array<number>} */ var coord = [1.0, 1.0];
             /** @type {Array<number>} */ var color = [1.0, 1.0, 1.0];
 
-            for (var attribNdx = 0; attribNdx < this.m_attrType.length; attribNdx++) {
-                /** @type {number} */ var numComponents = this.m_componentCount[attribNdx];
-
-                glsVertexArrayTests.calcShaderColorCoord(coord, color, rrVertexAttrib.readVertexAttrib(inputs[attribNdx], packet.instanceNdx, packet.vertexNdx, this.m_attrType[attribNdx]), attribNdx == 0, numComponents);
+            for (var attribNdx = 0; attribNdx < this.getVertexShader().getInputs().length; attribNdx++) {
+                /** @type {number} */ var numComponents = inputs[attribNdx].componentCount;
+                
+                var attribValue = rrVertexAttrib.readVertexAttrib(inputs[attribNdx], packet.instanceNdx, packet.vertexNdx, this.getVertexShader().getInputs()[attribNdx].type);
+                
+                if (attribNdx == 0) {
+                    coord[0] = attribValue[0];
+                    coord[1] = attribValue[1];
+                } else {
+                    color[0] = attribValue[0] * attribValue[3];
+                    color[1] = attribValue[1] * attribValue[3];
+                    color[2] = attribValue[2] * attribValue[3];
+                }
             }
 
             // Transform position
-            packet.position = [u_coordScale * coord[0], u_coordScale * coord[1], 1.0, 1.0];
+            packet.position = [coord[0], coord[1], 1.0, 1.0];
 
             // Pass color to FS
-            packet.outputs[varyingLocColor] = [u_colorScale * color[0], u_colorScale * color[1], u_colorScale * color[2], 1.0];
+            packet.outputs[varyingLocColor] = [color[0], color[1],color[2], 1.0];
         }
     };
 
@@ -335,39 +382,6 @@ goog.scope(function () {
         // Normal shading
         for (var packetNdx = 0; packetNdx < packets.length; ++packetNdx)
             packets[packetNdx].value = rrShadingContext.readTriangleVarying(packets[packetNdx], context, varyingLocColor);
-    };
-    
-    /**
-     * glsVertexArrayTests.ContextShaderProgram.shadeVertices
-     * @param {Array<rrVertexAttrib.VertexAttrib>} inputs
-     * @param {Array<rrVertexPacket.VertexPacket>} packets
-     * @param {number} numPackets
-     */
-    sglrReferenceContextTest.ContextShaderProgram.prototype.shadeVertices = function(inputs, packets, numPackets) {
-        /** @type {number} */ var u_coordScale = this.getUniformByName("u_coordScale").value;
-        /** @type {number} */ var u_colorScale = this.getUniformByName("u_colorScale").value;
-
-        for (var packetNdx = 0; packetNdx < numPackets; ++packetNdx) {
-            /** @type {number} */ var varyingLocColor = 0;
-
-            /** @type {rrVertexPacket.VertexPacket} */ var packet = packets[packetNdx];
-
-            // Calc output color
-            /** @type {Array<number>} */ var coord = [1.0, 1.0];
-            /** @type {Array<number>} */ var color = [1.0, 1.0, 1.0];
-
-            for (var attribNdx = 0; attribNdx < this.m_attrType.length; attribNdx++) {
-                /** @type {number} */ var numComponents = this.m_componentCount[attribNdx];
-
-                glsVertexArrayTests.calcShaderColorCoord(coord, color, rrVertexAttrib.readVertexAttrib(inputs[attribNdx], packet.instanceNdx, packet.vertexNdx, this.m_attrType[attribNdx]), attribNdx == 0, numComponents);
-            }
-
-            // Transform position
-            packet.position = [u_coordScale * coord[0], u_coordScale * coord[1], 1.0, 1.0];
-
-            // Pass color to FS
-            packet.outputs[varyingLocColor] = [u_colorScale * color[0], u_colorScale * color[1], u_colorScale * color[2], 1.0];
-        }
     };
 
     sglrReferenceContextTest.init = function() {

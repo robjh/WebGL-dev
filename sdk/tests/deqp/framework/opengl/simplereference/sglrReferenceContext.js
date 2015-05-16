@@ -3165,6 +3165,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
                 vertexAttribs[ndx].instanceDivisor = vao.m_arrays[ndx].divisor;
                 vertexAttribs[ndx].pointer = vao.m_arrays[ndx].bufferBinding.getData();
                 vertexAttribs[ndx].offset = vao.m_arrays[ndx].offset;
+                vertexAttribs[ndx].componentCount = vao.m_arrays[ndx].size;
             }
         }
 
