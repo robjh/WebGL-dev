@@ -964,7 +964,8 @@ goog.scope(function() {
                     break;
                 default:
                     throw new Error('glsVertexArrayTests.calcShaderColorCoord - Invalid number of components');
-            } else {
+            } 
+        else {
             switch (numComponents) {
                 case 1:
                     color[0] = color[0] * attribValue[0];

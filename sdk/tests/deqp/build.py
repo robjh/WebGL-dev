@@ -43,7 +43,8 @@ targets = {
     'matrix': 'framework.common.tcuMatrix',
     'fragOps': 'framework.referencerenderer.rrFragmentOperations',
     'renderer': 'framework.referencerenderer.rrRenderer',
-	'matrixUtil': 'framework.common.tcuMatrixUtil'
+	'matrixUtil': 'framework.common.tcuMatrixUtil',
+    'sglrReferenceContextTest': 'framework.opengl.simplereference.sglrReferenceContextTest'
 }
 def dep_filename(target):
     return target + '.dep'
