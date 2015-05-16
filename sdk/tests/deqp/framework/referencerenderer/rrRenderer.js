@@ -216,8 +216,8 @@ rrRenderer.getBarycentricCoefficients = function(v, v1, v2, v3) {
 
     var det = (y2 - y3) * (x1 - x3) + (x3 - x2) * (y1 - y3);
 
-    b[0] = ((y2 - y3) * (x - x3) + (x3 - x2) * (y - y3)) / det;
-    b[1] = ((y3 - y1) * (x - x3) + (x1 - x3) * (y - y3)) / det;
+    b[0] = ((y3 - y1) * (x - x3) + (x1 - x3) * (y - y3)) / det;
+    b[1] = ((y2 - y3) * (x - x3) + (x3 - x2) * (y - y3)) / det;
     b[2] = 1 - b[0] - b[1];
 
     return b;
@@ -448,7 +448,7 @@ rrRenderer.calculateDepth = function(x, y, depths) {
 rrRenderer.drawQuads = function(state, renderTarget, program, vertexAttribs, first, count) {
     //The count of primitives to draw depends on which vertex we start to draw first.
     count = Math.floor(((count * 6) - first) / 6);
-    
+
     var primitives = new rrRenderer.PrimitiveList(rrRenderer.PrimitiveType.TRIANGLES, count * 6, first); // 2 triangles per quad with 3 vertices each = 6 vertices.
     // Do not draw if nothing to draw
     if (primitives.getNumElements() == 0)

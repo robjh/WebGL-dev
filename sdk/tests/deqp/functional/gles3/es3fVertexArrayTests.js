@@ -26,6 +26,7 @@ goog.require('framework.common.tcuTexture');
 goog.require('framework.delibs.debase.deMath');
 goog.require('framework.delibs.debase.deRandom');
 goog.require('framework.delibs.debase.deString');
+goog.require('framework.delibs.debase.deUtil');
 goog.require('framework.opengl.gluDrawUtil');
 goog.require('framework.opengl.gluShaderProgram');
 goog.require('framework.opengl.gluShaderUtil');
@@ -48,6 +49,7 @@ goog.scope(function() {
     var deMath = framework.delibs.debase.deMath;
     var deString = framework.delibs.debase.deString;
     var deRandom = framework.delibs.debase.deRandom;
+    var deUtil = framework.delibs.debase.deUtil;
     var glsVertexArrayTests = modules.shared.glsVertexArrayTests;
 
     var DE_ASSERT = function(x) {
@@ -884,7 +886,7 @@ goog.scope(function() {
         }
 
         var storages= [
-            glsVertexArrayTests.deArray.Storage.USER,
+            //glsVertexArrayTests.deArray.Storage.USER, Not supported in WebGL 2.0
             glsVertexArrayTests.deArray.Storage.BUFFER
         ];
 
@@ -996,19 +998,17 @@ goog.scope(function() {
             var arraySpec = new glsVertexArrayTests.MultiVertexArrayTest.Spec.ArraySpec(
                 glsVertexArrayTests.deArray.InputType.FLOAT,
                 glsVertexArrayTests.deArray.OutputType.VEC2,
-                glsVertexArrayTests.deArray.Storage.USER,
+                glsVertexArrayTests.deArray.Storage.BUFFER, //USER storage not supported in WebGL 2.0
                 glsVertexArrayTests.deArray.Usage.DYNAMIC_DRAW,
                 componentCount,
                 0,
-                strides[strideNdx] >= 0 ?
-                strides[strideNdx] :
-                componentCount * glsVertexArrayTests.deArray.inputTypeSize(glsVertexArrayTests.deArray.InputType.FLOAT),
+                strides[strideNdx] >= 0 ? strides[strideNdx] : componentCount * glsVertexArrayTests.deArray.inputTypeSize(glsVertexArrayTests.deArray.InputType.FLOAT),
                 false,
                 glsVertexArrayTests.GLValue.getMinValue(glsVertexArrayTests.deArray.InputType.FLOAT),
                 glsVertexArrayTests.GLValue.getMaxValue(glsVertexArrayTests.deArray.InputType.FLOAT)
             );
 
-            var _spec = spec;
+            var _spec = deUtil.clone(spec); //To assign spec by value;
             _spec.arrays.push(arraySpec);
             this.addStrideCases(_spec, depth - 1);
         }
@@ -1089,7 +1089,7 @@ goog.scope(function() {
             var arraySpec = new glsVertexArrayTests.MultiVertexArrayTest.Spec.ArraySpec(
                 inputTypes[inputTypeNdx],
                 glsVertexArrayTests.deArray.OutputType.VEC2,
-                glsVertexArrayTests.deArray.Storage.USER,
+                glsVertexArrayTests.deArray.Storage.BUFFER, //USER storage not supported in WebGL 2.0
                 glsVertexArrayTests.deArray.Usage.DYNAMIC_DRAW,
                 2,
                 0,
