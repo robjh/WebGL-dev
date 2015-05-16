@@ -2,7 +2,7 @@
 goog.provide('modules.shared.glsFboCompletenessTests');
 goog.require('modules.shared.glsFboUtil');
 goog.require('framework.opengl.gluObjectWrapper');
-//goog.require('framework.opengl.gluStrUtil');
+goog.require('framework.opengl.gluStrUtil');
 goog.require('framework.common.tcuTestCase');
 
 
@@ -11,125 +11,9 @@ goog.scope(function() {
     var glsFboCompletenessTests = modules.shared.glsFboCompletenessTests;
     var glsFboUtil = modules.shared.glsFboUtil;
     var gluObjectWrapper = framework.opengl.gluObjectWrapper;
-//  var gluStrUtil = framework.opengl.gluStrUtil;
+    var gluStrUtil = framework.opengl.gluStrUtil;
     var tcuTestCase = framework.common.tcuTestCase;
 
-    // TODO: gluStrUtil doesnt exist yet. If it ever does, remove these in favour of it.
-    var gluStrUtil = {
-        getTypeName: function(value, gl) {
-            switch (value) {
-                case gl.BYTE:                            return 'GL_BYTE';
-                case gl.UNSIGNED_BYTE:                   return 'GL_UNSIGNED_BYTE';
-                case gl.SHORT:                           return 'GL_SHORT';
-                case gl.UNSIGNED_SHORT:                  return 'GL_UNSIGNED_SHORT';
-                case gl.INT:                             return 'GL_INT';
-                case gl.UNSIGNED_INT:                    return 'GL_UNSIGNED_INT';
-                case gl.FLOAT:                           return 'GL_FLOAT';
-                case gl.FIXED:                           return 'GL_FIXED';
-                case gl.UNSIGNED_SHORT_5_6_5:            return 'GL_UNSIGNED_SHORT_5_6_5';
-                case gl.UNSIGNED_SHORT_4_4_4_4:          return 'GL_UNSIGNED_SHORT_4_4_4_4';
-                case gl.UNSIGNED_SHORT_5_5_5_1:          return 'GL_UNSIGNED_SHORT_5_5_5_1';
-                case gl.HALF_FLOAT:                      return 'GL_HALF_FLOAT';
-                case gl.INT_2_10_10_10_REV:              return 'GL_INT_2_10_10_10_REV';
-                case gl.UNSIGNED_INT_2_10_10_10_REV:     return 'GL_UNSIGNED_INT_2_10_10_10_REV';
-                case gl.UNSIGNED_INT_10F_11F_11F_REV:    return 'GL_UNSIGNED_INT_10F_11F_11F_REV';
-                case gl.UNSIGNED_INT_5_9_9_9_REV:        return 'GL_UNSIGNED_INT_5_9_9_9_REV';
-                case gl.UNSIGNED_INT_24_8:               return 'GL_UNSIGNED_INT_24_8';
-                case gl.FLOAT_32_UNSIGNED_INT_24_8_REV:  return 'GL_FLOAT_32_UNSIGNED_INT_24_8_REV';
-                case gl.SIGNED_NORMALIZED:               return 'GL_SIGNED_NORMALIZED';
-                case gl.UNSIGNED_NORMALIZED:             return 'GL_UNSIGNED_NORMALIZED';
-                case gl.HALF_FLOAT_OES:                  return 'GL_HALF_FLOAT_OES';
-                default:                                 return '';
-            };
-        },
-        getPixelFormatName: function(value, gl) {
-            switch (value) {
-                case gl.LUMINANCE:           return 'GL_LUMINANCE';
-                case gl.LUMINANCE_ALPHA:     return 'GL_LUMINANCE_ALPHA';
-                case gl.ALPHA:               return 'GL_ALPHA';
-                case gl.RGB:                 return 'GL_RGB';
-                case gl.RGBA:                return 'GL_RGBA';
-                case gl.RGBA4:               return 'GL_RGBA4';
-                case gl.RGB5_A1:             return 'GL_RGB5_A1';
-                case gl.RGB565:              return 'GL_RGB565';
-                case gl.DEPTH_COMPONENT16:   return 'GL_DEPTH_COMPONENT16';
-                case gl.STENCIL_INDEX8:      return 'GL_STENCIL_INDEX8';
-                case gl.RG:                  return 'GL_RG';
-                case gl.RED:                 return 'GL_RED';
-                case gl.RGBA_INTEGER:        return 'GL_RGBA_INTEGER';
-                case gl.RGB_INTEGER:         return 'GL_RGB_INTEGER';
-                case gl.RG_INTEGER:          return 'GL_RG_INTEGER';
-                case gl.RED_INTEGER:         return 'GL_RED_INTEGER';
-                case gl.DEPTH_COMPONENT:     return 'GL_DEPTH_COMPONENT';
-                case gl.DEPTH_STENCIL:       return 'GL_DEPTH_STENCIL';
-                case gl.RGBA32F:             return 'GL_RGBA32F';
-                case gl.RGBA32I:             return 'GL_RGBA32I';
-                case gl.RGBA32UI:            return 'GL_RGBA32UI';
-                case gl.RGBA16:              return 'GL_RGBA16';
-                case gl.RGBA16_SNORM:        return 'GL_RGBA16_SNORM';
-                case gl.RGBA16F:             return 'GL_RGBA16F';
-                case gl.RGBA16I:             return 'GL_RGBA16I';
-                case gl.RGBA16UI:            return 'GL_RGBA16UI';
-                case gl.RGBA8:               return 'GL_RGBA8';
-                case gl.RGBA8I:              return 'GL_RGBA8I';
-                case gl.RGBA8UI:             return 'GL_RGBA8UI';
-                case gl.SRGB8_ALPHA8:        return 'GL_SRGB8_ALPHA8';
-                case gl.RGB10_A2:            return 'GL_RGB10_A2';
-                case gl.RGB10_A2UI:          return 'GL_RGB10_A2UI';
-                case gl.RGBA8_SNORM:         return 'GL_RGBA8_SNORM';
-                case gl.RGB8:                return 'GL_RGB8';
-                case gl.R11F_G11F_B10F:      return 'GL_R11F_G11F_B10F';
-                case gl.RGB32F:              return 'GL_RGB32F';
-                case gl.RGB32I:              return 'GL_RGB32I';
-                case gl.RGB32UI:             return 'GL_RGB32UI';
-                case gl.RGB16:               return 'GL_RGB16';
-                case gl.RGB16_SNORM:         return 'GL_RGB16_SNORM';
-                case gl.RGB16F:              return 'GL_RGB16F';
-                case gl.RGB16I:              return 'GL_RGB16I';
-                case gl.RGB16UI:             return 'GL_RGB16UI';
-                case gl.RGB8_SNORM:          return 'GL_RGB8_SNORM';
-                case gl.RGB8I:               return 'GL_RGB8I';
-                case gl.RGB8UI:              return 'GL_RGB8UI';
-                case gl.SRGB8:               return 'GL_SRGB8';
-                case gl.RGB9_E5:             return 'GL_RGB9_E5';
-                case gl.RG32F:               return 'GL_RG32F';
-                case gl.RG32I:               return 'GL_RG32I';
-                case gl.RG32UI:              return 'GL_RG32UI';
-                case gl.RG16:                return 'GL_RG16';
-                case gl.RG16_SNORM:          return 'GL_RG16_SNORM';
-                case gl.RG16F:               return 'GL_RG16F';
-                case gl.RG16I:               return 'GL_RG16I';
-                case gl.RG16UI:              return 'GL_RG16UI';
-                case gl.RG8:                 return 'GL_RG8';
-                case gl.RG8I:                return 'GL_RG8I';
-                case gl.RG8UI:               return 'GL_RG8UI';
-                case gl.RG8_SNORM:           return 'GL_RG8_SNORM';
-                case gl.R32F:                return 'GL_R32F';
-                case gl.R32I:                return 'GL_R32I';
-                case gl.R32UI:               return 'GL_R32UI';
-                case gl.R16:                 return 'GL_R16';
-                case gl.R16_SNORM:           return 'GL_R16_SNORM';
-                case gl.R16F:                return 'GL_R16F';
-                case gl.R16I:                return 'GL_R16I';
-                case gl.R16UI:               return 'GL_R16UI';
-                case gl.R8:                  return 'GL_R8';
-                case gl.R8I:                 return 'GL_R8I';
-                case gl.R8UI:                return 'GL_R8UI';
-                case gl.R8_SNORM:            return 'GL_R8_SNORM';
-                case gl.DEPTH_COMPONENT32F:  return 'GL_DEPTH_COMPONENT32F';
-                case gl.DEPTH_COMPONENT24:   return 'GL_DEPTH_COMPONENT24';
-                case gl.DEPTH32F_STENCIL8:   return 'GL_DEPTH32F_STENCIL8';
-                case gl.DEPTH24_STENCIL8:    return 'GL_DEPTH24_STENCIL8';
-                case gl.RGB10:               return 'GL_RGB10';
-                case gl.DEPTH_COMPONENT32:   return 'GL_DEPTH_COMPONENT32';
-                case gl.SRGB:                return 'GL_SRGB';
-                case gl.SRGB_ALPHA:          return 'GL_SRGB_ALPHA';
-                default: '';
-            };
-        }
-    };
-
-    
     glsFboCompletenessTests.initGlDependents = function(gl) {
         if (!(gl = gl || window.gl)) throw new Error('Invalid gl object');
         
@@ -606,7 +490,7 @@ goog.scope(function() {
         for (var i = 0, l_attPoints = attPoints.length ; i < l_attPoints ; ++i ) {
             var rbAttTests  = new tcuTestCase.newTest(attPoints[i][1], attPoints[i][2]);
             var texAttTests = new tcuTestCase.newTest(attPoints[i][1], attPoints[i][2]);
-            
+
             for (var j = 0, l_rboFmts = rboFmts.length ; j < l_rboFmts ; ++j) {
                 var params = glsFboCompletenessTests.renderableParams(
                     attPoints[i][0], gl.RENDERBUFFER, rboFmts[j]
@@ -777,13 +661,27 @@ goog.scope(function() {
         target, bufType, format, width, height, builder, gl
     ) {
         var imgFmt = format;
-        if (imgFmt == gl.NONE)
+        if (imgFmt.m_format == gl.NONE)
             imgFmt = this.getDefaultFormat(target, bufType, gl);
         var att = glsFboCompletenessTests.makeAttachment(bufType, imgFmt, width, height, builder, gl);
         builder.glAttach(target, att);
     };
     
     
+  
+    glsFboCompletenessTests.statusName = function(status, gl) {
+        gl = gl || window.gl;
+        
+        var errorName = gluStrUtil.getErrorName(status);
+        if (status != gl.NO_ERROR && errorName != '')
+            return errorName + ' (during FBO initialization)';
+            
+        var fbStatusName = gluStrUtil.getFramebufferStatusName(status);
+        if (fbStatusName != '') 
+            return fbStatusName;
+            
+        return 'unknown value (' + status + ')';
+    };
   
     // a quick note to work around the absense of these functions:
 //    glsFboCompletenessTests.TestBase.pass
@@ -796,7 +694,7 @@ goog.scope(function() {
         var fbo = new gluObjectWrapper.Framebuffer(gl);
         var builder = new glsFboUtil.FboBuilder(fbo.get(), gl.FRAMEBUFFER, gl);
         var ret = this.build(builder, gl);
-        var statuses = this.m_ctx.getVerifier().validStatusCodes(builder);
+        var statuses = this.m_ctx.getVerifier().validStatusCodes(builder, gl);
         
         var glStatus = builder.getError();
         if (glStatus == gl.NO_ERROR)
@@ -817,12 +715,12 @@ goog.scope(function() {
                 msg += (it == statuses.length ? ' or ' : ', ');
             }
         }
-     //   msg += glsFboCompletenessTests.statusName(err) + '.';
+        msg += glsFboCompletenessTests.statusName(err) + '.';
         bufferedLogToConsole(msg);
         
-     //   bufferedLogToConsole(
-     //       'Received ' + glsFboCompletenessTests.statusName(glStatus) + '.'
-     //   );
+        bufferedLogToConsole(
+            'Received ' + glsFboCompletenessTests.statusName(glStatus) + '.'
+        );
         
         if (!glsFboUtil.contains(statuses, glStatus)) {
             // the returned status value was not acceptable.
@@ -836,14 +734,15 @@ goog.scope(function() {
             }
         } else if (
             glStatus != gl.FRAMEBUFFER_COMPLETE &&
-            glsFboUtil.contins(statuses, gl.FRAMEBUFFER_COMPLETE)
+            glsFboUtil.contains(statuses, gl.FRAMEBUFFER_COMPLETE)
         ) {
             // TODO: handle this properly, it should result in the test issuing a warning
             bufferedLogToConsole('Framebuffer object could have checked as complete but did not.');
             
         } else {
             // pass
-            return true;
+            return false;
+           
         }
         return ret;
     };
@@ -950,7 +849,7 @@ goog.scope(function() {
                         glsFboUtil.FormatFlags.STENCIL_RENDERABLE | 
                         glsFboUtil.formatFlag(this.m_params.stencilKind, gl);
             
-            var formats = this.m_ctx.getMinFormats().getformats(flags);
+            var formats = this.m_ctx.getMinFormats().getFormats(flags);
             if (formats.length) {
                 var format = formats[0];
                 att = glsFboCompletenessTests.makeAttachment(this.m_params.depthKind, format, 64, 64, builder. gl);
@@ -972,10 +871,10 @@ goog.scope(function() {
         this.attachTargetToNew(gl.COLOR_ATTACHMENT0, this.m_params.color0Kind,
                                glsFboUtil.ImageFormat.none(), 64, 64, builder, gl);
         
-        if (this.m_params.colornkind != gl.NONE) {
+        if (this.m_params.colornKind != gl.NONE) {
             if (this.m_ctx.haveMultiColorAtts())
                 throw new Error('Multiple attachments not supported');
-            var matAttachments = gl.getParameter(gl.MAX_COLOR_ATTACHMENTS);
+            var maxAttachments = gl.getParameter(gl.MAX_COLOR_ATTACHMENTS);
             
             for (var i = 0 ; i < maxAttachments ; ++i) {
                 this.attachTargetToNew(gl.COLOR_ATTACHMENT0 + i, this.m_params.colornKind,

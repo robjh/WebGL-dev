@@ -52,10 +52,24 @@ rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess = function(rawAccess
                                             height: 0});
 };
 
+/**
+ * @return {tcuTexture.PixelBufferAccess}
+ */
 rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.prototype.raw = function() { return this.m_access; };
+
+/**
+ * @return {boolean}
+ */
 rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.prototype.isEmpty = function() { return this.m_access.isEmpty(); };
+
+/**
+ * @return {number}
+ */
 rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.prototype.getNumSamples = function() { return this.raw().getWidth(); };
 
+/**
+ * @return {tcuTexture.PixelBufferAccess}
+ */
 rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.prototype.toSinglesampleAccess = function() {
     DE_ASSERT(this.getNumSamples() == 1);
 
@@ -68,6 +82,7 @@ rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.prototype.toSinglesa
                                   slicePitch: this.m_access.getSlicePitch() * this.m_access.getDepth(),
                                   data: this.m_access.m_data});
 };
+
 /**
  * @param {tcuTexture.PixelBufferAccess} original
  * @return {rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess}
@@ -84,10 +99,18 @@ rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.fromSinglesampleAcce
                                 data: original.m_data}));
 };
 
+/**
+ * @param {tcuTexture.PixelBufferAccess} multisampledAccess
+ * @return {rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess}
+ */
 rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.fromMultisampleAccess = function(multisampledAccess) {
     return new rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess(multisampledAccess);
 };
 
+/**
+ * @param {Array<number>} region
+ * @return {rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess}
+ */
 rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.prototype.getSubregion = function(region) {
     var x = region[0];
     var y = region[1];
@@ -126,6 +149,11 @@ rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.prototype.resolveMul
     }
 };
 
+/**
+ * @param {number} x
+ * @param {number} y
+ * @return {Array<number>}
+ */
 rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.prototype.resolveMultisamplePixel = function(x, y) {
     var sum = [0, 0, 0, 0];
     for (var s = 0; s < this.getNumSamples(); s++)
@@ -137,6 +165,9 @@ rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.prototype.resolveMul
     return sum;
 };
 
+/**
+ * @param {Array<number>} color
+ */
 rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess.prototype.clear = function(color) {
     this.raw().clear(color);
 };

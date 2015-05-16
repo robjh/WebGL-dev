@@ -33,6 +33,21 @@ endComment = '\n' + tab + '*/\n' + tab
 def displayUsage ():
 	print 'Usage: python annotate_file.py <filepath> <namespace>\n'
 
+def collectTypesFromNamespace (filepath):
+	domain = [];
+	globalVars = [];
+	objects = [];
+	functions = [];
+
+	fileHandler = open(filepath, 'rU')
+
+	lines = fileHandler.readlines()
+
+	for (currentLine in lines):
+		print currentLine;
+
+
+
 def addCommentsHeader (matchobj):
 	strContents = matchobj.group() 
 	commentHeader = ''
@@ -87,11 +102,8 @@ def addAnnotationsToFunctions (filepath, namespace):
 def main(argv):
     if len(argv) != 2:
         displayUsage()
-        build_all_targets()
-        buildDepsFile()
-        pass_or_fail()
     else:
-    	addAnnotationsToFunctions(argv[0], argv[1])
+    	collectTypesFromNamespace(argv[0])
 
 if __name__ == '__main__': 
     main(sys.argv[1:])

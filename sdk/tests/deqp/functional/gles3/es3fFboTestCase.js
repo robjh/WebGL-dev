@@ -201,8 +201,8 @@ var DE_ASSERT = function(x) {
         debug('TODO: Enable rendering with WebGL');
         // Render using GLES3.
         // TODO: enable
-         try {
-             /** @type {sglrGLContext.GLContext} */ var context = new sglrGLContext.GLContext(
+        try {
+            /** @type {sglrGLContext.GLContext} */ var context = new sglrGLContext.GLContext(
                                                              gl,
                                                              [x, y, width, height]);
         

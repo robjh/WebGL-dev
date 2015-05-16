@@ -158,10 +158,16 @@ goog.scope(function() {
         this.m_context.drawArrays(gl.TRIANGLES, first, (count * 6) - first);
     };
 
+    /**
+     * @return {number}
+     */
     sglrGLContext.GLContext.prototype.getWidth = function() {
         return this.m_context.getParameter(gl.VIEWPORT)[2];
     };
 
+    /**
+     * @return {number}
+     */
     sglrGLContext.GLContext.prototype.getHeight = function() {
         return this.m_context.getParameter(gl.VIEWPORT)[3];
     };
@@ -182,5 +188,27 @@ goog.scope(function() {
         return found;
     };
 
-});
+    /**
+     * @param {number} x
+     * @param {number} y
+     * @param {number} width
+     * @param {number} height
+     * @param {number} format
+     * @param {number} dataType
+     * @param {ArrayBuffer|ArrayBufferView} data
+     */
+    sglrGLContext.GLContext.prototype.readPixels = function (x, y, width, height, format, dataType, data) {
+        /** @type {ArrayBufferView} */ var dataArr;
+        if (!ArrayBuffer.isView(data)) {
+            var type = gluTextureUtil.mapGLChannelType(dataType, true);
+            var dataArrType = tcuTexture.getTypedArray(type);
+            dataArr = new dataArrType(data);
+        } else {
+            dataArr = data
+        }
 
+        this.m_context.readPixels(x, y, width, height, format, dataType, dataArr);
+
+    }
+
+});

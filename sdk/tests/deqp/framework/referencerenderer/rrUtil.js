@@ -38,7 +38,7 @@ goog.scope(function() {
     rrUtil.drawQuad = function(ctx, program, p0, p1) {
         // Vertex data.
         var hz = (p0[2] + p1[2]) * 0.5;
-        var position = [
+        /** @type {Array<number>} */ var position = [
         p0[0], p0[1], p0[2], 1.0,
         p0[0], p1[1], hz, 1.0,
         p1[0], p0[1], hz, 1.0,
@@ -46,7 +46,7 @@ goog.scope(function() {
         p0[0], p1[1], hz, 1.0,
         p1[0], p1[1], p1[2], 1.0
         ];
-        var coord = [
+        /** @type {Array<number>} */ var coord = [
         0.0, 0.0,
         0.0, 1.0,
         1.0, 0.0,

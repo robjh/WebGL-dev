@@ -709,7 +709,7 @@ goog.scope(function() {
     };
     glsFboUtil.Framebuffer.prototype.attach = function(attPoint, att) {
         if (!att) {
-            this.attachments[attPoint] = undefined;
+            delete this.attachments[attPoint];
         } else {
             this.attachments[attPoint] = att;
         }
@@ -723,6 +723,7 @@ goog.scope(function() {
     glsFboUtil.Framebuffer.prototype.getImage = function(type, imgName) {
         switch (type) {
             case this.m_gl.TEXTURE: return glsFboUtil.lookupDefault(this.textures, imgName, null);
+            case this.m_gl.RENDERBUFFER: return glsFboUtil.lookupDefault(this.rbos, imgName, null);
             default: throw new Error ('Bad image type.');
         }
         return null;
@@ -760,7 +761,7 @@ goog.scope(function() {
     // GLenum attPoint, const glsFboUtil.Attachment* att
     glsFboUtil.FboBuilder.prototype.glAttach = function(attPoint, att) {
         if (!att) {
-            this.m_gl.framebufferRenderbuffer(this.m_target, attPoint, this.m_gl.RENDERBUFFER, 0);
+            this.m_gl.framebufferRenderbuffer(this.m_target, attPoint, this.m_gl.RENDERBUFFER, null);
         } else {
             glsFboUtil.attachAttachment(att, attPoint, this.m_gl);
         }
@@ -862,6 +863,7 @@ goog.scope(function() {
         var cctx = this.m_factory();
         
         for (var id in cfg.textures) {
+            id = parseInt(id);
             var flags = this.m_formats.getFormatInfo(cfg.textures[id], glsFboUtil.FormatFlags.ANY_FORMAT);
             var textureIsValid = (flags & glsFboUtil.FormatFlags.TEXTURE_VALID) != 0;
             cctx.require(textureIsValid, gl.INVALID_ENUM);
@@ -870,6 +872,7 @@ goog.scope(function() {
         }
         
         for (var id in cfg.rbos) {
+            id = parseInt(id);
             var flags = this.m_formats.getFormatInfo(cfg.rbos[id], glsFboUtil.FormatFlags.ANY_FORMAT);
             var rboIsValid = (flags & glsFboUtil.FormatFlags.RENDERBUFFER_VALID) != 0;
             cctx.require(rboIsValid, gl.INVALID_ENUM);
@@ -878,6 +881,7 @@ goog.scope(function() {
         var count = 0;
         for (var attPoint in cfg.attachments) {
             var att = cfg.attachments[attPoint];
+            attPoint = parseInt(attPoint);
             /** @type{glsFboUtil.Image}*/
             var image = cfg.getImage(glsFboUtil.attachmentType(att, gl), att.imageName);
             glsFboUtil.checkAttachmentCompleteness(cctx, att, attPoint, image, this.m_formats, gl);

@@ -437,6 +437,8 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
             return false;
     };
 
+    /**
+     */
     sglrReferenceContext.Texture2D.prototype.updateView = function() {
         var baseLevel = this.getBaseLevel();
 
@@ -914,15 +916,15 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     */
     sglrReferenceContext.ReferenceContextBuffers = function(colorBits, depthBits, stencilBits, width, height, samples_) {
         var samples = samples_;
-        if (samples == undefined)
+        if (samples === undefined)
             samples = 1;
-        this.m_colorbuffer = new tcuTexture.TextureLevel(sglrReferenceContext.toTextureFormat(colorBits), samples, width, height);
+         /** @type {tcuTexture.TextureLevel} */ this.m_colorbuffer = new tcuTexture.TextureLevel(sglrReferenceContext.toTextureFormat(colorBits), samples, width, height);
 
         if (depthBits > 0)
-            this.m_depthbuffer = new tcuTexture.TextureLevel(sglrReferenceContext.getDepthFormat(depthBits), samples, width, height);
+            /** @type {tcuTexture.TextureLevel} */ this.m_depthbuffer = new tcuTexture.TextureLevel(sglrReferenceContext.getDepthFormat(depthBits), samples, width, height);
 
         if (stencilBits > 0)
-            this.m_stencilbuffer = new tcuTexture.TextureLevel(sglrReferenceContext.getStencilFormat(stencilBits), samples, width, height);
+            /** @type {tcuTexture.TextureLevel} */ this.m_stencilbuffer = new tcuTexture.TextureLevel(sglrReferenceContext.getStencilFormat(stencilBits), samples, width, height);
     };
 
     /**
@@ -1032,7 +1034,9 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         /** @type {number} */ this.m_maxLevel;
     };
 
-
+    /**
+     * @return {number}
+     */
     sglrReferenceContext.ReferenceContext.prototype.getWidth = function() { return this.m_defaultColorbuffer.raw().getHeight(); };
 
     /**
@@ -1088,6 +1092,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
 
     /**
     * @param {sglrReferenceContext.TextureContainer} texture
+    * @throws {Error}
     */
     sglrReferenceContext.ReferenceContext.prototype.bindTexture = function(target, texture) {
         var unitNdx = this.m_activeTexture;
@@ -2388,6 +2393,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     /**
      * @param {number} target
      * @return {number}
+     * @throws {Error}
      */
     sglrReferenceContext.ReferenceContext.prototype.checkFramebufferStatus = function(target) {
         if (this.condtionalSetError(target != gl.FRAMEBUFFER &&
@@ -2835,7 +2841,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     /**
     * @param {number} buffer
     * @param {number}  drawbuffer
-    * @param {number}  value
+    * @param {Array<number>}  value
     */
     sglrReferenceContext.ReferenceContext.prototype.clearBufferuiv = function(buffer, drawbuffer, value) {
         if (this.condtionalSetError(buffer != gl.COLOR, gl.INVALID_ENUM))
@@ -3015,6 +3021,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     /**
     * @param {rrRenderer.PrimitiveType} derivedType
     * @return {rrRenderer.PrimitiveType}
+    * @throws {Error}
     */
     sglrReferenceContext.getPrimitiveBaseType = function(derivedType) {
         switch (derivedType) {
