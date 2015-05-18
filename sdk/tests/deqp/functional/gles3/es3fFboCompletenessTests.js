@@ -130,13 +130,13 @@ goog.scope(function() {
                 flags:      glsFboUtil.FormatFlags.REQUIRED_RENDERABLE |
                             glsFboUtil.FormatFlags.COLOR_RENDERABLE    |
                             glsFboUtil.FormatFlags.RENDERBUFFER_VALID,
-                formats:    new glsFboUtil.Range({ array: es3fFboCompletenessTests.s_extColorBufferFloatFormats })
+                formats:    new glsFboUtil.Range(es3fFboCompletenessTests.s_extColorBufferFloatFormats)
             }, {
                 extensions: 'GL_OES_texture_stencil8',
                 flags:      glsFboUtil.FormatFlags.REQUIRED_RENDERABLE |
                             glsFboUtil.FormatFlags.STENCIL_RENDERABLE  |
                             glsFboUtil.FormatFlags.TEXTURE_VALID,
-                formats:    new glsFboUtil.Range({ array: es3fFboCompletenessTests.s_extOESTextureStencil8 })
+                formats:    new glsFboUtil.Range(es3fFboCompletenessTests.s_extOESTextureStencil8)
             }
         ];
         
@@ -152,7 +152,7 @@ goog.scope(function() {
         glsFboUtil.Checker.call(this, gl);
         /** @type {number} */ this.m_numSamples = -1; // GLsizei
         /** @type {number} */ this.m_depthStencilImage = 0; // GLuint
-        /** @type {number} */ this.m_depthStencilType = gl.NONE; // GLenum
+        /** @type {number} */ this.m_depthStencilType = gl.NONE;
     };
     es3fFboCompletenessTests.ES3Checker.prototype = Object.create(glsFboUtil.Checker.prototype);
     es3fFboCompletenessTests.ES3Checker.prototype.constructor = es3fFboCompletenessTests.ES3Checker;
@@ -209,11 +209,22 @@ goog.scope(function() {
 
     };
 
+    /**
+    * @typedef {{textureKind: number, numLayers: number, attachmentLayer: number}}
+    */
+    es3fFboCompletenessTests.numLayersParamsT;
+
+    /**
+    * @param {number} textureKind
+    * @param {number} numLayers
+    * @param {number} attachmentLayer
+    * @return {es3fFboCompletenessTests.numLayersParamsT}
+    */
     es3fFboCompletenessTests.numLayersParams = function(textureKind, numLayers, attachmentLayer) {
         if (typeof(attachmentLayer) == 'undefined') {
-            textureKind     = null;
-            numLayers       = null;
-            attachmentLayer = null;
+            textureKind     = 0;
+            numLayers       = 0;
+            attachmentLayer = 0;
         }
         return {
             textureKind:     textureKind,     //< GL_TEXTURE_3D or GL_TEXTURE_2D_ARRAY
@@ -224,8 +235,8 @@ goog.scope(function() {
     
     /**
      * es3fFboCompletenessTests.numLayersParams.getName
+     * @param {es3fFboCompletenessTests.numLayersParamsT} params
      * @return {string}
-    // takes const NumLayersParams&
      */
     es3fFboCompletenessTests.numLayersParams.getName = function(params) {
         return (
@@ -234,8 +245,11 @@ goog.scope(function() {
             params.attachmentLayer
         );
     };
-    // returns a string.
-    // takes const NumLayersParams&
+    /**
+     * es3fFboCompletenessTests.numLayersParams.getDescription
+     * @param {es3fFboCompletenessTests.numLayersParamsT} params
+     * @return {string}
+     */
     es3fFboCompletenessTests.numLayersParams.getDescription = function(params) {
         return (
             (params.textureKind == gl.TEXTURE_3D ? '3D Texture' : '2D Array Texture') + ', ' +
@@ -245,6 +259,14 @@ goog.scope(function() {
     };
 
     // string, string, glsFboCompleteness::context, params.
+    /**
+    * @constructor
+    * @extends {glsFboCompletenessTests.TestBase}
+    * @param {string} name
+    * @param {string} desc
+    * @param {glsFboCompletenessTests.Context} ctx
+    * @param {es3fFboCompletenessTests.numLayersParamsT} params
+    */
     es3fFboCompletenessTests.NumLayersTest = function(name, desc, ctx, params) {
         glsFboCompletenessTests.TestBase.call(this, name, desc, params);
         this.m_ctx = ctx;
@@ -270,7 +292,7 @@ goog.scope(function() {
             }(this.m_params.textureKind)
         );
 
-        texCfg.internalFormat = this.getDefaultFormat(target, gl.TEXTURE);
+        texCfg.internalFormat = this.getDefaultFormat(target, gl.TEXTURE, gl);
         texCfg.width = 64;
         texCfg.height = 64;
         texCfg.numLayers = this.m_params.numLayers;
@@ -296,6 +318,17 @@ goog.scope(function() {
         TEXTURE: -1
     };
     
+    /**
+    * @typedef {{numSamples: Array<number>}}
+    */
+    es3fFboCompletenessTests.numSamplesParamsT;
+    
+    /**
+    * @param {number} colour
+    * @param {number} depth
+    * @param {number} stencil
+    * @return {es3fFboCompletenessTests.numSamplesParamsT}
+    */
     es3fFboCompletenessTests.numSamplesParams = function(colour,depth,stencil) {
         var ret = {
             numSamples: new Array(3)
@@ -313,10 +346,9 @@ goog.scope(function() {
     };
     
     /**
-     * es3fFboCompletenessTests.numSamplesParams.getName
-     * @return {string}
-    // takes const numSamplesParams&
-     */
+    * @param {es3fFboCompletenessTests.numSamplesParamsT} params
+    * @return {string}
+    */
     es3fFboCompletenessTests.numSamplesParams.getName = function(params) {
         var out = '';
         
@@ -335,8 +367,10 @@ goog.scope(function() {
         }
         return out;
     };
-    // returns a string.
-    // takes const numSamplesParams&
+    /**
+    * @param {es3fFboCompletenessTests.numSamplesParamsT} params
+    * @return {string}
+    */
     es3fFboCompletenessTests.numSamplesParams.getDescription = function(params) {
         var out = '';
         var names = ['color', 'depth', 'stencil'];
@@ -357,6 +391,14 @@ goog.scope(function() {
         return out;
     };
     
+    /**
+    * @constructor
+    * @extends {glsFboCompletenessTests.TestBase}
+    * @param {string} name
+    * @param {string} desc
+    * @param {glsFboCompletenessTests.Context} ctx
+    * @param {es3fFboCompletenessTests.numSamplesParamsT} params
+    */
     es3fFboCompletenessTests.NumSamplesTest = function(name, desc, ctx, params) {
         glsFboCompletenessTests.TestBase.call(this, name, desc, params);
         this.m_ctx = ctx;
@@ -417,7 +459,7 @@ goog.scope(function() {
     
         //(testCtx, renderCtx, factory) {
         var fboCtx = new glsFboCompletenessTests.Context(null, gl, function() {
-            return new es3fFboCompletenessTests.ES3Checker()
+            return new es3fFboCompletenessTests.ES3Checker();
         });
     
         /** @const @type {tcuTestCase.DeqpTest} */
