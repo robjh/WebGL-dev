@@ -46,6 +46,12 @@ targets = {
 	'matrixUtil': 'framework.common.tcuMatrixUtil',
     'sglrReferenceContextTest': 'framework.opengl.simplereference.sglrReferenceContextTest'
 }
+
+total_errors = 0
+total_warnings = 0
+
+results = dict()
+
 def dep_filename(target):
     return target + '.dep'
 
@@ -58,9 +64,7 @@ def write_to_file(outfile, cmdLine, redirect_stderr):
         stderr = subprocess.STDOUT
 
     with open(outfile, "w") as out_file:
-            
             proc = subprocess.Popen(cmdLine, shell=True, stdout=subprocess.PIPE, stderr=stderr)
-            
             while proc.poll() is None:
                 line = proc.stdout.readline()
                 out_file.write(line)
@@ -74,11 +78,8 @@ def read_file(file_path):
         sys.exit(2)
 
     fo = open(file_path)
-
     lines = fo.read()
-
     fo.close()
-
     return lines
 
 def file_exists(file_path):
@@ -106,11 +107,6 @@ def buildDepsFile():
     proc = subprocess.Popen(cmdBuildDeps, shell=True, stdout=subprocess.PIPE, stderr=None)
     proc.wait()
 
-total_errors = 0
-total_warnings = 0
-
-results = dict()
-
 def build_target(target, namespace):
     global total_errors
     global total_warnings
@@ -136,8 +132,6 @@ def build_target(target, namespace):
         total_warnings += warnings
     results[target] = [errors, warnings]
 
-
-
 def build_all_targets():
     for target in targets.keys():
         build_target(target, targets[target])
@@ -162,15 +156,20 @@ def pass_or_fail():
     if total_errors + total_warnings == 0:
         print "Passed"
     elif len(results) > 1: #display the summary only when building more than one target
-        for target in results:
-            errors = results[target][0]
-            warnings = results[target][1]
-            if errors + warnings == 0:
-                print target + ':\tPassed'
-            else:
-                print target + ':\terrors: ' + str(errors) + '\twarnings: ' + str(warnings)
-        print "Compilation failed: " + str(total_errors) + ' error(s), ' + str(total_warnings) + ' warning(s)'  
+        passed = [k for k, v in results.iteritems() if v[0] + v[1] == 0]
+        failed = dict((k, v) for k, v in results.iteritems() if v[0] + v[1] != 0)
+        print "\nBuild Summary:"
+        # Print first the tests that passed
+        for target in passed:
+            print "{0:>30}\tPassed".format(target+":")
 
+        # Print tests that failed. Fixed-width to improve readability
+        for target in failed:
+            errors = failed[target][0]
+            warnings = failed[target][1]
+            print "{0:>30}\tErrors: {1:4}\tWarnings: {2:4}".format(target+":", errors, warnings)
+        print "Compilation failed: {} error(s), {} warning(s).".format(total_errors, total_warnings)
+   
 def main(argv):
     if len(argv) == 0:
         build_all_deps()
@@ -198,6 +197,10 @@ def main(argv):
         pass_or_fail()
     elif (argv[0] == 'depfile'):
         buildDepsFile()
+    elif (argv[0] == 'list'):
+        print "List of available targets:"
+        for target in targets.keys():
+            print "\t{}".format(target)
     else:
         target = argv[0]
         build_deps(target, targets[target])

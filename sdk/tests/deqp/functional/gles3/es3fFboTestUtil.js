@@ -169,7 +169,7 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
      */
     es3fFboTestUtil.FlatColorShader.prototype.shadeFragments = function(packet, context) {
         var numPackets = packet.length;
-        /** @const {Array<number>} */ var color = this.m_uniforms[0].value;
+        /** @const {Array<number>} */ var color = deMath.clampVector(this.m_uniforms[0].value, 0, 1);
         /** @const {Array<number>} */ var icolor = es3fFboTestUtil.castVectorSaturate(color, tcuTexture.deTypes.deInt32);
         /** @const {Array<number>} */ var uicolor = es3fFboTestUtil.castVectorSaturate(color, tcuTexture.deTypes.deUint32);
 
@@ -276,7 +276,7 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
             /** @const {number} */ var f1 = 0.5 + (x - y) * 0.5;
             /** @const {Array<number>} */ var fv = [f0, f1, 1.0 - f0, 1.0 - f1];
 
-            /** @const {Array<number>} */ var color = deMath.add(gradientMin, deMath.multiply(deMath.subtract(gradientMax, gradientMin), fv));
+            /** @const {Array<number>} */ var color = deMath.clampVector(deMath.add(gradientMin, deMath.multiply(deMath.subtract(gradientMax, gradientMin), fv)), 0, 1);
             /** @const {Array<number>} */ var icolor = es3fFboTestUtil.castVectorSaturate(color, tcuTexture.deTypes.deInt32);
             /** @const {Array<number>} */ var uicolor = es3fFboTestUtil.castVectorSaturate(color, tcuTexture.deTypes.deUint32);
 
@@ -504,7 +504,7 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
             }
 
             // write out
-            /** @const {Array<number>} */ var color = deMath.add(deMath.multiply(colors, outScale), outBias);
+            /** @const {Array<number>} */ var color = deMath.clampVector(deMath.add(deMath.multiply(colors, outScale), outBias), 0, 1);
             /** @const {Array<number>} */ var icolor = es3fFboTestUtil.castVectorSaturate(color, tcuTexture.deTypes.deInt32);
             /** @const {Array<number>} */ var uicolor = es3fFboTestUtil.castVectorSaturate(color, tcuTexture.deTypes.deUint32);
 
@@ -652,7 +652,7 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
 
             colors = tex.sample(texCoords);
 
-            var color = deMath.add(deMath.multiply(colors, texScale), texBias);
+            var color = deMath.clampVector(deMath.add(deMath.multiply(colors, texScale), texBias), 0, 1);
             var icolor = es3fFboTestUtil.castVectorSaturate(color, tcuTexture.deTypes.deInt32);
             var uicolor = es3fFboTestUtil.castVectorSaturate(color, tcuTexture.deTypes.deUint32);
 
@@ -777,7 +777,7 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
 
             colors = tex.sample(texCoords);
 
-            /** @const {Array<number>} */ var color = deMath.add(deMath.multiply(colors, texScale), texBias);
+            /** @const {Array<number>} */ var color = deMath.clampVector(deMath.add(deMath.multiply(colors, texScale), texBias), 0, 1);
             /** @const {Array<number>} */ var icolor = es3fFboTestUtil.castVectorSaturate(color, tcuTexture.deTypes.deInt32);
             /** @const {Array<number>} */ var uicolor = es3fFboTestUtil.castVectorSaturate(color, tcuTexture.deTypes.deUint32);
 
@@ -903,7 +903,7 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
 
             colors = tex.sample(texCoords);
 
-            /** @const {Array<number>} */ var color = deMath.add(deMath.multiply(colors, texScale), texBias);
+            /** @const {Array<number>} */ var color = deMath.clampVector(deMath.add(deMath.multiply(colors, texScale), texBias), 0, 1);
             /** @const {Array<number>} */ var icolor = es3fFboTestUtil.castVectorSaturate(color, tcuTexture.deTypes.deInt32);
             /** @const {Array<number>} */ var uicolor = es3fFboTestUtil.castVectorSaturate(color, tcuTexture.deTypes.deUint32);
 
@@ -1003,7 +1003,7 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
         var numPackets = packet.length;
         /** @const {number} */ var gradientMin = this.u_minGradient.value[0];
         /** @const {number} */ var gradientMax = this.u_maxGradient.value[0];
-        /** @type {Array<number>} */ var color = this.u_color.value;
+        /** @type {Array<number>} */ var color = deMath.clampVector(this.u_color.value, 1);
         /** @type {Array<number>} */ var icolor = es3fFboTestUtil.castVectorSaturate(color, tcuTexture.deTypes.deInt32);
         /** @type {Array<number>} */ var uicolor = es3fFboTestUtil.castVectorSaturate(color, tcuTexture.deTypes.deUint32);
 
