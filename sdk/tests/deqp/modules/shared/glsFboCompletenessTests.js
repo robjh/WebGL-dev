@@ -390,6 +390,12 @@ goog.scope(function() {
 
     
     // TestContext& testCtx, RenderContext& renderCtx, CheckerFactory& factory
+    /**
+    * @constructor
+    * @param {null} testCtx
+    * @param {WebGLRenderingContextBase} renderCtx
+    * @param {glsFboUtil.CheckerFactory} factory
+    */
     glsFboCompletenessTests.Context = function(testCtx, renderCtx, factory) {
 
         this.m_testCtx    = testCtx;
@@ -488,8 +494,8 @@ goog.scope(function() {
         var texFmts = this.m_maxFormats.getFormats(glsFboUtil.FormatFlags.ANY_FORMAT);
         
         for (var i = 0, l_attPoints = attPoints.length ; i < l_attPoints ; ++i ) {
-            var rbAttTests  = new tcuTestCase.newTest(attPoints[i][1], attPoints[i][2]);
-            var texAttTests = new tcuTestCase.newTest(attPoints[i][1], attPoints[i][2]);
+            var rbAttTests  = tcuTestCase.newTest(attPoints[i][1], attPoints[i][2]);
+            var texAttTests = tcuTestCase.newTest(attPoints[i][1], attPoints[i][2]);
 
             for (var j = 0, l_rboFmts = rboFmts.length ; j < l_rboFmts ; ++j) {
                 var params = glsFboCompletenessTests.renderableParams(
@@ -567,19 +573,31 @@ goog.scope(function() {
     
     
     
-    
+    /**
+    * @constructor
+    * @extends {tcuTestCase.DeqpTest}
+    * @param {string} name
+    * @param {string} desc
+    * @param {Object} params
+    */
     glsFboCompletenessTests.TestBase = function(name, desc, params) {
         tcuTestCase.DeqpTest.call(this, name, desc);
         this.m_params = params;
-
-        this.getContext = this.getState;
-
     //  console.log('glsFboCompletenessTests.TestBase Constructor');
     };
     glsFboCompletenessTests.TestBase.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
     glsFboCompletenessTests.TestBase.prototype.constructor = glsFboCompletenessTests.TestBase;
 
+    glsFboCompletenessTests.TestBase.prototype.getContext = function() {
+        return tcuTestCase.runner;
+    }
+
     // GLenum attPoint, GLenum bufType
+    /**
+    * @param {number} attPoint
+    * @param {number} bufType
+    * @param {WebGLRenderingContextBase=} gl
+    */
     glsFboCompletenessTests.TestBase.prototype.getDefaultFormat = function(attPoint, bufType, gl) {
         gl = gl || window.gl;
         
@@ -606,19 +624,28 @@ goog.scope(function() {
         
     };
     
-    // GLenum bufType, ImageFormat format, GLsizei width, GLsizei height, FboBuilder& builder
+    
+    /**
+    * @param {number} bufType
+    * @param {glsFboUtil.ImageFormat} format
+    * @param {number} width
+    * @param {number} height
+    * @param {glsFboUtil.FboBuilder} builder
+    * @param {WebGLRenderingContextBase=} gl
+    * @return {glsFboUtil.Image}
+    */
     glsFboCompletenessTests.makeImage = function(bufType, format, width, height, builder, gl) {
-        var gl = gl || window.gl;
+        gl = gl || window.gl;
         var image = 0;
         switch (bufType) {
             case gl.NONE:
                 return null;
                 break;
             case gl.RENDERBUFFER:
-                image = builder.makeConfig(glsFboUtil.Renderbuffer);
+                image = /** @type {glsFboUtil.Renderbuffer}*/(builder.makeConfig(glsFboUtil.Renderbuffer));
                 break;
             case gl.TEXTURE:
-                image = builder.makeConfig(glsFboUtil.Texture2D);
+                image = /** @type {glsFboUtil.Texture2D}*/(builder.makeConfig(glsFboUtil.Texture2D));
                 break;
             default:
                 throw new Error('Impossible case');
@@ -628,25 +655,34 @@ goog.scope(function() {
         image.height = height;
         return image;
     };
-    // GLenum bufType, ImageFormat format, GLsizei width, GLsizei height, FboBuilder& builder
+    
+    /**
+    * @param {number} bufType
+    * @param {glsFboUtil.ImageFormat} format
+    * @param {number} width
+    * @param {number} height
+    * @param {glsFboUtil.FboBuilder} builder
+    * @param {WebGLRenderingContextBase=} gl
+    * @return {glsFboUtil.Attachment}
+    */
     glsFboCompletenessTests.makeAttachment = function(bufType, format, width, height, builder, gl) {
-        var gl = gl || window.gl;
+        gl = gl || window.gl;
         var cfg = glsFboCompletenessTests.makeImage(bufType, format, width, height, builder, gl);
         if (cfg == null) return null;
         
-        var att = 0;
+        /** @type {glsFboUtil.Attachment} */ var att = null;
         var img = 0;
         
         var mask = glsFboUtil.Config.s_types.RENDERBUFFER | glsFboUtil.Config.s_types.TEXTURE_2D;
         
         switch (cfg.type & mask) {
             case glsFboUtil.Config.s_types.RENDERBUFFER:
-                img = builder.glCreateRbo(cfg);
-                att = builder.makeConfig(glsFboUtil.RenderbufferAttachment);
+                img = builder.glCreateRbo(/** @type {glsFboUtil.Renderbuffer} */(cfg));
+                att = /** @type {glsFboUtil.RenderbufferAttachment} */ (builder.makeConfig(glsFboUtil.RenderbufferAttachment));
                 break;
             case glsFboUtil.Config.s_types.TEXTURE_2D:
-                img = builder.glCreateTexture(cfg);
-                att = builder.makeConfig(glsFboUtil.TextureFlatAttachment);
+                img = builder.glCreateTexture(/** @type {glsFboUtil.Texture2D} */(cfg));
+                att = /** @type {glsFboUtil.TextureFlatAttachment} */ (builder.makeConfig(glsFboUtil.TextureFlatAttachment));
                 att.texTarget = gl.TEXTURE_2D;
                 break;
             default:
@@ -668,7 +704,11 @@ goog.scope(function() {
     };
     
     
-  
+    /**
+    * @param {number} status
+    * @param {WebGLRenderingContextBase=} gl
+    * @return {string}
+    */
     glsFboCompletenessTests.statusName = function(status, gl) {
         gl = gl || window.gl;
         
@@ -710,16 +750,16 @@ goog.scope(function() {
         if (it < statuses.length) {
             msg += 'one of ';
             while (it < statuses.length) {
-                msg += glsFboCompletenessTests.statusName(err);
+                msg += glsFboCompletenessTests.statusName(err, gl);
                 err = statuses[it++];
                 msg += (it == statuses.length ? ' or ' : ', ');
             }
         }
-        msg += glsFboCompletenessTests.statusName(err) + '.';
+        msg += glsFboCompletenessTests.statusName(err, gl) + '.';
         bufferedLogToConsole(msg);
         
         bufferedLogToConsole(
-            'Received ' + glsFboCompletenessTests.statusName(glStatus) + '.'
+            'Received ' + glsFboCompletenessTests.statusName(glStatus, gl) + '.'
         );
         
         if (!glsFboUtil.contains(statuses, glStatus)) {
@@ -741,10 +781,11 @@ goog.scope(function() {
             
         } else {
             // pass
-            return false;
+ //           return true;
            
         }
-        return ret;
+    //    return ret;
+        return tcuTestCase.IterateResult.STOP; // ?
     };
     
     
@@ -752,25 +793,37 @@ goog.scope(function() {
     glsFboCompletenessTests.formatName = function (format, gl) {
         if (!(gl = gl || window.gl)) throw new Error ('Invalid GL object');
         
-        var s = gluStrUtil.getPixelFormatName(format.format, gl).substr(3).toLowerCase();
+        var s = gluStrUtil.getPixelFormatName(format.format).substr(3).toLowerCase();
         
         if (format.unsizedType != gl.NONE)
-            s += '_' + gluStrUtil.getTypeName(format.unsizedType, gl).substr(3).toLowerCase();
+            s += '_' + gluStrUtil.getTypeName(format.unsizedType).substr(3).toLowerCase();
         
         return s;
     };
     glsFboCompletenessTests.formatDesc = function (format, gl) {
         if (!(gl = gl || window.gl)) throw new Error ('Invalid GL object');
         
-        var s = gluStrUtil.getPixelFormatName(format.format, gl);
+        var s = gluStrUtil.getPixelFormatName(format.format);
         
         if (format.unsizedType != gl.NONE)
-            s += ' with type ' + gluStrUtil.getTypeName(format.unsizedType, gl);
+            s += ' with type ' + gluStrUtil.getTypeName(format.unsizedType);
         
         return s;
     };
     
     
+    
+    /**
+    * @typedef {{attPoint: number, bufType: number, format: number}}
+    */
+    glsFboCompletenessTests.renderableParamsT;
+    
+    /**
+    * @param {number} attPoint
+    * @param {number} bufType
+    * @param {number} format
+    * @return {glsFboCompletenessTests.renderableParamsT}
+    */
     glsFboCompletenessTests.renderableParams = function(attPoint,bufType,format) {
         var ret = {
             attPoint: attPoint,
@@ -780,19 +833,30 @@ goog.scope(function() {
         return ret;
     };
     /**
-     * glsFboCompletenessTests.numSamplesParams.getName
-     * @return {string}
-    // takes const numSamplesParams&
-     */
-    glsFboCompletenessTests.renderableParams.getName = function(params) {
-        return glsFboCompletenessTests.formatName(params.format);
+    * @param {glsFboCompletenessTests.renderableParamsT} params
+    * @param {WebGLRenderingContextBase=} gl
+    * @return {string}
+    */
+    glsFboCompletenessTests.renderableParams.getName = function(params, gl) {
+        return glsFboCompletenessTests.formatName(params.format, gl);
     };
-    // returns a string.
-    // takes const numSamplesParams&
-    glsFboCompletenessTests.renderableParams.getDescription = function(params) {
-        return glsFboCompletenessTests.formatDesc(params.format);
+    /**
+    * @param {glsFboCompletenessTests.renderableParamsT} params
+    * @param {WebGLRenderingContextBase=} gl
+    * @return {string}
+    */
+    glsFboCompletenessTests.renderableParams.getDescription = function(params, gl) {
+        return glsFboCompletenessTests.formatDesc(params.format, gl);
     };
     
+    /**
+    * @constructor
+    * @extends {glsFboCompletenessTests.TestBase}
+    * @param {string} name
+    * @param {string} desc
+    * @param {glsFboCompletenessTests.Context} ctx
+    * @param {glsFboCompletenessTests.renderableParamsT} params
+    */
     glsFboCompletenessTests.RenderableTest = function(name, desc, ctx, params) {
         glsFboCompletenessTests.TestBase.call(this, name, desc, params);
         this.m_ctx = ctx;
@@ -816,6 +880,19 @@ goog.scope(function() {
         }
         throw new Error('Impossible case');
     };
+    
+    /**
+    * @typedef {{color0Kind: number, colornKind: number, depthKind: number, stencilKind: number}}
+    */
+    glsFboCompletenessTests.attachmentParamsT;
+    
+    /**
+    * @param {number} color0Kind
+    * @param {number} colornKind
+    * @param {number} depthKind
+    * @param {number} stencilKind
+    * @return {glsFboCompletenessTests.attachmentParamsT}
+    */
     glsFboCompletenessTests.attachmentParams = function(color0Kind, colornKind, depthKind, stencilKind) {
         var ret = {
             color0Kind:  color0Kind,
@@ -825,14 +902,31 @@ goog.scope(function() {
         };
         return ret;
     };
-    glsFboCompletenessTests.attachmentParams.getName = function(params) {
-        return (glsFboCompletenessTests.attTypeName(params.color0Kind) + '_' +
-                glsFboCompletenessTests.attTypeName(params.colornKind) + '_' +
-                glsFboCompletenessTests.attTypeName(params.depthKind) + '_' +
-                glsFboCompletenessTests.attTypeName(params.stencilKind));
+    /**
+    * @param {glsFboCompletenessTests.attachmentParamsT} params
+    * @param {WebGLRenderingContextBase=} gl
+    * @return {string}
+    */
+    glsFboCompletenessTests.attachmentParams.getName = function(params, gl) {
+        return (glsFboCompletenessTests.attTypeName(params.color0Kind, gl) + '_' +
+                glsFboCompletenessTests.attTypeName(params.colornKind, gl) + '_' +
+                glsFboCompletenessTests.attTypeName(params.depthKind, gl) + '_' +
+                glsFboCompletenessTests.attTypeName(params.stencilKind, gl));
     };
+    /**
+    * @param {glsFboCompletenessTests.attachmentParamsT} params
+    * @return {string}
+    */
     glsFboCompletenessTests.attachmentParams.getDescription = glsFboCompletenessTests.attachmentParams.getName;
     
+    /**
+    * @constructor
+    * @extends {glsFboCompletenessTests.TestBase}
+    * @param {string} name
+    * @param {string} desc
+    * @param {glsFboCompletenessTests.Context} ctx
+    * @param {glsFboCompletenessTests.attachmentParamsT} params
+    */
     glsFboCompletenessTests.AttachmentTest = function(name, desc, ctx, params) {
         glsFboCompletenessTests.TestBase.call(this, name, desc, params);
         this.m_ctx = ctx;
@@ -841,6 +935,9 @@ goog.scope(function() {
     glsFboCompletenessTests.AttachmentTest.prototype.constructor = glsFboCompletenessTests.AttachmentTest;
     
     glsFboCompletenessTests.AttachmentTest.prototype.makeDepthAndStencil = function(builder, gl) {
+        
+        /** @type {glsFboUtil.Attachment} */
+        var att = null;
         
         if (this.m_params.stencilKind == this.m_params.depthKind) {
             // If there is a common stencil+depth -format, try to use a common
@@ -887,6 +984,14 @@ goog.scope(function() {
         return true;
     };
     
+    
+    /**
+    * @constructor
+    * @extends {glsFboCompletenessTests.TestBase}
+    * @param {string} name
+    * @param {string} desc
+    * @param {glsFboCompletenessTests.Context} ctx
+    */
     glsFboCompletenessTests.EmptyImageTest = function(name, desc, ctx) {
         glsFboCompletenessTests.TestBase.call(this, name, desc, null);
         this.m_ctx = ctx;
@@ -900,6 +1005,13 @@ goog.scope(function() {
         return true;
     };
     
+    /**
+    * @constructor
+    * @extends {glsFboCompletenessTests.TestBase}
+    * @param {string} name
+    * @param {string} desc
+    * @param {glsFboCompletenessTests.Context} ctx
+    */
     glsFboCompletenessTests.DistinctSizeTest = function(name, desc, ctx) {
         glsFboCompletenessTests.TestBase.call(this, name, desc, null);
         this.m_ctx = ctx;
