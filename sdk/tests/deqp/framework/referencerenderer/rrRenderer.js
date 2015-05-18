@@ -543,16 +543,16 @@ rrRenderer.drawQuads = function(state, renderTarget, program, vertexAttribs, fir
 
         // Generate two rrRenderer.triangles [v0, v1, v2] and [v2, v1, v3]
         var shadingContextTopLeft = new rrShadingContext.FragmentShadingContext(
-            quadPackets[topLeftVertexNdx].outputs,
             quadPackets[bottomLeftVertexNdx].outputs,
-            quadPackets[topRightVertexNdx].outputs
+            quadPackets[topLeftVertexNdx].outputs,
+            quadPackets[bottomRightVertexNdx].outputs
         );
         var packetsTopLeft = [];
 
         var shadingContextBottomRight = new rrShadingContext.FragmentShadingContext(
-            quadPackets[topRightVertexNdx].outputs,
-            quadPackets[bottomLeftVertexNdx].outputs,
-            quadPackets[bottomRightVertexNdx].outputs
+            quadPackets[bottomRightVertexNdx].outputs,
+            quadPackets[topLeftVertexNdx].outputs,
+            quadPackets[topRightVertexNdx].outputs
         );
         var packetsBottomRight = [];
 
@@ -566,10 +566,10 @@ rrRenderer.drawQuads = function(state, renderTarget, program, vertexAttribs, fir
                 var depth = rrRenderer.calculateDepth(xf, yf, [v0[2], v1[2], v2[2], v3[2]]);
                 var triNdx = xf + yf >= 1;
                 if (!triNdx) {
-                    var b = rrRenderer.getBarycentricCoefficients([x, y], v0, v1, v2);
+                    var b = rrRenderer.getBarycentricCoefficients([x, y], v0, v1, v3);
                     packetsTopLeft.push(new rrFragmentOperations.Fragment(b, [v0[0] + i, v1[1] + j], depth));
                 } else {
-                    var b = rrRenderer.getBarycentricCoefficients([x, y], v2, v1, v3);
+                    var b = rrRenderer.getBarycentricCoefficients([x, y], v0, v3, v2);
                     packetsBottomRight.push(new rrFragmentOperations.Fragment(b, [v0[0] + i, v1[1] + j], depth));
                 }
             }
