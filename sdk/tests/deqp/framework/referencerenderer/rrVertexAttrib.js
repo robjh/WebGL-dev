@@ -263,11 +263,8 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
     rrVertexAttrib.readHalf = function(dst, size, ptr) {
         var arraysize16 = 2; //2 bytes
 
-        //Reinterpret ptr as a uint16 array,
-        //assuming original ptr is 8-bits per element.
-        var aligned = new Uint16Array(ptr.buffer).subarray(
-            ptr.byteOffset / arraysize16,
-            (ptr.byteOffset + ptr.byteLength) / arraysize16);
+        var ptrclone = new Uint8Array(ptr.subarray(0, size * arraysize16)); //Small buffer copy (max. 8 bytes)
+        var aligned = new Uint16Array(ptrclone.buffer);
 
         //Reinterpret aligned's values into the dst vector.
         dst[0] = tcuFloat.newFloat32From16(aligned[0]).getValue();
@@ -358,12 +355,8 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
     rrVertexAttrib.readUint2101010Rev = function(dst, size, ptr) {
         var arraysize32 = 4; //4 bytes
 
-        //Reinterpret aligned as an value of 4 bytes
-        //but with ptr's buffer, assuming ptr is an 8-bit element array,
-        //and convert to 32-bit uint value.
-        var aligned = new Uint32Array(ptr.buffer).subarray(
-            ptr.byteOffset / arraysize32,
-            (ptr.byteOffset + ptr.byteLength) / arraysize32)[0];
+        var ptrclone = new Uint8Array(ptr.subarray(0, size * arraysize32)); //Small buffer copy (max. 16 bytes)
+        var aligned = new Uint32Array(ptrclone.buffer)[0];
 
         dst[0] = deMath.binaryOp(deMath.shiftRight(aligned,  0), deMath.shiftLeft(1, 10) - 1, deMath.BinaryOp.AND);
         if (size >= 2) dst[1] = deMath.binaryOp(deMath.shiftRight(aligned,  10), deMath.shiftLeft(1, 10) - 1, deMath.BinaryOp.AND);
@@ -380,12 +373,8 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
     rrVertexAttrib.readInt2101010Rev = function(dst, size, ptr) {
         var arraysize32 = 4; //4 bytes
 
-        //Reinterpret aligned as a value of 4 bytes
-        //but with ptr's buffer, assuming ptr is an 8-bit element array,
-        //and convert to 32-bit uint value.
-        var aligned = new Uint32Array(ptr.buffer).subarray(
-            ptr.byteOffset / arraysize32,
-            (ptr.byteOffset + ptr.byteLength) / arraysize32)[0];
+        var ptrclone = new Uint8Array(ptr.subarray(0, size * arraysize32)); //Small buffer copy (max. 16 bytes)
+        var aligned = new Uint32Array(ptrclone.buffer)[0];
 
         dst[0] = rrVertexAttrib.extendSign(10, deMath.binaryOp(deMath.shiftRight(aligned,  0), deMath.shiftLeft(1, 10) - 1, deMath.BinaryOp.AND));
         if (size >= 2) dst[1] = rrVertexAttrib.extendSign(10, deMath.binaryOp(deMath.shiftRight(aligned,  10), deMath.shiftLeft(1, 10) - 1, deMath.BinaryOp.AND));
@@ -407,12 +396,8 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
         var range10 = new Uint32Array([deMath.shiftLeft(1, 10) - 1])[0];
         var range2 = new Uint32Array([deMath.shiftLeft(1, 2) - 1])[0];
 
-        //Reinterpret aligned as an value of 4 bytes
-        //but with ptr's buffer, assuming ptr is an 8-bit element array,
-        //and convert to 32-bit uint value.
-        var aligned = new Uint32Array(ptr.buffer).subarray(
-            ptr.byteOffset / arraysize32,
-            (ptr.byteOffset + ptr.byteLength) / arraysize32)[0];
+        var ptrclone = new Uint8Array(ptr.subarray(0, size * arraysize32)); //Small buffer copy (max. 16 bytes)
+        var aligned = new Uint32Array(ptrclone.buffer)[0];
 
         dst[order.T0] = deMath.binaryOp(deMath.shiftRight(aligned,  0), deMath.shiftLeft(1, 10) - 1, deMath.BinaryOp.AND) / range10;
         if (size >= 2) dst[order.T1] = deMath.binaryOp(deMath.shiftRight(aligned,  10), deMath.shiftLeft(1, 10) - 1, deMath.BinaryOp.AND) / range10;
@@ -434,12 +419,8 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
         var range10 = new Uint32Array([deMath.shiftLeft(1, 10 - 1) - 1])[0];
         var range2 = new Uint32Array([deMath.shiftLeft(1, 2 - 1) - 1])[0];
 
-        //Reinterpret aligned as an value of 4 bytes
-        //but with ptr's buffer, assuming ptr is an 8-bit element array,
-        //and convert to 32-bit uint value.
-        var aligned = new Uint32Array(ptr.buffer).subarray(
-            ptr.byteOffset / arraysize32,
-            (ptr.byteOffset + ptr.byteLength) / arraysize32)[0];
+        var ptrclone = new Uint8Array(ptr.subarray(0, size * arraysize32)); //Small buffer copy (max. 16 bytes)
+        var aligned = new Uint32Array(ptrclone.buffer)[0];
 
         dst[order.T0] = Math.max(-1.0, new Float32Array([rrVertexAttrib.extendSign(10, deMath.binaryOp(deMath.shiftRight(aligned, 0), deMath.shiftLeft(1, 10) - 1, deMath.BinaryOp.AND))])[0] / range10);
         if (size >= 2) dst[order.T1] = Math.max(-1.0, new Float32Array([rrVertexAttrib.extendSign(10, deMath.binaryOp(deMath.shiftRight(aligned, 10), deMath.shiftLeft(1, 10) - 1, deMath.BinaryOp.AND))])[0] / range10);
@@ -461,12 +442,8 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
         var range10 = new Uint32Array([deMath.shiftLeft(1, 10) - 1])[0];
         var range2 = new Uint32Array([deMath.shiftLeft(1, 2) - 1])[0];
 
-        //Reinterpret aligned as an value of 4 bytes
-        //but with ptr's buffer, assuming ptr is an 8-bit element array,
-        //and convert to 32-bit uint value.
-        var aligned = new Uint32Array(ptr.buffer).subarray(
-            ptr.byteOffset / arraysize32,
-            (ptr.byteOffset + ptr.byteLength) / arraysize32)[0];
+        var ptrclone = new Uint8Array(ptr.subarray(0, size * arraysize32)); //Small buffer copy (max. 16 bytes)
+        var aligned = new Uint32Array(ptrclone.buffer)[0];
 
         dst[order.T0] = new Float32Array([rrVertexAttrib.extendSign(10, deMath.binaryOp(deMath.shiftRight(aligned, 0), deMath.shiftLeft(1, 10) - 1, deMath.BinaryOp.AND)) * 2.0 + 1.0])[0] / range10;
         if (size >= 2) dst[order.T1] = new Float32Array([rrVertexAttrib.extendSign(10, deMath.binaryOp(deMath.shiftRight(aligned, 10), deMath.shiftLeft(1, 10) - 1, deMath.BinaryOp.AND)) * 2.0 + 1.0])[0] / range10;
@@ -488,12 +465,8 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
         //Left shift within 32-bit range as 32-bit float.
         var range = new Float32Array([deMath.shiftLeft(1, arrayelementsize * 8) - 1])[0];
 
-        //Reinterpret aligned as an array the same type of readAsTypeArray
-        //but with ptr's buffer, assuming ptr is an 8-bit element array,
-        //and convert to 32-bit float values.
-        var aligned = new Float32Array(new readAsTypeArray(ptr.buffer).subarray(
-            ptr.byteOffset / arrayelementsize,
-            (ptr.byteOffset + ptr.byteLength) / arrayelementsize));
+        var ptrclone = new Uint8Array(ptr.subarray(0, size * arrayelementsize)); //Small buffer copy (max. 16 bytes)
+        var aligned = new readAsTypeArray(ptrclone.buffer);
 
         //Reinterpret aligned's values into the dst vector.
         dst[order.T0] = aligned[0] / range;
@@ -517,12 +490,8 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
         //Left shift within 32-bit range as 32-bit float.
         var range = new Float32Array([deMath.shiftLeft(1, arrayelementsize * 8 - 1) - 1])[0];
 
-        //Reinterpret aligned as an array the same type of readAsTypeArray
-        //but with ptr's buffer, assuming ptr is an 8-bit element array,
-        //and convert to 32-bit float values.
-        var aligned = new Float32Array(new readAsTypeArray(ptr.buffer).subarray(
-            ptr.byteOffset / arrayelementsize,
-            (ptr.byteOffset + ptr.byteLength) / arrayelementsize));
+        var ptrclone = new Uint8Array(ptr.subarray(0, size * arrayelementsize)); //Small buffer copy (max. 16 bytes)
+        var aligned = new readAsTypeArray(ptrclone.buffer);
 
         //Reinterpret aligned's values into the dst vector.
         dst[0] = Math.max(-1, aligned[0] / range);
@@ -542,11 +511,8 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
     rrVertexAttrib.readOrder = function(dst, size, ptr, order, readAsTypeArray) {
         var arrayelementsize = readAsTypeArray.BYTES_PER_ELEMENT;
 
-        //Reinterpret aligned as an array the same type of readAsTypeArray
-        //but with ptr's buffer, assuming ptr is an 8-bit element array.
-        var aligned = new readAsTypeArray(ptr.buffer).subarray(
-            ptr.byteOffset / arrayelementsize,
-            (ptr.byteOffset + ptr.byteLength) / arrayelementsize);
+        var ptrclone = new Uint8Array(ptr.subarray(0, size * arrayelementsize)); //Small buffer copy (max. 16 bytes)
+        var aligned = new readAsTypeArray(ptrclone.buffer);
 
         //Reinterpret aligned's values into the dst vector.
         //(automatic in JS typed arrays).

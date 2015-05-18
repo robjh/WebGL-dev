@@ -1099,7 +1099,7 @@ goog.scope(function() {
                 glsVertexArrayTests.GLValue.getMaxValue(inputTypes[inputTypeNdx])
             );
 
-            var _spec = spec;
+            var _spec = deUtil.clone(spec);
             _spec.arrays.push(arraySpec);
             this.addInputTypeCases(_spec, depth - 1);
         }
