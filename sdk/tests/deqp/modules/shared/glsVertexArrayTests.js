@@ -2142,10 +2142,9 @@ goog.scope(function() {
         /** @type {number}*/ var renderTargetHeight = Math.min(512, canvas.height);
         /** @type {sglrReferenceContext.ReferenceContextLimits} */ var limits = new sglrReferenceContext.ReferenceContextLimits(gl);
 
-        //this.m_glesContext = new sglrGLContext.GLContext(gl);
+        this.m_glesContext = new sglrGLContext.GLContext(gl);
         this.m_refBuffers = new sglrReferenceContext.ReferenceContextBuffers(this.m_pixelformat, 0, 0, renderTargetWidth, renderTargetHeight);
         this.m_refContext = new sglrReferenceContext.ReferenceContext(limits, this.m_refBuffers.getColorbuffer(), this.m_refBuffers.getDepthbuffer(), this.m_refBuffers.getStencilbuffer());
-        this.m_glesContext = this.m_refContext;
 
         this.m_glArrayPack = new glsVertexArrayTests.ContextArrayPack(this.m_glesContext);
         this.m_rrArrayPack = new glsVertexArrayTests.ContextArrayPack(this.m_refContext);
@@ -2158,7 +2157,7 @@ goog.scope(function() {
         /** @type {tcuSurface.Surface} */ var ref = this.m_rrArrayPack.getSurface();
         /** @type {tcuSurface.Surface} */ var screen = this.m_glArrayPack.getSurface();
 
-        if (/** @type {number} */ false /*(this.m_glesContext.getParameter(gl.SAMPLES)) > 1*/) {
+        if (/** @type {number} */ (this.m_glesContext.getParameter(gl.SAMPLES)) > 1) {
             // \todo [mika] Improve compare when using multisampling
             bufferedLogToConsole("Warning: Comparison of result from multisample render targets are not as strict as without multisampling. Might produce false positives!");
             this.m_isOk = tcuImageCompare.fuzzyCompare("Compare Results", "Compare Results", ref.getAccess(), screen.getAccess(), 1.5);
@@ -2239,7 +2238,7 @@ goog.scope(function() {
                 tcuImageCompare.displayImages(screen.getAccess(), ref.getAccess(), error.getAccess());
             } else {
                 //log << TestLog::ImageSet("Compare result", "Result of rendering")
-                tcuImageCompare.displayImages(screen.getAccess(), ref.getAccess(), null);
+                tcuImageCompare.displayImages(screen.getAccess(), null);
             }
         }
     };
