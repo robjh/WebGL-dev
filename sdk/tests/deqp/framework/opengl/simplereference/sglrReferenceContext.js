@@ -2443,7 +2443,6 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
                     var face = sglrReferenceContext.texTargetToFace(attachment.texTarget);
 
                     //TODO: Implement hasFace for cube maps
-                    /** @type {sglrReferenceContext.TextureContainer} */
                     if (texCube.hasFace(attachment.level, face))
                         level = texCube.getFace(attachment.level, face);
                 } else if (attachment.texTarget == sglrReferenceContext.TexTarget.TEXTARGET_2D_ARRAY) {
