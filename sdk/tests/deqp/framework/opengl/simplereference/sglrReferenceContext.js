@@ -2965,7 +2965,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     * @param {number} target
     * @param {number}  attachment
     * @param {number}  renderbuffertarget
-    * @param {number}  renderbuffer
+    * @param {sglrReferenceContext.Renderbuffer}  renderbuffer
     */
     sglrReferenceContext.ReferenceContext.prototype.framebufferRenderbuffer = function(target, attachment, renderbuffertarget, renderbuffer) {
         if (attachment == gl.DEPTH_STENCIL_ATTACHMENT) {
@@ -3010,7 +3010,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     * @param {number}  height
     */
     sglrReferenceContext.ReferenceContext.prototype.renderbufferStorage = function(target, internalformat, width, height) {
-        /** @type {txuTexture.TextureFormat} */ var format = gluTextureUtil.mapGLInternalFormat(internalformat);
+        /** @type {tcuTexture.TextureFormat} */ var format = gluTextureUtil.mapGLInternalFormat(internalformat);
 
         if (this.condtionalSetError(target != gl.RENDERBUFFER, gl.INVALID_ENUM))
             return;
@@ -3196,7 +3196,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
                 case gluShaderUtil.DataType.SAMPLER_2D:
                 case gluShaderUtil.DataType.UINT_SAMPLER_2D:
                 case gluShaderUtil.DataType.INT_SAMPLER_2D: {
-                    /** @type {sglrShaderProgram.Texture2D} */ var tex = null;
+                    /** @type {sglrReferenceContext.Texture2D} */ var tex;
 
                     if (texNdx >= 0 && texNdx < this.m_textureUnits.length)
                         tex = this.m_textureUnits[texNdx].tex2DBinding.texture;
@@ -3413,10 +3413,12 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         /** @type {number} */ var dY;
         /** @type {number} */ var sX;
         /** @type {number} */ var sY;
+        /** @type {tcuTexture.PixelBufferAccess|rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess} */ var src;
+        /** @type {tcuTexture.PixelBufferAccess|rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess} */ var dst;
 
         if (mask & gl.COLOR_BUFFER_BIT) {
-            /** @type {tcuTexture.PixelBufferAccess} */var src = tcuTextureUtil.getSubregion(this.getReadColorbuffer().toSinglesampleAccess(), srcRect[0], srcRect[1], 0, srcRect[2], srcRect[3], 1);
-            /** @type {tcuTexture.PixelBufferAccess} */var dst = tcuTextureUtil.getSubregion(this.getDrawColorbuffer().toSinglesampleAccess(), dstRect[0], dstRect[1], 0, dstRect[2], dstRect[3], 1);
+            src = tcuTextureUtil.getSubregion(this.getReadColorbuffer().toSinglesampleAccess(), srcRect[0], srcRect[1], 0, srcRect[2], srcRect[3], 1);
+            dst = tcuTextureUtil.getSubregion(this.getDrawColorbuffer().toSinglesampleAccess(), dstRect[0], dstRect[1], 0, dstRect[2], dstRect[3], 1);
             /** @type {tcuTextureUtil.TextureChannelClass} */ var dstClass = tcuTextureUtil.getTextureChannelClass(dst.getFormat().type);
             /** @type {boolean} */ var dstIsFloat = dstClass == tcuTextureUtil.TextureChannelClass.FLOATING_POINT ||
                                                         dstClass == tcuTextureUtil.TextureChannelClass.UNSIGNED_FIXED_POINT ||
@@ -3454,8 +3456,8 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         }
 
         if ((mask & gl.DEPTH_BUFFER_BIT) && this.m_depthMask) {
-            /** @type {rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess}*/ var src = this.getReadDepthbuffer().getSubregion(srcRect);
-            /** @type {rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess}*/ var dst = this.getDrawDepthbuffer().getSubregion(dstRect);
+            src = this.getReadDepthbuffer().getSubregion(srcRect);
+            dst = this.getDrawDepthbuffer().getSubregion(dstRect);
 
             for (var yo = 0; yo < dstRect[3]; yo++) {
                 for (var xo = 0; xo < dstRect[2]; xo++) {
@@ -3472,8 +3474,8 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         }
 
         if (mask & gl.STENCIL_BUFFER_BIT) {
-            /** @type {rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess}*/ var src = this.getReadStencilbuffer().getSubregion(srcRect);
-            /** @type {rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess}*/ var dst = this.getDrawStencilbuffer().getSubregion(dstRect);
+            src = this.getReadStencilbuffer().getSubregion(srcRect);
+            dst = this.getDrawStencilbuffer().getSubregion(dstRect);
 
             for (var yo = 0; yo < dstRect[3]; yo++) {
                 for (var xo = 0; xo < dstRect[2]; xo++) {
