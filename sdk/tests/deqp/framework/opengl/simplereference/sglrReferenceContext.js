@@ -31,6 +31,7 @@ goog.require('framework.opengl.gluTextureUtil');
 goog.require('framework.opengl.simplereference.sglrReferenceUtils');
 goog.require('framework.opengl.simplereference.sglrShaderProgram');
 goog.require('framework.referencerenderer.rrDefs');
+goog.require('framework.referencerenderer.rrGenericVector');
 goog.require('framework.referencerenderer.rrMultisamplePixelBufferAccess');
 goog.require('framework.referencerenderer.rrRenderState');
 goog.require('framework.referencerenderer.rrRenderer');
@@ -48,6 +49,7 @@ goog.scope(function() {
     var gluShaderUtil = framework.opengl.gluShaderUtil;
     var rrRenderer = framework.referencerenderer.rrRenderer;
     var rrDefs = framework.referencerenderer.rrDefs;
+    var rrGenericVector = framework.referencerenderer.rrGenericVector;
     var rrVertexAttrib = framework.referencerenderer.rrVertexAttrib;
     var rrRenderState = framework.referencerenderer.rrRenderState;
     var sglrReferenceUtils = framework.opengl.simplereference.sglrReferenceUtils;
@@ -119,18 +121,6 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
             default:
                 throw new Error('Unrecognized index type: ' + indexType);
             }
-    };
-
-    /* TODO: This belongs to refrast. Where to move it? */
-    /**
-    * @constructor
-    * @param {number=} a
-    * @param {number=} b
-    * @param {number=} c
-    * @param {number=} d
-    */
-    sglrReferenceContext.GenericVec4 = function(a, b, c, d) {
-        this.data = [a || 0, b || 0, c || 0, d || 0];
     };
 
     /**
@@ -1007,9 +997,9 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         /** @type {sglrReferenceContext.Framebuffer} */ this.m_drawFramebufferBinding = null;
         /** @type {sglrReferenceContext.Renderbuffer} */ this.m_renderbufferBinding = null;
         /** @type {sglrShaderProgram.ShaderProgram} */ this.m_currentProgram = null;
-        /** @type {Array<sglrReferenceContext.GenericVec4>} */ this.m_currentAttribs = [];
+        /** @type {Array<rrGenericVector.GenericVec4>} */ this.m_currentAttribs = [];
         for (var i = 0; i < this.m_limits.maxVertexAttribs; i++)
-            this.m_currentAttribs.push(new sglrReferenceContext.GenericVec4());
+            this.m_currentAttribs.push(new rrGenericVector.GenericVec4());
         /** @type {number} */ this.m_lineWidth = 1;
 
         /** @type {sglrReferenceContext.TextureContainer} */ this.m_emptyTex2D = new sglrReferenceContext.TextureContainer();
@@ -1802,7 +1792,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         if (this.condtionalSetError(index >= this.m_limits.maxVertexAttribs, gl.INVALID_VALUE))
             return;
 
-        this.m_currentAttribs[index] = new sglrReferenceContext.GenericVec4(x, 0, 0, 1);
+        this.m_currentAttribs[index] = new rrGenericVector.GenericVec4(x, 0, 0, 1);
     };
 
 
@@ -1815,7 +1805,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         if (this.condtionalSetError(index >= this.m_limits.maxVertexAttribs, gl.INVALID_VALUE))
             return;
 
-        this.m_currentAttribs[index] = new sglrReferenceContext.GenericVec4(x, y, 0, 1);
+        this.m_currentAttribs[index] = new rrGenericVector.GenericVec4(x, y, 0, 1);
     };
 
 
@@ -1829,7 +1819,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         if (this.condtionalSetError(index >= this.m_limits.maxVertexAttribs, gl.INVALID_VALUE))
             return;
 
-        this.m_currentAttribs[index] = new sglrReferenceContext.GenericVec4(x, y, z, 1);
+        this.m_currentAttribs[index] = new rrGenericVector.GenericVec4(x, y, z, 1);
     };
 
     /**
@@ -1843,7 +1833,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         if (this.condtionalSetError(index >= this.m_limits.maxVertexAttribs, gl.INVALID_VALUE))
             return;
 
-        this.m_currentAttribs[index] = new sglrReferenceContext.GenericVec4(x, y, z, w);
+        this.m_currentAttribs[index] = new rrGenericVector.GenericVec4(x, y, z, w);
     };
 
     /**
@@ -1857,7 +1847,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         if (this.condtionalSetError(index >= this.m_limits.maxVertexAttribs, gl.INVALID_VALUE))
             return;
 
-        this.m_currentAttribs[index] = new sglrReferenceContext.GenericVec4(x, y, z, w);
+        this.m_currentAttribs[index] = new rrGenericVector.GenericVec4(x, y, z, w);
     };
 
     /**
@@ -1871,7 +1861,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         if (this.condtionalSetError(index >= this.m_limits.maxVertexAttribs, gl.INVALID_VALUE))
             return;
 
-        this.m_currentAttribs[index] = new sglrReferenceContext.GenericVec4(x, y, z, w);
+        this.m_currentAttribs[index] = new rrGenericVector.GenericVec4(x, y, z, w);
     };
 
 
@@ -3097,7 +3087,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         /** @type {rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess} */ var colorBuf0 = this.getDrawColorbuffer();
         /** @type {rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess} */ var depthBuf = this.getDrawDepthbuffer();
         /** @type {rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess} */ var stencilBuf = this.getDrawStencilbuffer();
-        /** @type {boolean} */ var hasStencil = (stencilBuf && !stencilBuf.isEmpty());
+        /** @type {boolean} */ var hasStencil = /** @type {!boolean} */ (stencilBuf && !stencilBuf.isEmpty());
         /** @type {number} */ var stencilBits = (hasStencil) ? stencilBuf.raw().getFormat().getNumStencilBits() : 0;
 
         /** @type {rrRenderer.RenderTarget} */ var renderTarget = new rrRenderer.RenderTarget(colorBuf0,
