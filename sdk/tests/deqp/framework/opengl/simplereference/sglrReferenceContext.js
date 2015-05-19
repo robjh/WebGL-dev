@@ -2691,14 +2691,17 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         /** @type {rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess} */ var colorBuf0 = this.getDrawColorbuffer();
         /** @type {rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess} */ var depthBuf = this.getDrawDepthbuffer();
         /** @type {rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess} */ var stencilBuf = this.getDrawStencilbuffer();
-        /** @type {boolean} */ var hasColor0 = colorBuf0 && !colorBuf0.isEmpty();
-        /** @type {boolean} */ var hasDepth = depthBuf && !depthBuf.isEmpty();
-        /** @type {boolean} */ var hasStencil = stencilBuf && !stencilBuf.isEmpty();
+        /** @type {boolean} */ var hasColor0 = /** @type {!boolean} */ (colorBuf0 && !colorBuf0.isEmpty());
+        /** @type {boolean} */ var hasDepth = /** @type {!boolean} */ (depthBuf && !depthBuf.isEmpty());
+        /** @type {boolean} */ var hasStencil = /** @type {!boolean} */ (stencilBuf && !stencilBuf.isEmpty());
         /** @type {Array<number>} */ var baseArea = this.m_scissorEnabled ? this.m_scissorBox : [0, 0, 0x7fffffff, 0x7fffffff];
+
+        /** @type {rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess} */ var access;
+        /** @type {boolean} */ var isSharedDepthStencil;
 
         if (hasColor0 && (buffers & gl.COLOR_BUFFER_BIT) != 0) {
             /** @type {Array<number>} */ var colorArea = deMath.intersect(baseArea, sglrReferenceContext.getBufferRect(colorBuf0));
-            /** @type {rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess} */ var access = colorBuf0.getSubregion(colorArea);
+            access = colorBuf0.getSubregion(colorArea);
             /** @type {Array<number>} */ var c = this.m_clearColor;
             /** @type {boolean} */ var maskUsed = !this.m_colorMask[0] || !this.m_colorMask[1] || !this.m_colorMask[2] || !this.m_colorMask[3];
             /** @type {boolean} */ var maskZero = !this.m_colorMask[0] && !this.m_colorMask[1] && !this.m_colorMask[2] && !this.m_colorMask[3];
@@ -2716,8 +2719,8 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
 
         if (hasDepth && (buffers & gl.DEPTH_BUFFER_BIT) != 0 && this.m_depthMask) {
             /** @type {Array<number>} */ var depthArea = deMath.intersect(baseArea, sglrReferenceContext.getBufferRect(depthBuf));
-            /** @type {rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess} */ var access = depthBuf.getSubregion(depthArea);
-            /** @type {boolean} */ var isSharedDepthStencil = depthBuf.raw().getFormat().order != tcuTexture.ChannelOrder.D;
+            access = depthBuf.getSubregion(depthArea);
+            isSharedDepthStencil = depthBuf.raw().getFormat().order != tcuTexture.ChannelOrder.D;
 
             if (isSharedDepthStencil) {
                 // Slow path where stencil is masked out in write.
@@ -2731,10 +2734,10 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
 
         if (hasStencil && (buffers & gl.STENCIL_BUFFER_BIT) != 0) {
             /** @type {Array<number>} */ var stencilArea = deMath.intersect(baseArea, sglrReferenceContext.getBufferRect(stencilBuf));
-            /** @type {rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess} */ var access = stencilBuf.getSubregion(stencilArea);
+            access = stencilBuf.getSubregion(stencilArea);
             /** @type {number} */ var stencilBits = stencilBuf.raw().getFormat().getNumStencilBits();
             /** @type {number} */ var stencil = sglrReferenceContext.maskStencil(stencilBits, this.m_clearStencil);
-            /** @type {boolean} */ var isSharedDepthStencil = stencilBuf.raw().getFormat().order != tcuTexture.ChannelOrder.S;
+            isSharedDepthStencil = stencilBuf.raw().getFormat().order != tcuTexture.ChannelOrder.S;
 
             if (isSharedDepthStencil || ((this.m_stencil[rrDefs.FaceType.FACETYPE_FRONT].writeMask & ((1 << stencilBits) - 1)) != ((1 << stencilBits) - 1))) {
                 // Slow path where depth or stencil is masked out in write.
@@ -2822,7 +2825,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
             /** @type {boolean} */ var maskZero = !this.m_colorMask[0] && !this.m_colorMask[1] && !this.m_colorMask[2] && !this.m_colorMask[3];
 
             if (!colorBuf.isEmpty() && !maskZero) {
-                /** @type {rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess} */ var colorArea = deMath.intersect(baseArea, sglrReferenceContext.getBufferRect(colorBuf));
+                /** @type {Array<number>} */ var colorArea = deMath.intersect(baseArea, sglrReferenceContext.getBufferRect(colorBuf));
                 access = colorBuf.getSubregion(colorArea);
 
                 if (!maskUsed)
@@ -2841,7 +2844,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
             /** @type {rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess} */ var depthBuf = this.getDrawDepthbuffer();
 
             if (!depthBuf.isEmpty() && this.m_depthMask) {
-                /** @type {Array<number> */ var area = deMath.intersect(baseArea, sglrReferenceContext.getBufferRect(depthBuf));
+                /** @type {Array<number>} */ var area = deMath.intersect(baseArea, sglrReferenceContext.getBufferRect(depthBuf));
                 access = depthBuf.getSubregion(area);
                 /** @type {number} */ var depth = value[0];
 
