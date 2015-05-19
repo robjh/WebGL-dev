@@ -475,14 +475,12 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
         if (size >= 4) dst[order.T3] = aligned[3] / range;
     };
 
-
-    // TODO: type for readAsTypeArray
     /**
      * rrVertexAttrib.readSnormClamp
      * @param {goog.NumberArray} dst
      * @param {number} size
      * @param {Uint8Array} ptr
-     * @param {Object<goog.NumberArray>} readAsTypeArray
+     * @param {function(new:ArrayBufferView,(Array<number>|ArrayBuffer|ArrayBufferView|null|number), number=, number=)} readAsTypeArray
      */
     rrVertexAttrib.readSnormClamp = function(dst, size, ptr, readAsTypeArray) {
         var arrayelementsize = readAsTypeArray.BYTES_PER_ELEMENT;
@@ -539,12 +537,12 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
             case rrVertexAttrib.VertexAttribType.HALF:
                 rrVertexAttrib.readHalf(dst, size, ptr);
                 break;
-            case rrVertexAttrib.VertexAttribType.FIXED:
+            /*case rrVertexAttrib.VertexAttribType.FIXED:
                 rrVertexAttrib.readFixed(dst, size, ptr);
                 break;
             case rrVertexAttrib.VertexAttribType.DOUBLE:
                 rrVertexAttrib.readDouble(dst, size, ptr);
-                break;
+                break;*/
             case rrVertexAttrib.VertexAttribType.NONPURE_UNORM8:
                 rrVertexAttrib.readUnormOrder(dst, size, ptr, rrVertexAttrib.NormalOrder, Uint8Array);
                 break;
@@ -569,7 +567,7 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
             case rrVertexAttrib.VertexAttribType.NONPURE_SNORM_2_10_10_10_REV_CLAMP:
                 rrVertexAttrib.readSnorm2101010RevClampOrder(dst, size, ptr, rrVertexAttrib.NormalOrder);
                 break;
-            case rrVertexAttrib.VertexAttribType.NONPURE_SNORM8_SCALE: //Int8
+            /*case rrVertexAttrib.VertexAttribType.NONPURE_SNORM8_SCALE: //Int8
                 rrVertexAttrib.readSnormScale(dst, size, ptr, Int8Array);
                 break;
             case rrVertexAttrib.VertexAttribType.NONPURE_SNORM16_SCALE: //Int16
@@ -577,12 +575,12 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
                 break;
             case rrVertexAttrib.VertexAttribType.NONPURE_SNORM32_SCALE: //Int32
                 rrVertexAttrib.readSnormScale(dst, size, ptr, Int32Array);
-                break;
+                break;*/
             case rrVertexAttrib.VertexAttribType.NONPURE_SNORM_2_10_10_10_REV_SCALE:
                 rrVertexAttrib.readSnorm2101010RevScaleOrder(dst, size, ptr, rrVertexAttrib.NormalOrder);
                 break;
             case rrVertexAttrib.VertexAttribType.NONPURE_UINT_2_10_10_10_REV:
-                rrVertexAttrib.readUint2101010Rev(dst, size, ptr, rrVertexAttrib.NormalOrder);
+                rrVertexAttrib.readUint2101010Rev(dst, size, ptr);
                 break;
             case rrVertexAttrib.VertexAttribType.NONPURE_INT_2_10_10_10_REV:
                 rrVertexAttrib.readInt2101010Rev(dst, size, ptr);

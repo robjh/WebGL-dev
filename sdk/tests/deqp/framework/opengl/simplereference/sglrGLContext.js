@@ -71,7 +71,7 @@ goog.scope(function() {
      * sglrGLContext.GLContext wraps the standard WebGL context to be able to be used interchangeably with the ReferenceContext
      * @constructor
      * @extends {WebGL2RenderingContext}
-     * @param {!WebGL2RenderingContext} context
+     * @param {?WebGL2RenderingContext} context
      * @param {Array<number>=} viewport
      */
     sglrGLContext.GLContext = function(context, viewport) {
