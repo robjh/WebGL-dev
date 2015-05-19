@@ -2965,7 +2965,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     * @param {number} target
     * @param {number}  attachment
     * @param {number}  renderbuffertarget
-    * @param {number}  renderbuffer
+    * @param {sglrReferenceContext.Renderbuffer}  renderbuffer
     */
     sglrReferenceContext.ReferenceContext.prototype.framebufferRenderbuffer = function(target, attachment, renderbuffertarget, renderbuffer) {
         if (attachment == gl.DEPTH_STENCIL_ATTACHMENT) {
@@ -3010,7 +3010,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     * @param {number}  height
     */
     sglrReferenceContext.ReferenceContext.prototype.renderbufferStorage = function(target, internalformat, width, height) {
-        /** @type {txuTexture.TextureFormat} */ var format = gluTextureUtil.mapGLInternalFormat(internalformat);
+        /** @type {tcuTexture.TextureFormat} */ var format = gluTextureUtil.mapGLInternalFormat(internalformat);
 
         if (this.condtionalSetError(target != gl.RENDERBUFFER, gl.INVALID_ENUM))
             return;
@@ -3196,7 +3196,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
                 case gluShaderUtil.DataType.SAMPLER_2D:
                 case gluShaderUtil.DataType.UINT_SAMPLER_2D:
                 case gluShaderUtil.DataType.INT_SAMPLER_2D: {
-                    /** @type {sglrShaderProgram.Texture2D} */ var tex = null;
+                    /** @type {sglrReferenceContext.Texture2D} */ var tex;
 
                     if (texNdx >= 0 && texNdx < this.m_textureUnits.length)
                         tex = this.m_textureUnits[texNdx].tex2DBinding.texture;
