@@ -964,7 +964,7 @@ goog.scope(function() {
                     break;
                 default:
                     throw new Error('glsVertexArrayTests.calcShaderColorCoord - Invalid number of components');
-            } 
+            }
         else {
             switch (numComponents) {
                 case 1:
@@ -997,8 +997,8 @@ goog.scope(function() {
      * @param {number} numPackets
      */
     glsVertexArrayTests.ContextShaderProgram.prototype.shadeVertices = function(inputs, packets, numPackets) {
-        /** @type {number} */ var u_coordScale = /** @type {number} */ (this.getUniformByName("u_coordScale").value);
-        /** @type {number} */ var u_colorScale = /** @type {number} */ (this.getUniformByName("u_colorScale").value);
+        /** @type {number} */ var u_coordScale = this.getUniformByName("u_coordScale").value[0];
+        /** @type {number} */ var u_colorScale = this.getUniformByName("u_colorScale").value[0];
 
         for (var packetNdx = 0; packetNdx < numPackets; ++packetNdx) {
             /** @type {number} */ var varyingLocColor = 0;
@@ -1793,7 +1793,7 @@ goog.scope(function() {
      * @param {glsVertexArrayTests.deArray.InputType} type
      * @param {glsVertexArrayTests.GLValue} min
      * @param {glsVertexArrayTests.GLValue} max
-     * @param {number} scale Coordinate scaling factor    
+     * @param {number} scale Coordinate scaling factor
      * @return {ArrayBuffer}
      */
     glsVertexArrayTests.RandomArrayGenerator.generateQuads = function(seed, count, componentCount, offset, stride, primitive, type, min, max, scale) {
