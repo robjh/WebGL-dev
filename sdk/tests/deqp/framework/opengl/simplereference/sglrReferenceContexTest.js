@@ -87,7 +87,9 @@ goog.scope(function () {
         tcuImageCompare.displayImages(access, null, null);
         
 		if (numFailedPixels > 0)
-            throw new Error('Image comparison failed, got ' + numFailedPixels + ' non-equal pixels.');
+            testFailedOptions('Image comparison failed, got ' + numFailedPixels + ' non-equal pixels.', false);
+        else
+            testPassedOptions('Image comparison succeed, got', true);
 		
 		ctx.scissor(width/4, height/4, width/2, height/2);
 		ctx.enable(gl.SCISSOR_TEST);
@@ -115,8 +117,11 @@ goog.scope(function () {
         
         tcuImageCompare.displayImages(access, null, null);
 		
-		if (numFailedPixels > 0) 
-			throw new Error('Image comparison failed, got ' + numFailedPixels + ' non-equal pixels.');
+		if (numFailedPixels > 0)
+            testFailedOptions('Image comparison failed, got ' + numFailedPixels + ' non-equal pixels.', false);
+        else
+            testPassedOptions('Image comparison succeed, got', true);
+        
 		return tcuTestCase.IterateResult.STOP;
     };
     
@@ -169,7 +174,9 @@ goog.scope(function () {
         tcuImageCompare.displayImages(access, null, null);
         
         if (numFailedPixels > 0)
-            throw new Error('Image comparison failed, got ' + numFailedPixels + ' non-equal pixels.');
+            testFailedOptions('Image comparison failed, got ' + numFailedPixels + ' non-equal pixels.', false);
+        else
+            testPassedOptions('Image comparison succeed, got', true););
         
         ctx.scissor(width/4, height/4, width/2, height/2);
         ctx.enable(gl.SCISSOR_TEST);
@@ -197,8 +204,10 @@ goog.scope(function () {
         
         tcuImageCompare.displayImages(access, null, null);
 		
-		if (numFailedPixels > 0) 
-			throw new Error('Image comparison failed, got ' + numFailedPixels + ' non-equal pixels.');
+		if (numFailedPixels > 0)
+            testFailedOptions('Image comparison failed, got ' + numFailedPixels + ' non-equal pixels.', false);
+        else
+            testPassedOptions('Image comparison succeed, got', true);
         
         ctx.bindFramebuffer(gl.FRAMEBUFFER, null);
         ctx.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels.getAccess().getBuffer());
@@ -215,7 +224,9 @@ goog.scope(function () {
         tcuImageCompare.displayImages(access, null, null);
         
         if (numFailedPixels > 0)
-            throw new Error('Image comparison failed, got ' + numFailedPixels + ' non-equal pixels.');
+            testFailedOptions('Image comparison failed, got ' + numFailedPixels + ' non-equal pixels.', false);
+        else
+            testPassedOptions('Image comparison succeed, got', true);
         
         return tcuTestCase.IterateResult.STOP;
     };
