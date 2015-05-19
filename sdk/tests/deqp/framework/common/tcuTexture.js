@@ -2512,6 +2512,9 @@ tcuTexture.TextureLevel.prototype.setSize = function(width, height, depth) {
     this.m_data.setStorage(this.m_width * this.m_height * this.m_depth * pixelSize);
 };
 
+/**
+ * @return {tcuTexture.PixelBufferAccess}
+ */
 tcuTexture.TextureLevel.prototype.getAccess = function() {
     return new tcuTexture.PixelBufferAccess({
                     format: this.m_format,
