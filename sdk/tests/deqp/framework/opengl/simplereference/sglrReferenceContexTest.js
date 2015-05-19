@@ -89,7 +89,7 @@ goog.scope(function () {
 		if (numFailedPixels > 0)
             testFailedOptions('Image comparison failed, got ' + numFailedPixels + ' non-equal pixels.', false);
         else
-            testPassedOptions('Image comparison succeed, got', true);
+            testPassedOptions('Image comparison succeed', true);
 		
 		ctx.scissor(width/4, height/4, width/2, height/2);
 		ctx.enable(gl.SCISSOR_TEST);
@@ -120,7 +120,7 @@ goog.scope(function () {
 		if (numFailedPixels > 0)
             testFailedOptions('Image comparison failed, got ' + numFailedPixels + ' non-equal pixels.', false);
         else
-            testPassedOptions('Image comparison succeed, got', true);
+            testPassedOptions('Image comparison succeed', true);
         
 		return tcuTestCase.IterateResult.STOP;
     };
@@ -176,7 +176,7 @@ goog.scope(function () {
         if (numFailedPixels > 0)
             testFailedOptions('Image comparison failed, got ' + numFailedPixels + ' non-equal pixels.', false);
         else
-            testPassedOptions('Image comparison succeed, got', true););
+            testPassedOptions('Image comparison succeed', true);
         
         ctx.scissor(width/4, height/4, width/2, height/2);
         ctx.enable(gl.SCISSOR_TEST);
@@ -207,7 +207,7 @@ goog.scope(function () {
 		if (numFailedPixels > 0)
             testFailedOptions('Image comparison failed, got ' + numFailedPixels + ' non-equal pixels.', false);
         else
-            testPassedOptions('Image comparison succeed, got', true);
+            testPassedOptions('Image comparison succeed', true);
         
         ctx.bindFramebuffer(gl.FRAMEBUFFER, null);
         ctx.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels.getAccess().getBuffer());
@@ -226,7 +226,7 @@ goog.scope(function () {
         if (numFailedPixels > 0)
             testFailedOptions('Image comparison failed, got ' + numFailedPixels + ' non-equal pixels.', false);
         else
-            testPassedOptions('Image comparison succeed, got', true);
+            testPassedOptions('Image comparison succeed', true);
         
         return tcuTestCase.IterateResult.STOP;
     };
