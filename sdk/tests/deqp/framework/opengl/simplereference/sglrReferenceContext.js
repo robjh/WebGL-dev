@@ -409,7 +409,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         /** @type {number} */ var baseLevel = this.getBaseLevel();
 
         if (this.hasLevel(baseLevel)) {
-            /** @type {number} */ var level0 = this.getLevel(baseLevel);
+            /** @type {tcuTexture.PixelBufferAccess} */ var level0 = this.getLevel(baseLevel);
             /** @type {boolean} */ var mipmap = sglrReferenceContext.isMipmapFilter(this.getSampler().minFilter);
 
             if (mipmap) {
@@ -420,7 +420,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
 
                 for (var levelNdx = 1; levelNdx < numLevels; levelNdx++) {
                     if (this.hasLevel(baseLevel + levelNdx)) {
-                        /** @type {number} */ var level = this.getLevel(baseLevel + levelNdx);
+                        /** @type {tcuTexture.PixelBufferAccess} */ var level = this.getLevel(baseLevel + levelNdx);
                         /** @type {number} */ var expectedW = sglrReferenceContext.getMipLevelSize(w, levelNdx);
                         /** @type {number} */ var expectedH = sglrReferenceContext.getMipLevelSize(h, levelNdx);
 
@@ -500,11 +500,11 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     */
     sglrReferenceContext.TextureContainer = function() {
         /** @type {sglrReferenceContext.Texture2D} */ this.texture = null;
-        /** @ype {sglrReferenceContext.TextureType} */ this.textureType = null;
+        /** @type {?sglrReferenceContext.TextureType} */ this.textureType = null;
     };
 
     /**
-     * @return {sglrReferenceContext.Texture2D}
+     * @return {?sglrReferenceContext.TextureType}
      */
     sglrReferenceContext.TextureContainer.prototype.getType = function() { return this.textureType; };
 
