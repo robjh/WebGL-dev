@@ -829,16 +829,11 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     * @constructor
     */
     sglrReferenceContext.TextureUnit = function() {
-        /** @type {?sglrReferenceContext.TextureContainer} */ this.tex2DBinding = null; // TODO: fix type
-        /** @type {?sglrReferenceContext.TextureContainer} */ this.texCubeBinding = null; // TODO: fix type
-        /** @type {?sglrReferenceContext.TextureContainer} */ this.tex2DArrayBinding = null; // TODO: fix type
-        /** @type {?sglrReferenceContext.TextureContainer} */ this.tex3DBinding = null; // TODO: fix type
-        /** @type {?sglrReferenceContext.TextureContainer} */ this.texCubeArrayBinding = null; // TODO: fix type
-        /** @type {?sglrReferenceContext.TextureContainer} */ this.default2DTex = null;
-        /** @type {?sglrReferenceContext.TextureContainer} */ this.defaultCubeTex = null;
-        /** @type {?sglrReferenceContext.TextureContainer} */ this.default2DArrayTex = null;
-        /** @type {?sglrReferenceContext.TextureContainer} */ this.default3DTex = null;
-        /** @type {?sglrReferenceContext.TextureContainer} */ this.defaultCubeArrayTex = null;
+        /** @type {?sglrReferenceContext.TextureContainer} */ this.tex2DBinding = null;
+        /** @type {?sglrReferenceContext.TextureContainer} */ this.texCubeBinding = null;
+        /** @type {?sglrReferenceContext.TextureContainer} */ this.tex2DArrayBinding = null;
+        /** @type {?sglrReferenceContext.TextureContainer} */ this.tex3DBinding = null;
+        /** @type {?sglrReferenceContext.TextureContainer} */ this.texCubeArrayBinding = null;
     };
 
     /**
@@ -1148,7 +1143,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
 
     /**
     * @param {number} unitNdx
-    * @param {?sglrReferenceContext.Texture2D}  texture
+    * @param {?sglrReferenceContext.TextureContainer}  texture
     */
     sglrReferenceContext.ReferenceContext.prototype.setTex2DBinding = function(unitNdx, texture) {
         if (this.m_textureUnits[unitNdx].tex2DBinding) {
