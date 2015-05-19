@@ -621,7 +621,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     */
     sglrReferenceContext.Attachment = function() {
         /** @type {?sglrReferenceContext.AttachmentType} */ this.type = null;
-        /** @type {sglrReferenceContext.TextureContainer} */ this.object = null; // TODO: fix reserved word
+        /** @type {sglrReferenceContext.TextureContainer|sglrReferenceContext.Renderbuffer} */ this.object = null; // TODO: fix reserved word
         /** @type {?sglrReferenceContext.TexTarget} */ this.texTarget = null;
         /** @type {number} */ this.level = 0;
         /** @type {number} */ this.layer = 0;
@@ -691,7 +691,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     sglrReferenceContext.Renderbuffer.prototype.getFormat = function() { return this.m_data.getFormat(); };
 
     /**
-     * @return {number}
+     * @return {tcuTexture.PixelBufferAccess}
      */
     sglrReferenceContext.Renderbuffer.prototype.getAccess = function() { return this.m_data.getAccess(); };
 
@@ -700,25 +700,25 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
      * @param {number} maxVertexAttribs
      */
     sglrReferenceContext.VertexArray = function(maxVertexAttribs) {
-        /** @constructor */
-        var VertexAttribArray = function() {
-            this.enabled = false;
-            this.size = 4;
-            this.stride = 0;
-            this.type = gl.FLOAT;
-
-            this.normalized = false;
-            this.integer = false;
-            this.divisor = 0;
-            this.offset = 0;
-            this.bufferBinding = null;
-        };
-
         /** @type {sglrReferenceContext.DataBuffer} */ this.m_elementArrayBufferBinding = null;
 
-        /** @type {Array<VertexAttribArray>} */this.m_arrays = [];
+        /** @type {Array<sglrReferenceContext.VertexArray.VertexAttribArray>} */this.m_arrays = [];
         for (var i = 0; i < maxVertexAttribs; i++)
-            this.m_arrays.push(new VertexAttribArray());
+            this.m_arrays.push(new sglrReferenceContext.VertexArray.VertexAttribArray());
+    };
+
+    /** @constructor */
+    sglrReferenceContext.VertexArray.VertexAttribArray = function() {
+        this.enabled = false;
+        this.size = 4;
+        this.stride = 0;
+        this.type = gl.FLOAT;
+
+        this.normalized = false;
+        this.integer = false;
+        this.divisor = 0;
+        this.offset = 0;
+        this.bufferBinding = null;
     };
 
     /**
@@ -1904,7 +1904,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         if (location === null)
             return;
 
-        /** @type {Uniforms} */ var uniform = this.m_currentProgram.m_uniforms[location];
+        /** @type {sglrShaderProgram.Uniform} */ var uniform = this.m_currentProgram.m_uniforms[location];
 
         if (this.condtionalSetError(!uniform, gl.INVALID_OPERATION))
             return;
@@ -2287,7 +2287,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
             if (this.condtionalSetError(typeof pixels !== 'number', gl.INVALID_VALUE))
                 return;
             data = this.m_pixelPackBufferBinding.getData();
-            offset = pixels;
+            offset = pixels.byteOffset;
         } else {
             if (pixels instanceof ArrayBuffer) {
                 data = pixels;
@@ -2342,13 +2342,14 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
 
         switch (attachment.type) {
             case sglrReferenceContext.AttachmentType.ATTACHMENTTYPE_TEXTURE: {
-                /** @type {sglrReferenceContext.TextureContainer} */ var container = attachment.object;
+                /** @type {sglrReferenceContext.TextureContainer} */ var container = /** @type {sglrReferenceContext.TextureContainer} */ (attachment.object);
                 /** @type {?sglrReferenceContext.TextureType} */ var type = container.getType();
                 /** @type {?sglrReferenceContext.Texture2D} */ var texture = container.texture;
 
                 if (type == sglrReferenceContext.TextureType.TYPE_2D)
                     return texture.getLevel(attachment.level);
                 else if (type == sglrReferenceContext.TextureType.TYPE_CUBE_MAP)
+                    //TODO: Implement getFace for cubemaps
                     return texture.getFace(attachment.level, sglrReferenceContext.texTargetToFace(attachment.texTarget));
                 else if (type == sglrReferenceContext.TextureType.TYPE_2D_ARRAY ||
                         type == sglrReferenceContext.TextureType.TYPE_3D ||
@@ -2369,7 +2370,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
             }
 
             case sglrReferenceContext.AttachmentType.ATTACHMENTTYPE_RENDERBUFFER: {
-                /** @type {sglrReferenceContext.Renderbuffer} */ var rbo = attachment.object;
+                /** @type {sglrReferenceContext.Renderbuffer} */ var rbo = /** @type {sglrReferenceContext.Renderbuffer} */ (attachment.object);
                 return rbo.getAccess();
             }
 

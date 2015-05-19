@@ -75,13 +75,14 @@ goog.scope(function() {
      * @param {Array<number>=} viewport
      */
     sglrGLContext.GLContext = function(context, viewport) {
+        DE_ASSERT(context);
         this.m_context = context;
         this.m_programs = [];
 
         // Copy all properties from the context.
 
         var prototypes = [];
-        var prototype = Object.getPrototypeOf(this.m_context);
+        var prototype = Object.getPrototypeOf(/** @type {!WebGL2RenderingContext} */ (this.m_context));
 
         //Traverse all the prototype hierarchy of the context object.
         while (prototype && prototype !== Object.prototype) {
@@ -117,6 +118,8 @@ goog.scope(function() {
             }
         }
 
+        this.m_programs = [];
+
         if (viewport)
             gl.viewport(viewport[0], viewport[1], viewport[2], viewport[3]);
     };
@@ -128,12 +131,7 @@ goog.scope(function() {
      * @return {!WebGLProgram}
      */
     sglrGLContext.GLContext.prototype.createProgram = function(shader) {
-        /* TODO: do we need to keep the program object somewhere so that
-         * the garbage collector doesn't remove it?
-         */
-        /** @type {gluShaderProgram.ShaderProgram} */ var program = null;
-
-        program = new gluShaderProgram.ShaderProgram(
+        var program = new gluShaderProgram.ShaderProgram(
             this.m_context,
             gluShaderProgram.makeVtxFragSources(
                 shader.m_vertSrc,
@@ -146,6 +144,7 @@ goog.scope(function() {
             testFailedOptions('Compile failed', true);
         }
 
+        this.m_programs.push(program);
         return program.getProgram();
     };
 
@@ -208,7 +207,6 @@ goog.scope(function() {
         }
 
         this.m_context.readPixels(x, y, width, height, format, dataType, dataArr);
-
     }
 
 });
