@@ -480,6 +480,7 @@ goog.scope(function() {
     
     /**
     * @constructor
+    * @struct
     * @param {number=} format
     * @param {number=} unsizedType
     */

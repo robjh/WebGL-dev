@@ -693,11 +693,20 @@ goog.scope(function() {
     };
     
     //GLenum target, GLenum bufType, ImageFormat format, GLsizei width, GLsizei height, FboBuilder& builder, webglctx
+    /**
+     * @param {number} target
+     * @param {number} bufType
+     * @param {glsFboUtil.ImageFormat} format
+     * @param {number} width
+     * @param {number} height
+     * @param {glsFboUtil.FboBuilder} builder
+     * @param {WebGL2RenderingContext} gl
+     */
     glsFboCompletenessTests.TestBase.prototype.attachTargetToNew = function(
         target, bufType, format, width, height, builder, gl
     ) {
         var imgFmt = format;
-        if (imgFmt.m_format == gl.NONE)
+        if (imgFmt.format == gl.NONE)
             imgFmt = this.getDefaultFormat(target, bufType, gl);
         var att = glsFboCompletenessTests.makeAttachment(bufType, imgFmt, width, height, builder, gl);
         builder.glAttach(target, att);
