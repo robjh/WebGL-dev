@@ -464,7 +464,7 @@ goog.scope(function() {
     glsVertexArrayTests.ContextArray = function(storage, context) {
         /** @type {glsVertexArrayTests.deArray.Storage} */ this.m_storage = storage;
         /** @type {sglrGLContext.GLContext | sglrReferenceContext.ReferenceContext} */ this.m_ctx = context;
-        /** @type {number} (deUint32) */ this.m_glBuffer = 0;
+        /** @type {WebGLBuffer|sglrReferenceContext.DataBuffer|null} */ this.m_glBuffer = null;
 
         /** @type {boolean} */ this.m_bound = false;
         /** @type {number} */ this.m_attribNdx = 0;
@@ -852,7 +852,7 @@ goog.scope(function() {
      */
     glsVertexArrayTests.ContextArrayPack.prototype.render = function(primitive, firstVertex, vertexCount, useVao, coordScale, colorScale) {
         var program;
-        /** @type {number} */ var vaoID = 0;
+        /** @type {(WebGLVertexArrayObject|sglrReferenceContext.VertexArray|null)} */ var vaoID = null;
 
         this.updateProgram();
 
@@ -939,7 +939,7 @@ goog.scope(function() {
      * glsVertexArrayTests.calcShaderColorCoord function
      * @param {Array<number>} coord (2 elements)
      * @param {Array<number>} color (3 elements)
-     * @param {Array<number>} attribValue (4 elements)
+     * @param {goog.NumberArray} attribValue (4 elements)
      * @param {boolean} isCoordinate
      * @param {number} numComponents
      */
@@ -997,8 +997,8 @@ goog.scope(function() {
      * @param {number} numPackets
      */
     glsVertexArrayTests.ContextShaderProgram.prototype.shadeVertices = function(inputs, packets, numPackets) {
-        /** @type {number} */ var u_coordScale = this.getUniformByName("u_coordScale").value;
-        /** @type {number} */ var u_colorScale = this.getUniformByName("u_colorScale").value;
+        /** @type {number} */ var u_coordScale = /** @type {number} */ (this.getUniformByName("u_coordScale").value);
+        /** @type {number} */ var u_colorScale = /** @type {number} */ (this.getUniformByName("u_colorScale").value);
 
         for (var packetNdx = 0; packetNdx < numPackets; ++packetNdx) {
             /** @type {number} */ var varyingLocColor = 0;

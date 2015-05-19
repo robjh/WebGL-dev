@@ -104,7 +104,7 @@ goog.scope(function() {
     sglrShaderProgram.Uniform = function(name_, type_) {
         /** @type {string} */ this.name = name_;
         /** @type {gluShaderUtil.DataType} */ this.type = type_;
-        /** @type {Array<number>} */ this.value;
+        /** @type {Array<number>|number} */ this.value;
         /** @type {?rrDefs.Sampler} */ this.sampler = null;
     };
 
