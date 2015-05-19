@@ -744,6 +744,8 @@ goog.scope(function() {
         var err = statuses[0];
     //  glsFboUtil.logFramebufferConfig(builder, this.m_testCtx.getLog());
         
+        builder.deinit(gl);
+        
         var msg = '';
     //  msg += this.m_testCtx.getLog();
         msg = 'Expected ';
@@ -765,27 +767,26 @@ goog.scope(function() {
         if (!glsFboUtil.contains(statuses, glStatus)) {
             // the returned status value was not acceptable.
             if (glStatus == gl.FRAMEBUFFER_COMPLETE) {
-                throw new TestFailedException('Framebuffer checked as complete, expected incomplete');
+                testFailedOptions('Framebuffer checked as complete, expected incomplete');
             } else if (statuses.length == 1 && glsFboUtil.contains(statuses, gl.FRAMEBUFFER_COMPLETE)) {
-                throw new TestFailedException('Framebuffer checked as incomplete, expected complete');
+                testFailedOptions('Framebuffer checked as incomplete, expected complete');
             } else {
                 // An incomplete status is allowed, but not _this_ incomplete status.
-                throw new TestFailedException('Framebuffer checked as incomplete, but with wrong status');
+                testFailedOptions('Framebuffer checked as incomplete, but with wrong status');
             }
         } else if (
             glStatus != gl.FRAMEBUFFER_COMPLETE &&
             glsFboUtil.contains(statuses, gl.FRAMEBUFFER_COMPLETE)
         ) {
             // TODO: handle this properly, it should result in the test issuing a warning
-            bufferedLogToConsole('Framebuffer object could have checked as complete but did not.');
-            
+            testFailedOptions('Framebuffer object could have checked as complete but did not.');
         } else {
             // pass
- //           return true;
-           
+            testPassed("");
         }
+        
     //    return ret;
-        return tcuTestCase.IterateResult.STOP; // ?
+        return tcuTestCase.IterateResult.STOP;
     };
     
     
