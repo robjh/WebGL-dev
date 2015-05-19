@@ -829,16 +829,16 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     * @constructor
     */
     sglrReferenceContext.TextureUnit = function() {
-        /** @type {number} */ this.tex2DBinding = null; // TODO: fix type
-        /** @type {number} */ this.texCubeBinding = null; // TODO: fix type
-        /** @type {number} */ this.tex2DArrayBinding = null; // TODO: fix type
-        /** @type {number} */ this.tex3DBinding = null; // TODO: fix type
-        /** @type {number} */ this.texCubeArrayBinding = null; // TODO: fix type
-        /** @type {number} */ this.default2DTex = 0;
-        /** @type {number} */ this.defaultCubeTex = 0;
-        /** @type {number} */ this.default2DArrayTex = 0;
-        /** @type {number} */ this.default3DTex = 0;
-        /** @type {number} */ this.defaultCubeArrayTex = 0;
+        /** @type {?sglrReferenceContext.TextureContainer} */ this.tex2DBinding = null; // TODO: fix type
+        /** @type {?sglrReferenceContext.TextureContainer} */ this.texCubeBinding = null; // TODO: fix type
+        /** @type {?sglrReferenceContext.TextureContainer} */ this.tex2DArrayBinding = null; // TODO: fix type
+        /** @type {?sglrReferenceContext.TextureContainer} */ this.tex3DBinding = null; // TODO: fix type
+        /** @type {?sglrReferenceContext.TextureContainer} */ this.texCubeArrayBinding = null; // TODO: fix type
+        /** @type {?sglrReferenceContext.TextureContainer} */ this.default2DTex = null;
+        /** @type {?sglrReferenceContext.TextureContainer} */ this.defaultCubeTex = null;
+        /** @type {?sglrReferenceContext.TextureContainer} */ this.default2DArrayTex = null;
+        /** @type {?sglrReferenceContext.TextureContainer} */ this.default3DTex = null;
+        /** @type {?sglrReferenceContext.TextureContainer} */ this.defaultCubeArrayTex = null;
     };
 
     /**
@@ -3481,7 +3481,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
 
     /**
     * @param {tcuTexture.PixelBufferAccess} dst
-    * @param {tcuTexture.PixelBufferAccess} src
+    * @param {tcuTexture.ConstPixelBufferAccess} src
     */
     sglrReferenceContext.depthValueFloatClampCopy = function(dst, src) {
         var width = dst.getWidth();
@@ -3560,12 +3560,14 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
             /** @type {sglrReferenceContext.Texture2D} */
             var texture = unit.tex2DBinding.texture;
 
+            /** @type {tcuTexture.PixelBufferAccess} */
+            var dst;
+
             if (texture.isImmutable()) {
                 if (this.condtionalSetError(!texture.hasLevel(level), gl.INVALID_OPERATION))
                     return;
 
-                /** @type {tcuTexture.ConstPixelBufferAccess} */
-                var dst = tcuTexture.PixelBufferAccess.newFromTextureLevel(texture.getLevel(level));
+                dst = tcuTexture.PixelBufferAccess.newFromTextureLevel(texture.getLevel(level));
 
                 if (this.condtionalSetError(storageFmt != dst.getFormat() ||
                             width != dst.getWidth() ||
@@ -3575,14 +3577,16 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
                 texture.allocLevel(level, storageFmt, width, height);
 
             if (data) {
-                /** @type {tcuTexture.PixelBufferAccess} */
-                var src = new tcuTexture.PixelBufferAccess({
+                /** @type {tcuTexture.ConstPixelBufferAccess} */
+                var src = new tcuTexture.ConstPixelBufferAccess({
                     format: transferFmt,
                     width: width,
                     height: height,
                     data: data,
                     offset: offset});
-                var dst = texture.getLevel(level);
+
+                //NOTE: replaces this: var dst = tcuTexture.PixelBufferAccess.newFromTextureLevel(texture.getLevel(level));
+                dst = texture.getLevel(level);
 
                 if (isDstFloatDepthFormat)
                     sglrReferenceContext.depthValueFloatClampCopy(dst, src);
@@ -3590,7 +3594,9 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
                     tcuTextureUtil.copy(dst, src);
             } else {
                 // No data supplied, clear to black.
-                var dst = tcuTexture.PixelBufferAccess.newFromTextureLevel(texture.getLevel(level));
+
+                //NOTE: replaces this: var dst = tcuTexture.PixelBufferAccess.newFromTextureLevel(texture.getLevel(level));
+                dst = texture.getLevel(level);
                 dst.clear([0.0, 0.0, 0.0, 1.0]);
             }
         }
@@ -3798,7 +3804,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     * @param {number}  value
     */
     sglrReferenceContext.ReferenceContext.prototype.texParameteri = function(target, pname, value) {
-        /** @type {sglrReferenceContext.TextureUni} */ var unit = this.m_textureUnits[this.m_activeTexture];
+        /** @type {sglrReferenceContext.TextureUnit} */ var unit = this.m_textureUnits[this.m_activeTexture];
         var container = null;
 
         switch (target) {

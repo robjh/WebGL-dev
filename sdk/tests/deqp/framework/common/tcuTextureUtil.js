@@ -532,7 +532,7 @@ tcuTextureUtil.getChannelMantissaBitDepth = function(channelType) {
 
 /**
  * @param {tcuTexture.PixelBufferAccess} dst
- * @param {tcuTexture.PixelBufferAccess} src
+ * @param {tcuTexture.ConstPixelBufferAccess} src
  */
 tcuTextureUtil.copy = function(dst, src) {
     var width = dst.getWidth();
