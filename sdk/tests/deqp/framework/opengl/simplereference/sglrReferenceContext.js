@@ -829,11 +829,11 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     * @constructor
     */
     sglrReferenceContext.TextureUnit = function() {
-        /** @type {number} */ this.tex2DBinding = null; // TODO: fix type
-        /** @type {number} */ this.texCubeBinding = null; // TODO: fix type
-        /** @type {number} */ this.tex2DArrayBinding = null; // TODO: fix type
-        /** @type {number} */ this.tex3DBinding = null; // TODO: fix type
-        /** @type {number} */ this.texCubeArrayBinding = null; // TODO: fix type
+        /** @type {?sglrReferenceContext.Texture2D} */ this.tex2DBinding = null;
+        /** @type {?sglrReferenceContext.TextureCube} */ this.texCubeBinding = null;
+        /** @type {?sglrReferenceContext.Texture2DArray} */ this.tex2DArrayBinding = null;
+        /** @type {?sglrReferenceContext.Texture3D} */ this.tex3DBinding = null;
+        /** @type {?sglrReferenceContext.TextureCubeArray} */ this.texCubeArrayBinding = null;
         /** @type {number} */ this.default2DTex = 0;
         /** @type {number} */ this.defaultCubeTex = 0;
         /** @type {number} */ this.default2DArrayTex = 0;
@@ -916,10 +916,11 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     * @param {number=} samples_
     */
     sglrReferenceContext.ReferenceContextBuffers = function(colorBits, depthBits, stencilBits, width, height, samples_) {
+        if (samples_ === undefined)
+            samples_ = 1;
+
         /** @type {number} */ var samples = samples_;
-        if (samples === undefined)
-            samples = 1;
-         /** @type {tcuTexture.TextureLevel} */ this.m_colorbuffer = new tcuTexture.TextureLevel(sglrReferenceContext.toTextureFormat(colorBits), samples, width, height);
+        /** @type {tcuTexture.TextureLevel} */ this.m_colorbuffer = new tcuTexture.TextureLevel(sglrReferenceContext.toTextureFormat(colorBits), samples, width, height);
 
         if (depthBits > 0)
             /** @type {tcuTexture.TextureLevel} */ this.m_depthbuffer = new tcuTexture.TextureLevel(sglrReferenceContext.getDepthFormat(depthBits), samples, width, height);
@@ -1092,6 +1093,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     };
 
     /**
+    * @param {number} target
     * @param {sglrReferenceContext.TextureContainer} texture
     * @throws {Error}
     */
@@ -1121,7 +1123,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
                 texture.init(target);
             } else {
                 // Validate type.
-                /** @tyé {sglrReferenceContext.TextureType} */ var expectedType;
+                /** @type {sglrReferenceContext.TextureType} */ var expectedType;
                 switch (target) {
                     case gl.TEXTURE_2D: expectedType = sglrReferenceContext.TextureType.TYPE_2D; break;
                     case gl.TEXTURE_CUBE_MAP: expectedType = sglrReferenceContext.TextureType.TYPE_CUBE_MAP; break;
@@ -1146,7 +1148,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
 
     /**
     * @param {number} unitNdx
-    * @param {?sglrReferenceContext.TextureContainer}  texture
+    * @param {?sglrReferenceContext.Texture2D}  texture
     */
     sglrReferenceContext.ReferenceContext.prototype.setTex2DBinding = function(unitNdx, texture) {
         if (this.m_textureUnits[unitNdx].tex2DBinding) {
@@ -1621,10 +1623,10 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
 
 
     /**
-    * @param {number} r
-    * @param {number}  g
-    * @param {number}  b
-    * @param {number}  a
+    * @param {boolean} r
+    * @param {boolean}  g
+    * @param {boolean}  b
+    * @param {boolean}  a
     */
     sglrReferenceContext.ReferenceContext.prototype.colorMask = function(r, g, b, a) {
         this.m_colorMask = [r, g, b, a];
@@ -1689,7 +1691,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     * @param {number} index
     * @param {number}  rawSize
     * @param {number}  type
-    * @param {number}  normalized
+    * @param {boolean}  normalized
     * @param {number}  stride
     * @param {number}  offset
     */
@@ -3798,7 +3800,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     * @param {number}  value
     */
     sglrReferenceContext.ReferenceContext.prototype.texParameteri = function(target, pname, value) {
-        /** @type {sglrReferenceContext.TextureUni} */ var unit = this.m_textureUnits[this.m_activeTexture];
+        /** @type {sglrReferenceContext.TextureUnit} */ var unit = this.m_textureUnits[this.m_activeTexture];
         var container = null;
 
         switch (target) {
