@@ -1443,8 +1443,8 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     * @param {number}  dppass
     */
     sglrReferenceContext.ReferenceContext.prototype.stencilOpSeparate = function(face, sfail, dpfail, dppass) {
-        var setFront = face == gl.FRONT || face == gl.FRONT_AND_BACK;
-        var setBack = face == gl.BACK || face == gl.FRONT_AND_BACK;
+        /** @type {boolean} */ var setFront = face == gl.FRONT || face == gl.FRONT_AND_BACK;
+        /** @type {boolean} */ var setBack = face == gl.BACK || face == gl.FRONT_AND_BACK;
 
         if (this.condtionalSetError((!sglrReferenceContext.isValidStencilOp(sfail) ||
                     !sglrReferenceContext.isValidStencilOp(dpfail) ||
@@ -1456,7 +1456,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
             return;
 
     for (var key in rrDefs.FaceType) {
-            var type = rrDefs.FaceType[key];
+            /** @type {number} */ var type = rrDefs.FaceType[key];
             if ((type == rrDefs.FaceType.FACETYPE_FRONT && setFront) ||
                 (type == rrDefs.FaceType.FACETYPE_BACK && setBack)) {
                 this.m_stencil[type].opStencilFail = sfail;
@@ -1649,8 +1649,8 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     * @param {number}  mask
     */
     sglrReferenceContext.ReferenceContext.prototype.stencilMaskSeparate = function(face, mask) {
-        var setFront = face == gl.FRONT || face == gl.FRONT_AND_BACK;
-        var setBack = face == gl.BACK || face == gl.FRONT_AND_BACK;
+        /** @type {boolean} */ var setFront = face == gl.FRONT || face == gl.FRONT_AND_BACK;
+        /** @type {boolean} */ var setBack = face == gl.BACK || face == gl.FRONT_AND_BACK;
 
         if (this.condtionalSetError(!setFront && !setBack, gl.INVALID_ENUM))
             return;
@@ -1691,8 +1691,8 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     * @param {number}  offset
     */
     sglrReferenceContext.ReferenceContext.prototype.vertexAttribPointer = function(index, rawSize, type, normalized, stride, offset) {
-        var allowBGRA = false;
-        var effectiveSize = rawSize;
+        /** @type {boolean} */ var allowBGRA = false;
+        /** @type {number} */ var effectiveSize = rawSize;
 
         if (this.condtionalSetError(index >= this.m_limits.maxVertexAttribs, gl.INVALID_VALUE))
             return;
@@ -1713,16 +1713,16 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         if (this.condtionalSetError(this.m_vertexArrayBinding != null && this.m_arrayBufferBinding == null && offset != 0, gl.INVALID_OPERATION))
             return;
 
-        var array = this.m_vertexArrayBinding.m_arrays[index];
+        /** @type {(sglrReferenceContext.VertexArray.VertexAttribArray|null)} */ var array_ = this.m_vertexArrayBinding.m_arrays[index]; // TODO: fix type
 
-        array.size = rawSize;
-        array.stride = stride;
-        array.type = type;
-        array.normalized = normalized;
-        array.integer = false;
-        array.offset = offset;
+        array_.size = rawSize;
+        array_.stride = stride;
+        array_.type = type;
+        array_.normalized = normalized;
+        array_.integer = false;
+        array_.offset = offset;
 
-        array.bufferBinding = this.m_arrayBufferBinding;
+        array_.bufferBinding = this.m_arrayBufferBinding;
     };
 
 
@@ -1747,16 +1747,16 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         if (this.condtionalSetError(this.m_vertexArrayBinding != null && this.m_arrayBufferBinding == null && offset != 0, gl.INVALID_OPERATION))
             return;
 
-        var array = this.m_vertexArrayBinding.m_arrays[index];
+        /** @type {(sglrReferenceContext.VertexArray.VertexAttribArray|null)} */ var array_ = this.m_vertexArrayBinding.m_arrays[index]; // TODO: fix type
 
-        array.size = size;
-        array.stride = stride;
-        array.type = type;
-        array.normalized = false;
-        array.integer = true;
-        array.offset = offset;
+        array_.size = size;
+        array_.stride = stride;
+        array_.type = type;
+        array_.normalized = false;
+        array_.integer = true;
+        array_.offset = offset;
 
-        array.bufferBinding = this.m_arrayBufferBinding;
+        array_.bufferBinding = this.m_arrayBufferBinding;
     };
 
 
@@ -1904,7 +1904,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         if (location === null)
             return;
 
-        var uniform = this.m_currentProgram.m_uniforms[location];
+        /** @type {Uniforms} */ var uniform = this.m_currentProgram.m_uniforms[location];
 
         if (this.condtionalSetError(!uniform, gl.INVALID_OPERATION))
             return;
@@ -2064,9 +2064,13 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     */
     sglrReferenceContext.ReferenceContext.getSupportedExtensions = function() { return []; };
 
-    /** transpose matrix 'x' of 'size' columns and rows */
+    /** transpose matrix 'x' of 'size' columns and rows
+     * @param {number} size
+     * @param {Array<number>} x
+     * @return {Array<number>}
+     */
     sglrReferenceContext.trans = function(size, x) {
-        var result = [];
+        /** @type {Array<number>} */ var result = [];
         for (var row = 0; row < size; ++row)
             for (var col = 0; col < size; ++col)
             result[row * size + col] = x[col * size + row];
