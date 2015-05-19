@@ -30,54 +30,201 @@ goog.scope(function() {
     
     /**
     * @constructor
-    * @template T
-    * @param {function(T, T): boolean}
+    * @template KeyT
+    * @template ValueT
+    * @param {function(!KeyT, !KeyT):boolean} comparefnc
     */
     glsFboUtil.Map = function(comparefnc) {
-        
+        /** @type {Array<{first: !KeyT, second: ValueT}>} */
+        this.store = [];
+        this.compare = comparefnc;
+        this.length = 0;
     };
+    
+    /**
+    * @param {number} num1
+    * @param {number} num2
+    * @return {boolean}
+    */
+    glsFboUtil.Map.compareNumber = function(num1, num2) {
+        return num1 < num2;
+    }
+    
+    /**
+    * @param {!KeyT} key
+    * @param {ValueT} value
+    * @return {{first: !KeyT, second: ValueT}}
+    */
+    glsFboUtil.Map.prototype.pair = function(key, value) {
+        return {
+            first: key,
+            second: value
+        };
+    };
+    
+    /**
+    * @protected
+    * @param {!KeyT} key
+    * @return {number}
+    */
+    glsFboUtil.Map.prototype.findInsertionPoint = function(key) {
+        var /** @type {number} */i, /** @type {number} */length;
+        for (i = 0, length = this.store.length ; i < length ; ++i) {
+            if (!this.compare(key, this.store[i])) break;
+        }
+        return i;
+    };
+    
+    /**
+    * index should be a value returned from findInsertionPoint.
+    * returns true if the compare function returns false reflexively
+    * (i.e. no matter the order in which the keys are passed as arguments).
+    * @protected
+    * @param {!KeyT} key
+    * @param {number} index
+    * @return {boolean}
+    */
+    glsFboUtil.Map.prototype.foundIndexMatches = function(key, index) {
+        return (
+            this.store[index] !== undefined &&
+            !this.compare(this.store[index], key)
+        );
+    };
+    
+    /**
+    * @param {!KeyT} key
+    * @return {boolean}
+    */
+    glsFboUtil.Map.prototype.isset = function(key) {
+        return this.foundIndexMatches(key, this.findInsertionPoint(key));
+    };
+    
+    /**
+    * @param {!KeyT} key
+    * @param {ValueT} value
+    */
+    glsFboUtil.Map.prototype.set = function(key, value) {
+        var index = this.findInsertionPoint(key);
+        if (this.foundIndexMatches(key, index)) {
+            this.store[index].second = value;
+        } else {
+            this.store.splice(index, 0, this.pair(key, value));
+            ++this.length;
+        }
+    };
+    
+    /**
+    * @param {!KeyT} key
+    * @return {ValueT|null}
+    */
+    glsFboUtil.Map.prototype.remove = function(key) {
+        var index = this.findInsertionPoint(key);
+        /** @type {ValueT|null} */ var ret = null;
+        if (this.foundIndexMatches(key, index)) {
+            ret = this.store[index].second;
+            this.store.splice(index, 1);
+            --this.length;
+        }
+        return ret;
+    };
+    
+    /**
+    * @param {KeyT} key
+    * @return {{first: KeyT, second: ValueT}|null}
+    */
+    glsFboUtil.Map.prototype.get = function(key) {
+        var index = this.findInsertionPoint(key);
+        if (this.foundIndexMatches(key, index)) return this.store[index];
+        return null;
+    };
+    
+    /**
+    * @param {KeyT} key
+    * @return {ValueT|null}
+    */
+    glsFboUtil.Map.prototype.getValue = function(key) {
+        var index = this.findInsertionPoint(key);
+        if (this.foundIndexMatches(key, index)) return this.store[index].second;
+        return null;
+    };
+    
+    /**
+    * @param {!KeyT} key
+    * @param {ValueT} fallback
+    * @return {ValueT}
+    */
+    glsFboUtil.Map.prototype.lookupDefault = function(key, fallback) {
+        var index = this.findInsertionPoint(key);
+        if (this.foundIndexMatches(key, index)) return this.store[index].second;
+        return fallback;
+    };
+    
+    /**
+    * @param {number} index
+    * @return {{first: KeyT, second: ValueT}|undefined}
+    */
+    glsFboUtil.Map.prototype.getIndex = function(index) {
+        return this.store[index];
+    };
+    
+    /**
+    * @param {!KeyT} key
+    * @param {function(ValueT=):!ValueT} callback
+    */
+    glsFboUtil.Map.prototype.transform = function(key, callback) {
+        var index = this.findInsertionPoint(key);
+        if (this.foundIndexMatches(key, index)) {
+            this.store[index].second = callback(this.store[index].second);
+        } else {
+            this.store.splice(index, 0, this.pair(key, callback()));
+            ++this.length;
+        }
+    };
+    
+    
     
     /**
     * @constructor
     */
     glsFboUtil.FormatDB = function() {
-        this.m_map = {};
-        
-        /** @type {glsFboUtil.Map<glsFboUtil.ImageFormat>} */
-        // this.m_map = new glsFboUtil.Map
+        this.m_map = /** @type {glsFboUtil.Map<glsFboUtil.ImageFormat,number>} */(
+            new glsFboUtil.Map(glsFboUtil.ImageFormat.lessthan)
+        );
     };
     
     
     /**  *generated by script*
-    * @param {number} format
-    * @param {number} flags
+    * @param {glsFboUtil.ImageFormat} format
+    * @param {number} newFlags
     */
-    glsFboUtil.FormatDB.prototype.addFormat = function(format, flags) {
-        this.m_map[format]  = this.m_map[format] || 0;
-        this.m_map[format] |= flags;
+    glsFboUtil.FormatDB.prototype.addFormat = function(format, newFlags) {
+        this.m_map.transform(format, function(flags) {
+            return flags | newFlags;
+        });
     };
     
     /**
     * @param {number} requirements
-    * @return {Array<number>} 
+    * @return {Array<glsFboUtil.ImageFormat>} 
     */
     glsFboUtil.FormatDB.prototype.getFormats = function(requirements) {
-        var ret = [];
-        for (var index in this.m_map) {
-            if (this.m_map[index] & requirements == requirements) {
-                ret.push(index);
-            }
+        /** @type {Array<glsFboUtil.ImageFormat>} */ var ret = [];
+        for (var i = 0 ; i < this.m_map.length ; ++i) {
+            var pair = this.m_map.getIndex(i);
+            if ((pair.second & requirements) == requirements)
+            ret.push(pair.first);
         }
+        
         return ret;
     };
     
-    /**  *generated by script*
-    * @param {number} format
-    * @param {number}  fallback
+    /**
+    * @param {glsFboUtil.ImageFormat} format
+    * @param {number} fallback
     * @return {number} 
     */
     glsFboUtil.FormatDB.prototype.getFormatInfo = function(format, fallback) {
-        return glsFboUtil.lookupDefault(this.m_map, format, fallback);
+        return this.m_map.lookupDefault(format, fallback);
     };
     
     
@@ -327,20 +474,21 @@ goog.scope(function() {
     * @param {number=} unsizedType
     */
     glsFboUtil.ImageFormat = function(format, unsizedType) {
-        this.m_format      = format || 0;
+        this.format      = format || 0;
         //! Type if format is unsized, GL_NONE if sized.
-        this.m_unsizedType = unsizedType || 0;
+        this.unsizedType = unsizedType || 0;
         
     };
     
     /**
-    * @param {!glsFboUtil.ImageFormat} other
+    * @param {!glsFboUtil.ImageFormat} obj1
+    * @param {!glsFboUtil.ImageFormat} obj2
     * @return {boolean} 
     */
-    glsFboUtil.ImageFormat.prototype.lessthan = function(other) {
+    glsFboUtil.ImageFormat.lessthan = function(obj1, obj2) {
         return (
-            (this.m_format <  other.m_format) ||
-            (this.m_format == other.m_format && this.m_unsizedType < other.m_unsizedType)
+            (obj1.m_format <  obj2.m_format) ||
+            (obj1.m_format == obj2.m_format && obj1.m_unsizedType < obj2.m_unsizedType)
         );
     };
     
@@ -368,10 +516,10 @@ goog.scope(function() {
     * @return {glsFboUtil.ImageFormat} 
     */
     glsFboUtil.formatKeyInfo = function(key) {
-        return new glsFboUtil.ImageFormat({
-            format:      (key & 0x0000ffff),
-            unsizedType: (key & 0xffff0000) >> 16
-        });
+        return new glsFboUtil.ImageFormat(
+            (key & 0x0000ffff),
+            (key & 0xffff0000) >> 16
+        );
     };
     
     /**
@@ -387,20 +535,20 @@ goog.scope(function() {
      */
     glsFboUtil.Config.s_target = {
         NONE:              0,
-        RENDERBUFFER:      1,
-        TEXTURE_2D:        2,
-        TEXTURE_CUBE_MAP:  3,
-        TEXTURE_3D:        4,
-        TEXTURE_2D_ARRAY:  5,
+        RENDERBUFFER:      0x8D41,
+        TEXTURE_2D:        0x0DE1,
+        TEXTURE_CUBE_MAP:  0x8513,
+        TEXTURE_3D:        0x806F,
+        TEXTURE_2D_ARRAY:  0x8C1A,
         
-        FRAMEBUFFER:       6
+        FRAMEBUFFER:       0x8D40
     };
     
     // the c++ uses dynamic casts to determain if an object inherits from a
     // given class. Here, each class' constructor assigns a bit to obj.type.
     // look for the bit to see if an object inherits that class.
     
-    /**  *generated by script*
+    /**
     * @enum
     */
     glsFboUtil.Config.s_types = {
@@ -534,9 +682,14 @@ goog.scope(function() {
      */
     glsFboUtil.Attachment = function() {
         glsFboUtil.Config.call(this);
+        
         this.type  |= glsFboUtil.Config.s_types.ATTACHMENT;
+        
+        /** @type {glsFboUtil.Config.s_target} */
         this.target = glsFboUtil.Config.s_target.FRAMEBUFFER;
-        this.imageName = 0;
+        
+        /** @type {WebGLObject} */
+        this.imageName = null;
     };
     
     /**
@@ -589,16 +742,13 @@ goog.scope(function() {
     /**
      * glsFboUtil.TextureLayerAttachment Class.
      * @constructor
-     * @extends {glsFboUtil.TextureLayerAttachment}
+     * @extends {glsFboUtil.TextureAttachment}
      */
     glsFboUtil.TextureLayerAttachment = function() {
         glsFboUtil.TextureAttachment.call(this);
         this.type |= glsFboUtil.Config.s_types.ATT_TEXTURE_LAYER;
         this.layer = 0;
     };
-    
-    /**  *generated by script*
-    */
     glsFboUtil.TextureLayerAttachment.prototype = Object.create(glsFboUtil.TextureAttachment.prototype);
     glsFboUtil.TextureLayerAttachment.prototype.constructor = glsFboUtil.TextureLayerAttachment;
     
@@ -607,10 +757,10 @@ goog.scope(function() {
     glsFboUtil.glsup = function() {
     
         var glInit = function(cfg, gl) {
-            if (cfg.target == glsFboUtil.Config.s_target.TEXTURE_2D) {
-                glInitFlat(cfg, glTarget, gl);
+            if (cfg.type & glsFboUtil.Config.s_types.TEXTURE_2D != 0) {
+                glInitFlat(cfg, glTarget(cfg, gl), gl);
                 
-            } else if (cfg.target == glsFboUtil.Config.s_target.TEXTURE_CUBE_MAP) {
+            } else if (cfg.type & glsFboUtil.Config.s_types.TEXTURE_CUBE_MAP != 0) {
                 for (
                     var i = gl.TEXTURE_CUBE_MAP_NEGATIVE_X;
                     i <= gl.TEXTURE_CUBE_MAP_POSITIVE_Z;
@@ -619,21 +769,17 @@ goog.scope(function() {
                     glInitFlat(cfg, i, gl);
                 }
                 
-            } else if (cfg.target == glsFboUtil.Config.s_target.TEXTURE_3D) {
+            } else if (cfg.type & glsFboUtil.Config.s_types.TEXTURE_3D != 0) {
                 glInitLayered(cfg, 2, gl);
             
-            } else if (cfg.target == glsFboUtil.Config.s_target.TEXTURE_2D_ARRAY) {
+            } else if (cfg.type & glsFboUtil.Config.s_types.TEXTURE_2D_ARRAY != 0) {
                 glInitLayered(cfg, 1, gl);
             
             }
         };
         
         var glInitFlat = function(cfg, target, gl) {
-            var format = 
-    /**  *generated by script*
-    * @enum
-    */
-    glsFboUtil.transferImageFormat(cfg.internalFormat, gl);
+            var format =  glsFboUtil.transferImageFormat(cfg.internalFormat, gl);
             var w = cfg.width;
             var h = cfg.height;
             for (var level = 0; level < cfg.numLevels; ++level) {
@@ -647,17 +793,13 @@ goog.scope(function() {
         };
         
         var glInitLayered = function(cfg, depth_divider, gl) {
-            var format = 
-    /**  *generated by script*
-    * @enum
-    */
-    glsFboUtil.transferImageFormat(cfg.internalFormat, gl);
+            var format = glsFboUtil.transferImageFormat(cfg.internalFormat, gl);
             var w = cfg.width;
             var h = cfg.height;
             var depth = cfg.numLayers;
             for (var level = 0; level < cfg.numLevels; ++level) {
                 gl.texImage3D(
-                    glTarget(cfg), level, cfg.internalFormat.format,
+                    glTarget(cfg, gl), level, cfg.internalFormat.format,
                     w, h, depth, 0, format.format, format.dataType, null
                 );
                 w = Math.max(1, w / 2);
@@ -669,11 +811,7 @@ goog.scope(function() {
         var glCreate = function(cfg, gl) {
             if (!(gl = gl || window.gl)) throw new Error('Invalid gl object');
             
-            if (cfg.type & 
-    /**  *generated by script*
-    * @enum
-    */
-    glsFboUtil.Config.s_types.RENDERBUFFER) {
+            if (cfg.type & glsFboUtil.Config.s_types.RENDERBUFFER) {
                 var ret = gl.createRenderbuffer();
                 gl.bindRenderbuffer(gl.RENDERBUFFER, ret);
                 
@@ -702,34 +840,34 @@ goog.scope(function() {
             } else {
                 throw new Error('Impossible image type');
             }
+            return ret;
         };
         
         var glTarget = function(cfg, gl) {
             if (!(gl = gl || window.gl)) throw new Error('Invalid gl object');
-            switch(cfg.target) {
-                case 
-    /**  *generated by script*
-    * @enum
-    */
-    glsFboUtil.Config.s_target.RENDERBUFFER:     return gl.RENDERBUFFER;
-                case glsFboUtil.Config.s_target.TEXTURE_2D:       return gl.TEXTURE_2D;
-                case glsFboUtil.Config.s_target.TEXTURE_CUBE_MAP: return gl.TEXTURE_CUBE_MAP;
-                case glsFboUtil.Config.s_target.TEXTURE_3D:       return gl.TEXTURE_3D;
-                case glsFboUtil.Config.s_target.TEXTURE_2D_ARRAY: return gl.TEXTURE_2D_ARRAY;
-                default: throw new Error('Impossible image type.');
+            var mask = (
+                glsFboUtil.Config.s_types.RENDERBUFFER |
+                glsFboUtil.Config.s_types.TEXTURE_2D |
+                glsFboUtil.Config.s_types.TEXTURE_CUBE_MAP |
+                glsFboUtil.Config.s_types.TEXTURE_3D |
+                glsFboUtil.Config.s_types.TEXTURE_2D_ARRAY
+            );
+            switch(cfg.type & mask) {
+                case glsFboUtil.Config.s_types.RENDERBUFFER:     return gl.RENDERBUFFER;
+                case glsFboUtil.Config.s_types.TEXTURE_2D:       return gl.TEXTURE_2D;
+                case glsFboUtil.Config.s_types.TEXTURE_CUBE_MAP: return gl.TEXTURE_CUBE_MAP;
+                case glsFboUtil.Config.s_types.TEXTURE_3D:       return gl.TEXTURE_3D;
+                case glsFboUtil.Config.s_types.TEXTURE_2D_ARRAY: return gl.TEXTURE_2D_ARRAY;
+                default: break;
             }
-            return gl.NONE;
+            throw new Error('Impossible image type.');
         };
         
         var glDelete = function(cfg, img, gl) {
-            if (cfg.type & 
-    /**  *generated by script*
-    * @enum
-    */
-    glsFboUtil.Config.s_types.RENDERBUFFER)
-                gl.deleteRenderbuffers(1, img);
+            if (cfg.type & glsFboUtil.Config.s_types.RENDERBUFFER)
+                gl.deleteRenderbuffer(img);
             else if (cfg.type & glsFboUtil.Config.s_types.TEXTURE)
-                gl.deleteTextures(1, img);
+                gl.deleteTexture(img);
             else
                 throw new Error('Impossible image type');
         };
@@ -752,9 +890,9 @@ goog.scope(function() {
     
     
     /**  *generated by script*
-    * @param {number} att
-    * @param {number}  attPoint
-    * @param {WebGLRenderingContextBase=}  gl
+    * @param {glsFboUtil.Attachment} att
+    * @param {number} attPoint
+    * @param {WebGLRenderingContextBase=} gl
     * @throws {Error} 
     */
     glsFboUtil.attachAttachment = function(att, attPoint, gl) {
@@ -769,17 +907,17 @@ goog.scope(function() {
         switch (att.type & mask) {
             case glsFboUtil.Config.s_types.ATT_RENDERBUFFER:
                 gl.framebufferRenderbuffer(
-                    att.target, attPoint, att.renderbufferTarget, att.imageName
+                    att.target, attPoint, att.renderbufferTarget, /** @type {WebGLRenderbuffer} */(att.imageName)
                 );
                 break;
             case glsFboUtil.Config.s_types.ATT_TEXTURE_FLAT:
                 gl.framebufferTexture2D(
-                    att.target, attPoint, att.texTarget, att.imageName, att.level
+                    att.target, attPoint, att.texTarget, /** @type {WebGLTexture} */(att.imageName), att.level
                 );
                 break;
             case glsFboUtil.Config.s_types.ATT_TEXTURE_LAYER:
                 gl.framebufferTextureLayer(
-                    att.target, attPoint, att.imageName, att.level, att.layer
+                    att.target, attPoint, /** @type {WebGLTexture} */(att.imageName), att.level, att.layer
                 );
                 break;
             default:
@@ -790,7 +928,7 @@ goog.scope(function() {
 
     
     /**  *generated by script*
-    * @param {number} att
+    * @param {glsFboUtil.Attachment} att
     * @param {WebGLRenderingContextBase=}  gl
     * @return {number} 
     * @throws {Error} 
@@ -805,13 +943,12 @@ goog.scope(function() {
             return gl.TEXTURE;
         }
         throw new Error('Impossible attachment type.');
-        return gl.NONE;
         
     };
     
     
-    /**  *generated by script*
-    * @param {number} att
+    /**
+    * @param {glsFboUtil.Attachment} att
     * @return {number} 
     * @throws {Error} 
     */
@@ -819,18 +956,17 @@ goog.scope(function() {
         if (att.type & glsFboUtil.Config.s_types.ATT_TEXTURE_FLAT)  return 0;
         if (att.type & glsFboUtil.Config.s_types.ATT_TEXTURE_LAYER) return att.layer;
         throw new Error('Impossible attachment type.');
-        return 0;
     };
     
     
     
-    /**  *generated by script*
-    * @param {number} cctx
-    * @param {number}  att
-    * @param {number}  attPoint
-    * @param {number}  image
-    * @param {number}  db
-    * @param {WebGLRenderingContextBase=}  gl
+    /**
+    * @param {glsFboUtil.Checker} cctx
+    * @param {glsFboUtil.Attachment}  att
+    * @param {number} attPoint
+    * @param {glsFboUtil.Image} image
+    * @param {glsFboUtil.FormatDB} db
+    * @param {WebGLRenderingContextBase=} gl
     * @throws {Error} 
     */
     glsFboUtil.checkAttachmentCompleteness = function(cctx, att, attPoint, image, db, gl) {
@@ -908,72 +1044,85 @@ goog.scope(function() {
     };
     
     
-    /**  *generated by script*
-    * @param {number} attachments
-    * @param {number}  textures
-    * @param {number}  rbos
+    /**
+    * A framebuffer configuration
+    * @constructor
     * @param {WebGLRenderingContextBase=}  gl
     */
-    glsFboUtil.Framebuffer = function(attachments, textures, rbos, gl) {
-        this.attachments = attachments  || {};
-        this.textures    = textures     || {};
-        this.rbos        = rbos         || {};
-        this.m_gl        = gl           || gl;
+    glsFboUtil.Framebuffer = function(gl) {
+        this.m_gl = gl || window.gl;
+        this.fbid = 0;
+        
+        var fbidCompare = function(obj1, obj2) {
+            return obj1._fbid < obj2._fbid;
+        };
+        
+        this.attachments = /** @type {glsFboUtil.Map<number,glsFboUtil.Attachment>} */(
+            new glsFboUtil.Map(glsFboUtil.Map.compareNumber)
+        );
+        this.textures = /** @type {glsFboUtil.Map<Object,glsFboUtil.Texture>} */(
+            new glsFboUtil.Map(fbidCompare)
+        );
+        this.rbos = /** @type {glsFboUtil.Map<Object,glsFboUtil.Renderbuffer>} */(
+            new glsFboUtil.Map(fbidCompare)
+        );
     };
     
     /**  *generated by script*
     * @param {number} attPoint
-    * @param {number}  att
+    * @param {glsFboUtil.Attachment} att
     */
     glsFboUtil.Framebuffer.prototype.attach = function(attPoint, att) {
         if (!att) {
-            delete this.attachments[attPoint];
+            this.attachments.remove(attPoint);
         } else {
-            this.attachments[attPoint] = att;
+            this.attachments.set(attPoint, att);
         }
     };
     
     /**  *generated by script*
-    * @param {number} texName
-    * @param {number}  texCfg
+    * @param {WebGLTexture} texName
+    * @param {glsFboUtil.Texture} texCfg
     */
     glsFboUtil.Framebuffer.prototype.setTexture = function(texName, texCfg) {
-        this.textures[texName] = texCfg;
+        texName._fbid = this.fbid++;
+        this.textures.set(texName, texCfg);
     };
     
     /**  *generated by script*
-    * @param {number} rbName
-    * @param {number}  rbCfg
+    * @param {WebGLRenderbuffer} rbName
+    * @param {glsFboUtil.Renderbuffer}  rbCfg
     */
     glsFboUtil.Framebuffer.prototype.setRbo = function(rbName, rbCfg) {
-        this.rbos[rbName] = rbCfg;
+        rbName._fbid = this.fbid++;
+        this.rbos.set(rbName, rbCfg);
     };
     
     /**  *generated by script*
     * @param {number} type
-    * @param {number}  imgName
-    * @return {number} 
+    * @param {WebGLObject}  imgName
+    * @return {glsFboUtil.Image} 
     * @throws {Error} 
     */
     glsFboUtil.Framebuffer.prototype.getImage = function(type, imgName) {
         switch (type) {
-            case this.m_gl.TEXTURE: return glsFboUtil.lookupDefault(this.textures, imgName, null);
-            case this.m_gl.RENDERBUFFER: return glsFboUtil.lookupDefault(this.rbos, imgName, null);
-            default: throw new Error ('Bad image type.');
+            case this.m_gl.TEXTURE: return this.textures.lookupDefault(/** @type {WebGLTexture} */(imgName), null);
+            case this.m_gl.RENDERBUFFER: return this.rbos.lookupDefault(/** @type {WebGLTexture} */(imgName), null);
+            default: break;
         }
-        return null;
+        throw new Error ('Bad image type.');
     };
     
     
     /**
     * @constructor
     * @extends {glsFboUtil.Framebuffer}
-    * @param {WebGLObject} fbo
+    * @param {WebGLFramebuffer} fbo
     * @param {number} target
     * @param {WebGLRenderingContextBase=} gl
     */
     glsFboUtil.FboBuilder = function(fbo, target, gl) {
-        glsFboUtil.Framebuffer.call(this);
+        glsFboUtil.Framebuffer.call(this, gl);
         
         this.m_gl      = gl || window.gl;
         this.m_target  = target;
@@ -988,24 +1137,24 @@ goog.scope(function() {
     glsFboUtil.FboBuilder.prototype.constructor = glsFboUtil.FboBuilder;
     
     glsFboUtil.FboBuilder.prototype.deinit = function() {
+       // TODO: use Map object functions
         for (var name in this.textures) {
             glsFboUtil.glsup.remove(this.textures[name], name, this.m_gl);
         }
         for (var name in this.rbos) {
             glsFboUtil.glsup.remove(this.rbos[name], name, this.m_gl);
         }
-        this.m_gl.bindFramebuffer(this.m_target, 0);
+        this.m_gl.bindFramebuffer(this.m_target, null);
 /*
         for (var i = 0 ; i < this.m_configs.length ; ++i) {
             delete this.m_configs[i];
         }
 //*/
     };
-        
-    // GLenum attPoint, const glsFboUtil.Attachment* att
-    /**  *generated by script*
+    
+    /**
     * @param {number} attPoint
-    * @param {number}  att
+    * @param {glsFboUtil.Attachment}  att
     */
     glsFboUtil.FboBuilder.prototype.glAttach = function(attPoint, att) {
         if (!att) {
@@ -1017,10 +1166,9 @@ goog.scope(function() {
         this.attach(attPoint, att);
     };
         
-    // const glsFboUtil.Texture& texCfg
-    /**  *generated by script*
+    /**
     * @param {glsFboUtil.Texture} texCfg
-    * @return {number} 
+    * @return {WebGLTexture} 
     */
     glsFboUtil.FboBuilder.prototype.glCreateTexture = function(texCfg) {
         var texName = glsFboUtil.glsup.create(texCfg, this.m_gl);
@@ -1029,11 +1177,9 @@ goog.scope(function() {
         return texName;
     };
         
-    // const Renderbuffer& rbCfg
-    
     /**  *generated by script*
     * @param {glsFboUtil.Renderbuffer} rbCfg
-    * @return {number} 
+    * @return {WebGLRenderbuffer} 
     */
     glsFboUtil.FboBuilder.prototype.glCreateRbo = function(rbCfg) {
         var rbName = glsFboUtil.glsup.create(rbCfg, this.m_gl);
@@ -1041,9 +1187,6 @@ goog.scope(function() {
         this.setRbo(rbName, rbCfg);
         return rbName;
     };
-    
-    // Due to lazy memory management in javascript, this function isnt really
-    // needed anymore. Yet it persists here regardless.
     
     /**
     * @param {function(new:glsFboUtil.Config)} Definition
@@ -1056,7 +1199,7 @@ goog.scope(function() {
     };
         
     
-    /**  *generated by script*
+    /**
     */
     glsFboUtil.FboBuilder.prototype.checkError = function() {
         var error = this.m_gl.getError();
@@ -1120,7 +1263,7 @@ goog.scope(function() {
     };
     
     /**  *generated by script*
-    * @return {number} 
+    * @return {Array<number>} 
     */
     glsFboUtil.Checker.prototype.getStatusCodes = function() {
         return this.m_statusCodes;
@@ -1128,28 +1271,16 @@ goog.scope(function() {
     
     
     
-    
-    /**  *generated by script*
-    * @throws {Error} 
-    */
-    glsFboUtil.CheckerFactory = function() {
-        if (typeof(this.createChecker) != 'function')
-            throw new Error('Unimplemented virtual function: glsFboUtil.CheckerFactory::createChecker');
-    };
-    
-    
-    
-    
     /**
-    * @param {number} imgFormat
+    * @param {glsFboUtil.ImageFormat} imgFormat
     * @param {WebGLRenderingContextBase=}  gl
-    * @return {number} 
+    * @return {gluTextureUtil.TransferFormat} 
     * @throws {Error} 
     */
     glsFboUtil.transferImageFormat = function(imgFormat, gl) {
         if (!(gl = gl || window.gl)) throw new Error('Invalid gl object');
         if (imgFormat.unsizedType == gl.NONE)
-            return gluTextureUtil.getTransferFormat(mapGLInternalFormat(imgFormat.format));
+            return gluTextureUtil.getTransferFormat(gluTextureUtil.mapGLInternalFormat(imgFormat.format));
         else
             return new gluTextureUtil.TransferFormat(imgFormat.format, imgFormat.unsizedType);
     };
@@ -1172,26 +1303,23 @@ goog.scope(function() {
         /** @type {glsFboUtil.Checker} */
         var cctx = this.m_factory();
         
-        for (var id in cfg.textures) {
-            id = parseInt(id);
-            var flags = this.m_formats.getFormatInfo(cfg.textures[id], glsFboUtil.FormatFlags.ANY_FORMAT);
+        for (var id = 0 ; id < cfg.textures.length ; ++id) {
+            var flags = this.m_formats.getFormatInfo(cfg.textures.getIndex(id).second, glsFboUtil.FormatFlags.ANY_FORMAT);
             var textureIsValid = (flags & glsFboUtil.FormatFlags.TEXTURE_VALID) != 0;
             cctx.require(textureIsValid, gl.INVALID_ENUM);
             cctx.require(textureIsValid, gl.INVALID_OPERATION);
             cctx.require(textureIsValid, gl.INVALID_VALUE);
         }
         
-        for (var id in cfg.rbos) {
-            id = parseInt(id);
-            var flags = this.m_formats.getFormatInfo(cfg.rbos[id], glsFboUtil.FormatFlags.ANY_FORMAT);
+        for (var id = 0 ; id < cfg.rbos.length ; ++id) {
+            var flags = this.m_formats.getFormatInfo(cfg.rbos.getIndex(id).second, glsFboUtil.FormatFlags.ANY_FORMAT);
             var rboIsValid = (flags & glsFboUtil.FormatFlags.RENDERBUFFER_VALID) != 0;
             cctx.require(rboIsValid, gl.INVALID_ENUM);
         }
         
         var count = 0;
-        for (var attPoint in cfg.attachments) {
-            var att = cfg.attachments[attPoint];
-            attPoint = parseInt(attPoint);
+        for (var attPoint = 0 ; attPoint < cfg.attachments.length ; ++attPoint) {
+            var att = cfg.attachments.getIndex(attPoint).second;
             /** @type{glsFboUtil.Image}*/
             var image = cfg.getImage(glsFboUtil.attachmentType(att, gl), att.imageName);
             glsFboUtil.checkAttachmentCompleteness(cctx, att, attPoint, image, this.m_formats, gl);

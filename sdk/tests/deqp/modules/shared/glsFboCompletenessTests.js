@@ -650,7 +650,7 @@ goog.scope(function() {
             default:
                 throw new Error('Impossible case');
         }
-        image.unternalFormat = format;
+        image.internalFormat = format;
         image.width = width;
         image.height = height;
         return image;
@@ -814,14 +814,14 @@ goog.scope(function() {
     
     
     /**
-    * @typedef {{attPoint: number, bufType: number, format: number}}
+    * @typedef {{attPoint: number, bufType: number, format: glsFboUtil.ImageFormat}}
     */
     glsFboCompletenessTests.renderableParamsT;
     
     /**
     * @param {number} attPoint
     * @param {number} bufType
-    * @param {number} format
+    * @param {glsFboUtil.ImageFormat} format
     * @return {glsFboCompletenessTests.renderableParamsT}
     */
     glsFboCompletenessTests.renderableParams = function(attPoint,bufType,format) {

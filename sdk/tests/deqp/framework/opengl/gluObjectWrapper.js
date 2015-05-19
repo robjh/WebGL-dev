@@ -114,5 +114,9 @@ goog.scope(function() {
     };
     gluObjectWrapper.Framebuffer.prototype = Object.create(gluObjectWrapper.ObjectWrapper.prototype);
     gluObjectWrapper.Framebuffer.prototype.constructor = gluObjectWrapper.Framebuffer;
-
+    
+    /**
+    * @return {WebGLFramebuffer} 
+    */
+    gluObjectWrapper.Framebuffer.prototype.get;
 });
