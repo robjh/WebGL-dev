@@ -3406,6 +3406,11 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
          */
         var transform = function(x, y) { return matrix.get(x, y); };
 
+        /** @type {number} */ var dX;
+        /** @type {number} */ var dY;
+        /** @type {number} */ var sX;
+        /** @type {number} */ var sY;
+
         if (mask & gl.COLOR_BUFFER_BIT) {
             /** @type {tcuTexture.PixelBufferAccess} */var src = tcuTextureUtil.getSubregion(this.getReadColorbuffer().toSinglesampleAccess(), srcRect[0], srcRect[1], 0, srcRect[2], srcRect[3], 1);
             /** @type {tcuTexture.PixelBufferAccess} */var dst = tcuTextureUtil.getSubregion(this.getDrawColorbuffer().toSinglesampleAccess(), dstRect[0], dstRect[1], 0, dstRect[2], dstRect[3], 1);
@@ -3424,12 +3429,12 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
 
             for (var yo = 0; yo < dstRect[3]; yo++) {
                 for (var xo = 0; xo < dstRect[2]; xo++) {
-                    /** @type {number} */ var dX = xo + 0.5;
-                    /** @type {number} */ var dY = yo + 0.5;
+                    dX = xo + 0.5;
+                    dY = yo + 0.5;
 
                     // \note Only affine part is used.
-                    /** @type {number} */ var sX = transform(0, 0) * dX + transform(0, 1) * dY + transform(0, 2);
-                    /** @type {number} */ var sY = transform(1, 0) * dX + transform(1, 1) * dY + transform(1, 2);
+                    sX = transform(0, 0) * dX + transform(0, 1) * dY + transform(0, 2);
+                    sY = transform(1, 0) * dX + transform(1, 1) * dY + transform(1, 2);
 
                     // do not copy pixels outside the modified source region (modified by buffer intersection)
                     if (sX < 0.0 || sX >= srcRect[2] ||
@@ -3453,10 +3458,10 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
                 for (var xo = 0; xo < dstRect[2]; xo++) {
                     var sampleNdx = 0; // multisample read buffer case is already handled
 
-                    /** @type {number} */ var dX = xo + 0.5;
-                    /** @type {number} */ var dY = yo + 0.5;
-                    /** @type {number} */ var sX = transform(0, 0) * dX + transform(0, 1) * dY + transform(0, 2);
-                    /** @type {number} */ var sY = transform(1, 0) * dX + transform(1, 1) * dY + transform(1, 2);
+                    dX = xo + 0.5;
+                    dY = yo + 0.5;
+                    sX = transform(0, 0) * dX + transform(0, 1) * dY + transform(0, 2);
+                    sY = transform(1, 0) * dX + transform(1, 1) * dY + transform(1, 2);
 
                     sglrReferenceContext.writeDepthOnly(dst, sampleNdx, xo, yo, src.raw().getPixel(sampleNdx, Math.floor(sX), Math.floor(sY))[0]);
                 }
@@ -3471,10 +3476,10 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
                 for (var xo = 0; xo < dstRect[2]; xo++) {
                     var sampleNdx = 0; // multisample read buffer case is already handled
 
-                    /** @type {number} */ var dX = xo + 0.5;
-                    /** @type {number} */ var dY = yo + 0.5;
-                    /** @type {number} */ var sX = transform(0, 0) * dX + transform(0, 1) * dY + transform(0, 2);
-                    /** @type {number} */ var sY = transform(1, 0) * dX + transform(1, 1) * dY + transform(1, 2);
+                    dX = xo + 0.5;
+                    dY = yo + 0.5;
+                    sX = transform(0, 0) * dX + transform(0, 1) * dY + transform(0, 2);
+                    sY = transform(1, 0) * dX + transform(1, 1) * dY + transform(1, 2);
 
                     sglrReferenceContext.writeStencilOnly(dst, sampleNdx, xo, yo, src.raw().getPixelInt(sampleNdx, Math.floor(sX), Math.floor(sY))[3], this.m_stencil[rrDefs.FaceType.FACETYPE_FRONT].writeMask);
                 }
@@ -3846,7 +3851,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
 
         switch (pname) {
             case gl.TEXTURE_WRAP_S: {
-                /** @type {tcuTexture.WrapMode} */ var wrapS = sglrReferenceContext.mapGLWrapMode(value);
+                /** @type {?tcuTexture.WrapMode} */ var wrapS = sglrReferenceContext.mapGLWrapMode(value);
                 if (this.condtionalSetError(null == wrapS, gl.INVALID_VALUE))
                     return;
                 texture.getSampler().wrapS = wrapS;
@@ -3854,7 +3859,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
             }
 
             case gl.TEXTURE_WRAP_T: {
-                /** @type {tcuTexture.WrapMode} */ var wrapT = sglrReferenceContext.mapGLWrapMode(value);
+                /** @type {?tcuTexture.WrapMode} */ var wrapT = sglrReferenceContext.mapGLWrapMode(value);
                 if (this.condtionalSetError(null == wrapT, gl.INVALID_VALUE))
                     return;
                 texture.getSampler().wrapT = wrapT;
@@ -3862,7 +3867,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
             }
 
             case gl.TEXTURE_WRAP_R: {
-                /** @type {tcuTexture.WrapMode} */ var wrapR = sglrReferenceContext.mapGLWrapMode(value);
+                /** @type {?tcuTexture.WrapMode} */ var wrapR = sglrReferenceContext.mapGLWrapMode(value);
                 if (this.condtionalSetError(null == wrapR, gl.INVALID_VALUE))
                     return;
                 texture.getSampler().wrapR = wrapR;
