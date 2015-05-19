@@ -1003,7 +1003,7 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
         var numPackets = packet.length;
         /** @const {number} */ var gradientMin = this.u_minGradient.value[0];
         /** @const {number} */ var gradientMax = this.u_maxGradient.value[0];
-        /** @type {Array<number>} */ var color = deMath.clampVector(this.u_color.value, 1);
+        /** @type {Array<number>} */ var color = deMath.clampVector(this.u_color.value, 0, 1);
         /** @type {Array<number>} */ var icolor = es3fFboTestUtil.castVectorSaturate(color, tcuTexture.deTypes.deInt32);
         /** @type {Array<number>} */ var uicolor = es3fFboTestUtil.castVectorSaturate(color, tcuTexture.deTypes.deUint32);
 

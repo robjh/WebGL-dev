@@ -218,21 +218,22 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     */
     sglrReferenceContext.Texture = function(type) {
         // NamedObject.call(this, name);
-        this.m_type = type;
-        this.m_immutable = false;
-        this.m_baseLevel = 0;
-        this.m_maxLevel = 1000;
-        this.m_sampler = new tcuTexture.Sampler(tcuTexture.WrapMode.REPEAT_GL,
-                                                tcuTexture.WrapMode.REPEAT_GL,
-                                                tcuTexture.WrapMode.REPEAT_GL,
-                                                tcuTexture.FilterMode.NEAREST_MIPMAP_LINEAR,
-                                                tcuTexture.FilterMode.LINEAR,
-                                                0,
-                                                true,
-                                                tcuTexture.CompareMode.COMPAREMODE_NONE,
-                                                0,
-                                                [0, 0, 0, 0],
-                                                true);
+        /** @type {sglrReferenceContext.TextureType} */ this.m_type = type;
+        /** @type {boolean} */ this.m_immutable = false;
+        /** @type {number} */ this.m_baseLevel = 0;
+        /** @type {number} */ this.m_maxLevel = 1000;
+        /** @type {tcuTexture.Sampler} */ this.m_sampler = new tcuTexture.Sampler(
+            tcuTexture.WrapMode.REPEAT_GL,
+            tcuTexture.WrapMode.REPEAT_GL,
+            tcuTexture.WrapMode.REPEAT_GL,
+            tcuTexture.FilterMode.NEAREST_MIPMAP_LINEAR,
+            tcuTexture.FilterMode.LINEAR,
+            0,
+            true,
+            tcuTexture.CompareMode.COMPAREMODE_NONE,
+            0,
+            [0, 0, 0, 0],
+            true);
     };
 
     /**
@@ -296,7 +297,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     * @constructor
     */
     sglrReferenceContext.TextureLevelArray = function() {
-        this.m_data = [];
+        /** @type {Array<ArrayBuffer>} */ this.m_data = [];
         /** @type {Array<tcuTexture.PixelBufferAccess>} */ this.m_access = [];
     };
 
@@ -331,7 +332,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
      * @param {number} depth
      */
     sglrReferenceContext.TextureLevelArray.prototype.allocLevel = function(level, format, width, height, depth) {
-        var dataSize = format.getPixelSize() * width * height * depth;
+        /** @type {number} */ var dataSize = format.getPixelSize() * width * height * depth;
         if (this.hasLevel(level))
             this.clearLevel(level);
 
@@ -369,8 +370,8 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     */
     sglrReferenceContext.Texture2D = function() {
         sglrReferenceContext.Texture.call(this, sglrReferenceContext.TextureType.TYPE_2D);
-        this.m_view = new tcuTexture.Texture2DView(0, null);
-        this.m_levels = new sglrReferenceContext.TextureLevelArray();
+        /** @type {tcuTexture.Texture2DView} */ this.m_view = new tcuTexture.Texture2DView(0, null);
+        /** @type {sglrReferenceContext.TextureLevelArray} */ this.m_levels = new sglrReferenceContext.TextureLevelArray();
     };
 
 
@@ -405,23 +406,23 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
      * @return {boolean}
      */
     sglrReferenceContext.Texture2D.prototype.isComplete = function() {
-        var baseLevel = this.getBaseLevel();
+        /** @type {number} */ var baseLevel = this.getBaseLevel();
 
         if (this.hasLevel(baseLevel)) {
-            var level0 = this.getLevel(baseLevel);
+            /** @type {number} */ var level0 = this.getLevel(baseLevel);
             /** @type {boolean} */ var mipmap = sglrReferenceContext.isMipmapFilter(this.getSampler().minFilter);
 
             if (mipmap) {
-                var format = level0.getFormat();
-                var w = level0.getWidth();
-                var h = level0.getHeight();
-                var numLevels = Math.min(this.getMaxLevel() - baseLevel + 1, sglrReferenceContext.getNumMipLevels2D(w, h));
+                /** @type {tcuTexture.TextureFormat} */ var format = level0.getFormat();
+                /** @type {number} */ var w = level0.getWidth();
+                /** @type {number} */ var h = level0.getHeight();
+                /** @type {number} */ var numLevels = Math.min(this.getMaxLevel() - baseLevel + 1, sglrReferenceContext.getNumMipLevels2D(w, h));
 
                 for (var levelNdx = 1; levelNdx < numLevels; levelNdx++) {
                     if (this.hasLevel(baseLevel + levelNdx)) {
-                        var level = this.getLevel(baseLevel + levelNdx);
-                        var expectedW = sglrReferenceContext.getMipLevelSize(w, levelNdx);
-                        var expectedH = sglrReferenceContext.getMipLevelSize(h, levelNdx);
+                        /** @type {number} */ var level = this.getLevel(baseLevel + levelNdx);
+                        /** @type {number} */ var expectedW = sglrReferenceContext.getMipLevelSize(w, levelNdx);
+                        /** @type {number} */ var expectedH = sglrReferenceContext.getMipLevelSize(h, levelNdx);
 
                         if (level.getWidth() != expectedW ||
                             level.getHeight() != expectedH ||
@@ -440,14 +441,14 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     /**
      */
     sglrReferenceContext.Texture2D.prototype.updateView = function() {
-        var baseLevel = this.getBaseLevel();
+        /** @type {number} */ var baseLevel = this.getBaseLevel();
 
         if (this.hasLevel(baseLevel) && !this.getLevel(baseLevel).isEmpty()) {
             // Update number of levels in mipmap pyramid.
-            var width = this.getLevel(baseLevel).getWidth();
-            var height = this.getLevel(baseLevel).getHeight();
-            var isMipmap = sglrReferenceContext.isMipmapFilter(this.getSampler().minFilter);
-            var numLevels = isMipmap ? Math.min(this.getMaxLevel() - baseLevel + 1, sglrReferenceContext.getNumMipLevels2D(width, height)) : 1;
+            /** @type {number} */ var width = this.getLevel(baseLevel).getWidth();
+            /** @type {number} */ var height = this.getLevel(baseLevel).getHeight();
+            /** @type {boolean} */ var isMipmap = sglrReferenceContext.isMipmapFilter(this.getSampler().minFilter);
+            /** @type {number} */ var numLevels = isMipmap ? Math.min(this.getMaxLevel() - baseLevel + 1, sglrReferenceContext.getNumMipLevels2D(width, height)) : 1;
 
             this.m_view = new tcuTexture.Texture2DView(numLevels, this.m_levels.getLevels().slice(baseLevel));
         } else
@@ -467,25 +468,25 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     * @return {Array<Array<number>>} 4 vec4 samples
     */
     sglrReferenceContext.Texture2D.prototype.sample4 = function(packetTexcoords, lodBias_) {
-        var lodBias = lodBias_ || 0;
-        var texWidth = this.m_view.getWidth();
-        var texHeight = this.m_view.getHeight();
-        var output = [];
+        /** @type {number} */ var lodBias = lodBias_ || 0;
+        /** @type {number} */ var texWidth = this.m_view.getWidth();
+        /** @type {number} */ var texHeight = this.m_view.getHeight();
+        /** @type {Array<Array<number>>}*/ var output = [];
 
-        var dFdx0 = deMath.subtract(packetTexcoords[1], packetTexcoords[0]);
-        var dFdx1 = deMath.subtract(packetTexcoords[3], packetTexcoords[2]);
-        var dFdy0 = deMath.subtract(packetTexcoords[2], packetTexcoords[0]);
-        var dFdy1 = deMath.subtract(packetTexcoords[3], packetTexcoords[1]);
+        /** @type {Array<number>}*/ var dFdx0 = deMath.subtract(packetTexcoords[1], packetTexcoords[0]);
+        /** @type {Array<number>}*/ var dFdx1 = deMath.subtract(packetTexcoords[3], packetTexcoords[2]);
+        /** @type {Array<number>}*/ var dFdy0 = deMath.subtract(packetTexcoords[2], packetTexcoords[0]);
+        /** @type {Array<number>}*/ var dFdy1 = deMath.subtract(packetTexcoords[3], packetTexcoords[1]);
 
         for (var fragNdx = 0; fragNdx < 4; ++fragNdx) {
-            var dFdx = (fragNdx & 2) ? dFdx1 : dFdx0;
-            var dFdy = (fragNdx & 1) ? dFdy1 : dFdy0;
+            /** @type {Array<number>}*/var dFdx = (fragNdx & 2) ? dFdx1 : dFdx0;
+            /** @type {Array<number>}*/var dFdy = (fragNdx & 1) ? dFdy1 : dFdy0;
 
-            var mu = Math.max(Math.abs(dFdx[0]), Math.abs(dFdy[0]));
-            var mv = Math.max(Math.abs(dFdx[1]), Math.abs(dFdy[1]));
-            var p = Math.max(mu * texWidth, mv * texHeight);
+            /** @type {number} */ var mu = Math.max(Math.abs(dFdx[0]), Math.abs(dFdy[0]));
+            /** @type {number} */ var mv = Math.max(Math.abs(dFdx[1]), Math.abs(dFdy[1]));
+            /** @type {number} */ var p = Math.max(mu * texWidth, mv * texHeight);
 
-            var lod = Math.log2(p) + lodBias;
+            /** @type {number} */ var lod = Math.log2(p) + lodBias;
 
             output.push(this.sample([packetTexcoords[fragNdx][0], packetTexcoords[fragNdx][1]], lod));
         }
@@ -498,8 +499,8 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     * @constructor
     */
     sglrReferenceContext.TextureContainer = function() {
-        this.texture = null;
-        this.textureType = null;
+        /** @type {sglrReferenceContext.Texture2D} */ this.texture = null;
+        /** @ype {sglrReferenceContext.TextureType} */ this.textureType = null;
     };
 
     /**
@@ -622,15 +623,15 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         /** @type {?sglrReferenceContext.AttachmentType} */ this.type = null;
         this.object = null;
         /** @type {?sglrReferenceContext.TexTarget} */ this.texTarget = null;
-        this.level = 0;
-        this.layer = 0;
+        /** @type {number} */ this.level = 0;
+        /** @type {number} */ this.layer = 0;
     };
 
     /**
     * @constructor
     */
     sglrReferenceContext.Framebuffer = function() {
-        this.m_attachments = [];
+        /** @type {Array<sglrReferenceContext.Attachment>} */ this.m_attachments = [];
         for (var key in sglrReferenceContext.AttachmentPoint)
             this.m_attachments[sglrReferenceContext.AttachmentPoint[key]] = new sglrReferenceContext.Attachment();
     };
@@ -715,7 +716,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
 
         /** @type {sglrReferenceContext.DataBuffer} */ this.m_elementArrayBufferBinding = null;
 
-        this.m_arrays = [];
+        /** @type {Array<VertexAttribArray>} */this.m_arrays = [];
         for (var i = 0; i < maxVertexAttribs; i++)
             this.m_arrays.push(new VertexAttribArray());
     };
@@ -736,7 +737,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
      * @return {number}
      */
     sglrReferenceContext.DataBuffer.prototype.getSize = function() {
-        var size = 0;
+        /** @type {number} */ var size = 0;
         if (this.m_data)
             size = this.m_data.byteLength;
         return size;
@@ -751,9 +752,9 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
      * @param {ArrayBuffer|goog.NumberArray} data
      */
     sglrReferenceContext.DataBuffer.prototype.setData = function(data) {
-        var buffer;
-        var offset = 0;
-        var byteLength = data.byteLength;
+        /** @type {number} */ var buffer; // TODO: fix type
+        /** @type {number} */ var offset = 0;
+        /** @type {number} */ var byteLength = data.byteLength;
         if (data instanceof ArrayBuffer)
             buffer = data;
         else {
@@ -772,9 +773,9 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
      * @param {goog.NumberArray} data
      */
     sglrReferenceContext.DataBuffer.prototype.setSubData = function(offset, data) {
-        var buffer;
-        var srcOffset = 0;
-        var byteLength = data.byteLength;
+        /** @type {number} */ var buffer; // TODO: fix type
+        /** @type {number} */ var srcOffset = 0;
+        /** @type {number} */ var byteLength = data.byteLength;
         if (data instanceof ArrayBuffer)
             buffer = data;
         else {
@@ -785,8 +786,8 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         if (!buffer)
             throw new Error('Invalid buffer');
 
-        var src = new Uint8Array(buffer, srcOffset, byteLength);
-        var dst = new Uint8Array(this.m_data, offset, byteLength);
+        /** @type {goog.NumberArray} */ var src = new Uint8Array(buffer, srcOffset, byteLength);
+        /** @type {goog.NumberArray} */ var dst = new Uint8Array(this.m_data, offset, byteLength);
         dst.set(src);
     };
 
@@ -828,29 +829,29 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     * @constructor
     */
     sglrReferenceContext.TextureUnit = function() {
-        this.tex2DBinding = null;
-        this.texCubeBinding = null;
-        this.tex2DArrayBinding = null;
-        this.tex3DBinding = null;
-        this.texCubeArrayBinding = null;
-        this.default2DTex = 0;
-        this.defaultCubeTex = 0;
-        this.default2DArrayTex = 0;
-        this.default3DTex = 0;
-        this.defaultCubeArrayTex = 0;
+        /** @type {number} */ this.tex2DBinding = null; // TODO: fix type
+        /** @type {number} */ this.texCubeBinding = null; // TODO: fix type
+        /** @type {number} */ this.tex2DArrayBinding = null; // TODO: fix type
+        /** @type {number} */ this.tex3DBinding = null; // TODO: fix type
+        /** @type {number} */ this.texCubeArrayBinding = null; // TODO: fix type
+        /** @type {number} */ this.default2DTex = 0;
+        /** @type {number} */ this.defaultCubeTex = 0;
+        /** @type {number} */ this.default2DArrayTex = 0;
+        /** @type {number} */ this.default3DTex = 0;
+        /** @type {number} */ this.defaultCubeArrayTex = 0;
     };
 
     /**
     * @constructor
     */
     sglrReferenceContext.StencilState = function() {
-        this.func = gl.ALWAYS;
-        this.ref = 0;
-        this.opMask = ~0;
-        this.opStencilFail = gl.KEEP;
-        this.opDepthFail = gl.KEEP;
-        this.opDepthPass = gl.KEEP;
-        this.writeMask = ~0;
+        /** @type {number} */ this.func = gl.ALWAYS;
+        /** @type {number} */ this.ref = 0;
+        /** @type {number} */ this.opMask = ~0;
+        /** @type {number} */ this.opStencilFail = gl.KEEP;
+        /** @type {number} */ this.opDepthFail = gl.KEEP;
+        /** @type {number} */ this.opDepthPass = gl.KEEP;
+        /** @type {number} */ this.writeMask = ~0;
     };
 
     /**
@@ -915,7 +916,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     * @param {number=} samples_
     */
     sglrReferenceContext.ReferenceContextBuffers = function(colorBits, depthBits, stencilBits, width, height, samples_) {
-        var samples = samples_;
+        /** @type {number} */ var samples = samples_;
         if (samples === undefined)
             samples = 1;
          /** @type {tcuTexture.TextureLevel} */ this.m_colorbuffer = new tcuTexture.TextureLevel(sglrReferenceContext.toTextureFormat(colorBits), samples, width, height);
@@ -1075,7 +1076,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     * @return {number} error
     */
     sglrReferenceContext.ReferenceContext.prototype.getError = function() {
-        var err = this.m_lastError;
+        /** @type {number} */ var err = this.m_lastError;
         this.m_lastError = gl.NO_ERROR;
         return err;
     };
@@ -1095,7 +1096,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     * @throws {Error}
     */
     sglrReferenceContext.ReferenceContext.prototype.bindTexture = function(target, texture) {
-        var unitNdx = this.m_activeTexture;
+        /** @type {number} */ var unitNdx = this.m_activeTexture;
 
         if (this.condtionalSetError((target != gl.TEXTURE_2D &&
                     target != gl.TEXTURE_CUBE_MAP &&
@@ -1120,7 +1121,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
                 texture.init(target);
             } else {
                 // Validate type.
-                var expectedType;
+                /** @tyé {sglrReferenceContext.TextureType} */ var expectedType;
                 switch (target) {
                     case gl.TEXTURE_2D: expectedType = sglrReferenceContext.TextureType.TYPE_2D; break;
                     case gl.TEXTURE_CUBE_MAP: expectedType = sglrReferenceContext.TextureType.TYPE_CUBE_MAP; break;
@@ -1176,7 +1177,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
                     target != gl.READ_FRAMEBUFFER), gl.INVALID_ENUM))
                     return;
         for (var ndx = 0; ndx < 2; ndx++) {
-            var bindingTarget = ndx ? gl.DRAW_FRAMEBUFFER : gl.READ_FRAMEBUFFER;
+            /** @type {number} */ var bindingTarget = ndx ? gl.DRAW_FRAMEBUFFER : gl.READ_FRAMEBUFFER;
 
             if (target != gl.FRAMEBUFFER && target != bindingTarget)
                 continue; // Doesn't match this target.
@@ -1364,8 +1365,8 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     * @param {number}  mask
     */
     sglrReferenceContext.ReferenceContext.prototype.stencilFuncSeparate = function(face, func, ref, mask) {
-        var setFront = face == gl.FRONT || face == gl.FRONT_AND_BACK;
-        var setBack = face == gl.BACK || face == gl.FRONT_AND_BACK;
+        /** @type {boolean} */ var setFront = face == gl.FRONT || face == gl.FRONT_AND_BACK;
+        /** @type {boolean} */ var setBack = face == gl.BACK || face == gl.FRONT_AND_BACK;
 
         if (this.condtionalSetError(!sglrReferenceContext.isValidCompareFunc(func), gl.INVALID_ENUM))
             return;
@@ -1373,7 +1374,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
             return;
 
         for (var key in rrDefs.FaceType) {
-            var type = rrDefs.FaceType[key];
+            /** @type {number} */ var type = rrDefs.FaceType[key];
             if ((type == rrDefs.FaceType.FACETYPE_FRONT && setFront) ||
                 (type == rrDefs.FaceType.FACETYPE_BACK && setBack)) {
                 this.m_stencil[type].func = func;
@@ -3515,9 +3516,9 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     };
 
     sglrReferenceContext.ReferenceContext.prototype.texImage3D = function(target, level, internalFormat, width, height, depth, border, format, type, pixels) {
-        var unit = this.m_textureUnits[this.m_activeTexture];
-        var data = null;
-        var offset = 0;
+        /** @type {sglrReferenceContext.TextureUnit} */var unit = this.m_textureUnits[this.m_activeTexture];
+        /** @type {ArrayBuffer} */ var data = null;
+        /** @type {number} */ var offset = 0;
         if (this.m_pixelUnpackBufferBinding) {
             if (this.condtionalSetError(typeof pixels !== 'number', gl.INVALID_VALUE))
                 return;
@@ -3532,7 +3533,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
                 offset = pixels.byteOffset;
             }
         }
-        var isDstFloatDepthFormat = (internalFormat == gl.DEPTH_COMPONENT32F || internalFormat == gl.DEPTH32F_STENCIL8); // depth components are limited to [0,1] range
+        /** @type {boolean} */ var isDstFloatDepthFormat = (internalFormat == gl.DEPTH_COMPONENT32F || internalFormat == gl.DEPTH32F_STENCIL8); // depth components are limited to [0,1] range
 
         if (this.condtionalSetError(border != 0, gl.INVALID_VALUE))
             return;
@@ -3540,12 +3541,12 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
             return;
 
         // Map storage format.
-        var storageFmt = sglrReferenceContext.mapInternalFormat(internalFormat);
+        /** @type {tcuTexture.TextureFormat} */ var storageFmt = sglrReferenceContext.mapInternalFormat(internalFormat);
         if (this.condtionalSetError(!storageFmt, gl.INVALID_ENUM))
             return;
 
         // Map transfer format.
-        var transferFmt = gluTextureUtil.mapGLTransferFormat(format, type);
+        /** @type {tcuTexture.TextureFormat} */ var transferFmt = gluTextureUtil.mapGLTransferFormat(format, type);
         if (this.condtionalSetError(!transferFmt, gl.INVALID_ENUM))
             return;
 
@@ -3556,14 +3557,16 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
             if (this.condtionalSetError(level > Math.log2(this.m_limits.maxTexture2DSize), gl.INVALID_VALUE))
                 return;
 
+            /** @type {sglrReferenceContext.Texture2D} */
             var texture = unit.tex2DBinding.texture;
 
             if (texture.isImmutable()) {
                 if (this.condtionalSetError(!texture.hasLevel(level), gl.INVALID_OPERATION))
                     return;
 
-                var texLevel = texture.getLevel(level);
+                /** @type {tcuTexture.ConstPixelBufferAccess} */
                 var dst = tcuTexture.PixelBufferAccess.newFromTextureLevel(texture.getLevel(level));
+
                 if (this.condtionalSetError(storageFmt != dst.getFormat() ||
                             width != dst.getWidth() ||
                             height != dst.getHeight(), gl.INVALID_OPERATION))
@@ -3572,6 +3575,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
                 texture.allocLevel(level, storageFmt, width, height);
 
             if (data) {
+                /** @type {tcuTexture.PixelBufferAccess} */
                 var src = new tcuTexture.PixelBufferAccess({
                     format: transferFmt,
                     width: width,
@@ -3794,7 +3798,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     * @param {number}  value
     */
     sglrReferenceContext.ReferenceContext.prototype.texParameteri = function(target, pname, value) {
-        var unit = this.m_textureUnits[this.m_activeTexture];
+        /** @type {sglrReferenceContext.TextureUni} */ var unit = this.m_textureUnits[this.m_activeTexture];
         var container = null;
 
         switch (target) {
@@ -3809,6 +3813,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         if (!container)
             return;
 
+        /** @type {sglrReferenceContext.Texture} */
         var texture = container.texture;
 
         switch (pname) {
