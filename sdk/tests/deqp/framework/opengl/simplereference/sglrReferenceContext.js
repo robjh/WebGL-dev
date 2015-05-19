@@ -2908,7 +2908,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     * @param {number} target
     * @param {number}  attachment
     * @param {sglrReferenceContext.TexTarget}  textarget
-    * @param {sglrReferenceContext.Texture}  texture
+    * @param {sglrReferenceContext.TextureContainer}  texture
     * @param {number}  level
     * @throws {Error}
     */
