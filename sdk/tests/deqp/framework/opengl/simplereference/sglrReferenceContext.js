@@ -2419,14 +2419,14 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         /** @type {boolean} */ var dimensionsOk = true;
 
         for (var key in sglrReferenceContext.AttachmentPoint) {
-            /** @type {number} */ var point = sglrReferenceContext.AttachmentPoint[key];
+            /** @type {sglrReferenceContext.AttachmentPoint} */ var point = sglrReferenceContext.AttachmentPoint[key];
             /** @type {sglrReferenceContext.Attachment} */ var attachment = framebufferBinding.getAttachment(point);
             /** @type {number} */ var attachmentWidth = 0;
             /** @type {number} */ var attachmentHeight = 0;
             /** @type {tcuTexture.TextureFormat} */ var attachmentFormat;
 
             if (attachment.type == sglrReferenceContext.AttachmentType.ATTACHMENTTYPE_TEXTURE) {
-                /** @type {sglrReferenceContext.TextureContainer} */ var container = attachment.object;
+                /** @type {sglrReferenceContext.TextureContainer} */ var container = /** @type {sglrReferenceContext.TextureContainer} */ (attachment.object);
                 /** @type {tcuTexture.ConstPixelBufferAccess} */ var level;
 
                 if (attachment.texTarget == sglrReferenceContext.TexTarget.TEXTARGET_2D) {
@@ -2442,6 +2442,8 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
                     var texCube = container.texture; // TODO: add type or remove if TextureCube will not be implemented
                     var face = sglrReferenceContext.texTargetToFace(attachment.texTarget);
 
+                    //TODO: Implement hasFace for cube maps
+                    /** @type {sglrReferenceContext.TextureContainer} */
                     if (texCube.hasFace(attachment.level, face))
                         level = texCube.getFace(attachment.level, face);
                 } else if (attachment.texTarget == sglrReferenceContext.TexTarget.TEXTARGET_2D_ARRAY) {
