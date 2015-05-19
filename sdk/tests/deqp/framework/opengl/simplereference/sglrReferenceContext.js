@@ -752,7 +752,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
      * @param {ArrayBuffer|goog.NumberArray} data
      */
     sglrReferenceContext.DataBuffer.prototype.setData = function(data) {
-        /** @type {number} */ var buffer; // TODO: fix type
+        /** @type {ArrayBuffer} */ var buffer;
         /** @type {number} */ var offset = 0;
         /** @type {number} */ var byteLength = data.byteLength;
         if (data instanceof ArrayBuffer)
@@ -773,7 +773,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
      * @param {goog.NumberArray} data
      */
     sglrReferenceContext.DataBuffer.prototype.setSubData = function(offset, data) {
-        /** @type {number} */ var buffer; // TODO: fix type
+        /** @type {ArrayBuffer} */ var buffer;
         /** @type {number} */ var srcOffset = 0;
         /** @type {number} */ var byteLength = data.byteLength;
         if (data instanceof ArrayBuffer)
@@ -3564,7 +3564,8 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
                 if (this.condtionalSetError(!texture.hasLevel(level), gl.INVALID_OPERATION))
                     return;
 
-                dst = tcuTexture.PixelBufferAccess.newFromTextureLevel(texture.getLevel(level));
+                //NOTE: replaces this: var dst = tcuTexture.PixelBufferAccess.newFromTextureLevel(texture.getLevel(level));
+                dst = texture.getLevel(level);
 
                 if (this.condtionalSetError(storageFmt != dst.getFormat() ||
                             width != dst.getWidth() ||
