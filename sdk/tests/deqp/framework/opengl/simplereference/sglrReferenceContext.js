@@ -2350,7 +2350,8 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
                     return texture.getLevel(attachment.level);
                 else if (type == sglrReferenceContext.TextureType.TYPE_CUBE_MAP)
                     //TODO: Implement getFace for cubemaps
-                    return texture.getFace(attachment.level, sglrReferenceContext.texTargetToFace(attachment.texTarget));
+                    //return texture.getFace(attachment.level, sglrReferenceContext.texTargetToFace(attachment.texTarget));
+                    throw new Error("Not implemented.");
                 else if (type == sglrReferenceContext.TextureType.TYPE_2D_ARRAY ||
                         type == sglrReferenceContext.TextureType.TYPE_3D ||
                         type == sglrReferenceContext.TextureType.TYPE_CUBE_MAP_ARRAY) {
@@ -2435,36 +2436,36 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
 
                     if (tex2D.hasLevel(attachment.level))
                         level = tex2D.getLevel(attachment.level);
-                } else if (deMath.deInRange32(attachment.texTarget, sglrReferenceContext.TexTarget.TEXTARGET_CUBE_MAP_POSITIVE_X,
-                                                        sglrReferenceContext.TexTarget.TEXTARGET_CUBE_MAP_NEGATIVE_Z)) {
-                    DE_ASSERT(container.textureType == sglrReferenceContext.TextureType.TYPE_CUBE_MAP);
-
-                    var texCube = container.texture; // TODO: add type or remove if TextureCube will not be implemented
-                    var face = sglrReferenceContext.texTargetToFace(attachment.texTarget);
-
-                    //TODO: Implement hasFace for cube maps
-                    if (texCube.hasFace(attachment.level, face))
-                        level = texCube.getFace(attachment.level, face);
-                } else if (attachment.texTarget == sglrReferenceContext.TexTarget.TEXTARGET_2D_ARRAY) {
-                    DE_ASSERT(container.textureType == sglrReferenceContext.TextureType.TYPE_2D_ARRAY);
-                    var tex2DArr = container.texture;
-
-                    if (tex2DArr.hasLevel(attachment.level))
-                        level = tex2DArr.getLevel(attachment.level); // \note Slice doesn't matter here.
-                } else if (attachment.texTarget == sglrReferenceContext.TexTarget.TEXTARGET_3D) {
-                    DE_ASSERT(container.textureType == sglrReferenceContext.TextureType.TYPE_3D);
-                    var tex3D = container.texture;
-
-                    if (tex3D.hasLevel(attachment.level))
-                        level = tex3D.getLevel(attachment.level); // \note Slice doesn't matter here.
-                } else if (attachment.texTarget == sglrReferenceContext.TexTarget.TEXTARGET_CUBE_MAP_ARRAY) {
-                    DE_ASSERT(container.textureType == sglrReferenceContext.TextureType.TYPE_CUBE_MAP_ARRAY);
-                    var texCubeArr = container.texture;
-
-                    if (texCubeArr.hasLevel(attachment.level))
-                        level = texCubeArr.getLevel(attachment.level); // \note Slice doesn't matter here.
+                // TODO: implement CUBE_MAP, 2D_ARRAY, 3D, CUBE_MAP_ARRAY
+                // } else if (deMath.deInRange32(attachment.texTarget, sglrReferenceContext.TexTarget.TEXTARGET_CUBE_MAP_POSITIVE_X,
+                //                                         sglrReferenceContext.TexTarget.TEXTARGET_CUBE_MAP_NEGATIVE_Z)) {
+                //     DE_ASSERT(container.textureType == sglrReferenceContext.TextureType.TYPE_CUBE_MAP);
+                //
+                //     var texCube = container.texture;
+                //     var face = sglrReferenceContext.texTargetToFace(attachment.texTarget);
+                //
+                //     if (texCube.hasFace(attachment.level, face))
+                //         level = texCube.getFace(attachment.level, face);
+                // } else if (attachment.texTarget == sglrReferenceContext.TexTarget.TEXTARGET_2D_ARRAY) {
+                //     DE_ASSERT(container.textureType == sglrReferenceContext.TextureType.TYPE_2D_ARRAY);
+                //     var tex2DArr = container.texture;
+                //
+                //     if (tex2DArr.hasLevel(attachment.level))
+                //         level = tex2DArr.getLevel(attachment.level); // \note Slice doesn't matter here.
+                // } else if (attachment.texTarget == sglrReferenceContext.TexTarget.TEXTARGET_3D) {
+                //     DE_ASSERT(container.textureType == sglrReferenceContext.TextureType.TYPE_3D);
+                //     var tex3D = container.texture;
+                //
+                //     if (tex3D.hasLevel(attachment.level))
+                //         level = tex3D.getLevel(attachment.level); // \note Slice doesn't matter here.
+                // } else if (attachment.texTarget == sglrReferenceContext.TexTarget.TEXTARGET_CUBE_MAP_ARRAY) {
+                //     DE_ASSERT(container.textureType == sglrReferenceContext.TextureType.TYPE_CUBE_MAP_ARRAY);
+                //     var texCubeArr = container.texture;
+                //
+                //     if (texCubeArr.hasLevel(attachment.level))
+                //         level = texCubeArr.getLevel(attachment.level); // \note Slice doesn't matter here.
                 } else
-                    throw new Error('sglrReferenceContext.Framebuffer attached to a texture but no valid target specified');
+                    throw new Error('sglrReferenceContext.Framebuffer attached to a texture but no valid target specified. Only TEXTARGET_2D is supported.');
 
                 attachmentWidth = level.getWidth();
                 attachmentHeight = level.getHeight();
