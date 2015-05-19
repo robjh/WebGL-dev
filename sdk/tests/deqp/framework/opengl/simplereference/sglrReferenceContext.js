@@ -700,20 +700,6 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
      * @param {number} maxVertexAttribs
      */
     sglrReferenceContext.VertexArray = function(maxVertexAttribs) {
-        /** @constructor */
-        var VertexAttribArray = function() {
-            this.enabled = false;
-            this.size = 4;
-            this.stride = 0;
-            this.type = gl.FLOAT;
-
-            this.normalized = false;
-            this.integer = false;
-            this.divisor = 0;
-            this.offset = 0;
-            this.bufferBinding = null;
-        };
-
         /** @type {sglrReferenceContext.DataBuffer} */ this.m_elementArrayBufferBinding = null;
 
         /** @type {Array<sglrReferenceContext.VertexArray.VertexAttribArray>} */this.m_arrays = [];
