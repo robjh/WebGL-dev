@@ -28,6 +28,7 @@ goog.require('framework.common.tcuTextureUtil');
 goog.require('framework.delibs.debase.deMath');
 goog.require('framework.opengl.gluShaderUtil');
 goog.require('framework.opengl.gluTextureUtil');
+goog.require('framework.opengl.simplereference.sglrGLContext');
 goog.require('framework.opengl.simplereference.sglrReferenceContext');
 goog.require('framework.opengl.simplereference.sglrShaderProgram');
 goog.require('framework.referencerenderer.rrFragmentOperations');
@@ -48,6 +49,7 @@ var rrShadingContext = framework.referencerenderer.rrShadingContext;
 var rrVertexPacket = framework.referencerenderer.rrVertexPacket;
 var rrVertexAttrib = framework.referencerenderer.rrVertexAttrib;
 var gluShaderUtil = framework.opengl.gluShaderUtil;
+var sglrGLContext = framework.opengl.simplereference.sglrGLContext;
 var sglrReferenceContext = framework.opengl.simplereference.sglrReferenceContext;
 var sglrShaderProgram = framework.opengl.simplereference.sglrShaderProgram;
 var rrGenericVector = framework.referencerenderer.rrGenericVector;
@@ -140,7 +142,7 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
     es3fFboTestUtil.FlatColorShader.prototype.constructor = es3fFboTestUtil.FlatColorShader;
 
     /**
-     * @param {(WebGL2RenderingContext|framework.opengl.simplereference.sglrGLContext.GLContext|framework.opengl.simplereference.sglrReferenceContext.ReferenceContext)} context
+     * @param {(WebGL2RenderingContext|sglrGLContext.GLContext|sglrReferenceContext.ReferenceContext)} context
      * @param program GL program object
      * @param {Array<number>} color
      */
@@ -1236,7 +1238,7 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
 
     /**
      * es3fFboTestUtil.readPixels()
-     * @param {(WebGL2RenderingContext|framework.opengl.simplereference.sglrGLContext.GLContext|framework.opengl.simplereference.sglrReferenceContext.ReferenceContext)} ctx
+     * @param {(WebGL2RenderingContext|sglrGLContext.GLContext|sglrReferenceContext.ReferenceContext)} ctx
      * @param {tcuSurface.Surface} dst
      * @param {number} x
      * @param {number} y
