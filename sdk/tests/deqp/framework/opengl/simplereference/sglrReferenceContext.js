@@ -2419,7 +2419,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         /** @type {boolean} */ var dimensionsOk = true;
 
         for (var key in sglrReferenceContext.AttachmentPoint) {
-            /** @type {number} */ var point = sglrReferenceContext.AttachmentPoint[key];
+            /** @type {sglrReferenceContext.AttachmentPoint} */ var point = sglrReferenceContext.AttachmentPoint[key];
             /** @type {sglrReferenceContext.Attachment} */ var attachment = framebufferBinding.getAttachment(point);
             /** @type {number} */ var attachmentWidth = 0;
             /** @type {number} */ var attachmentHeight = 0;
@@ -2667,7 +2667,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     * @param {number} writeMask
     */
     sglrReferenceContext.writeStencilOnly = function(access, s, x, y, stencil, writeMask) {
-        /** @type {Array<number>} */ var oldVal = access.raw().getPixelInt(s, x, y)[3];
+        /** @type {number} */ var oldVal = access.raw().getPixelInt(s, x, y)[3];
         access.raw().setPixStencil((oldVal & ~writeMask) | (stencil & writeMask), s, x, y);
     };
 
@@ -2690,7 +2690,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
         /** @type {rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess} */ var colorBuf0 = this.getDrawColorbuffer();
         /** @type {rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess} */ var depthBuf = this.getDrawDepthbuffer();
         /** @type {rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess} */ var stencilBuf = this.getDrawStencilbuffer();
-        /** @type {boolean} */ var hasColor0 = colorBuf0 && !colorBuf0.isEmpty();
+        /** @type {boolean} */ var hasColor0 = !colorBuf0.isEmpty();
         /** @type {boolean} */ var hasDepth = depthBuf && !depthBuf.isEmpty();
         /** @type {boolean} */ var hasStencil = stencilBuf && !stencilBuf.isEmpty();
         /** @type {Array<number>} */ var baseArea = this.m_scissorEnabled ? this.m_scissorBox : [0, 0, 0x7fffffff, 0x7fffffff];
@@ -2961,7 +2961,7 @@ var tcuMatrixUtil = framework.common.tcuMatrixUtil;
     * @param {number} target
     * @param {number}  attachment
     * @param {number}  renderbuffertarget
-    * @param {number}  renderbuffer
+    * @param {sglrReferenceContext.Renderbuffer}  renderbuffer
     */
     sglrReferenceContext.ReferenceContext.prototype.framebufferRenderbuffer = function(target, attachment, renderbuffertarget, renderbuffer) {
         if (attachment == gl.DEPTH_STENCIL_ATTACHMENT) {

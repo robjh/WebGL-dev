@@ -29,6 +29,8 @@ goog.require('framework.opengl.simplereference.sglrShaderProgram');
 goog.require('framework.referencerenderer.rrGenericVector');
 goog.require('framework.referencerenderer.rrVertexAttrib');
 goog.require('framework.referencerenderer.rrShadingContext');
+goog.require('framework.referencerenderer.rrVertexPacket');
+goog.require('framework.referencerenderer.rrFragmentOperations');
 
 goog.scope(function () {
     var sglrReferenceContextTest = framework.opengl.simplereference.sglrReferenceContextTest;
@@ -42,6 +44,8 @@ goog.scope(function () {
     var rrGenericVector = framework.referencerenderer.rrGenericVector;
     var rrVertexAttrib = framework.referencerenderer.rrVertexAttrib;
     var rrShadingContext = framework.referencerenderer.rrShadingContext;
+    var rrVertexPacket = framework.referencerenderer.rrVertexPacket;
+    var rrFragmentOperations = framework.referencerenderer.rrFragmentOperations;
     
     /**
      * @constructor
@@ -70,6 +74,7 @@ goog.scope(function () {
         ctx.clearColor(1, 0, 0, 1);
         ctx.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT|gl.STENCIL_BUFFER_BIT);
         var pixels = new tcuSurface.Surface(width, height);
+        //pixels = new Uint8Array(width * height * 4);
         ctx.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels.getAccess().getBuffer());
 		
 		var numFailedPixels = 0;
@@ -294,11 +299,11 @@ goog.scope(function () {
         
         progDecl.pushVertexAttribute(new sglrShaderProgram.VertexAttribute('aVertexColor', rrGenericVector.GenericVecType.FLOAT));
         
-        progDecl.pushVertexSource('');
+        progDecl.pushVertexSource(new sglrShaderProgram.VertexSource(''));
         
         progDecl.pushFragmentOutput(new sglrShaderProgram.FragmentOutput(rrGenericVector.GenericVecType.FLOAT));
         
-        progDecl.pushFragmentSource('');
+        progDecl.pushFragmentSource(new sglrShaderProgram.FragmentSource(''));
         
         /** @type {sglrReferenceContextTest.ContextShaderProgram} */ var program = new sglrReferenceContextTest.ContextShaderProgram(progDecl);
         
@@ -335,8 +340,7 @@ goog.scope(function () {
     /**
      * @constructor
      * @extends {sglrShaderProgram.ShaderProgram}
-     * @param {WebGLRenderingContextBase | sglrReferenceContext.ReferenceContext} ctx
-     * @param {Array<glsVertexArrayTests.ContextArray>} arrays
+     * @param {sglrShaderProgram.ShaderProgramDeclaration} progDecl
      */
     sglrReferenceContextTest.ContextShaderProgram = function(progDecl) {
         sglrShaderProgram.ShaderProgram.call(this, progDecl);
