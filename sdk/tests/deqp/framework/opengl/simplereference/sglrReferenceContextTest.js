@@ -74,8 +74,7 @@ goog.scope(function () {
         ctx.clearColor(1, 0, 0, 1);
         ctx.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT|gl.STENCIL_BUFFER_BIT);
         var pixels = new tcuSurface.Surface(width, height);
-        //pixels = new Uint8Array(width * height * 4);
-        ctx.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels.getAccess().getBuffer());
+        ctx.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels.getAccess().getDataPtr());
 		
 		var numFailedPixels = 0;
 		var redPixel = new gluDrawUtil.Pixel([255, 0, 0, 255]);
@@ -100,7 +99,7 @@ goog.scope(function () {
 		ctx.enable(gl.SCISSOR_TEST);
 		ctx.clearColor(0, 1, 1, 1);
 		ctx.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT|gl.STENCIL_BUFFER_BIT);
-		ctx.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels.getAccess().getBuffer());
+		ctx.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels.getAccess().getDataPtr());
 		
 		numFailedPixels = 0;
 		var greenBluePixel = new gluDrawUtil.Pixel([0, 255, 255, 255]);
@@ -165,7 +164,7 @@ goog.scope(function () {
         ctx.clearColor(1, 0, 0, 1);
         ctx.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT|gl.STENCIL_BUFFER_BIT);
         var pixels = new tcuSurface.Surface(width, height);
-        ctx.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels.getAccess().getBuffer());
+        ctx.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels.getAccess().getDataPtr());
         var numFailedPixels = 0;
 		var redPixel = new gluDrawUtil.Pixel([255, 0, 0, 255]);
 		for (var x = 0; x < width; x++)
@@ -187,7 +186,7 @@ goog.scope(function () {
         ctx.enable(gl.SCISSOR_TEST);
         ctx.clearColor(0, 1, 1, 1);
         ctx.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT|gl.STENCIL_BUFFER_BIT);
-        ctx.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels.getAccess().getBuffer());
+        ctx.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels.getAccess().getDataPtr());
         
         numFailedPixels = 0;
 		var greenBluePixel = new gluDrawUtil.Pixel([0, 255, 255, 255]);
@@ -215,7 +214,7 @@ goog.scope(function () {
             testPassedOptions('Image comparison succeed', true);
         
         ctx.bindFramebuffer(gl.FRAMEBUFFER, null);
-        ctx.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels.getAccess().getBuffer());
+        ctx.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels.getAccess().getDataPtr());
         
         var bluePixel = new gluDrawUtil.Pixel([0, 0, 255, 255]);
         for (var x = 0; x < width; x++)
@@ -327,7 +326,7 @@ goog.scope(function () {
         ctx.drawQuads(0, 1);
         
         var pixels = new tcuSurface.Surface(width, height);
-        ctx.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels.getAccess().getBuffer());
+        ctx.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels.getAccess().getDataPtr());
         
         var access = pixels.getAccess();
         
