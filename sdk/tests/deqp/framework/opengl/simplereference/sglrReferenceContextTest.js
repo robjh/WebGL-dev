@@ -279,11 +279,11 @@ goog.scope(function () {
         
         var colors = [
             1,0,0,1,
-            0,1,0,1,
-            0,0,1,1,
-            0,1,0,1,
-            1,1,1,1,
-            0,0,1,1
+            1,0,0,1,
+            1,0,0,1,
+            1,0,0,1,
+            1,0,0,1,
+            1,0,0,1
         ];
         
         var colors32 = new Float32Array(colors);
@@ -328,9 +328,28 @@ goog.scope(function () {
         var pixels = new tcuSurface.Surface(width, height);
         ctx.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels.getAccess().getDataPtr());
         
+        var numFailedPixels = 0;
+        
+        var redPixel = new gluDrawUtil.Pixel([255, 0, 0, 255]);
+        var bluePixel = new gluDrawUtil.Pixel([0, 0, 255, 255]);
+        
+        
+        var pixel = new gluDrawUtil.Pixel(pixels.getPixel(0, 0))
+        if (!pixel.equals(bluePixel))
+            numFailedPixels += 1;
+        
+        pixel = new gluDrawUtil.Pixel(pixels.getPixel(100, 94))
+        if (!pixel.equals(redPixel))
+            numFailedPixels += 1;
+        
         var access = pixels.getAccess();
         
         tcuImageCompare.displayImages(access, null, null);
+        
+        if (numFailedPixels > 0)
+            testFailedOptions('Image comparison failed, got ' + numFailedPixels + ' non-equal pixels.', false);
+        else
+            testPassedOptions('Image comparison succeed', true);
         
         return tcuTestCase.IterateResult.STOP;
     };
