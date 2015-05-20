@@ -1,1 +1,7 @@
-uniforms.html
+instancedrendering.html
+primitiverestart.html
+samplerobject.html
+textureformat.html
+transformfeedback.html
+uniformapi.html
+uniformbuffers.html
