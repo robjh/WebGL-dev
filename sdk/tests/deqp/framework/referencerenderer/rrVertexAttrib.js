@@ -250,11 +250,6 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
     };
 
     /**
-                0 -
-                    deMath.shiftLeft(
-                            ),
-                integer,
-
      * rrVertexAttrib.readHalf
      * @param {goog.NumberArray} dst
      * @param {number} size
@@ -521,7 +516,7 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
     };
 
     /**
-     * TODO: Implement missing rrVertexAttrib.read functions.
+     * TODO: Implement readSNormScale.
      * @param {goog.NumberArray} dst
      * @param {rrVertexAttrib.VertexAttribType} type
      * @param {number} size
