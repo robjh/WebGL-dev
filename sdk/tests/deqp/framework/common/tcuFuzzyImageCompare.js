@@ -177,9 +177,9 @@ var tcuTextureUtil = framework.common.tcuTextureUtil;
      */
     tcuFuzzyImageCompare.compareColors = function(pa, pb, minErrThreshold) {
         /** @type {number}*/ var r = Math.max(Math.abs(tcuFuzzyImageCompare.getChannel(pa, 0) - tcuFuzzyImageCompare.getChannel(pb, 0)) - minErrThreshold, 0);
-        /** @type {number}*/ var g = Math.max(Math.abs(tcuFuzzyImageCompare.getChannel(pa, 1) - tcuFuzzyImageCompare.getChannel(pb, 1)) - minErrThreshold, 1);
-        /** @type {number}*/ var b = Math.max(Math.abs(tcuFuzzyImageCompare.getChannel(pa, 2) - tcuFuzzyImageCompare.getChannel(pb, 2)) - minErrThreshold, 2);
-        /** @type {number}*/ var a = Math.max(Math.abs(tcuFuzzyImageCompare.getChannel(pa, 3) - tcuFuzzyImageCompare.getChannel(pb, 3)) - minErrThreshold, 3);
+        /** @type {number}*/ var g = Math.max(Math.abs(tcuFuzzyImageCompare.getChannel(pa, 1) - tcuFuzzyImageCompare.getChannel(pb, 1)) - minErrThreshold, 0);
+        /** @type {number}*/ var b = Math.max(Math.abs(tcuFuzzyImageCompare.getChannel(pa, 2) - tcuFuzzyImageCompare.getChannel(pb, 2)) - minErrThreshold, 0);
+        /** @type {number}*/ var a = Math.max(Math.abs(tcuFuzzyImageCompare.getChannel(pa, 3) - tcuFuzzyImageCompare.getChannel(pb, 3)) - minErrThreshold, 0);
 
         /** @type {number}*/ var scale = 1.0 / (255 - minErrThreshold);
         /** @type {number}*/ var sqSum = (r * r + g * g + b * b + a * a) * (scale * scale);
