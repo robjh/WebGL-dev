@@ -54,8 +54,8 @@ goog.scope(function() {
     var rrRenderState = framework.referencerenderer.rrRenderState;
     var sglrReferenceUtils = framework.opengl.simplereference.sglrReferenceUtils;
     var sglrShaderProgram = framework.opengl.simplereference.sglrShaderProgram;
-var tcuMatrix = framework.common.tcuMatrix;
-var tcuMatrixUtil = framework.common.tcuMatrixUtil;
+    var tcuMatrix = framework.common.tcuMatrix;
+    var tcuMatrixUtil = framework.common.tcuMatrixUtil;
 
     sglrReferenceContext.rrMPBA = rrMultisamplePixelBufferAccess;
 
