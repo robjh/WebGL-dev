@@ -130,7 +130,7 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
         /** @type {number} */ this.stride = 0;
         /** @type {number} */ this.instanceDivisor = 0;
         /** @type {ArrayBuffer} */ this.pointer = rrVertexAttrib.DE_NULL;
-        /** @type {Array<number>} */ this.generic; //!< Generic attribute, used if pointer is null.
+        /** @type {Array<number>|rrGenericVector.GenericVec4} */ this.generic; //!< Generic attribute, used if pointer is null.
     };
 
     /**
@@ -243,7 +243,7 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
 
             rrVertexAttrib.read(dst, vertexAttrib.type, vertexAttrib.size, new Uint8Array(vertexAttrib.pointer).subarray(byteOffset));
         } else {
-            dst = new Uint32Array(vertexAttrib.generic);
+            dst = new Uint32Array(/** @type {Array<number>} */ (vertexAttrib.generic));
         }
 
         return dst;

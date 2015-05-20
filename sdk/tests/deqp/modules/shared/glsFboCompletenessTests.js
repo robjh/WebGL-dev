@@ -410,23 +410,6 @@ goog.scope(function() {
         var extRange = glsFboUtil.rangeArray(glsFboCompletenessTests.s_esExtFormats);
         this.addExtFormats(extRange);
         
-        
-    /*
-    this.addExtFormats = function(extRange) {  };
-    this.createRenderableTests = function() {  };
-    this.createAttachmentTests = function() {  };
-    this.createSizeTests = function() {  };
-    //*/
-    /*
-                            glsFboCompletenessTests.Context                    (TestContext& testCtx,
-                                                     RenderContext& renderCtx,
-                                                     CheckerFactory& factory);
-                                                     
-    void                    addExtFormats            (FormatExtEntries extRange);
-    TestCaseGroup*            createRenderableTests    (void);
-    TestCaseGroup*            createAttachmentTests    (void);
-    TestCaseGroup*            createSizeTests            (void);
-        //*/
     };
     
     // RenderContext&
@@ -731,11 +714,6 @@ goog.scope(function() {
             
         return 'unknown value (' + status + ')';
     };
-  
-    // a quick note to work around the absense of these functions:
-//    glsFboCompletenessTests.TestBase.pass
-//    glsFboCompletenessTests.TestBase.warning
-//    glsFboCompletenessTests.TestBase.fail
     
     glsFboCompletenessTests.TestBase.prototype.iterate = function() {
         var gl = window.gl;
@@ -753,7 +731,7 @@ goog.scope(function() {
         var err = statuses[0];
     //  glsFboUtil.logFramebufferConfig(builder, this.m_testCtx.getLog());
         
-        builder.deinit(gl);
+        builder.deinit();
         
         var msg = '';
     //  msg += this.m_testCtx.getLog();
@@ -776,25 +754,23 @@ goog.scope(function() {
         if (!glsFboUtil.contains(statuses, glStatus)) {
             // the returned status value was not acceptable.
             if (glStatus == gl.FRAMEBUFFER_COMPLETE) {
-                testFailedOptions('Framebuffer checked as complete, expected incomplete');
+                testFailedOptions('Framebuffer checked as complete, expected incomplete', true);
             } else if (statuses.length == 1 && glsFboUtil.contains(statuses, gl.FRAMEBUFFER_COMPLETE)) {
-                testFailedOptions('Framebuffer checked as incomplete, expected complete');
+                testFailedOptions('Framebuffer checked as incomplete, expected complete', true);
             } else {
                 // An incomplete status is allowed, but not _this_ incomplete status.
-                testFailedOptions('Framebuffer checked as incomplete, but with wrong status');
+                testFailedOptions('Framebuffer checked as incomplete, but with wrong status', true);
             }
         } else if (
             glStatus != gl.FRAMEBUFFER_COMPLETE &&
             glsFboUtil.contains(statuses, gl.FRAMEBUFFER_COMPLETE)
         ) {
-            // TODO: handle this properly, it should result in the test issuing a warning
-            testFailedOptions('Framebuffer object could have checked as complete but did not.');
+            testFailedOptions('Framebuffer object could have checked as complete but did not.', true);
         } else {
             // pass
-            testPassed("");
+            testPassed(this.name + " " + this.description);
         }
         
-    //    return ret;
         return tcuTestCase.IterateResult.STOP;
     };
     
@@ -1036,13 +1012,5 @@ goog.scope(function() {
                                glsFboUtil.ImageFormat.none(), 128, 128, builder, gl);
         return true;
     };
-    
-    
-    /*
-    return {
-        glsFboCompletenessTests.Context:  glsFboCompletenessTests.Context,
-        glsFboCompletenessTests.TestBase: glsFboCompletenessTests.TestBase,
-    }
-    //*/
     
 });

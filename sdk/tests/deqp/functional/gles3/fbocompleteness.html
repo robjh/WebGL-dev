@@ -23,25 +23,19 @@
 
     var gldisable = function(name) {
         return function(a1,a2,a3,a4,a5,a6,a7,a8) {
-            var args = [name+'('];
+            var args = [];
             if (a1 !== undefined) { args.push(a1); if (a2 !== undefined) { args.push(a2);
             if (a3 !== undefined) { args.push(a3); if (a4 !== undefined) { args.push(a4);
             if (a5 !== undefined) { args.push(a5); if (a6 !== undefined) { args.push(a6);
             if (a7 !== undefined) { args.push(a7); if (a8 !== undefined) { args.push(a8);
-            }} }} }} }} // just some brackets. pretend theyre not here.
-            args.push(')');
-            console.log.apply(console, args);
+            }} }} }} }}
+            throw new Error('Buggy (browser crippling) implementation of: '+name+'('+args+')');
         };
     };
     gl.framebufferTextureLayer = gldisable('framebufferTextureLayer');
     
-//    gl.framebufferRenderbuffer = function(target, attachment, renderbuffertarget, renderbuffer) {
-//        if (name) gl.prototype.framebufferRenderbuffer.call(gl, target, name);
-//    };
-    
-    functional.gles3.es3fFboCompletenessTests.initGlDependents(gl);
-    
     try {
+        functional.gles3.es3fFboCompletenessTests.initGlDependents(gl);
         functional.gles3.es3fFboCompletenessTests.run(gl);
     }
     catch(err) {
