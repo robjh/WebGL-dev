@@ -49,6 +49,7 @@ var rrVertexPacket = framework.referencerenderer.rrVertexPacket;
 var rrVertexAttrib = framework.referencerenderer.rrVertexAttrib;
 var gluShaderUtil = framework.opengl.gluShaderUtil;
 var sglrReferenceContext = framework.opengl.simplereference.sglrReferenceContext;
+var sglrGLContext = framework.opengl.simplereference.sglrGLContext;
 var sglrShaderProgram = framework.opengl.simplereference.sglrShaderProgram;
 var rrGenericVector = framework.referencerenderer.rrGenericVector;
 var tcuMatrix = framework.common.tcuMatrix;
@@ -140,7 +141,7 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
     es3fFboTestUtil.FlatColorShader.prototype.constructor = es3fFboTestUtil.FlatColorShader;
 
     /**
-     * @param {(WebGL2RenderingContext|framework.opengl.simplereference.sglrGLContext.GLContext|framework.opengl.simplereference.sglrReferenceContext.ReferenceContext)} context
+     * @param {(WebGL2RenderingContext|sglrGLContext.GLContext|sglrReferenceContext.ReferenceContext)} context
      * @param program GL program object
      * @param {Array<number>} color
      */
@@ -1236,7 +1237,7 @@ es3fFboTestUtil.FboIncompleteException.prototype.getReason = function() {return 
 
     /**
      * es3fFboTestUtil.readPixels()
-     * @param {(WebGL2RenderingContext|framework.opengl.simplereference.sglrGLContext.GLContext|framework.opengl.simplereference.sglrReferenceContext.ReferenceContext)} ctx
+     * @param {(WebGL2RenderingContext|sglrGLContext.GLContext|sglrReferenceContext.ReferenceContext)} ctx
      * @param {tcuSurface.Surface} dst
      * @param {number} x
      * @param {number} y
