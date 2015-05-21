@@ -44,7 +44,8 @@ targets = {
     'fragOps': 'framework.referencerenderer.rrFragmentOperations',
     'renderer': 'framework.referencerenderer.rrRenderer',
 	'matrixUtil': 'framework.common.tcuMatrixUtil',
-    'sglrReferenceContextTest': 'framework.opengl.simplereference.sglrReferenceContextTest'
+    'sglrReferenceContextTest': 'framework.opengl.simplereference.sglrReferenceContextTest',
+    'texturewraptests': 'functional.gles3.es3fTextureWrapTests'
 }
 
 total_errors = 0

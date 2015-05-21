@@ -154,6 +154,25 @@ deMath.multiply = function(a, b) {
 };
 
 /**
+ * Divide two vectors, element by element
+ * @param {goog.NumberArray} a
+ * @param {goog.NumberArray} b
+ * @return {Array<number>} Result array
+ * @throws {Error}
+ */
+
+deMath.divide = function(a, b) {
+    if (a.length != b.length)
+        throw new Error('Arrays must have the same size');
+    var dst = [];
+    for (var i = 0; i < a.length; i++)
+        if (b[i] === 0)
+            throw new Error("Division by 0");
+        dst.push(a[i] / b[i]);
+    return dst;
+};
+
+/**
  * Multiply vector by a scalar
  * @param {goog.NumberArray} a
  * @param {number} b

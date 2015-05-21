@@ -591,6 +591,20 @@ glsTextureTestUtil.TextureRenderer = function(version, precision) {
 };
 
 /**
+ * @param {tcuPixelFormat.PixelFormat} format
+ * @return {Array<boolean>}
+ */
+glsTextureTestUtil.getCompareMask = function (format) {
+	return [
+        format.redBits > 0,
+		format.greenBits > 0,
+		format.blueBits > 0,
+		format.alphaBits > 0
+    ];
+};
+
+
+/**
  * @param {number} texUnit
  * @param {Array<number>} texCoord
  * @param {glsTextureTestUtil.RenderParams} params
