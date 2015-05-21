@@ -6,7 +6,7 @@ var filename = scriptArgs[0];
  * Loads the file and pulls the nodes corresponding to the variable
  * declarations. The names are returned in an array of strings
  */
-function fetchVariableNames (filename) {
+function fetchVariableNames (filenameEntrypoint) {
 	var source = read(filename);
 	expr = Reflect.parse(source).body[0].expression;
 	var lastElement = expr.arguments.length - 1;

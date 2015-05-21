@@ -17,6 +17,9 @@ goog.scope(function() {
     es3fFboCompletenessTests.initGlDependents = function(gl) {
         if (!(gl = gl || window.gl)) throw new Error('Invalid gl object');
 
+        /**
+        * @type {Array<number>}
+        */
         es3fFboCompletenessTests.s_es3ColorRenderables = [
             // GLES3, 4.4.4: "An internal format is color-renderable if it is one of
             // the formats from table 3.12 noted as color-renderable..."
@@ -27,6 +30,9 @@ goog.scope(function() {
             gl.RGBA81, gl.RGBA8UI, gl.RGB16I, gl.RGBA16UI, gl.RGBA32I, gl.RGBA32UI
         ];
         
+        /**
+        * @type {Array<number>}
+        */
         es3fFboCompletenessTests.s_es3UnsizedColorRenderables = [
             // "...or if it is unsized format RGBA or RGB."
             // See Table 3.3 in GLES3.
@@ -37,6 +43,9 @@ goog.scope(function() {
             glsFboUtil.formatkey(gl.RGB,   gl.UNSIGNED_SHORT_5_6_5)
         ];
 
+        /**
+        * @type {Array<number>}
+        */
         es3fFboCompletenessTests.s_es3DepthRenderables = [
             // GLES3, 4.4.4: "An internal format is depth-renderable if it is one of
             // the formats from table 3.13."
@@ -44,25 +53,37 @@ goog.scope(function() {
             gl.DEPTH24_STENCIL8, gl.DEPTH32F_STENCIL8
         ];
 
+        /**
+        * @type {Array<number>}
+        */
         es3fFboCompletenessTests.s_es3StencilRboRenderables = [
             // GLES3, 4.4.4: "An internal format is stencil-renderable if it is
             // STENCIL_INDEX8..."
             gl.STENCIL_INDEX8
         ];
 
+        /**
+        * @type {Array<number>}
+        */
         es3fFboCompletenessTests.s_es3StencilRenderables = [
             // "...or one of the formats from table 3.13 whose base internal format is
             // DEPTH_STENCIL."
             gl.DEPTH24_STENCIL8, gl.DEPTH32F_STENCIL8
         ];
 
+        /**
+        * @type {Array<number>}
+        */
         es3fFboCompletenessTests.s_es3TextureFloatFormats = [
             gl.RGBA32F, gl.RGBA16F, gl.R11F_G11F_B10F,
             gl.RG32F,   gl.RG16F,   gl.R32F,  gl.R16F,
             gl.RGBA16F, gl.RGB16F,  gl.RG16F, gl.R16F
         ];
 
-    // Array<Array<number>>
+        
+        /**
+        * @type {Array<glsFboUtil.formatT>}
+        */
         es3fFboCompletenessTests.s_es3Formats = [
             [
                 (
@@ -70,15 +91,16 @@ goog.scope(function() {
                     glsFboUtil.FormatFlags.COLOR_RENDERABLE    |
                     glsFboUtil.FormatFlags.TEXTURE_VALID
                 ),
-                es3fFboCompletenessTests.s_es3UnsizedColorRenderables
-            ], [
+                glsFboUtil.rangeArray(es3fFboCompletenessTests.s_es3UnsizedColorRenderables)
+            ],
+            [
                 (
                     glsFboUtil.FormatFlags.REQUIRED_RENDERABLE |
                     glsFboUtil.FormatFlags.COLOR_RENDERABLE    |
                     glsFboUtil.FormatFlags.RENDERBUFFER_VALID  |
                     glsFboUtil.FormatFlags.TEXTURE_VALID
                 ),
-                es3fFboCompletenessTests.s_es3ColorRenderables
+                glsFboUtil.rangeArray(es3fFboCompletenessTests.s_es3ColorRenderables)
             ], [
                 (
                     glsFboUtil.FormatFlags.REQUIRED_RENDERABLE |
@@ -86,14 +108,14 @@ goog.scope(function() {
                     glsFboUtil.FormatFlags.RENDERBUFFER_VALID  |
                     glsFboUtil.FormatFlags.TEXTURE_VALID
                 ),
-                es3fFboCompletenessTests.s_es3DepthRenderables
+                glsFboUtil.rangeArray(es3fFboCompletenessTests.s_es3DepthRenderables)
             ], [
                 (
                     glsFboUtil.FormatFlags.REQUIRED_RENDERABLE |
                     glsFboUtil.FormatFlags.STENCIL_RENDERABLE  |
                     glsFboUtil.FormatFlags.RENDERBUFFER_VALID
                 ),
-                es3fFboCompletenessTests.s_es3StencilRboRenderables
+                glsFboUtil.rangeArray(es3fFboCompletenessTests.s_es3StencilRboRenderables)
             ], [
                 (
                     glsFboUtil.FormatFlags.REQUIRED_RENDERABLE |
@@ -101,7 +123,7 @@ goog.scope(function() {
                     glsFboUtil.FormatFlags.RENDERBUFFER_VALID  |
                     glsFboUtil.FormatFlags.TEXTURE_VALID
                 ),
-                es3fFboCompletenessTests.s_es3StencilRenderables
+                glsFboUtil.rangeArray(es3fFboCompletenessTests.s_es3StencilRenderables)
             ],
 
             // These are not color-renderable in vanilla ES3, but we need to mark them
@@ -109,7 +131,7 @@ goog.scope(function() {
 	        // color-renderability and only renderbuffer-validity.
 	        [
 	            glsFboUtil.FormatFlags.TEXTURE_VALID,
-	            es3fFboCompletenessTests.s_es3TextureFloatFormats
+	            glsFboUtil.rangeArray(es3fFboCompletenessTests.s_es3TextureFloatFormats)
 	        ]
 	    ];
 
@@ -461,6 +483,8 @@ goog.scope(function() {
         var fboCtx = new glsFboCompletenessTests.Context(null, gl, function() {
             return new es3fFboCompletenessTests.ES3Checker();
         });
+    
+        fboCtx.addFormats(glsFboUtil.rangeArray(es3fFboCompletenessTests.s_es3Formats));
     
         /** @const @type {tcuTestCase.DeqpTest} */
         var testGroup = tcuTestCase.runner.testCases;

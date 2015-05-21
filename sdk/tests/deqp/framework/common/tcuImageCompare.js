@@ -214,6 +214,8 @@ tcuImageCompare.intThresholdCompare = function(imageSetName, imageSetDesc, refer
     if (!compareOk) {
         debug('Image comparison failed: max difference = ' + maxDiff + ', threshold = ' + threshold);
         tcuImageCompare.displayImages(result, reference, errorMask.getAccess());
+    } else {
+        tcuImageCompare.displayImages(result, null, null);
     }
 
     return compareOk;
