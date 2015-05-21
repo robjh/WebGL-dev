@@ -33,7 +33,7 @@ endComment = '\n' + tab + '*/\n' + tab
 def displayUsage ():
 	print 'Usage: python annotate_file.py <filepath> <namespace>\n'
 
-def collectTypesFromNamespace (filepath):
+def createGraph (filepath):
 	domain = [];
 	globalVars = [];
 	objects = [];
@@ -43,9 +43,30 @@ def collectTypesFromNamespace (filepath):
 
 	lines = fileHandler.readlines()
 
-	for (currentLine in lines):
-		print currentLine;
+	# We'll append chunks of code that compound a function.
+	# Local variables, method calls and new assigments will be
+	# collected.
+	codeBlock = ''
 
+	for currentLine in lines:
+
+		# detect end of function
+		if '};' in currentLine:
+			functions.append(codeBlock + currentLine)
+
+		# detect start of function
+		elif 'function' in currentLine:
+			if ';' in currentLine:
+				functions.append(currentLine)
+			else:
+				codeBlock = currentLine
+		# Just append other line of the body from the method
+		else:
+			codeBlock += currentLine
+
+	for currentFunction in functions:
+		print '************'
+		print currentFunction
 
 
 def addCommentsHeader (matchobj):
@@ -100,7 +121,7 @@ def addAnnotationsToFunctions (filepath, namespace):
 
 
 def main(argv):
-    if len(argv) != 2:
+    if len(argv) != 1:
         displayUsage()
     else:
     	collectTypesFromNamespace(argv[0])
