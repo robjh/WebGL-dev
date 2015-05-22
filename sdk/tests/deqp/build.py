@@ -45,7 +45,8 @@ targets = {
     'renderer': 'framework.referencerenderer.rrRenderer',
 	'matrixUtil': 'framework.common.tcuMatrixUtil',
     'sglrReferenceContextTest': 'framework.opengl.simplereference.sglrReferenceContextTest',
-    'texturewraptests': 'functional.gles3.es3fTextureWrapTests'
+    'texturewraptests': 'functional.gles3.es3fTextureWrapTests',
+    'apicase': 'functional.gles3.es3fApiCase'
 }
 
 total_errors = 0

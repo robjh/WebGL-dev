@@ -240,8 +240,8 @@ goog.scope(function() {
 
         // log << TestLog::Message << "Note: lookup coordinates: bottom-left " << m_cases[m_caseNdx].bottomLeft << ", top-right " << m_cases[m_caseNdx].topRight << TestLog::EndMessage;
 
-        // TODO: implement glsTextureTestUtil.verifyTextureResult
-        /** @type {boolean} */ var isOk = glsTextureTestUtil.verifyTextureResult(renderedFrame.getAccess(), this.m_texture.getRefTexture(), texCoord[0], refParams, lookupPrecision, lodPrecision, pixelFormat);
+        // TODO: finish implementation of glsTextureTestUtil.verifyTexture2DResult
+        /** @type {boolean} */ var isOk = glsTextureTestUtil.verifyTexture2DResult(renderedFrame.getAccess(), this.m_texture.getRefTexture(), texCoord[0], refParams, lookupPrecision, lodPrecision, pixelFormat);
 
         if (!isOk)
             assertMsgOptions(isOk, '', true, false);
@@ -255,7 +255,7 @@ goog.scope(function() {
      */
     es3fTextureWrapTests.init = function() {
         var testGroup = tcuTestCase.runner.testCases;
-
+        /** @type {string} */ var name;
         /**
          * @constructor
          * @param {string} name
@@ -313,7 +313,7 @@ goog.scope(function() {
         for (var wrapT = 0; wrapT < wrapModes.length; wrapT++)
         for (var filter = 0; filter < filteringModes.length; filter++)
         {
-            /** @type {string} */ var name = [
+            name = [
                 wrapModes[wrapS].name,
                 wrapModes[wrapT].name,
                 filteringModes[filter].name,
@@ -337,11 +337,11 @@ goog.scope(function() {
         /**
          * @constructor
          * @param {string} name
-         * @param {tcuCompressedTexture.CompressedTexture.Format} format
+         * @param {tcuCompressedTexture.Format} format
          */
         var Etc2Format = function(name, format) {
             /** @type {string} */ this.name = name;
-            /** @type {tcuCompressedTexture.CompressedTexture.Format} */ this.format = format;
+            /** @type {tcuCompressedTexture.Format} */ this.format = format;
         };
 
         var etc2Formats = [
@@ -384,7 +384,7 @@ goog.scope(function() {
             for (var wrapT = 0; wrapT < wrapModes.length; wrapT++)
             for (var filter = 0; filter < filteringModes.length; filter++)
             {
-                /** @type {string} */ var name = [
+                name = [
                     wrapModes[wrapS].name,
                     wrapModes[wrapT].name,
                     filteringModes[filter].name,
