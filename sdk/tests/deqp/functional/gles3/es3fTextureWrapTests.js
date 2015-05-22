@@ -103,7 +103,7 @@ goog.scope(function() {
         /** @type {number} */ this.m_magFilter = magFilter;
         /** @type {number} */ this.m_width = width;
         /** @type {number} */ this.m_height = height;
-        /** @type {Array<es3fTextureWrapTests.Case>} */ this.m_cases;
+        /** @type {Array<es3fTextureWrapTests.Case>} */ this.m_cases = [];
         /** @type {number} */ this.m_caseNdx = 0;
         /** @type {gluTexture.Texture2D} */ this.m_texture = null;
         /** @type {glsTextureTestUtil.TextureRenderer} */
