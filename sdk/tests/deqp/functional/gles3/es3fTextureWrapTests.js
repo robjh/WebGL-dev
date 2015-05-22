@@ -160,7 +160,7 @@ goog.scope(function() {
                 this.m_texture = gluTexture.texture2DFromCompressedTexture(gl, 1, compressedTexture);
             }
             else
-                throw new Error("Only ETC2 and EAC are supported.")
+                throw new Error('Only ETC2 and EAC are supported.');
         }
         else
         {
@@ -236,7 +236,7 @@ goog.scope(function() {
         lookupPrecision.colorThreshold = deMath.divide(tcuTexLookupVerifier.computeFixedPointThreshold(colorBits), refParams.colorScale);
         lookupPrecision.coordBits = [20, 20, 0];
         lookupPrecision.uvwBits = [5, 5, 0];
-        lookupPrecision.colorMask = getCompareMask(pixelFormat);
+        lookupPrecision.colorMask = glsTextureTestUtil.getCompareMask(pixelFormat);
 
         // log << TestLog::Message << "Note: lookup coordinates: bottom-left " << m_cases[m_caseNdx].bottomLeft << ", top-right " << m_cases[m_caseNdx].topRight << TestLog::EndMessage;
 
@@ -244,7 +244,7 @@ goog.scope(function() {
         /** @type {boolean} */ var isOk = glsTextureTestUtil.verifyTextureResult(renderedFrame.getAccess(), this.m_texture.getRefTexture(), texCoord[0], refParams, lookupPrecision, lodPrecision, pixelFormat);
 
         if (!isOk)
-            assertMsgOptions(testOk, '', true, false);
+            assertMsgOptions(isOk, '', true, false);
 
         this.m_caseNdx++;
         return this.m_caseNdx < this.m_cases.length ? tcuTestCase.IterateResult.CONTINUE : tcuTestCase.IterateResult.STOP;
@@ -322,7 +322,7 @@ goog.scope(function() {
 
             rgba8Group.addChild(
                 es3fTextureWrapTests.textureWrapCaseFromFormat(
-                    gl.canvas, this.m_context.getContextInfo(), name, '',
+                    name, '',
                     gl.RGBA, gl.UNSIGNED_BYTE,
                     wrapModes[wrapS].mode,
                     wrapModes[wrapT].mode,
@@ -345,16 +345,16 @@ goog.scope(function() {
         };
 
         var etc2Formats = [
-            new Etc2Format('eac_r11', tcuCompressedTexture.CompressedTexture.EAC_R11),
-            new Etc2Format('eac_signed_r11', tcuCompressedTexture.CompressedTexture.EAC_SIGNED_R11),
-            new Etc2Format('eac_rg11', tcuCompressedTexture.CompressedTexture.EAC_RG11),
-            new Etc2Format('eac_signed_rg11', tcuCompressedTexture.CompressedTexture.EAC_SIGNED_RG11),
-            new Etc2Format('etc2_rgb8', tcuCompressedTexture.CompressedTexture.ETC2_RGB8),
-            new Etc2Format('etc2_srgb8', tcuCompressedTexture.CompressedTexture.ETC2_SRGB8),
-            new Etc2Format('etc2_rgb8_punchthrough_alpha1', tcuCompressedTexture.CompressedTexture.ETC2_RGB8_PUNCHTHROUGH_ALPHA1),
-            new Etc2Format('etc2_srgb8_punchthrough_alpha1', tcuCompressedTexture.CompressedTexture.ETC2_SRGB8_PUNCHTHROUGH_ALPHA1),
-            new Etc2Format('etc2_eac_rgba8', tcuCompressedTexture.CompressedTexture.ETC2_EAC_RGBA8),
-            new Etc2Format('etc2_eac_srgb8_alpha8', tcuCompressedTexture.CompressedTexture.ETC2_EAC_SRGB8_ALPHA8)
+            new Etc2Format('eac_r11', tcuCompressedTexture.Format.EAC_R11),
+            new Etc2Format('eac_signed_r11', tcuCompressedTexture.Format.EAC_SIGNED_R11),
+            new Etc2Format('eac_rg11', tcuCompressedTexture.Format.EAC_RG11),
+            new Etc2Format('eac_signed_rg11', tcuCompressedTexture.Format.EAC_SIGNED_RG11),
+            new Etc2Format('etc2_rgb8', tcuCompressedTexture.Format.ETC2_RGB8),
+            new Etc2Format('etc2_srgb8', tcuCompressedTexture.Format.ETC2_SRGB8),
+            new Etc2Format('etc2_rgb8_punchthrough_alpha1', tcuCompressedTexture.Format.ETC2_RGB8_PUNCHTHROUGH_ALPHA1),
+            new Etc2Format('etc2_srgb8_punchthrough_alpha1', tcuCompressedTexture.Format.ETC2_SRGB8_PUNCHTHROUGH_ALPHA1),
+            new Etc2Format('etc2_eac_rgba8', tcuCompressedTexture.Format.ETC2_EAC_RGBA8),
+            new Etc2Format('etc2_eac_srgb8_alpha8', tcuCompressedTexture.Format.ETC2_EAC_SRGB8_ALPHA8)
         ];
 
         /**
@@ -393,7 +393,7 @@ goog.scope(function() {
 
                 formatGroup.addChild(
                     new es3fTextureWrapTests.TextureWrapCase(
-                        gl.canvas, this.m_context.getContextInfo(), name, '',
+                        name, '',
                         etc2Formats[formatNdx].format,
                         wrapModes[wrapS].mode,
                         wrapModes[wrapT].mode,
