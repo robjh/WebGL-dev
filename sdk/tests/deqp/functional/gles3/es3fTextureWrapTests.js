@@ -192,8 +192,7 @@ goog.scope(function() {
         /** @type {tcuTexture.TextureFormat} */ var texFormat = this.m_texture.getRefTexture().getFormat();
         /** @type {Array<number>} */ var texCoord;
         /** @type {tcuTextureUtil.TextureFormatInfo} */ var texFormatInfo = tcuTextureUtil.getTextureFormatInfo(texFormat);
-        // \note For non-sRGB ASTC formats, the values are fp16 in range [0..1], not the range assumed given by tcu::getTextureFormatInfo().
-        /** @type {boolean} */ var useDefaultColorScaleAndBias = !tcu.isASTCFormat(m_compressedFormat) || tcu.isASTCSRGBFormat(m_compressedFormat);
+        /** @type {boolean} */ var useDefaultColorScaleAndBias = true;
 
         // Bind to unit 0.
         gl.activeTexture(gl.TEXTURE0);
@@ -209,23 +208,34 @@ goog.scope(function() {
         DE_ASSERT(glErr === gl.NO_ERROR, 'Set texturing state');
 
         // Parameters for reference images.
-        refParams.sampler = mapGLSampler(this.m_wrapS, this.m_wrapT, this.m_minFilter, this.m_magFilter);
+        // TODO: implement glsTextureUtil.mapGLSampler and uncomment the line below
+        // refParams.sampler = glsTextureUtil.mapGLSampler(this.m_wrapS, this.m_wrapT, this.m_minFilter, this.m_magFilter);
         refParams.lodMode = glsTextureTestUtil.lodMode.EXACT;
-        refParams.samplerType = getSamplerType(this.m_texture.getRefTexture().getFormat());
+        // TODO: glsTextureTestUtil.getSamplerType and uncomment the line below
+        // refParams.samplerType = glsTextureTestUtil.getSamplerType(this.m_texture.getRefTexture().getFormat());
         refParams.colorScale = useDefaultColorScaleAndBias ? texFormatInfo.lookupScale : [1.0, 1.0, 1.0, 1.0];
         refParams.colorBias = useDefaultColorScaleAndBias ? texFormatInfo.lookupBias : [0, 0, 0, 0];
 
         gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height);
-        computeQuadTexCoord2D(texCoord, this.m_cases[this.m_caseNdx].bottomLeft, this.m_cases[this.m_caseNdx].topRight);
+        // TODO: implement glsTextureTestUtil.computeQuadTexCoord2D and uncomment the line below
+        // glsTextureTestUtil.computeQuadTexCoord2D(texCoord, this.m_cases[this.m_caseNdx].bottomLeft, this.m_cases[this.m_caseNdx].topRight);
         this.m_renderer.renderQuad(0, texCoord, refParams);
 
-        // TODO: readPixels
-        glu.readPixels(viewport.x, viewport.y, renderedFrame.getAccess());
+        // gluPixelTransfer.readPixels(viewport.x, viewport.y, renderedFrame.getAccess());
+        /** @type {number} */ var pixelSize = renderedFrame.getAccess().getFormat().getPixelSize();
+        /** @type {number} */ var param = deMath.deIsPowerOfTwo32(pixelSize) ? Math.min(pixelSize, 8) : 1;
 
-        // const tcu::ScopedLogSection        section            (log, string("Test") + de::toString(m_caseNdx), string("Test ") + de::toString(m_caseNdx));
+        gl.pixelStorei(gl.PACK_ALIGNMENT, param);
+        gl.readPixels(
+            viewport.x, viewport.y,
+            renderedFrame.getWidth(), renderedFrame.getHeight(),
+            renderedFrame.getAccess().getFormat().format, renderedFrame.getAccess().getFormat().format.dataType,
+            renderedFrame.getAccess().getDataPtr());
+
+        // const tcu::ScopedLogSection section (log, string("Test") + de::toString(m_caseNdx), string("Test ") + de::toString(m_caseNdx));
         /** @type {boolean} */ var isNearestOnly = this.m_minFilter == gl.NEAREST && this.m_magFilter == gl.NEAREST;
         /** @type {boolean} */ var isSRGB = texFormat.order == tcuTexture.ChannelOrder.sRGB || texFormat.order == tcuTexture.ChannelOrder.sRGBA;
-        /** @type {tcuPixelFormat.PixelFormat} */ var pixelFormat = gl.canvas.getPixelFormat();
+        /** @type {tcuPixelFormat.PixelFormat} */ var pixelFormat = new tcuPixelFormat.PixelFormat(8, 8, 8, 8);
         // TODO: implement glsTextureTestUtil.getBitsVec
         /** @type {Array<number>} */ var colorBits = deMath.max(deMath.subtract(glsTextureTestUtil.getBitsVec(pixelFormat), (isNearestOnly && !isSRGB ? [1, 1, 1, 1] : [2, 2, 2, 2])), [0, 0, 0, 0]);
         /** @type {tcuTexLookupVerifier.LodPrecision} */ var lodPrecision;
@@ -241,7 +251,7 @@ goog.scope(function() {
         // log << TestLog::Message << "Note: lookup coordinates: bottom-left " << m_cases[m_caseNdx].bottomLeft << ", top-right " << m_cases[m_caseNdx].topRight << TestLog::EndMessage;
 
         // TODO: finish implementation of glsTextureTestUtil.verifyTexture2DResult
-        /** @type {boolean} */ var isOk = glsTextureTestUtil.verifyTexture2DResult(renderedFrame.getAccess(), this.m_texture.getRefTexture(), texCoord[0], refParams, lookupPrecision, lodPrecision, pixelFormat);
+        /** @type {boolean} */ var isOk = glsTextureTestUtil.verifyTexture2DResult(renderedFrame.getAccess(), this.m_texture.getRefTexture(), texCoord, refParams, lookupPrecision, lodPrecision, pixelFormat);
 
         if (!isOk)
             assertMsgOptions(isOk, '', true, false);
