@@ -65,7 +65,8 @@ targets = {
     'vertexarrays': 'functional.gles3.es3fVertexArrayTests',
     'shaderlibrary': 'modules.shared.glsShaderLibrary',
     'sglrReferenceContextTest': 'framework.opengl.simplereference.sglrReferenceContextTest',
-    'lifetime': 'functional.gles3.es3fLifetimeTests'
+    'lifetime': 'functional.gles3.es3fLifetimeTests',
+    'draw': 'modules.shared.glsDrawTests'
 }
 
 total_errors = 0
