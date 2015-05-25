@@ -68,6 +68,54 @@ gluTexture.texture2DFromInternalFormat = function(gl, internalFormat, width, hei
     return tex;
 };
 
+/**
+ * @param {number} numLevels
+ * @param {tcuCompressedTexture.CompressedTexture} levels
+ * @return {gluTexture.Texture2D}
+ */
+gluTexture.texture2DFromCompressedTexture = function(gl, numLevels, levels) {
+    var format = gluTextureUtil.getGLFormat(levels.getFormat());
+    var refTex = new tcuTexture.Texture2D(levels.getUncompressedFormat(), levels.getWidth(), levels.getHeight());
+    /** @type {gluTexture.Texture2D} */ var tex2d = new gluTexture.Texture2D(gl, format, true, refTex);
+
+    gluTexture.Texture2D.loadCompressed(numLevels, levels);
+
+    return tex2d;
+};
+/**
+ * @param {number} numLevels
+ * @param {tcuCompressedTexture.CompressedTexture} levels
+ */
+gluTexture.Texture2D.loadCompressed = function(numLevels, levels) {
+    throw new Error("Not implemented. TODO: implement")
+    // TODO: implement
+    /*
+    const glw::Functions&	gl					= m_context.getFunctions();
+    deUint32				compressedFormat	= getGLFormat(levels[0].getFormat());
+
+    TCU_CHECK(m_glTexture);
+    gl.bindTexture(GL_TEXTURE_2D, m_glTexture);
+
+    for (int levelNdx = 0; levelNdx < numLevels; levelNdx++)
+    {
+        const tcu::CompressedTexture& level = levels[levelNdx];
+
+        // Decompress to reference texture.
+        m_refTexture.allocLevel(levelNdx);
+        tcu::PixelBufferAccess refLevelAccess = m_refTexture.getLevel(levelNdx);
+        TCU_CHECK(level.getWidth()	== refLevelAccess.getWidth() &&
+                  level.getHeight()	== refLevelAccess.getHeight());
+        level.decompress(refLevelAccess, decompressionParams);
+
+        // Upload to GL texture in compressed form.
+        gl.compressedTexImage2D(GL_TEXTURE_2D, levelNdx, compressedFormat,
+                                level.getWidth(), level.getHeight(), 0, level.getDataSize(), level.getData());
+    }
+
+    GLU_EXPECT_NO_ERROR(gl.getError(), "Texture upload failed");
+    */
+};
+
 gluTexture.computePixelStore = function(/*const tcu::TextureFormat&*/ format) {
     var pixelSize = format.getPixelSize();
     if (deMath.deIsPowerOfTwo32(pixelSize))

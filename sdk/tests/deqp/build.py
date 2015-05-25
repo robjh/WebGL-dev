@@ -64,7 +64,8 @@ targets = {
     'uniformbuffers': 'functional.gles3.es3fUniformBlockTests',
     'vertexarrays': 'functional.gles3.es3fVertexArrayTests',
     'shaderlibrary': 'modules.shared.glsShaderLibrary',
-    'sglrReferenceContextTest': 'framework.opengl.simplereference.sglrReferenceContextTest'
+    'sglrReferenceContextTest': 'framework.opengl.simplereference.sglrReferenceContextTest',
+    'texturewrap': 'functional.gles3.es3fTextureWrapTests'
 }
 
 total_errors = 0
@@ -88,7 +89,7 @@ def write_to_file(outfile, cmdLine, redirect_stderr):
             while proc.poll() is None:
                 line = proc.stdout.readline()
                 out_file.write(line)
-            
+
             out_file.flush()
             proc.wait()
 
@@ -189,7 +190,7 @@ def pass_or_fail():
             warnings = failed[target][1]
             print "{0:>30}\tErrors: {1:4}\tWarnings: {2:4}".format(target+":", errors, warnings)
         print "Compilation failed: {} error(s), {} warning(s).".format(total_errors, total_warnings)
-   
+
 def main(argv):
     if len(argv) == 0:
         build_all_deps()
@@ -227,6 +228,5 @@ def main(argv):
         build_target(target, targets[target])
         pass_or_fail()
 
-if __name__ == '__main__': 
+if __name__ == '__main__':
     main(sys.argv[1:])
-
