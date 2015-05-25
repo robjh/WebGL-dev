@@ -217,6 +217,8 @@ glsLifetimeTests.ShaderType.prototype.isDeleteFlagged = function(obj) { return g
 
 /**
  * @constructor
+ * @param {glsLifetimeTests.Type} elementType
+ * @param {glsLifetimeTests.Type} containerType
  */
 glsLifetimeTests.Attacher = function(elementType, containerType) {
     this.m_elementType = elementType;
@@ -616,5 +618,107 @@ glsLifetimeTests.ES2Types = function() {
 };
 
 setParentClass(glsLifetimeTests.ES2Types, glsLifetimeTests.Types);
+
+
+/**
+ * @constructor
+ * @extends {tcuTestCase.TestCase}
+ * @param {string} name
+ * @param {string} description
+ * @param {glsLifetimeTests.Type} type
+ * @param {function} test;
+ */
+glsLifetimeTests.LifeTest = function(name, description, type, test) {
+    tcuTestCase.TestCase.call(this, name, description);
+    this.m_type = type;
+    this.m_test = test;
+};
+
+glsLifetimeTests.LifeTest.prototype.iterate = function() {
+    this.m_test();
+    return tcuTestCase.IterateResult.STOP;
+}
+
+
+setParentClass(glsLifetimeTests.LifeTest, tcuTestCase.TestCase);
+
+glsLifetimeTests.createLifeTestGroup = function(spec, types) {
+    var group = tcuTestCase.newTest(spec.name, spec.name);
+
+    for (var i = 0; i < types.length; i++) {
+        var type = types[i];
+        var name = type.getName();
+        if (!spec.needBind || type.binder() != null)
+            group.addChild(new glsLifetimeTests.LifeTest(name, name, type, spec.func));
+    }
+
+    return group;
+};
+
+/**
+ * @param {glsLifetimeTests.Types} types
+ */
+glsLifetimeTests.addTestCases = function(group, types) {
+    var attacherName = function(attacher) {
+        return attacher.getElementType().getName() + "_" +  attacher.getContainerType().getName();
+    };
+
+    var s_lifeTests = [
+    { name: "gen",            func: glsLifetimeTests.LifeTest.testGen,         needBind:false   },
+    { name: "delete",         func: glsLifetimeTests.LifeTest.testDelete,      needBind:false   },
+    { name: "bind",           func: glsLifetimeTests.LifeTest.testBind,        needBind:true    },
+    { name: "delete_bound",   func: glsLifetimeTests.LifeTest.testDeleteBound, needBind:true    },
+    { name: "bind_no_gen",    func: glsLifetimeTests.LifeTest.testBindNoGen,   needBind:true    },
+    ];
+
+    s_lifeTests.forEach(spec) {
+        group.addChild(glsLifetimeTests.createLifeTestGroup(spec, types.getTypes()));
+    }
+
+    var delUsedGroup = tcuTestCase.newTest("delete_used", "Delete current program");
+    group.addChild(delUsedGroup);
+
+    delUsedGroup.addChild(new glsLifetimeTests.LifeTest("program", "program", types.getProgramType(),
+                     glsLifetimeTests.LifeTest.testDeleteUsed));
+
+    var attGroup    = tcuTestCase.newTest("attach", "Attachment tests");
+    group.addChild(attGroup);
+
+    var nameGroup   = tcuTestCase.newTest("deleted_name", "Name of deleted attachment");
+    attGroup.addChild(nameGroup);
+
+    var atts = types.getAttachers();
+    for (var i = 0; i < atts.length; i++)
+    {
+        var att = atts[i];
+        var name = attacherName(att);
+        nameGroup.addChild(new glsLifetimeTests.AttachmentTest(name, name, att,
+                                               glsLifetimeTests.AttachmentTest.testDeletedNames));
+    }
+
+    var inputGroup = tcuTestCase.newTest("deleted_input", "Input from deleted attachment");
+    attGroup.addChild(inputGroup);
+
+    var inAtts = types.getInputAttachers();
+    for (var i = 0; i < inAtts.length; i++)
+    {
+        var att = inAtts[i];
+        var name = attacherName(att.getAttacher());
+        inputGroup.addChild(new glsLifetimeTests.InputAttachmentTest(name, name, att));
+    }
+
+    var outputGroup =tcuTestCase.newTest("deleted_output", "Output to deleted attachment");
+    attGroup.addChild(outputGroup);
+
+    var outAtts = types.getOutputAttachers();
+    for (var i = 0; i < outAtts.length; i++)
+    {
+        var att = outAtts[i];
+        var name = attacherName(att.getAttacher());
+        outputGroup.addChild(new glsLifetimeTests.OutputAttachmentTest(name, name, att));    
+    }
+
+};
+
 
 });
