@@ -48,14 +48,14 @@ var setParentClass = function(child, parent) {
     'attribute vec2 pos;\n' +
     'void main()\n' +
     '{\n' +
-    '    gl_Position = vec4(pos.xy, 0.0, 1.0);\n' +
+    ' gl_Position = vec4(pos.xy, 0.0, 1.0);\n' +
     '}\n';
 
 /** @const */ var s_fragmentShaderSrc =
    '#version 100\n' +
     'void main()\n' +
     '{\n' +
-    '    gl_FragColor = vec4(1.0);\n' +
+    ' gl_FragColor = vec4(1.0);\n' +
     '}\n';
 
 /**
@@ -72,7 +72,6 @@ glsLifetimeTests.CheckedShader = function(type, src) {
 };
 
 setParentClass(glsLifetimeTests.CheckedShader, gluShaderProgram.Shader);
-
 
 /**
  * @constructor
@@ -619,7 +618,6 @@ glsLifetimeTests.ES2Types = function() {
 
 setParentClass(glsLifetimeTests.ES2Types, glsLifetimeTests.Types);
 
-
 /**
  * @constructor
  * @extends {tcuTestCase.TestCase}
@@ -638,7 +636,6 @@ glsLifetimeTests.LifeTest.prototype.iterate = function() {
     this.m_test();
     return tcuTestCase.IterateResult.STOP;
 };
-
 
 setParentClass(glsLifetimeTests.LifeTest, tcuTestCase.TestCase);
 
@@ -663,12 +660,7 @@ glsLifetimeTests.addTestCases = function(group, types) {
         return attacher.getElementType().getName() + '_' + attacher.getContainerType().getName();
     };
 
-    var s_lifeTests = [
-    { name: 'gen', func: glsLifetimeTests.LifeTest.testGen, needBind: false },
-    { name: 'delete', func: glsLifetimeTests.LifeTest.testDelete, needBind: false },
-    { name: 'bind', func: glsLifetimeTests.LifeTest.testBind, needBind: true },
-    { name: 'delete_bound', func: glsLifetimeTests.LifeTest.testDeleteBound, needBind: true },
-    { name: 'bind_no_gen', func: glsLifetimeTests.LifeTest.testBindNoGen, needBind: true }
+    var s_lifeTests = [{ name: 'gen', func: glsLifetimeTests.LifeTest.testGen, needBind: false },{ name: 'delete', func: glsLifetimeTests.LifeTest.testDelete, needBind: false },{ name: 'bind', func: glsLifetimeTests.LifeTest.testBind, needBind: true },{ name: 'delete_bound', func: glsLifetimeTests.LifeTest.testDeleteBound, needBind: true },{ name: 'bind_no_gen', func: glsLifetimeTests.LifeTest.testBindNoGen, needBind: true }
     ];
 
     s_lifeTests.forEach(function(spec) {
@@ -688,8 +680,7 @@ glsLifetimeTests.addTestCases = function(group, types) {
     attGroup.addChild(nameGroup);
 
     var atts = types.getAttachers();
-    for (var i = 0; i < atts.length; i++)
-    {
+    for (var i = 0; i < atts.length; i++) {
         var att = atts[i];
         var name = attacherName(att);
         nameGroup.addChild(new glsLifetimeTests.AttachmentTest(name, name, att,
@@ -700,8 +691,7 @@ glsLifetimeTests.addTestCases = function(group, types) {
     attGroup.addChild(inputGroup);
 
     var inAtts = types.getInputAttachers();
-    for (var i = 0; i < inAtts.length; i++)
-    {
+    for (var i = 0; i < inAtts.length; i++) {
         var att = inAtts[i];
         var name = attacherName(att.getAttacher());
         inputGroup.addChild(new glsLifetimeTests.InputAttachmentTest(name, name, att));
@@ -711,14 +701,12 @@ glsLifetimeTests.addTestCases = function(group, types) {
     attGroup.addChild(outputGroup);
 
     var outAtts = types.getOutputAttachers();
-    for (var i = 0; i < outAtts.length; i++)
-    {
+    for (var i = 0; i < outAtts.length; i++) {
         var att = outAtts[i];
         var name = attacherName(att.getAttacher());
         outputGroup.addChild(new glsLifetimeTests.OutputAttachmentTest(name, name, att));
     }
 
 };
-
 
 });
