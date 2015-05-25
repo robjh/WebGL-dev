@@ -22,8 +22,8 @@ goog.provide('modules.shared.glsLifetimeTests');
 goog.require('framework.common.tcuStringTemplate');
 goog.require('framework.common.tcuSurface');
 goog.require('framework.delibs.debase.deRandom');
-goog.require('modules.shared.glsTextureTestUtil');
 goog.require('framework.opengl.gluShaderProgram');
+goog.require('modules.shared.glsTextureTestUtil');
 
 goog.scope(function() {
 var glsLifetimeTests = modules.shared.glsLifetimeTests;
@@ -43,24 +43,24 @@ var setParentClass = function(child, parent) {
     child.prototype.constructor = child;
 };
 
-/** @const */ var s_vertexShaderSrc = 
-    "#version 100\n" +
-    "attribute vec2 pos;\n" +
-    "void main()\n" +
-    "{\n" +
-    "    gl_Position = vec4(pos.xy, 0.0, 1.0);\n" +
-    "}\n";
+/** @const */ var s_vertexShaderSrc =
+    '#version 100\n' +
+    'attribute vec2 pos;\n' +
+    'void main()\n' +
+    '{\n' +
+    '    gl_Position = vec4(pos.xy, 0.0, 1.0);\n' +
+    '}\n';
 
 /** @const */ var s_fragmentShaderSrc =
-   "#version 100\n" +
-    "void main()\n" +
-    "{\n" +
-    "    gl_FragColor = vec4(1.0);\n" +
-    "}\n";
+   '#version 100\n' +
+    'void main()\n' +
+    '{\n' +
+    '    gl_FragColor = vec4(1.0);\n' +
+    '}\n';
 
 /**
  * @constructor
- * @extends{gluShaderProgram.Shader}
+ * @extends {gluShaderProgram.Shader}
  * @param {gluShaderProgram.shaderType} type
  * @param {string} src
  */
@@ -68,7 +68,7 @@ glsLifetimeTests.CheckedShader = function(type, src) {
     gluShaderProgram.Shader.call(this, gl, type);
     this.setSources(src);
     this.compile();
-    assertMsgOptions(this.getCompileStatus() === true, "Failed to compile shader", false, true);
+    assertMsgOptions(this.getCompileStatus() === true, 'Failed to compile shader', false, true);
 };
 
 setParentClass(glsLifetimeTests.CheckedShader, gluShaderProgram.Shader);
@@ -76,14 +76,14 @@ setParentClass(glsLifetimeTests.CheckedShader, gluShaderProgram.Shader);
 
 /**
  * @constructor
- * @extends{gluShaderProgram.Program}
+ * @extends {gluShaderProgram.Program}
  */
 glsLifetimeTests.CheckedProgram = function(vtxShader, fragShader) {
     gluShaderProgram.Program.call(this, gl);
     this.attachShader(vtxShader);
     this.attachShader(fragShader);
     this.link();
-    assertMsgOptions(this.info.linkOk === true, "Failed to link program", false, true);
+    assertMsgOptions(this.info.linkOk === true, 'Failed to link program', false, true);
 };
 
 setParentClass(glsLifetimeTests.CheckedProgram, gluShaderProgram.Program);
@@ -298,7 +298,7 @@ glsLifetimeTests.setupFbo = function(seed, fbo) {
     if (seed == 0) {
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
-    } else{
+    } else {
         var rnd = new deRandom.Random(seed);
         var width = rnd.getInt(0, FRAMEBUFFER_SIZE);
         var height = rnd.getInt(0, FRAMEBUFFER_SIZE);
@@ -626,7 +626,7 @@ setParentClass(glsLifetimeTests.ES2Types, glsLifetimeTests.Types);
  * @param {string} name
  * @param {string} description
  * @param {glsLifetimeTests.Type} type
- * @param {function} test;
+ * @param {function()} test
  */
 glsLifetimeTests.LifeTest = function(name, description, type, test) {
     tcuTestCase.TestCase.call(this, name, description);
@@ -637,7 +637,7 @@ glsLifetimeTests.LifeTest = function(name, description, type, test) {
 glsLifetimeTests.LifeTest.prototype.iterate = function() {
     this.m_test();
     return tcuTestCase.IterateResult.STOP;
-}
+};
 
 
 setParentClass(glsLifetimeTests.LifeTest, tcuTestCase.TestCase);
@@ -660,31 +660,31 @@ glsLifetimeTests.createLifeTestGroup = function(spec, types) {
  */
 glsLifetimeTests.addTestCases = function(group, types) {
     var attacherName = function(attacher) {
-        return attacher.getElementType().getName() + "_" +  attacher.getContainerType().getName();
+        return attacher.getElementType().getName() + '_' + attacher.getContainerType().getName();
     };
 
     var s_lifeTests = [
-    { name: "gen",            func: glsLifetimeTests.LifeTest.testGen,         needBind:false   },
-    { name: "delete",         func: glsLifetimeTests.LifeTest.testDelete,      needBind:false   },
-    { name: "bind",           func: glsLifetimeTests.LifeTest.testBind,        needBind:true    },
-    { name: "delete_bound",   func: glsLifetimeTests.LifeTest.testDeleteBound, needBind:true    },
-    { name: "bind_no_gen",    func: glsLifetimeTests.LifeTest.testBindNoGen,   needBind:true    },
+    { name: 'gen', func: glsLifetimeTests.LifeTest.testGen, needBind: false },
+    { name: 'delete', func: glsLifetimeTests.LifeTest.testDelete, needBind: false },
+    { name: 'bind', func: glsLifetimeTests.LifeTest.testBind, needBind: true },
+    { name: 'delete_bound', func: glsLifetimeTests.LifeTest.testDeleteBound, needBind: true },
+    { name: 'bind_no_gen', func: glsLifetimeTests.LifeTest.testBindNoGen, needBind: true }
     ];
 
-    s_lifeTests.forEach(spec) {
+    s_lifeTests.forEach(function(spec) {
         group.addChild(glsLifetimeTests.createLifeTestGroup(spec, types.getTypes()));
-    }
+    });
 
-    var delUsedGroup = tcuTestCase.newTest("delete_used", "Delete current program");
+    var delUsedGroup = tcuTestCase.newTest('delete_used', 'Delete current program');
     group.addChild(delUsedGroup);
 
-    delUsedGroup.addChild(new glsLifetimeTests.LifeTest("program", "program", types.getProgramType(),
+    delUsedGroup.addChild(new glsLifetimeTests.LifeTest('program', 'program', types.getProgramType(),
                      glsLifetimeTests.LifeTest.testDeleteUsed));
 
-    var attGroup    = tcuTestCase.newTest("attach", "Attachment tests");
+    var attGroup = tcuTestCase.newTest('attach', 'Attachment tests');
     group.addChild(attGroup);
 
-    var nameGroup   = tcuTestCase.newTest("deleted_name", "Name of deleted attachment");
+    var nameGroup = tcuTestCase.newTest('deleted_name', 'Name of deleted attachment');
     attGroup.addChild(nameGroup);
 
     var atts = types.getAttachers();
@@ -696,7 +696,7 @@ glsLifetimeTests.addTestCases = function(group, types) {
                                                glsLifetimeTests.AttachmentTest.testDeletedNames));
     }
 
-    var inputGroup = tcuTestCase.newTest("deleted_input", "Input from deleted attachment");
+    var inputGroup = tcuTestCase.newTest('deleted_input', 'Input from deleted attachment');
     attGroup.addChild(inputGroup);
 
     var inAtts = types.getInputAttachers();
@@ -707,7 +707,7 @@ glsLifetimeTests.addTestCases = function(group, types) {
         inputGroup.addChild(new glsLifetimeTests.InputAttachmentTest(name, name, att));
     }
 
-    var outputGroup =tcuTestCase.newTest("deleted_output", "Output to deleted attachment");
+    var outputGroup = tcuTestCase.newTest('deleted_output', 'Output to deleted attachment');
     attGroup.addChild(outputGroup);
 
     var outAtts = types.getOutputAttachers();
@@ -715,7 +715,7 @@ glsLifetimeTests.addTestCases = function(group, types) {
     {
         var att = outAtts[i];
         var name = attacherName(att.getAttacher());
-        outputGroup.addChild(new glsLifetimeTests.OutputAttachmentTest(name, name, att));    
+        outputGroup.addChild(new glsLifetimeTests.OutputAttachmentTest(name, name, att));
     }
 
 };

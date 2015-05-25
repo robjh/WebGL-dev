@@ -90,7 +90,7 @@ goog.scope(function() {
         var end = start + 4; // RGBA uses 4 channels
         /** @type {goog.TypedArray} */
         var res = src.getDataPtr().subarray(start, end);
-        return tcuRGBA.newRGBAComponents(res[0],res[1],res[2],res[3]);
+        return tcuRGBA.newRGBAComponents(res[0], res[1], res[2], res[3]);
     };
 
     /**

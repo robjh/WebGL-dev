@@ -19,19 +19,23 @@
  */
 'use strict';
 goog.provide('functional.gles3.es3fLifetimeTests');
-goog.require('modules.shared.glsLifetimeTests');
-goog.require('framework.opengl.gluShaderProgram');
+goog.require('framework.common.tcuSurface');
 goog.require('framework.delibs.debase.deRandom');
+goog.require('framework.opengl.gluShaderProgram');
+goog.require('modules.shared.glsLifetimeTests');
+goog.require('modules.shared.glsTextureTestUtil');
 
 goog.scope(function() {
 var es3fLifetimeTests = functional.gles3.es3fLifetimeTests;
 var glsLifetimeTests = modules.shared.glsLifetimeTests;
 var gluShaderProgram = framework.opengl.gluShaderProgram;
 var deRandom = framework.delibs.debase.deRandom;
+var tcuSurface = framework.common.tcuSurface;
+var glsTextureTestUtil = modules.shared.glsTextureTestUtil;
 
 /** @const */ var VIEWPORT_SIZE = 128;
 /** @const */ var NUM_COMPONENTS = 4;
-/** @const */ var NUM_VERTICES = 3 ;
+/** @const */ var NUM_VERTICES = 3;
 
 var setParentClass = function(child, parent) {
     child.prototype = Object.create(parent.prototype);
@@ -45,9 +49,9 @@ var setParentClass = function(child, parent) {
 es3fLifetimeTests.ScaleProgram = function()
 {
     gluShaderProgram.ShaderProgram.call(this, gl, this.getSources());
-    assertMsgOptions(this.isOk(), "Program creation failed", false, true);
-    this.m_scaleLoc = gl.getUniformLocation(getProgram(), "scale");
-    this.m_posLoc = gl.getAttribLocation(getProgram(), "pos");
+    assertMsgOptions(this.isOk(), 'Program creation failed', false, true);
+    this.m_scaleLoc = gl.getUniformLocation(this.getProgram(), 'scale');
+    this.m_posLoc = gl.getAttribLocation(this.getProgram(), 'pos');
 };
 
 setParentClass(es3fLifetimeTests.ScaleProgram, gluShaderProgram.ShaderProgram);
@@ -82,15 +86,15 @@ es3fLifetimeTests.ScaleProgram.prototype.draw = function(vao, scale, tf, dst) {
     if (dst)
         glsLifetimeTests.readRectangle(viewport, dst);
 
-    gl.bindVertexArray(null);   
-    
-}
+    gl.bindVertexArray(null);
+
+};
 
 /**
  * @param {WebGLBuffer} buffer
  * @param {WebGLVertexArrayObject} vao
  */
-es3fLifetimeTests.ScaleProgram.prototype.setPos  = function(buffer, vao) {
+es3fLifetimeTests.ScaleProgram.prototype.setPos = function(buffer, vao) {
     gl.bindBuffer(GL_ARRAY_BUFFER, buffer);
     gl.bindVertexArray(vao);
     gl.vertexAttribPointer(this.m_posLoc, NUM_COMPONENTS, GL_FLOAT, false, 0, 0);
@@ -102,21 +106,21 @@ es3fLifetimeTests.ScaleProgram.prototype.setPos  = function(buffer, vao) {
  * @private
  */
 es3fLifetimeTests.ScaleProgram.prototype.getSources = function() {
-/** @const */ var s_vertexShaderSrc = 
-    "#version 100\n" +
-    "attribute vec4 pos;\n" +
-    "uniform float scale;\n" +
-    "void main ()\n" +
-    "{\n" +
-    "    gl_Position = vec4(scale * pos.xy, pos.zw);\n" +
-    "}";
+/** @const */ var s_vertexShaderSrc =
+    '#version 100\n' +
+    'attribute vec4 pos;\n' +
+    'uniform float scale;\n' +
+    'void main ()\n' +
+    '{\n' +
+    '    gl_Position = vec4(scale * pos.xy, pos.zw);\n' +
+    '}';
 
-/** @const */ var s_fragmentShaderSrc = 
-    "#version 100\n" +
-    "void main ()\n" +
-    "{\n" +
-    "    gl_FragColor = vec4(1.0, 0.0, 1.0, 1.0);\n" +
-    "}";
+/** @const */ var s_fragmentShaderSrc =
+    '#version 100\n' +
+    'void main ()\n' +
+    '{\n' +
+    '    gl_FragColor = vec4(1.0, 0.0, 1.0, 1.0);\n' +
+    '}';
     var sources = gluShaderProgram.ProgramSources();
     sources.add(new gluShaderProgram.VertexSource(s_vertexShaderSrc));
     sources.add(new gluShaderProgram.FragmentSource(s_fragmentShaderSrc));
@@ -142,8 +146,8 @@ es3fLifetimeTests.VertexArrayBinder.prototype.bind = function(vao) { gl.bindVert
  * @constructor
  * @extends {glsLifetimeTests.Binder}
  */
-es3fLifetimeTests.SamplerBinder : public Binder = function() {
-   glsLifetimeTests.Binder.call(this); 
+es3fLifetimeTests.SamplerBinder = function() {
+   glsLifetimeTests.Binder.call(this);
 };
 
 setParentClass(es3fLifetimeTests.SamplerBinder, glsLifetimeTests.Binder);
@@ -157,8 +161,8 @@ es3fLifetimeTests.SamplerBinder.prototype.genRequired = function() { return true
  * @constructor
  * @extends {glsLifetimeTests.Binder}
  */
-es3fLifetimeTests.QueryBinder : public Binder = function() {
-   glsLifetimeTests.Binder.call(this); 
+es3fLifetimeTests.QueryBinder = function() {
+   glsLifetimeTests.Binder.call(this);
 };
 
 setParentClass(es3fLifetimeTests.QueryBinder, glsLifetimeTests.Binder);
@@ -179,7 +183,7 @@ es3fLifetimeTests.QueryBinder.prototype.getBinding = function() { return null; }
  * @constructor
  * @extends {glsLifetimeTests.Attacher}
  * @param {glsLifetimeTests.Type} elementType
- * @param {glsLifetimeTests.Type} varrType 
+ * @param {glsLifetimeTests.Type} varrType
  * @param {es3fLifetimeTests.ScaleProgram} program
  */
 es3fLifetimeTests.BufferVAOAttacher = function(elementType, varrType, program) {
@@ -197,8 +201,8 @@ setParentClass(es3fLifetimeTests.BufferVAOAttacher, glsLifetimeTests.Attacher);
  */
 es3fLifetimeTests.initBuffer = function(seed, usage, buffer) {
     /** @const */ var s_varrData = [
-    -1.0,  0.0, 0.0, 1.0,
-     1.0,  1.0, 0.0, 1.0,
+    -1.0, 0.0, 0.0, 1.0,
+     1.0, 1.0, 0.0, 1.0,
      0.0, -1.0, 0.0, 1.0
     ];
     gl.bindBuffer(GL_ARRAY_BUFFER, buffer);
@@ -206,13 +210,13 @@ es3fLifetimeTests.initBuffer = function(seed, usage, buffer) {
         gl.bufferData(GL_ARRAY_BUFFER, new Float32Array(s_varrData), usage);
     else
     {
-        var  rnd = deRandom.Random(seed);
+        var rnd = deRandom.Random(seed);
         var data = [];
 
         for (var ndx = 0; ndx < NUM_VERTICES; ndx++)
         {
-            data.push(2 *  (rnd.getFloat() - 0.5));
-            data.push(2 *  (rnd.getFloat() - 0.5));
+            data.push(2 * (rnd.getFloat() - 0.5));
+            data.push(2 * (rnd.getFloat() - 0.5));
             data.push(0);
             data.push(1);
         }
@@ -223,12 +227,12 @@ es3fLifetimeTests.initBuffer = function(seed, usage, buffer) {
 
 es3fLifetimeTests.BufferVAOAttacher.prototype.initAttachment = function(seed, buffer) {
     es3fLifetimeTests.initBuffer(seed, GL_STATIC_DRAW, buffer);
-    debug("Initialized buffer " + buffer + " from seed " + seed);
+    debug('Initialized buffer ' + buffer + ' from seed ' + seed);
 };
 
 es3fLifetimeTests.BufferVAOAttacher.prototype.attach = function(buffer, vao) {
     this.m_program.setPos(buffer, vao);
-    debug("Set the `pos` attribute in VAO " + vao + " to buffer " + buffer);
+    debug('Set the `pos` attribute in VAO ' + vao + ' to buffer ' + buffer);
 };
 
 es3fLifetimeTests.BufferVAOAttacher.prototype.detach = function(buffer, vao) {
@@ -258,7 +262,7 @@ setParentClass(es3fLifetimeTests.BufferVAOInputAttacher, glsLifetimeTests.InputA
 es3fLifetimeTests.BufferVAOInputAttacher.prototype.drawContainer = function(vao, dst)
 {
     this.m_program.draw(vao, 1.0, false, dst);
-    debug("Drew an output image with VAO " + vao);
+    debug('Drew an output image with VAO ' + vao);
 };
 
 
@@ -266,7 +270,7 @@ es3fLifetimeTests.BufferVAOInputAttacher.prototype.drawContainer = function(vao,
  * @constructor
  * @extends {glsLifetimeTests.Attacher}
  * @param {glsLifetimeTests.Type} elementType
- * @param {glsLifetimeTests.Type} tfType 
+ * @param {glsLifetimeTests.Type} tfType
 */
 es3fLifetimeTests.BufferTfAttacher = function(elementType, tfType) {
     glsLifetimeTests.Attacher.call(this, elementType, tfType);
@@ -276,7 +280,7 @@ setParentClass(es3fLifetimeTests.BufferTfAttacher, glsLifetimeTests.Attacher);
 
 es3fLifetimeTests.BufferTfAttacher.prototype.initAttachment = function(seed, buffer) {
     es3fLifetimeTests.initBuffer(seed, GL_DYNAMIC_READ, buffer);
-    debug("Initialized buffer " + buffer + " from seed " + seed);
+    debug('Initialized buffer ' + buffer + ' from seed ' + seed);
 };
 
 es3fLifetimeTests.BufferTfAttacher.prototype.attach = function(buffer, tf) {
@@ -312,26 +316,26 @@ es3fLifetimeTests.BufferTfOutputAttacher = function(attacher, program) {
 setParentClass(es3fLifetimeTests.BufferTfOutputAttacher, glsLifetimeTests.OutputAttacher);
 
 es3fLifetimeTests.BufferTfOutputAttacher.prototype.setupContainer = function(seed, tf) {
-    var       posBuf  = gl.createBuffer();
-    var  vao = gl.createVertexArray();
+    var posBuf = gl.createBuffer();
+    var vao = gl.createVertexArray();
 
     es3fLifetimeTests.initBuffer(seed, GL_STATIC_DRAW, posBuf);
     this.m_program.setPos(posBuf, vao);
 
     g.bBindTransformFeedback(GL_TRANSFORM_FEEDBACK, tf);
     this.m_program.draw(vao, -1.0, true, null);
-    debug("Drew an image with seed " + seed + " with transform feedback to " + tf);
+    debug('Drew an image with seed ' + seed + ' with transform feedback to ' + tf);
     gl.bindTransformFeedback(GL_TRANSFORM_FEEDBACK, null);
     gl.deleteVertexArray(vao);
     gl.deleteBuffer(posBuf);
 };
 
 es3fLifetimeTests.BufferTfOutputAttacher.prototype.drawAttachment = function(buffer, dst) {
-    var  vao = gl.createVertexArray();
+    var vao = gl.createVertexArray();
 
     this.m_program.setPos(buffer, vao);
     this.m_program.draw(vao, 1.0, false, dst);
-    debug("Drew output image with vertices from buffer " + buffer);
+    debug('Drew output image with vertices from buffer ' + buffer);
     gl.deleteVertexArray(vao);
 };
 
