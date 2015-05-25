@@ -389,7 +389,6 @@ goog.scope(function() {
     }; // initGlDependents ----------------------------------------
 
     
-    // TestContext& testCtx, RenderContext& renderCtx, CheckerFactory& factory
     /**
     * @constructor
     * @param {null} testCtx
@@ -603,7 +602,7 @@ goog.scope(function() {
             throw new Error('Unsupported attachment kind for attachment point');
         }
         
-        return formats;
+        return formats[0];
         
     };
     
@@ -935,7 +934,7 @@ goog.scope(function() {
             var formats = this.m_ctx.getMinFormats().getFormats(flags);
             if (formats.length) {
                 var format = formats[0];
-                att = glsFboCompletenessTests.makeAttachment(this.m_params.depthKind, format, 64, 64, builder. gl);
+                att = glsFboCompletenessTests.makeAttachment(this.m_params.depthKind, format, 64, 64, builder, gl);
                 builder.glAttach(gl.DEPTH_ATTACHMENT, att);
                 builder.glAttach(gl.STENCIL_ATTACHMENT, att);
                 return;
