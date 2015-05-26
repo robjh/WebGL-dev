@@ -100,7 +100,8 @@ es3fLifetimeTests.ScaleProgram.prototype.draw = function(vao, scale, tf, dst) {
 es3fLifetimeTests.ScaleProgram.prototype.setPos = function(buffer, vao) {
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
     gl.bindVertexArray(vao);
-    gl.vertexAttribPointer(this.m_posLoc, NUM_COMPONENTS, gl.FLOAT, false, 0, 0);
+    if (buffer)
+        gl.vertexAttribPointer(this.m_posLoc, NUM_COMPONENTS, gl.FLOAT, false, 0, 0);
     gl.bindVertexArray(null);
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
 };
@@ -191,6 +192,11 @@ es3fLifetimeTests.BufferVAOAttacher = function(elementType, varrType, program) {
 setParentClass(es3fLifetimeTests.BufferVAOAttacher, glsLifetimeTests.Attacher);
 
 /**
+ * @return {es3fLifetimeTests.ScaleProgram}
+ */
+es3fLifetimeTests.BufferVAOAttacher.prototype.getProgram = function() { return this.m_program; };
+
+/**
  * @param {number} seed
  * @param {number} usage
  * @param {WebGLBuffer} buffer
@@ -221,12 +227,12 @@ es3fLifetimeTests.initBuffer = function(seed, usage, buffer) {
 
 es3fLifetimeTests.BufferVAOAttacher.prototype.initAttachment = function(seed, buffer) {
     es3fLifetimeTests.initBuffer(seed, gl.STATIC_DRAW, buffer);
-    debug('Initialized buffer ' + buffer + ' from seed ' + seed);
+    bufferedLogToConsole('Initialized buffer ' + buffer + ' from seed ' + seed);
 };
 
 es3fLifetimeTests.BufferVAOAttacher.prototype.attach = function(buffer, vao) {
     this.m_program.setPos(buffer, vao);
-    debug('Set the `pos` attribute in VAO ' + vao + ' to buffer ' + buffer);
+    bufferedLogToConsole('Set the `pos` attribute in VAO ' + vao + ' to buffer ' + buffer);
 };
 
 es3fLifetimeTests.BufferVAOAttacher.prototype.detach = function(buffer, vao) {
@@ -243,6 +249,7 @@ es3fLifetimeTests.BufferVAOAttacher.prototype.getAttachment = function(vao) {
 /**
  * @constructor
  * @extends {glsLifetimeTests.InputAttacher}
+ * @param {es3fLifetimeTests.BufferVAOAttacher} attacher
  */
 es3fLifetimeTests.BufferVAOInputAttacher = function(attacher) {
     glsLifetimeTests.InputAttacher.call(this, attacher);
@@ -253,7 +260,7 @@ setParentClass(es3fLifetimeTests.BufferVAOInputAttacher, glsLifetimeTests.InputA
 
 es3fLifetimeTests.BufferVAOInputAttacher.prototype.drawContainer = function(vao, dst) {
     this.m_program.draw(vao, 1.0, false, dst);
-    debug('Drew an output image with VAO ' + vao);
+    bufferedLogToConsole('Drew an output image with VAO ' + vao);
 };
 
 /**
@@ -270,7 +277,7 @@ setParentClass(es3fLifetimeTests.BufferTfAttacher, glsLifetimeTests.Attacher);
 
 es3fLifetimeTests.BufferTfAttacher.prototype.initAttachment = function(seed, buffer) {
     es3fLifetimeTests.initBuffer(seed, gl.DYNAMIC_READ, buffer);
-    debug('Initialized buffer ' + buffer + ' from seed ' + seed);
+    bufferedLogToConsole('Initialized buffer ' + buffer + ' from seed ' + seed);
 };
 
 es3fLifetimeTests.BufferTfAttacher.prototype.attach = function(buffer, tf) {
@@ -314,7 +321,7 @@ es3fLifetimeTests.BufferTfOutputAttacher.prototype.setupContainer = function(see
 
     gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, tf);
     this.m_program.draw(vao, -1.0, true, null);
-    debug('Drew an image with seed ' + seed + ' with transform feedback to ' + tf);
+    bufferedLogToConsole('Drew an image with seed ' + seed + ' with transform feedback to ' + tf);
     gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, null);
     gl.deleteVertexArray(vao);
     gl.deleteBuffer(posBuf);
@@ -325,7 +332,7 @@ es3fLifetimeTests.BufferTfOutputAttacher.prototype.drawAttachment = function(buf
 
     this.m_program.setPos(buffer, vao);
     this.m_program.draw(vao, 1.0, false, dst);
-    debug('Drew output image with vertices from buffer ' + buffer);
+    bufferedLogToConsole('Drew output image with vertices from buffer ' + buffer);
     gl.deleteVertexArray(vao);
 };
 
@@ -372,13 +379,18 @@ es3fLifetimeTests.TfDeleteActiveTest.prototype.iterate = function() {
     var tf = gl.createTransformFeedback();
     gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, tf);
     gl.beginTransformFeedback(gl.TRIANGLES);
-    /* TODO: Disable error checking for next call in WebGL context */
-    gl.deleteTransformFeedback(tf);
-    var err = gl.getError();
+    var errCode = gl.NONE;
+    try {
+        gl.deleteTransformFeedback(tf);
+    } catch (err) {
+        errCode = err.error;
+    }
     gl.endTransformFeedback();
     gl.deleteTransformFeedback(tf);
-    assertMsgOptions(err == gl.INVALID_OPERATION,
-        'Deleting active transform feedback must produce INVALID_OPERATION', true, true);
+    assertMsgOptions(errCode == gl.INVALID_OPERATION,
+        'Deleting active transform feedback must produce INVALID_OPERATION', false, true);
+
+    testPassed(this.fullName() + ' ' + this.description);
     return tcuTestCase.IterateResult.STOP;
 };
 
@@ -405,6 +417,7 @@ es3fLifetimeTests.run = function(context) {
         tcuTestCase.runner.runCallback(tcuTestCase.runTestCases);
     } catch (err) {
         bufferedLogToConsole(err);
+        console.log(err);
         tcuTestCase.runner.terminate();
     }
 
