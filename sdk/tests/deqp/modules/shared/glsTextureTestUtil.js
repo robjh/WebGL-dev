@@ -625,7 +625,6 @@ glsTextureTestUtil.getBitsVec = function(format) {
     ];
 };
 
-
 /**
  * @param {number} texUnit
  * @param {Array<number>} texCoord

@@ -78,6 +78,8 @@ setParentClass(glsLifetimeTests.CheckedShader, gluShaderProgram.Shader);
 /**
  * @constructor
  * @extends {gluShaderProgram.Program}
+ * @param {WebGLShader} vtxShader
+ * @param {WebGLShader} fragShader
  */
 glsLifetimeTests.CheckedProgram = function(vtxShader, fragShader) {
     gluShaderProgram.Program.call(this, gl);
@@ -95,12 +97,22 @@ setParentClass(glsLifetimeTests.CheckedProgram, gluShaderProgram.Program);
 glsLifetimeTests.Binder = function() {
 };
 
-glsLifetimeTests.Binder.prototype.bind = null;
-glsLifetimeTests.Binder.prototype.getBinding = null;
+/**
+ * @param {WebGLObject} obj
+ */
+glsLifetimeTests.Binder.prototype.bind = function(obj) { throw new Error('Virtual function'); };
+
+/**
+ * @return {WebGLObject}
+ */
+glsLifetimeTests.Binder.prototype.getBinding = function() { throw new Error('Virtual function'); };
 
 /**
  * @constructor
  * @extends {glsLifetimeTests.Binder}
+ * @param {?function(number, ?)} bindFunc
+ * @param {number} bindTarget
+ * @param {number} bindingParam
  */
 glsLifetimeTests.SimpleBinder = function(bindFunc, bindTarget, bindingParam) {
     glsLifetimeTests.Binder.call(this);
@@ -116,7 +128,7 @@ glsLifetimeTests.SimpleBinder.prototype.bind = function(obj) {
 };
 
 glsLifetimeTests.SimpleBinder.prototype.getBinding = function() {
-    return gl.getParameter(this.m_bindingParam);
+    return /** @type {WebGLObject} */ (gl.getParameter(this.m_bindingParam));
 };
 
 /**
@@ -125,13 +137,51 @@ glsLifetimeTests.SimpleBinder.prototype.getBinding = function() {
 glsLifetimeTests.Type = function() {
 };
 
-glsLifetimeTests.Type.prototype.gen = null;
-glsLifetimeTests.Type.prototype.release = null;
-glsLifetimeTests.Type.prototype.exists = null;
+/**
+ * Create a type
+ * @return {WebGLObject}
+ */ 
+glsLifetimeTests.Type.prototype.gen = function() { throw new Error('Virtual function'); };
+
+/**
+ * Destroy a type
+ * @param {WebGLObject} obj
+ */ 
+glsLifetimeTests.Type.prototype.release = function(obj) { throw new Error('Virtual function'); };
+
+/**
+ * Is object valid
+ * @param {WebGLObject} obj
+ */ 
+glsLifetimeTests.Type.prototype.exists = function(obj) { throw new Error('Virtual function'); };
+
+/**
+ * Is object flagged for deletion
+ * @param {WebGLObject} obj
+ */ 
 glsLifetimeTests.Type.prototype.isDeleteFlagged = function(obj) { return false; };
+
+/**
+ * @return {glsLifetimeTests.Binder}
+ */ 
 glsLifetimeTests.Type.prototype.binder = function() { return null; };
-glsLifetimeTests.Type.prototype.getName = null;
+
+/**
+ * @return {string}
+ */
+glsLifetimeTests.Type.prototype.getName = function() { throw new Error('Virtual function'); };
+
+/**
+ * Is the object unbound automatically when it is deleted?
+ * @return {boolean}
+ */
 glsLifetimeTests.Type.prototype.nameLingers = function() { return false; };
+
+/**
+ * Does 'create' creates the object fully?
+ * If not, the object is created at bound time
+ * @return {boolean}
+ */
 glsLifetimeTests.Type.prototype.genCreates = function() { return false; };
 
 /**
@@ -180,9 +230,9 @@ setParentClass(glsLifetimeTests.ProgramType, glsLifetimeTests.Type);
 
 glsLifetimeTests.ProgramType.prototype.gen = function() { return gl.createProgram(); };
 
-glsLifetimeTests.ProgramType.prototype.release = function(obj) { return gl.deleteProgram(obj); };
+glsLifetimeTests.ProgramType.prototype.release = function(obj) { return gl.deleteProgram(/** @type{WebGLProgram} */ (obj)); };
 
-glsLifetimeTests.ProgramType.prototype.exists = function(obj) { return gl.isProgram(obj); };
+glsLifetimeTests.ProgramType.prototype.exists = function(obj) { return gl.isProgram(/** @type{WebGLProgram} */ (obj)); };
 
 glsLifetimeTests.ProgramType.prototype.getName = function() { return 'program'; };
 
@@ -190,7 +240,7 @@ glsLifetimeTests.ProgramType.prototype.genCreates = function() { return true; };
 
 glsLifetimeTests.ProgramType.prototype.nameLingers = function() { return true; };
 
-glsLifetimeTests.ProgramType.prototype.isDeleteFlagged = function(obj) { return gl.getProgramParameter(obj, gl.DELETE_STATUS); };
+glsLifetimeTests.ProgramType.prototype.isDeleteFlagged = function(obj) { return gl.getProgramParameter(/** @type{WebGLProgram} */ (obj), gl.DELETE_STATUS); };
 
 /**
  * @constructor
@@ -204,9 +254,9 @@ setParentClass(glsLifetimeTests.ShaderType, glsLifetimeTests.Type);
 
 glsLifetimeTests.ShaderType.prototype.gen = function() { return gl.createShader(gl.FRAGMENT_SHADER); };
 
-glsLifetimeTests.ShaderType.prototype.release = function(obj) { return gl.deleteShader(obj); };
+glsLifetimeTests.ShaderType.prototype.release = function(obj) { return gl.deleteShader(/** @type{WebGLShader} */ (obj)); };
 
-glsLifetimeTests.ShaderType.prototype.exists = function(obj) { return gl.isShader(obj); };
+glsLifetimeTests.ShaderType.prototype.exists = function(obj) { return gl.isShader(/** @type{WebGLShader} */ (obj)); };
 
 glsLifetimeTests.ShaderType.prototype.getName = function() { return 'shader'; };
 
@@ -214,7 +264,7 @@ glsLifetimeTests.ShaderType.prototype.genCreates = function() { return true; };
 
 glsLifetimeTests.ShaderType.prototype.nameLingers = function() { return true; };
 
-glsLifetimeTests.ShaderType.prototype.isDeleteFlagged = function(obj) { return gl.getShaderParameter(obj, gl.DELETE_STATUS); };
+glsLifetimeTests.ShaderType.prototype.isDeleteFlagged = function(obj) { return gl.getShaderParameter(/** @type{WebGLShader} */ (obj), gl.DELETE_STATUS); };
 
 /**
  * @constructor
@@ -226,11 +276,33 @@ glsLifetimeTests.Attacher = function(elementType, containerType) {
     this.m_containerType = containerType;
 };
 
-glsLifetimeTests.Attacher.prototype.initAttachment = null;
+/**
+ * @param {number} seed
+ * @param {WebGLObject} obj
+ */
+glsLifetimeTests.Attacher.prototype.initAttachment = function(seed, obj) { throw new Error('Virtual function'); }; 
+
+/**
+ * @param {WebGLObject} element
+ * @param {WebGLObject} target
+ */
 glsLifetimeTests.Attacher.prototype.attach = function(element, target) { throw new Error('Virtual function'); };
+
+/**
+ * @param {WebGLObject} element
+ * @param {WebGLObject} target
+ */
 glsLifetimeTests.Attacher.prototype.detach = function(element, target) { throw new Error('Virtual function'); };
 glsLifetimeTests.Attacher.prototype.canAttachDeleted = function() { return true; };
+
+/**
+ * @return {glsLifetimeTests.Type}
+ */
 glsLifetimeTests.Attacher.prototype.getElementType = function() { return this.m_elementType; };
+
+/**
+ * @return {glsLifetimeTests.Type}
+ */
 glsLifetimeTests.Attacher.prototype.getContainerType = function() { return this.m_containerType; };
 
 /**
@@ -279,7 +351,10 @@ glsLifetimeTests.Types = function() {
     /** @type {Array<glsLifetimeTests.OutputAttacher>} */ this.m_outAttachers = [];
 };
 
-glsLifetimeTests.Types.prototype.getProgramType = null;
+/**
+ * @return {glsLifetimeTests.ProgramType}
+ */
+glsLifetimeTests.Types.prototype.getProgramType = function() { throw new Error('Virtual function'); };
 
 glsLifetimeTests.Types.prototype.getTypes = function() { return this.m_types; };
 
@@ -326,12 +401,25 @@ glsLifetimeTests.setupFbo = function(seed, fbo) {
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 };
 
+/**
+ * @param {{x: number, y:number, width: number, height: number}} rect
+ * @param {tcuSurface.Surface} dst
+ */
+glsLifetimeTests.readRectangle = function(rect, dst) {
+    dst.setSize(rect.width, rect.height);
+    gl.readPixels(rect.x, rect.y, rect.width, rect.height, gl.RGBA, gl.UNSIGNED_BYTE, dst.getPixels());
+};
+
+/**
+ * @param {WebGLFramebuffer} fbo
+ * @param {tcuSurface.Surface} dst
+ */
 glsLifetimeTests.drawFbo = function(fbo, dst) {
-        gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
 
     dst.setSize(FRAMEBUFFER_SIZE, FRAMEBUFFER_SIZE);
-    gl.readPixels(0, 0, FRAMEBUFFER_SIZE, FRAMEBUFFER_SIZE, gl.RGBA, gl.UNSIGNED_BYTE, dst.getAccess().getBuffer());
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    gl.readPixels(0, 0, FRAMEBUFFER_SIZE, FRAMEBUFFER_SIZE, gl.RGBA, gl.UNSIGNED_BYTE, dst.getPixels());
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 };
 
 /**
@@ -360,7 +448,7 @@ glsLifetimeTests.FboAttacher.prototype.initAttachment = function(seed, element) 
 
     gl.deleteFramebuffer(fbo);
 
-    debug('Drew to ' + this.getElementType().getName() + ' ' + element + ' with seed ' + seed + '.');
+    bufferedLogToConsole('Drew to ' + this.getElementType().getName() + ' ' + element + ' with seed ' + seed + '.');
 };
 
 /**
@@ -373,9 +461,10 @@ glsLifetimeTests.FboInputAttacher = function(attacher) {
 
 setParentClass(glsLifetimeTests.FboInputAttacher, glsLifetimeTests.InputAttacher);
 
-glsLifetimeTests.FboInputAttacher.prototype.drawContainer = function(fbo, dst) {
+glsLifetimeTests.FboInputAttacher.prototype.drawContainer = function(obj, dst) {
+    var fbo = /** @type {WebGLFramebuffer} */ (obj);
     glsLifetimeTests.drawFbo(fbo, dst);
-    debug('Read pixels from framebuffer ' + fbo + ' to output image.');
+    bufferedLogToConsole('Read pixels from framebuffer ' + fbo + ' to output image.');
 };
 
 /**
@@ -390,7 +479,7 @@ setParentClass(glsLifetimeTests.FboOutputAttacher, glsLifetimeTests.OutputAttach
 
 glsLifetimeTests.FboOutputAttacher.prototype.setupContainer = function(seed, fbo) {
     glsLifetimeTests.setupFbo(seed, /** @type {WebGLFramebuffer} */ (fbo));
-   debug('Drew to framebuffer ' + fbo + ' with seed ' + seed + '.');
+   bufferedLogToConsole('Drew to framebuffer ' + fbo + ' with seed ' + seed + '.');
 };
 
 glsLifetimeTests.FboOutputAttacher.prototype.drawAttachment = function(element, dst) {
@@ -398,8 +487,8 @@ glsLifetimeTests.FboOutputAttacher.prototype.drawAttachment = function(element, 
     this.m_attacher.attach(element, fbo);
     glsLifetimeTests.drawFbo(fbo, dst);
     this.m_attacher.detach(element, fbo);
-     gl.deleteFramebuffer(fbo);
-    debug('Read pixels from ' + this.m_attacher.getElementType().getName() + ' ' + element + ' to output image.');
+    gl.deleteFramebuffer(fbo);
+    bufferedLogToConsole('Read pixels from ' + this.m_attacher.getElementType().getName() + ' ' + element + ' to output image.');
 };
 
 /**
@@ -418,14 +507,17 @@ glsLifetimeTests.TextureFboAttacher.prototype.initStorage = function() {
 
 };
 
-glsLifetimeTests.TextureFboAttacher.prototype.attach = function(texture, fbo) {
-        gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
-        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0,
-                                  gl.TEXTURE_2D, texture, 0);
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+glsLifetimeTests.TextureFboAttacher.prototype.attach = function(element, target) {
+    var texture = /** @type {WebGLTexture} */ (element);
+    var fbo  = /** @type {WebGLFramebuffer} */ (target);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0,
+                              gl.TEXTURE_2D, texture, 0);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 };
 
-glsLifetimeTests.TextureFboAttacher.prototype.detach = function(texture, fbo) {
+glsLifetimeTests.TextureFboAttacher.prototype.detach = function(texture, target) {
+    var fbo  = /** @type {WebGLFramebuffer} */ (target);
     this.attach(null, fbo);
 };
 
@@ -460,13 +552,16 @@ glsLifetimeTests.RboFboAttacher.prototype.initStorage = function() {
 
 };
 
-glsLifetimeTests.RboFboAttacher.prototype.attach = function(rbo, fbo) {
-        gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
-        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, rbo);
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+glsLifetimeTests.RboFboAttacher.prototype.attach = function(element, target) {
+    var rbo = /** @type {WebGLRenderbuffer} */ (element);
+    var fbo  = /** @type {WebGLFramebuffer} */ (target);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+    gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, rbo);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 };
 
-glsLifetimeTests.RboFboAttacher.prototype.detach = function(rbo, fbo) {
+glsLifetimeTests.RboFboAttacher.prototype.detach = function(rbo, target) {
+    var fbo  = /** @type {WebGLFramebuffer} */ (target);
     this.attach(null, fbo);
 };
 
@@ -484,7 +579,8 @@ glsLifetimeTests.ShaderProgramAttacher = function(elementType, containerType) {
 
 setParentClass(glsLifetimeTests.ShaderProgramAttacher, glsLifetimeTests.Attacher);
 
-glsLifetimeTests.ShaderProgramAttacher.prototype.initAttachment = function(seed, shader) {
+glsLifetimeTests.ShaderProgramAttacher.prototype.initAttachment = function(seed, obj) {
+    var shader = /** @type {WebGLShader} */ (obj);
     var s_fragmentShaderTemplate =
     '#version 100\n' +
     'void main()\n' +
@@ -505,11 +601,15 @@ glsLifetimeTests.ShaderProgramAttacher.prototype.initAttachment = function(seed,
     assertMsgOptions(compileStatus === true, 'Failed to compile shader: ' + source, false, true);
 };
 
-glsLifetimeTests.ShaderProgramAttacher.prototype.attach = function(shader, program) {
+glsLifetimeTests.ShaderProgramAttacher.prototype.attach = function(element, target) {
+    var shader = /** @type {WebGLShader} */ (element);
+    var program = /** @type {WebGLProgram} */ (target);
     gl.attachShader(program, shader);
 };
 
-glsLifetimeTests.ShaderProgramAttacher.prototype.dettach = function(shader, program) {
+glsLifetimeTests.ShaderProgramAttacher.prototype.detach = function(element, target) {
+    var shader = /** @type {WebGLShader} */ (element);
+    var program = /** @type {WebGLProgram} */ (target);
     gl.detachShader(program, shader);
 };
 
@@ -522,11 +622,6 @@ glsLifetimeTests.ShaderProgramAttacher.prototype.getAttachment = function(progra
             return shader;
     }
     return null;
-};
-
-glsLifetimeTests.readRectangle = function(rect, dst) {
-    dst.setSize(rect.width, rect.height);
-    gl.readPixels(rect.x, rect.y, rect.width, rect.height, gl.RGBA, gl.UNSIGNED_BYTE, dst.getAccess().getBuffer());
 };
 
 /**
@@ -552,11 +647,11 @@ glsLifetimeTests.ShaderProgramInputAttacher.prototype.drawContainer = function(c
     var linkStatus = gl.getProgramParameter(program, gl.LINK_STATUS);
     assertMsgOptions(linkStatus === true, 'Program link failed', false, true);
 
-    debug('Attached a temporary vertex shader and linked program ' + program);
+    bufferedLogToConsole('Attached a temporary vertex shader and linked program ' + program);
 
     gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height);
 
-    debug('Positioned viewport randomly');
+    bufferedLogToConsole('Positioned viewport randomly');
 
     gl.useProgram(program);
 
@@ -576,15 +671,15 @@ glsLifetimeTests.ShaderProgramInputAttacher.prototype.drawContainer = function(c
 
     gl.disableVertexAttribArray(posLoc);
     gl.deleteBuffer(buf);
-    debug('Drew a fixed triangle');
+    bufferedLogToConsole('Drew a fixed triangle');
 
     gl.useProgram(null);
 
     glsLifetimeTests.readRectangle(viewport, dst);
-    debug('Copied viewport to output image');
+    bufferedLogToConsole('Copied viewport to output image');
 
     gl.detachShader(program, vtxShader.getShader());
-    debug('Removed temporary vertex shader');
+    bufferedLogToConsole('Removed temporary vertex shader');
 };
 
 /**
@@ -620,6 +715,8 @@ glsLifetimeTests.ES2Types = function() {
 
 setParentClass(glsLifetimeTests.ES2Types, glsLifetimeTests.Types);
 
+glsLifetimeTests.ES2Types.prototype.getProgramType = function() { return this.m_programType; };
+
 /**
  * @constructor
  * @extends {tcuTestCase.DeqpTest}
@@ -651,6 +748,7 @@ glsLifetimeTests.LifeTest.testGen = function() {
     else
         assertMsgOptions(!this.m_type.exists(obj), 'create* should not have created an object, but did', false, true);
     this.m_type.release(obj);
+    testPassed(this.fullName() + ' ' + this.description);
 };
 
 /**
@@ -660,6 +758,7 @@ glsLifetimeTests.LifeTest.testDelete = function() {
     var obj = this.m_type.gen();
     this.m_type.release(obj);
     assertMsgOptions(!this.m_type.exists(obj), 'Object still exists after deletion', false, true);
+    testPassed(this.fullName() + ' ' + this.description);
 };
 
 /**
@@ -668,10 +767,12 @@ glsLifetimeTests.LifeTest.testDelete = function() {
 glsLifetimeTests.LifeTest.testBind = function() {
     var obj = this.m_type.gen();
     this.m_type.binder().bind(obj);
-    assertMsgOptions(gl.getError() == gl.NONE, 'Bind failed', false, true);
+    var err = gl.getError();
+    assertMsgOptions(err == gl.NONE, 'Bind failed', false, true);
     assertMsgOptions(this.m_type.exists(obj), 'Object does not exist after binding', false, true);
     this.m_type.binder().bind(null);
     this.m_type.release(obj);
+    testPassed(this.fullName() + ' ' + this.description);
 };
 
 /**
@@ -691,10 +792,10 @@ glsLifetimeTests.LifeTest.testDeleteBound = function() {
         assertMsgOptions(gl.getError() == gl.NONE, 'Deleting bound object failed', false, true);
         assertMsgOptions(this.m_type.binder().getBinding() === null, 'Deleting bound object did not remove binding', false, true);
         assertMsgOptions(!this.m_type.exists(obj), 'Deleting bound object did not make its name invalid', false, true);
-
     }
     assertMsgOptions(this.m_type.binder().getBinding() === null, "Unbinding didn't remove binding", false, true);
     assertMsgOptions(!this.m_type.exists(obj), 'Name is still valid after deleting and unbinding', false, true);
+    testPassed(this.fullName() + ' ' + this.description);
 };
 
 /**
@@ -705,16 +806,17 @@ glsLifetimeTests.LifeTest.testDeleteUsed = function() {
     var fragShader = new glsLifetimeTests.CheckedShader(gluShaderProgram.shaderType.FRAGMENT, s_fragmentShaderSrc);
     var program = new glsLifetimeTests.CheckedProgram(vtxShader.getShader(), fragShader.getShader());
     var programId = program.getProgram();
-    debug('Created and linked program ' + programId);
+    bufferedLogToConsole('Created and linked program ' + programId);
     gl.useProgram(programId);
 
     gl.deleteProgram(programId);
-    debug('Deleted program ' + programId);
+    bufferedLogToConsole('Deleted program ' + programId);
     assertMsgOptions(gl.isProgram(programId), 'Deleted current program', false, true);
     var deleteFlagged = gl.getProgramParameter(programId, gl.DELETE_STATUS);
     assertMsgOptions(deleteFlagged == true, 'Program object was not flagged as deleted', false, true);
     gl.useProgram(null);
     assertMsgOptions(!gl.isProgram(programId), 'Deleted program name still valid after being made non-current', false, true);
+    testPassed(this.fullName() + ' ' + this.description);
 };
 
 /**
@@ -744,7 +846,7 @@ glsLifetimeTests.AttachmentTest.prototype.iterate = function() {
 glsLifetimeTests.AttachmentTest.testDeletedNames = function() {
     var getAttachment = function(attacher, container) {
         var queriedAttachment = attacher.getAttachment(container);
-        debug('Result of query for ' + attacher.getElementType().getName() +
+        bufferedLogToConsole('Result of query for ' + attacher.getElementType().getName() +
                        ' attached to ' + attacher.getContainerType().getName() + ' ' +
                        container + ': ' + queriedAttachment);
         return queriedAttachment;
@@ -782,6 +884,7 @@ glsLifetimeTests.AttachmentTest.testDeletedNames = function() {
                  'Attachment name returned by query even after detachment.', false, true);
     assertMsgOptions(!elemType.exists(element),
                  'Deleted attached object name still usable after detachment.', false, true);
+    testPassed(this.fullName() + ' ' + this.description);
 };
 
 /**
@@ -814,44 +917,45 @@ glsLifetimeTests.InputAttachmentTest.prototype.iterate = function() {
     var delSurface = new tcuSurface.Surface(VIEWPORT_SIZE, VIEWPORT_SIZE); // Surface from drawing with deleted refSeed attachment
     var newSurface = new tcuSurface.Surface(VIEWPORT_SIZE, VIEWPORT_SIZE); // Surface from drawing with newSeed-seeded attachment
 
-    debug('Testing if writing to a newly created object modifies a deleted attachment');
+    bufferedLogToConsole('Testing if writing to a newly created object modifies a deleted attachment');
 
-                                     debug('Writing to an original attachment');
-        var element = elementType.gen();
+    bufferedLogToConsole('Writing to an original attachment');
+    var element = elementType.gen();
 
-        attacher.initAttachment(refSeed, element);
-        attacher.attach(element, container);
-        this.m_inputAttacher.drawContainer(container, refSurface);
-        // element gets deleted here
-        debug('Deleting attachment');
-        elementType.release(element);
+    attacher.initAttachment(refSeed, element);
+    attacher.attach(element, container);
+    this.m_inputAttacher.drawContainer(container, refSurface);
+    // element gets deleted here
+    bufferedLogToConsole('Deleting attachment');
+    elementType.release(element);
 
-        debug('Writing to a new attachment after deleting the original');
-        var newElement = elementType.gen();
+    bufferedLogToConsole('Writing to a new attachment after deleting the original');
+    var newElement = elementType.gen();
 
-        attacher.initAttachment(newSeed, newElement);
+    attacher.initAttachment(newSeed, newElement);
 
-        this.m_inputAttacher.drawContainer(container, delSurface);
-        attacher.detach(element, container);
+    this.m_inputAttacher.drawContainer(container, delSurface);
+    attacher.detach(element, container);
 
-        attacher.attach(newElement, container);
-        this.m_inputAttacher.drawContainer(container, newSurface);
-        attacher.detach(newElement, container);
-        var surfacesMatch = tcuImageCompare.pixelThresholdCompare(
-            'Reading from deleted',
-            'Comparison result from reading from a container with a deleted attachment ' +
-            'before and after writing to a fresh object.',
-            refSurface, delSurface, [0, 0, 0, 0]);
+    attacher.attach(newElement, container);
+    this.m_inputAttacher.drawContainer(container, newSurface);
+    attacher.detach(newElement, container);
+    var surfacesMatch = tcuImageCompare.pixelThresholdCompare(
+        'Reading from deleted',
+        'Comparison result from reading from a container with a deleted attachment ' +
+        'before and after writing to a fresh object.',
+        refSurface, delSurface, [0, 0, 0, 0]);
 
-        /* TODO: Add logging images */
-        // if (!surfacesMatch)
-        //     log() << TestLog::Image("New attachment",
-        //                             "Container state after attached to the fresh object",
-        //                             newSurface);
+    /* TODO: Add logging images */
+    // if (!surfacesMatch)
+    //     log() << TestLog::Image("New attachment",
+    //                             "Container state after attached to the fresh object",
+    //                             newSurface);
 
-        assertMsgOptions(surfacesMatch,
-            'Writing to a fresh object modified the container with a deleted attachment.', false, true);
+    assertMsgOptions(surfacesMatch,
+        'Writing to a fresh object modified the container with a deleted attachment.', false, true);
 
+    testPassed(this.fullName() + ' ' + this.description);
     return tcuTestCase.IterateResult.STOP;
 };
 
@@ -884,11 +988,11 @@ glsLifetimeTests.OutputAttachmentTest.prototype.iterate = function() {
     var delSurface = new tcuSurface.Surface(VIEWPORT_SIZE, VIEWPORT_SIZE); // Surface from drawing with deleted refSeed attachment
     var newSurface = new tcuSurface.Surface(VIEWPORT_SIZE, VIEWPORT_SIZE); // Surface from drawing with newSeed-seeded attachment
 
-    debug('Testing if writing to a container with a deleted attachment ' +
+    bufferedLogToConsole('Testing if writing to a container with a deleted attachment ' +
           'modifies a newly created object');
 
-    debug('Writing to a container with an existing attachment');
-   var element = elementType.gen();
+    bufferedLogToConsole('Writing to a container with an existing attachment');
+    var element = elementType.gen();
 
     attacher.initAttachment(0, element);
     attacher.attach(element, container);
@@ -898,15 +1002,15 @@ glsLifetimeTests.OutputAttachmentTest.prototype.iterate = function() {
     this.m_outputAttacher.drawAttachment(element, refSurface);
     elementType.release(element);
 
-    debug('Writing to a container after deletion of attachment');
+    bufferedLogToConsole('Writing to a container after deletion of attachment');
     var newElement = elementType.gen();
-    debug('Creating a new object ');
+    bufferedLogToConsole('Creating a new object ');
 
-    debug('Recording state of new object before writing to container');
+    bufferedLogToConsole('Recording state of new object before writing to container');
     attacher.initAttachment(newSeed, newElement);
     this.m_outputAttacher.drawAttachment(newElement, newSurface);
 
-    debug('Writing to container');
+    bufferedLogToConsole('Writing to container');
 
     // Now re-write refSeed to the container.
     this.m_outputAttacher.setupContainer(refSeed, container);
@@ -930,6 +1034,7 @@ glsLifetimeTests.OutputAttachmentTest.prototype.iterate = function() {
     assertMsgOptions(surfacesMatch,
                  'Writing to container with deleted attachment modified a new object.', false, true);
 
+    testPassed(this.fullName() + ' ' + this.description);
     return tcuTestCase.IterateResult.STOP;
 };
 
@@ -955,7 +1060,11 @@ glsLifetimeTests.addTestCases = function(group, types) {
         return attacher.getElementType().getName() + '_' + attacher.getContainerType().getName();
     };
 
-    var s_lifeTests = [{ name: 'gen', func: glsLifetimeTests.LifeTest.testGen, needBind: false },{ name: 'delete', func: glsLifetimeTests.LifeTest.testDelete, needBind: false },{ name: 'bind', func: glsLifetimeTests.LifeTest.testBind, needBind: true },{ name: 'delete_bound', func: glsLifetimeTests.LifeTest.testDeleteBound, needBind: true }
+    var s_lifeTests = [
+        /* Create */ { name: 'gen', func: glsLifetimeTests.LifeTest.testGen, needBind: false },
+        /* Delete */ { name: 'delete', func: glsLifetimeTests.LifeTest.testDelete, needBind: false },
+        /* Bind */ { name: 'bind', func: glsLifetimeTests.LifeTest.testBind, needBind: true },
+        /* Delete bound */ { name: 'delete_bound', func: glsLifetimeTests.LifeTest.testDeleteBound, needBind: true }
     ];
 
     s_lifeTests.forEach(function(spec) {

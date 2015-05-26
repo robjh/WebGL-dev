@@ -995,6 +995,372 @@ goog.scope(function() {
         }
     };
 
+    // DrawTestShaderProgram
+
+    /**
+     * @constructor
+     * @extends {sglrShaderProgram.ShaderProgram}
+     * @param {Array<glsDrawTests.AttributeArray>} arrays
+     */
+    glsDrawTests.DrawTestShaderProgram = function (arrays) {
+        sglrShaderProgram.ShaderProgram.call(this, this.createProgramDeclaration(arrays));
+
+        this.m_componentCount = arrays.length;
+        this.m_isCoord = arrays.length;
+        this.m_attrType = arrays.length;
+
+        for (var arrayNdx = 0; arrayNdx < arrays.length; arrayNdx++) {
+            this.m_componentCount[arrayNdx] = this.getComponentCount(arrays[arrayNdx].getOutputType());
+            this.m_isCoord[arrayNdx] = arrays[arrayNdx].isPositionAttribute();
+            this.m_attrType[arrayNdx] = this.mapOutputType(arrays[arrayNdx].getOutputType());
+        }
+    };
+
+    glsDrawTests.DrawTestShaderProgram.prototype = Object.create(sglrShaderProgram.ShaderProgram.prototype);
+    glsDrawTests.DrawTestShaderProgram.prototype.constructor = glsDrawTests.DrawTestShaderProgram;
+
+    /**
+     * @param {Array<number>} coord
+     * @param {Array<number>} color
+     * @param {goog.NumberArray} attribValue
+     * @param {boolean} isCoordinate
+     * @param {number} numComponents
+     */
+    glsDrawTests.calcShaderColorCoord = function (coord, color, attribValue, isCoordinate, numComponents) {
+        if (isCoordinate)
+            switch (numComponents) {
+                case 1: coord = deMath.add(coord, [attribValue[0], attribValue[0]]); break;
+                case 2: coord = deMath.add(coord, [attribValue[0], attribValue[1]]); break;
+                case 3: coord = deMath.add(coord, [attribValue[0] + attribValue[2], attribValue[1]]); break;
+                case 4: coord = deMath.add(coord, [attribValue[0] + attribValue[2], attribValue[1] + attribValue[3]]); break;
+
+                default:
+                    throw new Error('Invalid component count');
+            }
+        else {
+            switch (numComponents)
+            {
+                case 1:
+                    color = deMath.scale(color, attribValue[0]);
+                    break;
+
+                case 2:
+                    color[0] = color[0] * attribValue[0];
+                    color[1] = color[1] * attribValue[1];
+                    break;
+
+                case 3:
+                    color[0] = color[0] * attribValue[0];
+                    color[1] = color[1] * attribValue[1];
+                    color[2] = color[2] * attribValue[2];
+                    break;
+
+                case 4:
+                    color[0] = color[0] * attribValue[0] * attribValue[3];
+                    color[1] = color[1] * attribValue[1] * attribValue[3];
+                    color[2] = color[2] * attribValue[2] * attribValue[3];
+                    break;
+
+                default:
+                    throw new Error('Invalid component count');
+            }
+        }
+    };
+
+    /**
+     * @param {Array<rrVertexAttrib.VertexAttrib>} inputs
+     * @param {Array<rrVertexPacket.VertexPacket>} packets
+     * @param {number} numPackets
+     */
+    glsDrawTests.DrawTestShaderProgram.prototype.shadeVertices = function (inputs, packets, numPackets) {
+        var u_coordScale = this.getUniformByName("u_coordScale").value;
+        var u_colorScale = this.getUniformByName("u_colorScale").value;
+
+        for (var packetNdx = 0; packetNdx < numPackets; ++packetNdx) {
+            var varyingLocColor = 0;
+
+            /** @type {rrVertexPacket.VertexPacket} */ var packet = packets[packetNdx];
+
+            // Calc output color
+            /** @type {Array<number>} */ var coord = [0.0, 0.0];
+            /** @type {Array<number>} */ var color = [1.0, 1.0, 1.0];
+
+            for (var attribNdx = 0; attribNdx < this.m_attrType.length; attribNdx++) {
+                var numComponents = this.m_componentCount[attribNdx];
+                /** @type {boolean} */ var isCoord = this.m_isCoord[attribNdx];
+
+                glsDrawTests.calcShaderColorCoord(
+                    coord, color,
+                    rrVertexAttrib.readVertexAttrib(inputs[attribNdx], packet.instanceNdx, packet.vertexNdx, this.m_attrType[attribNdx]),
+                    isCoord, numComponents
+                );
+            }
+
+            // Transform position
+            packet.position = [u_coordScale * coord[0], u_coordScale * coord[1], 1.0, 1.0];
+            packet.pointSize = 1.0;
+
+            // Pass color to FS
+            packet.outputs[varyingLocColor] = deMath.add(deMath.scale([u_colorScale * color[0], u_colorScale * color[1], u_colorScale * color[2], 1.0], 0.5), [0.5, 0.5, 0.5, 0.5]);
+        }
+    };
+
+    /**
+     * @param {Array<rrFragmentOperations.Fragment>} packets
+     * @param {rrShadingContext.FragmentShadingContext} context
+     */
+    glsDrawTests.DrawTestShaderProgram.prototype.shadeFragments = function (packets, context) {
+        var varyingLocColor = 0;
+
+        for (var packetNdx = 0; packetNdx < packets.length; ++packetNdx) {
+            /** @type {rrFragmentOperations.Fragment} */ var packet = packets[packetNdx];
+            packet.value = rrShadingContext.readVarying(packet, context, varyingLocColor);
+        }
+    };
+
+    /**
+     * @param {Array<glsDrawTests.AttributeArray>} arrays
+     * @return {string}
+     */
+    glsDrawTests.DrawTestShaderProgram.prototype.genVertexSource = function (arrays) {
+        /** @type {Array<string>}*/ var params;
+        var vertexShaderTmpl = '';
+
+        params = this.generateShaderParams();
+
+        vertexShaderTmpl += params["VTX_HDR"];
+
+        for (var arrayNdx = 0; arrayNdx < arrays.length; arrayNdx++) {
+            vertexShaderTmpl += params["VTX_IN"] + " highp " + glsDrawTests.outputTypeToGLType(arrays[arrayNdx].getOutputType()) + " a_" + arrayNdx + ";\n";
+        }
+
+        vertexShaderTmpl +=
+            "uniform highp float u_coordScale;\n" +
+            "uniform highp float u_colorScale;\n" +
+            params["VTX_OUT"] + params["COL_PRECISION"] + "vec4 v_color;\n" +
+            "void main(void)\n" +
+            "{\n" +
+            "\tgl_PointSize = 1.0;\n" +
+            "\thighp vec2 coord = vec2(0.0, 0.0);\n" +
+            "\thighp vec3 color = vec3(1.0, 1.0, 1.0);\n";
+
+        for (var arrayNdx = 0; arrayNdx < arrays.length; arrayNdx++) {
+            var isPositionAttr = arrays[arrayNdx].isPositionAttribute();
+
+            if (isPositionAttr) {
+                switch (arrays[arrayNdx].getOutputType()) {
+                    case (glsDrawTests.DrawTestSpec.OutputType.FLOAT):
+                    case (glsDrawTests.DrawTestSpec.OutputType.INT):
+                    case (glsDrawTests.DrawTestSpec.OutputType.UINT):
+                        vertexShaderTmpl +=
+                            "\tcoord += vec2(float(a_" + arrayNdx + "), float(a_" + arrayNdx + "));\n";
+                        break;
+
+                    case (glsDrawTests.DrawTestSpec.OutputType.VEC2):
+                    case (glsDrawTests.DrawTestSpec.OutputType.IVEC2):
+                    case (glsDrawTests.DrawTestSpec.OutputType.UVEC2):
+                        vertexShaderTmpl +=
+                            "\tcoord += vec2(a_" + arrayNdx + ".xy);\n";
+                        break;
+
+                    case (glsDrawTests.DrawTestSpec.OutputType.VEC3):
+                    case (glsDrawTests.DrawTestSpec.OutputType.IVEC3):
+                    case (glsDrawTests.DrawTestSpec.OutputType.UVEC3):
+                        vertexShaderTmpl +=
+                            "\tcoord += vec2(a_" + arrayNdx + ".xy);\n" +
+                            "\tcoord.x += float(a_" + arrayNdx + ".z);\n";
+                        break;
+
+                    case (glsDrawTests.DrawTestSpec.OutputType.VEC4):
+                    case (glsDrawTests.DrawTestSpec.OutputType.IVEC4):
+                    case (glsDrawTests.DrawTestSpec.OutputType.UVEC4):
+                        vertexShaderTmpl +=
+                            "\tcoord += vec2(a_" + arrayNdx + ".xy);\n" +
+                            "\tcoord += vec2(a_" + arrayNdx + ".zw);\n";
+                        break;
+
+                    default:
+                        throw new Error('Invalid output type');
+                        break;
+                }
+            }
+            else
+            {
+                switch (arrays[arrayNdx].getOutputType())
+                {
+                    case (glsDrawTests.DrawTestSpec.OutputType.FLOAT):
+                    case (glsDrawTests.DrawTestSpec.OutputType.INT):
+                    case (glsDrawTests.DrawTestSpec.OutputType.UINT):
+                        vertexShaderTmpl +=
+                            "\tcolor = color * float(a_" + arrayNdx + ");\n";
+                        break;
+
+                    case (glsDrawTests.DrawTestSpec.OutputType.VEC2):
+                    case (glsDrawTests.DrawTestSpec.OutputType.IVEC2):
+                    case (glsDrawTests.DrawTestSpec.OutputType.UVEC2):
+                        vertexShaderTmpl +=
+                            "\tcolor.rg = color.rg * vec2(a_" + arrayNdx + ".xy);\n";
+                        break;
+
+                    case (glsDrawTests.DrawTestSpec.OutputType.VEC3):
+                    case (glsDrawTests.DrawTestSpec.OutputType.IVEC3):
+                    case (glsDrawTests.DrawTestSpec.OutputType.UVEC3):
+                        vertexShaderTmpl +=
+                            "\tcolor = color.rgb * vec3(a_" + arrayNdx + ".xyz);\n";
+                        break;
+
+                    case (glsDrawTests.DrawTestSpec.OutputType.VEC4):
+                    case (glsDrawTests.DrawTestSpec.OutputType.IVEC4):
+                    case (glsDrawTests.DrawTestSpec.OutputType.UVEC4):
+                        vertexShaderTmpl +=
+                            "\tcolor = color.rgb * vec3(a_" + arrayNdx + ".xyz) * float(a_" + arrayNdx + ".w);\n";
+                        break;
+
+                    default:
+                        throw new Error('Invalid output type');
+                        break;
+                }
+            }
+        }
+
+        vertexShaderTmpl +=
+            "\tv_color = vec4(u_colorScale * color, 1.0) * 0.5 + vec4(0.5, 0.5, 0.5, 0.5);\n" +
+            "\tgl_Position = vec4(u_coordScale * coord, 1.0, 1.0);\n" +
+            "}\n";
+
+        return vertexShaderTmpl;
+    };
+
+    /**
+     * @return {string}
+     */
+    glsDrawTests.DrawTestShaderProgram.prototype.genFragmentSource = function () {
+        /** @type {Array<string>} */ var params;
+
+        params = this.generateShaderParams();
+
+        var fragmentShaderTmpl = params["FRAG_HDR"] +
+            params["FRAG_IN"] + " " + params["COL_PRECISION"] + " vec4 v_color;\n" +
+            "void main(void)\n" +
+            "{\n" +
+            "\t" + params["FRAG_COLOR"] + "= v_color;\n" +
+            "}\n";
+
+        return fragmentShaderTmpl;
+    };
+
+    /**
+     * @return {Array<string>}
+     */
+    glsDrawTests.DrawTestShaderProgram.prototype.generateShaderParams = function () {
+        /** @type {Array<string>} */ var params = [];
+        if (gluShaderUtil.isGLSLVersionSupported(gl, gluShaderUtil.GLSLVersion.V300_ES)) {
+            params["VTX_IN"] = "in";
+            params["VTX_OUT"] = "out";
+            params["FRAG_IN"] = "in";
+            params["FRAG_COLOR"] = "dEQP_FragColor";
+            params["VTX_HDR"] = "#version 300 es\n";
+            params["FRAG_HDR"] = "#version 300 es\nlayout(location = 0) out mediump vec4 dEQP_FragColor;\n";
+            params["COL_PRECISION"] = "mediump";
+        }
+        else if (gluShaderUtil.isGLSLVersionSupported(gl, gluShaderUtil.GLSLVersion.V100_ES))
+        {
+            params["VTX_IN"] = "attribute";
+            params["VTX_OUT"] = "varying";
+            params["FRAG_IN"] = "varying";
+            params["FRAG_COLOR"] = "gl_FragColor";
+            params["VTX_HDR"] = "";
+            params["FRAG_HDR"] = "";
+            params["COL_PRECISION"] = "mediump";
+        }
+        else
+            throw new Error('Invalid GL version');
+
+        return params;
+    };
+
+    /**
+     * @param {?glsDrawTests.DrawTestSpec.OutputType} type
+     * @return {rrGenericVector.GenericVecType}
+     */
+    glsDrawTests.DrawTestShaderProgram.prototype.mapOutputType = function (type) {
+        switch (type) {
+            case (glsDrawTests.DrawTestSpec.OutputType.FLOAT):
+            case (glsDrawTests.DrawTestSpec.OutputType.VEC2):
+            case (glsDrawTests.DrawTestSpec.OutputType.VEC3):
+            case (glsDrawTests.DrawTestSpec.OutputType.VEC4):
+                return rrGenericVector.GenericVecType.FLOAT;
+
+            case (glsDrawTests.DrawTestSpec.OutputType.INT):
+            case (glsDrawTests.DrawTestSpec.OutputType.IVEC2):
+            case (glsDrawTests.DrawTestSpec.OutputType.IVEC3):
+            case (glsDrawTests.DrawTestSpec.OutputType.IVEC4):
+                return rrGenericVector.GenericVecType.INT32;
+
+            case (glsDrawTests.DrawTestSpec.OutputType.UINT):
+            case (glsDrawTests.DrawTestSpec.OutputType.UVEC2):
+            case (glsDrawTests.DrawTestSpec.OutputType.UVEC3):
+            case (glsDrawTests.DrawTestSpec.OutputType.UVEC4):
+                return rrGenericVector.GenericVecType.UINT32;
+
+            default:
+                throw new Error('Invalid output type');
+        }
+    };
+
+    /**
+     * @param {?glsDrawTests.DrawTestSpec.OutputType} type
+     * @return {number}
+     */
+    glsDrawTests.DrawTestShaderProgram.prototype.getComponentCount = function (type) {
+        switch (type) {
+            case (glsDrawTests.DrawTestSpec.OutputType.FLOAT):
+            case (glsDrawTests.DrawTestSpec.OutputType.INT):
+            case (glsDrawTests.DrawTestSpec.OutputType.UINT):
+                return 1;
+
+            case (glsDrawTests.DrawTestSpec.OutputType.VEC2):
+            case (glsDrawTests.DrawTestSpec.OutputType.IVEC2):
+            case (glsDrawTests.DrawTestSpec.OutputType.UVEC2):
+                return 2;
+
+            case (glsDrawTests.DrawTestSpec.OutputType.VEC3):
+            case (glsDrawTests.DrawTestSpec.OutputType.IVEC3):
+            case (glsDrawTests.DrawTestSpec.OutputType.UVEC3):
+                return 3;
+
+            case (glsDrawTests.DrawTestSpec.OutputType.VEC4):
+            case (glsDrawTests.DrawTestSpec.OutputType.IVEC4):
+            case (glsDrawTests.DrawTestSpec.OutputType.UVEC4):
+                return 4;
+
+            default:
+                throw new Error('Invalid output type');
+        }
+    };
+
+    /**
+     * @param {Array.<glsDrawTests.AttributeArray>} arrays
+     * @return {sglrShaderProgram.ShaderProgramDeclaration}
+     */
+    glsDrawTests.DrawTestShaderProgram.prototype.createProgramDeclaration = function (arrays) {
+        /** @type {sglrShaderProgram.ShaderProgramDeclaration} */ var decl = new sglrShaderProgram.ShaderProgramDeclaration();
+
+        for (var arrayNdx = 0; arrayNdx < arrays.length; arrayNdx++)
+            decl.pushVertexAttribute(new sglrShaderProgram.VertexAttribute("a_" + arrayNdx, this.mapOutputType(arrays[arrayNdx].getOutputType())));
+
+        decl.pushVertexToFragmentVarying(new sglrShaderProgram.VertexToFragmentVarying(rrGenericVector.GenericVecType.FLOAT));
+        decl.pushFragmentOutput(new sglrShaderProgram.FragmentOutput(rrGenericVector.GenericVecType.FLOAT));
+
+        decl.pushVertexSource(new sglrShaderProgram.VertexSource(this.genVertexSource(arrays)));
+        decl.pushFragmentSource(new sglrShaderProgram.FragmentSource(this.genFragmentSource()));
+
+        decl.pushUniform(new sglrShaderProgram.Uniform("u_coordScale", gluShaderUtil.DataType.FLOAT));
+        decl.pushUniform(new sglrShaderProgram.Uniform("u_colorScale", gluShaderUtil.DataType.FLOAT));
+
+        return decl;
+    };
+
     // AttributePack
 
     /**
@@ -2093,10 +2459,11 @@ goog.scope(function() {
     };
 
     /**
+     * @constructor
+     * @extends {tcuTestCase.DeqpTest}
      * @param {glsDrawTests.DrawTestSpec} spec
      * @param {string} name
      * @param {string} desc
-     * @constructor
      */
     glsDrawTests.DrawTest = function (spec, name, desc) {
         tcuTestCase.DeqpTest.call(this, name, desc, spec);
@@ -2125,4 +2492,33 @@ goog.scope(function() {
 
     glsDrawTests.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
     glsDrawTests.prototype.constructor = glsDrawTests.DrawTest;
+
+    /**
+     * @param {glsDrawTests.DrawTestSpec} spec
+     * @param {string=} description
+     */
+    glsDrawTests.DrawTest.prototype.addIteration = function (spec, description) {
+        // Validate spec
+        /** @type {boolean} */ var validSpec = spec.valid();
+        assertMsgOptions(validSpec, 'Spec is invalid', false, true);
+
+        if (!validSpec)
+            return;
+
+        // Check the context type is the same with other iterations
+        /*TODO: ApiType again --> if (!this.m_specs.empty()) {
+            var validContext = this.m_specs[0].apiType == spec.apiType;
+            DE_ASSERT(validContext);
+
+            if (!validContext)
+                return;
+        }*/
+
+        this.m_specs.push(spec);
+
+        if (description)
+            this.m_iteration_descriptions.push(description);
+        else
+            this.m_iteration_descriptions.push('');
+    };
 });
