@@ -59,6 +59,8 @@ goog.scope(function() {
 
     sglrReferenceContext.rrMPBA = rrMultisamplePixelBufferAccess;
 
+    //TODO: Implement automatic error checking in sglrReferenceContext, optional on creation.
+
     /**
     * @param {number} error
     * @param {number}  message

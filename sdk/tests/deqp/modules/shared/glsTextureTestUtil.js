@@ -437,14 +437,14 @@ glsTextureTestUtil.ProgramLibrary.prototype.getProgram = function(program) {
     var isCubeArray = deMath.deInRange32(program, glsTextureTestUtil.programType.PROGRAM_CUBE_ARRAY_FLOAT, glsTextureTestUtil.programType.PROGRAM_CUBE_ARRAY_SHADOW);
     var isBuffer = deMath.deInRange32(program, glsTextureTestUtil.programType.PROGRAM_BUFFER_FLOAT, glsTextureTestUtil.programType.PROGRAM_BUFFER_UINT);
 
-    if (this.m_glslVersion == '100 es') {
+    if ((this.m_glslVersion).indexOf('100 es') > -1) {
         params['FRAG_HEADER'] = '';
         params['VTX_HEADER'] = '';
         params['VTX_IN'] = 'attribute';
         params['VTX_OUT'] = 'varying';
         params['FRAG_IN'] = 'varying';
         params['FRAG_COLOR'] = 'gl_FragColor';
-    } else if (this.m_glslVersion == '300 es' || this.m_glslVersion == '310 es' || this.m_glslVersion == '330') {
+    } else if (((this.m_glslVersion).indexOf('300 es') > -1) || ((this.m_glslVersion).indexOf('310 es') > -1) || ((this.m_glslVersion).indexOf('330 es') > -1)) {
         var ext = null;
 
         // if (isCubeArray && glu::glslVersionIsES(m_glslVersion))

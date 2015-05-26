@@ -724,7 +724,6 @@ goog.scope(function() {
         var testDescription = 'Uniform Block Tests';
         var state = tcuTestCase.runner;
 
-        // TODO: state.testName = testName;
         state.setRoot(tcuTestCase.newTest(testName, testDescription, null));
 
         //Set up name and description of this test series.

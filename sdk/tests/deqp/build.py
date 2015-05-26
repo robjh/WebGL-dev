@@ -65,6 +65,8 @@ targets = {
     'vertexarrays': 'functional.gles3.es3fVertexArrayTests',
     'shaderlibrary': 'modules.shared.glsShaderLibrary',
     'sglrReferenceContextTest': 'framework.opengl.simplereference.sglrReferenceContextTest',
+    'lifetime': 'functional.gles3.es3fLifetimeTests',
+    'draw': 'modules.shared.glsDrawTests',
     'texturewrap': 'functional.gles3.es3fTextureWrapTests'
 }
 
@@ -230,3 +232,4 @@ def main(argv):
 
 if __name__ == '__main__':
     main(sys.argv[1:])
+
