@@ -29,9 +29,10 @@ goog.require('framework.common.tcuStringTemplate');
 goog.require('framework.delibs.debase.deMath');
 goog.require('framework.common.tcuImageCompare');
 goog.require('framework.common.tcuPixelFormat');
+goog.require('framework.common.tcuTexLookupVerifier');
 
 goog.scope(function() {
-
+var tcuTexLookupVerifier = framework.common.tcuTexLookupVerifier;
 var glsTextureTestUtil = modules.shared.glsTextureTestUtil;
 var gluDrawUtil = framework.opengl.gluDrawUtil;
 var gluShaderProgram = framework.opengl.gluShaderProgram;
@@ -47,6 +48,11 @@ var DE_ASSERT = function(x) {
     if (!x)
         throw new Error('Assert failed');
 };
+
+/** GLU_EXPECT_NO_ERROR
+ * @param {number} error
+ * @param {string} message
+ */
 glsTextureTestUtil.GLU_EXPECT_NO_ERROR = function(error, message) {
     assertMsgOptions(error === gl.NONE, message, false, true);
 };
@@ -175,6 +181,8 @@ glsTextureTestUtil.ReferenceParams = function(texType, sampler, lodMode_) {
 };
 
 glsTextureTestUtil.ReferenceParams.prototype = Object.create(glsTextureTestUtil.RenderParams.prototype);
+
+/** Copy constructor */
 glsTextureTestUtil.ReferenceParams.prototype.constructor = glsTextureTestUtil.ReferenceParams;
 
 /**
@@ -429,14 +437,14 @@ glsTextureTestUtil.ProgramLibrary.prototype.getProgram = function(program) {
     var isCubeArray = deMath.deInRange32(program, glsTextureTestUtil.programType.PROGRAM_CUBE_ARRAY_FLOAT, glsTextureTestUtil.programType.PROGRAM_CUBE_ARRAY_SHADOW);
     var isBuffer = deMath.deInRange32(program, glsTextureTestUtil.programType.PROGRAM_BUFFER_FLOAT, glsTextureTestUtil.programType.PROGRAM_BUFFER_UINT);
 
-    if (this.m_glslVersion == '100 es') {
+    if ((this.m_glslVersion).indexOf('100 es') > -1) {
         params['FRAG_HEADER'] = '';
         params['VTX_HEADER'] = '';
         params['VTX_IN'] = 'attribute';
         params['VTX_OUT'] = 'varying';
         params['FRAG_IN'] = 'varying';
         params['FRAG_COLOR'] = 'gl_FragColor';
-    } else if (this.m_glslVersion == '300 es' || this.m_glslVersion == '310 es' || this.m_glslVersion == '330') {
+    } else if (((this.m_glslVersion).indexOf('300 es') > -1) || ((this.m_glslVersion).indexOf('310 es') > -1) || ((this.m_glslVersion).indexOf('330 es') > -1)) {
         var ext = null;
 
         // if (isCubeArray && glu::glslVersionIsES(m_glslVersion))
@@ -589,6 +597,33 @@ glsTextureTestUtil.ProgramLibrary.prototype.getProgram = function(program) {
 glsTextureTestUtil.TextureRenderer = function(version, precision) {
     this.m_programLibrary = new glsTextureTestUtil.ProgramLibrary(version, precision);
 };
+
+/**
+ * @param {tcuPixelFormat.PixelFormat} format
+ * @return {Array<boolean>}
+ */
+glsTextureTestUtil.getCompareMask = function(format) {
+    return [
+        format.redBits > 0,
+        format.greenBits > 0,
+        format.blueBits > 0,
+        format.alphaBits > 0
+    ];
+};
+
+/**
+ * @param {tcuPixelFormat.PixelFormat} format
+ * @return {Array<boolean>}
+ */
+glsTextureTestUtil.getBitsVec = function(format) {
+    return [
+        format.redBits,
+        format.greenBits,
+        format.blueBits,
+        format.alphaBits
+    ];
+};
+
 
 /**
  * @param {number} texUnit
@@ -890,7 +925,7 @@ glsTextureTestUtil.triangleInterpolate = function(v, x, y) {
  * @param {number} ny
  * @return {number}
  */
-glsTextureTestUtil.triDerivateX = function(/*const tcu::Vec3&*/ s, /*const tcu::Vec3&*/ w, wx, width, ny) {
+glsTextureTestUtil.triDerivateX = function(s, w, wx, width, ny) {
     var d = w[1] * w[2] * (width * (ny - 1) + wx) - w[0] * (w[2] * width * ny + w[1] * wx);
     return (w[0] * w[1] * w[2] * width * (w[1] * (s[0] - s[2]) * (ny - 1) + ny * (w[2] * (s[1] - s[0]) + w[0] * (s[2] - s[1])))) / (d * d);
 };
@@ -903,7 +938,7 @@ glsTextureTestUtil.triDerivateX = function(/*const tcu::Vec3&*/ s, /*const tcu::
  * @param {number} nx
  * @return {number}
  */
-glsTextureTestUtil.triDerivateY = function(/*const tcu::Vec3&*/ s, /*const tcu::Vec3&*/ w, wy, height, nx) {
+glsTextureTestUtil.triDerivateY = function(s, w, wy, height, nx) {
     var d = w[1] * w[2] * (height * (nx - 1) + wy) - w[0] * (w[1] * height * nx + w[2] * wy);
     return (w[0] * w[1] * w[2] * height * (w[2] * (s[0] - s[1]) * (nx - 1) + nx * (w[0] * (s[1] - s[2]) + w[1] * (s[2] - s[0])))) / (d * d);
 };
@@ -926,7 +961,7 @@ glsTextureTestUtil.execSample = function(src, params, texCoord, lod) {
  * @param {Array<number>} pixel
  * @param {Array<number>} scale
  * @param {Array<number>} bias
- * return {Array<number>}
+ * @return {Array<number>}
  */
 glsTextureTestUtil.applyScaleAndBias = function(pixel, scale, bias) {
     var pixel1 = deMath.multiply(pixel, scale);
@@ -1249,6 +1284,32 @@ glsTextureTestUtil.sampleTexture3D = function(dst, src, texCoord, params) {
  */
 glsTextureTestUtil.compareImages = function(/*const tcu::Surface&*/ reference, /*const tcu::Surface&*/ rendered, /*tcu::RGBA*/ threshold) {
     return tcuImageCompare.pixelThresholdCompare("Result", "Image comparison result", reference, rendered, threshold, undefined /*tcu::COMPARE_LOG_RESULT*/);
+};
+
+/**
+ * @param {tcuTexture.ConstPixelBufferAccess} result
+ * @param {tcuTexture.Texture2DView} src
+ * @param {Array<number>} texCoord
+ * @param {glsTextureTestUtil.ReferenceParams} sampleParams
+ * @param {tcuTexLookupVerifier.LookupPrecision} lookupPrec
+ * @param {tcuTexLookupVerifier.LodPrecision} lodPrec
+ * @param {tcuPixelFormat.PixelFormat} pixelFormat
+ * @return {boolean}
+ */
+glsTextureTestUtil.verifyTexture2DResult = function(result, src, texCoord, sampleParams, lookupPrec, lodPrec, pixelFormat) {
+	/** @type {tcuSurface.Surface} */ var reference = new tcuSurface.Surface(result.getWidth(), result.getHeight());
+	/** @type {tcuSurface.Surface} */ var errorMask = new tcuSurface.Surface(result.getWidth(), result.getHeight());
+	/** @type {number} */ var numFailedPixels;
+
+	DE_ASSERT(glsTextureTestUtil.getCompareMask(pixelFormat) == lookupPrec.colorMask);
+    // TODO: implement
+	// sampleTexture(SurfaceAccess(reference, pixelFormat), src, texCoord, sampleParams);
+	// numFailedPixels = computeTextureLookupDiff(result, reference.getAccess(), errorMask.getAccess(), src, texCoord, sampleParams, lookupPrec, lodPrec, testCtx.getWatchDog());
+
+    if (numFailedPixels > 0)
+        tcuImageCompare.displayImages(result, reference.getAccess(), errorMask.getAccess());
+
+	return numFailedPixels == 0;
 };
 
 });

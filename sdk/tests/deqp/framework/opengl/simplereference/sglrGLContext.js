@@ -118,8 +118,6 @@ goog.scope(function() {
             }
         }
 
-        this.m_programs = [];
-
         if (viewport)
             gl.viewport(viewport[0], viewport[1], viewport[2], viewport[3]);
     };
@@ -143,6 +141,19 @@ goog.scope(function() {
             bufferedLogToConsole(program.toString());
             testFailedOptions('Compile failed', true);
         }
+
+        this.m_programs.push(program);
+        return program.getProgram();
+    };
+
+    /**
+     * deleteProgram
+     * @override
+     * @param {!WebGLProgram} program
+     */
+    sglrGLContext.GLContext.prototype.deleteProgram = function(program) {
+        for (var sprogram in this.m_programs)
+            if (program === this.m_programs[sprogram])
 
         this.m_programs.push(program);
         return program.getProgram();

@@ -24,16 +24,117 @@
 'use strict';
 goog.provide('functional.gles3.glsAttributeLocationTests');
 goog.require('framework.common.tcuTestCase');
+goog.require('modules.shared.glsFboUtil');
 
 goog.scope(function() {
 
 	var glsAttributeLocationTests = modules.shared.glsAttributeLocationTests;
 	var tcuTestCase = framework.common.tcuTestCase;
+	var glsFboUtil = modules.shared.glsFboUtil;
 
 	var DE_ASSERT = function(x) {
         if (!x)
             throw new Error('Assert failed');
     };
+
+    /**
+     * @param{glsFboUtil.Map} bindings
+     * @param{string} attrib
+     * @return {?number}
+     */
+    glsAttributeLocationTests.getBoundLocation = function(bindings, attrib) {
+		/** @type{?number} */ var value = bindings.getValue(attrib);
+		return (value == null ? glsAttributeLocationTests.LocationEnum.UNDEF : value);
+	}
+
+	/**
+	 * @param{Array<*>} arr
+	 * @param{number} newSize
+	 * @param{*} defaultValue
+	 * @return{Array<*>}
+	 */
+	glsAttributeLocationTests.resizeArray = function(arr, newSize, defaultValue) {
+		/** @type{boolean} */ var increase = arr.length < newSize;
+		/** @type{number} */ var i = 0;
+		if (increase) {
+			for (i = arr.length; i < newSize; i++) {
+				arr[i] = defaultValue;
+			}
+		} else {
+			arr.length = newSize;
+		}
+
+		return arr;
+	}
+
+	/**
+	 * @param{Array<Attribute>} attributes
+	 * @param{glsFboUtil.Map} bindings
+	 * @return{boolean}
+	 */
+	glsAttributeLocationTests.hasAttributeAliasing = function(attributes, bindings) {
+		/** @type{Array<boolean>} */ var reservedSpaces;
+
+		/** @type{number} */ var location;
+		/** @type{number} */ var size;
+
+		for (var attribNdx = 0; attribNdx < attributes.length; attribNdx++)	{
+			location	= glsAttributeLocationTests.getBoundLocation(bindings, attributes[attribNdx].getName());
+			size		= attributes[attribNdx].getType().getLocationSize();
+
+			if (location != glsAttributeLocationTests.LocationEnum.UNDEF) {
+				if (reservedSpaces.length < location + size)
+					glsAttributeLocationTests.resizeArray(reservedSpaces, location + size, false);
+
+				for (var i = 0; i < size; i++) {
+					if (reservedSpaces[location + i])
+						return true;
+
+					reservedSpaces[location + i] = true;
+				}
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * TODO
+	 * @param{*} renderCtx
+	 */
+	glsAttributeLocationTests.getMaxAttributeLocations = function(/* glu::RenderContext& */ renderCtx) {
+		// const glw::Functions& gl = renderCtx.getFunctions();
+		// /** @type{number} */ var maxAttribs;
+
+		// gl.getIntegerv(GL_MAX_VERTEX_ATTRIBS, &maxAttribs);
+		// GLU_EXPECT_NO_ERROR(gl.getError(), "glGetIntegerv()");
+
+		// return maxAttribs;
+	}
+
+	/**
+	 * @param{Array<Attribute>} attributes
+	 * @return{string}
+	 */
+	glsAttributeLocationTests.generateAttributeDefinitions = function(attributes) {
+		/** @type{string} */ var src = '';
+		/** @type{number} */ var i = 0;
+
+		for (i = 0; i < attributes.length; i++)	{
+			if (attributes[i].getLayoutLocation() != glsAttributeLocationTests.LocationEnum.UNDEF)	
+				src += ("layout(location = " + attributes[i].getLayoutLocation() + ") ");
+
+			src += '${VTX_INPUT} mediump ';
+			src	+= (attributes[i].getType().getName() + ' ');
+			src	+= attributes[i].getName()
+			src	+= (attributes[i].getArraySize() != glsAttributeLocationTests.ArrayEnum.NOT ? 
+				'[' + attributes[i].getArraySize() + ']' : '');
+			src += ';\n';
+		}
+
+		return src;
+	}
+
 
 	/**
 	 * @constructor
@@ -226,12 +327,10 @@ goog.scope(function() {
 	 * @extends {tcuTestCase.DeqpTest}
      * @param {string} name
      * @param {string} desc
-	 * @param{TestContext} testCtx
-	 * @param{RenderContext} renderCtx
 	 * @param{glsAttributeLocationTests.AttribType} type
 	 * @param {number=} arraySize
 	 */
-	glsAttributeLocationTests.BindAttributeTest = function(name, desc, testCtx, renderCtx, type, arraySize) {
+	glsAttributeLocationTests.BindAttributeTest = function(name, desc, type, arraySize) {
 		tcuTestCase.DeqpTest.call(this, name, desc);
 		/** @type{*} */ this.m_renderCtx = renderCtx;
 		/** @type{glsAttributeLocationTests.AttribType} */ this.m_type = type;
