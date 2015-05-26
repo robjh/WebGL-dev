@@ -172,7 +172,7 @@ glsLifetimeTests.Type.prototype.binder = function() { return null; };
 glsLifetimeTests.Type.prototype.getName = function() { throw new Error('Virtual function'); };
 
 /**
- * TODO: what is it for?
+ * Is the object unbound automatically when it is deleted?
  * @return {boolean}
  */
 glsLifetimeTests.Type.prototype.nameLingers = function() { return false; };
@@ -792,7 +792,6 @@ glsLifetimeTests.LifeTest.testDeleteBound = function() {
         assertMsgOptions(gl.getError() == gl.NONE, 'Deleting bound object failed', false, true);
         assertMsgOptions(this.m_type.binder().getBinding() === null, 'Deleting bound object did not remove binding', false, true);
         assertMsgOptions(!this.m_type.exists(obj), 'Deleting bound object did not make its name invalid', false, true);
-
     }
     assertMsgOptions(this.m_type.binder().getBinding() === null, "Unbinding didn't remove binding", false, true);
     assertMsgOptions(!this.m_type.exists(obj), 'Name is still valid after deleting and unbinding', false, true);
