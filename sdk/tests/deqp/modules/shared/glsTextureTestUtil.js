@@ -444,7 +444,7 @@ glsTextureTestUtil.ProgramLibrary.prototype.getProgram = function(program) {
         params['VTX_OUT'] = 'varying';
         params['FRAG_IN'] = 'varying';
         params['FRAG_COLOR'] = 'gl_FragColor';
-    } else if ( this.m_glslVersion === '300 es' || this.m_glslVersion === '310 es' || this.m_glslVersion === '330 es') {
+    } else if (this.m_glslVersion === '300 es' || this.m_glslVersion === '310 es' || this.m_glslVersion === '330 es') {
         var ext = null;
 
         // if (isCubeArray && glu::glslVersionIsES(m_glslVersion))
@@ -623,7 +623,6 @@ glsTextureTestUtil.getBitsVec = function(format) {
         format.alphaBits
     ];
 };
-
 
 /**
  * @param {number} texUnit
