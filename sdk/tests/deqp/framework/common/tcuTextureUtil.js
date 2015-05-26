@@ -29,6 +29,10 @@ var tcuTextureUtil = framework.common.tcuTextureUtil;
 var tcuTexture = framework.common.tcuTexture;
 var deMath = framework.delibs.debase.deMath;
 
+
+/** @const {number} */ tcuTextureUtil.CLEAR_OPTIMIZE_THRESHOLD = 128;
+/** @const {number} */ tcuTextureUtil.CLEAR_OPTIMIZE_MAX_PIXEL_SIZE = 8;
+
 var DE_ASSERT = function(x) {
     if (!x)
         throw new Error('Assert failed');
@@ -563,6 +567,41 @@ tcuTextureUtil.copy = function(dst, src) {
             for (var x = 0; x < width; x++)
                 dst.setPixel(src.getPixel(x, y, z), x, y, z);
         }
+    }
+};
+
+/**
+ * @param {tcuTexture.PixelBufferAccess} access
+ * @param {Array<number>} color
+ */
+tcuTextureUtil.clear = function(access, color) {
+    /** @type {number} */ var pixelSize = access.getFormat().getPixelSize();
+    if (access.getWidth() * access.getHeight() * access.getDepth() >= tcuTextureUtil.CLEAR_OPTIMIZE_THRESHOLD &&
+        pixelSize < tcuTextureUtil.CLEAR_OPTIMIZE_MAX_PIXEL_SIZE) {
+        // Convert to destination format.
+
+        /** @type {ArrayBuffer} */ var pixel = new ArrayBuffer(tcuTextureUtil.CLEAR_OPTIMIZE_MAX_PIXEL_SIZE);
+
+        assertMsgOptions(sizeof(pixel) == tcuTextureUtil.CLEAR_OPTIMIZE_MAX_PIXEL_SIZE, '', false, true);
+        new tcuTexture.PixelBufferAccess({
+          format: access.getFormat(),
+          width: 1,
+          height: 1,
+          depth: 1,
+          rowPitch: 0,
+          slicePitch: 0,
+          data: pixel
+        }).setPixel(color, 0, 0);
+
+        for (var z = 0; z < access.getDepth(); z++)
+            for (var y = 0; y < access.getHeight(); y++)
+                tcuTextureUtil.fillRow(access, y, z, pixelSize, pixel); // TODO: implement tcuTextureUtil.fillRow
+    }
+    else {
+        for (var z = 0; z < access.getDepth(); z++)
+            for (var y = 0; y < access.getHeight(); y++)
+                for (var x = 0; x < access.getWidth(); x++)
+                    access.setPixel(color, x, y, z);
     }
 };
 

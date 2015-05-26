@@ -54,15 +54,6 @@ goog.scope(function() {
     var tcuTextureUtil = framework.common.tcuTextureUtil;
     var deString = framework.delibs.debase.deString;
 
-    var DE_ASSERT = function(x, msg) {
-        if (msg === undefined)
-            msg = '';
-        else
-            msg = msg + ': ';
-        if (!x)
-            throw new Error(msg + 'Assert error');
-    };
-
     /**
      * @enum {number}
      */
@@ -144,7 +135,7 @@ goog.scope(function() {
         {
             // Generate compressed texture.
 
-            DE_ASSERT(this.m_format == gl.NONE && this.m_dataType == gl.NONE, 'init/compressedFormat');
+            assertMsgOptions(this.m_format == gl.NONE && this.m_dataType == gl.NONE, 'init/compressedFormat', false, true);
             if (tcuCompressedTexture.isEtcFormat(this.m_compressedFormat))
             {
                 // Create ETC texture. Any content is valid.
@@ -178,7 +169,7 @@ goog.scope(function() {
 
         this.m_cases.push(new es3fTextureWrapTests.Case([-1.5, -3.0], [1.5, 2.5]));
         this.m_cases.push(new es3fTextureWrapTests.Case([-0.5, 0.75], [0.25, 1.25]));
-        DE_ASSERT(this.m_caseNdx == 0, 'm_caseNdx != 0');
+        assertMsgOptions(this.m_caseNdx == 0, 'm_caseNdx != 0', false, true);
     };
 
     /**
@@ -206,7 +197,7 @@ goog.scope(function() {
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, this.m_magFilter);
 
         glErr = gl.getError();
-        DE_ASSERT(glErr === gl.NO_ERROR, 'Set texturing state');
+        assertMsgOptions(glErr === gl.NO_ERROR, 'Set texturing state', false, true);
 
         // Parameters for reference images.
         refParams.sampler = gluTextureUtil.mapGLSamplerWrapST(this.m_wrapS, this.m_wrapT, this.m_minFilter, this.m_magFilter);

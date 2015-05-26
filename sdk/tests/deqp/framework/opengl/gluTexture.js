@@ -87,33 +87,25 @@ gluTexture.texture2DFromCompressedTexture = function(gl, numLevels, levels) {
  * @param {tcuCompressedTexture.CompressedTexture} levels
  */
 gluTexture.Texture2D.loadCompressed = function(numLevels, levels) {
-    throw new Error("Not implemented. TODO: implement")
-    // TODO: implement
-    /*
-    const glw::Functions&	gl					= m_context.getFunctions();
-    deUint32				compressedFormat	= getGLFormat(levels[0].getFormat());
+    /** @type {number} */ var compressedFormat = gluTextureUtil.getGLFormat(levels[0].getFormat());
 
-    TCU_CHECK(m_glTexture);
-    gl.bindTexture(GL_TEXTURE_2D, m_glTexture);
+    assertMsgOptions(this.m_glTexture, 'm_glTexture not defined', false, true);
+    gl.bindTexture(gl.TEXTURE_2D, this.m_glTexture);
 
-    for (int levelNdx = 0; levelNdx < numLevels; levelNdx++)
+    for (var levelNdx = 0; levelNdx < numLevels; levelNdx++)
     {
-        const tcu::CompressedTexture& level = levels[levelNdx];
+        /** @type {tcuCompressedTexture.CompressedTexture} */ var level = levels[levelNdx];
 
         // Decompress to reference texture.
-        m_refTexture.allocLevel(levelNdx);
-        tcu::PixelBufferAccess refLevelAccess = m_refTexture.getLevel(levelNdx);
-        TCU_CHECK(level.getWidth()	== refLevelAccess.getWidth() &&
-                  level.getHeight()	== refLevelAccess.getHeight());
+        this.m_refTexture.allocLevel(levelNdx);
+        /** @type {tcuTexture.PixelBufferAccess} */ var refLevelAccess = this.m_refTexture.getLevel(levelNdx);
+        assertMsgOptions(level.getWidth() == refLevelAccess.getWidth() && level.getHeight() == refLevelAccess.getHeight(), 'level and reference sizes not equal', false, true);
         level.decompress(refLevelAccess, decompressionParams);
 
         // Upload to GL texture in compressed form.
-        gl.compressedTexImage2D(GL_TEXTURE_2D, levelNdx, compressedFormat,
+        gl.compressedTexImage2D(gl.TEXTURE_2D, levelNdx, compressedFormat,
                                 level.getWidth(), level.getHeight(), 0, level.getDataSize(), level.getData());
     }
-
-    GLU_EXPECT_NO_ERROR(gl.getError(), "Texture upload failed");
-    */
 };
 
 gluTexture.computePixelStore = function(/*const tcu::TextureFormat&*/ format) {
