@@ -55,4 +55,26 @@ goog.scope(function() {
     tcuTexLookupVerifier.computeFixedPointThreshold = function(bits) {
         return tcuTexVerifierUtil.computeFixedPointError(bits);
     };
+
+    /**
+     *
+     */
+    tcuTexLookupVerifier.computeLodBoundsFromDerivates = function() {
+        throw new Error('Not implemented. TODO: implement');
+    };
+
+    /**
+     *
+     */
+    tcuTexLookupVerifier.clampLodBounds = function() {
+        throw new Error('Not implemented. TODO: implement');
+    };
+
+    /**
+     *
+     */
+    tcuTexLookupVerifier.isLookupResultValid = function() {
+        throw new Error('Not implemented. TODO: implement');
+    };
+
 });
