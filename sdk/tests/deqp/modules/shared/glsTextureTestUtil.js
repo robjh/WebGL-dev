@@ -1297,13 +1297,16 @@ glsTextureTestUtil.compareImages = function(/*const tcu::Surface&*/ reference, /
  * @return {boolean}
  */
 glsTextureTestUtil.verifyTexture2DResult = function(result, src, texCoord, sampleParams, lookupPrec, lodPrec, pixelFormat) {
-    DE_ASSERT(glsTextureTestUtil.getCompareMask(pixelFormat) == lookupPrec.colorMask);
+    DE_ASSERT(deMath.equal(glsTextureTestUtil.getCompareMask(pixelFormat), lookupPrec.colorMask));
     /** @type {tcuSurface.Surface} */ var reference = new tcuSurface.Surface(result.getWidth(), result.getHeight());
     /** @type {tcuSurface.Surface} */ var errorMask = new tcuSurface.Surface(result.getWidth(), result.getHeight());
     /** @type {number} */ var numFailedPixels;
-    // TODO: implement
+
     /** @type {glsTextureTestUtil.SurfaceAccess} */ var surface = new glsTextureTestUtil.SurfaceAccess(reference, pixelFormat);
-    // sampleTexture(surface, src, texCoord, sampleParams);
+
+    // TODO: finish implementation of glsTextureTestUtil.sampleTexture2D
+    glsTextureTestUtil.sampleTexture2D(surface, src, texCoord, sampleParams);
+    // TODO: implement computeTextureLookupDiff() and uncomment line below
     // numFailedPixels = computeTextureLookupDiff(result, reference.getAccess(), errorMask.getAccess(), src, texCoord, sampleParams, lookupPrec, lodPrec, testCtx.getWatchDog());
 
     if (numFailedPixels > 0)
