@@ -224,10 +224,12 @@ goog.scope(function() {
         /** @type {number} */ var param = deMath.deIsPowerOfTwo32(pixelSize) ? Math.min(pixelSize, 8) : 1;
 
         gl.pixelStorei(gl.PACK_ALIGNMENT, param);
+        /** @type {gluTextureUtil.TransferFormat} */ var format = gluTextureUtil.getTransferFormat(renderedFrame.getAccess().getFormat());
+
         gl.readPixels(
             viewport.x, viewport.y,
             renderedFrame.getWidth(), renderedFrame.getHeight(),
-            renderedFrame.getAccess().getFormat().format, renderedFrame.getAccess().getFormat().format.dataType,
+            format.format, format.dataType,
             renderedFrame.getAccess().getDataPtr());
 
         // const tcu::ScopedLogSection section (log, string("Test") + de::toString(m_caseNdx), string("Test ") + de::toString(m_caseNdx));
@@ -235,8 +237,8 @@ goog.scope(function() {
         /** @type {boolean} */ var isSRGB = texFormat.order == tcuTexture.ChannelOrder.sRGB || texFormat.order == tcuTexture.ChannelOrder.sRGBA;
         /** @type {tcuPixelFormat.PixelFormat} */ var pixelFormat = new tcuPixelFormat.PixelFormat(8, 8, 8, 8);
         /** @type {Array<number>} */ var colorBits = deMath.max(deMath.subtract(glsTextureTestUtil.getBitsVec(pixelFormat), (isNearestOnly && !isSRGB ? [1, 1, 1, 1] : [2, 2, 2, 2])), [0, 0, 0, 0]);
-        /** @type {tcuTexLookupVerifier.LodPrecision} */ var lodPrecision;
-        /** @type {tcuTexLookupVerifier.LookupPrecision} */ var lookupPrecision;
+        /** @type {tcuTexLookupVerifier.LodPrecision} */ var lodPrecision = new tcuTexLookupVerifier.LodPrecision();
+        /** @type {tcuTexLookupVerifier.LookupPrecision} */ var lookupPrecision = new tcuTexLookupVerifier.LookupPrecision();
 
         lodPrecision.derivateBits = 18;
         lodPrecision.lodBits = 5;
