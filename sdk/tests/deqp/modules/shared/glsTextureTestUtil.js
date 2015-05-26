@@ -437,14 +437,14 @@ glsTextureTestUtil.ProgramLibrary.prototype.getProgram = function(program) {
     var isCubeArray = deMath.deInRange32(program, glsTextureTestUtil.programType.PROGRAM_CUBE_ARRAY_FLOAT, glsTextureTestUtil.programType.PROGRAM_CUBE_ARRAY_SHADOW);
     var isBuffer = deMath.deInRange32(program, glsTextureTestUtil.programType.PROGRAM_BUFFER_FLOAT, glsTextureTestUtil.programType.PROGRAM_BUFFER_UINT);
 
-    if ((this.m_glslVersion).indexOf('100 es') > -1) {
+    if (this.m_glslVersion === '100 es') {
         params['FRAG_HEADER'] = '';
         params['VTX_HEADER'] = '';
         params['VTX_IN'] = 'attribute';
         params['VTX_OUT'] = 'varying';
         params['FRAG_IN'] = 'varying';
         params['FRAG_COLOR'] = 'gl_FragColor';
-    } else if (((this.m_glslVersion).indexOf('300 es') > -1) || ((this.m_glslVersion).indexOf('310 es') > -1) || ((this.m_glslVersion).indexOf('330 es') > -1)) {
+    } else if ( this.m_glslVersion === '300 es' || this.m_glslVersion === '310 es' || this.m_glslVersion === '330 es') {
         var ext = null;
 
         // if (isCubeArray && glu::glslVersionIsES(m_glslVersion))
@@ -481,7 +481,7 @@ glsTextureTestUtil.ProgramLibrary.prototype.getProgram = function(program) {
     var sampler = null;
     var lookup = null;
 
-    if (this.m_glslVersion == '300 es' || this.m_glslVersion == '310 es' || this.m_glslVersion == '330') {
+    if (this.m_glslVersion === '300 es' || this.m_glslVersion === '310 es' || this.m_glslVersion === '330 es') {
         switch (program) {
             case glsTextureTestUtil.programType.PROGRAM_2D_FLOAT: sampler = 'sampler2D'; lookup = 'texture(u_sampler, v_texCoord)'; break;
             case glsTextureTestUtil.programType.PROGRAM_2D_INT: sampler = 'isampler2D'; lookup = 'vec4(texture(u_sampler, v_texCoord))'; break;
@@ -531,7 +531,7 @@ glsTextureTestUtil.ProgramLibrary.prototype.getProgram = function(program) {
             default:
                 DE_ASSERT(false);
         }
-    } else if (this.m_glslVersion == '100 es') {
+    } else if (this.m_glslVersion === '100 es') {
         sampler = isCube ? 'samplerCube' : 'sampler2D';
 
         switch (program) {
@@ -1061,7 +1061,7 @@ glsTextureTestUtil.sampleTexture2D = function(dst, src, texCoord, params) {
 
     if (params.flags.projected)
         throw new Error('Unimplemented');
-        //sampleTextureProjected(dst, view, sq, tq, params);
+        //glsTextureTestUtil.sampleTextureProjected(dst, view, sq, tq, params);
     else
         glsTextureTestUtil.sampleTextureNonProjected2D(dst, view, sq, tq, params);
 };
@@ -1297,19 +1297,19 @@ glsTextureTestUtil.compareImages = function(/*const tcu::Surface&*/ reference, /
  * @return {boolean}
  */
 glsTextureTestUtil.verifyTexture2DResult = function(result, src, texCoord, sampleParams, lookupPrec, lodPrec, pixelFormat) {
-	/** @type {tcuSurface.Surface} */ var reference = new tcuSurface.Surface(result.getWidth(), result.getHeight());
-	/** @type {tcuSurface.Surface} */ var errorMask = new tcuSurface.Surface(result.getWidth(), result.getHeight());
-	/** @type {number} */ var numFailedPixels;
-
-	DE_ASSERT(glsTextureTestUtil.getCompareMask(pixelFormat) == lookupPrec.colorMask);
+    DE_ASSERT(glsTextureTestUtil.getCompareMask(pixelFormat) == lookupPrec.colorMask);
+    /** @type {tcuSurface.Surface} */ var reference = new tcuSurface.Surface(result.getWidth(), result.getHeight());
+    /** @type {tcuSurface.Surface} */ var errorMask = new tcuSurface.Surface(result.getWidth(), result.getHeight());
+    /** @type {number} */ var numFailedPixels;
     // TODO: implement
-	// sampleTexture(SurfaceAccess(reference, pixelFormat), src, texCoord, sampleParams);
-	// numFailedPixels = computeTextureLookupDiff(result, reference.getAccess(), errorMask.getAccess(), src, texCoord, sampleParams, lookupPrec, lodPrec, testCtx.getWatchDog());
+    /** @type {glsTextureTestUtil.SurfaceAccess} */ var surface = new glsTextureTestUtil.SurfaceAccess(reference, pixelFormat);
+    // sampleTexture(surface, src, texCoord, sampleParams);
+    // numFailedPixels = computeTextureLookupDiff(result, reference.getAccess(), errorMask.getAccess(), src, texCoord, sampleParams, lookupPrec, lodPrec, testCtx.getWatchDog());
 
     if (numFailedPixels > 0)
         tcuImageCompare.displayImages(result, reference.getAccess(), errorMask.getAccess());
 
-	return numFailedPixels == 0;
+    return numFailedPixels == 0;
 };
 
 });
