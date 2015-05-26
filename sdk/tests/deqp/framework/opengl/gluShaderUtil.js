@@ -74,6 +74,25 @@ gluShaderUtil.getGLSLVersionDeclaration = function(version) {
 };
 
 /**
+ * gluShaderUtil.getGLSLVersionDeclaration - Returns the same thing as
+ * getGLSLVersionDeclaration() but without the substring '#version'
+ * @param {gluShaderUtil.GLSLVersion} version
+ * @return {string}
+ */
+gluShaderUtil.getGLSLVersionString = function(version) {
+    /** @type {Array<string>} */ var s_decl =
+    [
+        '100',
+        '300 es'
+    ];
+
+    if (version > s_decl.length - 1)
+        throw new Error('Unsupported GLSL version.');
+
+    return s_decl[version];
+};
+
+/**
  * @enum
  */
 gluShaderUtil.precision = {
