@@ -248,6 +248,22 @@ deMath.lessThanEqual = function(a, b) {
 };
 
 /**
+ * Is a === b (element by element)?
+ * @param {goog.NumberArray} a
+ * @param {goog.NumberArray} b
+ * @return {boolean} Result
+ */
+deMath.equal = function(a, b) {
+    if (a.length != b.length)
+        throw new Error('Arrays must have the same size');
+    for (var i = 0; i < a.length; i++) {
+        if (a[i] !== b[i])
+            return false;
+    }
+    return true;
+};
+
+/**
  * Are all values in the array true?
  * @param {Array<boolean>} a
  * @return {boolean}

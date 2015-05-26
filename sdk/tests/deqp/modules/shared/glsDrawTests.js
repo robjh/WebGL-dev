@@ -61,6 +61,218 @@ goog.scope(function() {
     var rrVertexAttrib = framework.referencerenderer.rrVertexAttrib;
     var rrVertexPacket = framework.referencerenderer.rrVertexPacket;
 
+
+    var MAX_RENDER_TARGET_SIZE = 512;
+
+    // Utils
+
+    /**
+     * @param {glsDrawTests.DrawTestSpec.Target} target
+     * @return {number}
+     */
+    glsDrawTests.targetToGL = function (target) {
+        assertMsgOptions(target == null, 'Target is null', false, true);
+
+        var targets = [
+            gl.ELEMENT_ARRAY_BUFFER, // TARGET_ELEMENT_ARRAY = 0,
+            gl.ARRAY_BUFFER // TARGET_ARRAY,
+        ];
+
+        return targets[target];
+    };
+
+    /**
+     * @param {?glsDrawTests.DrawTestSpec.Usage} usage
+     * @return {number}
+     */
+    glsDrawTests.usageToGL = function (usage) {
+        assertMsgOptions(usage == null, 'Usage is null', false, true);
+
+        var usages = [
+            gl.DYNAMIC_DRAW,    // USAGE_DYNAMIC_DRAW = 0,
+            gl.STATIC_DRAW,        // USAGE_STATIC_DRAW,
+            gl.STREAM_DRAW,        // USAGE_STREAM_DRAW,
+
+            gl.STREAM_READ,        // USAGE_STREAM_READ,
+            gl.STREAM_COPY,        // USAGE_STREAM_COPY,
+
+            gl.STATIC_READ,        // USAGE_STATIC_READ,
+            gl.STATIC_COPY,        // USAGE_STATIC_COPY,
+
+            gl.DYNAMIC_READ,    // USAGE_DYNAMIC_READ,
+            gl.DYNAMIC_COPY        // USAGE_DYNAMIC_COPY,
+        ];
+        assertMsgOptions(usages.length == Object.keys(glsDrawTests.DrawTestSpec.Usage).length,
+            'Amount of usage gl vlaues is different from amount of usages', false, true);
+
+        return usages[usage];
+    };
+
+    /**
+     * @param {?glsDrawTests.DrawTestSpec.InputType} type
+     * @return {number}
+     */
+    glsDrawTests.inputTypeToGL = function (type) {
+        assertMsgOptions(type == null, 'Input type is null', false, true);
+
+        var types = [
+            gl.FLOAT,                // INPUTTYPE_FLOAT = 0,
+            gl.BYTE,                // INPUTTYPE_BYTE,
+            gl.SHORT,                // INPUTTYPE_SHORT,
+            gl.UNSIGNED_BYTE,        // INPUTTYPE_UNSIGNED_BYTE,
+            gl.UNSIGNED_SHORT,        // INPUTTYPE_UNSIGNED_SHORT,
+
+            gl.INT,                    // INPUTTYPE_INT,
+            gl.UNSIGNED_INT,        // INPUTTYPE_UNSIGNED_INT,
+            gl.HALF_FLOAT,            // INPUTTYPE_HALF,
+            gl.UNSIGNED_INT_2_10_10_10_REV, // INPUTTYPE_UNSIGNED_INT_2_10_10_10,
+            gl.INT_2_10_10_10_REV            // INPUTTYPE_INT_2_10_10_10,
+        ];
+        assertMsgOptions(types.length == Object.keys(glsDrawTests.DrawTestSpec.InputType).length,
+            'Amount of gl input types is different from amount of input types', false, true);
+
+        return types[type];
+    };
+
+    /**
+     * @param {?glsDrawTests.DrawTestSpec.OutputType} type
+     * @return {string}
+     */
+    glsDrawTests.outputTypeToGLType = function (type) {
+        assertMsgOptions(type == null, 'Output type is null', false, true);
+
+        var types = [
+            "float",        // OUTPUTTYPE_FLOAT = 0,
+            "vec2",            // OUTPUTTYPE_VEC2,
+            "vec3",            // OUTPUTTYPE_VEC3,
+            "vec4",            // OUTPUTTYPE_VEC4,
+
+            "int",            // OUTPUTTYPE_INT,
+            "uint",            // OUTPUTTYPE_UINT,
+
+            "ivec2",        // OUTPUTTYPE_IVEC2,
+            "ivec3",        // OUTPUTTYPE_IVEC3,
+            "ivec4",        // OUTPUTTYPE_IVEC4,
+
+            "uvec2",        // OUTPUTTYPE_UVEC2,
+            "uvec3",        // OUTPUTTYPE_UVEC3,
+            "uvec4"        // OUTPUTTYPE_UVEC4,
+        ];
+        assertMsgOptions(types.length == Object.keys(glsDrawTests.DrawTestSpec.OutputType).length,
+            'Amount of output type names is different than amount of output types', false, true);
+
+        return types[type];
+    };
+
+    /**
+     * @param {glsDrawTests.DrawTestSpec.Primitive} primitive
+     * @return {number}
+     */
+    glsDrawTests.primitiveToGL = function (primitive) {
+        var primitives = [
+            gl.POINTS,                        // PRIMITIVE_POINTS = 0,
+            gl.TRIANGLES,                    // PRIMITIVE_TRIANGLES,
+            gl.TRIANGLE_FAN,                // PRIMITIVE_TRIANGLE_FAN,
+            gl.TRIANGLE_STRIP,                // PRIMITIVE_TRIANGLE_STRIP,
+            gl.LINES,                        // PRIMITIVE_LINES
+            gl.LINE_STRIP,                    // PRIMITIVE_LINE_STRIP
+            gl.LINE_LOOP
+        ];
+        assertMsgOptions(primitives.length == Object.keys(glsDrawTests.DrawTestSpec.Primitive).length,
+            'Amount of gl primitive values is different than amount of primitives', false, true);
+
+        return primitives[primitive];
+    };
+
+    /**
+     * @param {?glsDrawTests.DrawTestSpec.IndexType} indexType
+     * @return {number}
+     */
+    glsDrawTests.indexTypeToGL = function (indexType) {
+        var indexTypes = [
+            gl.UNSIGNED_BYTE,    // INDEXTYPE_BYTE = 0,
+            gl.UNSIGNED_SHORT,    // INDEXTYPE_SHORT,
+            gl.UNSIGNED_INT    // INDEXTYPE_INT,
+        ];
+        assertMsgOptions(indexTypes.length == Object.keys(glsDrawTests.DrawTestSpec.IndexType).length,
+            'Amount of gl index types is different than amount of index types', false, true);
+
+        return indexTypes[indexType];
+    };
+
+    /**
+     * @param {?glsDrawTests.DrawTestSpec.InputType} type
+     * @return {boolean}
+     */
+    glsDrawTests.inputTypeIsFloatType = function (type) {
+        if (type == glsDrawTests.DrawTestSpec.InputType.FLOAT)
+            return true;
+        if (type == glsDrawTests.DrawTestSpec.InputType.HALF)
+            return true;
+        return false;
+    };
+
+    /**
+     * @param {?glsDrawTests.DrawTestSpec.OutputType} type
+     * @return {boolean}
+     */
+    glsDrawTests.outputTypeIsFloatType = function (type) {
+        if (type == glsDrawTests.DrawTestSpec.OutputType.FLOAT
+            || type == glsDrawTests.DrawTestSpec.OutputType.VEC2
+            || type == glsDrawTests.DrawTestSpec.OutputType.VEC3
+            || type == glsDrawTests.DrawTestSpec.OutputType.VEC4)
+            return true;
+
+        return false;
+    };
+
+    /**
+     * @param {?glsDrawTests.DrawTestSpec.OutputType} type
+     * @return {boolean}
+     */
+    glsDrawTests.outputTypeIsIntType = function (type) {
+        if (type == glsDrawTests.DrawTestSpec.OutputType.INT
+            || type == glsDrawTests.DrawTestSpec.OutputType.IVEC2
+            || type == glsDrawTests.DrawTestSpec.OutputType.IVEC3
+            || type == glsDrawTests.DrawTestSpec.OutputType.IVEC4)
+            return true;
+
+        return false;
+    };
+
+    /**
+     * @param {?glsDrawTests.DrawTestSpec.OutputType} type
+     * @return {boolean}
+     */
+    glsDrawTests.outputTypeIsUintType = function (type) {
+        if (type == glsDrawTests.DrawTestSpec.OutputType.UINT
+            || type == glsDrawTests.DrawTestSpec.OutputType.UVEC2
+            || type == glsDrawTests.DrawTestSpec.OutputType.UVEC3
+            || type == glsDrawTests.DrawTestSpec.OutputType.UVEC4)
+            return true;
+
+        return false;
+    };
+
+    /**
+     * @param {glsDrawTests.DrawTestSpec.Primitive} primitive
+     * @param {number} primitiveCount
+     * @return {number}
+     */
+    glsDrawTests.getElementCount = function (primitive, primitiveCount) {
+        switch (primitive) {
+            case glsDrawTests.DrawTestSpec.Primitive.POINTS:                        return primitiveCount;
+            case glsDrawTests.DrawTestSpec.Primitive.TRIANGLES:                        return primitiveCount * 3;
+            case glsDrawTests.DrawTestSpec.Primitive.TRIANGLE_FAN:                    return primitiveCount + 2;
+            case glsDrawTests.DrawTestSpec.Primitive.TRIANGLE_STRIP:                return primitiveCount + 2;
+            case glsDrawTests.DrawTestSpec.Primitive.LINES:                            return primitiveCount * 2;
+            case glsDrawTests.DrawTestSpec.Primitive.LINE_STRIP:                    return primitiveCount + 1;
+            case glsDrawTests.DrawTestSpec.Primitive.LINE_LOOP:                        return (primitiveCount==1) ? (2) : (primitiveCount);
+            default:
+                throw new Error('Invalid primitive');
+        }
+    };
+
     //MethodInfo
 
     /**
@@ -74,7 +286,7 @@ goog.scope(function() {
     };
 
     /**
-     * @param {glsDrawTests.DrawTestSpec.DrawMethod} method
+     * @param {?glsDrawTests.DrawTestSpec.DrawMethod} method
      * @return {glsDrawTests.MethodInfo}
      */
     glsDrawTests.getMethodInfo = function (method) {
@@ -93,6 +305,77 @@ goog.scope(function() {
         return /** @type {glsDrawTests.MethodInfo} */ (infos[method]);
     };
 
+    /**
+     * @param {glsDrawTests.DrawTestSpec} a
+     * @param {glsDrawTests.DrawTestSpec} b
+     * @return {boolean}
+     */
+    glsDrawTests.checkSpecsShaderCompatible = function (a, b) {
+        // Only the attributes matter
+        if (a.attribs.length != b.attribs.length)
+            return false;
+
+        for (var ndx = 0; ndx < a.attribs.length; ++ndx) {
+            // Only the output type (== shader input type) matters and the usage in the shader.
+
+            if (a.attribs[ndx].additionalPositionAttribute != b.attribs[ndx].additionalPositionAttribute)
+                return false;
+
+            // component counts need not to match
+            if (glsDrawTests.outputTypeIsFloatType(a.attribs[ndx].outputType) && glsDrawTests.outputTypeIsFloatType(b.attribs[ndx].outputType))
+                continue;
+            if (glsDrawTests.outputTypeIsIntType(a.attribs[ndx].outputType) && glsDrawTests.outputTypeIsIntType(b.attribs[ndx].outputType))
+                continue;
+            if (glsDrawTests.outputTypeIsUintType(a.attribs[ndx].outputType) && glsDrawTests.outputTypeIsUintType(b.attribs[ndx].outputType))
+                continue;
+
+            return false;
+        }
+
+        return true;
+    };
+
+    // generate random vectors in a way that does not depend on argument evaluation order
+
+    /**
+     * @param {deRandom.Random} random
+     * @return {Array<number>}
+     */
+    glsDrawTests.generateRandomVec4 = function (random) {
+        /** @type {Array<number>} */ var retVal;
+
+        for (var i = 0; i < 4; ++i)
+            retVal[i] = random.getFloat();
+
+        return retVal;
+    };
+
+    /**
+     * @param {deRandom.Random} random
+     * @return {Array<number>}
+     */
+    glsDrawTests.generateRandomIVec4 = function (random) {
+        /** @type {Array<number>} */ var retVal;
+
+        for (var i = 0; i < 4; ++i)
+            retVal[i] = random.getInt();
+
+        return retVal;
+    };
+
+    /**
+     * @param {deRandom.Random} random
+     * @return {Array<number>}
+     */
+    glsDrawTests.generateRandomUVec4 = function (random) {
+        /** @type {Array<number>} */ var retVal;
+
+        for (var i = 0; i < 4; ++i)
+            retVal[i] = new Uint32Array([random.getInt()])[0];
+
+        return retVal;
+    };
+
     //GLValue
 
     /**
@@ -101,7 +384,7 @@ goog.scope(function() {
      */
     glsDrawTests.GLValue = function() {
         /** @type {goog.NumberArray} */ this.m_value = [0];
-        /** @type {glsDrawTests.DrawTestSpec.InputType} */ this.m_type;
+        /** @type {?glsDrawTests.DrawTestSpec.InputType} */ this.m_type;
     };
 
     /**
@@ -125,7 +408,7 @@ goog.scope(function() {
     /**
      * typeToTypedArray function. Determines which type of array will store the value, and stores it.
      * @param {number} value
-     * @param {glsDrawTests.DrawTestSpec.InputType} type
+     * @param {?glsDrawTests.DrawTestSpec.InputType} type
      */
     glsDrawTests.GLValue.typeToTypedArray = function(value, type) {
         var array;
@@ -134,12 +417,6 @@ goog.scope(function() {
             case glsDrawTests.DrawTestSpec.InputType.FLOAT:
                 array = new Float32Array(1);
                 break;
-            /*case glsDrawTests.DrawTestSpec.InputType.FIXED:
-                array = new Int32Array(1);
-                break;
-            case glsDrawTests.DrawTestSpec.InputType.DOUBLE:
-                array = new Float32Array(1); // 64-bit?
-                break;*/
 
             case glsDrawTests.DrawTestSpec.InputType.BYTE:
                 array = new Int8Array(1);
@@ -182,7 +459,7 @@ goog.scope(function() {
     /**
      * glsDrawTests.GLValue.create
      * @param {number} value
-     * @param {glsDrawTests.DrawTestSpec.InputType} type
+     * @param {?glsDrawTests.DrawTestSpec.InputType} type
      */
     glsDrawTests.GLValue.create = function(value, type) {
         var v = new glsDrawTests.GLValue();
@@ -211,7 +488,7 @@ goog.scope(function() {
 
     /**
      * glsDrawTests.GLValue.getMaxValue
-     * @param {glsDrawTests.DrawTestSpec.InputType} type
+     * @param {?glsDrawTests.DrawTestSpec.InputType} type
      * @return {glsDrawTests.GLValue}
      */
     glsDrawTests.GLValue.getMaxValue = function(type) {
@@ -221,12 +498,6 @@ goog.scope(function() {
             case glsDrawTests.DrawTestSpec.InputType.FLOAT:
                 value = 127;
                 break;
-            /*case glsDrawTests.DrawTestSpec.InputType.FIXED:
-                value = 32760;
-                break;
-            case glsDrawTests.DrawTestSpec.InputType.DOUBLE:
-                value = 127;
-                break;*/
             case glsDrawTests.DrawTestSpec.InputType.BYTE:
                 value = 127;
                 break;
@@ -257,7 +528,7 @@ goog.scope(function() {
 
     /**
      * glsDrawTests.GLValue.getMinValue
-     * @param {glsDrawTests.DrawTestSpec.InputType} type
+     * @param {?glsDrawTests.DrawTestSpec.InputType} type
      * @return {glsDrawTests.GLValue}
      */
     glsDrawTests.GLValue.getMinValue = function(type) {
@@ -267,12 +538,6 @@ goog.scope(function() {
             case glsDrawTests.DrawTestSpec.InputType.FLOAT:
                 value = -127;
                 break;
-            /*case glsDrawTests.DrawTestSpec.InputType.FIXED:
-                value = -32760;
-                break;
-            case glsDrawTests.DrawTestSpec.InputType.DOUBLE:
-                value = -127;
-                break;*/
             case glsDrawTests.DrawTestSpec.InputType.BYTE:
                 value = -127;
                 break;
@@ -322,16 +587,10 @@ goog.scope(function() {
 
         switch (type) {
             case glsDrawTests.DrawTestSpec.InputType.FLOAT:
-            //case glsDrawTests.DrawTestSpec.InputType.DOUBLE:
             case glsDrawTests.DrawTestSpec.InputType.HALF: {
                 return glsDrawTests.GLValue.create(minv + rnd.getFloat() * (maxv - minv), type);
                 break;
             }
-
-            /*case glsDrawTests.DrawTestSpec.InputType.FIXED: {
-                return minv == maxv ? min : glsDrawTests.GLValue.create(minv + rnd.getInt() % (maxv - minv), type);
-                break;
-            }*/
 
             case glsDrawTests.DrawTestSpec.InputType.SHORT:
             case glsDrawTests.DrawTestSpec.InputType.UNSIGNED_SHORT:
@@ -352,7 +611,7 @@ goog.scope(function() {
     // Minimum difference required between coordinates
 
     /**
-     * @param {glsDrawTests.DrawTestSpec.InputType} type
+     * @param {?glsDrawTests.DrawTestSpec.InputType} type
      * @return {glsDrawTests.GLValue}
      */
     glsDrawTests.GLValue.minValue = function(type) {
@@ -360,15 +619,12 @@ goog.scope(function() {
             case glsDrawTests.DrawTestSpec.InputType.FLOAT:
             case glsDrawTests.DrawTestSpec.InputType.BYTE:
             case glsDrawTests.DrawTestSpec.InputType.HALF:
-            //case glsDrawTests.DrawTestSpec.InputType.DOUBLE:
                 return glsDrawTests.GLValue.create(4, type);
             case glsDrawTests.DrawTestSpec.InputType.SHORT:
             case glsDrawTests.DrawTestSpec.InputType.UNSIGNED_SHORT:
                 return glsDrawTests.GLValue.create(4 * 256, type);
             case glsDrawTests.DrawTestSpec.InputType.UNSIGNED_BYTE:
                 return glsDrawTests.GLValue.create(4 * 2, type);
-            /*case glsDrawTests.DrawTestSpec.InputType.FIXED:
-                return glsDrawTests.GLValue.create(4 * 512, type);*/
             case glsDrawTests.DrawTestSpec.InputType.INT:
             case glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT:
                 return glsDrawTests.GLValue.create(4 * 16777216, type);
@@ -385,7 +641,6 @@ goog.scope(function() {
     glsDrawTests.GLValue.abs = function(val) {
         var type = val.getType();
         switch(type) {
-            //case glsDrawTests.DrawTestSpec.InputType.FIXED:
             case glsDrawTests.DrawTestSpec.InputType.SHORT:
                 return glsDrawTests.GLValue.create(0x7FFF & val.getValue(), type);
             case glsDrawTests.DrawTestSpec.InputType.BYTE:
@@ -396,7 +651,6 @@ goog.scope(function() {
                 return val;
             case glsDrawTests.DrawTestSpec.InputType.FLOAT:
             case glsDrawTests.DrawTestSpec.InputType.HALF:
-            //case glsDrawTests.DrawTestSpec.InputType.DOUBLE:
                 return glsDrawTests.GLValue.create(Math.abs(val.interpret()), type);
             case glsDrawTests.DrawTestSpec.InputType.INT:
                 return glsDrawTests.GLValue.create(0x7FFFFFFF & val.getValue(), type);
@@ -406,7 +660,7 @@ goog.scope(function() {
     };
 
     /**
-     * @return {glsDrawTests.DrawTestSpec.InputType}
+     * @return {?glsDrawTests.DrawTestSpec.InputType}
      */
     glsDrawTests.GLValue.prototype.getType = function() {
         return this.m_type;
@@ -436,10 +690,6 @@ goog.scope(function() {
     glsDrawTests.GLValue.prototype.interpret = function() {
         if (this.m_type == glsDrawTests.DrawTestSpec.InputType.HALF)
             return glsDrawTests.GLValue.halfToFloat(this.m_value[0]);
-        /*else if (this.m_type == glsDrawTests.DrawTestSpec.InputType.FIXED) {
-            var maxValue = 65536;
-            return Math.floor((2 * this.m_value[0] + 1) / (maxValue - 1));
-        }*/
 
         return this.m_value[0];
     };
@@ -557,11 +807,11 @@ goog.scope(function() {
     /**
      * AttributeArray
      * @constructor
-     * @param {glsDrawTests.DrawTestSpec.Storage} storage
+     * @param {?glsDrawTests.DrawTestSpec.Storage} storage
      * @param {sglrGLContext.GLContext | sglrReferenceContext.ReferenceContext} context
      */
     glsDrawTests.AttributeArray = function (storage, context) {
-        /** @type {glsDrawTests.DrawTestSpec.Storage} */ this.m_storage = storage;
+        /** @type {?glsDrawTests.DrawTestSpec.Storage} */ this.m_storage = storage;
         /** @type {sglrGLContext.GLContext | sglrReferenceContext.ReferenceContext} */ this.m_ctx = context;
         /** @type {WebGLBuffer|sglrReferenceContext.DataBuffer|null} */ this.m_glBuffer;
 
@@ -570,8 +820,8 @@ goog.scope(function() {
         /** @type {number} */ this.m_componentCount;
         /** @type {boolean} */ this.m_bound = false;
         /** @type {glsDrawTests.DrawTestSpec.Target} */ this.m_target = glsDrawTests.DrawTestSpec.Target.ARRAY;
-        /** @type {glsDrawTests.DrawTestSpec.InputType} */ this.m_inputType = glsDrawTests.DrawTestSpec.InputType.FLOAT;
-        /** @type {glsDrawTests.DrawTestSpec.OutputType} */ this.m_outputType = glsDrawTests.DrawTestSpec.OutputType.VEC4;
+        /** @type {?glsDrawTests.DrawTestSpec.InputType} */ this.m_inputType = glsDrawTests.DrawTestSpec.InputType.FLOAT;
+        /** @type {?glsDrawTests.DrawTestSpec.OutputType} */ this.m_outputType = glsDrawTests.DrawTestSpec.OutputType.VEC4;
         /** @type {boolean} */ this.m_normalize = false;
         /** @type {number} */ this.m_stride = 0;
         /** @type {number} */ this.m_offset = 0;
@@ -585,11 +835,29 @@ goog.scope(function() {
         }
     };
 
+    /** @return {number} */ glsDrawTests.AttributeArray.prototype.getComponentCount = function () {return this.m_componentCount;};
+
+    /** @return {?glsDrawTests.DrawTestSpec.Target} */ glsDrawTests.AttributeArray.prototype.getTarget = function () {return this.m_target;};
+
+    /** @return {?glsDrawTests.DrawTestSpec.InputType} */ glsDrawTests.AttributeArray.prototype.getInputType = function () {return this.m_inputType;};
+
+    /** @return {?glsDrawTests.DrawTestSpec.OutputType} */ glsDrawTests.AttributeArray.prototype.getOutputType = function () {return this.m_outputType;};
+
+    /** @return {?glsDrawTests.DrawTestSpec.Storage} */ glsDrawTests.AttributeArray.prototype.getStorageType = function () {return this.m_storage;};
+
+    /** @return {boolean} */ glsDrawTests.AttributeArray.prototype.getNormalized = function () {return this.m_normalize;};
+
+    /** @return {number} */ glsDrawTests.AttributeArray.prototype.getStride = function () {return this.m_stride;};
+
+    /** @return {boolean} */ glsDrawTests.AttributeArray.prototype.isBound = function () {return this.m_bound;};
+
+    /** @return {boolean} */ glsDrawTests.AttributeArray.prototype.isPositionAttribute = function () {return this.m_isPositionAttr;};
+
     /**
      * @param {glsDrawTests.DrawTestSpec.Target} target
      * @param {number} size
      * @param {goog.TypedArray} ptr
-     * @param {glsDrawTests.DrawTestSpec.Usage} usage
+     * @param {?glsDrawTests.DrawTestSpec.Usage} usage
      */
     glsDrawTests.AttributeArray.prototype.data = function (target, size, ptr, usage) {
         this.m_size = size;
@@ -626,8 +894,8 @@ goog.scope(function() {
      * @param {boolean} bound
      * @param {number} offset
      * @param {number} size
-     * @param {glsDrawTests.DrawTestSpec.InputType} inputType
-     * @param {glsDrawTests.DrawTestSpec.OutputType} outType
+     * @param {?glsDrawTests.DrawTestSpec.InputType} inputType
+     * @param {?glsDrawTests.DrawTestSpec.OutputType} outType
      * @param {boolean} normalized
      * @param {number} stride
      * @param {number} instanceDivisor
@@ -655,10 +923,9 @@ goog.scope(function() {
      */
     glsDrawTests.AttributeArray.prototype.bindAttribute = function (loc) {
         if (!this.isBound()) {
+            /** @type {rrGenericVector.GenericVec4} */ var attr = this.m_defaultAttrib;
             switch (this.m_inputType) {
                 case glsDrawTests.DrawTestSpec.InputType.FLOAT: {
-                    /** @type {Array<number>} (4) */ var attr = this.m_defaultAttrib;
-
                     switch (this.m_componentCount) {
                         case 1: this.m_ctx.vertexAttrib1f(loc, attr[0]); break;
                         case 2: this.m_ctx.vertexAttrib2f(loc, attr[0], attr[1]); break;
@@ -669,12 +936,10 @@ goog.scope(function() {
                     break;
                 }
                 case glsDrawTests.DrawTestSpec.InputType.INT: {
-                    /** @type {Array<number>} (4) */ var attr = this.m_defaultAttrib;
                     this.m_ctx.vertexAttribI4i(loc, attr[0], attr[1], attr[2], attr[3]);
                     break;
                 }
                 case glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT: {
-                    /** @type {Array<number>} (4) */ var attr = this.m_defaultAttrib;
                     this.m_ctx.vertexAttribI4ui(loc, attr[0], attr[1], attr[2], attr[3]);
                     break;
                 }
@@ -730,6 +995,149 @@ goog.scope(function() {
         }
     };
 
+    // AttributePack
+
+    /**
+     * @param {sglrReferenceContext.ReferenceContext | sglrGLContext.GLContext} drawContext
+     * @param {Array<number>} screenSize (2 positive elements in array)
+     * @param {boolean} useVao
+     * @param {boolean} logEnabled
+     * @constructor
+     */
+    glsDrawTests.AttributePack = function (drawContext, screenSize, useVao, logEnabled) {
+        /** @type {sglrReferenceContext.ReferenceContext | sglrGLContext.GLContext} */ this.m_ctx = drawContext;
+
+        /** @type {Array<glsDrawTests.AttributeArray>} */ this.m_arrays;
+        /** @type {sglrShaderProgram.ShaderProgram} */ this.m_program;
+        /** @type {tcuSurface.Surface} */ this.m_screen = null;
+        /** @type {boolean} */ this.m_useVao = useVao;
+        /** @type {boolean} */ this.m_logEnabled = logEnabled;
+        /** @type {WebGLProgram | sglrShaderProgram.ShaderProgram | null} */ this.m_programID = null;
+        /** @type {WebGLVertexArrayObject|sglrReferenceContext.VertexArray|null} */ this.m_vaoID = null;
+
+        if (this.m_useVao)
+            this.m_vaoID = this.m_ctx.createVertexArray();
+    };
+
+    /**
+     * @param {number} i
+     * @return {glsDrawTests.AttributeArray}
+     */
+    glsDrawTests.AttributePack.prototype.getArray = function (i) {
+        return this.m_arrays[i];
+    };
+
+    /**
+     * @return number
+     */
+    glsDrawTests.AttributePack.prototype.getArrayCount = function () {
+        return this.m_arrays.length;
+    };
+
+    /**
+     * @param {?glsDrawTests.DrawTestSpec.Storage} storage
+     */
+    glsDrawTests.AttributePack.prototype.newArray = function (storage) {
+        this.m_arrays.push(new glsDrawTests.AttributeArray(storage, this.m_ctx));
+    };
+
+    /**
+     * clearArrays
+     */
+    glsDrawTests.AttributePack.prototype.clearArrays = function () {
+        this.m_arrays.length = 0;
+    };
+
+    /**
+     * updateProgram
+     */
+    glsDrawTests.AttributePack.prototype.updateProgram = function () {
+        if (this.m_programID)
+            this.m_ctx.deleteProgram(this.m_programID);
+
+        this.m_program = new glsDrawTests.DrawTestShaderProgram(this.m_arrays);
+        this.m_programID = this.m_ctx.createProgram(this.m_program);
+    };
+
+    /**
+     * @param {glsDrawTests.DrawTestSpec.Primitive} primitive
+     * @param {?glsDrawTests.DrawTestSpec.DrawMethod} drawMethod
+     * @param {number} firstVertex
+     * @param {number} vertexCount
+     * @param {?glsDrawTests.DrawTestSpec.IndexType} indexType
+     * @param {number} indexOffset
+     * @param {number} rangeStart
+     * @param {number} rangeEnd
+     * @param {number} instanceCount
+     * @param {number} indirectOffset
+     * @param {number} baseVertex
+     * @param {number} coordScale
+     * @param {number} colorScale
+     * @param {glsDrawTests.AttributeArray} indexArray
+     */
+    glsDrawTests.AttributePack.prototype.render = function (primitive, drawMethod, firstVertex, vertexCount, indexType,
+        indexOffset, rangeStart, rangeEnd, instanceCount, indirectOffset, baseVertex, coordScale, colorScale, indexArray) {
+        assertMsgOptions(this.m_program != null, 'Program is null', false, true);
+        assertMsgOptions(this.m_programID != null, 'No context created program', false, true);
+
+        this.m_ctx.viewport(0, 0, this.m_screen.getWidth(), this.m_screen.getHeight());
+        this.m_ctx.clearColor(0.0, 0.0, 0.0, 1.0);
+        this.m_ctx.clear(gl.COLOR_BUFFER_BIT);
+
+        this.m_ctx.useProgram(this.m_programID);
+
+        this.m_ctx.uniform1f(this.m_ctx.getUniformLocation(this.m_programID, "u_coordScale"), coordScale);
+        this.m_ctx.uniform1f(this.m_ctx.getUniformLocation(this.m_programID, "u_colorScale"), colorScale);
+
+        if (this.m_useVao)
+            this.m_ctx.bindVertexArray(this.m_vaoID);
+
+        if (indexArray)
+            indexArray.bindIndexArray(glsDrawTests.DrawTestSpec.Target.ELEMENT_ARRAY);
+
+        for (var arrayNdx = 0; arrayNdx < this.m_arrays.length; arrayNdx++) {
+            var attribName = '';
+            attribName += "a_" + arrayNdx;
+
+            var loc = this.m_ctx.getAttribLocation(this.m_programID, attribName);
+
+            if (this.m_arrays[arrayNdx].isBound())
+                this.m_ctx.enableVertexAttribArray(loc);
+
+            this.m_arrays[arrayNdx].bindAttribute(loc);
+        }
+
+        if (drawMethod == glsDrawTests.DrawTestSpec.DrawMethod.DRAWARRAYS)
+            this.m_ctx.drawArrays(glsDrawTests.primitiveToGL(primitive), firstVertex, vertexCount);
+        else if (drawMethod == glsDrawTests.DrawTestSpec.DrawMethod.DRAWARRAYS_INSTANCED)
+            this.m_ctx.drawArraysInstanced(glsDrawTests.primitiveToGL(primitive), firstVertex, vertexCount, instanceCount);
+        else if (drawMethod == glsDrawTests.DrawTestSpec.DrawMethod.DRAWELEMENTS)
+            this.m_ctx.drawElements(glsDrawTests.primitiveToGL(primitive), vertexCount, glsDrawTests.indexTypeToGL(indexType), indexOffset);
+        else if (drawMethod == glsDrawTests.DrawTestSpec.DrawMethod.DRAWELEMENTS_RANGED)
+            this.m_ctx.drawRangeElements(glsDrawTests.primitiveToGL(primitive), rangeStart, rangeEnd, vertexCount, glsDrawTests.indexTypeToGL(indexType), indexOffset);
+        else if (drawMethod == glsDrawTests.DrawTestSpec.DrawMethod.DRAWELEMENTS_INSTANCED)
+            this.m_ctx.drawElementsInstanced(glsDrawTests.primitiveToGL(primitive), vertexCount, glsDrawTests.indexTypeToGL(indexType), indexOffset, instanceCount);
+        else
+            throw new Error('Invalid draw method');
+
+        for (var arrayNdx = 0; arrayNdx < this.m_arrays.length; arrayNdx++) {
+            if (this.m_arrays[arrayNdx].isBound()) {
+                var attribName = '';
+                attribName += "a_" + arrayNdx;
+
+                var loc = this.m_ctx.getAttribLocation(this.m_programID, attribName);
+
+                this.m_ctx.disableVertexAttribArray(loc);
+            }
+        }
+
+        if (this.m_useVao)
+            this.m_ctx.bindVertexArray(null);
+
+        this.m_ctx.useProgram(null);
+        this.m_ctx.readPixels(this.m_screen, 0, 0, this.m_screen.getWidth(), this.m_screen.getHeight());
+    };
+
     // DrawTestSpec
 
     /**
@@ -772,7 +1180,7 @@ goog.scope(function() {
     };
 
     /**
-     * @param {glsDrawTests.DrawTestSpec.InputType} type
+     * @param {?glsDrawTests.DrawTestSpec.InputType} type
      * @return {string}
      */
     glsDrawTests.DrawTestSpec.inputTypeToString = function(type) {
@@ -780,8 +1188,6 @@ goog.scope(function() {
 
         var types = [
             "float",            // INPUTTYPE_FLOAT = 0,
-            "fixed",            // INPUTTYPE_FIXED,
-            "double",            // INPUTTYPE_DOUBLE
 
             "byte",                // INPUTTYPE_BYTE,
             "short",            // INPUTTYPE_SHORT,
@@ -802,7 +1208,7 @@ goog.scope(function() {
     };
 
     /**
-     * @param {glsDrawTests.DrawTestSpec.OutputType} type
+     * @param {?glsDrawTests.DrawTestSpec.OutputType} type
      * @return {string}
      */
     glsDrawTests.DrawTestSpec.outputTypeToString = function (type) {
@@ -826,13 +1232,13 @@ goog.scope(function() {
             "uvec4"        // OUTPUTTYPE_UVEC4,
         ];
         assertMsgOptions(types.length == Object.keys(glsDrawTests.DrawTestSpec.InputType).length,
-            'The amount of type names is different than the amount of types');
+            'The amount of type names is different than the amount of types', false, true);
 
         return types[type];
     };
 
     /**
-     * @param {glsDrawTests.DrawTestSpec.Usage} usage
+     * @param {?glsDrawTests.DrawTestSpec.Usage} usage
      * @return {string}
      */
     glsDrawTests.DrawTestSpec.usageTypeToString = function (usage) {
@@ -859,7 +1265,7 @@ goog.scope(function() {
     };
 
     /**
-     * @param {glsDrawTests.DrawTestSpec.Storage} storage
+     * @param {?glsDrawTests.DrawTestSpec.Storage} storage
      * @return {string}
      */
     glsDrawTests.DrawTestSpec.storageToString = function (storage) {
@@ -889,11 +1295,7 @@ goog.scope(function() {
             "triangle_strip",            // PRIMITIVE_TRIANGLE_STRIP,
             "lines",                    // PRIMITIVE_LINES
             "line_strip",                // PRIMITIVE_LINE_STRIP
-            "line_loop",                // PRIMITIVE_LINE_LOOP
-            "lines_adjacency",            // PRIMITIVE_LINES_ADJACENCY
-            "line_strip_adjacency",        // PRIMITIVE_LINE_STRIP_ADJACENCY
-            "triangles_adjacency",        // PRIMITIVE_TRIANGLES_ADJACENCY
-            "triangle_strip_adjacency"    // PRIMITIVE_TRIANGLE_STRIP_ADJACENCY
+            "line_loop"
         ];
         assertMsgOptions(primitives.length == Object.keys(glsDrawTests.DrawTestSpec.Primitive).length,
             'The amount of primitive names is different than the amount of primitives', false, true);
@@ -902,7 +1304,7 @@ goog.scope(function() {
     };
 
     /**
-     * @param {glsDrawTests.DrawTestSpec.IndexType} type
+     * @param {?glsDrawTests.DrawTestSpec.IndexType} type
      * @return {string}
      */
     glsDrawTests.DrawTestSpec.indexTypeToString = function (type) {
@@ -920,7 +1322,7 @@ goog.scope(function() {
     };
 
     /**
-     * @param {glsDrawTests.DrawTestSpec.DrawMethod} method
+     * @param {?glsDrawTests.DrawTestSpec.DrawMethod} method
      * @return {string}
      */
     glsDrawTests.DrawTestSpec.drawMethodToString = function (method) {
@@ -940,7 +1342,7 @@ goog.scope(function() {
     };
 
     /**
-     * @param {glsDrawTests.DrawTestSpec.InputType} type
+     * @param {?glsDrawTests.DrawTestSpec.InputType} type
      * @return {number}
      */
     glsDrawTests.DrawTestSpec.inputTypeSize = function (type) {
@@ -948,8 +1350,6 @@ goog.scope(function() {
 
         var size = [
             4,        // INPUTTYPE_FLOAT = 0,
-            /*4,    // INPUTTYPE_FIXED,
-            8,        // INPUTTYPE_DOUBLE*/
 
             1,        // INPUTTYPE_BYTE,
             2,    // INPUTTYPE_SHORT,
@@ -970,7 +1370,7 @@ goog.scope(function() {
     };
 
     /**
-     * @param {glsDrawTests.DrawTestSpec.IndexType} type
+     * @param {?glsDrawTests.DrawTestSpec.IndexType} type
      * @return {number}
      */
     glsDrawTests.DrawTestSpec.indexTypeSize = function (type) {
@@ -1002,7 +1402,7 @@ goog.scope(function() {
         for (var ndx = 0; ndx < this.attribs.length; ++ndx) {
             /** @type {glsDrawTests.DrawTestSpec.AttributeSpec}*/ var attrib = this.attribs[ndx];
 
-            if (attribs.length > 1)
+            if (this.attribs.length > 1)
                 name += "attrib" + ndx + "_";
 
             if (ndx == 0|| attrib.additionalPositionAttribute)
@@ -1012,14 +1412,14 @@ goog.scope(function() {
 
             if (attrib.useDefaultAttribute) {
                 name += "non_array_" +
-                    glsDrawTests.DrawTestSpec.inputTypeToString(/** @type {glsDrawTests.DrawTestSpec.InputType} */ (attrib.inputType)) + "_" +
+                    glsDrawTests.DrawTestSpec.inputTypeToString(/** @type {?glsDrawTests.DrawTestSpec.InputType} */ (attrib.inputType)) + "_" +
                     attrib.componentCount + "_" +
                     glsDrawTests.DrawTestSpec.outputTypeToString(attrib.outputType) + "_";
             } else {
                 name += glsDrawTests.DrawTestSpec.storageToString(attrib.storage) + "_" +
                     attrib.offset + "_" +
                     attrib.stride + "_" +
-                    glsDrawTests.DrawTestSpec.inputTypeToString(/** @type {glsDrawTests.DrawTestSpec.InputType} */ (attrib.inputType));
+                    glsDrawTests.DrawTestSpec.inputTypeToString(/** @type {?glsDrawTests.DrawTestSpec.InputType} */ (attrib.inputType));
                 if (attrib.inputType != glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT_2_10_10_10 && attrib.inputType != glsDrawTests.DrawTestSpec.InputType.INT_2_10_10_10)
                     name += attrib.componentCount;
                 name += "_" +
@@ -1031,17 +1431,17 @@ goog.scope(function() {
         }
 
         if (indexed)
-            name += "index_" + glsDrawTests.DrawTestSpec.indexTypeToString(indexType) + "_" +
-                glsDrawTests.DrawTestSpec.storageToString(indexStorage) + "_" +
-                "offset" + indexPointerOffset + "_";
+            name += "index_" + glsDrawTests.DrawTestSpec.indexTypeToString(this.indexType) + "_" +
+                glsDrawTests.DrawTestSpec.storageToString(this.indexStorage) + "_" +
+                "offset" + this.indexPointerOffset + "_";
         if (hasFirst)
-            name += "first" + first + "_";
+            name += "first" + this.first + "_";
         if (ranged)
-            name += "ranged_" + indexMin + "_" + indexMax + "_";
+            name += "ranged_" + this.indexMin + "_" + this.indexMax + "_";
         if (instanced)
-            name += "instances" + instanceCount + "_";
+            name += "instances" + this.instanceCount + "_";
 
-        switch (primitive) {
+        switch (this.primitive) {
             case glsDrawTests.DrawTestSpec.Primitive.POINTS:
                 name += "points_";
                 break;
@@ -1063,24 +1463,12 @@ goog.scope(function() {
             case glsDrawTests.DrawTestSpec.Primitive.LINE_LOOP:
                 name += "line_loop_";
                 break;
-            case glsDrawTests.DrawTestSpec.Primitive.LINES_ADJACENCY:
-                name += "line_adjancency";
-                break;
-            case glsDrawTests.DrawTestSpec.Primitive.LINE_STRIP_ADJACENCY:
-                name += "line_strip_adjancency";
-                break;
-            case glsDrawTests.DrawTestSpec.Primitive.TRIANGLES_ADJACENCY:
-                name += "triangles_adjancency";
-                break;
-            case glsDrawTests.DrawTestSpec.Primitive.TRIANGLE_STRIP_ADJACENCY:
-                name += "triangle_strip_adjancency";
-                break;
             default:
                 throw new Error('Invalid primitive');
                 break;
         }
 
-        name += primitiveCount;
+        name += this.primitiveCount;
 
         return name;
     };
@@ -1088,15 +1476,15 @@ goog.scope(function() {
     /**
      * @return {string}
      */
-    glsDrawTests.DrawTestSpec.getDesc = function () {
+    glsDrawTests.DrawTestSpec.prototype.getDesc = function () {
         var desc = '';
 
         for (var ndx = 0; ndx < this.attribs.length; ++ndx) {
-            /** @type {glsDrawTests.AttributeSpec} */ var attrib = this.attribs[ndx];
+            /** @type {glsDrawTests.DrawTestSpec.AttributeSpec} */ var attrib = this.attribs[ndx];
 
             if (attrib.useDefaultAttribute) {
                 desc += "Attribute " + ndx + ": default, " + ((ndx == 0|| attrib.additionalPositionAttribute) ? ("position ,") : ("color ,")) +
-                    "input datatype " + glsDrawTests.DrawTestSpec.inputTypeToString(/** @type {glsDrawTests.DrawTestSpec.InputType} */ (attrib.inputType)) + ", " +
+                    "input datatype " + glsDrawTests.DrawTestSpec.inputTypeToString(/** @type {?glsDrawTests.DrawTestSpec.InputType} */ (attrib.inputType)) + ", " +
                     "input component count " + attrib.componentCount + ", " +
                     "used as " + glsDrawTests.DrawTestSpec.outputTypeToString(attrib.outputType) + ", ";
             }
@@ -1105,7 +1493,7 @@ goog.scope(function() {
                 desc += "Attribute " + ndx + ": " + ((ndx == 0|| attrib.additionalPositionAttribute) ? ("position ,") : ("color ,")) +
                     "Storage in " + glsDrawTests.DrawTestSpec.storageToString(attrib.storage) + ", " +
                     "stride " + attrib.stride + ", " +
-                    "input datatype " + glsDrawTests.DrawTestSpec.inputTypeToString(/** @type {glsDrawTests.DrawTestSpec.InputType} */ (attrib.inputType)) + ", " +
+                    "input datatype " + glsDrawTests.DrawTestSpec.inputTypeToString(/** @type {?glsDrawTests.DrawTestSpec.InputType} */ (attrib.inputType)) + ", " +
                     "input component count " + attrib.componentCount + ", " +
                     (attrib.normalize ? "normalized, " : "") +
                     "used as " + glsDrawTests.DrawTestSpec.outputTypeToString(attrib.outputType) + ", " +
@@ -1113,50 +1501,37 @@ goog.scope(function() {
             }
         }
 
-        if (drawMethod == glsDrawTests.DrawTestSpec.DrawMethod.DRAWARRAYS) {
+        if (this.drawMethod == glsDrawTests.DrawTestSpec.DrawMethod.DRAWARRAYS) {
             desc += "drawArrays(), " +
-                "first " + first + ", ";
-        } else if (drawMethod == glsDrawTests.DrawTestSpec.DrawMethod.DRAWARRAYS_INSTANCED) {
+                "first " + this.first + ", ";
+        } else if (this.drawMethod == glsDrawTests.DrawTestSpec.DrawMethod.DRAWARRAYS_INSTANCED) {
             desc += "drawArraysInstanced(), " +
-                "first " + first + ", " +
-                "instance count " + instanceCount + ", ";
-        } else if (drawMethod == glsDrawTests.DrawTestSpec.DrawMethod.DRAWELEMENTS) {
+                "first " + this.first + ", " +
+                "instance count " + this.instanceCount + ", ";
+        } else if (this.drawMethod == glsDrawTests.DrawTestSpec.DrawMethod.DRAWELEMENTS) {
             desc += "drawElements(), " +
-                "index type " + glsDrawTests.DrawTestSpec.indexTypeToString(indexType) + ", " +
-                "index storage in " + glsDrawTests.DrawTestSpec.storageToString(indexStorage) + ", " +
-                "index offset " + indexPointerOffset + ", ";
-        } else if (drawMethod == glsDrawTests.DrawTestSpec.DrawMethod.DRAWELEMENTS_RANGED) {
+                "index type " + glsDrawTests.DrawTestSpec.indexTypeToString(this.indexType) + ", " +
+                "index storage in " + glsDrawTests.DrawTestSpec.storageToString(this.indexStorage) + ", " +
+                "index offset " + this.indexPointerOffset + ", ";
+        } else if (this.drawMethod == glsDrawTests.DrawTestSpec.DrawMethod.DRAWELEMENTS_RANGED) {
             desc += "drawElementsRanged(), " +
-                "index type " + glsDrawTests.DrawTestSpec.indexTypeToString(indexType) + ", " +
-                "index storage in " + glsDrawTests.DrawTestSpec.storageToString(indexStorage) + ", " +
-                "index offset " + indexPointerOffset + ", " +
-                "range start " + indexMin + ", " +
-                "range end " + indexMax + ", ";
-        } else if (drawMethod == glsDrawTests.DrawTestSpec.DrawMethod.DRAWELEMENTS_INSTANCED) {
+                "index type " + glsDrawTests.DrawTestSpec.indexTypeToString(this.indexType) + ", " +
+                "index storage in " + glsDrawTests.DrawTestSpec.storageToString(this.indexStorage) + ", " +
+                "index offset " + this.indexPointerOffset + ", " +
+                "range start " + this.indexMin + ", " +
+                "range end " + this.indexMax + ", ";
+        } else if (this.drawMethod == glsDrawTests.DrawTestSpec.DrawMethod.DRAWELEMENTS_INSTANCED) {
             desc += "drawElementsInstanced(), " +
-                "index type " + glsDrawTests.DrawTestSpec.indexTypeToString(indexType) + ", " +
-                "index storage in " + glsDrawTests.DrawTestSpec.storageToString(indexStorage) + ", " +
-                "index offset " + indexPointerOffset + ", " +
-                "instance count " + instanceCount + ", ";
-        } else if (drawMethod == glsDrawTests.DrawTestSpec.DrawMethod.DRAWARRAYS_INDIRECT) {
-            desc += "drawArraysIndirect(), " +
-                "first " + first + ", " +
-                "instance count " + instanceCount + ", " +
-                "indirect offset " + indirectOffset + ", ";
-        } else if (drawMethod == glsDrawTests.DrawTestSpec.DrawMethod.DRAWELEMENTS_INDIRECT) {
-            desc += "drawElementsIndirect(), " +
-                "index type " + glsDrawTests.DrawTestSpec.indexTypeToString(indexType) + ", " +
-                "index storage in " + glsDrawTests.DrawTestSpec.storageToString(indexStorage) + ", " +
-                "index offset " + indexPointerOffset + ", " +
-                "instance count " + instanceCount + ", " +
-                "indirect offset " + indirectOffset + ", " +
-                "base vertex " + baseVertex + ", ";
+                "index type " + glsDrawTests.DrawTestSpec.indexTypeToString(this.indexType) + ", " +
+                "index storage in " + glsDrawTests.DrawTestSpec.storageToString(this.indexStorage) + ", " +
+                "index offset " + this.indexPointerOffset + ", " +
+                "instance count " + this.instanceCount + ", ";
         } else
             throw new Error('Invalid draw method');
 
-        desc += primitiveCount;
+        desc += this.primitiveCount;
 
-        switch (primitive) {
+        switch (this.primitive) {
             case glsDrawTests.DrawTestSpec.Primitive.POINTS:
                 desc += "points";
                 break;
@@ -1177,18 +1552,6 @@ goog.scope(function() {
                 break;
             case glsDrawTests.DrawTestSpec.Primitive.LINE_LOOP:
                 desc += "lines (loop)";
-                break;
-            case glsDrawTests.DrawTestSpec.Primitive.LINES_ADJACENCY:
-                desc += "lines (adjancency)";
-                break;
-            case glsDrawTests.DrawTestSpec.Primitive.LINE_STRIP_ADJACENCY:
-                desc += "lines (strip, adjancency)";
-                break;
-            case glsDrawTests.DrawTestSpec.Primitive.TRIANGLES_ADJACENCY:
-                desc += "triangles (adjancency)";
-                break;
-            case glsDrawTests.DrawTestSpec.Primitive.TRIANGLE_STRIP_ADJACENCY:
-                desc += "triangles (strip, adjancency)";
                 break;
             default:
                 throw new Error('Invalid primitive');
@@ -1201,22 +1564,22 @@ goog.scope(function() {
     /**
      * @return {string}
      */
-    glsDrawTests.DrawTestSpec.getMultilineDesc = function () {
+    glsDrawTests.DrawTestSpec.prototype.getMultilineDesc = function () {
         var desc ='';
 
         for (var ndx = 0; ndx < this.attribs.length; ++ndx) {
-            /** @type {glsDrawTests.AttributeSpec} */ var attrib = this.attribs[ndx];
+            /** @type {glsDrawTests.DrawTestSpec.AttributeSpec} */ var attrib = this.attribs[ndx];
 
             if (attrib.useDefaultAttribute) {
                 desc += "Attribute " + ndx + ": default, " + ((ndx == 0|| attrib.additionalPositionAttribute) ? ("position\n") : ("color\n"))
-                    + "\tinput datatype " + glsDrawTests.DrawTestSpec.inputTypeToString(/** @type {glsDrawTests.DrawTestSpec.InputType} */ (attrib.inputType)) + "\n"
+                    + "\tinput datatype " + glsDrawTests.DrawTestSpec.inputTypeToString(/** @type {?glsDrawTests.DrawTestSpec.InputType} */ (attrib.inputType)) + "\n"
                     + "\tinput component count " + attrib.componentCount + "\n"
                     + "\tused as " + glsDrawTests.DrawTestSpec.outputTypeToString(attrib.outputType) + "\n";
             } else {
                 desc += "Attribute " + ndx + ": " + ((ndx == 0|| attrib.additionalPositionAttribute) ? ("position\n") : ("color\n")) +
                     "\tStorage in " + glsDrawTests.DrawTestSpec.storageToString(attrib.storage) + "\n" +
                     "\tstride " + attrib.stride + "\n" +
-                    "\tinput datatype " + glsDrawTests.DrawTestSpec.inputTypeToString(/** @type {glsDrawTests.DrawTestSpec.InputType} */ (attrib.inputType)) + "\n" +
+                    "\tinput datatype " + glsDrawTests.DrawTestSpec.inputTypeToString(/** @type {?glsDrawTests.DrawTestSpec.InputType} */ (attrib.inputType)) + "\n" +
                     "\tinput component count " + attrib.componentCount + "\n" +
                     (attrib.normalize ? "\tnormalized\n" : "") +
                     "\tused as " + glsDrawTests.DrawTestSpec.outputTypeToString(attrib.outputType) + "\n" +
@@ -1224,71 +1587,37 @@ goog.scope(function() {
             }
         }
 
-        if (drawMethod == glsDrawTests.DrawTestSpec.DrawMethod.DRAWARRAYS) {
+        if (this.drawMethod == glsDrawTests.DrawTestSpec.DrawMethod.DRAWARRAYS) {
             desc += "drawArrays()\n" +
-                "\tfirst " + first + "\n";
-        } else if (drawMethod == glsDrawTests.DrawTestSpec.DrawMethod.DRAWARRAYS_INSTANCED) {
+                "\tfirst " + this.first + "\n";
+        } else if (this.drawMethod == glsDrawTests.DrawTestSpec.DrawMethod.DRAWARRAYS_INSTANCED) {
             desc += "drawArraysInstanced()\n" +
-                "\tfirst " + first + "\n" +
-                "\tinstance count " + instanceCount + "\n";
-        } else if (drawMethod == glsDrawTests.DrawTestSpec.DrawMethod.DRAWELEMENTS) {
+                "\tfirst " + this.first + "\n" +
+                "\tinstance count " + this.instanceCount + "\n";
+        } else if (this.drawMethod == glsDrawTests.DrawTestSpec.DrawMethod.DRAWELEMENTS) {
             desc += "drawElements()\n" +
-                "\tindex type " + glsDrawTests.DrawTestSpec.indexTypeToString(indexType) + "\n" +
-                "\tindex storage in " + glsDrawTests.DrawTestSpec.storageToString(indexStorage) + "\n" +
-                "\tindex offset " + indexPointerOffset + "\n";
-        } else if (drawMethod == glsDrawTests.DrawTestSpec.DrawMethod.DRAWELEMENTS_RANGED) {
+                "\tindex type " + glsDrawTests.DrawTestSpec.indexTypeToString(this.indexType) + "\n" +
+                "\tindex storage in " + glsDrawTests.DrawTestSpec.storageToString(this.indexStorage) + "\n" +
+                "\tindex offset " + this.indexPointerOffset + "\n";
+        } else if (this.drawMethod == glsDrawTests.DrawTestSpec.DrawMethod.DRAWELEMENTS_RANGED) {
             desc += "drawElementsRanged()\n" +
-                "\tindex type " + glsDrawTests.DrawTestSpec.indexTypeToString(indexType) + "\n" +
-                "\tindex storage in " + glsDrawTests.DrawTestSpec.storageToString(indexStorage) + "\n" +
-                "\tindex offset " + indexPointerOffset + "\n" +
-                "\trange start " + indexMin + "\n" +
-                "\trange end " + indexMax + "\n";
-        } else if (drawMethod == glsDrawTests.DrawTestSpec.DrawMethod.DRAWELEMENTS_INSTANCED) {
+                "\tindex type " + glsDrawTests.DrawTestSpec.indexTypeToString(this.indexType) + "\n" +
+                "\tindex storage in " + glsDrawTests.DrawTestSpec.storageToString(this.indexStorage) + "\n" +
+                "\tindex offset " + this.indexPointerOffset + "\n" +
+                "\trange start " + this.indexMin + "\n" +
+                "\trange end " + this.indexMax + "\n";
+        } else if (this.drawMethod == glsDrawTests.DrawTestSpec.DrawMethod.DRAWELEMENTS_INSTANCED) {
             desc += "drawElementsInstanced()\n" +
-                "\tindex type " + glsDrawTests.DrawTestSpec.indexTypeToString(indexType) + "\n" +
-                "\tindex storage in " + glsDrawTests.DrawTestSpec.storageToString(indexStorage) + "\n" +
-                "\tindex offset " + indexPointerOffset + "\n" +
-                "\tinstance count " + instanceCount + "\n";
-        } else if (drawMethod == glsDrawTests.DrawTestSpec.DrawMethod.DRAWARRAYS_INDIRECT) {
-            desc += "drawArraysIndirect()\n" +
-                "\tfirst " + first + "\n" +
-                "\tinstance count " + instanceCount + "\n" +
-                "\tindirect offset " + indirectOffset + "\n";
-        } else if (drawMethod == glsDrawTests.DrawTestSpec.DrawMethod.DRAWELEMENTS_INDIRECT) {
-            desc += "drawElementsIndirect()\n" +
-                "\tindex type " + glsDrawTests.DrawTestSpec.indexTypeToString(indexType) + "\n" +
-                "\tindex storage in " + glsDrawTests.DrawTestSpec.storageToString(indexStorage) + "\n" +
-                "\tindex offset " + indexPointerOffset + "\n" +
-                "\tinstance count " + instanceCount + "\n" +
-                "\tindirect offset " + indirectOffset + "\n" +
-                "\tbase vertex " + baseVertex + "\n";
-        } else if (drawMethod == glsDrawTests.DrawTestSpec.DrawMethod.DRAWELEMENTS_BASEVERTEX) {
-            desc += "drawElementsBaseVertex()\n"
-                "\tindex type " + glsDrawTests.DrawTestSpec.indexTypeToString(indexType) + "\n" +
-                "\tindex storage in " + glsDrawTests.DrawTestSpec.storageToString(indexStorage) + "\n" +
-                "\tindex offset " + indexPointerOffset + "\n" +
-                "\tbase vertex " + baseVertex + "\n";
-        } else if (drawMethod == glsDrawTests.DrawTestSpec.DrawMethod.DRAWELEMENTS_INSTANCED_BASEVERTEX) {
-            desc += "drawElementsInstancedBaseVertex()\n" +
-                "\tindex type " + glsDrawTests.DrawTestSpec.indexTypeToString(indexType) + "\n" +
-                "\tindex storage in " + glsDrawTests.DrawTestSpec.storageToString(indexStorage) + "\n" +
-                "\tindex offset " + indexPointerOffset + "\n" +
-                "\tinstance count " + instanceCount + "\n" +
-                "\tbase vertex " + baseVertex + "\n";
-        } else if (drawMethod == glsDrawTests.DrawTestSpec.DrawMethod.DRAWELEMENTS_RANGED_BASEVERTEX) {
-            desc += "drawRangeElementsBaseVertex()\n" +
-                "\tindex type " + glsDrawTests.DrawTestSpec.indexTypeToString(indexType) + "\n" +
-                "\tindex storage in " + glsDrawTests.DrawTestSpec.storageToString(indexStorage) + "\n" +
-                "\tindex offset " + indexPointerOffset + "\n" +
-                "\tbase vertex " + baseVertex + "\n" +
-                "\trange start " + indexMin + "\n" +
-                "\trange end " + indexMax + "\n";
+                "\tindex type " + glsDrawTests.DrawTestSpec.indexTypeToString(this.indexType) + "\n" +
+                "\tindex storage in " + glsDrawTests.DrawTestSpec.storageToString(this.indexStorage) + "\n" +
+                "\tindex offset " + this.indexPointerOffset + "\n" +
+                "\tinstance count " + this.instanceCount + "\n";
         } else
             throw new Error('Invalid draw method');
 
-        desc += "\t" + primitiveCount + " ";
+        desc += "\t" + this.primitiveCount + " ";
 
-        switch (primitive) {
+        switch (this.primitive) {
             case glsDrawTests.DrawTestSpec.Primitive.POINTS:
                 desc += "points";
                 break;
@@ -1309,18 +1638,6 @@ goog.scope(function() {
                 break;
             case glsDrawTests.DrawTestSpec.Primitive.LINE_LOOP:
                 desc += "lines (loop)";
-                break;
-            case glsDrawTests.DrawTestSpec.Primitive.LINES_ADJACENCY:
-                desc += "lines (adjancency)";
-                break;
-            case glsDrawTests.DrawTestSpec.Primitive.LINE_STRIP_ADJACENCY:
-                desc += "lines (strip, adjancency)";
-                break;
-            case glsDrawTests.DrawTestSpec.Primitive.TRIANGLES_ADJACENCY:
-                desc += "triangles (adjancency)";
-                break;
-            case glsDrawTests.DrawTestSpec.Primitive.TRIANGLE_STRIP_ADJACENCY:
-                desc += "triangles (strip, adjancency)";
                 break;
             default:
                 throw new Error('Invalid primitive');
@@ -1345,8 +1662,6 @@ goog.scope(function() {
      */
     glsDrawTests.DrawTestSpec.InputType = {
         FLOAT: 0,
-        /*FIXED,
-        DOUBLE,*/
 
         BYTE: 1,
         SHORT: 2,
@@ -1418,12 +1733,7 @@ goog.scope(function() {
         TRIANGLE_STRIP: 3,
         LINES: 4,
         LINE_STRIP: 5,
-        LINE_LOOP: 6,
-
-        LINES_ADJACENCY: 7,
-        LINE_STRIP_ADJACENCY: 8,
-        TRIANGLES_ADJACENCY: 9,
-        TRIANGLE_STRIP_ADJACENCY: 10
+        LINE_LOOP: 6
     };
 
     /**
@@ -1461,34 +1771,30 @@ goog.scope(function() {
      */
     glsDrawTests.DrawTestSpec.prototype.hash = function () {
         // Use only drawmode-relevant values in "hashing" as the unrelevant values might not be set (causing non-deterministic behavior).
-        /** @type {glsDrawTests.MethodInfo} */ var methodInfo = glsDrawTests.getMethodInfo(drawMethod);
+        /** @type {glsDrawTests.MethodInfo} */ var methodInfo = glsDrawTests.getMethodInfo(this.drawMethod);
         /** @type {boolean} */ var arrayed = methodInfo.first;
         /** @type {boolean} */ var instanced = methodInfo.instanced;
         /** @type {boolean} */ var ranged = methodInfo.ranged;
         /** @type {boolean} */ var indexed = methodInfo.indexed;
-        /** @type {boolean} */ var indirect = methodInfo.indirect;
-        /** @type {boolean} */ var hasBaseVtx = methodInfo.baseVertex;
 
-        /** @type {number} */ var indexHash = (!indexed) ? (0) : (indexType + 10 * indexPointerOffset + 100 * indexStorage);
-        /** @type {number} */ var arrayHash = (!arrayed) ? (0) : (first);
-        /** @type {number} */ var indexRangeHash = (!ranged) ? (0) : (indexMin + 10 * indexMax);
-        /** @type {number} */ var instanceHash = (!instanced) ? (0) : (instanceCount);
-        /** @type {number} */ var indirectHash = (!indirect) ? (0) : (indirectOffset);
-        /** @type {number} */ var baseVtxHash = (!hasBaseVtx) ? (0) : (baseVertex);
-        /** @type {number} */ var basicHash = primitive + 10 * primitiveCount + 100 * drawMethod;
+        /** @type {number} */ var indexHash = (!indexed) ? (0) : (this.indexType + 10 * this.indexPointerOffset + 100 * this.indexStorage);
+        /** @type {number} */ var arrayHash = (!arrayed) ? (0) : (this.first);
+        /** @type {number} */ var indexRangeHash = (!ranged) ? (0) : (this.indexMin + 10 * this.indexMax);
+        /** @type {number} */ var instanceHash = (!instanced) ? (0) : (this.instanceCount);
+        /** @type {number} */ var basicHash = this.primitive + 10 * this.primitiveCount + 100 * this.drawMethod;
 
-        return indexHash + 3 * arrayHash + 5 * indexRangeHash + 7 * instanceHash + 13 * basicHash + 17 * attribs.length + 19 * primitiveCount + 23 * indirectHash + 27 * baseVtxHash;
+        return indexHash + 3 * arrayHash + 5 * indexRangeHash + 7 * instanceHash + 13 * basicHash + 17 * this.attribs.length + 19 * this.primitiveCount;
     };
 
     /**
      * @return {boolean}
      */
-    glsDrawTests.DrawTestSpec.valid = function () {
+    glsDrawTests.DrawTestSpec.prototype.valid = function () {
         //TODO: Need to implement ApiType? --> assertMsgOptions(apiType.getProfile() != glu::PROFILE_LAST);
-        assertMsgOptions(primitive != null, 'Primitive is null', false, true);
-        assertMsgOptions(drawMethod != null, 'Draw method is null', false, true);
+        assertMsgOptions(this.primitive != null, 'Primitive is null', false, true);
+        assertMsgOptions(this.drawMethod != null, 'Draw method is null', false, true);
 
-        var methodInfo = glsDrawTests.getMethodInfo(drawMethod);
+        var methodInfo = glsDrawTests.getMethodInfo(this.drawMethod);
 
         /*TODO: ApiType? for (var ndx = 0; ndx < attribs.length; ++ndx)
             if (!attribs[ndx].valid(apiType))
@@ -1496,24 +1802,24 @@ goog.scope(function() {
 
         if (methodInfo.ranged) {
             var maxIndexValue = 0;
-            if (indexType == glsDrawTests.DrawTestSpec.IndexType.BYTE)
+            if (this.indexType == glsDrawTests.DrawTestSpec.IndexType.BYTE)
                 maxIndexValue = glsDrawTests.GLValue.getMaxValue(glsDrawTests.DrawTestSpec.InputType.UNSIGNED_BYTE).interpret();
-            else if (indexType == glsDrawTests.DrawTestSpec.IndexType.SHORT)
+            else if (this.indexType == glsDrawTests.DrawTestSpec.IndexType.SHORT)
                 maxIndexValue = glsDrawTests.GLValue.getMaxValue(glsDrawTests.DrawTestSpec.InputType.UNSIGNED_SHORT).interpret();
-            else if (indexType == glsDrawTests.DrawTestSpec.IndexType.INT)
+            else if (this.indexType == glsDrawTests.DrawTestSpec.IndexType.INT)
                 maxIndexValue = glsDrawTests.GLValue.getMaxValue(glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT).interpret();
             else
                 throw new Error('Invalid index type');
 
-            if (indexMin > indexMax)
+            if (this.indexMin > this.indexMax)
                 return false;
-            if (indexMin < 0 || indexMax < 0)
+            if (this.indexMin < 0 || this.indexMax < 0)
                 return false;
-            if (indexMin > maxIndexValue || indexMax > maxIndexValue)
+            if (this.indexMin > maxIndexValue || this.indexMax > maxIndexValue)
                 return false;
         }
 
-        if (methodInfo.first && first < 0)
+        if (methodInfo.first && this.first < 0)
             return false;
 
         // TODO: Check this? --> GLES2 limits
@@ -1531,35 +1837,35 @@ goog.scope(function() {
      * @return {glsDrawTests.DrawTestSpec.CompatibilityTestType}
      */
     glsDrawTests.DrawTestSpec.prototype.isCompatibilityTest = function () {
-        var methodInfo = glsDrawTests.getMethodInfo(drawMethod);
+        var methodInfo = glsDrawTests.getMethodInfo(this.drawMethod);
 
         var bufferAlignmentBad = false;
         var strideAlignmentBad = false;
 
         // Attribute buffer alignment
-        for (var ndx = 0; ndx < attribs.length; ++ndx)
-            if (!attribs[ndx].isBufferAligned())
+        for (var ndx = 0; ndx < this.attribs.length; ++ndx)
+            if (!this.attribs[ndx].isBufferAligned())
                 bufferAlignmentBad = true;
 
         // Attribute stride alignment
-        for (var ndx = 0; ndx < attribs.length; ++ndx)
-            if (!attribs[ndx].isBufferStrideAligned())
+        for (var ndx = 0; ndx < this.attribs.length; ++ndx)
+            if (!this.attribs[ndx].isBufferStrideAligned())
                 strideAlignmentBad = true;
 
         // Index buffer alignment
         if (methodInfo.indexed) {
-            if (indexStorage == glsDrawTests.DrawTestSpec.Storage.BUFFER) {
+            if (this.indexStorage == glsDrawTests.DrawTestSpec.Storage.BUFFER) {
                 var indexSize = 0;
-                if (indexType == glsDrawTests.DrawTestSpec.IndexType.BYTE)
+                if (this.indexType == glsDrawTests.DrawTestSpec.IndexType.BYTE)
                     indexSize = 1;
-                else if (indexType == glsDrawTests.DrawTestSpec.IndexType.SHORT)
+                else if (this.indexType == glsDrawTests.DrawTestSpec.IndexType.SHORT)
                     indexSize = 2;
-                else if (indexType == glsDrawTests.DrawTestSpec.IndexType.INT)
+                else if (this.indexType == glsDrawTests.DrawTestSpec.IndexType.INT)
                     indexSize = 4;
                 else
                     throw new Error('');
 
-                if (indexPointerOffset % indexSize != 0)
+                if (this.indexPointerOffset % indexSize != 0)
                     bufferAlignmentBad = true;
             }
         }
@@ -1578,11 +1884,11 @@ goog.scope(function() {
     /**
      * @constructor
      */
-    glsDrawTests.DrawTestSpec.AttributeSpec  = function () {
-        /** @type {InputType} */ this.inputType = null;
-        /** @type {OutputType} */ this.outputType = null;
-        /** @type {Storage} */ this.storage = null;
-        /** @type {Usage} */ this.usage = null;
+    glsDrawTests.DrawTestSpec.AttributeSpec = function () {
+        /** @type {?glsDrawTests.DrawTestSpec.InputType} */ this.inputType = null;
+        /** @type {?glsDrawTests.DrawTestSpec.OutputType} */ this.outputType = null;
+        /** @type {?glsDrawTests.DrawTestSpec.Storage} */ this.storage = null;
+        /** @type {?glsDrawTests.DrawTestSpec.Usage} */ this.usage = null;
         /** @type {number} */ this.componentCount = 0;
         /** @type {number} */ this.offset = 0;
         /** @type {number} */ this.stride = 0;
@@ -1595,10 +1901,10 @@ goog.scope(function() {
     };
 
     /**
-     * @param {glsDrawTests.DrawTestSpec.InputType} inputType
-     * @param {glsDrawTests.DrawTestSpec.OutputType} outputType
-     * @param {glsDrawTests.DrawTestSpec.Storage} storage
-     * @param {glsDrawTests.DrawTestSpec.Usage} usage
+     * @param {?glsDrawTests.DrawTestSpec.InputType} inputType
+     * @param {?glsDrawTests.DrawTestSpec.OutputType} outputType
+     * @param {?glsDrawTests.DrawTestSpec.Storage} storage
+     * @param {?glsDrawTests.DrawTestSpec.Usage} usage
      * @param {number} componentCount
      * @param {number} offset
      * @param {number} stride
@@ -1626,14 +1932,14 @@ goog.scope(function() {
     };
 
     /**
-     * @param {glsDrawTests.DrawTestSpec.InputType} inputType
-     * @param {glsDrawTests.DrawTestSpec.OutputType} outputType
+     * @param {?glsDrawTests.DrawTestSpec.InputType} inputType
+     * @param {?glsDrawTests.DrawTestSpec.OutputType} outputType
      * @param {number} componentCount
      * @return {glsDrawTests.DrawTestSpec.AttributeSpec}
      */
     glsDrawTests.DrawTestSpec.AttributeSpec.createDefaultAttribute = function (inputType, outputType, componentCount) {
-        assertMsgOptions(inputType == InputType.INT || inputType == InputType.UNSIGNED_INT || inputType == InputType.FLOAT, 'Invalid input type', false, true);
-        assertMsgOptions(inputType == InputType.FLOAT || componentCount == 4, 'If not float, input type should have 4 components');
+        assertMsgOptions(inputType == glsDrawTests.DrawTestSpec.InputType.INT || inputType == glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT || inputType == glsDrawTests.DrawTestSpec.InputType.FLOAT, 'Invalid input type', false, true);
+        assertMsgOptions(inputType == glsDrawTests.DrawTestSpec.InputType.FLOAT || componentCount == 4, 'If not float, input type should have 4 components', false, true);
 
         /** @type {glsDrawTests.DrawTestSpec.AttributeSpec} */ var spec;
 
@@ -1644,7 +1950,7 @@ goog.scope(function() {
         spec.componentCount = componentCount;
         spec.offset = 0;
         spec.stride = 0;
-        spec.normalize = 0;
+        spec.normalize = false;
         spec.instanceDivisor = 0;
 
         spec.useDefaultAttribute = true;
@@ -1657,43 +1963,41 @@ goog.scope(function() {
      */
     glsDrawTests.DrawTestSpec.AttributeSpec.prototype.hash = function () {
         if (this.useDefaultAttribute) {
-            return 1 * inputType + 7 * outputType + 13 * componentCount;
-        }
-        else
-        {
-            return 1 * inputType + 2 * outputType + 3 * storage + 5 * usage + 7 * componentCount + 11 * offset + 13 * stride + 17 * (normalize ? 0 : 1) + 19 * instanceDivisor;
+            return 1 * this.inputType + 7 * this.outputType + 13 * this.componentCount;
+        } else {
+            return 1 * this.inputType + 2 * this.outputType + 3 * this.storage + 5 * this.usage + 7 * this.componentCount + 11 * this.offset + 13 * this.stride + 17 * (this.normalize ? 0 : 1) + 19 * this.instanceDivisor;
         }
     };
 
+     // @param {ApiType} ctxType TODO: ApiType?
     /**
-     * @param {ApiType} ctxType
      * @return {boolean}
      */
-    glsDrawTests.DrawTestSpec.AttributeSpec.prototype.valid = function (ctxType) {
-        /** @type {boolean} */ var inputTypeFloat = inputType == glsDrawTests.DrawTestSpec.InputType.FLOAT || /*inputType  == glsDrawTests.DrawTestSpec.InputType.FIXED ||*/ inputType == glsDrawTests.DrawTestSpec.InputType.HALF;
-        /** @type {boolean} */ var inputTypeUnsignedInteger = inputType == glsDrawTests.DrawTestSpec.InputType.UNSIGNED_BYTE || inputType == glsDrawTests.DrawTestSpec.InputType.UNSIGNED_SHORT || inputType  == glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT || inputType == glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT_2_10_10_10;
-        /** @type {boolean} */ var inputTypeSignedInteger = inputType == glsDrawTests.DrawTestSpec.InputType.BYTE  || inputType == glsDrawTests.DrawTestSpec.InputType.SHORT || inputType == glsDrawTests.DrawTestSpec.InputType.INT || inputType == glsDrawTests.DrawTestSpec.InputType.INT_2_10_10_10;
-        /** @type {boolean} */ var inputTypePacked = inputType == glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT_2_10_10_10 || inputType == glsDrawTests.DrawTestSpec.InputType.INT_2_10_10_10;
+    glsDrawTests.DrawTestSpec.AttributeSpec.prototype.valid = function (/*ctxType*/) {
+        /** @type {boolean} */ var inputTypeFloat = this.inputType == glsDrawTests.DrawTestSpec.InputType.FLOAT || this.inputType == glsDrawTests.DrawTestSpec.InputType.HALF;
+        /** @type {boolean} */ var inputTypeUnsignedInteger = this.inputType == glsDrawTests.DrawTestSpec.InputType.UNSIGNED_BYTE || this.inputType == glsDrawTests.DrawTestSpec.InputType.UNSIGNED_SHORT || this.inputType  == glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT || this.inputType == glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT_2_10_10_10;
+        /** @type {boolean} */ var inputTypeSignedInteger = this.inputType == glsDrawTests.DrawTestSpec.InputType.BYTE  || this.inputType == glsDrawTests.DrawTestSpec.InputType.SHORT || this.inputType == glsDrawTests.DrawTestSpec.InputType.INT || this.inputType == glsDrawTests.DrawTestSpec.InputType.INT_2_10_10_10;
+        /** @type {boolean} */ var inputTypePacked = this.inputType == glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT_2_10_10_10 || this.inputType == glsDrawTests.DrawTestSpec.InputType.INT_2_10_10_10;
 
-        /** @type {boolean} */ var outputTypeFloat = outputType == glsDrawTests.DrawTestSpec.OutputType.FLOAT || outputType == glsDrawTests.DrawTestSpec.OutputType.VEC2  || outputType == glsDrawTests.DrawTestSpec.OutputType.VEC3  || outputType == glsDrawTests.DrawTestSpec.OutputType.VEC4;
-        /** @type {boolean} */ var outputTypeSignedInteger = outputType == glsDrawTests.DrawTestSpec.OutputType.INT   || outputType == glsDrawTests.DrawTestSpec.OutputType.IVEC2 || outputType == glsDrawTests.DrawTestSpec.OutputType.IVEC3 || outputType == glsDrawTests.DrawTestSpec.OutputType.IVEC4;
-        /** @type {boolean} */ var outputTypeUnsignedInteger = outputType == glsDrawTests.DrawTestSpec.OutputType.UINT  || outputType == glsDrawTests.DrawTestSpec.OutputType.UVEC2 || outputType == glsDrawTests.DrawTestSpec.OutputType.UVEC3 || outputType == glsDrawTests.DrawTestSpec.OutputType.UVEC4;
+        /** @type {boolean} */ var outputTypeFloat = this.outputType == glsDrawTests.DrawTestSpec.OutputType.FLOAT || this.outputType == glsDrawTests.DrawTestSpec.OutputType.VEC2  || this.outputType == glsDrawTests.DrawTestSpec.OutputType.VEC3  || this.outputType == glsDrawTests.DrawTestSpec.OutputType.VEC4;
+        /** @type {boolean} */ var outputTypeSignedInteger = this.outputType == glsDrawTests.DrawTestSpec.OutputType.INT   || this.outputType == glsDrawTests.DrawTestSpec.OutputType.IVEC2 || this.outputType == glsDrawTests.DrawTestSpec.OutputType.IVEC3 || this.outputType == glsDrawTests.DrawTestSpec.OutputType.IVEC4;
+        /** @type {boolean} */ var outputTypeUnsignedInteger = this.outputType == glsDrawTests.DrawTestSpec.OutputType.UINT  || this.outputType == glsDrawTests.DrawTestSpec.OutputType.UVEC2 || this.outputType == glsDrawTests.DrawTestSpec.OutputType.UVEC3 || this.outputType == glsDrawTests.DrawTestSpec.OutputType.UVEC4;
 
         if (this.useDefaultAttribute) {
-            if (inputType != glsDrawTests.DrawTestSpec.InputType.INT && inputType != glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT && inputType != glsDrawTests.DrawTestSpec.InputType.FLOAT)
+            if (this.inputType != glsDrawTests.DrawTestSpec.InputType.INT && this.inputType != glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT && this.inputType != glsDrawTests.DrawTestSpec.InputType.FLOAT)
                 return false;
 
-            if (inputType != glsDrawTests.DrawTestSpec.InputType.FLOAT && componentCount != 4)
+            if (this.inputType != glsDrawTests.DrawTestSpec.InputType.FLOAT && this.componentCount != 4)
                 return false;
 
             // no casting allowed (undefined results)
-            if (inputType == glsDrawTests.DrawTestSpec.InputType.INT && !outputTypeSignedInteger)
+            if (this.inputType == glsDrawTests.DrawTestSpec.InputType.INT && !outputTypeSignedInteger)
                 return false;
-            if (inputType == glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT && !outputTypeUnsignedInteger)
+            if (this.inputType == glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT && !outputTypeUnsignedInteger)
                 return false;
         }
 
-        if (inputTypePacked && componentCount != 4)
+        if (inputTypePacked && this.componentCount != 4)
             return false;
 
         // Invalid conversions:
@@ -1715,22 +2019,21 @@ goog.scope(function() {
             return false;
 
         // Invalid normalize. Normalize is only valid if output type is float
-        if (normalize && !outputTypeFloat)
+        if (this.normalize && !outputTypeFloat)
             return false;
 
-        // Allow reverse order (GL_BGRA) only for packed and 4-component ubyte
-        if (bgraComponentOrder && componentCount != 4)
+        // Allow reverse order (gl.BGRA) only for packed and 4-component ubyte
+        if (this.bgraComponentOrder && this.componentCount != 4)
             return false;
-        if (bgraComponentOrder && inputType != glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT_2_10_10_10 && inputType != glsDrawTests.DrawTestSpec.InputType.INT_2_10_10_10 && inputType != glsDrawTests.DrawTestSpec.InputType.UNSIGNED_BYTE)
+        if (this.bgraComponentOrder && this.inputType != glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT_2_10_10_10 && this.inputType != glsDrawTests.DrawTestSpec.InputType.INT_2_10_10_10 && this.inputType != glsDrawTests.DrawTestSpec.InputType.UNSIGNED_BYTE)
             return false;
-        if (bgraComponentOrder && normalize != true)
+        if (this.bgraComponentOrder && this.normalize != true)
             return false;
 
         // TODO: Check if we need to get the webgl version
         // GLES2 limits
         /*if (ctxType == glu::ApiType::es(2,0)) {
-            if (inputType != glsDrawTests.DrawTestSpec.InputType.FLOAT && inputType != glsDrawTests.DrawTestSpec.InputType.FIXED &&
-                inputType != glsDrawTests.DrawTestSpec.InputType.BYTE  && inputType != glsDrawTests.DrawTestSpec.InputType.UNSIGNED_BYTE &&
+            if (inputType != glsDrawTests.DrawTestSpec.InputType.BYTE  && inputType != glsDrawTests.DrawTestSpec.InputType.UNSIGNED_BYTE &&
                 inputType != glsDrawTests.DrawTestSpec.InputType.SHORT && inputType != glsDrawTests.DrawTestSpec.InputType.UNSIGNED_SHORT)
                 return false;
 
@@ -1744,7 +2047,7 @@ goog.scope(function() {
         // GLES3 limits
         //if (ctxType.getProfile() == glu::PROFILE_ES && ctxType.getMajorVersion() == 3)
         //{
-            if (bgraComponentOrder)
+            if (this.bgraComponentOrder)
                 return false;
         //}
 
@@ -1755,15 +2058,15 @@ goog.scope(function() {
      * @return {boolean}
      */
     glsDrawTests.DrawTestSpec.AttributeSpec.prototype.isBufferAligned = function () {
-        var inputTypePacked = inputType == glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT_2_10_10_10 || inputType == glsDrawTests.DrawTestSpec.InputType.INT_2_10_10_10;
+        var inputTypePacked = this.inputType == glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT_2_10_10_10 || this.inputType == glsDrawTests.DrawTestSpec.InputType.INT_2_10_10_10;
 
         // Buffer alignment, offset is a multiple of underlying data type size?
-        if (storage == glsDrawTests.DrawTestSpec.Storage.BUFFER) {
-            var dataTypeSize = glsDrawTests.DrawTestSpec.inputTypeSize(inputType);
+        if (this.storage == glsDrawTests.DrawTestSpec.Storage.BUFFER) {
+            var dataTypeSize = glsDrawTests.DrawTestSpec.inputTypeSize(this.inputType);
             if (inputTypePacked)
                 dataTypeSize = 4;
 
-            if (offset % dataTypeSize != 0)
+            if (this.offset % dataTypeSize != 0)
                 return false;
         }
 
@@ -1774,15 +2077,15 @@ goog.scope(function() {
      * @return {boolean}
      */
     glsDrawTests.DrawTestSpec.AttributeSpec.prototype.isBufferStrideAligned = function () {
-        var inputTypePacked = inputType == glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT_2_10_10_10 || inputType == glsDrawTests.DrawTestSpec.InputType.INT_2_10_10_10;
+        var inputTypePacked = this.inputType == glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT_2_10_10_10 || this.inputType == glsDrawTests.DrawTestSpec.InputType.INT_2_10_10_10;
 
         // Buffer alignment, offset is a multiple of underlying data type size?
-        if (storage == glsDrawTests.DrawTestSpec.Storage.BUFFER) {
-            var dataTypeSize = glsDrawTests.DrawTestSpec.inputTypeSize(inputType);
+        if (this.storage == glsDrawTests.DrawTestSpec.Storage.BUFFER) {
+            var dataTypeSize = glsDrawTests.DrawTestSpec.inputTypeSize(this.inputType);
             if (inputTypePacked)
                 dataTypeSize = 4;
 
-            if (stride % dataTypeSize != 0)
+            if (this.stride % dataTypeSize != 0)
                 return false;
         }
 
@@ -1804,15 +2107,15 @@ goog.scope(function() {
         /** @type {sglrReferenceContext.ReferenceContext} */ this.m_refContext = null;
         /** @type {sglrGLContext.GLContext} */ this.m_glesContext = null;
 
-        /** @type {AttributePack} */ this.m_glArrayPack = null;
-        /** @type {AttributePack} */ this.m_rrArrayPack = null;
+        /** @type {glsDrawTests.AttributePack} */ this.m_glArrayPack = null;
+        /** @type {glsDrawTests.AttributePack} */ this.m_rrArrayPack = null;
 
         /** @type {number} */ this.m_maxDiffRed = -1;
         /** @type {number} */ this.m_maxDiffGreen = -1;
         /** @type {number} */ this.m_maxDiffBlue = -1;
 
         /** @type {Array<glsDrawTests.DrawTestSpec>} */ this.m_specs = [];
-        /** @type {Array<string> */this.m_iteration_descriptions = [];
+        /** @type {Array<string>} */this.m_iteration_descriptions = [];
         /** @type {number} */ this.m_iteration = 0;
         ///** @type {tcu::ResultCollector} */ this.m_result(testCtx.getLog(), "Iteration result: ");
 
@@ -1822,145 +2125,4 @@ goog.scope(function() {
 
     glsDrawTests.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
     glsDrawTests.prototype.constructor = glsDrawTests.DrawTest;
-
-    /**
-     * @param {sglrReferenceContext.ReferenceContext | sglrGLContext.GLContext} drawContext
-     * @param {Array<number>} screenSize (2 positive elements in array)
-     * @param {boolean} useVao
-     * @param {boolean} logEnabled
-     * @constructor
-     */
-    glsDrawTests.AttributePack = function (drawContext, screenSize, useVao, logEnabled) {
-        /** @type {sglrReferenceContext.ReferenceContext | sglrGLContext.GLContext} */ this.m_ctx = drawContext;
-
-        /** @type {Array<glsDrawTests.AttributeArray>} */ this.m_arrays;
-        /** @type {sglrShaderProgram.ShaderProgram} */ this.m_program;
-        /** @type {tcuSurface.Surface} */ this.m_screen = null;
-        /** @type {boolean} */ this.m_useVao = useVao;
-        /** @type {boolean} */ this.m_logEnabled = logEnabled;
-        /** @type {!WebGLProgram | sglrShaderProgram.ShaderProgram} */ this.m_programID = 0;
-        /** @type {number} (32-bit) */ this.m_vaoID = 0;
-
-        if (this.m_useVao)
-            this.m_vaoID = this.m_ctx.createVertexArray();
-    };
-
-    /**
-     * @param {number} i
-     * @return {glsDrawTests.AttributeArray}
-     */
-    glsDrawTests.AttributePack.prototype.getArray = function (i) {
-        return this.m_arrays[i];
-    };
-
-    /**
-     * @return number
-     */
-    glsDrawTests.AttributePack.prototype.getArrayCount = function () {
-        return this.m_arrays.length;
-    };
-
-    /**
-     * @param {glsDrawTests.DrawTestSpec.Storage} storage
-     */
-    glsDrawTests.AttributePack.prototype.newArray = function (storage) {
-        this.m_arrays.push(new glsDrawTests.AttributeArray(storage, this.m_ctx));
-    };
-
-    /**
-     * clearArrays
-     */
-    glsDrawTests.AttributePack.clearArrays = function () {
-        this.m_arrays.length = 0;
-    };
-
-    /**
-     * updateProgram
-     */
-    glsDrawTests.AttributePack.updateProgram = function () {
-        if (this.m_programID)
-            this.m_ctx.deleteProgram(this.m_programID);
-
-        this.m_program = new glsDrawTests.DrawTestShaderProgram(this.m_arrays);
-        this.m_programID = this.m_ctx.createProgram(this.m_program);
-    };
-
-    /**
-     * @param {glsDrawTests.DrawTestSpec.Primitive} primitive
-     * @param {glsDrawTests.DrawTestSpec.DrawMethod} drawMethod
-     * @param {number} firstVertex
-     * @param {number} vertexCount
-     * @param {glsDrawTests.DrawTestSpec.IndexType} indexType
-     * @param {number} indexOffset
-     * @param {number} rangeStart
-     * @param {number} rangeEnd
-     * @param {number} instanceCount
-     * @param {number} indirectOffset
-     * @param {number} baseVertex
-     * @param {number} coordScale
-     * @param {number} colorScale
-     * @param {glsDrawTests.AttributeArray} indexArray
-     */
-    glsDrawTests.AttributePack.prototype.render = function (primitive, drawMethod, firstVertex, vertexCount, indexType,
-        indexOffset, rangeStart, rangeEnd, instanceCount, indirectOffset, baseVertex, coordScale, colorScale, indexArray) {
-        assertMsgOptions(this.m_program != null, 'Program is null', false, true);
-        assertMsgOptions(this.m_programID != null, 'No context created program', false, true);
-
-        this.m_ctx.viewport(0, 0, this.m_screen.getWidth(), this.m_screen.getHeight());
-        this.m_ctx.clearColor(0.0, 0.0, 0.0, 1.0);
-        this.m_ctx.clear(gl.COLOR_BUFFER_BIT);
-
-        this.m_ctx.useProgram(this.m_programID);
-
-        this.m_ctx.uniform1f(this.m_ctx.getUniformLocation(this.m_programID, "u_coordScale"), coordScale);
-        this.m_ctx.uniform1f(this.m_ctx.getUniformLocation(this.m_programID, "u_colorScale"), colorScale);
-
-        if (this.m_useVao)
-            this.m_ctx.bindVertexArray(this.m_vaoID);
-
-        if (indexArray)
-            indexArray.bindIndexArray(glsDrawTests.DrawTestSpec.Target.ELEMENT_ARRAY);
-
-        for (var arrayNdx = 0; arrayNdx < this.m_arrays.length; arrayNdx++) {
-            var attribName = '';
-            attribName += "a_" + arrayNdx;
-
-            var loc = this.m_ctx.getAttribLocation(this.m_programID, attribName);
-
-            if (this.m_arrays[arrayNdx].isBound())
-                this.m_ctx.enableVertexAttribArray(loc);
-
-            this.m_arrays[arrayNdx].bindAttribute(loc);
-        }
-
-        if (drawMethod == glsDrawTests.DrawTestSpec.DrawMethod.DRAWARRAYS)
-            this.m_ctx.drawArrays(glsDrawTests.glsDrawTests.primitiveToGL(primitive), firstVertex, vertexCount);
-        else if (drawMethod == glsDrawTests.DrawTestSpec.DrawMethod.DRAWARRAYS_INSTANCED)
-            this.m_ctx.drawArraysInstanced(glsDrawTests.primitiveToGL(primitive), firstVertex, vertexCount, instanceCount);
-        else if (drawMethod == glsDrawTests.DrawTestSpec.DrawMethod.DRAWELEMENTS)
-            this.m_ctx.drawElements(glsDrawTests.primitiveToGL(primitive), vertexCount, glsDrawTests.indexTypeToGL(indexType), indexOffset);
-        else if (drawMethod == glsDrawTests.DrawTestSpec.DrawMethod.DRAWELEMENTS_RANGED)
-            this.m_ctx.drawRangeElements(glsDrawTests.primitiveToGL(primitive), rangeStart, rangeEnd, vertexCount, glsDrawTests.indexTypeToGL(indexType), indexOffset);
-        else if (drawMethod == glsDrawTests.DrawTestSpec.DrawMethod.DRAWELEMENTS_INSTANCED)
-            this.m_ctx.drawElementsInstanced(glsDrawTests.primitiveToGL(primitive), vertexCount, glsDrawTests.indexTypeToGL(indexType), indexOffset, instanceCount);
-        else
-            throw new Error('Invalid draw method');
-
-        for (var arrayNdx = 0; arrayNdx < this.m_arrays.length; arrayNdx++) {
-            if (this.m_arrays[arrayNdx].isBound()) {
-                var attribName = '';
-                attribName += "a_" + arrayNdx;
-
-                var loc = this.m_ctx.getAttribLocation(this.m_programID, attribName);
-
-                this.m_ctx.disableVertexAttribArray(loc);
-            }
-        }
-
-        if (this.m_useVao)
-            this.m_ctx.bindVertexArray(null);
-
-        this.m_ctx.useProgram(null);
-        this.m_ctx.readPixels(this.m_screen, 0, 0, this.m_screen.getWidth(), this.m_screen.getHeight());
-    };
 });
