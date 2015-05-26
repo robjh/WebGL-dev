@@ -19,8 +19,10 @@
  */
 'use strict';
 goog.provide('modules.shared.glsLifetimeTests');
+goog.require('framework.common.tcuImageCompare');
 goog.require('framework.common.tcuStringTemplate');
 goog.require('framework.common.tcuSurface');
+goog.require('framework.common.tcuTestCase');
 goog.require('framework.delibs.debase.deRandom');
 goog.require('framework.opengl.gluShaderProgram');
 goog.require('modules.shared.glsTextureTestUtil');
@@ -32,8 +34,8 @@ var tcuSurface = framework.common.tcuSurface;
 var deRandom = framework.delibs.debase.deRandom;
 var glsTextureTestUtil = modules.shared.glsTextureTestUtil;
 var gluShaderProgram = framework.opengl.gluShaderProgram;
-
-/** @type {WebGL2RenderingContext} */ var gl = new WebGL2RenderingContext();
+var tcuTestCase = framework.common.tcuTestCase;
+var tcuImageCompare = framework.common.tcuImageCompare;
 
 /** @const */ var VIEWPORT_SIZE = 128;
 /** @const */ var FRAMEBUFFER_SIZE = 128;
@@ -138,7 +140,7 @@ glsLifetimeTests.Type.prototype.genCreates = function() { return false; };
  * @param {string} name
  * @param {function(): WebGLObject} genFunc
  * @param {function(?)} deleteFunc
- * @param {function(WebGLObject): boolean} existsFunc
+ * @param {function(?): boolean} existsFunc
  * @param {glsLifetimeTests.Binder} binder
  * @param {boolean=} genCreates
  */
@@ -620,24 +622,316 @@ setParentClass(glsLifetimeTests.ES2Types, glsLifetimeTests.Types);
 
 /**
  * @constructor
- * @extends {tcuTestCase.TestCase}
+ * @extends {tcuTestCase.DeqpTest}
  * @param {string} name
  * @param {string} description
  * @param {glsLifetimeTests.Type} type
  * @param {function()} test
  */
 glsLifetimeTests.LifeTest = function(name, description, type, test) {
-    tcuTestCase.TestCase.call(this, name, description);
+    tcuTestCase.DeqpTest.call(this, name, description);
     this.m_type = type;
     this.m_test = test;
 };
+
+setParentClass(glsLifetimeTests.LifeTest, tcuTestCase.DeqpTest);
 
 glsLifetimeTests.LifeTest.prototype.iterate = function() {
     this.m_test();
     return tcuTestCase.IterateResult.STOP;
 };
 
-setParentClass(glsLifetimeTests.LifeTest, tcuTestCase.TestCase);
+/**
+ * @this {glsLifetimeTests.LifeTest}
+ */
+glsLifetimeTests.LifeTest.testGen = function() {
+    var obj = this.m_type.gen();
+    if (this.m_type.genCreates())
+        assertMsgOptions(this.m_type.exists(obj), "create* should have created an object, but didn't", false, true);
+    else
+        assertMsgOptions(!this.m_type.exists(obj), 'create* should not have created an object, but did', false, true);
+    this.m_type.release(obj);
+};
+
+/**
+ * @this {glsLifetimeTests.LifeTest}
+ */
+glsLifetimeTests.LifeTest.testDelete = function() {
+    var obj = this.m_type.gen();
+    this.m_type.release(obj);
+    assertMsgOptions(!this.m_type.exists(obj), 'Object still exists after deletion', false, true);
+};
+
+/**
+ * @this {glsLifetimeTests.LifeTest}
+ */
+glsLifetimeTests.LifeTest.testBind = function() {
+    var obj = this.m_type.gen();
+    this.m_type.binder().bind(obj);
+    assertMsgOptions(gl.getError() == gl.NONE, 'Bind failed', false, true);
+    assertMsgOptions(this.m_type.exists(obj), 'Object does not exist after binding', false, true);
+    this.m_type.binder().bind(null);
+    this.m_type.release(obj);
+};
+
+/**
+ * @this {glsLifetimeTests.LifeTest}
+ */
+glsLifetimeTests.LifeTest.testDeleteBound = function() {
+    var obj = this.m_type.gen();
+    this.m_type.binder().bind(obj);
+    this.m_type.release(obj);
+    if (this.m_type.nameLingers()) {
+        assertMsgOptions(gl.getError() == gl.NONE, 'Deleting bound object failed', false, true);
+        assertMsgOptions(this.m_type.binder().getBinding() === obj, 'Deleting bound object did not retain binding', false, true);
+        assertMsgOptions(this.m_type.exists(obj), 'Deleting bound object made its name invalid', false, true);
+        assertMsgOptions(this.m_type.isDeleteFlagged(obj), 'Deleting bound object did not flag the object for deletion', false, true);
+        this.m_type.binder().bind(null);
+    } else {
+        assertMsgOptions(gl.getError() == gl.NONE, 'Deleting bound object failed', false, true);
+        assertMsgOptions(this.m_type.binder().getBinding() === null, 'Deleting bound object did not remove binding', false, true);
+        assertMsgOptions(!this.m_type.exists(obj), 'Deleting bound object did not make its name invalid', false, true);
+
+    }
+    assertMsgOptions(this.m_type.binder().getBinding() === null, "Unbinding didn't remove binding", false, true);
+    assertMsgOptions(!this.m_type.exists(obj), 'Name is still valid after deleting and unbinding', false, true);
+};
+
+/**
+ * @this {glsLifetimeTests.LifeTest}
+ */
+glsLifetimeTests.LifeTest.testDeleteUsed = function() {
+    var vtxShader = new glsLifetimeTests.CheckedShader(gluShaderProgram.shaderType.VERTEX, s_vertexShaderSrc);
+    var fragShader = new glsLifetimeTests.CheckedShader(gluShaderProgram.shaderType.FRAGMENT, s_fragmentShaderSrc);
+    var program = new glsLifetimeTests.CheckedProgram(vtxShader.getShader(), fragShader.getShader());
+    var programId = program.getProgram();
+    debug('Created and linked program ' + programId);
+    gl.useProgram(programId);
+
+    gl.deleteProgram(programId);
+    debug('Deleted program ' + programId);
+    assertMsgOptions(gl.isProgram(programId), 'Deleted current program', false, true);
+    var deleteFlagged = gl.getProgramParameter(programId, gl.DELETE_STATUS);
+    assertMsgOptions(deleteFlagged == true, 'Program object was not flagged as deleted', false, true);
+    gl.useProgram(null);
+    assertMsgOptions(!gl.isProgram(programId), 'Deleted program name still valid after being made non-current', false, true);
+};
+
+/**
+ * @constructor
+ * @extends {tcuTestCase.DeqpTest}
+ * @param {string} name
+ * @param {string} description
+ * @param {glsLifetimeTests.Attacher} attacher
+ * @param {function()} test
+ */
+glsLifetimeTests.AttachmentTest = function(name, description, attacher, test) {
+    tcuTestCase.DeqpTest.call(this, name, description);
+    this.m_attacher = attacher;
+    this.m_test = test;
+};
+
+setParentClass(glsLifetimeTests.AttachmentTest, tcuTestCase.DeqpTest);
+
+glsLifetimeTests.AttachmentTest.prototype.iterate = function() {
+    this.m_test();
+    return tcuTestCase.IterateResult.STOP;
+};
+
+/**
+ * @this {glsLifetimeTests.AttachmentTest}
+ */
+glsLifetimeTests.AttachmentTest.testDeletedNames = function() {
+    var getAttachment = function(attacher, container) {
+        var queriedAttachment = attacher.getAttachment(container);
+        debug('Result of query for ' + attacher.getElementType().getName() +
+                       ' attached to ' + attacher.getContainerType().getName() + ' ' +
+                       container + ': ' + queriedAttachment);
+        return queriedAttachment;
+    };
+
+    var elemType = this.m_attacher.getElementType();
+    var containerType = this.m_attacher.getContainerType();
+    var container = containerType.gen();
+
+    var element = elemType.gen();
+    this.m_attacher.initAttachment(0, element);
+    this.m_attacher.attach(element, container);
+    assertMsgOptions(getAttachment(this.m_attacher, container) == element,
+                 'Attachment not returned by query even before deletion.', false, true);
+
+    elemType.release(element);
+    // "Such a container or other context may continue using the object, and
+    // may still contain state identifying its name as being currently bound"
+    //
+    // We here interpret "may" to mean that whenever the container has a
+    // deleted object attached to it, a query will return that object's former
+    // name.
+    assertMsgOptions(getAttachment(this.m_attacher, container) == element,
+                 'Attachment name not returned by query after attachment was deleted.', false, true);
+
+    if (elemType.nameLingers())
+        assertMsgOptions(elemType.exists(element),
+                     'Attached object name no longer valid after deletion.', false, true);
+    else
+        assertMsgOptions(!elemType.exists(element),
+                     'Attached object name still valid after deletion.', false, true);
+
+    this.m_attacher.detach(element, container);
+    assertMsgOptions(getAttachment(this.m_attacher, container) == null,
+                 'Attachment name returned by query even after detachment.', false, true);
+    assertMsgOptions(!elemType.exists(element),
+                 'Deleted attached object name still usable after detachment.', false, true);
+};
+
+/**
+ * @constructor
+ * @extends {tcuTestCase.DeqpTest}
+ * @param {string} name
+ * @param {string} description
+ * @param {glsLifetimeTests.InputAttacher} attacher
+ */
+glsLifetimeTests.InputAttachmentTest = function(name, description, attacher) {
+    tcuTestCase.DeqpTest.call(this, name, description);
+    this.m_inputAttacher = attacher;
+};
+
+setParentClass(glsLifetimeTests.InputAttachmentTest, tcuTestCase.DeqpTest);
+
+glsLifetimeTests.InputAttachmentTest.prototype.iterate = function() {
+    var attacher = this.m_inputAttacher.getAttacher();
+    var containerType = attacher.getContainerType();
+    var elementType = attacher.getElementType();
+    var container = containerType.gen();
+
+    glsLifetimeTests.InputAttachmentTest.seed = glsLifetimeTests.InputAttachmentTest.seed || 0;
+    ++glsLifetimeTests.InputAttachmentTest.seed;
+    var rnd = new deRandom.Random(glsLifetimeTests.InputAttachmentTest.seed);
+    var refSeed = rnd.getInt();
+    var newSeed = rnd.getInt();
+
+    var refSurface = new tcuSurface.Surface(VIEWPORT_SIZE, VIEWPORT_SIZE); // Surface from drawing with refSeed-seeded attachment
+    var delSurface = new tcuSurface.Surface(VIEWPORT_SIZE, VIEWPORT_SIZE); // Surface from drawing with deleted refSeed attachment
+    var newSurface = new tcuSurface.Surface(VIEWPORT_SIZE, VIEWPORT_SIZE); // Surface from drawing with newSeed-seeded attachment
+
+    debug('Testing if writing to a newly created object modifies a deleted attachment');
+
+                                     debug('Writing to an original attachment');
+        var element = elementType.gen();
+
+        attacher.initAttachment(refSeed, element);
+        attacher.attach(element, container);
+        this.m_inputAttacher.drawContainer(container, refSurface);
+        // element gets deleted here
+        debug('Deleting attachment');
+        elementType.release(element);
+
+        debug('Writing to a new attachment after deleting the original');
+        var newElement = elementType.gen();
+
+        attacher.initAttachment(newSeed, newElement);
+
+        this.m_inputAttacher.drawContainer(container, delSurface);
+        attacher.detach(element, container);
+
+        attacher.attach(newElement, container);
+        this.m_inputAttacher.drawContainer(container, newSurface);
+        attacher.detach(newElement, container);
+        var surfacesMatch = tcuImageCompare.pixelThresholdCompare(
+            'Reading from deleted',
+            'Comparison result from reading from a container with a deleted attachment ' +
+            'before and after writing to a fresh object.',
+            refSurface, delSurface, [0, 0, 0, 0]);
+
+        /* TODO: Add logging images */
+        // if (!surfacesMatch)
+        //     log() << TestLog::Image("New attachment",
+        //                             "Container state after attached to the fresh object",
+        //                             newSurface);
+
+        assertMsgOptions(surfacesMatch,
+            'Writing to a fresh object modified the container with a deleted attachment.', false, true);
+
+    return tcuTestCase.IterateResult.STOP;
+};
+
+/**
+ * @constructor
+ * @extends {tcuTestCase.DeqpTest}
+ * @param {string} name
+ * @param {string} description
+ * @param {glsLifetimeTests.OutputAttacher} attacher
+ */
+glsLifetimeTests.OutputAttachmentTest = function(name, description, attacher) {
+    tcuTestCase.DeqpTest.call(this, name, description);
+    this.m_outputAttacher = attacher;
+};
+
+setParentClass(glsLifetimeTests.OutputAttachmentTest, tcuTestCase.DeqpTest);
+
+glsLifetimeTests.OutputAttachmentTest.prototype.iterate = function() {
+    var attacher = this.m_outputAttacher.getAttacher();
+    var containerType = attacher.getContainerType();
+    var elementType = attacher.getElementType();
+    var container = containerType.gen();
+    glsLifetimeTests.InputAttachmentTest.seed = glsLifetimeTests.InputAttachmentTest.seed || 0;
+    ++glsLifetimeTests.InputAttachmentTest.seed;
+    var rnd = new deRandom.Random(glsLifetimeTests.InputAttachmentTest.seed);
+    var refSeed = rnd.getInt();
+    var newSeed = rnd.getInt();
+
+    var refSurface = new tcuSurface.Surface(VIEWPORT_SIZE, VIEWPORT_SIZE); // Surface from drawing with refSeed-seeded attachment
+    var delSurface = new tcuSurface.Surface(VIEWPORT_SIZE, VIEWPORT_SIZE); // Surface from drawing with deleted refSeed attachment
+    var newSurface = new tcuSurface.Surface(VIEWPORT_SIZE, VIEWPORT_SIZE); // Surface from drawing with newSeed-seeded attachment
+
+    debug('Testing if writing to a container with a deleted attachment ' +
+          'modifies a newly created object');
+
+    debug('Writing to a container with an existing attachment');
+   var element = elementType.gen();
+
+    attacher.initAttachment(0, element);
+    attacher.attach(element, container);
+
+    // For reference purposes, make note of what refSeed looks like.
+    this.m_outputAttacher.setupContainer(refSeed, container);
+    this.m_outputAttacher.drawAttachment(element, refSurface);
+    elementType.release(element);
+
+    debug('Writing to a container after deletion of attachment');
+    var newElement = elementType.gen();
+    debug('Creating a new object ');
+
+    debug('Recording state of new object before writing to container');
+    attacher.initAttachment(newSeed, newElement);
+    this.m_outputAttacher.drawAttachment(newElement, newSurface);
+
+    debug('Writing to container');
+
+    // Now re-write refSeed to the container.
+    this.m_outputAttacher.setupContainer(refSeed, container);
+    // Does it affect the newly created attachment object?
+    this.m_outputAttacher.drawAttachment(newElement, delSurface);
+    attacher.detach(element, container);
+
+    var surfacesMatch = tcuImageCompare.pixelThresholdCompare(
+        'Writing to deleted',
+        'Comparison result from reading from a fresh object before and after ' +
+        'writing to a container with a deleted attachment',
+        newSurface, delSurface, [0, 0, 0, 0]);
+
+    /* TODO: Add logging images */
+    // if (!surfacesMatch)
+    //     log() << TestLog::Image(
+    //         "Original attachment",
+    //         "Result of container modification on original attachment before deletion.",
+    //         refSurface);
+
+    assertMsgOptions(surfacesMatch,
+                 'Writing to container with deleted attachment modified a new object.', false, true);
+
+    return tcuTestCase.IterateResult.STOP;
+};
 
 glsLifetimeTests.createLifeTestGroup = function(spec, types) {
     var group = tcuTestCase.newTest(spec.name, spec.name);
@@ -653,6 +947,7 @@ glsLifetimeTests.createLifeTestGroup = function(spec, types) {
 };
 
 /**
+ * @param {tcuTestCase.DeqpTest} group
  * @param {glsLifetimeTests.Types} types
  */
 glsLifetimeTests.addTestCases = function(group, types) {
@@ -660,7 +955,7 @@ glsLifetimeTests.addTestCases = function(group, types) {
         return attacher.getElementType().getName() + '_' + attacher.getContainerType().getName();
     };
 
-    var s_lifeTests = [{ name: 'gen', func: glsLifetimeTests.LifeTest.testGen, needBind: false },{ name: 'delete', func: glsLifetimeTests.LifeTest.testDelete, needBind: false },{ name: 'bind', func: glsLifetimeTests.LifeTest.testBind, needBind: true },{ name: 'delete_bound', func: glsLifetimeTests.LifeTest.testDeleteBound, needBind: true },{ name: 'bind_no_gen', func: glsLifetimeTests.LifeTest.testBindNoGen, needBind: true }
+    var s_lifeTests = [{ name: 'gen', func: glsLifetimeTests.LifeTest.testGen, needBind: false },{ name: 'delete', func: glsLifetimeTests.LifeTest.testDelete, needBind: false },{ name: 'bind', func: glsLifetimeTests.LifeTest.testBind, needBind: true },{ name: 'delete_bound', func: glsLifetimeTests.LifeTest.testDeleteBound, needBind: true }
     ];
 
     s_lifeTests.forEach(function(spec) {

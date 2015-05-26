@@ -160,6 +160,11 @@ gluShaderProgram.Program = function(gl, programID) {
 };
 
 /**
+ * @return {WebGLProgram}
+ */
+gluShaderProgram.Program.prototype.getProgram = function() { return this.program; };
+
+/**
  * @param {WebGLShader} shader
  */
 gluShaderProgram.Program.prototype.attachShader = function(shader) {

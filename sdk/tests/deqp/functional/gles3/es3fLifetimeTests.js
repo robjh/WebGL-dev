@@ -20,6 +20,7 @@
 'use strict';
 goog.provide('functional.gles3.es3fLifetimeTests');
 goog.require('framework.common.tcuSurface');
+goog.require('framework.common.tcuTestCase');
 goog.require('framework.delibs.debase.deRandom');
 goog.require('framework.opengl.gluShaderProgram');
 goog.require('modules.shared.glsLifetimeTests');
@@ -32,10 +33,13 @@ var gluShaderProgram = framework.opengl.gluShaderProgram;
 var deRandom = framework.delibs.debase.deRandom;
 var tcuSurface = framework.common.tcuSurface;
 var glsTextureTestUtil = modules.shared.glsTextureTestUtil;
+var tcuTestCase = framework.common.tcuTestCase;
 
 /** @const */ var VIEWPORT_SIZE = 128;
 /** @const */ var NUM_COMPONENTS = 4;
 /** @const */ var NUM_VERTICES = 3;
+
+/** @type {WebGL2RenderingContext} */ var gl;
 
 var setParentClass = function(child, parent) {
     child.prototype = Object.create(parent.prototype);
@@ -120,7 +124,7 @@ es3fLifetimeTests.ScaleProgram.prototype.getSources = function() {
     '{\n' +
     ' gl_FragColor = vec4(1.0, 0.0, 1.0, 1.0);\n' +
     '}';
-    var sources = gluShaderProgram.ProgramSources();
+    var sources = new gluShaderProgram.ProgramSources();
     sources.add(new gluShaderProgram.VertexSource(s_vertexShaderSrc));
     sources.add(new gluShaderProgram.FragmentSource(s_fragmentShaderSrc));
     sources.add(new gluShaderProgram.TransformFeedbackMode(gl.INTERLEAVED_ATTRIBS));
@@ -152,7 +156,6 @@ setParentClass(es3fLifetimeTests.SamplerBinder, glsLifetimeTests.Binder);
 
 es3fLifetimeTests.SamplerBinder.prototype.bind = function(sampler) { gl.bindSampler(0, sampler); };
 es3fLifetimeTests.SamplerBinder.prototype.getBinding = function() { return gl.getParameter(gl.SAMPLER_BINDING); };
-es3fLifetimeTests.SamplerBinder.prototype.genRequired = function() { return true; };
 
 /**
  * @constructor
@@ -169,7 +172,6 @@ es3fLifetimeTests.QueryBinder.prototype.bind = function(query) {
         gl.beginQuery(gl.ANY_SAMPLES_PASSED, query);
     else
         gl.endQuery(gl.ANY_SAMPLES_PASSED);
- gl.bindSampler(0, sampler);
 };
 
 es3fLifetimeTests.QueryBinder.prototype.getBinding = function() { return null; };
@@ -202,8 +204,8 @@ es3fLifetimeTests.initBuffer = function(seed, usage, buffer) {
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
     if (seed == 0)
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(s_varrData), usage);
-    else{
-        var rnd = deRandom.Random(seed);
+    else {
+        var rnd = new deRandom.Random(seed);
         var data = [];
 
         for (var ndx = 0; ndx < NUM_VERTICES; ndx++) {
@@ -277,14 +279,14 @@ es3fLifetimeTests.BufferTfAttacher.prototype.attach = function(buffer, tf) {
     gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, null);
 };
 
-es3fLifetimeTests.BufferTfAttacher.prototype.detach = function(buffer, vao) {
-    glBindTransformFeedback(gl.TRANSFORM_FEEDBACK, tf);
-    glBindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, null);
-    glBindTransformFeedback(gl.TRANSFORM_FEEDBACK, null);
+es3fLifetimeTests.BufferTfAttacher.prototype.detach = function(buffer, tf) {
+    gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, tf);
+    gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, null);
+    gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, null);
 
 };
 
-es3fLifetimeTests.BufferTfAttacher.prototype.getAttachment = function(vao) {
+es3fLifetimeTests.BufferTfAttacher.prototype.getAttachment = function(tf) {
     gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, tf);
     var name = gl.getParameter(gl.TRANSFORM_FEEDBACK_BUFFER_BINDING);
     gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, null);
@@ -302,14 +304,15 @@ es3fLifetimeTests.BufferTfOutputAttacher = function(attacher, program) {
 
 setParentClass(es3fLifetimeTests.BufferTfOutputAttacher, glsLifetimeTests.OutputAttacher);
 
-es3fLifetimeTests.BufferTfOutputAttacher.prototype.setupContainer = function(seed, tf) {
+es3fLifetimeTests.BufferTfOutputAttacher.prototype.setupContainer = function(seed, obj) {
+    var tf = /** @type {WebGLTransformFeedback} */ (obj);
     var posBuf = gl.createBuffer();
     var vao = gl.createVertexArray();
 
     es3fLifetimeTests.initBuffer(seed, gl.STATIC_DRAW, posBuf);
     this.m_program.setPos(posBuf, vao);
 
-    g.bBindTransformFeedback(gl.TRANSFORM_FEEDBACK, tf);
+    gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, tf);
     this.m_program.draw(vao, -1.0, true, null);
     debug('Drew an image with seed ' + seed + ' with transform feedback to ' + tf);
     gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, null);
@@ -331,12 +334,12 @@ es3fLifetimeTests.BufferTfOutputAttacher.prototype.drawAttachment = function(buf
  * @extends {glsLifetimeTests.ES2Types}
  */
 es3fLifetimeTests.ES3Types = function() {
-    es3fLifetimeTests.call(this);
+    glsLifetimeTests.ES2Types.call(this);
     this.m_program = new es3fLifetimeTests.ScaleProgram();
     this.m_queryBind = new es3fLifetimeTests.QueryBinder();
     this.m_queryType = new glsLifetimeTests.SimpleType('query', gl.createQuery, gl.deleteQuery, gl.isQuery, this.m_queryBind);
     this.m_tfBind = new glsLifetimeTests.SimpleBinder(gl.bindTransformFeedback, gl.TRANSFORM_FEEDBACK,
-                     gl.TRANSFORM_FEEDBACK_BINDING, true);
+                     gl.TRANSFORM_FEEDBACK_BINDING);
     this.m_tfType = new glsLifetimeTests.SimpleType('transform_feedback', gl.createTransformFeedback, gl.deleteTransformFeedback, gl.isTransformFeedback, this.m_tfBind);
     this.m_varrBind = new es3fLifetimeTests.VertexArrayBinder();
     this.m_varrType = new glsLifetimeTests.SimpleType('vertex_array', gl.createVertexArray, gl.deleteVertexArray, gl.isVertexArray, this.m_varrBind);
@@ -355,13 +358,41 @@ es3fLifetimeTests.ES3Types = function() {
 
 setParentClass(es3fLifetimeTests.ES3Types, glsLifetimeTests.ES2Types);
 
+/**
+ * @constructor
+ * @extends {tcuTestCase.DeqpTest}
+ */
+es3fLifetimeTests.TfDeleteActiveTest = function(name, description) {
+    tcuTestCase.DeqpTest.call(this, name, description);
+};
+
+setParentClass(es3fLifetimeTests.TfDeleteActiveTest, tcuTestCase.DeqpTest);
+
+es3fLifetimeTests.TfDeleteActiveTest.prototype.iterate = function() {
+    var tf = gl.createTransformFeedback();
+    gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, tf);
+    gl.beginTransformFeedback(gl.TRIANGLES);
+    /* TODO: Disable error checking for next call in WebGL context */
+    gl.deleteTransformFeedback(tf);
+    var err = gl.getError();
+    gl.endTransformFeedback();
+    gl.deleteTransformFeedback(tf);
+    assertMsgOptions(err == gl.INVALID_OPERATION,
+        'Deleting active transform feedback must produce INVALID_OPERATION', true, true);
+    return tcuTestCase.IterateResult.STOP;
+};
+
 es3fLifetimeTests.genTestCases = function() {
     var state = tcuTestCase.runner;
     state.setRoot(tcuTestCase.newTest('lifetime', 'Top level'));
 
     var types = new es3fLifetimeTests.ES3Types();
-    glsLifetimeTests.addTestCases(state, types);
+    glsLifetimeTests.addTestCases(state.testCases, types);
     /* TODO: Add TfDeleteActiveTest test */
+   var deleteActiveGroup = tcuTestCase.newTest('delete_active', 'Delete active object');
+    state.testCases.addChild(deleteActiveGroup);
+    deleteActiveGroup.addChild(
+        new es3fLifetimeTests.TfDeleteActiveTest('transform_feedback', 'Transform Feedback'));
 };
 
 /**
