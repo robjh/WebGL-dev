@@ -19,7 +19,7 @@
 <script>
 var wtu = WebGLTestUtils;
 var gl = wtu.create3DContext('canvas', {preserveDrawingBuffer: true}, 2);
-
+gl.getError();
     try {
         functional.gles3.es3fAttribLocationTests.run(gl);
     }

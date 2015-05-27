@@ -22,7 +22,7 @@
  *//*--------------------------------------------------------------------*/
 'use strict';
 goog.provide('functional.gles3.es3fAttribLocationTests');
-goog.provide('modules.shared.glsAttributeLocationTests');
+goog.require('modules.shared.glsAttributeLocationTests');
 goog.require('functional.gles3.es3fFboTestCase');
 goog.require('functional.gles3.es3fFboTestUtil');
 goog.require('framework.common.tcuTestCase');

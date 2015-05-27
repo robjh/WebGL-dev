@@ -67,7 +67,8 @@ targets = {
     'sglrReferenceContextTest': 'framework.opengl.simplereference.sglrReferenceContextTest',
     'lifetime': 'functional.gles3.es3fLifetimeTests',
     'draw': 'modules.shared.glsDrawTests',
-    'texturewrap': 'functional.gles3.es3fTextureWrapTests'
+    'texturewrap': 'functional.gles3.es3fTextureWrapTests',
+    'attriblocation': 'functional.gles3.es3fAttribLocationTests'
 }
 
 total_errors = 0
