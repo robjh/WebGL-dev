@@ -164,7 +164,6 @@ goog.scope(function() {
         return wrap;
     };
 
-
     /**
     * @param ctx GL-like context
     * @param {string} name
@@ -180,7 +179,5 @@ goog.scope(function() {
         }
         return found;
     };
-
-
 
 });
