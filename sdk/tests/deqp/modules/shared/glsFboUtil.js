@@ -750,20 +750,13 @@ goog.scope(function() {
                 glInitFlat(cfg, glTarget(cfg, gl), gl);
 
             } else if (cfg.type & glsFboUtil.Config.s_types.TEXTURE_CUBE_MAP != 0) {
-                for (
-                    var i = gl.TEXTURE_CUBE_MAP_NEGATIVE_X;
-                    i <= gl.TEXTURE_CUBE_MAP_POSITIVE_Z;
-                    ++i;
-                ) {
+                for (var i = gl.TEXTURE_CUBE_MAP_NEGATIVE_X; i <= gl.TEXTURE_CUBE_MAP_POSITIVE_Z; ++i)
                     glInitFlat(cfg, i, gl);
-                }
-
             } else if (cfg.type & glsFboUtil.Config.s_types.TEXTURE_3D != 0) {
                 glInitLayered(cfg, 2, gl);
 
             } else if (cfg.type & glsFboUtil.Config.s_types.TEXTURE_2D_ARRAY != 0) {
                 glInitLayered(cfg, 1, gl);
-
             }
         };
 

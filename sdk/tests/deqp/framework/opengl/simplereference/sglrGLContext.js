@@ -53,15 +53,6 @@ goog.scope(function() {
     var rrRenderState = framework.referencerenderer.rrRenderState;
     var rrVertexAttrib = framework.referencerenderer.rrVertexAttrib;
 
-    sglrGLContext.DE_NULL = null;
-
-    sglrGLContext.GLU_EXPECT_NO_ERROR = function(error, message) {
-        if (error !== gl.NONE) {
-            console.log('Assertion failed message:' + message);
-            // throw new Error(message);
-        }
-    };
-
     var DE_ASSERT = function(x) {
         if (!x)
             throw new Error('Assert failed');

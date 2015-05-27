@@ -50,14 +50,6 @@ var DE_ASSERT = function(x) {
         throw new Error('Assert failed');
 };
 
-/** GLU_EXPECT_NO_ERROR
- * @param {number} error
- * @param {string} message
- */
-glsTextureTestUtil.GLU_EXPECT_NO_ERROR = function(error, message) {
-    assertMsgOptions(error === gl.NONE, message, false, true);
-};
-
 /**
  * @enum
  */
@@ -771,25 +763,25 @@ glsTextureTestUtil.TextureRenderer.prototype.renderQuad = function(texUnit, texC
     // {
     //     log << TestLog::Message << "u_colorScale = " << params.colorScale << TestLog::EndMessage;
     //     log << TestLog::Message << "u_colorBias = " << params.colorBias << TestLog::EndMessage;
-    // } {
-        var vertexArrays = [];
-        // console.log(position);
-        // console.log(texCoord);
+    // }
+    var vertexArrays = [];
+    // console.log(position);
+    // console.log(texCoord);
 
-        var posLoc = gl.getAttribLocation(prog, 'a_position');
-        if (posLoc === -1) {
-            testFailedOptions("no location found for attribute 'a_position'", true);
-        }
-        var texLoc = gl.getAttribLocation(prog, 'a_texCoord');
-        if (texLoc === -1) {
-            testFailedOptions("no location found for attribute 'a_texCoord'", true);
-        }
+    var posLoc = gl.getAttribLocation(prog, 'a_position');
+    if (posLoc === -1) {
+        testFailedOptions("no location found for attribute 'a_position'", true);
+    }
+    var texLoc = gl.getAttribLocation(prog, 'a_texCoord');
+    if (texLoc === -1) {
+        testFailedOptions("no location found for attribute 'a_texCoord'", true);
+    }
 
-        vertexArrays.push(new gluDrawUtil.VertexArrayBinding(gl.FLOAT, posLoc, 4, 4, position));
-        vertexArrays.push(new gluDrawUtil.VertexArrayBinding(gl.FLOAT, texLoc, numComps, 4, texCoord));
-        gluDrawUtil.draw(gl, prog, vertexArrays, gluDrawUtil.triangles(indices));
-    };
+    vertexArrays.push(new gluDrawUtil.VertexArrayBinding(gl.FLOAT, posLoc, 4, 4, position));
+    vertexArrays.push(new gluDrawUtil.VertexArrayBinding(gl.FLOAT, texLoc, numComps, 4, texCoord));
+    gluDrawUtil.draw(gl, prog, vertexArrays, gluDrawUtil.triangles(indices));
 };
+
 // public:
 //                                 glsTextureTestUtil.TextureRenderer (const glu::RenderContext& context, tcu::TestContext& testCtx, glu::GLSLVersion glslVersion, glu::Precision texCoordPrecision);
 //                                 ~glsTextureTestUtil.TextureRenderer (void);

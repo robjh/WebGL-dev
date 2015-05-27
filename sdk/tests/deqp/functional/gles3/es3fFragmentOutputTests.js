@@ -47,17 +47,9 @@ var tcuImageCompare = framework.common.tcuImageCompare;
 
     /** @type {WebGL2RenderingContext} */ var gl;
 
-    es3fFragmentOutputTests.GLU_EXPECT_NO_ERROR = function(error, message) {
-        assertMsgOptions(error === gl.NONE, message, false, true);
-    };
-
     var DE_ASSERT = function(x) {
         if (!x)
             throw new Error('Assert failed');
-    };
-
-    es3fFragmentOutputTests.TCU_FAIL = function(msg) {
-        testFailedOptions(msg, true);
     };
 
     /**
@@ -919,7 +911,7 @@ var tcuImageCompare = framework.common.tcuImageCompare;
                 }
 
                 default:
-                    es3fFragmentOutputTests.TCU_FAIL('Unsupported comparison');
+                    testFailedOptions('Unsupported comparison', true);
                     break;
             }
 

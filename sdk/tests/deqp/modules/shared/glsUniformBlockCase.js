@@ -46,15 +46,6 @@ var DE_ASSERT = function(x) {
         throw new Error('Assert failed');
 };
 
-glsUniformBlockCase.GLU_EXPECT_NO_ERROR = function(x, msg) {
-    if (x) //error
-        throw new Error(msg);
-};
-
-glsUniformBlockCase.TCU_FAIL = function(msg) {
-    testFailedOptions(msg, true);
-};
-
 /**
  * Class to implement some pointers functionality.
  * @constructor
@@ -1826,7 +1817,7 @@ glsUniformBlockCase.getGLUniformLayout = function(gl, layout, program) {
             // Remove this: nameLen != nameLengths[uniformNdx] ||
             if (size != sizes[uniformNdx] ||
                 type != types[uniformNdx])
-                glsUniformBlockCase.TCU_FAIL("Values returned by gl.getActiveUniform() don't match with values queried with gl.getActiveUniforms().");
+                testFailedOptions("Values returned by gl.getActiveUniform() don't match with values queried with gl.getActiveUniforms().", true);
 
             entryUniform.name = nameBuf;
             entryUniform.type = gluShaderUtil.getDataTypeFromGLType(types[uniformNdx]);

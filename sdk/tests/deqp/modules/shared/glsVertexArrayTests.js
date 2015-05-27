@@ -64,17 +64,6 @@ goog.scope(function() {
             throw new Error('Assert failed');
     };
 
-    glsVertexArrayTests.GLU_EXPECT_NO_ERROR = function(x, msg) {
-        if (x) //error
-            throw new Error(msg);
-    };
-
-    glsVertexArrayTests.TCU_FAIL = function(msg) {
-        testFailedOptions(msg, true);
-    };
-
-    glsVertexArrayTests.DE_NULL = null;
-
     /**
      * @interface
      */
