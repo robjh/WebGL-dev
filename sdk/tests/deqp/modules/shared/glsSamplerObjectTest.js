@@ -20,16 +20,16 @@
 
 'use strict';
 goog.provide('modules.shared.glsSamplerObjectTest');
-goog.require('framework.common.tcuTestCase');
-goog.require('framework.delibs.debase.deRandom');
-goog.require('framework.opengl.gluShaderProgram');
-goog.require('framework.common.tcuTexture');
-goog.require('framework.common.tcuSurface');
-goog.require('framework.common.tcuTextureUtil');
 goog.require('framework.common.tcuImageCompare');
-goog.require('framework.opengl.gluDrawUtil');
-goog.require('framework.opengl.gluTextureUtil');
+goog.require('framework.common.tcuSurface');
+goog.require('framework.common.tcuTestCase');
+goog.require('framework.common.tcuTexture');
+goog.require('framework.common.tcuTextureUtil');
+goog.require('framework.delibs.debase.deRandom');
 goog.require('framework.delibs.debase.deString');
+goog.require('framework.opengl.gluDrawUtil');
+goog.require('framework.opengl.gluShaderProgram');
+goog.require('framework.opengl.gluTextureUtil');
 
 goog.scope(function() {
 
@@ -882,7 +882,7 @@ var deString = framework.delibs.debase.deString;
     /**
      * @private
      * @param {number} id
-     * @return {WebGLTexture    }
+     * @return {WebGLTexture }
      */
     glsSamplerObjectTest.MultiTextureSamplerTest.createTexture2D = function(id) {
         /** @type {WebGLTexture} */ var texture = null;

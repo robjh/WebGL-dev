@@ -143,7 +143,10 @@ es3fLifetimeTests.VertexArrayBinder = function() {
 
 setParentClass(es3fLifetimeTests.VertexArrayBinder, glsLifetimeTests.SimpleBinder);
 
-es3fLifetimeTests.VertexArrayBinder.prototype.bind = function(vao) { gl.bindVertexArray(vao); };
+es3fLifetimeTests.VertexArrayBinder.prototype.bind = function(obj) {
+    var vao = /** @type {WebGLVertexArrayObject} */ (obj);
+    gl.bindVertexArray(vao);
+};
 
 /**
  * @constructor
@@ -155,8 +158,11 @@ es3fLifetimeTests.SamplerBinder = function() {
 
 setParentClass(es3fLifetimeTests.SamplerBinder, glsLifetimeTests.Binder);
 
-es3fLifetimeTests.SamplerBinder.prototype.bind = function(sampler) { gl.bindSampler(0, sampler); };
-es3fLifetimeTests.SamplerBinder.prototype.getBinding = function() { return gl.getParameter(gl.SAMPLER_BINDING); };
+es3fLifetimeTests.SamplerBinder.prototype.bind = function(obj) {
+    var sampler = /** @type {WebGLSampler} */ (obj);
+    gl.bindSampler(0, sampler);
+};
+es3fLifetimeTests.SamplerBinder.prototype.getBinding = function() { return /** @type {WebGLSampler} */ (gl.getParameter(gl.SAMPLER_BINDING)); };
 
 /**
  * @constructor
@@ -168,7 +174,8 @@ es3fLifetimeTests.QueryBinder = function() {
 
 setParentClass(es3fLifetimeTests.QueryBinder, glsLifetimeTests.Binder);
 
-es3fLifetimeTests.QueryBinder.prototype.bind = function(query) {
+es3fLifetimeTests.QueryBinder.prototype.bind = function(obj) {
+    var query = /** @type {WebGLQuery} */ (obj);
     if (query)
         gl.beginQuery(gl.ANY_SAMPLES_PASSED, query);
     else
@@ -225,21 +232,27 @@ es3fLifetimeTests.initBuffer = function(seed, usage, buffer) {
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
 };
 
-es3fLifetimeTests.BufferVAOAttacher.prototype.initAttachment = function(seed, buffer) {
+es3fLifetimeTests.BufferVAOAttacher.prototype.initAttachment = function(seed, obj) {
+    var buffer = /** @type {WebGLBuffer} */ (obj);
     es3fLifetimeTests.initBuffer(seed, gl.STATIC_DRAW, buffer);
     bufferedLogToConsole('Initialized buffer ' + buffer + ' from seed ' + seed);
 };
 
-es3fLifetimeTests.BufferVAOAttacher.prototype.attach = function(buffer, vao) {
+es3fLifetimeTests.BufferVAOAttacher.prototype.attach = function(element, target) {
+    var buffer = /** @type {WebGLBuffer} */ (element);
+    var vao = /** @type {WebGLVertexArrayObject} */ (target);
+
     this.m_program.setPos(buffer, vao);
     bufferedLogToConsole('Set the `pos` attribute in VAO ' + vao + ' to buffer ' + buffer);
 };
 
-es3fLifetimeTests.BufferVAOAttacher.prototype.detach = function(buffer, vao) {
+es3fLifetimeTests.BufferVAOAttacher.prototype.detach = function(element, target) {
+    var vao = /** @type {WebGLVertexArrayObject} */ (target);
     this.attach(null, vao);
 };
 
-es3fLifetimeTests.BufferVAOAttacher.prototype.getAttachment = function(vao) {
+es3fLifetimeTests.BufferVAOAttacher.prototype.getAttachment = function(target) {
+    var vao = /** @type {WebGLVertexArrayObject} */ (target);
     gl.bindVertexArray(vao);
     var name = gl.getVertexAttrib(0, gl.VERTEX_ATTRIB_ARRAY_BUFFER_BINDING);
     gl.bindVertexArray(null);
@@ -258,7 +271,8 @@ es3fLifetimeTests.BufferVAOInputAttacher = function(attacher) {
 
 setParentClass(es3fLifetimeTests.BufferVAOInputAttacher, glsLifetimeTests.InputAttacher);
 
-es3fLifetimeTests.BufferVAOInputAttacher.prototype.drawContainer = function(vao, dst) {
+es3fLifetimeTests.BufferVAOInputAttacher.prototype.drawContainer = function(obj, dst) {
+    var vao = /** @type {WebGLVertexArrayObject} */ (obj);
     this.m_program.draw(vao, 1.0, false, dst);
     bufferedLogToConsole('Drew an output image with VAO ' + vao);
 };
@@ -275,25 +289,31 @@ es3fLifetimeTests.BufferTfAttacher = function(elementType, tfType) {
 
 setParentClass(es3fLifetimeTests.BufferTfAttacher, glsLifetimeTests.Attacher);
 
-es3fLifetimeTests.BufferTfAttacher.prototype.initAttachment = function(seed, buffer) {
+es3fLifetimeTests.BufferTfAttacher.prototype.initAttachment = function(seed, obj) {
+    var buffer = /** @type {WebGLBuffer} */ (obj);
     es3fLifetimeTests.initBuffer(seed, gl.DYNAMIC_READ, buffer);
     bufferedLogToConsole('Initialized buffer ' + buffer + ' from seed ' + seed);
 };
 
-es3fLifetimeTests.BufferTfAttacher.prototype.attach = function(buffer, tf) {
+es3fLifetimeTests.BufferTfAttacher.prototype.attach = function(element, target) {
+    var buffer = /** @type {WebGLBuffer} */ (element);
+    var tf = /** @type {WebGLTransformFeedback} */ (target);
     gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, tf);
     gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, buffer);
     gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, null);
 };
 
-es3fLifetimeTests.BufferTfAttacher.prototype.detach = function(buffer, tf) {
+es3fLifetimeTests.BufferTfAttacher.prototype.detach = function(element, target) {
+    var buffer = /** @type {WebGLBuffer} */ (element);
+    var tf = /** @type {WebGLTransformFeedback} */ (target);
     gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, tf);
     gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, null);
     gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, null);
 
 };
 
-es3fLifetimeTests.BufferTfAttacher.prototype.getAttachment = function(tf) {
+es3fLifetimeTests.BufferTfAttacher.prototype.getAttachment = function(target) {
+    var tf = /** @type {WebGLTransformFeedback} */ (target);
     gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, tf);
     var name = gl.getParameter(gl.TRANSFORM_FEEDBACK_BUFFER_BINDING);
     gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, null);
@@ -417,7 +437,6 @@ es3fLifetimeTests.run = function(context) {
         tcuTestCase.runner.runCallback(tcuTestCase.runTestCases);
     } catch (err) {
         bufferedLogToConsole(err);
-        console.log(err);
         tcuTestCase.runner.terminate();
     }
 
