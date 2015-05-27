@@ -245,9 +245,9 @@ goog.scope(function() {
 		src +=	'${VERSION}\n';
 		src +=	'${VTX_OUTPUT} mediump vec4 v_color;\n';
 
-		src += generateAttributeDefinitions(attributes);
+		src += glsAttributeLocationTests.generateAttributeDefinitions(attributes);
 		src += '\n';
-		src += generateConditionUniformDefinitions(attributes);
+		src += glsAttributeLocationTests.generateConditionUniformDefinitions(attributes);
 		src += '\n';
 
 		src += 'void main (void)\n';
@@ -255,7 +255,7 @@ goog.scope(function() {
 		src +=	'\tmediump vec4 color = vec4(0.0);\n';
 		src +=	'\n';
 
-		src += generateOutputCode(attributes);
+		src += glsAttributeLocationTests.generateOutputCode(attributes);
 
 		src += '\n';
 		src += '\tv_color = color;\n';
@@ -266,35 +266,39 @@ goog.scope(function() {
 	}
 
 	/**
-	 * TODO: check the method to get the gl version
 	 * @param{Array<glsAttributeLocationTests.Attribute>} attributes
 	 * @param{boolean} attributeAliasing
 	 * @return{string}
 	 */
 	glsAttributeLocationTests.createVertexShaderSource = function(attributes, attributeAliasing) {
 		// \note On GLES only GLSL #version 100 supports aliasing
-		/** @type{string} */ var contextGLSLVersion = gl.getContextTypeGLSLVersion(renderCtx.getType());
-		// TODO check the version methods
-		/** @type{string} */ var glslVersion = (attributeAliasing && glslVersionIsES(contextGLSLVersion) ? GLSL_VERSION_100_ES : contextGLSLVersion);
-		/** @type{boolean} */ var usesInOutQualifiers = glu::glslVersionUsesInOutQualifiers(glslVersion);
-		const tcu::StringTemplate	vertexShaderTemplate(generateVertexShaderTemplate(attributes));
+		/** @type{gluShaderUtil.GLSLVersion} */ var glslVersion = gluShaderUtil.getGLSLVersion(gl);
+		/** @type{string} */ var vertexShaderTemplate = glsAttributeLocationTests.generateVertexShaderTemplate(attributes);
 
-		map<string, string> parameters;
+		/** @type{Array<string>} */ var parameters = [];
 
-		parameters["VERSION"]					= glu::getGLSLVersionDeclaration(glslVersion);
-		parameters["VTX_OUTPUT"]				= (usesInOutQualifiers ? "out"				: "varying");
-		parameters["VTX_INPUT"]					= (usesInOutQualifiers ? "in"				: "attribute");
-		parameters["FRAG_INPUT"]				= (usesInOutQualifiers ? "in"				: "varying");
-		parameters["FRAG_OUTPUT_VAR"]			= (usesInOutQualifiers ? "dEQP_FragColor"	: "gl_FragColor");
-		parameters["FRAG_OUTPUT_DECLARATION"]	= (usesInOutQualifiers
-													? "layout(location=0) out mediump vec4 dEQP_FragColor;"
-													: "");
+        if (gluShaderUtil.isGLSLVersionSupported(gl, gluShaderUtil.GLSLVersion.V300_ES)) {
+			parameters['VERSION']					= gluShaderUtil.getGLSLVersionDeclaration(glslVersion);
+			parameters['VTX_OUTPUT']				= 'out';
+			parameters['VTX_INPUT']					= 'in';
+			parameters['FRAG_INPUT']				= 'in';
+			parameters['FRAG_OUTPUT_VAR']			= 'dEQP_FragColor';
+			parameters['FRAG_OUTPUT_DECLARATION']	= 'layout(location=0) out mediump vec4 dEQP_FragColor;';
+		} else if (gluShaderUtil.isGLSLVersionSupported(gl, gluShaderUtil.GLSLVersion.V100_ES)) {
+			parameters['VERSION']					= gluShaderUtil.getGLSLVersionDeclaration(glslVersion);
+			parameters['VTX_OUTPUT']				= 'varying';
+			parameters['VTX_INPUT']					= 'attribute';
+			parameters['FRAG_INPUT']				= 'varying';
+			parameters['FRAG_OUTPUT_VAR']			= 'gl_FragColor';
+			parameters['FRAG_OUTPUT_DECLARATION']	= '';
+		}
+		else
+            throw new Error('Invalid GL version');
 
-		return vertexShaderTemplate.specialize(parameters);
+		return tcuStringTemplate.specialize(parameters);
 	}
 
 	/**
-	 * TODO: check the method to get the gl version
 	 * @param{boolean} attributeAliasing
 	 * @return{string}
 	 */
@@ -309,23 +313,28 @@ goog.scope(function() {
 		fragmentShaderSource += '}\n';
 
 		// \note On GLES only GLSL #version 100 supports aliasing
-		const glu::GLSLVersion		contextGLSLVersion		= glu::getContextTypeGLSLVersion(renderCtx.getType());
-		const glu::GLSLVersion		glslVersion				= (attributeAliasing ? glu::GLSL_VERSION_300_ES : contextGLSLVersion);
-		const tcu::StringTemplate	fragmentShaderTemplate(fragmentShaderSource);
-		const bool					usesInOutQualifiers		= glu::glslVersionUsesInOutQualifiers(glslVersion);
+		/** @type{gluShaderUtil.GLSLVersion} */ var glslVersion = gluShaderUtil.getGLSLVersion(gl);
 
-		map<string, string> parameters;
+		/** @type{string} */ var parameters = [];
 
-		parameters["VERSION"]					= glu::getGLSLVersionDeclaration(glslVersion);
-		parameters["VTX_OUTPUT"]				= (usesInOutQualifiers ? "out"				: "varying");
-		parameters["VTX_INPUT"]					= (usesInOutQualifiers ? "in"				: "attribute");
-		parameters["FRAG_INPUT"]				= (usesInOutQualifiers ? "in"				: "varying");
-		parameters["FRAG_OUTPUT_VAR"]			= (usesInOutQualifiers ? "dEQP_FragColor"	: "gl_FragColor");
-		parameters["FRAG_OUTPUT_DECLARATION"]	= (usesInOutQualifiers
-														? "layout(location=0) out mediump vec4 dEQP_FragColor;"
-														: "");
-
-		return fragmentShaderTemplate.specialize(parameters);
+		if (gluShaderUtil.isGLSLVersionSupported(gl, gluShaderUtil.GLSLVersion.V300_ES)) {
+			parameters['VERSION']					= gluShaderUtil.getGLSLVersionDeclaration(glslVersion);
+			parameters['VTX_OUTPUT']				= 'out';
+			parameters['VTX_INPUT']					= 'in';
+			parameters['FRAG_INPUT']				= 'in';
+			parameters['FRAG_OUTPUT_VAR']			= 'dEQP_FragColor';
+			parameters['FRAG_OUTPUT_DECLARATION']	= 'layout(location=0) out mediump vec4 dEQP_FragColor;';
+		} else if (gluShaderUtil.isGLSLVersionSupported(gl, gluShaderUtil.GLSLVersion.V100_ES)) {
+			parameters['VERSION']					= gluShaderUtil.getGLSLVersionDeclaration(glslVersion);
+			parameters['VTX_OUTPUT']				= 'varying';
+			parameters['VTX_INPUT']					= 'attribute';
+			parameters['FRAG_INPUT']				= 'varying';
+			parameters['FRAG_OUTPUT_VAR']			= 'gl_FragColor';
+			parameters['FRAG_OUTPUT_DECLARATION']	= '';
+		} else
+			throw new Error('Invalid GL version');
+			
+		return tcuStringTemplate.specialize(parameters);
 	}
 
 /*
@@ -895,24 +904,24 @@ string generateTestName (const AttribType& type, int arraySize)
 				activeBindings[preLinkBind[bindNdx].getAttributeName()] = preLinkBind[bindNdx].getLocation();
 
 			{
-				tcu::ScopedLogSection section(log, "Attributes", "Attribute information");
+				//tcu::ScopedLogSection section(log, "Attributes", "Attribute information");
 				logAttributes(testCtx.getLog(), attributes);
 			}
 
-			log << TestLog::Message << "Create program." << TestLog::EndMessage;
+			//log << TestLog::Message << "Create program." << TestLog::EndMessage;
 			program = gl.createProgram();
 			GLU_EXPECT_NO_ERROR(gl.getError(), "glCreateProgram()");
 
 			if (!preAttachBind.empty())
 				bindAttributes(log, gl, program, preAttachBind);
 
-			log << TestLog::Message << "Create and attach shaders to program." << TestLog::EndMessage;
+			//log << TestLog::Message << "Create and attach shaders to program." << TestLog::EndMessage;
 			shaders = createAndAttachShaders(log, renderCtx, program, attributes, hasAttributeAliasing(attributes, activeBindings));
 
 			if (!preLinkBind.empty())
 				bindAttributes(log, gl, program, preLinkBind);
 
-			log << TestLog::Message << "Link program." << TestLog::EndMessage;
+			//log << TestLog::Message << "Link program." << TestLog::EndMessage;
 
 				gl.linkProgram(program);
 			GLU_EXPECT_NO_ERROR(gl.getError(), "glLinkProgram()");
@@ -931,7 +940,7 @@ string generateTestName (const AttribType& type, int arraySize)
 			}
 
 			if (relink) {
-				log << TestLog::Message << "Relink program." << TestLog::EndMessage;
+				//log << TestLog::Message << "Relink program." << TestLog::EndMessage;
 				gl.linkProgram(program);
 				GLU_EXPECT_NO_ERROR(gl.getError(), "glLinkProgram()");
 
@@ -950,10 +959,10 @@ string generateTestName (const AttribType& type, int arraySize)
 				gl.detachShader(program, shaders.second);
 				GLU_EXPECT_NO_ERROR(gl.getError(), "glDetachShader()");
 
-				log << TestLog::Message << "Create and attach shaders to program." << TestLog::EndMessage;
+				//log << TestLog::Message << "Create and attach shaders to program." << TestLog::EndMessage;
 				createAndAttachShaders(log, renderCtx, program, reattachAttributes, hasAttributeAliasing(reattachAttributes, activeBindings));
 
-				log << TestLog::Message << "Relink program." << TestLog::EndMessage;
+				//log << TestLog::Message << "Relink program." << TestLog::EndMessage;
 				gl.linkProgram(program);
 				GLU_EXPECT_NO_ERROR(gl.getError(), "glLinkProgram()");
 
@@ -1033,7 +1042,7 @@ string generateTestName (const AttribType& type, int arraySize)
 		/** @type{Array<glsAttributeLocationTests.Bind>} */ var bindings = [];
 		/** @type{number} */ var ndx = 0;
 
-		this.m_testCtx.getLog() << TestLog::Message << 'GL_MAX_VERTEX_ATTRIBS: ' << maxAttributes << TestLog::EndMessage;
+		////this.m_testCtx.getLog() << TestLog::Message << 'GL_MAX_VERTEX_ATTRIBS: ' << maxAttributes << TestLog::EndMessage;
 
 		for (var loc = maxAttributes - (arrayElementCount * this.m_type.getLocationSize()); loc >= 0; loc -= (arrayElementCount * this.m_type.getLocationSize())) {
 			attributes.push(new Attribute(this.m_type, 'a_' + ndx, glsAttributeLocationTests.LocationEnum.UNDEF, glsAttributeLocationTests.ConstCond.ALWAYS, this.m_arraySize));
@@ -1105,7 +1114,7 @@ string generateTestName (const AttribType& type, int arraySize)
 		/** @type{Array<glsAttributeLocationTests.Bind>} */ var bindings = [];
 		/** @type{number} */ var ndx = 0;
 
-		this.m_testCtx.getLog() << TestLog::Message << 'GL_MAX_VERTEX_ATTRIBS: ' << maxAttributes << TestLog::EndMessage;
+		//this.m_testCtx.getLog() << TestLog::Message << 'GL_MAX_VERTEX_ATTRIBS: ' << maxAttributes << TestLog::EndMessage;
 
 		for (loc = maxAttributes - arrayElementCount * this.m_type.getLocationSize(); loc >= 0; loc -= this.m_type.getLocationSize() * arrayElementCount) {
 			attributes.push(new Attribute(this.m_type, 'a_' + ndx, glsAttributeLocationTests.LocationEnum.UNDEF, new Cond('A', true)));
@@ -1148,7 +1157,7 @@ string generateTestName (const AttribType& type, int arraySize)
 		/** @type{Array<glsAttributeLocationTests.Bind>} */ var bindings = [];
 		/** @type{number} */ var ndx = 0;
 
-		this.m_testCtx.getLog() << TestLog::Message << 'GL_MAX_VERTEX_ATTRIBS: ' << maxAttributes << TestLog::EndMessage;
+		//this.m_testCtx.getLog() << TestLog::Message << 'GL_MAX_VERTEX_ATTRIBS: ' << maxAttributes << TestLog::EndMessage;
 
 		for (loc = maxAttributes - arrayElementCount * this.m_type.getLocationSize(); loc >= 0; loc -= this.m_type.getLocationSize() * arrayElementCount) {
 			attributes.push(new Attribute(this.m_type, 'a_' + ndx, glsAttributeLocationTests.LocationEnum.UNDEF, new Cond('A')));
@@ -1373,7 +1382,7 @@ string generateTestName (const AttribType& type, int arraySize)
 		/** @type{Array<glsAttributeLocationTests.Attribute>} */ var attributes = [];
 		/** @type{number} */ var ndx = 0;
 
-		this.m_testCtx.getLog() << TestLog::Message << "GL_MAX_VERTEX_ATTRIBS: " << maxAttributes << TestLog::EndMessage;
+		//this.m_testCtx.getLog() << TestLog::Message << "GL_MAX_VERTEX_ATTRIBS: " << maxAttributes << TestLog::EndMessage;
 
 		for (loc = maxAttributes - (arrayElementCount * this.m_type.getLocationSize()); loc >= 0; loc -= (arrayElementCount * this.m_type.getLocationSize())) {
 			attributes.push(Attribute(this.m_type, 'a_' + ndx, loc, glsAttributeLocationTests.ConstCond.ALWAYS, this.m_arraySize));
@@ -1401,30 +1410,28 @@ string generateTestName (const AttribType& type, int arraySize)
 		/** @type{number} */ this.m_arraySize = arraySize || glsAttributeLocationTests.ArrayEnum.NOT;
 	};
 
-	glsAttributeLocationTests.LocationHoleAttributeTest.prototype.iterate = function()
-{
-	/** @type{Array<glsAttributeLocationTests.Bind>} */ var noBindings = [];
-	const deInt32		maxAttributes = getMaxAttributeLocations(this.m_renderCtx);
-	const AttribType	vec4("vec4", 1, GL_FLOAT_VEC4);
-	const int			arrayElementCount	= (this.m_arraySize != glsAttributeLocationTests.ArrayEnum.NOT ? this.m_arraySize : 1);
+	glsAttributeLocationTests.LocationHoleAttributeTest.prototype.iterate = function() {
+		/** @type{Array<glsAttributeLocationTests.Bind>} */ var noBindings = [];
+		/** @type{number} */ var maxAttributes = glsAttributeLocationTests.getMaxAttributeLocations(this.m_renderCtx);
+		/** @type{glsAttributeLocationTests.AttribType} */ var vec4 = new glsAttributeLocationTests.AttribType('vec4', 1, GL_FLOAT_VEC4);
+		/** @type{number} */ var arrayElementCount	= (this.m_arraySize != glsAttributeLocationTests.ArrayEnum.NOT ? this.m_arraySize : 1);
 
-	/** @type{Array<glsAttributeLocationTests.Attribute>} */ var 	attributes;
-	int					ndx;
+		/** @type{Array<glsAttributeLocationTests.Attribute>} */ var attributes;
+		/** @type{number} */ var ndx;
 
-	attributes.push(Attribute(vec4, "a_0", 0));
+		attributes.push(glsAttributeLocationTests.Attribute(vec4, 'a_0', 0));
 
-	attributes.push(Attribute(this.m_type, "a_1", glsAttributeLocationTests.LocationEnum.UNDEF, glsAttributeLocationTests.ConstCond.ALWAYS, this.m_arraySize));
+		attributes.push(glsAttributeLocationTests.Attribute(this.m_type, 'a_1', glsAttributeLocationTests.LocationEnum.UNDEF, glsAttributeLocationTests.ConstCond.ALWAYS, this.m_arraySize));
 
-	ndx = 2;
-	for (int loc = 1 + this.m_type.getLocationSize() * arrayElementCount; loc < maxAttributes; loc++)
-	{
-		attributes.push(Attribute(vec4, "a_" + ndx, loc));
-		ndx++;
+		ndx = 2;
+		for (loc = 1 + this.m_type.getLocationSize() * arrayElementCount; loc < maxAttributes; loc++) {
+			attributes.push(glsAttributeLocationTests.Attribute(vec4, 'a_' + ndx, loc));
+			ndx++;
+		}
+
+		glsAttributeLocationTests.runTest(this.m_testCtx, this.m_renderCtx, attributes, noBindings, noBindings, noBindings, false);
+		return tcuTestCase.IterateResult.STOP;
 	}
-
-	glsAttributeLocationTests.runTest(this.m_testCtx, this.m_renderCtx, attributes, noBindings, noBindings, noBindings, false);
-	return tcuTestCase.IterateResult.STOP;
-}
 
 
 	/**
@@ -1444,19 +1451,18 @@ string generateTestName (const AttribType& type, int arraySize)
 		/** @type{number} */ this.m_arraySize = arraySize || glsAttributeLocationTests.ArrayEnum.NOT;
 	};
 
-glsAttributeLocationTests.MixedAttributeTest.prototype.iterate = function()
-{
-	/** @type{Array<glsAttributeLocationTests.Bind>} */ var noBindings = [];
+	glsAttributeLocationTests.MixedAttributeTest.prototype.iterate = function() {
+		/** @type{Array<glsAttributeLocationTests.Bind>} */ var noBindings = [];
 
-	/** @type{Array<glsAttributeLocationTests.Bind>} */ var	bindings = [];
-	/** @type{Array<glsAttributeLocationTests.Attribute>} */ var attributes = [];
+		/** @type{Array<glsAttributeLocationTests.Bind>} */ var	bindings = [];
+		/** @type{Array<glsAttributeLocationTests.Attribute>} */ var attributes = [];
 
-	attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_0', 3, glsAttributeLocationTests.ConstCond.ALWAYS, this.m_arraySize));
-	bindings.push(new glsAttributeLocationTests.Bind('a_0', 4));
+		attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_0', 3, glsAttributeLocationTests.ConstCond.ALWAYS, this.m_arraySize));
+		bindings.push(new glsAttributeLocationTests.Bind('a_0', 4));
 
-	glsAttributeLocationTests.runTest(this.m_testCtx, this.m_renderCtx, attributes, noBindings, bindings, noBindings, false);
-	return tcuTestCase.IterateResult.STOP;
-}
+		glsAttributeLocationTests.runTest(this.m_testCtx, this.m_renderCtx, attributes, noBindings, bindings, noBindings, false);
+		return tcuTestCase.IterateResult.STOP;
+	}
 
 	/**
 	 * @constructor
@@ -1484,9 +1490,9 @@ glsAttributeLocationTests.MixedAttributeTest.prototype.iterate = function()
 		/** @type{Array<glsAttributeLocationTests.Attribute>} */ var attributes = [];
 		/** @type{number} */ var ndx = 0;
 
-		this.m_testCtx.getLog() << TestLog::Message << 'GL_MAX_VERTEX_ATTRIBS: ' << maxAttributes << TestLog::EndMessage;
+		//this.m_testCtx.getLog() << TestLog::Message << 'GL_MAX_VERTEX_ATTRIBS: ' << maxAttributes << TestLog::EndMessage;
 
-		for (int loc = maxAttributes - (arrayElementCount * this.m_type.getLocationSize()); loc >= 0; loc -= (arrayElementCount * this.m_type.getLocationSize()))
+		for (loc = maxAttributes - (arrayElementCount * this.m_type.getLocationSize()); loc >= 0; loc -= (arrayElementCount * this.m_type.getLocationSize()))
 		{
 			if ((ndx % 2) != 0)
 				attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_' + ndx, loc, glsAttributeLocationTests.ConstCond.ALWAYS, this.m_arraySize));
@@ -1618,7 +1624,7 @@ glsAttributeLocationTests.MixedAttributeTest.prototype.iterate = function()
 		attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_1', glsAttributeLocationTests.LocationEnum.UNDEF, glsAttributeLocationTests.ConstCond.ALWAYS, this.m_arraySize));
 
 		ndx = 2;
-		for (int loc = 1 + this.m_type.getLocationSize() * arrayElementCount; loc < maxAttributes; loc++)
+		for (loc = 1 + this.m_type.getLocationSize() * arrayElementCount; loc < maxAttributes; loc++)
 		{
 			attributes.push(Attribute(vec4, 'a_' + ndx));
 			preLinkBindings.push(Bind('a_' + ndx, loc));
