@@ -743,7 +743,6 @@ glsTextureTestUtil.TextureRenderer.prototype.renderQuad = function(texUnit, texC
     if (params.flags.log_programs)
         log << *program;
     */
-    glsTextureTestUtil.GLU_EXPECT_NO_ERROR(gl.getError(), 'Set vertex attributes');
 
     // Program and uniforms.
     var prog = program.getProgram();
@@ -772,9 +771,7 @@ glsTextureTestUtil.TextureRenderer.prototype.renderQuad = function(texUnit, texC
     // {
     //     log << TestLog::Message << "u_colorScale = " << params.colorScale << TestLog::EndMessage;
     //     log << TestLog::Message << "u_colorBias = " << params.colorBias << TestLog::EndMessage;
-    // }
-
-    glsTextureTestUtil.GLU_EXPECT_NO_ERROR(gl.getError(), 'Set program state'); {
+    // } {
         var vertexArrays = [];
         // console.log(position);
         // console.log(texCoord);
@@ -791,7 +788,7 @@ glsTextureTestUtil.TextureRenderer.prototype.renderQuad = function(texUnit, texC
         vertexArrays.push(new gluDrawUtil.VertexArrayBinding(gl.FLOAT, posLoc, 4, 4, position));
         vertexArrays.push(new gluDrawUtil.VertexArrayBinding(gl.FLOAT, texLoc, numComps, 4, texCoord));
         gluDrawUtil.draw(gl, prog, vertexArrays, gluDrawUtil.triangles(indices));
-    }
+    };
 };
 // public:
 //                                 glsTextureTestUtil.TextureRenderer (const glu::RenderContext& context, tcu::TestContext& testCtx, glu::GLSLVersion glslVersion, glu::Precision texCoordPrecision);
@@ -1450,7 +1447,7 @@ glsTextureTestUtil.computeTextureLookupDiff = function(result, reference, errorM
                 /** @type {boolean} */
                 var isOk = tcuTexLookupVerifier.isLookupResultValid(src, sampleParams.sampler, lookupPrec, coord, clampedLod, resPix);
 
-                if (!isOk){
+                if (!isOk) {
                     /** @type {tcuRGBA.RGBA} */ var red = tcuRGBA.newRGBAComponents(255, 0, 0, 0);
                     errorMask.setPixel(red.toVec(), px, py);
                     numFailed += 1;

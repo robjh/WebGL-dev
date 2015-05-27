@@ -20,19 +20,19 @@
 
 'use strict';
 goog.provide('modules.shared.glsDrawTests');
-goog.require('framework.common.tcuTestCase');
-goog.require('framework.common.tcuRGBA');
 goog.require('framework.common.tcuFloat');
-goog.require('framework.common.tcuPixelFormat');
-goog.require('framework.common.tcuSurface');
 goog.require('framework.common.tcuImageCompare');
+goog.require('framework.common.tcuPixelFormat');
+goog.require('framework.common.tcuRGBA');
+goog.require('framework.common.tcuSurface');
+goog.require('framework.common.tcuTestCase');
+goog.require('framework.delibs.debase.deMath');
+goog.require('framework.delibs.debase.deRandom');
 goog.require('framework.opengl.gluShaderUtil');
 goog.require('framework.opengl.gluStrUtil');
 goog.require('framework.opengl.simplereference.sglrGLContext');
 goog.require('framework.opengl.simplereference.sglrReferenceContext');
 goog.require('framework.opengl.simplereference.sglrShaderProgram');
-goog.require('framework.delibs.debase.deMath');
-goog.require('framework.delibs.debase.deRandom');
 goog.require('framework.referencerenderer.rrFragmentOperations');
 goog.require('framework.referencerenderer.rrGenericVector');
 goog.require('framework.referencerenderer.rrShadingContext');
@@ -61,7 +61,6 @@ goog.scope(function() {
     var rrVertexAttrib = framework.referencerenderer.rrVertexAttrib;
     var rrVertexPacket = framework.referencerenderer.rrVertexPacket;
 
-
     var MAX_RENDER_TARGET_SIZE = 512;
 
     // Utils
@@ -70,7 +69,7 @@ goog.scope(function() {
      * @param {glsDrawTests.DrawTestSpec.Target} target
      * @return {number}
      */
-    glsDrawTests.targetToGL = function (target) {
+    glsDrawTests.targetToGL = function(target) {
         assertMsgOptions(target == null, 'Target is null', false, true);
 
         var targets = [
@@ -85,22 +84,22 @@ goog.scope(function() {
      * @param {?glsDrawTests.DrawTestSpec.Usage} usage
      * @return {number}
      */
-    glsDrawTests.usageToGL = function (usage) {
+    glsDrawTests.usageToGL = function(usage) {
         assertMsgOptions(usage == null, 'Usage is null', false, true);
 
         var usages = [
-            gl.DYNAMIC_DRAW,    // USAGE_DYNAMIC_DRAW = 0,
-            gl.STATIC_DRAW,        // USAGE_STATIC_DRAW,
-            gl.STREAM_DRAW,        // USAGE_STREAM_DRAW,
+            gl.DYNAMIC_DRAW, // USAGE_DYNAMIC_DRAW = 0,
+            gl.STATIC_DRAW, // USAGE_STATIC_DRAW,
+            gl.STREAM_DRAW, // USAGE_STREAM_DRAW,
 
-            gl.STREAM_READ,        // USAGE_STREAM_READ,
-            gl.STREAM_COPY,        // USAGE_STREAM_COPY,
+            gl.STREAM_READ, // USAGE_STREAM_READ,
+            gl.STREAM_COPY, // USAGE_STREAM_COPY,
 
-            gl.STATIC_READ,        // USAGE_STATIC_READ,
-            gl.STATIC_COPY,        // USAGE_STATIC_COPY,
+            gl.STATIC_READ, // USAGE_STATIC_READ,
+            gl.STATIC_COPY, // USAGE_STATIC_COPY,
 
-            gl.DYNAMIC_READ,    // USAGE_DYNAMIC_READ,
-            gl.DYNAMIC_COPY        // USAGE_DYNAMIC_COPY,
+            gl.DYNAMIC_READ, // USAGE_DYNAMIC_READ,
+            gl.DYNAMIC_COPY // USAGE_DYNAMIC_COPY,
         ];
         assertMsgOptions(usages.length == Object.keys(glsDrawTests.DrawTestSpec.Usage).length,
             'Amount of usage gl vlaues is different from amount of usages', false, true);
@@ -112,21 +111,21 @@ goog.scope(function() {
      * @param {?glsDrawTests.DrawTestSpec.InputType} type
      * @return {number}
      */
-    glsDrawTests.inputTypeToGL = function (type) {
+    glsDrawTests.inputTypeToGL = function(type) {
         assertMsgOptions(type == null, 'Input type is null', false, true);
 
         var types = [
-            gl.FLOAT,                // INPUTTYPE_FLOAT = 0,
-            gl.BYTE,                // INPUTTYPE_BYTE,
-            gl.SHORT,                // INPUTTYPE_SHORT,
-            gl.UNSIGNED_BYTE,        // INPUTTYPE_UNSIGNED_BYTE,
-            gl.UNSIGNED_SHORT,        // INPUTTYPE_UNSIGNED_SHORT,
+            gl.FLOAT, // INPUTTYPE_FLOAT = 0,
+            gl.BYTE, // INPUTTYPE_BYTE,
+            gl.SHORT, // INPUTTYPE_SHORT,
+            gl.UNSIGNED_BYTE, // INPUTTYPE_UNSIGNED_BYTE,
+            gl.UNSIGNED_SHORT, // INPUTTYPE_UNSIGNED_SHORT,
 
-            gl.INT,                    // INPUTTYPE_INT,
-            gl.UNSIGNED_INT,        // INPUTTYPE_UNSIGNED_INT,
-            gl.HALF_FLOAT,            // INPUTTYPE_HALF,
+            gl.INT, // INPUTTYPE_INT,
+            gl.UNSIGNED_INT, // INPUTTYPE_UNSIGNED_INT,
+            gl.HALF_FLOAT, // INPUTTYPE_HALF,
             gl.UNSIGNED_INT_2_10_10_10_REV, // INPUTTYPE_UNSIGNED_INT_2_10_10_10,
-            gl.INT_2_10_10_10_REV            // INPUTTYPE_INT_2_10_10_10,
+            gl.INT_2_10_10_10_REV // INPUTTYPE_INT_2_10_10_10,
         ];
         assertMsgOptions(types.length == Object.keys(glsDrawTests.DrawTestSpec.InputType).length,
             'Amount of gl input types is different from amount of input types', false, true);
@@ -138,25 +137,25 @@ goog.scope(function() {
      * @param {?glsDrawTests.DrawTestSpec.OutputType} type
      * @return {string}
      */
-    glsDrawTests.outputTypeToGLType = function (type) {
+    glsDrawTests.outputTypeToGLType = function(type) {
         assertMsgOptions(type == null, 'Output type is null', false, true);
 
         var types = [
-            "float",        // OUTPUTTYPE_FLOAT = 0,
-            "vec2",            // OUTPUTTYPE_VEC2,
-            "vec3",            // OUTPUTTYPE_VEC3,
-            "vec4",            // OUTPUTTYPE_VEC4,
+            'float', // OUTPUTTYPE_FLOAT = 0,
+            'vec2', // OUTPUTTYPE_VEC2,
+            'vec3', // OUTPUTTYPE_VEC3,
+            'vec4', // OUTPUTTYPE_VEC4,
 
-            "int",            // OUTPUTTYPE_INT,
-            "uint",            // OUTPUTTYPE_UINT,
+            'int', // OUTPUTTYPE_INT,
+            'uint', // OUTPUTTYPE_UINT,
 
-            "ivec2",        // OUTPUTTYPE_IVEC2,
-            "ivec3",        // OUTPUTTYPE_IVEC3,
-            "ivec4",        // OUTPUTTYPE_IVEC4,
+            'ivec2', // OUTPUTTYPE_IVEC2,
+            'ivec3', // OUTPUTTYPE_IVEC3,
+            'ivec4', // OUTPUTTYPE_IVEC4,
 
-            "uvec2",        // OUTPUTTYPE_UVEC2,
-            "uvec3",        // OUTPUTTYPE_UVEC3,
-            "uvec4"        // OUTPUTTYPE_UVEC4,
+            'uvec2', // OUTPUTTYPE_UVEC2,
+            'uvec3', // OUTPUTTYPE_UVEC3,
+            'uvec4' // OUTPUTTYPE_UVEC4,
         ];
         assertMsgOptions(types.length == Object.keys(glsDrawTests.DrawTestSpec.OutputType).length,
             'Amount of output type names is different than amount of output types', false, true);
@@ -168,14 +167,14 @@ goog.scope(function() {
      * @param {glsDrawTests.DrawTestSpec.Primitive} primitive
      * @return {number}
      */
-    glsDrawTests.primitiveToGL = function (primitive) {
+    glsDrawTests.primitiveToGL = function(primitive) {
         var primitives = [
-            gl.POINTS,                        // PRIMITIVE_POINTS = 0,
-            gl.TRIANGLES,                    // PRIMITIVE_TRIANGLES,
-            gl.TRIANGLE_FAN,                // PRIMITIVE_TRIANGLE_FAN,
-            gl.TRIANGLE_STRIP,                // PRIMITIVE_TRIANGLE_STRIP,
-            gl.LINES,                        // PRIMITIVE_LINES
-            gl.LINE_STRIP,                    // PRIMITIVE_LINE_STRIP
+            gl.POINTS, // PRIMITIVE_POINTS = 0,
+            gl.TRIANGLES, // PRIMITIVE_TRIANGLES,
+            gl.TRIANGLE_FAN, // PRIMITIVE_TRIANGLE_FAN,
+            gl.TRIANGLE_STRIP, // PRIMITIVE_TRIANGLE_STRIP,
+            gl.LINES, // PRIMITIVE_LINES
+            gl.LINE_STRIP, // PRIMITIVE_LINE_STRIP
             gl.LINE_LOOP
         ];
         assertMsgOptions(primitives.length == Object.keys(glsDrawTests.DrawTestSpec.Primitive).length,
@@ -188,11 +187,11 @@ goog.scope(function() {
      * @param {?glsDrawTests.DrawTestSpec.IndexType} indexType
      * @return {number}
      */
-    glsDrawTests.indexTypeToGL = function (indexType) {
+    glsDrawTests.indexTypeToGL = function(indexType) {
         var indexTypes = [
-            gl.UNSIGNED_BYTE,    // INDEXTYPE_BYTE = 0,
-            gl.UNSIGNED_SHORT,    // INDEXTYPE_SHORT,
-            gl.UNSIGNED_INT    // INDEXTYPE_INT,
+            gl.UNSIGNED_BYTE, // INDEXTYPE_BYTE = 0,
+            gl.UNSIGNED_SHORT, // INDEXTYPE_SHORT,
+            gl.UNSIGNED_INT // INDEXTYPE_INT,
         ];
         assertMsgOptions(indexTypes.length == Object.keys(glsDrawTests.DrawTestSpec.IndexType).length,
             'Amount of gl index types is different than amount of index types', false, true);
@@ -204,7 +203,7 @@ goog.scope(function() {
      * @param {?glsDrawTests.DrawTestSpec.InputType} type
      * @return {boolean}
      */
-    glsDrawTests.inputTypeIsFloatType = function (type) {
+    glsDrawTests.inputTypeIsFloatType = function(type) {
         if (type == glsDrawTests.DrawTestSpec.InputType.FLOAT)
             return true;
         if (type == glsDrawTests.DrawTestSpec.InputType.HALF)
@@ -216,11 +215,11 @@ goog.scope(function() {
      * @param {?glsDrawTests.DrawTestSpec.OutputType} type
      * @return {boolean}
      */
-    glsDrawTests.outputTypeIsFloatType = function (type) {
-        if (type == glsDrawTests.DrawTestSpec.OutputType.FLOAT
-            || type == glsDrawTests.DrawTestSpec.OutputType.VEC2
-            || type == glsDrawTests.DrawTestSpec.OutputType.VEC3
-            || type == glsDrawTests.DrawTestSpec.OutputType.VEC4)
+    glsDrawTests.outputTypeIsFloatType = function(type) {
+        if (type == glsDrawTests.DrawTestSpec.OutputType.FLOAT ||
+            type == glsDrawTests.DrawTestSpec.OutputType.VEC2 ||
+            type == glsDrawTests.DrawTestSpec.OutputType.VEC3 ||
+            type == glsDrawTests.DrawTestSpec.OutputType.VEC4)
             return true;
 
         return false;
@@ -230,11 +229,11 @@ goog.scope(function() {
      * @param {?glsDrawTests.DrawTestSpec.OutputType} type
      * @return {boolean}
      */
-    glsDrawTests.outputTypeIsIntType = function (type) {
-        if (type == glsDrawTests.DrawTestSpec.OutputType.INT
-            || type == glsDrawTests.DrawTestSpec.OutputType.IVEC2
-            || type == glsDrawTests.DrawTestSpec.OutputType.IVEC3
-            || type == glsDrawTests.DrawTestSpec.OutputType.IVEC4)
+    glsDrawTests.outputTypeIsIntType = function(type) {
+        if (type == glsDrawTests.DrawTestSpec.OutputType.INT ||
+            type == glsDrawTests.DrawTestSpec.OutputType.IVEC2 ||
+            type == glsDrawTests.DrawTestSpec.OutputType.IVEC3 ||
+            type == glsDrawTests.DrawTestSpec.OutputType.IVEC4)
             return true;
 
         return false;
@@ -244,11 +243,11 @@ goog.scope(function() {
      * @param {?glsDrawTests.DrawTestSpec.OutputType} type
      * @return {boolean}
      */
-    glsDrawTests.outputTypeIsUintType = function (type) {
-        if (type == glsDrawTests.DrawTestSpec.OutputType.UINT
-            || type == glsDrawTests.DrawTestSpec.OutputType.UVEC2
-            || type == glsDrawTests.DrawTestSpec.OutputType.UVEC3
-            || type == glsDrawTests.DrawTestSpec.OutputType.UVEC4)
+    glsDrawTests.outputTypeIsUintType = function(type) {
+        if (type == glsDrawTests.DrawTestSpec.OutputType.UINT ||
+            type == glsDrawTests.DrawTestSpec.OutputType.UVEC2 ||
+            type == glsDrawTests.DrawTestSpec.OutputType.UVEC3 ||
+            type == glsDrawTests.DrawTestSpec.OutputType.UVEC4)
             return true;
 
         return false;
@@ -259,15 +258,15 @@ goog.scope(function() {
      * @param {number} primitiveCount
      * @return {number}
      */
-    glsDrawTests.getElementCount = function (primitive, primitiveCount) {
+    glsDrawTests.getElementCount = function(primitive, primitiveCount) {
         switch (primitive) {
-            case glsDrawTests.DrawTestSpec.Primitive.POINTS:                        return primitiveCount;
-            case glsDrawTests.DrawTestSpec.Primitive.TRIANGLES:                        return primitiveCount * 3;
-            case glsDrawTests.DrawTestSpec.Primitive.TRIANGLE_FAN:                    return primitiveCount + 2;
-            case glsDrawTests.DrawTestSpec.Primitive.TRIANGLE_STRIP:                return primitiveCount + 2;
-            case glsDrawTests.DrawTestSpec.Primitive.LINES:                            return primitiveCount * 2;
-            case glsDrawTests.DrawTestSpec.Primitive.LINE_STRIP:                    return primitiveCount + 1;
-            case glsDrawTests.DrawTestSpec.Primitive.LINE_LOOP:                        return (primitiveCount==1) ? (2) : (primitiveCount);
+            case glsDrawTests.DrawTestSpec.Primitive.POINTS: return primitiveCount;
+            case glsDrawTests.DrawTestSpec.Primitive.TRIANGLES: return primitiveCount * 3;
+            case glsDrawTests.DrawTestSpec.Primitive.TRIANGLE_FAN: return primitiveCount + 2;
+            case glsDrawTests.DrawTestSpec.Primitive.TRIANGLE_STRIP: return primitiveCount + 2;
+            case glsDrawTests.DrawTestSpec.Primitive.LINES: return primitiveCount * 2;
+            case glsDrawTests.DrawTestSpec.Primitive.LINE_STRIP: return primitiveCount + 1;
+            case glsDrawTests.DrawTestSpec.Primitive.LINE_LOOP: return (primitiveCount == 1) ? (2) : (primitiveCount);
             default:
                 throw new Error('Invalid primitive');
         }
@@ -289,14 +288,9 @@ goog.scope(function() {
      * @param {?glsDrawTests.DrawTestSpec.DrawMethod} method
      * @return {glsDrawTests.MethodInfo}
      */
-    glsDrawTests.getMethodInfo = function (method) {
+    glsDrawTests.getMethodInfo = function(method) {
         /** @type {Array<glsDrawTests.MethodInfo>} */ var infos = [
-            //indexed        instanced         ranged        first
-            {indexed: false, instanced: false, ranged:false, first:true}, //!< DRAWMETHOD_DRAWARRAYS,
-            {indexed: false, instanced: true, ranged:false, first:true}, //!< DRAWMETHOD_DRAWARRAYS_INSTANCED,
-            {indexed: true, instanced: false, ranged:false, first:false}, //!< DRAWMETHOD_DRAWELEMENTS,
-            {indexed: true, instanced: false, ranged:true, first:false}, //!< DRAWMETHOD_DRAWELEMENTS_RANGED,
-            {indexed: true, instanced: true, ranged:false, first:false} //!< DRAWMETHOD_DRAWELEMENTS_INSTANCED
+            //indexed instanced ranged first{indexed: false, instanced: false, ranged: false, first: true}, //!< DRAWMETHOD_DRAWARRAYS,{indexed: false, instanced: true, ranged: false, first: true}, //!< DRAWMETHOD_DRAWARRAYS_INSTANCED,{indexed: true, instanced: false, ranged: false, first: false}, //!< DRAWMETHOD_DRAWELEMENTS,{indexed: true, instanced: false, ranged: true, first: false}, //!< DRAWMETHOD_DRAWELEMENTS_RANGED,{indexed: true, instanced: true, ranged: false, first: false} //!< DRAWMETHOD_DRAWELEMENTS_INSTANCED
         ];
 
         assertMsgOptions(infos.length == Object.keys(glsDrawTests.DrawTestSpec.DrawMethod).length,
@@ -310,7 +304,7 @@ goog.scope(function() {
      * @param {glsDrawTests.DrawTestSpec} b
      * @return {boolean}
      */
-    glsDrawTests.checkSpecsShaderCompatible = function (a, b) {
+    glsDrawTests.checkSpecsShaderCompatible = function(a, b) {
         // Only the attributes matter
         if (a.attribs.length != b.attribs.length)
             return false;
@@ -341,7 +335,7 @@ goog.scope(function() {
      * @param {deRandom.Random} random
      * @return {Array<number>}
      */
-    glsDrawTests.generateRandomVec4 = function (random) {
+    glsDrawTests.generateRandomVec4 = function(random) {
         /** @type {Array<number>} */ var retVal;
 
         for (var i = 0; i < 4; ++i)
@@ -354,7 +348,7 @@ goog.scope(function() {
      * @param {deRandom.Random} random
      * @return {Array<number>}
      */
-    glsDrawTests.generateRandomIVec4 = function (random) {
+    glsDrawTests.generateRandomIVec4 = function(random) {
         /** @type {Array<number>} */ var retVal;
 
         for (var i = 0; i < 4; ++i)
@@ -367,7 +361,7 @@ goog.scope(function() {
      * @param {deRandom.Random} random
      * @return {Array<number>}
      */
-    glsDrawTests.generateRandomUVec4 = function (random) {
+    glsDrawTests.generateRandomUVec4 = function(random) {
         /** @type {Array<number>} */ var retVal;
 
         for (var i = 0; i < 4; ++i)
@@ -484,7 +478,7 @@ goog.scope(function() {
     glsDrawTests.GLValue.floatToHalf = function(f) {
         // No denorm support.
         return tcuFloat.numberToHalfFloatNoDenorm(f);
-    }
+    };
 
     /**
      * glsDrawTests.GLValue.getMaxValue
@@ -640,7 +634,7 @@ goog.scope(function() {
      */
     glsDrawTests.GLValue.abs = function(val) {
         var type = val.getType();
-        switch(type) {
+        switch (type) {
             case glsDrawTests.DrawTestSpec.InputType.SHORT:
                 return glsDrawTests.GLValue.create(0x7FFF & val.getValue(), type);
             case glsDrawTests.DrawTestSpec.InputType.BYTE:
@@ -810,7 +804,7 @@ goog.scope(function() {
      * @param {?glsDrawTests.DrawTestSpec.Storage} storage
      * @param {sglrGLContext.GLContext | sglrReferenceContext.ReferenceContext} context
      */
-    glsDrawTests.AttributeArray = function (storage, context) {
+    glsDrawTests.AttributeArray = function(storage, context) {
         /** @type {?glsDrawTests.DrawTestSpec.Storage} */ this.m_storage = storage;
         /** @type {sglrGLContext.GLContext | sglrReferenceContext.ReferenceContext} */ this.m_ctx = context;
         /** @type {WebGLBuffer|sglrReferenceContext.DataBuffer|null} */ this.m_glBuffer;
@@ -835,23 +829,23 @@ goog.scope(function() {
         }
     };
 
-    /** @return {number} */ glsDrawTests.AttributeArray.prototype.getComponentCount = function () {return this.m_componentCount;};
+    /** @return {number} */ glsDrawTests.AttributeArray.prototype.getComponentCount = function() {return this.m_componentCount;};
 
-    /** @return {?glsDrawTests.DrawTestSpec.Target} */ glsDrawTests.AttributeArray.prototype.getTarget = function () {return this.m_target;};
+    /** @return {?glsDrawTests.DrawTestSpec.Target} */ glsDrawTests.AttributeArray.prototype.getTarget = function() {return this.m_target;};
 
-    /** @return {?glsDrawTests.DrawTestSpec.InputType} */ glsDrawTests.AttributeArray.prototype.getInputType = function () {return this.m_inputType;};
+    /** @return {?glsDrawTests.DrawTestSpec.InputType} */ glsDrawTests.AttributeArray.prototype.getInputType = function() {return this.m_inputType;};
 
-    /** @return {?glsDrawTests.DrawTestSpec.OutputType} */ glsDrawTests.AttributeArray.prototype.getOutputType = function () {return this.m_outputType;};
+    /** @return {?glsDrawTests.DrawTestSpec.OutputType} */ glsDrawTests.AttributeArray.prototype.getOutputType = function() {return this.m_outputType;};
 
-    /** @return {?glsDrawTests.DrawTestSpec.Storage} */ glsDrawTests.AttributeArray.prototype.getStorageType = function () {return this.m_storage;};
+    /** @return {?glsDrawTests.DrawTestSpec.Storage} */ glsDrawTests.AttributeArray.prototype.getStorageType = function() {return this.m_storage;};
 
-    /** @return {boolean} */ glsDrawTests.AttributeArray.prototype.getNormalized = function () {return this.m_normalize;};
+    /** @return {boolean} */ glsDrawTests.AttributeArray.prototype.getNormalized = function() {return this.m_normalize;};
 
-    /** @return {number} */ glsDrawTests.AttributeArray.prototype.getStride = function () {return this.m_stride;};
+    /** @return {number} */ glsDrawTests.AttributeArray.prototype.getStride = function() {return this.m_stride;};
 
-    /** @return {boolean} */ glsDrawTests.AttributeArray.prototype.isBound = function () {return this.m_bound;};
+    /** @return {boolean} */ glsDrawTests.AttributeArray.prototype.isBound = function() {return this.m_bound;};
 
-    /** @return {boolean} */ glsDrawTests.AttributeArray.prototype.isPositionAttribute = function () {return this.m_isPositionAttr;};
+    /** @return {boolean} */ glsDrawTests.AttributeArray.prototype.isPositionAttribute = function() {return this.m_isPositionAttr;};
 
     /**
      * @param {glsDrawTests.DrawTestSpec.Target} target
@@ -859,16 +853,14 @@ goog.scope(function() {
      * @param {goog.TypedArray} ptr
      * @param {?glsDrawTests.DrawTestSpec.Usage} usage
      */
-    glsDrawTests.AttributeArray.prototype.data = function (target, size, ptr, usage) {
+    glsDrawTests.AttributeArray.prototype.data = function(target, size, ptr, usage) {
         this.m_size = size;
         this.m_target = target;
 
-        if (this.m_storage == glsDrawTests.DrawTestSpec.Storage.BUFFER)
-        {
+        if (this.m_storage == glsDrawTests.DrawTestSpec.Storage.BUFFER) {
             this.m_ctx.bindBuffer(glsDrawTests.targetToGL(target), this.m_glBuffer);
             this.m_ctx.bufferData(glsDrawTests.targetToGL(target), size, ptr, glsDrawTests.usageToGL(usage));
-        }
-        else
+        } else
             throw new Error('Wrong storage type');
     };
 
@@ -878,15 +870,14 @@ goog.scope(function() {
      * @param {number} size
      * @param {goog.TypedArray} ptr
      */
-    glsDrawTests.AttributeArray.prototype.subdata = function (target, offset, size, ptr) {
+    glsDrawTests.AttributeArray.prototype.subdata = function(target, offset, size, ptr) {
         this.m_target = target;
 
         if (this.m_storage == glsDrawTests.DrawTestSpec.Storage.BUFFER) {
             this.m_ctx.bindBuffer(glsDrawTests.targetToGL(target), this.m_glBuffer);
 
             this.m_ctx.bufferSubData(glsDrawTests.targetToGL(target), offset, size, ptr);
-        }
-        else
+        } else
             throw new Error('Wrong storage type');
     };
 
@@ -903,7 +894,7 @@ goog.scope(function() {
      * @param {boolean} isPositionAttr
      * @param {boolean} bgraComponentOrder
      */
-    glsDrawTests.AttributeArray.prototype.setupArray = function (bound, offset, size, inputType, outType,
+    glsDrawTests.AttributeArray.prototype.setupArray = function(bound, offset, size, inputType, outType,
         normalized, stride, instanceDivisor, defaultAttrib, isPositionAttr, bgraComponentOrder) {
         this.m_componentCount = size;
         this.m_bound = bound;
@@ -921,7 +912,7 @@ goog.scope(function() {
     /**
      * @param {number} loc (32-bit)
      */
-    glsDrawTests.AttributeArray.prototype.bindAttribute = function (loc) {
+    glsDrawTests.AttributeArray.prototype.bindAttribute = function(loc) {
         if (!this.isBound()) {
             /** @type {rrGenericVector.GenericVec4} */ var attr = this.m_defaultAttrib;
             switch (this.m_inputType) {
@@ -989,7 +980,7 @@ goog.scope(function() {
     /**
      * @param {glsDrawTests.DrawTestSpec.Target} target
      */
-    glsDrawTests.AttributeArray.prototype.bindIndexArray = function (target) {
+    glsDrawTests.AttributeArray.prototype.bindIndexArray = function(target) {
         if (this.m_storage == glsDrawTests.DrawTestSpec.Storage.BUFFER) {
             this.m_ctx.bindBuffer(glsDrawTests.targetToGL(target), this.m_glBuffer);
         }
@@ -1002,7 +993,7 @@ goog.scope(function() {
      * @extends {sglrShaderProgram.ShaderProgram}
      * @param {Array<glsDrawTests.AttributeArray>} arrays
      */
-    glsDrawTests.DrawTestShaderProgram = function (arrays) {
+    glsDrawTests.DrawTestShaderProgram = function(arrays) {
         sglrShaderProgram.ShaderProgram.call(this, this.createProgramDeclaration(arrays));
 
         this.m_componentCount = arrays.length;
@@ -1026,7 +1017,7 @@ goog.scope(function() {
      * @param {boolean} isCoordinate
      * @param {number} numComponents
      */
-    glsDrawTests.calcShaderColorCoord = function (coord, color, attribValue, isCoordinate, numComponents) {
+    glsDrawTests.calcShaderColorCoord = function(coord, color, attribValue, isCoordinate, numComponents) {
         if (isCoordinate)
             switch (numComponents) {
                 case 1: coord = deMath.add(coord, [attribValue[0], attribValue[0]]); break;
@@ -1036,10 +1027,8 @@ goog.scope(function() {
 
                 default:
                     throw new Error('Invalid component count');
-            }
-        else {
-            switch (numComponents)
-            {
+            } else {
+            switch (numComponents) {
                 case 1:
                     color = deMath.scale(color, attribValue[0]);
                     break;
@@ -1072,9 +1061,9 @@ goog.scope(function() {
      * @param {Array<rrVertexPacket.VertexPacket>} packets
      * @param {number} numPackets
      */
-    glsDrawTests.DrawTestShaderProgram.prototype.shadeVertices = function (inputs, packets, numPackets) {
-        var u_coordScale = this.getUniformByName("u_coordScale").value;
-        var u_colorScale = this.getUniformByName("u_colorScale").value;
+    glsDrawTests.DrawTestShaderProgram.prototype.shadeVertices = function(inputs, packets, numPackets) {
+        var u_coordScale = this.getUniformByName('u_coordScale').value;
+        var u_colorScale = this.getUniformByName('u_colorScale').value;
 
         for (var packetNdx = 0; packetNdx < numPackets; ++packetNdx) {
             var varyingLocColor = 0;
@@ -1109,7 +1098,7 @@ goog.scope(function() {
      * @param {Array<rrFragmentOperations.Fragment>} packets
      * @param {rrShadingContext.FragmentShadingContext} context
      */
-    glsDrawTests.DrawTestShaderProgram.prototype.shadeFragments = function (packets, context) {
+    glsDrawTests.DrawTestShaderProgram.prototype.shadeFragments = function(packets, context) {
         var varyingLocColor = 0;
 
         for (var packetNdx = 0; packetNdx < packets.length; ++packetNdx) {
@@ -1122,27 +1111,27 @@ goog.scope(function() {
      * @param {Array<glsDrawTests.AttributeArray>} arrays
      * @return {string}
      */
-    glsDrawTests.DrawTestShaderProgram.prototype.genVertexSource = function (arrays) {
+    glsDrawTests.DrawTestShaderProgram.prototype.genVertexSource = function(arrays) {
         /** @type {Array<string>}*/ var params;
         var vertexShaderTmpl = '';
 
         params = this.generateShaderParams();
 
-        vertexShaderTmpl += params["VTX_HDR"];
+        vertexShaderTmpl += params['VTX_HDR'];
 
         for (var arrayNdx = 0; arrayNdx < arrays.length; arrayNdx++) {
-            vertexShaderTmpl += params["VTX_IN"] + " highp " + glsDrawTests.outputTypeToGLType(arrays[arrayNdx].getOutputType()) + " a_" + arrayNdx + ";\n";
+            vertexShaderTmpl += params['VTX_IN'] + ' highp ' + glsDrawTests.outputTypeToGLType(arrays[arrayNdx].getOutputType()) + ' a_' + arrayNdx + ';\n';
         }
 
         vertexShaderTmpl +=
-            "uniform highp float u_coordScale;\n" +
-            "uniform highp float u_colorScale;\n" +
-            params["VTX_OUT"] + params["COL_PRECISION"] + "vec4 v_color;\n" +
-            "void main(void)\n" +
-            "{\n" +
-            "\tgl_PointSize = 1.0;\n" +
-            "\thighp vec2 coord = vec2(0.0, 0.0);\n" +
-            "\thighp vec3 color = vec3(1.0, 1.0, 1.0);\n";
+            'uniform highp float u_coordScale;\n' +
+            'uniform highp float u_colorScale;\n' +
+            params['VTX_OUT'] + params['COL_PRECISION'] + 'vec4 v_color;\n' +
+            'void main(void)\n' +
+            '{\n' +
+            '\tgl_PointSize = 1.0;\n' +
+            '\thighp vec2 coord = vec2(0.0, 0.0);\n' +
+            '\thighp vec3 color = vec3(1.0, 1.0, 1.0);\n';
 
         for (var arrayNdx = 0; arrayNdx < arrays.length; arrayNdx++) {
             var isPositionAttr = arrays[arrayNdx].isPositionAttribute();
@@ -1153,67 +1142,64 @@ goog.scope(function() {
                     case (glsDrawTests.DrawTestSpec.OutputType.INT):
                     case (glsDrawTests.DrawTestSpec.OutputType.UINT):
                         vertexShaderTmpl +=
-                            "\tcoord += vec2(float(a_" + arrayNdx + "), float(a_" + arrayNdx + "));\n";
+                            '\tcoord += vec2(float(a_' + arrayNdx + '), float(a_' + arrayNdx + '));\n';
                         break;
 
                     case (glsDrawTests.DrawTestSpec.OutputType.VEC2):
                     case (glsDrawTests.DrawTestSpec.OutputType.IVEC2):
                     case (glsDrawTests.DrawTestSpec.OutputType.UVEC2):
                         vertexShaderTmpl +=
-                            "\tcoord += vec2(a_" + arrayNdx + ".xy);\n";
+                            '\tcoord += vec2(a_' + arrayNdx + '.xy);\n';
                         break;
 
                     case (glsDrawTests.DrawTestSpec.OutputType.VEC3):
                     case (glsDrawTests.DrawTestSpec.OutputType.IVEC3):
                     case (glsDrawTests.DrawTestSpec.OutputType.UVEC3):
                         vertexShaderTmpl +=
-                            "\tcoord += vec2(a_" + arrayNdx + ".xy);\n" +
-                            "\tcoord.x += float(a_" + arrayNdx + ".z);\n";
+                            '\tcoord += vec2(a_' + arrayNdx + '.xy);\n' +
+                            '\tcoord.x += float(a_' + arrayNdx + '.z);\n';
                         break;
 
                     case (glsDrawTests.DrawTestSpec.OutputType.VEC4):
                     case (glsDrawTests.DrawTestSpec.OutputType.IVEC4):
                     case (glsDrawTests.DrawTestSpec.OutputType.UVEC4):
                         vertexShaderTmpl +=
-                            "\tcoord += vec2(a_" + arrayNdx + ".xy);\n" +
-                            "\tcoord += vec2(a_" + arrayNdx + ".zw);\n";
+                            '\tcoord += vec2(a_' + arrayNdx + '.xy);\n' +
+                            '\tcoord += vec2(a_' + arrayNdx + '.zw);\n';
                         break;
 
                     default:
                         throw new Error('Invalid output type');
                         break;
                 }
-            }
-            else
-            {
-                switch (arrays[arrayNdx].getOutputType())
-                {
+            } else{
+                switch (arrays[arrayNdx].getOutputType()) {
                     case (glsDrawTests.DrawTestSpec.OutputType.FLOAT):
                     case (glsDrawTests.DrawTestSpec.OutputType.INT):
                     case (glsDrawTests.DrawTestSpec.OutputType.UINT):
                         vertexShaderTmpl +=
-                            "\tcolor = color * float(a_" + arrayNdx + ");\n";
+                            '\tcolor = color * float(a_' + arrayNdx + ');\n';
                         break;
 
                     case (glsDrawTests.DrawTestSpec.OutputType.VEC2):
                     case (glsDrawTests.DrawTestSpec.OutputType.IVEC2):
                     case (glsDrawTests.DrawTestSpec.OutputType.UVEC2):
                         vertexShaderTmpl +=
-                            "\tcolor.rg = color.rg * vec2(a_" + arrayNdx + ".xy);\n";
+                            '\tcolor.rg = color.rg * vec2(a_' + arrayNdx + '.xy);\n';
                         break;
 
                     case (glsDrawTests.DrawTestSpec.OutputType.VEC3):
                     case (glsDrawTests.DrawTestSpec.OutputType.IVEC3):
                     case (glsDrawTests.DrawTestSpec.OutputType.UVEC3):
                         vertexShaderTmpl +=
-                            "\tcolor = color.rgb * vec3(a_" + arrayNdx + ".xyz);\n";
+                            '\tcolor = color.rgb * vec3(a_' + arrayNdx + '.xyz);\n';
                         break;
 
                     case (glsDrawTests.DrawTestSpec.OutputType.VEC4):
                     case (glsDrawTests.DrawTestSpec.OutputType.IVEC4):
                     case (glsDrawTests.DrawTestSpec.OutputType.UVEC4):
                         vertexShaderTmpl +=
-                            "\tcolor = color.rgb * vec3(a_" + arrayNdx + ".xyz) * float(a_" + arrayNdx + ".w);\n";
+                            '\tcolor = color.rgb * vec3(a_' + arrayNdx + '.xyz) * float(a_' + arrayNdx + '.w);\n';
                         break;
 
                     default:
@@ -1224,9 +1210,9 @@ goog.scope(function() {
         }
 
         vertexShaderTmpl +=
-            "\tv_color = vec4(u_colorScale * color, 1.0) * 0.5 + vec4(0.5, 0.5, 0.5, 0.5);\n" +
-            "\tgl_Position = vec4(u_coordScale * coord, 1.0, 1.0);\n" +
-            "}\n";
+            '\tv_color = vec4(u_colorScale * color, 1.0) * 0.5 + vec4(0.5, 0.5, 0.5, 0.5);\n' +
+            '\tgl_Position = vec4(u_coordScale * coord, 1.0, 1.0);\n' +
+            '}\n';
 
         return vertexShaderTmpl;
     };
@@ -1234,17 +1220,17 @@ goog.scope(function() {
     /**
      * @return {string}
      */
-    glsDrawTests.DrawTestShaderProgram.prototype.genFragmentSource = function () {
+    glsDrawTests.DrawTestShaderProgram.prototype.genFragmentSource = function() {
         /** @type {Array<string>} */ var params;
 
         params = this.generateShaderParams();
 
-        var fragmentShaderTmpl = params["FRAG_HDR"] +
-            params["FRAG_IN"] + " " + params["COL_PRECISION"] + " vec4 v_color;\n" +
-            "void main(void)\n" +
-            "{\n" +
-            "\t" + params["FRAG_COLOR"] + "= v_color;\n" +
-            "}\n";
+        var fragmentShaderTmpl = params['FRAG_HDR'] +
+            params['FRAG_IN'] + ' ' + params['COL_PRECISION'] + ' vec4 v_color;\n' +
+            'void main(void)\n' +
+            '{\n' +
+            '\t' + params['FRAG_COLOR'] + '= v_color;\n' +
+            '}\n';
 
         return fragmentShaderTmpl;
     };
@@ -1252,28 +1238,25 @@ goog.scope(function() {
     /**
      * @return {Array<string>}
      */
-    glsDrawTests.DrawTestShaderProgram.prototype.generateShaderParams = function () {
+    glsDrawTests.DrawTestShaderProgram.prototype.generateShaderParams = function() {
         /** @type {Array<string>} */ var params = [];
         if (gluShaderUtil.isGLSLVersionSupported(gl, gluShaderUtil.GLSLVersion.V300_ES)) {
-            params["VTX_IN"] = "in";
-            params["VTX_OUT"] = "out";
-            params["FRAG_IN"] = "in";
-            params["FRAG_COLOR"] = "dEQP_FragColor";
-            params["VTX_HDR"] = "#version 300 es\n";
-            params["FRAG_HDR"] = "#version 300 es\nlayout(location = 0) out mediump vec4 dEQP_FragColor;\n";
-            params["COL_PRECISION"] = "mediump";
-        }
-        else if (gluShaderUtil.isGLSLVersionSupported(gl, gluShaderUtil.GLSLVersion.V100_ES))
-        {
-            params["VTX_IN"] = "attribute";
-            params["VTX_OUT"] = "varying";
-            params["FRAG_IN"] = "varying";
-            params["FRAG_COLOR"] = "gl_FragColor";
-            params["VTX_HDR"] = "";
-            params["FRAG_HDR"] = "";
-            params["COL_PRECISION"] = "mediump";
-        }
-        else
+            params['VTX_IN'] = 'in';
+            params['VTX_OUT'] = 'out';
+            params['FRAG_IN'] = 'in';
+            params['FRAG_COLOR'] = 'dEQP_FragColor';
+            params['VTX_HDR'] = '#version 300 es\n';
+            params['FRAG_HDR'] = '#version 300 es\nlayout(location = 0) out mediump vec4 dEQP_FragColor;\n';
+            params['COL_PRECISION'] = 'mediump';
+        } else if (gluShaderUtil.isGLSLVersionSupported(gl, gluShaderUtil.GLSLVersion.V100_ES)) {
+            params['VTX_IN'] = 'attribute';
+            params['VTX_OUT'] = 'varying';
+            params['FRAG_IN'] = 'varying';
+            params['FRAG_COLOR'] = 'gl_FragColor';
+            params['VTX_HDR'] = '';
+            params['FRAG_HDR'] = '';
+            params['COL_PRECISION'] = 'mediump';
+        } else
             throw new Error('Invalid GL version');
 
         return params;
@@ -1283,7 +1266,7 @@ goog.scope(function() {
      * @param {?glsDrawTests.DrawTestSpec.OutputType} type
      * @return {rrGenericVector.GenericVecType}
      */
-    glsDrawTests.DrawTestShaderProgram.prototype.mapOutputType = function (type) {
+    glsDrawTests.DrawTestShaderProgram.prototype.mapOutputType = function(type) {
         switch (type) {
             case (glsDrawTests.DrawTestSpec.OutputType.FLOAT):
             case (glsDrawTests.DrawTestSpec.OutputType.VEC2):
@@ -1312,7 +1295,7 @@ goog.scope(function() {
      * @param {?glsDrawTests.DrawTestSpec.OutputType} type
      * @return {number}
      */
-    glsDrawTests.DrawTestShaderProgram.prototype.getComponentCount = function (type) {
+    glsDrawTests.DrawTestShaderProgram.prototype.getComponentCount = function(type) {
         switch (type) {
             case (glsDrawTests.DrawTestSpec.OutputType.FLOAT):
             case (glsDrawTests.DrawTestSpec.OutputType.INT):
@@ -1340,14 +1323,14 @@ goog.scope(function() {
     };
 
     /**
-     * @param {Array.<glsDrawTests.AttributeArray>} arrays
+     * @param {Array<glsDrawTests.AttributeArray>} arrays
      * @return {sglrShaderProgram.ShaderProgramDeclaration}
      */
-    glsDrawTests.DrawTestShaderProgram.prototype.createProgramDeclaration = function (arrays) {
+    glsDrawTests.DrawTestShaderProgram.prototype.createProgramDeclaration = function(arrays) {
         /** @type {sglrShaderProgram.ShaderProgramDeclaration} */ var decl = new sglrShaderProgram.ShaderProgramDeclaration();
 
         for (var arrayNdx = 0; arrayNdx < arrays.length; arrayNdx++)
-            decl.pushVertexAttribute(new sglrShaderProgram.VertexAttribute("a_" + arrayNdx, this.mapOutputType(arrays[arrayNdx].getOutputType())));
+            decl.pushVertexAttribute(new sglrShaderProgram.VertexAttribute('a_' + arrayNdx, this.mapOutputType(arrays[arrayNdx].getOutputType())));
 
         decl.pushVertexToFragmentVarying(new sglrShaderProgram.VertexToFragmentVarying(rrGenericVector.GenericVecType.FLOAT));
         decl.pushFragmentOutput(new sglrShaderProgram.FragmentOutput(rrGenericVector.GenericVecType.FLOAT));
@@ -1355,8 +1338,8 @@ goog.scope(function() {
         decl.pushVertexSource(new sglrShaderProgram.VertexSource(this.genVertexSource(arrays)));
         decl.pushFragmentSource(new sglrShaderProgram.FragmentSource(this.genFragmentSource()));
 
-        decl.pushUniform(new sglrShaderProgram.Uniform("u_coordScale", gluShaderUtil.DataType.FLOAT));
-        decl.pushUniform(new sglrShaderProgram.Uniform("u_colorScale", gluShaderUtil.DataType.FLOAT));
+        decl.pushUniform(new sglrShaderProgram.Uniform('u_coordScale', gluShaderUtil.DataType.FLOAT));
+        decl.pushUniform(new sglrShaderProgram.Uniform('u_colorScale', gluShaderUtil.DataType.FLOAT));
 
         return decl;
     };
@@ -1370,7 +1353,7 @@ goog.scope(function() {
      * @param {boolean} logEnabled
      * @constructor
      */
-    glsDrawTests.AttributePack = function (drawContext, screenSize, useVao, logEnabled) {
+    glsDrawTests.AttributePack = function(drawContext, screenSize, useVao, logEnabled) {
         /** @type {sglrReferenceContext.ReferenceContext | sglrGLContext.GLContext} */ this.m_ctx = drawContext;
 
         /** @type {Array<glsDrawTests.AttributeArray>} */ this.m_arrays;
@@ -1389,35 +1372,35 @@ goog.scope(function() {
      * @param {number} i
      * @return {glsDrawTests.AttributeArray}
      */
-    glsDrawTests.AttributePack.prototype.getArray = function (i) {
+    glsDrawTests.AttributePack.prototype.getArray = function(i) {
         return this.m_arrays[i];
     };
 
     /**
      * @return number
      */
-    glsDrawTests.AttributePack.prototype.getArrayCount = function () {
+    glsDrawTests.AttributePack.prototype.getArrayCount = function() {
         return this.m_arrays.length;
     };
 
     /**
      * @param {?glsDrawTests.DrawTestSpec.Storage} storage
      */
-    glsDrawTests.AttributePack.prototype.newArray = function (storage) {
+    glsDrawTests.AttributePack.prototype.newArray = function(storage) {
         this.m_arrays.push(new glsDrawTests.AttributeArray(storage, this.m_ctx));
     };
 
     /**
      * clearArrays
      */
-    glsDrawTests.AttributePack.prototype.clearArrays = function () {
+    glsDrawTests.AttributePack.prototype.clearArrays = function() {
         this.m_arrays.length = 0;
     };
 
     /**
      * updateProgram
      */
-    glsDrawTests.AttributePack.prototype.updateProgram = function () {
+    glsDrawTests.AttributePack.prototype.updateProgram = function() {
         if (this.m_programID)
             this.m_ctx.deleteProgram(this.m_programID);
 
@@ -1441,7 +1424,7 @@ goog.scope(function() {
      * @param {number} colorScale
      * @param {glsDrawTests.AttributeArray} indexArray
      */
-    glsDrawTests.AttributePack.prototype.render = function (primitive, drawMethod, firstVertex, vertexCount, indexType,
+    glsDrawTests.AttributePack.prototype.render = function(primitive, drawMethod, firstVertex, vertexCount, indexType,
         indexOffset, rangeStart, rangeEnd, instanceCount, indirectOffset, baseVertex, coordScale, colorScale, indexArray) {
         assertMsgOptions(this.m_program != null, 'Program is null', false, true);
         assertMsgOptions(this.m_programID != null, 'No context created program', false, true);
@@ -1452,8 +1435,8 @@ goog.scope(function() {
 
         this.m_ctx.useProgram(this.m_programID);
 
-        this.m_ctx.uniform1f(this.m_ctx.getUniformLocation(this.m_programID, "u_coordScale"), coordScale);
-        this.m_ctx.uniform1f(this.m_ctx.getUniformLocation(this.m_programID, "u_colorScale"), colorScale);
+        this.m_ctx.uniform1f(this.m_ctx.getUniformLocation(this.m_programID, 'u_coordScale'), coordScale);
+        this.m_ctx.uniform1f(this.m_ctx.getUniformLocation(this.m_programID, 'u_colorScale'), colorScale);
 
         if (this.m_useVao)
             this.m_ctx.bindVertexArray(this.m_vaoID);
@@ -1463,7 +1446,7 @@ goog.scope(function() {
 
         for (var arrayNdx = 0; arrayNdx < this.m_arrays.length; arrayNdx++) {
             var attribName = '';
-            attribName += "a_" + arrayNdx;
+            attribName += 'a_' + arrayNdx;
 
             var loc = this.m_ctx.getAttribLocation(this.m_programID, attribName);
 
@@ -1489,7 +1472,7 @@ goog.scope(function() {
         for (var arrayNdx = 0; arrayNdx < this.m_arrays.length; arrayNdx++) {
             if (this.m_arrays[arrayNdx].isBound()) {
                 var attribName = '';
-                attribName += "a_" + arrayNdx;
+                attribName += 'a_' + arrayNdx;
 
                 var loc = this.m_ctx.getAttribLocation(this.m_programID, attribName);
 
@@ -1509,21 +1492,21 @@ goog.scope(function() {
     /**
      * @constructor
      */
-    glsDrawTests.DrawTestSpec = function () {
-        //TODO: Check if ApiType is needed --> /** @type {glsDrawTests.DrawTestSpec.ApiType} */ this.apiType;            //!< needed in spec validation
+    glsDrawTests.DrawTestSpec = function() {
+        //TODO: Check if ApiType is needed --> /** @type {glsDrawTests.DrawTestSpec.ApiType} */ this.apiType; //!< needed in spec validation
         /** @type {?glsDrawTests.DrawTestSpec.Primitive} */ this.primitive = null;
-        /** @type {number} */ this.primitiveCount = 0;     //!< number of primitives to draw (per instance)
+        /** @type {number} */ this.primitiveCount = 0; //!< number of primitives to draw (per instance)
 
         /** @type {?glsDrawTests.DrawTestSpec.DrawMethod} */ this.drawMethod = null;
-        /** @type {?glsDrawTests.DrawTestSpec.IndexType} */ this.indexType = null;          //!< used only if drawMethod = DrawElements*
+        /** @type {?glsDrawTests.DrawTestSpec.IndexType} */ this.indexType = null; //!< used only if drawMethod = DrawElements*
         /** @type {number} */ this.indexPointerOffset = 0; //!< used only if drawMethod = DrawElements*
-        /** @type {?glsDrawTests.DrawTestSpec.Storage} */ this.indexStorage = null;       //!< used only if drawMethod = DrawElements*
-        /** @type {number} */ this.first = 0;              //!< used only if drawMethod = DrawArrays*
-        /** @type {number} */ this.indexMin = 0;           //!< used only if drawMethod = Draw*Ranged
-        /** @type {number} */ this.indexMax = 0;           //!< used only if drawMethod = Draw*Ranged
-        /** @type {number} */ this.instanceCount = 0;      //!< used only if drawMethod = Draw*Instanced or Draw*Indirect
-        /** @type {number} */ this.indirectOffset = 0;     //!< used only if drawMethod = Draw*Indirect
-        /** @type {number} */ this.baseVertex = 0;         //!< used only if drawMethod = DrawElementsIndirect or *BaseVertex
+        /** @type {?glsDrawTests.DrawTestSpec.Storage} */ this.indexStorage = null; //!< used only if drawMethod = DrawElements*
+        /** @type {number} */ this.first = 0; //!< used only if drawMethod = DrawArrays*
+        /** @type {number} */ this.indexMin = 0; //!< used only if drawMethod = Draw*Ranged
+        /** @type {number} */ this.indexMax = 0; //!< used only if drawMethod = Draw*Ranged
+        /** @type {number} */ this.instanceCount = 0; //!< used only if drawMethod = Draw*Instanced or Draw*Indirect
+        /** @type {number} */ this.indirectOffset = 0; //!< used only if drawMethod = Draw*Indirect
+        /** @type {number} */ this.baseVertex = 0; //!< used only if drawMethod = DrawElementsIndirect or *BaseVertex
 
         /** @type {Array<glsDrawTests.DrawTestSpec.AttributeSpec>} */ this.attribs = [];
     };
@@ -1536,8 +1519,8 @@ goog.scope(function() {
         assertMsgOptions(target != null, 'Target is null', false, true);
 
         var targets = [
-            "element_array",    // TARGET_ELEMENT_ARRAY = 0,
-            "array"                // TARGET_ARRAY,
+            'element_array', // TARGET_ELEMENT_ARRAY = 0,
+            'array' // TARGET_ARRAY,
         ];
         assertMsgOptions(targets.length == Object.keys(glsDrawTests.DrawTestSpec.Target).length,
             'The amount of target names is different than the amount of targets', false, true);
@@ -1553,19 +1536,19 @@ goog.scope(function() {
         assertMsgOptions(type != null, 'Type is null', false, true);
 
         var types = [
-            "float",            // INPUTTYPE_FLOAT = 0,
+            'float', // INPUTTYPE_FLOAT = 0,
 
-            "byte",                // INPUTTYPE_BYTE,
-            "short",            // INPUTTYPE_SHORT,
+            'byte', // INPUTTYPE_BYTE,
+            'short', // INPUTTYPE_SHORT,
 
-            "unsigned_byte",    // INPUTTYPE_UNSIGNED_BYTE,
-            "unsigned_short",    // INPUTTYPE_UNSIGNED_SHORT,
+            'unsigned_byte', // INPUTTYPE_UNSIGNED_BYTE,
+            'unsigned_short', // INPUTTYPE_UNSIGNED_SHORT,
 
-            "int",                        // INPUTTYPE_INT,
-            "unsigned_int",                // INPUTTYPE_UNSIGNED_INT,
-            "half",                        // INPUTTYPE_HALF,
-            "unsigned_int2_10_10_10",    // INPUTTYPE_UNSIGNED_INT_2_10_10_10,
-            "int2_10_10_10"                // INPUTTYPE_INT_2_10_10_10,
+            'int', // INPUTTYPE_INT,
+            'unsigned_int', // INPUTTYPE_UNSIGNED_INT,
+            'half', // INPUTTYPE_HALF,
+            'unsigned_int2_10_10_10', // INPUTTYPE_UNSIGNED_INT_2_10_10_10,
+            'int2_10_10_10' // INPUTTYPE_INT_2_10_10_10,
         ];
         assertMsgOptions(types.length == Object.keys(glsDrawTests.DrawTestSpec.InputType).length,
             'The amount of type names is different than the amount of types', false, true);
@@ -1577,25 +1560,25 @@ goog.scope(function() {
      * @param {?glsDrawTests.DrawTestSpec.OutputType} type
      * @return {string}
      */
-    glsDrawTests.DrawTestSpec.outputTypeToString = function (type) {
+    glsDrawTests.DrawTestSpec.outputTypeToString = function(type) {
         assertMsgOptions(type != null, 'Type is null', false, true);
 
         var types = [
-            "float",        // OUTPUTTYPE_FLOAT = 0,
-            "vec2",            // OUTPUTTYPE_VEC2,
-            "vec3",            // OUTPUTTYPE_VEC3,
-            "vec4",            // OUTPUTTYPE_VEC4,
+            'float', // OUTPUTTYPE_FLOAT = 0,
+            'vec2', // OUTPUTTYPE_VEC2,
+            'vec3', // OUTPUTTYPE_VEC3,
+            'vec4', // OUTPUTTYPE_VEC4,
 
-            "int",            // OUTPUTTYPE_INT,
-            "uint",            // OUTPUTTYPE_UINT,
+            'int', // OUTPUTTYPE_INT,
+            'uint', // OUTPUTTYPE_UINT,
 
-            "ivec2",        // OUTPUTTYPE_IVEC2,
-            "ivec3",        // OUTPUTTYPE_IVEC3,
-            "ivec4",        // OUTPUTTYPE_IVEC4,
+            'ivec2', // OUTPUTTYPE_IVEC2,
+            'ivec3', // OUTPUTTYPE_IVEC3,
+            'ivec4', // OUTPUTTYPE_IVEC4,
 
-            "uvec2",        // OUTPUTTYPE_UVEC2,
-            "uvec3",        // OUTPUTTYPE_UVEC3,
-            "uvec4"        // OUTPUTTYPE_UVEC4,
+            'uvec2', // OUTPUTTYPE_UVEC2,
+            'uvec3', // OUTPUTTYPE_UVEC3,
+            'uvec4' // OUTPUTTYPE_UVEC4,
         ];
         assertMsgOptions(types.length == Object.keys(glsDrawTests.DrawTestSpec.InputType).length,
             'The amount of type names is different than the amount of types', false, true);
@@ -1607,22 +1590,22 @@ goog.scope(function() {
      * @param {?glsDrawTests.DrawTestSpec.Usage} usage
      * @return {string}
      */
-    glsDrawTests.DrawTestSpec.usageTypeToString = function (usage) {
+    glsDrawTests.DrawTestSpec.usageTypeToString = function(usage) {
         assertMsgOptions(usage != null, 'Usage is null', false, true);
 
         var usages = [
-            "dynamic_draw",    // USAGE_DYNAMIC_DRAW = 0,
-            "static_draw",    // USAGE_STATIC_DRAW,
-            "stream_draw",    // USAGE_STREAM_DRAW,
+            'dynamic_draw', // USAGE_DYNAMIC_DRAW = 0,
+            'static_draw', // USAGE_STATIC_DRAW,
+            'stream_draw', // USAGE_STREAM_DRAW,
 
-            "stream_read",    // USAGE_STREAM_READ,
-            "stream_copy",    // USAGE_STREAM_COPY,
+            'stream_read', // USAGE_STREAM_READ,
+            'stream_copy', // USAGE_STREAM_COPY,
 
-            "static_read",    // USAGE_STATIC_READ,
-            "static_copy",    // USAGE_STATIC_COPY,
+            'static_read', // USAGE_STATIC_READ,
+            'static_copy', // USAGE_STATIC_COPY,
 
-            "dynamic_read",    // USAGE_DYNAMIC_READ,
-            "dynamic_copy"    // USAGE_DYNAMIC_COPY,
+            'dynamic_read', // USAGE_DYNAMIC_READ,
+            'dynamic_copy' // USAGE_DYNAMIC_COPY,
         ];
         assertMsgOptions(usages.length == Object.keys(glsDrawTests.DrawTestSpec.Usage).length,
             'The amount of usage names is different than the amount of usages', false, true);
@@ -1634,12 +1617,12 @@ goog.scope(function() {
      * @param {?glsDrawTests.DrawTestSpec.Storage} storage
      * @return {string}
      */
-    glsDrawTests.DrawTestSpec.storageToString = function (storage) {
+    glsDrawTests.DrawTestSpec.storageToString = function(storage) {
         assertMsgOptions(storage != null, 'Storage is null', false, true);
 
         var storages = [
-            "user_ptr",    // STORAGE_USER = 0,
-            "buffer"    // STORAGE_BUFFER,
+            'user_ptr', // STORAGE_USER = 0,
+            'buffer' // STORAGE_BUFFER,
         ];
         assertMsgOptions(storages.length == Object.keys(glsDrawTests.DrawTestSpec.Storage).length,
             'The amount of storage names is different than the amount of storages', false, true);
@@ -1651,17 +1634,17 @@ goog.scope(function() {
      * @param {glsDrawTests.DrawTestSpec.Primitive} primitive
      * @return {string}
      */
-    glsDrawTests.DrawTestSpec.primitiveToString = function (primitive) {
+    glsDrawTests.DrawTestSpec.primitiveToString = function(primitive) {
         assertMsgOptions(primitive == null, 'Primitive is null', false, true);
 
         var primitives = [
-            "points",                    // PRIMITIVE_POINTS ,
-            "triangles",                // PRIMITIVE_TRIANGLES,
-            "triangle_fan",                // PRIMITIVE_TRIANGLE_FAN,
-            "triangle_strip",            // PRIMITIVE_TRIANGLE_STRIP,
-            "lines",                    // PRIMITIVE_LINES
-            "line_strip",                // PRIMITIVE_LINE_STRIP
-            "line_loop"
+            'points', // PRIMITIVE_POINTS ,
+            'triangles', // PRIMITIVE_TRIANGLES,
+            'triangle_fan', // PRIMITIVE_TRIANGLE_FAN,
+            'triangle_strip', // PRIMITIVE_TRIANGLE_STRIP,
+            'lines', // PRIMITIVE_LINES
+            'line_strip', // PRIMITIVE_LINE_STRIP
+            'line_loop'
         ];
         assertMsgOptions(primitives.length == Object.keys(glsDrawTests.DrawTestSpec.Primitive).length,
             'The amount of primitive names is different than the amount of primitives', false, true);
@@ -1673,13 +1656,13 @@ goog.scope(function() {
      * @param {?glsDrawTests.DrawTestSpec.IndexType} type
      * @return {string}
      */
-    glsDrawTests.DrawTestSpec.indexTypeToString = function (type) {
+    glsDrawTests.DrawTestSpec.indexTypeToString = function(type) {
         assertMsgOptions(type != null, 'Index type is null', false, true);
 
         var indexTypes = [
-            "byte",        // INDEXTYPE_BYTE = 0,
-            "short",    // INDEXTYPE_SHORT,
-            "int"        // INDEXTYPE_INT,
+            'byte', // INDEXTYPE_BYTE = 0,
+            'short', // INDEXTYPE_SHORT,
+            'int' // INDEXTYPE_INT,
         ];
         assertMsgOptions(indexTypes.length == Object.keys(glsDrawTests.DrawTestSpec.IndexType).length,
             'The amount of index type names is different than the amount of index types', false, true);
@@ -1691,15 +1674,15 @@ goog.scope(function() {
      * @param {?glsDrawTests.DrawTestSpec.DrawMethod} method
      * @return {string}
      */
-    glsDrawTests.DrawTestSpec.drawMethodToString = function (method) {
+    glsDrawTests.DrawTestSpec.drawMethodToString = function(method) {
         assertMsgOptions(method != null, 'Method is null', false, true);
 
         var methods = [
-            "draw_arrays",                            //!< DRAWMETHOD_DRAWARRAYS
-            "draw_arrays_instanced",                //!< DRAWMETHOD_DRAWARRAYS_INSTANCED
-            "draw_elements",                        //!< DRAWMETHOD_DRAWELEMENTS
-            "draw_range_elements",                    //!< DRAWMETHOD_DRAWELEMENTS_RANGED
-            "draw_elements_instanced"                //!< DRAWMETHOD_DRAWELEMENTS_INSTANCED
+            'draw_arrays', //!< DRAWMETHOD_DRAWARRAYS
+            'draw_arrays_instanced', //!< DRAWMETHOD_DRAWARRAYS_INSTANCED
+            'draw_elements', //!< DRAWMETHOD_DRAWELEMENTS
+            'draw_range_elements', //!< DRAWMETHOD_DRAWELEMENTS_RANGED
+            'draw_elements_instanced' //!< DRAWMETHOD_DRAWELEMENTS_INSTANCED
         ];
         assertMsgOptions(methods.length == Object.keys(glsDrawTests.DrawTestSpec.DrawMethod).length,
         'The amount of method names is different than the amount of methods', false, true);
@@ -1711,23 +1694,23 @@ goog.scope(function() {
      * @param {?glsDrawTests.DrawTestSpec.InputType} type
      * @return {number}
      */
-    glsDrawTests.DrawTestSpec.inputTypeSize = function (type) {
+    glsDrawTests.DrawTestSpec.inputTypeSize = function(type) {
         assertMsgOptions(type != null, 'Input type is null', false, true);
 
         var size = [
-            4,        // INPUTTYPE_FLOAT = 0,
+            4, // INPUTTYPE_FLOAT = 0,
 
-            1,        // INPUTTYPE_BYTE,
-            2,    // INPUTTYPE_SHORT,
+            1, // INPUTTYPE_BYTE,
+            2, // INPUTTYPE_SHORT,
 
-            1,    // INPUTTYPE_UNSIGNED_BYTE,
-            2,    // INPUTTYPE_UNSIGNED_SHORT,
+            1, // INPUTTYPE_UNSIGNED_BYTE,
+            2, // INPUTTYPE_UNSIGNED_SHORT,
 
-            4,        // INPUTTYPE_INT,
-            4,        // INPUTTYPE_UNSIGNED_INT,
-            2,        // INPUTTYPE_HALF,
-            4 / 4,        // INPUTTYPE_UNSIGNED_INT_2_10_10_10,
-            4 / 4        // INPUTTYPE_INT_2_10_10_10,
+            4, // INPUTTYPE_INT,
+            4, // INPUTTYPE_UNSIGNED_INT,
+            2, // INPUTTYPE_HALF,
+            4 / 4, // INPUTTYPE_UNSIGNED_INT_2_10_10_10,
+            4 / 4 // INPUTTYPE_INT_2_10_10_10,
         ];
         assertMsgOptions(size.length == Object.keys(glsDrawTests.DrawTestSpec.InputType).length,
             'The amount of type names is different than the amount of types', false, true);
@@ -1739,13 +1722,13 @@ goog.scope(function() {
      * @param {?glsDrawTests.DrawTestSpec.IndexType} type
      * @return {number}
      */
-    glsDrawTests.DrawTestSpec.indexTypeSize = function (type) {
+    glsDrawTests.DrawTestSpec.indexTypeSize = function(type) {
         assertMsgOptions(type != null, 'Type is null', false, true);
 
         var size = [
-            1,    // INDEXTYPE_BYTE,
-            2,    // INDEXTYPE_SHORT,
-            4    // INDEXTYPE_INT,
+            1, // INDEXTYPE_BYTE,
+            2, // INDEXTYPE_SHORT,
+            4 // INDEXTYPE_INT,
         ];
         assertMsgOptions(size.length == Object.keys(glsDrawTests.DrawTestSpec.IndexType).length,
             'The amount of type names is different than the amount of types', false, true);
@@ -1756,7 +1739,7 @@ goog.scope(function() {
     /**
      * @return {string}
      */
-    glsDrawTests.DrawTestSpec.prototype.getName = function () {
+    glsDrawTests.DrawTestSpec.prototype.getName = function() {
         /** @type {glsDrawTests.MethodInfo} */ var methodInfo = glsDrawTests.getMethodInfo(this.drawMethod);
         /** @type {boolean} */ var hasFirst = methodInfo.first;
         /** @type {boolean} */ var instanced = methodInfo.instanced;
@@ -1769,65 +1752,65 @@ goog.scope(function() {
             /** @type {glsDrawTests.DrawTestSpec.AttributeSpec}*/ var attrib = this.attribs[ndx];
 
             if (this.attribs.length > 1)
-                name += "attrib" + ndx + "_";
+                name += 'attrib' + ndx + '_';
 
-            if (ndx == 0|| attrib.additionalPositionAttribute)
-                name += "pos_";
+            if (ndx == 0 || attrib.additionalPositionAttribute)
+                name += 'pos_';
             else
-                name += "col_";
+                name += 'col_';
 
             if (attrib.useDefaultAttribute) {
-                name += "non_array_" +
-                    glsDrawTests.DrawTestSpec.inputTypeToString(/** @type {?glsDrawTests.DrawTestSpec.InputType} */ (attrib.inputType)) + "_" +
-                    attrib.componentCount + "_" +
-                    glsDrawTests.DrawTestSpec.outputTypeToString(attrib.outputType) + "_";
+                name += 'non_array_' +
+                    glsDrawTests.DrawTestSpec.inputTypeToString(/** @type {?glsDrawTests.DrawTestSpec.InputType} */ (attrib.inputType)) + '_' +
+                    attrib.componentCount + '_' +
+                    glsDrawTests.DrawTestSpec.outputTypeToString(attrib.outputType) + '_';
             } else {
-                name += glsDrawTests.DrawTestSpec.storageToString(attrib.storage) + "_" +
-                    attrib.offset + "_" +
-                    attrib.stride + "_" +
+                name += glsDrawTests.DrawTestSpec.storageToString(attrib.storage) + '_' +
+                    attrib.offset + '_' +
+                    attrib.stride + '_' +
                     glsDrawTests.DrawTestSpec.inputTypeToString(/** @type {?glsDrawTests.DrawTestSpec.InputType} */ (attrib.inputType));
                 if (attrib.inputType != glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT_2_10_10_10 && attrib.inputType != glsDrawTests.DrawTestSpec.InputType.INT_2_10_10_10)
                     name += attrib.componentCount;
-                name += "_" +
-                    (attrib.normalize ? "normalized_" : "") +
-                    glsDrawTests.DrawTestSpec.outputTypeToString(attrib.outputType) + "_" +
-                    glsDrawTests.DrawTestSpec.usageTypeToString(attrib.usage) + "_" +
-                    attrib.instanceDivisor + "_";
+                name += '_' +
+                    (attrib.normalize ? 'normalized_' : '') +
+                    glsDrawTests.DrawTestSpec.outputTypeToString(attrib.outputType) + '_' +
+                    glsDrawTests.DrawTestSpec.usageTypeToString(attrib.usage) + '_' +
+                    attrib.instanceDivisor + '_';
             }
         }
 
         if (indexed)
-            name += "index_" + glsDrawTests.DrawTestSpec.indexTypeToString(this.indexType) + "_" +
-                glsDrawTests.DrawTestSpec.storageToString(this.indexStorage) + "_" +
-                "offset" + this.indexPointerOffset + "_";
+            name += 'index_' + glsDrawTests.DrawTestSpec.indexTypeToString(this.indexType) + '_' +
+                glsDrawTests.DrawTestSpec.storageToString(this.indexStorage) + '_' +
+                'offset' + this.indexPointerOffset + '_';
         if (hasFirst)
-            name += "first" + this.first + "_";
+            name += 'first' + this.first + '_';
         if (ranged)
-            name += "ranged_" + this.indexMin + "_" + this.indexMax + "_";
+            name += 'ranged_' + this.indexMin + '_' + this.indexMax + '_';
         if (instanced)
-            name += "instances" + this.instanceCount + "_";
+            name += 'instances' + this.instanceCount + '_';
 
         switch (this.primitive) {
             case glsDrawTests.DrawTestSpec.Primitive.POINTS:
-                name += "points_";
+                name += 'points_';
                 break;
             case glsDrawTests.DrawTestSpec.Primitive.TRIANGLES:
-                name += "triangles_";
+                name += 'triangles_';
                 break;
             case glsDrawTests.DrawTestSpec.Primitive.TRIANGLE_FAN:
-                name += "triangle_fan_";
+                name += 'triangle_fan_';
                 break;
             case glsDrawTests.DrawTestSpec.Primitive.TRIANGLE_STRIP:
-                name += "triangle_strip_";
+                name += 'triangle_strip_';
                 break;
             case glsDrawTests.DrawTestSpec.Primitive.LINES:
-                name += "lines_";
+                name += 'lines_';
                 break;
             case glsDrawTests.DrawTestSpec.Primitive.LINE_STRIP:
-                name += "line_strip_";
+                name += 'line_strip_';
                 break;
             case glsDrawTests.DrawTestSpec.Primitive.LINE_LOOP:
-                name += "line_loop_";
+                name += 'line_loop_';
                 break;
             default:
                 throw new Error('Invalid primitive');
@@ -1842,56 +1825,54 @@ goog.scope(function() {
     /**
      * @return {string}
      */
-    glsDrawTests.DrawTestSpec.prototype.getDesc = function () {
+    glsDrawTests.DrawTestSpec.prototype.getDesc = function() {
         var desc = '';
 
         for (var ndx = 0; ndx < this.attribs.length; ++ndx) {
             /** @type {glsDrawTests.DrawTestSpec.AttributeSpec} */ var attrib = this.attribs[ndx];
 
             if (attrib.useDefaultAttribute) {
-                desc += "Attribute " + ndx + ": default, " + ((ndx == 0|| attrib.additionalPositionAttribute) ? ("position ,") : ("color ,")) +
-                    "input datatype " + glsDrawTests.DrawTestSpec.inputTypeToString(/** @type {?glsDrawTests.DrawTestSpec.InputType} */ (attrib.inputType)) + ", " +
-                    "input component count " + attrib.componentCount + ", " +
-                    "used as " + glsDrawTests.DrawTestSpec.outputTypeToString(attrib.outputType) + ", ";
-            }
-            else
-            {
-                desc += "Attribute " + ndx + ": " + ((ndx == 0|| attrib.additionalPositionAttribute) ? ("position ,") : ("color ,")) +
-                    "Storage in " + glsDrawTests.DrawTestSpec.storageToString(attrib.storage) + ", " +
-                    "stride " + attrib.stride + ", " +
-                    "input datatype " + glsDrawTests.DrawTestSpec.inputTypeToString(/** @type {?glsDrawTests.DrawTestSpec.InputType} */ (attrib.inputType)) + ", " +
-                    "input component count " + attrib.componentCount + ", " +
-                    (attrib.normalize ? "normalized, " : "") +
-                    "used as " + glsDrawTests.DrawTestSpec.outputTypeToString(attrib.outputType) + ", " +
-                    "instance divisor " + attrib.instanceDivisor + ", ";
+                desc += 'Attribute ' + ndx + ': default, ' + ((ndx == 0 || attrib.additionalPositionAttribute) ? ('position ,') : ('color ,')) +
+                    'input datatype ' + glsDrawTests.DrawTestSpec.inputTypeToString(/** @type {?glsDrawTests.DrawTestSpec.InputType} */ (attrib.inputType)) + ', ' +
+                    'input component count ' + attrib.componentCount + ', ' +
+                    'used as ' + glsDrawTests.DrawTestSpec.outputTypeToString(attrib.outputType) + ', ';
+            } else{
+                desc += 'Attribute ' + ndx + ': ' + ((ndx == 0 || attrib.additionalPositionAttribute) ? ('position ,') : ('color ,')) +
+                    'Storage in ' + glsDrawTests.DrawTestSpec.storageToString(attrib.storage) + ', ' +
+                    'stride ' + attrib.stride + ', ' +
+                    'input datatype ' + glsDrawTests.DrawTestSpec.inputTypeToString(/** @type {?glsDrawTests.DrawTestSpec.InputType} */ (attrib.inputType)) + ', ' +
+                    'input component count ' + attrib.componentCount + ', ' +
+                    (attrib.normalize ? 'normalized, ' : '') +
+                    'used as ' + glsDrawTests.DrawTestSpec.outputTypeToString(attrib.outputType) + ', ' +
+                    'instance divisor ' + attrib.instanceDivisor + ', ';
             }
         }
 
         if (this.drawMethod == glsDrawTests.DrawTestSpec.DrawMethod.DRAWARRAYS) {
-            desc += "drawArrays(), " +
-                "first " + this.first + ", ";
+            desc += 'drawArrays(), ' +
+                'first ' + this.first + ', ';
         } else if (this.drawMethod == glsDrawTests.DrawTestSpec.DrawMethod.DRAWARRAYS_INSTANCED) {
-            desc += "drawArraysInstanced(), " +
-                "first " + this.first + ", " +
-                "instance count " + this.instanceCount + ", ";
+            desc += 'drawArraysInstanced(), ' +
+                'first ' + this.first + ', ' +
+                'instance count ' + this.instanceCount + ', ';
         } else if (this.drawMethod == glsDrawTests.DrawTestSpec.DrawMethod.DRAWELEMENTS) {
-            desc += "drawElements(), " +
-                "index type " + glsDrawTests.DrawTestSpec.indexTypeToString(this.indexType) + ", " +
-                "index storage in " + glsDrawTests.DrawTestSpec.storageToString(this.indexStorage) + ", " +
-                "index offset " + this.indexPointerOffset + ", ";
+            desc += 'drawElements(), ' +
+                'index type ' + glsDrawTests.DrawTestSpec.indexTypeToString(this.indexType) + ', ' +
+                'index storage in ' + glsDrawTests.DrawTestSpec.storageToString(this.indexStorage) + ', ' +
+                'index offset ' + this.indexPointerOffset + ', ';
         } else if (this.drawMethod == glsDrawTests.DrawTestSpec.DrawMethod.DRAWELEMENTS_RANGED) {
-            desc += "drawElementsRanged(), " +
-                "index type " + glsDrawTests.DrawTestSpec.indexTypeToString(this.indexType) + ", " +
-                "index storage in " + glsDrawTests.DrawTestSpec.storageToString(this.indexStorage) + ", " +
-                "index offset " + this.indexPointerOffset + ", " +
-                "range start " + this.indexMin + ", " +
-                "range end " + this.indexMax + ", ";
+            desc += 'drawElementsRanged(), ' +
+                'index type ' + glsDrawTests.DrawTestSpec.indexTypeToString(this.indexType) + ', ' +
+                'index storage in ' + glsDrawTests.DrawTestSpec.storageToString(this.indexStorage) + ', ' +
+                'index offset ' + this.indexPointerOffset + ', ' +
+                'range start ' + this.indexMin + ', ' +
+                'range end ' + this.indexMax + ', ';
         } else if (this.drawMethod == glsDrawTests.DrawTestSpec.DrawMethod.DRAWELEMENTS_INSTANCED) {
-            desc += "drawElementsInstanced(), " +
-                "index type " + glsDrawTests.DrawTestSpec.indexTypeToString(this.indexType) + ", " +
-                "index storage in " + glsDrawTests.DrawTestSpec.storageToString(this.indexStorage) + ", " +
-                "index offset " + this.indexPointerOffset + ", " +
-                "instance count " + this.instanceCount + ", ";
+            desc += 'drawElementsInstanced(), ' +
+                'index type ' + glsDrawTests.DrawTestSpec.indexTypeToString(this.indexType) + ', ' +
+                'index storage in ' + glsDrawTests.DrawTestSpec.storageToString(this.indexStorage) + ', ' +
+                'index offset ' + this.indexPointerOffset + ', ' +
+                'instance count ' + this.instanceCount + ', ';
         } else
             throw new Error('Invalid draw method');
 
@@ -1899,25 +1880,25 @@ goog.scope(function() {
 
         switch (this.primitive) {
             case glsDrawTests.DrawTestSpec.Primitive.POINTS:
-                desc += "points";
+                desc += 'points';
                 break;
             case glsDrawTests.DrawTestSpec.Primitive.TRIANGLES:
-                desc += "triangles";
+                desc += 'triangles';
                 break;
             case glsDrawTests.DrawTestSpec.Primitive.TRIANGLE_FAN:
-                desc += "triangles (fan)";
+                desc += 'triangles (fan)';
                 break;
             case glsDrawTests.DrawTestSpec.Primitive.TRIANGLE_STRIP:
-                desc += "triangles (strip)";
+                desc += 'triangles (strip)';
                 break;
             case glsDrawTests.DrawTestSpec.Primitive.LINES:
-                desc += "lines";
+                desc += 'lines';
                 break;
             case glsDrawTests.DrawTestSpec.Primitive.LINE_STRIP:
-                desc += "lines (strip)";
+                desc += 'lines (strip)';
                 break;
             case glsDrawTests.DrawTestSpec.Primitive.LINE_LOOP:
-                desc += "lines (loop)";
+                desc += 'lines (loop)';
                 break;
             default:
                 throw new Error('Invalid primitive');
@@ -1930,87 +1911,87 @@ goog.scope(function() {
     /**
      * @return {string}
      */
-    glsDrawTests.DrawTestSpec.prototype.getMultilineDesc = function () {
-        var desc ='';
+    glsDrawTests.DrawTestSpec.prototype.getMultilineDesc = function() {
+        var desc = '';
 
         for (var ndx = 0; ndx < this.attribs.length; ++ndx) {
             /** @type {glsDrawTests.DrawTestSpec.AttributeSpec} */ var attrib = this.attribs[ndx];
 
             if (attrib.useDefaultAttribute) {
-                desc += "Attribute " + ndx + ": default, " + ((ndx == 0|| attrib.additionalPositionAttribute) ? ("position\n") : ("color\n"))
-                    + "\tinput datatype " + glsDrawTests.DrawTestSpec.inputTypeToString(/** @type {?glsDrawTests.DrawTestSpec.InputType} */ (attrib.inputType)) + "\n"
-                    + "\tinput component count " + attrib.componentCount + "\n"
-                    + "\tused as " + glsDrawTests.DrawTestSpec.outputTypeToString(attrib.outputType) + "\n";
+                desc += 'Attribute ' + ndx + ': default, ' + ((ndx == 0 || attrib.additionalPositionAttribute) ? ('position\n') : ('color\n')) +
+                    "'\tinput datatype ' + glsDrawTests.DrawTestSpec.inputTypeToString(/** @type {?glsDrawTests.DrawTestSpec.InputType} */ (attrib.inputType)) + '\n' +
+                    "'\tinput component count ' + attrib.componentCount + '\n' +
+                    "'\tused as ' + glsDrawTests.DrawTestSpec.outputTypeToString(attrib.outputType) + '\n';
             } else {
-                desc += "Attribute " + ndx + ": " + ((ndx == 0|| attrib.additionalPositionAttribute) ? ("position\n") : ("color\n")) +
-                    "\tStorage in " + glsDrawTests.DrawTestSpec.storageToString(attrib.storage) + "\n" +
-                    "\tstride " + attrib.stride + "\n" +
-                    "\tinput datatype " + glsDrawTests.DrawTestSpec.inputTypeToString(/** @type {?glsDrawTests.DrawTestSpec.InputType} */ (attrib.inputType)) + "\n" +
-                    "\tinput component count " + attrib.componentCount + "\n" +
-                    (attrib.normalize ? "\tnormalized\n" : "") +
-                    "\tused as " + glsDrawTests.DrawTestSpec.outputTypeToString(attrib.outputType) + "\n" +
-                    "\tinstance divisor " + attrib.instanceDivisor + "\n";
+                desc += 'Attribute ' + ndx + ': ' + ((ndx == 0 || attrib.additionalPositionAttribute) ? ('position\n') : ('color\n')) +
+                    '\tStorage in ' + glsDrawTests.DrawTestSpec.storageToString(attrib.storage) + '\n' +
+                    '\tstride ' + attrib.stride + '\n' +
+                    '\tinput datatype ' + glsDrawTests.DrawTestSpec.inputTypeToString(/** @type {?glsDrawTests.DrawTestSpec.InputType} */ (attrib.inputType)) + '\n' +
+                    '\tinput component count ' + attrib.componentCount + '\n' +
+                    (attrib.normalize ? '\tnormalized\n' : '') +
+                    '\tused as ' + glsDrawTests.DrawTestSpec.outputTypeToString(attrib.outputType) + '\n' +
+                    '\tinstance divisor ' + attrib.instanceDivisor + '\n';
             }
         }
 
         if (this.drawMethod == glsDrawTests.DrawTestSpec.DrawMethod.DRAWARRAYS) {
-            desc += "drawArrays()\n" +
-                "\tfirst " + this.first + "\n";
+            desc += 'drawArrays()\n' +
+                '\tfirst ' + this.first + '\n';
         } else if (this.drawMethod == glsDrawTests.DrawTestSpec.DrawMethod.DRAWARRAYS_INSTANCED) {
-            desc += "drawArraysInstanced()\n" +
-                "\tfirst " + this.first + "\n" +
-                "\tinstance count " + this.instanceCount + "\n";
+            desc += 'drawArraysInstanced()\n' +
+                '\tfirst ' + this.first + '\n' +
+                '\tinstance count ' + this.instanceCount + '\n';
         } else if (this.drawMethod == glsDrawTests.DrawTestSpec.DrawMethod.DRAWELEMENTS) {
-            desc += "drawElements()\n" +
-                "\tindex type " + glsDrawTests.DrawTestSpec.indexTypeToString(this.indexType) + "\n" +
-                "\tindex storage in " + glsDrawTests.DrawTestSpec.storageToString(this.indexStorage) + "\n" +
-                "\tindex offset " + this.indexPointerOffset + "\n";
+            desc += 'drawElements()\n' +
+                '\tindex type ' + glsDrawTests.DrawTestSpec.indexTypeToString(this.indexType) + '\n' +
+                '\tindex storage in ' + glsDrawTests.DrawTestSpec.storageToString(this.indexStorage) + '\n' +
+                '\tindex offset ' + this.indexPointerOffset + '\n';
         } else if (this.drawMethod == glsDrawTests.DrawTestSpec.DrawMethod.DRAWELEMENTS_RANGED) {
-            desc += "drawElementsRanged()\n" +
-                "\tindex type " + glsDrawTests.DrawTestSpec.indexTypeToString(this.indexType) + "\n" +
-                "\tindex storage in " + glsDrawTests.DrawTestSpec.storageToString(this.indexStorage) + "\n" +
-                "\tindex offset " + this.indexPointerOffset + "\n" +
-                "\trange start " + this.indexMin + "\n" +
-                "\trange end " + this.indexMax + "\n";
+            desc += 'drawElementsRanged()\n' +
+                '\tindex type ' + glsDrawTests.DrawTestSpec.indexTypeToString(this.indexType) + '\n' +
+                '\tindex storage in ' + glsDrawTests.DrawTestSpec.storageToString(this.indexStorage) + '\n' +
+                '\tindex offset ' + this.indexPointerOffset + '\n' +
+                '\trange start ' + this.indexMin + '\n' +
+                '\trange end ' + this.indexMax + '\n';
         } else if (this.drawMethod == glsDrawTests.DrawTestSpec.DrawMethod.DRAWELEMENTS_INSTANCED) {
-            desc += "drawElementsInstanced()\n" +
-                "\tindex type " + glsDrawTests.DrawTestSpec.indexTypeToString(this.indexType) + "\n" +
-                "\tindex storage in " + glsDrawTests.DrawTestSpec.storageToString(this.indexStorage) + "\n" +
-                "\tindex offset " + this.indexPointerOffset + "\n" +
-                "\tinstance count " + this.instanceCount + "\n";
+            desc += 'drawElementsInstanced()\n' +
+                '\tindex type ' + glsDrawTests.DrawTestSpec.indexTypeToString(this.indexType) + '\n' +
+                '\tindex storage in ' + glsDrawTests.DrawTestSpec.storageToString(this.indexStorage) + '\n' +
+                '\tindex offset ' + this.indexPointerOffset + '\n' +
+                '\tinstance count ' + this.instanceCount + '\n';
         } else
             throw new Error('Invalid draw method');
 
-        desc += "\t" + this.primitiveCount + " ";
+        desc += '\t' + this.primitiveCount + ' ';
 
         switch (this.primitive) {
             case glsDrawTests.DrawTestSpec.Primitive.POINTS:
-                desc += "points";
+                desc += 'points';
                 break;
             case glsDrawTests.DrawTestSpec.Primitive.TRIANGLES:
-                desc += "triangles";
+                desc += 'triangles';
                 break;
             case glsDrawTests.DrawTestSpec.Primitive.TRIANGLE_FAN:
-                desc += "triangles (fan)";
+                desc += 'triangles (fan)';
                 break;
             case glsDrawTests.DrawTestSpec.Primitive.TRIANGLE_STRIP:
-                desc += "triangles (strip)";
+                desc += 'triangles (strip)';
                 break;
             case glsDrawTests.DrawTestSpec.Primitive.LINES:
-                desc += "lines";
+                desc += 'lines';
                 break;
             case glsDrawTests.DrawTestSpec.Primitive.LINE_STRIP:
-                desc += "lines (strip)";
+                desc += 'lines (strip)';
                 break;
             case glsDrawTests.DrawTestSpec.Primitive.LINE_LOOP:
-                desc += "lines (loop)";
+                desc += 'lines (loop)';
                 break;
             default:
                 throw new Error('Invalid primitive');
                 break;
         }
 
-        desc += "\n";
+        desc += '\n';
 
         return desc;
     };
@@ -2111,7 +2092,6 @@ goog.scope(function() {
         INT: 2
     };
 
-
     /**
      * @enum {number}
      */
@@ -2135,7 +2115,7 @@ goog.scope(function() {
     /**
      * @return {number}
      */
-    glsDrawTests.DrawTestSpec.prototype.hash = function () {
+    glsDrawTests.DrawTestSpec.prototype.hash = function() {
         // Use only drawmode-relevant values in "hashing" as the unrelevant values might not be set (causing non-deterministic behavior).
         /** @type {glsDrawTests.MethodInfo} */ var methodInfo = glsDrawTests.getMethodInfo(this.drawMethod);
         /** @type {boolean} */ var arrayed = methodInfo.first;
@@ -2155,7 +2135,7 @@ goog.scope(function() {
     /**
      * @return {boolean}
      */
-    glsDrawTests.DrawTestSpec.prototype.valid = function () {
+    glsDrawTests.DrawTestSpec.prototype.valid = function() {
         //TODO: Need to implement ApiType? --> assertMsgOptions(apiType.getProfile() != glu::PROFILE_LAST);
         assertMsgOptions(this.primitive != null, 'Primitive is null', false, true);
         assertMsgOptions(this.drawMethod != null, 'Draw method is null', false, true);
@@ -2202,7 +2182,7 @@ goog.scope(function() {
     /**
      * @return {glsDrawTests.DrawTestSpec.CompatibilityTestType}
      */
-    glsDrawTests.DrawTestSpec.prototype.isCompatibilityTest = function () {
+    glsDrawTests.DrawTestSpec.prototype.isCompatibilityTest = function() {
         var methodInfo = glsDrawTests.getMethodInfo(this.drawMethod);
 
         var bufferAlignmentBad = false;
@@ -2250,7 +2230,7 @@ goog.scope(function() {
     /**
      * @constructor
      */
-    glsDrawTests.DrawTestSpec.AttributeSpec = function () {
+    glsDrawTests.DrawTestSpec.AttributeSpec = function() {
         /** @type {?glsDrawTests.DrawTestSpec.InputType} */ this.inputType = null;
         /** @type {?glsDrawTests.DrawTestSpec.OutputType} */ this.outputType = null;
         /** @type {?glsDrawTests.DrawTestSpec.Storage} */ this.storage = null;
@@ -2259,11 +2239,11 @@ goog.scope(function() {
         /** @type {number} */ this.offset = 0;
         /** @type {number} */ this.stride = 0;
         /** @type {boolean} */ this.normalize = false;
-        /** @type {number} */ this.instanceDivisor = 0;                //!< used only if drawMethod = Draw*Instanced
+        /** @type {number} */ this.instanceDivisor = 0; //!< used only if drawMethod = Draw*Instanced
         /** @type {boolean} */ this.useDefaultAttribute = false;
 
-        /** @type {boolean} */ this.additionalPositionAttribute = false;    //!< treat this attribute as position attribute. Attribute at index 0 is alway treated as such. False by default
-        /** @type {boolean} */ this.bgraComponentOrder = false;             //!< component order of this attribute is bgra, valid only for 4-component targets. False by default.
+        /** @type {boolean} */ this.additionalPositionAttribute = false; //!< treat this attribute as position attribute. Attribute at index 0 is alway treated as such. False by default
+        /** @type {boolean} */ this.bgraComponentOrder = false; //!< component order of this attribute is bgra, valid only for 4-component targets. False by default.
     };
 
     /**
@@ -2278,7 +2258,7 @@ goog.scope(function() {
      * @param {number} instanceDivisor
      * @return {glsDrawTests.DrawTestSpec.AttributeSpec}
      */
-    glsDrawTests.DrawTestSpec.AttributeSpec.createAttributeArray = function (inputType, outputType, storage, usage, componentCount,
+    glsDrawTests.DrawTestSpec.AttributeSpec.createAttributeArray = function(inputType, outputType, storage, usage, componentCount,
         offset, stride, normalize, instanceDivisor) {
         /** @type {glsDrawTests.DrawTestSpec.AttributeSpec} */ var spec;
 
@@ -2303,7 +2283,7 @@ goog.scope(function() {
      * @param {number} componentCount
      * @return {glsDrawTests.DrawTestSpec.AttributeSpec}
      */
-    glsDrawTests.DrawTestSpec.AttributeSpec.createDefaultAttribute = function (inputType, outputType, componentCount) {
+    glsDrawTests.DrawTestSpec.AttributeSpec.createDefaultAttribute = function(inputType, outputType, componentCount) {
         assertMsgOptions(inputType == glsDrawTests.DrawTestSpec.InputType.INT || inputType == glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT || inputType == glsDrawTests.DrawTestSpec.InputType.FLOAT, 'Invalid input type', false, true);
         assertMsgOptions(inputType == glsDrawTests.DrawTestSpec.InputType.FLOAT || componentCount == 4, 'If not float, input type should have 4 components', false, true);
 
@@ -2327,7 +2307,7 @@ goog.scope(function() {
     /**
      * @return {number}
      */
-    glsDrawTests.DrawTestSpec.AttributeSpec.prototype.hash = function () {
+    glsDrawTests.DrawTestSpec.AttributeSpec.prototype.hash = function() {
         if (this.useDefaultAttribute) {
             return 1 * this.inputType + 7 * this.outputType + 13 * this.componentCount;
         } else {
@@ -2339,15 +2319,15 @@ goog.scope(function() {
     /**
      * @return {boolean}
      */
-    glsDrawTests.DrawTestSpec.AttributeSpec.prototype.valid = function (/*ctxType*/) {
+    glsDrawTests.DrawTestSpec.AttributeSpec.prototype.valid = function(/*ctxType*/) {
         /** @type {boolean} */ var inputTypeFloat = this.inputType == glsDrawTests.DrawTestSpec.InputType.FLOAT || this.inputType == glsDrawTests.DrawTestSpec.InputType.HALF;
-        /** @type {boolean} */ var inputTypeUnsignedInteger = this.inputType == glsDrawTests.DrawTestSpec.InputType.UNSIGNED_BYTE || this.inputType == glsDrawTests.DrawTestSpec.InputType.UNSIGNED_SHORT || this.inputType  == glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT || this.inputType == glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT_2_10_10_10;
-        /** @type {boolean} */ var inputTypeSignedInteger = this.inputType == glsDrawTests.DrawTestSpec.InputType.BYTE  || this.inputType == glsDrawTests.DrawTestSpec.InputType.SHORT || this.inputType == glsDrawTests.DrawTestSpec.InputType.INT || this.inputType == glsDrawTests.DrawTestSpec.InputType.INT_2_10_10_10;
+        /** @type {boolean} */ var inputTypeUnsignedInteger = this.inputType == glsDrawTests.DrawTestSpec.InputType.UNSIGNED_BYTE || this.inputType == glsDrawTests.DrawTestSpec.InputType.UNSIGNED_SHORT || this.inputType == glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT || this.inputType == glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT_2_10_10_10;
+        /** @type {boolean} */ var inputTypeSignedInteger = this.inputType == glsDrawTests.DrawTestSpec.InputType.BYTE || this.inputType == glsDrawTests.DrawTestSpec.InputType.SHORT || this.inputType == glsDrawTests.DrawTestSpec.InputType.INT || this.inputType == glsDrawTests.DrawTestSpec.InputType.INT_2_10_10_10;
         /** @type {boolean} */ var inputTypePacked = this.inputType == glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT_2_10_10_10 || this.inputType == glsDrawTests.DrawTestSpec.InputType.INT_2_10_10_10;
 
-        /** @type {boolean} */ var outputTypeFloat = this.outputType == glsDrawTests.DrawTestSpec.OutputType.FLOAT || this.outputType == glsDrawTests.DrawTestSpec.OutputType.VEC2  || this.outputType == glsDrawTests.DrawTestSpec.OutputType.VEC3  || this.outputType == glsDrawTests.DrawTestSpec.OutputType.VEC4;
-        /** @type {boolean} */ var outputTypeSignedInteger = this.outputType == glsDrawTests.DrawTestSpec.OutputType.INT   || this.outputType == glsDrawTests.DrawTestSpec.OutputType.IVEC2 || this.outputType == glsDrawTests.DrawTestSpec.OutputType.IVEC3 || this.outputType == glsDrawTests.DrawTestSpec.OutputType.IVEC4;
-        /** @type {boolean} */ var outputTypeUnsignedInteger = this.outputType == glsDrawTests.DrawTestSpec.OutputType.UINT  || this.outputType == glsDrawTests.DrawTestSpec.OutputType.UVEC2 || this.outputType == glsDrawTests.DrawTestSpec.OutputType.UVEC3 || this.outputType == glsDrawTests.DrawTestSpec.OutputType.UVEC4;
+        /** @type {boolean} */ var outputTypeFloat = this.outputType == glsDrawTests.DrawTestSpec.OutputType.FLOAT || this.outputType == glsDrawTests.DrawTestSpec.OutputType.VEC2 || this.outputType == glsDrawTests.DrawTestSpec.OutputType.VEC3 || this.outputType == glsDrawTests.DrawTestSpec.OutputType.VEC4;
+        /** @type {boolean} */ var outputTypeSignedInteger = this.outputType == glsDrawTests.DrawTestSpec.OutputType.INT || this.outputType == glsDrawTests.DrawTestSpec.OutputType.IVEC2 || this.outputType == glsDrawTests.DrawTestSpec.OutputType.IVEC3 || this.outputType == glsDrawTests.DrawTestSpec.OutputType.IVEC4;
+        /** @type {boolean} */ var outputTypeUnsignedInteger = this.outputType == glsDrawTests.DrawTestSpec.OutputType.UINT || this.outputType == glsDrawTests.DrawTestSpec.OutputType.UVEC2 || this.outputType == glsDrawTests.DrawTestSpec.OutputType.UVEC3 || this.outputType == glsDrawTests.DrawTestSpec.OutputType.UVEC4;
 
         if (this.useDefaultAttribute) {
             if (this.inputType != glsDrawTests.DrawTestSpec.InputType.INT && this.inputType != glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT && this.inputType != glsDrawTests.DrawTestSpec.InputType.FLOAT)
@@ -2372,11 +2352,11 @@ goog.scope(function() {
         if (inputTypeFloat && !outputTypeFloat)
             return false;
 
-        // uint -> int        (undefined results)
+        // uint -> int (undefined results)
         if (inputTypeUnsignedInteger && outputTypeSignedInteger)
             return false;
 
-        // int -> uint        (undefined results)
+        // int -> uint (undefined results)
         if (inputTypeSignedInteger && outputTypeUnsignedInteger)
             return false;
 
@@ -2399,7 +2379,7 @@ goog.scope(function() {
         // TODO: Check if we need to get the webgl version
         // GLES2 limits
         /*if (ctxType == glu::ApiType::es(2,0)) {
-            if (inputType != glsDrawTests.DrawTestSpec.InputType.BYTE  && inputType != glsDrawTests.DrawTestSpec.InputType.UNSIGNED_BYTE &&
+            if (inputType != glsDrawTests.DrawTestSpec.InputType.BYTE && inputType != glsDrawTests.DrawTestSpec.InputType.UNSIGNED_BYTE &&
                 inputType != glsDrawTests.DrawTestSpec.InputType.SHORT && inputType != glsDrawTests.DrawTestSpec.InputType.UNSIGNED_SHORT)
                 return false;
 
@@ -2423,7 +2403,7 @@ goog.scope(function() {
     /**
      * @return {boolean}
      */
-    glsDrawTests.DrawTestSpec.AttributeSpec.prototype.isBufferAligned = function () {
+    glsDrawTests.DrawTestSpec.AttributeSpec.prototype.isBufferAligned = function() {
         var inputTypePacked = this.inputType == glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT_2_10_10_10 || this.inputType == glsDrawTests.DrawTestSpec.InputType.INT_2_10_10_10;
 
         // Buffer alignment, offset is a multiple of underlying data type size?
@@ -2442,7 +2422,7 @@ goog.scope(function() {
     /**
      * @return {boolean}
      */
-    glsDrawTests.DrawTestSpec.AttributeSpec.prototype.isBufferStrideAligned = function () {
+    glsDrawTests.DrawTestSpec.AttributeSpec.prototype.isBufferStrideAligned = function() {
         var inputTypePacked = this.inputType == glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT_2_10_10_10 || this.inputType == glsDrawTests.DrawTestSpec.InputType.INT_2_10_10_10;
 
         // Buffer alignment, offset is a multiple of underlying data type size?
@@ -2465,7 +2445,7 @@ goog.scope(function() {
      * @param {string} name
      * @param {string} desc
      */
-    glsDrawTests.DrawTest = function (spec, name, desc) {
+    glsDrawTests.DrawTest = function(spec, name, desc) {
         tcuTestCase.DeqpTest.call(this, name, desc, spec);
 
         /** @type {WebGL2RenderingContext} */ this.m_renderCtx = gl;
@@ -2497,7 +2477,7 @@ goog.scope(function() {
      * @param {glsDrawTests.DrawTestSpec} spec
      * @param {string=} description
      */
-    glsDrawTests.DrawTest.prototype.addIteration = function (spec, description) {
+    glsDrawTests.DrawTest.prototype.addIteration = function(spec, description) {
         // Validate spec
         /** @type {boolean} */ var validSpec = spec.valid();
         assertMsgOptions(validSpec, 'Spec is invalid', false, true);

@@ -131,13 +131,11 @@ goog.scope(function() {
     /**
      */
     es3fTextureWrapTests.TextureWrapCase.prototype.init = function() {
-        if (this.m_compressedFormat !== null)
-        {
+        if (this.m_compressedFormat !== null) {
             // Generate compressed texture.
 
             assertMsgOptions(this.m_format == gl.NONE && this.m_dataType == gl.NONE, 'init/compressedFormat', false, true);
-            if (tcuCompressedTexture.isEtcFormat(this.m_compressedFormat))
-            {
+            if (tcuCompressedTexture.isEtcFormat(this.m_compressedFormat)) {
                 // Create ETC texture. Any content is valid.
 
                 /** @type {tcuCompressedTexture.CompressedTexture}*/
@@ -150,12 +148,9 @@ goog.scope(function() {
                     data[i] = rnd.getFloat() & 0xff;
 
                 this.m_texture = gluTexture.texture2DFromCompressedTexture(gl, 1, compressedTexture);
-            }
-            else
+            } else
                 throw new Error('Only ETC2 and EAC are supported.');
-        }
-        else
-        {
+        } else{
             this.m_texture = gluTexture.texture2DFromFormat(gl, this.m_format, this.m_dataType, this.m_width, this.m_height);
 
             // Fill level 0.
@@ -310,8 +305,7 @@ goog.scope(function() {
         for (var size = 0; size < rgba8Sizes.length; size++)
         for (var wrapS = 0; wrapS < wrapModes.length; wrapS++)
         for (var wrapT = 0; wrapT < wrapModes.length; wrapT++)
-        for (var filter = 0; filter < filteringModes.length; filter++)
-        {
+        for (var filter = 0; filter < filteringModes.length; filter++) {
             name = [
                 wrapModes[wrapS].name,
                 wrapModes[wrapT].name,
@@ -373,16 +367,14 @@ goog.scope(function() {
             new Etc2Size('npot', 123, 107)
         ];
 
-        for (var formatNdx = 0; formatNdx < etc2Formats.length; formatNdx++)
-        {
+        for (var formatNdx = 0; formatNdx < etc2Formats.length; formatNdx++) {
             /** @type {tcuTestCase.DeqpTest} */ var formatGroup = tcuTestCase.newTest(etc2Formats[formatNdx].name, '');
             testGroup.addChild(formatGroup);
 
             for (var size = 0; size < etc2Sizes.length; size++)
             for (var wrapS = 0; wrapS < wrapModes.length; wrapS++)
             for (var wrapT = 0; wrapT < wrapModes.length; wrapT++)
-            for (var filter = 0; filter < filteringModes.length; filter++)
-            {
+            for (var filter = 0; filter < filteringModes.length; filter++) {
                 name = [
                     wrapModes[wrapS].name,
                     wrapModes[wrapT].name,

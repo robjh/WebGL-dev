@@ -140,30 +140,30 @@ glsLifetimeTests.Type = function() {
 /**
  * Create a type
  * @return {WebGLObject}
- */ 
+ */
 glsLifetimeTests.Type.prototype.gen = function() { throw new Error('Virtual function'); };
 
 /**
  * Destroy a type
  * @param {WebGLObject} obj
- */ 
+ */
 glsLifetimeTests.Type.prototype.release = function(obj) { throw new Error('Virtual function'); };
 
 /**
  * Is object valid
  * @param {WebGLObject} obj
- */ 
+ */
 glsLifetimeTests.Type.prototype.exists = function(obj) { throw new Error('Virtual function'); };
 
 /**
  * Is object flagged for deletion
  * @param {WebGLObject} obj
- */ 
+ */
 glsLifetimeTests.Type.prototype.isDeleteFlagged = function(obj) { return false; };
 
 /**
  * @return {glsLifetimeTests.Binder}
- */ 
+ */
 glsLifetimeTests.Type.prototype.binder = function() { return null; };
 
 /**
@@ -230,9 +230,9 @@ setParentClass(glsLifetimeTests.ProgramType, glsLifetimeTests.Type);
 
 glsLifetimeTests.ProgramType.prototype.gen = function() { return gl.createProgram(); };
 
-glsLifetimeTests.ProgramType.prototype.release = function(obj) { return gl.deleteProgram(/** @type{WebGLProgram} */ (obj)); };
+glsLifetimeTests.ProgramType.prototype.release = function(obj) { return gl.deleteProgram(/** @type {WebGLProgram} */ (obj)); };
 
-glsLifetimeTests.ProgramType.prototype.exists = function(obj) { return gl.isProgram(/** @type{WebGLProgram} */ (obj)); };
+glsLifetimeTests.ProgramType.prototype.exists = function(obj) { return gl.isProgram(/** @type {WebGLProgram} */ (obj)); };
 
 glsLifetimeTests.ProgramType.prototype.getName = function() { return 'program'; };
 
@@ -240,7 +240,7 @@ glsLifetimeTests.ProgramType.prototype.genCreates = function() { return true; };
 
 glsLifetimeTests.ProgramType.prototype.nameLingers = function() { return true; };
 
-glsLifetimeTests.ProgramType.prototype.isDeleteFlagged = function(obj) { return gl.getProgramParameter(/** @type{WebGLProgram} */ (obj), gl.DELETE_STATUS); };
+glsLifetimeTests.ProgramType.prototype.isDeleteFlagged = function(obj) { return gl.getProgramParameter(/** @type {WebGLProgram} */ (obj), gl.DELETE_STATUS); };
 
 /**
  * @constructor
@@ -254,9 +254,9 @@ setParentClass(glsLifetimeTests.ShaderType, glsLifetimeTests.Type);
 
 glsLifetimeTests.ShaderType.prototype.gen = function() { return gl.createShader(gl.FRAGMENT_SHADER); };
 
-glsLifetimeTests.ShaderType.prototype.release = function(obj) { return gl.deleteShader(/** @type{WebGLShader} */ (obj)); };
+glsLifetimeTests.ShaderType.prototype.release = function(obj) { return gl.deleteShader(/** @type {WebGLShader} */ (obj)); };
 
-glsLifetimeTests.ShaderType.prototype.exists = function(obj) { return gl.isShader(/** @type{WebGLShader} */ (obj)); };
+glsLifetimeTests.ShaderType.prototype.exists = function(obj) { return gl.isShader(/** @type {WebGLShader} */ (obj)); };
 
 glsLifetimeTests.ShaderType.prototype.getName = function() { return 'shader'; };
 
@@ -264,7 +264,7 @@ glsLifetimeTests.ShaderType.prototype.genCreates = function() { return true; };
 
 glsLifetimeTests.ShaderType.prototype.nameLingers = function() { return true; };
 
-glsLifetimeTests.ShaderType.prototype.isDeleteFlagged = function(obj) { return gl.getShaderParameter(/** @type{WebGLShader} */ (obj), gl.DELETE_STATUS); };
+glsLifetimeTests.ShaderType.prototype.isDeleteFlagged = function(obj) { return gl.getShaderParameter(/** @type {WebGLShader} */ (obj), gl.DELETE_STATUS); };
 
 /**
  * @constructor
@@ -280,7 +280,7 @@ glsLifetimeTests.Attacher = function(elementType, containerType) {
  * @param {number} seed
  * @param {WebGLObject} obj
  */
-glsLifetimeTests.Attacher.prototype.initAttachment = function(seed, obj) { throw new Error('Virtual function'); }; 
+glsLifetimeTests.Attacher.prototype.initAttachment = function(seed, obj) { throw new Error('Virtual function'); };
 
 /**
  * @param {WebGLObject} element
@@ -509,7 +509,7 @@ glsLifetimeTests.TextureFboAttacher.prototype.initStorage = function() {
 
 glsLifetimeTests.TextureFboAttacher.prototype.attach = function(element, target) {
     var texture = /** @type {WebGLTexture} */ (element);
-    var fbo  = /** @type {WebGLFramebuffer} */ (target);
+    var fbo = /** @type {WebGLFramebuffer} */ (target);
     gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0,
                               gl.TEXTURE_2D, texture, 0);
@@ -517,7 +517,7 @@ glsLifetimeTests.TextureFboAttacher.prototype.attach = function(element, target)
 };
 
 glsLifetimeTests.TextureFboAttacher.prototype.detach = function(texture, target) {
-    var fbo  = /** @type {WebGLFramebuffer} */ (target);
+    var fbo = /** @type {WebGLFramebuffer} */ (target);
     this.attach(null, fbo);
 };
 
@@ -554,14 +554,14 @@ glsLifetimeTests.RboFboAttacher.prototype.initStorage = function() {
 
 glsLifetimeTests.RboFboAttacher.prototype.attach = function(element, target) {
     var rbo = /** @type {WebGLRenderbuffer} */ (element);
-    var fbo  = /** @type {WebGLFramebuffer} */ (target);
+    var fbo = /** @type {WebGLFramebuffer} */ (target);
     gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
     gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, rbo);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 };
 
 glsLifetimeTests.RboFboAttacher.prototype.detach = function(rbo, target) {
-    var fbo  = /** @type {WebGLFramebuffer} */ (target);
+    var fbo = /** @type {WebGLFramebuffer} */ (target);
     this.attach(null, fbo);
 };
 

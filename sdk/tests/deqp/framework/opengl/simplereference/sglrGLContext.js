@@ -207,17 +207,17 @@ goog.scope(function() {
      * @param {number} dataType
      * @param {ArrayBuffer|ArrayBufferView} data
      */
-    sglrGLContext.GLContext.prototype.readPixels = function (x, y, width, height, format, dataType, data) {
+    sglrGLContext.GLContext.prototype.readPixels = function(x, y, width, height, format, dataType, data) {
         /** @type {?ArrayBufferView} */ var dataArr;
         if (!ArrayBuffer.isView(data)) {
             var type = gluTextureUtil.mapGLChannelType(dataType, true);
             var dataArrType = tcuTexture.getTypedArray(type);
             dataArr = new dataArrType(data);
         } else {
-            dataArr = /** @type {?ArrayBufferView} */ (data)
+            dataArr = /** @type {?ArrayBufferView} */ (data);
         }
 
         this.m_context.readPixels(x, y, width, height, format, dataType, dataArr);
-    }
+    };
 
 });

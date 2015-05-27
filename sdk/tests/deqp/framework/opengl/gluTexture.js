@@ -92,8 +92,7 @@ gluTexture.Texture2D.loadCompressed = function(numLevels, levels) {
     assertMsgOptions(this.m_glTexture, 'm_glTexture not defined', false, true);
     gl.bindTexture(gl.TEXTURE_2D, this.m_glTexture);
 
-    for (var levelNdx = 0; levelNdx < numLevels; levelNdx++)
-    {
+    for (var levelNdx = 0; levelNdx < numLevels; levelNdx++) {
         /** @type {tcuCompressedTexture.CompressedTexture} */ var level = levels[levelNdx];
 
         // Decompress to reference texture.

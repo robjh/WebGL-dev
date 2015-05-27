@@ -22,7 +22,6 @@
 goog.provide('framework.common.tcuTexLookupVerifier');
 goog.require('framework.common.tcuTexVerifierUtil');
 
-
 goog.scope(function() {
 
     var tcuTexLookupVerifier = framework.common.tcuTexLookupVerifier;

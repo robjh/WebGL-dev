@@ -29,7 +29,6 @@ var tcuTextureUtil = framework.common.tcuTextureUtil;
 var tcuTexture = framework.common.tcuTexture;
 var deMath = framework.delibs.debase.deMath;
 
-
 /** @const {number} */ tcuTextureUtil.CLEAR_OPTIMIZE_THRESHOLD = 128;
 /** @const {number} */ tcuTextureUtil.CLEAR_OPTIMIZE_MAX_PIXEL_SIZE = 8;
 
@@ -596,8 +595,7 @@ tcuTextureUtil.clear = function(access, color) {
         for (var z = 0; z < access.getDepth(); z++)
             for (var y = 0; y < access.getHeight(); y++)
                 tcuTextureUtil.fillRow(access, y, z, pixelSize, pixel); // TODO: implement tcuTextureUtil.fillRow
-    }
-    else {
+    } else {
         for (var z = 0; z < access.getDepth(); z++)
             for (var y = 0; y < access.getHeight(); y++)
                 for (var x = 0; x < access.getWidth(); x++)
