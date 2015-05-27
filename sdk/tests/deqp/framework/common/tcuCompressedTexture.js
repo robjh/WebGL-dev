@@ -801,7 +801,7 @@ return {
 tcuCompressedTexture.CompressedTexture = function(format, width, height, depth) {
     depth = depth === undefined ? 1 : depth;
     this.setStorage(format, width, height, depth);
-    /** @type {Uint8Array} */ this.m_data = null;
+    /** @type {Uint8Array} */ this.m_data;
 };
 
 /**

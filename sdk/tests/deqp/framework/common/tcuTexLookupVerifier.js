@@ -25,13 +25,13 @@ goog.require('framework.common.tcuTexVerifierUtil');
 
 goog.scope(function() {
 
-    var tcuTextureLookupVerifier = framework.common.tcuTexLookupVerifier;
+    var tcuTexLookupVerifier = framework.common.tcuTexLookupVerifier;
     var tcuTexVerifierUtil = framework.common.tcuTexVerifierUtil;
     /**
      * Generic lookup precision parameters
      * @constructor
      */
-    tcuTextureLookupVerifier.LookupPrecision = function() {
+    tcuTexLookupVerifier.LookupPrecision = function() {
         /** @type {Array<number>} */ this.coordBits = [22, 22, 22];
         /** @type {Array<number>} */ this.uvwBits = [16, 16, 16];
         /** @type {Array<number>} */ this.colorThreshold = [0.0, 0.0, 0.0, 0.0];
@@ -42,7 +42,7 @@ goog.scope(function() {
      * Lod computation precision parameters
      * @constructor
      */
-    tcuTextureLookupVerifier.LodPrecision = function() {
+    tcuTexLookupVerifier.LodPrecision = function() {
         /** @type {number} */ this.derivateBits = 22;
         /** @type {number} */ this.lodBits = 16;
 
@@ -52,7 +52,7 @@ goog.scope(function() {
      * @param {Array<number>} bits
      * @return {Array<number>}
      */
-    tcuTextureLookupVerifier.computeFixedPointThreshold = function(bits) {
-        return tcuTexVerifierUtil.computeFixedPointError(bits)
+    tcuTexLookupVerifier.computeFixedPointThreshold = function(bits) {
+        return tcuTexVerifierUtil.computeFixedPointError(bits);
     };
 });

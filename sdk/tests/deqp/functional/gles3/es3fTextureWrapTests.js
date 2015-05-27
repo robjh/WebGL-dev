@@ -103,7 +103,7 @@ goog.scope(function() {
         /** @type {number} */ this.m_magFilter = magFilter;
         /** @type {number} */ this.m_width = width;
         /** @type {number} */ this.m_height = height;
-        /** @type {Array<es3fTextureWrapTests.Case>} */ this.m_cases;
+        /** @type {Array<es3fTextureWrapTests.Case>} */ this.m_cases = [];
         /** @type {number} */ this.m_caseNdx = 0;
         /** @type {gluTexture.Texture2D} */ this.m_texture = null;
         /** @type {glsTextureTestUtil.TextureRenderer} */
@@ -160,7 +160,7 @@ goog.scope(function() {
                 this.m_texture = gluTexture.texture2DFromCompressedTexture(gl, 1, compressedTexture);
             }
             else
-                throw new Error("Only ETC2 and EAC are supported.")
+                throw new Error('Only ETC2 and EAC are supported.');
         }
         else
         {
@@ -192,8 +192,7 @@ goog.scope(function() {
         /** @type {tcuTexture.TextureFormat} */ var texFormat = this.m_texture.getRefTexture().getFormat();
         /** @type {Array<number>} */ var texCoord;
         /** @type {tcuTextureUtil.TextureFormatInfo} */ var texFormatInfo = tcuTextureUtil.getTextureFormatInfo(texFormat);
-        // \note For non-sRGB ASTC formats, the values are fp16 in range [0..1], not the range assumed given by tcu::getTextureFormatInfo().
-        /** @type {boolean} */ var useDefaultColorScaleAndBias = !tcu.isASTCFormat(m_compressedFormat) || tcu.isASTCSRGBFormat(m_compressedFormat);
+        /** @type {boolean} */ var useDefaultColorScaleAndBias = true;
 
         // Bind to unit 0.
         gl.activeTexture(gl.TEXTURE0);
@@ -209,23 +208,34 @@ goog.scope(function() {
         DE_ASSERT(glErr === gl.NO_ERROR, 'Set texturing state');
 
         // Parameters for reference images.
-        refParams.sampler = mapGLSampler(this.m_wrapS, this.m_wrapT, this.m_minFilter, this.m_magFilter);
+        // TODO: implement glsTextureUtil.mapGLSampler and uncomment the line below
+        // refParams.sampler = glsTextureUtil.mapGLSampler(this.m_wrapS, this.m_wrapT, this.m_minFilter, this.m_magFilter);
         refParams.lodMode = glsTextureTestUtil.lodMode.EXACT;
-        refParams.samplerType = getSamplerType(this.m_texture.getRefTexture().getFormat());
+        // TODO: glsTextureTestUtil.getSamplerType and uncomment the line below
+        // refParams.samplerType = glsTextureTestUtil.getSamplerType(this.m_texture.getRefTexture().getFormat());
         refParams.colorScale = useDefaultColorScaleAndBias ? texFormatInfo.lookupScale : [1.0, 1.0, 1.0, 1.0];
         refParams.colorBias = useDefaultColorScaleAndBias ? texFormatInfo.lookupBias : [0, 0, 0, 0];
 
         gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height);
-        computeQuadTexCoord2D(texCoord, this.m_cases[this.m_caseNdx].bottomLeft, this.m_cases[this.m_caseNdx].topRight);
+        // TODO: implement glsTextureTestUtil.computeQuadTexCoord2D and uncomment the line below
+        // glsTextureTestUtil.computeQuadTexCoord2D(texCoord, this.m_cases[this.m_caseNdx].bottomLeft, this.m_cases[this.m_caseNdx].topRight);
         this.m_renderer.renderQuad(0, texCoord, refParams);
 
-        // TODO: readPixels
-        glu.readPixels(viewport.x, viewport.y, renderedFrame.getAccess());
+        // gluPixelTransfer.readPixels(viewport.x, viewport.y, renderedFrame.getAccess());
+        /** @type {number} */ var pixelSize = renderedFrame.getAccess().getFormat().getPixelSize();
+        /** @type {number} */ var param = deMath.deIsPowerOfTwo32(pixelSize) ? Math.min(pixelSize, 8) : 1;
 
-        // const tcu::ScopedLogSection        section            (log, string("Test") + de::toString(m_caseNdx), string("Test ") + de::toString(m_caseNdx));
+        gl.pixelStorei(gl.PACK_ALIGNMENT, param);
+        gl.readPixels(
+            viewport.x, viewport.y,
+            renderedFrame.getWidth(), renderedFrame.getHeight(),
+            renderedFrame.getAccess().getFormat().format, renderedFrame.getAccess().getFormat().format.dataType,
+            renderedFrame.getAccess().getDataPtr());
+
+        // const tcu::ScopedLogSection section (log, string("Test") + de::toString(m_caseNdx), string("Test ") + de::toString(m_caseNdx));
         /** @type {boolean} */ var isNearestOnly = this.m_minFilter == gl.NEAREST && this.m_magFilter == gl.NEAREST;
         /** @type {boolean} */ var isSRGB = texFormat.order == tcuTexture.ChannelOrder.sRGB || texFormat.order == tcuTexture.ChannelOrder.sRGBA;
-        /** @type {tcuPixelFormat.PixelFormat} */ var pixelFormat = gl.canvas.getPixelFormat();
+        /** @type {tcuPixelFormat.PixelFormat} */ var pixelFormat = new tcuPixelFormat.PixelFormat(8, 8, 8, 8);
         // TODO: implement glsTextureTestUtil.getBitsVec
         /** @type {Array<number>} */ var colorBits = deMath.max(deMath.subtract(glsTextureTestUtil.getBitsVec(pixelFormat), (isNearestOnly && !isSRGB ? [1, 1, 1, 1] : [2, 2, 2, 2])), [0, 0, 0, 0]);
         /** @type {tcuTexLookupVerifier.LodPrecision} */ var lodPrecision;
@@ -236,15 +246,15 @@ goog.scope(function() {
         lookupPrecision.colorThreshold = deMath.divide(tcuTexLookupVerifier.computeFixedPointThreshold(colorBits), refParams.colorScale);
         lookupPrecision.coordBits = [20, 20, 0];
         lookupPrecision.uvwBits = [5, 5, 0];
-        lookupPrecision.colorMask = getCompareMask(pixelFormat);
+        lookupPrecision.colorMask = glsTextureTestUtil.getCompareMask(pixelFormat);
 
         // log << TestLog::Message << "Note: lookup coordinates: bottom-left " << m_cases[m_caseNdx].bottomLeft << ", top-right " << m_cases[m_caseNdx].topRight << TestLog::EndMessage;
 
-        // TODO: implement glsTextureTestUtil.verifyTextureResult
-        /** @type {boolean} */ var isOk = glsTextureTestUtil.verifyTextureResult(renderedFrame.getAccess(), this.m_texture.getRefTexture(), texCoord[0], refParams, lookupPrecision, lodPrecision, pixelFormat);
+        // TODO: finish implementation of glsTextureTestUtil.verifyTexture2DResult
+        /** @type {boolean} */ var isOk = glsTextureTestUtil.verifyTexture2DResult(renderedFrame.getAccess(), this.m_texture.getRefTexture(), texCoord, refParams, lookupPrecision, lodPrecision, pixelFormat);
 
         if (!isOk)
-            assertMsgOptions(testOk, '', true, false);
+            assertMsgOptions(isOk, '', true, false);
 
         this.m_caseNdx++;
         return this.m_caseNdx < this.m_cases.length ? tcuTestCase.IterateResult.CONTINUE : tcuTestCase.IterateResult.STOP;
@@ -255,7 +265,7 @@ goog.scope(function() {
      */
     es3fTextureWrapTests.init = function() {
         var testGroup = tcuTestCase.runner.testCases;
-
+        /** @type {string} */ var name;
         /**
          * @constructor
          * @param {string} name
@@ -313,7 +323,7 @@ goog.scope(function() {
         for (var wrapT = 0; wrapT < wrapModes.length; wrapT++)
         for (var filter = 0; filter < filteringModes.length; filter++)
         {
-            /** @type {string} */ var name = [
+            name = [
                 wrapModes[wrapS].name,
                 wrapModes[wrapT].name,
                 filteringModes[filter].name,
@@ -322,7 +332,7 @@ goog.scope(function() {
 
             rgba8Group.addChild(
                 es3fTextureWrapTests.textureWrapCaseFromFormat(
-                    gl.canvas, this.m_context.getContextInfo(), name, '',
+                    name, '',
                     gl.RGBA, gl.UNSIGNED_BYTE,
                     wrapModes[wrapS].mode,
                     wrapModes[wrapT].mode,
@@ -337,24 +347,24 @@ goog.scope(function() {
         /**
          * @constructor
          * @param {string} name
-         * @param {tcuCompressedTexture.CompressedTexture.Format} format
+         * @param {tcuCompressedTexture.Format} format
          */
         var Etc2Format = function(name, format) {
             /** @type {string} */ this.name = name;
-            /** @type {tcuCompressedTexture.CompressedTexture.Format} */ this.format = format;
+            /** @type {tcuCompressedTexture.Format} */ this.format = format;
         };
 
         var etc2Formats = [
-            new Etc2Format('eac_r11', tcuCompressedTexture.CompressedTexture.EAC_R11),
-            new Etc2Format('eac_signed_r11', tcuCompressedTexture.CompressedTexture.EAC_SIGNED_R11),
-            new Etc2Format('eac_rg11', tcuCompressedTexture.CompressedTexture.EAC_RG11),
-            new Etc2Format('eac_signed_rg11', tcuCompressedTexture.CompressedTexture.EAC_SIGNED_RG11),
-            new Etc2Format('etc2_rgb8', tcuCompressedTexture.CompressedTexture.ETC2_RGB8),
-            new Etc2Format('etc2_srgb8', tcuCompressedTexture.CompressedTexture.ETC2_SRGB8),
-            new Etc2Format('etc2_rgb8_punchthrough_alpha1', tcuCompressedTexture.CompressedTexture.ETC2_RGB8_PUNCHTHROUGH_ALPHA1),
-            new Etc2Format('etc2_srgb8_punchthrough_alpha1', tcuCompressedTexture.CompressedTexture.ETC2_SRGB8_PUNCHTHROUGH_ALPHA1),
-            new Etc2Format('etc2_eac_rgba8', tcuCompressedTexture.CompressedTexture.ETC2_EAC_RGBA8),
-            new Etc2Format('etc2_eac_srgb8_alpha8', tcuCompressedTexture.CompressedTexture.ETC2_EAC_SRGB8_ALPHA8)
+            new Etc2Format('eac_r11', tcuCompressedTexture.Format.EAC_R11),
+            new Etc2Format('eac_signed_r11', tcuCompressedTexture.Format.EAC_SIGNED_R11),
+            new Etc2Format('eac_rg11', tcuCompressedTexture.Format.EAC_RG11),
+            new Etc2Format('eac_signed_rg11', tcuCompressedTexture.Format.EAC_SIGNED_RG11),
+            new Etc2Format('etc2_rgb8', tcuCompressedTexture.Format.ETC2_RGB8),
+            new Etc2Format('etc2_srgb8', tcuCompressedTexture.Format.ETC2_SRGB8),
+            new Etc2Format('etc2_rgb8_punchthrough_alpha1', tcuCompressedTexture.Format.ETC2_RGB8_PUNCHTHROUGH_ALPHA1),
+            new Etc2Format('etc2_srgb8_punchthrough_alpha1', tcuCompressedTexture.Format.ETC2_SRGB8_PUNCHTHROUGH_ALPHA1),
+            new Etc2Format('etc2_eac_rgba8', tcuCompressedTexture.Format.ETC2_EAC_RGBA8),
+            new Etc2Format('etc2_eac_srgb8_alpha8', tcuCompressedTexture.Format.ETC2_EAC_SRGB8_ALPHA8)
         ];
 
         /**
@@ -384,7 +394,7 @@ goog.scope(function() {
             for (var wrapT = 0; wrapT < wrapModes.length; wrapT++)
             for (var filter = 0; filter < filteringModes.length; filter++)
             {
-                /** @type {string} */ var name = [
+                name = [
                     wrapModes[wrapS].name,
                     wrapModes[wrapT].name,
                     filteringModes[filter].name,
@@ -393,7 +403,7 @@ goog.scope(function() {
 
                 formatGroup.addChild(
                     new es3fTextureWrapTests.TextureWrapCase(
-                        gl.canvas, this.m_context.getContextInfo(), name, '',
+                        name, '',
                         etc2Formats[formatNdx].format,
                         wrapModes[wrapS].mode,
                         wrapModes[wrapT].mode,
