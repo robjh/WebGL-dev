@@ -32,10 +32,10 @@ goog.scope(function() {
      * @return {Array<number>}
      */
     tcuTexVerifierUtil.computeFixedPointError = function(numAccurateBits) {
-    	/** @type {Array<number>} */ var res = [];
-    	for (var ndx = 0; ndx < numAccurateBits.length; ndx++)
-    		res[ndx] = tcuTexVerifierUtil.computeFixedPointErrorNumber(numAccurateBits[ndx]);
-    	return res;
+        /** @type {Array<number>} */ var res = [];
+        for (var ndx = 0; ndx < numAccurateBits.length; ndx++)
+            res[ndx] = tcuTexVerifierUtil.computeFixedPointErrorNumber(numAccurateBits[ndx]);
+        return res;
     };
 
     /**

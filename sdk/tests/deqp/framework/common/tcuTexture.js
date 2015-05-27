@@ -1580,20 +1580,21 @@ tcuTexture.PixelBufferAccess.prototype.setPixelInt = function(color, x, y, z) {
  */
 tcuTexture.PixelBufferAccess.prototype.clear = function(color, x, y, z) {
     var c = color || [0, 0, 0, 0];
-    var numChannels = tcuTexture.getNumUsedChannels(this.m_format.order);
+    var arrayType = tcuTexture.getTypedArray(this.m_format.type);
     var range_x = x || [0, this.m_width];
     var range_y = y || [0, this.m_height];
     var range_z = z || [0, this.m_depth];
     var pixelSize = this.m_format.getPixelSize();
+    var numElements = pixelSize / arrayType.BYTES_PER_ELEMENT;
     var width = range_x[1] - range_x[0];
     var height = range_y[1] - range_y[0];
     var depth = range_z[1] - range_z[0];
 
     //copy first pixel over other pixels in the row
-    var fillRow = function(pixelPtr, numChannels, width) {
+    var fillRow = function(pixelPtr, numElements, width) {
         for (var i = 1; i < width; i++)
-            for (var c = 0; c < numChannels; c++)
-                pixelPtr[i * numChannels + c] = pixelPtr[c];
+            for (var c = 0; c < numElements; c++)
+                pixelPtr[i * numElements + c] = pixelPtr[c];
     };
     // copy first row to other rows in all planes
     var fillPlanes = function(buffer, arrayType, src, offset, rowStride, planeStride, width, height, depth) {
@@ -1605,12 +1606,12 @@ tcuTexture.PixelBufferAccess.prototype.clear = function(color, x, y, z) {
     };
 
     this.setPixel(c, range_x[0], range_y[0], range_z[0]);
-    var arrayType = tcuTexture.getTypedArray(this.m_format.type);
-    var offset = range_z[0] * this.m_slicePitch + range_y[0] * this.m_rowPitch + range_x[0] * pixelSize;
-    var pixelPtr = new arrayType(this.m_data, offset + this.m_offset, width * numChannels);
 
-    fillRow(pixelPtr, numChannels, width);
-    fillPlanes(this.m_data, arrayType, pixelPtr, offset + this.m_offset, this.m_rowPitch, this.m_slicePitch, width * numChannels, height, depth);
+    var offset = range_z[0] * this.m_slicePitch + range_y[0] * this.m_rowPitch + range_x[0] * pixelSize;
+    var pixelPtr = new arrayType(this.m_data, offset + this.m_offset, width * numElements);
+
+    fillRow(pixelPtr, numElements, width);
+    fillPlanes(this.m_data, arrayType, pixelPtr, offset + this.m_offset, this.m_rowPitch, this.m_slicePitch, width * numElements, height, depth);
 };
 
 /**
