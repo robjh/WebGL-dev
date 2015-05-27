@@ -1172,8 +1172,14 @@ goog.scope(function() {
                         throw new Error('Invalid output type');
                         break;
                 }
-            } else {
+<<<<<<< Temporary merge branch 1
+            } else{
                 switch (arrays[arrayNdx].getOutputType()) {
+=======
+            } else {
+                switch (arrays[arrayNdx].getOutputType())
+                {
+>>>>>>> Temporary merge branch 2
                     case (glsDrawTests.DrawTestSpec.OutputType.FLOAT):
                     case (glsDrawTests.DrawTestSpec.OutputType.INT):
                     case (glsDrawTests.DrawTestSpec.OutputType.UINT):
