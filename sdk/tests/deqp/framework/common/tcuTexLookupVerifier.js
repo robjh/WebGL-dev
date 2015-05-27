@@ -32,6 +32,24 @@ goog.scope(function() {
     var tcuTexture = framework.common.tcuTexture;
 
     /**
+     * @constructor
+     */
+    tcuTexLookupVerifier.ColorQuad = function() {
+    	/** @type {Array<number>} */ this.p00;		//!< (0, 0)
+    	/** @type {Array<number>} */ this.p01;		//!< (1, 0)
+    	/** @type {Array<number>} */ this.p10;		//!< (0, 1)
+    	/** @type {Array<number>} */ this.p11;		//!< (1, 1)
+    };
+
+    /**
+     * @constructor
+     */
+    tcuTexLookupVerifier.ColorLine = function() {
+        /** @type {Array<number>} */ this.p0;		//!< 0
+        /** @type {Array<number>} */ this.p1;		//!< 1
+    };
+
+    /**
      * Generic lookup precision parameters
      * @constructor
      */
@@ -153,59 +171,87 @@ goog.scope(function() {
      * @return {boolean}
      */
     tcuTexLookupVerifier.isLinearSampleResultValid_CoordAsVec2AndInt = function() {
-        const Vec2					uBounds			= computeNonNormalizedCoordBounds(sampler.normalizedCoords, level.getWidth(),	coord.x(), prec.coordBits.x(), prec.uvwBits.x());
-	const Vec2					vBounds			= computeNonNormalizedCoordBounds(sampler.normalizedCoords, level.getHeight(),	coord.y(), prec.coordBits.y(), prec.uvwBits.y());
+        /** @type {Array<Number>} */ var uBounds = computeNonNormalizedCoordBounds(sampler.normalizedCoords, level.getWidth(),	coord.[0], prec.coordBits.[0], prec.uvwBits.[0]);
+        /** @type {Array<Number>} */ var vBounds = computeNonNormalizedCoordBounds(sampler.normalizedCoords, level.getHeight(),	coord.[1], prec.coordBits.[1], prec.uvwBits.[1]);
 
-	// Integer coordinate bounds for (x0,y0) - without wrap mode
-	const int					minI			= deFloorFloatToInt32(uBounds.x()-0.5f);
-	const int					maxI			= deFloorFloatToInt32(uBounds.y()-0.5f);
-	const int					minJ			= deFloorFloatToInt32(vBounds.x()-0.5f);
-	const int					maxJ			= deFloorFloatToInt32(vBounds.y()-0.5f);
+	    // Integer coordinate bounds for (x0,y0) - without wrap mode
+        /** @type {number} */ var minI = Math.floor(uBounds.[0] - 0.5);
+        /** @type {number} */ var maxI = Math.floor(uBounds.[1] - 0.5);
+        /** @type {number} */ var minJ = Math.floor(vBounds.[0] - 0.5);
+        /** @type {number} */ var maxJ = Math.floor(vBounds.[1] - 0.5);
 
-	const int					w				= level.getWidth();
-	const int					h				= level.getHeight();
+        /** @type {number} */ var w = level.getWidth();
+        /** @type {number} */ var h = level.getHeight();
 
-	const TextureChannelClass	texClass		= getTextureChannelClass(level.getFormat().type);
-	float						searchStep		= texClass == TEXTURECHANNELCLASS_UNSIGNED_FIXED_POINT	? computeBilinearSearchStepForUnorm(prec) :
-												  texClass == TEXTURECHANNELCLASS_SIGNED_FIXED_POINT	? computeBilinearSearchStepForSnorm(prec) :
-												  0.0f; // Step is computed for floating-point quads based on texel values.
+	    /** @type {tcuTextureUtil.TextureChannelClass} */
+        var texClass = getTextureChannelClass(level.getFormat().type);
 
-	// \todo [2013-07-03 pyry] This could be optimized by first computing ranges based on wrap mode.
+        /** @type {number} */
+        var searchStep = texClass == tcuTextureUtil.TextureChannelClass.UNSIGNED_FIXED_POINT ? computeBilinearSearchStepForUnorm(prec) :
+		      texClass == tcuTextureUtil.TextureChannelClass.SIGNED_FIXED_POINT ? computeBilinearSearchStepForSnorm(prec) :
+              0.0; // Step is computed for floating-point quads based on texel values.
 
-	for (int j = minJ; j <= maxJ; j++)
-	{
-		for (int i = minI; i <= maxI; i++)
-		{
+	    // \todo [2013-07-03 pyry] This could be optimized by first computing ranges based on wrap mode.
+
+    	for (var j = minJ; j <= maxJ; j++)
+		for (var i = minI; i <= maxI; i++) {
 			// Wrapped coordinates
-			const int	x0		= wrap(sampler.wrapS, i  , w);
-			const int	x1		= wrap(sampler.wrapS, i+1, w);
-			const int	y0		= wrap(sampler.wrapT, j  , h);
-			const int	y1		= wrap(sampler.wrapT, j+1, h);
+            /** @type {number} */ var x0 = wrap(sampler.wrapS, i  , w);
+            /** @type {number} */ var x1 = wrap(sampler.wrapS, i + 1, w);
+            /** @type {number} */ var y0 = wrap(sampler.wrapT, j  , h);
+            /** @type {number} */ var y1 = wrap(sampler.wrapT, j + 1, h);
 
 			// Bounds for filtering factors
-			const float	minA	= de::clamp((uBounds.x()-0.5f)-float(i), 0.0f, 1.0f);
-			const float	maxA	= de::clamp((uBounds.y()-0.5f)-float(i), 0.0f, 1.0f);
-			const float	minB	= de::clamp((vBounds.x()-0.5f)-float(j), 0.0f, 1.0f);
-			const float	maxB	= de::clamp((vBounds.y()-0.5f)-float(j), 0.0f, 1.0f);
+            /** @type {number} */ var minA	= deMath.clamp((uBounds.[0] - 0.5) - i, 0.0, 1.0);
+            /** @type {number} */ var maxA	= deMath.clamp((uBounds.[1] - 0.5) - i, 0.0, 1.0);
+            /** @type {number} */ var minB	= deMath.clamp((vBounds.[0] - 0.5) - j, 0.0, 1.0);
+            /** @type {number} */ var maxB	= deMath.clamp((vBounds.[1] - 0.5) - j, 0.0, 1.0);
 
-			ColorQuad quad;
+            /** @type {tcuTexLookupVerifier.ColorQuad} */ var quad;
 			lookupQuad(quad, level, sampler, x0, x1, y0, y1, coordZ);
 
-			if (texClass == TEXTURECHANNELCLASS_FLOATING_POINT)
+			if (texClass == tcuTextureUtil.TextureChannelClass.FLOATING_POINT)
 				searchStep = computeBilinearSearchStepFromFloatQuad(prec, quad);
 
 			if (isBilinearRangeValid(prec, quad, Vec2(minA, maxA), Vec2(minB, maxB), searchStep, result))
 				return true;
 		}
-	}
 
-	return false;
+    	return false;
     };
 
-    /**
-     *
+    /*
+     * @param {tcuTexture.ConstPixelBufferAccess} level
+     * @param {tcuTexture.Sampler} sampler
+     * @param {tcuTexLookupVerifier.LookupPrecision} prec
+     * @param {Array<number>} coord vec2
+     * @param {number} coordZ int
+     * @param {Array<number>} result
+     * @return {boolean}
      */
     tcuTexLookupVerifier.isNearestSampleResultValid_CoordAsVec2AndInt = function() {
+        /** @type {Array<Number>} */ var uBounds = computeNonNormalizedCoordBounds(sampler.normalizedCoords, level.getWidth(),	coord[0], prec.coordBits[0], prec.uvwBits[0]);
+        /** @type {Array<Number>} */ var vBounds = computeNonNormalizedCoordBounds(sampler.normalizedCoords, level.getHeight(),	coord[1], prec.coordBits[1], prec.uvwBits[1]);
+
+        // Integer coordinates - without wrap mode
+        /** @type {number} */ var minI = Math.floor(uBounds[0]);
+        /** @type {number} */ var maxI = Math.floor(uBounds[1]);
+        /** @type {number} */ var minJ = Math.floor(vBounds[0]);
+        /** @type {number} */ var maxJ = Math.floor(vBounds[1]);
+
+        // \todo [2013-07-03 pyry] This could be optimized by first computing ranges based on wrap mode.
+
+        for (var j = minJ; j <= maxJ; j++)
+    	for (var i = minI; i <= maxI; i++) {
+            /** @type {number} */ var x = wrap(sampler.wrapS, i, level.getWidth());
+            /** @type {number} */ var y = wrap(sampler.wrapT, j, level.getHeight());
+            /** @type {Array<Number>} */ var color = lookup<ScalarType>(level, sampler, x, y, coordZ);
+
+    		if (isColorValid(prec, color, result))
+    			return true;
+    	}
+
+        return false;
     };
 
     /**
