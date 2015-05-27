@@ -89,7 +89,7 @@ tcuTextureUtil.linearToSRGB = function(cl) {
 };
 
 /**
- * @param {tcuTexture.ChannelType} channelType
+ * @param {?tcuTexture.ChannelType} channelType
  * @return {tcuTextureUtil.TextureChannelClass}
  */
 tcuTextureUtil.getTextureChannelClass = function(channelType) {
@@ -227,7 +227,7 @@ tcuTextureUtil.TextureFormatInfo = function(valueMin, valueMax, lookupScale, loo
 };
 
 /**
- * @param {tcuTexture.ChannelType} channelType
+ * @param {?tcuTexture.ChannelType} channelType
  * @return {Array<number>}
  */
 tcuTextureUtil.getChannelValueRange = function(channelType) {
@@ -600,75 +600,6 @@ tcuTextureUtil.copy = function(dst, src) {
                 dst.setPixel(src.getPixel(x, y, z), x, y, z);
         }
     }
-};
-
-/**
- * @param {tcuTexture.PixelBufferAccess} access
- * @param {Array<number>} color
- */
-tcuTextureUtil.clear = function(access, color) {
-    /** @type {number} */ var pixelSize = access.getFormat().getPixelSize();
-    if (access.getWidth() * access.getHeight() * access.getDepth() >= tcuTextureUtil.CLEAR_OPTIMIZE_THRESHOLD &&
-        pixelSize < tcuTextureUtil.CLEAR_OPTIMIZE_MAX_PIXEL_SIZE) {
-        // Convert to destination format.
-
-        /** @type {ArrayBuffer} */ var pixel = new ArrayBuffer(tcuTextureUtil.CLEAR_OPTIMIZE_MAX_PIXEL_SIZE);
-
-        assertMsgOptions(sizeof(pixel) == tcuTextureUtil.CLEAR_OPTIMIZE_MAX_PIXEL_SIZE, '', false, true);
-        new tcuTexture.PixelBufferAccess({
-          format: access.getFormat(),
-          width: 1,
-          height: 1,
-          depth: 1,
-          rowPitch: 0,
-          slicePitch: 0,
-          data: pixel
-      }).setPixel(color, 0, 0).clear();
-
-        for (var z = 0; z < access.getDepth(); z++)
-            for (var y = 0; y < access.getHeight(); y++)
-                tcuTextureUtil.fillRow(access, y, z, pixelSize, pixel);
-    }
-    else {
-        for (var z = 0; z < access.getDepth(); z++)
-            for (var y = 0; y < access.getHeight(); y++)
-                for (var x = 0; x < access.getWidth(); x++)
-                    access.setPixel(color, x, y, z);
-    }
-};
-
-/**
- * @param {tcuTexture.PixelBufferAccess} dst
- * @param {number} y
- * @param {number} z
- * @param {number} pixelSize
- * @param {ArrayBuffer} pixel
- */
-tcuTextureUtil.fillRow = function(dst, y, z, pixelSize, pixel) {
-    throw new Error('Not implemented. TODO: implement.');
-    //
-    // deUint8*    dstPtr    = (deUint8*)dst.getDataPtr() + z*dst.getSlicePitch() + y*dst.getRowPitch();
-    // /**  @type {number} */ var width = dst.getWidth();
-    // /**  @type {goog.NumberArray} */ var val;
-    // if (pixelSize == 8 && deIsAlignedPtr(dstPtr, pixelSize) && deIsAlignedPtr(dstPtr, pixelSize)) {
-    //     deUint64 val;
-    //     memcpy(&val, pixel, sizeof(val));
-    //
-    //     for (var i = 0; i < width; i++)
-    //         ((deUint64*)dstPtr)[i] = val;
-    // }
-    // else if (pixelSize == 4 && deIsAlignedPtr(dstPtr, pixelSize) && deIsAlignedPtr(dstPtr, pixelSize)) {
-    //     deUint32 val;
-    //     memcpy(&val, pixel, sizeof(val));
-    //
-    //     for (var i = 0; i < width; i++)
-    //         ((deUint32*)dstPtr)[i] = val;
-    // }
-    // else {
-    //     for (int i = 0; i < width; i++)
-    //         for (int j = 0; j < pixelSize; j++)
-    //             dstPtr[i*pixelSize+j] = pixel[j];
-    // }
 };
 
 });

@@ -20,13 +20,17 @@
 
 'use strict';
 goog.provide('framework.common.tcuTexLookupVerifier');
+goog.require('framework.common.tcuTexture');
 goog.require('framework.common.tcuTexVerifierUtil');
+
 
 
 goog.scope(function() {
 
     var tcuTexLookupVerifier = framework.common.tcuTexLookupVerifier;
     var tcuTexVerifierUtil = framework.common.tcuTexVerifierUtil;
+    var tcuTexture = framework.common.tcuTexture;
+
     /**
      * Generic lookup precision parameters
      * @constructor
@@ -74,8 +78,8 @@ goog.scope(function() {
         /** @type {number} */ var maxDBound = mu + mv + mw;
         /** @type {number} */ var minDErr = tcuTexVerifierUtil.computeFloatingPointError(minDBound, prec.derivateBits);
         /** @type {number} */ var maxDErr = tcuTexVerifierUtil.computeFloatingPointError(maxDBound, prec.derivateBits);
-        /** @type {number} */ var minLod = deFloatLog2(minDBound - minDErr);
-        /** @type {number} */ var maxLod = deFloatLog2(maxDBound + maxDErr);
+        /** @type {number} */ var minLod = Math.log2(minDBound - minDErr);
+        /** @type {number} */ var maxLod = Math.log2(maxDBound + maxDErr);
         /** @type {number} */ var lodErr = tcuTexVerifierUtil.computeFixedPointErrorNumber(prec.lodBits);
 
         assertMsgOptions(minLod <= maxLod, 'Error: minLoad < maxLod', false, true);
@@ -90,8 +94,8 @@ goog.scope(function() {
     * @param {tcuTexLookupVerifier.LodPrecision} prec
     * @return {Array<number>}
     */
-    tcuTexLookupVerifier.computeLodBoundsFromDerivatesUV = function() {
-        return computeLodBoundsFromDerivates(dudx, dvdx, 0.0, dudy, dvdy, 0.0, prec);
+    tcuTexLookupVerifier.computeLodBoundsFromDerivatesUV = function(dudx, dvdx, dudy, dvdy, prec) {
+        return tcuTexLookupVerifier.computeLodBoundsFromDerivates(dudx, dvdx, 0.0, dudy, dvdy, 0.0, prec);
     };
 
     /**
@@ -101,7 +105,7 @@ goog.scope(function() {
      * @return {Array<number>}
      */
     tcuTexLookupVerifier.computeLodBoundsFromDerivatesU = function(dudx, dudy, prec) {
-        return computeLodBoundsFromDerivates(dudx, 0.0, 0.0, dudy, 0.0, 0.0, prec);
+        return tcuTexLookupVerifier.computeLodBoundsFromDerivates(dudx, 0.0, 0.0, dudy, 0.0, 0.0, prec);
     };
 
     /**
@@ -109,6 +113,99 @@ goog.scope(function() {
      */
     tcuTexLookupVerifier.clampLodBounds = function() {
         throw new Error('Not implemented. TODO: implement');
+    };
+
+    /*
+     * @param {tcuTexture.Sampler} sampler
+     * @param {boolean}
+     */
+    tcuTexLookupVerifier.isSamplerSupported = function(sampler) {
+        return sampler.compare == tcuTexture.CompareMode.COMPAREMODE_NONE &&
+            tcuTexVerifierUtil.isWrapModeSupported(sampler.wrapS) &&
+            tcuTexVerifierUtil.isWrapModeSupported(sampler.wrapT) &&
+            tcuTexVerifierUtil.isWrapModeSupported(sampler.wrapR);
+    };
+
+    /**
+     * @param {tcuTexture.ConstPixelBufferAccess} level
+     * @param {tcuTexture.Sampler} sampler
+     * @param {tcuTexture.FilterMode.FilterMode} filterMode
+     * @param {tcuTexLookupVerifier.LookupPrecision} prec
+     * @param {Array<number>} coord vec2
+     * @param {number} coordZ int
+     * @param {Array<number>} result
+     * @return {boolean}
+     */
+    tcuTexLookupVerifier.isLevelSampleResultValid_CoordAsVec2AndInt = function(level, sampler, filterMode, prec, coord, coordZ, result) {
+        if (filterMode == tcuTexture.FilterMode.LINEAR)
+      	    return tcuTexLookupVerifier.isLinearSampleResultValid_CoordAsVec2AndInt(level, sampler, prec, coord, coordZ, result);
+      	else
+      	    return tcuTexLookupVerifier.isNearestSampleResultValid_CoordAsVec2AndInt(level, sampler, prec, coord, coordZ, result);
+    };
+
+    /**
+     * @param {tcuTexture.ConstPixelBufferAccess} level
+     * @param {tcuTexture.Sampler} sampler
+     * @param {tcuTexLookupVerifier.LookupPrecision} prec
+     * @param {Array<number>} coord vec2
+     * @param {number} coordZ int
+     * @param {Array<number>} result
+     * @return {boolean}
+     */
+    tcuTexLookupVerifier.isLinearSampleResultValid_CoordAsVec2AndInt = function() {
+        const Vec2					uBounds			= computeNonNormalizedCoordBounds(sampler.normalizedCoords, level.getWidth(),	coord.x(), prec.coordBits.x(), prec.uvwBits.x());
+	const Vec2					vBounds			= computeNonNormalizedCoordBounds(sampler.normalizedCoords, level.getHeight(),	coord.y(), prec.coordBits.y(), prec.uvwBits.y());
+
+	// Integer coordinate bounds for (x0,y0) - without wrap mode
+	const int					minI			= deFloorFloatToInt32(uBounds.x()-0.5f);
+	const int					maxI			= deFloorFloatToInt32(uBounds.y()-0.5f);
+	const int					minJ			= deFloorFloatToInt32(vBounds.x()-0.5f);
+	const int					maxJ			= deFloorFloatToInt32(vBounds.y()-0.5f);
+
+	const int					w				= level.getWidth();
+	const int					h				= level.getHeight();
+
+	const TextureChannelClass	texClass		= getTextureChannelClass(level.getFormat().type);
+	float						searchStep		= texClass == TEXTURECHANNELCLASS_UNSIGNED_FIXED_POINT	? computeBilinearSearchStepForUnorm(prec) :
+												  texClass == TEXTURECHANNELCLASS_SIGNED_FIXED_POINT	? computeBilinearSearchStepForSnorm(prec) :
+												  0.0f; // Step is computed for floating-point quads based on texel values.
+
+	// \todo [2013-07-03 pyry] This could be optimized by first computing ranges based on wrap mode.
+
+	for (int j = minJ; j <= maxJ; j++)
+	{
+		for (int i = minI; i <= maxI; i++)
+		{
+			// Wrapped coordinates
+			const int	x0		= wrap(sampler.wrapS, i  , w);
+			const int	x1		= wrap(sampler.wrapS, i+1, w);
+			const int	y0		= wrap(sampler.wrapT, j  , h);
+			const int	y1		= wrap(sampler.wrapT, j+1, h);
+
+			// Bounds for filtering factors
+			const float	minA	= de::clamp((uBounds.x()-0.5f)-float(i), 0.0f, 1.0f);
+			const float	maxA	= de::clamp((uBounds.y()-0.5f)-float(i), 0.0f, 1.0f);
+			const float	minB	= de::clamp((vBounds.x()-0.5f)-float(j), 0.0f, 1.0f);
+			const float	maxB	= de::clamp((vBounds.y()-0.5f)-float(j), 0.0f, 1.0f);
+
+			ColorQuad quad;
+			lookupQuad(quad, level, sampler, x0, x1, y0, y1, coordZ);
+
+			if (texClass == TEXTURECHANNELCLASS_FLOATING_POINT)
+				searchStep = computeBilinearSearchStepFromFloatQuad(prec, quad);
+
+			if (isBilinearRangeValid(prec, quad, Vec2(minA, maxA), Vec2(minB, maxB), searchStep, result))
+				return true;
+		}
+	}
+
+	return false;
+    };
+
+    /**
+     *
+     */
+    tcuTexLookupVerifier.isNearestSampleResultValid_CoordAsVec2AndInt = function() {
     };
 
     /**

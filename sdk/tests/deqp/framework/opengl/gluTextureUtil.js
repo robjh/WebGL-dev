@@ -505,7 +505,6 @@ gluTextureUtil.isGLInternalColorFormatFilterable = function(format) {
 gluTextureUtil.mapGLWrapMode = function(wrapMode) {
     switch (wrapMode) {
         case gl.CLAMP_TO_EDGE: return tcuTexture.WrapMode.CLAMP_TO_EDGE;
-        case gl.CLAMP_TO_BORDER: return tcuTexture.WrapMode.CLAMP_TO_BORDER;
         case gl.REPEAT: return tcuTexture.WrapMode.REPEAT_GL;
         case gl.MIRRORED_REPEAT: return tcuTexture.WrapMode.MIRRORED_REPEAT_GL;
         default:

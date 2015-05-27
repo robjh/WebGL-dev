@@ -39,6 +39,14 @@ goog.scope(function() {
     };
 
     /**
+     * @param {tcuTexture.WrapMode} mode
+     * @return {boolean}
+     */
+    tcuTexVerifierUtil.isWrapModeSupported = function(mode) {
+        return mode != tcuTexture.WrapMode.MIRRORED_REPEAT_CL && mode != tcuTexture.WrapMode.REPEAT_CL;
+    };
+
+    /**
      * @param {number} numAccurateBits
      * @return {number}
      */

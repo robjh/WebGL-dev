@@ -12,7 +12,7 @@ goog.addDependency('../../../deqp/framework/common/tcuRGBA.js', ['framework.comm
 goog.addDependency('../../../deqp/framework/common/tcuStringTemplate.js', ['framework.common.tcuStringTemplate'], [], false);
 goog.addDependency('../../../deqp/framework/common/tcuSurface.js', ['framework.common.tcuSurface'], ['framework.common.tcuTexture', 'framework.delibs.debase.deMath'], false);
 goog.addDependency('../../../deqp/framework/common/tcuTestCase.js', ['framework.common.tcuTestCase'], [], false);
-goog.addDependency('../../../deqp/framework/common/tcuTexLookupVerifier.js', ['framework.common.tcuTexLookupVerifier'], ['framework.common.tcuTexVerifierUtil'], false);
+goog.addDependency('../../../deqp/framework/common/tcuTexLookupVerifier.js', ['framework.common.tcuTexLookupVerifier'], ['framework.common.tcuTexVerifierUtil', 'framework.common.tcuTexture'], false);
 goog.addDependency('../../../deqp/framework/common/tcuTexVerifierUtil.js', ['framework.common.tcuTexVerifierUtil'], ['framework.common.tcuFloat'], false);
 goog.addDependency('../../../deqp/framework/common/tcuTexture.js', ['framework.common.tcuTexture'], ['framework.common.tcuFloat', 'framework.delibs.debase.deMath'], false);
 goog.addDependency('../../../deqp/framework/common/tcuTextureUtil.js', ['framework.common.tcuTextureUtil'], ['framework.common.tcuTexture', 'framework.delibs.debase.deMath'], false);
