@@ -31,8 +31,6 @@ var deMath = framework.delibs.debase.deMath;
 var tcuFloat = framework.common.tcuFloat;
 var rrGenericVector = framework.referencerenderer.rrGenericVector;
 
-    rrVertexAttrib.DE_NULL = null;
-
     var DE_ASSERT = function(x) {
         if (!x)
             throw new Error('Assert failed');
@@ -130,7 +128,7 @@ var rrGenericVector = framework.referencerenderer.rrGenericVector;
         /** @type {number} */ this.stride = 0;
         /** @type {number} */ this.instanceDivisor = 0;
         /** @type {number} */ this.offset = 0; //Added this property to compensate functionality (not in original dEQP).
-        /** @type {ArrayBuffer} */ this.pointer = rrVertexAttrib.DE_NULL;
+        /** @type {ArrayBuffer} */ this.pointer = null;
         /** @type {Array<number>|rrGenericVector.GenericVec4} */ this.generic; //!< Generic attribute, used if pointer is null.
     };
 

@@ -458,7 +458,7 @@ goog.scope(function() {
         /** @type {boolean} */ this.m_bound = false;
         /** @type {number} */ this.m_attribNdx = 0;
         /** @type {number} */ this.m_size = 0;
-        /** @type {Uint8Array} */ this.m_data = glsVertexArrayTests.DE_NULL;
+        /** @type {Uint8Array} */ this.m_data = null;
         /** @type {number} */ this.m_componentCount = 1;
         /** @type {glsVertexArrayTests.deArray.Target} */ this.m_target = glsVertexArrayTests.deArray.Target.ARRAY;
         /** @type {glsVertexArrayTests.deArray.InputType} */ this.m_inputType = glsVertexArrayTests.deArray.InputType.FLOAT;
@@ -2025,7 +2025,7 @@ goog.scope(function() {
      * @param {glsVertexArrayTests.GLValue} max
      */
     glsVertexArrayTests.RandomArrayGenerator.generatePerQuad = function(seed, count, componentCount, stride, primitive, type, min, max) {
-        /** @type {ArrayBuffer} */ var data = glsVertexArrayTests.DE_NULL;
+        /** @type {ArrayBuffer} */ var data = null;
 
         data = glsVertexArrayTests.RandomArrayGenerator.createPerQuads(seed, count, componentCount, stride, primitive, min, max);
         return data;
@@ -2408,7 +2408,7 @@ goog.scope(function() {
             for (var arrayNdx = 0; arrayNdx < this.m_spec.arrays.length; arrayNdx++) {
                 arraySpec = this.m_spec.arrays[arrayNdx];
                 /** @type {number} */ var seed = arraySpec.inputType + 10 * arraySpec.outputType + 100 * arraySpec.storage + 1000 * this.m_spec.primitive + 10000 * arraySpec.usage + this.m_spec.drawCount + 12 * arraySpec.componentCount + arraySpec.stride + arraySpec.normalize;
-                /** @type {ArrayBuffer} */ var data = glsVertexArrayTests.DE_NULL;
+                /** @type {ArrayBuffer} */ var data = null;
                 /** @type {number} */ var stride = arraySpec.stride == 0 ? arraySpec.componentCount * glsVertexArrayTests.deArray.inputTypeSize(arraySpec.inputType) : arraySpec.stride;
                 /** @type {number} */ var bufferSize = arraySpec.offset + stride * (this.m_spec.drawCount * primitiveSize - 1) + arraySpec.componentCount * glsVertexArrayTests.deArray.inputTypeSize(arraySpec.inputType);
 

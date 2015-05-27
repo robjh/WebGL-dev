@@ -56,13 +56,6 @@ goog.scope(function() {
             throw new Error('Assert failed');
     };
 
-    es3fVertexArrayTests.DE_STATIC_ASSERT = function(x) {
-        if (!x)
-            throw new Error('Assert failed');
-    };
-
-    es3fVertexArrayTests.DE_NULL = null;
-
     /**
      * es3fVertexArrayTests.SingleVertexArrayUsageGroup
      * @constructor
