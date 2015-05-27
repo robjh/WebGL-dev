@@ -61,7 +61,8 @@ goog.scope(function() {
     var rrVertexAttrib = framework.referencerenderer.rrVertexAttrib;
     var rrVertexPacket = framework.referencerenderer.rrVertexPacket;
 
-    var MAX_RENDER_TARGET_SIZE = 512;
+
+    /** @const {number} */ glsDrawTests.MAX_RENDER_TARGET_SIZE = 512;
 
     // Utils
 
@@ -88,18 +89,18 @@ goog.scope(function() {
         assertMsgOptions(usage == null, 'Usage is null', false, true);
 
         var usages = [
-            gl.DYNAMIC_DRAW, // USAGE_DYNAMIC_DRAW = 0,
-            gl.STATIC_DRAW, // USAGE_STATIC_DRAW,
-            gl.STREAM_DRAW, // USAGE_STREAM_DRAW,
+            gl.DYNAMIC_DRAW,    // USAGE_DYNAMIC_DRAW = 0,
+            gl.STATIC_DRAW,        // USAGE_STATIC_DRAW,
+            gl.STREAM_DRAW,        // USAGE_STREAM_DRAW,
 
-            gl.STREAM_READ, // USAGE_STREAM_READ,
-            gl.STREAM_COPY, // USAGE_STREAM_COPY,
+            gl.STREAM_READ,        // USAGE_STREAM_READ,
+            gl.STREAM_COPY,        // USAGE_STREAM_COPY,
 
-            gl.STATIC_READ, // USAGE_STATIC_READ,
-            gl.STATIC_COPY, // USAGE_STATIC_COPY,
+            gl.STATIC_READ,        // USAGE_STATIC_READ,
+            gl.STATIC_COPY,        // USAGE_STATIC_COPY,
 
-            gl.DYNAMIC_READ, // USAGE_DYNAMIC_READ,
-            gl.DYNAMIC_COPY // USAGE_DYNAMIC_COPY,
+            gl.DYNAMIC_READ,    // USAGE_DYNAMIC_READ,
+            gl.DYNAMIC_COPY        // USAGE_DYNAMIC_COPY,
         ];
         assertMsgOptions(usages.length == Object.keys(glsDrawTests.DrawTestSpec.Usage).length,
             'Amount of usage gl vlaues is different from amount of usages', false, true);
@@ -115,17 +116,17 @@ goog.scope(function() {
         assertMsgOptions(type == null, 'Input type is null', false, true);
 
         var types = [
-            gl.FLOAT, // INPUTTYPE_FLOAT = 0,
-            gl.BYTE, // INPUTTYPE_BYTE,
-            gl.SHORT, // INPUTTYPE_SHORT,
-            gl.UNSIGNED_BYTE, // INPUTTYPE_UNSIGNED_BYTE,
-            gl.UNSIGNED_SHORT, // INPUTTYPE_UNSIGNED_SHORT,
+            gl.FLOAT,                // INPUTTYPE_FLOAT = 0,
+            gl.BYTE,                // INPUTTYPE_BYTE,
+            gl.SHORT,                // INPUTTYPE_SHORT,
+            gl.UNSIGNED_BYTE,        // INPUTTYPE_UNSIGNED_BYTE,
+            gl.UNSIGNED_SHORT,        // INPUTTYPE_UNSIGNED_SHORT,
 
-            gl.INT, // INPUTTYPE_INT,
-            gl.UNSIGNED_INT, // INPUTTYPE_UNSIGNED_INT,
-            gl.HALF_FLOAT, // INPUTTYPE_HALF,
+            gl.INT,                    // INPUTTYPE_INT,
+            gl.UNSIGNED_INT,        // INPUTTYPE_UNSIGNED_INT,
+            gl.HALF_FLOAT,            // INPUTTYPE_HALF,
             gl.UNSIGNED_INT_2_10_10_10_REV, // INPUTTYPE_UNSIGNED_INT_2_10_10_10,
-            gl.INT_2_10_10_10_REV // INPUTTYPE_INT_2_10_10_10,
+            gl.INT_2_10_10_10_REV            // INPUTTYPE_INT_2_10_10_10,
         ];
         assertMsgOptions(types.length == Object.keys(glsDrawTests.DrawTestSpec.InputType).length,
             'Amount of gl input types is different from amount of input types', false, true);
@@ -141,21 +142,21 @@ goog.scope(function() {
         assertMsgOptions(type == null, 'Output type is null', false, true);
 
         var types = [
-            'float', // OUTPUTTYPE_FLOAT = 0,
-            'vec2', // OUTPUTTYPE_VEC2,
-            'vec3', // OUTPUTTYPE_VEC3,
-            'vec4', // OUTPUTTYPE_VEC4,
+            'float',        // OUTPUTTYPE_FLOAT = 0,
+            'vec2',            // OUTPUTTYPE_VEC2,
+            'vec3',            // OUTPUTTYPE_VEC3,
+            'vec4',            // OUTPUTTYPE_VEC4,
 
-            'int', // OUTPUTTYPE_INT,
-            'uint', // OUTPUTTYPE_UINT,
+            'int',            // OUTPUTTYPE_INT,
+            'uint',            // OUTPUTTYPE_UINT,
 
-            'ivec2', // OUTPUTTYPE_IVEC2,
-            'ivec3', // OUTPUTTYPE_IVEC3,
-            'ivec4', // OUTPUTTYPE_IVEC4,
+            'ivec2',        // OUTPUTTYPE_IVEC2,
+            'ivec3',        // OUTPUTTYPE_IVEC3,
+            'ivec4',        // OUTPUTTYPE_IVEC4,
 
-            'uvec2', // OUTPUTTYPE_UVEC2,
-            'uvec3', // OUTPUTTYPE_UVEC3,
-            'uvec4' // OUTPUTTYPE_UVEC4,
+            'uvec2',        // OUTPUTTYPE_UVEC2,
+            'uvec3',        // OUTPUTTYPE_UVEC3,
+            'uvec4'        // OUTPUTTYPE_UVEC4,
         ];
         assertMsgOptions(types.length == Object.keys(glsDrawTests.DrawTestSpec.OutputType).length,
             'Amount of output type names is different than amount of output types', false, true);
@@ -169,12 +170,12 @@ goog.scope(function() {
      */
     glsDrawTests.primitiveToGL = function(primitive) {
         var primitives = [
-            gl.POINTS, // PRIMITIVE_POINTS = 0,
-            gl.TRIANGLES, // PRIMITIVE_TRIANGLES,
-            gl.TRIANGLE_FAN, // PRIMITIVE_TRIANGLE_FAN,
-            gl.TRIANGLE_STRIP, // PRIMITIVE_TRIANGLE_STRIP,
-            gl.LINES, // PRIMITIVE_LINES
-            gl.LINE_STRIP, // PRIMITIVE_LINE_STRIP
+            gl.POINTS,                        // PRIMITIVE_POINTS = 0,
+            gl.TRIANGLES,                    // PRIMITIVE_TRIANGLES,
+            gl.TRIANGLE_FAN,                // PRIMITIVE_TRIANGLE_FAN,
+            gl.TRIANGLE_STRIP,                // PRIMITIVE_TRIANGLE_STRIP,
+            gl.LINES,                        // PRIMITIVE_LINES
+            gl.LINE_STRIP,                    // PRIMITIVE_LINE_STRIP
             gl.LINE_LOOP
         ];
         assertMsgOptions(primitives.length == Object.keys(glsDrawTests.DrawTestSpec.Primitive).length,
@@ -189,9 +190,9 @@ goog.scope(function() {
      */
     glsDrawTests.indexTypeToGL = function(indexType) {
         var indexTypes = [
-            gl.UNSIGNED_BYTE, // INDEXTYPE_BYTE = 0,
-            gl.UNSIGNED_SHORT, // INDEXTYPE_SHORT,
-            gl.UNSIGNED_INT // INDEXTYPE_INT,
+            gl.UNSIGNED_BYTE,    // INDEXTYPE_BYTE = 0,
+            gl.UNSIGNED_SHORT,    // INDEXTYPE_SHORT,
+            gl.UNSIGNED_INT    // INDEXTYPE_INT,
         ];
         assertMsgOptions(indexTypes.length == Object.keys(glsDrawTests.DrawTestSpec.IndexType).length,
             'Amount of gl index types is different than amount of index types', false, true);
@@ -290,7 +291,12 @@ goog.scope(function() {
      */
     glsDrawTests.getMethodInfo = function(method) {
         /** @type {Array<glsDrawTests.MethodInfo>} */ var infos = [
-            //indexed instanced ranged first{indexed: false, instanced: false, ranged: false, first: true}, //!< DRAWMETHOD_DRAWARRAYS,{indexed: false, instanced: true, ranged: false, first: true}, //!< DRAWMETHOD_DRAWARRAYS_INSTANCED,{indexed: true, instanced: false, ranged: false, first: false}, //!< DRAWMETHOD_DRAWELEMENTS,{indexed: true, instanced: false, ranged: true, first: false}, //!< DRAWMETHOD_DRAWELEMENTS_RANGED,{indexed: true, instanced: true, ranged: false, first: false} //!< DRAWMETHOD_DRAWELEMENTS_INSTANCED
+            //indexed        instanced         ranged        first
+            {indexed: false, instanced: false, ranged: false, first: true}, //!< DRAWMETHOD_DRAWARRAYS,
+            {indexed: false, instanced: true, ranged: false, first: true}, //!< DRAWMETHOD_DRAWARRAYS_INSTANCED,
+            {indexed: true, instanced: false, ranged: false, first: false}, //!< DRAWMETHOD_DRAWELEMENTS,
+            {indexed: true, instanced: false, ranged: true, first: false}, //!< DRAWMETHOD_DRAWELEMENTS_RANGED,
+            {indexed: true, instanced: true, ranged: false, first: false} //!< DRAWMETHOD_DRAWELEMENTS_INSTANCED
         ];
 
         assertMsgOptions(infos.length == Object.keys(glsDrawTests.DrawTestSpec.DrawMethod).length,
@@ -857,10 +863,12 @@ goog.scope(function() {
         this.m_size = size;
         this.m_target = target;
 
-        if (this.m_storage == glsDrawTests.DrawTestSpec.Storage.BUFFER) {
+        if (this.m_storage == glsDrawTests.DrawTestSpec.Storage.BUFFER)
+        {
             this.m_ctx.bindBuffer(glsDrawTests.targetToGL(target), this.m_glBuffer);
             this.m_ctx.bufferData(glsDrawTests.targetToGL(target), size, ptr, glsDrawTests.usageToGL(usage));
-        } else
+        }
+        else
             throw new Error('Wrong storage type');
     };
 
@@ -877,7 +885,8 @@ goog.scope(function() {
             this.m_ctx.bindBuffer(glsDrawTests.targetToGL(target), this.m_glBuffer);
 
             this.m_ctx.bufferSubData(glsDrawTests.targetToGL(target), offset, size, ptr);
-        } else
+        }
+        else
             throw new Error('Wrong storage type');
     };
 
@@ -1027,8 +1036,10 @@ goog.scope(function() {
 
                 default:
                     throw new Error('Invalid component count');
-            } else {
-            switch (numComponents) {
+            }
+        else {
+            switch (numComponents)
+            {
                 case 1:
                     color = deMath.scale(color, attribValue[0]);
                     break;
@@ -1172,7 +1183,7 @@ goog.scope(function() {
                         throw new Error('Invalid output type');
                         break;
                 }
-            } else{
+            } else {
                 switch (arrays[arrayNdx].getOutputType()) {
                     case (glsDrawTests.DrawTestSpec.OutputType.FLOAT):
                     case (glsDrawTests.DrawTestSpec.OutputType.INT):
@@ -1248,7 +1259,9 @@ goog.scope(function() {
             params['VTX_HDR'] = '#version 300 es\n';
             params['FRAG_HDR'] = '#version 300 es\nlayout(location = 0) out mediump vec4 dEQP_FragColor;\n';
             params['COL_PRECISION'] = 'mediump';
-        } else if (gluShaderUtil.isGLSLVersionSupported(gl, gluShaderUtil.GLSLVersion.V100_ES)) {
+        }
+        else if (gluShaderUtil.isGLSLVersionSupported(gl, gluShaderUtil.GLSLVersion.V100_ES))
+        {
             params['VTX_IN'] = 'attribute';
             params['VTX_OUT'] = 'varying';
             params['FRAG_IN'] = 'varying';
@@ -1256,7 +1269,8 @@ goog.scope(function() {
             params['VTX_HDR'] = '';
             params['FRAG_HDR'] = '';
             params['COL_PRECISION'] = 'mediump';
-        } else
+        }
+        else
             throw new Error('Invalid GL version');
 
         return params;
@@ -1323,7 +1337,7 @@ goog.scope(function() {
     };
 
     /**
-     * @param {Array<glsDrawTests.AttributeArray>} arrays
+     * @param {Array.<glsDrawTests.AttributeArray>} arrays
      * @return {sglrShaderProgram.ShaderProgramDeclaration}
      */
     glsDrawTests.DrawTestShaderProgram.prototype.createProgramDeclaration = function(arrays) {
@@ -1493,20 +1507,20 @@ goog.scope(function() {
      * @constructor
      */
     glsDrawTests.DrawTestSpec = function() {
-        //TODO: Check if ApiType is needed --> /** @type {glsDrawTests.DrawTestSpec.ApiType} */ this.apiType; //!< needed in spec validation
+        //TODO: Check if ApiType is needed --> /** @type {glsDrawTests.DrawTestSpec.ApiType} */ this.apiType;            //!< needed in spec validation
         /** @type {?glsDrawTests.DrawTestSpec.Primitive} */ this.primitive = null;
-        /** @type {number} */ this.primitiveCount = 0; //!< number of primitives to draw (per instance)
+        /** @type {number} */ this.primitiveCount = 0;     //!< number of primitives to draw (per instance)
 
         /** @type {?glsDrawTests.DrawTestSpec.DrawMethod} */ this.drawMethod = null;
-        /** @type {?glsDrawTests.DrawTestSpec.IndexType} */ this.indexType = null; //!< used only if drawMethod = DrawElements*
+        /** @type {?glsDrawTests.DrawTestSpec.IndexType} */ this.indexType = null;          //!< used only if drawMethod = DrawElements*
         /** @type {number} */ this.indexPointerOffset = 0; //!< used only if drawMethod = DrawElements*
-        /** @type {?glsDrawTests.DrawTestSpec.Storage} */ this.indexStorage = null; //!< used only if drawMethod = DrawElements*
-        /** @type {number} */ this.first = 0; //!< used only if drawMethod = DrawArrays*
-        /** @type {number} */ this.indexMin = 0; //!< used only if drawMethod = Draw*Ranged
-        /** @type {number} */ this.indexMax = 0; //!< used only if drawMethod = Draw*Ranged
-        /** @type {number} */ this.instanceCount = 0; //!< used only if drawMethod = Draw*Instanced or Draw*Indirect
-        /** @type {number} */ this.indirectOffset = 0; //!< used only if drawMethod = Draw*Indirect
-        /** @type {number} */ this.baseVertex = 0; //!< used only if drawMethod = DrawElementsIndirect or *BaseVertex
+        /** @type {?glsDrawTests.DrawTestSpec.Storage} */ this.indexStorage = null;       //!< used only if drawMethod = DrawElements*
+        /** @type {number} */ this.first = 0;              //!< used only if drawMethod = DrawArrays*
+        /** @type {number} */ this.indexMin = 0;           //!< used only if drawMethod = Draw*Ranged
+        /** @type {number} */ this.indexMax = 0;           //!< used only if drawMethod = Draw*Ranged
+        /** @type {number} */ this.instanceCount = 0;      //!< used only if drawMethod = Draw*Instanced or Draw*Indirect
+        /** @type {number} */ this.indirectOffset = 0;     //!< used only if drawMethod = Draw*Indirect
+        /** @type {number} */ this.baseVertex = 0;         //!< used only if drawMethod = DrawElementsIndirect or *BaseVertex
 
         /** @type {Array<glsDrawTests.DrawTestSpec.AttributeSpec>} */ this.attribs = [];
     };
@@ -1519,8 +1533,8 @@ goog.scope(function() {
         assertMsgOptions(target != null, 'Target is null', false, true);
 
         var targets = [
-            'element_array', // TARGET_ELEMENT_ARRAY = 0,
-            'array' // TARGET_ARRAY,
+            'element_array',    // TARGET_ELEMENT_ARRAY = 0,
+            'array'                // TARGET_ARRAY,
         ];
         assertMsgOptions(targets.length == Object.keys(glsDrawTests.DrawTestSpec.Target).length,
             'The amount of target names is different than the amount of targets', false, true);
@@ -1536,19 +1550,19 @@ goog.scope(function() {
         assertMsgOptions(type != null, 'Type is null', false, true);
 
         var types = [
-            'float', // INPUTTYPE_FLOAT = 0,
+            'float',            // INPUTTYPE_FLOAT = 0,
 
-            'byte', // INPUTTYPE_BYTE,
-            'short', // INPUTTYPE_SHORT,
+            'byte',                // INPUTTYPE_BYTE,
+            'short',            // INPUTTYPE_SHORT,
 
-            'unsigned_byte', // INPUTTYPE_UNSIGNED_BYTE,
-            'unsigned_short', // INPUTTYPE_UNSIGNED_SHORT,
+            'unsigned_byte',    // INPUTTYPE_UNSIGNED_BYTE,
+            'unsigned_short',    // INPUTTYPE_UNSIGNED_SHORT,
 
-            'int', // INPUTTYPE_INT,
-            'unsigned_int', // INPUTTYPE_UNSIGNED_INT,
-            'half', // INPUTTYPE_HALF,
-            'unsigned_int2_10_10_10', // INPUTTYPE_UNSIGNED_INT_2_10_10_10,
-            'int2_10_10_10' // INPUTTYPE_INT_2_10_10_10,
+            'int',                        // INPUTTYPE_INT,
+            'unsigned_int',                // INPUTTYPE_UNSIGNED_INT,
+            'half',                        // INPUTTYPE_HALF,
+            'unsigned_int2_10_10_10',    // INPUTTYPE_UNSIGNED_INT_2_10_10_10,
+            'int2_10_10_10'                // INPUTTYPE_INT_2_10_10_10,
         ];
         assertMsgOptions(types.length == Object.keys(glsDrawTests.DrawTestSpec.InputType).length,
             'The amount of type names is different than the amount of types', false, true);
@@ -1564,21 +1578,21 @@ goog.scope(function() {
         assertMsgOptions(type != null, 'Type is null', false, true);
 
         var types = [
-            'float', // OUTPUTTYPE_FLOAT = 0,
-            'vec2', // OUTPUTTYPE_VEC2,
-            'vec3', // OUTPUTTYPE_VEC3,
-            'vec4', // OUTPUTTYPE_VEC4,
+            'float',        // OUTPUTTYPE_FLOAT = 0,
+            'vec2',            // OUTPUTTYPE_VEC2,
+            'vec3',            // OUTPUTTYPE_VEC3,
+            'vec4',            // OUTPUTTYPE_VEC4,
 
-            'int', // OUTPUTTYPE_INT,
-            'uint', // OUTPUTTYPE_UINT,
+            'int',            // OUTPUTTYPE_INT,
+            'uint',            // OUTPUTTYPE_UINT,
 
-            'ivec2', // OUTPUTTYPE_IVEC2,
-            'ivec3', // OUTPUTTYPE_IVEC3,
-            'ivec4', // OUTPUTTYPE_IVEC4,
+            'ivec2',        // OUTPUTTYPE_IVEC2,
+            'ivec3',        // OUTPUTTYPE_IVEC3,
+            'ivec4',        // OUTPUTTYPE_IVEC4,
 
-            'uvec2', // OUTPUTTYPE_UVEC2,
-            'uvec3', // OUTPUTTYPE_UVEC3,
-            'uvec4' // OUTPUTTYPE_UVEC4,
+            'uvec2',        // OUTPUTTYPE_UVEC2,
+            'uvec3',        // OUTPUTTYPE_UVEC3,
+            'uvec4'        // OUTPUTTYPE_UVEC4,
         ];
         assertMsgOptions(types.length == Object.keys(glsDrawTests.DrawTestSpec.InputType).length,
             'The amount of type names is different than the amount of types', false, true);
@@ -1594,18 +1608,18 @@ goog.scope(function() {
         assertMsgOptions(usage != null, 'Usage is null', false, true);
 
         var usages = [
-            'dynamic_draw', // USAGE_DYNAMIC_DRAW = 0,
-            'static_draw', // USAGE_STATIC_DRAW,
-            'stream_draw', // USAGE_STREAM_DRAW,
+            'dynamic_draw',    // USAGE_DYNAMIC_DRAW = 0,
+            'static_draw',    // USAGE_STATIC_DRAW,
+            'stream_draw',    // USAGE_STREAM_DRAW,
 
-            'stream_read', // USAGE_STREAM_READ,
-            'stream_copy', // USAGE_STREAM_COPY,
+            'stream_read',    // USAGE_STREAM_READ,
+            'stream_copy',    // USAGE_STREAM_COPY,
 
-            'static_read', // USAGE_STATIC_READ,
-            'static_copy', // USAGE_STATIC_COPY,
+            'static_read',    // USAGE_STATIC_READ,
+            'static_copy',    // USAGE_STATIC_COPY,
 
-            'dynamic_read', // USAGE_DYNAMIC_READ,
-            'dynamic_copy' // USAGE_DYNAMIC_COPY,
+            'dynamic_read',    // USAGE_DYNAMIC_READ,
+            'dynamic_copy'    // USAGE_DYNAMIC_COPY,
         ];
         assertMsgOptions(usages.length == Object.keys(glsDrawTests.DrawTestSpec.Usage).length,
             'The amount of usage names is different than the amount of usages', false, true);
@@ -1621,8 +1635,8 @@ goog.scope(function() {
         assertMsgOptions(storage != null, 'Storage is null', false, true);
 
         var storages = [
-            'user_ptr', // STORAGE_USER = 0,
-            'buffer' // STORAGE_BUFFER,
+            'user_ptr',    // STORAGE_USER = 0,
+            'buffer'    // STORAGE_BUFFER,
         ];
         assertMsgOptions(storages.length == Object.keys(glsDrawTests.DrawTestSpec.Storage).length,
             'The amount of storage names is different than the amount of storages', false, true);
@@ -1638,12 +1652,12 @@ goog.scope(function() {
         assertMsgOptions(primitive == null, 'Primitive is null', false, true);
 
         var primitives = [
-            'points', // PRIMITIVE_POINTS ,
-            'triangles', // PRIMITIVE_TRIANGLES,
-            'triangle_fan', // PRIMITIVE_TRIANGLE_FAN,
-            'triangle_strip', // PRIMITIVE_TRIANGLE_STRIP,
-            'lines', // PRIMITIVE_LINES
-            'line_strip', // PRIMITIVE_LINE_STRIP
+            'points',                    // PRIMITIVE_POINTS ,
+            'triangles',                // PRIMITIVE_TRIANGLES,
+            'triangle_fan',                // PRIMITIVE_TRIANGLE_FAN,
+            'triangle_strip',            // PRIMITIVE_TRIANGLE_STRIP,
+            'lines',                    // PRIMITIVE_LINES
+            'line_strip',                // PRIMITIVE_LINE_STRIP
             'line_loop'
         ];
         assertMsgOptions(primitives.length == Object.keys(glsDrawTests.DrawTestSpec.Primitive).length,
@@ -1660,9 +1674,9 @@ goog.scope(function() {
         assertMsgOptions(type != null, 'Index type is null', false, true);
 
         var indexTypes = [
-            'byte', // INDEXTYPE_BYTE = 0,
-            'short', // INDEXTYPE_SHORT,
-            'int' // INDEXTYPE_INT,
+            'byte',        // INDEXTYPE_BYTE = 0,
+            'short',    // INDEXTYPE_SHORT,
+            'int'        // INDEXTYPE_INT,
         ];
         assertMsgOptions(indexTypes.length == Object.keys(glsDrawTests.DrawTestSpec.IndexType).length,
             'The amount of index type names is different than the amount of index types', false, true);
@@ -1678,11 +1692,11 @@ goog.scope(function() {
         assertMsgOptions(method != null, 'Method is null', false, true);
 
         var methods = [
-            'draw_arrays', //!< DRAWMETHOD_DRAWARRAYS
-            'draw_arrays_instanced', //!< DRAWMETHOD_DRAWARRAYS_INSTANCED
-            'draw_elements', //!< DRAWMETHOD_DRAWELEMENTS
-            'draw_range_elements', //!< DRAWMETHOD_DRAWELEMENTS_RANGED
-            'draw_elements_instanced' //!< DRAWMETHOD_DRAWELEMENTS_INSTANCED
+            'draw_arrays',                            //!< DRAWMETHOD_DRAWARRAYS
+            'draw_arrays_instanced',                //!< DRAWMETHOD_DRAWARRAYS_INSTANCED
+            'draw_elements',                        //!< DRAWMETHOD_DRAWELEMENTS
+            'draw_range_elements',                    //!< DRAWMETHOD_DRAWELEMENTS_RANGED
+            'draw_elements_instanced'                //!< DRAWMETHOD_DRAWELEMENTS_INSTANCED
         ];
         assertMsgOptions(methods.length == Object.keys(glsDrawTests.DrawTestSpec.DrawMethod).length,
         'The amount of method names is different than the amount of methods', false, true);
@@ -1698,19 +1712,19 @@ goog.scope(function() {
         assertMsgOptions(type != null, 'Input type is null', false, true);
 
         var size = [
-            4, // INPUTTYPE_FLOAT = 0,
+            4,        // INPUTTYPE_FLOAT = 0,
 
-            1, // INPUTTYPE_BYTE,
-            2, // INPUTTYPE_SHORT,
+            1,        // INPUTTYPE_BYTE,
+            2,    // INPUTTYPE_SHORT,
 
-            1, // INPUTTYPE_UNSIGNED_BYTE,
-            2, // INPUTTYPE_UNSIGNED_SHORT,
+            1,    // INPUTTYPE_UNSIGNED_BYTE,
+            2,    // INPUTTYPE_UNSIGNED_SHORT,
 
-            4, // INPUTTYPE_INT,
-            4, // INPUTTYPE_UNSIGNED_INT,
-            2, // INPUTTYPE_HALF,
-            4 / 4, // INPUTTYPE_UNSIGNED_INT_2_10_10_10,
-            4 / 4 // INPUTTYPE_INT_2_10_10_10,
+            4,        // INPUTTYPE_INT,
+            4,        // INPUTTYPE_UNSIGNED_INT,
+            2,        // INPUTTYPE_HALF,
+            4 / 4,        // INPUTTYPE_UNSIGNED_INT_2_10_10_10,
+            4 / 4        // INPUTTYPE_INT_2_10_10_10,
         ];
         assertMsgOptions(size.length == Object.keys(glsDrawTests.DrawTestSpec.InputType).length,
             'The amount of type names is different than the amount of types', false, true);
@@ -1726,9 +1740,9 @@ goog.scope(function() {
         assertMsgOptions(type != null, 'Type is null', false, true);
 
         var size = [
-            1, // INDEXTYPE_BYTE,
-            2, // INDEXTYPE_SHORT,
-            4 // INDEXTYPE_INT,
+            1,    // INDEXTYPE_BYTE,
+            2,    // INDEXTYPE_SHORT,
+            4    // INDEXTYPE_INT,
         ];
         assertMsgOptions(size.length == Object.keys(glsDrawTests.DrawTestSpec.IndexType).length,
             'The amount of type names is different than the amount of types', false, true);
@@ -1836,7 +1850,9 @@ goog.scope(function() {
                     'input datatype ' + glsDrawTests.DrawTestSpec.inputTypeToString(/** @type {?glsDrawTests.DrawTestSpec.InputType} */ (attrib.inputType)) + ', ' +
                     'input component count ' + attrib.componentCount + ', ' +
                     'used as ' + glsDrawTests.DrawTestSpec.outputTypeToString(attrib.outputType) + ', ';
-            } else{
+            }
+            else
+            {
                 desc += 'Attribute ' + ndx + ': ' + ((ndx == 0 || attrib.additionalPositionAttribute) ? ('position ,') : ('color ,')) +
                     'Storage in ' + glsDrawTests.DrawTestSpec.storageToString(attrib.storage) + ', ' +
                     'stride ' + attrib.stride + ', ' +
@@ -2092,6 +2108,7 @@ goog.scope(function() {
         INT: 2
     };
 
+
     /**
      * @enum {number}
      */
@@ -2239,11 +2256,11 @@ goog.scope(function() {
         /** @type {number} */ this.offset = 0;
         /** @type {number} */ this.stride = 0;
         /** @type {boolean} */ this.normalize = false;
-        /** @type {number} */ this.instanceDivisor = 0; //!< used only if drawMethod = Draw*Instanced
+        /** @type {number} */ this.instanceDivisor = 0;                //!< used only if drawMethod = Draw*Instanced
         /** @type {boolean} */ this.useDefaultAttribute = false;
 
-        /** @type {boolean} */ this.additionalPositionAttribute = false; //!< treat this attribute as position attribute. Attribute at index 0 is alway treated as such. False by default
-        /** @type {boolean} */ this.bgraComponentOrder = false; //!< component order of this attribute is bgra, valid only for 4-component targets. False by default.
+        /** @type {boolean} */ this.additionalPositionAttribute = false;    //!< treat this attribute as position attribute. Attribute at index 0 is alway treated as such. False by default
+        /** @type {boolean} */ this.bgraComponentOrder = false;             //!< component order of this attribute is bgra, valid only for 4-component targets. False by default.
     };
 
     /**
@@ -2352,11 +2369,11 @@ goog.scope(function() {
         if (inputTypeFloat && !outputTypeFloat)
             return false;
 
-        // uint -> int (undefined results)
+        // uint -> int        (undefined results)
         if (inputTypeUnsignedInteger && outputTypeSignedInteger)
             return false;
 
-        // int -> uint (undefined results)
+        // int -> uint        (undefined results)
         if (inputTypeSignedInteger && outputTypeUnsignedInteger)
             return false;
 
@@ -2379,7 +2396,7 @@ goog.scope(function() {
         // TODO: Check if we need to get the webgl version
         // GLES2 limits
         /*if (ctxType == glu::ApiType::es(2,0)) {
-            if (inputType != glsDrawTests.DrawTestSpec.InputType.BYTE && inputType != glsDrawTests.DrawTestSpec.InputType.UNSIGNED_BYTE &&
+            if (inputType != glsDrawTests.DrawTestSpec.InputType.BYTE  && inputType != glsDrawTests.DrawTestSpec.InputType.UNSIGNED_BYTE &&
                 inputType != glsDrawTests.DrawTestSpec.InputType.SHORT && inputType != glsDrawTests.DrawTestSpec.InputType.UNSIGNED_SHORT)
                 return false;
 
