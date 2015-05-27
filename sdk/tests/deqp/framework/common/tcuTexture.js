@@ -2347,7 +2347,7 @@ tcuTexture.TextureCube.prototype.getSize = function() { return this.m_size; };
 /**
  * @param {number} ndx Level index
  * @param {tcuTexture.CubeFace} face
- * @return {tcuTexture.ConstPixelBufferAccess}
+ * @return {tcuTexture.PixelBufferAccess}
  */
 tcuTexture.TextureCube.prototype.getLevelFace = function(ndx, face) { return this.m_access[face][ndx]; };
 /** @return {number} */

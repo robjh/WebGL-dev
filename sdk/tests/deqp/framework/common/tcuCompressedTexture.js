@@ -42,7 +42,6 @@ var deMath = framework.delibs.debase.deMath;
         if (!x)
             throw new Error('Assert failed');
     };
-    tcuCompressedTexture.DE_FALSE = false;
 
 /**
  * @enum
@@ -923,11 +922,11 @@ tcuCompressedTexture.CompressedTexture.prototype.getUncompressedFormat = functio
     // }
 };
 
-/*--------------------------------------------------------------------*//*!
- * \brief Decode to uncompressed pixel data
- * \param dst Destination buffer
- *//*--------------------------------------------------------------------*/
-tcuCompressedTexture.CompressedTexture.prototype.decompress = function(/*const tcu::PixelBufferAccess&*/ dst) {
+/**
+ * Decode to uncompressed pixel data
+ * @param {tcuTexture.PixelBufferAccess} dst Destination buffer
+ */
+tcuCompressedTexture.CompressedTexture.prototype.decompress = function(dst) {
     DE_ASSERT(dst.getWidth() == this.m_width && dst.getHeight() == this.m_height && dst.getDepth() == 1);
     var format = this.getUncompressedFormat();
     if (dst.getFormat().order != format.order || dst.getFormat().type != format.type)

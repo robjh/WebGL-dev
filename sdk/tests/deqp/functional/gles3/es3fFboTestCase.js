@@ -170,7 +170,7 @@ var DE_ASSERT = function(x) {
     es3fFboTestCase.FboTestCase.prototype.checkError = function() {
         /** @type {number} */ var err = this.getCurrentContext().getError();
             if (err != gl.NO_ERROR)
-                throw new Error('glError: ' + wtu.glEnumToString(gl, err));
+                throw new Error('glError: ' + WebGLTestUtils.glEnumToString(gl, err));
     };
 
     /**

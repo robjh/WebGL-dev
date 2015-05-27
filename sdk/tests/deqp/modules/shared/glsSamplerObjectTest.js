@@ -397,8 +397,7 @@ var deString = framework.delibs.debase.deString;
 
     /**
      * @private
-     * @return {WebGLTexture
-     }
+     * @return {WebGLTexture}
      */
     glsSamplerObjectTest.TextureSamplerTest.createTextureCube = function() {
         /** @type {WebGLTexture} */ var texture = null;

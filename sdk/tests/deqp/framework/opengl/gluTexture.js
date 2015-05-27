@@ -37,7 +37,6 @@ var DE_ASSERT = function(x) {
     if (!x)
         throw new Error('Assert failed');
 };
-gluTexture.DE_FALSE = false;
 
 /**
  * @constructor
@@ -70,23 +69,24 @@ gluTexture.texture2DFromInternalFormat = function(gl, internalFormat, width, hei
 
 /**
  * @param {number} numLevels
- * @param {tcuCompressedTexture.CompressedTexture} levels
+ * @param {Array<tcuCompressedTexture.CompressedTexture>} levels
  * @return {gluTexture.Texture2D}
  */
 gluTexture.texture2DFromCompressedTexture = function(gl, numLevels, levels) {
-    var format = gluTextureUtil.getGLFormat(levels.getFormat());
-    var refTex = new tcuTexture.Texture2D(levels.getUncompressedFormat(), levels.getWidth(), levels.getHeight());
+    var level = levels[0];
+    var format = gluTextureUtil.getGLFormat(level.getFormat());
+    var refTex = new tcuTexture.Texture2D(level.getUncompressedFormat(), level.getWidth(), level.getHeight());
     /** @type {gluTexture.Texture2D} */ var tex2d = new gluTexture.Texture2D(gl, format, true, refTex);
 
-    gluTexture.Texture2D.loadCompressed(numLevels, levels);
+    tex2d.loadCompressed(numLevels, levels);
 
     return tex2d;
 };
 /**
  * @param {number} numLevels
- * @param {tcuCompressedTexture.CompressedTexture} levels
+ * @param {Array<tcuCompressedTexture.CompressedTexture>} levels
  */
-gluTexture.Texture2D.loadCompressed = function(numLevels, levels) {
+gluTexture.Texture2D.prototype.loadCompressed = function(numLevels, levels) {
     /** @type {number} */ var compressedFormat = gluTextureUtil.getGLFormat(levels[0].getFormat());
 
     assertMsgOptions(this.m_glTexture, 'm_glTexture not defined', false, true);
@@ -99,11 +99,11 @@ gluTexture.Texture2D.loadCompressed = function(numLevels, levels) {
         this.m_refTexture.allocLevel(levelNdx);
         /** @type {tcuTexture.PixelBufferAccess} */ var refLevelAccess = this.m_refTexture.getLevel(levelNdx);
         assertMsgOptions(level.getWidth() == refLevelAccess.getWidth() && level.getHeight() == refLevelAccess.getHeight(), 'level and reference sizes not equal', false, true);
-        level.decompress(refLevelAccess, decompressionParams);
+        level.decompress(refLevelAccess);
 
         // Upload to GL texture in compressed form.
         gl.compressedTexImage2D(gl.TEXTURE_2D, levelNdx, compressedFormat,
-                                level.getWidth(), level.getHeight(), 0, level.getDataSize(), level.getData());
+                                level.getWidth(), level.getHeight(), 0, level.getData());
     }
 };
 
