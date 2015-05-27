@@ -25,18 +25,7 @@ goog.provide('functional.gles3.es3fAttribLocationTests');
 goog.require('modules.shared.glsAttributeLocationTests');
 goog.require('functional.gles3.es3fFboTestCase');
 goog.require('functional.gles3.es3fFboTestUtil');
-goog.require('framework.common.tcuTestCase');
-goog.require('framework.common.tcuSurface');
-goog.require('framework.common.tcuRGBA');
-goog.require('framework.common.tcuImageCompare');
-goog.require('framework.common.tcuTexture');
-goog.require('framework.common.tcuTextureUtil');
-goog.require('framework.delibs.debase.deMath');
-goog.require('framework.opengl.gluTextureUtil');
 goog.require('framework.opengl.gluShaderUtil');
-goog.require('framework.referencerenderer.rrUtil');
-goog.require('framework.opengl.simplereference.sglrReferenceContext');
-goog.require('framework.opengl.simplereference.sglrGLContext');
 
 
 goog.scope(function() {
@@ -54,50 +43,50 @@ goog.scope(function() {
 	es3fAttribLocationTests.createAttributeLocationTests = function() {
 	
 		/** @type{Array<glsAttributeLocationTests.AttribType>} */
-		var types = {
-			new AttribType('float',		1,  GL_FLOAT),
-			new AttribType('vec2',		1,  GL_FLOAT_VEC2),
-			new AttribType('vec3',		1,  GL_FLOAT_VEC3),
-			new AttribType('vec4',		1,  GL_FLOAT_VEC4),
+		var types = [
+			new AttribType('float',		1,  gluShaderUtil.DataType.FLOAT),
+			new AttribType('vec2',		1,  gluShaderUtil.DataType.FLOAT_VEC2),
+			new AttribType('vec3',		1,  gluShaderUtil.DataType.FLOAT_VEC3),
+			new AttribType('vec4',		1,  gluShaderUtil.DataType.FLOAT_VEC4),
 
-			new AttribType('mat2',		2,  GL_FLOAT_MAT2),
-			new AttribType('mat3',		3,  GL_FLOAT_MAT3),
-			new AttribType('mat4',		4,  GL_FLOAT_MAT4),
+			new AttribType('mat2',		2,  gluShaderUtil.DataType.FLOAT_MAT2),
+			new AttribType('mat3',		3,  gluShaderUtil.DataType.FLOAT_MAT3),
+			new AttribType('mat4',		4,  gluShaderUtil.DataType.FLOAT_MAT4),
 
-			new AttribType('int',		1,	GL_INT),
-			new AttribType('ivec2',		1,	GL_INT_VEC2),
-			new AttribType('ivec3',		1,	GL_INT_VEC3),
-			new AttribType('ivec4',		1,	GL_INT_VEC4),
+			new AttribType('int',		1,	gluShaderUtil.DataType.INT),
+			new AttribType('ivec2',		1,	gluShaderUtil.DataType.INT_VEC2),
+			new AttribType('ivec3',		1,	gluShaderUtil.DataType.INT_VEC3),
+			new AttribType('ivec4',		1,	gluShaderUtil.DataType.INT_VEC4),
 
-			new AttribType('uint',		1,	GL_UNSIGNED_INT),
-			new AttribType('uvec2',		1,	GL_UNSIGNED_INT_VEC2),
-			new AttribType('uvec3',		1,	GL_UNSIGNED_INT_VEC3),
-			new AttribType('uvec4',		1,	GL_UNSIGNED_INT_VEC4),
+			new AttribType('uint',		1,	gluShaderUtil.DataType.UNSIGNED_INT),
+			new AttribType('uvec2',		1,	gluShaderUtil.DataType.UNSIGNED_INT_VEC2),
+			new AttribType('uvec3',		1,	gluShaderUtil.DataType.UNSIGNED_INT_VEC3),
+			new AttribType('uvec4',		1,	gluShaderUtil.DataType.UNSIGNED_INT_VEC4),
 
-			new AttribType('mat2x2',	2,	GL_FLOAT_MAT2),
-			new AttribType('mat2x3',	2,	GL_FLOAT_MAT2x3),
-			new AttribType('mat2x4',	2,	GL_FLOAT_MAT2x4),
+			new AttribType('mat2x2',	2,	gluShaderUtil.DataType.FLOAT_MAT2),
+			new AttribType('mat2x3',	2,	gluShaderUtil.DataType.FLOAT_MAT2x3),
+			new AttribType('mat2x4',	2,	gluShaderUtil.DataType.FLOAT_MAT2x4),
 
-			new AttribType('mat3x2',	3,	GL_FLOAT_MAT3x2),
-			new AttribType('mat3x3',	3,	GL_FLOAT_MAT3),
-			new AttribType('mat3x4',	3,	GL_FLOAT_MAT3x4),
+			new AttribType('mat3x2',	3,	gluShaderUtil.DataType.FLOAT_MAT3x2),
+			new AttribType('mat3x3',	3,	gluShaderUtil.DataType.FLOAT_MAT3),
+			new AttribType('mat3x4',	3,	gluShaderUtil.DataType.FLOAT_MAT3x4),
 
-			new AttribType('mat4x2',	4,	GL_FLOAT_MAT4x2),
-			new AttribType('mat4x3',	4,	GL_FLOAT_MAT4x3),
-			new AttribType('mat4x4',	4,	GL_FLOAT_MAT4)
-		};
+			new AttribType('mat4x2',	4,	gluShaderUtil.DataType.FLOAT_MAT4x2),
+			new AttribType('mat4x3',	4,	gluShaderUtil.DataType.FLOAT_MAT4x3),
+			new AttribType('mat4x4',	4,	gluShaderUtil.DataType.FLOAT_MAT4)
+		];
 
 		/** @type{Array<glsAttributeLocationTests.AttribType>} */
-		var es2Types = {
-			new AttribType('float',	1,  GL_FLOAT),
-			new AttribType('vec2',	1,  GL_FLOAT_VEC2),
-			new AttribType('vec3',	1,  GL_FLOAT_VEC3),
-			new AttribType('vec4',	1,  GL_FLOAT_VEC4),
+		var es2Types = [
+			new AttribType('float',	1,  gluShaderUtil.DataType.FLOAT),
+			new AttribType('vec2',	1,  gluShaderUtil.DataType.FLOAT_VEC2),
+			new AttribType('vec3',	1,  gluShaderUtil.DataType.FLOAT_VEC3),
+			new AttribType('vec4',	1,  gluShaderUtil.DataType.FLOAT_VEC4),
 
-			new AttribType('mat2',	2,  GL_FLOAT_MAT2),
-			new AttribType('mat3',	3,  GL_FLOAT_MAT3),
-			new AttribType('mat4',	4,  GL_FLOAT_MAT4)
-		};
+			new AttribType('mat2',	2,  gluShaderUtil.DataType.FLOAT_MAT2),
+			new AttribType('mat3',	3,  gluShaderUtil.DataType.FLOAT_MAT3),
+			new AttribType('mat4',	4,  gluShaderUtil.DataType.FLOAT_MAT4)
+		];
 
 		/** @type {tcuTestCase.DeqpTest} */ 
 		var root = tcuTestCase.newTest('attribute_location', 'Attribute location tests');
