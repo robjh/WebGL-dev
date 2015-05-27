@@ -1606,7 +1606,7 @@ tcuTexture.PixelBufferAccess.prototype.clear = function(color, x, y, z) {
     };
 
     this.setPixel(c, range_x[0], range_y[0], range_z[0]);
-    
+
     var offset = range_z[0] * this.m_slicePitch + range_y[0] * this.m_rowPitch + range_x[0] * pixelSize;
     var pixelPtr = new arrayType(this.m_data, offset + this.m_offset, width * numElements);
 

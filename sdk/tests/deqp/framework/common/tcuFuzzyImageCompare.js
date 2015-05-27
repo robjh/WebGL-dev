@@ -38,8 +38,6 @@ var tcuTextureUtil = framework.common.tcuTextureUtil;
             throw new Error('Assert failed');
     };
 
-    tcuFuzzyImageCompare.DE_NULL = null;
-
     /**
      * tcuFuzzyImageCompare.FuzzyCompareParams struct
      * @constructor

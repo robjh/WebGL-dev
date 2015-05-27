@@ -529,7 +529,7 @@ gluTextureUtil.mapGLFilterMode = function(filterMode) {
         default:
             throw new Error("Can't map GL filter mode" + filterMode);
     }
-}
+};
 
 /* TODO: Port the code below */
 // /*--------------------------------------------------------------------*//*!
@@ -559,8 +559,7 @@ gluTextureUtil.mapGLFilterMode = function(filterMode) {
  * @param {number} magFilter Magnification filter mode
  * @return {tcuTexture.Sampler}
  */
-gluTextureUtil.mapGLSamplerWrapST = function(wrapS, wrapT, minFilter, magFilter)
-{
+gluTextureUtil.mapGLSamplerWrapST = function(wrapS, wrapT, minFilter, magFilter) {
     return gluTextureUtil.mapGLSampler(wrapS, wrapT, wrapS, minFilter, magFilter);
 };
 
@@ -575,8 +574,7 @@ gluTextureUtil.mapGLSamplerWrapST = function(wrapS, wrapT, minFilter, magFilter)
  * @param {number} magFilter Magnification filter mode
  * @return {tcuTexture.Sampler}
  */
-gluTextureUtil.mapGLSampler = function(wrapS, wrapT, wrapR, minFilter, magFilter)
-{
+gluTextureUtil.mapGLSampler = function(wrapS, wrapT, wrapR, minFilter, magFilter) {
     return new tcuTexture.Sampler(
         gluTextureUtil.mapGLWrapMode(wrapS),
         gluTextureUtil.mapGLWrapMode(wrapT),

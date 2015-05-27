@@ -167,7 +167,7 @@ deMath.divide = function(a, b) {
     var dst = [];
     for (var i = 0; i < a.length; i++)
         if (b[i] === 0)
-            throw new Error("Division by 0");
+            throw new Error('Division by 0');
         dst.push(a[i] / b[i]);
     return dst;
 };

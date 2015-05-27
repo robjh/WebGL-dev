@@ -389,20 +389,20 @@ goog.scope(function() {
         ];
 
         /** @type {Array<Object.<string, glsUniformBlockCase.UniformFlags>>} */
-        var precisionFlags = [ { name: 'lowp', flags: glsUniformBlockCase.UniformFlags.PRECISION_LOW }, { name: 'mediump', flags: glsUniformBlockCase.UniformFlags.PRECISION_MEDIUM }, { name: 'highp', flags: glsUniformBlockCase.UniformFlags.PRECISION_HIGH }
+        var precisionFlags = [{ name: 'lowp', flags: glsUniformBlockCase.UniformFlags.PRECISION_LOW }, { name: 'mediump', flags: glsUniformBlockCase.UniformFlags.PRECISION_MEDIUM }, { name: 'highp', flags: glsUniformBlockCase.UniformFlags.PRECISION_HIGH }
         ];
 
         /** @type {Array<Object.<string, glsUniformBlockCase.UniformFlags>>} */
-        var layoutFlags = [ { name: 'shared', flags: glsUniformBlockCase.UniformFlags.LAYOUT_SHARED },
+        var layoutFlags = [{ name: 'shared', flags: glsUniformBlockCase.UniformFlags.LAYOUT_SHARED },
             /* { name: 'packed', flags: glsUniformBlockCase.UniformFlags.LAYOUT_PACKED }, */ { name: 'std140', flags: glsUniformBlockCase.UniformFlags.LAYOUT_STD140 }
         ];
 
         /** @type {Array<Object.<string, glsUniformBlockCase.UniformFlags>>} */
-        var matrixFlags = [ { name: 'row_major', flags: glsUniformBlockCase.UniformFlags.LAYOUT_ROW_MAJOR }, { name: 'column_major', flags: glsUniformBlockCase.UniformFlags.LAYOUT_COLUMN_MAJOR }
+        var matrixFlags = [{ name: 'row_major', flags: glsUniformBlockCase.UniformFlags.LAYOUT_ROW_MAJOR }, { name: 'column_major', flags: glsUniformBlockCase.UniformFlags.LAYOUT_COLUMN_MAJOR }
         ];
 
         /** @type {Array<Object.<string, glsUniformBlockCase.UniformFlags>>} */
-        var bufferModes = [ { name: 'per_block_buffer', mode: glsUniformBlockCase.BufferMode.BUFFERMODE_PER_BLOCK }, { name: 'single_buffer', mode: glsUniformBlockCase.BufferMode.BUFFERMODE_SINGLE }
+        var bufferModes = [{ name: 'per_block_buffer', mode: glsUniformBlockCase.BufferMode.BUFFERMODE_PER_BLOCK }, { name: 'single_buffer', mode: glsUniformBlockCase.BufferMode.BUFFERMODE_SINGLE }
         ];
 
         // ubo.single_basic_type
