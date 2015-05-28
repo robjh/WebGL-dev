@@ -26,6 +26,7 @@ goog.require('modules.shared.glsAttributeLocationTests');
 goog.require('functional.gles3.es3fFboTestCase');
 goog.require('functional.gles3.es3fFboTestUtil');
 goog.require('framework.opengl.gluShaderUtil');
+goog.require('modules.shared.glsFboUtil');
 
 
 goog.scope(function() {
@@ -33,6 +34,7 @@ goog.scope(function() {
 	var es3fAttribLocationTests = functional.gles3.es3fAttribLocationTests;
 	var glsAttributeLocationTests = modules.shared.glsAttributeLocationTests;
 	var tcuTestCase = framework.common.tcuTestCase;
+	var gluShaderUtil = framework.opengl.gluShaderUtil;
 	var glsFboUtil = modules.shared.glsFboUtil;
 
 	var DE_ASSERT = function(x) {
@@ -41,88 +43,89 @@ goog.scope(function() {
     };
 
 	es3fAttribLocationTests.createAttributeLocationTests = function() {
-	
+
 		/** @type{Array<glsAttributeLocationTests.AttribType>} */
 		var types = [
-			new AttribType('float',		1,  gluShaderUtil.DataType.FLOAT),
-			new AttribType('vec2',		1,  gluShaderUtil.DataType.FLOAT_VEC2),
-			new AttribType('vec3',		1,  gluShaderUtil.DataType.FLOAT_VEC3),
-			new AttribType('vec4',		1,  gluShaderUtil.DataType.FLOAT_VEC4),
+			new glsAttributeLocationTests.AttribType('float',		1,  gluShaderUtil.DataType.FLOAT),
+			new glsAttributeLocationTests.AttribType('vec2',		1,  gluShaderUtil.DataType.FLOAT_VEC2),
+			new glsAttributeLocationTests.AttribType('vec3',		1,  gluShaderUtil.DataType.FLOAT_VEC3),
+			new glsAttributeLocationTests.AttribType('vec4',		1,  gluShaderUtil.DataType.FLOAT_VEC4),
 
-			new AttribType('mat2',		2,  gluShaderUtil.DataType.FLOAT_MAT2),
-			new AttribType('mat3',		3,  gluShaderUtil.DataType.FLOAT_MAT3),
-			new AttribType('mat4',		4,  gluShaderUtil.DataType.FLOAT_MAT4),
+			new glsAttributeLocationTests.AttribType('mat2',		2,  gluShaderUtil.DataType.FLOAT_MAT2),
+			new glsAttributeLocationTests.AttribType('mat3',		3,  gluShaderUtil.DataType.FLOAT_MAT3),
+			new glsAttributeLocationTests.AttribType('mat4',		4,  gluShaderUtil.DataType.FLOAT_MAT4),
 
-			new AttribType('int',		1,	gluShaderUtil.DataType.INT),
-			new AttribType('ivec2',		1,	gluShaderUtil.DataType.INT_VEC2),
-			new AttribType('ivec3',		1,	gluShaderUtil.DataType.INT_VEC3),
-			new AttribType('ivec4',		1,	gluShaderUtil.DataType.INT_VEC4),
+			new glsAttributeLocationTests.AttribType('int',			1,	gluShaderUtil.DataType.INT),
+			new glsAttributeLocationTests.AttribType('ivec2',		1,	gluShaderUtil.DataType.INT_VEC2),
+			new glsAttributeLocationTests.AttribType('ivec3',		1,	gluShaderUtil.DataType.INT_VEC3),
+			new glsAttributeLocationTests.AttribType('ivec4',		1,	gluShaderUtil.DataType.INT_VEC4),
 
-			new AttribType('uint',		1,	gluShaderUtil.DataType.UNSIGNED_INT),
-			new AttribType('uvec2',		1,	gluShaderUtil.DataType.UNSIGNED_INT_VEC2),
-			new AttribType('uvec3',		1,	gluShaderUtil.DataType.UNSIGNED_INT_VEC3),
-			new AttribType('uvec4',		1,	gluShaderUtil.DataType.UNSIGNED_INT_VEC4),
+			new glsAttributeLocationTests.AttribType('uint',		1,	gluShaderUtil.DataType.UNSIGNED_INT),
+			new glsAttributeLocationTests.AttribType('uvec2',		1,	gluShaderUtil.DataType.UNSIGNED_INT_VEC2),
+			new glsAttributeLocationTests.AttribType('uvec3',		1,	gluShaderUtil.DataType.UNSIGNED_INT_VEC3),
+			new glsAttributeLocationTests.AttribType('uvec4',		1,	gluShaderUtil.DataType.UNSIGNED_INT_VEC4),
 
-			new AttribType('mat2x2',	2,	gluShaderUtil.DataType.FLOAT_MAT2),
-			new AttribType('mat2x3',	2,	gluShaderUtil.DataType.FLOAT_MAT2x3),
-			new AttribType('mat2x4',	2,	gluShaderUtil.DataType.FLOAT_MAT2x4),
+			new glsAttributeLocationTests.AttribType('mat2x2',	2,	gluShaderUtil.DataType.FLOAT_MAT2),
+			new glsAttributeLocationTests.AttribType('mat2x3',	2,	gluShaderUtil.DataType.FLOAT_MAT2x3),
+			new glsAttributeLocationTests.AttribType('mat2x4',	2,	gluShaderUtil.DataType.FLOAT_MAT2x4),
 
-			new AttribType('mat3x2',	3,	gluShaderUtil.DataType.FLOAT_MAT3x2),
-			new AttribType('mat3x3',	3,	gluShaderUtil.DataType.FLOAT_MAT3),
-			new AttribType('mat3x4',	3,	gluShaderUtil.DataType.FLOAT_MAT3x4),
+			new glsAttributeLocationTests.AttribType('mat3x2',	3,	gluShaderUtil.DataType.FLOAT_MAT3x2),
+			new glsAttributeLocationTests.AttribType('mat3x3',	3,	gluShaderUtil.DataType.FLOAT_MAT3),
+			new glsAttributeLocationTests.AttribType('mat3x4',	3,	gluShaderUtil.DataType.FLOAT_MAT3x4),
 
-			new AttribType('mat4x2',	4,	gluShaderUtil.DataType.FLOAT_MAT4x2),
-			new AttribType('mat4x3',	4,	gluShaderUtil.DataType.FLOAT_MAT4x3),
-			new AttribType('mat4x4',	4,	gluShaderUtil.DataType.FLOAT_MAT4)
+			new glsAttributeLocationTests.AttribType('mat4x2',	4,	gluShaderUtil.DataType.FLOAT_MAT4x2),
+			new glsAttributeLocationTests.AttribType('mat4x3',	4,	gluShaderUtil.DataType.FLOAT_MAT4x3),
+			new glsAttributeLocationTests.AttribType('mat4x4',	4,	gluShaderUtil.DataType.FLOAT_MAT4)
 		];
 
 		/** @type{Array<glsAttributeLocationTests.AttribType>} */
 		var es2Types = [
-			new AttribType('float',	1,  gluShaderUtil.DataType.FLOAT),
-			new AttribType('vec2',	1,  gluShaderUtil.DataType.FLOAT_VEC2),
-			new AttribType('vec3',	1,  gluShaderUtil.DataType.FLOAT_VEC3),
-			new AttribType('vec4',	1,  gluShaderUtil.DataType.FLOAT_VEC4),
+			new glsAttributeLocationTests.AttribType('float',	1,  gluShaderUtil.DataType.FLOAT),
+			new glsAttributeLocationTests.AttribType('vec2',	1,  gluShaderUtil.DataType.FLOAT_VEC2),
+			new glsAttributeLocationTests.AttribType('vec3',	1,  gluShaderUtil.DataType.FLOAT_VEC3),
+			new glsAttributeLocationTests.AttribType('vec4',	1,  gluShaderUtil.DataType.FLOAT_VEC4),
 
-			new AttribType('mat2',	2,  gluShaderUtil.DataType.FLOAT_MAT2),
-			new AttribType('mat3',	3,  gluShaderUtil.DataType.FLOAT_MAT3),
-			new AttribType('mat4',	4,  gluShaderUtil.DataType.FLOAT_MAT4)
+			new glsAttributeLocationTests.AttribType('mat2',	2,  gluShaderUtil.DataType.FLOAT_MAT2),
+			new glsAttributeLocationTests.AttribType('mat3',	3,  gluShaderUtil.DataType.FLOAT_MAT3),
+			new glsAttributeLocationTests.AttribType('mat4',	4,  gluShaderUtil.DataType.FLOAT_MAT4)
 		];
 
-		/** @type {tcuTestCase.DeqpTest} */ 
+		/** @type {tcuTestCase.DeqpTest} */
 		var root = tcuTestCase.newTest('attribute_location', 'Attribute location tests');
 
 		/** @type{number} */ var typeNdx;
+		/** @type{glsAttributeLocationTests.AttribType} */ var type;
 
 		// Basic bind attribute tests
-		/** @type {tcuTestCase.DeqpTest} */ 
+		/** @type {tcuTestCase.DeqpTest} */
 		var bindAttributeGroup = tcuTestCase.newTest('bind', 'Basic bind attribute location tests.');
 
 		root.addChild(bindAttributeGroup);
 
 		for (typeNdx = 0; typeNdx < types.length; typeNdx++) {
-			/** @type{glsAttributeLocationTests.AttribType} */ type = types[typeNdx];
+			type = types[typeNdx];
 			bindAttributeGroup.addChild(new glsAttributeLocationTests.BindAttributeTest(type));
 		}
 
 		// Bind max number of attributes
-		/** @type {tcuTestCase.DeqpTest} */ 
+		/** @type {tcuTestCase.DeqpTest} */
 		var bindMaxAttributeGroup = tcuTestCase.newTest('bind_max_attributes', 'Use bind with maximum number of attributes.');
 
 		root.addChild(bindMaxAttributeGroup);
 
 		for (typeNdx = 0; typeNdx < types.length; typeNdx++) {
-			/** @type{glsAttributeLocationTests.AttribType} */ type = types[typeNdx];
+			type = types[typeNdx];
 			bindMaxAttributeGroup.addChild(new glsAttributeLocationTests.BindMaxAttributesTest(type));
 		}
 
 		// Test aliasing
-		/** @type {tcuTestCase.DeqpTest} */ 
+		/** @type {tcuTestCase.DeqpTest} */
 		var aliasingGroup = tcuTestCase.newTest('bind_aliasing', 'Test binding aliasing locations.');
 
 		root.addChild(aliasingGroup);
 
 		for (typeNdx = 0; typeNdx < es2Types.length; typeNdx++) {
-			/** @type{glsAttributeLocationTests.AttribType} */ type = es2Types[typeNdx];
+			type = es2Types[typeNdx];
 
 			// Simple aliasing cases
 			aliasingGroup.addChild(new glsAttributeLocationTests.BindAliasingAttributeTest(type));
@@ -139,20 +142,20 @@ goog.scope(function() {
 		}
 
 		// Test filling holes in attribute location
-		/** @type {tcuTestCase.DeqpTest} */ 
+		/** @type {tcuTestCase.DeqpTest} */
 		var holeGroup = tcuTestCase.newTest('bind_hole', 'Bind all, but one attribute and leave hole in location space for it.');
 
 		root.addChild(holeGroup);
 
 		for (typeNdx = 0; typeNdx < types.length; typeNdx++) {
-			/** @type{glsAttributeLocationTests.AttribType} */ type = types[typeNdx];
+			type = types[typeNdx];
 
 			// Bind first location, leave hole size of type and fill rest of locations
 			holeGroup.addChild(new glsAttributeLocationTests.BindHoleAttributeTest(type));
 		}
 
 		// Test binding at different times
-		/** @type {tcuTestCase.DeqpTest} */ 
+		/** @type {tcuTestCase.DeqpTest} */
 		var bindTimeGroup = tcuTestCase.newTest('bind_time', 'Bind time tests. Test binding at different stages.');
 
 		root.addChild(bindTimeGroup);
@@ -164,63 +167,63 @@ goog.scope(function() {
 		bindTimeGroup.addChild(new glsAttributeLocationTests.BindReattachAttributeTest());
 
 		// Basic layout location attribute tests
-		/** @type {tcuTestCase.DeqpTest} */ 
+		/** @type {tcuTestCase.DeqpTest} */
 		var layoutAttributeGroup = tcuTestCase.newTest('layout', 'Basic layout location tests.');
 
 		root.addChild(layoutAttributeGroup);
 
 		for (typeNdx = 0; typeNdx < types.length; typeNdx++) {
-			/** @type{glsAttributeLocationTests.AttribType} */ type = types[typeNdx];
+			type = types[typeNdx];
 			layoutAttributeGroup.addChild(new glsAttributeLocationTests.LocationAttributeTest(type));
 		}
 
 		// Test max attributes with layout locations
-		/** @type {tcuTestCase.DeqpTest} */ 
+		/** @type {tcuTestCase.DeqpTest} */
 		var layoutMaxAttributeGroup = tcuTestCase.newTest('layout_max_attributes', 'Maximum attributes used with layout location qualifiers.');
 
 		root.addChild(layoutMaxAttributeGroup);
 
 		for (typeNdx = 0; typeNdx < types.length; typeNdx++) {
-			/** @type{glsAttributeLocationTests.AttribType} */ type = types[typeNdx];
+			type = types[typeNdx];
 			layoutMaxAttributeGroup.addChild(new glsAttributeLocationTests.LocationMaxAttributesTest(type));
 		}
-	
+
 		// Test filling holes in attribute location
-		/** @type {tcuTestCase.DeqpTest} */ 
+		/** @type {tcuTestCase.DeqpTest} */
 		var holeGroup = tcuTestCase.newTest('layout_hole', 'Define layout location for all, but one attribute consuming max attribute locations.');
 
 		root.addChild(holeGroup);
 
 		for (typeNdx = 0; typeNdx < types.length; typeNdx++) {
-			/** @type{glsAttributeLocationTests.AttribType} */ type = types[typeNdx];
+			type = types[typeNdx];
 
 			// Location first location, leave hole size of type and fill rest of locations
 			holeGroup.addChild(new glsAttributeLocationTests.LocationHoleAttributeTest(type));
 		}
 
 		// Basic mixed mixed attribute tests
-		/** @type {tcuTestCase.DeqpTest} */ 
+		/** @type {tcuTestCase.DeqpTest} */
 		var mixedAttributeGroup = tcuTestCase.newTest('mixed', 'Basic mixed location tests.');
 
 		root.addChild(mixedAttributeGroup);
 
 		for (typeNdx = 0; typeNdx < types.length; typeNdx++) {
-			/** @type{glsAttributeLocationTests.AttribType} */ type = types[typeNdx];
+			type = types[typeNdx];
 			mixedAttributeGroup.addChild(new glsAttributeLocationTests.MixedAttributeTest(type));
 		}
-	
-		/** @type {tcuTestCase.DeqpTest} */ 
+
+		/** @type {tcuTestCase.DeqpTest} */
 		var mixedMaxAttributeGroup = tcuTestCase.newTest('mixed_max_attributes', 'Maximum attributes used with mixed binding and layout qualifiers.');
 
 		root.addChild(mixedMaxAttributeGroup);
 
 		for (typeNdx = 0; typeNdx < types.length; typeNdx++) {
-			/** @type{glsAttributeLocationTests.AttribType} */ type = types[typeNdx];
+			type = types[typeNdx];
 			mixedMaxAttributeGroup.addChild(new glsAttributeLocationTests.MixedMaxAttributesTest(type));
 		}
 
 		// Test mixed binding at different times
-		/** @type {tcuTestCase.DeqpTest} */ 
+		/** @type {tcuTestCase.DeqpTest} */
 		var mixedTimeGroup = tcuTestCase.newTest('mixed_time', 'Bind time tests. Test binding at different stages.');
 
 		root.addChild(mixedTimeGroup);
@@ -231,37 +234,37 @@ goog.scope(function() {
 		mixedTimeGroup.addChild(new glsAttributeLocationTests.MixedRelinkAttributeTest());
 		mixedTimeGroup.addChild(new glsAttributeLocationTests.MixedReattachAttributeTest());
 
-		/** @type {tcuTestCase.DeqpTest} */ 
+		/** @type {tcuTestCase.DeqpTest} */
 		var holeGroup = tcuTestCase.newTest('mixed_hole', 'Use layout location qualifiers and binding. Leave hole in location space for only free attribute.');
 
 		root.addChild(holeGroup);
 
 		for (typeNdx = 0; typeNdx < types.length; typeNdx++) {
-			/** @type{glsAttributeLocationTests.AttribType} */ type = types[typeNdx];
+			type = types[typeNdx];
 
 			holeGroup.addChild(new glsAttributeLocationTests.MixedHoleAttributeTest(type));
 		}
-	
+
 		// Test hole in location space that moves when relinking
-		/** @type {tcuTestCase.DeqpTest} */ 
+		/** @type {tcuTestCase.DeqpTest} */
 		var relinkBindHoleGroup = tcuTestCase.newTest('bind_relink_hole', 'Test relinking with moving hole in attribute location space.');
 
 		root.addChild(relinkBindHoleGroup);
 
 		for (typeNdx = 0; typeNdx < types.length; typeNdx++) {
-			/** @type{glsAttributeLocationTests.AttribType} */ type = types[typeNdx];
+			type = types[typeNdx];
 
 			relinkBindHoleGroup.addChild(new glsAttributeLocationTests.BindRelinkHoleAttributeTest(type));
 		}
 
 		// Test hole in location space that moves when relinking
-		/** @type {tcuTestCase.DeqpTest} */ 
+		/** @type {tcuTestCase.DeqpTest} */
 		var relinkMixedHoleGroup = tcuTestCase.newTest('mixed_relink_hole', 'Test relinking with moving hole in attribute location space.');
 
 		root.addChild(relinkMixedHoleGroup);
 
 		for (typeNdx = 0; typeNdx < types.length; typeNdx++) {
-			/** @type{glsAttributeLocationTests.AttribType} */ type = types[typeNdx];
+			type = types[typeNdx];
 
 			relinkMixedHoleGroup.addChild(new glsAttributeLocationTests.MixedRelinkHoleAttributeTest(type));
 		}
