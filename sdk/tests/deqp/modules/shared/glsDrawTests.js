@@ -1172,14 +1172,8 @@ goog.scope(function() {
                         throw new Error('Invalid output type');
                         break;
                 }
-<<<<<<< Temporary merge branch 1
-            } else{
-                switch (arrays[arrayNdx].getOutputType()) {
-=======
             } else {
-                switch (arrays[arrayNdx].getOutputType())
-                {
->>>>>>> Temporary merge branch 2
+                switch (arrays[arrayNdx].getOutputType()) {
                     case (glsDrawTests.DrawTestSpec.OutputType.FLOAT):
                     case (glsDrawTests.DrawTestSpec.OutputType.INT):
                     case (glsDrawTests.DrawTestSpec.OutputType.UINT):
@@ -1925,9 +1919,9 @@ goog.scope(function() {
 
             if (attrib.useDefaultAttribute) {
                 desc += 'Attribute ' + ndx + ': default, ' + ((ndx == 0 || attrib.additionalPositionAttribute) ? ('position\n') : ('color\n')) +
-                    "'\tinput datatype ' + glsDrawTests.DrawTestSpec.inputTypeToString(/** @type {?glsDrawTests.DrawTestSpec.InputType} */ (attrib.inputType)) + '\n' +
-                    "'\tinput component count ' + attrib.componentCount + '\n' +
-                    "'\tused as ' + glsDrawTests.DrawTestSpec.outputTypeToString(attrib.outputType) + '\n';
+                    '\tinput datatype ' + glsDrawTests.DrawTestSpec.inputTypeToString(/** @type {?glsDrawTests.DrawTestSpec.InputType} */ (attrib.inputType)) + '\n' +
+                    '\tinput component count ' + attrib.componentCount + '\n' +
+                    '\tused as ' + glsDrawTests.DrawTestSpec.outputTypeToString(attrib.outputType) + '\n';
             } else {
                 desc += 'Attribute ' + ndx + ': ' + ((ndx == 0 || attrib.additionalPositionAttribute) ? ('position\n') : ('color\n')) +
                     '\tStorage in ' + glsDrawTests.DrawTestSpec.storageToString(attrib.storage) + '\n' +
@@ -2920,6 +2914,7 @@ goog.scope(function() {
      * @param {Array<number>} compareThreshold
      * @param {Array<number>} renderTargetThreshold
      * @param {number} maxAllowedInvalidPixels
+     * @return {boolean}
      */
     glsDrawTests.edgeRelaxedImageCompare = function(imageSetName, imageSetDesc, reference, result, compareThreshold, renderTargetThreshold, maxAllowedInvalidPixels) {
         assertMsgOptions(result.getWidth() == reference.getWidth() && result.getHeight() == reference.getHeight(), 'Reference and result images have different dimensions', false, true);
@@ -2988,6 +2983,7 @@ goog.scope(function() {
             return false;
         } else {
             tcuImageCompare.displayImages(result.getAccess(), null, null);
+
             return true;
         }
     };
@@ -3013,42 +3009,42 @@ goog.scope(function() {
 
         // clear errormask edges which would otherwise be transparent
 
-        tcuTexture.clear(tcu : : getSubregion(errorMask.getAccess(), 0, 0, width, 1), green);
-        tcuTexture.clear(tcu : : getSubregion(errorMask.getAccess(), 0, height - 1, width, 1), green);
-        tcu: : clear(tcu : : getSubregion(errorMask.getAccess(), 0, 0, 1, height), green);
-        tcu: : clear(tcu : : getSubregion(errorMask.getAccess(), width - 1, 0, 1, height), green);
+        tcuTexture.clear(tcuTexture.getSubregion(errorMask.getAccess(), 0, 0, width, 1), green);
+        tcuTexture.clear(tcuTexture.getSubregion(errorMask.getAccess(), 0, height - 1, width, 1), green);
+        tcuTexture.clear(tcuTexture.getSubregion(errorMask.getAccess(), 0, 0, 1, height), green);
+        tcuTexture.clear(tcuTexture.getSubregion(errorMask.getAccess(), width - 1, 0, 1, height), green);
 
         // skip edge pixels since coverage on edge cannot be verified
 
-        for (int y = 1; y < height - 1; ++y)
-        for (int x = 1; x < width - 1; ++x) {
-            const tcu: : RGBA refPixel = reference.getPixel(x, y);
-            const tcu: : RGBA screenPixel = result.getPixel(x, y);
-            const bool isOkScreenPixel = pixelNeighborhoodContainsColor(reference, x, y, screenPixel, compareThreshold); // reference image has a matching pixel nearby (~= If something is drawn on screen, it must be drawn to reference too.)
-            const bool isOkReferencePixel = pixelNeighborhoodContainsColor(result, x, y, refPixel, compareThreshold); // screen image has a matching pixel nearby (~= If something is drawn on reference, it must be drawn to screen too.)
+        for (var y = 1; y < height - 1; ++y)
+        for (var x = 1; x < width - 1; ++x) {
+            /** @type {tcuRGBA.RGBA} */ var refPixel = reference.getPixel(x, y);
+            /** @type {tcuRGBA.RGBA} */ var screenPixel = result.getPixel(x, y);
+            /** @type {boolean} */ var isOkScreenPixel = glsDrawTests.pixelNeighborhoodContainsColor(reference, x, y, screenPixel, compareThreshold); // reference image has a matching pixel nearby (~= If something is drawn on screen, it must be drawn to reference too.)
+            /** @type {boolean} */ var isOkReferencePixel = glsDrawTests.pixelNeighborhoodContainsColor(result, x, y, refPixel, compareThreshold); // screen image has a matching pixel nearby (~= If something is drawn on reference, it must be drawn to screen too.)
 
             if (isOkScreenPixel && isOkReferencePixel) {
                 // pixel valid, write greenish pixels to make the result image easier to read
-                const deUint32 grayscaleValue = getVisualizationGrayscaleColor(screenPixel);
-                errorMask.getAccess().setPixel(tcu : : UVec4(grayscaleValue, 255, grayscaleValue, 255), x, y);
-            } else if (!pixelNearLineIntersection(x, y, reference) &&
-                     !pixelNearLineIntersection(x, y, result)) {
+                /** @type {number} */ var grayscaleValue = glsDrawTests.getVisualizationGrayscaleColor(screenPixel);
+                errorMask.getAccess().setPixel([grayscaleValue, 255, grayscaleValue, 255], x, y);
+            } else if (!glsDrawTests.pixelNearLineIntersection(x, y, reference) &&
+                     !glsDrawTests.pixelNearLineIntersection(x, y, result)) {
                 // non-intersection pixel values must be within threshold of the reference values
                 errorMask.getAccess().setPixel(errorColor, x, y);
                 ++numFailingPixels;
-            } else{
+            } else {
                 // pixel is near a line intersection
                 // we are on/near an edge, verify only coverage (coverage == not background colored)
-                const bool referenceCoverage = !isBlack(refPixel);
-                const bool screenCoverage = !isBlack(screenPixel);
-                const bool isOkScreenCoverage = pixelNeighborhoodContainsCoverage(reference, x, y, screenCoverage); // Check screen pixels against reference pixel
-                const bool isOkReferenceCoverage = pixelNeighborhoodContainsCoverage(result, x, y, referenceCoverage); // Check reference pixel against screen pixel
+                /** @type {boolean} */ var referenceCoverage = !glsDrawTests.isBlack(refPixel);
+                /** @type {boolean} */ var screenCoverage = !glsDrawTests.isBlack(screenPixel);
+                /** @type {boolean} */ var isOkScreenCoverage = glsDrawTests.pixelNeighborhoodContainsCoverage(reference, x, y, screenCoverage); // Check screen pixels against reference pixel
+                /** @type {boolean} */ var isOkReferenceCoverage = glsDrawTests.pixelNeighborhoodContainsCoverage(result, x, y, referenceCoverage); // Check reference pixel against screen pixel
 
                 if (isOkScreenCoverage && isOkReferenceCoverage) {
                     // pixel valid, write greenish pixels to make the result image easier to read
-                    const deUint32 grayscaleValue = getVisualizationGrayscaleColor(screenPixel);
-                    errorMask.getAccess().setPixel(tcu : : UVec4(grayscaleValue, 255, grayscaleValue, 255), x, y);
-                } else{
+                    /** @type {number} */ var grayscaleValue = glsDrawTests.getVisualizationGrayscaleColor(screenPixel);
+                    errorMask.getAccess().setPixel([grayscaleValue, 255, grayscaleValue, 255], x, y);
+                } else {
                     // coverage does not match
                     errorMask.getAccess().setPixel(errorColor, x, y);
                     ++numFailingPixels;
@@ -3056,30 +3052,190 @@ goog.scope(function() {
             }
         }
 
-        log << TestLog: : Message <<
-            "'Comparing images:\n' <<
-            "'\tallowed deviation in pixel positions = 1\n' <<
-            "'\tnumber of allowed invalid pixels = ' << maxAllowedInvalidPixels << '\n' <<
-            "'\tnumber of invalid pixels = ' << numFailingPixels <<
-            TestLog: : EndMessage;
+        bufferedLogToConsole(
+            'Comparing images:</br>' +
+            '<span> </span>allowed deviation in pixel positions = 1</br>' +
+            '<span> </span>number of allowed invalid pixels = ' + maxAllowedInvalidPixels + '</br>' +
+            '<span> </span>number of invalid pixels = ' + numFailingPixels
+        );
 
         if (numFailingPixels > maxAllowedInvalidPixels) {
-            log << TestLog: : Message <<
-                "'Image comparison failed. Color threshold = (' << compareThreshold[0] << ', ' << compareThreshold[1] << ', ' << compareThreshold[2] << ')' <<
-                TestLog: : EndMessage <<
-                TestLog: : ImageSet(imageSetName, imageSetDesc) <<
-                TestLog: : Image('Result', 'Result', result) <<
-                TestLog: : Image('Reference', 'Reference', reference) <<
-                TestLog: : Image('ErrorMask', 'Error mask', errorMask) <<
-                TestLog: : EndImageSet;
+            debug('Image comparison failed. Color threshold = (' + compareThreshold[0] + ', ' + compareThreshold[1] + ', ' + compareThreshold[2] + ')');
+            tcuImageCompare.displayImages(result.getAccess(), ref.getAccess(), errorMask.getAccess());
 
             return false;
-        } else{
-            log << TestLog: : ImageSet(imageSetName, imageSetDesc) <<
-                TestLog: : Image('Result', 'Result', result) <<
-                TestLog: : EndImageSet;
+        } else {
+            tcuImageCompare.displayImages(result.getAccess(), null, null);
 
             return true;
         }
+    };
+
+    /**
+     * @param {?glsDrawTests.DrawTestSpec.Primitive} primitiveType
+     * @return {boolean}
+     */
+    glsDrawTests.DrawTest.prototype.compare = function (primitiveType) {
+        /** @type {tcuSurface.Surface} */ var ref = this.m_rrArrayPack.getSurface();
+        /** @type {tcuSurface.Surface} */ var screen = this.m_glArrayPack.getSurface();
+
+        /*if (this.m_renderCtx.getRenderTarget().getNumSamples() > 1) //TODO: Check where to get number of samples
+        {
+            // \todo [mika] Improve compare when using multisampling
+            m_testCtx.getLog() << tcu::TestLog::Message << "Warning: Comparision of result from multisample render targets are not as stricts as without multisampling. Might produce false positives!" << tcu::TestLog::EndMessage;
+            return tcu::fuzzyCompare(m_testCtx.getLog(), "Compare Results", "Compare Results", ref.getAccess(), screen.getAccess(), 0.3f, tcu::COMPARE_LOG_RESULT);
+        }*/
+        /*else
+        {*/
+        /** @type {glsDrawTests.PrimitiveClass} */ var primitiveClass = glsDrawTests.getDrawPrimitiveClass(primitiveType);
+
+            switch (primitiveClass) {
+                case glsDrawTests.PrimitiveClass.POINT: {
+                    // Point are extremely unlikely to have overlapping regions, don't allow any no extra / missing pixels
+                    /**@type {number} */ var maxAllowedInvalidPixelsWithPoints = 0;
+                    return tcuImageCompare.intThresholdPositionDeviationErrorThresholdCompare(
+                        "CompareResult",
+                        "Result of rendering",
+                        ref.getAccess(),
+                        screen.getAccess(),
+                        [this.m_maxDiffRed, this.m_maxDiffGreen, this.m_maxDiffBlue, 256],
+                        [1, 1, 0],                    //!< 3x3 search kernel
+                        true,                                //!< relax comparison on the image boundary
+                        maxAllowedInvalidPixelsWithPoints    //!< error threshold
+                    );
+                }
+
+                case glsDrawTests.PrimitiveClass.LINE: {
+                    // Lines can potentially have a large number of overlapping pixels. Pixel comparison may potentially produce
+                    // false negatives in such pixels if for example the pixel in question is overdrawn by another line in the
+                    // reference image but not in the resultin image. Relax comparison near line intersection points (areas) and
+                    // compare only coverage, not color, in such pixels
+                    /**@type {number} */ var maxAllowedInvalidPixelsWithLines = 5; // line are allowed to have a few bad pixels
+                    return glsDrawTests.intersectionRelaxedLineImageCompare(
+                        "CompareResult",
+                        "Result of rendering",
+                        ref,
+                        screen,
+                        [this.m_maxDiffRed, this.m_maxDiffGreen, this.m_maxDiffBlue],
+                        maxAllowedInvalidPixelsWithLines
+                    );
+                }
+
+                case glsDrawTests.PrimitiveClass.TRIANGLE: {
+                    // Triangles are likely to partially or fully overlap. Pixel difference comparison is fragile in pixels
+                    // where there could be potential overlapping since the  pixels might be covered by one triangle in the
+                    // reference image and by the other in the result image. Relax comparsion near primitive edges and
+                    // compare only coverage, not color, in such pixels.
+                    /** @type {number} */ var maxAllowedInvalidPixelsWithTriangles = 10;
+
+                    /* TODO: Implement
+                    var renderTargetThreshold = //TODO: get color threshold from the pixel format --> m_renderCtx.getRenderTarget().getPixelFormat().getColorThreshold().toIVec().xyz();
+                    */
+
+                    /** @type {Array<number>} */ var renderTargetThreshold = [3, 3, 3, 3];
+
+                    return glsDrawTests.edgeRelaxedImageCompare(
+                        "CompareResult",
+                        "Result of rendering",
+                        ref,
+                        screen,
+                        [this.m_maxDiffRed, this.m_maxDiffGreen, this.m_maxDiffBlue],
+                        renderTargetThreshold,
+                        maxAllowedInvalidPixelsWithTriangles
+                    );
+                }
+
+                default:
+                    throw new Error('Invalid primitive class');
+                    return false;
+            }
+        /*}*/
+    };
+
+    /**
+     * @param {glsDrawTests.DrawTestSpec} spec
+     * @return {number}
+     */
+    glsDrawTests.DrawTest.prototype.getCoordScale = function (spec) {
+        var maxValue = 1.0;
+
+        for (var arrayNdx = 0; arrayNdx < spec.attribs.length; arrayNdx++)
+        {
+            /** @type {glsDrawTests.DrawTestSpec.AttributeSpec} */ var attribSpec = spec.attribs[arrayNdx];
+            /** @type {boolean} */ var isPositionAttr = (arrayNdx == 0) || (attribSpec.additionalPositionAttribute);
+            /** @type {number} */ var attrMaxValue = 0;
+
+            if (!isPositionAttr)
+                continue;
+
+            if (attribSpec.inputType == glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT_2_10_10_10)
+            {
+                if (attribSpec.normalize)
+                    attrMaxValue += 1.0;
+                else
+                    attrMaxValue += 1024.0;
+            }
+            else if (attribSpec.inputType == glsDrawTests.DrawTestSpec.InputType.INT_2_10_10_10)
+            {
+                if (attribSpec.normalize)
+                    attrMaxValue += 1.0;
+                else
+                    attrMaxValue += 512.0;
+            }
+            else
+            {
+                var max = glsDrawTests.GLValue.getMaxValue(attribSpec.inputType).getValue();
+
+                attrMaxValue += (attribSpec.normalize && !inputTypeIsFloatType(attribSpec.inputType)) ? (1.0) : (max * 1.1);
+            }
+
+            if (attribSpec.outputType == glsDrawTests.DrawTestSpec.OutputType.VEC3 || attribSpec.outputType == glsDrawTests.DrawTestSpec.OutputType.VEC4
+                || attribSpec.outputType == glsDrawTests.DrawTestSpec.OutputType.IVEC3 || attribSpec.outputType == glsDrawTests.DrawTestSpec.OutputType.IVEC4
+                || attribSpec.outputType == glsDrawTests.DrawTestSpec.OutputType.UVEC3 || attribSpec.outputType == glsDrawTests.DrawTestSpec.OutputType.UVEC4)
+                    attrMaxValue *= 2;
+
+            maxValue += attrMaxValue;
+        }
+
+        return 1.0 / maxValue;
+    };
+
+    /**
+     * @param {glsDrawTests.DrawTestSpec} spec
+     * @return {number}
+     */
+    glsDrawTests.DrawTest.prototype.getColorScale = function (spec) {
+        var colorScale = 1.0;
+
+        for (var arrayNdx = 1; arrayNdx < spec.attribs.length; arrayNdx++) {
+            /** @type {glsDrawTests.DrawTestSpec.AttributeSpec} */ var attribSpec = spec.attribs[arrayNdx];
+            /** @type {boolean} */ var isPositionAttr = (arrayNdx == 0) || (attribSpec.additionalPositionAttribute);
+
+            if (isPositionAttr)
+                continue;
+
+            if (attribSpec.inputType == glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT_2_10_10_10)
+            {
+                if (!attribSpec.normalize)
+                    colorScale *= 1.0 / 1024.0;
+            }
+            else if (attribSpec.inputType == glsDrawTests.DrawTestSpec.InputType.INT_2_10_10_10)
+            {
+                if (!attribSpec.normalize)
+                    colorScale *= 1.0 / 512.0;
+            }
+            else
+            {
+                var max = glsDrawTests.GLValue.getMaxValue(attribSpec.inputType).toFloat();
+
+                colorScale *= (attribSpec.normalize && !glsDrawTests.inputTypeIsFloatType(attribSpec.inputType) ? 1.0 : (1.0 / max));
+                if (attribSpec.outputType == glsDrawTests.DrawTestSpec.OutputType.VEC4 ||
+                    attribSpec.outputType == glsDrawTests.DrawTestSpec.OutputType.UVEC4 ||
+                    attribSpec.outputType == glsDrawTests.DrawTestSpec.OutputType.IVEC4)
+                    colorScale *= (attribSpec.normalize && !glsDrawTests.inputTypeIsFloatType(attribSpec.inputType) ? 1.0 : 1.0 / max);
+            }
+        }
+
+        return colorScale;
     };
 });
