@@ -202,6 +202,22 @@ goog.scope(function() {
     };
 
     /**
+     * @param {?glsDrawTests.DrawTestSpec.IndexType} indexType
+     * @return {?glsDrawTests.DrawTestSpec.InputType}
+     */
+    glsDrawTests.indexTypeToInputType = function(indexType) {
+        var inputTypes = [
+            glsDrawTests.DrawTestSpec.InputType.UNSIGNED_BYTE, // INDEXTYPE_BYTE = 0,
+            glsDrawTests.DrawTestSpec.InputType.UNSIGNED_SHORT, // INDEXTYPE_SHORT,
+            glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT // INDEXTYPE_INT,
+        ];
+        assertMsgOptions(inputTypes.length == Object.keys(glsDrawTests.DrawTestSpec.IndexType).length,
+            'Amount of relevant input types is different than amount of index types', false, true);
+
+        return inputTypes[indexType];
+    };
+
+    /**
      * @param {?glsDrawTests.DrawTestSpec.InputType} type
      * @return {boolean}
      */
@@ -384,21 +400,23 @@ goog.scope(function() {
     };
 
     /**
-     * @param {Uint8Array} dst
+     * @param {goog.TypedArray} dst
      * @param {glsDrawTests.GLValue} val
      */
     glsDrawTests.copyGLValueToArray = function(dst, val) {
+        /** @type {Uint8Array} */ var dst8 = new Uint8Array(dst.buffer).subarray(dst.byteOffset, dst.byteOffset + dst.byteLength);
         /** @type {Uint8Array} */ var val8 = new Uint8Array(val.m_value.buffer); // TODO: Fix encapsulation issue
-        dst.set(val8);
+        dst8.set(val8);
     };
 
     /**
-     * @param {Uint8Array} dst
-     * @param {goog.NumberArray} src
+     * @param {goog.TypedArray} dst
+     * @param {goog.TypedArray} src
      */
     glsDrawTests.copyArray = function(dst, src) {
-        /** @type {Uint8Array} */ var src8 = new Uint8Array(src.buffer).subarray(src.byteOffset, src.byteOffset + src.byteLength); // TODO: Fix encapsulation issue
-        dst.set(src8);
+        /** @type {Uint8Array} */ var dst8 = new Uint8Array(dst.buffer).subarray(dst.byteOffset, dst.byteOffset + dst.byteLength);
+        /** @type {Uint8Array} */ var src8 = new Uint8Array(src.buffer).subarray(src.byteOffset, src.byteOffset + src.byteLength);
+        dst8.set(src8);
     };
 
     /**
@@ -821,7 +839,7 @@ goog.scope(function() {
         /** @type {boolean} */ this.m_normalize = false;
         /** @type {number} */ this.m_stride = 0;
         /** @type {number} */ this.m_offset = 0;
-        /** @type {rrGenericVector.GenericVec4} */ this.m_defaultAttrib;
+        /** @type {Array<number>} */ this.m_defaultAttrib;
         /** @type {number} */ this.m_instanceDivisor = 0;
         /** @type {boolean} */ this.m_isPositionAttr = false;
         /** @type {boolean} */ this.m_bgraOrder = false;
@@ -892,7 +910,7 @@ goog.scope(function() {
      * @param {boolean} normalized
      * @param {number} stride
      * @param {number} instanceDivisor
-     * @param {rrGenericVector.GenericVec4} defaultAttrib
+     * @param {Array<number>} defaultAttrib
      * @param {boolean} isPositionAttr
      * @param {boolean} bgraComponentOrder
      */
@@ -916,7 +934,7 @@ goog.scope(function() {
      */
     glsDrawTests.AttributeArray.prototype.bindAttribute = function(loc) {
         if (!this.isBound()) {
-            /** @type {rrGenericVector.GenericVec4} */ var attr = this.m_defaultAttrib;
+            /** @type {Array<number>} */ var attr = this.m_defaultAttrib;
             switch (this.m_inputType) {
                 case glsDrawTests.DrawTestSpec.InputType.FLOAT: {
                     switch (this.m_componentCount) {
@@ -1344,6 +1362,280 @@ goog.scope(function() {
         decl.pushUniform(new sglrShaderProgram.Uniform('u_colorScale', gluShaderUtil.DataType.FLOAT));
 
         return decl;
+    };
+
+    /*class RandomArrayGenerator
+    {
+    public:
+        static char*            generateArray            (int seed, int elementCount, int componentCount, int offset, int stride, DrawTestSpec::InputType type);
+        static char*            generateIndices            (int seed, int elementCount, DrawTestSpec::IndexType type, int offset, int min, int max, int indexBase);
+        static rr::GenericVec4    generateAttributeValue    (int seed, DrawTestSpec::InputType type);
+
+    private:
+        template<typename T>
+        static char*            createIndices            (int seed, int elementCount, int offset, int min, int max, int indexBase);
+        static void                setData                    (char* data, DrawTestSpec::InputType type, deRandom& rnd, GLValue min, GLValue max);
+
+        static char*            generateBasicArray        (int seed, int elementCount, int componentCount, int offset, int stride, DrawTestSpec::InputType type);
+        template<typename T, typename GLType>
+        static char*            createBasicArray        (int seed, int elementCount, int componentCount, int offset, int stride);
+        static char*            generatePackedArray        (int seed, int elementCount, int componentCount, int offset, int stride);
+    };*/
+
+    /**
+     * @typedef {glsDrawTests.RandomArrayGenerator}
+     */
+    glsDrawTests.RandomArrayGenerator = {};
+
+    /**
+     * @param {goog.TypedArray} data
+     * @param {?glsDrawTests.DrawTestSpec.InputType} type
+     * @param {deRandom.Random} rnd
+     * @param {glsDrawTests.GLValue} min
+     * @param {glsDrawTests.GLValue} max
+     */
+    glsDrawTests.RandomArrayGenerator.setData = function (data, type, rnd, min, max) {
+        switch (type)
+        {
+            case glsDrawTests.DrawTestSpec.InputType.FLOAT:
+            case glsDrawTests.DrawTestSpec.InputType.SHORT:
+            case glsDrawTests.DrawTestSpec.InputType.UNSIGNED_SHORT:
+            case glsDrawTests.DrawTestSpec.InputType.BYTE:
+            case glsDrawTests.DrawTestSpec.InputType.UNSIGNED_BYTE:
+            case glsDrawTests.DrawTestSpec.InputType.INT:
+            case glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT:
+            case glsDrawTests.DrawTestSpec.InputType.HALF:
+                glsDrawTests.copyGLValueToArray(data, glsDrawTests.GLValue.getRandom(rnd, min, max));
+                break;
+            default:
+                throw new Error ('Invalid input type');
+                break;
+        }
+    };
+
+    /**
+     * @param {number} seed
+     * @param {number} elementCount
+     * @param {number} componentCount
+     * @param {number} offset
+     * @param {number} stride
+     * @param {?glsDrawTests.DrawTestSpec.InputType} type
+     * @return {goog.TypedArray}
+     */
+    glsDrawTests.RandomArrayGenerator.generateArray = function (seed, elementCount, componentCount, offset, stride, type) {
+        if (type == glsDrawTests.DrawTestSpec.InputType.INT_2_10_10_10 || type == glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT_2_10_10_10)
+            return glsDrawTests.RandomArrayGenerator.generatePackedArray(seed, elementCount, componentCount, offset, stride, type);
+        else
+            return glsDrawTests.RandomArrayGenerator.generateBasicArray(seed, elementCount, componentCount, offset, stride, type);
+    };
+
+    /**
+     * @param {number} seed
+     * @param {number} elementCount
+     * @param {number} componentCount
+     * @param {number} offset
+     * @param {number} stride
+     * @param {?glsDrawTests.DrawTestSpec.InputType} type
+     * @return {goog.TypedArray}
+     */
+    glsDrawTests.RandomArrayGenerator.generateBasicArray = function (seed, elementCount, componentCount, offset, stride, type) {
+        return glsDrawTests.RandomArrayGenerator.createBasicArray(seed, elementCount, componentCount, offset, stride, type);
+    }
+
+    /**
+     * @param {number} seed
+     * @param {number} elementCount
+     * @param {number} componentCount
+     * @param {number} offset
+     * @param {number} stride
+     * @param {?glsDrawTests.DrawTestSpec.InputType} type
+     * @return {goog.TypedArray}
+     */
+    glsDrawTests.RandomArrayGenerator.createBasicArray = function (seed, elementCount, componentCount, offset, stride, type) {
+        assertMsgOptions(componentCount >= 1 && componentCount <= 4, 'Unacceptable number of components', false, true);
+
+        /** @type {glsDrawTests.GLValue} */ var min = glsDrawTests.GLValue.getMinValue(type);
+        /** @type {glsDrawTests.GLValue} */ var max = glsDrawTests.GLValue.getMaxValue(type);
+
+        /** @type {number} */ var componentSize = glsDrawTests.DrawTestSpec.inputTypeSize(type);
+        /** @type {number} */ var elementSize = componentSize * componentCount;
+        /** @type {number} */ var bufferSize = offset + (elementCount - 1) * stride + elementSize;
+
+        var data = new ArrayBuffer(bufferSize);
+        var writePtr = new Uint8Array(data).subarray(offset);
+
+        /** @type {Array<glsDrawTests.GLValue>} */ var previousComponents = [];
+
+        var rnd = new deRandom.Random(seed);
+
+        for (var vertexNdx = 0; vertexNdx < elementCount; vertexNdx++)
+        {
+            /** @type {Array<glsDrawTests.GLValue>} */ var components = [];
+
+            for (var componentNdx = 0; componentNdx < componentCount; componentNdx++)
+            {
+                components[componentNdx] = glsDrawTests.GLValue.getRandom(rnd, min, max);
+
+                // Try to not create vertex near previous
+                if (vertexNdx != 0 && Math.abs(components[componentNdx] - previousComponents[componentNdx]) < min.interpret())
+                {
+                    // Too close, try again (but only once)
+                    components[componentNdx] = glsDrawTests.GLValue.getRandom(rnd, min, max);
+                }
+            }
+
+            for (var componentNdx = 0; componentNdx < componentCount; componentNdx++)
+                previousComponents[componentNdx] = components[componentNdx];
+
+            for (var componentNdx = 0; componentNdx < componentCount; componentNdx++)
+                glsDrawTests.copyGLValueToArray(writePtr.subarray(writePtr.byteOffset + componentNdx*componentSize), components[componentNdx]);
+
+            writePtr = writePtr.subarray(writePtr.byteOffset + stride);
+        }
+
+        return new Uint8Array(data); //TODO: Check if it would be more convenient to use GLValue.typeToTypedArray to create the returning array.
+    };
+
+    /**
+     * @param {number} seed
+     * @param {number} elementCount
+     * @param {number} componentCount
+     * @param {number} offset
+     * @param {number} stride
+     * @param {?glsDrawTests.DrawTestSpec.InputType} type
+     * @return {goog.TypedArray}
+     */
+    glsDrawTests.RandomArrayGenerator.generatePackedArray = function (seed, elementCount, componentCount, offset, stride, type) {
+        assertMsgOptions(componentCount == 4, 'Component count must be 4', false, true);
+        //DE_UNREF(componentCount);
+
+        /** @type {number} */ var limit10 = (1 << 10);
+        /** @type {number} */ var limit2 = (1 << 2);
+        /** @type {number} */ var elementSize = 4;
+        /** @type {number} */ var bufferSize = offset + (elementCount - 1) * stride + elementSize;
+
+        var data = new ArrayBuffer(bufferSize);
+        var writePtr = new Uint8Array(data).subarray(offset);
+
+        var rnd = new deRandom.Random(seed);
+
+        for (var vertexNdx = 0; vertexNdx < elementCount; vertexNdx++)
+        {
+            /** @type {number} */ var x = new Uint32Array([rnd.getInt() % limit10])[0];
+            /** @type {number} */ var y = new Uint32Array([rnd.getInt() % limit10])[0];
+            /** @type {number} */ var z = new Uint32Array([rnd.getInt() % limit10])[0];
+            /** @type {number} */ var w = new Uint32Array([rnd.getInt() % limit2])[0];
+            /** @type {number} */ var packedValue = deMath.binaryOp(
+                deMath.shiftLeft(w, 30), deMath.binaryOp(
+                    deMath.shiftLeft(z, 20), deMath.binaryOp(
+                        deMath.shiftLeft(y, 10), x, deMath.BinaryOp.OR
+                    ), deMath.BinaryOp.OR
+                ), deMath.BinaryOp.OR
+            );
+
+            glsDrawTests.copyArray(writePtr, new Uint32Array([packedValue]));
+            writePtr = writePtr.subarray(writePtr.byteOffset + stride);
+        }
+
+        return new Uint8Array(data); //TODO: Check if it would be more convenient to use GLValue.typeToTypedArray to create the returning array.
+    };
+
+    /**
+     * @param {number} seed
+     * @param {number} elementCount
+     * @param {?glsDrawTests.DrawTestSpec.IndexType} type
+     * @param {number} offset
+     * @param {number} min
+     * @param {number} max
+     * @return {goog.TypedArray}
+     */
+    glsDrawTests.RandomArrayGenerator.generateIndices = function (seed, elementCount, type, offset, min, max)
+    {
+        return glsDrawTests.RandomArrayGenerator.createIndices(seed, elementCount, offset, min, max, type);
+    };
+
+    /**
+     * @param {number} seed
+     * @param {number} elementCount
+     * @param {number} offset
+     * @param {number} min
+     * @param {number} max
+     * @param {?glsDrawTests.DrawTestSpec.IndexType} type
+     * @return {goog.TypedArray}
+     */
+    glsDrawTests.RandomArrayGenerator.createIndices  = function (seed, elementCount, offset, min, max, type) {
+        /** @type {number}*/ var elementSize = glsDrawTests.DrawTestSpec.indexTypeSize(type);
+        /** @type {number}*/ var bufferSize = offset + elementCount * elementSize;
+
+        var data = new ArrayBuffer(bufferSize);
+        var writePtr = new Uint8Array(data).subarray(offset);
+
+        var oldNdx1 = -1;
+        var oldNdx2 = -1;
+
+        var rnd = new deRandom.Random(seed);
+
+        /* TODO: get limits for given index type --> if (min < 0 || min > std::numeric_limits<T>::max() ||
+            max < 0 || max > std::numeric_limits<T>::max() ||
+            min > max)
+            DE_ASSERT(!"Invalid range");*/
+
+        for (var elementNdx = 0; elementNdx < elementCount; ++elementNdx)
+        {
+            var ndx = glsDrawTests.GLValue.getRandom(
+                rnd,
+                glsDrawTests.GLValue.create(min, glsDrawTests.indexTypeToInputType(type)),
+                glsDrawTests.GLValue.create(max, glsDrawTests.indexTypeToInputType(type))
+            ).interpret();
+
+            // Try not to generate same index as any of previous two. This prevents
+            // generation of degenerate triangles and lines. If [min, max] is too
+            // small this cannot be guaranteed.
+
+            if (ndx == oldNdx1)            ++ndx;
+            if (ndx > max)    ndx = min;
+            if (ndx == oldNdx2)            ++ndx;
+            if (ndx > max)    ndx = min;
+            if (ndx == oldNdx1)            ++ndx;
+            if (ndx > max)    ndx = min;
+
+            oldNdx2 = oldNdx1;
+            oldNdx1 = ndx;
+
+            var srcArray = glsDrawTests.GLValue.typeToTypedArray(ndx, glsDrawTests.indexTypeToInputType(type));
+
+            glsDrawTests.copyArray(
+                writePtr.subarray(writePtr.byteOffset + elementSize * elementNdx),
+                srcArray
+            );
+        }
+
+        return new Uint8Array(data); //TODO: Check if it would be more convenient to use GLValue.typeToTypedArray to create the returning array.
+    }
+
+    /**
+     * @param {number} seed
+     * @param {?glsDrawTests.DrawTestSpec.InputType} type
+     * @return {Array<number>}
+     */
+    glsDrawTests.RandomArrayGenerator.generateAttributeValue = function (seed, type)
+    {
+        var random = new deRandom.Random(seed);
+
+        switch (type)
+        {
+            case glsDrawTests.DrawTestSpec.InputType.FLOAT:
+                return glsDrawTests.generateRandomVec4(random);
+
+            case glsDrawTests.DrawTestSpec.InputType.INT:
+                return glsDrawTests.generateRandomIVec4(random);
+
+            case glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT:
+                return glsDrawTests.generateRandomUVec4(random);
+
+            default:
+                throw new Error('Invalid attribute type');
+        }
     };
 
     // AttributePack
@@ -2565,7 +2857,7 @@ goog.scope(function() {
             /** @type {number} */ var coordScale = this.getCoordScale(spec);
             /** @type {number} */ var colorScale = this.getColorScale(spec);
 
-            /** @type {rrGenericVector.GenericVec4} */ var nullAttribValue;
+            /** @type {Array<number>} */ var nullAttribValue;
 
             // Log info
             bufferedLogToConsole(spec.getMultilineDesc());
@@ -2581,7 +2873,7 @@ goog.scope(function() {
 
                 if (attribSpec.useDefaultAttribute) {
                     var seed = 10 * attribSpec.hash() + 100 * spec.hash() + attribNdx;
-                    /** @type {rrGenericVector.GenericVec4} */ var attribValue = glsDrawTests.RandomArrayGenerator.generateAttributeValue(seed, attribSpec.inputType); //TODO: Implement
+                    /** @type {Array<number>} */ var attribValue = glsDrawTests.RandomArrayGenerator.generateAttributeValue(seed, attribSpec.inputType); //TODO: Implement
 
                     //TODO: We're not using user storage. Remove this case?
                     this.m_glArrayPack.newArray(glsDrawTests.DrawTestSpec.Storage.USER);
