@@ -543,7 +543,7 @@ tcuImageCompare.findNumPositionDeviationFailingPixels = function (errorMask, ref
                 for (var sx = Math.max(0, x - maxPositionDeviation[0]); sx <= Math.min(width  - 1, x + maxPositionDeviation[0]) && !pixelFoundForResult; ++sx) {
                     /** @type {Array<number>} */ var deviatedRefPix    = reference.getPixelInt(sx, sy, sz);
                     diff = deMath.absDiff(cmpPix, deviatedRefPix);
-                    var isOk = deMath.boolAll(deMath.lessThanEqual(diff, threshold));
+                    isOk = deMath.boolAll(deMath.lessThanEqual(diff, threshold));
 
                     pixelFoundForResult |= isOk;
                 }

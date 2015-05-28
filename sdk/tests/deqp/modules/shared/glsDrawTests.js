@@ -26,6 +26,7 @@ goog.require('framework.common.tcuPixelFormat');
 goog.require('framework.common.tcuRGBA');
 goog.require('framework.common.tcuSurface');
 goog.require('framework.common.tcuTestCase');
+goog.require('framework.common.tcuTextureUtil');
 goog.require('framework.delibs.debase.deMath');
 goog.require('framework.delibs.debase.deRandom');
 goog.require('framework.opengl.gluShaderUtil');
@@ -48,6 +49,7 @@ goog.scope(function() {
     var tcuPixelFormat = framework.common.tcuPixelFormat;
     var tcuSurface = framework.common.tcuSurface;
     var tcuImageCompare = framework.common.tcuImageCompare;
+    var tcuTextureUtil = framework.common.tcuTextureUtil;
     var gluShaderUtil = framework.opengl.gluShaderUtil;
     var gluStrUtil = framework.opengl.gluStrUtil;
     var sglrGLContext = framework.opengl.simplereference.sglrGLContext;
@@ -164,7 +166,7 @@ goog.scope(function() {
     };
 
     /**
-     * @param {glsDrawTests.DrawTestSpec.Primitive} primitive
+     * @param {?glsDrawTests.DrawTestSpec.Primitive} primitive
      * @return {number}
      */
     glsDrawTests.primitiveToGL = function(primitive) {
@@ -1369,6 +1371,13 @@ goog.scope(function() {
     };
 
     /**
+     * @return {tcuSurface.Surface}
+     */
+    glsDrawTests.AttributePack.prototype.getSurface = function () {
+        return this.m_screen;
+    };
+
+    /**
      * @param {number} i
      * @return {glsDrawTests.AttributeArray}
      */
@@ -1409,7 +1418,7 @@ goog.scope(function() {
     };
 
     /**
-     * @param {glsDrawTests.DrawTestSpec.Primitive} primitive
+     * @param {?glsDrawTests.DrawTestSpec.Primitive} primitive
      * @param {?glsDrawTests.DrawTestSpec.DrawMethod} drawMethod
      * @param {number} firstVertex
      * @param {number} vertexCount
@@ -1418,14 +1427,12 @@ goog.scope(function() {
      * @param {number} rangeStart
      * @param {number} rangeEnd
      * @param {number} instanceCount
-     * @param {number} indirectOffset
-     * @param {number} baseVertex
      * @param {number} coordScale
      * @param {number} colorScale
      * @param {glsDrawTests.AttributeArray} indexArray
      */
     glsDrawTests.AttributePack.prototype.render = function(primitive, drawMethod, firstVertex, vertexCount, indexType,
-        indexOffset, rangeStart, rangeEnd, instanceCount, indirectOffset, baseVertex, coordScale, colorScale, indexArray) {
+        indexOffset, rangeStart, rangeEnd, instanceCount, coordScale, colorScale, indexArray) {
         assertMsgOptions(this.m_program != null, 'Program is null', false, true);
         assertMsgOptions(this.m_programID != null, 'No context created program', false, true);
 
@@ -2555,8 +2562,8 @@ goog.scope(function() {
             /** @type {number} */ var elementCount = primitiveElementCount + indexMin + firstAddition; // !< elements in buffer (buffer should have at least primitiveElementCount ACCESSIBLE (index range, first) elements)
             /** @type {number} */ var maxElementIndex = primitiveElementCount + indexMin + firstAddition - 1;
             /** @type {number} */ var indexMax = Math.max(0, (ranged) ? (deMath.clamp(spec.indexMax, 0, maxElementIndex)) : (maxElementIndex));
-            /** @type {number} */ var coordScale = glsDrawTests.getCoordScale(spec);
-            /** @type {number} */ var colorScale = glsDrawTests.getColorScale(spec);
+            /** @type {number} */ var coordScale = this.getCoordScale(spec);
+            /** @type {number} */ var colorScale = this.getColorScale(spec);
 
             /** @type {rrGenericVector.GenericVec4} */ var nullAttribValue;
 
@@ -2589,7 +2596,7 @@ goog.scope(function() {
                     /** @type {number} */ var evaluatedElementCount = (instanced && attribSpec.instanceDivisor > 0) ? (spec.instanceCount / attribSpec.instanceDivisor + 1) : (elementCount);
                     /** @type {number} */ var referencedElementCount = (ranged) ? (Math.max(evaluatedElementCount, spec.indexMax + 1)) : (evaluatedElementCount);
                     /** @type {number} */ var bufferSize = attribSpec.offset + stride * (referencedElementCount - 1) + elementSize;
-                    /** @type {string} */ var data = glsDrawTests.RandomArrayGenerator.generateArray(seed, referencedElementCount, attribSpec.componentCount, attribSpec.offset, stride, attribSpec.inputType);
+                    /** @type {goog.TypedArray} */ var data = glsDrawTests.RandomArrayGenerator.generateArray(seed, referencedElementCount, attribSpec.componentCount, attribSpec.offset, stride, attribSpec.inputType);
 
                     //try { TODO: This try/catch block's purpose is to delete data safely. Should we?
                         this.m_glArrayPack.newArray(attribSpec.storage);
@@ -2616,6 +2623,8 @@ goog.scope(function() {
                 this.m_rrArrayPack.updateProgram();
             }
 
+            /** @type {glsDrawTests.DrawTestSpec.CompatibilityTestType} */ var ctype;
+
             // Draw
             try {
                 // indices
@@ -2623,9 +2632,9 @@ goog.scope(function() {
                     /** @type {number} */ var seed = spec.hash();
                     /** @type {number} */ var indexElementSize = glsDrawTests.DrawTestSpec.indexTypeSize(spec.indexType);
                     /** @type {number} */ var indexArraySize = spec.indexPointerOffset + indexElementSize * elementCount;
-                    /** @type {string} */ var indexArray = glsDrawTests.RandomArrayGenerator.generateIndices(seed, elementCount, spec.indexType, spec.indexPointerOffset, indexMin, indexMax, indexBase);
-                    /** @type {string} */ var indexPointerBase = (spec.indexStorage == glsDrawTests.DrawTestSpec.Storage.USER) ? (indexArray) : (null);
-                    /** @type {string} */ var indexPointer = indexPointerBase + spec.indexPointerOffset;
+                    /** @type {goog.TypedArray} */ var indexArray = glsDrawTests.RandomArrayGenerator.generateIndices(seed, elementCount, spec.indexType, spec.indexPointerOffset, indexMin, indexMax);
+                    /** @type {goog.TypedArray} */ var indexPointerBase = (spec.indexStorage == glsDrawTests.DrawTestSpec.Storage.USER) ? (indexArray) : (null);
+                    /** @type {goog.TypedArray} */ var indexPointer = indexPointerBase.subarray(spec.indexPointerOffset);
 
                     /** @type {glsDrawTests.AttributeArray}*/ var glArray = new glsDrawTests.AttributeArray(spec.indexStorage, this.m_glesContext);
                     /** @type {glsDrawTests.AttributeArray}*/ var rrArray = new glsDrawTests.AttributeArray(spec.indexStorage, this.m_refContext);
@@ -2634,8 +2643,8 @@ goog.scope(function() {
                         glArray.data(glsDrawTests.DrawTestSpec.Target.ELEMENT_ARRAY, indexArraySize, indexArray, glsDrawTests.DrawTestSpec.Usage.STATIC_DRAW);
                         rrArray.data(glsDrawTests.DrawTestSpec.Target.ELEMENT_ARRAY, indexArraySize, indexArray, glsDrawTests.DrawTestSpec.Usage.STATIC_DRAW);
 
-                        this.m_glArrayPack.render(spec.primitive, spec.drawMethod, 0, primitiveElementCount, spec.indexType, indexPointer, spec.indexMin, spec.indexMax, spec.instanceCount, spec.indirectOffset, spec.baseVertex, coordScale, colorScale, glArray.get());
-                        this.m_rrArrayPack.render(spec.primitive, spec.drawMethod, 0, primitiveElementCount, spec.indexType, indexPointer, spec.indexMin, spec.indexMax, spec.instanceCount, spec.indirectOffset, spec.baseVertex, coordScale, colorScale, rrArray.get());
+                        this.m_glArrayPack.render(spec.primitive, spec.drawMethod, 0, primitiveElementCount, spec.indexType, spec.indexPointerOffset, spec.indexMin, spec.indexMax, spec.instanceCount, coordScale, colorScale, glArray);
+                        this.m_rrArrayPack.render(spec.primitive, spec.drawMethod, 0, primitiveElementCount, spec.indexType, spec.indexPointerOffset, spec.indexMin, spec.indexMax, spec.instanceCount, coordScale, colorScale, rrArray);
 
                         //delete [] indexArray;
                         indexArray = null;
@@ -2644,14 +2653,14 @@ goog.scope(function() {
                         throw;
                     }*/
                 } else {
-                    this.m_glArrayPack.render(spec.primitive, spec.drawMethod, spec.first, primitiveElementCount, glsDrawTests.DrawTestSpec.IndexType.LAST, null, 0, 0, spec.instanceCount, spec.indirectOffset, 0, coordScale, colorScale, null);
-                    this.m_rrArrayPack.render(spec.primitive, spec.drawMethod, spec.first, primitiveElementCount, glsDrawTests.DrawTestSpec.IndexType.LAST, null, 0, 0, spec.instanceCount, spec.indirectOffset, 0, coordScale, colorScale, null);
+                    this.m_glArrayPack.render(spec.primitive, spec.drawMethod, spec.first, primitiveElementCount, null, 0, 0, 0, spec.instanceCount, coordScale, colorScale, null);
+                    this.m_rrArrayPack.render(spec.primitive, spec.drawMethod, spec.first, primitiveElementCount, null, 0, 0, 0, spec.instanceCount, coordScale, colorScale, null);
                 }
             } catch (err) {
                 if (err /*instanceof GL ERROR*/) { //TODO: Implement throwing a special error for gl errors to catch them here
                     // GL Errors are ok if the mode is not properly aligned
 
-                    /** @type {glsDrawTests.DrawTestSpec.CompatibilityTestType} */ var ctype = spec.isCompatibilityTest();
+                    ctype = spec.isCompatibilityTest();
 
                     bufferedLogToConsole('Got error: ' + err.message);
 
@@ -2665,7 +2674,7 @@ goog.scope(function() {
             }
         } else if (compareStep) {
             if (!this.compare(spec.primitive)) {
-                /** @type {glsDrawTests.DrawTestSpec.CompatibilityTestType} */ var ctype = spec.isCompatibilityTest();
+                ctype = spec.isCompatibilityTest();
 
                 if (ctype == glsDrawTests.DrawTestSpec.CompatibilityTestType.UNALIGNED_OFFSET)
                     checkMessage(false, 'Failed to draw with unaligned buffers.');
@@ -2706,15 +2715,11 @@ goog.scope(function() {
             case glsDrawTests.DrawTestSpec.Primitive.LINES:
             case glsDrawTests.DrawTestSpec.Primitive.LINE_STRIP:
             case glsDrawTests.DrawTestSpec.Primitive.LINE_LOOP:
-            case glsDrawTests.DrawTestSpec.Primitive.LINES_ADJACENCY:
-            case glsDrawTests.DrawTestSpec.Primitive.LINE_STRIP_ADJACENCY:
                 return glsDrawTests.PrimitiveClass.LINE;
 
             case glsDrawTests.DrawTestSpec.Primitive.TRIANGLES:
             case glsDrawTests.DrawTestSpec.Primitive.TRIANGLE_FAN:
             case glsDrawTests.DrawTestSpec.Primitive.TRIANGLE_STRIP:
-            case glsDrawTests.DrawTestSpec.Primitive.TRIANGLES_ADJACENCY:
-            case glsDrawTests.DrawTestSpec.Primitive.TRIANGLE_STRIP_ADJACENCY:
                 return glsDrawTests.PrimitiveClass.TRIANGLE;
 
             default:
@@ -2756,9 +2761,9 @@ goog.scope(function() {
      */
     glsDrawTests.isEdgeTriplet = function(c1, c2, c3, renderTargetThreshold) {
         // black (background color) and non-black is always an edge
-        /** @type {number} */ var b1 = glsDrawTests.isBlack(c1);
-        /** @type {number} */ var b2 = glsDrawTests.isBlack(c2);
-        /** @type {number} */ var b3 = glsDrawTests.isBlack(c3);
+        /** @type {boolean} */ var b1 = glsDrawTests.isBlack(c1);
+        /** @type {boolean} */ var b2 = glsDrawTests.isBlack(c2);
+        /** @type {boolean} */ var b3 = glsDrawTests.isBlack(c3);
 
         // both pixels with coverage and pixels without coverage
         if ((b1 && b2 && b3) == false && (b1 || b2 || b3) == true)
@@ -2794,10 +2799,14 @@ goog.scope(function() {
 
         // horizontal
 
+        /** @type {tcuRGBA.RGBA} */ var c1;
+        /** @type {tcuRGBA.RGBA} */ var c2;
+        /** @type {tcuRGBA.RGBA} */ var c3;
+
         for (var dy = -1; dy < 2; ++dy) {
-            /** @type {tcuRGBA.RGBA} */ var c1 = ref.getPixel(x - 1, y + dy);
-            /** @type {tcuRGBA.RGBA} */ var c2 = ref.getPixel(x, y + dy);
-            /** @type {tcuRGBA.RGBA} */ var c3 = ref.getPixel(x + 1, y + dy);
+            c1 = ref.getPixel(x - 1, y + dy);
+            c2 = ref.getPixel(x, y + dy);
+            c3 = ref.getPixel(x + 1, y + dy);
             if (glsDrawTests.isEdgeTriplet(c1, c2, c3, renderTargetThreshold))
                 return true;
         }
@@ -2805,9 +2814,9 @@ goog.scope(function() {
         // vertical
 
         for (var dx = -1; dx < 2; ++dx) {
-            /** @type {tcuRGBA.RGBA} */ var c1 = ref.getPixel(x + dx, y - 1);
-            /** @type {tcuRGBA.RGBA} */ var c2 = ref.getPixel(x + dx, y);
-            /** @type {tcuRGBA.RGBA} */ var c3 = ref.getPixel(x + dx, y + 1);
+            c1 = ref.getPixel(x + dx, y - 1);
+            c2 = ref.getPixel(x + dx, y);
+            c3 = ref.getPixel(x + dx, y + 1);
             if (glsDrawTests.isEdgeTriplet(c1, c2, c3, renderTargetThreshold))
                 return true;
         }
@@ -2817,7 +2826,7 @@ goog.scope(function() {
 
     /**
      * @param {tcuRGBA.RGBA} c
-     * @number {number}
+     * @return {number}
      */
     glsDrawTests.getVisualizationGrayscaleColor = function(c) {
         // make triangle coverage and error pixels obvious by converting coverage to grayscale
@@ -2893,8 +2902,8 @@ goog.scope(function() {
      */
     glsDrawTests.pixelNeighborhoodContainsCoverage = function(target, x, y, coverage) {
         // should not be called for edge pixels
-        assertMsgOptions(x >= 1 && x <= target.getWidth() - 2);
-        assertMsgOptions(y >= 1 && y <= target.getHeight() - 2);
+        assertMsgOptions(x >= 1 && x <= target.getWidth() - 2, 'Pixel is in the edge', false, true);
+        assertMsgOptions(y >= 1 && y <= target.getHeight() - 2, 'Pixel is in the edge', false, true);
 
         for (var dy = -1; dy < 2; dy++)
         for (var dx = -1; dx < 2; dx++) {
@@ -2923,15 +2932,15 @@ goog.scope(function() {
         /** @type {Array<number>} */ var errorColor = [255, 0, 0, 255];
         /** @type {number} */ var width = reference.getWidth();
         /** @type {number} */ var height = reference.getHeight();
-        /** @type {tcuTexture.TextureLevel} */ var errorMask = new tcuTexture.TextureLevel(new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGB, tcuTexture.ChannelType.UNORM_INT8), width, height);
+        /** @type {tcuSurface.Surface} */ var errorMask = new tcuSurface.Surface(width, height);
         /** @type {number} */ var numFailingPixels = 0;
 
         // clear errormask edges which would otherwise be transparent
 
-        tcuTexture.clear(tcuTexture.getSubregion(errorMask.getAccess(), 0, 0, width, 1), green);
-        tcuTexture.clear(tcuTexture.getSubregion(errorMask.getAccess(), 0, height - 1, width, 1), green);
-        tcuTexture.clear(tcuTexture.getSubregion(errorMask.getAccess(), 0, 0, 1, height), green);
-        tcuTexture.clear(tcuTexture.getSubregion(errorMask.getAccess(), width - 1, 0, 1, height), green);
+        tcuTextureUtil.getSubregion(errorMask.getAccess(), 0, 0, 0, width, 1, 1).clear(green);
+        tcuTextureUtil.getSubregion(errorMask.getAccess(), 0, height - 1, 0, width, 1, 1).clear(green);
+        tcuTextureUtil.getSubregion(errorMask.getAccess(), 0, 0, 0, 1, height, 1).clear(green);
+        tcuTextureUtil.getSubregion(errorMask.getAccess(), width - 1, 0, 0, 1, height, 1).clear(green);
 
         // skip edge pixels since coverage on edge cannot be verified
 
@@ -2978,7 +2987,7 @@ goog.scope(function() {
 
         if (numFailingPixels > maxAllowedInvalidPixels) {
             debug('Image comparison failed. Color threshold = (' + compareThreshold[0] + ', ' + compareThreshold[1] + ', ' + compareThreshold[2] + ')');
-            tcuImageCompare.displayImages(result.getAccess(), ref.getAccess(), errorMask.getAccess());
+            tcuImageCompare.displayImages(result.getAccess(), reference.getAccess(), errorMask.getAccess());
 
             return false;
         } else {
@@ -2989,30 +2998,30 @@ goog.scope(function() {
     };
 
     /**
-     * @param {string} imagesetName
-     * @param {string} imagesetDesc
+     * @param {string} imageSetName
+     * @param {string} imageSetDesc
      * @param {tcuSurface.Surface} reference
      * @param {tcuSurface.Surface} result
      * @param {Array<number>} compareThreshold
      * @param {number} maxAllowedInvalidPixels
      * @return {boolean}
      */
-    glsDrawTests.intersectionRelaxedLineImageCompare = function(log, imageSetName, imageSetDesc, reference, result, compareThreshold, maxAllowedInvalidPixels) {
+    glsDrawTests.intersectionRelaxedLineImageCompare = function(imageSetName, imageSetDesc, reference, result, compareThreshold, maxAllowedInvalidPixels) {
         assertMsgOptions(result.getWidth() == reference.getWidth() && result.getHeight() == reference.getHeight(), 'Reference and result images have different dimensions', false, true);
 
         /** @type {Array<number>} */ var green = [0, 255, 0, 255];
         /** @type {Array<number>} */ var errorColor = [255, 0, 0, 255];
         var width = reference.getWidth();
         var height = reference.getHeight();
-        /** @type {tcuTexture.TextureLevel} */ var errorMask = new tcuTexture.TextureLevel(new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGB, tcuTexture.ChannelType.UNORM_INT8), width, height);
+        /** @type {tcuSurface.Surface} */ var errorMask = new tcuSurface.Surface(width, height);
         /** @type {number} */ var numFailingPixels = 0;
 
         // clear errormask edges which would otherwise be transparent
 
-        tcuTexture.clear(tcuTexture.getSubregion(errorMask.getAccess(), 0, 0, width, 1), green);
-        tcuTexture.clear(tcuTexture.getSubregion(errorMask.getAccess(), 0, height - 1, width, 1), green);
-        tcuTexture.clear(tcuTexture.getSubregion(errorMask.getAccess(), 0, 0, 1, height), green);
-        tcuTexture.clear(tcuTexture.getSubregion(errorMask.getAccess(), width - 1, 0, 1, height), green);
+        tcuTextureUtil.getSubregion(errorMask.getAccess(), 0, 0, 0, width, 1, 1).clear(green);
+        tcuTextureUtil.getSubregion(errorMask.getAccess(), 0, height - 1, 0, width, 1, 1).clear(green);
+        tcuTextureUtil.getSubregion(errorMask.getAccess(), 0, 0, 0, 1, height, 1).clear(green);
+        tcuTextureUtil.getSubregion(errorMask.getAccess(), width - 1, 0, 0, 1, height, 1).clear(green);
 
         // skip edge pixels since coverage on edge cannot be verified
 
@@ -3023,9 +3032,11 @@ goog.scope(function() {
             /** @type {boolean} */ var isOkScreenPixel = glsDrawTests.pixelNeighborhoodContainsColor(reference, x, y, screenPixel, compareThreshold); // reference image has a matching pixel nearby (~= If something is drawn on screen, it must be drawn to reference too.)
             /** @type {boolean} */ var isOkReferencePixel = glsDrawTests.pixelNeighborhoodContainsColor(result, x, y, refPixel, compareThreshold); // screen image has a matching pixel nearby (~= If something is drawn on reference, it must be drawn to screen too.)
 
+            /** @type {number} */ var grayscaleValue;
+
             if (isOkScreenPixel && isOkReferencePixel) {
                 // pixel valid, write greenish pixels to make the result image easier to read
-                /** @type {number} */ var grayscaleValue = glsDrawTests.getVisualizationGrayscaleColor(screenPixel);
+                grayscaleValue = glsDrawTests.getVisualizationGrayscaleColor(screenPixel);
                 errorMask.getAccess().setPixel([grayscaleValue, 255, grayscaleValue, 255], x, y);
             } else if (!glsDrawTests.pixelNearLineIntersection(x, y, reference) &&
                      !glsDrawTests.pixelNearLineIntersection(x, y, result)) {
@@ -3042,7 +3053,7 @@ goog.scope(function() {
 
                 if (isOkScreenCoverage && isOkReferenceCoverage) {
                     // pixel valid, write greenish pixels to make the result image easier to read
-                    /** @type {number} */ var grayscaleValue = glsDrawTests.getVisualizationGrayscaleColor(screenPixel);
+                    grayscaleValue = glsDrawTests.getVisualizationGrayscaleColor(screenPixel);
                     errorMask.getAccess().setPixel([grayscaleValue, 255, grayscaleValue, 255], x, y);
                 } else {
                     // coverage does not match
@@ -3061,7 +3072,7 @@ goog.scope(function() {
 
         if (numFailingPixels > maxAllowedInvalidPixels) {
             debug('Image comparison failed. Color threshold = (' + compareThreshold[0] + ', ' + compareThreshold[1] + ', ' + compareThreshold[2] + ')');
-            tcuImageCompare.displayImages(result.getAccess(), ref.getAccess(), errorMask.getAccess());
+            tcuImageCompare.displayImages(result.getAccess(), reference.getAccess(), errorMask.getAccess());
 
             return false;
         } else {
@@ -3147,7 +3158,6 @@ goog.scope(function() {
 
                 default:
                     throw new Error('Invalid primitive class');
-                    return false;
             }
         /*}*/
     };
@@ -3186,7 +3196,7 @@ goog.scope(function() {
             {
                 var max = glsDrawTests.GLValue.getMaxValue(attribSpec.inputType).getValue();
 
-                attrMaxValue += (attribSpec.normalize && !inputTypeIsFloatType(attribSpec.inputType)) ? (1.0) : (max * 1.1);
+                attrMaxValue += (attribSpec.normalize && !glsDrawTests.inputTypeIsFloatType(attribSpec.inputType)) ? (1.0) : (max * 1.1);
             }
 
             if (attribSpec.outputType == glsDrawTests.DrawTestSpec.OutputType.VEC3 || attribSpec.outputType == glsDrawTests.DrawTestSpec.OutputType.VEC4
