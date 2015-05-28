@@ -70,36 +70,35 @@ goog.scope(function() {
         if (expected.constructor === Number) 
             expected = [expected];
             
+        var l = expected.length;
         var err = this.m_gl.getError();
         
         if (expected.indexOf(err) === -1) {
             
-            var msg = 'expected ';
+            var msg = 'Expected ';
             
-            if (expected.length > 1)
-                msg += 'one of ';
+            if (l > 1)
+                msg += (l == 2 ? 'either ' : 'one of ');
             
-            for (var i = 0, l = expected.length ; i < l ; ++i) {
-            //    msg += gluStrUtil.getErrorStr(expected[i]);
-                msg += expected[i];
-                    
-                if (i < l - 2)
-                    msg += ', ';
-                else if (i == l - 2)
-                    msg += ' or ';
-                else
-                    msg += '.';
-            }
+            for (var i = 0 ; i < l ; ++i) msg += (
+                (gluStrUtil.getErrorName(expected[i]) || '0x' + expected[i].toString(16)) +
+                (l - i == 2 ? ' or ' : ', ')
+            );
+            
+            msg += 'but got ' + (gluStrUtil.getErrorName(err) || '0x' + err.toString(16)) + '.';
                 
-            bufferedLogToConsole(msg);
-                
-            if (this.m_pass) {
-                this.m_comment = msg;
-                this.m_pass = false;
-            }
+            this.testFailed(msg);
         
         }
         
+    };
+    
+    es3fApiCase.ApiCase.prototype.testFailed = function(comment) {
+        bufferedLogToConsole(comment);
+        if (this.m_pass) {
+            this.m_comment = comment;
+            this.m_pass = false;
+        }
     };
     
     /**
