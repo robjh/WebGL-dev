@@ -2555,4 +2555,55 @@ tcuTexture.TextureLevel.prototype.getFormat = function() {
     return this.m_format;
 };
 
+/**
+ * @constructor
+ * @param {tcuTexture.ConstPixelBufferAccess} src
+ */
+tcuTexture.RGBA8View = function(src) {
+    this.src = src;
+    this.data = new Uint8Array(src.getBuffer(), src.m_offset);
+    this.stride = src.getRowPitch();
+    this.width = src.getWidth();
+    this.height = src.getHeight();
+};
+
+/**
+ * @return {tcuTexture.TextureFormat}
+ */
+tcuTexture.RGBA8View.prototype.getFormat = function() { return this.src.getFormat(); };
+
+/**
+ * Read a pixel
+ * @param {number} x
+ * @param {number} y
+ * @param {number=} numChannels
+ * @return {Array<number>}
+ */
+tcuTexture.RGBA8View.prototype.read = function(x, y, numChannels) {
+    numChannels = numChannels || 4;
+    var offset = y * this.stride + x * 4;
+    var result = [];
+    for (var i = 0; i < numChannels; i++)
+        result.push(this.data[offset + i]);
+    return result;
+};
+
+/**
+ * Write a pixel
+ * @param {number} x
+ * @param {number} y
+ * @param {Array<number>} value
+ * @param {number=} numChannels
+ */
+tcuTexture.RGBA8View.prototype.write = function(x, y, value, numChannels) {
+    numChannels = numChannels || 4;
+    var offset = y * this.stride + x * 4;
+    for (var i = 0; i < numChannels; i++)
+        this.data[offset + i] = value[i];
+};
+
+tcuTexture.RGBA8View.prototype.getWidth = function() { return this.width; };
+
+tcuTexture.RGBA8View.prototype.getHeight = function() { return this.height; };
+
 });

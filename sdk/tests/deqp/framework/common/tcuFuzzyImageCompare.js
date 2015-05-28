@@ -38,37 +38,7 @@ var tcuTextureUtil = framework.common.tcuTextureUtil;
             throw new Error('Assert failed');
     };
 
-    /**
-     * @constructor
-     * @param {tcuTexture.ConstPixelBufferAccess} src
-     */
-    tcuFuzzyImageCompare.RGBA8View = function(src) {
-        this.src = src;
-        this.data = new Uint8Array(src.getBuffer(), src.m_offset);
-        this.stride = src.getRowPitch();
-        this.width = src.getWidth();
-        this.height = src.getHeight();
-    };
-
-    /**
-     * @return {tcuTexture.TextureFormat}
-     */
-    tcuFuzzyImageCompare.RGBA8View.prototype.getFormat = function() { return this.src.getFormat(); };
-
-    tcuFuzzyImageCompare.RGBA8View.prototype.read = function(x, y, numChannels) {
-        var offset = y * this.stride + x * 4;
-        var result = [];
-        for (var i = 0; i < numChannels; i++)
-            result.push(this.data[offset + i]);
-        return result;
-    };
-
-    tcuFuzzyImageCompare.RGBA8View.prototype.write = function(x, y, value, numChannels) {
-        var offset = y * this.stride + x * 4;
-        for (var i = 0; i < numChannels; i++)
-            this.data[offset + i] = value[i];
-    };
-
+ 
     /**
      * tcuFuzzyImageCompare.FuzzyCompareParams struct
      * @constructor
@@ -114,7 +84,7 @@ var tcuTextureUtil = framework.common.tcuTextureUtil;
     };
 
     /**
-     * @param {tcuFuzzyImageCompare.RGBA8View} src
+     * @param {tcuTexture.RGBA8View} src
      * @param {number} u
      * @param {number} v
      * @param {number} NumChannels
@@ -156,8 +126,8 @@ var tcuTextureUtil = framework.common.tcuTextureUtil;
     };
 
     /**
-     * @param {tcuFuzzyImageCompare.RGBA8View} dst
-     * @param {tcuFuzzyImageCompare.RGBA8View} src
+     * @param {tcuTexture.RGBA8View} dst
+     * @param {tcuTexture.RGBA8View} src
      * @param {number} shiftX
      * @param {number} shiftY
      * @param {Array<number>} kernelX
@@ -169,14 +139,14 @@ var tcuTextureUtil = framework.common.tcuTextureUtil;
         DE_ASSERT(dst.width == src.width && dst.height == src.height);
 
         /** @type {tcuTexture.TextureLevel} */ var tmp = new tcuTexture.TextureLevel(dst.getFormat(), dst.height, dst.width);
-        var tmpView = new tcuFuzzyImageCompare.RGBA8View(tmp.getAccess());
+        var tmpView = new tcuTexture.RGBA8View(tmp.getAccess());
 
         /** @type {number} */ var kw = kernelX.length;
         /** @type {number} */ var kh = kernelY.length;
 
         /** @type {Array<number>} */ var sum = [];
         /** @type {number} */ var f;
-        /** @type {number} */ var p;
+        /** @type {Array<number>} */ var p;
 
         // Horizontal pass
         // \note Temporary surface is written in column-wise order
@@ -212,7 +182,7 @@ var tcuTextureUtil = framework.common.tcuTextureUtil;
      * @param {tcuFuzzyImageCompare.FuzzyCompareParams} params
      * @param {deRandom.Random} rnd
      * @param {Array<number>} pixel
-     * @param {tcuFuzzyImageCompare.RGBA8View} surface
+     * @param {tcuTexture.RGBA8View} surface
      * @param {number} x
      * @param {number} y
      * @param {number} NumChannels
@@ -310,10 +280,10 @@ var tcuTextureUtil = framework.common.tcuTextureUtil;
         /** @type {tcuTexture.TextureLevel} */ var refFiltered = new tcuTexture.TextureLevel(new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.UNORM_INT8), width, height);
         /** @type {tcuTexture.TextureLevel} */ var cmpFiltered = new tcuTexture.TextureLevel(new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.UNORM_INT8), width, height);
 
-        var refView = new tcuFuzzyImageCompare.RGBA8View(ref);
-        var cmpView = new tcuFuzzyImageCompare.RGBA8View(cmp);
-        var refFilteredView = new tcuFuzzyImageCompare.RGBA8View(tcuTexture.PixelBufferAccess.newFromTextureLevel(refFiltered));
-        var cmpFilteredView = new tcuFuzzyImageCompare.RGBA8View(tcuTexture.PixelBufferAccess.newFromTextureLevel(cmpFiltered));
+        var refView = new tcuTexture.RGBA8View(ref);
+        var cmpView = new tcuTexture.RGBA8View(cmp);
+        var refFilteredView = new tcuTexture.RGBA8View(tcuTexture.PixelBufferAccess.newFromTextureLevel(refFiltered));
+        var cmpFilteredView = new tcuTexture.RGBA8View(tcuTexture.PixelBufferAccess.newFromTextureLevel(cmpFiltered));
 
         // Kernel = {0.15, 0.7, 0.15}
         /** @type {Array<number>} */ var kernel = [0.1, 0.8, 0.1];

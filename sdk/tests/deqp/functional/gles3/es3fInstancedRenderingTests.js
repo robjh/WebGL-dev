@@ -23,12 +23,12 @@ goog.provide('functional.gles3.es3fInstancedRenderingTests');
 goog.require('framework.common.tcuImageCompare');
 goog.require('framework.common.tcuSurface');
 goog.require('framework.common.tcuTestCase');
+goog.require('framework.delibs.debase.deMath');
 goog.require('framework.delibs.debase.deRandom');
 goog.require('framework.delibs.debase.deString');
 goog.require('framework.opengl.gluShaderProgram');
 goog.require('framework.opengl.gluShaderUtil');
 goog.require('framework.opengl.gluTextureUtil');
-goog.require('framework.delibs.debase.deMath');
 
 goog.scope(function() {
 
