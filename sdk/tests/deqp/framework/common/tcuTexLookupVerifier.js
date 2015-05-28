@@ -21,6 +21,7 @@
 'use strict';
 goog.provide('framework.common.tcuTexLookupVerifier');
 goog.require('framework.common.tcuTexture');
+goog.require('framework.common.tcuTextureUtil');
 goog.require('framework.common.tcuTexVerifierUtil');
 
 
@@ -30,6 +31,42 @@ goog.scope(function() {
     var tcuTexLookupVerifier = framework.common.tcuTexLookupVerifier;
     var tcuTexVerifierUtil = framework.common.tcuTexVerifierUtil;
     var tcuTexture = framework.common.tcuTexture;
+    var tcuTextureUtil = framework.common.tcuTextureUtil;
+
+    /**
+     * @param  {tcuTexLookupVerifier.ColorQuad} dst
+     * @param  {tcuTexture.ConstPixelBufferAccess} level
+     * @param  {tcuTexture.Sampler} sampler
+     * @param  {number} x0
+     * @param  {number} x1
+     * @param  {number} y0
+     * @param  {number} y1
+     * @param  {number} z
+     */
+    tcuTexLookupVerifier.lookupQuad = function(dst, level, sampler, x0, x1, y0, y1, z) {
+    	dst.p00	= tcuTexLookupVerifier.lookup(level, sampler, x0, y0, z);
+    	dst.p10	= tcuTexLookupVerifier.lookup(level, sampler, x1, y0, z);
+    	dst.p01	= tcuTexLookupVerifier.lookup(level, sampler, x0, y1, z);
+    	dst.p11	= tcuTexLookupVerifier.lookup(level, sampler, x1, y1, z);
+    };
+
+    /**
+     * @param  {tcuTexture.ConstPixelBufferAccess} access
+     * @param  {tcuTexture.Sampler} sampler
+     * @param  {number} i
+     * @param  {number} j
+     * @param  {number} k
+     * @return {Array<number>}
+     */
+    tcuTexLookupVerifier.lookup = function(access, sampler, i, j, k) {
+    	// Specialization for float lookups: sRGB conversion is performed as specified in format.
+    	if (coordsInBounds(access, i, j, k)) {
+    		/** @type {Array<number>} */ var p = access.getPixel(i, j, k);
+    		return isSRGB(access.getFormat()) ? sRGBToLinear(p) : p;
+    	}
+    	else
+    		return sampler.borderColor;
+    };
 
     /**
      * @constructor
@@ -133,9 +170,9 @@ goog.scope(function() {
         throw new Error('Not implemented. TODO: implement');
     };
 
-    /*
+    /**
      * @param {tcuTexture.Sampler} sampler
-     * @param {boolean}
+     * @return {boolean}
      */
     tcuTexLookupVerifier.isSamplerSupported = function(sampler) {
         return sampler.compare == tcuTexture.CompareMode.COMPAREMODE_NONE &&
@@ -147,7 +184,7 @@ goog.scope(function() {
     /**
      * @param {tcuTexture.ConstPixelBufferAccess} level
      * @param {tcuTexture.Sampler} sampler
-     * @param {tcuTexture.FilterMode.FilterMode} filterMode
+     * @param {tcuTexture.FilterMode} filterMode
      * @param {tcuTexLookupVerifier.LookupPrecision} prec
      * @param {Array<number>} coord vec2
      * @param {number} coordZ int
@@ -170,25 +207,25 @@ goog.scope(function() {
      * @param {Array<number>} result
      * @return {boolean}
      */
-    tcuTexLookupVerifier.isLinearSampleResultValid_CoordAsVec2AndInt = function() {
-        /** @type {Array<Number>} */ var uBounds = computeNonNormalizedCoordBounds(sampler.normalizedCoords, level.getWidth(),	coord.[0], prec.coordBits.[0], prec.uvwBits.[0]);
-        /** @type {Array<Number>} */ var vBounds = computeNonNormalizedCoordBounds(sampler.normalizedCoords, level.getHeight(),	coord.[1], prec.coordBits.[1], prec.uvwBits.[1]);
+    tcuTexLookupVerifier.isLinearSampleResultValid_CoordAsVec2AndInt = function(level, sampler, prec, coord, coordZ, result) {
+        /** @type {Array<number>} */ var uBounds = tcuTexVerifierUtil.computeNonNormalizedCoordBounds(sampler.normalizedCoords, level.getWidth(), coord[0], prec.coordBits[0], prec.uvwBits[0]);
+        /** @type {Array<number>} */ var vBounds = tcuTexVerifierUtil.computeNonNormalizedCoordBounds(sampler.normalizedCoords, level.getHeight(), coord[1], prec.coordBits[1], prec.uvwBits[1]);
 
 	    // Integer coordinate bounds for (x0,y0) - without wrap mode
-        /** @type {number} */ var minI = Math.floor(uBounds.[0] - 0.5);
-        /** @type {number} */ var maxI = Math.floor(uBounds.[1] - 0.5);
-        /** @type {number} */ var minJ = Math.floor(vBounds.[0] - 0.5);
-        /** @type {number} */ var maxJ = Math.floor(vBounds.[1] - 0.5);
+        /** @type {number} */ var minI = Math.floor(uBounds[0] - 0.5);
+        /** @type {number} */ var maxI = Math.floor(uBounds[1] - 0.5);
+        /** @type {number} */ var minJ = Math.floor(vBounds[0] - 0.5);
+        /** @type {number} */ var maxJ = Math.floor(vBounds[1] - 0.5);
 
         /** @type {number} */ var w = level.getWidth();
         /** @type {number} */ var h = level.getHeight();
 
 	    /** @type {tcuTextureUtil.TextureChannelClass} */
-        var texClass = getTextureChannelClass(level.getFormat().type);
+        var texClass = tcuTextureUtil.getTextureChannelClass(level.getFormat().type);
 
         /** @type {number} */
-        var searchStep = texClass == tcuTextureUtil.TextureChannelClass.UNSIGNED_FIXED_POINT ? computeBilinearSearchStepForUnorm(prec) :
-		      texClass == tcuTextureUtil.TextureChannelClass.SIGNED_FIXED_POINT ? computeBilinearSearchStepForSnorm(prec) :
+        var searchStep = (texClass == tcuTextureUtil.TextureChannelClass.UNSIGNED_FIXED_POINT) ? tcuTexLookupVerifier.computeBilinearSearchStepForUnorm(prec) :
+		      (texClass == tcuTextureUtil.TextureChannelClass.SIGNED_FIXED_POINT) ? tcuTexLookupVerifier.computeBilinearSearchStepForSnorm(prec) :
               0.0; // Step is computed for floating-point quads based on texel values.
 
 	    // \todo [2013-07-03 pyry] This could be optimized by first computing ranges based on wrap mode.
@@ -196,16 +233,16 @@ goog.scope(function() {
     	for (var j = minJ; j <= maxJ; j++)
 		for (var i = minI; i <= maxI; i++) {
 			// Wrapped coordinates
-            /** @type {number} */ var x0 = wrap(sampler.wrapS, i  , w);
-            /** @type {number} */ var x1 = wrap(sampler.wrapS, i + 1, w);
-            /** @type {number} */ var y0 = wrap(sampler.wrapT, j  , h);
-            /** @type {number} */ var y1 = wrap(sampler.wrapT, j + 1, h);
+            /** @type {number} */ var x0 = tcuTexVerifierUtil.wrap(sampler.wrapS, i  , w);
+            /** @type {number} */ var x1 = tcuTexVerifierUtil.wrap(sampler.wrapS, i + 1, w);
+            /** @type {number} */ var y0 = tcuTexVerifierUtil.wrap(sampler.wrapT, j  , h);
+            /** @type {number} */ var y1 = tcuTexVerifierUtil.wrap(sampler.wrapT, j + 1, h);
 
 			// Bounds for filtering factors
-            /** @type {number} */ var minA	= deMath.clamp((uBounds.[0] - 0.5) - i, 0.0, 1.0);
-            /** @type {number} */ var maxA	= deMath.clamp((uBounds.[1] - 0.5) - i, 0.0, 1.0);
-            /** @type {number} */ var minB	= deMath.clamp((vBounds.[0] - 0.5) - j, 0.0, 1.0);
-            /** @type {number} */ var maxB	= deMath.clamp((vBounds.[1] - 0.5) - j, 0.0, 1.0);
+            /** @type {number} */ var minA	= deMath.clamp((uBounds[0] - 0.5) - i, 0.0, 1.0);
+            /** @type {number} */ var maxA	= deMath.clamp((uBounds[1] - 0.5) - i, 0.0, 1.0);
+            /** @type {number} */ var minB	= deMath.clamp((vBounds[0] - 0.5) - j, 0.0, 1.0);
+            /** @type {number} */ var maxB	= deMath.clamp((vBounds[1] - 0.5) - j, 0.0, 1.0);
 
             /** @type {tcuTexLookupVerifier.ColorQuad} */ var quad;
 			lookupQuad(quad, level, sampler, x0, x1, y0, y1, coordZ);
@@ -213,11 +250,61 @@ goog.scope(function() {
 			if (texClass == tcuTextureUtil.TextureChannelClass.FLOATING_POINT)
 				searchStep = computeBilinearSearchStepFromFloatQuad(prec, quad);
 
-			if (isBilinearRangeValid(prec, quad, Vec2(minA, maxA), Vec2(minB, maxB), searchStep, result))
+			if (isBilinearRangeValid(prec, quad, [minA, maxA], [minB, maxB], searchStep, result))
 				return true;
 		}
 
     	return false;
+    };
+
+    /**
+     * @param {tcuTexLookupVerifier.LookupPrecision} prec
+     * @return {number}
+     */
+    tcuTexLookupVerifier.computeBilinearSearchStepForUnorm = function(prec) {
+    	assertMsgOptions(deMath.boolAll(deMath.greaterThan(prec.colorThreshold, [0.0, 0.0, 0.0, 0.0])));
+
+    	/** @type {Array<number> */ var stepCount = 1.0 / prec.colorThreshold;
+    	/** @type {Array<number> */ var minStep = 1.0 / (stepCount + 1.0);
+    	/** @type {number} */ var step = tcuTexLookupVerifier.minComp(minStep);
+
+    	return step;
+    };
+
+    /**
+     * @param {tcuTexLookupVerifier.LookupPrecision} prec
+     * @return {step}
+     */
+    tcuTexLookupVerifier.computeBilinearSearchStepForSnorm = function(prec) {
+    	assertMsgOptions(deMath.boolAll(deMath.greaterThan(prec.colorThreshold, [0.0, 0.0, 0.0, 0.0])));
+
+    	/** @type {Array<number> */ var stepCount = 2.0 / prec.colorThreshold;
+    	/** @type {Array<number> */ var minStep = 1.0 / (stepCount + 1.0);
+    	/** @type {number} */ var step = tcuTexLookupVerifier.minComp(minStep);
+
+    	return step;
+    };
+
+    /**
+     * @param  {Array<number>} vec
+     * @return {number}
+     */
+    tcuTexLookupVerifier.minComp = function(vec) {
+    	/** @type {number} */ minVal = vec[0];
+    	for (var ndx = 1; ndx < Size; ndx++)
+    		minVal = Math.min(minVal, vec[ndx]);
+    	return minVal;
+    };
+
+    /**
+     * @param  {Array<number>} vec
+     * @return {number}
+     */
+    tcuTexLookupVerifier.maxComp = function(vec) {
+    	/** @type {number} */ maxVal = vec[0];
+    	for (var ndx = 1; ndx < Size; ndx++)
+    		maxVal = Math.max(maxVal, vec[ndx]);
+    	return maxVal;
     };
 
     /*
@@ -229,9 +316,9 @@ goog.scope(function() {
      * @param {Array<number>} result
      * @return {boolean}
      */
-    tcuTexLookupVerifier.isNearestSampleResultValid_CoordAsVec2AndInt = function() {
-        /** @type {Array<Number>} */ var uBounds = computeNonNormalizedCoordBounds(sampler.normalizedCoords, level.getWidth(),	coord[0], prec.coordBits[0], prec.uvwBits[0]);
-        /** @type {Array<Number>} */ var vBounds = computeNonNormalizedCoordBounds(sampler.normalizedCoords, level.getHeight(),	coord[1], prec.coordBits[1], prec.uvwBits[1]);
+    tcuTexLookupVerifier.isNearestSampleResultValid_CoordAsVec2AndInt = function(level, sampler, prec, coord, coordZ, result) {
+        /** @type {Array<Number>} */ var uBounds = tcuTexVerifierUtil.computeNonNormalizedCoordBounds(sampler.normalizedCoords, level.getWidth(),	coord[0], prec.coordBits[0], prec.uvwBits[0]);
+        /** @type {Array<Number>} */ var vBounds = tcuTexVerifierUtil.computeNonNormalizedCoordBounds(sampler.normalizedCoords, level.getHeight(),	coord[1], prec.coordBits[1], prec.uvwBits[1]);
 
         // Integer coordinates - without wrap mode
         /** @type {number} */ var minI = Math.floor(uBounds[0]);

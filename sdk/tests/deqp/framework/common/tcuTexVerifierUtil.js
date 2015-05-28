@@ -37,6 +37,25 @@ goog.scope(function() {
     		res[ndx] = tcuTexVerifierUtil.computeFixedPointErrorNumber(numAccurateBits[ndx]);
     	return res;
     };
+    /**
+     *
+     * @param {boolean} normalizedCoords
+     * @param {number} dim
+     * @param {number} coord
+     * @param {number} coordBits
+     * @param {number} uvBits
+     * @return {Array<number>}
+     */
+    tcuTexVerifierUtil.computeNonNormalizedCoordBounds = function(normalizedCoords, dim, coord, coordBits, uvBits) {
+        /** @type {number} */ var coordErr = tcuTexVerifierUtil.computeFloatingPointError(coord, coordBits);
+        /** @type {number} */ var minN = coord - coordErr;
+        /** @type {number} */ var maxN = coord + coordErr;
+        /** @type {number} */ var minA = normalizedCoords ? minN * dim : minN;
+        /** @type {number} */ var maxA = normalizedCoords ? maxN * dim : maxN;
+        /** @type {number} */ var minC = minA - tcuTexVerifierUtil.computeFixedPointError(uvBits);
+        /** @type {number} */ var maxC = maxA + tcuTexVerifierUtil.computeFixedPointError(uvBits);
+        return [minC, maxC];
+    };
 
     /**
      * @param {tcuTexture.WrapMode} mode
@@ -68,4 +87,49 @@ goog.scope(function() {
         /** @type {tcuFloat.deFloat} */ var v2 = new tcuFloat.deFloat();
         return v1.construct(1, exp, 1 << 23 | mask).getValue() - v2.construct(1, exp, 1 << 23).getValue();
     };
+
+    /**
+     * @param  {tcuTexture.WrapMode} mode
+     * @param  {number} c
+     * @param  {number} size
+     * @return {number}
+     */
+    tcuTexVerifierUtil.wrap = function(mode, c, size) {
+    	switch (mode) {
+    		// \note CL and GL modes are handled identically here, as verification process accounts for
+    		//		 accuracy differences caused by different methods (wrapping vs. denormalizing first).
+    		case tcuTexture.WrapMode.CLAMP_TO_EDGE:
+    			return deMath.clamp(c, 0, size - 1);
+
+    		case tcuTexture.WrapMode.REPEAT_GL:
+    		case tcuTexture.WrapMode.REPEAT_CL:
+    			return tcuTexVerifierUtil.imod(c, size);
+
+    		case tcuTexture.WrapMode.MIRRORED_REPEAT_GL:
+    		case tcuTexture.WrapMode.MIRRORED_REPEAT_CL:
+    			return (size - 1) - tcuTexVerifierUtil.mirror(tcuTexVerifierUtil.imod(c, 2 * size) - size);
+
+    		default:
+    			throw new Error("Wrap mode not supported.");
+    	}
+    };
+
+    /**
+     * @param {number} a
+     * @param {number} b
+     * @return {number}
+     */
+    tcuTexVerifierUtil.imod = function(a, b) {
+    	var m = a % b;
+    	return m < 0 ? m + b : m;
+    };
+
+    /**
+     * @param {number} a
+     * @return {number}
+     */
+    tcuTexVerifierUtil.mirror = function (a) {
+    	return a >= 0.0 ? a : -(1 + a);
+    };
+
 });
