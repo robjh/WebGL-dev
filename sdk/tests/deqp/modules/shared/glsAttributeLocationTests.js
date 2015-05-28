@@ -1151,6 +1151,7 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 
 		//this.m_testCtx.getLog() << TestLog::Message << 'gl.MAX_VERTEX_ATTRIBS: ' << maxAttributes << TestLog::EndMessage;
 
+		/** @type{number} */ var loc;
 		for (loc = maxAttributes - arrayElementCount * this.m_type.getLocationSize(); loc >= 0; loc -= this.m_type.getLocationSize() * arrayElementCount) {
 			attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_' + ndx, glsAttributeLocationTests.LocationEnum.UNDEF, new glsAttributeLocationTests.Cond('A', true)));
 			bindings.push(new glsAttributeLocationTests.Bind('a_' + ndx, loc));
@@ -1196,6 +1197,7 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 
 		//this.m_testCtx.getLog() << TestLog::Message << 'gl.MAX_VERTEX_ATTRIBS: ' << maxAttributes << TestLog::EndMessage;
 
+		/** @type{number} */ var loc;
 		for (loc = maxAttributes - arrayElementCount * this.m_type.getLocationSize(); loc >= 0; loc -= this.m_type.getLocationSize() * arrayElementCount) {
 			attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_' + ndx, glsAttributeLocationTests.LocationEnum.UNDEF, new glsAttributeLocationTests.Cond('A')));
 			bindings.push(new glsAttributeLocationTests.Bind('a_' + (ndx), loc));
@@ -1243,7 +1245,8 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 
 		attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_1', glsAttributeLocationTests.LocationEnum.UNDEF, glsAttributeLocationTests.ConstCond.ALWAYS, this.m_arraySize));
 
-		ndx = 2;
+		/** @type{number} */ var ndx = 2;
+		/** @type{number} */ var loc;
 		for (loc = 1 + this.m_type.getLocationSize() * arrayElementCount; loc < maxAttributes; loc++) {
 			attributes.push(new glsAttributeLocationTests.Attribute(vec4, 'a_' + ndx));
 			bindings.push(new glsAttributeLocationTests.Bind('a_' + ndx, loc));
@@ -1435,6 +1438,7 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 
 		//this.m_testCtx.getLog() << TestLog::Message << "gl.MAX_VERTEX_ATTRIBS: " << maxAttributes << TestLog::EndMessage;
 
+		/** @type{number} */ var loc;
 		for (loc = maxAttributes - (arrayElementCount * this.m_type.getLocationSize()); loc >= 0; loc -= (arrayElementCount * this.m_type.getLocationSize())) {
 			attributes.push(Attribute(this.m_type, 'a_' + ndx, loc, glsAttributeLocationTests.ConstCond.ALWAYS, this.m_arraySize));
 			ndx++;
@@ -1472,13 +1476,14 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 		/** @type{Array<glsAttributeLocationTests.Attribute>} */ var attributes;
 		/** @type{number} */ var ndx;
 
-		attributes.push(glsAttributeLocationTests.Attribute(vec4, 'a_0', 0));
+		attributes.push(new glsAttributeLocationTests.Attribute(vec4, 'a_0', 0));
 
-		attributes.push(glsAttributeLocationTests.Attribute(this.m_type, 'a_1', glsAttributeLocationTests.LocationEnum.UNDEF, glsAttributeLocationTests.ConstCond.ALWAYS, this.m_arraySize));
+		attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_1', glsAttributeLocationTests.LocationEnum.UNDEF, glsAttributeLocationTests.ConstCond.ALWAYS, this.m_arraySize));
 
-		ndx = 2;
+		/** @type{number} */ var ndx = 2;
+		/** @type{number} */ var loc;
 		for (loc = 1 + this.m_type.getLocationSize() * arrayElementCount; loc < maxAttributes; loc++) {
-			attributes.push(glsAttributeLocationTests.Attribute(vec4, 'a_' + ndx, loc));
+			attributes.push(new glsAttributeLocationTests.Attribute(vec4, 'a_' + ndx, loc));
 			ndx++;
 		}
 
@@ -1549,6 +1554,7 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 
 		//this.m_testCtx.getLog() << TestLog::Message << 'gl.MAX_VERTEX_ATTRIBS: ' << maxAttributes << TestLog::EndMessage;
 
+		/** @type{number} */ var loc;
 		for (loc = maxAttributes - (arrayElementCount * this.m_type.getLocationSize()); loc >= 0; loc -= (arrayElementCount * this.m_type.getLocationSize()))
 		{
 			if ((ndx % 2) != 0)
@@ -1600,7 +1606,8 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 
 		attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_1', glsAttributeLocationTests.LocationEnum.UNDEF, glsAttributeLocationTests.ConstCond.ALWAYS, this.m_arraySize));
 
-		ndx = 2;
+		/** @type{number} */ var ndx = 2;
+		/** @type{number} */ var loc;
 		for (loc = 1 + this.m_type.getLocationSize() * arrayElementCount; loc < maxAttributes; loc++) {
 			if ((ndx % 2) != 0)
 				attributes.push(new glsAttributeLocationTests.Attribute(vec4, 'a_' + ndx, loc));
@@ -1686,7 +1693,8 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 
 		attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_1', glsAttributeLocationTests.LocationEnum.UNDEF, glsAttributeLocationTests.ConstCond.ALWAYS, this.m_arraySize));
 
-		ndx = 2;
+		/** @type{number} */ var ndx = 2;
+		/** @type{number} */ var loc;
 		for (loc = 1 + this.m_type.getLocationSize() * arrayElementCount; loc < maxAttributes; loc++)
 		{
 			attributes.push(Attribute(vec4, 'a_' + ndx));
@@ -1731,25 +1739,25 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 		/** @type{Array<glsAttributeLocationTests.Attribute>} */ var attributes = [];
 		/** @type{number} */ var ndx;
 
-		attributes.push(glsAttributeLocationTests.Attribute(vec4, 'a_0'));
-		preLinkBindings.push(glsAttributeLocationTests.Bind('a_0', 0));
+		attributes.push(new glsAttributeLocationTests.Attribute(vec4, 'a_0'));
+		preLinkBindings.push(new glsAttributeLocationTests.Bind('a_0', 0));
 
-		attributes.push(glsAttributeLocationTests.Attribute(this.m_type, 'a_1', glsAttributeLocationTests.LocationEnum.UNDEF, glsAttributeLocationTests.ConstCond.ALWAYS, this.m_arraySize));
+		attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_1', glsAttributeLocationTests.LocationEnum.UNDEF, glsAttributeLocationTests.ConstCond.ALWAYS, this.m_arraySize));
 
 		/** @type{number} */ var ndx = 2;
 		/** @type{number} */ var loc;
 		for (loc = 1 + this.m_type.getLocationSize() * arrayElementCount; loc < maxAttributes; loc++) {
 			if ((ndx % 2) != 0)
-				attributes.push(glsAttributeLocationTests.Attribute(vec4, 'a_' + ndx, loc));
+				attributes.push(new glsAttributeLocationTests.Attribute(vec4, 'a_' + ndx, loc));
 			else {
-				attributes.push(glsAttributeLocationTests.Attribute(vec4, 'a_' + ndx));
-				preLinkBindings.push(glsAttributeLocationTests.Bind('a_' + ndx, loc));
+				attributes.push(new glsAttributeLocationTests.Attribute(vec4, 'a_' + ndx));
+				preLinkBindings.push(new glsAttributeLocationTests.Bind('a_' + ndx, loc));
 
 			}
 			ndx++;
 		}
 
-		postLinkBindings.push(glsAttributeLocationTests.Bind('a_2', 1));
+		postLinkBindings.push(new glsAttributeLocationTests.Bind('a_2', 1));
 
 		glsAttributeLocationTests.runTest(attributes, noBindings, preLinkBindings, postLinkBindings, true);
 		return tcuTestCase.IterateResult.STOP;
@@ -1776,8 +1784,8 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 		/** @type{Array<glsAttributeLocationTests.Attribute>} */ var attributes = [];
 		/** @type{Array<glsAttributeLocationTests.Bind>} */ var	bindings = [];
 
-		attributes.push(glsAttributeLocationTests.Attribute(glsAttributeLocationTests.AttribType('vec4', 1, gl.FLOAT_VEC4), 'a_0', 1));
-		bindings.push(glsAttributeLocationTests.Bind('a_0', 3));
+		attributes.push(new glsAttributeLocationTests.Attribute(glsAttributeLocationTests.AttribType('vec4', 1, gl.FLOAT_VEC4), 'a_0', 1));
+		bindings.push(new glsAttributeLocationTests.Bind('a_0', 3));
 
 		glsAttributeLocationTests.runTest(attributes, bindings, noBindings, noBindings, false);
 		return tcuTestCase.IterateResult.STOP;
@@ -1804,8 +1812,8 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 		/** @type{Array<glsAttributeLocationTests.Attribute>} */ var attributes = [];
 		/** @type{Array<glsAttributeLocationTests.Bind>} */ var	bindings = [];
 
-		attributes.push(glsAttributeLocationTests.Attribute(glsAttributeLocationTests.AttribType('vec4', 1, gl.FLOAT_VEC4), 'a_0', 1));
-		bindings.push(glsAttributeLocationTests.Bind('a_0', 3));
+		attributes.push(new glsAttributeLocationTests.Attribute(glsAttributeLocationTests.AttribType('vec4', 1, gl.FLOAT_VEC4), 'a_0', 1));
+		bindings.push(new glsAttributeLocationTests.Bind('a_0', 3));
 
 		glsAttributeLocationTests.runTest(attributes, noBindings, bindings, noBindings, false);
 		return tcuTestCase.IterateResult.STOP;
@@ -1832,8 +1840,8 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 		/** @type{Array<glsAttributeLocationTests.Attribute>} */ var attributes = [];
 		/** @type{Array<glsAttributeLocationTests.Bind>} */ var	bindings = [];
 
-		attributes.push(glsAttributeLocationTests.Attribute(glsAttributeLocationTests.AttribType('vec4', 1, gl.FLOAT_VEC4), 'a_0', 1));
-		bindings.push(glsAttributeLocationTests.Bind('a_0', 3));
+		attributes.push(new glsAttributeLocationTests.Attribute(glsAttributeLocationTests.AttribType('vec4', 1, gl.FLOAT_VEC4), 'a_0', 1));
+		bindings.push(new glsAttributeLocationTests.Bind('a_0', 3));
 
 		glsAttributeLocationTests.runTest(attributes, noBindings, noBindings, bindings, false);
 		return tcuTestCase.IterateResult.STOP;
