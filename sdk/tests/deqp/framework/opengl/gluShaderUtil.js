@@ -43,7 +43,7 @@ gluShaderUtil.GLSLVersion = {
  * @return {boolean}
  */
 gluShaderUtil.isGLSLVersionSupported = function(ctx, version) {
-    version <= gluShaderUtil.getGLSLVersion(ctx);
+    return version <= gluShaderUtil.getGLSLVersion(ctx);
 };
 
 /**
