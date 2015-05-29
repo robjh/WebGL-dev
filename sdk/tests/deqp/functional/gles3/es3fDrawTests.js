@@ -133,6 +133,8 @@ goog.scope(function() {
         spec.indexMax                = 0;
         spec.instanceCount            = 1;
 
+        spec.attribs.push(new glsDrawTests.DrawTestSpec.AttributeSpec());
+
         spec.attribs[0].inputType                = glsDrawTests.DrawTestSpec.InputType.FLOAT;
         spec.attribs[0].outputType                = glsDrawTests.DrawTestSpec.OutputType.VEC2;
         spec.attribs[0].storage                    = glsDrawTests.DrawTestSpec.Storage.BUFFER;
@@ -143,6 +145,8 @@ goog.scope(function() {
         spec.attribs[0].normalize                = false;
         spec.attribs[0].instanceDivisor            = 0;
         spec.attribs[0].useDefaultAttribute        = false;
+
+        spec.attribs.push(new glsDrawTests.DrawTestSpec.AttributeSpec());
 
         spec.attribs[1].inputType                = glsDrawTests.DrawTestSpec.InputType.FLOAT;
         spec.attribs[1].outputType                = glsDrawTests.DrawTestSpec.OutputType.VEC2;

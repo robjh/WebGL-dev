@@ -308,7 +308,12 @@ goog.scope(function() {
      */
     glsDrawTests.getMethodInfo = function(method) {
         /** @type {Array<glsDrawTests.MethodInfo>} */ var infos = [
-            //indexed instanced ranged first{indexed: false, instanced: false, ranged: false, first: true}, //!< DRAWMETHOD_DRAWARRAYS,{indexed: false, instanced: true, ranged: false, first: true}, //!< DRAWMETHOD_DRAWARRAYS_INSTANCED,{indexed: true, instanced: false, ranged: false, first: false}, //!< DRAWMETHOD_DRAWELEMENTS,{indexed: true, instanced: false, ranged: true, first: false}, //!< DRAWMETHOD_DRAWELEMENTS_RANGED,{indexed: true, instanced: true, ranged: false, first: false} //!< DRAWMETHOD_DRAWELEMENTS_INSTANCED
+            //indexed instanced ranged first
+            {indexed: false, instanced: false, ranged: false, first: true}, //!< DRAWMETHOD_DRAWARRAYS,
+            {indexed: false, instanced: true, ranged: false, first: true}, //!< DRAWMETHOD_DRAWARRAYS_INSTANCED,
+            {indexed: true, instanced: false, ranged: false, first: false}, //!< DRAWMETHOD_DRAWELEMENTS,
+            {indexed: true, instanced: false, ranged: true, first: false}, //!< DRAWMETHOD_DRAWELEMENTS_RANGED,
+            {indexed: true, instanced: true, ranged: false, first: false} //!< DRAWMETHOD_DRAWELEMENTS_INSTANCED
         ];
 
         assertMsgOptions(infos.length == Object.keys(glsDrawTests.DrawTestSpec.DrawMethod).length,
@@ -1141,7 +1146,7 @@ goog.scope(function() {
         vertexShaderTmpl +=
             'uniform highp float u_coordScale;\n' +
             'uniform highp float u_colorScale;\n' +
-            params['VTX_OUT'] + params['COL_PRECISION'] + 'vec4 v_color;\n' +
+            params['VTX_OUT'] + ' ' + params['COL_PRECISION'] + ' vec4 v_color;\n' +
             'void main(void)\n' +
             '{\n' +
             '\tgl_PointSize = 1.0;\n' +
@@ -1645,9 +1650,9 @@ goog.scope(function() {
     glsDrawTests.AttributePack = function(drawContext, screenSize, useVao, logEnabled) {
         /** @type {sglrReferenceContext.ReferenceContext | sglrGLContext.GLContext} */ this.m_ctx = drawContext;
 
-        /** @type {Array<glsDrawTests.AttributeArray>} */ this.m_arrays;
+        /** @type {Array<glsDrawTests.AttributeArray>} */ this.m_arrays = [];
         /** @type {sglrShaderProgram.ShaderProgram} */ this.m_program;
-        /** @type {tcuSurface.Surface} */ this.m_screen = null;
+        /** @type {tcuSurface.Surface} */ this.m_screen = new tcuSurface.Surface(screenSize[0], screenSize[1]);
         /** @type {boolean} */ this.m_useVao = useVao;
         /** @type {boolean} */ this.m_logEnabled = logEnabled;
         /** @type {WebGLProgram | sglrShaderProgram.ShaderProgram | null} */ this.m_programID = null;
@@ -1778,7 +1783,7 @@ goog.scope(function() {
             this.m_ctx.bindVertexArray(null);
 
         this.m_ctx.useProgram(null);
-        this.m_ctx.readPixels(this.m_screen, 0, 0, this.m_screen.getWidth(), this.m_screen.getHeight());
+        this.m_ctx.readPixels(0, 0, this.m_screen.getWidth(), this.m_screen.getHeight(), gl.RGBA, gl.UNSIGNED_BYTE, this.m_screen.getAccess().getDataPtr());
     };
 
     // DrawTestSpec
@@ -2527,7 +2532,7 @@ goog.scope(function() {
     glsDrawTests.DrawTestSpec.AttributeSpec = function() {
         /** @type {?glsDrawTests.DrawTestSpec.InputType} */ this.inputType = null;
         /** @type {?glsDrawTests.DrawTestSpec.OutputType} */ this.outputType = null;
-        /** @type {?glsDrawTests.DrawTestSpec.Storage} */ this.storage = null;
+        /** @type {?glsDrawTests.DrawTestSpec.Storage} */ this.storage = glsDrawTests.DrawTestSpec.Storage.BUFFER; //Always BUFFER in WebGL up to 2
         /** @type {?glsDrawTests.DrawTestSpec.Usage} */ this.usage = null;
         /** @type {number} */ this.componentCount = 0;
         /** @type {number} */ this.offset = 0;
@@ -2584,7 +2589,7 @@ goog.scope(function() {
 
         spec.inputType = inputType;
         spec.outputType = outputType;
-        spec.storage = null;
+        spec.storage = glsDrawTests.DrawTestSpec.Storage.BUFFER; //Always BUFFER in WebGL up to 2
         spec.usage = null;
         spec.componentCount = componentCount;
         spec.offset = 0;
@@ -2749,8 +2754,8 @@ goog.scope(function() {
             this.addIteration(spec);
     };
 
-    glsDrawTests.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
-    glsDrawTests.prototype.constructor = glsDrawTests.DrawTest;
+    glsDrawTests.DrawTest.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
+    glsDrawTests.DrawTest.prototype.constructor = glsDrawTests.DrawTest;
 
     /**
      * @param {glsDrawTests.DrawTestSpec} spec
@@ -2788,7 +2793,7 @@ goog.scope(function() {
         var renderTargetWidth = Math.min(glsDrawTests.MAX_RENDER_TARGET_SIZE, gl.canvas.width);
         var renderTargetHeight = Math.min(glsDrawTests.MAX_RENDER_TARGET_SIZE, gl.canvas.height);
         /** @type {sglrReferenceContext.ReferenceContextLimits} */ var limits = new sglrReferenceContext.ReferenceContextLimits(gl);
-        /** @type {boolean} */ var useVao = false;
+        /** @type {boolean} */ var useVao = true;
 
         this.m_glesContext = new sglrGLContext.GLContext(gl);
 
@@ -2833,7 +2838,7 @@ goog.scope(function() {
             /** @type {number} */ var coordScale = this.getCoordScale(spec);
             /** @type {number} */ var colorScale = this.getColorScale(spec);
 
-            /** @type {Array<number>} */ var nullAttribValue;
+            /** @type {Array<number>} */ var nullAttribValue = [];
 
             // Log info
             bufferedLogToConsole(spec.getMultilineDesc());
@@ -2851,9 +2856,9 @@ goog.scope(function() {
                     var seed = 10 * attribSpec.hash() + 100 * spec.hash() + attribNdx;
                     /** @type {Array<number>} */ var attribValue = glsDrawTests.RandomArrayGenerator.generateAttributeValue(seed, attribSpec.inputType); //TODO: Implement
 
-                    //TODO: We're not using user storage. Remove this case?
-                    this.m_glArrayPack.newArray(glsDrawTests.DrawTestSpec.Storage.USER);
-                    this.m_rrArrayPack.newArray(glsDrawTests.DrawTestSpec.Storage.USER);
+                    // changed USER for BUFFER in JS version
+                    this.m_glArrayPack.newArray(glsDrawTests.DrawTestSpec.Storage.BUFFER);
+                    this.m_rrArrayPack.newArray(glsDrawTests.DrawTestSpec.Storage.BUFFER);
 
                     this.m_glArrayPack.getArray(attribNdx).setupArray(false, 0, attribSpec.componentCount, attribSpec.inputType, attribSpec.outputType, false, 0, 0, attribValue, isPositionAttr);
                     this.m_rrArrayPack.getArray(attribNdx).setupArray(false, 0, attribSpec.componentCount, attribSpec.inputType, attribSpec.outputType, false, 0, 0, attribValue, isPositionAttr);
@@ -2901,8 +2906,7 @@ goog.scope(function() {
                     /** @type {number} */ var indexElementSize = glsDrawTests.DrawTestSpec.indexTypeSize(spec.indexType);
                     /** @type {number} */ var indexArraySize = spec.indexPointerOffset + indexElementSize * elementCount;
                     /** @type {goog.TypedArray} */ var indexArray = glsDrawTests.RandomArrayGenerator.generateIndices(seed, elementCount, spec.indexType, spec.indexPointerOffset, indexMin, indexMax);
-                    /** @type {goog.TypedArray} */ var indexPointerBase = (spec.indexStorage == glsDrawTests.DrawTestSpec.Storage.USER) ? (indexArray) : (null);
-                    /** @type {goog.TypedArray} */ var indexPointer = indexPointerBase.subarray(spec.indexPointerOffset);
+                    /** @type {goog.TypedArray} */ var indexPointer = indexArray.subarray(spec.indexPointerOffset);
 
                     /** @type {glsDrawTests.AttributeArray}*/ var glArray = new glsDrawTests.AttributeArray(spec.indexStorage, this.m_glesContext);
                     /** @type {glsDrawTests.AttributeArray}*/ var rrArray = new glsDrawTests.AttributeArray(spec.indexStorage, this.m_refContext);
