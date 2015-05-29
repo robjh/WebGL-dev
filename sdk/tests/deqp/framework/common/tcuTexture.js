@@ -2613,7 +2613,7 @@ tcuTexture.RGBA8View = function(src) {
     this.stride = src.getRowPitch();
     this.width = src.getWidth();
     this.height = src.getHeight();
-    this.pixelSize = src.getPixelSize();
+    this.pixelSize = src.getFormat().getPixelSize();
 };
 
 /**
