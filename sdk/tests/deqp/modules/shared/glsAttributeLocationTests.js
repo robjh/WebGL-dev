@@ -26,6 +26,7 @@ goog.provide('modules.shared.glsAttributeLocationTests');
 goog.require('framework.common.tcuTestCase');
 goog.require('modules.shared.glsFboUtil');
 goog.require('framework.opengl.gluShaderUtil');
+goog.require('framework.common.tcuStringTemplate');
 
 goog.scope(function() {
 
@@ -33,6 +34,7 @@ goog.scope(function() {
 	var tcuTestCase = framework.common.tcuTestCase;
 	var glsFboUtil = modules.shared.glsFboUtil;
 	var gluShaderUtil = framework.opengl.gluShaderUtil;
+	var tcuStringTemplate = framework.common.tcuStringTemplate;
 
 	var DE_ASSERT = function(x) {
         if (!x)
@@ -145,8 +147,8 @@ goog.scope(function() {
 		/** @type{Array<string>} */ var conditions = [];
 
 		for (i = 0; i < attributes.length; i++)	{
-			if (attributes[i].getCondition() != glsAttributeLocationTests.ConstCond.NEVER
-				&& attributes[i].getCondition() != glsAttributeLocationTests.ConstCond.ALWAYS)
+			if (attributes[i].getCondition().notEquals(glsAttributeLocationTests.NewCondWithEnum(glsAttributeLocationTests.ConstCond.NEVER))
+				&& attributes[i].getCondition().notEquals(glsAttributeLocationTests.NewCondWithEnum(glsAttributeLocationTests.ConstCond.ALWAYS)))
 			conditions.push(attributes[i].getCondition().getName());
 		}
 
@@ -198,7 +200,7 @@ goog.scope(function() {
 		/** @type{number} */ var i;
 
 		for (i = 0; i < attributes.length; i++)	{
-			if (attributes[i].getCondition() == glsAttributeLocationTests.ConstCond.NEVER) {
+			if (attributes[i].getCondition().equals(glsAttributeLocationTests.NewCondWithEnum(glsAttributeLocationTests.ConstCond.NEVER))) {
 				src += '\tif (0 != 0)\n';
 				src += '\t{\n';
 
@@ -210,7 +212,7 @@ goog.scope(function() {
 				}
 
 				src += '\t}\n';
-			} else if (attributes[i].getCondition() == glsAttributeLocationTests.ConstCond.ALWAYS) {
+			} else if (attributes[i].getCondition().equals(glsAttributeLocationTests.NewCondWithEnum(glsAttributeLocationTests.ConstCond.ALWAYS))) {
 				if (attributes[i].getArraySize() == glsAttributeLocationTests.ArrayEnum.NOT)
 					src += ('\tcolor += ' + glsAttributeLocationTests.generateToVec4Expression(attributes[i]) + ';\n');
 				else {
@@ -260,7 +262,7 @@ goog.scope(function() {
 
 		src += '\n';
 		src += '\tv_color = color;\n';
-		src += '\tgl.Position = color;\n';
+		src += '\tgl_Position = color;\n';
 		src += '}\n';
 
 		return src;
@@ -296,7 +298,7 @@ goog.scope(function() {
 		else
             throw new Error('Invalid GL version');
 
-		return tcuStringTemplate.specialize(parameters);
+		return tcuStringTemplate.specialize(vertexShaderTemplate, parameters);
 	}
 
 	/**
@@ -330,12 +332,12 @@ goog.scope(function() {
 			parameters['VTX_OUTPUT']				= 'varying';
 			parameters['VTX_INPUT']					= 'attribute';
 			parameters['FRAG_INPUT']				= 'varying';
-			parameters['FRAG_OUTPUT_VAR']			= 'gl.FragColor';
+			parameters['FRAG_OUTPUT_VAR']			= 'gl_FragColor';
 			parameters['FRAG_OUTPUT_DECLARATION']	= '';
 		} else
 			throw new Error('Invalid GL version');
 
-		return tcuStringTemplate.specialize(parameters);
+		return tcuStringTemplate.specialize(fragmentShaderSource, parameters);
 	}
 
 /*
@@ -351,7 +353,7 @@ string getShaderInfoLog (const glw::Functions& gl, deUint32 shader)
 
 	infoLog.resize(length, '\0');
 
-	gl.getShaderInfoLog(shader, (glw::GLsizei)infoLog.length(), DE_NULL, &(infoLog[0]));
+	gl.getShaderInfoLog(shader, (glw::GLsizei)infoLog.length(), null, &(infoLog[0]));
 	GLU_EXPECT_NO_ERROR(gl.getError(), "glGetShaderInfoLog()");
 
 	return infoLog;
@@ -377,7 +379,7 @@ string getProgramInfoLog (const glw::Functions& gl, deUint32 program)
 
 	infoLog.resize(length, '\0');
 
-	gl.getProgramInfoLog(program, (glw::GLsizei)infoLog.length(), DE_NULL, &(infoLog[0]));
+	gl.getProgramInfoLog(program, (glw::GLsizei)infoLog.length(), null, &(infoLog[0]));
 	GLU_EXPECT_NO_ERROR(gl.getError(), "glGetProgramInfoLog()");
 
 	return infoLog;
@@ -461,112 +463,114 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 	}
 }
 
-bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 program, const vector<Attribute>& attributes)
-{
-	deInt32					activeAttribCount = 0;
-	set<string>				activeAttributes;
-	bool					isOk = true;
+	*/
 
-	gl.getProgramiv(program, gl.ACTIVE_ATTRIBUTES, &activeAttribCount);
-	GLU_EXPECT_NO_ERROR(gl.getError(), "glGetProgramiv(program, gl.ACTIVE_ATTRIBUTES, &activeAttribCount)");
+	/**
+	 * @param {glsAttributeLocationTests.AttribType} gl
+	 * @param {number} program
+	 * @param {Array<glsAttributeLocationTests.Attribute>} attributes
+	 * @return {boolean}
+	 */
+	glsAttributeLocationTests.checkActiveAttribQuery = function(program, attributes) {
+		/** @type {number} */ var activeAttribCount = 0;
+		/** @type {Array<string>} */ var activeAttributes = [];
+		/** @type {boolean} */ var isOk = true;
+		/** @type {number} */ var activeAttribNdx = true;
 
-	for (int activeAttribNdx = 0; activeAttribNdx < activeAttribCount; activeAttribNdx++)
-	{
-		char			name[128];
-		const size_t	maxNameSize = DE_LENGTH_OF_ARRAY(name) - 1;
-		deInt32			length = 0;
-		deInt32			size = 0;
-		deUint32		type = 0;
+		activeAttribCount = gl.getProgramParameter(program, gl.ACTIVE_ATTRIBUTES);
 
-		std::memset(name, 0, sizeof(name));
+		/** @type {string} */ var name;
+		/** @type {number} */ var maxNameSize;
+		/** @type {number} */ var length;
+		/** @type {number} */ var size;
+		/** @type {number} */ var type;
 
-		gl.getActiveAttrib(program, activeAttribNdx, maxNameSize, &length, &size, &type, name);
-		GLU_EXPECT_NO_ERROR(gl.getError(), "glGetActiveAttrib()");
+		/** @type {number} */ var attribNdx;
+		/** @type {glsAttributeLocationTests.Attribute} */ var attrib;
+		/** @type {boolean} */ var isActive;
+		/** @type {WebGLActiveInfo} */ var activeInfo;
 
-		log << TestLog::Message
-			<< "glGetActiveAttrib(program"
-			<< ", index=" << activeAttribNdx
-			<< ", bufSize=" << maxNameSize
-			<< ", length=" << length
-			<< ", size=" << size
-			<< ", type=" << glu::getShaderVarTypeStr(type)
-			<< ", name='" << name << "')" << TestLog::EndMessage;
+		for (activeAttribNdx = 0; activeAttribNdx < activeAttribCount; activeAttribNdx++)	{
 
-		{
-			bool found = false;
+			maxNameSize = 127;
+			length = 0;
+			size = 0;
+			type = 0;
 
-			for (int attribNdx = 0; attribNdx < (int)attributes.size(); attribNdx++)
+			// std::memset(name, 0, sizeof(name));
+
+			activeInfo = gl.getActiveAttrib(program, activeAttribNdx);
+			// GLU_EXPECT_NO_ERROR(gl.getError(), "glGetActiveAttrib()");
+
+			// log << TestLog::Message
+			// 	<< "glGetActiveAttrib(program"
+			// 	<< ", index=" << activeAttribNdx
+			// 	<< ", bufSize=" << maxNameSize
+			// 	<< ", length=" << length
+			// 	<< ", size=" << size
+			// 	<< ", type=" << glu::getShaderVarTypeStr(type)
+			// 	<< ", name='" << name << "')" << TestLog::EndMessage;
+
 			{
-				const Attribute& attrib = attributes[attribNdx];
+				/** @type{boolean} */ var found = false;
 
-				if (attrib.getName() == name)
-				{
-					if (type != attrib.getType().getGLTypeEnum())
-					{
-						log << TestLog::Message
-							<< "Error: Wrong type " << glu::getShaderVarTypeStr(type)
-							<< " expected " << glu::getShaderVarTypeStr(attrib.getType().getGLTypeEnum())
-							<< TestLog::EndMessage;
+				for (attribNdx = 0; attribNdx < attributes.length; attribNdx++)	{
+					attrib = attributes[attribNdx];
 
-						isOk = false;
-					}
+					if (attrib.getName() == name)	{
+						if (activeInfo.type != attrib.getType().getGLTypeEnum())	{
+							// log << TestLog::Message
+							// 	<< "Error: Wrong type " << glu::getShaderVarTypeStr(type)
+							// 	<< " expected " << glu::getShaderVarTypeStr(attrib.getType().getGLTypeEnum())
+							// 	<< TestLog::EndMessage;
 
-					if (attrib.getArraySize() == glsAttributeLocationTests.ArrayEnum.NOT)
-					{
-						if (size != 1)
-						{
-							log << TestLog::Message << "Error: Wrong size " << size << " expected " << 1 << TestLog::EndMessage;
 							isOk = false;
 						}
-					}
-					else
-					{
-						if (size != attrib.getArraySize())
-						{
-							log << TestLog::Message << "Error: Wrong size " << size << " expected " << attrib.getArraySize() << TestLog::EndMessage;
-							isOk = false;
-						}
-					}
 
-					found = true;
-					break;
+						if (attrib.getArraySize() == glsAttributeLocationTests.ArrayEnum.NOT)	{
+							if (activeInfo.size != 1) {
+								// log << TestLog::Message << "Error: Wrong size " << size << " expected " << 1 << TestLog::EndMessage;
+								isOk = false;
+							}
+						} else {
+							if (activeInfo.size != attrib.getArraySize()) {
+								// log << TestLog::Message << "Error: Wrong size " << size << " expected " << attrib.getArraySize() << TestLog::EndMessage;
+								isOk = false;
+							}
+						}
+
+						found = true;
+						break;
+					}
+				}
+
+				if (!found)	{
+					// log << TestLog::Message << "Error: Unknown attribute '" << name << "' returned by glGetActiveAttrib()." << TestLog::EndMessage;
+					isOk = false;
 				}
 			}
 
-			if (!found)
-			{
-				log << TestLog::Message << "Error: Unknown attribute '" << name << "' returned by glGetActiveAttrib()." << TestLog::EndMessage;
-				isOk = false;
+			activeAttributes.push(name);
+		}
+
+		for (attribNdx = 0; attribNdx < attributes.length; attribNdx++)	{
+			attrib = attributes[attribNdx];
+			isActive = attrib.getCondition().notEquals(glsAttributeLocationTests.NewCondWithEnum(glsAttributeLocationTests.ConstCond.NEVER));
+
+			if (isActive) {
+				if (activeAttributes[attrib.getName()] === undefined) {
+					// log << TestLog::Message << "Error: Active attribute " << attrib.getName() << " wasn't returned by glGetActiveAttrib()." << TestLog::EndMessage;
+					isOk = false;
+				}
 			}
+			// else {
+				// if (activeAttributes.find(attrib.getName()) != activeAttributes.end())
+					// log << TestLog::Message << "Note: Inactive attribute " << attrib.getName() << " was returned by glGetActiveAttrib()." << TestLog::EndMessage;
+			// }
 		}
 
-		activeAttributes.insert(name);
-	}
-
-	for (int attribNdx = 0; attribNdx < (int)attributes.size(); attribNdx++)
-	{
-		const Attribute&	attrib		= attributes[attribNdx];
-		const bool			isActive	= attrib.getCondition() != glsAttributeLocationTests.ConstCond.NEVER;
-
-		if (isActive)
-		{
-			if (activeAttributes.find(attrib.getName()) == activeAttributes.end())
-			{
-				log << TestLog::Message << "Error: Active attribute " << attrib.getName() << " wasn't returned by glGetActiveAttrib()." << TestLog::EndMessage;
-				isOk = false;
-			}
-		}
-		else
-		{
-			if (activeAttributes.find(attrib.getName()) != activeAttributes.end())
-				log << TestLog::Message << "Note: Inactive attribute " << attrib.getName() << " was returned by glGetActiveAttrib()." << TestLog::EndMessage;
-		}
-	}
-
-	return isOk;
-}
-
-	*/
+		return isOk;
+	};
 
 	/**
 	 * @param {glsAttributeLocationTests.AttribType} gl
@@ -597,7 +601,8 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 			// if (attrib.getCondition() != glsAttributeLocationTests.ConstCond.NEVER && expectedLocation != glsAttributeLocationTests.LocationEnum.UNDEF && expectedLocation != location)
 			// 	log << TestLog::Message << "\tError: Invalid attribute location." << TestLog::EndMessage;
 
-			isOk &= (attrib.getCondition() == glsAttributeLocationTests.ConstCond.NEVER || expectedLocation == glsAttributeLocationTests.LocationEnum.UNDEF || expectedLocation == location);
+			// &=
+			isOk = (attrib.getCondition().equals(glsAttributeLocationTests.NewCondWithEnum(glsAttributeLocationTests.ConstCond.NEVER)) || expectedLocation == glsAttributeLocationTests.LocationEnum.UNDEF || expectedLocation == location);
 		}
 
 		return isOk;
@@ -638,8 +643,8 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 
 			{
 
- 				gl.shaderSource(vertexShader, 1, vertexShaderSource, DE_NULL);
- 				gl.shaderSource(fragmentShader, 1, fragmentShaderSource, DE_NULL);
+ 				gl.shaderSource(vertexShader, vertexShaderSource);
+ 				gl.shaderSource(fragmentShader, fragmentShaderSource);
 
  				//GLU_EXPECT_NO_ERROR(gl.getError(), "glShaderSource()");
 			}
@@ -780,7 +785,7 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 	 * @return{boolean}
 	 */
 	glsAttributeLocationTests.Cond.prototype.equals = function(other) {
-		return (this.m_negate == other.m_negate && this.n_name == other.n_name);
+		return (this.m_negate == other.m_negate && this.m_name == other.m_name);
 	};
 
 	/**
@@ -1641,9 +1646,9 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 		/** @type{Array<glsAttributeLocationTests.Bind>} */ var noBindings = [];
 		/** @type{glsAttributeLocationTests.AttribType} */ var vec4 = new glsAttributeLocationTests.AttribType('vec4', 1, gl.FLOAT_VEC4);
 
-		/** @type{Array<glsAttributeLocationTests.Attribute>} */ var attributes;
-		/** @type{Array<glsAttributeLocationTests.Bind>} */ var	preLinkBindings;
-		/** @type{Array<glsAttributeLocationTests.Bind>} */ var	postLinkBindings;
+		/** @type{Array<glsAttributeLocationTests.Attribute>} */ var attributes = [];
+		/** @type{Array<glsAttributeLocationTests.Bind>} */ var	preLinkBindings = [];
+		/** @type{Array<glsAttributeLocationTests.Bind>} */ var	postLinkBindings = [];
 
 		attributes.push(new glsAttributeLocationTests.Attribute(vec4, 'a_0'));
 		attributes.push(new glsAttributeLocationTests.Attribute(vec4, 'a_1'));
@@ -1682,9 +1687,9 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 		/** @type{glsAttributeLocationTests.AttribType} */ var vec4 = new glsAttributeLocationTests.AttribType('vec4', 1, gl.FLOAT_VEC4);
 		/** @type{number} */ var arrayElementCount = (this.m_arraySize != glsAttributeLocationTests.ArrayEnum.NOT ? this.m_arraySize : 1);
 
-		/** @type{Array<glsAttributeLocationTests.Attribute>} */ var attributes;
-		/** @type{Array<glsAttributeLocationTests.Bind>} */ var	preLinkBindings;
-		/** @type{Array<glsAttributeLocationTests.Bind>} */ var	postLinkBindings;
+		/** @type{Array<glsAttributeLocationTests.Attribute>} */ var attributes = [];
+		/** @type{Array<glsAttributeLocationTests.Bind>} */ var	preLinkBindings = [];
+		/** @type{Array<glsAttributeLocationTests.Bind>} */ var	postLinkBindings = [];
 		/** @type{number} */ var ndx;
 
 		attributes.push(new glsAttributeLocationTests.Attribute(vec4, 'a_0'));
@@ -1696,13 +1701,13 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 		/** @type{number} */ var loc;
 		for (loc = 1 + this.m_type.getLocationSize() * arrayElementCount; loc < maxAttributes; loc++)
 		{
-			attributes.push(Attribute(vec4, 'a_' + ndx));
-			preLinkBindings.push(Bind('a_' + ndx, loc));
+			attributes.push(new glsAttributeLocationTests.Attribute(vec4, 'a_' + ndx));
+			preLinkBindings.push(new glsAttributeLocationTests.Bind('a_' + ndx, loc));
 
 			ndx++;
 		}
 
-		postLinkBindings.push(Bind('a_2', 1));
+		postLinkBindings.push(new glsAttributeLocationTests.Bind('a_2', 1));
 
 		glsAttributeLocationTests.runTest(attributes, noBindings, preLinkBindings, postLinkBindings, true);
 		return tcuTestCase.IterateResult.STOP;
@@ -1870,11 +1875,11 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 		/** @type{Array<glsAttributeLocationTests.Attribute>} */ var attributes = [];
 		/** @type{Array<glsAttributeLocationTests.Attribute>} */ var reattachAttributes = [];
 
-		attributes.push(Attribute(vec4, 'a_0', 2));
-		bindings.push(Bind('a_0', 1));
-		bindings.push(Bind('a_1', 1));
+		attributes.push(new glsAttributeLocationTests.Attribute(vec4, 'a_0', 2));
+		bindings.push(new glsAttributeLocationTests.Bind('a_0', 1));
+		bindings.push(new glsAttributeLocationTests.Bind('a_1', 1));
 
-		reattachAttributes.push(Attribute(vec2, 'a_1'));
+		reattachAttributes.push(new glsAttributeLocationTests.Attribute(vec2, 'a_1'));
 
 		glsAttributeLocationTests.runTest(attributes, noBindings, bindings, noBindings, false, true, reattachAttributes);
 		return tcuTestCase.IterateResult.STOP;
