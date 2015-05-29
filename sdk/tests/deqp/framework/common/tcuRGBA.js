@@ -240,6 +240,10 @@ var deMath = framework.delibs.debase.deMath;
         );
     };
 
+    tcuRGBA.RGBA.prototype.toString = function() {
+        return '[' + this.m_value[0] + ',' + this.m_value[1] + ',' +  this.m_value[2] + ',' +  this.m_value[3] + ']';
+    };
+
     // Color constants
     tcuRGBA.RGBA.red = tcuRGBA.newRGBAComponents(0xFF, 0, 0, 0xFF);
     tcuRGBA.RGBA.green = tcuRGBA.newRGBAComponents(0, 0xFF, 0, 0xFF);

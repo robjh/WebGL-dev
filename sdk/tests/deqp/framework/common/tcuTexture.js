@@ -22,12 +22,15 @@
 goog.provide('framework.common.tcuTexture');
 goog.require('framework.common.tcuFloat');
 goog.require('framework.delibs.debase.deMath');
+goog.require('framework.delibs.debase.deString');
+
 
 goog.scope(function() {
 
 var tcuTexture = framework.common.tcuTexture;
 var deMath = framework.delibs.debase.deMath;
 var tcuFloat = framework.common.tcuFloat;
+var deString = framework.delibs.debase.deString;
 
 var DE_ASSERT = function(x) {
     if (!x)
@@ -110,6 +113,11 @@ tcuTexture.TextureFormat = function(order, type) {
  */
 tcuTexture.TextureFormat.prototype.isEqual = function(format) {
     return this.order === format.order && this.type === format.type;
+};
+
+tcuTexture.TextureFormat.prototype.toString = function() {
+    return 'TextureFormat(' + deString.enumToString(tcuTexture.ChannelOrder, this.order) + ', ' +
+        deString.enumToString(tcuTexture.ChannelType, this.type) + ')';
 };
 
 /**
@@ -913,6 +921,22 @@ tcuTexture.ConstPixelBufferAccess = function(descriptor) {
             this.m_rgb8View = new tcuTexture.RGBA8View(this);
 
     }
+};
+
+tcuTexture.ConstPixelBufferAccess.prototype.toString = function() {
+    var str = 'BufferAccess(format: ' + this.m_format +
+        ', width: ' + this.m_width +
+        ', height: ' + this.m_height;
+    if (this.m_depth > 1)
+        str += ', depth: ' + this.m_depth;
+    if (this.m_rowPitch != this.m_width * this.m_format.getPixelSize())
+        str += ', row pitch: ' + this.m_rowPitch;
+    if (this.m_slicePitch != this.m_rowPitch * this.m_height)
+        str += ', slice pitch: ' + this.m_slicePitch;
+    if (this.m_offset > 0)
+        str += ', offset: ' + this.m_offset;
+    str += ')'
+    return str;
 };
 
 /** @return {number} */
