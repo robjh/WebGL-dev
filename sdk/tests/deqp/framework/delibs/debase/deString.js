@@ -72,6 +72,9 @@ var deMath = framework.delibs.debase.deMath;
 
     /**
      * @private
+     * @param {Object} enumType
+     * @param {?} value
+     * @return {string}
      */
     deString.getString = function(enumType, value) {    
         for (var p in enumType)
@@ -81,6 +84,11 @@ var deMath = framework.delibs.debase.deMath;
         return value.toString(10);     
     };
 
+    /**
+     * @param {Object} enumType
+     * @param {?} value
+     * @return {string}
+     */
     deString.enumToString = function(enumType, value) {    
         if (typeof deString.enumToString[enumType] === 'undefined')
             deString.enumToString[enumType] = {};

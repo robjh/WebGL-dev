@@ -112,8 +112,11 @@ tcuImageCompare.displayImages = function(result, reference, diff) {
 
     var contexts = tcuImageCompare.displayResultPane('console', w, h, reference != null);
     contexts[0].putImageData(createImage(contexts[0], result), 0, 0);
-    if (reference)
+    debug('Result image: ' + result);
+    if (reference) {
         contexts[1].putImageData(createImage(contexts[1], reference), 0, 0);
+        debug('Reference image: ' + reference);
+    }
     if (diff)
         contexts[2].putImageData(createImage(contexts[2], diff), 0, 0);
 };
@@ -474,7 +477,8 @@ tcuImageCompare.unitTest = function() {
     var dst = dstLevel.getAccess();
 
     debug('Src format: ' + src.getFormat());
-    debug('Destination: ' + dst)
+    debug('Destination: ' + dst);
+    debug(src);
 
     src.clear();
     dst.clear();
