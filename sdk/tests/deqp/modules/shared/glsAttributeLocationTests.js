@@ -101,17 +101,15 @@ goog.scope(function() {
 	}
 
 	/**
-	 * TODO
-	 * @param{*} renderCtx
+	 * @return {number}
 	 */
-	glsAttributeLocationTests.getMaxAttributeLocations = function(/* glu::RenderContext& */ renderCtx) {
-		// const glw::Functions& gl = renderCtx.getFunctions();
-		// /** @type{number} */ var maxAttribs;
+	glsAttributeLocationTests.getMaxAttributeLocations = function() {
+		/** @type{number} */ var maxAttribs;
 
-		// gl.getIntegerv(gl.MAX_VERTEX_ATTRIBS, &maxAttribs);
+		maxAttribs = gl.getParameter(gl.MAX_VERTEX_ATTRIBS);
 		// GLU_EXPECT_NO_ERROR(gl.getError(), "glGetIntegerv()");
 
-		// return maxAttribs;
+		return maxAttribs;
 	}
 
 	/**
@@ -1066,7 +1064,7 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 
 	glsAttributeLocationTests.BindMaxAttributesTest.prototype.iterate = function() {
 		/** @type{Array<glsAttributeLocationTests.Bind>} */ var noBindings = [];
-		/** @type{number} */ var maxAttributes = glsAttributeLocationTests.getMaxAttributeLocations(this.m_renderCtx);
+		/** @type{number} */ var maxAttributes = glsAttributeLocationTests.getMaxAttributeLocations();
 		/** @type{number} */ var arrayElementCount = (this.m_arraySize != glsAttributeLocationTests.ArrayEnum.NOT ? this.m_arraySize : 1);;
 
 		/** @type{Array<glsAttributeLocationTests.Attribute>} */	var attributes = [];
@@ -1142,7 +1140,7 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 
 	glsAttributeLocationTests.BindMaxAliasingAttributeTest.prototype.iterate = function() {
 		/** @type{Array<glsAttributeLocationTests.Bind>} */ var noBindings = [];
-		/** @type{number} */ var maxAttributes = glsAttributeLocationTests.getMaxAttributeLocations(this.m_renderCtx);
+		/** @type{number} */ var maxAttributes = glsAttributeLocationTests.getMaxAttributeLocations();
 		/** @type{number} */ var arrayElementCount = (this.m_arraySize != glsAttributeLocationTests.ArrayEnum.NOT ? this.m_arraySize : 1);;
 
 		/** @type{Array<glsAttributeLocationTests.Attribute>} */	var attributes = [];
@@ -1187,7 +1185,7 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 
 	glsAttributeLocationTests.BindInactiveAliasingAttributeTest.prototype.iterate = function() {
 		/** @type{Array<glsAttributeLocationTests.Bind>} */ var noBindings = [];
-		/** @type{number} */ var maxAttributes = glsAttributeLocationTests.getMaxAttributeLocations(this.m_renderCtx);
+		/** @type{number} */ var maxAttributes = glsAttributeLocationTests.getMaxAttributeLocations();
 		/** @type{glsAttributeLocationTests.AttribType} */ var vec4 = new glsAttributeLocationTests.AttribType('vec4', 1, gl.FLOAT_VEC4);
 		/** @type{number} */ var arrayElementCount = (this.m_arraySize != glsAttributeLocationTests.ArrayEnum.NOT ? this.m_arraySize : 1);;
 
@@ -1232,7 +1230,7 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 
 	glsAttributeLocationTests.BindHoleAttributeTest.prototype.iterate = function() {
 		/** @type{Array<glsAttributeLocationTests.Bind>} */ var noBindings = [];
-		/** @type{number} */ var maxAttributes = glsAttributeLocationTests.getMaxAttributeLocations(this.m_renderCtx);
+		/** @type{number} */ var maxAttributes = glsAttributeLocationTests.getMaxAttributeLocations();
 		/** @type{glsAttributeLocationTests.AttribType} */ var vec4 = new glsAttributeLocationTests.AttribType('vec4', 1, gl.FLOAT_VEC4);
 		/** @type{number} */ var arrayElementCount = (this.m_arraySize != glsAttributeLocationTests.ArrayEnum.NOT ? this.m_arraySize : 1);;
 
@@ -1275,7 +1273,7 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 
 	glsAttributeLocationTests.PreAttachBindAttributeTest.prototype.iterate = function() {
 		/** @type{Array<glsAttributeLocationTests.Bind>} */ var noBindings = [];
-		/** @type{number} */ var maxAttributes = glsAttributeLocationTests.getMaxAttributeLocations(this.m_renderCtx);
+		/** @type{number} */ var maxAttributes = glsAttributeLocationTests.getMaxAttributeLocations();
 
 		/** @type{Array<glsAttributeLocationTests.Attribute>} */	var attributes = [];
 		/** @type{Array<glsAttributeLocationTests.Bind>} */ var bindings = [];
@@ -1430,7 +1428,7 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 
 	glsAttributeLocationTests.LocationMaxAttributesTest.prototype.iterate = function() {
 		/** @type{Array<glsAttributeLocationTests.Bind>} */ var noBindings = [];
-		/** @type{number} */ var maxAttributes = glsAttributeLocationTests.getMaxAttributeLocations(this.m_renderCtx);
+		/** @type{number} */ var maxAttributes = glsAttributeLocationTests.getMaxAttributeLocations();
 		/** @type{number} */ var arrayElementCount = (this.m_arraySize != glsAttributeLocationTests.ArrayEnum.NOT ? this.m_arraySize : 1);
 
 		/** @type{Array<glsAttributeLocationTests.Attribute>} */ var attributes = [];
@@ -1440,7 +1438,7 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 
 		/** @type{number} */ var loc;
 		for (loc = maxAttributes - (arrayElementCount * this.m_type.getLocationSize()); loc >= 0; loc -= (arrayElementCount * this.m_type.getLocationSize())) {
-			attributes.push(Attribute(this.m_type, 'a_' + ndx, loc, glsAttributeLocationTests.ConstCond.ALWAYS, this.m_arraySize));
+			attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_' + ndx, loc, glsAttributeLocationTests.ConstCond.ALWAYS, this.m_arraySize));
 			ndx++;
 		}
 
@@ -1469,11 +1467,11 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 
 	glsAttributeLocationTests.LocationHoleAttributeTest.prototype.iterate = function() {
 		/** @type{Array<glsAttributeLocationTests.Bind>} */ var noBindings = [];
-		/** @type{number} */ var maxAttributes = glsAttributeLocationTests.getMaxAttributeLocations(this.m_renderCtx);
+		/** @type{number} */ var maxAttributes = glsAttributeLocationTests.getMaxAttributeLocations();
 		/** @type{glsAttributeLocationTests.AttribType} */ var vec4 = new glsAttributeLocationTests.AttribType('vec4', 1, gl.FLOAT_VEC4);
 		/** @type{number} */ var arrayElementCount	= (this.m_arraySize != glsAttributeLocationTests.ArrayEnum.NOT ? this.m_arraySize : 1);
 
-		/** @type{Array<glsAttributeLocationTests.Attribute>} */ var attributes;
+		/** @type{Array<glsAttributeLocationTests.Attribute>} */ var attributes = [];
 		/** @type{number} */ var ndx;
 
 		attributes.push(new glsAttributeLocationTests.Attribute(vec4, 'a_0', 0));
@@ -1488,6 +1486,7 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 		}
 
 		glsAttributeLocationTests.runTest(attributes, noBindings, noBindings, noBindings, false);
+
 		return tcuTestCase.IterateResult.STOP;
 	}
 
@@ -1545,7 +1544,7 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 
 	glsAttributeLocationTests.MixedMaxAttributesTest.prototype.iterate = function() {
 		/** @type{Array<glsAttributeLocationTests.Bind>} */ var noBindings = [];
-		/** @type{number} */ var maxAttributes = glsAttributeLocationTests.getMaxAttributeLocations(this.m_renderCtx);
+		/** @type{number} */ var maxAttributes = glsAttributeLocationTests.getMaxAttributeLocations();
 		/** @type{number} */ var arrayElementCount = (this.m_arraySize != glsAttributeLocationTests.ArrayEnum.NOT ? this.m_arraySize : 1);
 
 		/** @type{Array<glsAttributeLocationTests.Bind>} */ var	bindings = [];
@@ -1593,7 +1592,7 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 
 	glsAttributeLocationTests.MixedHoleAttributeTest.prototype.iterate = function() {
 		/** @type{Array<glsAttributeLocationTests.Bind>} */ var noBindings = [];
-		/** @type{number} */ var maxAttributes = glsAttributeLocationTests.getMaxAttributeLocations(this.m_renderCtx);
+		/** @type{number} */ var maxAttributes = glsAttributeLocationTests.getMaxAttributeLocations();
 		/** @type{glsAttributeLocationTests.AttribType} */ var vec4 = new glsAttributeLocationTests.AttribType('vec4', 1, gl.FLOAT_VEC4);
 		/** @type{number} */ var arrayElementCount	= (this.m_arraySize != glsAttributeLocationTests.ArrayEnum.NOT ? this.m_arraySize : 1);
 
@@ -1679,7 +1678,7 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 
 	glsAttributeLocationTests.BindRelinkHoleAttributeTest.prototype.iterate = function() {
 		/** @type{Array<glsAttributeLocationTests.Bind>} */ var noBindings = [];
-		/** @type{number} */ var maxAttributes = glsAttributeLocationTests.getMaxAttributeLocations(this.m_renderCtx);
+		/** @type{number} */ var maxAttributes = glsAttributeLocationTests.getMaxAttributeLocations();
 		/** @type{glsAttributeLocationTests.AttribType} */ var vec4 = new glsAttributeLocationTests.AttribType('vec4', 1, gl.FLOAT_VEC4);
 		/** @type{number} */ var arrayElementCount = (this.m_arraySize != glsAttributeLocationTests.ArrayEnum.NOT ? this.m_arraySize : 1);
 
@@ -1730,7 +1729,7 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 
 	glsAttributeLocationTests.MixedRelinkHoleAttributeTest.prototype.iterate = function() {
 		/** @type{Array<glsAttributeLocationTests.Bind>} */ var noBindings = [];
-		/** @type{number} */ var maxAttributes = glsAttributeLocationTests.getMaxAttributeLocations(this.m_renderCtx);
+		/** @type{number} */ var maxAttributes = glsAttributeLocationTests.getMaxAttributeLocations();
 		/** @type{glsAttributeLocationTests.AttribType} */ var vec4 = glsAttributeLocationTests.AttribType('vec4', 1, gl.FLOAT_VEC4);
 		/** @type{number} */ var arrayElementCount = (this.m_arraySize != glsAttributeLocationTests.ArrayEnum.NOT ? this.m_arraySize : 1);
 
