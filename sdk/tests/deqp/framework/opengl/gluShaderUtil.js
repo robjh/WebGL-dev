@@ -43,12 +43,12 @@ gluShaderUtil.GLSLVersion = {
  * @return {boolean}
  */
 gluShaderUtil.isGLSLVersionSupported = function(ctx, version) {
-    version <= gluShaderUtil.getGLSLVersion(ctx);
+    return version <= gluShaderUtil.getGLSLVersion(ctx);
 };
 
 /**
  * gluShaderUtil.getGLSLVersion - Returns a gluShaderUtil.GLSLVersion based on a given webgl context.
- * @param {WebGL2RenderingContext} gl
+ * @param {WebGL2RenderingContext|WebGLRenderingContextBase} gl
  * @return {gluShaderUtil.GLSLVersion}
  */
 gluShaderUtil.getGLSLVersion = function(gl) {

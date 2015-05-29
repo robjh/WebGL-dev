@@ -66,7 +66,7 @@ targets = {
     'shaderlibrary': 'modules.shared.glsShaderLibrary',
     'sglrReferenceContextTest': 'framework.opengl.simplereference.sglrReferenceContextTest',
     'lifetime': 'functional.gles3.es3fLifetimeTests',
-    'draw': 'modules.shared.glsDrawTests',
+    'draw': 'functional.gles3.es3fDrawTests',
     'attriblocation': 'functional.gles3.es3fAttribLocationTests'
 }
 
