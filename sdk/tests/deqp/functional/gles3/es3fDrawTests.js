@@ -90,7 +90,7 @@ goog.scope(function() {
         gl = context;
         //Set up Test Root parameters
         var testName = 'draw';
-        var testDescription = 'Draw Tests';
+        var testDescription = 'Drawing tests';
         var state = tcuTestCase.runner;
 
         state.setRoot(tcuTestCase.newTest(testName, testDescription, null));
