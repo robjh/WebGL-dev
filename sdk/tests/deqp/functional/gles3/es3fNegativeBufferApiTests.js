@@ -20,7 +20,6 @@ goog.scope(function() {
         // gl.deleteBuffers(), gl.createBuffer()
     
         var testGroup = tcuTestCase.runner.testCases;
-    /*
         testGroup.addChild(new es3fApiCase.ApiCaseCallback(
             'bind_buffer', 'Invalid gl.bindBuffer() usage', gl,
             function() {
@@ -240,7 +239,7 @@ goog.scope(function() {
                     this.testFailed('expected gl.READ_FRAMEBUFFER_BINDING to be non-zero and gl.SAMPLE_BUFFERS to be greater than zero');
                 } else {
                     gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, ubyteData);
-                    this.expectError(GL_INVALID_OPERATION);
+                    this.expectError(gl.INVALID_OPERATION);
                 }
                 
                 gl.bindRenderbuffer(gl.RENDERBUFFER, null);
@@ -326,7 +325,7 @@ goog.scope(function() {
                 var maxUSize = gl.getParameter(gl.MAX_UNIFORM_BUFFER_BINDINGS);
                 gl.bindBufferBase(gl.UNIFORM_BUFFER, maxUSize, bufUniform);
                 this.expectError(gl.INVALID_VALUE);
-			
+                
                 bufferedLogToConsole('gl.INVALID_VALUE is generated if target is gl.TRANSFORM_FEEDBACK_BUFFER andindex is greater than or equal to gl.MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS.');
                 var maxTFSize = gl.getParameter(gl.MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS);
                 gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, maxTFSize, bufTF);
@@ -362,13 +361,13 @@ goog.scope(function() {
                 var maxDrawBuffers = gl.getParameter(gl.MAX_DRAW_BUFFERS);
                 gl.clearBufferiv(gl.COLOR, maxDrawBuffers, data);
                 this.expectError(gl.INVALID_VALUE);
-			
+                
                 bufferedLogToConsole('gl.INVALID_ENUM is generated if buffer is gl.DEPTH or gl.DEPTH_STENCIL.');
                 gl.clearBufferiv(gl.DEPTH, 1, data);
                 this.expectError(gl.INVALID_ENUM);
                 gl.clearBufferiv(gl.DEPTH_STENCIL, 1, data);
                 this.expectError(gl.INVALID_ENUM);
-			
+                
                 bufferedLogToConsole('gl.INVALID_VALUE is generated if buffer is gl.STENCIL and drawBuffer is not zero.');
                 gl.clearBufferiv(gl.STENCIL, 1, data);
                 this.expectError(gl.INVALID_VALUE);
@@ -497,6 +496,51 @@ goog.scope(function() {
                 gl.bufferData(gl.COPY_WRITE_BUFFER, 32, data, gl.DYNAMIC_COPY);
                 this.expectError(gl.NO_ERROR);
                 
+                bufferedLogToConsole('gl.INVALID_VALUE is generated if any of readoffset, writeoffset or size is negative.');
+                gl.copyBufferSubData(gl.COPY_READ_BUFFER, gl.COPY_WRITE_BUFFER, 0, 0, -4);
+                this.expectError(gl.INVALID_VALUE);
+                gl.copyBufferSubData(gl.COPY_READ_BUFFER, gl.COPY_WRITE_BUFFER, -1, 0, 4);
+                this.expectError(gl.INVALID_VALUE);
+                gl.copyBufferSubData(gl.COPY_READ_BUFFER, gl.COPY_WRITE_BUFFER, 0, -1, 4);
+                this.expectError(gl.INVALID_VALUE);
+
+                bufferedLogToConsole('gl.INVALID_VALUE is generated if readoffset + size exceeds the size of the buffer object bound to readtarget.');
+                gl.copyBufferSubData(gl.COPY_READ_BUFFER, gl.COPY_WRITE_BUFFER, 0, 0, 36);
+                this.expectError(gl.INVALID_VALUE);
+                gl.copyBufferSubData(gl.COPY_READ_BUFFER, gl.COPY_WRITE_BUFFER, 24, 0, 16);
+                this.expectError(gl.INVALID_VALUE);
+                gl.copyBufferSubData(gl.COPY_READ_BUFFER, gl.COPY_WRITE_BUFFER, 36, 0, 4);
+                this.expectError(gl.INVALID_VALUE);
+
+                bufferedLogToConsole('gl.INVALID_VALUE is generated if writeoffset + size exceeds the size of the buffer object bound to writetarget.');
+                gl.copyBufferSubData(gl.COPY_READ_BUFFER, gl.COPY_WRITE_BUFFER, 0, 0, 36);
+                this.expectError(gl.INVALID_VALUE);
+                gl.copyBufferSubData(gl.COPY_READ_BUFFER, gl.COPY_WRITE_BUFFER, 0, 24, 16);
+                this.expectError(gl.INVALID_VALUE);
+                gl.copyBufferSubData(gl.COPY_READ_BUFFER, gl.COPY_WRITE_BUFFER, 0, 36, 4);
+                this.expectError(gl.INVALID_VALUE);
+
+                bufferedLogToConsole('gl.INVALID_VALUE is generated if the same buffer object is bound to both readtarget and writetarget and the ranges [readoffset, readoffset + size) and [writeoffset, writeoffset + size) overlap.');
+                gl.bindBuffer(gl.COPY_WRITE_BUFFER, buf.r);
+                gl.copyBufferSubData(gl.COPY_READ_BUFFER, gl.COPY_WRITE_BUFFER, 0, 16, 4);
+                this.expectError(gl.NO_ERROR);
+                gl.copyBufferSubData(gl.COPY_READ_BUFFER, gl.COPY_WRITE_BUFFER, 0, 0, 4);
+                this.expectError(gl.INVALID_VALUE);
+                gl.copyBufferSubData(gl.COPY_READ_BUFFER, gl.COPY_WRITE_BUFFER, 0, 16, 18);
+                this.expectError(gl.INVALID_VALUE);
+                gl.bindBuffer(gl.COPY_WRITE_BUFFER, buf.w);
+
+                bufferedLogToConsole('gl.INVALID_OPERATION is generated if null is bound to readtarget or writetarget.');
+                gl.bindBuffer(gl.COPY_READ_BUFFER, null);
+                gl.copyBufferSubData(gl.COPY_READ_BUFFER, gl.COPY_WRITE_BUFFER, 0, 0, 16);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.bindBuffer(gl.COPY_READ_BUFFER, buf.r);
+                
+                gl.bindBuffer(gl.COPY_WRITE_BUFFER, null);
+                gl.copyBufferSubData(gl.COPY_READ_BUFFER, gl.COPY_WRITE_BUFFER, 0, 0, 16);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.bindBuffer(gl.COPY_WRITE_BUFFER, buf.w);
+                
                 gl.deleteBuffer(buf.w);
                 gl.deleteBuffer(buf.r);
             }
@@ -505,82 +549,22 @@ goog.scope(function() {
         
         /*
 
-	ES3F_ADD_API_CASE(copy_buffer_sub_data, "Invalid glCopyBufferSubData() usage",
+	ES3F_ADD_API_CASE(copy_buffer_sub_data, "Invalid gl.copyBufferSubData() usage",
 		{
-			deUint32				buf[2];
-			std::vector<float>		data(32*32);
 
-			glGenBuffers			(2, buf);
-			glBindBuffer			(GL_COPY_READ_BUFFER, buf[0]);
-			glBufferData			(GL_COPY_READ_BUFFER, 32, &data[0], GL_DYNAMIC_COPY);
-			glBindBuffer			(GL_COPY_WRITE_BUFFER, buf[1]);
-			glBufferData			(GL_COPY_WRITE_BUFFER, 32, &data[0], GL_DYNAMIC_COPY);
-			expectError				(GL_NO_ERROR);
+                m_log << TestLog::Section("", "gl.INVALID_VALUE is generated if any of readoffset, writeoffset or size is negative.");                m_log << TestLog::EndSection;
 
-			m_log << TestLog::Section("", "GL_INVALID_VALUE is generated if any of readoffset, writeoffset or size is negative.");
-			glCopyBufferSubData		(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, 0, -4);
-			expectError				(GL_INVALID_VALUE);
-			glCopyBufferSubData		(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, -1, 0, 4);
-			expectError				(GL_INVALID_VALUE);
-			glCopyBufferSubData		(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, -1, 4);
-			expectError				(GL_INVALID_VALUE);
-			m_log << TestLog::EndSection;
+                m_log << TestLog::Section("", "gl.INVALID_VALUE is generated if readoffset + size exceeds the size of the buffer object bound to readtarget.");                m_log << TestLog::EndSection;
 
-			m_log << TestLog::Section("", "GL_INVALID_VALUE is generated if readoffset + size exceeds the size of the buffer object bound to readtarget.");
-			glCopyBufferSubData		(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, 0, 36);
-			expectError				(GL_INVALID_VALUE);
-			glCopyBufferSubData		(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 24, 0, 16);
-			expectError				(GL_INVALID_VALUE);
-			glCopyBufferSubData		(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 36, 0, 4);
-			expectError				(GL_INVALID_VALUE);
-			m_log << TestLog::EndSection;
+                m_log << TestLog::Section("", "gl.INVALID_VALUE is generated if writeoffset + size exceeds the size of the buffer object bound to writetarget.");                m_log << TestLog::EndSection;
 
-			m_log << TestLog::Section("", "GL_INVALID_VALUE is generated if writeoffset + size exceeds the size of the buffer object bound to writetarget.");
-			glCopyBufferSubData		(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, 0, 36);
-			expectError				(GL_INVALID_VALUE);
-			glCopyBufferSubData		(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, 24, 16);
-			expectError				(GL_INVALID_VALUE);
-			glCopyBufferSubData		(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, 36, 4);
-			expectError				(GL_INVALID_VALUE);
-			m_log << TestLog::EndSection;
+                m_log << TestLog::Section("", "gl.INVALID_VALUE is generated if the same buffer object is bound to both readtarget and writetarget and the ranges [readoffset, readoffset + size) and [writeoffset, writeoffset + size) overlap.");                m_log << TestLog::EndSection;
 
-			m_log << TestLog::Section("", "GL_INVALID_VALUE is generated if the same buffer object is bound to both readtarget and writetarget and the ranges [readoffset, readoffset + size) and [writeoffset, writeoffset + size) overlap.");
-			glBindBuffer			(GL_COPY_WRITE_BUFFER, buf[0]);
-			glCopyBufferSubData		(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, 16, 4);
-			expectError				(GL_NO_ERROR);
-			glCopyBufferSubData		(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, 0, 4);
-			expectError				(GL_INVALID_VALUE);
-			glCopyBufferSubData		(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, 16, 18);
-			expectError				(GL_INVALID_VALUE);
-			glBindBuffer			(GL_COPY_WRITE_BUFFER, buf[1]);
-			m_log << TestLog::EndSection;
+                m_log << TestLog::Section("", "gl.INVALID_OPERATION is generated if zero is bound to readtarget or writetarget.");                m_log << TestLog::EndSection;
 
-			m_log << TestLog::Section("", "GL_INVALID_OPERATION is generated if zero is bound to readtarget or writetarget.");
-			glBindBuffer			(GL_COPY_READ_BUFFER, 0);
-			glCopyBufferSubData		(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, 0, 16);
-			expectError				(GL_INVALID_OPERATION);
+                m_log << TestLog::Section("", "gl.INVALID_OPERATION is generated if the buffer object bound to either readtarget or writetarget is mapped.");                m_log << TestLog::EndSection;
 
-			glBindBuffer			(GL_COPY_READ_BUFFER, buf[0]);
-			glBindBuffer			(GL_COPY_WRITE_BUFFER, 0);
-			glCopyBufferSubData		(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, 0, 16);
-			expectError				(GL_INVALID_OPERATION);
-
-			glBindBuffer			(GL_COPY_WRITE_BUFFER, buf[1]);
-			m_log << TestLog::EndSection;
-
-			m_log << TestLog::Section("", "GL_INVALID_OPERATION is generated if the buffer object bound to either readtarget or writetarget is mapped.");
-			glMapBufferRange		(GL_COPY_READ_BUFFER, 0, 4, GL_MAP_READ_BIT);
-			glCopyBufferSubData		(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, 0, 16);
-			expectError				(GL_INVALID_OPERATION);
-			glUnmapBuffer			(GL_COPY_READ_BUFFER);
-
-			glMapBufferRange		(GL_COPY_WRITE_BUFFER, 0, 4, GL_MAP_READ_BIT);
-			glCopyBufferSubData		(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, 0, 16);
-			expectError				(GL_INVALID_OPERATION);
-			glUnmapBuffer			(GL_COPY_WRITE_BUFFER);
-			m_log << TestLog::EndSection;
-
-			glDeleteBuffers(2, buf);
+                glDeleteBuffers(2, buf);
 		});
 
         //*/
