@@ -32,6 +32,7 @@ goog.require('framework.opengl.gluShaderProgram');
 goog.require('framework.opengl.gluShaderUtil');
 goog.require('framework.opengl.gluTexture');
 goog.require('framework.opengl.gluVarType');
+goog.require('modules.shared.glsDrawTests');
 
 goog.scope(function() {
 
@@ -48,7 +49,7 @@ goog.scope(function() {
     var deString = framework.delibs.debase.deString;
     var deRandom = framework.delibs.debase.deRandom;
     var deUtil = framework.delibs.debase.deUtil;
-    var glsVertexArrayTests = modules.shared.glsVertexArrayTests;
+    var glsDrawTests = modules.shared.glsDrawTests;
 
     /** @type {WebGL2RenderingContext}*/ var gl;
 
@@ -68,7 +69,7 @@ goog.scope(function() {
      */
     es3fDrawTests.addTestIterations = function (test, baseSpec, type)
     {
-        /** @type {glsDrawTests.DrawTestSpec} */ var spec = deUtil.clone(baseSpec);
+        /** @type {glsDrawTests.DrawTestSpec} */ var spec = /** @type {glsDrawTests.DrawTestSpec} */ (deUtil.clone(baseSpec));
 
         if (type == es3fDrawTests.TestIterationType.DRAW_COUNT)
         {
@@ -175,13 +176,13 @@ goog.scope(function() {
      */
     es3fDrawTests.FirstGroup.prototype.init = function()
     {
-        firsts =
+        var firsts =
         [
             1, 3, 17
         ];
 
         /** @type {glsDrawTests.DrawTestSpec} */ var spec = new glsDrawTests.DrawTestSpec();
-        es3fDrawTests.genBasicSpec(spec, m_method);
+        es3fDrawTests.genBasicSpec(spec, this.m_method);
 
         for (var firstNdx = 0; firstNdx < firsts.length; ++firstNdx)
         {
@@ -191,7 +192,7 @@ goog.scope(function() {
 
             spec.first = firsts[firstNdx];
 
-            es3fDrawTests.addTestIterations(test, spec, TYPE_DRAW_COUNT);
+            es3fDrawTests.addTestIterations(test, spec, es3fDrawTests.TestIterationType.DRAW_COUNT);
 
             this.addChild(test);
         }
@@ -269,12 +270,12 @@ goog.scope(function() {
      */
     es3fDrawTests.DrawTest.prototype.init = function() {
         // Basic
-        /** @type {Array<es3fDrawTests.DrawTestSpec.DrawMethod>} */ basicMethods = [
-            es3fDrawTests.DrawTestSpec.DrawMethod.DRAWARRAYS,
-            es3fDrawTests.DrawTestSpec.DrawMethod.DRAWELEMENTS,
-            es3fDrawTests.DrawTestSpec.DrawMethod.DRAWARRAYS_INSTANCED,
-            es3fDrawTests.DrawTestSpec.DrawMethod.DRAWELEMENTS_INSTANCED,
-            es3fDrawTests.DrawTestSpec.DrawMethod.DRAWELEMENTS_RANGED
+        /** @type {Array<glsDrawTests.DrawTestSpec.DrawMethod>} */ var basicMethods = [
+            glsDrawTests.DrawTestSpec.DrawMethod.DRAWARRAYS,
+            glsDrawTests.DrawTestSpec.DrawMethod.DRAWELEMENTS,
+            glsDrawTests.DrawTestSpec.DrawMethod.DRAWARRAYS_INSTANCED,
+            glsDrawTests.DrawTestSpec.DrawMethod.DRAWELEMENTS_INSTANCED,
+            glsDrawTests.DrawTestSpec.DrawMethod.DRAWELEMENTS_RANGED
         ];
 
         for (var ndx = 0; ndx < basicMethods.length; ++ndx)
@@ -308,7 +309,7 @@ goog.scope(function() {
 
         //Set up name and description of this test series.
         setCurrentTestName(rootTest.fullName());
-        description(rootTest.getDesc());
+        description(rootTest.getDescription());
 
         try {
             //Run test cases

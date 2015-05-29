@@ -842,7 +842,6 @@ goog.scope(function() {
         /** @type {Array<number>} */ this.m_defaultAttrib;
         /** @type {number} */ this.m_instanceDivisor = 0;
         /** @type {boolean} */ this.m_isPositionAttr = false;
-        /** @type {boolean} */ this.m_bgraOrder = false;
 
         if (this.m_storage == glsDrawTests.DrawTestSpec.Storage.BUFFER) {
             this.m_glBuffer = this.m_ctx.createBuffer();
@@ -912,10 +911,9 @@ goog.scope(function() {
      * @param {number} instanceDivisor
      * @param {Array<number>} defaultAttrib
      * @param {boolean} isPositionAttr
-     * @param {boolean} bgraComponentOrder
      */
     glsDrawTests.AttributeArray.prototype.setupArray = function(bound, offset, size, inputType, outType,
-        normalized, stride, instanceDivisor, defaultAttrib, isPositionAttr, bgraComponentOrder) {
+        normalized, stride, instanceDivisor, defaultAttrib, isPositionAttr) {
         this.m_componentCount = size;
         this.m_bound = bound;
         this.m_inputType = inputType;
@@ -926,7 +924,6 @@ goog.scope(function() {
         this.m_defaultAttrib = defaultAttrib;
         this.m_instanceDivisor = instanceDivisor;
         this.m_isPositionAttr = isPositionAttr;
-        this.m_bgraOrder = bgraComponentOrder;
     };
 
     /**
@@ -972,9 +969,7 @@ goog.scope(function() {
                 // Input is not float type
 
                 if (glsDrawTests.outputTypeIsFloatType(this.m_outputType)) {
-                    var size = (this.m_bgraOrder) ? (gl.BGRA) : (this.m_componentCount); //TODO: Check if BGRA will be in WebGL2
-
-                    assertMsgOptions(!(this.m_bgraOrder && this.m_componentCount != 4), 'Bgra order must have 4 components', false, true);
+                    var size = this.m_componentCount;
 
                     // Output type is float type
                     this.m_ctx.vertexAttribPointer(loc, size, glsDrawTests.inputTypeToGL(this.m_inputType), this.m_normalize, this.m_stride, basePtr.subarray(this.m_offset));
@@ -2542,7 +2537,6 @@ goog.scope(function() {
         /** @type {boolean} */ this.useDefaultAttribute = false;
 
         /** @type {boolean} */ this.additionalPositionAttribute = false; //!< treat this attribute as position attribute. Attribute at index 0 is alway treated as such. False by default
-        /** @type {boolean} */ this.bgraComponentOrder = false; //!< component order of this attribute is bgra, valid only for 4-component targets. False by default.
     };
 
     /**
@@ -2667,14 +2661,6 @@ goog.scope(function() {
         if (this.normalize && !outputTypeFloat)
             return false;
 
-        // Allow reverse order (gl.BGRA) only for packed and 4-component ubyte
-        if (this.bgraComponentOrder && this.componentCount != 4)
-            return false;
-        if (this.bgraComponentOrder && this.inputType != glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT_2_10_10_10 && this.inputType != glsDrawTests.DrawTestSpec.InputType.INT_2_10_10_10 && this.inputType != glsDrawTests.DrawTestSpec.InputType.UNSIGNED_BYTE)
-            return false;
-        if (this.bgraComponentOrder && this.normalize != true)
-            return false;
-
         // TODO: Check if we need to get the webgl version
         // GLES2 limits
         /*if (ctxType == glu::ApiType::es(2,0)) {
@@ -2684,17 +2670,7 @@ goog.scope(function() {
 
             if (!outputTypeFloat)
                 return false;
-
-            if (bgraComponentOrder)
-                return false;
         }*/
-
-        // GLES3 limits
-        //if (ctxType.getProfile() == glu::PROFILE_ES && ctxType.getMajorVersion() == 3)
-        //{
-            if (this.bgraComponentOrder)
-                return false;
-        //}
 
         return true;
     };
@@ -2879,8 +2855,8 @@ goog.scope(function() {
                     this.m_glArrayPack.newArray(glsDrawTests.DrawTestSpec.Storage.USER);
                     this.m_rrArrayPack.newArray(glsDrawTests.DrawTestSpec.Storage.USER);
 
-                    this.m_glArrayPack.getArray(attribNdx).setupArray(false, 0, attribSpec.componentCount, attribSpec.inputType, attribSpec.outputType, false, 0, 0, attribValue, isPositionAttr, false);
-                    this.m_rrArrayPack.getArray(attribNdx).setupArray(false, 0, attribSpec.componentCount, attribSpec.inputType, attribSpec.outputType, false, 0, 0, attribValue, isPositionAttr, false);
+                    this.m_glArrayPack.getArray(attribNdx).setupArray(false, 0, attribSpec.componentCount, attribSpec.inputType, attribSpec.outputType, false, 0, 0, attribValue, isPositionAttr);
+                    this.m_rrArrayPack.getArray(attribNdx).setupArray(false, 0, attribSpec.componentCount, attribSpec.inputType, attribSpec.outputType, false, 0, 0, attribValue, isPositionAttr);
                 } else {
                     /** @type {number} */ var seed = attribSpec.hash() + 100 * spec.hash() + attribNdx;
                     /** @type {number} */ var elementSize = attribSpec.componentCount * glsDrawTests.DrawTestSpec.inputTypeSize(attribSpec.inputType);
@@ -2897,8 +2873,8 @@ goog.scope(function() {
                         this.m_glArrayPack.getArray(attribNdx).data(glsDrawTests.DrawTestSpec.Target.ARRAY, bufferSize, data, attribSpec.usage);
                         this.m_rrArrayPack.getArray(attribNdx).data(glsDrawTests.DrawTestSpec.Target.ARRAY, bufferSize, data, attribSpec.usage);
 
-                        this.m_glArrayPack.getArray(attribNdx).setupArray(true, attribSpec.offset, attribSpec.componentCount, attribSpec.inputType, attribSpec.outputType, attribSpec.normalize, attribSpec.stride, attribSpec.instanceDivisor, nullAttribValue, isPositionAttr, attribSpec.bgraComponentOrder);
-                        this.m_rrArrayPack.getArray(attribNdx).setupArray(true, attribSpec.offset, attribSpec.componentCount, attribSpec.inputType, attribSpec.outputType, attribSpec.normalize, attribSpec.stride, attribSpec.instanceDivisor, nullAttribValue, isPositionAttr, attribSpec.bgraComponentOrder);
+                        this.m_glArrayPack.getArray(attribNdx).setupArray(true, attribSpec.offset, attribSpec.componentCount, attribSpec.inputType, attribSpec.outputType, attribSpec.normalize, attribSpec.stride, attribSpec.instanceDivisor, nullAttribValue, isPositionAttr);
+                        this.m_rrArrayPack.getArray(attribNdx).setupArray(true, attribSpec.offset, attribSpec.componentCount, attribSpec.inputType, attribSpec.outputType, attribSpec.normalize, attribSpec.stride, attribSpec.instanceDivisor, nullAttribValue, isPositionAttr);
 
                         //delete [] data; TODO: Should we delete in any way?
                         data = null;
@@ -2938,10 +2914,10 @@ goog.scope(function() {
                         this.m_glArrayPack.render(spec.primitive, spec.drawMethod, 0, primitiveElementCount, spec.indexType, spec.indexPointerOffset, spec.indexMin, spec.indexMax, spec.instanceCount, coordScale, colorScale, glArray);
                         this.m_rrArrayPack.render(spec.primitive, spec.drawMethod, 0, primitiveElementCount, spec.indexType, spec.indexPointerOffset, spec.indexMin, spec.indexMax, spec.instanceCount, coordScale, colorScale, rrArray);
 
-                        //delete [] indexArray;
+                        //delete [] indexArray; //TODO:
                         indexArray = null;
                     /*} catch () {
-                        delete [] indexArray;
+                        delete [] indexArray; //TODO:
                         throw;
                     }*/
                 } else {
