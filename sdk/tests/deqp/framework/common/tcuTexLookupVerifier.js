@@ -60,12 +60,48 @@ goog.scope(function() {
      */
     tcuTexLookupVerifier.lookup = function(access, sampler, i, j, k) {
     	// Specialization for float lookups: sRGB conversion is performed as specified in format.
-    	if (coordsInBounds(access, i, j, k)) {
+    	if (tcuTexLookupVerifier.coordsInBounds(access, i, j, k)) {
     		/** @type {Array<number>} */ var p = access.getPixel(i, j, k);
-    		return isSRGB(access.getFormat()) ? sRGBToLinear(p) : p;
+    		return tcuTexLookupVerifier.isSRGB(access.getFormat()) ? tcuTextureUtil.sRGBToLinear(p) : p;
     	}
     	else
     		return sampler.borderColor;
+    };
+
+    /**
+     * *
+     * @param  {tcuTexture.ConstPixelBufferAccess} access
+     * @param  {tcuTexture.Sampler} sampler
+     * @param  {number} i
+     * @param  {number} j
+     * @param  {number} k
+     * @return {Array<number>}
+     */
+    tcuTexLookupVerifier.lookupScalar = function(access, sampler, i, j, k) {
+        throw new Error('Not implemented. TODO: implement.');
+    	// if (coordsInBounds(access, i, j, k))
+    	// 	return access.getPixelT<ScalarType>(i, j, k);
+    	// else
+    	// 	return sampler.borderColor.cast<ScalarType>();
+    };
+
+    /**
+     * @param {tcuTexture.ConstPixelBufferAccess} access
+     * @param {number} x
+     * @param {number} y
+     * @param {number} z
+     * @return {boolean}
+     */
+    tcuTexLookupVerifier.coordsInBounds = function(access, x, y, z) {
+    	return deMath.deInBounds32(x, 0, access.getWidth()) && deMath.deInBounds32(y, 0, access.getHeight()) && deMath.deInBounds32(z, 0, access.getDepth());
+    };
+
+    /**
+     * @param  {tcuTexture.TextureFormat} format
+     * @return {boolean}
+     */
+    tcuTexLookupVerifier.isSRGB = function(format) {
+        return format.order == tcuTexture.ChannelOrder.sRGB || format.order == tcuTexture.ChannelOrder.sRGBA;
     };
 
     /**
@@ -245,12 +281,12 @@ goog.scope(function() {
             /** @type {number} */ var maxB	= deMath.clamp((vBounds[1] - 0.5) - j, 0.0, 1.0);
 
             /** @type {tcuTexLookupVerifier.ColorQuad} */ var quad;
-			lookupQuad(quad, level, sampler, x0, x1, y0, y1, coordZ);
+            tcuTexLookupVerifier.lookupQuad(quad, level, sampler, x0, x1, y0, y1, coordZ);
 
 			if (texClass == tcuTextureUtil.TextureChannelClass.FLOATING_POINT)
 				searchStep = computeBilinearSearchStepFromFloatQuad(prec, quad);
 
-			if (isBilinearRangeValid(prec, quad, [minA, maxA], [minB, maxB], searchStep, result))
+			if (tcuTexLookupVerifier.isBilinearRangeValid(prec, quad, [minA, maxA], [minB, maxB], searchStep, result))
 				return true;
 		}
 
@@ -259,28 +295,125 @@ goog.scope(function() {
 
     /**
      * @param {tcuTexLookupVerifier.LookupPrecision} prec
+     * @param {tcuTexLookupVerifier.ColorQuad} quad
+     * @param {Array<number>} result
+     * @return {boolean}
+     */
+    tcuTexLookupVerifier.isInColorBounds = function(prec, quad, result) {
+        /** @const {Array<number>} */
+        var minVal = deMath.subtract(tcuTexLookupVerifier.minQuad(quad), prec.colorThreshold);
+        /** @const {Array<number>} */
+        var maxVal = deMath.add(tcuTexLookupVerifier.maxQuad(quad), prec.colorThreshold);
+    	return deMath.boolAll(
+            deMath.logicalOrBool(
+                deMath.logicalAndBool(
+                    deMath.greaterThanEqual(result, minVal),
+                    deMath.lessThanEqual(result, maxVal)),
+                deMath.logicalNotBool(prec.colorMask)));
+    };
+
+    /**
+     * @param  {tcuTexLookupVerifier.ColorLine} line
+     * @return {Array<number>}
+     */
+    tcuTexLookupVerifier.minLine = function(line) {
+        throw new Error('Not implemented. TODO: implement');
+    	//return min(line.p0, line.p1);
+    };
+
+    /**
+     * @param  {tcuTexLookupVerifier.ColorLine} line
+     * @return {Array<number>}
+     */
+    tcuTexLookupVerifier.maxLine = function(line) {
+        throw new Error('Not implemented. TODO: implement');
+        //return max(line.p0, line.p1);
+    };
+
+    /**
+     * @param  {tcuTexLookupVerifier.ColorQuad} quad
+     * @return {Array<number>}
+     */
+    tcuTexLookupVerifier.minQuad = function(quad) {
+        throw new Error('Not implemented. TODO: implement');
+    	//return min(quad.p00, min(quad.p10, min(quad.p01, quad.p11)));
+    };
+
+    /**
+     * @param  {tcuTexLookupVerifier.ColorQuad} quad
+     * @return {Array<number>}
+     */
+    tcuTexLookupVerifier.maxQuad = function(quad) {
+        throw new Error('Not implemented. TODO: implement');
+    	//return max(quad.p00, max(quad.p10, max(quad.p01, quad.p11)));
+    };
+
+    /**
+     * @param {tcuTexLookupVerifier.LookupPrecision} prec
+     * @param {tcuTexLookupVerifier.ColorQuad} quad
+     * @param {Array<number>} xBounds
+     * @param {Array<number>} yBounds
+     * @param {number} searchStep
+     * @param {Array<number>} result
+     * @return {boolean}
+     */
+    tcuTexLookupVerifier.isBilinearRangeValid = function(prec, quad, xBounds, yBounds, searchStep, result) {
+        assertMsgOptions(xBounds[0] <= xBounds[1], '', false, true);
+    	assertMsgOptions(yBounds[0] <= yBounds[1], '', false, true);
+
+    	if (!tcuTexLookupVerifier.isInColorBounds(prec, quad, result))
+    		return false;
+
+    	for (var x = xBounds[0]; x < xBounds[1]+searchStep; x += searchStep)
+    	{
+            /** @const {number} */ var a = Math.min(x, xBounds[1]);
+            /** @const {Array<number>} */ var c0 = deMath.add(deMath.scale(quad.p00, 1.0 - a), deMath.scale(quad.p10, a));
+            /** @const {Array<number>} */ var c1 = deMath.add(deMath.scale(quad.p01, 1.0 - a), deMath.scale(quad.p11, a));
+
+    		if (isLinearRangeValid(prec, c0, c1, yBounds, result))
+    			return true;
+    	}
+
+    	return false;
+    }
+
+    /**
+     * @param {tcuTexLookupVerifier.LookupPrecision} prec
      * @return {number}
      */
     tcuTexLookupVerifier.computeBilinearSearchStepForUnorm = function(prec) {
-    	assertMsgOptions(deMath.boolAll(deMath.greaterThan(prec.colorThreshold, [0.0, 0.0, 0.0, 0.0])));
+    	assertMsgOptions(deMath.boolAll(deMath.greaterThan(prec.colorThreshold, [0.0, 0.0, 0.0, 0.0])), 'Color threshold less than 0', false, true);
 
-    	/** @type {Array<number> */ var stepCount = 1.0 / prec.colorThreshold;
-    	/** @type {Array<number> */ var minStep = 1.0 / (stepCount + 1.0);
+    	/** @type {Array<number>} */ var stepCount = deMath.divide([1.0, 1.0, 1.0, 1.0], prec.colorThreshold);
+    	/** @type {Array<number>} */ var minStep = deMath.divide([1.0, 1.0, 1.0, 1.0], (deMath.add(stepCount, [1.0, 1.0, 1.0, 1.0])));
     	/** @type {number} */ var step = tcuTexLookupVerifier.minComp(minStep);
 
     	return step;
     };
 
+
     /**
      * @param {tcuTexLookupVerifier.LookupPrecision} prec
-     * @return {step}
+     * @return {number}
      */
     tcuTexLookupVerifier.computeBilinearSearchStepForSnorm = function(prec) {
-    	assertMsgOptions(deMath.boolAll(deMath.greaterThan(prec.colorThreshold, [0.0, 0.0, 0.0, 0.0])));
+    	assertMsgOptions(deMath.boolAll(deMath.greaterThan(prec.colorThreshold, [0.0, 0.0, 0.0, 0.0])), '', false, true);
 
-    	/** @type {Array<number> */ var stepCount = 2.0 / prec.colorThreshold;
-    	/** @type {Array<number> */ var minStep = 1.0 / (stepCount + 1.0);
+    	/** @type {Array<number>} */ var stepCount = deMath.divide([2.0, 2.0, 2.0, 2.0], prec.colorThreshold);
+    	/** @type {Array<number>} */ var minStep = deMath.divide([1.0, 1.0, 1.0, 1.0], deMath.add(stepCount, [1.0, 1.0, 1.0, 1.0]));
     	/** @type {number} */ var step = tcuTexLookupVerifier.minComp(minStep);
+
+    	return step;
+    };
+
+
+
+    tcuTexLookupVerifier.computeBilinearSearchStepForSnorm = function(prec) {
+        assertMsgOptions(deMath.boolAll(deMath.greaterThan(prec.colorThreshold, [0.0, 0.0, 0.0, 0.0])), '', false, true);
+
+        /** @const {Array<number>} */ var stepCount = deMath.divide([2.0, 2.0, 2.0, 2.0], prec.colorThreshold);
+        /** @const {Array<number>} */ var minStep = deMath.divide([1.0, 1.0, 1.0, 1.0], deMath.add(stepCount, [1.0, 1.0, 1.0, 1.0]));
+        /** @const {number} */ var step = tcuTexLookupVerifier.minComp(minStep);
 
     	return step;
     };
@@ -290,8 +423,8 @@ goog.scope(function() {
      * @return {number}
      */
     tcuTexLookupVerifier.minComp = function(vec) {
-    	/** @type {number} */ minVal = vec[0];
-    	for (var ndx = 1; ndx < Size; ndx++)
+    	/** @type {number} */ var minVal = vec[0];
+    	for (var ndx = 1; ndx < vec.length; ndx++)
     		minVal = Math.min(minVal, vec[ndx]);
     	return minVal;
     };
@@ -301,13 +434,13 @@ goog.scope(function() {
      * @return {number}
      */
     tcuTexLookupVerifier.maxComp = function(vec) {
-    	/** @type {number} */ maxVal = vec[0];
-    	for (var ndx = 1; ndx < Size; ndx++)
+    	/** @type {number} */ var maxVal = vec[0];
+    	for (var ndx = 1; ndx < vec.length; ndx++)
     		maxVal = Math.max(maxVal, vec[ndx]);
     	return maxVal;
     };
 
-    /*
+    /**
      * @param {tcuTexture.ConstPixelBufferAccess} level
      * @param {tcuTexture.Sampler} sampler
      * @param {tcuTexLookupVerifier.LookupPrecision} prec
@@ -317,8 +450,8 @@ goog.scope(function() {
      * @return {boolean}
      */
     tcuTexLookupVerifier.isNearestSampleResultValid_CoordAsVec2AndInt = function(level, sampler, prec, coord, coordZ, result) {
-        /** @type {Array<Number>} */ var uBounds = tcuTexVerifierUtil.computeNonNormalizedCoordBounds(sampler.normalizedCoords, level.getWidth(),	coord[0], prec.coordBits[0], prec.uvwBits[0]);
-        /** @type {Array<Number>} */ var vBounds = tcuTexVerifierUtil.computeNonNormalizedCoordBounds(sampler.normalizedCoords, level.getHeight(),	coord[1], prec.coordBits[1], prec.uvwBits[1]);
+        /** @type {Array<number>} */ var uBounds = tcuTexVerifierUtil.computeNonNormalizedCoordBounds(sampler.normalizedCoords, level.getWidth(),	coord[0], prec.coordBits[0], prec.uvwBits[0]);
+        /** @type {Array<number>} */ var vBounds = tcuTexVerifierUtil.computeNonNormalizedCoordBounds(sampler.normalizedCoords, level.getHeight(),	coord[1], prec.coordBits[1], prec.uvwBits[1]);
 
         // Integer coordinates - without wrap mode
         /** @type {number} */ var minI = Math.floor(uBounds[0]);
@@ -330,9 +463,9 @@ goog.scope(function() {
 
         for (var j = minJ; j <= maxJ; j++)
     	for (var i = minI; i <= maxI; i++) {
-            /** @type {number} */ var x = wrap(sampler.wrapS, i, level.getWidth());
-            /** @type {number} */ var y = wrap(sampler.wrapT, j, level.getHeight());
-            /** @type {Array<Number>} */ var color = lookup<ScalarType>(level, sampler, x, y, coordZ);
+            /** @type {number} */ var x = tcuTexVerifierUtil.wrap(sampler.wrapS, i, level.getWidth());
+            /** @type {number} */ var y = tcuTexVerifierUtil.wrap(sampler.wrapT, j, level.getHeight());
+            /** @type {Array<number>} */ var colorScalar = lookup<ScalarType>(level, sampler, x, y, coordZ);
 
     		if (isColorValid(prec, color, result))
     			return true;

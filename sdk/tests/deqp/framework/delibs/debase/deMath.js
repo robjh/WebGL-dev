@@ -689,4 +689,23 @@ deMath.greaterThan = function(a, b) {
     return result;
 };
 
+/** deMath.greaterThan over two arrays of booleans
+ * @param {Array<number>} a
+ * @param {Array<number>} b
+ * @return {Array<boolean>}
+ */
+deMath.greaterThanEqual = function(a, b) {
+    if (!Array.isArray(a))
+        throw new Error('The first parameter is not an array: (' + typeof(a) + ')' + a);
+    if (!Array.isArray(b))
+        throw new Error('The second parameter is not an array: (' + typeof(b) + ')' + b);
+    if (a.length != b.length)
+        throw new Error('The lengths of the passed arrays are not equivalent. (' + a.length + ' != ' + b.length + ')');
+
+    /** @type {Array<boolean>} */ var result = [];
+    for (var i = 0; i < a.length; i++)
+        result.push(a[i] >= b[i]);
+    return result;
+};
+
 });
