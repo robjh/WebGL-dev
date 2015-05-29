@@ -37,7 +37,7 @@ gluShaderUtil.GLSLVersion = {
 };
 
 /**
- * glsUniformBlockCase.isGLSLVersionSupported
+ * gluShaderUtil.isGLSLVersionSupported
  * @param {WebGL2RenderingContext|WebGLRenderingContextBase} ctx
  * @param {gluShaderUtil.GLSLVersion} version
  * @return {boolean}
@@ -84,7 +84,7 @@ gluShaderUtil.getGLSLVersionDeclaration = function(version) {
 };
 
 /**
- * gluShaderUtil.getGLSLVersionDeclaration - Returns the same thing as
+ * gluShaderUtil.getGLSLVersionString - Returns the same thing as
  * getGLSLVersionDeclaration() but without the substring '#version'
  * @param {gluShaderUtil.GLSLVersion} version
  * @return {string}

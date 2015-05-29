@@ -35,9 +35,11 @@ var deMath = framework.delibs.debase.deMath;
     /**
      * class tcuRGBA.RGBA
      * @constructor
+     * @struct
+     * @param {goog.NumberArray=} value
      */
-    tcuRGBA.RGBA = function() {
-        /** @type {goog.NumberArray} */ this.m_value;
+    tcuRGBA.RGBA = function(value) {
+        /** @type {goog.NumberArray} */ this.m_value = value || null;
 
     };
 
@@ -75,15 +77,12 @@ var deMath = framework.delibs.debase.deMath;
      * @return {tcuRGBA.RGBA}
      */
     tcuRGBA.newRGBAComponents = function(r, g, b, a) {
-        /** @type {tcuRGBA.RGBA} */ var rgba = new tcuRGBA.RGBA();
         DE_ASSERT(deMath.deInRange32(r, 0, 255));
         DE_ASSERT(deMath.deInRange32(g, 0, 255));
         DE_ASSERT(deMath.deInRange32(b, 0, 255));
         DE_ASSERT(deMath.deInRange32(a, 0, 255));
 
-        rgba.m_value = [r, g, b, a];
-
-        return rgba;
+        return new tcuRGBA.RGBA([r, g, b, a]);
     };
 
     /**
@@ -92,11 +91,7 @@ var deMath = framework.delibs.debase.deMath;
      * @return {tcuRGBA.RGBA}
      */
     tcuRGBA.newRGBAFromArray = function(v) {
-        /** @type {tcuRGBA.RGBA} */ var rgba = new tcuRGBA.RGBA();
-
-        rgba.m_value = v.slice(0, 4);
-
-        return rgba;
+        return new tcuRGBA.RGBA(v.slice(0, 4));
     };
 
     /**
