@@ -23,8 +23,6 @@
 'use strict';
 goog.provide('functional.gles3.es3fAttribLocationTests');
 goog.require('modules.shared.glsAttributeLocationTests');
-goog.require('functional.gles3.es3fFboTestCase');
-goog.require('functional.gles3.es3fFboTestUtil');
 goog.require('framework.opengl.gluShaderUtil');
 goog.require('modules.shared.glsFboUtil');
 
@@ -189,8 +187,7 @@ goog.scope(function() {
 		}
 
 		// Test filling holes in attribute location
-		/** @type {tcuTestCase.DeqpTest} */
-		var holeGroup = tcuTestCase.newTest('layout_hole', 'Define layout location for all, but one attribute consuming max attribute locations.');
+		holeGroup = tcuTestCase.newTest('layout_hole', 'Define layout location for all, but one attribute consuming max attribute locations.');
 
 		root.addChild(holeGroup);
 
@@ -234,8 +231,7 @@ goog.scope(function() {
 		mixedTimeGroup.addChild(new glsAttributeLocationTests.MixedRelinkAttributeTest());
 		mixedTimeGroup.addChild(new glsAttributeLocationTests.MixedReattachAttributeTest());
 
-		/** @type {tcuTestCase.DeqpTest} */
-		var holeGroup = tcuTestCase.newTest('mixed_hole', 'Use layout location qualifiers and binding. Leave hole in location space for only free attribute.');
+		holeGroup = tcuTestCase.newTest('mixed_hole', 'Use layout location qualifiers and binding. Leave hole in location space for only free attribute.');
 
 		root.addChild(holeGroup);
 

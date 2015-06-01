@@ -24,7 +24,6 @@
 'use strict';
 goog.provide('modules.shared.glsAttributeLocationTests');
 goog.require('framework.common.tcuTestCase');
-goog.require('modules.shared.glsFboUtil');
 goog.require('framework.opengl.gluShaderUtil');
 goog.require('framework.common.tcuStringTemplate');
 
@@ -32,7 +31,6 @@ goog.scope(function() {
 
 	var glsAttributeLocationTests = modules.shared.glsAttributeLocationTests;
 	var tcuTestCase = framework.common.tcuTestCase;
-	var glsFboUtil = modules.shared.glsFboUtil;
 	var gluShaderUtil = framework.opengl.gluShaderUtil;
 	var tcuStringTemplate = framework.common.tcuStringTemplate;
 
@@ -42,13 +40,20 @@ goog.scope(function() {
     };
 
     /**
-     * @param{Array<>} bindings
+     * @param{Array<glsAttributeLocationTests.Bind>} bindings
      * @param{string} attrib
-     * @return {?number}
+     * @return {number}
      */
     glsAttributeLocationTests.getBoundLocation = function(bindings, attrib) {
-		/** @type{?number} */ var value = bindings[attrib];
-		return (value == null ? glsAttributeLocationTests.LocationEnum.UNDEF : value);
+		/** @type{number} */ var value;
+		/** @type{number} */ var i;
+		for (i = 0; i < bindings.length; i++) {
+			if (bindings[i].getAttributeName() == attrib) {
+				value = bindings[i].getLocation();
+				break;
+			}
+		}
+		return (value ? value : glsAttributeLocationTests.LocationEnum.UNDEF);
 	}
 
 	/**
@@ -73,7 +78,7 @@ goog.scope(function() {
 
 	/**
 	 * @param{Array<glsAttributeLocationTests.Attribute>} attributes
-	 * @param{glsFboUtil.Map} bindings
+	 * @param{Array<glsAttributeLocationTests.Bind>} bindings
 	 * @return{boolean}
 	 */
 	glsAttributeLocationTests.hasAttributeAliasing = function(attributes, bindings) {
@@ -108,7 +113,7 @@ goog.scope(function() {
 	glsAttributeLocationTests.getMaxAttributeLocations = function() {
 		/** @type{number} */ var maxAttribs;
 
-		maxAttribs = gl.getParameter(gl.MAX_VERTEX_ATTRIBS);
+		maxAttribs = /** @type{number} */  (gl.getParameter(gl.MAX_VERTEX_ATTRIBS));
 		// GLU_EXPECT_NO_ERROR(gl.getError(), "glGetIntegerv()");
 
 		return maxAttribs;
@@ -160,7 +165,7 @@ goog.scope(function() {
 
 	/**
 	 * @param{glsAttributeLocationTests.Attribute} attrib
-	 * @param{number}
+	 * @param{number=} id
 	 * @return{string}
 	 */
 	glsAttributeLocationTests.generateToVec4Expression = function(attrib, id) {
@@ -198,6 +203,7 @@ goog.scope(function() {
 	glsAttributeLocationTests.generateOutputCode = function(attributes) {
 		/** @type{string} */ var src = '';
 		/** @type{number} */ var i;
+		/** @type{number} */ var j;
 
 		for (i = 0; i < attributes.length; i++)	{
 			if (attributes[i].getCondition().equals(glsAttributeLocationTests.NewCondWithEnum(glsAttributeLocationTests.ConstCond.NEVER))) {
@@ -318,7 +324,7 @@ goog.scope(function() {
 		// \note On GLES only GLSL #version 100 supports aliasing
 		/** @type{gluShaderUtil.GLSLVersion} */ var glslVersion = gluShaderUtil.getGLSLVersion(gl);
 
-		/** @type{string} */ var parameters = [];
+		/** @type{Array<string>} */ var parameters = [];
 
 		if (gluShaderUtil.isGLSLVersionSupported(gl, gluShaderUtil.GLSLVersion.V300_ES)) {
 			parameters['VERSION']					= gluShaderUtil.getGLSLVersionDeclaration(glslVersion);
@@ -466,8 +472,7 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 	*/
 
 	/**
-	 * @param {glsAttributeLocationTests.AttribType} gl
-	 * @param {number} program
+	 * @param {WebGLProgram} program
 	 * @param {Array<glsAttributeLocationTests.Attribute>} attributes
 	 * @return {boolean}
 	 */
@@ -475,9 +480,9 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 		/** @type {number} */ var activeAttribCount = 0;
 		/** @type {Array<string>} */ var activeAttributes = [];
 		/** @type {boolean} */ var isOk = true;
-		/** @type {number} */ var activeAttribNdx = true;
+		/** @type {number} */ var activeAttribNdx;
 
-		activeAttribCount = gl.getProgramParameter(program, gl.ACTIVE_ATTRIBUTES);
+		activeAttribCount = /** @type {number} */  (gl.getProgramParameter(program, gl.ACTIVE_ATTRIBUTES));
 
 		/** @type {string} */ var name;
 		/** @type {number} */ var maxNameSize;
@@ -573,20 +578,19 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 	};
 
 	/**
-	 * @param {glsAttributeLocationTests.AttribType} gl
-	 * @param {number} program
+	 * @param {WebGLProgram} program
 	 * @param {Array<glsAttributeLocationTests.Attribute>} attributes
-	 * @param {Array<string,number>} bindings
+	 * @param {Array<modules.shared.glsAttributeLocationTests.Bind>} bindings
 	 * @return {boolean}
 	 */
 	glsAttributeLocationTests.checkAttribLocationQuery = function(program, attributes, bindings) {
-		/** @type{bolean} */ var isOk = true;
+		/** @type{boolean} */ var isOk = true;
 		/** @type{number} */ var attribNdx;
 
 		for (attribNdx = 0; attribNdx < attributes.length; attribNdx++) {
 			/** @type{glsAttributeLocationTests.Attribute} */ var attrib = attributes[attribNdx];
 			/** @type{number} */ var expectedLocation	= (attrib.getLayoutLocation() != glsAttributeLocationTests.LocationEnum.UNDEF ? attrib.getLayoutLocation() : glsAttributeLocationTests.getBoundLocation(bindings, attrib.getName()));
-			/** @type{number} */ var location = gl.getAttribLocation(program, attrib.getName());
+			/** @type{number} */ var location = /** @type{number} */ (gl.getAttribLocation(program, attrib.getName()));
 
 			//GLU_EXPECT_NO_ERROR(gl.getError(), "glGetAttribLocation()");
 
@@ -609,10 +613,9 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 	}
 
 	/**
-	 * @param {glsAttributeLocationTests.AttribType} gl
-	 * @param {number} program
+	 * @param {WebGLProgram} program
 	 * @param {Array<glsAttributeLocationTests.Attribute>} attributes
-	 * @param {Array<string,number>} bindings
+	 * @param {Array<glsAttributeLocationTests.Bind>} bindings
 	 * @return {boolean}
 	 */
 	glsAttributeLocationTests.checkQuery = function(program, attributes, bindings) {
@@ -625,7 +628,7 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 	}
 
 	/**
-	 * @param {number} program
+	 * @param {WebGLProgram} program
 	 * @param {Array<glsAttributeLocationTests.Attribute>} attributes
 	 * @param {boolean} attributeAliasing
 	 * @return {Object}
@@ -634,8 +637,8 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 		/** @type{string} */ var vertexShaderSource = glsAttributeLocationTests.createVertexShaderSource(attributes, attributeAliasing);
 		/** @type{string} */ var fragmentShaderSource	= glsAttributeLocationTests.createFragmentShaderSource(attributeAliasing);
 
- 		/** @type{number} */ var vertexShader = gl.createShader(gl.VERTEX_SHADER);
- 		/** @type{number} */ var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+ 		/** @type{WebGLShader} */ var vertexShader = gl.createShader(gl.VERTEX_SHADER);
+ 		/** @type{WebGLShader} */ var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
 
 		try
 		{
@@ -691,9 +694,8 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 
 
 	/**
-	 * @param {number} program
+	 * @param {WebGLProgram} program
 	 * @param {Array<glsAttributeLocationTests.Bind>} binds
-	 * @return {string}
 	 */
 	glsAttributeLocationTests.bindAttributes = function(program, binds) {
 		for (var i = 0; i < binds.length; i++) {
@@ -706,7 +708,7 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 
 	/**
 	 * @param {glsAttributeLocationTests.AttribType} type
-	 * @param {number} arraySize
+	 * @param {number=} arraySize
 	 * @return {string}
 	 */
 	glsAttributeLocationTests.generateTestName = function(type, arraySize) {
@@ -770,7 +772,7 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 	 * @return{glsAttributeLocationTests.Cond}
 	 */
 	glsAttributeLocationTests.NewCondWithEnum = function(cond) {
-		var condObj = new glsAttributeLocationTests.Cond();
+		var condObj = new glsAttributeLocationTests.Cond('',false);
 		condObj.m_name = '__always__';
 		condObj.m_negate = (cond != glsAttributeLocationTests.ConstCond.NEVER);
 
@@ -829,7 +831,7 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 	 * @param{glsAttributeLocationTests.AttribType} type
 	 * @param{string} name
 	 * @param{number=} layoutLocation
-	 * @param{glsAttributeLocationTests.Con=} cond
+	 * @param{glsAttributeLocationTests.Cond=} cond
 	 * @param{number=} arraySize
 	 */
 	glsAttributeLocationTests.Attribute = function(type, name, layoutLocation, cond, arraySize) {
@@ -849,7 +851,7 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 	};
 
 	/**
-	 * @return{String}
+	 * @return{string}
 	 */
 	glsAttributeLocationTests.Attribute.prototype.getName = function() {
 		return this.m_name;
@@ -910,7 +912,6 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 	 * @param{boolean} relink
 	 * @param{boolean?} reattach
 	 * @param{Array<glsAttributeLocationTests.Attribute>?} reattachAttributes
-	 * @return{number}
 	 */
 	glsAttributeLocationTests.runTest = function(attributes, preAttachBind, preLinkBind, postLinkBind, relink, reattach, reattachAttributes) {
 		reattach = reattach || false;
@@ -990,7 +991,7 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 				//GLU_EXPECT_NO_ERROR(gl.getError(), "glDetachShader()");
 
 				//log << TestLog::Message << "Create and attach shaders to program." << TestLog::EndMessage;
-				glsAttributeLocationTests.createAndAttachShaders(program, reattachAttributes, hasAttributeAliasing(reattachAttributes, activeBindings));
+				glsAttributeLocationTests.createAndAttachShaders(program, reattachAttributes, glsAttributeLocationTests.hasAttributeAliasing(reattachAttributes, activeBindings));
 
 				//log << TestLog::Message << "Relink program." << TestLog::EndMessage;
 				gl.linkProgram(program);
@@ -1021,8 +1022,6 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 	/**
 	 * @constructor
 	 * @extends {tcuTestCase.DeqpTest}
-     * @param {string} name
-     * @param {string} desc
 	 * @param{glsAttributeLocationTests.AttribType} type
 	 * @param {number=} arraySize
 	 */
@@ -1051,10 +1050,6 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 	/**
 	 * @constructor
 	 * @extends {tcuTestCase.DeqpTest}
-     * @param {string} name
-     * @param {string} desc
-	 * @param{TestContext} testCtx
-	 * @param{RenderContext} renderCtx
 	 * @param{glsAttributeLocationTests.AttribType} type
 	 * @param {number=} arraySize
 	 */
@@ -1091,10 +1086,6 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 	/**
 	 * @constructor
 	 * @extends {tcuTestCase.DeqpTest}
-     * @param {string} name
-     * @param {string} desc
-	 * @param{TestContext} testCtx
-	 * @param{RenderContext} renderCtx
 	 * @param{glsAttributeLocationTests.AttribType} type
 	 * @param{number=} offset
 	 * @param {number=} arraySize
@@ -1127,10 +1118,6 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 	/**
 	 * @constructor
 	 * @extends {tcuTestCase.DeqpTest}
-     * @param {string} name
-     * @param {string} desc
-	 * @param{TestContext} testCtx
-	 * @param{RenderContext} renderCtx
 	 * @param{glsAttributeLocationTests.AttribType} type
 	 * @param {number=} arraySize
 	 */
@@ -1171,10 +1158,6 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 	/**
 	 * @constructor
 	 * @extends {tcuTestCase.DeqpTest}
-     * @param {string} name
-     * @param {string} desc
-	 * @param{TestContext} testCtx
-	 * @param{RenderContext} renderCtx
 	 * @param{glsAttributeLocationTests.AttribType} type
 	 * @param {number=} arraySize
 	 */
@@ -1217,10 +1200,6 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 	/**
 	 * @constructor
 	 * @extends {tcuTestCase.DeqpTest}
-     * @param {string} name
-     * @param {string} desc
-	 * @param{TestContext} testCtx
-	 * @param{RenderContext} renderCtx
 	 * @param{glsAttributeLocationTests.AttribType} type
 	 * @param {number=} arraySize
 	 */
@@ -1264,10 +1243,6 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 	/**
 	 * @constructor
 	 * @extends {tcuTestCase.DeqpTest}
-     * @param {string} name
-     * @param {string} desc
-	 * @param{TestContext} testCtx
-	 * @param{RenderContext} renderCtx
 	 */
 	glsAttributeLocationTests.PreAttachBindAttributeTest = function() {
 		tcuTestCase.DeqpTest.call(this, "pre_attach", "pre_attach");
@@ -1294,10 +1269,6 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 	/**
 	 * @constructor
 	 * @extends {tcuTestCase.DeqpTest}
-     * @param {string} name
-     * @param {string} desc
-	 * @param{TestContext} testCtx
-	 * @param{RenderContext} renderCtx
 	 */
 	glsAttributeLocationTests.PreLinkBindAttributeTest = function() {
 		tcuTestCase.DeqpTest.call(this, "pre_link", "pre_link");
@@ -1323,10 +1294,6 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 	/**
 	 * @constructor
 	 * @extends {tcuTestCase.DeqpTest}
-     * @param {string} name
-     * @param {string} desc
-	 * @param{TestContext} testCtx
-	 * @param{RenderContext} renderCtx
 	 */
 	glsAttributeLocationTests.PostLinkBindAttributeTest = function() {
 		tcuTestCase.DeqpTest.call(this, "post_link", "post_link");
@@ -1351,10 +1318,6 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 	/**
 	 * @constructor
 	 * @extends {tcuTestCase.DeqpTest}
-     * @param {string} name
-     * @param {string} desc
-	 * @param{TestContext} testCtx
-	 * @param{RenderContext} renderCtx
 	 */
 	glsAttributeLocationTests.BindReattachAttributeTest = function() {
 		tcuTestCase.DeqpTest.call(this, "reattach", "reattach");
@@ -1386,10 +1349,6 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 	/**
 	 * @constructor
 	 * @extends {tcuTestCase.DeqpTest}
-     * @param {string} name
-     * @param {string} desc
-	 * @param{TestContext} testCtx
-	 * @param{RenderContext} renderCtx
 	 * @param{glsAttributeLocationTests.AttribType} type
 	 * @param {number=} arraySize
 	 */
@@ -1415,10 +1374,6 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 	/**
 	 * @constructor
 	 * @extends {tcuTestCase.DeqpTest}
-     * @param {string} name
-     * @param {string} desc
-	 * @param{TestContext} testCtx
-	 * @param{RenderContext} renderCtx
 	 * @param{glsAttributeLocationTests.AttribType} type
 	 * @param {number=} arraySize
 	 */
@@ -1454,10 +1409,6 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 	/**
 	 * @constructor
 	 * @extends {tcuTestCase.DeqpTest}
-     * @param {string} name
-     * @param {string} desc
-	 * @param{TestContext} testCtx
-	 * @param{RenderContext} renderCtx
 	 * @param{glsAttributeLocationTests.AttribType} type
 	 * @param {number=} arraySize
 	 */
@@ -1499,10 +1450,6 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 	/**
 	 * @constructor
 	 * @extends {tcuTestCase.DeqpTest}
-     * @param {string} name
-     * @param {string} desc
-	 * @param{TestContext} testCtx
-	 * @param{RenderContext} renderCtx
 	 * @param{glsAttributeLocationTests.AttribType} type
 	 * @param {number=} arraySize
 	 */
@@ -1531,10 +1478,6 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 	/**
 	 * @constructor
 	 * @extends {tcuTestCase.DeqpTest}
-     * @param {string} name
-     * @param {string} desc
-	 * @param{TestContext} testCtx
-	 * @param{RenderContext} renderCtx
 	 * @param{glsAttributeLocationTests.AttribType} type
 	 * @param {number=} arraySize
 	 */
@@ -1579,10 +1522,6 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 	/**
 	 * @constructor
 	 * @extends {tcuTestCase.DeqpTest}
-     * @param {string} name
-     * @param {string} desc
-	 * @param{TestContext} testCtx
-	 * @param{RenderContext} renderCtx
 	 * @param{glsAttributeLocationTests.AttribType} type
 	 * @param {number=} arraySize
 	 */
@@ -1630,10 +1569,6 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 	/**
 	 * @constructor
 	 * @extends {tcuTestCase.DeqpTest}
-     * @param {string} name
-     * @param {string} desc
-	 * @param{TestContext} testCtx
-	 * @param{RenderContext} renderCtx
 	 */
 	glsAttributeLocationTests.BindRelinkAttributeTest = function() {
 		tcuTestCase.DeqpTest.call(this, "relink", "relink");
@@ -1665,10 +1600,6 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 	/**
 	 * @constructor
 	 * @extends {tcuTestCase.DeqpTest}
-     * @param {string} name
-     * @param {string} desc
-	 * @param{TestContext} testCtx
-	 * @param{RenderContext} renderCtx
 	 * @param{glsAttributeLocationTests.AttribType} type
 	 * @param {number=} arraySize
 	 */
@@ -1716,10 +1647,6 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 	/**
 	 * @constructor
 	 * @extends {tcuTestCase.DeqpTest}
-     * @param {string} name
-     * @param {string} desc
-	 * @param{TestContext} testCtx
-	 * @param{RenderContext} renderCtx
 	 * @param{glsAttributeLocationTests.AttribType} type
 	 * @param {number=} arraySize
 	 */
@@ -1770,10 +1697,6 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 	/**
 	 * @constructor
 	 * @extends {tcuTestCase.DeqpTest}
-     * @param {string} name
-     * @param {string} desc
-	 * @param{TestContext} testCtx
-	 * @param{RenderContext} renderCtx
 	 */
 	glsAttributeLocationTests.PreAttachMixedAttributeTest = function() {
 		tcuTestCase.DeqpTest.call(this, "pre_attach", "pre_attach");
@@ -1798,10 +1721,6 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 	/**
 	 * @constructor
 	 * @extends {tcuTestCase.DeqpTest}
-     * @param {string} name
-     * @param {string} desc
-	 * @param{TestContext} testCtx
-	 * @param{RenderContext} renderCtx
 	 */
 	glsAttributeLocationTests.PreLinkMixedAttributeTest = function() {
 		tcuTestCase.DeqpTest.call(this, "pre_link", "pre_link");
@@ -1826,10 +1745,6 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 	/**
 	 * @constructor
 	 * @extends {tcuTestCase.DeqpTest}
-     * @param {string} name
-     * @param {string} desc
-	 * @param{TestContext} testCtx
-	 * @param{RenderContext} renderCtx
 	 */
 	glsAttributeLocationTests.PostLinkMixedAttributeTest = function() {
 		tcuTestCase.DeqpTest.call(this, "post_link", "post_link");
@@ -1854,10 +1769,6 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 	/**
 	 * @constructor
 	 * @extends {tcuTestCase.DeqpTest}
-     * @param {string} name
-     * @param {string} desc
-	 * @param{TestContext} testCtx
-	 * @param{RenderContext} renderCtx
 	 */
 	glsAttributeLocationTests.MixedReattachAttributeTest = function() {
 		tcuTestCase.DeqpTest.call(this, "reattach", "reattach");
@@ -1888,10 +1799,6 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 	/**
 	 * @constructor
 	 * @extends {tcuTestCase.DeqpTest}
-     * @param {string} name
-     * @param {string} desc
-	 * @param{TestContext} testCtx
-	 * @param{RenderContext} renderCtx
 	 */
 	glsAttributeLocationTests.MixedRelinkAttributeTest = function() {
 		tcuTestCase.DeqpTest.call(this, "relink", "relink");
