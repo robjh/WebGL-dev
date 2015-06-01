@@ -24,15 +24,15 @@
 'use strict';
 goog.provide('modules.shared.glsAttributeLocationTests');
 goog.require('framework.common.tcuTestCase');
-goog.require('modules.shared.glsFboUtil');
 goog.require('framework.opengl.gluShaderUtil');
+goog.require('framework.common.tcuStringTemplate');
 
 goog.scope(function() {
 
 	var glsAttributeLocationTests = modules.shared.glsAttributeLocationTests;
 	var tcuTestCase = framework.common.tcuTestCase;
-	var glsFboUtil = modules.shared.glsFboUtil;
 	var gluShaderUtil = framework.opengl.gluShaderUtil;
+	var tcuStringTemplate = framework.common.tcuStringTemplate;
 
 	var DE_ASSERT = function(x) {
         if (!x)
@@ -40,13 +40,20 @@ goog.scope(function() {
     };
 
     /**
-     * @param{Array<>} bindings
+     * @param{Array<number>} bindings
      * @param{string} attrib
-     * @return {?number}
+     * @return {number}
      */
     glsAttributeLocationTests.getBoundLocation = function(bindings, attrib) {
-		/** @type{?number} */ var value = bindings[attrib];
-		return (value == null ? glsAttributeLocationTests.LocationEnum.UNDEF : value);
+		/** @type{number} */ var value;
+		/** @type{number} */ var i;
+		for (i = 0; i < bindings.length; i++) {
+			if (bindings[attrib]) {
+				value = bindings[attrib];
+				break;
+			}
+		}
+		return (value ? value : glsAttributeLocationTests.LocationEnum.UNDEF);
 	}
 
 	/**
@@ -71,7 +78,7 @@ goog.scope(function() {
 
 	/**
 	 * @param{Array<glsAttributeLocationTests.Attribute>} attributes
-	 * @param{glsFboUtil.Map} bindings
+	 * @param{Array<number>} bindings
 	 * @return{boolean}
 	 */
 	glsAttributeLocationTests.hasAttributeAliasing = function(attributes, bindings) {
@@ -106,7 +113,7 @@ goog.scope(function() {
 	glsAttributeLocationTests.getMaxAttributeLocations = function() {
 		/** @type{number} */ var maxAttribs;
 
-		maxAttribs = gl.getParameter(gl.MAX_VERTEX_ATTRIBS);
+		maxAttribs = /** @type{number} */  (gl.getParameter(gl.MAX_VERTEX_ATTRIBS));
 		// GLU_EXPECT_NO_ERROR(gl.getError(), "glGetIntegerv()");
 
 		return maxAttribs;
@@ -145,8 +152,8 @@ goog.scope(function() {
 		/** @type{Array<string>} */ var conditions = [];
 
 		for (i = 0; i < attributes.length; i++)	{
-			if (attributes[i].getCondition() != glsAttributeLocationTests.ConstCond.NEVER
-				&& attributes[i].getCondition() != glsAttributeLocationTests.ConstCond.ALWAYS)
+			if (attributes[i].getCondition().notEquals(glsAttributeLocationTests.NewCondWithEnum(glsAttributeLocationTests.ConstCond.NEVER))
+				&& attributes[i].getCondition().notEquals(glsAttributeLocationTests.NewCondWithEnum(glsAttributeLocationTests.ConstCond.ALWAYS)))
 			conditions.push(attributes[i].getCondition().getName());
 		}
 
@@ -158,7 +165,7 @@ goog.scope(function() {
 
 	/**
 	 * @param{glsAttributeLocationTests.Attribute} attrib
-	 * @param{number}
+	 * @param{number=} id
 	 * @return{string}
 	 */
 	glsAttributeLocationTests.generateToVec4Expression = function(attrib, id) {
@@ -196,9 +203,10 @@ goog.scope(function() {
 	glsAttributeLocationTests.generateOutputCode = function(attributes) {
 		/** @type{string} */ var src = '';
 		/** @type{number} */ var i;
+		/** @type{number} */ var j;
 
 		for (i = 0; i < attributes.length; i++)	{
-			if (attributes[i].getCondition() == glsAttributeLocationTests.ConstCond.NEVER) {
+			if (attributes[i].getCondition().equals(glsAttributeLocationTests.NewCondWithEnum(glsAttributeLocationTests.ConstCond.NEVER))) {
 				src += '\tif (0 != 0)\n';
 				src += '\t{\n';
 
@@ -210,7 +218,7 @@ goog.scope(function() {
 				}
 
 				src += '\t}\n';
-			} else if (attributes[i].getCondition() == glsAttributeLocationTests.ConstCond.ALWAYS) {
+			} else if (attributes[i].getCondition().equals(glsAttributeLocationTests.NewCondWithEnum(glsAttributeLocationTests.ConstCond.ALWAYS))) {
 				if (attributes[i].getArraySize() == glsAttributeLocationTests.ArrayEnum.NOT)
 					src += ('\tcolor += ' + glsAttributeLocationTests.generateToVec4Expression(attributes[i]) + ';\n');
 				else {
@@ -260,7 +268,7 @@ goog.scope(function() {
 
 		src += '\n';
 		src += '\tv_color = color;\n';
-		src += '\tgl.Position = color;\n';
+		src += '\tgl_Position = color;\n';
 		src += '}\n';
 
 		return src;
@@ -296,7 +304,7 @@ goog.scope(function() {
 		else
             throw new Error('Invalid GL version');
 
-		return tcuStringTemplate.specialize(parameters);
+		return tcuStringTemplate.specialize(vertexShaderTemplate, parameters);
 	}
 
 	/**
@@ -316,7 +324,7 @@ goog.scope(function() {
 		// \note On GLES only GLSL #version 100 supports aliasing
 		/** @type{gluShaderUtil.GLSLVersion} */ var glslVersion = gluShaderUtil.getGLSLVersion(gl);
 
-		/** @type{string} */ var parameters = [];
+		/** @type{Array<string>} */ var parameters = [];
 
 		if (gluShaderUtil.isGLSLVersionSupported(gl, gluShaderUtil.GLSLVersion.V300_ES)) {
 			parameters['VERSION']					= gluShaderUtil.getGLSLVersionDeclaration(glslVersion);
@@ -330,12 +338,12 @@ goog.scope(function() {
 			parameters['VTX_OUTPUT']				= 'varying';
 			parameters['VTX_INPUT']					= 'attribute';
 			parameters['FRAG_INPUT']				= 'varying';
-			parameters['FRAG_OUTPUT_VAR']			= 'gl.FragColor';
+			parameters['FRAG_OUTPUT_VAR']			= 'gl_FragColor';
 			parameters['FRAG_OUTPUT_DECLARATION']	= '';
 		} else
 			throw new Error('Invalid GL version');
 
-		return tcuStringTemplate.specialize(parameters);
+		return tcuStringTemplate.specialize(fragmentShaderSource, parameters);
 	}
 
 /*
@@ -351,7 +359,7 @@ string getShaderInfoLog (const glw::Functions& gl, deUint32 shader)
 
 	infoLog.resize(length, '\0');
 
-	gl.getShaderInfoLog(shader, (glw::GLsizei)infoLog.length(), DE_NULL, &(infoLog[0]));
+	gl.getShaderInfoLog(shader, (glw::GLsizei)infoLog.length(), null, &(infoLog[0]));
 	GLU_EXPECT_NO_ERROR(gl.getError(), "glGetShaderInfoLog()");
 
 	return infoLog;
@@ -377,7 +385,7 @@ string getProgramInfoLog (const glw::Functions& gl, deUint32 program)
 
 	infoLog.resize(length, '\0');
 
-	gl.getProgramInfoLog(program, (glw::GLsizei)infoLog.length(), DE_NULL, &(infoLog[0]));
+	gl.getProgramInfoLog(program, (glw::GLsizei)infoLog.length(), null, &(infoLog[0]));
 	GLU_EXPECT_NO_ERROR(gl.getError(), "glGetProgramInfoLog()");
 
 	return infoLog;
@@ -461,128 +469,128 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 	}
 }
 
-bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 program, const vector<Attribute>& attributes)
-{
-	deInt32					activeAttribCount = 0;
-	set<string>				activeAttributes;
-	bool					isOk = true;
-
-	gl.getProgramiv(program, gl.ACTIVE_ATTRIBUTES, &activeAttribCount);
-	GLU_EXPECT_NO_ERROR(gl.getError(), "glGetProgramiv(program, gl.ACTIVE_ATTRIBUTES, &activeAttribCount)");
-
-	for (int activeAttribNdx = 0; activeAttribNdx < activeAttribCount; activeAttribNdx++)
-	{
-		char			name[128];
-		const size_t	maxNameSize = DE_LENGTH_OF_ARRAY(name) - 1;
-		deInt32			length = 0;
-		deInt32			size = 0;
-		deUint32		type = 0;
-
-		std::memset(name, 0, sizeof(name));
-
-		gl.getActiveAttrib(program, activeAttribNdx, maxNameSize, &length, &size, &type, name);
-		GLU_EXPECT_NO_ERROR(gl.getError(), "glGetActiveAttrib()");
-
-		log << TestLog::Message
-			<< "glGetActiveAttrib(program"
-			<< ", index=" << activeAttribNdx
-			<< ", bufSize=" << maxNameSize
-			<< ", length=" << length
-			<< ", size=" << size
-			<< ", type=" << glu::getShaderVarTypeStr(type)
-			<< ", name='" << name << "')" << TestLog::EndMessage;
-
-		{
-			bool found = false;
-
-			for (int attribNdx = 0; attribNdx < (int)attributes.size(); attribNdx++)
-			{
-				const Attribute& attrib = attributes[attribNdx];
-
-				if (attrib.getName() == name)
-				{
-					if (type != attrib.getType().getGLTypeEnum())
-					{
-						log << TestLog::Message
-							<< "Error: Wrong type " << glu::getShaderVarTypeStr(type)
-							<< " expected " << glu::getShaderVarTypeStr(attrib.getType().getGLTypeEnum())
-							<< TestLog::EndMessage;
-
-						isOk = false;
-					}
-
-					if (attrib.getArraySize() == glsAttributeLocationTests.ArrayEnum.NOT)
-					{
-						if (size != 1)
-						{
-							log << TestLog::Message << "Error: Wrong size " << size << " expected " << 1 << TestLog::EndMessage;
-							isOk = false;
-						}
-					}
-					else
-					{
-						if (size != attrib.getArraySize())
-						{
-							log << TestLog::Message << "Error: Wrong size " << size << " expected " << attrib.getArraySize() << TestLog::EndMessage;
-							isOk = false;
-						}
-					}
-
-					found = true;
-					break;
-				}
-			}
-
-			if (!found)
-			{
-				log << TestLog::Message << "Error: Unknown attribute '" << name << "' returned by glGetActiveAttrib()." << TestLog::EndMessage;
-				isOk = false;
-			}
-		}
-
-		activeAttributes.insert(name);
-	}
-
-	for (int attribNdx = 0; attribNdx < (int)attributes.size(); attribNdx++)
-	{
-		const Attribute&	attrib		= attributes[attribNdx];
-		const bool			isActive	= attrib.getCondition() != glsAttributeLocationTests.ConstCond.NEVER;
-
-		if (isActive)
-		{
-			if (activeAttributes.find(attrib.getName()) == activeAttributes.end())
-			{
-				log << TestLog::Message << "Error: Active attribute " << attrib.getName() << " wasn't returned by glGetActiveAttrib()." << TestLog::EndMessage;
-				isOk = false;
-			}
-		}
-		else
-		{
-			if (activeAttributes.find(attrib.getName()) != activeAttributes.end())
-				log << TestLog::Message << "Note: Inactive attribute " << attrib.getName() << " was returned by glGetActiveAttrib()." << TestLog::EndMessage;
-		}
-	}
-
-	return isOk;
-}
-
 	*/
 
 	/**
-	 * @param {glsAttributeLocationTests.AttribType} gl
-	 * @param {number} program
+	 * @param {WebGLProgram} program
 	 * @param {Array<glsAttributeLocationTests.Attribute>} attributes
-	 * @param {Array<string,number>} bindings
+	 * @return {boolean}
+	 */
+	glsAttributeLocationTests.checkActiveAttribQuery = function(program, attributes) {
+		/** @type {number} */ var activeAttribCount = 0;
+		/** @type {Array<string>} */ var activeAttributes = [];
+		/** @type {boolean} */ var isOk = true;
+		/** @type {number} */ var activeAttribNdx;
+
+		activeAttribCount = /** @type {number} */  (gl.getProgramParameter(program, gl.ACTIVE_ATTRIBUTES));
+
+		/** @type {string} */ var name;
+		/** @type {number} */ var maxNameSize;
+		/** @type {number} */ var length;
+		/** @type {number} */ var size;
+		/** @type {number} */ var type;
+
+		/** @type {number} */ var attribNdx;
+		/** @type {glsAttributeLocationTests.Attribute} */ var attrib;
+		/** @type {boolean} */ var isActive;
+		/** @type {WebGLActiveInfo} */ var activeInfo;
+
+		for (activeAttribNdx = 0; activeAttribNdx < activeAttribCount; activeAttribNdx++)	{
+
+			maxNameSize = 127;
+			length = 0;
+			size = 0;
+			type = 0;
+
+			// std::memset(name, 0, sizeof(name));
+
+			activeInfo = gl.getActiveAttrib(program, activeAttribNdx);
+			// GLU_EXPECT_NO_ERROR(gl.getError(), "glGetActiveAttrib()");
+
+			// log << TestLog::Message
+			// 	<< "glGetActiveAttrib(program"
+			// 	<< ", index=" << activeAttribNdx
+			// 	<< ", bufSize=" << maxNameSize
+			// 	<< ", length=" << length
+			// 	<< ", size=" << size
+			// 	<< ", type=" << glu::getShaderVarTypeStr(type)
+			// 	<< ", name='" << name << "')" << TestLog::EndMessage;
+
+			{
+				/** @type{boolean} */ var found = false;
+
+				for (attribNdx = 0; attribNdx < attributes.length; attribNdx++)	{
+					attrib = attributes[attribNdx];
+
+					if (attrib.getName() == name)	{
+						if (activeInfo.type != attrib.getType().getGLTypeEnum())	{
+							// log << TestLog::Message
+							// 	<< "Error: Wrong type " << glu::getShaderVarTypeStr(type)
+							// 	<< " expected " << glu::getShaderVarTypeStr(attrib.getType().getGLTypeEnum())
+							// 	<< TestLog::EndMessage;
+
+							isOk = false;
+						}
+
+						if (attrib.getArraySize() == glsAttributeLocationTests.ArrayEnum.NOT)	{
+							if (activeInfo.size != 1) {
+								// log << TestLog::Message << "Error: Wrong size " << size << " expected " << 1 << TestLog::EndMessage;
+								isOk = false;
+							}
+						} else {
+							if (activeInfo.size != attrib.getArraySize()) {
+								// log << TestLog::Message << "Error: Wrong size " << size << " expected " << attrib.getArraySize() << TestLog::EndMessage;
+								isOk = false;
+							}
+						}
+
+						found = true;
+						break;
+					}
+				}
+
+				if (!found)	{
+					// log << TestLog::Message << "Error: Unknown attribute '" << name << "' returned by glGetActiveAttrib()." << TestLog::EndMessage;
+					isOk = false;
+				}
+			}
+
+			activeAttributes.push(name);
+		}
+
+		for (attribNdx = 0; attribNdx < attributes.length; attribNdx++)	{
+			attrib = attributes[attribNdx];
+			isActive = attrib.getCondition().notEquals(glsAttributeLocationTests.NewCondWithEnum(glsAttributeLocationTests.ConstCond.NEVER));
+
+			if (isActive) {
+				if (activeAttributes[attrib.getName()] === undefined) {
+					// log << TestLog::Message << "Error: Active attribute " << attrib.getName() << " wasn't returned by glGetActiveAttrib()." << TestLog::EndMessage;
+					isOk = false;
+				}
+			}
+			// else {
+				// if (activeAttributes.find(attrib.getName()) != activeAttributes.end())
+					// log << TestLog::Message << "Note: Inactive attribute " << attrib.getName() << " was returned by glGetActiveAttrib()." << TestLog::EndMessage;
+			// }
+		}
+
+		return isOk;
+	};
+
+	/**
+	 * @param {WebGLProgram} program
+	 * @param {Array<glsAttributeLocationTests.Attribute>} attributes
+	 * @param {Array<number>} bindings
 	 * @return {boolean}
 	 */
 	glsAttributeLocationTests.checkAttribLocationQuery = function(program, attributes, bindings) {
-		/** @type{bolean} */ var isOk = true;
+		/** @type{boolean} */ var isOk = true;
 		/** @type{number} */ var attribNdx;
 
 		for (attribNdx = 0; attribNdx < attributes.length; attribNdx++) {
 			/** @type{glsAttributeLocationTests.Attribute} */ var attrib = attributes[attribNdx];
 			/** @type{number} */ var expectedLocation	= (attrib.getLayoutLocation() != glsAttributeLocationTests.LocationEnum.UNDEF ? attrib.getLayoutLocation() : glsAttributeLocationTests.getBoundLocation(bindings, attrib.getName()));
-			/** @type{number} */ var location = gl.getAttribLocation(program, attrib.getName());
+			/** @type{number} */ var location = /** @type{number} */ (gl.getAttribLocation(program, attrib.getName()));
 
 			//GLU_EXPECT_NO_ERROR(gl.getError(), "glGetAttribLocation()");
 
@@ -597,17 +605,17 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 			// if (attrib.getCondition() != glsAttributeLocationTests.ConstCond.NEVER && expectedLocation != glsAttributeLocationTests.LocationEnum.UNDEF && expectedLocation != location)
 			// 	log << TestLog::Message << "\tError: Invalid attribute location." << TestLog::EndMessage;
 
-			isOk &= (attrib.getCondition() == glsAttributeLocationTests.ConstCond.NEVER || expectedLocation == glsAttributeLocationTests.LocationEnum.UNDEF || expectedLocation == location);
+			// &=
+			isOk = (attrib.getCondition().equals(glsAttributeLocationTests.NewCondWithEnum(glsAttributeLocationTests.ConstCond.NEVER)) || expectedLocation == glsAttributeLocationTests.LocationEnum.UNDEF || expectedLocation == location);
 		}
 
 		return isOk;
 	}
 
 	/**
-	 * @param {glsAttributeLocationTests.AttribType} gl
-	 * @param {number} program
+	 * @param {WebGLProgram} program
 	 * @param {Array<glsAttributeLocationTests.Attribute>} attributes
-	 * @param {Array<string,number>} bindings
+	 * @param {Array<number>} bindings
 	 * @return {boolean}
 	 */
 	glsAttributeLocationTests.checkQuery = function(program, attributes, bindings) {
@@ -620,7 +628,7 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 	}
 
 	/**
-	 * @param {number} program
+	 * @param {WebGLProgram} program
 	 * @param {Array<glsAttributeLocationTests.Attribute>} attributes
 	 * @param {boolean} attributeAliasing
 	 * @return {Object}
@@ -629,8 +637,8 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 		/** @type{string} */ var vertexShaderSource = glsAttributeLocationTests.createVertexShaderSource(attributes, attributeAliasing);
 		/** @type{string} */ var fragmentShaderSource	= glsAttributeLocationTests.createFragmentShaderSource(attributeAliasing);
 
- 		/** @type{number} */ var vertexShader = gl.createShader(gl.VERTEX_SHADER);
- 		/** @type{number} */ var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+ 		/** @type{WebGLShader} */ var vertexShader = gl.createShader(gl.VERTEX_SHADER);
+ 		/** @type{WebGLShader} */ var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
 
 		try
 		{
@@ -638,8 +646,8 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 
 			{
 
- 				gl.shaderSource(vertexShader, 1, vertexShaderSource, DE_NULL);
- 				gl.shaderSource(fragmentShader, 1, fragmentShaderSource, DE_NULL);
+ 				gl.shaderSource(vertexShader, vertexShaderSource);
+ 				gl.shaderSource(fragmentShader, fragmentShaderSource);
 
  				//GLU_EXPECT_NO_ERROR(gl.getError(), "glShaderSource()");
 			}
@@ -686,9 +694,8 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 
 
 	/**
-	 * @param {number} program
+	 * @param {WebGLProgram} program
 	 * @param {Array<glsAttributeLocationTests.Bind>} binds
-	 * @return {string}
 	 */
 	glsAttributeLocationTests.bindAttributes = function(program, binds) {
 		for (var i = 0; i < binds.length; i++) {
@@ -701,7 +708,7 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 
 	/**
 	 * @param {glsAttributeLocationTests.AttribType} type
-	 * @param {number} arraySize
+	 * @param {number=} arraySize
 	 * @return {string}
 	 */
 	glsAttributeLocationTests.generateTestName = function(type, arraySize) {
@@ -753,10 +760,10 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 	/**
 	 * @constructor
 	 * @param{string} name
-	 * @param{boolean} negate
+	 * @param{boolean=} negate
 	 */
 	glsAttributeLocationTests.Cond = function(name, negate) {
-		/** @type{boolean} */ this.m_negate = negate;
+		/** @type{boolean} */ this.m_negate = negate || false;
 		/** @type{string} */ this.m_name = name;
 	};
 
@@ -765,7 +772,7 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 	 * @return{glsAttributeLocationTests.Cond}
 	 */
 	glsAttributeLocationTests.NewCondWithEnum = function(cond) {
-		var condObj = new glsAttributeLocationTests.Cond();
+		var condObj = new glsAttributeLocationTests.Cond('',false);
 		condObj.m_name = '__always__';
 		condObj.m_negate = (cond != glsAttributeLocationTests.ConstCond.NEVER);
 
@@ -780,7 +787,7 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 	 * @return{boolean}
 	 */
 	glsAttributeLocationTests.Cond.prototype.equals = function(other) {
-		return (this.m_negate == other.m_negate && this.n_name == other.n_name);
+		return (this.m_negate == other.m_negate && this.m_name == other.m_name);
 	};
 
 	/**
@@ -824,7 +831,7 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 	 * @param{glsAttributeLocationTests.AttribType} type
 	 * @param{string} name
 	 * @param{number=} layoutLocation
-	 * @param{glsAttributeLocationTests.Con=} cond
+	 * @param{glsAttributeLocationTests.Cond=} cond
 	 * @param{number=} arraySize
 	 */
 	glsAttributeLocationTests.Attribute = function(type, name, layoutLocation, cond, arraySize) {
@@ -844,7 +851,7 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 	};
 
 	/**
-	 * @return{String}
+	 * @return{string}
 	 */
 	glsAttributeLocationTests.Attribute.prototype.getName = function() {
 		return this.m_name;
@@ -903,9 +910,8 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 	 * @param{Array<glsAttributeLocationTests.Bind>} preLinkBind
 	 * @param{Array<glsAttributeLocationTests.Bind>} postLinkBind
 	 * @param{boolean} relink
-	 * @param{boolean?} reattach
-	 * @param{Array<glsAttributeLocationTests.Attribute>?} reattachAttributes
-	 * @return{number}
+	 * @param{boolean=} reattach
+	 * @param{Array<glsAttributeLocationTests.Attribute>=} reattachAttributes
 	 */
 	glsAttributeLocationTests.runTest = function(attributes, preAttachBind, preLinkBind, postLinkBind, relink, reattach, reattachAttributes) {
 		reattach = reattach || false;
@@ -919,7 +925,7 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 		*/
 		try	{
 			/** @type{boolean} */ var isOk = true;
-			/** @type{Array<string,number>} */ var activeBindings = [];
+			/** @type{Array<number>} */ var activeBindings = [];
 
 			/** @type{number} */ var bindNdx = 0;
 			for (bindNdx = 0; bindNdx < preAttachBind.length; bindNdx++)
@@ -985,7 +991,7 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 				//GLU_EXPECT_NO_ERROR(gl.getError(), "glDetachShader()");
 
 				//log << TestLog::Message << "Create and attach shaders to program." << TestLog::EndMessage;
-				glsAttributeLocationTests.createAndAttachShaders(program, reattachAttributes, hasAttributeAliasing(reattachAttributes, activeBindings));
+				glsAttributeLocationTests.createAndAttachShaders(program, reattachAttributes, glsAttributeLocationTests.hasAttributeAliasing(reattachAttributes, activeBindings));
 
 				//log << TestLog::Message << "Relink program." << TestLog::EndMessage;
 				gl.linkProgram(program);
@@ -1016,8 +1022,6 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 	/**
 	 * @constructor
 	 * @extends {tcuTestCase.DeqpTest}
-     * @param {string} name
-     * @param {string} desc
 	 * @param{glsAttributeLocationTests.AttribType} type
 	 * @param {number=} arraySize
 	 */
@@ -1036,7 +1040,7 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 		/** @type{Array<glsAttributeLocationTests.Attribute>} */	var attributes = [];
 		/** @type{Array<glsAttributeLocationTests.Bind>} */ var bindings = [];
 
-		attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_0', glsAttributeLocationTests.LocationEnum.UNDEF, glsAttributeLocationTests.ConstCond.ALWAYS, this.m_arraySize));
+		attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_0', glsAttributeLocationTests.LocationEnum.UNDEF, glsAttributeLocationTests.NewCondWithEnum(glsAttributeLocationTests.ConstCond.ALWAYS), this.m_arraySize));
 		bindings.push(new glsAttributeLocationTests.Bind("a_0", 3));
 
 		glsAttributeLocationTests.runTest(attributes, noBindings, bindings, noBindings, false);
@@ -1046,10 +1050,6 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 	/**
 	 * @constructor
 	 * @extends {tcuTestCase.DeqpTest}
-     * @param {string} name
-     * @param {string} desc
-	 * @param{TestContext} testCtx
-	 * @param{RenderContext} renderCtx
 	 * @param{glsAttributeLocationTests.AttribType} type
 	 * @param {number=} arraySize
 	 */
@@ -1074,7 +1074,7 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 		////this.m_testCtx.getLog() << TestLog::Message << 'gl.MAX_VERTEX_ATTRIBS: ' << maxAttributes << TestLog::EndMessage;
 
 		for (var loc = maxAttributes - (arrayElementCount * this.m_type.getLocationSize()); loc >= 0; loc -= (arrayElementCount * this.m_type.getLocationSize())) {
-			attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_' + ndx, glsAttributeLocationTests.LocationEnum.UNDEF, glsAttributeLocationTests.ConstCond.ALWAYS, this.m_arraySize));
+			attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_' + ndx, glsAttributeLocationTests.LocationEnum.UNDEF, glsAttributeLocationTests.NewCondWithEnum(glsAttributeLocationTests.ConstCond.ALWAYS), this.m_arraySize));
 			bindings.push(new glsAttributeLocationTests.Bind('a_' + ndx, loc));
 			ndx++;
 		}
@@ -1086,10 +1086,6 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 	/**
 	 * @constructor
 	 * @extends {tcuTestCase.DeqpTest}
-     * @param {string} name
-     * @param {string} desc
-	 * @param{TestContext} testCtx
-	 * @param{RenderContext} renderCtx
 	 * @param{glsAttributeLocationTests.AttribType} type
 	 * @param{number=} offset
 	 * @param {number=} arraySize
@@ -1122,10 +1118,6 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 	/**
 	 * @constructor
 	 * @extends {tcuTestCase.DeqpTest}
-     * @param {string} name
-     * @param {string} desc
-	 * @param{TestContext} testCtx
-	 * @param{RenderContext} renderCtx
 	 * @param{glsAttributeLocationTests.AttribType} type
 	 * @param {number=} arraySize
 	 */
@@ -1166,10 +1158,6 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 	/**
 	 * @constructor
 	 * @extends {tcuTestCase.DeqpTest}
-     * @param {string} name
-     * @param {string} desc
-	 * @param{TestContext} testCtx
-	 * @param{RenderContext} renderCtx
 	 * @param{glsAttributeLocationTests.AttribType} type
 	 * @param {number=} arraySize
 	 */
@@ -1200,7 +1188,7 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 			attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_' + ndx, glsAttributeLocationTests.LocationEnum.UNDEF, new glsAttributeLocationTests.Cond('A')));
 			bindings.push(new glsAttributeLocationTests.Bind('a_' + (ndx), loc));
 
-			attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_' + (ndx + maxAttributes), glsAttributeLocationTests.LocationEnum.UNDEF, glsAttributeLocationTests.ConstCond.NEVER));
+			attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_' + (ndx + maxAttributes), glsAttributeLocationTests.LocationEnum.UNDEF, glsAttributeLocationTests.NewCondWithEnum(glsAttributeLocationTests.ConstCond.NEVER)));
 			bindings.push(new glsAttributeLocationTests.Bind('a_' + (ndx + maxAttributes), loc));
 			ndx++;
 		}
@@ -1212,10 +1200,6 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 	/**
 	 * @constructor
 	 * @extends {tcuTestCase.DeqpTest}
-     * @param {string} name
-     * @param {string} desc
-	 * @param{TestContext} testCtx
-	 * @param{RenderContext} renderCtx
 	 * @param{glsAttributeLocationTests.AttribType} type
 	 * @param {number=} arraySize
 	 */
@@ -1236,12 +1220,11 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 
 		/** @type{Array<glsAttributeLocationTests.Attribute>} */	var attributes = [];
 		/** @type{Array<glsAttributeLocationTests.Bind>} */ var bindings = [];
-		/** @type{number} */ var ndx = 0;
 
 		attributes.push(new glsAttributeLocationTests.Attribute(vec4, 'a_0'));
 		bindings.push(new glsAttributeLocationTests.Bind('a_0', 0));
 
-		attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_1', glsAttributeLocationTests.LocationEnum.UNDEF, glsAttributeLocationTests.ConstCond.ALWAYS, this.m_arraySize));
+		attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_1', glsAttributeLocationTests.LocationEnum.UNDEF, glsAttributeLocationTests.NewCondWithEnum(glsAttributeLocationTests.ConstCond.ALWAYS), this.m_arraySize));
 
 		/** @type{number} */ var ndx = 2;
 		/** @type{number} */ var loc;
@@ -1259,10 +1242,6 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 	/**
 	 * @constructor
 	 * @extends {tcuTestCase.DeqpTest}
-     * @param {string} name
-     * @param {string} desc
-	 * @param{TestContext} testCtx
-	 * @param{RenderContext} renderCtx
 	 */
 	glsAttributeLocationTests.PreAttachBindAttributeTest = function() {
 		tcuTestCase.DeqpTest.call(this, "pre_attach", "pre_attach");
@@ -1289,10 +1268,6 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 	/**
 	 * @constructor
 	 * @extends {tcuTestCase.DeqpTest}
-     * @param {string} name
-     * @param {string} desc
-	 * @param{TestContext} testCtx
-	 * @param{RenderContext} renderCtx
 	 */
 	glsAttributeLocationTests.PreLinkBindAttributeTest = function() {
 		tcuTestCase.DeqpTest.call(this, "pre_link", "pre_link");
@@ -1318,10 +1293,6 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 	/**
 	 * @constructor
 	 * @extends {tcuTestCase.DeqpTest}
-     * @param {string} name
-     * @param {string} desc
-	 * @param{TestContext} testCtx
-	 * @param{RenderContext} renderCtx
 	 */
 	glsAttributeLocationTests.PostLinkBindAttributeTest = function() {
 		tcuTestCase.DeqpTest.call(this, "post_link", "post_link");
@@ -1346,10 +1317,6 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 	/**
 	 * @constructor
 	 * @extends {tcuTestCase.DeqpTest}
-     * @param {string} name
-     * @param {string} desc
-	 * @param{TestContext} testCtx
-	 * @param{RenderContext} renderCtx
 	 */
 	glsAttributeLocationTests.BindReattachAttributeTest = function() {
 		tcuTestCase.DeqpTest.call(this, "reattach", "reattach");
@@ -1360,8 +1327,8 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 
 	glsAttributeLocationTests.BindReattachAttributeTest.prototype.iterate = function() {
 		/** @type{Array<glsAttributeLocationTests.Bind>} */ var noBindings = [];
-		/** @type{Array<glsAttributeLocationTests.AttribType>} */ var vec4 = new glsAttributeLocationTests.AttribType('vec4', 1, gl.FLOAT_VEC4);
-		/** @type{Array<glsAttributeLocationTests.AttribType>} */ var vec2 = new glsAttributeLocationTests.AttribType('vec2', 1, gl.FLOAT_VEC2);
+		/** @type{glsAttributeLocationTests.AttribType} */ var vec4 = new glsAttributeLocationTests.AttribType('vec4', 1, gl.FLOAT_VEC4);
+		/** @type{glsAttributeLocationTests.AttribType} */ var vec2 = new glsAttributeLocationTests.AttribType('vec2', 1, gl.FLOAT_VEC2);
 
 		/** @type{Array<glsAttributeLocationTests.Bind>} */ var bindings = [];
 		/** @type{Array<glsAttributeLocationTests.Attribute>} */ var attributes = [];
@@ -1381,10 +1348,6 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 	/**
 	 * @constructor
 	 * @extends {tcuTestCase.DeqpTest}
-     * @param {string} name
-     * @param {string} desc
-	 * @param{TestContext} testCtx
-	 * @param{RenderContext} renderCtx
 	 * @param{glsAttributeLocationTests.AttribType} type
 	 * @param {number=} arraySize
 	 */
@@ -1401,7 +1364,7 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 		/** @type{Array<glsAttributeLocationTests.Bind>} */ var noBindings = [];
 		/** @type{Array<glsAttributeLocationTests.Attribute>} */ var attributes = [];
 
-		attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_0', 3, glsAttributeLocationTests.ConstCond.ALWAYS, this.m_arraySize));
+		attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_0', 3, glsAttributeLocationTests.NewCondWithEnum(glsAttributeLocationTests.ConstCond.ALWAYS), this.m_arraySize));
 
 		glsAttributeLocationTests.runTest(attributes, noBindings, noBindings, noBindings, false);
 		return tcuTestCase.IterateResult.STOP;
@@ -1410,10 +1373,6 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 	/**
 	 * @constructor
 	 * @extends {tcuTestCase.DeqpTest}
-     * @param {string} name
-     * @param {string} desc
-	 * @param{TestContext} testCtx
-	 * @param{RenderContext} renderCtx
 	 * @param{glsAttributeLocationTests.AttribType} type
 	 * @param {number=} arraySize
 	 */
@@ -1438,7 +1397,7 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 
 		/** @type{number} */ var loc;
 		for (loc = maxAttributes - (arrayElementCount * this.m_type.getLocationSize()); loc >= 0; loc -= (arrayElementCount * this.m_type.getLocationSize())) {
-			attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_' + ndx, loc, glsAttributeLocationTests.ConstCond.ALWAYS, this.m_arraySize));
+			attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_' + ndx, loc, glsAttributeLocationTests.NewCondWithEnum(glsAttributeLocationTests.ConstCond.ALWAYS), this.m_arraySize));
 			ndx++;
 		}
 
@@ -1449,10 +1408,6 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 	/**
 	 * @constructor
 	 * @extends {tcuTestCase.DeqpTest}
-     * @param {string} name
-     * @param {string} desc
-	 * @param{TestContext} testCtx
-	 * @param{RenderContext} renderCtx
 	 * @param{glsAttributeLocationTests.AttribType} type
 	 * @param {number=} arraySize
 	 */
@@ -1472,11 +1427,10 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 		/** @type{number} */ var arrayElementCount	= (this.m_arraySize != glsAttributeLocationTests.ArrayEnum.NOT ? this.m_arraySize : 1);
 
 		/** @type{Array<glsAttributeLocationTests.Attribute>} */ var attributes = [];
-		/** @type{number} */ var ndx;
 
 		attributes.push(new glsAttributeLocationTests.Attribute(vec4, 'a_0', 0));
 
-		attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_1', glsAttributeLocationTests.LocationEnum.UNDEF, glsAttributeLocationTests.ConstCond.ALWAYS, this.m_arraySize));
+		attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_1', glsAttributeLocationTests.LocationEnum.UNDEF, glsAttributeLocationTests.NewCondWithEnum(glsAttributeLocationTests.ConstCond.ALWAYS), this.m_arraySize));
 
 		/** @type{number} */ var ndx = 2;
 		/** @type{number} */ var loc;
@@ -1494,10 +1448,6 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 	/**
 	 * @constructor
 	 * @extends {tcuTestCase.DeqpTest}
-     * @param {string} name
-     * @param {string} desc
-	 * @param{TestContext} testCtx
-	 * @param{RenderContext} renderCtx
 	 * @param{glsAttributeLocationTests.AttribType} type
 	 * @param {number=} arraySize
 	 */
@@ -1516,7 +1466,7 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 		/** @type{Array<glsAttributeLocationTests.Bind>} */ var	bindings = [];
 		/** @type{Array<glsAttributeLocationTests.Attribute>} */ var attributes = [];
 
-		attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_0', 3, glsAttributeLocationTests.ConstCond.ALWAYS, this.m_arraySize));
+		attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_0', 3, glsAttributeLocationTests.NewCondWithEnum(glsAttributeLocationTests.ConstCond.ALWAYS), this.m_arraySize));
 		bindings.push(new glsAttributeLocationTests.Bind('a_0', 4));
 
 		glsAttributeLocationTests.runTest(attributes, noBindings, bindings, noBindings, false);
@@ -1526,10 +1476,6 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 	/**
 	 * @constructor
 	 * @extends {tcuTestCase.DeqpTest}
-     * @param {string} name
-     * @param {string} desc
-	 * @param{TestContext} testCtx
-	 * @param{RenderContext} renderCtx
 	 * @param{glsAttributeLocationTests.AttribType} type
 	 * @param {number=} arraySize
 	 */
@@ -1554,15 +1500,12 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 		//this.m_testCtx.getLog() << TestLog::Message << 'gl.MAX_VERTEX_ATTRIBS: ' << maxAttributes << TestLog::EndMessage;
 
 		/** @type{number} */ var loc;
-		for (loc = maxAttributes - (arrayElementCount * this.m_type.getLocationSize()); loc >= 0; loc -= (arrayElementCount * this.m_type.getLocationSize()))
-		{
+		for (loc = maxAttributes - (arrayElementCount * this.m_type.getLocationSize()); loc >= 0; loc -= (arrayElementCount * this.m_type.getLocationSize()))	{
 			if ((ndx % 2) != 0)
-				attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_' + ndx, loc, glsAttributeLocationTests.ConstCond.ALWAYS, this.m_arraySize));
-			else
-			{
-				attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_' + ndx, glsAttributeLocationTests.LocationEnum.UNDEF, glsAttributeLocationTests.ConstCond.ALWAYS, this.m_arraySize));
+				attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_' + ndx, loc, glsAttributeLocationTests.NewCondWithEnum(glsAttributeLocationTests.ConstCond.ALWAYS), this.m_arraySize));
+			else{
+				attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_' + ndx, glsAttributeLocationTests.LocationEnum.UNDEF, glsAttributeLocationTests.NewCondWithEnum(glsAttributeLocationTests.ConstCond.ALWAYS), this.m_arraySize));
 				bindings.push(new glsAttributeLocationTests.Bind('a_' + ndx, loc));
-
 			}
 			ndx++;
 		}
@@ -1574,10 +1517,6 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 	/**
 	 * @constructor
 	 * @extends {tcuTestCase.DeqpTest}
-     * @param {string} name
-     * @param {string} desc
-	 * @param{TestContext} testCtx
-	 * @param{RenderContext} renderCtx
 	 * @param{glsAttributeLocationTests.AttribType} type
 	 * @param {number=} arraySize
 	 */
@@ -1598,12 +1537,11 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 
 		/** @type{Array<glsAttributeLocationTests.Bind>} */ var	bindings = [];
 		/** @type{Array<glsAttributeLocationTests.Attribute>} */ var attributes = [];
-		/** @type{number} */ var ndx;
 
 		attributes.push(new glsAttributeLocationTests.Attribute(vec4, 'a_0'));
 		bindings.push(new glsAttributeLocationTests.Bind('a_0', 0));
 
-		attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_1', glsAttributeLocationTests.LocationEnum.UNDEF, glsAttributeLocationTests.ConstCond.ALWAYS, this.m_arraySize));
+		attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_1', glsAttributeLocationTests.LocationEnum.UNDEF, glsAttributeLocationTests.NewCondWithEnum(glsAttributeLocationTests.ConstCond.ALWAYS), this.m_arraySize));
 
 		/** @type{number} */ var ndx = 2;
 		/** @type{number} */ var loc;
@@ -1625,10 +1563,6 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 	/**
 	 * @constructor
 	 * @extends {tcuTestCase.DeqpTest}
-     * @param {string} name
-     * @param {string} desc
-	 * @param{TestContext} testCtx
-	 * @param{RenderContext} renderCtx
 	 */
 	glsAttributeLocationTests.BindRelinkAttributeTest = function() {
 		tcuTestCase.DeqpTest.call(this, "relink", "relink");
@@ -1641,9 +1575,9 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 		/** @type{Array<glsAttributeLocationTests.Bind>} */ var noBindings = [];
 		/** @type{glsAttributeLocationTests.AttribType} */ var vec4 = new glsAttributeLocationTests.AttribType('vec4', 1, gl.FLOAT_VEC4);
 
-		/** @type{Array<glsAttributeLocationTests.Attribute>} */ var attributes;
-		/** @type{Array<glsAttributeLocationTests.Bind>} */ var	preLinkBindings;
-		/** @type{Array<glsAttributeLocationTests.Bind>} */ var	postLinkBindings;
+		/** @type{Array<glsAttributeLocationTests.Attribute>} */ var attributes = [];
+		/** @type{Array<glsAttributeLocationTests.Bind>} */ var	preLinkBindings = [];
+		/** @type{Array<glsAttributeLocationTests.Bind>} */ var	postLinkBindings = [];
 
 		attributes.push(new glsAttributeLocationTests.Attribute(vec4, 'a_0'));
 		attributes.push(new glsAttributeLocationTests.Attribute(vec4, 'a_1'));
@@ -1660,10 +1594,6 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 	/**
 	 * @constructor
 	 * @extends {tcuTestCase.DeqpTest}
-     * @param {string} name
-     * @param {string} desc
-	 * @param{TestContext} testCtx
-	 * @param{RenderContext} renderCtx
 	 * @param{glsAttributeLocationTests.AttribType} type
 	 * @param {number=} arraySize
 	 */
@@ -1682,27 +1612,26 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 		/** @type{glsAttributeLocationTests.AttribType} */ var vec4 = new glsAttributeLocationTests.AttribType('vec4', 1, gl.FLOAT_VEC4);
 		/** @type{number} */ var arrayElementCount = (this.m_arraySize != glsAttributeLocationTests.ArrayEnum.NOT ? this.m_arraySize : 1);
 
-		/** @type{Array<glsAttributeLocationTests.Attribute>} */ var attributes;
-		/** @type{Array<glsAttributeLocationTests.Bind>} */ var	preLinkBindings;
-		/** @type{Array<glsAttributeLocationTests.Bind>} */ var	postLinkBindings;
-		/** @type{number} */ var ndx;
+		/** @type{Array<glsAttributeLocationTests.Attribute>} */ var attributes = [];
+		/** @type{Array<glsAttributeLocationTests.Bind>} */ var	preLinkBindings = [];
+		/** @type{Array<glsAttributeLocationTests.Bind>} */ var	postLinkBindings = [];
 
 		attributes.push(new glsAttributeLocationTests.Attribute(vec4, 'a_0'));
 		preLinkBindings.push(new glsAttributeLocationTests.Bind('a_0', 0));
 
-		attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_1', glsAttributeLocationTests.LocationEnum.UNDEF, glsAttributeLocationTests.ConstCond.ALWAYS, this.m_arraySize));
+		attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_1', glsAttributeLocationTests.LocationEnum.UNDEF, glsAttributeLocationTests.NewCondWithEnum(glsAttributeLocationTests.ConstCond.ALWAYS), this.m_arraySize));
 
 		/** @type{number} */ var ndx = 2;
 		/** @type{number} */ var loc;
 		for (loc = 1 + this.m_type.getLocationSize() * arrayElementCount; loc < maxAttributes; loc++)
 		{
-			attributes.push(Attribute(vec4, 'a_' + ndx));
-			preLinkBindings.push(Bind('a_' + ndx, loc));
+			attributes.push(new glsAttributeLocationTests.Attribute(vec4, 'a_' + ndx));
+			preLinkBindings.push(new glsAttributeLocationTests.Bind('a_' + ndx, loc));
 
 			ndx++;
 		}
 
-		postLinkBindings.push(Bind('a_2', 1));
+		postLinkBindings.push(new glsAttributeLocationTests.Bind('a_2', 1));
 
 		glsAttributeLocationTests.runTest(attributes, noBindings, preLinkBindings, postLinkBindings, true);
 		return tcuTestCase.IterateResult.STOP;
@@ -1711,10 +1640,6 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 	/**
 	 * @constructor
 	 * @extends {tcuTestCase.DeqpTest}
-     * @param {string} name
-     * @param {string} desc
-	 * @param{TestContext} testCtx
-	 * @param{RenderContext} renderCtx
 	 * @param{glsAttributeLocationTests.AttribType} type
 	 * @param {number=} arraySize
 	 */
@@ -1730,18 +1655,17 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 	glsAttributeLocationTests.MixedRelinkHoleAttributeTest.prototype.iterate = function() {
 		/** @type{Array<glsAttributeLocationTests.Bind>} */ var noBindings = [];
 		/** @type{number} */ var maxAttributes = glsAttributeLocationTests.getMaxAttributeLocations();
-		/** @type{glsAttributeLocationTests.AttribType} */ var vec4 = glsAttributeLocationTests.AttribType('vec4', 1, gl.FLOAT_VEC4);
+		/** @type{glsAttributeLocationTests.AttribType} */ var vec4 = new glsAttributeLocationTests.AttribType('vec4', 1, gl.FLOAT_VEC4);
 		/** @type{number} */ var arrayElementCount = (this.m_arraySize != glsAttributeLocationTests.ArrayEnum.NOT ? this.m_arraySize : 1);
 
 		/** @type{Array<glsAttributeLocationTests.Bind>} */ var	preLinkBindings = [];
 		/** @type{Array<glsAttributeLocationTests.Bind>} */ var	postLinkBindings = [];
 		/** @type{Array<glsAttributeLocationTests.Attribute>} */ var attributes = [];
-		/** @type{number} */ var ndx;
 
 		attributes.push(new glsAttributeLocationTests.Attribute(vec4, 'a_0'));
 		preLinkBindings.push(new glsAttributeLocationTests.Bind('a_0', 0));
 
-		attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_1', glsAttributeLocationTests.LocationEnum.UNDEF, glsAttributeLocationTests.ConstCond.ALWAYS, this.m_arraySize));
+		attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_1', glsAttributeLocationTests.LocationEnum.UNDEF, glsAttributeLocationTests.NewCondWithEnum(glsAttributeLocationTests.ConstCond.ALWAYS), this.m_arraySize));
 
 		/** @type{number} */ var ndx = 2;
 		/** @type{number} */ var loc;
@@ -1765,10 +1689,6 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 	/**
 	 * @constructor
 	 * @extends {tcuTestCase.DeqpTest}
-     * @param {string} name
-     * @param {string} desc
-	 * @param{TestContext} testCtx
-	 * @param{RenderContext} renderCtx
 	 */
 	glsAttributeLocationTests.PreAttachMixedAttributeTest = function() {
 		tcuTestCase.DeqpTest.call(this, "pre_attach", "pre_attach");
@@ -1783,7 +1703,7 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 		/** @type{Array<glsAttributeLocationTests.Attribute>} */ var attributes = [];
 		/** @type{Array<glsAttributeLocationTests.Bind>} */ var	bindings = [];
 
-		attributes.push(new glsAttributeLocationTests.Attribute(glsAttributeLocationTests.AttribType('vec4', 1, gl.FLOAT_VEC4), 'a_0', 1));
+		attributes.push(new glsAttributeLocationTests.Attribute(new glsAttributeLocationTests.AttribType('vec4', 1, gl.FLOAT_VEC4), 'a_0', 1));
 		bindings.push(new glsAttributeLocationTests.Bind('a_0', 3));
 
 		glsAttributeLocationTests.runTest(attributes, bindings, noBindings, noBindings, false);
@@ -1793,10 +1713,6 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 	/**
 	 * @constructor
 	 * @extends {tcuTestCase.DeqpTest}
-     * @param {string} name
-     * @param {string} desc
-	 * @param{TestContext} testCtx
-	 * @param{RenderContext} renderCtx
 	 */
 	glsAttributeLocationTests.PreLinkMixedAttributeTest = function() {
 		tcuTestCase.DeqpTest.call(this, "pre_link", "pre_link");
@@ -1811,7 +1727,7 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 		/** @type{Array<glsAttributeLocationTests.Attribute>} */ var attributes = [];
 		/** @type{Array<glsAttributeLocationTests.Bind>} */ var	bindings = [];
 
-		attributes.push(new glsAttributeLocationTests.Attribute(glsAttributeLocationTests.AttribType('vec4', 1, gl.FLOAT_VEC4), 'a_0', 1));
+		attributes.push(new glsAttributeLocationTests.Attribute(new glsAttributeLocationTests.AttribType('vec4', 1, gl.FLOAT_VEC4), 'a_0', 1));
 		bindings.push(new glsAttributeLocationTests.Bind('a_0', 3));
 
 		glsAttributeLocationTests.runTest(attributes, noBindings, bindings, noBindings, false);
@@ -1821,10 +1737,6 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 	/**
 	 * @constructor
 	 * @extends {tcuTestCase.DeqpTest}
-     * @param {string} name
-     * @param {string} desc
-	 * @param{TestContext} testCtx
-	 * @param{RenderContext} renderCtx
 	 */
 	glsAttributeLocationTests.PostLinkMixedAttributeTest = function() {
 		tcuTestCase.DeqpTest.call(this, "post_link", "post_link");
@@ -1839,7 +1751,7 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 		/** @type{Array<glsAttributeLocationTests.Attribute>} */ var attributes = [];
 		/** @type{Array<glsAttributeLocationTests.Bind>} */ var	bindings = [];
 
-		attributes.push(new glsAttributeLocationTests.Attribute(glsAttributeLocationTests.AttribType('vec4', 1, gl.FLOAT_VEC4), 'a_0', 1));
+		attributes.push(new glsAttributeLocationTests.Attribute(new glsAttributeLocationTests.AttribType('vec4', 1, gl.FLOAT_VEC4), 'a_0', 1));
 		bindings.push(new glsAttributeLocationTests.Bind('a_0', 3));
 
 		glsAttributeLocationTests.runTest(attributes, noBindings, noBindings, bindings, false);
@@ -1849,10 +1761,6 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 	/**
 	 * @constructor
 	 * @extends {tcuTestCase.DeqpTest}
-     * @param {string} name
-     * @param {string} desc
-	 * @param{TestContext} testCtx
-	 * @param{RenderContext} renderCtx
 	 */
 	glsAttributeLocationTests.MixedReattachAttributeTest = function() {
 		tcuTestCase.DeqpTest.call(this, "reattach", "reattach");
@@ -1870,11 +1778,11 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 		/** @type{Array<glsAttributeLocationTests.Attribute>} */ var attributes = [];
 		/** @type{Array<glsAttributeLocationTests.Attribute>} */ var reattachAttributes = [];
 
-		attributes.push(Attribute(vec4, 'a_0', 2));
-		bindings.push(Bind('a_0', 1));
-		bindings.push(Bind('a_1', 1));
+		attributes.push(new glsAttributeLocationTests.Attribute(vec4, 'a_0', 2));
+		bindings.push(new glsAttributeLocationTests.Bind('a_0', 1));
+		bindings.push(new glsAttributeLocationTests.Bind('a_1', 1));
 
-		reattachAttributes.push(Attribute(vec2, 'a_1'));
+		reattachAttributes.push(new glsAttributeLocationTests.Attribute(vec2, 'a_1'));
 
 		glsAttributeLocationTests.runTest(attributes, noBindings, bindings, noBindings, false, true, reattachAttributes);
 		return tcuTestCase.IterateResult.STOP;
@@ -1883,10 +1791,6 @@ bool checkActiveAttribQuery (TestLog& log, const glw::Functions& gl, deUint32 pr
 	/**
 	 * @constructor
 	 * @extends {tcuTestCase.DeqpTest}
-     * @param {string} name
-     * @param {string} desc
-	 * @param{TestContext} testCtx
-	 * @param{RenderContext} renderCtx
 	 */
 	glsAttributeLocationTests.MixedRelinkAttributeTest = function() {
 		tcuTestCase.DeqpTest.call(this, "relink", "relink");

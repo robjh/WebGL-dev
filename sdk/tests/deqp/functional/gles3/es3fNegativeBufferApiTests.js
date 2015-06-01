@@ -15,12 +15,25 @@ goog.scope(function() {
     * @param {WebGLRenderingContextBase} gl
     */
     es3fNegativeBufferApiTests.init = function(gl) {
-    
-        // not implemented, on account of these functions not generating errors in webgl;
-        // gl.deleteBuffers(), gl.createBuffer()
+        
+        // the following tests are not ported
+        
+        // on account of these functions not generating errors in webgl;
+        //  delete_buffers:       "Invalid glDeleteBuffers() usage",
+        //  gen_buffers:          "Invalid glGenBuffers() usage",
+        //  gen_framebuffers:     "Invalid glGenFramebuffers() usage",
+        //  gen_renderbuffers:    "Invalid glGenRenderbuffers() usage",
+        //  delete_framebuffers:  "Invalid glDeleteFramebuffers() usage",
+        //  delete_renderbuffers: "Invalid glDeleteRenderbuffers() usage",
+        
+        // due to the functions being unimplemented in webgl;
+        //  flush_mapped_buffer_range: "Invalid glFlushMappedBufferRange() usage",
+        //  map_buffer_range:          "Invalid glMapBufferRange() usage",
+        //  read_buffer:               "Invalid glReadBuffer() usage",
+        //  unmap_buffer:              "Invalid glUnmapBuffer() usage",
+        
     
         var testGroup = tcuTestCase.runner.testCases;
-    /*
         testGroup.addChild(new es3fApiCase.ApiCaseCallback(
             'bind_buffer', 'Invalid gl.bindBuffer() usage', gl,
             function() {
@@ -240,7 +253,7 @@ goog.scope(function() {
                     this.testFailed('expected gl.READ_FRAMEBUFFER_BINDING to be non-zero and gl.SAMPLE_BUFFERS to be greater than zero');
                 } else {
                     gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, ubyteData);
-                    this.expectError(GL_INVALID_OPERATION);
+                    this.expectError(gl.INVALID_OPERATION);
                 }
                 
                 gl.bindRenderbuffer(gl.RENDERBUFFER, null);
@@ -326,7 +339,7 @@ goog.scope(function() {
                 var maxUSize = gl.getParameter(gl.MAX_UNIFORM_BUFFER_BINDINGS);
                 gl.bindBufferBase(gl.UNIFORM_BUFFER, maxUSize, bufUniform);
                 this.expectError(gl.INVALID_VALUE);
-			
+                
                 bufferedLogToConsole('gl.INVALID_VALUE is generated if target is gl.TRANSFORM_FEEDBACK_BUFFER andindex is greater than or equal to gl.MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS.');
                 var maxTFSize = gl.getParameter(gl.MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS);
                 gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, maxTFSize, bufTF);
@@ -362,13 +375,13 @@ goog.scope(function() {
                 var maxDrawBuffers = gl.getParameter(gl.MAX_DRAW_BUFFERS);
                 gl.clearBufferiv(gl.COLOR, maxDrawBuffers, data);
                 this.expectError(gl.INVALID_VALUE);
-			
+                
                 bufferedLogToConsole('gl.INVALID_ENUM is generated if buffer is gl.DEPTH or gl.DEPTH_STENCIL.');
                 gl.clearBufferiv(gl.DEPTH, 1, data);
                 this.expectError(gl.INVALID_ENUM);
                 gl.clearBufferiv(gl.DEPTH_STENCIL, 1, data);
                 this.expectError(gl.INVALID_ENUM);
-			
+                
                 bufferedLogToConsole('gl.INVALID_VALUE is generated if buffer is gl.STENCIL and drawBuffer is not zero.');
                 gl.clearBufferiv(gl.STENCIL, 1, data);
                 this.expectError(gl.INVALID_VALUE);
@@ -481,7 +494,7 @@ goog.scope(function() {
 
             }
         ));
-        //*/
+        
         testGroup.addChild(new es3fApiCase.ApiCaseCallback(
             'copy_buffer_sub_data', 'Invalid gl.copyBufferSubData() usage', gl,
             function() {
@@ -497,92 +510,263 @@ goog.scope(function() {
                 gl.bufferData(gl.COPY_WRITE_BUFFER, 32, data, gl.DYNAMIC_COPY);
                 this.expectError(gl.NO_ERROR);
                 
+                bufferedLogToConsole('gl.INVALID_VALUE is generated if any of readoffset, writeoffset or size is negative.');
+                gl.copyBufferSubData(gl.COPY_READ_BUFFER, gl.COPY_WRITE_BUFFER, 0, 0, -4);
+                this.expectError(gl.INVALID_VALUE);
+                gl.copyBufferSubData(gl.COPY_READ_BUFFER, gl.COPY_WRITE_BUFFER, -1, 0, 4);
+                this.expectError(gl.INVALID_VALUE);
+                gl.copyBufferSubData(gl.COPY_READ_BUFFER, gl.COPY_WRITE_BUFFER, 0, -1, 4);
+                this.expectError(gl.INVALID_VALUE);
+
+                bufferedLogToConsole('gl.INVALID_VALUE is generated if readoffset + size exceeds the size of the buffer object bound to readtarget.');
+                gl.copyBufferSubData(gl.COPY_READ_BUFFER, gl.COPY_WRITE_BUFFER, 0, 0, 36);
+                this.expectError(gl.INVALID_VALUE);
+                gl.copyBufferSubData(gl.COPY_READ_BUFFER, gl.COPY_WRITE_BUFFER, 24, 0, 16);
+                this.expectError(gl.INVALID_VALUE);
+                gl.copyBufferSubData(gl.COPY_READ_BUFFER, gl.COPY_WRITE_BUFFER, 36, 0, 4);
+                this.expectError(gl.INVALID_VALUE);
+
+                bufferedLogToConsole('gl.INVALID_VALUE is generated if writeoffset + size exceeds the size of the buffer object bound to writetarget.');
+                gl.copyBufferSubData(gl.COPY_READ_BUFFER, gl.COPY_WRITE_BUFFER, 0, 0, 36);
+                this.expectError(gl.INVALID_VALUE);
+                gl.copyBufferSubData(gl.COPY_READ_BUFFER, gl.COPY_WRITE_BUFFER, 0, 24, 16);
+                this.expectError(gl.INVALID_VALUE);
+                gl.copyBufferSubData(gl.COPY_READ_BUFFER, gl.COPY_WRITE_BUFFER, 0, 36, 4);
+                this.expectError(gl.INVALID_VALUE);
+
+                bufferedLogToConsole('gl.INVALID_VALUE is generated if the same buffer object is bound to both readtarget and writetarget and the ranges [readoffset, readoffset + size) and [writeoffset, writeoffset + size) overlap.');
+                gl.bindBuffer(gl.COPY_WRITE_BUFFER, buf.r);
+                gl.copyBufferSubData(gl.COPY_READ_BUFFER, gl.COPY_WRITE_BUFFER, 0, 16, 4);
+                this.expectError(gl.NO_ERROR);
+                gl.copyBufferSubData(gl.COPY_READ_BUFFER, gl.COPY_WRITE_BUFFER, 0, 0, 4);
+                this.expectError(gl.INVALID_VALUE);
+                gl.copyBufferSubData(gl.COPY_READ_BUFFER, gl.COPY_WRITE_BUFFER, 0, 16, 18);
+                this.expectError(gl.INVALID_VALUE);
+                gl.bindBuffer(gl.COPY_WRITE_BUFFER, buf.w);
+
+                bufferedLogToConsole('gl.INVALID_OPERATION is generated if null is bound to readtarget or writetarget.');
+                gl.bindBuffer(gl.COPY_READ_BUFFER, null);
+                gl.copyBufferSubData(gl.COPY_READ_BUFFER, gl.COPY_WRITE_BUFFER, 0, 0, 16);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.bindBuffer(gl.COPY_READ_BUFFER, buf.r);
+                
+                gl.bindBuffer(gl.COPY_WRITE_BUFFER, null);
+                gl.copyBufferSubData(gl.COPY_READ_BUFFER, gl.COPY_WRITE_BUFFER, 0, 0, 16);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.bindBuffer(gl.COPY_WRITE_BUFFER, buf.w);
+                
                 gl.deleteBuffer(buf.w);
                 gl.deleteBuffer(buf.r);
             }
         ));
         
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'draw_buffers', 'Invalid glDrawBuffers() usage', gl,
+            function() {
+                var maxDrawBuffers = gl.getParameter(gl.MAX_DRAW_BUFFERS);
+                var values = [
+                    gl.NONE,
+                    gl.BACK,
+                    gl.COLOR_ATTACHMENT0,
+                    gl.DEPTH_ATTACHMENT
+                ];
+                
+                var texture = gl.createTexture();
+                gl.bindTexture(gl.TEXTURE_2D, texture);
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, 32, 32, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+                
+                var fbo = gl.createFramebuffer();
+                gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+                gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
+                gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+                this.expectError(gl.NO_ERROR);
+                
+                bufferedLogToConsole('gl.INVALID_ENUM is generated if one of the values in bufs is not an accepted value.');
+                gl.drawBuffers(values.splice(2, 2));
+                this.expectError(gl.INVALID_ENUM);
+                
+                bufferedLogToConsole('gl.INVALID_OPERATION is generated if the GL is bound to the default framebuffer and n is not 1.');
+                gl.drawBuffers(values.splice(0, 2));
+                this.expectError(gl.INVALID_OPERATION);
+                
+                bufferedLogToConsole('gl.INVALID_OPERATION is generated if the GL is bound to the default framebuffer and the value in bufs is one of the gl.COLOR_ATTACHMENTn tokens.');
+                gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+                gl.drawBuffers(values.splice(1, 2));
+                this.expectError(gl.INVALID_OPERATION);
+                
+                bufferedLogToConsole('gl.INVALID_OPERATION is generated if the GL is bound to a framebuffer object and the ith buffer listed in bufs is anything other than gl.NONE or gl.COLOR_ATTACHMENTSi.');
+                gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+                gl.drawBuffers(values.splice(1, 1));
+                this.expectError(gl.INVALID_OPERATION);
+                
+                gl.deleteTexture(texture);
+                gl.deleteFramebuffer(fbo);
+            }
+        ));
+
+        // Framebuffer Objects
         
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'bind_framebuffer', 'Invalid glBindFramebuffer() usage', gl,
+            function() {
+                bufferedLogToConsole('gl.INVALID_ENUM is generated if target is not gl.FRAMEBUFFER.');
+                gl.bindFramebuffer(-1, null);
+                this.expectError(gl.INVALID_ENUM);
+                gl.bindFramebuffer(gl.RENDERBUFFER, null);
+                this.expectError(gl.INVALID_ENUM);
+            }
+        ));
+        
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'bind_renderbuffer', 'Invalid glBindRenderbuffer() usage', gl,
+            function() {
+                bufferedLogToConsole('glINVALID_ENUM is generated if target is not gl.RENDERBUFFER.');
+                gl.bindRenderbuffer(-1, null);
+                this.expectError(gl.INVALID_ENUM);
+                gl.bindRenderbuffer(gl.FRAMEBUFFER, null);
+                this.expectError(gl.INVALID_ENUM);
+            }
+        ));
+        
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'check_framebuffer_status', 'Invalid glCheckFramebufferStatus() usage', gl,
+            function() {
+                bufferedLogToConsole('gl.INVALID_ENUM is generated if target is not gl.FRAMEBUFFER.');
+                    gl.checkFramebufferStatus(-1);
+                    this.expectError(gl.INVALID_ENUM);
+                    gl.checkFramebufferStatus(gl.RENDERBUFFER);
+                    this.expectError(gl.INVALID_ENUM);
+            }
+        ));
+        
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'framebuffer_renderbuffer', 'Invalid glFramebufferRenderbuffer() usage', gl,
+            function() {
+                var rbo = gl.createRenderbuffer();
+                var fbo = gl.createFramebuffer();
+                gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+                
+                bufferedLogToConsole('gl.INVALID_ENUM is generated if target is not one of the accepted tokens.');
+                gl.framebufferRenderbuffer(-1, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, null);
+                this.expectError(gl.INVALID_ENUM);
+                
+                bufferedLogToConsole('gl.INVALID_ENUM is generated if renderbuffertarget is not gl.RENDERBUFFER.');
+                gl.bindRenderbuffer(gl.RENDERBUFFER, rbo);
+                gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, -1, rbo);
+                this.expectError(gl.INVALID_ENUM);
+                gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+                
+                bufferedLogToConsole('gl.INVALID_OPERATION is generated if zero is bound to target.');
+                gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+                gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, null);
+                this.expectError(gl.INVALID_OPERATION);
+                
+                gl.deleteRenderbuffer(rbo);
+                gl.deleteFramebuffer(fbo);
+            }
+        ));
+        
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'framebuffer_texture2d', 'Invalid glFramebufferTexture2D() usage', gl,
+            function() {
+            
+                var fbo = gl.createFramebuffer();
+                var tex2D = gl.createTexture();
+                var texCube = gl.createTexture();
+                gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+                gl.bindTexture(gl.TEXTURE_2D, tex2D);
+                gl.bindTexture(gl.TEXTURE_CUBE_MAP, texCube);
+                this.expectError(gl.NO_ERROR);
+                
+                bufferedLogToConsole('gl.INVALID_ENUM is generated if target is not one of the accepted tokens.');
+                gl.framebufferTexture2D(-1, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, null, 0);
+                this.expectError(gl.INVALID_ENUM);
+                
+                bufferedLogToConsole('gl.INVALID_ENUM is generated if textarget is not an accepted texture target.');
+                gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, -1, tex2D, 0);
+                this.expectError(gl.INVALID_ENUM);
+                
+                bufferedLogToConsole('gl.INVALID_VALUE is generated if level is less than 0 or larger than log_2 of maximum texture size.');
+                var maxSizePlane = Math.floor(Math.log2(gl.getParameter(gl.MAX_TEXTURE_SIZE))) + 1;
+                var maxSizeCube  = Math.floor(Math.log2(gl.getParameter(gl.MAX_CUBE_MAP_TEXTURE_SIZE))) + 1;
+                gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex2D, -1);
+                this.expectError(gl.INVALID_VALUE);
+                gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex2D, maxSizePlane);
+                this.expectError(gl.INVALID_VALUE);
+                gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_CUBE_MAP_POSITIVE_X, texCube, maxSizeCube);
+                this.expectError(gl.INVALID_VALUE);
+                
+                bufferedLogToConsole('gl.INVALID_OPERATION is generated if textarget and texture are not compatible.');
+                gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_CUBE_MAP_POSITIVE_X, tex2D, null);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.deleteTexture(tex2D);
+                
+                gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texCube, null);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.deleteTexture(texCube);
+                
+                bufferedLogToConsole('gl.INVALID_OPERATION is generated if zero is bound to target.');
+                gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+                gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, null, 0);
+                this.expectError(gl.INVALID_OPERATION);
+
+                gl.deleteFramebuffer(fbo);
+            }
+        ));
+        
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'renderbuffer_storage', 'Invalid glRenderbufferStorage() usage', gl,
+            function() {
+                var rbo = gl.createRenderbuffer();
+                gl.bindRenderbuffer(gl.RENDERBUFFER, rbo);
+                
+                bufferedLogToConsole('gl.INVALID_ENUM is generated if target is not gl.RENDERBUFFER.');
+                gl.renderbufferStorage(-1, gl.RGBA4, 1, 1);
+                this.expectError(gl.INVALID_ENUM);
+                gl.renderbufferStorage(gl.FRAMEBUFFER, gl.RGBA4, 1, 1);
+                this.expectError(gl.INVALID_ENUM);
+                
+                bufferedLogToConsole('gl.INVALID_ENUM is generated if internalformat is not a color-renderable, depth-renderable, or stencil-renderable format.');
+                gl.renderbufferStorage(gl.RENDERBUFFER, -1, 1, 1);
+                this.expectError(gl.INVALID_ENUM);
+                
+                // EXT_color_buffer_half_float disables error
+                if (gl.getExtension('EXT_color_buffer_half_float') === null) {
+                    gl.renderbufferStorage(gl.RENDERBUFFER, gl.RGB16F, 1, 1);
+                    this.expectError(gl.INVALID_ENUM);
+                }
+                
+                gl.renderbufferStorage(gl.RENDERBUFFER, gl.RGBA8_SNORM, 1, 1);
+                this.expectError(gl.INVALID_ENUM);
+                
+                bufferedLogToConsole('gl.INVALID_VALUE is generated if width or height is less than zero.');
+                gl.renderbufferStorage(gl.RENDERBUFFER, gl.RGBA4, -1, 1);
+                this.expectError(gl.INVALID_VALUE);
+                gl.renderbufferStorage(gl.RENDERBUFFER, gl.RGBA4, 1, -1);
+                this.expectError(gl.INVALID_VALUE);
+                gl.renderbufferStorage(gl.RENDERBUFFER, gl.RGBA4, -1, -1);
+                this.expectError(gl.INVALID_VALUE);
+                
+                bufferedLogToConsole('gl.INVALID_VALUE is generated if width or height is greater than gl.MAX_RENDERBUFFER_SIZE.');
+                var maxSize = gl.getParameter(gl.MAX_RENDERBUFFER_SIZE);
+                gl.renderbufferStorage(gl.RENDERBUFFER, gl.RGBA4, 1, maxSize+1);
+                this.expectError(gl.INVALID_VALUE);
+                gl.renderbufferStorage(gl.RENDERBUFFER, gl.RGBA4, maxSize+1, 1);
+                this.expectError(gl.INVALID_VALUE);
+                gl.renderbufferStorage(gl.RENDERBUFFER, gl.RGBA4, maxSize+1, maxSize+1);
+                this.expectError(gl.INVALID_VALUE);
+                gl.deleteRenderbuffer(rbo);
+            }
+        ));
+
+
+
+
+
+// bufferedLogToConsole('');
+
         /*
-
-	ES3F_ADD_API_CASE(copy_buffer_sub_data, "Invalid glCopyBufferSubData() usage",
-		{
-			deUint32				buf[2];
-			std::vector<float>		data(32*32);
-
-			glGenBuffers			(2, buf);
-			glBindBuffer			(GL_COPY_READ_BUFFER, buf[0]);
-			glBufferData			(GL_COPY_READ_BUFFER, 32, &data[0], GL_DYNAMIC_COPY);
-			glBindBuffer			(GL_COPY_WRITE_BUFFER, buf[1]);
-			glBufferData			(GL_COPY_WRITE_BUFFER, 32, &data[0], GL_DYNAMIC_COPY);
-			expectError				(GL_NO_ERROR);
-
-			m_log << TestLog::Section("", "GL_INVALID_VALUE is generated if any of readoffset, writeoffset or size is negative.");
-			glCopyBufferSubData		(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, 0, -4);
-			expectError				(GL_INVALID_VALUE);
-			glCopyBufferSubData		(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, -1, 0, 4);
-			expectError				(GL_INVALID_VALUE);
-			glCopyBufferSubData		(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, -1, 4);
-			expectError				(GL_INVALID_VALUE);
-			m_log << TestLog::EndSection;
-
-			m_log << TestLog::Section("", "GL_INVALID_VALUE is generated if readoffset + size exceeds the size of the buffer object bound to readtarget.");
-			glCopyBufferSubData		(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, 0, 36);
-			expectError				(GL_INVALID_VALUE);
-			glCopyBufferSubData		(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 24, 0, 16);
-			expectError				(GL_INVALID_VALUE);
-			glCopyBufferSubData		(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 36, 0, 4);
-			expectError				(GL_INVALID_VALUE);
-			m_log << TestLog::EndSection;
-
-			m_log << TestLog::Section("", "GL_INVALID_VALUE is generated if writeoffset + size exceeds the size of the buffer object bound to writetarget.");
-			glCopyBufferSubData		(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, 0, 36);
-			expectError				(GL_INVALID_VALUE);
-			glCopyBufferSubData		(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, 24, 16);
-			expectError				(GL_INVALID_VALUE);
-			glCopyBufferSubData		(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, 36, 4);
-			expectError				(GL_INVALID_VALUE);
-			m_log << TestLog::EndSection;
-
-			m_log << TestLog::Section("", "GL_INVALID_VALUE is generated if the same buffer object is bound to both readtarget and writetarget and the ranges [readoffset, readoffset + size) and [writeoffset, writeoffset + size) overlap.");
-			glBindBuffer			(GL_COPY_WRITE_BUFFER, buf[0]);
-			glCopyBufferSubData		(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, 16, 4);
-			expectError				(GL_NO_ERROR);
-			glCopyBufferSubData		(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, 0, 4);
-			expectError				(GL_INVALID_VALUE);
-			glCopyBufferSubData		(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, 16, 18);
-			expectError				(GL_INVALID_VALUE);
-			glBindBuffer			(GL_COPY_WRITE_BUFFER, buf[1]);
-			m_log << TestLog::EndSection;
-
-			m_log << TestLog::Section("", "GL_INVALID_OPERATION is generated if zero is bound to readtarget or writetarget.");
-			glBindBuffer			(GL_COPY_READ_BUFFER, 0);
-			glCopyBufferSubData		(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, 0, 16);
-			expectError				(GL_INVALID_OPERATION);
-
-			glBindBuffer			(GL_COPY_READ_BUFFER, buf[0]);
-			glBindBuffer			(GL_COPY_WRITE_BUFFER, 0);
-			glCopyBufferSubData		(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, 0, 16);
-			expectError				(GL_INVALID_OPERATION);
-
-			glBindBuffer			(GL_COPY_WRITE_BUFFER, buf[1]);
-			m_log << TestLog::EndSection;
-
-			m_log << TestLog::Section("", "GL_INVALID_OPERATION is generated if the buffer object bound to either readtarget or writetarget is mapped.");
-			glMapBufferRange		(GL_COPY_READ_BUFFER, 0, 4, GL_MAP_READ_BIT);
-			glCopyBufferSubData		(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, 0, 16);
-			expectError				(GL_INVALID_OPERATION);
-			glUnmapBuffer			(GL_COPY_READ_BUFFER);
-
-			glMapBufferRange		(GL_COPY_WRITE_BUFFER, 0, 4, GL_MAP_READ_BIT);
-			glCopyBufferSubData		(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, 0, 16);
-			expectError				(GL_INVALID_OPERATION);
-			glUnmapBuffer			(GL_COPY_WRITE_BUFFER);
-			m_log << TestLog::EndSection;
-
-			glDeleteBuffers(2, buf);
-		});
-
+        
         //*/
         
         /*

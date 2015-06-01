@@ -93,6 +93,17 @@ var deMath = framework.delibs.debase.deMath;
     tcuRGBA.newRGBAFromArray = function(v) {
         return new tcuRGBA.RGBA(v.slice(0, 4));
     };
+    
+    /**
+     * @param {number} value
+     * @return {tcuRGBA.RGBA}
+     */
+    tcuRGBA.newRGBAFromValue = function (value) {
+        var rgba = new tcuRGBA.RGBA();
+        var array32 = new Uint32Array([value]);
+        rgba.m_value = (new Uint8Array(array32.buffer));
+        return rgba;
+    };
 
     /**
      * @param {number} v
@@ -238,6 +249,10 @@ var deMath = framework.delibs.debase.deMath;
             Math.max(a.getBlue(), b.getBlue()),
             Math.max(a.getAlpha(), b.getAlpha())
         );
+    };
+
+    tcuRGBA.RGBA.prototype.toString = function() {
+        return '[' + this.m_value[0] + ',' + this.m_value[1] + ',' +  this.m_value[2] + ',' +  this.m_value[3] + ']';
     };
 
     // Color constants
