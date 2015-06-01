@@ -72,7 +72,7 @@ goog.scope(function() {
      * @return {number}
      */
     glsDrawTests.targetToGL = function(target) {
-        assertMsgOptions(target == null, 'Target is null', false, true);
+        assertMsgOptions(target != null, 'Target is null', false, true);
 
         var targets = [
             gl.ELEMENT_ARRAY_BUFFER, // TARGET_ELEMENT_ARRAY = 0,
@@ -87,7 +87,7 @@ goog.scope(function() {
      * @return {number}
      */
     glsDrawTests.usageToGL = function(usage) {
-        assertMsgOptions(usage == null, 'Usage is null', false, true);
+        assertMsgOptions(usage != null, 'Usage is null', false, true);
 
         var usages = [
             gl.DYNAMIC_DRAW, // USAGE_DYNAMIC_DRAW = 0,
@@ -114,7 +114,7 @@ goog.scope(function() {
      * @return {number}
      */
     glsDrawTests.inputTypeToGL = function(type) {
-        assertMsgOptions(type == null, 'Input type is null', false, true);
+        assertMsgOptions(type != null, 'Input type is null', false, true);
 
         var types = [
             gl.FLOAT, // INPUTTYPE_FLOAT = 0,
@@ -140,7 +140,7 @@ goog.scope(function() {
      * @return {string}
      */
     glsDrawTests.outputTypeToGLType = function(type) {
-        assertMsgOptions(type == null, 'Output type is null', false, true);
+        assertMsgOptions(type != null, 'Output type is null', false, true);
 
         var types = [
             'float', // OUTPUTTYPE_FLOAT = 0,
@@ -883,7 +883,7 @@ goog.scope(function() {
 
         if (this.m_storage == glsDrawTests.DrawTestSpec.Storage.BUFFER) {
             this.m_ctx.bindBuffer(glsDrawTests.targetToGL(target), this.m_glBuffer);
-            this.m_ctx.bufferData(glsDrawTests.targetToGL(target), size, ptr, glsDrawTests.usageToGL(usage));
+            this.m_ctx.bufferData(glsDrawTests.targetToGL(target), ptr, glsDrawTests.usageToGL(usage));
         } else
             throw new Error('Wrong storage type');
     };
@@ -989,7 +989,7 @@ goog.scope(function() {
                 assertMsgOptions(glsDrawTests.outputTypeIsFloatType(this.m_outputType), 'Output type is not float', false, true);
 
                 this.m_ctx.vertexAttribPointer(loc, this.m_componentCount, glsDrawTests.inputTypeToGL(this.m_inputType), this.m_normalize,
-                    this.m_stride, basePtr.subarray(this.m_offset));
+                    this.m_stride, this.m_offset);
             }
 
             if (this.m_instanceDivisor)
@@ -1364,24 +1364,6 @@ goog.scope(function() {
         return decl;
     };
 
-    /*class RandomArrayGenerator
-    {
-    public:
-        static char*            generateArray            (int seed, int elementCount, int componentCount, int offset, int stride, DrawTestSpec::InputType type);
-        static char*            generateIndices            (int seed, int elementCount, DrawTestSpec::IndexType type, int offset, int min, int max, int indexBase);
-        static rr::GenericVec4    generateAttributeValue    (int seed, DrawTestSpec::InputType type);
-
-    private:
-        template<typename T>
-        static char*            createIndices            (int seed, int elementCount, int offset, int min, int max, int indexBase);
-        static void                setData                    (char* data, DrawTestSpec::InputType type, deRandom& rnd, GLValue min, GLValue max);
-
-        static char*            generateBasicArray        (int seed, int elementCount, int componentCount, int offset, int stride, DrawTestSpec::InputType type);
-        template<typename T, typename GLType>
-        static char*            createBasicArray        (int seed, int elementCount, int componentCount, int offset, int stride);
-        static char*            generatePackedArray        (int seed, int elementCount, int componentCount, int offset, int stride);
-    };*/
-
     /**
      * @typedef {glsDrawTests.RandomArrayGenerator}
      */
@@ -1468,6 +1450,8 @@ goog.scope(function() {
 
         var rnd = new deRandom.Random(seed);
 
+        var triangle = [];
+
         for (var vertexNdx = 0; vertexNdx < elementCount; vertexNdx++)
         {
             /** @type {Array<glsDrawTests.GLValue>} */ var components = [];
@@ -1487,10 +1471,50 @@ goog.scope(function() {
             for (var componentNdx = 0; componentNdx < componentCount; componentNdx++)
                 previousComponents[componentNdx] = components[componentNdx];
 
-            for (var componentNdx = 0; componentNdx < componentCount; componentNdx++)
-                glsDrawTests.copyGLValueToArray(writePtr.subarray(writePtr.byteOffset + componentNdx*componentSize), components[componentNdx]);
+            triangle.push(components);
 
-            writePtr = writePtr.subarray(writePtr.byteOffset + stride);
+            if (triangle.length == 3) {
+                var middlevertex = [triangle[0][0], triangle[2][1], triangle[1][2], triangle[1][3]];
+
+                /*//Verify circle motion direction is CCW
+
+                //Distance between vertices 0 and 2
+                var distance0_2 =  [triangle[2][0].sub(triangle[0][0]), triangle[2][1].sub(triangle[0][1])];
+                //Angle between vertices 0 and 2
+                var angle0_2 = Math.atan(distance0_2[0][1].div(distance0_2[0][0]).interpret());
+
+                //Distance between vertices 0 and middlevertex
+                var distance0_m = [middlevertex[0].sub(triangle[0][0]), middlevertex[1].sub(triangle[0][1])];
+                //Angle between vertices 0 and middlevertex
+                var angle0_m = Math.atan(distance0_m[0][1].div(distance0_m[0][0]).interpret());
+
+                //If not CCW, swap x and y
+                if (angle0_2 < angle0_m) {
+                    //Mirror midlevertex against the axis formed by vertices 0 and 2
+                    angle0_m = angle0_2 - (angle0_m - angle0_2);
+
+                    middlevertex[0] = middlevertex[0].add(middlevertex[1]);
+                    middlevertex[1] = middlevertex[0].sub(middlevertex[1]);
+                    middlevertex[0] = middlevertex[0].sub(middlevertex[1]);
+                }*/
+
+                //Rewrite middle vertex
+                triangle[1] = middlevertex;
+
+                //Copy values to buffer
+                for (var triVtx = 0 ; triVtx < 3; triVtx++)
+                for (var componentNdx = 0; componentNdx < componentCount; componentNdx++)
+                    glsDrawTests.copyGLValueToArray(writePtr.subarray(triVtx*componentCount*componentSize + componentNdx*componentSize), triangle[triVtx][componentNdx]);
+
+                writePtr = writePtr.subarray(stride * 3);
+                triangle = [];
+            }
+            else if (elementCount - 1 == vertexNdx) {
+                for (var componentNdx = 0; componentNdx < componentCount; componentNdx++)
+                    glsDrawTests.copyGLValueToArray(writePtr.subarray(componentNdx*componentSize), components[componentNdx]);
+
+                writePtr = writePtr.subarray(stride);
+            }
         }
 
         return new Uint8Array(data); //TODO: Check if it would be more convenient to use GLValue.typeToTypedArray to create the returning array.
@@ -1605,7 +1629,7 @@ goog.scope(function() {
             var srcArray = glsDrawTests.GLValue.typeToTypedArray(ndx, glsDrawTests.indexTypeToInputType(type));
 
             glsDrawTests.copyArray(
-                writePtr.subarray(writePtr.byteOffset + elementSize * elementNdx),
+                writePtr.subarray(elementSize * elementNdx),
                 srcArray
             );
         }
@@ -1756,7 +1780,7 @@ goog.scope(function() {
         }
 
         if (drawMethod == glsDrawTests.DrawTestSpec.DrawMethod.DRAWARRAYS)
-            this.m_ctx.drawArrays(glsDrawTests.primitiveToGL(primitive), firstVertex, vertexCount);
+            this.m_ctx.drawArrays(glsDrawTests.primitiveToGL(primitive), firstVertex, 6 /*vertexCount*/);
         else if (drawMethod == glsDrawTests.DrawTestSpec.DrawMethod.DRAWARRAYS_INSTANCED)
             this.m_ctx.drawArraysInstanced(glsDrawTests.primitiveToGL(primitive), firstVertex, vertexCount, instanceCount);
         else if (drawMethod == glsDrawTests.DrawTestSpec.DrawMethod.DRAWELEMENTS)
@@ -1879,7 +1903,7 @@ goog.scope(function() {
             'uvec3', // OUTPUTTYPE_UVEC3,
             'uvec4' // OUTPUTTYPE_UVEC4,
         ];
-        assertMsgOptions(types.length == Object.keys(glsDrawTests.DrawTestSpec.InputType).length,
+        assertMsgOptions(types.length == Object.keys(glsDrawTests.DrawTestSpec.OutputType).length,
             'The amount of type names is different than the amount of types', false, true);
 
         return types[type];
@@ -1934,7 +1958,7 @@ goog.scope(function() {
      * @return {string}
      */
     glsDrawTests.DrawTestSpec.primitiveToString = function(primitive) {
-        assertMsgOptions(primitive == null, 'Primitive is null', false, true);
+        assertMsgOptions(primitive != null, 'Primitive is null', false, true);
 
         var primitives = [
             'points', // PRIMITIVE_POINTS ,

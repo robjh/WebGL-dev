@@ -42,8 +42,8 @@ var deUtil = framework.delibs.debase.deUtil;
             for (var akey in obj)
                 temp[akey] = deUtil.clone(obj[akey]);
         } else {
-            temp.prototype = Object.create(obj.constructor.prototype);
-            temp.prototype.constructor = obj.constructor;
+            temp = Object.create(obj.constructor.prototype);
+            temp.constructor = obj.constructor;
             for (var key in obj)
                 temp[key] = deUtil.clone(obj[key]);
         }
