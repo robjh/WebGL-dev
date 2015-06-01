@@ -1142,4 +1142,75 @@ tcuTexCompareVerifier.isTexCompareResultValidCube = function(texture, sampler, p
     return false;
 };
 
+/**
+ * @param {tcuTexture.Texture2DArrayView} texture
+ * @param {tcuTexture.Sampler} sampler
+ * @param {tcuTexCompareVerifier.TexComparePrecision} prec
+ * @param {Array<number>} coord vec3 texture coordinates
+ * @param {Array<number>} lodBounds vec2 level-of-detail bounds
+ * @param {number} cmpReference
+ * @param {number} result
+ * @return {boolean}
+ */
+tcuTexCompareVerifier.isTexCompareResultValid2DArray = function(texture, sampler, prec, coord, lodBounds, cmpReference, result) {
+    var depthErr = tcuTexVerifierUtil.computeFloatingPointError(coord[2], prec.coordBits[2]) + tcuTexVerifierUtil.computeFixedPointError(prec.uvwBits[2]);
+    var minZ = coord[2] - depthErr;
+    var maxZ = coord[2] + depthErr;
+    var minLayer = deMath.clamp(Math.floor(minZ + 0.5), 0, texture.getNumLayers() - 1);
+    var maxLayer = deMath.clamp(Math.floor(maxZ + 0.5), 0, texture.getNumLayers() - 1);
+
+    for (var layer = minLayer; layer <= maxLayer; layer++) {
+        var minLod = lodBounds[0];
+        var maxLod = lodBounds[1];
+        var canBeMagnified = minLod <= sampler.lodThreshold;
+        var canBeMinified = maxLod > sampler.lodThreshold;
+
+        if (canBeMagnified) {
+            if (tcuTexCompareVerifier.isLevelCompareResultValid(texture.getLevel(0), sampler, sampler.magFilter, prec, deMath.swizzle(coord, [0, 1]), layer, cmpReference, result))
+                return true;
+        }
+
+        if (canBeMinified) {
+            var isNearestMipmap = tcuTexVerifierUtil.isNearestMipmapFilter(sampler.minFilter);
+            var isLinearMipmap = tcuTexVerifierUtil.isLinearMipmapFilter(sampler.minFilter);
+            var minTexLevel = 0;
+            var maxTexLevel = texture.getNumLevels() - 1;
+
+            assertMsgOptions(minTexLevel < maxTexLevel, 'Invalid texture levels.', false, true);
+
+            if (isLinearMipmap) {
+                var minLevel = deMath.clamp(Math.floor(minLod), minTexLevel, maxTexLevel - 1);
+                var maxLevel = deMath.clamp(Math.floor(maxLod), minTexLevel, maxTexLevel - 1);
+
+                assertMsgOptions(minLevel <= maxLevel, 'Invalid texture levels.', false, true);
+
+                for (var level = minLevel; level <= maxLevel; level++) {
+                    var minF = deMath.clamp(minLod - level, 0, 1);
+                    var maxF = deMath.clamp(maxLod - level, 0, 1);
+
+                    if (tcuTexCompareVerifier.isMipmapLinearCompareResultValid(texture.getLevel(level), texture.getLevel(level + 1), sampler, tcuTexVerifierUtil.getLevelFilter(sampler.minFilter), prec, deMath.swizzle(coord, [0, 1]), layer, [minF, maxF], cmpReference, result))
+                        return true;
+                }
+            } else if (isNearestMipmap) {
+                // \note The accurate formula for nearest mipmapping is level = ceil(lod + 0.5) - 1 but Khronos has made
+                //       decision to allow floor(lod + 0.5) as well.
+                var minLevel = deMath.clamp(Math.ceil(minLod + 0.5) - 1, minTexLevel, maxTexLevel);
+                var maxLevel = deMath.clamp(Math.floor(maxLod + 0.5), minTexLevel, maxTexLevel);
+
+                assertMsgOptions(minLevel <= maxLevel, 'Invalid texture levels.', false, true);
+
+                for (var level = minLevel; level <= maxLevel; level++) {
+                    if (tcuTexCompareVerifier.isLevelCompareResultValid(texture.getLevel(level), sampler, tcuTexVerifierUtil.getLevelFilter(sampler.minFilter), prec, deMath.swizzle(coord, [0, 1]), layer, cmpReference, result))
+                        return true;
+                }
+            } else {
+                if (tcuTexCompareVerifier.isLevelCompareResultValid(texture.getLevel(0), sampler, sampler.minFilter, prec, deMath.swizzle(coord, [0, 1]), layer, cmpReference, result))
+                    return true;
+            }
+        }
+    }
+
+    return false;
+};
+
 });
