@@ -945,12 +945,6 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 		reattach = reattach || false;
 		reattachAttributes = reattachAttributes || [];
 
-		/*  TODO: check possible reuse of functions
-		TestLog&					log			= testCtx.getLog();
-		const glw::Functions&		gl			= renderCtx.getFunctions();
-		deUint32					program 	= 0;
-		pair<deUint32, deUint32>	shaders;
-		*/
 		try	{
 			/** @type{boolean} */ var isOk = true;
 			/** @type{Array<number>} */ var activeBindings = [];
@@ -967,26 +961,19 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 				// logAttributes(testCtx.getLog(), attributes);
 			//}
 
-			//log << TestLog::Message << "Create program." << TestLog::EndMessage;
 			/** @type{WebGLProgram} */ var program = gl.createProgram();
-			//GLU_EXPECT_NO_ERROR(gl.getError(), "glCreateProgram()");
 
 			if (!preAttachBind.length == 0)
 				glsAttributeLocationTests.bindAttributes(program, preAttachBind);
 
-			//log << TestLog::Message << "Create and attach shaders to program." << TestLog::EndMessage;
 			/** @type{*} */ var shaders = glsAttributeLocationTests.createAndAttachShaders(program, attributes, glsAttributeLocationTests.hasAttributeAliasing(attributes, activeBindings));
 
 			if (!preLinkBind.length == 0)
 				glsAttributeLocationTests.bindAttributes(program, preLinkBind);
 
-			//log << TestLog::Message << "Link program." << TestLog::EndMessage;
-
 				gl.linkProgram(program);
-			//GLU_EXPECT_NO_ERROR(gl.getError(), "glLinkProgram()");
 
 			//logProgram(log, gl, program);
-			//TCU_CHECK_MSG(getProgramLinkStatus(gl, program), "Program link failed");
 
 			if (!glsAttributeLocationTests.checkQuery(program, attributes, activeBindings))
 				isOk = false;
@@ -999,12 +986,9 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 			}
 
 			if (relink) {
-				//log << TestLog::Message << "Relink program." << TestLog::EndMessage;
 				gl.linkProgram(program);
-				//GLU_EXPECT_NO_ERROR(gl.getError(), "glLinkProgram()");
 
 				//logProgram(log, gl, program);
-				//TCU_CHECK_MSG(getProgramLinkStatus(gl, program), "Program link failed");
 
 				for (bindNdx = 0; bindNdx < postLinkBind.length; bindNdx++)
 					activeBindings[postLinkBind[bindNdx].getAttributeName()] = postLinkBind[bindNdx].getLocation();
@@ -1016,26 +1000,20 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 			if (reattach) {
 				gl.detachShader(program, shaders.first);
 				gl.detachShader(program, shaders.second);
-				//GLU_EXPECT_NO_ERROR(gl.getError(), "glDetachShader()");
 
-				//log << TestLog::Message << "Create and attach shaders to program." << TestLog::EndMessage;
 				glsAttributeLocationTests.createAndAttachShaders(program, reattachAttributes, glsAttributeLocationTests.hasAttributeAliasing(reattachAttributes, activeBindings));
 
-				//log << TestLog::Message << "Relink program." << TestLog::EndMessage;
 				gl.linkProgram(program);
-				//GLU_EXPECT_NO_ERROR(gl.getError(), "glLinkProgram()");
 
 				//logProgram(log, gl, program);
-				//TCU_CHECK_MSG(getProgramLinkStatus(gl, program), "Program link failed");
 
 				if (!glsAttributeLocationTests.checkQuery(program, reattachAttributes, activeBindings))
 					isOk = false;
 			}
 
 			gl.deleteProgram(program);
-			//GLU_EXPECT_NO_ERROR(gl.getError(), "glDeleteProgram()");
 
-			assertMsgOptions(isOk, 'Done', true, true);
+			assertMsgOptions(isOk, '', true, true);
 
 		} catch (e)	{
 			if (program)
@@ -1052,9 +1030,9 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 	 * @param {number=} arraySize
 	 */
 	glsAttributeLocationTests.BindAttributeTest = function(type, arraySize) {
-		tcuTestCase.DeqpTest.call(this, glsAttributeLocationTests.generateTestName(type,arraySize), glsAttributeLocationTests.generateTestName(type,arraySize));
-		/** @type{glsAttributeLocationTests.AttribType} */ this.m_type = type;
 		/** @type{number} */ this.m_arraySize = arraySize || glsAttributeLocationTests.ArrayEnum.NOT;
+		/** @type{glsAttributeLocationTests.AttribType} */ this.m_type = type;
+		tcuTestCase.DeqpTest.call(this, glsAttributeLocationTests.generateTestName(this.m_type, this.m_arraySize), glsAttributeLocationTests.generateTestName(this.m_type, this.m_arraySize));
 	};
 
 	glsAttributeLocationTests.BindAttributeTest.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
@@ -1080,9 +1058,9 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 	 * @param {number=} arraySize
 	 */
 	glsAttributeLocationTests.BindMaxAttributesTest = function(type, arraySize) {
-		tcuTestCase.DeqpTest.call(this, glsAttributeLocationTests.generateTestName(type,arraySize), glsAttributeLocationTests.generateTestName(type,arraySize));
-		/** @type{glsAttributeLocationTests.AttribType} */ this.m_type = type;
 		/** @type{number} */ this.m_arraySize = arraySize || glsAttributeLocationTests.ArrayEnum.NOT;
+		/** @type{glsAttributeLocationTests.AttribType} */ this.m_type = type;
+		tcuTestCase.DeqpTest.call(this, glsAttributeLocationTests.generateTestName(this.m_type, this.m_arraySize), glsAttributeLocationTests.generateTestName(this.m_type, this.m_arraySize));
 	};
 
 	glsAttributeLocationTests.BindMaxAttributesTest.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
@@ -1117,10 +1095,10 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 	 * @param {number=} arraySize
 	 */
 	glsAttributeLocationTests.BindAliasingAttributeTest = function(type, offset, arraySize) {
-		tcuTestCase.DeqpTest.call(this, glsAttributeLocationTests.generateTestName(type,arraySize), glsAttributeLocationTests.generateTestName(type,arraySize));
-		/** @type{glsAttributeLocationTests.AttribType} */ this.m_type = type;
-		/** @type{number} */ this.m_offset = offset || 0;
 		/** @type{number} */ this.m_arraySize = arraySize || glsAttributeLocationTests.ArrayEnum.NOT;
+		/** @type{glsAttributeLocationTests.AttribType} */ this.m_type = type;
+		tcuTestCase.DeqpTest.call(this, glsAttributeLocationTests.generateTestName(this.m_type, this.m_arraySize), glsAttributeLocationTests.generateTestName(this.m_type, this.m_arraySize));
+		/** @type{number} */ this.m_offset = offset || 0;
 	};
 
 	glsAttributeLocationTests.BindAliasingAttributeTest.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
@@ -1148,9 +1126,9 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 	 * @param {number=} arraySize
 	 */
 	glsAttributeLocationTests.BindMaxAliasingAttributeTest = function(type, arraySize) {
-		tcuTestCase.DeqpTest.call(this, glsAttributeLocationTests.generateTestName(type,arraySize), glsAttributeLocationTests.generateTestName(type,arraySize));
-		/** @type{glsAttributeLocationTests.AttribType} */ this.m_type = type;
 		/** @type{number} */ this.m_arraySize = arraySize || glsAttributeLocationTests.ArrayEnum.NOT;
+		/** @type{glsAttributeLocationTests.AttribType} */ this.m_type = type;
+		tcuTestCase.DeqpTest.call(this, glsAttributeLocationTests.generateTestName(this.m_type, this.m_arraySize), glsAttributeLocationTests.generateTestName(this.m_type, this.m_arraySize));
 	};
 
 	glsAttributeLocationTests.BindMaxAliasingAttributeTest.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
@@ -1188,9 +1166,9 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 	 * @param {number=} arraySize
 	 */
 	glsAttributeLocationTests.BindInactiveAliasingAttributeTest = function(type, arraySize) {
-		tcuTestCase.DeqpTest.call(this, glsAttributeLocationTests.generateTestName(type,arraySize), glsAttributeLocationTests.generateTestName(type,arraySize));
-		/** @type{glsAttributeLocationTests.AttribType} */ this.m_type = type;
 		/** @type{number} */ this.m_arraySize = arraySize || glsAttributeLocationTests.ArrayEnum.NOT;
+		/** @type{glsAttributeLocationTests.AttribType} */ this.m_type = type;
+		tcuTestCase.DeqpTest.call(this, glsAttributeLocationTests.generateTestName(this.m_type, this.m_arraySize), glsAttributeLocationTests.generateTestName(this.m_type, this.m_arraySize));
 	};
 
 	glsAttributeLocationTests.BindInactiveAliasingAttributeTest.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
@@ -1230,9 +1208,9 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 	 * @param {number=} arraySize
 	 */
 	glsAttributeLocationTests.BindHoleAttributeTest = function(type, arraySize) {
-		tcuTestCase.DeqpTest.call(this, glsAttributeLocationTests.generateTestName(type,arraySize), glsAttributeLocationTests.generateTestName(type,arraySize));
-		/** @type{glsAttributeLocationTests.AttribType} */ this.m_type = type;
 		/** @type{number} */ this.m_arraySize = arraySize || glsAttributeLocationTests.ArrayEnum.NOT;
+		/** @type{glsAttributeLocationTests.AttribType} */ this.m_type = type;
+		tcuTestCase.DeqpTest.call(this, glsAttributeLocationTests.generateTestName(this.m_type, this.m_arraySize), glsAttributeLocationTests.generateTestName(this.m_type, this.m_arraySize));
 	};
 
 	glsAttributeLocationTests.BindHoleAttributeTest.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
@@ -1378,9 +1356,9 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 	 * @param {number=} arraySize
 	 */
 	glsAttributeLocationTests.LocationAttributeTest = function(type, arraySize) {
-		tcuTestCase.DeqpTest.call(this, glsAttributeLocationTests.generateTestName(type,arraySize), glsAttributeLocationTests.generateTestName(type,arraySize));
-		/** @type{glsAttributeLocationTests.AttribType} */ this.m_type = type;
 		/** @type{number} */ this.m_arraySize = arraySize || glsAttributeLocationTests.ArrayEnum.NOT;
+		/** @type{glsAttributeLocationTests.AttribType} */ this.m_type = type;
+		tcuTestCase.DeqpTest.call(this, glsAttributeLocationTests.generateTestName(this.m_type, this.m_arraySize), glsAttributeLocationTests.generateTestName(this.m_type, this.m_arraySize));
 	};
 
 	glsAttributeLocationTests.LocationAttributeTest.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
@@ -1403,9 +1381,9 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 	 * @param {number=} arraySize
 	 */
 	glsAttributeLocationTests.LocationMaxAttributesTest = function(type, arraySize) {
-		tcuTestCase.DeqpTest.call(this, glsAttributeLocationTests.generateTestName(type,arraySize), glsAttributeLocationTests.generateTestName(type,arraySize));
-		/** @type{glsAttributeLocationTests.AttribType} */ this.m_type = type;
 		/** @type{number} */ this.m_arraySize = arraySize || glsAttributeLocationTests.ArrayEnum.NOT;
+		/** @type{glsAttributeLocationTests.AttribType} */ this.m_type = type;
+		tcuTestCase.DeqpTest.call(this, glsAttributeLocationTests.generateTestName(this.m_type, this.m_arraySize), glsAttributeLocationTests.generateTestName(this.m_type, this.m_arraySize));
 	};
 
 	glsAttributeLocationTests.LocationMaxAttributesTest.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
@@ -1438,9 +1416,9 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 	 * @param {number=} arraySize
 	 */
 	glsAttributeLocationTests.LocationHoleAttributeTest = function(type, arraySize) {
-		tcuTestCase.DeqpTest.call(this, glsAttributeLocationTests.generateTestName(type,arraySize), glsAttributeLocationTests.generateTestName(type,arraySize));
-		/** @type{glsAttributeLocationTests.AttribType} */ this.m_type = type;
 		/** @type{number} */ this.m_arraySize = arraySize || glsAttributeLocationTests.ArrayEnum.NOT;
+		/** @type{glsAttributeLocationTests.AttribType} */ this.m_type = type;
+		tcuTestCase.DeqpTest.call(this, glsAttributeLocationTests.generateTestName(this.m_type, this.m_arraySize), glsAttributeLocationTests.generateTestName(this.m_type, this.m_arraySize));
 	};
 
 	glsAttributeLocationTests.LocationHoleAttributeTest.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
@@ -1478,9 +1456,9 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 	 * @param {number=} arraySize
 	 */
 	glsAttributeLocationTests.MixedAttributeTest = function(type, arraySize) {
-		tcuTestCase.DeqpTest.call(this, glsAttributeLocationTests.generateTestName(type,arraySize), glsAttributeLocationTests.generateTestName(type,arraySize));
 		/** @type{glsAttributeLocationTests.AttribType} */ this.m_type = type;
 		/** @type{number} */ this.m_arraySize = arraySize || glsAttributeLocationTests.ArrayEnum.NOT;
+		tcuTestCase.DeqpTest.call(this, glsAttributeLocationTests.generateTestName(this.m_type, this.m_arraySize), glsAttributeLocationTests.generateTestName(this.m_type, this.m_arraySize));
 	};
 
 	glsAttributeLocationTests.MixedAttributeTest.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
@@ -1506,9 +1484,9 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 	 * @param {number=} arraySize
 	 */
 	glsAttributeLocationTests.MixedMaxAttributesTest = function(type, arraySize) {
-		tcuTestCase.DeqpTest.call(this, glsAttributeLocationTests.generateTestName(type,arraySize), glsAttributeLocationTests.generateTestName(type,arraySize));
 		/** @type{glsAttributeLocationTests.AttribType} */ this.m_type = type;
 		/** @type{number} */ this.m_arraySize = arraySize || glsAttributeLocationTests.ArrayEnum.NOT;
+		tcuTestCase.DeqpTest.call(this, glsAttributeLocationTests.generateTestName(this.m_type, this.m_arraySize), glsAttributeLocationTests.generateTestName(this.m_type, this.m_arraySize));
 	};
 
 	glsAttributeLocationTests.MixedMaxAttributesTest.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
@@ -1547,9 +1525,9 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 	 * @param {number=} arraySize
 	 */
 	glsAttributeLocationTests.MixedHoleAttributeTest = function(type, arraySize) {
-		tcuTestCase.DeqpTest.call(this, glsAttributeLocationTests.generateTestName(type,arraySize), glsAttributeLocationTests.generateTestName(type,arraySize));
 		/** @type{glsAttributeLocationTests.AttribType} */ this.m_type = type;
 		/** @type{number} */ this.m_arraySize = arraySize || glsAttributeLocationTests.ArrayEnum.NOT;
+		tcuTestCase.DeqpTest.call(this, glsAttributeLocationTests.generateTestName(this.m_type, this.m_arraySize), glsAttributeLocationTests.generateTestName(this.m_type, this.m_arraySize));
 	};
 
 	glsAttributeLocationTests.MixedHoleAttributeTest.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
@@ -1624,9 +1602,9 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 	 * @param {number=} arraySize
 	 */
 	glsAttributeLocationTests.BindRelinkHoleAttributeTest = function(type, arraySize) {
-		tcuTestCase.DeqpTest.call(this, glsAttributeLocationTests.generateTestName(type,arraySize), glsAttributeLocationTests.generateTestName(type,arraySize));
 		/** @type{glsAttributeLocationTests.AttribType} */ this.m_type = type;
 		/** @type{number} */ this.m_arraySize = arraySize || glsAttributeLocationTests.ArrayEnum.NOT;
+		tcuTestCase.DeqpTest.call(this, glsAttributeLocationTests.generateTestName(this.m_type, this.m_arraySize), glsAttributeLocationTests.generateTestName(this.m_type, this.m_arraySize));
 	};
 
 	glsAttributeLocationTests.BindRelinkHoleAttributeTest.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
@@ -1670,9 +1648,9 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 	 * @param {number=} arraySize
 	 */
 	glsAttributeLocationTests.MixedRelinkHoleAttributeTest = function(type, arraySize) {
-		tcuTestCase.DeqpTest.call(this, glsAttributeLocationTests.generateTestName(type,arraySize), glsAttributeLocationTests.generateTestName(type,arraySize));
 		/** @type{glsAttributeLocationTests.AttribType} */ this.m_type = type;
 		/** @type{number} */ this.m_arraySize = arraySize || glsAttributeLocationTests.ArrayEnum.NOT;
+		tcuTestCase.DeqpTest.call(this, glsAttributeLocationTests.generateTestName(this.m_type, this.m_arraySize), glsAttributeLocationTests.generateTestName(this.m_type, this.m_arraySize));
 	};
 
 	glsAttributeLocationTests.MixedRelinkHoleAttributeTest.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
