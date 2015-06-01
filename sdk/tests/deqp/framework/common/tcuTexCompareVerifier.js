@@ -455,16 +455,16 @@ tcuTexCompareVerifier.isTrilinearAnyCompareValid = function(compareMode,
                                      isFixedPointDepth) {
     assertMsgOptions(prec.pcfBits === 0, 'PCF bits must be 0', false, true);
 
-    var cmp00       = tcuTexCompareVerifier.execCompare(compareMode, depths0[0], cmpReference, prec.referenceBits, isFixedPointDepth);
-    var cmp01       = tcuTexCompareVerifier.execCompare(compareMode, depths0[1], cmpReference, prec.referenceBits, isFixedPointDepth);
-    var cmp02       = tcuTexCompareVerifier.execCompare(compareMode, depths0[2], cmpReference, prec.referenceBits, isFixedPointDepth);
-    var cmp03       = tcuTexCompareVerifier.execCompare(compareMode, depths0[3], cmpReference, prec.referenceBits, isFixedPointDepth);
-    var cmp10       = tcuTexCompareVerifier.execCompare(compareMode, depths1[0], cmpReference, prec.referenceBits, isFixedPointDepth);
-    var cmp11       = tcuTexCompareVerifier.execCompare(compareMode, depths1[1], cmpReference, prec.referenceBits, isFixedPointDepth);
-    var cmp12       = tcuTexCompareVerifier.execCompare(compareMode, depths1[2], cmpReference, prec.referenceBits, isFixedPointDepth);
-    var cmp13       = tcuTexCompareVerifier.execCompare(compareMode, depths1[3], cmpReference, prec.referenceBits, isFixedPointDepth);
+    var cmp00 = tcuTexCompareVerifier.execCompare(compareMode, depths0[0], cmpReference, prec.referenceBits, isFixedPointDepth);
+    var cmp01 = tcuTexCompareVerifier.execCompare(compareMode, depths0[1], cmpReference, prec.referenceBits, isFixedPointDepth);
+    var cmp02 = tcuTexCompareVerifier.execCompare(compareMode, depths0[2], cmpReference, prec.referenceBits, isFixedPointDepth);
+    var cmp03 = tcuTexCompareVerifier.execCompare(compareMode, depths0[3], cmpReference, prec.referenceBits, isFixedPointDepth);
+    var cmp10 = tcuTexCompareVerifier.execCompare(compareMode, depths1[0], cmpReference, prec.referenceBits, isFixedPointDepth);
+    var cmp11 = tcuTexCompareVerifier.execCompare(compareMode, depths1[1], cmpReference, prec.referenceBits, isFixedPointDepth);
+    var cmp12 = tcuTexCompareVerifier.execCompare(compareMode, depths1[2], cmpReference, prec.referenceBits, isFixedPointDepth);
+    var cmp13 = tcuTexCompareVerifier.execCompare(compareMode, depths1[3], cmpReference, prec.referenceBits, isFixedPointDepth);
 
-    var canBeTrue   = cmp00.isTrue ||
+    var canBeTrue = cmp00.isTrue ||
                                       cmp01.isTrue ||
                                       cmp02.isTrue ||
                                       cmp03.isTrue ||
@@ -472,7 +472,7 @@ tcuTexCompareVerifier.isTrilinearAnyCompareValid = function(compareMode,
                                       cmp11.isTrue ||
                                       cmp12.isTrue ||
                                       cmp13.isTrue;
-    var canBeFalse  = cmp00.isFalse ||
+    var canBeFalse = cmp00.isFalse ||
                                       cmp01.isFalse ||
                                       cmp02.isFalse ||
                                       cmp03.isFalse ||
@@ -836,6 +836,242 @@ tcuTexCompareVerifier.isTexCompareResultValid2D = function(texture, sampler, pre
 
 /**
  * @param {tcuTexture.TextureCubeView} texture
+ * @param {number} baseLevelNdx
+ * @param {tcuTexture.Sampler} sampler
+ * @param {tcuTexCompareVerifier.TexComparePrecision} prec
+ * @param {tcuTexture.CubeFaceCoords} coords
+ * @param {Array<number>} fBounds vec2
+ * @param {number} cmpReference
+ * @param {number} result
+ * @return {boolean}
+ */
+tcuTexCompareVerifier.isSeamplessLinearMipmapLinearCompareResultValid = function(texture,
+                                                             baseLevelNdx,
+                                                             sampler,
+                                                             prec,
+                                                             coords,
+                                                             fBounds,
+                                                             cmpReference,
+                                                             result) {
+    var isFixedPointDepth = tcuTexCompareVerifier.isFixedPointDepthTextureFormat(texture.getLevelFace(baseLevelNdx, tcuTexture.CubeFace.CUBEFACE_NEGATIVE_X).getFormat());
+    var size0 = texture.getLevelFace(baseLevelNdx, coords.face).getWidth();
+    var size1 = texture.getLevelFace(baseLevelNdx + 1, coords.face).getWidth();
+
+    var uBounds0 = tcuTexVerifierUtil.computeNonNormalizedCoordBounds(sampler.normalizedCoords, size0, coords.s, prec.coordBits[0], prec.uvwBits[0]);
+    var uBounds1 = tcuTexVerifierUtil.computeNonNormalizedCoordBounds(sampler.normalizedCoords, size1, coords.s, prec.coordBits[0], prec.uvwBits[0]);
+    var vBounds0 = tcuTexVerifierUtil.computeNonNormalizedCoordBounds(sampler.normalizedCoords, size0, coords.t, prec.coordBits[1], prec.uvwBits[1]);
+    var vBounds1 = tcuTexVerifierUtil.computeNonNormalizedCoordBounds(sampler.normalizedCoords, size1, coords.t, prec.coordBits[1], prec.uvwBits[1]);
+
+    // Integer coordinates - without wrap mode
+    var minI0 = Math.floor(uBounds0[0] - 0.5);
+    var maxI0 = Math.floor(uBounds0[1] - 0.5);
+    var minI1 = Math.floor(uBounds1[0] - 0.5);
+    var maxI1 = Math.floor(uBounds1[1] - 0.5);
+    var minJ0 = Math.floor(vBounds0[0] - 0.5);
+    var maxJ0 = Math.floor(vBounds0[1] - 0.5);
+    var minJ1 = Math.floor(vBounds1[0] - 0.5);
+    var maxJ1 = Math.floor(vBounds1[1] - 0.5);
+
+    /** @type {Array<tcuTexture.ConstPixelBufferAccess>} */ var faces0 = [];
+    /** @type {Array<tcuTexture.ConstPixelBufferAccess>} */ var faces1 = [];
+
+    for (var key in tcuTexture.CubeFace) {
+        var face = tcuTexture.CubeFace[key];
+        faces0[face] = texture.getLevelFace(baseLevelNdx, face);
+        faces1[face] = texture.getLevelFace(baseLevelNdx + 1, face);
+    }
+
+    for (var j0 = minJ0; j0 <= maxJ0; j0++) {
+        for (var i0 = minI0; i0 <= maxI0; i0++) {
+            var minA0 = deMath.clamp((uBounds0[0] - 0.5) - i0, 0, 1);
+            var maxA0 = deMath.clamp((uBounds0[1] - 0.5) - i0, 0, 1);
+            var minB0 = deMath.clamp((vBounds0[0] - 0.5) - j0, 0, 1);
+            var maxB0 = deMath.clamp((vBounds0[1] - 0.5) - j0, 0, 1);
+            var depths0 = [];
+
+            var c00 = tcuTexture.remapCubeEdgeCoords(new tcuTexture.CubeFaceCoords(coords.face, [i0 + 0, j0 + 0]), size0);
+            var c10 = tcuTexture.remapCubeEdgeCoords(new tcuTexture.CubeFaceCoords(coords.face, [i0 + 1, j0 + 0]), size0);
+            var c01 = tcuTexture.remapCubeEdgeCoords(new tcuTexture.CubeFaceCoords(coords.face, [i0 + 0, j0 + 1]), size0);
+            var c11 = tcuTexture.remapCubeEdgeCoords(new tcuTexture.CubeFaceCoords(coords.face, [i0 + 1, j0 + 1]), size0);
+
+            // If any of samples is out of both edges, implementations can do pretty much anything according to spec.
+            // \todo [2013-07-08 pyry] Test the special case where all corner pixels have exactly the same color.
+            if (c00 == null || c01 == null || c10 == null || c11 == null)
+                return true;
+
+            depths0[0] = faces0[c00.face].getPixDepth(c00.s, c00.t);
+            depths0[1] = faces0[c10.face].getPixDepth(c10.s, c10.t);
+            depths0[2] = faces0[c01.face].getPixDepth(c01.s, c01.t);
+            depths0[3] = faces0[c11.face].getPixDepth(c11.s, c11.t);
+
+            for (var j1 = minJ1; j1 <= maxJ1; j1++) {
+                for (var i1 = minI1; i1 <= maxI1; i1++) {
+                    var minA1 = deMath.clamp((uBounds1[0] - 0.5) - i1, 0, 1);
+                    var maxA1 = deMath.clamp((uBounds1[1] - 0.5) - i1, 0, 1);
+                    var minB1 = deMath.clamp((vBounds1[0] - 0.5) - j1, 0, 1);
+                    var maxB1 = deMath.clamp((vBounds1[1] - 0.5) - j1, 0, 1);
+                    var depths1 = [];
+
+                    c00 = tcuTexture.remapCubeEdgeCoords(new tcuTexture.CubeFaceCoords(coords.face, [i1 + 0, j1 + 0]), size1);
+                    c10 = tcuTexture.remapCubeEdgeCoords(new tcuTexture.CubeFaceCoords(coords.face, [i1 + 1, j1 + 0]), size1);
+                    c01 = tcuTexture.remapCubeEdgeCoords(new tcuTexture.CubeFaceCoords(coords.face, [i1 + 0, j1 + 1]), size1);
+                    c11 = tcuTexture.remapCubeEdgeCoords(new tcuTexture.CubeFaceCoords(coords.face, [i1 + 1, j1 + 1]), size1);
+
+                    if (c00 == null || c01 == null || c10 == null || c11 == null)
+                        return true;
+
+                    depths1[0] = faces1[c00.face].getPixDepth(c00.s, c00.t);
+                    depths1[1] = faces1[c10.face].getPixDepth(c10.s, c10.t);
+                    depths1[2] = faces1[c01.face].getPixDepth(c01.s, c01.t);
+                    depths1[3] = faces1[c11.face].getPixDepth(c11.s, c11.t);
+
+                    if (tcuTexCompareVerifier.isTrilinearCompareValid(sampler.compare, prec, depths0, depths1,
+                                                [minA0, maxA0], [minB0, maxB0],
+                                                [minA1, maxA1], [minB1, maxB1],
+                                                fBounds, cmpReference, result, isFixedPointDepth))
+                        return true;
+                }
+            }
+        }
+    }
+
+    return false;
+};
+
+/**
+ * @param {tcuTexture.TextureCubeView} texture
+ * @param {number} levelNdx
+ * @param {tcuTexture.Sampler} sampler
+ * @param {tcuTexCompareVerifier.TexComparePrecision} prec
+ * @param {tcuTexture.CubeFaceCoords} coords
+ * @param {number} cmpReference
+ * @param {number} result
+ * @return {boolean}
+ */
+
+tcuTexCompareVerifier.isSeamlessLinearCompareResultValid = function(texture,
+                                                levelNdx,
+                                                sampler,
+                                                prec,
+                                                coords,
+                                                cmpReference,
+                                                result) {
+    var isFixedPointDepth = tcuTexCompareVerifier.isFixedPointDepthTextureFormat(texture.getLevelFace(levelNdx, tcuTexture.CubeFace.CUBEFACE_NEGATIVE_X).getFormat());
+    var size = texture.getLevelFace(levelNdx, coords.face).getWidth();
+
+    var uBounds = tcuTexVerifierUtil.computeNonNormalizedCoordBounds(sampler.normalizedCoords, size, coords.s, prec.coordBits[0], prec.uvwBits[0]);
+    var vBounds = tcuTexVerifierUtil.computeNonNormalizedCoordBounds(sampler.normalizedCoords, size, coords.t, prec.coordBits[1], prec.uvwBits[1]);
+
+    // Integer coordinate bounds for (x0,y0) - without wrap mode
+    var minI = Math.floor(uBounds[0] - 0.5);
+    var maxI = Math.floor(uBounds[1] - 0.5);
+    var minJ = Math.floor(vBounds[0] - 0.5);
+    var maxJ = Math.floor(vBounds[1] - 0.5);
+
+    // Face accesses
+    /** @type {Array<tcuTexture.ConstPixelBufferAccess>} */ var faces = [];
+
+    for (var key in tcuTexture.CubeFace) {
+        var face = tcuTexture.CubeFace[key];
+        faces[face] = texture.getLevelFace(levelNdx, face);
+    }
+
+    for (var j = minJ; j <= maxJ; j++) {
+        for (var i = minI; i <= maxI; i++) {
+            var c00 = tcuTexture.remapCubeEdgeCoords(new tcuTexture.CubeFaceCoords(coords.face, [i + 0, j + 0]), size);
+            var c10 = tcuTexture.remapCubeEdgeCoords(new tcuTexture.CubeFaceCoords(coords.face, [i + 1, j + 0]), size);
+            var c01 = tcuTexture.remapCubeEdgeCoords(new tcuTexture.CubeFaceCoords(coords.face, [i + 0, j + 1]), size);
+            var c11 = tcuTexture.remapCubeEdgeCoords(new tcuTexture.CubeFaceCoords(coords.face, [i + 1, j + 1]), size);
+
+            // If any of samples is out of both edges, implementations can do pretty much anything according to spec.
+            // \todo [2013-07-08 pyry] Test the special case where all corner pixels have exactly the same color.
+            if (!c00 || !c01 || !c10 || !c11)
+                return true;
+
+            // Bounds for filtering factors
+            var minA = deMath.clamp((uBounds[0] - 0.5) - i, 0, 1);
+            var maxA = deMath.clamp((uBounds[1] - 0.5) - i, 0, 1);
+            var minB = deMath.clamp((vBounds[0] - 0.5) - j, 0, 1);
+            var maxB = deMath.clamp((vBounds[1] - 0.5) - j, 0, 1);
+
+            var depths = [];
+            depths[0] = faces[c00.face].getPixDepth(c00.s, c00.t);
+            depths[1] = faces[c10.face].getPixDepth(c10.s, c10.t);
+            depths[2] = faces[c01.face].getPixDepth(c01.s, c01.t);
+            depths[3] = faces[c11.face].getPixDepth(c11.s, c11.t);
+
+            if (tcuTexCompareVerifier.isBilinearCompareValid(sampler.compare, prec, depths, [minA, maxA], [minB, maxB], cmpReference, result, isFixedPointDepth))
+                return true;
+        }
+    }
+
+    return false;
+};
+
+/**
+ * @param {tcuTexture.TextureCubeView} texture
+ * @param {number} levelNdx
+ * @param {tcuTexture.Sampler} sampler
+ * @param {tcuTexture.FilterMode} filterMode
+ * @param {tcuTexCompareVerifier.TexComparePrecision} prec
+ * @param {tcuTexture.CubeFaceCoords} coords
+ * @param {number} cmpReference
+ * @param {number} result
+ * @return {boolean}
+ */
+tcuTexCompareVerifier.isCubeLevelCompareResultValid = function(texture,
+                                           levelNdx,
+                                           sampler,
+                                           filterMode,
+                                           prec,
+                                           coords,
+                                           cmpReference,
+                                           result) {
+    if (filterMode == tcuTexture.FilterMode.LINEAR) {
+        if (sampler.seamlessCubeMap)
+            return tcuTexCompareVerifier.isSeamlessLinearCompareResultValid(texture, levelNdx, sampler, prec, coords, cmpReference, result);
+        else
+            return tcuTexCompareVerifier.isLinearCompareResultValid(texture.getLevelFace(levelNdx, coords.face), sampler, prec, [coords.s, coords.t], 0, cmpReference, result);
+    } else
+        return tcuTexCompareVerifier.isNearestCompareResultValid(texture.getLevelFace(levelNdx, coords.face), sampler, prec, [coords.s, coords.t], 0, cmpReference, result);
+};
+
+/**
+ * @param {tcuTexture.TextureCubeView} texture
+ * @param {number} baseLevelNdx
+ * @param {tcuTexture.Sampler} sampler
+ * @param {tcuTexture.FilterMode} levelFilter
+ * @param {tcuTexCompareVerifier.TexComparePrecision} prec
+ * @param {tcuTexture.CubeFaceCoords} coords
+ * @param {Array<number>} fBounds vec2
+ * @param {number} cmpReference
+ * @param {number} result
+ * @return {boolean}
+ */
+tcuTexCompareVerifier.isCubeMipmapLinearCompareResultValid = function(texture,
+                                                  baseLevelNdx,
+                                                  sampler,
+                                                  levelFilter,
+                                                  prec,
+                                                  coords,
+                                                  fBounds,
+                                                  cmpReference,
+                                                  result) {
+    if (levelFilter == tcuTexture.FilterMode.LINEAR) {
+        if (sampler.seamlessCubeMap)
+            return tcuTexCompareVerifier.isSeamplessLinearMipmapLinearCompareResultValid(texture, baseLevelNdx, sampler, prec, coords, fBounds, cmpReference, result);
+        else
+            return tcuTexCompareVerifier.isLinearMipmapLinearCompareResultValid(texture.getLevelFace(baseLevelNdx, coords.face),
+                                                          texture.getLevelFace(baseLevelNdx + 1, coords.face),
+                                                          sampler, prec, [coords.s, coords.t], 0, fBounds, cmpReference, result);
+    } else
+        return tcuTexCompareVerifier.isNearestMipmapLinearCompareResultValid(texture.getLevelFace(baseLevelNdx, coords.face),
+                                                       texture.getLevelFace(baseLevelNdx + 1, coords.face),
+                                                       sampler, prec, [coords.s, coords.t], 0, fBounds, cmpReference, result);
+};
+
+/**
+ * @param {tcuTexture.TextureCubeView} texture
  * @param {tcuTexture.Sampler} sampler
  * @param {tcuTexCompareVerifier.TexComparePrecision} prec
  * @param {Array<number>} coord vec2 texture coordinates
@@ -845,68 +1081,58 @@ tcuTexCompareVerifier.isTexCompareResultValid2D = function(texture, sampler, pre
  * @return {boolean}
  */
 tcuTexCompareVerifier.isTexCompareResultValidCube = function(texture, sampler, prec, coord, lodBounds, cmpReference, result) {
-    /** @type {Array<tcuTexture.CubeFace>} */var    possibleFaces = tcuTexVerifierUtil.getPossibleCubeFaces(coord, prec.coordBits);
+    /** @type {Array<tcuTexture.CubeFace>} */var possibleFaces = tcuTexVerifierUtil.getPossibleCubeFaces(coord, prec.coordBits);
 
     if (!possibleFaces)
         return true; // Result is undefined.
 
-    for (var tryFaceNdx = 0; tryFaceNdx < possibleFaces.length; tryFaceNdx++)
-    {
+    for (var tryFaceNdx = 0; tryFaceNdx < possibleFaces.length; tryFaceNdx++) {
         var face = possibleFaces[tryFaceNdx];
-        var faceCoords  = new tcuTexture.CubeFaceCoords(face, tcuTexture.projectToFace(face, coord));
-        var minLod          = lodBounds.x();
-        var maxLod          = lodBounds.y();
-        var canBeMagnified  = minLod <= sampler.lodThreshold;
-        var canBeMinified   = maxLod > sampler.lodThreshold;
+        var faceCoords = new tcuTexture.CubeFaceCoords(face, tcuTexture.projectToFace(face, coord));
+        var minLod = lodBounds[0];
+        var maxLod = lodBounds[1];
+        var canBeMagnified = minLod <= sampler.lodThreshold;
+        var canBeMinified = maxLod > sampler.lodThreshold;
 
-        if (canBeMagnified)
-        {
+        if (canBeMagnified) {
             if (tcuTexCompareVerifier.isCubeLevelCompareResultValid(texture, 0, sampler, sampler.magFilter, prec, faceCoords, cmpReference, result))
                 return true;
         }
 
-        if (canBeMinified)
-        {
+        if (canBeMinified) {
             var isNearestMipmap = tcuTexVerifierUtil.isNearestMipmapFilter(sampler.minFilter);
-            var isLinearMipmap  = tcuTexVerifierUtil.isLinearMipmapFilter(sampler.minFilter);
-            var minTexLevel     = 0;
-            var maxTexLevel     = texture.getNumLevels()-1;
+            var isLinearMipmap = tcuTexVerifierUtil.isLinearMipmapFilter(sampler.minFilter);
+            var minTexLevel = 0;
+            var maxTexLevel = texture.getNumLevels() - 1;
 
             assertMsgOptions(minTexLevel < maxTexLevel, 'Invalid texture levels.', false, true);
-    
-            if (isLinearMipmap)
-            {
-                var minLevel        = deMath.clamp(Math.floor(minLod), minTexLevel, maxTexLevel - 1);
-                var maxLevel        = deMath.clamp(Math.floor(maxLod), minTexLevel, maxTexLevel - 1);
+
+            if (isLinearMipmap) {
+                var minLevel = deMath.clamp(Math.floor(minLod), minTexLevel, maxTexLevel - 1);
+                var maxLevel = deMath.clamp(Math.floor(maxLod), minTexLevel, maxTexLevel - 1);
 
                 assertMsgOptions(minLevel <= maxLevel, 'Invalid texture levels.', false, true);
 
-                for (var level = minLevel; level <= maxLevel; level++)
-                {
-                    var minF    = deMath.clamp(minLod - level, 0, 1);
-                    var maxF    = deMath.clamp(maxLod - level, 0, 1);
+                for (var level = minLevel; level <= maxLevel; level++) {
+                    var minF = deMath.clamp(minLod - level, 0, 1);
+                    var maxF = deMath.clamp(maxLod - level, 0, 1);
 
                     if (tcuTexCompareVerifier.isCubeMipmapLinearCompareResultValid(texture, level, sampler, tcuTexVerifierUtil.getLevelFilter(sampler.minFilter), prec, faceCoords, [minF, maxF], cmpReference, result))
                         return true;
                 }
-            }
-            else if (isNearestMipmap)
-            {
+            } else if (isNearestMipmap) {
                 // \note The accurate formula for nearest mipmapping is level = ceil(lod + 0.5) - 1 but Khronos has made
                 //       decision to allow floor(lod + 0.5) as well.
-                var minLevel        = deMath.clamp(Math.ceil(minLod + 0.5) - 1,    minTexLevel, maxTexLevel);
-                var maxLevel        = deMath.clamp(Math.floor(maxLod + 0.5),       minTexLevel, maxTexLevel);
+                var minLevel = deMath.clamp(Math.ceil(minLod + 0.5) - 1, minTexLevel, maxTexLevel);
+                var maxLevel = deMath.clamp(Math.floor(maxLod + 0.5), minTexLevel, maxTexLevel);
 
                 assertMsgOptions(minLevel <= maxLevel, 'Invalid texture levels.', false, true);
 
-                for (var level = minLevel; level <= maxLevel; level++)
-                {
+                for (var level = minLevel; level <= maxLevel; level++) {
                     if (tcuTexCompareVerifier.isCubeLevelCompareResultValid(texture, level, sampler, tcuTexVerifierUtil.getLevelFilter(sampler.minFilter), prec, faceCoords, cmpReference, result))
                         return true;
                 }
-            }
-            else
-            {
+            } else {
                 if (tcuTexCompareVerifier.isCubeLevelCompareResultValid(texture, 0, sampler, sampler.minFilter, prec, faceCoords, cmpReference, result))
                     return true;
             }

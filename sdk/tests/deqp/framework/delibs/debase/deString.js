@@ -84,7 +84,7 @@ var deMath = framework.delibs.debase.deMath;
         if (typeof value === 'undefined')
             return 'undefined';
 
-        if (typeof value === 'null')
+        if (!value)
             return 'null';
 
         return value.toString(10);
