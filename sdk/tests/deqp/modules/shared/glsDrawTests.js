@@ -1780,7 +1780,7 @@ goog.scope(function() {
         }
 
         if (drawMethod == glsDrawTests.DrawTestSpec.DrawMethod.DRAWARRAYS)
-            this.m_ctx.drawArrays(glsDrawTests.primitiveToGL(primitive), firstVertex, 6 /*vertexCount*/);
+            this.m_ctx.drawArrays(glsDrawTests.primitiveToGL(primitive), firstVertex, 3 /*vertexCount*/);
         else if (drawMethod == glsDrawTests.DrawTestSpec.DrawMethod.DRAWARRAYS_INSTANCED)
             this.m_ctx.drawArraysInstanced(glsDrawTests.primitiveToGL(primitive), firstVertex, vertexCount, instanceCount);
         else if (drawMethod == glsDrawTests.DrawTestSpec.DrawMethod.DRAWELEMENTS)
