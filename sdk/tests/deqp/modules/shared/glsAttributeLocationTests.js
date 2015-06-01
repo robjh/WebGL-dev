@@ -47,7 +47,7 @@ goog.scope(function() {
     glsAttributeLocationTests.getBoundLocation = function(bindings, attrib) {
 		/** @type{number} */ var value;
 		/** @type{number} */ var i;
-		for (i = 0; i < bindings.length; i++) {
+		for (i = 0; i < glsAttributeLocationTests.size(bindings); i++) {
 			if (bindings[attrib]) {
 				value = bindings[attrib];
 				break;
@@ -75,6 +75,34 @@ goog.scope(function() {
 
 		return arr;
 	}
+
+	/**
+ 	 * @param{*} obj
+ 	 * @return{number}
+ 	 */
+	glsAttributeLocationTests.size = function(obj) {
+		/** @type{number} */ var size = 0;
+		/** @type{*} */ var key;
+    for (key in obj) {
+        if (obj.hasOwnProperty(key)) size++;
+    }
+    return size;
+	}
+
+	/**
+ 	 * @param{Array} arr
+	 * @param{*} obj
+ 	 * @return{boolean}
+ 	 */
+	glsAttributeLocationTests.contains = function(arr, obj) {
+    var i = arr.length;
+    while (i--) {
+       if (arr[i] === obj) {
+           return true;
+       }
+    }
+    return false;
+}
 
 	/**
 	 * @param{Array<glsAttributeLocationTests.Attribute>} attributes
@@ -522,7 +550,7 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 				for (attribNdx = 0; attribNdx < attributes.length; attribNdx++)	{
 					attrib = attributes[attribNdx];
 
-					if (attrib.getName() == name)	{
+					if (attrib.getName() == activeInfo.name)	{
 						if (activeInfo.type != attrib.getType().getGLTypeEnum())	{
 							// log << TestLog::Message
 							// 	<< "Error: Wrong type " << glu::getShaderVarTypeStr(type)
@@ -555,7 +583,7 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 				}
 			}
 
-			activeAttributes.push(name);
+			activeAttributes.push(activeInfo.name);
 		}
 
 		for (attribNdx = 0; attribNdx < attributes.length; attribNdx++)	{
@@ -563,7 +591,7 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 			isActive = attrib.getCondition().notEquals(glsAttributeLocationTests.NewCondWithEnum(glsAttributeLocationTests.ConstCond.NEVER));
 
 			if (isActive) {
-				if (activeAttributes[attrib.getName()] === undefined) {
+				if (!glsAttributeLocationTests.contains(activeAttributes,attrib.getName())) {
 					// log << TestLog::Message << "Error: Active attribute " << attrib.getName() << " wasn't returned by glGetActiveAttrib()." << TestLog::EndMessage;
 					isOk = false;
 				}
@@ -1007,10 +1035,8 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 			gl.deleteProgram(program);
 			//GLU_EXPECT_NO_ERROR(gl.getError(), "glDeleteProgram()");
 
-			//if (isOk)
-				//testCtx.setTestResult(QP_TEST_RESULT_PASS, "Pass");
-			//else
-				//testCtx.setTestResult(QP_TEST_RESULT_FAIL, "Fail");
+			assertMsgOptions(isOk, 'Done', true, true);
+
 		} catch (e)	{
 			if (program)
 				gl.deleteProgram(program);
