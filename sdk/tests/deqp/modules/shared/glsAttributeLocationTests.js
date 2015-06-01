@@ -40,7 +40,7 @@ goog.scope(function() {
     };
 
     /**
-     * @param{Array<glsAttributeLocationTests.Bind>} bindings
+     * @param{Array<number>} bindings
      * @param{string} attrib
      * @return {number}
      */
@@ -48,8 +48,8 @@ goog.scope(function() {
 		/** @type{number} */ var value;
 		/** @type{number} */ var i;
 		for (i = 0; i < bindings.length; i++) {
-			if (bindings[i].getAttributeName() == attrib) {
-				value = bindings[i].getLocation();
+			if (bindings[attrib]) {
+				value = bindings[attrib];
 				break;
 			}
 		}
@@ -78,7 +78,7 @@ goog.scope(function() {
 
 	/**
 	 * @param{Array<glsAttributeLocationTests.Attribute>} attributes
-	 * @param{Array<glsAttributeLocationTests.Bind>} bindings
+	 * @param{Array<number>} bindings
 	 * @return{boolean}
 	 */
 	glsAttributeLocationTests.hasAttributeAliasing = function(attributes, bindings) {
@@ -580,7 +580,7 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 	/**
 	 * @param {WebGLProgram} program
 	 * @param {Array<glsAttributeLocationTests.Attribute>} attributes
-	 * @param {Array<modules.shared.glsAttributeLocationTests.Bind>} bindings
+	 * @param {Array<number>} bindings
 	 * @return {boolean}
 	 */
 	glsAttributeLocationTests.checkAttribLocationQuery = function(program, attributes, bindings) {
@@ -615,7 +615,7 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 	/**
 	 * @param {WebGLProgram} program
 	 * @param {Array<glsAttributeLocationTests.Attribute>} attributes
-	 * @param {Array<glsAttributeLocationTests.Bind>} bindings
+	 * @param {Array<number>} bindings
 	 * @return {boolean}
 	 */
 	glsAttributeLocationTests.checkQuery = function(program, attributes, bindings) {
@@ -760,10 +760,10 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 	/**
 	 * @constructor
 	 * @param{string} name
-	 * @param{boolean} negate
+	 * @param{boolean=} negate
 	 */
 	glsAttributeLocationTests.Cond = function(name, negate) {
-		/** @type{boolean} */ this.m_negate = negate;
+		/** @type{boolean} */ this.m_negate = negate || false;
 		/** @type{string} */ this.m_name = name;
 	};
 
@@ -910,8 +910,8 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 	 * @param{Array<glsAttributeLocationTests.Bind>} preLinkBind
 	 * @param{Array<glsAttributeLocationTests.Bind>} postLinkBind
 	 * @param{boolean} relink
-	 * @param{boolean?} reattach
-	 * @param{Array<glsAttributeLocationTests.Attribute>?} reattachAttributes
+	 * @param{boolean=} reattach
+	 * @param{Array<glsAttributeLocationTests.Attribute>=} reattachAttributes
 	 */
 	glsAttributeLocationTests.runTest = function(attributes, preAttachBind, preLinkBind, postLinkBind, relink, reattach, reattachAttributes) {
 		reattach = reattach || false;
@@ -925,7 +925,7 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 		*/
 		try	{
 			/** @type{boolean} */ var isOk = true;
-			/** @type{Array<string,number>} */ var activeBindings = [];
+			/** @type{Array<number>} */ var activeBindings = [];
 
 			/** @type{number} */ var bindNdx = 0;
 			for (bindNdx = 0; bindNdx < preAttachBind.length; bindNdx++)
@@ -1040,7 +1040,7 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 		/** @type{Array<glsAttributeLocationTests.Attribute>} */	var attributes = [];
 		/** @type{Array<glsAttributeLocationTests.Bind>} */ var bindings = [];
 
-		attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_0', glsAttributeLocationTests.LocationEnum.UNDEF, glsAttributeLocationTests.ConstCond.ALWAYS, this.m_arraySize));
+		attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_0', glsAttributeLocationTests.LocationEnum.UNDEF, glsAttributeLocationTests.NewCondWithEnum(glsAttributeLocationTests.ConstCond.ALWAYS), this.m_arraySize));
 		bindings.push(new glsAttributeLocationTests.Bind("a_0", 3));
 
 		glsAttributeLocationTests.runTest(attributes, noBindings, bindings, noBindings, false);
@@ -1074,7 +1074,7 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 		////this.m_testCtx.getLog() << TestLog::Message << 'gl.MAX_VERTEX_ATTRIBS: ' << maxAttributes << TestLog::EndMessage;
 
 		for (var loc = maxAttributes - (arrayElementCount * this.m_type.getLocationSize()); loc >= 0; loc -= (arrayElementCount * this.m_type.getLocationSize())) {
-			attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_' + ndx, glsAttributeLocationTests.LocationEnum.UNDEF, glsAttributeLocationTests.ConstCond.ALWAYS, this.m_arraySize));
+			attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_' + ndx, glsAttributeLocationTests.LocationEnum.UNDEF, glsAttributeLocationTests.NewCondWithEnum(glsAttributeLocationTests.ConstCond.ALWAYS), this.m_arraySize));
 			bindings.push(new glsAttributeLocationTests.Bind('a_' + ndx, loc));
 			ndx++;
 		}
@@ -1188,7 +1188,7 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 			attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_' + ndx, glsAttributeLocationTests.LocationEnum.UNDEF, new glsAttributeLocationTests.Cond('A')));
 			bindings.push(new glsAttributeLocationTests.Bind('a_' + (ndx), loc));
 
-			attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_' + (ndx + maxAttributes), glsAttributeLocationTests.LocationEnum.UNDEF, glsAttributeLocationTests.ConstCond.NEVER));
+			attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_' + (ndx + maxAttributes), glsAttributeLocationTests.LocationEnum.UNDEF, glsAttributeLocationTests.NewCondWithEnum(glsAttributeLocationTests.ConstCond.NEVER)));
 			bindings.push(new glsAttributeLocationTests.Bind('a_' + (ndx + maxAttributes), loc));
 			ndx++;
 		}
@@ -1220,12 +1220,11 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 
 		/** @type{Array<glsAttributeLocationTests.Attribute>} */	var attributes = [];
 		/** @type{Array<glsAttributeLocationTests.Bind>} */ var bindings = [];
-		/** @type{number} */ var ndx = 0;
 
 		attributes.push(new glsAttributeLocationTests.Attribute(vec4, 'a_0'));
 		bindings.push(new glsAttributeLocationTests.Bind('a_0', 0));
 
-		attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_1', glsAttributeLocationTests.LocationEnum.UNDEF, glsAttributeLocationTests.ConstCond.ALWAYS, this.m_arraySize));
+		attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_1', glsAttributeLocationTests.LocationEnum.UNDEF, glsAttributeLocationTests.NewCondWithEnum(glsAttributeLocationTests.ConstCond.ALWAYS), this.m_arraySize));
 
 		/** @type{number} */ var ndx = 2;
 		/** @type{number} */ var loc;
@@ -1328,8 +1327,8 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 
 	glsAttributeLocationTests.BindReattachAttributeTest.prototype.iterate = function() {
 		/** @type{Array<glsAttributeLocationTests.Bind>} */ var noBindings = [];
-		/** @type{Array<glsAttributeLocationTests.AttribType>} */ var vec4 = new glsAttributeLocationTests.AttribType('vec4', 1, gl.FLOAT_VEC4);
-		/** @type{Array<glsAttributeLocationTests.AttribType>} */ var vec2 = new glsAttributeLocationTests.AttribType('vec2', 1, gl.FLOAT_VEC2);
+		/** @type{glsAttributeLocationTests.AttribType} */ var vec4 = new glsAttributeLocationTests.AttribType('vec4', 1, gl.FLOAT_VEC4);
+		/** @type{glsAttributeLocationTests.AttribType} */ var vec2 = new glsAttributeLocationTests.AttribType('vec2', 1, gl.FLOAT_VEC2);
 
 		/** @type{Array<glsAttributeLocationTests.Bind>} */ var bindings = [];
 		/** @type{Array<glsAttributeLocationTests.Attribute>} */ var attributes = [];
@@ -1365,7 +1364,7 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 		/** @type{Array<glsAttributeLocationTests.Bind>} */ var noBindings = [];
 		/** @type{Array<glsAttributeLocationTests.Attribute>} */ var attributes = [];
 
-		attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_0', 3, glsAttributeLocationTests.ConstCond.ALWAYS, this.m_arraySize));
+		attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_0', 3, glsAttributeLocationTests.NewCondWithEnum(glsAttributeLocationTests.ConstCond.ALWAYS), this.m_arraySize));
 
 		glsAttributeLocationTests.runTest(attributes, noBindings, noBindings, noBindings, false);
 		return tcuTestCase.IterateResult.STOP;
@@ -1398,7 +1397,7 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 
 		/** @type{number} */ var loc;
 		for (loc = maxAttributes - (arrayElementCount * this.m_type.getLocationSize()); loc >= 0; loc -= (arrayElementCount * this.m_type.getLocationSize())) {
-			attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_' + ndx, loc, glsAttributeLocationTests.ConstCond.ALWAYS, this.m_arraySize));
+			attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_' + ndx, loc, glsAttributeLocationTests.NewCondWithEnum(glsAttributeLocationTests.ConstCond.ALWAYS), this.m_arraySize));
 			ndx++;
 		}
 
@@ -1428,11 +1427,10 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 		/** @type{number} */ var arrayElementCount	= (this.m_arraySize != glsAttributeLocationTests.ArrayEnum.NOT ? this.m_arraySize : 1);
 
 		/** @type{Array<glsAttributeLocationTests.Attribute>} */ var attributes = [];
-		/** @type{number} */ var ndx;
 
 		attributes.push(new glsAttributeLocationTests.Attribute(vec4, 'a_0', 0));
 
-		attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_1', glsAttributeLocationTests.LocationEnum.UNDEF, glsAttributeLocationTests.ConstCond.ALWAYS, this.m_arraySize));
+		attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_1', glsAttributeLocationTests.LocationEnum.UNDEF, glsAttributeLocationTests.NewCondWithEnum(glsAttributeLocationTests.ConstCond.ALWAYS), this.m_arraySize));
 
 		/** @type{number} */ var ndx = 2;
 		/** @type{number} */ var loc;
@@ -1468,7 +1466,7 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 		/** @type{Array<glsAttributeLocationTests.Bind>} */ var	bindings = [];
 		/** @type{Array<glsAttributeLocationTests.Attribute>} */ var attributes = [];
 
-		attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_0', 3, glsAttributeLocationTests.ConstCond.ALWAYS, this.m_arraySize));
+		attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_0', 3, glsAttributeLocationTests.NewCondWithEnum(glsAttributeLocationTests.ConstCond.ALWAYS), this.m_arraySize));
 		bindings.push(new glsAttributeLocationTests.Bind('a_0', 4));
 
 		glsAttributeLocationTests.runTest(attributes, noBindings, bindings, noBindings, false);
@@ -1502,15 +1500,12 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 		//this.m_testCtx.getLog() << TestLog::Message << 'gl.MAX_VERTEX_ATTRIBS: ' << maxAttributes << TestLog::EndMessage;
 
 		/** @type{number} */ var loc;
-		for (loc = maxAttributes - (arrayElementCount * this.m_type.getLocationSize()); loc >= 0; loc -= (arrayElementCount * this.m_type.getLocationSize()))
-		{
+		for (loc = maxAttributes - (arrayElementCount * this.m_type.getLocationSize()); loc >= 0; loc -= (arrayElementCount * this.m_type.getLocationSize()))	{
 			if ((ndx % 2) != 0)
-				attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_' + ndx, loc, glsAttributeLocationTests.ConstCond.ALWAYS, this.m_arraySize));
-			else
-			{
-				attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_' + ndx, glsAttributeLocationTests.LocationEnum.UNDEF, glsAttributeLocationTests.ConstCond.ALWAYS, this.m_arraySize));
+				attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_' + ndx, loc, glsAttributeLocationTests.NewCondWithEnum(glsAttributeLocationTests.ConstCond.ALWAYS), this.m_arraySize));
+			else{
+				attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_' + ndx, glsAttributeLocationTests.LocationEnum.UNDEF, glsAttributeLocationTests.NewCondWithEnum(glsAttributeLocationTests.ConstCond.ALWAYS), this.m_arraySize));
 				bindings.push(new glsAttributeLocationTests.Bind('a_' + ndx, loc));
-
 			}
 			ndx++;
 		}
@@ -1542,12 +1537,11 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 
 		/** @type{Array<glsAttributeLocationTests.Bind>} */ var	bindings = [];
 		/** @type{Array<glsAttributeLocationTests.Attribute>} */ var attributes = [];
-		/** @type{number} */ var ndx;
 
 		attributes.push(new glsAttributeLocationTests.Attribute(vec4, 'a_0'));
 		bindings.push(new glsAttributeLocationTests.Bind('a_0', 0));
 
-		attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_1', glsAttributeLocationTests.LocationEnum.UNDEF, glsAttributeLocationTests.ConstCond.ALWAYS, this.m_arraySize));
+		attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_1', glsAttributeLocationTests.LocationEnum.UNDEF, glsAttributeLocationTests.NewCondWithEnum(glsAttributeLocationTests.ConstCond.ALWAYS), this.m_arraySize));
 
 		/** @type{number} */ var ndx = 2;
 		/** @type{number} */ var loc;
@@ -1621,12 +1615,11 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 		/** @type{Array<glsAttributeLocationTests.Attribute>} */ var attributes = [];
 		/** @type{Array<glsAttributeLocationTests.Bind>} */ var	preLinkBindings = [];
 		/** @type{Array<glsAttributeLocationTests.Bind>} */ var	postLinkBindings = [];
-		/** @type{number} */ var ndx;
 
 		attributes.push(new glsAttributeLocationTests.Attribute(vec4, 'a_0'));
 		preLinkBindings.push(new glsAttributeLocationTests.Bind('a_0', 0));
 
-		attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_1', glsAttributeLocationTests.LocationEnum.UNDEF, glsAttributeLocationTests.ConstCond.ALWAYS, this.m_arraySize));
+		attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_1', glsAttributeLocationTests.LocationEnum.UNDEF, glsAttributeLocationTests.NewCondWithEnum(glsAttributeLocationTests.ConstCond.ALWAYS), this.m_arraySize));
 
 		/** @type{number} */ var ndx = 2;
 		/** @type{number} */ var loc;
@@ -1662,18 +1655,17 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 	glsAttributeLocationTests.MixedRelinkHoleAttributeTest.prototype.iterate = function() {
 		/** @type{Array<glsAttributeLocationTests.Bind>} */ var noBindings = [];
 		/** @type{number} */ var maxAttributes = glsAttributeLocationTests.getMaxAttributeLocations();
-		/** @type{glsAttributeLocationTests.AttribType} */ var vec4 = glsAttributeLocationTests.AttribType('vec4', 1, gl.FLOAT_VEC4);
+		/** @type{glsAttributeLocationTests.AttribType} */ var vec4 = new glsAttributeLocationTests.AttribType('vec4', 1, gl.FLOAT_VEC4);
 		/** @type{number} */ var arrayElementCount = (this.m_arraySize != glsAttributeLocationTests.ArrayEnum.NOT ? this.m_arraySize : 1);
 
 		/** @type{Array<glsAttributeLocationTests.Bind>} */ var	preLinkBindings = [];
 		/** @type{Array<glsAttributeLocationTests.Bind>} */ var	postLinkBindings = [];
 		/** @type{Array<glsAttributeLocationTests.Attribute>} */ var attributes = [];
-		/** @type{number} */ var ndx;
 
 		attributes.push(new glsAttributeLocationTests.Attribute(vec4, 'a_0'));
 		preLinkBindings.push(new glsAttributeLocationTests.Bind('a_0', 0));
 
-		attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_1', glsAttributeLocationTests.LocationEnum.UNDEF, glsAttributeLocationTests.ConstCond.ALWAYS, this.m_arraySize));
+		attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_1', glsAttributeLocationTests.LocationEnum.UNDEF, glsAttributeLocationTests.NewCondWithEnum(glsAttributeLocationTests.ConstCond.ALWAYS), this.m_arraySize));
 
 		/** @type{number} */ var ndx = 2;
 		/** @type{number} */ var loc;
@@ -1711,7 +1703,7 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 		/** @type{Array<glsAttributeLocationTests.Attribute>} */ var attributes = [];
 		/** @type{Array<glsAttributeLocationTests.Bind>} */ var	bindings = [];
 
-		attributes.push(new glsAttributeLocationTests.Attribute(glsAttributeLocationTests.AttribType('vec4', 1, gl.FLOAT_VEC4), 'a_0', 1));
+		attributes.push(new glsAttributeLocationTests.Attribute(new glsAttributeLocationTests.AttribType('vec4', 1, gl.FLOAT_VEC4), 'a_0', 1));
 		bindings.push(new glsAttributeLocationTests.Bind('a_0', 3));
 
 		glsAttributeLocationTests.runTest(attributes, bindings, noBindings, noBindings, false);
@@ -1735,7 +1727,7 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 		/** @type{Array<glsAttributeLocationTests.Attribute>} */ var attributes = [];
 		/** @type{Array<glsAttributeLocationTests.Bind>} */ var	bindings = [];
 
-		attributes.push(new glsAttributeLocationTests.Attribute(glsAttributeLocationTests.AttribType('vec4', 1, gl.FLOAT_VEC4), 'a_0', 1));
+		attributes.push(new glsAttributeLocationTests.Attribute(new glsAttributeLocationTests.AttribType('vec4', 1, gl.FLOAT_VEC4), 'a_0', 1));
 		bindings.push(new glsAttributeLocationTests.Bind('a_0', 3));
 
 		glsAttributeLocationTests.runTest(attributes, noBindings, bindings, noBindings, false);
@@ -1759,7 +1751,7 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 		/** @type{Array<glsAttributeLocationTests.Attribute>} */ var attributes = [];
 		/** @type{Array<glsAttributeLocationTests.Bind>} */ var	bindings = [];
 
-		attributes.push(new glsAttributeLocationTests.Attribute(glsAttributeLocationTests.AttribType('vec4', 1, gl.FLOAT_VEC4), 'a_0', 1));
+		attributes.push(new glsAttributeLocationTests.Attribute(new glsAttributeLocationTests.AttribType('vec4', 1, gl.FLOAT_VEC4), 'a_0', 1));
 		bindings.push(new glsAttributeLocationTests.Bind('a_0', 3));
 
 		glsAttributeLocationTests.runTest(attributes, noBindings, noBindings, bindings, false);

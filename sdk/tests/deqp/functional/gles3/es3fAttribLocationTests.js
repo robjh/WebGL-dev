@@ -24,7 +24,6 @@
 goog.provide('functional.gles3.es3fAttribLocationTests');
 goog.require('modules.shared.glsAttributeLocationTests');
 goog.require('framework.opengl.gluShaderUtil');
-goog.require('modules.shared.glsFboUtil');
 
 
 goog.scope(function() {
@@ -33,7 +32,6 @@ goog.scope(function() {
 	var glsAttributeLocationTests = modules.shared.glsAttributeLocationTests;
 	var tcuTestCase = framework.common.tcuTestCase;
 	var gluShaderUtil = framework.opengl.gluShaderUtil;
-	var glsFboUtil = modules.shared.glsFboUtil;
 
 	var DE_ASSERT = function(x) {
         if (!x)
