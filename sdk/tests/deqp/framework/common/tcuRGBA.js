@@ -93,6 +93,17 @@ var deMath = framework.delibs.debase.deMath;
     tcuRGBA.newRGBAFromArray = function(v) {
         return new tcuRGBA.RGBA(v.slice(0, 4));
     };
+    
+    /**
+     * @param {number} value
+     * @return {tcuRGBA.RGBA}
+     */
+    tcuRGBA.newRGBAFromValue = function (value) {
+        var rgba = new tcuRGBA.RGBA();
+        var array32 = new Uint32Array([value]);
+        rgba.m_value = (new Uint8Array(array32.buffer));
+        return rgba;
+    };
 
     /**
      * @param {number} v
