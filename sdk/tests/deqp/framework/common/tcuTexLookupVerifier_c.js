@@ -1689,14 +1689,15 @@ goog.scope(function() {
 	 * @param  {Array<number>} result
 	 * @return {boolean}
 	 */
-	tcuTexLookupVerifier.isLookupResultValid = function(texture, sampler, prec, coord, lodBounds, const result)
-	{
+	tcuTexLookupVerifier.isLookupResultValid_TextureCubeView = function(texture, sampler, prec, coord, lodBounds, const result) {
 		/** @type {number} */ var numPossibleFaces = 0;
 		/** @type {tcuTexture.CubeFace} */ var possibleFaces[6];
 
 		assertMsgOptions(isSamplerSupported(sampler), '', false, true);
 
 		tcuTexVerifierUtil.getPossibleCubeFaces(coord, prec.coordBits, possibleFaces, numPossibleFaces);
+		/** @type {number} */ var minLevel;
+		/** @type {number} */ var maxLevel;
 
 		if (numPossibleFaces == 0)
 			return true; // Result is undefined.
@@ -1726,8 +1727,8 @@ goog.scope(function() {
 				assertMsgOptions(minTexLevel <= maxTexLevel, '', false, true);
 
 				if (isLinearMipmap && minTexLevel < maxTexLevel) {
-					/** @type {number} */ var minLevel = deMath.clamp(Math.floor(minLod), minTexLevel, maxTexLevel - 1);
-					/** @type {number} */ var maxLevel = deMath.clamp(Math.floor(maxLod), minTexLevel, maxTexLevel - 1);
+					minLevel = deMath.clamp(Math.floor(minLod), minTexLevel, maxTexLevel - 1);
+					maxLevel = deMath.clamp(Math.floor(maxLod), minTexLevel, maxTexLevel - 1);
 
 					assertMsgOptions(minLevel <= maxLevel, '', false, true);
 
@@ -1748,8 +1749,8 @@ goog.scope(function() {
 				else if (isNearestMipmap) {
 					// \note The accurate formula for nearest mipmapping is level = ceil(lod + 0.5) - 1 but Khronos has made
 					//		 decision to allow floor(lod + 0.5) as well.
-					/** @type {number} */ var minLevel = deMath.clamp(Math.ceil(minLod + 0.5) - 1, minTexLevel, maxTexLevel);
-					/** @type {number} */ var maxLevel = deMath.clamp(Math.floor(maxLod + 0.5), minTexLevel, maxTexLevel);
+					minLevel = deMath.clamp(Math.ceil(minLod + 0.5) - 1, minTexLevel, maxTexLevel);
+					maxLevel = deMath.clamp(Math.floor(maxLod + 0.5), minTexLevel, maxTexLevel);
 
 					assertMsgOptions(minLevel <= maxLevel, '', false, true);
 
@@ -1774,372 +1775,187 @@ goog.scope(function() {
 		return false;
 	};
 
-	// bool isLookupResultValid (const Texture1DView& texture, const Sampler& sampler, const LookupPrecision& prec, /** @type {number} */ var coord, const Vec2& lodBounds, const Vec4& result)
-	// {
-	// 	/** @type {number} */ var		minLod			= lodBounds[0];
-	// 	/** @type {number} */ var		maxLod			= lodBounds[1];
-	// 	/** @type {boolean} */ var		canBeMagnified	= minLod <= sampler.lodThreshold;
-	// 	/** @type {boolean} */ var		canBeMinified	= maxLod > sampler.lodThreshold;
-	//
-	// 	assertMsgOptions(isSamplerSupported(sampler), '', false, true);
-	//
-	// 	if (canBeMagnified)
-	// 	{
-	// 		if (isLevelSampleResultValid(texture.getLevel(0), sampler, sampler.magFilter, prec, coord, 0, result))
-	// 			return true;
-	// 	}
-	//
-	// 	if (canBeMinified)
-	// 	{
-	// 		/** @type {boolean} */ var	isNearestMipmap	= isNearestMipmapFilter(sampler.minFilter);
-	// 		/** @type {boolean} */ var	isLinearMipmap	= isLinearMipmapFilter(sampler.minFilter);
-	// 		/** @type {number} */ var	minTexLevel		= 0;
-	// 		/** @type {number} */ var	maxTexLevel		= texture.getNumLevels() - 1;
-	//
-	// 		assertMsgOptions(minTexLevel <= maxTexLevel, '', false, true);
-	//
-	// 		if (isLinearMipmap && minTexLevel < maxTexLevel)
-	// 		{
-	// 			/** @type {number} */ var		minLevel		= deMath.clamp((int)deFloatFloor(minLod), minTexLevel, maxTexLevel-1);
-	// 			/** @type {number} */ var		maxLevel		= deMath.clamp((int)deFloatFloor(maxLod), minTexLevel, maxTexLevel-1);
-	//
-	// 			assertMsgOptions(minLevel <= maxLevel, '', false, true);
-	//
-	// 			for (var level = minLevel; level <= maxLevel; level++)
-	// 			{
-	// 				/** @type {number} */ var		minF	= deMath.clamp(minLod - float(level), 0.0, 1.0);
-	// 				/** @type {number} */ var		maxF	= deMath.clamp(maxLod - float(level), 0.0, 1.0);
-	//
-	// 				if (isMipmapLinearSampleResultValid(texture.getLevel(level), texture.getLevel(level+1), sampler, getLevelFilter(sampler.minFilter), prec, coord, 0, [minF, maxF], result))
-	// 					return true;
-	// 			}
-	// 		}
-	// 		else if (isNearestMipmap)
-	// 		{
-	// 			// \note The accurate formula for nearest mipmapping is level = ceil(lod + 0.5) - 1 but Khronos has made
-	// 			//		 decision to allow floor(lod + 0.5) as well.
-	// 			/** @type {number} */ var		minLevel		= deMath.clamp((int)deFloatCeil(minLod + 0.5) - 1,	minTexLevel, maxTexLevel);
-	// 			/** @type {number} */ var		maxLevel		= deMath.clamp((int)deFloatFloor(maxLod + 0.5),		minTexLevel, maxTexLevel);
-	//
-	// 			assertMsgOptions(minLevel <= maxLevel, '', false, true);
-	//
-	// 			for (var level = minLevel; level <= maxLevel; level++)
-	// 			{
-	// 				if (isLevelSampleResultValid(texture.getLevel(level), sampler, getLevelFilter(sampler.minFilter), prec, coord, 0, result))
-	// 					return true;
-	// 			}
-	// 		}
-	// 		else
-	// 		{
-	// 			if (isLevelSampleResultValid(texture.getLevel(0), sampler, sampler.minFilter, prec, coord, 0, result))
-	// 				return true;
-	// 		}
-	// 	}
-	//
-	// 	return false;
-	// }
+	/**
+	 * @param  {tcuTexture.Texture2DArrayView} texture
+	 * @param  {tcuTexture.Sampler} sampler
+	 * @param  {tcuTexLookupVerifier.LookupPrecision} prec
+	 * @param  {Array<number>} coord
+	 * @param  {Array<number>} lodBounds
+	 * @param  {Array<number>} result
+	 * @return {boolean}
+	 */
+	tcuTexLookupVerifier.isLookupResultValid_Texture2DArrayView = function(texture, sampler, prec, coord, lodBounds, result) {
+		/** @type {Array<number>} */ var layerRange = tcuTexLookupVerifier.computeLayerRange(texture.getNumLayers(), prec.coordBits[2], coord[2]);
+		/** @type {Array<number>} */ var coordXY = deMath..swizzle(coord, [0,1]);
+		/** @type {number} */ var minLod = lodBounds[0];
+		/** @type {number} */ var maxLod = lodBounds[1];
+		/** @type {boolean} */ var canBeMagnified = minLod <= sampler.lodThreshold;
+		/** @type {boolean} */ var canBeMinified = maxLod > sampler.lodThreshold;
 
-	// bool isLookupResultValid (const Texture1DArrayView& texture, const Sampler& sampler, const LookupPrecision& prec, const Vec2& coord, const Vec2& lodBounds, const Vec4& result)
-	// {
-	// 	const IVec2		layerRange		= computeLayerRange(texture.getNumLayers(), prec.coordBits[1], coord[1]);
-	// 	/** @type {number} */ var		coordX			= coord[0];
-	// 	/** @type {number} */ var		minLod			= lodBounds[0];
-	// 	/** @type {number} */ var		maxLod			= lodBounds[1];
-	// 	/** @type {boolean} */ var		canBeMagnified	= minLod <= sampler.lodThreshold;
-	// 	/** @type {boolean} */ var		canBeMinified	= maxLod > sampler.lodThreshold;
-	//
-	// 	assertMsgOptions(isSamplerSupported(sampler), '', false, true);
-	//
-	// 	for (var layer = layerRange[0]; layer <= layerRange[1]; layer++)
-	// 	{
-	// 		if (canBeMagnified)
-	// 		{
-	// 			if (isLevelSampleResultValid(texture.getLevel(0), sampler, sampler.magFilter, prec, coordX, layer, result))
-	// 				return true;
-	// 		}
-	//
-	// 		if (canBeMinified)
-	// 		{
-	// 			/** @type {boolean} */ var	isNearestMipmap	= isNearestMipmapFilter(sampler.minFilter);
-	// 			/** @type {boolean} */ var	isLinearMipmap	= isLinearMipmapFilter(sampler.minFilter);
-	// 			/** @type {number} */ var	minTexLevel		= 0;
-	// 			/** @type {number} */ var	maxTexLevel		= texture.getNumLevels()-1;
-	//
-	// 			assertMsgOptions(minTexLevel <= maxTexLevel, '', false, true);
-	//
-	// 			if (isLinearMipmap && minTexLevel < maxTexLevel)
-	// 			{
-	// 				/** @type {number} */ var		minLevel		= deMath.clamp((int)deFloatFloor(minLod), minTexLevel, maxTexLevel-1);
-	// 				/** @type {number} */ var		maxLevel		= deMath.clamp((int)deFloatFloor(maxLod), minTexLevel, maxTexLevel-1);
-	//
-	// 				assertMsgOptions(minLevel <= maxLevel, '', false, true);
-	//
-	// 				for (var level = minLevel; level <= maxLevel; level++)
-	// 				{
-	// 					/** @type {number} */ var		minF	= deMath.clamp(minLod - float(level), 0.0, 1.0);
-	// 					/** @type {number} */ var		maxF	= deMath.clamp(maxLod - float(level), 0.0, 1.0);
-	//
-	// 					if (isMipmapLinearSampleResultValid(texture.getLevel(level), texture.getLevel(level+1), sampler, getLevelFilter(sampler.minFilter), prec, coordX, layer, [minF, maxF], result))
-	// 						return true;
-	// 				}
-	// 			}
-	// 			else if (isNearestMipmap)
-	// 			{
-	// 				// \note The accurate formula for nearest mipmapping is level = ceil(lod + 0.5) - 1 but Khronos has made
-	// 				//		 decision to allow floor(lod + 0.5) as well.
-	// 				/** @type {number} */ var		minLevel		= deMath.clamp((int)deFloatCeil(minLod + 0.5) - 1,	minTexLevel, maxTexLevel);
-	// 				/** @type {number} */ var		maxLevel		= deMath.clamp((int)deFloatFloor(maxLod + 0.5),		minTexLevel, maxTexLevel);
-	//
-	// 				assertMsgOptions(minLevel <= maxLevel, '', false, true);
-	//
-	// 				for (var level = minLevel; level <= maxLevel; level++)
-	// 				{
-	// 					if (isLevelSampleResultValid(texture.getLevel(level), sampler, getLevelFilter(sampler.minFilter), prec, coordX, layer, result))
-	// 						return true;
-	// 				}
-	// 			}
-	// 			else
-	// 			{
-	// 				if (isLevelSampleResultValid(texture.getLevel(0), sampler, sampler.minFilter, prec, coordX, layer, result))
-	// 					return true;
-	// 			}
-	// 		}
-	// 	}
-	//
-	// 	return false;
-	// }
+		assertMsgOptions(isSamplerSupported(sampler), '', false, true);
+		/** @type {number} */ var minLevel;
+		/** @type {number} */ var maxLevel;
 
-	// bool isLookupResultValid (const Texture2DArrayView& texture, const Sampler& sampler, const LookupPrecision& prec, const Vec3& coord, const Vec2& lodBounds, const Vec4& result)
-	// {
-	// 	const IVec2		layerRange		= computeLayerRange(texture.getNumLayers(), prec.coordBits[2], coord[2]);
-	// 	const Vec2		coordXY			= coord.swizzle(0,1);
-	// 	/** @type {number} */ var		minLod			= lodBounds[0];
-	// 	/** @type {number} */ var		maxLod			= lodBounds[1];
-	// 	/** @type {boolean} */ var		canBeMagnified	= minLod <= sampler.lodThreshold;
-	// 	/** @type {boolean} */ var		canBeMinified	= maxLod > sampler.lodThreshold;
-	//
-	// 	assertMsgOptions(isSamplerSupported(sampler), '', false, true);
-	//
-	// 	for (var layer = layerRange[0]; layer <= layerRange[1]; layer++)
-	// 	{
-	// 		if (canBeMagnified)
-	// 		{
-	// 			if (isLevelSampleResultValid(texture.getLevel(0), sampler, sampler.magFilter, prec, coordXY, layer, result))
-	// 				return true;
-	// 		}
-	//
-	// 		if (canBeMinified)
-	// 		{
-	// 			/** @type {boolean} */ var	isNearestMipmap	= isNearestMipmapFilter(sampler.minFilter);
-	// 			/** @type {boolean} */ var	isLinearMipmap	= isLinearMipmapFilter(sampler.minFilter);
-	// 			/** @type {number} */ var	minTexLevel		= 0;
-	// 			/** @type {number} */ var	maxTexLevel		= texture.getNumLevels()-1;
-	//
-	// 			assertMsgOptions(minTexLevel <= maxTexLevel, '', false, true);
-	//
-	// 			if (isLinearMipmap && minTexLevel < maxTexLevel)
-	// 			{
-	// 				/** @type {number} */ var		minLevel		= deMath.clamp((int)deFloatFloor(minLod), minTexLevel, maxTexLevel-1);
-	// 				/** @type {number} */ var		maxLevel		= deMath.clamp((int)deFloatFloor(maxLod), minTexLevel, maxTexLevel-1);
-	//
-	// 				assertMsgOptions(minLevel <= maxLevel, '', false, true);
-	//
-	// 				for (var level = minLevel; level <= maxLevel; level++)
-	// 				{
-	// 					/** @type {number} */ var		minF	= deMath.clamp(minLod - float(level), 0.0, 1.0);
-	// 					/** @type {number} */ var		maxF	= deMath.clamp(maxLod - float(level), 0.0, 1.0);
-	//
-	// 					if (isMipmapLinearSampleResultValid(texture.getLevel(level), texture.getLevel(level+1), sampler, getLevelFilter(sampler.minFilter), prec, coordXY, layer, [minF, maxF], result))
-	// 						return true;
-	// 				}
-	// 			}
-	// 			else if (isNearestMipmap)
-	// 			{
-	// 				// \note The accurate formula for nearest mipmapping is level = ceil(lod + 0.5) - 1 but Khronos has made
-	// 				//		 decision to allow floor(lod + 0.5) as well.
-	// 				/** @type {number} */ var		minLevel		= deMath.clamp((int)deFloatCeil(minLod + 0.5) - 1,	minTexLevel, maxTexLevel);
-	// 				/** @type {number} */ var		maxLevel		= deMath.clamp((int)deFloatFloor(maxLod + 0.5),		minTexLevel, maxTexLevel);
-	//
-	// 				assertMsgOptions(minLevel <= maxLevel, '', false, true);
-	//
-	// 				for (var level = minLevel; level <= maxLevel; level++)
-	// 				{
-	// 					if (isLevelSampleResultValid(texture.getLevel(level), sampler, getLevelFilter(sampler.minFilter), prec, coordXY, layer, result))
-	// 						return true;
-	// 				}
-	// 			}
-	// 			else
-	// 			{
-	// 				if (isLevelSampleResultValid(texture.getLevel(0), sampler, sampler.minFilter, prec, coordXY, layer, result))
-	// 					return true;
-	// 			}
-	// 		}
-	// 	}
-	//
-	// 	return false;
-	// }
-	//
-	// bool isLookupResultValid (const Texture3DView& texture, const Sampler& sampler, const LookupPrecision& prec, const Vec3& coord, const Vec2& lodBounds, const Vec4& result)
-	// {
-	// 	/** @type {number} */ var		minLod			= lodBounds[0];
-	// 	/** @type {number} */ var		maxLod			= lodBounds[1];
-	// 	/** @type {boolean} */ var		canBeMagnified	= minLod <= sampler.lodThreshold;
-	// 	/** @type {boolean} */ var		canBeMinified	= maxLod > sampler.lodThreshold;
-	//
-	// 	assertMsgOptions(isSamplerSupported(sampler), '', false, true);
-	//
-	// 	if (canBeMagnified)
-	// 	{
-	// 		if (isLevelSampleResultValid(texture.getLevel(0), sampler, sampler.magFilter, prec, coord, result))
-	// 			return true;
-	// 	}
-	//
-	// 	if (canBeMinified)
-	// 	{
-	// 		/** @type {boolean} */ var	isNearestMipmap	= isNearestMipmapFilter(sampler.minFilter);
-	// 		/** @type {boolean} */ var	isLinearMipmap	= isLinearMipmapFilter(sampler.minFilter);
-	// 		/** @type {number} */ var	minTexLevel		= 0;
-	// 		/** @type {number} */ var	maxTexLevel		= texture.getNumLevels()-1;
-	//
-	// 		assertMsgOptions(minTexLevel <= maxTexLevel, '', false, true);
-	//
-	// 		if (isLinearMipmap && minTexLevel < maxTexLevel)
-	// 		{
-	// 			/** @type {number} */ var		minLevel		= deMath.clamp((int)deFloatFloor(minLod), minTexLevel, maxTexLevel-1);
-	// 			/** @type {number} */ var		maxLevel		= deMath.clamp((int)deFloatFloor(maxLod), minTexLevel, maxTexLevel-1);
-	//
-	// 			assertMsgOptions(minLevel <= maxLevel, '', false, true);
-	//
-	// 			for (var level = minLevel; level <= maxLevel; level++)
-	// 			{
-	// 				/** @type {number} */ var		minF	= deMath.clamp(minLod - float(level), 0.0, 1.0);
-	// 				/** @type {number} */ var		maxF	= deMath.clamp(maxLod - float(level), 0.0, 1.0);
-	//
-	// 				if (isMipmapLinearSampleResultValid(texture.getLevel(level), texture.getLevel(level+1), sampler, getLevelFilter(sampler.minFilter), prec, coord, [minF, maxF], result))
-	// 					return true;
-	// 			}
-	// 		}
-	// 		else if (isNearestMipmap)
-	// 		{
-	// 			// \note The accurate formula for nearest mipmapping is level = ceil(lod + 0.5) - 1 but Khronos has made
-	// 			//		 decision to allow floor(lod + 0.5) as well.
-	// 			/** @type {number} */ var		minLevel		= deMath.clamp((int)deFloatCeil(minLod + 0.5) - 1,	minTexLevel, maxTexLevel);
-	// 			/** @type {number} */ var		maxLevel		= deMath.clamp((int)deFloatFloor(maxLod + 0.5),		minTexLevel, maxTexLevel);
-	//
-	// 			assertMsgOptions(minLevel <= maxLevel, '', false, true);
-	//
-	// 			for (var level = minLevel; level <= maxLevel; level++)
-	// 			{
-	// 				if (isLevelSampleResultValid(texture.getLevel(level), sampler, getLevelFilter(sampler.minFilter), prec, coord, result))
-	// 					return true;
-	// 			}
-	// 		}
-	// 		else
-	// 		{
-	// 			if (isLevelSampleResultValid(texture.getLevel(0), sampler, sampler.minFilter, prec, coord, result))
-	// 				return true;
-	// 		}
-	// 	}
-	//
-	// 	return false;
-	// }
+		for (var layer = layerRange[0]; layer <= layerRange[1]; layer++) {
+			if (canBeMagnified) {
+				if (tcuTexLookupVerifier.isLevelSampleResultValid_CoordAsVec2AndInt(texture.getLevel(0), sampler, sampler.magFilter, prec, coordXY, layer, result))
+					return true;
+			}
 
-	// bool isLookupResultValid (const TextureCubeArrayView& texture, const Sampler& sampler, const LookupPrecision& prec, const IVec4& coordBits, const Vec4& coord, const Vec2& lodBounds, const Vec4& result)
-	// {
-	// 	const IVec2	layerRange						= computeLayerRange(texture.getNumLayers(), coordBits.w(), coord.w());
-	// 	const Vec3	layerCoord						= coord.toWidth<3>();
-	// 	int			numPossibleFaces				= 0;
-	// 	CubeFace	possibleFaces[CUBEFACE_LAST];
-	//
-	// 	assertMsgOptions(isSamplerSupported(sampler), '', false, true);
-	//
-	// 	getPossibleCubeFaces(layerCoord, prec.coordBits, &possibleFaces[0], numPossibleFaces);
-	//
-	// 	if (numPossibleFaces == 0)
-	// 		return true; // Result is undefined.
-	//
-	// 	for (var layerNdx = layerRange[0]; layerNdx <= layerRange[1]; layerNdx++)
-	// 	{
-	// 		for (var tryFaceNdx = 0; tryFaceNdx < numPossibleFaces; tryFaceNdx++)
-	// 		{
-	// 			const CubeFaceFloatCoords	faceCoords		(possibleFaces[tryFaceNdx], projectToFace(possibleFaces[tryFaceNdx], layerCoord));
-	// 			/** @type {number} */ var					minLod			= lodBounds[0];
-	// 			/** @type {number} */ var					maxLod			= lodBounds[1];
-	// 			/** @type {boolean} */ var					canBeMagnified	= minLod <= sampler.lodThreshold;
-	// 			/** @type {boolean} */ var					canBeMinified	= maxLod > sampler.lodThreshold;
-	//
-	// 			if (canBeMagnified)
-	// 			{
-	// 				/** @ype {tcuTexture.ConstPixelBufferAccess} */ var faces[CUBEFACE_LAST];
-	// 				getCubeArrayLevelFaces(texture, 0, layerNdx, faces);
-	//
-	// 				if (isCubeLevelSampleResultValid(faces, sampler, sampler.magFilter, prec, faceCoords, result))
-	// 					return true;
-	// 			}
-	//
-	// 			if (canBeMinified)
-	// 			{
-	// 				/** @type {boolean} */ var	isNearestMipmap	= isNearestMipmapFilter(sampler.minFilter);
-	// 				/** @type {boolean} */ var	isLinearMipmap	= isLinearMipmapFilter(sampler.minFilter);
-	// 				/** @type {number} */ var	minTexLevel		= 0;
-	// 				/** @type {number} */ var	maxTexLevel		= texture.getNumLevels()-1;
-	//
-	// 				assertMsgOptions(minTexLevel <= maxTexLevel, '', false, true);
-	//
-	// 				if (isLinearMipmap && minTexLevel < maxTexLevel)
-	// 				{
-	// 					/** @type {number} */ var	minLevel	= deMath.clamp((int)deFloatFloor(minLod), minTexLevel, maxTexLevel-1);
-	// 					/** @type {number} */ var	maxLevel	= deMath.clamp((int)deFloatFloor(maxLod), minTexLevel, maxTexLevel-1);
-	//
-	// 					assertMsgOptions(minLevel <= maxLevel, '', false, true);
-	//
-	// 					for (var levelNdx = minLevel; levelNdx <= maxLevel; levelNdx++)
-	// 					{
-	// 						/** @type {number} */ var		minF	= deMath.clamp(minLod - float(levelNdx), 0.0, 1.0);
-	// 						/** @type {number} */ var		maxF	= deMath.clamp(maxLod - float(levelNdx), 0.0, 1.0);
-	//
-	// 						ConstPixelBufferAccess	faces0[CUBEFACE_LAST];
-	// 						ConstPixelBufferAccess	faces1[CUBEFACE_LAST];
-	//
-	// 						getCubeArrayLevelFaces(texture, levelNdx,		layerNdx,	faces0);
-	// 						getCubeArrayLevelFaces(texture, levelNdx + 1,	layerNdx,	faces1);
-	//
-	// 						if (isCubeMipmapLinearSampleResultValid(faces0, faces1, sampler, getLevelFilter(sampler.minFilter), prec, faceCoords, [minF, maxF], result))
-	// 							return true;
-	// 					}
-	// 				}
-	// 				else if (isNearestMipmap)
-	// 				{
-	// 					// \note The accurate formula for nearest mipmapping is level = ceil(lod + 0.5) - 1 but Khronos has made
-	// 					//		 decision to allow floor(lod + 0.5) as well.
-	// 					/** @type {number} */ var	minLevel	= deMath.clamp((int)deFloatCeil(minLod + 0.5) - 1,	minTexLevel, maxTexLevel);
-	// 					/** @type {number} */ var	maxLevel	= deMath.clamp((int)deFloatFloor(maxLod + 0.5),		minTexLevel, maxTexLevel);
-	//
-	// 					assertMsgOptions(minLevel <= maxLevel, '', false, true);
-	//
-	// 					for (var levelNdx = minLevel; levelNdx <= maxLevel; levelNdx++)
-	// 					{
-	// 						/** @ype {tcuTexture.ConstPixelBufferAccess} */ var faces[CUBEFACE_LAST];
-	// 						getCubeArrayLevelFaces(texture, levelNdx, layerNdx, faces);
-	//
-	// 						if (isCubeLevelSampleResultValid(faces, sampler, getLevelFilter(sampler.minFilter), prec, faceCoords, result))
-	// 							return true;
-	// 					}
-	// 				}
-	// 				else
-	// 				{
-	// 					/** @ype {tcuTexture.ConstPixelBufferAccess} */ var faces[CUBEFACE_LAST];
-	// 					getCubeArrayLevelFaces(texture, 0, layerNdx, faces);
-	//
-	// 					if (isCubeLevelSampleResultValid(faces, sampler, sampler.minFilter, prec, faceCoords, result))
-	// 						return true;
-	// 				}
-	// 			}
-	// 		}
-	// 	}
-	//
-	// 	return false;
-	// }
+			if (canBeMinified) {
+				/** @type {boolean} */ var isNearestMipmap = tcuTexVerifierUtil.isNearestMipmapFilter(sampler.minFilter);
+				/** @type {boolean} */ var isLinearMipmap = tcuTexVerifierUtil.isLinearMipmapFilter(sampler.minFilter);
+				/** @type {number} */ var minTexLevel = 0;
+				/** @type {number} */ var maxTexLevel = texture.getNumLevels() - 1;
+
+				assertMsgOptions(minTexLevel <= maxTexLevel, '', false, true);
+
+				if (isLinearMipmap && minTexLevel < maxTexLevel) {
+					minLevel = deMath.clamp(Math.Floor(minLod), minTexLevel, maxTexLevel - 1);
+					maxLevel = deMath.clamp(Math.Floor(maxLod), minTexLevel, maxTexLevel - 1);
+
+					assertMsgOptions(minLevel <= maxLevel, '', false, true);
+
+					for (var level = minLevel; level <= maxLevel; level++) {
+						/** @type {number} */ var minF = deMath.clamp(minLod - level, 0.0, 1.0);
+						/** @type {number} */ var maxF = deMath.clamp(maxLod - level, 0.0, 1.0);
+
+						if (tcuTexLookupVerifier.isMipmapLinearSampleResultValid_CoordAsVec2AndInt(texture.getLevel(level), texture.getLevel(level + 1), sampler, tcuTexVerifierUtil.getLevelFilter(sampler.minFilter), prec, coordXY, layer, [minF, maxF], result))
+							return true;
+					}
+				}
+				else if (isNearestMipmap) {
+					// \note The accurate formula for nearest mipmapping is level = ceil(lod + 0.5) - 1 but Khronos has made
+					//		 decision to allow floor(lod + 0.5) as well.
+					minLevel = deMath.clamp(Math.ceil(minLod + 0.5) - 1, minTexLevel, maxTexLevel);
+					maxLevel = deMath.clamp(Math.floor(maxLod + 0.5), minTexLevel, maxTexLevel);
+
+					assertMsgOptions(minLevel <= maxLevel, '', false, true);
+
+					for (var level = minLevel; level <= maxLevel; level++) {
+						if (tcuTexLookupVerifier.isLevelSampleResultValid_CoordAsVec2AndInt(texture.getLevel(level), sampler, tcuTexVerifierUtil.getLevelFilter(sampler.minFilter), prec, coordXY, layer, result))
+							return true;
+					}
+				}
+				else {
+					if (tcuTexLookupVerifier.isLevelSampleResultValid_CoordAsVec2AndInt(texture.getLevel(0), sampler, sampler.minFilter, prec, coordXY, layer, result))
+						return true;
+				}
+			}
+		}
+
+		return false;
+	};
+
+	/**
+	 * @param  {tcuTexture.Texture3DView} texture
+	 * @param  {tcuTexture.Sampler} sampler
+	 * @param  {tcuTexLookupVerifier.LookupPrecision} prec
+	 * @param  {Array<number>} coord
+	 * @param  {Array<number>} lodBounds
+	 * @param  {Array<number>} result
+	 * @return {boolean}
+	 */
+	tcuTexLookupVerifier.isLookupResultValid = function(texture, sampler, prec, coord, lodBounds, result) {
+		/** @type {number} */ var minLod = lodBounds[0];
+		/** @type {number} */ var maxLod = lodBounds[1];
+		/** @type {boolean} */ var canBeMagnified = minLod <= sampler.lodThreshold;
+		/** @type {boolean} */ var canBeMinified = maxLod > sampler.lodThreshold;
+
+		assertMsgOptions(isSamplerSupported(sampler), '', false, true);
+
+		/** @type {number} */ var minLevel;
+		/** @type {number} */ var maxLevel;
+
+		if (canBeMagnified)
+			if (tcuTexLookupVerifier.isLevelSampleResultValid_CoordAsVec3(texture.getLevel(0), sampler, sampler.magFilter, prec, coord, result))
+				return true;
+
+
+		if (canBeMinified) {
+			/** @type {boolean} */ var isNearestMipmap = tcuTexVerifierUtil.isNearestMipmapFilter(sampler.minFilter);
+			/** @type {boolean} */ var isLinearMipmap = tcuTexVerifierUtil.isLinearMipmapFilter(sampler.minFilter);
+			/** @type {number} */ var minTexLevel = 0;
+			/** @type {number} */ var maxTexLevel = texture.getNumLevels() - 1;
+
+			assertMsgOptions(minTexLevel <= maxTexLevel, '', false, true);
+
+			if (isLinearMipmap && minTexLevel < maxTexLevel) {
+				minLevel = deMath.clamp(Math.floor(minLod), minTexLevel, maxTexLevel - 1);
+				maxLevel = deMath.clamp(Math.floor(maxLod), minTexLevel, maxTexLevel - 1);
+
+				assertMsgOptions(minLevel <= maxLevel, '', false, true);
+
+				for (var level = minLevel; level <= maxLevel; level++) {
+					/** @type {number} */ var minF = deMath.clamp(minLod - level, 0.0, 1.0);
+					/** @type {number} */ var maxF = deMath.clamp(maxLod - level, 0.0, 1.0);
+
+					if (tcuTexLookupVerifier.isMipmapLinearSampleResultValid_CoordAsVec3(texture.getLevel(level), texture.getLevel(level + 1), sampler, tcuTexVerifierUtil.getLevelFilter(sampler.minFilter), prec, coord, [minF, maxF], result))
+						return true;
+				}
+			}
+			else if (isNearestMipmap) {
+				// \note The accurate formula for nearest mipmapping is level = ceil(lod + 0.5) - 1 but Khronos has made
+				//		 decision to allow floor(lod + 0.5) as well.
+				minLevel = deMath.clamp(Math.ceil(minLod + 0.5) - 1, minTexLevel, maxTexLevel);
+				maxLevel = deMath.clamp(Math.floor(maxLod + 0.5), minTexLevel, maxTexLevel);
+
+				assertMsgOptions(minLevel <= maxLevel, '', false, true);
+
+				for (var level = minLevel; level <= maxLevel; level++) {
+					if (tcuTexLookupVerifier.isLevelSampleResultValid_CoordAsVec3(texture.getLevel(level), sampler, tcuTexVerifierUtil.getLevelFilter(sampler.minFilter), prec, coord, result))
+						return true;
+				}
+			}
+			else {
+				if (tcuTexLookupVerifier.isLevelSampleResultValid_CoordAsVec3(texture.getLevel(0), sampler, sampler.minFilter, prec, coord, result))
+					return true;
+			}
+		}
+
+		return false;
+	};
+
+
+	/**
+	 * @param  {tcuTexture.Texture1DView} texture
+	 * @param  {tcuTexture.Sampler} sampler
+	 * @param  {tcuTexLookupVerifier.LookupPrecision} prec
+	 * @param  {number} coord
+	 * @param  {Array<number>} lodBounds
+	 * @param  {Array<number>} result
+	 * @return {boolean}
+	 */
+	tcuTexLookupVerifier.isLookupResultValid_Texture1DView (texture, sampler, prec, coord, lodBounds, result) {
+		throw new Error("Not implemented. TODO: implement.");
+	};
+
+	/**
+	 * @param  {tcuTexture.Texture1DArrayView} texture
+	 * @param  {tcuTexture.Sampler} sampler
+	 * @param  {tcuTexLookupVerifier.LookupPrecision} prec
+	 * @param  {Array<number>} coord
+	 * @param  {Array<number>} lodBounds
+	 * @param  {Array<number>} result
+	 * @return {boolean}
+	 */
+	tcuTexLookupVerifier.isLookupResultValid_Texture1DArrayView (texture, sampler, prec, coord, lodBounds, result) {
+		throw new Error("Not implemented. TODO: implement.");
+	};
+
+	/**
+	 * @param  {tcuTexture.TextureCubeArrayView} texture
+	 * @param  {tcuTexture.Sampler} sampler
+	 * @param  {tcuTexLookupVerifier.LookupPrecision} prec
+	 * @param  {Array<number>} coordBits
+	 * @param  {Array<number>} coord
+	 * @param  {Array<number>} lodBounds
+	 * @param  {Array<number>} result
+	 * @return {boolean}
+	 */
+	tcuTexLookupVerifier.isLookupResultValid_TextureCubeArrayView (texture, sampler, prec, coordBits, coord, lodBounds, result) {
+		throw new Error("Not implemented. TODO: implement.");
+	};
 
 //
 // static bool isSeamlessLinearSampleResultValid (const /** @ype {tcuTexture.ConstPixelBufferAccess} */ var (&faces)[CUBEFACE_LAST],
@@ -2150,8 +1966,8 @@ goog.scope(function() {
 // {
 // 	const int					size			= faces[coords.face].getWidth();
 //
-// 	const Vec2					uBounds			= tcuTexVerifierUtil.computeNonNormalizedCoordBounds(sampler.normalizedCoords, size, coords.s, prec.coordBits[0], prec.uvwBits[0]);
-// 	const Vec2					vBounds			= tcuTexVerifierUtil.computeNonNormalizedCoordBounds(sampler.normalizedCoords, size, coords.t, prec.coordBits[1], prec.uvwBits[1]);
+// 	/** @type {Array<number>} */ var					uBounds			= tcuTexVerifierUtil.computeNonNormalizedCoordBounds(sampler.normalizedCoords, size, coords.s, prec.coordBits[0], prec.uvwBits[0]);
+// 	/** @type {Array<number>} */ var					vBounds			= tcuTexVerifierUtil.computeNonNormalizedCoordBounds(sampler.normalizedCoords, size, coords.t, prec.coordBits[1], prec.uvwBits[1]);
 //
 // 	// Integer coordinate bounds for (x0,y0) - without wrap mode
 // 	const int					minI			= Math.floor(uBounds[0]-0.5);
@@ -2206,7 +2022,7 @@ goog.scope(function() {
 // 															const Sampler&					sampler,
 // 															const LookupPrecision&			prec,
 // 															const CubeFaceFloatCoords&		coords,
-// 															const Vec2&						fBounds,
+// 															/** @type {Array<number>} */ var&						fBounds,
 // 															const Vec4&						result)
 // {
 // 	// \todo [2013-07-04 pyry] This is strictly not correct as coordinates between levels should be dependent.
@@ -2215,10 +2031,10 @@ goog.scope(function() {
 // 	const int					size0			= faces0[coords.face].getWidth();
 // 	const int					size1			= faces1[coords.face].getWidth();
 //
-// 	const Vec2					uBounds0		= tcuTexVerifierUtil.computeNonNormalizedCoordBounds(sampler.normalizedCoords, size0,	coords.s, prec.coordBits[0], prec.uvwBits[0]);
-// 	const Vec2					uBounds1		= tcuTexVerifierUtil.computeNonNormalizedCoordBounds(sampler.normalizedCoords, size1,	coords.s, prec.coordBits[0], prec.uvwBits[0]);
-// 	const Vec2					vBounds0		= tcuTexVerifierUtil.computeNonNormalizedCoordBounds(sampler.normalizedCoords, size0,	coords.t, prec.coordBits[1], prec.uvwBits[1]);
-// 	const Vec2					vBounds1		= tcuTexVerifierUtil.computeNonNormalizedCoordBounds(sampler.normalizedCoords, size1,	coords.t, prec.coordBits[1], prec.uvwBits[1]);
+// 	/** @type {Array<number>} */ var					uBounds0		= tcuTexVerifierUtil.computeNonNormalizedCoordBounds(sampler.normalizedCoords, size0,	coords.s, prec.coordBits[0], prec.uvwBits[0]);
+// 	/** @type {Array<number>} */ var					uBounds1		= tcuTexVerifierUtil.computeNonNormalizedCoordBounds(sampler.normalizedCoords, size1,	coords.s, prec.coordBits[0], prec.uvwBits[0]);
+// 	/** @type {Array<number>} */ var					vBounds0		= tcuTexVerifierUtil.computeNonNormalizedCoordBounds(sampler.normalizedCoords, size0,	coords.t, prec.coordBits[1], prec.uvwBits[1]);
+// 	/** @type {Array<number>} */ var					vBounds1		= tcuTexVerifierUtil.computeNonNormalizedCoordBounds(sampler.normalizedCoords, size1,	coords.t, prec.coordBits[1], prec.uvwBits[1]);
 //
 // 	// Integer coordinates - without wrap mode
 // 	const int					minI0			= Math.floor(uBounds0[0]-0.5);
@@ -2336,7 +2152,7 @@ goog.scope(function() {
 // 												 const Sampler::FilterMode		levelFilter,
 // 												 const LookupPrecision&			prec,
 // 												 const CubeFaceFloatCoords&		coords,
-// 												 const Vec2&					fBounds,
+// 												 /** @type {Array<number>} */ var&					fBounds,
 // 												 const Vec4&					result)
 // {
 // 	if (levelFilter == tcuTexture.FilterMode.LINEAR)
@@ -2361,8 +2177,8 @@ goog.scope(function() {
 // static inline IVec2 computeLayerRange (int numLayers, int numCoordBits, float layerCoord)
 // {
 // 	const float	err		= computeFloatingPointError(layerCoord, numCoordBits);
-// 	const int	minL	= (int)deFloatFloor(layerCoord - err + 0.5);		// Round down
-// 	const int	maxL	= (int)deFloatCeil(layerCoord + err + 0.5) - 1;	// Round up
+// 	const int	minL	= Math.floor(layerCoord - err + 0.5);		// Round down
+// 	const int	maxL	= Math.ceil(layerCoord + err + 0.5) - 1;	// Round up
 //
 // 	DE_ASSERT(minL <= maxL);
 //
@@ -2459,7 +2275,7 @@ goog.scope(function() {
 // 		const float		dvdx	= float(faceSize) * 0.5 * (tcdx*ma - tc*madx) / (ma*ma);
 // 		const float		dudy	= float(faceSize) * 0.5 * (scdy*ma - sc*mady) / (ma*ma);
 // 		const float		dvdy	= float(faceSize) * 0.5 * (tcdy*ma - tc*mady) / (ma*ma);
-// 		const Vec2		bounds	= computeLodBoundsFromDerivates(dudx, dvdx, dudy, dvdy, prec);
+// 		/** @type {Array<number>} */ var		bounds	= computeLodBoundsFromDerivates(dudx, dvdx, dudy, dvdy, prec);
 //
 // 		// Implementations may compute derivate from projected (s, t) resulting in incorrect values at edges.
 // 		if (allowBrokenEdgeDerivate)
@@ -2482,7 +2298,7 @@ goog.scope(function() {
 // 	}
 // }
 //
-// Vec2 clampLodBounds (const Vec2& lodBounds, const Vec2& lodMinMax, const LodPrecision& prec)
+// Vec2 clampLodBounds (/** @type {Array<number>} */ var& lodBounds, /** @type {Array<number>} */ var& lodMinMax, const LodPrecision& prec)
 // {
 // 	const float lodErr	= computeFixedPointError(prec.lodBits);
 // 	const float	a		= lodMinMax[0];
@@ -2532,7 +2348,7 @@ goog.scope(function() {
 // 								 const Sampler&					sampler,
 // 								 TexLookupScaleMode				scaleMode,
 // 								 const LookupPrecision&			prec,
-// 								 const Vec2&					coord,
+// 								 /** @type {Array<number>} */ var&					coord,
 // 								 const int						coordZ,
 // 								 const Vec4&					result)
 // {
@@ -2544,7 +2360,7 @@ goog.scope(function() {
 // 								 const Sampler&					sampler,
 // 								 TexLookupScaleMode				scaleMode,
 // 								 const IntLookupPrecision&		prec,
-// 								 const Vec2&					coord,
+// 								 /** @type {Array<number>} */ var&					coord,
 // 								 const int						coordZ,
 // 								 const IVec4&					result)
 // {
@@ -2557,7 +2373,7 @@ goog.scope(function() {
 // 								 const Sampler&					sampler,
 // 								 TexLookupScaleMode				scaleMode,
 // 								 const IntLookupPrecision&		prec,
-// 								 const Vec2&					coord,
+// 								 /** @type {Array<number>} */ var&					coord,
 // 								 const int						coordZ,
 // 								 const UVec4&					result)
 // {
@@ -2599,248 +2415,6 @@ goog.scope(function() {
 // 	DE_ASSERT(sampler.minFilter == Sampler::NEAREST && sampler.magFilter == Sampler::NEAREST);
 // 	DE_UNREF(scaleMode);
 // 	return isNearestSampleResultValid(access, sampler, prec, coord, result);
-// }
-//
-// template<typename PrecType, typename ScalarType>
-// static bool isGatherOffsetsResultValid (const ConstPixelBufferAccess&	level,
-// 										const Sampler&					sampler,
-// 										const PrecType&					prec,
-// 										const Vec2&						coord,
-// 										int								coordZ,
-// 										int								componentNdx,
-// 										const IVec2						(&offsets)[4],
-// 										const Vector<ScalarType, 4>&	result)
-// {
-// 	const Vec2	uBounds		= tcuTexVerifierUtil.computeNonNormalizedCoordBounds(sampler.normalizedCoords, level.getWidth(),	coord[0], prec.coordBits[0], prec.uvwBits[0]);
-// 	const Vec2	vBounds		= tcuTexVerifierUtil.computeNonNormalizedCoordBounds(sampler.normalizedCoords, level.getHeight(),	coord[1], prec.coordBits[1], prec.uvwBits[1]);
-//
-// 	// Integer coordinate bounds for (x0, y0) - without wrap mode
-// 	const int	minI		= Math.floor(uBounds[0]-0.5);
-// 	const int	maxI		= Math.floor(uBounds[1]-0.5);
-// 	const int	minJ		= Math.floor(vBounds[0]-0.5);
-// 	const int	maxJ		= Math.floor(vBounds[1]-0.5);
-//
-// 	const int	w			= level.getWidth();
-// 	const int	h			= level.getHeight();
-//
-// 	for (int j = minJ; j <= maxJ; j++)
-// 	{
-// 		for (int i = minI; i <= maxI; i++)
-// 		{
-// 			Vector<ScalarType, 4> color;
-// 			for (int offNdx = 0; offNdx < 4; offNdx++)
-// 			{
-// 				// offNdx-th coordinate offset and then wrapped.
-// 				const int x = tcuTexVerifierUtil.wrap(sampler.wrapS, i+offsets[offNdx][0], w);
-// 				const int y = tcuTexVerifierUtil.wrap(sampler.wrapT, j+offsets[offNdx][1], h);
-// 				color[offNdx] = lookup<ScalarType>(level, sampler, x, y, coordZ)[componentNdx];
-// 			}
-//
-// 			if (isColorValid(prec, color, result))
-// 				return true;
-// 		}
-// 	}
-//
-// 	return false;
-// }
-//
-// bool isGatherOffsetsResultValid (const Texture2DView&			texture,
-// 								 const Sampler&					sampler,
-// 								 const LookupPrecision&			prec,
-// 								 const Vec2&					coord,
-// 								 int							componentNdx,
-// 								 const IVec2					(&offsets)[4],
-// 								 const Vec4&					result)
-// {
-// 	return isGatherOffsetsResultValid(texture.getLevel(0), sampler, prec, coord, 0, componentNdx, offsets, result);
-// }
-//
-// bool isGatherOffsetsResultValid (const Texture2DView&			texture,
-// 								 const Sampler&					sampler,
-// 								 const IntLookupPrecision&		prec,
-// 								 const Vec2&					coord,
-// 								 int							componentNdx,
-// 								 const IVec2					(&offsets)[4],
-// 								 const IVec4&					result)
-// {
-// 	return isGatherOffsetsResultValid(texture.getLevel(0), sampler, prec, coord, 0, componentNdx, offsets, result);
-// }
-//
-// bool isGatherOffsetsResultValid (const Texture2DView&			texture,
-// 								 const Sampler&					sampler,
-// 								 const IntLookupPrecision&		prec,
-// 								 const Vec2&					coord,
-// 								 int							componentNdx,
-// 								 const IVec2					(&offsets)[4],
-// 								 const UVec4&					result)
-// {
-// 	return isGatherOffsetsResultValid(texture.getLevel(0), sampler, prec, coord, 0, componentNdx, offsets, result);
-// }
-//
-// template <typename PrecType, typename ScalarType>
-// static bool is2DArrayGatherOffsetsResultValid (const Texture2DArrayView&		texture,
-// 											   const Sampler&					sampler,
-// 											   const PrecType&					prec,
-// 											   const Vec3&						coord,
-// 											   int								componentNdx,
-// 											   const IVec2						(&offsets)[4],
-// 											   const Vector<ScalarType, 4>&		result)
-// {
-// 	const IVec2 layerRange = computeLayerRange(texture.getNumLayers(), prec.coordBits[2], coord[2]);
-// 	for (int layer = layerRange[0]; layer <= layerRange[1]; layer++)
-// 	{
-// 		if (isGatherOffsetsResultValid(texture.getLevel(0), sampler, prec, coord.swizzle(0,1), layer, componentNdx, offsets, result))
-// 			return true;
-// 	}
-// 	return false;
-// }
-//
-// bool isGatherOffsetsResultValid (const Texture2DArrayView&		texture,
-// 								 const Sampler&					sampler,
-// 								 const LookupPrecision&			prec,
-// 								 const Vec3&					coord,
-// 								 int							componentNdx,
-// 								 const IVec2					(&offsets)[4],
-// 								 const Vec4&					result)
-// {
-// 	return is2DArrayGatherOffsetsResultValid(texture, sampler, prec, coord, componentNdx, offsets, result);
-// }
-//
-// bool isGatherOffsetsResultValid (const Texture2DArrayView&		texture,
-// 								 const Sampler&					sampler,
-// 								 const IntLookupPrecision&		prec,
-// 								 const Vec3&					coord,
-// 								 int							componentNdx,
-// 								 const IVec2					(&offsets)[4],
-// 								 const IVec4&					result)
-// {
-// 	return is2DArrayGatherOffsetsResultValid(texture, sampler, prec, coord, componentNdx, offsets, result);
-// }
-//
-// bool isGatherOffsetsResultValid (const Texture2DArrayView&		texture,
-// 								 const Sampler&					sampler,
-// 								 const IntLookupPrecision&		prec,
-// 								 const Vec3&					coord,
-// 								 int							componentNdx,
-// 								 const IVec2					(&offsets)[4],
-// 								 const UVec4&					result)
-// {
-// 	return is2DArrayGatherOffsetsResultValid(texture, sampler, prec, coord, componentNdx, offsets, result);
-// }
-//
-//
-// template <typename PrecType, typename ScalarType>
-// static bool isCubeGatherResultValid (const TextureCubeView&			texture,
-// 									 const Sampler&					sampler,
-// 									 const PrecType&				prec,
-// 									 const Vec3&					coord,
-// 									 int							componentNdx,
-// 									 const Vector<ScalarType, 4>&	result)
-// {
-// 	int			numPossibleFaces				= 0;
-// 	CubeFace	possibleFaces[CUBEFACE_LAST];
-//
-// 	getPossibleCubeFaces(coord, prec.coordBits, &possibleFaces[0], numPossibleFaces);
-//
-// 	if (numPossibleFaces == 0)
-// 		return true; // Result is undefined.
-//
-// 	for (int tryFaceNdx = 0; tryFaceNdx < numPossibleFaces; tryFaceNdx++)
-// 	{
-// 		const CubeFaceFloatCoords faceCoords(possibleFaces[tryFaceNdx], projectToFace(possibleFaces[tryFaceNdx], coord));
-//
-// 		if (isGatherResultValid(texture, sampler, prec, faceCoords, componentNdx, result))
-// 			return true;
-// 	}
-//
-// 	return false;
-// }
-//
-// template<typename PrecType, typename ScalarType>
-// static bool isGatherResultValid (const TextureCubeView&			texture,
-// 								 const Sampler&					sampler,
-// 								 const PrecType&				prec,
-// 								 const CubeFaceFloatCoords&		coords,
-// 								 int							componentNdx,
-// 								 const Vector<ScalarType, 4>&	result)
-// {
-// 	const int	size		= texture.getLevelFace(0, coords.face).getWidth();
-//
-// 	const Vec2	uBounds		= tcuTexVerifierUtil.computeNonNormalizedCoordBounds(sampler.normalizedCoords, size, coords.s, prec.coordBits[0], prec.uvwBits[0]);
-// 	const Vec2	vBounds		= tcuTexVerifierUtil.computeNonNormalizedCoordBounds(sampler.normalizedCoords, size, coords.t, prec.coordBits[1], prec.uvwBits[1]);
-//
-// 	// Integer coordinate bounds for (x0,y0) - without wrap mode
-// 	const int	minI		= Math.floor(uBounds[0]-0.5);
-// 	const int	maxI		= Math.floor(uBounds[1]-0.5);
-// 	const int	minJ		= Math.floor(vBounds[0]-0.5);
-// 	const int	maxJ		= Math.floor(vBounds[1]-0.5);
-//
-// 	// Face accesses
-// 	/** @ype {tcuTexture.ConstPixelBufferAccess} */ var faces[CUBEFACE_LAST];
-// 	for (int face = 0; face < CUBEFACE_LAST; face++)
-// 		faces[face] = texture.getLevelFace(0, CubeFace(face));
-//
-// 	for (int j = minJ; j <= maxJ; j++)
-// 	{
-// 		for (int i = minI; i <= maxI; i++)
-// 		{
-// 			static const IVec2 offsets[4] =
-// 			{
-// 				IVec2(0, 1),
-// 				IVec2(1, 1),
-// 				IVec2(1, 0),
-// 				IVec2(0, 0)
-// 			};
-//
-// 			Vector<ScalarType, 4> color;
-// 			for (int offNdx = 0; offNdx < 4; offNdx++)
-// 			{
-// 				const CubeFaceIntCoords c = remapCubeEdgeCoords(CubeFaceIntCoords(coords.face, i+offsets[offNdx][0], j+offsets[offNdx][1]), size);
-// 				// If any of samples is out of both edges, implementations can do pretty much anything according to spec.
-// 				// \todo [2014-06-05 nuutti] Test the special case where all corner pixels have exactly the same color.
-// 				//							 See also isSeamlessLinearSampleResultValid and similar.
-// 				if (c.face == CUBEFACE_LAST)
-// 					return true;
-//
-// 				color[offNdx] = lookup<ScalarType>(faces[c.face], sampler, c.s, c.t, 0)[componentNdx];
-// 			}
-//
-// 			if (isColorValid(prec, color, result))
-// 				return true;
-// 		}
-// 	}
-//
-// 	return false;
-// }
-//
-// bool isGatherResultValid (const TextureCubeView&		texture,
-// 								 const Sampler&				sampler,
-// 								 const LookupPrecision&		prec,
-// 								 const Vec3&				coord,
-// 								 int						componentNdx,
-// 								 const Vec4&				result)
-// {
-// 	return isCubeGatherResultValid(texture, sampler, prec, coord, componentNdx, result);
-// }
-//
-// bool isGatherResultValid (const TextureCubeView&		texture,
-// 								 const Sampler&				sampler,
-// 								 const IntLookupPrecision&	prec,
-// 								 const Vec3&				coord,
-// 								 int						componentNdx,
-// 								 const IVec4&				result)
-// {
-// 	return isCubeGatherResultValid(texture, sampler, prec, coord, componentNdx, result);
-// }
-//
-// bool isGatherResultValid (const TextureCubeView&		texture,
-// 								 const Sampler&				sampler,
-// 								 const IntLookupPrecision&	prec,
-// 								 const Vec3&				coord,
-// 								 int						componentNdx,
-// 								 const UVec4&				result)
-// {
-// 	return isCubeGatherResultValid(texture, sampler, prec, coord, componentNdx, result);
 // }
 //
 // } // tcu
