@@ -76,12 +76,18 @@ var deMath = framework.delibs.debase.deMath;
      * @param {?} value
      * @return {string}
      */
-    deString.getString = function(enumType, value) {    
+    deString.getString = function(enumType, value) {
         for (var p in enumType)
             if (enumType[p] == value)
-                return p;        
+                return p;
 
-        return value.toString(10);     
+        if (typeof value === 'undefined')
+            return 'undefined';
+
+        if (typeof value === 'null')
+            return 'null';
+
+        return value.toString(10);
     };
 
     /**
@@ -89,7 +95,7 @@ var deMath = framework.delibs.debase.deMath;
      * @param {?} value
      * @return {string}
      */
-    deString.enumToString = function(enumType, value) {    
+    deString.enumToString = function(enumType, value) {
         if (typeof deString.enumToString[enumType] === 'undefined')
             deString.enumToString[enumType] = {};
 
@@ -101,6 +107,5 @@ var deMath = framework.delibs.debase.deMath;
 
         return table[value];
     };
-
 
 });
