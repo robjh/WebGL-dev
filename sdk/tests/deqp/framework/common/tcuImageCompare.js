@@ -46,6 +46,7 @@ tcuImageCompare.CompareLogMode = {
     ON_ERROR: 2
 };
 
+
 /**
  * @param {string} id HTML element name
  * @param {number} width Canvas width
@@ -90,15 +91,18 @@ tcuImageCompare.displayImages = function(result, reference, diff) {
     var createImage = function(ctx, src) {
         var w = src.getWidth();
         var h = src.getHeight();
+        var pixelSize = src.getFormat().getPixelSize();
         var imgData = ctx.createImageData(w, h);
         var index = 0;
         for (var y = 0; y < h; y++) {
             for (var x = 0; x < w; x++) {
                 var pixel = src.getPixelInt(x, h - y - 1, 0);
-                for (var i = 0; i < 4; i++) {
+                for (var i = 0; i < pixelSize; i++) {
                     imgData.data[index] = pixel[i];
                     index = index + 1;
                 }
+                if (pixelSize < 4)
+                    imgData.data[index++] = 255;
             }
         }
         return imgData;
@@ -108,8 +112,11 @@ tcuImageCompare.displayImages = function(result, reference, diff) {
 
     var contexts = tcuImageCompare.displayResultPane('console', w, h, reference != null);
     contexts[0].putImageData(createImage(contexts[0], result), 0, 0);
-    if (reference)
+    debug('Result image: ' + result);
+    if (reference) {
         contexts[1].putImageData(createImage(contexts[1], reference), 0, 0);
+        debug('Reference image: ' + reference);
+    }
     if (diff)
         contexts[2].putImageData(createImage(contexts[2], diff), 0, 0);
 };
@@ -459,6 +466,99 @@ tcuImageCompare.fuzzyCompare = function(imageSetName, imageSetDesc, reference, r
     }
     */
     return isOk;
+};
+
+tcuImageCompare.unitTest = function() {
+    var width = 128;
+    var height = 128;
+    var srcLevel = new tcuTexture.TextureLevel(new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.UNORM_INT8), width, height);
+    var dstLevel = new tcuTexture.TextureLevel(new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.UNORM_INT8), width, height);
+    var src = srcLevel.getAccess();
+    var dst = dstLevel.getAccess();
+
+    debug('Src format: ' + src.getFormat());
+    debug('Destination: ' + dst);
+    debug(src);
+
+    src.clear();
+    dst.clear();
+
+    for (var i = 0; i < width - 1; i++) {
+        for (var j = 0; j < height - 1; j++) {
+            src.setPixelInt([i, j, 90, 255], i, j);
+            dst.setPixelInt([i, j, 90, 255], i + 1, j + 1);
+        }
+    }
+    if (!tcuImageCompare.fuzzyCompare('compare', 'compare similar images', src, dst, 0.05))
+        throw new Error('Compare should return true');
+
+    src.clear();
+    dst.clear();
+
+    for (var i = 0; i < width - 2; i++) {
+        for (var j = 0; j < height - 2; j++) {
+            src.setPixelInt([i, j, 90, 255], i, j);
+            dst.setPixelInt([i, j, 90, 255], i + 2, j + 2);
+        }
+    }
+
+    if (tcuImageCompare.fuzzyCompare('compare', 'compare different images', src, dst, 0.05))
+        throw new Error('Compare should return false');
+
+    debug('Passed');
+};
+
+tcuImageCompare.unitTest2 = function() {
+    var width = 128;
+    var height = 128;
+    var srcLevel = new tcuTexture.TextureLevel(new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.UNORM_INT8), width, height);
+    var dstLevel = new tcuTexture.TextureLevel(new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.UNORM_INT8), width, height);
+    var src = srcLevel.getAccess();
+    var dst = dstLevel.getAccess();
+    var threshold = tcuRGBA.newRGBAComponents(1, 1, 1, 1);
+    debug('Threshold: ' + threshold);
+
+    src.clear();
+    dst.clear();
+
+    for (var i = 0; i < width - 1; i++) {
+        for (var j = 0; j < height - 1; j++) {
+            src.setPixelInt([i, j, 90, 255], i, j);
+            dst.setPixelInt([i, j, 90, 255], i, j);
+        }
+    }
+    if (!tcuImageCompare.bilinearCompare('compare', 'compare similar images', src, dst, threshold))
+        throw new Error('Compare should return true');
+    debug("bilinear compare the same images passed");
+
+    src.clear();
+    dst.clear();
+
+    for (var i = 0; i < width - 1; i++) {
+        for (var j = 0; j < height - 1; j++) {
+            src.setPixelInt([i, j, 90, 255], i, j);
+            dst.setPixelInt([i, j+1, 90, 255], i, j + 1);
+        }
+    }
+    if (!tcuImageCompare.bilinearCompare('compare', 'compare similar images', src, dst, threshold))
+        throw new Error('Compare should return true');
+    debug("bilinear compare very similar images passed");
+
+
+    src.clear();
+    dst.clear();
+
+    for (var i = 0; i < width - 2; i++) {
+        for (var j = 0; j < height - 2; j++) {
+            src.setPixelInt([i, j, 90, 255], i, j);
+            // dst.setPixelInt([i, j, 90, 255], i + 2, j + 2);
+        }
+    }
+
+    if (tcuImageCompare.bilinearCompare('compare', 'compare different images', src, dst, threshold))
+        throw new Error('Compare should return false');
+
+    debug('bilinear compare very different images passed');
 };
 
 /**

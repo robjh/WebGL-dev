@@ -38,17 +38,12 @@ gluShaderUtil.GLSLVersion = {
 
 /**
  * glsUniformBlockCase.isGLSLVersionSupported
- * @param {WebGL2RenderingContext|WebGLRenderingContextBase} ctx
+ * @param {WebGL2RenderingContext} ctx
  * @param {gluShaderUtil.GLSLVersion} version
  * @return {boolean}
  */
- gluShaderUtil.isGLSLVersionSupported = function(ctx, version) {
-    if (ctx instanceof WebGL2RenderingContext)
-        return version <= gluShaderUtil.GLSLVersion.V300_ES;
-    else if (ctx instanceof WebGLRenderingContextBase)
-        return version <= gluShaderUtil.GLSLVersion.V100_ES;
-    else
-        throw new Error('Invalid WebGL context');
+gluShaderUtil.isGLSLVersionSupported = function(ctx, version) {
+    return version <= gluShaderUtil.getGLSLVersion(ctx);
 };
 
 /**

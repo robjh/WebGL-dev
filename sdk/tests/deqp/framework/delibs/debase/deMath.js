@@ -268,7 +268,6 @@ deMath.equal = function(a, b) {
  * @param {Array<boolean>} a
  * @return {boolean}
  */
-
 deMath.boolAll = function(a) {
     for (var i = 0; i < a.length; i++)
         if (a[i] == false)

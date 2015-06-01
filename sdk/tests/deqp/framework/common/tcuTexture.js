@@ -22,12 +22,15 @@
 goog.provide('framework.common.tcuTexture');
 goog.require('framework.common.tcuFloat');
 goog.require('framework.delibs.debase.deMath');
+goog.require('framework.delibs.debase.deString');
+
 
 goog.scope(function() {
 
 var tcuTexture = framework.common.tcuTexture;
 var deMath = framework.delibs.debase.deMath;
 var tcuFloat = framework.common.tcuFloat;
+var deString = framework.delibs.debase.deString;
 
 var DE_ASSERT = function(x) {
     if (!x)
@@ -110,6 +113,11 @@ tcuTexture.TextureFormat = function(order, type) {
  */
 tcuTexture.TextureFormat.prototype.isEqual = function(format) {
     return this.order === format.order && this.type === format.type;
+};
+
+tcuTexture.TextureFormat.prototype.toString = function() {
+    return 'TextureFormat(' + deString.enumToString(tcuTexture.ChannelOrder, this.order) + ', ' +
+        deString.enumToString(tcuTexture.ChannelType, this.type) + ')';
 };
 
 /**
@@ -904,7 +912,31 @@ tcuTexture.ConstPixelBufferAccess = function(descriptor) {
             this.m_slicePitch = descriptor.slicePitch;
         else
             this.m_slicePitch = this.m_rowPitch * this.m_height;
+
+        if (this.m_format.isEqual(new tcuTexture.TextureFormat(
+            tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.UNORM_INT8)))
+            this.m_rgba8View = new tcuTexture.RGBA8View(this);
+        else if (this.m_format.isEqual(new tcuTexture.TextureFormat(
+            tcuTexture.ChannelOrder.RGB, tcuTexture.ChannelType.UNORM_INT8)))
+            this.m_rgb8View = new tcuTexture.RGBA8View(this);
+
     }
+};
+
+tcuTexture.ConstPixelBufferAccess.prototype.toString = function() {
+    var str = 'BufferAccess(format: ' + this.m_format +
+        ', width: ' + this.m_width +
+        ', height: ' + this.m_height;
+    if (this.m_depth > 1)
+        str += ', depth: ' + this.m_depth;
+    if (this.m_rowPitch != this.m_width * this.m_format.getPixelSize())
+        str += ', row pitch: ' + this.m_rowPitch;
+    if (this.m_slicePitch != this.m_rowPitch * this.m_height)
+        str += ', slice pitch: ' + this.m_slicePitch;
+    if (this.m_offset > 0)
+        str += ', offset: ' + this.m_offset;
+    str += ')'
+    return str;
 };
 
 /** @return {number} */
@@ -1058,6 +1090,14 @@ tcuTexture.ConstPixelBufferAccess.prototype.getPixel = function(x, y, z) {
     y = Math.round(y);
     z = Math.round(z);
 
+    // Quick paths
+    if (z == 0) {
+        if (this.m_rgba8View)
+            return deMath.scale(this.m_rgba8View.read(x, y, 4), 1/255);  
+        else if  (this.m_rgb8View)
+            return deMath.scale(this.m_rgb8View.read(x, y, 3), 1/255);  
+    }
+
     var pixelSize = this.m_format.getPixelSize();
     var arrayType = tcuTexture.getTypedArray(this.m_format.type);
     var offset = z * this.m_slicePitch + y * this.m_rowPitch + x * pixelSize;
@@ -1147,6 +1187,14 @@ tcuTexture.ConstPixelBufferAccess.prototype.getPixelInt = function(x, y, z) {
     x = Math.round(x);
     y = Math.round(y);
     z = Math.round(z);
+
+    // Quick paths
+    if (z == 0) {
+        if (this.m_rgba8View)
+            return this.m_rgba8View.read(x, y, 4);  
+        else if  (this.m_rgb8View)
+            return this.m_rgb8View.read(x, y, 3);  
+    }
 
     var pixelSize = this.m_format.getPixelSize();
     var arrayType = tcuTexture.getTypedArray(this.m_format.type);
@@ -1434,6 +1482,19 @@ tcuTexture.PixelBufferAccess.prototype.setPixel = function(color, x, y, z) {
     y = Math.round(y);
     z = Math.round(z);
 
+    // Quick paths
+    if (z == 0) {
+        if (this.m_rgba8View) {
+            color = deMath.scale(color, 255);
+            this.m_rgba8View.write(x, y, color, 4);  
+            return;          
+        } else if  (this.m_rgb8View) {
+            color = deMath.scale(color, 255);
+            this.m_rgb8View.write(x, y, color, 3);            
+            return;
+        } 
+    }
+
     var pixelSize = this.m_format.getPixelSize();
     var arrayType = tcuTexture.getTypedArray(this.m_format.type);
     var offset = z * this.m_slicePitch + y * this.m_rowPitch + x * pixelSize;
@@ -1523,6 +1584,17 @@ tcuTexture.PixelBufferAccess.prototype.setPixelInt = function(color, x, y, z) {
     x = Math.round(x);
     y = Math.round(y);
     z = Math.round(z);
+
+    // Quick paths
+    if (z == 0) {
+        if (this.m_rgba8View) {
+            this.m_rgba8View.write(x, y, color, 4);            
+            return;
+        } else if  (this.m_rgb8View) {
+            this.m_rgb8View.write(x, y, color, 3);            
+            return;
+        } 
+    }
 
     var pixelSize = this.m_format.getPixelSize();
     var arrayType = tcuTexture.getTypedArray(this.m_format.type);
@@ -2565,6 +2637,7 @@ tcuTexture.RGBA8View = function(src) {
     this.stride = src.getRowPitch();
     this.width = src.getWidth();
     this.height = src.getHeight();
+    this.pixelSize = src.getFormat().getPixelSize();
 };
 
 /**
@@ -2581,7 +2654,7 @@ tcuTexture.RGBA8View.prototype.getFormat = function() { return this.src.getForma
  */
 tcuTexture.RGBA8View.prototype.read = function(x, y, numChannels) {
     numChannels = numChannels || 4;
-    var offset = y * this.stride + x * 4;
+    var offset = y * this.stride + x * this.pixelSize;
     var result = [];
     for (var i = 0; i < numChannels; i++)
         result.push(this.data[offset + i]);
@@ -2597,7 +2670,7 @@ tcuTexture.RGBA8View.prototype.read = function(x, y, numChannels) {
  */
 tcuTexture.RGBA8View.prototype.write = function(x, y, value, numChannels) {
     numChannels = numChannels || 4;
-    var offset = y * this.stride + x * 4;
+    var offset = y * this.stride + x * this.pixelSize;
     for (var i = 0; i < numChannels; i++)
         this.data[offset + i] = value[i];
 };
