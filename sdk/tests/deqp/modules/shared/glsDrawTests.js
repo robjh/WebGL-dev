@@ -1402,13 +1402,14 @@ goog.scope(function() {
      * @param {number} offset
      * @param {number} stride
      * @param {?glsDrawTests.DrawTestSpec.InputType} type
+     * @param {number} first
      * @return {goog.TypedArray}
      */
-    glsDrawTests.RandomArrayGenerator.generateArray = function (seed, elementCount, componentCount, offset, stride, type) {
+    glsDrawTests.RandomArrayGenerator.generateArray = function (seed, elementCount, componentCount, offset, stride, type, first) {
         if (type == glsDrawTests.DrawTestSpec.InputType.INT_2_10_10_10 || type == glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT_2_10_10_10)
-            return glsDrawTests.RandomArrayGenerator.generatePackedArray(seed, elementCount, componentCount, offset, stride, type);
+            return glsDrawTests.RandomArrayGenerator.generatePackedArray(seed, elementCount, componentCount, offset, stride, type, first);
         else
-            return glsDrawTests.RandomArrayGenerator.generateBasicArray(seed, elementCount, componentCount, offset, stride, type);
+            return glsDrawTests.RandomArrayGenerator.generateBasicArray(seed, elementCount, componentCount, offset, stride, type, first);
     };
 
     /**
@@ -1418,10 +1419,11 @@ goog.scope(function() {
      * @param {number} offset
      * @param {number} stride
      * @param {?glsDrawTests.DrawTestSpec.InputType} type
+     * @param {number} first
      * @return {goog.TypedArray}
      */
-    glsDrawTests.RandomArrayGenerator.generateBasicArray = function (seed, elementCount, componentCount, offset, stride, type) {
-        return glsDrawTests.RandomArrayGenerator.createBasicArray(seed, elementCount, componentCount, offset, stride, type);
+    glsDrawTests.RandomArrayGenerator.generateBasicArray = function (seed, elementCount, componentCount, offset, stride, type, first) {
+        return glsDrawTests.RandomArrayGenerator.createBasicArray(seed, elementCount, componentCount, offset, stride, type, first);
     }
 
     /**
@@ -1431,9 +1433,10 @@ goog.scope(function() {
      * @param {number} offset
      * @param {number} stride
      * @param {?glsDrawTests.DrawTestSpec.InputType} type
+     * @param {number} first
      * @return {goog.TypedArray}
      */
-    glsDrawTests.RandomArrayGenerator.createBasicArray = function (seed, elementCount, componentCount, offset, stride, type) {
+    glsDrawTests.RandomArrayGenerator.createBasicArray = function (seed, elementCount, componentCount, offset, stride, type, first) {
         assertMsgOptions(componentCount >= 1 && componentCount <= 4, 'Unacceptable number of components', false, true);
 
         /** @type {glsDrawTests.GLValue} */ var min = glsDrawTests.GLValue.getMinValue(type);
@@ -1452,17 +1455,14 @@ goog.scope(function() {
 
         var triangle = [];
 
-        for (var vertexNdx = 0; vertexNdx < elementCount; vertexNdx++)
-        {
+        for (var vertexNdx = 0; vertexNdx < elementCount; vertexNdx++) {
             /** @type {Array<glsDrawTests.GLValue>} */ var components = [];
 
-            for (var componentNdx = 0; componentNdx < componentCount; componentNdx++)
-            {
+            for (var componentNdx = 0; componentNdx < componentCount; componentNdx++) {
                 components[componentNdx] = glsDrawTests.GLValue.getRandom(rnd, min, max);
 
                 // Try to not create vertex near previous
-                if (vertexNdx != 0 && Math.abs(components[componentNdx] - previousComponents[componentNdx]) < min.interpret())
-                {
+                if (vertexNdx != 0 && Math.abs(components[componentNdx] - previousComponents[componentNdx]) < min.interpret()) {
                     // Too close, try again (but only once)
                     components[componentNdx] = glsDrawTests.GLValue.getRandom(rnd, min, max);
                 }
@@ -1471,53 +1471,46 @@ goog.scope(function() {
             for (var componentNdx = 0; componentNdx < componentCount; componentNdx++)
                 previousComponents[componentNdx] = components[componentNdx];
 
-            triangle.push(components);
+            //This part makes sure triangles form a right angle with middle vertex
+            //(JS Refrast draws straight lines only, so drawing triangles as quads)
+            if (vertexNdx >= first) {
+                triangle.push(components);
 
-            if (triangle.length == 3) {
-                var middlevertex = [triangle[0][0], triangle[2][1], triangle[1][2], triangle[1][3]];
+                if (triangle.length == 3 && componentCount >= 2) {
+                    var middlevertex = [];
+                    switch (componentCount) {
+                        case 2: middlevertex = [triangle[0][0], triangle[2][1]]; break;
+                        case 3: middlevertex = [triangle[0][0], triangle[2][1], triangle[1][2]]; break;
+                        case 4: middlevertex = [triangle[0][0], triangle[2][1], triangle[1][2], triangle[1][3]]; break;
+                        default: throw new Error('Invalid number of components'); break;
+                    }
 
-                /*//Verify circle motion direction is CCW
+                    //Rewrite middle vertex
+                    triangle[1] = middlevertex;
 
-                //Distance between vertices 0 and 2
-                var distance0_2 =  [triangle[2][0].sub(triangle[0][0]), triangle[2][1].sub(triangle[0][1])];
-                //Angle between vertices 0 and 2
-                var angle0_2 = Math.atan(distance0_2[0][1].div(distance0_2[0][0]).interpret());
+                    //Copy values to buffer
+                    for (var triVtx = 0 ; triVtx < 3; triVtx++)
+                    for (var componentNdx = 0; componentNdx < componentCount; componentNdx++)
+                        glsDrawTests.copyGLValueToArray(writePtr.subarray(triVtx*componentCount*componentSize + componentNdx*componentSize), triangle[triVtx][componentNdx]);
 
-                //Distance between vertices 0 and middlevertex
-                var distance0_m = [middlevertex[0].sub(triangle[0][0]), middlevertex[1].sub(triangle[0][1])];
-                //Angle between vertices 0 and middlevertex
-                var angle0_m = Math.atan(distance0_m[0][1].div(distance0_m[0][0]).interpret());
+                    writePtr = writePtr.subarray(stride * 3);
+                    triangle = [];
+                } else if (elementCount - 1 == vertexNdx) { //Handle last stray vertices maybe.
+                    for (var componentNdx = 0; componentNdx < componentCount; componentNdx++)
+                        glsDrawTests.copyGLValueToArray(writePtr.subarray(componentNdx*componentSize), components[componentNdx]);
 
-                //If not CCW, swap x and y
-                if (angle0_2 < angle0_m) {
-                    //Mirror midlevertex against the axis formed by vertices 0 and 2
-                    angle0_m = angle0_2 - (angle0_m - angle0_2);
-
-                    middlevertex[0] = middlevertex[0].add(middlevertex[1]);
-                    middlevertex[1] = middlevertex[0].sub(middlevertex[1]);
-                    middlevertex[0] = middlevertex[0].sub(middlevertex[1]);
-                }*/
-
-                //Rewrite middle vertex
-                triangle[1] = middlevertex;
-
-                //Copy values to buffer
-                for (var triVtx = 0 ; triVtx < 3; triVtx++)
-                for (var componentNdx = 0; componentNdx < componentCount; componentNdx++)
-                    glsDrawTests.copyGLValueToArray(writePtr.subarray(triVtx*componentCount*componentSize + componentNdx*componentSize), triangle[triVtx][componentNdx]);
-
-                writePtr = writePtr.subarray(stride * 3);
-                triangle = [];
-            }
-            else if (elementCount - 1 == vertexNdx) {
+                    writePtr = writePtr.subarray(stride);
+                }
+            } else {
                 for (var componentNdx = 0; componentNdx < componentCount; componentNdx++)
                     glsDrawTests.copyGLValueToArray(writePtr.subarray(componentNdx*componentSize), components[componentNdx]);
 
-                writePtr = writePtr.subarray(stride);
+                //Advance one vertex
+                writePtr = writePtr.subarray(componentCount * componentSize);
             }
         }
 
-        return new Uint8Array(data); //TODO: Check if it would be more convenient to use GLValue.typeToTypedArray to create the returning array.
+        return new Uint8Array(data);
     };
 
     /**
@@ -1527,9 +1520,10 @@ goog.scope(function() {
      * @param {number} offset
      * @param {number} stride
      * @param {?glsDrawTests.DrawTestSpec.InputType} type
+     * @param {number} first
      * @return {goog.TypedArray}
      */
-    glsDrawTests.RandomArrayGenerator.generatePackedArray = function (seed, elementCount, componentCount, offset, stride, type) {
+    glsDrawTests.RandomArrayGenerator.generatePackedArray = function (seed, elementCount, componentCount, offset, stride, type, first) {
         assertMsgOptions(componentCount == 4, 'Component count must be 4', false, true);
         //DE_UNREF(componentCount);
 
@@ -1561,7 +1555,7 @@ goog.scope(function() {
             writePtr = writePtr.subarray(writePtr.byteOffset + stride);
         }
 
-        return new Uint8Array(data); //TODO: Check if it would be more convenient to use GLValue.typeToTypedArray to create the returning array.
+        return new Uint8Array(data);
     };
 
     /**
@@ -1634,7 +1628,7 @@ goog.scope(function() {
             );
         }
 
-        return new Uint8Array(data); //TODO: Check if it would be more convenient to use GLValue.typeToTypedArray to create the returning array.
+        return new Uint8Array(data);
     }
 
     /**
@@ -2893,7 +2887,7 @@ goog.scope(function() {
                     /** @type {number} */ var evaluatedElementCount = (instanced && attribSpec.instanceDivisor > 0) ? (spec.instanceCount / attribSpec.instanceDivisor + 1) : (elementCount);
                     /** @type {number} */ var referencedElementCount = (ranged) ? (Math.max(evaluatedElementCount, spec.indexMax + 1)) : (evaluatedElementCount);
                     /** @type {number} */ var bufferSize = attribSpec.offset + stride * (referencedElementCount - 1) + elementSize;
-                    /** @type {goog.TypedArray} */ var data = glsDrawTests.RandomArrayGenerator.generateArray(seed, referencedElementCount, attribSpec.componentCount, attribSpec.offset, stride, attribSpec.inputType);
+                    /** @type {goog.TypedArray} */ var data = glsDrawTests.RandomArrayGenerator.generateArray(seed, referencedElementCount, attribSpec.componentCount, attribSpec.offset, stride, attribSpec.inputType, spec.first);
 
                     //try { TODO: This try/catch block's purpose is to delete data safely. Should we?
                         this.m_glArrayPack.newArray(attribSpec.storage);
