@@ -267,7 +267,7 @@ goog.scope(function() {
 
         var test = es3fAttribLocationTests.createAttributeLocationTests();
         var testName = test.fullName();
-        var testDescription = test.getDescription() || '';
+        var testDescription = test.getDescription() === undefined ? '' : test.getDescription();
 
         state.testName = testName;
         state.setRoot(test);
