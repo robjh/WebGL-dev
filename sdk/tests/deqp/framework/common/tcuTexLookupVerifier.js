@@ -197,8 +197,8 @@ goog.scope(function() {
 	 * @param  {number} y
 	 */
 	tcuTexLookupVerifier.lookupLine = function(dst, level, sampler, x0, x1, y) {
-		dst.p0 = lookupFloat(level, sampler, x0, y, 0);
-		dst.p1 = lookupFloat(level, sampler, x1, y, 0);
+		dst.p0 = tcuTexLookupVerifier.lookupFloat(level, sampler, x0, y, 0);
+		dst.p1 = tcuTexLookupVerifier.lookupFloat(level, sampler, x1, y, 0);
 	};
 
 	/**
@@ -236,7 +236,7 @@ goog.scope(function() {
 		/** @type {Array<number>} */ var stepCount = deMath.divide([d, d, d, d], prec.colorThreshold);
 		/** @type {Array<number>} */
 		var minStep = deMath.divide([1.0, 1.0, 1.0, 1.0], deMath.add(stepCount, [1.0, 1.0, 1.0, 1.0]));
-		/** @type {number} */ var step = deMath.max(tcuTexLookupVerifier.minComp(minStep), 1.0 / maxSteps);
+		/** @type {number} */ var step = Math.max(tcuTexLookupVerifier.minComp(minStep), 1.0 / maxSteps);
 
 		return step;
 	};
@@ -533,8 +533,8 @@ goog.scope(function() {
 
 	/**
 	* @param {tcuTexLookupVerifier.LookupPrecision} prec
-	* @param {tcuTexLookupVerifier.ColorLIne} line0
-	* @param {tcuTexLookupVerifier.ColorLIne} line1
+	* @param {tcuTexLookupVerifier.ColorLine} line0
+	* @param {tcuTexLookupVerifier.ColorLine} line1
 	* @param {Array<number>} xBounds0
 	* @param {Array<number>} xBounds1
 	* @param {Array<number>} zBounds
