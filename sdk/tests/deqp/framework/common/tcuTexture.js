@@ -2380,14 +2380,6 @@ tcuTexture.TextureCubeView.prototype.getLevelFace = function(ndx, face) {
 };
 
 /**
-* @return {number}
-*/
-tcuTexture.TextureCubeView.prototype.getNumLevels = function() { return this.m_numLevels; };
-
-/** @return {number} */
-tcuTexture.TextureCubeView.prototype.getSize = function() { return this.m_numLevels > 0 ? this.m_levels[0][0].getWidth() : 0; };
-
-/**
  * @param {number} baseLevel
  * @param {number} maxLevel
  * @return {tcuTexture.TextureCubeView}
