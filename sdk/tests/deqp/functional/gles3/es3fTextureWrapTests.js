@@ -242,8 +242,7 @@ goog.scope(function() {
 
         /** @type {boolean} */ var isOk = glsTextureTestUtil.verifyTexture2DResult(renderedFrame.getAccess(), this.m_texture.getRefTexture(), texCoord, refParams, lookupPrecision, lodPrecision, pixelFormat);
 
-        if (!isOk)
-            assertMsgOptions(isOk, 'verifyTexture2DResult is false', true, false);
+        assertMsgOptions(isOk, 'verifyTexture2DResult is false', true, false);
 
         this.m_caseNdx++;
 
