@@ -82,11 +82,22 @@ tcuTextureUtil.linearChannelToSRGB = function(cl) {
  * @return {Array<number>}
  */
 tcuTextureUtil.sRGBToLinear = function(cs) {
-	return [sRGBChannelToLinear(cs[0]),
-			sRGBChannelToLinear(cs[1]),
-			sRGBChannelToLinear(cs[2]),
+	return [tcuTextureUtil.sRGBChannelToLinear(cs[0]),
+            tcuTextureUtil.sRGBChannelToLinear(cs[1]),
+            tcuTextureUtil.sRGBChannelToLinear(cs[2]),
 			cs[3]];
 };
+
+/**
+ * @param  {number} cs
+ * @return {number}
+ */
+ tcuTextureUtil.sRGBChannelToLinear = function(cs) {
+	if (cs <= 0.04045)
+		return cs / 12.92;
+	else
+		return Math.pow((cs + 0.055) / 1.055, 2.4);
+}
 
 /** tcuTextureUtil.linearToSRGB
  * @param {Array<number>} cl

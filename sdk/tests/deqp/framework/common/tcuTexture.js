@@ -1606,7 +1606,7 @@ tcuTexture.PixelBufferAccess.prototype.clear = function(color, x, y, z) {
     };
 
     this.setPixel(c, range_x[0], range_y[0], range_z[0]);
-    
+
     var offset = range_z[0] * this.m_slicePitch + range_y[0] * this.m_rowPitch + range_x[0] * pixelSize;
     var pixelPtr = new arrayType(this.m_data, offset + this.m_offset, width * numElements);
 
@@ -2292,6 +2292,22 @@ tcuTexture.TextureCubeView.prototype.sample = function(sampler, texCoord, lod) {
  * @return {Array<tcuTexture.ConstPixelBufferAccess>}
  */
 tcuTexture.TextureCubeView.prototype.getFaceLevels = function(face) { return this.m_levels[face]; };
+
+/**
+ * @param {number} ndx
+ * @param {tcuTexture.CubeFace} face
+ * @return {tcuTexture.ConstPixelBufferAccess}
+ */
+tcuTexture.TextureCubeView.prototype.getLevelFace = function(ndx, face) {
+    assertMsgOptions(0 <= ndx && ndx < this.m_numLevels, '', false, true);
+    return this.m_levels[face][ndx];
+};
+
+/**
+* @return {number}
+*/
+tcuTexture.TextureCubeView.prototype.getNumLevels = function() { return this.m_numLevels; };
+
 /** @return {number} */
 tcuTexture.TextureCubeView.prototype.getSize = function() { return this.m_numLevels > 0 ? this.m_levels[0][0].getWidth() : 0; };
 
@@ -2553,6 +2569,15 @@ tcuTexture.TextureLevel.prototype.getDepth = function() {
  */
 tcuTexture.TextureLevel.prototype.getFormat = function() {
     return this.m_format;
+};
+
+/**
+ * @param {tcuTexture.CubeFaceCoords} coords
+ * @param {number} size
+ * @return {tcuTexture.CubeFaceCoords}
+ */
+tcuTexture.remapCubeEdgeCoords = function(coords, size) {
+        throw new Error('Not implemented. TODO: implement.');
 };
 
 });

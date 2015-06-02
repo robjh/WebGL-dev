@@ -714,7 +714,7 @@ goog.scope(function() {
 		return false;
 	};
 
-// template<typename PrecType, typename ScalarType>
+
 
 	/**
 	 * @param {tcuTexture.ConstPixelBufferAccess} level
@@ -775,9 +775,9 @@ goog.scope(function() {
     	for (var i = minI; i <= maxI; i++) {
             /** @type {number} */ var x = tcuTexVerifierUtil.wrap(sampler.wrapS, i, level.getWidth());
             /** @type {number} */ var y = tcuTexVerifierUtil.wrap(sampler.wrapT, j, level.getHeight());
-            /** @type {Array<number>} */ var colorScalar = tcuTexLookupVerifier.lookupScalar(level, sampler, x, y, coordZ);
+            /** @type {Array<number>} */ var color = tcuTexLookupVerifier.lookupScalar(level, sampler, x, y, coordZ);
 
-    		if (isColorValid(prec, color, result))
+    		if (tcuTexLookupVerifier.isColorValid(prec, color, result))
     			return true;
     	}
 
@@ -834,7 +834,7 @@ goog.scope(function() {
 	/**
 	* @param {tcuTexture.ConstPixelBufferAccess} level
 	* @param {tcuTexture.Sampler} sampler
-	* @param {tcuTexLookupVerifier.PrecType} prec
+	* @param {tcuTexLookupVerifier.LookupPrecision} prec
 	* @param {number} coordX
 	* @param {number} coordY
 	* @param {Array<number>} result
@@ -860,7 +860,7 @@ goog.scope(function() {
 			/** @type {Array<number>} */ var colorA	= tcuTexLookupVerifier.lookupFloat(level, sampler, x0, coordY, 0);
 			/** @type {Array<number>} */ var colorB	= tcuTexLookupVerifier.lookupFloat(level, sampler, x1, coordY, 0);
 
-			if (tcuTexLookupVerifier.isLinearRangeValid(prec, colorA, colorB, Vec2(minA, maxA), result))
+			if (tcuTexLookupVerifier.isLinearRangeValid(prec, colorA, colorB, [minA, maxA], result))
 				return true;
 		}
 
@@ -871,7 +871,7 @@ goog.scope(function() {
 	/**
      * @param {tcuTexture.ConstPixelBufferAccess} level
      * @param {tcuTexture.Sampler} sampler
-     * @param {tcuTexLookupVerifier.PrecType} prec
+     * @param {tcuTexLookupVerifier.LookupPrecision} prec
      * @param {Array<number>} coord vec2
      * @param {number} coordZ int
      * @param {Array<number>} result
@@ -930,7 +930,7 @@ goog.scope(function() {
 	/**
 	* @param {tcuTexture.ConstPixelBufferAccess} level
 	* @param {tcuTexture.Sampler} sampler
-	* @param {tcuTexLookupVerifier.PrecType} prec
+	* @param {tcuTexLookupVerifier.LookupPrecision} prec
 	* @param {Array<number>} coord vec3
 	* @param {Array<number>} result
 	* @return {boolean}
@@ -1007,7 +1007,7 @@ goog.scope(function() {
 	* @param {tcuTexture.ConstPixelBufferAccess} level0
 	* @param {tcuTexture.ConstPixelBufferAccess} level1
 	* @param {tcuTexture.Sampler} sampler
-	* @param {tcuTexLookupVerifier.PrecType} prec
+	* @param {tcuTexLookupVerifier.LookupPrecision} prec
 	* @param {number} coord
 	* @param {number} coordY
 	* @param {Array<number>} fBounds
@@ -1051,7 +1051,7 @@ goog.scope(function() {
 	* @param {tcuTexture.ConstPixelBufferAccess} level0
 	* @param {tcuTexture.ConstPixelBufferAccess} level1
 	* @param {tcuTexture.Sampler} sampler
-	* @param {tcuTexLookupVerifier.PrecType} prec
+	* @param {tcuTexLookupVerifier.LookupPrecision} prec
 	* @param {Array<number>} coord
 	* @param {number} coordZ
 	* @param {Array<number>} fBounds
@@ -1108,7 +1108,7 @@ goog.scope(function() {
 	* @param {tcuTexture.ConstPixelBufferAccess} level0
 	* @param {tcuTexture.ConstPixelBufferAccess} level1
 	* @param {tcuTexture.Sampler} sampler
-	* @param {tcuTexLookupVerifier.PrecType} prec
+	* @param {tcuTexLookupVerifier.LookupPrecision} prec
 	* @param {Array<number>} coord
 	* @param {Array<number>} fBounds
 	* @param {Array<number>} result
@@ -1180,7 +1180,7 @@ goog.scope(function() {
 	* @param {tcuTexture.ConstPixelBufferAccess} level0
 	* @param {tcuTexture.ConstPixelBufferAccess} level1
 	* @param {tcuTexture.Sampler} sampler
-	* @param {tcuTexLookupVerifier.PrecType} prec
+	* @param {tcuTexLookupVerifier.LookupPrecision} prec
 	* @param {number} coordX
 	* @param {number} coordY
 	* @param {Array<number>} fBounds
@@ -1239,7 +1239,7 @@ goog.scope(function() {
 				tcuTexLookupVerifier.lookupLine(line1, level1, sampler, x0, x1, coordY);
 
 				if (texClass == tcuTextureUtil.TextureChannelClass.FLOATING_POINT)
-					searchStep1 = computeBilinearSearchStepFromFloatLine(prec, line1);
+					searchStep1 = tcuTexLookupVerifier.computeBilinearSearchStepFromFloatLine(prec, line1);
 				else
 					searchStep1 = cSearchStep;
 
@@ -1259,7 +1259,7 @@ goog.scope(function() {
 	* @param {tcuTexture.ConstPixelBufferAccess} level0
 	* @param {tcuTexture.ConstPixelBufferAccess} level1
 	* @param {tcuTexture.Sampler} sampler
-	* @param {tcuTexLookupVerifier.PrecType} prec
+	* @param {tcuTexLookupVerifier.LookupPrecision} prec
 	* @param {Array<number>} coord
 	* @param {number} coordZ
 	* @param {Array<number>} fBounds
@@ -1366,7 +1366,7 @@ goog.scope(function() {
 	* @param {tcuTexture.ConstPixelBufferAccess} level0
 	* @param {tcuTexture.ConstPixelBufferAccess} level1
 	* @param {tcuTexture.Sampler} sampler
-	* @param {tcuTexLookupVerifier.PrecType} prec
+	* @param {tcuTexLookupVerifier.LookupPrecision} prec
 	* @param {Array<number>} coord
 	* @param {Array<number>} fBounds
 	* @param {Array<number>} result
@@ -1418,8 +1418,8 @@ goog.scope(function() {
 
 		/** @type {tcuTextureUtil.TextureChannelClass} */
 		var texClass = tcuTextureUtil.getTextureChannelClass(level0.getFormat().type);
-		/** @type {number} */ var cSearchStep = texClass == tcuTextureUtil.TextureChannelClass.UNSIGNED_FIXED_POINT	? computeBilinearSearchStepForUnorm(prec) :
-												texClass == tcuTextureUtil.TextureChannelClass.SIGNED_FIXED_POINT	? computeBilinearSearchStepForSnorm(prec) :
+		/** @type {number} */ var cSearchStep = texClass == tcuTextureUtil.TextureChannelClass.UNSIGNED_FIXED_POINT ? tcuTexLookupVerifier.computeBilinearSearchStepForUnorm(prec) :
+												texClass == tcuTextureUtil.TextureChannelClass.SIGNED_FIXED_POINT ? tcuTexLookupVerifier.computeBilinearSearchStepForSnorm(prec) :
 												0.0; // Step is computed for floating-point quads based on texel values.
 
 		/** @type {number} */ var x0;
@@ -1506,7 +1506,7 @@ goog.scope(function() {
 	* @param {tcuTexture.ConstPixelBufferAccess} level
 	* @param {tcuTexture.Sampler} sampler
 	* @param {tcuTexture.FilterMode} filterMode
-	* @param {tcuTexLookupVerifier.PrecType} prec
+	* @param {tcuTexLookupVerifier.LookupPrecision} prec
 	* @param {number} coordX
 	* @param {number} coordY
 	* @param {Array<number>} result
@@ -1524,7 +1524,7 @@ goog.scope(function() {
 	* @param {tcuTexture.ConstPixelBufferAccess} level
 	* @param {tcuTexture.Sampler} sampler
 	* @param {tcuTexture.FilterMode} filterMode
-	* @param {tcuTexLookupVerifier.PrecType} prec
+	* @param {tcuTexLookupVerifier.LookupPrecision} prec
 	* @param {Array<number>} coord
 	* @param {number} coordZ
 	* @param {Array<number>} result
@@ -1541,7 +1541,7 @@ goog.scope(function() {
 	* @param {tcuTexture.ConstPixelBufferAccess} level
 	* @param {tcuTexture.Sampler} sampler
 	* @param {tcuTexture.FilterMode} filterMode
-	* @param {tcuTexLookupVerifier.PrecType} prec
+	* @param {tcuTexLookupVerifier.LookupPrecision} prec
 	* @param {Array<number>} coord
 	* @param {Array<number>} result
 	* @return {boolean}
@@ -1559,7 +1559,7 @@ goog.scope(function() {
 	* @param {tcuTexture.ConstPixelBufferAccess} level1
 	* @param {tcuTexture.Sampler} sampler
 	* @param {tcuTexture.FilterMode} levelFilter
-	* @param {tcuTexLookupVerifier.PrecType} prec
+	* @param {tcuTexLookupVerifier.LookupPrecision} prec
 	* @param {number} coordX
 	* @param {number} coordY
 	* @param {Array<number>} fBounds
@@ -1578,7 +1578,7 @@ goog.scope(function() {
 	* @param {tcuTexture.ConstPixelBufferAccess} level1
 	* @param {tcuTexture.Sampler} sampler
 	* @param {tcuTexture.FilterMode} levelFilter
-	* @param {tcuTexLookupVerifier.PrecType} prec
+	* @param {tcuTexLookupVerifier.LookupPrecision} prec
 	* @param {Array<number>} coord
 	* @param {number} coordZ
 	* @param {Array<number>} fBounds
@@ -1597,7 +1597,7 @@ goog.scope(function() {
 	* @param {tcuTexture.ConstPixelBufferAccess} level1
 	* @param {tcuTexture.Sampler} sampler
 	* @param {tcuTexture.FilterMode} levelFilter
-	* @param {tcuTexLookupVerifier.PrecType} prec
+	* @param {tcuTexLookupVerifier.LookupPrecision} prec
 	* @param {Array<number>} coord
 	* @param {Array<number>} fBounds
 	* @param {Array<number>} result
@@ -1625,7 +1625,7 @@ goog.scope(function() {
 		/** @type {boolean} */ var canBeMagnified = minLod <= sampler.lodThreshold;
 		/** @type {boolean} */ var canBeMinified = maxLod > sampler.lodThreshold;
 
-		assertMsgOptions(isSamplerSupported(sampler), '', false, true);
+		assertMsgOptions(tcuTexLookupVerifier.isSamplerSupported(sampler), '', false, true);
 
 		/** @type {number} */ var minLevel;
 		/** @type {number} */ var maxLevel;
@@ -1690,18 +1690,19 @@ goog.scope(function() {
 	 */
 	tcuTexLookupVerifier.isLookupResultValid_TextureCubeView = function(texture, sampler, prec, coord, lodBounds, result) {
 		/** @type {number} */ var numPossibleFaces = 0;
-		/** @type {Array<tcuTexture.CubeFace>} */ var possibleFaces = [];
 
-		assertMsgOptions(isSamplerSupported(sampler), '', false, true);
 
-		tcuTexVerifierUtil.getPossibleCubeFaces(coord, prec.coordBits, possibleFaces, numPossibleFaces);
+		assertMsgOptions(tcuTexLookupVerifier.isSamplerSupported(sampler), '', false, true);
+
+		/** @type {Array<tcuTexture.CubeFace>} */ var possibleFaces = tcuTexVerifierUtil.getPossibleCubeFaces(coord, prec.coordBits);
+
 		/** @type {number} */ var minLevel;
 		/** @type {number} */ var maxLevel;
 
-		if (numPossibleFaces == 0)
+		if (!possibleFaces)
 			return true; // Result is undefined.
 
-		for (var tryFaceNdx = 0; tryFaceNdx < numPossibleFaces; tryFaceNdx++) {
+		for (var tryFaceNdx = 0; tryFaceNdx < possibleFaces.length; tryFaceNdx++) {
 			/** @type {tcuTexture.CubeFaceCoords} */
 			var faceCoords = new tcuTexture.CubeFaceCoords(possibleFaces[tryFaceNdx], tcuTexture.projectToFace(possibleFaces[tryFaceNdx], coord));
 			/** @type {number} */ var minLod = lodBounds[0];
@@ -1789,7 +1790,7 @@ goog.scope(function() {
 		/** @type {boolean} */ var canBeMagnified = minLod <= sampler.lodThreshold;
 		/** @type {boolean} */ var canBeMinified = maxLod > sampler.lodThreshold;
 
-		assertMsgOptions(isSamplerSupported(sampler), '', false, true);
+		assertMsgOptions(tcuTexLookupVerifier.isSamplerSupported(sampler), '', false, true);
 		/** @type {number} */ var minLevel;
 		/** @type {number} */ var maxLevel;
 
@@ -1808,8 +1809,8 @@ goog.scope(function() {
 				assertMsgOptions(minTexLevel <= maxTexLevel, '', false, true);
 
 				if (isLinearMipmap && minTexLevel < maxTexLevel) {
-					minLevel = deMath.clamp(Math.Floor(minLod), minTexLevel, maxTexLevel - 1);
-					maxLevel = deMath.clamp(Math.Floor(maxLod), minTexLevel, maxTexLevel - 1);
+					minLevel = deMath.clamp(Math.floor(minLod), minTexLevel, maxTexLevel - 1);
+					maxLevel = deMath.clamp(Math.floor(maxLod), minTexLevel, maxTexLevel - 1);
 
 					assertMsgOptions(minLevel <= maxLevel, '', false, true);
 
@@ -1859,7 +1860,7 @@ goog.scope(function() {
 		/** @type {boolean} */ var canBeMagnified = minLod <= sampler.lodThreshold;
 		/** @type {boolean} */ var canBeMinified = maxLod > sampler.lodThreshold;
 
-		assertMsgOptions(isSamplerSupported(sampler), '', false, true);
+		assertMsgOptions(tcuTexLookupVerifier.isSamplerSupported(sampler), '', false, true);
 
 		/** @type {number} */ var minLevel;
 		/** @type {number} */ var maxLevel;
@@ -1915,7 +1916,7 @@ goog.scope(function() {
 
 
 	/**
-	 * @param  {tcuTexture.Texture1DView} texture
+	 * @param  {*} texture tcuTexture.Texture1DView
 	 * @param  {tcuTexture.Sampler} sampler
 	 * @param  {tcuTexLookupVerifier.LookupPrecision} prec
 	 * @param  {number} coord
@@ -1928,7 +1929,7 @@ goog.scope(function() {
 	};
 
 	/**
-	 * @param  {tcuTexture.Texture1DArrayView} texture
+	 * @param  {*} texture tcuTexture.Texture1DArrayView
 	 * @param  {tcuTexture.Sampler} sampler
 	 * @param  {tcuTexLookupVerifier.LookupPrecision} prec
 	 * @param  {Array<number>} coord
@@ -1941,7 +1942,7 @@ goog.scope(function() {
 	};
 
 	/**
-	 * @param  {tcuTexture.TextureCubeArrayView} texture
+	 * @param  {*} texture tcuTexture.TextureCubeArrayView
 	 * @param  {tcuTexture.Sampler} sampler
 	 * @param  {tcuTexLookupVerifier.LookupPrecision} prec
 	 * @param  {Array<number>} coordBits
@@ -1955,10 +1956,10 @@ goog.scope(function() {
 	};
 
 	/**
-	 * @param {tcuTexture.ConstPixelBufferAccess} faces (&faces)[CUBEFACE_LAST]
+	 * @param {Array<tcuTexture.ConstPixelBufferAccess>} faces (&faces)[CUBEFACE_LAST]
 	 * @param {tcuTexture.Sampler} sampler
 	 * @param {tcuTexLookupVerifier.LookupPrecision} prec
-	 * @param {tcuTexture.CubeFaceFloatCoords} coords
+	 * @param {tcuTexture.CubeFaceCoords} coords
 	 * @param {Array<number>} result
 	 * @return {boolean}
 	 */
@@ -1982,10 +1983,10 @@ goog.scope(function() {
 
 		for (var j = minJ; j <= maxJ; j++) {
 			for (var i = minI; i <= maxI; i++) {
-				/** @type {tcuTexture.CubeFaceIntCoords} */ var c00	= tcuTexture.remapCubeEdgeCoords(new tcuTexture.CubeFaceIntCoords(coords.face, [i + 0, j + 0]), size);
-				/** @type {tcuTexture.CubeFaceIntCoords} */ var c10	= tcuTexture.remapCubeEdgeCoords(new tcuTexture.CubeFaceIntCoords(coords.face, [i + 1, j + 0]), size);
-				/** @type {tcuTexture.CubeFaceIntCoords} */ var c01	= tcuTexture.remapCubeEdgeCoords(new tcuTexture.CubeFaceIntCoords(coords.face, [i + 0, j + 1]), size);
-				/** @type {tcuTexture.CubeFaceIntCoords} */ var c11	= tcuTexture.remapCubeEdgeCoords(new tcuTexture.CubeFaceIntCoords(coords.face, [i + 1, j + 1]), size);
+				/** @type {tcuTexture.CubeFaceCoords} */ var c00	= tcuTexture.remapCubeEdgeCoords(new tcuTexture.CubeFaceCoords(coords.face, [i + 0, j + 0]), size);
+				/** @type {tcuTexture.CubeFaceCoords} */ var c10	= tcuTexture.remapCubeEdgeCoords(new tcuTexture.CubeFaceCoords(coords.face, [i + 1, j + 0]), size);
+				/** @type {tcuTexture.CubeFaceCoords} */ var c01	= tcuTexture.remapCubeEdgeCoords(new tcuTexture.CubeFaceCoords(coords.face, [i + 0, j + 1]), size);
+				/** @type {tcuTexture.CubeFaceCoords} */ var c11	= tcuTexture.remapCubeEdgeCoords(new tcuTexture.CubeFaceCoords(coords.face, [i + 1, j + 1]), size);
 
 				// If any of samples is out of both edges, implementations can do pretty much anything according to spec.
 				// \todo [2013-07-08 pyry] Test the special case where all corner pixels have exactly the same color.
@@ -2016,11 +2017,11 @@ goog.scope(function() {
 	};
 
 	/**
-	 * @param {tcuTexture.ConstPixelBufferAccess} faces0 (&faces0)[CUBEFACE_LAST]
-	 * @param {tcuTexture.ConstPixelBufferAccess} faces1 (&faces1)[CUBEFACE_LAST]
+	 * @param {Array<tcuTexture.ConstPixelBufferAccess>} faces0 (&faces0)[CUBEFACE_LAST]
+	 * @param {Array<tcuTexture.ConstPixelBufferAccess>} faces1 (&faces1)[CUBEFACE_LAST]
 	 * @param {tcuTexture.Sampler} sampler
 	 * @param {tcuTexLookupVerifier.LookupPrecision} prec
-	 * @param {tcuTexture.CubeFaceFloatCoords} coords
+	 * @param {tcuTexture.CubeFaceCoords} coords
 	 * @param {Array<number>} fBounds
 	 * @param {Array<number>} result
 	 * @return {boolean}
@@ -2053,15 +2054,20 @@ goog.scope(function() {
 												(texClass == tcuTextureUtil.TextureChannelClass.SIGNED_FIXED_POINT)	? tcuTexLookupVerifier.computeBilinearSearchStepForSnorm(prec) :
 												0.0; // Step is computed for floating-point quads based on texel values.
 
+		/** @type {tcuTexture.CubeFaceCoords} */ var c00;
+		/** @type {tcuTexture.CubeFaceCoords} */ var c10;
+		/** @type {tcuTexture.CubeFaceCoords} */ var c01;
+		/** @type {tcuTexture.CubeFaceCoords} */ var c11;
+
 		for (var j0 = minJ0; j0 <= maxJ0; j0++) {
 			for (var i0 = minI0; i0 <= maxI0; i0++) {
 				/** @type {tcuTexLookupVerifier.ColorQuad} */ var quad0;
 				/** @type {number} */ var searchStep0;
 
-				/** @type {tcuTexture.CubeFaceIntCoords} */ var c00	= tcuTexture.remapCubeEdgeCoords(new tcuTexture.CubeFaceIntCoords(coords.face, [i0 + 0, j0 + 0]), size0);
-				/** @type {tcuTexture.CubeFaceIntCoords} */ var c10	= tcuTexture.remapCubeEdgeCoords(new tcuTexture.CubeFaceIntCoords(coords.face, [i0 + 1, j0 + 0]), size0);
-				/** @type {tcuTexture.CubeFaceIntCoords} */ var c01	= tcuTexture.remapCubeEdgeCoords(new tcuTexture.CubeFaceIntCoords(coords.face, [i0 + 0, j0 + 1]), size0);
-				/** @type {tcuTexture.CubeFaceIntCoords} */ var c11	= tcuTexture.remapCubeEdgeCoords(new tcuTexture.CubeFaceIntCoords(coords.face, [i0 + 1, j0 + 1]), size0);
+				c00	= tcuTexture.remapCubeEdgeCoords(new tcuTexture.CubeFaceCoords(coords.face, [i0 + 0, j0 + 0]), size0);
+				c10	= tcuTexture.remapCubeEdgeCoords(new tcuTexture.CubeFaceCoords(coords.face, [i0 + 1, j0 + 0]), size0);
+				c01	= tcuTexture.remapCubeEdgeCoords(new tcuTexture.CubeFaceCoords(coords.face, [i0 + 0, j0 + 1]), size0);
+				c11	= tcuTexture.remapCubeEdgeCoords(new tcuTexture.CubeFaceCoords(coords.face, [i0 + 1, j0 + 1]), size0);
 
 				// If any of samples is out of both edges, implementations can do pretty much anything according to spec.
 				// \todo [2013-07-08 pyry] Test the special case where all corner pixels have exactly the same color.
@@ -2088,10 +2094,10 @@ goog.scope(function() {
 						/** @type {tcuTexLookupVerifier.ColorQuad} */ var quad1;
 						/** @type {number} */ var searchStep1;
 
-						/** @type {tcuTexture.CubeFaceIntCoords} */ var c00	= tcuTexture.remapCubeEdgeCoords(new tcuTexture.CubeFaceIntCoords(coords.face, [i1 + 0, j1 + 0]), size1);
-						/** @type {tcuTexture.CubeFaceIntCoords} */ var c10	= tcuTexture.remapCubeEdgeCoords(new tcuTexture.CubeFaceIntCoords(coords.face, [i1 + 1, j1 + 0]), size1);
-						/** @type {tcuTexture.CubeFaceIntCoords} */ var c01	= tcuTexture.remapCubeEdgeCoords(new tcuTexture.CubeFaceIntCoords(coords.face, [i1 + 0, j1 + 1]), size1);
-						/** @type {tcuTexture.CubeFaceIntCoords} */ var c11	= tcuTexture.remapCubeEdgeCoords(new tcuTexture.CubeFaceIntCoords(coords.face, [i1 + 1, j1 + 1]), size1);
+						c00	= tcuTexture.remapCubeEdgeCoords(new tcuTexture.CubeFaceCoords(coords.face, [i1 + 0, j1 + 0]), size1);
+						c10	= tcuTexture.remapCubeEdgeCoords(new tcuTexture.CubeFaceCoords(coords.face, [i1 + 1, j1 + 0]), size1);
+						c01	= tcuTexture.remapCubeEdgeCoords(new tcuTexture.CubeFaceCoords(coords.face, [i1 + 0, j1 + 1]), size1);
+						c11	= tcuTexture.remapCubeEdgeCoords(new tcuTexture.CubeFaceCoords(coords.face, [i1 + 1, j1 + 1]), size1);
 
 						if (c00.face == CUBEFACE_LAST || c01.face == CUBEFACE_LAST || c10.face == CUBEFACE_LAST || c11.face == CUBEFACE_LAST)
 							return true;
@@ -2102,7 +2108,7 @@ goog.scope(function() {
 						quad1.p11 = tcuTexLookupVerifier.lookupFloat(faces1[c11.face], sampler, c11.s, c11.t, 0);
 
 						if (texClass == tcuTextureUtil.TextureChannelClass.FLOATING_POINT)
-							searchStep1 = computeBilinearSearchStepFromFloatQuad(prec, quad1);
+							searchStep1 = tcuTexLookupVerifier.computeBilinearSearchStepFromFloatQuad(prec, quad1);
 						else
 							searchStep1 = cSearchStep;
 
@@ -2123,11 +2129,11 @@ goog.scope(function() {
 	};
 
 	/**
-	 * @param {tcuTexture.ConstPixelBufferAccess} level (&level)[CUBEFACE_LAST]
+	 * @param {Array<tcuTexture.ConstPixelBufferAccess>} level (&level)[CUBEFACE_LAST]
 	 * @param {tcuTexture.Sampler} sampler
 	 * @param {tcuTexture.FilterMode} filterMode
 	 * @param {tcuTexLookupVerifier.LookupPrecision} prec
-	 * @param {tcuTexture.CubeFaceFloatCoords} coords
+	 * @param {tcuTexture.CubeFaceCoords} coords
 	 * @param {Array<number>} result
 	 * @return {boolean}
 	 */
@@ -2143,12 +2149,12 @@ goog.scope(function() {
 	};
 
 	/**
-	 * @param {tcuTexture.ConstPixelBufferAccess} faces0 (&faces0)[CUBEFACE_LAST]
-	 * @param {tcuTexture.ConstPixelBufferAccess} faces1 (&faces1)[CUBEFACE_LAST]
+	 * @param {Array<tcuTexture.ConstPixelBufferAccess>} faces0 (&faces0)[CUBEFACE_LAST]
+	 * @param {Array<tcuTexture.ConstPixelBufferAccess>} faces1 (&faces1)[CUBEFACE_LAST]
 	 * @param {tcuTexture.Sampler} sampler
 	 * @param {tcuTexture.FilterMode} levelFilter
 	 * @param {tcuTexLookupVerifier.LookupPrecision} prec
-	 * @param {tcuTexture.CubeFaceFloatCoords} coords
+	 * @param {tcuTexture.CubeFaceCoords} coords
 	 * @param {Array<number>} fBounds
 	 * @param {Array<number>} result
 	 * @return {boolean}
@@ -2167,7 +2173,7 @@ goog.scope(function() {
 	/**
 	 * @param  {tcuTexture.TextureCubeView} texture
 	 * @param  {number} levelNdx
-	 * @param  {tcuTexture.ConstPixelBufferAccess} out (&out)[CUBEFACE_LAST]
+	 * @param  {Array<tcuTexture.ConstPixelBufferAccess>} out (&out)[CUBEFACE_LAST]
 	 */
 	tcuTexLookupVerifier.getCubeLevelFaces = function(texture, levelNdx, out) {
 		/** @type {number} */ var CUBEFACE_LAST = 6;
@@ -2207,7 +2213,7 @@ goog.scope(function() {
 	* @return {Array<number>}
 	*/
 	tcuTexLookupVerifier.computeFixedPointThreshold = function(bits) {
-		return tcuTexVerifierUtil.computeFixedPointError(bits);
+		return tcuTexVerifierUtil.computeFixedPointError_Vector(bits);
 	};
 
 	/**
@@ -2216,7 +2222,7 @@ goog.scope(function() {
 	* @return {Array<number>}
 	*/
 	tcuTexLookupVerifier.computeFloatingPointThreshold = function(bits, value) {
-		return tcuTexVerifierUtil.computeFloatingPointError(value, bits);
+		return tcuTexVerifierUtil.computeFloatingPointError_Vector(value, bits);
 	};
 
 	/**
@@ -2239,7 +2245,7 @@ goog.scope(function() {
         /** @type {number} */ var maxDErr = tcuTexVerifierUtil.computeFloatingPointError(maxDBound, prec.derivateBits);
         /** @type {number} */ var minLod = Math.log2(minDBound - minDErr);
         /** @type {number} */ var maxLod = Math.log2(maxDBound + maxDErr);
-        /** @type {number} */ var lodErr = tcuTexVerifierUtil.computeFixedPointErrorNumber(prec.lodBits);
+        /** @type {number} */ var lodErr = tcuTexVerifierUtil.computeFixedPointError(prec.lodBits);
 
         assertMsgOptions(minLod <= maxLod, 'Error: minLoad < maxLod', false, true);
         return [minLod - lodErr, maxLod + lodErr];
@@ -2284,12 +2290,12 @@ goog.scope(function() {
 
 		// \note Derivate signs don't matter when computing lod
 		switch (face) {
-			case tcuTexture.CubeFaceCUBEFACE_NEGATIVE_X:
-			case tcuTexture.CubeFaceCUBEFACE_POSITIVE_X: maNdx = 0; sNdx = 2; tNdx = 1; break;
-			case tcuTexture.CubeFaceCUBEFACE_NEGATIVE_Y:
-			case tcuTexture.CubeFaceCUBEFACE_POSITIVE_Y: maNdx = 1; sNdx = 0; tNdx = 2; break;
-			case tcuTexture.CubeFaceCUBEFACE_NEGATIVE_Z:
-			case tcuTexture.CubeFaceCUBEFACE_POSITIVE_Z: maNdx = 2; sNdx = 0; tNdx = 1; break;
+			case tcuTexture.CubeFace.CUBEFACE_NEGATIVE_X:
+			case tcuTexture.CubeFace.CUBEFACE_POSITIVE_X: maNdx = 0; sNdx = 2; tNdx = 1; break;
+			case tcuTexture.CubeFace.CUBEFACE_NEGATIVE_Y:
+			case tcuTexture.CubeFace.CUBEFACE_POSITIVE_Y: maNdx = 1; sNdx = 0; tNdx = 2; break;
+			case tcuTexture.CubeFace.CUBEFACE_NEGATIVE_Z:
+			case tcuTexture.CubeFace.CUBEFACE_POSITIVE_Z: maNdx = 2; sNdx = 0; tNdx = 1; break;
 			default:
 				throw new Error('Invalid CubeFace.');
 		}
@@ -2316,10 +2322,10 @@ goog.scope(function() {
 			/** @type {Array<number>} */ var xoffs = deMath.add(deMath.abs(coordDx), dxErr);
 			/** @type {Array<number>} */ var yoffs = deMath.add(deMath.abs(coordDy), dyErr);
 
-			if (tcuTexture.selectCubeFace(coord + xoffs) != face ||
-				tcuTexture.selectCubeFace(coord - xoffs) != face ||
-				tcuTexture.selectCubeFace(coord + yoffs) != face ||
-				tcuTexture.selectCubeFace(coord - yoffs) != face) {
+			if (tcuTexture.selectCubeFace(deMath.add(coord, xoffs)) != face ||
+				tcuTexture.selectCubeFace(deMath.subtract(coord, xoffs)) != face ||
+				tcuTexture.selectCubeFace(deMath.add(coord, yoffs)) != face ||
+				tcuTexture.selectCubeFace(deMath.subtract(coord, yoffs)) != face) {
 				return [bounds[0], 1000.0];
 			}
 		}
@@ -2422,12 +2428,12 @@ goog.scope(function() {
 	 * @param  {tcuTexture.ConstPixelBufferAccess} access
 	 * @param  {tcuTexture.Sampler} sampler
 	 * @param  {tcuTexLookupVerifier.TexLookupScaleMode} scaleMode
-	 * @param  {tcuTexLookupVerifier.LookupPrecision} prec
+	 * @param  {tcuTexLookupVerifier.IntLookupPrecision} prec
 	 * @param  {Array<number>} coord
 	 * @param  {Array<number>} result
 	 * @return {boolean}
 	 */
-	tcuTexLookupVerifier.isLevel3DLookupResultValid = function(access, sampler, scaleMode, prec, coord, result) {
+	tcuTexLookupVerifier.isLevel3DLookupResultValid_Int = function(access, sampler, scaleMode, prec, coord, result) {
 		assertMsgOptions(sampler.minFilter == tcuTexture.FilterMode.NEAREST && sampler.magFilter == tcuTexture.FilterMode.NEAREST, '', false, true);
 		return tcuTexLookupVerifier.isNearestSampleResultValid_CoordAsVec3(access, sampler, prec, coord, result);
 	};

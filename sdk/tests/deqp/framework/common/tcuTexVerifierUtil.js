@@ -162,7 +162,7 @@ goog.scope(function() {
     /**
      * @param  {Array<number>} coord
      * @param  {Array<number>} bits
-     * @return {Array<tcuTexture.CubeFace>}
+     * @return {?Array<tcuTexture.CubeFace>}
      */
      tcuTexVerifierUtil.getPossibleCubeFaces = function(coord, bits) {
 
@@ -209,7 +209,7 @@ goog.scope(function() {
             }
         }
 
-        return faces;
+        return faces.length == 0 ? null : faces;
     };
 
     /**

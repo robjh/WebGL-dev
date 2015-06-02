@@ -981,14 +981,14 @@ glsTextureTestUtil.sampleTextureProjected2D = function(dst, src, sq, tq, params)
     /** @type {number} */ var dstW = dst.getWidth();
     /** @type {number} */ var dstH = dst.getHeight();
 
-    /** @type {Array<number>} */ var uq = deMath.scale(s, src.getWidth());
+    /** @type {Array<number>} */ var uq = deMath.scale(sq, src.getWidth());
     /** @type {Array<number>} */ var vq = deMath.scale(tq, src.getHeight());
 
-    /** @type {Array<number>} */ var triS = [deMath.swizzle(sq, [0, 1, 2]), deMath.swizzle(sq, [3, 2, 1])];
-    /** @type {Array<number>} */ var triT = [deMath.swizzle(tq, [0, 1, 2]), deMath.swizzle(tq, [3, 2, 1])];
-    /** @type {Array<number>} */ var triU = [deMath.swizzle(uq, [0, 1, 2]), deMath.swizzle(uq, [3, 2, 1])];
-    /** @type {Array<number>} */ var triV = [deMath.swizzle(vq, [0, 1, 2]), deMath.swizzle(vq, [3, 2, 1])];
-    /** @type {Array<number>} */ var triW = [deMath.swizzle(params.w, [0, 1, 2]), deMath.swizzle(params.w, [3, 2, 1])];
+    /** @type {Array<Array<number>>} */ var triS = [deMath.swizzle(sq, [0, 1, 2]), deMath.swizzle(sq, [3, 2, 1])];
+    /** @type {Array<Array<number>>} */ var triT = [deMath.swizzle(tq, [0, 1, 2]), deMath.swizzle(tq, [3, 2, 1])];
+    /** @type {Array<Array<number>>} */ var triU = [deMath.swizzle(uq, [0, 1, 2]), deMath.swizzle(uq, [3, 2, 1])];
+    /** @type {Array<Array<number>>} */ var triV = [deMath.swizzle(vq, [0, 1, 2]), deMath.swizzle(vq, [3, 2, 1])];
+    /** @type {Array<Array<number>>} */ var triW = [deMath.swizzle(params.w, [0, 1, 2]), deMath.swizzle(params.w, [3, 2, 1])];
 
     for (var py = 0; py < dst.getHeight(); py++) {
         for (var px = 0; px < dst.getWidth(); px++) {
@@ -1007,13 +1007,13 @@ glsTextureTestUtil.sampleTextureProjected2D = function(dst, src, sq, tq, params)
             /** @type {number} */ var t = glsTextureTestUtil.projectedTriInterpolate(triT[triNdx], triW[triNdx], triNx, triNy);
             /** @type {number} */ var lod = glsTextureTestUtil.computeProjectedTriLod2D(params.lodMode, triU[triNdx], triV[triNdx], triW[triNdx], triWx, triWy, dst.getWidth(), dst.getHeight()) + lodBias;
 
-            dst.setPixel(execSample(src, params, s, t, lod) * params.colorScale + params.colorBias, px, py);
+            dst.setPixel(deMath.add(deMath.multiply(glsTextureTestUtil.execSample(src, params, [s, t], lod), params.colorScale), params.colorBias), px, py);
         }
     }
 };
 
 /**
- * @param {LodMode} mode
+ * @param {glsTextureTestUtil.lodMode} mode
  * @param {Array<number>} u
  * @param {Array<number>} v
  * @param {Array<number>} projection
@@ -1030,7 +1030,7 @@ glsTextureTestUtil.computeProjectedTriLod2D = function(mode, u, v, projection, w
     /** @type {number} */ var dudy = glsTextureTestUtil.triDerivateY(u, projection, wy, height, wx/width);
     /** @type {number} */ var dvdy = glsTextureTestUtil.triDerivateY(v, projection, wy, height, wx/width);
 
-	return computeLodFromDerivates2D(mode, dudx, dvdx, dudy, dvdy);
+	return glsTextureTestUtil.computeLodFromDerivates2D(mode, dudx, dvdx, dudy, dvdy);
 };
 
 /**
@@ -1430,7 +1430,7 @@ glsTextureTestUtil.computeTextureLookupDiff2D = function(result, reference, erro
     ];
 
     /** @type {Array<number>} */ var green = tcuRGBA.newRGBAComponents(0, 255, 0, 0).toVec();
-    tcuTextureUtil.clear(errorMask, green);
+    errorMask.clear(green);
 
     for (var py = 0; py < result.getHeight(); py++) {
         // Ugly hack, validation can take way too long at the moment.
@@ -1469,8 +1469,8 @@ glsTextureTestUtil.computeTextureLookupDiff2D = function(result, reference, erro
                     glsTextureTestUtil.triDerivateY(triS[triNdx], triW[triNdx], wy, dstH, triNx),
                     glsTextureTestUtil.triDerivateY(triT[triNdx], triW[triNdx], wy, dstH, triNx)], srcSize);
 
-                /** @type {Array<Array<number>>} */
-                var lodBounds = tcuTexLookupVerifier.computeLodBoundsFromDerivates(coordDx[0], coordDx[1], coordDy[0], coordDy[1], lodPrec);
+                /** @type {Array<number>} */
+                var lodBounds = tcuTexLookupVerifier.computeLodBoundsFromDerivatesUV(coordDx[0], coordDx[1], coordDy[0], coordDy[1], lodPrec);
 
                 // Compute lod bounds across lodOffsets range.
                 for (var lodOffsNdx = 0; lodOffsNdx < lodOffsets.length; lodOffsNdx++) {
@@ -1488,17 +1488,17 @@ glsTextureTestUtil.computeTextureLookupDiff2D = function(result, reference, erro
                     /** @type {Array<number>} */ var coordDyo = deMath.multiply([
                         glsTextureTestUtil.triDerivateY(triS[triNdx], triW[triNdx], wyo, dstH, nxo),
                         glsTextureTestUtil.triDerivateY(triT[triNdx], triW[triNdx], wyo, dstH, nxo)], srcSize);
-                    /** @type {Array<Array<number>>} */
-                    var lodO = tcuTexLookupVerifier.computeLodBoundsFromDerivates(coordDxo[0], coordDxo[1], coordDyo[0], coordDyo[1], lodPrec);
+                    /** @type {Array<number>} */
+                    var lodO = tcuTexLookupVerifier.computeLodBoundsFromDerivatesUV(coordDxo[0], coordDxo[1], coordDyo[0], coordDyo[1], lodPrec);
 
-                    lodBounds[0] = deMath.min(lodBounds[0], lodO[0]);
-                    lodBounds[1] = deMath.max(lodBounds[1], lodO[1]);
+                    lodBounds[0] = Math.min(lodBounds[0], lodO[0]);
+                    lodBounds[1] = Math.max(lodBounds[1], lodO[1]);
                 }
 
                 /** @type {Array<number>} */ var clampedLod = tcuTexLookupVerifier.clampLodBounds(
-                    lodBounds + lodBias, [sampleParams.minLod, sampleParams.maxLod], lodPrec);
+                    deMath.add(lodBounds, lodBias), [sampleParams.minLod, sampleParams.maxLod], lodPrec);
                 /** @type {boolean} */
-                var isOk = tcuTexLookupVerifier.isLookupResultValid2DView(src, sampleParams.sampler, lookupPrec, coord, clampedLod, resPix);
+                var isOk = tcuTexLookupVerifier.isLookupResultValid_Texture2DView(src, sampleParams.sampler, lookupPrec, coord, clampedLod, resPix);
 
                 if (!isOk){
                     /** @type {tcuRGBA.RGBA} */ var red = tcuRGBA.newRGBAComponents(255, 0, 0, 0);

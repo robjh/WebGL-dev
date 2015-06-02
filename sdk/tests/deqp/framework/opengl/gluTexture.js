@@ -78,7 +78,7 @@ gluTexture.texture2DFromCompressedTexture = function(gl, numLevels, levels) {
     var refTex = new tcuTexture.Texture2D(levels.getUncompressedFormat(), levels.getWidth(), levels.getHeight());
     /** @type {gluTexture.Texture2D} */ var tex2d = new gluTexture.Texture2D(gl, format, true, refTex);
 
-    gluTexture.Texture2D.loadCompressed(numLevels, levels);
+    tex2d.loadCompressed(numLevels, levels);
 
     return tex2d;
 };
@@ -86,25 +86,24 @@ gluTexture.texture2DFromCompressedTexture = function(gl, numLevels, levels) {
  * @param {number} numLevels
  * @param {tcuCompressedTexture.CompressedTexture} levels
  */
-gluTexture.Texture2D.loadCompressed = function(numLevels, levels) {
+gluTexture.Texture2D.prototype.loadCompressed = function(numLevels, levels) {
     /** @type {number} */ var compressedFormat = gluTextureUtil.getGLFormat(levels[0].getFormat());
 
     assertMsgOptions(this.m_glTexture, 'm_glTexture not defined', false, true);
     gl.bindTexture(gl.TEXTURE_2D, this.m_glTexture);
 
-    for (var levelNdx = 0; levelNdx < numLevels; levelNdx++)
-    {
+    for (var levelNdx = 0; levelNdx < numLevels; levelNdx++) {
         /** @type {tcuCompressedTexture.CompressedTexture} */ var level = levels[levelNdx];
 
         // Decompress to reference texture.
         this.m_refTexture.allocLevel(levelNdx);
         /** @type {tcuTexture.PixelBufferAccess} */ var refLevelAccess = this.m_refTexture.getLevel(levelNdx);
         assertMsgOptions(level.getWidth() == refLevelAccess.getWidth() && level.getHeight() == refLevelAccess.getHeight(), 'level and reference sizes not equal', false, true);
-        level.decompress(refLevelAccess, decompressionParams);
+        level.decompress(refLevelAccess);
 
         // Upload to GL texture in compressed form.
         gl.compressedTexImage2D(gl.TEXTURE_2D, levelNdx, compressedFormat,
-                                level.getWidth(), level.getHeight(), 0, level.getDataSize(), level.getData());
+                                level.getWidth(), level.getHeight(), 0, level.getData());
     }
 };
 
