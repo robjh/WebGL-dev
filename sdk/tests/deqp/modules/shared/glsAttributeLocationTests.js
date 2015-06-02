@@ -40,7 +40,7 @@ goog.scope(function() {
    	 * @return {number}
    	 */
 		glsAttributeLocationTests.getBoundLocation = function(bindings, attrib) {
-				return (bindings[attrib] ? bindings[attrib] : glsAttributeLocationTests.LocationEnum.UNDEF);
+				return (bindings[attrib] === undefined ? glsAttributeLocationTests.LocationEnum.UNDEF : bindings[attrib]);
 		};
 
     /**
@@ -241,7 +241,7 @@ goog.scope(function() {
 
         /** @type{Array<string>} */ var parameters = [];
 
-    if (gluShaderUtil.isGLSLVersionSupported(gl, gluShaderUtil.GLSLVersion.V300_ES)) {
+        if (gluShaderUtil.isGLSLVersionSupported(gl, gluShaderUtil.GLSLVersion.V300_ES)) {
             parameters['VERSION'] = gluShaderUtil.getGLSLVersionDeclaration(glslVersion);
             parameters['VTX_OUTPUT'] = 'out';
             parameters['VTX_INPUT'] = 'in';
@@ -306,7 +306,7 @@ goog.scope(function() {
         /**@type{string} */ var log = 'Program Link Info: ' + programInfoLog +
         'Link result: ' + (programLinkOk ? 'Ok' : 'Fail');
 
-                bufferedLogToConsole(log);
+        bufferedLogToConsole(log);
     };
 
     glsAttributeLocationTests.logAttributes = function(attributes) {
@@ -318,7 +318,7 @@ goog.scope(function() {
             ', Name: ' + attributes[i].getName() +
             (attributes[i].getLayoutLocation() != glsAttributeLocationTests.LocationEnum.UNDEF ? ', Layout location ' + attributes[i].getLayoutLocation() : '');
 
-                        bufferedLogToConsole(log);
+            bufferedLogToConsole(log);
         }
     };
 
@@ -332,20 +332,20 @@ goog.scope(function() {
      */
     glsAttributeLocationTests.logShaders = function(vertexShaderSource, vertexShaderInfoLog, vertexCompileOk, fragmentShaderSource, fragmentShaderInfoLog,fragmentCompileOk) {
 
-            /**@type{string} */ var log;
-            log = '\nVertex Shader Info: ' +
-            vertexShaderSource +
-            '\nInfo Log: ' +
-            vertexShaderInfoLog +
-            '\nCompilation result: ' + (vertexCompileOk ? "Ok" : "Failed") +
+        /**@type{string} */ var log;
+        log = '\nVertex Shader Info: ' +
+        vertexShaderSource +
+        '\nInfo Log: ' +
+        vertexShaderInfoLog +
+        '\nCompilation result: ' + (vertexCompileOk ? "Ok" : "Failed") +
 
-            '\nFragment Shader Info: ' +
-            fragmentShaderSource +
-            '\nInfo Log: ' +
-            fragmentShaderInfoLog +
-            '\nCompilation result: ' + (fragmentCompileOk ? "Ok" : "Failed");
+        '\nFragment Shader Info: ' +
+        fragmentShaderSource +
+        '\nInfo Log: ' +
+        fragmentShaderInfoLog +
+        '\nCompilation result: ' + (fragmentCompileOk ? "Ok" : "Failed");
 
-            bufferedLogToConsole(log);
+        bufferedLogToConsole(log);
     };
 
     /**
@@ -428,8 +428,7 @@ goog.scope(function() {
             isActive = attrib.getCondition().notEquals(glsAttributeLocationTests.NewCondWithEnum(glsAttributeLocationTests.ConstCond.NEVER));
 
             if (isActive) {
-                //if (!glsAttributeLocationTests.contains(activeAttributes,attrib.getName())) {
-                                    if (activeAttributes.indexOf(attrib.getName()) == -1) {
+                if (activeAttributes.indexOf(attrib.getName()) == -1) {
 
                     bufferedLogToConsole('Error: Active attribute ' + attrib.getName() + 'wasn\'t returned by glGetActiveAttrib().');
                     isOk = false;
@@ -437,7 +436,6 @@ goog.scope(function() {
             } else {
                 if (activeAttributes[attrib.getName()] === undefined)
                     bufferedLogToConsole('Note: Inactive attribute ' + attrib.getName() + 'was returned by glGetActiveAttrib().');
-                    // log << TestLog::Message << "Note: Inactive attribute " << attrib.getName() << " was returned by glGetActiveAttrib()." << TestLog::EndMessage;
             }
         }
 
@@ -506,7 +504,7 @@ goog.scope(function() {
         gl.compileShader(vertexShader);
         gl.compileShader(fragmentShader);
 
-            gl.attachShader(program, vertexShader);
+        gl.attachShader(program, vertexShader);
         gl.attachShader(program, fragmentShader);
 
         /** @type{boolean} */ var vertexShaderCompileOk = /** @type{boolean} */ (gl.getShaderParameter(vertexShader,gl.COMPILE_STATUS));
@@ -514,12 +512,12 @@ goog.scope(function() {
 
         // log shaders
         glsAttributeLocationTests.logShaders(vertexShaderSource, gl.getShaderInfoLog(vertexShader),
-        vertexShaderCompileOk,
-                fragmentShaderSource, gl.getShaderInfoLog(fragmentShader),
-                fragmentShaderCompileOk);
+            vertexShaderCompileOk,
+            fragmentShaderSource, gl.getShaderInfoLog(fragmentShader),
+            fragmentShaderCompileOk);
 
-                assertMsgOptions(vertexShaderCompileOk, 'vertex Shader compile failed', false, true);
-            assertMsgOptions(fragmentShaderCompileOk, 'fragment Shader compile failed', false, true);
+        assertMsgOptions(vertexShaderCompileOk, 'vertex Shader compile failed', false, true);
+        assertMsgOptions(fragmentShaderCompileOk, 'fragment Shader compile failed', false, true);
 
         gl.deleteShader(vertexShader);
         gl.deleteShader(fragmentShader);
@@ -1207,7 +1205,7 @@ goog.scope(function() {
 
         glsAttributeLocationTests.runTest(attributes, noBindings, noBindings, noBindings, false);
         return tcuTestCase.IterateResult.STOP;
-    }
+    };
 
     /**
      * @constructor
@@ -1315,7 +1313,7 @@ goog.scope(function() {
 
         glsAttributeLocationTests.runTest(attributes, noBindings, bindings, noBindings, false);
         return tcuTestCase.IterateResult.STOP;
-    }
+    };
 
     /**
      * @constructor
@@ -1354,14 +1352,13 @@ goog.scope(function() {
             else {
                 attributes.push(new glsAttributeLocationTests.Attribute(vec4, 'a_' + ndx, loc));
                 bindings.push(new glsAttributeLocationTests.Bind('a_' + ndx, loc));
-
             }
             ndx++;
         }
 
         glsAttributeLocationTests.runTest(attributes, noBindings, bindings, noBindings, false);
         return tcuTestCase.IterateResult.STOP;
-    }
+    };
 
     /**
      * @constructor
@@ -1392,7 +1389,7 @@ goog.scope(function() {
 
         glsAttributeLocationTests.runTest(attributes, noBindings, preLinkBindings, postLinkBindings, true);
         return tcuTestCase.IterateResult.STOP;
-    }
+    };
 
     /**
      * @constructor
@@ -1437,7 +1434,7 @@ goog.scope(function() {
 
         glsAttributeLocationTests.runTest(attributes, noBindings, preLinkBindings, postLinkBindings, true);
         return tcuTestCase.IterateResult.STOP;
-    }
+    };
 
     /**
      * @constructor
@@ -1486,7 +1483,7 @@ goog.scope(function() {
 
         glsAttributeLocationTests.runTest(attributes, noBindings, preLinkBindings, postLinkBindings, true);
         return tcuTestCase.IterateResult.STOP;
-    }
+    };
 
     /**
      * @constructor
@@ -1510,7 +1507,7 @@ goog.scope(function() {
 
         glsAttributeLocationTests.runTest(attributes, bindings, noBindings, noBindings, false);
         return tcuTestCase.IterateResult.STOP;
-    }
+    };
 
     /**
      * @constructor
