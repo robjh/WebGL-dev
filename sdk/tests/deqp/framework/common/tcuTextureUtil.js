@@ -29,10 +29,6 @@ var tcuTextureUtil = framework.common.tcuTextureUtil;
 var tcuTexture = framework.common.tcuTexture;
 var deMath = framework.delibs.debase.deMath;
 
-
-/** @const {number} */ tcuTextureUtil.CLEAR_OPTIMIZE_THRESHOLD = 128;
-/** @const {number} */ tcuTextureUtil.CLEAR_OPTIMIZE_MAX_PIXEL_SIZE = 8;
-
 var DE_ASSERT = function(x) {
     if (!x)
         throw new Error('Assert failed');

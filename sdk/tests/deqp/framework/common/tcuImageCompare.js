@@ -46,6 +46,7 @@ tcuImageCompare.CompareLogMode = {
     ON_ERROR: 2
 };
 
+
 /**
  * @param {string} id HTML element name
  * @param {number} width Canvas width
@@ -90,15 +91,18 @@ tcuImageCompare.displayImages = function(result, reference, diff) {
     var createImage = function(ctx, src) {
         var w = src.getWidth();
         var h = src.getHeight();
+        var pixelSize = src.getFormat().getPixelSize();
         var imgData = ctx.createImageData(w, h);
         var index = 0;
         for (var y = 0; y < h; y++) {
             for (var x = 0; x < w; x++) {
                 var pixel = src.getPixelInt(x, h - y - 1, 0);
-                for (var i = 0; i < 4; i++) {
+                for (var i = 0; i < pixelSize; i++) {
                     imgData.data[index] = pixel[i];
                     index = index + 1;
                 }
+                if (pixelSize < 4)
+                    imgData.data[index++] = 255;
             }
         }
         return imgData;
@@ -108,8 +112,11 @@ tcuImageCompare.displayImages = function(result, reference, diff) {
 
     var contexts = tcuImageCompare.displayResultPane('console', w, h, reference != null);
     contexts[0].putImageData(createImage(contexts[0], result), 0, 0);
-    if (reference)
+    debug('Result image: ' + result);
+    if (reference) {
         contexts[1].putImageData(createImage(contexts[1], reference), 0, 0);
+        debug('Reference image: ' + reference);
+    }
     if (diff)
         contexts[2].putImageData(createImage(contexts[2], diff), 0, 0);
 };
@@ -215,6 +222,84 @@ tcuImageCompare.intThresholdCompare = function(imageSetName, imageSetDesc, refer
         debug('Image comparison failed: max difference = ' + maxDiff + ', threshold = ' + threshold);
         tcuImageCompare.displayImages(result, reference, errorMask.getAccess());
     }
+
+    return compareOk;
+};
+
+/**
+ * \brief Per-pixel threshold-based deviation-ignoring comparison
+ *
+ * This compare computes per-pixel differences between result and reference
+ * image. Pixel fails the test if there is no pixel matching the given
+ * threshold value in the search volume. Comparison fails if the number of
+ * failing pixels exceeds the given limit.
+ *
+ * If the search volume contains out-of-bounds pixels, comparison can be set
+ * to either ignore these pixels in search or to accept any pixel that has
+ * out-of-bounds pixels in its search volume.
+ *
+ * This comparison can be used for integer- and fixed-point texture formats.
+ * Difference is computed in integer space.
+ *
+ * On failure error image is generated that shows where the failing pixels
+ * are.
+ *
+ * @param {string} imageSetName Name for image set when logging results
+ * @param {string} imageSetDesc Description for image set
+ * @param {tcuTexture.ConstPixelBufferAccess} reference Reference image
+ * @param {tcuTexture.ConstPixelBufferAccess} result Result image
+ * @param {Array<number>} threshold Maximum allowed difference
+ * @param {Array<number>} maxPositionDeviation Maximum allowed distance in the search volume.
+ * @param {boolean} acceptOutOfBoundsAsAnyValue Accept any pixel in the boundary region
+ * @param {number} maxAllowedFailingPixels Maximum number of failing pixels
+ * @return {boolean} true if comparison passes, false otherwise
+ */
+tcuImageCompare.intThresholdPositionDeviationErrorThresholdCompare = function (
+    imageSetName, imageSetDesc, reference, result, threshold, maxPositionDeviation, acceptOutOfBoundsAsAnyValue, maxAllowedFailingPixels) {
+    /** @type {number} */ var width                = reference.getWidth();
+    /** @type {number} */ var height                = reference.getHeight();
+    /** @type {number} */ var depth                = reference.getDepth();
+    /** @type {tcuSurface.Surface} */ var errorMask = new tcuSurface.Surface(width, height);
+    /** @type {number} */ var numFailingPixels    = tcuImageCompare.findNumPositionDeviationFailingPixels(errorMask.getAccess(), reference, result, threshold, maxPositionDeviation, acceptOutOfBoundsAsAnyValue);
+    var compareOk  = numFailingPixels <= maxAllowedFailingPixels;
+    /** @type {Array<number>} */ var pixelBias = [0.0, 0.0, 0.0, 0.0];
+    /** @type {Array<number>} */ var pixelScale = [1.0, 1.0, 1.0, 1.0];
+
+    if (!compareOk) {
+        debug('Position deviation error threshold image comparison failed: failed pixels = ' + numFailingPixels + ', threshold = ' + threshold);
+        tcuImageCompare.displayImages(result, reference, errorMask.getAccess());
+    }
+    /*if (!compareOk) {
+        // All formats except normalized unsigned fixed point ones need remapping in order to fit into unorm channels in logged images.
+        if (tcuTextureUtil.getTextureChannelClass(reference.getFormat().type) != tcuTextureUtil.TextureChannelClass.UNSIGNED_FIXED_POINT ||
+        tcuTextureUtil.getTextureChannelClass(result.getFormat().type) != tcuTextureUtil.TextureChannelClass.UNSIGNED_FIXED_POINT) {
+            computeScaleAndBias(reference, result, pixelScale, pixelBias);
+            log << TestLog::Message << "Result and reference images are normalized with formula p * " << pixelScale << " + " << pixelBias << TestLog::EndMessage;
+        }
+
+        if (!compareOk)
+            log    << TestLog::Message
+                << "Image comparison failed:\n"
+                << "\tallowed position deviation = " << maxPositionDeviation << "\n"
+                << "\tcolor threshold = " << threshold
+                << TestLog::EndMessage;
+        log << TestLog::Message << "Number of failing pixels = " << numFailingPixels << ", max allowed = " << maxAllowedFailingPixels << TestLog::EndMessage;
+
+        log << TestLog::ImageSet(imageSetName, imageSetDesc)
+            << TestLog::Image("Result",        "Result",        result,        pixelScale, pixelBias)
+            << TestLog::Image("Reference",    "Reference",    reference,    pixelScale, pixelBias)
+            << TestLog::Image("ErrorMask",    "Error mask",    errorMask)
+            << TestLog::EndImageSet;
+    }
+    else if (logMode == COMPARE_LOG_RESULT)
+    {
+        if (result.getFormat() != TextureFormat(TextureFormat::RGBA, TextureFormat::UNORM_INT8))
+            computePixelScaleBias(result, pixelScale, pixelBias);
+
+        log << TestLog::ImageSet(imageSetName, imageSetDesc)
+            << TestLog::Image("Result",        "Result",        result,        pixelScale, pixelBias)
+            << TestLog::EndImageSet;
+    }*/
 
     return compareOk;
 };
@@ -399,6 +484,91 @@ tcuImageCompare.pixelThresholdCompare = function(imageSetName, imageSetDesc, ref
     return tcuImageCompare.intThresholdCompare(imageSetName, imageSetDesc, reference.getAccess(), result.getAccess(), threshold, logMode);
 };
 
+/**
+ * @param {tcuTexture.PixelBufferAccess} errorMask
+ * @param {tcuTexture.ConstPixelBufferAccess} reference
+ * @param {tcuTexture.ConstPixelBufferAccess} result
+ * @param {Array<number>} threshold
+ * @param {Array<number>} maxPositionDeviation
+ * @param {boolean} acceptOutOfBoundsAsAnyValue
+ * @return {number}
+ */
+tcuImageCompare.findNumPositionDeviationFailingPixels = function (errorMask, reference, result, threshold, maxPositionDeviation, acceptOutOfBoundsAsAnyValue) {
+    /** @type {number} */ var width = reference.getWidth();
+    /** @type {number} */ var height = reference.getHeight();
+    /** @type {number} */ var depth = reference.getDepth();
+    /** @type {number} */ var numFailingPixels = 0;
+
+    checkMessage(result.getWidth() == width && result.getHeight() == height && result.getDepth() == depth, 'Surfaces have different dimensions');
+
+    for (var z = 0; z < depth; z++) {
+        for (var y = 0; y < height; y++) {
+            for (var x = 0; x < width; x++) {
+                /** @type {Array<number>} */ var refPix = reference.getPixelInt(x, y, z);
+                /** @type {Array<number>} */ var cmpPix = result.getPixelInt(x, y, z);
+
+                // Exact match
+                /** @type {Array<number>} */ var diff = deMath.absDiff(refPix, cmpPix);
+                /** @type {boolean} */ var isOk = deMath.boolAll(deMath.lessThanEqual(diff, threshold));
+
+                if (isOk) {
+                    errorMask.setPixel([0, 0xff, 0, 0xff], x, y, z);
+                    continue;
+                }
+
+                // Accept over the image bounds pixels since they could be anything
+
+                if (acceptOutOfBoundsAsAnyValue &&
+                    (x < maxPositionDeviation[0] || x + maxPositionDeviation[0] >= width  ||
+                     y < maxPositionDeviation[1] || y + maxPositionDeviation[1] >= height ||
+                     z < maxPositionDeviation[2] || z + maxPositionDeviation[2] >= depth)) {
+                    errorMask.setPixel([0, 0xff, 0, 0xff], x, y, z);
+                    continue;
+                }
+
+                // Find matching pixels for both result and reference pixel
+
+                var pixelFoundForReference = false;
+                var pixelFoundForResult    = false;
+
+                // Find deviated result pixel for reference
+
+                for (var sz = Math.max(0, z - maxPositionDeviation[2]); sz <= Math.min(depth  - 1, z + maxPositionDeviation[2]) && !pixelFoundForReference; ++sz)
+                for (var sy = Math.max(0, y - maxPositionDeviation[1]); sy <= Math.min(height - 1, y + maxPositionDeviation[1]) && !pixelFoundForReference; ++sy)
+                for (var sx = Math.max(0, x - maxPositionDeviation[0]); sx <= Math.min(width  - 1, x + maxPositionDeviation[0]) && !pixelFoundForReference; ++sx) {
+                    /** @type {Array<number>} */ var deviatedCmpPix    = result.getPixelInt(sx, sy, sz);
+                    diff            = deMath.absDiff(refPix, deviatedCmpPix);
+                    isOk            = deMath.boolAll(deMath.lessThanEqual(diff, threshold));
+
+                    pixelFoundForReference |= isOk;
+                }
+
+                // Find deviated reference pixel for result
+
+                for (var sz = Math.max(0, z - maxPositionDeviation[2]); sz <= Math.min(depth  - 1, z + maxPositionDeviation[2]) && !pixelFoundForResult; ++sz)
+                for (var sy = Math.max(0, y - maxPositionDeviation[1]); sy <= Math.min(height - 1, y + maxPositionDeviation[1]) && !pixelFoundForResult; ++sy)
+                for (var sx = Math.max(0, x - maxPositionDeviation[0]); sx <= Math.min(width  - 1, x + maxPositionDeviation[0]) && !pixelFoundForResult; ++sx) {
+                    /** @type {Array<number>} */ var deviatedRefPix    = reference.getPixelInt(sx, sy, sz);
+                    diff = deMath.absDiff(cmpPix, deviatedRefPix);
+                    isOk = deMath.boolAll(deMath.lessThanEqual(diff, threshold));
+
+                    pixelFoundForResult |= isOk;
+                }
+
+                if (pixelFoundForReference && pixelFoundForResult)
+                    errorMask.setPixel([0, 0xff, 0, 0xff], x, y, z);
+                else
+                {
+                    errorMask.setPixel([0xff, 0, 0, 0xff], x, y, z);
+                    ++numFailingPixels;
+                }
+            }
+        }
+    }
+
+    return numFailingPixels;
+};
+
  /**
   * tcuImageCompare.fuzzyCompare
   * @param {string} imageSetName
@@ -459,6 +629,99 @@ tcuImageCompare.fuzzyCompare = function(imageSetName, imageSetDesc, reference, r
     }
     */
     return isOk;
+};
+
+tcuImageCompare.unitTest = function() {
+    var width = 128;
+    var height = 128;
+    var srcLevel = new tcuTexture.TextureLevel(new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.UNORM_INT8), width, height);
+    var dstLevel = new tcuTexture.TextureLevel(new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.UNORM_INT8), width, height);
+    var src = srcLevel.getAccess();
+    var dst = dstLevel.getAccess();
+
+    debug('Src format: ' + src.getFormat());
+    debug('Destination: ' + dst);
+    debug(src);
+
+    src.clear();
+    dst.clear();
+
+    for (var i = 0; i < width - 1; i++) {
+        for (var j = 0; j < height - 1; j++) {
+            src.setPixelInt([i, j, 90, 255], i, j);
+            dst.setPixelInt([i, j, 90, 255], i + 1, j + 1);
+        }
+    }
+    if (!tcuImageCompare.fuzzyCompare('compare', 'compare similar images', src, dst, 0.05))
+        throw new Error('Compare should return true');
+
+    src.clear();
+    dst.clear();
+
+    for (var i = 0; i < width - 2; i++) {
+        for (var j = 0; j < height - 2; j++) {
+            src.setPixelInt([i, j, 90, 255], i, j);
+            dst.setPixelInt([i, j, 90, 255], i + 2, j + 2);
+        }
+    }
+
+    if (tcuImageCompare.fuzzyCompare('compare', 'compare different images', src, dst, 0.05))
+        throw new Error('Compare should return false');
+
+    debug('Passed');
+};
+
+tcuImageCompare.unitTest2 = function() {
+    var width = 128;
+    var height = 128;
+    var srcLevel = new tcuTexture.TextureLevel(new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.UNORM_INT8), width, height);
+    var dstLevel = new tcuTexture.TextureLevel(new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.UNORM_INT8), width, height);
+    var src = srcLevel.getAccess();
+    var dst = dstLevel.getAccess();
+    var threshold = tcuRGBA.newRGBAComponents(1, 1, 1, 1);
+    debug('Threshold: ' + threshold);
+
+    src.clear();
+    dst.clear();
+
+    for (var i = 0; i < width - 1; i++) {
+        for (var j = 0; j < height - 1; j++) {
+            src.setPixelInt([i, j, 90, 255], i, j);
+            dst.setPixelInt([i, j, 90, 255], i, j);
+        }
+    }
+    if (!tcuImageCompare.bilinearCompare('compare', 'compare similar images', src, dst, threshold))
+        throw new Error('Compare should return true');
+    debug("bilinear compare the same images passed");
+
+    src.clear();
+    dst.clear();
+
+    for (var i = 0; i < width - 1; i++) {
+        for (var j = 0; j < height - 1; j++) {
+            src.setPixelInt([i, j, 90, 255], i, j);
+            dst.setPixelInt([i, j+1, 90, 255], i, j + 1);
+        }
+    }
+    if (!tcuImageCompare.bilinearCompare('compare', 'compare similar images', src, dst, threshold))
+        throw new Error('Compare should return true');
+    debug("bilinear compare very similar images passed");
+
+
+    src.clear();
+    dst.clear();
+
+    for (var i = 0; i < width - 2; i++) {
+        for (var j = 0; j < height - 2; j++) {
+            src.setPixelInt([i, j, 90, 255], i, j);
+            // dst.setPixelInt([i, j, 90, 255], i + 2, j + 2);
+        }
+    }
+
+    if (tcuImageCompare.bilinearCompare('compare', 'compare different images', src, dst, threshold))
+        throw new Error('Compare should return false');
+
+    debug('bilinear compare very different images passed');
 };
 
 /**

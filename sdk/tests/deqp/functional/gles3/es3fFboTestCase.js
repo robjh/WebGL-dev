@@ -170,7 +170,7 @@ var DE_ASSERT = function(x) {
     es3fFboTestCase.FboTestCase.prototype.checkError = function() {
         /** @type {number} */ var err = this.getCurrentContext().getError();
             if (err != gl.NO_ERROR)
-                throw new Error('glError: ' + wtu.glEnumToString(gl,err));
+                throw new Error('glError: ' + WebGLTestUtils.glEnumToString(gl, err));
     };
 
     /**
@@ -203,15 +203,15 @@ var DE_ASSERT = function(x) {
             /** @type {sglrGLContext.GLContext} */ var context = new sglrGLContext.GLContext(
                                                              gl,
                                                              [x, y, width, height]);
-        
+
              this.setContext(context);
              this.render(result);
-        
+
              // Check error.
              /** @type {number} */ var err = context.getError();
              if (err != gl.NO_ERROR)
                  throw new Error('glError: ' + context);
-        
+
              this.setContext(null);
          } catch (e) {
              if (e instanceof es3fFboTestUtil.FboIncompleteException)

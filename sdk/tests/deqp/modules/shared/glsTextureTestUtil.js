@@ -19,6 +19,7 @@
  */
 
 'use strict';
+goog.provide('modules.shared.glsTextureTestUtil');
 goog.require('framework.common.tcuImageCompare');
 goog.require('framework.common.tcuPixelFormat');
 goog.require('framework.common.tcuRGBA');
@@ -30,7 +31,6 @@ goog.require('framework.delibs.debase.deMath');
 goog.require('framework.opengl.gluDrawUtil');
 goog.require('framework.opengl.gluShaderUtil');
 goog.require('framework.opengl.gluShaderProgram');
-goog.provide('modules.shared.glsTextureTestUtil');
 
 goog.scope(function() {
 var tcuTexLookupVerifier = framework.common.tcuTexLookupVerifier;
@@ -773,26 +773,24 @@ glsTextureTestUtil.TextureRenderer.prototype.renderQuad = function(texUnit, texC
     //     log << TestLog::Message << "u_colorScale = " << params.colorScale << TestLog::EndMessage;
     //     log << TestLog::Message << "u_colorBias = " << params.colorBias << TestLog::EndMessage;
     // }
+    var vertexArrays = [];
+    // console.log(position);
+    // console.log(texCoord);
 
-    glsTextureTestUtil.GLU_EXPECT_NO_ERROR(gl.getError(), 'Set program state'); {
-        var vertexArrays = [];
-        // console.log(position);
-        // console.log(texCoord);
-
-        var posLoc = gl.getAttribLocation(prog, 'a_position');
-        if (posLoc === -1) {
-            testFailedOptions("no location found for attribute 'a_position'", true);
-        }
-        var texLoc = gl.getAttribLocation(prog, 'a_texCoord');
-        if (texLoc === -1) {
-            testFailedOptions("no location found for attribute 'a_texCoord'", true);
-        }
-
-        vertexArrays.push(new gluDrawUtil.VertexArrayBinding(gl.FLOAT, posLoc, 4, 4, position));
-        vertexArrays.push(new gluDrawUtil.VertexArrayBinding(gl.FLOAT, texLoc, numComps, 4, texCoord));
-        gluDrawUtil.draw(gl, prog, vertexArrays, gluDrawUtil.triangles(indices));
+    var posLoc = gl.getAttribLocation(prog, 'a_position');
+    if (posLoc === -1) {
+        testFailedOptions("no location found for attribute 'a_position'", true);
     }
+    var texLoc = gl.getAttribLocation(prog, 'a_texCoord');
+    if (texLoc === -1) {
+        testFailedOptions("no location found for attribute 'a_texCoord'", true);
+    }
+
+    vertexArrays.push(new gluDrawUtil.VertexArrayBinding(gl.FLOAT, posLoc, 4, 4, position));
+    vertexArrays.push(new gluDrawUtil.VertexArrayBinding(gl.FLOAT, texLoc, numComps, 4, texCoord));
+    gluDrawUtil.draw(gl, prog, vertexArrays, gluDrawUtil.triangles(indices));
 };
+
 // public:
 //                                 glsTextureTestUtil.TextureRenderer (const glu::RenderContext& context, tcu::TestContext& testCtx, glu::GLSLVersion glslVersion, glu::Precision texCoordPrecision);
 //                                 ~glsTextureTestUtil.TextureRenderer (void);
@@ -1007,7 +1005,8 @@ glsTextureTestUtil.sampleTextureProjected2D = function(dst, src, sq, tq, params)
             /** @type {number} */ var t = glsTextureTestUtil.projectedTriInterpolate(triT[triNdx], triW[triNdx], triNx, triNy);
             /** @type {number} */ var lod = glsTextureTestUtil.computeProjectedTriLod2D(params.lodMode, triU[triNdx], triV[triNdx], triW[triNdx], triWx, triWy, dst.getWidth(), dst.getHeight()) + lodBias;
 
-            dst.setPixel(deMath.add(deMath.multiply(glsTextureTestUtil.execSample(src, params, [s, t], lod), params.colorScale), params.colorBias), px, py);
+            var pixel = glsTextureTestUtil.execSample(src, params, [s, t], lod);
+            dst.setPixel(glsTextureTestUtil.applyScaleAndBias(pixel, params.colorScale, params.colorBias), px, py);
         }
     }
 };

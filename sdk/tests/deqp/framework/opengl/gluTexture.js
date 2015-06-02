@@ -37,7 +37,6 @@ var DE_ASSERT = function(x) {
     if (!x)
         throw new Error('Assert failed');
 };
-gluTexture.DE_FALSE = false;
 
 /**
  * @constructor
@@ -70,12 +69,13 @@ gluTexture.texture2DFromInternalFormat = function(gl, internalFormat, width, hei
 
 /**
  * @param {number} numLevels
- * @param {tcuCompressedTexture.CompressedTexture} levels
+ * @param {Array<tcuCompressedTexture.CompressedTexture>} levels
  * @return {gluTexture.Texture2D}
  */
 gluTexture.texture2DFromCompressedTexture = function(gl, numLevels, levels) {
-    var format = gluTextureUtil.getGLFormat(levels.getFormat());
-    var refTex = new tcuTexture.Texture2D(levels.getUncompressedFormat(), levels.getWidth(), levels.getHeight());
+    var level = levels[0];
+    var format = gluTextureUtil.getGLFormat(level.getFormat());
+    var refTex = new tcuTexture.Texture2D(level.getUncompressedFormat(), level.getWidth(), level.getHeight());
     /** @type {gluTexture.Texture2D} */ var tex2d = new gluTexture.Texture2D(gl, format, true, refTex);
 
     tex2d.loadCompressed(numLevels, levels);
@@ -84,7 +84,7 @@ gluTexture.texture2DFromCompressedTexture = function(gl, numLevels, levels) {
 };
 /**
  * @param {number} numLevels
- * @param {tcuCompressedTexture.CompressedTexture} levels
+ * @param {Array<tcuCompressedTexture.CompressedTexture>} levels
  */
 gluTexture.Texture2D.prototype.loadCompressed = function(numLevels, levels) {
     /** @type {number} */ var compressedFormat = gluTextureUtil.getGLFormat(levels[0].getFormat());

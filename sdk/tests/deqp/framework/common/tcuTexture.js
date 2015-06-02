@@ -22,12 +22,14 @@
 goog.provide('framework.common.tcuTexture');
 goog.require('framework.common.tcuFloat');
 goog.require('framework.delibs.debase.deMath');
+goog.require('framework.delibs.debase.deString');
 
 goog.scope(function() {
 
 var tcuTexture = framework.common.tcuTexture;
 var deMath = framework.delibs.debase.deMath;
 var tcuFloat = framework.common.tcuFloat;
+var deString = framework.delibs.debase.deString;
 
 var DE_ASSERT = function(x) {
     if (!x)
@@ -110,6 +112,11 @@ tcuTexture.TextureFormat = function(order, type) {
  */
 tcuTexture.TextureFormat.prototype.isEqual = function(format) {
     return this.order === format.order && this.type === format.type;
+};
+
+tcuTexture.TextureFormat.prototype.toString = function() {
+    return 'TextureFormat(' + deString.enumToString(tcuTexture.ChannelOrder, this.order) + ', ' +
+        deString.enumToString(tcuTexture.ChannelType, this.type) + ')';
 };
 
 /**
@@ -904,7 +911,31 @@ tcuTexture.ConstPixelBufferAccess = function(descriptor) {
             this.m_slicePitch = descriptor.slicePitch;
         else
             this.m_slicePitch = this.m_rowPitch * this.m_height;
+
+        if (this.m_format.isEqual(new tcuTexture.TextureFormat(
+            tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.UNORM_INT8)))
+            this.m_rgba8View = new tcuTexture.RGBA8View(this);
+        else if (this.m_format.isEqual(new tcuTexture.TextureFormat(
+            tcuTexture.ChannelOrder.RGB, tcuTexture.ChannelType.UNORM_INT8)))
+            this.m_rgb8View = new tcuTexture.RGBA8View(this);
+
     }
+};
+
+tcuTexture.ConstPixelBufferAccess.prototype.toString = function() {
+    var str = 'BufferAccess(format: ' + this.m_format +
+        ', width: ' + this.m_width +
+        ', height: ' + this.m_height;
+    if (this.m_depth > 1)
+        str += ', depth: ' + this.m_depth;
+    if (this.m_rowPitch != this.m_width * this.m_format.getPixelSize())
+        str += ', row pitch: ' + this.m_rowPitch;
+    if (this.m_slicePitch != this.m_rowPitch * this.m_height)
+        str += ', slice pitch: ' + this.m_slicePitch;
+    if (this.m_offset > 0)
+        str += ', offset: ' + this.m_offset;
+    str += ')';
+    return str;
 };
 
 /** @return {number} */
@@ -1058,6 +1089,14 @@ tcuTexture.ConstPixelBufferAccess.prototype.getPixel = function(x, y, z) {
     y = Math.round(y);
     z = Math.round(z);
 
+    // Quick paths
+    if (z == 0) {
+        if (this.m_rgba8View)
+            return deMath.scale(this.m_rgba8View.read(x, y, 4), 1 / 255);
+        else if (this.m_rgb8View)
+            return deMath.scale(this.m_rgb8View.read(x, y, 3), 1 / 255);
+    }
+
     var pixelSize = this.m_format.getPixelSize();
     var arrayType = tcuTexture.getTypedArray(this.m_format.type);
     var offset = z * this.m_slicePitch + y * this.m_rowPitch + x * pixelSize;
@@ -1147,6 +1186,14 @@ tcuTexture.ConstPixelBufferAccess.prototype.getPixelInt = function(x, y, z) {
     x = Math.round(x);
     y = Math.round(y);
     z = Math.round(z);
+
+    // Quick paths
+    if (z == 0) {
+        if (this.m_rgba8View)
+            return this.m_rgba8View.read(x, y, 4);
+        else if (this.m_rgb8View)
+            return this.m_rgb8View.read(x, y, 3);
+    }
 
     var pixelSize = this.m_format.getPixelSize();
     var arrayType = tcuTexture.getTypedArray(this.m_format.type);
@@ -1434,6 +1481,19 @@ tcuTexture.PixelBufferAccess.prototype.setPixel = function(color, x, y, z) {
     y = Math.round(y);
     z = Math.round(z);
 
+    // Quick paths
+    if (z == 0) {
+        if (this.m_rgba8View) {
+            color = deMath.scale(color, 255);
+            this.m_rgba8View.write(x, y, color, 4);
+            return;
+        } else if (this.m_rgb8View) {
+            color = deMath.scale(color, 255);
+            this.m_rgb8View.write(x, y, color, 3);
+            return;
+        }
+    }
+
     var pixelSize = this.m_format.getPixelSize();
     var arrayType = tcuTexture.getTypedArray(this.m_format.type);
     var offset = z * this.m_slicePitch + y * this.m_rowPitch + x * pixelSize;
@@ -1523,6 +1583,17 @@ tcuTexture.PixelBufferAccess.prototype.setPixelInt = function(color, x, y, z) {
     x = Math.round(x);
     y = Math.round(y);
     z = Math.round(z);
+
+    // Quick paths
+    if (z == 0) {
+        if (this.m_rgba8View) {
+            this.m_rgba8View.write(x, y, color, 4);
+            return;
+        } else if (this.m_rgb8View) {
+            this.m_rgb8View.write(x, y, color, 3);
+            return;
+        }
+    }
 
     var pixelSize = this.m_format.getPixelSize();
     var arrayType = tcuTexture.getTypedArray(this.m_format.type);
@@ -2292,6 +2363,11 @@ tcuTexture.TextureCubeView.prototype.sample = function(sampler, texCoord, lod) {
  * @return {Array<tcuTexture.ConstPixelBufferAccess>}
  */
 tcuTexture.TextureCubeView.prototype.getFaceLevels = function(face) { return this.m_levels[face]; };
+/** @return {number} */
+tcuTexture.TextureCubeView.prototype.getSize = function() { return this.m_numLevels > 0 ? this.m_levels[0][0].getWidth() : 0; };
+
+/** @return {number} */
+tcuTexture.TextureCubeView.prototype.getNumLevels = function() { return this.m_numLevels; };
 
 /**
  * @param {number} ndx
@@ -2363,7 +2439,7 @@ tcuTexture.TextureCube.prototype.getSize = function() { return this.m_size; };
 /**
  * @param {number} ndx Level index
  * @param {tcuTexture.CubeFace} face
- * @return {tcuTexture.ConstPixelBufferAccess}
+ * @return {tcuTexture.PixelBufferAccess}
  */
 tcuTexture.TextureCube.prototype.getLevelFace = function(ndx, face) { return this.m_access[face][ndx]; };
 /** @return {number} */
@@ -2572,12 +2648,112 @@ tcuTexture.TextureLevel.prototype.getFormat = function() {
 };
 
 /**
- * @param {tcuTexture.CubeFaceCoords} coords
+ * Checks if origCoords.coords is in bounds defined by size; if not, return a CubeFaceIntCoords with face set to the appropriate neighboring face and coords transformed accordingly.
+ * \note If both x and y in origCoords.coords are out of bounds, this returns with face CUBEFACE_LAST, signifying that there is no unique neighboring face.
+ * @param {tcuTexture.CubeFaceCoords} origCoords
  * @param {number} size
  * @return {tcuTexture.CubeFaceCoords}
  */
-tcuTexture.remapCubeEdgeCoords = function(coords, size) {
-        throw new Error('Not implemented. TODO: implement.');
+tcuTexture.remapCubeEdgeCoords = function(origCoords, size) {
+    var uInBounds = deMath.deInBounds32(origCoords.s, 0, size);
+    var vInBounds = deMath.deInBounds32(origCoords.t, 0, size);
+
+    if (uInBounds && vInBounds)
+        return origCoords;
+
+    if (!uInBounds && !vInBounds)
+        return null;
+
+    var coords = [
+        tcuTexture.wrap(tcuTexture.WrapMode.CLAMP_TO_BORDER, origCoords.s, size),
+        tcuTexture.wrap(tcuTexture.WrapMode.CLAMP_TO_BORDER, origCoords.t, size)];
+    var canonizedCoords = [];
+
+    // Map the uv coordinates to canonized 3d coordinates.
+
+    switch (origCoords.face) {
+        case tcuTexture.CubeFace.CUBEFACE_NEGATIVE_X: canonizedCoords = [0, size - 1 - coords[1], coords[0]]; break;
+        case tcuTexture.CubeFace.CUBEFACE_POSITIVE_X: canonizedCoords = [size - 1, size - 1 - coords[1], size - 1 - coords[0]]; break;
+        case tcuTexture.CubeFace.CUBEFACE_NEGATIVE_Y: canonizedCoords = [coords[0], 0, size - 1 - coords[1]]; break;
+        case tcuTexture.CubeFace.CUBEFACE_POSITIVE_Y: canonizedCoords = [coords[0], size - 1, coords[1]]; break;
+        case tcuTexture.CubeFace.CUBEFACE_NEGATIVE_Z: canonizedCoords = [size - 1 - coords[0], size - 1 - coords[1], 0]; break;
+        case tcuTexture.CubeFace.CUBEFACE_POSITIVE_Z: canonizedCoords = [coords[0], size - 1 - coords[1], size - 1]; break;
+        default: throw new Error('Invalid cube face:' + origCoords.face);
+    }
+
+    // Find an appropriate face to re-map the coordinates to.
+
+    if (canonizedCoords[0] == -1)
+        return new tcuTexture.CubeFaceCoords(tcuTexture.CubeFace.CUBEFACE_NEGATIVE_X, [canonizedCoords[2], size - 1 - canonizedCoords[1]]);
+
+    if (canonizedCoords[0] == size)
+        return new tcuTexture.CubeFaceCoords(tcuTexture.CubeFace.CUBEFACE_POSITIVE_X, [size - 1 - canonizedCoords[2], size - 1 - canonizedCoords[1]]);
+
+    if (canonizedCoords[1] == -1)
+        return new tcuTexture.CubeFaceCoords(tcuTexture.CubeFace.CUBEFACE_NEGATIVE_Y, [canonizedCoords[0], size - 1 - canonizedCoords[2]]);
+
+    if (canonizedCoords[1] == size)
+        return new tcuTexture.CubeFaceCoords(tcuTexture.CubeFace.CUBEFACE_POSITIVE_Y, [canonizedCoords[0], canonizedCoords[2]]);
+
+    if (canonizedCoords[2] == -1)
+        return new tcuTexture.CubeFaceCoords(tcuTexture.CubeFace.CUBEFACE_NEGATIVE_Z, [size - 1 - canonizedCoords[0], size - 1 - canonizedCoords[1]]);
+
+    if (canonizedCoords[2] == size)
+        return new tcuTexture.CubeFaceCoords(tcuTexture.CubeFace.CUBEFACE_POSITIVE_Z, [canonizedCoords[0], size - 1 - canonizedCoords[1]]);
+
+    throw new Error('Cannot remap cube coordinates');
 };
+
+/**
+ * @constructor
+ * @param {tcuTexture.ConstPixelBufferAccess} src
+ */
+tcuTexture.RGBA8View = function(src) {
+    this.src = src;
+    this.data = new Uint8Array(src.getBuffer(), src.m_offset);
+    this.stride = src.getRowPitch();
+    this.width = src.getWidth();
+    this.height = src.getHeight();
+    this.pixelSize = src.getFormat().getPixelSize();
+};
+
+/**
+ * @return {tcuTexture.TextureFormat}
+ */
+tcuTexture.RGBA8View.prototype.getFormat = function() { return this.src.getFormat(); };
+
+/**
+ * Read a pixel
+ * @param {number} x
+ * @param {number} y
+ * @param {number=} numChannels
+ * @return {Array<number>}
+ */
+tcuTexture.RGBA8View.prototype.read = function(x, y, numChannels) {
+    numChannels = numChannels || 4;
+    var offset = y * this.stride + x * this.pixelSize;
+    var result = [];
+    for (var i = 0; i < numChannels; i++)
+        result.push(this.data[offset + i]);
+    return result;
+};
+
+/**
+ * Write a pixel
+ * @param {number} x
+ * @param {number} y
+ * @param {Array<number>} value
+ * @param {number=} numChannels
+ */
+tcuTexture.RGBA8View.prototype.write = function(x, y, value, numChannels) {
+    numChannels = numChannels || 4;
+    var offset = y * this.stride + x * this.pixelSize;
+    for (var i = 0; i < numChannels; i++)
+        this.data[offset + i] = value[i];
+};
+
+tcuTexture.RGBA8View.prototype.getWidth = function() { return this.width; };
+
+tcuTexture.RGBA8View.prototype.getHeight = function() { return this.height; };
 
 });
