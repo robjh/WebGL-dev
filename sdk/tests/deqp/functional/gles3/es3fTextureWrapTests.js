@@ -246,6 +246,7 @@ goog.scope(function() {
             assertMsgOptions(isOk, 'verifyTexture2DResult is false', true, false);
 
         this.m_caseNdx++;
+
         return this.m_caseNdx < this.m_cases.length ? tcuTestCase.IterateResult.CONTINUE : tcuTestCase.IterateResult.STOP;
     };
 
