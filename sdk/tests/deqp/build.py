@@ -67,7 +67,8 @@ targets = {
     'sglrReferenceContextTest': 'framework.opengl.simplereference.sglrReferenceContextTest',
     'lifetime': 'functional.gles3.es3fLifetimeTests',
     'draw': 'modules.shared.glsDrawTests',
-    'attriblocation': 'functional.gles3.es3fAttribLocationTests'
+    'attriblocation': 'functional.gles3.es3fAttribLocationTests',
+    'cmp': 'framework.common.tcuTexCompareVerifier'
 }
 
 total_errors = 0

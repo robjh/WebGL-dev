@@ -86,16 +86,6 @@ goog.scope(function() {
 
     };
 
-    es3fTransformFeedbackTests.GLU_EXPECT_NO_ERROR = function(gl, err, msg) {
-        if (err != gl.NO_ERROR) {
-            if (msg) msg += ': ';
-
-            msg += 'gl.GetError() returned ' + err;
-
-            throw new Error(msg);
-        }
-    };
-
     /**
      * @struct
      * @param {string} name

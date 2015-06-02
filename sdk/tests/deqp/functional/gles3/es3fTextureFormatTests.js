@@ -49,9 +49,6 @@ var deMath = framework.delibs.debase.deMath;
 var tcuCompressedTexture = framework.common.tcuCompressedTexture;
 
 /** @type {WebGL2RenderingContext} */ var gl;
-es3fTextureFormatTests.GLU_EXPECT_NO_ERROR = function(error, message) {
-    assertMsgOptions(error === gl.NONE, message, false, true);
-};
 
 var DE_ASSERT = function(x) {
     if (!x)

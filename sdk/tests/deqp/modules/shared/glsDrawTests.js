@@ -26,6 +26,7 @@ goog.require('framework.common.tcuPixelFormat');
 goog.require('framework.common.tcuRGBA');
 goog.require('framework.common.tcuSurface');
 goog.require('framework.common.tcuTestCase');
+goog.require('framework.common.tcuTextureUtil');
 goog.require('framework.delibs.debase.deMath');
 goog.require('framework.delibs.debase.deRandom');
 goog.require('framework.opengl.gluShaderUtil');
@@ -48,6 +49,7 @@ goog.scope(function() {
     var tcuPixelFormat = framework.common.tcuPixelFormat;
     var tcuSurface = framework.common.tcuSurface;
     var tcuImageCompare = framework.common.tcuImageCompare;
+    var tcuTextureUtil = framework.common.tcuTextureUtil;
     var gluShaderUtil = framework.opengl.gluShaderUtil;
     var gluStrUtil = framework.opengl.gluStrUtil;
     var sglrGLContext = framework.opengl.simplereference.sglrGLContext;
@@ -70,7 +72,7 @@ goog.scope(function() {
      * @return {number}
      */
     glsDrawTests.targetToGL = function(target) {
-        assertMsgOptions(target == null, 'Target is null', false, true);
+        assertMsgOptions(target != null, 'Target is null', false, true);
 
         var targets = [
             gl.ELEMENT_ARRAY_BUFFER, // TARGET_ELEMENT_ARRAY = 0,
@@ -85,7 +87,7 @@ goog.scope(function() {
      * @return {number}
      */
     glsDrawTests.usageToGL = function(usage) {
-        assertMsgOptions(usage == null, 'Usage is null', false, true);
+        assertMsgOptions(usage != null, 'Usage is null', false, true);
 
         var usages = [
             gl.DYNAMIC_DRAW, // USAGE_DYNAMIC_DRAW = 0,
@@ -112,7 +114,7 @@ goog.scope(function() {
      * @return {number}
      */
     glsDrawTests.inputTypeToGL = function(type) {
-        assertMsgOptions(type == null, 'Input type is null', false, true);
+        assertMsgOptions(type != null, 'Input type is null', false, true);
 
         var types = [
             gl.FLOAT, // INPUTTYPE_FLOAT = 0,
@@ -138,7 +140,7 @@ goog.scope(function() {
      * @return {string}
      */
     glsDrawTests.outputTypeToGLType = function(type) {
-        assertMsgOptions(type == null, 'Output type is null', false, true);
+        assertMsgOptions(type != null, 'Output type is null', false, true);
 
         var types = [
             'float', // OUTPUTTYPE_FLOAT = 0,
@@ -164,7 +166,7 @@ goog.scope(function() {
     };
 
     /**
-     * @param {glsDrawTests.DrawTestSpec.Primitive} primitive
+     * @param {?glsDrawTests.DrawTestSpec.Primitive} primitive
      * @return {number}
      */
     glsDrawTests.primitiveToGL = function(primitive) {
@@ -197,6 +199,22 @@ goog.scope(function() {
             'Amount of gl index types is different than amount of index types', false, true);
 
         return indexTypes[indexType];
+    };
+
+    /**
+     * @param {?glsDrawTests.DrawTestSpec.IndexType} indexType
+     * @return {?glsDrawTests.DrawTestSpec.InputType}
+     */
+    glsDrawTests.indexTypeToInputType = function(indexType) {
+        var inputTypes = [
+            glsDrawTests.DrawTestSpec.InputType.UNSIGNED_BYTE, // INDEXTYPE_BYTE = 0,
+            glsDrawTests.DrawTestSpec.InputType.UNSIGNED_SHORT, // INDEXTYPE_SHORT,
+            glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT // INDEXTYPE_INT,
+        ];
+        assertMsgOptions(inputTypes.length == Object.keys(glsDrawTests.DrawTestSpec.IndexType).length,
+            'Amount of relevant input types is different than amount of index types', false, true);
+
+        return inputTypes[indexType];
     };
 
     /**
@@ -290,7 +308,12 @@ goog.scope(function() {
      */
     glsDrawTests.getMethodInfo = function(method) {
         /** @type {Array<glsDrawTests.MethodInfo>} */ var infos = [
-            //indexed instanced ranged first{indexed: false, instanced: false, ranged: false, first: true}, //!< DRAWMETHOD_DRAWARRAYS,{indexed: false, instanced: true, ranged: false, first: true}, //!< DRAWMETHOD_DRAWARRAYS_INSTANCED,{indexed: true, instanced: false, ranged: false, first: false}, //!< DRAWMETHOD_DRAWELEMENTS,{indexed: true, instanced: false, ranged: true, first: false}, //!< DRAWMETHOD_DRAWELEMENTS_RANGED,{indexed: true, instanced: true, ranged: false, first: false} //!< DRAWMETHOD_DRAWELEMENTS_INSTANCED
+            //indexed instanced ranged first
+            {indexed: false, instanced: false, ranged: false, first: true}, //!< DRAWMETHOD_DRAWARRAYS,
+            {indexed: false, instanced: true, ranged: false, first: true}, //!< DRAWMETHOD_DRAWARRAYS_INSTANCED,
+            {indexed: true, instanced: false, ranged: false, first: false}, //!< DRAWMETHOD_DRAWELEMENTS,
+            {indexed: true, instanced: false, ranged: true, first: false}, //!< DRAWMETHOD_DRAWELEMENTS_RANGED,
+            {indexed: true, instanced: true, ranged: false, first: false} //!< DRAWMETHOD_DRAWELEMENTS_INSTANCED
         ];
 
         assertMsgOptions(infos.length == Object.keys(glsDrawTests.DrawTestSpec.DrawMethod).length,
@@ -382,21 +405,23 @@ goog.scope(function() {
     };
 
     /**
-     * @param {Uint8Array} dst
+     * @param {goog.TypedArray} dst
      * @param {glsDrawTests.GLValue} val
      */
     glsDrawTests.copyGLValueToArray = function(dst, val) {
+        /** @type {Uint8Array} */ var dst8 = new Uint8Array(dst.buffer).subarray(dst.byteOffset, dst.byteOffset + dst.byteLength);
         /** @type {Uint8Array} */ var val8 = new Uint8Array(val.m_value.buffer); // TODO: Fix encapsulation issue
-        dst.set(val8);
+        dst8.set(val8);
     };
 
     /**
-     * @param {Uint8Array} dst
-     * @param {goog.NumberArray} src
+     * @param {goog.TypedArray} dst
+     * @param {goog.TypedArray} src
      */
     glsDrawTests.copyArray = function(dst, src) {
-        /** @type {Uint8Array} */ var src8 = new Uint8Array(src.buffer).subarray(src.byteOffset, src.byteOffset + src.byteLength); // TODO: Fix encapsulation issue
-        dst.set(src8);
+        /** @type {Uint8Array} */ var dst8 = new Uint8Array(dst.buffer).subarray(dst.byteOffset, dst.byteOffset + dst.byteLength);
+        /** @type {Uint8Array} */ var src8 = new Uint8Array(src.buffer).subarray(src.byteOffset, src.byteOffset + src.byteLength);
+        dst8.set(src8);
     };
 
     /**
@@ -819,10 +844,9 @@ goog.scope(function() {
         /** @type {boolean} */ this.m_normalize = false;
         /** @type {number} */ this.m_stride = 0;
         /** @type {number} */ this.m_offset = 0;
-        /** @type {rrGenericVector.GenericVec4} */ this.m_defaultAttrib;
+        /** @type {Array<number>} */ this.m_defaultAttrib;
         /** @type {number} */ this.m_instanceDivisor = 0;
         /** @type {boolean} */ this.m_isPositionAttr = false;
-        /** @type {boolean} */ this.m_bgraOrder = false;
 
         if (this.m_storage == glsDrawTests.DrawTestSpec.Storage.BUFFER) {
             this.m_glBuffer = this.m_ctx.createBuffer();
@@ -859,7 +883,7 @@ goog.scope(function() {
 
         if (this.m_storage == glsDrawTests.DrawTestSpec.Storage.BUFFER) {
             this.m_ctx.bindBuffer(glsDrawTests.targetToGL(target), this.m_glBuffer);
-            this.m_ctx.bufferData(glsDrawTests.targetToGL(target), size, ptr, glsDrawTests.usageToGL(usage));
+            this.m_ctx.bufferData(glsDrawTests.targetToGL(target), ptr, glsDrawTests.usageToGL(usage));
         } else
             throw new Error('Wrong storage type');
     };
@@ -890,12 +914,11 @@ goog.scope(function() {
      * @param {boolean} normalized
      * @param {number} stride
      * @param {number} instanceDivisor
-     * @param {rrGenericVector.GenericVec4} defaultAttrib
+     * @param {Array<number>} defaultAttrib
      * @param {boolean} isPositionAttr
-     * @param {boolean} bgraComponentOrder
      */
     glsDrawTests.AttributeArray.prototype.setupArray = function(bound, offset, size, inputType, outType,
-        normalized, stride, instanceDivisor, defaultAttrib, isPositionAttr, bgraComponentOrder) {
+        normalized, stride, instanceDivisor, defaultAttrib, isPositionAttr) {
         this.m_componentCount = size;
         this.m_bound = bound;
         this.m_inputType = inputType;
@@ -906,7 +929,6 @@ goog.scope(function() {
         this.m_defaultAttrib = defaultAttrib;
         this.m_instanceDivisor = instanceDivisor;
         this.m_isPositionAttr = isPositionAttr;
-        this.m_bgraOrder = bgraComponentOrder;
     };
 
     /**
@@ -914,7 +936,7 @@ goog.scope(function() {
      */
     glsDrawTests.AttributeArray.prototype.bindAttribute = function(loc) {
         if (!this.isBound()) {
-            /** @type {rrGenericVector.GenericVec4} */ var attr = this.m_defaultAttrib;
+            /** @type {Array<number>} */ var attr = this.m_defaultAttrib;
             switch (this.m_inputType) {
                 case glsDrawTests.DrawTestSpec.InputType.FLOAT: {
                     switch (this.m_componentCount) {
@@ -952,9 +974,7 @@ goog.scope(function() {
                 // Input is not float type
 
                 if (glsDrawTests.outputTypeIsFloatType(this.m_outputType)) {
-                    var size = (this.m_bgraOrder) ? (gl.BGRA) : (this.m_componentCount); //TODO: Check if BGRA will be in WebGL2
-
-                    assertMsgOptions(!(this.m_bgraOrder && this.m_componentCount != 4), 'Bgra order must have 4 components', false, true);
+                    var size = this.m_componentCount;
 
                     // Output type is float type
                     this.m_ctx.vertexAttribPointer(loc, size, glsDrawTests.inputTypeToGL(this.m_inputType), this.m_normalize, this.m_stride, basePtr.subarray(this.m_offset));
@@ -969,7 +989,7 @@ goog.scope(function() {
                 assertMsgOptions(glsDrawTests.outputTypeIsFloatType(this.m_outputType), 'Output type is not float', false, true);
 
                 this.m_ctx.vertexAttribPointer(loc, this.m_componentCount, glsDrawTests.inputTypeToGL(this.m_inputType), this.m_normalize,
-                    this.m_stride, basePtr.subarray(this.m_offset));
+                    this.m_stride, this.m_offset);
             }
 
             if (this.m_instanceDivisor)
@@ -1126,7 +1146,7 @@ goog.scope(function() {
         vertexShaderTmpl +=
             'uniform highp float u_coordScale;\n' +
             'uniform highp float u_colorScale;\n' +
-            params['VTX_OUT'] + params['COL_PRECISION'] + 'vec4 v_color;\n' +
+            params['VTX_OUT'] + ' ' + params['COL_PRECISION'] + ' vec4 v_color;\n' +
             'void main(void)\n' +
             '{\n' +
             '\tgl_PointSize = 1.0;\n' +
@@ -1172,14 +1192,8 @@ goog.scope(function() {
                         throw new Error('Invalid output type');
                         break;
                 }
-<<<<<<< Temporary merge branch 1
-            } else{
-                switch (arrays[arrayNdx].getOutputType()) {
-=======
             } else {
-                switch (arrays[arrayNdx].getOutputType())
-                {
->>>>>>> Temporary merge branch 2
+                switch (arrays[arrayNdx].getOutputType()) {
                     case (glsDrawTests.DrawTestSpec.OutputType.FLOAT):
                     case (glsDrawTests.DrawTestSpec.OutputType.INT):
                     case (glsDrawTests.DrawTestSpec.OutputType.UINT):
@@ -1350,6 +1364,298 @@ goog.scope(function() {
         return decl;
     };
 
+    /**
+     * @typedef {glsDrawTests.RandomArrayGenerator}
+     */
+    glsDrawTests.RandomArrayGenerator = {};
+
+    /**
+     * @param {goog.TypedArray} data
+     * @param {?glsDrawTests.DrawTestSpec.InputType} type
+     * @param {deRandom.Random} rnd
+     * @param {glsDrawTests.GLValue} min
+     * @param {glsDrawTests.GLValue} max
+     */
+    glsDrawTests.RandomArrayGenerator.setData = function (data, type, rnd, min, max) {
+        switch (type)
+        {
+            case glsDrawTests.DrawTestSpec.InputType.FLOAT:
+            case glsDrawTests.DrawTestSpec.InputType.SHORT:
+            case glsDrawTests.DrawTestSpec.InputType.UNSIGNED_SHORT:
+            case glsDrawTests.DrawTestSpec.InputType.BYTE:
+            case glsDrawTests.DrawTestSpec.InputType.UNSIGNED_BYTE:
+            case glsDrawTests.DrawTestSpec.InputType.INT:
+            case glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT:
+            case glsDrawTests.DrawTestSpec.InputType.HALF:
+                glsDrawTests.copyGLValueToArray(data, glsDrawTests.GLValue.getRandom(rnd, min, max));
+                break;
+            default:
+                throw new Error ('Invalid input type');
+                break;
+        }
+    };
+
+    /**
+     * @param {number} seed
+     * @param {number} elementCount
+     * @param {number} componentCount
+     * @param {number} offset
+     * @param {number} stride
+     * @param {?glsDrawTests.DrawTestSpec.InputType} type
+     * @param {number} first
+     * @return {goog.TypedArray}
+     */
+    glsDrawTests.RandomArrayGenerator.generateArray = function (seed, elementCount, componentCount, offset, stride, type, first) {
+        if (type == glsDrawTests.DrawTestSpec.InputType.INT_2_10_10_10 || type == glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT_2_10_10_10)
+            return glsDrawTests.RandomArrayGenerator.generatePackedArray(seed, elementCount, componentCount, offset, stride, type, first);
+        else
+            return glsDrawTests.RandomArrayGenerator.generateBasicArray(seed, elementCount, componentCount, offset, stride, type, first);
+    };
+
+    /**
+     * @param {number} seed
+     * @param {number} elementCount
+     * @param {number} componentCount
+     * @param {number} offset
+     * @param {number} stride
+     * @param {?glsDrawTests.DrawTestSpec.InputType} type
+     * @param {number} first
+     * @return {goog.TypedArray}
+     */
+    glsDrawTests.RandomArrayGenerator.generateBasicArray = function (seed, elementCount, componentCount, offset, stride, type, first) {
+        return glsDrawTests.RandomArrayGenerator.createBasicArray(seed, elementCount, componentCount, offset, stride, type, first);
+    }
+
+    /**
+     * @param {number} seed
+     * @param {number} elementCount
+     * @param {number} componentCount
+     * @param {number} offset
+     * @param {number} stride
+     * @param {?glsDrawTests.DrawTestSpec.InputType} type
+     * @param {number} first
+     * @return {goog.TypedArray}
+     */
+    glsDrawTests.RandomArrayGenerator.createBasicArray = function (seed, elementCount, componentCount, offset, stride, type, first) {
+        assertMsgOptions(componentCount >= 1 && componentCount <= 4, 'Unacceptable number of components', false, true);
+
+        /** @type {glsDrawTests.GLValue} */ var min = glsDrawTests.GLValue.getMinValue(type);
+        /** @type {glsDrawTests.GLValue} */ var max = glsDrawTests.GLValue.getMaxValue(type);
+
+        /** @type {number} */ var componentSize = glsDrawTests.DrawTestSpec.inputTypeSize(type);
+        /** @type {number} */ var elementSize = componentSize * componentCount;
+        /** @type {number} */ var bufferSize = offset + (elementCount - 1) * stride + elementSize;
+
+        var data = new ArrayBuffer(bufferSize);
+        var writePtr = new Uint8Array(data).subarray(offset);
+
+        /** @type {Array<glsDrawTests.GLValue>} */ var previousComponents = [];
+
+        var rnd = new deRandom.Random(seed);
+
+        var triangle = [];
+
+        for (var vertexNdx = 0; vertexNdx < elementCount; vertexNdx++) {
+            /** @type {Array<glsDrawTests.GLValue>} */ var components = [];
+
+            for (var componentNdx = 0; componentNdx < componentCount; componentNdx++) {
+                components[componentNdx] = glsDrawTests.GLValue.getRandom(rnd, min, max);
+
+                // Try to not create vertex near previous
+                if (vertexNdx != 0 && Math.abs(components[componentNdx] - previousComponents[componentNdx]) < min.interpret()) {
+                    // Too close, try again (but only once)
+                    components[componentNdx] = glsDrawTests.GLValue.getRandom(rnd, min, max);
+                }
+            }
+
+            for (var componentNdx = 0; componentNdx < componentCount; componentNdx++)
+                previousComponents[componentNdx] = components[componentNdx];
+
+            //This part makes sure triangles form a right angle with middle vertex
+            //(JS Refrast draws straight lines only, so drawing triangles as quads)
+            if (vertexNdx >= first) {
+                triangle.push(components);
+
+                if (triangle.length == 3 && componentCount >= 2) {
+                    var middlevertex = [];
+                    switch (componentCount) {
+                        case 2: middlevertex = [triangle[0][0], triangle[2][1]]; break;
+                        case 3: middlevertex = [triangle[0][0], triangle[2][1], triangle[1][2]]; break;
+                        case 4: middlevertex = [triangle[0][0], triangle[2][1], triangle[1][2], triangle[1][3]]; break;
+                        default: throw new Error('Invalid number of components'); break;
+                    }
+
+                    //Rewrite middle vertex
+                    triangle[1] = middlevertex;
+
+                    //Copy values to buffer
+                    for (var triVtx = 0 ; triVtx < 3; triVtx++)
+                    for (var componentNdx = 0; componentNdx < componentCount; componentNdx++)
+                        glsDrawTests.copyGLValueToArray(writePtr.subarray(triVtx*componentCount*componentSize + componentNdx*componentSize), triangle[triVtx][componentNdx]);
+
+                    writePtr = writePtr.subarray(stride * 3);
+                    triangle = [];
+                } else if (elementCount - 1 == vertexNdx) { //Handle last stray vertices maybe.
+                    for (var componentNdx = 0; componentNdx < componentCount; componentNdx++)
+                        glsDrawTests.copyGLValueToArray(writePtr.subarray(componentNdx*componentSize), components[componentNdx]);
+
+                    writePtr = writePtr.subarray(stride);
+                }
+            } else {
+                for (var componentNdx = 0; componentNdx < componentCount; componentNdx++)
+                    glsDrawTests.copyGLValueToArray(writePtr.subarray(componentNdx*componentSize), components[componentNdx]);
+
+                //Advance one vertex
+                writePtr = writePtr.subarray(componentCount * componentSize);
+            }
+        }
+
+        return new Uint8Array(data);
+    };
+
+    /**
+     * @param {number} seed
+     * @param {number} elementCount
+     * @param {number} componentCount
+     * @param {number} offset
+     * @param {number} stride
+     * @param {?glsDrawTests.DrawTestSpec.InputType} type
+     * @param {number} first
+     * @return {goog.TypedArray}
+     */
+    glsDrawTests.RandomArrayGenerator.generatePackedArray = function (seed, elementCount, componentCount, offset, stride, type, first) {
+        assertMsgOptions(componentCount == 4, 'Component count must be 4', false, true);
+        //DE_UNREF(componentCount);
+
+        /** @type {number} */ var limit10 = (1 << 10);
+        /** @type {number} */ var limit2 = (1 << 2);
+        /** @type {number} */ var elementSize = 4;
+        /** @type {number} */ var bufferSize = offset + (elementCount - 1) * stride + elementSize;
+
+        var data = new ArrayBuffer(bufferSize);
+        var writePtr = new Uint8Array(data).subarray(offset);
+
+        var rnd = new deRandom.Random(seed);
+
+        for (var vertexNdx = 0; vertexNdx < elementCount; vertexNdx++)
+        {
+            /** @type {number} */ var x = new Uint32Array([rnd.getInt() % limit10])[0];
+            /** @type {number} */ var y = new Uint32Array([rnd.getInt() % limit10])[0];
+            /** @type {number} */ var z = new Uint32Array([rnd.getInt() % limit10])[0];
+            /** @type {number} */ var w = new Uint32Array([rnd.getInt() % limit2])[0];
+            /** @type {number} */ var packedValue = deMath.binaryOp(
+                deMath.shiftLeft(w, 30), deMath.binaryOp(
+                    deMath.shiftLeft(z, 20), deMath.binaryOp(
+                        deMath.shiftLeft(y, 10), x, deMath.BinaryOp.OR
+                    ), deMath.BinaryOp.OR
+                ), deMath.BinaryOp.OR
+            );
+
+            glsDrawTests.copyArray(writePtr, new Uint32Array([packedValue]));
+            writePtr = writePtr.subarray(writePtr.byteOffset + stride);
+        }
+
+        return new Uint8Array(data);
+    };
+
+    /**
+     * @param {number} seed
+     * @param {number} elementCount
+     * @param {?glsDrawTests.DrawTestSpec.IndexType} type
+     * @param {number} offset
+     * @param {number} min
+     * @param {number} max
+     * @return {goog.TypedArray}
+     */
+    glsDrawTests.RandomArrayGenerator.generateIndices = function (seed, elementCount, type, offset, min, max)
+    {
+        return glsDrawTests.RandomArrayGenerator.createIndices(seed, elementCount, offset, min, max, type);
+    };
+
+    /**
+     * @param {number} seed
+     * @param {number} elementCount
+     * @param {number} offset
+     * @param {number} min
+     * @param {number} max
+     * @param {?glsDrawTests.DrawTestSpec.IndexType} type
+     * @return {goog.TypedArray}
+     */
+    glsDrawTests.RandomArrayGenerator.createIndices  = function (seed, elementCount, offset, min, max, type) {
+        /** @type {number}*/ var elementSize = glsDrawTests.DrawTestSpec.indexTypeSize(type);
+        /** @type {number}*/ var bufferSize = offset + elementCount * elementSize;
+
+        var data = new ArrayBuffer(bufferSize);
+        var writePtr = new Uint8Array(data).subarray(offset);
+
+        var oldNdx1 = -1;
+        var oldNdx2 = -1;
+
+        var rnd = new deRandom.Random(seed);
+
+        /* TODO: get limits for given index type --> if (min < 0 || min > std::numeric_limits<T>::max() ||
+            max < 0 || max > std::numeric_limits<T>::max() ||
+            min > max)
+            DE_ASSERT(!"Invalid range");*/
+
+        for (var elementNdx = 0; elementNdx < elementCount; ++elementNdx)
+        {
+            var ndx = glsDrawTests.GLValue.getRandom(
+                rnd,
+                glsDrawTests.GLValue.create(min, glsDrawTests.indexTypeToInputType(type)),
+                glsDrawTests.GLValue.create(max, glsDrawTests.indexTypeToInputType(type))
+            ).interpret();
+
+            // Try not to generate same index as any of previous two. This prevents
+            // generation of degenerate triangles and lines. If [min, max] is too
+            // small this cannot be guaranteed.
+
+            if (ndx == oldNdx1)            ++ndx;
+            if (ndx > max)    ndx = min;
+            if (ndx == oldNdx2)            ++ndx;
+            if (ndx > max)    ndx = min;
+            if (ndx == oldNdx1)            ++ndx;
+            if (ndx > max)    ndx = min;
+
+            oldNdx2 = oldNdx1;
+            oldNdx1 = ndx;
+
+            var srcArray = glsDrawTests.GLValue.typeToTypedArray(ndx, glsDrawTests.indexTypeToInputType(type));
+
+            glsDrawTests.copyArray(
+                writePtr.subarray(elementSize * elementNdx),
+                srcArray
+            );
+        }
+
+        return new Uint8Array(data);
+    }
+
+    /**
+     * @param {number} seed
+     * @param {?glsDrawTests.DrawTestSpec.InputType} type
+     * @return {Array<number>}
+     */
+    glsDrawTests.RandomArrayGenerator.generateAttributeValue = function (seed, type)
+    {
+        var random = new deRandom.Random(seed);
+
+        switch (type)
+        {
+            case glsDrawTests.DrawTestSpec.InputType.FLOAT:
+                return glsDrawTests.generateRandomVec4(random);
+
+            case glsDrawTests.DrawTestSpec.InputType.INT:
+                return glsDrawTests.generateRandomIVec4(random);
+
+            case glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT:
+                return glsDrawTests.generateRandomUVec4(random);
+
+            default:
+                throw new Error('Invalid attribute type');
+        }
+    };
+
     // AttributePack
 
     /**
@@ -1362,9 +1668,9 @@ goog.scope(function() {
     glsDrawTests.AttributePack = function(drawContext, screenSize, useVao, logEnabled) {
         /** @type {sglrReferenceContext.ReferenceContext | sglrGLContext.GLContext} */ this.m_ctx = drawContext;
 
-        /** @type {Array<glsDrawTests.AttributeArray>} */ this.m_arrays;
+        /** @type {Array<glsDrawTests.AttributeArray>} */ this.m_arrays = [];
         /** @type {sglrShaderProgram.ShaderProgram} */ this.m_program;
-        /** @type {tcuSurface.Surface} */ this.m_screen = null;
+        /** @type {tcuSurface.Surface} */ this.m_screen = new tcuSurface.Surface(screenSize[0], screenSize[1]);
         /** @type {boolean} */ this.m_useVao = useVao;
         /** @type {boolean} */ this.m_logEnabled = logEnabled;
         /** @type {WebGLProgram | sglrShaderProgram.ShaderProgram | null} */ this.m_programID = null;
@@ -1372,6 +1678,13 @@ goog.scope(function() {
 
         if (this.m_useVao)
             this.m_vaoID = this.m_ctx.createVertexArray();
+    };
+
+    /**
+     * @return {tcuSurface.Surface}
+     */
+    glsDrawTests.AttributePack.prototype.getSurface = function () {
+        return this.m_screen;
     };
 
     /**
@@ -1415,7 +1728,7 @@ goog.scope(function() {
     };
 
     /**
-     * @param {glsDrawTests.DrawTestSpec.Primitive} primitive
+     * @param {?glsDrawTests.DrawTestSpec.Primitive} primitive
      * @param {?glsDrawTests.DrawTestSpec.DrawMethod} drawMethod
      * @param {number} firstVertex
      * @param {number} vertexCount
@@ -1424,14 +1737,12 @@ goog.scope(function() {
      * @param {number} rangeStart
      * @param {number} rangeEnd
      * @param {number} instanceCount
-     * @param {number} indirectOffset
-     * @param {number} baseVertex
      * @param {number} coordScale
      * @param {number} colorScale
      * @param {glsDrawTests.AttributeArray} indexArray
      */
     glsDrawTests.AttributePack.prototype.render = function(primitive, drawMethod, firstVertex, vertexCount, indexType,
-        indexOffset, rangeStart, rangeEnd, instanceCount, indirectOffset, baseVertex, coordScale, colorScale, indexArray) {
+        indexOffset, rangeStart, rangeEnd, instanceCount, coordScale, colorScale, indexArray) {
         assertMsgOptions(this.m_program != null, 'Program is null', false, true);
         assertMsgOptions(this.m_programID != null, 'No context created program', false, true);
 
@@ -1463,7 +1774,7 @@ goog.scope(function() {
         }
 
         if (drawMethod == glsDrawTests.DrawTestSpec.DrawMethod.DRAWARRAYS)
-            this.m_ctx.drawArrays(glsDrawTests.primitiveToGL(primitive), firstVertex, vertexCount);
+            this.m_ctx.drawArrays(glsDrawTests.primitiveToGL(primitive), firstVertex, 3 /*vertexCount*/);
         else if (drawMethod == glsDrawTests.DrawTestSpec.DrawMethod.DRAWARRAYS_INSTANCED)
             this.m_ctx.drawArraysInstanced(glsDrawTests.primitiveToGL(primitive), firstVertex, vertexCount, instanceCount);
         else if (drawMethod == glsDrawTests.DrawTestSpec.DrawMethod.DRAWELEMENTS)
@@ -1490,7 +1801,7 @@ goog.scope(function() {
             this.m_ctx.bindVertexArray(null);
 
         this.m_ctx.useProgram(null);
-        this.m_ctx.readPixels(this.m_screen, 0, 0, this.m_screen.getWidth(), this.m_screen.getHeight());
+        this.m_ctx.readPixels(0, 0, this.m_screen.getWidth(), this.m_screen.getHeight(), gl.RGBA, gl.UNSIGNED_BYTE, this.m_screen.getAccess().getDataPtr());
     };
 
     // DrawTestSpec
@@ -1586,7 +1897,7 @@ goog.scope(function() {
             'uvec3', // OUTPUTTYPE_UVEC3,
             'uvec4' // OUTPUTTYPE_UVEC4,
         ];
-        assertMsgOptions(types.length == Object.keys(glsDrawTests.DrawTestSpec.InputType).length,
+        assertMsgOptions(types.length == Object.keys(glsDrawTests.DrawTestSpec.OutputType).length,
             'The amount of type names is different than the amount of types', false, true);
 
         return types[type];
@@ -1641,7 +1952,7 @@ goog.scope(function() {
      * @return {string}
      */
     glsDrawTests.DrawTestSpec.primitiveToString = function(primitive) {
-        assertMsgOptions(primitive == null, 'Primitive is null', false, true);
+        assertMsgOptions(primitive != null, 'Primitive is null', false, true);
 
         var primitives = [
             'points', // PRIMITIVE_POINTS ,
@@ -1925,9 +2236,9 @@ goog.scope(function() {
 
             if (attrib.useDefaultAttribute) {
                 desc += 'Attribute ' + ndx + ': default, ' + ((ndx == 0 || attrib.additionalPositionAttribute) ? ('position\n') : ('color\n')) +
-                    "'\tinput datatype ' + glsDrawTests.DrawTestSpec.inputTypeToString(/** @type {?glsDrawTests.DrawTestSpec.InputType} */ (attrib.inputType)) + '\n' +
-                    "'\tinput component count ' + attrib.componentCount + '\n' +
-                    "'\tused as ' + glsDrawTests.DrawTestSpec.outputTypeToString(attrib.outputType) + '\n';
+                    '\tinput datatype ' + glsDrawTests.DrawTestSpec.inputTypeToString(/** @type {?glsDrawTests.DrawTestSpec.InputType} */ (attrib.inputType)) + '\n' +
+                    '\tinput component count ' + attrib.componentCount + '\n' +
+                    '\tused as ' + glsDrawTests.DrawTestSpec.outputTypeToString(attrib.outputType) + '\n';
             } else {
                 desc += 'Attribute ' + ndx + ': ' + ((ndx == 0 || attrib.additionalPositionAttribute) ? ('position\n') : ('color\n')) +
                     '\tStorage in ' + glsDrawTests.DrawTestSpec.storageToString(attrib.storage) + '\n' +
@@ -2239,7 +2550,7 @@ goog.scope(function() {
     glsDrawTests.DrawTestSpec.AttributeSpec = function() {
         /** @type {?glsDrawTests.DrawTestSpec.InputType} */ this.inputType = null;
         /** @type {?glsDrawTests.DrawTestSpec.OutputType} */ this.outputType = null;
-        /** @type {?glsDrawTests.DrawTestSpec.Storage} */ this.storage = null;
+        /** @type {?glsDrawTests.DrawTestSpec.Storage} */ this.storage = glsDrawTests.DrawTestSpec.Storage.BUFFER; //Always BUFFER in WebGL up to 2
         /** @type {?glsDrawTests.DrawTestSpec.Usage} */ this.usage = null;
         /** @type {number} */ this.componentCount = 0;
         /** @type {number} */ this.offset = 0;
@@ -2249,7 +2560,6 @@ goog.scope(function() {
         /** @type {boolean} */ this.useDefaultAttribute = false;
 
         /** @type {boolean} */ this.additionalPositionAttribute = false; //!< treat this attribute as position attribute. Attribute at index 0 is alway treated as such. False by default
-        /** @type {boolean} */ this.bgraComponentOrder = false; //!< component order of this attribute is bgra, valid only for 4-component targets. False by default.
     };
 
     /**
@@ -2297,7 +2607,7 @@ goog.scope(function() {
 
         spec.inputType = inputType;
         spec.outputType = outputType;
-        spec.storage = null;
+        spec.storage = glsDrawTests.DrawTestSpec.Storage.BUFFER; //Always BUFFER in WebGL up to 2
         spec.usage = null;
         spec.componentCount = componentCount;
         spec.offset = 0;
@@ -2374,14 +2684,6 @@ goog.scope(function() {
         if (this.normalize && !outputTypeFloat)
             return false;
 
-        // Allow reverse order (gl.BGRA) only for packed and 4-component ubyte
-        if (this.bgraComponentOrder && this.componentCount != 4)
-            return false;
-        if (this.bgraComponentOrder && this.inputType != glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT_2_10_10_10 && this.inputType != glsDrawTests.DrawTestSpec.InputType.INT_2_10_10_10 && this.inputType != glsDrawTests.DrawTestSpec.InputType.UNSIGNED_BYTE)
-            return false;
-        if (this.bgraComponentOrder && this.normalize != true)
-            return false;
-
         // TODO: Check if we need to get the webgl version
         // GLES2 limits
         /*if (ctxType == glu::ApiType::es(2,0)) {
@@ -2391,17 +2693,7 @@ goog.scope(function() {
 
             if (!outputTypeFloat)
                 return false;
-
-            if (bgraComponentOrder)
-                return false;
         }*/
-
-        // GLES3 limits
-        //if (ctxType.getProfile() == glu::PROFILE_ES && ctxType.getMajorVersion() == 3)
-        //{
-            if (this.bgraComponentOrder)
-                return false;
-        //}
 
         return true;
     };
@@ -2480,8 +2772,8 @@ goog.scope(function() {
             this.addIteration(spec);
     };
 
-    glsDrawTests.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
-    glsDrawTests.prototype.constructor = glsDrawTests.DrawTest;
+    glsDrawTests.DrawTest.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
+    glsDrawTests.DrawTest.prototype.constructor = glsDrawTests.DrawTest;
 
     /**
      * @param {glsDrawTests.DrawTestSpec} spec
@@ -2519,7 +2811,7 @@ goog.scope(function() {
         var renderTargetWidth = Math.min(glsDrawTests.MAX_RENDER_TARGET_SIZE, gl.canvas.width);
         var renderTargetHeight = Math.min(glsDrawTests.MAX_RENDER_TARGET_SIZE, gl.canvas.height);
         /** @type {sglrReferenceContext.ReferenceContextLimits} */ var limits = new sglrReferenceContext.ReferenceContextLimits(gl);
-        /** @type {boolean} */ var useVao = false;
+        /** @type {boolean} */ var useVao = true;
 
         this.m_glesContext = new sglrGLContext.GLContext(gl);
 
@@ -2561,10 +2853,10 @@ goog.scope(function() {
             /** @type {number} */ var elementCount = primitiveElementCount + indexMin + firstAddition; // !< elements in buffer (buffer should have at least primitiveElementCount ACCESSIBLE (index range, first) elements)
             /** @type {number} */ var maxElementIndex = primitiveElementCount + indexMin + firstAddition - 1;
             /** @type {number} */ var indexMax = Math.max(0, (ranged) ? (deMath.clamp(spec.indexMax, 0, maxElementIndex)) : (maxElementIndex));
-            /** @type {number} */ var coordScale = glsDrawTests.getCoordScale(spec);
-            /** @type {number} */ var colorScale = glsDrawTests.getColorScale(spec);
+            /** @type {number} */ var coordScale = this.getCoordScale(spec);
+            /** @type {number} */ var colorScale = this.getColorScale(spec);
 
-            /** @type {rrGenericVector.GenericVec4} */ var nullAttribValue;
+            /** @type {Array<number>} */ var nullAttribValue = [];
 
             // Log info
             bufferedLogToConsole(spec.getMultilineDesc());
@@ -2580,14 +2872,14 @@ goog.scope(function() {
 
                 if (attribSpec.useDefaultAttribute) {
                     var seed = 10 * attribSpec.hash() + 100 * spec.hash() + attribNdx;
-                    /** @type {rrGenericVector.GenericVec4} */ var attribValue = glsDrawTests.RandomArrayGenerator.generateAttributeValue(seed, attribSpec.inputType); //TODO: Implement
+                    /** @type {Array<number>} */ var attribValue = glsDrawTests.RandomArrayGenerator.generateAttributeValue(seed, attribSpec.inputType); //TODO: Implement
 
-                    //TODO: We're not using user storage. Remove this case?
-                    this.m_glArrayPack.newArray(glsDrawTests.DrawTestSpec.Storage.USER);
-                    this.m_rrArrayPack.newArray(glsDrawTests.DrawTestSpec.Storage.USER);
+                    // changed USER for BUFFER in JS version
+                    this.m_glArrayPack.newArray(glsDrawTests.DrawTestSpec.Storage.BUFFER);
+                    this.m_rrArrayPack.newArray(glsDrawTests.DrawTestSpec.Storage.BUFFER);
 
-                    this.m_glArrayPack.getArray(attribNdx).setupArray(false, 0, attribSpec.componentCount, attribSpec.inputType, attribSpec.outputType, false, 0, 0, attribValue, isPositionAttr, false);
-                    this.m_rrArrayPack.getArray(attribNdx).setupArray(false, 0, attribSpec.componentCount, attribSpec.inputType, attribSpec.outputType, false, 0, 0, attribValue, isPositionAttr, false);
+                    this.m_glArrayPack.getArray(attribNdx).setupArray(false, 0, attribSpec.componentCount, attribSpec.inputType, attribSpec.outputType, false, 0, 0, attribValue, isPositionAttr);
+                    this.m_rrArrayPack.getArray(attribNdx).setupArray(false, 0, attribSpec.componentCount, attribSpec.inputType, attribSpec.outputType, false, 0, 0, attribValue, isPositionAttr);
                 } else {
                     /** @type {number} */ var seed = attribSpec.hash() + 100 * spec.hash() + attribNdx;
                     /** @type {number} */ var elementSize = attribSpec.componentCount * glsDrawTests.DrawTestSpec.inputTypeSize(attribSpec.inputType);
@@ -2595,7 +2887,7 @@ goog.scope(function() {
                     /** @type {number} */ var evaluatedElementCount = (instanced && attribSpec.instanceDivisor > 0) ? (spec.instanceCount / attribSpec.instanceDivisor + 1) : (elementCount);
                     /** @type {number} */ var referencedElementCount = (ranged) ? (Math.max(evaluatedElementCount, spec.indexMax + 1)) : (evaluatedElementCount);
                     /** @type {number} */ var bufferSize = attribSpec.offset + stride * (referencedElementCount - 1) + elementSize;
-                    /** @type {string} */ var data = glsDrawTests.RandomArrayGenerator.generateArray(seed, referencedElementCount, attribSpec.componentCount, attribSpec.offset, stride, attribSpec.inputType);
+                    /** @type {goog.TypedArray} */ var data = glsDrawTests.RandomArrayGenerator.generateArray(seed, referencedElementCount, attribSpec.componentCount, attribSpec.offset, stride, attribSpec.inputType, spec.first);
 
                     //try { TODO: This try/catch block's purpose is to delete data safely. Should we?
                         this.m_glArrayPack.newArray(attribSpec.storage);
@@ -2604,8 +2896,8 @@ goog.scope(function() {
                         this.m_glArrayPack.getArray(attribNdx).data(glsDrawTests.DrawTestSpec.Target.ARRAY, bufferSize, data, attribSpec.usage);
                         this.m_rrArrayPack.getArray(attribNdx).data(glsDrawTests.DrawTestSpec.Target.ARRAY, bufferSize, data, attribSpec.usage);
 
-                        this.m_glArrayPack.getArray(attribNdx).setupArray(true, attribSpec.offset, attribSpec.componentCount, attribSpec.inputType, attribSpec.outputType, attribSpec.normalize, attribSpec.stride, attribSpec.instanceDivisor, nullAttribValue, isPositionAttr, attribSpec.bgraComponentOrder);
-                        this.m_rrArrayPack.getArray(attribNdx).setupArray(true, attribSpec.offset, attribSpec.componentCount, attribSpec.inputType, attribSpec.outputType, attribSpec.normalize, attribSpec.stride, attribSpec.instanceDivisor, nullAttribValue, isPositionAttr, attribSpec.bgraComponentOrder);
+                        this.m_glArrayPack.getArray(attribNdx).setupArray(true, attribSpec.offset, attribSpec.componentCount, attribSpec.inputType, attribSpec.outputType, attribSpec.normalize, attribSpec.stride, attribSpec.instanceDivisor, nullAttribValue, isPositionAttr);
+                        this.m_rrArrayPack.getArray(attribNdx).setupArray(true, attribSpec.offset, attribSpec.componentCount, attribSpec.inputType, attribSpec.outputType, attribSpec.normalize, attribSpec.stride, attribSpec.instanceDivisor, nullAttribValue, isPositionAttr);
 
                         //delete [] data; TODO: Should we delete in any way?
                         data = null;
@@ -2622,6 +2914,8 @@ goog.scope(function() {
                 this.m_rrArrayPack.updateProgram();
             }
 
+            /** @type {glsDrawTests.DrawTestSpec.CompatibilityTestType} */ var ctype;
+
             // Draw
             try {
                 // indices
@@ -2629,9 +2923,8 @@ goog.scope(function() {
                     /** @type {number} */ var seed = spec.hash();
                     /** @type {number} */ var indexElementSize = glsDrawTests.DrawTestSpec.indexTypeSize(spec.indexType);
                     /** @type {number} */ var indexArraySize = spec.indexPointerOffset + indexElementSize * elementCount;
-                    /** @type {string} */ var indexArray = glsDrawTests.RandomArrayGenerator.generateIndices(seed, elementCount, spec.indexType, spec.indexPointerOffset, indexMin, indexMax, indexBase);
-                    /** @type {string} */ var indexPointerBase = (spec.indexStorage == glsDrawTests.DrawTestSpec.Storage.USER) ? (indexArray) : (null);
-                    /** @type {string} */ var indexPointer = indexPointerBase + spec.indexPointerOffset;
+                    /** @type {goog.TypedArray} */ var indexArray = glsDrawTests.RandomArrayGenerator.generateIndices(seed, elementCount, spec.indexType, spec.indexPointerOffset, indexMin, indexMax);
+                    /** @type {goog.TypedArray} */ var indexPointer = indexArray.subarray(spec.indexPointerOffset);
 
                     /** @type {glsDrawTests.AttributeArray}*/ var glArray = new glsDrawTests.AttributeArray(spec.indexStorage, this.m_glesContext);
                     /** @type {glsDrawTests.AttributeArray}*/ var rrArray = new glsDrawTests.AttributeArray(spec.indexStorage, this.m_refContext);
@@ -2640,24 +2933,24 @@ goog.scope(function() {
                         glArray.data(glsDrawTests.DrawTestSpec.Target.ELEMENT_ARRAY, indexArraySize, indexArray, glsDrawTests.DrawTestSpec.Usage.STATIC_DRAW);
                         rrArray.data(glsDrawTests.DrawTestSpec.Target.ELEMENT_ARRAY, indexArraySize, indexArray, glsDrawTests.DrawTestSpec.Usage.STATIC_DRAW);
 
-                        this.m_glArrayPack.render(spec.primitive, spec.drawMethod, 0, primitiveElementCount, spec.indexType, indexPointer, spec.indexMin, spec.indexMax, spec.instanceCount, spec.indirectOffset, spec.baseVertex, coordScale, colorScale, glArray.get());
-                        this.m_rrArrayPack.render(spec.primitive, spec.drawMethod, 0, primitiveElementCount, spec.indexType, indexPointer, spec.indexMin, spec.indexMax, spec.instanceCount, spec.indirectOffset, spec.baseVertex, coordScale, colorScale, rrArray.get());
+                        this.m_glArrayPack.render(spec.primitive, spec.drawMethod, 0, primitiveElementCount, spec.indexType, spec.indexPointerOffset, spec.indexMin, spec.indexMax, spec.instanceCount, coordScale, colorScale, glArray);
+                        this.m_rrArrayPack.render(spec.primitive, spec.drawMethod, 0, primitiveElementCount, spec.indexType, spec.indexPointerOffset, spec.indexMin, spec.indexMax, spec.instanceCount, coordScale, colorScale, rrArray);
 
-                        //delete [] indexArray;
+                        //delete [] indexArray; //TODO:
                         indexArray = null;
                     /*} catch () {
-                        delete [] indexArray;
+                        delete [] indexArray; //TODO:
                         throw;
                     }*/
                 } else {
-                    this.m_glArrayPack.render(spec.primitive, spec.drawMethod, spec.first, primitiveElementCount, glsDrawTests.DrawTestSpec.IndexType.LAST, null, 0, 0, spec.instanceCount, spec.indirectOffset, 0, coordScale, colorScale, null);
-                    this.m_rrArrayPack.render(spec.primitive, spec.drawMethod, spec.first, primitiveElementCount, glsDrawTests.DrawTestSpec.IndexType.LAST, null, 0, 0, spec.instanceCount, spec.indirectOffset, 0, coordScale, colorScale, null);
+                    this.m_glArrayPack.render(spec.primitive, spec.drawMethod, spec.first, primitiveElementCount, null, 0, 0, 0, spec.instanceCount, coordScale, colorScale, null);
+                    this.m_rrArrayPack.render(spec.primitive, spec.drawMethod, spec.first, primitiveElementCount, null, 0, 0, 0, spec.instanceCount, coordScale, colorScale, null);
                 }
             } catch (err) {
                 if (err /*instanceof GL ERROR*/) { //TODO: Implement throwing a special error for gl errors to catch them here
                     // GL Errors are ok if the mode is not properly aligned
 
-                    /** @type {glsDrawTests.DrawTestSpec.CompatibilityTestType} */ var ctype = spec.isCompatibilityTest();
+                    ctype = spec.isCompatibilityTest();
 
                     bufferedLogToConsole('Got error: ' + err.message);
 
@@ -2671,7 +2964,7 @@ goog.scope(function() {
             }
         } else if (compareStep) {
             if (!this.compare(spec.primitive)) {
-                /** @type {glsDrawTests.DrawTestSpec.CompatibilityTestType} */ var ctype = spec.isCompatibilityTest();
+                ctype = spec.isCompatibilityTest();
 
                 if (ctype == glsDrawTests.DrawTestSpec.CompatibilityTestType.UNALIGNED_OFFSET)
                     checkMessage(false, 'Failed to draw with unaligned buffers.');
@@ -2712,15 +3005,11 @@ goog.scope(function() {
             case glsDrawTests.DrawTestSpec.Primitive.LINES:
             case glsDrawTests.DrawTestSpec.Primitive.LINE_STRIP:
             case glsDrawTests.DrawTestSpec.Primitive.LINE_LOOP:
-            case glsDrawTests.DrawTestSpec.Primitive.LINES_ADJACENCY:
-            case glsDrawTests.DrawTestSpec.Primitive.LINE_STRIP_ADJACENCY:
                 return glsDrawTests.PrimitiveClass.LINE;
 
             case glsDrawTests.DrawTestSpec.Primitive.TRIANGLES:
             case glsDrawTests.DrawTestSpec.Primitive.TRIANGLE_FAN:
             case glsDrawTests.DrawTestSpec.Primitive.TRIANGLE_STRIP:
-            case glsDrawTests.DrawTestSpec.Primitive.TRIANGLES_ADJACENCY:
-            case glsDrawTests.DrawTestSpec.Primitive.TRIANGLE_STRIP_ADJACENCY:
                 return glsDrawTests.PrimitiveClass.TRIANGLE;
 
             default:
@@ -2762,9 +3051,9 @@ goog.scope(function() {
      */
     glsDrawTests.isEdgeTriplet = function(c1, c2, c3, renderTargetThreshold) {
         // black (background color) and non-black is always an edge
-        /** @type {number} */ var b1 = glsDrawTests.isBlack(c1);
-        /** @type {number} */ var b2 = glsDrawTests.isBlack(c2);
-        /** @type {number} */ var b3 = glsDrawTests.isBlack(c3);
+        /** @type {boolean} */ var b1 = glsDrawTests.isBlack(c1);
+        /** @type {boolean} */ var b2 = glsDrawTests.isBlack(c2);
+        /** @type {boolean} */ var b3 = glsDrawTests.isBlack(c3);
 
         // both pixels with coverage and pixels without coverage
         if ((b1 && b2 && b3) == false && (b1 || b2 || b3) == true)
@@ -2800,10 +3089,14 @@ goog.scope(function() {
 
         // horizontal
 
+        /** @type {tcuRGBA.RGBA} */ var c1;
+        /** @type {tcuRGBA.RGBA} */ var c2;
+        /** @type {tcuRGBA.RGBA} */ var c3;
+
         for (var dy = -1; dy < 2; ++dy) {
-            /** @type {tcuRGBA.RGBA} */ var c1 = ref.getPixel(x - 1, y + dy);
-            /** @type {tcuRGBA.RGBA} */ var c2 = ref.getPixel(x, y + dy);
-            /** @type {tcuRGBA.RGBA} */ var c3 = ref.getPixel(x + 1, y + dy);
+            c1 = ref.getPixel(x - 1, y + dy);
+            c2 = ref.getPixel(x, y + dy);
+            c3 = ref.getPixel(x + 1, y + dy);
             if (glsDrawTests.isEdgeTriplet(c1, c2, c3, renderTargetThreshold))
                 return true;
         }
@@ -2811,9 +3104,9 @@ goog.scope(function() {
         // vertical
 
         for (var dx = -1; dx < 2; ++dx) {
-            /** @type {tcuRGBA.RGBA} */ var c1 = ref.getPixel(x + dx, y - 1);
-            /** @type {tcuRGBA.RGBA} */ var c2 = ref.getPixel(x + dx, y);
-            /** @type {tcuRGBA.RGBA} */ var c3 = ref.getPixel(x + dx, y + 1);
+            c1 = ref.getPixel(x + dx, y - 1);
+            c2 = ref.getPixel(x + dx, y);
+            c3 = ref.getPixel(x + dx, y + 1);
             if (glsDrawTests.isEdgeTriplet(c1, c2, c3, renderTargetThreshold))
                 return true;
         }
@@ -2823,7 +3116,7 @@ goog.scope(function() {
 
     /**
      * @param {tcuRGBA.RGBA} c
-     * @number {number}
+     * @return {number}
      */
     glsDrawTests.getVisualizationGrayscaleColor = function(c) {
         // make triangle coverage and error pixels obvious by converting coverage to grayscale
@@ -2899,8 +3192,8 @@ goog.scope(function() {
      */
     glsDrawTests.pixelNeighborhoodContainsCoverage = function(target, x, y, coverage) {
         // should not be called for edge pixels
-        assertMsgOptions(x >= 1 && x <= target.getWidth() - 2);
-        assertMsgOptions(y >= 1 && y <= target.getHeight() - 2);
+        assertMsgOptions(x >= 1 && x <= target.getWidth() - 2, 'Pixel is in the edge', false, true);
+        assertMsgOptions(y >= 1 && y <= target.getHeight() - 2, 'Pixel is in the edge', false, true);
 
         for (var dy = -1; dy < 2; dy++)
         for (var dx = -1; dx < 2; dx++) {
@@ -2920,6 +3213,7 @@ goog.scope(function() {
      * @param {Array<number>} compareThreshold
      * @param {Array<number>} renderTargetThreshold
      * @param {number} maxAllowedInvalidPixels
+     * @return {boolean}
      */
     glsDrawTests.edgeRelaxedImageCompare = function(imageSetName, imageSetDesc, reference, result, compareThreshold, renderTargetThreshold, maxAllowedInvalidPixels) {
         assertMsgOptions(result.getWidth() == reference.getWidth() && result.getHeight() == reference.getHeight(), 'Reference and result images have different dimensions', false, true);
@@ -2928,15 +3222,15 @@ goog.scope(function() {
         /** @type {Array<number>} */ var errorColor = [255, 0, 0, 255];
         /** @type {number} */ var width = reference.getWidth();
         /** @type {number} */ var height = reference.getHeight();
-        /** @type {tcuTexture.TextureLevel} */ var errorMask = new tcuTexture.TextureLevel(new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGB, tcuTexture.ChannelType.UNORM_INT8), width, height);
+        /** @type {tcuSurface.Surface} */ var errorMask = new tcuSurface.Surface(width, height);
         /** @type {number} */ var numFailingPixels = 0;
 
         // clear errormask edges which would otherwise be transparent
 
-        tcuTexture.clear(tcuTexture.getSubregion(errorMask.getAccess(), 0, 0, width, 1), green);
-        tcuTexture.clear(tcuTexture.getSubregion(errorMask.getAccess(), 0, height - 1, width, 1), green);
-        tcuTexture.clear(tcuTexture.getSubregion(errorMask.getAccess(), 0, 0, 1, height), green);
-        tcuTexture.clear(tcuTexture.getSubregion(errorMask.getAccess(), width - 1, 0, 1, height), green);
+        tcuTextureUtil.getSubregion(errorMask.getAccess(), 0, 0, 0, width, 1, 1).clear(green);
+        tcuTextureUtil.getSubregion(errorMask.getAccess(), 0, height - 1, 0, width, 1, 1).clear(green);
+        tcuTextureUtil.getSubregion(errorMask.getAccess(), 0, 0, 0, 1, height, 1).clear(green);
+        tcuTextureUtil.getSubregion(errorMask.getAccess(), width - 1, 0, 0, 1, height, 1).clear(green);
 
         // skip edge pixels since coverage on edge cannot be verified
 
@@ -2983,72 +3277,75 @@ goog.scope(function() {
 
         if (numFailingPixels > maxAllowedInvalidPixels) {
             debug('Image comparison failed. Color threshold = (' + compareThreshold[0] + ', ' + compareThreshold[1] + ', ' + compareThreshold[2] + ')');
-            tcuImageCompare.displayImages(result.getAccess(), ref.getAccess(), errorMask.getAccess());
+            tcuImageCompare.displayImages(result.getAccess(), reference.getAccess(), errorMask.getAccess());
 
             return false;
         } else {
             tcuImageCompare.displayImages(result.getAccess(), null, null);
+
             return true;
         }
     };
 
     /**
-     * @param {string} imagesetName
-     * @param {string} imagesetDesc
+     * @param {string} imageSetName
+     * @param {string} imageSetDesc
      * @param {tcuSurface.Surface} reference
      * @param {tcuSurface.Surface} result
      * @param {Array<number>} compareThreshold
      * @param {number} maxAllowedInvalidPixels
      * @return {boolean}
      */
-    glsDrawTests.intersectionRelaxedLineImageCompare = function(log, imageSetName, imageSetDesc, reference, result, compareThreshold, maxAllowedInvalidPixels) {
+    glsDrawTests.intersectionRelaxedLineImageCompare = function(imageSetName, imageSetDesc, reference, result, compareThreshold, maxAllowedInvalidPixels) {
         assertMsgOptions(result.getWidth() == reference.getWidth() && result.getHeight() == reference.getHeight(), 'Reference and result images have different dimensions', false, true);
 
         /** @type {Array<number>} */ var green = [0, 255, 0, 255];
         /** @type {Array<number>} */ var errorColor = [255, 0, 0, 255];
         var width = reference.getWidth();
         var height = reference.getHeight();
-        /** @type {tcuTexture.TextureLevel} */ var errorMask = new tcuTexture.TextureLevel(new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGB, tcuTexture.ChannelType.UNORM_INT8), width, height);
+        /** @type {tcuSurface.Surface} */ var errorMask = new tcuSurface.Surface(width, height);
         /** @type {number} */ var numFailingPixels = 0;
 
         // clear errormask edges which would otherwise be transparent
 
-        tcuTexture.clear(tcu : : getSubregion(errorMask.getAccess(), 0, 0, width, 1), green);
-        tcuTexture.clear(tcu : : getSubregion(errorMask.getAccess(), 0, height - 1, width, 1), green);
-        tcu: : clear(tcu : : getSubregion(errorMask.getAccess(), 0, 0, 1, height), green);
-        tcu: : clear(tcu : : getSubregion(errorMask.getAccess(), width - 1, 0, 1, height), green);
+        tcuTextureUtil.getSubregion(errorMask.getAccess(), 0, 0, 0, width, 1, 1).clear(green);
+        tcuTextureUtil.getSubregion(errorMask.getAccess(), 0, height - 1, 0, width, 1, 1).clear(green);
+        tcuTextureUtil.getSubregion(errorMask.getAccess(), 0, 0, 0, 1, height, 1).clear(green);
+        tcuTextureUtil.getSubregion(errorMask.getAccess(), width - 1, 0, 0, 1, height, 1).clear(green);
 
         // skip edge pixels since coverage on edge cannot be verified
 
-        for (int y = 1; y < height - 1; ++y)
-        for (int x = 1; x < width - 1; ++x) {
-            const tcu: : RGBA refPixel = reference.getPixel(x, y);
-            const tcu: : RGBA screenPixel = result.getPixel(x, y);
-            const bool isOkScreenPixel = pixelNeighborhoodContainsColor(reference, x, y, screenPixel, compareThreshold); // reference image has a matching pixel nearby (~= If something is drawn on screen, it must be drawn to reference too.)
-            const bool isOkReferencePixel = pixelNeighborhoodContainsColor(result, x, y, refPixel, compareThreshold); // screen image has a matching pixel nearby (~= If something is drawn on reference, it must be drawn to screen too.)
+        for (var y = 1; y < height - 1; ++y)
+        for (var x = 1; x < width - 1; ++x) {
+            /** @type {tcuRGBA.RGBA} */ var refPixel = reference.getPixel(x, y);
+            /** @type {tcuRGBA.RGBA} */ var screenPixel = result.getPixel(x, y);
+            /** @type {boolean} */ var isOkScreenPixel = glsDrawTests.pixelNeighborhoodContainsColor(reference, x, y, screenPixel, compareThreshold); // reference image has a matching pixel nearby (~= If something is drawn on screen, it must be drawn to reference too.)
+            /** @type {boolean} */ var isOkReferencePixel = glsDrawTests.pixelNeighborhoodContainsColor(result, x, y, refPixel, compareThreshold); // screen image has a matching pixel nearby (~= If something is drawn on reference, it must be drawn to screen too.)
+
+            /** @type {number} */ var grayscaleValue;
 
             if (isOkScreenPixel && isOkReferencePixel) {
                 // pixel valid, write greenish pixels to make the result image easier to read
-                const deUint32 grayscaleValue = getVisualizationGrayscaleColor(screenPixel);
-                errorMask.getAccess().setPixel(tcu : : UVec4(grayscaleValue, 255, grayscaleValue, 255), x, y);
-            } else if (!pixelNearLineIntersection(x, y, reference) &&
-                     !pixelNearLineIntersection(x, y, result)) {
+                grayscaleValue = glsDrawTests.getVisualizationGrayscaleColor(screenPixel);
+                errorMask.getAccess().setPixel([grayscaleValue, 255, grayscaleValue, 255], x, y);
+            } else if (!glsDrawTests.pixelNearLineIntersection(x, y, reference) &&
+                     !glsDrawTests.pixelNearLineIntersection(x, y, result)) {
                 // non-intersection pixel values must be within threshold of the reference values
                 errorMask.getAccess().setPixel(errorColor, x, y);
                 ++numFailingPixels;
-            } else{
+            } else {
                 // pixel is near a line intersection
                 // we are on/near an edge, verify only coverage (coverage == not background colored)
-                const bool referenceCoverage = !isBlack(refPixel);
-                const bool screenCoverage = !isBlack(screenPixel);
-                const bool isOkScreenCoverage = pixelNeighborhoodContainsCoverage(reference, x, y, screenCoverage); // Check screen pixels against reference pixel
-                const bool isOkReferenceCoverage = pixelNeighborhoodContainsCoverage(result, x, y, referenceCoverage); // Check reference pixel against screen pixel
+                /** @type {boolean} */ var referenceCoverage = !glsDrawTests.isBlack(refPixel);
+                /** @type {boolean} */ var screenCoverage = !glsDrawTests.isBlack(screenPixel);
+                /** @type {boolean} */ var isOkScreenCoverage = glsDrawTests.pixelNeighborhoodContainsCoverage(reference, x, y, screenCoverage); // Check screen pixels against reference pixel
+                /** @type {boolean} */ var isOkReferenceCoverage = glsDrawTests.pixelNeighborhoodContainsCoverage(result, x, y, referenceCoverage); // Check reference pixel against screen pixel
 
                 if (isOkScreenCoverage && isOkReferenceCoverage) {
                     // pixel valid, write greenish pixels to make the result image easier to read
-                    const deUint32 grayscaleValue = getVisualizationGrayscaleColor(screenPixel);
-                    errorMask.getAccess().setPixel(tcu : : UVec4(grayscaleValue, 255, grayscaleValue, 255), x, y);
-                } else{
+                    grayscaleValue = glsDrawTests.getVisualizationGrayscaleColor(screenPixel);
+                    errorMask.getAccess().setPixel([grayscaleValue, 255, grayscaleValue, 255], x, y);
+                } else {
                     // coverage does not match
                     errorMask.getAccess().setPixel(errorColor, x, y);
                     ++numFailingPixels;
@@ -3056,30 +3353,189 @@ goog.scope(function() {
             }
         }
 
-        log << TestLog: : Message <<
-            "'Comparing images:\n' <<
-            "'\tallowed deviation in pixel positions = 1\n' <<
-            "'\tnumber of allowed invalid pixels = ' << maxAllowedInvalidPixels << '\n' <<
-            "'\tnumber of invalid pixels = ' << numFailingPixels <<
-            TestLog: : EndMessage;
+        bufferedLogToConsole(
+            'Comparing images:</br>' +
+            '<span> </span>allowed deviation in pixel positions = 1</br>' +
+            '<span> </span>number of allowed invalid pixels = ' + maxAllowedInvalidPixels + '</br>' +
+            '<span> </span>number of invalid pixels = ' + numFailingPixels
+        );
 
         if (numFailingPixels > maxAllowedInvalidPixels) {
-            log << TestLog: : Message <<
-                "'Image comparison failed. Color threshold = (' << compareThreshold[0] << ', ' << compareThreshold[1] << ', ' << compareThreshold[2] << ')' <<
-                TestLog: : EndMessage <<
-                TestLog: : ImageSet(imageSetName, imageSetDesc) <<
-                TestLog: : Image('Result', 'Result', result) <<
-                TestLog: : Image('Reference', 'Reference', reference) <<
-                TestLog: : Image('ErrorMask', 'Error mask', errorMask) <<
-                TestLog: : EndImageSet;
+            debug('Image comparison failed. Color threshold = (' + compareThreshold[0] + ', ' + compareThreshold[1] + ', ' + compareThreshold[2] + ')');
+            tcuImageCompare.displayImages(result.getAccess(), reference.getAccess(), errorMask.getAccess());
 
             return false;
-        } else{
-            log << TestLog: : ImageSet(imageSetName, imageSetDesc) <<
-                TestLog: : Image('Result', 'Result', result) <<
-                TestLog: : EndImageSet;
+        } else {
+            tcuImageCompare.displayImages(result.getAccess(), null, null);
 
             return true;
         }
+    };
+
+    /**
+     * @param {?glsDrawTests.DrawTestSpec.Primitive} primitiveType
+     * @return {boolean}
+     */
+    glsDrawTests.DrawTest.prototype.compare = function (primitiveType) {
+        /** @type {tcuSurface.Surface} */ var ref = this.m_rrArrayPack.getSurface();
+        /** @type {tcuSurface.Surface} */ var screen = this.m_glArrayPack.getSurface();
+
+        /*if (this.m_renderCtx.getRenderTarget().getNumSamples() > 1) //TODO: Check where to get number of samples
+        {
+            // \todo [mika] Improve compare when using multisampling
+            m_testCtx.getLog() << tcu::TestLog::Message << "Warning: Comparision of result from multisample render targets are not as stricts as without multisampling. Might produce false positives!" << tcu::TestLog::EndMessage;
+            return tcu::fuzzyCompare(m_testCtx.getLog(), "Compare Results", "Compare Results", ref.getAccess(), screen.getAccess(), 0.3f, tcu::COMPARE_LOG_RESULT);
+        }*/
+        /*else
+        {*/
+        /** @type {glsDrawTests.PrimitiveClass} */ var primitiveClass = glsDrawTests.getDrawPrimitiveClass(primitiveType);
+
+            switch (primitiveClass) {
+                case glsDrawTests.PrimitiveClass.POINT: {
+                    // Point are extremely unlikely to have overlapping regions, don't allow any no extra / missing pixels
+                    /**@type {number} */ var maxAllowedInvalidPixelsWithPoints = 0;
+                    return tcuImageCompare.intThresholdPositionDeviationErrorThresholdCompare(
+                        "CompareResult",
+                        "Result of rendering",
+                        ref.getAccess(),
+                        screen.getAccess(),
+                        [this.m_maxDiffRed, this.m_maxDiffGreen, this.m_maxDiffBlue, 256],
+                        [1, 1, 0],                    //!< 3x3 search kernel
+                        true,                                //!< relax comparison on the image boundary
+                        maxAllowedInvalidPixelsWithPoints    //!< error threshold
+                    );
+                }
+
+                case glsDrawTests.PrimitiveClass.LINE: {
+                    // Lines can potentially have a large number of overlapping pixels. Pixel comparison may potentially produce
+                    // false negatives in such pixels if for example the pixel in question is overdrawn by another line in the
+                    // reference image but not in the resultin image. Relax comparison near line intersection points (areas) and
+                    // compare only coverage, not color, in such pixels
+                    /**@type {number} */ var maxAllowedInvalidPixelsWithLines = 5; // line are allowed to have a few bad pixels
+                    return glsDrawTests.intersectionRelaxedLineImageCompare(
+                        "CompareResult",
+                        "Result of rendering",
+                        ref,
+                        screen,
+                        [this.m_maxDiffRed, this.m_maxDiffGreen, this.m_maxDiffBlue],
+                        maxAllowedInvalidPixelsWithLines
+                    );
+                }
+
+                case glsDrawTests.PrimitiveClass.TRIANGLE: {
+                    // Triangles are likely to partially or fully overlap. Pixel difference comparison is fragile in pixels
+                    // where there could be potential overlapping since the  pixels might be covered by one triangle in the
+                    // reference image and by the other in the result image. Relax comparsion near primitive edges and
+                    // compare only coverage, not color, in such pixels.
+                    /** @type {number} */ var maxAllowedInvalidPixelsWithTriangles = 10;
+
+                    /* TODO: Implement
+                    var renderTargetThreshold = //TODO: get color threshold from the pixel format --> m_renderCtx.getRenderTarget().getPixelFormat().getColorThreshold().toIVec().xyz();
+                    */
+
+                    /** @type {Array<number>} */ var renderTargetThreshold = [3, 3, 3, 3];
+
+                    return glsDrawTests.edgeRelaxedImageCompare(
+                        "CompareResult",
+                        "Result of rendering",
+                        ref,
+                        screen,
+                        [this.m_maxDiffRed, this.m_maxDiffGreen, this.m_maxDiffBlue],
+                        renderTargetThreshold,
+                        maxAllowedInvalidPixelsWithTriangles
+                    );
+                }
+
+                default:
+                    throw new Error('Invalid primitive class');
+            }
+        /*}*/
+    };
+
+    /**
+     * @param {glsDrawTests.DrawTestSpec} spec
+     * @return {number}
+     */
+    glsDrawTests.DrawTest.prototype.getCoordScale = function (spec) {
+        var maxValue = 1.0;
+
+        for (var arrayNdx = 0; arrayNdx < spec.attribs.length; arrayNdx++)
+        {
+            /** @type {glsDrawTests.DrawTestSpec.AttributeSpec} */ var attribSpec = spec.attribs[arrayNdx];
+            /** @type {boolean} */ var isPositionAttr = (arrayNdx == 0) || (attribSpec.additionalPositionAttribute);
+            /** @type {number} */ var attrMaxValue = 0;
+
+            if (!isPositionAttr)
+                continue;
+
+            if (attribSpec.inputType == glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT_2_10_10_10)
+            {
+                if (attribSpec.normalize)
+                    attrMaxValue += 1.0;
+                else
+                    attrMaxValue += 1024.0;
+            }
+            else if (attribSpec.inputType == glsDrawTests.DrawTestSpec.InputType.INT_2_10_10_10)
+            {
+                if (attribSpec.normalize)
+                    attrMaxValue += 1.0;
+                else
+                    attrMaxValue += 512.0;
+            }
+            else
+            {
+                var max = glsDrawTests.GLValue.getMaxValue(attribSpec.inputType).getValue();
+
+                attrMaxValue += (attribSpec.normalize && !glsDrawTests.inputTypeIsFloatType(attribSpec.inputType)) ? (1.0) : (max * 1.1);
+            }
+
+            if (attribSpec.outputType == glsDrawTests.DrawTestSpec.OutputType.VEC3 || attribSpec.outputType == glsDrawTests.DrawTestSpec.OutputType.VEC4
+                || attribSpec.outputType == glsDrawTests.DrawTestSpec.OutputType.IVEC3 || attribSpec.outputType == glsDrawTests.DrawTestSpec.OutputType.IVEC4
+                || attribSpec.outputType == glsDrawTests.DrawTestSpec.OutputType.UVEC3 || attribSpec.outputType == glsDrawTests.DrawTestSpec.OutputType.UVEC4)
+                    attrMaxValue *= 2;
+
+            maxValue += attrMaxValue;
+        }
+
+        return 1.0 / maxValue;
+    };
+
+    /**
+     * @param {glsDrawTests.DrawTestSpec} spec
+     * @return {number}
+     */
+    glsDrawTests.DrawTest.prototype.getColorScale = function (spec) {
+        var colorScale = 1.0;
+
+        for (var arrayNdx = 1; arrayNdx < spec.attribs.length; arrayNdx++) {
+            /** @type {glsDrawTests.DrawTestSpec.AttributeSpec} */ var attribSpec = spec.attribs[arrayNdx];
+            /** @type {boolean} */ var isPositionAttr = (arrayNdx == 0) || (attribSpec.additionalPositionAttribute);
+
+            if (isPositionAttr)
+                continue;
+
+            if (attribSpec.inputType == glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT_2_10_10_10)
+            {
+                if (!attribSpec.normalize)
+                    colorScale *= 1.0 / 1024.0;
+            }
+            else if (attribSpec.inputType == glsDrawTests.DrawTestSpec.InputType.INT_2_10_10_10)
+            {
+                if (!attribSpec.normalize)
+                    colorScale *= 1.0 / 512.0;
+            }
+            else
+            {
+                var max = glsDrawTests.GLValue.getMaxValue(attribSpec.inputType).toFloat();
+
+                colorScale *= (attribSpec.normalize && !glsDrawTests.inputTypeIsFloatType(attribSpec.inputType) ? 1.0 : (1.0 / max));
+                if (attribSpec.outputType == glsDrawTests.DrawTestSpec.OutputType.VEC4 ||
+                    attribSpec.outputType == glsDrawTests.DrawTestSpec.OutputType.UVEC4 ||
+                    attribSpec.outputType == glsDrawTests.DrawTestSpec.OutputType.IVEC4)
+                    colorScale *= (attribSpec.normalize && !glsDrawTests.inputTypeIsFloatType(attribSpec.inputType) ? 1.0 : 1.0 / max);
+            }
+        }
+
+        return colorScale;
     };
 });
