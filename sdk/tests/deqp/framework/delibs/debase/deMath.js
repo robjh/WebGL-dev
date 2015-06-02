@@ -242,7 +242,7 @@ deMath.absDiff = function(a, b) {
 deMath.abs = function(a) {
     var dst = [];
     for (var i = 0; i < a.length; i++)
-        dst.push(Math.abs(a[i]);
+        dst.push(Math.abs(a[i]));
     return dst;
 };
 
