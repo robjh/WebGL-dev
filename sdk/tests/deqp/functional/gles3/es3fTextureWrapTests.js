@@ -149,7 +149,7 @@ goog.scope(function() {
                 for (var i = 0; i < dataSize; i++)
                     data[i] = rnd.getFloat() & 0xff;
 
-                this.m_texture = gluTexture.texture2DFromCompressedTexture(gl, 1, compressedTexture);
+                this.m_texture = gluTexture.texture2DFromCompressedTexture(gl, 1, [compressedTexture]);
             }
             else
                 throw new Error('Only ETC2 and EAC are supported.');
@@ -243,7 +243,7 @@ goog.scope(function() {
         /** @type {boolean} */ var isOk = glsTextureTestUtil.verifyTexture2DResult(renderedFrame.getAccess(), this.m_texture.getRefTexture(), texCoord, refParams, lookupPrecision, lodPrecision, pixelFormat);
 
         if (!isOk)
-            assertMsgOptions(isOk, '', true, false);
+            assertMsgOptions(isOk, 'verifyTexture2DResult is false', true, false);
 
         this.m_caseNdx++;
         return this.m_caseNdx < this.m_cases.length ? tcuTestCase.IterateResult.CONTINUE : tcuTestCase.IterateResult.STOP;
