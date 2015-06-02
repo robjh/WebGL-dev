@@ -2374,7 +2374,10 @@ tcuTexture.TextureCubeView.prototype.getNumLevels = function() { return this.m_n
  * @param {tcuTexture.CubeFace} face
  * @return {tcuTexture.ConstPixelBufferAccess}
  */
-tcuTexture.TextureCubeView.prototype.getLevelFace = function(ndx, face) { return this.m_levels[face][ndx]; };
+tcuTexture.TextureCubeView.prototype.getLevelFace = function(ndx, face) {
+    assertMsgOptions(0 <= ndx && ndx < this.m_numLevels, '', false, true);
+    return this.m_levels[face][ndx];
+};
 
 /**
  * @param {number} baseLevel

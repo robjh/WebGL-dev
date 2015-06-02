@@ -72,6 +72,29 @@ tcuTextureUtil.linearChannelToSRGB = function(cl) {
         return 1.0;
 };
 
+/**
+ * Convert sRGB to linear colorspace
+ * @param  {Array<number>} cs
+ * @return {Array<number>}
+ */
+tcuTextureUtil.sRGBToLinear = function(cs) {
+	return [tcuTextureUtil.sRGBChannelToLinear(cs[0]),
+            tcuTextureUtil.sRGBChannelToLinear(cs[1]),
+            tcuTextureUtil.sRGBChannelToLinear(cs[2]),
+			cs[3]];
+};
+
+/**
+ * @param  {number} cs
+ * @return {number}
+ */
+ tcuTextureUtil.sRGBChannelToLinear = function(cs) {
+	if (cs <= 0.04045)
+		return cs / 12.92;
+	else
+		return Math.pow((cs + 0.055) / 1.055, 2.4);
+}
+
 /** tcuTextureUtil.linearToSRGB
  * @param {Array<number>} cl
  * @return {Array<number>}

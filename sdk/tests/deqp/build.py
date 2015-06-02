@@ -68,7 +68,8 @@ targets = {
     'lifetime': 'functional.gles3.es3fLifetimeTests',
     'draw': 'modules.shared.glsDrawTests',
     'attriblocation': 'functional.gles3.es3fAttribLocationTests',
-    'cmp': 'framework.common.tcuTexCompareVerifier'
+    'cmp': 'framework.common.tcuTexCompareVerifier',
+    'texturewrap': 'functional.gles3.es3fTextureWrapTests'
 }
 
 total_errors = 0
