@@ -228,8 +228,7 @@ goog.scope(function() {
      * @return {number}
      */
     tcuTexVerifierUtil.imod = function(a, b) {
-        var m = a % b;
-        return m < 0 ? m + b : m;
+        return deMath.imod(a, b);
     };
 
     /**
@@ -237,7 +236,7 @@ goog.scope(function() {
      * @return {number}
      */
     tcuTexVerifierUtil.mirror = function (a) {
-        return a >= 0.0 ? a : -(1 + a);
+        return deMath.mirror(a);
     };
 
     /**
@@ -255,11 +254,11 @@ goog.scope(function() {
 
             case tcuTexture.WrapMode.REPEAT_GL:
             case tcuTexture.WrapMode.REPEAT_CL:
-                return tcuTexVerifierUtil.imod(c, size);
+                return deMath.imod(c, size);
 
             case tcuTexture.WrapMode.MIRRORED_REPEAT_GL:
             case tcuTexture.WrapMode.MIRRORED_REPEAT_CL:
-                return (size - 1) - tcuTexVerifierUtil.mirror(tcuTexVerifierUtil.imod(c, 2 * size) - size);
+                return (size - 1) - deMath.mirror(deMath.imod(c, 2 * size) - size);
 
             default:
                 throw new Error("Wrap mode not supported.");

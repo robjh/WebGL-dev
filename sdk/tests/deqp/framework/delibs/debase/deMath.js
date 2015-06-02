@@ -77,6 +77,8 @@ deMath.deAlign32 = function(val, align) {
     return ((val + align - 1) & ~(align - 1)) & 0xFFFFFFFF; //0xFFFFFFFF make sure it returns a 32 bit calculation in 64 bit browsers.
 };
 
+
+
 /**
  * Compute the bit population count of an integer.
  * @param {number} a
@@ -229,6 +231,18 @@ deMath.absDiff = function(a, b) {
     var dst = [];
     for (var i = 0; i < a.length; i++)
         dst.push(Math.abs(a[i] - b[i]));
+    return dst;
+};
+
+/**
+ * Calculate absolute value of a vector
+ * @param {goog.NumberArray} a
+ * @return {Array<number>} abs(a)
+ */
+deMath.abs = function(a) {
+    var dst = [];
+    for (var i = 0; i < a.length; i++)
+        dst.push(Math.abs(a[i]);
     return dst;
 };
 
@@ -706,6 +720,19 @@ deMath.greaterThanEqual = function(a, b) {
     for (var i = 0; i < a.length; i++)
         result.push(a[i] >= b[i]);
     return result;
+};
+
+/**
+ * Array of float to array of int (0, 255)
+ * @param {Array<number>} a
+ * @return {Array<number>}
+ */
+
+deMath.toIVec = function(a) {
+    /** @type {Array<number>} */ var res = [];
+    for (var i = 0; i < a.length; i++)
+        res.push(Math.floor(a[i] * 255));
+    return res;
 };
 
 });
