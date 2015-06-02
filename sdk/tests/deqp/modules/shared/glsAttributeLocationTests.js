@@ -34,27 +34,23 @@ goog.scope(function() {
 	var gluShaderUtil = framework.opengl.gluShaderUtil;
 	var tcuStringTemplate = framework.common.tcuStringTemplate;
 
-	var DE_ASSERT = function(x) {
-        if (!x)
-            throw new Error('Assert failed');
-    };
-
-    /**
-     * @param{Array<number>} bindings
-     * @param{string} attrib
-     * @return {number}
-     */
-    glsAttributeLocationTests.getBoundLocation = function(bindings, attrib) {
+  /**
+   * @param{Array<number>} bindings
+   * @param{string} attrib
+   * @return {number}
+   */
+  glsAttributeLocationTests.getBoundLocation = function(bindings, attrib) {
 		/** @type{number} */ var value;
 		/** @type{number} */ var i;
-		for (i = 0; i < glsAttributeLocationTests.size(bindings); i++) {
+		/** @type{number} */ var size = glsAttributeLocationTests.size(bindings);
+		for (i = 0; i < size; i++) {
 			if (bindings[attrib]) {
 				value = bindings[attrib];
 				break;
 			}
 		}
 		return (value ? value : glsAttributeLocationTests.LocationEnum.UNDEF);
-	}
+	};
 
 	/**
 	 * @param{Array<*>} arr
@@ -74,7 +70,7 @@ goog.scope(function() {
 		}
 
 		return arr;
-	}
+	};
 
 	/**
  	 * @param{*} obj
@@ -87,7 +83,7 @@ goog.scope(function() {
         if (obj.hasOwnProperty(key)) size++;
     }
     return size;
-	}
+	};
 
 	/**
  	 * @param{Array} arr
@@ -102,7 +98,7 @@ goog.scope(function() {
        }
     }
     return false;
-}
+	};
 
 	/**
 	 * @param{Array<glsAttributeLocationTests.Attribute>} attributes
@@ -133,19 +129,16 @@ goog.scope(function() {
 		}
 
 		return false;
-	}
+	};
 
 	/**
 	 * @return {number}
 	 */
 	glsAttributeLocationTests.getMaxAttributeLocations = function() {
 		/** @type{number} */ var maxAttribs;
-
 		maxAttribs = /** @type{number} */  (gl.getParameter(gl.MAX_VERTEX_ATTRIBS));
-		// GLU_EXPECT_NO_ERROR(gl.getError(), "glGetIntegerv()");
-
 		return maxAttribs;
-	}
+	};
 
 	/**
 	 * @param{Array<glsAttributeLocationTests.Attribute>} attributes
@@ -168,7 +161,7 @@ goog.scope(function() {
 		}
 
 		return src;
-	}
+	};
 
 	/**
 	 * @param{Array<glsAttributeLocationTests.Attribute>} attributes
@@ -189,7 +182,7 @@ goog.scope(function() {
 			src += ('uniform mediump float u_' + conditions[i] + ';\n');
 
 		return src;
-	}
+	};
 
 	/**
 	 * @param{glsAttributeLocationTests.Attribute} attrib
@@ -222,7 +215,7 @@ goog.scope(function() {
 		}
 
 		return src;
-	}
+	};
 
 	/**
 	 * @param{Array<glsAttributeLocationTests.Attribute>} attributes
@@ -269,7 +262,7 @@ goog.scope(function() {
 		}
 
 		return src;
-	}
+	};
 
 
 	/**
@@ -300,7 +293,7 @@ goog.scope(function() {
 		src += '}\n';
 
 		return src;
-	}
+	};
 
 	/**
 	 * @param{Array<glsAttributeLocationTests.Attribute>} attributes
@@ -333,7 +326,7 @@ goog.scope(function() {
             throw new Error('Invalid GL version');
 
 		return tcuStringTemplate.specialize(vertexShaderTemplate, parameters);
-	}
+	};
 
 	/**
 	 * @param{boolean} attributeAliasing
@@ -372,132 +365,52 @@ goog.scope(function() {
 			throw new Error('Invalid GL version');
 
 		return tcuStringTemplate.specialize(fragmentShaderSource, parameters);
-	}
+	};
 
-/*
-TODO: some of this code is alredy implemented in other files. I'll check which method I
-can reuse.
-string getShaderInfoLog (const glw::Functions& gl, deUint32 shader)
-{
-	deInt32	length = 0;
-	string	infoLog;
+	glsAttributeLocationTests.logProgram = function(program) {
+		/**@type{boolean} */ var programLinkOk	= /** @type{boolean} */ (gl.getProgramParameter(program, gl.LINK_STATUS));
+		/**@type{string} */ var programInfoLog	= gl.getProgramInfoLog(program);
+		/**@type{string} */ var log = 'Program Link Info: ' + programInfoLog;
+		log += ('Link result: ' + (programLinkOk ? 'Ok' : 'Fail'));
+		bufferedLogToConsole(log);
+	};
 
-	gl.getShaderiv(shader, gl.INFO_LOG_LENGTH, &length);
-	GLU_EXPECT_NO_ERROR(gl.getError(), "glGetShaderiv()");
-
-	infoLog.resize(length, '\0');
-
-	gl.getShaderInfoLog(shader, (glw::GLsizei)infoLog.length(), null, &(infoLog[0]));
-	GLU_EXPECT_NO_ERROR(gl.getError(), "glGetShaderInfoLog()");
-
-	return infoLog;
-}
-
-bool getShaderCompileStatus (const glw::Functions& gl, deUint32 shader)
-{
-	deInt32 status;
-
-	gl.getShaderiv(shader, gl.COMPILE_STATUS, &status);
-	GLU_EXPECT_NO_ERROR(gl.getError(), "glGetShaderiv()");
-
-	return status == gl.TRUE;
-}
-
-string getProgramInfoLog (const glw::Functions& gl, deUint32 program)
-{
-	deInt32	length = 0;
-	string	infoLog;
-
-	gl.getProgramiv(program, gl.INFO_LOG_LENGTH, &length);
-	GLU_EXPECT_NO_ERROR(gl.getError(), "glGetProgramiv()");
-
-	infoLog.resize(length, '\0');
-
-	gl.getProgramInfoLog(program, (glw::GLsizei)infoLog.length(), null, &(infoLog[0]));
-	GLU_EXPECT_NO_ERROR(gl.getError(), "glGetProgramInfoLog()");
-
-	return infoLog;
-}
-
-bool getProgramLinkStatus (const glw::Functions& gl, deUint32 program)
-{
-	deInt32 status;
-
-	gl.getProgramiv(program, gl.LINK_STATUS, &status);
-	GLU_EXPECT_NO_ERROR(gl.getError(), "glGetProgramiv()");
-
-	return status == gl.TRUE;
-}
-
-void logProgram (TestLog& log, const glw::Functions& gl, deUint32 program)
-{
-	const bool				programLinkOk	= getProgramLinkStatus(gl, program);
-	const string			programInfoLog	= getProgramInfoLog(gl, program);
-	tcu::ScopedLogSection	linkInfo		(log, "Program Link Info", "Program Link Info");
-
-	{
-		tcu::ScopedLogSection infoLogSection(log, "Info Log", "Info Log");
-
-		log << TestLog::Message << programInfoLog << TestLog::EndMessage;
-	}
-
-	log << TestLog::Message << "Link result: " << (programLinkOk ? "Ok" : "Fail") << TestLog::EndMessage;
-}
-
-void logShaders (TestLog&		log,
-				const string&	vertexShaderSource,
-				const string&	vertexShaderInfoLog,
-				bool			vertexCompileOk,
-				const string&	fragmentShaderSource,
-				const string&	fragmentShaderInfoLog,
-				bool			fragmentCompileOk)
-{
-	// \todo [mika] Log as real shader elements. Currently not supported by TestLog.
-	{
-		tcu::ScopedLogSection shaderSection(log, "Vertex Shader Info", "Vertex Shader Info");
-
-		log << TestLog::KernelSource(vertexShaderSource);
-
-		{
-			tcu::ScopedLogSection infoLogSection(log, "Info Log", "Info Log");
-
-			log << TestLog::Message << vertexShaderInfoLog << TestLog::EndMessage;
+	glsAttributeLocationTests.logAttributes = function(attributes) {
+		/**@type{number} */ var i;
+		/**@type{string} */ var log;
+		for (i = 0; i < attributes.length; i++) {
+			log = 'Type: ' + attributes[i].getType().getName();
+			log += (', Name: ' + attributes[i].getName());
+			log += (attributes[i].getLayoutLocation()	!= glsAttributeLocationTests.LocationEnum.UNDEF ? ', Layout location '	+ attributes[i].getLayoutLocation() : '');
+			bufferedLogToConsole(log);
 		}
+	};
 
-		log << TestLog::Message << "Compilation result: " << (vertexCompileOk ? "Ok" : "Failed") << TestLog::EndMessage;
-	}
+	/**
+	 * @param {string} vertexShaderSource
+	 * @param {string} vertexShaderInfoLog
+	 * @param {boolean} vertexCompileOk
+	 * @param {string} fragmentShaderSource
+	 * @param {string} fragmentShaderInfoLog
+	 * @param {boolean} fragmentCompileOk
+	 */
+	glsAttributeLocationTests.logShaders = function(vertexShaderSource, vertexShaderInfoLog, vertexCompileOk,	fragmentShaderSource,	fragmentShaderInfoLog,fragmentCompileOk) 	{
 
-	{
-		tcu::ScopedLogSection shaderSection(log, "Fragment Shader Info", "Fragment Shader Info");
+			/**@type{string} */ var log;
+			log = '\nVertex Shader Info: ';
+			log += vertexShaderSource;
+			log += '\nInfo Log: ';
+			log += vertexShaderInfoLog;
+			log += '\nCompilation result: ' + (vertexCompileOk ? "Ok" : "Failed");
 
-		log << TestLog::KernelSource(fragmentShaderSource);
+			log = '\nFragment Shader Info: ';
+			log += fragmentShaderSource;
+			log += '\nInfo Log: ';
+			log += fragmentShaderInfoLog;
+			log += '\nCompilation result: ' + (fragmentCompileOk ? "Ok" : "Failed");
 
-		{
-			tcu::ScopedLogSection infoLogSection(log, "Info Log", "Info Log");
-
-			log << TestLog::Message << fragmentShaderInfoLog << TestLog::EndMessage;
-		}
-
-		log << TestLog::Message << "Compilation result: " << (fragmentCompileOk ? "Ok" : "Failed") << TestLog::EndMessage;
-	}
-}
-
-
-void logAttributes (TestLog& log, const vector<Attribute>& attributes)
-{
-	for (int attribNdx = 0; attribNdx < (int)attributes.size(); attribNdx++)
-	{
-		const Attribute& attrib = attributes[attribNdx];
-
-		log << TestLog::Message
-			<< "Type: " << attrib.getType().getName()
-			<< ", Name: " << attrib.getName()
-			<< (attrib.getLayoutLocation()	!= 'glsAttributeLocationTests.LocationEnum.UNDEF ? ", Layout location "	+ de::toString(attrib.getLayoutLocation()) : "")
-			<< TestLog::EndMessage;
-	}
-}
-
-	*/
+			bufferedLogToConsole(log);
+	};
 
 	/**
 	 * @param {WebGLProgram} program
@@ -509,14 +422,9 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 		/** @type {Array<string>} */ var activeAttributes = [];
 		/** @type {boolean} */ var isOk = true;
 		/** @type {number} */ var activeAttribNdx;
+		/** @type {string} */ var log;
 
 		activeAttribCount = /** @type {number} */  (gl.getProgramParameter(program, gl.ACTIVE_ATTRIBUTES));
-
-		/** @type {string} */ var name;
-		/** @type {number} */ var maxNameSize;
-		/** @type {number} */ var length;
-		/** @type {number} */ var size;
-		/** @type {number} */ var type;
 
 		/** @type {number} */ var attribNdx;
 		/** @type {glsAttributeLocationTests.Attribute} */ var attrib;
@@ -525,26 +433,17 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 
 		for (activeAttribNdx = 0; activeAttribNdx < activeAttribCount; activeAttribNdx++)	{
 
-			maxNameSize = 127;
-			length = 0;
-			size = 0;
-			type = 0;
-
-			// std::memset(name, 0, sizeof(name));
-
 			activeInfo = gl.getActiveAttrib(program, activeAttribNdx);
-			// GLU_EXPECT_NO_ERROR(gl.getError(), "glGetActiveAttrib()");
 
-			// log << TestLog::Message
-			// 	<< "glGetActiveAttrib(program"
-			// 	<< ", index=" << activeAttribNdx
-			// 	<< ", bufSize=" << maxNameSize
-			// 	<< ", length=" << length
-			// 	<< ", size=" << size
-			// 	<< ", type=" << glu::getShaderVarTypeStr(type)
-			// 	<< ", name='" << name << "')" << TestLog::EndMessage;
+			log = 'glGetActiveAttrib(program';
+			log += ('\nindex= ' + activeAttribNdx);
+			log += ('\nsize= ' + activeInfo.size);
+			log += ('\ntype= ' + activeInfo.type);
+			log += ('\nname= ' + activeInfo.name);
 
-			{
+			bufferedLogToConsole(log);
+
+
 				/** @type{boolean} */ var found = false;
 
 				for (attribNdx = 0; attribNdx < attributes.length; attribNdx++)	{
@@ -552,22 +451,24 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 
 					if (attrib.getName() == activeInfo.name)	{
 						if (activeInfo.type != attrib.getType().getGLTypeEnum())	{
-							// log << TestLog::Message
-							// 	<< "Error: Wrong type " << glu::getShaderVarTypeStr(type)
-							// 	<< " expected " << glu::getShaderVarTypeStr(attrib.getType().getGLTypeEnum())
-							// 	<< TestLog::EndMessage;
+
+							log = 'Error: Wrong type ' + attrib.getType().getGLTypeEnum();
+							log += (' expected= ' + activeInfo.type);
+							bufferedLogToConsole(log);
 
 							isOk = false;
 						}
 
 						if (attrib.getArraySize() == glsAttributeLocationTests.ArrayEnum.NOT)	{
 							if (activeInfo.size != 1) {
-								// log << TestLog::Message << "Error: Wrong size " << size << " expected " << 1 << TestLog::EndMessage;
+
+								bufferedLogToConsole('Error: Wrong size ' + activeInfo.size + ' expected 1');
 								isOk = false;
 							}
 						} else {
 							if (activeInfo.size != attrib.getArraySize()) {
-								// log << TestLog::Message << "Error: Wrong size " << size << " expected " << attrib.getArraySize() << TestLog::EndMessage;
+								bufferedLogToConsole('Error: Wrong size ' + activeInfo.size + ' expected '+ attrib.getArraySize());
+
 								isOk = false;
 							}
 						}
@@ -578,10 +479,13 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 				}
 
 				if (!found)	{
-					// log << TestLog::Message << "Error: Unknown attribute '" << name << "' returned by glGetActiveAttrib()." << TestLog::EndMessage;
+					log = 'Error: Unknown attribute  ' + activeInfo.name;
+					log += ' returned= by glGetActiveAttrib().';
+					bufferedLogToConsole(log);
+
 					isOk = false;
 				}
-			}
+
 
 			activeAttributes.push(activeInfo.name);
 		}
@@ -592,14 +496,15 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 
 			if (isActive) {
 				if (!glsAttributeLocationTests.contains(activeAttributes,attrib.getName())) {
-					// log << TestLog::Message << "Error: Active attribute " << attrib.getName() << " wasn't returned by glGetActiveAttrib()." << TestLog::EndMessage;
+
+					bufferedLogToConsole('Error: Active attribute ' + attrib.getName() + 'wasn\'t returned by glGetActiveAttrib().');
 					isOk = false;
 				}
-			}
-			// else {
-				// if (activeAttributes.find(attrib.getName()) != activeAttributes.end())
+			} else {
+				if (activeAttributes[attrib.getName()] === undefined)
+					bufferedLogToConsole('Note: Inactive attribute ' + attrib.getName() + 'was returned by glGetActiveAttrib().');
 					// log << TestLog::Message << "Note: Inactive attribute " << attrib.getName() << " was returned by glGetActiveAttrib()." << TestLog::EndMessage;
-			// }
+			}
 		}
 
 		return isOk;
@@ -614,31 +519,24 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 	glsAttributeLocationTests.checkAttribLocationQuery = function(program, attributes, bindings) {
 		/** @type{boolean} */ var isOk = true;
 		/** @type{number} */ var attribNdx;
+		/** @type{string} */ var log;
 
 		for (attribNdx = 0; attribNdx < attributes.length; attribNdx++) {
 			/** @type{glsAttributeLocationTests.Attribute} */ var attrib = attributes[attribNdx];
 			/** @type{number} */ var expectedLocation	= (attrib.getLayoutLocation() != glsAttributeLocationTests.LocationEnum.UNDEF ? attrib.getLayoutLocation() : glsAttributeLocationTests.getBoundLocation(bindings, attrib.getName()));
 			/** @type{number} */ var location = /** @type{number} */ (gl.getAttribLocation(program, attrib.getName()));
 
-			//GLU_EXPECT_NO_ERROR(gl.getError(), "glGetAttribLocation()");
+			if (attrib.getCondition().equals(glsAttributeLocationTests.NewCondWithEnum(glsAttributeLocationTests.ConstCond.NEVER)) && location != -1)
+				bufferedLogToConsole('Note: Inactive attribute with location.');
 
-			// log << TestLog::Message
-			// 	<< location << " = glGetAttribLocation(program, \"" << attrib.getName() << "\")"
-			// 	<< (attrib.getCondition() != glsAttributeLocationTests.ConstCond.NEVER && expectedLocation != 'glsAttributeLocationTests.LocationEnum.UNDEF ? ", expected " + de::toString(expectedLocation) : "")
-			// 	<< "." << TestLog::EndMessage;
+			if (attrib.getCondition().notEquals(glsAttributeLocationTests.NewCondWithEnum(glsAttributeLocationTests.ConstCond.NEVER)) && expectedLocation != glsAttributeLocationTests.LocationEnum.UNDEF && expectedLocation != location)
+			bufferedLogToConsole('Error: Invalid attribute location.');
 
-			// if (attrib.getCondition() == glsAttributeLocationTests.ConstCond.NEVER && location != -1)
-			// 	log << TestLog::Message << "\tNote: Inactive attribute with location." << TestLog::EndMessage;
-			//
-			// if (attrib.getCondition() != glsAttributeLocationTests.ConstCond.NEVER && expectedLocation != glsAttributeLocationTests.LocationEnum.UNDEF && expectedLocation != location)
-			// 	log << TestLog::Message << "\tError: Invalid attribute location." << TestLog::EndMessage;
-
-			// &=
 			isOk = (attrib.getCondition().equals(glsAttributeLocationTests.NewCondWithEnum(glsAttributeLocationTests.ConstCond.NEVER)) || expectedLocation == glsAttributeLocationTests.LocationEnum.UNDEF || expectedLocation == location);
 		}
 
 		return isOk;
-	}
+	};
 
 	/**
 	 * @param {WebGLProgram} program
@@ -653,7 +551,7 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 			isOk = false;
 
 		return isOk;
-	}
+	};
 
 	/**
 	 * @param {WebGLProgram} program
@@ -670,38 +568,27 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 
 		try
 		{
- 			//GLU_EXPECT_NO_ERROR(gl.getError(), "glCreateShader()");
 
-			{
-
- 				gl.shaderSource(vertexShader, vertexShaderSource);
- 				gl.shaderSource(fragmentShader, fragmentShaderSource);
-
- 				//GLU_EXPECT_NO_ERROR(gl.getError(), "glShaderSource()");
-			}
+			gl.shaderSource(vertexShader, vertexShaderSource);
+ 			gl.shaderSource(fragmentShader, fragmentShaderSource);
 
 			gl.compileShader(vertexShader);
 			gl.compileShader(fragmentShader);
-			//GLU_EXPECT_NO_ERROR(gl.getError(), "glCompileShader()");
 
 			gl.attachShader(program, vertexShader);
 			gl.attachShader(program, fragmentShader);
-			//GLU_EXPECT_NO_ERROR(gl.getError(), "glAttachShader()");
 
-			/*
-			{
-				const bool		vertexCompileOk			= getShaderCompileStatus(gl, vertexShader);
-				const bool		fragmentCompileOk		= getShaderCompileStatus(gl, fragmentShader);
+			/** @type{boolean} */ var vertexShaderCompileOk = /** @type{boolean} */ (gl.getShaderParameter(vertexShader,gl.COMPILE_STATUS));
+			/** @type{boolean} */ var fragmentShaderCompileOk = /** @type{boolean} */ (gl.getShaderParameter(fragmentShader,gl.COMPILE_STATUS));
 
-				const string	vertexShaderInfoLog		= getShaderInfoLog(gl, vertexShader);
-				const string	fragmentShaderInfoLog	= getShaderInfoLog(gl, fragmentShader);
+			assertMsgOptions(vertexShaderCompileOk, 'vertexShader compile failed', false, true);
+			assertMsgOptions(fragmentShaderCompileOk, 'fragmentShader compile failed', false, true);
 
-				logShaders(log, vertexShaderSource, vertexShaderInfoLog, vertexCompileOk, fragmentShaderSource, fragmentShaderInfoLog, fragmentCompileOk);
-
-				TCU_CHECK_MSG(vertexCompileOk, "Vertex shader compilation failed");
-				TCU_CHECK_MSG(fragmentCompileOk, "Fragment shader compilation failed");
-			}
-			*/
+			// log shaders
+			glsAttributeLocationTests.logShaders(vertexShaderSource, gl.getShaderInfoLog(vertexShader),
+			vertexShaderCompileOk,
+					fragmentShaderSource, gl.getShaderInfoLog(fragmentShader),
+					fragmentShaderCompileOk);
 
 			gl.deleteShader(vertexShader);
 			gl.deleteShader(fragmentShader);
@@ -718,7 +605,7 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 
 			throw e;
 		}
-	}
+	};
 
 
 	/**
@@ -727,12 +614,10 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 	 */
 	glsAttributeLocationTests.bindAttributes = function(program, binds) {
 		for (var i = 0; i < binds.length; i++) {
-			//log << TestLog::Message << "Bind attribute: '" << iter->getAttributeName() << "' to " << iter->getLocation() << TestLog::EndMessage;
+			bufferedLogToConsole('Bind attribute: ' + binds[i].getAttributeName() + ' to ' + binds[i].getLocation());
 			gl.bindAttribLocation(program, binds[i].getLocation(), binds[i].getAttributeName());
-			//GLU_EXPECT_NO_ERROR(gl.getError(), "glBindAttribLocation()");
 		}
-	}
-
+	};
 
 	/**
 	 * @param {glsAttributeLocationTests.AttribType} type
@@ -741,7 +626,7 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 	 */
 	glsAttributeLocationTests.generateTestName = function(type, arraySize) {
 		return type.getName() + (arraySize != glsAttributeLocationTests.ArrayEnum.NOT ? "_array_" + arraySize : "");
-	}
+	};
 
 
 	/**
@@ -803,9 +688,6 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 		var condObj = new glsAttributeLocationTests.Cond('',false);
 		condObj.m_name = '__always__';
 		condObj.m_negate = (cond != glsAttributeLocationTests.ConstCond.NEVER);
-
-		DE_ASSERT(cond == glsAttributeLocationTests.ConstCond.ALWAYS
-			|| cond == glsAttributeLocationTests.ConstCond.NEVER);
 
 		return condObj;
 	};
@@ -956,10 +838,7 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 			for (bindNdx = 0; bindNdx < preLinkBind.length; bindNdx++)
 				activeBindings[preLinkBind[bindNdx].getAttributeName()] = preLinkBind[bindNdx].getLocation();
 
-			//{
-				//tcu::ScopedLogSection section(log, "Attributes", "Attribute information");
-				// logAttributes(testCtx.getLog(), attributes);
-			//}
+			glsAttributeLocationTests.logAttributes(attributes);
 
 			/** @type{WebGLProgram} */ var program = gl.createProgram();
 
@@ -973,7 +852,9 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 
 				gl.linkProgram(program);
 
-			//logProgram(log, gl, program);
+				assertMsgOptions(gl.getProgramParameter(program, gl.LINK_STATUS) == true, 'link program failed', false, true);
+
+				glsAttributeLocationTests.logProgram(program);
 
 			if (!glsAttributeLocationTests.checkQuery(program, attributes, activeBindings))
 				isOk = false;
@@ -988,7 +869,9 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 			if (relink) {
 				gl.linkProgram(program);
 
-				//logProgram(log, gl, program);
+				assertMsgOptions(gl.getProgramParameter(program, gl.LINK_STATUS) == true, 'link program failed', false, true);
+
+				glsAttributeLocationTests.logProgram(program);
 
 				for (bindNdx = 0; bindNdx < postLinkBind.length; bindNdx++)
 					activeBindings[postLinkBind[bindNdx].getAttributeName()] = postLinkBind[bindNdx].getLocation();
@@ -1005,7 +888,9 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 
 				gl.linkProgram(program);
 
-				//logProgram(log, gl, program);
+				assertMsgOptions(gl.getProgramParameter(program, gl.LINK_STATUS) == true, 'link program failed', false, true);
+
+				glsAttributeLocationTests.logProgram(program);
 
 				if (!glsAttributeLocationTests.checkQuery(program, reattachAttributes, activeBindings))
 					isOk = false;
@@ -1075,7 +960,7 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 		/** @type{Array<glsAttributeLocationTests.Bind>} */ var bindings = [];
 		/** @type{number} */ var ndx = 0;
 
-		////this.m_testCtx.getLog() << TestLog::Message << 'gl.MAX_VERTEX_ATTRIBS: ' << maxAttributes << TestLog::EndMessage;
+		bufferedLogToConsole('MAX_VERTEX_ATTRIBS: ' + maxAttributes);
 
 		for (var loc = maxAttributes - (arrayElementCount * this.m_type.getLocationSize()); loc >= 0; loc -= (arrayElementCount * this.m_type.getLocationSize())) {
 			attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_' + ndx, glsAttributeLocationTests.LocationEnum.UNDEF, glsAttributeLocationTests.NewCondWithEnum(glsAttributeLocationTests.ConstCond.ALWAYS), this.m_arraySize));
@@ -1143,7 +1028,7 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 		/** @type{Array<glsAttributeLocationTests.Bind>} */ var bindings = [];
 		/** @type{number} */ var ndx = 0;
 
-		//this.m_testCtx.getLog() << TestLog::Message << 'gl.MAX_VERTEX_ATTRIBS: ' << maxAttributes << TestLog::EndMessage;
+		bufferedLogToConsole('MAX_VERTEX_ATTRIBS: ' + maxAttributes);
 
 		/** @type{number} */ var loc;
 		for (loc = maxAttributes - arrayElementCount * this.m_type.getLocationSize(); loc >= 0; loc -= this.m_type.getLocationSize() * arrayElementCount) {
@@ -1185,7 +1070,7 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 		/** @type{Array<glsAttributeLocationTests.Bind>} */ var bindings = [];
 		/** @type{number} */ var ndx = 0;
 
-		//this.m_testCtx.getLog() << TestLog::Message << 'gl.MAX_VERTEX_ATTRIBS: ' << maxAttributes << TestLog::EndMessage;
+		bufferedLogToConsole('MAX_VERTEX_ATTRIBS: ' + maxAttributes);
 
 		/** @type{number} */ var loc;
 		for (loc = maxAttributes - arrayElementCount * this.m_type.getLocationSize(); loc >= 0; loc -= this.m_type.getLocationSize() * arrayElementCount) {
@@ -1397,7 +1282,7 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 		/** @type{Array<glsAttributeLocationTests.Attribute>} */ var attributes = [];
 		/** @type{number} */ var ndx = 0;
 
-		//this.m_testCtx.getLog() << TestLog::Message << "gl.MAX_VERTEX_ATTRIBS: " << maxAttributes << TestLog::EndMessage;
+		bufferedLogToConsole('MAX_VERTEX_ATTRIBS: ' + maxAttributes);
 
 		/** @type{number} */ var loc;
 		for (loc = maxAttributes - (arrayElementCount * this.m_type.getLocationSize()); loc >= 0; loc -= (arrayElementCount * this.m_type.getLocationSize())) {
@@ -1501,7 +1386,7 @@ void logAttributes (TestLog& log, const vector<Attribute>& attributes)
 		/** @type{Array<glsAttributeLocationTests.Attribute>} */ var attributes = [];
 		/** @type{number} */ var ndx = 0;
 
-		//this.m_testCtx.getLog() << TestLog::Message << 'gl.MAX_VERTEX_ATTRIBS: ' << maxAttributes << TestLog::EndMessage;
+		bufferedLogToConsole('MAX_VERTEX_ATTRIBS: ' + maxAttributes);
 
 		/** @type{number} */ var loc;
 		for (loc = maxAttributes - (arrayElementCount * this.m_type.getLocationSize()); loc >= 0; loc -= (arrayElementCount * this.m_type.getLocationSize()))	{
