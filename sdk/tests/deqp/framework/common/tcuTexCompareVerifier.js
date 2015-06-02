@@ -23,6 +23,7 @@ goog.provide('framework.common.tcuTexCompareVerifier');
 goog.require('framework.common.tcuTexture');
 goog.require('framework.common.tcuTextureUtil');
 goog.require('framework.delibs.debase.deMath');
+goog.require('framework.common.tcuTexVerifierUtil');
 
 goog.scope(function() {
 
@@ -30,6 +31,7 @@ var tcuTexCompareVerifier = framework.common.tcuTexCompareVerifier;
 var tcuTexture = framework.common.tcuTexture;
 var deMath = framework.delibs.debase.deMath;
 var tcuTextureUtil = framework.common.tcuTextureUtil;
+var tcuTexVerifierUtil = framework.common.tcuTexVerifierUtil;
 
 /**
  * \brief Texture compare (shadow) lookup precision parameters.
