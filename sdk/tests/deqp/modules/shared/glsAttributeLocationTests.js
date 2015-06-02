@@ -34,14 +34,14 @@ goog.scope(function() {
     var gluShaderUtil = framework.opengl.gluShaderUtil;
     var tcuStringTemplate = framework.common.tcuStringTemplate;
 
-  /**
-   * @param{Array<number>} bindings
-   * @param{string} attrib
-   * @return {number}
-   */
-  glsAttributeLocationTests.getBoundLocation = function(bindings, attrib) {
-        return (bindings[attrib] ? bindings[attrib] : glsAttributeLocationTests.LocationEnum.UNDEF);
-    };
+  	/**
+   	 * @param{Array<number>} bindings
+   	 * @param{string} attrib
+   	 * @return {number}
+   	 */
+		glsAttributeLocationTests.getBoundLocation = function(bindings, attrib) {
+				return (bindings[attrib] ? bindings[attrib] : glsAttributeLocationTests.LocationEnum.UNDEF);
+		};
 
     /**
      * @param{Array<glsAttributeLocationTests.Attribute>} attributes
@@ -55,23 +55,20 @@ goog.scope(function() {
         /** @type{number} */ var size;
 
         for (var attribNdx = 0; attribNdx < attributes.length; attribNdx++) {
-            location = glsAttributeLocationTests.getBoundLocation(bindings, attributes[attribNdx].getName());
-            size = attributes[attribNdx].getType().getLocationSize();
+          	location = glsAttributeLocationTests.getBoundLocation(bindings, attributes[attribNdx].getName());
+        		size = attributes[attribNdx].getType().getLocationSize();
 
-            if (location != glsAttributeLocationTests.LocationEnum.UNDEF) {
-                // if (reservedSpaces.length < location + size)
-                //     glsAttributeLocationTests.resizeArray(reservedSpaces, location + size, false);
+        		if (location != glsAttributeLocationTests.LocationEnum.UNDEF) {
 
-                for (var i = 0; i < size; i++) {
-                    if (reservedSpaces[location + i])
-                        return true;
-
-                    reservedSpaces[location + i] = true;
-                }
-            }
+            		for (var i = 0; i < size; i++) {
+              			if (reservedSpaces[location + i])
+                				return true;
+            				reservedSpaces[location + i] = true;
+            		}
+          	}
         }
 
-        return false;
+      	return false;
     };
 
     /**
