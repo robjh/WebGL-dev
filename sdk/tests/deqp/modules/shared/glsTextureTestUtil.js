@@ -1426,7 +1426,7 @@ glsTextureTestUtil.computeTextureLookupDiff2D = function(result, reference, erro
         [0, 1]
     ];
 
-    /** @type {Array<number>} */ var green = tcuRGBA.newRGBAComponents(0, 255, 0, 0).toVec();
+    /** @type {Array<number>} */ var green = tcuRGBA.newRGBAComponents(0, 255, 0, 255).toVec();
     errorMask.clear(green);
 
     for (var py = 0; py < result.getHeight(); py++) {
@@ -1498,7 +1498,7 @@ glsTextureTestUtil.computeTextureLookupDiff2D = function(result, reference, erro
                 var isOk = tcuTexLookupVerifier.isLookupResultValid_Texture2DView(src, sampleParams.sampler, lookupPrec, coord, clampedLod, resPix);
 
                 if (!isOk){
-                    /** @type {tcuRGBA.RGBA} */ var red = tcuRGBA.newRGBAComponents(255, 0, 0, 0);
+                    /** @type {tcuRGBA.RGBA} */ var red = tcuRGBA.newRGBAComponents(255, 0, 0, 255);
                     errorMask.setPixel(red.toVec(), px, py);
                     numFailed += 1;
                 }
