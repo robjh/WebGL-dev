@@ -180,32 +180,32 @@ goog.scope(function() {
         /** @type {number} */ var numFaces = 0;
 
         if (ay + ey < ax - ex && az + ez < ax - ex) {
-            if (x >= ex) faces[numFaces++] = tcuTexture.CubeFace.CUBEFACE_POSITIVE_X;
-            if (x <= ex) faces[numFaces++] = tcuTexture.CubeFace.CUBEFACE_NEGATIVE_X;
+            if (x >= ex) faces.push(tcuTexture.CubeFace.CUBEFACE_POSITIVE_X);
+            if (x <= ex) faces.push(tcuTexture.CubeFace.CUBEFACE_NEGATIVE_X);
         }
         else if (ax + ex < ay - ey && az + ez < ay - ey) {
-            if (y >= ey) faces[numFaces++] = tcuTexture.CubeFace.CUBEFACE_POSITIVE_Y;
-            if (y <= ey) faces[numFaces++] = tcuTexture.CubeFace.CUBEFACE_NEGATIVE_Y;
+            if (y >= ey) faces.push(tcuTexture.CubeFace.CUBEFACE_POSITIVE_Y);
+            if (y <= ey) faces.push(tcuTexture.CubeFace.CUBEFACE_NEGATIVE_Y);
         }
         else if (ax + ex < az - ez && ay + ey < az - ez) {
-            if (z >= ez) faces[numFaces++] = tcuTexture.CubeFace.CUBEFACE_POSITIVE_Z;
-            if (z <= ez) faces[numFaces++] = tcuTexture.CubeFace.CUBEFACE_NEGATIVE_Z;
+            if (z >= ez) faces.push(tcuTexture.CubeFace.CUBEFACE_POSITIVE_Z);
+            if (z <= ez) faces.push(tcuTexture.CubeFace.CUBEFACE_NEGATIVE_Z);
         }
         else {
             // One or more components are equal (or within error bounds). Allow all faces where major axis is not zero.
             if (ax > ex) {
-                faces[numFaces++] = tcuTexture.CubeFace.CUBEFACE_NEGATIVE_X;
-                faces[numFaces++] = tcuTexture.CubeFace.CUBEFACE_POSITIVE_X;
+                faces.push(tcuTexture.CubeFace.CUBEFACE_NEGATIVE_X);
+                faces.push(tcuTexture.CubeFace.CUBEFACE_POSITIVE_X);
             }
 
             if (ay > ey) {
-                faces[numFaces++] = tcuTexture.CubeFace.CUBEFACE_NEGATIVE_Y;
-                faces[numFaces++] = tcuTexture.CubeFace.CUBEFACE_POSITIVE_Y;
+                faces.push(tcuTexture.CubeFace.CUBEFACE_NEGATIVE_Y);
+                faces.push(tcuTexture.CubeFace.CUBEFACE_POSITIVE_Y);
             }
 
             if (az > ez) {
-                faces[numFaces++] = tcuTexture.CubeFace.CUBEFACE_NEGATIVE_Z;
-                faces[numFaces++] = tcuTexture.CubeFace.CUBEFACE_POSITIVE_Z;
+                faces.push(tcuTexture.CubeFace.CUBEFACE_NEGATIVE_Z);
+                faces.push(tcuTexture.CubeFace.CUBEFACE_POSITIVE_Z);
             }
         }
 
