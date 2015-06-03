@@ -540,40 +540,6 @@ goog.scope(function() {
 		return false;
 	};
 
-	// /** REMOVE
-	// * @param {tcuTexLookupVerifier.LookupPrecision} prec
-	// * @param {tcuTexLookupVerifier.ColorLine} line0
-	// * @param {tcuTexLookupVerifier.ColorLine} line1
-	// * @param {Array<number>} xBounds0
-	// * @param {Array<number>} xBounds1
-	// * @param {Array<number>} zBounds
-	// * @param {number} searchStep
-	// * @param {Array<number>} result
-	// * @return {boolean}
-	// */
-	// tcuTexLookupVerifier.is1DTrilinearFilterResultValid = function(prec, line0, line1, xBounds0, xBounds1, zBounds, searchStep, result) {
-	// 	assertMsgOptions(xBounds0[0] <= xBounds0[1], 'Out of bounds: X direction.', false, true);
-	// 	assertMsgOptions(xBounds1[0] <= xBounds1[1], 'Out of bounds: X direction.', false, true);
-	//
-	// 	if (!tcuTexLookupVerifier.isInColorBounds_2Line(prec, line0, line1, result))
-	// 		return false;
-	//
-	// 	for (var x0 = xBounds0[0]; x0 < xBounds0[1] + searchStep; x0 += searchStep) {
-	// 		/** @type {number} */ var a0 = Math.min(x0, xBounds0[1]);
-	// 		/** @type {Array<number>} */ var c0 = deMath.add(deMath.scale(line0.p0, (1 - a0)), deMath.scale(line0.p1, a0));
-	//
-	// 		for (var x1 = xBounds1[0]; x1 <= xBounds1[1]; x1 += searchStep) {
-	// 			/** @type {number} */ var a1 = Math.min(x1, xBounds1[1]);
-	// 			/** @type {Array<number>} */ var c1 = deMath.add(deMath.scale(line1.p0, (1 - a1)), deMath.scale(line1.p1, a1));
-	//
-	// 			if (tcuTexLookupVerifier.isLinearRangeValid(prec, c0, c1, zBounds, result))
-	// 				return true;
-	// 		}
-	// 	}
-	//
-	// 	return false;
-	// };
-
 	/**
 	* @param {tcuTexLookupVerifier.LookupPrecision} prec
 	* @param {tcuTexLookupVerifier.ColorQuad} quad0
@@ -1187,84 +1153,6 @@ goog.scope(function() {
 		return false;
 	};
 
-	// /** REMOVE
-	// * @param {tcuTexture.ConstPixelBufferAccess} level0
-	// * @param {tcuTexture.ConstPixelBufferAccess} level1
-	// * @param {tcuTexture.Sampler} sampler
-	// * @param {tcuTexLookupVerifier.LookupPrecision} prec
-	// * @param {number} coordX
-	// * @param {number} coordY
-	// * @param {Array<number>} fBounds
-	// * @param {Array<number>} result
-	// * @return {boolean}
-	// */
-	// tcuTexLookupVerifier.isLinearMipmapLinearSampleResultValid_CoordXYAsNumber = function(level0, level1, sampler, prec, coordX, coordY, fBounds, result) {
-	// 	// \todo [2013-07-04 pyry] This is strictly not correct as coordinates between levels should be dependent.
-	// 	//						   Right now this allows pairing any two valid bilinear quads.
-	//
-	// 	/** @type {number} */ var w0 = level0.getWidth();
-	// 	/** @type {number} */ var w1 = level1.getWidth();
-	//
-	// 	/** @type {Array<number>} */ var uBounds0 = tcuTexVerifierUtil.computeNonNormalizedCoordBounds(sampler.normalizedCoords, w0,	coordX, prec.coordBits[0], prec.uvwBits[0]);
-	// 	/** @type {Array<number>} */ var uBounds1 = tcuTexVerifierUtil.computeNonNormalizedCoordBounds(sampler.normalizedCoords, w1,	coordX, prec.coordBits[0], prec.uvwBits[0]);
-	//
-	// 	// Integer coordinates - without wrap mode
-	// 	/** @type {number} */ var minI0 = Math.floor(uBounds0[0]-0.5);
-	// 	/** @type {number} */ var maxI0 = Math.floor(uBounds0[1]-0.5);
-	// 	/** @type {number} */ var minI1 = Math.floor(uBounds1[0]-0.5);
-	// 	/** @type {number} */ var maxI1 = Math.floor(uBounds1[1]-0.5);
-	//
-	// 	/** @type {tcuTextureUtil.TextureChannelClass} */
-	// 	var texClass = tcuTextureUtil.getTextureChannelClass(level0.getFormat().type);
-	// 	/** @type {number} */ var cSearchStep = (texClass == tcuTextureUtil.TextureChannelClass.UNSIGNED_FIXED_POINT) ? tcuTexLookupVerifier.computeBilinearSearchStepForUnorm(prec) :
-	// 										    (texClass == tcuTextureUtil.TextureChannelClass.SIGNED_FIXED_POINT) ? tcuTexLookupVerifier.computeBilinearSearchStepForSnorm(prec) :
-	// 											0; // Step is computed for floating-point quads based on texel values.
-	//
-	// 	/** @type {number} */ var x0;
-	// 	/** @type {number} */ var x1;
-	//
-	// 	for (var i0 = minI0; i0 <= maxI0; i0++) {
-	// 		/** @type {number} */ var searchStep0;
-	//
-	// 		x0 = tcuTexVerifierUtil.wrap(sampler.wrapS, i0, w0);
-	// 		x1 = tcuTexVerifierUtil.wrap(sampler.wrapS, i0+1, w0);
-	// 		/** @type {tcuTexLookupVerifier.ColorLine} */
-	// 		var line0 = tcuTexLookupVerifier.lookupLine(level0, sampler, x0, x1, coordY);
-	//
-	// 		if (texClass == tcuTextureUtil.TextureChannelClass.FLOATING_POINT)
-	// 			searchStep0 = tcuTexLookupVerifier.computeBilinearSearchStepFromFloatLine(prec, line0);
-	// 		else
-	// 			searchStep0 = cSearchStep;
-	//
-	//
-	// 		/** @type {number} */ var minA0	= deMath.clamp((uBounds0[0] - 0.5) - i0, 0, 1);
-	// 		/** @type {number} */ var maxA0	= deMath.clamp((uBounds0[1] - 0.5) - i0, 0, 1);
-	//
-	// 		for (var i1 = minI1; i1 <= maxI1; i1++) {
-	// 			/** @type {number} */ var searchStep1;
-	//
-	// 			x0 = tcuTexVerifierUtil.wrap(sampler.wrapS, i1, w1);
-	// 			x1 = tcuTexVerifierUtil.wrap(sampler.wrapS, i1+1, w1);
-	// 			/** @type {tcuTexLookupVerifier.ColorLine} */
-	// 			var line1 = tcuTexLookupVerifier.lookupLine(level1, sampler, x0, x1, coordY);
-	//
-	// 			if (texClass == tcuTextureUtil.TextureChannelClass.FLOATING_POINT)
-	// 				searchStep1 = tcuTexLookupVerifier.computeBilinearSearchStepFromFloatLine(prec, line1);
-	// 			else
-	// 				searchStep1 = cSearchStep;
-	//
-	//
-	// 			/** @type {number} */ var minA1	= deMath.clamp((uBounds1[0] - 0.5) - i1, 0, 1);
-	// 			/** @type {number} */ var maxA1	= deMath.clamp((uBounds1[1] - 0.5) - i1, 0, 1);
-	//
-	// 			if (tcuTexLookupVerifier.is1DTrilinearFilterResultValid(prec, line0, line1, [minA0, maxA0], [minA1, maxA1], fBounds, Math.min(searchStep0, searchStep1), result))
-	// 				return true;
-	// 		}
-	// 	}
-	//
-	// 	return false;
-	// };
-
 	/**
 	* @param {tcuTexture.ConstPixelBufferAccess} level0
 	* @param {tcuTexture.ConstPixelBufferAccess} level1
@@ -1566,27 +1454,7 @@ goog.scope(function() {
 			return tcuTexLookupVerifier.isNearestSampleResultValid_CoordAsVec3(level, sampler, prec, coord, result);
 	};
 
-
-	// /** REMOVE
-	// * @param {tcuTexture.ConstPixelBufferAccess} level0
-	// * @param {tcuTexture.ConstPixelBufferAccess} level1
-	// * @param {tcuTexture.Sampler} sampler
-	// * @param {tcuTexture.FilterMode} levelFilter
-	// * @param {tcuTexLookupVerifier.LookupPrecision} prec
-	// * @param {number} coordX
-	// * @param {number} coordY
-	// * @param {Array<number>} fBounds
-	// * @param {Array<number>} result
-	// * @return {boolean}
-	// */
-	// tcuTexLookupVerifier.isMipmapLinearSampleResultValid_CoordXYAsNumber = function(level0, level1, sampler, levelFilter, prec, coordX, coordY, fBounds, result) {
-	// 	if (levelFilter == tcuTexture.FilterMode.LINEAR)
-	// 		return tcuTexLookupVerifier.isLinearMipmapLinearSampleResultValid_CoordXYAsNumber(level0, level1, sampler, prec, coordX, coordY, fBounds, result);
-	// 	else
-	// 		return tcuTexLookupVerifier.isNearestMipmapLinearSampleResultValid_CoordXYAsNumber(level0, level1, sampler, prec, coordX, coordY, fBounds, result);
-	// };
-
-	/**
+    /**
 	* @param {tcuTexture.ConstPixelBufferAccess} level0
 	* @param {tcuTexture.ConstPixelBufferAccess} level1
 	* @param {tcuTexture.Sampler} sampler
