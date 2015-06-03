@@ -279,7 +279,7 @@ goog.scope(function() {
     glsDrawTests.getElementCount = function(primitive, primitiveCount) {
         switch (primitive) {
             case glsDrawTests.DrawTestSpec.Primitive.POINTS: return primitiveCount;
-            case glsDrawTests.DrawTestSpec.Primitive.TRIANGLES: return primitiveCount * 3;
+            case glsDrawTests.DrawTestSpec.Primitive.TRIANGLES: return primitiveCount * 6; //In our case (JS version), we will draw quads with two triangles.
             case glsDrawTests.DrawTestSpec.Primitive.TRIANGLE_FAN: return primitiveCount + 2;
             case glsDrawTests.DrawTestSpec.Primitive.TRIANGLE_STRIP: return primitiveCount + 2;
             case glsDrawTests.DrawTestSpec.Primitive.LINES: return primitiveCount * 2;
@@ -388,7 +388,7 @@ goog.scope(function() {
         /** @type {Array<number>} */ var retVal;
 
         for (var i = 0; i < 4; ++i)
-            retVal[i] = new Uint32Array([random.getInt()])[0];
+            retVal[i] = Math.abs(random.getInt());
 
         return retVal;
     };
@@ -1434,9 +1434,10 @@ goog.scope(function() {
      * @param {number} stride
      * @param {?glsDrawTests.DrawTestSpec.InputType} type
      * @param {number} first
+     * @param {?glsDrawTests.DrawTestSpec.Primitive} primitive
      * @return {goog.TypedArray}
      */
-    glsDrawTests.RandomArrayGenerator.createBasicArray = function (seed, elementCount, componentCount, offset, stride, type, first) {
+    glsDrawTests.RandomArrayGenerator.createBasicArray = function (seed, elementCount, componentCount, offset, stride, type, first, primitive) {
         assertMsgOptions(componentCount >= 1 && componentCount <= 4, 'Unacceptable number of components', false, true);
 
         /** @type {glsDrawTests.GLValue} */ var min = glsDrawTests.GLValue.getMinValue(type);
@@ -1450,43 +1451,164 @@ goog.scope(function() {
         var writePtr = new Uint8Array(data).subarray(offset);
 
         /** @type {Array<glsDrawTests.GLValue>} */ var previousComponents = [];
+        /** @type {Array<glsDrawTests.GLValue>} */ var components = [];
 
         var rnd = new deRandom.Random(seed);
 
-        var triangle = [];
-
         for (var vertexNdx = 0; vertexNdx < elementCount; vertexNdx++) {
-            /** @type {Array<glsDrawTests.GLValue>} */ var components = [];
 
-            for (var componentNdx = 0; componentNdx < componentCount; componentNdx++) {
-                components[componentNdx] = glsDrawTests.GLValue.getRandom(rnd, min, max);
-
-                // Try to not create vertex near previous
-                if (vertexNdx != 0 && Math.abs(components[componentNdx] - previousComponents[componentNdx]) < min.interpret()) {
-                    // Too close, try again (but only once)
+            var generateVertex = function() {
+                components = [];
+                for (var componentNdx = 0; componentNdx < componentCount; componentNdx++) {
                     components[componentNdx] = glsDrawTests.GLValue.getRandom(rnd, min, max);
+
+                    // Try to not create vertex near previous
+                    if (vertexNdx != 0 && Math.abs(components[componentNdx] - previousComponents[componentNdx]) < min.interpret()) {
+                        // Too close, try again (but only once)
+                        components[componentNdx] = glsDrawTests.GLValue.getRandom(rnd, min, max);
+                    }
                 }
+                for (var componentNdx = 0; componentNdx < componentCount; componentNdx++)
+                    previousComponents[componentNdx] = components[componentNdx];
             }
 
-            for (var componentNdx = 0; componentNdx < componentCount; componentNdx++)
-                previousComponents[componentNdx] = components[componentNdx];
+            if (vertexNdx < first) {
+                generateVertex();
+                for (var componentNdx = 0; componentNdx < componentCount; componentNdx++)
+                    glsDrawTests.copyGLValueToArray(writePtr.subarray(componentNdx*componentSize), components[componentNdx]);
+
+                //Advance one vertex
+                writePtr = writePtr.subarray(componentCount * componentSize);
+                continue;
+            }
+
+            //Primitive cases
+            switch(primitive) {
+                case glsDrawTests.DrawTestSpec.Primitive.TRIANGLES:
+                    generateVertex();
+                    var vertex1 = components;
+
+                    var vertex2;
+                    do {
+                        generateVertex();
+                        var vertex2 = components;
+                        var isParallelToAnyComponent = vertex1[0].interpret() == vertex2[0].interpret() || vertex1[1].interpret() == vertex2[1].interpret()
+                    } while(isParallelToAnyComponent);
+
+                    generateVertex();
+                    var vertex3 = components;
+                    vertex3[0] = vertex1[0];
+                    vertex3[1] = vertex2[1];
+
+                    generateVertex();
+                    var vertex4 = components;
+                    vertex4[0] = vertex1[1];
+                    vertex4[1] = vertex2[0];
+
+                    var quadVertices = [vertex1, vertex2, vertex3, vertex3, vertex2, vertex4];
+
+                    //Copy values to buffer
+                    for (var qVtx = 0 ; qVtx < quadVertices.length; qVtx++)
+                    for (var componentNdx = 0; componentNdx < componentCount; componentNdx++)
+                        glsDrawTests.copyGLValueToArray(writePtr.subarray(qVtx*componentCount*componentSize + componentNdx*componentSize), quadVertices[qVtx][componentNdx]);
+
+                    writePtr = writePtr.subarray(stride * quadVertices.length);
+
+                    //Increment additional generated vertices number
+                    vertexNdx += quadVertices.length - 1;
+                    break;
+
+                case glsDrawTests.DrawTestSpec.Primitive.TRIANGLE_STRIP:
+                    var quadVertices;
+
+                    if (vertexNdx < first + 4 ) {
+                        generateVertex();
+                        var vertex1 = components;
+
+                        var parallelaxis = rnd.getBool() ? 0 : 1;
+                        generateVertex();
+                        var vertex2 = components;
+                        vertex2[parallelaxis] = vertex1[parallelaxis];
+
+                        generateVertex();
+                        var vertex3 = components;
+                        vertex3[parallelaxis? 0 : 1] = vertex1[parallelaxis? 0 : 1];
+
+                        var direction = vertex3[parallelaxis].greaterThan(vertex1[parallelaxis]) ? 1 : -1;
+
+                        generateVertex();
+                        var vertex4 = components;
+                        vertex4[parallelaxis? 0 : 1] = vertex2[parallelaxis? 0 : 1];
+                        vertex4[parallelaxis] = vertex3[parallelaxis];
+
+                        quadVertices = [vertex1, vertex2, vertex3, vertex4];
+                    } else {
+                        generateVertex();
+                        var vertex5 = components;
+                        vertex5[parallelaxis? 0 : 1] = quadVertices[quadVertices.length - 2][parallelaxis? 0 : 1];
+                        vertexNdx++;
+
+                        generateVertex();
+                        var vertex6 = components;
+                        vertex6[parallelaxis? 0 : 1] = quadVertices[quadVertices.length - 1][parallelaxis? 0 : 1];
+                        vertex6[parallelaxis] = vertex5[parallelaxis];
+                        vertexNdx++;
+
+                        quadVertices = [vertex5, vertex6];
+                    }
+
+                    //Copy values to buffer
+                    for (var qVtx = 0 ; qVtx < quadVertices.length; qVtx++)
+                    for (var componentNdx = 0; componentNdx < componentCount; componentNdx++)
+                        glsDrawTests.copyGLValueToArray(writePtr.subarray(qVtx*componentCount*componentSize + componentNdx*componentSize), quadVertices[qVtx][componentNdx]);
+
+                    writePtr = writePtr.subarray(stride * quadVertices.length);
+
+                    //Increment additional generated vertices number
+                    vertexNdx += quadVertices.length - 1;
+                    break;
+
+                    case glsDrawTests.DrawTestSpec.Primitive.TRIANGLE_FAN:
+            }
 
             //This part makes sure triangles form a right angle with middle vertex
             //(JS Refrast draws straight lines only, so drawing triangles as quads)
-            if (vertexNdx >= first) {
+            /*if (vertexNdx >= first) {
                 triangle.push(components);
 
                 if (triangle.length == 3 && componentCount >= 2) {
-                    var middlevertex = [];
+                    var alteredVertexNdx = 1;
+                    var alteredVertex = [];
+                    var firstvertexcopy = [];
+                    var secondvertexcopy = [];
+
+                    //Select the vertex to alter as long as the remaining two do not form a line paralell to any of the axis.
+                    if (triangle[0][0].interpret() != triangle[2][0].interpret() && triangle[0][1].interpret() != triangle[2][1].interpret()) {
+                        alteredVertexNdx = 1;
+                        firstvertexcopy = triangle[0];
+                        secondvertexcopy = triangle[2];
+                    }
+                    else if (triangle[1][0].interpret() != triangle[2][0].interpret() && triangle[1][1].interpret() != triangle[2][1].interpret()) {
+                        alteredVertexNdx = 0;
+                        firstvertexcopy = triangle[1];
+                        secondvertexcopy = triangle[2];
+                    }
+                    else {
+                        alteredVertexNdx = 2;
+                        firstvertexcopy = triangle[0];
+                        secondvertexcopy = triangle[1];
+                    }
+
+                    //The altered vertex will be formed by the x and y of the remaining two vertices, respectively, to ensure a right angle.
                     switch (componentCount) {
-                        case 2: middlevertex = [triangle[0][0], triangle[2][1]]; break;
-                        case 3: middlevertex = [triangle[0][0], triangle[2][1], triangle[1][2]]; break;
-                        case 4: middlevertex = [triangle[0][0], triangle[2][1], triangle[1][2], triangle[1][3]]; break;
+                        case 2: alteredVertex = [firstvertexcopy[0], secondvertexcopy[1]]; break;
+                        case 3: alteredVertex = [firstvertexcopy[0], secondvertexcopy[1], triangle[alteredVertexNdx][2]]; break;
+                        case 4: alteredVertex = [firstvertexcopy[0], secondvertexcopy[1], triangle[alteredVertexNdx][2], triangle[alteredVertexNdx][3]]; break;
                         default: throw new Error('Invalid number of components'); break;
                     }
 
-                    //Rewrite middle vertex
-                    triangle[1] = middlevertex;
+                    //Rewrite altered vertex
+                    triangle[alteredVertexNdx] = alteredVertex;
 
                     //Copy values to buffer
                     for (var triVtx = 0 ; triVtx < 3; triVtx++)
@@ -1507,7 +1629,7 @@ goog.scope(function() {
 
                 //Advance one vertex
                 writePtr = writePtr.subarray(componentCount * componentSize);
-            }
+            }*/
         }
 
         return new Uint8Array(data);

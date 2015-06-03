@@ -31,6 +31,7 @@ goog.require('framework.delibs.debase.deMath');
 goog.require('framework.opengl.gluDrawUtil');
 goog.require('framework.opengl.gluShaderUtil');
 goog.require('framework.opengl.gluShaderProgram');
+goog.require('framework.delibs.debase.deRandom');
 
 goog.scope(function() {
 var tcuTexLookupVerifier = framework.common.tcuTexLookupVerifier;
@@ -45,17 +46,11 @@ var deMath = framework.delibs.debase.deMath;
 var tcuImageCompare = framework.common.tcuImageCompare;
 var tcuPixelFormat = framework.common.tcuPixelFormat;
 var tcuRGBA = framework.common.tcuRGBA;
+var deRandom = framework.delibs.debase.deRandom;
+
 var DE_ASSERT = function(x) {
     if (!x)
         throw new Error('Assert failed');
-};
-
-/** GLU_EXPECT_NO_ERROR
- * @param {number} error
- * @param {string} message
- */
-glsTextureTestUtil.GLU_EXPECT_NO_ERROR = function(error, message) {
-    assertMsgOptions(error === gl.NONE, message, false, true);
 };
 
 /**
@@ -123,11 +118,15 @@ glsTextureTestUtil.getSamplerType = function(format) {
  * @param {number=} seed
  */
 glsTextureTestUtil.RandomViewport = function(canvas, preferredWidth, preferredHeight, seed) {
-    this.x = 0;
-    this.y = 0;
     this.width = Math.min(canvas.width, preferredWidth);
     this.height = Math.min(canvas.height, preferredHeight);
-    /* TODO: Implement 'randomness' */
+
+    if (typeof seed === 'undefined')
+        seed = preferredWidth + preferredHeight;
+
+    var rnd = new deRandom.Random(seed);
+    this.x = rnd.getInt(0, canvas.width   - this.width);
+    this.y = rnd.getInt(0, canvas.height  - this.height);
 };
 
 /**
@@ -743,7 +742,6 @@ glsTextureTestUtil.TextureRenderer.prototype.renderQuad = function(texUnit, texC
     if (params.flags.log_programs)
         log << *program;
     */
-    glsTextureTestUtil.GLU_EXPECT_NO_ERROR(gl.getError(), 'Set vertex attributes');
 
     // Program and uniforms.
     var prog = program.getProgram();

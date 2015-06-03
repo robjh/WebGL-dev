@@ -642,4 +642,3 @@ function finishTest() {
   epilogue.src = basePath + "js-test-post.js";
   document.body.appendChild(epilogue);
 }
-

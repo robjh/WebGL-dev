@@ -20,10 +20,10 @@
 
 'use strict';
 goog.provide('framework.common.tcuTexCompareVerifier');
+goog.require('framework.common.tcuTexVerifierUtil');
 goog.require('framework.common.tcuTexture');
 goog.require('framework.common.tcuTextureUtil');
 goog.require('framework.delibs.debase.deMath');
-goog.require('framework.common.tcuTexVerifierUtil');
 
 goog.scope(function() {
 
@@ -394,6 +394,20 @@ tcuTexCompareVerifier.isLinearCompareResultValid = function(level,
 };
 
 /**
+ * @param {tcuTexCompareVerifier.CmpResultSet} resultSet
+ * @param {number} result
+ * @param {number} resultBits
+ */
+tcuTexCompareVerifier.isResultInSet = function(resultSet, result, resultBits) {
+    var err = tcuTexVerifierUtil.computeFixedPointError(resultBits);
+    var minR = result - err;
+    var maxR = result + err;
+
+    return (resultSet.isTrue && deMath.deInRange32(1, minR, maxR)) ||
+           (resultSet.isFalse && deMath.deInRange32(0, minR, maxR));
+};
+
+/**
  * @param {tcuTexture.ConstPixelBufferAccess} level
  * @param {tcuTexture.Sampler} sampler
  * @param {tcuTexCompareVerifier.TexComparePrecision} prec
@@ -410,7 +424,29 @@ tcuTexCompareVerifier.isNearestCompareResultValid = function(level,
                                        coordZ,
                                        cmpReference,
                                        result) {
-    /* TODO: implement */
+    var isFixedPointDepth = tcuTexCompareVerifier.isFixedPointDepthTextureFormat(level.getFormat());
+    var uBounds = tcuTexVerifierUtil.computeNonNormalizedCoordBounds(sampler.normalizedCoords, level.getWidth(), coord[0], prec.coordBits[0], prec.uvwBits[0]);
+    var vBounds = tcuTexVerifierUtil.computeNonNormalizedCoordBounds(sampler.normalizedCoords, level.getHeight(), coord[1], prec.coordBits[1], prec.uvwBits[1]);
+
+    // Integer coordinates - without wrap mode
+    var minI = Math.floor(uBounds[0]);
+    var maxI = Math.floor(uBounds[1]);
+    var minJ = Math.floor(vBounds[0]);
+    var maxJ = Math.floor(vBounds[1]);
+
+    for (var j = minJ; j <= maxJ; j++) {
+        for (var i = minI; i <= maxI; i++) {
+            var x = tcuTexVerifierUtil.wrap(sampler.wrapS, i, level.getWidth());
+            var y = tcuTexVerifierUtil.wrap(sampler.wrapT, j, level.getHeight());
+            var depth = level.getPixDepth(x, y, coordZ);
+            var resSet = tcuTexCompareVerifier.execCompare(sampler.compare, depth, cmpReference, prec.referenceBits, isFixedPointDepth);
+
+            if (tcuTexCompareVerifier.isResultInSet(resSet, result, prec.resultBits))
+                return true;
+        }
+    }
+
+    return false;
 };
 
 /**

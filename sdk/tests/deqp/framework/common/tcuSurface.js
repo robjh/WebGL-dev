@@ -57,7 +57,6 @@ tcuSurface.Surface = function(width, height) {
  * @param {number} height
  */
 tcuSurface.Surface.prototype.setSize = function(width, height) {
-    /* TODO: Duplicated code from constructor */
     this.m_width = width;
     this.m_height = height;
     if (width * height > 0) {
@@ -135,7 +134,8 @@ tcuSurface.Surface.prototype.readViewport = function(ctx, view) {
         width = v.width;
         height = v.height;
     }
-    this.setSize(width, height);
+    if (width != this.m_width || height != this.m_height)
+        this.setSize(width, height);
     ctx.readPixels(x, y, width, height, gl.RGBA, gl.UNSIGNED_BYTE, this.m_pixels);
 };
 
