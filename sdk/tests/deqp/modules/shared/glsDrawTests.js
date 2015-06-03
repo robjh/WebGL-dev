@@ -1016,9 +1016,9 @@ goog.scope(function() {
     glsDrawTests.DrawTestShaderProgram = function(arrays) {
         sglrShaderProgram.ShaderProgram.call(this, this.createProgramDeclaration(arrays));
 
-        this.m_componentCount = arrays.length;
-        this.m_isCoord = arrays.length;
-        this.m_attrType = arrays.length;
+        this.m_componentCount = [];
+        this.m_isCoord = [];
+        this.m_attrType = [];
 
         for (var arrayNdx = 0; arrayNdx < arrays.length; arrayNdx++) {
             this.m_componentCount[arrayNdx] = this.getComponentCount(arrays[arrayNdx].getOutputType());
@@ -1038,19 +1038,40 @@ goog.scope(function() {
      * @param {number} numComponents
      */
     glsDrawTests.calcShaderColorCoord = function(coord, color, attribValue, isCoordinate, numComponents) {
-        if (isCoordinate)
+        if (isCoordinate) {
+            var coordtmp;
             switch (numComponents) {
-                case 1: coord = deMath.add(coord, [attribValue[0], attribValue[0]]); break;
-                case 2: coord = deMath.add(coord, [attribValue[0], attribValue[1]]); break;
-                case 3: coord = deMath.add(coord, [attribValue[0] + attribValue[2], attribValue[1]]); break;
-                case 4: coord = deMath.add(coord, [attribValue[0] + attribValue[2], attribValue[1] + attribValue[3]]); break;
+                case 1:
+                    coordtmp = deMath.add(coord, [attribValue[0], attribValue[0]]);
+                    coord[0] = coordtmp[0];
+                    coord[1] = coordtmp[1];
+                    break;
+                case 2:
+                    coordtmp = deMath.add(coord, [attribValue[0], attribValue[1]]);
+                    coord[0] = coordtmp[0];
+                    coord[1] = coordtmp[1];
+                    break;
+                case 3:
+                    coordtmp = deMath.add(coord, [attribValue[0] + attribValue[2], attribValue[1]]);
+                    coord[0] = coordtmp[0];
+                    coord[1] = coordtmp[1];
+                    coord[2] = coordtmp[2];
+                    break;
+                case 4:
+                    coordtmp = deMath.add(coord, [attribValue[0] + attribValue[2], attribValue[1] + attribValue[3]]);
+                    coord[0] = coordtmp[0];
+                    coord[1] = coordtmp[1];
+                    coord[2] = coordtmp[2];
+                    coord[3] = coordtmp[3];
+                    break;
 
                 default:
                     throw new Error('Invalid component count');
-            } else {
+            }
+        } else {
             switch (numComponents) {
                 case 1:
-                    color = deMath.scale(color, attribValue[0]);
+                    color[0] = deMath.scale(color, attribValue[0])[0];
                     break;
 
                 case 2:

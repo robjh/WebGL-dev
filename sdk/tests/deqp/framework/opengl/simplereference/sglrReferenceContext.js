@@ -3000,6 +3000,19 @@ goog.scope(function() {
 
     /**
     * Draws quads from vertex arrays
+    * @param {number} primitive GL primitive type to draw with.
+    * @param {number} first First vertex to begin drawing with
+    * @param {number} count How many vertices to draw (not counting vertices before first)
+    */
+    sglrReferenceContext.ReferenceContext.prototype.drawArrays = function(primitive, first, count) {
+        if (primitive == gl.TRIANGLES){
+            this.drawQuads(first, (count + first) / 6); //must not use Math.floor here
+        }
+        else throw new Error('Unsupported primitive type');
+    };
+
+    /**
+    * Draws quads from vertex arrays
     * @param {number} first First vertex to begin drawing with
     * @param {number} count How many quads to draw (array should provide first + (count * 6) vertices at least)
     */
