@@ -70,7 +70,8 @@ targets = {
     'attriblocation': 'functional.gles3.es3fAttribLocationTests',
     'textureShadowTests': 'functional.gles3.es3fTextureShadowTests',
     'cmp': 'framework.common.tcuTexCompareVerifier',
-    'texturewrap': 'functional.gles3.es3fTextureWrapTests'
+    'texturewrap': 'functional.gles3.es3fTextureWrapTests',
+    'multisample': 'functional.gles3.es3fMultisampleTests'
 }
 
 total_errors = 0
