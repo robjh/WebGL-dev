@@ -26,6 +26,8 @@ goog.require('framework.common.tcuRGBA');
 goog.require('framework.common.tcuSurface');
 goog.require('framework.common.tcuTexture');
 goog.require('framework.delibs.debase.deMath');
+goog.require('framework.common.tcuLogImage');
+
 
 goog.scope(function() {
 
@@ -36,6 +38,7 @@ var tcuTexture = framework.common.tcuTexture;
 var tcuFuzzyImageCompare = framework.common.tcuFuzzyImageCompare;
 var tcuBilinearImageCompare = framework.common.tcuBilinearImageCompare;
 var tcuRGBA = framework.common.tcuRGBA;
+var tcuLogImage = framework.common.tcuLogImage;
 
 /**
  * @enum
@@ -51,35 +54,24 @@ tcuImageCompare.CompareLogMode = {
  * @param {string} id HTML element name
  * @param {number} width Canvas width
  * @param {number} height Canvas height
- * @param {boolean=} displayRef True if we display [result, ref, error] canvases, False if we display [result] only. Default True.
  * @return {Array} Array of drawing contexts - one per canvas.
  */
-tcuImageCompare.displayResultPane = function(id, width, height, displayRef) {
-    if (displayRef == undefined) displayRef = true;
+tcuImageCompare.displayResultPane = function(id, width, height) {
     tcuImageCompare.displayResultPane.counter = tcuImageCompare.displayResultPane.counter || 0;
     var i = tcuImageCompare.displayResultPane.counter++;
     var elem = document.getElementById(id);
     var span = document.createElement('span');
     elem.appendChild(span);
-    if (displayRef) {
-        span.innerHTML = '<table><tr><td>Result</td><td>Reference</td><td>Error mask</td></tr>' +
-                                '<tr><td><canvas id="result' + i + '" width=' + width + ' height=' + height + '</td><td><canvas id="reference' + i + '" width=' + width + ' height=' + height + '</td><td><canvas id="diff' + i + '" width=' + width + ' height=' + height + '</td>' +
-                         '</table>';
-        var canvasResult = document.getElementById('result' + i);
-        var ctxResult = canvasResult.getContext('2d');
-        var canvasRef = document.getElementById('reference' + i);
-        var ctxRef = canvasRef.getContext('2d');
-        var canvasDiff = document.getElementById('diff' + i);
-        var ctxDiff = canvasDiff.getContext('2d');
-        return [ctxResult, ctxRef, ctxDiff];
-    } else {
-        span.innerHTML = '<table><tr><td>Result</td></tr>' +
-                                '<tr><td><canvas id="result' + i + '" width=' + width + ' height=' + height + '</td>' +
-                         '</table>';
-        var canvasResult = document.getElementById('result' + i);
-        var ctxResult = canvasResult.getContext('2d');
-        return [ctxResult];
-    }
+    span.innerHTML = '<table><tr><td>Result</td><td>Reference</td><td>Error mask</td></tr>' +
+                            '<tr><td><canvas id="result' + i + '" width=' + width + ' height=' + height + '></canvas></td><td><canvas id="reference' + i + '" width=' + width + ' height=' + height + '></canvas></td><td><canvas id="diff' + i + '" width=' + width + ' height=' + height + '></canvas></td>' +
+                     '</table>';
+    var canvasResult = document.getElementById('result' + i);
+    var ctxResult = canvasResult.getContext('2d');
+    var canvasRef = document.getElementById('reference' + i);
+    var ctxRef = canvasRef.getContext('2d');
+    var canvasDiff = document.getElementById('diff' + i);
+    var ctxDiff = canvasDiff.getContext('2d');
+    return [ctxResult, ctxRef, ctxDiff];
 };
 
 /**
@@ -88,37 +80,21 @@ tcuImageCompare.displayResultPane = function(id, width, height, displayRef) {
  * @param {framework.common.tcuTexture.ConstPixelBufferAccess=} diff
  */
 tcuImageCompare.displayImages = function(result, reference, diff) {
-    var createImage = function(ctx, src) {
-        var w = src.getWidth();
-        var h = src.getHeight();
-        var pixelSize = src.getFormat().getPixelSize();
-        var imgData = ctx.createImageData(w, h);
-        var index = 0;
-        for (var y = 0; y < h; y++) {
-            for (var x = 0; x < w; x++) {
-                var pixel = src.getPixelInt(x, h - y - 1, 0);
-                for (var i = 0; i < pixelSize; i++) {
-                    imgData.data[index] = pixel[i];
-                    index = index + 1;
-                }
-                if (pixelSize < 4)
-                    imgData.data[index++] = 255;
-            }
-        }
-        return imgData;
-    };
     var w = result.getWidth();
     var h = result.getHeight();
 
-    var contexts = tcuImageCompare.displayResultPane('console', w, h, reference != null);
-    contexts[0].putImageData(createImage(contexts[0], result), 0, 0);
-    debug('Result image: ' + result);
-    if (reference) {
-        contexts[1].putImageData(createImage(contexts[1], reference), 0, 0);
-        debug('Reference image: ' + reference);
+    if (!reference) {
+        tcuLogImage.logImage('Result', 'Image rendered by WebGL', result);
+        return;
     }
+
+    var contexts = tcuImageCompare.displayResultPane('console', w, h);
+    contexts[0].putImageData(tcuLogImage.createImage(contexts[0], result), 0, 0);
+    debug('Result image: ' + result);
+    contexts[1].putImageData(tcuLogImage.createImage(contexts[1], reference), 0, 0);
+    debug('Reference image: ' + reference);
     if (diff)
-        contexts[2].putImageData(createImage(contexts[2], diff), 0, 0);
+        contexts[2].putImageData(tcuLogImage.createImage(contexts[2], diff), 0, 0);
 };
 
 //** TODO: implement this
@@ -639,9 +615,6 @@ tcuImageCompare.unitTest = function() {
     var src = srcLevel.getAccess();
     var dst = dstLevel.getAccess();
 
-    debug('Src format: ' + src.getFormat());
-    debug('Destination: ' + dst);
-    debug(src);
 
     src.clear();
     dst.clear();
@@ -652,6 +625,14 @@ tcuImageCompare.unitTest = function() {
             dst.setPixelInt([i, j, 90, 255], i + 1, j + 1);
         }
     }
+
+    debug('Src format: ' + src.getFormat());
+    debug('Destination: ' + dst);
+    debug(src);
+    tcuLogImage.logImage('Source', "Source image", src, [12, 13, 14, 25]);
+    tcuImageCompare.displayImages(dst);
+
+
     if (!tcuImageCompare.fuzzyCompare('compare', 'compare similar images', src, dst, 0.05))
         throw new Error('Compare should return true');
 

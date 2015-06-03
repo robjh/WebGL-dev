@@ -48,14 +48,6 @@ deMath.deInBounds32 = function(a, mn, mx) {
 deMath.deFloatFrac = function(a) { return a - Math.floor(a); };
 
 /**
- * @param {number} a
- * @return {number}
- */
-deMath.deCeilFloatToInt32 = function(a) {
-    return new Uint32Array([Math.ceil(a)])[0];
-};
-
-/**
  * Check if a value is a power-of-two.
  * @param {number} a Input value.
  * @return {boolean} return True if input is a power-of-two value, false otherwise.

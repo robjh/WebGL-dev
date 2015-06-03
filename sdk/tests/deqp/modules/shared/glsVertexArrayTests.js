@@ -2089,7 +2089,11 @@ goog.scope(function() {
     glsVertexArrayTests.VertexArrayTest = function(name, description) {
         tcuTestCase.DeqpTest.call(this, name, description);
 
-        this.m_pixelformat = new tcuPixelFormat.PixelFormat(gl.getParameter(gl.RED_BITS), gl.getParameter(gl.GREEN_BITS), gl.getParameter(gl.BLUE_BITS), gl.getParameter(gl.ALPHA_BITS));
+        var r = /** @type {number} */ (gl.getParameter(gl.RED_BITS));
+        var g = /** @type {number} */ (gl.getParameter(gl.GREEN_BITS));
+        var b = /** @type {number} */ (gl.getParameter(gl.BLUE_BITS));
+        var a = /** @type {number} */ (gl.getParameter(gl.ALPHA_BITS));
+        this.m_pixelformat = new tcuPixelFormat.PixelFormat(r, g, b, a);
 
         /** @type {sglrReferenceContext.ReferenceContextBuffers} */ this.m_refBuffers = null;
         /** @type {sglrReferenceContext.ReferenceContext} */ this.m_refContext = null;
@@ -2097,9 +2101,9 @@ goog.scope(function() {
         /** @type {glsVertexArrayTests.ContextArrayPack} */ this.m_glArrayPack = null;
         /** @type {glsVertexArrayTests.ContextArrayPack} */ this.m_rrArrayPack = null;
         /** @type {boolean} */ this.m_isOk = false;
-        /** @type {number} */ this.m_maxDiffRed = deMath.deCeilFloatToInt32(256.0 * (2.0 / (1 << this.m_pixelformat.redBits)));
-        /** @type {number} */ this.m_maxDiffGreen = deMath.deCeilFloatToInt32(256.0 * (2.0 / (1 << this.m_pixelformat.greenBits)));
-        /** @type {number} */ this.m_maxDiffBlue = deMath.deCeilFloatToInt32(256.0 * (2.0 / (1 << this.m_pixelformat.blueBits)));
+        /** @type {number} */ this.m_maxDiffRed = Math.ceil(256.0 * (2.0 / (1 << this.m_pixelformat.redBits)));
+        /** @type {number} */ this.m_maxDiffGreen = Math.ceil(256.0 * (2.0 / (1 << this.m_pixelformat.greenBits)));
+        /** @type {number} */ this.m_maxDiffBlue = Math.ceil(256.0 * (2.0 / (1 << this.m_pixelformat.blueBits)));
     };
 
     glsVertexArrayTests.VertexArrayTest.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
