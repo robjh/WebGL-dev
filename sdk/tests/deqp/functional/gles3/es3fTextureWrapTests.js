@@ -213,13 +213,7 @@ goog.scope(function() {
         gl.pixelStorei(gl.PACK_ALIGNMENT, param);
         /** @type {gluTextureUtil.TransferFormat} */ var format = gluTextureUtil.getTransferFormat(renderedFrame.getAccess().getFormat());
 
-        // gl.readPixels(
-        //     viewport.x, viewport.y,
-        //     renderedFrame.getWidth(), renderedFrame.getHeight(),
-        //     format.format, format.dataType,
-        //     renderedFrame.getAccess().getDataPtr());
-
-        renderedFrame.readViewport(gl, viewport);    
+        renderedFrame.readViewport(gl, viewport);
 
         // const tcu::ScopedLogSection section (log, string("Test") + de::toString(m_caseNdx), string("Test ") + de::toString(m_caseNdx));
         /** @type {boolean} */ var isNearestOnly = this.m_minFilter == gl.NEAREST && this.m_magFilter == gl.NEAREST;
@@ -241,9 +235,9 @@ goog.scope(function() {
         /** @type {boolean} */ var isOk = glsTextureTestUtil.verifyTexture2DResult(renderedFrame.getAccess(), this.m_texture.getRefTexture(), texCoord, refParams, lookupPrecision, lodPrecision, pixelFormat);
 
         if (!isOk)
-            testFailedOptions('verifyTexture2DResult is false', false);
+            testFailedOptions('Case ' + this.m_caseNdx + ': verifyTexture2DResult is false', false);
         else
-            testPassedOptions('', true);
+            testPassedOptions('Case ' + this.m_caseNdx + ': OK', true);
 
         this.m_caseNdx++;
 
