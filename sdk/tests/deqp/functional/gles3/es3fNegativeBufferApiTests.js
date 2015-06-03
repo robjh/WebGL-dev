@@ -857,22 +857,147 @@ goog.scope(function() {
                 gl.deleteRenderbuffer(rbo[0]);
             }
         ));
+        
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'blit_framebuffer_multisample', 'Invalid glBlitFramebuffer() usage', gl,
+            function() {
+                
+                /** @type {Array<WebGLRenderbuffer>} */
+                var rbo = [
+                    gl.createRenderbuffer(), gl.createRenderbuffer()
+                ];
+                /** @type {Array<WebGLFramebuffer>} */
+                var fbo = [
+                    gl.createFramebuffer(), gl.createFramebuffer()
+                ];
+                
+                gl.bindRenderbuffer(gl.RENDERBUFFER, rbo[0]);
+                gl.bindFramebuffer(gl.READ_FRAMEBUFFER, fbo[0]);
+                gl.renderbufferStorageMultisample(gl.RENDERBUFFER, 4, gl.RGBA8, 32, 32);
+                gl.framebufferRenderbuffer(gl.READ_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, rbo[0]);
+                gl.checkFramebufferStatus(gl.READ_FRAMEBUFFER);
+                
+                gl.bindRenderbuffer(gl.RENDERBUFFER, rbo[1]);
+                gl.bindFramebuffer(gl.READ_FRAMEBUFFER, fbo[1]);
+                this.expectError(gl.NO_ERROR)
+                    
+                bufferedLogToConsole('gl.INVALID_OPERATION is generated if the value of gl.SAMPLE_BUFFERS for the draw buffer is greater than zero.');
+                gl.renderbufferStorageMultisample(gl.RENDERBUFFER, 4, gl.RGBA8, 32, 32);
+                gl.framebufferRenderbuffer(gl.DRAW_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, rbo[1]);
+                gl.blitFramebuffer(0, 0, 16, 16, 0, 0, 16, 16, gl.COLOR_BUFFER_BIT, gl.NEAREST);
+                this.expectError(gl.INVALID_OPERATION);
+                
+                bufferedLogToConsole('gl.INVALID_OPERATION is generated if gl.SAMPLE_BUFFERS for the read buffer is greater than zero and the formats of draw and read buffers are not identical.');
+                gl.renderbufferStorage(gl.RENDERBUFFER, gl.RGBA4, 32, 32);
+                gl.framebufferRenderbuffer(gl.DRAW_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, rbo[1]);
+                gl.blitFramebuffer(0, 0, 16, 16, 0, 0, 16, 16, gl.COLOR_BUFFER_BIT, gl.NEAREST);
+                this.expectError(gl.INVALID_OPERATION);
+                
+                bufferedLogToConsole('gl.INVALID_OPERATION is generated if gl.SAMPLE_BUFFERS for the read buffer is greater than zero and the source and destination rectangles are not defined with the same (X0, Y0) and (X1, Y1) bounds.');
+                gl.renderbufferStorage(gl.RENDERBUFFER, gl.RGBA8, 32, 32);
+                gl.framebufferRenderbuffer(gl.DRAW_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, rbo[1]);
+                gl.blitFramebuffer(0, 0, 16, 16, 2, 2, 18, 18, gl.COLOR_BUFFER_BIT, gl.NEAREST);
+                this.expectError(gl.INVALID_OPERATION);
+                
+                gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+                gl.deleteRenderbuffer(rbo[0]);
+                gl.deleteRenderbuffer(rbo[1]);
+                gl.deleteFramebuffer(fbo[0]);
+                gl.deleteFramebuffer(fbo[1]);
+            }
+        ));
+        
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'framebuffer_texture_layer', 'Invalid glFramebufferTextureLayer() usage', gl,
+            function() {
+                
+                var fbo = gl.createFramebuffer();
+                var tex3D = gl.createTexture();
+                var tex2DArray = gl.createTexture();
+                var tex2D = gl.createTexture();
+                gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+                
+                gl.bindTexture(gl.TEXTURE_3D, tex3D);
+                gl.texImage3D(gl.TEXTURE_3D, 0, gl.RGBA, 4, 4, 4, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+                gl.bindTexture(gl.TEXTURE_2D_ARRAY, tex2DArray);
+                gl.texImage3D(gl.TEXTURE_2D_ARRAY, 0, gl.RGBA, 4, 4, 4, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+                gl.bindTexture(gl.TEXTURE_2D, tex2D);
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 4, 4, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+                this.expectError(gl.NO_ERROR);
+                
+                bufferedLogToConsole('gl.INVALID_ENUM is generated if target is not one of the accepted tokens.');
+                gl.framebufferTextureLayer(-1, gl.COLOR_ATTACHMENT0, tex3D, 0, 1);
+                this.expectError(gl.INVALID_ENUM);
+                gl.framebufferTextureLayer(gl.RENDERBUFFER, GL_COLOR_ATTACHMENT0, tex3D, 0, 1);
+                this.expectError(gl.INVALID_ENUM);
+
+                bufferedLogToConsole('gl.INVALID_ENUM is generated if attachment is not one of the accepted tokens.');
+                gl.framebufferTextureLayer(gl.FRAMEBUFFER, -1, tex3D, 0, 1);
+                this.expectError(gl.INVALID_ENUM);
+                gl.framebufferTextureLayer(gl.FRAMEBUFFER, gl.BACK, tex3D, 0, 1);
+                this.expectError(gl.INVALID_ENUM);
+                
+                bufferedLogToConsole('gl.INVALID_OPERATION is generated if texture is non-zero and not the name of a 3D texture or 2D array texture.');
+                gl.framebufferTextureLayer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, -1, 0, 0);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.framebufferTextureLayer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, tex2D, 0, 0);
+                this.expectError(gl.INVALID_OPERATION);
+                
+                bufferedLogToConsole('gl.INVALID_VALUE is generated if texture is not zero and layer is negative.');
+                gl.framebufferTextureLayer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, tex3D, 0, -1);
+                this.expectError(gl.INVALID_VALUE);
+                
+                bufferedLogToConsole('GL_INVALID_VALUE is generated if texture is not zero and layer is greater than GL_MAX_3D_TEXTURE_SIZE-1 for a 3D texture.');
+                var max3DTexSize = gl.getParameter(gl.MAX_3D_TEXTURE_SIZE);
+                gl.framebufferTextureLayer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, tex3D, 0, max3DTexSize);
+                this.expectError(gl.INVALID_VALUE);
+                
+                
+                
+                gl.deleteTexture(tex3D);
+                gl.deleteTexture(tex2DArray);
+                gl.deleteTexture(tex2D);
+                gl.deleteFramebuffer(fbo);
+            }
+        ));
 
 
 
 
 
 
-// bufferedLogToConsole('');
+/*
+                bufferedLogToConsole('');
+//*/
 
         /*
+
+ES3F_ADD_API_CASE(framebuffer_texture_layer, "Invalid glFramebufferTextureLayer() usage",
+{
                 
 
                 
-                
 
                 
-		});
+
+               
+
+                
+
+                m_log << TestLog::Section("", "GL_INVALID_VALUE is generated if texture is not zero and layer is greater than GL_MAX_ARRAY_TEXTURE_LAYERS-1 for a 2D array texture.");
+                intmaxArrayTexLayers;
+                glGetIntegerv(GL_MAX_ARRAY_TEXTURE_LAYERS, &maxArrayTexLayers);
+                glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, tex2DArray, 0, maxArrayTexLayers);
+                expectError(GL_INVALID_VALUE);
+                m_log << TestLog::EndSection;
+
+                m_log << TestLog::Section("", "GL_INVALID_OPERATION is generated if zero is bound to target.");
+                glBindFramebuffer(GL_FRAMEBUFFER, 0);
+                glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, tex3D, 0, 1);
+                expectError(GL_INVALID_OPERATION);
+                m_log << TestLog::EndSection;
+
+});
 
         //*/
         
