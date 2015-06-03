@@ -60,8 +60,8 @@ goog.scope(function() {
 	 * @param {number=} lodBits
 	 */
 	tcuTexLookupVerifier.LodPrecision = function(derivateBits, lodBits) {
-		/** @type {number} */ this.derivateBits = derivateBits || 22;
-		/** @type {number} */ this.lodBits = lodBits || 16;
+		/** @type {number} */ this.derivateBits = derivateBits === undefined ? 22 : derivateBits;
+		/** @type {number} */ this.lodBits = lodBits === undefined ? 16 : lodBits;
 	};
 
 	/**
@@ -177,12 +177,12 @@ goog.scope(function() {
      * @return {tcuTexLookupVerifier.ColorQuad}
      */
     tcuTexLookupVerifier.lookupQuad = function(level, sampler, x0, x1, y0, y1, z) {
-		/** @type {tcuTexLookupVerifier.ColorQuad} */ var dst = new tcuTexLookupVerifier.ColorQuad();
-    	dst.p00	= tcuTexLookupVerifier.lookupFloat(level, sampler, x0, y0, z);
-    	dst.p10	= tcuTexLookupVerifier.lookupFloat(level, sampler, x1, y0, z);
-    	dst.p01	= tcuTexLookupVerifier.lookupFloat(level, sampler, x0, y1, z);
-    	dst.p11	= tcuTexLookupVerifier.lookupFloat(level, sampler, x1, y1, z);
-		return dst;
+		return new tcuTexLookupVerifier.ColorQuad(
+    		tcuTexLookupVerifier.lookupFloat(level, sampler, x0, y0, z),
+    		tcuTexLookupVerifier.lookupFloat(level, sampler, x1, y0, z),
+    		tcuTexLookupVerifier.lookupFloat(level, sampler, x0, y1, z),
+    		tcuTexLookupVerifier.lookupFloat(level, sampler, x1, y1, z)
+		);
     };
 
 	/**
@@ -205,10 +205,10 @@ goog.scope(function() {
 	 * @return {tcuTexLookupVerifier.ColorLine}
 	 */
 	tcuTexLookupVerifier.lookupLine = function(level, sampler, x0, x1, y) {
-		/** @type {tcuTexLookupVerifier.ColorLine} */ var dst = new tcuTexLookupVerifier.ColorLine();
-		dst.p0 = tcuTexLookupVerifier.lookupFloat(level, sampler, x0, y, 0);
-		dst.p1 = tcuTexLookupVerifier.lookupFloat(level, sampler, x1, y, 0);
-		return dst;
+		return new tcuTexLookupVerifier.ColorLine(
+			tcuTexLookupVerifier.lookupFloat(level, sampler, x0, y, 0),
+			tcuTexLookupVerifier.lookupFloat(level, sampler, x1, y, 0)
+		);
 	};
 
 	/**
