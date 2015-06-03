@@ -167,7 +167,7 @@ es3fTextureFormatTests.Texture2DFormatCase.prototype.iterate = function() {
 
     // // Draw.
     this.m_renderer.renderQuad(0, texCoord, renderParams);
-    gl.readPixels(viewport.x, viewport.y, viewport.width, viewport.height, gl.RGBA, gl.UNSIGNED_BYTE, renderedFrame.getAccess().getDataPtr());
+    renderedFrame.readViewport(gl, viewport);
 
     // // Compute reference.
     glsTextureTestUtil.sampleTexture2D(new glsTextureTestUtil.SurfaceAccess(referenceFrame, undefined /*m_renderCtx.getRenderTarget().getPixelFormat()*/),
@@ -300,7 +300,7 @@ es3fTextureFormatTests.TextureCubeFormatCase.prototype.testFace = function(face)
 
     // // Draw.
     this.m_renderer.renderQuad(0, texCoord, renderParams);
-    gl.readPixels(viewport.x, viewport.y, viewport.width, viewport.height, gl.RGBA, gl.UNSIGNED_BYTE, renderedFrame.getAccess().getDataPtr());
+    renderedFrame.readViewport(gl, viewport);
 
     // // Compute reference.
     glsTextureTestUtil.sampleTextureCube(new glsTextureTestUtil.SurfaceAccess(referenceFrame, undefined /*m_renderCtx.getRenderTarget().getPixelFormat()*/),
@@ -425,7 +425,7 @@ es3fTextureFormatTests.Texture2DArrayFormatCase.prototype.testLayer = function(l
 
     // // Draw.
     this.m_renderer.renderQuad(0, texCoord, renderParams);
-    gl.readPixels(viewport.x, viewport.y, viewport.width, viewport.height, gl.RGBA, gl.UNSIGNED_BYTE, renderedFrame.getAccess().getDataPtr());
+    renderedFrame.readViewport(gl, viewport);
 
     // // Compute reference.
     glsTextureTestUtil.sampleTexture2DArray(new glsTextureTestUtil.SurfaceAccess(referenceFrame, undefined /*m_renderCtx.getRenderTarget().getPixelFormat()*/),
@@ -551,7 +551,7 @@ es3fTextureFormatTests.Texture3DFormatCase.prototype.testSlice = function(sliceN
 
     // // Draw.
     this.m_renderer.renderQuad(0, texCoord, renderParams);
-    gl.readPixels(viewport.x, viewport.y, viewport.width, viewport.height, gl.RGBA, gl.UNSIGNED_BYTE, renderedFrame.getAccess().getDataPtr());
+    renderedFrame.readViewport(gl, viewport);
 
     // // Compute reference.
     glsTextureTestUtil.sampleTexture3D(new glsTextureTestUtil.SurfaceAccess(referenceFrame, undefined /*m_renderCtx.getRenderTarget().getPixelFormat()*/),
@@ -658,7 +658,7 @@ es3fTextureFormatTests.Compressed2DFormatCase.prototype.iterate = function() {
 
     // // Draw.
     this.m_renderer.renderQuad(0, texCoord, renderParams);
-    gl.readPixels(viewport.x, viewport.y, viewport.width, viewport.height, gl.RGBA, gl.UNSIGNED_BYTE, renderedFrame.getAccess().getDataPtr());
+    renderedFrame.readViewport(gl, viewport);
 
     // // Compute reference.
     glsTextureTestUtil.sampleTexture2D(new glsTextureTestUtil.SurfaceAccess(referenceFrame, undefined /*m_renderCtx.getRenderTarget().getPixelFormat()*/),
@@ -753,7 +753,7 @@ es3fTextureFormatTests.CompressedCubeFormatCase.prototype.testFace = function(fa
 
     // // Draw.
     this.m_renderer.renderQuad(0, texCoord, renderParams);
-    gl.readPixels(viewport.x, viewport.y, viewport.width, viewport.height, gl.RGBA, gl.UNSIGNED_BYTE, renderedFrame.getAccess().getDataPtr());
+    renderedFrame.readViewport(gl, viewport);
 
     // // Compute reference.
     glsTextureTestUtil.sampleTextureCube(new glsTextureTestUtil.SurfaceAccess(referenceFrame, undefined /*m_renderCtx.getRenderTarget().getPixelFormat()*/),

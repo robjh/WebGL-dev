@@ -1221,7 +1221,7 @@ goog.scope(function() {
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
         // Read back rendered image.
-        gl.readPixels(viewportX, viewportY, viewportW, viewportH, gl.RGBA, gl.UNSIGNED_BYTE, frameWithTf.getAccess().getDataPtr());
+        frameWithTf.readViewport(gl, [viewportX, viewportY, viewportW, viewportH]);
 
         // Render without transform feedback.
         offset = 0; // int
@@ -1233,7 +1233,7 @@ goog.scope(function() {
             gl.drawArrays(this.m_primitiveType, offset, call.numElements);
             offset += call.numElements;
         }
-        gl.readPixels(viewportX, viewportY, viewportW, viewportH, gl.RGBA, gl.UNSIGNED_BYTE, frameWithoutTf.getAccess().getDataPtr());
+        frameWithoutTf.readViewport(gl, [viewportX, viewportY, viewportW, viewportH]);
 
         // Compare images with and without transform feedback.
         imagesOk = tcuImageCompare.pixelThresholdCompare('Result', 'Image comparison result', frameWithoutTf, frameWithTf, [1, 1, 1, 1], tcuImageCompare.CompareLogMode.ON_ERROR);

@@ -758,6 +758,106 @@ goog.scope(function() {
                 gl.deleteRenderbuffer(rbo);
             }
         ));
+        
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'blit_framebuffer', 'Invalid glBlitFramebuffer() usage', gl,
+            function() {
+                
+                /** @type {Array<WebGLTexture>} */
+                var texture = [
+                    gl.createTexture(), gl.createTexture()
+                ];
+                gl.bindTexture(gl.TEXTURE_2D, texture[0]);
+                
+                /** @type {Array<WebGLRenderbuffer>} */
+                var rbo = [
+                    gl.createRenderbuffer(), gl.createRenderbuffer()
+                ];
+                gl.bindRenderbuffer(gl.RENDERBUFFER, rbo[0]);
+                
+                /** @type {Array<WebGLFramebuffer>} */
+                var fbo = [
+                    gl.createFramebuffer(), gl.createFramebuffer()
+                ];
+                gl.bindFramebuffer(gl.READ_FRAMEBUFFER, fbo[0]);
+                
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, 32, 32, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+                gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH24_STENCIL8, 32, 32);
+                gl.framebufferTexture2D(gl.READ_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture[0], 0);
+                gl.framebufferRenderbuffer(gl.READ_FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, rbo[0]);
+                gl.checkFramebufferStatus(gl.READ_FRAMEBUFFER);
+                gl.bindTexture(gl.TEXTURE_2D, texture[1]);
+                gl.bindRenderbuffer(gl.RENDERBUFFER, rbo[1]);
+                gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, fbo[1]);
+                
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, 32, 32, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+                gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH24_STENCIL8, 32, 32);
+                gl.framebufferTexture2D(gl.DRAW_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture[1], 0);
+                gl.framebufferRenderbuffer(gl.DRAW_FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, rbo[1]);
+                gl.checkFramebufferStatus(gl.DRAW_FRAMEBUFFER);
+                this.expectError(gl.NO_ERROR);
+                
+                bufferedLogToConsole('gl.INVALID_OPERATION is generated if mask contains any of the gl.DEPTH_BUFFER_BIT or gl.STENCIL_BUFFER_BIT and filter is not gl.NEAREST.');
+                gl.blitFramebuffer(0, 0, 16, 16, 0, 0, 16, 16, gl.COLOR_BUFFER_BIT | gl.STENCIL_BUFFER_BIT, gl.LINEAR);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.blitFramebuffer(0, 0, 16, 16, 0, 0, 16, 16, gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT, gl.LINEAR);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.blitFramebuffer(0, 0, 16, 16, 0, 0, 16, 16, gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT, gl.LINEAR);
+                this.expectError(gl.INVALID_OPERATION);
+                
+                bufferedLogToConsole('GL_INVALID_OPERATION is generated if mask contains GL_COLOR_BUFFER_BIT and read buffer format is incompatible with draw buffer format.');
+                gl.bindTexture(gl.TEXTURE_2D, texture[0]);
+
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32UI, 32, 32, 0, gl.RGBA_INTEGER, gl.UNSIGNED_INT, null);
+                gl.framebufferTexture2D(gl.READ_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture[0], 0);
+                bufferedLogToConsole('// Read buffer: GL_RGBA32UI, draw buffer: GL_RGBA');
+                gl.blitFramebuffer(0, 0, 16, 16, 0, 0, 16, 16, gl.COLOR_BUFFER_BIT, gl.NEAREST);
+                this.expectError(gl.INVALID_OPERATION);
+
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32I, 32, 32, 0, gl.RGBA_INTEGER, gl.INT, null);
+                gl.framebufferTexture2D(gl.READ_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture[0], 0);
+                bufferedLogToConsole('// Read buffer: GL_RGBA32I, draw buffer: GL_RGBA');
+                gl.blitFramebuffer(0, 0, 16, 16, 0, 0, 16, 16, gl.COLOR_BUFFER_BIT, gl.NEAREST);
+                this.expectError(gl.INVALID_OPERATION);
+
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, 32, 32, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+                gl.framebufferTexture2D(gl.READ_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture[0], 0);
+                gl.bindTexture(gl.TEXTURE_2D, texture[1]);
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32I, 32, 32, 0, gl.RGBA_INTEGER, gl.INT, null);
+                gl.framebufferTexture2D(gl.DRAW_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture[1], 0);
+                bufferedLogToConsole('// Read buffer: GL_RGBA8, draw buffer: GL_RGBA32I');
+                gl.blitFramebuffer(0, 0, 16, 16, 0, 0, 16, 16, gl.COLOR_BUFFER_BIT, gl.NEAREST);
+                this.expectError(gl.INVALID_OPERATION);
+
+                bufferedLogToConsole('gl.INVALID_OPERATION is generated if filter is gl.LINEAR and the read buffer contains integer data.');
+                gl.bindTexture(gl.TEXTURE_2D, texture[0]);
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32UI, 32, 32, 0, gl.RGBA_INTEGER, gl.UNSIGNED_INT, null);
+                gl.framebufferTexture2D(gl.READ_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture[0], 0);
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, 32, 32, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+                gl.framebufferTexture2D(gl.DRAW_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture[1], 0);
+                bufferedLogToConsole('// Read buffer: GL_RGBA32I, draw buffer: GL_RGBA8');
+                gl.blitFramebuffer(0, 0, 16, 16, 0, 0, 16, 16, gl.COLOR_BUFFER_BIT, gl.LINEAR);
+                this.expectError(gl.INVALID_OPERATION);
+
+                bufferedLogToConsole('gl.INVALID_OPERATION is generated if mask contains gl.DEPTH_BUFFER_BIT or gl.STENCIL_BUFFER_BIT and the source and destination depth and stencil formats do not match.');
+                gl.bindRenderbuffer(gl.RENDERBUFFER, rbo[0]);
+                gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH32F_STENCIL8, 32, 32);
+                gl.framebufferRenderbuffer(gl.READ_FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, rbo[0]);
+                gl.blitFramebuffer(0, 0, 16, 16, 0, 0, 16, 16, gl.DEPTH_BUFFER_BIT, gl.NEAREST);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.blitFramebuffer(0, 0, 16, 16, 0, 0, 16, 16, gl.STENCIL_BUFFER_BIT, gl.NEAREST);
+                this.expectError(gl.INVALID_OPERATION);
+
+                gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+                gl.deleteFramebuffer(fbo[1]);
+                gl.deleteFramebuffer(fbo[0]);
+                gl.deleteTexture(texture[1]);
+                gl.deleteTexture(texture[0]);
+                gl.deleteRenderbuffer(rbo[1]);
+                gl.deleteRenderbuffer(rbo[0]);
+            }
+        ));
+
 
 
 
@@ -766,7 +866,14 @@ goog.scope(function() {
 // bufferedLogToConsole('');
 
         /*
-        
+                
+
+                
+                
+
+                
+		});
+
         //*/
         
         /*
