@@ -220,15 +220,14 @@ goog.scope(function() {
         /** @type {boolean} */ var isSRGB = texFormat.order == tcuTexture.ChannelOrder.sRGB || texFormat.order == tcuTexture.ChannelOrder.sRGBA;
         /** @type {tcuPixelFormat.PixelFormat} */ var pixelFormat = new tcuPixelFormat.PixelFormat(8, 8, 8, 8);
         /** @type {Array<number>} */ var colorBits = deMath.max(deMath.subtract(glsTextureTestUtil.getBitsVec(pixelFormat), (isNearestOnly && !isSRGB ? [1, 1, 1, 1] : [2, 2, 2, 2])), [0, 0, 0, 0]);
-        /** @type {tcuTexLookupVerifier.LodPrecision} */ var lodPrecision = new tcuTexLookupVerifier.LodPrecision();
-        /** @type {tcuTexLookupVerifier.LookupPrecision} */ var lookupPrecision = new tcuTexLookupVerifier.LookupPrecision();
-
-        lodPrecision.derivateBits = 18;
-        lodPrecision.lodBits = 5;
-        lookupPrecision.colorThreshold = deMath.divide(tcuTexLookupVerifier.computeFixedPointThreshold(colorBits), refParams.colorScale);
-        lookupPrecision.coordBits = [20, 20, 0];
-        lookupPrecision.uvwBits = [5, 5, 0];
-        lookupPrecision.colorMask = glsTextureTestUtil.getCompareMask(pixelFormat);
+        /** @type {tcuTexLookupVerifier.LodPrecision} */ var lodPrecision = new tcuTexLookupVerifier.LodPrecision(18, 5);
+        /** @type {tcuTexLookupVerifier.LookupPrecision} */
+        var lookupPrecision = new tcuTexLookupVerifier.LookupPrecision(
+            [20, 20, 0],
+            [5, 5, 0],
+            deMath.divide(tcuTexLookupVerifier.computeFixedPointThreshold(colorBits), refParams.colorScale),
+            glsTextureTestUtil.getCompareMask(pixelFormat)
+        );
 
         // log << TestLog::Message << "Note: lookup coordinates: bottom-left " << m_cases[m_caseNdx].bottomLeft << ", top-right " << m_cases[m_caseNdx].topRight << TestLog::EndMessage;
 
@@ -252,6 +251,7 @@ goog.scope(function() {
         /** @type {string} */ var name;
         /**
          * @constructor
+         * @struct
          * @param {string} name
          * @param {number} mode
          */
@@ -268,6 +268,7 @@ goog.scope(function() {
 
         /**
          * @constructor
+         * @struct
          * @param {string} name
          * @param {number} mode
          */
@@ -284,6 +285,7 @@ goog.scope(function() {
         /* Begin RGBA8 Cases */
         /**
          * @constructor
+         * @struct
          * @param {string} name
          * @param {number} width
          * @param {number} height
@@ -330,6 +332,7 @@ goog.scope(function() {
         /* Begin ETC-2 (and EAC) cases */
         /**
          * @constructor
+         * @struct
          * @param {string} name
          * @param {tcuCompressedTexture.Format} format
          */
@@ -353,6 +356,7 @@ goog.scope(function() {
 
         /**
          * @constructor
+         * @struct
          * @param {string} name
          * @param {number} width
          * @param {number} height

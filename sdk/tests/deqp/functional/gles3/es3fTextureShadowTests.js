@@ -19,22 +19,24 @@
  */
 'use strict';
 goog.provide('functional.gles3.es3fTextureShadowTests');
+goog.require('framework.common.tcuPixelFormat');
+goog.require('framework.common.tcuRGBA');
+goog.require('framework.common.tcuSurface');
 goog.require('framework.common.tcuTestCase');
-goog.require('modules.shared.glsTextureTestUtil');
+goog.require('framework.common.tcuTexture');
+goog.require('framework.common.tcuTextureUtil');
+goog.require('framework.common.tcuTexCompareVerifier');
+goog.require('framework.common.tcuTexLookupVerifier');
+goog.require('framework.delibs.debase.deMath');
 goog.require('framework.opengl.gluShaderUtil');
 goog.require('framework.opengl.gluTexture');
 goog.require('framework.opengl.gluTextureUtil');
-goog.require('framework.common.tcuTexture');
-goog.require('framework.common.tcuTextureUtil');
-goog.require('framework.common.tcuRGBA');
-goog.require('framework.delibs.debase.deMath');
-goog.require('framework.common.tcuPixelFormat');
-goog.require('framework.common.tcuSurface');
+goog.require('modules.shared.glsTextureTestUtil');
 
 goog.scope(function() {
 
 var es3fTextureShadowTests = functional.gles3.es3fTextureShadowTests;
-var tcuTestCase  = framework.common.tcuTestCase;
+var tcuTestCase = framework.common.tcuTestCase;
 var glsTextureTestUtil = modules.shared.glsTextureTestUtil;
 var gluShaderUtil = framework.opengl.gluShaderUtil;
 var gluTexture = framework.opengl.gluTexture;
@@ -45,8 +47,30 @@ var tcuRGBA = framework.common.tcuRGBA;
 var deMath = framework.delibs.debase.deMath;
 var tcuPixelFormat = framework.common.tcuPixelFormat;
 var tcuSurface = framework.common.tcuSurface;
+var tcuTexCompareVerifier = framework.common.tcuTexCompareVerifier;
+var tcuTexLookupVerifier = framework.common.tcuTexLookupVerifier;
 
     es3fTextureShadowTests.version = '300 es';
+
+
+    /**
+     * @param {tcuTexture.TextureFormat} format
+     * @return {boolean}
+     */
+    es3fTextureShadowTests.isFloatingPointDepthFormat = function(format) {
+        // Only two depth and depth-stencil formats are floating point
+        return (format.order == tcuTexture.ChannelOrder.D && format.type == tcuTexture.ChannelType.FLOAT) || (format.order == tcuTexture.ChannelOrder.DS && format.type == tcuTexture.ChannelType.FLOAT_UNSIGNED_INT_24_8_REV);
+    };
+
+    /**
+     * @param {tcuTexture.Texture2D} target
+     * @return {tcuTexture.Texture2D}
+     */
+    es3fTextureShadowTests.clampFloatingPointTextureTexture2D = function(target) {
+        //TODO: Implement
+
+        return target;
+    };
 
     /**
      * @param {?} textureType
@@ -58,8 +82,41 @@ var tcuSurface = framework.common.tcuSurface;
      * @param {tcuTexLookupVerifier.LodPrecision} lodPrecision
      * @param {tcuPixelFormat.PixelFormat} pixelFormat
      */
-    es3fTextureShadowTests.verifyTexCompareResult = function (textureType, result, src, texCoord, sampleParams, comparePrec, lodPrecision, pixelFormat) {
+    es3fTextureShadowTests.verifyTexCompareResult = function(textureType, result, src, texCoord, sampleParams, comparePrec, lodPrecision, pixelFormat) {
         //TODO: Implement
+        var reference = new tcuSurface.Surface(result.getWidth(), result.getHeight());
+        var errorMask = new tcuSurface.Surface(result.getWidth(), result.getHeight());
+        var nonShadowThreshold = tcuTexLookupVerifier.computeFixedPointThreshold(glsTextureTestUtil.getBitsVec() - 1).swizzle(1, 2, 3);
+        var numFailedPixels;
+
+
+    	if (es3fTextureShadowTests.isFloatingPointDepthFormat(src.getFormat()))
+    	{
+            var clampedSource = new tcuTexture.Texture2D(src.getFormat(), src.getWidth(), src.getHeight());
+
+            es3fTextureShadowTests.clampFloatingPointTextureTexture2D(clampedSource);
+
+    		// sample clamped values
+            glsTextureTestUtil.sampleTexture2D(new glsTextureTestUtil.SurfaceAccess(reference, pixelFormat), clampedSource, texCoord, sampleParams);
+    		numFailedPixels = computeTextureCompareDiff(result, reference.getAccess(), errorMask.getAccess(), clampedSource, texCoord, sampleParams, comparePrec, lodPrec, nonShadowThreshold);
+    	}
+        else
+        {
+        	// sample raw values (they are guaranteed to be in [0, 1] range as the format cannot represent any other values)
+            glsTextureTestUtil.sampleTexture2D(new glsTextureTestUtil.SurfaceAccess(reference, pixelFormat), src, texCoord, sampleParams);
+    		numFailedPixels = computeTextureCompareDiff(result, reference.getAccess(), errorMask.getAccess(), src, texCoord, sampleParams, comparePrec, lodPrec, nonShadowThreshold);
+        }
+
+        if (numFailedPixels > 0)
+            bufferedLogToConsole('ERROR: Result verification failed, got ' + numFailedPixels + ' invalid pixels!');
+
+        if (numFailedPixels > 0)
+            tcuImageCompare.displayImages(result, reference, errorMask.getAccess());
+        else
+            tcuImageCompare.displayImages(result, null, null);
+
+        return numFailedPixels == 0;
+
     };
 
     /** @enum */
@@ -116,7 +173,7 @@ var tcuSurface = framework.common.tcuSurface;
      * @constructor
      * @struct
      */
-    es3fTextureShadowTests.SimpleFilterCase = function () {
+    es3fTextureShadowTests.SimpleFilterCase = function() {
         /** @type {tcuTexture.Texture2D} */ this.texture = null;
         /** @type {number} */ this.ref = 0.0;
     };
@@ -125,7 +182,7 @@ var tcuSurface = framework.common.tcuSurface;
      * @constructor
      * @struct
      */
-    es3fTextureShadowTests.FilterCase = function (tex, ref, minCoord, maxCoord) {
+    es3fTextureShadowTests.FilterCase = function(tex, ref, minCoord, maxCoord) {
         /** @type {tcuTexture.Texture2D} */ this.texture = tex;
         /** @type {Array<number>} */ this.minCoord = minCoord;
         /** @type {Array<number>} */ this.maxCoord = maxCoord;
@@ -136,7 +193,7 @@ var tcuSurface = framework.common.tcuSurface;
      * @constructor
      * @extends {tcuTestCase.DeqpTest}
      */
-    es3fTextureShadowTests.Texture2DShadowCase = function (name, desc, minFilter, magFilter, wrapS, wrapT, format, width, height, compareFunc) {
+    es3fTextureShadowTests.Texture2DShadowCase = function(name, desc, minFilter, magFilter, wrapS, wrapT, format, width, height, compareFunc) {
         tcuTestCase.DeqpTest.call(this, name, desc);
         this.m_minFilter = minFilter;
         this.m_magFilter = magFilter;
@@ -149,7 +206,7 @@ var tcuSurface = framework.common.tcuSurface;
         this.m_renderer = new glsTextureTestUtil.TextureRenderer(es3fTextureShadowTests.version, gluShaderUtil.precision.PRECISION_HIGHP);
         this.m_caseNdx = 0;
         this.m_cases = [];
-    }
+    };
 
     es3fTextureShadowTests.Texture2DShadowCase.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
     es3fTextureShadowTests.Texture2DShadowCase.prototype.constructor = es3fTextureShadowTests.Texture2DShadowCase;
@@ -166,10 +223,10 @@ var tcuSurface = framework.common.tcuSurface;
         for (var levelNdx = 0; levelNdx < numLevels; levelNdx++)
         {
             this.m_textures[0].getRefTexture().allocLevel(levelNdx);
-            tcuTextureUtil.fillWithComponentGradients(this.m_textures[0].getRefTexture().getLevel(levelNdx),[-0.5,-0.5, -0.5, 2.0], [1, 1, 1, 0]);
+            tcuTextureUtil.fillWithComponentGradients(this.m_textures[0].getRefTexture().getLevel(levelNdx), [-0.5, -0.5, -0.5, 2.0], [1, 1, 1, 0]);
         }
 
-        for (levelNdx = 0; levelNdx  < numLevels; levelNdx++)
+        for (levelNdx = 0; levelNdx < numLevels; levelNdx++)
         {
             var step = 0x00ffffff / numLevels;
             var rgb = step * levelNdx;
@@ -250,15 +307,15 @@ var tcuSurface = framework.common.tcuSurface;
 			var sX = Math.exp(lodX * Math.log(2)) * viewportW / this.m_textures[texNdx].getWidth();
 			var	sY = Math.exp(lodY * Math.log(2)) * viewportH / this.m_textures[texNdx].getHeight();
 
-            this.m_cases.push(new es3fTextureShadowTests.FilterCase(this.m_textures[texNdx], ref, [oX, oY], [oX+sX, oY+sY]));
+            this.m_cases.push(new es3fTextureShadowTests.FilterCase(this.m_textures[texNdx], ref, [oX, oY], [oX + sX, oY + sY]));
         }
 
         this.m_caseNdx = 0;
-    }
+    };
 
     es3fTextureShadowTests.Texture2DShadowCase.prototype.iterate = function() {
 
-        var viewport = new glsTextureTestUtil.RandomViewport(document.getElementById('canvas'), es3fTextureShadowTests.text2D.VIEWPORT_WIDTH , es3fTextureShadowTests.text2D.VIEWPORT_HEIGHT);
+        var viewport = new glsTextureTestUtil.RandomViewport(document.getElementById('canvas'), es3fTextureShadowTests.text2D.VIEWPORT_WIDTH, es3fTextureShadowTests.text2D.VIEWPORT_HEIGHT);
         var curCase = this.m_cases[this.m_caseNdx];
         var sampleParams = new glsTextureTestUtil.ReferenceParams(glsTextureTestUtil.textureType.TEXTURETYPE_2D);
         var rendered = new tcuSurface.Surface(viewport.width, viewport.height);
@@ -270,24 +327,24 @@ var tcuSurface = framework.common.tcuSurface;
         // Setup params for reference.
         sampleParams.sampler = gluTextureUtil.mapGLSampler(this.m_wrapS, this.m_wrapT, gl.NEAREST, this.m_minFilter, this.m_magFilter);
         sampleParams.sampler.compare	= gluTextureUtil.mapGLCompareFunc(this.m_compareFunc);
-        sampleParams.samplerType		= glsTextureTestUtil.samplerType.SAMPLERTYPE_SHADOW;
-        sampleParams.lodMode			= glsTextureTestUtil.lodMode.EXACT;
-        sampleParams.ref				= curCase.ref;
+        sampleParams.samplerType	= glsTextureTestUtil.samplerType.SAMPLERTYPE_SHADOW;
+        sampleParams.lodMode	= glsTextureTestUtil.lodMode.EXACT;
+        sampleParams.ref	= curCase.ref;
 
         bufferedLogToConsole('Compare reference value =  ' + sampleParams.ref);
 
         // Compute texture coordinates.
-        bufferedLogToConsole('Texture coordinates: ' +  curCase.minCoord + ' -> ' + curCase.maxCoord);
+        bufferedLogToConsole('Texture coordinates: ' + curCase.minCoord + ' -> ' + curCase.maxCoord);
 
         texCoord = glsTextureTestUtil.computeQuadTexCoord2D(curCase.minCoord, curCase.maxCoord);
 
-        gl.bindTexture	(GL_TEXTURE_2D, curCase.texture.getGLTexture());
-        gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,		this.m_minFilter);
-        gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,		this.m_magFilter);
-        gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,			this.m_wrapS);
-        gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,			this.m_wrapT);
-        gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE,	GL_COMPARE_REF_TO_TEXTURE);
-        gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC,	this.m_compareFunc);
+        gl.bindTexture(gl.TEXTURE_2D, curCase.texture.getGLTexture());
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER,	this.m_minFilter);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER,	this.m_magFilter);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S,	this.m_wrapS);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T,	this.m_wrapT);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_COMPARE_MODE,	gl.COMPARE_REF_TO_TEXTURE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_COMPARE_FUNC,	this.m_compareFunc);
 
         gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height);
         this.m_renderer.renderQuad(0, texCoord, sampleParams);
@@ -296,7 +353,7 @@ var tcuSurface = framework.common.tcuSurface;
 
         var pixelFormat = new tcuPixelFormat.PixelFormat(8, 8, 8, 8);
         var lodPrecision = new tcuTexLookupVerifier.LodPrecision(18, 6);
-        var texComparePrecision = new tcuTexCompareVerifier.TexComparePrecision([20, 20, 0], [7, 7, 0], 5, 16, pixelFormat.redBits-1);
+        var texComparePrecision = new tcuTexCompareVerifier.TexComparePrecision([20, 20, 0], [7, 7, 0], 5, 16, pixelFormat.redBits - 1);
 
         var isHighQuality = es3fTextureShadowTests.verifyTexCompareResult(tcuTexture.Texture2D, rendered.getAccess(), curCase.texture.getRefTexture(),
                                                       texCoord, sampleParams, texComparePrecision, lodPrecision, pixelFormat);
@@ -305,9 +362,9 @@ var tcuSurface = framework.common.tcuSurface;
         {
             bufferedLogToConsole('Warning: Verification assuming high-quality PCF filtering failed.');
 
-            lodPrecision.lodBits			= 4;
-            texComparePrecision.uvwBits		= [4,4,0];
-            texComparePrecision.pcfBits		= 0;
+            lodPrecision.lodBits	= 4;
+            texComparePrecision.uvwBits	= [4, 4, 0];
+            texComparePrecision.pcfBits	= 0;
 
             var isOk = verifyTexCompareResult(tcuTexture.Texture2D, rendered.getAccess(), curCase.texture.getRefTexture(),
                                                      texCoord, sampleParams, texComparePrecision, lodPrecision, pixelFormat);
@@ -329,7 +386,7 @@ var tcuSurface = framework.common.tcuSurface;
      * @param {tcuRGBA.RGBA} c
      * @return {Array<number>}
      */
-    es3fTextureShadowTests.toVec4 = function (c) {
+    es3fTextureShadowTests.toVec4 = function(c) {
         return [c.getRed() / 255.0, c.getGreen() / 255.0, c.getBlue() / 255.0, c.getAlpha() / 255.0];
     };
 
@@ -420,13 +477,13 @@ var tcuSurface = framework.common.tcuSurface;
                     /** @type {number} */ var wrapT = gl.REPEAT;
                     /** @type {number} */ var width = 32;
                     /** @type {number} */ var height = 64;
-                    /** @type {string} */ var name = compareFuncs[compareNdx].name + '_' +formats[formatNdx].name;
+                    /** @type {string} */ var name = compareFuncs[compareNdx].name + '_' + formats[formatNdx].name;
 
                     filterGroup.addChild(new es3fTextureShadowTests.Texture2DShadowCase(name, '', minFilter, magFilter, wrapS, wrapT, format, width, height, compareFunc));
                 }
             }
         }
-    }
+    };
 
     es3fTextureShadowTests.run = function(context) {
         gl = context;

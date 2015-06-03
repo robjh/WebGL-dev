@@ -50,3 +50,5 @@ extensions/registry.xml
 extensions/extension-schematron.xsl
 extensions/schematron/webgl_message.xsl
 
+sdk/tests/deqp/fixjsstyle-script.py
+sdk/tests/deqp/reformatting_tool.py
