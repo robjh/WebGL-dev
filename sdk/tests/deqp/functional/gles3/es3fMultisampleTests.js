@@ -217,7 +217,7 @@ goog.scope(function() {
         /** @private {number} */ this.m_attrPositionLoc = -1;
         /** @private {number} */ this.m_attrColorLoc = -1;
         /** @private {number} */ this.m_renderWidth = fboParams.useFbo ? 2 * desiredViewportSize : gl.drawingBufferWidth;
-        /** @private {number} */ this.m_renderHeight = fboParams.useFbo ? 2 * desiredViewportSize : gl.drawingBufferHeigth;
+        /** @private {number} */ this.m_renderHeight = fboParams.useFbo ? 2 * desiredViewportSize : gl.drawingBufferHeight;
         /** @private {number} */ this.m_viewportX = 0;
         /** @private {number} */ this.m_viewportY = 0;
         /** @private {deRandom.Random} */ this.m_rnd = new deRandom.Random(deString.deStringHash(this.name));
@@ -264,7 +264,7 @@ goog.scope(function() {
         ];
 
         var posGLBuffer = gl.createBuffer();
-        /** @type {goog.NumberArray} */ var posBuffer = new Float32Array(vertexPositions);
+        /** @type {ArrayBufferView} */ var posBuffer = new Float32Array(vertexPositions);
         checkMessage(gl.bindBuffer(gl.ARRAY_BUFFER, posGLBuffer), 'gl.bindBuffer()');
         checkMessage(gl.bufferData(gl.ARRAY_BUFFER, posBuffer, gl.STATIC_DRAW), 'gl.bufferData()');
 
@@ -272,7 +272,7 @@ goog.scope(function() {
         checkMessage((gl.vertexAttribPointer(this.m_attrPositionLoc, 4, gl.FLOAT, false, 0, 0)), 'gl.vertexAttribPointer()');
 
         var colGLBuffer = gl.createBuffer();
-        /** @type {goog.NumberArray} */ var colBuffer = new Float32Array(vertexColors);
+        /** @type {ArrayBufferView} */ var colBuffer = new Float32Array(vertexColors);
         checkMessage(gl.bindBuffer(gl.ARRAY_BUFFER, colGLBuffer), 'gl.bindBuffer()');
         checkMessage(gl.bufferData(gl.ARRAY_BUFFER, colBuffer, gl.STATIC_DRAW), 'gl.bufferData()');
 
@@ -367,7 +367,7 @@ goog.scope(function() {
         ];
 
         var posGLBuffer = gl.createBuffer();
-        /** @type {goog.NumberArray} */ var posBuffer = new Float32Array(vertexPositions);
+        /** @type {ArrayBufferView} */ var posBuffer = new Float32Array(vertexPositions);
         checkMessage(gl.bindBuffer(gl.ARRAY_BUFFER, posGLBuffer), 'gl.bindBuffer()');
         checkMessage(gl.bufferData(gl.ARRAY_BUFFER, posBuffer, gl.STATIC_DRAW), 'gl.bufferData()');
 
@@ -375,7 +375,7 @@ goog.scope(function() {
         checkMessage(gl.vertexAttribPointer(this.m_attrPositionLoc, 4, gl.FLOAT, false, 0, 0), 'gl.vertexAttribPointer()');
 
         var colGLBuffer = gl.createBuffer();
-        /** @type {goog.NumberArray} */ var colBuffer = new Float32Array(vertexColors);
+        /** @type {ArrayBufferView} */ var colBuffer = new Float32Array(vertexColors);
         checkMessage(gl.bindBuffer(gl.ARRAY_BUFFER, colGLBuffer), 'gl.bindBuffer()');
         checkMessage(gl.bufferData(gl.ARRAY_BUFFER, colBuffer, gl.STATIC_DRAW), 'gl.bufferData()');
 
@@ -544,6 +544,36 @@ goog.scope(function() {
      */
     es3fMultisampleTests.MultisampleTests.prototype.init = function() {
 
+    };
+
+    /**
+     * Run test
+     * @param {WebGL2RenderingContext} context
+     */
+     es3fMultisampleTests.run = function(context) {
+        gl = context;
+        //Set up Test Root parameters
+        var testName = 'multisample';
+        var testDescription = 'Multisample Tests';
+        var state = tcuTestCase.runner;
+
+        state.testName = testName;
+        state.setRoot(tcuTestCase.newTest(testName, testDescription, null));
+
+        //Set up name and description of this test series.
+        setCurrentTestName(testName);
+        description(testDescription);
+
+        try {
+            //Create test cases
+            es3fMultisampleTests.init();
+            //Run test cases
+            tcuTestCase.runTestCases();
+        }
+        catch (err) {
+            testFailedOptions('Failed to es3fMultisampleTests.run tests', false);
+            tcuTestCase.runner.terminate();
+        }
     };
 
 });
