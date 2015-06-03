@@ -176,7 +176,6 @@ goog.scope(function() {
      * @return {tcuTestCase.IterateResult}
      */
     es3fTextureWrapTests.TextureWrapCase.prototype.iterate = function() {
-        var glErr = gl.getError(); // clear any errors from previous tests
         /** @type {glsTextureTestUtil.RandomViewport} */ var viewport = new glsTextureTestUtil.RandomViewport(gl.canvas, Viewport.WIDTH, Viewport.HEIGHT, deString.deStringHash(this.name) + this.m_caseNdx);
         /** @type {tcuSurface.Surface} */ var renderedFrame = new tcuSurface.Surface(viewport.width, viewport.height);
         /** @type {tcuSurface.Surface} */ var referenceFrame = new tcuSurface.Surface(viewport.width, viewport.height);
@@ -196,9 +195,6 @@ goog.scope(function() {
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, this.m_minFilter);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, this.m_magFilter);
 
-        glErr = gl.getError();
-        assertMsgOptions(glErr === gl.NO_ERROR, 'Set texturing state', false, true);
-
         // Parameters for reference images.
         refParams.sampler = gluTextureUtil.mapGLSamplerWrapST(this.m_wrapS, this.m_wrapT, this.m_minFilter, this.m_magFilter);
         refParams.lodMode = glsTextureTestUtil.lodMode.EXACT;
@@ -217,11 +213,13 @@ goog.scope(function() {
         gl.pixelStorei(gl.PACK_ALIGNMENT, param);
         /** @type {gluTextureUtil.TransferFormat} */ var format = gluTextureUtil.getTransferFormat(renderedFrame.getAccess().getFormat());
 
-        gl.readPixels(
-            viewport.x, viewport.y,
-            renderedFrame.getWidth(), renderedFrame.getHeight(),
-            format.format, format.dataType,
-            renderedFrame.getAccess().getDataPtr());
+        // gl.readPixels(
+        //     viewport.x, viewport.y,
+        //     renderedFrame.getWidth(), renderedFrame.getHeight(),
+        //     format.format, format.dataType,
+        //     renderedFrame.getAccess().getDataPtr());
+
+        renderedFrame.readViewport(gl, viewport);    
 
         // const tcu::ScopedLogSection section (log, string("Test") + de::toString(m_caseNdx), string("Test ") + de::toString(m_caseNdx));
         /** @type {boolean} */ var isNearestOnly = this.m_minFilter == gl.NEAREST && this.m_magFilter == gl.NEAREST;
@@ -243,7 +241,9 @@ goog.scope(function() {
         /** @type {boolean} */ var isOk = glsTextureTestUtil.verifyTexture2DResult(renderedFrame.getAccess(), this.m_texture.getRefTexture(), texCoord, refParams, lookupPrecision, lodPrecision, pixelFormat);
 
         if (!isOk)
-            assertMsgOptions(isOk, 'verifyTexture2DResult is false', true, false);
+            testFailedOptions('verifyTexture2DResult is false', false);
+        else
+            testPassedOptions('', true);
 
         this.m_caseNdx++;
 
