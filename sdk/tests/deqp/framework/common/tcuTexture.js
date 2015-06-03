@@ -24,7 +24,6 @@ goog.require('framework.common.tcuFloat');
 goog.require('framework.delibs.debase.deMath');
 goog.require('framework.delibs.debase.deString');
 
-
 goog.scope(function() {
 
 var tcuTexture = framework.common.tcuTexture;
@@ -2367,6 +2366,19 @@ tcuTexture.TextureCubeView.prototype.getFaceLevels = function(face) { return thi
 /** @return {number} */
 tcuTexture.TextureCubeView.prototype.getSize = function() { return this.m_numLevels > 0 ? this.m_levels[0][0].getWidth() : 0; };
 
+/** @return {number} */
+tcuTexture.TextureCubeView.prototype.getNumLevels = function() { return this.m_numLevels; };
+
+/**
+ * @param {number} ndx
+ * @param {tcuTexture.CubeFace} face
+ * @return {tcuTexture.ConstPixelBufferAccess}
+ */
+tcuTexture.TextureCubeView.prototype.getLevelFace = function(ndx, face) {
+    assertMsgOptions(0 <= ndx && ndx < this.m_numLevels, '', false, true);
+    return this.m_levels[face][ndx];
+};
+
 /**
  * @param {number} baseLevel
  * @param {number} maxLevel
@@ -2625,6 +2637,63 @@ tcuTexture.TextureLevel.prototype.getDepth = function() {
  */
 tcuTexture.TextureLevel.prototype.getFormat = function() {
     return this.m_format;
+};
+
+/**
+ * Checks if origCoords.coords is in bounds defined by size; if not, return a CubeFaceIntCoords with face set to the appropriate neighboring face and coords transformed accordingly.
+ * \note If both x and y in origCoords.coords are out of bounds, this returns with face CUBEFACE_LAST, signifying that there is no unique neighboring face.
+ * @param {tcuTexture.CubeFaceCoords} origCoords
+ * @param {number} size
+ * @return {tcuTexture.CubeFaceCoords}
+ */
+tcuTexture.remapCubeEdgeCoords = function(origCoords, size) {
+    var uInBounds = deMath.deInBounds32(origCoords.s, 0, size);
+    var vInBounds = deMath.deInBounds32(origCoords.t, 0, size);
+
+    if (uInBounds && vInBounds)
+        return origCoords;
+
+    if (!uInBounds && !vInBounds)
+        return null;
+
+    var coords = [
+        tcuTexture.wrap(tcuTexture.WrapMode.CLAMP_TO_BORDER, origCoords.s, size),
+        tcuTexture.wrap(tcuTexture.WrapMode.CLAMP_TO_BORDER, origCoords.t, size)];
+    var canonizedCoords = [];
+
+    // Map the uv coordinates to canonized 3d coordinates.
+
+    switch (origCoords.face) {
+        case tcuTexture.CubeFace.CUBEFACE_NEGATIVE_X: canonizedCoords = [0, size - 1 - coords[1], coords[0]]; break;
+        case tcuTexture.CubeFace.CUBEFACE_POSITIVE_X: canonizedCoords = [size - 1, size - 1 - coords[1], size - 1 - coords[0]]; break;
+        case tcuTexture.CubeFace.CUBEFACE_NEGATIVE_Y: canonizedCoords = [coords[0], 0, size - 1 - coords[1]]; break;
+        case tcuTexture.CubeFace.CUBEFACE_POSITIVE_Y: canonizedCoords = [coords[0], size - 1, coords[1]]; break;
+        case tcuTexture.CubeFace.CUBEFACE_NEGATIVE_Z: canonizedCoords = [size - 1 - coords[0], size - 1 - coords[1], 0]; break;
+        case tcuTexture.CubeFace.CUBEFACE_POSITIVE_Z: canonizedCoords = [coords[0], size - 1 - coords[1], size - 1]; break;
+        default: throw new Error('Invalid cube face:' + origCoords.face);
+    }
+
+    // Find an appropriate face to re-map the coordinates to.
+
+    if (canonizedCoords[0] == -1)
+        return new tcuTexture.CubeFaceCoords(tcuTexture.CubeFace.CUBEFACE_NEGATIVE_X, [canonizedCoords[2], size - 1 - canonizedCoords[1]]);
+
+    if (canonizedCoords[0] == size)
+        return new tcuTexture.CubeFaceCoords(tcuTexture.CubeFace.CUBEFACE_POSITIVE_X, [size - 1 - canonizedCoords[2], size - 1 - canonizedCoords[1]]);
+
+    if (canonizedCoords[1] == -1)
+        return new tcuTexture.CubeFaceCoords(tcuTexture.CubeFace.CUBEFACE_NEGATIVE_Y, [canonizedCoords[0], size - 1 - canonizedCoords[2]]);
+
+    if (canonizedCoords[1] == size)
+        return new tcuTexture.CubeFaceCoords(tcuTexture.CubeFace.CUBEFACE_POSITIVE_Y, [canonizedCoords[0], canonizedCoords[2]]);
+
+    if (canonizedCoords[2] == -1)
+        return new tcuTexture.CubeFaceCoords(tcuTexture.CubeFace.CUBEFACE_NEGATIVE_Z, [size - 1 - canonizedCoords[0], size - 1 - canonizedCoords[1]]);
+
+    if (canonizedCoords[2] == size)
+        return new tcuTexture.CubeFaceCoords(tcuTexture.CubeFace.CUBEFACE_POSITIVE_Z, [canonizedCoords[0], size - 1 - canonizedCoords[1]]);
+
+    throw new Error('Cannot remap cube coordinates');
 };
 
 /**

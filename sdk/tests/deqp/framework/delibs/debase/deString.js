@@ -81,6 +81,12 @@ var deMath = framework.delibs.debase.deMath;
             if (enumType[p] == value)
                 return p;
 
+        if (typeof value === 'undefined')
+            return 'undefined';
+
+        if (!value)
+            return 'null';
+
         return value.toString(10);
     };
 
@@ -101,6 +107,5 @@ var deMath = framework.delibs.debase.deMath;
 
         return table[value];
     };
-
 
 });
