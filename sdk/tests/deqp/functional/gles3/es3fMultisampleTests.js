@@ -50,7 +50,7 @@ goog.scope(function() {
      * @param {number} defaultCount
      * @return {number}
      */
-    es3fMultisampleTests.getIterationCount = function(number defaultCount) {
+    es3fMultisampleTests.getIterationCount = function(defaultCount) {
         // The C++ test takes an argument from the command line.
         // Leaving this function in case we want to be able to take an argument from the URL
         return defaultCount;
@@ -64,7 +64,7 @@ goog.scope(function() {
      * @return {number}
      */
     es3fMultisampleTests.min4 = function(a, b, c, d) {
-	       return Math.min(Math.min(Math.min(a, b), c), d);
+           return Math.min(Math.min(Math.min(a, b), c), d);
     };
 
     /**
@@ -75,7 +75,7 @@ goog.scope(function() {
      * @return {number}
      */
     es3fMultisampleTests.max4 = function(a, b, c, d) {
-	       return Math.max(Math.max(Math.max(a, b), c), d);
+           return Math.max(Math.max(Math.max(a, b), c), d);
     };
 
     /**
@@ -87,12 +87,12 @@ goog.scope(function() {
      * @return {boolean}
      */
     es3fMultisampleTests.isInsideQuad = function(point, p0, p1, p2, p3) {
-    	/** @type {number} */ var dot0 = (point[0] - p0[0]) * (p1[1] - p0[1]) + (point[1] - p0[1]) * (p0[0] - p1[0]);
-    	/** @type {number} */ var dot1 = (point[0] - p1[0]) * (p2[1] - p1[1]) + (point[1] - p1[1]) * (p1[0] - p2[0]);
-    	/** @type {number} */ var dot2 = (point[0] - p2[0]) * (p3[1] - p2[1]) + (point[1] - p2[1]) * (p2[0] - p3[0]);
-    	/** @type {number} */ var dot3 = (point[0] - p3[0]) * (p0[1] - p3[1]) + (point[1] - p3[1]) * (p3[0] - p0[0]);
+        /** @type {number} */ var dot0 = (point[0] - p0[0]) * (p1[1] - p0[1]) + (point[1] - p0[1]) * (p0[0] - p1[0]);
+        /** @type {number} */ var dot1 = (point[0] - p1[0]) * (p2[1] - p1[1]) + (point[1] - p1[1]) * (p1[0] - p2[0]);
+        /** @type {number} */ var dot2 = (point[0] - p2[0]) * (p3[1] - p2[1]) + (point[1] - p2[1]) * (p2[0] - p3[0]);
+        /** @type {number} */ var dot3 = (point[0] - p3[0]) * (p0[1] - p3[1]) + (point[1] - p3[1]) * (p3[0] - p0[0]);
 
-    	return (dot0 > 0) == (dot1 > 0) && (dot1 > 0) == (dot2 > 0) && (dot2 > 0) == (dot3 > 0);
+        return (dot0 > 0) == (dot1 > 0) && (dot1 > 0) == (dot2 > 0) && (dot2 > 0) == (dot3 > 0);
     };
 
     /**
@@ -116,22 +116,22 @@ goog.scope(function() {
         /** @type {boolean} */ var insideEncountered = false; //!< Whether we have already seen at least one pixel inside the region.
         /** @type {tcuRGBA.RGBA} */ var insideColor; //!< Color of the first pixel inside the region.
 
-    	for (var y = yMin; y <= yMax; y++)
-    	for (var x = xMin; x <= xMax; x++) {
-    		if (es3fMultisampleTests.isInsideQuad([x, y], p0, p1, p2, p3)) {
+        for (var y = yMin; y <= yMax; y++)
+        for (var x = xMin; x <= xMax; x++) {
+            if (es3fMultisampleTests.isInsideQuad([x, y], p0, p1, p2, p3)) {
                 /** @type {tcuRGBA.RGBA} */ var pixColor = img.getPixel(x, y);
 
-    			if (insideEncountered)
-    				if (!tcuRGA.compareThreshold(pixColor, insideColor, tcuRGBA.newRGBAComponents(3, 3, 3, 3))) // Pixel color differs from already-detected color inside same region - region not unicolored.
-    					return false;
-    			else {
-    				insideEncountered = true;
-    				insideColor = pixColor;
-    			}
-    		}
-    	}
+                if (insideEncountered)
+                    if (!tcuRGA.compareThreshold(pixColor, insideColor, tcuRGBA.newRGBAComponents(3, 3, 3, 3))) // Pixel color differs from already-detected color inside same region - region not unicolored.
+                        return false;
+                else {
+                    insideEncountered = true;
+                    insideColor = pixColor;
+                }
+            }
+        }
 
-    	return true;
+        return true;
     };
 
     /**
