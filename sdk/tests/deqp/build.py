@@ -67,7 +67,8 @@ targets = {
     'sglrReferenceContextTest': 'framework.opengl.simplereference.sglrReferenceContextTest',
     'lifetime': 'functional.gles3.es3fLifetimeTests',
     'draw': 'modules.shared.glsDrawTests',
-    'attriblocation': 'functional.gles3.es3fAttribLocationTests'
+    'attriblocation': 'functional.gles3.es3fAttribLocationTests',
+    'textureShadowTests': 'functional.gles3.es3fTextureShadowTests'
 }
 
 total_errors = 0
@@ -232,4 +233,3 @@ def main(argv):
 
 if __name__ == '__main__':
     main(sys.argv[1:])
-

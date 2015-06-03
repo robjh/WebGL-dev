@@ -935,7 +935,7 @@ tcuTexture.ConstPixelBufferAccess.prototype.toString = function() {
         str += ', slice pitch: ' + this.m_slicePitch;
     if (this.m_offset > 0)
         str += ', offset: ' + this.m_offset;
-    str += ')'
+    str += ')';
     return str;
 };
 
@@ -1093,9 +1093,9 @@ tcuTexture.ConstPixelBufferAccess.prototype.getPixel = function(x, y, z) {
     // Quick paths
     if (z == 0) {
         if (this.m_rgba8View)
-            return deMath.scale(this.m_rgba8View.read(x, y, 4), 1/255);  
-        else if  (this.m_rgb8View)
-            return deMath.scale(this.m_rgb8View.read(x, y, 3), 1/255);  
+            return deMath.scale(this.m_rgba8View.read(x, y, 4), 1 / 255);
+        else if (this.m_rgb8View)
+            return deMath.scale(this.m_rgb8View.read(x, y, 3), 1 / 255);
     }
 
     var pixelSize = this.m_format.getPixelSize();
@@ -1191,9 +1191,9 @@ tcuTexture.ConstPixelBufferAccess.prototype.getPixelInt = function(x, y, z) {
     // Quick paths
     if (z == 0) {
         if (this.m_rgba8View)
-            return this.m_rgba8View.read(x, y, 4);  
-        else if  (this.m_rgb8View)
-            return this.m_rgb8View.read(x, y, 3);  
+            return this.m_rgba8View.read(x, y, 4);
+        else if (this.m_rgb8View)
+            return this.m_rgb8View.read(x, y, 3);
     }
 
     var pixelSize = this.m_format.getPixelSize();
@@ -1486,13 +1486,13 @@ tcuTexture.PixelBufferAccess.prototype.setPixel = function(color, x, y, z) {
     if (z == 0) {
         if (this.m_rgba8View) {
             color = deMath.scale(color, 255);
-            this.m_rgba8View.write(x, y, color, 4);  
-            return;          
-        } else if  (this.m_rgb8View) {
-            color = deMath.scale(color, 255);
-            this.m_rgb8View.write(x, y, color, 3);            
+            this.m_rgba8View.write(x, y, color, 4);
             return;
-        } 
+        } else if (this.m_rgb8View) {
+            color = deMath.scale(color, 255);
+            this.m_rgb8View.write(x, y, color, 3);
+            return;
+        }
     }
 
     var pixelSize = this.m_format.getPixelSize();
@@ -1588,12 +1588,12 @@ tcuTexture.PixelBufferAccess.prototype.setPixelInt = function(color, x, y, z) {
     // Quick paths
     if (z == 0) {
         if (this.m_rgba8View) {
-            this.m_rgba8View.write(x, y, color, 4);            
+            this.m_rgba8View.write(x, y, color, 4);
             return;
-        } else if  (this.m_rgb8View) {
-            this.m_rgb8View.write(x, y, color, 3);            
+        } else if (this.m_rgb8View) {
+            this.m_rgb8View.write(x, y, color, 3);
             return;
-        } 
+        }
     }
 
     var pixelSize = this.m_format.getPixelSize();

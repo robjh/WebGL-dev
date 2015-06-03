@@ -529,7 +529,7 @@ tcuImageCompare.unitTest2 = function() {
     }
     if (!tcuImageCompare.bilinearCompare('compare', 'compare similar images', src, dst, threshold))
         throw new Error('Compare should return true');
-    debug("bilinear compare the same images passed");
+    debug('bilinear compare the same images passed');
 
     src.clear();
     dst.clear();
@@ -537,12 +537,12 @@ tcuImageCompare.unitTest2 = function() {
     for (var i = 0; i < width - 1; i++) {
         for (var j = 0; j < height - 1; j++) {
             src.setPixelInt([i, j, 90, 255], i, j);
-            dst.setPixelInt([i, j+1, 90, 255], i, j + 1);
+            dst.setPixelInt([i, j + 1, 90, 255], i, j + 1);
         }
     }
     if (!tcuImageCompare.bilinearCompare('compare', 'compare similar images', src, dst, threshold))
         throw new Error('Compare should return true');
-    debug("bilinear compare very similar images passed");
+    debug('bilinear compare very similar images passed');
 
 
     src.clear();
