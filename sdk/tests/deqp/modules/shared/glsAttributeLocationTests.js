@@ -86,9 +86,8 @@ goog.scope(function() {
      */
     glsAttributeLocationTests.generateAttributeDefinitions = function(attributes) {
         /** @type{string} */ var src = '';
-        /** @type{number} */ var i = 0;
 
-        for (i = 0; i < attributes.length; i++) {
+        for (var i = 0; i < attributes.length; i++) {
             if (attributes[i].getLayoutLocation() != glsAttributeLocationTests.LocationEnum.UNDEF)
                 src += ("layout(location = " + attributes[i].getLayoutLocation() + ") ");
 
@@ -109,16 +108,15 @@ goog.scope(function() {
      */
     glsAttributeLocationTests.generateConditionUniformDefinitions = function(attributes) {
         /** @type{string} */ var src = '';
-        /** @type{number} */ var i = 0;
         /** @type{Array<string>} */ var conditions = [];
 
-        for (i = 0; i < attributes.length; i++) {
+        for (var i = 0; i < attributes.length; i++) {
             if (attributes[i].getCondition().notEquals(glsAttributeLocationTests.NewCondWithEnum(glsAttributeLocationTests.ConstCond.NEVER))
                 && attributes[i].getCondition().notEquals(glsAttributeLocationTests.NewCondWithEnum(glsAttributeLocationTests.ConstCond.ALWAYS)))
             conditions.push(attributes[i].getCondition().getName());
         }
 
-        for (i = 0; i < conditions.length; i++)
+        for (var i = 0; i < conditions.length; i++)
             src += ('uniform mediump float u_' + conditions[i] + ';\n');
 
         return src;
@@ -163,17 +161,15 @@ goog.scope(function() {
      */
     glsAttributeLocationTests.generateOutputCode = function(attributes) {
         /** @type{string} */ var src = '';
-        /** @type{number} */ var i;
-        /** @type{number} */ var j;
 
-        for (i = 0; i < attributes.length; i++) {
+        for (var i = 0; i < attributes.length; i++) {
             if (attributes[i].getCondition().equals(glsAttributeLocationTests.NewCondWithEnum(glsAttributeLocationTests.ConstCond.NEVER))) {
                 src += '\tif (0 != 0)\n\t{\n';
 
                 if (attributes[i].getArraySize() == glsAttributeLocationTests.ArrayEnum.NOT)
                     src += ('\t\tcolor += ' + glsAttributeLocationTests.generateToVec4Expression(attributes[i]) + ';\n');
                 else {
-                    for (j = 0; j < attributes[i].getArraySize(); i++)
+                    for (var j = 0; j < attributes[i].getArraySize(); i++)
                         src += ('\t\tcolor += ' + glsAttributeLocationTests.generateToVec4Expression(attributes[i], j) + ';\n');
                 }
 
@@ -182,7 +178,7 @@ goog.scope(function() {
                 if (attributes[i].getArraySize() == glsAttributeLocationTests.ArrayEnum.NOT)
                     src += ('\tcolor += ' + glsAttributeLocationTests.generateToVec4Expression(attributes[i]) + ';\n');
                 else {
-                    for (j = 0; j < attributes[i].getArraySize(); j++)
+                    for (var j = 0; j < attributes[i].getArraySize(); j++)
                         src += ('\tcolor += ' + glsAttributeLocationTests.generateToVec4Expression(attributes[i], j) + ';\n');
                 }
             } else {
@@ -192,7 +188,7 @@ goog.scope(function() {
                 if (attributes[i].getArraySize() == glsAttributeLocationTests.ArrayEnum.NOT)
                     src += ('\t\tcolor += ' + glsAttributeLocationTests.generateToVec4Expression(attributes[i]) + ';\n');
                 else {
-                    for (j = 0; j < attributes[i].getArraySize(); i++)
+                    for (var j = 0; j < attributes[i].getArraySize(); i++)
                         src += ('\t\tcolor += ' + glsAttributeLocationTests.generateToVec4Expression(attributes[i], j) + ';\n');
                 }
 
@@ -310,9 +306,8 @@ goog.scope(function() {
     };
 
     glsAttributeLocationTests.logAttributes = function(attributes) {
-        /**@type{number} */ var i;
         /**@type{string} */ var log;
-        for (i = 0; i < attributes.length; i++) {
+        for (var i = 0; i < attributes.length; i++) {
 
             log = 'Type: ' + attributes[i].getType().getName() +
             ', Name: ' + attributes[i].getName() +
@@ -357,17 +352,15 @@ goog.scope(function() {
         /** @type {number} */ var activeAttribCount = 0;
         /** @type {Array<string>} */ var activeAttributes = [];
         /** @type {boolean} */ var isOk = true;
-        /** @type {number} */ var activeAttribNdx;
         /** @type {string} */ var log;
 
         activeAttribCount = /** @type {number} */  (gl.getProgramParameter(program, gl.ACTIVE_ATTRIBUTES));
 
-        /** @type {number} */ var attribNdx;
         /** @type {glsAttributeLocationTests.Attribute} */ var attrib;
         /** @type {boolean} */ var isActive;
         /** @type {WebGLActiveInfo} */ var activeInfo;
 
-        for (activeAttribNdx = 0; activeAttribNdx < activeAttribCount; activeAttribNdx++) {
+        for (var activeAttribNdx = 0; activeAttribNdx < activeAttribCount; activeAttribNdx++) {
 
             activeInfo = gl.getActiveAttrib(program, activeAttribNdx);
 
@@ -381,7 +374,7 @@ goog.scope(function() {
 
                 /** @type{boolean} */ var found = false;
 
-                for (attribNdx = 0; attribNdx < attributes.length; attribNdx++) {
+                for (var attribNdx = 0; attribNdx < attributes.length; attribNdx++) {
                     attrib = attributes[attribNdx];
 
                     if (attrib.getName() == activeInfo.name) {
@@ -423,7 +416,7 @@ goog.scope(function() {
             activeAttributes.push(activeInfo.name);
         }
 
-        for (attribNdx = 0; attribNdx < attributes.length; attribNdx++) {
+        for (var attribNdx = 0; attribNdx < attributes.length; attribNdx++) {
             attrib = attributes[attribNdx];
             isActive = attrib.getCondition().notEquals(glsAttributeLocationTests.NewCondWithEnum(glsAttributeLocationTests.ConstCond.NEVER));
 
@@ -450,10 +443,9 @@ goog.scope(function() {
      */
     glsAttributeLocationTests.checkAttribLocationQuery = function(program, attributes, bindings) {
         /** @type{boolean} */ var isOk = true;
-        /** @type{number} */ var attribNdx;
         /** @type{string} */ var log;
 
-        for (attribNdx = 0; attribNdx < attributes.length; attribNdx++) {
+        for (var attribNdx = 0; attribNdx < attributes.length; attribNdx++) {
             /** @type{glsAttributeLocationTests.Attribute} */ var attrib = attributes[attribNdx];
             /** @type{number} */ var expectedLocation = (attrib.getLayoutLocation() != glsAttributeLocationTests.LocationEnum.UNDEF ? attrib.getLayoutLocation() : glsAttributeLocationTests.getBoundLocation(bindings, attrib.getName()));
             /** @type{number} */ var location = /** @type{number} */ (gl.getAttribLocation(program, attrib.getName()));
@@ -746,11 +738,10 @@ goog.scope(function() {
             /** @type{boolean} */ var isOk = true;
             /** @type{Array<number>} */ var activeBindings = [];
 
-            /** @type{number} */ var bindNdx = 0;
-            for (bindNdx = 0; bindNdx < preAttachBind.length; bindNdx++)
+            for (var bindNdx = 0; bindNdx < preAttachBind.length; bindNdx++)
                 activeBindings[preAttachBind[bindNdx].getAttributeName()] = preAttachBind[bindNdx].getLocation();
 
-            for (bindNdx = 0; bindNdx < preLinkBind.length; bindNdx++)
+            for (var bindNdx = 0; bindNdx < preLinkBind.length; bindNdx++)
                 activeBindings[preLinkBind[bindNdx].getAttributeName()] = preLinkBind[bindNdx].getLocation();
 
             glsAttributeLocationTests.logAttributes(attributes);
@@ -788,7 +779,7 @@ goog.scope(function() {
 
                 glsAttributeLocationTests.logProgram(program);
 
-                for (bindNdx = 0; bindNdx < postLinkBind.length; bindNdx++)
+                for (var bindNdx = 0; bindNdx < postLinkBind.length; bindNdx++)
                     activeBindings[postLinkBind[bindNdx].getAttributeName()] = postLinkBind[bindNdx].getLocation();
 
                 if (!glsAttributeLocationTests.checkQuery(program, attributes, activeBindings))
@@ -945,8 +936,7 @@ goog.scope(function() {
 
         bufferedLogToConsole('MAX_VERTEX_ATTRIBS: ' + maxAttributes);
 
-        /** @type{number} */ var loc;
-        for (loc = maxAttributes - arrayElementCount * this.m_type.getLocationSize(); loc >= 0; loc -= this.m_type.getLocationSize() * arrayElementCount) {
+        for (var loc = maxAttributes - arrayElementCount * this.m_type.getLocationSize(); loc >= 0; loc -= this.m_type.getLocationSize() * arrayElementCount) {
             attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_' + ndx, glsAttributeLocationTests.LocationEnum.UNDEF, new glsAttributeLocationTests.Cond('A', true)));
             bindings.push(new glsAttributeLocationTests.Bind('a_' + ndx, loc));
 
@@ -986,8 +976,7 @@ goog.scope(function() {
 
         bufferedLogToConsole('MAX_VERTEX_ATTRIBS: ' + maxAttributes);
 
-        /** @type{number} */ var loc;
-        for (loc = maxAttributes - arrayElementCount * this.m_type.getLocationSize(); loc >= 0; loc -= this.m_type.getLocationSize() * arrayElementCount) {
+        for (var loc = maxAttributes - arrayElementCount * this.m_type.getLocationSize(); loc >= 0; loc -= this.m_type.getLocationSize() * arrayElementCount) {
             attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_' + ndx, glsAttributeLocationTests.LocationEnum.UNDEF, new glsAttributeLocationTests.Cond('A')));
             bindings.push(new glsAttributeLocationTests.Bind('a_' + (ndx), loc));
 
@@ -1030,8 +1019,7 @@ goog.scope(function() {
         attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_1', glsAttributeLocationTests.LocationEnum.UNDEF, glsAttributeLocationTests.NewCondWithEnum(glsAttributeLocationTests.ConstCond.ALWAYS), this.m_arraySize));
 
         /** @type{number} */ var ndx = 2;
-        /** @type{number} */ var loc;
-        for (loc = 1 + this.m_type.getLocationSize() * arrayElementCount; loc < maxAttributes; loc++) {
+        for (var loc = 1 + this.m_type.getLocationSize() * arrayElementCount; loc < maxAttributes; loc++) {
             attributes.push(new glsAttributeLocationTests.Attribute(vec4, 'a_' + ndx));
             bindings.push(new glsAttributeLocationTests.Bind('a_' + ndx, loc));
 
@@ -1197,8 +1185,7 @@ goog.scope(function() {
 
         bufferedLogToConsole('MAX_VERTEX_ATTRIBS: ' + maxAttributes);
 
-        /** @type{number} */ var loc;
-        for (loc = maxAttributes - (arrayElementCount * this.m_type.getLocationSize()); loc >= 0; loc -= (arrayElementCount * this.m_type.getLocationSize())) {
+        for (var loc = maxAttributes - (arrayElementCount * this.m_type.getLocationSize()); loc >= 0; loc -= (arrayElementCount * this.m_type.getLocationSize())) {
             attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_' + ndx, loc, glsAttributeLocationTests.NewCondWithEnum(glsAttributeLocationTests.ConstCond.ALWAYS), this.m_arraySize));
             ndx++;
         }
@@ -1235,8 +1222,7 @@ goog.scope(function() {
         attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_1', glsAttributeLocationTests.LocationEnum.UNDEF, glsAttributeLocationTests.NewCondWithEnum(glsAttributeLocationTests.ConstCond.ALWAYS), this.m_arraySize));
 
         /** @type{number} */ var ndx = 2;
-        /** @type{number} */ var loc;
-        for (loc = 1 + this.m_type.getLocationSize() * arrayElementCount; loc < maxAttributes; loc++) {
+        for (var loc = 1 + this.m_type.getLocationSize() * arrayElementCount; loc < maxAttributes; loc++) {
             attributes.push(new glsAttributeLocationTests.Attribute(vec4, 'a_' + ndx, loc));
             ndx++;
         }
@@ -1300,8 +1286,7 @@ goog.scope(function() {
 
         bufferedLogToConsole('MAX_VERTEX_ATTRIBS: ' + maxAttributes);
 
-        /** @type{number} */ var loc;
-        for (loc = maxAttributes - (arrayElementCount * this.m_type.getLocationSize()); loc >= 0; loc -= (arrayElementCount * this.m_type.getLocationSize())) {
+        for (var loc = maxAttributes - (arrayElementCount * this.m_type.getLocationSize()); loc >= 0; loc -= (arrayElementCount * this.m_type.getLocationSize())) {
             if ((ndx % 2) != 0)
                 attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_' + ndx, loc, glsAttributeLocationTests.NewCondWithEnum(glsAttributeLocationTests.ConstCond.ALWAYS), this.m_arraySize));
             else{
@@ -1345,8 +1330,7 @@ goog.scope(function() {
         attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_1', glsAttributeLocationTests.LocationEnum.UNDEF, glsAttributeLocationTests.NewCondWithEnum(glsAttributeLocationTests.ConstCond.ALWAYS), this.m_arraySize));
 
         /** @type{number} */ var ndx = 2;
-        /** @type{number} */ var loc;
-        for (loc = 1 + this.m_type.getLocationSize() * arrayElementCount; loc < maxAttributes; loc++) {
+        for (var loc = 1 + this.m_type.getLocationSize() * arrayElementCount; loc < maxAttributes; loc++) {
             if ((ndx % 2) != 0)
                 attributes.push(new glsAttributeLocationTests.Attribute(vec4, 'a_' + ndx, loc));
             else {
@@ -1422,8 +1406,7 @@ goog.scope(function() {
         attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_1', glsAttributeLocationTests.LocationEnum.UNDEF, glsAttributeLocationTests.NewCondWithEnum(glsAttributeLocationTests.ConstCond.ALWAYS), this.m_arraySize));
 
         /** @type{number} */ var ndx = 2;
-        /** @type{number} */ var loc;
-        for (loc = 1 + this.m_type.getLocationSize() * arrayElementCount; loc < maxAttributes; loc++) {
+        for (var loc = 1 + this.m_type.getLocationSize() * arrayElementCount; loc < maxAttributes; loc++) {
             attributes.push(new glsAttributeLocationTests.Attribute(vec4, 'a_' + ndx));
             preLinkBindings.push(new glsAttributeLocationTests.Bind('a_' + ndx, loc));
 
@@ -1467,8 +1450,7 @@ goog.scope(function() {
         attributes.push(new glsAttributeLocationTests.Attribute(this.m_type, 'a_1', glsAttributeLocationTests.LocationEnum.UNDEF, glsAttributeLocationTests.NewCondWithEnum(glsAttributeLocationTests.ConstCond.ALWAYS), this.m_arraySize));
 
         /** @type{number} */ var ndx = 2;
-        /** @type{number} */ var loc;
-        for (loc = 1 + this.m_type.getLocationSize() * arrayElementCount; loc < maxAttributes; loc++) {
+        for (var loc = 1 + this.m_type.getLocationSize() * arrayElementCount; loc < maxAttributes; loc++) {
             if ((ndx % 2) != 0)
                 attributes.push(new glsAttributeLocationTests.Attribute(vec4, 'a_' + ndx, loc));
             else {
