@@ -68,7 +68,9 @@ targets = {
     'lifetime': 'functional.gles3.es3fLifetimeTests',
     'draw': 'modules.shared.glsDrawTests',
     'attriblocation': 'functional.gles3.es3fAttribLocationTests',
-    'cmp': 'framework.common.tcuTexCompareVerifier'
+    'textureShadowTests': 'functional.gles3.es3fTextureShadowTests'
+    'cmp': 'framework.common.tcuTexCompareVerifier',
+    'texturewrap': 'functional.gles3.es3fTextureWrapTests'
 }
 
 total_errors = 0
@@ -233,4 +235,3 @@ def main(argv):
 
 if __name__ == '__main__':
     main(sys.argv[1:])
-

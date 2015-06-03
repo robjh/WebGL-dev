@@ -406,8 +406,7 @@ glsLifetimeTests.setupFbo = function(seed, fbo) {
  * @param {tcuSurface.Surface} dst
  */
 glsLifetimeTests.readRectangle = function(rect, dst) {
-    dst.setSize(rect.width, rect.height);
-    gl.readPixels(rect.x, rect.y, rect.width, rect.height, gl.RGBA, gl.UNSIGNED_BYTE, dst.getPixels());
+    dst.readViewport(gl, rect);
 };
 
 /**
@@ -416,9 +415,7 @@ glsLifetimeTests.readRectangle = function(rect, dst) {
  */
 glsLifetimeTests.drawFbo = function(fbo, dst) {
     gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
-
-    dst.setSize(FRAMEBUFFER_SIZE, FRAMEBUFFER_SIZE);
-    gl.readPixels(0, 0, FRAMEBUFFER_SIZE, FRAMEBUFFER_SIZE, gl.RGBA, gl.UNSIGNED_BYTE, dst.getPixels());
+    dst.readViewport(gl, [0, 0, FRAMEBUFFER_SIZE, FRAMEBUFFER_SIZE]);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 };
 
