@@ -77,8 +77,6 @@ deMath.deAlign32 = function(val, align) {
     return ((val + align - 1) & ~(align - 1)) & 0xFFFFFFFF; //0xFFFFFFFF make sure it returns a 32 bit calculation in 64 bit browsers.
 };
 
-
-
 /**
  * Compute the bit population count of an integer.
  * @param {number} a
