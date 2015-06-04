@@ -67,24 +67,6 @@ rrRenderer.PrimitiveType = {
     POINTS: 6 //!< Points
 };
 
-/**
- * @param {number} type
- * @return {rrRenderer.PrimitiveType}
- */
-rrRenderer.mapGLPrimitiveType = function(type) {
-    switch(type) {
-        case gl.TRIANGLES : return rrRenderer.PrimitiveType.TRIANGLES;
-        case gl.TRIANGLE_STRIP : return rrRenderer.PrimitiveType.TRIANGLE_STRIP;
-        case gl.TRIANGLE_FAN : return rrRenderer.PrimitiveType.TRIANGLE_FAN;
-        case gl.LINES : return rrRenderer.PrimitiveType.LINES;
-        case gl.LINE_STRIP : return rrRenderer.PrimitiveType.LINE_STRIP;
-        case gl.LINE_LOOP : return rrRenderer.PrimitiveType.LINE_LOOP;
-        case gl.POINTS : return rrRenderer.PrimitiveType.POINTS;
-        default:
-            throw new Error('Unsupported primitive type: ' + deString.enumToString(gl, type));
-    }
-};
-
 // /**
 //  * @constructor
 //  * @param {boolean} depthEnabled Is depth buffer enabled
@@ -539,8 +521,9 @@ rrRenderer.calculateDepth = function(x, y, depths) {
  * @param {rrRenderer.PrimitiveType} primitive
  * @param {number} first Index of first quad vertex
  * @param {number} count Number of indices
+ * @param {number} instanceID
  */
-rrRenderer.drawQuads = function(state, renderTarget, program, vertexAttribs, primitive, first, count) {
+rrRenderer.drawQuads = function(state, renderTarget, program, vertexAttribs, primitive, first, count, instanceID) {
 
     /**
      * @param {Array<rrVertexPacket.VertexPacket>} vertices
@@ -565,7 +548,6 @@ rrRenderer.drawQuads = function(state, renderTarget, program, vertexAttribs, pri
     var vertexPackets = vpalloc.allocArray(primitives.getNumElements());
     var drawContext = new rrRenderer.DrawContext();
     drawContext.primitiveID = 0;
-    var instanceID = 0;
 
     var numberOfVertices = primitives.getNumElements();
     var numVertexPackets = 0;
