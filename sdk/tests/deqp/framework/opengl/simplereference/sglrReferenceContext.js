@@ -1665,7 +1665,7 @@ goog.scope(function() {
         if (this.condtionalSetError(this.m_vertexArrayBinding != null && this.m_arrayBufferBinding == null && offset != 0, gl.INVALID_OPERATION))
             return;
 
-        /** @type {(sglrReferenceContext.VertexArray.VertexAttribArray|null)} */ var array_ = this.m_vertexArrayBinding.m_arrays[index]; // TODO: fix type
+        /** @type {?(sglrReferenceContext.VertexArray.VertexAttribArray)} */ var array_ = this.m_vertexArrayBinding.m_arrays[index]; // TODO: fix type
 
         array_.size = rawSize;
         array_.stride = stride;
@@ -1698,7 +1698,7 @@ goog.scope(function() {
         if (this.condtionalSetError(this.m_vertexArrayBinding != null && this.m_arrayBufferBinding == null && offset != 0, gl.INVALID_OPERATION))
             return;
 
-        /** @type {(sglrReferenceContext.VertexArray.VertexAttribArray|null)} */ var array_ = this.m_vertexArrayBinding.m_arrays[index]; // TODO: fix type
+        /** @type {?(sglrReferenceContext.VertexArray.VertexAttribArray)} */ var array_ = this.m_vertexArrayBinding.m_arrays[index]; // TODO: fix type
 
         array_.size = size;
         array_.stride = stride;
@@ -2279,7 +2279,7 @@ goog.scope(function() {
                 else if (type == sglrReferenceContext.TextureType.TYPE_CUBE_MAP)
                     //TODO: Implement getFace for cubemaps
                     //return texture.getFace(attachment.level, sglrReferenceContext.texTargetToFace(attachment.texTarget));
-                    throw new Error("Not implemented.");
+                    throw new Error('Not implemented.');
                 else if (type == sglrReferenceContext.TextureType.TYPE_2D_ARRAY ||
                         type == sglrReferenceContext.TextureType.TYPE_3D ||
                         type == sglrReferenceContext.TextureType.TYPE_CUBE_MAP_ARRAY) {
@@ -2498,6 +2498,22 @@ goog.scope(function() {
 
     /**
     * @param {number} mode GL primitive type to draw with.
+    * @param {number} start
+    * @param {number} end
+    * @param {number} count How many vertices to draw (not counting vertices before first)
+    * @param {number} type Data type
+    * @param {number} offset
+    */
+    sglrReferenceContext.ReferenceContext.prototype.drawRangeElements = function(mode, start, end, count, type, offset) {
+        if (this.condtionalSetError(end < start, gl.INVALID_VALUE))
+            return;
+
+        this.drawElements(mode, count, type, offset);
+    };
+
+
+    /**
+    * @param {number} mode GL primitive type to draw with.
     * @param {number} count How many vertices to draw (not counting vertices before first)
     * @param {number} type Data type
     * @param {number} offset
@@ -2515,7 +2531,7 @@ goog.scope(function() {
     */
     sglrReferenceContext.ReferenceContext.prototype.drawElementsInstanced = function(mode, count, type, offset, instanceCount) {
         this.drawElementsInstancedBaseVertex(mode, count, type, offset, instanceCount, 0);
-    }
+    };
 
     /**
     * @param {number} mode GL primitive type to draw with.
@@ -2538,7 +2554,7 @@ goog.scope(function() {
         if (!this.predrawErrorChecks(mode))
             return;
 
-        if (this.condtionalSetError(count >0 && !vao.m_elementArrayBufferBinding, gl.INVALID_OPERATION))
+        if (this.condtionalSetError(count > 0 && !vao.m_elementArrayBufferBinding, gl.INVALID_OPERATION))
             return;
         // All is ok
         var data = vao.m_elementArrayBufferBinding.getData();
@@ -3235,9 +3251,8 @@ goog.scope(function() {
             }
         }
 
-
         var primitiveType = sglrReferenceUtils.mapGLPrimitiveType(primitive);
-        for (var instanceID = 0 ; instanceID < instances; instanceID++)
+        for (var instanceID = 0; instanceID < instances; instanceID++)
             rrRenderer.drawQuads(state, renderTarget, program, vertexAttribs, primitiveType, first, count, instanceID);
     };
 
@@ -3834,7 +3849,7 @@ goog.scope(function() {
                 /** @type {?tcuTexture.FilterMode} */ var minMode = sglrReferenceContext.mapGLFilterMode(value);
                 if (this.condtionalSetError(null == minMode, gl.INVALID_VALUE))
                     return;
-                texture.getSampler().minFilter =minMode;
+                texture.getSampler().minFilter = minMode;
                 break;
             }
 

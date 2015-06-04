@@ -21,9 +21,9 @@
 goog.provide('framework.opengl.simplereference.sglrReferenceContextTest');
 goog.require('framework.common.tcuLogImage');
 goog.require('framework.common.tcuPixelFormat');
+goog.require('framework.common.tcuRGBA');
 goog.require('framework.common.tcuSurface');
 goog.require('framework.common.tcuTestCase');
-goog.require('framework.common.tcuRGBA');
 goog.require('framework.opengl.gluDrawUtil');
 goog.require('framework.opengl.simplereference.sglrReferenceContext');
 goog.require('framework.opengl.simplereference.sglrShaderProgram');
@@ -619,13 +619,11 @@ goog.scope(function() {
             0.4, -0.7
         ];
 
-
         var vertices32 = new Float32Array(vertices);
 
         var squareVerticesBuffer = ctx.createBuffer();
         ctx.bindBuffer(gl.ARRAY_BUFFER, squareVerticesBuffer);
         ctx.bufferData(gl.ARRAY_BUFFER, vertices32, gl.STATIC_DRAW);
-
 
         var indices = [
             0, 1, 3, 1, 3, 4,
@@ -636,7 +634,6 @@ goog.scope(function() {
         var indicesBuffer = ctx.createBuffer();
         ctx.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indicesBuffer);
         ctx.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
-
 
         var colors = [
             1, 0, 0, 1,
@@ -703,12 +700,12 @@ goog.scope(function() {
             [50, 28], [255, 0, 255, 255],
             [139, 28], [0, 0, 0, 255],
             [50, 102], [255, 255, 255, 255],
-            [139, 102], [0, 255, 255,255]
+            [139, 102], [0, 255, 255, 255]
         ];
 
         var threshold = new tcuRGBA.RGBA([5, 5, 5, 5]);
 
-        for (var i = 0 ; i < pixelsTotest.length; i += 2) {
+        for (var i = 0; i < pixelsTotest.length; i += 2) {
             var location = pixelsTotest[i];
             var reference = new tcuRGBA.RGBA(pixelsTotest[i + 1]);
             var color = access.getPixelInt(location[0], location[1]);
@@ -726,7 +723,6 @@ goog.scope(function() {
 
         return tcuTestCase.IterateResult.STOP;
     };
-
 
     /**
      * @constructor

@@ -23,6 +23,7 @@ goog.provide('framework.referencerenderer.rrRenderer');
 goog.require('framework.common.tcuTexture');
 goog.require('framework.common.tcuTextureUtil');
 goog.require('framework.delibs.debase.deMath');
+goog.require('framework.delibs.debase.deString');
 goog.require('framework.opengl.simplereference.sglrShaderProgram');
 goog.require('framework.referencerenderer.rrDefs');
 goog.require('framework.referencerenderer.rrFragmentOperations');
@@ -32,8 +33,6 @@ goog.require('framework.referencerenderer.rrRenderState');
 goog.require('framework.referencerenderer.rrShadingContext');
 goog.require('framework.referencerenderer.rrVertexAttrib');
 goog.require('framework.referencerenderer.rrVertexPacket');
-goog.require('framework.delibs.debase.deString');
-
 
 goog.scope(function() {
 
@@ -535,7 +534,7 @@ rrRenderer.drawQuads = function(state, renderTarget, program, vertexAttribs, pri
         for (var i = 0; i < indices.length; i++)
             result.push(vertices[indices[i]]);
         return result;
-    }
+    };
 
     var primitives = new rrRenderer.PrimitiveList(primitive, count, first);
     // Do not draw if nothing to draw

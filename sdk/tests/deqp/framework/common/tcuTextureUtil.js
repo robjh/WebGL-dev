@@ -624,12 +624,10 @@ tcuTextureUtil.copy = function(dst, src) {
 /**
  * @param {tcuTexture.ConstPixelBufferAccess} access
  */
-tcuTextureUtil.estimatePixelValueRange = function(access)
-{
+tcuTextureUtil.estimatePixelValueRange = function(access) {
     var format = access.getFormat();
 
-    switch (format.type)
-    {
+    switch (format.type) {
         case tcuTexture.ChannelType.UNORM_INT8:
         case tcuTexture.ChannelType.UNORM_INT16:
             // Normalized unsigned formats.
@@ -651,12 +649,9 @@ tcuTextureUtil.estimatePixelValueRange = function(access)
             var minVal = [Infinity, Infinity, Infinity, Infinity];
             var maxVal = [-Infinity, -Infinity, -Infinity, -Infinity];
 
-            for (var z = 0; z < access.getDepth(); z += 2)
-            {
-                for (var y = 0; y < access.getHeight(); y += 2)
-                {
-                    for (var x = 0; x < access.getWidth(); x += 2)
-                    {
+            for (var z = 0; z < access.getDepth(); z += 2) {
+                for (var y = 0; y < access.getHeight(); y += 2) {
+                    for (var x = 0; x < access.getWidth(); x += 2) {
                         var p = access.getPixel(x, y, z);
 
                         minVal[0] = Math.min(minVal[0], p[0]);
@@ -679,8 +674,7 @@ tcuTextureUtil.estimatePixelValueRange = function(access)
  * @param {tcuTexture.ConstPixelBufferAccess} access
  * @return {{scale: Array<number>, bias: Array<number>}}
  */
-tcuTextureUtil.computePixelScaleBias = function(access)
-{
+tcuTextureUtil.computePixelScaleBias = function(access) {
     var limits = tcuTextureUtil.estimatePixelValueRange(access);
     var minVal = limits[0];
     var maxVal = limits[1];
@@ -690,17 +684,13 @@ tcuTextureUtil.computePixelScaleBias = function(access)
 
     var eps = 0.0001;
 
-    for (var c = 0; c < 4; c++)
-    {
-        if (maxVal[c] - minVal[c] < eps)
-        {
-            scale[c]    = (maxVal[c] < eps) ? 1 : (1 / maxVal[c]);
-            bias[c]     = (c == 3) ? (1 - maxVal[c]*scale[c]) : (0 - minVal[c]*scale[c]);
-        }
-        else
-        {
-            scale[c]    = 1 / (maxVal[c] - minVal[c]);
-            bias[c]     = 0 - minVal[c]*scale[c];
+    for (var c = 0; c < 4; c++) {
+        if (maxVal[c] - minVal[c] < eps) {
+            scale[c] = (maxVal[c] < eps) ? 1 : (1 / maxVal[c]);
+            bias[c] = (c == 3) ? (1 - maxVal[c] * scale[c]) : (0 - minVal[c] * scale[c]);
+        } else {
+            scale[c] = 1 / (maxVal[c] - minVal[c]);
+            bias[c] = 0 - minVal[c] * scale[c];
         }
     }
 
@@ -709,6 +699,5 @@ tcuTextureUtil.computePixelScaleBias = function(access)
         bias: bias
     };
 };
-
 
 });

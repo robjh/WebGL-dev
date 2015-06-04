@@ -599,8 +599,7 @@ gluTextureUtil.mapGLSampler = function(wrapS, wrapT, wrapR, minFilter, magFilter
  * @param {number} mode
  */
 gluTextureUtil.mapGLCompareFunc = function(mode) {
-     switch (mode)
-     {
+     switch (mode) {
      case gl.LESS: return tcuTexture.CompareMode.COMPAREMODE_LESS;
          case gl.LEQUAL: return tcuTexture.CompareMode.COMPAREMODE_LESS_OR_EQUAL;
          case gl.GREATER: return tcuTexture.CompareMode.COMPAREMODE_GREATER;
