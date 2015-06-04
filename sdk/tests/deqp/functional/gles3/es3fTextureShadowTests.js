@@ -27,6 +27,7 @@ goog.require('framework.common.tcuTexture');
 goog.require('framework.common.tcuTextureUtil');
 goog.require('framework.common.tcuTexCompareVerifier');
 goog.require('framework.common.tcuTexLookupVerifier');
+goog.require('framework.common.tcuImageCompare');
 goog.require('framework.delibs.debase.deMath');
 goog.require('framework.opengl.gluShaderUtil');
 goog.require('framework.opengl.gluTexture');
@@ -42,6 +43,7 @@ var gluShaderUtil = framework.opengl.gluShaderUtil;
 var gluTexture = framework.opengl.gluTexture;
 var gluTextureUtil = framework.opengl.gluTextureUtil;
 var tcuTexture = framework.common.tcuTexture;
+var tcuImageCompare = framework.common.tcuImageCompare;
 var tcuTextureUtil = framework.common.tcuTextureUtil;
 var tcuRGBA = framework.common.tcuRGBA;
 var deMath = framework.delibs.debase.deMath;
@@ -75,7 +77,7 @@ var tcuTexLookupVerifier = framework.common.tcuTexLookupVerifier;
     /**
      * @param {?} textureType
      * @param {tcuTexture.ConstPixelBufferAccess} result
-     * @param {?} src
+     * @param {tcuTexture.Texture2D} src
      * @param {Array<number>} texCoord
      * @param {glsTextureTestUtil.ReferenceParams} sampleParams
      * @param {tcuTexCompareVerifier.TexComparePrecision} comparePrec
@@ -83,10 +85,9 @@ var tcuTexLookupVerifier = framework.common.tcuTexLookupVerifier;
      * @param {tcuPixelFormat.PixelFormat} pixelFormat
      */
     es3fTextureShadowTests.verifyTexCompareResult = function(textureType, result, src, texCoord, sampleParams, comparePrec, lodPrecision, pixelFormat) {
-        //TODO: Implement
         var reference = new tcuSurface.Surface(result.getWidth(), result.getHeight());
         var errorMask = new tcuSurface.Surface(result.getWidth(), result.getHeight());
-        var nonShadowThreshold = tcuTexLookupVerifier.computeFixedPointThreshold(glsTextureTestUtil.getBitsVec() - 1).swizzle(1, 2, 3);
+        var nonShadowThreshold = deMath.swizzle(tcuTexLookupVerifier.computeFixedPointThreshold(glsTextureTestUtil.getBitsVec(pixelFormat)), [1, 2, 3]);
         var numFailedPixels;
 
 
@@ -97,23 +98,23 @@ var tcuTexLookupVerifier = framework.common.tcuTexLookupVerifier;
             es3fTextureShadowTests.clampFloatingPointTextureTexture2D(clampedSource);
 
     		// sample clamped values
-            glsTextureTestUtil.sampleTexture2D(new glsTextureTestUtil.SurfaceAccess(reference, pixelFormat), clampedSource, texCoord, sampleParams);
-    		numFailedPixels = computeTextureCompareDiff(result, reference.getAccess(), errorMask.getAccess(), clampedSource, texCoord, sampleParams, comparePrec, lodPrec, nonShadowThreshold);
+            glsTextureTestUtil.sampleTexture2D(new glsTextureTestUtil.SurfaceAccess(reference, pixelFormat), clampedSource.m_view, texCoord, sampleParams);
+    		numFailedPixels = glsTextureTestUtil.computeTextureCompareDiff(result, reference.getAccess(), errorMask.getAccess(), clampedSource.m_view, texCoord, sampleParams, comparePrec, lodPrecision, nonShadowThreshold);
     	}
         else
         {
         	// sample raw values (they are guaranteed to be in [0, 1] range as the format cannot represent any other values)
-            glsTextureTestUtil.sampleTexture2D(new glsTextureTestUtil.SurfaceAccess(reference, pixelFormat), src, texCoord, sampleParams);
-    		numFailedPixels = computeTextureCompareDiff(result, reference.getAccess(), errorMask.getAccess(), src, texCoord, sampleParams, comparePrec, lodPrec, nonShadowThreshold);
+            glsTextureTestUtil.sampleTexture2D(new glsTextureTestUtil.SurfaceAccess(reference, pixelFormat), src.m_view, texCoord, sampleParams);
+    		numFailedPixels = glsTextureTestUtil.computeTextureCompareDiff(result, reference.getAccess(), errorMask.getAccess(), src.m_view, texCoord, sampleParams, comparePrec, lodPrecision, nonShadowThreshold);
         }
 
         if (numFailedPixels > 0)
             bufferedLogToConsole('ERROR: Result verification failed, got ' + numFailedPixels + ' invalid pixels!');
 
         if (numFailedPixels > 0)
-            tcuImageCompare.displayImages(result, reference, errorMask.getAccess());
+            tcuImageCompare.displayImages(result, reference.getAccess(), errorMask.getAccess());
         else
-            tcuImageCompare.displayImages(result, null, null);
+            tcuImageCompare.displayImages(result);
 
         return numFailedPixels == 0;
 
@@ -366,7 +367,7 @@ var tcuTexLookupVerifier = framework.common.tcuTexLookupVerifier;
             texComparePrecision.uvwBits	= [4, 4, 0];
             texComparePrecision.pcfBits	= 0;
 
-            var isOk = verifyTexCompareResult(tcuTexture.Texture2D, rendered.getAccess(), curCase.texture.getRefTexture(),
+            var isOk = es3fTextureShadowTests.verifyTexCompareResult(tcuTexture.Texture2D, rendered.getAccess(), curCase.texture.getRefTexture(),
                                                      texCoord, sampleParams, texComparePrecision, lodPrecision, pixelFormat);
 
             if (!isOk)
