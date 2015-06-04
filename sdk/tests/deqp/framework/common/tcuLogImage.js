@@ -21,12 +21,18 @@
 'use strict';
 goog.provide('framework.common.tcuLogImage');
 goog.require('framework.common.tcuTexture');
+goog.require('framework.common.tcuSurface');
+goog.require('framework.delibs.debase.deMath');
+
 
 goog.scope(function() {
 
 var tcuLogImage = framework.common.tcuLogImage;
 var tcuTexture = framework.common.tcuTexture;
+var tcuSurface = framework.common.tcuSurface;
+var deMath = framework.delibs.debase.deMath;
 
+/** @const */ var MAX_IMAGE_SIZE_2D = 4096;
 /**
  * @param {tcuTexture.ConstPixelBufferAccess} src
  */
@@ -51,20 +57,12 @@ tcuLogImage.createImage = function(ctx, src) {
 };
 
 /**
- * @param {string} name
- * @param {string} description
  * @param {tcuTexture.ConstPixelBufferAccess} image
- * @param {Array<number>=} scale
- * @param {Array<number>=} bias
+ * @param {string} info
  */ 
-tcuLogImage.logImage = function(name, description, image, scale, bias) {
+tcuLogImage.logImageWithInfo = function(image, info) {
     var elem = document.getElementById('console');
     var span = document.createElement('span');
-    var info = name + ' ' + description + '<br>    ' + image;
-    if (scale)
-        info += '<br>    Scale: ' + scale;
-    if (bias)
-        info += '<br>    Bias: ' + bias;
     tcuLogImage.logImage.counter = tcuLogImage.logImage.counter || 0;
     var i = tcuLogImage.logImage.counter++;
     var width = image.getWidth();
@@ -77,6 +75,82 @@ tcuLogImage.logImage = function(name, description, image, scale, bias) {
     var ctx = imageCanvas.getContext('2d');
     var data = tcuLogImage.createImage(ctx, image);
     ctx.putImageData(data, 0, 0);
+};
+
+/**
+ * @param {string} name
+ * @param {string} description
+ * @param {tcuTexture.ConstPixelBufferAccess} image
+ * @param {Array<number>=} scale
+ * @param {Array<number>=} bias
+ */ 
+tcuLogImage.logImageRGB = function(name, description, image, scale, bias) {
+    var elem = document.getElementById('console');
+    var span = document.createElement('span');
+    var info = name + ' ' + description + '<br>    ' + image;
+    if (scale)
+        info += '<br>    Scale: ' + scale;
+    if (bias)
+        info += '<br>    Bias: ' + bias;
+    tcuLogImage.logImageWithInfo(image, info);
+};
+
+/**
+ * @param {string} name
+ * @param {string} description
+ * @param {tcuTexture.ConstPixelBufferAccess} access
+ * @param {Array<number>=} pixelScale
+ * @param {Array<number>=} pixelBias
+ */ 
+tcuLogImage.logImage = function(name, description, access, pixelScale, pixelBias) {
+    pixelScale = pixelScale || [1, 1, 1, 1];
+    pixelBias = pixelBias || [0, 0, 0, 0];
+    var format      = access.getFormat();
+    var width       = access.getWidth();
+    var height      = access.getHeight();
+    var depth       = access.getDepth();
+    var needScaling = pixelBias[0] != 0 || pixelBias[1] != 0 || pixelBias[2] != 0 || pixelBias[3] != 0
+        || pixelScale[0] != 1 || pixelScale[1] != 1 || pixelScale[2] != 1 || pixelScale[3] != 1;
+
+
+    if (depth == 1 && format.type == tcuTexture.ChannelType.UNORM_INT8 &&
+        width <= MAX_IMAGE_SIZE_2D && height <= MAX_IMAGE_SIZE_2D &&
+        (format.order == tcuTexture.ChannelOrder.RGB || tcuTexture.ChannelOrder.RGBA)
+        && !needScaling)
+        // Fast-path.
+        tcuLogImage.logImageRGB(name, description, access);
+    else if (depth == 1) {
+        var sampler = new tcuTexture.Sampler(tcuTexture.WrapMode.CLAMP_TO_EDGE, tcuTexture.WrapMode.CLAMP_TO_EDGE, tcuTexture.WrapMode.CLAMP_TO_EDGE,
+            tcuTexture.FilterMode.LINEAR, tcuTexture.FilterMode.NEAREST);
+        var logImageSize = [width, height]; /* TODO: Add scaling */
+        var logImageAccess = new tcuSurface.Surface(width, height).getAccess();
+
+        for (var y = 0; y < logImageAccess.getHeight(); y++)
+        {
+            for (var x = 0; x < logImageAccess.getWidth(); x++)
+            {
+                var yf  = (y + 0.5) / logImageAccess.getHeight();
+                var xf  = (x + 0.5) / logImageAccess.getWidth();
+                var s   = access.sample2D(sampler, sampler.minFilter, xf, yf, 0);
+
+                if (needScaling)
+                    s = deMath.add(deMath.multiply(s, pixelScale), pixelBias);
+
+                logImageAccess.setPixel(s, x, y);
+            }
+        }
+        var info = name + ' ' + description + '<br>    ' + access;
+        if (needScaling) {
+            info += '<br>    Scale: ' + pixelScale;
+            info += '<br>    Bias: ' + pixelBias;
+        }
+
+        tcuLogImage.logImageWithInfo(logImageAccess, info);
+    }
+    else
+    {
+        /* TODO: Implement */
+    }
 };
 
 });

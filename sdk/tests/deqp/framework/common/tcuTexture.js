@@ -519,11 +519,11 @@ tcuTexture.CompareMode = {
 
 /**
  * @constructor
- * @param {tcuTexture.WrapMode} wrapS
- * @param {tcuTexture.WrapMode} wrapT
- * @param {tcuTexture.WrapMode} wrapR
- * @param {tcuTexture.FilterMode} minFilter
- * @param {tcuTexture.FilterMode} magFilter
+ * @param {!tcuTexture.WrapMode} wrapS
+ * @param {!tcuTexture.WrapMode} wrapT
+ * @param {!tcuTexture.WrapMode} wrapR
+ * @param {!tcuTexture.FilterMode} minFilter
+ * @param {!tcuTexture.FilterMode} magFilter
  * @param {number=} lodThreshold
  * @param {boolean=} normalizedCoords
  * @param {tcuTexture.CompareMode=} compare
@@ -1256,7 +1256,7 @@ tcuTexture.ConstPixelBufferAccess.prototype.getPixelInt = function(x, y, z) {
 
 /**
  * @param {tcuTexture.Sampler} sampler
- * @param {tcuTexture.FilterMode} filter
+ * @param {?tcuTexture.FilterMode} filter
  * @param {number} s
  * @param {number} t
  * @param {number} depth (integer)
