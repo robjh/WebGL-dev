@@ -48,14 +48,6 @@ deMath.deInBounds32 = function(a, mn, mx) {
 deMath.deFloatFrac = function(a) { return a - Math.floor(a); };
 
 /**
- * @param {number} a
- * @return {number}
- */
-deMath.deCeilFloatToInt32 = function(a) {
-    return new Uint32Array([Math.ceil(a)])[0];
-};
-
-/**
  * Check if a value is a power-of-two.
  * @param {number} a Input value.
  * @return {boolean} return True if input is a power-of-two value, false otherwise.
@@ -732,5 +724,19 @@ deMath.toIVec = function(a) {
         res.push(Math.floor(a[i] * 255));
     return res;
 };
+
+/**
+ * @param{number} a
+ * @return{number}
+ */
+ deMath.clz32 = function(a) {
+   /** @type{number} */ var maxValue = 2147483648; // max 32 bit number
+   /** @type{number} */ var leadingZeros = 0;
+   while (a < maxValue) {
+     maxValue = maxValue >>> 1;
+     leadingZeros++;
+   }
+   return leadingZeros;
+}
 
 });

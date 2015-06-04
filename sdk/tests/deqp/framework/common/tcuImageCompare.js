@@ -25,7 +25,10 @@ goog.require('framework.common.tcuFuzzyImageCompare');
 goog.require('framework.common.tcuRGBA');
 goog.require('framework.common.tcuSurface');
 goog.require('framework.common.tcuTexture');
+goog.require('framework.common.tcuTextureUtil');
 goog.require('framework.delibs.debase.deMath');
+goog.require('framework.common.tcuLogImage');
+
 
 goog.scope(function() {
 
@@ -33,9 +36,11 @@ var tcuImageCompare = framework.common.tcuImageCompare;
 var tcuSurface = framework.common.tcuSurface;
 var deMath = framework.delibs.debase.deMath;
 var tcuTexture = framework.common.tcuTexture;
+var tcuTextureUtil = framework.common.tcuTextureUtil;
 var tcuFuzzyImageCompare = framework.common.tcuFuzzyImageCompare;
 var tcuBilinearImageCompare = framework.common.tcuBilinearImageCompare;
 var tcuRGBA = framework.common.tcuRGBA;
+var tcuLogImage = framework.common.tcuLogImage;
 
 /**
  * @enum
@@ -46,124 +51,58 @@ tcuImageCompare.CompareLogMode = {
     ON_ERROR: 2
 };
 
-
-/**
- * @param {string} id HTML element name
- * @param {number} width Canvas width
- * @param {number} height Canvas height
- * @param {boolean=} displayRef True if we display [result, ref, error] canvases, False if we display [result] only. Default True.
- * @return {Array} Array of drawing contexts - one per canvas.
- */
-tcuImageCompare.displayResultPane = function(id, width, height, displayRef) {
-    if (displayRef == undefined) displayRef = true;
-    tcuImageCompare.displayResultPane.counter = tcuImageCompare.displayResultPane.counter || 0;
-    var i = tcuImageCompare.displayResultPane.counter++;
-    var elem = document.getElementById(id);
-    var span = document.createElement('span');
-    elem.appendChild(span);
-    if (displayRef) {
-        span.innerHTML = '<table><tr><td>Result</td><td>Reference</td><td>Error mask</td></tr>' +
-                                '<tr><td><canvas id="result' + i + '" width=' + width + ' height=' + height + '</td><td><canvas id="reference' + i + '" width=' + width + ' height=' + height + '</td><td><canvas id="diff' + i + '" width=' + width + ' height=' + height + '</td>' +
-                         '</table>';
-        var canvasResult = document.getElementById('result' + i);
-        var ctxResult = canvasResult.getContext('2d');
-        var canvasRef = document.getElementById('reference' + i);
-        var ctxRef = canvasRef.getContext('2d');
-        var canvasDiff = document.getElementById('diff' + i);
-        var ctxDiff = canvasDiff.getContext('2d');
-        return [ctxResult, ctxRef, ctxDiff];
-    } else {
-        span.innerHTML = '<table><tr><td>Result</td></tr>' +
-                                '<tr><td><canvas id="result' + i + '" width=' + width + ' height=' + height + '</td>' +
-                         '</table>';
-        var canvasResult = document.getElementById('result' + i);
-        var ctxResult = canvasResult.getContext('2d');
-        return [ctxResult];
-    }
-};
-
 /**
  * @param {framework.common.tcuTexture.ConstPixelBufferAccess} result
- * @param {framework.common.tcuTexture.ConstPixelBufferAccess=} reference
+ * @param {framework.common.tcuTexture.ConstPixelBufferAccess} reference
  * @param {framework.common.tcuTexture.ConstPixelBufferAccess=} diff
  */
 tcuImageCompare.displayImages = function(result, reference, diff) {
-    var createImage = function(ctx, src) {
-        var w = src.getWidth();
-        var h = src.getHeight();
-        var pixelSize = src.getFormat().getPixelSize();
-        var imgData = ctx.createImageData(w, h);
-        var index = 0;
-        for (var y = 0; y < h; y++) {
-            for (var x = 0; x < w; x++) {
-                var pixel = src.getPixelInt(x, h - y - 1, 0);
-                for (var i = 0; i < pixelSize; i++) {
-                    imgData.data[index] = pixel[i];
-                    index = index + 1;
-                }
-                if (pixelSize < 4)
-                    imgData.data[index++] = 255;
-            }
-        }
-        return imgData;
-    };
-    var w = result.getWidth();
-    var h = result.getHeight();
-
-    var contexts = tcuImageCompare.displayResultPane('console', w, h, reference != null);
-    contexts[0].putImageData(createImage(contexts[0], result), 0, 0);
-    debug('Result image: ' + result);
-    if (reference) {
-        contexts[1].putImageData(createImage(contexts[1], reference), 0, 0);
-        debug('Reference image: ' + reference);
-    }
-    if (diff)
-        contexts[2].putImageData(createImage(contexts[2], diff), 0, 0);
+        var limits = tcuImageCompare.computeScaleAndBias(reference, result);
+        tcuLogImage.logImage('Result', '', result, limits.scale, limits.bias);
+        tcuLogImage.logImage('Reference', '', reference, limits.scale, limits.bias);
+        if (diff)
+            tcuLogImage.logImage('Error', 'error mask', diff);
 };
 
-//** TODO: implement this
- // * @param {tcuTexture.ConstPixelBufferAccess} reference
- // * @param {tcuTexture.ConstPixelBufferAccess} result
- // * @param {Float32Array} scale (Vec4)
- // * @param {Float32Array} bias (Vec4)
- // */
-/*var computeScaleAndBias = function(reference, result, scale, bias) {
-    Vec4 minVal;
-    Vec4 maxVal;
-    const float eps = 0.0001f; {
-        Vec4 refMin;
-        Vec4 refMax;
-        estimatePixelValueRange(reference, refMin, refMax);
+/**
+ * @param {tcuTexture.ConstPixelBufferAccess} reference
+ * @param {tcuTexture.ConstPixelBufferAccess} result
+ * @return {{scale: Array<number>, bias: Array<number>}}
+ */
+tcuImageCompare.computeScaleAndBias = function(reference, result) {
+    var minVal = [];
+    var maxVal = [];
+    var scale = [];
+    var bias = [];
 
-        minVal = refMin;
-        maxVal = refMax;
-    } {
-        Vec4 resMin;
-        Vec4 resMax;
+    var eps = 0.0001;
+    var referenceRange = tcuTextureUtil.estimatePixelValueRange(reference);
+    var resultRange = tcuTextureUtil.estimatePixelValueRange(result);
 
-        estimatePixelValueRange(result, resMin, resMax);
+    minVal[0] = Math.min(referenceRange[0][0], resultRange[0][0]);
+    minVal[1] = Math.min(referenceRange[0][1], resultRange[0][1]);
+    minVal[2] = Math.min(referenceRange[0][2], resultRange[0][2]);
+    minVal[3] = Math.min(referenceRange[0][3], resultRange[0][3]);
 
-        minVal[0] = de::min(minVal[0], resMin[0]);
-        minVal[1] = de::min(minVal[1], resMin[1]);
-        minVal[2] = de::min(minVal[2], resMin[2]);
-        minVal[3] = de::min(minVal[3], resMin[3]);
+    maxVal[0] = Math.max(referenceRange[1][0], resultRange[1][0]);
+    maxVal[1] = Math.max(referenceRange[1][1], resultRange[1][1]);
+    maxVal[2] = Math.max(referenceRange[1][2], resultRange[1][2]);
+    maxVal[3] = Math.max(referenceRange[1][3], resultRange[1][3]);
 
-        maxVal[0] = de::max(maxVal[0], resMax[0]);
-        maxVal[1] = de::max(maxVal[1], resMax[1]);
-        maxVal[2] = de::max(maxVal[2], resMax[2]);
-        maxVal[3] = de::max(maxVal[3], resMax[3]);
-    }
-
-    for (int c = 0; c < 4; c++) {
+    for (var c = 0; c < 4; c++) {
         if (maxVal[c] - minVal[c] < eps) {
-            scale[c] = (maxVal[c] < eps) ? 1.0f : (1.0f / maxVal[c]);
-            bias[c] = (c == 3) ? (1.0f - maxVal[c]*scale[c]) : (0.0f - minVal[c]*scale[c]);
+            scale[c] = (maxVal[c] < eps) ? 1 : (1 / maxVal[c]);
+            bias[c] = (c == 3) ? (1 - maxVal[c]*scale[c]) : (0 - minVal[c]*scale[c]);
         } else {
-            scale[c] = 1.0f / (maxVal[c] - minVal[c]);
-            bias[c] = 0.0f - minVal[c]*scale[c];
+            scale[c] = 1 / (maxVal[c] - minVal[c]);
+            bias[c] = 0 - minVal[c]*scale[c];
         }
     }
-};*/
+    return {
+        scale: scale,
+        bias: bias
+    };
+};
 
 /**
  * \brief Per-pixel threshold-based comparison
@@ -634,14 +573,24 @@ tcuImageCompare.fuzzyCompare = function(imageSetName, imageSetDesc, reference, r
 tcuImageCompare.unitTest = function() {
     var width = 128;
     var height = 128;
+
+    var weirdLevel = new tcuTexture.TextureLevel(new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RG, tcuTexture.ChannelType.SNORM_INT32), width, height);
+    var access = weirdLevel.getAccess();
+    access.clear([0.1, 0.5, 0, 0]);
+    access.clear([0.11, 0.52, 0, 0], [0, width], [0, height/2]);
+    access.clear([0.12, 0.52, 0, 0], [0, width], [height/2, height/2 + height/8]);
+    var limits = tcuTextureUtil.computePixelScaleBias(access);
+    debug('Scale: ' + limits.scale);
+    debug('Bias: ' + limits.bias);
+    tcuLogImage.logImage('Weird', 'weird format without scaling', access);
+    tcuLogImage.logImage('Weird', 'weird format', access, limits.scale, limits.bias);
+
+
     var srcLevel = new tcuTexture.TextureLevel(new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.UNORM_INT8), width, height);
     var dstLevel = new tcuTexture.TextureLevel(new tcuTexture.TextureFormat(tcuTexture.ChannelOrder.RGBA, tcuTexture.ChannelType.UNORM_INT8), width, height);
     var src = srcLevel.getAccess();
     var dst = dstLevel.getAccess();
 
-    debug('Src format: ' + src.getFormat());
-    debug('Destination: ' + dst);
-    debug(src);
 
     src.clear();
     dst.clear();
@@ -652,6 +601,13 @@ tcuImageCompare.unitTest = function() {
             dst.setPixelInt([i, j, 90, 255], i + 1, j + 1);
         }
     }
+
+    debug('Src format: ' + src.getFormat());
+    debug('Destination: ' + dst);
+    debug(src);
+    tcuLogImage.logImage('Source', "Source image", src);
+
+
     if (!tcuImageCompare.fuzzyCompare('compare', 'compare similar images', src, dst, 0.05))
         throw new Error('Compare should return true');
 

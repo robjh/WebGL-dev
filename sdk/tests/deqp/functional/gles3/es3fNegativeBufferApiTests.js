@@ -952,7 +952,15 @@ goog.scope(function() {
                 gl.framebufferTextureLayer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, tex3D, 0, max3DTexSize);
                 this.expectError(gl.INVALID_VALUE);
                 
+                bufferedLogToConsole('gl.INVALID_VALUE is generated if texture is not zero and layer is greater than gl.MAX_ARRAY_TEXTURE_LAYERS-1 for a 2D array texture.');
+                var maxArrayTexLayers = gl.getParameter(gl.MAX_ARRAY_TEXTURE_LAYERS);
+                gl.framebufferTextureLayer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, tex2DArray, 0, maxArrayTexLayers);
+                this.expectError(gl.INVALID_VALUE);
                 
+                bufferedLogToConsole('gl.INVALID_OPERATION is generated if zero is bound to target.');
+                gl.bindFramebuffer(gl.FRAMEBUFFER, 0);
+                gl.framebufferTextureLayer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, tex3D, 0, 1);
+                this.expectError(gl.INVALID_OPERATION);
                 
                 gl.deleteTexture(tex3D);
                 gl.deleteTexture(tex2DArray);
@@ -962,53 +970,6 @@ goog.scope(function() {
         ));
 
 
-
-
-
-
-/*
-                bufferedLogToConsole('');
-//*/
-
-        /*
-
-ES3F_ADD_API_CASE(framebuffer_texture_layer, "Invalid glFramebufferTextureLayer() usage",
-{
-                
-
-                
-
-                
-
-               
-
-                
-
-                m_log << TestLog::Section("", "GL_INVALID_VALUE is generated if texture is not zero and layer is greater than GL_MAX_ARRAY_TEXTURE_LAYERS-1 for a 2D array texture.");
-                intmaxArrayTexLayers;
-                glGetIntegerv(GL_MAX_ARRAY_TEXTURE_LAYERS, &maxArrayTexLayers);
-                glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, tex2DArray, 0, maxArrayTexLayers);
-                expectError(GL_INVALID_VALUE);
-                m_log << TestLog::EndSection;
-
-                m_log << TestLog::Section("", "GL_INVALID_OPERATION is generated if zero is bound to target.");
-                glBindFramebuffer(GL_FRAMEBUFFER, 0);
-                glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, tex3D, 0, 1);
-                expectError(GL_INVALID_OPERATION);
-                m_log << TestLog::EndSection;
-
-});
-
-        //*/
-        
-        /*
-        
-        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
-            'function', 'description', gl,
-            function() {
-            }
-        ));
-        //*/
     };
     
     /**

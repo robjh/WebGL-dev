@@ -2478,18 +2478,23 @@ goog.scope(function() {
         return true;
     };
 
-    // sglrReferenceContext.ReferenceContext.prototype.drawArraysInstanced = function(mode, first, count, instanceCount) {
-    //     if (this.condtionalSetError(first < 0 || count < 0 || instanceCount < 0, gl.INVALID_VALUE))
-    //         return;
+    /**
+    * Draws quads from vertex arrays
+    * @param {number} mode GL primitive type to draw with.
+    * @param {number} first First vertex to begin drawing with
+    * @param {number} count How many vertices to draw (not counting vertices before first)
+    * @param {number} instanceCount
+    */
+    sglrReferenceContext.ReferenceContext.prototype.drawArraysInstanced = function(mode, first, count, instanceCount) {
+        if (this.condtionalSetError(first < 0 || count < 0 || instanceCount < 0, gl.INVALID_VALUE))
+            return;
 
-    //     if (!this.predrawErrorChecks(mode))
-    //         return;
+        if (!this.predrawErrorChecks(mode))
+            return;
 
-    //     // All is ok
-    //     var primitiveType = sglrReferenceUtils.mapGLPrimitiveType(mode);
-
-    //     this.drawWithReference(new rrRenderer.PrimitiveList(primitiveType, count, first), instanceCount);
-    // };
+        // All is ok
+        this.drawQuads(mode, first, count, instanceCount);
+    };
 
     // sglrReferenceContext.ReferenceContext.prototype.drawElements = function(mode, count, type, offset) {
     //     this.drawElementsInstanced(mode, count, type, offset, 1);
@@ -3005,21 +3010,23 @@ goog.scope(function() {
     * @param {number} count How many vertices to draw (not counting vertices before first)
     */
     sglrReferenceContext.ReferenceContext.prototype.drawArrays = function(primitive, first, count) {
-        if (primitive == gl.TRIANGLES){
-            this.drawQuads(first, (count + first) / 6); //must not use Math.floor here
-        }
-        else throw new Error('Unsupported primitive type');
+        this.drawQuads(primitive, first, count, 1);
     };
 
     /**
     * Draws quads from vertex arrays
+    * @param {number} primitive GL primitive type to draw with.
     * @param {number} first First vertex to begin drawing with
-    * @param {number} count How many quads to draw (array should provide first + (count * 6) vertices at least)
+    * @param {number} count Number of vertices
+    * @param {number=} instances Number of instances
     */
-    sglrReferenceContext.ReferenceContext.prototype.drawQuads = function(first, count) {
+    sglrReferenceContext.ReferenceContext.prototype.drawQuads = function(primitive, first, count, instances) {
         // undefined results
         if (!this.m_currentProgram)
             return;
+
+        if (typeof instances === 'undefined')
+            instances = 1;
 
         /** @type {rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess} */ var colorBuf0 = this.getDrawColorbuffer();
         /** @type {rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess} */ var depthBuf = this.getDrawDepthbuffer();
@@ -3208,7 +3215,10 @@ goog.scope(function() {
             }
         }
 
-        rrRenderer.drawQuads(state, renderTarget, program, vertexAttribs, first, count);
+
+        var primitiveType = sglrReferenceUtils.mapGLPrimitiveType(primitive);
+        for (var instanceID = 0 ; instanceID < instances; instanceID++)
+            rrRenderer.drawQuads(state, renderTarget, program, vertexAttribs, primitiveType, first, count, instanceID);
     };
 
     /**
@@ -3804,7 +3814,7 @@ goog.scope(function() {
                 /** @type {?tcuTexture.FilterMode} */ var minMode = sglrReferenceContext.mapGLFilterMode(value);
                 if (this.condtionalSetError(null == minMode, gl.INVALID_VALUE))
                     return;
-                texture.getSampler().minFilter = minMode;
+                texture.getSampler().minFilter =minMode;
                 break;
             }
 
@@ -3812,7 +3822,7 @@ goog.scope(function() {
                 /** @type {?tcuTexture.FilterMode} */ var magMode = sglrReferenceContext.mapGLFilterMode(value);
                 if (this.condtionalSetError(null == magMode, gl.INVALID_VALUE))
                     return;
-                texture.getSampler().minFilter = magMode;
+                texture.getSampler().magFilter = magMode;
                 break;
             }
 
