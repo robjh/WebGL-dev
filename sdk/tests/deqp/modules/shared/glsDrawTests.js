@@ -1016,9 +1016,9 @@ goog.scope(function() {
     glsDrawTests.DrawTestShaderProgram = function(arrays) {
         sglrShaderProgram.ShaderProgram.call(this, this.createProgramDeclaration(arrays));
 
-        this.m_componentCount = arrays.length;
-        this.m_isCoord = arrays.length;
-        this.m_attrType = arrays.length;
+        this.m_componentCount = [];
+        this.m_isCoord = [];
+        this.m_attrType = [];
 
         for (var arrayNdx = 0; arrayNdx < arrays.length; arrayNdx++) {
             this.m_componentCount[arrayNdx] = this.getComponentCount(arrays[arrayNdx].getOutputType());
@@ -1038,19 +1038,40 @@ goog.scope(function() {
      * @param {number} numComponents
      */
     glsDrawTests.calcShaderColorCoord = function(coord, color, attribValue, isCoordinate, numComponents) {
-        if (isCoordinate)
+        if (isCoordinate) {
+            var coordtmp;
             switch (numComponents) {
-                case 1: coord = deMath.add(coord, [attribValue[0], attribValue[0]]); break;
-                case 2: coord = deMath.add(coord, [attribValue[0], attribValue[1]]); break;
-                case 3: coord = deMath.add(coord, [attribValue[0] + attribValue[2], attribValue[1]]); break;
-                case 4: coord = deMath.add(coord, [attribValue[0] + attribValue[2], attribValue[1] + attribValue[3]]); break;
+                case 1:
+                    coordtmp = deMath.add(coord, [attribValue[0], attribValue[0]]);
+                    coord[0] = coordtmp[0];
+                    coord[1] = coordtmp[1];
+                    break;
+                case 2:
+                    coordtmp = deMath.add(coord, [attribValue[0], attribValue[1]]);
+                    coord[0] = coordtmp[0];
+                    coord[1] = coordtmp[1];
+                    break;
+                case 3:
+                    coordtmp = deMath.add(coord, [attribValue[0] + attribValue[2], attribValue[1]]);
+                    coord[0] = coordtmp[0];
+                    coord[1] = coordtmp[1];
+                    coord[2] = coordtmp[2];
+                    break;
+                case 4:
+                    coordtmp = deMath.add(coord, [attribValue[0] + attribValue[2], attribValue[1] + attribValue[3]]);
+                    coord[0] = coordtmp[0];
+                    coord[1] = coordtmp[1];
+                    coord[2] = coordtmp[2];
+                    coord[3] = coordtmp[3];
+                    break;
 
                 default:
                     throw new Error('Invalid component count');
-            } else {
+            }
+        } else {
             switch (numComponents) {
                 case 1:
-                    color = deMath.scale(color, attribValue[0]);
+                    color[0] = deMath.scale(color, attribValue[0])[0];
                     break;
 
                 case 2:
@@ -1403,13 +1424,14 @@ goog.scope(function() {
      * @param {number} stride
      * @param {?glsDrawTests.DrawTestSpec.InputType} type
      * @param {number} first
+     * @param {?glsDrawTests.DrawTestSpec.Primitive} primitive
      * @return {goog.TypedArray}
      */
-    glsDrawTests.RandomArrayGenerator.generateArray = function (seed, elementCount, componentCount, offset, stride, type, first) {
+    glsDrawTests.RandomArrayGenerator.generateArray = function (seed, elementCount, componentCount, offset, stride, type, first, primitive) {
         if (type == glsDrawTests.DrawTestSpec.InputType.INT_2_10_10_10 || type == glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT_2_10_10_10)
-            return glsDrawTests.RandomArrayGenerator.generatePackedArray(seed, elementCount, componentCount, offset, stride, type, first);
+            return glsDrawTests.RandomArrayGenerator.generatePackedArray(seed, elementCount, componentCount, offset, stride, type, first, primitive);
         else
-            return glsDrawTests.RandomArrayGenerator.generateBasicArray(seed, elementCount, componentCount, offset, stride, type, first);
+            return glsDrawTests.RandomArrayGenerator.generateBasicArray(seed, elementCount, componentCount, offset, stride, type, first, primitive);
     };
 
     /**
@@ -1420,11 +1442,12 @@ goog.scope(function() {
      * @param {number} stride
      * @param {?glsDrawTests.DrawTestSpec.InputType} type
      * @param {number} first
+     * @param {?glsDrawTests.DrawTestSpec.Primitive} primitive
      * @return {goog.TypedArray}
      */
-    glsDrawTests.RandomArrayGenerator.generateBasicArray = function (seed, elementCount, componentCount, offset, stride, type, first) {
-        return glsDrawTests.RandomArrayGenerator.createBasicArray(seed, elementCount, componentCount, offset, stride, type, first);
-    }
+    glsDrawTests.RandomArrayGenerator.generateBasicArray = function (seed, elementCount, componentCount, offset, stride, type, first, primitive) {
+        return glsDrawTests.RandomArrayGenerator.createBasicArray(seed, elementCount, componentCount, offset, stride, type, first, primitive);
+    };
 
     /**
      * @param {number} seed
@@ -1468,8 +1491,7 @@ goog.scope(function() {
                         components[componentNdx] = glsDrawTests.GLValue.getRandom(rnd, min, max);
                     }
                 }
-                for (var componentNdx = 0; componentNdx < componentCount; componentNdx++)
-                    previousComponents[componentNdx] = components[componentNdx];
+                previousComponents = components;
             }
 
             if (vertexNdx < first) {
@@ -1488,22 +1510,21 @@ goog.scope(function() {
                     generateVertex();
                     var vertex1 = components;
 
-                    var vertex2;
-                    do {
-                        generateVertex();
-                        var vertex2 = components;
-                        var isParallelToAnyComponent = vertex1[0].interpret() == vertex2[0].interpret() || vertex1[1].interpret() == vertex2[1].interpret()
-                    } while(isParallelToAnyComponent);
+                    var parallelaxis = rnd.getBool() ? 0 : 1;
+                    var oppositeaxis = parallelaxis? 0 : 1;
+
+                    generateVertex();
+                    var vertex2 = components;
+                    vertex2[parallelaxis] = vertex1[parallelaxis];
 
                     generateVertex();
                     var vertex3 = components;
-                    vertex3[0] = vertex1[0];
-                    vertex3[1] = vertex2[1];
+                    vertex3[oppositeaxis] = vertex1[oppositeaxis];
 
                     generateVertex();
                     var vertex4 = components;
-                    vertex4[0] = vertex1[1];
-                    vertex4[1] = vertex2[0];
+                    vertex4[parallelaxis] = vertex3[parallelaxis];
+                    vertex4[oppositeaxis] = vertex2[oppositeaxis];
 
                     var quadVertices = [vertex1, vertex2, vertex3, vertex3, vertex2, vertex4];
 
@@ -1519,38 +1540,38 @@ goog.scope(function() {
                     break;
 
                 case glsDrawTests.DrawTestSpec.Primitive.TRIANGLE_STRIP:
-                    var quadVertices;
-
                     if (vertexNdx < first + 4 ) {
                         generateVertex();
                         var vertex1 = components;
 
                         var parallelaxis = rnd.getBool() ? 0 : 1;
+                        var oppositeaxis = parallelaxis? 0 : 1;
+
                         generateVertex();
                         var vertex2 = components;
                         vertex2[parallelaxis] = vertex1[parallelaxis];
 
                         generateVertex();
                         var vertex3 = components;
-                        vertex3[parallelaxis? 0 : 1] = vertex1[parallelaxis? 0 : 1];
+                        vertex3[oppositeaxis] = vertex1[oppositeaxis];
 
                         var direction = vertex3[parallelaxis].greaterThan(vertex1[parallelaxis]) ? 1 : -1;
 
                         generateVertex();
                         var vertex4 = components;
-                        vertex4[parallelaxis? 0 : 1] = vertex2[parallelaxis? 0 : 1];
+                        vertex4[oppositeaxis] = vertex2[oppositeaxis];
                         vertex4[parallelaxis] = vertex3[parallelaxis];
 
                         quadVertices = [vertex1, vertex2, vertex3, vertex4];
                     } else {
                         generateVertex();
                         var vertex5 = components;
-                        vertex5[parallelaxis? 0 : 1] = quadVertices[quadVertices.length - 2][parallelaxis? 0 : 1];
+                        vertex5[oppositeaxis] = quadVertices[quadVertices.length - 2][oppositeaxis];
                         vertexNdx++;
 
                         generateVertex();
                         var vertex6 = components;
-                        vertex6[parallelaxis? 0 : 1] = quadVertices[quadVertices.length - 1][parallelaxis? 0 : 1];
+                        vertex6[oppositeaxis] = quadVertices[quadVertices.length - 1][oppositeaxis];
                         vertex6[parallelaxis] = vertex5[parallelaxis];
                         vertexNdx++;
 
@@ -1568,7 +1589,30 @@ goog.scope(function() {
                     vertexNdx += quadVertices.length - 1;
                     break;
 
-                    case glsDrawTests.DrawTestSpec.Primitive.TRIANGLE_FAN:
+                case glsDrawTests.DrawTestSpec.Primitive.TRIANGLE_FAN:
+                    generateVertex();
+                    var vertex1 = components;
+
+                    generateVertex();
+                    var vertex2 = components;
+
+                    var parallelaxis = rnd.getBool() ? 0 : 1;
+                    var oppositeaxis = parallelaxis? 0 : 1;
+
+                    generateVertex();
+                    var vertex3 = components;
+                    vertex3[parallelaxis] = vertex2[parallelaxis];
+                    vertex3[oppositeaxis] = vertex1[oppositeaxis];
+
+                    var direction = vertex3[parallelaxis].greaterThan(vertex2[parallelaxis]) ? 1 : -1;
+
+                    if (vertex3[0].equals(vertex1[0]) || vertex3[1].equals(vertex1[1])) {
+                        generateVertex();
+                        var vertex4 = components;
+                        //vertex4[]
+                    }
+
+                    break;
             }
 
             //This part makes sure triangles form a right angle with middle vertex
@@ -1643,9 +1687,10 @@ goog.scope(function() {
      * @param {number} stride
      * @param {?glsDrawTests.DrawTestSpec.InputType} type
      * @param {number} first
+     * @param {?glsDrawTests.DrawTestSpec.Primitive} primitive
      * @return {goog.TypedArray}
      */
-    glsDrawTests.RandomArrayGenerator.generatePackedArray = function (seed, elementCount, componentCount, offset, stride, type, first) {
+    glsDrawTests.RandomArrayGenerator.generatePackedArray = function (seed, elementCount, componentCount, offset, stride, type, first, primitive) {
         assertMsgOptions(componentCount == 4, 'Component count must be 4', false, true);
         //DE_UNREF(componentCount);
 
@@ -1896,7 +1941,7 @@ goog.scope(function() {
         }
 
         if (drawMethod == glsDrawTests.DrawTestSpec.DrawMethod.DRAWARRAYS)
-            this.m_ctx.drawArrays(glsDrawTests.primitiveToGL(primitive), firstVertex, 3 /*vertexCount*/);
+            this.m_ctx.drawArrays(glsDrawTests.primitiveToGL(primitive), firstVertex, vertexCount);
         else if (drawMethod == glsDrawTests.DrawTestSpec.DrawMethod.DRAWARRAYS_INSTANCED)
             this.m_ctx.drawArraysInstanced(glsDrawTests.primitiveToGL(primitive), firstVertex, vertexCount, instanceCount);
         else if (drawMethod == glsDrawTests.DrawTestSpec.DrawMethod.DRAWELEMENTS)
@@ -3009,7 +3054,7 @@ goog.scope(function() {
                     /** @type {number} */ var evaluatedElementCount = (instanced && attribSpec.instanceDivisor > 0) ? (spec.instanceCount / attribSpec.instanceDivisor + 1) : (elementCount);
                     /** @type {number} */ var referencedElementCount = (ranged) ? (Math.max(evaluatedElementCount, spec.indexMax + 1)) : (evaluatedElementCount);
                     /** @type {number} */ var bufferSize = attribSpec.offset + stride * (referencedElementCount - 1) + elementSize;
-                    /** @type {goog.TypedArray} */ var data = glsDrawTests.RandomArrayGenerator.generateArray(seed, referencedElementCount, attribSpec.componentCount, attribSpec.offset, stride, attribSpec.inputType, spec.first);
+                    /** @type {goog.TypedArray} */ var data = glsDrawTests.RandomArrayGenerator.generateArray(seed, referencedElementCount, attribSpec.componentCount, attribSpec.offset, stride, attribSpec.inputType, spec.first, spec.primitive);
 
                     //try { TODO: This try/catch block's purpose is to delete data safely. Should we?
                         this.m_glArrayPack.newArray(attribSpec.storage);
@@ -3216,9 +3261,9 @@ goog.scope(function() {
         /** @type {tcuRGBA.RGBA} */ var c3;
 
         for (var dy = -1; dy < 2; ++dy) {
-            c1 = ref.getPixel(x - 1, y + dy);
-            c2 = ref.getPixel(x, y + dy);
-            c3 = ref.getPixel(x + 1, y + dy);
+            c1 = tcuRGBA.newRGBAFromArray(ref.getPixel(x - 1, y + dy));
+            c2 = tcuRGBA.newRGBAFromArray(ref.getPixel(x, y + dy));
+            c3 = tcuRGBA.newRGBAFromArray(ref.getPixel(x + 1, y + dy));
             if (glsDrawTests.isEdgeTriplet(c1, c2, c3, renderTargetThreshold))
                 return true;
         }
@@ -3226,9 +3271,9 @@ goog.scope(function() {
         // vertical
 
         for (var dx = -1; dx < 2; ++dx) {
-            c1 = ref.getPixel(x + dx, y - 1);
-            c2 = ref.getPixel(x + dx, y);
-            c3 = ref.getPixel(x + dx, y + 1);
+            c1 = tcuRGBA.newRGBAFromArray(ref.getPixel(x + dx, y - 1));
+            c2 = tcuRGBA.newRGBAFromArray(ref.getPixel(x + dx, y));
+            c3 = tcuRGBA.newRGBAFromArray(ref.getPixel(x + dx, y + 1));
             if (glsDrawTests.isEdgeTriplet(c1, c2, c3, renderTargetThreshold))
                 return true;
         }
@@ -3263,7 +3308,7 @@ goog.scope(function() {
 
         for (var dy = -1; dy < 2; dy++)
         for (var dx = -1; dx < 2; dx++) {
-            var targetCoverage = !glsDrawTests.isBlack(target.getPixel(x + dx, y + dy));
+            var targetCoverage = !glsDrawTests.isBlack(tcuRGBA.newRGBAFromArray(target.getPixel(x + dx, y + dy)));
             if (targetCoverage) {
                 ++coveredPixels;
 
@@ -3292,7 +3337,7 @@ goog.scope(function() {
 
         for (var dy = -1; dy < 2; dy++)
         for (var dx = -1; dx < 2; dx++) {
-            /** @type {tcuRGBA.RGBA} */ var targetCmpPixel = target.getPixel(x + dx, y + dy);
+            /** @type {tcuRGBA.RGBA} */ var targetCmpPixel = tcuRGBA.newRGBAFromArray(target.getPixel(x + dx, y + dy));
             /** @type {number} */ var r = Math.abs(color.getRed() - targetCmpPixel.getRed());
             /** @type {number} */ var g = Math.abs(color.getGreen() - targetCmpPixel.getGreen());
             /** @type {number} */ var b = Math.abs(color.getBlue() - targetCmpPixel.getBlue());
@@ -3319,7 +3364,7 @@ goog.scope(function() {
 
         for (var dy = -1; dy < 2; dy++)
         for (var dx = -1; dx < 2; dx++) {
-            var targetCmpCoverage = !glsDrawTests.isBlack(target.getPixel(x + dx, y + dy));
+            var targetCmpCoverage = !glsDrawTests.isBlack(tcuRGBA.newRGBAFromArray(target.getPixel(x + dx, y + dy)));
             if (targetCmpCoverage == coverage)
                 return true;
         }
@@ -3358,8 +3403,8 @@ goog.scope(function() {
 
         for (var y = 1; y < height - 1; ++y)
         for (var x = 1; x < width - 1; ++x) {
-            /** @type {tcuRGBA.RGBA} */ var refPixel = reference.getPixel(x, y);
-            /** @type {tcuRGBA.RGBA} */ var screenPixel = result.getPixel(x, y);
+            /** @type {tcuRGBA.RGBA} */ var refPixel = tcuRGBA.newRGBAFromArray(reference.getPixel(x, y));
+            /** @type {tcuRGBA.RGBA} */ var screenPixel = tcuRGBA.newRGBAFromArray(result.getPixel(x, y));
             /** @type {boolean} */ var isOkReferencePixel = glsDrawTests.pixelNeighborhoodContainsColor(result, x, y, refPixel, compareThreshold); // screen image has a matching pixel nearby (~= If something is drawn on reference, it must be drawn to screen too.)
             /** @type {boolean} */ var isOkScreenPixel = glsDrawTests.pixelNeighborhoodContainsColor(reference, x, y, screenPixel, compareThreshold); // reference image has a matching pixel nearby (~= If something is drawn on screen, it must be drawn to reference too.)
 
@@ -3439,8 +3484,8 @@ goog.scope(function() {
 
         for (var y = 1; y < height - 1; ++y)
         for (var x = 1; x < width - 1; ++x) {
-            /** @type {tcuRGBA.RGBA} */ var refPixel = reference.getPixel(x, y);
-            /** @type {tcuRGBA.RGBA} */ var screenPixel = result.getPixel(x, y);
+            /** @type {tcuRGBA.RGBA} */ var refPixel = tcuRGBA.newRGBAFromArray(reference.getPixel(x, y));
+            /** @type {tcuRGBA.RGBA} */ var screenPixel = tcuRGBA.newRGBAFromArray(result.getPixel(x, y));
             /** @type {boolean} */ var isOkScreenPixel = glsDrawTests.pixelNeighborhoodContainsColor(reference, x, y, screenPixel, compareThreshold); // reference image has a matching pixel nearby (~= If something is drawn on screen, it must be drawn to reference too.)
             /** @type {boolean} */ var isOkReferencePixel = glsDrawTests.pixelNeighborhoodContainsColor(result, x, y, refPixel, compareThreshold); // screen image has a matching pixel nearby (~= If something is drawn on reference, it must be drawn to screen too.)
 

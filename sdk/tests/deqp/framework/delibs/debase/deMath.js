@@ -48,14 +48,6 @@ deMath.deInBounds32 = function(a, mn, mx) {
 deMath.deFloatFrac = function(a) { return a - Math.floor(a); };
 
 /**
- * @param {number} a
- * @return {number}
- */
-deMath.deCeilFloatToInt32 = function(a) {
-    return new Uint32Array([Math.ceil(a)])[0];
-};
-
-/**
  * Check if a value is a power-of-two.
  * @param {number} a Input value.
  * @return {boolean} return True if input is a power-of-two value, false otherwise.
@@ -76,8 +68,6 @@ deMath.deAlign32 = function(val, align) {
         throw new Error('Not a power of 2: ' + align);
     return ((val + align - 1) & ~(align - 1)) & 0xFFFFFFFF; //0xFFFFFFFF make sure it returns a 32 bit calculation in 64 bit browsers.
 };
-
-
 
 /**
  * Compute the bit population count of an integer.

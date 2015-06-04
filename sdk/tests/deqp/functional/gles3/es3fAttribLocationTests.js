@@ -282,7 +282,7 @@ goog.scope(function() {
             tcuTestCase.runTestCases();
         }
         catch (err) {
-            console.log(err);
+            bufferedLogToConsole('Exception: ' + err);
             testFailedOptions('Failed to es3fAttribLocationTests.run tests', false);
             tcuTestCase.runner.terminate();
         }
