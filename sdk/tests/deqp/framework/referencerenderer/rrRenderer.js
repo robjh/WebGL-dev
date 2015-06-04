@@ -519,7 +519,7 @@ rrRenderer.calculateDepth = function(x, y, depths) {
  * @param {sglrShaderProgram.ShaderProgram} program
  * @param {Array<rrVertexAttrib.VertexAttrib>} vertexAttribs
  * @param {rrRenderer.PrimitiveType} primitive
- * @param {number} first Index of first quad vertex
+ * @param {(number|rrRenderer.DrawIndices)} first Index of first quad vertex
  * @param {number} count Number of indices
  * @param {number} instanceID
  */
@@ -537,7 +537,7 @@ rrRenderer.drawQuads = function(state, renderTarget, program, vertexAttribs, pri
         return result;
     }
 
-    var primitives = new rrRenderer.PrimitiveList(primitive, count, first); // 2 triangles per quad with 3 vertices each = 6 vertices.
+    var primitives = new rrRenderer.PrimitiveList(primitive, count, first);
     // Do not draw if nothing to draw
     if (primitives.getNumElements() == 0)
         return;

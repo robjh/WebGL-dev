@@ -2496,36 +2496,56 @@ goog.scope(function() {
         this.drawQuads(mode, first, count, instanceCount);
     };
 
-    // sglrReferenceContext.ReferenceContext.prototype.drawElements = function(mode, count, type, offset) {
-    //     this.drawElementsInstanced(mode, count, type, offset, 1);
-    // };
+    /**
+    * @param {number} mode GL primitive type to draw with.
+    * @param {number} count How many vertices to draw (not counting vertices before first)
+    * @param {number} type Data type
+    * @param {number} offset
+    */
+    sglrReferenceContext.ReferenceContext.prototype.drawElements = function(mode, count, type, offset) {
+        this.drawElementsInstanced(mode, count, type, offset, 1);
+    };
 
-    // sglrReferenceContext.ReferenceContext.prototype.drawElementsInstanced = function(mode, count, type, offset, instanceCount) {
-    //     this.drawElementsInstancedBaseVertex(mode, count, type, offset, instanceCount, 0);
-    // }
+    /**
+    * @param {number} mode GL primitive type to draw with.
+    * @param {number} count How many vertices to draw (not counting vertices before first)
+    * @param {number} type Data type
+    * @param {number} offset
+    * @param {number} instanceCount
+    */
+    sglrReferenceContext.ReferenceContext.prototype.drawElementsInstanced = function(mode, count, type, offset, instanceCount) {
+        this.drawElementsInstancedBaseVertex(mode, count, type, offset, instanceCount, 0);
+    }
 
-    // sglrReferenceContext.ReferenceContext.prototype.drawElementsInstancedBaseVertex = function(mode, count, type, offset, instanceCount, baseVertex) {
-    //     var vao = this.m_vertexArrayBinding;
+    /**
+    * @param {number} mode GL primitive type to draw with.
+    * @param {number} count How many vertices to draw (not counting vertices before first)
+    * @param {number} type Data type
+    * @param {number} offset
+    * @param {number} instanceCount
+    * @param {number} baseVertex
+    */
+    sglrReferenceContext.ReferenceContext.prototype.drawElementsInstancedBaseVertex = function(mode, count, type, offset, instanceCount, baseVertex) {
+        var vao = this.m_vertexArrayBinding;
 
-    //     if (this.condtionalSetError(type != gl.UNSIGNED_BYTE &&
-    //                 type != gl.UNSIGNED_SHORT &&
-    //                 type != gl.UNSIGNED_INT, gl.INVALID_ENUM))
-    //         return;
-    //     if (this.condtionalSetError(count < 0 || instanceCount < 0, gl.INVALID_VALUE))
-    //         return;
+        if (this.condtionalSetError(type != gl.UNSIGNED_BYTE &&
+                    type != gl.UNSIGNED_SHORT &&
+                    type != gl.UNSIGNED_INT, gl.INVALID_ENUM))
+            return;
+        if (this.condtionalSetError(count < 0 || instanceCount < 0, gl.INVALID_VALUE))
+            return;
 
-    //     if (!this.predrawErrorChecks(mode))
-    //         return;
+        if (!this.predrawErrorChecks(mode))
+            return;
 
-    //     if (this.condtionalSetError(count >0 && !vao.m_elementArrayBufferBinding, gl.INVALID_OPERATION))
-    //         return;
-    //     // All is ok
-    //     var primitiveType = sglrReferenceUtils.mapGLPrimitiveType(mode);
-    //     var data = vao.m_elementArrayBufferBinding.getData();
-    //     var indices = new rrRenderer.DrawIndices(data, sglrReferenceUtils.mapGLIndexType(type), baseVertex);
+        if (this.condtionalSetError(count >0 && !vao.m_elementArrayBufferBinding, gl.INVALID_OPERATION))
+            return;
+        // All is ok
+        var data = vao.m_elementArrayBufferBinding.getData();
+        var indices = new rrRenderer.DrawIndices(data, sglrReferenceUtils.mapGLIndexType(type), baseVertex);
 
-    //     this.drawWithReference(new rrRenderer.PrimitiveList(primitiveType, count, indices), instanceCount);
-    // };
+        this.drawQuads(mode, indices, count, instanceCount);
+    };
 
     /**
     * @param {rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess} access
@@ -3016,7 +3036,7 @@ goog.scope(function() {
     /**
     * Draws quads from vertex arrays
     * @param {number} primitive GL primitive type to draw with.
-    * @param {number} first First vertex to begin drawing with
+    * @param {(number|rrRenderer.DrawIndices)} first First vertex to begin drawing with
     * @param {number} count Number of vertices
     * @param {number=} instances Number of instances
     */
