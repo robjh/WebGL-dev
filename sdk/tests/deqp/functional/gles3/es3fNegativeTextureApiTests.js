@@ -265,59 +265,59 @@
             bufferedLogToConsole('gl.INVALID_VALUE is generated if width or height is less than 0.');
 
             bufferedLogToConsole('gl.TEXTURE_2D target');
-            gl.compressedTexImage2D(gl.TEXTURE_2D, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, -1, 0, 0, uint8);
+            gl.compressedTexImage2D(gl.TEXTURE_2D, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, -1, 0, 0, null);
             this.expectError(gl.INVALID_VALUE);
-            gl.compressedTexImage2D(gl.TEXTURE_2D, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, 0, -1, 0, uint8);
+            gl.compressedTexImage2D(gl.TEXTURE_2D, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, 0, -1, 0, null);
             this.expectError(gl.INVALID_VALUE);
-            gl.compressedTexImage2D(gl.TEXTURE_2D, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, -1, -1, 0, uint8);
+            gl.compressedTexImage2D(gl.TEXTURE_2D, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, -1, -1, 0, null);
             this.expectError(gl.INVALID_VALUE);
 
             bufferedLogToConsole('gl.TEXTURE_CUBE_MAP_POSITIVE_X target');
-            gl.compressedTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, -1, 0, 0, uint8);
+            gl.compressedTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, -1, 0, 0, null);
             this.expectError(gl.INVALID_VALUE);
-            gl.compressedTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, 0, -1, 0, uint8);
+            gl.compressedTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, 0, -1, 0, null);
             this.expectError(gl.INVALID_VALUE);
-            gl.compressedTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, -1, -1, 0, uint8);
+            gl.compressedTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, -1, -1, 0, null);
             this.expectError(gl.INVALID_VALUE);
 
             bufferedLogToConsole('gl.TEXTURE_CUBE_MAP_POSITIVE_Y target');
-            gl.compressedTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Y, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, -1, 0, 0, uint8);
+            gl.compressedTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Y, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, -1, 0, 0, null);
             this.expectError(gl.INVALID_VALUE);
-            gl.compressedTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Y, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, 0, -1, 0, uint8);
+            gl.compressedTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Y, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, 0, -1, 0, null);
             this.expectError(gl.INVALID_VALUE);
-            gl.compressedTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Y, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, -1, -1, 0, uint8);
+            gl.compressedTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Y, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, -1, -1, 0, null);
             this.expectError(gl.INVALID_VALUE);
 
             bufferedLogToConsole('gl.TEXTURE_CUBE_MAP_POSITIVE_Z target');
-            gl.compressedTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Z, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, -1, 0, 0, uint8);
+            gl.compressedTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Z, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, -1, 0, 0, null);
             this.expectError(gl.INVALID_VALUE);
-            gl.compressedTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Z, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, 0, -1, 0, uint8);
+            gl.compressedTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Z, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, 0, -1, 0, null);
             this.expectError(gl.INVALID_VALUE);
-            gl.compressedTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Z, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, -1, -1, 0, uint8);
+            gl.compressedTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Z, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, -1, -1, 0, null);
             this.expectError(gl.INVALID_VALUE);
 
             bufferedLogToConsole('gl.TEXTURE_CUBE_MAP_NEGATIVE_X target');
-            gl.compressedTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_X, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, -1, 0, 0, uint8);
+            gl.compressedTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_X, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, -1, 0, 0, null);
             this.expectError(gl.INVALID_VALUE);
-            gl.compressedTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_X, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, 0, -1, 0, uint8);
+            gl.compressedTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_X, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, 0, -1, 0, null);
             this.expectError(gl.INVALID_VALUE);
-            gl.compressedTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_X, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, -1, -1, 0, uint8);
+            gl.compressedTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_X, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, -1, -1, 0, null);
             this.expectError(gl.INVALID_VALUE);
 
             bufferedLogToConsole('gl.TEXTURE_CUBE_MAP_NEGATIVE_Y target');
-            gl.compressedTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, -1, 0, 0, uint8);
+            gl.compressedTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, -1, 0, 0, null);
             this.expectError(gl.INVALID_VALUE);
-            gl.compressedTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, 0, -1, 0, uint8);
+            gl.compressedTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, 0, -1, 0, null);
             this.expectError(gl.INVALID_VALUE);
-            gl.compressedTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, -1, -1, 0, uint8);
+            gl.compressedTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, -1, -1, 0, null);
             this.expectError(gl.INVALID_VALUE);
 
             bufferedLogToConsole('gl.TEXTURE_CUBE_MAP_NEGATIVE_Z target');
-            gl.compressedTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, -1, 0, 0, uint8);
+            gl.compressedTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, -1, 0, 0, null);
             this.expectError(gl.INVALID_VALUE);
-            gl.compressedTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, 0, -1, 0, uint8);
+            gl.compressedTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, 0, -1, 0, null);
             this.expectError(gl.INVALID_VALUE);
-            gl.compressedTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, -1, -1, 0, uint8);
+            gl.compressedTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, -1, -1, 0, null);
             this.expectError(gl.INVALID_VALUE);
 
         }));
@@ -481,14 +481,14 @@
   //   // gl.copyTexImage2D
 
     testGroup.addChild(new es3fApiCase.ApiCaseCallback('copyteximage2d_invalid_target', 'Invalid gl.copyTexImage2D() usage', gl,
-  function() {
+        function() {
             bufferedLogToConsole('gl.INVALID_ENUM is generated if target is invalid.');
             gl.copyTexImage2D(0, 0, gl.RGB, 0, 0, 64, 64, 0);
             this.expectError(gl.INVALID_ENUM);
 
         }));
     testGroup.addChild(new es3fApiCase.ApiCaseCallback('copyteximage2d_invalid_format', 'Invalid gl.copyTexImage2D() usage', gl,
-  function() {
+        function() {
             bufferedLogToConsole('gl.INVALID_ENUM or gl.INVALID_VALUE is generated if internalformat is not an accepted format.');
             gl.copyTexImage2D(gl.TEXTURE_2D, 0, 0, 0, 0, 64, 64, 0);
             this.expectError([gl.INVALID_ENUM, gl.INVALID_VALUE]);
@@ -508,7 +508,7 @@
         }));
 
     testGroup.addChild(new es3fApiCase.ApiCaseCallback('copyteximage2d_inequal_width_height_cube', 'Invalid gl.copyTexImage2D() usage', gl,
-      function() {
+        function() {
             bufferedLogToConsole('gl.INVALID_VALUE is generated if target is one of the six cube map 2D image targets and the width and height parameters are not equal.');
             gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X, 0, gl.RGB, 0, 0, 16, 17, 0);
             this.expectError(gl.INVALID_VALUE);
@@ -545,277 +545,275 @@
 
         }));
 
-  //   testGroup.addChild(new es3fApiCase.ApiCaseCallback('copyteximage2d_max_level', 'Invalid gl.copyTexImage2D() usage', gl,
-  // function() {
-  //           bufferedLogToConsole('gl.INVALID_VALUE is generated if level is greater than log_2(gl.MAX_TEXTURE_SIZE).');
-  //           /** @type{number} */ var log2MaxTextureSize = es3fNegativeTextureApiTests.deLog2Floor32(gl.getParameter(gl.MAX_TEXTURE_SIZE)) + 1;
-  //           gl.copyTexImage2D(gl.TEXTURE_2D, log2MaxTextureSize, gl.RGB, 0, 0, 64, 64, 0);
-  //           this.expectError(gl.INVALID_VALUE);
+    testGroup.addChild(new es3fApiCase.ApiCaseCallback('copyteximage2d_max_level', 'Invalid gl.copyTexImage2D() usage', gl,
+        function() {
+            bufferedLogToConsole('gl.INVALID_VALUE is generated if level is greater than log_2(gl.MAX_TEXTURE_SIZE).');
+            /** @type{number} */ var log2MaxTextureSize = es3fNegativeTextureApiTests.deLog2Floor32(/** @type{number} */(gl.getParameter(gl.MAX_TEXTURE_SIZE))) + 1;
+            gl.copyTexImage2D(gl.TEXTURE_2D, log2MaxTextureSize, gl.RGB, 0, 0, 64, 64, 0);
+            this.expectError(gl.INVALID_VALUE);
 
-  //           bufferedLogToConsole('gl.INVALID_VALUE is generated if level is greater than log_2(gl.MAX_CUBE_MAP_TEXTURE_SIZE).');
-  //           /** @type{number} */ var log2MaxCubemapSize = es3fNegativeTextureApiTests.deLog2Floor32(gl.getParameter(gl.MAX_CUBE_MAP_TEXTURE_SIZE)) + 1;
-  //           gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X, log2MaxCubemapSize, gl.RGB, 0, 0, 16, 16, 0);
-  //           this.expectError(gl.INVALID_VALUE);
-  //           gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Y, log2MaxCubemapSize, gl.RGB, 0, 0, 16, 16, 0);
-  //           this.expectError(gl.INVALID_VALUE);
-  //           gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Z, log2MaxCubemapSize, gl.RGB, 0, 0, 16, 16, 0);
-  //           this.expectError(gl.INVALID_VALUE);
-  //           gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_X, log2MaxCubemapSize, gl.RGB, 0, 0, 16, 16, 0);
-  //           this.expectError(gl.INVALID_VALUE);
-  //           gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, log2MaxCubemapSize, gl.RGB, 0, 0, 16, 16, 0);
-  //           this.expectError(gl.INVALID_VALUE);
-  //           gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, log2MaxCubemapSize, gl.RGB, 0, 0, 16, 16, 0);
-  //           this.expectError(gl.INVALID_VALUE);
+            bufferedLogToConsole('gl.INVALID_VALUE is generated if level is greater than log_2(gl.MAX_CUBE_MAP_TEXTURE_SIZE).');
+            /** @type{number} */ var log2MaxCubemapSize = es3fNegativeTextureApiTests.deLog2Floor32(/** @type{number} */(gl.getParameter(gl.MAX_CUBE_MAP_TEXTURE_SIZE))) + 1;
+            gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X, log2MaxCubemapSize, gl.RGB, 0, 0, 16, 16, 0);
+            this.expectError(gl.INVALID_VALUE);
+            gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Y, log2MaxCubemapSize, gl.RGB, 0, 0, 16, 16, 0);
+            this.expectError(gl.INVALID_VALUE);
+            gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Z, log2MaxCubemapSize, gl.RGB, 0, 0, 16, 16, 0);
+            this.expectError(gl.INVALID_VALUE);
+            gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_X, log2MaxCubemapSize, gl.RGB, 0, 0, 16, 16, 0);
+            this.expectError(gl.INVALID_VALUE);
+            gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, log2MaxCubemapSize, gl.RGB, 0, 0, 16, 16, 0);
+            this.expectError(gl.INVALID_VALUE);
+            gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, log2MaxCubemapSize, gl.RGB, 0, 0, 16, 16, 0);
+            this.expectError(gl.INVALID_VALUE);
 
-  //       }));
+        }));
 
-  //   testGroup.addChild(new es3fApiCase.ApiCaseCallback('copyteximage2d_neg_width_height', 'Invalid gl.copyTexImage2D() usage', gl,
-  // function() {
-  //           bufferedLogToConsole('gl.INVALID_VALUE is generated if width or height is less than 0.');
+    testGroup.addChild(new es3fApiCase.ApiCaseCallback('copyteximage2d_neg_width_height', 'Invalid gl.copyTexImage2D() usage', gl,
+        function() {
+            bufferedLogToConsole('gl.INVALID_VALUE is generated if width or height is less than 0.');
 
-  //           bufferedLogToConsole('gl.TEXTURE_2D target');
-  //           gl.copyTexImage2D(gl.TEXTURE_2D, 0, gl.RGB, 0, 0, -1, 1, 0);
-  //           this.expectError(gl.INVALID_VALUE);
-  //           gl.copyTexImage2D(gl.TEXTURE_2D, 0, gl.RGB, 0, 0, 1, -1, 0);
-  //           this.expectError(gl.INVALID_VALUE);
-  //           gl.copyTexImage2D(gl.TEXTURE_2D, 0, gl.RGB, 0, 0, -1, -1, 0);
-  //           this.expectError(gl.INVALID_VALUE);
+            bufferedLogToConsole('gl.TEXTURE_2D target');
+            gl.copyTexImage2D(gl.TEXTURE_2D, 0, gl.RGB, 0, 0, -1, 1, 0);
+            this.expectError(gl.INVALID_VALUE);
+            gl.copyTexImage2D(gl.TEXTURE_2D, 0, gl.RGB, 0, 0, 1, -1, 0);
+            this.expectError(gl.INVALID_VALUE);
+            gl.copyTexImage2D(gl.TEXTURE_2D, 0, gl.RGB, 0, 0, -1, -1, 0);
+            this.expectError(gl.INVALID_VALUE);
 
-  //           bufferedLogToConsole('gl.TEXTURE_CUBE_MAP_POSITIVE_X target');
-  //           gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X, 0, gl.RGB, 0, 0, -1, 1, 0);
-  //           this.expectError(gl.INVALID_VALUE);
-  //           gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X, 0, gl.RGB, 0, 0, 1, -1, 0);
-  //           this.expectError(gl.INVALID_VALUE);
-  //           gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X, 0, gl.RGB, 0, 0, -1, -1, 0);
-  //           this.expectError(gl.INVALID_VALUE);
+            bufferedLogToConsole('gl.TEXTURE_CUBE_MAP_POSITIVE_X target');
+            gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X, 0, gl.RGB, 0, 0, -1, 1, 0);
+            this.expectError(gl.INVALID_VALUE);
+            gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X, 0, gl.RGB, 0, 0, 1, -1, 0);
+            this.expectError(gl.INVALID_VALUE);
+            gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X, 0, gl.RGB, 0, 0, -1, -1, 0);
+            this.expectError(gl.INVALID_VALUE);
 
-  //           bufferedLogToConsole('gl.TEXTURE_CUBE_MAP_POSITIVE_Y target');
-  //           gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Y, 0, gl.RGB, 0, 0, -1, 1, 0);
-  //           this.expectError(gl.INVALID_VALUE);
-  //           gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Y, 0, gl.RGB, 0, 0, 1, -1, 0);
-  //           this.expectError(gl.INVALID_VALUE);
-  //           gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Y, 0, gl.RGB, 0, 0, -1, -1, 0);
-  //           this.expectError(gl.INVALID_VALUE);
+            bufferedLogToConsole('gl.TEXTURE_CUBE_MAP_POSITIVE_Y target');
+            gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Y, 0, gl.RGB, 0, 0, -1, 1, 0);
+            this.expectError(gl.INVALID_VALUE);
+            gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Y, 0, gl.RGB, 0, 0, 1, -1, 0);
+            this.expectError(gl.INVALID_VALUE);
+            gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Y, 0, gl.RGB, 0, 0, -1, -1, 0);
+            this.expectError(gl.INVALID_VALUE);
 
-  //           bufferedLogToConsole('gl.TEXTURE_CUBE_MAP_POSITIVE_Z target');
-  //           gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Z, 0, gl.RGB, 0, 0, -1, 1, 0);
-  //           this.expectError(gl.INVALID_VALUE);
-  //           gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Z, 0, gl.RGB, 0, 0, 1, -1, 0);
-  //           this.expectError(gl.INVALID_VALUE);
-  //           gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Z, 0, gl.RGB, 0, 0, -1, -1, 0);
-  //           this.expectError(gl.INVALID_VALUE);
+            bufferedLogToConsole('gl.TEXTURE_CUBE_MAP_POSITIVE_Z target');
+            gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Z, 0, gl.RGB, 0, 0, -1, 1, 0);
+            this.expectError(gl.INVALID_VALUE);
+            gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Z, 0, gl.RGB, 0, 0, 1, -1, 0);
+            this.expectError(gl.INVALID_VALUE);
+            gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Z, 0, gl.RGB, 0, 0, -1, -1, 0);
+            this.expectError(gl.INVALID_VALUE);
 
-  //           bufferedLogToConsole('gl.TEXTURE_CUBE_MAP_NEGATIVE_X target');
-  //           gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_X, 0, gl.RGB, 0, 0, -1, 1, 0);
-  //           this.expectError(gl.INVALID_VALUE);
-  //           gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_X, 0, gl.RGB, 0, 0, 1, -1, 0);
-  //           this.expectError(gl.INVALID_VALUE);
-  //           gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_X, 0, gl.RGB, 0, 0, -1, -1, 0);
-  //           this.expectError(gl.INVALID_VALUE);
+            bufferedLogToConsole('gl.TEXTURE_CUBE_MAP_NEGATIVE_X target');
+            gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_X, 0, gl.RGB, 0, 0, -1, 1, 0);
+            this.expectError(gl.INVALID_VALUE);
+            gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_X, 0, gl.RGB, 0, 0, 1, -1, 0);
+            this.expectError(gl.INVALID_VALUE);
+            gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_X, 0, gl.RGB, 0, 0, -1, -1, 0);
+            this.expectError(gl.INVALID_VALUE);
 
-  //           bufferedLogToConsole('gl.TEXTURE_CUBE_MAP_NEGATIVE_Y target');
-  //           gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, gl.RGB, 0, 0, -1, 1, 0);
-  //           this.expectError(gl.INVALID_VALUE);
-  //           gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, gl.RGB, 0, 0, 1, -1, 0);
-  //           this.expectError(gl.INVALID_VALUE);
-  //           gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, gl.RGB, 0, 0, -1, -1, 0);
-  //           this.expectError(gl.INVALID_VALUE);
+            bufferedLogToConsole('gl.TEXTURE_CUBE_MAP_NEGATIVE_Y target');
+            gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, gl.RGB, 0, 0, -1, 1, 0);
+            this.expectError(gl.INVALID_VALUE);
+            gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, gl.RGB, 0, 0, 1, -1, 0);
+            this.expectError(gl.INVALID_VALUE);
+            gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, gl.RGB, 0, 0, -1, -1, 0);
+            this.expectError(gl.INVALID_VALUE);
 
-  //           bufferedLogToConsole('gl.TEXTURE_CUBE_MAP_NEGATIVE_Z target');
-  //           gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, gl.RGB, 0, 0, -1, 1, 0);
-  //           this.expectError(gl.INVALID_VALUE);
-  //           gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, gl.RGB, 0, 0, 1, -1, 0);
-  //           this.expectError(gl.INVALID_VALUE);
-  //           gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, gl.RGB, 0, 0, -1, -1, 0);
-  //           this.expectError(gl.INVALID_VALUE);
+            bufferedLogToConsole('gl.TEXTURE_CUBE_MAP_NEGATIVE_Z target');
+            gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, gl.RGB, 0, 0, -1, 1, 0);
+            this.expectError(gl.INVALID_VALUE);
+            gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, gl.RGB, 0, 0, 1, -1, 0);
+            this.expectError(gl.INVALID_VALUE);
+            gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, gl.RGB, 0, 0, -1, -1, 0);
+            this.expectError(gl.INVALID_VALUE);
 
-  //       }));
-  //   testGroup.addChild(new es3fApiCase.ApiCaseCallback('copyteximage2d_max_width_height', 'Invalid gl.copyTexImage2D() usage', gl,
-  // function() {
-  //   /** @type{number} */ var maxTextureSize = gl.getParameter(gl.MAX_TEXTURE_SIZE) + 1;
-  //   /** @type{number} */ var maxCubemapSize = gl.getParameter(gl.MAX_CUBE_MAP_TEXTURE_SIZE) + 1;
+        }));
 
-  //           bufferedLogToConsole('gl.INVALID_VALUE is generated if width or height is greater than gl.MAX_TEXTURE_SIZE.');
 
-  //           bufferedLogToConsole('gl.TEXTURE_2D target');
-  //           gl.copyTexImage2D(gl.TEXTURE_2D, 0, gl.RGB, 0, 0, maxTextureSize, 1, 0);
-  //           this.expectError(gl.INVALID_VALUE);
-  //           gl.copyTexImage2D(gl.TEXTURE_2D, 0, gl.RGB, 0, 0, 1, maxTextureSize, 0);
-  //           this.expectError(gl.INVALID_VALUE);
-  //           gl.copyTexImage2D(gl.TEXTURE_2D, 0, gl.RGB, 0, 0, maxTextureSize, maxTextureSize, 0);
-  //           this.expectError(gl.INVALID_VALUE);
+    testGroup.addChild(new es3fApiCase.ApiCaseCallback('copyteximage2d_max_width_height', 'Invalid gl.copyTexImage2D() usage', gl,
+          function() {
+            /** @type{number} */ var maxTextureSize = /** @type{number} */(gl.getParameter(gl.MAX_TEXTURE_SIZE)) + 1;
+            /** @type{number} */ var maxCubemapSize = /** @type{number} */(gl.getParameter(gl.MAX_CUBE_MAP_TEXTURE_SIZE)) + 1;
 
-  //           bufferedLogToConsole('gl.TEXTURE_CUBE_MAP_POSITIVE_X target');
-  //           gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X, 0, gl.RGB, 0, 0, 1, maxCubemapSize, 0);
-  //           this.expectError(gl.INVALID_VALUE);
-  //           gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X, 0, gl.RGB, 0, 0, maxCubemapSize, 1, 0);
-  //           this.expectError(gl.INVALID_VALUE);
-  //           gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X, 0, gl.RGB, 0, 0, maxCubemapSize, maxCubemapSize, 0);
-  //           this.expectError(gl.INVALID_VALUE);
+            bufferedLogToConsole('gl.INVALID_VALUE is generated if width or height is greater than gl.MAX_TEXTURE_SIZE.');
 
-  //           bufferedLogToConsole('gl.TEXTURE_CUBE_MAP_POSITIVE_Y target');
-  //           gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Y, 0, gl.RGB, 0, 0, 1, maxCubemapSize, 0);
-  //           this.expectError(gl.INVALID_VALUE);
-  //           gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Y, 0, gl.RGB, 0, 0, maxCubemapSize, 1, 0);
-  //           this.expectError(gl.INVALID_VALUE);
-  //           gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Y, 0, gl.RGB, 0, 0, maxCubemapSize, maxCubemapSize, 0);
-  //           this.expectError(gl.INVALID_VALUE);
+            bufferedLogToConsole('gl.TEXTURE_2D target');
+            gl.copyTexImage2D(gl.TEXTURE_2D, 0, gl.RGB, 0, 0, maxTextureSize, 1, 0);
+            this.expectError(gl.INVALID_VALUE);
+            gl.copyTexImage2D(gl.TEXTURE_2D, 0, gl.RGB, 0, 0, 1, maxTextureSize, 0);
+            this.expectError(gl.INVALID_VALUE);
+            gl.copyTexImage2D(gl.TEXTURE_2D, 0, gl.RGB, 0, 0, maxTextureSize, maxTextureSize, 0);
+            this.expectError(gl.INVALID_VALUE);
 
-  //           bufferedLogToConsole('gl.TEXTURE_CUBE_MAP_POSITIVE_Z target');
-  //           gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Z, 0, gl.RGB, 0, 0, 1, maxCubemapSize, 0);
-  //           this.expectError(gl.INVALID_VALUE);
-  //           gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Z, 0, gl.RGB, 0, 0, maxCubemapSize, 1, 0);
-  //           this.expectError(gl.INVALID_VALUE);
-  //           gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Z, 0, gl.RGB, 0, 0, maxCubemapSize, maxCubemapSize, 0);
-  //           this.expectError(gl.INVALID_VALUE);
+            bufferedLogToConsole('gl.TEXTURE_CUBE_MAP_POSITIVE_X target');
+            gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X, 0, gl.RGB, 0, 0, 1, maxCubemapSize, 0);
+            this.expectError(gl.INVALID_VALUE);
+            gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X, 0, gl.RGB, 0, 0, maxCubemapSize, 1, 0);
+            this.expectError(gl.INVALID_VALUE);
+            gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X, 0, gl.RGB, 0, 0, maxCubemapSize, maxCubemapSize, 0);
+            this.expectError(gl.INVALID_VALUE);
 
-  //           bufferedLogToConsole('gl.TEXTURE_CUBE_MAP_NEGATIVE_X target');
-  //           gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_X, 0, gl.RGB, 0, 0, 1, maxCubemapSize, 0);
-  //           this.expectError(gl.INVALID_VALUE);
-  //           gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_X, 0, gl.RGB, 0, 0, maxCubemapSize, 1, 0);
-  //           this.expectError(gl.INVALID_VALUE);
-  //           gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_X, 0, gl.RGB, 0, 0, maxCubemapSize, maxCubemapSize, 0);
-  //           this.expectError(gl.INVALID_VALUE);
+            bufferedLogToConsole('gl.TEXTURE_CUBE_MAP_POSITIVE_Y target');
+            gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Y, 0, gl.RGB, 0, 0, 1, maxCubemapSize, 0);
+            this.expectError(gl.INVALID_VALUE);
+            gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Y, 0, gl.RGB, 0, 0, maxCubemapSize, 1, 0);
+            this.expectError(gl.INVALID_VALUE);
+            gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Y, 0, gl.RGB, 0, 0, maxCubemapSize, maxCubemapSize, 0);
+            this.expectError(gl.INVALID_VALUE);
 
-  //           bufferedLogToConsole('gl.TEXTURE_CUBE_MAP_NEGATIVE_Y target');
-  //           gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, gl.RGB, 0, 0, 1, maxCubemapSize, 0);
-  //           this.expectError(gl.INVALID_VALUE);
-  //           gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, gl.RGB, 0, 0, maxCubemapSize, 1, 0);
-  //           this.expectError(gl.INVALID_VALUE);
-  //           gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, gl.RGB, 0, 0, maxCubemapSize, maxCubemapSize, 0);
-  //           this.expectError(gl.INVALID_VALUE);
+            bufferedLogToConsole('gl.TEXTURE_CUBE_MAP_POSITIVE_Z target');
+            gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Z, 0, gl.RGB, 0, 0, 1, maxCubemapSize, 0);
+            this.expectError(gl.INVALID_VALUE);
+            gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Z, 0, gl.RGB, 0, 0, maxCubemapSize, 1, 0);
+            this.expectError(gl.INVALID_VALUE);
+            gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Z, 0, gl.RGB, 0, 0, maxCubemapSize, maxCubemapSize, 0);
+            this.expectError(gl.INVALID_VALUE);
 
-  //           bufferedLogToConsole('gl.TEXTURE_CUBE_MAP_NEGATIVE_Z target');
-  //           gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, gl.RGB, 0, 0, 1, maxCubemapSize, 0);
-  //           this.expectError(gl.INVALID_VALUE);
-  //           gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, gl.RGB, 0, 0, maxCubemapSize, 1, 0);
-  //           this.expectError(gl.INVALID_VALUE);
-  //           gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, gl.RGB, 0, 0, maxCubemapSize, maxCubemapSize, 0);
-  //           this.expectError(gl.INVALID_VALUE);
+            bufferedLogToConsole('gl.TEXTURE_CUBE_MAP_NEGATIVE_X target');
+            gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_X, 0, gl.RGB, 0, 0, 1, maxCubemapSize, 0);
+            this.expectError(gl.INVALID_VALUE);
+            gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_X, 0, gl.RGB, 0, 0, maxCubemapSize, 1, 0);
+            this.expectError(gl.INVALID_VALUE);
+            gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_X, 0, gl.RGB, 0, 0, maxCubemapSize, maxCubemapSize, 0);
+            this.expectError(gl.INVALID_VALUE);
 
-  //       }));
+            bufferedLogToConsole('gl.TEXTURE_CUBE_MAP_NEGATIVE_Y target');
+            gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, gl.RGB, 0, 0, 1, maxCubemapSize, 0);
+            this.expectError(gl.INVALID_VALUE);
+            gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, gl.RGB, 0, 0, maxCubemapSize, 1, 0);
+            this.expectError(gl.INVALID_VALUE);
+            gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, gl.RGB, 0, 0, maxCubemapSize, maxCubemapSize, 0);
+            this.expectError(gl.INVALID_VALUE);
 
-  //   testGroup.addChild(new es3fApiCase.ApiCaseCallback('copyteximage2d_invalid_border', 'Invalid gl.copyTexImage2D() usage', gl,
-  // function() {
-  //           bufferedLogToConsole('gl.INVALID_VALUE is generated if border is not 0.');
+            bufferedLogToConsole('gl.TEXTURE_CUBE_MAP_NEGATIVE_Z target');
+            gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, gl.RGB, 0, 0, 1, maxCubemapSize, 0);
+            this.expectError(gl.INVALID_VALUE);
+            gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, gl.RGB, 0, 0, maxCubemapSize, 1, 0);
+            this.expectError(gl.INVALID_VALUE);
+            gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, gl.RGB, 0, 0, maxCubemapSize, maxCubemapSize, 0);
+            this.expectError(gl.INVALID_VALUE);
 
-  //           bufferedLogToConsole('gl.TEXTURE_2D target');
-  //           gl.copyTexImage2D(gl.TEXTURE_2D, 0, gl.RGB, 0, 0, 0, 0, -1);
-  //           this.expectError(gl.INVALID_VALUE);
-  //           gl.copyTexImage2D(gl.TEXTURE_2D, 0, gl.RGB, 0, 0, 0, 0, 1);
-  //           this.expectError(gl.INVALID_VALUE);
+        }));
 
-  //           bufferedLogToConsole('gl.TEXTURE_CUBE_MAP_POSITIVE_X target');
-  //           gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X, 0, gl.RGB, 0, 0, 0, 0, -1);
-  //           this.expectError(gl.INVALID_VALUE);
-  //           gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X, 0, gl.RGB, 0, 0, 0, 0, 1);
-  //           this.expectError(gl.INVALID_VALUE);
+    testGroup.addChild(new es3fApiCase.ApiCaseCallback('copyteximage2d_invalid_border', 'Invalid gl.copyTexImage2D() usage', gl,
+        function() {
+            bufferedLogToConsole('gl.INVALID_VALUE is generated if border is not 0.');
 
-  //           bufferedLogToConsole('gl.TEXTURE_CUBE_MAP_POSITIVE_Y target');
-  //           gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Y, 0, gl.RGB, 0, 0, 0, 0, -1);
-  //           this.expectError(gl.INVALID_VALUE);
-  //           gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Y, 0, gl.RGB, 0, 0, 0, 0, 1);
-  //           this.expectError(gl.INVALID_VALUE);
+            bufferedLogToConsole('gl.TEXTURE_2D target');
+            gl.copyTexImage2D(gl.TEXTURE_2D, 0, gl.RGB, 0, 0, 0, 0, -1);
+            this.expectError(gl.INVALID_VALUE);
+            gl.copyTexImage2D(gl.TEXTURE_2D, 0, gl.RGB, 0, 0, 0, 0, 1);
+            this.expectError(gl.INVALID_VALUE);
 
-  //           bufferedLogToConsole('gl.TEXTURE_2D target');
-  //           gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Z, 0, gl.RGB, 0, 0, 0, 0, -1);
-  //           this.expectError(gl.INVALID_VALUE);
-  //           gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Z, 0, gl.RGB, 0, 0, 0, 0, 1);
-  //           this.expectError(gl.INVALID_VALUE);
+            bufferedLogToConsole('gl.TEXTURE_CUBE_MAP_POSITIVE_X target');
+            gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X, 0, gl.RGB, 0, 0, 0, 0, -1);
+            this.expectError(gl.INVALID_VALUE);
+            gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X, 0, gl.RGB, 0, 0, 0, 0, 1);
+            this.expectError(gl.INVALID_VALUE);
 
-  //           bufferedLogToConsole('gl.TEXTURE_CUBE_MAP_NEGATIVE_X target');
-  //           gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_X, 0, gl.RGB, 0, 0, 0, 0, -1);
-  //           this.expectError(gl.INVALID_VALUE);
-  //           gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_X, 0, gl.RGB, 0, 0, 0, 0, 1);
-  //           this.expectError(gl.INVALID_VALUE);
+            bufferedLogToConsole('gl.TEXTURE_CUBE_MAP_POSITIVE_Y target');
+            gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Y, 0, gl.RGB, 0, 0, 0, 0, -1);
+            this.expectError(gl.INVALID_VALUE);
+            gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Y, 0, gl.RGB, 0, 0, 0, 0, 1);
+            this.expectError(gl.INVALID_VALUE);
 
-  //           bufferedLogToConsole('gl.TEXTURE_CUBE_MAP_NEGATIVE_Y target');
-  //           gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, gl.RGB, 0, 0, 0, 0, -1);
-  //           this.expectError(gl.INVALID_VALUE);
-  //           gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, gl.RGB, 0, 0, 0, 0, 1);
-  //           this.expectError(gl.INVALID_VALUE);
+            bufferedLogToConsole('gl.TEXTURE_2D target');
+            gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Z, 0, gl.RGB, 0, 0, 0, 0, -1);
+            this.expectError(gl.INVALID_VALUE);
+            gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Z, 0, gl.RGB, 0, 0, 0, 0, 1);
+            this.expectError(gl.INVALID_VALUE);
 
-  //           bufferedLogToConsole('gl.TEXTURE_CUBE_MAP_NEGATIVE_Z target');
-  //           gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, gl.RGB, 0, 0, 0, 0, -1);
-  //           this.expectError(gl.INVALID_VALUE);
-  //           gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, gl.RGB, 0, 0, 0, 0, 1);
-  //           this.expectError(gl.INVALID_VALUE);
+            bufferedLogToConsole('gl.TEXTURE_CUBE_MAP_NEGATIVE_X target');
+            gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_X, 0, gl.RGB, 0, 0, 0, 0, -1);
+            this.expectError(gl.INVALID_VALUE);
+            gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_X, 0, gl.RGB, 0, 0, 0, 0, 1);
+            this.expectError(gl.INVALID_VALUE);
 
-  //       }));
+            bufferedLogToConsole('gl.TEXTURE_CUBE_MAP_NEGATIVE_Y target');
+            gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, gl.RGB, 0, 0, 0, 0, -1);
+            this.expectError(gl.INVALID_VALUE);
+            gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, gl.RGB, 0, 0, 0, 0, 1);
+            this.expectError(gl.INVALID_VALUE);
 
-  //   testGroup.addChild(new es3fApiCase.ApiCaseCallback('copyteximage2d_incomplete_framebuffer', 'Invalid gl.copyTexImage2D() usage', gl,
-  // function() {
-  //     /** @type{WebGLFramebuffer} */ var fbo;
-  //     fbo = createFramebuffer();
-  //           gl.bindFramebuffer (gl.FRAMEBUFFER, fbo);
-  //           gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+            bufferedLogToConsole('gl.TEXTURE_CUBE_MAP_NEGATIVE_Z target');
+            gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, gl.RGB, 0, 0, 0, 0, -1);
+            this.expectError(gl.INVALID_VALUE);
+            gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, gl.RGB, 0, 0, 0, 0, 1);
+            this.expectError(gl.INVALID_VALUE);
 
-  //     bufferedLogToConsole('gl.INVALID_FRAMEBUFFER_OPERATION is generated if the currently bound framebuffer is not framebuffer complete.');
-  //           gl.copyTexImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, 0, 0, 0, 0, 0);
-  //           this.expectError(gl.INVALID_FRAMEBUFFER_OPERATION);
-  //           gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X, 0, gl.RGBA8, 0, 0, 0, 0, 0);
-  //           this.expectError(gl.INVALID_FRAMEBUFFER_OPERATION);
-  //           gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Y, 0, gl.RGBA8, 0, 0, 0, 0, 0);
-  //           this.expectError(gl.INVALID_FRAMEBUFFER_OPERATION);
-  //           gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Z, 0, gl.RGBA8, 0, 0, 0, 0, 0);
-  //           this.expectError(gl.INVALID_FRAMEBUFFER_OPERATION);
-  //           gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_X, 0, gl.RGBA8, 0, 0, 0, 0, 0);
-  //           this.expectError(gl.INVALID_FRAMEBUFFER_OPERATION);
-  //           gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, gl.RGBA8, 0, 0, 0, 0, 0);
-  //           this.expectError(gl.INVALID_FRAMEBUFFER_OPERATION);
-  //           gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, gl.RGBA8, 0, 0, 0, 0, 0);
-  //           this.expectError(gl.INVALID_FRAMEBUFFER_OPERATION);
+        }));
 
-  //           gl.bindFramebuffer (gl.FRAMEBUFFER, 0);
-  //           glDeleteFramebuffers(1, fbo);
-  //       }));
+    testGroup.addChild(new es3fApiCase.ApiCaseCallback('copyteximage2d_incomplete_framebuffer', 'Invalid gl.copyTexImage2D() usage', gl,
+        function() {
+            /** @type{WebGLFramebuffer} */ var fbo;
+            fbo = gl.createFramebuffer();
+            gl.bindFramebuffer (gl.FRAMEBUFFER, fbo);
+            gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+
+            bufferedLogToConsole('gl.INVALID_FRAMEBUFFER_OPERATION is generated if the currently bound framebuffer is not framebuffer complete.');
+            gl.copyTexImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, 0, 0, 0, 0, 0);
+            this.expectError(gl.INVALID_FRAMEBUFFER_OPERATION);
+            gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X, 0, gl.RGBA8, 0, 0, 0, 0, 0);
+            this.expectError(gl.INVALID_FRAMEBUFFER_OPERATION);
+            gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Y, 0, gl.RGBA8, 0, 0, 0, 0, 0);
+            this.expectError(gl.INVALID_FRAMEBUFFER_OPERATION);
+            gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Z, 0, gl.RGBA8, 0, 0, 0, 0, 0);
+            this.expectError(gl.INVALID_FRAMEBUFFER_OPERATION);
+            gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_X, 0, gl.RGBA8, 0, 0, 0, 0, 0);
+            this.expectError(gl.INVALID_FRAMEBUFFER_OPERATION);
+            gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, gl.RGBA8, 0, 0, 0, 0, 0);
+            this.expectError(gl.INVALID_FRAMEBUFFER_OPERATION);
+            gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, gl.RGBA8, 0, 0, 0, 0, 0);
+            this.expectError(gl.INVALID_FRAMEBUFFER_OPERATION);
+
+            gl.bindFramebuffer (gl.FRAMEBUFFER, null);
+            gl.deleteFramebuffer(fbo);
+        }));
 
   //   // gl.copyTexSubImage2D
 
-  //   testGroup.addChild(new es3fApiCase.ApiCaseCallback('copytexsubimage2d_invalid_target', 'Invalid gl.copyTexSubImage2D() usage', gl,
-  // function() {
+    testGroup.addChild(new es3fApiCase.ApiCaseCallback('copytexsubimage2d_invalid_target', 'Invalid gl.copyTexSubImage2D() usage', gl,
+        function() {
 
-  //           /** @type{WebGLTexture} */ var texture;
-  //     texture = gl.createTexture();
-  //           gl.bindTexture (gl.TEXTURE_2D, texture);
-  //           gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 16, 16, 0, gl.RGBA, gl.UNSIGNED_BYTE, 0);
+            /** @type{WebGLTexture} */ var texture;
+            texture = gl.createTexture();
+            gl.bindTexture (gl.TEXTURE_2D, texture);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 16, 16, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
 
-  //           bufferedLogToConsole('gl.INVALID_ENUM is generated if target is invalid.');
-  //           gl.copyTexSubImage2D(0, 0, 0, 0, 0, 0, 4, 4);
-  //           this.expectError(gl.INVALID_ENUM);
+            bufferedLogToConsole('gl.INVALID_ENUM is generated if target is invalid.');
+            gl.copyTexSubImage2D(0, 0, 0, 0, 0, 0, 4, 4);
+            this.expectError(gl.INVALID_ENUM);
 
-  //           gl.deleteTexture(texture);
-  //       }));
+            gl.deleteTexture(texture);
+        }));
 
-  //   testGroup.addChild(new es3fApiCase.ApiCaseCallback('copytexsubimage2d_neg_level', 'Invalid gl.copyTexSubImage2D() usage', gl,
-  // function() {
-  //     /** @type{Array<WebGLTexture>} */ var texture = [];
-  //     texture[0] = gl.createTexture();
-  //     texture[1] = gl.createTexture();
-  //           gl.bindTexture(gl.TEXTURE_2D, texture[0]);
-  //           gl.texImage2D (gl.TEXTURE_2D, 0, gl.RGBA, 16, 16, 0, gl.RGBA, gl.UNSIGNED_BYTE, 0);
-  //     gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture[1]);
-  //     es3fNegativeTextureApiTests.forCubeFaces(function(faceGL) {
-  //       gl.texImage2D(faceGL, 0, gl.RGBA, 16, 16, 0, gl.RGBA, gl.UNSIGNED_BYTE, 0);
-  //     });
-  //           //FOR_CUBE_FACES(faceGL, gl.texImage2D(faceGL, 0, gl.RGBA, 16, 16, 0, gl.RGBA, gl.UNSIGNED_BYTE, 0););
+    testGroup.addChild(new es3fApiCase.ApiCaseCallback('copytexsubimage2d_neg_level', 'Invalid gl.copyTexSubImage2D() usage', gl,
+        function() {
+            /** @type{Array<WebGLTexture>} */ var texture = [];
+            texture[0] = gl.createTexture();
+            texture[1] = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, texture[0]);
+            gl.texImage2D (gl.TEXTURE_2D, 0, gl.RGBA, 16, 16, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+            gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture[1]);
+            es3fNegativeTextureApiTests.forCubeFaces(function(faceGL) {
+                gl.texImage2D(faceGL, 0, gl.RGBA, 16, 16, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+            });
+            //FOR_CUBE_FACES(faceGL, gl.texImage2D(faceGL, 0, gl.RGBA, 16, 16, 0, gl.RGBA, gl.UNSIGNED_BYTE, 0););
 
-  //           bufferedLogToConsole('gl.INVALID_VALUE is generated if level is less than 0.');
-  //           gl.copyTexSubImage2D(gl.TEXTURE_2D, -1, 0, 0, 0, 0, 4, 4);
-  //           this.expectError(gl.INVALID_VALUE);
-  //     es3fNegativeTextureApiTests.forCubeFaces(function(faceGL) {
-  //       gl.copyTexSubImage2D(faceGL, -1, 0, 0, 0, 0, 4, 4);
-  //               this.expectError(gl.INVALID_VALUE);
-  //     });
-  //     /*
-  //           FOR_CUBE_FACES(faceGL,{
-  //               gl.copyTexSubImage2D(faceGL, -1, 0, 0, 0, 0, 4, 4);
-  //               this.expectError(gl.INVALID_VALUE);
-  //           }));*/
+            bufferedLogToConsole('gl.INVALID_VALUE is generated if level is less than 0.');
+            gl.copyTexSubImage2D(gl.TEXTURE_2D, -1, 0, 0, 0, 0, 4, 4);
+            this.expectError(gl.INVALID_VALUE);
+            var local = this;
+            es3fNegativeTextureApiTests.forCubeFaces(function(faceGL) {
+                gl.copyTexSubImage2D(faceGL, -1, 0, 0, 0, 0, 4, 4);
+                local.expectError(gl.INVALID_VALUE);
+            });
 
-  //     gl.deleteTexture(texture[0]);
-  //           gl.deleteTexture(texture[1]);
-  //       }));
+            gl.deleteTexture(texture[0]);
+            gl.deleteTexture(texture[1]);
+        }));
 
   //   testGroup.addChild(new es3fApiCase.ApiCaseCallback('copytexsubimage2d_max_level', 'Invalid gl.copyTexSubImage2D() usage', gl,
   // function() {
@@ -837,6 +835,7 @@
 
   //           bufferedLogToConsole('gl.INVALID_VALUE is generated if level is greater than log_2(gl.MAX_CUBE_MAP_SIZE) for cubemap targets.');
   //           /** @type{number} */ var log2MaxCubemapSize = es3fNegativeTextureApiTests.deLog2Floor32(gl.getParameter(gl.MAX_CUBE_MAP_TEXTURE_SIZE)) + 1;
+  // var local = this;
   //     es3fNegativeTextureApiTests.forCubeFaces(function(faceGL) {
   //       gl.copyTexSubImage2D(faceGL, log2MaxCubemapSize, 0, 0, 0, 0, 4, 4);
   //               this.expectError(gl.INVALID_VALUE);
@@ -1393,6 +1392,7 @@
   //           this.expectError(gl.INVALID_VALUE);
 
   //           bufferedLogToConsole('gl.INVALID_VALUE is generated if level is less than 0.');
+  //      var local = this;
   //     es3fNegativeTextureApiTests.forCubeFaces(function(faceGL) {
   //       gl.texSubImage2D(faceGL, -1, 0, 0, 0, 0, gl.RGB, gl.UNSIGNED_BYTE, 0);
   //               this.expectError(gl.INVALID_VALUE);
@@ -1427,6 +1427,7 @@
 
   //           bufferedLogToConsole('gl.INVALID_VALUE is generated if level is greater than log_2(gl.MAX_CUBE_MAP_TEXTURE_SIZE).');
   //           /** @type{number} */ var log2MaxCubemapSize = es3fNegativeTextureApiTests.deLog2Floor32(gl.getParameter(gl.MAX_CUBE_MAP_TEXTURE_SIZE)) + 1;
+  //          var local = this;
   //     es3fNegativeTextureApiTests.forCubeFaces(function(faceGL) {
   //       gl.texSubImage2D(faceGL, log2MaxCubemapSize, 0, 0, 0, 0, gl.RGB, gl.UNSIGNED_BYTE, 0);
   //               this.expectError(gl.INVALID_VALUE);
@@ -1799,6 +1800,7 @@
   //           this.expectError(gl.INVALID_VALUE);
 
   //           bufferedLogToConsole('gl.INVALID_VALUE is generated if level is less than 0.');
+  //          var local = this;
   //     es3fNegativeTextureApiTests.forCubeFaces(function(faceGL) {
   //       gl.compressedTexSubImage2D(faceGL, -1, 0, 0, 0, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, 0, 0);
   //               this.expectError(gl.INVALID_VALUE);
@@ -1833,6 +1835,7 @@
 
   //           bufferedLogToConsole('gl.INVALID_VALUE is generated if level is greater than log_2(gl.MAX_CUBE_MAP_TEXTURE_SIZE).');
   //           /** @type{number} */ var log2MaxCubemapSize = es3fNegativeTextureApiTests.deLog2Floor32(gl.getParameter(gl.MAX_CUBE_MAP_TEXTURE_SIZE)) + 1;
+  //          var local = this;
   //     es3fNegativeTextureApiTests.forCubeFaces(function(faceGL) {
   //       gl.compressedTexSubImage2D(faceGL, log2MaxCubemapSize, 0, 0, 0, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, 0, 0);
   //               this.expectError(gl.INVALID_VALUE);
