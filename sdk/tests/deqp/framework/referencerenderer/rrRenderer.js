@@ -32,6 +32,8 @@ goog.require('framework.referencerenderer.rrRenderState');
 goog.require('framework.referencerenderer.rrShadingContext');
 goog.require('framework.referencerenderer.rrVertexAttrib');
 goog.require('framework.referencerenderer.rrVertexPacket');
+goog.require('framework.delibs.debase.deString');
+
 
 goog.scope(function() {
 
@@ -48,6 +50,7 @@ var rrShadingContext = framework.referencerenderer.rrShadingContext;
 var rrGenericVector = framework.referencerenderer.rrGenericVector;
 var sglrShaderProgram = framework.opengl.simplereference.sglrShaderProgram;
 var rrVertexAttrib = framework.referencerenderer.rrVertexAttrib;
+var deString = framework.delibs.debase.deString;
 
 /**
  * @enum
@@ -62,6 +65,24 @@ rrRenderer.PrimitiveType = {
     LINE_LOOP: 5, //!< Line loop
 
     POINTS: 6 //!< Points
+};
+
+/**
+ * @param {number} type
+ * @return {rrRenderer.PrimitiveType}
+ */
+rrRenderer.mapGLPrimitiveType = function(type) {
+    switch(type) {
+        case gl.TRIANGLES : return rrRenderer.PrimitiveType.TRIANGLES;
+        case gl.TRIANGLE_STRIP : return rrRenderer.PrimitiveType.TRIANGLE_STRIP;
+        case gl.TRIANGLE_FAN : return rrRenderer.PrimitiveType.TRIANGLE_FAN;
+        case gl.LINES : return rrRenderer.PrimitiveType.LINES;
+        case gl.LINE_STRIP : return rrRenderer.PrimitiveType.LINE_STRIP;
+        case gl.LINE_LOOP : return rrRenderer.PrimitiveType.LINE_LOOP;
+        case gl.POINTS : return rrRenderer.PrimitiveType.POINTS;
+        default:
+            throw new Error('Unsupported primitive type: ' + deString.enumToString(gl, type));
+    }
 };
 
 // /**
@@ -180,6 +201,7 @@ rrRenderer.PrimitiveList = function(primitiveType, numElements, indices) {
         this.m_indexType = indices.indexType;
         this.m_baseVertex = indices.baseVertex;
     }
+    this.m_iterator = 0;
 };
 
 /**
@@ -224,6 +246,42 @@ rrRenderer.PrimitiveList.prototype.getPrimitiveType = function() {return this.m_
  * @return {?rrDefs.IndexType}
  */
 rrRenderer.PrimitiveList.prototype.getIndexType = function() {return this.m_indexType;};
+
+/**
+ * Generate a primitive from indices
+ * @param {boolean=} reset Restart generating primitives. Default false
+ * @return {Array<number>}
+ */
+rrRenderer.PrimitiveList.prototype.getNextPrimitive = function(reset) {
+    if (reset)
+        this.m_iterator = 0;
+    var result = [];
+    var i = this.m_iterator;
+    switch (this.m_primitiveType) {
+        case rrRenderer.PrimitiveType.TRIANGLES:
+            if (this.m_iterator + 6 <= this.m_numElements) {
+                result = [i, i + 1, i + 2, i + 3, i + 4, i + 5];
+                this.m_iterator += 6;
+            }
+            break;
+        case rrRenderer.PrimitiveType.TRIANGLE_STRIP:
+            if (this.m_iterator + 4 <= this.m_numElements) {
+                result = [i, i + 1, i + 2, i + 3];
+                this.m_iterator += 2;
+            }
+            break;
+        case rrRenderer.PrimitiveType.TRIANGLE_FAN:
+            if (this.m_iterator + 4 <= this.m_numElements) {
+                result = [0, i + 1, i + 2, i + 3];
+                this.m_iterator += 2;
+            }
+            break;
+        default:
+            throw new Error('Unsupported primitive type: ' + deString.enumToString(rrRenderer.PrimitiveType, this.m_primitiveType));
+    }
+
+    return result;
+};
 
 /**
  * @param {Array<number>} v
@@ -447,13 +505,13 @@ rrRenderer.getIndexOfCorner = function(isTop, isRight, vertexPackets) {
     var ycriteria = isTop ? Math.max : Math.min;
 
     // Determine corner values
-    for (var i = 0; i < 6; i++) {
+    for (var i = 0; i < vertexPackets.length; i++) {
         x = x != null ? xcriteria(vertexPackets[i].position[0], x) : vertexPackets[i].position[0];
         y = y != null ? ycriteria(vertexPackets[i].position[1], y) : vertexPackets[i].position[1];
     }
 
     // Search for mathing vertex
-    for (var v = 0; v < 6; v++)
+    for (var v = 0; v < vertexPackets.length; v++)
         if (vertexPackets[v].position[0] == x && vertexPackets[v].position[1] == y)
             return v;
 
@@ -478,14 +536,25 @@ rrRenderer.calculateDepth = function(x, y, depths) {
  * @param {rrRenderer.RenderTarget} renderTarget
  * @param {sglrShaderProgram.ShaderProgram} program
  * @param {Array<rrVertexAttrib.VertexAttrib>} vertexAttribs
+ * @param {rrRenderer.PrimitiveType} primitive
  * @param {number} first Index of first quad vertex
- * @param {number} count Number of quads to draw
+ * @param {number} count Number of indices
  */
-rrRenderer.drawQuads = function(state, renderTarget, program, vertexAttribs, first, count) {
-    //The count of primitives to draw depends on which vertex we start to draw first.
-    count = Math.floor(((count * 6) - first) / 6);
+rrRenderer.drawQuads = function(state, renderTarget, program, vertexAttribs, primitive, first, count) {
 
-    var primitives = new rrRenderer.PrimitiveList(rrRenderer.PrimitiveType.TRIANGLES, count * 6, first); // 2 triangles per quad with 3 vertices each = 6 vertices.
+    /**
+     * @param {Array<rrVertexPacket.VertexPacket>} vertices
+     * @param {Array<number>} indices
+     * @return {Array<rrVertexPacket.VertexPacket>}
+     */
+    var selectVertices = function(vertices, indices) {
+        var result = [];
+        for (var i = 0; i < indices.length; i++)
+            result.push(vertices[indices[i]]);
+        return result;
+    }
+
+    var primitives = new rrRenderer.PrimitiveList(primitive, count, first); // 2 triangles per quad with 3 vertices each = 6 vertices.
     // Do not draw if nothing to draw
     if (primitives.getNumElements() == 0)
         return;
@@ -516,10 +585,8 @@ rrRenderer.drawQuads = function(state, renderTarget, program, vertexAttribs, fir
     program.shadeVertices(vertexAttribs, vertexPackets, numVertexPackets);
 
     // For each quad, we get a group of six vertex packets
-    for (var quad = 0; quad < count; quad++) {
-        var quadoffset = quad * 6;
-        var quadPackets = [vertexPackets[quadoffset], vertexPackets[quadoffset + 1], vertexPackets[quadoffset + 2],
-            vertexPackets[quadoffset + 3], vertexPackets[quadoffset + 4], vertexPackets[quadoffset + 5]];
+    for (var prim = primitives.getNextPrimitive(true); prim.length > 0; prim = primitives.getNextPrimitive()) {
+        var quadPackets = selectVertices(vertexPackets, prim);
 
         var bottomLeftVertexNdx = rrRenderer.getIndexOfCorner(false, false, quadPackets);
         var bottomRightVertexNdx = rrRenderer.getIndexOfCorner(false, true, quadPackets);

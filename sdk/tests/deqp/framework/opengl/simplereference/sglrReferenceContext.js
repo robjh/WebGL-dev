@@ -3005,18 +3005,16 @@ goog.scope(function() {
     * @param {number} count How many vertices to draw (not counting vertices before first)
     */
     sglrReferenceContext.ReferenceContext.prototype.drawArrays = function(primitive, first, count) {
-        if (primitive == gl.TRIANGLES){
-            this.drawQuads(first, (count + first) / 6); //must not use Math.floor here
-        }
-        else throw new Error('Unsupported primitive type');
+        this.drawQuads(primitive, first, count);
     };
 
     /**
     * Draws quads from vertex arrays
+    * @param {number} primitive GL primitive type to draw with.
     * @param {number} first First vertex to begin drawing with
-    * @param {number} count How many quads to draw (array should provide first + (count * 6) vertices at least)
+    * @param {number} count Number of vertices
     */
-    sglrReferenceContext.ReferenceContext.prototype.drawQuads = function(first, count) {
+    sglrReferenceContext.ReferenceContext.prototype.drawQuads = function(primitive, first, count) {
         // undefined results
         if (!this.m_currentProgram)
             return;
@@ -3208,7 +3206,7 @@ goog.scope(function() {
             }
         }
 
-        rrRenderer.drawQuads(state, renderTarget, program, vertexAttribs, first, count);
+        rrRenderer.drawQuads(state, renderTarget, program, vertexAttribs, rrRenderer.mapGLPrimitiveType(primitive), first, count);
     };
 
     /**
@@ -3804,7 +3802,7 @@ goog.scope(function() {
                 /** @type {?tcuTexture.FilterMode} */ var minMode = sglrReferenceContext.mapGLFilterMode(value);
                 if (this.condtionalSetError(null == minMode, gl.INVALID_VALUE))
                     return;
-                texture.getSampler().minFilter = minMode;
+                texture.getSampler().minFilter =minMode;
                 break;
             }
 
@@ -3812,7 +3810,7 @@ goog.scope(function() {
                 /** @type {?tcuTexture.FilterMode} */ var magMode = sglrReferenceContext.mapGLFilterMode(value);
                 if (this.condtionalSetError(null == magMode, gl.INVALID_VALUE))
                     return;
-                texture.getSampler().minFilter = magMode;
+                texture.getSampler().magFilter = magMode;
                 break;
             }
 
