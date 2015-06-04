@@ -1566,12 +1566,12 @@ goog.scope(function() {
                     } else {
                         generateVertex();
                         var vertex5 = components;
-                        vertex5[oppositeaxis] = quadVertices[quadVertices.length - 2][oppositeaxis];
+                        vertex5[oppositeaxis] = quadVertices[quadVertices.length - 3][oppositeaxis];
                         vertexNdx++;
 
                         generateVertex();
                         var vertex6 = components;
-                        vertex6[oppositeaxis] = quadVertices[quadVertices.length - 1][oppositeaxis];
+                        vertex6[oppositeaxis] = quadVertices[quadVertices.length - 2][oppositeaxis];
                         vertex6[parallelaxis] = vertex5[parallelaxis];
                         vertexNdx++;
 
@@ -2582,9 +2582,9 @@ goog.scope(function() {
     glsDrawTests.DrawTestSpec.DrawMethod = {
          DRAWARRAYS: 0,
          DRAWARRAYS_INSTANCED: 1,
-         DRAWELEMENTS: 3,
-         DRAWELEMENTS_RANGED: 4,
-         DRAWELEMENTS_INSTANCED: 5
+         DRAWELEMENTS: 2,
+         DRAWELEMENTS_RANGED: 3,
+         DRAWELEMENTS_INSTANCED: 4
     };
 
     /**
@@ -3005,7 +3005,9 @@ goog.scope(function() {
         /** @type {tcuTestCase.IterateResult} */ var iterateResult = (this.m_iteration + 1 == this.m_specs.length * 2) ? (tcuTestCase.IterateResult.STOP) : (tcuTestCase.IterateResult.CONTINUE);
         /** @type {glsDrawTests.DrawTestSpec} */ var spec = this.m_specs[specNdx];
         var updateProgram = (this.m_iteration == 0) || (drawStep && !glsDrawTests.checkSpecsShaderCompatible(this.m_specs[specNdx], this.m_specs[specNdx - 1])); // try to use the same shader in all iterations
-        //IterationLogSectionEmitter sectionEmitter (m_testCtx.getLog(), specNdx, m_specs.size(), m_iteration_descriptions[specNdx], drawStep && m_specs.size()!=1);
+
+        if (drawStep && this.m_specs.length != 1)
+            debug('Iteration ' + specNdx + ' of ' + (this.m_specs.length - 1) + ': ' + this.m_iteration_descriptions[specNdx]);
 
         if (drawStep) {
             /** @type {glsDrawTests.MethodInfo} */ var methodInfo = glsDrawTests.getMethodInfo(spec.drawMethod);
