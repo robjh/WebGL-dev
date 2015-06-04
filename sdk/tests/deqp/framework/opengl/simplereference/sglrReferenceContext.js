@@ -2478,18 +2478,23 @@ goog.scope(function() {
         return true;
     };
 
-    // sglrReferenceContext.ReferenceContext.prototype.drawArraysInstanced = function(mode, first, count, instanceCount) {
-    //     if (this.condtionalSetError(first < 0 || count < 0 || instanceCount < 0, gl.INVALID_VALUE))
-    //         return;
+    /**
+    * Draws quads from vertex arrays
+    * @param {number} mode GL primitive type to draw with.
+    * @param {number} first First vertex to begin drawing with
+    * @param {number} count How many vertices to draw (not counting vertices before first)
+    * @param {number} instanceCount
+    */
+    sglrReferenceContext.ReferenceContext.prototype.drawArraysInstanced = function(mode, first, count, instanceCount) {
+        if (this.condtionalSetError(first < 0 || count < 0 || instanceCount < 0, gl.INVALID_VALUE))
+            return;
 
-    //     if (!this.predrawErrorChecks(mode))
-    //         return;
+        if (!this.predrawErrorChecks(mode))
+            return;
 
-    //     // All is ok
-    //     var primitiveType = sglrReferenceUtils.mapGLPrimitiveType(mode);
-
-    //     this.drawWithReference(new rrRenderer.PrimitiveList(primitiveType, count, first), instanceCount);
-    // };
+        // All is ok
+        this.drawQuads(mode, first, count, instanceCount);
+    };
 
     // sglrReferenceContext.ReferenceContext.prototype.drawElements = function(mode, count, type, offset) {
     //     this.drawElementsInstanced(mode, count, type, offset, 1);
@@ -3005,7 +3010,7 @@ goog.scope(function() {
     * @param {number} count How many vertices to draw (not counting vertices before first)
     */
     sglrReferenceContext.ReferenceContext.prototype.drawArrays = function(primitive, first, count) {
-        this.drawQuads(primitive, first, count);
+        this.drawQuads(primitive, first, count, 1);
     };
 
     /**
@@ -3013,11 +3018,15 @@ goog.scope(function() {
     * @param {number} primitive GL primitive type to draw with.
     * @param {number} first First vertex to begin drawing with
     * @param {number} count Number of vertices
+    * @param {number=} instances Number of instances
     */
-    sglrReferenceContext.ReferenceContext.prototype.drawQuads = function(primitive, first, count) {
+    sglrReferenceContext.ReferenceContext.prototype.drawQuads = function(primitive, first, count, instances) {
         // undefined results
         if (!this.m_currentProgram)
             return;
+
+        if (typeof instances === 'undefined')
+            instances = 1;
 
         /** @type {rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess} */ var colorBuf0 = this.getDrawColorbuffer();
         /** @type {rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess} */ var depthBuf = this.getDrawDepthbuffer();
@@ -3206,7 +3215,10 @@ goog.scope(function() {
             }
         }
 
-        rrRenderer.drawQuads(state, renderTarget, program, vertexAttribs, rrRenderer.mapGLPrimitiveType(primitive), first, count);
+
+        var primitiveType = sglrReferenceUtils.mapGLPrimitiveType(primitive);
+        for (var instanceID = 0 ; instanceID < instances; instanceID++)
+            rrRenderer.drawQuads(state, renderTarget, program, vertexAttribs, primitiveType, first, count, instanceID);
     };
 
     /**

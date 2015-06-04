@@ -22,6 +22,7 @@
 goog.provide('modules.shared.glsVertexArrayTests');
 goog.require('framework.common.tcuFloat');
 goog.require('framework.common.tcuImageCompare');
+goog.require('framework.common.tcuLogImage');
 goog.require('framework.common.tcuPixelFormat');
 goog.require('framework.common.tcuRGBA');
 goog.require('framework.common.tcuSurface');
@@ -47,6 +48,7 @@ goog.scope(function() {
     var tcuPixelFormat = framework.common.tcuPixelFormat;
     var tcuSurface = framework.common.tcuSurface;
     var tcuImageCompare = framework.common.tcuImageCompare;
+    var tcuLogImage = framework.common.tcuLogImage;
     var gluShaderUtil = framework.opengl.gluShaderUtil;
     var sglrGLContext = framework.opengl.simplereference.sglrGLContext;
     var sglrReferenceContext = framework.opengl.simplereference.sglrReferenceContext;
@@ -2213,7 +2215,7 @@ goog.scope(function() {
                 tcuImageCompare.displayImages(screen.getAccess(), ref.getAccess(), error.getAccess());
             } else {
                 //log << TestLog::ImageSet("Compare result", "Result of rendering")
-                tcuImageCompare.displayImages(screen.getAccess(), null);
+                tcuLogImage.logImage('Result', '', screen.getAccess());
             }
         }
     };
