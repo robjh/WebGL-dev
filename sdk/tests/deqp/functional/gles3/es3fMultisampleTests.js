@@ -137,7 +137,7 @@ goog.scope(function() {
         /** @type {tcuRGBA.RGBA} */ var insideColor; //!< Color of the first pixel inside the region.
 
         for (var y = yMin; y <= yMax; y++)
-        for (var x = xMin; x <= xMax; x++) {
+        for (var x = xMin; x <= xMax; x++)
             if (es3fMultisampleTests.isInsideQuad([x, y], p0, p1, p2, p3)) {
                 /** @type {tcuRGBA.RGBA} */ var pixColor = new tcuRGBA.RGBA(img.getPixel(x, y));
 
@@ -149,8 +149,6 @@ goog.scope(function() {
                     insideColor = pixColor;
                 }
             }
-        }
-
         return true;
     };
 
@@ -171,17 +169,15 @@ goog.scope(function() {
         /** @type {number} */ var yMax = deMath.clamp(es3fMultisampleTests.max4(p0[1], p1[1], p2[1], p3[1]), 0, img.getHeight() - 1);
         /** @type {tcuRGBA.RGBA} */ var refColor = new tcuRGBA.RGBA(img.getPixel(Math.floor((xMin + xMax) / 2), Math.floor((yMin + yMax) / 2)));
 
-    	for (var y = yMin; y <= yMax; y++)
-    	for (var x = xMin; x <= xMax; x++) {
-    		if (es3fMultisampleTests.isInsideQuad([x, y], p0, p1, p2, p3)) {
-    			if (!tcuRGBA.compareThreshold(new tcuRGBA.RGBA(img.getPixel(x, y)), refColor, tcuRGBA.newRGBAComponents(3, 3, 3, 3))) {
-    				img.setPixel(x, y, tcuRGBA.RGBA.red.toVec()); // TODO: this might also be toIVec()
-    				errorImg.setPixel([1.0, 0.0, 0.0, 1.0], x, y);
-    			}
-    		}
-    	}
-
-    	return true;
+        for (var y = yMin; y <= yMax; y++)
+        for (var x = xMin; x <= xMax; x++)
+            if (es3fMultisampleTests.isInsideQuad([x, y], p0, p1, p2, p3)) {
+                if (!tcuRGBA.compareThreshold(new tcuRGBA.RGBA(img.getPixel(x, y)), refColor, tcuRGBA.newRGBAComponents(3, 3, 3, 3))) {
+                    img.setPixel(x, y, tcuRGBA.RGBA.red.toVec()); // TODO: this might also be toIVec()
+                    errorImg.setPixel([1.0, 0.0, 0.0, 1.0], x, y);
+                }
+            }
+        return true;
     };
 
     /**
@@ -237,14 +233,6 @@ goog.scope(function() {
 
     /** Copy the constructor */
     es3fMultisampleTests.MultisampleCase.prototype.constructor = es3fMultisampleTests.MultisampleCase;
-
-    /**
-     * @private
-     * @param {es3fMultisampleTests.MultisampleCase} other
-     * @return {es3fMultisampleTests.MultisampleCase}
-     */
-    es3fMultisampleTests.newMultisampleCaseFromOther = function(other) {
-    };
 
     /**
      * @protected
@@ -430,6 +418,7 @@ goog.scope(function() {
     };
 
     es3fMultisampleTests.MultisampleCase.prototype.init = function() {
+        var log = bufferedLogToConsole;
         /** @type {string} */ var vertShaderSource = '' +
             '#version 300 es\n' +
             'in highp vec4 a_position;\n' +
@@ -437,116 +426,114 @@ goog.scope(function() {
             'out mediump vec4 v_color;\n' +
             'void main()\n' +
             '{\n' +
-            '	gl_Position = a_position;\n' +
-            '	v_color = a_color;\n' +
+            '    gl_Position = a_position;\n' +
+            '    v_color = a_color;\n' +
             '}\n';
 
-    	/** @type {string} */ var fragShaderSource = '' +
-    		'#version 300 es\n' +
-    		'in mediump vec4 v_color;\n' +
-    		'layout(location = 0) out mediump vec4 o_color;\n' +
-    		'void main()\n' +
-    		'{\n' +
-    		'	o_color = v_color;\n' +
-    		'}\n';
+        /** @type {string} */ var fragShaderSource = '' +
+            '#version 300 es\n' +
+            'in mediump vec4 v_color;\n' +
+            'layout(location = 0) out mediump vec4 o_color;\n' +
+            'void main()\n' +
+            '{\n' +
+            '    o_color = v_color;\n' +
+            '}\n';
 
-    	// TestLog& log = m_testCtx.getLog();
+        // TestLog& log = m_testCtx.getLog();
 
         // TODO: what is the replacement for getNumSamples()?
-    	if (!this.m_fboParams.useFbo && this.m_context.getRenderTarget().getNumSamples() <= 1)
-    		throw new Error('No multisample buffers');
+        if (!this.m_fboParams.useFbo && this.m_context.getRenderTarget().getNumSamples() <= 1)
+            throw new Error('No multisample buffers');
 
-    	if (this.m_fboParams.useFbo) {
-    		if (this.m_fboParams.numSamples > 0)
-    			this.m_numSamples = this.m_fboParams.numSamples;
-    		else {
-    			bufferedLogToConsole('Querying maximum number of samples for ' + gluStrUtil.getPixelFormatName(gl.RGBA8) + ' with gl.getInternalformatParameter()');
-    			// TODO: check call. Was getInternalformativ
-    			this.m_numSamples = /** @type {number} */ (gl.getInternalformatParameter(gl.RENDERBUFFER, gl.RGBA8, gl.SAMPLES).length);
-    		}
+        if (this.m_fboParams.useFbo) {
+            if (this.m_fboParams.numSamples > 0)
+                this.m_numSamples = this.m_fboParams.numSamples;
+            else {
+                log('Querying maximum number of samples for ' + gluStrUtil.getPixelFormatName(gl.RGBA8) + ' with gl.getInternalformatParameter()');
+                // TODO: check call. Was getInternalformativ
+                this.m_numSamples = /** @type {number} */ (gl.getInternalformatParameter(gl.RENDERBUFFER, gl.RGBA8, gl.SAMPLES).length);
+            }
 
-    		bufferedLogToConsole('Using FBO of size (' + this.m_renderWidth + ', ' + this.m_renderHeight + ') with ' + this.m_numSamples + ' samples');
-    	}
-    	else {
-    		// Query and log number of samples per pixel.
+            log('Using FBO of size (' + this.m_renderWidth + ', ' + this.m_renderHeight + ') with ' + this.m_numSamples + ' samples');
+        }
+        else {
+            // Query and log number of samples per pixel.
 
-    		this.m_numSamples = /** @type {number} */ (gl.getParameter(gl.SAMPLES)); // TODO: check this call. Was getIntegerv
-    	    bufferedLogToConsole('gl.SAMPLES =' + this.m_numSamples);
-    	}
+            this.m_numSamples = /** @type {number} */ (gl.getParameter(gl.SAMPLES)); // TODO: check this call. Was getIntegerv
+            log('gl.SAMPLES =' + this.m_numSamples);
+        }
 
-    	// Prepare program.
+        // Prepare program.
 
-    	assertMsgOptions(!this.m_program, 'Program loaded when it should not be.', false, true);
+        assertMsgOptions(!this.m_program, 'Program loaded when it should not be.', false, true);
 
-    	this.m_program = new gluShaderProgram.ShaderProgram(
+        this.m_program = new gluShaderProgram.ShaderProgram(
             gl,
             gluShaderProgram.makeVtxFragSources(vertShaderSource, fragShaderSource));
 
-    	if (!this.m_program.isOk())
-    		throw new Error('Failed to compile program');
+        if (!this.m_program.isOk())
+            throw new Error('Failed to compile program');
 
         this.m_attrPositionLoc = gl.getAttribLocation(this.m_program.getProgram(), 'a_position');
         this.m_attrColorLoc = gl.getAttribLocation(this.m_program.getProgram(), 'a_color');
 
-    	if (this.m_attrPositionLoc < 0 || this.m_attrColorLoc < 0) {
-    		this.m_program = null;
-    		throw new Error('Invalid attribute locations');
-    	}
+        if (this.m_attrPositionLoc < 0 || this.m_attrColorLoc < 0) {
+            this.m_program = null;
+            throw new Error('Invalid attribute locations');
+        }
 
-    	if (this.m_fboParams.useFbo) {
-    		// Setup ms color RBO.
-    		this.m_msColorRbo = gl.createRenderbuffer();
+        if (this.m_fboParams.useFbo) {
+            // Setup ms color RBO.
+            this.m_msColorRbo = gl.createRenderbuffer();
             gl.bindRenderbuffer(gl.RENDERBUFFER, this.m_msColorRbo);
 
-    		// If glRenderbufferStorageMultisample() fails, check if it's because of a too high sample count.
-    		// \note We don't do the check until now because some implementations can't handle the gl.SAMPLES query with glGetInternalformativ(),
-    		//		 and we don't want that to be the cause of test case failure.
-    		try {
-    			gl.renderbufferStorageMultisample(gl.RENDERBUFFER, this.m_numSamples, gl.RGBA8, this.m_renderWidth, this.m_renderHeight);
-    		}
-    		catch (e) {
-    			/** @type {Int32Array} */ var maxSampleCount = /** @type {Int32Array} */ (gl.getInternalformatParameter(gl.RENDERBUFFER, gl.RGBA8, gl.SAMPLES));
-    			if (maxSampleCount.length < this.m_numSamples)
-    				throw new Error('Maximum sample count returned by gl.getInternalformativ() for ' + gluStrUtil.getPixelFormatName(gl.RGBA8) + ' is only ' + maxSampleCount.length);
-    			else
-    			// 	throw;
-                    bufferedLogToConsole('Uncatched error.');
-    		}
+            // If glRenderbufferStorageMultisample() fails, check if it's because of a too high sample count.
+            // \note We don't do the check until now because some implementations can't handle the gl.SAMPLES query with glGetInternalformativ(),
+            //         and we don't want that to be the cause of test case failure.
+            try {
+                gl.renderbufferStorageMultisample(gl.RENDERBUFFER, this.m_numSamples, gl.RGBA8, this.m_renderWidth, this.m_renderHeight);
+            }
+            catch (e) {
+                /** @type {Int32Array} */ var maxSampleCount = /** @type {Int32Array} */ (gl.getInternalformatParameter(gl.RENDERBUFFER, gl.RGBA8, gl.SAMPLES));
+                if (maxSampleCount.length < this.m_numSamples)
+                    throw new Error('Maximum sample count returned by gl.getInternalformativ() for ' + gluStrUtil.getPixelFormatName(gl.RGBA8) + ' is only ' + maxSampleCount.length);
+                else
+                //     throw;
+                    log('Unhandled error.');
+            }
 
-    		if (this.m_fboParams.useDepth || this.m_fboParams.useStencil) {
-    			// Setup ms depth & stencil RBO.
+            if (this.m_fboParams.useDepth || this.m_fboParams.useStencil) {
+                // Setup ms depth & stencil RBO.
                 this.m_msDepthStencilRbo = gl.createRenderbuffer();
                 gl.bindRenderbuffer(gl.RENDERBUFFER, this.m_msDepthStencilRbo);
                 gl.renderbufferStorageMultisample(gl.RENDERBUFFER, this.m_numSamples, gl.DEPTH24_STENCIL8, this.m_renderWidth, this.m_renderHeight);
-    		}
+            }
 
-    		// Setup ms FBO.
+            // Setup ms FBO.
             this.m_msFbo = gl.createFramebuffer();
             gl.bindFramebuffer(gl.FRAMEBUFFER, this.m_msFbo);
             gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, this.m_msColorRbo);
             gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, this.m_msDepthStencilRbo);
 
-    		// Setup resolve color RBO.
+            // Setup resolve color RBO.
             this.m_resolveColorRbo = gl.createRenderbuffer();
             gl.bindRenderbuffer(gl.RENDERBUFFER, this.m_resolveColorRbo);
             gl.renderbufferStorage(gl.RENDERBUFFER, gl.RGBA8, this.m_renderWidth, this.m_renderHeight);
 
-    		// Setup resolve FBO.
+            // Setup resolve FBO.
             this.m_resolveFbo = gl.createFramebuffer();
             gl.bindFramebuffer(gl.FRAMEBUFFER, this.m_resolveFbo);
             gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, this.m_resolveColorRbo);
 
-    		// Use ms FBO.
+            // Use ms FBO.
             gl.bindFramebuffer(gl.FRAMEBUFFER, this.m_msFbo);
-    	}
+        }
 
-    	// Get suitable viewport size.
+        // Get suitable viewport size.
 
-    	this.m_viewportSize = Math.min(this.m_desiredViewportSize, Math.min(this.m_renderWidth, this.m_renderHeight));
-    	this.randomizeViewport();
+        this.m_viewportSize = Math.min(this.m_desiredViewportSize, Math.min(this.m_renderWidth, this.m_renderHeight));
+        this.randomizeViewport();
     };
-
-
 
     /**
      * Base class for cases testing the value of sample count.
@@ -581,64 +568,63 @@ goog.scope(function() {
      * @return {tcuTestCase.IterateResult}
      */
     es3fMultisampleTests.NumSamplesCase.prototype.iterate = function() {
-        //TestLog&		log				= m_testCtx.getLog();
-    	/** @type {tcuSurface.Surface} */ var renderedImg = new tcuSurface.Surface(this.m_viewportSize, this.m_viewportSize);
-    	this.randomizeViewport();
+        var log = bufferedLogToConsole;
+        /** @type {tcuSurface.Surface} */ var renderedImg = new tcuSurface.Surface(this.m_viewportSize, this.m_viewportSize);
+        this.randomizeViewport();
 
-    	gl.clearColor(0.0, 0.0, 0.0, 1.0);
-    	gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
 
-    	this.renderPattern();
+        this.renderPattern();
 
-    	// Read and log rendered image.
+        // Read and log rendered image.
 
         renderedImg = this.readImage();
-        tcuLogImage.logImage("RenderedImage", "Rendered image", renderedImg.getAccess());
-    	//log << TestLog::Image("RenderedImage", "Rendered image", renderedImg, QP_IMAGE_COMPRESSION_MODE_PNG);
+        tcuLogImage.logImage('RenderedImage', 'Rendered image', renderedImg.getAccess());
 
-    	// Detect new, previously unseen colors from image.
+        // Detect new, previously unseen colors from image.
 
-    	/** @type {number} */ var requiredNumDistinctColors = this.m_numSamples + 1;
+        /** @type {number} */ var requiredNumDistinctColors = this.m_numSamples + 1;
 
-    	for (var y = 0; y < renderedImg.getHeight() && this.m_detectedColors.length < requiredNumDistinctColors; y++)
-    	for (var x = 0; x < renderedImg.getWidth() && this.m_detectedColors.length < requiredNumDistinctColors; x++) {
-    		/** @type {tcuRGBA.RGBA} */ var color = new tcuRGBA.RGBA(renderedImg.getPixel(x, y));
+        for (var y = 0; y < renderedImg.getHeight() && this.m_detectedColors.length < requiredNumDistinctColors; y++)
+        for (var x = 0; x < renderedImg.getWidth() && this.m_detectedColors.length < requiredNumDistinctColors; x++) {
+            /** @type {tcuRGBA.RGBA} */ var color = new tcuRGBA.RGBA(renderedImg.getPixel(x, y));
 
-    		/** @type {number} */ var i;
-    		for (i = 0; i < this.m_detectedColors.length; i++) {
-    			if (tcuRGBA.compareThreshold(color, this.m_detectedColors[i], tcuRGBA.newRGBAComponents(3, 3, 3, 3)))
-    				break;
-    		}
+            /** @type {number} */ var i;
+            for (i = 0; i < this.m_detectedColors.length; i++) {
+                if (tcuRGBA.compareThreshold(color, this.m_detectedColors[i], tcuRGBA.newRGBAComponents(3, 3, 3, 3)))
+                    break;
+            }
 
-    		if (i === this.m_detectedColors.length)
-    			this.m_detectedColors.push(color); // Color not previously detected.
-    	}
+            if (i === this.m_detectedColors.length)
+                this.m_detectedColors.push(color); // Color not previously detected.
+        }
 
-    	// Log results.
+        // Log results.
 
-    		bufferedLogToConsole('Number of distinct colors detected so far: ' + (this.m_detectedColors.length >= requiredNumDistinctColors ? 'at least ' : '') + this.m_detectedColors.length);
+            log('Number of distinct colors detected so far: ' + (this.m_detectedColors.length >= requiredNumDistinctColors ? 'at least ' : '') + this.m_detectedColors.length);
 
 
-    	if (this.m_detectedColors.length < requiredNumDistinctColors) {
-    		// Haven't detected enough different colors yet.
+        if (this.m_detectedColors.length < requiredNumDistinctColors) {
+            // Haven't detected enough different colors yet.
 
-    		this.m_currentIteration++;
+            this.m_currentIteration++;
 
-    		if (this.m_currentIteration >= this.m_maxNumIterations) {
-    			bufferedLogToConsole('Failure: Number of distinct colors detected is lower than sample count+1');
-    			testFailedOptions('Failed', false);
-    			return tcuTestCase.IterateResult.STOP;
-    		}
-    		else {
-    			bufferedLogToConsole('The number of distinct colors detected is lower than sample count+1 - trying again with a slightly altered pattern');
-    			return tcuTestCase.IterateResult.CONTINUE;
-    		}
-    	}
-    	else {
-    		bufferedLogToConsole('Success: The number of distinct colors detected is at least sample count+1');
-    	    testPassedOptions('Passed', true);
-    		return tcuTestCase.IterateResult.STOP;
-    	}
+            if (this.m_currentIteration >= this.m_maxNumIterations) {
+                log('Failure: Number of distinct colors detected is lower than sample count+1');
+                testFailedOptions('Failed', false);
+                return tcuTestCase.IterateResult.STOP;
+            }
+            else {
+                log('The number of distinct colors detected is lower than sample count+1 - trying again with a slightly altered pattern');
+                return tcuTestCase.IterateResult.CONTINUE;
+            }
+        }
+        else {
+            log('Success: The number of distinct colors detected is at least sample count+1');
+            testPassedOptions('Passed', true);
+            return tcuTestCase.IterateResult.STOP;
+        }
     };
 
     /**
@@ -663,17 +649,17 @@ goog.scope(function() {
     es3fMultisampleTests.PolygonNumSamplesCase.prototype.renderPattern = function() {
         // The test pattern consists of several triangles with edges at different angles.
 
-    	/** @type {number} */ var numTriangles = 25;
-    	for (var i = 0; i < numTriangles; i++) {
+        /** @type {number} */ var numTriangles = 25;
+        for (var i = 0; i < numTriangles; i++) {
             /** @type {number} */ var angle0 = 2.0 * Math.PI * i / numTriangles + 0.001 * this.m_currentIteration;
             /** @type {number} */ var angle1 = 2.0 * Math.PI * (i + 0.5) / numTriangles + 0.001 * this.m_currentIteration;
 
-    		this.renderTriangle_pAsVec2WithColor(
+            this.renderTriangle_pAsVec2WithColor(
                 [0.0, 0.0],
-    			[Math.cos(angle0) * 0.95, Math.sin(angle0) * 0.95],
-    			[Math.cos(angle1) * 0.95, Math.sin(angle1) * 0.95],
-    			[1.0, 1.0, 1.0, 1.0]);
-    	}
+                [Math.cos(angle0) * 0.95, Math.sin(angle0) * 0.95],
+                [Math.cos(angle1) * 0.95, Math.sin(angle1) * 0.95],
+                [1.0, 1.0, 1.0, 1.0]);
+        }
     };
 
     /**
@@ -752,48 +738,48 @@ goog.scope(function() {
      * @enum {number}
      */
     es3fMultisampleTests.CommonEdgeCase.CaseType = {
-        SMALL_QUADS: 0,				  //!< Draw several small quads per iteration.
+        SMALL_QUADS: 0,                  //!< Draw several small quads per iteration.
         BIGGER_THAN_VIEWPORT_QUAD: 1, //!< Draw one bigger-than-viewport quad per iteration.
-        FIT_VIEWPORT_QUAD: 2		  //!< Draw one exactly viewport-sized, axis aligned quad per iteration.
+        FIT_VIEWPORT_QUAD: 2          //!< Draw one exactly viewport-sized, axis aligned quad per iteration.
     };
 
     es3fMultisampleTests.CommonEdgeCase.prototype.init = function() {
+        var log = bufferedLogToConsole;
         es3fMultisampleTests.MultisampleCase.prototype.init.call(this);
 
-    	if (this.m_caseType === es3fMultisampleTests.CommonEdgeCase.CaseType.SMALL_QUADS) {
-    		// Check for a big enough viewport. With too small viewports the test case can't analyze the resulting image well enough.
+        if (this.m_caseType === es3fMultisampleTests.CommonEdgeCase.CaseType.SMALL_QUADS) {
+            // Check for a big enough viewport. With too small viewports the test case can't analyze the resulting image well enough.
 
             /** @type {number} */ var minViewportSize = 32;
 
-    		if (this.m_viewportSize < minViewportSize)
-    			throw new Error('Render target width or height too low (is ' + this.m_viewportSize + ', should be at least ' + minViewportSize + ')');
-    	}
+            if (this.m_viewportSize < minViewportSize)
+                throw new Error('Render target width or height too low (is ' + this.m_viewportSize + ', should be at least ' + minViewportSize + ')');
+        }
 
-    	gl.enable(gl.BLEND);
-    	gl.blendEquation(gl.FUNC_ADD);
-    	gl.blendFunc(gl.ONE, gl.ONE);
-    	bufferedLogToConsole('Additive blending enabled in order to detect (erroneously) overlapping samples');
+        gl.enable(gl.BLEND);
+        gl.blendEquation(gl.FUNC_ADD);
+        gl.blendFunc(gl.ONE, gl.ONE);
+        log('Additive blending enabled in order to detect (erroneously) overlapping samples');
     };
 
     /**
      * @return {tcuTestCase.IterateResult}
      */
     es3fMultisampleTests.CommonEdgeCase.prototype.iterate = function() {
-    	var log = bufferedLogToConsole;
-    	/** @type {tcuSurface.Surface} */ var renderedImg = new tcuSurface.Surface(this.m_viewportSize, this.m_viewportSize);
-    	/** @type {tcuSurface.Surface} */ var errorImg = new tcuSurface.Surface(this.m_viewportSize, this.m_viewportSize);
+        var log = bufferedLogToConsole;
+        /** @type {tcuSurface.Surface} */ var renderedImg = new tcuSurface.Surface(this.m_viewportSize, this.m_viewportSize);
+        /** @type {tcuSurface.Surface} */ var errorImg = new tcuSurface.Surface(this.m_viewportSize, this.m_viewportSize);
 
+        this.randomizeViewport();
 
-    	this.randomizeViewport();
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
 
-    	gl.clearColor(0.0, 0.0, 0.0, 1.0);
-    	gl.clear(gl.COLOR_BUFFER_BIT);
+        // Draw test pattern. Test patterns consist of quads formed with two triangles.
+        // After drawing the pattern, we check that the interior pixels of each quad are
+        // all the same color - this is meant to verify that there are no artifacts on the inner edge.
 
-    	// Draw test pattern. Test patterns consist of quads formed with two triangles.
-    	// After drawing the pattern, we check that the interior pixels of each quad are
-    	// all the same color - this is meant to verify that there are no artifacts on the inner edge.
-
-    	/** @type {Array<es3fMultisampleTests.QuadCorners>} */ var unicoloredRegions = [];
+        /** @type {Array<es3fMultisampleTests.QuadCorners>} */ var unicoloredRegions = [];
 
         /** @type {Array<Array<number>>} */ var corners;
         /** @type {number} */ var angleCos;
@@ -804,218 +790,215 @@ goog.scope(function() {
         /** @type {number} */ var quadBaseAngleNdx
         /** @type {number} */ var quadSubAngleNdx;
 
-    	if (this.m_caseType == es3fMultisampleTests.CommonEdgeCase.CaseType.SMALL_QUADS) {
-    		// Draw several quads, rotated at different angles.
+        if (this.m_caseType == es3fMultisampleTests.CommonEdgeCase.CaseType.SMALL_QUADS) {
+            // Draw several quads, rotated at different angles.
 
-    		quadDiagLen = 2.0 / 3.0 * 0.9; // \note Fit 3 quads in both x and y directions.
+            quadDiagLen = 2.0 / 3.0 * 0.9; // \note Fit 3 quads in both x and y directions.
 
 
-    		// \note First and second iteration get exact 0 (and 90, 180, 270) and 45 (and 135, 225, 315) angle quads, as they are kind of a special case.
+            // \note First and second iteration get exact 0 (and 90, 180, 270) and 45 (and 135, 225, 315) angle quads, as they are kind of a special case.
 
-    		if (this.m_currentIteration === 0) {
-    			angleCos = 1.0;
-    			angleSin = 0.0;
-    		}
-    		else if (this.m_currentIteration === 1) {
-    			angleCos = Math.SQRT1_2;
-    			angleSin = Math.SQRT1_2;
-    		}
-    		else {
+            if (this.m_currentIteration === 0) {
+                angleCos = 1.0;
+                angleSin = 0.0;
+            }
+            else if (this.m_currentIteration === 1) {
+                angleCos = Math.SQRT1_2;
+                angleSin = Math.SQRT1_2;
+            }
+            else {
                 angle = 0.5 * Math.PI * (this.m_currentIteration - 1) / (this.m_numIterations - 1);
-    			angleCos = Math.cos(angle);
-    			angleSin = Math.sin(angle);
-    		}
+                angleCos = Math.cos(angle);
+                angleSin = Math.sin(angle);
+            }
 
-    		corners = [
-    			deMath.scale([angleCos, angleSin], 0.5 * quadDiagLen),
-    			deMath.scale([-angleSin, angleCos], 0.5 * quadDiagLen),
-    			deMath.scale([-angleCos, -angleSin], 0.5 * quadDiagLen),
-    			deMath.scale([angleSin, -angleCos], 0.5 * quadDiagLen)
-    		];
+            corners = [
+                deMath.scale([angleCos, angleSin], 0.5 * quadDiagLen),
+                deMath.scale([-angleSin, angleCos], 0.5 * quadDiagLen),
+                deMath.scale([-angleCos, -angleSin], 0.5 * quadDiagLen),
+                deMath.scale([angleSin, -angleCos], 0.5 * quadDiagLen)
+            ];
 
-    		// Draw 8 quads.
-    		// First four are rotated at angles angle+0, angle+90, angle+180 and angle+270.
-    		// Last four are rotated the same angles as the first four, but the ordering of the last triangle's vertices is reversed.
+            // Draw 8 quads.
+            // First four are rotated at angles angle+0, angle+90, angle+180 and angle+270.
+            // Last four are rotated the same angles as the first four, but the ordering of the last triangle's vertices is reversed.
 
-    		for (var quadNdx = 0; quadNdx < 8; quadNdx++) {
-    			/** @type {Array<number>} */
+            for (var quadNdx = 0; quadNdx < 8; quadNdx++) {
+                /** @type {Array<number>} */
                 var center = deMath.addScalarToVector(
                     deMath.scale([quadNdx % 3, quadNdx / 3], (2.0 - quadDiagLen)/ 2.0),
                     (-0.5 * (2.0 - quadDiagLen)));
 
-    			this.renderTriangle_pAsVec2WithColor(
+                this.renderTriangle_pAsVec2WithColor(
                     deMath.add(corners[(0 + quadNdx) % 4], center),
-    				deMath.add(corners[(1 + quadNdx) % 4], center),
-    				deMath.add(corners[(2 + quadNdx) % 4], center),
-    				[0.5, 0.5, 0.5, 1.0]);
+                    deMath.add(corners[(1 + quadNdx) % 4], center),
+                    deMath.add(corners[(2 + quadNdx) % 4], center),
+                    [0.5, 0.5, 0.5, 1.0]);
 
-    			if (quadNdx >= 4) {
-    				this.renderTriangle_pAsVec2WithColor(
+                if (quadNdx >= 4) {
+                    this.renderTriangle_pAsVec2WithColor(
                         deMath.add(corners[(3 + quadNdx) % 4], center),
-    					deMath.add(corners[(2 + quadNdx) % 4], center),
-    					deMath.add(corners[(0 + quadNdx) % 4], center),
+                        deMath.add(corners[(2 + quadNdx) % 4], center),
+                        deMath.add(corners[(0 + quadNdx) % 4], center),
                         [0.5, 0.5, 0.5, 1.0]);
-    			}
-    			else {
+                }
+                else {
                     this.renderTriangle_pAsVec2WithColor(
                         deMath.add(corners[(0 + quadNdx) % 4], center),
-    					deMath.add(corners[(2 + quadNdx) % 4], center),
-    					deMath.add(corners[(3 + quadNdx) % 4], center),
+                        deMath.add(corners[(2 + quadNdx) % 4], center),
+                        deMath.add(corners[(3 + quadNdx) % 4], center),
                         [0.5, 0.5, 0.5, 1.0]);
-    			}
+                }
 
-    			// The size of the "interior" of a quad is assumed to be approximately unicolorRegionScale*<actual size of quad>.
-    			// By "interior" we here mean the region of non-boundary pixels of the rendered quad for which we can safely assume
-    			// that it has all coverage bits set to 1, for every pixel.
+                // The size of the 'interior' of a quad is assumed to be approximately unicolorRegionScale*<actual size of quad>.
+                // By 'interior' we here mean the region of non-boundary pixels of the rendered quad for which we can safely assume
+                // that it has all coverage bits set to 1, for every pixel.
                 unicolorRegionScale = 1.0 - 6.0 * 2.0 / this.m_viewportSize / quadDiagLen;
-    			unicoloredRegions.push(
+                unicoloredRegions.push(
                     new es3fMultisampleTests.QuadCorners(
                         deMath.add(center, deMath.scale(corners[0], unicolorRegionScale)),
-    					deMath.add(center, deMath.scale(corners[1], unicolorRegionScale)),
-    					deMath.add(center, deMath.scale(corners[2], unicolorRegionScale)),
-    					deMath.add(center, deMath.scale(corners[3], unicolorRegionScale))));
-    		}
-    	}
-    	else if (this.m_caseType === es3fMultisampleTests.CommonEdgeCase.CaseType.BIGGER_THAN_VIEWPORT_QUAD) {
-    		// Draw a bigger-than-viewport quad, rotated at an angle depending on m_currentIteration.
+                        deMath.add(center, deMath.scale(corners[1], unicolorRegionScale)),
+                        deMath.add(center, deMath.scale(corners[2], unicolorRegionScale)),
+                        deMath.add(center, deMath.scale(corners[3], unicolorRegionScale))));
+            }
+        }
+        else if (this.m_caseType === es3fMultisampleTests.CommonEdgeCase.CaseType.BIGGER_THAN_VIEWPORT_QUAD) {
+            // Draw a bigger-than-viewport quad, rotated at an angle depending on m_currentIteration.
 
             quadBaseAngleNdx = this.m_currentIteration / 8;
             quadSubAngleNdx = this.m_currentIteration % 8;
 
-    		if (quadBaseAngleNdx === 0) {
-    			angleCos = 1.0;
-    			angleSin = 0.0;
-    		}
-    		else if (quadBaseAngleNdx === 1) {
-    			angleCos = Math.SQRT1_2;
-    			angleSin = Math.SQRT1_2;
-    		}
-    		else {
+            if (quadBaseAngleNdx === 0) {
+                angleCos = 1.0;
+                angleSin = 0.0;
+            }
+            else if (quadBaseAngleNdx === 1) {
+                angleCos = Math.SQRT1_2;
+                angleSin = Math.SQRT1_2;
+            }
+            else {
                 angle = 0.5 * Math.PI * (this.m_currentIteration - 1) / (this.m_numIterations - 1);
-    			angleCos = Math.cos(angle);
-    			angleSin = Math.sin(angle);
-    		}
+                angleCos = Math.cos(angle);
+                angleSin = Math.sin(angle);
+            }
 
             quadDiagLen = 2.5 / Math.max(angleCos, angleSin);
 
             corners = [
-    			deMath.scale([angleCos, angleSin], 0.5 * quadDiagLen),
-    			deMath.scale([-angleSin, angleCos], 0.5 * quadDiagLen),
-    			deMath.scale([-angleCos, -angleSin], 0.5 * quadDiagLen),
-    			deMath.scale([angleSin, -angleCos], 0.5 * quadDiagLen)
-    		];
-
-            this.renderTriangle_pAsVec2WithColor(
-                corners[(0 + quadSubAngleNdx) % 4],
-    			corners[(1 + quadSubAngleNdx) % 4],
-    			corners[(2 + quadSubAngleNdx) % 4],
-    			[0.5, 0.5, 0.5, 1.0]);
-
-    		if (quadSubAngleNdx >= 4) {
-                this.renderTriangle_pAsVec2WithColor(
-                    corners[(3 + quadSubAngleNdx) % 4],
-    				corners[(2 + quadSubAngleNdx) % 4],
-    				corners[(0 + quadSubAngleNdx) % 4],
-    				[0.5, 0.5, 0.5, 1.0]);
-    		}
-    		else {
-                this.renderTriangle_pAsVec2WithColor(
-                    corners[(0 + quadSubAngleNdx) % 4],
-    				corners[(2 + quadSubAngleNdx) % 4],
-    				corners[(3 + quadSubAngleNdx) % 4],
-    				[0.5, 0.5, 0.5, 1.0]);
-    		}
-
-            unicolorRegionScale = 1.0 - 6.0 * 2.0 / this.m_viewportSize / quadDiagLen;
-    		unicoloredRegions.push(
-                new es3fMultisampleTests.QuadCorners(
-                    deMath.scale(corners[0], unicolorRegionScale),
-    				deMath.scale(corners[1], unicolorRegionScale),
-    				deMath.scale(corners[2], unicolorRegionScale),
-    				deMath.scale(corners[3], unicolorRegionScale)));
-    	}
-    	else if (this.m_caseType === es3fMultisampleTests.CommonEdgeCase.CaseType.FIT_VIEWPORT_QUAD) {
-    		// Draw an exactly viewport-sized quad, rotated by multiples of 90 degrees angle depending on m_currentIteration.
-
-            quadSubAngleNdx = this.m_currentIteration % 8;
-
-    		corners = [
-    			[1.0, 1.0],
-    			[-1.0, 1.0],
-    			[-1.0, -1.0],
-    			[1.0, -1.0]
+                deMath.scale([angleCos, angleSin], 0.5 * quadDiagLen),
+                deMath.scale([-angleSin, angleCos], 0.5 * quadDiagLen),
+                deMath.scale([-angleCos, -angleSin], 0.5 * quadDiagLen),
+                deMath.scale([angleSin, -angleCos], 0.5 * quadDiagLen)
             ];
 
             this.renderTriangle_pAsVec2WithColor(
                 corners[(0 + quadSubAngleNdx) % 4],
-    			corners[(1 + quadSubAngleNdx) % 4],
-    			corners[(2 + quadSubAngleNdx) % 4],
-    			[0.5, 0.5, 0.5, 1.0]);
+                corners[(1 + quadSubAngleNdx) % 4],
+                corners[(2 + quadSubAngleNdx) % 4],
+                [0.5, 0.5, 0.5, 1.0]);
 
-    		if (quadSubAngleNdx >= 4) {
+            if (quadSubAngleNdx >= 4) {
                 this.renderTriangle_pAsVec2WithColor(
                     corners[(3 + quadSubAngleNdx) % 4],
-    				corners[(2 + quadSubAngleNdx) % 4],
-    				corners[(0 + quadSubAngleNdx) % 4],
-    				[0.5, 0.5, 0.5, 1.0]);
-    		}
-    		else {
+                    corners[(2 + quadSubAngleNdx) % 4],
+                    corners[(0 + quadSubAngleNdx) % 4],
+                    [0.5, 0.5, 0.5, 1.0]);
+            }
+            else {
                 this.renderTriangle_pAsVec2WithColor(
                     corners[(0 + quadSubAngleNdx) % 4],
-    				corners[(2 + quadSubAngleNdx) % 4],
-    				corners[(3 + quadSubAngleNdx) % 4],
-    				[0.5, 0.5, 0.5, 1.0]);
-    		}
+                    corners[(2 + quadSubAngleNdx) % 4],
+                    corners[(3 + quadSubAngleNdx) % 4],
+                    [0.5, 0.5, 0.5, 1.0]);
+            }
 
-    		unicoloredRegions.push(new es3fMultisampleTests.QuadCorners(corners[0], corners[1], corners[2], corners[3]));
-    	}
-    	else
-    		throw new Error('CaseType not supported.');
+            unicolorRegionScale = 1.0 - 6.0 * 2.0 / this.m_viewportSize / quadDiagLen;
+            unicoloredRegions.push(
+                new es3fMultisampleTests.QuadCorners(
+                    deMath.scale(corners[0], unicolorRegionScale),
+                    deMath.scale(corners[1], unicolorRegionScale),
+                    deMath.scale(corners[2], unicolorRegionScale),
+                    deMath.scale(corners[3], unicolorRegionScale)));
+        }
+        else if (this.m_caseType === es3fMultisampleTests.CommonEdgeCase.CaseType.FIT_VIEWPORT_QUAD) {
+            // Draw an exactly viewport-sized quad, rotated by multiples of 90 degrees angle depending on m_currentIteration.
 
-    	// Read pixels and check unicolored regions.
+            quadSubAngleNdx = this.m_currentIteration % 8;
+
+            corners = [
+                [1.0, 1.0],
+                [-1.0, 1.0],
+                [-1.0, -1.0],
+                [1.0, -1.0]
+            ];
+
+            this.renderTriangle_pAsVec2WithColor(
+                corners[(0 + quadSubAngleNdx) % 4],
+                corners[(1 + quadSubAngleNdx) % 4],
+                corners[(2 + quadSubAngleNdx) % 4],
+                [0.5, 0.5, 0.5, 1.0]);
+
+            if (quadSubAngleNdx >= 4) {
+                this.renderTriangle_pAsVec2WithColor(
+                    corners[(3 + quadSubAngleNdx) % 4],
+                    corners[(2 + quadSubAngleNdx) % 4],
+                    corners[(0 + quadSubAngleNdx) % 4],
+                    [0.5, 0.5, 0.5, 1.0]);
+            }
+            else {
+                this.renderTriangle_pAsVec2WithColor(
+                    corners[(0 + quadSubAngleNdx) % 4],
+                    corners[(2 + quadSubAngleNdx) % 4],
+                    corners[(3 + quadSubAngleNdx) % 4],
+                    [0.5, 0.5, 0.5, 1.0]);
+            }
+
+            unicoloredRegions.push(new es3fMultisampleTests.QuadCorners(corners[0], corners[1], corners[2], corners[3]));
+        }
+        else
+            throw new Error('CaseType not supported.');
+
+        // Read pixels and check unicolored regions.
 
         renderedImg = this.readImage();
 
         errorImg.getAccess().clear([0.0, 1.0, 0.0, 1.0]);
-        tcuLogImage.logImage("RenderedImage", "Rendered image", renderedImg.getAccess());
-    	//log << TestLog::Image("RenderedImage", "Rendered image", renderedImg, QP_IMAGE_COMPRESSION_MODE_PNG);
+        tcuLogImage.logImage('RenderedImage', 'Rendered image', renderedImg.getAccess());
 
-    	/** @type {boolean} */ var errorsDetected = false;
-    	for (var i = 0; i < unicoloredRegions.length; i++) {
+        /** @type {boolean} */ var errorsDetected = false;
+        for (var i = 0; i < unicoloredRegions.length; i++) {
             /** @type {es3fMultisampleTests.QuadCorners} */ var region = unicoloredRegions[i];
-    		/** @type {Array<number>} */ var p0Win = deMath.scale(deMath.addScalarToVector(region.p0, 1.0), 0.5 * (this.m_viewportSize - 1) + 0.5);
-    		/** @type {Array<number>} */ var p1Win = deMath.scale(deMath.addScalarToVector(region.p1, 1.0), 0.5 * (this.m_viewportSize - 1) + 0.5);
-    		/** @type {Array<number>} */ var p2Win = deMath.scale(deMath.addScalarToVector(region.p2, 1.0), 0.5 * (this.m_viewportSize - 1) + 0.5);
-    		/** @type {Array<number>} */ var p3Win = deMath.scale(deMath.addScalarToVector(region.p3, 1.0), 0.5 * (this.m_viewportSize - 1) + 0.5);
+            /** @type {Array<number>} */ var p0Win = deMath.scale(deMath.addScalarToVector(region.p0, 1.0), 0.5 * (this.m_viewportSize - 1) + 0.5);
+            /** @type {Array<number>} */ var p1Win = deMath.scale(deMath.addScalarToVector(region.p1, 1.0), 0.5 * (this.m_viewportSize - 1) + 0.5);
+            /** @type {Array<number>} */ var p2Win = deMath.scale(deMath.addScalarToVector(region.p2, 1.0), 0.5 * (this.m_viewportSize - 1) + 0.5);
+            /** @type {Array<number>} */ var p3Win = deMath.scale(deMath.addScalarToVector(region.p3, 1.0), 0.5 * (this.m_viewportSize - 1) + 0.5);
             /** @type {boolean} */ var errorsInCurrentRegion = !es3fMultisampleTests.isPixelRegionUnicolored(renderedImg, p0Win, p1Win, p2Win, p3Win);
 
-    		if (errorsInCurrentRegion)
+            if (errorsInCurrentRegion)
                 es3fMultisampleTests.drawUnicolorTestErrors(renderedImg, errorImg.getAccess(), p0Win, p1Win, p2Win, p3Win);
 
-    		errorsDetected = errorsDetected || errorsInCurrentRegion;
-    	}
+            errorsDetected = errorsDetected || errorsInCurrentRegion;
+        }
 
-    	this.m_currentIteration++;
+        this.m_currentIteration++;
 
-    	if (errorsDetected) {
-    		log('Failure: Not all quad interiors seem unicolored - common-edge artifacts?');
-    		log('Erroneous pixels are drawn red in the following image');
-    		// log << TestLog::Image("RenderedImageWithErrors",	"Rendered image with errors marked",	renderedImg,	QP_IMAGE_COMPRESSION_MODE_PNG);
-    		// log << TestLog::Image("ErrorsOnly",					"Image with error pixels only",			errorImg,		QP_IMAGE_COMPRESSION_MODE_PNG);
-            tcuLogImage.logImage("RenderedImageWithErrors", "Rendered image with errors marked", renderedImg.getAccess());
-            tcuLogImage.logImage("ErrorsOnly", "Image with error pixels only", errorImg.getAccess());
+        if (errorsDetected) {
+            log('Failure: Not all quad interiors seem unicolored - common-edge artifacts?');
+            log('Erroneous pixels are drawn red in the following image');
+            tcuLogImage.logImage('RenderedImageWithErrors', 'Rendered image with errors marked', renderedImg.getAccess());
+            tcuLogImage.logImage('ErrorsOnly', 'Image with error pixels only', errorImg.getAccess());
             testFailedOptions('Failed: ' + (this.m_currentIteration - 1), false);
             return tcuTestCase.IterateResult.STOP;
-    	}
-    	else if (this.m_currentIteration < this.m_numIterations) {
-    		log('Quads seem OK - moving on to next pattern');
+        }
+        else if (this.m_currentIteration < this.m_numIterations) {
+            log('Quads seem OK - moving on to next pattern');
             return tcuTestCase.IterateResult.CONTINUE;
-    	}
-    	else {
-    		log('Success: All quad interiors seem unicolored (no common-edge artifacts)');
+        }
+        else {
+            log('Success: All quad interiors seem unicolored (no common-edge artifacts)');
             testPassedOptions('Passed: ' + (this.m_currentIteration - 1), true);
             return tcuTestCase.IterateResult.STOP;
-    	}
+        }
     };
 
     /**
@@ -1045,23 +1028,24 @@ goog.scope(function() {
     es3fMultisampleTests.SampleDepthCase.prototype.constructor = es3fMultisampleTests.SampleDepthCase;
 
     es3fMultisampleTests.SampleDepthCase.prototype.init = function() {
+        var log = bufferedLogToConsole;
         es3fMultisampleTests.MultisampleCase.prototype.init.call(this);
 
         gl.enable(gl.DEPTH_TEST);
         gl.depthFunc(gl.LESS);
 
-        bufferedLogToConsole('Depth test enabled, depth func is gl.LESS');
-        bufferedLogToConsole('Drawing several bigger-than-viewport black or white polygons intersecting each other');
+        log('Depth test enabled, depth func is gl.LESS');
+        log('Drawing several bigger-than-viewport black or white polygons intersecting each other');
     };
 
     es3fMultisampleTests.SampleDepthCase.prototype.renderPattern = function() {
         gl.clearColor(0.0, 0.0, 0.0, 0.0);
-    	gl.clearDepth(1.0);
-    	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        gl.clearDepth(1.0);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-		/** @type {number} */ var numPolygons = 50;
+        /** @type {number} */ var numPolygons = 50;
 
-		for (var i = 0; i < numPolygons; i++) {
+        for (var i = 0; i < numPolygons; i++) {
             /** @type {Array<number>} */ var color = i % 2 == 0 ? [1.0, 1.0, 1.0, 1.0] : [0.0, 0.0, 0.0, 1.0];
             /** @type {number} */ var angle = 2.0 * Math.PI * i / numPolygons + 0.001 * this.m_currentIteration;
             /** @type {Array<number>} */ var pt0 = [3.0 * Math.cos(angle + 2.0 * Math.PI * 0.0 / 3.0), 3.0 * Math.sin(angle + 2.0 * Math.PI * 0.0 / 3.0), 1.0];
@@ -1069,7 +1053,7 @@ goog.scope(function() {
             /** @type {Array<number>} */ var pt2 = [3.0 * Math.cos(angle + 2.0 * Math.PI * 2.0 / 3.0), 3.0 * Math.sin(angle + 2.0 * Math.PI * 2.0 / 3.0), 0.0];
 
             this.renderTriangle_pAsVec3WithColor(pt0, pt1, pt2, color);
-		}
+        }
     };
 
     /**
@@ -1103,86 +1087,83 @@ goog.scope(function() {
      */
     es3fMultisampleTests.SampleStencilCase.prototype.iterate = function() {
         var log = bufferedLogToConsole;
-    	/** @type {tcuSurface.Surface} */ var renderedImgFirst = new tcuSurface.Surface(this.m_viewportSize, this.m_viewportSize);
-    	/** @type {tcuSurface.Surface} */ var renderedImgSecond = new tcuSurface.Surface(this.m_viewportSize, this.m_viewportSize);
+        /** @type {tcuSurface.Surface} */ var renderedImgFirst = new tcuSurface.Surface(this.m_viewportSize, this.m_viewportSize);
+        /** @type {tcuSurface.Surface} */ var renderedImgSecond = new tcuSurface.Surface(this.m_viewportSize, this.m_viewportSize);
 
-    	this.randomizeViewport();
+        this.randomizeViewport();
 
-    	gl.clearColor(0.0, 0.0, 0.0, 1.0);
-    	gl.clearStencil(0);
-    	gl.clear(gl.COLOR_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
-    	gl.enable(gl.STENCIL_TEST);
-    	gl.stencilFunc(gl.ALWAYS, 1, 1);
-    	gl.stencilOp(gl.KEEP, gl.KEEP, gl.REPLACE);
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.clearStencil(0);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
+        gl.enable(gl.STENCIL_TEST);
+        gl.stencilFunc(gl.ALWAYS, 1, 1);
+        gl.stencilOp(gl.KEEP, gl.KEEP, gl.REPLACE);
 
-    	log('Drawing a pattern with gl.stencilFunc(gl.ALWAYS, 1, 1) and gl.stencilOp(gl.KEEP, gl.KEEP, gl.REPLACE)');
+        log('Drawing a pattern with gl.stencilFunc(gl.ALWAYS, 1, 1) and gl.stencilOp(gl.KEEP, gl.KEEP, gl.REPLACE)');
 
-		/** @type {number} */ var numTriangles = 25;
-		for (var i = 0; i < numTriangles; i++) {
+        /** @type {number} */ var numTriangles = 25;
+        for (var i = 0; i < numTriangles; i++) {
             /** @type {number} */ var angle0 = 2.0 * Math.PI * i / numTriangles;
             /** @type {number} */ var angle1 = 2.0 * Math.PI * (i + 0.5) / numTriangles;
 
             this.renderTriangle_pAsVec2WithColor(
                 [0.0, 0.0],
-				[Math.cos(angle0) * 0.95, Math.sin(angle0) * 0.95],
-				[Math.cos(angle1) * 0.95, Math.sin(angle1) * 0.95],
-				[1.0, 1.0, 1.0, 1.0]);
-		}
+                [Math.cos(angle0) * 0.95, Math.sin(angle0) * 0.95],
+                [Math.cos(angle1) * 0.95, Math.sin(angle1) * 0.95],
+                [1.0, 1.0, 1.0, 1.0]);
+        }
 
         renderedImgFirst = this.readImage();
-    	// log << TestLog::Image("RenderedImgFirst", "First image rendered", renderedImgFirst, QP_IMAGE_COMPRESSION_MODE_PNG);
-        tcuLogImage.logImage("RenderedImgFirst", "First image rendered", renderedImgFirst.getAccess());
-    	log('Clearing color buffer to black');
+        tcuLogImage.logImage('RenderedImgFirst', 'First image rendered', renderedImgFirst.getAccess());
+        log('Clearing color buffer to black');
 
-    	gl.clear(gl.COLOR_BUFFER_BIT);
-    	gl.stencilFunc(gl.EQUAL, 1, 1);
-    	gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.stencilFunc(gl.EQUAL, 1, 1);
+        gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
 
-		log('Checking that color buffer was actually cleared to black');
+        log('Checking that color buffer was actually cleared to black');
 
-		/** @type {tcuSurface.Surface} */ var clearedImg = new tcuSurface.Surface(this.m_viewportSize, this.m_viewportSize);
+        /** @type {tcuSurface.Surface} */ var clearedImg = new tcuSurface.Surface(this.m_viewportSize, this.m_viewportSize);
         clearedImg = this.readImage();
 
-		for (var y = 0; y < clearedImg.getHeight(); y++)
-		for (var x = 0; x < clearedImg.getWidth(); x++) {
-			/** @type {tcuRGBA.RGBA} */ var clr = new tcuRGBA.RGBA(clearedImg.getPixel(x, y));
-			if (!clr.equals(tcuRGBA.RGBA.black)) {
-				log('Failure: first non-black pixel, color ' + clr.toString() + ', detected at coordinates (' + x + ', ' + y + ')');
-				//log << TestLog::Image('ClearedImg', 'Image after clearing, erroneously non-black', clearedImg);
+        for (var y = 0; y < clearedImg.getHeight(); y++)
+        for (var x = 0; x < clearedImg.getWidth(); x++) {
+            /** @type {tcuRGBA.RGBA} */ var clr = new tcuRGBA.RGBA(clearedImg.getPixel(x, y));
+            if (!clr.equals(tcuRGBA.RGBA.black)) {
+                log('Failure: first non-black pixel, color ' + clr.toString() + ', detected at coordinates (' + x + ', ' + y + ')');
                 tcuLogImage.logImage('ClearedImg', 'Image after clearing, erroneously non-black', clearedImg.getAccess());
-                testFailedOptions("Failed", false);
-				return tcuTestCase.IterateResult.STOP;
-			}
-		}
+                testFailedOptions('Failed', false);
+                return tcuTestCase.IterateResult.STOP;
+            }
+        }
 
-    	log('Drawing a viewport-sized quad with gl.stencilFunc(gl.EQUAL, 1, 1) and gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP) - should result in same image as the first');
+        log('Drawing a viewport-sized quad with gl.stencilFunc(gl.EQUAL, 1, 1) and gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP) - should result in same image as the first');
 
         this.renderQuad_WithColor(
             [-1.0, -1.0],
-    		[1.0, -1.0],
-    		[-1.0, 1.0],
-    		[1.0, 1.0],
-    		[1.0, 1.0, 1.0, 1.0]);
+            [1.0, -1.0],
+            [-1.0, 1.0],
+            [1.0, 1.0],
+            [1.0, 1.0, 1.0, 1.0]);
 
         renderedImgSecond = this.readImage();
-    	// log << TestLog::Image('RenderedImgSecond', 'Second image rendered', renderedImgSecond, QP_IMAGE_COMPRESSION_MODE_PNG);
         tcuLogImage.logImage('RenderedImgSecond', 'Second image rendered', renderedImgSecond.getAccess());
-    	/** @type {boolean} */
+        /** @type {boolean} */
         var passed = tcuImageCompare.pixelThresholdCompare(
-    	    'ImageCompare',
-    	    'Image comparison',
-    	    renderedImgFirst,
-    	    renderedImgSecond,
-    	    [0,0,0,0]);
+            'ImageCompare',
+            'Image comparison',
+            renderedImgFirst,
+            renderedImgSecond,
+            [0,0,0,0]);
 
-    	if (passed) {
-    		log('Success: The two images rendered are identical');
+        if (passed) {
+            log('Success: The two images rendered are identical');
             testPassedOptions('Passed', true);
         }
         else
             testFailedOptions('Failed', false);
 
-    	return tcuTestCase.IterateResult.STOP;
+        return tcuTestCase.IterateResult.STOP;
     };
 
     /**
@@ -1210,8 +1191,6 @@ goog.scope(function() {
         /** @type {number} */ this.m_numIterations;
         /** @type {number} */ this.m_currentIteration = 0;
         /** @type {number} */ this.m_previousIterationColorSum = -1;
-
-
     };
 
     es3fMultisampleTests.MaskProportionalityCase.prototype = Object.create(es3fMultisampleTests.MultisampleCase.prototype);
@@ -1229,11 +1208,12 @@ goog.scope(function() {
     };
 
     es3fMultisampleTests.MaskProportionalityCase.prototype.init = function() {
+        var log = bufferedLogToConsole;
         es3fMultisampleTests.MultisampleCase.prototype.init.call(this);
 
         if (this.m_type == es3fMultisampleTests.MaskProportionalityCase.CaseType.ALPHA_TO_COVERAGE) {
             gl.enable(gl.SAMPLE_ALPHA_TO_COVERAGE);
-            bufferedLogToConsole('gl.SAMPLE_ALPHA_TO_COVERAGE is enabled');
+            log('gl.SAMPLE_ALPHA_TO_COVERAGE is enabled');
         }
         else {
             assertMsgOptions(
@@ -1242,7 +1222,7 @@ goog.scope(function() {
                 'CaseType should be SAMPLE_COVERAGE or SAMPLE_COVERAGE_INVERTED', false, true);
 
             gl.enable(gl.SAMPLE_COVERAGE);
-            bufferedLogToConsole('gl.SAMPLE_COVERAGE is enabled');
+            log('gl.SAMPLE_COVERAGE is enabled');
         }
 
         this.m_numIterations = Math.max(2, es3fMultisampleTests.getIterationCount(this.m_numSamples * 5));
@@ -1255,103 +1235,102 @@ goog.scope(function() {
      */
     es3fMultisampleTests.MaskProportionalityCase.prototype.iterate = function() {
         var log = bufferedLogToConsole;
-    	/** @type {tcuSurface.Surface} */ var renderedImg = new tcuSurface.Surface(this.m_viewportSize, this.m_viewportSize);
+        /** @type {tcuSurface.Surface} */ var renderedImg = new tcuSurface.Surface(this.m_viewportSize, this.m_viewportSize);
         /** @type {number} */ var numPixels = renderedImg.getWidth() * renderedImg.getHeight();
 
-    	log("Clearing color to black");
-    	gl.colorMask(true, true, true, true);
-    	gl.clearColor(0.0, 0.0, 0.0, 1.0);
-    	gl.clear(gl.COLOR_BUFFER_BIT);
+        log('Clearing color to black');
+        gl.colorMask(true, true, true, true);
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
 
-    	if (this.m_type === es3fMultisampleTests.MaskProportionalityCase.CaseType.ALPHA_TO_COVERAGE) {
-    		gl.colorMask(true, true, true, false);
-    		log("Using color mask TRUE, TRUE, TRUE, FALSE");
-    	}
+        if (this.m_type === es3fMultisampleTests.MaskProportionalityCase.CaseType.ALPHA_TO_COVERAGE) {
+            gl.colorMask(true, true, true, false);
+            log('Using color mask TRUE, TRUE, TRUE, FALSE');
+        }
 
-    	// Draw quad.
+        // Draw quad.
 
-		/** @type {Array<number>} */ var pt0 = [-1.0, -1.0];
-		/** @type {Array<number>} */ var pt1 = [1.0, -1.0];
-		/** @type {Array<number>} */ var pt2 = [-1.0, 1.0];
-		/** @type {Array<number>} */ var pt3 = [1.0, 1.0];
-		/** @type {Array<number>} */ var quadColor = [1.0, 0.0, 0.0, 1.0];
-        /** @type {number} */ var alphaOrCoverageValue	= this.m_currentIteration / (this.m_numIterations-1);
-debugger;
-		if (this.m_type === es3fMultisampleTests.MaskProportionalityCase.CaseType.ALPHA_TO_COVERAGE) {
-			log("Drawing a red quad using alpha value " + alphaOrCoverageValue);
-			quadColor[3] = alphaOrCoverageValue;
-		}
-		else {
-			assertMsgOptions(
+        /** @type {Array<number>} */ var pt0 = [-1.0, -1.0];
+        /** @type {Array<number>} */ var pt1 = [1.0, -1.0];
+        /** @type {Array<number>} */ var pt2 = [-1.0, 1.0];
+        /** @type {Array<number>} */ var pt3 = [1.0, 1.0];
+        /** @type {Array<number>} */ var quadColor = [1.0, 0.0, 0.0, 1.0];
+        /** @type {number} */ var alphaOrCoverageValue    = this.m_currentIteration / (this.m_numIterations-1);
+
+        if (this.m_type === es3fMultisampleTests.MaskProportionalityCase.CaseType.ALPHA_TO_COVERAGE) {
+            log('Drawing a red quad using alpha value ' + alphaOrCoverageValue);
+            quadColor[3] = alphaOrCoverageValue;
+        }
+        else {
+            assertMsgOptions(
                 this.m_type === es3fMultisampleTests.MaskProportionalityCase.CaseType.SAMPLE_COVERAGE ||
                 this.m_type === es3fMultisampleTests.MaskProportionalityCase.CaseType.SAMPLE_COVERAGE_INVERTED,
                 'CaseType should be SAMPLE_COVERAGE or SAMPLE_COVERAGE_INVERTED', false, true);
 
             /** @type {boolean} */ var isInverted = (this.m_type === es3fMultisampleTests.MaskProportionalityCase.CaseType.SAMPLE_COVERAGE_INVERTED);
-            /** @type {number} */ var coverageValue	= isInverted ? 1.0 - alphaOrCoverageValue : alphaOrCoverageValue;
-			log("Drawing a red quad using sample coverage value " + coverageValue + (isInverted ? " (inverted)" : ""));
-			gl.sampleCoverage(coverageValue, isInverted ? true : false);
-		}
+            /** @type {number} */ var coverageValue    = isInverted ? 1.0 - alphaOrCoverageValue : alphaOrCoverageValue;
+            log('Drawing a red quad using sample coverage value ' + coverageValue + (isInverted ? ' (inverted)' : ''));
+            gl.sampleCoverage(coverageValue, isInverted ? true : false);
+        }
 
-		this.renderQuad_WithColor(pt0, pt1, pt2, pt3, quadColor);
+        this.renderQuad_WithColor(pt0, pt1, pt2, pt3, quadColor);
 
-    	// Read ang log image.
+        // Read ang log image.
 
         renderedImg = this.readImage();
 
-    	// log << TestLog::Image("RenderedImage", "Rendered image", renderedImg, QP_IMAGE_COMPRESSION_MODE_PNG);
-        tcuLogImage.logImage("RenderedImage", "Rendered image", renderedImg.getAccess());
-    	// Compute average red component in rendered image.
+        tcuLogImage.logImage('RenderedImage', 'Rendered image', renderedImg.getAccess());
+        // Compute average red component in rendered image.
 
         /** @type {number} */ var sumRed = 0;
 
-    	for (var y = 0; y < renderedImg.getHeight(); y++)
-    	for (var x = 0; x < renderedImg.getWidth(); x++)
-    		sumRed += new tcuRGBA.RGBA(renderedImg.getPixel(x, y)).getRed();
+        for (var y = 0; y < renderedImg.getHeight(); y++)
+        for (var x = 0; x < renderedImg.getWidth(); x++)
+            sumRed += new tcuRGBA.RGBA(renderedImg.getPixel(x, y)).getRed();
 
-    	log("Average red color component: " + (sumRed / 255.0 / numPixels));
+        log('Average red color component: ' + (sumRed / 255.0 / numPixels));
 
-    	// Check if average color has decreased from previous frame's color.
+        // Check if average color has decreased from previous frame's color.
 
-    	if (sumRed < this.m_previousIterationColorSum) {
-    		log("Failure: Current average red color component is lower than previous");
-    		testFailedOptions('Failed', false);
-    		return tcuTestCase.IterateResult.STOP;
-    	}
+        if (sumRed < this.m_previousIterationColorSum) {
+            log('Failure: Current average red color component is lower than previous');
+            testFailedOptions('Failed', false);
+            return tcuTestCase.IterateResult.STOP;
+        }
 
-    	// Check if coverage mask is not all-zeros if alpha or coverage value is 0 (or 1, if inverted).
+        // Check if coverage mask is not all-zeros if alpha or coverage value is 0 (or 1, if inverted).
 
-    	if (this.m_currentIteration == 0 && sumRed != 0)
-    	{
-    		log("Failure: Image should be completely black");
-    		testFailedOptions('Failed', false);
-    		return tcuTestCase.IterateResult.STOP;
-    	}
+        if (this.m_currentIteration == 0 && sumRed != 0)
+        {
+            log('Failure: Image should be completely black');
+            testFailedOptions('Failed', false);
+            return tcuTestCase.IterateResult.STOP;
+        }
 
-    	if (this.m_currentIteration == this.m_numIterations-1 && sumRed != 0xff*numPixels)
-    	{
-    		log("Failure: Image should be completely red");
+        if (this.m_currentIteration == this.m_numIterations-1 && sumRed != 0xff*numPixels)
+        {
+            log('Failure: Image should be completely red');
 
-    		testFailedOptions('Failed', false);
-    		return tcuTestCase.IterateResult.STOP;
-    	}
+            testFailedOptions('Failed', false);
+            return tcuTestCase.IterateResult.STOP;
+        }
 
-    	this.m_previousIterationColorSum = sumRed;
+        this.m_previousIterationColorSum = sumRed;
 
-    	this.m_currentIteration++;
+        this.m_currentIteration++;
 
-    	if (this.m_currentIteration >= this.m_numIterations)
-    	{
-    		log("Success: Number of coverage mask bits set appears to be, on average, proportional to " +
-    			(this.m_type == es3fMultisampleTests.MaskProportionalityCase.CaseType.ALPHA_TO_COVERAGE ? "alpha" :
-                this.m_type == es3fMultisampleTests.MaskProportionalityCase.CaseType.SAMPLE_COVERAGE ? "sample coverage value" :
-                "inverted sample coverage value"));
+        if (this.m_currentIteration >= this.m_numIterations)
+        {
+            log('Success: Number of coverage mask bits set appears to be, on average, proportional to ' +
+                (this.m_type == es3fMultisampleTests.MaskProportionalityCase.CaseType.ALPHA_TO_COVERAGE ? 'alpha' :
+                this.m_type == es3fMultisampleTests.MaskProportionalityCase.CaseType.SAMPLE_COVERAGE ? 'sample coverage value' :
+                'inverted sample coverage value'));
 
-    		testPassedOptions('Passed', true);
-    		return tcuTestCase.IterateResult.STOP;
-    	}
-    	else
-    		return tcuTestCase.IterateResult.CONTINUE;
+            testPassedOptions('Passed', true);
+            return tcuTestCase.IterateResult.STOP;
+        }
+        else
+            return tcuTestCase.IterateResult.CONTINUE;
     };
 
     /**
@@ -1380,8 +1359,6 @@ debugger;
        /** @type {boolean} */ this.m_isAlphaToCoverageCase = (type === CaseType.ALPHA_TO_COVERAGE || type === CaseType.BOTH || type === CaseType.BOTH_INVERTED);
        /** @type {boolean} */ this.m_isSampleCoverageCase = (type === CaseType.SAMPLE_COVERAGE || type === CaseType.SAMPLE_COVERAGE_INVERTED || type === CaseType.BOTH || type === CaseType.BOTH_INVERTED);
        /** @type {boolean} */ this.m_isInvertedSampleCoverageCase = (type === CaseType.SAMPLE_COVERAGE_INVERTED || type === CaseType.BOTH_INVERTED);
-
-
     };
 
     es3fMultisampleTests.MaskConstancyCase.prototype = Object.create(es3fMultisampleTests.MultisampleCase.prototype);
@@ -1393,11 +1370,11 @@ debugger;
      * @enum {number}
      */
     es3fMultisampleTests.MaskConstancyCase.CaseType = {
-        ALPHA_TO_COVERAGE:  0,		//!< Use only alpha-to-coverage.
-		SAMPLE_COVERAGE: 1,			//!< Use only sample coverage.
-		SAMPLE_COVERAGE_INVERTED: 2,	//!< Use only inverted sample coverage.
-		BOTH: 3,						//!< Use both alpha-to-coverage and sample coverage.
-		BOTH_INVERTED: 4				//!< Use both alpha-to-coverage and inverted sample coverage.
+        ALPHA_TO_COVERAGE:  0,        //!< Use only alpha-to-coverage.
+        SAMPLE_COVERAGE: 1,            //!< Use only sample coverage.
+        SAMPLE_COVERAGE_INVERTED: 2,    //!< Use only inverted sample coverage.
+        BOTH: 3,                        //!< Use both alpha-to-coverage and sample coverage.
+        BOTH_INVERTED: 4                //!< Use both alpha-to-coverage and inverted sample coverage.
     };
 
     /**
@@ -1405,37 +1382,37 @@ debugger;
      */
     es3fMultisampleTests.MaskConstancyCase.prototype.iterate = function() {
         var log = bufferedLogToConsole;
-    	/** @type {tcuSurface.Surface} */ var renderedImg = new tcuSurface.Surface(this.m_viewportSize, this.m_viewportSize);
+        /** @type {tcuSurface.Surface} */ var renderedImg = new tcuSurface.Surface(this.m_viewportSize, this.m_viewportSize);
 
-    	this.randomizeViewport();
+        this.randomizeViewport();
 
-    	log("Clearing color to black");
-    	gl.clearColor(0.0, 0.0, 0.0, 1.0);
-    	gl.clear(gl.COLOR_BUFFER_BIT);
+        log('Clearing color to black');
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
 
-    	if (this.m_isAlphaToCoverageCase) {
-    		gl.enable(gl.SAMPLE_ALPHA_TO_COVERAGE);
-    		gl.colorMask(true, true, true, false);
-    		log("gl.SAMPLE_ALPHA_TO_COVERAGE is enabled");
-    		log("Color mask is TRUE, TRUE, TRUE, FALSE");
-    	}
+        if (this.m_isAlphaToCoverageCase) {
+            gl.enable(gl.SAMPLE_ALPHA_TO_COVERAGE);
+            gl.colorMask(true, true, true, false);
+            log('gl.SAMPLE_ALPHA_TO_COVERAGE is enabled');
+            log('Color mask is TRUE, TRUE, TRUE, FALSE');
+        }
 
-    	if (this.m_isSampleCoverageCase) {
-    		gl.enable(gl.SAMPLE_COVERAGE);
-    		log("gl.SAMPLE_COVERAGE is enabled");
-    	}
+        if (this.m_isSampleCoverageCase) {
+            gl.enable(gl.SAMPLE_COVERAGE);
+            log('gl.SAMPLE_COVERAGE is enabled');
+        }
 
-    	log("Drawing several green quads, each fully overlapped by a red quad with the same " +
-            (this.m_isAlphaToCoverageCase ? "alpha" : "") +
-            (this.m_isAlphaToCoverageCase && this.m_isSampleCoverageCase ? " and " : "") +
-            (this.m_isInvertedSampleCoverageCase ? "inverted " : "") +
-            (this.m_isSampleCoverageCase ? "sample coverage" : "") +
-            " values");
+        log('Drawing several green quads, each fully overlapped by a red quad with the same ' +
+            (this.m_isAlphaToCoverageCase ? 'alpha' : '') +
+            (this.m_isAlphaToCoverageCase && this.m_isSampleCoverageCase ? ' and ' : '') +
+            (this.m_isInvertedSampleCoverageCase ? 'inverted ' : '') +
+            (this.m_isSampleCoverageCase ? 'sample coverage' : '') +
+            ' values');
 
-    	/** @type {number} */ var numQuadRowsCols = this.m_numSamples * 4;
+        /** @type {number} */ var numQuadRowsCols = this.m_numSamples * 4;
 
-    	for (var row = 0; row < numQuadRowsCols; row++) {
-    		for (var col = 0; col < numQuadRowsCols; col++) {
+        for (var row = 0; row < numQuadRowsCols; row++) {
+            for (var col = 0; col < numQuadRowsCols; col++) {
                 /** @type {number} */ var x0 = (col + 0) / numQuadRowsCols * 2.0 - 1.0;
                 /** @type {number} */ var x1 = (col + 1) / numQuadRowsCols * 2.0 - 1.0;
                 /** @type {number} */ var y0 = (row + 0) / numQuadRowsCols * 2.0 - 1.0;
@@ -1445,41 +1422,40 @@ debugger;
                 /** @type {Array<number>} */ var alpha0 = [0.0, 0.0, 0.0, this.m_isAlphaToCoverageCase ? col / (numQuadRowsCols - 1) : 1.0];
                 /** @type {Array<number>} */ var alpha1 = [0.0, 0.0, 0.0, this.m_isAlphaToCoverageCase ? row / (numQuadRowsCols - 1) : 1.0];
 
-    			if (this.m_isSampleCoverageCase) {
+                if (this.m_isSampleCoverageCase) {
                     /** @type {number} */ var value = (row*numQuadRowsCols + col) / (numQuadRowsCols*numQuadRowsCols - 1);
-    				gl.sampleCoverage(this.m_isInvertedSampleCoverageCase ? 1.0 - value : value, this.m_isInvertedSampleCoverageCase ? true : false);
-    			}
+                    gl.sampleCoverage(this.m_isInvertedSampleCoverageCase ? 1.0 - value : value, this.m_isInvertedSampleCoverageCase ? true : false);
+                }
 
-    			this.renderQuad([x0, y0], [x1, y0], [x0, y1], [x1, y1],
+                this.renderQuad([x0, y0], [x1, y0], [x0, y1], [x1, y1],
                     deMath.add(baseGreen, alpha0), deMath.add(baseGreen, alpha1),
                     deMath.add(baseGreen, alpha0), deMath.add(baseGreen, alpha1));
-    			this.renderQuad([x0, y0], [x1, y0], [x0, y1], [x1, y1],
+                this.renderQuad([x0, y0], [x1, y0], [x0, y1], [x1, y1],
                     deMath.add(baseRed, alpha0), deMath.add(baseRed, alpha1),
                     deMath.add(baseRed, alpha0), deMath.add(baseRed, alpha1));
-    		}
-    	}
+            }
+        }
 
         renderedImg = this.readImage();
 
-    	//log << TestLog::Image("RenderedImage", "Rendered image", renderedImg, QP_IMAGE_COMPRESSION_MODE_PNG);
-        tcuLogImage.logImage("RenderedImage", "Rendered image", renderedImg.getAccess());
-    	for (var y = 0; y < renderedImg.getHeight(); y++)
-    	for (var x = 0; x < renderedImg.getWidth(); x++) {
-    		if (new tcuRGBA.RGBA(renderedImg.getPixel(x, y)).getGreen() > 0) {
-    			log("Failure: Non-zero green color component detected - should have been completely overwritten by red quad");
+        tcuLogImage.logImage('RenderedImage', 'Rendered image', renderedImg.getAccess());
+        for (var y = 0; y < renderedImg.getHeight(); y++)
+        for (var x = 0; x < renderedImg.getWidth(); x++) {
+            if (new tcuRGBA.RGBA(renderedImg.getPixel(x, y)).getGreen() > 0) {
+                log('Failure: Non-zero green color component detected - should have been completely overwritten by red quad');
                 testFailedOptions('Failed', false);
-    			return tcuTestCase.IterateResult.STOP;
-    		}
-    	}
+                return tcuTestCase.IterateResult.STOP;
+            }
+        }
 
-    	log("Success: Coverage mask appears to be constant at a given pixel coordinate with a given " +
-    	    (this.m_isAlphaToCoverageCase ? "alpha" : "") +
-    	    (this.m_isAlphaToCoverageCase && this.m_isSampleCoverageCase ? " and " : "") +
-    	    (this.m_isSampleCoverageCase ? "coverage value" : ""));
+        log('Success: Coverage mask appears to be constant at a given pixel coordinate with a given ' +
+            (this.m_isAlphaToCoverageCase ? 'alpha' : '') +
+            (this.m_isAlphaToCoverageCase && this.m_isSampleCoverageCase ? ' and ' : '') +
+            (this.m_isSampleCoverageCase ? 'coverage value' : ''));
 
-    	testPassedOptions('Passed', true);
+        testPassedOptions('Passed', true);
 
-    	return tcuTestCase.IterateResult.STOP;
+        return tcuTestCase.IterateResult.STOP;
     }
 
 
@@ -1515,21 +1491,21 @@ debugger;
      */
     es3fMultisampleTests.CoverageMaskInvertCase.prototype.drawPattern = function(invertSampleCoverage) {
         /** @type {number} */ var numTriangles = 25;
-    	for (var i = 0; i < numTriangles; i++) {
-    		gl.sampleCoverage(i / (numTriangles - 1), invertSampleCoverage ? true : false);
+        for (var i = 0; i < numTriangles; i++) {
+            gl.sampleCoverage(i / (numTriangles - 1), invertSampleCoverage ? true : false);
 
             /** @type {number} */ var angle0 = 2.0 * Math.PI * i / numTriangles;
             /** @type {number} */ var angle1 = 2.0 * Math.PI * (i + 0.5) / numTriangles;
 
-    		this.renderTriangle_pAsVec2WithColor(
+            this.renderTriangle_pAsVec2WithColor(
                 [0.0, 0.0],
-    			[Math.cos(angle0) * 0.95, Math.sin(angle0) * 0.95],
-    			[Math.cos(angle1) * 0.95, Math.sin(angle1) * 0.95],
-    			[0.4 + i / numTriangles * 0.6,
-    			 0.5 + i / numTriangles * 0.3,
-    			 0.6 - i / numTriangles * 0.5,
-    			 0.7 - i / numTriangles * 0.7]);
-    	}
+                [Math.cos(angle0) * 0.95, Math.sin(angle0) * 0.95],
+                [Math.cos(angle1) * 0.95, Math.sin(angle1) * 0.95],
+                [0.4 + i / numTriangles * 0.6,
+                 0.5 + i / numTriangles * 0.3,
+                 0.6 - i / numTriangles * 0.5,
+                 0.7 - i / numTriangles * 0.7]);
+        }
     };
 
     /**
@@ -1537,52 +1513,50 @@ debugger;
     */
     es3fMultisampleTests.CoverageMaskInvertCase.prototype.iterate = function() {
         var log = bufferedLogToConsole;
-    	/** @type {tcuSurface.Surface} */ var renderedImgNoSampleCoverage = new tcuSurface.Surface(this.m_viewportSize, this.m_viewportSize);
-    	/** @type {tcuSurface.Surface} */ var renderedImgSampleCoverage = new tcuSurface.Surface(this.m_viewportSize, this.m_viewportSize);
+        /** @type {tcuSurface.Surface} */ var renderedImgNoSampleCoverage = new tcuSurface.Surface(this.m_viewportSize, this.m_viewportSize);
+        /** @type {tcuSurface.Surface} */ var renderedImgSampleCoverage = new tcuSurface.Surface(this.m_viewportSize, this.m_viewportSize);
 
-    	this.randomizeViewport();
+        this.randomizeViewport();
 
-    	gl.enable(gl.BLEND);
-    	gl.blendEquation(gl.FUNC_ADD);
-    	gl.blendFunc(gl.ONE, gl.ONE);
-    	log("Additive blending enabled in order to detect (erroneously) overlapping samples");
+        gl.enable(gl.BLEND);
+        gl.blendEquation(gl.FUNC_ADD);
+        gl.blendFunc(gl.ONE, gl.ONE);
+        log('Additive blending enabled in order to detect (erroneously) overlapping samples');
 
-    	log("Clearing color to all-zeros");
-    	gl.clearColor(0.0, 0.0, 0.0, 0.0);
-    	gl.clear(gl.COLOR_BUFFER_BIT);
-    	log("Drawing the pattern with gl.SAMPLE_COVERAGE disabled");
-    	this.drawPattern(false);
+        log('Clearing color to all-zeros');
+        gl.clearColor(0.0, 0.0, 0.0, 0.0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        log('Drawing the pattern with gl.SAMPLE_COVERAGE disabled');
+        this.drawPattern(false);
         renderedImgNoSampleCoverage = this.readImage();
 
-    	//log << TestLog::Image("RenderedImageNoSampleCoverage", "Rendered image with gl.SAMPLE_COVERAGE disabled", renderedImgNoSampleCoverage, QP_IMAGE_COMPRESSION_MODE_PNG);
-        tcuLogImage.logImage("RenderedImageNoSampleCoverage", "Rendered image with gl.SAMPLE_COVERAGE disabled", renderedImgNoSampleCoverage.getAccess());
-    	log("Clearing color to all-zeros");
-    	gl.clear(gl.COLOR_BUFFER_BIT);
-    	gl.enable(gl.SAMPLE_COVERAGE);
-    	log("Drawing the pattern with gl.SAMPLE_COVERAGE enabled, using non-inverted masks");
-    	this.drawPattern(false);
-    	log("Drawing the pattern with gl.SAMPLE_COVERAGE enabled, using same sample coverage values but inverted masks");
-    	this.drawPattern(true);
+        tcuLogImage.logImage('RenderedImageNoSampleCoverage', 'Rendered image with gl.SAMPLE_COVERAGE disabled', renderedImgNoSampleCoverage.getAccess());
+        log('Clearing color to all-zeros');
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.enable(gl.SAMPLE_COVERAGE);
+        log('Drawing the pattern with gl.SAMPLE_COVERAGE enabled, using non-inverted masks');
+        this.drawPattern(false);
+        log('Drawing the pattern with gl.SAMPLE_COVERAGE enabled, using same sample coverage values but inverted masks');
+        this.drawPattern(true);
         renderedImgSampleCoverage = this.readImage();
 
-    	//log << TestLog::Image("RenderedImageSampleCoverage", "Rendered image with gl.SAMPLE_COVERAGE enabled", renderedImgSampleCoverage, QP_IMAGE_COMPRESSION_MODE_PNG);
-        tcuLogImage.logImage("RenderedImageSampleCoverage", "Rendered image with gl.SAMPLE_COVERAGE enabled", renderedImgSampleCoverage.getAccess());
-    	/** @type {boolean} */ var passed = tcuImageCompare.pixelThresholdCompare(
+        tcuLogImage.logImage('RenderedImageSampleCoverage', 'Rendered image with gl.SAMPLE_COVERAGE enabled', renderedImgSampleCoverage.getAccess());
+        /** @type {boolean} */ var passed = tcuImageCompare.pixelThresholdCompare(
             'CoverageVsNoCoverage',
-    		'Comparison of same pattern with gl.SAMPLE_COVERAGE disabled and enabled',
-    		renderedImgNoSampleCoverage,
-    		renderedImgSampleCoverage,
-    		[0, 0, 0, 0]);
+            'Comparison of same pattern with gl.SAMPLE_COVERAGE disabled and enabled',
+            renderedImgNoSampleCoverage,
+            renderedImgSampleCoverage,
+            [0, 0, 0, 0]);
 
-    	if (passed) {
-    		log("Success: The two images rendered are identical");
+        if (passed) {
+            log('Success: The two images rendered are identical');
             testPassedOptions('Passed', true);
         }
         else {
             testFailedOptions('Failed', false);
         }
 
-    	return tcuTestCase.IterateResult.STOP;
+        return tcuTestCase.IterateResult.STOP;
     };
 
     es3fMultisampleTests.init = function() {
@@ -1598,122 +1572,120 @@ debugger;
         };
 
         for (var caseTypeI in CaseType) {
-    		/** @type {CaseType} */ var caseType = CaseType[caseTypeI];
+            /** @type {CaseType} */ var caseType = CaseType[caseTypeI];
             /** @type {number} */
             var numFboSamples = caseType === CaseType.DEFAULT_FRAMEBUFFER ? -1 :
-    							caseType === CaseType.FBO_4_SAMPLES ? 4 :
-    							caseType === CaseType.FBO_8_SAMPLES ? 8 :
-    							caseType === CaseType.FBO_MAX_SAMPLES ? 0 :
-    							-2;
+                                caseType === CaseType.FBO_4_SAMPLES ? 4 :
+                                caseType === CaseType.FBO_8_SAMPLES ? 8 :
+                                caseType === CaseType.FBO_MAX_SAMPLES ? 0 :
+                                -2;
 
-    		/** @type {?string} */
-            var name = caseType === CaseType.DEFAULT_FRAMEBUFFER ? "default_framebuffer" :
-    				   caseType === CaseType.FBO_4_SAMPLES ? "fbo_4_samples" :
-    				   caseType === CaseType.FBO_8_SAMPLES ? "fbo_8_samples" :
-    				   caseType === CaseType.FBO_MAX_SAMPLES ? "fbo_max_samples" :
-    				   null;
-    		/** @type {?string} */
-            var desc = caseType === CaseType.DEFAULT_FRAMEBUFFER ? "Render into default framebuffer" :
-    		           caseType === CaseType.FBO_4_SAMPLES ? "Render into a framebuffer object with 4 samples" :
-    		           caseType === CaseType.FBO_8_SAMPLES ? "Render into a framebuffer object with 8 samples" :
-    		           caseType === CaseType.FBO_MAX_SAMPLES ? "Render into a framebuffer object with the maximum number of samples" :
-    				   null;
+            /** @type {?string} */
+            var name = caseType === CaseType.DEFAULT_FRAMEBUFFER ? 'default_framebuffer' :
+                       caseType === CaseType.FBO_4_SAMPLES ? 'fbo_4_samples' :
+                       caseType === CaseType.FBO_8_SAMPLES ? 'fbo_8_samples' :
+                       caseType === CaseType.FBO_MAX_SAMPLES ? 'fbo_max_samples' :
+                       null;
+            /** @type {?string} */
+            var desc = caseType === CaseType.DEFAULT_FRAMEBUFFER ? 'Render into default framebuffer' :
+                       caseType === CaseType.FBO_4_SAMPLES ? 'Render into a framebuffer object with 4 samples' :
+                       caseType === CaseType.FBO_8_SAMPLES ? 'Render into a framebuffer object with 8 samples' :
+                       caseType === CaseType.FBO_MAX_SAMPLES ? 'Render into a framebuffer object with the maximum number of samples' :
+                       null;
 
             /** @type {tcuTestCase.DeqpTest} */ var group = tcuTestCase.newTest(name, desc);
 
             assertMsgOptions(group.name != null, 'Error: No Test Name', false, true);
-    		assertMsgOptions(group.description != null, 'Error: No Test Description', false, true);
-    		assertMsgOptions(numFboSamples >= -1, 'Assert Failed: numFboSamples >= -1', false, true);
+            assertMsgOptions(group.description != null, 'Error: No Test Description', false, true);
+            assertMsgOptions(numFboSamples >= -1, 'Assert Failed: numFboSamples >= -1', false, true);
             testGroup.addChild(group);
 
-    		group.addChild(new es3fMultisampleTests.PolygonNumSamplesCase(
-                "num_samples_polygon",
-                "Test sanity of the sample count, with polygons",
+            group.addChild(new es3fMultisampleTests.PolygonNumSamplesCase(
+                'num_samples_polygon',
+                'Test sanity of the sample count, with polygons',
                 numFboSamples));
 
-    		group.addChild(new es3fMultisampleTests.LineNumSamplesCase(
-                "num_samples_line",
-                "Test sanity of the sample count, with lines",
+            group.addChild(new es3fMultisampleTests.LineNumSamplesCase(
+                'num_samples_line',
+                'Test sanity of the sample count, with lines',
                 numFboSamples));
 
-    		group.addChild(new es3fMultisampleTests.CommonEdgeCase(
-                "common_edge_small_quads",
-                "Test polygons' common edges with small quads",
+            group.addChild(new es3fMultisampleTests.CommonEdgeCase(
+                'common_edge_small_quads',
+                'Test polygons\'s common edges with small quads',
                 es3fMultisampleTests.CommonEdgeCase.CaseType.SMALL_QUADS,
                 numFboSamples));
 
-    		group.addChild(new es3fMultisampleTests.CommonEdgeCase(
-                "common_edge_big_quad",
-                "Test polygons' common edges with bigger-than-viewport quads",
+            group.addChild(new es3fMultisampleTests.CommonEdgeCase(
+                'common_edge_big_quad',
+                'Test polygon\'s common edges with bigger-than-viewport quads',
                 es3fMultisampleTests.CommonEdgeCase.CaseType.BIGGER_THAN_VIEWPORT_QUAD,
                 numFboSamples));
 
-    		group.addChild(new es3fMultisampleTests.CommonEdgeCase(
-                "common_edge_viewport_quad",
-                "Test polygons' common edges with exactly viewport-sized quads",
+            group.addChild(new es3fMultisampleTests.CommonEdgeCase(
+                'common_edge_viewport_quad',
+                'Test polygons\' common edges with exactly viewport-sized quads',
                 es3fMultisampleTests.CommonEdgeCase.CaseType.FIT_VIEWPORT_QUAD,
                 numFboSamples));
 
-    		group.addChild(new es3fMultisampleTests.SampleDepthCase(
-                "depth",
-                "Test that depth values are per-sample",
+            group.addChild(new es3fMultisampleTests.SampleDepthCase(
+                'depth',
+                'Test that depth values are per-sample',
                 numFboSamples));
 
-    		group.addChild(new es3fMultisampleTests.SampleStencilCase(
-                "stencil",
-                "Test that stencil values are per-sample",
+            group.addChild(new es3fMultisampleTests.SampleStencilCase(
+                'stencil',
+                'Test that stencil values are per-sample',
                 numFboSamples));
 
-    		group.addChild(new es3fMultisampleTests.CoverageMaskInvertCase(
-                "sample_coverage_invert",
-                "Test that non-inverted and inverted sample coverage masks are each other's negations",
+            group.addChild(new es3fMultisampleTests.CoverageMaskInvertCase(
+                'sample_coverage_invert',
+                'Test that non-inverted and inverted sample coverage masks are each other\'s negations',
                 numFboSamples));
 
 
-    		group.addChild(new es3fMultisampleTests.MaskProportionalityCase(
-                "proportionality_alpha_to_coverage",
-    			"Test the proportionality property of GL_SAMPLE_ALPHA_TO_COVERAGE",
-    			es3fMultisampleTests.MaskProportionalityCase.CaseType.ALPHA_TO_COVERAGE,
+            group.addChild(new es3fMultisampleTests.MaskProportionalityCase(
+                'proportionality_alpha_to_coverage',
+                'Test the proportionality property of GL_SAMPLE_ALPHA_TO_COVERAGE',
+                es3fMultisampleTests.MaskProportionalityCase.CaseType.ALPHA_TO_COVERAGE,
                 numFboSamples));
-    		group.addChild(new es3fMultisampleTests.MaskProportionalityCase(
-                "proportionality_sample_coverage",
-    			"Test the proportionality property of GL_SAMPLE_COVERAGE",
-    			es3fMultisampleTests.MaskProportionalityCase.CaseType.SAMPLE_COVERAGE,
+            group.addChild(new es3fMultisampleTests.MaskProportionalityCase(
+                'proportionality_sample_coverage',
+                'Test the proportionality property of GL_SAMPLE_COVERAGE',
+                es3fMultisampleTests.MaskProportionalityCase.CaseType.SAMPLE_COVERAGE,
                 numFboSamples));
-    		group.addChild(new es3fMultisampleTests.MaskProportionalityCase(
-                "proportionality_sample_coverage_inverted",
-    			"Test the proportionality property of inverted-mask GL_SAMPLE_COVERAGE",
-    			es3fMultisampleTests.MaskProportionalityCase.CaseType.SAMPLE_COVERAGE_INVERTED,
+            group.addChild(new es3fMultisampleTests.MaskProportionalityCase(
+                'proportionality_sample_coverage_inverted',
+                'Test the proportionality property of inverted-mask GL_SAMPLE_COVERAGE',
+                es3fMultisampleTests.MaskProportionalityCase.CaseType.SAMPLE_COVERAGE_INVERTED,
                 numFboSamples));
 
-    		group.addChild(new es3fMultisampleTests.MaskConstancyCase(
-                "constancy_alpha_to_coverage",
-    			"Test that coverage mask is constant at given coordinates with a given alpha or coverage value, using GL_SAMPLE_ALPHA_TO_COVERAGE",
-    			es3fMultisampleTests.MaskConstancyCase.CaseType.ALPHA_TO_COVERAGE,
+            group.addChild(new es3fMultisampleTests.MaskConstancyCase(
+                'constancy_alpha_to_coverage',
+                'Test that coverage mask is constant at given coordinates with a given alpha or coverage value, using GL_SAMPLE_ALPHA_TO_COVERAGE',
+                es3fMultisampleTests.MaskConstancyCase.CaseType.ALPHA_TO_COVERAGE,
                 numFboSamples));
-    		group.addChild(new es3fMultisampleTests.MaskConstancyCase(
-                "constancy_sample_coverage",
-    			"Test that coverage mask is constant at given coordinates with a given alpha or coverage value, using GL_SAMPLE_COVERAGE",
-    			es3fMultisampleTests.MaskConstancyCase.CaseType.SAMPLE_COVERAGE,
+            group.addChild(new es3fMultisampleTests.MaskConstancyCase(
+                'constancy_sample_coverage',
+                'Test that coverage mask is constant at given coordinates with a given alpha or coverage value, using GL_SAMPLE_COVERAGE',
+                es3fMultisampleTests.MaskConstancyCase.CaseType.SAMPLE_COVERAGE,
                 numFboSamples));
-    		group.addChild(new es3fMultisampleTests.MaskConstancyCase(
-                "constancy_sample_coverage_inverted",
-    			"Test that coverage mask is constant at given coordinates with a given alpha or coverage value, using inverted-mask GL_SAMPLE_COVERAGE",
-    			es3fMultisampleTests.MaskConstancyCase.CaseType.SAMPLE_COVERAGE_INVERTED,
+            group.addChild(new es3fMultisampleTests.MaskConstancyCase(
+                'constancy_sample_coverage_inverted',
+                'Test that coverage mask is constant at given coordinates with a given alpha or coverage value, using inverted-mask GL_SAMPLE_COVERAGE',
+                es3fMultisampleTests.MaskConstancyCase.CaseType.SAMPLE_COVERAGE_INVERTED,
                 numFboSamples));
-    		group.addChild(new es3fMultisampleTests.MaskConstancyCase(
-                "constancy_both",
-    			"Test that coverage mask is constant at given coordinates with a given alpha or coverage value, using GL_SAMPLE_ALPHA_TO_COVERAGE and GL_SAMPLE_COVERAGE",
-    			es3fMultisampleTests.MaskConstancyCase.CaseType.BOTH,
+            group.addChild(new es3fMultisampleTests.MaskConstancyCase(
+                'constancy_both',
+                'Test that coverage mask is constant at given coordinates with a given alpha or coverage value, using GL_SAMPLE_ALPHA_TO_COVERAGE and GL_SAMPLE_COVERAGE',
+                es3fMultisampleTests.MaskConstancyCase.CaseType.BOTH,
                 numFboSamples));
-    		group.addChild(new es3fMultisampleTests.MaskConstancyCase(
-                "constancy_both_inverted",
-    			"Test that coverage mask is constant at given coordinates with a given alpha or coverage value, using GL_SAMPLE_ALPHA_TO_COVERAGE and inverted-mask GL_SAMPLE_COVERAGE",
-    			es3fMultisampleTests.MaskConstancyCase.CaseType.BOTH_INVERTED,
+            group.addChild(new es3fMultisampleTests.MaskConstancyCase(
+                'constancy_both_inverted',
+                'Test that coverage mask is constant at given coordinates with a given alpha or coverage value, using GL_SAMPLE_ALPHA_TO_COVERAGE and inverted-mask GL_SAMPLE_COVERAGE',
+                es3fMultisampleTests.MaskConstancyCase.CaseType.BOTH_INVERTED,
                 numFboSamples));
-    	}
-
-
+        }
     };
 
     /**
