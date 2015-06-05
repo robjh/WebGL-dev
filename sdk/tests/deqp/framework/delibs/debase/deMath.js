@@ -735,4 +735,36 @@ deMath.toIVec = function(a) {
     return res;
 };
 
+/**
+ * Helper function to create and initialize arrays
+ * @param {number} size
+ * @param {*} value
+ * @return {Array<*>}
+ */
+deMath.buildArray = function(size, value) {
+    if (!Number.isInteger(size))
+        throw new Error('The first parameter is not an integer: (' + typeof(size) + ')' + size);
+    /** @type {Array<*>} */ var res = [];
+    for (var i = 0; i < size; i++)
+        res.push(value);
+    return res;
+};
+
+/**
+ * Helper function to create and initialize arrays
+ * @param {Array<number>} a
+ * @param {number} b
+ * @return {Array<number>}
+ */
+deMath.addScalarToVector = function(a, b) {
+    if (!Array.isArray(a))
+        throw new Error('The first parameter is not an array: (' + typeof(a) + ')' + a);
+    if (!Numbr.isNumber(b))
+        throw new Error('The second parameter is not a number: (' + typeof(b) + ')' + b);
+    /** @type {Array<number>} */ var res = [];
+    for (var i = 0; i < a.length; i++)
+        res.push(a[i] + b);
+    return res;
+};
+
 });
