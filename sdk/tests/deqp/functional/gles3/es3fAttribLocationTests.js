@@ -22,8 +22,8 @@
  *//*--------------------------------------------------------------------*/
 'use strict';
 goog.provide('functional.gles3.es3fAttribLocationTests');
-goog.require('modules.shared.glsAttributeLocationTests');
 goog.require('framework.opengl.gluShaderUtil');
+goog.require('modules.shared.glsAttributeLocationTests');
 
 goog.scope(function() {
 
@@ -34,7 +34,7 @@ goog.scope(function() {
 
     es3fAttribLocationTests.createAttributeLocationTests = function() {
 
-        /** @type{Array<glsAttributeLocationTests.AttribType>} */
+        /** @type {Array<glsAttributeLocationTests.AttribType>} */
         var types = [
             new glsAttributeLocationTests.AttribType('float', 1, gl.FLOAT),
             new glsAttributeLocationTests.AttribType('vec2', 1, gl.FLOAT_VEC2),
@@ -68,7 +68,7 @@ goog.scope(function() {
             new glsAttributeLocationTests.AttribType('mat4x4', 4, gl.FLOAT_MAT4)
         ];
 
-        /** @type{Array<glsAttributeLocationTests.AttribType>} */
+        /** @type {Array<glsAttributeLocationTests.AttribType>} */
         var es2Types = [
             new glsAttributeLocationTests.AttribType('float', 1, gl.FLOAT),
             new glsAttributeLocationTests.AttribType('vec2', 1, gl.FLOAT_VEC2),
@@ -83,8 +83,8 @@ goog.scope(function() {
         /** @type {tcuTestCase.DeqpTest} */
         var root = tcuTestCase.newTest('attribute_location', 'Attribute location tests');
 
-        /** @type{number} */ var typeNdx;
-        /** @type{glsAttributeLocationTests.AttribType} */ var type;
+        /** @type {number} */ var typeNdx;
+        /** @type {glsAttributeLocationTests.AttribType} */ var type;
 
         // Basic bind attribute tests
         /** @type {tcuTestCase.DeqpTest} */

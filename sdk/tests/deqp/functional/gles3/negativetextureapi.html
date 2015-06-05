@@ -3,13 +3,13 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<title>WebGL FBO Completeness Tests</title>
+<title>WebGL Negative Texture API Tests</title>
 <link rel="stylesheet" href="../../../resources/js-test-style.css"/>
 <script src="../../../resources/js-test-pre.js"></script>
 <script src="../../../resources/webgl-test-utils.js"></script>
 <script src="../../../closure-library/closure/goog/base.js"></script>
 <script src="../../deqp-deps.js"></script>
-<script>goog.require('functional.gles3.es3fNegativeBufferApiTests');</script>
+<script>goog.require('functional.gles3.es3fNegativeTextureApiTests');</script>
 </head>
 <body>
 <div id="description"></div>
@@ -19,7 +19,7 @@
 
     var wtu = WebGLTestUtils;
     var gl = wtu.create3DContext('canvas', {preserveDrawingBuffer: true}, 2);
-    
+
     var gldisable = function(name) {
         return function(a1,a2,a3,a4,a5,a6,a7,a8) {
             var args = [];
@@ -32,9 +32,9 @@
         };
     };
     gl.framebufferTextureLayer = gldisable('framebufferTextureLayer');
-    
+
     try {
-        functional.gles3.es3fNegativeBufferApiTests.run(gl);
+        functional.gles3.es3fNegativeTextureApiTests.run(gl);
     }
     catch(err) {
         bufferedLogToConsole(err);

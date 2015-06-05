@@ -77,8 +77,6 @@ deMath.deAlign32 = function(val, align) {
     return ((val + align - 1) & ~(align - 1)) & 0xFFFFFFFF; //0xFFFFFFFF make sure it returns a 32 bit calculation in 64 bit browsers.
 };
 
-
-
 /**
  * Compute the bit population count of an integer.
  * @param {number} a
@@ -763,4 +761,17 @@ deMath.addScalarToVector = function(a, b) {
     return res;
 };
 
+/**
+ * @param {number} a
+ * @return {number}
+ */
+ deMath.clz32 = function(a) {
+   /** @type {number} */ var maxValue = 2147483648; // max 32 bit number
+   /** @type {number} */ var leadingZeros = 0;
+   while (a < maxValue) {
+     maxValue = maxValue >>> 1;
+     leadingZeros++;
+   }
+   return leadingZeros;
+};
 });

@@ -20,10 +20,10 @@
 
 'use strict';
 goog.provide('framework.common.tcuTexVerifierUtil');
-goog.require('framework.delibs.debase.deMath');
-goog.require('framework.delibs.debase.deUtil');
 goog.require('framework.common.tcuFloat');
 goog.require('framework.common.tcuTexture');
+goog.require('framework.delibs.debase.deMath');
+goog.require('framework.delibs.debase.deUtil');
 
 goog.scope(function() {
 
@@ -160,8 +160,8 @@ goog.scope(function() {
     };
 
     /**
-     * @param  {Array<number>} coord
-     * @param  {Array<number>} bits
+     * @param {Array<number>} coord
+     * @param {Array<number>} bits
      * @return {?Array<tcuTexture.CubeFace>}
      */
      tcuTexVerifierUtil.getPossibleCubeFaces = function(coord, bits) {
@@ -182,16 +182,13 @@ goog.scope(function() {
         if (ay + ey < ax - ex && az + ez < ax - ex) {
             if (x >= ex) faces.push(tcuTexture.CubeFace.CUBEFACE_POSITIVE_X);
             if (x <= ex) faces.push(tcuTexture.CubeFace.CUBEFACE_NEGATIVE_X);
-        }
-        else if (ax + ex < ay - ey && az + ez < ay - ey) {
+        } else if (ax + ex < ay - ey && az + ez < ay - ey) {
             if (y >= ey) faces.push(tcuTexture.CubeFace.CUBEFACE_POSITIVE_Y);
             if (y <= ey) faces.push(tcuTexture.CubeFace.CUBEFACE_NEGATIVE_Y);
-        }
-        else if (ax + ex < az - ez && ay + ey < az - ez) {
+        } else if (ax + ex < az - ez && ay + ey < az - ez) {
             if (z >= ez) faces.push(tcuTexture.CubeFace.CUBEFACE_POSITIVE_Z);
             if (z <= ez) faces.push(tcuTexture.CubeFace.CUBEFACE_NEGATIVE_Z);
-        }
-        else {
+        } else {
             // One or more components are equal (or within error bounds). Allow all faces where major axis is not zero.
             if (ax > ex) {
                 faces.push(tcuTexture.CubeFace.CUBEFACE_NEGATIVE_X);
@@ -235,7 +232,7 @@ goog.scope(function() {
      * @param {number} a
      * @return {number}
      */
-    tcuTexVerifierUtil.mirror = function (a) {
+    tcuTexVerifierUtil.mirror = function(a) {
         return deMath.mirror(a);
     };
 
@@ -261,7 +258,7 @@ goog.scope(function() {
                 return (size - 1) - deMath.mirror(deMath.imod(c, 2 * size) - size);
 
             default:
-                throw new Error("Wrap mode not supported.");
+                throw new Error('Wrap mode not supported.');
         }
     };
 

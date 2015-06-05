@@ -15,12 +15,12 @@
 <body>
 <div id="description"></div>
 <div id="console"></div>
-<canvas id="canvas" width="200" height="100"> </canvas>
+<canvas id="canvas" width="256" height="256"> </canvas>
 <script>
 var wtu = WebGLTestUtils;
 var gl = wtu.create3DContextWithWrapperThatThrowsOnGLError('canvas', {preserveDrawingBuffer: true}, 2);
 
-
+gl.getError();
     try {
         functional.gles3.es3fTextureWrapTests.run(gl);
     }
