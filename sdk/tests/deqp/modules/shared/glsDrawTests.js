@@ -22,6 +22,7 @@
 goog.provide('modules.shared.glsDrawTests');
 goog.require('framework.common.tcuFloat');
 goog.require('framework.common.tcuImageCompare');
+goog.require('framework.common.tcuLogImage');
 goog.require('framework.common.tcuPixelFormat');
 goog.require('framework.common.tcuRGBA');
 goog.require('framework.common.tcuSurface');
@@ -46,6 +47,7 @@ goog.scope(function() {
     var tcuTestCase = framework.common.tcuTestCase;
     var tcuRGBA = framework.common.tcuRGBA;
     var tcuFloat = framework.common.tcuFloat;
+    var tcuLogImage = framework.common.tcuLogImage;
     var tcuPixelFormat = framework.common.tcuPixelFormat;
     var tcuSurface = framework.common.tcuSurface;
     var tcuImageCompare = framework.common.tcuImageCompare;
@@ -279,7 +281,7 @@ goog.scope(function() {
     glsDrawTests.getElementCount = function(primitive, primitiveCount) {
         switch (primitive) {
             case glsDrawTests.DrawTestSpec.Primitive.POINTS: return primitiveCount;
-            case glsDrawTests.DrawTestSpec.Primitive.TRIANGLES: return primitiveCount * 6; //In our case (JS version), we will draw quads with two triangles.
+            case glsDrawTests.DrawTestSpec.Primitive.TRIANGLES: return primitiveCount * 3;
             case glsDrawTests.DrawTestSpec.Primitive.TRIANGLE_FAN: return primitiveCount + 2;
             case glsDrawTests.DrawTestSpec.Primitive.TRIANGLE_STRIP: return primitiveCount + 2;
             case glsDrawTests.DrawTestSpec.Primitive.LINES: return primitiveCount * 2;
@@ -359,7 +361,7 @@ goog.scope(function() {
      * @return {Array<number>}
      */
     glsDrawTests.generateRandomVec4 = function(random) {
-        /** @type {Array<number>} */ var retVal;
+        /** @type {Array<number>} */ var retVal = [];
 
         for (var i = 0; i < 4; ++i)
             retVal[i] = random.getFloat();
@@ -372,7 +374,7 @@ goog.scope(function() {
      * @return {Array<number>}
      */
     glsDrawTests.generateRandomIVec4 = function(random) {
-        /** @type {Array<number>} */ var retVal;
+        /** @type {Array<number>} */ var retVal = [];
 
         for (var i = 0; i < 4; ++i)
             retVal[i] = random.getInt();
@@ -385,7 +387,7 @@ goog.scope(function() {
      * @return {Array<number>}
      */
     glsDrawTests.generateRandomUVec4 = function(random) {
-        /** @type {Array<number>} */ var retVal;
+        /** @type {Array<number>} */ var retVal = [];
 
         for (var i = 0; i < 4; ++i)
             retVal[i] = Math.abs(random.getInt());
@@ -1425,13 +1427,14 @@ goog.scope(function() {
      * @param {?glsDrawTests.DrawTestSpec.InputType} type
      * @param {number} first
      * @param {?glsDrawTests.DrawTestSpec.Primitive} primitive
+     * @param {?goog.TypedArray} indices
      * @return {goog.TypedArray}
      */
-    glsDrawTests.RandomArrayGenerator.generateArray = function (seed, elementCount, componentCount, offset, stride, type, first, primitive) {
+    glsDrawTests.RandomArrayGenerator.generateArray = function (seed, elementCount, componentCount, offset, stride, type, first, primitive, indices) {
         if (type == glsDrawTests.DrawTestSpec.InputType.INT_2_10_10_10 || type == glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT_2_10_10_10)
-            return glsDrawTests.RandomArrayGenerator.generatePackedArray(seed, elementCount, componentCount, offset, stride, type, first, primitive);
+            return glsDrawTests.RandomArrayGenerator.generatePackedArray(seed, elementCount, componentCount, offset, stride, type, first, primitive, indices);
         else
-            return glsDrawTests.RandomArrayGenerator.generateBasicArray(seed, elementCount, componentCount, offset, stride, type, first, primitive);
+            return glsDrawTests.RandomArrayGenerator.generateBasicArray(seed, elementCount, componentCount, offset, stride, type, first, primitive, indices);
     };
 
     /**
@@ -1443,10 +1446,44 @@ goog.scope(function() {
      * @param {?glsDrawTests.DrawTestSpec.InputType} type
      * @param {number} first
      * @param {?glsDrawTests.DrawTestSpec.Primitive} primitive
+     * @param {?goog.TypedArray} indices
      * @return {goog.TypedArray}
      */
-    glsDrawTests.RandomArrayGenerator.generateBasicArray = function (seed, elementCount, componentCount, offset, stride, type, first, primitive) {
-        return glsDrawTests.RandomArrayGenerator.createBasicArray(seed, elementCount, componentCount, offset, stride, type, first, primitive);
+    glsDrawTests.RandomArrayGenerator.generateBasicArray = function (seed, elementCount, componentCount, offset, stride, type, first, primitive, indices) {
+        return glsDrawTests.RandomArrayGenerator.createBasicArray(seed, elementCount, componentCount, offset, stride, type, first, primitive, indices);
+    };
+
+    /**
+     * @constructor
+     * @param {number} componentCount
+     * @param {deRandom.Random} rnd
+     * @param {glsDrawTests.GLValue} min
+     * @param {glsDrawTests.GLValue} max
+     */
+    glsDrawTests.RandomArrayGenerator.VertexParameters = function(componentCount, rnd, min, max) {
+        /** @type {number} */ this.componentCount = componentCount;
+        /** @type {deRandom.Random} */ this.rnd = rnd;
+        /** @type {glsDrawTests.GLValue} */ this.min = min;
+        /** @type {glsDrawTests.GLValue} */ this.max = max;
+    };
+
+    /**
+     * @param {Array<glsDrawTests.GLValue>} previousComponents
+     * @param {glsDrawTests.RandomArrayGenerator.VertexParameters} vertexParameters
+     * @return {Array<glsDrawTests.GLValue>}
+     */
+    glsDrawTests.RandomArrayGenerator.generateVertex = function(previousComponents, vertexParameters) {
+        /** @type {Array<glsDrawTests.GLValue>} */ var components = [];
+        for (var componentNdx = 0; componentNdx < vertexParameters.componentCount; componentNdx++) {
+            components[componentNdx] = glsDrawTests.GLValue.getRandom(vertexParameters.rnd, vertexParameters.min, vertexParameters.max);
+
+            // Try to not create vertex near previous
+            if (previousComponents.length > 0 && glsDrawTests.GLValue.abs(components[componentNdx].sub(previousComponents[componentNdx])).lessThan(vertexParameters.min)) {
+                // Too close, try again (but only once)
+                components[componentNdx] = glsDrawTests.GLValue.getRandom(vertexParameters.rnd, vertexParameters.min, vertexParameters.max);
+            }
+        }
+        return components;
     };
 
     /**
@@ -1458,9 +1495,10 @@ goog.scope(function() {
      * @param {?glsDrawTests.DrawTestSpec.InputType} type
      * @param {number} first
      * @param {?glsDrawTests.DrawTestSpec.Primitive} primitive
+     * @param {?goog.TypedArray} indices
      * @return {goog.TypedArray}
      */
-    glsDrawTests.RandomArrayGenerator.createBasicArray = function (seed, elementCount, componentCount, offset, stride, type, first, primitive) {
+    glsDrawTests.RandomArrayGenerator.createBasicArray = function (seed, elementCount, componentCount, offset, stride, type, first, primitive, indices) {
         assertMsgOptions(componentCount >= 1 && componentCount <= 4, 'Unacceptable number of components', false, true);
 
         /** @type {glsDrawTests.GLValue} */ var min = glsDrawTests.GLValue.getMinValue(type);
@@ -1473,29 +1511,28 @@ goog.scope(function() {
         var data = new ArrayBuffer(bufferSize);
         var writePtr = new Uint8Array(data).subarray(offset);
 
-        /** @type {Array<glsDrawTests.GLValue>} */ var previousComponents = [];
         /** @type {Array<glsDrawTests.GLValue>} */ var components = [];
+        /** @type {Array<Array<glsDrawTests.GLValue>>} */ var quadVertices = [];
+        /** @type {Array<glsDrawTests.GLValue>} */ var vertex1 = [];
+        /** @type {Array<glsDrawTests.GLValue>} */ var vertex2 = [];
+        /** @type {Array<glsDrawTests.GLValue>} */ var vertex3 = [];
+        /** @type {Array<glsDrawTests.GLValue>} */ var vertex4 = [];
+        /** @type {Array<glsDrawTests.GLValue>} */ var vertex5 = [];
+        /** @type {Array<glsDrawTests.GLValue>} */ var vertex6 = [];
+        /** @type {number} */ var parallelaxis;
+        /** @type {number} */ var oppositeaxis;
+        /** @type {number} */ var direction;
 
+        //Alias
+        var generateVertex = glsDrawTests.RandomArrayGenerator.generateVertex;
         var rnd = new deRandom.Random(seed);
 
+        /** @type {glsDrawTests.RandomArrayGenerator.VertexParameters} */ var vertexParameters = new glsDrawTests.RandomArrayGenerator.VertexParameters(componentCount, rnd, min, max);
+
         for (var vertexNdx = 0; vertexNdx < elementCount; vertexNdx++) {
-
-            var generateVertex = function() {
-                components = [];
-                for (var componentNdx = 0; componentNdx < componentCount; componentNdx++) {
-                    components[componentNdx] = glsDrawTests.GLValue.getRandom(rnd, min, max);
-
-                    // Try to not create vertex near previous
-                    if (vertexNdx != 0 && Math.abs(components[componentNdx] - previousComponents[componentNdx]) < min.interpret()) {
-                        // Too close, try again (but only once)
-                        components[componentNdx] = glsDrawTests.GLValue.getRandom(rnd, min, max);
-                    }
-                }
-                previousComponents = components;
-            }
-
+            //If first vertex hasn't been met, just generate individual vertices, and advance the buffer.
             if (vertexNdx < first) {
-                generateVertex();
+                components = generateVertex(components, vertexParameters);
                 for (var componentNdx = 0; componentNdx < componentCount; componentNdx++)
                     glsDrawTests.copyGLValueToArray(writePtr.subarray(componentNdx*componentSize), components[componentNdx]);
 
@@ -1506,174 +1543,133 @@ goog.scope(function() {
 
             //Primitive cases
             switch(primitive) {
-                case glsDrawTests.DrawTestSpec.Primitive.TRIANGLES:
-                    generateVertex();
-                    var vertex1 = components;
+                case glsDrawTests.DrawTestSpec.Primitive.TRIANGLES: {
+                    vertex1 = generateVertex(components, vertexParameters);
 
-                    var parallelaxis = rnd.getBool() ? 0 : 1;
-                    var oppositeaxis = parallelaxis? 0 : 1;
+                    parallelaxis = rnd.getBool() ? 0 : 1;
+                    oppositeaxis = parallelaxis? 0 : 1;
 
-                    generateVertex();
-                    var vertex2 = components;
+                    vertex2 = generateVertex(vertex1, vertexParameters);
                     vertex2[parallelaxis] = vertex1[parallelaxis];
 
-                    generateVertex();
-                    var vertex3 = components;
+                    vertex3 = generateVertex(vertex2, vertexParameters);
                     vertex3[oppositeaxis] = vertex1[oppositeaxis];
 
-                    generateVertex();
-                    var vertex4 = components;
+                    vertex4 = generateVertex(vertex3, vertexParameters);
                     vertex4[parallelaxis] = vertex3[parallelaxis];
                     vertex4[oppositeaxis] = vertex2[oppositeaxis];
 
-                    var quadVertices = [vertex1, vertex2, vertex3, vertex3, vertex2, vertex4];
-
-                    //Copy values to buffer
-                    for (var qVtx = 0 ; qVtx < quadVertices.length; qVtx++)
-                    for (var componentNdx = 0; componentNdx < componentCount; componentNdx++)
-                        glsDrawTests.copyGLValueToArray(writePtr.subarray(qVtx*componentCount*componentSize + componentNdx*componentSize), quadVertices[qVtx][componentNdx]);
-
-                    writePtr = writePtr.subarray(stride * quadVertices.length);
-
-                    //Increment additional generated vertices number
-                    vertexNdx += quadVertices.length - 1;
+                    quadVertices = [vertex1, vertex2, vertex3, vertex3, vertex2, vertex4];
                     break;
+                }
+                case glsDrawTests.DrawTestSpec.Primitive.TRIANGLE_STRIP: {
+                    if (vertexNdx < first + 4) {
+                        vertex1 = generateVertex(components, vertexParameters);
 
-                case glsDrawTests.DrawTestSpec.Primitive.TRIANGLE_STRIP:
-                    if (vertexNdx < first + 4 ) {
-                        generateVertex();
-                        var vertex1 = components;
+                        parallelaxis = rnd.getBool() ? 0 : 1;
+                        oppositeaxis = parallelaxis ? 0 : 1;
 
-                        var parallelaxis = rnd.getBool() ? 0 : 1;
-                        var oppositeaxis = parallelaxis? 0 : 1;
-
-                        generateVertex();
-                        var vertex2 = components;
+                        vertex2 = generateVertex(vertex1, vertexParameters);
                         vertex2[parallelaxis] = vertex1[parallelaxis];
 
-                        generateVertex();
-                        var vertex3 = components;
+                        vertex3 = generateVertex(vertex2, vertexParameters);
                         vertex3[oppositeaxis] = vertex1[oppositeaxis];
 
-                        var direction = vertex3[parallelaxis].greaterThan(vertex1[parallelaxis]) ? 1 : -1;
+                        direction = vertex3[parallelaxis].greaterThan(vertex1[parallelaxis]) ? 1 : -1;
 
-                        generateVertex();
-                        var vertex4 = components;
+                        vertex4 = generateVertex(vertex3, vertexParameters);
                         vertex4[oppositeaxis] = vertex2[oppositeaxis];
                         vertex4[parallelaxis] = vertex3[parallelaxis];
 
                         quadVertices = [vertex1, vertex2, vertex3, vertex4];
                     } else {
-                        generateVertex();
-                        var vertex5 = components;
-                        vertex5[oppositeaxis] = quadVertices[quadVertices.length - 3][oppositeaxis];
-                        vertexNdx++;
+                        vertex5 = generateVertex(components, vertexParameters);
+                        vertex5[oppositeaxis] = quadVertices[quadVertices.length - 2][oppositeaxis];
+                        vertex5[parallelaxis] = glsDrawTests.GLValue.getRandom(
+                            vertexParameters.rnd,
+                            direction > 0 ? components[parallelaxis] : vertexParameters.min,
+                            direction > 0 ? vertexParameters.max : components[parallelaxis]
+                        );
 
-                        generateVertex();
-                        var vertex6 = components;
-                        vertex6[oppositeaxis] = quadVertices[quadVertices.length - 2][oppositeaxis];
+                        vertex6 = generateVertex(vertex5, vertexParameters);
+                        vertex6[oppositeaxis] = quadVertices[quadVertices.length - 1][oppositeaxis];
                         vertex6[parallelaxis] = vertex5[parallelaxis];
-                        vertexNdx++;
 
                         quadVertices = [vertex5, vertex6];
                     }
-
-                    //Copy values to buffer
-                    for (var qVtx = 0 ; qVtx < quadVertices.length; qVtx++)
-                    for (var componentNdx = 0; componentNdx < componentCount; componentNdx++)
-                        glsDrawTests.copyGLValueToArray(writePtr.subarray(qVtx*componentCount*componentSize + componentNdx*componentSize), quadVertices[qVtx][componentNdx]);
-
-                    writePtr = writePtr.subarray(stride * quadVertices.length);
-
-                    //Increment additional generated vertices number
-                    vertexNdx += quadVertices.length - 1;
                     break;
+                }
+                case glsDrawTests.DrawTestSpec.Primitive.TRIANGLE_FAN: {
+                    if (vertexNdx < first + 4) {
+                        vertex1 = generateVertex(components, vertexParameters);
 
-                case glsDrawTests.DrawTestSpec.Primitive.TRIANGLE_FAN:
-                    generateVertex();
-                    var vertex1 = components;
+                        parallelaxis = rnd.getBool() ? 0 : 1;
+                        oppositeaxis = parallelaxis? 0 : 1;
 
-                    generateVertex();
-                    var vertex2 = components;
+                        vertex2 = generateVertex(vertex1, vertexParameters);
+                        vertex2[parallelaxis] = vertex1[parallelaxis];
 
-                    var parallelaxis = rnd.getBool() ? 0 : 1;
-                    var oppositeaxis = parallelaxis? 0 : 1;
+                        vertex3 = generateVertex(vertex2, vertexParameters);
+                        vertex3[oppositeaxis] = vertex2[oppositeaxis];
 
-                    generateVertex();
-                    var vertex3 = components;
-                    vertex3[parallelaxis] = vertex2[parallelaxis];
-                    vertex3[oppositeaxis] = vertex1[oppositeaxis];
+                        vertex4 = generateVertex(vertex3, vertexParameters);
+                        vertex4[oppositeaxis] = vertex1[oppositeaxis];
+                        vertex4[parallelaxis] = vertex3[parallelaxis];
 
-                    var direction = vertex3[parallelaxis].greaterThan(vertex2[parallelaxis]) ? 1 : -1;
+                        direction = vertex4[oppositeaxis].greaterThan(vertex3[oppositeaxis]) ? 1 : -1;
 
-                    if (vertex3[0].equals(vertex1[0]) || vertex3[1].equals(vertex1[1])) {
-                        generateVertex();
-                        var vertex4 = components;
-                        //vertex4[]
+                        quadVertices = [vertex1, vertex2, vertex3, vertex4];
+                    } else {
+                        vertex5 = generateVertex(components, vertexParameters);
+                        vertex5[parallelaxis] = components[parallelaxis];
+                        vertex5[oppositeaxis] = glsDrawTests.GLValue.getRandom(
+                            vertexParameters.rnd,
+                            direction > 0 ? components[oppositeaxis] : vertexParameters.min,
+                            direction > 0 ? vertexParameters.max : components[oppositeaxis]
+                        );
+
+                        vertex6 = generateVertex(vertex5, vertexParameters);
+                        vertex6[oppositeaxis] = vertex5[oppositeaxis];
+                        vertex6[parallelaxis] = vertex1[parallelaxis];
+
+                        //swap axes
+                        parallelaxis += oppositeaxis;
+                        oppositeaxis = parallelaxis - oppositeaxis;
+                        parallelaxis -= oppositeaxis;
+
+                        direction = vertex6[oppositeaxis].greaterThan(vertex5[oppositeaxis]) ? 1 : -1;
+
+                        quadVertices = [vertex5, vertex6];
                     }
-
                     break;
+                }
             }
 
-            //This part makes sure triangles form a right angle with middle vertex
-            //(JS Refrast draws straight lines only, so drawing triangles as quads)
-            /*if (vertexNdx >= first) {
-                triangle.push(components);
+            //Copy values to buffer
+            for (var qVtx = 0 ; qVtx < quadVertices.length; qVtx++)
+            for (var componentNdx = 0; componentNdx < componentCount; componentNdx++)
+                glsDrawTests.copyGLValueToArray(writePtr.subarray(qVtx*componentCount*componentSize + componentNdx*componentSize), quadVertices[qVtx][componentNdx]);
 
-                if (triangle.length == 3 && componentCount >= 2) {
-                    var alteredVertexNdx = 1;
-                    var alteredVertex = [];
-                    var firstvertexcopy = [];
-                    var secondvertexcopy = [];
+            if (quadVertices.length > 0) {
+                writePtr = writePtr.subarray(stride * quadVertices.length);
 
-                    //Select the vertex to alter as long as the remaining two do not form a line paralell to any of the axis.
-                    if (triangle[0][0].interpret() != triangle[2][0].interpret() && triangle[0][1].interpret() != triangle[2][1].interpret()) {
-                        alteredVertexNdx = 1;
-                        firstvertexcopy = triangle[0];
-                        secondvertexcopy = triangle[2];
-                    }
-                    else if (triangle[1][0].interpret() != triangle[2][0].interpret() && triangle[1][1].interpret() != triangle[2][1].interpret()) {
-                        alteredVertexNdx = 0;
-                        firstvertexcopy = triangle[1];
-                        secondvertexcopy = triangle[2];
-                    }
-                    else {
-                        alteredVertexNdx = 2;
-                        firstvertexcopy = triangle[0];
-                        secondvertexcopy = triangle[1];
-                    }
+                //Remember last generated vertex
+                components = quadVertices[quadVertices.length - 1];
 
-                    //The altered vertex will be formed by the x and y of the remaining two vertices, respectively, to ensure a right angle.
-                    switch (componentCount) {
-                        case 2: alteredVertex = [firstvertexcopy[0], secondvertexcopy[1]]; break;
-                        case 3: alteredVertex = [firstvertexcopy[0], secondvertexcopy[1], triangle[alteredVertexNdx][2]]; break;
-                        case 4: alteredVertex = [firstvertexcopy[0], secondvertexcopy[1], triangle[alteredVertexNdx][2], triangle[alteredVertexNdx][3]]; break;
-                        default: throw new Error('Invalid number of components'); break;
-                    }
+                //Increment additional generated vertices number
+                vertexNdx += quadVertices.length - 1;
+            }
+        }
 
-                    //Rewrite altered vertex
-                    triangle[alteredVertexNdx] = alteredVertex;
-
-                    //Copy values to buffer
-                    for (var triVtx = 0 ; triVtx < 3; triVtx++)
-                    for (var componentNdx = 0; componentNdx < componentCount; componentNdx++)
-                        glsDrawTests.copyGLValueToArray(writePtr.subarray(triVtx*componentCount*componentSize + componentNdx*componentSize), triangle[triVtx][componentNdx]);
-
-                    writePtr = writePtr.subarray(stride * 3);
-                    triangle = [];
-                } else if (elementCount - 1 == vertexNdx) { //Handle last stray vertices maybe.
-                    for (var componentNdx = 0; componentNdx < componentCount; componentNdx++)
-                        glsDrawTests.copyGLValueToArray(writePtr.subarray(componentNdx*componentSize), components[componentNdx]);
-
-                    writePtr = writePtr.subarray(stride);
-                }
-            } else {
-                for (var componentNdx = 0; componentNdx < componentCount; componentNdx++)
-                    glsDrawTests.copyGLValueToArray(writePtr.subarray(componentNdx*componentSize), components[componentNdx]);
-
-                //Advance one vertex
-                writePtr = writePtr.subarray(componentCount * componentSize);
-            }*/
+        //If index array was specified, reorder vertices in the order specified (so refrast can still draw quads).
+        if (indices) {
+            var view = new Uint8Array(data).subarray(offset);
+            var reorderedbuffer = new ArrayBuffer(data.byteLength);
+            var reorderedview = new Uint8Array(reorderedbuffer).subarray(offset);
+            for (var index = 0; index < indices.length; index++) {
+                reorderedview.set(view.subarray(index * componentCount * componentSize, (index + 1) * componentCount * componentSize), indices[index] * componentCount * componentSize);
+            }
+            data = reorderedbuffer;
         }
 
         return new Uint8Array(data);
@@ -1688,9 +1684,10 @@ goog.scope(function() {
      * @param {?glsDrawTests.DrawTestSpec.InputType} type
      * @param {number} first
      * @param {?glsDrawTests.DrawTestSpec.Primitive} primitive
+     * @param {?goog.TypedArray} indices
      * @return {goog.TypedArray}
      */
-    glsDrawTests.RandomArrayGenerator.generatePackedArray = function (seed, elementCount, componentCount, offset, stride, type, first, primitive) {
+    glsDrawTests.RandomArrayGenerator.generatePackedArray = function (seed, elementCount, componentCount, offset, stride, type, first, primitive, indices) {
         assertMsgOptions(componentCount == 4, 'Component count must be 4', false, true);
         //DE_UNREF(componentCount);
 
@@ -1748,15 +1745,15 @@ goog.scope(function() {
      * @param {?glsDrawTests.DrawTestSpec.IndexType} type
      * @return {goog.TypedArray}
      */
-    glsDrawTests.RandomArrayGenerator.createIndices  = function (seed, elementCount, offset, min, max, type) {
+    glsDrawTests.RandomArrayGenerator.createIndices = function (seed, elementCount, offset, min, max, type) {
         /** @type {number}*/ var elementSize = glsDrawTests.DrawTestSpec.indexTypeSize(type);
         /** @type {number}*/ var bufferSize = offset + elementCount * elementSize;
 
         var data = new ArrayBuffer(bufferSize);
         var writePtr = new Uint8Array(data).subarray(offset);
 
-        var oldNdx1 = -1;
-        var oldNdx2 = -1;
+        /*var oldNdx1 = -1;
+        var oldNdx2 = -1;*/
 
         var rnd = new deRandom.Random(seed);
 
@@ -1765,19 +1762,21 @@ goog.scope(function() {
             min > max)
             DE_ASSERT(!"Invalid range");*/
 
-        for (var elementNdx = 0; elementNdx < elementCount; ++elementNdx)
-        {
-            var ndx = glsDrawTests.GLValue.getRandom(
-                rnd,
-                glsDrawTests.GLValue.create(min, glsDrawTests.indexTypeToInputType(type)),
-                glsDrawTests.GLValue.create(max, glsDrawTests.indexTypeToInputType(type))
-            ).interpret();
+        // JS refrast requires shuffled unique keys
+        var keys = [];
+        for (var key = 0; key < elementCount; key++)
+            keys.push(glsDrawTests.GLValue.create(key, glsDrawTests.indexTypeToInputType(type)));
 
+        for (var elementNdx = 0; elementNdx < elementCount; ++elementNdx) {
+            var randomkey = rnd.getInt(0, keys.length - 1);
+            var ndx = keys[randomkey];
+
+            keys.splice(randomkey, 1);
             // Try not to generate same index as any of previous two. This prevents
             // generation of degenerate triangles and lines. If [min, max] is too
             // small this cannot be guaranteed.
 
-            if (ndx == oldNdx1)            ++ndx;
+            /*if (ndx == oldNdx1)            ++ndx;
             if (ndx > max)    ndx = min;
             if (ndx == oldNdx2)            ++ndx;
             if (ndx > max)    ndx = min;
@@ -1785,18 +1784,23 @@ goog.scope(function() {
             if (ndx > max)    ndx = min;
 
             oldNdx2 = oldNdx1;
-            oldNdx1 = ndx;
+            oldNdx1 = ndx;*/
 
-            var srcArray = glsDrawTests.GLValue.typeToTypedArray(ndx, glsDrawTests.indexTypeToInputType(type));
+            //var srcArray = glsDrawTests.GLValue.typeToTypedArray(ndx, glsDrawTests.indexTypeToInputType(type));
 
             glsDrawTests.copyArray(
                 writePtr.subarray(elementSize * elementNdx),
-                srcArray
+                new Uint8Array(ndx.m_value.buffer)
             );
         }
 
-        return new Uint8Array(data);
-    }
+        switch (elementSize) {
+            case 1: return new Uint8Array(data);
+            case 2: return new Uint16Array(data);
+            case 4: return new Uint32Array(data);
+            default: throw new Error('Invalid index type size: ' + elementSize);
+        }
+    };
 
     /**
      * @param {number} seed
@@ -2915,8 +2919,8 @@ goog.scope(function() {
 
         /** @type {WebGL2RenderingContext} */ this.m_renderCtx = gl;
         /** @type {tcuPixelFormat.PixelFormat} */ this.m_pixelformat = new tcuPixelFormat.PixelFormat(
-            gl.getParameter(gl.RED_BITS), gl.getParameter(gl.GREEN_BITS),
-            gl.getParameter(gl.BLUE_BITS), gl.getParameter(gl.ALPHA_BITS)
+            /** @type {number} */ (gl.getParameter(gl.RED_BITS)), /** @type {number} */ (gl.getParameter(gl.GREEN_BITS)),
+            /** @type {number} */ (gl.getParameter(gl.BLUE_BITS)), /** @type {number} */ (gl.getParameter(gl.ALPHA_BITS))
         );
 
         /** @type {sglrReferenceContext.ReferenceContextBuffers} */ this.m_refBuffers = null;
@@ -3035,13 +3039,45 @@ goog.scope(function() {
             this.m_glArrayPack.clearArrays();
             this.m_rrArrayPack.clearArrays();
 
+            // indices
+            /** @type {number} */ var seed;
+            /** @type {number} */ var indexElementSize;
+            /** @type {number} */ var indexArraySize;
+            /** @type {goog.TypedArray} */ var indexArray;
+            /** @type {goog.TypedArray} */ var indexPointer;
+
+            /** @type {glsDrawTests.AttributeArray}*/ var glArray;
+            /** @type {glsDrawTests.AttributeArray}*/ var rrArray;
+
+            if (indexed) {
+                seed = spec.hash();
+                indexElementSize = glsDrawTests.DrawTestSpec.indexTypeSize(spec.indexType);
+                indexArraySize = spec.indexPointerOffset + indexElementSize * elementCount;
+                indexArray = glsDrawTests.RandomArrayGenerator.generateIndices(seed, elementCount, spec.indexType, spec.indexPointerOffset, indexMin, indexMax);
+                indexPointer = indexArray.subarray(spec.indexPointerOffset);
+
+                glArray = new glsDrawTests.AttributeArray(spec.indexStorage, this.m_glesContext);
+                rrArray = new glsDrawTests.AttributeArray(spec.indexStorage, this.m_refContext);
+
+                //try { TODO: Delete indexArray?
+                glArray.data(glsDrawTests.DrawTestSpec.Target.ELEMENT_ARRAY, indexArraySize, indexArray, glsDrawTests.DrawTestSpec.Usage.STATIC_DRAW);
+                rrArray.data(glsDrawTests.DrawTestSpec.Target.ELEMENT_ARRAY, indexArraySize, indexArray, glsDrawTests.DrawTestSpec.Usage.STATIC_DRAW);
+                //delete [] indexArray; //TODO:
+                indexArray = null;
+                /*} catch () {
+                delete [] indexArray; //TODO:
+                throw;
+                }*/
+            }
+
+            // attributes
             for (var attribNdx = 0; attribNdx < spec.attribs.length; attribNdx++) {
                 /** @type {glsDrawTests.DrawTestSpec.AttributeSpec} */ var attribSpec = spec.attribs[attribNdx];
                 var isPositionAttr = (attribNdx == 0) || (attribSpec.additionalPositionAttribute);
 
                 if (attribSpec.useDefaultAttribute) {
-                    var seed = 10 * attribSpec.hash() + 100 * spec.hash() + attribNdx;
-                    /** @type {Array<number>} */ var attribValue = glsDrawTests.RandomArrayGenerator.generateAttributeValue(seed, attribSpec.inputType); //TODO: Implement
+                    seed = 10 * attribSpec.hash() + 100 * spec.hash() + attribNdx;
+                    /** @type {Array<number>} */ var attribValue = glsDrawTests.RandomArrayGenerator.generateAttributeValue(seed, attribSpec.inputType);
 
                     // changed USER for BUFFER in JS version
                     this.m_glArrayPack.newArray(glsDrawTests.DrawTestSpec.Storage.BUFFER);
@@ -3050,13 +3086,13 @@ goog.scope(function() {
                     this.m_glArrayPack.getArray(attribNdx).setupArray(false, 0, attribSpec.componentCount, attribSpec.inputType, attribSpec.outputType, false, 0, 0, attribValue, isPositionAttr);
                     this.m_rrArrayPack.getArray(attribNdx).setupArray(false, 0, attribSpec.componentCount, attribSpec.inputType, attribSpec.outputType, false, 0, 0, attribValue, isPositionAttr);
                 } else {
-                    /** @type {number} */ var seed = attribSpec.hash() + 100 * spec.hash() + attribNdx;
+                    seed = attribSpec.hash() + 100 * spec.hash() + attribNdx;
                     /** @type {number} */ var elementSize = attribSpec.componentCount * glsDrawTests.DrawTestSpec.inputTypeSize(attribSpec.inputType);
                     /** @type {number} */ var stride = (attribSpec.stride == 0) ? (elementSize) : (attribSpec.stride);
                     /** @type {number} */ var evaluatedElementCount = (instanced && attribSpec.instanceDivisor > 0) ? (spec.instanceCount / attribSpec.instanceDivisor + 1) : (elementCount);
                     /** @type {number} */ var referencedElementCount = (ranged) ? (Math.max(evaluatedElementCount, spec.indexMax + 1)) : (evaluatedElementCount);
                     /** @type {number} */ var bufferSize = attribSpec.offset + stride * (referencedElementCount - 1) + elementSize;
-                    /** @type {goog.TypedArray} */ var data = glsDrawTests.RandomArrayGenerator.generateArray(seed, referencedElementCount, attribSpec.componentCount, attribSpec.offset, stride, attribSpec.inputType, spec.first, spec.primitive);
+                    /** @type {goog.TypedArray} */ var data = glsDrawTests.RandomArrayGenerator.generateArray(seed, referencedElementCount, attribSpec.componentCount, attribSpec.offset, stride, attribSpec.inputType, spec.first, spec.primitive, indexed ? indexPointer : null);
 
                     //try { TODO: This try/catch block's purpose is to delete data safely. Should we?
                         this.m_glArrayPack.newArray(attribSpec.storage);
@@ -3089,28 +3125,8 @@ goog.scope(function() {
             try {
                 // indices
                 if (indexed) {
-                    /** @type {number} */ var seed = spec.hash();
-                    /** @type {number} */ var indexElementSize = glsDrawTests.DrawTestSpec.indexTypeSize(spec.indexType);
-                    /** @type {number} */ var indexArraySize = spec.indexPointerOffset + indexElementSize * elementCount;
-                    /** @type {goog.TypedArray} */ var indexArray = glsDrawTests.RandomArrayGenerator.generateIndices(seed, elementCount, spec.indexType, spec.indexPointerOffset, indexMin, indexMax);
-                    /** @type {goog.TypedArray} */ var indexPointer = indexArray.subarray(spec.indexPointerOffset);
-
-                    /** @type {glsDrawTests.AttributeArray}*/ var glArray = new glsDrawTests.AttributeArray(spec.indexStorage, this.m_glesContext);
-                    /** @type {glsDrawTests.AttributeArray}*/ var rrArray = new glsDrawTests.AttributeArray(spec.indexStorage, this.m_refContext);
-
-                    //try { TODO: Delete indexArray?
-                        glArray.data(glsDrawTests.DrawTestSpec.Target.ELEMENT_ARRAY, indexArraySize, indexArray, glsDrawTests.DrawTestSpec.Usage.STATIC_DRAW);
-                        rrArray.data(glsDrawTests.DrawTestSpec.Target.ELEMENT_ARRAY, indexArraySize, indexArray, glsDrawTests.DrawTestSpec.Usage.STATIC_DRAW);
-
-                        this.m_glArrayPack.render(spec.primitive, spec.drawMethod, 0, primitiveElementCount, spec.indexType, spec.indexPointerOffset, spec.indexMin, spec.indexMax, spec.instanceCount, coordScale, colorScale, glArray);
-                        this.m_rrArrayPack.render(spec.primitive, spec.drawMethod, 0, primitiveElementCount, spec.indexType, spec.indexPointerOffset, spec.indexMin, spec.indexMax, spec.instanceCount, coordScale, colorScale, rrArray);
-
-                        //delete [] indexArray; //TODO:
-                        indexArray = null;
-                    /*} catch () {
-                        delete [] indexArray; //TODO:
-                        throw;
-                    }*/
+                    this.m_glArrayPack.render(spec.primitive, spec.drawMethod, 0, primitiveElementCount, spec.indexType, spec.indexPointerOffset, spec.indexMin, spec.indexMax, spec.instanceCount, coordScale, colorScale, glArray);
+                    this.m_rrArrayPack.render(spec.primitive, spec.drawMethod, 0, primitiveElementCount, spec.indexType, spec.indexPointerOffset, spec.indexMin, spec.indexMax, spec.instanceCount, coordScale, colorScale, rrArray);
                 } else {
                     this.m_glArrayPack.render(spec.primitive, spec.drawMethod, spec.first, primitiveElementCount, null, 0, 0, 0, spec.instanceCount, coordScale, colorScale, null);
                     this.m_rrArrayPack.render(spec.primitive, spec.drawMethod, spec.first, primitiveElementCount, null, 0, 0, 0, spec.instanceCount, coordScale, colorScale, null);
@@ -3450,7 +3466,7 @@ goog.scope(function() {
 
             return false;
         } else {
-            tcuImageCompare.displayImages(result.getAccess(), null, null);
+            tcuLogImage.logImageWithInfo(result.getAccess(), 'Result');
 
             return true;
         }

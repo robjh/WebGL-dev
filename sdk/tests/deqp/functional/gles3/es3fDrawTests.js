@@ -57,8 +57,8 @@ goog.scope(function() {
      * @enum
      */
     es3fDrawTests.TestIterationType = {
-        DRAW_COUNT: 0,        // !< test with 1, 5, and 25 primitives
-        INSTANCE_COUNT: 1,    // !< test with 1, 4, and 11 instances
+        DRAW_COUNT: 0,        // !< test with 2, 6, and 26 primitives
+        INSTANCE_COUNT: 1,    // !< test with 2, 4, and 12 instances
         INDEX_RANGE: 2
     };
 
@@ -71,40 +71,41 @@ goog.scope(function() {
     {
         /** @type {glsDrawTests.DrawTestSpec} */ var spec = /** @type {glsDrawTests.DrawTestSpec} */ (deUtil.clone(baseSpec));
 
+        //JS RefRast only draws quads, so changing the primitive counts, leave original commented
         if (type == es3fDrawTests.TestIterationType.DRAW_COUNT) {
-            spec.primitiveCount = 1;
-            test.addIteration(spec, "draw count = 1");
+            spec.primitiveCount = 2;
+            test.addIteration(spec, "draw count = 2");
 
-            spec.primitiveCount = 5;
-            test.addIteration(spec, "draw count = 5");
+            spec.primitiveCount = 6;
+            test.addIteration(spec, "draw count = 6");
 
-            spec.primitiveCount = 25;
-            test.addIteration(spec, "draw count = 25");
+            spec.primitiveCount = 26;
+            test.addIteration(spec, "draw count = 26");
         }
         else if (type == es3fDrawTests.TestIterationType.INSTANCE_COUNT) {
-            spec.instanceCount = 1;
-            test.addIteration(spec, "instance count = 1");
+            spec.instanceCount = 2;
+            test.addIteration(spec, "instance count = 2");
 
             spec.instanceCount = 4;
             test.addIteration(spec, "instance count = 4");
 
-            spec.instanceCount = 11;
-            test.addIteration(spec, "instance count = 11");
+            spec.instanceCount = 12;
+            test.addIteration(spec, "instance count = 12");
         }
         else if (type == es3fDrawTests.TestIterationType.INDEX_RANGE) {
             spec.indexMin = 0;
-            spec.indexMax = 23;
-            test.addIteration(spec, "index range = [0, 23]");
+            spec.indexMax = 24;
+            test.addIteration(spec, "index range = [0, 24]");
 
-            spec.indexMin = 23;
+            spec.indexMin = 24;
             spec.indexMax = 40;
-            test.addIteration(spec, "index range = [23, 40]");
+            test.addIteration(spec, "index range = [24, 40]");
 
             // Only makes sense with points
             if (spec.primitive == glsDrawTests.DrawTestSpec.Primitive.POINTS) {
-                spec.indexMin = 5;
-                spec.indexMax = 5;
-                test.addIteration(spec, "index range = [5, 5]");
+                spec.indexMin = 6;
+                spec.indexMax = 6;
+                test.addIteration(spec, "index range = [6, 6]");
             }
         }
         else
@@ -118,7 +119,7 @@ goog.scope(function() {
     es3fDrawTests.genBasicSpec = function (spec, method) {
         //spec.apiType                = glu::ApiType::es(3,0);
         spec.primitive                = glsDrawTests.DrawTestSpec.Primitive.TRIANGLES;
-        spec.primitiveCount            = 5;
+        spec.primitiveCount            = 6;
         spec.drawMethod                = method;
         spec.indexType                = null;
         spec.indexPointerOffset        = 0;
@@ -171,7 +172,11 @@ goog.scope(function() {
         this.m_primitive = primitive;
         this.m_indexType = indexType;
         this.m_indexStorage = indexStorage;
+        this.makeExecutable();
     };
+
+    es3fDrawTests.AttributeGroup.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
+    es3fDrawTests.AttributeGroup.prototype.constructor = es3fDrawTests.AttributeGroup;
 
     es3fDrawTests.AttributeGroup.prototype.init = function () {
         // select test type
@@ -182,12 +187,12 @@ goog.scope(function() {
             (ranged ? es3fDrawTests.TestIterationType.INDEX_RANGE : es3fDrawTests.TestIterationType.DRAW_COUNT);
 
         // Single attribute
-        /** @type {glsDrawTests.DrawTest} */ var test = new glsDrawTests.DrawTest("single_attribute", "Single attribute array.");
-        /** @type {glsDrawTests.DrawTestSpec} */ var spec;
+        /** @type {glsDrawTests.DrawTest} */ var test = new glsDrawTests.DrawTest(null, "single_attribute", "Single attribute array.");
+        /** @type {glsDrawTests.DrawTestSpec} */ var spec = new glsDrawTests.DrawTestSpec();
 
         //spec.apiType = glu::ApiType::es(3,0);
         spec.primitive = this.m_primitive;
-        spec.primitiveCount = 5;
+        spec.primitiveCount = 6; //JS refrast value for quads
         spec.drawMethod = this.m_method;
         spec.indexType = this.m_indexType;
         spec.indexPointerOffset = 0;
@@ -211,184 +216,179 @@ goog.scope(function() {
         spec.attribs[0].instanceDivisor = 0;
         spec.attribs[0].useDefaultAttribute = false;
 
-        this.addTestIterations(test, spec, testType);
+        es3fDrawTests.addTestIterations(test, spec, testType);
 
         this.addChild(test);
 
         // Multiple attribute
 
-        test = new glsDrawTests.DrawTest("multiple_attributes", "Multiple attribute arrays.");
-
-        spec.apiType                            = glu::ApiType::es(3,0);
-        spec.primitive                            = m_primitive;
-        spec.primitiveCount                        = 5;
-        spec.drawMethod                            = m_method;
-        spec.indexType                            = m_indexType;
-        spec.indexPointerOffset                    = 0;
-        spec.indexStorage                        = m_indexStorage;
-        spec.first                                = 0;
-        spec.indexMin                            = 0;
-        spec.indexMax                            = 0;
-        spec.instanceCount                        = 1;
+        test = new glsDrawTests.DrawTest(null, "multiple_attributes", "Multiple attribute arrays.");
+        spec.primitive = this.m_primitive;
+        spec.primitiveCount = 6; //JS refrast value for quads
+        spec.drawMethod = this.m_method;
+        spec.indexType = this.m_indexType;
+        spec.indexPointerOffset = 0;
+        spec.indexStorage = this.m_indexStorage;
+        spec.first = 0;
+        spec.indexMin = 0;
+        spec.indexMax = 0;
+        spec.instanceCount = 1;
 
         spec.attribs.length = 0;
 
         spec.attribs.push(new glsDrawTests.DrawTestSpec.AttributeSpec());
-        spec.attribs[0].inputType                = gls::DrawTestSpec::INPUTTYPE_FLOAT;
-        spec.attribs[0].outputType                = gls::DrawTestSpec::OUTPUTTYPE_VEC2;
-        spec.attribs[0].storage                    = gls::DrawTestSpec::STORAGE_BUFFER;
-        spec.attribs[0].usage                    = gls::DrawTestSpec::USAGE_STATIC_DRAW;
-        spec.attribs[0].componentCount            = 4;
-        spec.attribs[0].offset                    = 0;
-        spec.attribs[0].stride                    = 0;
-        spec.attribs[0].normalize                = false;
-        spec.attribs[0].instanceDivisor            = 0;
-        spec.attribs[0].useDefaultAttribute        = false;
+        spec.attribs[0].inputType = glsDrawTests.DrawTestSpec.InputType.FLOAT;
+        spec.attribs[0].outputType = glsDrawTests.DrawTestSpec.OutputType.VEC2;
+        spec.attribs[0].storage = glsDrawTests.DrawTestSpec.Storage.BUFFER;
+        spec.attribs[0].usage = glsDrawTests.DrawTestSpec.Usage.STATIC_DRAW;
+        spec.attribs[0].componentCount = 4;
+        spec.attribs[0].offset = 0;
+        spec.attribs[0].stride = 0;
+        spec.attribs[0].normalize = false;
+        spec.attribs[0].instanceDivisor = 0;
+        spec.attribs[0].useDefaultAttribute = false;
 
         spec.attribs.push(new glsDrawTests.DrawTestSpec.AttributeSpec());
-        spec.attribs[1].inputType                = gls::DrawTestSpec::INPUTTYPE_FLOAT;
-        spec.attribs[1].outputType                = gls::DrawTestSpec::OUTPUTTYPE_VEC2;
-        spec.attribs[1].storage                    = gls::DrawTestSpec::STORAGE_BUFFER;
-        spec.attribs[1].usage                    = gls::DrawTestSpec::USAGE_STATIC_DRAW;
-        spec.attribs[1].componentCount            = 2;
-        spec.attribs[1].offset                    = 0;
-        spec.attribs[1].stride                    = 0;
-        spec.attribs[1].normalize                = false;
-        spec.attribs[1].instanceDivisor            = 0;
-        spec.attribs[1].useDefaultAttribute        = false;
+        spec.attribs[1].inputType = glsDrawTests.DrawTestSpec.InputType.FLOAT;
+        spec.attribs[1].outputType = glsDrawTests.DrawTestSpec.OutputType.VEC2;
+        spec.attribs[1].storage = glsDrawTests.DrawTestSpec.Storage.BUFFER;
+        spec.attribs[1].usage = glsDrawTests.DrawTestSpec.Usage.STATIC_DRAW;
+        spec.attribs[1].componentCount = 2;
+        spec.attribs[1].offset = 0;
+        spec.attribs[1].stride = 0;
+        spec.attribs[1].normalize = false;
+        spec.attribs[1].instanceDivisor = 0;
+        spec.attribs[1].useDefaultAttribute = false;
 
-        addTestIterations(test, spec, testType);
+        es3fDrawTests.addTestIterations(test, spec, testType);
 
-        this->addChild(test);
+        this.addChild(test);
 
         // Multiple attribute, second one divided
-        {
-            glsDrawTests.DrawTest*        test                    = new glsDrawTests.DrawTest(m_testCtx, m_context.getRenderContext(), "instanced_attributes", "Instanced attribute array.");
-            glsDrawTests.DrawTestSpec    spec;
 
-            spec.apiType                                = glu::ApiType::es(3,0);
-            spec.primitive                                = m_primitive;
-            spec.primitiveCount                            = 5;
-            spec.drawMethod                                = m_method;
-            spec.indexType                                = m_indexType;
-            spec.indexPointerOffset                        = 0;
-            spec.indexStorage                            = m_indexStorage;
-            spec.first                                    = 0;
-            spec.indexMin                                = 0;
-            spec.indexMax                                = 0;
-            spec.instanceCount                            = 1;
+        test = new glsDrawTests.DrawTest(null, "instanced_attributes", "Instanced attribute array.");
 
-            spec.attribs.length = 0;
+        //spec.apiType                                = glu::ApiType::es(3,0);
+        spec.primitive                                = this.m_primitive;
+        spec.primitiveCount                            = 6; //JS refrast value for quads
+        spec.drawMethod                                = this.m_method;
+        spec.indexType                                = this.m_indexType;
+        spec.indexPointerOffset                        = 0;
+        spec.indexStorage                            = this.m_indexStorage;
+        spec.first                                    = 0;
+        spec.indexMin                                = 0;
+        spec.indexMax                                = 0;
+        spec.instanceCount                            = 1;
 
-            spec.attribs.push(new glsDrawTests.DrawTestSpec.AttributeSpec());
-            spec.attribs[0].inputType                    = glsDrawTests.DrawTestSpec::INPUTTYPE_FLOAT;
-            spec.attribs[0].outputType                    = glsDrawTests.DrawTestSpec::OUTPUTTYPE_VEC2;
-            spec.attribs[0].storage                        = glsDrawTests.DrawTestSpec::STORAGE_BUFFER;
-            spec.attribs[0].usage                        = glsDrawTests.DrawTestSpec::USAGE_STATIC_DRAW;
-            spec.attribs[0].componentCount                = 4;
-            spec.attribs[0].offset                        = 0;
-            spec.attribs[0].stride                        = 0;
-            spec.attribs[0].normalize                    = false;
-            spec.attribs[0].instanceDivisor                = 0;
-            spec.attribs[0].useDefaultAttribute            = false;
+        spec.attribs.length = 0;
 
-            // Add another position component so the instances wont be drawn on each other
-            spec.attribs.push(new glsDrawTests.DrawTestSpec.AttributeSpec());
-            spec.attribs[1].inputType                    = glsDrawTests.DrawTestSpec::INPUTTYPE_FLOAT;
-            spec.attribs[1].outputType                    = glsDrawTests.DrawTestSpec::OUTPUTTYPE_VEC2;
-            spec.attribs[1].storage                        = glsDrawTests.DrawTestSpec::STORAGE_BUFFER;
-            spec.attribs[1].usage                        = glsDrawTests.DrawTestSpec::USAGE_STATIC_DRAW;
-            spec.attribs[1].componentCount                = 2;
-            spec.attribs[1].offset                        = 0;
-            spec.attribs[1].stride                        = 0;
-            spec.attribs[1].normalize                    = false;
-            spec.attribs[1].instanceDivisor                = 1;
-            spec.attribs[1].useDefaultAttribute            = false;
-            spec.attribs[1].additionalPositionAttribute    = true;
+        spec.attribs.push(new glsDrawTests.DrawTestSpec.AttributeSpec());
+        spec.attribs[0].inputType                    = glsDrawTests.DrawTestSpec.InputType.FLOAT;
+        spec.attribs[0].outputType                    = glsDrawTests.DrawTestSpec.OutputType.VEC2;
+        spec.attribs[0].storage                        = glsDrawTests.DrawTestSpec.Storage.BUFFER;
+        spec.attribs[0].usage                        = glsDrawTests.DrawTestSpec.Usage.STATIC_DRAW;
+        spec.attribs[0].componentCount                = 4;
+        spec.attribs[0].offset                        = 0;
+        spec.attribs[0].stride                        = 0;
+        spec.attribs[0].normalize                    = false;
+        spec.attribs[0].instanceDivisor                = 0;
+        spec.attribs[0].useDefaultAttribute            = false;
 
-            // Instanced color
-            spec.attribs.push(new glsDrawTests.DrawTestSpec.AttributeSpec());
-            spec.attribs[2].inputType                    = glsDrawTests.DrawTestSpec::INPUTTYPE_FLOAT;
-            spec.attribs[2].outputType                    = glsDrawTests.DrawTestSpec::OUTPUTTYPE_VEC2;
-            spec.attribs[2].storage                        = glsDrawTests.DrawTestSpec::STORAGE_BUFFER;
-            spec.attribs[2].usage                        = glsDrawTests.DrawTestSpec::USAGE_STATIC_DRAW;
-            spec.attribs[2].componentCount                = 3;
-            spec.attribs[2].offset                        = 0;
-            spec.attribs[2].stride                        = 0;
-            spec.attribs[2].normalize                    = false;
-            spec.attribs[2].instanceDivisor                = 1;
-            spec.attribs[2].useDefaultAttribute            = false;
+        // Add another position component so the instances wont be drawn on each other
+        spec.attribs.push(new glsDrawTests.DrawTestSpec.AttributeSpec());
+        spec.attribs[1].inputType                    = glsDrawTests.DrawTestSpec.InputType.FLOAT;
+        spec.attribs[1].outputType                    = glsDrawTests.DrawTestSpec.OutputType.VEC2;
+        spec.attribs[1].storage                        = glsDrawTests.DrawTestSpec.Storage.BUFFER;
+        spec.attribs[1].usage                        = glsDrawTests.DrawTestSpec.Usage.STATIC_DRAW;
+        spec.attribs[1].componentCount                = 2;
+        spec.attribs[1].offset                        = 0;
+        spec.attribs[1].stride                        = 0;
+        spec.attribs[1].normalize                    = false;
+        spec.attribs[1].instanceDivisor                = 1;
+        spec.attribs[1].useDefaultAttribute            = false;
+        spec.attribs[1].additionalPositionAttribute    = true;
 
-            addTestIterations(test, spec, testType);
+        // Instanced color
+        spec.attribs.push(new glsDrawTests.DrawTestSpec.AttributeSpec());
+        spec.attribs[2].inputType = glsDrawTests.DrawTestSpec.InputType.FLOAT;
+        spec.attribs[2].outputType = glsDrawTests.DrawTestSpec.OutputType.VEC2;
+        spec.attribs[2].storage = glsDrawTests.DrawTestSpec.Storage.BUFFER;
+        spec.attribs[2].usage = glsDrawTests.DrawTestSpec.Usage.STATIC_DRAW;
+        spec.attribs[2].componentCount = 3;
+        spec.attribs[2].offset = 0;
+        spec.attribs[2].stride = 0;
+        spec.attribs[2].normalize = false;
+        spec.attribs[2].instanceDivisor = 1;
+        spec.attribs[2].useDefaultAttribute = false;
 
-            this->addChild(test);
-        }
+        es3fDrawTests.addTestIterations(test, spec, testType);
+
+        this.addChild(test);
 
         // Multiple attribute, second one default
-        {
-            glsDrawTests.DrawTest*        test                = new glsDrawTests.DrawTest(m_testCtx, m_context.getRenderContext(), "default_attribute", "Attribute specified with glVertexAttrib*.");
-            glsDrawTests.DrawTestSpec    spec;
+        test = new glsDrawTests.DrawTest(null, "default_attribute", "Attribute specified with glVertexAttrib*.");
 
-            spec.apiType                            = glu::ApiType::es(3,0);
-            spec.primitive                            = m_primitive;
-            spec.primitiveCount                        = 5;
-            spec.drawMethod                            = m_method;
-            spec.indexType                            = m_indexType;
-            spec.indexPointerOffset                    = 0;
-            spec.indexStorage                        = m_indexStorage;
-            spec.first                                = 0;
-            spec.indexMin                            = 0;
-            spec.indexMax                            = 20; // \note addTestIterations is not called for the spec, so we must ensure [indexMin, indexMax] is a good range
-            spec.instanceCount                        = 1;
+        //spec.apiType                            = glu::ApiType::es(3,0);
+        spec.primitive = this.m_primitive;
+        spec.primitiveCount = 6; //JS refrast value for quads
+        spec.drawMethod = this.m_method;
+        spec.indexType = this.m_indexType;
+        spec.indexPointerOffset = 0;
+        spec.indexStorage = this.m_indexStorage;
+        spec.first = 0;
+        spec.indexMin = 0;
+        spec.indexMax = 20; // \note addTestIterations is not called for the spec, so we must ensure [indexMin, indexMax] is a good range
+        spec.instanceCount = 1;
 
-            spec.attribs.length = 0;
+        spec.attribs.length = 0;
 
-            spec.attribs.push(new glsDrawTests.DrawTestSpec.AttributeSpec());
+        spec.attribs.push(new glsDrawTests.DrawTestSpec.AttributeSpec());
+        spec.attribs[0].inputType = glsDrawTests.DrawTestSpec.InputType.FLOAT;
+        spec.attribs[0].outputType = glsDrawTests.DrawTestSpec.OutputType.VEC2;
+        spec.attribs[0].storage = glsDrawTests.DrawTestSpec.Storage.BUFFER;
+        spec.attribs[0].usage = glsDrawTests.DrawTestSpec.Usage.STATIC_DRAW;
+        spec.attribs[0].componentCount = 2;
+        spec.attribs[0].offset = 0;
+        spec.attribs[0].stride = 0;
+        spec.attribs[0].normalize = false;
+        spec.attribs[0].instanceDivisor = 0;
+        spec.attribs[0].useDefaultAttribute = false;
 
-            spec.attribs[0].inputType                = glsDrawTests.DrawTestSpec::INPUTTYPE_FLOAT;
-            spec.attribs[0].outputType                = glsDrawTests.DrawTestSpec::OUTPUTTYPE_VEC2;
-            spec.attribs[0].storage                    = glsDrawTests.DrawTestSpec::STORAGE_BUFFER;
-            spec.attribs[0].usage                    = glsDrawTests.DrawTestSpec::USAGE_STATIC_DRAW;
-            spec.attribs[0].componentCount            = 2;
-            spec.attribs[0].offset                    = 0;
-            spec.attribs[0].stride                    = 0;
-            spec.attribs[0].normalize                = false;
-            spec.attribs[0].instanceDivisor            = 0;
-            spec.attribs[0].useDefaultAttribute        = false;
+        /**
+         * IOPair
+         */
+        es3fDrawTests.AttributeGroup.IOPair = function() {
+            /** @type {?glsDrawTests.DrawTestSpec.InputType} */ this.input = null;
+            /** @type {?glsDrawTests.DrawTestSpec.OutputType} */ this.output = null;
+            /** @type {number}*/ this.componentCount;
+        };
 
-            struct IOPair
-            {
-                glsDrawTests.DrawTestSpec::InputType  input;
-                glsDrawTests.DrawTestSpec::OutputType output;
-                int                              componentCount;
-            } iopairs[] =
-            {
-                { glsDrawTests.DrawTestSpec::INPUTTYPE_FLOAT,        glsDrawTests.DrawTestSpec::OUTPUTTYPE_VEC2,  4 },
-                { glsDrawTests.DrawTestSpec::INPUTTYPE_FLOAT,        glsDrawTests.DrawTestSpec::OUTPUTTYPE_VEC4,  2 },
-                { glsDrawTests.DrawTestSpec::INPUTTYPE_INT,          glsDrawTests.DrawTestSpec::OUTPUTTYPE_IVEC3, 4 },
-                { glsDrawTests.DrawTestSpec::INPUTTYPE_UNSIGNED_INT, glsDrawTests.DrawTestSpec::OUTPUTTYPE_UVEC2, 4 },
-            };
+        /** @type {Array<es3fDrawTests.AttributeGroup.IOPair>} */ var iopairs = [
+            /** @type {es3fDrawTests.AttributeGroup.IOPair} */ ({ input: glsDrawTests.DrawTestSpec.InputType.FLOAT, output: glsDrawTests.DrawTestSpec.OutputType.VEC2,  componentCount: 4 }),
+            /** @type {es3fDrawTests.AttributeGroup.IOPair} */ ({ input: glsDrawTests.DrawTestSpec.InputType.FLOAT, output: glsDrawTests.DrawTestSpec.OutputType.VEC4,  componentCount: 2 }),
+            /** @type {es3fDrawTests.AttributeGroup.IOPair} */ ({ input: glsDrawTests.DrawTestSpec.InputType.INT, output: glsDrawTests.DrawTestSpec.OutputType.IVEC3, componentCount: 4 }),
+            /** @type {es3fDrawTests.AttributeGroup.IOPair} */ ({ input: glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT, output: glsDrawTests.DrawTestSpec.OutputType.UVEC2, componentCount: 4 })
+        ];
 
-            for (int ioNdx = 0; ioNdx < DE_LENGTH_OF_ARRAY(iopairs); ++ioNdx)
-            {
-                const std::string desc = glsDrawTests.DrawTestSpec::inputTypeToString(iopairs[ioNdx].input) + de::toString(iopairs[ioNdx].componentCount) + " to " + glsDrawTests.DrawTestSpec::outputTypeToString(iopairs[ioNdx].output);
+        spec.attribs.push(new glsDrawTests.DrawTestSpec.AttributeSpec());
+        for (var ioNdx = 0; ioNdx < iopairs.length; ++ioNdx) {
+            /** @type {string} */ var desc = glsDrawTests.DrawTestSpec.inputTypeToString(iopairs[ioNdx].input) + iopairs[ioNdx].componentCount + " to " + glsDrawTests.DrawTestSpec.outputTypeToString(iopairs[ioNdx].output);
 
-                spec.attribs[1].inputType            = iopairs[ioNdx].input;
-                spec.attribs[1].outputType            = iopairs[ioNdx].output;
-                spec.attribs[1].storage                = glsDrawTests.DrawTestSpec::STORAGE_BUFFER;
-                spec.attribs[1].usage                = glsDrawTests.DrawTestSpec::USAGE_STATIC_DRAW;
-                spec.attribs[1].componentCount        = iopairs[ioNdx].componentCount;
-                spec.attribs[1].offset                = 0;
-                spec.attribs[1].stride                = 0;
-                spec.attribs[1].normalize            = false;
-                spec.attribs[1].instanceDivisor        = 0;
-                spec.attribs[1].useDefaultAttribute    = true;
+            spec.attribs[1].inputType            = iopairs[ioNdx].input;
+            spec.attribs[1].outputType            = iopairs[ioNdx].output;
+            spec.attribs[1].storage                = glsDrawTests.DrawTestSpec.Storage.BUFFER;
+            spec.attribs[1].usage                = glsDrawTests.DrawTestSpec.Usage.STATIC_DRAW;
+            spec.attribs[1].componentCount        = iopairs[ioNdx].componentCount;
+            spec.attribs[1].offset                = 0;
+            spec.attribs[1].stride                = 0;
+            spec.attribs[1].normalize            = false;
+            spec.attribs[1].instanceDivisor        = 0;
+            spec.attribs[1].useDefaultAttribute    = true;
 
-                test->addIteration(spec, desc.c_str());
-            }
-
-            this.addChild(test);
+            test.addIteration(spec, desc);
         }
+
+        this.addChild(test);
     };
 
     /**
@@ -401,8 +401,11 @@ goog.scope(function() {
     es3fDrawTests.IndexGroup = function (name, descr, drawMethod) {
         tcuTestCase.DeqpTest.call(this, name, descr);
         /** @type {?glsDrawTests.DrawTestSpec.DrawMethod} */ this.m_method = drawMethod;
+        this.makeExecutable();
     };
 
+    es3fDrawTests.IndexGroup.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
+    es3fDrawTests.IndexGroup.prototype.constructor = es3fDrawTests.IndexGroup;
 
     es3fDrawTests.IndexGroup.prototype.init = function () {
         /**
@@ -410,8 +413,8 @@ goog.scope(function() {
          * IndexTest
          */
         es3fDrawTests.IndexGroup.IndexTest = function() {
-            /** @type {glsDrawTests.DrawTestSpec.Storage} */ this.storage = null;
-            /** @type {glsDrawTests.DrawTestSpec.IndexType} */ this.type = null;
+            /** @type {?glsDrawTests.DrawTestSpec.Storage} */ this.storage = null;
+            /** @type {?glsDrawTests.DrawTestSpec.IndexType} */ this.type = null;
             /** @type {boolean} */ this.aligned;
             /** @type {Array<number>} */ this.offsets = [];
         };
@@ -472,6 +475,7 @@ goog.scope(function() {
     es3fDrawTests.FirstGroup = function (name, descr, drawMethod) {
         tcuTestCase.DeqpTest.call(this, name, descr);
         /** @type {?glsDrawTests.DrawTestSpec.DrawMethod} */ this.m_method = drawMethod;
+        this.makeExecutable();
     };
 
     es3fDrawTests.FirstGroup.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
@@ -513,6 +517,7 @@ goog.scope(function() {
     es3fDrawTests.MethodGroup = function (name, descr, drawMethod) {
         tcuTestCase.DeqpTest.call(this, name, descr);
         /** @type {?glsDrawTests.DrawTestSpec.DrawMethod} */ this.m_method = drawMethod;
+        this.makeExecutable();
     };
 
     es3fDrawTests.MethodGroup.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
@@ -521,8 +526,7 @@ goog.scope(function() {
     /**
      * init
      */
-    es3fDrawTests.MethodGroup.prototype.init = function ()
-    {
+    es3fDrawTests.MethodGroup.prototype.init = function() {
         var indexed = (this.m_method == glsDrawTests.DrawTestSpec.DrawMethod.DRAWELEMENTS) || (this.m_method == glsDrawTests.DrawTestSpec.DrawMethod.DRAWELEMENTS_INSTANCED) || (this.m_method == glsDrawTests.DrawTestSpec.DrawMethod.DRAWELEMENTS_RANGED);
         var hasFirst = (this.m_method == glsDrawTests.DrawTestSpec.DrawMethod.DRAWARRAYS) || (this.m_method == glsDrawTests.DrawTestSpec.DrawMethod.DRAWARRAYS_INSTANCED);
 
@@ -565,6 +569,7 @@ goog.scope(function() {
      */
     es3fDrawTests.DrawTest = function () {
         tcuTestCase.DeqpTest.call(this, 'draw', 'Drawing tests');
+        this.makeExecutable();
     };
 
     es3fDrawTests.DrawTest.prototype = Object.create(tcuTestCase.DeqpTest.prototype);

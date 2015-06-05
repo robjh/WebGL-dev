@@ -327,7 +327,7 @@ goog.scope(function() {
 
                     //If it's a leaf test, notify of it's execution.
                     if (state.currentTest.isLeaf())
-                        debug('Start testcase: ' + fullTestName);
+                        debug('<hr/><br/>Start testcase: ' + fullTestName);
                 }
 
                 // Run the test, save the result.
