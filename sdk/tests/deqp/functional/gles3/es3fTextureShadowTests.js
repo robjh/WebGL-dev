@@ -54,6 +54,11 @@ var tcuTexLookupVerifier = framework.common.tcuTexLookupVerifier;
 
     es3fTextureShadowTests.version = '300 es';
 
+    var DE_ASSERT = function(x) {
+        if (!x)
+            throw new Error('Assert failed');
+    };
+
     /**
      * @param {tcuTexture.TextureFormat} format
      * @return {boolean}
@@ -64,13 +69,23 @@ var tcuTexLookupVerifier = framework.common.tcuTexLookupVerifier;
     };
 
     /**
-     * @param {tcuTexture.Texture2D} target
-     * @return {tcuTexture.Texture2D}
+     * @param {tcuTexture.PixelBufferAccess} access
      */
-    es3fTextureShadowTests.clampFloatingPointTextureTexture2D = function(target) {
-        //TODO: Implement
+    es3fTextureShadowTests.clampFloatingPointTexture = function (access) {
+        DE_ASSERT(es3fTextureShadowTests.isFloatingPointDepthFormat(access.getFormat()));
+        for (var z = 0; z < access.getDepth(); ++z)
+            for (var y = 0; y < access.getHeight(); ++y)
+                for (var x = 0; x < access.getWidth(); ++x)
+                    access.setPixDepth(deMath.clamp(access.getPixDepth(x, y, z), 0.0, 1.0), x, y, z);
+    };
 
-        return target;
+    /**
+     * @param {tcuTexture.Texture2D} target
+     */
+    es3fTextureShadowTests.clampFloatingPointTexture2D = function(target) {
+        for (var level = 0; level < target.getNumLevels(); ++level)
+		if (!target.isLevelEmpty(level))
+            es3fTextureShadowTests.clampFloatingPointTexture(target.getLevel(level));
     };
 
     /**
@@ -92,7 +107,7 @@ var tcuTexLookupVerifier = framework.common.tcuTexLookupVerifier;
         if (es3fTextureShadowTests.isFloatingPointDepthFormat(src.getFormat())) {
             var clampedSource = new tcuTexture.Texture2D(src.getFormat(), src.getWidth(), src.getHeight());
 
-            es3fTextureShadowTests.clampFloatingPointTextureTexture2D(clampedSource);
+            es3fTextureShadowTests.clampFloatingPointTexture2D(clampedSource);
 
             // sample clamped values
             glsTextureTestUtil.sampleTexture2D(new glsTextureTestUtil.SurfaceAccess(reference, pixelFormat), clampedSource.m_view, texCoord, sampleParams);
@@ -109,7 +124,7 @@ var tcuTexLookupVerifier = framework.common.tcuTexLookupVerifier;
         if (numFailedPixels > 0)
             tcuImageCompare.displayImages(result, reference.getAccess(), errorMask.getAccess());
         else
-            tcuImageCompare.displayImages(result);
+            tcuImageCompare.displayImages(result, null);
 
         return numFailedPixels == 0;
 
