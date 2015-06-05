@@ -3252,8 +3252,15 @@ goog.scope(function() {
         }
 
         var primitiveType = sglrReferenceUtils.mapGLPrimitiveType(primitive);
+
+        var renderFunction = rrRenderer.drawQuads;
+        if (primitiveType == rrRenderer.PrimitiveType.LINES ||
+            primitiveType == rrRenderer.PrimitiveType.LINE_STRIP ||
+            primitiveType == rrRenderer.PrimitiveType.LINE_LOOP)
+            renderFunction = rrRenderer.drawLines;
+
         for (var instanceID = 0; instanceID < instances; instanceID++)
-            rrRenderer.drawQuads(state, renderTarget, program, vertexAttribs, primitiveType, first, count, instanceID);
+            renderFunction(state, renderTarget, program, vertexAttribs, primitiveType, first, count, instanceID);
     };
 
     /**

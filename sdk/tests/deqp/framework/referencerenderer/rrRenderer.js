@@ -257,6 +257,27 @@ rrRenderer.PrimitiveList.prototype.getNextPrimitive = function(reset) {
                 this.m_iterator += 2;
             }
             break;
+        case rrRenderer.PrimitiveType.LINES:
+            if (this.m_iterator + 2 <= this.m_numElements) {
+                result = [i, i + 1];
+                this.m_iterator += 2;
+            }
+            break;
+        case rrRenderer.PrimitiveType.LINE_STRIP:
+            if (this.m_iterator + 2 <= this.m_numElements) {
+                result = [i, i + 1];
+                this.m_iterator += 1;
+            }
+            break;
+        case rrRenderer.PrimitiveType.LINE_LOOP:
+            if (this.m_iterator == this.m_numElements)
+                break;
+            if (this.m_iterator + 2 <= this.m_numElements)
+                result = [i, i + 1];
+            else
+                result = [i, 0];
+            this.m_iterator += 1;
+            break;
         default:
             throw new Error('Unsupported primitive type: ' + deString.enumToString(rrRenderer.PrimitiveType, this.m_primitiveType));
     }
@@ -627,6 +648,128 @@ rrRenderer.drawQuads = function(state, renderTarget, program, vertexAttribs, pri
 
         rrRenderer.writeFragments2(state, renderTarget, packetsTopLeft);
         rrRenderer.writeFragments2(state, renderTarget, packetsBottomRight);
+    }
+};
+
+
+/**
+ * @param {rrRenderState.RenderState} state
+ * @param {rrRenderer.RenderTarget} renderTarget
+ * @param {sglrShaderProgram.ShaderProgram} program
+ * @param {Array<rrVertexAttrib.VertexAttrib>} vertexAttribs
+ * @param {rrRenderer.PrimitiveType} primitive
+ * @param {(number|rrRenderer.DrawIndices)} first Index of first quad vertex
+ * @param {number} count Number of indices
+ * @param {number} instanceID
+ */
+rrRenderer.drawLines = function(state, renderTarget, program, vertexAttribs, primitive, first, count, instanceID) {
+    /**
+     * @param {number} x
+     * @param {Array<number>} depths
+     * @return {number}
+     */
+    var interpolate = function(x, y, depths) {
+        var d = x * depths[0] + (1 - x) * depths[1];
+        return d;
+    };
+
+    /**
+     * @param {Array<rrVertexPacket.VertexPacket>} vertices
+     * @param {Array<number>} indices
+     * @return {Array<rrVertexPacket.VertexPacket>}
+     */
+    var selectVertices = function(vertices, indices) {
+        var result = [];
+        for (var i = 0; i < indices.length; i++)
+            result.push(vertices[indices[i]]);
+        return result;
+    };
+
+    var primitives = new rrRenderer.PrimitiveList(primitive, count, first);
+    // Do not draw if nothing to draw
+    if (primitives.getNumElements() == 0)
+        return;
+
+    // Prepare transformation
+    var numVaryings = program.vertexShader.getOutputs().length;
+    var vpalloc = new rrVertexPacket.VertexPacketAllocator(numVaryings);
+    var vertexPackets = vpalloc.allocArray(primitives.getNumElements());
+    var drawContext = new rrRenderer.DrawContext();
+    drawContext.primitiveID = 0;
+
+    var numberOfVertices = primitives.getNumElements();
+    var numVertexPackets = 0;
+    for (var elementNdx = 0; elementNdx < numberOfVertices; ++elementNdx) {
+
+        // input
+        vertexPackets[numVertexPackets].instanceNdx = instanceID;
+        vertexPackets[numVertexPackets].vertexNdx = primitives.getIndex(elementNdx);
+
+        // output
+        vertexPackets[numVertexPackets].pointSize = state.point.pointSize; // default value from the current state
+        vertexPackets[numVertexPackets].position = [0, 0, 0, 0]; // no undefined values
+
+        ++numVertexPackets;
+
+    }
+    program.shadeVertices(vertexAttribs, vertexPackets, numVertexPackets);
+
+    // For each quad, we get a group of six vertex packets
+    for (var prim = primitives.getNextPrimitive(true); prim.length > 0; prim = primitives.getNextPrimitive()) {
+        var linePackets = selectVertices(vertexPackets, prim);
+
+        var v0 = rrRenderer.transformGLToWindowCoords(state, linePackets[0]);
+        var v1 = rrRenderer.transformGLToWindowCoords(state, linePackets[1]);
+        v0[2] = linePackets[0].position[2];
+        v1[2] = linePackets[1].position[2];
+
+        v0[0] = Math.round(v0[0]);
+        v0[1] = Math.round(v0[1]);
+        v1[0] = Math.round(v1[0]);
+        v1[1] = Math.round(v1[1]);
+
+        var lineWidth = 1;
+        var width = v1[0] - v0[0];
+        if (width == 0)
+            width = lineWidth;
+
+        var height = v1[1] - v0[1];
+        if (height == 0)
+            height = lineWidth;
+
+
+        var xstep = width > 0  ? 1 : -1;
+        var ystep = height > 0 ? 1 : -1;
+
+        width = Math.abs(width);
+        height = Math.abs(height);
+
+        var shadingContext = new rrShadingContext.FragmentShadingContext(
+            linePackets[0].outputs,
+            linePackets[1].outputs,
+            linePackets[1].outputs
+        );
+        var packets = [];
+
+        for (var i = 0; i < width; i++)
+            for (var j = 0; j < height; j++) {
+                var x = v0[0] + i * xstep + 0.5;
+                var y = v0[1] + j * ystep + 0.5;
+
+                var xf = (i + 0.5) / width;
+                var yf = (j + 0.5) / height;
+                var depth =interpolate(xf, yf, [v0[2], v1[2]]);
+                var length = Math.sqrt((width - 1) * (width - 1) + (height -1 )* (height -1 ));
+                var pos = Math.sqrt(i * i + j * j);
+                var b = [0, 0, 0];
+                b[1] = pos/length;
+                b[0] = 1 - b[1]; 
+                packets.push(new rrFragmentOperations.Fragment(b, [v0[0] + i * xstep, v0[1] + j * ystep], depth));
+            }
+
+        program.shadeFragments(packets, shadingContext);
+
+        rrRenderer.writeFragments2(state, renderTarget, packets);
     }
 };
 
