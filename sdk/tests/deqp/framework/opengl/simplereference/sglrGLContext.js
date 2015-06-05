@@ -83,7 +83,7 @@ goog.scope(function() {
                 wrap[i] = context[i];
               }
             } catch (e) {
-              throw new Error("GLContext: Error accessing " + i);
+              throw new Error('GLContext: Error accessing ' + i);
             }
         }
         if (viewport)

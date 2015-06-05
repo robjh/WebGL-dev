@@ -23,6 +23,7 @@ goog.provide('framework.referencerenderer.rrRenderer');
 goog.require('framework.common.tcuTexture');
 goog.require('framework.common.tcuTextureUtil');
 goog.require('framework.delibs.debase.deMath');
+goog.require('framework.delibs.debase.deString');
 goog.require('framework.opengl.simplereference.sglrShaderProgram');
 goog.require('framework.referencerenderer.rrDefs');
 goog.require('framework.referencerenderer.rrFragmentOperations');
@@ -32,8 +33,6 @@ goog.require('framework.referencerenderer.rrRenderState');
 goog.require('framework.referencerenderer.rrShadingContext');
 goog.require('framework.referencerenderer.rrVertexAttrib');
 goog.require('framework.referencerenderer.rrVertexPacket');
-goog.require('framework.delibs.debase.deString');
-
 
 goog.scope(function() {
 
@@ -519,7 +518,7 @@ rrRenderer.calculateDepth = function(x, y, depths) {
  * @param {sglrShaderProgram.ShaderProgram} program
  * @param {Array<rrVertexAttrib.VertexAttrib>} vertexAttribs
  * @param {rrRenderer.PrimitiveType} primitive
- * @param {number} first Index of first quad vertex
+ * @param {(number|rrRenderer.DrawIndices)} first Index of first quad vertex
  * @param {number} count Number of indices
  * @param {number} instanceID
  */
@@ -535,9 +534,9 @@ rrRenderer.drawQuads = function(state, renderTarget, program, vertexAttribs, pri
         for (var i = 0; i < indices.length; i++)
             result.push(vertices[indices[i]]);
         return result;
-    }
+    };
 
-    var primitives = new rrRenderer.PrimitiveList(primitive, count, first); // 2 triangles per quad with 3 vertices each = 6 vertices.
+    var primitives = new rrRenderer.PrimitiveList(primitive, count, first);
     // Do not draw if nothing to draw
     if (primitives.getNumElements() == 0)
         return;

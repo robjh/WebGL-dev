@@ -726,17 +726,17 @@ deMath.toIVec = function(a) {
 };
 
 /**
- * @param{number} a
- * @return{number}
+ * @param {number} a
+ * @return {number}
  */
  deMath.clz32 = function(a) {
-   /** @type{number} */ var maxValue = 2147483648; // max 32 bit number
-   /** @type{number} */ var leadingZeros = 0;
+   /** @type {number} */ var maxValue = 2147483648; // max 32 bit number
+   /** @type {number} */ var leadingZeros = 0;
    while (a < maxValue) {
      maxValue = maxValue >>> 1;
      leadingZeros++;
    }
    return leadingZeros;
-}
+};
 
 });

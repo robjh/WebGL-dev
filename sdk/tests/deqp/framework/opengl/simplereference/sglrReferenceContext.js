@@ -1665,7 +1665,7 @@ goog.scope(function() {
         if (this.condtionalSetError(this.m_vertexArrayBinding != null && this.m_arrayBufferBinding == null && offset != 0, gl.INVALID_OPERATION))
             return;
 
-        /** @type {(sglrReferenceContext.VertexArray.VertexAttribArray|null)} */ var array_ = this.m_vertexArrayBinding.m_arrays[index]; // TODO: fix type
+        /** @type {?(sglrReferenceContext.VertexArray.VertexAttribArray)} */ var array_ = this.m_vertexArrayBinding.m_arrays[index]; // TODO: fix type
 
         array_.size = rawSize;
         array_.stride = stride;
@@ -1698,7 +1698,7 @@ goog.scope(function() {
         if (this.condtionalSetError(this.m_vertexArrayBinding != null && this.m_arrayBufferBinding == null && offset != 0, gl.INVALID_OPERATION))
             return;
 
-        /** @type {(sglrReferenceContext.VertexArray.VertexAttribArray|null)} */ var array_ = this.m_vertexArrayBinding.m_arrays[index]; // TODO: fix type
+        /** @type {?(sglrReferenceContext.VertexArray.VertexAttribArray)} */ var array_ = this.m_vertexArrayBinding.m_arrays[index]; // TODO: fix type
 
         array_.size = size;
         array_.stride = stride;
@@ -2279,7 +2279,7 @@ goog.scope(function() {
                 else if (type == sglrReferenceContext.TextureType.TYPE_CUBE_MAP)
                     //TODO: Implement getFace for cubemaps
                     //return texture.getFace(attachment.level, sglrReferenceContext.texTargetToFace(attachment.texTarget));
-                    throw new Error("Not implemented.");
+                    throw new Error('Not implemented.');
                 else if (type == sglrReferenceContext.TextureType.TYPE_2D_ARRAY ||
                         type == sglrReferenceContext.TextureType.TYPE_3D ||
                         type == sglrReferenceContext.TextureType.TYPE_CUBE_MAP_ARRAY) {
@@ -2496,36 +2496,72 @@ goog.scope(function() {
         this.drawQuads(mode, first, count, instanceCount);
     };
 
-    // sglrReferenceContext.ReferenceContext.prototype.drawElements = function(mode, count, type, offset) {
-    //     this.drawElementsInstanced(mode, count, type, offset, 1);
-    // };
+    /**
+    * @param {number} mode GL primitive type to draw with.
+    * @param {number} start
+    * @param {number} end
+    * @param {number} count How many vertices to draw (not counting vertices before first)
+    * @param {number} type Data type
+    * @param {number} offset
+    */
+    sglrReferenceContext.ReferenceContext.prototype.drawRangeElements = function(mode, start, end, count, type, offset) {
+        if (this.condtionalSetError(end < start, gl.INVALID_VALUE))
+            return;
 
-    // sglrReferenceContext.ReferenceContext.prototype.drawElementsInstanced = function(mode, count, type, offset, instanceCount) {
-    //     this.drawElementsInstancedBaseVertex(mode, count, type, offset, instanceCount, 0);
-    // }
+        this.drawElements(mode, count, type, offset);
+    };
 
-    // sglrReferenceContext.ReferenceContext.prototype.drawElementsInstancedBaseVertex = function(mode, count, type, offset, instanceCount, baseVertex) {
-    //     var vao = this.m_vertexArrayBinding;
 
-    //     if (this.condtionalSetError(type != gl.UNSIGNED_BYTE &&
-    //                 type != gl.UNSIGNED_SHORT &&
-    //                 type != gl.UNSIGNED_INT, gl.INVALID_ENUM))
-    //         return;
-    //     if (this.condtionalSetError(count < 0 || instanceCount < 0, gl.INVALID_VALUE))
-    //         return;
+    /**
+    * @param {number} mode GL primitive type to draw with.
+    * @param {number} count How many vertices to draw (not counting vertices before first)
+    * @param {number} type Data type
+    * @param {number} offset
+    */
+    sglrReferenceContext.ReferenceContext.prototype.drawElements = function(mode, count, type, offset) {
+        this.drawElementsInstanced(mode, count, type, offset, 1);
+    };
 
-    //     if (!this.predrawErrorChecks(mode))
-    //         return;
+    /**
+    * @param {number} mode GL primitive type to draw with.
+    * @param {number} count How many vertices to draw (not counting vertices before first)
+    * @param {number} type Data type
+    * @param {number} offset
+    * @param {number} instanceCount
+    */
+    sglrReferenceContext.ReferenceContext.prototype.drawElementsInstanced = function(mode, count, type, offset, instanceCount) {
+        this.drawElementsInstancedBaseVertex(mode, count, type, offset, instanceCount, 0);
+    };
 
-    //     if (this.condtionalSetError(count >0 && !vao.m_elementArrayBufferBinding, gl.INVALID_OPERATION))
-    //         return;
-    //     // All is ok
-    //     var primitiveType = sglrReferenceUtils.mapGLPrimitiveType(mode);
-    //     var data = vao.m_elementArrayBufferBinding.getData();
-    //     var indices = new rrRenderer.DrawIndices(data, sglrReferenceUtils.mapGLIndexType(type), baseVertex);
+    /**
+    * @param {number} mode GL primitive type to draw with.
+    * @param {number} count How many vertices to draw (not counting vertices before first)
+    * @param {number} type Data type
+    * @param {number} offset
+    * @param {number} instanceCount
+    * @param {number} baseVertex
+    */
+    sglrReferenceContext.ReferenceContext.prototype.drawElementsInstancedBaseVertex = function(mode, count, type, offset, instanceCount, baseVertex) {
+        var vao = this.m_vertexArrayBinding;
 
-    //     this.drawWithReference(new rrRenderer.PrimitiveList(primitiveType, count, indices), instanceCount);
-    // };
+        if (this.condtionalSetError(type != gl.UNSIGNED_BYTE &&
+                    type != gl.UNSIGNED_SHORT &&
+                    type != gl.UNSIGNED_INT, gl.INVALID_ENUM))
+            return;
+        if (this.condtionalSetError(count < 0 || instanceCount < 0, gl.INVALID_VALUE))
+            return;
+
+        if (!this.predrawErrorChecks(mode))
+            return;
+
+        if (this.condtionalSetError(count > 0 && !vao.m_elementArrayBufferBinding, gl.INVALID_OPERATION))
+            return;
+        // All is ok
+        var data = vao.m_elementArrayBufferBinding.getData();
+        var indices = new rrRenderer.DrawIndices(data, sglrReferenceUtils.mapGLIndexType(type), baseVertex);
+
+        this.drawQuads(mode, indices, count, instanceCount);
+    };
 
     /**
     * @param {rrMultisamplePixelBufferAccess.MultisamplePixelBufferAccess} access
@@ -3016,7 +3052,7 @@ goog.scope(function() {
     /**
     * Draws quads from vertex arrays
     * @param {number} primitive GL primitive type to draw with.
-    * @param {number} first First vertex to begin drawing with
+    * @param {(number|rrRenderer.DrawIndices)} first First vertex to begin drawing with
     * @param {number} count Number of vertices
     * @param {number=} instances Number of instances
     */
@@ -3215,9 +3251,8 @@ goog.scope(function() {
             }
         }
 
-
         var primitiveType = sglrReferenceUtils.mapGLPrimitiveType(primitive);
-        for (var instanceID = 0 ; instanceID < instances; instanceID++)
+        for (var instanceID = 0; instanceID < instances; instanceID++)
             rrRenderer.drawQuads(state, renderTarget, program, vertexAttribs, primitiveType, first, count, instanceID);
     };
 
@@ -3814,7 +3849,7 @@ goog.scope(function() {
                 /** @type {?tcuTexture.FilterMode} */ var minMode = sglrReferenceContext.mapGLFilterMode(value);
                 if (this.condtionalSetError(null == minMode, gl.INVALID_VALUE))
                     return;
-                texture.getSampler().minFilter =minMode;
+                texture.getSampler().minFilter = minMode;
                 break;
             }
 
