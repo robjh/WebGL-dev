@@ -465,7 +465,7 @@ goog.scope(function() {
     		// Query and log number of samples per pixel.
 
     		this.m_numSamples = /** @type {number} */ (gl.getParameter(gl.SAMPLES)); // TODO: check this call. Was getIntegerv
-    	    bufferedLogToConsole('gl.SAMPLES =' + m_numSamples);
+    	    bufferedLogToConsole('gl.SAMPLES =' + this.m_numSamples);
     	}
 
     	// Prepare program.
@@ -571,7 +571,7 @@ goog.scope(function() {
     es3fMultisampleTests.NumSamplesCase.prototype.constructor = es3fMultisampleTests.NumSamplesCase;
 
     /**
-     * @return {return tcuTestCase.IterateResult}
+     * @return {tcuTestCase.IterateResult}
      */
     es3fMultisampleTests.NumSamplesCase.prototype.iterate = function() {
         //TestLog&		log				= m_testCtx.getLog();
@@ -640,12 +640,12 @@ goog.scope(function() {
     * @constructor
     * @param {string} name
     * @param {string} desc
-    * @param {numFboSamples=} numFboSamples
+    * @param {number=} numFboSamples
     */
     es3fMultisampleTests.PolygonNumSamplesCase = function(name, desc, numFboSamples) {
         numFboSamples = numFboSamples === undefined ? 0 : numFboSamples;
         /** @type {es3fMultisampleTests.FboParams} */
-        var params = numFboSamples >= 0 ? new FboParams(numFboSamples, false, false) : new FboParams();
+        var params = numFboSamples >= 0 ? new es3fMultisampleTests.FboParams(numFboSamples, false, false) : new es3fMultisampleTests.FboParams();
         es3fMultisampleTests.NumSamplesCase.call(this, name, desc, params);
     };
 
@@ -675,12 +675,12 @@ goog.scope(function() {
     * @constructor
     * @param {string} name
     * @param {string} desc
-    * @param {numFboSamples=} numFboSamples
+    * @param {number=} numFboSamples
     */
     es3fMultisampleTests.LineNumSamplesCase = function(name, desc, numFboSamples) {
         numFboSamples = numFboSamples === undefined ? 0 : numFboSamples;
         /** @type {es3fMultisampleTests.FboParams} */
-        var params = numFboSamples >= 0 ? new FboParams(numFboSamples, false, false) : new FboParams();
+        var params = numFboSamples >= 0 ? new es3fMultisampleTests.FboParams(numFboSamples, false, false) : new es3fMultisampleTests.FboParams();
         es3fMultisampleTests.NumSamplesCase.call(this, name, desc, params);
     };
 
@@ -698,7 +698,7 @@ goog.scope(function() {
         // center of the pattern.
         /** @type {number} */ var numLines = Math.floor(100.0 * Math.sqrt(this.m_viewportSize / 256.0));
 
-        for (int i = 0; i < numLines; i++) {
+        for (var i = 0; i < numLines; i++) {
             /** @type {number} */ var angle = 2.0 * Math.PI * i / numLines + 0.001 * this.m_currentIteration;
             this.renderLine([0.0, 0.0], [Math.cos(angle) * 0.95, Math.sin(angle) * 0.95], [1.0, 1.0, 1.0, 1.0]);
         }
@@ -717,19 +717,19 @@ goog.scope(function() {
      * @constructor
      * @param {string} name
      * @param {string} desc
-     * @param {es3fMultisampleTests.CaseType} caseType
+     * @param {es3fMultisampleTests.CommonEdgeCase.CaseType} caseType
      * @param {number} numFboSamples
      */
     es3fMultisampleTests.CommonEdgeCase = function(name, desc, caseType, numFboSamples) {
         /** @type {number} */ var cases = caseType === es3fMultisampleTests.CommonEdgeCase.CaseType.SMALL_QUADS ? 128 : 32;
         numFboSamples = numFboSamples === undefined ? 0 : numFboSamples;
         /** @type {es3fMultisampleTests.FboParams} */
-        var params = numFboSamples >= 0 ? new FboParams(numFboSamples, false, false) : new FboParams();
+        var params = numFboSamples >= 0 ? new es3fMultisampleTests.FboParams(numFboSamples, false, false) : new es3fMultisampleTests.FboParams();
 
         es3fMultisampleTests.MultisampleCase.call(this, name, desc, cases, params);
         /** @type {number} */ var DEFAULT_SMALL_QUADS_ITERATIONS = 16;
         /** @type {number} */ var DEFAULT_BIGGER_THAN_VIEWPORT_QUAD_ITERATIONS = 64; // 8*8
-        /** @type {es3fMultisampleTests.CaseType} */ this.m_caseType = caseType;
+        /** @type {es3fMultisampleTests.CommonEdgeCase.CaseType} */ this.m_caseType = caseType;
         /** @type {number} */ this.m_currentIteration = 0;
         /** @type {number} */
         this.m_numIterations = caseType === es3fMultisampleTests.CommonEdgeCase.CaseType.SMALL_QUADS ? es3fMultisampleTests.getIterationCount(DEFAULT_SMALL_QUADS_ITERATIONS) :
@@ -774,8 +774,8 @@ goog.scope(function() {
      */
     es3fMultisampleTests.CommonEdgeCase.prototype.iterate = function() {
     	var log = bufferedLogToConsole;
-    	/** @type {tcuSurface.Surface} */ var renderedImg = new tcuSurface.Suface(this.m_viewportSize, this.m_viewportSize);
-    	/** @type {tcuSurface.Surface} */ var errorImg = new tcuSurface.Suface(this.m_viewportSize, this.m_viewportSize);
+    	/** @type {tcuSurface.Surface} */ var renderedImg = new tcuSurface.Surface(this.m_viewportSize, this.m_viewportSize);
+    	/** @type {tcuSurface.Surface} */ var errorImg = new tcuSurface.Surface(this.m_viewportSize, this.m_viewportSize);
 
 
     	this.randomizeViewport();
@@ -790,13 +790,19 @@ goog.scope(function() {
     	/** @type {Array<es3fMultisampleTests.QuadCorners>} */ var unicoloredRegions;
 
         /** @type {Array<Array<number>>} */ var corners;
+        /** @type {number} */ var angleCos;
+        /** @type {number} */ var angleSin;
+        /** @type {number} */ var angle;
+        /** @type {number} */ var quadDiagLen;
+        /** @type {number} */ var unicolorRegionScale;
+        /** @type {number} */ var quadBaseAngleNdx
+        /** @type {number} */ var quadSubAngleNdx;
 
     	if (this.m_caseType == es3fMultisampleTests.CommonEdgeCase.CaseType.SMALL_QUADS) {
     		// Draw several quads, rotated at different angles.
 
-    		/** @type {number} */ var quadDiagLen = 2.0 / 3.0 * 0.9; // \note Fit 3 quads in both x and y directions.
-    		/** @type {number} */ var angleCos;
-    		/** @type {number} */ var angleSin;
+    		quadDiagLen = 2.0 / 3.0 * 0.9; // \note Fit 3 quads in both x and y directions.
+
 
     		// \note First and second iteration get exact 0 (and 90, 180, 270) and 45 (and 135, 225, 315) angle quads, as they are kind of a special case.
 
@@ -809,12 +815,12 @@ goog.scope(function() {
     			angleSin = Math.SQRT1_2;
     		}
     		else {
-                /** @type {number} */ var angle = 0.5 * Math.PI * (this.m_currentIteration - 1) / (this.m_numIterations - 1);
+                angle = 0.5 * Math.PI * (this.m_currentIteration - 1) / (this.m_numIterations - 1);
     			angleCos = Math.cos(angle);
     			angleSin = Math.sin(angle);
     		}
 
-    		/** @type{Array<Array<number>>} */ var corners = [
+    		corners = [
     			deMath.scale([angleCos, angleSin], 0.5 * quadDiagLen),
     			deMath.scale([-angleSin, angleCos], 0.5 * quadDiagLen),
     			deMath.scale([-angleCos, -angleSin], 0.5 * quadDiagLen),
@@ -838,14 +844,14 @@ goog.scope(function() {
     				[0.5, 0.5, 0.5, 1.0]);
 
     			if (quadNdx >= 4) {
-    				this.renderTriangle(
+    				this.renderTriangle_pAsVec2WithColor(
                         deMath.add(corners[(3 + quadNdx) % 4], center),
     					deMath.add(corners[(2 + quadNdx) % 4], center),
     					deMath.add(corners[(0 + quadNdx) % 4], center),
                         [0.5, 0.5, 0.5, 1.0]);
     			}
     			else {
-                    this.renderTriangle(
+                    this.renderTriangle_pAsVec2WithColor(
                         deMath.add(corners[(0 + quadNdx) % 4], center),
     					deMath.add(corners[(2 + quadNdx) % 4], center),
     					deMath.add(corners[(3 + quadNdx) % 4], center),
@@ -855,7 +861,7 @@ goog.scope(function() {
     			// The size of the "interior" of a quad is assumed to be approximately unicolorRegionScale*<actual size of quad>.
     			// By "interior" we here mean the region of non-boundary pixels of the rendered quad for which we can safely assume
     			// that it has all coverage bits set to 1, for every pixel.
-                /** @type {number} */ var unicolorRegionScale = 1.0 - 6.0 * 2.0 / this.m_viewportSize / quadDiagLen;
+                unicolorRegionScale = 1.0 - 6.0 * 2.0 / this.m_viewportSize / quadDiagLen;
     			unicoloredRegions.push(
                     new es3fMultisampleTests.QuadCorners(
                         deMath.add(center, deMath.scale(corners[0], unicolorRegionScale)),
@@ -864,13 +870,11 @@ goog.scope(function() {
     					deMath.add(center, deMath.scale(corners[3], unicolorRegionScale))));
     		}
     	}
-    	else if (this.m_caseType === es3fMultisampleTests.CaseType.BIGGER_THAN_VIEWPORT_QUAD) {
+    	else if (this.m_caseType === es3fMultisampleTests.CommonEdgeCase.CaseType.BIGGER_THAN_VIEWPORT_QUAD) {
     		// Draw a bigger-than-viewport quad, rotated at an angle depending on m_currentIteration.
 
-            /** @type {number} */ var quadBaseAngleNdx = this.m_currentIteration / 8;
-            /** @type {number} */ var quadSubAngleNdx = this.m_currentIteration % 8;
-            /** @type {number} */ var angleCos;
-            /** @type {number} */ var angleSin;
+            quadBaseAngleNdx = this.m_currentIteration / 8;
+            quadSubAngleNdx = this.m_currentIteration % 8;
 
     		if (quadBaseAngleNdx === 0) {
     			angleCos = 1.0;
@@ -881,12 +885,12 @@ goog.scope(function() {
     			angleSin = Math.SQRT1_2;
     		}
     		else {
-                /** @type {number} */ var angle = 0.5 * Math.PI * (this.m_currentIteration - 1) / (this.m_numIterations - 1);
+                angle = 0.5 * Math.PI * (this.m_currentIteration - 1) / (this.m_numIterations - 1);
     			angleCos = Math.cos(angle);
     			angleSin = Math.sin(angle);
     		}
 
-            /** @type {number} */ var quadDiagLen = 2.5 / Math.max(angleCos, angleSin);
+            quadDiagLen = 2.5 / Math.max(angleCos, angleSin);
 
             corners = [
     			deMath.scale([angleCos, angleSin], 0.5 * quadDiagLen),
@@ -895,28 +899,28 @@ goog.scope(function() {
     			deMath.scale([angleSin, -angleCos], 0.5 * quadDiagLen)
     		];
 
-            es3fMultisampleTests.renderTriangle_pAsVec2WithColor(
+            this.renderTriangle_pAsVec2WithColor(
                 corners[(0 + quadSubAngleNdx) % 4],
     			corners[(1 + quadSubAngleNdx) % 4],
     			corners[(2 + quadSubAngleNdx) % 4],
     			[0.5, 0.5, 0.5, 1.0]);
 
     		if (quadSubAngleNdx >= 4) {
-                es3fMultisampleTests.renderTriangle_pAsVec2WithColor(
+                this.renderTriangle_pAsVec2WithColor(
                     corners[(3 + quadSubAngleNdx) % 4],
     				corners[(2 + quadSubAngleNdx) % 4],
     				corners[(0 + quadSubAngleNdx) % 4],
     				[0.5, 0.5, 0.5, 1.0]);
     		}
     		else {
-                es3fMultisampleTests.renderTriangle_pAsVec2WithColor(
+                this.renderTriangle_pAsVec2WithColor(
                     corners[(0 + quadSubAngleNdx) % 4],
     				corners[(2 + quadSubAngleNdx) % 4],
     				corners[(3 + quadSubAngleNdx) % 4],
     				[0.5, 0.5, 0.5, 1.0]);
     		}
 
-            /** @type {number} */ var unicolorRegionScale = 1.0 - 6.0 * 2.0 / this.m_viewportSize / quadDiagLen;
+            unicolorRegionScale = 1.0 - 6.0 * 2.0 / this.m_viewportSize / quadDiagLen;
     		unicoloredRegions.push(
                 new es3fMultisampleTests.QuadCorners(
                     deMath.scale(corners[0], unicolorRegionScale),
@@ -924,10 +928,10 @@ goog.scope(function() {
     				deMath.scale(corners[2], unicolorRegionScale),
     				deMath.scale(corners[3], unicolorRegionScale)));
     	}
-    	else if (this.m_caseType === es3fMultisampleTests.CaseType.FIT_VIEWPORT_QUAD) {
+    	else if (this.m_caseType === es3fMultisampleTests.CommonEdgeCase.CaseType.FIT_VIEWPORT_QUAD) {
     		// Draw an exactly viewport-sized quad, rotated by multiples of 90 degrees angle depending on m_currentIteration.
 
-            /** @type {number} */ var quadSubAngleNdx = this.m_currentIteration % 8;
+            quadSubAngleNdx = this.m_currentIteration % 8;
 
     		corners = [
     			[1.0, 1.0],
@@ -936,21 +940,21 @@ goog.scope(function() {
     			[1.0, -1.0]
             ];
 
-            es3fMultisampleTests.renderTriangle_pAsVec2WithColor(
+            this.renderTriangle_pAsVec2WithColor(
                 corners[(0 + quadSubAngleNdx) % 4],
     			corners[(1 + quadSubAngleNdx) % 4],
     			corners[(2 + quadSubAngleNdx) % 4],
     			[0.5, 0.5, 0.5, 1.0]);
 
     		if (quadSubAngleNdx >= 4) {
-                es3fMultisampleTests.renderTriangle_pAsVec2WithColor(
+                this.renderTriangle_pAsVec2WithColor(
                     corners[(3 + quadSubAngleNdx) % 4],
     				corners[(2 + quadSubAngleNdx) % 4],
     				corners[(0 + quadSubAngleNdx) % 4],
     				[0.5, 0.5, 0.5, 1.0]);
     		}
     		else {
-                es3fMultisampleTests.renderTriangle_pAsVec2WithColor(
+                this.renderTriangle_pAsVec2WithColor(
                     corners[(0 + quadSubAngleNdx) % 4],
     				corners[(2 + quadSubAngleNdx) % 4],
     				corners[(3 + quadSubAngleNdx) % 4],
@@ -971,7 +975,7 @@ goog.scope(function() {
     	//log << TestLog::Image("RenderedImage", "Rendered image", renderedImg, QP_IMAGE_COMPRESSION_MODE_PNG);
 
     	/** @type {boolean} */ var errorsDetected = false;
-    	for (var i = 0; i < (int)unicoloredRegions.length; i++) {
+    	for (var i = 0; i < unicoloredRegions.length; i++) {
             /** @type {es3fMultisampleTests.QuadCorners} */ var region = unicoloredRegions[i];
     		/** @type {Array<number>} */ var p0Win = deMath.scale(deMath.addScalarToVector(region.p0, 1.0), 0.5 * (this.m_viewportSize - 1) + 0.5);
     		/** @type {Array<number>} */ var p1Win = deMath.scale(deMath.addScalarToVector(region.p1, 1.0), 0.5 * (this.m_viewportSize - 1) + 0.5);
@@ -995,7 +999,7 @@ goog.scope(function() {
             testFailedOptions('Failed: ' + (this.m_currentIteration - 1), false);
             return tcuTestCase.IterateResult.STOP;
     	}
-    	else if (m_currentIteration < m_numIterations) {
+    	else if (this.m_currentIteration < this.m_numIterations) {
     		log('Quads seem OK - moving on to next pattern');
             return tcuTestCase.IterateResult.CONTINUE;
     	}
@@ -1018,12 +1022,12 @@ goog.scope(function() {
      * @constructor
      * @param {string} name
      * @param {string} desc
-     * @param {numFboSamples=} numFboSamples
+     * @param {number=} numFboSamples
      */
     es3fMultisampleTests.SampleDepthCase = function(name, desc, numFboSamples) {
         numFboSamples = numFboSamples === undefined ? 0 : numFboSamples;
         /** @type {es3fMultisampleTests.FboParams} */
-        var params = numFboSamples >= 0 ? new FboParams(numFboSamples, true, false) : new FboParams();
+        var params = numFboSamples >= 0 ? new es3fMultisampleTests.FboParams(numFboSamples, true, false) : new es3fMultisampleTests.FboParams();
         es3fMultisampleTests.NumSamplesCase.call(this, name, desc, params);
     };
 
@@ -1044,19 +1048,19 @@ goog.scope(function() {
 
     es3fMultisampleTests.SampleDepthCase.prototype.renderPattern = function() {
         gl.clearColor(0.0, 0.0, 0.0, 0.0);
-    	gl.clearDepthf(1.0);
+    	gl.clearDepth(1.0);
     	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
 		/** @type {number} */ var numPolygons = 50;
 
 		for (var i = 0; i < numPolygons; i++) {
             /** @type {Array<number>} */ var color = i % 2 == 0 ? [1.0, 1.0, 1.0, 1.0] : [0.0, 0.0, 0.0, 1.0];
-            /** @type {number} */ var angle = 2.0 * Math.PI * i / numPolygons + 0.001f * this.m_currentIteration;
+            /** @type {number} */ var angle = 2.0 * Math.PI * i / numPolygons + 0.001 * this.m_currentIteration;
             /** @type {Array<number>} */ var pt0 = [3.0 * Math.cos(angle + 2.0 * Math.PI * 0.0 / 3.0), 3.0 * Math.sin(angle + 2.0 * Math.PI * 0.0 / 3.0), 1.0];
             /** @type {Array<number>} */ var pt1 = [3.0 * Math.cos(angle + 2.0 * Math.PI * 1.0 / 3.0), 3.0 * Math.sin(angle + 2.0 * Math.PI * 1.0 / 3.0), 0.0];
             /** @type {Array<number>} */ var pt2 = [3.0 * Math.cos(angle + 2.0 * Math.PI * 2.0 / 3.0), 3.0 * Math.sin(angle + 2.0 * Math.PI * 2.0 / 3.0), 0.0];
 
-            es3fMultisampleTests.renderTriangle_pAsVec3WithColor(pt0, pt1, pt2, color);
+            this.renderTriangle_pAsVec3WithColor(pt0, pt1, pt2, color);
 		}
     };
 
@@ -1077,7 +1081,7 @@ goog.scope(function() {
     es3fMultisampleTests.SampleStencilCase = function(name, desc, numFboSamples) {
         numFboSamples = numFboSamples === undefined ? 0 : numFboSamples;
         /** @type {es3fMultisampleTests.FboParams} */
-        var params = numFboSamples >= 0 ? new FboParams(numFboSamples, false, true) : new FboParams();
+        var params = numFboSamples >= 0 ? new es3fMultisampleTests.FboParams(numFboSamples, false, true) : new es3fMultisampleTests.FboParams();
         es3fMultisampleTests.MultisampleCase.call(this, name, desc, 256, params);
     };
 
@@ -1110,7 +1114,7 @@ goog.scope(function() {
             /** @type {number} */ var angle0 = 2.0 * Math.PI * i / numTriangles;
             /** @type {number} */ var angle1 = 2.0 * Math.PI * (i + 0.5) / numTriangles;
 
-            es3fMultisampleTests.renderTriangle_pAsVec2WithColor(
+            this.renderTriangle_pAsVec2WithColor(
                 [0.0, 0.0],
 				[Math.cos(angle0) * 0.95, Math.sin(angle0) * 0.95],
 				[Math.cos(angle1) * 0.95, Math.sin(angle1) * 0.95],
@@ -1144,7 +1148,7 @@ goog.scope(function() {
 
     	log('Drawing a viewport-sized quad with gl.stencilFunc(gl.EQUAL, 1, 1) and gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP) - should result in same image as the first');
 
-        es3fMultisampleTests.renderQuad_WithColor(
+        this.renderQuad_WithColor(
             [-1.0, -1.0],
     		[1.0, -1.0],
     		[-1.0, 1.0],
@@ -1153,7 +1157,7 @@ goog.scope(function() {
 
         renderedImgSecond = this.readImage();
     	// log << TestLog::Image('RenderedImgSecond', 'Second image rendered', renderedImgSecond, QP_IMAGE_COMPRESSION_MODE_PNG);
-        function(imageSetName, imageSetDesc, reference, result, threshold, logMode)
+
     	/** @type {boolean} */
         var passed = tcuImageCompare.pixelThresholdCompare(
     	    'ImageCompare',
@@ -1176,7 +1180,7 @@ goog.scope(function() {
      * Tests coverage mask generation proportionality property.
      *
      * Tests that the number of coverage bits in a coverage mask created by
-     * GL_SAMPLE_ALPHA_TO_COVERAGE or GL_SAMPLE_COVERAGE is, on average,
+     * gl.SAMPLE_ALPHA_TO_COVERAGE or gl.SAMPLE_COVERAGE is, on average,
      * proportional to the alpha or coverage value, respectively. Draws
      * multiple frames, each time increasing the alpha or coverage value used,
      * and checks that the average color is changing appropriately.
@@ -1191,7 +1195,7 @@ goog.scope(function() {
     es3fMultisampleTests.MaskProportionalityCase = function(name, desc, type, numFboSamples) {
         numFboSamples = numFboSamples === undefined ? 0 : numFboSamples;
         /** @type {es3fMultisampleTests.FboParams} */
-        var params = numFboSamples >= 0 ? new FboParams(numFboSamples, false, false) : new FboParams();
+        var params = numFboSamples >= 0 ? new es3fMultisampleTests.FboParams(numFboSamples, false, false) : new es3fMultisampleTests.FboParams();
         es3fMultisampleTests.MultisampleCase.call(this, name, desc, 32, params);
         /** @type {es3fMultisampleTests.MaskProportionalityCase.CaseType} */ this.m_type = type;
         /** @type {number} */ this.m_numIterations;
@@ -1212,7 +1216,7 @@ goog.scope(function() {
     es3fMultisampleTests.MaskProportionalityCase.CaseType = {
         ALPHA_TO_COVERAGE: 0,
         SAMPLE_COVERAGE: 1,
-        SAMPLE_COVERAGE_INVERTED: 2,
+        SAMPLE_COVERAGE_INVERTED: 2
     };
 
     es3fMultisampleTests.MaskProportionalityCase.prototype.init = function() {
@@ -1225,7 +1229,7 @@ goog.scope(function() {
         else {
             assertMsgOptions(
                 this.m_type == es3fMultisampleTests.MaskProportionalityCase.CaseType.SAMPLE_COVERAGE ||
-                this.m_type == es3fMultisampleTests.MaskProportionalityCase.CaseType.SAMPLE_COVERAGE_INVERTED
+                this.m_type == es3fMultisampleTests.MaskProportionalityCase.CaseType.SAMPLE_COVERAGE_INVERTED,
                 'CaseType should be SAMPLE_COVERAGE or SAMPLE_COVERAGE_INVERTED', false, true);
 
             gl.enable(gl.SAMPLE_COVERAGE);
@@ -1247,7 +1251,7 @@ goog.scope(function() {
 
     	log("Clearing color to black");
     	gl.colorMask(true, true, true, true);
-    	gl.clearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    	gl.clearColor(0.0, 0.0, 0.0, 1.0);
     	gl.clear(gl.COLOR_BUFFER_BIT);
 
     	if (this.m_type === es3fMultisampleTests.MaskProportionalityCase.CaseType.ALPHA_TO_COVERAGE) {
@@ -1271,8 +1275,8 @@ goog.scope(function() {
 		else {
 			assertMsgOptions(
                 this.m_type === es3fMultisampleTests.MaskProportionalityCase.CaseType.SAMPLE_COVERAGE ||
-                this.m_type === es3fMultisampleTests.MaskProportionalityCase.CaseType.SAMPLE_COVERAGE_INVERTED
-                'CaeType should be SAMPLE_COVERAGE or SAMPLE_COVERAGE_INVERTED', false, true);
+                this.m_type === es3fMultisampleTests.MaskProportionalityCase.CaseType.SAMPLE_COVERAGE_INVERTED,
+                'CaseType should be SAMPLE_COVERAGE or SAMPLE_COVERAGE_INVERTED', false, true);
 
             /** @type {boolean} */ var isInverted = (this.m_type === es3fMultisampleTests.MaskProportionalityCase.CaseType.SAMPLE_COVERAGE_INVERTED);
             /** @type {number} */ var coverageValue	= isInverted ? 1.0 - alphaOrCoverageValue : alphaOrCoverageValue;
@@ -1339,6 +1343,368 @@ goog.scope(function() {
     	}
     	else
     		return tcuTestCase.IterateResult.CONTINUE;
+    };
+
+    /**
+     * Tests coverage mask generation constancy property.
+     *
+     * Tests that the coverage mask created by gl.SAMPLE_ALPHA_TO_COVERAGE or
+     * gl.SAMPLE_COVERAGE is constant at given pixel coordinates, with a given
+     * alpha component or coverage value, respectively. Draws two quads, with
+     * the second one fully overlapping the first one such that at any given
+     * pixel, both quads have the same alpha or coverage value. This way, if
+     * the constancy property is fulfilled, only the second quad should be
+     * visible.
+     * @extends {es3fMultisampleTests.MultisampleCase}
+     * @constructor
+     * @param {string} name
+     * @param {string} desc
+     * @param {es3fMultisampleTests.MaskConstancyCase.CaseType} type
+     * @param {number=} numFboSamples
+     */
+    es3fMultisampleTests.MaskConstancyCase = function(name, desc, type, numFboSamples) {
+       numFboSamples = numFboSamples === undefined ? 0 : numFboSamples;
+       /** @type {es3fMultisampleTests.FboParams} */
+       var params = numFboSamples >= 0 ? new es3fMultisampleTests.FboParams(numFboSamples, false, false) : new es3fMultisampleTests.FboParams();
+       es3fMultisampleTests.MultisampleCase.call(this, name, desc, 256, params);
+       var CaseType = es3fMultisampleTests.MaskConstancyCase.CaseType;
+       /** @type {boolean} */ this.m_isAlphaToCoverageCase = (type === CaseType.ALPHA_TO_COVERAGE || type === CaseType.BOTH || type === CaseType.BOTH_INVERTED);
+       /** @type {boolean} */ this.m_isSampleCoverageCase = (type === CaseType.SAMPLE_COVERAGE || type === CaseType.SAMPLE_COVERAGE_INVERTED || type === CaseType.BOTH || type === CaseType.BOTH_INVERTED);
+       /** @type {boolean} */ this.m_isInvertedSampleCoverageCase = (type === CaseType.SAMPLE_COVERAGE_INVERTED || type === CaseType.BOTH_INVERTED);
+
+
+    };
+
+    es3fMultisampleTests.MaskConstancyCase.prototype = Object.create(es3fMultisampleTests.MultisampleCase.prototype);
+
+    /** Copy the constructor */
+    es3fMultisampleTests.MaskConstancyCase.prototype.constructor = es3fMultisampleTests.MaskConstancyCase;
+
+    /**
+     * @enum {number}
+     */
+    es3fMultisampleTests.MaskConstancyCase.CaseType = {
+        ALPHA_TO_COVERAGE:  0,		//!< Use only alpha-to-coverage.
+		SAMPLE_COVERAGE: 1,			//!< Use only sample coverage.
+		SAMPLE_COVERAGE_INVERTED: 2,	//!< Use only inverted sample coverage.
+		BOTH: 3,						//!< Use both alpha-to-coverage and sample coverage.
+		BOTH_INVERTED: 4				//!< Use both alpha-to-coverage and inverted sample coverage.
+    };
+
+    /**
+     * @return {tcuTestCase.IterateResult}
+     */
+    es3fMultisampleTests.MaskConstancyCase.prototype.iterate = function() {
+        var log = bufferedLogToConsole;
+    	/** @type {tcuSurface.Surface} */ var renderedImg = new tcuSurface.Surface(this.m_viewportSize, this.m_viewportSize);
+
+    	this.randomizeViewport();
+
+    	log("Clearing color to black");
+    	gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    	gl.clear(gl.COLOR_BUFFER_BIT);
+
+    	if (this.m_isAlphaToCoverageCase) {
+    		gl.enable(gl.SAMPLE_ALPHA_TO_COVERAGE);
+    		gl.colorMask(true, true, true, false);
+    		log("gl.SAMPLE_ALPHA_TO_COVERAGE is enabled");
+    		log("Color mask is TRUE, TRUE, TRUE, FALSE");
+    	}
+
+    	if (this.m_isSampleCoverageCase) {
+    		gl.enable(gl.SAMPLE_COVERAGE);
+    		log("gl.SAMPLE_COVERAGE is enabled");
+    	}
+
+    	log("Drawing several green quads, each fully overlapped by a red quad with the same " +
+            (this.m_isAlphaToCoverageCase ? "alpha" : "") +
+            (this.m_isAlphaToCoverageCase && this.m_isSampleCoverageCase ? " and " : "") +
+            (this.m_isInvertedSampleCoverageCase ? "inverted " : "") +
+            (this.m_isSampleCoverageCase ? "sample coverage" : "") +
+            " values");
+
+    	/** @type {number} */ var numQuadRowsCols = this.m_numSamples * 4;
+
+    	for (var row = 0; row < numQuadRowsCols; row++) {
+    		for (var col = 0; col < numQuadRowsCols; col++) {
+                /** @type {number} */ var x0 = (col + 0) / numQuadRowsCols * 2.0 - 1.0;
+                /** @type {number} */ var x1 = (col + 1) / numQuadRowsCols * 2.0 - 1.0;
+                /** @type {number} */ var y0 = (row + 0) / numQuadRowsCols * 2.0 - 1.0;
+                /** @type {number} */ var y1 = (row + 1) / numQuadRowsCols * 2.0 - 1.0;
+                /** @type {Array<number>} */ var baseGreen = [0.0, 1.0, 0.0, 0.0];
+                /** @type {Array<number>} */ var baseRed = [1.0, 0.0, 0.0, 0.0];
+                /** @type {Array<number>} */ var alpha0 = [0.0, 0.0, 0.0, this.m_isAlphaToCoverageCase ? col / (numQuadRowsCols - 1) : 1.0];
+                /** @type {Array<number>} */ var alpha1 = [0.0, 0.0, 0.0, this.m_isAlphaToCoverageCase ? row / (numQuadRowsCols - 1) : 1.0];
+
+    			if (this.m_isSampleCoverageCase) {
+                    /** @type {number} */ var value = (row*numQuadRowsCols + col) / (numQuadRowsCols*numQuadRowsCols - 1);
+    				gl.sampleCoverage(this.m_isInvertedSampleCoverageCase ? 1.0 - value : value, this.m_isInvertedSampleCoverageCase ? true : false);
+    			}
+
+    			this.renderQuad([x0, y0], [x1, y0], [x0, y1], [x1, y1],
+                    deMath.add(baseGreen, alpha0), deMath.add(baseGreen, alpha1),
+                    deMath.add(baseGreen, alpha0), deMath.add(baseGreen, alpha1));
+    			this.renderQuad([x0, y0], [x1, y0], [x0, y1], [x1, y1],
+                    deMath.add(baseRed, alpha0), deMath.add(baseRed, alpha1),
+                    deMath.add(baseRed, alpha0), deMath.add(baseRed, alpha1));
+    		}
+    	}
+
+        renderedImg = this.readImage();
+
+    	//log << TestLog::Image("RenderedImage", "Rendered image", renderedImg, QP_IMAGE_COMPRESSION_MODE_PNG);
+
+    	for (var y = 0; y < renderedImg.getHeight(); y++)
+    	for (var x = 0; x < renderedImg.getWidth(); x++) {
+    		if (renderedImg.getPixel(x, y).getGreen() > 0) {
+    			log("Failure: Non-zero green color component detected - should have been completely overwritten by red quad");
+                testFailedOptions('Failed', false);
+    			return tcuTestCase.IterateResult.STOP;
+    		}
+    	}
+
+    	log("Success: Coverage mask appears to be constant at a given pixel coordinate with a given " +
+    	    (this.m_isAlphaToCoverageCase ? "alpha" : "") +
+    	    (this.m_isAlphaToCoverageCase && this.m_isSampleCoverageCase ? " and " : "") +
+    	    (this.m_isSampleCoverageCase ? "coverage value" : ""));
+
+    	testPassedOptions('Passed', true);
+
+    	return tcuTestCase.IterateResult.STOP;
+    }
+
+
+    /**
+     * Tests coverage mask inversion validity.
+     *
+     * Tests that the coverage masks obtained by glSampleCoverage(..., true)
+     * and glSampleCoverage(..., false) are indeed each others' inverses.
+     * This is done by drawing a pattern, with varying coverage values,
+     * overlapped by a pattern that has inverted masks and is otherwise
+     * identical. The resulting image is compared to one obtained by drawing
+     * the same pattern but with all-ones coverage masks.
+     * @extends {es3fMultisampleTests.MultisampleCase}
+     * @constructor
+     * @param {string} name
+     * @param {string} desc
+     * @param {number=} numFboSamples
+     */
+    es3fMultisampleTests.CoverageMaskInvertCase = function(name, desc, numFboSamples) {
+      numFboSamples = numFboSamples === undefined ? 0 : numFboSamples;
+      /** @type {es3fMultisampleTests.FboParams} */
+      var params = numFboSamples >= 0 ? new es3fMultisampleTests.FboParams(numFboSamples, false, false) : new es3fMultisampleTests.FboParams();
+      es3fMultisampleTests.MultisampleCase.call(this, name, desc, 256, params);
+    };
+
+    es3fMultisampleTests.CoverageMaskInvertCase.prototype = Object.create(es3fMultisampleTests.MultisampleCase.prototype);
+
+    /** Copy the constructor */
+    es3fMultisampleTests.CoverageMaskInvertCase.prototype.constructor = es3fMultisampleTests.CoverageMaskInvertCase;
+
+    /**
+     * @param {boolean} invertSampleCoverage
+     */
+    es3fMultisampleTests.CoverageMaskInvertCase.prototype.drawPattern = function(invertSampleCoverage) {
+        /** @type {number} */ var numTriangles = 25;
+    	for (var i = 0; i < numTriangles; i++) {
+    		gl.sampleCoverage(i / (numTriangles - 1), invertSampleCoverage ? true : false);
+
+            /** @type {number} */ var angle0 = 2.0 * Math.PI * i / numTriangles;
+            /** @type {number} */ var angle1 = 2.0 * Math.PI * (i + 0.5) / numTriangles;
+
+    		this.renderTriangle_pAsVec2WithColor(
+                [0.0, 0.0],
+    			[Math.cos(angle0) * 0.95, Math.sin(angle0) * 0.95],
+    			[Math.cos(angle1) * 0.95, Math.sin(angle1) * 0.95],
+    			[0.4 + i / numTriangles * 0.6,
+    			 0.5 + i / numTriangles * 0.3,
+    			 0.6 - i / numTriangles * 0.5,
+    			 0.7 - i / numTriangles * 0.7]);
+    	}
+    };
+
+    /**
+    * @return {tcuTestCase.IterateResult}
+    */
+    es3fMultisampleTests.CoverageMaskInvertCase.prototype.iterate = function() {
+        var log = bufferedLogToConsole;
+    	/** @type {tcuSurface.Surface} */ var renderedImgNoSampleCoverage = new tcuSurface.Surface(this.m_viewportSize, this.m_viewportSize);
+    	/** @type {tcuSurface.Surface} */ var renderedImgSampleCoverage = new tcuSurface.Surface(this.m_viewportSize, this.m_viewportSize);
+
+    	this.randomizeViewport();
+
+    	gl.enable(gl.BLEND);
+    	gl.blendEquation(gl.FUNC_ADD);
+    	gl.blendFunc(gl.ONE, gl.ONE);
+    	log("Additive blending enabled in order to detect (erroneously) overlapping samples");
+
+    	log("Clearing color to all-zeros");
+    	gl.clearColor(0.0, 0.0, 0.0, 0.0);
+    	gl.clear(gl.COLOR_BUFFER_BIT);
+    	log("Drawing the pattern with gl.SAMPLE_COVERAGE disabled");
+    	this.drawPattern(false);
+        renderedImgNoSampleCoverage = this.readImage();
+
+    	//log << TestLog::Image("RenderedImageNoSampleCoverage", "Rendered image with gl.SAMPLE_COVERAGE disabled", renderedImgNoSampleCoverage, QP_IMAGE_COMPRESSION_MODE_PNG);
+
+    	log("Clearing color to all-zeros");
+    	gl.clear(gl.COLOR_BUFFER_BIT);
+    	gl.enable(gl.SAMPLE_COVERAGE);
+    	log("Drawing the pattern with gl.SAMPLE_COVERAGE enabled, using non-inverted masks");
+    	this.drawPattern(false);
+    	log("Drawing the pattern with gl.SAMPLE_COVERAGE enabled, using same sample coverage values but inverted masks");
+    	this.drawPattern(true);
+        renderedImgSampleCoverage = this.readImage();
+
+    	//log << TestLog::Image("RenderedImageSampleCoverage", "Rendered image with gl.SAMPLE_COVERAGE enabled", renderedImgSampleCoverage, QP_IMAGE_COMPRESSION_MODE_PNG);
+
+    	/** @type {boolean} */ var passed = tcuImageCompare.pixelThresholdCompare(
+            'CoverageVsNoCoverage',
+    		'Comparison of same pattern with gl.SAMPLE_COVERAGE disabled and enabled',
+    		renderedImgNoSampleCoverage,
+    		renderedImgSampleCoverage,
+    		[0, 0, 0, 0]);
+
+    	if (passed) {
+    		log("Success: The two images rendered are identical");
+            testPassedOptions('Passed', true);
+        }
+        else {
+            testFailedOptions('Failed', false);
+        }
+
+    	return tcuTestCase.IterateResult.STOP;
+    };
+
+    es3fMultisampleTests.init = function() {
+        var testGroup = tcuTestCase.runner.testCases;
+        /**
+         * @enum {number}
+         */
+        var CaseType = {
+            DEFAULT_FRAMEBUFFER: 0,
+            FBO_4_SAMPLES: 1,
+            FBO_8_SAMPLES: 2,
+            FBO_MAX_SAMPLES: 3
+        };
+
+        for (var caseTypeI in CaseType) {
+    		/** @type {CaseType} */ var caseType = CaseType[caseTypeI];
+            /** @type {number} */
+            var numFboSamples = caseType === CaseType.DEFAULT_FRAMEBUFFER ? -1 :
+    							caseType === CaseType.FBO_4_SAMPLES ? 4 :
+    							caseType === CaseType.FBO_8_SAMPLES ? 8 :
+    							caseType === CaseType.FBO_MAX_SAMPLES ? 0 :
+    							-2;
+
+    		/** @type {?string} */
+            var name = caseType === CaseType.DEFAULT_FRAMEBUFFER ? "default_framebuffer" :
+    				   caseType === CaseType.FBO_4_SAMPLES ? "fbo_4_samples" :
+    				   caseType === CaseType.FBO_8_SAMPLES ? "fbo_8_samples" :
+    				   caseType === CaseType.FBO_MAX_SAMPLES ? "fbo_max_samples" :
+    				   null;
+    		/** @type {?string} */
+            var desc = caseType === CaseType.DEFAULT_FRAMEBUFFER ? "Render into default framebuffer" :
+    		           caseType === CaseType.FBO_4_SAMPLES ? "Render into a framebuffer object with 4 samples" :
+    		           caseType === CaseType.FBO_8_SAMPLES ? "Render into a framebuffer object with 8 samples" :
+    		           caseType === CaseType.FBO_MAX_SAMPLES ? "Render into a framebuffer object with the maximum number of samples" :
+    				   null;
+
+            /** @type {tcuTestCase.DeqpTest} */ var group = tcuTestCase.newTest(name, desc);
+
+            assertMsgOptions(group.name != null, 'Error: No Test Name', false, true);
+    		assertMsgOptions(group.description != null, 'Error: No Test Description', false, true);
+    		assertMsgOptions(numFboSamples >= -1, 'Assert Failed: numFboSamples >= -1', false, true);
+            testGroup.addChild(group);
+
+    		group.addChild(new es3fMultisampleTests.PolygonNumSamplesCase(
+                "num_samples_polygon",
+                "Test sanity of the sample count, with polygons",
+                numFboSamples));
+
+    		group.addChild(new es3fMultisampleTests.LineNumSamplesCase(
+                "num_samples_line",
+                "Test sanity of the sample count, with lines",
+                numFboSamples));
+
+    		group.addChild(new es3fMultisampleTests.CommonEdgeCase(
+                "common_edge_small_quads",
+                "Test polygons' common edges with small quads",
+                es3fMultisampleTests.CommonEdgeCase.CaseType.SMALL_QUADS,
+                numFboSamples));
+
+    		group.addChild(new es3fMultisampleTests.CommonEdgeCase(
+                "common_edge_big_quad",
+                "Test polygons' common edges with bigger-than-viewport quads",
+                es3fMultisampleTests.CommonEdgeCase.CaseType.BIGGER_THAN_VIEWPORT_QUAD,
+                numFboSamples));
+
+    		group.addChild(new es3fMultisampleTests.CommonEdgeCase(
+                "common_edge_viewport_quad",
+                "Test polygons' common edges with exactly viewport-sized quads",
+                es3fMultisampleTests.CommonEdgeCase.CaseType.FIT_VIEWPORT_QUAD,
+                numFboSamples));
+
+    		group.addChild(new es3fMultisampleTests.SampleDepthCase(
+                "depth",
+                "Test that depth values are per-sample",
+                numFboSamples));
+
+    		group.addChild(new es3fMultisampleTests.SampleStencilCase(
+                "stencil",
+                "Test that stencil values are per-sample",
+                numFboSamples));
+
+    		group.addChild(new es3fMultisampleTests.CoverageMaskInvertCase(
+                "sample_coverage_invert",
+                "Test that non-inverted and inverted sample coverage masks are each other's negations",
+                numFboSamples));
+
+
+    		group.addChild(new es3fMultisampleTests.MaskProportionalityCase(
+                "proportionality_alpha_to_coverage",
+    			"Test the proportionality property of GL_SAMPLE_ALPHA_TO_COVERAGE",
+    			es3fMultisampleTests.MaskProportionalityCase.CaseType.ALPHA_TO_COVERAGE,
+                numFboSamples));
+    		group.addChild(new es3fMultisampleTests.MaskProportionalityCase(
+                "proportionality_sample_coverage",
+    			"Test the proportionality property of GL_SAMPLE_COVERAGE",
+    			es3fMultisampleTests.MaskProportionalityCase.CaseType.SAMPLE_COVERAGE,
+                numFboSamples));
+    		group.addChild(new es3fMultisampleTests.MaskProportionalityCase(
+                "proportionality_sample_coverage_inverted",
+    			"Test the proportionality property of inverted-mask GL_SAMPLE_COVERAGE",
+    			es3fMultisampleTests.MaskProportionalityCase.CaseType.SAMPLE_COVERAGE_INVERTED,
+                numFboSamples));
+
+    		group.addChild(new es3fMultisampleTests.MaskConstancyCase(
+                "constancy_alpha_to_coverage",
+    			"Test that coverage mask is constant at given coordinates with a given alpha or coverage value, using GL_SAMPLE_ALPHA_TO_COVERAGE",
+    			es3fMultisampleTests.MaskConstancyCase.CaseType.ALPHA_TO_COVERAGE,
+                numFboSamples));
+    		group.addChild(new es3fMultisampleTests.MaskConstancyCase(
+                "constancy_sample_coverage",
+    			"Test that coverage mask is constant at given coordinates with a given alpha or coverage value, using GL_SAMPLE_COVERAGE",
+    			es3fMultisampleTests.MaskConstancyCase.CaseType.SAMPLE_COVERAGE,
+                numFboSamples));
+    		group.addChild(new es3fMultisampleTests.MaskConstancyCase(
+                "constancy_sample_coverage_inverted",
+    			"Test that coverage mask is constant at given coordinates with a given alpha or coverage value, using inverted-mask GL_SAMPLE_COVERAGE",
+    			es3fMultisampleTests.MaskConstancyCase.CaseType.SAMPLE_COVERAGE_INVERTED,
+                numFboSamples));
+    		group.addChild(new es3fMultisampleTests.MaskConstancyCase(
+                "constancy_both",
+    			"Test that coverage mask is constant at given coordinates with a given alpha or coverage value, using GL_SAMPLE_ALPHA_TO_COVERAGE and GL_SAMPLE_COVERAGE",
+    			es3fMultisampleTests.MaskConstancyCase.CaseType.BOTH,
+                numFboSamples));
+    		group.addChild(new es3fMultisampleTests.MaskConstancyCase(
+                "constancy_both_inverted",
+    			"Test that coverage mask is constant at given coordinates with a given alpha or coverage value, using GL_SAMPLE_ALPHA_TO_COVERAGE and inverted-mask GL_SAMPLE_COVERAGE",
+    			es3fMultisampleTests.MaskConstancyCase.CaseType.BOTH_INVERTED,
+                numFboSamples));
+    	}
+
+
     };
 
     /**
