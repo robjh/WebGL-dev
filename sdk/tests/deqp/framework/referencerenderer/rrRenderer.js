@@ -663,15 +663,6 @@ rrRenderer.drawQuads = function(state, renderTarget, program, vertexAttribs, pri
  * @param {number} instanceID
  */
 rrRenderer.drawLines = function(state, renderTarget, program, vertexAttribs, primitive, first, count, instanceID) {
-    /**
-     * @param {number} x
-     * @param {Array<number>} depths
-     * @return {number}
-     */
-    var interpolate = function(x, y, depths) {
-        var d = x * depths[0] + (1 - x) * depths[1];
-        return d;
-    };
 
     /**
      * @param {Array<rrVertexPacket.VertexPacket>} vertices
@@ -684,6 +675,20 @@ rrRenderer.drawLines = function(state, renderTarget, program, vertexAttribs, pri
             result.push(vertices[indices[i]]);
         return result;
     };
+
+    var lengthSquared = function(a) {
+        var sqSum = 0
+        for (var i = 0; i < a.length; i++)
+            sqSum += a[i] * a[i];
+        return sqSum;
+    };
+
+    var dot = function(a, b) {
+        var res = 0;
+        for (var i = 0; i < a.length; i++)
+            res += a[i] * b[i];
+        return res;
+    }
 
     var primitives = new rrRenderer.PrimitiveList(primitive, count, first);
     // Do not draw if nothing to draw
@@ -729,20 +734,13 @@ rrRenderer.drawLines = function(state, renderTarget, program, vertexAttribs, pri
         v1[1] = Math.round(v1[1]);
 
         var lineWidth = 1;
-        var width = v1[0] - v0[0];
-        if (width == 0)
-            width = lineWidth;
+        var d = [
+            Math.abs(v1[0] - v0[0]),
+            Math.abs(v1[1] - v0[1])];
 
-        var height = v1[1] - v0[1];
-        if (height == 0)
-            height = lineWidth;
+        var xstep = v0[0] < v1[0]  ? 1 : -1;
+        var ystep = v0[1] < v1[1]  ? 1 : -1;
 
-
-        var xstep = width > 0  ? 1 : -1;
-        var ystep = height > 0 ? 1 : -1;
-
-        width = Math.abs(width);
-        height = Math.abs(height);
 
         var shadingContext = new rrShadingContext.FragmentShadingContext(
             linePackets[0].outputs,
@@ -751,21 +749,35 @@ rrRenderer.drawLines = function(state, renderTarget, program, vertexAttribs, pri
         );
         var packets = [];
 
-        for (var i = 0; i < width; i++)
-            for (var j = 0; j < height; j++) {
-                var x = v0[0] + i * xstep + 0.5;
-                var y = v0[1] + j * ystep + 0.5;
+        var x = v0[0];
+        var y = v0[1];
+        var offset = d[0] - d[1];
+        var lenV = [v1[0] - v0[0], v1[1] - v0[1]];
+        var lenSq = lengthSquared(lenV);
 
-                var xf = (i + 0.5) / width;
-                var yf = (j + 0.5) / height;
-                var depth =interpolate(xf, yf, [v0[2], v1[2]]);
-                var length = Math.sqrt((width - 1) * (width - 1) + (height -1 )* (height -1 ));
-                var pos = Math.sqrt(i * i + j * j);
-                var b = [0, 0, 0];
-                b[1] = pos/length;
-                b[0] = 1 - b[1]; 
-                packets.push(new rrFragmentOperations.Fragment(b, [v0[0] + i * xstep, v0[1] + j * ystep], depth));
+        while(true) {
+            var t = dot([x - v0[0], y - v0[1]], lenV) / lenSq; 
+            var depth = (1 - t) * v0[2] + t * v1[2];
+            var b = [0, 0, 0];
+            b[0] = 1 - t;
+            b[1] = t;
+            packets.push(new rrFragmentOperations.Fragment(b, [x, y], depth));
+
+            if (x == v1[0] && y == v1[1])
+                break;
+
+            var offset2 = 2 * offset;
+            if (offset2 > -1 * d[1]) {
+                x += xstep;
+                offset -= d[1];
             }
+
+            if (offset2 < d[0]) {
+                y += ystep;
+                offset += d[0];
+            }
+
+        }
 
         program.shadeFragments(packets, shadingContext);
 
