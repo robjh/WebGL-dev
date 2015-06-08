@@ -968,7 +968,41 @@ goog.scope(function() {
                 gl.deleteFramebuffer(fbo);
             }
         ));
-
+        
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'invalidate_framebuffer', 'Invalid gl.invalidateFramebuffer() usage', gl,
+            function() {
+                var maxColorAttachments = gl.getParameter(gl.MAX_COLOR_ATTACHMENTS);
+                var attachments = [
+                    gl.COLOR_ATTACHMENT0
+                ];
+                
+                var fbo = gl.createFramebuffer();
+                gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+                
+                var texture = gl.createTexture();
+                gl.bindTexture(gl.TEXTURE_2D, texture);
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 32, 32, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+                
+                gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
+                gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+                this.expectError(gl.NO_ERROR);
+                
+                
+                bufferedLogToConsole('gl.INVALID_ENUM is generated if target is not gl.FRAMEBUFFER, gl.READ_FRAMEBUFFER or gl.DRAW_FRAMEBUFFER.');
+                gl.invalidateFramebuffer(-1, attachments);
+                this.expectError(gl.INVALID_ENUM);
+                gl.invalidateFramebuffer(gl.BACK, attachments);
+                this.expectError(gl.INVALID_ENUM);
+                
+                bufferedLogToConsole('gl.INVALID_OPERATION is generated if attachments contains gl.COLOR_ATTACHMENTm and m is greater than or equal to the value of gl.MAX_COLOR_ATTACHMENTS.');
+                gl.invalidateFramebuffer(gl.FRAMEBUFFER, [gl.COLOR_ATTACHMENT0 + maxColorAttachments]);
+                this.expectError(gl.INVALID_OPERATION);
+                
+                gl.deleteTexture(texture);
+                gl.deleteFramebuffer(fbo);
+            }
+        ));
 
     };
     
