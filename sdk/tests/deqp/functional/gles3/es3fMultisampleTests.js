@@ -113,14 +113,14 @@ goog.scope(function() {
         /** @type {number} */ var yMax = deMath.clamp(Math.max(p0[1], p1[1], p2[1], p3[1]), 0, img.getHeight() - 1);
         /** @type {boolean} */ var insideEncountered = false; //!< Whether we have already seen at least one pixel inside the region.
         /** @type {tcuRGBA.RGBA} */ var insideColor; //!< Color of the first pixel inside the region.
-        /** @type {tcuRGBA.RGBA} */ var color = tcuRGBA.newRGBAComponents(3, 3, 3, 3);
+        /** @type {tcuRGBA.RGBA} */ var threshold = tcuRGBA.newRGBAComponents(3, 3, 3, 3);
         for (var y = yMin; y <= yMax; y++)
         for (var x = xMin; x <= xMax; x++)
             if (es3fMultisampleTests.isInsideQuad([x, y], p0, p1, p2, p3)) {
                 /** @type {tcuRGBA.RGBA} */ var pixColor = new tcuRGBA.RGBA(img.getPixel(x, y));
 
                 if (insideEncountered)
-                    if (!tcuRGBA.compareThreshold(pixColor, insideColor, color)) // Pixel color differs from already-detected color inside same region - region not unicolored.
+                    if (!tcuRGBA.compareThreshold(pixColor, insideColor, threshold)) // Pixel color differs from already-detected color inside same region - region not unicolored.
                         return false;
                 else {
                     insideEncountered = true;
@@ -146,11 +146,11 @@ goog.scope(function() {
         /** @type {number} */ var xMax = deMath.clamp(Math.max(p0[0], p1[0], p2[0], p3[0]), 0, img.getWidth() - 1);
         /** @type {number} */ var yMax = deMath.clamp(Math.max(p0[1], p1[1], p2[1], p3[1]), 0, img.getHeight() - 1);
         /** @type {tcuRGBA.RGBA} */ var refColor = new tcuRGBA.RGBA(img.getPixel(Math.floor((xMin + xMax) / 2), Math.floor((yMin + yMax) / 2)));
-        /** @type {tcuRGBA.RGBA} */ var color = tcuRGBA.newRGBAComponents(3, 3, 3, 3);
+        /** @type {tcuRGBA.RGBA} */ var threshold = tcuRGBA.newRGBAComponents(3, 3, 3, 3);
         for (var y = yMin; y <= yMax; y++)
         for (var x = xMin; x <= xMax; x++)
             if (es3fMultisampleTests.isInsideQuad([x, y], p0, p1, p2, p3)) {
-                if (!tcuRGBA.compareThreshold(new tcuRGBA.RGBA(img.getPixel(x, y)), refColor, color)) {
+                if (!tcuRGBA.compareThreshold(new tcuRGBA.RGBA(img.getPixel(x, y)), refColor, threshold)) {
                     img.setPixel(x, y, tcuRGBA.RGBA.red.toVec()); // TODO: this might also be toIVec()
                     errorImg.setPixel([1.0, 0.0, 0.0, 1.0], x, y);
                 }
@@ -380,7 +380,7 @@ goog.scope(function() {
      */
     es3fMultisampleTests.MultisampleCase.prototype.readImage = function() {
         /** @type {tcuSurface.Surface} */
-        var dst = new tcuSurface.Surface(this.m_viewportX, this.m_viewportY);
+        var dst = new tcuSurface.Surface(this.m_viewportSize, this.m_viewportSize);
         /** @type {number} */ var pixelSize = dst.getAccess().getFormat().getPixelSize();
         /** @type {number} */ var param = deMath.deIsPowerOfTwo32(pixelSize) ? Math.min(pixelSize, 8) : 1;
         /** @type {gluTextureUtil.TransferFormat} */ var format = gluTextureUtil.getTransferFormat(dst.getAccess().getFormat());
@@ -964,7 +964,7 @@ goog.scope(function() {
             bufferedLogToConsole('Erroneous pixels are drawn red in the following image');
             tcuLogImage.logImage('RenderedImageWithErrors', 'Rendered image with errors marked', renderedImg.getAccess());
             tcuLogImage.logImage('ErrorsOnly', 'Image with error pixels only', errorImg.getAccess());
-            testFailedOptions('Failed: ' + (this.m_currentIteration - 1), false);
+            testFailedOptions('Failed: iteration ' + (this.m_currentIteration - 1), false);
             return tcuTestCase.IterateResult.STOP;
         }
         else if (this.m_currentIteration < this.m_numIterations) {
@@ -973,7 +973,7 @@ goog.scope(function() {
         }
         else {
             bufferedLogToConsole('Success: All quad interiors seem unicolored (no common-edge artifacts)');
-            testPassedOptions('Passed: ' + (this.m_currentIteration - 1), true);
+            testPassedOptions('Passed: iteration ' + (this.m_currentIteration - 1), true);
             return tcuTestCase.IterateResult.STOP;
         }
     };
