@@ -1527,7 +1527,8 @@ goog.scope(function() {
         var generateVertex = glsDrawTests.RandomArrayGenerator.generateVertex;
         var rnd = new deRandom.Random(seed);
 
-        /** @type {glsDrawTests.RandomArrayGenerator.VertexParameters} */ var vertexParameters = new glsDrawTests.RandomArrayGenerator.VertexParameters(componentCount, rnd, min, max);
+        /** @type {glsDrawTests.RandomArrayGenerator.VertexParameters} */
+        var vertexParameters = new glsDrawTests.RandomArrayGenerator.VertexParameters(componentCount, rnd, min, max);
 
         for (var vertexNdx = 0; vertexNdx < elementCount; vertexNdx++) {
             //If first vertex hasn't been met, just generate individual vertices, and advance the buffer.
@@ -1543,6 +1544,12 @@ goog.scope(function() {
 
             //Primitive cases
             switch(primitive) {
+                case glsDrawTests.DrawTestSpec.Primitive.LINES:
+                case glsDrawTests.DrawTestSpec.Primitive.LINE_STRIP:
+                case glsDrawTests.DrawTestSpec.Primitive.LINE_LOOP: {
+                    quadVertices = [generateVertex(components, vertexParameters)];
+                    break;
+                }
                 case glsDrawTests.DrawTestSpec.Primitive.TRIANGLES: {
                     vertex1 = generateVertex(components, vertexParameters);
 
@@ -3551,7 +3558,7 @@ goog.scope(function() {
 
             return false;
         } else {
-            tcuImageCompare.displayImages(result.getAccess(), null, null);
+            tcuLogImage.logImageWithInfo(result.getAccess(), 'Result');
 
             return true;
         }
