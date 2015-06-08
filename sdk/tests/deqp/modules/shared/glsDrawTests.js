@@ -1428,13 +1428,14 @@ goog.scope(function() {
      * @param {number} first
      * @param {?glsDrawTests.DrawTestSpec.Primitive} primitive
      * @param {?goog.TypedArray} indices
+     * @param {number} indexSize
      * @return {goog.TypedArray}
      */
-    glsDrawTests.RandomArrayGenerator.generateArray = function (seed, elementCount, componentCount, offset, stride, type, first, primitive, indices) {
+    glsDrawTests.RandomArrayGenerator.generateArray = function (seed, elementCount, componentCount, offset, stride, type, first, primitive, indices, indexSize) {
         if (type == glsDrawTests.DrawTestSpec.InputType.INT_2_10_10_10 || type == glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT_2_10_10_10)
-            return glsDrawTests.RandomArrayGenerator.generatePackedArray(seed, elementCount, componentCount, offset, stride, type, first, primitive, indices);
+            return glsDrawTests.RandomArrayGenerator.generatePackedArray(seed, elementCount, componentCount, offset, stride, type, first, primitive, indices, indexSize);
         else
-            return glsDrawTests.RandomArrayGenerator.generateBasicArray(seed, elementCount, componentCount, offset, stride, type, first, primitive, indices);
+            return glsDrawTests.RandomArrayGenerator.generateBasicArray(seed, elementCount, componentCount, offset, stride, type, first, primitive, indices, indexSize);
     };
 
     /**
@@ -1447,10 +1448,11 @@ goog.scope(function() {
      * @param {number} first
      * @param {?glsDrawTests.DrawTestSpec.Primitive} primitive
      * @param {?goog.TypedArray} indices
+     * @param {number} indexSize
      * @return {goog.TypedArray}
      */
-    glsDrawTests.RandomArrayGenerator.generateBasicArray = function (seed, elementCount, componentCount, offset, stride, type, first, primitive, indices) {
-        return glsDrawTests.RandomArrayGenerator.createBasicArray(seed, elementCount, componentCount, offset, stride, type, first, primitive, indices);
+    glsDrawTests.RandomArrayGenerator.generateBasicArray = function (seed, elementCount, componentCount, offset, stride, type, first, primitive, indices, indexSize) {
+        return glsDrawTests.RandomArrayGenerator.createBasicArray(seed, elementCount, componentCount, offset, stride, type, first, primitive, indices, indexSize);
     };
 
     /**
@@ -1496,9 +1498,10 @@ goog.scope(function() {
      * @param {number} first
      * @param {?glsDrawTests.DrawTestSpec.Primitive} primitive
      * @param {?goog.TypedArray} indices
+     * @param {number} indexSize
      * @return {goog.TypedArray}
      */
-    glsDrawTests.RandomArrayGenerator.createBasicArray = function (seed, elementCount, componentCount, offset, stride, type, first, primitive, indices) {
+    glsDrawTests.RandomArrayGenerator.createBasicArray = function (seed, elementCount, componentCount, offset, stride, type, first, primitive, indices, indexSize) {
         assertMsgOptions(componentCount >= 1 && componentCount <= 4, 'Unacceptable number of components', false, true);
 
         /** @type {glsDrawTests.GLValue} */ var min = glsDrawTests.GLValue.getMinValue(type);
@@ -1673,8 +1676,19 @@ goog.scope(function() {
             var view = new Uint8Array(data).subarray(offset);
             var reorderedbuffer = new ArrayBuffer(data.byteLength);
             var reorderedview = new Uint8Array(reorderedbuffer).subarray(offset);
-            for (var index = 0; index < indices.length; index++) {
-                reorderedview.set(view.subarray(index * componentCount * componentSize, (index + 1) * componentCount * componentSize), indices[index] * componentCount * componentSize);
+            var indicesCount = (indices.length - offset) / indexSize;
+            for (var index = 0; index < indicesCount; index++) {
+                var indexValue;
+                var start = offset + (indexSize * index);
+                var end = offset + (indexSize * index) + indexSize;
+                var indexValue = indices.subarray(start, end);
+                switch (indexSize) {
+                    case 1: indexValue = indexValue[0]; break;
+                    case 2: indexValue = new Uint16Array(indexValue)[0]; break;
+                    case 4: indexValue = new Uint32Array(indexValue)[0]; break;
+                    default: throw new Error('Invalid index type size: ' + indexSize);
+                }
+                reorderedview.set(view.subarray(index * componentCount * componentSize, (index + 1) * componentCount * componentSize), indexValue * componentCount * componentSize);
             }
             data = reorderedbuffer;
         }
@@ -1692,9 +1706,10 @@ goog.scope(function() {
      * @param {number} first
      * @param {?glsDrawTests.DrawTestSpec.Primitive} primitive
      * @param {?goog.TypedArray} indices
+     * @param {number} indexSize
      * @return {goog.TypedArray}
      */
-    glsDrawTests.RandomArrayGenerator.generatePackedArray = function (seed, elementCount, componentCount, offset, stride, type, first, primitive, indices) {
+    glsDrawTests.RandomArrayGenerator.generatePackedArray = function (seed, elementCount, componentCount, offset, stride, type, first, primitive, indices, indexSize) {
         assertMsgOptions(componentCount == 4, 'Component count must be 4', false, true);
         //DE_UNREF(componentCount);
 
@@ -1801,12 +1816,7 @@ goog.scope(function() {
             );
         }
 
-        switch (elementSize) {
-            case 1: return new Uint8Array(data);
-            case 2: return new Uint16Array(data);
-            case 4: return new Uint32Array(data);
-            default: throw new Error('Invalid index type size: ' + elementSize);
-        }
+        return new Uint8Array(data);
     };
 
     /**
@@ -3099,7 +3109,7 @@ goog.scope(function() {
                     /** @type {number} */ var evaluatedElementCount = (instanced && attribSpec.instanceDivisor > 0) ? (spec.instanceCount / attribSpec.instanceDivisor + 1) : (elementCount);
                     /** @type {number} */ var referencedElementCount = (ranged) ? (Math.max(evaluatedElementCount, spec.indexMax + 1)) : (evaluatedElementCount);
                     /** @type {number} */ var bufferSize = attribSpec.offset + stride * (referencedElementCount - 1) + elementSize;
-                    /** @type {goog.TypedArray} */ var data = glsDrawTests.RandomArrayGenerator.generateArray(seed, referencedElementCount, attribSpec.componentCount, attribSpec.offset, stride, attribSpec.inputType, spec.first, spec.primitive, indexed ? indexPointer : null);
+                    /** @type {goog.TypedArray} */ var data = glsDrawTests.RandomArrayGenerator.generateArray(seed, referencedElementCount, attribSpec.componentCount, attribSpec.offset, stride, attribSpec.inputType, spec.first, spec.primitive, indexed ? indexPointer : null, indexElementSize);
 
                     //try { TODO: This try/catch block's purpose is to delete data safely. Should we?
                         this.m_glArrayPack.newArray(attribSpec.storage);
@@ -3436,10 +3446,10 @@ goog.scope(function() {
             if (isOkScreenPixel && isOkReferencePixel) {
                 // pixel valid, write greenish pixels to make the result image easier to read
                 /** @type {number} */ var grayscaleValue = glsDrawTests.getVisualizationGrayscaleColor(screenPixel);
-                errorMask.getAccess().setPixel([grayscaleValue, 255, grayscaleValue, 255], x, y);
+                errorMask.getAccess().setPixel([grayscaleValue/255, 1, grayscaleValue/255, 1], x, y);
             } else if (!glsDrawTests.pixelNearEdge(x, y, reference, renderTargetThreshold)) {
                 // non-edge pixel values must be within threshold of the reference values
-                errorMask.getAccess().setPixel(errorColor, x, y);
+                errorMask.getAccess().setPixel(deMath.scale(errorColor, 1/255), x, y);
                 ++numFailingPixels;
             } else {
                 // we are on/near an edge, verify only coverage (coverage == not background colored)
@@ -3451,10 +3461,10 @@ goog.scope(function() {
                 if (isOkScreenCoverage && isOkReferenceCoverage) {
                     // pixel valid, write greenish pixels to make the result image easier to read
                     var grayscaleValue = glsDrawTests.getVisualizationGrayscaleColor(screenPixel);
-                    errorMask.getAccess().setPixel([grayscaleValue, 255, grayscaleValue, 255], x, y);
+                    errorMask.getAccess().setPixel([grayscaleValue / 255, 1, grayscaleValue / 255, 1], x, y);
                 } else {
                     // coverage does not match
-                    errorMask.getAccess().setPixel(errorColor, x, y);
+                    errorMask.getAccess().setPixel(deMath.scale(errorColor, 1/255), x, y);
                     ++numFailingPixels;
                 }
             }
@@ -3519,11 +3529,11 @@ goog.scope(function() {
             if (isOkScreenPixel && isOkReferencePixel) {
                 // pixel valid, write greenish pixels to make the result image easier to read
                 grayscaleValue = glsDrawTests.getVisualizationGrayscaleColor(screenPixel);
-                errorMask.getAccess().setPixel([grayscaleValue, 255, grayscaleValue, 255], x, y);
+                errorMask.getAccess().setPixel([grayscaleValue / 255, 1, grayscaleValue / 255, 1], x, y);
             } else if (!glsDrawTests.pixelNearLineIntersection(x, y, reference) &&
                      !glsDrawTests.pixelNearLineIntersection(x, y, result)) {
                 // non-intersection pixel values must be within threshold of the reference values
-                errorMask.getAccess().setPixel(errorColor, x, y);
+                errorMask.getAccess().setPixel(deMath.scale(errorColor, 1/255), x, y);
                 ++numFailingPixels;
             } else {
                 // pixel is near a line intersection
@@ -3536,10 +3546,10 @@ goog.scope(function() {
                 if (isOkScreenCoverage && isOkReferenceCoverage) {
                     // pixel valid, write greenish pixels to make the result image easier to read
                     grayscaleValue = glsDrawTests.getVisualizationGrayscaleColor(screenPixel);
-                    errorMask.getAccess().setPixel([grayscaleValue, 255, grayscaleValue, 255], x, y);
+                    errorMask.getAccess().setPixel([grayscaleValue / 255, 1, grayscaleValue / 255, 1], x, y);
                 } else {
                     // coverage does not match
-                    errorMask.getAccess().setPixel(errorColor, x, y);
+                    errorMask.getAccess().setPixel(deMath.scale(errorColor, 1/255), x, y);
                     ++numFailingPixels;
                 }
             }
