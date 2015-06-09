@@ -22,55 +22,57 @@
 goog.provide('functional.gles3.es3fNegativeShaderApiTests');
 goog.require('functional.gles3.es3fApiCase');
 goog.require('framework.common.tcuTestCase');
+goog.requite('framework.opengl.gluShaderProgram');
 
 goog.scope(function() {
     /** @type {?WebGL2RenderingContext} */ var gl;
     var es3fNegativeShaderApiTests = functional.gles3.es3fNegativeShaderApiTests;
     var es3fApiCase = functional.gles3.es3fApiCase;
     var tcuTestCase = framework.common.tcuTestCase;
+    var gluShaderProgram = framework.opengl.gluShaderProgram;
 
     /** @type {string} */
     es3fNegativeShaderApiTests.vertexShaderSource = '#version 300 es\n' +
-												    'void main (void)\n' +
-												    '{\n' +
-                                                    '	gl_Position = vec4(0.0);\n' +
+                                                    'void main (void)\n' +
+                                                    '{\n' +
+                                                    '    gl.Position = vec4(0.0);\n' +
                                                     '}\n';
 
     /** @type {string} */
     es3fNegativeShaderApiTests.fragmentShaderSource = '#version 300 es\n' +
-												      'layout(location = 0) out mediump vec4 fragColor;\n' +
+                                                      'layout(location = 0) out mediump vec4 fragColor;\n' +
                                                       'void main (void)\n' +
                                                       '{\n' +
-                                                      '	fragColor = vec4(0.0);\n' +
+                                                      '    fragColor = vec4(0.0);\n' +
                                                       '}\n';
 
     /** @type {string} */
     es3fNegativeShaderApiTests.uniformTestVertSource = '#version 300 es\n' +
-    										           'uniform mediump vec4 vec4_v;\n' +
+                                                       'uniform mediump vec4 vec4_v;\n' +
                                                        'uniform mediump mat4 mat4_v;\n' +
                                                        'void main (void)\n' +
                                                        '{\n' +
-                                                       '	gl_Position = mat4_v * vec4_v;\n' +
+                                                       '    gl.Position = mat4_v * vec4_v;\n' +
                                                        '}\n';
 
     /** @type {string} */
     es3fNegativeShaderApiTests.uniformTestFragSource = '#version 300 es\n' +
-    									               'uniform mediump ivec4 ivec4_f;\n' +
+                                                       'uniform mediump ivec4 ivec4_f;\n' +
                                                        'uniform mediump uvec4 uvec4_f;\n' +
                                                        'uniform sampler2D sampler_f;\n' +
                                                        'layout(location = 0) out mediump vec4 fragColor;\n' +
                                                        'void main (void)\n' +
                                                        '{\n' +
-                                                       '	fragColor.xy = (vec4(uvec4_f) + vec4(ivec4_f)).xy;\n' +
-                                                       '	fragColor.zw = texture(sampler_f, vec2(0.0, 0.0)).zw;\n' +
+                                                       '    fragColor.xy = (vec4(uvec4_f) + vec4(ivec4_f)).xy;\n' +
+                                                       '    fragColor.zw = texture(sampler_f, vec2(0.0, 0.0)).zw;\n' +
                                                        '}\n';
 
     /** @type {string} */
     es3fNegativeShaderApiTests.uniformBlockVertSource = '#version 300 es\n' +
-    									                'layout(shared) uniform Block { lowp float var; };\n' +
+                                                        'layout(shared) uniform Block { lowp /** @type {number} */ var var; };\n' +
                                                         'void main (void)\n' +
                                                         '{\n' +
-                                                        '	gl_Position = vec4(var);\n' +
+                                                        '    gl.Position = vec4(var);\n' +
                                                         '}\n';
 
     es3fNegativeShaderApiTests.NegativeShaderApiTests = function() {
@@ -86,6 +88,13 @@ goog.scope(function() {
     es3fNegativeShaderApiTests.init = function() {
         var testGroup = tcuTestCase.runner.testCases;
 
+        // Tests not ported
+        // shader_binary
+        // get_program_binary
+        // program_binary
+        // program_parameteri
+        // sampler_parameterfv
+
         // Shader control commands
 
         testGroup.addChild(new es3fApiCase.ApiCaseCallback(
@@ -93,7 +102,7 @@ goog.scope(function() {
             function() {
                 bufferedLogToConsole('INVALID_ENUM is generated if shaderType is not an accepted value.');
                 gl.createShader(-1);
-                this.expectError(gl.INVALID_ENUM);
+                    this.expectError(gl.INVALID_ENUM);
             }
         ));
 
@@ -103,1837 +112,1732 @@ goog.scope(function() {
                 // \note Shader compilation must be supported.
 
                 bufferedLogToConsole("INVALID_VALUE is generated if shader is not a value generated by OpenGL.");
-    			gl.shaderSource(1, 0, 0, 0);
-    			this.expectError(gl.INVALID_VALUE);
+                gl.shaderSource(1, 0, 0, 0);
+                    this.expectError(gl.INVALID_VALUE);
 
                 bufferedLogToConsole("INVALID_VALUE is generated if count is less than 0.");
-    			/** @type {number} */ var shader = gl.createShader(gl.VERTEX_SHADER);
-    			gl.shaderSource(shader, -1, 0, 0);
-    			this.expectError(gl.INVALID_VALUE);
+                /** @type {number} */ var shader = gl.createShader(gl.VERTEX_SHADER);
+                gl.shaderSource(shader, -1, 0, 0);
+                    this.expectError(gl.INVALID_VALUE);
 
                 bufferedLogToConsole("INVALID_OPERATION is generated if shader is not a shader object.");
-    			/** @type {number} */ var program = gl.createProgram();
-    			gl.shaderSource(program, 0, 0, 0);
-    			this.expectError(gl.INVALID_OPERATION);
+                /** @type {number} */ var program = gl.createProgram();
+                gl.shaderSource(program, 0, 0, 0);
+                    this.expectError(gl.INVALID_OPERATION);
 
-    			gl.deleteProgram(program);
-    			gl.deleteShader(shader);
+                gl.deleteProgram(program);
+                gl.deleteShader(shader);
             }
         ));
 
-    //     ES3F_ADD_API_CASE(compile_shader, "Invalid glCompileShader() usage",
-	// 	{
-	// 		// \note Shader compilation must be supported.
-    //
-	// 		m_log << TestLog::Section("", "GL_INVALID_VALUE is generated if shader is not a value generated by OpenGL.");
-	// 		glCompileShader(9);
-	// 		expectError(GL_INVALID_VALUE);
-	// 		m_log << TestLog::EndSection;
-    //
-	// 		m_log << TestLog::Section("", "GL_INVALID_OPERATION is generated if shader is not a shader object.");
-	// 		GLuint program = glCreateProgram();
-	// 		glCompileShader(program);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		m_log << TestLog::EndSection;
-    //
-	// 		glDeleteProgram(program);
-	// 	});
-	// ES3F_ADD_API_CASE(delete_shader, "Invalid glDeleteShader() usage",
-	// 	{
-	// 		m_log << TestLog::Section("", "GL_INVALID_VALUE is generated if shader is not a value generated by OpenGL.");
-	// 		glDeleteShader(9);
-	// 		expectError(GL_INVALID_VALUE);
-	// 		m_log << TestLog::EndSection;
-	// 	});
-	// ES3F_ADD_API_CASE(shader_binary, "Invalid glShaderBinary() usage",
-	// 	{
-	// 		std::vector<deInt32> binaryFormats;
-	// 		getSupportedExtensions(GL_NUM_SHADER_BINARY_FORMATS, GL_SHADER_BINARY_FORMATS, binaryFormats);
-	// 		deBool shaderBinarySupported = !binaryFormats.empty();
-	// 		if (!shaderBinarySupported)
-	// 			m_log << TestLog::Message << "// Shader binaries not supported." << TestLog::EndMessage;
-	// 		else
-	// 			m_log << TestLog::Message << "// Shader binaries supported" << TestLog::EndMessage;
-    //
-	// 		GLuint shaders[2];
-	// 		shaders[0]		= glCreateShader(GL_VERTEX_SHADER);
-	// 		shaders[1]		= glCreateShader(GL_VERTEX_SHADER);
-    //
-	// 		m_log << TestLog::Section("", "GL_INVALID_ENUM is generated if binaryFormat is not an accepted value.");
-	// 		glShaderBinary(1, &shaders[0], -1, 0, 0);
-	// 		expectError(GL_INVALID_ENUM);
-	// 		m_log << TestLog::EndSection;
-    //
-	// 		if (shaderBinarySupported)
-	// 		{
-	// 			m_log << TestLog::Section("", "GL_INVALID_VALUE is generated if the data pointed to by binary does not match the format specified by binaryFormat.");
-	// 			const GLbyte data = 0x005F;
-	// 			glShaderBinary(1, &shaders[0], binaryFormats[0], &data, 1);
-	// 			expectError(GL_INVALID_VALUE);
-	// 			m_log << TestLog::EndSection;
-    //
-	// 			m_log << TestLog::Section("", "GL_INVALID_OPERATION is generated if more than one of the handles in shaders refers to the same type of shader, or GL_INVALID_VALUE due to invalid data pointer.");
-	// 			glShaderBinary(2, &shaders[0], binaryFormats[0], 0, 0);
-	// 			expectError(GL_INVALID_OPERATION, GL_INVALID_VALUE);
-	// 			m_log << TestLog::EndSection;
-	// 		}
-    //
-	// 		glDeleteShader(shaders[0]);
-	// 		glDeleteShader(shaders[1]);
-	// 	});
-	// ES3F_ADD_API_CASE(attach_shader, "Invalid glAttachShader() usage",
-	// 	{
-	// 		GLuint shader1 = glCreateShader(GL_VERTEX_SHADER);
-	// 		GLuint shader2 = glCreateShader(GL_VERTEX_SHADER);
-	// 		GLuint program = glCreateProgram();
-    //
-	// 		m_log << TestLog::Section("", "GL_INVALID_OPERATION is generated if program is not a program object.");
-	// 		glAttachShader(shader1, shader1);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		m_log << TestLog::EndSection;
-    //
-	// 		m_log << TestLog::Section("", "GL_INVALID_OPERATION is generated if shader is not a shader object.");
-	// 		glAttachShader(program, program);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glAttachShader(shader1, program);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		m_log << TestLog::EndSection;
-    //
-	// 		m_log << TestLog::Section("", "GL_INVALID_VALUE is generated if either program or shader is not a value generated by OpenGL.");
-	// 		glAttachShader(program, -1);
-	// 		expectError(GL_INVALID_VALUE);
-	// 		glAttachShader(-1, shader1);
-	// 		expectError(GL_INVALID_VALUE);
-	// 		glAttachShader(-1, -1);
-	// 		expectError(GL_INVALID_VALUE);
-	// 		m_log << TestLog::EndSection;
-    //
-	// 		m_log << TestLog::Section("", "GL_INVALID_OPERATION is generated if shader is already attached to program.");
-	// 		glAttachShader(program, shader1);
-	// 		expectError(GL_NO_ERROR);
-	// 		glAttachShader(program, shader1);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		m_log << TestLog::EndSection;
-    //
-	// 		m_log << TestLog::Section("", "GL_INVALID_OPERATION is generated if a shader of the same type as shader is already attached to program.");
-	// 		glAttachShader(program, shader2);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		m_log << TestLog::EndSection;
-    //
-	// 		glDeleteProgram(program);
-	// 		glDeleteShader(shader1);
-	// 		glDeleteShader(shader2);
-	// 	});
-	// ES3F_ADD_API_CASE(detach_shader, "Invalid glDetachShader() usage",
-	// 	{
-	// 		GLuint shader = glCreateShader(GL_VERTEX_SHADER);
-	// 		GLuint program = glCreateProgram();
-    //
-	// 		m_log << TestLog::Section("", "GL_INVALID_VALUE is generated if either program or shader is not a value generated by OpenGL.");
-	// 		glDetachShader(-1, shader);
-	// 		expectError(GL_INVALID_VALUE);
-	// 		glDetachShader(program, -1);
-	// 		expectError(GL_INVALID_VALUE);
-	// 		glDetachShader(-1, -1);
-	// 		expectError(GL_INVALID_VALUE);
-	// 		m_log << TestLog::EndSection;
-    //
-	// 		m_log << TestLog::Section("", "GL_INVALID_OPERATION is generated if program is not a program object.");
-	// 		glDetachShader(shader, shader);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		m_log << TestLog::EndSection;
-    //
-	// 		m_log << TestLog::Section("", "GL_INVALID_OPERATION is generated if shader is not a shader object.");
-	// 		glDetachShader(program, program);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glDetachShader(shader, program);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		m_log << TestLog::EndSection;
-    //
-	// 		m_log << TestLog::Section("", "GL_INVALID_OPERATION is generated if shader is not attached to program.");
-	// 		glDetachShader(program, shader);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		m_log << TestLog::EndSection;
-    //
-	// 		glDeleteProgram(program);
-	// 		glDeleteShader(shader);
-	// 	});
-	// ES3F_ADD_API_CASE(link_program, "Invalid glLinkProgram() usage",
-	// 	{
-	// 		GLuint shader = glCreateShader(GL_VERTEX_SHADER);
-    //
-	// 		m_log << TestLog::Section("", "GL_INVALID_VALUE is generated if program is not a value generated by OpenGL.");
-	// 		glLinkProgram(-1);
-	// 		expectError(GL_INVALID_VALUE);
-	// 		m_log << TestLog::EndSection;
-    //
-	// 		m_log << TestLog::Section("", "GL_INVALID_OPERATION is generated if program is not a program object.");
-	// 		glLinkProgram(shader);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		m_log << TestLog::EndSection;
-    //
-	// 		glDeleteShader(shader);
-    //
-	// 		m_log << TestLog::Section("", "GL_INVALID_OPERATION is generated if program is the currently active program object and transform feedback mode is active.");
-	// 		glu::ShaderProgram			program(m_context.getRenderContext(), glu::makeVtxFragSources(vertexShaderSource, fragmentShaderSource));
-	// 		deUint32					buf;
-	// 		deUint32					tfID;
-	// 		const char* tfVarying		= "gl_Position";
-    //
-	// 		glGenTransformFeedbacks		(1, &tfID);
-	// 		glGenBuffers				(1, &buf);
-    //
-	// 		glUseProgram				(program.getProgram());
-	// 		glTransformFeedbackVaryings	(program.getProgram(), 1, &tfVarying, GL_INTERLEAVED_ATTRIBS);
-	// 		glLinkProgram				(program.getProgram());
-	// 		glBindTransformFeedback		(GL_TRANSFORM_FEEDBACK, tfID);
-	// 		glBindBuffer				(GL_TRANSFORM_FEEDBACK_BUFFER, buf);
-	// 		glBufferData				(GL_TRANSFORM_FEEDBACK_BUFFER, 32, DE_NULL, GL_DYNAMIC_DRAW);
-	// 		glBindBufferBase			(GL_TRANSFORM_FEEDBACK_BUFFER, 0, buf);
-	// 		glBeginTransformFeedback	(GL_TRIANGLES);
-	// 		expectError					(GL_NO_ERROR);
-    //
-	// 		glLinkProgram				(program.getProgram());
-	// 		expectError					(GL_INVALID_OPERATION);
-    //
-	// 		glEndTransformFeedback		();
-	// 		glDeleteTransformFeedbacks	(1, &tfID);
-	// 		glDeleteBuffers				(1, &buf);
-	// 		expectError					(GL_NO_ERROR);
-	// 		m_log << TestLog::EndSection;
-	// 	});
-	// ES3F_ADD_API_CASE(use_program, "Invalid glUseProgram() usage",
-	// 	{
-	// 		GLuint shader = glCreateShader(GL_VERTEX_SHADER);
-    //
-	// 		m_log << TestLog::Section("", "GL_INVALID_VALUE is generated if program is neither 0 nor a value generated by OpenGL.");
-	// 		glUseProgram(-1);
-	// 		expectError(GL_INVALID_VALUE);
-	// 		m_log << TestLog::EndSection;
-    //
-	// 		m_log << TestLog::Section("", "GL_INVALID_OPERATION is generated if program is not a program object.");
-	// 		glUseProgram(shader);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		m_log << TestLog::EndSection;
-    //
-	// 		m_log << TestLog::Section("", "GL_INVALID_OPERATION is generated if transform feedback mode is active and not paused.");
-	// 		glu::ShaderProgram			program1(m_context.getRenderContext(), glu::makeVtxFragSources(vertexShaderSource, fragmentShaderSource));
-	// 		glu::ShaderProgram			program2(m_context.getRenderContext(), glu::makeVtxFragSources(vertexShaderSource, fragmentShaderSource));
-	// 		deUint32					buf;
-	// 		deUint32					tfID;
-	// 		const char* tfVarying		= "gl_Position";
-    //
-	// 		glGenTransformFeedbacks		(1, &tfID);
-	// 		glGenBuffers				(1, &buf);
-    //
-	// 		glUseProgram				(program1.getProgram());
-	// 		glTransformFeedbackVaryings	(program1.getProgram(), 1, &tfVarying, GL_INTERLEAVED_ATTRIBS);
-	// 		glLinkProgram				(program1.getProgram());
-	// 		glBindTransformFeedback		(GL_TRANSFORM_FEEDBACK, tfID);
-	// 		glBindBuffer				(GL_TRANSFORM_FEEDBACK_BUFFER, buf);
-	// 		glBufferData				(GL_TRANSFORM_FEEDBACK_BUFFER, 32, DE_NULL, GL_DYNAMIC_DRAW);
-	// 		glBindBufferBase			(GL_TRANSFORM_FEEDBACK_BUFFER, 0, buf);
-	// 		glBeginTransformFeedback	(GL_TRIANGLES);
-	// 		expectError					(GL_NO_ERROR);
-    //
-	// 		glUseProgram				(program2.getProgram());
-	// 		expectError					(GL_INVALID_OPERATION);
-    //
-	// 		glPauseTransformFeedback	();
-	// 		glUseProgram				(program2.getProgram());
-	// 		expectError					(GL_NO_ERROR);
-    //
-	// 		glEndTransformFeedback		();
-	// 		glDeleteTransformFeedbacks	(1, &tfID);
-	// 		glDeleteBuffers				(1, &buf);
-	// 		expectError					(GL_NO_ERROR);
-	// 		m_log << TestLog::EndSection;
-    //
-	// 		glUseProgram(0);
-	// 		glDeleteShader(shader);
-	// 	});
-	// ES3F_ADD_API_CASE(delete_program, "Invalid glDeleteProgram() usage",
-	// 	{
-	// 		m_log << TestLog::Section("", "GL_INVALID_VALUE is generated if program is not a value generated by OpenGL.");
-	// 		glDeleteProgram(-1);
-	// 		expectError(GL_INVALID_VALUE);
-	// 		m_log << TestLog::EndSection;
-	// 	});
-	// ES3F_ADD_API_CASE(validate_program, "Invalid glValidateProgram() usage",
-	// 	{
-	// 		GLuint shader = glCreateShader(GL_VERTEX_SHADER);
-    //
-	// 		m_log << TestLog::Section("", "GL_INVALID_VALUE is generated if program is not a value generated by OpenGL.");
-	// 		glValidateProgram(-1);
-	// 		expectError(GL_INVALID_VALUE);
-	// 		m_log << TestLog::EndSection;
-    //
-	// 		m_log << TestLog::Section("", "GL_INVALID_OPERATION is generated if program is not a program object.");
-	// 		glValidateProgram(shader);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		m_log << TestLog::EndSection;
-    //
-	// 		glDeleteShader(shader);
-	// 	});
-	// ES3F_ADD_API_CASE(get_program_binary, "Invalid glGetProgramBinary() usage",
-	// 	{
-	// 		glu::ShaderProgram				program			(m_context.getRenderContext(), glu::makeVtxFragSources(vertexShaderSource, fragmentShaderSource));
-	// 		glu::ShaderProgram				programInvalid	(m_context.getRenderContext(), glu::makeVtxFragSources(vertexShaderSource, ""));
-	// 		GLenum							binaryFormat	= -1;
-	// 		GLsizei							binaryLength	= -1;
-	// 		GLint							binaryPtr		= -1;
-	// 		GLint							bufSize			= -1;
-	// 		GLint							linkStatus		= -1;
-    //
-	// 		m_log << TestLog::Section("", "GL_INVALID_OPERATION is generated if bufSize is less than the size of GL_PROGRAM_BINARY_LENGTH for program.");
-	// 		glGetProgramiv		(program.getProgram(), GL_PROGRAM_BINARY_LENGTH,	&bufSize);
-	// 		expectError			(GL_NO_ERROR);
-	// 		glGetProgramiv		(program.getProgram(), GL_LINK_STATUS,				&linkStatus);
-	// 		m_log << TestLog::Message << "// GL_PROGRAM_BINARY_LENGTH = " << bufSize << TestLog::EndMessage;
-	// 		m_log << TestLog::Message << "// GL_LINK_STATUS = " << linkStatus << TestLog::EndMessage;
-	// 		expectError			(GL_NO_ERROR);
-    //
-	// 		glGetProgramBinary	(program.getProgram(), 0, &binaryLength, &binaryFormat, &binaryPtr);
-	// 		expectError			(GL_INVALID_OPERATION);
-	// 		if (bufSize > 0)
-	// 		{
-	// 			glGetProgramBinary	(program.getProgram(), bufSize-1, &binaryLength, &binaryFormat, &binaryPtr);
-	// 			expectError			(GL_INVALID_OPERATION);
-	// 		}
-	// 		m_log << TestLog::EndSection;
-    //
-	// 		m_log << TestLog::Section("", "GL_INVALID_OPERATION is generated if GL_LINK_STATUS for the program object is false.");
-	// 		glGetProgramiv		(programInvalid.getProgram(), GL_PROGRAM_BINARY_LENGTH,	&bufSize);
-	// 		expectError			(GL_NO_ERROR);
-	// 		glGetProgramiv		(programInvalid.getProgram(), GL_LINK_STATUS,			&linkStatus);
-	// 		m_log << TestLog::Message << "// GL_PROGRAM_BINARY_LENGTH = " << bufSize << TestLog::EndMessage;
-	// 		m_log << TestLog::Message << "// GL_LINK_STATUS = " << linkStatus << TestLog::EndMessage;
-	// 		expectError			(GL_NO_ERROR);
-    //
-	// 		glGetProgramBinary	(programInvalid.getProgram(), bufSize, &binaryLength, &binaryFormat, &binaryPtr);
-	// 		expectError			(GL_INVALID_OPERATION);
-	// 		m_log << TestLog::EndSection;
-	// 	});
-	// ES3F_ADD_API_CASE(program_binary, "Invalid glProgramBinary() usage",
-	// 	{
-	// 		glu::ShaderProgram		srcProgram		(m_context.getRenderContext(), glu::makeVtxFragSources(vertexShaderSource, fragmentShaderSource));
-	// 		GLuint					dstProgram		= glCreateProgram();
-	// 		GLuint					dummyShader		= glCreateShader(GL_VERTEX_SHADER);
-	// 		GLenum					binaryFormat	= -1;
-	// 		GLsizei					binaryLength	= -1;
-	// 		std::vector<deUint8>	binaryBuf;
-	// 		GLint					bufSize			= -1;
-	// 		GLint					linkStatus		= -1;
-    //
-	// 		glGetProgramiv		(srcProgram.getProgram(), GL_PROGRAM_BINARY_LENGTH,	&bufSize);
-	// 		glGetProgramiv		(srcProgram.getProgram(), GL_LINK_STATUS,			&linkStatus);
-	// 		m_log << TestLog::Message << "// GL_PROGRAM_BINARY_LENGTH = " << bufSize << TestLog::EndMessage;
-	// 		m_log << TestLog::Message << "// GL_LINK_STATUS = " << linkStatus << TestLog::EndMessage;
-	// 		TCU_CHECK(bufSize > 0);
-	// 		binaryBuf.resize(bufSize);
-	// 		glGetProgramBinary	(srcProgram.getProgram(), bufSize, &binaryLength, &binaryFormat, &binaryBuf[0]);
-	// 		expectError			(GL_NO_ERROR);
-    //
-	// 		m_log << TestLog::Section("", "GL_INVALID_OPERATION is generated if program is not the name of an existing program object.");
-	// 		glProgramBinary		(dummyShader, binaryFormat, &binaryBuf[0], binaryLength);
-	// 		expectError			(GL_INVALID_OPERATION);
-	// 		m_log << TestLog::EndSection;
-    //
-	// 		m_log << TestLog::Section("", "GL_INVALID_ENUM is generated if binaryFormat is not a value recognized by the implementation.");
-	// 		glProgramBinary		(dstProgram, -1, &binaryBuf[0], binaryLength);
-	// 		expectError			(GL_INVALID_ENUM);
-	// 		m_log << TestLog::EndSection;
-    //
-	// 		glDeleteShader(dummyShader);
-	// 		glDeleteProgram(dstProgram);
-	// 	});
-	// ES3F_ADD_API_CASE(program_parameteri, "Invalid glProgramParameteri() usage",
-	// 	{
-	// 		GLuint	program	= glCreateProgram();
-    //
-	// 		m_log << TestLog::Section("", "GL_INVALID_VALUE is generated if program is not the name of an existing program object.");
-	// 		glProgramParameteri		(0, GL_PROGRAM_BINARY_RETRIEVABLE_HINT, GL_TRUE);
-	// 		expectError				(GL_INVALID_VALUE);
-	// 		m_log << TestLog::EndSection;
-    //
-	// 		m_log << TestLog::Section("", "GL_INVALID_ENUM is generated if pname is not GL_PROGRAM_BINARY_RETRIEVABLE_HINT.");
-	// 		glProgramParameteri		(program, -1, GL_TRUE);
-	// 		expectError				(GL_INVALID_ENUM);
-	// 		m_log << TestLog::EndSection;
-    //
-	// 		m_log << TestLog::Section("", "GL_INVALID_VALUE is generated if value is not GL_FALSE or GL_TRUE.");
-	// 		glProgramParameteri		(program, GL_PROGRAM_BINARY_RETRIEVABLE_HINT, 2);
-	// 		expectError				(GL_INVALID_VALUE);
-	// 		m_log << TestLog::EndSection;
-    //
-	// 		glDeleteProgram(program);
-	// 	});
-	// ES3F_ADD_API_CASE(gen_samplers, "Invalid glGenSamplers() usage",
-	// 	{
-	// 		m_log << TestLog::Section("", "GL_INVALID_VALUE is generated if n is negative.");
-	// 		GLuint sampler;
-	// 		glGenSamplers	(-1, &sampler);
-	// 		expectError		(GL_INVALID_VALUE);
-	// 		m_log << TestLog::EndSection;
-	// 	});
-	// ES3F_ADD_API_CASE(bind_sampler, "Invalid glBindSampler() usage",
-	// 	{
-	// 		int				maxTexImageUnits;
-	// 		GLuint			sampler;
-	// 		glGetIntegerv	(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &maxTexImageUnits);
-	// 		glGenSamplers	(1, &sampler);
-    //
-	// 		m_log << TestLog::Section("", "GL_INVALID_VALUE is generated if unit is greater than or equal to the value of GL_MAX_COMBIED_TEXTURE_IMAGE_UNITS.");
-	// 		glBindSampler	(maxTexImageUnits, sampler);
-	// 		expectError		(GL_INVALID_VALUE);
-	// 		m_log << TestLog::EndSection;
-    //
-	// 		m_log << TestLog::Section("", "GL_INVALID_OPERATION is generated if sampler is not zero or a name previously returned from a call to glGenSamplers.");
-	// 		glBindSampler	(1, -1);
-	// 		expectError		(GL_INVALID_OPERATION);
-	// 		m_log << TestLog::EndSection;
-    //
-	// 		m_log << TestLog::Section("", "GL_INVALID_OPERATION is generated if sampler has been deleted by a call to glDeleteSamplers.");
-	// 		glDeleteSamplers(1, &sampler);
-	// 		glBindSampler	(1, sampler);
-	// 		expectError		(GL_INVALID_OPERATION);
-	// 		m_log << TestLog::EndSection;
-	// 	});
-	// ES3F_ADD_API_CASE(delete_samplers, "Invalid glDeleteSamplers() usage",
-	// 	{
-	// 		m_log << TestLog::Section("", "GL_INVALID_VALUE is generated if n is negative.");
-	// 		glDeleteSamplers(-1, 0);
-	// 		expectError		(GL_INVALID_VALUE);
-	// 		m_log << TestLog::EndSection;
-	// 	});
-	// ES3F_ADD_API_CASE(get_sampler_parameteriv, "Invalid glGetSamplerParameteriv() usage",
-	// 	{
-	// 		int				params;
-	// 		GLuint			sampler;
-	// 		glGenSamplers	(1, &sampler);
-    //
-	// 		m_log << TestLog::Section("", "GL_INVALID_OPERATION is generated if sampler is not the name of a sampler object returned from a previous call to glGenSamplers.");
-	// 		glGetSamplerParameteriv	(-1, GL_TEXTURE_MAG_FILTER, &params);
-	// 		expectError				(GL_INVALID_OPERATION);
-	// 		m_log << TestLog::EndSection;
-    //
-	// 		m_log << TestLog::Section("", "GL_INVALID_ENUM is generated if pname is not an accepted value.");
-	// 		glGetSamplerParameteriv	(sampler, -1, &params);
-	// 		expectError				(GL_INVALID_ENUM);
-	// 		m_log << TestLog::EndSection;
-    //
-	// 		glDeleteSamplers(1, &sampler);
-	// 	});
-	// ES3F_ADD_API_CASE(get_sampler_parameterfv, "Invalid glGetSamplerParameterfv() usage",
-	// 	{
-	// 		float			params;
-	// 		GLuint			sampler;
-	// 		glGenSamplers	(1, &sampler);
-    //
-	// 		m_log << TestLog::Section("", "GL_INVALID_OPERATION is generated if sampler is not the name of a sampler object returned from a previous call to glGenSamplers.");
-	// 		glGetSamplerParameterfv	(-1, GL_TEXTURE_MAG_FILTER, &params);
-	// 		expectError				(GL_INVALID_OPERATION);
-	// 		m_log << TestLog::EndSection;
-    //
-	// 		m_log << TestLog::Section("", "GL_INVALID_ENUM is generated if pname is not an accepted value.");
-	// 		glGetSamplerParameterfv	(sampler, -1, &params);
-	// 		expectError				(GL_INVALID_ENUM);
-	// 		m_log << TestLog::EndSection;
-    //
-	// 		glDeleteSamplers(1, &sampler);
-	// 	});
-	// ES3F_ADD_API_CASE(sampler_parameteri, "Invalid glSamplerParameteri() usage",
-	// 	{
-	// 		GLuint			sampler;
-	// 		glGenSamplers	(1, &sampler);
-    //
-	// 		m_log << TestLog::Section("", "GL_INVALID_OPERATION is generated if sampler is not the name of a sampler object previously returned from a call to glGenSamplers.");
-	// 		glSamplerParameteri		(-1, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	// 		expectError				(GL_INVALID_OPERATION);
-	// 		m_log << TestLog::EndSection;
-    //
-	// 		m_log << TestLog::Section("", "GL_INVALID_ENUM is generated if params should have a defined constant value (based on the value of pname) and does not.");
-	// 		glSamplerParameteri		(sampler, GL_TEXTURE_WRAP_S, -1);
-	// 		expectError				(GL_INVALID_ENUM);
-	// 		m_log << TestLog::EndSection;
-    //
-	// 		glDeleteSamplers(1, &sampler);
-	// 	});
-	// ES3F_ADD_API_CASE(sampler_parameteriv, "Invalid glSamplerParameteriv() usage",
-	// 	{
-	// 		int				params;
-	// 		GLuint			sampler;
-	// 		glGenSamplers	(1, &sampler);
-    //
-	// 		m_log << TestLog::Section("", "GL_INVALID_OPERATION is generated if sampler is not the name of a sampler object previously returned from a call to glGenSamplers.");
-	// 		params = GL_CLAMP_TO_EDGE;
-	// 		glSamplerParameteriv	(-1, GL_TEXTURE_WRAP_S, &params);
-	// 		expectError				(GL_INVALID_OPERATION);
-	// 		m_log << TestLog::EndSection;
-    //
-	// 		m_log << TestLog::Section("", "GL_INVALID_ENUM is generated if params should have a defined constant value (based on the value of pname) and does not.");
-	// 		params = -1;
-	// 		glSamplerParameteriv	(sampler, GL_TEXTURE_WRAP_S, &params);
-	// 		expectError				(GL_INVALID_ENUM);
-	// 		m_log << TestLog::EndSection;
-    //
-	// 		glDeleteSamplers(1, &sampler);
-	// 	});
-	// ES3F_ADD_API_CASE(sampler_parameterf, "Invalid glSamplerParameterf() usage",
-	// 	{
-	// 		GLuint			sampler;
-	// 		glGenSamplers	(1, &sampler);
-    //
-	// 		m_log << TestLog::Section("", "GL_INVALID_OPERATION is generated if sampler is not the name of a sampler object previously returned from a call to glGenSamplers.");
-	// 		glSamplerParameterf		(-1, GL_TEXTURE_MIN_LOD, -1000.0f);
-	// 		expectError				(GL_INVALID_OPERATION);
-	// 		m_log << TestLog::EndSection;
-    //
-	// 		m_log << TestLog::Section("", "GL_INVALID_ENUM is generated if params should have a defined constant value (based on the value of pname) and does not.");
-	// 		glSamplerParameterf		(sampler, GL_TEXTURE_WRAP_S, -1.0f);
-	// 		expectError				(GL_INVALID_ENUM);
-	// 		m_log << TestLog::EndSection;
-    //
-	// 		glDeleteSamplers(1, &sampler);
-	// 	});
-	// ES3F_ADD_API_CASE(sampler_parameterfv, "Invalid glSamplerParameterfv() usage",
-	// 	{
-	// 		float			params;
-	// 		GLuint			sampler;
-	// 		glGenSamplers	(1, &sampler);
-    //
-	// 		m_log << TestLog::Section("", "GL_INVALID_OPERATION is generated if sampler is not the name of a sampler object previously returned from a call to glGenSamplers.");
-	// 		params = -1000.0f;
-	// 		glSamplerParameterfv	(-1, GL_TEXTURE_WRAP_S, &params);
-	// 		expectError				(GL_INVALID_OPERATION);
-	// 		m_log << TestLog::EndSection;
-    //
-	// 		m_log << TestLog::Section("", "GL_INVALID_ENUM is generated if params should have a defined constant value (based on the value of pname) and does not.");
-	// 		params = -1.0f;
-	// 		glSamplerParameterfv	(sampler, GL_TEXTURE_WRAP_S, &params);
-	// 		expectError				(GL_INVALID_ENUM);
-	// 		m_log << TestLog::EndSection;
-    //
-	// 		glDeleteSamplers(1, &sampler);
-	// 	});
-    //
-	// // Shader data commands
-    //
-	// ES3F_ADD_API_CASE(get_attrib_location, "Invalid glGetAttribLocation() usage",
-	// 	{
-	// 		GLuint programEmpty		= glCreateProgram();
-	// 		GLuint shader			= glCreateShader(GL_VERTEX_SHADER);
-    //
-	// 		glu::ShaderProgram program(m_context.getRenderContext(), glu::makeVtxFragSources(vertexShaderSource, fragmentShaderSource));
-    //
-	// 		m_log << TestLog::Section("", "GL_INVALID_OPERATION is generated if program has not been successfully linked.");
-	// 		glBindAttribLocation	(programEmpty, 0, "test");
-	// 		glGetAttribLocation		(programEmpty, "test");
-	// 		expectError				(GL_INVALID_OPERATION);
-	// 		m_log << TestLog::EndSection;
-    //
-	// 		m_log << TestLog::Section("", "GL_INVALID_VALUE is generated if program is not a program or shader object.");
-	// 		glUseProgram			(program.getProgram());
-	// 		glBindAttribLocation	(program.getProgram(), 0, "test");
-	// 		expectError				(GL_NO_ERROR);
-	// 		glGetAttribLocation		(program.getProgram(), "test");
-	// 		expectError				(GL_NO_ERROR);
-	// 		glGetAttribLocation		(-2, "test");
-	// 		expectError				(GL_INVALID_VALUE);
-	// 		m_log << TestLog::EndSection;
-    //
-	// 		m_log << TestLog::Section("", "GL_INVALID_OPERATION is generated if program is not a program object.");
-	// 		glGetAttribLocation		(shader, "test");
-	// 		expectError				(GL_INVALID_OPERATION);
-	// 		m_log << TestLog::EndSection;
-    //
-	// 		glUseProgram			(0);
-	// 		glDeleteShader			(shader);
-	// 		glDeleteProgram			(programEmpty);
-	// 	});
-	// ES3F_ADD_API_CASE(get_uniform_location, "Invalid glGetUniformLocation() usage",
-	// 	{
-	// 		GLuint programEmpty = glCreateProgram();
-	// 		GLuint shader = glCreateShader(GL_VERTEX_SHADER);
-    //
-	// 		glu::ShaderProgram program(m_context.getRenderContext(), glu::makeVtxFragSources(vertexShaderSource, fragmentShaderSource));
-    //
-	// 		m_log << TestLog::Section("", "GL_INVALID_OPERATION is generated if program has not been successfully linked.");
-	// 		glGetUniformLocation(programEmpty, "test");
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		m_log << TestLog::EndSection;
-    //
-	// 		m_log << TestLog::Section("", "GL_INVALID_VALUE is generated if program is not a value generated by OpenGL.");
-	// 		glUseProgram(program.getProgram());
-	// 		glGetUniformLocation(-2, "test");
-	// 		expectError(GL_INVALID_VALUE);
-	// 		m_log << TestLog::EndSection;
-    //
-	// 		m_log << TestLog::Section("", "GL_INVALID_OPERATION is generated if program is not a program object.");
-	// 		glGetAttribLocation(shader, "test");
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		m_log << TestLog::EndSection;
-    //
-	// 		glUseProgram(0);
-	// 		glDeleteProgram(programEmpty);
-	// 		glDeleteShader(shader);
-	// 	});
-	// ES3F_ADD_API_CASE(bind_attrib_location, "Invalid glBindAttribLocation() usage",
-	// 	{
-	// 		GLuint program = glCreateProgram();
-	// 		GLuint maxIndex = m_context.getContextInfo().getInt(GL_MAX_VERTEX_ATTRIBS);
-	// 		GLuint shader = glCreateShader(GL_VERTEX_SHADER);
-    //
-	// 		m_log << TestLog::Section("", "GL_INVALID_VALUE is generated if index is greater than or equal to GL_MAX_VERTEX_ATTRIBS.");
-	// 		glBindAttribLocation(program, maxIndex, "test");
-	// 		expectError(GL_INVALID_VALUE);
-	// 		m_log << TestLog::EndSection;
-    //
-	// 		m_log << TestLog::Section("", "GL_INVALID_OPERATION is generated if name starts with the reserved prefix \"gl_\".");
-	// 		glBindAttribLocation(program, maxIndex-1, "gl_test");
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		m_log << TestLog::EndSection;
-    //
-	// 		m_log << TestLog::Section("", "GL_INVALID_VALUE is generated if program is not a value generated by OpenGL.");
-	// 		glBindAttribLocation(-1, maxIndex-1, "test");
-	// 		expectError(GL_INVALID_VALUE);
-	// 		m_log << TestLog::EndSection;
-    //
-	// 		m_log << TestLog::Section("", "GL_INVALID_OPERATION is generated if program is not a program object.");
-	// 		glBindAttribLocation(shader, maxIndex-1, "test");
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		m_log << TestLog::EndSection;
-    //
-	// 		glDeleteProgram(program);
-	// 		glDeleteShader(shader);
-	// 	});
-	// ES3F_ADD_API_CASE(uniform_block_binding, "Invalid glUniformBlockBinding() usage",
-	// 	{
-	// 		glu::ShaderProgram program(m_context.getRenderContext(), glu::makeVtxFragSources(uniformBlockVertSource, uniformTestFragSource));
-    //
-	// 		glUseProgram	(program.getProgram());
-    //
-	// 		GLint			maxUniformBufferBindings;
-	// 		GLint			numActiveUniforms			= -1;
-	// 		GLint			numActiveBlocks				= -1;
-	// 		glGetIntegerv	(GL_MAX_UNIFORM_BUFFER_BINDINGS, &maxUniformBufferBindings);
-	// 		glGetProgramiv	(program.getProgram(), GL_ACTIVE_UNIFORMS,			&numActiveUniforms);
-	// 		glGetProgramiv	(program.getProgram(), GL_ACTIVE_UNIFORM_BLOCKS,	&numActiveBlocks);
-	// 		m_log << TestLog::Message << "// GL_MAX_UNIFORM_BUFFER_BINDINGS = " << maxUniformBufferBindings << TestLog::EndMessage;
-	// 		m_log << TestLog::Message << "// GL_ACTIVE_UNIFORMS = "				<< numActiveUniforms		<< TestLog::EndMessage;
-	// 		m_log << TestLog::Message << "// GL_ACTIVE_UNIFORM_BLOCKS = "		<< numActiveBlocks			<< TestLog::EndMessage;
-	// 		expectError		(GL_NO_ERROR);
-    //
-	// 		m_log << tcu::TestLog::Section("", "GL_INVALID_VALUE is generated if uniformBlockIndex is not an active uniform block index of program.");
-	// 		glUniformBlockBinding(program.getProgram(), -1, 0);
-	// 		expectError(GL_INVALID_VALUE);
-	// 		glUniformBlockBinding(program.getProgram(), 5, 0);
-	// 		expectError(GL_INVALID_VALUE);
-	// 		m_log << tcu::TestLog::EndSection;
-    //
-	// 		m_log << tcu::TestLog::Section("", "GL_INVALID_VALUE is generated if uniformBlockBinding is greater than or equal to the value of GL_MAX_UNIFORM_BUFFER_BINDINGS.");
-	// 		glUniformBlockBinding(program.getProgram(), maxUniformBufferBindings, 0);
-	// 		expectError(GL_INVALID_VALUE);
-	// 		m_log << tcu::TestLog::EndSection;
-    //
-	// 		m_log << tcu::TestLog::Section("", "GL_INVALID_VALUE is generated if program is not the name of a program object generated by the GL.");
-	// 		glUniformBlockBinding(-1, 0, 0);
-	// 		expectError(GL_INVALID_VALUE);
-	// 		m_log << tcu::TestLog::EndSection;
-	// 	});
-    //
-	// // glUniform*f
-    //
-	// ES3F_ADD_API_CASE(uniformf_invalid_program, "Invalid glUniform{1234}f() usage",
-	// 	{
-	// 		m_log << tcu::TestLog::Section("", "GL_INVALID_OPERATION is generated if there is no current program object.");
-	// 		glUseProgram(0);
-	// 		glUniform1f(-1, 0.0f);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform2f(-1, 0.0f, 0.0f);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform3f(-1, 0.0f, 0.0f, 0.0f);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform4f(-1, 0.0f, 0.0f, 0.0f, 0.0f);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		m_log << tcu::TestLog::EndSection;
-	// 	});
-	// ES3F_ADD_API_CASE(uniformf_incompatible_type, "Invalid glUniform{1234}f() usage",
-	// 	{
-	// 		glu::ShaderProgram program(m_context.getRenderContext(), glu::makeVtxFragSources(uniformTestVertSource, uniformTestFragSource));
-    //
-	// 		glUseProgram(program.getProgram());
-	// 		GLint vec4_v	= glGetUniformLocation(program.getProgram(), "vec4_v");	// vec4
-	// 		GLint ivec4_f	= glGetUniformLocation(program.getProgram(), "ivec4_f");	// ivec4
-	// 		GLint uvec4_f	= glGetUniformLocation(program.getProgram(), "uvec4_f");	// uvec4
-	// 		GLint sampler_f	= glGetUniformLocation(program.getProgram(), "sampler_f");	// sampler2D
-	// 		expectError(GL_NO_ERROR);
-    //
-	// 		if (vec4_v == -1 || ivec4_f == -1 || uvec4_f == -1 || sampler_f == -1)
-	// 		{
-	// 			m_log << TestLog::Message << "// ERROR: Failed to retrieve uniform location" << TestLog::EndMessage;
-	// 			m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, "Failed to retrieve uniform location");
-	// 		}
-    //
-	// 		m_log << tcu::TestLog::Section("", "GL_INVALID_OPERATION is generated if the size of the uniform variable declared in the shader does not match the size indicated by the glUniform command.");
-	// 		glUseProgram(program.getProgram());
-	// 		glUniform1f(vec4_v, 0.0f);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform2f(vec4_v, 0.0f, 0.0f);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform3f(vec4_v, 0.0f, 0.0f, 0.0f);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform4f(vec4_v, 0.0f, 0.0f, 0.0f, 0.0f);
-	// 		expectError(GL_NO_ERROR);
-	// 		m_log << tcu::TestLog::EndSection;
-    //
-	// 		m_log << tcu::TestLog::Section("", "GL_INVALID_OPERATION is generated if glUniform{1234}f is used to load a uniform variable of type int, ivec2, ivec3, ivec4, unsigned int, uvec2, uvec3, uvec4.");
-	// 		glUseProgram(program.getProgram());
-	// 		glUniform4f(ivec4_f, 0.0f, 0.0f, 0.0f, 0.0f);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform4f(uvec4_f, 0.0f, 0.0f, 0.0f, 0.0f);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		m_log << tcu::TestLog::EndSection;
-    //
-	// 		m_log << tcu::TestLog::Section("", "GL_INVALID_OPERATION is generated if a sampler is loaded using a command other than glUniform1i and glUniform1iv.");
-	// 		glUseProgram(program.getProgram());
-	// 		glUniform1f(sampler_f, 0.0f);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		m_log << tcu::TestLog::EndSection;
-    //
-	// 		glUseProgram(0);
-	// 	});
-	// ES3F_ADD_API_CASE(uniformf_invalid_location, "Invalid glUniform{1234}f() usage",
-	// 	{
-	// 		glu::ShaderProgram program(m_context.getRenderContext(), glu::makeVtxFragSources(uniformTestVertSource, uniformTestFragSource));
-    //
-	// 		glUseProgram(program.getProgram());
-	// 		expectError(GL_NO_ERROR);
-    //
-	// 		m_log << tcu::TestLog::Section("", "GL_INVALID_OPERATION is generated if location is an invalid uniform location for the current program object and location is not equal to -1.");
-	// 		glUseProgram(program.getProgram());
-	// 		glUniform1f(-2, 0.0f);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform2f(-2, 0.0f, 0.0f);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform3f(-2, 0.0f, 0.0f, 0.0f);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform4f(-2, 0.0f, 0.0f, 0.0f, 0.0f);
-	// 		expectError(GL_INVALID_OPERATION);
-    //
-	// 		glUseProgram(program.getProgram());
-	// 		glUniform1f(-1, 0.0f);
-	// 		expectError(GL_NO_ERROR);
-	// 		glUniform2f(-1, 0.0f, 0.0f);
-	// 		expectError(GL_NO_ERROR);
-	// 		glUniform3f(-1, 0.0f, 0.0f, 0.0f);
-	// 		expectError(GL_NO_ERROR);
-	// 		glUniform4f(-1, 0.0f, 0.0f, 0.0f, 0.0f);
-	// 		expectError(GL_NO_ERROR);
-	// 		m_log << tcu::TestLog::EndSection;
-    //
-	// 		glUseProgram(0);
-	// 	});
-    //
-	// // glUniform*fv
-    //
-	// ES3F_ADD_API_CASE(uniformfv_invalid_program, "Invalid glUniform{1234}fv() usage",
-	// 	{
-	// 		std::vector<GLfloat> data(4);
-    //
-	// 		m_log << tcu::TestLog::Section("", "GL_INVALID_OPERATION is generated if there is no current program object.");
-	// 		glUseProgram(0);
-	// 		glUniform1fv(-1, 1, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform2fv(-1, 1, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform3fv(-1, 1, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform4fv(-1, 1, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		m_log << tcu::TestLog::EndSection;
-	// 	});
-	// ES3F_ADD_API_CASE(uniformfv_incompatible_type, "Invalid glUniform{1234}fv() usage",
-	// 	{
-	// 		glu::ShaderProgram program(m_context.getRenderContext(), glu::makeVtxFragSources(uniformTestVertSource, uniformTestFragSource));
-    //
-	// 		glUseProgram(program.getProgram());
-	// 		GLint vec4_v	= glGetUniformLocation(program.getProgram(), "vec4_v");	// vec4
-	// 		GLint ivec4_f	= glGetUniformLocation(program.getProgram(), "ivec4_f");	// ivec4
-	// 		GLint uvec4_f	= glGetUniformLocation(program.getProgram(), "uvec4_f");	// uvec4
-	// 		GLint sampler_f	= glGetUniformLocation(program.getProgram(), "sampler_f");	// sampler2D
-	// 		expectError(GL_NO_ERROR);
-    //
-	// 		if (vec4_v == -1 || ivec4_f == -1 || uvec4_f == -1 || sampler_f == -1)
-	// 		{
-	// 			m_log << TestLog::Message << "// ERROR: Failed to retrieve uniform location" << TestLog::EndMessage;
-	// 			m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, "Failed to retrieve uniform location");
-	// 		}
-    //
-	// 		std::vector<GLfloat> data(4);
-    //
-	// 		m_log << tcu::TestLog::Section("", "GL_INVALID_OPERATION is generated if the size of the uniform variable declared in the shader does not match the size indicated by the glUniform command.");
-	// 		glUseProgram(program.getProgram());
-	// 		glUniform1fv(vec4_v, 1, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform2fv(vec4_v, 1, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform3fv(vec4_v, 1, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform4fv(vec4_v, 1, &data[0]);
-	// 		expectError(GL_NO_ERROR);
-	// 		m_log << tcu::TestLog::EndSection;
-    //
-	// 		m_log << tcu::TestLog::Section("", "GL_INVALID_OPERATION is generated if glUniform{1234}fv is used to load a uniform variable of type int, ivec2, ivec3, ivec4, unsigned int, uvec2, uvec3, uvec4.");
-	// 		glUseProgram(program.getProgram());
-	// 		glUniform4fv(ivec4_f, 1, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform4fv(uvec4_f, 1, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		m_log << tcu::TestLog::EndSection;
-    //
-	// 		m_log << tcu::TestLog::Section("", "GL_INVALID_OPERATION is generated if a sampler is loaded using a command other than glUniform1i and glUniform1iv.");
-	// 		glUseProgram(program.getProgram());
-	// 		glUniform1fv(sampler_f, 1, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		m_log << tcu::TestLog::EndSection;
-    //
-	// 		glUseProgram(0);
-	// 	});
-	// ES3F_ADD_API_CASE(uniformfv_invalid_location, "Invalid glUniform{1234}fv() usage",
-	// 	{
-	// 		glu::ShaderProgram program(m_context.getRenderContext(), glu::makeVtxFragSources(uniformTestVertSource, uniformTestFragSource));
-    //
-	// 		glUseProgram(program.getProgram());
-	// 		expectError(GL_NO_ERROR);
-    //
-	// 		std::vector<GLfloat> data(4);
-    //
-	// 		m_log << tcu::TestLog::Section("", "GL_INVALID_OPERATION is generated if location is an invalid uniform location for the current program object and location is not equal to -1.");
-	// 		glUseProgram(program.getProgram());
-	// 		glUniform1fv(-2, 1, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform2fv(-2, 1, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform3fv(-2, 1, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform4fv(-2, 1, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-    //
-	// 		glUseProgram(program.getProgram());
-	// 		glUniform1fv(-1, 1, &data[0]);
-	// 		expectError(GL_NO_ERROR);
-	// 		glUniform2fv(-1, 1, &data[0]);
-	// 		expectError(GL_NO_ERROR);
-	// 		glUniform3fv(-1, 1, &data[0]);
-	// 		expectError(GL_NO_ERROR);
-	// 		glUniform4fv(-1, 1, &data[0]);
-	// 		expectError(GL_NO_ERROR);
-	// 		m_log << tcu::TestLog::EndSection;
-    //
-	// 		glUseProgram(0);
-	// 	});
-	// ES3F_ADD_API_CASE(uniformfv_invalid_count, "Invalid glUniform{1234}fv() usage",
-	// 	{
-	// 		glu::ShaderProgram program(m_context.getRenderContext(), glu::makeVtxFragSources(uniformTestVertSource, uniformTestFragSource));
-    //
-	// 		glUseProgram			(program.getProgram());
-	// 		GLint vec4_v			= glGetUniformLocation(program.getProgram(), "vec4_v");	// vec4
-	// 		expectError(GL_NO_ERROR);
-    //
-	// 		if (vec4_v == -1)
-	// 		{
-	// 			m_log << TestLog::Message << "// ERROR: Failed to retrieve uniform location" << TestLog::EndMessage;
-	// 			m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, "Failed to retrieve uniform location");
-	// 		}
-    //
-	// 		std::vector<GLfloat> data(8);
-    //
-	// 		m_log << tcu::TestLog::Section("", "GL_INVALID_OPERATION is generated if count is greater than 1 and the indicated uniform variable is not an array variable.");
-	// 		glUseProgram(program.getProgram());
-	// 		glUniform1fv(vec4_v, 2, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform2fv(vec4_v, 2, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform3fv(vec4_v, 2, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform4fv(vec4_v, 2, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		m_log << tcu::TestLog::EndSection;
-    //
-	// 		glUseProgram(0);
-	// 	});
-    //
-	// // glUniform*i
-    //
-	// ES3F_ADD_API_CASE(uniformi_invalid_program, "Invalid glUniform{1234}i() usage",
-	// 	{
-	// 		m_log << tcu::TestLog::Section("", "GL_INVALID_OPERATION is generated if there is no current program object.");
-	// 		glUseProgram(0);
-	// 		glUniform1i(-1, 0);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform2i(-1, 0, 0);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform3i(-1, 0, 0, 0);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform4i(-1, 0, 0, 0, 0);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		m_log << tcu::TestLog::EndSection;
-	// 	});
-	// ES3F_ADD_API_CASE(uniformi_incompatible_type, "Invalid glUniform{1234}i() usage",
-	// 	{
-	// 		glu::ShaderProgram program(m_context.getRenderContext(), glu::makeVtxFragSources(uniformTestVertSource, uniformTestFragSource));
-    //
-	// 		glUseProgram(program.getProgram());
-	// 		GLint vec4_v	= glGetUniformLocation(program.getProgram(), "vec4_v");	// vec4
-	// 		GLint ivec4_f	= glGetUniformLocation(program.getProgram(), "ivec4_f");	// ivec4
-	// 		GLint uvec4_f	= glGetUniformLocation(program.getProgram(), "uvec4_f");	// uvec4
-	// 		GLint sampler_f	= glGetUniformLocation(program.getProgram(), "sampler_f");	// sampler2D
-	// 		expectError(GL_NO_ERROR);
-    //
-	// 		if (vec4_v == -1 || ivec4_f == -1 || uvec4_f == -1 || sampler_f == -1)
-	// 		{
-	// 			m_log << TestLog::Message << "// ERROR: Failed to retrieve uniform location" << TestLog::EndMessage;
-	// 			m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, "Failed to retrieve uniform location");
-	// 		}
-    //
-	// 		m_log << tcu::TestLog::Section("", "GL_INVALID_OPERATION is generated if the size of the uniform variable declared in the shader does not match the size indicated by the glUniform command.");
-	// 		glUseProgram(program.getProgram());
-	// 		glUniform1i(ivec4_f, 0);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform2i(ivec4_f, 0, 0);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform3i(ivec4_f, 0, 0, 0);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform4i(ivec4_f, 0, 0, 0, 0);
-	// 		expectError(GL_NO_ERROR);
-	// 		m_log << tcu::TestLog::EndSection;
-    //
-	// 		m_log << tcu::TestLog::Section("", "GL_INVALID_OPERATION is generated if glUniform{1234}i is used to load a uniform variable of type unsigned int, uvec2, uvec3, uvec4, or an array of these.");
-	// 		glUseProgram(program.getProgram());
-	// 		glUniform1i(uvec4_f, 0);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform2i(uvec4_f, 0, 0);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform3i(uvec4_f, 0, 0, 0);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform4i(uvec4_f, 0, 0, 0, 0);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		m_log << tcu::TestLog::EndSection;
-    //
-	// 		m_log << tcu::TestLog::Section("", "GL_INVALID_OPERATION is generated if glUniform{1234}i is used to load a uniform variable of type float, vec2, vec3, or vec4.");
-	// 		glUseProgram(program.getProgram());
-	// 		glUniform1i(vec4_v, 0);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform2i(vec4_v, 0, 0);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform3i(vec4_v, 0, 0, 0);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform4i(vec4_v, 0, 0, 0, 0);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		m_log << tcu::TestLog::EndSection;
-    //
-	// 		glUseProgram(0);
-	// 	});
-	// ES3F_ADD_API_CASE(uniformi_invalid_location, "Invalid glUniform{1234}i() usage",
-	// 	{
-	// 		glu::ShaderProgram program(m_context.getRenderContext(), glu::makeVtxFragSources(uniformTestVertSource, uniformTestFragSource));
-    //
-	// 		glUseProgram(program.getProgram());
-	// 		expectError(GL_NO_ERROR);
-    //
-	// 		m_log << tcu::TestLog::Section("", "GL_INVALID_OPERATION is generated if location is an invalid uniform location for the current program object and location is not equal to -1.");
-	// 		glUseProgram(program.getProgram());
-	// 		glUniform1i(-2, 0);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform2i(-2, 0, 0);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform3i(-2, 0, 0, 0);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform4i(-2, 0, 0, 0, 0);
-	// 		expectError(GL_INVALID_OPERATION);
-    //
-	// 		glUseProgram(program.getProgram());
-	// 		glUniform1i(-1, 0);
-	// 		expectError(GL_NO_ERROR);
-	// 		glUniform2i(-1, 0, 0);
-	// 		expectError(GL_NO_ERROR);
-	// 		glUniform3i(-1, 0, 0, 0);
-	// 		expectError(GL_NO_ERROR);
-	// 		glUniform4i(-1, 0, 0, 0, 0);
-	// 		expectError(GL_NO_ERROR);
-	// 		m_log << tcu::TestLog::EndSection;
-    //
-	// 		glUseProgram(0);
-	// 	});
-    //
-	// // glUniform*iv
-    //
-	// ES3F_ADD_API_CASE(uniformiv_invalid_program, "Invalid glUniform{1234}iv() usage",
-	// 	{
-	// 		std::vector<GLint> data(4);
-    //
-	// 		m_log << tcu::TestLog::Section("", "GL_INVALID_OPERATION is generated if there is no current program object.");
-	// 		glUseProgram(0);
-	// 		glUniform1iv(-1, 1, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform2iv(-1, 1, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform3iv(-1, 1, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform4iv(-1, 1, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		m_log << tcu::TestLog::EndSection;
-	// 	});
-	// ES3F_ADD_API_CASE(uniformiv_incompatible_type, "Invalid glUniform{1234}iv() usage",
-	// 	{
-	// 		glu::ShaderProgram program(m_context.getRenderContext(), glu::makeVtxFragSources(uniformTestVertSource, uniformTestFragSource));
-    //
-	// 		glUseProgram(program.getProgram());
-	// 		GLint vec4_v	= glGetUniformLocation(program.getProgram(), "vec4_v");	// vec4
-	// 		GLint ivec4_f	= glGetUniformLocation(program.getProgram(), "ivec4_f");	// ivec4
-	// 		GLint uvec4_f	= glGetUniformLocation(program.getProgram(), "uvec4_f");	// uvec4
-	// 		GLint sampler_f	= glGetUniformLocation(program.getProgram(), "sampler_f");	// sampler2D
-	// 		expectError(GL_NO_ERROR);
-    //
-	// 		if (vec4_v == -1 || ivec4_f == -1 || uvec4_f == -1 || sampler_f == -1)
-	// 		{
-	// 			m_log << TestLog::Message << "// ERROR: Failed to retrieve uniform location" << TestLog::EndMessage;
-	// 			m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, "Failed to retrieve uniform location");
-	// 		}
-    //
-	// 		std::vector<GLint> data(4);
-    //
-	// 		m_log << tcu::TestLog::Section("", "GL_INVALID_OPERATION is generated if the size of the uniform variable declared in the shader does not match the size indicated by the glUniform command.");
-	// 		glUseProgram(program.getProgram());
-	// 		glUniform1iv(ivec4_f, 1, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform2iv(ivec4_f, 1, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform3iv(ivec4_f, 1, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform4iv(ivec4_f, 1, &data[0]);
-	// 		expectError(GL_NO_ERROR);
-	// 		m_log << tcu::TestLog::EndSection;
-    //
-	// 		m_log << tcu::TestLog::Section("", "GL_INVALID_OPERATION is generated if glUniform{1234}iv is used to load a uniform variable of type float, vec2, vec3, or vec4.");
-	// 		glUseProgram(program.getProgram());
-	// 		glUniform1iv(vec4_v, 1, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform2iv(vec4_v, 1, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform3iv(vec4_v, 1, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform4iv(vec4_v, 1, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		m_log << tcu::TestLog::EndSection;
-    //
-	// 		m_log << tcu::TestLog::Section("", "GL_INVALID_OPERATION is generated if glUniform{1234}iv is used to load a uniform variable of type unsigned int, uvec2, uvec3 or uvec4.");
-	// 		glUseProgram(program.getProgram());
-	// 		glUniform1iv(uvec4_f, 1, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform2iv(uvec4_f, 1, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform3iv(uvec4_f, 1, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform4iv(uvec4_f, 1, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		m_log << tcu::TestLog::EndSection;
-    //
-	// 		glUseProgram(0);
-	// 	});
-	// ES3F_ADD_API_CASE(uniformiv_invalid_location, "Invalid glUniform{1234}iv() usage",
-	// 	{
-	// 		glu::ShaderProgram program(m_context.getRenderContext(), glu::makeVtxFragSources(uniformTestVertSource, uniformTestFragSource));
-    //
-	// 		glUseProgram(program.getProgram());
-	// 		expectError(GL_NO_ERROR);
-    //
-	// 		std::vector<GLint> data(4);
-    //
-	// 		m_log << tcu::TestLog::Section("", "GL_INVALID_OPERATION is generated if location is an invalid uniform location for the current program object and location is not equal to -1.");
-	// 		glUseProgram(program.getProgram());
-	// 		glUniform1iv(-2, 1, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform2iv(-2, 1, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform3iv(-2, 1, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform4iv(-2, 1, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-    //
-	// 		glUseProgram(program.getProgram());
-	// 		glUniform1iv(-1, 1, &data[0]);
-	// 		expectError(GL_NO_ERROR);
-	// 		glUniform2iv(-1, 1, &data[0]);
-	// 		expectError(GL_NO_ERROR);
-	// 		glUniform3iv(-1, 1, &data[0]);
-	// 		expectError(GL_NO_ERROR);
-	// 		glUniform4iv(-1, 1, &data[0]);
-	// 		expectError(GL_NO_ERROR);
-	// 		m_log << tcu::TestLog::EndSection;
-    //
-	// 		glUseProgram(0);
-	// 	});
-	// ES3F_ADD_API_CASE(uniformiv_invalid_count, "Invalid glUniform{1234}iv() usage",
-	// 	{
-	// 		glu::ShaderProgram program(m_context.getRenderContext(), glu::makeVtxFragSources(uniformTestVertSource, uniformTestFragSource));
-    //
-	// 		glUseProgram			(program.getProgram());
-	// 		GLint ivec4_f			= glGetUniformLocation(program.getProgram(), "ivec4_f"); // ivec4
-	// 		expectError(GL_NO_ERROR);
-    //
-	// 		if (ivec4_f == -1)
-	// 		{
-	// 			m_log << TestLog::Message << "// ERROR: Failed to retrieve uniform location" << TestLog::EndMessage;
-	// 			m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, "Failed to retrieve uniform location");
-	// 		}
-    //
-	// 		std::vector<GLint> data(8);
-    //
-	// 		m_log << tcu::TestLog::Section("", "GL_INVALID_OPERATION is generated if count is greater than 1 and the indicated uniform variable is not an array variable.");
-	// 		glUseProgram(program.getProgram());
-	// 		glUniform1iv(ivec4_f, 2, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform2iv(ivec4_f, 2, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform3iv(ivec4_f, 2, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform4iv(ivec4_f, 2, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		m_log << tcu::TestLog::EndSection;
-    //
-	// 		glUseProgram(0);
-	// 	});
-    //
-	// // glUniform{1234}ui
-    //
-	// ES3F_ADD_API_CASE(uniformui_invalid_program, "Invalid glUniform{234}ui() usage",
-	// 	{
-	// 		m_log << tcu::TestLog::Section("", "GL_INVALID_OPERATION is generated if there is no current program object.");
-	// 		glUseProgram(0);
-	// 		glUniform1ui(-1, 0);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform2ui(-1, 0, 0);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform3ui(-1, 0, 0, 0);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform4ui(-1, 0, 0, 0, 0);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		m_log << tcu::TestLog::EndSection;
-	// 	});
-	// ES3F_ADD_API_CASE(uniformui_incompatible_type, "Invalid glUniform{1234}ui() usage",
-	// 	{
-	// 		glu::ShaderProgram program(m_context.getRenderContext(), glu::makeVtxFragSources(uniformTestVertSource, uniformTestFragSource));
-    //
-	// 		glUseProgram(program.getProgram());
-	// 		GLint vec4_v	= glGetUniformLocation(program.getProgram(), "vec4_v");	// vec4
-	// 		GLint ivec4_f	= glGetUniformLocation(program.getProgram(), "ivec4_f");	// ivec4
-	// 		GLint uvec4_f	= glGetUniformLocation(program.getProgram(), "uvec4_f");	// uvec4
-	// 		GLint sampler_f	= glGetUniformLocation(program.getProgram(), "sampler_f");	// sampler2D
-	// 		expectError(GL_NO_ERROR);
-    //
-	// 		if (vec4_v == -1 || ivec4_f == -1 || uvec4_f == -1 || sampler_f == -1)
-	// 		{
-	// 			m_log << TestLog::Message << "// ERROR: Failed to retrieve uniform location" << TestLog::EndMessage;
-	// 			m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, "Failed to retrieve uniform location");
-	// 		}
-    //
-	// 		m_log << tcu::TestLog::Section("", "GL_INVALID_OPERATION is generated if the size of the uniform variable declared in the shader does not match the size indicated by the glUniform command.");
-	// 		glUseProgram(program.getProgram());
-	// 		glUniform1ui(uvec4_f, 0);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform2ui(uvec4_f, 0, 0);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform3ui(uvec4_f, 0, 0, 0);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform4ui(uvec4_f, 0, 0, 0, 0);
-	// 		expectError(GL_NO_ERROR);
-	// 		m_log << tcu::TestLog::EndSection;
-    //
-	// 		m_log << tcu::TestLog::Section("", "GL_INVALID_OPERATION is generated if glUniform{1234}i is used to load a uniform variable of type int, ivec2, ivec3, ivec4, or an array of these.");
-	// 		glUseProgram(program.getProgram());
-	// 		glUniform1ui(ivec4_f, 0);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform2ui(ivec4_f, 0, 0);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform3ui(ivec4_f, 0, 0, 0);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform4ui(ivec4_f, 0, 0, 0, 0);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		m_log << tcu::TestLog::EndSection;
-    //
-	// 		m_log << tcu::TestLog::Section("", "GL_INVALID_OPERATION is generated if glUniform{1234}i is used to load a uniform variable of type float, vec2, vec3, or vec4.");
-	// 		glUseProgram(program.getProgram());
-	// 		glUniform1ui(vec4_v, 0);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform2ui(vec4_v, 0, 0);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform3ui(vec4_v, 0, 0, 0);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform4ui(vec4_v, 0, 0, 0, 0);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		m_log << tcu::TestLog::EndSection;
-    //
-	// 		m_log << tcu::TestLog::Section("", "GL_INVALID_OPERATION is generated if a sampler is loaded using a command other than glUniform1i and glUniform1iv.");
-	// 		glUseProgram(program.getProgram());
-	// 		glUniform1ui(sampler_f, 0);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		m_log << tcu::TestLog::EndSection;
-    //
-	// 		glUseProgram(0);
-	// 	});
-	// ES3F_ADD_API_CASE(uniformui_invalid_location, "Invalid glUniform{1234}ui() usage",
-	// 	{
-	// 		glu::ShaderProgram program(m_context.getRenderContext(), glu::makeVtxFragSources(uniformTestVertSource, uniformTestFragSource));
-    //
-	// 		glUseProgram(program.getProgram());
-	// 		expectError(GL_NO_ERROR);
-    //
-	// 		m_log << tcu::TestLog::Section("", "GL_INVALID_OPERATION is generated if location is an invalid uniform location for the current program object and location is not equal to -1.");
-	// 		glUseProgram(program.getProgram());
-	// 		glUniform1i(-2, 0);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform2i(-2, 0, 0);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform3i(-2, 0, 0, 0);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform4i(-2, 0, 0, 0, 0);
-	// 		expectError(GL_INVALID_OPERATION);
-    //
-	// 		glUseProgram(program.getProgram());
-	// 		glUniform1i(-1, 0);
-	// 		expectError(GL_NO_ERROR);
-	// 		glUniform2i(-1, 0, 0);
-	// 		expectError(GL_NO_ERROR);
-	// 		glUniform3i(-1, 0, 0, 0);
-	// 		expectError(GL_NO_ERROR);
-	// 		glUniform4i(-1, 0, 0, 0, 0);
-	// 		expectError(GL_NO_ERROR);
-	// 		m_log << tcu::TestLog::EndSection;
-    //
-	// 		glUseProgram(0);
-	// 	});
-    //
-	// // glUniform{1234}uiv
-    //
-	// ES3F_ADD_API_CASE(uniformuiv_invalid_program, "Invalid glUniform{234}uiv() usage",
-	// 	{
-	// 		std::vector<GLuint> data(4);
-    //
-	// 		m_log << tcu::TestLog::Section("", "GL_INVALID_OPERATION is generated if there is no current program object.");
-	// 		glUseProgram(0);
-	// 		glUniform1uiv(-1, 1, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform2uiv(-1, 1, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform3uiv(-1, 1, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform4uiv(-1, 1, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		m_log << tcu::TestLog::EndSection;
-	// 	});
-	// ES3F_ADD_API_CASE(uniformuiv_incompatible_type, "Invalid glUniform{1234}uiv() usage",
-	// 	{
-	// 		glu::ShaderProgram program(m_context.getRenderContext(), glu::makeVtxFragSources(uniformTestVertSource, uniformTestFragSource));
-    //
-	// 		glUseProgram(program.getProgram());
-	// 		GLint vec4_v	= glGetUniformLocation(program.getProgram(), "vec4_v");	// vec4
-	// 		GLint ivec4_f	= glGetUniformLocation(program.getProgram(), "ivec4_f");	// ivec4
-	// 		GLint uvec4_f	= glGetUniformLocation(program.getProgram(), "uvec4_f");	// uvec4
-	// 		GLint sampler_f	= glGetUniformLocation(program.getProgram(), "sampler_f");	// sampler2D
-	// 		expectError(GL_NO_ERROR);
-    //
-	// 		if (vec4_v == -1 || ivec4_f == -1 || uvec4_f == -1 || sampler_f == -1)
-	// 		{
-	// 			m_log << TestLog::Message << "// ERROR: Failed to retrieve uniform location" << TestLog::EndMessage;
-	// 			m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, "Failed to retrieve uniform location");
-	// 		}
-    //
-	// 		std::vector<GLuint> data(4);
-    //
-	// 		m_log << tcu::TestLog::Section("", "GL_INVALID_OPERATION is generated if the size of the uniform variable declared in the shader does not match the size indicated by the glUniform command.");
-	// 		glUseProgram(program.getProgram());
-	// 		glUniform1uiv(uvec4_f, 1, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform2uiv(uvec4_f, 1, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform3uiv(uvec4_f, 1, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform4uiv(uvec4_f, 1, &data[0]);
-	// 		expectError(GL_NO_ERROR);
-	// 		m_log << tcu::TestLog::EndSection;
-    //
-	// 		m_log << tcu::TestLog::Section("", "GL_INVALID_OPERATION is generated if glUniform{1234}uiv is used to load a uniform variable of type float, vec2, vec3, or vec4.");
-	// 		glUseProgram(program.getProgram());
-	// 		glUniform1uiv(vec4_v, 1, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform2uiv(vec4_v, 1, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform3uiv(vec4_v, 1, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform4uiv(vec4_v, 1, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		m_log << tcu::TestLog::EndSection;
-    //
-	// 		m_log << tcu::TestLog::Section("", "GL_INVALID_OPERATION is generated if glUniform{1234}uiv is used to load a uniform variable of type int, ivec2, ivec3 or ivec4.");
-	// 		glUseProgram(program.getProgram());
-	// 		glUniform1uiv(ivec4_f, 1, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform2uiv(ivec4_f, 1, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform3uiv(ivec4_f, 1, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform4uiv(ivec4_f, 1, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		m_log << tcu::TestLog::EndSection;
-    //
-	// 		m_log << tcu::TestLog::Section("", "GL_INVALID_OPERATION is generated if a sampler is loaded using a command other than glUniform1i and glUniform1iv.");
-	// 		glUseProgram(program.getProgram());
-	// 		glUniform1uiv(sampler_f, 1, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		m_log << tcu::TestLog::EndSection;
-    //
-	// 		glUseProgram(0);
-	// 	});
-	// ES3F_ADD_API_CASE(uniformuiv_invalid_location, "Invalid glUniform{1234}uiv() usage",
-	// 	{
-	// 		glu::ShaderProgram program(m_context.getRenderContext(), glu::makeVtxFragSources(uniformTestVertSource, uniformTestFragSource));
-    //
-	// 		glUseProgram(program.getProgram());
-	// 		expectError(GL_NO_ERROR);
-    //
-	// 		std::vector<GLuint> data(4);
-    //
-	// 		m_log << tcu::TestLog::Section("", "GL_INVALID_OPERATION is generated if location is an invalid uniform location for the current program object and location is not equal to -1.");
-	// 		glUseProgram(program.getProgram());
-	// 		glUniform1uiv(-2, 1, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform2uiv(-2, 1, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform3uiv(-2, 1, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform4uiv(-2, 1, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-    //
-	// 		glUseProgram(program.getProgram());
-	// 		glUniform1uiv(-1, 1, &data[0]);
-	// 		expectError(GL_NO_ERROR);
-	// 		glUniform2uiv(-1, 1, &data[0]);
-	// 		expectError(GL_NO_ERROR);
-	// 		glUniform3uiv(-1, 1, &data[0]);
-	// 		expectError(GL_NO_ERROR);
-	// 		glUniform4uiv(-1, 1, &data[0]);
-	// 		expectError(GL_NO_ERROR);
-	// 		m_log << tcu::TestLog::EndSection;
-    //
-	// 		glUseProgram(0);
-	// 	});
-	// ES3F_ADD_API_CASE(uniformuiv_invalid_count, "Invalid glUniform{1234}uiv() usage",
-	// 	{
-	// 		glu::ShaderProgram program(m_context.getRenderContext(), glu::makeVtxFragSources(uniformTestVertSource, uniformTestFragSource));
-    //
-	// 		glUseProgram			(program.getProgram());
-	// 		int uvec4_f				= glGetUniformLocation(program.getProgram(), "uvec4_f"); // uvec4
-	// 		expectError(GL_NO_ERROR);
-    //
-	// 		if (uvec4_f == -1)
-	// 		{
-	// 			m_log << TestLog::Message << "// ERROR: Failed to retrieve uniform location" << TestLog::EndMessage;
-	// 			m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, "Failed to retrieve uniform location");
-	// 		}
-    //
-	// 		std::vector<GLuint> data(8);
-    //
-	// 		m_log << tcu::TestLog::Section("", "GL_INVALID_OPERATION is generated if count is greater than 1 and the indicated uniform variable is not an array variable.");
-	// 		glUseProgram(program.getProgram());
-	// 		glUniform1uiv(uvec4_f, 2, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform2uiv(uvec4_f, 2, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform3uiv(uvec4_f, 2, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniform4uiv(uvec4_f, 2, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		m_log << tcu::TestLog::EndSection;
-    //
-	// 		glUseProgram(0);
-	// 	});
-    //
-    //
-	// // glUniformMatrix*fv
-    //
-	// ES3F_ADD_API_CASE(uniform_matrixfv_invalid_program, "Invalid glUniformMatrix{234}fv() usage",
-	// 	{
-	// 		std::vector<GLfloat> data(16);
-    //
-	// 		m_log << tcu::TestLog::Section("", "GL_INVALID_OPERATION is generated if there is no current program object.");
-	// 		glUseProgram(0);
-	// 		glUniformMatrix2fv(-1, 1, GL_FALSE, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniformMatrix3fv(-1, 1, GL_FALSE, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniformMatrix4fv(-1, 1, GL_FALSE, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-    //
-	// 		glUniformMatrix2x3fv(-1, 1, GL_FALSE, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniformMatrix3x2fv(-1, 1, GL_FALSE, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniformMatrix2x4fv(-1, 1, GL_FALSE, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniformMatrix4x2fv(-1, 1, GL_FALSE, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniformMatrix3x4fv(-1, 1, GL_FALSE, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniformMatrix4x3fv(-1, 1, GL_FALSE, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		m_log << tcu::TestLog::EndSection;
-	// 	});
-	// ES3F_ADD_API_CASE(uniform_matrixfv_incompatible_type, "Invalid glUniformMatrix{234}fv() usage",
-	// 	{
-	// 		glu::ShaderProgram program(m_context.getRenderContext(), glu::makeVtxFragSources(uniformTestVertSource, uniformTestFragSource));
-    //
-	// 		glUseProgram			(program.getProgram());
-	// 		GLint mat4_v			= glGetUniformLocation(program.getProgram(), "mat4_v");	// mat4
-	// 		GLint sampler_f			= glGetUniformLocation(program.getProgram(), "sampler_f");	// sampler2D
-	// 		expectError(GL_NO_ERROR);
-    //
-	// 		if (mat4_v == -1 || sampler_f == -1)
-	// 		{
-	// 			m_log << TestLog::Message << "// ERROR: Failed to retrieve uniform location" << TestLog::EndMessage;
-	// 			m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, "Failed to retrieve uniform location");
-	// 		}
-    //
-	// 		std::vector<GLfloat> data(16);
-    //
-	// 		m_log << tcu::TestLog::Section("", "GL_INVALID_OPERATION is generated if the size of the uniform variable declared in the shader does not match the size indicated by the glUniform command.");
-	// 		glUseProgram(program.getProgram());
-	// 		glUniformMatrix2fv(mat4_v, 1, GL_FALSE, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniformMatrix3fv(mat4_v, 1, GL_FALSE, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniformMatrix4fv(mat4_v, 1, GL_FALSE, &data[0]);
-	// 		expectError(GL_NO_ERROR);
-    //
-	// 		glUniformMatrix2x3fv(mat4_v, 1, GL_FALSE, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniformMatrix3x2fv(mat4_v, 1, GL_FALSE, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniformMatrix2x4fv(mat4_v, 1, GL_FALSE, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniformMatrix4x2fv(mat4_v, 1, GL_FALSE, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniformMatrix3x4fv(mat4_v, 1, GL_FALSE, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniformMatrix4x3fv(mat4_v, 1, GL_FALSE, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		m_log << tcu::TestLog::EndSection;
-    //
-	// 		m_log << tcu::TestLog::Section("", "GL_INVALID_OPERATION is generated if a sampler is loaded using a command other than glUniform1i and glUniform1iv.");
-	// 		glUseProgram(program.getProgram());
-	// 		glUniformMatrix2fv(sampler_f, 1, GL_FALSE, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniformMatrix3fv(sampler_f, 1, GL_FALSE, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniformMatrix4fv(sampler_f, 1, GL_FALSE, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-    //
-	// 		glUniformMatrix2x3fv(sampler_f, 1, GL_FALSE, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniformMatrix3x2fv(sampler_f, 1, GL_FALSE, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniformMatrix2x4fv(sampler_f, 1, GL_FALSE, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniformMatrix4x2fv(sampler_f, 1, GL_FALSE, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniformMatrix3x4fv(sampler_f, 1, GL_FALSE, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniformMatrix4x3fv(sampler_f, 1, GL_FALSE, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		m_log << tcu::TestLog::EndSection;
-    //
-	// 		glUseProgram(0);
-	// 	});
-	// ES3F_ADD_API_CASE(uniform_matrixfv_invalid_location, "Invalid glUniformMatrix{234}fv() usage",
-	// 	{
-	// 		glu::ShaderProgram program(m_context.getRenderContext(), glu::makeVtxFragSources(uniformTestVertSource, uniformTestFragSource));
-    //
-	// 		glUseProgram(program.getProgram());
-	// 		expectError(GL_NO_ERROR);
-    //
-	// 		std::vector<GLfloat> data(16);
-    //
-	// 		m_log << tcu::TestLog::Section("", "GL_INVALID_OPERATION is generated if location is an invalid uniform location for the current program object and location is not equal to -1.");
-	// 		glUseProgram(program.getProgram());
-	// 		glUniformMatrix2fv(-2, 1, GL_FALSE, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniformMatrix3fv(-2, 1, GL_FALSE, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniformMatrix4fv(-2, 1, GL_FALSE, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-    //
-	// 		glUniformMatrix2x3fv(-2, 1, GL_FALSE, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniformMatrix3x2fv(-2, 1, GL_FALSE, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniformMatrix2x4fv(-2, 1, GL_FALSE, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniformMatrix4x2fv(-2, 1, GL_FALSE, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniformMatrix3x4fv(-2, 1, GL_FALSE, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniformMatrix4x3fv(-2, 1, GL_FALSE, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-    //
-	// 		glUseProgram(program.getProgram());
-	// 		glUniformMatrix2fv(-1, 1, GL_FALSE, &data[0]);
-	// 		expectError(GL_NO_ERROR);
-	// 		glUniformMatrix3fv(-1, 1, GL_FALSE, &data[0]);
-	// 		expectError(GL_NO_ERROR);
-	// 		glUniformMatrix4fv(-1, 1, GL_FALSE, &data[0]);
-	// 		expectError(GL_NO_ERROR);
-    //
-	// 		glUniformMatrix2x3fv(-1, 1, GL_FALSE, &data[0]);
-	// 		expectError(GL_NO_ERROR);
-	// 		glUniformMatrix3x2fv(-1, 1, GL_FALSE, &data[0]);
-	// 		expectError(GL_NO_ERROR);
-	// 		glUniformMatrix2x4fv(-1, 1, GL_FALSE, &data[0]);
-	// 		expectError(GL_NO_ERROR);
-	// 		glUniformMatrix4x2fv(-1, 1, GL_FALSE, &data[0]);
-	// 		expectError(GL_NO_ERROR);
-	// 		glUniformMatrix3x4fv(-1, 1, GL_FALSE, &data[0]);
-	// 		expectError(GL_NO_ERROR);
-	// 		glUniformMatrix4x3fv(-1, 1, GL_FALSE, &data[0]);
-	// 		expectError(GL_NO_ERROR);
-	// 		m_log << tcu::TestLog::EndSection;
-    //
-	// 		glUseProgram(0);
-	// 	});
-	// ES3F_ADD_API_CASE(uniform_matrixfv_invalid_count, "Invalid glUniformMatrix{234}fv() usage",
-	// 	{
-	// 		glu::ShaderProgram program(m_context.getRenderContext(), glu::makeVtxFragSources(uniformTestVertSource, uniformTestFragSource));
-    //
-	// 		glUseProgram			(program.getProgram());
-	// 		GLint mat4_v			= glGetUniformLocation(program.getProgram(), "mat4_v"); // mat4
-	// 		expectError(GL_NO_ERROR);
-    //
-	// 		if (mat4_v == -1)
-	// 		{
-	// 			m_log << TestLog::Message << "// ERROR: Failed to retrieve uniform location" << TestLog::EndMessage;
-	// 			m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, "Failed to retrieve uniform location");
-	// 		}
-    //
-	// 		std::vector<GLfloat> data(32);
-    //
-	// 		m_log << tcu::TestLog::Section("", "GL_INVALID_OPERATION is generated if count is greater than 1 and the indicated uniform variable is not an array variable.");
-	// 		glUseProgram(program.getProgram());
-	// 		glUniformMatrix2fv(mat4_v, 2, GL_FALSE, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniformMatrix3fv(mat4_v, 2, GL_FALSE, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniformMatrix4fv(mat4_v, 2, GL_FALSE, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-    //
-	// 		glUniformMatrix2x3fv(mat4_v, 1, GL_FALSE, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniformMatrix3x2fv(mat4_v, 1, GL_FALSE, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniformMatrix2x4fv(mat4_v, 1, GL_FALSE, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniformMatrix4x2fv(mat4_v, 1, GL_FALSE, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniformMatrix3x4fv(mat4_v, 1, GL_FALSE, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		glUniformMatrix4x3fv(mat4_v, 1, GL_FALSE, &data[0]);
-	// 		expectError(GL_INVALID_OPERATION);
-	// 		m_log << tcu::TestLog::EndSection;
-    //
-	// 		glUseProgram(0);
-	// 	});
-    //
-	// // Transform feedback
-    //
-	// ES3F_ADD_API_CASE(gen_transform_feedbacks, "Invalid glGenTransformFeedbacks() usage",
-	// 	{
-	// 		m_log << tcu::TestLog::Section("", "GL_INVALID_VALUE is generated if n is negative.");
-	// 		GLuint id;
-	// 		glGenTransformFeedbacks(-1, &id);
-	// 		expectError(GL_INVALID_VALUE);
-	// 		m_log << tcu::TestLog::EndSection;
-	// 	});
-	// ES3F_ADD_API_CASE(bind_transform_feedback, "Invalid glBindTransformFeedback() usage",
-	// 	{
-	// 		GLuint						tfID[2];
-	// 		glu::ShaderProgram			program(m_context.getRenderContext(), glu::makeVtxFragSources(vertexShaderSource, fragmentShaderSource));
-	// 		deUint32					buf;
-	// 		const char* tfVarying		= "gl_Position";
-    //
-	// 		glGenBuffers				(1, &buf);
-	// 		glGenTransformFeedbacks		(2, tfID);
-    //
-	// 		m_log << tcu::TestLog::Section("", "GL_INVALID_ENUM is generated if target is not GL_TRANSFORM_FEEDBACK.");
-	// 		glBindTransformFeedback(-1, tfID[0]);
-	// 		expectError(GL_INVALID_ENUM);
-	// 		m_log << tcu::TestLog::EndSection;
-    //
-	// 		m_log << tcu::TestLog::Section("", "GL_INVALID_OPERATION is generated if the transform feedback operation is active on the currently bound transform feedback object, and is not paused.");
-	// 		glUseProgram				(program.getProgram());
-	// 		glTransformFeedbackVaryings	(program.getProgram(), 1, &tfVarying, GL_INTERLEAVED_ATTRIBS);
-	// 		glLinkProgram				(program.getProgram());
-	// 		glBindTransformFeedback		(GL_TRANSFORM_FEEDBACK, tfID[0]);
-	// 		glBindBuffer				(GL_TRANSFORM_FEEDBACK_BUFFER, buf);
-	// 		glBufferData				(GL_TRANSFORM_FEEDBACK_BUFFER, 32, DE_NULL, GL_DYNAMIC_DRAW);
-	// 		glBindBufferBase			(GL_TRANSFORM_FEEDBACK_BUFFER, 0, buf);
-	// 		glBeginTransformFeedback	(GL_TRIANGLES);
-	// 		expectError					(GL_NO_ERROR);
-    //
-	// 		glBindTransformFeedback		(GL_TRANSFORM_FEEDBACK, tfID[1]);
-	// 		expectError					(GL_INVALID_OPERATION);
-    //
-	// 		glEndTransformFeedback		();
-	// 		expectError					(GL_NO_ERROR);
-	// 		m_log << tcu::TestLog::EndSection;
-    //
-	// 		glUseProgram				(0);
-	// 		glDeleteBuffers				(1, &buf);
-	// 		glDeleteTransformFeedbacks	(2, tfID);
-	// 		expectError					(GL_NO_ERROR);
-	// 	});
-	// ES3F_ADD_API_CASE(delete_transform_feedbacks, "Invalid glDeleteTransformFeedbacks() usage",
-	// 	{
-	// 		GLuint id;
-	// 		glGenTransformFeedbacks(1, &id);
-    //
-	// 		m_log << tcu::TestLog::Section("", "GL_INVALID_VALUE is generated if n is negative.");
-	// 		glDeleteTransformFeedbacks(-1, &id);
-	// 		expectError(GL_INVALID_VALUE);
-	// 		m_log << tcu::TestLog::EndSection;
-    //
-	// 		glDeleteTransformFeedbacks(1, &id);
-	// 	});
-	// ES3F_ADD_API_CASE(begin_transform_feedback, "Invalid glBeginTransformFeedback() usage",
-	// 	{
-	// 		GLuint						tfID[2];
-	// 		glu::ShaderProgram			program(m_context.getRenderContext(), glu::makeVtxFragSources(vertexShaderSource, fragmentShaderSource));
-	// 		deUint32					buf;
-	// 		const char* tfVarying		= "gl_Position";
-    //
-	// 		glGenBuffers				(1, &buf);
-	// 		glGenTransformFeedbacks		(2, tfID);
-    //
-	// 		glUseProgram				(program.getProgram());
-	// 		glTransformFeedbackVaryings	(program.getProgram(), 1, &tfVarying, GL_INTERLEAVED_ATTRIBS);
-	// 		glLinkProgram				(program.getProgram());
-	// 		glBindTransformFeedback		(GL_TRANSFORM_FEEDBACK, tfID[0]);
-	// 		glBindBuffer				(GL_TRANSFORM_FEEDBACK_BUFFER, buf);
-	// 		glBufferData				(GL_TRANSFORM_FEEDBACK_BUFFER, 32, DE_NULL, GL_DYNAMIC_DRAW);
-	// 		glBindBufferBase			(GL_TRANSFORM_FEEDBACK_BUFFER, 0, buf);
-	// 		expectError					(GL_NO_ERROR);
-    //
-	// 		m_log << tcu::TestLog::Section("", "GL_INVALID_ENUM is generated if primitiveMode is not one of GL_POINTS, GL_LINES, or GL_TRIANGLES.");
-	// 		glBeginTransformFeedback	(-1);
-	// 		expectError					(GL_INVALID_ENUM);
-	// 		m_log << tcu::TestLog::EndSection;
-    //
-	// 		m_log << tcu::TestLog::Section("", "GL_INVALID_OPERATION is generated if transform feedback is already active.");
-	// 		glBeginTransformFeedback	(GL_TRIANGLES);
-	// 		expectError					(GL_NO_ERROR);
-	// 		glBeginTransformFeedback	(GL_POINTS);
-	// 		expectError					(GL_INVALID_OPERATION);
-	// 		m_log << tcu::TestLog::EndSection;
-    //
-	// 		m_log << tcu::TestLog::Section("", "GL_INVALID_OPERATION is generated if any binding point used in transform feedback mode does not have a buffer object bound.");
-	// 		glBindBufferBase			(GL_TRANSFORM_FEEDBACK_BUFFER, 0, 0);
-	// 		glBeginTransformFeedback	(GL_TRIANGLES);
-	// 		expectError					(GL_INVALID_OPERATION);
-	// 		glBindBufferBase			(GL_TRANSFORM_FEEDBACK_BUFFER, 0, buf);
-	// 		m_log << tcu::TestLog::EndSection;
-    //
-	// 		m_log << tcu::TestLog::Section("", "GL_INVALID_OPERATION is generated if no binding points would be used because no program object is active.");
-	// 		glUseProgram				(0);
-	// 		glBeginTransformFeedback	(GL_TRIANGLES);
-	// 		expectError					(GL_INVALID_OPERATION);
-	// 		glUseProgram				(program.getProgram());
-	// 		m_log << tcu::TestLog::EndSection;
-    //
-	// 		m_log << tcu::TestLog::Section("", "GL_INVALID_OPERATION is generated if no binding points would be used because the active program object has specified no varying variables to record.");
-	// 		glTransformFeedbackVaryings	(program.getProgram(), 0, 0, GL_INTERLEAVED_ATTRIBS);
-	// 		glBeginTransformFeedback	(GL_TRIANGLES);
-	// 		expectError					(GL_INVALID_OPERATION);
-	// 		m_log << tcu::TestLog::EndSection;
-    //
-	// 		glEndTransformFeedback		();
-	// 		glDeleteBuffers				(1, &buf);
-	// 		glDeleteTransformFeedbacks	(2, tfID);
-	// 		expectError					(GL_NO_ERROR);
-	// 	});
-	// ES3F_ADD_API_CASE(pause_transform_feedback, "Invalid glPauseTransformFeedback() usage",
-	// 	{
-	// 		GLuint						tfID[2];
-	// 		glu::ShaderProgram			program(m_context.getRenderContext(), glu::makeVtxFragSources(vertexShaderSource, fragmentShaderSource));
-	// 		deUint32					buf;
-	// 		const char* tfVarying		= "gl_Position";
-    //
-	// 		glGenBuffers				(1, &buf);
-	// 		glGenTransformFeedbacks		(2, tfID);
-    //
-	// 		glUseProgram				(program.getProgram());
-	// 		glTransformFeedbackVaryings	(program.getProgram(), 1, &tfVarying, GL_INTERLEAVED_ATTRIBS);
-	// 		glLinkProgram				(program.getProgram());
-	// 		glBindTransformFeedback		(GL_TRANSFORM_FEEDBACK, tfID[0]);
-	// 		glBindBuffer				(GL_TRANSFORM_FEEDBACK_BUFFER, buf);
-	// 		glBufferData				(GL_TRANSFORM_FEEDBACK_BUFFER, 32, DE_NULL, GL_DYNAMIC_DRAW);
-	// 		glBindBufferBase			(GL_TRANSFORM_FEEDBACK_BUFFER, 0, buf);
-	// 		expectError					(GL_NO_ERROR);
-    //
-	// 		m_log << tcu::TestLog::Section("", "GL_INVALID_OPERATION is generated if the currently bound transform feedback object is not active or is paused.");
-	// 		glPauseTransformFeedback	();
-	// 		expectError					(GL_INVALID_OPERATION);
-	// 		glBeginTransformFeedback	(GL_TRIANGLES);
-	// 		glPauseTransformFeedback	();
-	// 		expectError					(GL_NO_ERROR);
-	// 		glPauseTransformFeedback	();
-	// 		expectError					(GL_INVALID_OPERATION);
-	// 		m_log << tcu::TestLog::EndSection;
-    //
-	// 		glEndTransformFeedback		();
-	// 		glDeleteBuffers				(1, &buf);
-	// 		glDeleteTransformFeedbacks	(2, tfID);
-	// 		expectError					(GL_NO_ERROR);
-	// 	});
-	// ES3F_ADD_API_CASE(resume_transform_feedback, "Invalid glResumeTransformFeedback() usage",
-	// 	{
-	// 		GLuint						tfID[2];
-	// 		glu::ShaderProgram			program(m_context.getRenderContext(), glu::makeVtxFragSources(vertexShaderSource, fragmentShaderSource));
-	// 		deUint32					buf;
-	// 		const char* tfVarying		= "gl_Position";
-    //
-	// 		glGenBuffers				(1, &buf);
-	// 		glGenTransformFeedbacks		(2, tfID);
-    //
-	// 		glUseProgram				(program.getProgram());
-	// 		glTransformFeedbackVaryings	(program.getProgram(), 1, &tfVarying, GL_INTERLEAVED_ATTRIBS);
-	// 		glLinkProgram				(program.getProgram());
-	// 		glBindTransformFeedback		(GL_TRANSFORM_FEEDBACK, tfID[0]);
-	// 		glBindBuffer				(GL_TRANSFORM_FEEDBACK_BUFFER, buf);
-	// 		glBufferData				(GL_TRANSFORM_FEEDBACK_BUFFER, 32, DE_NULL, GL_DYNAMIC_DRAW);
-	// 		glBindBufferBase			(GL_TRANSFORM_FEEDBACK_BUFFER, 0, buf);
-	// 		expectError					(GL_NO_ERROR);
-    //
-	// 		m_log << tcu::TestLog::Section("", "GL_INVALID_OPERATION is generated if the currently bound transform feedback object is not active or is not paused.");
-	// 		glResumeTransformFeedback	();
-	// 		expectError					(GL_INVALID_OPERATION);
-	// 		glBeginTransformFeedback	(GL_TRIANGLES);
-	// 		glResumeTransformFeedback	();
-	// 		expectError					(GL_INVALID_OPERATION);
-	// 		glPauseTransformFeedback	();
-	// 		glResumeTransformFeedback	();
-	// 		expectError					(GL_NO_ERROR);
-	// 		m_log << tcu::TestLog::EndSection;
-    //
-	// 		glEndTransformFeedback		();
-	// 		glDeleteBuffers				(1, &buf);
-	// 		glDeleteTransformFeedbacks	(2, tfID);
-	// 		expectError					(GL_NO_ERROR);
-	// 	});
-	// ES3F_ADD_API_CASE(end_transform_feedback, "Invalid glEndTransformFeedback() usage",
-	// 	{
-	// 		GLuint						tfID;
-	// 		glu::ShaderProgram			program(m_context.getRenderContext(), glu::makeVtxFragSources(vertexShaderSource, fragmentShaderSource));
-	// 		deUint32					buf;
-	// 		const char* tfVarying		= "gl_Position";
-    //
-	// 		glGenBuffers				(1, &buf);
-	// 		glGenTransformFeedbacks		(1, &tfID);
-    //
-	// 		glUseProgram				(program.getProgram());
-	// 		glTransformFeedbackVaryings	(program.getProgram(), 1, &tfVarying, GL_INTERLEAVED_ATTRIBS);
-	// 		glLinkProgram				(program.getProgram());
-	// 		glBindTransformFeedback		(GL_TRANSFORM_FEEDBACK, tfID);
-	// 		glBindBuffer				(GL_TRANSFORM_FEEDBACK_BUFFER, buf);
-	// 		glBufferData				(GL_TRANSFORM_FEEDBACK_BUFFER, 32, DE_NULL, GL_DYNAMIC_DRAW);
-	// 		glBindBufferBase			(GL_TRANSFORM_FEEDBACK_BUFFER, 0, buf);
-	// 		expectError					(GL_NO_ERROR);
-    //
-	// 		m_log << tcu::TestLog::Section("", "GL_INVALID_OPERATION is generated if transform feedback is not active.");
-	// 		glEndTransformFeedback		();
-	// 		expectError					(GL_INVALID_OPERATION);
-	// 		glBeginTransformFeedback	(GL_TRIANGLES);
-	// 		glEndTransformFeedback		();
-	// 		expectError					(GL_NO_ERROR);
-	// 		m_log << tcu::TestLog::EndSection;
-    //
-	// 		glDeleteBuffers				(1, &buf);
-	// 		glDeleteTransformFeedbacks	(1, &tfID);
-	// 		expectError					(GL_NO_ERROR);
-	// 	});
-	// ES3F_ADD_API_CASE(get_transform_feedback_varying, "Invalid glGetTransformFeedbackVarying() usage",
-	// 	{
-	// 		GLuint					tfID;
-	// 		glu::ShaderProgram		program			(m_context.getRenderContext(), glu::makeVtxFragSources(vertexShaderSource, fragmentShaderSource));
-	// 		glu::ShaderProgram		programInvalid	(m_context.getRenderContext(), glu::makeVtxFragSources(vertexShaderSource, ""));
-	// 		const char* tfVarying	= "gl_Position";
-	// 		int						maxTransformFeedbackVaryings = 0;
-    //
-	// 		GLsizei					length;
-	// 		GLsizei					size;
-	// 		GLenum					type;
-	// 		char					name[32];
-    //
-	// 		glGenTransformFeedbacks			(1, &tfID);
-    //
-	// 		glTransformFeedbackVaryings		(program.getProgram(), 1, &tfVarying, GL_INTERLEAVED_ATTRIBS);
-	// 		expectError						(GL_NO_ERROR);
-	// 		glLinkProgram					(program.getProgram());
-	// 		expectError						(GL_NO_ERROR);
-    //
-	// 		glBindTransformFeedback			(GL_TRANSFORM_FEEDBACK, tfID);
-	// 		expectError						(GL_NO_ERROR);
-    //
-	// 		m_log << tcu::TestLog::Section("", "GL_INVALID_VALUE is generated if program is not the name of a program object.");
-	// 		glGetTransformFeedbackVarying	(-1, 0, 32, &length, &size, &type, &name[0]);
-	// 		expectError						(GL_INVALID_VALUE);
-	// 		m_log << tcu::TestLog::EndSection;
-    //
-	// 		m_log << tcu::TestLog::Section("", "GL_INVALID_VALUE is generated if index is greater or equal to the value of GL_TRANSFORM_FEEDBACK_VARYINGS.");
-	// 		glGetProgramiv					(program.getProgram(), GL_TRANSFORM_FEEDBACK_VARYINGS, &maxTransformFeedbackVaryings);
-	// 		glGetTransformFeedbackVarying	(program.getProgram(), maxTransformFeedbackVaryings, 32, &length, &size, &type, &name[0]);
-	// 		expectError						(GL_INVALID_VALUE);
-	// 		m_log << tcu::TestLog::EndSection;
-    //
-	// 		m_log << tcu::TestLog::Section("", "GL_INVALID_OPERATION or GL_INVALID_VALUE is generated program has not been linked.");
-	// 		glGetTransformFeedbackVarying	(programInvalid.getProgram(), 0, 32, &length, &size, &type, &name[0]);
-	// 		expectError						(GL_INVALID_OPERATION, GL_INVALID_VALUE);
-	// 		m_log << tcu::TestLog::EndSection;
-    //
-	// 		glDeleteTransformFeedbacks		(1, &tfID);
-	// 		expectError						(GL_NO_ERROR);
-	// 	});
-	// ES3F_ADD_API_CASE(transform_feedback_varyings, "Invalid glTransformFeedbackVaryings() usage",
-	// 	{
-	// 		GLuint					tfID;
-	// 		glu::ShaderProgram		program(m_context.getRenderContext(), glu::makeVtxFragSources(vertexShaderSource, fragmentShaderSource));
-	// 		const char* tfVarying	= "gl_Position";
-	// 		GLint					maxTransformFeedbackSeparateAttribs = 0;
-    //
-	// 		glGenTransformFeedbacks			(1, &tfID);
-	// 		expectError						(GL_NO_ERROR);
-    //
-	// 		m_log << tcu::TestLog::Section("", "GL_INVALID_VALUE is generated if program is not the name of a program object.");
-	// 		glTransformFeedbackVaryings		(0, 1, &tfVarying, GL_INTERLEAVED_ATTRIBS);
-	// 		expectError						(GL_INVALID_VALUE);
-	// 		m_log << tcu::TestLog::EndSection;
-    //
-	// 		m_log << tcu::TestLog::Section("", "GL_INVALID_VALUE is generated if bufferMode is GL_SEPARATE_ATTRIBS and count is greater than GL_MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS.");
-	// 		glGetIntegerv					(GL_MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS, &maxTransformFeedbackSeparateAttribs);
-	// 		glTransformFeedbackVaryings		(program.getProgram(), maxTransformFeedbackSeparateAttribs+1, &tfVarying, GL_SEPARATE_ATTRIBS);
-	// 		expectError						(GL_INVALID_VALUE);
-	// 		m_log << tcu::TestLog::EndSection;
-    //
-	// 		glDeleteTransformFeedbacks		(1, &tfID);
-	// 		expectError						(GL_NO_ERROR);
-	// 	});
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'compile_shader', "Invalid gl.compileShader() usage",
+            function() {
+                // \note Shader compilation must be supported.
 
+                bufferedLogToConsole("gl.INVALID_VALUE is generated if shader is not a value generated by OpenGL.");
+                gl.compileShader(9);
+                    this.expectError(gl.INVALID_VALUE);
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if shader is not a shader object.");
+                /** @type {number} */ var program = gl.createProgram();
+                gl.compileShader(program);
+                    this.expectError(gl.INVALID_OPERATION);
+
+                gl.deleteProgram(program);
+            }
+        ));
+
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'delete_shader', "Invalid gl.deleteShader() usage",
+            function() {
+                bufferedLogToConsole("gl.INVALID_VALUE is generated if shader is not a value generated by OpenGL.");
+                gl.deleteShader(9);
+                    this.expectError(gl.INVALID_VALUE);
+            }
+        ));
+
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'attach_shader', "Invalid gl.attachShader() usage",
+            function() {
+                /** @type {number} */ var shader1 = gl.createShader(gl.VERTEX_SHADER);
+                /** @type {number} */ var shader2 = gl.createShader(gl.VERTEX_SHADER);
+                /** @type {number} */ var program = gl.createProgram();
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if program is not a program object.");
+                gl.attachShader(shader1, shader1);
+                    this.expectError(gl.INVALID_OPERATION);
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if shader is not a shader object.");
+                gl.attachShader(program, program);
+                    this.expectError(gl.INVALID_OPERATION);
+                gl.attachShader(shader1, program);
+                    this.expectError(gl.INVALID_OPERATION);
+
+                bufferedLogToConsole("gl.INVALID_VALUE is generated if either program or shader is not a value generated by OpenGL.");
+                gl.attachShader(program, -1);
+                    this.expectError(gl.INVALID_VALUE);
+                gl.attachShader(-1, shader1);
+                    this.expectError(gl.INVALID_VALUE);
+                gl.attachShader(-1, -1);
+                    this.expectError(gl.INVALID_VALUE);
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if shader is already attached to program.");
+                gl.attachShader(program, shader1);
+                    this.expectError(gl.NO_ERROR);
+                gl.attachShader(program, shader1);
+                    this.expectError(gl.INVALID_OPERATION);
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if a shader of the same type as shader is already attached to program.");
+                gl.attachShader(program, shader2);
+                    this.expectError(gl.INVALID_OPERATION);
+
+                gl.deleteProgram(program);
+                gl.deleteShader(shader1);
+                gl.deleteShader(shader2);
+            });
+
+    testGroup.addChild(new es3fApiCase.ApiCaseCallback(detach_shader, "Invalid gl.detachShader() usage",
+        {
+            /** @type {number} */ var shader = gl.createShader(gl.VERTEX_SHADER);
+            /** @type {number} */ var program = gl.createProgram();
+
+            bufferedLogToConsole("gl.INVALID_VALUE is generated if either program or shader is not a value generated by OpenGL.");
+            gl.detachShader(-1, shader);
+            this.expectError(gl.INVALID_VALUE);
+            gl.detachShader(program, -1);
+            this.expectError(gl.INVALID_VALUE);
+            gl.detachShader(-1, -1);
+            this.expectError(gl.INVALID_VALUE);
+
+            bufferedLogToConsole("gl.INVALID_OPERATION is generated if program is not a program object.");
+            gl.detachShader(shader, shader);
+            this.expectError(gl.INVALID_OPERATION);
+
+            bufferedLogToConsole("gl.INVALID_OPERATION is generated if shader is not a shader object.");
+            gl.detachShader(program, program);
+            this.expectError(gl.INVALID_OPERATION);
+            gl.detachShader(shader, program);
+            this.expectError(gl.INVALID_OPERATION);
+
+            bufferedLogToConsole("gl.INVALID_OPERATION is generated if shader is not attached to program.");
+            gl.detachShader(program, shader);
+            this.expectError(gl.INVALID_OPERATION);
+
+            gl.deleteProgram(program);
+            gl.deleteShader(shader);
+        });
+
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'link_program', "Invalid gl.linkProgram() usage",
+            function() {
+                /** @type {number} */ var shader = gl.createShader(gl.VERTEX_SHADER);
+
+                bufferedLogToConsole("gl.INVALID_VALUE is generated if program is not a value generated by OpenGL.");
+                gl.linkProgram(-1);
+                this.expectError(gl.INVALID_VALUE);
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if program is not a program object.");
+                gl.linkProgram(shader);
+                this.expectError(gl.INVALID_OPERATION);
+
+                gl.deleteShader(shader);
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if program is the currently active program object and transform feedback mode is active.");
+                /** @type {gluShaderProgram.ShaderProgram} */ var program = new gluShaderProgram.ShaderProgram(gl, gluShaderProgram.makeVtxFragSources(es3fNegativeShaderApiTests.vertexShaderSource, es3fNegativeShaderApiTests.fragmentShaderSource));
+                /** @type {number} */ var buf;
+                /** @type {number} */ var tfID;
+                /** @type {string} */ var tfVarying = "gl.Position";
+
+                tfID = gl.createTransformFeedback();
+                buf = gl.createBuffer();
+
+                gl.useProgram(program.getProgram());
+                gl.transformFeedbackVaryings(program.getProgram(), tfVarying, gl.INTERLEAVED_ATTRIBS);
+                gl.linkProgram(program.getProgram());
+                gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, tfID);
+                gl.bindBuffer(gl.TRANSFORM_FEEDBACK_BUFFER, buf);
+                gl.bufferData(gl.TRANSFORM_FEEDBACK_BUFFER, 32, null, gl.DYNAMIC_DRAW);
+                gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, buf);
+                gl.beginTransformFeedback(gl.TRIANGLES);
+                this.expectError(gl.NO_ERROR);
+
+                gl.linkProgram(program.getProgram());
+                this.expectError(gl.INVALID_OPERATION);
+
+                gl.endTransformFeedback();
+                gl.deleteTransformFeedbacks(1, &tfID);
+                gl.deleteBuffer(buf);
+                this.expectError(gl.NO_ERROR);
+
+            });
+
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'use_program', "Invalid gl.useProgram() usage",
+            function() {
+                /** @type {number} */ var shader = gl.createShader(gl.VERTEX_SHADER);
+
+                bufferedLogToConsole("gl.INVALID_VALUE is generated if program is neither 0 nor a value generated by OpenGL.");
+                gl.useProgram(-1);
+                this.expectError(gl.INVALID_VALUE);
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if program is not a program object.");
+                gl.useProgram(shader);
+                this.expectError(gl.INVALID_OPERATION);
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if transform feedback mode is active and not paused.");
+                /** @type {gluShaderProgram.ShaderProgram} */ var program1 ¬¬= new gluShaderProgram.ShaderProgram(gl, gluShaderProgram.makeVtxFragSources(es3fNegativeShaderApiTests.vertexShaderSource, es3fNegativeShaderApiTests.fragmentShaderSource));
+                /** @type {gluShaderProgram.ShaderProgram} */ var program2 = new gluShaderProgram.ShaderProgram(gl, gluShaderProgram.makeVtxFragSources(es3fNegativeShaderApiTests.vertexShaderSource, es3fNegativeShaderApiTests.fragmentShaderSource));
+                /** @type {number} */ var buf;
+                /** @type {number} */ var tfID;
+                /** @type {string} */ var tfVarying = "gl.Position";
+
+                tfID = gl.createTransformFeedback();
+                buf = gl.createBuffer();
+
+                gl.useProgram(program1.getProgram());
+                gl.transformFeedbackVaryings(program1.getProgram(), tfVarying, gl.INTERLEAVED_ATTRIBS);
+                gl.linkProgram(program1.getProgram());
+                gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, tfID);
+                gl.bindBuffer(gl.TRANSFORM_FEEDBACK_BUFFER, buf);
+                gl.bufferData(gl.TRANSFORM_FEEDBACK_BUFFER, 32, null, gl.DYNAMIC_DRAW);
+                gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, buf);
+                gl.beginTransformFeedback(gl.TRIANGLES);
+                this.expectError(gl.NO_ERROR);
+
+                gl.useProgram(program2.getProgram());
+                this.expectError(gl.INVALID_OPERATION);
+
+                gl.pauseTransformFeedback();
+                gl.useProgram(program2.getProgram());
+                this.expectError(gl.NO_ERROR);
+
+                gl.endTransformFeedback();
+                gl.deleteTransformFeedbacks(tfID);
+                gl.deleteBuffer(buf);
+                this.expectError(gl.NO_ERROR);
+
+                gl.useProgram(null);
+                gl.deleteShader(shader);
+            }
+        ));
+
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'delete_program', "Invalid gl.deleteProgram() usage",
+            function() {
+                bufferedLogToConsole("gl.INVALID_VALUE is generated if program is not a value generated by OpenGL.");
+                gl.deleteProgram(-1);
+                this.expectError(gl.INVALID_VALUE);
+
+            }
+        ));
+
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'validate_program', "Invalid gl.validateProgram() usage",
+            function() {
+                /** @type {number} */ var shader = gl.createShader(gl.VERTEX_SHADER);
+
+                bufferedLogToConsole("gl.INVALID_VALUE is generated if program is not a value generated by OpenGL.");
+                gl.validateProgram(-1);
+                this.expectError(gl.INVALID_VALUE);
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if program is not a program object.");
+                gl.validateProgram(shader);
+                this.expectError(gl.INVALID_OPERATION);
+
+                gl.deleteShader(shader);
+            }
+        ));
+
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'gen_samplers', "Invalid gl.createSampler() usage",
+            function() {
+                bufferedLogToConsole("gl.INVALID_VALUE is generated if n is negative.");
+                /** @type {number} */ var sampler;
+                sampler = gl.createSampler();
+                this.expectError(gl.INVALID_VALUE);
+            }
+        ));
+
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'bind_sampler', "Invalid gl.bindSampler() usage",
+            function() {
+                /** @type {number} */ var maxTexImageUnits;
+                /** @type {number} */ var sampler;
+                maxTexImageUnits = gl.getParameter(gl.MAX_COMBINED_TEXTURE_IMAGE_UNITS);
+                sampler = gl.createSampler();
+
+                bufferedLogToConsole("gl.INVALID_VALUE is generated if unit is greater than or equal to the value of gl.MAX_COMBIED_TEXTURE_IMAGE_UNITS.");
+                gl.bindSampler(maxTexImageUnits, sampler);
+                this.expectError(gl.INVALID_VALUE);
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if sampler is not zero or a name previously returned from a call to glGenSamplers.");
+                gl.bindSampler(1, -1);
+                this.expectError(gl.INVALID_OPERATION);
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if sampler has been deleted by a call to glDeleteSamplers.");
+                gl.deleteSampler(sampler);
+                gl.bindSampler(1, sampler);
+                this.expectError(gl.INVALID_OPERATION);
+            }
+        ));
+
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'delete_samplers', "Invalid gl.deleteSampler() usage",
+            function() {
+                bufferedLogToConsole("gl.INVALID_VALUE is generated if n is negative.");
+                gl.deleteSampler(0);
+                this.expectError(gl.INVALID_VALUE);
+            }
+        ));
+
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'get_sampler_parameteriv', "Invalid gl.getSamplerParameter() usage",
+            function() {
+                /** @type {number} */ var params;
+                /** @type {number} */ var sampler;
+                sampler = gl.createSampler();
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if sampler is not the name of a sampler object returned from a previous call to glGenSamplers.");
+                params = gl.getSamplerParameter(-1, gl.TEXTURE_MAG_FILTER);
+                this.expectError(gl.INVALID_OPERATION);
+
+                bufferedLogToConsole("gl.INVALID_ENUM is generated if pname is not an accepted value.");
+                params = gl.getSamplerParameter(sampler, -1);
+                this.expectError(gl.INVALID_ENUM);
+
+                gl.deleteSampler(sampler);
+            }
+        ));
+
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'get_sampler_parameterfv', "Invalid gl.getSamplerParameter() usage",
+            function() {
+                /** @type {number} */ var params;
+                /** @type {number} */ var sampler;
+                sampler = gl.createSampler(/);
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if sampler is not the name of a sampler object returned from a previous call to glGenSamplers.");
+                params = gl.getSamplerParameter(-1, gl.TEXTURE_MAG_FILTER);
+                this.expectError(gl.INVALID_OPERATION);
+
+                bufferedLogToConsole("gl.INVALID_ENUM is generated if pname is not an accepted value.");
+                params = gl.getSamplerParameter(sampler, -1);
+                this.expectError(gl.INVALID_ENUM);
+
+                gl.deleteSampler(sampler);
+            }
+        ));
+
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'sampler_parameteri', "Invalid gl.samplerParameteri() usage",
+            function() {
+                /** @type {number} */ var sampler;
+                sampler = gl.createSampler();
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if sampler is not the name of a sampler object previously returned from a call to glGenSamplers.");
+                gl.samplerParameteri(-1, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                this.expectError(gl.INVALID_OPERATION);
+
+                bufferedLogToConsole("gl.INVALID_ENUM is generated if params should have a defined constant value (based on the value of pname) and does not.");
+                gl.samplerParameteri(sampler, gl.TEXTURE_WRAP_S, -1);
+                this.expectError(gl.INVALID_ENUM);
+
+                gl.deleteSampler(sampler);
+            }
+        ));
+
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'sampler_parameteriv', "Invalid gl.samplerParameteri() usage",
+            function() {
+                /** @type {number} */ var params;
+                /** @type {number} */ var sampler;
+                sampler = gl.createSampler();
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if sampler is not the name of a sampler object previously returned from a call to glGenSamplers.");
+                params = gl.CLAMP_TO_EDGE;
+                gl.samplerParameteri(-1, gl.TEXTURE_WRAP_S, params);
+                this.expectError(gl.INVALID_OPERATION);
+
+                bufferedLogToConsole("gl.INVALID_ENUM is generated if params should have a defined constant value (based on the value of pname) and does not.");
+                params = -1;
+                gl.samplerParameteri(sampler, gl.TEXTURE_WRAP_S, params);
+                this.expectError(gl.INVALID_ENUM);
+
+                gl.deleteSampler(sampler);
+            }
+        ));
+
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'sampler_parameterf', "Invalid glSamplerParameterf() usage",
+            {
+                /** @type {number} */ var sampler;
+                sampler = gl.createSampler();
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if sampler is not the name of a sampler object previously returned from a call to glGenSamplers.");
+                glSamplerParameterf        (-1, gl.TEXTURE_MIN_LOD, -1000.0);
+                this.expectError(gl.INVALID_OPERATION);
+
+
+                bufferedLogToConsole("gl.INVALID_ENUM is generated if params should have a defined constant value (based on the value of pname) and does not.");
+                glSamplerParameterf        (sampler, gl.TEXTURE_WRAP_S, -1.0);
+                this.expectError(gl.INVALID_ENUM);
+
+
+                gl.deleteSampler(sampler);
+            });
+
+
+            // Shader data commands
+
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'get_attrib_location', "Invalid gl.getAttribLocation() usage",
+            function() {
+                /** @type {number} */ var programEmpty = gl.createProgram();
+                /** @type {number} */ var shader = gl.createShader(gl.VERTEX_SHADER);
+                /** @type {gluShaderProgram.ShaderProgram} */ var program = new gluShaderProgram.ShaderProgram(gl, gluShaderProgram.makeVtxFragSources(es3fNegativeShaderApiTests.vertexShaderSource, es3fNegativeShaderApiTests.fragmentShaderSource));
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if program has not been successfully linked.");
+                gl.bindAttribLocation(programEmpty, 0, "test");
+                gl.getAttribLocation(programEmpty, "test");
+                this.expectError(gl.INVALID_OPERATION);
+
+                bufferedLogToConsole("gl.INVALID_VALUE is generated if program is not a program or shader object.");
+                gl.useProgram(program.getProgram());
+                gl.bindAttribLocation(program.getProgram(), 0, "test");
+                this.expectError(gl.NO_ERROR);
+                gl.getAttribLocation(program.getProgram(), "test");
+                this.expectError(gl.NO_ERROR);
+                gl.getAttribLocation(-2, "test");
+                this.expectError(gl.INVALID_VALUE);
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if program is not a program object.");
+                gl.getAttribLocation(shader, "test");
+                this.expectError(gl.INVALID_OPERATION);
+
+                gl.useProgram(null);
+                gl.deleteShader(shader);
+                gl.deleteProgram(programEmpty);
+            }
+        ));
+
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'get_uniform_location', "Invalid gl.getUniformLocation() usage",
+            function() {
+                /** @type {number} */ var programEmpty = gl.createProgram();
+                /** @type {number} */ var shader = gl.createShader(gl.VERTEX_SHADER);
+
+                /** @type {gluShaderProgram.ShaderProgram} */ var program = new gluShaderProgram.ShaderProgram(gl, gluShaderProgram.makeVtxFragSources(es3fNegativeShaderApiTests.vertexShaderSource, es3fNegativeShaderApiTests.fragmentShaderSource));
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if program has not been successfully linked.");
+                gl.getUniformLocation(programEmpty, "test");
+                this.expectError(gl.INVALID_OPERATION);
+
+                bufferedLogToConsole("gl.INVALID_VALUE is generated if program is not a value generated by OpenGL.");
+                gl.useProgram(program.getProgram());
+                gl.getUniformLocation(-2, "test");
+                this.expectError(gl.INVALID_VALUE);
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if program is not a program object.");
+                gl.getAttribLocation(shader, "test");
+                this.expectError(gl.INVALID_OPERATION);
+
+                gl.useProgram(null);
+                gl.deleteProgram(programEmpty);
+                gl.deleteShader(shader);
+            }
+        ));
+
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'bind_attrib_location', "Invalid gl.bindAttribLocation() usage",
+            function() {
+                /** @type {number} */ var program = gl.createProgram();
+                /** @type {number} */ var maxIndex = m_context.getContextInfo().getInt(gl.MAX_VERTEX_ATTRIBS);
+                /** @type {number} */ var shader = gl.createShader(gl.VERTEX_SHADER);
+
+                bufferedLogToConsole("gl.INVALID_VALUE is generated if index is greater than or equal to gl.MAX_VERTEX_ATTRIBS.");
+                gl.bindAttribLocation(program, maxIndex, "test");
+                this.expectError(gl.INVALID_VALUE);
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if name starts with the reserved prefix \"gl.\".");
+                gl.bindAttribLocation(program, maxIndex-1, "gl.test");
+                this.expectError(gl.INVALID_OPERATION);
+
+                bufferedLogToConsole("gl.INVALID_VALUE is generated if program is not a value generated by OpenGL.");
+                gl.bindAttribLocation(-1, maxIndex-1, "test");
+                this.expectError(gl.INVALID_VALUE);
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if program is not a program object.");
+                gl.bindAttribLocation(shader, maxIndex-1, "test");
+                this.expectError(gl.INVALID_OPERATION);
+
+                gl.deleteProgram(program);
+                gl.deleteShader(shader);
+            }
+        ));
+
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'uniform_block_binding', "Invalid gl.uniformBlockBinding() usage",
+            function() {
+                /** @type {gluShaderProgram.ShaderProgram} */ var program = new gluShaderProgram.ShaderProgram(gl, gluShaderProgram.makeVtxFragSources(uniformBlockVertSource, uniformTestFragSource));
+
+                gl.useProgram(program.getProgram());
+
+                /** @type {number} */ var maxUniformBufferBindings;
+                /** @type {number} */ var numActiveUniforms = -1;
+                /** @type {number} */ var numActiveBlocks = -1;
+                maxUniformBufferBindings = gl.getParameter(gl.MAX_UNIFORM_BUFFER_BINDINGS);
+                numActiveUniforms = gl.getProgramParameter(program.getProgram(), gl.ACTIVE_UNIFORMS);
+                numActiveBlocks = gl.getProgramParameter(program.getProgram(), gl.ACTIVE_UNIFORM_BLOCKS);
+                bufferedLogToConsole("// gl.MAX_UNIFORM_BUFFER_BINDINGS = " + maxUniformBufferBindings);
+                bufferedLogToConsole("// gl.ACTIVE_UNIFORMS = " + numActiveUniforms);
+                bufferedLogToConsole("// gl.ACTIVE_UNIFORM_BLOCKS = " + numActiveBlocks);
+                this.expectError(gl.NO_ERROR);
+
+                bufferedLogToConsole("gl.INVALID_VALUE is generated if uniformBlockIndex is not an active uniform block index of program.");
+                gl.uniformBlockBinding(program.getProgram(), -1, 0);
+                this.expectError(gl.INVALID_VALUE);
+                gl.uniformBlockBinding(program.getProgram(), 5, 0);
+                this.expectError(gl.INVALID_VALUE);
+
+                bufferedLogToConsole("gl.INVALID_VALUE is generated if uniformBlockBinding is greater than or equal to the value of gl.MAX_UNIFORM_BUFFER_BINDINGS.");
+                gl.uniformBlockBinding(program.getProgram(), maxUniformBufferBindings, 0);
+                this.expectError(gl.INVALID_VALUE);
+
+                bufferedLogToConsole("gl.INVALID_VALUE is generated if program is not the name of a program object generated by the GL.");
+                gl.uniformBlockBinding(-1, 0, 0);
+                this.expectError(gl.INVALID_VALUE);
+            }
+        ));
+
+        // glUniform*f
+
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'uniformf_invalid_program', "Invalid glUniform{1234}f() usage",
+            function() {
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if there is no current program object.");
+                gl.useProgram(null);
+                gl.uniform1f(-1, 0.0);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform2f(-1, 0.0, 0.0);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform3f(-1, 0.0, 0.0, 0.0);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform4f(-1, 0.0, 0.0, 0.0, 0.0);
+                this.expectError(gl.INVALID_OPERATION);
+            }
+        ));
+
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'uniformf_incompatible_type', "Invalid glUniform{1234}f() usage",
+            function() {
+                /** @type {gluShaderProgram.ShaderProgram} */ var program = new gluShaderProgram.ShaderProgram(gl, gluShaderProgram.makeVtxFragSources(uniformTestVertSource, uniformTestFragSource));
+
+                gl.useProgram(program.getProgram());
+                /** @type {number} */ var vec4_v = gl.getUniformLocation(program.getProgram(), "vec4_v"); // vec4
+                /** @type {number} */ var ivec4_f = gl.getUniformLocation(program.getProgram(), "ivec4_f"); // ivec4
+                /** @type {number} */ var uvec4_f = gl.getUniformLocation(program.getProgram(), "uvec4_f"); // uvec4
+                /** @type {number} */ var sampler_f = gl.getUniformLocation(program.getProgram(), "sampler_f"); // sampler2D
+                this.expectError(gl.NO_ERROR);
+
+                if (vec4_v == -1 || ivec4_f == -1 || uvec4_f == -1 || sampler_f == -1) {
+                    testFailedOptions("Failed to retrieve uniform location", false);
+                }
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if the size of the uniform variable declared in the shader does not match the size indicated by the glUniform command.");
+                gl.useProgram(program.getProgram());
+                gl.uniform1f(vec4_v, 0.0);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform2f(vec4_v, 0.0, 0.0);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform3f(vec4_v, 0.0, 0.0, 0.0);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform4f(vec4_v, 0.0, 0.0, 0.0, 0.0);
+                this.expectError(gl.NO_ERROR);
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if glUniform{1234}f is used to load a uniform variable of type /** @type {number} */ var , ivec2, ivec3, ivec4, unsigned /** @type {number} */ var , uvec2, uvec3, uvec4.");
+                gl.useProgram(program.getProgram());
+                gl.uniform4f(ivec4_f, 0.0, 0.0, 0.0, 0.0);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform4f(uvec4_f, 0.0, 0.0, 0.0, 0.0);
+                this.expectError(gl.INVALID_OPERATION);
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if a sampler is loaded using a command other than glUniform1i and glUniform1iv.");
+                gl.useProgram(program.getProgram());
+                gl.uniform1f(sampler_f, 0.0);
+                this.expectError(gl.INVALID_OPERATION);
+
+                gl.useProgram(null);
+            }
+        ));
+
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'uniformf_invalid_location', "Invalid glUniform{1234}f() usage",
+            function() {
+                /** @type {gluShaderProgram.ShaderProgram} */ var program = new gluShaderProgram.ShaderProgram(gl, gluShaderProgram.makeVtxFragSources(uniformTestVertSource, uniformTestFragSource));
+
+                gl.useProgram(program.getProgram());
+                this.expectError(gl.NO_ERROR);
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if location is an invalid uniform location for the current program object and location is not equal to -1.");
+                gl.useProgram(program.getProgram());
+                gl.uniform1f(-2, 0.0);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform2f(-2, 0.0, 0.0);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform3f(-2, 0.0, 0.0, 0.0);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform4f(-2, 0.0, 0.0, 0.0, 0.0);
+                this.expectError(gl.INVALID_OPERATION);
+
+                gl.useProgram(program.getProgram());
+                gl.uniform1f(-1, 0.0);
+                this.expectError(gl.NO_ERROR);
+                gl.uniform2f(-1, 0.0, 0.0);
+                this.expectError(gl.NO_ERROR);
+                gl.uniform3f(-1, 0.0, 0.0, 0.0);
+                this.expectError(gl.NO_ERROR);
+                gl.uniform4f(-1, 0.0, 0.0, 0.0, 0.0);
+                this.expectError(gl.NO_ERROR);
+
+                gl.useProgram(null);
+            }
+        ));
+
+        // glUniform*fv
+
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'uniformfv_invalid_program', "Invalid glUniform{1234}fv() usage",
+            function() {
+                /** @type {Float32Array} */ var data = new Float32Array();
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if there is no current program object.");
+                gl.useProgram(null);
+                gl.uniform1fv(-1, 1, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform2fv(-1, 1, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform3fv(-1, 1, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform4fv(-1, 1, data);
+                this.expectError(gl.INVALID_OPERATION);
+            }
+        ));
+
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(uniformfv_incompatible_type, "Invalid glUniform{1234}fv() usage",
+            {
+                /** @type {gluShaderProgram.ShaderProgram} */ var program = new gluShaderProgram.ShaderProgram(gl, gluShaderProgram.makeVtxFragSources(uniformTestVertSource, uniformTestFragSource));
+
+                gl.useProgram(program.getProgram());
+                /** @type {number} */ var vec4_v = gl.getUniformLocation(program.getProgram(), "vec4_v"); // vec4
+                /** @type {number} */ var ivec4_f = gl.getUniformLocation(program.getProgram(), "ivec4_f"); // ivec4
+                /** @type {number} */ var uvec4_f = gl.getUniformLocation(program.getProgram(), "uvec4_f"); // uvec4
+                /** @type {number} */ var sampler_f = gl.getUniformLocation(program.getProgram(), "sampler_f"); // sampler2D
+                this.expectError(gl.NO_ERROR);
+
+                if (vec4_v == -1 || ivec4_f == -1 || uvec4_f == -1 || sampler_f == -1) {
+                    bufferedLogToConsole("// ERROR: Failed to retrieve uniform location");
+                    testFailedOptions("Failed to retrieve uniform location", false);
+                }
+
+                /** @type {Float32Array} */ var data = new Float32Array();
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if the size of the uniform variable declared in the shader does not match the size indicated by the glUniform command.");
+                gl.useProgram(program.getProgram());
+                gl.uniform1fv(vec4_v, 1, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform2fv(vec4_v, 1, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform3fv(vec4_v, 1, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform4fv(vec4_v, 1, data);
+                this.expectError(gl.NO_ERROR);
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if glUniform{1234}fv is used to load a uniform variable of type /** @type {number} */ var , ivec2, ivec3, ivec4, unsigned /** @type {number} */ var , uvec2, uvec3, uvec4.");
+                gl.useProgram(program.getProgram());
+                gl.uniform4fv(ivec4_f, 1, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform4fv(uvec4_f, 1, data);
+                this.expectError(gl.INVALID_OPERATION);
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if a sampler is loaded using a command other than glUniform1i and glUniform1iv.");
+                gl.useProgram(program.getProgram());
+                gl.uniform1fv(sampler_f, 1, data);
+                this.expectError(gl.INVALID_OPERATION);
+
+                gl.useProgram(null);
+            }
+        ));
+
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'uniformfv_invalid_location', "Invalid glUniform{1234}fv() usage",
+            function() {
+                /** @type {gluShaderProgram.ShaderProgram} */ var program = new gluShaderProgram.ShaderProgram(gl, gluShaderProgram.makeVtxFragSources(uniformTestVertSource, uniformTestFragSource));
+
+                gl.useProgram(program.getProgram());
+                this.expectError(gl.NO_ERROR);
+
+                /** @type {Float32Array} */ var data = new Float32Array();
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if location is an invalid uniform location for the current program object and location is not equal to -1.");
+                gl.useProgram(program.getProgram());
+                gl.uniform1fv(-2, 1, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform2fv(-2, 1, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform3fv(-2, 1, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform4fv(-2, 1, data);
+                this.expectError(gl.INVALID_OPERATION);
+
+                gl.useProgram(program.getProgram());
+                gl.uniform1fv(-1, 1, data);
+                this.expectError(gl.NO_ERROR);
+                gl.uniform2fv(-1, 1, data);
+                this.expectError(gl.NO_ERROR);
+                gl.uniform3fv(-1, 1, data);
+                this.expectError(gl.NO_ERROR);
+                gl.uniform4fv(-1, 1, data);
+                this.expectError(gl.NO_ERROR);
+
+                gl.useProgram(null);
+            }
+        ));
+
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'uniformfv_invalid_count', "Invalid glUniform{1234}fv() usage",
+            function() {
+                /** @type {gluShaderProgram.ShaderProgram} */ var program = new gluShaderProgram.ShaderProgram(gl, gluShaderProgram.makeVtxFragSources(uniformTestVertSource, uniformTestFragSource));
+
+                gl.useProgram(program.getProgram());
+                /** @type {number} */ var vec4_v = gl.getUniformLocation(program.getProgram(), "vec4_v"); // vec4
+                this.expectError(gl.NO_ERROR);
+
+                if (vec4_v == -1)
+                    testFailedOptions("Failed to retrieve uniform location", false);
+
+                /** @type {Float32Array} */ var data = new Float32Array();
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if count is greater than 1 and the indicated uniform variable is not an array variable.");
+                gl.useProgram(program.getProgram());
+                gl.uniform1fv(vec4_v, 2, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform2fv(vec4_v, 2, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform3fv(vec4_v, 2, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform4fv(vec4_v, 2, data);
+                this.expectError(gl.INVALID_OPERATION);
+
+                gl.useProgram(null);
+            }
+        ));
+
+        // glUniform*i
+
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'uniformi_invalid_program', "Invalid glUniform{1234}i() usage",
+            function() {
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if there is no current program object.");
+                gl.useProgram(null);
+                gl.uniform1i(-1, 0);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform2i(-1, 0, 0);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform3i(-1, 0, 0, 0);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform4i(-1, 0, 0, 0, 0);
+                this.expectError(gl.INVALID_OPERATION);
+            }
+        ));
+
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(uniformi_incompatible_type, "Invalid glUniform{1234}i() usage",
+            {
+                /** @type {gluShaderProgram.ShaderProgram} */ var program = new gluShaderProgram.ShaderProgram(gl, gluShaderProgram.makeVtxFragSources(uniformTestVertSource, uniformTestFragSource));
+
+                gl.useProgram(program.getProgram());
+                /** @type {number} */ var vec4_v = gl.getUniformLocation(program.getProgram(), "vec4_v"); // vec4
+                /** @type {number} */ var ivec4_f = gl.getUniformLocation(program.getProgram(), "ivec4_f"); // ivec4
+                /** @type {number} */ var uvec4_f = gl.getUniformLocation(program.getProgram(), "uvec4_f"); // uvec4
+                /** @type {number} */ var sampler_f = gl.getUniformLocation(program.getProgram(), "sampler_f"); // sampler2D
+                this.expectError(gl.NO_ERROR);
+
+                if (vec4_v == -1 || ivec4_f == -1 || uvec4_f == -1 || sampler_f == -1)
+                    testFailedOptions("Failed to retrieve uniform location", false);
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if the size of the uniform variable declared in the shader does not match the size indicated by the glUniform command.");
+                gl.useProgram(program.getProgram());
+                gl.uniform1i(ivec4_f, 0);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform2i(ivec4_f, 0, 0);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform3i(ivec4_f, 0, 0, 0);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform4i(ivec4_f, 0, 0, 0, 0);
+                this.expectError(gl.NO_ERROR);
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if glUniform{1234}i is used to load a uniform variable of type unsigned /** @type {number} */ var , uvec2, uvec3, uvec4, or an array of these.");
+                gl.useProgram(program.getProgram());
+                gl.uniform1i(uvec4_f, 0);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform2i(uvec4_f, 0, 0);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform3i(uvec4_f, 0, 0, 0);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform4i(uvec4_f, 0, 0, 0, 0);
+                this.expectError(gl.INVALID_OPERATION);
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if glUniform{1234}i is used to load a uniform variable of type /** @type {number} */ var , vec2, vec3, or vec4.");
+                gl.useProgram(program.getProgram());
+                gl.uniform1i(vec4_v, 0);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform2i(vec4_v, 0, 0);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform3i(vec4_v, 0, 0, 0);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform4i(vec4_v, 0, 0, 0, 0);
+                this.expectError(gl.INVALID_OPERATION);
+
+                gl.useProgram(null);
+            }
+        ));
+
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'uniformi_invalid_location', "Invalid glUniform{1234}i() usage",
+            function() {
+                /** @type {gluShaderProgram.ShaderProgram} */ var program = new gluShaderProgram.ShaderProgram(gl, gluShaderProgram.makeVtxFragSources(uniformTestVertSource, uniformTestFragSource));
+
+                gl.useProgram(program.getProgram());
+                this.expectError(gl.NO_ERROR);
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if location is an invalid uniform location for the current program object and location is not equal to -1.");
+                gl.useProgram(program.getProgram());
+                gl.uniform1i(-2, 0);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform2i(-2, 0, 0);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform3i(-2, 0, 0, 0);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform4i(-2, 0, 0, 0, 0);
+                this.expectError(gl.INVALID_OPERATION);
+
+                gl.useProgram(program.getProgram());
+                gl.uniform1i(-1, 0);
+                this.expectError(gl.NO_ERROR);
+                gl.uniform2i(-1, 0, 0);
+                this.expectError(gl.NO_ERROR);
+                gl.uniform3i(-1, 0, 0, 0);
+                this.expectError(gl.NO_ERROR);
+                gl.uniform4i(-1, 0, 0, 0, 0);
+                this.expectError(gl.NO_ERROR);
+
+
+                gl.useProgram(null);
+            }
+        ));
+
+        // glUniform*iv
+
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'uniformiv_invalid_program', "Invalid glUniform{1234}iv() usage",
+            function() {
+                /** @type {Float32Array} */ var data = new Float32Array();
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if there is no current program object.");
+                gl.useProgram(null);
+                gl.uniform1iv(-1, 1, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform2iv(-1, 1, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform3iv(-1, 1, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform4iv(-1, 1, data);
+                this.expectError(gl.INVALID_OPERATION);
+            }
+        ));
+
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'uniformiv_incompatible_type', "Invalid glUniform{1234}iv() usage",
+            function() {
+                /** @type {gluShaderProgram.ShaderProgram} */ var program = new gluShaderProgram.ShaderProgram(gl, gluShaderProgram.makeVtxFragSources(uniformTestVertSource, uniformTestFragSource));
+
+                gl.useProgram(program.getProgram());
+                /** @type {number} */ var vec4_v = gl.getUniformLocation(program.getProgram(), "vec4_v"); // vec4
+                /** @type {number} */ var ivec4_f = gl.getUniformLocation(program.getProgram(), "ivec4_f"); // ivec4
+                /** @type {number} */ var uvec4_f = gl.getUniformLocation(program.getProgram(), "uvec4_f"); // uvec4
+                /** @type {number} */ var sampler_f = gl.getUniformLocation(program.getProgram(), "sampler_f"); // sampler2D
+                this.expectError(gl.NO_ERROR);
+
+                if (vec4_v == -1 || ivec4_f == -1 || uvec4_f == -1 || sampler_f == -1)
+                    testFailedOptions("Failed to retrieve uniform location", false);
+
+                /** @type {Float32Array} */ var data = new Float32Array();
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if the size of the uniform variable declared in the shader does not match the size indicated by the glUniform command.");
+                gl.useProgram(program.getProgram());
+                gl.uniform1iv(ivec4_f, 1, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform2iv(ivec4_f, 1, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform3iv(ivec4_f, 1, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform4iv(ivec4_f, 1, data);
+                this.expectError(gl.NO_ERROR);
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if glUniform{1234}iv is used to load a uniform variable of type /** @type {number} */ var , vec2, vec3, or vec4.");
+                gl.useProgram(program.getProgram());
+                gl.uniform1iv(vec4_v, 1, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform2iv(vec4_v, 1, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform3iv(vec4_v, 1, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform4iv(vec4_v, 1, data);
+                this.expectError(gl.INVALID_OPERATION);
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if glUniform{1234}iv is used to load a uniform variable of type unsigned /** @type {number} */ var , uvec2, uvec3 or uvec4.");
+                gl.useProgram(program.getProgram());
+                gl.uniform1iv(uvec4_f, 1, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform2iv(uvec4_f, 1, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform3iv(uvec4_f, 1, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform4iv(uvec4_f, 1, data);
+                this.expectError(gl.INVALID_OPERATION);
+
+                gl.useProgram(null);
+            }
+        ));
+
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'uniformiv_invalid_location', "Invalid glUniform{1234}iv() usage",
+            function() {
+                /** @type {gluShaderProgram.ShaderProgram} */ var program = new gluShaderProgram.ShaderProgram(gl, gluShaderProgram.makeVtxFragSources(uniformTestVertSource, uniformTestFragSource));
+
+                gl.useProgram(program.getProgram());
+                this.expectError(gl.NO_ERROR);
+
+                /** @type {Float32Array} */ var data = new Float32Array();
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if location is an invalid uniform location for the current program object and location is not equal to -1.");
+                gl.useProgram(program.getProgram());
+                gl.uniform1iv(-2, 1, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform2iv(-2, 1, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform3iv(-2, 1, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform4iv(-2, 1, data);
+                this.expectError(gl.INVALID_OPERATION);
+
+                gl.useProgram(program.getProgram());
+                gl.uniform1iv(-1, 1, data);
+                this.expectError(gl.NO_ERROR);
+                gl.uniform2iv(-1, 1, data);
+                this.expectError(gl.NO_ERROR);
+                gl.uniform3iv(-1, 1, data);
+                this.expectError(gl.NO_ERROR);
+                gl.uniform4iv(-1, 1, data);
+                this.expectError(gl.NO_ERROR);
+
+                gl.useProgram(null);
+            }
+        ));
+
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'uniformiv_invalid_count', "Invalid glUniform{1234}iv() usage",
+            function() {
+                /** @type {gluShaderProgram.ShaderProgram} */ var program = new gluShaderProgram.ShaderProgram(gl, gluShaderProgram.makeVtxFragSources(uniformTestVertSource, uniformTestFragSource));
+
+                gl.useProgram(program.getProgram());
+                /** @type {number} */ var ivec4_f = gl.getUniformLocation(program.getProgram(), "ivec4_f"); // ivec4
+                this.expectError(gl.NO_ERROR);
+
+                if (ivec4_f == -1)
+                    testFailedOptions("Failed to retrieve uniform location", false);
+
+                /** @type {Float32Array} */ var data = new Float32Array();
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if count is greater than 1 and the indicated uniform variable is not an array variable.");
+                gl.useProgram(program.getProgram());
+                gl.uniform1iv(ivec4_f, 2, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform2iv(ivec4_f, 2, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform3iv(ivec4_f, 2, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform4iv(ivec4_f, 2, data);
+                this.expectError(gl.INVALID_OPERATION);
+
+                gl.useProgram(null);
+            }
+        ));
+
+        // glUniform{1234}ui
+
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'uniformui_invalid_program', "Invalid glUniform{234}ui() usage",
+            function() {
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if there is no current program object.");
+                gl.useProgram(null);
+                gl.uniform1ui(-1, 0);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform2ui(-1, 0, 0);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform3ui(-1, 0, 0, 0);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform4ui(-1, 0, 0, 0, 0);
+                this.expectError(gl.INVALID_OPERATION);
+            }
+        ));
+
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'uniformui_incompatible_type', "Invalid glUniform{1234}ui() usage",
+            function() {
+                /** @type {gluShaderProgram.ShaderProgram} */ var program = new gluShaderProgram.ShaderProgram(gl, gluShaderProgram.makeVtxFragSources(uniformTestVertSource, uniformTestFragSource));
+
+                gl.useProgram(program.getProgram());
+                /** @type {number} */ var vec4_v = gl.getUniformLocation(program.getProgram(), "vec4_v"); // vec4
+                /** @type {number} */ var ivec4_f = gl.getUniformLocation(program.getProgram(), "ivec4_f"); // ivec4
+                /** @type {number} */ var uvec4_f = gl.getUniformLocation(program.getProgram(), "uvec4_f"); // uvec4
+                /** @type {number} */ var sampler_f = gl.getUniformLocation(program.getProgram(), "sampler_f"); // sampler2D
+                this.expectError(gl.NO_ERROR);
+
+                if (vec4_v == -1 || ivec4_f == -1 || uvec4_f == -1 || sampler_f == -1)
+                    testFailedOptions("Failed to retrieve uniform location", false);
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if the size of the uniform variable declared in the shader does not match the size indicated by the glUniform command.");
+                gl.useProgram(program.getProgram());
+                gl.uniform1ui(uvec4_f, 0);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform2ui(uvec4_f, 0, 0);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform3ui(uvec4_f, 0, 0, 0);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform4ui(uvec4_f, 0, 0, 0, 0);
+                this.expectError(gl.NO_ERROR);
+
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if glUniform{1234}i is used to load a uniform variable of type /** @type {number} */ var , ivec2, ivec3, ivec4, or an array of these.");
+                gl.useProgram(program.getProgram());
+                gl.uniform1ui(ivec4_f, 0);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform2ui(ivec4_f, 0, 0);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform3ui(ivec4_f, 0, 0, 0);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform4ui(ivec4_f, 0, 0, 0, 0);
+                this.expectError(gl.INVALID_OPERATION);
+
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if glUniform{1234}i is used to load a uniform variable of type /** @type {number} */ var , vec2, vec3, or vec4.");
+                gl.useProgram(program.getProgram());
+                gl.uniform1ui(vec4_v, 0);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform2ui(vec4_v, 0, 0);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform3ui(vec4_v, 0, 0, 0);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform4ui(vec4_v, 0, 0, 0, 0);
+                this.expectError(gl.INVALID_OPERATION);
+
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if a sampler is loaded using a command other than glUniform1i and glUniform1iv.");
+                gl.useProgram(program.getProgram());
+                gl.uniform1ui(sampler_f, 0);
+                this.expectError(gl.INVALID_OPERATION);
+
+                gl.useProgram(null);
+            }
+        ));
+
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'uniformui_invalid_location', "Invalid glUniform{1234}ui() usage",
+            function() {
+                /** @type {gluShaderProgram.ShaderProgram} */ var program = new gluShaderProgram.ShaderProgram(gl, gluShaderProgram.makeVtxFragSources(uniformTestVertSource, uniformTestFragSource));
+
+                gl.useProgram(program.getProgram());
+                this.expectError(gl.NO_ERROR);
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if location is an invalid uniform location for the current program object and location is not equal to -1.");
+                gl.useProgram(program.getProgram());
+                gl.uniform1i(-2, 0);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform2i(-2, 0, 0);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform3i(-2, 0, 0, 0);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform4i(-2, 0, 0, 0, 0);
+                this.expectError(gl.INVALID_OPERATION);
+
+                gl.useProgram(program.getProgram());
+                gl.uniform1i(-1, 0);
+                this.expectError(gl.NO_ERROR);
+                gl.uniform2i(-1, 0, 0);
+                this.expectError(gl.NO_ERROR);
+                gl.uniform3i(-1, 0, 0, 0);
+                this.expectError(gl.NO_ERROR);
+                gl.uniform4i(-1, 0, 0, 0, 0);
+                this.expectError(gl.NO_ERROR);
+
+                gl.useProgram(null);
+            }
+        ));
+
+        // glUniform{1234}uiv
+
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'uniformuiv_invalid_program', "Invalid glUniform{234}uiv() usage",
+            function() {
+                /** @type {Float32Array} */ var data = new Float32Array();
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if there is no current program object.");
+                gl.useProgram(null);
+                gl.uniform1uiv(-1, 1, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform2uiv(-1, 1, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform3uiv(-1, 1, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform4uiv(-1, 1, data);
+                this.expectError(gl.INVALID_OPERATION);
+            });
+
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'uniformuiv_incompatible_type', "Invalid glUniform{1234}uiv() usage",
+            function() {
+                /** @type {gluShaderProgram.ShaderProgram} */ var program = new gluShaderProgram.ShaderProgram(gl, gluShaderProgram.makeVtxFragSources(uniformTestVertSource, uniformTestFragSource));
+
+                gl.useProgram(program.getProgram());
+                /** @type {number} */ var vec4_v = gl.getUniformLocation(program.getProgram(), "vec4_v"); // vec4
+                /** @type {number} */ var ivec4_f = gl.getUniformLocation(program.getProgram(), "ivec4_f"); // ivec4
+                /** @type {number} */ var uvec4_f = gl.getUniformLocation(program.getProgram(), "uvec4_f"); // uvec4
+                /** @type {number} */ var sampler_f = gl.getUniformLocation(program.getProgram(), "sampler_f"); // sampler2D
+                this.expectError(gl.NO_ERROR);
+
+                if (vec4_v == -1 || ivec4_f == -1 || uvec4_f == -1 || sampler_f == -1)
+                    testFailedOptions("Failed to retrieve uniform location", false);
+
+                /** @type {Float32Array} */ var data = new Float32Array();
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if the size of the uniform variable declared in the shader does not match the size indicated by the glUniform command.");
+                gl.useProgram(program.getProgram());
+                gl.uniform1uiv(uvec4_f, 1, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform2uiv(uvec4_f, 1, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform3uiv(uvec4_f, 1, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform4uiv(uvec4_f, 1, data);
+                this.expectError(gl.NO_ERROR);
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if glUniform{1234}uiv is used to load a uniform variable of type /** @type {number} */ var , vec2, vec3, or vec4.");
+                gl.useProgram(program.getProgram());
+                gl.uniform1uiv(vec4_v, 1, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform2uiv(vec4_v, 1, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform3uiv(vec4_v, 1, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform4uiv(vec4_v, 1, data);
+                this.expectError(gl.INVALID_OPERATION);
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if glUniform{1234}uiv is used to load a uniform variable of type /** @type {number} */ var , ivec2, ivec3 or ivec4.");
+                gl.useProgram(program.getProgram());
+                gl.uniform1uiv(ivec4_f, 1, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform2uiv(ivec4_f, 1, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform3uiv(ivec4_f, 1, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform4uiv(ivec4_f, 1, data);
+                this.expectError(gl.INVALID_OPERATION);
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if a sampler is loaded using a command other than glUniform1i and glUniform1iv.");
+                gl.useProgram(program.getProgram());
+                gl.uniform1uiv(sampler_f, 1, data);
+                this.expectError(gl.INVALID_OPERATION);
+
+                gl.useProgram(null);
+            }
+        ));
+
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'uniformuiv_invalid_location', "Invalid glUniform{1234}uiv() usage",
+            function() {
+                /** @type {gluShaderProgram.ShaderProgram} */ var program = new gluShaderProgram.ShaderProgram(gl, gluShaderProgram.makeVtxFragSources(uniformTestVertSource, uniformTestFragSource));
+
+                gl.useProgram(program.getProgram());
+                this.expectError(gl.NO_ERROR);
+
+                /** @type {Float32Array} */ var data = new Float32Array();
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if location is an invalid uniform location for the current program object and location is not equal to -1.");
+                gl.useProgram(program.getProgram());
+                gl.uniform1uiv(-2, 1, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform2uiv(-2, 1, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform3uiv(-2, 1, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform4uiv(-2, 1, data);
+                this.expectError(gl.INVALID_OPERATION);
+
+                gl.useProgram(program.getProgram());
+                gl.uniform1uiv(-1, 1, data);
+                this.expectError(gl.NO_ERROR);
+                gl.uniform2uiv(-1, 1, data);
+                this.expectError(gl.NO_ERROR);
+                gl.uniform3uiv(-1, 1, data);
+                this.expectError(gl.NO_ERROR);
+                gl.uniform4uiv(-1, 1, data);
+                this.expectError(gl.NO_ERROR);
+
+                gl.useProgram(null);
+            }
+        ));
+
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(uniformuiv_invalid_count, "Invalid glUniform{1234}uiv() usage",
+            {
+                /** @type {gluShaderProgram.ShaderProgram} */ var program = new gluShaderProgram.ShaderProgram(gl, gluShaderProgram.makeVtxFragSources(uniformTestVertSource, uniformTestFragSource));
+
+                gl.useProgram(program.getProgram());
+                /** @type {number} */ var uvec4_f = gl.getUniformLocation(program.getProgram(), "uvec4_f"); // uvec4
+                this.expectError(gl.NO_ERROR);
+
+                if (uvec4_f == -1)
+                    testFailedOptions("Failed to retrieve uniform location", false);
+
+                /** @type {Float32Array} */ var data = new Float32Array();
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if count is greater than 1 and the indicated uniform variable is not an array variable.");
+                gl.useProgram(program.getProgram());
+                gl.uniform1uiv(uvec4_f, 2, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform2uiv(uvec4_f, 2, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform3uiv(uvec4_f, 2, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniform4uiv(uvec4_f, 2, data);
+                this.expectError(gl.INVALID_OPERATION);
+
+                gl.useProgram(null);
+            }
+        ));
+
+
+        // glUniformMatrix*fv
+
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'uniform_matrixfv_invalid_program', "Invalid glUniformMatrix{234}fv() usage",
+            function() {
+                /** @type {Float32Array} */ var data = new Float32Array();
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if there is no current program object.");
+                gl.useProgram(null);
+                gl.uniformMatrix2fv(-1, 1, gl.FALSE, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniformMatrix3fv(-1, 1, gl.FALSE, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniformMatrix4fv(-1, 1, gl.FALSE, data);
+                this.expectError(gl.INVALID_OPERATION);
+
+                gl.uniformMatrix2x3fv(-1, 1, gl.FALSE, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniformMatrix3x2fv(-1, 1, gl.FALSE, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniformMatrix2x4fv(-1, 1, gl.FALSE, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniformMatrix4x2fv(-1, 1, gl.FALSE, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniformMatrix3x4fv(-1, 1, gl.FALSE, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniformMatrix4x3fv(-1, 1, gl.FALSE, data);
+                this.expectError(gl.INVALID_OPERATION);
+            }
+        ));
+
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(uniform_matrixfv_incompatible_type, "Invalid glUniformMatrix{234}fv() usage",
+            {
+                /** @type {gluShaderProgram.ShaderProgram} */ var program = new gluShaderProgram.ShaderProgram(gl, gluShaderProgram.makeVtxFragSources(uniformTestVertSource, uniformTestFragSource));
+
+                gl.useProgram(program.getProgram());
+                /** @type {number} */ var mat4_v = gl.getUniformLocation(program.getProgram(), "mat4_v"); // mat4
+                /** @type {number} */ var sampler_f = gl.getUniformLocation(program.getProgram(), "sampler_f"); // sampler2D
+                this.expectError(gl.NO_ERROR);
+
+                if (mat4_v == -1 || sampler_f == -1)
+                    testFailedOptions("Failed to retrieve uniform location", false);
+
+                /** @type {Float32Array} */ var data = new Float32Array();
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if the size of the uniform variable declared in the shader does not match the size indicated by the glUniform command.");
+                gl.useProgram(program.getProgram());
+                gl.uniformMatrix2fv(mat4_v, 1, gl.FALSE, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniformMatrix3fv(mat4_v, 1, gl.FALSE, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniformMatrix4fv(mat4_v, 1, gl.FALSE, data);
+                this.expectError(gl.NO_ERROR);
+
+                gl.uniformMatrix2x3fv(mat4_v, 1, gl.FALSE, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniformMatrix3x2fv(mat4_v, 1, gl.FALSE, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniformMatrix2x4fv(mat4_v, 1, gl.FALSE, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniformMatrix4x2fv(mat4_v, 1, gl.FALSE, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniformMatrix3x4fv(mat4_v, 1, gl.FALSE, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniformMatrix4x3fv(mat4_v, 1, gl.FALSE, data);
+                this.expectError(gl.INVALID_OPERATION);
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if a sampler is loaded using a command other than glUniform1i and glUniform1iv.");
+                gl.useProgram(program.getProgram());
+                gl.uniformMatrix2fv(sampler_f, 1, gl.FALSE, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniformMatrix3fv(sampler_f, 1, gl.FALSE, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniformMatrix4fv(sampler_f, 1, gl.FALSE, data);
+                this.expectError(gl.INVALID_OPERATION);
+
+                gl.uniformMatrix2x3fv(sampler_f, 1, gl.FALSE, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniformMatrix3x2fv(sampler_f, 1, gl.FALSE, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniformMatrix2x4fv(sampler_f, 1, gl.FALSE, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniformMatrix4x2fv(sampler_f, 1, gl.FALSE, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniformMatrix3x4fv(sampler_f, 1, gl.FALSE, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniformMatrix4x3fv(sampler_f, 1, gl.FALSE, data);
+                this.expectError(gl.INVALID_OPERATION);
+
+                gl.useProgram(null);
+            }
+        ));
+
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'uniform_matrixfv_invalid_location', "Invalid glUniformMatrix{234}fv() usage",
+            function() {
+                /** @type {gluShaderProgram.ShaderProgram} */ var program = new gluShaderProgram.ShaderProgram(gl, gluShaderProgram.makeVtxFragSources(uniformTestVertSource, uniformTestFragSource));
+
+                gl.useProgram(program.getProgram());
+                this.expectError(gl.NO_ERROR);
+
+                /** @type {Float32Array} */ var data = new Float32Array();
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if location is an invalid uniform location for the current program object and location is not equal to -1.");
+                gl.useProgram(program.getProgram());
+                gl.uniformMatrix2fv(-2, 1, gl.FALSE, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniformMatrix3fv(-2, 1, gl.FALSE, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniformMatrix4fv(-2, 1, gl.FALSE, data);
+                this.expectError(gl.INVALID_OPERATION);
+
+                gl.uniformMatrix2x3fv(-2, 1, gl.FALSE, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniformMatrix3x2fv(-2, 1, gl.FALSE, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniformMatrix2x4fv(-2, 1, gl.FALSE, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniformMatrix4x2fv(-2, 1, gl.FALSE, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniformMatrix3x4fv(-2, 1, gl.FALSE, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniformMatrix4x3fv(-2, 1, gl.FALSE, data);
+                this.expectError(gl.INVALID_OPERATION);
+
+                gl.useProgram(program.getProgram());
+                gl.uniformMatrix2fv(-1, 1, gl.FALSE, data);
+                this.expectError(gl.NO_ERROR);
+                gl.uniformMatrix3fv(-1, 1, gl.FALSE, data);
+                this.expectError(gl.NO_ERROR);
+                gl.uniformMatrix4fv(-1, 1, gl.FALSE, data);
+                this.expectError(gl.NO_ERROR);
+
+                gl.uniformMatrix2x3fv(-1, 1, gl.FALSE, data);
+                this.expectError(gl.NO_ERROR);
+                gl.uniformMatrix3x2fv(-1, 1, gl.FALSE, data);
+                this.expectError(gl.NO_ERROR);
+                gl.uniformMatrix2x4fv(-1, 1, gl.FALSE, data);
+                this.expectError(gl.NO_ERROR);
+                gl.uniformMatrix4x2fv(-1, 1, gl.FALSE, data);
+                this.expectError(gl.NO_ERROR);
+                gl.uniformMatrix3x4fv(-1, 1, gl.FALSE, data);
+                this.expectError(gl.NO_ERROR);
+                gl.uniformMatrix4x3fv(-1, 1, gl.FALSE, data);
+                this.expectError(gl.NO_ERROR);
+
+                gl.useProgram(null);
+            }
+        ));
+
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'uniform_matrixfv_invalid_count', "Invalid glUniformMatrix{234}fv() usage",
+            function() {
+                /** @type {gluShaderProgram.ShaderProgram} */ var program = new gluShaderProgram.ShaderProgram(gl, gluShaderProgram.makeVtxFragSources(uniformTestVertSource, uniformTestFragSource));
+
+                gl.useProgram(program.getProgram());
+                /** @type {number} */ var mat4_v = gl.getUniformLocation(program.getProgram(), "mat4_v"); // mat4
+                this.expectError(gl.NO_ERROR);
+
+                if (mat4_v == -1)
+                    testFailedOptions("Failed to retrieve uniform location", false);
+
+                /** @type {Float32Array} */ var data = new Float32Array();
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if count is greater than 1 and the indicated uniform variable is not an array variable.");
+                gl.useProgram(program.getProgram());
+                gl.uniformMatrix2fv(mat4_v, 2, gl.FALSE, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniformMatrix3fv(mat4_v, 2, gl.FALSE, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniformMatrix4fv(mat4_v, 2, gl.FALSE, data);
+                this.expectError(gl.INVALID_OPERATION);
+
+                gl.uniformMatrix2x3fv(mat4_v, 1, gl.FALSE, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniformMatrix3x2fv(mat4_v, 1, gl.FALSE, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniformMatrix2x4fv(mat4_v, 1, gl.FALSE, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniformMatrix4x2fv(mat4_v, 1, gl.FALSE, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniformMatrix3x4fv(mat4_v, 1, gl.FALSE, data);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.uniformMatrix4x3fv(mat4_v, 1, gl.FALSE, data);
+                this.expectError(gl.INVALID_OPERATION);
+
+                gl.useProgram(null);
+            }
+        ));
+
+        // Transform feedback
+
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'gen_transform_feedbacks', "Invalid gl.createTransformFeedback() usage",
+            function() {
+                bufferedLogToConsole("gl.INVALID_VALUE is generated if n is negative.");
+                /** @type {number} */ var id;
+                id = gl.createTransformFeedback();
+                this.expectError(gl.INVALID_VALUE);
+
+            }
+        ));
+
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'bind_transform_feedback', "Invalid gl.bindTransformFeedback() usage",
+            function() {
+                /** @type {Array<number>} */ var tfID = [];
+                /** @type {gluShaderProgram.ShaderProgram} */ var program = new gluShaderProgram.ShaderProgram(gl, gluShaderProgram.makeVtxFragSources(es3fNegativeShaderApiTests.vertexShaderSource, es3fNegativeShaderApiTests.fragmentShaderSource));
+                /** @type {number} */ var buf;
+                /** @type {string} */ var tfVarying = "gl.Position";
+
+                buf = gl.createBuffer();
+                tfID = gl.createTransformFeedback();
+
+                bufferedLogToConsole("gl.INVALID_ENUM is generated if target is not gl.TRANSFORM_FEEDBACK.");
+                gl.bindTransformFeedback(-1, tfID[0]);
+                this.expectError(gl.INVALID_ENUM);
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if the transform feedback operation is active on the currently bound transform feedback object, and is not paused.");
+                gl.useProgram(program.getProgram());
+                gl.transformFeedbackVaryings(program.getProgram(), tfVarying, gl.INTERLEAVED_ATTRIBS);
+                gl.linkProgram(program.getProgram());
+                gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, tfID[0]);
+                gl.bindBuffer(gl.TRANSFORM_FEEDBACK_BUFFER, buf);
+                gl.bufferData(gl.TRANSFORM_FEEDBACK_BUFFER, 32, null, gl.DYNAMIC_DRAW);
+                gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, buf);
+                gl.beginTransformFeedback(gl.TRIANGLES);
+                this.expectError(gl.NO_ERROR);
+
+                gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, tfID[1]);
+                this.expectError(gl.INVALID_OPERATION);
+
+                gl.endTransformFeedback();
+                this.expectError(gl.NO_ERROR);
+
+                gl.useProgram(null);
+                gl.deleteBuffer(buf);
+                gl.deleteTransformFeedbacks(tfID);
+                this.expectError(gl.NO_ERROR);
+            }
+        ));
+
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'delete_transform_feedbacks', "Invalid gl.deleteTransformFeedbacks() usage",
+            function() {
+                /** @type {number} */ var id;
+                id = gl.createTransformFeedback();
+
+                bufferedLogToConsole("gl.INVALID_VALUE is generated if n is negative.");
+                gl.deleteTransformFeedbacks(id);
+                this.expectError(gl.INVALID_VALUE);
+
+
+                gl.deleteTransformFeedbacks(id);
+            }
+        ));
+
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'begin_transform_feedback', "Invalid gl.beginTransformFeedback() usage",
+            function() {
+                /** @type {Array<number>} */ var tfID = [];
+                /** @type {gluShaderProgram.ShaderProgram} */ var program = new gluShaderProgram.ShaderProgram(gl, gluShaderProgram.makeVtxFragSources(es3fNegativeShaderApiTests.vertexShaderSource, es3fNegativeShaderApiTests.fragmentShaderSource));
+                /** @type {WebGLBuffer} */ var buf;
+                /** @type {string} */ var tfVarying = "gl.Position";
+
+                buf = gl.createBuffer();
+                tfID = gl.createTransformFeedback();
+
+                gl.useProgram(program.getProgram());
+                gl.transformFeedbackVaryings(program.getProgram(), &tfVarying, gl.INTERLEAVED_ATTRIBS);
+                gl.linkProgram(program.getProgram());
+                gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, tfID[0]);
+                gl.bindBuffer(gl.TRANSFORM_FEEDBACK_BUFFER, buf);
+                gl.bufferData(gl.TRANSFORM_FEEDBACK_BUFFER, 32, null, gl.DYNAMIC_DRAW);
+                gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, buf);
+                this.expectError(gl.NO_ERROR);
+
+                bufferedLogToConsole("gl.INVALID_ENUM is generated if primitiveMode is not one of gl.POINTS, gl.LINES, or gl.TRIANGLES.");
+                gl.beginTransformFeedback(-1);
+                this.expectError(gl.INVALID_ENUM);
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if transform feedback is already active.");
+                gl.beginTransformFeedback(gl.TRIANGLES);
+                this.expectError(gl.NO_ERROR);
+                gl.beginTransformFeedback(gl.POINTS);
+                this.expectError(gl.INVALID_OPERATION);
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if any binding point used in transform feedback mode does not have a buffer object bound.");
+                gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, 0);
+                gl.beginTransformFeedback(gl.TRIANGLES);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, buf);
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if no binding points would be used because no program object is active.");
+                gl.useProgram(null);
+                gl.beginTransformFeedback(gl.TRIANGLES);
+                this.expectError(gl.INVALID_OPERATION);
+                gl.useProgram(program.getProgram());
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if no binding points would be used because the active program object has specified no varying variables to record.");
+                gl.transformFeedbackVaryings(program.getProgram(), 0, gl.INTERLEAVED_ATTRIBS);
+                gl.beginTransformFeedback(gl.TRIANGLES);
+                this.expectError(gl.INVALID_OPERATION);
+
+                gl.endTransformFeedback();
+                gl.deleteBuffer(buf);
+                gl.deleteTransformFeedbacks(tfID);
+                this.expectError(gl.NO_ERROR);
+            }
+        ));
+
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'pause_transform_feedback', "Invalid gl.pauseTransformFeedback() usage",
+            function() {
+                /** @type {Array<number>} */ var tfID = [];
+                /** @type {gluShaderProgram.ShaderProgram} */ var program = new gluShaderProgram.ShaderProgram(gl, gluShaderProgram.makeVtxFragSources(es3fNegativeShaderApiTests.vertexShaderSource, es3fNegativeShaderApiTests.fragmentShaderSource));
+                /** @type {WebGLBuffer} */ var buf;
+                /** @type {string} */ var tfVarying = "gl.Position";
+
+                buf = gl.createBuffer();
+                tfID = gl.createTransformFeedback();
+
+                gl.useProgram(program.getProgram());
+                gl.transformFeedbackVaryings(program.getProgram(), tfVarying, gl.INTERLEAVED_ATTRIBS);
+                gl.linkProgram(program.getProgram());
+                gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, tfID[0]);
+                gl.bindBuffer(gl.TRANSFORM_FEEDBACK_BUFFER, buf);
+                gl.bufferData(gl.TRANSFORM_FEEDBACK_BUFFER, 32, null, gl.DYNAMIC_DRAW);
+                gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, buf);
+                this.expectError(gl.NO_ERROR);
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if the currently bound transform feedback object is not active or is paused.");
+                gl.pauseTransformFeedback();
+                this.expectError(gl.INVALID_OPERATION);
+                gl.beginTransformFeedback(gl.TRIANGLES);
+                gl.pauseTransformFeedback();
+                this.expectError(gl.NO_ERROR);
+                gl.pauseTransformFeedback();
+                this.expectError(gl.INVALID_OPERATION);
+
+                gl.endTransformFeedback();
+                gl.deleteBuffer(buf);
+                gl.deleteTransformFeedbacks(tfID);
+                this.expectError(gl.NO_ERROR);
+            }
+        ));
+
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'resume_transform_feedback', "Invalid gl.resumeTransformFeedback() usage",
+            function() {
+                /** @type {Array<number>} */ var tfID = [];
+                /** @type {gluShaderProgram.ShaderProgram} */ var program = new gluShaderProgram.ShaderProgram(gl, gluShaderProgram.makeVtxFragSources(es3fNegativeShaderApiTests.vertexShaderSource, es3fNegativeShaderApiTests.fragmentShaderSource));
+                /** @type {WebGLBuffer} */ var buf;
+                /** @type {string} */ var tfVarying = "gl.Position";
+
+                buf = gl.createBuffer();
+                tfID = gl.createTransformFeedback();
+
+                gl.useProgram(program.getProgram());
+                gl.transformFeedbackVaryings(program.getProgram(), tfVarying, gl.INTERLEAVED_ATTRIBS);
+                gl.linkProgram(program.getProgram());
+                gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, tfID[0]);
+                gl.bindBuffer(gl.TRANSFORM_FEEDBACK_BUFFER, buf);
+                gl.bufferData(gl.TRANSFORM_FEEDBACK_BUFFER, 32, null, gl.DYNAMIC_DRAW);
+                gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, buf);
+                this.expectError(gl.NO_ERROR);
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if the currently bound transform feedback object is not active or is not paused.");
+                gl.resumeTransformFeedback();
+                this.expectError(gl.INVALID_OPERATION);
+                gl.beginTransformFeedback(gl.TRIANGLES);
+                gl.resumeTransformFeedback();
+                this.expectError(gl.INVALID_OPERATION);
+                gl.pauseTransformFeedback();
+                gl.resumeTransformFeedback();
+                this.expectError(gl.NO_ERROR);
+
+                gl.endTransformFeedback();
+                gl.deleteBuffer(buf);
+                gl.deleteTransformFeedbacks(tfID);
+                this.expectError(gl.NO_ERROR);
+            }
+        ));
+
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'end_transform_feedback', "Invalid gl.endTransformFeedback() usage",
+            function() {
+                /** @type {number} */ var tfID;
+                /** @type {gluShaderProgram.ShaderProgram} */ var program = new gluShaderProgram.ShaderProgram(gl, gluShaderProgram.makeVtxFragSources(es3fNegativeShaderApiTests.vertexShaderSource, es3fNegativeShaderApiTests.fragmentShaderSource));
+                /** @type {WebGLBuffer} */ var buf;
+                /** @type {string} */ var tfVarying = "gl.Position";
+
+                buf = gl.createBuffer();
+                tfID = gl.createTransformFeedback();
+
+                gl.useProgram(program.getProgram());
+                gl.transformFeedbackVaryings(program.getProgram(), tfVarying, gl.INTERLEAVED_ATTRIBS);
+                gl.linkProgram(program.getProgram());
+                gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, tfID);
+                gl.bindBuffer(gl.TRANSFORM_FEEDBACK_BUFFER, buf);
+                gl.bufferData(gl.TRANSFORM_FEEDBACK_BUFFER, 32, null, gl.DYNAMIC_DRAW);
+                gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, buf);
+                this.expectError(gl.NO_ERROR);
+
+                bufferedLogToConsole("gl.INVALID_OPERATION is generated if transform feedback is not active.");
+                gl.endTransformFeedback();
+                this.expectError(gl.INVALID_OPERATION);
+                gl.beginTransformFeedback(gl.TRIANGLES);
+                gl.endTransformFeedback();
+                this.expectError(gl.NO_ERROR);
+
+                gl.deleteBuffer(buf);
+                gl.deleteTransformFeedbacks(tfID);
+                this.expectError(gl.NO_ERROR);
+            }
+        ));
+
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'get_transform_feedback_varying', "Invalid glGetTransformFeedbackVarying() usage",
+            function() {
+                /** @type {number} */ var tfID;
+                /** @type {gluShaderProgram.ShaderProgram} */ var program = new gluShaderProgram.ShaderProgramgl, gluShaderProgram.makeVtxFragSources(es3fNegativeShaderApiTests.vertexShaderSource, es3fNegativeShaderApiTests.fragmentShaderSource));
+                /** @type {gluShaderProgram.ShaderProgram} */ var programInvalid = new gluShaderProgram.ShaderProgram(gl, gluShaderProgram.makeVtxFragSources(vertexShaderSource, ""));
+                /** @type {string} */ var tfVarying    = "gl.Position";
+                /** @type {number} */ var maxTransformFeedbackVaryings = 0;
+
+                /** @type {number} */ var length;
+                /** @type {number} */ var size;
+                /** @type {number} */ var type;
+                /** @type {string} */ var name = "";
+
+                tfID = gl.createTransformFeedback();
+
+                gl.transformFeedbackVaryings(program.getProgram(), tfVarying, gl.INTERLEAVED_ATTRIBS);
+                this.expectError(gl.NO_ERROR);
+                gl.linkProgram(program.getProgram());
+                this.expectError(gl.NO_ERROR);
+
+                gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, tfID);
+                this.expectError(gl.NO_ERROR);
+
+                bufferedLogToConsole("gl.INVALID_VALUE is generated if program is not the name of a program object.");
+                name = gl.getTransformFeedbackVarying(-1, 0);
+                this.expectError(gl.INVALID_VALUE);
+
+                bufferedLogToConsole("gl.INVALID_VALUE is generated if index is greater or equal to the value of gl.TRANSFORM_FEEDBACK_VARYINGS.");
+                maxTransformFeedbackVaryings = gl.getProgramParameter(program.getProgram(), gl.TRANSFORM_FEEDBACK_VARYINGS);
+                name = gl.getTransformFeedbackVarying(program.getProgram(), maxTransformFeedbackVaryings);
+                this.expectError(gl.INVALID_VALUE);
+
+                bufferedLogToConsole("gl.INVALID_OPERATION or gl.INVALID_VALUE is generated program has not been linked.");
+                name = gl.getTransformFeedbackVarying(programInvalid.getProgram(), 0);
+                this.expectError(gl.INVALID_OPERATION, gl.INVALID_VALUE);
+
+                gl.deleteTransformFeedbacks(tfID);
+                this.expectError(gl.NO_ERROR);
+            }
+        ));
+
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'transform_feedback_varyings', "Invalid gl.transformFeedbackVaryings() usage",
+            function() {
+                /** @type {WebGLTransformFeedback} */ var tfID;
+                /** @type {gluShaderProgram.ShaderProgram} */ var program = new gluShaderProgram.ShaderProgram(gl, gluShaderProgram.makeVtxFragSources(es3fNegativeShaderApiTests.vertexShaderSource, es3fNegativeShaderApiTests.fragmentShaderSource));
+                /** @type {string} */ var tfVarying = "gl.Position";
+                /** @type {number} */ var maxTransformFeedbackSeparateAttribs = 0;
+
+                tfID = gl.createTransformFeedback();
+                this.expectError(gl.NO_ERROR);
+
+                bufferedLogToConsole("gl.INVALID_VALUE is generated if program is not the name of a program object.");
+                gl.transformFeedbackVaryings(0, tfVarying, gl.INTERLEAVED_ATTRIBS);
+                this.expectError(gl.INVALID_VALUE);
+
+                bufferedLogToConsole("gl.INVALID_VALUE is generated if bufferMode is gl.SEPARATE_ATTRIBS and count is greater than gl.MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS.");
+                maxTransformFeedbackSeparateAttribs = gl.getParameter(gl.MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS);
+                gl.transformFeedbackVaryings(program.getProgram(), tfVarying, gl.SEPARATE_ATTRIBS);
+                this.expectError(gl.INVALID_VALUE);
+
+                gl.deleteTransformFeedbacks(tfID);
+                this.expectError(gl.NO_ERROR);
+            });
+    };
+
+    /**
+     * Run test
+     * @param {WebGL2RenderingContext} context
+     */
+     es3fNegativeShaderApiTests.run = function(context) {
+        gl = context;
+        //Set up Test Root parameters
+        var testName = 'negative_shader_api';
+        var testDescription = 'Negative Shader Api Tests';
+        var state = tcuTestCase.runner;
+
+        state.testName = testName;
+        state.setRoot(tcuTestCase.newTest(testName, testDescription, null));
+
+        //Set up name and description of this test series.
+        setCurrentTestName(testName);
+        description(testDescription);
+
+        try {
+            //Create test cases
+            es3fNegativeShaderApiTests.init();
+            //Run test cases
+            tcuTestCase.runTestCases();
+        }
+        catch (err) {
+            testFailedOptions('Failed to es3fNegativeShaderApiTests.run tests', false);
+            tcuTestCase.runner.terminate();
+        }
     };
 });
