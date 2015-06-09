@@ -20,21 +20,21 @@
  * \file
  * \brief Negative Texture API tests.
  *//*--------------------------------------------------------------------*/
- 'use strict';
- goog.provide('functional.gles3.es3fNegativeTextureApiTests');
+'use strict';
+goog.provide('functional.gles3.es3fNegativeTextureApiTests');
 
 goog.require('framework.common.tcuTestCase');
 goog.require('framework.common.tcuTexture');
 goog.require('framework.delibs.debase.deMath');
 goog.require('functional.gles3.es3fApiCase');
 
- goog.scope(function() {
+goog.scope(function() {
 
-     var es3fNegativeTextureApiTests = functional.gles3.es3fNegativeTextureApiTests;
-     var tcuTexture = framework.common.tcuTexture;
-     var es3fApiCase = functional.gles3.es3fApiCase;
-     var tcuTestCase = framework.common.tcuTestCase;
-     var deMath = framework.delibs.debase.deMath;
+    var es3fNegativeTextureApiTests = functional.gles3.es3fNegativeTextureApiTests;
+    var tcuTexture = framework.common.tcuTexture;
+    var es3fApiCase = functional.gles3.es3fApiCase;
+    var tcuTestCase = framework.common.tcuTestCase;
+    var deMath = framework.delibs.debase.deMath;
 
     /**
      * @param {number} a
@@ -42,7 +42,7 @@ goog.require('functional.gles3.es3fApiCase');
      * @return {number}
      */
     es3fNegativeTextureApiTests.divRoundUp = function(a, b) {
-          return a / b + (a % b != 0 ? 1 : 0);
+        return a / b + (a % b != 0 ? 1 : 0);
     };
 
     /**
@@ -51,7 +51,7 @@ goog.require('functional.gles3.es3fApiCase');
      * @return {number}
      */
     es3fNegativeTextureApiTests.etc2DataSize = function(width, height) {
-         return es3fNegativeTextureApiTests.divRoundUp(width, 4) * es3fNegativeTextureApiTests.divRoundUp(height, 4) * 8;//sizeof(deUint64);
+        return es3fNegativeTextureApiTests.divRoundUp(width, 4) * es3fNegativeTextureApiTests.divRoundUp(height, 4) * 8;//sizeof(deUint64);
     };
 
     /**
@@ -60,7 +60,7 @@ goog.require('functional.gles3.es3fApiCase');
      * @return {number}
      */
     es3fNegativeTextureApiTests.etc2EacDataSize = function(width, height) {
-         return 2 * es3fNegativeTextureApiTests.etc2DataSize(width, height);
+        return 2 * es3fNegativeTextureApiTests.etc2DataSize(width, height);
     };
 
     /**
@@ -68,7 +68,7 @@ goog.require('functional.gles3.es3fApiCase');
      * @return {number}
      */
     es3fNegativeTextureApiTests.deLog2Floor32 = function(a) {
-         return 31 - deMath.clz32(a);
+        return 31 - deMath.clz32(a);
     };
 
     /**
@@ -76,7 +76,7 @@ goog.require('functional.gles3.es3fApiCase');
      * @return {number}
      */
     es3fNegativeTextureApiTests.cubeFaceToGLFace = function(face) {
-         switch (face) {
+        switch (face) {
 
             case tcuTexture.CubeFace.CUBEFACE_NEGATIVE_X: return gl.TEXTURE_CUBE_MAP_NEGATIVE_X;
             case tcuTexture.CubeFace.CUBEFACE_POSITIVE_X: return gl.TEXTURE_CUBE_MAP_POSITIVE_X;
@@ -85,7 +85,7 @@ goog.require('functional.gles3.es3fApiCase');
             case tcuTexture.CubeFace.CUBEFACE_NEGATIVE_Z: return gl.TEXTURE_CUBE_MAP_NEGATIVE_Z;
             case tcuTexture.CubeFace.CUBEFACE_POSITIVE_Z: return gl.TEXTURE_CUBE_MAP_POSITIVE_Z;
             default:
-                 return gl.NONE;
+            return gl.NONE;
         }
     };
 
@@ -93,38 +93,29 @@ goog.require('functional.gles3.es3fApiCase');
      * @param {function(number)} func
      */
     es3fNegativeTextureApiTests.forCubeFaces = function(func) {
-      var faceGLVar;
-      for (var faceIterTcu in tcuTexture.CubeFace) {
-        faceGLVar = es3fNegativeTextureApiTests.cubeFaceToGLFace(tcuTexture.CubeFace[faceIterTcu]);
-        func(faceGLVar);
-      }
+        var faceGLVar;
+        for (var faceIterTcu in tcuTexture.CubeFace) {
+            faceGLVar = es3fNegativeTextureApiTests.cubeFaceToGLFace(tcuTexture.CubeFace[faceIterTcu]);
+            func(faceGLVar);
+        }
     };
-    /*
-    #define FOR_CUBE_FACES(FACE_GL_VAR, BODY) \
-        do \{ \
-            for (int faceIterTcu = 0; faceIterTcu < tcu::CUBEFACE_LAST; faceIterTcu++) \{ \
-                const GLenum FACE_GL_VAR = cubeFaceToGLFace((tcu::CubeFace)faceIterTcu); \
-                BODY \
-            } \
-        } while (false)
-      */
 
-  /**
-   * @constructor
-   * @extends {tcuTestCase.DeqpTest}
-   */
-  es3fNegativeTextureApiTests.NegativeTextureApiTests = function() {
-    tcuTestCase.DeqpTest.call(this, 'texture', 'Negative Texture API Cases');
-  };
+    /**
+    * @constructor
+    * @extends {tcuTestCase.DeqpTest}
+    */
+    es3fNegativeTextureApiTests.NegativeTextureApiTests = function() {
+        tcuTestCase.DeqpTest.call(this, 'texture', 'Negative Texture API Cases');
+    };
 
-  /**
-  * @param {WebGLRenderingContextBase} gl
-  */
-  es3fNegativeTextureApiTests.init = function(gl) {
+    /**
+    * @param {WebGLRenderingContextBase} gl
+    */
+    es3fNegativeTextureApiTests.init = function(gl) {
 
-    var testGroup = tcuTestCase.runner.testCases;
+        var testGroup = tcuTestCase.runner.testCases;
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('activetexture', 'Invalid gl.ActiveTexture() usage', gl,
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('activetexture', 'Invalid gl.ActiveTexture() usage', gl,
         function() {
             bufferedLogToConsole('gl.INVALID_ENUM is generated if texture is not one of gl.TEXTUREi, where i ranges from 0 to (gl.MAX_COMBINED_TEXTURE_IMAGE_UNITS - 1).');
             gl.activeTexture(-1);
@@ -135,10 +126,10 @@ goog.require('functional.gles3.es3fApiCase');
 
         }));
 
-    // gl.bindTexture
+        // gl.bindTexture
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('bindTexture', 'Invalid gl.bindTexture() usage', gl,
-         function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('bindTexture', 'Invalid gl.bindTexture() usage', gl,
+        function() {
 
             /** @type {Array<WebGLTexture>} */ var texture = [];
             texture[0] = gl.createTexture();
@@ -173,9 +164,9 @@ goog.require('functional.gles3.es3fApiCase');
             gl.deleteTexture(texture[1]);
         }));
 
-    // gl.compressedTexImage2D
+        // gl.compressedTexImage2D
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedteximage2d_invalid_target', 'Invalid gl.compressedTexImage2D() usage', gl,
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedteximage2d_invalid_target', 'Invalid gl.compressedTexImage2D() usage', gl,
         function() {
             bufferedLogToConsole('gl.INVALID_ENUM is generated if target is invalid.');
             gl.compressedTexImage2D(0, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, 0, 0, 0, null);
@@ -185,7 +176,7 @@ goog.require('functional.gles3.es3fApiCase');
 
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedteximage2d_invalid_format', 'Invalid gl.compressedTexImage2D() usage', gl,
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedteximage2d_invalid_format', 'Invalid gl.compressedTexImage2D() usage', gl,
         function() {
             bufferedLogToConsole('gl.INVALID_ENUM is generated if internalformat is not a supported format returned in gl.COMPRESSED_TEXTURE_FORMATS.');
             /** @type {ArrayBufferView} */ var uint8 = new Uint8Array(0);
@@ -210,7 +201,7 @@ goog.require('functional.gles3.es3fApiCase');
 
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedteximage2d_neg_level', 'Invalid gl.compressedTexImage2D() usage', gl,
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedteximage2d_neg_level', 'Invalid gl.compressedTexImage2D() usage', gl,
         function() {
             bufferedLogToConsole('gl.INVALID_VALUE is generated if level is less than 0.');
             /** @type {ArrayBufferView} */ var uint8 = new Uint8Array(0);
@@ -231,7 +222,7 @@ goog.require('functional.gles3.es3fApiCase');
 
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedteximage2d_max_level', 'Invalid gl.compressedTexImage2D() usage', gl,
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedteximage2d_max_level', 'Invalid gl.compressedTexImage2D() usage', gl,
         function() {
             bufferedLogToConsole('gl.INVALID_VALUE is generated if level is greater than log_2(gl.MAX_TEXTURE_SIZE) for a 2d texture target.');
             /** @type {ArrayBufferView} */ var uint8 = new Uint8Array(es3fNegativeTextureApiTests.etc2EacDataSize(16, 16));
@@ -258,8 +249,8 @@ goog.require('functional.gles3.es3fApiCase');
 
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedteximage2d_neg_width_height', 'Invalid gl.compressedTexImage2D() usage', gl,
-      function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedteximage2d_neg_width_height', 'Invalid gl.compressedTexImage2D() usage', gl,
+        function() {
 
             /** @type {ArrayBufferView} */ var uint8 = new Uint8Array(0);
 
@@ -323,7 +314,7 @@ goog.require('functional.gles3.es3fApiCase');
 
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedteximage2d_max_width_height', 'Invalid gl.compressedTexImage2D() usage', gl,
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedteximage2d_max_width_height', 'Invalid gl.compressedTexImage2D() usage', gl,
         function() {
 
             /** @type {ArrayBufferView} */ var uint8 = new Uint8Array(0);
@@ -389,7 +380,7 @@ goog.require('functional.gles3.es3fApiCase');
 
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedteximage2d_invalid_border', 'Invalid gl.compressedTexImage2D() usage', gl,
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedteximage2d_invalid_border', 'Invalid gl.compressedTexImage2D() usage', gl,
         function() {
 
             /** @type {ArrayBufferView} */ var uint8 = new Uint8Array(0);
@@ -440,8 +431,8 @@ goog.require('functional.gles3.es3fApiCase');
 
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedteximage2d_invalid_size', 'Invalid gl.compressedTexImage2D() usage', gl,
-      function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedteximage2d_invalid_size', 'Invalid gl.compressedTexImage2D() usage', gl,
+        function() {
             bufferedLogToConsole('gl.INVALID_VALUE is generated if imageSize is not consistent with the format, dimensions, and contents of the specified compressed image data.');
             gl.compressedTexImage2D(gl.TEXTURE_2D, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, 0, 0, 0, new Uint8Array(0)); //-1
             this.expectError(gl.INVALID_VALUE);
@@ -454,41 +445,42 @@ goog.require('functional.gles3.es3fApiCase');
 
         }));
 
-    // testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedteximage2d_invalid_buffer_target', 'Invalid gl.compressedTexImage2D() usage', gl,
-  // function() {
-    //         /** @type{WebGLBuffer} */ var buf;
-  //     /** @type{WebGLBuffer} */ var buf = gl.createBuffer();
-  //
-    //         gl.createBuffer (1, buf);
-    //         gl.bindBuffer (gl.PIXEL_UNPACK_BUFFER, buf);
-    //         gl.bufferData (gl.PIXEL_UNPACK_BUFFER, 64, data[0], gl.DYNAMIC_COPY);
-    //         this.expectError(gl.NO_ERROR);
-  //
-    //         bufferedLogToConsole('gl.INVALID_OPERATION is generated if a non-zero buffer object name is bound to the gl.PIXEL_UNPACK_BUFFER target and the buffer object\'s data store is currently mapped.');
-    //         glMapBufferRange (gl.PIXEL_UNPACK_BUFFER, 0, 32, gl.MAP_WRITE_BIT);
-    //         gl.compressedTexImage2D (gl.TEXTURE_2D, 0, gl.COMPRESSED_RGB8_ETC2, 4, 4, 0, es3fNegativeTextureApiTests.etc2EacDataSize(4, 4), 0);
-    //         this.expectError (gl.INVALID_OPERATION);
-    //         glUnmapBuffer (gl.PIXEL_UNPACK_BUFFER);
-  //
-  //
-    //         bufferedLogToConsole('gl.INVALID_OPERATION is generated if a non-zero buffer object name is bound to the gl.PIXEL_UNPACK_BUFFER target and the data would be unpacked from the buffer object such that the memory reads required would exceed the data store size.');
-    //         gl.compressedTexImage2D (gl.TEXTURE_2D, 0, gl.COMPRESSED_RGB8_ETC2, 16, 16, 0, es3fNegativeTextureApiTests.etc2EacDataSize(16, 16), 0);
-    //         this.expectError (gl.INVALID_OPERATION);
-  //
-  //
-    //         gl.deleteBuffer (1, buf);
-    //     }));
+        // NOTE: test cases using method MapBufferRange where commented since this method is deprecated.
+        // testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedteximage2d_invalid_buffer_target', 'Invalid gl.compressedTexImage2D() usage', gl,
+        // function() {
+        //         /** @type{WebGLBuffer} */ var buf;
+        //     /** @type{WebGLBuffer} */ var buf = gl.createBuffer();
+        //
+        //         gl.createBuffer (1, buf);
+        //         gl.bindBuffer (gl.PIXEL_UNPACK_BUFFER, buf);
+        //         gl.bufferData (gl.PIXEL_UNPACK_BUFFER, 64, data[0], gl.DYNAMIC_COPY);
+        //         this.expectError(gl.NO_ERROR);
+        //
+        //         bufferedLogToConsole('gl.INVALID_OPERATION is generated if a non-zero buffer object name is bound to the gl.PIXEL_UNPACK_BUFFER target and the buffer object\'s data store is currently mapped.');
+        //         glMapBufferRange (gl.PIXEL_UNPACK_BUFFER, 0, 32, gl.MAP_WRITE_BIT);
+        //         gl.compressedTexImage2D (gl.TEXTURE_2D, 0, gl.COMPRESSED_RGB8_ETC2, 4, 4, 0, es3fNegativeTextureApiTests.etc2EacDataSize(4, 4), 0);
+        //         this.expectError (gl.INVALID_OPERATION);
+        //         glUnmapBuffer (gl.PIXEL_UNPACK_BUFFER);
+        //
+        //
+        //         bufferedLogToConsole('gl.INVALID_OPERATION is generated if a non-zero buffer object name is bound to the gl.PIXEL_UNPACK_BUFFER target and the data would be unpacked from the buffer object such that the memory reads required would exceed the data store size.');
+        //         gl.compressedTexImage2D (gl.TEXTURE_2D, 0, gl.COMPRESSED_RGB8_ETC2, 16, 16, 0, es3fNegativeTextureApiTests.etc2EacDataSize(16, 16), 0);
+        //         this.expectError (gl.INVALID_OPERATION);
+        //
+        //
+        //         gl.deleteBuffer (1, buf);
+        //     }));
 
-  //   // gl.copyTexImage2D
+        //   // gl.copyTexImage2D
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('copyteximage2d_invalid_target', 'Invalid gl.copyTexImage2D() usage', gl,
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('copyteximage2d_invalid_target', 'Invalid gl.copyTexImage2D() usage', gl,
         function() {
             bufferedLogToConsole('gl.INVALID_ENUM is generated if target is invalid.');
             gl.copyTexImage2D(0, 0, gl.RGB, 0, 0, 64, 64, 0);
             this.expectError(gl.INVALID_ENUM);
 
         }));
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('copyteximage2d_invalid_format', 'Invalid gl.copyTexImage2D() usage', gl,
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('copyteximage2d_invalid_format', 'Invalid gl.copyTexImage2D() usage', gl,
         function() {
             bufferedLogToConsole('gl.INVALID_ENUM or gl.INVALID_VALUE is generated if internalformat is not an accepted format.');
             gl.copyTexImage2D(gl.TEXTURE_2D, 0, 0, 0, 0, 64, 64, 0);
@@ -508,7 +500,7 @@ goog.require('functional.gles3.es3fApiCase');
 
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('copyteximage2d_inequal_width_height_cube', 'Invalid gl.copyTexImage2D() usage', gl,
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('copyteximage2d_inequal_width_height_cube', 'Invalid gl.copyTexImage2D() usage', gl,
         function() {
             bufferedLogToConsole('gl.INVALID_VALUE is generated if target is one of the six cube map 2D image targets and the width and height parameters are not equal.');
             gl.copyTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X, 0, gl.RGB, 0, 0, 16, 17, 0);
@@ -526,7 +518,7 @@ goog.require('functional.gles3.es3fApiCase');
 
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('copyteximage2d_neg_level', 'Invalid gl.copyTexImage2D() usage', gl,
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('copyteximage2d_neg_level', 'Invalid gl.copyTexImage2D() usage', gl,
         function() {
             bufferedLogToConsole('gl.INVALID_VALUE is generated if level is less than 0.');
             gl.copyTexImage2D(gl.TEXTURE_2D, -1, gl.RGB, 0, 0, 64, 64, 0);
@@ -546,7 +538,7 @@ goog.require('functional.gles3.es3fApiCase');
 
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('copyteximage2d_max_level', 'Invalid gl.copyTexImage2D() usage', gl,
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('copyteximage2d_max_level', 'Invalid gl.copyTexImage2D() usage', gl,
         function() {
             bufferedLogToConsole('gl.INVALID_VALUE is generated if level is greater than log_2(gl.MAX_TEXTURE_SIZE).');
             /** @type {number} */ var log2MaxTextureSize = es3fNegativeTextureApiTests.deLog2Floor32(/** @type {number} */(gl.getParameter(gl.MAX_TEXTURE_SIZE))) + 1;
@@ -570,7 +562,7 @@ goog.require('functional.gles3.es3fApiCase');
 
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('copyteximage2d_neg_width_height', 'Invalid gl.copyTexImage2D() usage', gl,
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('copyteximage2d_neg_width_height', 'Invalid gl.copyTexImage2D() usage', gl,
         function() {
             bufferedLogToConsole('gl.INVALID_VALUE is generated if width or height is less than 0.');
 
@@ -632,8 +624,8 @@ goog.require('functional.gles3.es3fApiCase');
 
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('copyteximage2d_max_width_height', 'Invalid gl.copyTexImage2D() usage', gl,
-          function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('copyteximage2d_max_width_height', 'Invalid gl.copyTexImage2D() usage', gl,
+        function() {
             /** @type {number} */ var maxTextureSize = /** @type {number} */(gl.getParameter(gl.MAX_TEXTURE_SIZE)) + 1;
             /** @type {number} */ var maxCubemapSize = /** @type {number} */(gl.getParameter(gl.MAX_CUBE_MAP_TEXTURE_SIZE)) + 1;
 
@@ -697,7 +689,7 @@ goog.require('functional.gles3.es3fApiCase');
 
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('copyteximage2d_invalid_border', 'Invalid gl.copyTexImage2D() usage', gl,
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('copyteximage2d_invalid_border', 'Invalid gl.copyTexImage2D() usage', gl,
         function() {
             bufferedLogToConsole('gl.INVALID_VALUE is generated if border is not 0.');
 
@@ -745,7 +737,7 @@ goog.require('functional.gles3.es3fApiCase');
 
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('copyteximage2d_incomplete_framebuffer', 'Invalid gl.copyTexImage2D() usage', gl,
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('copyteximage2d_incomplete_framebuffer', 'Invalid gl.copyTexImage2D() usage', gl,
         function() {
             /** @type {WebGLFramebuffer} */ var fbo;
             fbo = gl.createFramebuffer();
@@ -772,9 +764,9 @@ goog.require('functional.gles3.es3fApiCase');
             gl.deleteFramebuffer(fbo);
         }));
 
-  //   // gl.copyTexSubImage2D
+        //   // gl.copyTexSubImage2D
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('copytexsubimage2d_invalid_target', 'Invalid gl.copyTexSubImage2D() usage', gl,
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('copytexsubimage2d_invalid_target', 'Invalid gl.copyTexSubImage2D() usage', gl,
         function() {
 
             /** @type {WebGLTexture} */ var texture;
@@ -789,7 +781,7 @@ goog.require('functional.gles3.es3fApiCase');
             gl.deleteTexture(texture);
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('copytexsubimage2d_neg_level', 'Invalid gl.copyTexSubImage2D() usage', gl,
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('copytexsubimage2d_neg_level', 'Invalid gl.copyTexSubImage2D() usage', gl,
         function() {
             /** @type {Array<WebGLTexture>} */ var texture = [];
             texture[0] = gl.createTexture();
@@ -800,7 +792,6 @@ goog.require('functional.gles3.es3fApiCase');
             es3fNegativeTextureApiTests.forCubeFaces(function(faceGL) {
                 gl.texImage2D(faceGL, 0, gl.RGBA, 16, 16, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
             });
-            //FOR_CUBE_FACES(faceGL, gl.texImage2D(faceGL, 0, gl.RGBA, 16, 16, 0, gl.RGBA, gl.UNSIGNED_BYTE, 0););
 
             bufferedLogToConsole('gl.INVALID_VALUE is generated if level is less than 0.');
             gl.copyTexSubImage2D(gl.TEXTURE_2D, -1, 0, 0, 0, 0, 4, 4);
@@ -815,37 +806,36 @@ goog.require('functional.gles3.es3fApiCase');
             gl.deleteTexture(texture[1]);
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('copytexsubimage2d_max_level', 'Invalid gl.copyTexSubImage2D() usage', gl,
-      function() {
-          /** @type{Array<WebGLTexture>} */ var texture = [];
-          texture[0] = gl.createTexture();
-          texture[1] = gl.createTexture();
-          gl.bindTexture(gl.TEXTURE_2D, texture[0]);
-          gl.texImage2D (gl.TEXTURE_2D, 0, gl.RGBA, 16, 16, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-          gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture[1]);
-          es3fNegativeTextureApiTests.forCubeFaces(function(faceGL) {
-            gl.texImage2D(faceGL, 0, gl.RGBA, 16, 16, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-          });
-            //FOR_CUBE_FACES(faceGL, gl.texImage2D(faceGL, 0, gl.RGBA, 16, 16, 0, gl.RGBA, gl.UNSIGNED_BYTE, 0););
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('copytexsubimage2d_max_level', 'Invalid gl.copyTexSubImage2D() usage', gl,
+        function() {
+            /** @type{Array<WebGLTexture>} */ var texture = [];
+            texture[0] = gl.createTexture();
+            texture[1] = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, texture[0]);
+            gl.texImage2D (gl.TEXTURE_2D, 0, gl.RGBA, 16, 16, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+            gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture[1]);
+            es3fNegativeTextureApiTests.forCubeFaces(function(faceGL) {
+                gl.texImage2D(faceGL, 0, gl.RGBA, 16, 16, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+            });
 
-          bufferedLogToConsole('gl.INVALID_VALUE is generated if level is greater than log_2(gl.MAX_TEXTURE_SIZE) for 2D texture targets.');
-          /** @type{number} */ var log2MaxTextureSize = es3fNegativeTextureApiTests.deLog2Floor32(/** @type{number} */(gl.getParameter(gl.MAX_TEXTURE_SIZE))) + 1;
-          gl.copyTexSubImage2D(gl.TEXTURE_2D, log2MaxTextureSize, 0, 0, 0, 0, 4, 4);
-          this.expectError(gl.INVALID_VALUE);
+            bufferedLogToConsole('gl.INVALID_VALUE is generated if level is greater than log_2(gl.MAX_TEXTURE_SIZE) for 2D texture targets.');
+            /** @type{number} */ var log2MaxTextureSize = es3fNegativeTextureApiTests.deLog2Floor32(/** @type{number} */(gl.getParameter(gl.MAX_TEXTURE_SIZE))) + 1;
+            gl.copyTexSubImage2D(gl.TEXTURE_2D, log2MaxTextureSize, 0, 0, 0, 0, 4, 4);
+            this.expectError(gl.INVALID_VALUE);
 
-          bufferedLogToConsole('gl.INVALID_VALUE is generated if level is greater than log_2(gl.MAX_CUBE_MAP_SIZE) for cubemap targets.');
-          /** @type{number} */ var log2MaxCubemapSize = es3fNegativeTextureApiTests.deLog2Floor32(/** @type{number} */(gl.getParameter(gl.MAX_CUBE_MAP_TEXTURE_SIZE))) + 1;
-          var local = this;
-          es3fNegativeTextureApiTests.forCubeFaces(function(faceGL) {
-            gl.copyTexSubImage2D(faceGL, log2MaxCubemapSize, 0, 0, 0, 0, 4, 4);
-            local.expectError(gl.INVALID_VALUE);
-          });
+            bufferedLogToConsole('gl.INVALID_VALUE is generated if level is greater than log_2(gl.MAX_CUBE_MAP_SIZE) for cubemap targets.');
+            /** @type{number} */ var log2MaxCubemapSize = es3fNegativeTextureApiTests.deLog2Floor32(/** @type{number} */(gl.getParameter(gl.MAX_CUBE_MAP_TEXTURE_SIZE))) + 1;
+            var local = this;
+            es3fNegativeTextureApiTests.forCubeFaces(function(faceGL) {
+                gl.copyTexSubImage2D(faceGL, log2MaxCubemapSize, 0, 0, 0, 0, 4, 4);
+                local.expectError(gl.INVALID_VALUE);
+            });
 
-          gl.deleteTexture(texture[0]);
-          gl.deleteTexture(texture[1]);
+            gl.deleteTexture(texture[0]);
+            gl.deleteTexture(texture[1]);
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('copytexsubimage2d_neg_offset', 'Invalid gl.copyTexSubImage2D() usage', gl,
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('copytexsubimage2d_neg_offset', 'Invalid gl.copyTexSubImage2D() usage', gl,
         function() {
             /** @type{WebGLTexture} */ var texture;
             texture = gl.createTexture();
@@ -862,11 +852,11 @@ goog.require('functional.gles3.es3fApiCase');
 
             gl.deleteTexture(texture);
         }));
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('copytexsubimage2d_invalid_offset', 'Invalid gl.copyTexSubImage2D() usage', gl,
-  function() {
-      /** @type{WebGLTexture} */ var texture;
-      texture = gl.createTexture();
-      gl.bindTexture(gl.TEXTURE_2D, texture);
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('copytexsubimage2d_invalid_offset', 'Invalid gl.copyTexSubImage2D() usage', gl,
+        function() {
+            /** @type{WebGLTexture} */ var texture;
+            texture = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, texture);
             gl.texImage2D (gl.TEXTURE_2D, 0, gl.RGBA, 16, 16, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
 
             bufferedLogToConsole('gl.INVALID_VALUE is generated if xoffset + width > texture_width or yoffset + height > texture_height.');
@@ -877,15 +867,15 @@ goog.require('functional.gles3.es3fApiCase');
             gl.copyTexSubImage2D(gl.TEXTURE_2D, 0, 14, 14, 0, 0, 4, 4);
             this.expectError(gl.INVALID_VALUE);
 
-      gl.deleteTexture(texture);
+            gl.deleteTexture(texture);
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('copytexsubimage2d_neg_width_height', 'Invalid gl.copyTexSubImage2D() usage', gl,
-  function() {
-    /** @type{WebGLTexture} */ var texture;
-    texture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.texImage2D (gl.TEXTURE_2D, 0, gl.RGBA, 16, 16, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('copytexsubimage2d_neg_width_height', 'Invalid gl.copyTexSubImage2D() usage', gl,
+        function() {
+            /** @type{WebGLTexture} */ var texture;
+            texture = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+            gl.texImage2D (gl.TEXTURE_2D, 0, gl.RGBA, 16, 16, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
 
             bufferedLogToConsole('gl.INVALID_VALUE is generated if width or height is less than 0.');
             gl.copyTexSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 0, 0, -1, 0);
@@ -895,16 +885,16 @@ goog.require('functional.gles3.es3fApiCase');
             gl.copyTexSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 0, 0, -1, -1);
             this.expectError(gl.INVALID_VALUE);
 
-      gl.deleteTexture(texture);
+            gl.deleteTexture(texture);
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('copytexsubimage2d_incomplete_framebuffer', 'Invalid gl.copyTexSubImage2D() usage', gl,
-  function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('copytexsubimage2d_incomplete_framebuffer', 'Invalid gl.copyTexSubImage2D() usage', gl,
+        function() {
             bufferedLogToConsole('gl.INVALID_FRAMEBUFFER_OPERATION is generated if the currently bound framebuffer is not framebuffer complete.');
-      /** @type{Array<WebGLTexture>} */ var texture = [];
-      /** @type{WebGLFramebuffer} */ var fbo;
-      texture[0] = gl.createTexture();
-      texture[1] = gl.createTexture();
+            /** @type{Array<WebGLTexture>} */ var texture = [];
+            /** @type{WebGLFramebuffer} */ var fbo;
+            texture[0] = gl.createTexture();
+            texture[1] = gl.createTexture();
             gl.bindTexture(gl.TEXTURE_2D, texture[0]);
             gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 4, 4, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
             gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture[1]);
@@ -943,10 +933,10 @@ goog.require('functional.gles3.es3fApiCase');
 
         }));
 
-    // glDeleteTextures
+        // glDeleteTextures
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('deletetextures', 'Invalid glDeleteTextures() usage', gl,
-  function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('deletetextures', 'Invalid glDeleteTextures() usage', gl,
+        function() {
             /** @type{WebGLTexture} */ var texture;
             texture = gl.createTexture();
 
@@ -961,14 +951,14 @@ goog.require('functional.gles3.es3fApiCase');
             gl.deleteTexture(texture);
         }));
 
-  //   // gl.generateMipmap
+        //   // gl.generateMipmap
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('generatemipmap', 'Invalid gl.generateMipmap() usage', gl,
-  function() {
-      /** @type{Array<WebGLTexture>} */ var texture = [];
-      /** @type{WebGLFramebuffer} */ var fbo;
-      texture[0] = gl.createTexture();
-      texture[1] = gl.createTexture();
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('generatemipmap', 'Invalid gl.generateMipmap() usage', gl,
+        function() {
+            /** @type{Array<WebGLTexture>} */ var texture = [];
+            /** @type{WebGLFramebuffer} */ var fbo;
+            texture[0] = gl.createTexture();
+            texture[1] = gl.createTexture();
 
             bufferedLogToConsole('gl.INVALID_ENUM is generated if target is not gl.TEXTURE_2D or gl.TEXTURE_CUBE_MAP.');
             gl.generateMipmap(0);
@@ -1009,12 +999,12 @@ goog.require('functional.gles3.es3fApiCase');
             this.expectError(gl.INVALID_OPERATION);
 
             gl.deleteTexture(texture[0]);
-      gl.deleteTexture(texture[1]);
+            gl.deleteTexture(texture[1]);
         }));
 
-  //   // glGenTextures
+        //   // glGenTextures
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('gentextures', 'Invalid glGenTextures() usage', gl,
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('gentextures', 'Invalid glGenTextures() usage', gl,
         function() {
             bufferedLogToConsole('gl.INVALID_VALUE is generated if n is negative.');
             /** @type{WebGLTexture} */ var texture;
@@ -1023,10 +1013,10 @@ goog.require('functional.gles3.es3fApiCase');
 
         }));
 
-  //   // gl.pixelStorei
+        //   // gl.pixelStorei
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('pixelstorei', 'Invalid gl.pixelStorei() usage', gl,
-  function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('pixelstorei', 'Invalid gl.pixelStorei() usage', gl,
+        function() {
             bufferedLogToConsole('gl.INVALID_ENUM is generated if pname is not an accepted value.');
             gl.pixelStorei(0,1);
             this.expectError(gl.INVALID_ENUM);
@@ -1059,9 +1049,9 @@ goog.require('functional.gles3.es3fApiCase');
 
         }));
 
-  //   // gl.texImage2D
+        //   // gl.texImage2D
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('teximage2d', 'Invalid gl.texImage2D() usage', gl,
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('teximage2d', 'Invalid gl.texImage2D() usage', gl,
         function() {
             bufferedLogToConsole('gl.INVALID_ENUM is generated if target is invalid.');
             gl.texImage2D(0, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
@@ -1085,8 +1075,8 @@ goog.require('functional.gles3.es3fApiCase');
 
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('teximage2d_inequal_width_height_cube', 'Invalid gl.texImage2D() usage', gl,
-  function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('teximage2d_inequal_width_height_cube', 'Invalid gl.texImage2D() usage', gl,
+        function() {
             bufferedLogToConsole('gl.INVALID_VALUE is generated if target is one of the six cube map 2D image targets and the width and height parameters are not equal.');
             gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X, 0, gl.RGB, 1, 2, 0, gl.RGB, gl.UNSIGNED_BYTE, null);
             this.expectError(gl.INVALID_VALUE);
@@ -1103,8 +1093,8 @@ goog.require('functional.gles3.es3fApiCase');
 
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('teximage2d_neg_level', 'Invalid gl.texImage2D() usage', gl,
-  function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('teximage2d_neg_level', 'Invalid gl.texImage2D() usage', gl,
+        function() {
             bufferedLogToConsole('gl.INVALID_VALUE is generated if level is less than 0.');
             gl.texImage2D(gl.TEXTURE_2D, -1, gl.RGB, 1, 1, 0, gl.RGB, gl.UNSIGNED_BYTE, null);
             this.expectError(gl.INVALID_VALUE);
@@ -1125,8 +1115,8 @@ goog.require('functional.gles3.es3fApiCase');
 
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('teximage2d_max_level', 'Invalid gl.texImage2D() usage', gl,
-  function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('teximage2d_max_level', 'Invalid gl.texImage2D() usage', gl,
+        function() {
             bufferedLogToConsole('gl.INVALID_VALUE is generated if level is greater than log_2(gl.MAX_TEXTURE_SIZE).');
             /** @type{number} */ var log2MaxTextureSize = es3fNegativeTextureApiTests.deLog2Floor32(/** @type{number} */(gl.getParameter(gl.MAX_TEXTURE_SIZE))) + 1;
             gl.texImage2D(gl.TEXTURE_2D, log2MaxTextureSize, gl.RGB, 1, 1, 0, gl.RGB, gl.UNSIGNED_BYTE, null);
@@ -1149,8 +1139,8 @@ goog.require('functional.gles3.es3fApiCase');
 
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('teximage2d_neg_width_height', 'Invalid gl.texImage2D() usage', gl,
-  function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('teximage2d_neg_width_height', 'Invalid gl.texImage2D() usage', gl,
+        function() {
             bufferedLogToConsole('gl.INVALID_VALUE is generated if width or height is less than 0.');
 
             bufferedLogToConsole('gl.TEXTURE_2D target');
@@ -1211,10 +1201,10 @@ goog.require('functional.gles3.es3fApiCase');
 
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('teximage2d_max_width_height', 'Invalid gl.texImage2D() usage', gl,
-  function() {
-      /** @type{number} */ var maxTextureSize = /** @type{number} */(gl.getParameter(gl.MAX_TEXTURE_SIZE)) + 1;
-      /** @type{number} */ var maxCubemapSize = /** @type{number} */(gl.getParameter(gl.MAX_CUBE_MAP_TEXTURE_SIZE)) + 1;
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('teximage2d_max_width_height', 'Invalid gl.texImage2D() usage', gl,
+        function() {
+            /** @type{number} */ var maxTextureSize = /** @type{number} */(gl.getParameter(gl.MAX_TEXTURE_SIZE)) + 1;
+            /** @type{number} */ var maxCubemapSize = /** @type{number} */(gl.getParameter(gl.MAX_CUBE_MAP_TEXTURE_SIZE)) + 1;
 
             bufferedLogToConsole('gl.INVALID_VALUE is generated if width or height is greater than gl.MAX_TEXTURE_SIZE.');
             gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, maxTextureSize, 1, 0, gl.RGB, gl.UNSIGNED_BYTE, null);
@@ -1276,8 +1266,8 @@ goog.require('functional.gles3.es3fApiCase');
 
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('teximage2d_invalid_border', 'Invalid gl.texImage2D() usage', gl,
-  function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('teximage2d_invalid_border', 'Invalid gl.texImage2D() usage', gl,
+        function() {
             bufferedLogToConsole('gl.INVALID_VALUE is generated if border is not 0.');
             gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, 1, 1, 1, gl.RGB, gl.UNSIGNED_BYTE, null);
             this.expectError(gl.INVALID_VALUE);
@@ -1298,42 +1288,43 @@ goog.require('functional.gles3.es3fApiCase');
 
         }));
 
-  //   // testGroup.addChild(new es3fApiCase.ApiCaseCallback('teximage2d_invalid_buffer_target', 'Invalid gl.texImage2D() usage', gl,
-  // //   function() {
-  // //             /** @type{WebGLBuffer} */ var buf;
-  // //             /** @type{WebGLTexture} */ var texture;
-  // //
-  // //             buf = gl.createBuffer();
-  // //             gl.bindBuffer(gl.PIXEL_UNPACK_BUFFER, buf);
-  // //             gl.bufferData(gl.PIXEL_UNPACK_BUFFER, 64, gl.DYNAMIC_COPY);
-  // //       texture = gl.createTexture();
-  // //             gl.bindTexture(gl.TEXTURE_2D, texture);
-  // //             this.expectError(gl.NO_ERROR);
-  // //
-  // //             bufferedLogToConsole('gl.INVALID_OPERATION is generated if a non-zero buffer object name is bound to the gl.PIXEL_UNPACK_BUFFER target and...');
-  // //             bufferedLogToConsole('...the buffer object\'s data store is currently mapped.');
-  // //             glMapBufferRange(gl.PIXEL_UNPACK_BUFFER, 0, 32, gl.MAP_WRITE_BIT);
-  // //             gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 4, 4, 0, gl.RGBA, gl.UNSIGNED_BYTE, 0);
-  // //             this.expectError(gl.INVALID_OPERATION);
-  // //             glUnmapBuffer(gl.PIXEL_UNPACK_BUFFER);
-  // //
-  // //             bufferedLogToConsole('...the data would be unpacked from the buffer object such that the memory reads required would exceed the data store size.');
-  // //             gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 64, 64, 0, gl.RGBA, gl.UNSIGNED_BYTE, 0);
-  // //             this.expectError(gl.INVALID_OPERATION);
-  // //
-  // //             bufferedLogToConsole('...data is not evenly divisible into the number of bytes needed to store in memory a datum indicated by type.');
-  // //       bufferedLogToConsole('// Set byte offset = 3');
-  // //             gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB5_A1, 4, 4, 0, gl.RGBA, gl.UNSIGNED_SHORT_5_5_5_1, 3);//(const GLvoid*)3);
-  // //             this.expectError(gl.INVALID_OPERATION);
-  // //
-  // //             gl.deleteBuffer(buf);
-  // //             gl.deleteTexture(texture);
-  // //         }));
+        // NOTE: test cases using method MapBufferRange where commented since this method is deprecated.
+        //   // testGroup.addChild(new es3fApiCase.ApiCaseCallback('teximage2d_invalid_buffer_target', 'Invalid gl.texImage2D() usage', gl,
+        // //   function() {
+        // //             /** @type{WebGLBuffer} */ var buf;
+        // //             /** @type{WebGLTexture} */ var texture;
+        // //
+        // //             buf = gl.createBuffer();
+        // //             gl.bindBuffer(gl.PIXEL_UNPACK_BUFFER, buf);
+        // //             gl.bufferData(gl.PIXEL_UNPACK_BUFFER, 64, gl.DYNAMIC_COPY);
+        // //       texture = gl.createTexture();
+        // //             gl.bindTexture(gl.TEXTURE_2D, texture);
+        // //             this.expectError(gl.NO_ERROR);
+        // //
+        // //             bufferedLogToConsole('gl.INVALID_OPERATION is generated if a non-zero buffer object name is bound to the gl.PIXEL_UNPACK_BUFFER target and...');
+        // //             bufferedLogToConsole('...the buffer object\'s data store is currently mapped.');
+        // //             glMapBufferRange(gl.PIXEL_UNPACK_BUFFER, 0, 32, gl.MAP_WRITE_BIT);
+        // //             gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 4, 4, 0, gl.RGBA, gl.UNSIGNED_BYTE, 0);
+        // //             this.expectError(gl.INVALID_OPERATION);
+        // //             glUnmapBuffer(gl.PIXEL_UNPACK_BUFFER);
+        // //
+        // //             bufferedLogToConsole('...the data would be unpacked from the buffer object such that the memory reads required would exceed the data store size.');
+        // //             gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 64, 64, 0, gl.RGBA, gl.UNSIGNED_BYTE, 0);
+        // //             this.expectError(gl.INVALID_OPERATION);
+        // //
+        // //             bufferedLogToConsole('...data is not evenly divisible into the number of bytes needed to store in memory a datum indicated by type.');
+        // //       bufferedLogToConsole('// Set byte offset = 3');
+        // //             gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB5_A1, 4, 4, 0, gl.RGBA, gl.UNSIGNED_SHORT_5_5_5_1, 3);//(const GLvoid*)3);
+        // //             this.expectError(gl.INVALID_OPERATION);
+        // //
+        // //             gl.deleteBuffer(buf);
+        // //             gl.deleteTexture(texture);
+        // //         }));
 
-  //   // gl.texSubImage2D
+        //   // gl.texSubImage2D
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('texsubimage2d', 'Invalid gl.texSubImage2D() usage', gl,
-  function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('texsubimage2d', 'Invalid gl.texSubImage2D() usage', gl,
+        function() {
             /** @type{WebGLTexture} */ var texture;
             texture = gl.createTexture();
             gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -1369,18 +1360,17 @@ goog.require('functional.gles3.es3fApiCase');
             gl.deleteTexture(texture);
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('texsubimage2d_neg_level', 'Invalid gl.texSubImage2D() usage', gl,
-  function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('texsubimage2d_neg_level', 'Invalid gl.texSubImage2D() usage', gl,
+        function() {
             /** @type{Array<WebGLTexture>} */ var texture = [];
             texture[0] = gl.createTexture();
-      texture[1] = gl.createTexture();
+            texture[1] = gl.createTexture();
             gl.bindTexture(gl.TEXTURE_2D, texture[0]);
             gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, 32, 32, 0, gl.RGB, gl.UNSIGNED_BYTE, null);
             gl.bindTexture(gl.TEXTURE_2D, texture[1]);
-      es3fNegativeTextureApiTests.forCubeFaces(function(faceGL) {
-        gl.texImage2D(faceGL, 0, gl.RGB, 32, 32, 0, gl.RGB, gl.UNSIGNED_BYTE, null);
-      });
-            //FOR_CUBE_FACES(faceGL, gl.texImage2D(faceGL, 0, gl.RGB, 32, 32, 0, gl.RGB, gl.UNSIGNED_BYTE, null););
+            es3fNegativeTextureApiTests.forCubeFaces(function(faceGL) {
+                gl.texImage2D(faceGL, 0, gl.RGB, 32, 32, 0, gl.RGB, gl.UNSIGNED_BYTE, null);
+            });
             this.expectError(gl.NO_ERROR);
 
             bufferedLogToConsole('gl.INVALID_VALUE is generated if level is less than 0.');
@@ -1388,27 +1378,27 @@ goog.require('functional.gles3.es3fApiCase');
             this.expectError(gl.INVALID_VALUE);
 
             bufferedLogToConsole('gl.INVALID_VALUE is generated if level is less than 0.');
-       var local = this;
-      es3fNegativeTextureApiTests.forCubeFaces(function(faceGL) {
-        gl.texSubImage2D(faceGL, -1, 0, 0, 0, 0, gl.RGB, gl.UNSIGNED_BYTE, null);
+            var local = this;
+            es3fNegativeTextureApiTests.forCubeFaces(function(faceGL) {
+                gl.texSubImage2D(faceGL, -1, 0, 0, 0, 0, gl.RGB, gl.UNSIGNED_BYTE, null);
                 local.expectError(gl.INVALID_VALUE);
-      });
+            });
 
             gl.deleteTexture(texture[0]);
-      gl.deleteTexture(texture[1]);
+            gl.deleteTexture(texture[1]);
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('texsubimage2d_max_level', 'Invalid gl.texSubImage2D() usage', gl,
-  function() {
-    /** @type{Array<WebGLTexture>} */ var texture = [];
-      texture[0] = gl.createTexture();
-      texture[1] = gl.createTexture();
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('texsubimage2d_max_level', 'Invalid gl.texSubImage2D() usage', gl,
+        function() {
+            /** @type{Array<WebGLTexture>} */ var texture = [];
+            texture[0] = gl.createTexture();
+            texture[1] = gl.createTexture();
             gl.bindTexture (gl.TEXTURE_2D, texture[0]);
             gl.texImage2D (gl.TEXTURE_2D, 0, gl.RGB, 32, 32, 0, gl.RGB, gl.UNSIGNED_BYTE, null);
             gl.bindTexture (gl.TEXTURE_CUBE_MAP, texture[1]);
-      es3fNegativeTextureApiTests.forCubeFaces(function(faceGL) {
-        gl.texImage2D(faceGL, 0, gl.RGB, 32, 32, 0, gl.RGB, gl.UNSIGNED_BYTE, null);
-      });
+            es3fNegativeTextureApiTests.forCubeFaces(function(faceGL) {
+                gl.texImage2D(faceGL, 0, gl.RGB, 32, 32, 0, gl.RGB, gl.UNSIGNED_BYTE, null);
+            });
 
             this.expectError (gl.NO_ERROR);
 
@@ -1419,20 +1409,20 @@ goog.require('functional.gles3.es3fApiCase');
 
             bufferedLogToConsole('gl.INVALID_VALUE is generated if level is greater than log_2(gl.MAX_CUBE_MAP_TEXTURE_SIZE).');
             /** @type{number} */ var log2MaxCubemapSize = es3fNegativeTextureApiTests.deLog2Floor32(/** @type{number} */(gl.getParameter(gl.MAX_CUBE_MAP_TEXTURE_SIZE))) + 1;
-           var local = this;
-      es3fNegativeTextureApiTests.forCubeFaces(function(faceGL) {
-        gl.texSubImage2D(faceGL, log2MaxCubemapSize, 0, 0, 0, 0, gl.RGB, gl.UNSIGNED_BYTE, null);
+            var local = this;
+            es3fNegativeTextureApiTests.forCubeFaces(function(faceGL) {
+                gl.texSubImage2D(faceGL, log2MaxCubemapSize, 0, 0, 0, 0, gl.RGB, gl.UNSIGNED_BYTE, null);
                 local.expectError(gl.INVALID_VALUE);
-      });
+            });
 
             gl.deleteTexture(texture[0]);
-      gl.deleteTexture(texture[1]);
+            gl.deleteTexture(texture[1]);
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('texsubimage2d_neg_offset', 'Invalid gl.texSubImage2D() usage', gl,
-  function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('texsubimage2d_neg_offset', 'Invalid gl.texSubImage2D() usage', gl,
+        function() {
             /** @type{WebGLTexture} */ var texture;
-      texture = gl.createTexture();
+            texture = gl.createTexture();
             gl.bindTexture(gl.TEXTURE_2D, texture);
             gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, 32, 32, 0, gl.RGB, gl.UNSIGNED_BYTE, null);
             this.expectError(gl.NO_ERROR);
@@ -1448,10 +1438,10 @@ goog.require('functional.gles3.es3fApiCase');
             gl.deleteTexture(texture);
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('texsubimage2d_invalid_offset', 'Invalid gl.texSubImage2D() usage', gl,
-  function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('texsubimage2d_invalid_offset', 'Invalid gl.texSubImage2D() usage', gl,
+        function() {
             /** @type{WebGLTexture} */ var texture;
-      texture = gl.createTexture();
+            texture = gl.createTexture();
             gl.bindTexture(gl.TEXTURE_2D, texture);
             gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 32, 32, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
             this.expectError(gl.NO_ERROR);
@@ -1464,11 +1454,11 @@ goog.require('functional.gles3.es3fApiCase');
             gl.texSubImage2D(gl.TEXTURE_2D, 0, 30, 30, 4, 4, gl.RGBA, gl.UNSIGNED_BYTE, null);
             this.expectError(gl.INVALID_VALUE);
 
-      gl.deleteTexture(texture);
+            gl.deleteTexture(texture);
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('texsubimage2d_neg_width_height', 'Invalid gl.texSubImage2D() usage', gl,
-  function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('texsubimage2d_neg_width_height', 'Invalid gl.texSubImage2D() usage', gl,
+        function() {
             /** @type{WebGLTexture} */ var texture;
             texture = gl.createTexture();
             gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -1486,48 +1476,49 @@ goog.require('functional.gles3.es3fApiCase');
             gl.deleteTexture(texture);
         }));
 
-  //   // testGroup.addChild(new es3fApiCase.ApiCaseCallback('texsubimage2d_invalid_buffer_target', 'Invalid gl.texSubImage2D() usage', gl,
-  // // function() {
-  //   //         /** @type{WebGLBuffer} */ var buf;
-  //   //         /** @type{WebGLTexture} */ var texture;
-  // //
-  //   //         texture = gl.createTexture();
-  //   //         gl.bindTexture(gl.TEXTURE_2D, texture);
-  //   //         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 32, 32, 0, gl.RGBA, gl.UNSIGNED_BYTE, 0);
-  //   //         buf = gl.createBuffer();
-  //   //         gl.bindBuffer(gl.PIXEL_UNPACK_BUFFER, buf);
-  //   //         gl.bufferData(gl.PIXEL_UNPACK_BUFFER, 64, gl.DYNAMIC_COPY);
-  //   //         this.expectError(gl.NO_ERROR);
-  // //
-  //   //         bufferedLogToConsole('gl.INVALID_OPERATION is generated if a non-zero buffer object name is bound to the gl.PIXEL_UNPACK_BUFFER target and...');
-  //   //         bufferedLogToConsole('...the buffer object\'s data store is currently mapped.');
-  //   //         glMapBufferRange(gl.PIXEL_UNPACK_BUFFER, 0, 32, gl.MAP_WRITE_BIT);
-  //   //         gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 4, 4, gl.RGBA, gl.UNSIGNED_BYTE, 0);
-  //   //         this.expectError(gl.INVALID_OPERATION);
-  //   //         glUnmapBuffer(gl.PIXEL_UNPACK_BUFFER);
-  // //
-  //   //         bufferedLogToConsole('...the data would be unpacked from the buffer object such that the memory reads required would exceed the data store size.');
-  //   //         gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 32, 32, gl.RGBA, gl.UNSIGNED_BYTE, 0);
-  //   //         this.expectError(gl.INVALID_OPERATION);
-  // //
-  // //
-  //   //         bufferedLogToConsole('...data is not evenly divisible into the number of bytes needed to store in memory a datum indicated by type.');
-  // //     bufferedLogToConsole('// Set byte offset = 3');
-  //   //         gl.bindBuffer(gl.PIXEL_UNPACK_BUFFER, 0);
-  //   //         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA4, 4, 4, 0, gl.RGBA, gl.UNSIGNED_SHORT_4_4_4_4, 0);
-  //   //         gl.bindBuffer(gl.PIXEL_UNPACK_BUFFER, buf);
-  //   //         this.expectError(gl.NO_ERROR);
-  //   //         gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 4, 4, gl.RGBA, gl.UNSIGNED_SHORT_4_4_4_4, (const GLvoid*)3);
-  //   //         this.expectError(gl.INVALID_OPERATION);
-  // //
-  //   //         gl.deleteBuffer(buf);
-  //   //         gl.deleteTexture(texture);
-  //   //     }));
+        // NOTE: test cases using method MapBufferRange where commented since this method is deprecated.
+        //   // testGroup.addChild(new es3fApiCase.ApiCaseCallback('texsubimage2d_invalid_buffer_target', 'Invalid gl.texSubImage2D() usage', gl,
+        // // function() {
+        //   //         /** @type{WebGLBuffer} */ var buf;
+        //   //         /** @type{WebGLTexture} */ var texture;
+        // //
+        //   //         texture = gl.createTexture();
+        //   //         gl.bindTexture(gl.TEXTURE_2D, texture);
+        //   //         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 32, 32, 0, gl.RGBA, gl.UNSIGNED_BYTE, 0);
+        //   //         buf = gl.createBuffer();
+        //   //         gl.bindBuffer(gl.PIXEL_UNPACK_BUFFER, buf);
+        //   //         gl.bufferData(gl.PIXEL_UNPACK_BUFFER, 64, gl.DYNAMIC_COPY);
+        //   //         this.expectError(gl.NO_ERROR);
+        // //
+        //   //         bufferedLogToConsole('gl.INVALID_OPERATION is generated if a non-zero buffer object name is bound to the gl.PIXEL_UNPACK_BUFFER target and...');
+        //   //         bufferedLogToConsole('...the buffer object\'s data store is currently mapped.');
+        //   //         glMapBufferRange(gl.PIXEL_UNPACK_BUFFER, 0, 32, gl.MAP_WRITE_BIT);
+        //   //         gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 4, 4, gl.RGBA, gl.UNSIGNED_BYTE, 0);
+        //   //         this.expectError(gl.INVALID_OPERATION);
+        //   //         glUnmapBuffer(gl.PIXEL_UNPACK_BUFFER);
+        // //
+        //   //         bufferedLogToConsole('...the data would be unpacked from the buffer object such that the memory reads required would exceed the data store size.');
+        //   //         gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 32, 32, gl.RGBA, gl.UNSIGNED_BYTE, 0);
+        //   //         this.expectError(gl.INVALID_OPERATION);
+        // //
+        // //
+        //   //         bufferedLogToConsole('...data is not evenly divisible into the number of bytes needed to store in memory a datum indicated by type.');
+        // //     bufferedLogToConsole('// Set byte offset = 3');
+        //   //         gl.bindBuffer(gl.PIXEL_UNPACK_BUFFER, 0);
+        //   //         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA4, 4, 4, 0, gl.RGBA, gl.UNSIGNED_SHORT_4_4_4_4, 0);
+        //   //         gl.bindBuffer(gl.PIXEL_UNPACK_BUFFER, buf);
+        //   //         this.expectError(gl.NO_ERROR);
+        //   //         gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 4, 4, gl.RGBA, gl.UNSIGNED_SHORT_4_4_4_4, (const GLvoid*)3);
+        //   //         this.expectError(gl.INVALID_OPERATION);
+        // //
+        //   //         gl.deleteBuffer(buf);
+        //   //         gl.deleteTexture(texture);
+        //   //     }));
 
-  //   // gl.texParameteri
+        //   // gl.texParameteri
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('texparameteri', 'Invalid gl.texParameteri() usage', gl,
-  function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('texparameteri', 'Invalid gl.texParameteri() usage', gl,
+        function() {
             bufferedLogToConsole('gl.INVALID_ENUM is generated if target or pname is not one of the accepted defined values.');
             gl.texParameteri(0, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
             this.expectError(gl.INVALID_ENUM);
@@ -1546,7 +1537,7 @@ goog.require('functional.gles3.es3fApiCase');
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.NEAREST);
             this.expectError(gl.INVALID_ENUM);
 
-      /** @type{WebGLTexture} */ var texture;
+            /** @type{WebGLTexture} */ var texture;
             texture = gl.createTexture();
             gl.bindTexture(gl.TEXTURE_2D, texture);
 
@@ -1571,10 +1562,10 @@ goog.require('functional.gles3.es3fApiCase');
             gl.deleteTexture(texture);
         }));
 
-  //   // gl.texParameterf
+        //   // gl.texParameterf
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('texparameterf', 'Invalid gl.texParameterf() usage', gl,
-  function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('texparameterf', 'Invalid gl.texParameterf() usage', gl,
+        function() {
             bufferedLogToConsole('gl.INVALID_ENUM is generated if target or pname is not one of the accepted defined values.');
             gl.texParameterf(0, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
             this.expectError(gl.INVALID_ENUM);
@@ -1618,10 +1609,10 @@ goog.require('functional.gles3.es3fApiCase');
             gl.deleteTexture(texture);
         }));
 
-  //   // gl.getTexParameter
+        //   // gl.getTexParameter
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('getTexParameter', 'Invalid gl.getTexParameter() usage', gl,
-  function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('getTexParameter', 'Invalid gl.getTexParameter() usage', gl,
+        function() {
             bufferedLogToConsole('gl.INVALID_ENUM is generated if target or pname is not one of the accepted defined values.');
             /** @type{Array<number>} */ var params = [gl.LINEAR];
             gl.getTexParameter(0, gl.TEXTURE_MIN_FILTER);
@@ -1675,10 +1666,10 @@ goog.require('functional.gles3.es3fApiCase');
             gl.deleteTexture(texture);
         }));
 
-  //   // gl.getTexParameter
+        //   // gl.getTexParameter
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('getTexParameter', 'Invalid gl.getTexParameter() usage', gl,
-  function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('getTexParameter', 'Invalid gl.getTexParameter() usage', gl,
+        function() {
             bufferedLogToConsole('gl.INVALID_ENUM is generated if target or pname is not one of the accepted defined values.');
             /** @type{Array<number>} */ var params = [gl.LINEAR];
             gl.getTexParameter(0, gl.TEXTURE_MIN_FILTER);
@@ -1732,10 +1723,10 @@ goog.require('functional.gles3.es3fApiCase');
             gl.deleteTexture(texture);
         }));
 
-  //   // gl.compressedTexSubImage2D
+        //   // gl.compressedTexSubImage2D
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedtexsubimage2d', 'Invalid gl.compressedTexSubImage2D() usage', gl,
-  function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedtexsubimage2d', 'Invalid gl.compressedTexSubImage2D() usage', gl,
+        function() {
             bufferedLogToConsole('gl.INVALID_ENUM is generated if target is invalid.');
             gl.compressedTexSubImage2D(0, 0, 0, 0, 0, 0, gl.COMPRESSED_RGB8_ETC2, null);
             this.expectError(gl.INVALID_ENUM);
@@ -1769,18 +1760,18 @@ goog.require('functional.gles3.es3fApiCase');
             gl.deleteTexture(texture);
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedtexsubimage2d_neg_level', 'Invalid gl.compressedTexSubImage2D() usage', gl,
-  function() {
-    /** @type{Array<WebGLTexture>} */ var texture = [];
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedtexsubimage2d_neg_level', 'Invalid gl.compressedTexSubImage2D() usage', gl,
+        function() {
+            /** @type{Array<WebGLTexture>} */ var texture = [];
             texture[0] = gl.createTexture();
-      texture[1] = gl.createTexture();
+            texture[1] = gl.createTexture();
             gl.bindTexture(gl.TEXTURE_2D, texture[0]);
             gl.compressedTexImage2D (gl.TEXTURE_2D, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, 18, 18, 0, new Uint8Array(es3fNegativeTextureApiTests.etc2EacDataSize(18, 18)));
             gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture[1]);
-      es3fNegativeTextureApiTests.forCubeFaces(function(faceGL) {
-        gl.compressedTexImage2D(faceGL, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, 18, 18, 0, new Uint8Array(es3fNegativeTextureApiTests.etc2EacDataSize(18, 18)));
-      });
-            //FOR_CUBE_FACES(faceGL, gl.compressedTexImage2D(faceGL, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, 18, 18, 0, es3fNegativeTextureApiTests.etc2EacDataSize(18, 18), 0););
+            es3fNegativeTextureApiTests.forCubeFaces(function(faceGL) {
+                gl.compressedTexImage2D(faceGL, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, 18, 18, 0, new Uint8Array(es3fNegativeTextureApiTests.etc2EacDataSize(18, 18)));
+            });
+
             this.expectError(gl.NO_ERROR);
 
             bufferedLogToConsole('gl.INVALID_VALUE is generated if level is less than 0.');
@@ -1788,28 +1779,28 @@ goog.require('functional.gles3.es3fApiCase');
             this.expectError(gl.INVALID_VALUE);
 
             bufferedLogToConsole('gl.INVALID_VALUE is generated if level is less than 0.');
-           var local = this;
-      es3fNegativeTextureApiTests.forCubeFaces(function(faceGL) {
-        gl.compressedTexSubImage2D(faceGL, -1, 0, 0, 0, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, null);
+            var local = this;
+            es3fNegativeTextureApiTests.forCubeFaces(function(faceGL) {
+                gl.compressedTexSubImage2D(faceGL, -1, 0, 0, 0, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, null);
                 local.expectError(gl.INVALID_VALUE);
-      });
+            });
 
             gl.deleteTexture(texture[0]);
-      gl.deleteTexture(texture[1]);
+            gl.deleteTexture(texture[1]);
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedtexsubimage2d_max_level', 'Invalid gl.compressedTexSubImage2D() usage', gl,
-  function() {
-      /** @type{Array<WebGLTexture>} */ var texture = [];
-      texture[0] = gl.createTexture();
-      texture[1] = gl.createTexture();
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedtexsubimage2d_max_level', 'Invalid gl.compressedTexSubImage2D() usage', gl,
+        function() {
+            /** @type{Array<WebGLTexture>} */ var texture = [];
+            texture[0] = gl.createTexture();
+            texture[1] = gl.createTexture();
             gl.bindTexture(gl.TEXTURE_2D, texture[0]);
             gl.compressedTexImage2D (gl.TEXTURE_2D, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, 18, 18, 0, new Uint8Array(es3fNegativeTextureApiTests.etc2EacDataSize(18, 18)));
             gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture[1]);
-      es3fNegativeTextureApiTests.forCubeFaces(function(faceGL) {
-        gl.compressedTexImage2D(faceGL, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, 18, 18, 0, new Uint8Array(es3fNegativeTextureApiTests.etc2EacDataSize(18, 18)));
-      });
-            //FOR_CUBE_FACES(faceGL, gl.compressedTexImage2D(faceGL, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, 18, 18, 0, es3fNegativeTextureApiTests.etc2EacDataSize(18, 18), 0););
+            es3fNegativeTextureApiTests.forCubeFaces(function(faceGL) {
+                gl.compressedTexImage2D(faceGL, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, 18, 18, 0, new Uint8Array(es3fNegativeTextureApiTests.etc2EacDataSize(18, 18)));
+            });
+
             this.expectError(gl.NO_ERROR);
 
             bufferedLogToConsole('gl.INVALID_VALUE is generated if level is greater than log_2(gl.MAX_TEXTURE_SIZE).');
@@ -1819,18 +1810,18 @@ goog.require('functional.gles3.es3fApiCase');
 
             bufferedLogToConsole('gl.INVALID_VALUE is generated if level is greater than log_2(gl.MAX_CUBE_MAP_TEXTURE_SIZE).');
             /** @type{number} */ var log2MaxCubemapSize = es3fNegativeTextureApiTests.deLog2Floor32(/** @type{number} */(gl.getParameter(gl.MAX_CUBE_MAP_TEXTURE_SIZE))) + 1;
-           var local = this;
-      es3fNegativeTextureApiTests.forCubeFaces(function(faceGL) {
-        gl.compressedTexSubImage2D(faceGL, log2MaxCubemapSize, 0, 0, 0, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, null);
+            var local = this;
+            es3fNegativeTextureApiTests.forCubeFaces(function(faceGL) {
+                gl.compressedTexSubImage2D(faceGL, log2MaxCubemapSize, 0, 0, 0, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, null);
                 local.expectError(gl.INVALID_VALUE);
-      });
+            });
 
-      gl.deleteTexture(texture[0]);
-      gl.deleteTexture(texture[1]);
+            gl.deleteTexture(texture[0]);
+            gl.deleteTexture(texture[1]);
         }));
 
         testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedtexsubimage2d_neg_offset', 'Invalid gl.compressedTexSubImage2D() usage', gl,
-    function() {
+        function() {
             /** @type{ WebGLTexture} */ var texture;
             texture = gl.createTexture();
             gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -1851,8 +1842,8 @@ goog.require('functional.gles3.es3fApiCase');
             gl.deleteTexture(texture);
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedtexsubimage2d_invalid_offset', 'Invalid gl.compressedTexSubImage2D() usage', gl,
-  function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedtexsubimage2d_invalid_offset', 'Invalid gl.compressedTexSubImage2D() usage', gl,
+        function() {
             /** @type{WebGLTexture} */ var texture;
             texture = gl.createTexture();
             gl.bindTexture (gl.TEXTURE_2D, texture);
@@ -1871,8 +1862,8 @@ goog.require('functional.gles3.es3fApiCase');
             gl.deleteTexture(texture);
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedtexsubimage2d_neg_width_height', 'Invalid gl.compressedTexSubImage2D() usage', gl,
-  function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedtexsubimage2d_neg_width_height', 'Invalid gl.compressedTexSubImage2D() usage', gl,
+        function() {
             /** @type{WebGLTexture} */ var texture;
             texture = gl.createTexture();
             gl.bindTexture (gl.TEXTURE_2D, texture);
@@ -1890,8 +1881,8 @@ goog.require('functional.gles3.es3fApiCase');
             gl.deleteTexture(texture);
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedtexsubimage2d_invalid_size', 'Invalid gl.compressedTexImage2D() usage', gl,
-  function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedtexsubimage2d_invalid_size', 'Invalid gl.compressedTexImage2D() usage', gl,
+        function() {
             /** @type{WebGLTexture} */ var texture;
             texture = gl.createTexture();
             gl.bindTexture (gl.TEXTURE_2D, texture);
@@ -1908,39 +1899,40 @@ goog.require('functional.gles3.es3fApiCase');
             gl.deleteTexture(texture);
         }));
 
-  //   // testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedtexsubimage2d_invalid_buffer_target', 'Invalid gl.compressedTexSubImage2D() usage', gl,
-  // // function() {
-  //   //         /** @type{WebGLBuffer} */ var buf;
-  //   //         /** @type{WebGLTexture} */ var texture;
-  // //
-  // //     texture = gl.createTexture();
-  //   //         gl.bindTexture (gl.TEXTURE_2D, texture);
-  //   //         gl.compressedTexImage2D (gl.TEXTURE_2D, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, 16, 16, 0, es3fNegativeTextureApiTests.etc2EacDataSize(16, 16), 0);
-  //   //         buf = gl.createBuffer();
-  //   //         gl.bindBuffer (gl.PIXEL_UNPACK_BUFFER, buf);
-  //   //         gl.bufferData (gl.PIXEL_UNPACK_BUFFER, 128, gl.DYNAMIC_COPY);
-  //   //         this.expectError (gl.NO_ERROR);
-  // //
-  //   //         bufferedLogToConsole('gl.INVALID_OPERATION is generated if a non-zero buffer object name is bound to the gl.PIXEL_UNPACK_BUFFER target and...');
-  //   //         bufferedLogToConsole('...the buffer object\'s data store is currently mapped.');
-  //   //         glMapBufferRange(gl.PIXEL_UNPACK_BUFFER, 0, 128, gl.MAP_WRITE_BIT);
-  //   //         gl.compressedTexSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 4, 4, gl.COMPRESSED_RGBA8_ETC2_EAC, es3fNegativeTextureApiTests.etc2EacDataSize(4, 4), 0);
-  //   //         this.expectError(gl.INVALID_OPERATION);
-  //   //         glUnmapBuffer(gl.PIXEL_UNPACK_BUFFER);
-  // //
-  // //
-  //   //         bufferedLogToConsole('...the data would be unpacked from the buffer object such that the memory reads required would exceed the data store size.');
-  //   //         gl.compressedTexSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 16, 16, gl.COMPRESSED_RGBA8_ETC2_EAC, es3fNegativeTextureApiTests.etc2EacDataSize(16, 16), 0);
-  //   //         this.expectError(gl.INVALID_OPERATION);
-  // //
-  //   //         gl.deleteBuffer(buf);
-  //   //         gl.deleteTexture(texture);
-  //   //     }));
+        // NOTE: test cases using method MapBufferRange where commented since this method is deprecated.
+        //   // testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedtexsubimage2d_invalid_buffer_target', 'Invalid gl.compressedTexSubImage2D() usage', gl,
+        // // function() {
+        //   //         /** @type{WebGLBuffer} */ var buf;
+        //   //         /** @type{WebGLTexture} */ var texture;
+        // //
+        // //     texture = gl.createTexture();
+        //   //         gl.bindTexture (gl.TEXTURE_2D, texture);
+        //   //         gl.compressedTexImage2D (gl.TEXTURE_2D, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, 16, 16, 0, es3fNegativeTextureApiTests.etc2EacDataSize(16, 16), 0);
+        //   //         buf = gl.createBuffer();
+        //   //         gl.bindBuffer (gl.PIXEL_UNPACK_BUFFER, buf);
+        //   //         gl.bufferData (gl.PIXEL_UNPACK_BUFFER, 128, gl.DYNAMIC_COPY);
+        //   //         this.expectError (gl.NO_ERROR);
+        // //
+        //   //         bufferedLogToConsole('gl.INVALID_OPERATION is generated if a non-zero buffer object name is bound to the gl.PIXEL_UNPACK_BUFFER target and...');
+        //   //         bufferedLogToConsole('...the buffer object\'s data store is currently mapped.');
+        //   //         glMapBufferRange(gl.PIXEL_UNPACK_BUFFER, 0, 128, gl.MAP_WRITE_BIT);
+        //   //         gl.compressedTexSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 4, 4, gl.COMPRESSED_RGBA8_ETC2_EAC, es3fNegativeTextureApiTests.etc2EacDataSize(4, 4), 0);
+        //   //         this.expectError(gl.INVALID_OPERATION);
+        //   //         glUnmapBuffer(gl.PIXEL_UNPACK_BUFFER);
+        // //
+        // //
+        //   //         bufferedLogToConsole('...the data would be unpacked from the buffer object such that the memory reads required would exceed the data store size.');
+        //   //         gl.compressedTexSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 16, 16, gl.COMPRESSED_RGBA8_ETC2_EAC, es3fNegativeTextureApiTests.etc2EacDataSize(16, 16), 0);
+        //   //         this.expectError(gl.INVALID_OPERATION);
+        // //
+        //   //         gl.deleteBuffer(buf);
+        //   //         gl.deleteTexture(texture);
+        //   //     }));
 
-  //   // gl.texImage3D
+        //   // gl.texImage3D
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('teximage3d', 'Invalid gl.texImage3D() usage', gl,
-  function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('teximage3d', 'Invalid gl.texImage3D() usage', gl,
+        function() {
             bufferedLogToConsole('gl.INVALID_ENUM is generated if target is invalid.');
             gl.texImage3D(0, 0, gl.RGBA, 1, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
             this.expectError(gl.INVALID_ENUM);
@@ -1979,8 +1971,8 @@ goog.require('functional.gles3.es3fApiCase');
 
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('teximage3d_neg_level', 'Invalid gl.texImage3D() usage', gl,
-  function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('teximage3d_neg_level', 'Invalid gl.texImage3D() usage', gl,
+        function() {
             bufferedLogToConsole('gl.INVALID_VALUE is generated if level is less than 0.');
             gl.texImage3D(gl.TEXTURE_3D, -1, gl.RGB, 1, 1, 1, 0, gl.RGB, gl.UNSIGNED_BYTE, null);
             this.expectError(gl.INVALID_VALUE);
@@ -1989,8 +1981,8 @@ goog.require('functional.gles3.es3fApiCase');
 
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('teximage3d_max_level', 'Invalid gl.texImage3D() usage', gl,
-  function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('teximage3d_max_level', 'Invalid gl.texImage3D() usage', gl,
+        function() {
             bufferedLogToConsole('gl.INVALID_VALUE is generated if level is greater than log_2(gl.MAX_3D_TEXTURE_SIZE).');
             /** @type{number} */ var log2Max3DTextureSize = es3fNegativeTextureApiTests.deLog2Floor32(/** @type{number} */ (gl.getParameter(gl.MAX_3D_TEXTURE_SIZE))) + 1;
             gl.texImage3D(gl.TEXTURE_3D, log2Max3DTextureSize, gl.RGB, 1, 1, 1, 0, gl.RGB, gl.UNSIGNED_BYTE, null);
@@ -2003,8 +1995,8 @@ goog.require('functional.gles3.es3fApiCase');
 
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('teximage3d_neg_width_height_depth', 'Invalid gl.texImage3D() usage', gl,
-  function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('teximage3d_neg_width_height_depth', 'Invalid gl.texImage3D() usage', gl,
+        function() {
             bufferedLogToConsole('gl.INVALID_VALUE is generated if width or height is less than 0.');
             gl.texImage3D(gl.TEXTURE_3D, 0, gl.RGBA, -1, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
             this.expectError(gl.INVALID_VALUE);
@@ -2026,8 +2018,8 @@ goog.require('functional.gles3.es3fApiCase');
 
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('teximage3d_max_width_height_depth', 'Invalid gl.texImage3D() usage', gl,
-  function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('teximage3d_max_width_height_depth', 'Invalid gl.texImage3D() usage', gl,
+        function() {
             /** @type{number} */ var max3DTextureSize = /** @type{number} */ (gl.getParameter(gl.MAX_3D_TEXTURE_SIZE)) + 1;
             /** @type{number} */ var maxTextureSize = /** @type{number} */ (gl.getParameter(gl.MAX_TEXTURE_SIZE)) + 1;
 
@@ -2053,8 +2045,8 @@ goog.require('functional.gles3.es3fApiCase');
 
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('teximage3d_invalid_border', 'Invalid gl.texImage3D() usage', gl,
-  function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('teximage3d_invalid_border', 'Invalid gl.texImage3D() usage', gl,
+        function() {
             bufferedLogToConsole('gl.INVALID_VALUE is generated if border is not 0 or 1.');
             gl.texImage3D(gl.TEXTURE_3D, 0, gl.RGB, 1, 1, 1, -1, gl.RGB, gl.UNSIGNED_BYTE, null);
             this.expectError(gl.INVALID_VALUE);
@@ -2067,45 +2059,46 @@ goog.require('functional.gles3.es3fApiCase');
 
         }));
 
-  //   // testGroup.addChild(new es3fApiCase.ApiCaseCallback('teximage3d_invalid_buffer_target', 'Invalid gl.texImage3D() usage', gl,
-  // // function() {
-  //   //         /** @type{WebGLBuffer} */ var buf;
-  //   //         /** @type{WebGLTexture} */ var texture;
-  // //
-  //   //         buf = gl.createBuffer();
-  //   //         gl.bindBuffer(gl.PIXEL_UNPACK_BUFFER, buf);
-  //   //         gl.bufferData(gl.PIXEL_UNPACK_BUFFER, 512, gl.DYNAMIC_COPY);
-  //   //         texture = gl.createTexture();
-  //   //         gl.bindTexture(gl.TEXTURE_3D, texture);
-  //   //         this.expectError(gl.NO_ERROR);
-  // //
-  //   //         bufferedLogToConsole('gl.INVALID_OPERATION is generated if a non-zero buffer object name is bound to the gl.PIXEL_UNPACK_BUFFER target and...');
-  // //
-  //   //         bufferedLogToConsole('...the buffer object\'s data store is currently mapped.');
-  //   //         glMapBufferRange (gl.PIXEL_UNPACK_BUFFER, 0, 128, gl.MAP_WRITE_BIT);
-  //   //         gl.texImage3D (gl.TEXTURE_3D, 0, gl.RGBA, 4, 4, 4, 0, gl.RGBA, gl.UNSIGNED_BYTE, 0);
-  //   //         this.expectError (gl.INVALID_OPERATION);
-  //   //         glUnmapBuffer (gl.PIXEL_UNPACK_BUFFER);
-  // //
-  // //
-  //   //         bufferedLogToConsole('...the data would be unpacked from the buffer object such that the memory reads required would exceed the data store size.');
-  //   //         gl.texImage3D (gl.TEXTURE_3D, 0, gl.RGBA, 64, 64, 64, 0, gl.RGBA, gl.UNSIGNED_BYTE, 0);
-  //   //         this.expectError (gl.INVALID_OPERATION);
-  // //
-  // //
-  //   //         bufferedLogToConsole('...data is not evenly divisible into the number of bytes needed to store in memory a datum indicated by type.');
-  // //     bufferedLogToConsole('// Set byte offset = 3');
-  //   //         gl.texImage3D (gl.TEXTURE_3D, 0, gl.RGB5_A1, 4, 4, 4, 0, gl.RGBA, gl.UNSIGNED_SHORT_5_5_5_1, (const GLvoid*)3);
-  //   //         this.expectError (gl.INVALID_OPERATION);
-  // //
-  //   //         gl.deleteBuffer(buf);
-  //   //         gl.deleteTexture(texture);
-  //   //     }));
+        // NOTE: test cases using method MapBufferRange where commented since this method is deprecated.
+        //   // testGroup.addChild(new es3fApiCase.ApiCaseCallback('teximage3d_invalid_buffer_target', 'Invalid gl.texImage3D() usage', gl,
+        // // function() {
+        //   //         /** @type{WebGLBuffer} */ var buf;
+        //   //         /** @type{WebGLTexture} */ var texture;
+        // //
+        //   //         buf = gl.createBuffer();
+        //   //         gl.bindBuffer(gl.PIXEL_UNPACK_BUFFER, buf);
+        //   //         gl.bufferData(gl.PIXEL_UNPACK_BUFFER, 512, gl.DYNAMIC_COPY);
+        //   //         texture = gl.createTexture();
+        //   //         gl.bindTexture(gl.TEXTURE_3D, texture);
+        //   //         this.expectError(gl.NO_ERROR);
+        // //
+        //   //         bufferedLogToConsole('gl.INVALID_OPERATION is generated if a non-zero buffer object name is bound to the gl.PIXEL_UNPACK_BUFFER target and...');
+        // //
+        //   //         bufferedLogToConsole('...the buffer object\'s data store is currently mapped.');
+        //   //         glMapBufferRange (gl.PIXEL_UNPACK_BUFFER, 0, 128, gl.MAP_WRITE_BIT);
+        //   //         gl.texImage3D (gl.TEXTURE_3D, 0, gl.RGBA, 4, 4, 4, 0, gl.RGBA, gl.UNSIGNED_BYTE, 0);
+        //   //         this.expectError (gl.INVALID_OPERATION);
+        //   //         glUnmapBuffer (gl.PIXEL_UNPACK_BUFFER);
+        // //
+        // //
+        //   //         bufferedLogToConsole('...the data would be unpacked from the buffer object such that the memory reads required would exceed the data store size.');
+        //   //         gl.texImage3D (gl.TEXTURE_3D, 0, gl.RGBA, 64, 64, 64, 0, gl.RGBA, gl.UNSIGNED_BYTE, 0);
+        //   //         this.expectError (gl.INVALID_OPERATION);
+        // //
+        // //
+        //   //         bufferedLogToConsole('...data is not evenly divisible into the number of bytes needed to store in memory a datum indicated by type.');
+        // //     bufferedLogToConsole('// Set byte offset = 3');
+        //   //         gl.texImage3D (gl.TEXTURE_3D, 0, gl.RGB5_A1, 4, 4, 4, 0, gl.RGBA, gl.UNSIGNED_SHORT_5_5_5_1, (const GLvoid*)3);
+        //   //         this.expectError (gl.INVALID_OPERATION);
+        // //
+        //   //         gl.deleteBuffer(buf);
+        //   //         gl.deleteTexture(texture);
+        //   //     }));
 
-  //   // gl.texSubImage3D
+        //   // gl.texSubImage3D
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('texsubimage3d', 'Invalid gl.texSubImage3D() usage', gl,
-  function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('texsubimage3d', 'Invalid gl.texSubImage3D() usage', gl,
+        function() {
             /** @type{WebGLTexture} */ var texture;
             texture = gl.createTexture();
             gl.bindTexture (gl.TEXTURE_3D, texture);
@@ -2141,9 +2134,9 @@ goog.require('functional.gles3.es3fApiCase');
             gl.deleteTexture(texture);
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('texsubimage3d_neg_level', 'Invalid gl.texSubImage3D() usage', gl,
-  function() {
-    /** @type{Array<WebGLTexture>} */ var texture = [];
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('texsubimage3d_neg_level', 'Invalid gl.texSubImage3D() usage', gl,
+        function() {
+            /** @type{Array<WebGLTexture>} */ var texture = [];
             texture[0] = gl.createTexture();
             texture[1] = gl.createTexture();
             gl.bindTexture (gl.TEXTURE_3D, texture[0]);
@@ -2162,11 +2155,11 @@ goog.require('functional.gles3.es3fApiCase');
             gl.deleteTexture(texture[1]);
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('texsubimage3d_max_level', 'Invalid gl.texSubImage3D() usage', gl,
-  function() {
-    /** @type{Array<WebGLTexture>} */ var texture = [];
-    texture[0] = gl.createTexture();
-    texture[1] = gl.createTexture();
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('texsubimage3d_max_level', 'Invalid gl.texSubImage3D() usage', gl,
+        function() {
+            /** @type{Array<WebGLTexture>} */ var texture = [];
+            texture[0] = gl.createTexture();
+            texture[1] = gl.createTexture();
             gl.bindTexture (gl.TEXTURE_3D, texture[0]);
             gl.texImage3D (gl.TEXTURE_3D, 0, gl.RGBA, 4, 4, 4, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
             gl.bindTexture (gl.TEXTURE_2D_ARRAY, texture[1]);
@@ -2185,14 +2178,14 @@ goog.require('functional.gles3.es3fApiCase');
             this.expectError(gl.INVALID_VALUE);
 
             gl.deleteTexture(texture[0]);
-      gl.deleteTexture(texture[1]);
+            gl.deleteTexture(texture[1]);
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('texsubimage3d_neg_offset', 'Invalid gl.texSubImage3D() usage', gl,
-  function() {
-    /** @type{Array<WebGLTexture>} */ var texture = [];
-      texture[0] = gl.createTexture();
-      texture[1] = gl.createTexture();
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('texsubimage3d_neg_offset', 'Invalid gl.texSubImage3D() usage', gl,
+        function() {
+            /** @type{Array<WebGLTexture>} */ var texture = [];
+            texture[0] = gl.createTexture();
+            texture[1] = gl.createTexture();
             gl.bindTexture (gl.TEXTURE_3D, texture[0]);
             gl.texImage3D (gl.TEXTURE_3D, 0, gl.RGBA, 4, 4, 4, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
             gl.bindTexture (gl.TEXTURE_2D_ARRAY, texture[1]);
@@ -2218,11 +2211,11 @@ goog.require('functional.gles3.es3fApiCase');
             this.expectError(gl.INVALID_VALUE);
 
             gl.deleteTexture(texture[0]);
-      gl.deleteTexture(texture[1]);
+            gl.deleteTexture(texture[1]);
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('texsubimage3d_invalid_offset', 'Invalid gl.texSubImage3D() usage', gl,
-  function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('texsubimage3d_invalid_offset', 'Invalid gl.texSubImage3D() usage', gl,
+        function() {
             /** @type{WebGLTexture} */ var texture;
             texture = gl.createTexture();
             gl.bindTexture (gl.TEXTURE_3D, texture);
@@ -2244,8 +2237,8 @@ goog.require('functional.gles3.es3fApiCase');
             gl.deleteTexture(texture);
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('texsubimage3d_neg_width_height', 'Invalid gl.texSubImage3D() usage', gl,
-  function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('texsubimage3d_neg_width_height', 'Invalid gl.texSubImage3D() usage', gl,
+        function() {
             bufferedLogToConsole('gl.INVALID_VALUE is generated if width, height or depth is less than 0.');
             gl.texSubImage3D(gl.TEXTURE_3D, 0, 0, 0, 0, -1, 0, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
             this.expectError(gl.INVALID_VALUE);
@@ -2258,52 +2251,53 @@ goog.require('functional.gles3.es3fApiCase');
 
         }));
 
-  //   // testGroup.addChild(new es3fApiCase.ApiCaseCallback('texsubimage3d_invalid_buffer_target', 'Invalid gl.texSubImage3D() usage', gl,
-  // // function() {
-  //   //         /** @type{WebGLBuffer} */ var buf;
-  //   //         /** @type{WebGLTexture} */ var texture;
-  // //
-  //   //         texture = gl.createTexture();
-  //   //         gl.bindTexture (gl.TEXTURE_3D, texture);
-  //   //         gl.texImage3D (gl.TEXTURE_3D, 0, gl.RGBA, 16, 16, 16, 0, gl.RGBA, gl.UNSIGNED_BYTE, 0);
-  //   //         buf = gl.createBuffer();
-  //   //         gl.bindBuffer (gl.PIXEL_UNPACK_BUFFER, buf);
-  //   //         gl.bufferData (gl.PIXEL_UNPACK_BUFFER, 512, gl.DYNAMIC_COPY);
-  //   //         this.expectError (gl.NO_ERROR);
-  // //
-  //   //         bufferedLogToConsole('gl.INVALID_OPERATION is generated if a non-zero buffer object name is bound to the gl.PIXEL_UNPACK_BUFFER target and...');
-  // //
-  //   //         bufferedLogToConsole('...the buffer object\'s data store is currently mapped.');
-  //   //         glMapBufferRange (gl.PIXEL_UNPACK_BUFFER, 0, 512, gl.MAP_WRITE_BIT);
-  //   //         gl.texSubImage3D (gl.TEXTURE_3D, 0, 0, 0, 0, 4, 4, 4, gl.RGBA, gl.UNSIGNED_BYTE, 0);
-  //   //         this.expectError (gl.INVALID_OPERATION);
-  //   //         glUnmapBuffer (gl.PIXEL_UNPACK_BUFFER);
-  // //
-  // //
-  //   //         bufferedLogToConsole('...the data would be unpacked from the buffer object such that the memory reads required would exceed the data store size.');
-  //   //         gl.texSubImage3D (gl.TEXTURE_3D, 0, 0, 0, 0, 16, 16, 16, gl.RGBA, gl.UNSIGNED_BYTE, 0);
-  //   //         this.expectError (gl.INVALID_OPERATION);
-  // //
-  // //
-  //   //         bufferedLogToConsole('...data is not evenly divisible into the number of bytes needed to store in memory a datum indicated by type.');
-  // //     bufferedLogToConsole('// Set byte offset = 3');
-  //   //         gl.bindBuffer (gl.PIXEL_UNPACK_BUFFER, 0);
-  //   //         gl.texImage3D (gl.TEXTURE_3D, 0, gl.RGBA4, 4, 4, 4, 0, gl.RGBA, gl.UNSIGNED_SHORT_4_4_4_4, 0);
-  //   //         gl.bindBuffer (gl.PIXEL_UNPACK_BUFFER, buf);
-  //   //         this.expectError (gl.NO_ERROR);
-  //   //         gl.texSubImage3D (gl.TEXTURE_3D, 0, 0, 0, 0, 4, 4, 4, gl.RGBA, gl.UNSIGNED_SHORT_4_4_4_4, (const GLvoid*)3);
-  //   //         this.expectError (gl.INVALID_OPERATION);
-  // //
-  //   //         gl.deleteBuffer(buf);
-  //   //         gl.deleteTexture(texture);
-  //   //     }));
+        // NOTE: test cases using method MapBufferRange where commented since this method is deprecated.
+        //   // testGroup.addChild(new es3fApiCase.ApiCaseCallback('texsubimage3d_invalid_buffer_target', 'Invalid gl.texSubImage3D() usage', gl,
+        // // function() {
+        //   //         /** @type{WebGLBuffer} */ var buf;
+        //   //         /** @type{WebGLTexture} */ var texture;
+        // //
+        //   //         texture = gl.createTexture();
+        //   //         gl.bindTexture (gl.TEXTURE_3D, texture);
+        //   //         gl.texImage3D (gl.TEXTURE_3D, 0, gl.RGBA, 16, 16, 16, 0, gl.RGBA, gl.UNSIGNED_BYTE, 0);
+        //   //         buf = gl.createBuffer();
+        //   //         gl.bindBuffer (gl.PIXEL_UNPACK_BUFFER, buf);
+        //   //         gl.bufferData (gl.PIXEL_UNPACK_BUFFER, 512, gl.DYNAMIC_COPY);
+        //   //         this.expectError (gl.NO_ERROR);
+        // //
+        //   //         bufferedLogToConsole('gl.INVALID_OPERATION is generated if a non-zero buffer object name is bound to the gl.PIXEL_UNPACK_BUFFER target and...');
+        // //
+        //   //         bufferedLogToConsole('...the buffer object\'s data store is currently mapped.');
+        //   //         glMapBufferRange (gl.PIXEL_UNPACK_BUFFER, 0, 512, gl.MAP_WRITE_BIT);
+        //   //         gl.texSubImage3D (gl.TEXTURE_3D, 0, 0, 0, 0, 4, 4, 4, gl.RGBA, gl.UNSIGNED_BYTE, 0);
+        //   //         this.expectError (gl.INVALID_OPERATION);
+        //   //         glUnmapBuffer (gl.PIXEL_UNPACK_BUFFER);
+        // //
+        // //
+        //   //         bufferedLogToConsole('...the data would be unpacked from the buffer object such that the memory reads required would exceed the data store size.');
+        //   //         gl.texSubImage3D (gl.TEXTURE_3D, 0, 0, 0, 0, 16, 16, 16, gl.RGBA, gl.UNSIGNED_BYTE, 0);
+        //   //         this.expectError (gl.INVALID_OPERATION);
+        // //
+        // //
+        //   //         bufferedLogToConsole('...data is not evenly divisible into the number of bytes needed to store in memory a datum indicated by type.');
+        // //     bufferedLogToConsole('// Set byte offset = 3');
+        //   //         gl.bindBuffer (gl.PIXEL_UNPACK_BUFFER, 0);
+        //   //         gl.texImage3D (gl.TEXTURE_3D, 0, gl.RGBA4, 4, 4, 4, 0, gl.RGBA, gl.UNSIGNED_SHORT_4_4_4_4, 0);
+        //   //         gl.bindBuffer (gl.PIXEL_UNPACK_BUFFER, buf);
+        //   //         this.expectError (gl.NO_ERROR);
+        //   //         gl.texSubImage3D (gl.TEXTURE_3D, 0, 0, 0, 0, 4, 4, 4, gl.RGBA, gl.UNSIGNED_SHORT_4_4_4_4, (const GLvoid*)3);
+        //   //         this.expectError (gl.INVALID_OPERATION);
+        // //
+        //   //         gl.deleteBuffer(buf);
+        //   //         gl.deleteTexture(texture);
+        //   //     }));
 
-  //   // gl.copyTexSubImage3D
+        //   // gl.copyTexSubImage3D
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('copytexsubimage3d', 'Invalid gl.copyTexSubImage3D() usage', gl,
-  function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('copytexsubimage3d', 'Invalid gl.copyTexSubImage3D() usage', gl,
+        function() {
             /** @type{WebGLTexture} */ var texture;
-      texture = gl.createTexture();
+            texture = gl.createTexture();
             gl.bindTexture (gl.TEXTURE_3D, texture);
             gl.texImage3D (gl.TEXTURE_3D, 0, gl.RGBA, 4, 4, 4, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
 
@@ -2313,11 +2307,11 @@ goog.require('functional.gles3.es3fApiCase');
 
             gl.deleteTexture(texture);
         }));
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('copytexsubimage3d_neg_level', 'Invalid gl.copyTexSubImage3D() usage', gl,
-  function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('copytexsubimage3d_neg_level', 'Invalid gl.copyTexSubImage3D() usage', gl,
+        function() {
             /** @type{Array<WebGLTexture>} */ var texture = [];
-      texture[0] = gl.createTexture();
-      texture[1] = gl.createTexture();
+            texture[0] = gl.createTexture();
+            texture[1] = gl.createTexture();
             gl.bindTexture (gl.TEXTURE_3D, texture[0]);
             gl.texImage3D (gl.TEXTURE_3D, 0, gl.RGBA, 4, 4, 4, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
             gl.bindTexture (gl.TEXTURE_2D_ARRAY, texture[1]);
@@ -2331,17 +2325,17 @@ goog.require('functional.gles3.es3fApiCase');
             this.expectError(gl.INVALID_VALUE);
 
             gl.deleteTexture(texture[0]);
-      gl.deleteTexture(texture[1]);
+            gl.deleteTexture(texture[1]);
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('copytexsubimage3d_max_level', 'Invalid gl.copyTexSubImage3D() usage', gl,
-  function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('copytexsubimage3d_max_level', 'Invalid gl.copyTexSubImage3D() usage', gl,
+        function() {
             /** @type{number} */ var log2Max3DTextureSize = es3fNegativeTextureApiTests.deLog2Floor32(/** @type{number} */(gl.getParameter(gl.MAX_3D_TEXTURE_SIZE))) + 1;
             /** @type{number} */ var log2MaxTextureSize = es3fNegativeTextureApiTests.deLog2Floor32(/** @type{number} */(gl.getParameter(gl.MAX_TEXTURE_SIZE))) + 1;
 
-      /** @type{Array<WebGLTexture>} */ var texture = [];
-      texture[0] = gl.createTexture();
-      texture[1] = gl.createTexture();
+            /** @type{Array<WebGLTexture>} */ var texture = [];
+            texture[0] = gl.createTexture();
+            texture[1] = gl.createTexture();
             gl.bindTexture (gl.TEXTURE_3D, texture[0]);
             gl.texImage3D (gl.TEXTURE_3D, 0, gl.RGBA, 4, 4, 4, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
             gl.bindTexture (gl.TEXTURE_2D_ARRAY, texture[1]);
@@ -2356,14 +2350,14 @@ goog.require('functional.gles3.es3fApiCase');
             gl.copyTexSubImage3D(gl.TEXTURE_2D_ARRAY, log2MaxTextureSize, 0, 0, 0, 0, 0, 4, new Uint8Array(4));
             this.expectError(gl.INVALID_VALUE);
 
-      gl.deleteTexture(texture[0]);
-      gl.deleteTexture(texture[1]);
+            gl.deleteTexture(texture[0]);
+            gl.deleteTexture(texture[1]);
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('copytexsubimage3d_neg_offset', 'Invalid gl.copyTexSubImage3D() usage', gl,
-  function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('copytexsubimage3d_neg_offset', 'Invalid gl.copyTexSubImage3D() usage', gl,
+        function() {
             /** @type{ WebGLTexture} */ var texture;
-      texture = gl.createTexture();
+            texture = gl.createTexture();
             gl.bindTexture (gl.TEXTURE_3D, texture);
             gl.texImage3D (gl.TEXTURE_3D, 0, gl.RGBA, 4, 4, 4, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
 
@@ -2380,8 +2374,8 @@ goog.require('functional.gles3.es3fApiCase');
             gl.deleteTexture(texture);
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('copytexsubimage3d_invalid_offset', 'Invalid gl.copyTexSubImage3D() usage', gl,
-  function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('copytexsubimage3d_invalid_offset', 'Invalid gl.copyTexSubImage3D() usage', gl,
+        function() {
             /** @type{WebGLTexture} */ var texture;
             texture = gl.createTexture();
             gl.bindTexture (gl.TEXTURE_3D, texture);
@@ -2402,8 +2396,8 @@ goog.require('functional.gles3.es3fApiCase');
             gl.deleteTexture(texture);
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('copytexsubimage3d_neg_width_height', 'Invalid gl.copyTexSubImage3D() usage', gl,
-  function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('copytexsubimage3d_neg_width_height', 'Invalid gl.copyTexSubImage3D() usage', gl,
+        function() {
             /** @type{ WebGLTexture} */ var texture;
             texture = gl.createTexture();
             gl.bindTexture (gl.TEXTURE_3D, texture);
@@ -2419,39 +2413,41 @@ goog.require('functional.gles3.es3fApiCase');
 
             gl.deleteTexture(texture);
         }));
-// PENDING
-  //   testGroup.addChild(new es3fApiCase.ApiCaseCallback('copytexsubimage3d_incomplete_framebuffer', 'Invalid gl.copyTexSubImage3D() usage', gl,
-  // function() {
-  //     /** @type{WebGLFramebuffer} */ var fbo;
-  //     /** @type{Array<WebGLTexture>} */ var texture = [];
-  //
-  //     texture[0] = gl.createTexture();
-  //     texture[1] = gl.createTexture();
-  //
-  //           gl.bindTexture (gl.TEXTURE_3D, texture[0]);
-  //           gl.texImage3D (gl.TEXTURE_3D, 0, gl.RGBA, 4, 4, 4, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-  //           gl.bindTexture (gl.TEXTURE_2D_ARRAY, texture[1]);
-  //           gl.texImage3D (gl.TEXTURE_2D_ARRAY, 0, gl.RGBA, 4, 4, 4, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-  //           fbo = gl.createFramebuffer();
-  //           gl.bindFramebuffer (gl.READ_FRAMEBUFFER, fbo);
-  //           gl.checkFramebufferStatus(gl.READ_FRAMEBUFFER);
-  //
-  //           bufferedLogToConsole('gl.INVALID_FRAMEBUFFER_OPERATION is generated if the currently bound framebuffer is not framebuffer complete.');
-  //           gl.copyTexSubImage3D(gl.TEXTURE_3D, 0, 0, 0, 0, 0, 0, 4, null);
-  //           this.expectError(gl.INVALID_FRAMEBUFFER_OPERATION);
-  //           gl.copyTexSubImage3D(gl.TEXTURE_2D_ARRAY, 0, 0, 0, 0, 0, 0, 4, null);
-  //           this.expectError(gl.INVALID_FRAMEBUFFER_OPERATION);
-  //
-  //           gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-  //           gl.deleteFramebuffer(fbo);
-  //           gl.deleteTexture(texture[0]);
-  //           gl.deleteTexture(texture[1]);
-  //       }));
 
-    // gl.compressedTexImage3D
-  //
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedteximage3d', 'Invalid gl.compressedTexImage3D() usage', gl,
-  function() {
+        // NOTE: this code causes hang in the latest Chromium version
+        // when method gl.checkFramebufferStatus(gl.READ_FRAMEBUFFER); is executed.
+        // testGroup.addChild(new es3fApiCase.ApiCaseCallback('copytexsubimage3d_incomplete_framebuffer', 'Invalid gl.copyTexSubImage3D() usage', gl,
+        // function() {
+        //     /** @type{WebGLFramebuffer} */ var fbo;
+        //     /** @type{Array<WebGLTexture>} */ var texture = [];
+        //
+        //     texture[0] = gl.createTexture();
+        //     texture[1] = gl.createTexture();
+        //
+        //     gl.bindTexture (gl.TEXTURE_3D, texture[0]);
+        //     gl.texImage3D (gl.TEXTURE_3D, 0, gl.RGBA, 4, 4, 4, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+        //     gl.bindTexture (gl.TEXTURE_2D_ARRAY, texture[1]);
+        //     gl.texImage3D (gl.TEXTURE_2D_ARRAY, 0, gl.RGBA, 4, 4, 4, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+        //     fbo = gl.createFramebuffer();
+        //     gl.bindFramebuffer (gl.READ_FRAMEBUFFER, fbo);
+        //     gl.checkFramebufferStatus(gl.READ_FRAMEBUFFER);
+        //
+        //     bufferedLogToConsole('gl.INVALID_FRAMEBUFFER_OPERATION is generated if the currently bound framebuffer is not framebuffer complete.');
+        //     gl.copyTexSubImage3D(gl.TEXTURE_3D, 0, 0, 0, 0, 0, 0, 4, null);
+        //     this.expectError(gl.INVALID_FRAMEBUFFER_OPERATION);
+        //     gl.copyTexSubImage3D(gl.TEXTURE_2D_ARRAY, 0, 0, 0, 0, 0, 0, 4, null);
+        //     this.expectError(gl.INVALID_FRAMEBUFFER_OPERATION);
+        //
+        //     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        //     gl.deleteFramebuffer(fbo);
+        //     gl.deleteTexture(texture[0]);
+        //     gl.deleteTexture(texture[1]);
+        // }));
+
+        // gl.compressedTexImage3D
+        //
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedteximage3d', 'Invalid gl.compressedTexImage3D() usage', gl,
+        function() {
             bufferedLogToConsole('gl.INVALID_ENUM is generated if target is invalid.');
             gl.compressedTexImage3D(0, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, 0, 0, 0, 0, new Uint8Array(0));
             this.expectError(gl.INVALID_ENUM);
@@ -2466,16 +2462,16 @@ goog.require('functional.gles3.es3fApiCase');
 
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedteximage3d_neg_level', 'Invalid gl.compressedTexImage3D() usage', gl,
-  function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedteximage3d_neg_level', 'Invalid gl.compressedTexImage3D() usage', gl,
+        function() {
             bufferedLogToConsole('gl.INVALID_VALUE is generated if level is less than 0.');
             gl.compressedTexImage3D(gl.TEXTURE_2D_ARRAY, -1, gl.COMPRESSED_RGBA8_ETC2_EAC, 0, 0, 0, 0, new Uint8Array(0));
             this.expectError(gl.INVALID_VALUE);
 
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedteximage3d_max_level', 'Invalid gl.compressedTexImage3D() usage', gl,
-  function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedteximage3d_max_level', 'Invalid gl.compressedTexImage3D() usage', gl,
+        function() {
             bufferedLogToConsole('gl.INVALID_VALUE is generated if level is greater than log_2(gl.MAX_TEXTURE_SIZE).');
             /** @type{number} */ var log2MaxTextureSize = es3fNegativeTextureApiTests.deLog2Floor32(/** @type{number} */(gl.getParameter(gl.MAX_TEXTURE_SIZE))) + 1;
             gl.compressedTexImage3D(gl.TEXTURE_2D_ARRAY, log2MaxTextureSize, gl.COMPRESSED_RGBA8_ETC2_EAC, 0, 0, 0, 0, new Uint8Array(0));
@@ -2483,7 +2479,7 @@ goog.require('functional.gles3.es3fApiCase');
 
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedteximage3d_neg_width_height_depth', 'Invalid gl.compressedTexImage3D() usage', gl,
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedteximage3d_neg_width_height_depth', 'Invalid gl.compressedTexImage3D() usage', gl,
         function() {
             bufferedLogToConsole('gl.INVALID_VALUE is generated if width, height or depth is less than 0.');
             gl.compressedTexImage3D(gl.TEXTURE_2D_ARRAY, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, -1, 0, 0, 0, new Uint8Array(0));
@@ -2497,9 +2493,9 @@ goog.require('functional.gles3.es3fApiCase');
 
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedteximage3d_max_width_height_depth', 'Invalid gl.compressedTexImage3D() usage', gl,
-  function() {
-      /** @type{number} */ var maxTextureSize = /** @type{number} */(gl.getParameter(gl.MAX_TEXTURE_SIZE)) + 1;
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedteximage3d_max_width_height_depth', 'Invalid gl.compressedTexImage3D() usage', gl,
+        function() {
+            /** @type{number} */ var maxTextureSize = /** @type{number} */(gl.getParameter(gl.MAX_TEXTURE_SIZE)) + 1;
 
             bufferedLogToConsole('gl.INVALID_VALUE is generated if width, height or depth is greater than gl.MAX_TEXTURE_SIZE.');
             gl.compressedTexImage3D(gl.TEXTURE_2D_ARRAY, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, maxTextureSize, 0, 0, 0, new Uint8Array(0));
@@ -2513,8 +2509,8 @@ goog.require('functional.gles3.es3fApiCase');
 
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedteximage3d_invalid_border', 'Invalid gl.compressedTexImage3D() usage', gl,
-  function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedteximage3d_invalid_border', 'Invalid gl.compressedTexImage3D() usage', gl,
+        function() {
             bufferedLogToConsole('gl.INVALID_VALUE is generated if border is not 0.');
             gl.compressedTexImage3D(gl.TEXTURE_2D_ARRAY, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, 0, 0, 0, -1, new Uint8Array(0));
             this.expectError(gl.INVALID_VALUE);
@@ -2523,8 +2519,8 @@ goog.require('functional.gles3.es3fApiCase');
 
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedteximage3d_invalid_size', 'Invalid gl.compressedTexImage3D() usage', gl,
-  function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedteximage3d_invalid_size', 'Invalid gl.compressedTexImage3D() usage', gl,
+        function() {
             bufferedLogToConsole('gl.INVALID_VALUE is generated if imageSize is not consistent with the format, dimensions, and contents of the specified compressed image data.');
             gl.compressedTexImage3D(gl.TEXTURE_2D_ARRAY, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, 0, 0, 0, 0, new Uint8Array(0));
             this.expectError(gl.INVALID_VALUE);
@@ -2537,34 +2533,35 @@ goog.require('functional.gles3.es3fApiCase');
 
         }));
 
-  //   // testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedteximage3d_invalid_buffer_target', 'Invalid gl.compressedTexImage3D() usage', gl,
-  // // function() {
-  //   //         /** @type{WebGLBuffer} */ var buf;
-  // //
-  //   //         buf = gl.createBuffer();
-  //   //         gl.bindBuffer (gl.PIXEL_UNPACK_BUFFER, buf);
-  //   //         gl.bufferData (gl.PIXEL_UNPACK_BUFFER, 64, data[0], gl.DYNAMIC_COPY);
-  //   //         this.expectError (gl.NO_ERROR);
-  // //
-  //   //         bufferedLogToConsole('gl.INVALID_OPERATION is generated if a non-zero buffer object name is bound to the gl.PIXEL_UNPACK_BUFFER target and the buffer object\'s data store is currently mapped.');
-  //   //         glMapBufferRange(gl.PIXEL_UNPACK_BUFFER, 0, 64, gl.MAP_WRITE_BIT);
-  //   //         gl.compressedTexImage3D (gl.TEXTURE_2D_ARRAY, 0, gl.COMPRESSED_RGB8_ETC2, 4, 4, 1, 0, es3fNegativeTextureApiTests.etc2EacDataSize(4, 4), 0);
-  //   //         this.expectError (gl.INVALID_OPERATION);
-  //   //         glUnmapBuffer (gl.PIXEL_UNPACK_BUFFER);
-  // //
-  // //
-  //   //         bufferedLogToConsole('gl.INVALID_OPERATION is generated if a non-zero buffer object name is bound to the gl.PIXEL_UNPACK_BUFFER target and the data would be unpacked from the buffer object such that the memory reads required would exceed the data store size.');
-  //   //         gl.compressedTexImage3D (gl.TEXTURE_2D_ARRAY, 0, gl.COMPRESSED_RGB8_ETC2, 16, 16, 1, 0, es3fNegativeTextureApiTests.etc2EacDataSize(16, 16), 0);
-  //   //         this.expectError (gl.INVALID_OPERATION);
-  // //
-  // //
-  //   //         gl.deleteBuffer(buf);
-  //   //     }));
+        // NOTE: test cases using method MapBufferRange where commented since this method is deprecated.
+        //   // testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedteximage3d_invalid_buffer_target', 'Invalid gl.compressedTexImage3D() usage', gl,
+        // // function() {
+        //   //         /** @type{WebGLBuffer} */ var buf;
+        // //
+        //   //         buf = gl.createBuffer();
+        //   //         gl.bindBuffer (gl.PIXEL_UNPACK_BUFFER, buf);
+        //   //         gl.bufferData (gl.PIXEL_UNPACK_BUFFER, 64, data[0], gl.DYNAMIC_COPY);
+        //   //         this.expectError (gl.NO_ERROR);
+        // //
+        //   //         bufferedLogToConsole('gl.INVALID_OPERATION is generated if a non-zero buffer object name is bound to the gl.PIXEL_UNPACK_BUFFER target and the buffer object\'s data store is currently mapped.');
+        //   //         glMapBufferRange(gl.PIXEL_UNPACK_BUFFER, 0, 64, gl.MAP_WRITE_BIT);
+        //   //         gl.compressedTexImage3D (gl.TEXTURE_2D_ARRAY, 0, gl.COMPRESSED_RGB8_ETC2, 4, 4, 1, 0, es3fNegativeTextureApiTests.etc2EacDataSize(4, 4), 0);
+        //   //         this.expectError (gl.INVALID_OPERATION);
+        //   //         glUnmapBuffer (gl.PIXEL_UNPACK_BUFFER);
+        // //
+        // //
+        //   //         bufferedLogToConsole('gl.INVALID_OPERATION is generated if a non-zero buffer object name is bound to the gl.PIXEL_UNPACK_BUFFER target and the data would be unpacked from the buffer object such that the memory reads required would exceed the data store size.');
+        //   //         gl.compressedTexImage3D (gl.TEXTURE_2D_ARRAY, 0, gl.COMPRESSED_RGB8_ETC2, 16, 16, 1, 0, es3fNegativeTextureApiTests.etc2EacDataSize(16, 16), 0);
+        //   //         this.expectError (gl.INVALID_OPERATION);
+        // //
+        // //
+        //   //         gl.deleteBuffer(buf);
+        //   //     }));
 
-  //   // gl.compressedTexSubImage3D
+        //   // gl.compressedTexSubImage3D
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedtexsubimage3d', 'Invalid gl.compressedTexSubImage3D() usage', gl,
-  function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedtexsubimage3d', 'Invalid gl.compressedTexSubImage3D() usage', gl,
+        function() {
             bufferedLogToConsole('gl.INVALID_ENUM is generated if target is invalid.');
             gl.compressedTexSubImage3D(0, 0, 0, 0, 0, 0, 0, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, new Uint8Array(0));
             this.expectError(gl.INVALID_ENUM);
@@ -2602,8 +2599,8 @@ goog.require('functional.gles3.es3fApiCase');
             gl.deleteTexture(texture);
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedtexsubimage3d_neg_level', 'Invalid gl.compressedTexSubImage3D() usage', gl,
-  function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedtexsubimage3d_neg_level', 'Invalid gl.compressedTexSubImage3D() usage', gl,
+        function() {
             /** @type{WebGLTexture} */ var texture;
             texture = gl.createTexture();
             gl.bindTexture (gl.TEXTURE_2D_ARRAY, texture);
@@ -2617,8 +2614,8 @@ goog.require('functional.gles3.es3fApiCase');
             gl.deleteTexture(texture);
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedtexsubimage3d_max_level', 'Invalid gl.compressedTexSubImage3D() usage', gl,
-  function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedtexsubimage3d_max_level', 'Invalid gl.compressedTexSubImage3D() usage', gl,
+        function() {
             /** @type{WebGLTexture} */ var texture;
             texture = gl.createTexture();
             gl.bindTexture (gl.TEXTURE_2D_ARRAY, texture);
@@ -2633,8 +2630,8 @@ goog.require('functional.gles3.es3fApiCase');
             gl.deleteTexture(texture);
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedtexsubimage3d_neg_offset', 'Invalid gl.compressedTexSubImage3D() usage', gl,
-  function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedtexsubimage3d_neg_offset', 'Invalid gl.compressedTexSubImage3D() usage', gl,
+        function() {
             /** @type{WebGLTexture} */ var texture;
             texture = gl.createTexture();
             gl.bindTexture (gl.TEXTURE_2D_ARRAY, texture);
@@ -2654,8 +2651,8 @@ goog.require('functional.gles3.es3fApiCase');
             gl.deleteTexture(texture);
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedtexsubimage3d_invalid_offset', 'Invalid gl.compressedTexSubImage3D() usage', gl,
-  function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedtexsubimage3d_invalid_offset', 'Invalid gl.compressedTexSubImage3D() usage', gl,
+        function() {
             /** @type{WebGLTexture} */ var texture;
             texture = gl.createTexture();
             gl.bindTexture (gl.TEXTURE_2D_ARRAY, texture);
@@ -2676,8 +2673,8 @@ goog.require('functional.gles3.es3fApiCase');
             gl.deleteTexture(texture);
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedtexsubimage3d_neg_width_height_depth', 'Invalid gl.compressedTexSubImage3D() usage', gl,
-  function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedtexsubimage3d_neg_width_height_depth', 'Invalid gl.compressedTexSubImage3D() usage', gl,
+        function() {
             /** @type{WebGLTexture} */ var texture;
             texture = gl.createTexture();
             gl.bindTexture (gl.TEXTURE_2D_ARRAY, texture);
@@ -2697,8 +2694,8 @@ goog.require('functional.gles3.es3fApiCase');
             gl.deleteTexture(texture);
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedtexsubimage3d_invalid_size', 'Invalid gl.compressedTexSubImage3D() usage', gl,
-  function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedtexsubimage3d_invalid_size', 'Invalid gl.compressedTexSubImage3D() usage', gl,
+        function() {
             /** @type{WebGLTexture} */ var texture;
             texture = gl.createTexture();
             gl.bindTexture (gl.TEXTURE_2D_ARRAY, texture);
@@ -2715,39 +2712,40 @@ goog.require('functional.gles3.es3fApiCase');
             gl.deleteTexture(texture);
         }));
 
-  //   // testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedtexsubimage3d_invalid_buffer_target', 'Invalid gl.compressedTexSubImage3D() usage', gl,
-  // // function() {
-  //   //         /** @type{WebGLBuffer} */ var buf;
-  //   //         /** @type{WebGLTexture} */ var texture;
-  // //
-  // //     texture = gl.createTexture();
-  //   //         gl.bindTexture (gl.TEXTURE_2D_ARRAY, texture);
-  //   //         gl.compressedTexImage3D (gl.TEXTURE_2D_ARRAY, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, 16, 16, 1, 0, es3fNegativeTextureApiTests.etc2EacDataSize(16, 16), 0);
-  //   //         buf = gl.createBuffer();
-  //   //         gl.bindBuffer (gl.PIXEL_UNPACK_BUFFER, buf);
-  //   //         gl.bufferData (gl.PIXEL_UNPACK_BUFFER, 512, data[0], gl.DYNAMIC_COPY);
-  //   //         this.expectError (gl.NO_ERROR);
-  // //
-  //   //         bufferedLogToConsole('gl.INVALID_OPERATION is generated if a non-zero buffer object name is bound to the gl.PIXEL_UNPACK_BUFFER target and...');
-  //   //         bufferedLogToConsole('...the buffer object\'s data store is currently mapped.');
-  //   //         glMapBufferRange (gl.PIXEL_UNPACK_BUFFER, 0, 512, gl.MAP_WRITE_BIT);
-  //   //         gl.compressedTexSubImage3D (gl.TEXTURE_2D_ARRAY, 0, 0, 0, 0, 4, 4, 1, gl.COMPRESSED_RGBA8_ETC2_EAC, es3fNegativeTextureApiTests.etc2EacDataSize(4, 4), 0);
-  //   //         this.expectError (gl.INVALID_OPERATION);
-  //   //         glUnmapBuffer (gl.PIXEL_UNPACK_BUFFER);
-  // //
-  // //
-  //   //         bufferedLogToConsole('...the data would be unpacked from the buffer object such that the memory reads required would exceed the data store size.');
-  //   //         gl.compressedTexSubImage3D (gl.TEXTURE_2D_ARRAY, 0, 0, 0, 0, 32, 32, 1, gl.COMPRESSED_RGBA8_ETC2_EAC, es3fNegativeTextureApiTests.etc2EacDataSize(32, 32), 0);
-  //   //         this.expectError (gl.INVALID_OPERATION);
-  // //
-  //   //         gl.deleteBuffer(buf);
-  //   //         gl.deleteTexture(texture);
-  //   //     }));
+        // NOTE: test cases using method MapBufferRange where commented since this method is deprecated.
+        //   // testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedtexsubimage3d_invalid_buffer_target', 'Invalid gl.compressedTexSubImage3D() usage', gl,
+        // // function() {
+        //   //         /** @type{WebGLBuffer} */ var buf;
+        //   //         /** @type{WebGLTexture} */ var texture;
+        // //
+        // //     texture = gl.createTexture();
+        //   //         gl.bindTexture (gl.TEXTURE_2D_ARRAY, texture);
+        //   //         gl.compressedTexImage3D (gl.TEXTURE_2D_ARRAY, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, 16, 16, 1, 0, es3fNegativeTextureApiTests.etc2EacDataSize(16, 16), 0);
+        //   //         buf = gl.createBuffer();
+        //   //         gl.bindBuffer (gl.PIXEL_UNPACK_BUFFER, buf);
+        //   //         gl.bufferData (gl.PIXEL_UNPACK_BUFFER, 512, data[0], gl.DYNAMIC_COPY);
+        //   //         this.expectError (gl.NO_ERROR);
+        // //
+        //   //         bufferedLogToConsole('gl.INVALID_OPERATION is generated if a non-zero buffer object name is bound to the gl.PIXEL_UNPACK_BUFFER target and...');
+        //   //         bufferedLogToConsole('...the buffer object\'s data store is currently mapped.');
+        //   //         glMapBufferRange (gl.PIXEL_UNPACK_BUFFER, 0, 512, gl.MAP_WRITE_BIT);
+        //   //         gl.compressedTexSubImage3D (gl.TEXTURE_2D_ARRAY, 0, 0, 0, 0, 4, 4, 1, gl.COMPRESSED_RGBA8_ETC2_EAC, es3fNegativeTextureApiTests.etc2EacDataSize(4, 4), 0);
+        //   //         this.expectError (gl.INVALID_OPERATION);
+        //   //         glUnmapBuffer (gl.PIXEL_UNPACK_BUFFER);
+        // //
+        // //
+        //   //         bufferedLogToConsole('...the data would be unpacked from the buffer object such that the memory reads required would exceed the data store size.');
+        //   //         gl.compressedTexSubImage3D (gl.TEXTURE_2D_ARRAY, 0, 0, 0, 0, 32, 32, 1, gl.COMPRESSED_RGBA8_ETC2_EAC, es3fNegativeTextureApiTests.etc2EacDataSize(32, 32), 0);
+        //   //         this.expectError (gl.INVALID_OPERATION);
+        // //
+        //   //         gl.deleteBuffer(buf);
+        //   //         gl.deleteTexture(texture);
+        //   //     }));
 
-  //   // gl.texStorage2D
+        //   // gl.texStorage2D
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('texstorage2d', 'Invalid gl.texStorage2D() usage', gl,
-  function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('texstorage2d', 'Invalid gl.texStorage2D() usage', gl,
+        function() {
             /** @type{WebGLTexture} */ var texture;
             texture = gl.createTexture();
             gl.bindTexture (gl.TEXTURE_2D, texture);
@@ -2777,8 +2775,8 @@ goog.require('functional.gles3.es3fApiCase');
             gl.deleteTexture(texture);
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('texstorage2d_invalid_binding', 'Invalid gl.texStorage2D() usage', gl,
-  function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('texstorage2d_invalid_binding', 'Invalid gl.texStorage2D() usage', gl,
+        function() {
             gl.bindTexture (gl.TEXTURE_2D, null);
 
             bufferedLogToConsole('gl.INVALID_OPERATION is generated if the default texture object is curently bound to target.');
@@ -2803,8 +2801,8 @@ goog.require('functional.gles3.es3fApiCase');
             gl.deleteTexture(texture);
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('texstorage2d_invalid_levels', 'Invalid gl.texStorage2D() usage', gl,
-  function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('texstorage2d_invalid_levels', 'Invalid gl.texStorage2D() usage', gl,
+        function() {
             /** @type{WebGLTexture} */ var texture;
             texture = gl.createTexture();
             gl.bindTexture (gl.TEXTURE_2D, texture);
@@ -2827,10 +2825,10 @@ goog.require('functional.gles3.es3fApiCase');
             gl.deleteTexture(texture);
         }));
 
-  //   // gl.texStorage3D
+        //   // gl.texStorage3D
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('texstorage3d', 'Invalid gl.texStorage3D() usage', gl,
-  function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('texstorage3d', 'Invalid gl.texStorage3D() usage', gl,
+        function() {
             /** @type{WebGLTexture} */ var texture;
             texture = gl.createTexture();
             gl.bindTexture (gl.TEXTURE_3D, texture);
@@ -2862,8 +2860,8 @@ goog.require('functional.gles3.es3fApiCase');
             gl.deleteTexture(texture);
         }));
 
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('texstorage3d_invalid_binding', 'Invalid gl.texStorage3D() usage', gl,
-  function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('texstorage3d_invalid_binding', 'Invalid gl.texStorage3D() usage', gl,
+        function() {
             gl.bindTexture (gl.TEXTURE_3D, null);
 
             bufferedLogToConsole('gl.INVALID_OPERATION is generated if the default texture object is curently bound to target.');
@@ -2877,18 +2875,18 @@ goog.require('functional.gles3.es3fApiCase');
             bufferedLogToConsole('gl.INVALID_OPERATION is generated if the texture object currently bound to target already has gl.TEXTURE_IMMUTABLE_FORMAT set to true.');
             /** @type{number} */ var immutable;
             immutable = /** @type{number} */(gl.getTexParameter(gl.TEXTURE_3D, gl.TEXTURE_IMMUTABLE_FORMAT));
-      bufferedLogToConsole('// gl.TEXTURE_IMMUTABLE_FORMAT = ' + ((immutable != 0) ? 'true' : 'false'));
+            bufferedLogToConsole('// gl.TEXTURE_IMMUTABLE_FORMAT = ' + ((immutable != 0) ? 'true' : 'false'));
             gl.texStorage3D (gl.TEXTURE_3D, 1, gl.RGBA8, 4, 4, 4);
             this.expectError (gl.NO_ERROR);
             immutable = /** @type{number} */(gl.getTexParameter(gl.TEXTURE_3D, gl.TEXTURE_IMMUTABLE_FORMAT));
-      bufferedLogToConsole('// gl.TEXTURE_IMMUTABLE_FORMAT = ' + ((immutable != 0) ? 'true' : 'false'));
+            bufferedLogToConsole('// gl.TEXTURE_IMMUTABLE_FORMAT = ' + ((immutable != 0) ? 'true' : 'false'));
             gl.texStorage3D (gl.TEXTURE_3D, 1, gl.RGBA8, 4, 4, 4);
             this.expectError (gl.INVALID_OPERATION);
 
             gl.deleteTexture(texture);
         }));
-    testGroup.addChild(new es3fApiCase.ApiCaseCallback('texstorage3d_invalid_levels', 'Invalid gl.texStorage3D() usage', gl,
-  function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('texstorage3d_invalid_levels', 'Invalid gl.texStorage3D() usage', gl,
+        function() {
             /** @type{WebGLTexture} */ var texture;
             texture = gl.createTexture();
             gl.bindTexture (gl.TEXTURE_3D, texture);
@@ -2912,30 +2910,29 @@ goog.require('functional.gles3.es3fApiCase');
 
             gl.deleteTexture(texture);
         }));
-};
+    };
 
-/**
-* @param {WebGLRenderingContextBase} gl
-*/
-es3fNegativeTextureApiTests.run = function(gl) {
-    var testName = 'negativeTextureApi';
-    var testDescription = 'Negative Texture API tests';
-    var state = tcuTestCase.runner;
+    /**
+    * @param {WebGLRenderingContextBase} gl
+    */
+    es3fNegativeTextureApiTests.run = function(gl) {
+        var testName = 'negativeTextureApi';
+        var testDescription = 'Negative Texture API tests';
+        var state = tcuTestCase.runner;
 
-    state.testName = testName;
-    state.testCases = tcuTestCase.newTest(testName, testDescription, null);
+        state.testName = testName;
+        state.testCases = tcuTestCase.newTest(testName, testDescription, null);
 
-    //Set up name and description of this test series.
-    setCurrentTestName(testName);
-    description(testDescription);
-    try {
-        es3fNegativeTextureApiTests.init(gl);
-        tcuTestCase.runner.runCallback(tcuTestCase.runTestCases);
-    } catch (err) {
-        console.log(err);
-        bufferedLogToConsole(err);
-        tcuTestCase.runner.terminate();
-    }
-};
+        //Set up name and description of this test series.
+        setCurrentTestName(testName);
+        description(testDescription);
+        try {
+            es3fNegativeTextureApiTests.init(gl);
+            tcuTestCase.runner.runCallback(tcuTestCase.runTestCases);
+        } catch (err) {
+            bufferedLogToConsole(err);
+            tcuTestCase.runner.terminate();
+        }
+    };
 
 });
