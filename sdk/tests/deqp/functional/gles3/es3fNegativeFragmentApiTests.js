@@ -40,7 +40,7 @@ goog.scope(function() {
     };
 
     /**
-     * @param {WebGLRenderingContextBase} gl
+     * @param {WebGL2RenderingContext} gl
      */
     es3fNegativeFragmentApiTests.init = function(gl) {
 
