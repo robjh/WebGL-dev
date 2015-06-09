@@ -2563,11 +2563,11 @@ goog.scope(function() {
         testGroup.addChild(new es3fApiCase.ApiCaseCallback('compressedtexsubimage3d', 'Invalid gl.compressedTexSubImage3D() usage', gl,
         function() {
             bufferedLogToConsole('gl.INVALID_ENUM is generated if target is invalid.');
+            /** @type{WebGLTexture} */ var texture;
+            texture = gl.createTexture();
             gl.compressedTexSubImage3D(0, 0, 0, 0, 0, 0, 0, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, new Uint8Array(0));
             this.expectError(gl.INVALID_ENUM);
 
-            /** @type{WebGLTexture} */ var texture;
-            texture = gl.createTexture();
             gl.bindTexture (gl.TEXTURE_2D_ARRAY, texture);
             gl.compressedTexImage3D (gl.TEXTURE_2D_ARRAY, 0, gl.COMPRESSED_RGBA8_ETC2_EAC, 18, 18, 1, 0, new Uint8Array(es3fNegativeTextureApiTests.etc2EacDataSize(18, 18)));
             this.expectError (gl.NO_ERROR);
@@ -2885,6 +2885,8 @@ goog.scope(function() {
 
             gl.deleteTexture(texture);
         }));
+
+        // NOTE: the test doesn't cause glError using the parameters defined in the original test of C code
         testGroup.addChild(new es3fApiCase.ApiCaseCallback('texstorage3d_invalid_levels', 'Invalid gl.texStorage3D() usage', gl,
         function() {
             /** @type{WebGLTexture} */ var texture;
@@ -2913,7 +2915,7 @@ goog.scope(function() {
     };
 
     /**
-    * @param {WebGLRenderingContextBase} gl
+    * @param {WebGL2RenderingContext} gl
     */
     es3fNegativeTextureApiTests.run = function(gl) {
         var testName = 'negativeTextureApi';
