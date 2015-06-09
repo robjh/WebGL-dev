@@ -74,38 +74,38 @@ goog.scope(function() {
         //JS RefRast only draws quads, so changing the primitive counts, leave original commented
         if (type == es3fDrawTests.TestIterationType.DRAW_COUNT) {
             spec.primitiveCount = 2;
-            test.addIteration(spec, "draw count = 2");
+            test.addIteration(spec, 'draw count = ' + spec.primitiveCount);
 
             spec.primitiveCount = 6;
-            test.addIteration(spec, "draw count = 6");
+            test.addIteration(spec, 'draw count = ' + spec.primitiveCount);
 
             spec.primitiveCount = 26;
-            test.addIteration(spec, "draw count = 26");
+            test.addIteration(spec, 'draw count = ' + spec.primitiveCount);
         }
         else if (type == es3fDrawTests.TestIterationType.INSTANCE_COUNT) {
-            spec.instanceCount = 2;
-            test.addIteration(spec, "instance count = 2");
+            spec.instanceCount = 1;
+            test.addIteration(spec, 'instance count = ' + spec.instanceCount);
 
             spec.instanceCount = 4;
-            test.addIteration(spec, "instance count = 4");
+            test.addIteration(spec, 'instance count = ' + spec.instanceCount);
 
-            spec.instanceCount = 12;
-            test.addIteration(spec, "instance count = 12");
+            spec.instanceCount = 11;
+            test.addIteration(spec, 'instance count = ' + spec.instanceCount);
         }
         else if (type == es3fDrawTests.TestIterationType.INDEX_RANGE) {
             spec.indexMin = 0;
             spec.indexMax = 24;
-            test.addIteration(spec, "index range = [0, 24]");
+            test.addIteration(spec, 'index range = [' + spec.indexMin + ', ' + spec.indexMax + ']');
 
             spec.indexMin = 24;
-            spec.indexMax = 40;
-            test.addIteration(spec, "index range = [24, 40]");
+            spec.indexMax = 41;
+            test.addIteration(spec, 'index range = [' + spec.indexMin + ', ' + spec.indexMax + ']');
 
             // Only makes sense with points
             if (spec.primitive == glsDrawTests.DrawTestSpec.Primitive.POINTS) {
-                spec.indexMin = 6;
-                spec.indexMax = 6;
-                test.addIteration(spec, "index range = [6, 6]");
+                spec.indexMin = 5;
+                spec.indexMax = 5;
+                test.addIteration(spec, 'index range = [' + spec.indexMin + ', ' + spec.indexMax + ']');
             }
         }
         else
@@ -337,7 +337,7 @@ goog.scope(function() {
         spec.indexStorage = this.m_indexStorage;
         spec.first = 0;
         spec.indexMin = 0;
-        spec.indexMax = 20; // \note addTestIterations is not called for the spec, so we must ensure [indexMin, indexMax] is a good range
+        spec.indexMax = 17; // \note addTestIterations is not called for the spec, so we must ensure [indexMin, indexMax] is a good range
         spec.instanceCount = 1;
 
         spec.attribs.length = 0;

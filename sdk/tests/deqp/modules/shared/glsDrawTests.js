@@ -1479,11 +1479,13 @@ goog.scope(function() {
         for (var componentNdx = 0; componentNdx < vertexParameters.componentCount; componentNdx++) {
             components[componentNdx] = glsDrawTests.GLValue.getRandom(vertexParameters.rnd, vertexParameters.min, vertexParameters.max);
 
+            var minSeparation = glsDrawTests.GLValue.minValue(vertexParameters.min.getType());
+
             // Try to not create vertex near previous
-            if (previousComponents.length > 0 && glsDrawTests.GLValue.abs(components[componentNdx].sub(previousComponents[componentNdx])).lessThan(vertexParameters.min)) {
+            if (previousComponents.length > 0 && glsDrawTests.GLValue.abs(components[componentNdx].sub(previousComponents[componentNdx])).lessThan(minSeparation)) {
                 // Too close, try again (but only once)
                 components[componentNdx] = glsDrawTests.GLValue.getRandom(vertexParameters.rnd, vertexParameters.min, vertexParameters.max);
-            }
+            };
         }
         return components;
     };
@@ -1688,7 +1690,8 @@ goog.scope(function() {
                     case 4: indexValue = new Uint32Array(indexValue)[0]; break;
                     default: throw new Error('Invalid index type size: ' + indexSize);
                 }
-                reorderedview.set(view.subarray(index * componentCount * componentSize, (index + 1) * componentCount * componentSize), indexValue * componentCount * componentSize);
+                if(indexValue < elementCount)
+                    reorderedview.set(view.subarray(index * componentCount * componentSize, (index + 1) * componentCount * componentSize), indexValue * componentCount * componentSize);
             }
             data = reorderedbuffer;
         }
