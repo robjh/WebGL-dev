@@ -46,17 +46,6 @@ goog.scope(function() {
 
         var testGroup = tcuTestCase.runner.testCases;
 
-        testGroup.addChild(new es3fApiCase.ApiCaseCallback('activetexture', 'Invalid gl.ActiveTexture() usage', gl,
-        function() {
-            bufferedLogToConsole('gl.INVALID_ENUM is generated if texture is not one of gl.TEXTUREi, where i ranges from 0 to (gl.MAX_COMBINED_TEXTURE_IMAGE_UNITS - 1).');
-            gl.activeTexture(-1);
-             this.expectError(gl.INVALID_ENUM);
-            /** @type {number} */ var numMaxTextureUnits = /** @type {number} */(gl.getParameter(gl.MAX_COMBINED_TEXTURE_IMAGE_UNITS));
-            gl.activeTexture(gl.TEXTURE0 + numMaxTextureUnits);
-            this.expectError(gl.INVALID_ENUM);
-
-        }));
-
         testGroup.addChild(new es3fApiCase.ApiCaseCallback('scissor', 'Invalid gl.scissor() usage', gl, function() {
             bufferedLogToConsole('gl.INVALID_VALUE is generated if either width or height is negative.');
             gl.scissor(0, 0, -1, 0);
@@ -208,12 +197,13 @@ goog.scope(function() {
         }));
 
         // Asynchronous queries
-
+        // NOTE: for javascript version the method createQuery doesn't receive params so is not possible to make it fail
+        // passing an invalid param.
         testGroup.addChild(new es3fApiCase.ApiCaseCallback('gen_queries', 'Invalid glGenQueries() usage', gl, function() {
             bufferedLogToConsole('gl.INVALID_VALUE is generated if n is negative.');
             /** @type{WebGLQuery} */ var ids;
             ids = gl.createQuery();
-            this.expectError		(gl.INVALID_VALUE);
+            this.expectError(gl.INVALID_VALUE);
 
         }));
 
@@ -234,43 +224,43 @@ goog.scope(function() {
             this.expectError(gl.INVALID_OPERATION);
             // \note gl.ANY_SAMPLES_PASSED and gl.ANY_SAMPLES_PASSED_CONSERVATIVE alias to the same target for the purposes of this error.
             gl.beginQuery(gl.ANY_SAMPLES_PASSED_CONSERVATIVE, ids[1]);
-            this.expectError		(gl.INVALID_OPERATION);
+            this.expectError(gl.INVALID_OPERATION);
             gl.beginQuery(gl.TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN, ids[1]);
-            this.expectError		(gl.NO_ERROR);
+            this.expectError(gl.NO_ERROR);
             gl.beginQuery(gl.TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN, ids[2]);
-            this.expectError		(gl.INVALID_OPERATION);
-            gl.endQuery		(gl.ANY_SAMPLES_PASSED);
-            gl.endQuery		(gl.TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN);
-            this.expectError		(gl.NO_ERROR);
+            this.expectError(gl.INVALID_OPERATION);
+            gl.endQuery(gl.ANY_SAMPLES_PASSED);
+            gl.endQuery(gl.TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN);
+            this.expectError(gl.NO_ERROR);
 
             bufferedLogToConsole('gl.INVALID_OPERATION is generated if id is 0.');
-            gl.beginQuery	(gl.ANY_SAMPLES_PASSED, 0);
-            this.expectError		(gl.INVALID_OPERATION);
+            gl.beginQuery(gl.ANY_SAMPLES_PASSED, ids[0]);
+            this.expectError(gl.INVALID_OPERATION);
 
             bufferedLogToConsole('gl.INVALID_OPERATION is generated if id not a name returned from a previous call to glGenQueries, or if such a name has since been deleted with gl.deleteQuery.');
-            gl.beginQuery	(gl.ANY_SAMPLES_PASSED, -1);
-            this.expectError		(gl.INVALID_OPERATION);
+            gl.beginQuery(gl.ANY_SAMPLES_PASSED, null);
+            this.expectError(gl.INVALID_OPERATION);
             gl.deleteQuery(ids[2]);
-            this.expectError		(gl.NO_ERROR);
-            gl.beginQuery	(gl.ANY_SAMPLES_PASSED, ids[2]);
-            this.expectError		(gl.INVALID_OPERATION);
+            this.expectError(gl.NO_ERROR);
+            gl.beginQuery(gl.ANY_SAMPLES_PASSED, ids[2]);
+            this.expectError(gl.INVALID_OPERATION);
 
             bufferedLogToConsole('gl.INVALID_OPERATION is generated if id is the name of an already active query object.');
-            gl.beginQuery	(gl.ANY_SAMPLES_PASSED, ids[0]);
-            this.expectError		(gl.NO_ERROR);
-            gl.beginQuery	(gl.TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN, ids[0]);
-            this.expectError		(gl.INVALID_OPERATION);
+            gl.beginQuery(gl.ANY_SAMPLES_PASSED, ids[0]);
+            this.expectError(gl.NO_ERROR);
+            gl.beginQuery(gl.TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN, ids[0]);
+            this.expectError(gl.INVALID_OPERATION);
 
             bufferedLogToConsole('gl.INVALID_OPERATION is generated if id refers to an existing query object whose type does not does not match target.');
-            gl.endQuery		(gl.ANY_SAMPLES_PASSED);
-            this.expectError		(gl.NO_ERROR);
-            gl.beginQuery	(gl.TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN, ids[0]);
-            this.expectError		(gl.INVALID_OPERATION);
+            gl.endQuery(gl.ANY_SAMPLES_PASSED);
+            this.expectError(gl.NO_ERROR);
+            gl.beginQuery(gl.TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN, ids[0]);
+            this.expectError(gl.INVALID_OPERATION);
 
             gl.deleteQuery(ids[0]);
             gl.deleteQuery(ids[1]);
             gl.deleteQuery(ids[2]);
-            this.expectError		(gl.NO_ERROR);
+            this.expectError(gl.NO_ERROR);
         }));
 
         testGroup.addChild(new es3fApiCase.ApiCaseCallback('end_query', 'Invalid gl.endQuery() usage', gl, function() {
@@ -278,21 +268,21 @@ goog.scope(function() {
             id = gl.createQuery();
 
             bufferedLogToConsole('gl.INVALID_ENUM is generated if target is not one of the accepted tokens.');
-            gl.endQuery		(-1);
-            this.expectError		(gl.INVALID_ENUM);
+            gl.endQuery(-1);
+            this.expectError(gl.INVALID_ENUM);
 
             bufferedLogToConsole('gl.INVALID_OPERATION is generated if gl.endQuery is executed when a query object of the same target is not active.');
-            gl.endQuery		(gl.ANY_SAMPLES_PASSED);
-            this.expectError		(gl.INVALID_OPERATION);
-            gl.beginQuery	(gl.ANY_SAMPLES_PASSED, id);
-            this.expectError		(gl.NO_ERROR);
-            gl.endQuery		(gl.TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN);
-            this.expectError		(gl.INVALID_OPERATION);
-            gl.endQuery		(gl.ANY_SAMPLES_PASSED);
-            this.expectError		(gl.NO_ERROR);
+            gl.endQuery(gl.ANY_SAMPLES_PASSED);
+            this.expectError(gl.INVALID_OPERATION);
+            gl.beginQuery(gl.ANY_SAMPLES_PASSED, id);
+            this.expectError(gl.NO_ERROR);
+            gl.endQuery(gl.TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN);
+            this.expectError(gl.INVALID_OPERATION);
+            gl.endQuery(gl.ANY_SAMPLES_PASSED);
+            this.expectError(gl.NO_ERROR);
 
             gl.deleteQuery(id);
-            this.expectError		(gl.NO_ERROR);
+            this.expectError(gl.NO_ERROR);
         }));
 
         testGroup.addChild(new es3fApiCase.ApiCaseCallback('delete_queries', 'Invalid gl.deleteQuery() usage', gl, function() {
@@ -300,8 +290,8 @@ goog.scope(function() {
             id = gl.createQuery();
 
             bufferedLogToConsole('gl.INVALID_VALUE is generated if n is negative.');
-            gl.deleteQuery(id);
-            this.expectError		(gl.INVALID_VALUE);
+            gl.deleteQuery(null);
+            this.expectError(gl.INVALID_VALUE);
 
             gl.deleteQuery(id);
         }));
@@ -323,7 +313,7 @@ goog.scope(function() {
             /** @type{WebGLSync} */ var sync = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
 
             bufferedLogToConsole('gl.INVALID_VALUE is generated if sync is not the name of a sync object.');
-            gl.waitSync(0, 0, gl.TIMEOUT_IGNORED);
+            gl.waitSync(null, 0, gl.TIMEOUT_IGNORED);
             this.expectError(gl.INVALID_VALUE);
 
             bufferedLogToConsole('gl.INVALID_VALUE is generated if flags is not zero.');
@@ -341,7 +331,7 @@ goog.scope(function() {
             /** @type{WebGLSync} */ var sync = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
 
             bufferedLogToConsole('gl.INVALID_VALUE is generated if sync is not the name of an existing sync object.');
-            gl.clientWaitSync (0, 0, 10000);
+            gl.clientWaitSync (null, 0, 10000);
             this.expectError(gl.INVALID_VALUE);
 
             bufferedLogToConsole('gl.INVALID_VALUE is generated if flags contains any unsupported flag.');
@@ -353,9 +343,9 @@ goog.scope(function() {
 
         testGroup.addChild(new es3fApiCase.ApiCaseCallback('delete_sync', 'Invalid gl.deleteSync() usage', gl, function() {
             bufferedLogToConsole('gl.INVALID_VALUE is generated if sync is neither zero or the name of a sync object.');
-            gl.deleteSync(1);
+            gl.deleteSync(null);
             this.expectError(gl.INVALID_VALUE);
-            gl.deleteSync(0);
+            gl.deleteSync(gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0));
             this.expectError(gl.NO_ERROR);
 
         }));
