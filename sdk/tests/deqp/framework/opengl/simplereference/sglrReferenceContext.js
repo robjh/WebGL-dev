@@ -2511,7 +2511,6 @@ goog.scope(function() {
         this.drawElements(mode, count, type, offset);
     };
 
-
     /**
     * @param {number} mode GL primitive type to draw with.
     * @param {number} count How many vertices to draw (not counting vertices before first)
