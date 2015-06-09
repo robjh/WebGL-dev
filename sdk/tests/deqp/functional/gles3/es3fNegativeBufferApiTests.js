@@ -1003,6 +1003,39 @@ goog.scope(function() {
                 gl.deleteFramebuffer(fbo);
             }
         ));
+        
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'invalidate_sub_framebuffer', 'Invalid gl.invalidateSubFramebuffer() usage', gl,
+            function() {
+            
+                var fbo = gl.createFramebuffer();
+                gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+
+                var texture = gl.createTexture();
+                gl.bindTexture(gl.TEXTURE_2D, texture);
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 32, 32, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+            
+                gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
+                gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+                this.expectError(gl.NO_ERROR);
+                
+                var maxColorAttachments = gl.getParameter(gl.MAX_COLOR_ATTACHMENTS);
+                var att0 = [gl.COLOR_ATTACHMENT0];
+                var attm = [gl.COLOR_ATTACHMENT0 + maxColorAttachments];
+                var att = [gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT0 + maxColorAttachments];
+                
+                bufferedLogToConsole('gl.INVALID_ENUM is generated if target is not gl.FRAMEBUFFER, gl.READ_FRAMEBUFFER or gl.DRAW_FRAMEBUFFER.');
+                gl.invalidateSubFramebuffer(-1, att0, 0, 0, 16, 16);
+                this.expectError(gl.INVALID_ENUM);
+                gl.invalidateSubFramebuffer(gl.BACK, att0, 0, 0, 16, 16);
+                this.expectError(gl.INVALID_ENUM);
+            }
+        ));
+
+
+
+
+
 
     };
     
