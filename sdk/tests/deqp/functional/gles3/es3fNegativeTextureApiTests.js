@@ -25,8 +25,8 @@ goog.provide('functional.gles3.es3fNegativeTextureApiTests');
 
 goog.require('framework.common.tcuTestCase');
 goog.require('framework.common.tcuTexture');
-goog.require('framework.delibs.debase.deMath');
 goog.require('functional.gles3.es3fApiCase');
+goog.require('framework.opengl.gluTexture');
 
 goog.scope(function() {
 
@@ -34,7 +34,7 @@ goog.scope(function() {
     var tcuTexture = framework.common.tcuTexture;
     var es3fApiCase = functional.gles3.es3fApiCase;
     var tcuTestCase = framework.common.tcuTestCase;
-    var deMath = framework.delibs.debase.deMath;
+    var gluTexture = framework.opengl.gluTexture;
 
     /**
      * @param {number} width
@@ -55,48 +55,14 @@ goog.scope(function() {
     };
 
     /**
-     * @param {number} a
-     * @return {number}
-     */
-    es3fNegativeTextureApiTests.deLog2Floor32 = function(a) {
-        return 31 - deMath.clz32(a);
-    };
-
-    /**
-     * @param {tcuTexture.CubeFace} face
-     * @return {number}
-     */
-    es3fNegativeTextureApiTests.cubeFaceToGLFace = function(face) {
-        switch (face) {
-
-            case tcuTexture.CubeFace.CUBEFACE_NEGATIVE_X: return gl.TEXTURE_CUBE_MAP_NEGATIVE_X;
-            case tcuTexture.CubeFace.CUBEFACE_POSITIVE_X: return gl.TEXTURE_CUBE_MAP_POSITIVE_X;
-            case tcuTexture.CubeFace.CUBEFACE_NEGATIVE_Y: return gl.TEXTURE_CUBE_MAP_NEGATIVE_Y;
-            case tcuTexture.CubeFace.CUBEFACE_POSITIVE_Y: return gl.TEXTURE_CUBE_MAP_POSITIVE_Y;
-            case tcuTexture.CubeFace.CUBEFACE_NEGATIVE_Z: return gl.TEXTURE_CUBE_MAP_NEGATIVE_Z;
-            case tcuTexture.CubeFace.CUBEFACE_POSITIVE_Z: return gl.TEXTURE_CUBE_MAP_POSITIVE_Z;
-            default:
-            return gl.NONE;
-        }
-    };
-
-    /**
      * @param {function(number)} func
      */
     es3fNegativeTextureApiTests.forCubeFaces = function(func) {
         var faceGLVar;
         for (var faceIterTcu in tcuTexture.CubeFace) {
-            faceGLVar = es3fNegativeTextureApiTests.cubeFaceToGLFace(tcuTexture.CubeFace[faceIterTcu]);
+            faceGLVar = gluTexture.cubeFaceToGLFace(tcuTexture.CubeFace[faceIterTcu]);
             func(faceGLVar);
         }
-    };
-
-    /**
-    * @constructor
-    * @extends {tcuTestCase.DeqpTest}
-    */
-    es3fNegativeTextureApiTests.NegativeTextureApiTests = function() {
-        tcuTestCase.DeqpTest.call(this, 'texture', 'Negative Texture API Cases');
     };
 
     /**
@@ -2464,7 +2430,7 @@ goog.scope(function() {
         function() {
             gl.bindTexture (gl.TEXTURE_2D, null);
 
-            bufferedLogToConsole('gl.INVALID_OPERATION is generated if the default texture object is curently bound to target.');
+            bufferedLogToConsole('gl.INVALID_OPERATION is generated if there is no texture object curently bound to target.');
             gl.texStorage2D (gl.TEXTURE_2D, 1, gl.RGBA8, 16, 16);
             this.expectError (gl.INVALID_OPERATION);
 
