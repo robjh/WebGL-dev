@@ -72,7 +72,8 @@ targets = {
     'cmp': 'framework.common.tcuTexCompareVerifier',
     'texturewrap': 'functional.gles3.es3fTextureWrapTests',
     'negativetextureapi': 'functional.gles3.es3fNegativeTextureApiTests',
-    'multisample': 'functional.gles3.es3fMultisampleTests'
+    'multisample': 'functional.gles3.es3fMultisampleTests',
+    'negativeshaderapi': 'functional.gles3.es3fNegativeShaderApiTests'
 }
 
 total_errors = 0

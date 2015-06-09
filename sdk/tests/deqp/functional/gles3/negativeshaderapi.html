@@ -10,7 +10,7 @@
 
 <script src="../../../closure-library/closure/goog/base.js"></script>
 <script src="../../deqp-deps.js"></script>
-<script>goog.require('functional.gles3.es3fNegativeTextureApiTests');</script>
+<script>goog.require('functional.gles3.es3fNegativeShaderApiTests');</script>
 </head>
 <body>
 <div id="description"></div>
@@ -18,11 +18,11 @@
 <canvas id="canvas" width="256" height="256"> </canvas>
 <script>
 var wtu = WebGLTestUtils;
-var gl = wtu.create3DContextWithWrapperThatThrowsOnGLError('canvas', {preserveDrawingBuffer: true}, 2);
+var gl = wtu.create3DContext('canvas', {preserveDrawingBuffer: true}, 2);
 
 
     try {
-        functional.gles3.es3fNegativeTextureApiTests.run(gl);
+        functional.gles3.es3fNegativeShaderApiTests.run(gl);
     }
     catch(err)
     {
