@@ -158,6 +158,14 @@ var tcuTexLookupVerifier = framework.common.tcuTexLookupVerifier;
     };
 
     /**
+     * @param {tcuRGBA.RGBA} c
+     * @return {Array<number>}
+     */
+    es3fTextureShadowTests.toVec4 = function(c) {
+        return [c.getRed() / 255.0, c.getGreen() / 255.0, c.getBlue() / 255.0, c.getAlpha() / 255.0];
+    };
+
+    /**
      * @constructor
      * @struct
      */
@@ -201,6 +209,16 @@ var tcuTexLookupVerifier = framework.common.tcuTexLookupVerifier;
 
     /**
      * @constructor
+     * @param {string} name
+     * @param {string} desc
+     * @param {number} minFilter
+     * @param {number} magFilter
+     * @param {number} wrapS
+     * @param {number} wrapT
+     * @param {number} format
+     * @param {number} width
+     * @param {number} height
+     * @param {number} compareFunc
      * @extends {tcuTestCase.DeqpTest}
      */
     es3fTextureShadowTests.Texture2DShadowCase = function(name, desc, minFilter, magFilter, wrapS, wrapT, format, width, height, compareFunc) {
@@ -225,8 +243,8 @@ var tcuTexLookupVerifier = framework.common.tcuTexLookupVerifier;
 
         // Create 2 textures.
         this.m_textures = [];
-        this.m_textures[0] = new tcuTexture.Texture2D(this.m_format, this.m_width, this.m_height);
-        this.m_textures[1] = new tcuTexture.Texture2D(this.m_format, this.m_width, this.m_height);
+        this.m_textures[0] = gluTexture.texture2DFromInternalFormat(gl, this.m_format, this.m_width, this.m_height);
+        this.m_textures[1] = gluTexture.texture2DFromInternalFormat(gl, this.m_format, this.m_width, this.m_height);
 
         var numLevels = this.m_textures[0].getRefTexture().getNumLevels();
 
@@ -384,13 +402,6 @@ var tcuTexLookupVerifier = framework.common.tcuTexLookupVerifier;
         return this.m_caseNdx < this.m_cases.length ? tcuTestCase.IterateResult.CONTINUE : tcuTestCase.IterateResult.STOP;
     };
 
-    /**
-     * @param {tcuRGBA.RGBA} c
-     * @return {Array<number>}
-     */
-    es3fTextureShadowTests.toVec4 = function(c) {
-        return [c.getRed() / 255.0, c.getGreen() / 255.0, c.getBlue() / 255.0, c.getAlpha() / 255.0];
-    };
 
     es3fTextureShadowTests.init = function() {
         /** @type {Array<es3fTextureShadowTests.Format>} */ var formats = [];
@@ -457,7 +468,7 @@ var tcuTexLookupVerifier = framework.common.tcuTexLookupVerifier;
         compareFuncs[7].func = gl.NEVER;
 
         var state = tcuTestCase.runner;
-        /** @type {tcuTestCase.DeqpTest} */ var testGroup = state.TestCases;
+        /** @type {tcuTestCase.DeqpTest} */ var testGroup = state.testCases;
 
         var group2D = tcuTestCase.newTest('2d', '2D texture shadow lookup tests');
         testGroup.addChild(group2D);
@@ -492,7 +503,7 @@ var tcuTexLookupVerifier = framework.common.tcuTexLookupVerifier;
         var state = tcuTestCase.runner;
 
         state.testName = testName;
-        state.TestCases = tcuTestCase.newTest(testName, testDescription, null);
+        state.testCases = tcuTestCase.newTest(testName, testDescription, null);
 
         //Set up name and description of this test series.
         setCurrentTestName(testName);

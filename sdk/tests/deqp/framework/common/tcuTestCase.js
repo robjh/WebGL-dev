@@ -336,6 +336,8 @@ goog.scope(function() {
             catch (err) {
                 // If the exception was not thrown by a test check, log it, but don't throw it again
                 if (!(err instanceof TestFailedException)) {
+                    //Stop execution of current test.
+                    tcuTestCase.lastResult = tcuTestCase.IterateResult.STOP;
                     var msg = err;
                     if (err.message)
                         msg = err.message;
