@@ -171,7 +171,7 @@ goog.scope(function() {
      * @param {sglrShaderProgram.ShaderProgram=} shader
      * @return {!WebGLProgram}
      */
-    sglrGLContext.GLContext.prototype.createProgram = function(shader){return this.createProgram();};
+    sglrGLContext.GLContext.prototype.createProgram = function(shader) {return this.createProgram();};
 
     /**
     * @param ctx GL-like context

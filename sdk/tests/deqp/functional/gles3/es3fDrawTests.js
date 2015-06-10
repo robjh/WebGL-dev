@@ -838,7 +838,7 @@ goog.scope(function() {
             debug('Verfication result');
             tcuLogImage.logImageWithInfo(image.getAccess(), 'Result');
             tcuLogImage.logImageWithInfo(error.getAccess(), 'Error mask');
-        } else{
+        } else {
             debug('Verfication result');
             tcuLogImage.logImageWithInfo(image.getAccess(), 'Result');
         }
@@ -922,7 +922,7 @@ goog.scope(function() {
 
         // extreme instancing
 
-        this.addChild(new es3fDrawTests.InstancingGroup("instancing", "draw tests with a large instance count."));
+        this.addChild(new es3fDrawTests.InstancingGroup('instancing', 'draw tests with a large instance count.'));
 
         // Random
 
