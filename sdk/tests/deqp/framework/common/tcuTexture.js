@@ -2724,9 +2724,10 @@ tcuTexture.RGBA8View.prototype.getFormat = function() { return this.src.getForma
 tcuTexture.RGBA8View.prototype.read = function(x, y, numChannels) {
     numChannels = numChannels || 4;
     var offset = y * this.stride + x * this.pixelSize;
-    var result = [];
+    /* Always return a vec4 */
+    var result = [0, 0, 0, 255];
     for (var i = 0; i < numChannels; i++)
-        result.push(this.data[offset + i]);
+        result[i] = this.data[offset + i];
     return result;
 };
 
