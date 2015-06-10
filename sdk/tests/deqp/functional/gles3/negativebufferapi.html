@@ -3,7 +3,7 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<title>WebGL FBO Completeness Tests</title>
+<title>WebGL Negative Buffer API Tests</title>
 <link rel="stylesheet" href="../../../resources/js-test-style.css"/>
 <script src="../../../resources/js-test-pre.js"></script>
 <script src="../../../resources/webgl-test-utils.js"></script>
@@ -19,21 +19,7 @@
 
     var wtu = WebGLTestUtils;
     var gl = wtu.create3DContext('canvas', {preserveDrawingBuffer: true}, 2);
-    
-    var gldisable = function(name) {
-        return function(a1,a2,a3,a4,a5,a6,a7,a8) {
-            var args = [];
-            if (a1 !== undefined) { args.push(a1); if (a2 !== undefined) { args.push(a2);
-            if (a3 !== undefined) { args.push(a3); if (a4 !== undefined) { args.push(a4);
-            if (a5 !== undefined) { args.push(a5); if (a6 !== undefined) { args.push(a6);
-            if (a7 !== undefined) { args.push(a7); if (a8 !== undefined) { args.push(a8);
-            }} }} }} }}
-            throw new Error('Buggy (browser crippling) implementation of: '+name+'('+args+')');
-        };
-    };
-    gl.framebufferTextureLayer = gldisable('framebufferTextureLayer');
-    gl.getInternalformatParameter = gldisable('getInternalformatParameter');
-    
+        
     try {
         functional.gles3.es3fNegativeBufferApiTests.run(gl);
     }

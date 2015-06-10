@@ -64,6 +64,7 @@ targets = {
     'uniformbuffers': 'functional.gles3.es3fUniformBlockTests',
     'vertexarrays': 'functional.gles3.es3fVertexArrayTests',
     'shaderlibrary': 'modules.shared.glsShaderLibrary',
+    'negativebuffer': 'functional.gles3.es3fNegativeBufferApiTests',
     'sglrReferenceContextTest': 'framework.opengl.simplereference.sglrReferenceContextTest',
     'lifetime': 'functional.gles3.es3fLifetimeTests',
     'draw': 'functional.gles3.es3fDrawTests',
