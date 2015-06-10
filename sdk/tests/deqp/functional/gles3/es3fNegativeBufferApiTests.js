@@ -1007,7 +1007,6 @@ goog.scope(function() {
         testGroup.addChild(new es3fApiCase.ApiCaseCallback(
             'invalidate_sub_framebuffer', 'Invalid gl.invalidateSubFramebuffer() usage', gl,
             function() {
-            
                 var fbo = gl.createFramebuffer();
                 gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
 
@@ -1022,20 +1021,71 @@ goog.scope(function() {
                 var maxColorAttachments = gl.getParameter(gl.MAX_COLOR_ATTACHMENTS);
                 var att0 = [gl.COLOR_ATTACHMENT0];
                 var attm = [gl.COLOR_ATTACHMENT0 + maxColorAttachments];
-                var att = [gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT0 + maxColorAttachments];
                 
                 bufferedLogToConsole('gl.INVALID_ENUM is generated if target is not gl.FRAMEBUFFER, gl.READ_FRAMEBUFFER or gl.DRAW_FRAMEBUFFER.');
                 gl.invalidateSubFramebuffer(-1, att0, 0, 0, 16, 16);
                 this.expectError(gl.INVALID_ENUM);
                 gl.invalidateSubFramebuffer(gl.BACK, att0, 0, 0, 16, 16);
                 this.expectError(gl.INVALID_ENUM);
+                
+                bufferedLogToConsole('gl.INVALID_OPERATION is generated if attachments contains gl.COLOR_ATTACHMENTm and m is greater than or equal to the value of gl.MAX_COLOR_ATTACHMENTS.');
+                gl.invalidateSubFramebuffer(gl.FRAMEBUFFER, attm, 0, 0, 16, 16);
+                this.expectError(gl.INVALID_OPERATION);
+                
+                gl.deleteFramebuffer(fbo);
             }
         ));
+        
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback(
+            'renderbuffer_storage_multisample', 'Invalid glRenderbufferStorageMultisample() usage', gl,
+            function() {
+            
+                var rbo = gl.createRenderbuffer();
+                gl.bindRenderbuffer(gl.RENDERBUFFER, rbo);
+                var maxSamplesSupportedRGBA4 = gl.getInternalformatParameter(gl.RENDERBUFFER, gl.RGBA4, gl.SAMPLES);
+                
+                bufferedLogToConsole('gl.INVALID_ENUM is generated if target is not gl.RENDERBUFFER.');
+                gl.renderbufferStorageMultisample(-1, 2, gl.RGBA4, 1, 1);
+                this.expectError(gl.INVALID_ENUM);
+                gl.renderbufferStorageMultisample(gl.FRAMEBUFFER, 2, gl.RGBA4, 1, 1);
+                this.expectError(gl.INVALID_ENUM);
+                
+                bufferedLogToConsole('gl.INVALID_OPERATION is generated if samples is greater than the maximum number of samples supported for internalformat.');
+                gl.renderbufferStorageMultisample(gl.RENDERBUFFER, maxSamplesSupportedRGBA4+1, gl.RGBA4, 1, 1);
+                this.expectError(gl.INVALID_OPERATION);
 
-
-
-
-
+                bufferedLogToConsole('gl.INVALID_ENUM is generated if internalformat is not a color-renderable, depth-renderable, or stencil-renderable format.');
+                gl.renderbufferStorageMultisample(gl.RENDERBUFFER, 2, -1, 1, 1);
+                this.expectError(gl.INVALID_ENUM);
+                
+                // EXT_color_buffer_half_float disables error
+                if (gl.getExtension('EXT_color_buffer_half_float') === null) {
+                    gl.renderbufferStorageMultisample(gl.RENDERBUFFER, 2, gl.RGB16F, 1, 1);
+                	this.expectError(gl.INVALID_ENUM);
+                }
+                gl.renderbufferStorageMultisample(gl.RENDERBUFFER, 2, gl.RGBA8_SNORM, 1, 1);
+                this.expectError(gl.INVALID_ENUM);
+                
+                bufferedLogToConsole('gl.INVALID_VALUE is generated if width or height is less than zero.');
+                gl.renderbufferStorageMultisample(gl.RENDERBUFFER, 2, gl.RGBA4, -1, 1);
+                this.expectError(gl.INVALID_VALUE);
+                gl.renderbufferStorageMultisample(gl.RENDERBUFFER, 2, gl.RGBA4, 1, -1);
+                this.expectError(gl.INVALID_VALUE);
+                gl.renderbufferStorageMultisample(gl.RENDERBUFFER, 2, gl.RGBA4, -1, -1);
+                this.expectError(gl.INVALID_VALUE);
+                
+                bufferedLogToConsole('gl.INVALID_VALUE is generated if width or height is greater than gl.MAX_RENDERBUFFER_SIZE.');
+                var maxSize = gl.getParameter(gl.MAX_RENDERBUFFER_SIZE);
+                gl.renderbufferStorageMultisample(gl.RENDERBUFFER, 4, gl.RGBA4, 1, maxSize+1);
+                this.expectError(gl.INVALID_VALUE);
+                gl.renderbufferStorageMultisample(gl.RENDERBUFFER, 4, gl.RGBA4, maxSize+1, 1);
+                this.expectError(gl.INVALID_VALUE);
+                gl.renderbufferStorageMultisample(gl.RENDERBUFFER, 4, gl.RGBA4, maxSize+1, maxSize+1);
+                this.expectError(gl.INVALID_VALUE);
+                
+                gl.deleteRenderbuffer(rbo);
+            }
+        ));
 
     };
     
