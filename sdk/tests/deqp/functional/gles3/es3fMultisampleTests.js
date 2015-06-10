@@ -426,11 +426,9 @@ goog.scope(function() {
 
 
 
-        if (!this.m_fboParams.useFbo && !gl.getContextAttributes().antialias) {
-            var msg = 'SKIP: multisample not supported';
-            debug(msg);
-            throw new TestFailedException(msg);
-        }
+        /** @type {number} */ var numSamples = /** @type {number} */  (gl.getParameter(gl.SAMPLES));
+        if (!this.m_fboParams.useFbo && numSamples <= 1)
+            throw new Error('No multisample buffers');
 
         if (this.m_fboParams.useFbo) {
             if (this.m_fboParams.numSamples > 0)
@@ -444,7 +442,7 @@ goog.scope(function() {
         }
         else {
             // Query and log number of samples per pixel.
-            this.m_numSamples =  /** @type {number} */  (gl.getParameter(gl.SAMPLES));
+            this.m_numSamples =  numSamples;
             bufferedLogToConsole('gl.SAMPLES =' + this.m_numSamples);
         }
 
