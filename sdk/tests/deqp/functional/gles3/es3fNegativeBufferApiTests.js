@@ -923,8 +923,6 @@ goog.scope(function() {
                 this.expectError(gl.INVALID_ENUM);
 
                 bufferedLogToConsole('gl.INVALID_OPERATION is generated if texture is non-zero and not the name of a 3D texture or 2D array texture.');
-                gl.framebufferTextureLayer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, -1, 0, 0);
-                this.expectError(gl.INVALID_OPERATION);
                 gl.framebufferTextureLayer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, tex2D, 0, 0);
                 this.expectError(gl.INVALID_OPERATION);
 
