@@ -33,10 +33,12 @@ goog.require('framework.common.tcuCompressedTexture');
 goog.require('framework.common.tcuTexture');
 goog.require('framework.common.tcuTextureUtil');
 goog.require('framework.opengl.gluShaderUtil');
+goog.require('framework.delibs.debase.deString');
 
 goog.scope(function() {
 
 var gluTextureUtil = framework.opengl.gluTextureUtil;
+var deString = framework.delibs.debase.deString;
 var tcuTexture = framework.common.tcuTexture;
 var tcuTextureUtil = framework.common.tcuTextureUtil;
 var tcuCompressedTexture = framework.common.tcuCompressedTexture;
@@ -508,7 +510,7 @@ gluTextureUtil.mapGLWrapMode = function(wrapMode) {
         case gl.REPEAT: return tcuTexture.WrapMode.REPEAT_GL;
         case gl.MIRRORED_REPEAT: return tcuTexture.WrapMode.MIRRORED_REPEAT_GL;
         default:
-            throw new Error("Can't map GL wrap mode " + wrapMode);
+            throw new Error("Can't map GL wrap mode " + deString.enumToString(gl, wrapMode));
     }
 };
 
