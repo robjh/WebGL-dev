@@ -64,15 +64,18 @@ targets = {
     'uniformbuffers': 'functional.gles3.es3fUniformBlockTests',
     'vertexarrays': 'functional.gles3.es3fVertexArrayTests',
     'shaderlibrary': 'modules.shared.glsShaderLibrary',
+    'negativebuffer': 'functional.gles3.es3fNegativeBufferApiTests',
     'sglrReferenceContextTest': 'framework.opengl.simplereference.sglrReferenceContextTest',
     'lifetime': 'functional.gles3.es3fLifetimeTests',
-    'draw': 'modules.shared.glsDrawTests',
+    'draw': 'functional.gles3.es3fDrawTests',
     'attriblocation': 'functional.gles3.es3fAttribLocationTests',
     'textureShadowTests': 'functional.gles3.es3fTextureShadowTests',
     'cmp': 'framework.common.tcuTexCompareVerifier',
     'texturewrap': 'functional.gles3.es3fTextureWrapTests',
     'negativetextureapi': 'functional.gles3.es3fNegativeTextureApiTests',
-    'multisample': 'functional.gles3.es3fMultisampleTests'
+    'multisample': 'functional.gles3.es3fMultisampleTests',
+    'negativefragmentapi': 'functional.gles3.es3fNegativeFragmentApiTests',
+    'negativevertexarrayapi': 'functional.gles3.es3fNegativeVertexArrayApiTests'
 }
 
 total_errors = 0
@@ -166,7 +169,7 @@ def build_all_targets():
 
 def format_target(target):
     deps = read_file(dep_filename(target))
-    fixjsstyle = 'fixjsstyle-script.py'
+    fixjsstyle = 'fixjsstyle.py'
     reformat = 'reformatting_tool.py'
     for dep in deps.split('\n'):
         dep = dep.strip()

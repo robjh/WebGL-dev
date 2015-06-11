@@ -651,7 +651,6 @@ rrRenderer.drawQuads = function(state, renderTarget, program, vertexAttribs, pri
     }
 };
 
-
 /**
  * @param {rrRenderState.RenderState} state
  * @param {rrRenderer.RenderTarget} renderTarget
@@ -677,7 +676,7 @@ rrRenderer.drawLines = function(state, renderTarget, program, vertexAttribs, pri
     };
 
     var lengthSquared = function(a) {
-        var sqSum = 0
+        var sqSum = 0;
         for (var i = 0; i < a.length; i++)
             sqSum += a[i] * a[i];
         return sqSum;
@@ -688,7 +687,7 @@ rrRenderer.drawLines = function(state, renderTarget, program, vertexAttribs, pri
         for (var i = 0; i < a.length; i++)
             res += a[i] * b[i];
         return res;
-    }
+    };
 
     var primitives = new rrRenderer.PrimitiveList(primitive, count, first);
     // Do not draw if nothing to draw
@@ -738,9 +737,8 @@ rrRenderer.drawLines = function(state, renderTarget, program, vertexAttribs, pri
             Math.abs(v1[0] - v0[0]),
             Math.abs(v1[1] - v0[1])];
 
-        var xstep = v0[0] < v1[0]  ? 1 : -1;
-        var ystep = v0[1] < v1[1]  ? 1 : -1;
-
+        var xstep = v0[0] < v1[0] ? 1 : -1;
+        var ystep = v0[1] < v1[1] ? 1 : -1;
 
         var shadingContext = new rrShadingContext.FragmentShadingContext(
             linePackets[0].outputs,
@@ -755,8 +753,8 @@ rrRenderer.drawLines = function(state, renderTarget, program, vertexAttribs, pri
         var lenV = [v1[0] - v0[0], v1[1] - v0[1]];
         var lenSq = lengthSquared(lenV);
 
-        while(true) {
-            var t = dot([x - v0[0], y - v0[1]], lenV) / lenSq; 
+        while (true) {
+            var t = dot([x - v0[0], y - v0[1]], lenV) / lenSq;
             var depth = (1 - t) * v0[2] + t * v1[2];
             var b = [0, 0, 0];
             b[0] = 1 - t;

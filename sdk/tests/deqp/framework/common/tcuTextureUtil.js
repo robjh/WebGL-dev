@@ -176,19 +176,19 @@ tcuTextureUtil.getSubregion = function(access, x, y, z, width, height, depth) {
  * @param {Array<number>} minVal
  * @param {Array<number>} maxVal
  */
-tcuTextureUtil.fillWithComponentGradients1D = function (access, minVal, maxVal) {
-	DE_ASSERT(access.getHeight() == 1);
-	for (var x = 0; x < access.getWidth(); x++)	{
-		var s	= (x + 0.5) / access.getWidth();
+tcuTextureUtil.fillWithComponentGradients1D = function(access, minVal, maxVal) {
+    DE_ASSERT(access.getHeight() == 1);
+    for (var x = 0; x < access.getWidth(); x++) {
+        var s = (x + 0.5) / access.getWidth();
 
-		var r	= tcuTextureUtil.linearInterpolate(s, minVal[0], maxVal[0]);
-		var g = tcuTextureUtil.linearInterpolate(s, minVal[1], maxVal[1]);
-		var b = tcuTextureUtil.linearInterpolate(s, minVal[2], maxVal[2]);
-		var a = tcuTextureUtil.linearInterpolate(s, minVal[3], maxVal[3]);
+        var r = tcuTextureUtil.linearInterpolate(s, minVal[0], maxVal[0]);
+        var g = tcuTextureUtil.linearInterpolate(s, minVal[1], maxVal[1]);
+        var b = tcuTextureUtil.linearInterpolate(s, minVal[2], maxVal[2]);
+        var a = tcuTextureUtil.linearInterpolate(s, minVal[3], maxVal[3]);
 
-		access.setPixel([r, g, b, a], x, 0);
-	}
-}
+        access.setPixel([r, g, b, a], x, 0);
+    }
+};
 
 /**
  * @param {tcuTexture.PixelBufferAccess} access

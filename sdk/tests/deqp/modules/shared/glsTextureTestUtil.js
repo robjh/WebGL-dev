@@ -1344,7 +1344,7 @@ glsTextureTestUtil.sampleTexture3D = function(dst, src, texCoord, params) {
  *
  * @return {boolean}
  */
-glsTextureTestUtil.compareImages = function(/*const tcu::Surface&*/ reference, /*const tcu::Surface&*/ rendered, /*tcu::RGBA*/ threshold) {
+glsTextureTestUtil.compareImages = function(reference, rendered, threshold) {
     return tcuImageCompare.pixelThresholdCompare('Result', 'Image comparison result', reference, rendered, threshold, undefined /*tcu::COMPARE_LOG_RESULT*/);
 };
 
