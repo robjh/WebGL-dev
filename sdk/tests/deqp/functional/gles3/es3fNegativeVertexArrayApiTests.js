@@ -45,16 +45,16 @@ goog.scope(function() {
     var vertexShaderSource = '#version 300 es\n' +
     'void main (void)\n' +
     '{\n' +
-    '	gl.Position = vec4(0.0);\n' +
-    '}\n\0';
+    '	gl_Position = vec4(0.0);\n' +
+    '}\n';
 
 
     var fragmentShaderSource = '#version 300 es\n' +
-    'layout(location = 0) out mediump vec4 fragColor;' +
+    'layout(location = 0) out mediump vec4 fragColor;\n' +
     'void main (void)\n' +
     '{\n' +
     '	fragColor = vec4(0.0);\n' +
-    '}\n\0';
+    '}\n';
 
     /**
     * @param {WebGL2RenderingContext} gl
@@ -228,7 +228,7 @@ goog.scope(function() {
 
         }));
 
-        // NOTE: pointless test, no way to make gl.createVertexArray fail
+        // NOTE: pointless test, no way to make gl.createVertexArray fail with wrong parameter
         testGroup.addChild(new es3fApiCase.ApiCaseCallback('gen_vertex_arrays', 'Invalid gl.createVertexArray() usage', gl, function()
         {
             bufferedLogToConsole('gl.INVALID_VALUE is generated if n is negative.');
@@ -238,6 +238,7 @@ goog.scope(function() {
 
         }));
 
+        // NOTE: pointless test, no way to make gl.createVertexArray fail with wrong parameter
         testGroup.addChild(new es3fApiCase.ApiCaseCallback('bind_vertex_array', 'Invalid gl.bindVertexArray(vao); usage', gl, function()
         {
             bufferedLogToConsole('gl.INVALID_OPERATION is generated if array is not zero or the name of an existing vertex array object.');
@@ -245,6 +246,8 @@ goog.scope(function() {
             this.expectError(gl.INVALID_OPERATION);
 
         }));
+
+        // NOTE: pointless test, no way to make gl.deleteVertexArray fail with wrong parameter
         testGroup.addChild(new es3fApiCase.ApiCaseCallback('delete_vertex_arrays', 'Invalid gl.deleteVertexArray() usage', gl, function()
         {
             bufferedLogToConsole('gl.INVALID_VALUE is generated if n is negative.');
@@ -305,7 +308,10 @@ goog.scope(function() {
 
             bufferedLogToConsole('gl.INVALID_FRAMEBUFFER_OPERATION is generated if the currently bound framebuffer is not framebuffer complete.');
             fbo = gl.createFramebuffer();
+            var rbo = gl.createRenderbuffer();
+            gl.bindRenderbuffer(gl.RENDERBUFFER, rbo);
             gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+            gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, rbo);
             gl.checkFramebufferStatus(gl.FRAMEBUFFER);
             gl.drawArrays(gl.POINTS, 0, 1);
             this.expectError(gl.INVALID_FRAMEBUFFER_OPERATION);
