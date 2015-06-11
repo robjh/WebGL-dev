@@ -441,7 +441,8 @@ deMath.getBitRange = function(array, firstNdx, lastNdx) {
  */
 deMath.BinaryOp = {
     AND: 0,
-    OR: 1
+    OR: 1,
+    XOR: 2
 };
 
 /**
@@ -457,6 +458,8 @@ deMath.doNativeBinaryOp = function(valueA, valueB, operation) {
             return valueA & valueB;
         case deMath.BinaryOp.OR:
             return valueA | valueB;
+        case deMath.BinaryOp.XOR:
+            return valueA ^ valueB;
         default:
             throw new Error('Unknown operation: ' + operation);
     }

@@ -512,9 +512,10 @@ rrRenderer.getIndexOfCorner = function(isTop, isRight, vertexPackets) {
         y = y != null ? ycriteria(vertexPackets[i].position[1], y) : vertexPackets[i].position[1];
     }
 
-    // Search for mathing vertex
+    // Search for matching vertex
     for (var v = 0; v < vertexPackets.length; v++)
-        if (vertexPackets[v].position[0] == x && vertexPackets[v].position[1] == y)
+        if (vertexPackets[v].position[0] == x &&
+            vertexPackets[v].position[1] == y)
             return v;
 
     throw new Error('Corner not found');

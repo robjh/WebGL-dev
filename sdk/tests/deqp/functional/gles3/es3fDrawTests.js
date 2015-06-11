@@ -890,6 +890,233 @@ goog.scope(function() {
 
     /**
      * @constructor
+     * @param {number} size
+     */
+    es3fDrawTests.UniformWeightArray = function(size) {
+        this.weights = new Array(size);
+
+        for (var i = 0; i < size; ++i)
+            this.weights[i] = 1.0;
+    };
+
+    /**
+     * RandomGroup
+     * @constructor
+     * @extends {tcuTestCase.DeqpTest}
+     * @param {string} name
+     * @param {string} descr
+     */
+    es3fDrawTests.RandomGroup = function(name, descr) {
+        tcuTestCase.DeqpTest.call(this, name, descr);
+        this.makeExecutable();
+    };
+
+    es3fDrawTests.RandomGroup.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
+    es3fDrawTests.RandomGroup.prototype.constructor = es3fDrawTests.RandomGroup;
+
+    /**
+     * init
+     */
+    es3fDrawTests.RandomGroup.prototype.init = function() {
+        /** @type {number} */ var numAttempts = 300;
+
+        /** @type {Array<number>} */ var attribCounts = [1, 2, 5];
+        /** @type {Array<number>} */ var attribWeights = [30, 10, 1];
+        /** @type {Array<number>} */ var primitiveCounts = [2, 6, 64];
+        /** @type {Array<number>} */ var primitiveCountWeights = [20, 10, 1];
+        /** @type {Array<number>} */ var indexOffsets = [0, 7, 13];
+        /** @type {Array<number>} */ var indexOffsetWeights = [20, 20, 1];
+        /** @type {Array<number>} */ var firsts = [0, 6, 12];
+        /** @type {Array<number>} */ var firstWeights = [20, 20, 1];
+        /** @type {Array<number>} */ var instanceCounts = [1, 2, 16, 17];
+        /** @type {Array<number>} */ var instanceWeights = [20, 10, 5, 1];
+        /** @type {Array<number>} */ var indexMins = [0, 1, 3, 9];
+        /** @type {Array<number>} */ var indexMaxs = [5, 9, 129, 257];
+        /** @type {Array<number>} */ var indexWeights = [50, 50, 50, 50];
+        /** @type {Array<number>} */ var offsets = [0, 1, 5, 12];
+        /** @type {Array<number>} */ var offsetWeights = [50, 10, 10, 10];
+        /** @type {Array<number>} */ var strides = [0, 7, 16, 17];
+        /** @type {Array<number>} */ var strideWeights = [50, 10, 10, 10];
+        /** @type {Array<number>} */ var instanceDivisors = [0, 1, 3, 129];
+        /** @type {Array<number>} */ var instanceDivisorWeights = [70, 30, 10, 10];
+
+        /** @type {Array<glsDrawTests.DrawTestSpec.Primitive>} */ var primitives = [
+            glsDrawTests.DrawTestSpec.Primitive.POINTS,
+            glsDrawTests.DrawTestSpec.Primitive.TRIANGLES,
+            glsDrawTests.DrawTestSpec.Primitive.TRIANGLE_FAN,
+            glsDrawTests.DrawTestSpec.Primitive.TRIANGLE_STRIP,
+            glsDrawTests.DrawTestSpec.Primitive.LINES,
+            glsDrawTests.DrawTestSpec.Primitive.LINE_STRIP,
+            glsDrawTests.DrawTestSpec.Primitive.LINE_LOOP
+        ];
+        /** @type {es3fDrawTests.UniformWeightArray} */ var primitiveWeights = new es3fDrawTests.UniformWeightArray(primitives.length);
+
+        /** @type {Array<glsDrawTests.DrawTestSpec.DrawMethod>} */ var drawMethods = [
+            glsDrawTests.DrawTestSpec.DrawMethod.DRAWARRAYS,
+            glsDrawTests.DrawTestSpec.DrawMethod.DRAWARRAYS_INSTANCED,
+            glsDrawTests.DrawTestSpec.DrawMethod.DRAWELEMENTS,
+            glsDrawTests.DrawTestSpec.DrawMethod.DRAWELEMENTS_RANGED,
+            glsDrawTests.DrawTestSpec.DrawMethod.DRAWELEMENTS_INSTANCED
+        ];
+        /** @type {es3fDrawTests.UniformWeightArray} */ var drawMethodWeights = new es3fDrawTests.UniformWeightArray(drawMethods.length);
+
+        /** @type {Array<glsDrawTests.DrawTestSpec.IndexType>} */ var indexTypes = [
+            glsDrawTests.DrawTestSpec.IndexType.BYTE,
+            glsDrawTests.DrawTestSpec.IndexType.SHORT,
+            glsDrawTests.DrawTestSpec.IndexType.INT
+        ];
+        /** @type {es3fDrawTests.UniformWeightArray} */ var indexTypeWeights = new es3fDrawTests.UniformWeightArray(indexTypes.length);
+
+        /** @type {Array<glsDrawTests.DrawTestSpec.Storage>} */ var storages = [
+            //glsDrawTests.DrawTestSpec.Storage.USER,
+            glsDrawTests.DrawTestSpec.Storage.BUFFER
+        ];
+        /** @type {es3fDrawTests.UniformWeightArray} */ var storageWeights = new es3fDrawTests.UniformWeightArray(storages.length);
+
+        /** @type {Array<glsDrawTests.DrawTestSpec.InputType>} */ var inputTypes = [
+            glsDrawTests.DrawTestSpec.InputType.FLOAT,
+            //glsDrawTests.DrawTestSpec.InputType.FIXED,
+            glsDrawTests.DrawTestSpec.InputType.BYTE,
+            glsDrawTests.DrawTestSpec.InputType.SHORT,
+            glsDrawTests.DrawTestSpec.InputType.UNSIGNED_BYTE,
+            glsDrawTests.DrawTestSpec.InputType.UNSIGNED_SHORT,
+            glsDrawTests.DrawTestSpec.InputType.INT,
+            glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT,
+            glsDrawTests.DrawTestSpec.InputType.HALF,
+            glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT_2_10_10_10,
+            glsDrawTests.DrawTestSpec.InputType.INT_2_10_10_10
+        ];
+        /** @type {es3fDrawTests.UniformWeightArray} */ var inputTypeWeights = new es3fDrawTests.UniformWeightArray(inputTypes.length);
+
+        /** @type {Array<glsDrawTests.DrawTestSpec.OutputType>} */ var outputTypes = [
+            glsDrawTests.DrawTestSpec.OutputType.FLOAT,
+            glsDrawTests.DrawTestSpec.OutputType.VEC2,
+            glsDrawTests.DrawTestSpec.OutputType.VEC3,
+            glsDrawTests.DrawTestSpec.OutputType.VEC4,
+            glsDrawTests.DrawTestSpec.OutputType.INT,
+            glsDrawTests.DrawTestSpec.OutputType.UINT,
+            glsDrawTests.DrawTestSpec.OutputType.IVEC2,
+            glsDrawTests.DrawTestSpec.OutputType.IVEC3,
+            glsDrawTests.DrawTestSpec.OutputType.IVEC4,
+            glsDrawTests.DrawTestSpec.OutputType.UVEC2,
+            glsDrawTests.DrawTestSpec.OutputType.UVEC3,
+            glsDrawTests.DrawTestSpec.OutputType.UVEC4
+        ];
+        /** @type {es3fDrawTests.UniformWeightArray} */ var outputTypeWeights = new es3fDrawTests.UniformWeightArray(outputTypes.length);
+
+        /** @type {Array<glsDrawTests.DrawTestSpec.Usage>} */ var usages = [
+            glsDrawTests.DrawTestSpec.Usage.DYNAMIC_DRAW,
+            glsDrawTests.DrawTestSpec.Usage.STATIC_DRAW,
+            glsDrawTests.DrawTestSpec.Usage.STREAM_DRAW,
+            glsDrawTests.DrawTestSpec.Usage.STREAM_READ,
+            glsDrawTests.DrawTestSpec.Usage.STREAM_COPY,
+            glsDrawTests.DrawTestSpec.Usage.STATIC_READ,
+            glsDrawTests.DrawTestSpec.Usage.STATIC_COPY,
+            glsDrawTests.DrawTestSpec.Usage.DYNAMIC_READ,
+            glsDrawTests.DrawTestSpec.Usage.DYNAMIC_COPY
+        ];
+        /** @type {es3fDrawTests.UniformWeightArray} */ var usageWeights = new es3fDrawTests.UniformWeightArray(usages.length);
+
+        /** @type {Array<number>} */ var blacklistedCases = [
+            544 //!< extremely narrow triangle
+        ];
+
+        /** @type {Array<number>} */ var insertedHashes = []; //'set' structrure
+        /** @type {number} */ var insertedCount = 0;
+
+        for (var ndx = 0; ndx < numAttempts; ++ndx) {
+            /** @type {deRandom.Random} */ var random = new deRandom.Random(0xc551393 + ndx); // random does not depend on previous cases
+
+            /** @type {number} */ var attributeCount = random.chooseWeighted(attribCounts, attribWeights);
+            /** @type {glsDrawTests.DrawTestSpec} */ var spec = new glsDrawTests.DrawTestSpec();
+
+            //spec.apiType = glu::ApiType::es(3,0);
+            spec.primitive = /** @type {glsDrawTests.DrawTestSpec.Primitive} */ (random.chooseWeighted(primitives, primitiveWeights.weights));
+            spec.primitiveCount = random.chooseWeighted(primitiveCounts, primitiveCountWeights);
+            spec.drawMethod = /** @type {glsDrawTests.DrawTestSpec.DrawMethod} */ (random.chooseWeighted(drawMethods, drawMethodWeights.weights));
+            spec.indexType = /** @type {glsDrawTests.DrawTestSpec.IndexType} */ (random.chooseWeighted(indexTypes, indexTypeWeights.weights));
+            spec.indexPointerOffset = random.chooseWeighted(indexOffsets, indexOffsetWeights);
+            spec.indexStorage = /** @type {glsDrawTests.DrawTestSpec.Storage} */ (random.chooseWeighted(storages, storageWeights.weights));
+            spec.first = random.chooseWeighted(firsts, firstWeights);
+            spec.indexMin = random.chooseWeighted(indexMins, indexWeights);
+            spec.indexMax = random.chooseWeighted(indexMaxs, indexWeights);
+            spec.instanceCount = random.chooseWeighted(instanceCounts, instanceWeights);
+
+            // check spec is legal
+            if (!spec.valid())
+                continue;
+
+            for (var attrNdx = 0; attrNdx < attributeCount;) {
+                /** @type {boolean} */ var valid;
+                /** @type {glsDrawTests.DrawTestSpec.AttributeSpec} */ var attribSpec = new glsDrawTests.DrawTestSpec.AttributeSpec();
+
+                attribSpec.inputType = /** @type {glsDrawTests.DrawTestSpec.InputType} */ (random.chooseWeighted(inputTypes, inputTypeWeights.weights));
+                attribSpec.outputType = /** @type {glsDrawTests.DrawTestSpec.OutputType} */ (random.chooseWeighted(outputTypes, outputTypeWeights.weights));
+                attribSpec.storage = /** @type {glsDrawTests.DrawTestSpec.Storage} */ (random.chooseWeighted(storages, storageWeights.weights));
+                attribSpec.usage = /** @type {glsDrawTests.DrawTestSpec.Usage} */ (random.chooseWeighted(usages, usageWeights.weights));
+                attribSpec.componentCount = random.getInt(1, 4);
+                attribSpec.offset = random.chooseWeighted(offsets, offsetWeights);
+                attribSpec.stride = random.chooseWeighted(strides, strideWeights);
+                attribSpec.normalize = random.getBool();
+                attribSpec.instanceDivisor = random.chooseWeighted(instanceDivisors, instanceDivisorWeights);
+                attribSpec.useDefaultAttribute = random.getBool();
+
+                // check spec is legal
+                valid = attribSpec.valid(/*spec.apiType*/);
+
+                // we do not want interleaved elements. (Might result in some weird floating point values)
+                if (attribSpec.stride && attribSpec.componentCount * glsDrawTests.DrawTestSpec.inputTypeSize(attribSpec.inputType) > attribSpec.stride)
+                    valid = false;
+
+                // try again if not valid
+                if (valid) {
+                    spec.attribs.push(attribSpec);
+                    ++attrNdx;
+                }
+            }
+
+            // Do not collapse all vertex positions to a single positions
+            if (spec.primitive != glsDrawTests.DrawTestSpec.Primitive.POINTS)
+                spec.attribs[0].instanceDivisor = 0;
+
+            // Is render result meaningful?
+            // Only one vertex
+            if (spec.drawMethod == glsDrawTests.DrawTestSpec.DrawMethod.DRAWELEMENTS_RANGED && spec.indexMin == spec.indexMax && spec.primitive != glsDrawTests.DrawTestSpec.Primitive.POINTS)
+                continue;
+            if (spec.attribs[0].useDefaultAttribute && spec.primitive != glsDrawTests.DrawTestSpec.Primitive.POINTS)
+                continue;
+
+            // Triangle only on one axis
+            if (spec.primitive == glsDrawTests.DrawTestSpec.Primitive.TRIANGLES || spec.primitive == glsDrawTests.DrawTestSpec.Primitive.TRIANGLE_FAN || spec.primitive == glsDrawTests.DrawTestSpec.Primitive.TRIANGLE_STRIP) {
+                if (spec.attribs[0].componentCount == 1)
+                    continue;
+                if (spec.attribs[0].outputType == glsDrawTests.DrawTestSpec.OutputType.FLOAT || spec.attribs[0].outputType == glsDrawTests.DrawTestSpec.OutputType.INT || spec.attribs[0].outputType == glsDrawTests.DrawTestSpec.OutputType.UINT)
+                    continue;
+                if (spec.drawMethod == glsDrawTests.DrawTestSpec.DrawMethod.DRAWELEMENTS_RANGED && (spec.indexMax - spec.indexMin) < 2)
+                    continue;
+            }
+
+            // Add case
+            /** @type {number} */ var hash = spec.hash();
+            for (var attrNdx = 0; attrNdx < attributeCount; ++attrNdx)
+                hash = deMath.binaryOp(deMath.shiftLeft(hash, 2), spec.attribs[attrNdx].hash(), deMath.BinaryOp.XOR);
+
+            if (insertedHashes.indexOf(hash) == -1) {
+                // Only properly aligned and not blacklisted cases
+                if (spec.isCompatibilityTest() != glsDrawTests.DrawTestSpec.CompatibilityTestType.UNALIGNED_OFFSET &&
+                    spec.isCompatibilityTest() != glsDrawTests.DrawTestSpec.CompatibilityTestType.UNALIGNED_STRIDE &&
+                    blacklistedCases.indexOf(hash) == -1) {
+                    this.addChild(new glsDrawTests.DrawTest(spec, insertedCount + '', spec.getDesc()));
+                }
+                deUtil.dePushUniqueToArray(insertedHashes, hash);
+
+                ++insertedCount;
+            }
+        }
+    };
+
+    /**
+     * @constructor
      * @extends {tcuTestCase.DeqpTest}
      */
     es3fDrawTests.DrawTest = function() {
@@ -926,7 +1153,7 @@ goog.scope(function() {
 
         // Random
 
-        //this.addChild(new es3fDrawTests.RandomGroup("random", "random draw commands."));
+        this.addChild(new es3fDrawTests.RandomGroup('random', 'random draw commands.'));
     };
 
     /**

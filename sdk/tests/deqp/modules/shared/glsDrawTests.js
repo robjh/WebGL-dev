@@ -557,7 +557,7 @@ goog.scope(function() {
      * @return {glsDrawTests.GLValue}
      */
     glsDrawTests.GLValue.getMinValue = function(type) {
-        var value;
+        var value = 0;
 
         switch (type) {
             case glsDrawTests.DrawTestSpec.InputType.FLOAT:
@@ -585,8 +585,8 @@ goog.scope(function() {
                 value = -256;
                 break;
 
-            default: //Original code returns garbage-filled GLValues
-                return new glsDrawTests.GLValue();
+            /*default: //Original code returns garbage-filled GLValues
+                return new glsDrawTests.GLValue();*/
         }
 
         return glsDrawTests.GLValue.create(value, type);
@@ -983,10 +983,10 @@ goog.scope(function() {
                     var size = this.m_componentCount;
 
                     // Output type is float type
-                    this.m_ctx.vertexAttribPointer(loc, size, glsDrawTests.inputTypeToGL(this.m_inputType), this.m_normalize, this.m_stride, basePtr.subarray(this.m_offset));
+                    this.m_ctx.vertexAttribPointer(loc, size, glsDrawTests.inputTypeToGL(this.m_inputType), this.m_normalize, this.m_stride, this.m_offset);
                 } else {
                     // Output type is int type
-                    this.m_ctx.vertexAttribIPointer(loc, this.m_componentCount, glsDrawTests.inputTypeToGL(this.m_inputType), this.m_stride, basePtr.subarray(this.m_offset));
+                    this.m_ctx.vertexAttribIPointer(loc, this.m_componentCount, glsDrawTests.inputTypeToGL(this.m_inputType), this.m_stride, this.m_offset);
                 }
             } else {
                 // Input type is float type
@@ -1435,9 +1435,9 @@ goog.scope(function() {
      * @return {goog.TypedArray}
      */
     glsDrawTests.RandomArrayGenerator.generateArray = function(seed, elementCount, componentCount, offset, stride, type, first, primitive, indices, indexSize) {
-        if (type == glsDrawTests.DrawTestSpec.InputType.INT_2_10_10_10 || type == glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT_2_10_10_10)
+        /*if (type == glsDrawTests.DrawTestSpec.InputType.INT_2_10_10_10 || type == glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT_2_10_10_10)
             return glsDrawTests.RandomArrayGenerator.generatePackedArray(seed, elementCount, componentCount, offset, stride, type, first, primitive, indices, indexSize);
-        else
+        else*/
             return glsDrawTests.RandomArrayGenerator.generateBasicArray(seed, elementCount, componentCount, offset, stride, type, first, primitive, indices, indexSize);
     };
 
@@ -1479,15 +1479,33 @@ goog.scope(function() {
      */
     glsDrawTests.RandomArrayGenerator.generateVertex = function(previousComponents, vertexParameters) {
         /** @type {Array<glsDrawTests.GLValue>} */ var components = [];
+        /** @type {number} */ var limit10 = (1 << 10);
+        /** @type {number} */ var limit2 = (1 << 2);
+
         for (var componentNdx = 0; componentNdx < vertexParameters.componentCount; componentNdx++) {
-            components[componentNdx] = glsDrawTests.GLValue.getRandom(vertexParameters.rnd, vertexParameters.min, vertexParameters.max);
+            //keep z and w values the same as the previous attribute
+            if (componentNdx > 1 && previousComponents.length > 2) {
+                components[componentNdx] = previousComponents[componentNdx];
+                continue;
+            }
 
-            var minSeparation = glsDrawTests.GLValue.minValue(vertexParameters.min.getType());
+            var packed = vertexParameters.min.getType() == glsDrawTests.DrawTestSpec.InputType.INT_2_10_10_10 ||
+                vertexParameters.min.getType() == glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT_2_10_10_10;
 
-            // Try to not create vertex near previous
-            if (previousComponents.length > 0 && glsDrawTests.GLValue.abs(components[componentNdx].sub(previousComponents[componentNdx])).lessThan(minSeparation)) {
-                // Too close, try again (but only once)
-                components[componentNdx] = glsDrawTests.GLValue.getRandom(vertexParameters.rnd, vertexParameters.min, vertexParameters.max);
+            components[componentNdx] = packed ? (
+                    componentNdx == 3 ?
+                        new Uint32Array([vertexParameters.rnd.getInt() % limit2])[0] :
+                        new Uint32Array([vertexParameters.rnd.getInt() % limit10])[0]) :
+                glsDrawTests.GLValue.getRandom(vertexParameters.rnd, vertexParameters.min, vertexParameters.max);
+
+            if (!packed) {
+                var minSeparation = glsDrawTests.GLValue.minValue(vertexParameters.min.getType());
+
+                // Try to not create vertex near previous
+                if (previousComponents.length > 0 && glsDrawTests.GLValue.abs(components[componentNdx].sub(previousComponents[componentNdx])).lessThan(minSeparation)) {
+                    // Too close, try again (but only once)
+                    components[componentNdx] = glsDrawTests.GLValue.getRandom(vertexParameters.rnd, vertexParameters.min, vertexParameters.max);
+                }
             }
         }
         return components;
@@ -1512,15 +1530,18 @@ goog.scope(function() {
         /** @type {glsDrawTests.GLValue} */ var min = glsDrawTests.GLValue.getMinValue(type);
         /** @type {glsDrawTests.GLValue} */ var max = glsDrawTests.GLValue.getMaxValue(type);
 
+        var packed = min.getType() == glsDrawTests.DrawTestSpec.InputType.INT_2_10_10_10 ||
+            min.getType() == glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT_2_10_10_10;
+
         /** @type {number} */ var componentSize = glsDrawTests.DrawTestSpec.inputTypeSize(type);
         /** @type {number} */ var elementSize = componentSize * componentCount;
-        /** @type {number} */ var bufferSize = offset + (elementCount - 1) * stride + elementSize;
+        /** @type {number} */ var bufferSize = offset + Math.max(elementCount * stride, elementCount * elementSize);
 
         var data = new ArrayBuffer(bufferSize);
         var writePtr = new Uint8Array(data).subarray(offset);
 
-        /** @type {Array<glsDrawTests.GLValue>} */ var components = [];
-        /** @type {Array<Array<glsDrawTests.GLValue>>} */ var quadVertices = [];
+        /** @type {Array<glsDrawTests.GLValue>|Array<number>} */ var components = [];
+        /** @type {Array<Array<glsDrawTests.GLValue>>|Array<Array<number>>} */ var quadVertices = [];
         /** @type {Array<glsDrawTests.GLValue>} */ var vertex1 = [];
         /** @type {Array<glsDrawTests.GLValue>} */ var vertex2 = [];
         /** @type {Array<glsDrawTests.GLValue>} */ var vertex3 = [];
@@ -1530,6 +1551,7 @@ goog.scope(function() {
         /** @type {number} */ var parallelaxis;
         /** @type {number} */ var oppositeaxis;
         /** @type {number} */ var direction;
+        /** @type {number} */ var packedValue;
 
         //Alias
         var generateVertex = glsDrawTests.RandomArrayGenerator.generateVertex;
@@ -1542,8 +1564,20 @@ goog.scope(function() {
             //If first vertex hasn't been met, just generate individual vertices, and advance the buffer.
             if (vertexNdx < first) {
                 components = generateVertex(components, vertexParameters);
-                for (var componentNdx = 0; componentNdx < componentCount; componentNdx++)
-                    glsDrawTests.copyGLValueToArray(writePtr.subarray(componentNdx * componentSize), components[componentNdx]);
+                if (packed) {
+                    packedValue = deMath.binaryOp(
+                        deMath.shiftLeft(/** @type {Array<number>} */ (components)[3], 30), deMath.binaryOp(
+                            deMath.shiftLeft(/** @type {Array<number>} */ (components)[2], 20), deMath.binaryOp(
+                                deMath.shiftLeft(/** @type {Array<number>} */ (components)[1], 10), /** @type {Array<number>} */ (components)[0], deMath.BinaryOp.OR
+                            ), deMath.BinaryOp.OR
+                        ), deMath.BinaryOp.OR
+                    );
+                    glsDrawTests.copyArray(
+                        writePtr.subarray(componentCount), new Uint32Array([packedValue])
+                    );
+                } else
+                    for (var componentNdx = 0; componentNdx < componentCount; componentNdx++)
+                        glsDrawTests.copyGLValueToArray(writePtr.subarray(componentNdx * componentSize), components[componentNdx]);
 
                 //Advance one vertex
                 writePtr = writePtr.subarray(componentCount * componentSize);
@@ -1590,7 +1624,9 @@ goog.scope(function() {
                         vertex3 = generateVertex(vertex2, vertexParameters);
                         vertex3[oppositeaxis] = vertex1[oppositeaxis];
 
-                        direction = vertex3[parallelaxis].greaterThan(vertex1[parallelaxis]) ? 1 : -1;
+                        direction = packed ?
+                            (vertex3[parallelaxis] > vertex1[parallelaxis] ? 1 : -1) :
+                            (vertex3[parallelaxis].greaterThan(vertex1[parallelaxis]) ? 1 : -1);
 
                         vertex4 = generateVertex(vertex3, vertexParameters);
                         vertex4[oppositeaxis] = vertex2[oppositeaxis];
@@ -1600,11 +1636,12 @@ goog.scope(function() {
                     } else {
                         vertex5 = generateVertex(components, vertexParameters);
                         vertex5[oppositeaxis] = quadVertices[quadVertices.length - 2][oppositeaxis];
-                        vertex5[parallelaxis] = glsDrawTests.GLValue.getRandom(
-                            vertexParameters.rnd,
-                            direction > 0 ? components[parallelaxis] : vertexParameters.min,
-                            direction > 0 ? vertexParameters.max : components[parallelaxis]
-                        );
+                        if (!packed)
+                            vertex5[parallelaxis] = glsDrawTests.GLValue.getRandom(
+                                vertexParameters.rnd,
+                                direction > 0 ? components[parallelaxis] : vertexParameters.min,
+                                direction > 0 ? vertexParameters.max : components[parallelaxis]
+                            );
 
                         vertex6 = generateVertex(vertex5, vertexParameters);
                         vertex6[oppositeaxis] = quadVertices[quadVertices.length - 1][oppositeaxis];
@@ -1631,17 +1668,20 @@ goog.scope(function() {
                         vertex4[oppositeaxis] = vertex1[oppositeaxis];
                         vertex4[parallelaxis] = vertex3[parallelaxis];
 
-                        direction = vertex4[oppositeaxis].greaterThan(vertex3[oppositeaxis]) ? 1 : -1;
+                        direction = packed ?
+                            (vertex4[oppositeaxis] > vertex3[oppositeaxis] ? 1 : -1) :
+                            (vertex4[oppositeaxis].greaterThan(vertex3[oppositeaxis]) ? 1 : -1);
 
                         quadVertices = [vertex1, vertex2, vertex3, vertex4];
                     } else {
                         vertex5 = generateVertex(components, vertexParameters);
                         vertex5[parallelaxis] = components[parallelaxis];
-                        vertex5[oppositeaxis] = glsDrawTests.GLValue.getRandom(
-                            vertexParameters.rnd,
-                            direction > 0 ? components[oppositeaxis] : vertexParameters.min,
-                            direction > 0 ? vertexParameters.max : components[oppositeaxis]
-                        );
+                        if (!packed)
+                            vertex5[oppositeaxis] = glsDrawTests.GLValue.getRandom(
+                                vertexParameters.rnd,
+                                direction > 0 ? components[oppositeaxis] : vertexParameters.min,
+                                direction > 0 ? vertexParameters.max : components[oppositeaxis]
+                            );
 
                         vertex6 = generateVertex(vertex5, vertexParameters);
                         vertex6[oppositeaxis] = vertex5[oppositeaxis];
@@ -1652,7 +1692,9 @@ goog.scope(function() {
                         oppositeaxis = parallelaxis - oppositeaxis;
                         parallelaxis -= oppositeaxis;
 
-                        direction = vertex6[oppositeaxis].greaterThan(vertex5[oppositeaxis]) ? 1 : -1;
+                        direction = packed ?
+                            (vertex6[oppositeaxis] > vertex5[oppositeaxis] ? 1 : -1) :
+                            (vertex6[oppositeaxis].greaterThan(vertex5[oppositeaxis]) ? 1 : -1);
 
                         quadVertices = [vertex5, vertex6];
                     }
@@ -1662,8 +1704,26 @@ goog.scope(function() {
 
             //Copy values to buffer
             for (var qVtx = 0; qVtx < quadVertices.length; qVtx++)
-            for (var componentNdx = 0; componentNdx < componentCount; componentNdx++)
-                glsDrawTests.copyGLValueToArray(writePtr.subarray(qVtx * componentCount * componentSize + componentNdx * componentSize), quadVertices[qVtx][componentNdx]);
+                if (packed) {
+                    packedValue = deMath.binaryOp(
+                        deMath.shiftLeft(quadVertices[qVtx][3], 30), deMath.binaryOp(
+                            deMath.shiftLeft(quadVertices[qVtx][2], 20), deMath.binaryOp(
+                                deMath.shiftLeft(quadVertices[qVtx][1], 10), quadVertices[qVtx][0], deMath.BinaryOp.OR
+                            ), deMath.BinaryOp.OR
+                        ), deMath.BinaryOp.OR
+                    );
+
+                    glsDrawTests.copyArray(
+                        writePtr.subarray(qVtx * componentCount), new Uint32Array([packedValue])
+                    );
+                } else
+                    for (var componentNdx = 0; componentNdx < componentCount; componentNdx++)
+                        glsDrawTests.copyGLValueToArray(
+                            writePtr.subarray(
+                                Math.max(qVtx * componentCount * componentSize, qVtx * stride) + componentNdx * componentSize
+                            ),
+                            quadVertices[qVtx][componentNdx]
+                        );
 
             if (quadVertices.length > 0) {
                 writePtr = writePtr.subarray(stride * quadVertices.length);
@@ -1683,8 +1743,8 @@ goog.scope(function() {
             var reorderedview = new Uint8Array(reorderedbuffer).subarray(offset);
             var indicesCount = (indices.length - offset) / indexSize;
             for (var index = 0; index < indicesCount; index++) {
-                var start = offset + (indexSize * index);
-                var end = offset + (indexSize * index) + indexSize;
+                var start = indexSize * index;
+                var end = (indexSize * index) + indexSize;
                 var indexValue = indices.subarray(start, end);
                 switch (indexSize) {
                     case 1: indexValue = indexValue[0]; break;
@@ -1693,7 +1753,13 @@ goog.scope(function() {
                     default: throw new Error('Invalid index type size: ' + indexSize);
                 }
                 if (indexValue < elementCount)
-                    reorderedview.set(view.subarray(index * componentCount * componentSize, (index + 1) * componentCount * componentSize), indexValue * componentCount * componentSize);
+                    reorderedview.set(
+                        view.subarray(
+                            Math.max(index * componentCount * componentSize, index * stride),
+                            Math.max((index + 1) * componentCount * componentSize, (index + 1) * stride)
+                        ),
+                        Math.max(indexValue * componentCount * componentSize, indexValue * stride)
+                    );
             }
             data = reorderedbuffer;
         }
@@ -1777,9 +1843,6 @@ goog.scope(function() {
         var data = new ArrayBuffer(bufferSize);
         var writePtr = new Uint8Array(data).subarray(offset);
 
-        /*var oldNdx1 = -1;
-        var oldNdx2 = -1;*/
-
         var rnd = new deRandom.Random(seed);
 
         /* TODO: get limits for given index type --> if (min < 0 || min > std::numeric_limits<T>::max() ||
@@ -1797,21 +1860,6 @@ goog.scope(function() {
             var ndx = keys[randomkey];
 
             keys.splice(randomkey, 1);
-            // Try not to generate same index as any of previous two. This prevents
-            // generation of degenerate triangles and lines. If [min, max] is too
-            // small this cannot be guaranteed.
-
-            /*if (ndx == oldNdx1) ++ndx;
-            if (ndx > max) ndx = min;
-            if (ndx == oldNdx2) ++ndx;
-            if (ndx > max) ndx = min;
-            if (ndx == oldNdx1) ++ndx;
-            if (ndx > max) ndx = min;
-
-            oldNdx2 = oldNdx1;
-            oldNdx1 = ndx;*/
-
-            //var srcArray = glsDrawTests.GLValue.typeToTypedArray(ndx, glsDrawTests.indexTypeToInputType(type));
 
             glsDrawTests.copyArray(
                 writePtr.subarray(elementSize * elementNdx),
@@ -3110,7 +3158,18 @@ goog.scope(function() {
                     /** @type {number} */ var evaluatedElementCount = (instanced && attribSpec.instanceDivisor > 0) ? (spec.instanceCount / attribSpec.instanceDivisor + 1) : (elementCount);
                     /** @type {number} */ var referencedElementCount = (ranged) ? (Math.max(evaluatedElementCount, spec.indexMax + 1)) : (evaluatedElementCount);
                     /** @type {number} */ var bufferSize = attribSpec.offset + stride * (referencedElementCount - 1) + elementSize;
-                    /** @type {goog.TypedArray} */ var data = glsDrawTests.RandomArrayGenerator.generateArray(seed, referencedElementCount, attribSpec.componentCount, attribSpec.offset, stride, attribSpec.inputType, spec.first, spec.primitive, indexed ? indexPointer : null, indexElementSize);
+                    /** @type {goog.TypedArray} */ var data = glsDrawTests.RandomArrayGenerator.generateArray(
+                        seed,
+                        referencedElementCount,
+                        attribSpec.componentCount,
+                        attribSpec.offset,
+                        stride,
+                        attribSpec.inputType,
+                        indexed ? 0 : spec.first,
+                        spec.primitive,
+                        indexed ? indexPointer : null,
+                        indexElementSize
+                    );
 
                     //try { TODO: This try/catch block's purpose is to delete data safely. Should we?
                         this.m_glArrayPack.newArray(attribSpec.storage);
