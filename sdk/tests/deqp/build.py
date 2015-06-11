@@ -74,7 +74,8 @@ targets = {
     'texturewrap': 'functional.gles3.es3fTextureWrapTests',
     'negativetextureapi': 'functional.gles3.es3fNegativeTextureApiTests',
     'multisample': 'functional.gles3.es3fMultisampleTests',
-    'negativefragmentapi': 'functional.gles3.es3fNegativeFragmentApiTests'
+    'negativefragmentapi': 'functional.gles3.es3fNegativeFragmentApiTests',
+    'negativevertexarrayapi': 'functional.gles3.es3fNegativeVertexArrayApiTests'
 }
 
 total_errors = 0
