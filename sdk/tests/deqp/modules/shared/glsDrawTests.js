@@ -3060,9 +3060,9 @@ goog.scope(function() {
         this.m_glArrayPack = new glsDrawTests.AttributePack(this.m_glesContext, [renderTargetWidth, renderTargetHeight], useVao, true);
         this.m_rrArrayPack = new glsDrawTests.AttributePack(this.m_refContext, [renderTargetWidth, renderTargetHeight], useVao, false);
 
-        this.m_maxDiffRed = Math.ceil(256.0 * (6.0 / (1 << this.m_pixelformat.redBits)));
-        this.m_maxDiffGreen = Math.ceil(256.0 * (6.0 / (1 << this.m_pixelformat.greenBits)));
-        this.m_maxDiffBlue = Math.ceil(256.0 * (6.0 / (1 << this.m_pixelformat.blueBits)));
+        this.m_maxDiffRed = Math.ceil(256.0 * (15.0 / (1 << this.m_pixelformat.redBits)));
+        this.m_maxDiffGreen = Math.ceil(256.0 * (15.0 / (1 << this.m_pixelformat.greenBits)));
+        this.m_maxDiffBlue = Math.ceil(256.0 * (15.0 / (1 << this.m_pixelformat.blueBits)));
     };
 
     /**
@@ -3544,6 +3544,7 @@ goog.scope(function() {
             return false;
         } else {
             tcuLogImage.logImageWithInfo(result.getAccess(), 'Result');
+            //tcuLogImage.logImageWithInfo(reference.getAccess(), 'Reference');
 
             return true;
         }
@@ -3629,6 +3630,7 @@ goog.scope(function() {
             return false;
         } else {
             tcuLogImage.logImageWithInfo(result.getAccess(), 'Result');
+            //tcuLogImage.logImageWithInfo(reference.getAccess(), 'Reference');
 
             return true;
         }
@@ -3671,7 +3673,7 @@ goog.scope(function() {
                     // false negatives in such pixels if for example the pixel in question is overdrawn by another line in the
                     // reference image but not in the resultin image. Relax comparison near line intersection points (areas) and
                     // compare only coverage, not color, in such pixels
-                    /**@type {number} */ var maxAllowedInvalidPixelsWithLines = 5; // line are allowed to have a few bad pixels
+                    /**@type {number} */ var maxAllowedInvalidPixelsWithLines = 15; // line are allowed to have a few bad pixels
                     return glsDrawTests.intersectionRelaxedLineImageCompare(
                         'CompareResult',
                         'Result of rendering',

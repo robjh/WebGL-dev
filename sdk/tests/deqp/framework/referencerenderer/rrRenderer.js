@@ -142,17 +142,18 @@ rrRenderer.RenderTarget = function(colorMultisampleBuffer, depthMultisampleBuffe
  * @constructor
  * @param {ArrayBuffer} data
  * @param {rrDefs.IndexType} type
+ * @param {number} offset
  * @param {number=} baseVertex_
  */
-rrRenderer.DrawIndices = function(data, type, baseVertex_) {
+rrRenderer.DrawIndices = function(data, type, offset, baseVertex_) {
     /** @type {ArrayBuffer} */ this.data = data;
     /** @type {number} */ this.baseVertex = baseVertex_ || 0;
     /** @type {rrDefs.IndexType} */ this.indexType = type;
     /** @type {goog.NumberArray} */ this.access = null;
     switch (type) {
-        case rrDefs.IndexType.INDEXTYPE_UINT8: this.access = new Uint8Array(data); break;
-        case rrDefs.IndexType.INDEXTYPE_UINT16: this.access = new Uint16Array(data); break;
-        case rrDefs.IndexType.INDEXTYPE_UINT32: this.access = new Uint32Array(data); break;
+        case rrDefs.IndexType.INDEXTYPE_UINT8: this.access = new Uint8Array(data).subarray(offset); break;
+        case rrDefs.IndexType.INDEXTYPE_UINT16: this.access = new Uint16Array(data).subarray(offset / 2); break;
+        case rrDefs.IndexType.INDEXTYPE_UINT32: this.access = new Uint32Array(data).subarray(offset / 4); break;
         default: throw new Error('Invalid type: ' + type);
     }
 };
@@ -728,10 +729,10 @@ rrRenderer.drawLines = function(state, renderTarget, program, vertexAttribs, pri
         v0[2] = linePackets[0].position[2];
         v1[2] = linePackets[1].position[2];
 
-        v0[0] = Math.round(v0[0]);
-        v0[1] = Math.round(v0[1]);
-        v1[0] = Math.round(v1[0]);
-        v1[1] = Math.round(v1[1]);
+        v0[0] = Math.floor(v0[0]);
+        v0[1] = Math.floor(v0[1]);
+        v1[0] = Math.floor(v1[0]);
+        v1[1] = Math.floor(v1[1]);
 
         var lineWidth = 1;
         var d = [
@@ -775,7 +776,6 @@ rrRenderer.drawLines = function(state, renderTarget, program, vertexAttribs, pri
                 y += ystep;
                 offset += d[0];
             }
-
         }
 
         program.shadeFragments(packets, shadingContext);

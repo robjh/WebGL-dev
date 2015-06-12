@@ -2557,7 +2557,7 @@ goog.scope(function() {
             return;
         // All is ok
         var data = vao.m_elementArrayBufferBinding.getData();
-        var indices = new rrRenderer.DrawIndices(data, sglrReferenceUtils.mapGLIndexType(type), baseVertex);
+        var indices = new rrRenderer.DrawIndices(data, sglrReferenceUtils.mapGLIndexType(type), offset, baseVertex);
 
         this.drawQuads(mode, indices, count, instanceCount);
     };
