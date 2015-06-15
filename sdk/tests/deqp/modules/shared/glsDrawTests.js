@@ -1464,12 +1464,14 @@ goog.scope(function() {
      * @param {deRandom.Random} rnd
      * @param {glsDrawTests.GLValue} min
      * @param {glsDrawTests.GLValue} max
+     * @param {boolean} packed
      */
-    glsDrawTests.RandomArrayGenerator.VertexParameters = function(componentCount, rnd, min, max) {
+    glsDrawTests.RandomArrayGenerator.VertexParameters = function(componentCount, rnd, min, max, packed) {
         /** @type {number} */ this.componentCount = componentCount;
         /** @type {deRandom.Random} */ this.rnd = rnd;
         /** @type {glsDrawTests.GLValue} */ this.min = min;
         /** @type {glsDrawTests.GLValue} */ this.max = max;
+        /** @type {boolean}*/ this.packed = packed;
     };
 
     /**
@@ -1481,6 +1483,8 @@ goog.scope(function() {
         /** @type {Array<glsDrawTests.GLValue>} */ var components = [];
         /** @type {number} */ var limit10 = (1 << 10);
         /** @type {number} */ var limit2 = (1 << 2);
+        var packed = vertexParameters.min.getType() == glsDrawTests.DrawTestSpec.InputType.INT_2_10_10_10 ||
+            vertexParameters.min.getType() == glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT_2_10_10_10;
 
         for (var componentNdx = 0; componentNdx < vertexParameters.componentCount; componentNdx++) {
             //keep z and w values the same as the previous attribute
@@ -1489,16 +1493,13 @@ goog.scope(function() {
                 continue;
             }
 
-            var packed = vertexParameters.min.getType() == glsDrawTests.DrawTestSpec.InputType.INT_2_10_10_10 ||
-                vertexParameters.min.getType() == glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT_2_10_10_10;
-
             components[componentNdx] = packed ? (
                     componentNdx == 3 ?
                         new Uint32Array([vertexParameters.rnd.getInt() % limit2])[0] :
                         new Uint32Array([vertexParameters.rnd.getInt() % limit10])[0]) :
                 glsDrawTests.GLValue.getRandom(vertexParameters.rnd, vertexParameters.min, vertexParameters.max);
 
-            if (!packed) {
+            if (!vertexParameters.packed) {
                 var minSeparation = glsDrawTests.GLValue.minValue(vertexParameters.min.getType());
 
                 // Try to not create vertex near previous
@@ -1512,6 +1513,7 @@ goog.scope(function() {
     };
 
     /**
+     * createBasicArray - Modified JS version to ensure quad generation for compatibility with refrast.
      * @param {number} seed
      * @param {number} elementCount
      * @param {number} componentCount
@@ -1558,7 +1560,7 @@ goog.scope(function() {
         var rnd = new deRandom.Random(seed);
 
         /** @type {glsDrawTests.RandomArrayGenerator.VertexParameters} */
-        var vertexParameters = new glsDrawTests.RandomArrayGenerator.VertexParameters(componentCount, rnd, min, max);
+        var vertexParameters = new glsDrawTests.RandomArrayGenerator.VertexParameters(componentCount, rnd, min, max, packed);
 
         for (var vertexNdx = 0; vertexNdx < elementCount; vertexNdx++) {
             //If first vertex hasn't been met, just generate individual vertices, and advance the buffer.
@@ -1768,6 +1770,8 @@ goog.scope(function() {
     };
 
     /**
+     * generatePackedArray - Deleted in JS Due to refRast implementation.
+     * Packed vertices are generated with the same generateVertex function.
      * @param {number} seed
      * @param {number} elementCount
      * @param {number} componentCount
@@ -1780,39 +1784,6 @@ goog.scope(function() {
      * @param {number} indexSize
      * @return {goog.TypedArray}
      */
-    glsDrawTests.RandomArrayGenerator.generatePackedArray = function(seed, elementCount, componentCount, offset, stride, type, first, primitive, indices, indexSize) {
-        assertMsgOptions(componentCount == 4, 'Component count must be 4', false, true);
-        //DE_UNREF(componentCount);
-
-        /** @type {number} */ var limit10 = (1 << 10);
-        /** @type {number} */ var limit2 = (1 << 2);
-        /** @type {number} */ var elementSize = 4;
-        /** @type {number} */ var bufferSize = offset + (elementCount - 1) * stride + elementSize;
-
-        var data = new ArrayBuffer(bufferSize);
-        var writePtr = new Uint8Array(data).subarray(offset);
-
-        var rnd = new deRandom.Random(seed);
-
-        for (var vertexNdx = 0; vertexNdx < elementCount; vertexNdx++) {
-            /** @type {number} */ var x = new Uint32Array([rnd.getInt() % limit10])[0];
-            /** @type {number} */ var y = new Uint32Array([rnd.getInt() % limit10])[0];
-            /** @type {number} */ var z = new Uint32Array([rnd.getInt() % limit10])[0];
-            /** @type {number} */ var w = new Uint32Array([rnd.getInt() % limit2])[0];
-            /** @type {number} */ var packedValue = deMath.binaryOp(
-                deMath.shiftLeft(w, 30), deMath.binaryOp(
-                    deMath.shiftLeft(z, 20), deMath.binaryOp(
-                        deMath.shiftLeft(y, 10), x, deMath.BinaryOp.OR
-                    ), deMath.BinaryOp.OR
-                ), deMath.BinaryOp.OR
-            );
-
-            glsDrawTests.copyArray(writePtr, new Uint32Array([packedValue]));
-            writePtr = writePtr.subarray(writePtr.byteOffset + stride);
-        }
-
-        return new Uint8Array(data);
-    };
 
     /**
      * @param {number} seed
@@ -2047,7 +2018,6 @@ goog.scope(function() {
      * @constructor
      */
     glsDrawTests.DrawTestSpec = function() {
-        //TODO: Check if ApiType is needed --> /** @type {glsDrawTests.DrawTestSpec.ApiType} */ this.apiType; //!< needed in spec validation
         /** @type {?glsDrawTests.DrawTestSpec.Primitive} */ this.primitive = null;
         /** @type {number} */ this.primitiveCount = 0; //!< number of primitives to draw (per instance)
 
@@ -2690,15 +2660,10 @@ goog.scope(function() {
      * @return {boolean}
      */
     glsDrawTests.DrawTestSpec.prototype.valid = function() {
-        //TODO: Need to implement ApiType? --> assertMsgOptions(apiType.getProfile() != glu::PROFILE_LAST);
         assertMsgOptions(this.primitive != null, 'Primitive is null', false, true);
         assertMsgOptions(this.drawMethod != null, 'Draw method is null', false, true);
 
         var methodInfo = glsDrawTests.getMethodInfo(this.drawMethod);
-
-        /*TODO: ApiType? for (var ndx = 0; ndx < attribs.length; ++ndx)
-            if (!attribs[ndx].valid(apiType))
-                return false;*/
 
         if (methodInfo.ranged) {
             var maxIndexValue = 0;
@@ -2721,14 +2686,6 @@ goog.scope(function() {
 
         if (methodInfo.first && this.first < 0)
             return false;
-
-        // TODO: Check this? --> GLES2 limits
-        /*if (apiType == glu::ApiType::es(2,0)) {
-            if (drawMethod != glsDrawTests.DrawTestSpec.DRAWMETHOD_DRAWARRAYS && drawMethod != gls::glsDrawTests.DrawTestSpec.DRAWMETHOD_DRAWELEMENTS)
-                return false;
-            if (drawMethod == gls::glsDrawTests.DrawTestSpec.DRAWMETHOD_DRAWELEMENTS && (indexType != glsDrawTests.DrawTestSpec.IndexType.BYTE && indexType != glsDrawTests.DrawTestSpec.IndexType.SHORT))
-                return false;
-        }*/
 
         return true;
     };
@@ -2868,7 +2825,6 @@ goog.scope(function() {
         }
     };
 
-     // @param {ApiType} ctxType TODO: ApiType?
     /**
      * @return {boolean}
      */
@@ -2920,17 +2876,6 @@ goog.scope(function() {
         // Invalid normalize. Normalize is only valid if output type is float
         if (this.normalize && !outputTypeFloat)
             return false;
-
-        // TODO: Check if we need to get the webgl version
-        // GLES2 limits
-        /*if (ctxType == glu::ApiType::es(2,0)) {
-            if (inputType != glsDrawTests.DrawTestSpec.InputType.BYTE && inputType != glsDrawTests.DrawTestSpec.InputType.UNSIGNED_BYTE &&
-                inputType != glsDrawTests.DrawTestSpec.InputType.SHORT && inputType != glsDrawTests.DrawTestSpec.InputType.UNSIGNED_SHORT)
-                return false;
-
-            if (!outputTypeFloat)
-                return false;
-        }*/
 
         return true;
     };
@@ -3024,15 +2969,6 @@ goog.scope(function() {
         if (!validSpec)
             return;
 
-        // Check the context type is the same with other iterations
-        /*TODO: ApiType again --> if (!this.m_specs.empty()) {
-            var validContext = this.m_specs[0].apiType == spec.apiType;
-            DE_ASSERT(validContext);
-
-            if (!validContext)
-                return;
-        }*/
-
         this.m_specs.push(spec);
 
         if (description)
@@ -3125,15 +3061,10 @@ goog.scope(function() {
                 glArray = new glsDrawTests.AttributeArray(spec.indexStorage, this.m_glesContext);
                 rrArray = new glsDrawTests.AttributeArray(spec.indexStorage, this.m_refContext);
 
-                //try { TODO: Delete indexArray?
                 glArray.data(glsDrawTests.DrawTestSpec.Target.ELEMENT_ARRAY, indexArraySize, indexArray, glsDrawTests.DrawTestSpec.Usage.STATIC_DRAW);
                 rrArray.data(glsDrawTests.DrawTestSpec.Target.ELEMENT_ARRAY, indexArraySize, indexArray, glsDrawTests.DrawTestSpec.Usage.STATIC_DRAW);
-                //delete [] indexArray; //TODO:
+
                 indexArray = null;
-                /*} catch () {
-                delete [] indexArray; //TODO:
-                throw;
-                }*/
             }
 
             // attributes
@@ -3171,22 +3102,16 @@ goog.scope(function() {
                         indexElementSize
                     );
 
-                    //try { TODO: This try/catch block's purpose is to delete data safely. Should we?
-                        this.m_glArrayPack.newArray(attribSpec.storage);
-                        this.m_rrArrayPack.newArray(attribSpec.storage);
+                    this.m_glArrayPack.newArray(attribSpec.storage);
+                    this.m_rrArrayPack.newArray(attribSpec.storage);
 
-                        this.m_glArrayPack.getArray(attribNdx).data(glsDrawTests.DrawTestSpec.Target.ARRAY, bufferSize, data, attribSpec.usage);
-                        this.m_rrArrayPack.getArray(attribNdx).data(glsDrawTests.DrawTestSpec.Target.ARRAY, bufferSize, data, attribSpec.usage);
+                    this.m_glArrayPack.getArray(attribNdx).data(glsDrawTests.DrawTestSpec.Target.ARRAY, bufferSize, data, attribSpec.usage);
+                    this.m_rrArrayPack.getArray(attribNdx).data(glsDrawTests.DrawTestSpec.Target.ARRAY, bufferSize, data, attribSpec.usage);
 
-                        this.m_glArrayPack.getArray(attribNdx).setupArray(true, attribSpec.offset, attribSpec.componentCount, attribSpec.inputType, attribSpec.outputType, attribSpec.normalize, attribSpec.stride, attribSpec.instanceDivisor, nullAttribValue, isPositionAttr);
-                        this.m_rrArrayPack.getArray(attribNdx).setupArray(true, attribSpec.offset, attribSpec.componentCount, attribSpec.inputType, attribSpec.outputType, attribSpec.normalize, attribSpec.stride, attribSpec.instanceDivisor, nullAttribValue, isPositionAttr);
+                    this.m_glArrayPack.getArray(attribNdx).setupArray(true, attribSpec.offset, attribSpec.componentCount, attribSpec.inputType, attribSpec.outputType, attribSpec.normalize, attribSpec.stride, attribSpec.instanceDivisor, nullAttribValue, isPositionAttr);
+                    this.m_rrArrayPack.getArray(attribNdx).setupArray(true, attribSpec.offset, attribSpec.componentCount, attribSpec.inputType, attribSpec.outputType, attribSpec.normalize, attribSpec.stride, attribSpec.instanceDivisor, nullAttribValue, isPositionAttr);
 
-                        //delete [] data; TODO: Should we delete in any way?
-                        data = null;
-                    //} catch () {
-                        //delete [] data; TODO: Should we delete in any way?
-                        //throw;
-                    //}
+                    data = null;
                 }
             }
 
@@ -3211,7 +3136,6 @@ goog.scope(function() {
             } catch (err) {
                 if (err /*instanceof GL ERROR*/) { //TODO: Implement throwing a special error for gl errors to catch them here
                     // GL Errors are ok if the mode is not properly aligned
-
                     ctype = spec.isCompatibilityTest();
 
                     bufferedLogToConsole('Got error: ' + err.message);
@@ -3644,13 +3568,13 @@ goog.scope(function() {
         /** @type {tcuSurface.Surface} */ var ref = this.m_rrArrayPack.getSurface();
         /** @type {tcuSurface.Surface} */ var screen = this.m_glArrayPack.getSurface();
 
-        /*if (this.m_renderCtx.getRenderTarget().getNumSamples() > 1) //TODO: Check where to get number of samples{
+        if (/** @type {number} */ (gl.getParameter(gl.SAMPLES)) > 1) {
             // \todo [mika] Improve compare when using multisampling
-            m_testCtx.getLog() << tcu::TestLog::Message << "Warning: Comparision of result from multisample render targets are not as stricts as without multisampling. Might produce false positives!" << tcu::TestLog::EndMessage;
-            return tcu::fuzzyCompare(m_testCtx.getLog(), "Compare Results", "Compare Results", ref.getAccess(), screen.getAccess(), 0.3f, tcu::COMPARE_LOG_RESULT);
-        }*/
-        /*else{*/
-        /** @type {glsDrawTests.PrimitiveClass} */ var primitiveClass = glsDrawTests.getDrawPrimitiveClass(primitiveType);
+            bufferedLogToConsole("Warning: Comparision of result from multisample render targets are not as strict as without multisampling. Might produce false positives!");
+            return tcuImageCompare.fuzzyCompare("Compare Results", "Compare Results", ref.getAccess(), screen.getAccess(), 0.3, tcuImageCompare.CompareLogMode.RESULT);
+        }
+        else {
+            /** @type {glsDrawTests.PrimitiveClass} */ var primitiveClass = glsDrawTests.getDrawPrimitiveClass(primitiveType);
 
             switch (primitiveClass) {
                 case glsDrawTests.PrimitiveClass.POINT: {
@@ -3711,7 +3635,7 @@ goog.scope(function() {
                 default:
                     throw new Error('Invalid primitive class');
             }
-        /*}*/
+        }
     };
 
     /**
