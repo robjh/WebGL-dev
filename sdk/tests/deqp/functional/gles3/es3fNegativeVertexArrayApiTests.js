@@ -29,8 +29,6 @@ goog.require('functional.gles3.es3fApiCase');
 goog.require('framework.opengl.gluShaderProgram');
 goog.require('framework.opengl.simplereference.sglrGLContext');
 
-// goog.require('framework.opengl.gluTexture');
-
 goog.scope(function() {
 
     var es3fNegativeVertexArrayApiTests = functional.gles3.es3fNegativeVertexArrayApiTests;
@@ -39,14 +37,21 @@ goog.scope(function() {
     var tcuTestCase = framework.common.tcuTestCase;
     var gluShaderProgram = framework.opengl.gluShaderProgram;
     var sglrGLContext = framework.opengl.simplereference.sglrGLContext;
-    // var gluTexture = framework.opengl.gluTexture;
 
+    /**
+     * @type {string}
+     * @const
+     */
     var vertexShaderSource = '#version 300 es\n' +
     'void main (void)\n' +
     '{\n' +
     ' gl_Position = vec4(0.0);\n' +
     '}\n';
 
+    /**
+     * @type {string}
+     * @const
+     */
     var fragmentShaderSource = '#version 300 es\n' +
     'layout(location = 0) out mediump vec4 fragColor;\n' +
     'void main (void)\n' +
@@ -74,6 +79,7 @@ goog.scope(function() {
             this.expectError(gl.INVALID_VALUE);
 
         }));
+
         testGroup.addChild(new es3fApiCase.ApiCaseCallback('vertex_attribfv', 'Invalid glVertexAttrib{1234}fv() usage', gl, function() {
             bufferedLogToConsole('gl.INVALID_VALUE is generated if index is greater than or equal to gl.MAX_VERTEX_ATTRIBS.');
             /** @type{number} */ var maxVertexAttribs = /** @type{number} */ (gl.getParameter(gl.MAX_VERTEX_ATTRIBS));
@@ -88,6 +94,7 @@ goog.scope(function() {
             this.expectError(gl.INVALID_VALUE);
 
         }));
+
         testGroup.addChild(new es3fApiCase.ApiCaseCallback('vertex_attribi4', 'Invalid glVertexAttribI4{i|ui}f() usage', gl, function() {
             /** @type{number} */ var maxVertexAttribs = /** @type{number} */ (gl.getParameter(gl.MAX_VERTEX_ATTRIBS));
             /** @type{number} */ var valInt = 0;
@@ -100,6 +107,7 @@ goog.scope(function() {
             this.expectError(gl.INVALID_VALUE);
 
         }));
+
         testGroup.addChild(new es3fApiCase.ApiCaseCallback('vertex_attribi4v', 'Invalid glVertexAttribI4{i|ui}fv() usage', gl, function() {
             /** @type{number} */ var maxVertexAttribs = /** @type{number} */ (gl.getParameter(gl.MAX_VERTEX_ATTRIBS));
             /** @type{Array<number>} */ var valInt = [0];
@@ -112,7 +120,7 @@ goog.scope(function() {
             this.expectError(gl.INVALID_VALUE);
 
         }));
-        // NOTE: the type gl.INT_2_10_10_10_REV is not supported.
+
         testGroup.addChild(new es3fApiCase.ApiCaseCallback('vertex_attrib_pointer', 'Invalid gl.vertexAttribPointer() usage', gl, function() {
             bufferedLogToConsole('gl.INVALID_ENUM is generated if type is not an accepted value.');
             gl.vertexAttribPointer(0, 1, 0, true, 0, 0);
@@ -157,6 +165,7 @@ goog.scope(function() {
             this.expectError(gl.NO_ERROR);
 
         }));
+
         testGroup.addChild(new es3fApiCase.ApiCaseCallback('vertex_attrib_i_pointer', 'Invalid gl.vertexAttribPointer() usage', gl, function() {
             bufferedLogToConsole('gl.INVALID_ENUM is generated if type is not an accepted value.');
             gl.vertexAttribIPointer(0, 1, 0, 0, 0);
