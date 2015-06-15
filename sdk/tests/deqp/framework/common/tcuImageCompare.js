@@ -207,6 +207,9 @@ tcuImageCompare.intThresholdPositionDeviationErrorThresholdCompare = function(
         debug('Position deviation error threshold image comparison failed: failed pixels = ' + numFailingPixels + ', threshold = ' + threshold);
         tcuImageCompare.displayImages(result, reference, errorMask.getAccess());
     }
+    else
+        tcuLogImage.logImage('Result', '', result);
+
     /*if (!compareOk) {
         // All formats except normalized unsigned fixed point ones need remapping in order to fit into unorm channels in logged images.
         if (tcuTextureUtil.getTextureChannelClass(reference.getFormat().type) != tcuTextureUtil.TextureChannelClass.UNSIGNED_FIXED_POINT ||

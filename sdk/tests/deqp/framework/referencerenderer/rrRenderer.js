@@ -279,6 +279,13 @@ rrRenderer.PrimitiveList.prototype.getNextPrimitive = function(reset) {
                 result = [i, 0];
             this.m_iterator += 1;
             break;
+        case rrRenderer.PrimitiveType.POINTS:
+            if (this.m_iterator == this.m_numElements)
+                break;
+            else
+                result = [i];
+            this.m_iterator += 1;
+            break;
         default:
             throw new Error('Unsupported primitive type: ' + deString.enumToString(rrRenderer.PrimitiveType, this.m_primitiveType));
     }
@@ -745,7 +752,7 @@ rrRenderer.drawLines = function(state, renderTarget, program, vertexAttribs, pri
         var shadingContext = new rrShadingContext.FragmentShadingContext(
             linePackets[0].outputs,
             linePackets[1].outputs,
-            linePackets[1].outputs
+            null
         );
         var packets = [];
 
@@ -777,6 +784,84 @@ rrRenderer.drawLines = function(state, renderTarget, program, vertexAttribs, pri
                 offset += d[0];
             }
         }
+
+        program.shadeFragments(packets, shadingContext);
+
+        rrRenderer.writeFragments2(state, renderTarget, packets);
+    }
+};
+
+/**
+ * @param {rrRenderState.RenderState} state
+ * @param {rrRenderer.RenderTarget} renderTarget
+ * @param {sglrShaderProgram.ShaderProgram} program
+ * @param {Array<rrVertexAttrib.VertexAttrib>} vertexAttribs
+ * @param {rrRenderer.PrimitiveType} primitive
+ * @param {(number|rrRenderer.DrawIndices)} first Index of first quad vertex
+ * @param {number} count Number of indices
+ * @param {number} instanceID
+ */
+rrRenderer.drawPoints = function(state, renderTarget, program, vertexAttribs, primitive, first, count, instanceID) {
+    /**
+     * @param {Array<rrVertexPacket.VertexPacket>} vertices
+     * @param {Array<number>} indices
+     * @return {Array<rrVertexPacket.VertexPacket>}
+     */
+    var selectVertices = function(vertices, indices) {
+        var result = [];
+        for (var i = 0; i < indices.length; i++)
+            result.push(vertices[indices[i]]);
+        return result;
+    };
+
+    var primitives = new rrRenderer.PrimitiveList(primitive, count, first);
+    // Do not draw if nothing to draw
+    if (primitives.getNumElements() == 0)
+        return;
+
+    // Prepare transformation
+    var numVaryings = program.vertexShader.getOutputs().length;
+    var vpalloc = new rrVertexPacket.VertexPacketAllocator(numVaryings);
+    var vertexPackets = vpalloc.allocArray(primitives.getNumElements());
+    var drawContext = new rrRenderer.DrawContext();
+    drawContext.primitiveID = 0;
+
+    var numberOfVertices = primitives.getNumElements();
+    var numVertexPackets = 0;
+    for (var elementNdx = 0; elementNdx < numberOfVertices; ++elementNdx) {
+
+        // input
+        vertexPackets[numVertexPackets].instanceNdx = instanceID;
+        vertexPackets[numVertexPackets].vertexNdx = primitives.getIndex(elementNdx);
+
+        // output
+        vertexPackets[numVertexPackets].pointSize = state.point.pointSize; // default value from the current state
+        vertexPackets[numVertexPackets].position = [0, 0, 0, 0]; // no undefined values
+
+        ++numVertexPackets;
+
+    }
+    program.shadeVertices(vertexAttribs, vertexPackets, numVertexPackets);
+
+    // For each primitive, we draw a point.
+    for (var prim = primitives.getNextPrimitive(true); prim.length > 0; prim = primitives.getNextPrimitive()) {
+        var pointPackets = selectVertices(vertexPackets, prim);
+
+        var v0 = rrRenderer.transformGLToWindowCoords(state, pointPackets[0]);
+        v0[2] = pointPackets[0].position[2];
+
+        var shadingContext = new rrShadingContext.FragmentShadingContext(
+            pointPackets[0].outputs,
+            null,
+            null
+        );
+        var packets = [];
+
+        var x = v0[0];
+        var y = v0[1];
+        var depth = v0[2];
+        var b = [1, 0, 0];
+        packets.push(new rrFragmentOperations.Fragment(b, [x, y], depth));
 
         program.shadeFragments(packets, shadingContext);
 
