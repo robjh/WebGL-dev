@@ -1562,7 +1562,7 @@ goog.scope(function() {
 
         for (var vertexNdx = 0; vertexNdx < elementCount; vertexNdx++) {
             //If first vertex hasn't been met, just generate individual vertices, and advance the buffer.
-            if (vertexNdx < first) {
+            if (vertexNdx < first || primitive == glsDrawTests.DrawTestSpec.Primitive.POINTS) {
                 components = generateVertex(components, vertexParameters);
                 if (packed) {
                     packedValue = deMath.binaryOp(
