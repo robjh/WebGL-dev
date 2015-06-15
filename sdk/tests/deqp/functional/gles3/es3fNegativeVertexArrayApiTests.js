@@ -339,7 +339,7 @@ goog.scope(function() {
             gl.bindFramebuffer(gl.FRAMEBUFFER, null);
             gl.deleteFramebuffer(fbo);
 
-            if (!sglrGLContext.isExtensionSupported(gl, 'gl.EXT_geometry_shader')) { // gl.EXT_geometry_shader removes error
+            if (!sglrGLContext.isExtensionSupported(gl, 'EXT_geometry_shader')) { // gl.EXT_geometry_shader removes error
                 bufferedLogToConsole('gl.INVALID_OPERATION is generated if transform feedback is active and not paused.');
                 /** @type{Array<string>} */ var tfVarying = ['gl_Position'];
 
@@ -444,7 +444,7 @@ goog.scope(function() {
             gl.bindFramebuffer(gl.FRAMEBUFFER, null);
             gl.deleteFramebuffer(fbo);
 
-            if (!sglrGLContext.isExtensionSupported(gl, 'gl.EXT_geometry_shader')) {// gl.EXT_geometry_shader removes error
+            if (!sglrGLContext.isExtensionSupported(gl, 'EXT_geometry_shader')) {// gl.EXT_geometry_shader removes error
                 bufferedLogToConsole('gl.INVALID_OPERATION is generated if transform feedback is active and not paused.');
                 /** @type{Array<string>} */ var tfVarying = ['gl_Position'];
 
@@ -623,7 +623,7 @@ goog.scope(function() {
             gl.bindFramebuffer(gl.FRAMEBUFFER, null);
             gl.deleteFramebuffer(fbo);
 
-            if (!sglrGLContext.isExtensionSupported(gl, 'gl.EXT_geometry_shader')) {// gl.EXT_geometry_shader removes error
+            if (!sglrGLContext.isExtensionSupported(gl, 'EXT_geometry_shader')) {// gl.EXT_geometry_shader removes error
                 bufferedLogToConsole('gl.INVALID_OPERATION is generated if transform feedback is active and not paused.');
                 /** @type{Array<string>} */ var tfVarying = ['gl_Position'];
 
@@ -740,7 +740,7 @@ goog.scope(function() {
             gl.bindFramebuffer(gl.FRAMEBUFFER, null);
             gl.deleteFramebuffer(fbo);
 
-            if (!sglrGLContext.isExtensionSupported(gl, 'gl.EXT_geometry_shader')) {// gl.EXT_geometry_shader removes error
+            if (!sglrGLContext.isExtensionSupported(gl, 'EXT_geometry_shader')) {// gl.EXT_geometry_shader removes error
                 bufferedLogToConsole('gl.INVALID_OPERATION is generated if transform feedback is active and not paused.');
                 /** @type{Array<string>} */ var tfVarying = ['gl_Position'];
 
@@ -816,7 +816,7 @@ goog.scope(function() {
             gl.bindFramebuffer(gl.FRAMEBUFFER, null);
             gl.deleteFramebuffer(fbo);
 
-            if (!sglrGLContext.isExtensionSupported(gl, 'gl.EXT_geometry_shader')) {// gl.EXT_geometry_shader removes error
+            if (!sglrGLContext.isExtensionSupported(gl, 'EXT_geometry_shader')) {// gl.EXT_geometry_shader removes error
                 bufferedLogToConsole('gl.INVALID_OPERATION is generated if transform feedback is active and not paused.');
                 /** @type{Array<string>} */ var tfVarying = ['gl_Position'];
 
@@ -932,7 +932,7 @@ goog.scope(function() {
             gl.bindFramebuffer(gl.FRAMEBUFFER, null);
             gl.deleteFramebuffer(fbo);
 
-            if (!sglrGLContext.isExtensionSupported(gl, 'gl.EXT_geometry_shader')) {// gl.EXT_geometry_shader removes error
+            if (!sglrGLContext.isExtensionSupported(gl, 'EXT_geometry_shader')) {// gl.EXT_geometry_shader removes error
                 bufferedLogToConsole('gl.INVALID_OPERATION is generated if transform feedback is active and not paused.');
                 /** @type{Array<string>} */ var tfVarying = ['gl_Position'];
 
