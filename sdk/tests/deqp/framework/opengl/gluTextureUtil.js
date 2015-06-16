@@ -32,8 +32,8 @@ goog.provide('framework.opengl.gluTextureUtil');
 goog.require('framework.common.tcuCompressedTexture');
 goog.require('framework.common.tcuTexture');
 goog.require('framework.common.tcuTextureUtil');
-goog.require('framework.opengl.gluShaderUtil');
 goog.require('framework.delibs.debase.deString');
+goog.require('framework.opengl.gluShaderUtil');
 
 goog.scope(function() {
 

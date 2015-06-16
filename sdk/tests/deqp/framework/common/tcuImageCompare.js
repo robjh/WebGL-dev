@@ -206,8 +206,7 @@ tcuImageCompare.intThresholdPositionDeviationErrorThresholdCompare = function(
     if (!compareOk) {
         debug('Position deviation error threshold image comparison failed: failed pixels = ' + numFailingPixels + ', threshold = ' + threshold);
         tcuImageCompare.displayImages(result, reference, errorMask.getAccess());
-    }
-    else
+    } else
         tcuLogImage.logImage('Result', '', result);
 
     /*if (!compareOk) {

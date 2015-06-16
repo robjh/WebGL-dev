@@ -3570,10 +3570,9 @@ goog.scope(function() {
 
         if (/** @type {number} */ (gl.getParameter(gl.SAMPLES)) > 1) {
             // \todo [mika] Improve compare when using multisampling
-            bufferedLogToConsole("Warning: Comparision of result from multisample render targets are not as strict as without multisampling. Might produce false positives!");
-            return tcuImageCompare.fuzzyCompare("Compare Results", "Compare Results", ref.getAccess(), screen.getAccess(), 0.3, tcuImageCompare.CompareLogMode.RESULT);
-        }
-        else {
+            bufferedLogToConsole('Warning: Comparision of result from multisample render targets are not as strict as without multisampling. Might produce false positives!');
+            return tcuImageCompare.fuzzyCompare('Compare Results', 'Compare Results', ref.getAccess(), screen.getAccess(), 0.3, tcuImageCompare.CompareLogMode.RESULT);
+        } else {
             /** @type {glsDrawTests.PrimitiveClass} */ var primitiveClass = glsDrawTests.getDrawPrimitiveClass(primitiveType);
 
             switch (primitiveClass) {
