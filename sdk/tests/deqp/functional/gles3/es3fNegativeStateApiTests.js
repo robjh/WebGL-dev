@@ -926,314 +926,306 @@ goog.scope(function() {
 
 		// Sync object queries
 
-		// testGroup.addChild(new es3fApiCase.ApiCaseCallback('get_synciv', 'Invalid glGetSynciv() usage', gl, function()
-		// {
-		// 	GLsizei length	= -1;
-		// 	/** @type{number} */ var	values[32];
-		// 	GLsync	sync;
-		//
-		// 	deMemset(&values[0], 0xcd, sizeof(values));
-		//
-		// 	bufferedLogToConsole('gl.INVALID_VALUE is generated if sync is not the name of a sync object.');
-		// 	glGetSynciv	(0, gl.OBJECT_TYPE, 32, &length, &values[0]);
-		// 	this.expectError	(gl.INVALID_VALUE);
-		//
-		//
-		// 	bufferedLogToConsole('gl.INVALID_ENUM is generated if pname is not one of the accepted tokens.');
-		// 	sync = glFenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
-		// 	this.expectError	(gl.NO_ERROR);
-		// 	glGetSynciv	(sync, -1, 32, &length, &values[0]);
-		// 	this.expectError	(gl.INVALID_ENUM);
-		//
-		// }));
-		//
-		// // Enumerated boolean state queries
-		//
-		// testGroup.addChild(new es3fApiCase.ApiCaseCallback('is_enabled', 'Invalid glIsEnabled() usage', gl, function()
-		// {
-		// 	bufferedLogToConsole('gl.INVALID_ENUM is generated if cap is not an accepted value.');
-		// 	glIsEnabled(-1);
-		// 	this.expectError(gl.INVALID_ENUM);
-		// 	glIsEnabled(gl.TRIANGLES);
-		// 	this.expectError(gl.INVALID_ENUM);
-		//
-		// }));
-		//
-		// // Hints
-		//
-		// testGroup.addChild(new es3fApiCase.ApiCaseCallback('hint', 'Invalid glHint() usage', gl, function()
-		// {
-		// 	bufferedLogToConsole('gl.INVALID_ENUM is generated if either target or mode is not an accepted value.');
-		// 	glHint(gl.GENERATE_MIPMAP_HINT, -1);
-		// 	this.expectError(gl.INVALID_ENUM);
-		// 	glHint(-1, gl.FASTEST);
-		// 	this.expectError(gl.INVALID_ENUM);
-		// 	glHint(-1, -1);
-		// 	this.expectError(gl.INVALID_ENUM);
-		//
-		// }));
-		//
-		// // Named Object Usage
-		//
-		// testGroup.addChild(new es3fApiCase.ApiCaseCallback('is_buffer', 'Invalid glIsBuffer() usage', gl, function()
-		// {
-		// 	GLuint		buffer = 0;
-		// 	/** @type{boolean} */ var 	isBuffer;
-		//
-		// 	bufferedLogToConsole('A name returned by glGenBuffers, but not yet associated with a buffer object by calling glBindBuffer, is not the name of a buffer object.');
-		// 	isBuffer		= glIsBuffer(buffer);
-		// 	checkBooleans	(isBuffer, false);
-		//
-		// 	glGenBuffers	(1, &buffer);
-		// 	isBuffer		= glIsBuffer(buffer);
-		// 	checkBooleans	(isBuffer, false);
-		//
-		// 	glBindBuffer	(gl.ARRAY_BUFFER, buffer);
-		// 	isBuffer		= glIsBuffer(buffer);
-		// 	checkBooleans	(isBuffer, gl.TRUE);
-		//
-		// 	glBindBuffer	(gl.ARRAY_BUFFER, 0);
-		// 	glDeleteBuffers	(1, &buffer);
-		// 	isBuffer		= glIsBuffer(buffer);
-		// 	checkBooleans	(isBuffer, false);
-		//
-		//
-		// 	this.expectError			(gl.NO_ERROR);
-		// }));
-		// testGroup.addChild(new es3fApiCase.ApiCaseCallback('is_framebuffer', 'Invalid glIsFramebuffer() usage', gl, function()
-		// {
-		// 	GLuint		fbo = 0;
-		// 	/** @type{boolean} */ var 	isFbo;
-		//
-		// 	bufferedLogToConsole('A name returned by glGenFramebuffers, but not yet bound through a call to gl.bindFramebuffer is not the name of a framebuffer object.');
-		// 	isFbo				= glIsFramebuffer(fbo);
-		// 	checkBooleans		(isFbo, false);
-		//
-		// 	glGenFramebuffers	(1, &fbo);
-		// 	isFbo				= glIsFramebuffer(fbo);
-		// 	checkBooleans		(isFbo, false);
-		//
-		// 	gl.bindFramebuffer	(gl.FRAMEBUFFER, fbo);
-		// 	isFbo				= glIsFramebuffer(fbo);
-		// 	checkBooleans		(isFbo, gl.TRUE);
-		//
-		// 	gl.bindFramebuffer	(gl.FRAMEBUFFER, 0);
-		// 	glDeleteFramebuffers(1, &fbo);
-		// 	isFbo				= glIsFramebuffer(fbo);
-		// 	checkBooleans		(isFbo, false);
-		//
-		//
-		// 	this.expectError			(gl.NO_ERROR);
-		// }));
-		// testGroup.addChild(new es3fApiCase.ApiCaseCallback('is_program', 'Invalid glIsProgram() usage', gl, function()
-		// {
-		// 	GLuint		program = 0;
-		// 	/** @type{boolean} */ var 	isProgram;
-		//
-		// 	bufferedLogToConsole('A name created with gl.createProgram, and not yet deleted with glDeleteProgram is a name of a program object.');
-		// 	isProgram			= glIsProgram(program);
-		// 	checkBooleans		(isProgram, false);
-		//
-		// 	program				= gl.createProgram();
-		// 	isProgram			= glIsProgram(program);
-		// 	checkBooleans		(isProgram, gl.TRUE);
-		//
-		// 	glDeleteProgram		(program);
-		// 	isProgram			= glIsProgram(program);
-		// 	checkBooleans		(isProgram, false);
-		//
-		//
-		// 	this.expectError			(gl.NO_ERROR);
-		// }));
-		// testGroup.addChild(new es3fApiCase.ApiCaseCallback('is_renderbuffer', 'Invalid glIsRenderbuffer() usage', gl, function()
-		// {
-		// 	GLuint		rbo = 0;
-		// 	/** @type{boolean} */ var 	isRbo;
-		//
-		// 	bufferedLogToConsole('A name returned by glGenRenderbuffers, but not yet bound through a call to gl.bindRenderbuffer or gl.framebufferRenderbuffer is not the name of a renderbuffer object.');
-		// 	isRbo					= glIsRenderbuffer(rbo);
-		// 	checkBooleans			(isRbo, false);
-		//
-		// 	glGenRenderbuffers		(1, &rbo);
-		// 	isRbo					= glIsRenderbuffer(rbo);
-		// 	checkBooleans			(isRbo, false);
-		//
-		// 	gl.bindRenderbuffer		(gl.RENDERBUFFER, rbo);
-		// 	isRbo					= glIsRenderbuffer(rbo);
-		// 	checkBooleans			(isRbo, gl.TRUE);
-		//
-		// 	gl.bindRenderbuffer		(gl.RENDERBUFFER, 0);
-		// 	glDeleteRenderbuffers	(1, &rbo);
-		// 	isRbo					= glIsRenderbuffer(rbo);
-		// 	checkBooleans			(isRbo, false);
-		//
-		//
-		// 	this.expectError			(gl.NO_ERROR);
-		// }));
-		// testGroup.addChild(new es3fApiCase.ApiCaseCallback('is_shader', 'Invalid glIsShader() usage', gl, function()
-		// {
-		// 	GLuint		shader = 0;
-		// 	/** @type{boolean} */ var 	isShader;
-		//
-		// 	bufferedLogToConsole('A name created with glCreateShader, and not yet deleted with glDeleteShader is a name of a shader object.');
-		// 	isShader			= glIsProgram(shader);
-		// 	checkBooleans		(isShader, false);
-		//
-		// 	shader				= gl.createShader(gl.VERTEX_SHADER);
-		// 	isShader			= glIsShader(shader);
-		// 	checkBooleans		(isShader, gl.TRUE);
-		//
-		// 	glDeleteShader		(shader);
-		// 	isShader			= glIsShader(shader);
-		// 	checkBooleans		(isShader, false);
-		//
-		//
-		// 	this.expectError			(gl.NO_ERROR);
-		// }));
-		// testGroup.addChild(new es3fApiCase.ApiCaseCallback('is_texture', 'Invalid glIsTexture() usage', gl, function()
-		// {
-		// 	GLuint		texture = 0;
-		// 	/** @type{boolean} */ var 	isTexture;
-		//
-		// 	bufferedLogToConsole('A name returned by glGenTextures, but not yet bound through a call to glBindTexture is not the name of a texture.');
-		// 	isTexture			= glIsTexture(texture);
-		// 	checkBooleans		(isTexture, false);
-		//
-		// 	glGenTextures		(1, &texture);
-		// 	isTexture			= glIsTexture(texture);
-		// 	checkBooleans		(isTexture, false);
-		//
-		// 	glBindTexture		(gl.TEXTURE_2D, texture);
-		// 	isTexture			= glIsTexture(texture);
-		// 	checkBooleans		(isTexture, gl.TRUE);
-		//
-		// 	glBindTexture		(gl.TEXTURE_2D, 0);
-		// 	glDeleteTextures	(1, &texture);
-		// 	isTexture			= glIsTexture(texture);
-		// 	checkBooleans		(isTexture, false);
-		//
-		//
-		// 	this.expectError			(gl.NO_ERROR);
-		// }));
-		// testGroup.addChild(new es3fApiCase.ApiCaseCallback('is_query', 'Invalid glIsQuery() usage', gl, function()
-		// {
-		// 	GLuint		query = 0;
-		// 	/** @type{boolean} */ var 	isQuery;
-		//
-		// 	bufferedLogToConsole('A name returned by glGenQueries, but not yet associated with a query object by calling gl.beginQuery, is not the name of a query object.');
-		// 	isQuery				= glIsQuery(query);
-		// 	checkBooleans		(isQuery, false);
-		//
-		// 	glGenQueries		(1, &query);
-		// 	isQuery				= glIsQuery(query);
-		// 	checkBooleans		(isQuery, false);
-		//
-		// 	gl.beginQuery		(gl.ANY_SAMPLES_PASSED, query);
-		// 	isQuery				= glIsQuery(query);
-		// 	checkBooleans		(isQuery, gl.TRUE);
-		//
-		// 	gl.endQuery			(gl.ANY_SAMPLES_PASSED);
-		// 	gl.deleteQuery		(1, &query);
-		// 	isQuery				= glIsQuery(query);
-		// 	checkBooleans		(isQuery, false);
-		//
-		//
-		// 	this.expectError			(gl.NO_ERROR);
-		// }));
-		// testGroup.addChild(new es3fApiCase.ApiCaseCallback('is_sampler', 'Invalid glIsSampler() usage', gl, function()
-		// {
-		// 	GLuint		sampler = 0;
-		// 	/** @type{boolean} */ var 	isSampler;
-		//
-		// 	bufferedLogToConsole('A name returned by glGenSamplers is the name of a sampler object.');
-		// 	isSampler			= glIsSampler(sampler);
-		// 	checkBooleans		(isSampler, false);
-		//
-		// 	glGenSamplers		(1, &sampler);
-		// 	isSampler			= glIsSampler(sampler);
-		// 	checkBooleans		(isSampler, gl.TRUE);
-		//
-		// 	glBindSampler		(0, sampler);
-		// 	isSampler			= glIsSampler(sampler);
-		// 	checkBooleans		(isSampler, gl.TRUE);
-		//
-		// 	glDeleteSamplers	(1, &sampler);
-		// 	isSampler			= glIsSampler(sampler);
-		// 	checkBooleans		(isSampler, false);
-		//
-		//
-		// 	this.expectError			(gl.NO_ERROR);
-		// }));
-		// testGroup.addChild(new es3fApiCase.ApiCaseCallback('is_sync', 'Invalid glIsSync() usage', gl, function()
-		// {
-		// 	GLsync		sync = 0;
-		// 	/** @type{boolean} */ var 	isSync;
-		//
-		// 	bufferedLogToConsole('A name returned by glFenceSync is the name of a sync object.');
-		// 	isSync			= glIsSync(sync);
-		// 	checkBooleans	(isSync, false);
-		//
-		// 	sync			= glFenceSync (gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
-		// 	isSync			= glIsSync(sync);
-		// 	checkBooleans	(isSync, gl.TRUE);
-		//
-		// 	glDeleteSync	(sync);
-		// 	isSync			= glIsSync(sync);
-		// 	checkBooleans	(isSync, false);
-		//
-		//
-		// 	this.expectError			(gl.NO_ERROR);
-		// }));
-		// testGroup.addChild(new es3fApiCase.ApiCaseCallback('is_transform_feedback', 'Invalid glIsTransformFeedback() usage', gl, function()
-		// {
-		// 	GLuint		tf = 0;
-		// 	/** @type{boolean} */ var 	isTF;
-		//
-		// 	bufferedLogToConsole('A name returned by glGenTransformFeedbacks, but not yet bound using glBindTransformFeedback, is not the name of a transform feedback object.');
-		// 	isTF						= glIsTransformFeedback(tf);
-		// 	checkBooleans				(isTF, false);
-		//
-		// 	glGenTransformFeedbacks		(1, &tf);
-		// 	isTF						= glIsTransformFeedback(tf);
-		// 	checkBooleans				(isTF, false);
-		//
-		// 	glBindTransformFeedback		(gl.TRANSFORM_FEEDBACK, tf);
-		// 	isTF						= glIsTransformFeedback(tf);
-		// 	checkBooleans				(isTF, gl.TRUE);
-		//
-		// 	glBindTransformFeedback		(gl.TRANSFORM_FEEDBACK, 0);
-		// 	glDeleteTransformFeedbacks	(1, &tf);
-		// 	isTF						= glIsTransformFeedback(tf);
-		// 	checkBooleans				(isTF, false);
-		//
-		//
-		// 	this.expectError			(gl.NO_ERROR);
-		// }));
-		// testGroup.addChild(new es3fApiCase.ApiCaseCallback('is_vertex_array', 'Invalid glIsVertexArray() usage', gl, function()
-		// {
-		// 	GLuint		vao = 0;
-		// 	/** @type{boolean} */ var 	isVao;
-		//
-		// 	bufferedLogToConsole('A name returned by glGenVertexArrays, but not yet bound using glBindVertexArray, is not the name of a vertex array object.');
-		// 	isVao					= glIsVertexArray(vao);
-		// 	checkBooleans			(isVao, false);
-		//
-		// 	glGenVertexArrays			(1, &vao);
-		// 	isVao					= glIsVertexArray(vao);
-		// 	checkBooleans			(isVao, false);
-		//
-		// 	glBindVertexArray			(vao);
-		// 	isVao					= glIsVertexArray(vao);
-		// 	checkBooleans			(isVao, gl.TRUE);
-		//
-		// 	glBindVertexArray		(0);
-		// 	glDeleteVertexArrays	(1, &vao);
-		// 	isVao					= glIsVertexArray(vao);
-		// 	checkBooleans			(isVao, false);
-		//
-		//
-		// 	this.expectError			(gl.NO_ERROR);
-		// }));
+		testGroup.addChild(new es3fApiCase.ApiCaseCallback('get_synciv', 'Invalid gl.getSyncParameter() usage', gl, function()
+		{
+			/** @type{WebGLSync} */ var	sync;
+
+			bufferedLogToConsole('gl.INVALID_VALUE is generated if sync is not the name of a sync object.');
+			gl.getSyncParameter	(null, gl.OBJECT_TYPE);
+			this.expectError	(gl.INVALID_VALUE);
+
+
+			bufferedLogToConsole('gl.INVALID_ENUM is generated if pname is not one of the accepted tokens.');
+			sync = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
+			this.expectError	(gl.NO_ERROR);
+			gl.getSyncParameter	(sync, -1);
+			this.expectError	(gl.INVALID_ENUM);
+
+		}));
+
+		// Enumerated boolean state queries
+
+		testGroup.addChild(new es3fApiCase.ApiCaseCallback('is_enabled', 'Invalid gl.isEnabled() usage', gl, function()
+		{
+			bufferedLogToConsole('gl.INVALID_ENUM is generated if cap is not an accepted value.');
+			gl.isEnabled(-1);
+			this.expectError(gl.INVALID_ENUM);
+			gl.isEnabled(gl.TRIANGLES);
+			this.expectError(gl.INVALID_ENUM);
+
+		}));
+
+		// Hints
+		// NOTE: possible removal from tests
+		testGroup.addChild(new es3fApiCase.ApiCaseCallback('hint', 'Invalid glHint() usage', gl, function()
+		{
+			bufferedLogToConsole('gl.INVALID_ENUM is generated if either target or mode is not an accepted value.');
+			gl.getParameter(gl.GENERATE_MIPMAP_HINT);
+			this.expectError(gl.INVALID_ENUM);
+
+		}));
+
+		// Named Object Usage
+
+		testGroup.addChild(new es3fApiCase.ApiCaseCallback('is_buffer', 'Invalid gl.isBuffer() usage', gl, function()
+		{
+			/** @type{WebGLBuffer} */ var buffer;
+			/** @type{boolean} */ var isBuffer;
+
+			bufferedLogToConsole('A name returned by glGenBuffers, but not yet associated with a buffer object by calling glBindBuffer, is not the name of a buffer object.');
+			isBuffer		= gl.isBuffer(buffer);
+			assertMsgOptions(!isBuffer, 'Got invalid boolean value', false, true);
+
+			buffer = gl.createBuffer();
+			isBuffer = gl.isBuffer(buffer);
+			assertMsgOptions(!isBuffer, 'Got invalid boolean value', false, true);
+
+			gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+			isBuffer = gl.isBuffer(buffer);
+			assertMsgOptions(isBuffer, 'Got invalid boolean value', false, true);
+
+			gl.bindBuffer(gl.ARRAY_BUFFER, null);
+			gl.deleteBuffer(buffer);
+			isBuffer = gl.isBuffer(buffer);
+			assertMsgOptions(!isBuffer, 'Got invalid boolean value', false, true);
+
+			this.expectError			(gl.NO_ERROR);
+		}));
+
+		testGroup.addChild(new es3fApiCase.ApiCaseCallback('is_framebuffer', 'Invalid gl.isFramebuffer() usage', gl, function()
+		{
+			/** @type{WebGLFramebuffer} */ var fbo;
+			/** @type{boolean} */ var isFbo;
+
+			bufferedLogToConsole('A name returned by glGenFramebuffers, but not yet bound through a call to gl.bindFramebuffer is not the name of a framebuffer object.');
+			isFbo				= gl.isFramebuffer(fbo);
+			assertMsgOptions(!isFbo, 'Got invalid boolean value', false, true);
+
+			fbo = gl.createFramebuffer();
+			isFbo				= gl.isFramebuffer(fbo);
+			assertMsgOptions(!isFbo, 'Got invalid boolean value', false, true);
+
+			gl.bindFramebuffer	(gl.FRAMEBUFFER, fbo);
+			isFbo				= gl.isFramebuffer(fbo);
+			assertMsgOptions(isFbo, 'Got invalid boolean value', false, true);
+
+			gl.bindFramebuffer	(gl.FRAMEBUFFER, null);
+			gl.deleteFramebuffer(fbo);
+			isFbo				= gl.isFramebuffer(fbo);
+			assertMsgOptions(!isFbo, 'Got invalid boolean value', false, true);
+
+			this.expectError			(gl.NO_ERROR);
+		}));
+
+		testGroup.addChild(new es3fApiCase.ApiCaseCallback('is_program', 'Invalid gl.isProgram() usage', gl, function()
+		{
+			/** @type{WebGLProgram} */ var program;
+			/** @type{boolean} */ var isProgram;
+
+			bufferedLogToConsole('A name created with gl.createProgram, and not yet deleted with glDeleteProgram is a name of a program object.');
+			isProgram			= gl.isProgram(program);
+			assertMsgOptions(!isProgram, 'Got invalid boolean value', false, true);
+
+			program				= gl.createProgram();
+			isProgram			= gl.isProgram(program);
+			assertMsgOptions(isProgram, 'Got invalid boolean value', false, true);
+
+			gl.deleteProgram(program);
+			isProgram			= gl.isProgram(program);
+			assertMsgOptions(!isProgram, 'Got invalid boolean value', false, true);
+
+			this.expectError			(gl.NO_ERROR);
+		}));
+
+		testGroup.addChild(new es3fApiCase.ApiCaseCallback('is_renderbuffer', 'Invalid gl.isRenderbuffer() usage', gl, function()
+		{
+			/** @type{WebGLRenderbuffer} */ var rbo;
+			/** @type{boolean} */ var isRbo;
+
+			bufferedLogToConsole('A name returned by glGenRenderbuffers, but not yet bound through a call to gl.bindRenderbuffer or gl.framebufferRenderbuffer is not the name of a renderbuffer object.');
+			isRbo					= gl.isRenderbuffer(rbo);
+			assertMsgOptions(!isRbo, 'Got invalid boolean value', false, true);
+
+			rbo = gl.createRenderbuffer();
+			isRbo					= gl.isRenderbuffer(rbo);
+			assertMsgOptions(!isRbo, 'Got invalid boolean value', false, true);
+
+			gl.bindRenderbuffer		(gl.RENDERBUFFER, rbo);
+			isRbo					= gl.isRenderbuffer(rbo);
+			assertMsgOptions(isRbo, 'Got invalid boolean value', false, true);
+
+			gl.bindRenderbuffer		(gl.RENDERBUFFER, null);
+			gl.deleteRenderbuffer(rbo);
+			isRbo					= gl.isRenderbuffer(rbo);
+			assertMsgOptions(!isRbo, 'Got invalid boolean value', false, true);
+
+
+			this.expectError			(gl.NO_ERROR);
+		}));
+
+		testGroup.addChild(new es3fApiCase.ApiCaseCallback('is_shader', 'Invalid gl.isShader() usage', gl, function()
+		{
+			/** @type{WebGLShader} */ var shader;
+			/** @type{boolean} */ var isShader;
+
+			bufferedLogToConsole('A name created with glCreateShader, and not yet deleted with glDeleteShader is a name of a shader object.');
+			isShader			= gl.isProgram(shader);
+			assertMsgOptions(!isShader, 'Got invalid boolean value', false, true);
+
+			shader				= gl.createShader(gl.VERTEX_SHADER);
+			isShader			= gl.isShader(shader);
+			assertMsgOptions(isShader, 'Got invalid boolean value', false, true);
+
+			gl.deleteShader	(shader);
+			isShader			= gl.isShader(shader);
+			assertMsgOptions(!isShader, 'Got invalid boolean value', false, true);
+
+			this.expectError			(gl.NO_ERROR);
+		}));
+
+		testGroup.addChild(new es3fApiCase.ApiCaseCallback('is_texture', 'Invalid gl.isTexture() usage', gl, function()
+		{
+			/** @type{WebGLTexture} */ var texture;
+			/** @type{boolean} */ var isTexture;
+
+			bufferedLogToConsole('A name returned by glGenTextures, but not yet bound through a call to glBindTexture is not the name of a texture.');
+			isTexture			= gl.isTexture(texture);
+			assertMsgOptions(!isTexture, 'Got invalid boolean value', false, true);
+
+			texture = gl.createTexture();
+			isTexture			= gl.isTexture(texture);
+			assertMsgOptions(!isTexture, 'Got invalid boolean value', false, true);
+
+			gl.bindTexture	(gl.TEXTURE_2D, texture);
+			isTexture			= gl.isTexture(texture);
+			assertMsgOptions(isTexture, 'Got invalid boolean value', false, true);
+
+			gl.bindTexture		(gl.TEXTURE_2D, null);
+			gl.deleteTexture(texture);
+			isTexture			= gl.isTexture(texture);
+			assertMsgOptions(!isTexture, 'Got invalid boolean value', false, true);
+
+			this.expectError			(gl.NO_ERROR);
+		}));
+
+		testGroup.addChild(new es3fApiCase.ApiCaseCallback('is_query', 'Invalid gl.isQuery() usage', gl, function()
+		{
+			/** @type{WebGLQuery} */ var query;
+			/** @type{boolean} */ var isQuery;
+
+			bufferedLogToConsole('A name returned by glGenQueries, but not yet associated with a query object by calling gl.beginQuery, is not the name of a query object.');
+			isQuery				= gl.isQuery(query);
+			assertMsgOptions(!isQuery, 'Got invalid boolean value', false, true);
+
+			query = gl.createQuery();
+			isQuery				= gl.isQuery(query);
+			assertMsgOptions(!isQuery, 'Got invalid boolean value', false, true);
+
+			gl.beginQuery		(gl.ANY_SAMPLES_PASSED, query);
+			isQuery				= gl.isQuery(query);
+			assertMsgOptions(isQuery, 'Got invalid boolean value', false, true);
+
+			gl.endQuery			(gl.ANY_SAMPLES_PASSED);
+			gl.deleteQuery		(query);
+			isQuery				= gl.isQuery(query);
+			assertMsgOptions(!isQuery, 'Got invalid boolean value', false, true);
+
+			this.expectError			(gl.NO_ERROR);
+		}));
+
+		testGroup.addChild(new es3fApiCase.ApiCaseCallback('is_sampler', 'Invalid gl.isSampler() usage', gl, function()
+		{
+			/** @type{WebGLSampler} */ var sampler;
+			/** @type{boolean} */ var isSampler;
+
+			bufferedLogToConsole('A name returned by glGenSamplers is the name of a sampler object.');
+			isSampler			= gl.isSampler(sampler);
+			assertMsgOptions(!isSampler, 'Got invalid boolean value', false, true);
+
+			sampler = gl.createSampler();
+			isSampler			= gl.isSampler(sampler);
+			assertMsgOptions(isSampler, 'Got invalid boolean value', false, true);
+
+			gl.bindSampler(0, sampler);
+			isSampler			= gl.isSampler(sampler);
+			assertMsgOptions(isSampler, 'Got invalid boolean value', false, true);
+
+			gl.deleteSampler(sampler);
+			isSampler			= gl.isSampler(sampler);
+			assertMsgOptions(!isSampler, 'Got invalid boolean value', false, true);
+
+			this.expectError			(gl.NO_ERROR);
+		}));
+
+		testGroup.addChild(new es3fApiCase.ApiCaseCallback('is_sync', 'Invalid gl.isSync() usage', gl, function()
+		{
+			/** @type{WebGLSync} */ var sync;
+			/** @type{boolean} */ var isSync;
+
+			bufferedLogToConsole('A name returned by gl.fenceSync is the name of a sync object.');
+			isSync			= gl.isSync(sync);
+			assertMsgOptions(!isSync, 'Got invalid boolean value', false, true);
+
+			sync			= gl.fenceSync (gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
+			isSync			= gl.isSync(sync);
+			assertMsgOptions(isSync, 'Got invalid boolean value', false, true);
+
+			gl.deleteSync	(sync);
+			isSync			= gl.isSync(sync);
+			assertMsgOptions(!isSync, 'Got invalid boolean value', false, true);
+
+			this.expectError			(gl.NO_ERROR);
+		}));
+
+		testGroup.addChild(new es3fApiCase.ApiCaseCallback('is_transform_feedback', 'Invalid gl.isTransformFeedback() usage', gl, function()
+		{
+			/** @type{WebGLTransformFeedback} */ var tf;
+			/** @type{boolean} */ var isTF;
+
+			bufferedLogToConsole('A name returned by glGenTransformFeedbacks, but not yet bound using glBindTransformFeedback, is not the name of a transform feedback object.');
+			isTF						= gl.isTransformFeedback(tf);
+			assertMsgOptions(!isTF, 'Got invalid boolean value', false, true);
+
+			tf = gl.createTransformFeedback();
+			isTF						= gl.isTransformFeedback(tf);
+			assertMsgOptions(!isTF, 'Got invalid boolean value', false, true);
+
+			gl.bindTransformFeedback 		(gl.TRANSFORM_FEEDBACK, tf);
+			isTF						= gl.isTransformFeedback(tf);
+			assertMsgOptions(isTF, 'Got invalid boolean value', false, true);
+
+			gl.bindTransformFeedback 		(gl.TRANSFORM_FEEDBACK, null);
+			gl.deleteTransformFeedback	(tf);
+			isTF						= gl.isTransformFeedback(tf);
+			assertMsgOptions(!isTF, 'Got invalid boolean value', false, true);
+
+			this.expectError			(gl.NO_ERROR);
+		}));
+
+		testGroup.addChild(new es3fApiCase.ApiCaseCallback('is_vertex_array', 'Invalid gl.isVertexArray() usage', gl, function()
+		{
+			/** @type{WebGLVertexArrayObject} */ var vao;
+			/** @type{boolean} */ var isVao;
+
+			bufferedLogToConsole('A name returned by glGenVertexArrays, but not yet bound using glBindVertexArray, is not the name of a vertex array object.');
+			isVao					= gl.isVertexArray(vao);
+			assertMsgOptions(!isVao, 'Got invalid boolean value', false, true);
+
+			vao = gl.createVertexArray();
+			isVao					= gl.isVertexArray(vao);
+			assertMsgOptions(!isVao, 'Got invalid boolean value', false, true);
+
+			gl.bindVertexArray			(vao);
+			isVao					= gl.isVertexArray(vao);
+			assertMsgOptions(isVao, 'Got invalid boolean value', false, true);
+
+			gl.bindVertexArray		(null);
+			gl.deleteVertexArray	(vao);
+			isVao					= gl.isVertexArray(vao);
+			assertMsgOptions(!isVao, 'Got invalid boolean value', false, true);
+
+			this.expectError			(gl.NO_ERROR);
+		}));
 	};
 
 	/**
