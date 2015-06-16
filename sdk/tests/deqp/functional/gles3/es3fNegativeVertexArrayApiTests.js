@@ -261,7 +261,7 @@ goog.scope(function() {
             bufferedLogToConsole('gl.INVALID_ENUM is generated if mode is not an accepted value.');
             gl.drawArrays(-1, 0, 1);
             this.expectError(gl.INVALID_ENUM);
-
+            //TODO: test with a valid draw call that the gl error is invalid operation.
             bufferedLogToConsole('gl.INVALID_VALUE is generated if count is negative.');
             gl.drawArrays(gl.POINTS, 0, -1);
             this.expectError(gl.INVALID_VALUE);
