@@ -142,18 +142,17 @@ rrRenderer.RenderTarget = function(colorMultisampleBuffer, depthMultisampleBuffe
  * @constructor
  * @param {ArrayBuffer} data
  * @param {rrDefs.IndexType} type
- * @param {number} offset
  * @param {number=} baseVertex_
  */
-rrRenderer.DrawIndices = function(data, type, offset, baseVertex_) {
+rrRenderer.DrawIndices = function(data, type, baseVertex_) {
     /** @type {ArrayBuffer} */ this.data = data;
     /** @type {number} */ this.baseVertex = baseVertex_ || 0;
     /** @type {rrDefs.IndexType} */ this.indexType = type;
     /** @type {goog.NumberArray} */ this.access = null;
     switch (type) {
-        case rrDefs.IndexType.INDEXTYPE_UINT8: this.access = new Uint8Array(data).subarray(offset); break;
-        case rrDefs.IndexType.INDEXTYPE_UINT16: this.access = new Uint16Array(data).subarray(offset / 2); break;
-        case rrDefs.IndexType.INDEXTYPE_UINT32: this.access = new Uint32Array(data).subarray(offset / 4); break;
+        case rrDefs.IndexType.INDEXTYPE_UINT8: this.access = new Uint8Array(data); break;
+        case rrDefs.IndexType.INDEXTYPE_UINT16: this.access = new Uint16Array(data); break;
+        case rrDefs.IndexType.INDEXTYPE_UINT32: this.access = new Uint32Array(data); break;
         default: throw new Error('Invalid type: ' + type);
     }
 };
@@ -277,13 +276,6 @@ rrRenderer.PrimitiveList.prototype.getNextPrimitive = function(reset) {
                 result = [i, i + 1];
             else
                 result = [i, 0];
-            this.m_iterator += 1;
-            break;
-        case rrRenderer.PrimitiveType.POINTS:
-            if (this.m_iterator == this.m_numElements)
-                break;
-            else
-                result = [i];
             this.m_iterator += 1;
             break;
         default:
@@ -736,10 +728,10 @@ rrRenderer.drawLines = function(state, renderTarget, program, vertexAttribs, pri
         v0[2] = linePackets[0].position[2];
         v1[2] = linePackets[1].position[2];
 
-        v0[0] = Math.floor(v0[0]);
-        v0[1] = Math.floor(v0[1]);
-        v1[0] = Math.floor(v1[0]);
-        v1[1] = Math.floor(v1[1]);
+        v0[0] = Math.round(v0[0]);
+        v0[1] = Math.round(v0[1]);
+        v1[0] = Math.round(v1[0]);
+        v1[1] = Math.round(v1[1]);
 
         var lineWidth = 1;
         var d = [
@@ -752,7 +744,7 @@ rrRenderer.drawLines = function(state, renderTarget, program, vertexAttribs, pri
         var shadingContext = new rrShadingContext.FragmentShadingContext(
             linePackets[0].outputs,
             linePackets[1].outputs,
-            null
+            linePackets[1].outputs
         );
         var packets = [];
 
@@ -783,85 +775,8 @@ rrRenderer.drawLines = function(state, renderTarget, program, vertexAttribs, pri
                 y += ystep;
                 offset += d[0];
             }
+
         }
-
-        program.shadeFragments(packets, shadingContext);
-
-        rrRenderer.writeFragments2(state, renderTarget, packets);
-    }
-};
-
-/**
- * @param {rrRenderState.RenderState} state
- * @param {rrRenderer.RenderTarget} renderTarget
- * @param {sglrShaderProgram.ShaderProgram} program
- * @param {Array<rrVertexAttrib.VertexAttrib>} vertexAttribs
- * @param {rrRenderer.PrimitiveType} primitive
- * @param {(number|rrRenderer.DrawIndices)} first Index of first quad vertex
- * @param {number} count Number of indices
- * @param {number} instanceID
- */
-rrRenderer.drawPoints = function(state, renderTarget, program, vertexAttribs, primitive, first, count, instanceID) {
-    /**
-     * @param {Array<rrVertexPacket.VertexPacket>} vertices
-     * @param {Array<number>} indices
-     * @return {Array<rrVertexPacket.VertexPacket>}
-     */
-    var selectVertices = function(vertices, indices) {
-        var result = [];
-        for (var i = 0; i < indices.length; i++)
-            result.push(vertices[indices[i]]);
-        return result;
-    };
-
-    var primitives = new rrRenderer.PrimitiveList(primitive, count, first);
-    // Do not draw if nothing to draw
-    if (primitives.getNumElements() == 0)
-        return;
-
-    // Prepare transformation
-    var numVaryings = program.vertexShader.getOutputs().length;
-    var vpalloc = new rrVertexPacket.VertexPacketAllocator(numVaryings);
-    var vertexPackets = vpalloc.allocArray(primitives.getNumElements());
-    var drawContext = new rrRenderer.DrawContext();
-    drawContext.primitiveID = 0;
-
-    var numberOfVertices = primitives.getNumElements();
-    var numVertexPackets = 0;
-    for (var elementNdx = 0; elementNdx < numberOfVertices; ++elementNdx) {
-
-        // input
-        vertexPackets[numVertexPackets].instanceNdx = instanceID;
-        vertexPackets[numVertexPackets].vertexNdx = primitives.getIndex(elementNdx);
-
-        // output
-        vertexPackets[numVertexPackets].pointSize = state.point.pointSize; // default value from the current state
-        vertexPackets[numVertexPackets].position = [0, 0, 0, 0]; // no undefined values
-
-        ++numVertexPackets;
-
-    }
-    program.shadeVertices(vertexAttribs, vertexPackets, numVertexPackets);
-
-    // For each primitive, we draw a point.
-    for (var prim = primitives.getNextPrimitive(true); prim.length > 0; prim = primitives.getNextPrimitive()) {
-        var pointPackets = selectVertices(vertexPackets, prim);
-
-        var v0 = rrRenderer.transformGLToWindowCoords(state, pointPackets[0]);
-        v0[2] = pointPackets[0].position[2];
-
-        var shadingContext = new rrShadingContext.FragmentShadingContext(
-            pointPackets[0].outputs,
-            null,
-            null
-        );
-        var packets = [];
-
-        var x = v0[0];
-        var y = v0[1];
-        var depth = v0[2];
-        var b = [1, 0, 0];
-        packets.push(new rrFragmentOperations.Fragment(b, [x, y], depth));
 
         program.shadeFragments(packets, shadingContext);
 

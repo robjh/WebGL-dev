@@ -34,6 +34,8 @@ goog.require('framework.opengl.gluTexture');
 goog.require('framework.opengl.gluTextureUtil');
 goog.require('modules.shared.glsTextureTestUtil');
 goog.require('framework.referencerenderer.rrMultisamplePixelBufferAccess');
+goog.require('framework.delibs.debase.deString');
+goog.require('framework.opengl.simplereference.sglrReferenceContext');
 
 goog.scope(function() {
 
@@ -53,6 +55,8 @@ var tcuSurface = framework.common.tcuSurface;
 var tcuTexCompareVerifier = framework.common.tcuTexCompareVerifier;
 var tcuTexLookupVerifier = framework.common.tcuTexLookupVerifier;
 var rrMultisamplePixelBufferAccess = framework.referencerenderer.rrMultisamplePixelBufferAccess;
+var deString = framework.delibs.debase.deString;
+var sglrReferenceContext = framework.opengl.simplereference.sglrReferenceContext;
 
     es3fTextureShadowTests.version = '300 es';
 
@@ -467,7 +471,7 @@ var rrMultisamplePixelBufferAccess = framework.referencerenderer.rrMultisamplePi
 		for (var face in tcuTexture.CubeFace) {
 			for (var levelNdx = 0; levelNdx < numLevels; levelNdx++) {
                 this.m_gradientTex.getRefTexture().allocLevel(tcuTexture.CubeFace[face], levelNdx)
-                tcuTextureUtil.fillWithComponentGradients(this.m_gradientTex.getRefTexture().getLevelFace(levelNdx, tcuTexture.CubeFace[face]), deMath.add(deMath.multiply(gradients[face][0], cScale), cBias), deMath.add(deMath.multiply(gradients[face][1], cScale), cBias));
+                tcuTextureUtil.fillWithComponentGradients(this.m_gradientTex.getRefTexture().getLevelFace(levelNdx, tcuTexture.CubeFace[face]), deMath.add(deMath.multiply(gradients[tcuTexture.CubeFace[face]][0], cScale), cBias), deMath.add(deMath.multiply(gradients[tcuTexture.CubeFace[face]][1], cScale), cBias));
 			}
 		}
 
@@ -486,8 +490,8 @@ var rrMultisamplePixelBufferAccess = framework.referencerenderer.rrMultisamplePi
 		}
 
 		// Upload.
-		this.m_gradientTex.upload();
-		this.m_gridTex.upload();
+		//this.m_gradientTex.upload();
+		//this.m_gridTex.upload();
 
 		var refInRangeUpper = (this.m_compareFunc == gl.EQUAL || this.m_compareFunc == gl.NOTEQUAL) ? 1.0 : 0.5;
 		var refInRangeLower = (this.m_compareFunc == gl.EQUAL || this.m_compareFunc == gl.NOTEQUAL) ? 0.0 : 0.5;
@@ -512,7 +516,86 @@ var rrMultisamplePixelBufferAccess = framework.referencerenderer.rrMultisamplePi
 			this.m_cases.push(new es3fTextureShadowTests.FilterCase(this.m_gridTex, refOutOfBoundsLower, [-0.75, 1.0], [0.25, 0.75]));	// reference value clamp, lower
 
     	this.m_caseNdx = 0;
-    }
+    };
+
+    es3fTextureShadowTests.TextureCubeShadowCase.prototype.iterate = function () {
+    	var viewportSize = 28;
+        var viewport = new glsTextureTestUtil.RandomViewport(document.getElementById('canvas'), viewportSize, viewportSize, deString.deStringHash(this.fullName()) ^ deMath.deMathHash(this.m_caseNdx));
+    	var curCase = this.m_cases[this.m_caseNdx];
+        var sampleParams = new glsTextureTestUtil.ReferenceParams(glsTextureTestUtil.textureType.TEXTURETYPE_2D);
+
+    	if (viewport.width < viewportSize || viewport.height < viewportSize)
+            throw new Error('Too small render target');
+
+    	// Setup texture
+    	gl.bindTexture(gl.TEXTURE_CUBE_MAP, curCase.texture.getGLTexture());
+    	gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, this.m_minFilter);
+    	gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, this.m_magFilter);
+    	gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, this.m_wrapS);
+    	gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, this.m_wrapT);
+    	gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_COMPARE_MODE, gl.COMPARE_REF_TO_TEXTURE);
+    	gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_COMPARE_FUNC, this.m_compareFunc);
+
+    	// Other state
+    	gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height);
+
+    	// Params for reference computation.
+        sampleParams.sampler = gluTextureUtil.mapGLSampler(gl.CLAMP_TO_EDGE, gl.CLAMP_TO_EDGE, gl.CLAMP_TO_EDGE, this.m_minFilter, this.m_magFilter);
+        sampleParams.sampler.seamlessCubeMap = true;
+        sampleParams.sampler.compare = gluTextureUtil.mapGLCompareFunc(this.m_compareFunc);
+        sampleParams.samplerType = glsTextureTestUtil.samplerType.SAMPLERTYPE_SHADOW;
+        sampleParams.lodMode = glsTextureTestUtil.lodMode.EXACT;
+        sampleParams.ref = curCase.ref;
+
+
+    	for (var faceNdx in tcuTexture.CubeFace) {
+    		var face = tcuTexture.CubeFace[faceNdx];
+            var result = new tcuSurface.Surface(viewport.width, viewport.height);
+    		var texCoord = [];
+
+            glsTextureTestUtil.computeQuadTexCoordCube(face);
+
+    		this.m_renderer.renderQuad(0, texCoord[0], sampleParams);
+            sglrReferenceContext.GLU_EXPECT_NO_ERROR(gl.getError(), gl.NO_ERROR)
+
+            gl.readPixels(viewport.x, viewport.y, viewport.width, viewport.height, gl.RGBA, gl.UNSIGNED_BYTE, result.getAccess().getDataPtr());
+            sglrReferenceContext.GLU_EXPECT_NO_ERROR(gl.getError(), gl.NO_ERROR)
+
+			var pixelFormat = new tcuPixelFormat.PixelFormat(8, 8, 8, 8);
+            /** @type {tcuTexLookupVerifier.LodPrecision} */ var lodPrecision;
+			/** @type {tcuTexCompareVerifier.TexComparePrecision} */ var texComparePrecision;
+
+			lodPrecision.derivateBits = 10;
+			lodPrecision.lodBits = 5;
+			texComparePrecision.coordBits = [10,10,10];
+			texComparePrecision.uvwBits = [6,6,0];
+			texComparePrecision.pcfBits = 5;
+			texComparePrecision.referenceBits = 16;
+			texComparePrecision.resultBits = pixelFormat.redBits-1;
+
+            var isHighQuality = es3fTextureShadowTests.verifyTexCompareResult(tcuTexture.TextureCube, result.getAccess(), curCase.texture.getRefTexture(),
+                                                     texCoord, sampleParams, texComparePrecision, lodPrecision, pixelFormat);
+
+			if (!isHighQuality) {
+                bufferedLogToConsole('Warning: Verification assuming high-quality PCF filtering failed.');
+
+				lodPrecision.lodBits = 4;
+				texComparePrecision.uvwBits = [4,4,0];
+				texComparePrecision.pcfBits	= 0;
+
+                var isOk = es3fTextureShadowTests.verifyTexCompareResult(tcuTexture.TextureCube, result.getAccess(), curCase.texture.getRefTexture(),
+                                                                                                  texCoord, sampleParams, texComparePrecision, lodPrecision, pixelFormat);
+				if (!isOk) {
+                    bufferedLogToConsole('ERROR: Verification against low precision requirements failed, failing test case.');
+                    testFailedOptions('Image verification failed', false);
+				} else
+                    testPassedOptions('Low-quality result', true);
+			}
+    	}
+
+        this.m_caseNdx += 1;
+        return this.m_caseNdx < this.m_cases.length ? tcuTestCase.IterateResult.CONTINUE : tcuTestCase.IterateResult.STOP;
+    };
 
     es3fTextureShadowTests.init = function() {
         /** @type {Array<es3fTextureShadowTests.Format>} */ var formats = [];
@@ -604,6 +687,30 @@ var rrMultisamplePixelBufferAccess = framework.referencerenderer.rrMultisamplePi
                 }
             }
         }
+
+        var groupCube = tcuTestCase.newTest('cube', 'Cube map texture shadow lookup tests');
+        testGroup.addChild(groupCube);
+
+		for (filterNdx = 0; filterNdx < filters.length; filterNdx++) {
+            filterGroup = tcuTestCase.newTest(filters[filterNdx].name, '');
+            groupCube.addChild(filterGroup);
+
+			for (compareNdx = 0; compareNdx < compareFuncs.length; compareNdx++) {
+				for (formatNdx = 0; formatNdx < formats.length; formatNdx++) {
+					minFilter = filters[filterNdx].minFilter;
+					magFilter = filters[filterNdx].magFilter;
+					format = formats[formatNdx].format;
+					compareFunc = compareFuncs[compareNdx].func;
+					wrapS = gl.REPEAT;
+					wrapT = gl.REPEAT;
+					var size = 32;
+					name = compareFuncs[compareNdx].name + '_' + formats[formatNdx].name;
+
+                    filterGroup.addChild(new es3fTextureShadowTests.TextureCubeShadowCase(name, '', minFilter, magFilter, wrapS, wrapT, format, size, compareFunc));
+				}
+			}
+		}
+
     };
 
     es3fTextureShadowTests.run = function(context) {
