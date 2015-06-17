@@ -261,7 +261,6 @@ goog.scope(function() {
             bufferedLogToConsole('gl.INVALID_ENUM is generated if mode is not an accepted value.');
             gl.drawArrays(-1, 0, 1);
             this.expectError(gl.INVALID_ENUM);
-            //TODO: test with a valid draw call that the gl error is invalid operation.
             bufferedLogToConsole('gl.INVALID_VALUE is generated if count is negative.');
             gl.drawArrays(gl.POINTS, 0, -1);
             this.expectError(gl.INVALID_VALUE);
@@ -278,7 +277,7 @@ goog.scope(function() {
             gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, rbo);
             gl.checkFramebufferStatus(gl.FRAMEBUFFER);
             gl.drawArrays(gl.POINTS, 0, 1);
-            this.expectError(gl.INVALID_FRAMEBUFFER_OPERATION);
+            this.expectError([gl.INVALID_FRAMEBUFFER_OPERATION, gl.INVALID_OPERATION]);
             gl.bindFramebuffer(gl.FRAMEBUFFER, null);
             gl.deleteFramebuffer(fbo);
 
@@ -411,7 +410,7 @@ goog.scope(function() {
             gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
             gl.checkFramebufferStatus(gl.FRAMEBUFFER);
             gl.drawElements(gl.POINTS, 1, gl.UNSIGNED_BYTE, vertices);
-            this.expectError(gl.INVALID_FRAMEBUFFER_OPERATION);
+            this.expectError([gl.INVALID_FRAMEBUFFER_OPERATION, gl.INVALID_OPERATION]);
             gl.bindFramebuffer(gl.FRAMEBUFFER, null);
             gl.deleteFramebuffer(fbo);
             gl.deleteBuffer(bufElements);
@@ -553,7 +552,7 @@ goog.scope(function() {
             gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
             gl.checkFramebufferStatus(gl.FRAMEBUFFER);
             gl.drawArraysInstanced(gl.POINTS, 0, 1, 1);
-            this.expectError(gl.INVALID_FRAMEBUFFER_OPERATION);
+            this.expectError([gl.INVALID_FRAMEBUFFER_OPERATION, gl.INVALID_OPERATION]);
             gl.bindFramebuffer(gl.FRAMEBUFFER, null);
             gl.deleteFramebuffer(fbo);
 
@@ -709,7 +708,7 @@ goog.scope(function() {
             gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
             gl.checkFramebufferStatus(gl.FRAMEBUFFER);
             gl.drawElementsInstanced(gl.POINTS, 1, gl.UNSIGNED_BYTE, vertices, 1);
-            this.expectError(gl.INVALID_FRAMEBUFFER_OPERATION);
+            this.expectError([gl.INVALID_FRAMEBUFFER_OPERATION, gl.INVALID_OPERATION]);
             gl.bindFramebuffer(gl.FRAMEBUFFER, null);
             gl.deleteFramebuffer(fbo);
             gl.deleteBuffer(bufElements);
@@ -906,7 +905,7 @@ goog.scope(function() {
             gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
             gl.checkFramebufferStatus(gl.FRAMEBUFFER);
             gl.drawRangeElements(gl.POINTS, 0, 1, 1, gl.UNSIGNED_BYTE, vertices);
-            this.expectError(gl.INVALID_FRAMEBUFFER_OPERATION);
+            this.expectError([gl.INVALID_FRAMEBUFFER_OPERATION, gl.INVALID_OPERATION]);
             gl.bindFramebuffer(gl.FRAMEBUFFER, null);
             gl.deleteFramebuffer(fbo);
             gl.deleteBuffer(bufElements);
