@@ -266,6 +266,10 @@ goog.scope(function() {
             gl.drawArrays(gl.POINTS, 0, -1);
             this.expectError(gl.INVALID_VALUE);
 
+            bufferedLogToConsole('gl.INVALID_OPERATION is generated if gl.useProgram(null) is used.');
+            gl.drawArrays(gl.POINTS, 0, 1);
+            this.expectError(gl.INVALID_OPERATION);
+
             bufferedLogToConsole('gl.INVALID_FRAMEBUFFER_OPERATION is generated if the currently bound framebuffer is not framebuffer complete.');
             fbo = gl.createFramebuffer();
             var rbo = gl.createRenderbuffer();
@@ -397,6 +401,10 @@ goog.scope(function() {
             bufferedLogToConsole('gl.INVALID_VALUE is generated if count is negative.');
             gl.drawElements(gl.POINTS, -1, gl.UNSIGNED_BYTE, vertices);
             this.expectError(gl.INVALID_VALUE);
+
+            bufferedLogToConsole('gl.INVALID_OPERATION is generated if gl.useProgram(null) was set.');
+            gl.drawElements(gl.POINTS, 1, gl.UNSIGNED_BYTE, vertices);
+            this.expectError(gl.INVALID_OPERATION);
 
             bufferedLogToConsole('gl.INVALID_FRAMEBUFFER_OPERATION is generated if the currently bound framebuffer is not framebuffer complete.');
             fbo = gl.createFramebuffer();
@@ -535,6 +543,10 @@ goog.scope(function() {
             this.expectError(gl.INVALID_VALUE);
             gl.drawArraysInstanced(gl.POINTS, 0, 1, -1);
             this.expectError(gl.INVALID_VALUE);
+
+            bufferedLogToConsole('gl.INVALID_OPERATION is generated if gl.useProgram(null) is set.');
+            gl.drawArraysInstanced(gl.POINTS, 0, 1, 1);
+            this.expectError(gl.INVALID_OPERATION);
 
             bufferedLogToConsole('gl.INVALID_FRAMEBUFFER_OPERATION is generated if the currently bound framebuffer is not framebuffer complete.');
             fbo = gl.createFramebuffer();
@@ -687,6 +699,10 @@ goog.scope(function() {
             this.expectError(gl.INVALID_VALUE);
             gl.drawElementsInstanced(gl.POINTS, 11, gl.UNSIGNED_BYTE, vertices, -1);
             this.expectError(gl.INVALID_VALUE);
+
+            bufferedLogToConsole('gl.INVALID_OPERATION is generated if gl.useProgram(null) is set.');
+            gl.drawElementsInstanced(gl.POINTS, 1, gl.UNSIGNED_BYTE, vertices, 1);
+            this.expectError(gl.INVALID_OPERATION);
 
             bufferedLogToConsole('gl.INVALID_FRAMEBUFFER_OPERATION is generated if the currently bound framebuffer is not framebuffer complete.');
             fbo = gl.createFramebuffer();
@@ -880,6 +896,10 @@ goog.scope(function() {
             bufferedLogToConsole('gl.INVALID_VALUE is generated if end < start.');
             gl.drawRangeElements(gl.POINTS, 1, 0, 1, gl.UNSIGNED_BYTE, vertices);
             this.expectError(gl.INVALID_VALUE);
+
+            bufferedLogToConsole('gl.INVALID_OPERATION is generated if gl.useProgram(null) is set.');
+            gl.drawRangeElements(gl.POINTS, 0, 1, 1, gl.UNSIGNED_BYTE, vertices);
+            this.expectError(gl.INVALID_OPERATION);
 
             bufferedLogToConsole('gl.INVALID_FRAMEBUFFER_OPERATION is generated if the currently bound framebuffer is not framebuffer complete.');
             fbo = gl.createFramebuffer();

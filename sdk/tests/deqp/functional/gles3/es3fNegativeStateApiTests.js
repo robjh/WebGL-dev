@@ -84,7 +84,7 @@ goog.scope(function() {
 
         // Simple state queries
 
-        testGroup.addChild(new es3fApiCase.ApiCaseCallback('get_booleanv', 'Invalid glGetBooleanv() usage', gl, function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('get_parameter', 'Invalid gl.getParameter() usage', gl, function() {
             bufferedLogToConsole('gl.INVALID_ENUM is generated if pname is not one of the allowed values.');
             /** @type{boolean} */ var params = false;
             //glGetBooleanv(-1, params);
@@ -93,33 +93,7 @@ goog.scope(function() {
 
         }));
 
-        testGroup.addChild(new es3fApiCase.ApiCaseCallback('get_floatv', 'Invalid glGetFloatv() usage', gl, function() {
-            bufferedLogToConsole('gl.INVALID_ENUM is generated if pname is not one of the allowed values.');
-            /** @type{number} */ var params = 0.0;
-            // glGetFloatv(-1, params);
-            params = /** @type{number} */ (gl.getParameter(-1));
-            this.expectError(gl.INVALID_ENUM);
-
-        }));
-
-        testGroup.addChild(new es3fApiCase.ApiCaseCallback('get_integerv', 'Invalid gl.getParameter() usage', gl, function() {
-            bufferedLogToConsole('gl.INVALID_ENUM is generated if pname is not one of the allowed values.');
-            /** @type{number} */ var params = -1;
-            // gl.getParameter(-1, params);
-            params = /** @type{number} */ (gl.getParameter(-1));
-            this.expectError(gl.INVALID_ENUM);
-
-        }));
-        testGroup.addChild(new es3fApiCase.ApiCaseCallback('get_integer64v', 'Invalid glGetInteger64v() usage', gl, function() {
-            bufferedLogToConsole('gl.INVALID_ENUM is generated if pname is not one of the allowed values.');
-            /** @type{number} */ var params = -1;
-            params = /** @type{number} */ (gl.getParameter(-1));
-            this.expectError(gl.INVALID_ENUM);
-
-        }));
-		// NOTE: the call to "getIndexedParameter(gl.UNIFORM_BUFFER_BINDING, maxUniformBufferBindings)" fails but just return null (no GLError thrown)
-		// original code calls to "glGetIntegeri_v(GL_UNIFORM_BUFFER_BINDING, maxUniformBufferBindings, &data);"
-        testGroup.addChild(new es3fApiCase.ApiCaseCallback('get_integeri_v', 'Invalid glGetIntegeri_v() usage', gl, function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('get_indexed_parameter', 'Invalid gl.getIndexedParameter() usage', gl, function() {
             /** @type{number} */ var data = -1;
             /** @type{number} */ var maxUniformBufferBindings;
 
@@ -134,51 +108,9 @@ goog.scope(function() {
             this.expectError(gl.INVALID_VALUE);
 
         }));
-		// NOTE: the call to "getIndexedParameter(gl.UNIFORM_BUFFER_BINDING, maxUniformBufferBindings)" fails but just return -1 (no GLError thrown)
-		// original code calls to "glGetInteger64i_v(GL_UNIFORM_BUFFER_START, maxUniformBufferBindings, &data);"
-        testGroup.addChild(new es3fApiCase.ApiCaseCallback('get_integer64i_v', 'Invalid gl.getIndexedParameter() usage', gl, function() {
-            /** @type{number} */ var data = -1;
-            /** @type{number} */ var maxUniformBufferBindings;
-
-            bufferedLogToConsole('gl.INVALID_ENUM is generated if name is not an accepted value.');
-            data = /** @type{number} */ (gl.getIndexedParameter(-1, 0));
-            this.expectError(gl.INVALID_ENUM);
-
-            bufferedLogToConsole('gl.INVALID_VALUE is generated if index is outside of the valid range for the indexed state target.');
-            maxUniformBufferBindings = /** @type{number} */ (gl.getParameter(gl.MAX_UNIFORM_BUFFER_BINDINGS));
-            this.expectError(gl.NO_ERROR);
-            data = /** @type{number} */ (gl.getIndexedParameter(gl.UNIFORM_BUFFER_START, maxUniformBufferBindings));
-            this.expectError(gl.INVALID_VALUE);
-
-        }));
-        testGroup.addChild(new es3fApiCase.ApiCaseCallback('get_string', 'Invalid glGetString() usage', gl, function() {
-            bufferedLogToConsole('gl.INVALID_ENUM is generated if name is not an accepted value.');
-            gl.getParameter(-1);
-            this.expectError(gl.INVALID_ENUM);
-
-        }));
-
-        // NOTE: the target "gl.EXTENSIONS" is not valid. this test should be removed.
-        // testGroup.addChild(new es3fApiCase.ApiCaseCallback('get_stringi', 'Invalid glGetStringi() usage', gl, function()
-        // {
-        //     /** @type{number} */ var numExtensions;
-        //
-        //     bufferedLogToConsole('gl.INVALID_ENUM is generated if name is not an accepted value.');
-        //     gl.getParameter(-1);
-        //     this.expectError(gl.INVALID_ENUM);
-        //
-        //
-        //     bufferedLogToConsole('gl.INVALID_VALUE is generated if index is outside the valid range for indexed state name.');
-        //     numExtensions = /** @type{number} */ (gl.getParameter(gl.NUM_EXTENSIONS));
-        //     gl.getParameter(gl.EXTENSIONS, numExtensions);
-        //     this.expectError(gl.INVALID_VALUE);
-        //
-        // }));
 
         // Enumerated state queries: Shaders
 
-		// NOTE: getAttachedShaders method cannot get a maxCount parameter, it just return an empty array. That portion of the test
-		// must be removed.
         testGroup.addChild(new es3fApiCase.ApiCaseCallback('get_attached_shaders', 'Invalid gl.getAttachedShaders() usage', gl, function() {
             /** @type{Array<WebGLShader>} */ var shaders = [];
             /** @type{WebGLShader} */ var shaderObject = gl.createShader(gl.VERTEX_SHADER);
@@ -188,20 +120,11 @@ goog.scope(function() {
             shaders = gl.getAttachedShaders(null);
             this.expectError(gl.INVALID_VALUE);
 
-            bufferedLogToConsole('gl.INVALID_VALUE is generated if maxCount is less than 0.');
-            shaders = gl.getAttachedShaders(program);
-            this.expectError(gl.INVALID_VALUE);
-
             gl.deleteShader(shaderObject);
             gl.deleteProgram(program);
         }));
 
-        // NOTE: SHADER_COMPILER attribute was removed from webgl spec, so we won't test that
-        testGroup.addChild(new es3fApiCase.ApiCaseCallback('get_shaderiv', 'Invalid glGetShaderiv() usage', gl, function() {
-            // /** @type{boolean} */ var shaderCompilerSupported;
-            // glGetBooleanv(gl.SHADER_COMPILER, &shaderCompilerSupported);
-            // bufferedLogToConsole('// gl.SHADER_COMPILER = ' + (shaderCompilerSupported ? 'true' : 'false'));
-
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('get_shader_parameter', 'Invalid gl.getShaderParameter() usage', gl, function() {
             /** @type{WebGLShader} */ var shader = gl.createShader(gl.VERTEX_SHADER);
             /** @type{WebGLProgram} */ var program = gl.createProgram();
             /** @type{number} */ var param = -1;
@@ -218,7 +141,6 @@ goog.scope(function() {
             gl.deleteProgram(program);
         }));
 
-		// NOTE: getShaderInfoLog method does not accept maxLength param. That portion of the test must be removed.
         testGroup.addChild(new es3fApiCase.ApiCaseCallback('get_shader_info_log', 'Invalid gl.getShaderInfoLog() usage', gl, function() {
             /** @type{WebGLShader} */ var shader = gl.createShader(gl.VERTEX_SHADER);
             /** @type{WebGLProgram} */ var program = gl.createProgram();
@@ -226,10 +148,6 @@ goog.scope(function() {
 
             bufferedLogToConsole('gl.INVALID_VALUE is generated if shader is not a value generated by OpenGL.');
             infoLog = gl.getShaderInfoLog(null);
-            this.expectError(gl.INVALID_VALUE);
-
-            bufferedLogToConsole('gl.INVALID_VALUE is generated if maxLength is less than 0.');
-            infoLog = gl.getShaderInfoLog(shader);
             this.expectError(gl.INVALID_VALUE);
 
             gl.deleteShader(shader);
@@ -249,7 +167,6 @@ goog.scope(function() {
 
         }));
 
-		// NOTE: getShaderSource method doesnt accept bufSize param. That portion of the test must be removed.
         testGroup.addChild(new es3fApiCase.ApiCaseCallback('get_shader_source', 'Invalid gl.getShaderSource() usage', gl, function() {
             /** @type{string} */ var source;
             /** @type{WebGLProgram} */ var program = gl.createProgram();
@@ -259,17 +176,13 @@ goog.scope(function() {
             source = gl.getShaderSource(null);
             this.expectError(gl.INVALID_VALUE);
 
-            bufferedLogToConsole('gl.INVALID_VALUE is generated if bufSize is less than 0.');
-            source = gl.getShaderSource(shader);
-            this.expectError(gl.INVALID_VALUE);
-
             gl.deleteProgram(program);
             gl.deleteShader(shader);
         }));
 
         // Enumerated state queries: Programs
 
-        testGroup.addChild(new es3fApiCase.ApiCaseCallback('get_programiv', 'Invalid gl.getProgramParameter() usage', gl, function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('get_program_parameter', 'Invalid gl.getProgramParameter() usage', gl, function() {
             /** @type{WebGLProgram} */ var program = gl.createProgram();
             /** @type{WebGLShader} */ var shader = gl.createShader(gl.VERTEX_SHADER);
             /** @type{boolean} */ var params;
@@ -286,7 +199,6 @@ goog.scope(function() {
             gl.deleteShader(shader);
         }));
 
-		// NOTE: getProgramInfoLog method doesnt accept bufSize param. That portion of the test must be removed.
         testGroup.addChild(new es3fApiCase.ApiCaseCallback('get_program_info_log', 'Invalid gl.getProgramInfoLog() usage', gl, function() {
             /** @type{WebGLProgram} */ var program = gl.createProgram();
             /** @type{WebGLShader} */ var shader = gl.createShader(gl.VERTEX_SHADER);
@@ -296,108 +208,33 @@ goog.scope(function() {
             infoLog = gl.getProgramInfoLog (null);
             this.expectError(gl.INVALID_VALUE);
 
-            bufferedLogToConsole('gl.INVALID_VALUE is generated if maxLength is less than 0.');
-            infoLog = gl.getProgramInfoLog (program);
-            this.expectError(gl.INVALID_VALUE);
-
             gl.deleteProgram(program);
             gl.deleteShader(shader);
         }));
 
         // Enumerated state queries: Shader variables
 
-        testGroup.addChild(new es3fApiCase.ApiCaseCallback('get_tex_parameterfv', 'Invalid gl.texParameterf() usage', gl, function() {
-            /** @type{number} */ var params = 0;
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('get_tex_parameter', 'Invalid gl.getTexParameter() usage', gl, function() {
 			/** @type{WebGLTexture} */ var texture = gl.createTexture();
 			gl.bindTexture(gl.TEXTURE_2D, texture);
 
             bufferedLogToConsole('gl.INVALID_ENUM is generated if target or pname is not an accepted value.');
-            gl.texParameterf (-1, gl.TEXTURE_MAG_FILTER, params);
+            gl.getTexParameter (-1, gl.TEXTURE_MAG_FILTER);
             this.expectError(gl.INVALID_ENUM);
-            gl.texParameterf (gl.TEXTURE_2D, -1, params);
+            gl.getTexParameter (gl.TEXTURE_2D, -1);
             this.expectError(gl.INVALID_ENUM);
-            gl.texParameterf (-1, -1, params);
+            gl.getTexParameter (-1, -1);
             this.expectError(gl.INVALID_ENUM);
 
 			gl.deleteTexture(texture);
 
         }));
 
-        testGroup.addChild(new es3fApiCase.ApiCaseCallback('get_tex_parameteriv', 'Invalid gl.texParameteri() usage', gl, function() {
-            /** @type{number} */ var params = 0;
-			/** @type{WebGLTexture} */ var texture = gl.createTexture();
-			gl.bindTexture(gl.TEXTURE_2D, texture);
-
-            bufferedLogToConsole('gl.INVALID_ENUM is generated if target or pname is not an accepted value.');
-            gl.texParameteri (-1, gl.TEXTURE_MAG_FILTER, params);
-            this.expectError(gl.INVALID_ENUM);
-            gl.texParameteri (gl.TEXTURE_2D, -1, params);
-            this.expectError(gl.INVALID_ENUM);
-            gl.texParameteri (-1, -1, params);
-            this.expectError(gl.INVALID_ENUM);
-
-			gl.deleteTexture(texture);
-        }));
-
-        testGroup.addChild(new es3fApiCase.ApiCaseCallback('get_uniformfv', 'Invalid gl.getUniform() usage', gl, function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('get_uniform', 'Invalid gl.getUniform() usage', gl, function() {
             /** @type{gluShaderProgram.ShaderProgram} */ var program = new gluShaderProgram.ShaderProgram(gl,gluShaderProgram.makeVtxFragSources(uniformTestVertSource, uniformTestFragSource));
             gl.useProgram(program.getProgram());
 
             /** @type{WebGLUniformLocation} */ var unif = gl.getUniformLocation(program.getProgram(), 'vUnif_vec4'); // vec4
-            assertMsgOptions(unif != null, 'Failed to retrieve uniform location', false, true);
-
-            /** @type{WebGLShader} */ var shader = gl.createShader(gl.VERTEX_SHADER);
-            /** @type{WebGLProgram} */ var programEmpty = gl.createProgram();
-            /** @type{*} */ var params;
-
-            bufferedLogToConsole('gl.INVALID_VALUE is generated if program is not a value generated by OpenGL.');
-            params = gl.getUniform (null, unif);
-            this.expectError(gl.INVALID_VALUE);
-
-            bufferedLogToConsole('gl.INVALID_OPERATION is generated if program has not been successfully linked.');
-            params = gl.getUniform (programEmpty, unif);
-            this.expectError(gl.INVALID_OPERATION);
-
-            bufferedLogToConsole('gl.INVALID_OPERATION is generated if location does not correspond to a valid uniform variable location for the specified program object.');
-            params = gl.getUniform (program.getProgram(), null);
-            this.expectError(gl.INVALID_OPERATION);
-
-            gl.deleteShader(shader);
-            gl.deleteProgram(programEmpty);
-        }));
-
-        testGroup.addChild(new es3fApiCase.ApiCaseCallback('get_uniformiv', 'Invalid params = gl.getUniform() usage', gl, function() {
-            /** @type{gluShaderProgram.ShaderProgram} */ var program = new gluShaderProgram.ShaderProgram(gl,gluShaderProgram.makeVtxFragSources(uniformTestVertSource, uniformTestFragSource));
-            gl.useProgram(program.getProgram());
-
-            /** @type{WebGLUniformLocation} */ var unif = gl.getUniformLocation(program.getProgram(), 'fUnif_ivec4'); // ivec4
-            assertMsgOptions(unif != null, 'Failed to retrieve uniform location', false, true);
-
-            /** @type{WebGLShader} */ var shader = gl.createShader(gl.VERTEX_SHADER);
-            /** @type{WebGLProgram} */ var programEmpty = gl.createProgram();
-            /** @type{*} */ var params;
-
-            bufferedLogToConsole('gl.INVALID_VALUE is generated if program is not a value generated by OpenGL.');
-            params = gl.getUniform (null, unif);
-            this.expectError(gl.INVALID_VALUE);
-
-            bufferedLogToConsole('gl.INVALID_OPERATION is generated if program has not been successfully linked.');
-            params = gl.getUniform (programEmpty, unif);
-            this.expectError(gl.INVALID_OPERATION);
-
-            bufferedLogToConsole('gl.INVALID_OPERATION is generated if location does not correspond to a valid uniform variable location for the specified program object.');
-            params = gl.getUniform (program.getProgram(), null);
-            this.expectError(gl.INVALID_OPERATION);
-
-            gl.deleteShader(shader);
-            gl.deleteProgram(programEmpty);
-        }));
-
-        testGroup.addChild(new es3fApiCase.ApiCaseCallback('get_uniformuiv', 'Invalid params = gl.getUniform() usage', gl, function() {
-            /** @type{gluShaderProgram.ShaderProgram} */ var program = new gluShaderProgram.ShaderProgram(gl,gluShaderProgram.makeVtxFragSources(uniformTestVertSource, uniformTestFragSource));
-            gl.useProgram(program.getProgram());
-
-            /** @type{WebGLUniformLocation} */ var unif = gl.getUniformLocation(program.getProgram(), 'fUnif_uvec4'); // uvec4
             assertMsgOptions(unif != null, 'Failed to retrieve uniform location', false, true);
 
             /** @type{WebGLShader} */ var shader = gl.createShader(gl.VERTEX_SHADER);
@@ -445,7 +282,7 @@ goog.scope(function() {
             gl.deleteShader(shader);
         }));
 
-        testGroup.addChild(new es3fApiCase.ApiCaseCallback('get_active_uniformsiv', 'Invalid gl.getActiveUniforms() usage', gl, function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('get_active_uniforms', 'Invalid gl.getActiveUniforms() usage', gl, function() {
             /** @type{WebGLShader} */ var shader = gl.createShader(gl.VERTEX_SHADER);
             /** @type{gluShaderProgram.ShaderProgram} */ var program = new gluShaderProgram.ShaderProgram(gl,gluShaderProgram.makeVtxFragSources(uniformTestVertSource, uniformTestFragSource));
             /** @type{Array<number>} */ var dummyUniformIndex = [1];
@@ -478,7 +315,7 @@ goog.scope(function() {
             gl.deleteShader(shader);
         }));
 
-        testGroup.addChild(new es3fApiCase.ApiCaseCallback('get_active_uniform_blockiv', 'Invalid gl.getActiveUniformBlockParameter() usage', gl, function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('get_active_uniform_block_parameter', 'Invalid gl.getActiveUniformBlockParameter() usage', gl, function() {
             /** @type{gluShaderProgram.ShaderProgram} */ var program = new gluShaderProgram.ShaderProgram(gl,gluShaderProgram.makeVtxFragSources(uniformTestVertSource, uniformTestFragSource));
             /** @type{*} */ var params;
             /** @type{number} */ var numActiveBlocks = -1;
@@ -570,7 +407,7 @@ goog.scope(function() {
             gl.deleteShader(shader);
         }));
 
-        testGroup.addChild(new es3fApiCase.ApiCaseCallback('get_vertex_attribfv', 'Invalid gl.getVertexAttrib() usage', gl, function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('get_vertex_attrib', 'Invalid gl.getVertexAttrib() usage', gl, function() {
             /** @type{*} */ var params;
 
             bufferedLogToConsole('gl.INVALID_ENUM is generated if pname is not an accepted value.');
@@ -585,52 +422,7 @@ goog.scope(function() {
 
         }));
 
-        testGroup.addChild(new es3fApiCase.ApiCaseCallback('get_vertex_attribiv', 'Invalid gl.getVertexAttrib() usage', gl, function() {
-            /** @type{*} */ var params;
-
-            bufferedLogToConsole('gl.INVALID_ENUM is generated if pname is not an accepted value.');
-            params = gl.getVertexAttrib(0, -1);
-            this.expectError(gl.INVALID_ENUM);
-
-            bufferedLogToConsole('gl.INVALID_VALUE is generated if index is greater than or equal to gl.MAX_VERTEX_ATTRIBS.');
-            /** @type{number} */ var maxVertexAttribs;
-            maxVertexAttribs = /** @type{number} */ (gl.getParameter(gl.MAX_VERTEX_ATTRIBS));
-            params = gl.getVertexAttrib(maxVertexAttribs, gl.VERTEX_ATTRIB_ARRAY_ENABLED);
-            this.expectError(gl.INVALID_VALUE);
-
-        }));
-
-        testGroup.addChild(new es3fApiCase.ApiCaseCallback('get_vertex_attribi_iv', 'Invalid gl.getVertexAttrib() usage', gl, function() {
-            /** @type{*} */ var params;
-
-            bufferedLogToConsole('gl.INVALID_ENUM is generated if pname is not an accepted value.');
-            params = gl.getVertexAttrib(0, -1);
-            this.expectError(gl.INVALID_ENUM);
-
-            bufferedLogToConsole('gl.INVALID_VALUE is generated if index is greater than or equal to gl.MAX_VERTEX_ATTRIBS.');
-            /** @type{number} */ var maxVertexAttribs;
-            maxVertexAttribs = /** @type{number} */ (gl.getParameter(gl.MAX_VERTEX_ATTRIBS));
-            params = gl.getVertexAttrib(maxVertexAttribs, gl.VERTEX_ATTRIB_ARRAY_ENABLED);
-            this.expectError(gl.INVALID_VALUE);
-
-        }));
-
-        testGroup.addChild(new es3fApiCase.ApiCaseCallback('get_vertex_attribi_uiv', 'Invalid gl.getVertexAttrib() usage', gl, function() {
-            /** @type{*} */ var params;
-
-            bufferedLogToConsole('gl.INVALID_ENUM is generated if pname is not an accepted value.');
-            params = gl.getVertexAttrib(0, -1);
-            this.expectError(gl.INVALID_ENUM);
-
-            bufferedLogToConsole('gl.INVALID_VALUE is generated if index is greater than or equal to gl.MAX_VERTEX_ATTRIBS.');
-            /** @type{number} */ var maxVertexAttribs;
-            maxVertexAttribs = /** @type{number} */ (gl.getParameter(gl.MAX_VERTEX_ATTRIBS));
-            params = gl.getVertexAttrib(maxVertexAttribs, gl.VERTEX_ATTRIB_ARRAY_ENABLED);
-            this.expectError(gl.INVALID_VALUE);
-
-        }));
-
-        testGroup.addChild(new es3fApiCase.ApiCaseCallback('get_vertex_attrib_pointerv', 'Invalid gl.getVertexAttribOffset() usage', gl, function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('get_vertex_attrib_offset', 'Invalid gl.getVertexAttribOffset() usage', gl, function() {
             /** @type{number} */ var ptr;
 
             bufferedLogToConsole('gl.INVALID_ENUM is generated if pname is not an accepted value.');
@@ -659,8 +451,7 @@ goog.scope(function() {
 
         // Enumerated state queries: Buffers
 
-		// NOTE: WebGLBuffer is unbound (with null param) but it just return 0 instead of set GLError.
-        testGroup.addChild(new es3fApiCase.ApiCaseCallback('get_buffer_parameteriv', 'Invalid gl.getBufferParameter() usage', gl, function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('get_buffer_parameter', 'Invalid gl.getBufferParameter() usage', gl, function() {
             /** @type{number} */ var params = -1;
             /** @type{WebGLBuffer} */ var buf;
             buf = gl.createBuffer();
@@ -682,52 +473,7 @@ goog.scope(function() {
             gl.deleteBuffer(buf);
         }));
 
-        testGroup.addChild(new es3fApiCase.ApiCaseCallback('get_buffer_parameteri64v', 'Invalid gl.getBufferParameter() usage', gl, function() {
-            /** @type{number} */ var params = -1;
-            /** @type{WebGLBuffer} */ var buf;
-            buf = gl.createBuffer();
-            gl.bindBuffer(gl.ARRAY_BUFFER, buf);
-
-            bufferedLogToConsole('gl.INVALID_ENUM is generated if target or value is not an accepted value.');
-            params = /** @type{number} */ (gl.getBufferParameter(-1, gl.BUFFER_SIZE));
-            this.expectError(gl.INVALID_ENUM);
-            params = /** @type{number} */ (gl.getBufferParameter(gl.ARRAY_BUFFER, -1));
-            this.expectError(gl.INVALID_ENUM);
-            params = /** @type{number} */ (gl.getBufferParameter(-1, -1));
-            this.expectError(gl.INVALID_ENUM);
-
-            bufferedLogToConsole('gl.INVALID_OPERATION is generated if the reserved buffer object name 0 is bound to target.');
-            gl.bindBuffer(gl.ARRAY_BUFFER, null);
-            gl.getBufferParameter(gl.ARRAY_BUFFER, gl.BUFFER_SIZE);
-            this.expectError(gl.INVALID_OPERATION);
-
-            gl.deleteBuffer(buf);
-        }));
-
-        // // NOTE: attribute BUFFER_MAP_POINTER is not defined in webgl
-        // testGroup.addChild(new es3fApiCase.ApiCaseCallback('get_buffer_pointerv', 'Invalid gl.getVertexAttribOffset() usage', gl, function()
-        // {
-        //     /** @type{number} */ var params = -1;
-        //     /** @type{WebGLBuffer} */ var buf;
-        //     buf = gl.createBuffer();
-        //     gl.bindBuffer(gl.ARRAY_BUFFER, buf);
-        //
-        //     bufferedLogToConsole('gl.INVALID_ENUM is generated if target or pname is not an accepted value.');
-        //     params = /** @type{number} */ (gl.getVertexAttribOffset(gl.ARRAY_BUFFER, -1));
-        //     this.expectError(gl.INVALID_ENUM);
-        //     params = /** @type{number} */ (gl.getVertexAttribOffset(-1, gl.BUFFER_MAP_POINTER));
-        //     this.expectError(gl.INVALID_ENUM);
-        //
-        //
-        //     bufferedLogToConsole('gl.INVALID_OPERATION is generated if the reserved buffer object name 0 is bound to target.');
-        //     gl.bindBuffer(gl.ARRAY_BUFFER, null);
-        //     params = /** @type{number} */ (gl.getVertexAttribOffset(gl.ARRAY_BUFFER, gl.BUFFER_MAP_POINTER));
-        //     this.expectError(gl.INVALID_OPERATION);
-        //
-        //     gl.deleteBuffer(buf);
-        // }));
-
-        testGroup.addChild(new es3fApiCase.ApiCaseCallback('get_framebuffer_attachment_parameteriv', 'Invalid gl.getFramebufferAttachmentParameter() usage', gl, function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('get_framebuffer_attachment_parameter', 'Invalid gl.getFramebufferAttachmentParameter() usage', gl, function() {
             /** @type{*} */ var params;
             /** @type{WebGLFramebuffer} */ var fbo;
             /** @type{Array<WebGLRenderbuffer>} */ var rbo = [];
@@ -778,7 +524,7 @@ goog.scope(function() {
             gl.deleteFramebuffer(fbo);
         }));
 
-        testGroup.addChild(new es3fApiCase.ApiCaseCallback('get_renderbuffer_parameteriv', 'Invalid gl.getRenderbufferParameter() usage', gl, function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('get_renderbuffer_parameter', 'Invalid gl.getRenderbufferParameter() usage', gl, function() {
             /** @type{number} */ var params = -1;
             /** @type{WebGLRenderbuffer} */ var rbo;
             rbo = gl.createRenderbuffer();
@@ -796,21 +542,13 @@ goog.scope(function() {
             gl.bindRenderbuffer(gl.RENDERBUFFER, null);
         }));
 
-		// NOTE: getInternalformatParameter method doesnt accept bufSize param. That portion of the test must be removed.
-        testGroup.addChild(new es3fApiCase.ApiCaseCallback('get_internalformativ', 'Invalid gl.getInternalformatParameter() usage', gl, function() {
-            /** @type{number} */ var params;
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('get_internalformat_parameter', 'Invalid gl.getInternalformatParameter() usage', gl, function() {
 			/** @type{WebGLRenderbuffer} */ var rbo = gl.createRenderbuffer();
 			/** @type{WebGLFramebuffer} */ var fbo = gl.createFramebuffer();
 			/** @type{WebGLTexture} */ var tex = gl.createTexture();
 			gl.bindRenderbuffer(gl.RENDERBUFFER, rbo);
 			gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
 			gl.bindTexture(gl.TEXTURE_2D, tex);
-
-            // deMemset(params[0], 0xcd, sizeof(params));
-
-            bufferedLogToConsole('gl.INVALID_VALUE is generated if bufSize is negative.');
-            gl.getInternalformatParameter (gl.RENDERBUFFER, gl.RGBA8, gl.NUM_SAMPLE_COUNTS);
-            this.expectError (gl.INVALID_VALUE);
 
             bufferedLogToConsole('gl.INVALID_ENUM is generated if pname is not gl.SAMPLES or gl.NUM_SAMPLE_COUNTS.');
             gl.getInternalformatParameter (gl.RENDERBUFFER, gl.RGBA8, -1);
@@ -838,7 +576,7 @@ goog.scope(function() {
 
         // Query object queries
 
-        testGroup.addChild(new es3fApiCase.ApiCaseCallback('get_queryiv', 'Invalid gl.getQuery() usage', gl, function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('get_query', 'Invalid gl.getQuery() usage', gl, function() {
             /** @type{number} */ var params = -1;
 
             bufferedLogToConsole('gl.INVALID_ENUM is generated if target or pname is not an accepted value.');
@@ -851,7 +589,7 @@ goog.scope(function() {
 
         }));
 
-        testGroup.addChild(new es3fApiCase.ApiCaseCallback('get_query_objectuiv', 'Invalid gl.getQueryParameter() usage', gl, function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('get_query_parameter', 'Invalid gl.getQueryParameter() usage', gl, function() {
 
             /** @type{WebGLQuery} */ var id;
             id = gl.createQuery();
@@ -883,7 +621,7 @@ goog.scope(function() {
 
         // Sync object queries
 
-        testGroup.addChild(new es3fApiCase.ApiCaseCallback('get_synciv', 'Invalid gl.getSyncParameter() usage', gl, function() {
+        testGroup.addChild(new es3fApiCase.ApiCaseCallback('get_sync_parameter', 'Invalid gl.getSyncParameter() usage', gl, function() {
             /** @type{WebGLSync} */ var sync;
 
             bufferedLogToConsole('gl.INVALID_VALUE is generated if sync is not the name of a sync object.');
@@ -905,15 +643,6 @@ goog.scope(function() {
             gl.isEnabled(-1);
             this.expectError(gl.INVALID_ENUM);
             gl.isEnabled(gl.TRIANGLES);
-            this.expectError(gl.INVALID_ENUM);
-
-        }));
-
-        // Hints
-        // NOTE: possible removal from tests
-        testGroup.addChild(new es3fApiCase.ApiCaseCallback('hint', 'Invalid glHint() usage', gl, function() {
-            bufferedLogToConsole('gl.INVALID_ENUM is generated if either target or mode is not an accepted value.');
-            gl.getParameter(gl.GENERATE_MIPMAP_HINT);
             this.expectError(gl.INVALID_ENUM);
 
         }));
