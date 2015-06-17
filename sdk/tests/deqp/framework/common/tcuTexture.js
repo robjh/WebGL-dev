@@ -23,6 +23,7 @@ goog.provide('framework.common.tcuTexture');
 goog.require('framework.common.tcuFloat');
 goog.require('framework.delibs.debase.deMath');
 goog.require('framework.delibs.debase.deString');
+goog.require('framework.common.tcuTexCompareVerifier');
 
 goog.scope(function() {
 
@@ -30,6 +31,7 @@ var tcuTexture = framework.common.tcuTexture;
 var deMath = framework.delibs.debase.deMath;
 var tcuFloat = framework.common.tcuFloat;
 var deString = framework.delibs.debase.deString;
+var tcuTexCompareVerifier = framework.common.tcuTexCompareVerifier;
 
 var DE_ASSERT = function(x) {
     if (!x)
@@ -91,6 +93,106 @@ tcuTexture.ChannelType = {
     HALF_FLOAT: 22,
     FLOAT: 23,
     FLOAT_UNSIGNED_INT_24_8_REV: 24
+};
+
+/**
+ * @param {Array<tcuTexture.ConstPixelBufferAccess>} levels
+ * @param {number} numLevels
+ * @param {tcuTexture.Sampler} sampler
+ * @param {number} ref
+ * @param {number} s
+ * @param {number} t
+ * @param {number} lod
+ * @param {Array<number>} offset
+ */
+tcuTexture.sampleLevelArray2DCompare = function (levels, numLevels, sampler, ref, s, t, lod, offset) {
+	var magnified	= lod <= sampler.lodThreshold;
+    var filterMode = magnified ? sampler.magFilter : sampler.minFilter;
+
+	switch (filterMode) {
+        case tcuTexture.FilterMode.NEAREST: return levels[0].sample2DCompare(sampler, filterMode, ref, s, t, offset);
+        case tcuTexture.FilterMode.LINEAR: return levels[0].sample2DCompare(sampler, filterMode, ref, s, t, offset);
+
+		case tcuTexture.FilterMode.NEAREST_MIPMAP_NEAREST:
+		case tcuTexture.FilterMode.LINEAR_MIPMAP_NEAREST:
+		{
+			var maxLevel = numLevels-1;
+			var level = deMath.clamp(Math.ceil(lod + 0.5) - 1, 0, maxLevel);
+			var levelFilter	= filterMode == tcuTexture.FilterMode.LINEAR_MIPMAP_NEAREST ? tcuTexture.FilterMode.LINEAR : tcuTexture.FilterMode.NEAREST;
+
+			return levels[level].sample2DCompare(sampler, levelFilter, ref, s, t, offset);
+		}
+
+		case tcuTexture.FilterMode.NEAREST_MIPMAP_LINEAR:
+		case tcuTexture.FilterMode.LINEAR_MIPMAP_LINEAR:
+		{
+			var maxLevel = numLevels-1;
+			var level0 = deMath.clamp(Math.ceil(lod), 0, maxLevel);
+			var level1 = Math.min(maxLevel, level0 + 1);
+			var levelFilter	= filterMode == tcuTexture.FilterMode.LINEAR_MIPMAP_LINEAR ? tcuTexture.FilterMode.LINEAR : tcuTexture.FilterMode.NEAREST;
+			var f = deMath.deFloatFrac(lod);
+			var t0 = levels[level0].sample2DCompare(sampler, levelFilter, ref, s, t, offset);
+			var t1 = levels[level1].sample2DCompare(sampler, levelFilter, ref, s, t, offset);
+
+			return t0 * (1.0 - f) + t1 * f;
+		}
+
+		default:
+			DE_ASSERT(false);
+			return 0.0;
+	}
+}
+
+
+/**
+ * @param {tcuTexture.ConstPixelBufferAccess} access
+ * @param {tcuTexture.Sampler} sampler
+ * @param {number} ref
+ * @param {number} u
+ * @param {number} v
+ * @param {Array<number>} offset
+ * @param {boolean} isFixedPointDepthFormat
+ * @return {number}
+ */
+tcuTexture.sampleLinear2DCompare = function(access, sampler, ref, u, v, offset, isFixedPointDepthFormat) {
+    var w = access.getWidth();
+	var h = access.getHeight();
+
+	var x0 = Math.floor(u - 0.5) + offset[0];
+    var x1 = x0 + 1;
+    var y0 = Math.floor(v - 0.5) + offset[1];
+    var y1 = y0 + 1;
+
+    var i0 = tcuTexture.wrap(sampler.wrapS, x0, w);
+    var i1 = tcuTexture.wrap(sampler.wrapS, x1, w);
+    var j0 = tcuTexture.wrap(sampler.wrapT, y0, h);
+    var j1 = tcuTexture.wrap(sampler.wrapT, y1, h);
+
+    var a = deMath.deFloatFrac(u - 0.5);
+    var b = deMath.deFloatFrac(v - 0.5);
+
+	var i0UseBorder = sampler.wrapS == tcuTexture.WrapMode.CLAMP_TO_BORDER && !deMath.deInBounds32(i0, 0, w);
+    var i1UseBorder = sampler.wrapS == tcuTexture.WrapMode.CLAMP_TO_BORDER && !deMath.deInBounds32(i1, 0, w);
+    var j0UseBorder = sampler.wrapT == tcuTexture.WrapMode.CLAMP_TO_BORDER && !deMath.deInBounds32(j0, 0, h);
+    var j1UseBorder = sampler.wrapT == tcuTexture.WrapMode.CLAMP_TO_BORDER && !deMath.deInBounds32(j1, 0, h);
+
+	// Border color for out-of-range coordinates if using CLAMP_TO_BORDER, otherwise execute lookups.
+	var p00Clr = (i0UseBorder || j0UseBorder) ? sampler.borderColor : tcuTexture.lookup(access, i0, j0, offset[2]);
+	var p10Clr = (i1UseBorder || j0UseBorder) ? sampler.borderColor : tcuTexture.lookup(access, i1, j0, offset[2]);
+    var p01Clr = (i0UseBorder || j1UseBorder) ? sampler.borderColor : tcuTexture.lookup(access, i0, j1, offset[2]);
+    var p11Clr = (i1UseBorder || j1UseBorder) ? sampler.borderColor : tcuTexture.lookup(access, i1, j1, offset[2]);
+
+	// Execute comparisons.
+    var p00 = tcuTexCompareVerifier.execCompare(p00Clr, sampler.compare, sampler.compareChannel, ref, isFixedPointDepthFormat);
+	var p10 = tcuTexCompareVerifier.execCompare(p10Clr, sampler.compare, sampler.compareChannel, ref, isFixedPointDepthFormat);
+	var p01 = tcuTexCompareVerifier.execCompare(p01Clr, sampler.compare, sampler.compareChannel, ref, isFixedPointDepthFormat);
+	var p11 = tcuTexCompareVerifier.execCompare(p11Clr, sampler.compare, sampler.compareChannel, ref, isFixedPointDepthFormat);
+
+	// Interpolate.
+	return (p00 * (1.0 - a) * (1.0 - b)) +
+		   (p10 * (a) * (1.0 - b)) +
+		   (p01 * (1.0 - a) * (b)) +
+		   (p11 * (a) * (b));
 };
 
 /**
@@ -1286,6 +1388,39 @@ tcuTexture.ConstPixelBufferAccess.prototype.sample2D = function(sampler, filter,
 /**
  * @param {tcuTexture.Sampler} sampler
  * @param {tcuTexture.FilterMode} filter
+ * @param {number} ref
+ * @param {number} s
+ * @param {number} t
+ * @param {Array<number>} offset
+ * @return {number}
+ */
+tcuTexture.ConstPixelBufferAccess.prototype.sample2DCompare = function(sampler, filter, ref, s, t, offset) {
+    DE_ASSERT(deMath.deInBounds32(offset[2], 0, this.m_depth));
+
+	// Format information for comparison function
+	var isFixedPointDepth = tcuTexCompareVerifier.isFixedPointDepthTextureFormat(this.m_format);
+
+	// Non-normalized coordinates.
+	var u = s;
+	var v = t;
+
+	if (sampler.normalizedCoords) {
+		u = tcuTexture.unnormalize(sampler.wrapS, s, this.m_width);
+		v = tcuTexture.unnormalize(sampler.wrapT, t, this.m_height);
+	}
+
+	switch (filter) {
+		case tcuTexture.FilterMode.NEAREST:	return tcuTexCompareVerifier.execCompare(tcuTexture.sampleNearest2D(this, sampler, u, v, offset[0]), sampler.compare, sampler.compareChannel, ref, isFixedPointDepth);
+		case tcuTexture.FilterMode.LINEAR:	return tcuTexture.sampleLinear2DCompare(this, sampler, ref, u, v, offset, isFixedPointDepth);
+		default:
+			DE_ASSERT(false);
+			return 0.0;
+	}
+};
+
+/**
+ * @param {tcuTexture.Sampler} sampler
+ * @param {tcuTexture.FilterMode} filter
  * @param {number} s
  * @param {number} t
  * @param {number} r
@@ -2123,7 +2258,7 @@ tcuTexture.Texture2DArrayView.prototype.sample = function(sampler, texCoord, lod
  * @return {number}
  */
 tcuTexture.Texture2DArrayView.prototype.sampleCompare = function(sampler, ref, texCoord, lod) {
-    throw new Error('Unimplemented');
+    return tcuTexture.sampleLevelArray2DCompare(this.m_levels, this.m_numLevels, sampler, ref, texCoord[0], texCoord[1], lod, [0, 0, this.selectLayer(texCoord[2])]);
 };
 
 /**

@@ -597,6 +597,8 @@ var sglrReferenceContext = framework.opengl.simplereference.sglrReferenceContext
         return this.m_caseNdx < this.m_cases.length ? tcuTestCase.IterateResult.CONTINUE : tcuTestCase.IterateResult.STOP;
     };
 
+    es3fTextureShadowTests.Texture2DArrayShadowCase = function (name, desc, minFilter, magFilter, wrapS, wrapT, format, width, height, numLayers, compareFunc) {};
+
     es3fTextureShadowTests.init = function() {
         /** @type {Array<es3fTextureShadowTests.Format>} */ var formats = [];
         formats[0] = new es3fTextureShadowTests.Format();
