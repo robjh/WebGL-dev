@@ -96,23 +96,6 @@ goog.scope(function() {
     es3fNegativeShaderApiTests.init = function(gl) {
         var testGroup = tcuTestCase.runner.testCases;
 
-        // Tests not ported
-        // shader_source
-        // compile_shader
-        // delete_shader
-        // shader_binary
-        // delete_program
-        // validate_program
-        // get_program_binary
-        // program_binary
-        // program_parameteri
-        // gen_samplers
-        // delete_samplers
-        // sampler_parameterfv
-        // uniformf_invalid_program
-
-        // Shader control commands
-
         testGroup.addChild(new es3fApiCase.ApiCaseCallback(
             'create_shader', 'Invalid gl.createShader() usage', gl,
             function() {
