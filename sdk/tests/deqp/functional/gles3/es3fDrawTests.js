@@ -368,33 +368,11 @@ goog.scope(function() {
         spec.attribs[0].instanceDivisor = 0;
         spec.attribs[0].useDefaultAttribute = false;
 
-        /**
-         * IOPair
-         * @constructor
-         */
-        es3fDrawTests.AttributeGroup.IOPair = function() {
-            /** @type {?glsDrawTests.DrawTestSpec.InputType} */ this.input = null;
-            /** @type {?glsDrawTests.DrawTestSpec.OutputType} */ this.output = null;
-            /** @type {number}*/ this.componentCount;
-        };
-
-        /** @type {Array<es3fDrawTests.AttributeGroup.IOPair>} */ var iopairs = [
-            /** @type {es3fDrawTests.AttributeGroup.IOPair} */ ({
-                    input: glsDrawTests.DrawTestSpec.InputType.FLOAT, output: glsDrawTests.DrawTestSpec.OutputType.VEC2, componentCount: 4
-                }
-            ),
-            /** @type {es3fDrawTests.AttributeGroup.IOPair} */ ({
-                    input: glsDrawTests.DrawTestSpec.InputType.FLOAT, output: glsDrawTests.DrawTestSpec.OutputType.VEC4, componentCount: 2
-                }
-            ),
-            /** @type {es3fDrawTests.AttributeGroup.IOPair} */ ({
-                    input: glsDrawTests.DrawTestSpec.InputType.INT, output: glsDrawTests.DrawTestSpec.OutputType.IVEC3, componentCount: 4
-                }
-            ),
-            /** @type {es3fDrawTests.AttributeGroup.IOPair} */ ({
-                    input: glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT, output: glsDrawTests.DrawTestSpec.OutputType.UVEC2, componentCount: 4
-                }
-            )
+        /** @type {Array<{input:?glsDrawTests.DrawTestSpec.InputType, output:?glsDrawTests.DrawTestSpec.OutputType, componentCount:number}>} */ var iopairs = [
+            {input: glsDrawTests.DrawTestSpec.InputType.FLOAT, output: glsDrawTests.DrawTestSpec.OutputType.VEC2, componentCount: 4},
+            {input: glsDrawTests.DrawTestSpec.InputType.FLOAT, output: glsDrawTests.DrawTestSpec.OutputType.VEC4, componentCount: 2},
+            {input: glsDrawTests.DrawTestSpec.InputType.INT, output: glsDrawTests.DrawTestSpec.OutputType.IVEC3, componentCount: 4},
+            {input: glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT, output: glsDrawTests.DrawTestSpec.OutputType.UVEC2, componentCount: 4}
         ];
 
         spec.attribs.push(new glsDrawTests.DrawTestSpec.AttributeSpec());
@@ -435,47 +413,32 @@ goog.scope(function() {
     es3fDrawTests.IndexGroup.prototype.constructor = es3fDrawTests.IndexGroup;
 
     es3fDrawTests.IndexGroup.prototype.init = function() {
-        /**
-         * @constructor
-         * IndexTest
-         */
-        es3fDrawTests.IndexGroup.IndexTest = function() {
-            /** @type {?glsDrawTests.DrawTestSpec.Storage} */ this.storage = null;
-            /** @type {?glsDrawTests.DrawTestSpec.IndexType} */ this.type = null;
-            /** @type {boolean} */ this.aligned;
-            /** @type {Array<number>} */ this.offsets = [];
-        };
+        /** @type {Array<{storage: ?glsDrawTests.DrawTestSpec.Storage, type: ?glsDrawTests.DrawTestSpec.IndexType, aligned: boolean, offsets: Array<number>}>} */ var tests = [
+            {storage: glsDrawTests.DrawTestSpec.Storage.BUFFER, type: glsDrawTests.DrawTestSpec.IndexType.BYTE, aligned: true, offsets: [0, 1, -1]},
+            {storage: glsDrawTests.DrawTestSpec.Storage.BUFFER, type: glsDrawTests.DrawTestSpec.IndexType.SHORT, aligned: true, offsets: [0, 2, -1]},
+            {storage: glsDrawTests.DrawTestSpec.Storage.BUFFER, type: glsDrawTests.DrawTestSpec.IndexType.INT, aligned: true, offsets: [0, 4, -1]},
 
-        /** @type {Array<es3fDrawTests.IndexGroup.IndexTest>} */ var tests = [
-            /** @type {es3fDrawTests.IndexGroup.IndexTest} */ ({ storage: glsDrawTests.DrawTestSpec.Storage.BUFFER, type: glsDrawTests.DrawTestSpec.IndexType.BYTE, aligned: true, offsets: [0, 1, -1] }),
-            /** @type {es3fDrawTests.IndexGroup.IndexTest} */ ({ storage: glsDrawTests.DrawTestSpec.Storage.BUFFER, type: glsDrawTests.DrawTestSpec.IndexType.SHORT, aligned: true, offsets: [0, 2, -1] }),
-            /** @type {es3fDrawTests.IndexGroup.IndexTest} */ ({ storage: glsDrawTests.DrawTestSpec.Storage.BUFFER, type: glsDrawTests.DrawTestSpec.IndexType.INT, aligned: true, offsets: [0, 4, -1] }),
-
-            /** @type {es3fDrawTests.IndexGroup.IndexTest} */ ({ storage: glsDrawTests.DrawTestSpec.Storage.BUFFER, type: glsDrawTests.DrawTestSpec.IndexType.SHORT, aligned: false, offsets: [1, 3, -1] }),
-            /** @type {es3fDrawTests.IndexGroup.IndexTest} */ ({ storage: glsDrawTests.DrawTestSpec.Storage.BUFFER, type: glsDrawTests.DrawTestSpec.IndexType.INT, aligned: false, offsets: [2, 3, -1] })
+            {storage: glsDrawTests.DrawTestSpec.Storage.BUFFER, type: glsDrawTests.DrawTestSpec.IndexType.SHORT, aligned: false, offsets: [1, 3, -1]},
+            {storage: glsDrawTests.DrawTestSpec.Storage.BUFFER, type: glsDrawTests.DrawTestSpec.IndexType.INT, aligned: false, offsets: [2, 3, -1]}
         ];
 
         /** @type {glsDrawTests.DrawTestSpec} */ var spec = new glsDrawTests.DrawTestSpec();
         es3fDrawTests.genBasicSpec(spec, this.m_method);
 
-        //These groups are not used in JS (user storage)
-        ///** @type {tcuTestCase.DeqpTest} */ var userPtrGroup = new tcuTestCase.DeqpTest("user_ptr", "user pointer");
-        ///** @type {tcuTestCase.DeqpTest} */ var unalignedUserPtrGroup = new tcu::TestCaseGroup(m_testCtx, "unaligned_user_ptr", "unaligned user pointer");
         /** @type {tcuTestCase.DeqpTest} */ var bufferGroup = new tcuTestCase.DeqpTest('buffer', 'buffer');
         /** @type {tcuTestCase.DeqpTest} */ var unalignedBufferGroup = new tcuTestCase.DeqpTest('unaligned_buffer', 'unaligned buffer');
 
-        /*this.addChild(userPtrGroup);
-        this.addChild(unalignedUserPtrGroup);*/
         this.addChild(bufferGroup);
         this.addChild(unalignedBufferGroup);
 
         for (var testNdx = 0; testNdx < tests.length; ++testNdx) {
-            /** @type {es3fDrawTests.IndexGroup.IndexTest} */ var indexTest = tests[testNdx];
+            /** @type {{storage: ?glsDrawTests.DrawTestSpec.Storage, type: ?glsDrawTests.DrawTestSpec.IndexType, aligned: boolean, offsets: Array<number>}} */
+            var indexTest = tests[testNdx];
             /** @type {tcuTestCase.DeqpTest} */ var group = indexTest.aligned ? bufferGroup : unalignedBufferGroup;
 
             /** @type {string} */ var name = 'index_' + glsDrawTests.DrawTestSpec.indexTypeToString(indexTest.type);
             /** @type {string} */ var desc = 'index ' + glsDrawTests.DrawTestSpec.indexTypeToString(indexTest.type) + ' in ' + glsDrawTests.DrawTestSpec.storageToString(indexTest.storage);
-            /*MovePtr... ...?*/ /** @type {glsDrawTests.DrawTest} */ var test = new glsDrawTests.DrawTest(null, name, desc);
+            /** @type {glsDrawTests.DrawTest} */ var test = new glsDrawTests.DrawTest(null, name, desc);
 
             spec.indexType = indexTest.type;
             spec.indexStorage = indexTest.storage;
@@ -799,7 +762,7 @@ goog.scope(function() {
         ctx.deleteProgram(programID);
 
         ctx.finish();
-        ctx.readPixels(0, 0, dst.getWidth(), dst.getHeight(), gl.RGBA, gl.UNSIGNED_BYTE, dst.getAccess().getDataPtr());
+        dst.readViewport(ctx, [0 , 0, dst.getWidth(), dst.getHeight()]);
     };
 
     /**
@@ -893,7 +856,7 @@ goog.scope(function() {
      * @param {number} size
      */
     es3fDrawTests.UniformWeightArray = function(size) {
-        this.weights = new Array(size);
+        this.weights = [];
 
         for (var i = 0; i < size; ++i)
             this.weights[i] = 1.0;
@@ -1017,11 +980,7 @@ goog.scope(function() {
         ];
         /** @type {es3fDrawTests.UniformWeightArray} */ var usageWeights = new es3fDrawTests.UniformWeightArray(usages.length);
 
-        /** @type {Array<number>} */ var blacklistedCases = [
-            544 //!< extremely narrow triangle
-        ];
-
-        /** @type {Array<number>} */ var insertedHashes = []; //'set' structrure
+        /** @type {Array<number>} */ var insertedHashes = []; //'set' structure
         /** @type {number} */ var insertedCount = 0;
 
         for (var ndx = 0; ndx < numAttempts; ++ndx) {
@@ -1102,10 +1061,9 @@ goog.scope(function() {
                 hash = deMath.binaryOp(deMath.shiftLeft(hash, 2), spec.attribs[attrNdx].hash(), deMath.BinaryOp.XOR);
 
             if (insertedHashes.indexOf(hash) == -1) {
-                // Only properly aligned and not blacklisted cases
+                // Only properly aligned
                 if (spec.isCompatibilityTest() != glsDrawTests.DrawTestSpec.CompatibilityTestType.UNALIGNED_OFFSET &&
-                    spec.isCompatibilityTest() != glsDrawTests.DrawTestSpec.CompatibilityTestType.UNALIGNED_STRIDE &&
-                    blacklistedCases.indexOf(hash) == -1) {
+                    spec.isCompatibilityTest() != glsDrawTests.DrawTestSpec.CompatibilityTestType.UNALIGNED_STRIDE) {
                     this.addChild(new glsDrawTests.DrawTest(spec, insertedCount + '', spec.getDesc()));
                 }
                 deUtil.dePushUniqueToArray(insertedHashes, hash);

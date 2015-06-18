@@ -1635,8 +1635,6 @@ tcuTexture.PixelBufferAccess.prototype.setPixel = function(color, x, y, z) {
     var pixelPtr = new arrayType(this.m_data, offset + this.m_offset);
 
     var pn = function(val, offs, bits) {
-        /* Check if the value is normalized (in [0, 1] range) */
-        DE_ASSERT(deMath.deInRange32(val, 0, 1));
         return tcuTexture.normFloatToChannel(val, bits) << offs;
     };
 

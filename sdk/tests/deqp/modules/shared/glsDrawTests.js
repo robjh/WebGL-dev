@@ -517,7 +517,10 @@ goog.scope(function() {
      * @return {glsDrawTests.GLValue}
      */
     glsDrawTests.GLValue.getMaxValue = function(type) {
-        var value;
+        var value = 0;
+
+        assertMsgOptions(type >= 0 && type < Object.keys(glsDrawTests.DrawTestSpec.InputType).length,
+            'Invalid type for GLValue', false, true);
 
         switch (type) {
             case glsDrawTests.DrawTestSpec.InputType.FLOAT:
@@ -544,8 +547,8 @@ goog.scope(function() {
             case glsDrawTests.DrawTestSpec.InputType.HALF:
                 value = 256;
                 break;
-            default: //Original code returns garbage-filled GLValues
-                return new glsDrawTests.GLValue();
+            default: //For any other valid type, return 0
+                value = 0;
         }
 
         return glsDrawTests.GLValue.create(value, type);
@@ -558,6 +561,9 @@ goog.scope(function() {
      */
     glsDrawTests.GLValue.getMinValue = function(type) {
         var value = 0;
+
+        assertMsgOptions(type >= 0 && type < Object.keys(glsDrawTests.DrawTestSpec.InputType).length,
+            'Invalid type for GLValue', false, true);
 
         switch (type) {
             case glsDrawTests.DrawTestSpec.InputType.FLOAT:
@@ -584,9 +590,8 @@ goog.scope(function() {
             case glsDrawTests.DrawTestSpec.InputType.HALF:
                 value = -256;
                 break;
-
-            /*default: //Original code returns garbage-filled GLValues
-                return new glsDrawTests.GLValue();*/
+            default: //For any other valid type, return 0
+                value = 0;
         }
 
         return glsDrawTests.GLValue.create(value, type);
@@ -1037,70 +1042,79 @@ goog.scope(function() {
     glsDrawTests.DrawTestShaderProgram.prototype.constructor = glsDrawTests.DrawTestShaderProgram;
 
     /**
-     * @param {Array<number>} coord
      * @param {Array<number>} color
      * @param {goog.NumberArray} attribValue
-     * @param {boolean} isCoordinate
      * @param {number} numComponents
+     * @return {Array<number>}
      */
-    glsDrawTests.calcShaderColorCoord = function(coord, color, attribValue, isCoordinate, numComponents) {
-        if (isCoordinate) {
-            var coordtmp;
-            switch (numComponents) {
-                case 1:
-                    coordtmp = deMath.add(coord, [attribValue[0], attribValue[0]]);
-                    coord[0] = coordtmp[0];
-                    coord[1] = coordtmp[1];
-                    break;
-                case 2:
-                    coordtmp = deMath.add(coord, [attribValue[0], attribValue[1]]);
-                    coord[0] = coordtmp[0];
-                    coord[1] = coordtmp[1];
-                    break;
-                case 3:
-                    coordtmp = deMath.add(coord, [attribValue[0] + attribValue[2], attribValue[1]]);
-                    coord[0] = coordtmp[0];
-                    coord[1] = coordtmp[1];
-                    coord[2] = coordtmp[2];
-                    break;
-                case 4:
-                    coordtmp = deMath.add(coord, [attribValue[0] + attribValue[2], attribValue[1] + attribValue[3]]);
-                    coord[0] = coordtmp[0];
-                    coord[1] = coordtmp[1];
-                    coord[2] = coordtmp[2];
-                    coord[3] = coordtmp[3];
-                    break;
+    glsDrawTests.calcShaderColor = function(color, attribValue, numComponents) {
+        switch (numComponents) {
+            case 1:
+                color[0] = deMath.scale(color, attribValue[0])[0];
+                break;
 
-                default:
-                    throw new Error('Invalid component count');
-            }
-        } else {
-            switch (numComponents) {
-                case 1:
-                    color[0] = deMath.scale(color, attribValue[0])[0];
-                    break;
+            case 2:
+                color[0] = color[0] * attribValue[0];
+                color[1] = color[1] * attribValue[1];
+                break;
 
-                case 2:
-                    color[0] = color[0] * attribValue[0];
-                    color[1] = color[1] * attribValue[1];
-                    break;
+            case 3:
+                color[0] = color[0] * attribValue[0];
+                color[1] = color[1] * attribValue[1];
+                color[2] = color[2] * attribValue[2];
+                break;
 
-                case 3:
-                    color[0] = color[0] * attribValue[0];
-                    color[1] = color[1] * attribValue[1];
-                    color[2] = color[2] * attribValue[2];
-                    break;
+            case 4:
+                color[0] = color[0] * attribValue[0] * attribValue[3];
+                color[1] = color[1] * attribValue[1] * attribValue[3];
+                color[2] = color[2] * attribValue[2] * attribValue[3];
+                break;
 
-                case 4:
-                    color[0] = color[0] * attribValue[0] * attribValue[3];
-                    color[1] = color[1] * attribValue[1] * attribValue[3];
-                    color[2] = color[2] * attribValue[2] * attribValue[3];
-                    break;
-
-                default:
-                    throw new Error('Invalid component count');
-            }
+            default:
+                throw new Error('Invalid component count');
         }
+
+        return color;
+    };
+
+    /**
+     * @param {Array<number>} coord
+     * @param {goog.NumberArray} attribValue
+     * @param {number} numComponents
+     * @return {Array<number>}
+     */
+    glsDrawTests.calcShaderCoord = function(coord, attribValue, numComponents) {
+        switch (numComponents) {
+            case 1:
+
+                coord = deMath.add(coord, [attribValue[0], attribValue[0]]);
+                coord[0] = coord[0];
+                coord[1] = coord[1];
+                break;
+            case 2:
+                coord = deMath.add(coord, [attribValue[0], attribValue[1]]);
+                coord[0] = coord[0];
+                coord[1] = coord[1];
+                break;
+            case 3:
+                coord = deMath.add(coord, [attribValue[0] + attribValue[2], attribValue[1]]);
+                coord[0] = coord[0];
+                coord[1] = coord[1];
+                coord[2] = coord[2];
+                break;
+            case 4:
+                coord = deMath.add(coord, [attribValue[0] + attribValue[2], attribValue[1] + attribValue[3]]);
+                coord[0] = coord[0];
+                coord[1] = coord[1];
+                coord[2] = coord[2];
+                coord[3] = coord[3];
+                break;
+
+            default:
+                throw new Error('Invalid component count');
+        }
+
+        return coord;
     };
 
     /**
@@ -1125,10 +1139,18 @@ goog.scope(function() {
                 var numComponents = this.m_componentCount[attribNdx];
                 /** @type {boolean} */ var isCoord = this.m_isCoord[attribNdx];
 
-                glsDrawTests.calcShaderColorCoord(
-                    coord, color,
-                    rrVertexAttrib.readVertexAttrib(inputs[attribNdx], packet.instanceNdx, packet.vertexNdx, this.m_attrType[attribNdx]),
-                    isCoord, numComponents
+                var attrib = rrVertexAttrib.readVertexAttrib(inputs[attribNdx], packet.instanceNdx, packet.vertexNdx, this.m_attrType[attribNdx]);
+
+                coord = glsDrawTests.calcShaderCoord(
+                    coord,
+                    attrib,
+                    numComponents
+                );
+
+                color = glsDrawTests.calcShaderColor(
+                    color,
+                    attrib,
+                    numComponents
                 );
             }
 
@@ -1185,31 +1207,31 @@ goog.scope(function() {
 
             if (isPositionAttr) {
                 switch (arrays[arrayNdx].getOutputType()) {
-                    case (glsDrawTests.DrawTestSpec.OutputType.FLOAT):
-                    case (glsDrawTests.DrawTestSpec.OutputType.INT):
-                    case (glsDrawTests.DrawTestSpec.OutputType.UINT):
+                    case glsDrawTests.DrawTestSpec.OutputType.FLOAT:
+                    case glsDrawTests.DrawTestSpec.OutputType.INT:
+                    case glsDrawTests.DrawTestSpec.OutputType.UINT:
                         vertexShaderTmpl +=
                             '\tcoord += vec2(float(a_' + arrayNdx + '), float(a_' + arrayNdx + '));\n';
                         break;
 
-                    case (glsDrawTests.DrawTestSpec.OutputType.VEC2):
-                    case (glsDrawTests.DrawTestSpec.OutputType.IVEC2):
-                    case (glsDrawTests.DrawTestSpec.OutputType.UVEC2):
+                    case glsDrawTests.DrawTestSpec.OutputType.VEC2:
+                    case glsDrawTests.DrawTestSpec.OutputType.IVEC2:
+                    case glsDrawTests.DrawTestSpec.OutputType.UVEC2:
                         vertexShaderTmpl +=
                             '\tcoord += vec2(a_' + arrayNdx + '.xy);\n';
                         break;
 
-                    case (glsDrawTests.DrawTestSpec.OutputType.VEC3):
-                    case (glsDrawTests.DrawTestSpec.OutputType.IVEC3):
-                    case (glsDrawTests.DrawTestSpec.OutputType.UVEC3):
+                    case glsDrawTests.DrawTestSpec.OutputType.VEC3:
+                    case glsDrawTests.DrawTestSpec.OutputType.IVEC3:
+                    case glsDrawTests.DrawTestSpec.OutputType.UVEC3:
                         vertexShaderTmpl +=
                             '\tcoord += vec2(a_' + arrayNdx + '.xy);\n' +
                             '\tcoord.x += float(a_' + arrayNdx + '.z);\n';
                         break;
 
-                    case (glsDrawTests.DrawTestSpec.OutputType.VEC4):
-                    case (glsDrawTests.DrawTestSpec.OutputType.IVEC4):
-                    case (glsDrawTests.DrawTestSpec.OutputType.UVEC4):
+                    case glsDrawTests.DrawTestSpec.OutputType.VEC4:
+                    case glsDrawTests.DrawTestSpec.OutputType.IVEC4:
+                    case glsDrawTests.DrawTestSpec.OutputType.UVEC4:
                         vertexShaderTmpl +=
                             '\tcoord += vec2(a_' + arrayNdx + '.xy);\n' +
                             '\tcoord += vec2(a_' + arrayNdx + '.zw);\n';
@@ -1221,30 +1243,30 @@ goog.scope(function() {
                 }
             } else {
                 switch (arrays[arrayNdx].getOutputType()) {
-                    case (glsDrawTests.DrawTestSpec.OutputType.FLOAT):
-                    case (glsDrawTests.DrawTestSpec.OutputType.INT):
-                    case (glsDrawTests.DrawTestSpec.OutputType.UINT):
+                    case glsDrawTests.DrawTestSpec.OutputType.FLOAT:
+                    case glsDrawTests.DrawTestSpec.OutputType.INT:
+                    case glsDrawTests.DrawTestSpec.OutputType.UINT:
                         vertexShaderTmpl +=
                             '\tcolor = color * float(a_' + arrayNdx + ');\n';
                         break;
 
-                    case (glsDrawTests.DrawTestSpec.OutputType.VEC2):
-                    case (glsDrawTests.DrawTestSpec.OutputType.IVEC2):
-                    case (glsDrawTests.DrawTestSpec.OutputType.UVEC2):
+                    case glsDrawTests.DrawTestSpec.OutputType.VEC2:
+                    case glsDrawTests.DrawTestSpec.OutputType.IVEC2:
+                    case glsDrawTests.DrawTestSpec.OutputType.UVEC2:
                         vertexShaderTmpl +=
                             '\tcolor.rg = color.rg * vec2(a_' + arrayNdx + '.xy);\n';
                         break;
 
-                    case (glsDrawTests.DrawTestSpec.OutputType.VEC3):
-                    case (glsDrawTests.DrawTestSpec.OutputType.IVEC3):
-                    case (glsDrawTests.DrawTestSpec.OutputType.UVEC3):
+                    case glsDrawTests.DrawTestSpec.OutputType.VEC3:
+                    case glsDrawTests.DrawTestSpec.OutputType.IVEC3:
+                    case glsDrawTests.DrawTestSpec.OutputType.UVEC3:
                         vertexShaderTmpl +=
                             '\tcolor = color.rgb * vec3(a_' + arrayNdx + '.xyz);\n';
                         break;
 
-                    case (glsDrawTests.DrawTestSpec.OutputType.VEC4):
-                    case (glsDrawTests.DrawTestSpec.OutputType.IVEC4):
-                    case (glsDrawTests.DrawTestSpec.OutputType.UVEC4):
+                    case glsDrawTests.DrawTestSpec.OutputType.VEC4:
+                    case glsDrawTests.DrawTestSpec.OutputType.IVEC4:
+                    case glsDrawTests.DrawTestSpec.OutputType.UVEC4:
                         vertexShaderTmpl +=
                             '\tcolor = color.rgb * vec3(a_' + arrayNdx + '.xyz) * float(a_' + arrayNdx + '.w);\n';
                         break;
@@ -1315,22 +1337,22 @@ goog.scope(function() {
      */
     glsDrawTests.DrawTestShaderProgram.prototype.mapOutputType = function(type) {
         switch (type) {
-            case (glsDrawTests.DrawTestSpec.OutputType.FLOAT):
-            case (glsDrawTests.DrawTestSpec.OutputType.VEC2):
-            case (glsDrawTests.DrawTestSpec.OutputType.VEC3):
-            case (glsDrawTests.DrawTestSpec.OutputType.VEC4):
+            case glsDrawTests.DrawTestSpec.OutputType.FLOAT:
+            case glsDrawTests.DrawTestSpec.OutputType.VEC2:
+            case glsDrawTests.DrawTestSpec.OutputType.VEC3:
+            case glsDrawTests.DrawTestSpec.OutputType.VEC4:
                 return rrGenericVector.GenericVecType.FLOAT;
 
-            case (glsDrawTests.DrawTestSpec.OutputType.INT):
-            case (glsDrawTests.DrawTestSpec.OutputType.IVEC2):
-            case (glsDrawTests.DrawTestSpec.OutputType.IVEC3):
-            case (glsDrawTests.DrawTestSpec.OutputType.IVEC4):
+            case glsDrawTests.DrawTestSpec.OutputType.INT:
+            case glsDrawTests.DrawTestSpec.OutputType.IVEC2:
+            case glsDrawTests.DrawTestSpec.OutputType.IVEC3:
+            case glsDrawTests.DrawTestSpec.OutputType.IVEC4:
                 return rrGenericVector.GenericVecType.INT32;
 
-            case (glsDrawTests.DrawTestSpec.OutputType.UINT):
-            case (glsDrawTests.DrawTestSpec.OutputType.UVEC2):
-            case (glsDrawTests.DrawTestSpec.OutputType.UVEC3):
-            case (glsDrawTests.DrawTestSpec.OutputType.UVEC4):
+            case glsDrawTests.DrawTestSpec.OutputType.UINT:
+            case glsDrawTests.DrawTestSpec.OutputType.UVEC2:
+            case glsDrawTests.DrawTestSpec.OutputType.UVEC3:
+            case glsDrawTests.DrawTestSpec.OutputType.UVEC4:
                 return rrGenericVector.GenericVecType.UINT32;
 
             default:
@@ -1344,24 +1366,24 @@ goog.scope(function() {
      */
     glsDrawTests.DrawTestShaderProgram.prototype.getComponentCount = function(type) {
         switch (type) {
-            case (glsDrawTests.DrawTestSpec.OutputType.FLOAT):
-            case (glsDrawTests.DrawTestSpec.OutputType.INT):
-            case (glsDrawTests.DrawTestSpec.OutputType.UINT):
+            case glsDrawTests.DrawTestSpec.OutputType.FLOAT:
+            case glsDrawTests.DrawTestSpec.OutputType.INT:
+            case glsDrawTests.DrawTestSpec.OutputType.UINT:
                 return 1;
 
-            case (glsDrawTests.DrawTestSpec.OutputType.VEC2):
-            case (glsDrawTests.DrawTestSpec.OutputType.IVEC2):
-            case (glsDrawTests.DrawTestSpec.OutputType.UVEC2):
+            case glsDrawTests.DrawTestSpec.OutputType.VEC2:
+            case glsDrawTests.DrawTestSpec.OutputType.IVEC2:
+            case glsDrawTests.DrawTestSpec.OutputType.UVEC2:
                 return 2;
 
-            case (glsDrawTests.DrawTestSpec.OutputType.VEC3):
-            case (glsDrawTests.DrawTestSpec.OutputType.IVEC3):
-            case (glsDrawTests.DrawTestSpec.OutputType.UVEC3):
+            case glsDrawTests.DrawTestSpec.OutputType.VEC3:
+            case glsDrawTests.DrawTestSpec.OutputType.IVEC3:
+            case glsDrawTests.DrawTestSpec.OutputType.UVEC3:
                 return 3;
 
-            case (glsDrawTests.DrawTestSpec.OutputType.VEC4):
-            case (glsDrawTests.DrawTestSpec.OutputType.IVEC4):
-            case (glsDrawTests.DrawTestSpec.OutputType.UVEC4):
+            case glsDrawTests.DrawTestSpec.OutputType.VEC4:
+            case glsDrawTests.DrawTestSpec.OutputType.IVEC4:
+            case glsDrawTests.DrawTestSpec.OutputType.UVEC4:
                 return 4;
 
             default:
@@ -1417,45 +1439,7 @@ goog.scope(function() {
                 break;
             default:
                 throw new Error('Invalid input type');
-                break;
         }
-    };
-
-    /**
-     * @param {number} seed
-     * @param {number} elementCount
-     * @param {number} componentCount
-     * @param {number} offset
-     * @param {number} stride
-     * @param {?glsDrawTests.DrawTestSpec.InputType} type
-     * @param {number} first
-     * @param {?glsDrawTests.DrawTestSpec.Primitive} primitive
-     * @param {?goog.TypedArray} indices
-     * @param {number} indexSize
-     * @return {goog.TypedArray}
-     */
-    glsDrawTests.RandomArrayGenerator.generateArray = function(seed, elementCount, componentCount, offset, stride, type, first, primitive, indices, indexSize) {
-        /*if (type == glsDrawTests.DrawTestSpec.InputType.INT_2_10_10_10 || type == glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT_2_10_10_10)
-            return glsDrawTests.RandomArrayGenerator.generatePackedArray(seed, elementCount, componentCount, offset, stride, type, first, primitive, indices, indexSize);
-        else*/
-            return glsDrawTests.RandomArrayGenerator.generateBasicArray(seed, elementCount, componentCount, offset, stride, type, first, primitive, indices, indexSize);
-    };
-
-    /**
-     * @param {number} seed
-     * @param {number} elementCount
-     * @param {number} componentCount
-     * @param {number} offset
-     * @param {number} stride
-     * @param {?glsDrawTests.DrawTestSpec.InputType} type
-     * @param {number} first
-     * @param {?glsDrawTests.DrawTestSpec.Primitive} primitive
-     * @param {?goog.TypedArray} indices
-     * @param {number} indexSize
-     * @return {goog.TypedArray}
-     */
-    glsDrawTests.RandomArrayGenerator.generateBasicArray = function(seed, elementCount, componentCount, offset, stride, type, first, primitive, indices, indexSize) {
-        return glsDrawTests.RandomArrayGenerator.createBasicArray(seed, elementCount, componentCount, offset, stride, type, first, primitive, indices, indexSize);
     };
 
     /**
@@ -1483,8 +1467,6 @@ goog.scope(function() {
         /** @type {Array<glsDrawTests.GLValue>} */ var components = [];
         /** @type {number} */ var limit10 = (1 << 10);
         /** @type {number} */ var limit2 = (1 << 2);
-        var packed = vertexParameters.min.getType() == glsDrawTests.DrawTestSpec.InputType.INT_2_10_10_10 ||
-            vertexParameters.min.getType() == glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT_2_10_10_10;
 
         for (var componentNdx = 0; componentNdx < vertexParameters.componentCount; componentNdx++) {
             //keep z and w values the same as the previous attribute
@@ -1493,11 +1475,11 @@ goog.scope(function() {
                 continue;
             }
 
-            components[componentNdx] = packed ? (
-                    componentNdx == 3 ?
-                        new Uint32Array([vertexParameters.rnd.getInt() % limit2])[0] :
-                        new Uint32Array([vertexParameters.rnd.getInt() % limit10])[0]) :
-                glsDrawTests.GLValue.getRandom(vertexParameters.rnd, vertexParameters.min, vertexParameters.max);
+            components[componentNdx] = vertexParameters.packed ? (
+                componentNdx == 3 ?
+                    new Uint32Array([vertexParameters.rnd.getInt() % limit2])[0] :
+                    new Uint32Array([vertexParameters.rnd.getInt() % limit10])[0]
+            ) : glsDrawTests.GLValue.getRandom(vertexParameters.rnd, vertexParameters.min, vertexParameters.max);
 
             if (!vertexParameters.packed) {
                 var minSeparation = glsDrawTests.GLValue.minValue(vertexParameters.min.getType());
@@ -1526,7 +1508,7 @@ goog.scope(function() {
      * @param {number} indexSize
      * @return {goog.TypedArray}
      */
-    glsDrawTests.RandomArrayGenerator.createBasicArray = function(seed, elementCount, componentCount, offset, stride, type, first, primitive, indices, indexSize) {
+    glsDrawTests.RandomArrayGenerator.createArray = function(seed, elementCount, componentCount, offset, stride, type, first, primitive, indices, indexSize) {
         assertMsgOptions(componentCount >= 1 && componentCount <= 4, 'Unacceptable number of components', false, true);
 
         /** @type {glsDrawTests.GLValue} */ var min = glsDrawTests.GLValue.getMinValue(type);
@@ -1540,7 +1522,7 @@ goog.scope(function() {
         /** @type {number} */ var bufferSize = offset + Math.max(elementCount * stride, elementCount * elementSize);
 
         var data = new ArrayBuffer(bufferSize);
-        var writePtr = new Uint8Array(data).subarray(offset);
+        var writePtr = new Uint8Array(data, offset);
 
         /** @type {Array<glsDrawTests.GLValue>|Array<number>} */ var components = [];
         /** @type {Array<Array<glsDrawTests.GLValue>>|Array<Array<number>>} */ var quadVertices = [];
@@ -1740,9 +1722,9 @@ goog.scope(function() {
 
         //If index array was specified, reorder vertices in the order specified (so refrast can still draw quads).
         if (indices) {
-            var view = new Uint8Array(data).subarray(offset);
+            var view = new Uint8Array(data, offset);
             var reorderedbuffer = new ArrayBuffer(data.byteLength);
-            var reorderedview = new Uint8Array(reorderedbuffer).subarray(offset);
+            var reorderedview = new Uint8Array(reorderedbuffer, offset);
             var indicesCount = (indices.length - offset) / indexSize;
             for (var index = 0; index < indicesCount; index++) {
                 var start = indexSize * index;
@@ -1768,22 +1750,6 @@ goog.scope(function() {
 
         return new Uint8Array(data);
     };
-
-    /**
-     * generatePackedArray - Deleted in JS Due to refRast implementation.
-     * Packed vertices are generated with the same generateVertex function.
-     * @param {number} seed
-     * @param {number} elementCount
-     * @param {number} componentCount
-     * @param {number} offset
-     * @param {number} stride
-     * @param {?glsDrawTests.DrawTestSpec.InputType} type
-     * @param {number} first
-     * @param {?glsDrawTests.DrawTestSpec.Primitive} primitive
-     * @param {?goog.TypedArray} indices
-     * @param {number} indexSize
-     * @return {goog.TypedArray}
-     */
 
     /**
      * @param {number} seed
@@ -2009,7 +1975,7 @@ goog.scope(function() {
             this.m_ctx.bindVertexArray(null);
 
         this.m_ctx.useProgram(null);
-        this.m_ctx.readPixels(0, 0, this.m_screen.getWidth(), this.m_screen.getHeight(), gl.RGBA, gl.UNSIGNED_BYTE, this.m_screen.getAccess().getDataPtr());
+        this.m_screen.readViewport(this.m_ctx, [0 , 0, this.m_screen.getWidth(), this.m_screen.getHeight()]);
     };
 
     // DrawTestSpec
@@ -2948,7 +2914,6 @@ goog.scope(function() {
         /** @type {Array<glsDrawTests.DrawTestSpec>} */ this.m_specs = [];
         /** @type {Array<string>} */this.m_iteration_descriptions = [];
         /** @type {number} */ this.m_iteration = 0;
-        ///** @type {tcu::ResultCollector} */ this.m_result(testCtx.getLog(), "Iteration result: ");
 
         if (spec)
             this.addIteration(spec);
@@ -2964,7 +2929,6 @@ goog.scope(function() {
     glsDrawTests.DrawTest.prototype.addIteration = function(spec, description) {
         // Validate spec
         /** @type {boolean} */ var validSpec = spec.valid();
-        assertMsgOptions(validSpec, 'Spec is invalid', false, true);
 
         if (!validSpec)
             return;
@@ -3089,7 +3053,7 @@ goog.scope(function() {
                     /** @type {number} */ var evaluatedElementCount = (instanced && attribSpec.instanceDivisor > 0) ? (spec.instanceCount / attribSpec.instanceDivisor + 1) : (elementCount);
                     /** @type {number} */ var referencedElementCount = (ranged) ? (Math.max(evaluatedElementCount, spec.indexMax + 1)) : (evaluatedElementCount);
                     /** @type {number} */ var bufferSize = attribSpec.offset + stride * (referencedElementCount - 1) + elementSize;
-                    /** @type {goog.TypedArray} */ var data = glsDrawTests.RandomArrayGenerator.generateArray(
+                    /** @type {goog.TypedArray} */ var data = glsDrawTests.RandomArrayGenerator.createArray(
                         seed,
                         referencedElementCount,
                         attribSpec.componentCount,
@@ -3134,7 +3098,7 @@ goog.scope(function() {
                     this.m_rrArrayPack.render(spec.primitive, spec.drawMethod, spec.first, primitiveElementCount, null, 0, 0, 0, spec.instanceCount, coordScale, colorScale, null);
                 }
             } catch (err) {
-                if (err /*instanceof GL ERROR*/) { //TODO: Implement throwing a special error for gl errors to catch them here
+                if (err instanceof wtu.GLErrorException) {
                     // GL Errors are ok if the mode is not properly aligned
                     ctype = spec.isCompatibilityTest();
 

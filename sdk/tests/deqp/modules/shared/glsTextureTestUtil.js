@@ -258,6 +258,51 @@ glsTextureTestUtil.computeQuadTexCoordCube = function(face) {
 };
 
 /**
+ * @param {tcuTexture.CubeFace} face
+ * @param {Array<number>} bottomLeft
+ * @param {Array<number>} topRight
+ * @return {Array<number>}
+ */
+glsTextureTestUtil.computeQuadTexCoordCube = function (face, bottomLeft, topRight) {
+    var dst = [];
+    /** @type {number} */ var sRow        = 0;
+    /** @type {number} */ var tRow        = 0;
+    /** @type {number} */ var mRow        = 0;
+    /** @type {number} */ var sSign        = 1.0;
+    /** @type {number} */ var tSign        = 1.0;
+    /** @type {number} */ var mSign        = 1.0;
+
+    switch (face)
+    {
+        case tcuTexture.CubeFace.NEGATIVE_X: mRow = 0; sRow = 2; tRow = 1; mSign = -1.0; tSign = -1.0; break;
+        case tcuTexture.CubeFace.POSITIVE_X: mRow = 0; sRow = 2; tRow = 1; sSign = -1.0; tSign = -1.0; break;
+        case tcuTexture.CubeFace.NEGATIVE_Y: mRow = 1; sRow = 0; tRow = 2; mSign = -1.0; tSign = -1.0; break;
+        case tcuTexture.CubeFace.POSITIVE_Y: mRow = 1; sRow = 0; tRow = 2; break;
+        case tcuTexture.CubeFace.NEGATIVE_Z: mRow = 2; sRow = 0; tRow = 1; mSign = -1.0; sSign = -1.0; tSign = -1.0; break;
+        case tcuTexture.CubeFace.POSITIVE_Z: mRow = 2; sRow = 0; tRow = 1; tSign = -1.0; break;
+        default:
+            throw new Error('Invalid cube face specified.');
+    }
+
+    dst[0+mRow] = mSign;
+    dst[3+mRow] = mSign;
+    dst[6+mRow] = mSign;
+    dst[9+mRow] = mSign;
+
+    dst[0+sRow] = sSign * bottomLeft[0];
+    dst[3+sRow] = sSign * bottomLeft[0];
+    dst[6+sRow] = sSign * topRight[0];
+    dst[9+sRow] = sSign * topRight[0];
+
+    dst[0+tRow] = tSign * bottomLeft[1];
+    dst[3+tRow] = tSign * topRight[1];
+    dst[6+tRow] = tSign * bottomLeft[1];
+    dst[9+tRow] = tSign * topRight[1];
+
+    return dst;
+};
+
+/**
  * @param {number} layerNdx
  * @param {Array<number>} bottomLeft
  * @param {Array<number>} topRight
@@ -749,7 +794,8 @@ glsTextureTestUtil.TextureRenderer.prototype.renderQuad = function(texUnit, texC
     var prog = program.getProgram();
     gl.useProgram(prog);
 
-    gl.uniform1i(gl.getUniformLocation(prog, 'u_sampler'), texUnit);
+    var loc = gl.getUniformLocation(prog, 'u_sampler');
+    gl.uniform1i(loc, texUnit);
     // if (logUniforms)
     //     log << TestLog::Message << "u_sampler = " << texUnit << TestLog::EndMessage;
 
