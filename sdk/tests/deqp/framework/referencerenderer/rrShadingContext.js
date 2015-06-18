@@ -88,7 +88,4 @@ goog.scope(function() {
     rrShadingContext.readVarying = function(packet, context, varyingLoc) {
         return rrShadingContext.readTriangleVarying(packet, context, varyingLoc);
     };
-
-    // Fragent depth
-
 });

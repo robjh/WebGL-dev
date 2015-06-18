@@ -1141,17 +1141,19 @@ goog.scope(function() {
 
                 var attrib = rrVertexAttrib.readVertexAttrib(inputs[attribNdx], packet.instanceNdx, packet.vertexNdx, this.m_attrType[attribNdx]);
 
-                coord = glsDrawTests.calcShaderCoord(
-                    coord,
-                    attrib,
-                    numComponents
-                );
-
-                color = glsDrawTests.calcShaderColor(
-                    color,
-                    attrib,
-                    numComponents
-                );
+                if (isCoord) {
+                    coord = glsDrawTests.calcShaderCoord (
+                        coord,
+                        attrib,
+                        numComponents
+                    );
+                } else {
+                    color = glsDrawTests.calcShaderColor (
+                        color,
+                        attrib,
+                        numComponents
+                    );
+                }
             }
 
             // Transform position
@@ -1514,8 +1516,8 @@ goog.scope(function() {
         /** @type {glsDrawTests.GLValue} */ var min = glsDrawTests.GLValue.getMinValue(type);
         /** @type {glsDrawTests.GLValue} */ var max = glsDrawTests.GLValue.getMaxValue(type);
 
-        var packed = min.getType() == glsDrawTests.DrawTestSpec.InputType.INT_2_10_10_10 ||
-            min.getType() == glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT_2_10_10_10;
+        var packed = type == glsDrawTests.DrawTestSpec.InputType.INT_2_10_10_10 ||
+            type == glsDrawTests.DrawTestSpec.InputType.UNSIGNED_INT_2_10_10_10;
 
         /** @type {number} */ var componentSize = glsDrawTests.DrawTestSpec.inputTypeSize(type);
         /** @type {number} */ var elementSize = componentSize * componentCount;
