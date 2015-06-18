@@ -145,7 +145,7 @@ var sglrReferenceContext = framework.opengl.simplereference.sglrReferenceContext
     };
 
     /** @enum */
-    es3fTextureShadowTests.text2D = {
+    es3fTextureShadowTests.tex2D = {
         VIEWPORT_WIDTH: 64,
         VIEWPORT_HEIGHT: 64,
         MIN_VIEWPORT_WIDTH: 64,
@@ -333,8 +333,8 @@ var sglrReferenceContext = framework.opengl.simplereference.sglrReferenceContext
         cases[5].oX = 0.35;
         cases[5].oY = 0.91;
 
-        var viewportW = Math.min(es3fTextureShadowTests.text2D.VIEWPORT_WIDTH, gl.canvas.width);
-        var viewportH = Math.min(es3fTextureShadowTests.text2D.VIEWPORT_HEIGHT, gl.canvas.height);
+        var viewportW = Math.min(es3fTextureShadowTests.tex2D.VIEWPORT_WIDTH, gl.canvas.width);
+        var viewportH = Math.min(es3fTextureShadowTests.tex2D.VIEWPORT_HEIGHT, gl.canvas.height);
 
         for (var caseNdx = 0; caseNdx < cases.length; caseNdx++) {
             var texNdx = deMath.clamp(cases[caseNdx].texNdx, 0, this.m_textures.length - 1);
@@ -354,13 +354,13 @@ var sglrReferenceContext = framework.opengl.simplereference.sglrReferenceContext
 
     es3fTextureShadowTests.Texture2DShadowCase.prototype.iterate = function() {
 
-        var viewport = new glsTextureTestUtil.RandomViewport(document.getElementById('canvas'), es3fTextureShadowTests.text2D.VIEWPORT_WIDTH, es3fTextureShadowTests.text2D.VIEWPORT_HEIGHT);
+        var viewport = new glsTextureTestUtil.RandomViewport(document.getElementById('canvas'), es3fTextureShadowTests.tex2D.VIEWPORT_WIDTH, es3fTextureShadowTests.tex2D.VIEWPORT_HEIGHT);
         var curCase = this.m_cases[this.m_caseNdx];
         var sampleParams = new glsTextureTestUtil.ReferenceParams(glsTextureTestUtil.textureType.TEXTURETYPE_2D);
         var rendered = new tcuSurface.Surface(viewport.width, viewport.height);
         var texCoord = [];
 
-        if (viewport.width < es3fTextureShadowTests.text2D.MIN_VIEWPORT_WIDTH || viewport.height < es3fTextureShadowTests.text2D.MIN_VIEWPORT_HEIGHT)
+        if (viewport.width < es3fTextureShadowTests.tex2D.MIN_VIEWPORT_WIDTH || viewport.height < es3fTextureShadowTests.tex2D.MIN_VIEWPORT_HEIGHT)
             throw new Error('Too small render target');
 
         // Setup params for reference.

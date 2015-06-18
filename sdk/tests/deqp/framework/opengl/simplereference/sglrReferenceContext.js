@@ -3394,10 +3394,10 @@ goog.scope(function() {
         if (mask & gl.COLOR_BUFFER_BIT) {
             src = tcuTextureUtil.getSubregion(this.getReadColorbuffer().toSinglesampleAccess(), srcRect[0], srcRect[1], 0, srcRect[2], srcRect[3], 1);
             dst = tcuTextureUtil.getSubregion(this.getDrawColorbuffer().toSinglesampleAccess(), dstRect[0], dstRect[1], 0, dstRect[2], dstRect[3], 1);
-            /** @type {tcuTextureUtil.TextureChannelClass} */ var dstClass = tcuTextureUtil.getTextureChannelClass(dst.getFormat().type);
-            /** @type {boolean} */ var dstIsFloat = dstClass == tcuTextureUtil.TextureChannelClass.FLOATING_POINT ||
-                                                        dstClass == tcuTextureUtil.TextureChannelClass.UNSIGNED_FIXED_POINT ||
-                                                        dstClass == tcuTextureUtil.TextureChannelClass.SIGNED_FIXED_POINT;
+            /** @type {tcuTexture.TextureChannelClass} */ var dstClass = tcuTexture.getTextureChannelClass(dst.getFormat().type);
+            /** @type {boolean} */ var dstIsFloat = dstClass == tcuTexture.TextureChannelClass.FLOATING_POINT ||
+                                                        dstClass == tcuTexture.TextureChannelClass.UNSIGNED_FIXED_POINT ||
+                                                        dstClass == tcuTexture.TextureChannelClass.SIGNED_FIXED_POINT;
             /** @type {tcuTexture.FilterMode} */ var sFilter = (scale && filter == gl.LINEAR) ? tcuTexture.FilterMode.LINEAR : tcuTexture.FilterMode.NEAREST;
             /** @type {tcuTexture.Sampler} */ var sampler = new tcuTexture.Sampler(tcuTexture.WrapMode.CLAMP_TO_EDGE, tcuTexture.WrapMode.CLAMP_TO_EDGE, tcuTexture.WrapMode.CLAMP_TO_EDGE,
                                                         sFilter, sFilter, 0.0 /* lod threshold */, false /* non-normalized coords */);

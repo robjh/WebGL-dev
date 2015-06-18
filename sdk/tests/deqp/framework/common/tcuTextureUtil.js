@@ -44,19 +44,6 @@ tcuTextureUtil.linearInterpolate = function(t, minVal, maxVal) {
     return minVal + (maxVal - minVal) * t;
 };
 
-/**
- * Enums for tcuTextureUtil.TextureChannelClass
- * @enum {number}
- */
-tcuTextureUtil.TextureChannelClass = {
-
-        SIGNED_FIXED_POINT: 0,
-        UNSIGNED_FIXED_POINT: 1,
-        SIGNED_INTEGER: 2,
-        UNSIGNED_INTEGER: 3,
-        FLOATING_POINT: 4
-};
-
 /** tcuTextureUtil.linearChannelToSRGB
  * @param {number} cl
  * @return {number}
@@ -105,41 +92,6 @@ tcuTextureUtil.linearToSRGB = function(cl) {
             tcuTextureUtil.linearChannelToSRGB(cl[2]),
             cl[3]
             ];
-};
-
-/**
- * @param {?tcuTexture.ChannelType} channelType
- * @return {tcuTextureUtil.TextureChannelClass}
- */
-tcuTextureUtil.getTextureChannelClass = function(channelType) {
-
-    switch (channelType) {
-
-    case tcuTexture.ChannelType.SNORM_INT8: return tcuTextureUtil.TextureChannelClass.SIGNED_FIXED_POINT;
-    case tcuTexture.ChannelType.SNORM_INT16: return tcuTextureUtil.TextureChannelClass.SIGNED_FIXED_POINT;
-    case tcuTexture.ChannelType.UNORM_INT8: return tcuTextureUtil.TextureChannelClass.UNSIGNED_FIXED_POINT;
-    case tcuTexture.ChannelType.UNORM_INT16: return tcuTextureUtil.TextureChannelClass.UNSIGNED_FIXED_POINT;
-    case tcuTexture.ChannelType.UNORM_SHORT_565: return tcuTextureUtil.TextureChannelClass.UNSIGNED_FIXED_POINT;
-    case tcuTexture.ChannelType.UNORM_SHORT_555: return tcuTextureUtil.TextureChannelClass.UNSIGNED_FIXED_POINT;
-    case tcuTexture.ChannelType.UNORM_SHORT_4444: return tcuTextureUtil.TextureChannelClass.UNSIGNED_FIXED_POINT;
-    case tcuTexture.ChannelType.UNORM_SHORT_5551: return tcuTextureUtil.TextureChannelClass.UNSIGNED_FIXED_POINT;
-    case tcuTexture.ChannelType.UNORM_INT_101010: return tcuTextureUtil.TextureChannelClass.UNSIGNED_FIXED_POINT;
-    case tcuTexture.ChannelType.UNORM_INT_1010102_REV: return tcuTextureUtil.TextureChannelClass.UNSIGNED_FIXED_POINT;
-    case tcuTexture.ChannelType.UNSIGNED_INT_1010102_REV: return tcuTextureUtil.TextureChannelClass.UNSIGNED_INTEGER;
-    case tcuTexture.ChannelType.UNSIGNED_INT_11F_11F_10F_REV: return tcuTextureUtil.TextureChannelClass.FLOATING_POINT;
-    case tcuTexture.ChannelType.UNSIGNED_INT_999_E5_REV: return tcuTextureUtil.TextureChannelClass.FLOATING_POINT;
-    case tcuTexture.ChannelType.SIGNED_INT8: return tcuTextureUtil.TextureChannelClass.SIGNED_INTEGER;
-    case tcuTexture.ChannelType.SIGNED_INT16: return tcuTextureUtil.TextureChannelClass.SIGNED_INTEGER;
-    case tcuTexture.ChannelType.SIGNED_INT32: return tcuTextureUtil.TextureChannelClass.SIGNED_INTEGER;
-    case tcuTexture.ChannelType.UNSIGNED_INT8: return tcuTextureUtil.TextureChannelClass.UNSIGNED_INTEGER;
-    case tcuTexture.ChannelType.UNSIGNED_INT16: return tcuTextureUtil.TextureChannelClass.UNSIGNED_INTEGER;
-    case tcuTexture.ChannelType.UNSIGNED_INT32: return tcuTextureUtil.TextureChannelClass.UNSIGNED_INTEGER;
-    case tcuTexture.ChannelType.HALF_FLOAT: return tcuTextureUtil.TextureChannelClass.FLOATING_POINT;
-    case tcuTexture.ChannelType.FLOAT: return tcuTextureUtil.TextureChannelClass.FLOATING_POINT;
-
-    default: throw new Error('Unrecognized channel type: ' + channelType);
-    }
-
 };
 
 /**
@@ -620,10 +572,10 @@ tcuTextureUtil.copy = function(dst, src) {
 
         dstData.set(srcData);
     } else {
-        var srcClass = tcuTextureUtil.getTextureChannelClass(src.getFormat().type);
-        var dstClass = tcuTextureUtil.getTextureChannelClass(dst.getFormat().type);
-        var srcIsInt = srcClass == tcuTextureUtil.TextureChannelClass.SIGNED_INTEGER || srcClass == tcuTextureUtil.TextureChannelClass.UNSIGNED_INTEGER;
-        var dstIsInt = dstClass == tcuTextureUtil.TextureChannelClass.SIGNED_INTEGER || dstClass == tcuTextureUtil.TextureChannelClass.UNSIGNED_INTEGER;
+        var srcClass = tcuTexture.getTextureChannelClass(src.getFormat().type);
+        var dstClass = tcuTexture.getTextureChannelClass(dst.getFormat().type);
+        var srcIsInt = srcClass == tcuTexture.TextureChannelClass.SIGNED_INTEGER || srcClass == tcuTexture.TextureChannelClass.UNSIGNED_INTEGER;
+        var dstIsInt = dstClass == tcuTexture.TextureChannelClass.SIGNED_INTEGER || dstClass == tcuTexture.TextureChannelClass.UNSIGNED_INTEGER;
 
         if (srcIsInt && dstIsInt) {
             for (var z = 0; z < depth; z++)
