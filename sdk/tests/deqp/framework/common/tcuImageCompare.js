@@ -211,8 +211,8 @@ tcuImageCompare.intThresholdPositionDeviationErrorThresholdCompare = function(
 
     /*if (!compareOk) {
         // All formats except normalized unsigned fixed point ones need remapping in order to fit into unorm channels in logged images.
-        if (tcuTextureUtil.getTextureChannelClass(reference.getFormat().type) != tcuTextureUtil.TextureChannelClass.UNSIGNED_FIXED_POINT ||
-        tcuTextureUtil.getTextureChannelClass(result.getFormat().type) != tcuTextureUtil.TextureChannelClass.UNSIGNED_FIXED_POINT) {
+        if (tcuTexture.getTextureChannelClass(reference.getFormat().type) != tcuTexture.TextureChannelClass.UNSIGNED_FIXED_POINT ||
+        tcuTexture.getTextureChannelClass(result.getFormat().type) != tcuTexture.TextureChannelClass.UNSIGNED_FIXED_POINT) {
             computeScaleAndBias(reference, result, pixelScale, pixelBias);
             log << TestLog::Message << "Result and reference images are normalized with formula p * " << pixelScale << " + " << pixelBias << TestLog::EndMessage;
         }

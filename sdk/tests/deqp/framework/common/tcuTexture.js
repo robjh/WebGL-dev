@@ -23,7 +23,6 @@ goog.provide('framework.common.tcuTexture');
 goog.require('framework.common.tcuFloat');
 goog.require('framework.delibs.debase.deMath');
 goog.require('framework.delibs.debase.deString');
-goog.require('framework.common.tcuTexCompareVerifier');
 
 goog.scope(function() {
 
@@ -31,7 +30,6 @@ var tcuTexture = framework.common.tcuTexture;
 var deMath = framework.delibs.debase.deMath;
 var tcuFloat = framework.common.tcuFloat;
 var deString = framework.delibs.debase.deString;
-var tcuTexCompareVerifier = framework.common.tcuTexCompareVerifier;
 
 var DE_ASSERT = function(x) {
     if (!x)
@@ -94,6 +92,107 @@ tcuTexture.ChannelType = {
     FLOAT: 23,
     FLOAT_UNSIGNED_INT_24_8_REV: 24
 };
+
+/**
+ * Enums for tcuTexture.TextureChannelClass
+ * @enum {number}
+ */
+tcuTexture.TextureChannelClass = {
+
+    SIGNED_FIXED_POINT: 0,
+    UNSIGNED_FIXED_POINT: 1,
+    SIGNED_INTEGER: 2,
+    UNSIGNED_INTEGER: 3,
+    FLOATING_POINT: 4
+};
+
+/**
+ * @param {?tcuTexture.ChannelType} channelType
+ * @return {tcuTexture.TextureChannelClass}
+ */
+tcuTexture.getTextureChannelClass = function(channelType) {
+
+    switch (channelType) {
+
+    case tcuTexture.ChannelType.SNORM_INT8: return tcuTexture.TextureChannelClass.SIGNED_FIXED_POINT;
+    case tcuTexture.ChannelType.SNORM_INT16: return tcuTexture.TextureChannelClass.SIGNED_FIXED_POINT;
+    case tcuTexture.ChannelType.UNORM_INT8: return tcuTexture.TextureChannelClass.UNSIGNED_FIXED_POINT;
+    case tcuTexture.ChannelType.UNORM_INT16: return tcuTexture.TextureChannelClass.UNSIGNED_FIXED_POINT;
+    case tcuTexture.ChannelType.UNORM_SHORT_565: return tcuTexture.TextureChannelClass.UNSIGNED_FIXED_POINT;
+    case tcuTexture.ChannelType.UNORM_SHORT_555: return tcuTexture.TextureChannelClass.UNSIGNED_FIXED_POINT;
+    case tcuTexture.ChannelType.UNORM_SHORT_4444: return tcuTexture.TextureChannelClass.UNSIGNED_FIXED_POINT;
+    case tcuTexture.ChannelType.UNORM_SHORT_5551: return tcuTexture.TextureChannelClass.UNSIGNED_FIXED_POINT;
+    case tcuTexture.ChannelType.UNORM_INT_101010: return tcuTexture.TextureChannelClass.UNSIGNED_FIXED_POINT;
+    case tcuTexture.ChannelType.UNORM_INT_1010102_REV: return tcuTexture.TextureChannelClass.UNSIGNED_FIXED_POINT;
+    case tcuTexture.ChannelType.UNSIGNED_INT_1010102_REV: return tcuTexture.TextureChannelClass.UNSIGNED_INTEGER;
+    case tcuTexture.ChannelType.UNSIGNED_INT_11F_11F_10F_REV: return tcuTexture.TextureChannelClass.FLOATING_POINT;
+    case tcuTexture.ChannelType.UNSIGNED_INT_999_E5_REV: return tcuTexture.TextureChannelClass.FLOATING_POINT;
+    case tcuTexture.ChannelType.SIGNED_INT8: return tcuTexture.TextureChannelClass.SIGNED_INTEGER;
+    case tcuTexture.ChannelType.SIGNED_INT16: return tcuTexture.TextureChannelClass.SIGNED_INTEGER;
+    case tcuTexture.ChannelType.SIGNED_INT32: return tcuTexture.TextureChannelClass.SIGNED_INTEGER;
+    case tcuTexture.ChannelType.UNSIGNED_INT8: return tcuTexture.TextureChannelClass.UNSIGNED_INTEGER;
+    case tcuTexture.ChannelType.UNSIGNED_INT16: return tcuTexture.TextureChannelClass.UNSIGNED_INTEGER;
+    case tcuTexture.ChannelType.UNSIGNED_INT32: return tcuTexture.TextureChannelClass.UNSIGNED_INTEGER;
+    case tcuTexture.ChannelType.HALF_FLOAT: return tcuTexture.TextureChannelClass.FLOATING_POINT;
+    case tcuTexture.ChannelType.FLOAT: return tcuTexture.TextureChannelClass.FLOATING_POINT;
+
+    default: throw new Error('Unrecognized channel type: ' + channelType);
+    }
+};
+
+/**
+ * @param {tcuTexture.TextureFormat} format
+ */
+tcuTexture.isFixedPointDepthTextureFormat = function (format) {
+	var channelClass = tcuTexture.getTextureChannelClass(format.type);
+
+	if (format.order == tcuTexture.ChannelOrder.D) {
+		// depth internal formats cannot be non-normalized integers
+		return channelClass != tcuTexture.TextureChannelClass.FLOATING_POINT;
+	}
+	else if (format.order == tcuTexture.ChannelOrder.DS) {
+		// combined formats have no single channel class, detect format manually
+		switch (format.type) {
+			case tcuTexture.ChannelType.FLOAT_UNSIGNED_INT_24_8_REV: return false;
+			case tcuTexture.ChannelType.UNSIGNED_INT_24_8: return true;
+
+			default:
+				// unknown format
+				DE_ASSERT(false);
+				return true;
+		}
+	}
+	return false;
+};
+
+/**
+ * @param {Array<number>} color
+ * @param {tcuTexture.CompareMode} compare
+ * @param {number} chanNdx
+ * @param {number} ref_
+ * @param {boolean} isFixedPoint
+ */
+tcuTexture.execCompare = function(color, compare, chanNdx, ref_, isFixedPoint) {
+	var clampValues	= isFixedPoint;
+	var cmp = clampValues ? deMath.clamp(color[chanNdx], 0.0, 1.0) : color[chanNdx];
+	var ref	= clampValues ? deMath.clamp(ref_, 0.0, 1.0) : ref_;
+	var res	= false;
+
+	switch (compare) {
+		case tcuTexture.CompareMode.COMPAREMODE_LESS: res = ref < cmp; break;
+		case tcuTexture.CompareMode.COMPAREMODE_LESS_OR_EQUAL: res = ref <= cmp; break;
+		case tcuTexture.CompareMode.COMPAREMODE_GREATER: res = ref > cmp; break;
+		case tcuTexture.CompareMode.COMPAREMODE_GREATER_OR_EQUAL: res = ref >= cmp; break;
+		case tcuTexture.CompareMode.COMPAREMODE_EQUAL: res = ref == cmp; break;
+		case tcuTexture.CompareMode.COMPAREMODE_NOT_EQUAL: res = ref != cmp; break;
+		case tcuTexture.CompareMode.COMPAREMODE_ALWAYS: res = true; break;
+		case tcuTexture.CompareMode.COMPAREMODE_NEVER: res = false; break;
+		default:
+			DE_ASSERT(false);
+	}
+
+	return res ? 1.0 : 0.0;
+}
 
 /**
  * @param {Array<tcuTexture.ConstPixelBufferAccess>} levels
@@ -183,10 +282,10 @@ tcuTexture.sampleLinear2DCompare = function(access, sampler, ref, u, v, offset, 
     var p11Clr = (i1UseBorder || j1UseBorder) ? sampler.borderColor : tcuTexture.lookup(access, i1, j1, offset[2]);
 
 	// Execute comparisons.
-    var p00 = tcuTexCompareVerifier.execCompare(p00Clr, sampler.compare, sampler.compareChannel, ref, isFixedPointDepthFormat);
-	var p10 = tcuTexCompareVerifier.execCompare(p10Clr, sampler.compare, sampler.compareChannel, ref, isFixedPointDepthFormat);
-	var p01 = tcuTexCompareVerifier.execCompare(p01Clr, sampler.compare, sampler.compareChannel, ref, isFixedPointDepthFormat);
-	var p11 = tcuTexCompareVerifier.execCompare(p11Clr, sampler.compare, sampler.compareChannel, ref, isFixedPointDepthFormat);
+    var p00 = tcuTexture.execCompare(p00Clr, sampler.compare, sampler.compareChannel, ref, isFixedPointDepthFormat);
+	var p10 = tcuTexture.execCompare(p10Clr, sampler.compare, sampler.compareChannel, ref, isFixedPointDepthFormat);
+	var p01 = tcuTexture.execCompare(p01Clr, sampler.compare, sampler.compareChannel, ref, isFixedPointDepthFormat);
+	var p11 = tcuTexture.execCompare(p11Clr, sampler.compare, sampler.compareChannel, ref, isFixedPointDepthFormat);
 
 	// Interpolate.
 	return (p00 * (1.0 - a) * (1.0 - b)) +
@@ -1398,7 +1497,7 @@ tcuTexture.ConstPixelBufferAccess.prototype.sample2DCompare = function(sampler, 
     DE_ASSERT(deMath.deInBounds32(offset[2], 0, this.m_depth));
 
 	// Format information for comparison function
-	var isFixedPointDepth = tcuTexCompareVerifier.isFixedPointDepthTextureFormat(this.m_format);
+	var isFixedPointDepth = tcuTexture.isFixedPointDepthTextureFormat(this.m_format);
 
 	// Non-normalized coordinates.
 	var u = s;
@@ -1410,7 +1509,7 @@ tcuTexture.ConstPixelBufferAccess.prototype.sample2DCompare = function(sampler, 
 	}
 
 	switch (filter) {
-		case tcuTexture.FilterMode.NEAREST:	return tcuTexCompareVerifier.execCompare(tcuTexture.sampleNearest2D(this, sampler, u, v, offset[0]), sampler.compare, sampler.compareChannel, ref, isFixedPointDepth);
+		case tcuTexture.FilterMode.NEAREST:	return tcuTexture.execCompare(tcuTexture.sampleNearest2D(this, sampler, u, v, offset[0]), sampler.compare, sampler.compareChannel, ref, isFixedPointDepth);
 		case tcuTexture.FilterMode.LINEAR:	return tcuTexture.sampleLinear2DCompare(this, sampler, ref, u, v, offset, isFixedPointDepth);
 		default:
 			DE_ASSERT(false);

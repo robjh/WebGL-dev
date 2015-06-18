@@ -355,13 +355,13 @@ void FragmentProcessor::render (const rr::MultisamplePixelBufferAccess& msColorB
     var doDepthTest = hasDepth && state.depthTestEnabled;
     var doStencilTest = hasStencil && state.stencilTestEnabled;
 
-    var colorbufferClass = tcuTextureUtil.getTextureChannelClass(colorBuffer.getFormat().type);
+    var colorbufferClass = tcuTexture.getTextureChannelClass(colorBuffer.getFormat().type);
     var fragmentDataType = rrGenericVector.GenericVecType.FLOAT;
     switch (colorbufferClass) {
-        case tcuTextureUtil.TextureChannelClass.SIGNED_INTEGER:
+        case tcuTexture.TextureChannelClass.SIGNED_INTEGER:
             fragmentDataType = rrGenericVector.GenericVecType.INT32;
             break;
-        case tcuTextureUtil.TextureChannelClass.UNSIGNED_INTEGER:
+        case tcuTexture.TextureChannelClass.UNSIGNED_INTEGER:
             fragmentDataType = rrGenericVector.GenericVecType.UINT32;
             break;
     }
