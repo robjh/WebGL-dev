@@ -712,7 +712,7 @@ var deString = framework.delibs.debase.deString;
         /** @type {number} */ var maxLayer = this.m_numLayers;
 
         for (var caseNdx = 0; caseNdx < cases.length; caseNdx++) {
-            /** @type {?gluTexture.Texture2DArray} */ var tex = cases[caseNdx].texNdx > 0 ? this.m_gridTex : this.m_gradientTex;
+            var tex = cases[caseNdx].texNdx > 0 ? this.m_gridTex : this.m_gradientTex;
             /** @type {number} */ var ref = cases[caseNdx].ref;
             /** @type {number} */ var lodX = cases[caseNdx].lodX;
             /** @type {number} */ var lodY = cases[caseNdx].lodY;
@@ -767,11 +767,11 @@ var deString = framework.delibs.debase.deString;
 
         gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height);
         this.m_renderer.renderQuad(0, texCoord[0], sampleParams);
-        gl.readPixels(viewport.x, viewport.y, viewport.width, viewport.height, gl.RGBA, gl.UNSIGNED_BYTE, result.getAccess().getDataPtr());
+        gl.readPixels(viewport.x, viewport.y, viewport.width, viewport.height, gl.RGBA, gl.UNSIGNED_BYTE, rendered.getAccess().getDataPtr());
 
-        var pixelFormat = this.m_context.getRenderTarget().getPixelFormat();
-        var lodPrecision;
-        var texComparePrecision;
+        var pixelFormat = new tcuPixelFormat.PixelFormat(8, 8, 8, 8);
+        /** @type {tcuTexLookupVerifier.LodPrecision} */ var lodPrecision;
+        /** @type {tcuTexCompareVerifier.TexComparePrecision} */ var texComparePrecision;
 
         lodPrecision.derivateBits = 18;
         lodPrecision.lodBits = 6;
@@ -781,7 +781,7 @@ var deString = framework.delibs.debase.deString;
         texComparePrecision.referenceBits = 16;
         texComparePrecision.resultBits = pixelFormat.redBits - 1;
 
-        var isHighQuality = verifyTexCompareResult(this.m_testCtx, rendered.getAccess(), curCase.texture.getRefTexture(),
+        var isHighQuality = es3fTextureShadowTests.verifyTexCompareResult(tcuTexture.Texture2DArray, rendered.getAccess(), curCase.texture.getRefTexture(),
                                                           texCoord[0], sampleParams, texComparePrecision, lodPrecision, pixelFormat);
 
         if (!isHighQuality) {
@@ -791,7 +791,7 @@ var deString = framework.delibs.debase.deString;
             texComparePrecision.uvwBits = [4,4,4];
             texComparePrecision.pcfBits = 0;
 
-            var isOk = es3fTextureShadowTests.verifyTexCompareResult(tcuTexture.TextureCube, rendered.getAccess(), curCase.texture.getRefTexture(),
+            var isOk = es3fTextureShadowTests.verifyTexCompareResult(tcuTexture.Texture2DArray, rendered.getAccess(), curCase.texture.getRefTexture(),
                                                                                               texCoord, sampleParams, texComparePrecision, lodPrecision, pixelFormat);
 
             if (!isOk) {
