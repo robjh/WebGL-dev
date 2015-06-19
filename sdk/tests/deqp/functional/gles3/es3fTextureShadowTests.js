@@ -36,6 +36,7 @@ goog.require('framework.opengl.gluTextureUtil');
 goog.require('modules.shared.glsTextureTestUtil');
 goog.require('framework.referencerenderer.rrMultisamplePixelBufferAccess');
 goog.require('framework.delibs.debase.deString');
+goog.require('framework.delibs.debase.deUtil');
 
 goog.scope(function() {
 
@@ -57,6 +58,7 @@ var tcuTexCompareVerifier = framework.common.tcuTexCompareVerifier;
 var tcuTexLookupVerifier = framework.common.tcuTexLookupVerifier;
 var rrMultisamplePixelBufferAccess = framework.referencerenderer.rrMultisamplePixelBufferAccess;
 var deString = framework.delibs.debase.deString;
+var deUtil = framework.delibs.debase.deUtil;
 
     es3fTextureShadowTests.version = '300 es';
 
@@ -94,12 +96,21 @@ var deString = framework.delibs.debase.deString;
     };
 
     /**
-     * @param {tcuTexture.Texture2D} target
+     * @param {tcuTexture.Texture2D|tcuTexture.Texture2DArray} target
      */
     es3fTextureShadowTests.clampFloatingPointTexture2D = function(target) {
         for (var level = 0; level < target.getNumLevels(); ++level)
         if (!target.isLevelEmpty(level))
             es3fTextureShadowTests.clampFloatingPointTexture(target.getLevel(level));
+    };
+
+    /**
+     * @param {tcuTexture.TextureCube} target
+     */
+    es3fTextureShadowTests.clampFloatingPointTextureCube = function(target) {
+        for (var level = 0; level < target.getNumLevels(); ++level)
+            for (var face = tcuTexture.CubeFace.NEGATIVE_X; face < Object.keys(tcuTexture.CubeFace).length; face ++)
+                es3fTextureShadowTests.clampFloatingPointTexture(target.getLevelFace(level, face));
     };
 
     /**
@@ -121,7 +132,12 @@ var deString = framework.delibs.debase.deString;
         if (es3fTextureShadowTests.isFloatingPointDepthFormat(src.getFormat())) {
             var clampedSource = deUtil.clone(src);
 
-            es3fTextureShadowTests.clampFloatingPointTexture2D(clampedSource);
+            if (textureType == tcuTexture.Texture2D || textureType == tcuTexture.Texture2DArray)
+                es3fTextureShadowTests.clampFloatingPointTexture2D(clampedSource);
+            else if (textureType == tcuTexture.TextureCube)
+                es3fTextureShadowTests.clampFloatingPointTextureCube(clampedSource);
+            else
+                throw new Error('Invalid texture type');
 
             // sample clamped values
             glsTextureTestUtil.sampleTexture2D(new glsTextureTestUtil.SurfaceAccess(reference, pixelFormat), clampedSource.m_view, texCoord, sampleParams);
