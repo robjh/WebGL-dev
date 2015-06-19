@@ -2557,7 +2557,7 @@ goog.scope(function() {
             return;
         // All is ok
         var data = vao.m_elementArrayBufferBinding.getData();
-        var indices = new rrRenderer.DrawIndices(data, sglrReferenceUtils.mapGLIndexType(type), baseVertex);
+        var indices = new rrRenderer.DrawIndices(data, sglrReferenceUtils.mapGLIndexType(type), offset, baseVertex);
 
         this.drawQuads(mode, indices, count, instanceCount);
     };
@@ -3257,6 +3257,8 @@ goog.scope(function() {
             primitiveType == rrRenderer.PrimitiveType.LINE_STRIP ||
             primitiveType == rrRenderer.PrimitiveType.LINE_LOOP)
             renderFunction = rrRenderer.drawLines;
+        else if (primitiveType == rrRenderer.PrimitiveType.POINTS)
+            renderFunction = rrRenderer.drawPoints;
 
         for (var instanceID = 0; instanceID < instances; instanceID++)
             renderFunction(state, renderTarget, program, vertexAttribs, primitiveType, first, count, instanceID);
