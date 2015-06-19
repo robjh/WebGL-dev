@@ -100,8 +100,8 @@ var deUtil = framework.delibs.debase.deUtil;
      */
     es3fTextureShadowTests.clampFloatingPointTexture2D = function(target) {
         for (var level = 0; level < target.getNumLevels(); ++level)
-        if (!target.isLevelEmpty(level))
-            es3fTextureShadowTests.clampFloatingPointTexture(target.getLevel(level));
+            if (!target.isLevelEmpty(level))
+                es3fTextureShadowTests.clampFloatingPointTexture(target.getLevel(level));
     };
 
     /**
@@ -109,14 +109,14 @@ var deUtil = framework.delibs.debase.deUtil;
      */
     es3fTextureShadowTests.clampFloatingPointTextureCube = function(target) {
         for (var level = 0; level < target.getNumLevels(); ++level)
-            for (var face = tcuTexture.CubeFace.NEGATIVE_X; face < Object.keys(tcuTexture.CubeFace).length; face ++)
+            for (var face = tcuTexture.CubeFace.CUBEFACE_POSITIVE_X; face < Object.keys(tcuTexture.CubeFace).length; face ++)
                 es3fTextureShadowTests.clampFloatingPointTexture(target.getLevelFace(level, face));
     };
 
     /**
      * @param {?} textureType
      * @param {tcuTexture.ConstPixelBufferAccess} result
-     * @param {tcuTexture.Texture2D} src
+     * @param {tcuTexture.Texture2D|tcuTexture.Texture2DArray|tcuTexture.TextureCube} src
      * @param {Array<number>} texCoord
      * @param {glsTextureTestUtil.ReferenceParams} sampleParams
      * @param {tcuTexCompareVerifier.TexComparePrecision} comparePrec
@@ -132,20 +132,32 @@ var deUtil = framework.delibs.debase.deUtil;
         if (es3fTextureShadowTests.isFloatingPointDepthFormat(src.getFormat())) {
             var clampedSource = deUtil.clone(src);
 
-            if (textureType == tcuTexture.Texture2D || textureType == tcuTexture.Texture2DArray)
-                es3fTextureShadowTests.clampFloatingPointTexture2D(clampedSource);
-            else if (textureType == tcuTexture.TextureCube)
-                es3fTextureShadowTests.clampFloatingPointTextureCube(clampedSource);
-            else
+            if (textureType == tcuTexture.Texture2D) {
+                es3fTextureShadowTests.clampFloatingPointTexture2D(/** @type {tcuTexture.Texture2D|tcuTexture.Texture2DArray} */(clampedSource));
+                glsTextureTestUtil.sampleTexture2D(new glsTextureTestUtil.SurfaceAccess(reference, pixelFormat), clampedSource.getView(), texCoord, sampleParams);
+            } else if (textureType == tcuTexture.Texture2DArray) {
+                es3fTextureShadowTests.clampFloatingPointTexture2D(/** @type {tcuTexture.Texture2D|tcuTexture.Texture2DArray} */(clampedSource));
+                glsTextureTestUtil.sampleTexture2DArray(new glsTextureTestUtil.SurfaceAccess(reference, pixelFormat), clampedSource.getView(), texCoord, sampleParams);
+            } else if (textureType == tcuTexture.TextureCube) {
+                es3fTextureShadowTests.clampFloatingPointTextureCube(/** @type {tcuTexture.TextureCube} */(clampedSource));
+                glsTextureTestUtil.sampleTextureCube(new glsTextureTestUtil.SurfaceAccess(reference, pixelFormat), clampedSource.getView(), texCoord, sampleParams);
+            } else
                 throw new Error('Invalid texture type');
 
             // sample clamped values
-            glsTextureTestUtil.sampleTexture2D(new glsTextureTestUtil.SurfaceAccess(reference, pixelFormat), clampedSource.m_view, texCoord, sampleParams);
             numFailedPixels = glsTextureTestUtil.computeTextureCompareDiff(result, reference.getAccess(), errorMask.getAccess(), clampedSource.m_view, texCoord, sampleParams, comparePrec, lodPrecision, nonShadowThreshold);
         } else{
+            if (textureType == tcuTexture.Texture2D) {
+                glsTextureTestUtil.sampleTexture2D(new glsTextureTestUtil.SurfaceAccess(reference, pixelFormat), /** @type {tcuTexture.Texture2DView} */ (src.getView()), texCoord, sampleParams);
+            } else if (textureType == tcuTexture.Texture2DArray) {
+                glsTextureTestUtil.sampleTexture2DArray(new glsTextureTestUtil.SurfaceAccess(reference, pixelFormat), /** @type {tcuTexture.Texture2DArrayView} */ (src.getView()), texCoord, sampleParams);
+            } else if (textureType == tcuTexture.TextureCube) {
+                glsTextureTestUtil.sampleTextureCube(new glsTextureTestUtil.SurfaceAccess(reference, pixelFormat), /** @type {tcuTexture.TextureCubeView} */ (src.getView()), texCoord, sampleParams);
+            } else
+                throw new Error('Invalid texture type');
+
             // sample raw values (they are guaranteed to be in [0, 1] range as the format cannot represent any other values)
-            glsTextureTestUtil.sampleTexture2D(new glsTextureTestUtil.SurfaceAccess(reference, pixelFormat), src.m_view, texCoord, sampleParams);
-            numFailedPixels = glsTextureTestUtil.computeTextureCompareDiff(result, reference.getAccess(), errorMask.getAccess(), src.m_view, texCoord, sampleParams, comparePrec, lodPrecision, nonShadowThreshold);
+            numFailedPixels = glsTextureTestUtil.computeTextureCompareDiff(result, reference.getAccess(), errorMask.getAccess(), /** @type {tcuTexture.Texture2DView} */ (src.getView()), texCoord, sampleParams, comparePrec, lodPrecision, nonShadowThreshold);
         }
 
         if (numFailedPixels > 0)

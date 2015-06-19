@@ -2289,7 +2289,7 @@ tcuTexture.Texture2DView.prototype.sample = function(sampler, texCoord, lod) {
  * @return {number}
  */
 tcuTexture.Texture2DView.prototype.sampleCompare = function(sampler, ref, texCoord, lod) {
-    throw new Error('Unimplemented');
+    return tcuTexture.sampleLevelArray2DCompare(this.m_levels, this.m_numLevels, sampler, ref, texCoord[0], texCoord[1], lod, [0, 0, 0]);
 };
 
     /* TODO: Port
@@ -2465,6 +2465,8 @@ tcuTexture.Texture2D.prototype.constructor = tcuTexture.Texture2D;
 
 tcuTexture.Texture2D.prototype.getWidth = function() { return this.m_width; };
 tcuTexture.Texture2D.prototype.getHeight = function() { return this.m_height; };
+/** @return {tcuTexture.Texture2DView} */
+tcuTexture.Texture2D.prototype.getView = function() { return this.m_view; };
 
 /**
  * @param {number} baseLevel
@@ -2660,6 +2662,8 @@ tcuTexture.TextureCube = function(format, size) {
 tcuTexture.TextureCube.prototype.getFormat = function() { return this.m_format; };
 /** @return {number} */
 tcuTexture.TextureCube.prototype.getSize = function() { return this.m_size; };
+/** @return {tcuTexture.TextureCubeView} */
+tcuTexture.TextureCube.prototype.getView = function() { return this.m_view; };
 /**
  * @param {number} ndx Level index
  * @param {tcuTexture.CubeFace} face
