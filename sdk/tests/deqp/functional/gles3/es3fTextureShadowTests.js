@@ -36,7 +36,6 @@ goog.require('framework.opengl.gluTextureUtil');
 goog.require('modules.shared.glsTextureTestUtil');
 goog.require('framework.referencerenderer.rrMultisamplePixelBufferAccess');
 goog.require('framework.delibs.debase.deString');
-goog.require('framework.opengl.simplereference.sglrReferenceContext');
 
 goog.scope(function() {
 
@@ -58,7 +57,6 @@ var tcuTexCompareVerifier = framework.common.tcuTexCompareVerifier;
 var tcuTexLookupVerifier = framework.common.tcuTexLookupVerifier;
 var rrMultisamplePixelBufferAccess = framework.referencerenderer.rrMultisamplePixelBufferAccess;
 var deString = framework.delibs.debase.deString;
-var sglrReferenceContext = framework.opengl.simplereference.sglrReferenceContext;
 
     es3fTextureShadowTests.version = '300 es';
 
@@ -574,7 +572,6 @@ var sglrReferenceContext = framework.opengl.simplereference.sglrReferenceContext
             texCoord = glsTextureTestUtil.computeQuadTexCoordCubeFace(face, curCase.minCoord, curCase.maxCoord);
 
             this.m_renderer.renderQuad(0, texCoord, sampleParams);
-            sglrReferenceContext.GLU_EXPECT_NO_ERROR(gl.getError(), gl.NO_ERROR)
 
             gl.readPixels(viewport.x, viewport.y, viewport.width, viewport.height, gl.RGBA, gl.UNSIGNED_BYTE, result.getAccess().getDataPtr());
 

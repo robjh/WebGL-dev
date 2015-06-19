@@ -733,14 +733,14 @@ tcuTexture.CompareMode = {
  * @param {boolean=} seamlessCubeMap
  */
 tcuTexture.Sampler = function(wrapS, wrapT, wrapR, minFilter, magFilter, lodThreshold, normalizedCoords, compare, compareChannel, borderColor, seamlessCubeMap) {
-    this.wrapS = wrapS;
-    this.wrapT = wrapT;
-    this.wrapR = wrapR;
-    this.minFilter = minFilter;
-    this.magFilter = magFilter;
+    /** @type {!tcuTexture.WrapMode} */ this.wrapS = wrapS;
+    /** @type {!tcuTexture.WrapMode} */ this.wrapT = wrapT;
+    /** @type {!tcuTexture.WrapMode} */ this.wrapR = wrapR;
+    /** @type {!tcuTexture.FilterMode} */ this.minFilter = minFilter;
+    /** @type {!tcuTexture.FilterMode} */ this.magFilter = magFilter;
     this.lodThreshold = lodThreshold || 0;
     this.normalizedCoords = normalizedCoords === undefined ? true : normalizedCoords;
-    this.compare = compare || tcuTexture.CompareMode.COMPAREMODE_NONE;
+    /** @type {tcuTexture.CompareMode} */ this.compare = compare || tcuTexture.CompareMode.COMPAREMODE_NONE;
     this.compareChannel = compareChannel || 0;
     this.borderColor = borderColor || [0, 0, 0, 0];
     this.seamlessCubeMap = seamlessCubeMap || false;

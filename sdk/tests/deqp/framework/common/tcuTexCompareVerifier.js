@@ -131,11 +131,11 @@ tcuTexCompareVerifier.execCompare = function(compareMode,
  * @return {boolean}
  */
 tcuTexCompareVerifier.isFixedPointDepthTextureFormat = function(format) {
-    var channelClass = tcuTextureUtil.getTextureChannelClass(format.type);
+    var channelClass = tcuTexture.getTextureChannelClass(format.type);
 
     if (format.order == tcuTexture.ChannelOrder.D) {
         // depth internal formats cannot be non-normalized integers
-        return channelClass != tcuTextureUtil.TextureChannelClass.FLOATING_POINT;
+        return channelClass != tcuTexture.TextureChannelClass.FLOATING_POINT;
     } else if (format.order == tcuTexture.ChannelOrder.DS) {
         // combined formats have no single channel class, detect format manually
         switch (format.type) {
