@@ -119,7 +119,7 @@ var deString = framework.delibs.debase.deString;
         var numFailedPixels;
 
         if (es3fTextureShadowTests.isFloatingPointDepthFormat(src.getFormat())) {
-            var clampedSource = new tcuTexture.Texture2D(src.getFormat(), src.getWidth(), src.getHeight());
+            var clampedSource = deUtil.clone(src);
 
             es3fTextureShadowTests.clampFloatingPointTexture2D(clampedSource);
 
@@ -206,14 +206,14 @@ var deString = framework.delibs.debase.deString;
      * @struct
      */
     es3fTextureShadowTests.FilterCase = function() {
-        /** @type {?tcuTexture.Texture2D|?tcuTexture.TextureCube|?tcuTexture.Texture2DArray} */ this.texture = null;
+        /** @type {?gluTexture.Texture2D|?gluTexture.TextureCube|?gluTexture.Texture2DArray} */ this.texture = null;
         /** @type {Array<number>} */ this.minCoord = [];
         /** @type {Array<number>} */ this.maxCoord = [];
         /** @type {number} */ this.ref = 0.0;
     };
 
     /**
-     * @param {?tcuTexture.Texture2D|?tcuTexture.TextureCube|?tcuTexture.Texture2DArray} tex
+     * @param {?gluTexture.Texture2D|?gluTexture.TextureCube|?gluTexture.Texture2DArray} tex
      * @param {number} ref
      * @param {Array<number>} minCoord
      * @param {Array<number>} maxCoord
@@ -576,16 +576,14 @@ var deString = framework.delibs.debase.deString;
             gl.readPixels(viewport.x, viewport.y, viewport.width, viewport.height, gl.RGBA, gl.UNSIGNED_BYTE, result.getAccess().getDataPtr());
 
             var pixelFormat = new tcuPixelFormat.PixelFormat(8, 8, 8, 8);
-            /** @type {tcuTexLookupVerifier.LodPrecision} */ var lodPrecision;
-            /** @type {tcuTexCompareVerifier.TexComparePrecision} */ var texComparePrecision;
-
-            lodPrecision.derivateBits = 10;
-            lodPrecision.lodBits = 5;
-            texComparePrecision.coordBits = [10,10,10];
-            texComparePrecision.uvwBits = [6,6,0];
-            texComparePrecision.pcfBits = 5;
-            texComparePrecision.referenceBits = 16;
-            texComparePrecision.resultBits = pixelFormat.redBits-1;
+            /** @type {tcuTexLookupVerifier.LodPrecision} */ var lodPrecision = new tcuTexLookupVerifier.LodPrecision(10, 5);
+            /** @type {tcuTexCompareVerifier.TexComparePrecision} */ var texComparePrecision = new tcuTexCompareVerifier.TexComparePrecision(
+                [10,10,10],
+                [6,6,0],
+                5,
+                16,
+                pixelFormat.redBits-1
+            );
 
             var isHighQuality = es3fTextureShadowTests.verifyTexCompareResult(tcuTexture.TextureCube, result.getAccess(), curCase.texture.getRefTexture(),
                                                      texCoord, sampleParams, texComparePrecision, lodPrecision, pixelFormat);
@@ -638,8 +636,8 @@ var deString = framework.delibs.debase.deString;
         /** @type {number} */ this.m_height = height;
         /** @type {number} */ this.m_numLayers = numLayers;
         /** @type {number} */ this.m_compareFunc = compareFunc;
-        /** @type {?tcuTexture.Texture2DArray} */ this.m_gradientTex = null;
-        /** @type {?tcuTexture.Texture2DArray} */ this.m_gridTex = null;
+        /** @type {?gluTexture.Texture2DArray} */ this.m_gradientTex = null;
+        /** @type {?gluTexture.Texture2DArray} */ this.m_gridTex = null;
         /** @type {glsTextureTestUtil.TextureRenderer} */ this.m_renderer = new glsTextureTestUtil.TextureRenderer(es3fTextureShadowTests.version, gluShaderUtil.precision.PRECISION_HIGHP);
         /** @type {Array<es3fTextureShadowTests.FilterCase>} */ this.m_cases = [];
         /** @type {number} */ this.m_caseNdx = 0;
@@ -667,9 +665,9 @@ var deString = framework.delibs.debase.deString;
             /** @type {Array<number>}*/ var gMin = deMath.add(deMath.multiply([-0.5, -0.5, -0.5, 2.0], cScale), cBias);
             /** @type {Array<number>}*/ var gMax = deMath.add(deMath.multiply([ 1.0,  1.0,  1.0, 0.0], cScale), cBias);
 
-            this.m_gradientTex.allocLevel(levelNdx);
+            this.m_gradientTex.getRefTexture().allocLevel(levelNdx);
             tcuTextureUtil.fillWithComponentGradients(
-                /** @type {tcuTexture.PixelBufferAccess} */ (this.m_gradientTex.getView().getLevel(levelNdx)), gMin, gMax);
+                /** @type {tcuTexture.PixelBufferAccess} */ (this.m_gradientTex.getRefTexture().getLevel(levelNdx)), gMin, gMax);
         }
 
         // Fill second with grid texture.
@@ -679,9 +677,9 @@ var deString = framework.delibs.debase.deString;
             /** @type {number}*/ var colorA = deMath.binaryOp(0xff000000, rgb, deMath.BinaryOp.OR);
             /** @type {number}*/ var colorB = deMath.binaryOp(0xff000000, deMath.binaryNot(rgb), deMath.BinaryOp.OR);
 
-            this.m_gridTex.allocLevel(levelNdx);
+            this.m_gridTex.getRefTexture().allocLevel(levelNdx);
             tcuTextureUtil.fillWithGrid(
-                /** @type {tcuTexture.PixelBufferAccess} */ (this.m_gridTex.getView().getLevel(levelNdx)), 4,
+                /** @type {tcuTexture.PixelBufferAccess} */ (this.m_gridTex.getRefTexture().getLevel(levelNdx)), 4,
                 deMath.add(deMath.multiply(tcuRGBA.newRGBAFromValue(colorA).toVec(), cScale), cBias),
                 deMath.add(deMath.multiply(tcuRGBA.newRGBAFromValue(colorB).toVec(), cScale), cBias)
             );
@@ -748,7 +746,7 @@ var deString = framework.delibs.debase.deString;
         if (viewport.width < es3fTextureShadowTests.tex2D.MIN_VIEWPORT_WIDTH || viewport.height < es3fTextureShadowTests.tex2D.MIN_VIEWPORT_HEIGHT)
             throw new Error('Too small render target');
 
-        sampleParams.sampler = gluTextureUtil.mapGLSampler(this.m_wrapS, this.m_wrapT, this.m_minFilter, this.m_magFilter);
+        sampleParams.sampler = gluTextureUtil.mapGLSamplerWrapST(this.m_wrapS, this.m_wrapT, this.m_minFilter, this.m_magFilter);
         sampleParams.sampler.compare = gluTextureUtil.mapGLCompareFunc(this.m_compareFunc);
         sampleParams.samplerType = glsTextureTestUtil.samplerType.SAMPLERTYPE_SHADOW;
         sampleParams.lodMode = glsTextureTestUtil.lodMode.EXACT;
@@ -772,16 +770,14 @@ var deString = framework.delibs.debase.deString;
         gl.readPixels(viewport.x, viewport.y, viewport.width, viewport.height, gl.RGBA, gl.UNSIGNED_BYTE, rendered.getAccess().getDataPtr());
 
         var pixelFormat = new tcuPixelFormat.PixelFormat(8, 8, 8, 8);
-        /** @type {tcuTexLookupVerifier.LodPrecision} */ var lodPrecision;
-        /** @type {tcuTexCompareVerifier.TexComparePrecision} */ var texComparePrecision;
-
-        lodPrecision.derivateBits = 18;
-        lodPrecision.lodBits = 6;
-        texComparePrecision.coordBits = [20,20,20];
-        texComparePrecision.uvwBits = [7,7,7];
-        texComparePrecision.pcfBits = 5;
-        texComparePrecision.referenceBits = 16;
-        texComparePrecision.resultBits = pixelFormat.redBits - 1;
+        /** @type {tcuTexLookupVerifier.LodPrecision} */ var lodPrecision = new tcuTexLookupVerifier.LodPrecision(18, 6);
+        /** @type {tcuTexCompareVerifier.TexComparePrecision} */ var texComparePrecision = new tcuTexCompareVerifier.TexComparePrecision(
+            [20,20,20],
+            [7,7,7],
+            5,
+            16,
+            pixelFormat.redBits - 1
+        );
 
         var isHighQuality = es3fTextureShadowTests.verifyTexCompareResult(tcuTexture.Texture2DArray, rendered.getAccess(), curCase.texture.getRefTexture(),
                                                           texCoord[0], sampleParams, texComparePrecision, lodPrecision, pixelFormat);
