@@ -361,7 +361,7 @@ var sglrReferenceContext = framework.opengl.simplereference.sglrReferenceContext
             var sX = Math.exp(lodX * Math.log(2)) * viewportW / this.m_textures[texNdx].getRefTexture().getWidth();
             var sY = Math.exp(lodY * Math.log(2)) * viewportH / this.m_textures[texNdx].getRefTexture().getHeight();
 
-            this.m_cases.push(new es3fTextureShadowTests.FilterCase(this.m_textures[texNdx], ref, [oX, oY], [oX + sX, oY + sY]));
+            this.m_cases.push(es3fTextureShadowTests.newFilterCaseWithValues(this.m_textures[texNdx], ref, [oX, oY], [oX + sX, oY + sY]));
         }
 
         this.m_caseNdx = 0;
@@ -516,19 +516,19 @@ var sglrReferenceContext = framework.opengl.simplereference.sglrReferenceContext
         //var singleSample = this.m_context.getRenderTarget().getNumSamples() == 0;
 
         if (singleSample)
-            this.m_cases.push(new es3fTextureShadowTests.FilterCase(this.m_gradientTex, refInRangeUpper, [-1.25, -1.2], [1.2, 1.25]));    // minification
+            this.m_cases.push(es3fTextureShadowTests.newFilterCaseWithValues(this.m_gradientTex, refInRangeUpper, [-1.25, -1.2], [1.2, 1.25]));    // minification
         else
-            this.m_cases.push(new es3fTextureShadowTests.FilterCase(this.m_gradientTex,    refInRangeUpper, [-1.19, -1.3], [1.1, 1.35]));    // minification - w/ tuned coordinates to avoid hitting triangle edges
+            this.m_cases.push(es3fTextureShadowTests.newFilterCaseWithValues(this.m_gradientTex,    refInRangeUpper, [-1.19, -1.3], [1.1, 1.35]));    // minification - w/ tuned coordinates to avoid hitting triangle edges
 
-        this.m_cases.push(new es3fTextureShadowTests.FilterCase(this.m_gradientTex, refInRangeLower, [0.8, 0.8], [1.25, 1.20]));    // magnification
-        this.m_cases.push(new es3fTextureShadowTests.FilterCase(this.m_gridTex, refInRangeUpper, [-1.19, -1.3], [1.1, 1.35]));    // minification
-        this.m_cases.push(new es3fTextureShadowTests.FilterCase(this.m_gridTex, refInRangeLower, [-1.2, -1.1], [-0.8, -0.8]));    // magnification
-        this.m_cases.push(new es3fTextureShadowTests.FilterCase(this.m_gridTex, refOutOfBoundsUpper, [-0.61, -0.1], [0.9, 1.18]));    // reference value clamp, upper
+        this.m_cases.push(es3fTextureShadowTests.newFilterCaseWithValues(this.m_gradientTex, refInRangeLower, [0.8, 0.8], [1.25, 1.20]));    // magnification
+        this.m_cases.push(es3fTextureShadowTests.newFilterCaseWithValues(this.m_gridTex, refInRangeUpper, [-1.19, -1.3], [1.1, 1.35]));    // minification
+        this.m_cases.push(es3fTextureShadowTests.newFilterCaseWithValues(this.m_gridTex, refInRangeLower, [-1.2, -1.1], [-0.8, -0.8]));    // magnification
+        this.m_cases.push(es3fTextureShadowTests.newFilterCaseWithValues(this.m_gridTex, refOutOfBoundsUpper, [-0.61, -0.1], [0.9, 1.18]));    // reference value clamp, upper
 
         if (singleSample)
-            this.m_cases.push(new es3fTextureShadowTests.FilterCase(this.m_gridTex, refOutOfBoundsLower, [-0.75, 1.0], [0.05, 0.75]));    // reference value clamp, lower
+            this.m_cases.push(es3fTextureShadowTests.newFilterCaseWithValues(this.m_gridTex, refOutOfBoundsLower, [-0.75, 1.0], [0.05, 0.75]));    // reference value clamp, lower
         else
-            this.m_cases.push(new es3fTextureShadowTests.FilterCase(this.m_gridTex, refOutOfBoundsLower, [-0.75, 1.0], [0.25, 0.75]));    // reference value clamp, lower
+            this.m_cases.push(es3fTextureShadowTests.newFilterCaseWithValues(this.m_gridTex, refOutOfBoundsLower, [-0.75, 1.0], [0.25, 0.75]));    // reference value clamp, lower
 
         this.m_caseNdx = 0;
     };
@@ -563,22 +563,20 @@ var sglrReferenceContext = framework.opengl.simplereference.sglrReferenceContext
         sampleParams.ref = curCase.ref;
 
         bufferedLogToConsole (
-            "Compare reference value =  " + sampleParams.ref + "\n"
-            "Coordinates: " + curCase.bottomLeft + " -> " + curCase.topRight
-        );
+            "Compare reference value =  " + sampleParams.ref + "\n" +
+            "Coordinates: " + curCase.minCoord + " -> " + curCase.maxCoord);
 
         for (var faceNdx in tcuTexture.CubeFace) {
             var face = tcuTexture.CubeFace[faceNdx];
             var result = new tcuSurface.Surface(viewport.width, viewport.height);
             var texCoord = [];
 
-            texCoord = glsTextureTestUtil.computeQuadTexCoordCube(face, curCase.minCoord, curCase.maxCoord);
+            texCoord = glsTextureTestUtil.computeQuadTexCoordCubeFace(face, curCase.minCoord, curCase.maxCoord);
 
-            this.m_renderer.renderQuad(0, texCoord[0], sampleParams);
+            this.m_renderer.renderQuad(0, texCoord, sampleParams);
             sglrReferenceContext.GLU_EXPECT_NO_ERROR(gl.getError(), gl.NO_ERROR)
 
             gl.readPixels(viewport.x, viewport.y, viewport.width, viewport.height, gl.RGBA, gl.UNSIGNED_BYTE, result.getAccess().getDataPtr());
-            sglrReferenceContext.GLU_EXPECT_NO_ERROR(gl.getError(), gl.NO_ERROR)
 
             var pixelFormat = new tcuPixelFormat.PixelFormat(8, 8, 8, 8);
             /** @type {tcuTexLookupVerifier.LodPrecision} */ var lodPrecision;
@@ -614,30 +612,6 @@ var sglrReferenceContext = framework.opengl.simplereference.sglrReferenceContext
 
         this.m_caseNdx += 1;
         return this.m_caseNdx < this.m_cases.length ? tcuTestCase.IterateResult.CONTINUE : tcuTestCase.IterateResult.STOP;
-    };
-
-
-    class Texture2DArrayShadowCase : public TestCase
-    {
-    public:
-                                    Texture2DArrayShadowCase    (Context& context, const char* name, const char* desc, deUint32 minFilter, deUint32 magFilter, deUint32 wrapS, deUint32 wrapT, deUint32 format, int width, int height, int numLayers, deUint32 compareFunc);
-                                    ~Texture2DArrayShadowCase    (void);
-
-        void                        init                        (void);
-        void                        deinit                        (void);
-        IterateResult                iterate                        (void);
-
-    private:
-                                    Texture2DArrayShadowCase    (const Texture2DArrayShadowCase& other);
-        Texture2DArrayShadowCase&    operator=                    (const Texture2DArrayShadowCase& other);
-
-        glu::Texture2DArray*        this.m_gradientTex;
-        glu::Texture2DArray*        this.m_gridTex;
-        std::vector<FilterCase>        this.m_cases;
-
-        TextureRenderer                this.m_renderer;
-
-        int                            this.m_caseNdx;
     };
 
     /**
@@ -683,18 +657,18 @@ var sglrReferenceContext = framework.opengl.simplereference.sglrReferenceContext
     es3fTextureShadowTests.Texture2DArrayShadowCase.prototype.init = function () {
         /** @type {tcuTexture.TextureFormat} */ var texFmt = gluTextureUtil.mapGLInternalFormat(this.m_format);
         /** @type {tcuTextureUtil.TextureFormatInfo} */ var fmtInfo = tcuTextureUtil.getTextureFormatInfo(texFmt);
-        /** @type {Array<number>}*/ var cScale = deMath.sub(fmtInfo.valueMax, fmtInfo.valueMin);
+        /** @type {Array<number>}*/ var cScale = deMath.subtract(fmtInfo.valueMax, fmtInfo.valueMin);
         /** @type {Array<number>}*/ var cBias = fmtInfo.valueMin;
         /** @type {number}*/ var numLevels = deMath.logToFloor(Math.max(this.m_width, this.m_height)) + 1;
 
         // Create textures.
-        this.m_gradientTex = new gluTexture.texture2DArrayFromInternalFormat(gl, this.m_format, this.m_width, this.m_height, this.m_numLayers);
-        this.m_gridTex = new gluTexture.texture2DArrayFromInternalFormat(gl, this.m_format, this.m_width, this.m_height, this.m_numLayers);
+        this.m_gradientTex = gluTexture.texture2DArrayFromInternalFormat(gl, this.m_format, this.m_width, this.m_height, this.m_numLayers);
+        this.m_gridTex = gluTexture.texture2DArrayFromInternalFormat(gl, this.m_format, this.m_width, this.m_height, this.m_numLayers);
 
         // Fill first gradient texture.
         for (var levelNdx = 0; levelNdx < numLevels; levelNdx++) {
             /** @type {Array<number>}*/ var gMin = deMath.add(deMath.multiply([-0.5, -0.5, -0.5, 2.0], cScale), cBias);
-            /** @type {Array<number>}*/ var gMax = deMath.add(deMath.multuply([ 1.0,  1.0,  1.0, 0.0], cScale), cBias);
+            /** @type {Array<number>}*/ var gMax = deMath.add(deMath.multiply([ 1.0,  1.0,  1.0, 0.0], cScale), cBias);
 
             this.m_gradientTex.getRefTexture().allocLevel(levelNdx);
             tcuTextureUtil.fillWithComponentGradients(this.m_gradientTex.getRefTexture().getLevel(levelNdx), gMin, gMax);
@@ -704,8 +678,8 @@ var sglrReferenceContext = framework.opengl.simplereference.sglrReferenceContext
         for (var levelNdx = 0; levelNdx < numLevels; levelNdx++) {
             /** @type {number}*/ var step = Math.floor(0x00ffffff / numLevels);
             /** @type {number}*/ var rgb = step * levelNdx;
-            /** @type {number}*/ var colorA = deMath.binaryOp(0xff000000, rgb, deMath.binaryOp.OR);
-            /** @type {number}*/ var colorB = deMath.binaryOp(0xff000000, deMath.binaryNot(rgb), deMath.BinaryOp);
+            /** @type {number}*/ var colorA = deMath.binaryOp(0xff000000, rgb, deMath.BinaryOp.OR);
+            /** @type {number}*/ var colorB = deMath.binaryOp(0xff000000, deMath.binaryNot(rgb), deMath.BinaryOp.OR);
 
             this.m_gridTex.getRefTexture().allocLevel(levelNdx);
             tcuTextureUtil.fillWithGrid(this.m_gridTex.getRefTexture().getLevel(levelNdx), 4,
@@ -734,8 +708,8 @@ var sglrReferenceContext = framework.opengl.simplereference.sglrReferenceContext
             { texNdx: 1, ref: refOutOfBoundsLower, lodX: -0.85, lodY: 0.75, oX: 0.25, oY: 0.61 }
         ];
 
-        /** @type {number} */ var viewportW = Math.min(es3fTextureShadowTests.tex2D.VIEWPORT_WIDTH, gl.viewportW);
-        /** @type {number} */ var viewportH = Math.min(es3fTextureShadowTests.tex2D.VIEWPORT_HEIGHT, gl.viewportH);
+        var viewportW = Math.min(es3fTextureShadowTests.tex2D.VIEWPORT_WIDTH, gl.canvas.width);
+        var viewportH = Math.min(es3fTextureShadowTests.tex2D.VIEWPORT_HEIGHT, gl.canvas.height);
 
         /** @type {number} */ var minLayer = -0.5;
         /** @type {number} */ var maxLayer = this.m_numLayers;
@@ -750,7 +724,7 @@ var sglrReferenceContext = framework.opengl.simplereference.sglrReferenceContext
             /** @type {number} */ var sX = Math.exp(lodX * Math.LN2) * viewportW / tex.getRefTexture().getWidth();
             /** @type {number} */ var sY = Math.exp(lodY * Math.LN2) * viewportH / tex.getRefTexture().getHeight();
 
-            this.m_cases.push(new es3fTextureShadowTests.FilterCase(tex, ref, [oX, oY, minLayer], [oX+sX, oY+sY, maxLayer]));
+            this.m_cases.push(es3fTextureShadowTests.newFilterCaseWithValues(tex, ref, [oX, oY, minLayer], [oX+sX, oY+sY, maxLayer]));
         }
 
         this.m_caseNdx = 0;
@@ -760,89 +734,78 @@ var sglrReferenceContext = framework.opengl.simplereference.sglrReferenceContext
     /**
      * @return {tcuTestCase.IterateResult}
      */
-    es3fTextureShadowTests.Texture2DArrayShadowCase.iterate = function () {
-        const glw::Functions&            gl                = this.m_context.getRenderContext().getFunctions();
-        const RandomViewport            viewport        (this.m_context.getRenderTarget(), TEX2D_VIEWPORT_WIDTH, TEX2D_VIEWPORT_HEIGHT, deStringHash(getName()) ^ deInt32Hash(this.m_caseNdx));
-        const FilterCase&                curCase            = this.m_cases[this.m_caseNdx];
-        const tcu::ScopedLogSection        section            (this.m_testCtx.getLog(), string("Test") + de::toString(this.m_caseNdx), string("Test ") + de::toString(this.m_caseNdx));
-        ReferenceParams                    sampleParams    (TEXTURETYPE_2D_ARRAY);
-        tcu::Surface                    rendered        (viewport.width, viewport.height);
+    es3fTextureShadowTests.Texture2DArrayShadowCase.prototype.iterate = function () {
+        var viewport = new glsTextureTestUtil.RandomViewport(document.getElementById('canvas'), es3fTextureShadowTests.tex2D.VIEWPORT_WIDTH, es3fTextureShadowTests.tex2D.VIEWPORT_HEIGHT, deString.deStringHash(this.fullName()) ^ deMath.deMathHash(this.m_caseNdx));
+        var curCase = this.m_cases[this.m_caseNdx];
+        var sampleParams = new glsTextureTestUtil.ReferenceParams(glsTextureTestUtil.textureType.TEXTURETYPE_2D);
+        var rendered = new tcuSurface.Surface(viewport.width, viewport.height);
+        var texCoord = [];
 
-        const float                        texCoord[]        =
-        {
-            curCase.minCoord.x(), curCase.minCoord.y(), curCase.minCoord.z(),
-            curCase.minCoord.x(), curCase.maxCoord.y(), (curCase.minCoord.z() + curCase.maxCoord.z()) / 2.0f,
-            curCase.maxCoord.x(), curCase.minCoord.y(), (curCase.minCoord.z() + curCase.maxCoord.z()) / 2.0f,
-            curCase.maxCoord.x(), curCase.maxCoord.y(), curCase.maxCoord.z()
-        };
+        var texCoord = [curCase.minCoord[0], curCase.minCoord[1], curCase.minCoord[2],
+            curCase.minCoord[0], curCase.maxCoord[1], (curCase.minCoord[2] + curCase.maxCoord[2]) / 2.0,
+            curCase.maxCoord[0], curCase.minCoord[1], (curCase.minCoord[2] + curCase.maxCoord[2]) / 2.0,
+            curCase.maxCoord[0], curCase.maxCoord[1], curCase.maxCoord[2]];
 
-        if (viewport.width < TEX2D_MIN_VIEWPORT_WIDTH || viewport.height < TEX2D_MIN_VIEWPORT_HEIGHT)
-            throw tcu::NotSupportedError("Too small render target", "", __FILE__, __LINE__);
+        if (viewport.width < es3fTextureShadowTests.tex2D.MIN_VIEWPORT_WIDTH || viewport.height < es3fTextureShadowTests.tex2D.MIN_VIEWPORT_HEIGHT)
+            throw new Error('Too small render target');
 
-        // Setup params for reference.
-        sampleParams.sampler            = glu::mapGLSampler(this.m_wrapS, this.m_wrapT, this.m_minFilter, this.m_magFilter);
-        sampleParams.sampler.compare    = glu::mapGLCompareFunc(this.m_compareFunc);
-        sampleParams.samplerType        = SAMPLERTYPE_SHADOW;
-        sampleParams.lodMode            = LODMODE_EXACT;
-        sampleParams.ref                = curCase.ref;
+        sampleParams.sampler = gluTextureUtil.mapGLSampler(this.m_wrapS, this.m_wrapT, this.m_minFilter, this.m_magFilter);
+        sampleParams.sampler.compare = gluTextureUtil.mapGLCompareFunc(this.m_compareFunc);
+        sampleParams.samplerType = glsTextureTestUtil.samplerType.SAMPLERTYPE_SHADOW;
+        sampleParams.lodMode = glsTextureTestUtil.lodMode.EXACT;
+        sampleParams.ref = curCase.ref;
 
-        this.m_testCtx.getLog()
-            << TestLog::Message
-            << "Compare reference value =  " << sampleParams.ref << "\n"
-            << "Texture coordinates: " << curCase.minCoord << " -> " << curCase.maxCoord
-            << TestLog::EndMessage;
+        bufferedLogToConsole (
+            "Compare reference value =  " + sampleParams.ref + "\n" +
+            "Texture Coordinates: " + curCase.minCoord + " -> " + curCase.maxCoord
+        );
 
-        gl.bindTexture    (GL_TEXTURE_2D_ARRAY, curCase.texture->getGLTexture());
-        gl.texParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER,    this.m_minFilter);
-        gl.texParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER,    this.m_magFilter);
-        gl.texParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S,        this.m_wrapS);
-        gl.texParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T,        this.m_wrapT);
-        gl.texParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_COMPARE_MODE,    GL_COMPARE_REF_TO_TEXTURE);
-        gl.texParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_COMPARE_FUNC,    this.m_compareFunc);
+        gl.bindTexture(gl.TEXTURE_2D_ARRAY, curCase.texture.getGLTexture());
+        gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, this.m_minFilter);
+        gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER, this.m_magFilter);
+        gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_S, this.m_wrapS);
+        gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_T, this.m_wrapT);
+        gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_COMPARE_MODE, gl.COMPARE_REF_TO_TEXTURE);
+        gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_COMPARE_FUNC, this.m_compareFunc);
 
         gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height);
-        this.m_renderer.renderQuad(0, &texCoord[0], sampleParams);
-        glu::readPixels(this.m_context.getRenderContext(), viewport.x, viewport.y, rendered.getAccess());
+        this.m_renderer.renderQuad(0, texCoord[0], sampleParams);
+        gl.readPixels(viewport.x, viewport.y, viewport.width, viewport.height, gl.RGBA, gl.UNSIGNED_BYTE, result.getAccess().getDataPtr());
 
-        {
-            const tcu::PixelFormat        pixelFormat        = this.m_context.getRenderTarget().getPixelFormat();
-            tcu::LodPrecision            lodPrecision;
-            tcu::TexComparePrecision    texComparePrecision;
+        var pixelFormat = this.m_context.getRenderTarget().getPixelFormat();
+        var lodPrecision;
+        var texComparePrecision;
 
-            lodPrecision.derivateBits            = 18;
-            lodPrecision.lodBits                = 6;
-            texComparePrecision.coordBits        = tcu::IVec3(20,20,20);
-            texComparePrecision.uvwBits            = tcu::IVec3(7,7,7);
-            texComparePrecision.pcfBits            = 5;
-            texComparePrecision.referenceBits    = 16;
-            texComparePrecision.resultBits        = pixelFormat.redBits-1;
+        lodPrecision.derivateBits = 18;
+        lodPrecision.lodBits = 6;
+        texComparePrecision.coordBits = [20,20,20];
+        texComparePrecision.uvwBits = [7,7,7];
+        texComparePrecision.pcfBits = 5;
+        texComparePrecision.referenceBits = 16;
+        texComparePrecision.resultBits = pixelFormat.redBits - 1;
 
-            const bool isHighQuality = verifyTexCompareResult(this.m_testCtx, rendered.getAccess(), curCase.texture->getRefTexture(),
-                                                              &texCoord[0], sampleParams, texComparePrecision, lodPrecision, pixelFormat);
+        var isHighQuality = verifyTexCompareResult(this.m_testCtx, rendered.getAccess(), curCase.texture.getRefTexture(),
+                                                          texCoord[0], sampleParams, texComparePrecision, lodPrecision, pixelFormat);
 
-            if (!isHighQuality)
-            {
-                this.m_testCtx.getLog() << TestLog::Message << "Warning: Verification assuming high-quality PCF filtering failed." << TestLog::EndMessage;
+        if (!isHighQuality) {
+            bufferedLogToConsole('Warning: Verification assuming high-quality PCF filtering failed');
 
-                lodPrecision.lodBits            = 4;
-                texComparePrecision.uvwBits        = tcu::IVec3(4,4,4);
-                texComparePrecision.pcfBits        = 0;
+            lodPrecision.lodBits = 4;
+            texComparePrecision.uvwBits = [4,4,4];
+            texComparePrecision.pcfBits = 0;
 
-                const bool isOk = verifyTexCompareResult(this.m_testCtx, rendered.getAccess(), curCase.texture->getRefTexture(),
-                                                         &texCoord[0], sampleParams, texComparePrecision, lodPrecision, pixelFormat);
+            var isOk = es3fTextureShadowTests.verifyTexCompareResult(tcuTexture.TextureCube, rendered.getAccess(), curCase.texture.getRefTexture(),
+                                                                                              texCoord, sampleParams, texComparePrecision, lodPrecision, pixelFormat);
 
-                if (!isOk)
-                {
-                    this.m_testCtx.getLog() << TestLog::Message << "ERROR: Verification against low precision requirements failed, failing test case." << TestLog::EndMessage;
-                    this.m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, "Image verification failed");
-                }
-                else if (this.m_testCtx.getTestResult() == QP_TEST_RESULT_PASS)
-                    this.m_testCtx.setTestResult(QP_TEST_RESULT_QUALITY_WARNING, "Low-quality result");
-            }
+            if (!isOk) {
+                bufferedLogToConsole('ERROR: Verification against low precision requirements failed, failing test case.');
+                testFailedOptions('Image verification failed', false);
+            } else
+                testPassedOptions('Low-quality result', true);
         }
 
         this.m_caseNdx += 1;
-        return this.m_caseNdx < (int)this.m_cases.size() ? CONTINUE : STOP;
+        return this.m_caseNdx < this.m_cases.length ? tcuTestCase.IterateResult.CONTINUE : tcuTestCase.IterateResult.STOP;
     };
 
     es3fTextureShadowTests.init = function() {

@@ -263,7 +263,7 @@ glsTextureTestUtil.computeQuadTexCoordCube = function(face) {
  * @param {Array<number>} topRight
  * @return {Array<number>}
  */
-glsTextureTestUtil.computeQuadTexCoordCube = function (face, bottomLeft, topRight) {
+glsTextureTestUtil.computeQuadTexCoordCubeFace = function (face, bottomLeft, topRight) {
     var dst = [];
     /** @type {number} */ var sRow        = 0;
     /** @type {number} */ var tRow        = 0;
@@ -274,12 +274,12 @@ glsTextureTestUtil.computeQuadTexCoordCube = function (face, bottomLeft, topRigh
 
     switch (face)
     {
-        case tcuTexture.CubeFace.NEGATIVE_X: mRow = 0; sRow = 2; tRow = 1; mSign = -1.0; tSign = -1.0; break;
-        case tcuTexture.CubeFace.POSITIVE_X: mRow = 0; sRow = 2; tRow = 1; sSign = -1.0; tSign = -1.0; break;
-        case tcuTexture.CubeFace.NEGATIVE_Y: mRow = 1; sRow = 0; tRow = 2; mSign = -1.0; tSign = -1.0; break;
-        case tcuTexture.CubeFace.POSITIVE_Y: mRow = 1; sRow = 0; tRow = 2; break;
-        case tcuTexture.CubeFace.NEGATIVE_Z: mRow = 2; sRow = 0; tRow = 1; mSign = -1.0; sSign = -1.0; tSign = -1.0; break;
-        case tcuTexture.CubeFace.POSITIVE_Z: mRow = 2; sRow = 0; tRow = 1; tSign = -1.0; break;
+        case tcuTexture.CubeFace.CUBEFACE_NEGATIVE_X: mRow = 0; sRow = 2; tRow = 1; mSign = -1.0; tSign = -1.0; break;
+        case tcuTexture.CubeFace.CUBEFACE_POSITIVE_X: mRow = 0; sRow = 2; tRow = 1; sSign = -1.0; tSign = -1.0; break;
+        case tcuTexture.CubeFace.CUBEFACE_NEGATIVE_Y: mRow = 1; sRow = 0; tRow = 2; mSign = -1.0; tSign = -1.0; break;
+        case tcuTexture.CubeFace.CUBEFACE_POSITIVE_Y: mRow = 1; sRow = 0; tRow = 2; break;
+        case tcuTexture.CubeFace.CUBEFACE_NEGATIVE_Z: mRow = 2; sRow = 0; tRow = 1; mSign = -1.0; sSign = -1.0; tSign = -1.0; break;
+        case tcuTexture.CubeFace.CUBEFACE_POSITIVE_Z: mRow = 2; sRow = 0; tRow = 1; tSign = -1.0; break;
         default:
             throw new Error('Invalid cube face specified.');
     }
