@@ -738,7 +738,7 @@ var deString = framework.delibs.debase.deString;
         var rendered = new tcuSurface.Surface(viewport.width, viewport.height);
         var texCoord = [];
 
-        var texCoord = [curCase.minCoord[0], curCase.minCoord[1], curCase.minCoord[2],
+        texCoord = [curCase.minCoord[0], curCase.minCoord[1], curCase.minCoord[2],
             curCase.minCoord[0], curCase.maxCoord[1], (curCase.minCoord[2] + curCase.maxCoord[2]) / 2.0,
             curCase.maxCoord[0], curCase.minCoord[1], (curCase.minCoord[2] + curCase.maxCoord[2]) / 2.0,
             curCase.maxCoord[0], curCase.maxCoord[1], curCase.maxCoord[2]];
