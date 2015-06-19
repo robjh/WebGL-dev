@@ -638,8 +638,8 @@ var deString = framework.delibs.debase.deString;
         /** @type {number} */ this.m_height = height;
         /** @type {number} */ this.m_numLayers = numLayers;
         /** @type {number} */ this.m_compareFunc = compareFunc;
-        /** @type {?gluTexture.Texture2DArray} */ this.m_gradientTex = null;
-        /** @type {?gluTexture.Texture2DArray} */ this.m_gridTex = null;
+        /** @type {?tcuTexture.Texture2DArray} */ this.m_gradientTex = null;
+        /** @type {?tcuTexture.Texture2DArray} */ this.m_gridTex = null;
         /** @type {glsTextureTestUtil.TextureRenderer} */ this.m_renderer = new glsTextureTestUtil.TextureRenderer(es3fTextureShadowTests.version, gluShaderUtil.precision.PRECISION_HIGHP);
         /** @type {Array<es3fTextureShadowTests.FilterCase>} */ this.m_cases = [];
         /** @type {number} */ this.m_caseNdx = 0;
@@ -667,8 +667,9 @@ var deString = framework.delibs.debase.deString;
             /** @type {Array<number>}*/ var gMin = deMath.add(deMath.multiply([-0.5, -0.5, -0.5, 2.0], cScale), cBias);
             /** @type {Array<number>}*/ var gMax = deMath.add(deMath.multiply([ 1.0,  1.0,  1.0, 0.0], cScale), cBias);
 
-            this.m_gradientTex.getRefTexture().allocLevel(levelNdx);
-            tcuTextureUtil.fillWithComponentGradients(this.m_gradientTex.getRefTexture().getLevel(levelNdx), gMin, gMax);
+            this.m_gradientTex.allocLevel(levelNdx);
+            tcuTextureUtil.fillWithComponentGradients(
+                /** @type {tcuTexture.PixelBufferAccess} */ (this.m_gradientTex.getView().getLevel(levelNdx)), gMin, gMax);
         }
 
         // Fill second with grid texture.
@@ -678,8 +679,9 @@ var deString = framework.delibs.debase.deString;
             /** @type {number}*/ var colorA = deMath.binaryOp(0xff000000, rgb, deMath.BinaryOp.OR);
             /** @type {number}*/ var colorB = deMath.binaryOp(0xff000000, deMath.binaryNot(rgb), deMath.BinaryOp.OR);
 
-            this.m_gridTex.getRefTexture().allocLevel(levelNdx);
-            tcuTextureUtil.fillWithGrid(this.m_gridTex.getRefTexture().getLevel(levelNdx), 4,
+            this.m_gridTex.allocLevel(levelNdx);
+            tcuTextureUtil.fillWithGrid(
+                /** @type {tcuTexture.PixelBufferAccess} */ (this.m_gridTex.getView().getLevel(levelNdx)), 4,
                 deMath.add(deMath.multiply(tcuRGBA.newRGBAFromValue(colorA).toVec(), cScale), cBias),
                 deMath.add(deMath.multiply(tcuRGBA.newRGBAFromValue(colorB).toVec(), cScale), cBias)
             );
