@@ -2049,7 +2049,7 @@ goog.scope(function() {
         /** @type {number} */ var maxLod = Math.log2(maxDBound + maxDErr);
         /** @type {number} */ var lodErr = tcuTexVerifierUtil.computeFixedPointError(prec.lodBits);
 
-        assertMsgOptions(minLod <= maxLod, 'Error: minLoad < maxLod', false, true);
+        assertMsgOptions(minLod <= maxLod, 'Error: minLod > maxLod', false, true);
         return [minLod - lodErr, maxLod + lodErr];
     };
 
