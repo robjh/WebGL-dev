@@ -30,13 +30,13 @@ goog.require('framework.common.tcuTexLookupVerifier');
 goog.require('framework.common.tcuTexture');
 goog.require('framework.common.tcuTextureUtil');
 goog.require('framework.delibs.debase.deMath');
+goog.require('framework.delibs.debase.deString');
+goog.require('framework.delibs.debase.deUtil');
 goog.require('framework.opengl.gluShaderUtil');
 goog.require('framework.opengl.gluTexture');
 goog.require('framework.opengl.gluTextureUtil');
-goog.require('modules.shared.glsTextureTestUtil');
 goog.require('framework.referencerenderer.rrMultisamplePixelBufferAccess');
-goog.require('framework.delibs.debase.deString');
-goog.require('framework.delibs.debase.deUtil');
+goog.require('modules.shared.glsTextureTestUtil');
 
 goog.scope(function() {
 
@@ -87,7 +87,7 @@ var deUtil = framework.delibs.debase.deUtil;
     /**
      * @param {tcuTexture.PixelBufferAccess} access
      */
-    es3fTextureShadowTests.clampFloatingPointTexture = function (access) {
+    es3fTextureShadowTests.clampFloatingPointTexture = function(access) {
         DE_ASSERT(es3fTextureShadowTests.isFloatingPointDepthFormat(access.getFormat()));
         for (var z = 0; z < access.getDepth(); ++z)
             for (var y = 0; y < access.getHeight(); ++y)
@@ -109,7 +109,7 @@ var deUtil = framework.delibs.debase.deUtil;
      */
     es3fTextureShadowTests.clampFloatingPointTextureCube = function(target) {
         for (var level = 0; level < target.getNumLevels(); ++level)
-            for (var face = tcuTexture.CubeFace.CUBEFACE_POSITIVE_X; face < Object.keys(tcuTexture.CubeFace).length; face ++)
+            for (var face = tcuTexture.CubeFace.CUBEFACE_POSITIVE_X; face < Object.keys(tcuTexture.CubeFace).length; face++)
                 es3fTextureShadowTests.clampFloatingPointTexture(target.getLevelFace(level, face));
     };
 
@@ -488,7 +488,7 @@ var deUtil = framework.delibs.debase.deUtil;
      * @param {number} compareFunc
      * @extends {tcuTestCase.DeqpTest}
      */
-    es3fTextureShadowTests.TextureCubeShadowCase = function (name, desc, minFilter, magFilter, wrapS, wrapT, format, size, compareFunc) {
+    es3fTextureShadowTests.TextureCubeShadowCase = function(name, desc, minFilter, magFilter, wrapS, wrapT, format, size, compareFunc) {
         tcuTestCase.DeqpTest.call(this, name, desc);
         this.m_minFilter = minFilter;
         this.m_magFilter = magFilter;
@@ -499,7 +499,7 @@ var deUtil = framework.delibs.debase.deUtil;
         this.m_compareFunc = compareFunc;
         this.m_renderer = new glsTextureTestUtil.TextureRenderer(es3fTextureShadowTests.version, gluShaderUtil.precision.PRECISION_HIGHP);
         this.m_caseNdx = 0;
-        this.m_cases = []
+        this.m_cases = [];
     };
 
     es3fTextureShadowTests.TextureCubeShadowCase.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
@@ -508,9 +508,9 @@ var deUtil = framework.delibs.debase.deUtil;
     es3fTextureShadowTests.TextureCubeShadowCase.prototype.init = function() {
         DE_ASSERT(!this.m_gradientTex && !this.m_gridTex);
 
-        var numLevels = es3fTextureShadowTests.deLog2Floor32(this.m_size)+1;
+        var numLevels = es3fTextureShadowTests.deLog2Floor32(this.m_size) + 1;
         /** @type {tcuTexture.TextureFormat} */ var texFmt = gluTextureUtil.mapGLInternalFormat(this.m_format);
-        /** @type {tcuTextureUtil.TextureFormatInfo} */    var fmtInfo = tcuTextureUtil.getTextureFormatInfo(texFmt);
+        /** @type {tcuTextureUtil.TextureFormatInfo} */ var fmtInfo = tcuTextureUtil.getTextureFormatInfo(texFmt);
         /** @type {Array<number>} */ var cBias = fmtInfo.valueMin;
         /** @type {Array<number>} */ var cScale = deMath.subtract(fmtInfo.valueMax, fmtInfo.valueMin);
 
@@ -520,30 +520,29 @@ var deUtil = framework.delibs.debase.deUtil;
 
         // Fill first with gradient texture.
         var gradients = [[[-1.0, -1.0, -1.0, 2.0], [1.0, 1.0, 1.0, 0.0]], // negative x
-            [[ 0.0, -1.0, -1.0, 2.0], [1.0, 1.0, 1.0, 0.0]], // positive x
-            [[-1.0,  0.0, -1.0, 2.0], [1.0, 1.0, 1.0, 0.0]], // negative y
-            [[-1.0, -1.0,  0.0, 2.0], [1.0, 1.0, 1.0, 0.0]], // positive y
+            [[0.0, -1.0, -1.0, 2.0], [1.0, 1.0, 1.0, 0.0]], // positive x
+            [[-1.0, 0.0, -1.0, 2.0], [1.0, 1.0, 1.0, 0.0]], // negative y
+            [[-1.0, -1.0, 0.0, 2.0], [1.0, 1.0, 1.0, 0.0]], // positive y
             [[-1.0, -1.0, -1.0, 0.0], [1.0, 1.0, 1.0, 1.0]], // negative z
-            [[ 0.0,  0.0,  0.0, 2.0], [1.0, 1.0, 1.0, 0.0]]]  // positive z
+            [[0.0, 0.0, 0.0, 2.0], [1.0, 1.0, 1.0, 0.0]]]; // positive z
 
         for (var face in tcuTexture.CubeFace) {
             for (var levelNdx = 0; levelNdx < numLevels; levelNdx++) {
-                this.m_gradientTex.getRefTexture().allocLevel(tcuTexture.CubeFace[face], levelNdx)
+                this.m_gradientTex.getRefTexture().allocLevel(tcuTexture.CubeFace[face], levelNdx);
                 tcuTextureUtil.fillWithComponentGradients(this.m_gradientTex.getRefTexture().getLevelFace(levelNdx, tcuTexture.CubeFace[face]), deMath.add(deMath.multiply(gradients[tcuTexture.CubeFace[face]][0], cScale), cBias), deMath.add(deMath.multiply(gradients[tcuTexture.CubeFace[face]][1], cScale), cBias));
             }
         }
 
         // Fill second with grid texture.
         for (var face in tcuTexture.CubeFace) {
-            for (var levelNdx = 0; levelNdx < numLevels; levelNdx++)
-            {
-                var step    = 0x00ffffff / (numLevels * Object.keys(tcuTexture.CubeFace).length);
-                var rgb        = step*levelNdx*face;
-                var colorA    = 0xff000000 | rgb;
-                var colorB    = 0xff000000 | ~rgb;
+            for (var levelNdx = 0; levelNdx < numLevels; levelNdx++) {
+                var step = 0x00ffffff / (numLevels * Object.keys(tcuTexture.CubeFace).length);
+                var rgb = step * levelNdx * face;
+                var colorA = 0xff000000 | rgb;
+                var colorB = 0xff000000 | ~rgb;
 
                 this.m_gridTex.getRefTexture().allocLevel(tcuTexture.CubeFace[face], levelNdx);
-                tcuTextureUtil.fillWithGrid(this.m_gridTex.getRefTexture().getLevelFace(levelNdx, tcuTexture.CubeFace[face]), 4, deMath.add(deMath.multiply(tcuRGBA.newRGBAFromValue(colorA).toVec(),cScale), cBias), deMath.add(deMath.multiply(tcuRGBA.newRGBAFromValue(colorB).toVec(), cScale), cBias));
+                tcuTextureUtil.fillWithGrid(this.m_gridTex.getRefTexture().getLevelFace(levelNdx, tcuTexture.CubeFace[face]), 4, deMath.add(deMath.multiply(tcuRGBA.newRGBAFromValue(colorA).toVec(), cScale), cBias), deMath.add(deMath.multiply(tcuRGBA.newRGBAFromValue(colorB).toVec(), cScale), cBias));
             }
         }
 
@@ -559,24 +558,24 @@ var deUtil = framework.delibs.debase.deUtil;
         //var singleSample = this.m_context.getRenderTarget().getNumSamples() == 0;
 
         if (singleSample)
-            this.m_cases.push(es3fTextureShadowTests.newFilterCaseWithValues(this.m_gradientTex, refInRangeUpper, [-1.25, -1.2], [1.2, 1.25]));    // minification
+            this.m_cases.push(es3fTextureShadowTests.newFilterCaseWithValues(this.m_gradientTex, refInRangeUpper, [-1.25, -1.2], [1.2, 1.25])); // minification
         else
-            this.m_cases.push(es3fTextureShadowTests.newFilterCaseWithValues(this.m_gradientTex,    refInRangeUpper, [-1.19, -1.3], [1.1, 1.35]));    // minification - w/ tuned coordinates to avoid hitting triangle edges
+            this.m_cases.push(es3fTextureShadowTests.newFilterCaseWithValues(this.m_gradientTex, refInRangeUpper, [-1.19, -1.3], [1.1, 1.35])); // minification - w/ tuned coordinates to avoid hitting triangle edges
 
-        this.m_cases.push(es3fTextureShadowTests.newFilterCaseWithValues(this.m_gradientTex, refInRangeLower, [0.8, 0.8], [1.25, 1.20]));    // magnification
-        this.m_cases.push(es3fTextureShadowTests.newFilterCaseWithValues(this.m_gridTex, refInRangeUpper, [-1.19, -1.3], [1.1, 1.35]));    // minification
-        this.m_cases.push(es3fTextureShadowTests.newFilterCaseWithValues(this.m_gridTex, refInRangeLower, [-1.2, -1.1], [-0.8, -0.8]));    // magnification
-        this.m_cases.push(es3fTextureShadowTests.newFilterCaseWithValues(this.m_gridTex, refOutOfBoundsUpper, [-0.61, -0.1], [0.9, 1.18]));    // reference value clamp, upper
+        this.m_cases.push(es3fTextureShadowTests.newFilterCaseWithValues(this.m_gradientTex, refInRangeLower, [0.8, 0.8], [1.25, 1.20])); // magnification
+        this.m_cases.push(es3fTextureShadowTests.newFilterCaseWithValues(this.m_gridTex, refInRangeUpper, [-1.19, -1.3], [1.1, 1.35])); // minification
+        this.m_cases.push(es3fTextureShadowTests.newFilterCaseWithValues(this.m_gridTex, refInRangeLower, [-1.2, -1.1], [-0.8, -0.8])); // magnification
+        this.m_cases.push(es3fTextureShadowTests.newFilterCaseWithValues(this.m_gridTex, refOutOfBoundsUpper, [-0.61, -0.1], [0.9, 1.18])); // reference value clamp, upper
 
         if (singleSample)
-            this.m_cases.push(es3fTextureShadowTests.newFilterCaseWithValues(this.m_gridTex, refOutOfBoundsLower, [-0.75, 1.0], [0.05, 0.75]));    // reference value clamp, lower
+            this.m_cases.push(es3fTextureShadowTests.newFilterCaseWithValues(this.m_gridTex, refOutOfBoundsLower, [-0.75, 1.0], [0.05, 0.75])); // reference value clamp, lower
         else
-            this.m_cases.push(es3fTextureShadowTests.newFilterCaseWithValues(this.m_gridTex, refOutOfBoundsLower, [-0.75, 1.0], [0.25, 0.75]));    // reference value clamp, lower
+            this.m_cases.push(es3fTextureShadowTests.newFilterCaseWithValues(this.m_gridTex, refOutOfBoundsLower, [-0.75, 1.0], [0.25, 0.75])); // reference value clamp, lower
 
         this.m_caseNdx = 0;
     };
 
-    es3fTextureShadowTests.TextureCubeShadowCase.prototype.iterate = function () {
+    es3fTextureShadowTests.TextureCubeShadowCase.prototype.iterate = function() {
         var viewportSize = 28;
         var viewport = new glsTextureTestUtil.RandomViewport(document.getElementById('canvas'), viewportSize, viewportSize, deString.deStringHash(this.fullName()) ^ deMath.deMathHash(this.m_caseNdx));
         var curCase = this.m_cases[this.m_caseNdx];
@@ -605,9 +604,9 @@ var deUtil = framework.delibs.debase.deUtil;
         sampleParams.lodMode = glsTextureTestUtil.lodMode.EXACT;
         sampleParams.ref = curCase.ref;
 
-        bufferedLogToConsole (
-            "Compare reference value =  " + sampleParams.ref + "\n" +
-            "Coordinates: " + curCase.minCoord + " -> " + curCase.maxCoord);
+        bufferedLogToConsole(
+            'Compare reference value = ' + sampleParams.ref + '\n' +
+            'Coordinates: ' + curCase.minCoord + ' -> ' + curCase.maxCoord);
 
         for (var faceNdx in tcuTexture.CubeFace) {
             var face = tcuTexture.CubeFace[faceNdx];
@@ -623,11 +622,11 @@ var deUtil = framework.delibs.debase.deUtil;
             var pixelFormat = new tcuPixelFormat.PixelFormat(8, 8, 8, 8);
             /** @type {tcuTexLookupVerifier.LodPrecision} */ var lodPrecision = new tcuTexLookupVerifier.LodPrecision(10, 5);
             /** @type {tcuTexCompareVerifier.TexComparePrecision} */ var texComparePrecision = new tcuTexCompareVerifier.TexComparePrecision(
-                [10,10,10],
-                [6,6,0],
+                [10, 10, 10],
+                [6, 6, 0],
                 5,
                 16,
-                pixelFormat.redBits-1
+                pixelFormat.redBits - 1
             );
 
             var isHighQuality = es3fTextureShadowTests.verifyTexCompareResult(tcuTexture.TextureCube, result.getAccess(), curCase.texture.getRefTexture(),
@@ -637,8 +636,8 @@ var deUtil = framework.delibs.debase.deUtil;
                 bufferedLogToConsole('Warning: Verification assuming high-quality PCF filtering failed.');
 
                 lodPrecision.lodBits = 4;
-                texComparePrecision.uvwBits = [4,4,0];
-                texComparePrecision.pcfBits    = 0;
+                texComparePrecision.uvwBits = [4, 4, 0];
+                texComparePrecision.pcfBits = 0;
 
                 var isOk = es3fTextureShadowTests.verifyTexCompareResult(tcuTexture.TextureCube, result.getAccess(), curCase.texture.getRefTexture(),
                                                                                                   texCoord, sampleParams, texComparePrecision, lodPrecision, pixelFormat);
@@ -670,7 +669,7 @@ var deUtil = framework.delibs.debase.deUtil;
      * @param {number} numLayers
      * @param {number} compareFunc
      */
-    es3fTextureShadowTests.Texture2DArrayShadowCase = function (name, desc, minFilter, magFilter, wrapS, wrapT, format, width, height, numLayers, compareFunc) {
+    es3fTextureShadowTests.Texture2DArrayShadowCase = function(name, desc, minFilter, magFilter, wrapS, wrapT, format, width, height, numLayers, compareFunc) {
         tcuTestCase.DeqpTest.call(this, name, desc);
         /** @type {number} */ this.m_minFilter = minFilter;
         /** @type {number} */ this.m_magFilter = magFilter;
@@ -694,7 +693,7 @@ var deUtil = framework.delibs.debase.deUtil;
     /**
      * init
      */
-    es3fTextureShadowTests.Texture2DArrayShadowCase.prototype.init = function () {
+    es3fTextureShadowTests.Texture2DArrayShadowCase.prototype.init = function() {
         /** @type {tcuTexture.TextureFormat} */ var texFmt = gluTextureUtil.mapGLInternalFormat(this.m_format);
         /** @type {tcuTextureUtil.TextureFormatInfo} */ var fmtInfo = tcuTextureUtil.getTextureFormatInfo(texFmt);
         /** @type {Array<number>}*/ var cScale = deMath.subtract(fmtInfo.valueMax, fmtInfo.valueMin);
@@ -708,7 +707,7 @@ var deUtil = framework.delibs.debase.deUtil;
         // Fill first gradient texture.
         for (var levelNdx = 0; levelNdx < numLevels; levelNdx++) {
             /** @type {Array<number>}*/ var gMin = deMath.add(deMath.multiply([-0.5, -0.5, -0.5, 2.0], cScale), cBias);
-            /** @type {Array<number>}*/ var gMax = deMath.add(deMath.multiply([ 1.0,  1.0,  1.0, 0.0], cScale), cBias);
+            /** @type {Array<number>}*/ var gMax = deMath.add(deMath.multiply([1.0, 1.0, 1.0, 0.0], cScale), cBias);
 
             this.m_gradientTex.getRefTexture().allocLevel(levelNdx);
             tcuTextureUtil.fillWithComponentGradients(
@@ -741,13 +740,7 @@ var deUtil = framework.delibs.debase.deUtil;
         /** @type {number} */ var refOutOfBoundsLower = -0.1;
 
         /** @type {Array<{texNdx: number, ref: number, lodX: number, lodY: number, oX: number, oY: number}>} */
-        var cases = [
-            { texNdx: 0, ref: refInRangeUpper, lodX: 1.6,  lodY: 2.9, oX:-1.0, oY:-2.7 },
-            { texNdx: 0, ref: refInRangeLower, lodX: -2.0, lodY: -1.35, oX: -0.2, oY: 0.7 },
-            { texNdx: 1, ref: refInRangeUpper, lodX: 0.14, lodY: 0.275, oX: -1.5, oY: -1.1 },
-            { texNdx: 1, ref: refInRangeLower, lodX: -0.92, lodY: -2.64, oX: 0.4, oY: -0.1 },
-            { texNdx: 1, ref: refOutOfBoundsUpper, lodX: -0.49, lodY: -0.22, oX: 0.45, oY: 0.97 },
-            { texNdx: 1, ref: refOutOfBoundsLower, lodX: -0.85, lodY: 0.75, oX: 0.25, oY: 0.61 }
+        var cases = [{ texNdx: 0, ref: refInRangeUpper, lodX: 1.6, lodY: 2.9, oX: -1.0, oY: -2.7 },{ texNdx: 0, ref: refInRangeLower, lodX: -2.0, lodY: -1.35, oX: -0.2, oY: 0.7 },{ texNdx: 1, ref: refInRangeUpper, lodX: 0.14, lodY: 0.275, oX: -1.5, oY: -1.1 },{ texNdx: 1, ref: refInRangeLower, lodX: -0.92, lodY: -2.64, oX: 0.4, oY: -0.1 },{ texNdx: 1, ref: refOutOfBoundsUpper, lodX: -0.49, lodY: -0.22, oX: 0.45, oY: 0.97 },{ texNdx: 1, ref: refOutOfBoundsLower, lodX: -0.85, lodY: 0.75, oX: 0.25, oY: 0.61 }
         ];
 
         var viewportW = Math.min(es3fTextureShadowTests.tex2D.VIEWPORT_WIDTH, gl.canvas.width);
@@ -766,7 +759,7 @@ var deUtil = framework.delibs.debase.deUtil;
             /** @type {number} */ var sX = Math.exp(lodX * Math.LN2) * viewportW / tex.getRefTexture().getWidth();
             /** @type {number} */ var sY = Math.exp(lodY * Math.LN2) * viewportH / tex.getRefTexture().getHeight();
 
-            this.m_cases.push(es3fTextureShadowTests.newFilterCaseWithValues(tex, ref, [oX, oY, minLayer], [oX+sX, oY+sY, maxLayer]));
+            this.m_cases.push(es3fTextureShadowTests.newFilterCaseWithValues(tex, ref, [oX, oY, minLayer], [oX + sX, oY + sY, maxLayer]));
         }
 
         this.m_caseNdx = 0;
@@ -776,7 +769,7 @@ var deUtil = framework.delibs.debase.deUtil;
     /**
      * @return {tcuTestCase.IterateResult}
      */
-    es3fTextureShadowTests.Texture2DArrayShadowCase.prototype.iterate = function () {
+    es3fTextureShadowTests.Texture2DArrayShadowCase.prototype.iterate = function() {
         var viewport = new glsTextureTestUtil.RandomViewport(document.getElementById('canvas'), es3fTextureShadowTests.tex2D.VIEWPORT_WIDTH, es3fTextureShadowTests.tex2D.VIEWPORT_HEIGHT, deString.deStringHash(this.fullName()) ^ deMath.deMathHash(this.m_caseNdx));
         var curCase = this.m_cases[this.m_caseNdx];
         var sampleParams = new glsTextureTestUtil.ReferenceParams(glsTextureTestUtil.textureType.TEXTURETYPE_2D);
@@ -797,9 +790,9 @@ var deUtil = framework.delibs.debase.deUtil;
         sampleParams.lodMode = glsTextureTestUtil.lodMode.EXACT;
         sampleParams.ref = curCase.ref;
 
-        bufferedLogToConsole (
-            "Compare reference value =  " + sampleParams.ref + "\n" +
-            "Texture Coordinates: " + curCase.minCoord + " -> " + curCase.maxCoord
+        bufferedLogToConsole(
+            'Compare reference value = ' + sampleParams.ref + '\n' +
+            'Texture Coordinates: ' + curCase.minCoord + ' -> ' + curCase.maxCoord
         );
 
         gl.bindTexture(gl.TEXTURE_2D_ARRAY, curCase.texture.getGLTexture());
@@ -817,8 +810,8 @@ var deUtil = framework.delibs.debase.deUtil;
         var pixelFormat = new tcuPixelFormat.PixelFormat(8, 8, 8, 8);
         /** @type {tcuTexLookupVerifier.LodPrecision} */ var lodPrecision = new tcuTexLookupVerifier.LodPrecision(18, 6);
         /** @type {tcuTexCompareVerifier.TexComparePrecision} */ var texComparePrecision = new tcuTexCompareVerifier.TexComparePrecision(
-            [20,20,20],
-            [7,7,7],
+            [20, 20, 20],
+            [7, 7, 7],
             5,
             16,
             pixelFormat.redBits - 1
@@ -831,7 +824,7 @@ var deUtil = framework.delibs.debase.deUtil;
             bufferedLogToConsole('Warning: Verification assuming high-quality PCF filtering failed');
 
             lodPrecision.lodBits = 4;
-            texComparePrecision.uvwBits = [4,4,4];
+            texComparePrecision.uvwBits = [4, 4, 4];
             texComparePrecision.pcfBits = 0;
 
             var isOk = es3fTextureShadowTests.verifyTexCompareResult(tcuTexture.Texture2DArray, rendered.getAccess(), curCase.texture.getRefTexture(),

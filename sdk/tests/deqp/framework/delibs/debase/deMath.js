@@ -347,9 +347,9 @@ deMath.rint = function(a) {
  * @param {number} a
  * @return {number}
  */
-deMath.logToFloor = function(a)  {
+deMath.logToFloor = function(a) {
     assertMsgOptions(a > 0, 'Value is less or equal than zero', false, true);
-	return 31 - deMath.clz32(a);
+    return 31 - deMath.clz32(a);
 };
 
 /**

@@ -263,17 +263,16 @@ glsTextureTestUtil.computeQuadTexCoordCube = function(face) {
  * @param {Array<number>} topRight
  * @return {Array<number>}
  */
-glsTextureTestUtil.computeQuadTexCoordCubeFace = function (face, bottomLeft, topRight) {
+glsTextureTestUtil.computeQuadTexCoordCubeFace = function(face, bottomLeft, topRight) {
     var dst = [];
-    /** @type {number} */ var sRow        = 0;
-    /** @type {number} */ var tRow        = 0;
-    /** @type {number} */ var mRow        = 0;
-    /** @type {number} */ var sSign        = 1.0;
-    /** @type {number} */ var tSign        = 1.0;
-    /** @type {number} */ var mSign        = 1.0;
+    /** @type {number} */ var sRow = 0;
+    /** @type {number} */ var tRow = 0;
+    /** @type {number} */ var mRow = 0;
+    /** @type {number} */ var sSign = 1.0;
+    /** @type {number} */ var tSign = 1.0;
+    /** @type {number} */ var mSign = 1.0;
 
-    switch (face)
-    {
+    switch (face) {
         case tcuTexture.CubeFace.CUBEFACE_NEGATIVE_X: mRow = 0; sRow = 2; tRow = 1; mSign = -1.0; tSign = -1.0; break;
         case tcuTexture.CubeFace.CUBEFACE_POSITIVE_X: mRow = 0; sRow = 2; tRow = 1; sSign = -1.0; tSign = -1.0; break;
         case tcuTexture.CubeFace.CUBEFACE_NEGATIVE_Y: mRow = 1; sRow = 0; tRow = 2; mSign = -1.0; tSign = -1.0; break;
@@ -284,20 +283,20 @@ glsTextureTestUtil.computeQuadTexCoordCubeFace = function (face, bottomLeft, top
             throw new Error('Invalid cube face specified.');
     }
 
-    dst[0+mRow] = mSign;
-    dst[3+mRow] = mSign;
-    dst[6+mRow] = mSign;
-    dst[9+mRow] = mSign;
+    dst[0 + mRow] = mSign;
+    dst[3 + mRow] = mSign;
+    dst[6 + mRow] = mSign;
+    dst[9 + mRow] = mSign;
 
-    dst[0+sRow] = sSign * bottomLeft[0];
-    dst[3+sRow] = sSign * bottomLeft[0];
-    dst[6+sRow] = sSign * topRight[0];
-    dst[9+sRow] = sSign * topRight[0];
+    dst[0 + sRow] = sSign * bottomLeft[0];
+    dst[3 + sRow] = sSign * bottomLeft[0];
+    dst[6 + sRow] = sSign * topRight[0];
+    dst[9 + sRow] = sSign * topRight[0];
 
-    dst[0+tRow] = tSign * bottomLeft[1];
-    dst[3+tRow] = tSign * topRight[1];
-    dst[6+tRow] = tSign * bottomLeft[1];
-    dst[9+tRow] = tSign * topRight[1];
+    dst[0 + tRow] = tSign * bottomLeft[1];
+    dst[3 + tRow] = tSign * topRight[1];
+    dst[6 + tRow] = tSign * bottomLeft[1];
+    dst[9 + tRow] = tSign * topRight[1];
 
     return dst;
 };
