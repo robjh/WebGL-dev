@@ -414,7 +414,8 @@ var deUtil = framework.delibs.debase.deUtil;
                 testFailedOptions('Image verification failed', false);
             } else
                 testPassedOptions('Low-quality result', true);
-        }
+        } else
+            testPassedOptions('High-quality result', true);
 
         this.m_caseNdx += 1;
         return this.m_caseNdx < this.m_cases.length ? tcuTestCase.IterateResult.CONTINUE : tcuTestCase.IterateResult.STOP;
@@ -592,6 +593,8 @@ var deUtil = framework.delibs.debase.deUtil;
                 } else
                     testPassedOptions('Low-quality result', true);
             }
+            else
+                testPassedOptions('High-quality result', true);
         }
 
         this.m_caseNdx += 1;
@@ -708,7 +711,6 @@ var deUtil = framework.delibs.debase.deUtil;
         }
 
         this.m_caseNdx = 0;
-        testPassed('');
     };
 
     /**
@@ -780,7 +782,8 @@ var deUtil = framework.delibs.debase.deUtil;
                 testFailedOptions('Image verification failed', false);
             } else
                 testPassedOptions('Low-quality result', true);
-        }
+        } else
+            testPassedOptions('High-quality result', true);
 
         this.m_caseNdx += 1;
         return this.m_caseNdx < this.m_cases.length ? tcuTestCase.IterateResult.CONTINUE : tcuTestCase.IterateResult.STOP;
