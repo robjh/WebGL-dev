@@ -144,9 +144,9 @@ var deUtil = framework.delibs.debase.deUtil;
                 numFailedPixels = glsTextureTestUtil.computeTextureCompareDiff2DArray(result, reference.getAccess(), errorMask.getAccess(), /** @type {tcuTexture.Texture2DArrayView} */ (clampedSource.getView()), texCoord, sampleParams, comparePrec, lodPrecision, nonShadowThreshold);
             } else if (textureType == tcuTexture.TextureCube) {
                 es3fTextureShadowTests.clampFloatingPointTextureCube(/** @type {tcuTexture.TextureCube} */(clampedSource));
-                glsTextureTestUtil.sampleTextureCube(new glsTextureTestUtil.SurfaceAccess(reference, pixelFormat), /** @type {tcuTexture.TextureCube} */ (clampedSource.getView()), texCoord, sampleParams);
+                glsTextureTestUtil.sampleTextureCube(new glsTextureTestUtil.SurfaceAccess(reference, pixelFormat), /** @type {tcuTexture.TextureCubeView} */ (clampedSource.getView()), texCoord, sampleParams);
                 // sample clamped values
-                numFailedPixels = glsTextureTestUtil.computeTextureCompareDiffCube(result, reference.getAccess(), errorMask.getAccess(), /** @type {tcuTexture.TextureCube} */ (clampedSource.getView()), texCoord, sampleParams, comparePrec, lodPrecision, nonShadowThreshold);
+                numFailedPixels = glsTextureTestUtil.computeTextureCompareDiffCube(result, reference.getAccess(), errorMask.getAccess(), /** @type {tcuTexture.TextureCubeView} */ (clampedSource.getView()), texCoord, sampleParams, comparePrec, lodPrecision, nonShadowThreshold);
             } else
                 throw new Error('Invalid texture type');
 
