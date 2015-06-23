@@ -547,8 +547,8 @@ var deUtil = framework.delibs.debase.deUtil;
         }
 
         // Upload.
-        //this.m_gradientTex.upload();
-        //this.m_gridTex.upload();
+        this.m_gradientTex.upload();
+        this.m_gridTex.upload();
 
         var refInRangeUpper = (this.m_compareFunc == gl.EQUAL || this.m_compareFunc == gl.NOTEQUAL) ? 1.0 : 0.5;
         var refInRangeLower = (this.m_compareFunc == gl.EQUAL || this.m_compareFunc == gl.NOTEQUAL) ? 0.0 : 0.5;
