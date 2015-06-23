@@ -2461,7 +2461,7 @@ tcuTexture.getCubeLinearSamples = function(faceAccesses, baseFace, u, v, depth) 
 
     for (var i = 0; i < 4; i++) {
         /** @type {tcuTexture.CubeFaceCoords} */ var coords = tcuTexture.remapCubeEdgeCoords(new tcuTexture.CubeFaceCoords(baseFace, baseSampleCoords[i]), size);
-        hasBothCoordsOutOfBounds[i] = coords.face == Object.keys(tcuTexture.CubeFace).length;
+        hasBothCoordsOutOfBounds[i] = coords == null;
         if (!hasBothCoordsOutOfBounds[i])
             sampleColors[i] = tcuTexture.lookup(faceAccesses[coords.face], coords.s, coords.t, depth);
     }
@@ -2670,7 +2670,7 @@ tcuTexture.sampleCubeSeamlessLinearCompare = function(faceAccesses, baseFace, sa
 
     for (var i = 0; i < 4; i++) {
         /** @type {tcuTexture.CubeFaceCoords} */ var coords = tcuTexture.remapCubeEdgeCoords(new tcuTexture.CubeFaceCoords(baseFace, baseSampleCoords[i]), size);
-        hasBothCoordsOutOfBounds[i] = coords.face == Object.keys(tcuTexture.CubeFace).length;
+        hasBothCoordsOutOfBounds[i] = coords == null;
 
         if (!hasBothCoordsOutOfBounds[i]) {
             var isFixedPointDepth = tcuTexture.isFixedPointDepthTextureFormat(faceAccesses[coords.face].getFormat());
@@ -2966,17 +2966,15 @@ tcuTexture.TextureCubeView.prototype.sample = function(sampler, texCoord, lod) {
 /**
  * @param {tcuTexture.Sampler} sampler
  * @param {number} ref
- * @param {number} s
- * @param {number} t
- * @param {number} r
+ * @param {Array<number>} texCoord
  * @param {number} lod
  * @return {number}
  */
-tcuTexture.TextureCubeView.prototype.sampleCompare = function(sampler, ref, s, t, r, lod) {
+tcuTexture.TextureCubeView.prototype.sampleCompare = function(sampler, ref, texCoord, lod) {
     DE_ASSERT(sampler.compare != tcuTexture.CompareMode.COMPAREMODE_NONE);
 
     // Computes (face, s, t).
-    var coords = tcuTexture.getCubeFaceCoords([s, t, r]);
+    var coords = tcuTexture.getCubeFaceCoords(texCoord);
     if (sampler.seamlessCubeMap)
         return tcuTexture.sampleLevelArrayCubeSeamlessCompare(this.m_levels, this.m_numLevels, coords.face, sampler, ref, coords.s, coords.t, lod);
     else
