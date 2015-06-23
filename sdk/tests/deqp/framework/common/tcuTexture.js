@@ -3010,7 +3010,7 @@ tcuTexture.TextureCubeView.prototype.sample = function(sampler, texCoord, lod) {
  * @param {number} t
  * @param {number} r
  * @param {number} lod
- * @return {Array<number>} Pixel color
+ * @return {number}
  */
 tcuTexture.TextureCubeView.prototype.sampleCompare = function (sampler, ref, s, t, r, lod) {
     DE_ASSERT(sampler.compare != tcuTexture.CompareMode.COMPAREMODE_NONE);
@@ -3021,7 +3021,7 @@ tcuTexture.TextureCubeView.prototype.sampleCompare = function (sampler, ref, s, 
         return tcuTexture.sampleLevelArrayCubeSeamlessCompare(this.m_levels, this.m_numLevels, coords.face, sampler, ref, coords.s, coords.t, lod);
     else
         return tcuTexture.sampleLevelArray2DCompare(this.m_levels[coords.face], this.m_numLevels, sampler, ref, coords.s, coords.t, lod, [0, 0, 0]);
-}
+};
 
 /**
  * @param {tcuTexture.CubeFace} face
