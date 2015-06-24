@@ -70,7 +70,6 @@ targets = {
     'draw': 'functional.gles3.es3fDrawTests',
     'attriblocation': 'functional.gles3.es3fAttribLocationTests',
     'textureShadowTests': 'functional.gles3.es3fTextureShadowTests',
-    'cmp': 'framework.common.tcuTexCompareVerifier',
     'texturewrap': 'functional.gles3.es3fTextureWrapTests',
     'negativetextureapi': 'functional.gles3.es3fNegativeTextureApiTests',
     'multisample': 'functional.gles3.es3fMultisampleTests',
@@ -242,3 +241,4 @@ def main(argv):
 
 if __name__ == '__main__':
     main(sys.argv[1:])
+
