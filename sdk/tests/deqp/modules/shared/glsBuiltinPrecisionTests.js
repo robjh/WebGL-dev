@@ -24,6 +24,7 @@ goog.require('framework.common.tcuTestCase');
 goog.require('framework.opengl.gluShaderProgram');
 goog.require('framework.opengl.gluShaderUtil');
 goog.require('framework.common.tcuInterval');
+goog.require('framework.common.tcuFloatFormat');
 
 goog.scope(function() {
 
@@ -32,9 +33,7 @@ goog.scope(function() {
     var gluShaderProgram = framework.opengl.gluShaderProgram;
     var gluShaderUtil = framework.opengl.gluShaderUtil;
     var tcuInterval = framework.common.tcuInterval;
-
-
-
+    var tcuFloatFormat = framework.common.tcuFloatFormat;
 
 
 // public:
