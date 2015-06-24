@@ -23,6 +23,7 @@ goog.provide('modules.shared.glsBuiltinPrecisionTests');
 goog.require('framework.common.tcuTestCase');
 goog.require('framework.opengl.gluShaderProgram');
 goog.require('framework.opengl.gluShaderUtil');
+goog.require('framework.common.tcuInterval');
 
 goog.scope(function() {
 
@@ -30,6 +31,7 @@ goog.scope(function() {
     var tcuTestCase = framework.common.tcuTestCase;
     var gluShaderProgram = framework.opengl.gluShaderProgram;
     var gluShaderUtil = framework.opengl.gluShaderUtil;
+    var tcuInterval = framework.common.tcuInterval;
 
     /**
      * @enum{number}
@@ -150,8 +152,137 @@ goog.scope(function() {
 // 	static FloatFormat	nativeDouble	(void);
 
 
-    /** @type {tcuTestCase.DeqpTest} */
-    //var root = tcuTestCase.newTest('attribute_location', 'Attribute location tests');
+    /**
+     TREE OF HERITAGE
+     ---------- Signature
+     Signature (struct)
+        uses -> Traits<>
+            <void>
+            <bool,float,int>
+                ScalarTraits
+            <Matrix<T,Rows,Cols>,vector<T,size>>
+                ContainerTraits
+        uses -> Tuple4<>
+
+
+     ---------- Func classes -----------
+     FuncBase
+
+        Func
+            PrimitiveFunc
+                FloatFunc1
+                    CFloatFunc1
+                        TrigFunc
+                            Sin, Cos
+                        ArcTrigFunc
+                            ASin, ACos, ATan
+                        ExpFunc
+                            Exp, Exp2
+                        LogFunc
+                            Log, Log2
+                        PreciseFunc1
+                            Abs, Sign, Floor, Trunc, RoundEven, Ceil,
+                    InverseSqrt
+                    Round
+                FloatFunc2
+                    InfixOperator
+                        Add, Mul, Div, Sub
+                    CFloatFunc2
+                        ATan2
+                        PreciseFunc2
+                            Min, Max, Step
+                FloatFunc3
+                    Clamp
+                Modf
+            DerivedFunc
+                DEFINE_DERIVED_FLOAT1 -> Sqrt, Radians, Degrees, Tan, Sinh, Cosh,
+                    Tanh, ASinh, ACosh, ATanh, Fract
+                DEFINE_DERIVED_FLOAT2 -> Pow, Mod,
+                DEFINE_DERIVED_FLOAT3 -> Mix
+                (different extends)SmoothStep, Length, Distance, Dot, Cross, Normalize, FaceForward
+                    Reflect, Refract,
+
+                CompWiseFunc
+                    CompMatFuncBase
+                        CompMatFunc
+                            MatrixCompMult
+                OuterProduct
+                Transpose
+    Determinant
+    Inverse
+    */
+
+    /**
+     * @constructor
+     * @param{*=} t
+     */
+    glsBuiltinPrecisionTests.Void = function(t) {
+	};
+
+    /**
+     * @constructor
+     * @param{*} R
+     * @param{*} P0
+     * @param{*} P1
+     * @param{*} P2
+     * @param{*} P3
+     */
+    glsBuiltinPrecisionTests.Signature = function (R, P0, P1, P2, P3) {
+    this.Ret = R;
+    this.Arg0 = P0 === undefined ? new glsBuiltinPrecisionTests.Void() : P0;
+    this.Arg1 = P1 === undefined ? new glsBuiltinPrecisionTests.Void() : P1;
+    this.Arg2 = P2 === undefined ? new glsBuiltinPrecisionTests.Void() : P2;
+    this.Arg3 = P3 === undefined ? new glsBuiltinPrecisionTests.Void() : P3;
+
+	typedef typename Traits<Ret>::IVal	IRet;
+	typedef typename Traits<Arg0>::IVal	IArg0;
+	typedef typename Traits<Arg1>::IVal	IArg1;
+	typedef typename Traits<Arg2>::IVal	IArg2;
+	typedef typename Traits<Arg3>::IVal	IArg3;
+
+	typedef Tuple4<	const Arg0&,	const Arg1&,	const Arg2&,	const Arg3&>	Args;
+	typedef Tuple4<	const IArg0&,	const IArg1&,	const IArg2&,	const IArg3&> 	IArgs;
+	typedef Tuple4<	ExprP<Arg0>,	ExprP<Arg1>,	ExprP<Arg2>,	ExprP<Arg3> >	ArgExprs;
+};
+
+    /**
+     * @constructor
+     * @param{*} R
+     * @param{*} P0
+     * @param{*} P1
+     * @param{*} P2
+     * @param{*} P3
+     */
+    glsBuiltinPrecisionTests.ScalarTraits = function() {};
+	// typedef 			Interval		IVal;
+
+	glsBuiltinPrecisionTests.doMakeIVal	(const T& value)
+	{
+		// Thankfully all scalar types have a well-defined conversion to `double`,
+		// hence Interval can represent their ranges without problems.
+		return Interval(double(value));
+	}
+
+	static Interval		doUnion			(const Interval& a, const Interval& b)
+	{
+		return a | b;
+	}
+
+	static bool			doContains		(const Interval& a, T value)
+	{
+		return a.contains(double(value));
+	}
+
+	static Interval		doConvert		(const FloatFormat& fmt, const IVal& ival)
+	{
+		return fmt.convert(ival);
+	}
+
+	static Interval		doRound			(const FloatFormat& fmt, T value)
+	{
+		return fmt.roundOut(double(value), false);
+	}
+};
 
     /**
      * @constructor
@@ -210,6 +341,58 @@ goog.scope(function() {
      */
     glsBuiltinPrecisionTests.FuncBase.prototype.doGetUsedFuncs = function(dst) {};
 
+    /**
+     * @constructor
+     * @extends{tcuTestCase.DeqpTest}
+     * @param{string} name
+     * @param{string} extension
+     */
+    glsBuiltinPrecisionTests.PrecisionCase = function(name, extension) {
+        tcuTestCase.DeqpTest.call(this, name, extension);
+        /** @type{string} */ var this.m_extension = extension;
+    };
+
+    glsBuiltinPrecisionTests.PrecisionCase.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
+    glsBuiltinPrecisionTests.PrecisionCase.prototype.constructor = glsBuiltinPrecisionTests.PrecisionCase;
+
+    /**
+     * @constructor
+     * @extends{glsBuiltinPrecisionTests.PrecisionCase}
+     * @param{string} name
+     * @param{glsBuiltinPrecisionTests.FuncBase} extension
+     */
+    glsBuiltinPrecisionTests.FuncCaseBase = function(name, func) {
+        glsBuiltinPrecisionTests.PrecisionCase.call(this, name, func.getRequiredExtension());
+    };
+
+    glsBuiltinPrecisionTests.FuncCaseBase.prototype = Object.create(glsBuiltinPrecisionTests.PrecisionCase.prototype);
+    glsBuiltinPrecisionTests.FuncCaseBase.prototype.constructor = glsBuiltinPrecisionTests.FuncCaseBase;
+
+    glsBuiltinPrecisionTests.FuncCaseBase.prototype.iterate = function() {
+
+        assertMsgOptions(this.m_extension !== undefined && !sglrGLContext.isExtensionSupported(gl, this.m_extension), 'Unsupported extension: ' + m_extension, false, true);
+
+	    runTest();
+
+	    // m_status.setTestContextResult(m_testCtx);
+	    return tcuTestCase.IterateResult.STOP;
+    };
+
+    /**
+     * @constructor
+     * @extends{glsBuiltinPrecisionTests.FuncCaseBase}
+     * @param{string} name
+     * @param{glsBuiltinPrecisionTests.FuncBase} extension
+     */
+    glsBuiltinPrecisionTests.FuncCase = function(name, func) {
+        glsBuiltinPrecisionTests.FuncCaseBase.call(this, name, func.getRequiredExtension());
+    };
+
+    glsBuiltinPrecisionTests.FuncCase.prototype.iterate = function
+
+    glsBuiltinPrecisionTests.FuncCase.prototype = Object.create(glsBuiltinPrecisionTests.FuncCaseBase.prototype);
+    glsBuiltinPrecisionTests.FuncCase.prototype.constructor = glsBuiltinPrecisionTests.FuncCase;
+
 
     /**
      * @constructor
@@ -231,11 +414,14 @@ goog.scope(function() {
     }:
 
     /**
-     * @return{Array<glsBuiltinPrecisionTests.CaseFactories>}
+     * @return{Array<glsBuiltinPrecisionTests.CaseFactory>}
      */
 	glsBuiltinPrecisionTests.BuiltinFuncs.prototype.getFactories = function() {
 		return this.m_factories.slice();
-	}
+	};
+
+    glsBuiltinPrecisionTests.BuiltinFuncs.prototype = Object.create(glsBuiltinPrecisionTests.CaseFactories.prototype);
+    glsBuiltinPrecisionTests.BuiltinFuncs.prototype.constructor = glsBuiltinPrecisionTests.BuiltinFuncs;
 
     /**
      * @return{glsBuiltinPrecisionTests.CaseFactories} fact
