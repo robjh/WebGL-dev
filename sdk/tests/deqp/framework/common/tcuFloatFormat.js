@@ -35,7 +35,7 @@
       * @enum{number}
       */
      tcuFloatFormat.YesNoMaybe = {
-         NO : 0,
+        NO : 0,
  	    MAYBE : 1,
  	    YES : 2
      };
@@ -206,11 +206,11 @@
      */
     tcuFloatFormat.FloatFormat.prototype.floatToHex	= function(x){
     	if (isNaN(x))
-    		return "NaN";
+    		return 'NaN';
     	else if (deIsInf(x))
-    		return (x < 0.0 ? "-" : "+") + std::string("inf");
+    		return (x < 0.0 ? '-' : '+') + ('inf');
     	else if (x == 0.0) // \todo [2014-03-27 lauri] Negative zero
-    		return "0.0";
+    		return '0.0';
 
     	/** @type{number} */ var	exp			= 0;
     	/** @type{number} */ var	frac		= deFractExp(deAbs(x), &exp);
@@ -223,10 +223,10 @@
     	/** @type{number} */ var	aligned		= fraction << (numDigits * 4 - m_fractionBits);
     	/** @type{string} */ var	oss = '';
 
-    	oss + (x < 0 ? "-" : "")
-    		+ "0x" + whole + "."
+    	oss + (x < 0 ? '-' : '')
+    		+ '0x' + whole + '.'
     		+ std::hex + std::setw(numDigits) + std::setfill('0') + aligned
-    		+ "p" + std::dec + std::setw(0) + exponent;
+    		+ 'p' + std::dec + std::setw(0) + exponent;
 
     	return oss;
     };
@@ -240,7 +240,7 @@
     		return interval.hasNaN() ? '{ NaN }' : '{}';
 
     	else if (interval.lo() == interval.hi())
-    		return (std::string(interval.hasNaN() ? '{ NaN, ' : '{ ') +
+    		return ((interval.hasNaN() ? '{ NaN, ' : '{ ') +
     				floatToHex(interval.lo()) + ' }');
     	else if (interval == Interval::unbounded(true))
     		return '<any>';
@@ -249,92 +249,40 @@
     			'[' + floatToHex(interval.lo()) + ', ' + floatToHex(interval.hi()) + ']');
     };
 
-	static FloatFormat	nativeFloat		(void);
-	static FloatFormat	nativeDouble	(void);
+	// static FloatFormat	nativeFloat		(void);
+	// static FloatFormat	nativeDouble	(void);
 
-    //! Round output of an operation.
-//! \param roundUnderOverflow Can +/-inf rounded to min/max representable;
-//!							  should be false if any of operands was inf, true otherwise.
-Interval FloatFormat::roundOut (const Interval& x, bool roundUnderOverflow) const
-{
-	Interval ret = x.nan();
+    /**
+     * @param{*} t
+     * @return{tcuFloatFormat.FloatFormat}
+     */
+    tcuFloatFormat.FloatFormat.prototype.nativeFormat (/* template */t) {
+    	// typedef std::numeric_limits<T>
+        /** @type{?} */ var Limits;
 
-	if (!x.empty())
-		ret |= Interval(roundOut(x.lo(), false, roundUnderOverflow),
-						roundOut(x.hi(), true, roundUnderOverflow));
+    	if(Limits.radix == 2) {
+            throw new Error('Radix must 2');
+        }
 
-	return ret;
-}
+    	return new tcuFloatFormat.FloatFormat(Limits.min_exponent - 1,	// These have a built-in offset of one
+    					   Limits.max_exponent - 1,
+    					   Limits.digits - 1,			// don't count the hidden bit
+    					   Limits.has_denorm != denorm_absent, //std::denorm_absent
+    					   Limits.has_infinity ? tcuFloatFormat.YesNoMaybe.YES : tcuFloatFormat.YesNoMaybe.NO,
+    					   Limits.has_quiet_NaN ? tcuFloatFormat.YesNoMaybe.YES : tcuFloatFormat.YesNoMaybe.NO,
+    					   ((Limits.has_denorm == denorm_present) ? tcuFloatFormat.YesNoMaybe.YES : //denorm_present
+    						(Limits.has_denorm == denorm_absent) ? tcuFloatFormat.YesNoMaybe.NO : //denorm_absent
+    						tcuFloatFormat.YesNoMaybe.MAYBE));
+    };
 
-std::string	FloatFormat::floatToHex	(double x) const
-{
-	if (deIsNaN(x))
-		return "NaN";
-	else if (deIsInf(x))
-		return (x < 0.0 ? "-" : "+") + std::string("inf");
-	else if (x == 0.0) // \todo [2014-03-27 lauri] Negative zero
-		return "0.0";
-
-	int					exp			= 0;
-	const double		frac		= deFractExp(deAbs(x), &exp);
-	const int			shift		= exponentShift(exp);
-	const deUint64		bits		= deUint64(deLdExp(frac, shift));
-	const deUint64		whole		= bits >> m_fractionBits;
-	const deUint64		fraction	= bits & ((deUint64(1) << m_fractionBits) - 1);
-	const int			exponent	= exp + m_fractionBits - shift;
-	const int			numDigits	= (m_fractionBits + 3) / 4;
-	const deUint64		aligned		= fraction << (numDigits * 4 - m_fractionBits);
-	std::ostringstream	oss;
-
-	oss << (x < 0 ? "-" : "")
-		<< "0x" << whole << "."
-		<< std::hex << std::setw(numDigits) << std::setfill('0') << aligned
-		<< "p" << std::dec << std::setw(0) << exponent;
-
-	return oss.str();
-}
-
-std::string FloatFormat::intervalToHex (const Interval& interval) const
-{
-	if (interval.empty())
-		return interval.hasNaN() ? "{ NaN }" : "{}";
-
-	else if (interval.lo() == interval.hi())
-		return (std::string(interval.hasNaN() ? "{ NaN, " : "{ ") +
-				floatToHex(interval.lo()) + " }");
-	else if (interval == Interval::unbounded(true))
-		return "<any>";
-
-	return (std::string(interval.hasNaN() ? "{ NaN } | " : "") +
-			"[" + floatToHex(interval.lo()) + ", " + floatToHex(interval.hi()) + "]");
-}
-
-template <typename T>
-static FloatFormat nativeFormat (void)
-{
-	typedef std::numeric_limits<T> Limits;
-
-	DE_ASSERT(Limits::radix == 2);
-
-	return FloatFormat(Limits::min_exponent - 1,	// These have a built-in offset of one
-					   Limits::max_exponent - 1,
-					   Limits::digits - 1,			// don't count the hidden bit
-					   Limits::has_denorm != std::denorm_absent,
-					   Limits::has_infinity ? YES : NO,
-					   Limits::has_quiet_NaN ? YES : NO,
-					   ((Limits::has_denorm == std::denorm_present) ? YES :
-						(Limits::has_denorm == std::denorm_absent) ? NO :
-						MAYBE));
-}
-
-FloatFormat	FloatFormat::nativeFloat (void)
-{
-	return nativeFormat<float>();
-}
-
-FloatFormat	FloatFormat::nativeDouble (void)
-{
-	return nativeFormat<double>();
-}
+    // FloatFormat	FloatFormat::nativeFloat (void)
+    // {
+    // 	return nativeFormat<float>();
+    // }
+    //
+    // FloatFormat	FloatFormat::nativeDouble (void)
+    // {
+    // 	return nativeFormat<double>();
+    // }
 
 });

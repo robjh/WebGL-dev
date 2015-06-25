@@ -69,8 +69,8 @@
      */
     tcuInterval.applyMonotone = function(/*DoubleFunc1& */func, arg0) {
     	/** @type{tcuInterval.Interval} */ var ret = new tcuInterval.Interval();
-    	TCU_INTERVAL_APPLY_MONOTONE1(ret, x, arg0, val,
-    								 TCU_SET_INTERVAL(val, point, point = func(x)));
+    	// TCU_INTERVAL_APPLY_MONOTONE1(ret, x, arg0, val,
+    	// 							 TCU_SET_INTERVAL(val, point, point = func(x)));
     	return ret;
     };
 
@@ -92,8 +92,8 @@
     tcuInterval.applyMonotone = function(/*DoubleFunc2& */func, arg0, arg1) {
 	    /** @type{tcuInterval.Interval} */ var ret = new tcuInterval.Interval();
 
-	    TCU_INTERVAL_APPLY_MONOTONE2(ret, x, arg0, y, arg1, val,
-								 TCU_SET_INTERVAL(val, point, point = func(x, y)));
+	    // TCU_INTERVAL_APPLY_MONOTONE2(ret, x, arg0, y, arg1, val,
+		// 						 TCU_SET_INTERVAL(val, point, point = func(x, y)));
         return ret;
     };
 
@@ -208,7 +208,7 @@
     /**
      * @param{tcuInterval.Interval} other
      */
-    tcuInterval.Interval.prototype.operatorOrAddBinary = function(other) {
+    tcuInterval.Interval.prototype.operatorOrAssignBinary = function(other) {
         /** @type{tcuInterval.Interval} */ var temp = this.operatorOrBinary(other);
 		this.m_hasNaN = temp.m_hasNaN;
         this.m_lo = temp.m_lo;
@@ -230,7 +230,7 @@
     /**
      * @param{tcuInterval.Interval} other
      */
-    tcuInterval.Interval.prototype.operatorAndAddBinary = function(other) {
+    tcuInterval.Interval.prototype.operatorAndAssignBinary = function(other) {
         /** @type{tcuInterval.Interval} */ var temp = this.operatorAndBinary(other);
 		this.m_hasNaN = temp.m_hasNaN;
         this.m_lo = temp.m_lo;
@@ -267,6 +267,7 @@
     };
 
     /**
+     * TODO: validate this behavior
      * @param{boolean} nan
      * @return{tcuInterval.Interval}
      */
@@ -310,116 +311,238 @@
      * @return{tcuInterval.Interval}
      */
     tcuInterval.Interval.prototype.exp2 = function (x) {
-        return tcuInterval.applyMonotone(std::pow, 2.0, x);
+        // std::pow
+        return tcuInterval.applyMonotone(Math.pow, 2.0, x);
     };
-// Interval		exp			(const Interval& x);
-// int				sign		(const Interval& x);
-// Interval		abs			(const Interval& x);
-// Interval		inverseSqrt	(const Interval& x);
+
+
+    /**
+     * @param{tcuInterval.Interval} x
+     * @return{tcuInterval.Interval}
+     */
+    tcuInterval.Interval.prototype.exp = function(x) {
+        // std::exp
+        return applyMonotone(Math.exp, x);
+    };
+
+    /**
+     * @param{tcuInterval.Interval} x
+     * @return{tcuInterval.Interval}
+     */
+    tcuInterval.Interval.prototype.sign = function(x) {
+        // TODO
+    }
+
+    /**
+     * @param{tcuInterval.Interval} x
+     * @param{tcuInterval.Interval} y
+     * @return{tcuInterval.Interval}
+     */
+    tcuInterval.Interval.prototype.operatorSum(x, y) {
+    	/** @type{tcuInterval.Interval} */ var ret = new tcuInterval.Interval();
+
+    	if (!x.empty() && !y.empty())
+    		TCU_SET_INTERVAL_BOUNDS(ret, p, p = x.lo() + y.lo(), p = x.hi() + y.hi());
+    	if (x.hasNaN() || y.hasNaN())
+    		ret |= TCU_NAN;
+
+    	return ret;
+    };
+
+    /**
+     * @param{tcuInterval.Interval} x
+     * @param{tcuInterval.Interval} y
+     * @return{tcuInterval.Interval}
+     */
+    tcuInterval.Interval.prototype.operatorSub (x, y) {
+    	/** @type{tcuInterval.Interval} */ var ret = new tcuInterval.Interval();
+
+    	TCU_INTERVAL_APPLY_MONOTONE2(ret, xp, x, yp, y, val,
+    								 TCU_SET_INTERVAL(val, point, point = xp - yp));
+    	return ret;
+    };
+
+    /**
+     * @param{tcuInterval.Interval} x
+     * @param{tcuInterval.Interval} y
+     * @return{tcuInterval.Interval}
+     */
+    tcuInterval.Interval.prototype.operatorMul (x, y) {
+    	/** @type{tcuInterval.Interval} */ var ret = new tcuInterval.Interval();
+
+    	TCU_INTERVAL_APPLY_MONOTONE2(ret, xp, x, yp, y, val,
+    								 TCU_SET_INTERVAL(val, point, point = xp * yp));
+    	return ret;
+    };
+
+    /**
+     * @param{tcuInterval.Interval} nom
+     * @param{tcuInterval.Interval} den
+     * @return{tcuInterval.Interval}
+     */
+    tcuInterval.Interval.prototype.operatorDiv (nom, den) {
+    	if (den.contains(0.0))
+    	{
+    		// \todo [2014-03-21 lauri] Non-inf endpoint when one den endpoint is
+    		// zero and nom doesn't cross zero?
+    		return Interval::unbounded();
+    	}
+    	else
+    	{
+    		/** @type{tcuInterval.Interval} */ var ret = new tcuInterval.Interval();
+
+    		TCU_INTERVAL_APPLY_MONOTONE2(ret, nomp, nom, denp, den, val,
+    									 TCU_SET_INTERVAL(val, point, point = nomp / denp));
+    		return ret;
+    	}
+    };
+
+    /**
+     * @param{tcuInterval.Interval} x
+     * @return{tcuInterval.Interval}
+     */
+    tcuInterval.Interval.prototype.abs = function(x){
+        //std::abs
+        /** @type{tcuInterval.Interval} */ var mono = applyMonotone(Math.abs, x);
+
+    	if (x.contains(0.0))
+    		return new tcuInterval.Interval(0.0, mono);
+
+    	return mono;
+    };
+
+    /**
+     * @param{tcuInterval.Interval} x
+     * @return{tcuInterval.Interval}
+     */
+    tcuInterval.Interval.prototype.inverseSqrt	(const Interval& x) {
+	    return 1.0 / sqrt(x);
+    };
 //
-// Interval		operator+	(const Interval& x,		const Interval& y);
-// Interval		operator-	(const Interval& x,		const Interval& y);
-// Interval		operator*	(const Interval& x,		const Interval& y);
-// Interval		operator/	(const Interval& nom,	const Interval& den);
-//
-// inline Interval& operator+=	(Interval& x,	const Interval& y) { return (x = x + y); }
-// inline Interval& operator-=	(Interval& x,	const Interval& y) { return (x = x - y); }
-// inline Interval& operator*=	(Interval& x,	const Interval& y) { return (x = x * y); }
-// inline Interval& operator/=	(Interval& x,	const Interval& y) { return (x = x / y); }
-//
+
+    /**
+     * @param{tcuInterval.Interval} x
+     * @param{tcuInterval.Interval} y
+     * @return{tcuInterval.Interval}
+     */
+    tcuInterval.Interval.prototype.operatorAddAssign = function (x, y) {
+        return (x.operatorSum(y));
+    };
+
+    /**
+     * @param{tcuInterval.Interval} x
+     * @param{tcuInterval.Interval} y
+     * @return{tcuInterval.Interval}
+     */
+    tcuInterval.Interval.prototype.operatorSubAssign = function (x, y) {
+        return (x.operatorSub(y));
+    };
+
+    /**
+     * @param{tcuInterval.Interval} x
+     * @param{tcuInterval.Interval} y
+     * @return{tcuInterval.Interval}
+     */
+    tcuInterval.Interval.prototype.operatorMulAssign = function (x, y) {
+        return (x.operatorMul(y));
+    };
+
+    /**
+     * @param{tcuInterval.Interval} x
+     * @param{tcuInterval.Interval} y
+     * @return{tcuInterval.Interval}
+     */
+    tcuInterval.Interval.prototype.operatorDivAssign = function (x, y) {
+        return (x.operatorDiv(y));
+    };
+
+
 // std::ostream&	operator<<	(std::ostream& os, const Interval& interval);
 
-/**
- * @param{tcuInterval.Interval} other
- * @return{number}
- */
-tcuInterval.tcuSetIntervalBounds = function (dst, var, setLow, setHigh) {
 
-}
-#define TCU_SET_INTERVAL_BOUNDS(DST, VAR, SETLOW, SETHIGH) do	\
-{																\
-	::tcu::ScopedRoundingMode	VAR##_ctx_;						\
-	::tcu::Interval&			VAR##_dst_	= (DST);			\
-	::tcu::Interval				VAR##_lo_;						\
-	::tcu::Interval				VAR##_hi_;						\
-																\
-	{															\
-		::tcu::Interval&	VAR	= VAR##_lo_;					\
-		::deSetRoundingMode(DE_ROUNDINGMODE_TO_NEGATIVE_INF);	\
-		SETLOW;													\
-	}															\
-	{															\
-		::tcu::Interval&	VAR	= VAR##_hi_;					\
-		::deSetRoundingMode(DE_ROUNDINGMODE_TO_POSITIVE_INF);	\
-		SETHIGH;												\
-	}															\
-																\
-	VAR##_dst_ = VAR##_lo_ | VAR##_hi_;							\
-} while (::deGetFalse())
+// TODO implement
+// #define TCU_SET_INTERVAL_BOUNDS(DST, VAR, SETLOW, SETHIGH) do	\
+// {																\
+// 	::tcu::ScopedRoundingMode	VAR##_ctx_;						\
+// 	::tcu::Interval&			VAR##_dst_	= (DST);			\
+// 	::tcu::Interval				VAR##_lo_;						\
+// 	::tcu::Interval				VAR##_hi_;						\
+// 																\
+// 	{															\
+// 		::tcu::Interval&	VAR	= VAR##_lo_;					\
+// 		::deSetRoundingMode(DE_ROUNDINGMODE_TO_NEGATIVE_INF);	\
+// 		SETLOW;													\
+// 	}															\
+// 	{															\
+// 		::tcu::Interval&	VAR	= VAR##_hi_;					\
+// 		::deSetRoundingMode(DE_ROUNDINGMODE_TO_POSITIVE_INF);	\
+// 		SETHIGH;												\
+// 	}															\
+// 																\
+// 	VAR##_dst_ = VAR##_lo_ | VAR##_hi_;							\
+// } while (::deGetFalse())
+//
+// #define TCU_SET_INTERVAL(DST, VAR, BODY)						\
+// 	TCU_SET_INTERVAL_BOUNDS(DST, VAR, BODY, BODY)
+//
+// //! Set the interval DST to the image of BODY on ARG, assuming that BODY on
+// //! ARG is a monotone function. In practice, BODY is evaluated on both the
+// //! upper and lower bound of ARG, and DST is set to the union of these
+// //! results. While evaluating BODY, PARAM is bound to the bound of ARG, and
+// //! the output of BODY should be stored in VAR.
+// #define TCU_INTERVAL_APPLY_MONOTONE1(DST, PARAM, ARG, VAR, BODY) do		\
+// 	{																	\
+// 	const ::tcu::Interval&	VAR##_arg_		= (ARG);					\
+// 	::tcu::Interval&		VAR##_dst_		= (DST);					\
+// 	::tcu::Interval			VAR##_lo_;									\
+// 	::tcu::Interval			VAR##_hi_;									\
+// 	if (VAR##_arg_.empty())												\
+// 		VAR##_dst_ = Interval();										\
+// 	else																\
+// 	{																	\
+// 		{																\
+// 			const double		PARAM	= VAR##_arg_.lo();				\
+// 			::tcu::Interval&	VAR		= VAR##_lo_;					\
+// 			BODY;														\
+// 		}																\
+// 		{																\
+// 			const double		PARAM	= VAR##_arg_.hi();				\
+// 			::tcu::Interval&	VAR		= VAR##_hi_;					\
+// 			BODY;														\
+// 		}																\
+// 		VAR##_dst_ = VAR##_lo_ | VAR##_hi_;								\
+// 	}																	\
+// 	if (VAR##_arg_.hasNaN())											\
+// 		VAR##_dst_ |= TCU_NAN;											\
+// } while (::deGetFalse())
+//
+// #define TCU_INTERVAL_APPLY_MONOTONE2(DST, P0, A0, P1, A1, VAR, BODY)	\
+// 	TCU_INTERVAL_APPLY_MONOTONE1(										\
+// 		DST, P0, A0, tmp2_,												\
+// 		TCU_INTERVAL_APPLY_MONOTONE1(tmp2_, P1, A1, VAR, BODY))
+//
+// #define TCU_INTERVAL_APPLY_MONOTONE3(DST, P0, A0, P1, A1, P2, A2, VAR, BODY) \
+// 	TCU_INTERVAL_APPLY_MONOTONE1(										\
+// 		DST, P0, A0, tmp3_,												\
+// 		TCU_INTERVAL_APPLY_MONOTONE2(tmp3_, P1, A1, P2, A2, VAR, BODY))
 
-#define TCU_SET_INTERVAL(DST, VAR, BODY)						\
-	TCU_SET_INTERVAL_BOUNDS(DST, VAR, BODY, BODY)
-
-//! Set the interval DST to the image of BODY on ARG, assuming that BODY on
-//! ARG is a monotone function. In practice, BODY is evaluated on both the
-//! upper and lower bound of ARG, and DST is set to the union of these
-//! results. While evaluating BODY, PARAM is bound to the bound of ARG, and
-//! the output of BODY should be stored in VAR.
-#define TCU_INTERVAL_APPLY_MONOTONE1(DST, PARAM, ARG, VAR, BODY) do		\
-	{																	\
-	const ::tcu::Interval&	VAR##_arg_		= (ARG);					\
-	::tcu::Interval&		VAR##_dst_		= (DST);					\
-	::tcu::Interval			VAR##_lo_;									\
-	::tcu::Interval			VAR##_hi_;									\
-	if (VAR##_arg_.empty())												\
-		VAR##_dst_ = Interval();										\
-	else																\
-	{																	\
-		{																\
-			const double		PARAM	= VAR##_arg_.lo();				\
-			::tcu::Interval&	VAR		= VAR##_lo_;					\
-			BODY;														\
-		}																\
-		{																\
-			const double		PARAM	= VAR##_arg_.hi();				\
-			::tcu::Interval&	VAR		= VAR##_hi_;					\
-			BODY;														\
-		}																\
-		VAR##_dst_ = VAR##_lo_ | VAR##_hi_;								\
-	}																	\
-	if (VAR##_arg_.hasNaN())											\
-		VAR##_dst_ |= TCU_NAN;											\
-} while (::deGetFalse())
-
-#define TCU_INTERVAL_APPLY_MONOTONE2(DST, P0, A0, P1, A1, VAR, BODY)	\
-	TCU_INTERVAL_APPLY_MONOTONE1(										\
-		DST, P0, A0, tmp2_,												\
-		TCU_INTERVAL_APPLY_MONOTONE1(tmp2_, P1, A1, VAR, BODY))
-
-#define TCU_INTERVAL_APPLY_MONOTONE3(DST, P0, A0, P1, A1, P2, A2, VAR, BODY) \
-	TCU_INTERVAL_APPLY_MONOTONE1(										\
-		DST, P0, A0, tmp3_,												\
-		TCU_INTERVAL_APPLY_MONOTONE2(tmp3_, P1, A1, P2, A2, VAR, BODY))
-
-typedef double		DoubleFunc1			(double);
-typedef double		DoubleFunc2			(double, double);
-typedef double		DoubleFunc3			(double, double, double);
-typedef Interval	DoubleIntervalFunc1	(double);
-typedef Interval	DoubleIntervalFunc2	(double, double);
-typedef Interval	DoubleIntervalFunc3	(double, double, double);
-
-Interval	applyMonotone	(DoubleFunc1&			func,
-							 const Interval&		arg0);
-Interval	applyMonotone	(DoubleFunc2&			func,
-							 const Interval&		arg0,
-							 const Interval&		arg1);
-Interval	applyMonotone	(DoubleIntervalFunc1&	func,
-							 const Interval&		arg0);
-Interval	applyMonotone	(DoubleIntervalFunc2&	func,
-							 const Interval&		arg0,
-							 const Interval&		arg1);
+// typedef double		DoubleFunc1			(double);
+// typedef double		DoubleFunc2			(double, double);
+// typedef double		DoubleFunc3			(double, double, double);
+// typedef Interval	DoubleIntervalFunc1	(double);
+// typedef Interval	DoubleIntervalFunc2	(double, double);
+// typedef Interval	DoubleIntervalFunc3	(double, double, double);
+//
+// Interval	applyMonotone	(DoubleFunc1&			func,
+// 							 const Interval&		arg0);
+// Interval	applyMonotone	(DoubleFunc2&			func,
+// 							 const Interval&		arg0,
+// 							 const Interval&		arg1);
+// Interval	applyMonotone	(DoubleIntervalFunc1&	func,
+// 							 const Interval&		arg0);
+// Interval	applyMonotone	(DoubleIntervalFunc2&	func,
+// 							 const Interval&		arg0,
+// 							 const Interval&		arg1);
 
 
-} // tcu
-
-#endif // _TCUINTERVAL_HPP
+});
