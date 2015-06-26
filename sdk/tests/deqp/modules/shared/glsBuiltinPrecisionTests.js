@@ -301,84 +301,104 @@ goog.scope(function() {
      * @return{tcuInterval.Interval}
      */
     glsBuiltinPrecisionTests.ContainerTraits.prototype.doMakeIVal = function(value) {
+    	/** @type{Array<tcuInterval.Interval>}	*/ var ret = [];
+
+		for (int ndx = 0; ndx < T::SIZE; ++ndx)
+			ret[ndx] = makeIVal(value[ndx]);
+
+		return ret;
+	};
+
+    /**
+     * @param{tcuInterval.Interval} a
+     * @param{tcuInterval.Interval} b
+     * @return{tcuInterval.Interval}
+     */
+    glsBuiltinPrecisionTests.ContainerTraits.prototype.doUnion = function (a, b) {
+    	/** @type{Array<tcuInterval.Interval>}	*/ var ret = [];
+
+		for (int ndx = 0; ndx < T::SIZE; ++ndx)
+			ret[ndx] = unionIVal<Element>(a[ndx], b[ndx]);
+
+		return ret;
+	};
+
+    /**
+     * @param{tcuInterval.Interval} ival
+     * @param{*} value
+     * @return{boolean}
+     */
+    glsBuiltinPrecisionTests.ContainerTraits.prototype.doContains = function(ival, value) {
+		for (int ndx = 0; ndx < T::SIZE; ++ndx)
+			if (!this.contains(ival[ndx], value[ndx]))
+				return false;
+
+		return true;
+	};
+
+    /**
+     * @param{tcuFloatFormat.FloatFormat} fmt
+     * @param{tcuInterval.Interval} ival
+     */
+    glsBuiltinPrecisionTests.ContainerTraits.prototype.doPrintIVal = function(fmt, ival) {
+		/** @type{string} */ var os = '(';
+
+		for (int ndx = 0; ndx < T::SIZE; ++ndx)	{
+			if (ndx > 0)
+				os += ', ';
+			this.printIVal<Element>(fmt, ival[ndx], os);
+		}
+
+		os += ')';
+        bufferedLogToConsole(os);
+	};
+
+    /**
+     * @param{tcuFloatFormat.FloatFormat} fmt
+     * @param{tcuInterval.Interval} ival
+     */
+    glsBuiltinPrecisionTests.ContainerTraits.prototype.doPrintValue	(fmt, value) {
+		/** @type{string} */ var os = dataTypeNameOf<T>() + '(';
+
+		for (int ndx = 0; ndx < T::SIZE; ++ndx)
+		{
+			if (ndx > 0)
+				os += ', ';
+
+			printValue<Element>(fmt, value[ndx], os);
+		}
+
+		os += ')';
+        bufferedLogToConsole(os);
+	};
+
+    /**
+     * @param{tcuFloatFormat.FloatFormat} fmt
+     * @param{tcuInterval.Interval} value
+     * @return{tcuInterval.Interval}
+     */
+    glsBuiltinPrecisionTests.ContainerTraits.prototype.doConvert = function(fmt, value) {
+		/** @type{Array<tcuInterval.Interval>}	*/ var ret;
+
+		for (int ndx = 0; ndx < T::SIZE; ++ndx)
+			ret[ndx] = this.convert<Element>(fmt, value[ndx]);
+
+		return ret;
+	};
+
+    /**
+     * @param{tcuFloatFormat.FloatFormat} fmt
+     * @param{*} value
+     * @return{tcuInterval.Interval}
+     */
+    glsBuiltinPrecisionTests.ContainerTraits.prototype.doRound = function(fmt, value) {
     	/** @type{Array<tcuInterval.Interval>}	*/ var ret;
 
-    		for (int ndx = 0; ndx < T::SIZE; ++ndx)
-    			ret[ndx] = makeIVal(value[ndx]);
+		for (int ndx = 0; ndx < T::SIZE; ++ndx)
+			ret[ndx] = this.round(fmt, value[ndx]);
 
-    		return ret;
-    	}
-
-    	static IVal			doUnion			(const IVal& a, const IVal& b)
-    	{
-    		IVal ret;
-
-    		for (int ndx = 0; ndx < T::SIZE; ++ndx)
-    			ret[ndx] = unionIVal<Element>(a[ndx], b[ndx]);
-
-    		return ret;
-    	}
-
-    	static bool			doContains		(const IVal& ival, const T& value)
-    	{
-    		for (int ndx = 0; ndx < T::SIZE; ++ndx)
-    			if (!contains(ival[ndx], value[ndx]))
-    				return false;
-
-    		return true;
-    	}
-
-    	static void			doPrintIVal		(const FloatFormat& fmt, const IVal ival, ostream& os)
-    	{
-    		os << "(";
-
-    		for (int ndx = 0; ndx < T::SIZE; ++ndx)
-    		{
-    			if (ndx > 0)
-    				os << ", ";
-
-    			printIVal<Element>(fmt, ival[ndx], os);
-    		}
-
-    		os << ")";
-    	}
-
-    	static void			doPrintValue	(const FloatFormat& fmt, const T& value, ostream& os)
-    	{
-    		os << dataTypeNameOf<T>() << "(";
-
-    		for (int ndx = 0; ndx < T::SIZE; ++ndx)
-    		{
-    			if (ndx > 0)
-    				os << ", ";
-
-    			printValue<Element>(fmt, value[ndx], os);
-    		}
-
-    		os << ")";
-    	}
-
-    	static IVal			doConvert		(const FloatFormat& fmt, const IVal& value)
-    	{
-    		IVal ret;
-
-    		for (int ndx = 0; ndx < T::SIZE; ++ndx)
-    			ret[ndx] = convert<Element>(fmt, value[ndx]);
-
-    		return ret;
-    	}
-
-    	static IVal			doRound			(const FloatFormat& fmt, T value)
-    	{
-    		IVal ret;
-
-    		for (int ndx = 0; ndx < T::SIZE; ++ndx)
-    			ret[ndx] = round(fmt, value[ndx]);
-
-    		return ret;
-    	}
-
-
+		return ret;
+	};
 
     /**
      * @constructor
