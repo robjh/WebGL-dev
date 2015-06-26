@@ -32,6 +32,33 @@
      var tcuInterval = framework.common.tcuInterval;
 
      /**
+      * @param{tcuFloatFormat.YesNoMaybe} choice
+      * @param{tcuInterval.Interval} no
+      * @param{tcuInterval.Interval} yes
+      * @return{tcuFloatFormat.YesNoMaybe}
+      */
+    tcuFloatFormat.chooseInterval = function(choice, no, yes) {
+    	switch (choice)
+    	{
+    		case tcuFloatFormat.YesNoMaybe.NO:	return no;
+    		case tcuFloatFormat.YesNoMaybe.YES:	return yes;
+    		case tcuFloatFormat.YesNoMaybe.MAYBE:	return no.operatorOrBinary(yes);
+    		default: throw new Error(!"Impossible case");
+    	}
+    	return new tcuInterval.Interval();
+    };
+
+    /**
+     * @param{number} maxExp
+     * @param{number} fractionBits
+     * @return{number}
+     */
+    tcuFloatFormat.computeMaxValue = function(maxExp, fractionBits) {
+    	return (deLdExp(1.0, maxExp) +
+    			deLdExp(double((1ull << fractionBits) - 1), maxExp - fractionBits));
+    };
+
+     /**
       * @enum{number}
       */
      tcuFloatFormat.YesNoMaybe = {
@@ -139,6 +166,20 @@
     };
 
     /**
+     * Return the difference between the given nominal exponent and
+     * the exponent of the lowest significand bit of the
+     * representation of a number with this format.
+     * For normal numbers this is the number of significand bits, but
+     * for subnormals it is less and for values of exp where 2^exp is too
+     * small to represent it is <0
+     * @param{number} exp
+     * @return{number}
+     */
+    tcuFloatFormat.FloatFormat.prototype.exponentShift = function(exp) {
+    	return m_fractionBits - Math.max(this.m_minExp - exp, 0);
+    };
+
+    /**
      * @param{number} d
      * @param{boolean} upward
      * @return{number}
@@ -151,6 +192,28 @@
     	/** @type{tcuInterval.Interval} */ var	roundFrac	= upward ? Math.ceil(shiftFrac) : Math.floor(shiftFrac);
 
     	return deLdExp(roundFrac, exp - shift);
+    };
+
+    /**
+     * Return the range of numbers that `d` might be converted to in the
+     * floatformat, given its limitations with infinities, subnormals and maximum
+     * exponent.
+     * @param{number} d
+     * @return{tcuInterval.interval}
+     */
+     tcuFloatFormat.FloatFormat.prototype.clampValue = function(d) {
+    	/** @type{number} */ var	rSign		= deSign(d);
+    	/** @type{number} */ var	rExp		= 0;
+
+    	// DE_ASSERT(!deIsNaN(d));
+
+    	deFractExp(d, rExp);
+    	if (rExp < m_minExp)
+    		return chooseInterval(m_hasSubnormal, rSign * 0.0, d);
+    	else if (deIsInf(d) || rExp > m_maxExp)
+    		return chooseInterval(m_hasInf, rSign * getMaxValue(), rSign * Number.POSITIVE_INFINITY);
+
+    	return new tcuInterval.Interval(d);
     };
 
     /**

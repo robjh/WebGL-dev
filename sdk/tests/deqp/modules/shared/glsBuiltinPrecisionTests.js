@@ -144,42 +144,241 @@ goog.scope(function() {
 
     /**
      * @constructor
-     * @param{*} R
-     * @param{*} P0
-     * @param{*} P1
-     * @param{*} P2
-     * @param{*} P3
+     * @param{*} typename
      */
-    glsBuiltinPrecisionTests.ScalarTraits = function() {};
-	// typedef 			Interval		IVal;
+    glsBuiltinPrecisionTests.ScalarTraits = function(t) {
+        // typedef 	Interval IVal;
+        /** type{tcuInterval.Interval} */ this.iVal;
+    };
 
-	glsBuiltinPrecisionTests.doMakeIVal	(const T& value)
-	{
+    /**
+     * @param{*} value
+     * @return{tcuInterval.Interval}
+     */
+    glsBuiltinPrecisionTests.ScalarTraits.prototype.doMakeIVal = function(value) {
 		// Thankfully all scalar types have a well-defined conversion to `double`,
 		// hence Interval can represent their ranges without problems.
-		return Interval(double(value));
+		return new tcuInterval.Interval(double(value));
+	};
+
+    /**
+     * @param{tcuInterval.Interval} a
+     * @param{tcuInterval.Interval} b
+     * @return{tcuInterval.Interval}
+     */
+    glsBuiltinPrecisionTests.ScalarTraits.prototype.doUnion	= function(a, b) {
+		return a.operatorOrBinary(b);
 	}
 
-	static Interval		doUnion			(const Interval& a, const Interval& b)
-	{
-		return a | b;
-	}
-
-	static bool			doContains		(const Interval& a, T value)
-	{
+    /**
+     * @param{tcuInterval.Interval} a
+     * @param{*} value
+     * @return{boolean}
+     */
+    glsBuiltinPrecisionTests.ScalarTraits.prototype.doContains = function(a, value)	{
 		return a.contains(double(value));
-	}
+	};
 
-	static Interval		doConvert		(const FloatFormat& fmt, const IVal& ival)
-	{
+    /**
+     * @param{tcuFloatFormat.FloatFormat} fmt
+     * @param{tcuInterval.Interval} ival
+     * @return{tcuInterval.Interval}
+     */
+    glsBuiltinPrecisionTests.ScalarTraits.prototype.doConvert = function(fmt, ival)	{
 		return fmt.convert(ival);
-	}
+	};
 
-	static Interval		doRound			(const FloatFormat& fmt, T value)
-	{
+    /**
+     * @param{tcuFloatFormat.FloatFormat} fmt
+     * @param{*} value
+     * @return{tcuInterval.Interval}
+     */
+    glsBuiltinPrecisionTests.ScalarTraits.prototype.doRound	= function(fmt, value) {
 		return fmt.roundOut(double(value), false);
-	}
-};
+	};
+
+    /**
+     * @constructor
+     * @extends{glsBuiltinPrecisionTests.ScalarTraits}
+     * @param{*} typename
+     */
+    glsBuiltinPrecisionTests.TraitsFloat = function(t) {
+    };
+
+    /**
+     * @param{tcuFloatFormat.FloatFormat} fmt
+     * @param{tcuInterval.Interval} ival
+     */
+    glsBuiltinPrecisionTests.TraitsFloat.prototype.doPrintIVal = function(fmt, ival) {
+		bufferedLogToConsole(fmt.intervalToHex(ival));
+	};
+
+    /**
+     * @param{tcuFloatFormat.FloatFormat} fmt
+     * @param{number} value
+     */
+    glsBuiltinPrecisionTests.TraitsFloat.prototype.doPrintValue	= function(fmt, value) {
+		bufferedLogToConsole(fmt.floatToHex(value));
+	};
+
+    glsBuiltinPrecisionTests.TraitsFloat.prototype = Object.create(glsBuiltinPrecisionTests.ScalarTraits.prototype);
+    glsBuiltinPrecisionTests.TraitsFloat.prototype.constructor = glsBuiltinPrecisionTests.TraitsFloat;
+
+    /**
+     * @constructor
+     * @extends{glsBuiltinPrecisionTests.ScalarTraits}
+     */
+    glsBuiltinPrecisionTests.TraitsBool = function() {};
+
+    /**
+     * @param{tcuFloatFormat.FloatFormat} fmt
+     * @param{tcuInterval.Interval} ival
+     */
+    glsBuiltinPrecisionTests.TraitsBool.prototype.doPrintIVal = function(fmt, ival) {
+        /** type{string} */ var os = '{';
+		if (ival.contains(false))
+			os += 'false';
+		if (ival.contains(false) && ival.contains(true))
+			os += ', ';
+		if (ival.contains(true))
+			os += 'true';
+		os += '}';
+        bufferedLogToConsole(os);
+	};
+
+    /**
+     * @param{tcuFloatFormat.FloatFormat} fmt
+     * @param{number} value
+     */
+    glsBuiltinPrecisionTests.TraitsBool.prototype.doPrintValue	= function(fmt, value) {
+		bufferedLogToConsole(value ? 'true' : 'false');
+	};
+
+    glsBuiltinPrecisionTests.TraitsBool.prototype = Object.create(glsBuiltinPrecisionTests.ScalarTraits.prototype);
+    glsBuiltinPrecisionTests.TraitsBool.prototype.constructor = glsBuiltinPrecisionTests.TraitsBool;
+
+    /**
+     * @constructor
+     * @extends{glsBuiltinPrecisionTests.ScalarTraits}
+     */
+    glsBuiltinPrecisionTests.TraitsInt = function() {};
+	};
+
+    /**
+     * @param{tcuFloatFormat.FloatFormat} fmt
+     * @param{tcuInterval.Interval} ival
+     */
+    glsBuiltinPrecisionTests.TraitsInt.prototype.doPrintIVal = function(fmt, ival) {
+		bufferedLogToConsole('[' + (ival.lo()) + ', ' + (ival.hi()) + ']');
+	};
+
+    /**
+     * @param{tcuFloatFormat.FloatFormat} fmt
+     * @param{number} value
+     */
+    glsBuiltinPrecisionTests.TraitsInt.prototype.doPrintValue	= function(fmt, value) {
+		bufferedLogToConsole(value);
+	};
+
+    glsBuiltinPrecisionTests.TraitsInt.prototype = Object.create(glsBuiltinPrecisionTests.ScalarTraits.prototype);
+    glsBuiltinPrecisionTests.TraitsInt.prototype.constructor = glsBuiltinPrecisionTests.TraitsInt;
+
+
+    /**
+     * Common traits for containers, i.e. vectors and matrices.
+     * T is the container type itself, I is the same type with interval elements.
+     * template <typename T, typename I>
+     * @constructor
+     */
+    glsBuiltinPrecisionTests.ContainerTraits = function() {};
+	};
+
+    // typedef typename	T::Element		Element;
+    // typedef				I				IVal;
+
+    /**
+     * @param{*} value can be a vector or matrix
+     * @return{tcuInterval.Interval}
+     */
+    glsBuiltinPrecisionTests.ContainerTraits.prototype.doMakeIVal = function(value) {
+    	/** @type{Array<tcuInterval.Interval>}	*/ var ret;
+
+    		for (int ndx = 0; ndx < T::SIZE; ++ndx)
+    			ret[ndx] = makeIVal(value[ndx]);
+
+    		return ret;
+    	}
+
+    	static IVal			doUnion			(const IVal& a, const IVal& b)
+    	{
+    		IVal ret;
+
+    		for (int ndx = 0; ndx < T::SIZE; ++ndx)
+    			ret[ndx] = unionIVal<Element>(a[ndx], b[ndx]);
+
+    		return ret;
+    	}
+
+    	static bool			doContains		(const IVal& ival, const T& value)
+    	{
+    		for (int ndx = 0; ndx < T::SIZE; ++ndx)
+    			if (!contains(ival[ndx], value[ndx]))
+    				return false;
+
+    		return true;
+    	}
+
+    	static void			doPrintIVal		(const FloatFormat& fmt, const IVal ival, ostream& os)
+    	{
+    		os << "(";
+
+    		for (int ndx = 0; ndx < T::SIZE; ++ndx)
+    		{
+    			if (ndx > 0)
+    				os << ", ";
+
+    			printIVal<Element>(fmt, ival[ndx], os);
+    		}
+
+    		os << ")";
+    	}
+
+    	static void			doPrintValue	(const FloatFormat& fmt, const T& value, ostream& os)
+    	{
+    		os << dataTypeNameOf<T>() << "(";
+
+    		for (int ndx = 0; ndx < T::SIZE; ++ndx)
+    		{
+    			if (ndx > 0)
+    				os << ", ";
+
+    			printValue<Element>(fmt, value[ndx], os);
+    		}
+
+    		os << ")";
+    	}
+
+    	static IVal			doConvert		(const FloatFormat& fmt, const IVal& value)
+    	{
+    		IVal ret;
+
+    		for (int ndx = 0; ndx < T::SIZE; ++ndx)
+    			ret[ndx] = convert<Element>(fmt, value[ndx]);
+
+    		return ret;
+    	}
+
+    	static IVal			doRound			(const FloatFormat& fmt, T value)
+    	{
+    		IVal ret;
+
+    		for (int ndx = 0; ndx < T::SIZE; ++ndx)
+    			ret[ndx] = round(fmt, value[ndx]);
+
+    		return ret;
+    	}
+
+
 
     /**
      * @constructor

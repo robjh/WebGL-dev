@@ -69,8 +69,8 @@
      */
     tcuInterval.applyMonotone = function(/*DoubleFunc1& */func, arg0) {
     	/** @type{tcuInterval.Interval} */ var ret = new tcuInterval.Interval();
-    	// TCU_INTERVAL_APPLY_MONOTONE1(ret, x, arg0, val,
-    	// 							 TCU_SET_INTERVAL(val, point, point = func(x)));
+    	TCU_INTERVAL_APPLY_MONOTONE1(ret, x, arg0, val,
+    								TCU_SET_INTERVAL(val, point, point = func(x)));
     	return ret;
     };
 
@@ -92,8 +92,8 @@
     tcuInterval.applyMonotone = function(/*DoubleFunc2& */func, arg0, arg1) {
 	    /** @type{tcuInterval.Interval} */ var ret = new tcuInterval.Interval();
 
-	    // TCU_INTERVAL_APPLY_MONOTONE2(ret, x, arg0, y, arg1, val,
-		// 						 TCU_SET_INTERVAL(val, point, point = func(x, y)));
+	    TCU_INTERVAL_APPLY_MONOTONE2(ret, x, arg0, y, arg1, val,
+								 TCU_SET_INTERVAL(val, point, point = func(x, y)));
         return ret;
     };
 
@@ -481,7 +481,7 @@
 // 																\
 // 	VAR##_dst_ = VAR##_lo_ | VAR##_hi_;							\
 // } while (::deGetFalse())
-//
+
 // #define TCU_SET_INTERVAL(DST, VAR, BODY)						\
 // 	TCU_SET_INTERVAL_BOUNDS(DST, VAR, BODY, BODY)
 //
@@ -490,6 +490,7 @@
 // //! upper and lower bound of ARG, and DST is set to the union of these
 // //! results. While evaluating BODY, PARAM is bound to the bound of ARG, and
 // //! the output of BODY should be stored in VAR.
+//
 // #define TCU_INTERVAL_APPLY_MONOTONE1(DST, PARAM, ARG, VAR, BODY) do		\
 // 	{																	\
 // 	const ::tcu::Interval&	VAR##_arg_		= (ARG);					\
@@ -515,7 +516,7 @@
 // 	if (VAR##_arg_.hasNaN())											\
 // 		VAR##_dst_ |= TCU_NAN;											\
 // } while (::deGetFalse())
-//
+
 // #define TCU_INTERVAL_APPLY_MONOTONE2(DST, P0, A0, P1, A1, VAR, BODY)	\
 // 	TCU_INTERVAL_APPLY_MONOTONE1(										\
 // 		DST, P0, A0, tmp2_,												\
