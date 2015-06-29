@@ -221,7 +221,7 @@ goog.scope(function() {
         var buf = 0;
         buf = gl.createBuffer();
         if (buf != 0) {
-            try{
+            try {
                 deUtil.dePushUniqueToArray(this.m_allocatedBuffers, buf);
             }
             catch (err) {
