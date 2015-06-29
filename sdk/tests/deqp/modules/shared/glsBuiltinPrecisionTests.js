@@ -125,22 +125,51 @@ goog.scope(function() {
      * @param{*} P3
      */
     glsBuiltinPrecisionTests.Signature = function (R, P0, P1, P2, P3) {
-    this.Ret = R;
-    this.Arg0 = P0 === undefined ? new glsBuiltinPrecisionTests.Void() : P0;
-    this.Arg1 = P1 === undefined ? new glsBuiltinPrecisionTests.Void() : P1;
-    this.Arg2 = P2 === undefined ? new glsBuiltinPrecisionTests.Void() : P2;
-    this.Arg3 = P3 === undefined ? new glsBuiltinPrecisionTests.Void() : P3;
+        this.Ret = R;
+        this.Arg0 = P0 === undefined ? new glsBuiltinPrecisionTests.Void() : P0;
+        this.Arg1 = P1 === undefined ? new glsBuiltinPrecisionTests.Void() : P1;
+        this.Arg2 = P2 === undefined ? new glsBuiltinPrecisionTests.Void() : P2;
+        this.Arg3 = P3 === undefined ? new glsBuiltinPrecisionTests.Void() : P3;
 
-	typedef typename Traits<Ret>::IVal	IRet;
-	typedef typename Traits<Arg0>::IVal	IArg0;
-	typedef typename Traits<Arg1>::IVal	IArg1;
-	typedef typename Traits<Arg2>::IVal	IArg2;
-	typedef typename Traits<Arg3>::IVal	IArg3;
+        this.IRet = glsBuiltinPrecisionTests.Traits(this.Ret);
+        this.IArg0 = glsBuiltinPrecisionTests.Traits(this.Arg0);
+        this.IArg1 = glsBuiltinPrecisionTests.Traits(this.Arg1);
+        this.IArg2 = glsBuiltinPrecisionTests.Traits(this.Arg2);
+        this.IArg3 = glsBuiltinPrecisionTests.Traits(this.Arg3);
 
-	typedef Tuple4<	const Arg0&,	const Arg1&,	const Arg2&,	const Arg3&>	Args;
-	typedef Tuple4<	const IArg0&,	const IArg1&,	const IArg2&,	const IArg3&> 	IArgs;
-	typedef Tuple4<	ExprP<Arg0>,	ExprP<Arg1>,	ExprP<Arg2>,	ExprP<Arg3> >	ArgExprs;
-};
+        this.Args = new glsBuiltinPrecisionTests.Tuple4(this.Arg0, this.Arg1, this.Arg2, this.Arg3);
+        this.IArgs = new glsBuiltinPrecisionTests.Tuple4(this.IArg0, this.IArg1, this.IArg2, this.IArg3);
+
+    	typedef Tuple4<	ExprP<Arg0>,	ExprP<Arg1>,	ExprP<Arg2>,	ExprP<Arg3> >	ArgExprs;
+    };
+
+    /**
+     * @constructor
+     * @param{tcuInterval.Interval} A0
+     * @param{tcuInterval.Interval} A1
+     * @param{tcuInterval.Interval} A2
+     * @param{tcuInterval.Interval} A3
+     */
+    glsBuiltinPrecisionTests.Tuple4 = function(A0, A1, A2, A3) {
+        this.a = A0 === undefined = new glsBuiltinPrecisionTests.Void() = A0();
+        this.b = A1 === undefined = new glsBuiltinPrecisionTests.Void() = A1();
+        this.c = A2 === undefined = new glsBuiltinPrecisionTests.Void() = A2();
+        this.d = A3 === undefined = new glsBuiltinPrecisionTests.Void() = A3();
+    };
+
+    /**
+     * @constructor
+     * @param{tcuFloatFormat.FloatFormat} format_
+     * @param{glsBuiltinPrecisionTests.Precision} floatPrecision_
+     * @param{glsBuiltinPrecisionTests.Environment} env_
+     * @param{number?} callDepth_
+     */
+    glsBuiltinPrecisionTests.EvalContext = function (format_, floatPrecision_, env_, callDepth_) {
+		this.format = format_;
+		this.floatPrecision = floatPrecision_)
+		this.env = env_)
+		this.callDepth = callDepth_ === undefined ? 0 : callDepth_;
+    };
 
     /**
      * @constructor
@@ -357,7 +386,7 @@ goog.scope(function() {
      * @param{tcuFloatFormat.FloatFormat} fmt
      * @param{tcuInterval.Interval} ival
      */
-    glsBuiltinPrecisionTests.ContainerTraits.prototype.doPrintValue	(fmt, value) {
+    glsBuiltinPrecisionTests.ContainerTraits.prototype.doPrintValue	= function(fmt, value) {
 		/** @type{string} */ var os = dataTypeNameOf<T>() + '(';
 
 		for (int ndx = 0; ndx < T::SIZE; ++ndx)
@@ -378,7 +407,7 @@ goog.scope(function() {
      * @return{tcuInterval.Interval}
      */
     glsBuiltinPrecisionTests.ContainerTraits.prototype.doConvert = function(fmt, value) {
-		/** @type{Array<tcuInterval.Interval>}	*/ var ret;
+		/** @type{Array<tcuInterval.Interval>}	*/ var ret = [];
 
 		for (int ndx = 0; ndx < T::SIZE; ++ndx)
 			ret[ndx] = this.convert<Element>(fmt, value[ndx]);
@@ -399,6 +428,64 @@ goog.scope(function() {
 
 		return ret;
 	};
+
+    /**
+     * @param{*} T
+     */
+    glsBuiltinPrecisionTests.Traits = function(T) {
+        this.typename = T;
+    };
+
+    /**
+     * Common base class for all expressions regardless of their type.
+     * @constructor
+     */
+    .ExprBase = function() {};
+
+    /**
+     */
+    glsBuiltinPrecisionTests.ExprBase.prototype.printExpr = function (){
+        this->doPrintExpr(os);
+    };
+
+    /**
+     * Type-specific operations for an expression representing type T.
+     * @constructor
+     * @extends{glsBuiltinPrecisionTests.ExprBase}
+     * @param{*} T template <typename T>
+     */
+    glsBuiltinPrecisionTests.Expr = function(T) {
+        this.typename = T;
+
+    };
+
+    /**
+     * Type-specific operations for an expression representing type T.
+     * @constructor
+     * @extends{glsBuiltinPrecisionTests.ExprBase}
+     * @param{*} T template <typename T>
+     * @param{glsBuiltinPrecisionTests.EvalContext} ctx
+     */
+    glsBuiltinPrecisionTests.Expr.prototype.evaluate = function(ctx)
+        return this.doEvaluate(ctx);
+    };
+
+    /**
+     * Output the functions that this expression refers to
+     * @param
+     */
+    glsBuiltinPrecisionTests.ExprBase.prototype.getUsedFuncs = function(/*FuncSet&*/ dst) {
+		this.doGetUsedFuncs(dst);
+	};
+
+    /**
+     * @param{*} T
+     * @param{*} value
+     * @return{*}
+     */
+    glsBuiltinPrecisionTests.makeIVal = function(T, value) {
+	       return this.doMakeIVal(value);
+    };
 
     /**
      * @constructor
