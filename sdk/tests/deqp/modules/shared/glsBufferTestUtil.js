@@ -199,6 +199,9 @@ goog.scope(function() {
         /** @type {Array<WebGLBuffer>} */ this.m_allocatedBuffers = [];
     };
 
+    glsBufferTestUtil.BufferCase.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
+    glsBufferTestUtil.BufferCase.prototype.constructor = glsBufferTestUtil.BufferCase;
+
     /**
      * init
      */

@@ -231,10 +231,11 @@ goog.scope(function() {
     * @return {?string} Full test name.
     */
     tcuTestCase.DeqpTest.prototype.fullName = function() {
-        if (this.parentTest)
+        if (this.parentTest) {
             var parentName = this.parentTest.fullName();
             if (parentName)
                 return parentName + '.' + this.name;
+        }
         return this.name;
     };
 

@@ -263,19 +263,19 @@ goog.scope(function() {
          * @type {Array<{name: string, srcSize: number, dstSize: number, srcOffset: number, dstOffset: number, copySize: number}>}
          */
         var cases = [{
-                name: 'middle', srcSize: 1000, dstSize: 1000, srcOffs: 250, dstOffs: 250, copySize: 500
+                name: 'middle', srcSize: 1000, dstSize: 1000, srcOffset: 250, dstOffset: 250, copySize: 500
             },{
-                name: 'small_to_large', srcSize: 100, dstSize: 1000, srcOffs: 0, dstOffs: 409, copySize: 100
+                name: 'small_to_large', srcSize: 100, dstSize: 1000, srcOffset: 0, dstOffset: 409, copySize: 100
             },{
-                name: 'large_to_small', srcSize: 1000, dstSize: 100, srcOffs: 409, dstOffs: 0, copySize: 100
+                name: 'large_to_small', srcSize: 1000, dstSize: 100, srcOffset: 409, dstOffset: 0, copySize: 100
             },{
-                name: 'low_to_high_1', srcSize: 1000, dstSize: 1000, srcOffs: 0, dstOffs: 500, copySize: 500
+                name: 'low_to_high_1', srcSize: 1000, dstSize: 1000, srcOffset: 0, dstOffset: 500, copySize: 500
             },{
-                name: 'low_to_high_2', srcSize: 997, dstSize: 1027, srcOffs: 0, dstOffs: 701, copySize: 111
+                name: 'low_to_high_2', srcSize: 997, dstSize: 1027, srcOffset: 0, dstOffset: 701, copySize: 111
             },{
-                name: 'high_to_low_1', srcSize: 1000, dstSize: 1000, srcOffs: 500, dstOffs: 0, copySize: 500
+                name: 'high_to_low_1', srcSize: 1000, dstSize: 1000, srcOffset: 500, dstOffset: 0, copySize: 500
             },{
-                name: 'high_to_low_2', srcSize: 1027, dstSize: 997, srcOffs: 701, dstOffs: 17, copySize: 111
+                name: 'high_to_low_2', srcSize: 1027, dstSize: 997, srcOffset: 701, dstOffset: 17, copySize: 111
         }];
 
         for (var ndx = 0; ndx < cases.length; ndx++) {
