@@ -20,26 +20,16 @@
 
 'use strict';
 goog.provide('functional.gles3.es3fBufferCopyTests');
-//goog.require('framework.common.tcuSurface');
 goog.require('framework.common.tcuTestCase');
-//goog.require('framework.common.tcuTexture');
 goog.require('framework.delibs.debase.deMath');
 goog.require('framework.delibs.debase.deRandom');
 goog.require('framework.delibs.debase.deString');
 goog.require('modules.shared.glsBufferTestUtil');
-//goog.require('framework.opengl.gluDrawUtil');
-//goog.require('framework.opengl.gluShaderProgram');
-//goog.require('framework.opengl.gluShaderUtil');
-//goog.require('framework.opengl.gluTexture');
-//goog.require('framework.opengl.gluVarType');
 
 goog.scope(function() {
 
     var es3fBufferCopyTests = functional.gles3.es3fBufferCopyTests;
     var glsBufferTestUtil = modules.shared.glsBufferTestUtil;
-    //var gluDrawUtil = framework.opengl.gluDrawUtil;
-    //var gluShaderUtil = framework.opengl.gluShaderUtil;
-    //var gluShaderProgram = framework.opengl.gluShaderProgram;
     var tcuTestCase = framework.common.tcuTestCase;
     var deMath = framework.delibs.debase.deMath;
     var deString = framework.delibs.debase.deString;
