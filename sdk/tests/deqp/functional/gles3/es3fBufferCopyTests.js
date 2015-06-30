@@ -228,7 +228,7 @@ goog.scope(function() {
             gl.COPY_WRITE_BUFFER,
             gl.ELEMENT_ARRAY_BUFFER,
             gl.PIXEL_PACK_BUFFER,
-            gl.PIXEL_UNPACK_BUFFER,
+            //gl.PIXEL_UNPACK_BUFFER,
             gl.TRANSFORM_FEEDBACK_BUFFER,
             gl.UNIFORM_BUFFER
         ];
@@ -241,6 +241,21 @@ goog.scope(function() {
         for (var srcTargetNdx = 0; srcTargetNdx < bufferTargets.length; srcTargetNdx++) {
             for (var dstTargetNdx = 0; dstTargetNdx < bufferTargets.length; dstTargetNdx++) {
                 if (srcTargetNdx == dstTargetNdx)
+                    continue;
+
+                // In WebGL 2, a copy between an ELEMENT_ARRAY_BUFFER and other data buffer
+                // (not COPY_WRITE_BUFFER nor COPY_READ_BUFFER nor ELEMENT_ARRAY_BUFFER)
+                // cannot be made, so let's skip those cases.
+                if (
+                    (bufferTargets[srcTargetNdx] == gl.ELEMENT_ARRAY_BUFFER &&
+                        bufferTargets[dstTargetNdx] != gl.COPY_READ_BUFFER &&
+                        bufferTargets[dstTargetNdx] != gl.COPY_WRITE_BUFFER &&
+                        bufferTargets[dstTargetNdx] != gl.ELEMENT_ARRAY_BUFFER) ||
+                    (bufferTargets[dstTargetNdx] == gl.ELEMENT_ARRAY_BUFFER &&
+                        bufferTargets[srcTargetNdx] != gl.COPY_READ_BUFFER &&
+                        bufferTargets[srcTargetNdx] != gl.COPY_WRITE_BUFFER &&
+                        bufferTargets[srcTargetNdx] != gl.ELEMENT_ARRAY_BUFFER)
+                )
                     continue;
 
                 var srcTarget = bufferTargets[srcTargetNdx];
@@ -303,6 +318,21 @@ goog.scope(function() {
         for (var srcTargetNdx = 0; srcTargetNdx < bufferTargets.length; srcTargetNdx++) {
             for (var dstTargetNdx = 0; dstTargetNdx < bufferTargets.length; dstTargetNdx++) {
                 if (srcTargetNdx == dstTargetNdx)
+                    continue;
+
+                // In WebGL 2, a copy between an ELEMENT_ARRAY_BUFFER and other data buffer
+                // (not COPY_WRITE_BUFFER nor COPY_READ_BUFFER nor ELEMENT_ARRAY_BUFFER)
+                // cannot be made, so let's skip those cases.
+                if (
+                    (bufferTargets[srcTargetNdx] == gl.ELEMENT_ARRAY_BUFFER &&
+                        bufferTargets[dstTargetNdx] != gl.COPY_READ_BUFFER &&
+                        bufferTargets[dstTargetNdx] != gl.COPY_WRITE_BUFFER &&
+                        bufferTargets[dstTargetNdx] != gl.ELEMENT_ARRAY_BUFFER) ||
+                    (bufferTargets[dstTargetNdx] == gl.ELEMENT_ARRAY_BUFFER &&
+                        bufferTargets[srcTargetNdx] != gl.COPY_READ_BUFFER &&
+                        bufferTargets[srcTargetNdx] != gl.COPY_WRITE_BUFFER &&
+                        bufferTargets[srcTargetNdx] != gl.ELEMENT_ARRAY_BUFFER)
+                )
                     continue;
 
                 var srcTarget = bufferTargets[srcTargetNdx];

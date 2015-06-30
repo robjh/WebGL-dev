@@ -680,7 +680,7 @@ goog.scope(function() {
             /** @type {number} */ var fy0 = 2.0 * sy0 - 1.0;
             /** @type {number} */ var fx1 = 2.0 * sx1 - 1.0;
             /** @type {number} */ var fy1 = 2.0 * sy1 - 1.0;
-            /** @type {number} */ var baseNdx = (y * gridSizeX + x) * 4;
+            /** @type {number} */ var baseNdx = (y * gridSizeX + x) * 8;
 
             positions[baseNdx + 0] = fx0; positions[baseNdx + 1] = fy0;
             positions[baseNdx + 2] = fx0; positions[baseNdx + 3] = fy1;
@@ -741,14 +741,14 @@ goog.scope(function() {
      * @param {Uint8Array} inPtr
      */
     glsBufferTestUtil.renderQuadGridReference = function(dst, numQuads, rowLength, inPtr) {
-        dst.setSize(rowLength * glsBufferTestUtil.VERIFY_QUAD_SIZE, (numQuads / rowLength + (numQuads % rowLength != 0 ? 1 : 0)) * glsBufferTestUtil.VERIFY_QUAD_SIZE);
+        dst.setSize(rowLength * glsBufferTestUtil.VERIFY_QUAD_SIZE, (Math.floor(numQuads / rowLength) + (numQuads % rowLength != 0 ? 1 : 0)) * glsBufferTestUtil.VERIFY_QUAD_SIZE);
 
         /** @type {tcuTexture.PixelBufferAccess} */ var dstAccess = dst.getAccess();
-        dstAccess.clear([0, 0, 0, 0xff]);
+        dstAccess.clear([0, 0, 0, 1.0]);
 
         for (var quadNdx = 0; quadNdx < numQuads; quadNdx++) {
             /** @type {number} */ var x0 = (quadNdx % rowLength) * glsBufferTestUtil.VERIFY_QUAD_SIZE;
-            /** @type {number} */ var y0 = (quadNdx / rowLength) * glsBufferTestUtil.VERIFY_QUAD_SIZE;
+            /** @type {number} */ var y0 = Math.floor(quadNdx / rowLength) * glsBufferTestUtil.VERIFY_QUAD_SIZE;
             /** @type {Array<number>} */ var v00 = glsBufferTestUtil.fetchVtxColor(inPtr, quadNdx * 4 + 0);
             /** @type {Array<number>} */ var v10 = glsBufferTestUtil.fetchVtxColor(inPtr, quadNdx * 4 + 1);
             /** @type {Array<number>} */ var v01 = glsBufferTestUtil.fetchVtxColor(inPtr, quadNdx * 4 + 2);
@@ -785,8 +785,8 @@ goog.scope(function() {
     glsBufferTestUtil.VertexArrayVerifier.prototype.verifyNoTarget = function(buffer, refPtr, offset, numBytes) {
         var numBytesInVtx = 3;
         var numBytesInQuad = numBytesInVtx * 4;
-        var maxQuadsX = Math.min(128, Math.floor(gl.viewport.width / glsBufferTestUtil.VERIFY_QUAD_SIZE));
-        var maxQuadsY = Math.min(128, Math.floor(gl.viewport.height / glsBufferTestUtil.VERIFY_QUAD_SIZE));
+        var maxQuadsX = Math.min(128, Math.floor(gl.drawingBufferWidth / glsBufferTestUtil.VERIFY_QUAD_SIZE));
+        var maxQuadsY = Math.min(128, Math.floor(gl.drawingBufferHeight / glsBufferTestUtil.VERIFY_QUAD_SIZE));
         var maxQuadsPerBatch = maxQuadsX * maxQuadsY;
         var numVerified = 0;
         var program = this.m_program.getProgram();
@@ -848,9 +848,9 @@ goog.scope(function() {
             glsBufferTestUtil.renderQuadGridReference(reference, numQuads, numCols, refPtr.subarray(offset + curOffset));
 
             rendered.setSize(numCols * glsBufferTestUtil.VERIFY_QUAD_SIZE, numRows * glsBufferTestUtil.VERIFY_QUAD_SIZE);
-            rendered.readViewport(gl);
+            rendered.readViewport(gl, [0, 0, numCols * glsBufferTestUtil.VERIFY_QUAD_SIZE, numRows * glsBufferTestUtil.VERIFY_QUAD_SIZE]);
 
-            if (!tcuImageCompare.pixelThresholdCompare('RenderResult', imageSetDesc, reference, rendered, threshold.toVec(), tcuImageCompare.CompareLogMode.RESULT)) {
+            if (!tcuImageCompare.pixelThresholdCompare('RenderResult', imageSetDesc, reference, rendered, threshold.toIVec(), tcuImageCompare.CompareLogMode.RESULT)) {
                 isOk = false;
                 break;
             }
@@ -985,8 +985,8 @@ goog.scope(function() {
      * @return {boolean}
      */
     glsBufferTestUtil.IndexArrayVerifier.prototype.verify = function(buffer, refPtr, offset, numBytes) {
-        var viewportW = Math.min(glsBufferTestUtil.INDEX_ARRAY_DRAW_VIEWPORT_WIDTH, gl.viewport.width);
-        var viewportH = Math.min(glsBufferTestUtil.INDEX_ARRAY_DRAW_VIEWPORT_HEIGHT, gl.viewport.height);
+        var viewportW = Math.min(glsBufferTestUtil.INDEX_ARRAY_DRAW_VIEWPORT_WIDTH, gl.drawingBufferWidth);
+        var viewportH = Math.min(glsBufferTestUtil.INDEX_ARRAY_DRAW_VIEWPORT_HEIGHT, gl.drawingBufferHeight);
         var minBytesPerBatch = 2;
         /** @type {tcuRGBA.RGBA} */ var threshold = new tcuRGBA.RGBA([0, 0, 0, 0]);
 
@@ -1019,7 +1019,7 @@ goog.scope(function() {
         gl.enable(gl.BLEND);
         gl.blendFunc(gl.ONE, gl.ONE);
         gl.blendEquation(gl.FUNC_ADD);
-
+        debugger;
         while (numVerified < numBytes) {
             var numRemaining = numBytes - numVerified;
             var isLeftoverBatch = numRemaining < minBytesPerBatch;
@@ -1056,9 +1056,9 @@ goog.scope(function() {
             gl.vertexAttribPointer(this.m_colorLoc, 3, gl.FLOAT, false, 0, 0);
 
             gl.drawArrays(gl.LINE_STRIP, 0, numBytesToVerify);
-            referenceImg.readViewport(gl);
+            referenceImg.readViewport(gl, [0, 0, viewportW, viewportH]);
 
-            if (!tcuImageCompare.pixelThresholdCompare('RenderResult', imageSetDesc, referenceImg, indexBufferImg, threshold.toVec(), tcuImageCompare.CompareLogMode.RESULT)) {
+            if (!tcuImageCompare.pixelThresholdCompare('RenderResult', imageSetDesc, referenceImg, indexBufferImg, threshold.toIVec(), tcuImageCompare.CompareLogMode.RESULT)) {
                 isOk = false;
                 break;
             }
