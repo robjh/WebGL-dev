@@ -876,6 +876,150 @@ goog.scope(function() {
 
 
 
+    /**
+     * @constructor
+     * @extends{glsBuiltinPrecisionTests.FloatFunc2}
+     * @param{string} name
+     * @param{tcuFloat.DoubleFunc2} func
+     */
+    glsBuiltinPrecisionTests.CFloatFunc2 = function(name, func){
+    	/** @type{string} */ this.m_name = name;
+    	/** @type{tcuInterval.DoubleFunc2} */ this.m_func = func;
+    };
+
+    /**
+     * @return{string}
+     */
+    glsBuiltinPrecisionTests.CFloatFunc2.prototype.getName = function()	{
+        return this.m_name;
+    };
+
+    /**
+     * @param{number} x
+     * @param{number} y
+     * @return{string}
+     */
+    glsBuiltinPrecisionTests.CFloatFunc2.prototype.applyExact = function(x, y) {
+        return this.m_func(x, y);
+    };
+
+    /**
+     * @constructor
+     * @extends{glsBuiltinPrecisionTests.FloatFunc2}
+     * @return{string}
+     */
+    glsBuiltinPrecisionTests.InfixOperator = function(){};
+
+    /**
+     * @constructor
+     * @extends{glsBuiltinPrecisionTests.FloatFunc2}
+     * @return{string}
+     */
+    glsBuiltinPrecisionTests.InfixOperator.prototype.getSymbol = function() {
+        return '';
+    };
+
+    /**
+     * @param{glsBuiltinPrecisionTests.BaseArgExprs} args
+     * @return{string}
+     */
+    glsBuiltinPrecisionTests.InfixOperator.prototype.doPrint(/*ostream& os,*/ args) {
+		bufferedLogToConsole('(' + args[0] + ' ' + this.getSymbol() + ' ' + args[1] + ')');
+	};
+
+    /**
+     * @param{glsBuiltinPrecisionTests.EvalContext} ctx
+     * @param{number} x
+     * @param{number} y
+     * @return{tcuInterval.Interval}
+     */
+    glsBuiltinPrecisionTests.InfixOperator.prototype.applyPoint = function(ctx, x, y) {
+		/** @type{number} */ var exact = this.applyExact(x, y);
+
+		// Allow either representable number on both sides of the exact value,
+		// but require exactly representable values to be preserved.
+		return ctx.format.roundOut(exact, !deIsInf(x) && !deIsInf(y));
+	}
+
+    /**
+     * @param{glsBuiltinPrecisionTests.EvalContext} ctx
+     * @param{number} x
+     * @param{number} y
+     * @param{number} z
+     * @return{number}
+     */
+    glsBuiltinPrecisionTests.InfixOperator.prototype.precision = function(ctx, x, y, z)	{
+		return 0.0;
+	};
+
+    /**
+     * Signature<float, float, float, float>
+     * @constructor
+     * @extends{glsBuiltinPrecisionTests.PrimitiveFunc}
+     * @param{glsBuiltinPrecisionTests.Signature} Sig_
+     */
+    glsBuiltinPrecisionTests.FloatFunc3 = function() {
+
+    };
+
+    /**
+     * @param{glsBuiltinPrecisionTests.EvalContext} ctx
+     * @param{glsBuiltinPrecisionTests.IArgs} iargs
+     * @return{tcuInterval.Interval}
+     */
+    glsBuiltinPrecisionTests.FloatFunc3.prototype.doApply = function (ctx, iargs) {
+		return this.applyMonotone(ctx, iargs.a, iargs.b, iargs.c);
+	};
+
+    /**
+     * @param{glsBuiltinPrecisionTests.EvalContext} ctx
+     * @param{tcuInterval.Interval} xi
+     * @param{tcuInterval.Interval} yi
+     * @param{tcuInterval.Interval} zi
+     * @return{tcuInterval.Interval}
+     */
+    glsBuiltinPrecisionTests.FloatFunc3.prototype.applyMonotone	(ctx, xi, yi, zi) {
+		/** @type{tcuInterval.Interval} */ var reti = new tcuInterval.Interval();
+		TCU_INTERVAL_APPLY_MONOTONE3(reti, x, xi, y, yi, z, zi, ret,
+									 TCU_SET_INTERVAL(ret, point,
+													  point = this.applyPoint(ctx, x, y, z)));
+		return ctx.format.convert(reti);
+	};
+
+    /**
+     * @param{glsBuiltinPrecisionTests.EvalContext} ctx
+     * @param{tcuInterval.Interval} xi
+     * @param{tcuInterval.Interval} yi
+     * @param{tcuInterval.Interval} zi
+     * @return{tcuInterval.Interval}
+     */
+    glsBuiltinPrecisionTests.FloatFunc3.prototype.applyPoint = function(ctx, xi, yi, zi) {
+		/** @type{number} */ var exact	= this.applyExact(x, y, z);
+		/** @type{number} */ var prec	= this.precision(ctx, exact, x, y, z);
+		return new tcuInterval.Interval(-prec, prec).operatorSum(exact);
+	};
+
+    /**
+     * @param{number} x
+     * @param{number} y
+     * @param{number} z
+     * @return{tcuInterval.Interval}
+     */
+    glsBuiltinPrecisionTests.FloatFunc3.prototype.applyExact = function(x, y, z) {
+		TCU_THROW(InternalError, "Cannot apply");
+	};
+
+    /**
+     * @param{glsBuiltinPrecisionTests.EvalContext} ctx
+     * @param{number} result
+     * @param{number} x
+     * @param{number} y
+     * @param{number} z
+     * @return{number}
+     */
+    glsBuiltinPrecisionTests.FloatFunc3.prototype.precision	= function(ctx, result, x, y, z) {
+        return 0;
+    };
 
 
     /************************************/
