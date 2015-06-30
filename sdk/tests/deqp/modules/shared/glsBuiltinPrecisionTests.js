@@ -53,61 +53,16 @@ goog.scope(function() {
      TREE OF HERITAGE
      ---------- Signature
      Signature (struct)
-        uses -> Traits<>
+        uses . Traits<>
             <void>
             <bool,float,int>
                 ScalarTraits
             <Matrix<T,Rows,Cols>,vector<T,size>>
                 ContainerTraits
-        uses -> Tuple4<>
+        uses . Tuple4<>
 
 
-     ---------- Func classes -----------
-     FuncBase
-
-        Func
-            PrimitiveFunc
-                FloatFunc1
-                    CFloatFunc1
-                        TrigFunc
-                            Sin, Cos
-                        ArcTrigFunc
-                            ASin, ACos, ATan
-                        ExpFunc
-                            Exp, Exp2
-                        LogFunc
-                            Log, Log2
-                        PreciseFunc1
-                            Abs, Sign, Floor, Trunc, RoundEven, Ceil,
-                    InverseSqrt
-                    Round
-                FloatFunc2
-                    InfixOperator
-                        Add, Mul, Div, Sub
-                    CFloatFunc2
-                        ATan2
-                        PreciseFunc2
-                            Min, Max, Step
-                FloatFunc3
-                    Clamp
-                Modf
-            DerivedFunc
-                DEFINE_DERIVED_FLOAT1 -> Sqrt, Radians, Degrees, Tan, Sinh, Cosh,
-                    Tanh, ASinh, ACosh, ATanh, Fract
-                DEFINE_DERIVED_FLOAT2 -> Pow, Mod,
-                DEFINE_DERIVED_FLOAT3 -> Mix
-                (different extends)SmoothStep, Length, Distance, Dot, Cross, Normalize, FaceForward
-                    Reflect, Refract,
-
-                CompWiseFunc
-                    CompMatFuncBase
-                        CompMatFunc
-                            MatrixCompMult
-                OuterProduct
-                Transpose
-    Determinant
-    Inverse
-    */
+     */
 
     /**
      * @constructor
@@ -142,6 +97,11 @@ goog.scope(function() {
 
     	typedef Tuple4<	ExprP<Arg0>,	ExprP<Arg1>,	ExprP<Arg2>,	ExprP<Arg3> >	ArgExprs;
     };
+
+    /**
+     * @typedef {glsBuiltinPrecisionTests.Tuple4}
+     */
+    glsBuiltinPrecisionTests.ParamNames;
 
     /**
      * @constructor
@@ -445,7 +405,7 @@ goog.scope(function() {
     /**
      */
     glsBuiltinPrecisionTests.ExprBase.prototype.printExpr = function (){
-        this->doPrintExpr(os);
+        this.doPrintExpr(os);
     };
 
     /**
@@ -487,6 +447,55 @@ goog.scope(function() {
 	       return this.doMakeIVal(value);
     };
 
+    /***********************************************************************/
+    /**
+
+    ---------- Func classes -----------
+    FuncBase
+
+       Func
+           PrimitiveFunc
+               FloatFunc1
+                   CFloatFunc1
+                       TrigFunc
+                           Sin, Cos
+                       ArcTrigFunc
+                           ASin, ACos, ATan
+                       ExpFunc
+                           Exp, Exp2
+                       LogFunc
+                           Log, Log2
+                       PreciseFunc1
+                           Abs, Sign, Floor, Trunc, RoundEven, Ceil,
+                   InverseSqrt
+                   Round
+               FloatFunc2
+                   InfixOperator
+                       Add, Mul, Div, Sub
+                   CFloatFunc2
+                       ATan2
+                       PreciseFunc2
+                           Min, Max, Step
+               FloatFunc3
+                   Clamp
+               Modf
+           DerivedFunc
+               DEFINE_DERIVED_FLOAT1 . Sqrt, Radians, Degrees, Tan, Sinh, Cosh,
+                   Tanh, ASinh, ACosh, ATanh, Fract
+               DEFINE_DERIVED_FLOAT2 . Pow, Mod,
+               DEFINE_DERIVED_FLOAT3 . Mix
+               (different extends)SmoothStep, Length, Distance, Dot, Cross, Normalize, FaceForward
+                   Reflect, Refract,
+
+               CompWiseFunc
+                   CompMatFuncBase
+                       CompMatFunc
+                           MatrixCompMult
+               OuterProduct
+               Transpose
+   Determinant
+   Inverse
+   */
     /**
      * @constructor
      */
@@ -543,6 +552,333 @@ goog.scope(function() {
      *
      */
     glsBuiltinPrecisionTests.FuncBase.prototype.doGetUsedFuncs = function(dst) {};
+
+    /*************************************/
+    /**
+     * \brief Function objects.
+     *
+     * Each Func object represents a GLSL function. It can be applied to interval
+     * arguments, and it returns the an interval that is a conservative
+     * approximation of the image of the GLSL function over the argument
+     * intervals. That is, it is given a set of possible arguments and it returns
+     * the set of possible values.
+     *
+     * @constructor
+     * @extends{glsBuiltinPrecisionTests.FuncBase}
+     * @param{glsBuiltinPrecisionTests.Signature} Sig_ template <typename Sig_>
+     */
+    glsBuiltinPrecisionTests.Func = function(Sig_) {
+    	this.Sig = Sig_;
+    	this.Ret = Sig.Ret;
+    	this.Arg0 = Sig.Arg0;
+    	this.Arg1 = Sig.Arg1;
+    	this.Arg2 = Sig.Arg2;
+    	this.Arg3 = Sig.Arg3;
+    	this.IRet = Sig.IRet;
+    	this.IArg0 = Sig.IArg0;
+    	this.IArg1 = Sig.IArg1;
+    	this.IArg2 = Sig.IArg2;
+    	this.IArg3 = Sig.IArg3;
+    	this.Args = Sig.Args;
+    	this.IArgs = Sig.IArgs;
+    	this.ArgExprs = Sig.ArgExprs;
+    };
+
+    /**
+     * @param{glsBuiltinPrecisionTests.BaseArgExprs} args
+     */
+    glsBuiltinPrecisionTests.Func.prototype.print = function(/*ostream& os,*/ args) {
+	    this.doPrint(os, args);
+	};
+
+    /**
+     * @param{glsBuiltinPrecisionTests.EvalContext} ctx
+     * @param{*} Iarg0
+     * @param{*} Iarg1
+     * @param{*} Iarg2
+     * @param{*} Iarg3
+     * @return{*} IRet
+     */
+    glsBuiltinPrecisionTests.Func.prototype.apply = function(ctx, Iarg0, Iarg1 ,Iarg2 ,Iarg3){
+        var arg0 = Iarg0 === undefined ? this.IArg0() : Iarg0;
+        var arg1 = Iarg0 === undefined ? this.IArg0() : Iarg0;
+        var arg2 = Iarg0 === undefined ? this.IArg0() : Iarg0;
+        var arg3 = Iarg0 === undefined ? this.IArg0() : Iarg0;
+		return this.applyArgs(ctx, IArgs(arg0, arg1, arg2, arg3));
+	};
+
+    /**
+     * @param{glsBuiltinPrecisionTests.EvalContext} ctx
+     * @param{glsBuiltinPrecisionTests.IArgs} args
+     * @return{*} IRet
+     */
+    glsBuiltinPrecisionTests.Func.prototype.applyArgs = function (ctx, args) {
+		return this.doApply(ctx, args);
+	};
+
+    // TODO
+	// ExprP<Ret>			operator()		(const ExprP<Arg0>&		arg0 = voidP(),
+	// 									 const ExprP<Arg1>&		arg1 = voidP(),
+	// 									 const ExprP<Arg2>&		arg2 = voidP(),
+	// 									 const ExprP<Arg3>&		arg3 = voidP())		const;
+
+    /**
+     * @param{glsBuiltinPrecisionTests.EvalContext} ctx
+     * @param{glsBuiltinPrecisionTests.IArgs} args
+     * @return{glsBuiltinPrecisionTests.ParamNames}
+     */
+    glsBuiltinPrecisionTests.Func.prototype.getParamNames = function() {
+		return this.doGetParamNames();
+	};
+
+    // protected:
+	// virtual IRet		doApply			(const EvalContext&, const IArgs&) const = 0;
+
+    /**
+     * @param{glsBuiltinPrecisionTests.BaseArgExprs} args
+     */
+    glsBuiltinPrecisionTests.Func.prototype.doPrint = function (/*ostream& os,*/args) {
+		/** type{string} */ var os = getName() + '(';
+
+        // TODO: fix the generics
+		if (isTypeValid<Arg0>())
+			os += args[0];
+
+		if (isTypeValid<Arg1>())
+			os += ', ' + args[1];
+
+		if (isTypeValid<Arg2>())
+			os += ', ' + args[2];
+
+		if (isTypeValid<Arg3>())
+			os += ', ' + args[3];
+
+		os += ')';
+
+        bufferedLogToConsole(os);
+	};
+
+    /**
+     * @return{glsBuiltinPrecisionTests.ParamNames} args
+     */
+    glsBuiltinPrecisionTests.Func.prototype.doGetParamNames = function() {
+		/** @type{glsBuiltinPrecisionTests.ParamNames} */ var names = new glsBuiltinPrecisionTests.Tuple4("a", "b", "c", "d");
+		return names;
+	};
+
+
+    /**
+     * @constructor
+     * @extends{glsBuiltinPrecisionTests.Func}
+     * @param{glsBuiltinPrecisionTests.Signature} Sig template <typename Sig>
+     *
+     */
+    glsBuiltinPrecisionTests.PrimitiveFunc = function(Sig) {
+        this.Ret = Sig.Ret;
+        this.ArgExprs = Sig.ArgExprs;
+    };
+
+    /**
+     * @constructor
+     * @extends{glsBuiltinPrecisionTests.PrimitiveFunc}
+     * @param{glsBuiltinPrecisionTests.Signature} Sig_ template <Signature<float, float> >
+     *
+     */
+    glsBuiltinPrecisionTests.FloatFunc1 = function (Sig_) {
+        this.Sig = Sig_;
+    };
+
+    /**
+     * @param{glsBuiltinPrecisionTests.EvalContext} ctx
+     * @param{glsBuiltinPrecisionTests.IArgs} iargs
+     * @return{tcuInterval.Interval}
+     */
+    glsBuiltinPrecisionTests.FloatFunc1.prototype.doApply =	function(ctx, iargs) {
+		return this.applyMonotone(ctx, iargs.a);
+	};
+
+    /**
+     * @param{glsBuiltinPrecisionTests.EvalContext} ctx
+     * @param{glsBuiltinPrecisionTests.IArgs} iargs
+     * @return{tcuInterval.Interval}
+     */
+    glsBuiltinPrecisionTests.FloatFunc1.prototype.applyMonotone	(ctx, iarg0) {
+		/** @type{tcuInterval.Interval} */ var ret = new tcuInterval.Interval();
+
+        // TODO: port macros
+		TCU_INTERVAL_APPLY_MONOTONE1(ret, arg0, iarg0, val,
+									 TCU_SET_INTERVAL(val, point,
+													  point = this->applyPoint(ctx, arg0)));
+
+		ret.operatorOrAssignBinary(this.innerExtrema(ctx, iarg0));
+		ret.operatorAddAssignBinary((this.getCodomain().operatorOrBinary(NaN));
+
+		return ctx.format.convert(ret);
+	};
+
+    /**
+     * @param{glsBuiltinPrecisionTests.EvalContext} ctx
+     * @param{glsBuiltinPrecisionTests.IArgs} iargs
+     * @return{tcuInterval.Interval}
+     */
+    glsBuiltinPrecisionTests.FloatFunc1.prototype.innerExtrema = function()	{
+		return new tcuInterval.Interval(); // empty interval, i.e. no extrema
+	};
+
+    /**
+     * @param{glsBuiltinPrecisionTests.EvalContext} ctx
+     * @param{number} arg0
+     * @return{tcuInterval.Interval}
+     */
+    glsBuiltinPrecisionTests.FloatFunc1.prototype.applyPoint = function(ctx, arg0) {
+		/** @type{number} */ var exact = this.applyExact(arg0);
+		/** @type{number} */ var prec = this.precision(ctx, exact, arg0);
+
+		return exact + Interval(-prec, prec);
+	};
+
+    /**
+     * @param{number} x
+     */
+    glsBuiltinPrecisionTests.FloatFunc1.prototype.applyExact = function(x)	{
+        //TODO
+		// TCU_THROW(InternalError, "Cannot apply");
+	};
+
+    /**
+     * @return{tcuInterval.Interval}
+     */
+    glsBuiltinPrecisionTests.FloatFunc1.prototype.getCodomain = function() {
+		return tcuInterval.Interval.unbounded(true);
+	};
+
+    /**
+     * @param{glsBuiltinPrecisionTests.EvalContext} ctx
+     * @param{number} x
+     * @param{number} y
+     * @return{number}
+     */
+    glsBuiltinPrecisionTests.FloatFunc1.prototype.precision	= function(ctx, x, y) {
+        return 0;
+    };
+
+    /**
+     * @constructor
+     * @extends{glsBuiltinPrecisionTests.FloatFunc1}
+     * @param{string} name
+     * @param{tcuInterval.DoubleFunc1} func
+     */
+    glsBuiltinPrecisionTests.CFloatFunc1 = function(name, func) {
+        /** @type{string} */ this.m_name = name;
+        /** @type{tcuInterval.DoubleFunc1} */this.m_func = func;
+    };
+
+    /**
+     * @return{string}
+     */
+    glsBuiltinPrecisionTests.CFloatFunc1.prototype.getName = function() {
+        return this.m_name;
+    };
+
+    /**
+     * @param{number} x
+     * @return{number}
+     */
+    glsBuiltinPrecisionTests.CFloatFunc1.prototype.applyExact = function(x) {
+        return this.m_func(x);
+    };
+
+    /**
+     * PrimitiveFunc<Signature<float, float, float> >
+     * @constructor
+     * @extends{glsBuiltinPrecisionTests.PrimitiveFunc}
+     */
+    glsBuiltinPrecisionTests.FloatFunc2 = function() {
+        this.Sig = new glsBuiltinPrecisionTests.Signature(float,float,float);
+    };
+
+    /**
+     * @param{glsBuiltinPrecisionTests.EvalContext} ctx
+     * @param{glsBuiltinPrecisionTests.IArgs} iargs
+     * @return{tcuInterval.Interval}
+     */
+    glsBuiltinPrecisionTests.FloatFunc2.prototype.doApply = function(ctx, iargs) {
+		return this.applyMonotone(ctx, iargs.a, iargs.b);
+	};
+
+    /**
+     * @param{glsBuiltinPrecisionTests.EvalContext} ctx
+     * @param{tcuInterval.Interval} xi
+     * @param{tcuInterval.Interval} yi
+     * @return{tcuInterval.Interval}
+     */
+    glsBuiltinPrecisionTests.FloatFunc2.prototype.applyMonotone	ctx, xi, yi) {
+		/** @type{tcuInterval.Interval} */ var Interval reti = new tcuInterval.Interval();
+
+		TCU_INTERVAL_APPLY_MONOTONE2(reti, x, xi, y, yi, ret,
+									 TCU_SET_INTERVAL(ret, point,
+													  point = this.applyPoint(ctx, x, y)));
+		reti.operatorOrAssignBinary(this.innerExtrema(ctx, xi, yi));
+		reti.operatorAndAssignBinary(this.getCodomain() | NaN);
+
+		return ctx.format.convert(reti);
+	};
+
+    /**
+     * @param{glsBuiltinPrecisionTests.EvalContext} ctx
+     * @param{tcuInterval.Interval} xi
+     * @param{tcuInterval.Interval} yi
+     * @return{tcuInterval.Interval}
+     */
+    glsBuiltinPrecisionTests.FloatFunc2.prototype.innerExtrema	(ctx, xi, yi) {
+		return new tcuInterval.Interval(); // empty interval, i.e. no extrema
+	};
+
+    /**
+     * @param{glsBuiltinPrecisionTests.EvalContext} ctx
+     * @param{number} x
+     * @param{number} y
+     * @return{tcuInterval.Interval}
+     */
+    glsBuiltinPrecisionTests.FloatFunc2.prototype.applyPoint = function(ctx, x, y) {
+		/** @type{number} */ var exact	= this.applyExact(x, y);
+		/** @type{number} */ var prec	= this.precision(ctx, exact, x, y);
+
+		return new tcuInterval.Interval(-prec, prec).operatorSum(exact));
+	}
+
+    /**
+     * @param{number} x
+     * @param{number} y
+     * @return{number}
+     */
+    glsBuiltinPrecisionTests.FloatFunc2.prototype.applyExact = function(x, y) {
+		TCU_THROW(InternalError, "Cannot apply");
+	};
+
+    /**
+     * @return{tcuInterval.Interval}
+     */
+    glsBuiltinPrecisionTests.FloatFunc2.prototype.getCodomain = function() {
+		return tcuInterval.Interval.unbounded(true);
+	};
+
+    /**
+     * @param{glsBuiltinPrecisionTests.EvalContext} ctx
+     * @param{number} ret
+     * @param{number} x
+     * @param{number} y
+     * @return{tcuInterval.Interval}
+     */
+    glsBuiltinPrecisionTests.FloatFunc2.prototype.precision = function(ctx, ret, x,	y) {
+        return 0;
+    };
+
+
+
+
+
+    /************************************/
 
     /**
      * @constructor
@@ -791,7 +1127,7 @@ goog.scope(function() {
 	// addScalarFactory<Ceil>(*funcs);
 	// addScalarFactory<Fract>(*funcs);
 	// addScalarFactory<Mod>(*funcs);
-	// funcs->addFactory(createSimpleFuncCaseFactory<Modf>());
+	// funcs.addFactory(createSimpleFuncCaseFactory<Modf>());
 	// addScalarFactory<Min>(*funcs);
 	// addScalarFactory<Max>(*funcs);
 	// addScalarFactory<Clamp>(*funcs);
@@ -799,21 +1135,21 @@ goog.scope(function() {
 	// addScalarFactory<Step>(*funcs);
 	// addScalarFactory<SmoothStep>(*funcs);
     //
-	// funcs->addFactory(SharedPtr<const CaseFactory>(new TemplateFuncCaseFactory<Length>()));
-	// funcs->addFactory(SharedPtr<const CaseFactory>(new TemplateFuncCaseFactory<Distance>()));
-	// funcs->addFactory(SharedPtr<const CaseFactory>(new TemplateFuncCaseFactory<Dot>()));
-	// funcs->addFactory(createSimpleFuncCaseFactory<Cross>());
-	// funcs->addFactory(SharedPtr<const CaseFactory>(new TemplateFuncCaseFactory<Normalize>()));
-	// funcs->addFactory(SharedPtr<const CaseFactory>(new TemplateFuncCaseFactory<FaceForward>()));
-	// funcs->addFactory(SharedPtr<const CaseFactory>(new TemplateFuncCaseFactory<Reflect>()));
-	// funcs->addFactory(SharedPtr<const CaseFactory>(new TemplateFuncCaseFactory<Refract>()));
+	// funcs.addFactory(SharedPtr<const CaseFactory>(new TemplateFuncCaseFactory<Length>()));
+	// funcs.addFactory(SharedPtr<const CaseFactory>(new TemplateFuncCaseFactory<Distance>()));
+	// funcs.addFactory(SharedPtr<const CaseFactory>(new TemplateFuncCaseFactory<Dot>()));
+	// funcs.addFactory(createSimpleFuncCaseFactory<Cross>());
+	// funcs.addFactory(SharedPtr<const CaseFactory>(new TemplateFuncCaseFactory<Normalize>()));
+	// funcs.addFactory(SharedPtr<const CaseFactory>(new TemplateFuncCaseFactory<FaceForward>()));
+	// funcs.addFactory(SharedPtr<const CaseFactory>(new TemplateFuncCaseFactory<Reflect>()));
+	// funcs.addFactory(SharedPtr<const CaseFactory>(new TemplateFuncCaseFactory<Refract>()));
     //
     //
-	// funcs->addFactory(SharedPtr<const CaseFactory>(new MatrixFuncCaseFactory<MatrixCompMult>()));
-	// funcs->addFactory(SharedPtr<const CaseFactory>(new MatrixFuncCaseFactory<OuterProduct>()));
-	// funcs->addFactory(SharedPtr<const CaseFactory>(new MatrixFuncCaseFactory<Transpose>()));
-	// funcs->addFactory(SharedPtr<const CaseFactory>(new SquareMatrixFuncCaseFactory<Determinant>()));
-	// funcs->addFactory(SharedPtr<const CaseFactory>(new SquareMatrixFuncCaseFactory<Inverse>()));
+	// funcs.addFactory(SharedPtr<const CaseFactory>(new MatrixFuncCaseFactory<MatrixCompMult>()));
+	// funcs.addFactory(SharedPtr<const CaseFactory>(new MatrixFuncCaseFactory<OuterProduct>()));
+	// funcs.addFactory(SharedPtr<const CaseFactory>(new MatrixFuncCaseFactory<Transpose>()));
+	// funcs.addFactory(SharedPtr<const CaseFactory>(new SquareMatrixFuncCaseFactory<Determinant>()));
+	// funcs.addFactory(SharedPtr<const CaseFactory>(new SquareMatrixFuncCaseFactory<Inverse>()));
 
 	return funcs;
 };

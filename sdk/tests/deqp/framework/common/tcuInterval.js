@@ -63,6 +63,36 @@
 // };
 
     /**
+     * @typedef {function(number):number}
+     */
+    tcuInterval.DoubleFunc1;
+
+    /**
+     * @typedef {function(number, number):number}
+     */
+    tcuInterval.DoubleFunc2;
+
+    /**
+     * @typedef {function(number,number,number):number}
+     */
+    tcuInterval.DoubleFunc3;
+
+    /**
+     * @typedef {function(number):tcuInterval.Interval}
+     */
+    tcuInterval.DoubleIntervalFunc1;
+
+    /**
+     * @typedef {function(number,number):tcuInterval.Interval}
+     */
+    tcuInterval.DoubleIntervalFunc2;
+
+    /**
+     * @typedef {function(number,number,number):tcuInterval.Interval}
+     */
+    tcuInterval.DoubleIntervalFunc3;
+
+    /**
      * @param{*} func
      * @param{tcuInterval.Interval} arg0
      * @return{tcuInterval.Interval}
