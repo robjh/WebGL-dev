@@ -396,11 +396,11 @@ goog.scope(function() {
         this.typename = T;
     };
 
-    class ExprBase;
-class ExpandContext;
-class Statement;
-class StatementP;
-class FuncBase;
+//     class ExprBase;
+// class ExpandContext;
+// class Statement;
+// class StatementP;
+// class FuncBase;
     /**
      * @constructor
      * @param{*} typename
@@ -487,7 +487,7 @@ class FuncBase;
      * @return{*}
      */
     glsBuiltinPrecisionTests.makeIVal = function(T, value) {
-	       return this.doMakeIVal(value);
+	    return this.doMakeIVal(value);
     };
 
     /***********************************************************************/
@@ -556,7 +556,7 @@ class FuncBase;
      */
     glsBuiltinPrecisionTests.FuncBase.prototype.getRequiredExtension = function() {
         return '';
-    }
+    };
 
     /**
      *
@@ -569,14 +569,14 @@ class FuncBase;
      */
     glsBuiltinPrecisionTests.FuncBase.prototype.getOutParamIndex = function () {
         return -1;
-    }
+    };
 
     /**
      *
      */
     glsBuiltinPrecisionTests.FuncBase.prototype.printDefinition = function (/*ostream& os*/) {
 	    glsBuiltinPrecisionTests.doPrintDefinition(/*os*/);
-	}
+	};
 
     /**
      * typedef set<const FuncBase*> FuncSet;
@@ -584,7 +584,7 @@ class FuncBase;
      */
     glsBuiltinPrecisionTests.FuncBase.prototype.getUsedFuncs = function(dst) {
 		this.doGetUsedFuncs(dst);
-	}
+	};
 
     /**
      *

@@ -52,25 +52,29 @@ goog.scope(function() {
      * @param {WebGL2RenderingContext} context
      */
     es3fBuiltinPrecisionTests.run = function(context) {
-        gl = context;
+        // gl = context;
         //Set up root Test
-        var state = tcuTestCase.runner;
+        // var state = tcuTestCase.runner;
 
-        var test = es3fBuiltinPrecisionTests.createBuiltinPrecisionTests();
-        var testName = test.fullName();
-        var testDescription = test.getDescription() === undefined ? '' : test.getDescription();
-
-        state.testName = testName;
-        state.setRoot(test);
-        //Set up name and description of this test series.
-        setCurrentTestName(testName);
-        description(testDescription);
+        // var test = es3fBuiltinPrecisionTests.createBuiltinPrecisionTests();
+        // var testName = test.fullName();
+        // var testDescription = test.getDescription() === undefined ? '' : test.getDescription();
+        //
+        // state.testName = testName;
+        // state.setRoot(test);
+        // //Set up name and description of this test series.
+        // setCurrentTestName(testName);
+        // description(testDescription);
 
         try {
             //Create test cases
-            test.init();
+            // test.init();
             //Run test cases
-            tcuTestCase.runTestCases();
+            // tcuTestCase.runTestCases();
+
+            // temp code to test the tempalte changing
+            var add = new glsBuiltinPrecisionTests.Add();
+            console.log(add);
         }
         catch (err) {
             bufferedLogToConsole('Exception: ' + err);
