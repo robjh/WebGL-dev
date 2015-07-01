@@ -320,19 +320,10 @@ goog.scope(function() {
                 if (srcTargetNdx == dstTargetNdx)
                     continue;
 
-                // In WebGL 2, a copy between an ELEMENT_ARRAY_BUFFER and other data buffer
-                // (not COPY_WRITE_BUFFER nor COPY_READ_BUFFER nor ELEMENT_ARRAY_BUFFER)
-                // cannot be made, so let's skip those cases.
-                if (
-                    (bufferTargets[srcTargetNdx] == gl.ELEMENT_ARRAY_BUFFER &&
-                        bufferTargets[dstTargetNdx] != gl.COPY_READ_BUFFER &&
-                        bufferTargets[dstTargetNdx] != gl.COPY_WRITE_BUFFER &&
-                        bufferTargets[dstTargetNdx] != gl.ELEMENT_ARRAY_BUFFER) ||
-                    (bufferTargets[dstTargetNdx] == gl.ELEMENT_ARRAY_BUFFER &&
-                        bufferTargets[srcTargetNdx] != gl.COPY_READ_BUFFER &&
-                        bufferTargets[srcTargetNdx] != gl.COPY_WRITE_BUFFER &&
-                        bufferTargets[srcTargetNdx] != gl.ELEMENT_ARRAY_BUFFER)
-                )
+                // In WebGL 2, we can't rebind an ELEMENT_ARRAY_BUFFER or TRANSFORM_FEEDBACK_BUFFER as a
+                // different type of buffer, so we skip those cases.
+                if (bufferTargets[srcTargetNdx] == gl.ELEMENT_ARRAY_BUFFER || bufferTargets[srcTargetNdx] == gl.TRANSFORM_FEEDBACK_BUFFER ||
+                    bufferTargets[dstTargetNdx] == gl.ELEMENT_ARRAY_BUFFER || bufferTargets[dstTargetNdx] == gl.TRANSFORM_FEEDBACK_BUFFER)
                     continue;
 
                 var srcTarget = bufferTargets[srcTargetNdx];
@@ -344,7 +335,6 @@ goog.scope(function() {
                 singleBufGroup.addChild(new es3fBufferCopyTests.SingleBufferCopyCase(name, '', srcTarget, dstTarget, hint, verify));
             }
         }
-
     };
 
     /**
