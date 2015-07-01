@@ -178,6 +178,18 @@ gluShaderUtil.DataType = {
 };
 
 /**
+ * @enum {number}
+ */
+gluShaderUtil.ShaderType = {
+    VERTEX: 0,
+	FRAGMENT: 1,
+	GEOMETRY: 2,
+	TESSELLATION_CONTROL: 3,
+	TESSELLATION_EVALUATION: 4,
+	COMPUTE: 5,
+};
+
+/**
  * Returns type of float scalars
  * @param {gluShaderUtil.DataType} dataType
  * @return {string} type of float scalar
