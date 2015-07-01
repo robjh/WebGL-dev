@@ -40,25 +40,25 @@ goog.require('modules.shared.glsTextureTestUtil');
 
 goog.scope(function() {
 
-var es3fTextureShadowTests = functional.gles3.es3fTextureShadowTests;
-var tcuTestCase = framework.common.tcuTestCase;
-var glsTextureTestUtil = modules.shared.glsTextureTestUtil;
-var gluShaderUtil = framework.opengl.gluShaderUtil;
-var gluTexture = framework.opengl.gluTexture;
-var gluTextureUtil = framework.opengl.gluTextureUtil;
-var tcuTexture = framework.common.tcuTexture;
-var tcuImageCompare = framework.common.tcuImageCompare;
-var tcuLogImage = framework.common.tcuLogImage;
-var tcuTextureUtil = framework.common.tcuTextureUtil;
-var tcuRGBA = framework.common.tcuRGBA;
-var deMath = framework.delibs.debase.deMath;
-var tcuPixelFormat = framework.common.tcuPixelFormat;
-var tcuSurface = framework.common.tcuSurface;
-var tcuTexCompareVerifier = framework.common.tcuTexCompareVerifier;
-var tcuTexLookupVerifier = framework.common.tcuTexLookupVerifier;
-var rrMultisamplePixelBufferAccess = framework.referencerenderer.rrMultisamplePixelBufferAccess;
-var deString = framework.delibs.debase.deString;
-var deUtil = framework.delibs.debase.deUtil;
+    var es3fTextureShadowTests = functional.gles3.es3fTextureShadowTests;
+    var tcuTestCase = framework.common.tcuTestCase;
+    var glsTextureTestUtil = modules.shared.glsTextureTestUtil;
+    var gluShaderUtil = framework.opengl.gluShaderUtil;
+    var gluTexture = framework.opengl.gluTexture;
+    var gluTextureUtil = framework.opengl.gluTextureUtil;
+    var tcuTexture = framework.common.tcuTexture;
+    var tcuImageCompare = framework.common.tcuImageCompare;
+    var tcuLogImage = framework.common.tcuLogImage;
+    var tcuTextureUtil = framework.common.tcuTextureUtil;
+    var tcuRGBA = framework.common.tcuRGBA;
+    var deMath = framework.delibs.debase.deMath;
+    var tcuPixelFormat = framework.common.tcuPixelFormat;
+    var tcuSurface = framework.common.tcuSurface;
+    var tcuTexCompareVerifier = framework.common.tcuTexCompareVerifier;
+    var tcuTexLookupVerifier = framework.common.tcuTexLookupVerifier;
+    var rrMultisamplePixelBufferAccess = framework.referencerenderer.rrMultisamplePixelBufferAccess;
+    var deString = framework.delibs.debase.deString;
+    var deUtil = framework.delibs.debase.deUtil;
 
     es3fTextureShadowTests.version = '300 es';
 
