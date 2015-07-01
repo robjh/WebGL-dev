@@ -95,17 +95,8 @@ goog.scope(function() {
                     var printLen = Math.min(len, maxSpanLen);
 
                     log += len + ' byte difference at offset ' + diffSpanStart + '\n' +
-                        ' expected ' +
-                        /* TODO: tcu::formatArray (
-                            tcu::Format::HexIterator<deUint8>(refPtr+diffSpanStart),
-                            tcu::Format::HexIterator<deUint8>(refPtr+diffSpanStart+printLen)
-                        ) + "\n" +
-                        " got " +
-                        tcu::formatArray (
-                            tcu::Format::HexIterator<deUint8>(resPtr+diffSpanStart),
-                            tcu::Format::HexIterator<deUint8>(resPtr+diffSpanStart+printLen)
-                        );*/
-                        '';
+                        ' expected ' + refPtr.subarray(diffSpanStart, diffSpanStart + printLen) +
+                        ' got ' + resPtr.subarray(diffSpanStart, diffSpanStart + printLen);
                 } else
                     log += '(output too long, truncated)';
 
@@ -120,17 +111,8 @@ goog.scope(function() {
                 var printLen = Math.min(len, maxSpanLen);
 
                 log += len + ' byte difference at offset ' + diffSpanStart + '\n' +
-                    ' expected ' +
-                    /* TODO: tcu::formatArray(
-                        tcu::Format::HexIterator<deUint8>(refPtr+diffSpanStart),
-                        tcu::Format::HexIterator<deUint8>(refPtr+diffSpanStart+printLen)
-                    ) + "\n" +
-                    " got " +
-                    tcu::formatArray(
-                        tcu::Format::HexIterator<deUint8>(resPtr+diffSpanStart),
-                        tcu::Format::HexIterator<deUint8>(resPtr+diffSpanStart+printLen)
-                    );*/
-                    '';
+                    ' expected ' + refPtr.subarray(diffSpanStart, diffSpanStart + printLen) +
+                    ' got ' + resPtr.subarray(diffSpanStart, diffSpanStart + printLen);
             } else
                 log += '(output too long, truncated)';
         }
@@ -205,11 +187,11 @@ goog.scope(function() {
     glsBufferTestUtil.BufferCase.prototype.init = function() {};
 
     /**
-     * deinit (TODO: needs tcuTestCase refactor)
+     * deinit
      */
     glsBufferTestUtil.BufferCase.prototype.deinit = function() {
-        for (var ndx = 0; ndx < this.m_allocatedBuffers.length; ndx++) //set<deUint32>::const_iterator bufIter = m_allocatedBuffers.begin(); bufIter != m_allocatedBuffers.end(); bufIter++)
-            gl.deleteBuffer(this.m_allocatedBuffers[ndx]);
+        for (var ndx = 0; ndx < this.m_allocatedBuffers.length; ndx++)
+            this.deleteBuffer(this.m_allocatedBuffers[ndx]);
     };
 
     /**
@@ -621,7 +603,7 @@ goog.scope(function() {
         assertMsgOptions(gluShaderUtil.isGLSLVersionSupported(gl, glslVersion), 'Unsupported GLSL version', false, true);
 
         this.m_program = new gluShaderProgram.ShaderProgram(gl, gluShaderProgram.makeVtxFragSources(
-            '#version 300 es\n' + //TODO: (currently a Firefox workaround) replace with this-> gluShaderUtil.getGLSLVersionDeclaration(glslVersion) + '\n' +
+            gluShaderUtil.getGLSLVersionDeclaration(glslVersion) + '\n' +
             'in highp vec2 a_position;\n' +
             'in mediump vec3 a_byteVec;\n' +
             'out mediump vec3 v_byteVec;\n' +
@@ -631,7 +613,7 @@ goog.scope(function() {
             ' v_byteVec = a_byteVec;\n' +
             '}\n',
 
-            '#version 300 es\n' + //TODO: (currently a Firefox workaround) replace with this-> gluShaderUtil.getGLSLVersionDeclaration(glslVersion) + '\n' +
+            gluShaderUtil.getGLSLVersionDeclaration(glslVersion) + '\n' +
             'in mediump vec3 v_byteVec;\n' +
             'layout(location = 0) out mediump vec4 o_color;\n' +
             'void main (void)\n' +
@@ -895,7 +877,7 @@ goog.scope(function() {
         assertMsgOptions(gluShaderUtil.isGLSLVersionSupported(gl, glslVersion), 'GLSL version not supported', false, true);
 
         this.m_program = new gluShaderProgram.ShaderProgram(gl, gluShaderProgram.makeVtxFragSources(
-            '#version 300 es\n' + //TODO: (currently a Firefox workaround) replace with this-> gluShaderUtil.getGLSLVersionDeclaration(glslVersion) + '\n' +
+            gluShaderUtil.getGLSLVersionDeclaration(glslVersion) + '\n' +
             'in highp vec2 a_position;\n' +
             'in mediump vec3 a_color;\n' +
             'out mediump vec3 v_color;\n' +
@@ -905,7 +887,7 @@ goog.scope(function() {
             ' v_color = a_color;\n' +
             '}\n',
 
-            '#version 300 es\n' + //TODO: (currently a Firefox workaround) replace with this-> gluShaderUtil.getGLSLVersionDeclaration(glslVersion) + '\n' +
+            gluShaderUtil.getGLSLVersionDeclaration(glslVersion) + '\n' +
             'in mediump vec3 v_color;\n' +
             'layout(location = 0) out mediump vec4 o_color;\n' +
             'void main (void)\n' +
@@ -1033,7 +1015,7 @@ goog.scope(function() {
         gl.enable(gl.BLEND);
         gl.blendFunc(gl.ONE, gl.ONE);
         gl.blendEquation(gl.FUNC_ADD);
-        debugger;
+
         while (numVerified < numBytes) {
             var numRemaining = numBytes - numVerified;
             var isLeftoverBatch = numRemaining < minBytesPerBatch;

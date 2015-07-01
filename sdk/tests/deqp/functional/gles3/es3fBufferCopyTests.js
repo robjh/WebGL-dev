@@ -108,7 +108,6 @@ goog.scope(function() {
         isOk = verifier.verify(dstBuf, dstRef.getPtr(), 0, this.m_dstSize, this.m_dstTarget) && isOk;
 
         // Execute copy.
-        //deMemcpy(dstRef.getPtr()+this.m_copyDstOffset, srcRef.getPtr()+this.m_copySrcOffset, this.m_copySize);
         dstRef.getPtr().set(srcRef.getPtr().subarray(this.m_copySrcOffset, this.m_copySrcOffset + this.m_copySize), this.m_copyDstOffset);
 
         gl.bindBuffer(this.m_srcTarget, srcBuf);
@@ -189,7 +188,6 @@ goog.scope(function() {
             gl.bufferData(this.m_srcTarget, ref.getPtr(), this.m_hint);
 
             // Execute copy.
-            //deMemcpy(ref.getPtr()+dstOffset, ref.getPtr()+srcOffset, copySize);
             ref.getPtr().set(ref.getPtr().subarray(srcOffset, srcOffset + copySize), dstOffset);
 
             gl.bindBuffer(this.m_dstTarget, buf);
@@ -228,7 +226,7 @@ goog.scope(function() {
             gl.COPY_WRITE_BUFFER,
             gl.ELEMENT_ARRAY_BUFFER,
             gl.PIXEL_PACK_BUFFER,
-            //gl.PIXEL_UNPACK_BUFFER, //TODO:Uncomment (currently causes render issues in chromium)
+            gl.PIXEL_UNPACK_BUFFER,
             gl.TRANSFORM_FEEDBACK_BUFFER,
             gl.UNIFORM_BUFFER
         ];
