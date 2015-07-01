@@ -228,7 +228,7 @@ goog.scope(function() {
             gl.COPY_WRITE_BUFFER,
             gl.ELEMENT_ARRAY_BUFFER,
             gl.PIXEL_PACK_BUFFER,
-            //gl.PIXEL_UNPACK_BUFFER,
+            //gl.PIXEL_UNPACK_BUFFER, //TODO:Uncomment (currently causes render issues in chromium)
             gl.TRANSFORM_FEEDBACK_BUFFER,
             gl.UNIFORM_BUFFER
         ];

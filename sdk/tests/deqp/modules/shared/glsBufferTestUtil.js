@@ -121,7 +121,7 @@ goog.scope(function() {
 
                 log += len + ' byte difference at offset ' + diffSpanStart + '\n' +
                     ' expected ' +
-                    /*tcu::formatArray(
+                    /* TODO: tcu::formatArray(
                         tcu::Format::HexIterator<deUint8>(refPtr+diffSpanStart),
                         tcu::Format::HexIterator<deUint8>(refPtr+diffSpanStart+printLen)
                     ) + "\n" +
@@ -154,7 +154,7 @@ goog.scope(function() {
             case gl.ELEMENT_ARRAY_BUFFER: return 'element_array';
             case gl.PIXEL_PACK_BUFFER: return 'pixel_pack';
             case gl.PIXEL_UNPACK_BUFFER: return 'pixel_unpack';
-            //case gl.TEXTURE_BUFFER: return "texture";
+            //case gl.TEXTURE_BUFFER: return "texture"; //TODO: Unimplemented in WebGL 2. Remove?
             case gl.TRANSFORM_FEEDBACK_BUFFER: return 'transform_feedback';
             case gl.UNIFORM_BUFFER: return 'uniform';
             default:
@@ -183,7 +183,6 @@ goog.scope(function() {
     };
 
     // Base class for buffer cases.
-
     // BufferCase
 
     /**
@@ -194,8 +193,6 @@ goog.scope(function() {
      */
     glsBufferTestUtil.BufferCase = function(name, description) {
         tcuTestCase.DeqpTest.call(this, name, description);
-        //TODO: CallLogWrapper (renderCtx.getFunctions(), testCtx.getLog())
-        //, m_renderCtx (renderCtx)
         /** @type {Array<WebGLBuffer>} */ this.m_allocatedBuffers = [];
     };
 
@@ -205,9 +202,7 @@ goog.scope(function() {
     /**
      * init
      */
-    glsBufferTestUtil.BufferCase.prototype.init = function() {
-        //enableLogging(true);
-    };
+    glsBufferTestUtil.BufferCase.prototype.init = function() {};
 
     /**
      * deinit (TODO: needs tcuTestCase refactor)
@@ -326,9 +321,7 @@ goog.scope(function() {
     /**
      * @constructor
      */
-    glsBufferTestUtil.BufferWriterBase = function() {
-        //enableLogging(true);
-    };
+    glsBufferTestUtil.BufferWriterBase = function() {};
 
     /**
      * //Meant to be overriden
@@ -349,7 +342,7 @@ goog.scope(function() {
      * @param {number} numBytes
      * @param {Uint8Array} bytes
      */
-    glsBufferTestUtil.BufferWriterBase.prototype.writeNoTarget = function(buffer, offset, numBytes, bytes) {};
+    glsBufferTestUtil.BufferWriterBase.prototype.writeNoTarget = function(buffer, offset, numBytes, bytes) { throw new Error('Must be overriden'); };
 
     /**
      * @param {WebGLBuffer} buffer
@@ -359,7 +352,6 @@ goog.scope(function() {
      * @param {number} targetHint
      */
     glsBufferTestUtil.BufferWriterBase.prototype.write = function(buffer, offset, numBytes, bytes, targetHint) {
-        //DE_UNREF(targetHint);
         this.writeNoTarget(buffer, offset, numBytes, bytes);
     };
 
@@ -373,7 +365,6 @@ goog.scope(function() {
         /** @type {glsBufferTestUtil.BufferWriterBase} */ this.m_writer = null;
         switch (writeType) {
             case glsBufferTestUtil.WriteType.BUFFER_SUB_DATA: this.m_writer = new glsBufferTestUtil.BufferSubDataWriter(); break;
-            //case glsBufferTestUtil.WriteType.BUFFER_WRITE_MAP: this.m_writer = new glsBufferTestUtil.BufferWriteMapWriter(); break;
             default:
                 testFailed('Unsupported writer');
         }
@@ -495,9 +486,7 @@ goog.scope(function() {
     /**
      * @constructor
      */
-    glsBufferTestUtil.BufferVerifierBase = function() {
-        //enableLogging(true);
-    };
+    glsBufferTestUtil.BufferVerifierBase = function() {};
 
     /**
      * //Meant to be overriden
@@ -532,8 +521,32 @@ goog.scope(function() {
      * @return {boolean}
      */
     glsBufferTestUtil.BufferVerifierBase.prototype.verify = function(buffer, reference, offset, numBytes, targetHint) {
-        //DE_UNREF(targetHint);
-        return this.verifyNoTarget(buffer, reference, offset, numBytes);
+        //In WebGL 2, ELEMENT_ARRAY_BUFFER and TRANSFORM_FEEDBACK_BUFFER cannot be rebound to a different
+        //type of buffer, so, let's copy their data to an ARRAY BUFFER and pass that one instead to be verified.
+        var wasReadBufferCreated = false;
+        try {
+            if (targetHint == gl.ELEMENT_ARRAY_BUFFER || targetHint == gl.TRANSFORM_FEEDBACK_BUFFER) {
+                var readBuffer = new ArrayBuffer(offset + numBytes);
+                gl.getBufferSubData(targetHint, 0, readBuffer);
+                buffer = gl.createBuffer();
+
+                wasReadBufferCreated = true;
+
+                gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+                gl.bufferData(gl.ARRAY_BUFFER, new Uint8Array(readBuffer), gl.STATIC_DRAW);
+            }
+
+            var result = this.verifyNoTarget(buffer, reference, offset, numBytes);
+
+            if(wasReadBufferCreated)
+                gl.deleteBuffer(buffer);
+
+            return result;
+        } catch (err) {
+            if(wasReadBufferCreated)
+                gl.deleteBuffer(buffer);
+            throw err;
+        };
     };
 
     // BufferVerifier
@@ -547,7 +560,6 @@ goog.scope(function() {
         switch (verifyType) {
             case glsBufferTestUtil.VerifyType.AS_VERTEX_ARRAY: this.m_verifier = new glsBufferTestUtil.VertexArrayVerifier(); break;
             case glsBufferTestUtil.VerifyType.AS_INDEX_ARRAY: this.m_verifier = new glsBufferTestUtil.IndexArrayVerifier(); break;
-            //case glsBufferTestUtil.VerifyType.BUFFER_READ_MAP: this.m_verifier = new glsBufferTestUtil.BufferMapVerifier (renderCtx, log); break;
             default:
                 testFailed('Unsupported verifier type');
         }
@@ -609,7 +621,7 @@ goog.scope(function() {
         assertMsgOptions(gluShaderUtil.isGLSLVersionSupported(gl, glslVersion), 'Unsupported GLSL version', false, true);
 
         this.m_program = new gluShaderProgram.ShaderProgram(gl, gluShaderProgram.makeVtxFragSources(
-            gluShaderUtil.getGLSLVersionDeclaration(glslVersion) + '\n' +
+            '#version 300 es\n' + //TODO: (currently a Firefox workaround) replace with this-> gluShaderUtil.getGLSLVersionDeclaration(glslVersion) + '\n' +
             'in highp vec2 a_position;\n' +
             'in mediump vec3 a_byteVec;\n' +
             'out mediump vec3 v_byteVec;\n' +
@@ -619,7 +631,7 @@ goog.scope(function() {
             ' v_byteVec = a_byteVec;\n' +
             '}\n',
 
-            gluShaderUtil.getGLSLVersionDeclaration(glslVersion) + '\n' +
+            '#version 300 es\n' + //TODO: (currently a Firefox workaround) replace with this-> gluShaderUtil.getGLSLVersionDeclaration(glslVersion) + '\n' +
             'in mediump vec3 v_byteVec;\n' +
             'layout(location = 0) out mediump vec4 o_color;\n' +
             'void main (void)\n' +
@@ -799,7 +811,8 @@ goog.scope(function() {
         /** @type {tcuSurface.Surface} */ var rendered = new tcuSurface.Surface();
         /** @type {tcuSurface.Surface} */ var reference = new tcuSurface.Surface();
 
-        assertMsgOptions(numBytes >= numBytesInQuad, 'Number of bytes must be bigger than number of bytes per quad', false, true); // Can't render full quad with smaller buffers.
+        // Can't render full quad with smaller buffers.
+        assertMsgOptions(numBytes >= numBytesInQuad, 'Number of bytes must be bigger than number of bytes per quad', false, true);
 
         positions = glsBufferTestUtil.computePositions(maxQuadsX, maxQuadsY);
         indices = glsBufferTestUtil.computeIndices(maxQuadsX, maxQuadsY);
@@ -824,6 +837,7 @@ goog.scope(function() {
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
 
         gl.enableVertexAttribArray(this.m_byteVecLoc);
+
         gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
 
         while (numVerified < numBytes) {
@@ -881,7 +895,7 @@ goog.scope(function() {
         assertMsgOptions(gluShaderUtil.isGLSLVersionSupported(gl, glslVersion), 'GLSL version not supported', false, true);
 
         this.m_program = new gluShaderProgram.ShaderProgram(gl, gluShaderProgram.makeVtxFragSources(
-            gluShaderUtil.getGLSLVersionDeclaration(glslVersion) + '\n' +
+            '#version 300 es\n' + //TODO: (currently a Firefox workaround) replace with this-> gluShaderUtil.getGLSLVersionDeclaration(glslVersion) + '\n' +
             'in highp vec2 a_position;\n' +
             'in mediump vec3 a_color;\n' +
             'out mediump vec3 v_color;\n' +
@@ -891,7 +905,7 @@ goog.scope(function() {
             ' v_color = a_color;\n' +
             '}\n',
 
-            gluShaderUtil.getGLSLVersionDeclaration(glslVersion) + '\n' +
+            '#version 300 es\n' + //TODO: (currently a Firefox workaround) replace with this-> gluShaderUtil.getGLSLVersionDeclaration(glslVersion) + '\n' +
             'in mediump vec3 v_color;\n' +
             'layout(location = 0) out mediump vec4 o_color;\n' +
             'void main (void)\n' +
