@@ -24,12 +24,28 @@
 goog.provide('functional.gles3.es3fBuiltinPrecisionTests');
 goog.require('modules.shared.glsBuiltinPrecisionTests');
 goog.require('framework.common.tcuTestCase');
+goog.require('framework.opengl.gluShaderProgram');
 
 goog.scope(function() {
 
     var es3fBuiltinPrecisionTests = functional.gles3.es3fBuiltinPrecisionTests;
     var glsBuiltinPrecisionTests = modules.shared.glsBuiltinPrecisionTests;
     var tcuTestCase = framework.common.tcuTestCase;
+    var gluShaderProgram = framework.opengl.gluShaderProgram;
+
+    es3fBuiltinPrecisionTests.createBuiltinPrecisionTests = function() {
+        /** @type {tcuTestCase.DeqpTest} */
+        var group = tcuTestCase.newTest('precision', 'Builtin precision tests');
+
+        /** @type{Array<gluShaderProgram.shaderType>} */ var shaderTypes = [];
+        /** @type{glsBuiltinPrecisionTests.CaseFactories} */ var es3Cases = glsBuiltinPrecisionTests.createES3BuiltinCases();
+
+    	shaderTypes.push(gluShaderProgram.shaderType.VERTEX);
+    	shaderTypes.push(gluShaderProgram.shaderType.FRAGMENT);
+
+    	// glsBuiltinPrecisionTests.addBuiltinPrecisionTests(es3Cases, shaderTypes, group);
+    	return group;
+    };
 
     /**
      * Create and execute the test cases
@@ -40,7 +56,7 @@ goog.scope(function() {
         //Set up root Test
         var state = tcuTestCase.runner;
 
-        var test = es3fAttribLocationTests.createAttributeLocationTests();
+        var test = es3fBuiltinPrecisionTests.createBuiltinPrecisionTests();
         var testName = test.fullName();
         var testDescription = test.getDescription() === undefined ? '' : test.getDescription();
 

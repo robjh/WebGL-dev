@@ -396,6 +396,46 @@ goog.scope(function() {
         this.typename = T;
     };
 
+    class ExprBase;
+class ExpandContext;
+class Statement;
+class StatementP;
+class FuncBase;
+    /**
+     * @constructor
+     * @param{*} typename
+     */
+    glsBuiltinPrecisionTests.ExprP = function(typename) {
+        this.T = typename;
+    };
+
+    /**
+     * @constructor
+     * @param{*} typename
+     */
+    glsBuiltinPrecisionTests.Variable = function(typename) {
+        this.T = typename;
+    };
+
+    /**
+     * @constructor
+     * @param{*} typename
+     */
+    glsBuiltinPrecisionTests.VariableP = function(typename) {
+        this.T = typename;
+    };
+
+    /**
+     * @constructor
+     * @param{*} typename
+     */
+    glsBuiltinPrecisionTests.DefaultSampling = function(typename) {
+        this.T = typename;
+    };
+
+    /** @typedef {Array<glsBuiltinPrecisionTests.FuncBase>} */
+    glsBuiltinPrecisionTests.FuncSet;
+
     /**
      * Common base class for all expressions regardless of their type.
      * @constructor
@@ -1139,11 +1179,12 @@ goog.scope(function() {
     /**
      * @constructor
      * @extends{glsBuiltinPrecisionTests.FuncCaseBase}
+     * @param{glsBuiltinPrecisionTests.Context} context
      * @param{string} name
      * @param{glsBuiltinPrecisionTests.FuncBase} extension
      */
     glsBuiltinPrecisionTests.FuncCase = function(name, func) {
-        glsBuiltinPrecisionTests.FuncCaseBase.call(this, name, func.getRequiredExtension());
+        glsBuiltinPrecisionTests.FuncCaseBase.call(this, context, name, func.getRequiredExtension());
     };
 
     glsBuiltinPrecisionTests.FuncCase.prototype.iterate = function
@@ -1160,8 +1201,7 @@ goog.scope(function() {
     /**
      * @return{Array<glsBuiltinPrecisionTests.CaseFactory>}
      */
-    glsBuiltinPrecisionTests.CaseFactories.prototype.getFactories = function (){
-    };
+    glsBuiltinPrecisionTests.CaseFactories.prototype.getFactories = function (){};
 
     /**
      * @constructor
@@ -1178,37 +1218,207 @@ goog.scope(function() {
 		return this.m_factories.slice();
 	};
 
-    glsBuiltinPrecisionTests.BuiltinFuncs.prototype = Object.create(glsBuiltinPrecisionTests.CaseFactories.prototype);
-    glsBuiltinPrecisionTests.BuiltinFuncs.prototype.constructor = glsBuiltinPrecisionTests.BuiltinFuncs;
-
     /**
      * @return{glsBuiltinPrecisionTests.CaseFactories} fact
      */
 	glsBuiltinPrecisionTests.BuiltinFuncs.prototype.addFactory = function(fact)	{
 		this.m_factories.push(fact);
-	}
+	};
+
+    glsBuiltinPrecisionTests.BuiltinFuncs.prototype = Object.create(glsBuiltinPrecisionTests.CaseFactories.prototype);
+    glsBuiltinPrecisionTests.BuiltinFuncs.prototype.constructor = glsBuiltinPrecisionTests.BuiltinFuncs;
+
+    /**
+     * template <typename Sig>
+     * @param{glsBuiltinPrecisionTests.Context} context
+     * @param{string} name
+     * @param{glsBuiltinPrecisionTests.Signature} Sig_
+     * @param{glsBuiltinPrecisionTests.Func} func
+     * @param{glsBuiltinPrecisionTests.PrecisionCase}
+     */
+    glsBuiltinPrecisionTests.createFuncCase (context, name, Sig_, func) {
+    	switch (func.getOutParamIndex()) {
+    		case -1:
+    			return new glsBuiltinPrecisionTests.FuncCase(context, name, func);
+    		// case 1:
+    		// 	return new InOutFuncCase<Sig>(context, name, func);
+    		default:
+    			throw new Error(!"Impossible");
+    	}
+    	return null;
+    };
+
+
+    /**
+     * @constructor
+     */
+    glsBuiltinPrecisionTests.CaseFactory = function () {};
+
+    /**
+     * @return{string}
+     */
+    glsBuiltinPrecisionTests.CaseFactory.prototype.getName = function	() {
+        return '';
+    };
+
+    /**
+     * @return{string}
+     */
+    glsBuiltinPrecisionTests.CaseFactory.prototype.getDesc = function	() {
+        return '';
+    };
+
+    /**
+     * template <typename Sig_, int Size>
+     * public PrimitiveFunc<Signature<
+     *	typename ContainerOf<typename Sig_::Ret, Size>::Container,
+     *	typename ContainerOf<typename Sig_::Arg0, Size>::Container,
+     *	typename ContainerOf<typename Sig_::Arg1, Size>::Container,
+     *	typename ContainerOf<typename Sig_::Arg2, Size>::Container,
+     *	typename ContainerOf<typename Sig_::Arg3, Size>::Container> >
+     * @constructor
+     * @extends{glsBuiltinPrecisionTests.PrimitiveFunc}
+     * @param{glsBuiltinPrecisionTests.Func} scalarFunc
+     */
+    glsBuiltinPrecisionTests.GenFunc = function(scalarFunc) {
+        this.m_func = scalarFunc;
+    };
+
+    /**
+     * @return{string}
+     */
+    glsBuiltinPrecisionTests.GenFunc.prototype.getName() {
+       return this.m_func.getName();
+    };
+
+    /**
+     * @return{number}
+     */
+    glsBuiltinPrecisionTests.GenFunc.prototype.getOutParamIndex() {
+       return this.m_func.getOutParamIndex();
+    };
+
+    /**
+     * @return{string}
+     */
+    glsBuiltinPrecisionTests.GenFunc.prototype.getRequiredExtension() {
+       return this.m_func.getRequiredExtension();
+    };
+
+    public:
+    	typedef typename GenFunc::IArgs		IArgs;
+    	typedef typename GenFunc::IRet		IRet;
+
+    			GenFunc					(const Func<Sig_>&	scalarFunc) : m_func (scalarFunc) {}
+
+    /**
+     * @param{glsBuiltinPrecisionTests.BaseArgExprs} args
+     */
+    glsBuiltinPrecisionTests.GenFunc.prototype.doPrint(/*ostream& os,*/ args) {
+       return this.m_func.print(/*os,*/ args);
+    };
+
+    /**
+     * @param{glsBuiltinPrecisionTests.EvalContext} ctx
+     * @param{glsBuiltinPrecisionTests.IArgs} iargs
+     * @return{*}
+     */
+    glsBuiltinPrecisionTests.GenFunc.prototype.doApply = function(/*ostream& os,*/ args) {
+        /** @type{Array<*>} */ var ret = [];
+
+        for (int ndx = 0; ndx < Size; ++ndx) {
+            ret[ndx] = this.m_func.apply(this.ctx, iargs.a[ndx], iargs.b[ndx], iargs.c[ndx], iargs.d[ndx]);
+        }
+
+        return ret;
+    };
+
+    /**
+     * @param{glsBuiltinPrecisionTests.FuncSet} dst
+     * @param{glsBuiltinPrecisionTests.IArgs} iargs
+     * @return{*}
+     */
+    glsBuiltinPrecisionTests.GenFunc.prototype.doGetUsedFuncs = function(FuncSet& dst) {
+    		this.m_func.getUsedFuncs(dst);
+    	}
+    	const Func<Sig_>&	m_func;
+    };
 
 
 
-        /**
-         * @constructor
-         */
-        glsBuiltinPrecisionTests.CaseFactory = function () {};
+    /**
+     * template <typename F, int Size>
+     * @constructor
+     * @extends{glsBuiltinPrecisionTests.GenFunc}
+     * @param{glsBuiltinPrecisionTests.Signature} Sig_
+     * @param{number} size
+     */
+     glsBuiltinPrecisionTests.VectorizedFunc = function(Sig_, size) {
+public:
+	VectorizedFunc	(void) : GenFunc<typename F::Sig, Size>(instance<F>()) {}
+};
 
-        /**
-         * @return{string}
-         */
-        glsBuiltinPrecisionTests.prototype.getName = function	() {
-            return '';
-        };
 
-        /**
-         * @return{string}
-         */
-        glsBuiltinPrecisionTests.prototype.getDesc = function	() {
-            return '';
-        };
+    /**
+     * template<typename Sig>
+     * @constructor
+     * @param{glsBuiltinPrecisionTests.Signature} Sig_
+     * @param{glsBuiltinPrecisionTests.Func} func_
+     * @param{glsBuiltinPrecisionTests.GenFunc} func2_
+     * @param{glsBuiltinPrecisionTests.GenFunc} func3_
+     * @param{glsBuiltinPrecisionTests.GenFunc} func4_
+     */
+    glsBuiltinPrecisionTests.GenFuncs = function(Sig_, func_, func2_, func3_, func4_) {
+        this.func = func_;
+        this.func2 = func2_;
+        this.func3 = func3_;
+        this.func4 = func4_;
+    };
 
+    /**
+     * template <typename Sig>
+     * @constructor
+     * @extends{glsBuiltinPrecisionTests.CaseFactory}
+     * @param{glsBuiltinPrecisionTests.Signature} Sig_
+     * @param{glsBuiltinPrecisionTests.GenFuncs} funcs
+     * @param{string} name
+     */
+    glsBuiltinPrecisionTests.GenFuncCaseFactory = function (Sig_, funcs, name) {
+        this.Sig = Sig_;
+        this.m_funcs = funcs;
+        this.m_name = name;
+    };
+
+    /**
+     * template <typename Sig>
+     * @param{glsBuiltinPrecisionTests.Context} ctx
+     * @return{tcuTestCase.DeqpTest}
+     */
+    glsBuiltinPrecisionTests.GenFuncCaseFactory.prototype.createCase = function(ctx) {
+        /** @type {tcuTestCase.DeqpTest} */
+        var group = tcuTestCase.newTest(ctx.name, ctx.name);
+
+		group.addChild(createFuncCase(ctx, "scalar", m_funcs.func));
+		group.addChild(createFuncCase(ctx, "vec2", m_funcs.func2));
+		group.addChild(createFuncCase(ctx, "vec3", m_funcs.func3));
+		group.addChild(createFuncCase(ctx, "vec4", m_funcs.func4));
+
+		return group;
+	};
+
+    /**
+     * @return{string}
+     */
+    glsBuiltinPrecisionTests.GenFuncCaseFactory.prototype.getName = function() {
+		return this.m_name;
+	};
+
+    /**
+     * @return{string}
+     */
+    glsBuiltinPrecisionTests.GenFuncCaseFactory.prototype.getDesc = function() {
+		return "Function '" + this.m_funcs.func.getName() + "'";
+	};
 
     /**
      * @constructor
@@ -1314,23 +1524,22 @@ goog.scope(function() {
     /**
      * @param {F} typename
      * @param {glsBuiltinPrecisionTests.BuiltinFuncs} funcs
-     * @param {string?} name
+     * @param {string=} name
      */
     glsBuiltinPrecisionTests.addScalarFactory = function(F, funcs, name) {
-    	if (name === undefined || name.trim())
+    	if (name === undefined)
     		name = glsBuiltinPrecisionTests.instance(F).getName();
 
-    	funcs.addFactory(SharedPtr<const CaseFactory>(new GenFuncCaseFactory<typename F::Sig>(
-    													  makeVectorizedFuncs<F>(), name)));
+    	funcs.addFactory(SharedPtr<const CaseFactory>(new GenFuncCaseFactory(F.Sig, makeVectorizedFuncs<F>(), name)));
     }
 
     /**
      * @return {Array<CaseFactories>}
      */
     glsBuiltinPrecisionTests.createES3BuiltinCases = function() {
-	 /** @type{CaseFactories} */ var funcs = new BuiltinFuncs();
+    	/** @type{CaseFactories} */ var funcs = new BuiltinFuncs();
 
-	addScalarFactory(glsBuiltinPrecisionTests.Add,funcs);
+    	addScalarFactory(new glsBuiltinPrecisionTests.Add(),funcs);
 	// addScalarFactory<Sub>(*funcs);
 	// addScalarFactory<Mul>(*funcs);
 	// addScalarFactory<Div>(*funcs);
@@ -1392,9 +1601,7 @@ goog.scope(function() {
 	// funcs.addFactory(SharedPtr<const CaseFactory>(new SquareMatrixFuncCaseFactory<Determinant>()));
 	// funcs.addFactory(SharedPtr<const CaseFactory>(new SquareMatrixFuncCaseFactory<Inverse>()));
 
-	return funcs;
-};
-
-
+    	return funcs;
+    };
 
 });
