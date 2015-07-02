@@ -76,7 +76,8 @@ targets = {
     'negativefragmentapi': 'functional.gles3.es3fNegativeFragmentApiTests',
     'negativevertexarrayapi': 'functional.gles3.es3fNegativeVertexArrayApiTests',
     'negativestateapi' : 'functional.gles3.es3fNegativeStateApiTests',
-    'negativeshaderapi' : 'functional.gles3.es3fNegativeShaderApiTests'
+    'negativeshaderapi' : 'functional.gles3.es3fNegativeShaderApiTests',
+    'shaderindexing' : 'functional.gles3.es3fShaderIndexingTests'
 }
 
 total_errors = 0
@@ -241,4 +242,3 @@ def main(argv):
 
 if __name__ == '__main__':
     main(sys.argv[1:])
-

@@ -20,17 +20,26 @@
 
 'use strict';
 goog.provide('modules.shared.glsShaderRenderCase');
+goog.require('framework.common.tcuTexture');
+goog.require('framework.common.tcuMatrix');
+goog.require('framework.common.tcuRGBA');
+goog.require('framework.delibs.debase.deMath');
+goog.require('framework.delibs.debase.deString');
+goog.require('framework.delibs.debase.deRandom');
+goog.require('framework.opengl.gluTextureUtil');
+goog.require('framework.opengl.gluDrawUtil');
 
 goog.scope(function() {
     var glsShaderRenderCase = modules.shared.glsShaderRenderCase;
-    var tcuTexture;
-    var tcuMatrix;
-    var tcuRGBA;
-    var deMath;
-    var deString;
-    var deRandom;
-    var gluTextureUtil;
-    var gluDrawUtil;
+
+    var deMath = framework.delibs.debase.deMath;
+    var deString = framework.delibs.debase.deString;
+    var deRandom = framework.delibs.debase.deRandom;
+    var gluTextureUtil = framework.opengl.gluTextureUtil;
+    var gluDrawUtil = framework.opengl.gluDrawUtil;
+    var tcuTexture = framework.common.tcuTexture;
+    var tcuMatrix = framework.common.tcuMatrix;
+    var tcuRGBA = framework.common.tcuRGBA;
 
     /** @type {number} */ glsShaderRenderCase.GRID_SIZE = 64;
     /** @type {number} */ glsShaderRenderCase.MAX_RENDER_WIDTH = 128;
@@ -102,7 +111,7 @@ goog.scope(function() {
         /** @type {tcuTexture.Sampler} */ this.m_sampler = sampler;
         /** @type {(gluTexture.Texture2D|gluTexture.TextureCube|gluTexture.Texture2DArray|gluTexture.Texture3D)} */
         this.m_binding = tex;
-    }:
+    };
 
     /**
      * @param {tcuTexture.Sampler} sampler
@@ -135,9 +144,9 @@ goog.scope(function() {
     };
 
     /** @enum {number} */
-    glsShaderRenderCase.Limits {
+    glsShaderRenderCase.Limits = {
 		MAX_USER_ATTRIBS: 4,
-		MAX_TEXTURES: 4,
+		MAX_TEXTURES: 4
 	};
 
     /**
@@ -170,7 +179,7 @@ goog.scope(function() {
     		/** @type {number} */ var sx = x / gridSize;
     		/** @type {number} */ var sy = y / gridSize;
     		/** @type {number} */ var fx = 2.0 * sx - 1.0;
-    		/** @type {number} */ var fy = 2.0 * sy - 1.f;
+    		/** @type {number} */ var fy = 2.0 * sy - 1.0;
     		/** @type {number} */ var vtxNdx = ((y * (gridSize + 1)) + x);
 
     		this.m_positions[vtxNdx] = [fx, fy, 0.0, 1.0];
@@ -318,9 +327,9 @@ goog.scope(function() {
      */
     glsShaderRenderCase.ShaderEvalContext = function(quadGrid_) {
         /** @type {Array<number>} */ this.coords = [];
-        /** @type {Array<number>} */ this.unitCoords; = []
+        /** @type {Array<number>} */ this.unitCoords = [];
         /** @type {Array<number>} */ this.constCoords = quadGrid_.getConstCoords();
-        /** @type {Array<number>} */ this.in = [];
+        /** @type {Array<number>} */ this.in_ = [];
         /** @type {Array<glsShaderRenderCase.ShaderSampler>} */ this.textures = [];
         /** @type {Array<number>} */ this.color = [];
         /** @type {boolean} */ this.isDiscarded = false;
@@ -374,7 +383,7 @@ goog.scope(function() {
     	/** @type {number} */ var numAttribs = quadGrid.getNumUserAttribs();
     	assertMsgOptions(numAttribs <= glsShaderRenderCase.Limits.MAX_USER_ATTRIBS, 'numAttribs out of range', false, true);
     	for (var attribNdx = 0; attribNdx < numAttribs; attribNdx++)
-    		in[attribNdx] = quadGrid.getUserAttrib(attribNdx, sx, sy);
+    		in_[attribNdx] = quadGrid.getUserAttrib(attribNdx, sx, sy);
     };
 
     glsShaderRenderCase.ShaderEvalContext.prototype.discard = function() {
@@ -602,7 +611,7 @@ n    };
                     texObj = tex.get3D().getGLTexture();
                     break;
     			default:
-    				theow new Error("Type not supported");
+    				throw new Error("Type not supported");
     		}
 
     		gl.activeTexture(gl.TEXTURE0+ ndx);
@@ -682,8 +691,8 @@ n    };
 
         // Evaluate color for each vertex.
         /** @type {Array<Array<number>>} */ var colors;
-        for (int y = 0; y < gridSize + 1; y++)
-        for (int x = 0; x < gridSize + 1; x++) {
+        for (var y = 0; y < gridSize + 1; y++)
+        for (var x = 0; x < gridSize + 1; x++) {
             /** @type {number} */ var sx = x / gridSize;
             /** @type {number} */ var sy = y / gridSize;
             /** @type {number} */ var vtxNdx = ((y * (gridSize+ 1 )) + x);
@@ -739,7 +748,7 @@ n    };
                 /** @type {number} */ var fy1 = deMath.clamp((sfy - sy0) * oosy, 0.0, 1.0);
 
                 // Triangle quad interpolation.
-                /** @type {boolean} */ var tri = fx1 + fy1 <= 1.0f;
+                /** @type {boolean} */ var tri = fx1 + fy1 <= 1.0;
                 /** @type {number} */ var tx = tri ? fx1 : (1.0 - fx1);
                 /** @type {number} */ var ty = tri ? fy1 : (1.0 - fy1);
                 /** @type {Array<number>} */ var t0 = tri ? c00 : c11;
@@ -862,8 +871,8 @@ n    };
         };
 
     	/** @type {Array<BoolUniform>} */ var s_boolUniforms = [
-    		("ub_true", true),
-    		("ub_false", false),
+    		new BoolUniform("ub_true", true),
+    		new BoolUniform("ub_false", false)
     	];
 
     	for (var i = 0; i < s_boolUniforms.length; i++) {
@@ -882,8 +891,8 @@ n    };
         };
 
     	/** @type {Array<BVec4Uniform>} */ var s_bvec4Uniforms = [
-    		("ub4_true", [true, true, true, true]),
-    		("ub4_false", [false, false, false, false]),
+    		new BVec4Uniform("ub4_true", [true, true, true, true]),
+    		new BVec4Uniform("ub4_false", [false, false, false, false])
     	];
 
     	for (var i = 0; i < s_bvec4Uniforms.length; i++) {
@@ -908,17 +917,17 @@ n    };
         };
 
         /** @type {Array<IntUniform>} */ var s_intUniforms = [
-    		("ui_minusOne", -1),
-    		("ui_zero", 0),
-    		("ui_one", 1),
-    		("ui_two", 2),
-    		("ui_three", 3),
-    		("ui_four", 4),
-    		("ui_five", 5),
-    		("ui_six", 6),
-    		("ui_seven", 7),
-    		("ui_eight", 8),
-    		("ui_oneHundredOne", 101)
+    		new IntUniform("ui_minusOne", -1),
+    		new IntUniform("ui_zero", 0),
+    		new IntUniform("ui_one", 1),
+    		new IntUniform("ui_two", 2),
+    		new IntUniform("ui_three", 3),
+    		new IntUniform("ui_four", 4),
+    		new IntUniform("ui_five", 5),
+    		new IntUniform("ui_six", 6),
+    		new IntUniform("ui_seven", 7),
+    		new IntUniform("ui_eight", 8),
+    		new IntUniform("ui_oneHundredOne", 101)
     	];
 
     	for (var i = 0; i < s_intUniforms.length; i++) {
@@ -928,18 +937,21 @@ n    };
     	}
 
     	// IVec2.
+    	/**
+    	 * @struct
+    	 */
         var IVec2Uniform = function(name, value) {
             /** @type {string} */ this.name = name;
             /** @type {Array<number>} */ this.value = value;
         };
 
         /** @type {Array<IVec2Uniform>} */ var s_ivec2Uniforms = [
-            ("ui2_minusOne", [-1, -1]),
-    		("ui2_zero", [0, 0]),
-    		("ui2_one", [1, 1]),
-    		("ui2_two", [2, 2]),
-    		("ui2_four", [4, 4]),
-    		("ui2_five", [5, 5])
+            new IVec2Uniform("ui2_minusOne", [-1, -1]),
+    		new IVec2Uniform("ui2_zero", [0, 0]),
+    		new IVec2Uniform("ui2_one", [1, 1]),
+    		new IVec2Uniform("ui2_two", [2, 2]),
+    		new IVec2Uniform("ui2_four", [4, 4]),
+    		new IVec2Uniform("ui2_five", [5, 5])
     	];
 
     	for (var i = 0; i < s_ivec2Uniforms.length; i++) {
@@ -949,68 +961,77 @@ n    };
     	}
 
     	// IVec3.
+        /**
+    	 * @struct
+    	 */
         var IVec3Uniform = function(name, value) {
             /** @type {string} */ this.name = name;
             /** @type {Array<number>} */ this.value = value;
         };
 
     	/** @type {Array<IVec3Uniform>} */ var s_ivec3Uniforms = [
-    		("ui3_minusOne", [-1, -1, -1]),
-    		("ui3_zero", [0, 0, 0]),
-    		("ui3_one", [1, 1, 1]),
-    		("ui3_two", [2, 2, 2]),
-    		("ui3_four", [4, 4, 4]),
-    		("ui3_five", [5, 5, 5])
+    		new IVec3Uniform("ui3_minusOne", [-1, -1, -1]),
+    		new IVec3Uniform("ui3_zero", [0, 0, 0]),
+    		new IVec3Uniform("ui3_one", [1, 1, 1]),
+    		new IVec3Uniform("ui3_two", [2, 2, 2]),
+    		new IVec3Uniform("ui3_four", [4, 4, 4]),
+    		new IVec3Uniform("ui3_five", [5, 5, 5])
     	];
 
     	for (var i = 0; i < s_ivec3Uniforms.length; i++) {
     		/** @type {number} */ var uniLoc = gl.getUniformLocation(programID, s_ivec3Uniforms[i].name);
     		if (uniLoc != -1)
-    			gl.uniform3iv(uniLoc, 1, new Float32Array(s_ivec3Uniforms[i].value.));
+    			gl.uniform3iv(uniLoc, 1, new Float32Array(s_ivec3Uniforms[i].value));
     	}
 
     	// IVec4.
+        /**
+    	 * @struct
+    	 */
         var IVec4Uniform = function(name, value) {
             /** @type {string} */ this.name = name;
             /** @type {Array<number>} */ this.value = value;
         };
     	/** @type {Array<IVec4Uniform>} */ var s_ivec4Uniforms = [
-    		("ui4_minusOne", [-1, -1, -1, -1]),
-    		("ui4_zero", [0, 0, 0, 0]),
-    		("ui4_one", [1, 1, 1, 1]),
-    		("ui4_two", [2, 2, 2, 2]),
-    		("ui4_four", [4, 4, 4, 4]),
-    		("ui4_five", [5, 5, 5, 5]),
+    		new IVec4Uniform("ui4_minusOne", [-1, -1, -1, -1]),
+    		new IVec4Uniform("ui4_zero", [0, 0, 0, 0]),
+    		new IVec4Uniform("ui4_one", [1, 1, 1, 1]),
+    		new IVec4Uniform("ui4_two", [2, 2, 2, 2]),
+    		new IVec4Uniform("ui4_four", [4, 4, 4, 4]),
+    		new IVec4Uniform("ui4_five", [5, 5, 5, 5])
     	];
 
     	for (var i = 0; i < s_ivec4Uniforms.length; i++) {
     		/** @type {number} */ var uniLoc = gl.getUniformLocation(programID, s_ivec4Uniforms[i].name);
     		if (uniLoc != -1)
-    			gl.uniform4iv(uniLoc, 1, new Float32Array(s_ivec4Uniforms[i].value.));
+    			gl.uniform4iv(uniLoc, 1, new Float32Array(s_ivec4Uniforms[i].value));
     	}
 
     	// Float.
+        /**
+    	 * @struct
+    	 */
         var FloatUniform = function(name, value) {
             /** @type {string} */ this.name = name;
             /** @type {number} */ this.value = value;
         };
     	/** @type {FloatUniform} */ var s_floatUniforms = [
-    		("uf_zero", 0.0),
-    		("uf_one", 1.0),
-    		("uf_two", 2.0),
-    		("uf_three", 3.0),
-    		("uf_four", 4.0),
-    		("uf_five", 5.0),
-    		("uf_six", 6.0),
-    		("uf_seven", 7.0),
-    		("uf_eight", 8.0),
-    		("uf_half", 1.0 / 2.0),
-    		("uf_third", 1.0 / 3.0),
-    		("uf_fourth", 1.0 / 4.0),
-    		("uf_fifth", 1.0 / 5.0),
-    		("uf_sixth", 1.0 / 6.0),
-    		("uf_seventh", 1.0 / 7.0),
-    		("uf_eighth", 1.0 / 8.0)
+    		new FloatUniform("uf_zero", 0.0),
+    		new FloatUniform("uf_one", 1.0),
+    		new FloatUniform("uf_two", 2.0),
+    		new FloatUniform("uf_three", 3.0),
+    		new FloatUniform("uf_four", 4.0),
+    		new FloatUniform("uf_five", 5.0),
+    		new FloatUniform("uf_six", 6.0),
+    		new FloatUniform("uf_seven", 7.0),
+    		new FloatUniform("uf_eight", 8.0),
+    		new FloatUniform("uf_half", 1.0 / 2.0),
+    		new FloatUniform("uf_third", 1.0 / 3.0),
+    		new FloatUniform("uf_fourth", 1.0 / 4.0),
+    		new FloatUniform("uf_fifth", 1.0 / 5.0),
+    		new FloatUniform("uf_sixth", 1.0 / 6.0),
+    		new FloatUniform("uf_seventh", 1.0 / 7.0),
+    		new FloatUniform("uf_eighth", 1.0 / 8.0)
     	];
 
     	for (var i = 0; i < s_floatUniforms.length; i++) {
@@ -1020,35 +1041,41 @@ n    };
     	}
 
     	// Vec2.
+        /**
+    	 * @struct
+    	 */
         var Vec2Uniform = function(name, value) {
             /** @type {string} */ this.name = name;
             /** @type {Array<number>} */ this.value = value;
         };
     	/** @type {Vec2Uniform} */ var s_vec2Uniforms = [
-    		("uv2_minusOne", [-1.0, -1.0]),
-    		("uv2_zero", [0.0, 0.0]),
-    		("uv2_half", [0.5, 0.5]),
-    		("uv2_one", [1.0, 1.0]),
-    		("uv2_two", [2.0, 2.0]),
+    		new Vec2Uniform("uv2_minusOne", [-1.0, -1.0]),
+    		new Vec2Uniform("uv2_zero", [0.0, 0.0]),
+    		new Vec2Uniform("uv2_half", [0.5, 0.5]),
+    		new Vec2Uniform("uv2_one", [1.0, 1.0]),
+    		new Vec2Uniform("uv2_two", [2.0, 2.0])
     	];
 
     	for (var i = 0; i < s_vec2Uniforms.length; i++) {
     		/** @type {number} */ var uniLoc = gl.getUniformLocation(programID, s_vec2Uniforms[i].name);
     		if (uniLoc != -1)
-    			gl.uniform2fv(uniLoc, 1, new Float32Array(s_vec2Uniforms[i].value.));
+    			gl.uniform2fv(uniLoc, 1, new Float32Array(s_vec2Uniforms[i].value));
     	}
 
     	// Vec3.
+        /**
+    	 * @struct
+    	 */
         var Vec3Uniform = function(name, value) {
             /** @type {string} */ this.name = name;
             /** @type {Array<number>} */ this.value = value;
         };
     	/** @type {Vec3Uniform} */ var s_vec3Uniforms = [
-    		("uv3_minusOne", [-1.0, -1.0, -1.0]),
-    		("uv3_zero", [0.0, 0.0, 0.0]),
-    		("uv3_half", [0.5, 0.5, 0.5]),
-    		("uv3_one", [1.0, 1.0, 1.0]),
-    		("uv3_two", [2.0, 2.0, 2.0])
+    		new Vec3Uniform("uv3_minusOne", [-1.0, -1.0, -1.0]),
+    		new Vec3Uniform("uv3_zero", [0.0, 0.0, 0.0]),
+    		new Vec3Uniform("uv3_half", [0.5, 0.5, 0.5]),
+    		new Vec3Uniform("uv3_one", [1.0, 1.0, 1.0]),
+    		new Vec3Uniform("uv3_two", [2.0, 2.0, 2.0])
     	];
 
     	for (var i = 0; i < s_vec3Uniforms.length; i++) {
@@ -1058,22 +1085,25 @@ n    };
     	}
 
     	// Vec4.
+        /**
+    	 * @struct
+    	 */
         var Vec4Uniform = function(name, value) {
             /** @type {string} */ this.name = name;
             /** @type {Array<number>} */ this.value = value;
         };
     	/** @type {Vec4Uniform} */ var s_vec4Uniforms = [
-    		("uv4_minusOne", [-1.0, -1.0, -1.0, -1.0]),
-    		("uv4_zero", [0.0, 0.0, 0.0, 0.0]),
-    		("uv4_half", [0.5, 0.5, 0.5, 0.5]),
-    		("uv4_one", [1.0, 1.0, 1.0, 1.0]),
-    		("uv4_two", [2.0, 2.0, 2.0, 2.0]),
-    		("uv4_black", [0.0, 0.0, 0.0, 1.0]),
-    		("uv4_gray", [0.5, 0.5, 0.5, 1.0]),
-    		("uv4_white", [1.0, 1.0, 1.0, 1.0]),
+    		new Vec4Uniform("uv4_minusOne", [-1.0, -1.0, -1.0, -1.0]),
+    		new Vec4Uniform("uv4_zero", [0.0, 0.0, 0.0, 0.0]),
+    		new Vec4Uniform("uv4_half", [0.5, 0.5, 0.5, 0.5]),
+    		new Vec4Uniform("uv4_one", [1.0, 1.0, 1.0, 1.0]),
+    		new Vec4Uniform("uv4_two", [2.0, 2.0, 2.0, 2.0]),
+    		new Vec4Uniform("uv4_black", [0.0, 0.0, 0.0, 1.0]),
+    		new Vec4Uniform("uv4_gray", [0.5, 0.5, 0.5, 1.0]),
+    		new Vec4Uniform("uv4_white", [1.0, 1.0, 1.0, 1.0])
     	];
 
-    	for (var i = 0; i < s_vec4Uniform.length); i++) {
+    	for (var i = 0; i < s_vec4Uniform.length; i++) {
     		/** @type {number} */ var uniLoc = gl.getUniformLocation(programID, s_vec4Uniforms[i].name);
     		if (uniLoc != -1)
     			gl.uniform4fv(uniLoc, 1, new Float32Array(s_vec4Uniforms[i].value));
@@ -1081,7 +1111,7 @@ n    };
     };
 
     /**
-     * @param {glsShaderRenderCaseQuadGrid} quadGrid
+     * @param {glsShaderRenderCase.QuadGrid} quadGrid
      * @param {number} program
      * @param {Array<gluDrawUtil.VertexArrayBinding>} vertexArrays
      */
@@ -1100,22 +1130,25 @@ n    };
     	}
 
     	// Matrix attributes - these are set by location
-    	var Matrix = function(name, cols, rows) {
+        /**
+    	 * @struct
+    	 */
+        var Matrix = function(name, cols, rows) {
             this.name = name;
             this.numCols = cols;
             this.numRows = rows;
         };
 
         /** @type {Array<Matrix>} */ var matrices = [
-    		 ('a_mat2', 2, 2),
-    		 ('a_mat2x3', 2, 3),
-    		 ('a_mat2x4', 2, 4),
-    		 ('a_mat3x2', 3, 2),
-    		 ('a_mat3', 3, 3),
-    		 ('a_mat3x4', 3, 4),
-    		 ('a_mat4x2', 4, 2),
-    		 ('a_mat4x3', 4, 3),
-    		 ('a_mat4', 4, 4)
+    		 new Matrix('a_mat2', 2, 2),
+    		 new Matrix('a_mat2x3', 2, 3),
+    		 new Matrix('a_mat2x4', 2, 4),
+    		 new Matrix('a_mat3x2', 3, 2),
+    		 new Matrix('a_mat3', 3, 3),
+    		 new Matrix('a_mat3x4', 3, 4),
+    		 new Matrix('a_mat4x2', 4, 2),
+    		 new Matrix('a_mat4x3', 4, 3),
+    		 new Matrix('a_mat4', 4, 4)
     	];
 
     	for (var matNdx = 0; matNdx < matrices.length; matNdx++) {

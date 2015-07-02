@@ -64,7 +64,7 @@ goog.scope(function() {
         SUBSCRIPT_STATIC: 2,
         SUBSCRIPT_DYNAMIC: 3,
         SUBSCRIPT_STATIC_LOOP: 4,
-        SUBSCRIPT_DYNAMIC_LOOP: 5,
+        SUBSCRIPT_DYNAMIC_LOOP: 5
     };
 
     /**
@@ -171,7 +171,7 @@ goog.scope(function() {
      * @param {string} fragShaderSource
      */
     es3fShaderIndexingTests.ShaderIndexingCase = function(name, description, isVertexCase, varType, evalFunc, vertShaderSource, fragShaderSource) {
-        glsShaderRenderCase.ShaderRenderCase.call(this, name, description);
+        glsShaderRenderCase.ShaderRenderCase.call(this, name, description, isVertexCase, evalFunc);
         /** @type {gluShaderUtil.DataType} */ this.m_varType = varType;
         /** @type {string} */ this.m_vertShaderSource    = vertShaderSource;
         /** @type {string} */ this.m_fragShaderSource    = fragShaderSource;
@@ -187,11 +187,11 @@ goog.scope(function() {
     es3fShaderIndexingTests.ShaderIndexingCase.prototype.setupUniforms = function(programID, constCoords) {
 
         // TODO: DE_UNREF(constCoords);
-
+        /** @type {Array<number>} */ var arr = [];
+        /** @type {Array<number>} */ var array1d = [];
         /** @type {number} */ var arrLoc = gl.getUniformLocation(programID, 'u_arr');
         if (arrLoc != -1) {
             if (this.m_varType === gluShaderUtil.DataType.FLOAT) {
-                /** @type {Array<number>} */ var arr;
                 arr[0] = constCoords[0];
                 arr[1] = constCoords[0] * 0.5;
                 arr[2] = constCoords[0] * 0.25;
@@ -199,34 +199,28 @@ goog.scope(function() {
                 gl.uniform1fv(arrLoc, 4, new Float32Array(arr));
             }
             else if (this.m_varType === gluShaderUtil.DataType.FLOAT_VEC2) {
-                /** @type {Array<Array<number>>} */ var arr;
-                arr[0] = deMath.swizzle(constCoords, [0, 1]]);
-                arr[1] = deMath.scale(deMath.swizzle(constCoords, [0, 1]]), 0.5);
-                arr[2] = deMath.scale(deMath.swizzle(constCoords, [0, 1]]), 0.25);
-                arr[3] = deMath.scale(deMath.swizzle(constCoords, [0, 1]]), 0.125);
-                /** @type {Array<number>} */ var array1d = [];
+                arr[0] = deMath.swizzle(constCoords, [0, 1]);
+                arr[1] = deMath.scale(deMath.swizzle(constCoords, [0, 1]), 0.5);
+                arr[2] = deMath.scale(deMath.swizzle(constCoords, [0, 1]), 0.25);
+                arr[3] = deMath.scale(deMath.swizzle(constCoords, [0, 1]), 0.125);
                 for (var i = 0; i < arr.length; i++)
                     array1d = array1d.concat(arr[i]);
                 gl.uniform2fv(arrLoc, 4, new Float32Array(array1d));
             }
             else if (this.m_varType === gluShaderUtil.DataType.FLOAT_VEC3) {
-                Vec3 arr[4];
                 arr[0] = deMath.swizzle(constCoords, [0, 1, 2]);
                 arr[1] = deMath.scale(deMath.swizzle(constCoords, [0, 1, 2]), 0.5);
                 arr[2] = deMath.scale(deMath.swizzle(constCoords, [0, 1, 2]), 0.25);
                 arr[3] = deMath.scale(deMath.swizzle(constCoords, [0, 1, 2]), 0.125);
-                /** @type {Array<number>} */ var array1d = [];
                 for (var i = 0; i < arr.length; i++)
                     array1d = array1d.concat(arr[i]);
                 gl.uniform3fv(arrLoc, 4, new Float32Array(array1d));
             }
             else if (this.m_varType === gluShaderUtil.DataType.FLOAT_VEC4) {
-                Vec4 arr[4];
                 arr[0] = deMath.swizzle(constCoords, [0,1,2,3]);
                 arr[1] = deMath.scale(deMath.swizzle(constCoords, [0, 1, 2, 3]), 0.5);
                 arr[2] = deMath.scale(deMath.swizzle(constCoords, [0, 1, 2, 3]), 0.25);
                 arr[3] = deMath.scale(deMath.swizzle(constCoords, [0, 1, 2, 3]), 0.125);
-                /** @type {Array<number>} */ var array1d = [];
                 for (var i = 0; i < arr.length; i++)
                     array1d = array1d.concat(arr[i]);
                 gl.uniform4fv(arrLoc, 4, new Float32Array(array1d));
@@ -327,22 +321,22 @@ goog.scope(function() {
         frag += '}\n';
 
         // Fill in shader templates.
-        vtx = vtx.replace('${VAR_TYPE}', gluShaderUtil.getDataTypeName(varType)))
-                 .replace('${ARRAY_LEN}', '4'))
-                 .replace('${PRECISION}', 'mediump'));
+        vtx = vtx.replace('${VAR_TYPE}', gluShaderUtil.getDataTypeName(varType));
+        vtx = vtx.replace('${ARRAY_LEN}', '4');
+        vtx = vtx.replace('${PRECISION}', 'mediump');
 
-        frag = frag.replace('${VAR_TYPE}', gluShaderUtil.getDataTypeName(varType)))
-                   .replace('${ARRAY_LEN}', '4'))
-                   .replace('${PRECISION}', 'mediump'));
+        frag = frag.replace('${VAR_TYPE}', gluShaderUtil.getDataTypeName(varType));
+        frag = frag.replace('${ARRAY_LEN}', '4');
+        frag = frag.replace('${PRECISION}', 'mediump');
 
         if (varType === gluShaderUtil.DataType.FLOAT)
-            frag = frag.replace('${PADDING}', ', 0.0, 0.0, 1.0'));
+            frag = frag.replace('${PADDING}', ', 0.0, 0.0, 1.0');
         else if (varType === gluShaderUtil.DataType.FLOAT_VEC2)
-            frag = frag.replace('${PADDING}', ', 0.0, 1.0'));
+            frag = frag.replace('${PADDING}', ', 0.0, 1.0');
         else if (varType === gluShaderUtil.DataType.FLOAT_VEC3)
-            frag = frag.replace('${PADDING}', ', 1.0'));
+            frag = frag.replace('${PADDING}', ', 1.0');
         else
-            frag = frag.replace('${PADDING}', ''));
+            frag = frag.replace('${PADDING}', '');
 
         /** @type {function(glsShaderRenderCase.ShaderEvalContext)} */
         var evalFunc = es3fShaderIndexingTests.getArrayCoordsEvalFunc(varType);
@@ -433,29 +427,29 @@ goog.scope(function() {
         frag += '}\n';
 
         // Fill in shader templates.
-        vtx = vtx.replace('${VAR_TYPE}',gluShaderUtil.getDataTypeName(varType)));
-                 .replace('${ARRAY_LEN}', '4'));
-                 .replace('${PRECISION}', 'mediump'));
+        vtx = vtx.replace('${VAR_TYPE}',gluShaderUtil.getDataTypeName(varType));
+        vtx = vtx.replace('${ARRAY_LEN}', '4');
+        vtx = vtx.replace('${PRECISION}', 'mediump');
 
-        frag = frag.replace('${VAR_TYPE}',gluShaderUtil.getDataTypeName(varType)));
-                   .replace('${ARRAY_LEN}', '4'));
-                   .replace('${PRECISION}', 'mediump'));
+        frag = frag.replace('${VAR_TYPE}',gluShaderUtil.getDataTypeName(varType));
+        frag = frag.replace('${ARRAY_LEN}', '4');
+        frag = frag.replace('${PRECISION}', 'mediump');
 
         if (varType === gluShaderUtil.DataType.FLOAT) {
-            vtx = vtx.replace('${PADDING}', ', 0.0, 0.0, 1.0'));
-            frag = frag.replace('${PADDING}', ', 0.0, 0.0, 1.0'));
+            vtx = vtx.replace('${PADDING}', ', 0.0, 0.0, 1.0');
+            frag = frag.replace('${PADDING}', ', 0.0, 0.0, 1.0');
         }
         else if (varType === gluShaderUtil.DataType.FLOAT_VEC2) {
-            vtx = vtx.replace('${PADDING}', ', 0.0, 1.0'));
-            frag = frag.replace('${PADDING}', ', 0.0, 1.0'));
+            vtx = vtx.replace('${PADDING}', ', 0.0, 1.0');
+            frag = frag.replace('${PADDING}', ', 0.0, 1.0');
         }
         else if (varType === gluShaderUtil.DataType.FLOAT_VEC3) {
-            vtx = vtx.replace('${PADDING}', ', 1.0'));
-            frag = frag.replace('${PADDING}', ', 1.0'));
+            vtx = vtx.replace('${PADDING}', ', 1.0');
+            frag = frag.replace('${PADDING}', ', 1.0');
         }
         else {
-            vtx = vtx.replace('${PADDING}', ''));
-            frag = frag.replace('${PADDING}', ''));
+            vtx = vtx.replace('${PADDING}', '');
+            frag = frag.replace('${PADDING}', '');
         }
 
         /** @type {function(glsShaderRenderCase.ShaderEvalContext)} */
@@ -580,29 +574,29 @@ goog.scope(function() {
         frag += '}\n';
 
         // Fill in shader templates.
-        vtx = vtx.replace('${VAR_TYPE}', gluShaderUtil.getDataTypeName(varType)));
-                 .replace('${ARRAY_LEN}', '4'));
-                 .replace('${PRECISION}', 'mediump'));
+        vtx = vtx.replace('${VAR_TYPE}', gluShaderUtil.getDataTypeName(varType));
+        vtx = vtx.replace('${ARRAY_LEN}', '4');
+        vtx = vtx.replace('${PRECISION}', 'mediump');
 
-        frag = frag.replace('${VAR_TYPE}', gluShaderUtil.getDataTypeName(varType)));
-                   .replace('${ARRAY_LEN}', '4'));
-                   .replace('${PRECISION}', 'mediump'));
+        frag = frag.replace('${VAR_TYPE}', gluShaderUtil.getDataTypeName(varType));
+        frag = frag.replace('${ARRAY_LEN}', '4');
+        frag = frag.replace('${PRECISION}', 'mediump');
 
         if (varType === es3fShaderIndexingTests.IndexAccessType.FLOAT) {
-            vtx = vtx.replace('${PADDING}', ', 0.0, 0.0, 1.0'));
-            frag = frag.replace('${PADDING}', ', 0.0, 0.0, 1.0'));
+            vtx = vtx.replace('${PADDING}', ', 0.0, 0.0, 1.0');
+            frag = frag.replace('${PADDING}', ', 0.0, 0.0, 1.0');
         }
         else if (varType === es3fShaderIndexingTests.IndexAccessType.FLOAT_VEC2) {
-            vtx = vtx.replace('${PADDING}', ', 0.0, 1.0'));
-            frag = frag.replace('${PADDING}', ', 0.0, 1.0'));
+            vtx = vtx.replace('${PADDING}', ', 0.0, 1.0');
+            frag = frag.replace('${PADDING}', ', 0.0, 1.0');
         }
         else if (varType === es3fShaderIndexingTests.IndexAccessType.FLOAT_VEC3) {
-            vtx = vtx.replace('${PADDING}', ', 1.0'));
-            frag = frag.replace('${PADDING}', ', 1.0'));
+            vtx = vtx.replace('${PADDING}', ', 1.0');
+            frag = frag.replace('${PADDING}', ', 1.0');
         }
         else {
-            vtx = vtx.replace('${PADDING}', ''));
-            frag = frag.replace('${PADDING}', ''));
+            vtx = vtx.replace('${PADDING}', '');
+            frag = frag.replace('${PADDING}', '');
         }
 
         /** @type {function(glsShaderRenderCase.ShaderEvalContext)} */
@@ -613,19 +607,19 @@ goog.scope(function() {
     // VECTOR SUBSCRIPT.
 
     /** @param {glsShaderRenderCase.ShaderEvalContext} c */
-    es3fShaderIndexingTests.evalSubscriptVec2 = function(ShaderEvalContext& c) {
+    es3fShaderIndexingTests.evalSubscriptVec2 = function(c) {
         c.color[0] = c.coords[0] + 0.5 * c.coords[1];
         c.color[1] = c.coords[0] + 0.5 * c.coords[1];
         c.color[2] = c.coords[0] + 0.5 * c.coords[1];
     };
     /** @param {glsShaderRenderCase.ShaderEvalContext} c */
-    es3fShaderIndexingTests.evalSubscriptVec3 = function(ShaderEvalContext& c) {
+    es3fShaderIndexingTests.evalSubscriptVec3 = function(c) {
         c.color[0] = c.coords[0] + 0.5 * c.coords[1] + 0.25 * c.coords[2];
         c.color[1] = c.coords[0] + 0.5 * c.coords[1] + 0.25 * c.coords[2];
         c.color[2] = c.coords[0] + 0.5 * c.coords[1] + 0.25 * c.coords[2];
     };
     /** @param {glsShaderRenderCase.ShaderEvalContext} c */
-    es3fShaderIndexingTests.evalSubscriptVec4 = function(ShaderEvalContext& c) {
+    es3fShaderIndexingTests.evalSubscriptVec4 = function(c) {
         c.color[0] = c.coords[0] + 0.5 * c.coords[1] + 0.25 * c.coords[2] + 0.125 * c.coords[3];
         c.color[1] = c.coords[0] + 0.5 * c.coords[1] + 0.25 * c.coords[2] + 0.125 * c.coords[3];
         c.color[2] = c.coords[0] + 0.5 * c.coords[1] + 0.25 * c.coords[2] + 0.125 * c.coords[3];
@@ -788,15 +782,15 @@ goog.scope(function() {
         /** @type {Array<string>} */ var s_swizzles = ['', 'x', 'xy', 'xyz', 'xyzw'];
         /** @type {Array<string>} */ var s_rotSwizzles = ['', 'x', 'yx', 'yzx', 'yzwx'];
 
-        vtx = vtx.replace('${VAR_TYPE}', gluShaderUtil.getDataTypeName(varType)));
-                 .replace('${PRECISION}', 'mediump'));
-                 .replace('${SWIZZLE}', s_swizzles[vecLen]));
-                 .replace('${ROT_SWIZZLE}', s_rotSwizzles[vecLen]));
+        vtx = vtx.replace('${VAR_TYPE}', gluShaderUtil.getDataTypeName(varType));
+        vtx = vtx.replace('${PRECISION}', 'mediump');
+        vtx = vtx.replace('${SWIZZLE}', s_swizzles[vecLen]);
+        vtx = vtx.replace('${ROT_SWIZZLE}', s_rotSwizzles[vecLen]);
 
-        frag = frag.replace('${VAR_TYPE}', gluShaderUtil.getDataTypeName(varType)));
-                   .replace('${PRECISION}', 'mediump'));
-                   .replace('${SWIZZLE}', s_swizzles[vecLen]));
-                   .replace('${ROT_SWIZZLE}', s_rotSwizzles[vecLen]));
+        frag = frag.replace('${VAR_TYPE}', gluShaderUtil.getDataTypeName(varType));
+        frag = frag.replace('${PRECISION}', 'mediump');
+        frag = frag.replace('${SWIZZLE}', s_swizzles[vecLen]);
+        frag = frag.replace('${ROT_SWIZZLE}', s_rotSwizzles[vecLen]);
 
         /** @type {function(glsShaderRenderCase.ShaderEvalContext)} */
         var evalFunc = es3fShaderIndexingTests.getVectorSubscriptEvalFunc(varType);
@@ -1042,25 +1036,25 @@ goog.scope(function() {
         frag += '}\n';
 
         // Fill in shader templates.
-        vtx = vtx.replace('${MAT_TYPE}', gluShaderUtil.getDataTypeName(varType)));
-                 .replace('${VEC_TYPE}', gluShaderUtil.getDataTypeName(vecType)));
-                 .replace('${PRECISION}', 'mediump'));
+        vtx = vtx.replace('${MAT_TYPE}', gluShaderUtil.getDataTypeName(varType));
+        vtx = vtx.replace('${VEC_TYPE}', gluShaderUtil.getDataTypeName(vecType));
+        vtx = vtx.replace('${PRECISION}', 'mediump');
 
-        frag = frag.replace(('${MAT_TYPE}', gluShaderUtil.getDataTypeName(varType)));
-                   .replace(('${VEC_TYPE}', gluShaderUtil.getDataTypeName(vecType)));
-                   .replace(('${PRECISION}', 'mediump'));
+        frag = frag.replace('${MAT_TYPE}', gluShaderUtil.getDataTypeName(varType));
+        frag = frag.replace('${VEC_TYPE}', gluShaderUtil.getDataTypeName(vecType));
+        frag = frag.replace('${PRECISION}', 'mediump');
 
         if (numRows === 2) {
-            vtx = vtx.replace('${PADDING}', ', 0.0, 1.0'));
-            frag = frag.replace('${PADDING}', ', 0.0, 1.0'));
+            vtx = vtx.replace('${PADDING}', ', 0.0, 1.0');
+            frag = frag.replace('${PADDING}', ', 0.0, 1.0');
         }
         else if (numRows === 3) {
-            vtx = vtx.replace('${PADDING}', ', 1.0'));
-            frag = frag.replace('${PADDING}', ', 1.0'));
+            vtx = vtx.replace('${PADDING}', ', 1.0');
+            frag = frag.replace('${PADDING}', ', 1.0');
         }
         else {
-            vtx = vtx.replace('${PADDING}', ''));
-            frag = frag.replace('${PADDING}', ''));
+            vtx = vtx.replace('${PADDING}', '');
+            frag = frag.replace('${PADDING}', '');
         }
         /** @type {function(glsShaderRenderCase.ShaderEvalContext)} */
         var evalFunc = es3fShaderIndexingTests.getMatrixSubscriptEvalFunc(varType);
@@ -1136,16 +1130,16 @@ goog.scope(function() {
             /** @type {gluShaderUtil.DataType} */ var varType = s_floatAndVecTypes[typeNdx];
             for (var writeAccess = 0; writeAccess < es3fShaderIndexingTests.IndexAccessType.length; writeAccess++) {
                 for (var readAccess = 0; readAccess < es3fShaderIndexingTests.IndexAccessType.length; readAccess++) {
-                    /** @type {string} */ var writeAccessName = getIndexAccessTypeName((IndexAccessType)writeAccess);
-                    /** @type {string} */ var readAccessName = getIndexAccessTypeName((IndexAccessType)readAccess);
+                    /** @type {string} */ var writeAccessName = getIndexAccessTypeName(writeAccess);
+                    /** @type {string} */ var readAccessName = getIndexAccessTypeName(readAccess);
 
                     for (var shaderTypeNdx = 0; shaderTypeNdx < s_shaderTypes.length; shaderTypeNdx++) {
                         /** @type {gluShaderUtil.ShaderType} */ var shaderType = s_shaderTypes[shaderTypeNdx];
                         /** @type {string} */ var shaderTypeName = gluShaderUtil.getShaderTypeName(shaderType);
                         /** @type {string} */ var name = gluShaderUtil.getDataTypeName(varType) + "_" + writeAccessName + "_write_" + readAccessName + "_read_" + shaderTypeName;
                         /** @type {string} */ var desc = "Temporary array with " + writeAccessName + " write and " + readAccessName + " read in " + shaderTypeName + " shader.";
-                        /** @type {boolean} */ var isVertexCase = ((ShaderType)shaderType === gluShaderUtil.ShaderType.VERTEX);
-                        tmpGroup.addChild(es3fShaderIndexingTests.createTmpArrayCase(name, desc, isVertexCase, varType, (IndexAccessType)writeAccess, readAccess));
+                        /** @type {boolean} */ var isVertexCase = (shaderType === gluShaderUtil.ShaderType.VERTEX);
+                        tmpGroup.addChild(es3fShaderIndexingTests.createTmpArrayCase(name, desc, isVertexCase, varType, writeAccess, readAccess));
                     }
                 }
             }
