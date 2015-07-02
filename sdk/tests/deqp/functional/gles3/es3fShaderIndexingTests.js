@@ -21,6 +21,7 @@
 'use strict';
 goog.provide('functional.gles3.es3fShaderIndexingTests');
 goog.require('framework.common.tcuImageCompare');
+goog.require('framework.common.tcuTestCase');
 goog.require('framework.delibs.debase.deMath');
 goog.require('framework.opengl.gluShaderUtil');
 goog.require('modules.shared.glsShaderRenderCase');
@@ -31,6 +32,7 @@ goog.scope(function() {
     var deMath = framework.delibs.debase.deMath;
     var glsShaderRenderCase = modules.shared.glsShaderRenderCase;
     var gluShaderUtil = framework.opengl.gluShaderUtil;
+    var tcuTestCase = framework.common.tcuTestCase;
     /**
      * @enum {number}
      */
@@ -181,22 +183,22 @@ goog.scope(function() {
     es3fShaderIndexingTests.ShaderIndexingCase.prototype.constructor = es3fShaderIndexingTests.ShaderIndexingCase;
 
     /**
-     * @param {number} programID
+     * @param {?WebGLProgram} programID
      * @param {Array<number>} constCoords
      */
     es3fShaderIndexingTests.ShaderIndexingCase.prototype.setupUniforms = function(programID, constCoords) {
 
         // TODO: DE_UNREF(constCoords);
-        /** @type {Array<number>} */ var arr = [];
+        /** @type {(Array<number>|number)} */ var arr = [];
         /** @type {Array<number>} */ var array1d = [];
-        /** @type {number} */ var arrLoc = gl.getUniformLocation(programID, 'u_arr');
+        /** @type {?WebGLUniformLocation} */ var arrLoc = gl.getUniformLocation(programID, 'u_arr');
         if (arrLoc != -1) {
             if (this.m_varType === gluShaderUtil.DataType.FLOAT) {
                 arr[0] = constCoords[0];
                 arr[1] = constCoords[0] * 0.5;
                 arr[2] = constCoords[0] * 0.25;
                 arr[3] = constCoords[0] * 0.125;
-                gl.uniform1fv(arrLoc, 4, new Float32Array(arr));
+                gl.uniform1fv(arrLoc, new Float32Array(arr));
             }
             else if (this.m_varType === gluShaderUtil.DataType.FLOAT_VEC2) {
                 arr[0] = deMath.swizzle(constCoords, [0, 1]);
@@ -205,7 +207,7 @@ goog.scope(function() {
                 arr[3] = deMath.scale(deMath.swizzle(constCoords, [0, 1]), 0.125);
                 for (var i = 0; i < arr.length; i++)
                     array1d = array1d.concat(arr[i]);
-                gl.uniform2fv(arrLoc, 4, new Float32Array(array1d));
+                gl.uniform2fv(arrLoc, new Float32Array(array1d));
             }
             else if (this.m_varType === gluShaderUtil.DataType.FLOAT_VEC3) {
                 arr[0] = deMath.swizzle(constCoords, [0, 1, 2]);
@@ -214,7 +216,7 @@ goog.scope(function() {
                 arr[3] = deMath.scale(deMath.swizzle(constCoords, [0, 1, 2]), 0.125);
                 for (var i = 0; i < arr.length; i++)
                     array1d = array1d.concat(arr[i]);
-                gl.uniform3fv(arrLoc, 4, new Float32Array(array1d));
+                gl.uniform3fv(arrLoc, new Float32Array(array1d));
             }
             else if (this.m_varType === gluShaderUtil.DataType.FLOAT_VEC4) {
                 arr[0] = deMath.swizzle(constCoords, [0,1,2,3]);
@@ -223,7 +225,7 @@ goog.scope(function() {
                 arr[3] = deMath.scale(deMath.swizzle(constCoords, [0, 1, 2, 3]), 0.125);
                 for (var i = 0; i < arr.length; i++)
                     array1d = array1d.concat(arr[i]);
-                gl.uniform4fv(arrLoc, 4, new Float32Array(array1d));
+                gl.uniform4fv(arrLoc, new Float32Array(array1d));
             }
             else
                 throw new Error('u_arr should not have location assigned in this test case');
@@ -234,8 +236,8 @@ goog.scope(function() {
      * @param  {string} caseName
      * @param  {string} description
      * @param  {gluShaderUtil.DataType} varType
-     * @param  {IndexAccessType} vertAccess
-     * @param  {IndexAccessType} fragAccess
+     * @param  {es3fShaderIndexingTests.IndexAccessType} vertAccess
+     * @param  {es3fShaderIndexingTests.IndexAccessType} fragAccess
      * @return {es3fShaderIndexingTests.ShaderIndexingCase}
      */
     es3fShaderIndexingTests.createVaryingArrayCase = function(caseName, description, varType, vertAccess, fragAccess) {
@@ -340,7 +342,7 @@ goog.scope(function() {
 
         /** @type {function(glsShaderRenderCase.ShaderEvalContext)} */
         var evalFunc = es3fShaderIndexingTests.getArrayCoordsEvalFunc(varType);
-        return new es3fShaderIndexingTests.ShaderIndexingCase(context, caseName, description, true, varType, evalFunc, vtx, frag);
+        return new es3fShaderIndexingTests.ShaderIndexingCase(caseName, description, true, varType, evalFunc, vtx, frag);
 
     };
 
@@ -349,7 +351,7 @@ goog.scope(function() {
      * @param {string} caseName
      * @param {string} description
      * @param {boolean} isVertexCase
-     * @param {DataType} varType
+     * @param {gluShaderUtil.DataType} varType
      * @param {es3fShaderIndexingTests.IndexAccessType} readAccess
      * @return {es3fShaderIndexingTests.ShaderIndexingCase}
      */
@@ -461,7 +463,7 @@ goog.scope(function() {
      * @param {string} caseName
      * @param {string} description
      * @param {boolean} isVertexCase
-     * @param {glsShaderUtil.DataType} varType
+     * @param {gluShaderUtil.DataType} varType
      * @param {es3fShaderIndexingTests.IndexAccessType} writeAccess
      * @param {es3fShaderIndexingTests.IndexAccessType} readAccess
      * @return {es3fShaderIndexingTests.ShaderIndexingCase}
@@ -582,15 +584,15 @@ goog.scope(function() {
         frag = frag.replace('${ARRAY_LEN}', '4');
         frag = frag.replace('${PRECISION}', 'mediump');
 
-        if (varType === es3fShaderIndexingTests.IndexAccessType.FLOAT) {
+        if (varType === gluShaderUtil.DataType.FLOAT) {
             vtx = vtx.replace('${PADDING}', ', 0.0, 0.0, 1.0');
             frag = frag.replace('${PADDING}', ', 0.0, 0.0, 1.0');
         }
-        else if (varType === es3fShaderIndexingTests.IndexAccessType.FLOAT_VEC2) {
+        else if (varType === gluShaderUtil.DataType.FLOAT_VEC2) {
             vtx = vtx.replace('${PADDING}', ', 0.0, 1.0');
             frag = frag.replace('${PADDING}', ', 0.0, 1.0');
         }
-        else if (varType === es3fShaderIndexingTests.IndexAccessType.FLOAT_VEC3) {
+        else if (varType === gluShaderUtil.DataType.FLOAT_VEC3) {
             vtx = vtx.replace('${PADDING}', ', 1.0');
             frag = frag.replace('${PADDING}', ', 1.0');
         }
@@ -601,7 +603,7 @@ goog.scope(function() {
 
         /** @type {function(glsShaderRenderCase.ShaderEvalContext)} */
         var evalFunc = es3fShaderIndexingTests.getArrayCoordsEvalFunc(varType);
-        return new es3fShaderIndexingTests.ShaderIndexingCase(context, caseName, description, isVertexCase, varType, evalFunc, vtx, frag);
+        return new es3fShaderIndexingTests.ShaderIndexingCase(caseName, description, isVertexCase, varType, evalFunc, vtx, frag);
     };
 
     // VECTOR SUBSCRIPT.
@@ -794,7 +796,7 @@ goog.scope(function() {
 
         /** @type {function(glsShaderRenderCase.ShaderEvalContext)} */
         var evalFunc = es3fShaderIndexingTests.getVectorSubscriptEvalFunc(varType);
-        return new es3fShaderIndexingTests.ShaderIndexingCase(context, caseName, description, isVertexCase, varType, evalFunc, vtx, frag);
+        return new es3fShaderIndexingTests.ShaderIndexingCase(caseName, description, isVertexCase, varType, evalFunc, vtx, frag);
     };
 
     // MATRIX SUBSCRIPT.
@@ -820,7 +822,7 @@ goog.scope(function() {
     es3fShaderIndexingTests.evalSubscriptMat2x4 = function(c) {
         c.color = deMath.add(
             deMath.swizzle(c.coords, [0,1,2,3]),
-            deMath.scale(deMath.swizzle(c.coords, [1,2,3,0], 0.5)));
+            deMath.scale(deMath.swizzle(c.coords, [1,2,3,0]), 0.5));
     };
 
     /** @param {glsShaderRenderCase.ShaderEvalContext} c */
@@ -913,7 +915,7 @@ goog.scope(function() {
      * @param {string} caseName
      * @param {string} description
      * @param {boolean} isVertexCase
-     * @param {glsShaderUtil.DataType} varType
+     * @param {gluShaderUtil.DataType} varType
      * @param {es3fShaderIndexingTests.IndexAccessType} writeAccess
      * @param {es3fShaderIndexingTests.IndexAccessType} readAccess
      * @return {es3fShaderIndexingTests.ShaderIndexingCase}
@@ -926,7 +928,7 @@ goog.scope(function() {
         /** @type {number} */ var numCols = gluShaderUtil.getDataTypeMatrixNumColumns(varType);
         /** @type {number} */ var numRows = gluShaderUtil.getDataTypeMatrixNumRows(varType);
         /** @type {string} */ var matSizeName = glsShaderRenderCase.getIntUniformName(numCols);
-        /** @type {glsShaderUtil.DataType} */ var vecType = gluShaderUtil.getDataTypeFloatVec(numRows);
+        /** @type {gluShaderUtil.DataType} */ var vecType = gluShaderUtil.getDataTypeFloatVec(numRows);
 
         vtx += '#version 300 es\n';
         frag += '#version 300 es\n';
@@ -1058,13 +1060,12 @@ goog.scope(function() {
         }
         /** @type {function(glsShaderRenderCase.ShaderEvalContext)} */
         var evalFunc = es3fShaderIndexingTests.getMatrixSubscriptEvalFunc(varType);
-        return new es3fShaderIndexingTests.ShaderIndexingCase(context, caseName, description, isVertexCase, varType, evalFunc, vtx, frag);
+        return new es3fShaderIndexingTests.ShaderIndexingCase(caseName, description, isVertexCase, varType, evalFunc, vtx, frag);
     };
 
     /**
      * @constructor
      * @extends {tcuTestCase.DeqpTest}
-     * @return {[type]} [description]
      */
     es3fShaderIndexingTests.ShaderIndexingTests = function() {
         tcuTestCase.DeqpTest.call(this, 'indexing', 'Indexing Tests');
@@ -1089,11 +1090,13 @@ goog.scope(function() {
         // Varying array access cases.
         /** @type {tcuTestCase.DeqpTest} */ var varyingGroup = tcuTestCase.newTest('varying_array', 'Varying array access tests.');
         testGroup.addChild(varyingGroup);
-
+        /** @type {gluShaderUtil.DataType} */ var varType;
         for (var typeNdx = 0; typeNdx < s_floatAndVecTypes.length; typeNdx++) {
-            /** @type {gluShaderUtil.DataType} */ var varType = s_floatAndVecTypes[typeNdx];
-            for (var vertAccess = 0; vertAccess < es3fShaderIndexingTests.IndexAccessType.length; vertAccess++) {
-                for (var fragAccess = 0; fragAccess < es3fShaderIndexingTests.IndexAccessType.length; fragAccess++) {
+            varType = s_floatAndVecTypes[typeNdx];
+            for (var vertAccessStr in es3fShaderIndexingTests.IndexAccessType) {
+                for (var fragAccessStr in es3fShaderIndexingTests.IndexAccessType) {
+                    var vertAccess = es3fShaderIndexingTests.IndexAccessType[vertAccessStr];
+                    var fragAccess = es3fShaderIndexingTests.IndexAccessType[fragAccessStr];
                     /** @type {string} */ var vertAccessName = es3fShaderIndexingTests.getIndexAccessTypeName(vertAccess);
                     /** @type {string} */ var fragAccessName = es3fShaderIndexingTests.getIndexAccessTypeName(fragAccess);
                     /** @type {string} */ var name = gluShaderUtil.getDataTypeName(varType) + '_' + vertAccessName + '_write_' + fragAccessName + '_read';
@@ -1108,8 +1111,9 @@ goog.scope(function() {
         testGroup.addChild(uniformGroup);
 
         for (var typeNdx = 0; typeNdx < s_floatAndVecTypes.length; typeNdx++) {
-            /** @type {gluShaderUtil.DataType} */ var varType = s_floatAndVecTypes[typeNdx];
-            for (var readAccess = 0; readAccess < es3fShaderIndexingTests.IndexAccessType.length; readAccess++) {
+            varType = s_floatAndVecTypes[typeNdx];
+            for (var readAccessStr in es3fShaderIndexingTests.IndexAccessType) {
+                var readAccess = es3fShaderIndexingTests.IndexAccessType[readAccessStr];
                 /** @type {string} */ var readAccessName = es3fShaderIndexingTests.getIndexAccessTypeName(readAccess);
                 for (var shaderTypeNdx = 0; shaderTypeNdx < s_shaderTypes.length; shaderTypeNdx++) {
                     /** @type {gluShaderUtil.ShaderType} */ var shaderType = s_shaderTypes[shaderTypeNdx];
@@ -1127,7 +1131,7 @@ goog.scope(function() {
         testGroup.addChild(tmpGroup);
 
         for (var typeNdx = 0; typeNdx < s_floatAndVecTypes.length; typeNdx++) {
-            /** @type {gluShaderUtil.DataType} */ var varType = s_floatAndVecTypes[typeNdx];
+            varType = s_floatAndVecTypes[typeNdx];
             for (var writeAccess = 0; writeAccess < es3fShaderIndexingTests.IndexAccessType.length; writeAccess++) {
                 for (var readAccess = 0; readAccess < es3fShaderIndexingTests.IndexAccessType.length; readAccess++) {
                     /** @type {string} */ var writeAccessName = getIndexAccessTypeName(writeAccess);
@@ -1156,7 +1160,7 @@ goog.scope(function() {
         ];
 
         for (var typeNdx = 0; typeNdx < s_vectorTypes.length; typeNdx++) {
-            /** @type {gluShaderUtil.DataType} */ var varType = s_vectorTypes[typeNdx];
+            varType = s_vectorTypes[typeNdx];
             for (var writeAccess = 0; writeAccess < es3fShaderIndexingTests.VectorAccessType.length; writeAccess++) {
                 for (var readAccess = 0; readAccess < es3fShaderIndexingTests.VectorAccessType.length; readAccess++) {
                     /** @type {string} */ var writeAccessName = es3fShaderIndexingTests.getVectorAccessTypeName(writeAccess);
@@ -1191,7 +1195,7 @@ goog.scope(function() {
         ];
 
         for (var typeNdx = 0; typeNdx < s_matrixTypes.length; typeNdx++) {
-            /** @type {gluShaderUtil.DataType} */ var varType = s_matrixTypes[typeNdx];
+            varType = s_matrixTypes[typeNdx];
             for (var writeAccess = 0; writeAccess < es3fShaderIndexingTests.IndexAccessType.length; writeAccess++) {
                 for (var readAccess = 0; readAccess < es3fShaderIndexingTests.IndexAccessType.length; readAccess++) {
                     /** @type {string} */ var writeAccessName = es3fShaderIndexingTests.getIndexAccessTypeName(writeAccess);

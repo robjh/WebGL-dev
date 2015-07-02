@@ -23,6 +23,7 @@ goog.provide('modules.shared.glsShaderRenderCase');
 goog.require('framework.common.tcuTexture');
 goog.require('framework.common.tcuMatrix');
 goog.require('framework.common.tcuRGBA');
+goog.require('framework.common.tcuTestCase');
 goog.require('framework.delibs.debase.deMath');
 goog.require('framework.delibs.debase.deString');
 goog.require('framework.delibs.debase.deRandom');
@@ -40,7 +41,7 @@ goog.scope(function() {
     var tcuTexture = framework.common.tcuTexture;
     var tcuMatrix = framework.common.tcuMatrix;
     var tcuRGBA = framework.common.tcuRGBA;
-
+    var tcuTestCase = framework.common.tcuTestCase;
     /** @type {number} */ glsShaderRenderCase.GRID_SIZE = 64;
     /** @type {number} */ glsShaderRenderCase.MAX_RENDER_WIDTH = 128;
     /** @type {number} */ glsShaderRenderCase.MAX_RENDER_HEIGHT = 112;
@@ -313,6 +314,10 @@ goog.scope(function() {
 	    return tcuMatrix.multiplyMatVec(this.m_userAttribTransforms[attribNdx], [sx, sy, 0.0, 1.0]);
     };
 
+    /**
+     * @constructor
+     * @struct
+     */
     glsShaderRenderCase.ShaderSampler = function() {
 		/** @type {tcuTexture.Sampler} */ this.sampler;
 		/** @type {tcuTexture.Texture2D} */ this.tex2D = null;
@@ -450,14 +455,14 @@ n    };
 
     /**
      * @constructor
-     * @extends {tcuTestCae.DeqpTest}
+     * @extends {tcuTestCase.DeqpTest}
      * @param  {string} name
      * @param  {string} description
      * @param  {boolean} isVertexCase
      * @param  {glsShaderRenderCase.ShaderEvalFunc=} evalFunc
      */
     glsShaderRenderCase.ShaderRenderCase = function(name, description, isVertexCase, evalFunc) {
-        tcuTestCae.DeqpTest.call(this, name, description);
+        tcuTestCase.DeqpTest.call(this, name, description);
         evalFunc = evalFunc === undefined ? null : evalFunc;
     	/** @type {boolean} */ this.m_isVertexCase = isVertexCase;
     	/** @type {glsShaderRenderCase.ShaderEvaluator} */ this.m_defaultEvaluator = evalFunc;
@@ -558,12 +563,12 @@ n    };
     glsShaderRenderCase.ShaderRenderCase.prototype.setupShaderData = function() {};
 
     /**
-     * @param {number} programId
+     * @param {?WebGLProgram} programId
      */
     glsShaderRenderCase.ShaderRenderCase.prototype.setup = function(programId) {};
 
     /**
-     * @param {number} programId
+     * @param {?WebGLProgram} programId
      * @param {Array<number>} constCoords
      */
     glsShaderRenderCase.ShaderRenderCase.prototype.setupUniforms = function(programId, constCoords) {};
@@ -577,7 +582,7 @@ n    };
     };
 
     /**
-     * @param {number} programId
+     * @param {?WebGLProgram} programId
      */
     glsShaderRenderCase.ShaderRenderCase.prototype.setupDefaultInputs = function(programId) {
     	// SETUP UNIFORMS.
@@ -634,7 +639,7 @@ n    };
 
     /**
      * @param {tcuSurface.Surface} result
-     * @param {number} programId
+     * @param {?WebGLProgram} programId
      * @param {glsShaderRenderCase.QuadGrid} quadGrid
      **/
     glsShaderRenderCase.ShaderRenderCase.prototype.render = function(esult, programId, quadGrid) {
@@ -858,11 +863,12 @@ n    };
     };
 
     /**
-     * @param {number} programID
+     * @param {?WebGLProgram} programID
      */
     glsShaderRenderCase.setupDefaultUniforms = function(programID) {
     	// Bool.
     	/**
+    	 * @constructor
     	 * @struct
     	 */
     	var BoolUniform = function(name, value) {
@@ -876,13 +882,14 @@ n    };
     	];
 
     	for (var i = 0; i < s_boolUniforms.length; i++) {
-    		/** @type {number} */ var uniLoc = gl.getUniformLocation(programID, s_boolUniforms[i].name);
+    		/** @type {?WebGLUniformLocation} */ var uniLoc = gl.getUniformLocation(programID, s_boolUniforms[i].name);
     		if (uniLoc != -1)
     			gl.uniform1i(uniLoc, s_boolUniforms[i].value);
     	}
 
     	// BVec4.
         /**
+         * @constructor
     	 * @struct
     	 */
     	var BVec4Uniform = function(name, value) {
@@ -902,13 +909,14 @@ n    };
     		arr[1] = uni.value[1];
     		arr[2] = uni.value[2];
     		arr[3] = uni.value[3];
-    		/** @type {number} */ var uniLoc = gl.getUniformLocation(programID, uni.name);
+    		/** @type {?WebGLUniformLocation} */ var uniLoc = gl.getUniformLocation(programID, uni.name);
     		if (uniLoc != -1)
-    			gl.uniform4iv(uniLoc, 1, new Float32Array(arr));
+    			gl.uniform4iv(uniLoc, new Int32Array(arr));
     	}
 
     	// Int.
         /**
+         * @constructor
     	 * @struct
     	 */
     	var IntUniform = function(name, value) {
@@ -931,13 +939,14 @@ n    };
     	];
 
     	for (var i = 0; i < s_intUniforms.length; i++) {
-    		/** @type {number} */ var uniLoc = gl.getUniformLocation(programID, s_intUniforms[i].name);
+    		/** @type {?WebGLUniformLocation} */ var uniLoc = gl.getUniformLocation(programID, s_intUniforms[i].name);
     		if (uniLoc != -1)
     			gl.uniform1i(uniLoc, s_intUniforms[i].value);
     	}
 
     	// IVec2.
     	/**
+    	 * @constructor
     	 * @struct
     	 */
         var IVec2Uniform = function(name, value) {
@@ -955,13 +964,14 @@ n    };
     	];
 
     	for (var i = 0; i < s_ivec2Uniforms.length; i++) {
-    		/** @type {number} */ var uniLoc = gl.getUniformLocation(programID, s_ivec2Uniforms[i].name);
+    		/** @type {?WebGLUniformLocation} */ var uniLoc = gl.getUniformLocation(programID, s_ivec2Uniforms[i].name);
     		if (uniLoc != -1)
-    			gl.uniform2iv(uniLoc, 1, new Float32Array(s_ivec2Uniforms[i].value));
+    			gl.uniform2iv(uniLoc, new Int32Array(s_ivec2Uniforms[i].value));
     	}
 
     	// IVec3.
         /**
+         * @constructor
     	 * @struct
     	 */
         var IVec3Uniform = function(name, value) {
@@ -979,13 +989,14 @@ n    };
     	];
 
     	for (var i = 0; i < s_ivec3Uniforms.length; i++) {
-    		/** @type {number} */ var uniLoc = gl.getUniformLocation(programID, s_ivec3Uniforms[i].name);
+    		/** @type {?WebGLUniformLocation} */ var uniLoc = gl.getUniformLocation(programID, s_ivec3Uniforms[i].name);
     		if (uniLoc != -1)
-    			gl.uniform3iv(uniLoc, 1, new Float32Array(s_ivec3Uniforms[i].value));
+    			gl.uniform3iv(uniLoc, new Int32Array(s_ivec3Uniforms[i].value));
     	}
 
     	// IVec4.
         /**
+         * @constructor
     	 * @struct
     	 */
         var IVec4Uniform = function(name, value) {
@@ -1002,13 +1013,14 @@ n    };
     	];
 
     	for (var i = 0; i < s_ivec4Uniforms.length; i++) {
-    		/** @type {number} */ var uniLoc = gl.getUniformLocation(programID, s_ivec4Uniforms[i].name);
+    		/** @type {?WebGLUniformLocation} */ var uniLoc = gl.getUniformLocation(programID, s_ivec4Uniforms[i].name);
     		if (uniLoc != -1)
-    			gl.uniform4iv(uniLoc, 1, new Float32Array(s_ivec4Uniforms[i].value));
+    			gl.uniform4iv(uniLoc, new Int32Array(s_ivec4Uniforms[i].value));
     	}
 
     	// Float.
         /**
+         * @constructor
     	 * @struct
     	 */
         var FloatUniform = function(name, value) {
@@ -1035,13 +1047,14 @@ n    };
     	];
 
     	for (var i = 0; i < s_floatUniforms.length; i++) {
-    		/** @type {number} */ var uniLoc = gl.getUniformLocation(programID, s_floatUniforms[i].name);
+    		/** @type {?WebGLUniformLocation} */ var uniLoc = gl.getUniformLocation(programID, s_floatUniforms[i].name);
     		if (uniLoc != -1)
     			gl.uniform1f(uniLoc, s_floatUniforms[i].value);
     	}
 
     	// Vec2.
         /**
+         * @constructor
     	 * @struct
     	 */
         var Vec2Uniform = function(name, value) {
@@ -1057,13 +1070,14 @@ n    };
     	];
 
     	for (var i = 0; i < s_vec2Uniforms.length; i++) {
-    		/** @type {number} */ var uniLoc = gl.getUniformLocation(programID, s_vec2Uniforms[i].name);
+    		/** @type {?WebGLUniformLocation} */ var uniLoc = gl.getUniformLocation(programID, s_vec2Uniforms[i].name);
     		if (uniLoc != -1)
-    			gl.uniform2fv(uniLoc, 1, new Float32Array(s_vec2Uniforms[i].value));
+    			gl.uniform2fv(uniLoc, new Float32Array(s_vec2Uniforms[i].value));
     	}
 
     	// Vec3.
         /**
+         * @constructor
     	 * @struct
     	 */
         var Vec3Uniform = function(name, value) {
@@ -1079,13 +1093,14 @@ n    };
     	];
 
     	for (var i = 0; i < s_vec3Uniforms.length; i++) {
-    		/** @type {number} */ var uniLoc = gl.getUniformLocation(programID, s_vec3Uniforms[i].name);
+    		/** @type {?WebGLUniformLocation} */ var uniLoc = gl.getUniformLocation(programID, s_vec3Uniforms[i].name);
     		if (uniLoc != -1)
-    			gl.uniform3fv(uniLoc, 1, new Float32Array(s_vec3Uniforms[i].value));
+    			gl.uniform3fv(uniLoc, new Float32Array(s_vec3Uniforms[i].value));
     	}
 
     	// Vec4.
         /**
+         * @constructor
     	 * @struct
     	 */
         var Vec4Uniform = function(name, value) {
@@ -1104,9 +1119,9 @@ n    };
     	];
 
     	for (var i = 0; i < s_vec4Uniform.length; i++) {
-    		/** @type {number} */ var uniLoc = gl.getUniformLocation(programID, s_vec4Uniforms[i].name);
+    		/** @type {?WebGLUniformLocation} */ var uniLoc = gl.getUniformLocation(programID, s_vec4Uniforms[i].name);
     		if (uniLoc != -1)
-    			gl.uniform4fv(uniLoc, 1, new Float32Array(s_vec4Uniforms[i].value));
+    			gl.uniform4fv(uniLoc, new Float32Array(s_vec4Uniforms[i].value));
     	}
     };
 
@@ -1131,6 +1146,7 @@ n    };
 
     	// Matrix attributes - these are set by location
         /**
+         * @constructor
     	 * @struct
     	 */
         var Matrix = function(name, cols, rows) {
