@@ -27,11 +27,27 @@ goog.scope(function() {
     var tcuMatrix;
     var tcuRGBA;
     var deMath;
+    var deString;
+    var deRandom;
+    var gluTextureUtil;
+    var gluDrawUtil;
 
     /** @type {number} */ glsShaderRenderCase.GRID_SIZE = 64;
     /** @type {number} */ glsShaderRenderCase.MAX_RENDER_WIDTH = 128;
     /** @type {number} */ glsShaderRenderCase.MAX_RENDER_HEIGHT = 112;
     /** @type {Array<number>} */ glsShaderRenderCase.DEFAULT_CLEAR_COLOR = [0.125, 0.25, 0.5, 1.0];
+
+    /**
+     * @param  {Array<number>} a
+     * @return {tcuRGBA.RGBA}
+     */
+    glsShaderRenderCase.toRGBA = function(a) {
+    	return new tcuRGBA.RGBA([
+                    deMath.clamp(Math.round(a[0] * 255.0), 0, 255),
+    				deMath.clamp(Math.round(a[1] * 255.0), 0, 255),
+    				deMath.clamp(Math.round(a[2] * 255.0), 0, 255),
+    				deMath.clamp(Math.round(a[3] * 255.0), 0, 255)]);
+    };
 
     /** @enum {number} */
     glsShaderRenderCase.Type = {
@@ -432,8 +448,6 @@ n    };
      * @param  {glsShaderRenderCase.ShaderEvalFunc=} evalFunc
      */
     glsShaderRenderCase.ShaderRenderCase = function(name, description, isVertexCase, evalFunc) {
-        //glu::RenderContext&			m_renderCtx;
-    	//const glu::ContextInfo&		m_ctxInfo;
         tcuTestCae.DeqpTest.call(this, name, description);
         evalFunc = evalFunc === undefined ? null : evalFunc;
     	/** @type {boolean} */ this.m_isVertexCase = isVertexCase;
@@ -509,11 +523,11 @@ n    };
             [0.125, 0.25, 0.5, 1.0], this.m_userAttribTransforms, this.m_textures);
 
     	// Render result.
-    	/** @type {tcuTexture.Surface} */ var resImage = new tcuTexture.Surface(width, height);
+    	/** @type {tcuSurface.Surface} */ var resImage = new tcuSurface.Surface(width, height);
     	this.render(resImage, programID, quadGrid);
 
     	// Compute reference.
-    	/** @type {tcuTexture.Surface} */ var refImage = new tcuTexture.Surface(width, height);
+    	/** @type {tcuSurface.Surface} */ var refImage = new tcuSurface.Surface(width, height);
     	if (this.m_isVertexCase)
     		this.computeVertexReference(refImage, quadGrid);
     	else
@@ -570,19 +584,6 @@ n    };
     		if (tex.getType() === glsShaderRenderCase.Type.TYPE_NONE)
     			continue;
 
-    		// Feature check.
-    		if (m_renderCtx.getType().getAPI() == glu::ApiType::es(2,0))
-    		{
-    			if (tex.getType() == glsShaderRenderCase.Type.TYPE_2D_ARRAY)
-    				throw tcu::NotSupportedError("2D array texture binding is not supported");
-
-    			if (tex.getType() == glsShaderRenderCase.Type.TYPE_3D)
-    				throw tcu::NotSupportedError("3D texture binding is not supported");
-
-    			if (sampler.compare != tcu::Sampler::COMPAREMODE_NONE)
-    				throw tcu::NotSupportedError("Shadow lookups are not supported");
-    		}
-
     		switch (tex.getType()) {
     			case glsShaderRenderCase.Type.TYPE_2D:
                     texTarget = gl.TEXTURE_2D;
@@ -604,72 +605,530 @@ n    };
     				theow new Error("Type not supported");
     		}
 
-    		gl.activeTexture(gl.TEXTURE0+ndx);
+    		gl.activeTexture(gl.TEXTURE0+ ndx);
     		gl.bindTexture(texTarget, texObj);
-    		gl.texParameteri(texTarget, gl.TEXTURE_WRAP_S,		glu::getGLWrapMode(sampler.wrapS));
-    		gl.texParameteri(texTarget, gl.TEXTURE_WRAP_T,		glu::getGLWrapMode(sampler.wrapT));
-    		gl.texParameteri(texTarget, gl.TEXTURE_MIN_FILTER,	glu::getGLFilterMode(sampler.minFilter));
-    		gl.texParameteri(texTarget, gl.TEXTURE_MAG_FILTER,	glu::getGLFilterMode(sampler.magFilter));
+    		gl.texParameteri(texTarget, gl.TEXTURE_WRAP_S,		gluTextureUtil.getGLWrapMode(sampler.wrapS));
+    		gl.texParameteri(texTarget, gl.TEXTURE_WRAP_T,		gluTextureUtil.getGLWrapMode(sampler.wrapT));
+    		gl.texParameteri(texTarget, gl.TEXTURE_MIN_FILTER,	gluTextureUtil.getGLFilterMode(sampler.minFilter));
+    		gl.texParameteri(texTarget, gl.TEXTURE_MAG_FILTER,	gluTextureUtil.getGLFilterMode(sampler.magFilter));
 
-    		if (texTarget == gl.TEXTURE_3D)
-    			gl.texParameteri(texTarget, gl.TEXTURE_WRAP_R, glu::getGLWrapMode(sampler.wrapR));
+    		if (texTarget === gl.TEXTURE_3D)
+    			gl.texParameteri(texTarget, gl.TEXTURE_WRAP_R, gluTextureUtil.getGLWrapMode(sampler.wrapR));
 
-    		if (sampler.compare != tcu::Sampler::COMPAREMODE_NONE)
+    		if (sampler.compare != tcuTexture.CompareMode.COMPAREMODE_NONE)
     		{
     			gl.texParameteri(texTarget, gl.TEXTURE_COMPARE_MODE, gl.COMPARE_REF_TO_TEXTURE);
-    			gl.texParameteri(texTarget, gl.TEXTURE_COMPARE_FUNC, glu::getGLCompareFunc(sampler.compare));
+    			gl.texParameteri(texTarget, gl.TEXTURE_COMPARE_FUNC, gluTextureUtil.getGLCompareFunc(sampler.compare));
     		}
     	}
-
-    	GLU_EXPECT_NO_ERROR(gl.getError(), "texture sampler setup");
     };
 
     /**
-     * @param {tcuTexture.Surface} result
+     * @param {tcuSurface.Surface} result
      * @param {number} programId
      * @param {glsShaderRenderCase.QuadGrid} quadGrid
      **/
-    glsShaderRenderCase.ShaderRenderCase.prototype.render = function(esult, programId, quadGrid) {};
+    glsShaderRenderCase.ShaderRenderCase.prototype.render = function(esult, programId, quadGrid) {
+    	// Buffer info.
+    	/** @type {number} */ var width = result.getWidth();
+    	/** @type {number} */ var height = result.getHeight();
+
+    	/** @type {number} */ var xOffsetMax = gl.drawingBufferWidth - width;
+    	/** @type {number} */ var yOffsetMax = gl.drawingBufferHeight - height;
+
+    	/** @type {number} */ var hash = deString.deStringHash(this.m_vertShaderSource) + deString.deStringHash(this.m_fragShaderSource);
+    	/** @type {deRandom.deRandom} */ var rnd = new deRandom.deRandom(hash);
+
+    	/** @type {number} */ var xOffset = rnd.getInt(0, xOffsetMax);
+    	/** @type {number} */ var yOffset = rnd.getInt(0, yOffsetMax);
+
+    	gl.viewport(xOffset, yOffset, width, height);
+
+    	// Setup program.
+    	this.setupUniforms(programID, quadGrid.getConstCoords());
+    	this.setupDefaultInputs(programID);
+
+    	// Clear.
+    	gl.clearColor(this.m_clearColor[0], this.m_clearColor[1], this.m_clearColor[2], this.m_clearColor[3]);
+    	gl.clear(gl.COLOR_BUFFER_BIT);
+
+    	// Draw.
+		/** @type {Array<gluDrawUtil.VertexArrayBinding>}	*/ var vertexArrays;
+		/** @type {number} */ var numElements		= quadGrid.getNumTriangles()*3;
+
+		glsShaderRenderCase.getDefaultVertexArrays(quadGrid, programID, vertexArrays);
+
+		gluDrawUtil.draw(m_rgl, programID, vertexArrays.length, vertexArrays, gluDrawUtil.triangles(quadGrid.getIndices()));
+
+    	// Read back results.
+    	result.readViewport(gl, [xOffset, yOffset, width, height]);
+
+    	GLU_EXPECT_NO_ERROR(gl.getError(), "post render");
+    };
 
     /**
-     * @param {tcuTexture.Surface} result
+     * @param {tcuSurface.Surface} result
      * @param {glsShaderRenderCase.QuadGrid} quadGrid
      **/
-    glsShaderRenderCase.ShaderRenderCase.prototype.computeVertexReference = function(result, quadGrid) {};
+    glsShaderRenderCase.ShaderRenderCase.prototype.computeVertexReference = function(result, quadGrid) {
+        // Buffer info.
+        /** @type {number} */ var width = result.getWidth();
+        /** @type {number} */ var height = result.getHeight();
+        /** @type {number} */ var gridSize = quadGrid.getGridSize();
+        /** @type {number} */ var stride = gridSize + 1;
+        /** @type {boolean} */ var hasAlpha	= gl.getContextAttributes().alpha;
+        /** @type {glsShaderRenderCase.ShaderEvalContext} */
+        var evalCtx = new glsShaderRenderCase.ShaderEvalContext(quadGrid);
+
+        // Evaluate color for each vertex.
+        /** @type {Array<Array<number>>} */ var colors;
+        for (int y = 0; y < gridSize + 1; y++)
+        for (int x = 0; x < gridSize + 1; x++) {
+            /** @type {number} */ var sx = x / gridSize;
+            /** @type {number} */ var sy = y / gridSize;
+            /** @type {number} */ var vtxNdx = ((y * (gridSize+ 1 )) + x);
+
+            evalCtx.reset(sx, sy);
+            m_evaluator.this.evaluate(evalCtx);
+            assertMsgOptions(!evalCtx.isDiscarded, 'Discard is not available in vertex shader.', false, true);
+            /** @type {Array<number>} */ var color = evalCtx.color;
+
+            if (!hasAlpha)
+                color[3] = 1.0;
+
+            colors[vtxNdx] = color;
+        }
+
+        // Render quads.
+        for (var y = 0; y < gridSize; y++)
+        for (var x = 0; x < gridSize; x++) {
+            /** @type {number} */ var x0 = x / gridSize;
+            /** @type {number} */ var x1 = (x + 1) / gridSize;
+            /** @type {number} */ var y0 = y / gridSize;
+            /** @type {number} */ var y1 = (y + 1) / gridSize;
+
+            /** @type {number} */ var sx0 = x0 * width;
+            /** @type {number} */ var sx1 = x1 * width;
+            /** @type {number} */ var sy0 = y0 * height;
+            /** @type {number} */ var sy1 = y1 * height;
+            /** @type {number} */ var oosx = 1.0 / (sx1 - sx0);
+            /** @type {number} */ var oosy = 1.0 / (sy1 - sy0);
+
+            /** @type {number} */ var ix0 = Math.ceil(sx0 - 0.5);
+            /** @type {number} */ var ix1 = Math.ceil(sx1 - 0.5);
+            /** @type {number} */ var iy0 = Math.ceil(sy0 - 0.5);
+            /** @type {number} */ var iy1 = Math.ceil(sy1 - 0.5);
+
+            /** @type {number} */ var v00 = (y * stride) + x;
+            /** @type {number} */ var v01 = (y * stride) + x + 1;
+            /** @type {number} */ var v10 = ((y + 1) * stride) + x;
+            /** @type {number} */ var v11 = ((y + 1) * stride) + x + 1;
+            /** @type {Array<number>} */ var c00 = colors[v00];
+            /** @type {Array<number>} */ var c01 = colors[v01];
+            /** @type {Array<number>} */ var c10 = colors[v10];
+            /** @type {Array<number>} */ var c11 = colors[v11];
+
+            for (var iy = iy0; iy < iy1; iy++)
+            for (var ix = ix0; ix < ix1; ix++) {
+                DE_ASSERT(deInBounds32(ix, 0, width));
+                DE_ASSERT(deInBounds32(iy, 0, height));
+
+                /** @type {number} */ var sfx = ix + 0.5;
+                /** @type {number} */ var sfy = iy + 0.5;
+                /** @type {number} */ var fx1 = deMath.clamp((sfx - sx0) * oosx, 0.0, 1.0);
+                /** @type {number} */ var fy1 = deMath.clamp((sfy - sy0) * oosy, 0.0, 1.0);
+
+                // Triangle quad interpolation.
+                /** @type {boolean} */ var tri = fx1 + fy1 <= 1.0f;
+                /** @type {number} */ var tx = tri ? fx1 : (1.0 - fx1);
+                /** @type {number} */ var ty = tri ? fy1 : (1.0 - fy1);
+                /** @type {Array<number>} */ var t0 = tri ? c00 : c11;
+                /** @type {Array<number>} */ var t1 = tri ? c01 : c10;
+                /** @type {Array<number>} */ var t2 = tri ? c10 : c01;
+                /** @type {Array<number>} */ var color = t0 + (t1 - t0) * tx + (t2 - t0) * ty;
+
+                result.setPixel(ix, iy, glsShaderRenderCase.toRGBA(color));
+            }
+        }
+    };
 
     /**
-     * @param {tcuTexture.Surface} result
+     * @param {tcuSurface.Surface} result
      * @param {glsShaderRenderCase.QuadGrid} quadGrid
      **/
-    glsShaderRenderCase.ShaderRenderCase.prototype.computeFragmentReference = function(result, quadGrid) {};
+    glsShaderRenderCase.ShaderRenderCase.prototype.computeFragmentReference = function(result, quadGrid) {
+        // Buffer info.
+    	/** @type {number} */ var width = result.getWidth();
+    	/** @type {number} */ var height = result.getHeight();
+    	/** @type {boolean} */ var hasAlpha	= gl.getContextAttributes().alpha;
+    	/** @type {glsShaderRenderCase.ShaderEvalContext} */ var evalCtx = new glsShaderRenderCase.ShaderEvalContext(quadGrid);
+
+    	// Render.
+    	for (var y = 0; y < height; y++)
+    	for (var x = 0; x < width; x++) {
+    		/** @type {number} */ var sx = (x + 0.5) / width;
+    		/** @type {number} */ var sy = (y + 0.5) / height;
+
+    		evalCtx.reset(sx, sy);
+    		this.m_evaluator.evaluate(evalCtx);
+    		// Select either clear color or computed color based on discarded bit.
+    		/** @type {Array<number>} */ var color = evalCtx.isDiscarded ? this.m_clearColor : evalCtx.color;
+
+    		if (!hasAlpha)
+    			color[3] = 1.0;
+
+    		result.setPixel(x, y, glsShaderRenderCase.toRGBA(color));
+    	}
+    };
 
     /**
-     * @param {tcuTexture.Surface} resImage
-     * @param {tcuTexture.Surface} refImage
+     * @param {tcuSurface.Surface} resImage
+     * @param {tcuSurface.Surface} refImage
      * @param {number} errorThreshold
      * @return {boolean}
      */
-    glsShaderRenderCase.ShaderRenderCase.prototype.compareImages = function(resImage, refImage, errorThreshold) {};
+    glsShaderRenderCase.ShaderRenderCase.prototype.compareImages = function(resImage, refImage, errorThreshold) {
+        return tcuImageCompare.fuzzyCompare("ComparisonResult", "Image comparison result", refImage.getAccess(), resImage.getAccess(), errorThreshold);
+    };
 
     /**
      * @param {number} number
      * @return {string} */
-    glsShaderRenderCase.getIntUniformName = function(number){};
+    glsShaderRenderCase.getIntUniformName = function(number) {
+        switch (number) {
+    		case 0: return "ui_zero";
+    		case 1: return "ui_one";
+    		case 2: return "ui_two";
+    		case 3: return "ui_three";
+    		case 4: return "ui_four";
+    		case 5: return "ui_five";
+    		case 6: return "ui_six";
+    		case 7: return "ui_seven";
+    		case 8: return "ui_eight";
+    		case 101: return "ui_oneHundredOne";
+    		default:
+    			throw new Error("Uniform not supported.");
+    	}
+    };
 
     /**
      * @param {number} number
      * @return {string} */
-    glsShaderRenderCase.getFloatUniformName = function(number){};
+    glsShaderRenderCase.getFloatUniformName = function(number) {
+        switch (number) {
+    		case 0:	return "uf_zero";
+    		case 1: return "uf_one";
+    		case 2: return "uf_two";
+    		case 3: return "uf_three";
+    		case 4: return "uf_four";
+    		case 5: return "uf_five";
+    		case 6: return "uf_six";
+    		case 7: return "uf_seven";
+    		case 8: return "uf_eight";
+    		default:
+    			throw new Error("Uniform not supported.");
+    	}
+    };
 
     /**
      * @param {number} number
      * @return {string} */
-    glsShaderRenderCase.getFloatFractionUniformName = function(number){};
+    glsShaderRenderCase.getFloatFractionUniformName = function(number) {
+        switch (number) {
+    		case 1: return "uf_one";
+    		case 2: return "uf_half";
+    		case 3: return "uf_third";
+    		case 4: return "uf_fourth";
+    		case 5: return "uf_fifth";
+    		case 6: return "uf_sixth";
+    		case 7: return "uf_seventh";
+    		case 8: return "uf_eighth";
+    		default:
+    			throw new Error("Uniform not supported.");
+    	}
+    };
 
     /**
      * @param {number} programID
      */
-    glsShaderRenderCase.setupDefaultUniforms = function(programID){};
+    glsShaderRenderCase.setupDefaultUniforms = function(programID) {
+    	// Bool.
+    	/**
+    	 * @struct
+    	 */
+    	var BoolUniform = function(name, value) {
+            /** @type {string} */ this.name = name;
+            /** @type {boolean} */ this.value = value;
+        };
 
-    glsShaderRenderCase
+    	/** @type {Array<BoolUniform>} */ var s_boolUniforms = [
+    		("ub_true", true),
+    		("ub_false", false),
+    	];
+
+    	for (var i = 0; i < s_boolUniforms.length; i++) {
+    		/** @type {number} */ var uniLoc = gl.getUniformLocation(programID, s_boolUniforms[i].name);
+    		if (uniLoc != -1)
+    			gl.uniform1i(uniLoc, s_boolUniforms[i].value);
+    	}
+
+    	// BVec4.
+        /**
+    	 * @struct
+    	 */
+    	var BVec4Uniform = function(name, value) {
+            /** @type {string} */ this.name = name;
+            /** @type {Array<boolean>} */ this.value = value;
+        };
+
+    	/** @type {Array<BVec4Uniform>} */ var s_bvec4Uniforms = [
+    		("ub4_true", [true, true, true, true]),
+    		("ub4_false", [false, false, false, false]),
+    	];
+
+    	for (var i = 0; i < s_bvec4Uniforms.length; i++) {
+    		/** @type {BVec4Uniform} */ var uni = s_bvec4Uniforms[i];
+    		/** @type {Array<number>} */ var arr;
+    		arr[0] = uni.value[0];
+    		arr[1] = uni.value[1];
+    		arr[2] = uni.value[2];
+    		arr[3] = uni.value[3];
+    		/** @type {number} */ var uniLoc = gl.getUniformLocation(programID, uni.name);
+    		if (uniLoc != -1)
+    			gl.uniform4iv(uniLoc, 1, new Float32Array(arr));
+    	}
+
+    	// Int.
+        /**
+    	 * @struct
+    	 */
+    	var IntUniform = function(name, value) {
+            /** @type {string} */ this.name = name;
+            /** @type {number} */ this.value = value;
+        };
+
+        /** @type {Array<IntUniform>} */ var s_intUniforms = [
+    		("ui_minusOne", -1),
+    		("ui_zero", 0),
+    		("ui_one", 1),
+    		("ui_two", 2),
+    		("ui_three", 3),
+    		("ui_four", 4),
+    		("ui_five", 5),
+    		("ui_six", 6),
+    		("ui_seven", 7),
+    		("ui_eight", 8),
+    		("ui_oneHundredOne", 101)
+    	];
+
+    	for (var i = 0; i < s_intUniforms.length; i++) {
+    		/** @type {number} */ var uniLoc = gl.getUniformLocation(programID, s_intUniforms[i].name);
+    		if (uniLoc != -1)
+    			gl.uniform1i(uniLoc, s_intUniforms[i].value);
+    	}
+
+    	// IVec2.
+        var IVec2Uniform = function(name, value) {
+            /** @type {string} */ this.name = name;
+            /** @type {Array<number>} */ this.value = value;
+        };
+
+        /** @type {Array<IVec2Uniform>} */ var s_ivec2Uniforms = [
+            ("ui2_minusOne", [-1, -1]),
+    		("ui2_zero", [0, 0]),
+    		("ui2_one", [1, 1]),
+    		("ui2_two", [2, 2]),
+    		("ui2_four", [4, 4]),
+    		("ui2_five", [5, 5])
+    	];
+
+    	for (var i = 0; i < s_ivec2Uniforms.length; i++) {
+    		/** @type {number} */ var uniLoc = gl.getUniformLocation(programID, s_ivec2Uniforms[i].name);
+    		if (uniLoc != -1)
+    			gl.uniform2iv(uniLoc, 1, new Float32Array(s_ivec2Uniforms[i].value));
+    	}
+
+    	// IVec3.
+        var IVec3Uniform = function(name, value) {
+            /** @type {string} */ this.name = name;
+            /** @type {Array<number>} */ this.value = value;
+        };
+
+    	/** @type {Array<IVec3Uniform>} */ var s_ivec3Uniforms = [
+    		("ui3_minusOne", [-1, -1, -1]),
+    		("ui3_zero", [0, 0, 0]),
+    		("ui3_one", [1, 1, 1]),
+    		("ui3_two", [2, 2, 2]),
+    		("ui3_four", [4, 4, 4]),
+    		("ui3_five", [5, 5, 5])
+    	];
+
+    	for (var i = 0; i < s_ivec3Uniforms.length; i++) {
+    		/** @type {number} */ var uniLoc = gl.getUniformLocation(programID, s_ivec3Uniforms[i].name);
+    		if (uniLoc != -1)
+    			gl.uniform3iv(uniLoc, 1, new Float32Array(s_ivec3Uniforms[i].value.));
+    	}
+
+    	// IVec4.
+        var IVec4Uniform = function(name, value) {
+            /** @type {string} */ this.name = name;
+            /** @type {Array<number>} */ this.value = value;
+        };
+    	/** @type {Array<IVec4Uniform>} */ var s_ivec4Uniforms = [
+    		("ui4_minusOne", [-1, -1, -1, -1]),
+    		("ui4_zero", [0, 0, 0, 0]),
+    		("ui4_one", [1, 1, 1, 1]),
+    		("ui4_two", [2, 2, 2, 2]),
+    		("ui4_four", [4, 4, 4, 4]),
+    		("ui4_five", [5, 5, 5, 5]),
+    	];
+
+    	for (var i = 0; i < s_ivec4Uniforms.length; i++) {
+    		/** @type {number} */ var uniLoc = gl.getUniformLocation(programID, s_ivec4Uniforms[i].name);
+    		if (uniLoc != -1)
+    			gl.uniform4iv(uniLoc, 1, new Float32Array(s_ivec4Uniforms[i].value.));
+    	}
+
+    	// Float.
+        var FloatUniform = function(name, value) {
+            /** @type {string} */ this.name = name;
+            /** @type {number} */ this.value = value;
+        };
+    	/** @type {FloatUniform} */ var s_floatUniforms = [
+    		("uf_zero", 0.0),
+    		("uf_one", 1.0),
+    		("uf_two", 2.0),
+    		("uf_three", 3.0),
+    		("uf_four", 4.0),
+    		("uf_five", 5.0),
+    		("uf_six", 6.0),
+    		("uf_seven", 7.0),
+    		("uf_eight", 8.0),
+    		("uf_half", 1.0 / 2.0),
+    		("uf_third", 1.0 / 3.0),
+    		("uf_fourth", 1.0 / 4.0),
+    		("uf_fifth", 1.0 / 5.0),
+    		("uf_sixth", 1.0 / 6.0),
+    		("uf_seventh", 1.0 / 7.0),
+    		("uf_eighth", 1.0 / 8.0)
+    	];
+
+    	for (var i = 0; i < s_floatUniforms.length; i++) {
+    		/** @type {number} */ var uniLoc = gl.getUniformLocation(programID, s_floatUniforms[i].name);
+    		if (uniLoc != -1)
+    			gl.uniform1f(uniLoc, s_floatUniforms[i].value);
+    	}
+
+    	// Vec2.
+        var Vec2Uniform = function(name, value) {
+            /** @type {string} */ this.name = name;
+            /** @type {Array<number>} */ this.value = value;
+        };
+    	/** @type {Vec2Uniform} */ var s_vec2Uniforms = [
+    		("uv2_minusOne", [-1.0, -1.0]),
+    		("uv2_zero", [0.0, 0.0]),
+    		("uv2_half", [0.5, 0.5]),
+    		("uv2_one", [1.0, 1.0]),
+    		("uv2_two", [2.0, 2.0]),
+    	];
+
+    	for (var i = 0; i < s_vec2Uniforms.length; i++) {
+    		/** @type {number} */ var uniLoc = gl.getUniformLocation(programID, s_vec2Uniforms[i].name);
+    		if (uniLoc != -1)
+    			gl.uniform2fv(uniLoc, 1, new Float32Array(s_vec2Uniforms[i].value.));
+    	}
+
+    	// Vec3.
+        var Vec3Uniform = function(name, value) {
+            /** @type {string} */ this.name = name;
+            /** @type {Array<number>} */ this.value = value;
+        };
+    	/** @type {Vec3Uniform} */ var s_vec3Uniforms = [
+    		("uv3_minusOne", [-1.0, -1.0, -1.0]),
+    		("uv3_zero", [0.0, 0.0, 0.0]),
+    		("uv3_half", [0.5, 0.5, 0.5]),
+    		("uv3_one", [1.0, 1.0, 1.0]),
+    		("uv3_two", [2.0, 2.0, 2.0])
+    	];
+
+    	for (var i = 0; i < s_vec3Uniforms.length; i++) {
+    		/** @type {number} */ var uniLoc = gl.getUniformLocation(programID, s_vec3Uniforms[i].name);
+    		if (uniLoc != -1)
+    			gl.uniform3fv(uniLoc, 1, new Float32Array(s_vec3Uniforms[i].value));
+    	}
+
+    	// Vec4.
+        var Vec4Uniform = function(name, value) {
+            /** @type {string} */ this.name = name;
+            /** @type {Array<number>} */ this.value = value;
+        };
+    	/** @type {Vec4Uniform} */ var s_vec4Uniforms = [
+    		("uv4_minusOne", [-1.0, -1.0, -1.0, -1.0]),
+    		("uv4_zero", [0.0, 0.0, 0.0, 0.0]),
+    		("uv4_half", [0.5, 0.5, 0.5, 0.5]),
+    		("uv4_one", [1.0, 1.0, 1.0, 1.0]),
+    		("uv4_two", [2.0, 2.0, 2.0, 2.0]),
+    		("uv4_black", [0.0, 0.0, 0.0, 1.0]),
+    		("uv4_gray", [0.5, 0.5, 0.5, 1.0]),
+    		("uv4_white", [1.0, 1.0, 1.0, 1.0]),
+    	];
+
+    	for (var i = 0; i < s_vec4Uniform.length); i++) {
+    		/** @type {number} */ var uniLoc = gl.getUniformLocation(programID, s_vec4Uniforms[i].name);
+    		if (uniLoc != -1)
+    			gl.uniform4fv(uniLoc, 1, new Float32Array(s_vec4Uniforms[i].value));
+    	}
+    };
+
+    /**
+     * @param {glsShaderRenderCaseQuadGrid} quadGrid
+     * @param {number} program
+     * @param {Array<gluDrawUtil.VertexArrayBinding>} vertexArrays
+     */
+    glsShaderRenderCase.getDefaultVertexArrays = function(quadGrid, program, vertexArrays) {
+        /** @type {number} */ var numElements = quadGrid.getNumVertices();
+
+    	vertexArrays.push(new gluDrawUtil.VertexArrayBinding("a_position", 4, numElements, 0, quadGrid.getPositions()));
+    	vertexArrays.push(new gluDrawUtil.VertexArrayBinding("a_coords", 4, numElements, 0, quadGrid.getCoords()));
+    	vertexArrays.push(new gluDrawUtil.VertexArrayBinding("a_unitCoords", 4, numElements, 0, quadGrid.getUnitCoords()));
+    	vertexArrays.push(new gluDrawUtil.VertexArrayBinding("a_one", 1, numElements, 0, quadGrid.getAttribOne()));
+
+    	// a_inN.
+    	for (var userNdx = 0; userNdx < quadGrid.getNumUserAttribs(); userNdx++) {
+    		/** @type {string} */ var name = string("a_in") + userNdx;
+    		vertexArrays.push(new gluDrawUtil.VertexArrayBinding(name, 4, numElements, 0, quadGrid.getUserAttrib(userNdx)));
+    	}
+
+    	// Matrix attributes - these are set by location
+    	var Matrix = function(name, cols, rows) {
+            this.name = name;
+            this.numCols = cols;
+            this.numRows = rows;
+        };
+
+        /** @type {Array<Matrix>} */ var matrices = [
+    		 ('a_mat2', 2, 2),
+    		 ('a_mat2x3', 2, 3),
+    		 ('a_mat2x4', 2, 4),
+    		 ('a_mat3x2', 3, 2),
+    		 ('a_mat3', 3, 3),
+    		 ('a_mat3x4', 3, 4),
+    		 ('a_mat4x2', 4, 2),
+    		 ('a_mat4x3', 4, 3),
+    		 ('a_mat4', 4, 4)
+    	];
+
+    	for (var matNdx = 0; matNdx < matrices.length; matNdx++) {
+    		/** @type {number} */ var loc = gl.getAttribLocation(program, matrices[matNdx].name);
+
+    		if (loc < 0)
+    			continue; // Not used in shader.
+
+    		/** @type {number} */ var numRows	= matrices[matNdx].numRows;
+    		/** @type {number} */ var numCols	= matrices[matNdx].numCols;
+
+    		for (var colNdx = 0; colNdx < numCols; colNdx++)
+    			vertexArrays.push(new gluDrawUtil.VertexArrayBinding(loc + colNdx, numRows, numElements, 4 * 4, quadGrid.getUserAttrib(colNdx)));
+    	}
+    };
 });
