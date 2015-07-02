@@ -198,16 +198,9 @@ goog.scope(function() {
      * @return {WebGLBuffer}
      */
     glsBufferTestUtil.BufferCase.prototype.genBuffer = function() {
-        var buf = 0;
-        buf = gl.createBuffer();
-        if (buf != 0) {
-            try {
-                deUtil.dePushUniqueToArray(this.m_allocatedBuffers, buf);
-            }
-            catch (err) {
-                gl.deleteBuffer(buf);
-                throw err;
-            }
+        var buf = gl.createBuffer();
+        if (buf) {
+            deUtil.dePushUniqueToArray(this.m_allocatedBuffers, buf);
         }
         return buf;
     };
@@ -218,12 +211,6 @@ goog.scope(function() {
     glsBufferTestUtil.BufferCase.prototype.deleteBuffer = function(buffer) {
         gl.deleteBuffer(buffer);
         this.m_allocatedBuffers.splice(this.m_allocatedBuffers.indexOf(buffer), 1);
-    };
-
-    glsBufferTestUtil.BufferCase.prototype.checkError = function() {
-        /** @type {number} */ var err = gl.getError();
-        if (err != gl.NO_ERROR)
-            throw new TestFailedException('Got ' + WebGLTestUtils.glEnumToString(gl, err));
     };
 
     // Reference buffer.
@@ -266,8 +253,11 @@ goog.scope(function() {
      * @param {Uint8Array} bytes
      */
     glsBufferTestUtil.ReferenceBuffer.prototype.setSubData = function(offset, numBytes, bytes) {
-        assertMsgOptions(deMath.deInBounds32(offset, 0, this.m_data.byteLength) && deMath.deInRange32(offset + numBytes, offset, this.m_data.byteLength),
-            'Parameters not in buffer bounds or range', false, true);
+        assertMsgOptions(
+            deMath.deInBounds32(offset, 0, this.m_data.byteLength) &&
+            deMath.deInRange32(offset + numBytes, offset, this.m_data.byteLength),
+            'Parameters not in buffer bounds or range', false, true
+        );
         var dst = new Uint8Array(this.m_data, offset);
         dst.set(bytes.subarray(offset, offset + numBytes));
     };
@@ -279,9 +269,8 @@ goog.scope(function() {
      */
     glsBufferTestUtil.WriteType = {
         BUFFER_SUB_DATA: 0,
-        BUFFER_WRITE_MAP: 1,
-        TRANSFORM_FEEDBACK: 2,
-        PIXEL_PACK: 3
+        TRANSFORM_FEEDBACK: 1,
+        PIXEL_PACK: 2
     };
 
     /**
@@ -291,7 +280,6 @@ goog.scope(function() {
     glsBufferTestUtil.getWriteTypeDescription = function(write) {
         /** @type {Array<string>} */ var s_desc = [
             'gl.bufferSubData()',
-            'gl.mapBufferRange()',
             'transform feedback',
             'gl.readPixels() into PBO binding'
         ];
@@ -306,25 +294,25 @@ goog.scope(function() {
     glsBufferTestUtil.BufferWriterBase = function() {};
 
     /**
-     * //Meant to be overriden
+     * //Meant to be overridden
      * @return {number}
      */
-    glsBufferTestUtil.BufferWriterBase.prototype.getMinSize = function() { throw new Error('Must be overriden'); };
+    glsBufferTestUtil.BufferWriterBase.prototype.getMinSize = function() { throw new Error('Must be overridden'); };
 
     /**
-     * //Meant to be overriden
+     * //Meant to be overridden
      * @return {number}
      */
-    glsBufferTestUtil.BufferWriterBase.prototype.getAlignment = function() { throw new Error('Must be overriden'); };
+    glsBufferTestUtil.BufferWriterBase.prototype.getAlignment = function() { throw new Error('Must be overridden'); };
 
     /**
-     * //Meant to be overriden
+     * //Meant to be overridden
      * @param {WebGLBuffer} buffer
      * @param {number} offset
      * @param {number} numBytes
      * @param {Uint8Array} bytes
      */
-    glsBufferTestUtil.BufferWriterBase.prototype.writeNoTarget = function(buffer, offset, numBytes, bytes) { throw new Error('Must be overriden'); };
+    glsBufferTestUtil.BufferWriterBase.prototype.writeNoTarget = function(buffer, offset, numBytes, bytes) { throw new Error('Must be overridden'); };
 
     /**
      * @param {WebGLBuffer} buffer
@@ -369,9 +357,12 @@ goog.scope(function() {
      * @param {Uint8Array} bytes
      */
     glsBufferTestUtil.BufferWriter.prototype.writeNoTarget = function(buffer, offset, numBytes, bytes) {
-        assertMsgOptions(numBytes >= this.getMinSize(), 'Number of bytes to write is smaller than the minimum size.', false, true);
-        assertMsgOptions(offset % this.getAlignment() == 0, 'Offset is not aligned.', false, true);
-        assertMsgOptions((offset + numBytes) % this.getAlignment() == 0, 'Buffer segment is not aligned', false, true);
+        assertMsgOptions(numBytes >= this.getMinSize(),
+            'Number of bytes to write is smaller than the minimum size.', false, true);
+        assertMsgOptions(offset % this.getAlignment() == 0,
+            'Offset is not aligned.', false, true);
+        assertMsgOptions((offset + numBytes) % this.getAlignment() == 0,
+            'Buffer segment is not aligned', false, true);
         return this.m_writer.writeNoTarget(buffer, offset, numBytes, bytes);
     };
 
@@ -383,9 +374,12 @@ goog.scope(function() {
      * @param {number} targetHint
      */
     glsBufferTestUtil.BufferWriter.prototype.write = function(buffer, offset, numBytes, bytes, targetHint) {
-        assertMsgOptions(numBytes >= this.getMinSize(), 'Number of bytes to write is smaller than the minimum size.', false, true);
-        assertMsgOptions(offset % this.getAlignment() == 0, 'Offset is not aligned.', false, true);
-        assertMsgOptions((offset + numBytes) % this.getAlignment() == 0, 'Buffer segment is not aligned', false, true);
+        assertMsgOptions(numBytes >= this.getMinSize(),
+            'Number of bytes to write is smaller than the minimum size.', false, true);
+        assertMsgOptions(offset % this.getAlignment() == 0,
+            'Offset is not aligned.', false, true);
+        assertMsgOptions((offset + numBytes) % this.getAlignment() == 0,
+            'Buffer segment is not aligned', false, true);
         return this.m_writer.write(buffer, offset, numBytes, bytes, targetHint);
     };
 
@@ -471,16 +465,16 @@ goog.scope(function() {
     glsBufferTestUtil.BufferVerifierBase = function() {};
 
     /**
-     * //Meant to be overriden
+     * //Meant to be overridden
      * @return {number}
      */
-    glsBufferTestUtil.BufferVerifierBase.prototype.getMinSize = function() { throw new Error('Must be overriden'); };
+    glsBufferTestUtil.BufferVerifierBase.prototype.getMinSize = function() { throw new Error('Must be overridden'); };
 
     /**
-     * //Meant to be overriden
+     * //Meant to be overridden
      * @return {number}
      */
-    glsBufferTestUtil.BufferVerifierBase.prototype.getAlignment = function() { throw new Error('Must be overriden'); };
+    glsBufferTestUtil.BufferVerifierBase.prototype.getAlignment = function() { throw new Error('Must be overridden'); };
 
     /**
      * @param {WebGLBuffer} buffer
@@ -490,11 +484,11 @@ goog.scope(function() {
      * @return {boolean}
      */
     glsBufferTestUtil.BufferVerifierBase.prototype.verifyNoTarget = function(buffer, reference, offset, numBytes) {
-        throw new Error('Must be overriden');
+        throw new Error('Must be overridden');
     };
 
     /**
-     * //Meant to be overriden
+     * //Meant to be overridden
      * @param {WebGLBuffer} buffer
      * @param {Uint8Array} reference
      * @param {number} offset
@@ -564,9 +558,12 @@ goog.scope(function() {
      * @return {boolean}
      */
     glsBufferTestUtil.BufferVerifier.prototype.verifyNoTarget = function(buffer, reference, offset, numBytes) {
-        assertMsgOptions(numBytes >= this.getMinSize(), 'Number of bytes to write is smaller than the minimum size.', false, true);
-        assertMsgOptions(offset % this.getAlignment() == 0, 'Offset is not aligned.', false, true);
-        assertMsgOptions((offset + numBytes) % this.getAlignment() == 0, 'Buffer segment is not aligned', false, true);
+        assertMsgOptions(numBytes >= this.getMinSize(),
+            'Number of bytes to write is smaller than the minimum size.', false, true);
+        assertMsgOptions(offset % this.getAlignment() == 0,
+            'Offset is not aligned.', false, true);
+        assertMsgOptions((offset + numBytes) % this.getAlignment() == 0,
+            'Buffer segment is not aligned', false, true);
         return this.m_verifier.verifyNoTarget(buffer, reference, offset, numBytes);
     };
 
@@ -579,9 +576,12 @@ goog.scope(function() {
      * @return {boolean}
      */
     glsBufferTestUtil.BufferVerifier.prototype.verify = function(buffer, reference, offset, numBytes, targetHint) {
-        assertMsgOptions(numBytes >= this.getMinSize(), 'Number of bytes to write is smaller than the minimum size.', false, true);
-        assertMsgOptions(offset % this.getAlignment() == 0, 'Offset is not aligned.', false, true);
-        assertMsgOptions((offset + numBytes) % this.getAlignment() == 0, 'Buffer segment is not aligned', false, true);
+        assertMsgOptions(numBytes >= this.getMinSize(),
+            'Number of bytes to write is smaller than the minimum size.', false, true);
+        assertMsgOptions(offset % this.getAlignment() == 0,
+            'Offset is not aligned.', false, true);
+        assertMsgOptions((offset + numBytes) % this.getAlignment() == 0,
+            'Buffer segment is not aligned', false, true);
         return this.m_verifier.verify(buffer, reference, offset, numBytes, targetHint);
     };
 
@@ -600,7 +600,8 @@ goog.scope(function() {
 
         /** @type {gluShaderUtil.GLSLVersion} */ var glslVersion = gluShaderUtil.getGLSLVersion(gl);
 
-        assertMsgOptions(gluShaderUtil.isGLSLVersionSupported(gl, glslVersion), 'Unsupported GLSL version', false, true);
+        assertMsgOptions(gluShaderUtil.isGLSLVersionSupported(gl, glslVersion),
+            'Unsupported GLSL version', false, true);
 
         this.m_program = new gluShaderProgram.ShaderProgram(gl, gluShaderProgram.makeVtxFragSources(
             gluShaderUtil.getGLSLVersionDeclaration(glslVersion) + '\n' +
@@ -691,9 +692,7 @@ goog.scope(function() {
      * @return {Uint16Array}
      */
     glsBufferTestUtil.computeIndices = function(gridSizeX, gridSizeY) {
-        var newbuffer = new ArrayBuffer(3 * 2 * gridSizeX * gridSizeY);
-
-        var indices = new Uint16Array(newbuffer);
+        var indices = new Uint16Array(3 * 2 * gridSizeX * gridSizeY);
 
         for (var quadNdx = 0; quadNdx < gridSizeX * gridSizeY; quadNdx++) {
             /** @type {number} */ var v00 = quadNdx * 4 + 0;
@@ -701,7 +700,8 @@ goog.scope(function() {
             /** @type {number} */ var v10 = quadNdx * 4 + 2;
             /** @type {number} */ var v11 = quadNdx * 4 + 3;
 
-            assertMsgOptions(v11 < (1 << 16), 'Vertex index value won\'t fit into a 16-bit number', false, true);
+            assertMsgOptions(v11 < (1 << 16),
+                'Vertex index value won\'t fit into a 16-bit number', false, true);
 
             indices[quadNdx * 6 + 0] = v10;
             indices[quadNdx * 6 + 1] = v00;
@@ -794,7 +794,8 @@ goog.scope(function() {
         /** @type {tcuSurface.Surface} */ var reference = new tcuSurface.Surface();
 
         // Can't render full quad with smaller buffers.
-        assertMsgOptions(numBytes >= numBytesInQuad, 'Number of bytes must be bigger than number of bytes per quad', false, true);
+        assertMsgOptions(numBytes >= numBytesInQuad,
+                'Number of bytes must be bigger than number of bytes per quad', false, true);
 
         positions = glsBufferTestUtil.computePositions(maxQuadsX, maxQuadsY);
         indices = glsBufferTestUtil.computeIndices(maxQuadsX, maxQuadsY);
@@ -816,7 +817,7 @@ goog.scope(function() {
 
         // Upload indices
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.m_indexBuf);
-        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
 
         gl.enableVertexAttribArray(this.m_byteVecLoc);
 
@@ -832,9 +833,12 @@ goog.scope(function() {
             /** @type {number} */ var numRows = Math.floor(numQuads / maxQuadsX) + (numQuads % maxQuadsX != 0 ? 1 : 0);
             /** @type {string} */ var imageSetDesc = 'Bytes ' + (offset + curOffset) + ' to ' + (offset + curOffset + numBytesToVerify - 1);
 
-            assertMsgOptions(numBytesToVerify > 0 && numBytesToVerify % numBytesInQuad == 0, 'Bytes to verify must be greater than zero and must be a multiple of the bytes per quad', false, true);
-            assertMsgOptions(deMath.deInBounds32(curOffset, 0, numBytes), 'Offset out of bounds', false, true);
-            assertMsgOptions(deMath.deInRange32(curOffset + numBytesToVerify, curOffset, numBytes), 'Range of bytes to verify outside of bounds', false, true);
+            assertMsgOptions(numBytesToVerify > 0 && numBytesToVerify % numBytesInQuad == 0,
+                'Bytes to verify must be greater than zero and must be a multiple of the bytes per quad', false, true);
+            assertMsgOptions(deMath.deInBounds32(curOffset, 0, numBytes),
+                'Offset out of bounds', false, true);
+            assertMsgOptions(deMath.deInRange32(curOffset + numBytesToVerify, curOffset, numBytes),
+                'Range of bytes to verify outside of bounds', false, true);
 
             // Render batch.
             gl.clear(gl.COLOR_BUFFER_BIT);
