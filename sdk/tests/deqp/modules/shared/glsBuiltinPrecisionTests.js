@@ -69,7 +69,15 @@ goog.scope(function() {
      * @param{*=} t
      */
     glsBuiltinPrecisionTests.Void = function(t) {
+        this.isVoid = true;
 	};
+
+    Number.prototype.isFloat(value) {
+        if (value !== undefined && Math.abs(value % 1) < 0) {
+            return true;
+        }
+        return false;
+    }
 
     /**
      * @constructor
@@ -95,7 +103,7 @@ goog.scope(function() {
         this.Args = new glsBuiltinPrecisionTests.Tuple4(this.Arg0, this.Arg1, this.Arg2, this.Arg3);
         this.IArgs = new glsBuiltinPrecisionTests.Tuple4(this.IArg0, this.IArg1, this.IArg2, this.IArg3);
 
-    	typedef Tuple4<	ExprP<Arg0>,	ExprP<Arg1>,	ExprP<Arg2>,	ExprP<Arg3> >	ArgExprs;
+    	// typedef Tuple4<	ExprP<Arg0>,	ExprP<Arg1>,	ExprP<Arg2>,	ExprP<Arg3> >	ArgExprs;
     };
 
     /**
@@ -111,10 +119,10 @@ goog.scope(function() {
      * @param{tcuInterval.Interval} A3
      */
     glsBuiltinPrecisionTests.Tuple4 = function(A0, A1, A2, A3) {
-        this.a = A0 === undefined = new glsBuiltinPrecisionTests.Void() = A0();
-        this.b = A1 === undefined = new glsBuiltinPrecisionTests.Void() = A1();
-        this.c = A2 === undefined = new glsBuiltinPrecisionTests.Void() = A2();
-        this.d = A3 === undefined = new glsBuiltinPrecisionTests.Void() = A3();
+        this.a = A0 === undefined ? new glsBuiltinPrecisionTests.Void() : A0;
+        this.b = A1 === undefined ? new glsBuiltinPrecisionTests.Void() : A1;
+        this.c = A2 === undefined ? new glsBuiltinPrecisionTests.Void() : A2;
+        this.d = A3 === undefined ? new glsBuiltinPrecisionTests.Void() : A3;
     };
 
     /**
@@ -126,8 +134,8 @@ goog.scope(function() {
      */
     glsBuiltinPrecisionTests.EvalContext = function (format_, floatPrecision_, env_, callDepth_) {
 		this.format = format_;
-		this.floatPrecision = floatPrecision_)
-		this.env = env_)
+		this.floatPrecision = floatPrecision_;
+		this.env = env_;
 		this.callDepth = callDepth_ === undefined ? 0 : callDepth_;
     };
 
@@ -147,7 +155,7 @@ goog.scope(function() {
     glsBuiltinPrecisionTests.ScalarTraits.prototype.doMakeIVal = function(value) {
 		// Thankfully all scalar types have a well-defined conversion to `double`,
 		// hence Interval can represent their ranges without problems.
-		return new tcuInterval.Interval(double(value));
+		return new tcuInterval.Interval(value); // TODO: cast to double
 	};
 
     /**
@@ -165,7 +173,7 @@ goog.scope(function() {
      * @return{boolean}
      */
     glsBuiltinPrecisionTests.ScalarTraits.prototype.doContains = function(a, value)	{
-		return a.contains(double(value));
+		return a.contains(value);//TODO cast to double
 	};
 
     /**
@@ -183,7 +191,7 @@ goog.scope(function() {
      * @return{tcuInterval.Interval}
      */
     glsBuiltinPrecisionTests.ScalarTraits.prototype.doRound	= function(fmt, value) {
-		return fmt.roundOut(double(value), false);
+		return fmt.roundOut(value, false);//TODO cast to double
 	};
 
     /**
@@ -251,7 +259,6 @@ goog.scope(function() {
      * @extends{glsBuiltinPrecisionTests.ScalarTraits}
      */
     glsBuiltinPrecisionTests.TraitsInt = function() {};
-	};
 
     /**
      * @param{tcuFloatFormat.FloatFormat} fmt
@@ -280,7 +287,6 @@ goog.scope(function() {
      * @constructor
      */
     glsBuiltinPrecisionTests.ContainerTraits = function() {};
-	};
 
     // typedef typename	T::Element		Element;
     // typedef				I				IVal;
@@ -292,7 +298,7 @@ goog.scope(function() {
     glsBuiltinPrecisionTests.ContainerTraits.prototype.doMakeIVal = function(value) {
     	/** @type{Array<tcuInterval.Interval>}	*/ var ret = [];
 
-		for (int ndx = 0; ndx < T::SIZE; ++ndx)
+		for (var ndx = 0; ndx < T.SIZE; ++ndx)
 			ret[ndx] = makeIVal(value[ndx]);
 
 		return ret;
@@ -306,7 +312,7 @@ goog.scope(function() {
     glsBuiltinPrecisionTests.ContainerTraits.prototype.doUnion = function (a, b) {
     	/** @type{Array<tcuInterval.Interval>}	*/ var ret = [];
 
-		for (int ndx = 0; ndx < T::SIZE; ++ndx)
+		for (var ndx = 0; ndx < T.SIZE; ++ndx)
 			ret[ndx] = unionIVal<Element>(a[ndx], b[ndx]);
 
 		return ret;
@@ -318,7 +324,7 @@ goog.scope(function() {
      * @return{boolean}
      */
     glsBuiltinPrecisionTests.ContainerTraits.prototype.doContains = function(ival, value) {
-		for (int ndx = 0; ndx < T::SIZE; ++ndx)
+		for (var ndx = 0; ndx < T.SIZE; ++ndx)
 			if (!this.contains(ival[ndx], value[ndx]))
 				return false;
 
@@ -332,7 +338,7 @@ goog.scope(function() {
     glsBuiltinPrecisionTests.ContainerTraits.prototype.doPrintIVal = function(fmt, ival) {
 		/** @type{string} */ var os = '(';
 
-		for (int ndx = 0; ndx < T::SIZE; ++ndx)	{
+		for (var ndx = 0; ndx < T.SIZE; ++ndx)	{
 			if (ndx > 0)
 				os += ', ';
 			this.printIVal<Element>(fmt, ival[ndx], os);
@@ -347,9 +353,9 @@ goog.scope(function() {
      * @param{tcuInterval.Interval} ival
      */
     glsBuiltinPrecisionTests.ContainerTraits.prototype.doPrintValue	= function(fmt, value) {
-		/** @type{string} */ var os = dataTypeNameOf<T>() + '(';
+		/** @type{string} */ var os = /*dataTypeNameOf<T>() +*/ '(';
 
-		for (int ndx = 0; ndx < T::SIZE; ++ndx)
+		for (var ndx = 0; ndx < T.SIZE; ++ndx)
 		{
 			if (ndx > 0)
 				os += ', ';
@@ -369,7 +375,7 @@ goog.scope(function() {
     glsBuiltinPrecisionTests.ContainerTraits.prototype.doConvert = function(fmt, value) {
 		/** @type{Array<tcuInterval.Interval>}	*/ var ret = [];
 
-		for (int ndx = 0; ndx < T::SIZE; ++ndx)
+		for (var ndx = 0; ndx < T.SIZE; ++ndx)
 			ret[ndx] = this.convert<Element>(fmt, value[ndx]);
 
 		return ret;
@@ -383,7 +389,7 @@ goog.scope(function() {
     glsBuiltinPrecisionTests.ContainerTraits.prototype.doRound = function(fmt, value) {
     	/** @type{Array<tcuInterval.Interval>}	*/ var ret;
 
-		for (int ndx = 0; ndx < T::SIZE; ++ndx)
+		for (var ndx = 0; ndx < T.SIZE; ++ndx)
 			ret[ndx] = this.round(fmt, value[ndx]);
 
 		return ret;
@@ -466,7 +472,7 @@ goog.scope(function() {
      * @param{*} T template <typename T>
      * @param{glsBuiltinPrecisionTests.EvalContext} ctx
      */
-    glsBuiltinPrecisionTests.Expr.prototype.evaluate = function(ctx)
+    glsBuiltinPrecisionTests.Expr.prototype.evaluate = function(ctx) {
         return this.doEvaluate(ctx);
     };
 
@@ -612,19 +618,19 @@ goog.scope(function() {
      */
     glsBuiltinPrecisionTests.Func = function(Sig_) {
     	this.Sig = Sig_;
-    	this.Ret = Sig.Ret;
-    	this.Arg0 = Sig.Arg0;
-    	this.Arg1 = Sig.Arg1;
-    	this.Arg2 = Sig.Arg2;
-    	this.Arg3 = Sig.Arg3;
-    	this.IRet = Sig.IRet;
-    	this.IArg0 = Sig.IArg0;
-    	this.IArg1 = Sig.IArg1;
-    	this.IArg2 = Sig.IArg2;
-    	this.IArg3 = Sig.IArg3;
-    	this.Args = Sig.Args;
-    	this.IArgs = Sig.IArgs;
-    	this.ArgExprs = Sig.ArgExprs;
+    	this.Ret = this.Sig.Ret;
+    	this.Arg0 = this.Sig.Arg0;
+    	this.Arg1 = this.Sig.Arg1;
+    	this.Arg2 = this.Sig.Arg2;
+    	this.Arg3 = this.Sig.Arg3;
+    	this.IRet = this.Sig.IRet;
+    	this.IArg0 = this.Sig.IArg0;
+    	this.IArg1 = this.Sig.IArg1;
+    	this.IArg2 = this.Sig.IArg2;
+    	this.IArg3 = this.Sig.IArg3;
+    	this.Args = this.Sig.Args;
+    	this.IArgs = this.Sig.IArgs;
+    	this.ArgExprs = this.Sig.ArgExprs;
     };
 
     /**
@@ -644,9 +650,9 @@ goog.scope(function() {
      */
     glsBuiltinPrecisionTests.Func.prototype.apply = function(ctx, Iarg0, Iarg1 ,Iarg2 ,Iarg3){
         var arg0 = Iarg0 === undefined ? this.IArg0() : Iarg0;
-        var arg1 = Iarg0 === undefined ? this.IArg0() : Iarg0;
-        var arg2 = Iarg0 === undefined ? this.IArg0() : Iarg0;
-        var arg3 = Iarg0 === undefined ? this.IArg0() : Iarg0;
+        var arg1 = Iarg1 === undefined ? this.IArg1() : Iarg1;
+        var arg2 = Iarg2 === undefined ? this.IArg2() : Iarg2;
+        var arg3 = Iarg3 === undefined ? this.IArg3() : Iarg3;
 		return this.applyArgs(ctx, IArgs(arg0, arg1, arg2, arg3));
 	};
 
@@ -684,16 +690,16 @@ goog.scope(function() {
 		/** type{string} */ var os = getName() + '(';
 
         // TODO: fix the generics
-		if (isTypeValid<Arg0>())
+		if (isTypeValid()) //<Arg0>
 			os += args[0];
 
-		if (isTypeValid<Arg1>())
+		if (isTypeValid()) // <Arg1>
 			os += ', ' + args[1];
 
-		if (isTypeValid<Arg2>())
+		if (isTypeValid()) //<Arg2>
 			os += ', ' + args[2];
 
-		if (isTypeValid<Arg3>())
+		if (isTypeValid()) //<Arg3>
 			os += ', ' + args[3];
 
 		os += ')';
@@ -719,6 +725,7 @@ goog.scope(function() {
      *
      */
     glsBuiltinPrecisionTests.PrimitiveFunc = function(Sig) {
+        glsBuiltinPrecisionTests.Func.call(this, Sig);
         this.Ret = Sig.Ret;
         this.ArgExprs = Sig.ArgExprs;
     };
@@ -750,16 +757,16 @@ goog.scope(function() {
      * @param{glsBuiltinPrecisionTests.IArgs} iargs
      * @return{tcuInterval.Interval}
      */
-    glsBuiltinPrecisionTests.FloatFunc1.prototype.applyMonotone	(ctx, iarg0) {
+    glsBuiltinPrecisionTests.FloatFunc1.prototype.applyMonotone	= function(ctx, iarg0) {
 		/** @type{tcuInterval.Interval} */ var ret = new tcuInterval.Interval();
 
         // TODO: port macros
-		TCU_INTERVAL_APPLY_MONOTONE1(ret, arg0, iarg0, val,
-									 TCU_SET_INTERVAL(val, point,
-													  point = this->applyPoint(ctx, arg0)));
+		// TCU_INTERVAL_APPLY_MONOTONE1(ret, arg0, iarg0, val,
+		// 							 TCU_SET_INTERVAL(val, point,
+		// 											  point = this->applyPoint(ctx, arg0)));
 
 		ret.operatorOrAssignBinary(this.innerExtrema(ctx, iarg0));
-		ret.operatorAddAssignBinary((this.getCodomain().operatorOrBinary(NaN));
+		ret.operatorAddAssignBinary((this.getCodomain().operatorOrBinary(NaN)));
 
 		return ctx.format.convert(ret);
 	};
@@ -797,7 +804,7 @@ goog.scope(function() {
      * @return{tcuInterval.Interval}
      */
     glsBuiltinPrecisionTests.FloatFunc1.prototype.getCodomain = function() {
-		return tcuInterval.Interval.unbounded(true);
+		return tcuInterval.unbounded(true);
 	};
 
     /**
@@ -848,7 +855,9 @@ goog.scope(function() {
      * @extends{glsBuiltinPrecisionTests.PrimitiveFunc}
      */
     glsBuiltinPrecisionTests.FloatFunc2 = function() {
-        this.Sig = new glsBuiltinPrecisionTests.Signature(float,float,float);
+        /** @type{glsBuiltinPrecisionTests.Signature} */ var Sig = new glsBuiltinPrecisionTests.Signature(new Number(), new Number(), new Number());
+        glsBuiltinPrecisionTests.PrimitiveFunc.call(this, Sig);
+
     };
 
     /**
@@ -867,11 +876,11 @@ goog.scope(function() {
      * @return{tcuInterval.Interval}
      */
     glsBuiltinPrecisionTests.FloatFunc2.prototype.applyMonotone	= function(ctx, xi, yi) {
-		/** @type{tcuInterval.Interval} */ var Interval reti = new tcuInterval.Interval();
+		/** @type{tcuInterval.Interval} */ var reti = new tcuInterval.Interval();
 
-		TCU_INTERVAL_APPLY_MONOTONE2(reti, x, xi, y, yi, ret,
-									 TCU_SET_INTERVAL(ret, point,
-													  point = this.applyPoint(ctx, x, y)));
+		// TCU_INTERVAL_APPLY_MONOTONE2(reti, x, xi, y, yi, ret,
+		// 							 TCU_SET_INTERVAL(ret, point,
+		// 											  point = this.applyPoint(ctx, x, y)));
 		reti.operatorOrAssignBinary(this.innerExtrema(ctx, xi, yi));
 		reti.operatorAndAssignBinary(this.getCodomain() | NaN);
 
@@ -898,7 +907,7 @@ goog.scope(function() {
 		/** @type{number} */ var exact	= this.applyExact(x, y);
 		/** @type{number} */ var prec	= this.precision(ctx, exact, x, y);
 
-		return new tcuInterval.Interval(-prec, prec).operatorSum(exact));
+		return new tcuInterval.Interval(-prec, prec).operatorSum(exact);
 	}
 
     /**
@@ -907,14 +916,14 @@ goog.scope(function() {
      * @return{number}
      */
     glsBuiltinPrecisionTests.FloatFunc2.prototype.applyExact = function(x, y) {
-		TCU_THROW(InternalError, 'Cannot apply');
+		// TCU_THROW(InternalError, 'Cannot apply');
 	};
 
     /**
      * @return{tcuInterval.Interval}
      */
     glsBuiltinPrecisionTests.FloatFunc2.prototype.getCodomain = function() {
-		return tcuInterval.Interval.unbounded(true);
+		return tcuInterval.unbounded(true);
 	};
 
     /**
@@ -966,7 +975,9 @@ goog.scope(function() {
      * @extends{glsBuiltinPrecisionTests.FloatFunc2}
      * @return{string}
      */
-    glsBuiltinPrecisionTests.InfixOperator = function(){};
+    glsBuiltinPrecisionTests.InfixOperator = function(){
+        glsBuiltinPrecisionTests.FloatFunc2.call(this);
+    };
 
     /**
      * @constructor
@@ -1090,7 +1101,9 @@ goog.scope(function() {
      * @constructor{glsBuiltinPrecisionTests.EvalContext}
      * @extends{glsBuiltinPrecisionTests.InfixOperator}
      */
-    glsBuiltinPrecisionTests.Add = function() {};
+    glsBuiltinPrecisionTests.Add = function() {
+        glsBuiltinPrecisionTests.InfixOperator.call(this);
+    };
 
 
     /**
@@ -1147,7 +1160,7 @@ goog.scope(function() {
      */
     glsBuiltinPrecisionTests.PrecisionCase = function(name, extension) {
         tcuTestCase.DeqpTest.call(this, name, extension);
-        /** @type{string} */ var this.m_extension = extension;
+        /** @type{string} */ this.m_extension = extension;
     };
 
     glsBuiltinPrecisionTests.PrecisionCase.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
@@ -1187,7 +1200,7 @@ goog.scope(function() {
         glsBuiltinPrecisionTests.FuncCaseBase.call(this, context, name, func.getRequiredExtension());
     };
 
-    glsBuiltinPrecisionTests.FuncCase.prototype.iterate = function
+    glsBuiltinPrecisionTests.FuncCase.prototype.iterate = function(){};
 
     glsBuiltinPrecisionTests.FuncCase.prototype = Object.create(glsBuiltinPrecisionTests.FuncCaseBase.prototype);
     glsBuiltinPrecisionTests.FuncCase.prototype.constructor = glsBuiltinPrecisionTests.FuncCase;
@@ -1209,7 +1222,7 @@ goog.scope(function() {
      */
     glsBuiltinPrecisionTests.BuiltinFuncs = function() {
         /** @type{Array<glsBuiltinPrecisionTests.CaseFactory>} */ this.m_factories = [];
-    }:
+    };
 
     /**
      * @return{Array<glsBuiltinPrecisionTests.CaseFactory>}
@@ -1236,7 +1249,7 @@ goog.scope(function() {
      * @param{glsBuiltinPrecisionTests.Func} func
      * @param{glsBuiltinPrecisionTests.PrecisionCase}
      */
-    glsBuiltinPrecisionTests.createFuncCase (context, name, Sig_, func) {
+    glsBuiltinPrecisionTests.createFuncCase = function(context, name, Sig_, func) {
     	switch (func.getOutParamIndex()) {
     		case -1:
     			return new glsBuiltinPrecisionTests.FuncCase(context, name, func);
@@ -1287,34 +1300,34 @@ goog.scope(function() {
     /**
      * @return{string}
      */
-    glsBuiltinPrecisionTests.GenFunc.prototype.getName() {
+    glsBuiltinPrecisionTests.GenFunc.prototype.getName = function() {
        return this.m_func.getName();
     };
 
     /**
      * @return{number}
      */
-    glsBuiltinPrecisionTests.GenFunc.prototype.getOutParamIndex() {
+    glsBuiltinPrecisionTests.GenFunc.prototype.getOutParamIndex = function() {
        return this.m_func.getOutParamIndex();
     };
 
     /**
      * @return{string}
      */
-    glsBuiltinPrecisionTests.GenFunc.prototype.getRequiredExtension() {
+    glsBuiltinPrecisionTests.GenFunc.prototype.getRequiredExtension = function() {
        return this.m_func.getRequiredExtension();
     };
 
-    public:
-    	typedef typename GenFunc::IArgs		IArgs;
-    	typedef typename GenFunc::IRet		IRet;
-
-    			GenFunc					(const Func<Sig_>&	scalarFunc) : m_func (scalarFunc) {}
+    // public:
+    // 	typedef typename GenFunc::IArgs		IArgs;
+    // 	typedef typename GenFunc::IRet		IRet;
+    //
+    // 			GenFunc					(const Func<Sig_>&	scalarFunc) : m_func (scalarFunc) {}
 
     /**
      * @param{glsBuiltinPrecisionTests.BaseArgExprs} args
      */
-    glsBuiltinPrecisionTests.GenFunc.prototype.doPrint(/*ostream& os,*/ args) {
+    glsBuiltinPrecisionTests.GenFunc.prototype.doPrint = function(/*ostream& os,*/ args) {
        return this.m_func.print(/*os,*/ args);
     };
 
@@ -1326,7 +1339,7 @@ goog.scope(function() {
     glsBuiltinPrecisionTests.GenFunc.prototype.doApply = function(/*ostream& os,*/ args) {
         /** @type{Array<*>} */ var ret = [];
 
-        for (int ndx = 0; ndx < Size; ++ndx) {
+        for (var ndx = 0; ndx < Size; ++ndx) {
             ret[ndx] = this.m_func.apply(this.ctx, iargs.a[ndx], iargs.b[ndx], iargs.c[ndx], iargs.d[ndx]);
         }
 
@@ -1338,10 +1351,10 @@ goog.scope(function() {
      * @param{glsBuiltinPrecisionTests.IArgs} iargs
      * @return{*}
      */
-    glsBuiltinPrecisionTests.GenFunc.prototype.doGetUsedFuncs = function(FuncSet& dst) {
-    		this.m_func.getUsedFuncs(dst);
-    	}
-    	const Func<Sig_>&	m_func;
+    glsBuiltinPrecisionTests.GenFunc.prototype.doGetUsedFuncs = function(dst) {
+    	this.m_func.getUsedFuncs(dst);
+
+    	// const Func<Sig_>&	m_func;
     };
 
 
@@ -1354,8 +1367,8 @@ goog.scope(function() {
      * @param{number} size
      */
      glsBuiltinPrecisionTests.VectorizedFunc = function(Sig_, size) {
-public:
-	VectorizedFunc	(void) : GenFunc<typename F::Sig, Size>(instance<F>()) {}
+// public:
+// 	VectorizedFunc	(void) : GenFunc<typename F::Sig, Size>(instance<F>()) {}
 };
 
 
@@ -1492,19 +1505,19 @@ public:
      */
     glsBuiltinPrecisionTests.addBuiltinPrecisionTests = function(cases, shaderTypes, dstGroup) {
 	    /** @type{glsBuiltinPrecisionTests.FloatFormat} */ var highp	= new glsBuiltinPrecisionTests.FloatFormat(-126, 127, 23, true,
-												 tcu::MAYBE,	// subnormals
-												 tcu::YES,		// infinities
-												 tcu::MAYBE);	// NaN
+												 tcuFloatFormat.YesNoMaybe.MAYBE,	// subnormals
+												 tcuFloatFormat.YesNoMaybe.YES,		// infinities
+												 tcuFloatFormat.YesNoMaybe.MAYBE);	// NaN
 	    // \todo [2014-04-01 lauri] Check these once Khronos bug 11840 is resolved.
 	    /** @type{glsBuiltinPrecisionTests.FloatFormat} */ var mediump = new glsBuiltinPrecisionTests.FloatFormat(-13, 13, 9, false);
 	    // A fixed-point format is just a floating point format with a fixed
 	    // exponent and support for subnormals.
-	    /** @type{glsBuiltinPrecisionTests.FloatFormat} */ var lowp	= new glsBuiltinPrecisionTests.FloatFormat(0, 0, 7, false, tcu::YES);
-	    /** @type{glsBuiltinPrecisionTests.PrecisionTestContext} */ var ctx	= glsBuiltinPrecisionTests.PrecisionTestContext(highp, mediump, lowp,
+	    /** @type{glsBuiltinPrecisionTests.FloatFormat} */ var lowp	= new glsBuiltinPrecisionTests.FloatFormat(0, 0, 7, false, tcuFloatFormat.YesNoMaybe.YES);
+	    /** @type{glsBuiltinPrecisionTests.PrecisionTestContext} */ var ctx	= new glsBuiltinPrecisionTests.PrecisionTestContext(highp, mediump, lowp,
 												 shaderTypes, 16384);
 
-	    for (size_t ndx = 0; ndx < cases.getFactories().size(); ++ndx)
-		    dstGroup.addChild(createFuncGroup(ctx, *cases.getFactories()[ndx]));
+	    for (var ndx = 0; ndx < cases.getFactories().size(); ++ndx)
+		    dstGroup.addChild(createFuncGroup(ctx, cases.getFactories()[ndx]));
     };
 
 
@@ -1520,8 +1533,9 @@ public:
     	return s_instance;
     };
 
-    template <typename F>
+
     /**
+     * template <typename F>
      * @param {F} typename
      * @param {glsBuiltinPrecisionTests.BuiltinFuncs} funcs
      * @param {string=} name
@@ -1530,7 +1544,7 @@ public:
     	if (name === undefined)
     		name = glsBuiltinPrecisionTests.instance(F).getName();
 
-    	funcs.addFactory(SharedPtr<const CaseFactory>(new GenFuncCaseFactory(F.Sig, makeVectorizedFuncs<F>(), name)));
+    	// funcs.addFactory(SharedPtr<const CaseFactory>(new GenFuncCaseFactory(F.Sig, makeVectorizedFuncs<F>(), name)));
     }
 
     /**

@@ -54,8 +54,8 @@
      * @return{number}
      */
     tcuFloatFormat.computeMaxValue = function(maxExp, fractionBits) {
-    	return (deLdExp(1.0, maxExp) +
-    			deLdExp(double((1ull << fractionBits) - 1), maxExp - fractionBits));
+    	return 0;
+        // (deLdExp(1.0, maxExp) +   			deLdExp(double((1ull << fractionBits) - 1), maxExp - fractionBits));
     };
 
      /**
@@ -141,10 +141,10 @@
       */
      tcuFloatFormat.FloatFormat.prototype.ulp = function(x, count) {
  	    /** @type{number} */ var exp = 0;
- 	    /** @type{number} */ var frac = deFractExp(deAbs(x), &exp);
+ 	    /** @type{number} */ var frac = deFractExp(deAbs(x), exp);
 
- 	    if (deIsNaN(frac))
- 		    return TCU_NAN;
+ 	    if (isNaN(frac))
+ 		    return NaN;
  	    else if (deIsInf(frac))
  		    return deLdExp(1.0, m_maxExp - m_fractionBits);
  	    else if (frac == 1.0) {
@@ -158,8 +158,8 @@
      	exp = Math.max(exp, m_minExp);
 
  	    {
-     		const double		oneULP	= deLdExp(1.0, exp - m_fractionBits);
-     		ScopedRoundingMode	ctx		(DE_ROUNDINGMODE_TO_POSITIVE_INF);
+     		/** @type{number} */ var oneULP	= deLdExp(1.0, exp - m_fractionBits);
+     	// 	ScopedRoundingMode	ctx		(DE_ROUNDINGMODE_TO_POSITIVE_INF);
 
      		return oneULP * count;
  	   }
@@ -205,7 +205,7 @@
     	/** @type{number} */ var	rSign		= deSign(d);
     	/** @type{number} */ var	rExp		= 0;
 
-    	// DE_ASSERT(!deIsNaN(d));
+    	// DE_ASSERT(!isNaN(d));
 
     	deFractExp(d, rExp);
     	if (rExp < m_minExp)
@@ -242,23 +242,25 @@
 
     	if (x.hasNaN())	{
     		// If NaN might be supported, NaN is a legal return value
-    		if (m_hasNaN != NO)
-    			ret |= TCU_NAN;
+    		if (m_hasNaN != tcuFloatFormat.YesNoMaybe.NO)
+    			ret.operatorOrAssignBinary(NaN);
 
     		// If NaN might not be supported, any (non-NaN) value is legal,
     		// _subject_ to clamping. Hence we modify tmp, not ret.
-    		if (m_hasNaN != YES)
-    			tmp = Interval::unbounded();
+    		if (m_hasNaN != tcuFloatFormat.YesNoMaybe.YES)
+    			tmp = tcuInterval.unbounded();
     	}
 
     	// Round both bounds _inwards_ to closest representable values.
     	if (!tmp.empty())
-    		ret |= clampValue(round(tmp.lo(), true)) | clampValue(round(tmp.hi(), false));
+    		ret.operatorOrAssignBinary(
+                this.clampValue(this.round(tmp.lo(), true)).operatorOrBinary(
+                    this.clampValue(this.round(tmp.hi(), false))));
 
     	// If this format's precision is not exact, the (possibly out-of-bounds)
     	// original value is also a possible result.
     	if (!m_exactPrecision)
-    		ret |= x;
+    		ret.operatorOrAssignBinary(x);
 
     	return ret;
     };
@@ -276,7 +278,7 @@
     		return '0.0';
 
     	/** @type{number} */ var	exp			= 0;
-    	/** @type{number} */ var	frac		= deFractExp(deAbs(x), &exp);
+    	/** @type{number} */ var	frac		= deFractExp(deAbs(x), exp);
     	/** @type{number} */ var	shift		= exponentShift(exp);
     	/** @type{number} */ var	bits		= deUint64(deLdExp(frac, shift));
     	/** @type{number} */ var	whole		= bits >> m_fractionBits;
@@ -286,10 +288,11 @@
     	/** @type{number} */ var	aligned		= fraction << (numDigits * 4 - m_fractionBits);
     	/** @type{string} */ var	oss = '';
 
-    	oss + (x < 0 ? '-' : '')
-    		+ '0x' + whole + '.'
-    		+ std::hex + std::setw(numDigits) + std::setfill('0') + aligned
-    		+ 'p' + std::dec + std::setw(0) + exponent;
+        // TODO
+    	// oss + (x < 0 ? '-' : '')
+    	// 	+ '0x' + whole + '.'
+    	// 	+ std::hex + std::setw(numDigits) + std::setfill('0') + aligned
+    	// 	+ 'p' + std::dec + std::setw(0) + exponent;
 
     	return oss;
     };
@@ -304,12 +307,12 @@
 
     	else if (interval.lo() == interval.hi())
     		return ((interval.hasNaN() ? '{ NaN, ' : '{ ') +
-    				floatToHex(interval.lo()) + ' }');
-    	else if (interval == Interval::unbounded(true))
+    				this.floatToHex(interval.lo()) + ' }');
+    	else if (interval == tcuInterval.unbounded(true))
     		return '<any>';
 
     	return ((interval.hasNaN() ? '{ NaN } | ' : '') +
-    			'[' + floatToHex(interval.lo()) + ', ' + floatToHex(interval.hi()) + ']');
+    			'[' + this.floatToHex(interval.lo()) + ', ' + this.floatToHex(interval.hi()) + ']');
     };
 
 	// static FloatFormat	nativeFloat		(void);
@@ -319,7 +322,7 @@
      * @param{*} t
      * @return{tcuFloatFormat.FloatFormat}
      */
-    tcuFloatFormat.FloatFormat.prototype.nativeFormat (/* template */t) {
+    tcuFloatFormat.FloatFormat.prototype.nativeFormat = function(/* template */t) {
     	// typedef std::numeric_limits<T>
         /** @type{?} */ var Limits;
 
