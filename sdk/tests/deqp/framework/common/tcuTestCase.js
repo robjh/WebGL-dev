@@ -348,6 +348,13 @@ goog.scope(function() {
                 if (!(err instanceof TestFailedException)) {
                     //Stop execution of current test.
                     tcuTestCase.lastResult = tcuTestCase.IterateResult.STOP;
+                    try {
+                        // Cleanup
+                        if (tcuTestCase.lastResult == tcuTestCase.IterateResult.STOP)
+                            state.currentTest.deinit();
+                    } catch (cerr) {
+                        bufferedLogToConsole('Error while cleaning up test: ' + cerr);
+                    }
                     var msg = err;
                     if (err.message)
                         msg = err.message;

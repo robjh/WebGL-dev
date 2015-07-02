@@ -520,15 +520,15 @@ goog.scope(function() {
 
             var result = this.verifyNoTarget(buffer, reference, offset, numBytes);
 
-            if(wasReadBufferCreated)
+            if (wasReadBufferCreated)
                 gl.deleteBuffer(buffer);
 
             return result;
         } catch (err) {
-            if(wasReadBufferCreated)
+            if (wasReadBufferCreated)
                 gl.deleteBuffer(buffer);
             throw err;
-        };
+        }
     };
 
     // BufferVerifier
