@@ -24,6 +24,7 @@ goog.require('framework.common.tcuImageCompare');
 goog.require('framework.common.tcuTestCase');
 goog.require('framework.delibs.debase.deMath');
 goog.require('framework.opengl.gluShaderUtil');
+goog.require('framework.opengl.gluTexture');
 goog.require('modules.shared.glsShaderRenderCase');
 
 goog.scope(function() {
@@ -32,7 +33,9 @@ goog.scope(function() {
     var deMath = framework.delibs.debase.deMath;
     var glsShaderRenderCase = modules.shared.glsShaderRenderCase;
     var gluShaderUtil = framework.opengl.gluShaderUtil;
+    var gluTexture = framework.opengl.gluTexture;
     var tcuTestCase = framework.common.tcuTestCase;
+
     /**
      * @enum {number}
      */
@@ -1086,7 +1089,13 @@ goog.scope(function() {
             gluShaderUtil.DataType.FLOAT_VEC3,
             gluShaderUtil.DataType.FLOAT_VEC4
         ];
-
+        /** @type {string} */ var name;
+        /** @type {string} */ var desc;
+        /** @type {string} */ var shaderTypeName;
+        /** @type {boolean} */ var isVertexCase;
+        /** @type {gluShaderUtil.ShaderType} */ var shaderType;
+        /** @type {string} */ var writeAccessName;
+        /** @type {string} */ var readAccessName;
         // Varying array access cases.
         /** @type {tcuTestCase.DeqpTest} */ var varyingGroup = tcuTestCase.newTest('varying_array', 'Varying array access tests.');
         testGroup.addChild(varyingGroup);
@@ -1099,8 +1108,8 @@ goog.scope(function() {
                     var fragAccess = es3fShaderIndexingTests.IndexAccessType[fragAccessStr];
                     /** @type {string} */ var vertAccessName = es3fShaderIndexingTests.getIndexAccessTypeName(vertAccess);
                     /** @type {string} */ var fragAccessName = es3fShaderIndexingTests.getIndexAccessTypeName(fragAccess);
-                    /** @type {string} */ var name = gluShaderUtil.getDataTypeName(varType) + '_' + vertAccessName + '_write_' + fragAccessName + '_read';
-                    /** @type {string} */ var desc = 'Varying array with ' + vertAccessName + ' write in vertex shader and ' + fragAccessName + ' read in fragment shader.';
+                    name = gluShaderUtil.getDataTypeName(varType) + '_' + vertAccessName + '_write_' + fragAccessName + '_read';
+                    desc = 'Varying array with ' + vertAccessName + ' write in vertex shader and ' + fragAccessName + ' read in fragment shader.';
                     varyingGroup.addChild(es3fShaderIndexingTests.createVaryingArrayCase(name, desc, varType, vertAccess, fragAccess));
                 }
             }
@@ -1114,13 +1123,13 @@ goog.scope(function() {
             varType = s_floatAndVecTypes[typeNdx];
             for (var readAccessStr in es3fShaderIndexingTests.IndexAccessType) {
                 var readAccess = es3fShaderIndexingTests.IndexAccessType[readAccessStr];
-                /** @type {string} */ var readAccessName = es3fShaderIndexingTests.getIndexAccessTypeName(readAccess);
+                readAccessName = es3fShaderIndexingTests.getIndexAccessTypeName(readAccess);
                 for (var shaderTypeNdx = 0; shaderTypeNdx < s_shaderTypes.length; shaderTypeNdx++) {
-                    /** @type {gluShaderUtil.ShaderType} */ var shaderType = s_shaderTypes[shaderTypeNdx];
-                    /** @type {string} */ var shaderTypeName = gluShaderUtil.getShaderTypeName(shaderType);
-                    /** @type {string} */ var name = gluShaderUtil.getDataTypeName(varType) + "_" + readAccessName + "_read_" + shaderTypeName;
-                    /** @type {string} */ var desc = "Uniform array with " + readAccessName + " read in " + shaderTypeName + " shader.";
-                    /** @type {boolean} */ var isVertexCase = shaderType === gluShaderUtil.ShaderType.VERTEX;
+                    shaderType = s_shaderTypes[shaderTypeNdx];
+                    shaderTypeName = gluShaderUtil.getShaderTypeName(shaderType);
+                    name = gluShaderUtil.getDataTypeName(varType) + "_" + readAccessName + "_read_" + shaderTypeName;
+                    desc = "Uniform array with " + readAccessName + " read in " + shaderTypeName + " shader.";
+                    isVertexCase = shaderType === gluShaderUtil.ShaderType.VERTEX;
                     uniformGroup.addChild(es3fShaderIndexingTests.createUniformArrayCase(name, desc, isVertexCase, varType, readAccess));
                 }
             }
@@ -1132,18 +1141,18 @@ goog.scope(function() {
 
         for (var typeNdx = 0; typeNdx < s_floatAndVecTypes.length; typeNdx++) {
             varType = s_floatAndVecTypes[typeNdx];
-            for (var writeAccess = 0; writeAccess < es3fShaderIndexingTests.IndexAccessType.length; writeAccess++) {
-                for (var readAccess = 0; readAccess < es3fShaderIndexingTests.IndexAccessType.length; readAccess++) {
-                    /** @type {string} */ var writeAccessName = getIndexAccessTypeName(writeAccess);
-                    /** @type {string} */ var readAccessName = getIndexAccessTypeName(readAccess);
+            for (var writeAccess in es3fShaderIndexingTests.IndexAccessType) {
+                for (var readAccess in es3fShaderIndexingTests.IndexAccessType) {
+                    writeAccessName = es3fShaderIndexingTests.getIndexAccessTypeName(es3fShaderIndexingTests.IndexAccessType[writeAccess]);
+                    readAccessName = es3fShaderIndexingTests.getIndexAccessTypeName(es3fShaderIndexingTests.IndexAccessType[readAccess]);
 
                     for (var shaderTypeNdx = 0; shaderTypeNdx < s_shaderTypes.length; shaderTypeNdx++) {
-                        /** @type {gluShaderUtil.ShaderType} */ var shaderType = s_shaderTypes[shaderTypeNdx];
-                        /** @type {string} */ var shaderTypeName = gluShaderUtil.getShaderTypeName(shaderType);
-                        /** @type {string} */ var name = gluShaderUtil.getDataTypeName(varType) + "_" + writeAccessName + "_write_" + readAccessName + "_read_" + shaderTypeName;
-                        /** @type {string} */ var desc = "Temporary array with " + writeAccessName + " write and " + readAccessName + " read in " + shaderTypeName + " shader.";
-                        /** @type {boolean} */ var isVertexCase = (shaderType === gluShaderUtil.ShaderType.VERTEX);
-                        tmpGroup.addChild(es3fShaderIndexingTests.createTmpArrayCase(name, desc, isVertexCase, varType, writeAccess, readAccess));
+                        shaderType = s_shaderTypes[shaderTypeNdx];
+                        shaderTypeName = gluShaderUtil.getShaderTypeName(shaderType);
+                        name = gluShaderUtil.getDataTypeName(varType) + "_" + writeAccessName + "_write_" + readAccessName + "_read_" + shaderTypeName;
+                        desc = "Temporary array with " + writeAccessName + " write and " + readAccessName + " read in " + shaderTypeName + " shader.";
+                        isVertexCase = (shaderType === gluShaderUtil.ShaderType.VERTEX);
+                        tmpGroup.addChild(es3fShaderIndexingTests.createTmpArrayCase(name, desc, isVertexCase, varType, es3fShaderIndexingTests.IndexAccessType[writeAccess], es3fShaderIndexingTests.IndexAccessType[readAccess]));
                     }
                 }
             }
@@ -1161,18 +1170,18 @@ goog.scope(function() {
 
         for (var typeNdx = 0; typeNdx < s_vectorTypes.length; typeNdx++) {
             varType = s_vectorTypes[typeNdx];
-            for (var writeAccess = 0; writeAccess < es3fShaderIndexingTests.VectorAccessType.length; writeAccess++) {
-                for (var readAccess = 0; readAccess < es3fShaderIndexingTests.VectorAccessType.length; readAccess++) {
-                    /** @type {string} */ var writeAccessName = es3fShaderIndexingTests.getVectorAccessTypeName(writeAccess);
-                    /** @type {string} */ var readAccessName = es3fShaderIndexingTests.getVectorAccessTypeName(readAccess);
+            for (var writeAccess in es3fShaderIndexingTests.VectorAccessType) {
+                for (var readAccess in es3fShaderIndexingTests.VectorAccessType) {
+                    writeAccessName = es3fShaderIndexingTests.getVectorAccessTypeName(es3fShaderIndexingTests.VectorAccessType[writeAccess]);
+                    readAccessName = es3fShaderIndexingTests.getVectorAccessTypeName(es3fShaderIndexingTests.VectorAccessType[readAccess]);
 
                     for (var shaderTypeNdx = 0; shaderTypeNdx < s_shaderTypes.length; shaderTypeNdx++) {
-                        /** @type {gluShaderUtil.ShaderType} */ var shaderType = s_shaderTypes[shaderTypeNdx];
-                        /** @type {string} */ var shaderTypeName = gluShaderUtil.getShaderTypeName(shaderType);
-                        /** @type {string} */ var name = gluShaderUtil.getDataTypeName(varType) + "_" + writeAccessName + "_write_" + readAccessName + "_read_" + shaderTypeName;
-                        /** @type {string} */ var desc = "Vector subscript access with " + writeAccessName + " write and " + readAccessName + " read in " + shaderTypeName + " shader.";
-                        /** @type {boolean} */ var isVertexCase = shaderType === gluShaderUtil.ShaderType.VERTEX;
-                        vecGroup.addChild(es3fShaderIndexingTests.createVectorSubscriptCase(name, desc, isVertexCase, varType, writeAccess, readAccess));
+                        shaderType = s_shaderTypes[shaderTypeNdx];
+                        shaderTypeName = gluShaderUtil.getShaderTypeName(shaderType);
+                        name = gluShaderUtil.getDataTypeName(varType) + "_" + writeAccessName + "_write_" + readAccessName + "_read_" + shaderTypeName;
+                        desc = "Vector subscript access with " + writeAccessName + " write and " + readAccessName + " read in " + shaderTypeName + " shader.";
+                        isVertexCase = shaderType === gluShaderUtil.ShaderType.VERTEX;
+                        vecGroup.addChild(es3fShaderIndexingTests.createVectorSubscriptCase(name, desc, isVertexCase, varType, es3fShaderIndexingTests.VectorAccessType[writeAccess], es3fShaderIndexingTests.VectorAccessType[readAccess]));
                     }
                 }
             }
@@ -1196,18 +1205,18 @@ goog.scope(function() {
 
         for (var typeNdx = 0; typeNdx < s_matrixTypes.length; typeNdx++) {
             varType = s_matrixTypes[typeNdx];
-            for (var writeAccess = 0; writeAccess < es3fShaderIndexingTests.IndexAccessType.length; writeAccess++) {
-                for (var readAccess = 0; readAccess < es3fShaderIndexingTests.IndexAccessType.length; readAccess++) {
-                    /** @type {string} */ var writeAccessName = es3fShaderIndexingTests.getIndexAccessTypeName(writeAccess);
-                    /** @type {string} */ var readAccessName = es3fShaderIndexingTests.getIndexAccessTypeName(readAccess);
+            for (var writeAccess in es3fShaderIndexingTests.IndexAccessType) {
+                for (var readAccess in es3fShaderIndexingTests.IndexAccessType) {
+                    writeAccessName = es3fShaderIndexingTests.getIndexAccessTypeName(es3fShaderIndexingTests.IndexAccessType[writeAccess]);
+                    readAccessName = es3fShaderIndexingTests.getIndexAccessTypeName(es3fShaderIndexingTests.IndexAccessType[readAccess]);
 
                     for (var shaderTypeNdx = 0; shaderTypeNdx < s_shaderTypes.length; shaderTypeNdx++) {
-                        /** @type {gluShaderUtil.ShaderType} */ var shaderType = s_shaderTypes[shaderTypeNdx];
-                        /** @type {string} */ var shaderTypeName = gluShaderUtil.getShaderTypeName(shaderType);
-                        /** @type {string} */ var name = gluShaderUtil.getDataTypeName(varType) + "_" + writeAccessName + "_write_" + readAccessName + "_read_" + shaderTypeName;
-                        /** @type {string} */ var desc = "Vector subscript access with " + writeAccessName + " write and " + readAccessName + " read in " + shaderTypeName + " shader.";
-                        /** @type {boolean} */ var isVertexCase = shaderType === gluShaderUtil.ShaderType.VERTEX;
-                        matGroup.addChild(es3fShaderIndexingTests.createMatrixSubscriptCase(name.c_str(), desc.c_str(), isVertexCase, varType, writeAccess, readAccess));
+                        shaderType = s_shaderTypes[shaderTypeNdx];
+                        shaderTypeName = gluShaderUtil.getShaderTypeName(shaderType);
+                        name = gluShaderUtil.getDataTypeName(varType) + "_" + writeAccessName + "_write_" + readAccessName + "_read_" + shaderTypeName;
+                        desc = "Vector subscript access with " + writeAccessName + " write and " + readAccessName + " read in " + shaderTypeName + " shader.";
+                        isVertexCase = shaderType === gluShaderUtil.ShaderType.VERTEX;
+                        matGroup.addChild(es3fShaderIndexingTests.createMatrixSubscriptCase(name, desc, isVertexCase, varType, es3fShaderIndexingTests.IndexAccessType[writeAccess], es3fShaderIndexingTests.IndexAccessType[readAccess]));
                     }
                 }
             }
@@ -1221,20 +1230,14 @@ goog.scope(function() {
     es3fShaderIndexingTests.run = function(context) {
         gl = context;
         //Set up Test Root parameters
-        var testName = 'shader_indexing';
-        var testDescription = 'Shader Indexing Tests';
         var state = tcuTestCase.runner;
-
-        state.testName = testName;
-        state.setRoot(tcuTestCase.newTest(testName, testDescription, null));
+        state.setRoot(new es3fShaderIndexingTests.ShaderIndexingTests());
 
         //Set up name and description of this test series.
-        setCurrentTestName(testName);
-        description(testDescription);
+        setCurrentTestName(state.testCases.fullName());
+        description(state.testCases.getDescription());
 
         try {
-            //Create test cases
-            es3fShaderIndexingTests.init();
             //Run test cases
             tcuTestCase.runTestCases();
         }
