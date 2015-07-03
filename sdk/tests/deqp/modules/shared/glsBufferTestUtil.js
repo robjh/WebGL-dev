@@ -691,9 +691,7 @@ goog.scope(function() {
      * @return {Uint16Array}
      */
     glsBufferTestUtil.computeIndices = function(gridSizeX, gridSizeY) {
-        var newbuffer = new ArrayBuffer(3 * 2 * gridSizeX * gridSizeY);
-
-        var indices = new Uint16Array(newbuffer);
+        var indices = new Uint16Array(3 * 2 * gridSizeX * gridSizeY);
 
         for (var quadNdx = 0; quadNdx < gridSizeX * gridSizeY; quadNdx++) {
             /** @type {number} */ var v00 = quadNdx * 4 + 0;
