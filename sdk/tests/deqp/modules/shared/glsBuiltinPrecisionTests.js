@@ -72,7 +72,7 @@ goog.scope(function() {
         this.isVoid = true;
 	};
 
-    Number.prototype.isFloat(value) {
+    glsBuiltinPrecisionTests.isFloat = function(value){
         if (value !== undefined && Math.abs(value % 1) < 0) {
             return true;
         }
@@ -94,11 +94,11 @@ goog.scope(function() {
         this.Arg2 = P2 === undefined ? new glsBuiltinPrecisionTests.Void() : P2;
         this.Arg3 = P3 === undefined ? new glsBuiltinPrecisionTests.Void() : P3;
 
-        this.IRet = glsBuiltinPrecisionTests.Traits(this.Ret);
-        this.IArg0 = glsBuiltinPrecisionTests.Traits(this.Arg0);
-        this.IArg1 = glsBuiltinPrecisionTests.Traits(this.Arg1);
-        this.IArg2 = glsBuiltinPrecisionTests.Traits(this.Arg2);
-        this.IArg3 = glsBuiltinPrecisionTests.Traits(this.Arg3);
+        this.IRet = new glsBuiltinPrecisionTests.Traits(this.Ret).traitsFactory();
+        this.IArg0 = new glsBuiltinPrecisionTests.Traits(this.Arg0).traitsFactory();
+        this.IArg1 = new glsBuiltinPrecisionTests.Traits(this.Arg1).traitsFactory();
+        this.IArg2 = new glsBuiltinPrecisionTests.Traits(this.Arg2).traitsFactory();
+        this.IArg3 = new glsBuiltinPrecisionTests.Traits(this.Arg3).traitsFactory();
 
         this.Args = new glsBuiltinPrecisionTests.Tuple4(this.Arg0, this.Arg1, this.Arg2, this.Arg3);
         this.IArgs = new glsBuiltinPrecisionTests.Tuple4(this.IArg0, this.IArg1, this.IArg2, this.IArg3);
@@ -140,10 +140,34 @@ goog.scope(function() {
     };
 
     /**
+     * @param{*} T
+     */
+    glsBuiltinPrecisionTests.Traits = function(T) {
+        this.typename = T;
+    };
+
+    /**
+     * @param{*} T
+     */
+    glsBuiltinPrecisionTests.Traits.prototype.traitsFactory = function() {
+        if (Array.isArray(this.typename)) {
+            return new glsBuiltinPrecisionTests.ContainerTraits();
+        } else if (typeof this.typename === 'boolean') {
+            return new glsBuiltinPrecisionTests.TraitsBool();
+        } else if (glsBuiltinPrecisionTests.isFloat(this.typename)) {
+            return new glsBuiltinPrecisionTests.TraitsFloat();
+        } else if (typeof this.typename === 'number') {
+            return new glsBuiltinPrecisionTests.TraitsInt();
+        }
+    };
+
+    /**
      * @constructor
+     * @extends{glsBuiltinPrecisionTests.Traits}
      * @param{*} typename
      */
     glsBuiltinPrecisionTests.ScalarTraits = function(t) {
+        glsBuiltinPrecisionTests.Traits.call(this);
         // typedef 	Interval IVal;
         /** type{tcuInterval.Interval} */ this.iVal;
     };
@@ -193,6 +217,9 @@ goog.scope(function() {
     glsBuiltinPrecisionTests.ScalarTraits.prototype.doRound	= function(fmt, value) {
 		return fmt.roundOut(value, false);//TODO cast to double
 	};
+
+    glsBuiltinPrecisionTests.ScalarTraits.prototype = Object.create(glsBuiltinPrecisionTests.Traits.prototype);
+    glsBuiltinPrecisionTests.ScalarTraits.prototype.constructor = glsBuiltinPrecisionTests.ScalarTraits;
 
     /**
      * @constructor
@@ -285,8 +312,12 @@ goog.scope(function() {
      * T is the container type itself, I is the same type with interval elements.
      * template <typename T, typename I>
      * @constructor
+     * @extends{glsBuiltinPrecisionTests.Traits}
+     * @param{*} T
      */
-    glsBuiltinPrecisionTests.ContainerTraits = function() {};
+    glsBuiltinPrecisionTests.ContainerTraits = function(T) {
+        glsBuiltinPrecisionTests.Traits.call(this);
+    };
 
     // typedef typename	T::Element		Element;
     // typedef				I				IVal;
@@ -395,12 +426,10 @@ goog.scope(function() {
 		return ret;
 	};
 
-    /**
-     * @param{*} T
-     */
-    glsBuiltinPrecisionTests.Traits = function(T) {
-        this.typename = T;
-    };
+    glsBuiltinPrecisionTests.ContainerTraits.prototype = Object.create(glsBuiltinPrecisionTests.Traits.prototype);
+    glsBuiltinPrecisionTests.ContainerTraits.prototype.constructor = glsBuiltinPrecisionTests.ContainerTraits;
+
+
 
 //     class ExprBase;
 // class ExpandContext;
@@ -416,12 +445,42 @@ goog.scope(function() {
     };
 
     /**
+     * template <typename T>
+     * typedef typename Expr<T>::IVal IVal;
      * @constructor
+     * @extends{glsBuiltinPrecisionTests.ExprP}
      * @param{*} typename
+     * @param{string} name
      */
-    glsBuiltinPrecisionTests.Variable = function(typename) {
-        this.T = typename;
+    glsBuiltinPrecisionTests.Variable = function(typename, name) {
+        glsBuiltinPrecisionTests.ExprP.call(this, typename);
+        this.m_name;
     };
+
+    /**
+     * @return{string}
+     */
+    glsBuiltinPrecisionTests.Variable.prototype.getName = function() {
+        return this.m_name;
+    }
+
+    /**
+     */
+    glsBuiltinPrecisionTests.Variable.prototype.doPrintExpr = function(/*ostream& os*/) {
+        bufferedLogToConsole(this.m_name);
+    };
+
+    /**
+     * @param{glsBuiltinPrecisionTests.EvalContext} ctx
+     * @return{string} IVal
+     */
+    glsBuiltinPrecisionTests.Variable.prototype.doEvaluate = function(ctx) {
+		// ctx.env.lookup<T>(this);
+        return this.ctx.env.lookup(this);
+	};
+
+    glsBuiltinPrecisionTests.Variable.prototype = Object.create(glsBuiltinPrecisionTests.ExprP.prototype);
+    glsBuiltinPrecisionTests.Variable.prototype.constructor = glsBuiltinPrecisionTests.Variable;
 
     /**
      * @constructor
@@ -455,14 +514,23 @@ goog.scope(function() {
     };
 
     /**
+     * Output the functions that this expression refers to
+     * @param{glsBuiltinPrecisionTests.FuncSet} dst
+     * @return{glsBuiltinPrecisionTests.FuncSet}
+     */
+    glsBuiltinPrecisionTests.ExprBase.prototype.getUsedFuncs = function(/*FuncSet&*/ dst) {
+		return this.doGetUsedFuncs(dst);
+	};
+
+    /**
      * Type-specific operations for an expression representing type T.
      * @constructor
      * @extends{glsBuiltinPrecisionTests.ExprBase}
      * @param{*} T template <typename T>
      */
     glsBuiltinPrecisionTests.Expr = function(T) {
+        glsBuiltinPrecisionTests.ExprBase,call(this);
         this.typename = T;
-
     };
 
     /**
@@ -475,17 +543,6 @@ goog.scope(function() {
     glsBuiltinPrecisionTests.Expr.prototype.evaluate = function(ctx) {
         return this.doEvaluate(ctx);
     };
-
-    /**
-     * Output the functions that this expression refers to
-     * @param
-     */
-    glsBuiltinPrecisionTests.ExprBase.prototype.getUsedFuncs = function(/*FuncSet&*/ dst) {
-		this.doGetUsedFuncs(dst);
-	};
-
-    glsBuiltinPrecisionTests.ExprBase.prototype = Object.create(glsBuiltinPrecisionTests.Expr.prototype);
-    glsBuiltinPrecisionTests.ExprBase.prototype.constructor = glsBuiltinPrecisionTests.ExprBase;
 
     /**
      * @param{*} T
@@ -855,7 +912,7 @@ goog.scope(function() {
      * @extends{glsBuiltinPrecisionTests.PrimitiveFunc}
      */
     glsBuiltinPrecisionTests.FloatFunc2 = function() {
-        /** @type{glsBuiltinPrecisionTests.Signature} */ var Sig = new glsBuiltinPrecisionTests.Signature(new Number(), new Number(), new Number());
+        /** @type{glsBuiltinPrecisionTests.Signature} */ var Sig = new glsBuiltinPrecisionTests.Signature(new Number(1.10), new Number(1), new Boolean(true), new Array(0));
         glsBuiltinPrecisionTests.PrimitiveFunc.call(this, Sig);
 
     };
@@ -1153,27 +1210,84 @@ goog.scope(function() {
     /************************************/
 
     /**
+     * template<typename In, typename Out>
+     * @constructor
+     */
+     glsBuiltinPrecisionTests.Variables = function() {
+    	VariableP<typename In::In0>		in0;
+    	VariableP<typename In::In1>		in1;
+    	VariableP<typename In::In2>		in2;
+    	VariableP<typename In::In3>		in3;
+    	VariableP<typename Out::Out0>	out0;
+    	VariableP<typename Out::Out1>	out1;
+    };
+
+
+    /**
      * @constructor
      * @extends{tcuTestCase.DeqpTest}
+     * @param{glsBuiltinPrecisionTests.Context} context
      * @param{string} name
      * @param{string} extension
      */
-    glsBuiltinPrecisionTests.PrecisionCase = function(name, extension) {
+    glsBuiltinPrecisionTests.PrecisionCase = function(context, name, extension) {
+        /** @type{string} */ this.m_extension = extension === undefined ? '' : extension;
+        /** @type{glsBuiltinPrecisionTests.Context} */ this.m_ctx	= context;
+        /** @type{*} */ this.m_status;
+		/** @type{*} */ this.m_rnd	= 0; //	(0xdeadbeefu + context.testContext.getCommandLine().getBaseSeed())
+		/** @type{*} */ this.m_extension = extension;
         tcuTestCase.DeqpTest.call(this, name, extension);
-        /** @type{string} */ this.m_extension = extension;
     };
+
+    /**
+     * @return{glsBuiltinPrecisionTests.RenderContext}
+     */
+    glsBuiltinPrecisionTests.PrecisionCase.prototype.getRenderContext = function() {
+        return this.m_ctx.renderContext;
+    };
+
+    /**
+     * @return{tcuFloatFormat.FloatFormat}
+     */
+    glsBuiltinPrecisionTests.PrecisionCase.prototype.getFormat = function() {
+        return this.m_ctx.floatFormat;
+    };
+
+	// TestLog&			log				(void) const 			{ return m_testCtx.getLog(); }
+	// virtual void		runTest			(void) = 0;
+
+
+    /**
+     * template <typename In, typename Out>
+     * @param{glsBuiltinPrecisionTests.Variables} variables Variables<In, Out>
+     * @param{glsBuiltinPrecisionTests.Inputs} inputs Inputs<In>
+     * @param{glsBuiltinPrecisionTests.Statement} stmt
+     */
+    glsBuiltinPrecisionTests.PrecisionCase.prototype.testStatement = function(variables, inputs, stmt){};
+
+	template<typename T>
+	Symbol
+    /**
+     * template <typename In, typename Out>
+     * @param{glsBuiltinPrecisionTests.Variable} variable Variable<T>
+     * @param{glsBuiltinPrecisionTests.Inputs} inputs Inputs<In>
+     * @return{glsBuiltinPrecisionTests.Symbol}
+     */
+    glsBuiltinPrecisionTests.PrecisionCase.prototype.makeSymbol = function (variable) {
+		return glsBuiltinPrecisionTests.Symbol(variable.getName(), getVarTypeOf<T>(m_ctx.precision));
+	}
 
     glsBuiltinPrecisionTests.PrecisionCase.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
     glsBuiltinPrecisionTests.PrecisionCase.prototype.constructor = glsBuiltinPrecisionTests.PrecisionCase;
 
     /**
      * @constructor
-     * @extends{glsBuiltinPrecisionTests.PrecisionCase}
+     * @extends{glsBuiltinPrecisionTests.Context}
      * @param{string} name
-     * @param{glsBuiltinPrecisionTests.FuncBase} extension
+     * @param{glsBuiltinPrecisionTests.FuncBase} func
      */
-    glsBuiltinPrecisionTests.FuncCaseBase = function(name, func) {
-        glsBuiltinPrecisionTests.PrecisionCase.call(this, name, func.getRequiredExtension());
+    glsBuiltinPrecisionTests.FuncCaseBase = function(context, name, func) {
+        glsBuiltinPrecisionTests.PrecisionCase.call(this, context, name, func.getRequiredExtension());
     };
 
     glsBuiltinPrecisionTests.FuncCaseBase.prototype = Object.create(glsBuiltinPrecisionTests.PrecisionCase.prototype);
@@ -1183,11 +1297,14 @@ goog.scope(function() {
 
         assertMsgOptions(this.m_extension !== undefined && !sglrGLContext.isExtensionSupported(gl, this.m_extension), 'Unsupported extension: ' + m_extension, false, true);
 
-	    glsBuiltinPrecisionTests.runTest();
+	    this.runTest();
 
 	    // m_status.setTestContextResult(m_testCtx);
 	    return tcuTestCase.IterateResult.STOP;
     };
+
+    glsBuiltinPrecisionTests.FuncCaseBase.prototype = Object.create(glsBuiltinPrecisionTests.FuncBase.prototype);
+    glsBuiltinPrecisionTests.FuncCaseBase.prototype.constructor = glsBuiltinPrecisionTests.FuncCaseBase;
 
     /**
      * @constructor
@@ -1200,7 +1317,36 @@ goog.scope(function() {
         glsBuiltinPrecisionTests.FuncCaseBase.call(this, context, name, func.getRequiredExtension());
     };
 
-    glsBuiltinPrecisionTests.FuncCase.prototype.iterate = function(){};
+    /**
+     * param{glsBuiltinPrecisionTests.Signature} Sig_
+    glsBuiltinPrecisionTests.FuncCase.prototype.runTest()
+    template <typename Sig>
+void FuncCase<Sig>::runTest (void)
+{
+	const Inputs<In>	inputs	(generateInputs(getSamplings(),
+												m_ctx.floatFormat,
+												m_ctx.precision,
+												m_ctx.numRandoms,
+												m_rnd));
+	Variables<In, Out>	variables;
+
+	variables.out0	= variable<Ret>("out0");
+	variables.out1	= variable<Void>("out1");
+	variables.in0	= variable<Arg0>("in0");
+	variables.in1	= variable<Arg1>("in1");
+	variables.in2	= variable<Arg2>("in2");
+	variables.in3	= variable<Arg3>("in3");
+
+	{
+		ExprP<Ret>	expr	= applyVar(m_func,
+									   variables.in0, variables.in1,
+									   variables.in2, variables.in3);
+		StatementP	stmt	= variableAssignment(variables.out0, expr);
+
+		this->testStatement(variables, inputs, *stmt);
+	}
+}
+
 
     glsBuiltinPrecisionTests.FuncCase.prototype = Object.create(glsBuiltinPrecisionTests.FuncCaseBase.prototype);
     glsBuiltinPrecisionTests.FuncCase.prototype.constructor = glsBuiltinPrecisionTests.FuncCase;
