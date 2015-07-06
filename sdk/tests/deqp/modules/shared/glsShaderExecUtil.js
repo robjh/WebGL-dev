@@ -218,7 +218,7 @@
 //
 // 		if (gluShaderUtil.isDataTypeBoolOrBVec(output->varType.getBasicType()))
 // 		{
-// 			const int				vecSize		= gluShaderUtil.getDataTypeScalarSize(output->varType.getBasicType());
+// 			/** @type{number} */ var				vecSize		= gluShaderUtil.getDataTypeScalarSize(output->varType.getBasicType());
 // 			/** @type{gluShaderUtil.DataType} */ var 	intBaseType	= vecSize > 1 ? gluShaderUtil.getDataTypeVector(gluShaderUtil.DataType.INT, vecSize) : gluShaderUtil.DataType.INT;
 // 			/** @type{gluVarType.VarType} */ var 	intType		(intBaseType, gluShaderUtil.precision.PRECISION_HIGHP);
 //
@@ -260,7 +260,7 @@
 // 	{
 // 		if (gluShaderUtil.isDataTypeBoolOrBVec(output->varType.getBasicType()))
 // 		{
-// 			const int				vecSize		= gluShaderUtil.getDataTypeScalarSize(output->varType.getBasicType());
+// 			/** @type{number} */ var				vecSize		= gluShaderUtil.getDataTypeScalarSize(output->varType.getBasicType());
 // 			/** @type{gluShaderUtil.DataType} */ var 	intBaseType	= vecSize > 1 ? gluShaderUtil.getDataTypeVector(gluShaderUtil.DataType.INT, vecSize) : gluShaderUtil.DataType.INT;
 //
 // 			src << "\to_" << output->name << " = " << glu::getDataTypeName(intBaseType) << "(" << output->name << ");\n";
@@ -461,33 +461,31 @@
      * @param{*} inputs
      * @param{*} outputs
      */
-    glsShaderExecUtil.VertexProcessorExecutor.prototype.execute = function(int numValues, inputs, outputs) {
+    glsShaderExecUtil.VertexProcessorExecutor.prototype.execute = function(numValues, inputs, outputs) {
     	const glw::Functions&					gl					= m_renderCtx.getFunctions();
-    	const bool								useTFObject			= true; //isContextTypeES(m_renderCtx.getType()) || (isContextTypeGLCore(m_renderCtx.getType()) && m_renderCtx.getType().getMajorVersion() >= 4);
-    	vector<glu::VertexArrayBinding>			vertexArrays;
+    	/** @type{boolean} */ var useTFObject			= true; //isContextTypeES(m_renderCtx.getType()) || (isContextTypeGLCore(m_renderCtx.getType()) && m_renderCtx.getType().getMajorVersion() >= 4);
+    	/** @type{gluDrawUtil.VertexArrayBinding} */ var vertexArrays;
     	de::UniquePtr<glu::TransformFeedback>	transformFeedback	(useTFObject ? new glu::TransformFeedback(m_renderCtx) : DE_NULL);
     	glu::Buffer								outputBuffer		(m_renderCtx);
-    	const int								outputBufferStride	= computeTotalScalarSize(m_outputs.begin(), m_outputs.end())*sizeof(deUint32);
+    	/** @type{number} */ var outputBufferStride	= glsShaderExecUtil.computeTotalScalarSize(m_outputs) * 4;
 
     	// Setup inputs.
-    	for (int inputNdx = 0; inputNdx < (int)m_inputs.size(); inputNdx++)
-    	{
-    		const Symbol&		symbol		= m_inputs[inputNdx];
+    	for (var inputNdx = 0; inputNdx < this.m_inputs.length; inputNdx++) {
+    		/** @type{glsShaderExecUtil.Symbol} */ var symbol = this.m_inputs[inputNdx];
     		const void*			ptr			= inputs[inputNdx];
     		const glu::DataType	basicType	= symbol.varType.getBasicType();
-    		const int			vecSize		= glu::getDataTypeScalarSize(basicType);
+    		/** @type{number} */ var			vecSize		= glu::getDataTypeScalarSize(basicType);
 
-    		if (glu::isDataTypeFloatOrVec(basicType))
+    		if (gluShaderUtil.isDataTypeFloatOrVec(basicType))
     			vertexArrays.push_back(glu::va::Float(symbol.name, vecSize, numValues, 0, (const float*)ptr));
-    		else if (glu::isDataTypeIntOrIVec(basicType))
+    		else if (gluShaderUtil.isDataTypeIntOrIVec(basicType))
     			vertexArrays.push_back(glu::va::Int32(symbol.name, vecSize, numValues, 0, (const deInt32*)ptr));
-    		else if (glu::isDataTypeUintOrUVec(basicType))
+    		else if (gluShaderUtil.isDataTypeUintOrUVec(basicType))
     			vertexArrays.push_back(glu::va::Uint32(symbol.name, vecSize, numValues, 0, (const deUint32*)ptr));
-    		else if (glu::isDataTypeMatrix(basicType))
-    		{
-    			int		numRows	= glu::getDataTypeMatrixNumRows(basicType);
-    			int		numCols	= glu::getDataTypeMatrixNumColumns(basicType);
-    			int		stride	= numRows * numCols * sizeof(float);
+    		else if (gluShaderUtil.isDataTypeMatrix(basicType)) {
+    			/** @type{number} */ var numRows	= glu::getDataTypeMatrixNumRows(basicType);
+    			/** @type{number} */ var numCols	= glu::getDataTypeMatrixNumColumns(basicType);
+    			/** @type{number} */ var stride	= numRows * numCols * sizeof(float);
 
     			for (int colNdx = 0; colNdx < numCols; ++colNdx)
     				vertexArrays.push_back(glu::va::Float(symbol.name, colNdx, numRows, numValues, stride, ((const float*)ptr) + colNdx * numRows));
@@ -516,21 +514,20 @@
     	// Read back data.
     	{
     		const void*	srcPtr		= gl.mapBufferRange(GL_TRANSFORM_FEEDBACK_BUFFER, 0, outputBufferStride*numValues, GL_MAP_READ_BIT);
-    		int			curOffset	= 0; // Offset in buffer in bytes.
+    		/** @type{number} */ var curOffset	= 0; // Offset in buffer in bytes.
 
     		GLU_EXPECT_NO_ERROR(gl.getError(), "glMapBufferRange(GL_TRANSFORM_FEEDBACK_BUFFER)");
     		TCU_CHECK(srcPtr != DE_NULL);
 
-    		for (int outputNdx = 0; outputNdx < (int)m_outputs.size(); outputNdx++)
-    		{
-    			const Symbol&		symbol		= m_outputs[outputNdx];
+    		for (var outputNdx = 0; outputNdx < (int)m_outputs.size(); outputNdx++) {
+    			/** @type{glsShaderExecUtil.Symbol} */ var symbol = m_outputs[outputNdx];
     			void*				dstPtr		= outputs[outputNdx];
-    			const int			scalarSize	= symbol.varType.getScalarSize();
+    			/** @type{number} */ var			scalarSize	= symbol.varType.getScalarSize();
 
-    			for (int ndx = 0; ndx < numValues; ndx++)
-    				deMemcpy((deUint32*)dstPtr + scalarSize*ndx, (const deUint8*)srcPtr + curOffset + ndx*outputBufferStride, scalarSize*sizeof(deUint32));
+    			for (var ndx = 0; ndx < numValues; ndx++)
+    				deMemcpy((deUint32*)dstPtr + scalarSize*ndx, (const deUint8*)srcPtr + curOffset + ndx*outputBufferStride, scalarSize*4);
 
-    			curOffset += scalarSize*sizeof(deUint32);
+    			curOffset += scalarSize*4;
     		}
 
     		gl.unmapBuffer(GL_TRANSFORM_FEEDBACK_BUFFER);
@@ -585,104 +582,115 @@ VertexProcessorExecutor::~VertexProcessorExecutor (void)
 {
 }
 
-template<typename Iterator>
-static int computeTotalScalarSize (Iterator begin, Iterator end)
-{
-	int size = 0;
-	for (Iterator cur = begin; cur != end; ++cur)
-		size += cur->varType.getScalarSize();
-	return size;
-}
 
-void VertexProcessorExecutor::execute (int numValues, const void* const* inputs, void* const* outputs)
-{
-	const glw::Functions&					gl					= m_renderCtx.getFunctions();
-	const bool								useTFObject			= isContextTypeES(m_renderCtx.getType()) || (isContextTypeGLCore(m_renderCtx.getType()) && m_renderCtx.getType().getMajorVersion() >= 4);
-	vector<glu::VertexArrayBinding>			vertexArrays;
-	de::UniquePtr<glu::TransformFeedback>	transformFeedback	(useTFObject ? new glu::TransformFeedback(m_renderCtx) : DE_NULL);
-	glu::Buffer								outputBuffer		(m_renderCtx);
-	const int								outputBufferStride	= computeTotalScalarSize(m_outputs.begin(), m_outputs.end())*sizeof(deUint32);
 
-	// Setup inputs.
-	for (int inputNdx = 0; inputNdx < (int)m_inputs.size(); inputNdx++)
-	{
-		const Symbol&		symbol		= m_inputs[inputNdx];
-		const void*			ptr			= inputs[inputNdx];
-		/** @type{gluShaderUtil.DataType} */ var basicType	= symbol.varType.getBasicType();
-		const int			vecSize		= gluShaderUtil.getDataTypeScalarSize(basicType);
+    /**
+     * template<typename Iterator>
+     * @param{Array{*}}
+     * @return{number}
+     */
+    glsShaderExecUtil.computeTotalScalarSize = function(arr) {
+    	/** @type{number} */ var size = 0;
+    	for (var i = 0; i < arr.length; i++)
+    		size += arr[i].varType.getScalarSize();
+    	return size;
+    };
 
-		if (gluShaderUtil.isDataTypeFloatOrVec(basicType))
-			vertexArrays.push_back(glu::va::Float(symbol.name, vecSize, numValues, 0, (const float*)ptr));
-		else if (glu::isDataTypeIntOrIVec(basicType))
-			vertexArrays.push_back(glu::va::Int32(symbol.name, vecSize, numValues, 0, (const deInt32*)ptr));
-		else if (glu::isDataTypeUintOrUVec(basicType))
-			vertexArrays.push_back(glu::va::Uint32(symbol.name, vecSize, numValues, 0, (const deUint32*)ptr));
-		else if (gluShaderUtil.isDataTypeMatrix(basicType))
-		{
-			int		numRows	= gluShaderUtil.getDataTypeMatrixNumRows(basicType);
-			int		numCols	= gluShaderUtil.getDataTypeMatrixNumColumns(basicType);
-			int		stride	= numRows * numCols * sizeof(float);
+    /**
+     * template<typename Iterator>
+     * @param{number} numValues
+     * @param{Array<*>} inputs
+     * @param{Array<*>} outputs
+     */
+    glsShaderExecUtil.VertexProcessorExecutor.prototype.execute = function(numValues, inputs, outputs) {
+    	const glw::Functions&					gl					= m_renderCtx.getFunctions();
+    	/** @type{boolean} */ var useTFObject			= true; //isContextTypeES(m_renderCtx.getType()) || (isContextTypeGLCore(m_renderCtx.getType()) && m_renderCtx.getType().getMajorVersion() >= 4);
+    	/** @type{Array<gluDrawUtil.VertexArrayBinding>} */ var vertexArrays = [];
+    	de::UniquePtr<glu::TransformFeedback>	transformFeedback	(useTFObject ? new glu::TransformFeedback(m_renderCtx) : DE_NULL);
+    	glu::Buffer								outputBuffer		(m_renderCtx);
+    	/** @type{number} */ var outputBufferStride = glsShaderExecUtil.computeTotalScalarSize(this.m_outputs)*4;
 
-			for (int colNdx = 0; colNdx < numCols; ++colNdx)
-				vertexArrays.push_back(glu::va::Float(symbol.name, colNdx, numRows, numValues, stride, ((const float*)ptr) + colNdx * numRows));
-		}
-		else
-			DE_ASSERT(false);
-	}
+    	// Setup inputs.
+    	for (var inputNdx = 0; inputNdx < (int)m_inputs.size(); inputNdx++) {
+    		/** @type{glsShaderExecUtil.Symbol} */ var		symbol		= m_inputs[inputNdx];
+    		const void* ptr = inputs[inputNdx];
+    		/** @type{gluShaderUtil.DataType} */ var basicType	= symbol.varType.getBasicType();
+    		/** @type{number} */ var vecSize = gluShaderUtil.getDataTypeScalarSize(basicType);
 
-	// Setup TF outputs.
-	if (useTFObject)
-		gl.bindTransformFeedback(GL_TRANSFORM_FEEDBACK, **transformFeedback);
-	gl.bindBuffer(GL_TRANSFORM_FEEDBACK_BUFFER, *outputBuffer);
-	gl.bufferData(GL_TRANSFORM_FEEDBACK_BUFFER, outputBufferStride*numValues, DE_NULL, GL_STREAM_READ);
-	gl.bindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, *outputBuffer);
-	GLU_EXPECT_NO_ERROR(gl.getError(), "Error in TF setup");
+    		if (gluShaderUtil.isDataTypeFloatOrVec(basicType))
+    			vertexArrays.push(glu::va::Float(symbol.name, vecSize, numValues, 0, (const float*)ptr));
+    		else if (gluShaderUtil.isDataTypeIntOrIVec(basicType))
+    			vertexArrays.push(glu::va::Int32(symbol.name, vecSize, numValues, 0, (const deInt32*)ptr));
+    		else if (gluShaderUtil.isDataTypeUintOrUVec(basicType))
+    			vertexArrays.push(glu::va::Uint32(symbol.name, vecSize, numValues, 0, (const deUint32*)ptr));
+    		else if (gluShaderUtil.isDataTypeMatrix(basicType))	{
+    			/** @type{number} */ var numRows	= gluShaderUtil.getDataTypeMatrixNumRows(basicType);
+    			/** @type{number} */ var numCols	= gluShaderUtil.getDataTypeMatrixNumColumns(basicType);
+    			/** @type{number} */ var stride	= numRows * numCols * sizeof(float);
 
-	// Draw with rasterization disabled.
-	gl.beginTransformFeedback(GL_POINTS);
-	gl.enable(GL_RASTERIZER_DISCARD);
-	glu::draw(m_renderCtx, m_program.getProgram(), (int)vertexArrays.size(), vertexArrays.empty() ? DE_NULL : &vertexArrays[0],
-			  glu::pr::Points(numValues));
-	gl.disable(GL_RASTERIZER_DISCARD);
-	gl.endTransformFeedback();
-	GLU_EXPECT_NO_ERROR(gl.getError(), "Error in draw");
+    			for (int colNdx = 0; colNdx < numCols; ++colNdx)
+    				vertexArrays.push(glu::va::Float(symbol.name, colNdx, numRows, numValues, stride, ((const float*)ptr) + colNdx * numRows));
+    		}
+    		else
+    			DE_ASSERT(false);
+    	}
 
-	// Read back data.
-	{
-		const void*	srcPtr		= gl.mapBufferRange(GL_TRANSFORM_FEEDBACK_BUFFER, 0, outputBufferStride*numValues, GL_MAP_READ_BIT);
-		int			curOffset	= 0; // Offset in buffer in bytes.
+    	// Setup TF outputs.
+    	if (useTFObject)
+    		gl.bindTransformFeedback(GL_TRANSFORM_FEEDBACK, **transformFeedback);
+    	gl.bindBuffer(GL_TRANSFORM_FEEDBACK_BUFFER, *outputBuffer);
+    	gl.bufferData(GL_TRANSFORM_FEEDBACK_BUFFER, outputBufferStride*numValues, DE_NULL, GL_STREAM_READ);
+    	gl.bindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, *outputBuffer);
+    	GLU_EXPECT_NO_ERROR(gl.getError(), "Error in TF setup");
 
-		GLU_EXPECT_NO_ERROR(gl.getError(), "glMapBufferRange(GL_TRANSFORM_FEEDBACK_BUFFER)");
-		TCU_CHECK(srcPtr != DE_NULL);
+    	// Draw with rasterization disabled.
+    	gl.beginTransformFeedback(GL_POINTS);
+    	gl.enable(GL_RASTERIZER_DISCARD);
+    	gluDrawUtil.draw(m_renderCtx, m_program.getProgram(), (int)vertexArrays.size(), vertexArrays.empty() ? DE_NULL : &vertexArrays[0],
+    			  glu::pr::Points(numValues));
+    	gl.disable(GL_RASTERIZER_DISCARD);
+    	gl.endTransformFeedback();
+    	GLU_EXPECT_NO_ERROR(gl.getError(), "Error in draw");
 
-		for (int outputNdx = 0; outputNdx < (int)m_outputs.size(); outputNdx++)
-		{
-			const Symbol&		symbol		= m_outputs[outputNdx];
-			void*				dstPtr		= outputs[outputNdx];
-			const int			scalarSize	= symbol.varType.getScalarSize();
+    	// Read back data.
+    	{
+    		const void*	srcPtr		= gl.mapBufferRange(GL_TRANSFORM_FEEDBACK_BUFFER, 0, outputBufferStride*numValues, GL_MAP_READ_BIT);
+    		/** @type{number} */ var curOffset	= 0; // Offset in buffer in bytes.
 
-			for (int ndx = 0; ndx < numValues; ndx++)
-				deMemcpy((deUint32*)dstPtr + scalarSize*ndx, (const deUint8*)srcPtr + curOffset + ndx*outputBufferStride, scalarSize*sizeof(deUint32));
+    		GLU_EXPECT_NO_ERROR(gl.getError(), "glMapBufferRange(GL_TRANSFORM_FEEDBACK_BUFFER)");
+    		TCU_CHECK(srcPtr != DE_NULL);
 
-			curOffset += scalarSize*sizeof(deUint32);
-		}
+    		for (var outputNdx = 0; outputNdx < this.m_outputs.length; outputNdx++) {
+    			/** @type{glsShaderExecUtil.Symbol} */ var		symbol		= m_outputs[outputNdx];
+    			void*				dstPtr		= outputs[outputNdx];
+    			/** @type{number} */ var scalarSize	= symbol.varType.getScalarSize();
 
-		gl.unmapBuffer(GL_TRANSFORM_FEEDBACK_BUFFER);
-		GLU_EXPECT_NO_ERROR(gl.getError(), "glUnmapBuffer()");
-	}
+    			for (var ndx = 0; ndx < numValues; ndx++)
+    				deMemcpy((deUint32*)dstPtr + scalarSize*ndx, (const deUint8*)srcPtr + curOffset + ndx*outputBufferStride, scalarSize*4);
 
-	if (useTFObject)
-		gl.bindTransformFeedback(GL_TRANSFORM_FEEDBACK, 0);
-	gl.bindBuffer(GL_TRANSFORM_FEEDBACK_BUFFER, 0);
-	GLU_EXPECT_NO_ERROR(gl.getError(), "Restore state");
-}
+    			curOffset += scalarSize*4;
+    		}
+
+    		gl.unmapBuffer(GL_TRANSFORM_FEEDBACK_BUFFER);
+    		GLU_EXPECT_NO_ERROR(gl.getError(), "glUnmapBuffer()");
+    	}
+
+    	if (useTFObject)
+    		gl.bindTransformFeedback(GL_TRANSFORM_FEEDBACK, 0);
+    	gl.bindBuffer(GL_TRANSFORM_FEEDBACK_BUFFER, 0);
+    	GLU_EXPECT_NO_ERROR(gl.getError(), "Restore state");
+    };
 
 // VertexShaderExecutor
 
-class VertexShaderExecutor : public VertexProcessorExecutor
-{
-public:
-								VertexShaderExecutor	(const glu::RenderContext& renderCtx, const ShaderSpec& shaderSpec);
+/**
+ * template<typename Iterator>
+ * @constructor
+ * @extends{glsShaderExecUtil.VertexProcessorExecutor}
+ * @param{glsShaderExecUtil.ShaderSpec} shaderSpec
+ */
+glsShaderExecUtil.VertexShaderExecutor = function(shaderSpec) {
+    glsShaderExecUtil.VertexProcessorExecutor.call(this, shaderSpec, )
 };
 
 VertexShaderExecutor::VertexShaderExecutor (const glu::RenderContext& renderCtx, const ShaderSpec& shaderSpec)
@@ -748,13 +756,13 @@ static std::map<std::string, int> generateLocationMap (const std::vector<Symbol>
 
 	for (std::vector<Symbol>::const_iterator it = symbols.begin(); it != symbols.end(); ++it)
 	{
-		const int	numLocations	= glu::getDataTypeNumLocations(it->varType.getBasicType());
+		/** @type{number} */ var	numLocations	= glu::getDataTypeNumLocations(it->varType.getBasicType());
 
 		TCU_CHECK_INTERNAL(!de::contains(ret, it->name));
 		de::insert(ret, it->name, location);
 		location += numLocations;
 
-		for (int ndx = 0; ndx < numLocations; ++ndx)
+		for (var ndx = 0; ndx < numLocations; ++ndx)
 			locationSymbols.push_back(&*it);
 	}
 
@@ -799,8 +807,8 @@ static tcu::TextureFormat getRenderbufferFormatForOutput (const glu::VarType& ou
 	};
 
 	/** @type{gluShaderUtil.DataType} */ var 				basicType		= outputType.getBasicType();
-	const int							numComps		= glu::getDataTypeNumComponents(basicType);
-	tcu::TextureFormat::ChannelType		channelType;
+	/** @type{number} */ var numComps = glu::getDataTypeNumComponents(basicType);
+	/** @type{tcuTexture.ChannelType} */ var channelType;
 
 	switch (glu::getDataTypeScalarType(basicType))
 	{
@@ -821,9 +829,9 @@ void FragmentShaderExecutor::execute (int numValues, const void* const* inputs, 
 {
 	const glw::Functions&			gl					= m_renderCtx.getFunctions();
 	const bool						useIntOutputs		= !hasFloatRenderTargets(m_renderCtx);
-	const int						maxRenderbufferSize	= queryInt(gl, GL_MAX_RENDERBUFFER_SIZE);
-	const int						framebufferW		= de::min(maxRenderbufferSize, numValues);
-	const int						framebufferH		= (numValues / framebufferW) + ((numValues % framebufferW != 0) ? 1 : 0);
+	/** @type{number} */ var						maxRenderbufferSize	= queryInt(gl, GL_MAX_RENDERBUFFER_SIZE);
+	/** @type{number} */ var						framebufferW		= de::min(maxRenderbufferSize, numValues);
+	/** @type{number} */ var						framebufferH		= (numValues / framebufferW) + ((numValues % framebufferW != 0) ? 1 : 0);
 
 	glu::Framebuffer				framebuffer			(m_renderCtx);
 	glu::RenderbufferVector			renderbuffers		(m_renderCtx, m_outLocationSymbols.size());
@@ -837,8 +845,8 @@ void FragmentShaderExecutor::execute (int numValues, const void* const* inputs, 
 	// Compute positions - 1px points are used to drive fragment shading.
 	for (int valNdx = 0; valNdx < numValues; valNdx++)
 	{
-		const int		ix		= valNdx % framebufferW;
-		const int		iy		= valNdx / framebufferW;
+		/** @type{number} */ var		ix		= valNdx % framebufferW;
+		/** @type{number} */ var		iy		= valNdx / framebufferW;
 		const float		fx		= -1.0f + 2.0f*((float(ix) + 0.5f) / float(framebufferW));
 		const float		fy		= -1.0f + 2.0f*((float(iy) + 0.5f) / float(framebufferH));
 
@@ -848,19 +856,19 @@ void FragmentShaderExecutor::execute (int numValues, const void* const* inputs, 
 	// Vertex inputs.
 	vertexArrays.push_back(glu::va::Float("a_position", 2, numValues, 0, (const float*)&positions[0]));
 
-	for (int inputNdx = 0; inputNdx < (int)m_inputs.size(); inputNdx++)
+	for (var inputNdx = 0; inputNdx < (int)m_inputs.size(); inputNdx++)
 	{
-		const Symbol&		symbol		= m_inputs[inputNdx];
+		/** @type{glsShaderExecUtil.Symbol} */ var		symbol		= m_inputs[inputNdx];
 		const std::string	attribName	= "a_" + symbol.name;
 		const void*			ptr			= inputs[inputNdx];
 		/** @type{gluShaderUtil.DataType} */ var basicType	= symbol.varType.getBasicType();
-		const int			vecSize		= gluShaderUtil.getDataTypeScalarSize(basicType);
+		/** @type{number} */ var			vecSize		= gluShaderUtil.getDataTypeScalarSize(basicType);
 
 		if (gluShaderUtil.isDataTypeFloatOrVec(basicType))
 			vertexArrays.push_back(glu::va::Float(attribName, vecSize, numValues, 0, (const float*)ptr));
-		else if (glu::isDataTypeIntOrIVec(basicType))
+		else if (gluShaderUtil.isDataTypeIntOrIVec(basicType))
 			vertexArrays.push_back(glu::va::Int32(attribName, vecSize, numValues, 0, (const deInt32*)ptr));
-		else if (glu::isDataTypeUintOrUVec(basicType))
+		else if (gluShaderUtil.isDataTypeUintOrUVec(basicType))
 			vertexArrays.push_back(glu::va::Uint32(attribName, vecSize, numValues, 0, (const deUint32*)ptr));
 		else if (gluShaderUtil.isDataTypeMatrix(basicType))
 		{
@@ -880,7 +888,7 @@ void FragmentShaderExecutor::execute (int numValues, const void* const* inputs, 
 
 	for (int outNdx = 0; outNdx < (int)m_outLocationSymbols.size(); ++outNdx)
 	{
-		const Symbol&	output			= *m_outLocationSymbols[outNdx];
+		/** @type{glsShaderExecUtil.Symbol} */ var	output			= *m_outLocationSymbols[outNdx];
 		const deUint32	renderbuffer	= renderbuffers[outNdx];
 		const deUint32	format			= glu::getInternalFormat(getRenderbufferFormatForOutput(output.varType, useIntOutputs));
 
@@ -894,7 +902,7 @@ void FragmentShaderExecutor::execute (int numValues, const void* const* inputs, 
 
 	{
 		vector<deUint32> drawBuffers(m_outLocationSymbols.size());
-		for (int ndx = 0; ndx < (int)m_outLocationSymbols.size(); ndx++)
+		for (var ndx = 0; ndx < (int)m_outLocationSymbols.size(); ndx++)
 			drawBuffers[ndx] = GL_COLOR_ATTACHMENT0+ndx;
 		gl.drawBuffers((int)drawBuffers.size(), &drawBuffers[0]);
 		GLU_EXPECT_NO_ERROR(gl.getError(), "glDrawBuffers()");
@@ -914,14 +922,14 @@ void FragmentShaderExecutor::execute (int numValues, const void* const* inputs, 
 
 		for (int outNdx = 0; outNdx < (int)m_outputs.size(); ++outNdx)
 		{
-			const Symbol&				output			= m_outputs[outNdx];
-			const int					outSize			= output.varType.getScalarSize();
-			const int					outVecSize		= glu::getDataTypeNumComponents(output.varType.getBasicType());
-			const int					outNumLocs		= glu::getDataTypeNumLocations(output.varType.getBasicType());
+			/** @type{glsShaderExecUtil.Symbol} */ var				output			= m_outputs[outNdx];
+			/** @type{number} */ var					outSize			= output.varType.getScalarSize();
+			/** @type{number} */ var					outVecSize		= glu::getDataTypeNumComponents(output.varType.getBasicType());
+			/** @type{number} */ var					outNumLocs		= glu::getDataTypeNumLocations(output.varType.getBasicType());
 			deUint32*					dstPtrBase		= static_cast<deUint32*>(outputs[outNdx]);
 			const tcu::TextureFormat	format			= getRenderbufferFormatForOutput(output.varType, useIntOutputs);
 			const tcu::TextureFormat	readFormat		(tcu::TextureFormat::RGBA, format.type);
-			const int					outLocation		= de::lookup(m_outLocationMap, output.name);
+			/** @type{number} */ var					outLocation		= de::lookup(m_outLocationMap, output.name);
 
 			tmpBuf.setStorage(readFormat, framebufferW, framebufferH);
 
@@ -932,14 +940,14 @@ void FragmentShaderExecutor::execute (int numValues, const void* const* inputs, 
 				GLU_EXPECT_NO_ERROR(gl.getError(), "Reading pixels");
 
 				if (outSize == 4 && outNumLocs == 1)
-					deMemcpy(dstPtrBase, tmpBuf.getAccess().getDataPtr(), numValues*outVecSize*sizeof(deUint32));
+					deMemcpy(dstPtrBase, tmpBuf.getAccess().getDataPtr(), numValues*outVecSize*4);
 				else
 				{
 					for (int valNdx = 0; valNdx < numValues; valNdx++)
 					{
 						const deUint32* srcPtr = (const deUint32*)tmpBuf.getAccess().getDataPtr() + valNdx*4;
 						deUint32*		dstPtr = &dstPtrBase[outSize*valNdx + outVecSize*locNdx];
-						deMemcpy(dstPtr, srcPtr, outVecSize*sizeof(deUint32));
+						deMemcpy(dstPtr, srcPtr, outVecSize*4);
 					}
 				}
 			}
@@ -1057,8 +1065,8 @@ static deUint32 getVecStd430ByteAlignment (glu::DataType type)
 // {
 // 	const deUint32		inputStride			= getLayoutStride(m_inputLayout);
 // 	const deUint32		outputStride		= getLayoutStride(m_outputLayout);
-// 	const int			inputBufferSize		= numValues * inputStride;
-// 	const int			outputBufferSize	= numValues * outputStride;
+// 	/** @type{number} */ var			inputBufferSize		= numValues * inputStride;
+// 	/** @type{number} */ var			outputBufferSize	= numValues * outputStride;
 //
 // 	resizeInputBuffer(inputBufferSize);
 // 	resizeOutputBuffer(outputBufferSize);
@@ -1074,14 +1082,14 @@ static deUint32 getVecStd430ByteAlignment (glu::DataType type)
 //
 // 	for (size_t varNdx = 0; varNdx < symbols.size(); varNdx++)
 // 	{
-// 		const Symbol&		symbol		= symbols[varNdx];
+// 		/** @type{glsShaderExecUtil.Symbol} */ var		symbol		= symbols[varNdx];
 // 		/** @type{gluShaderUtil.DataType} */ var basicType	= symbol.varType.getBasicType();
 // 		VarLayout&			layoutEntry	= (*layout)[varNdx];
 //
 // 		if (glu::isDataTypeScalarOrVector(basicType))
 // 		{
 // 			const deUint32	alignment	= getVecStd430ByteAlignment(basicType);
-// 			const deUint32	size		= (deUint32)gluShaderUtil.getDataTypeScalarSize(basicType)*sizeof(deUint32);
+// 			const deUint32	size		= (deUint32)gluShaderUtil.getDataTypeScalarSize(basicType)*4;
 //
 // 			curOffset		= (deUint32)deAlign32((int)curOffset, (int)alignment);
 // 			maxAlignment	= de::max(maxAlignment, alignment);
@@ -1093,7 +1101,7 @@ static deUint32 getVecStd430ByteAlignment (glu::DataType type)
 // 		}
 // 		else if (gluShaderUtil.isDataTypeMatrix(basicType))
 // 		{
-// 			const int				numVecs			= gluShaderUtil.getDataTypeMatrixNumColumns(basicType);
+// 			/** @type{number} */ var				numVecs			= gluShaderUtil.getDataTypeMatrixNumColumns(basicType);
 // 			/** @type{gluShaderUtil.DataType} */ var 	vecType			= glu::getDataTypeFloatVec(gluShaderUtil.getDataTypeMatrixNumRows(basicType));
 // 			const deUint32			vecAlignment	= getVecStd430ByteAlignment(vecType);
 //
@@ -1128,20 +1136,20 @@ static deUint32 getVecStd430ByteAlignment (glu::DataType type)
 // 	{
 // 		/** @type{gluShaderUtil.DataType} */ var 	basicType		= varType.getBasicType();
 // 		const bool				isMatrix		= gluShaderUtil.isDataTypeMatrix(basicType);
-// 		const int				scalarSize		= gluShaderUtil.getDataTypeScalarSize(basicType);
-// 		const int				numVecs			= isMatrix ? gluShaderUtil.getDataTypeMatrixNumColumns(basicType) : 1;
-// 		const int				numComps		= scalarSize / numVecs;
+// 		/** @type{number} */ var				scalarSize		= gluShaderUtil.getDataTypeScalarSize(basicType);
+// 		/** @type{number} */ var				numVecs			= isMatrix ? gluShaderUtil.getDataTypeMatrixNumColumns(basicType) : 1;
+// 		/** @type{number} */ var				numComps		= scalarSize / numVecs;
 //
 // 		for (int elemNdx = 0; elemNdx < numValues; elemNdx++)
 // 		{
 // 			for (var vecNdx = 0; vecNdx < numVecs; vecNdx++)
 // 			{
-// 				const int		srcOffset		= sizeof(deUint32)*(elemNdx*scalarSize + vecNdx*numComps);
-// 				const int		dstOffset		= layout.offset + layout.stride*elemNdx + (isMatrix ? layout.matrixStride*vecNdx : 0);
+// 				/** @type{number} */ var		srcOffset		= 4*(elemNdx*scalarSize + vecNdx*numComps);
+// 				/** @type{number} */ var		dstOffset		= layout.offset + layout.stride*elemNdx + (isMatrix ? layout.matrixStride*vecNdx : 0);
 // 				const deUint8*	srcPtr			= (const deUint8*)srcBasePtr + srcOffset;
 // 				deUint8*		dstPtr			= (deUint8*)dstBasePtr + dstOffset;
 //
-// 				deMemcpy(dstPtr, srcPtr, sizeof(deUint32)*numComps);
+// 				deMemcpy(dstPtr, srcPtr, 4*numComps);
 // 			}
 // 		}
 // 	}
@@ -1155,20 +1163,20 @@ static deUint32 getVecStd430ByteAlignment (glu::DataType type)
 // 	{
 // 		/** @type{gluShaderUtil.DataType} */ var 	basicType		= varType.getBasicType();
 // 		const bool				isMatrix		= gluShaderUtil.isDataTypeMatrix(basicType);
-// 		const int				scalarSize		= gluShaderUtil.getDataTypeScalarSize(basicType);
-// 		const int				numVecs			= isMatrix ? gluShaderUtil.getDataTypeMatrixNumColumns(basicType) : 1;
-// 		const int				numComps		= scalarSize / numVecs;
+// 		/** @type{number} */ var				scalarSize		= gluShaderUtil.getDataTypeScalarSize(basicType);
+// 		/** @type{number} */ var				numVecs			= isMatrix ? gluShaderUtil.getDataTypeMatrixNumColumns(basicType) : 1;
+// 		/** @type{number} */ var				numComps		= scalarSize / numVecs;
 //
 // 		for (int elemNdx = 0; elemNdx < numValues; elemNdx++)
 // 		{
 // 			for (var vecNdx = 0; vecNdx < numVecs; vecNdx++)
 // 			{
-// 				const int		srcOffset		= layout.offset + layout.stride*elemNdx + (isMatrix ? layout.matrixStride*vecNdx : 0);
-// 				const int		dstOffset		= sizeof(deUint32)*(elemNdx*scalarSize + vecNdx*numComps);
+// 				/** @type{number} */ var		srcOffset		= layout.offset + layout.stride*elemNdx + (isMatrix ? layout.matrixStride*vecNdx : 0);
+// 				/** @type{number} */ var		dstOffset		= 4*(elemNdx*scalarSize + vecNdx*numComps);
 // 				const deUint8*	srcPtr			= (const deUint8*)srcBasePtr + srcOffset;
 // 				deUint8*		dstPtr			= (deUint8*)dstBasePtr + dstOffset;
 //
-// 				deMemcpy(dstPtr, srcPtr, sizeof(deUint32)*numComps);
+// 				deMemcpy(dstPtr, srcPtr, 4*numComps);
 // 			}
 // 		}
 // 	}
@@ -1181,7 +1189,7 @@ static deUint32 getVecStd430ByteAlignment (glu::DataType type)
 // 	const glw::Functions&	gl				= m_renderCtx.getFunctions();
 // 	const deUint32			buffer			= *m_inputBuffer;
 // 	const deUint32			inputStride		= getLayoutStride(m_inputLayout);
-// 	const int				inputBufferSize	= inputStride*numValues;
+// 	/** @type{number} */ var				inputBufferSize	= inputStride*numValues;
 //
 // 	if (inputBufferSize == 0)
 // 		return; // No inputs
@@ -1217,7 +1225,7 @@ static deUint32 getVecStd430ByteAlignment (glu::DataType type)
 // 	const glw::Functions&	gl					= m_renderCtx.getFunctions();
 // 	const deUint32			buffer				= *m_outputBuffer;
 // 	const deUint32			outputStride		= getLayoutStride(m_outputLayout);
-// 	const int				outputBufferSize	= numValues*outputStride;
+// 	/** @type{number} */ var				outputBufferSize	= numValues*outputStride;
 //
 // 	DE_ASSERT(outputBufferSize > 0); // At least some outputs are required.
 //
@@ -1362,7 +1370,7 @@ static deUint32 getVecStd430ByteAlignment (glu::DataType type)
 // void ComputeShaderExecutor::execute (int numValues, const void* const* inputs, void* const* outputs)
 // {
 // 	const glw::Functions&	gl						= m_renderCtx.getFunctions();
-// 	const int				maxValuesPerInvocation	= m_maxWorkSize[0];
+// 	/** @type{number} */ var				maxValuesPerInvocation	= m_maxWorkSize[0];
 // 	const deUint32			inputStride				= getInputStride();
 // 	const deUint32			outputStride			= getOutputStride();
 //
@@ -1376,7 +1384,7 @@ static deUint32 getVecStd430ByteAlignment (glu::DataType type)
 // 		int curOffset = 0;
 // 		while (curOffset < numValues)
 // 		{
-// 			const int numToExec = de::min(maxValuesPerInvocation, numValues-curOffset);
+// 			/** @type{number} */ var numToExec = de::min(maxValuesPerInvocation, numValues-curOffset);
 //
 // 			if (inputStride > 0)
 // 				gl.bindBufferRange(GL_SHADER_STORAGE_BUFFER, INPUT_BUFFER_BINDING, getInputBuffer(), curOffset*inputStride, numToExec*inputStride);
@@ -1452,10 +1460,10 @@ public:
 //
 // 	src << "void main (void)\n{\n";
 //
-// 	for (int ndx = 0; ndx < 2; ndx++)
+// 	for (var ndx = 0; ndx < 2; ndx++)
 // 		src << "\tgl_TessLevelInner[" << ndx << "] = 1.0;\n";
 //
-// 	for (int ndx = 0; ndx < 4; ndx++)
+// 	for (var ndx = 0; ndx < 4; ndx++)
 // 		src << "\tgl_TessLevelOuter[" << ndx << "] = 1.0;\n";
 //
 // 	src << "\n"
@@ -1549,10 +1557,10 @@ public:
 //
 // 	src << "void main (void)\n{\n";
 //
-// 	for (int ndx = 0; ndx < 2; ndx++)
+// 	for (var ndx = 0; ndx < 2; ndx++)
 // 		src << "\tgl_TessLevelInner[" << ndx << "] = 1.0;\n";
 //
-// 	for (int ndx = 0; ndx < 4; ndx++)
+// 	for (var ndx = 0; ndx < 4; ndx++)
 // 		src << "\tgl_TessLevelOuter[" << ndx << "] = 1.0;\n";
 //
 // 	src << "}\n";
@@ -1606,7 +1614,7 @@ public:
 // void TessEvaluationExecutor::execute (int numValues, const void* const* inputs, void* const* outputs)
 // {
 // 	const glw::Functions&	gl				= m_renderCtx.getFunctions();
-// 	const int				alignedValues	= deAlign32(numValues, 2);
+// 	/** @type{number} */ var				alignedValues	= deAlign32(numValues, 2);
 //
 // 	// Initialize buffers with aligned value count to make room for padding
 // 	initBuffers(alignedValues);

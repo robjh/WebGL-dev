@@ -73,7 +73,9 @@ goog.scope(function() {
             // tcuTestCase.runTestCases();
 
             // temp code to test the tempalte changing
-            var add = new glsBuiltinPrecisionTests.Add();
+            var add = glsBuiltinPrecisionTests.SamplingFactory(1);
+            add.genFixeds();
+            add.genRandom();
             console.log(add);
         }
         catch (err) {
