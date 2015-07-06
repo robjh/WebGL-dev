@@ -458,7 +458,7 @@ goog.scope(function() {
      * @param  {string} name
      * @param  {string} description
      * @param  {boolean} isVertexCase
-     * @param  {glsShaderRenderCase.Evaluator=} evalFunc
+     * @param  {?function(glsShaderRenderCase.ShaderEvalContext)=} evalFunc
      */
     glsShaderRenderCase.ShaderRenderCase = function(name, description, isVertexCase, evalFunc) {
         tcuTestCase.DeqpTest.call(this, name, description);
@@ -469,8 +469,8 @@ goog.scope(function() {
     	/** @type {string} */ this.m_vertShaderSource;
     	/** @type {string} */ this.m_fragShaderSource;
     	/** @type {Array<number>} */ this.m_clearColor = glsShaderRenderCase.DEFAULT_CLEAR_COLOR;
-    	/** @type {Array<tcuMatrix.Matrix>} */ this.m_userAttribTransforms;
-    	/** @type {Array<glsShaderRenderCase.TextureBinding>} */ this.m_textures;
+    	/** @type {Array<tcuMatrix.Matrix>} */ this.m_userAttribTransforms = [];
+    	/** @type {Array<glsShaderRenderCase.TextureBinding>} */ this.m_textures = [];
     	/** @type {?gluShaderProgram.ShaderProgram} */ this.m_program = null;
     };
 
@@ -487,7 +487,7 @@ goog.scope(function() {
         return renderCase;
     };
 
-    glsShaderRenderCase.ShaderRenderCase.prototype = Object.create(tcuTestCase.DeqpTest);
+    glsShaderRenderCase.ShaderRenderCase.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
     glsShaderRenderCase.ShaderRenderCase.prototype.constructor = glsShaderRenderCase.ShaderRenderCase;
 
     glsShaderRenderCase.ShaderRenderCase.prototype.deinit = function() {
@@ -507,7 +507,7 @@ goog.scope(function() {
     	this.m_program = new gluShaderProgram.ShaderProgram(gl, gluShaderProgram.makeVtxFragSources(this.m_vertShaderSource, this.m_fragShaderSource));
 
     	try {
-    		bufferedLogToConsole(this.m_program.getProgram().getProgramInfo().infoLog);; // Always log shader program.
+    		//bufferedLogToConsole(this.m_program.getProgram().getProgramInfo().infoLog);; // Always log shader program.
 
     		if (!this.m_program.isOk())
     			throw new Error("Shader compile error.");
@@ -666,7 +666,7 @@ goog.scope(function() {
     	gl.clear(gl.COLOR_BUFFER_BIT);
 
     	// Draw.
-		/** @type {Array<gluDrawUtil.VertexArrayBinding>} */ var vertexArrays;
+		/** @type {Array<gluDrawUtil.VertexArrayBinding>} */ var vertexArrays = [];
 		/** @type {number} */ var numElements = quadGrid.getNumTriangles()*3;
 
 		glsShaderRenderCase.getDefaultVertexArrays(quadGrid, programId, vertexArrays);
@@ -903,7 +903,7 @@ goog.scope(function() {
 
     	for (var i = 0; i < s_bvec4Uniforms.length; i++) {
     		/** @type {BVec4Uniform} */ var uni = s_bvec4Uniforms[i];
-    		/** @type {Array<number>} */ var arr;
+    		/** @type {Array<number>} */ var arr = [];
     		arr[0] = uni.value[0] ? 1 : 0;
     		arr[1] = uni.value[1] ? 1 : 0;
     		arr[2] = uni.value[2] ? 1 : 0;
