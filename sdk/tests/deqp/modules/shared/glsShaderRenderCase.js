@@ -68,25 +68,16 @@ goog.scope(function() {
     		deMath.clamp(Math.round(a[3] * 255.0), 0, 255));
     };
 
-    /** @enum {number} */
-    glsShaderRenderCase.Type = {
-		TYPE_NONE: 0,
-		TYPE_2D: 1,
-		TYPE_CUBE_MAP: 2,
-		TYPE_2D_ARRAY: 3,
-		TYPE_3D: 4
-	};
-
     /**
      * Helper function
      * @param  {?(gluTexture.Texture2D|gluTexture.TextureCube|gluTexture.Texture2DArray|gluTexture.Texture3D)} tex
-     * @return {glsShaderRenderCase.Type}
+     * @return {gluTexture.Type}
      */
     glsShaderRenderCase.getTextureType = function(tex) {
         if (tex.getType() > 0)
             return tex.getType();
         else
-            return glsShaderRenderCase.Type.TYPE_NONE;
+            return gluTexture.Type.TYPE_NONE;
     };
 
     /**
@@ -116,7 +107,7 @@ goog.scope(function() {
     glsShaderRenderCase.TextureBinding = function(tex, sampler) {
         tex = tex === undefined ? null : tex;
         sampler = sampler === undefined ? null : sampler;
-        /** @type {glsShaderRenderCase.Type} */ this.m_type = glsShaderRenderCase.getTextureType(tex);
+        /** @type {gluTexture.Type} */ this.m_type = glsShaderRenderCase.getTextureType(tex);
         /** @type {tcuTexture.Sampler} */ this.m_sampler = sampler;
         /** @type {(gluTexture.Texture2D|gluTexture.TextureCube|gluTexture.Texture2DArray|gluTexture.Texture3D)} */
         this.m_binding = tex;
@@ -137,7 +128,7 @@ goog.scope(function() {
         this.m_binding = tex;
     };
 
-    /** @return {glsShaderRenderCase.Type} */
+    /** @return {gluTexture.Type} */
     glsShaderRenderCase.TextureBinding.prototype.getType = function() {
         return this.m_type;
     };
@@ -355,22 +346,22 @@ goog.scope(function() {
     	for (var ndx = 0; ndx < bindings.length; ndx++) {
     		/** @type {glsShaderRenderCase.TextureBinding} */ var binding = bindings[ndx];
 
-    		if (binding.getType() == glsShaderRenderCase.Type.TYPE_NONE)
+    		if (binding.getType() == gluTexture.Type.TYPE_NONE)
     			continue;
 
     		this.textures[ndx].sampler = binding.getSampler();
 
     		switch (binding.getType()) {
-    			case glsShaderRenderCase.Type.TYPE_2D:
+    			case gluTexture.Type.TYPE_2D:
                     this.textures[ndx].tex2D = binding.getBinding().getRefTexture();
                     break;
-    			case glsShaderRenderCase.Type.TYPE_CUBE_MAP:
+    			case gluTexture.Type.TYPE_CUBE_MAP:
                     this.textures[ndx].texCube = binding.getBinding().getRefTexture();
                     break;
-    			case glsShaderRenderCase.Type.TYPE_2D_ARRAY:
+    			case gluTexture.Type.TYPE_2D_ARRAY:
                     this.textures[ndx].tex2DArray = binding.getBinding().getRefTexture();
                     break;
-    			case glsShaderRenderCase.Type.TYPE_3D:
+    			case gluTexture.Type.TYPE_3D:
                     this.textures[ndx].tex3D = binding.getBinding().getRefTexture();
                     break;
     			default:
@@ -603,23 +594,23 @@ goog.scope(function() {
     		/** @type {number} */ var texTarget = gl.NONE;
     		/** @type {number} */ var texObj = 0;
 
-    		if (tex.getType() === glsShaderRenderCase.Type.TYPE_NONE)
+    		if (tex.getType() === gluTexture.Type.TYPE_NONE)
     			continue;
 
     		switch (tex.getType()) {
-    			case glsShaderRenderCase.Type.TYPE_2D:
+    			case gluTexture.Type.TYPE_2D:
                     texTarget = gl.TEXTURE_2D;
                     texObj = tex.getBinding().getGLTexture();
                     break;
-    			case glsShaderRenderCase.Type.TYPE_CUBE_MAP:
+    			case gluTexture.Type.TYPE_CUBE_MAP:
                     texTarget = gl.TEXTURE_CUBE_MAP;
                     texObj = tex.getBinding().getGLTexture();
                     break;
-    			case glsShaderRenderCase.Type.TYPE_2D_ARRAY:
+    			case gluTexture.Type.TYPE_2D_ARRAY:
                     texTarget = gl.TEXTURE_2D_ARRAY;
                     texObj = tex.getBinding().getGLTexture();
                     break;
-    			case glsShaderRenderCase.Type.TYPE_3D:
+    			case gluTexture.Type.TYPE_3D:
                     texTarget = gl.TEXTURE_3D;
                     texObj = tex.getBinding().getGLTexture();
                     break;
