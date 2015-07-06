@@ -378,18 +378,25 @@ goog.scope(function() {
         var status = this.m_context.checkFramebufferStatus(gl.FRAMEBUFFER);
         this.m_context.bindFramebuffer(gl.FRAMEBUFFER, null);
         if (status != gl.FRAMEBUFFER_COMPLETE)
-            throw FboIncompleteException(status, __FILE__, __LINE__);
+            throw new es3fFboTestUtil.FboIncompleteException(status);
     };
 
-    deUint32 Framebuffer::createTex2D (deUint32 name, GLenum format, int width, int height)
+    /**
+     * @param {WebGLTexture} name
+     * @param {number} format
+     * @param {number} width
+     * @param {number} height
+     * @return {WebGLTexture}
+     */
+    es3fFboRenderTest.Framebuffer.prototype.createTex2D = function (name, format, width, height)
     {
-        if (name == 0)
-            this.m_context.genTextures(1, &name);
+        if (!name)
+            name = this.m_context.createTexture();
 
         this.m_context.bindTexture(gl.TEXTURE_2D, name);
         this.m_context.texImage2D(gl.TEXTURE_2D, 0, format, width, height);
 
-        if (!deIsPowerOfTwo32(width) || !deIsPowerOfTwo32(height))
+        if (!deMath.deIsPowerOfTwo32(width) || !deMath.deIsPowerOfTwo32(height))
         {
             // Set wrap mode to clamp for NPOT FBOs
             this.m_context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
@@ -400,52 +407,79 @@ goog.scope(function() {
         this.m_context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 
         return name;
-    }
+    };
 
-    deUint32 Framebuffer::createRbo (deUint32 name, GLenum format, int width, int height)
+    /**
+     * @param {WebGLRenderbuffer} name
+     * @param {number} format
+     * @param {number} width
+     * @param {number} height
+     * @return {WebGLRenderbuffer}
+     */
+    es3fFboRenderTest.Framebuffer.prototype.createRbo = function (name, format, width, height)
     {
-        if (name == 0)
-            this.m_context.genRenderbuffers(1, &name);
+        if (!name)
+            name = this.m_context.createRenderbuffer();
 
         this.m_context.bindRenderbuffer(gl.RENDERBUFFER, name);
         this.m_context.renderbufferStorage(gl.RENDERBUFFER, format, width, height);
 
         return name;
-    }
+    };
 
-    void Framebuffer::destroyBuffer (deUint32 name, GLenum type)
+    /**
+     * @param {WebGLRenderbuffer|WebGLTexture} name
+     * @param {number} type
+     */
+    es3fFboRenderTest.Framebuffer.prototype.destroyBuffer = function (name, type)
     {
         if (type == gl.TEXTURE_2D || type == gl.TEXTURE_CUBE_MAP)
-            this.m_context.deleteTextures(1, &name);
+            this.m_context.deleteTexture(name);
         else if (type == gl.RENDERBUFFER)
-            this.m_context.deleteRenderbuffers(1, &name);
+            this.m_context.deleteRenderbuffer(name);
         else
-            DE_ASSERT(type == gl.NONE);
-    }
+            assertMsgOptions(type == gl.NONE, 'Invalid buffer type', false, true);
+    };
 
-    static void createMetaballsTex2D (sglr::Context& context, deUint32 name, GLenum format, GLenum dataType, int width, int height)
+    /**
+     * @param {?sglrGLContext|sglrReferenceContext} context
+     * @param {WebGLTexture} name
+     * @param {number} format
+     * @param {number} dataType
+     * @param {number} width
+     * @param {number} height
+     */
+    es3fFboRenderTest.createMetaballsTex2D = function (context, name, format, dataType, width, height)
     {
-        tcu::TextureFormat    texFormat    = glu::mapGLTransferFormat(format, dataType);
-        tcu::TextureLevel    level        (texFormat, width, height);
+        /** @type {tcuTexture.TextureFormat} */ var texFormat    = gluTextureUtil.mapGLTransferFormat(format, dataType);
+        /** @type {tcuTexture.TextureLevel} */ var level = new tcuTexture.TextureLevel(texFormat, width, height);
 
-        tcu::fillWithMetaballs(level.getAccess(), 5, name ^ width ^ height);
+        tcuTextureUtil.fillWithMetaballs(level.getAccess(), 5, /*name ^*/ width ^ height);
 
         context.bindTexture(gl.TEXTURE_2D, name);
         context.texImage2D(gl.TEXTURE_2D, 0, format, width, height, 0, format, dataType, level.getAccess().getDataPtr());
         context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    }
+    };
 
-    static void createQuadsTex2D (sglr::Context& context, deUint32 name, GLenum format, GLenum dataType, int width, int height)
+    /**
+     * @param {?sglrGLContext|sglrReferenceContext} context
+     * @param {WebGLTexture} name
+     * @param {number} format
+     * @param {number} dataType
+     * @param {number} width
+     * @param {number} height
+     */
+    es3fFboRenderTest.createQuadsTex2D = function (context, name, format, dataType, width, height)
     {
-        tcu::TextureFormat    texFormat    = glu::mapGLTransferFormat(format, dataType);
-        tcu::TextureLevel    level        (texFormat, width, height);
+        /** @type {tcuTexture.TextureFormat} */ var texFormat = gluTextureUtil.mapGLTransferFormat(format, dataType);
+        /** @type {tcuTexture.TextureLevel} */ var level = new tcuTexture.TextureLevel(texFormat, width, height);
 
-        tcu::fillWithRGBAQuads(level.getAccess());
+        tcuTextureUtil.fillWithRGBAQuads(level.getAccess());
 
         context.bindTexture(gl.TEXTURE_2D, name);
         context.texImage2D(gl.TEXTURE_2D, 0, format, width, height, 0, format, dataType, level.getAccess().getDataPtr());
         context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    }
+    };
 
     class FboRenderCase : public TestCase
     {
@@ -454,7 +488,7 @@ goog.scope(function() {
         virtual                        ~FboRenderCase            (void) {}
 
         virtual IterateResult        iterate                    (void);
-        virtual void                render                    (sglr::Context& fboContext, Surface& dst) = DE_NULL;
+
 
         bool                        compare                    (const tcu::Surface& reference, const tcu::Surface& result);
 
@@ -462,104 +496,139 @@ goog.scope(function() {
         const FboConfig                this.m_config;
     };
 
-    FboRenderCase::FboRenderCase (Context& context, const char* name, const char* description, const FboConfig& config)
-        : TestCase    (context, name, description)
-        , this.m_config    (config)
+    /**
+     * @constructor
+     * @extends {tcuTestCase.DeqpTest}
+     * @param {string} name
+     * @param {string} description
+     * @param {es3fFboRenderTest.FboConfig} config
+     */
+    es3fFboRenderTest.FboRenderCase = function (name, description, config)
     {
-    }
+        tcuTestCase.DeqpTest.call(this, name, description);
+        this.m_config = config;
+    };
 
-    TestCase::IterateResult FboRenderCase::iterate (void)
+    es3fFboRenderTest.FboRenderCase.prototype = Object.create(tcuTestCase.DeqpTest.prototoype);
+    es3fFboRenderTest.FboRenderCase.prototype.constructor = es3fFboRenderTest.FboRenderCase;
+
+    /**
+     * Must be overridden
+     * @param {?sglrGLContext|sglrReferenceContext} fboContext
+     * @param {tcuSurface.Surface} dst
+     */
+    es3fFboRenderTest.FboRenderCase.prototype.render = function (fboContext, dst) { throw new Error('Must override'); };
+
+    /**
+     * @return {tcuTestCase.IterateResult}
+     */
+    es3fFboRenderTest.FboRenderCase.prototype.iterate = function ()
     {
-        tcu::Vec4                    clearColor                = tcu::Vec4(0.125f, 0.25f, 0.5f, 1.0f);
-        glu::RenderContext&            renderCtx                = this.m_context.getRenderContext();
-        const tcu::RenderTarget&    renderTarget            = renderCtx.getRenderTarget();
-        tcu::TestLog&                log                        = this.m_testCtx.getLog();
-        const char*                    failReason                = DE_NULL;
+        var clearColor = [0.125, 0.25, 0.5, 1.0];
+        /** @type {?string} */ var failReason = null;
 
         // Position & size for context
-        deRandom rnd;
-        deRandothis.m_init(&rnd, deStringHash(getName()));
+        var rnd = new deRandom.Random();
+        deRandom.deRandom_init(rnd, deString.deStringHash(this.fullName()));
 
-        int        width    = deMin32(renderTarget.getWidth(), 128);
-        int        height    = deMin32(renderTarget.getHeight(), 128);
-        int        xMax    = renderTarget.getWidth()-width+1;
-        int        yMax    = renderTarget.getHeight()-height+1;
-        int        x        = deRandothis.m_getUint32(&rnd) % xMax;
-        int        y        = deRandothis.m_getUint32(&rnd) % yMax;
+        var        width    = Math.min(gl.canvas.width, 128);
+        var        height    = Math.min(gl.canvas.height, 128);
+        var        xMax    = gl.canvas.width - width + 1;
+        var        yMax    = gl.canvas.height - height + 1;
+        var        x        = deRandom.deRandom_getUint32(rnd) % xMax;
+        var        y        = deRandom.deRandom_getUint32(rnd) % yMax;
 
-        tcu::Surface    gles3Frame    (width, height);
-        tcu::Surface    refFrame    (width, height);
-        GLenum            gles3Error;
-        GLenum            refError;
+        /** @type {tcuSurface.Surface} */ var gles3Frame = new tcuSurface.Surface(width, height);
+        /** @type {tcuSurface.Surface} */ var refFrame = new tcuSurface.Surface(width, height);
+        /** @type {number} */ var            gles3Error;
+        /** @type {number} */ var            refError;
 
         // Render using GLES3
+        /** @type {sglrGLContext|sglrReferenceContext} */ var context;
         try
         {
-            sglr::GLContext context(renderCtx, log, sglr::GLCONTEXT_LOG_CALLS, tcu::IVec4(x, y, width, height));
+            context = new sglrGLContext.GLContext(gl, [x, y, width, height]);
 
-            context.clearColor(clearColor.x(), clearColor.y(), clearColor.z(), clearColor.w());
+            context.clearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
             context.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT|gl.STENCIL_BUFFER_BIT);
 
-            render(context, gles3Frame); // Call actual render func
+            this.render(context, gles3Frame); // Call actual render func
             gles3Error = context.getError();
         }
-        catch (const FboIncompleteException& e)
+        catch (e)
         {
-            if (e.getReason() == gl.FRAMEBUFFER_UNSUPPORTED)
+            if(e instanceof es3fFboTestUtil.FboIncompleteException &&
+               e.getReason() == gl.FRAMEBUFFER_UNSUPPORTED)
             {
                 // Mark test case as unsupported
-                log << e;
-                this.m_testCtx.setTestResult(QP_TEST_RESULT_NOT_SUPPORTED, "Not supported");
-                return STOP;
+                bufferedLogToConsole(e + ': ' + e.getReason());
+                testFailed("Not supported");
+                return tcuTestCase.IterateResult.STOP;
             }
-            else
-                throw; // Propagate error
+
+            throw e; // Propagate error
         }
 
         // Render reference image
-        {
-            sglr::ReferenceContextBuffers    buffers    (tcu::PixelFormat(8,8,8,renderTarget.getPixelFormat().alphaBits?8:0), renderTarget.getDepthBits(), renderTarget.getStencilBits(), width, height);
-            sglr::ReferenceContext            context    (sglr::ReferenceContextLimits(renderCtx), buffers.getColorbuffer(), buffers.getDepthbuffer(), buffers.getStencilbuffer());
 
-            context.clearColor(clearColor.x(), clearColor.y(), clearColor.z(), clearColor.w());
-            context.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT|gl.STENCIL_BUFFER_BIT);
+        /** @type {sglrReferenceContext.ReferenceContextBuffers} */
+        var buffers = new sglrReferenceContext.ReferenceContextBuffers(
+            new tcuTexture.PixelFormat(
+                [8, 8, 8],
+                gl.getParameter(gl.ALPHA_BITS) ? 8 : 0
+            ),
+            gl.getParameter(gl.DEPTH_BITS),
+            gl.getParameter(gl.STENCIL_BITS),
+            gl.canvas.width,
+            gl.canvas.height
+        );
+        context = new sglrReferenceContext.ReferenceContext(
+            new sglrReferenceContext.ReferenceContextLimits(gl),
+            buffers.getColorbuffer(), buffers.getDepthbuffer(), buffers.getStencilbuffer()
+        );
 
-            render(context, refFrame);
-            refError = context.getError();
-        }
+        context.clearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
+        context.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT|gl.STENCIL_BUFFER_BIT);
+
+        this.render(context, refFrame);
+        refError = context.getError();
 
         // Compare error codes
-        bool errorCodesOk = (gles3Error == refError);
+        var errorCodesOk = (gles3Error == refError);
 
         if (!errorCodesOk)
         {
-            log << tcu::TestLog::Message << "Error code mismatch: got " << glu::getErrorStr(gles3Error) << ", expected " << glu::getErrorStr(refError) << tcu::TestLog::EndMessage;
+            bufferedLogToConsole(
+                "Error code mismatch: got " + glEnumToString(gles3Error) + ", expected " + glEnumToString(refError);
             failReason = "Got unexpected error";
         }
 
         // Compare images
-        bool imagesOk = compare(refFrame, gles3Frame);
+        var imagesOk = this.compare(refFrame, gles3Frame);
 
         if (!imagesOk && !failReason)
             failReason = "Image comparison failed";
 
         // Store test result
-        bool isOk = errorCodesOk && imagesOk;
-        this.m_testCtx.setTestResult(isOk ? QP_TEST_RESULT_PASS    : QP_TEST_RESULT_FAIL,
-                                isOk ? "Pass"                : failReason);
+        var isOk = errorCodesOk && imagesOk;
+        assertMsgOptions(isOk, failReason, true, true);
 
-        return STOP;
-    }
+        return tcuTestCase.IterateResult.STOP;
+    };
 
-    bool FboRenderCase::compare (const tcu::Surface& reference, const tcu::Surface& result)
+    /**
+     * @param {tcuSurface.Surface} reference
+     * @param {tcuSurface.Surface} result
+     * @return {boolean}
+     */
+    es3fFboRenderTest.FboRenderCase.prototype.compare = (reference, result)
     {
-        const tcu::RGBA threshold (tcu::max(getFormatThreshold(this.m_config.colorFormat), tcu::RGBA(12, 12, 12, 12)));
+        var threshold = new tcuRGBA.RGBA(/* TODO: tcu::max(getFormatThreshold(this.m_config.colorFormat),*/ [12, 12, 12, 12]);
 
-        return tcu::bilinearCompare(this.m_testCtx.getLog(), "ComparisonResult", "Image comparison result", reference.getAccess(), result.getAccess(), threshold, tcu::COMPARE_LOG_RESULT);
-    }
+        return tcuImageCompare.bilinearCompare("ComparisonResult", "Image comparison result", reference.getAccess(), result.getAccess(), threshold, tcuImageCompare.CompareLogMode.RESULT);
+    };
 
-    namespace FboCases
-    {
+    // FboCases
 
     class StencilClearsTest : public FboRenderCase
     {
@@ -570,10 +639,18 @@ goog.scope(function() {
         void                render                    (sglr::Context& context, Surface& dst);
     };
 
-    StencilClearsTest::StencilClearsTest (Context& context, const FboConfig& config)
-        : FboRenderCase    (context, config.getName().c_str(), "Stencil clears", config)
+    /**
+     * @constructor
+     * @extends {es3fFboRenderTest.FboRenderCase}
+     * @param {es3fFboRenderTest.FboConfig} config
+     */
+    es3fFboRenderTest.StencilClearsTest = function (config)
     {
-    }
+        es3fFboRenderTest.FboRenderCase.call(this, config.getName(), "Stencil clears", config);
+    };
+
+    es3fFboRenderTest.StencilClearsTest.prototype = Object.create(es3fFboTestUtil.FboRenderCase.prototype);
+    es3fFboRenderTest.prototype = Object.create(es3fFboTestUtil.FboRenderCase.prototype);
 
     void StencilClearsTest::render (sglr::Context& context, Surface& dst)
     {
@@ -1494,7 +1571,7 @@ goog.scope(function() {
         }
     }
 
-    } // FboCases
+    // FboGroups
 
     FboRenderTestGroup::FboRenderTestGroup (Context& context)
         : TestCaseGroup(context, "render", "Rendering Tests")
