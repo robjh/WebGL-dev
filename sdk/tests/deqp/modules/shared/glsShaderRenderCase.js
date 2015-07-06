@@ -20,6 +20,7 @@
 
 'use strict';
 goog.provide('modules.shared.glsShaderRenderCase');
+goog.require('framework.common.tcuImageCompare');
 goog.require('framework.common.tcuMatrix');
 goog.require('framework.common.tcuRGBA');
 goog.require('framework.common.tcuSurface');
@@ -42,6 +43,7 @@ goog.scope(function() {
     var gluTextureUtil = framework.opengl.gluTextureUtil;
     var gluTexture = framework.opengl.gluTexture;
     var gluDrawUtil = framework.opengl.gluDrawUtil;
+    var tcuImageCompare = framework.common.tcuImageCompare;
     var tcuTexture = framework.common.tcuTexture;
     var tcuMatrix = framework.common.tcuMatrix;
     var tcuRGBA = framework.common.tcuRGBA;
@@ -59,11 +61,11 @@ goog.scope(function() {
      * @return {tcuRGBA.RGBA}
      */
     glsShaderRenderCase.toRGBA = function(a) {
-    	return new tcuRGBA.RGBA([
-                    deMath.clamp(Math.round(a[0] * 255.0), 0, 255),
-    				deMath.clamp(Math.round(a[1] * 255.0), 0, 255),
-    				deMath.clamp(Math.round(a[2] * 255.0), 0, 255),
-    				deMath.clamp(Math.round(a[3] * 255.0), 0, 255)]);
+    	return tcuRGBA.newRGBAComponents(
+            deMath.clamp(Math.round(a[0] * 255.0), 0, 255),
+    		deMath.clamp(Math.round(a[1] * 255.0), 0, 255),
+    		deMath.clamp(Math.round(a[2] * 255.0), 0, 255),
+    		deMath.clamp(Math.round(a[3] * 255.0), 0, 255));
     };
 
     /** @enum {number} */
@@ -81,11 +83,10 @@ goog.scope(function() {
      * @return {glsShaderRenderCase.Type}
      */
     glsShaderRenderCase.getTextureType = function(tex) {
-        if (tex instanceof gluTexture.Texture2D) return glsShaderRenderCase.Type.TYPE_2D;
-        if (tex instanceof gluTexture.TextureCube) return glsShaderRenderCase.Type.TYPE_CUBE_MAP;
-        if (tex instanceof gluTexture.Texture2DArray) return glsShaderRenderCase.Type.TYPE_2D_ARRAY;
-        if (tex instanceof gluTexture.Texture3D) return glsShaderRenderCase.Type.TYPE_3D;
-        return glsShaderRenderCase.Type.TYPE_NONE;
+        if (tex.getType() > 0)
+            return tex.getType();
+        else
+            return glsShaderRenderCase.Type.TYPE_NONE;
     };
 
     /**
@@ -765,9 +766,9 @@ goog.scope(function() {
                 /** @type {Array<number>} */ var t0 = tri ? c00 : c11;
                 /** @type {Array<number>} */ var t1 = tri ? c01 : c10;
                 /** @type {Array<number>} */ var t2 = tri ? c10 : c01;
-                color = t0 + (t1 - t0) * tx + (t2 - t0) * ty;
+                color = deMath.add(t0, deMath.add(deMath.scale(deMath.subtract(t1, t0), tx), deMath.scale(deMath.subtract(t2, t0), ty)));
 
-                result.setPixel(ix, iy, glsShaderRenderCase.toRGBA(color));
+                result.setPixel(ix, iy, glsShaderRenderCase.toRGBA(color).toIVec());
             }
         }
     };
@@ -797,7 +798,7 @@ goog.scope(function() {
     		if (!hasAlpha)
     			color[3] = 1.0;
 
-    		result.setPixel(x, y, glsShaderRenderCase.toRGBA(color));
+    		result.setPixel(x, y, glsShaderRenderCase.toRGBA(color).toIVec());
     	}
     };
 
@@ -891,7 +892,7 @@ goog.scope(function() {
     	for (var i = 0; i < s_boolUniforms.length; i++) {
     		uniLoc = gl.getUniformLocation(programID, s_boolUniforms[i].name);
     		if (uniLoc != -1)
-    			gl.uniform1i(uniLoc, s_boolUniforms[i].value);
+    			gl.uniform1i(uniLoc, s_boolUniforms[i].value ? 1 : 0);
     	}
 
     	// BVec4.
@@ -912,10 +913,10 @@ goog.scope(function() {
     	for (var i = 0; i < s_bvec4Uniforms.length; i++) {
     		/** @type {BVec4Uniform} */ var uni = s_bvec4Uniforms[i];
     		/** @type {Array<number>} */ var arr;
-    		arr[0] = uni.value[0];
-    		arr[1] = uni.value[1];
-    		arr[2] = uni.value[2];
-    		arr[3] = uni.value[3];
+    		arr[0] = uni.value[0] ? 1 : 0;
+    		arr[1] = uni.value[1] ? 1 : 0;
+    		arr[2] = uni.value[2] ? 1 : 0;
+    		arr[3] = uni.value[3] ? 1 : 0;
     		uniLoc = gl.getUniformLocation(programID, uni.name);
     		if (uniLoc != -1)
     			gl.uniform4iv(uniLoc, new Int32Array(arr));
@@ -1034,7 +1035,7 @@ goog.scope(function() {
             /** @type {string} */ this.name = name;
             /** @type {number} */ this.value = value;
         };
-    	/** @type {FloatUniform} */ var s_floatUniforms = [
+    	/** @type {Array<FloatUniform>} */ var s_floatUniforms = [
     		new FloatUniform("uf_zero", 0.0),
     		new FloatUniform("uf_one", 1.0),
     		new FloatUniform("uf_two", 2.0),
@@ -1068,7 +1069,7 @@ goog.scope(function() {
             /** @type {string} */ this.name = name;
             /** @type {Array<number>} */ this.value = value;
         };
-    	/** @type {Vec2Uniform} */ var s_vec2Uniforms = [
+    	/** @type {Array<Vec2Uniform>} */ var s_vec2Uniforms = [
     		new Vec2Uniform("uv2_minusOne", [-1.0, -1.0]),
     		new Vec2Uniform("uv2_zero", [0.0, 0.0]),
     		new Vec2Uniform("uv2_half", [0.5, 0.5]),
@@ -1091,7 +1092,7 @@ goog.scope(function() {
             /** @type {string} */ this.name = name;
             /** @type {Array<number>} */ this.value = value;
         };
-    	/** @type {Vec3Uniform} */ var s_vec3Uniforms = [
+    	/** @type {Array<Vec3Uniform>} */ var s_vec3Uniforms = [
     		new Vec3Uniform("uv3_minusOne", [-1.0, -1.0, -1.0]),
     		new Vec3Uniform("uv3_zero", [0.0, 0.0, 0.0]),
     		new Vec3Uniform("uv3_half", [0.5, 0.5, 0.5]),
