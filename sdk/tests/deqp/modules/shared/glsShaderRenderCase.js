@@ -330,12 +330,12 @@ goog.scope(function() {
      * @param  {glsShaderRenderCase.QuadGrid} quadGrid_
      */
     glsShaderRenderCase.ShaderEvalContext = function(quadGrid_) {
-        /** @type {Array<number>} */ this.coords = [];
-        /** @type {Array<number>} */ this.unitCoords = [];
+        /** @type {Array<number>} */ this.coords = [0, 0, 0, 0]
+        /** @type {Array<number>} */ this.unitCoords = [0, 0, 0, 0]
         /** @type {Array<number>} */ this.constCoords = quadGrid_.getConstCoords();
         /** @type {Array<Array<number>>} */ this.in_ = [];
         /** @type {Array<glsShaderRenderCase.ShaderSampler>} */ this.textures = [];
-        /** @type {Array<number>} */ this.color = [];
+        /** @type {Array<number>} */ this.color = [0, 0, 0, 0];
         /** @type {boolean} */ this.isDiscarded = false;
         /** @type {glsShaderRenderCase.QuadGrid} */ this.quadGrid = quadGrid_;
 
@@ -437,11 +437,11 @@ goog.scope(function() {
 
     /**
      * @constructor
-     * @param  {?function(glsShaderRenderCase.ShaderEvalContext)} evalFunc
+     * @param  {glsShaderRenderCase.ShaderEvalFunc=} evalFunc
      */
     glsShaderRenderCase.ShaderEvaluator = function(evalFunc) {
         evalFunc = evalFunc === undefined ? null :  evalFunc;
-        /** @type {?function(glsShaderRenderCase.ShaderEvalContext)} */ this.m_evalFunc = evalFunc;
+        /** @type {?glsShaderRenderCase.ShaderEvalFunc} */ this.m_evalFunc = evalFunc;
     };
 
     /**
@@ -451,21 +451,21 @@ goog.scope(function() {
         assertMsgOptions(this.m_evalFunc !== null, 'No evaluation function specified.', false, true);
         this.m_evalFunc(ctx);
     };
-    /** @typedef {?(function(glsShaderRenderCase.ShaderEvalContext)|glsShaderRenderCase.ShaderEvaluator)} */ glsShaderRenderCase.Evaluator;
+    /** @typedef {function(glsShaderRenderCase.ShaderEvalContext)} */ glsShaderRenderCase.ShaderEvalFunc;
     /**
      * @constructor
      * @extends {tcuTestCase.DeqpTest}
      * @param  {string} name
      * @param  {string} description
      * @param  {boolean} isVertexCase
-     * @param  {?function(glsShaderRenderCase.ShaderEvalContext)=} evalFunc
+     * @param  {glsShaderRenderCase.ShaderEvalFunc=} evalFunc
      */
     glsShaderRenderCase.ShaderRenderCase = function(name, description, isVertexCase, evalFunc) {
         tcuTestCase.DeqpTest.call(this, name, description);
         evalFunc = evalFunc === undefined ? null : evalFunc;
     	/** @type {boolean} */ this.m_isVertexCase = isVertexCase;
-    	/** @type {glsShaderRenderCase.Evaluator} */ this.m_defaultEvaluator = evalFunc;
-    	/** @type {glsShaderRenderCase.Evaluator} */ this.m_evaluator = this.m_defaultEvaluator;
+    	/** @type {?glsShaderRenderCase.ShaderEvalFunc} */ this.m_defaultEvaluator = evalFunc;
+    	/** @type {glsShaderRenderCase.ShaderEvaluator} */ this.m_evaluator = new glsShaderRenderCase.ShaderEvaluator(this.m_defaultEvaluator);
     	/** @type {string} */ this.m_vertShaderSource;
     	/** @type {string} */ this.m_fragShaderSource;
     	/** @type {Array<number>} */ this.m_clearColor = glsShaderRenderCase.DEFAULT_CLEAR_COLOR;
@@ -507,7 +507,7 @@ goog.scope(function() {
     	this.m_program = new gluShaderProgram.ShaderProgram(gl, gluShaderProgram.makeVtxFragSources(this.m_vertShaderSource, this.m_fragShaderSource));
 
     	try {
-    		//bufferedLogToConsole(this.m_program.getProgram().getProgramInfo().infoLog);; // Always log shader program.
+    		//bufferedLogToConsole(this.m_program.getProgram().getProgramInfo().infoLog); // Always log shader program.
 
     		if (!this.m_program.isOk())
     			throw new Error("Shader compile error.");
@@ -693,7 +693,7 @@ goog.scope(function() {
         var evalCtx = new glsShaderRenderCase.ShaderEvalContext(quadGrid);
         /** @type {Array<number>} */ var color = [];
         // Evaluate color for each vertex.
-        /** @type {Array<Array<number>>} */ var colors;
+        /** @type {Array<Array<number>>} */ var colors = [];
         for (var y = 0; y < gridSize + 1; y++)
         for (var x = 0; x < gridSize + 1; x++) {
             /** @type {number} */ var sx = x / gridSize;
