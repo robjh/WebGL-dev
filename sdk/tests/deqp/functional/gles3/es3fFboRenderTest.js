@@ -865,22 +865,34 @@ goog.scope(function() {
             es3fFboTestUtil.readPixels(context, dst, 0, 0, width, height, gluShaderUtil.mapGLInternalFormat(fboA.getConfig().colorFormat), [1.0], [0.0]);
     };
 
-
-    SharedColorbufferClearsTest::SharedColorbufferClearsTest (Context& context, const FboConfig& config)
-        : FboRenderCase    (context, config.getName().c_str(), "Shared colorbuffer clears", config)
+    /**
+     * @constructor
+     * @extends {es3fFboRenderTest.FboRenderCase}
+     * @param {es3fFboRenderTest.FboConfig} config
+     */
+    es3fFboRenderTest.SharedColorbufferClearsTest = function (config)
     {
-    }
+        es3fFboRenderTest.FboRenderCase.call(this, config.getName(), "Shared colorbuffer clears", config);
+    };
 
-    void SharedColorbufferClearsTest::render (sglr::Context& context, Surface& dst)
+    es3fFboRenderTest.SharedColorbufferClearsTest.prototype = Object.create(es3fFboRenderTest.FboRenderCase.prototype);
+    es3fFboRenderTest.SharedColorbufferClearsTest.prototype.constructor =
+        es3fFboRenderTest.SharedColorbufferClearsTest;
+
+    /**
+     * @param {?sglrGLContext|sglrReferenceContext} context
+     * @param {tcuSurface.Surface} dst
+     */
+    es3fFboRenderTest.SharedColorbufferClearsTest.prototype.render = function (context, dst)
     {
-        tcu::TextureFormat        colorFormat        = glu::mapGLInternalFormat(this.m_config.colorFormat);
-        glu::DataType            fboSamplerType    = glu::getSampler2DType(colorFormat);
-        int                        width            = 128;
-        int                        height            = 128;
-        deUint32                colorbuffer        = 1;
+        /** @type {tcuTexture.TextureFormat} */ var colorFormat = gluTextureUtil.mapGLInternalFormat(this.m_config.colorFormat);
+        /** @type {gluShaderUtil.DataType} */ var fboSamplerType = gluTextureUtil.getSampler2DType(colorFormat);
+        var                        width            = 128;
+        var                        height            = 128;
+        var                colorbuffer        = 1;
 
         // Check for format support.
-        checkColorFormatSupport(context, this.m_config.colorFormat);
+        es3fFboRenderTest.checkColorFormatSupport(context, this.m_config.colorFormat);
 
         // Single colorbuffer
         if (this.m_config.colorType == gl.TEXTURE_2D)
@@ -892,13 +904,13 @@ goog.scope(function() {
         }
         else
         {
-            DE_ASSERT(this.m_config.colorType == gl.RENDERBUFFER);
+            assertMsgOptions(this.m_config.colorType == gl.RENDERBUFFER);
             context.bindRenderbuffer(gl.RENDERBUFFER, colorbuffer);
             context.renderbufferStorage(gl.RENDERBUFFER, this.m_config.colorFormat, width, height);
         }
 
         // Multiple framebuffers sharing the colorbuffer
-        for (int fbo = 1; fbo <= 3; fbo++)
+        for (var fbo = 1; fbo <= 3; fbo++)
         {
             context.bindFramebuffer(gl.FRAMEBUFFER, fbo);
 
@@ -911,34 +923,34 @@ goog.scope(function() {
         context.bindFramebuffer(gl.FRAMEBUFFER, 1);
 
         // Check completeness
-        {
-            GLenum status = context.checkFramebufferStatus(gl.FRAMEBUFFER);
-            if (status != gl.FRAMEBUFFER_COMPLETE)
-                throw FboIncompleteException(status, __FILE__, __LINE__);
-        }
+
+        var status = context.checkFramebufferStatus(gl.FRAMEBUFFER);
+        if (status != gl.FRAMEBUFFER_COMPLETE)
+            throw es3fFboTestUtil.FboIncompleteException(status);
+
 
         // Render to them
         context.viewport(0, 0, width, height);
-        context.clearColor(0.0f, 0.0f, 1.0f, 1.0f);
+        context.clearColor(0.0, 0.0, 1.0, 1.0);
         context.clear(gl.COLOR_BUFFER_BIT);
 
         context.enable(gl.SCISSOR_TEST);
 
         context.bindFramebuffer(gl.FRAMEBUFFER, 2);
-        context.clearColor(0.6f, 0.0f, 0.0f, 1.0f);
+        context.clearColor(0.6, 0.0, 0.0, 1.0);
         context.scissor(10, 10, 64, 64);
         context.clear(gl.COLOR_BUFFER_BIT);
-        context.clearColor(0.0f, 0.6f, 0.0f, 1.0f);
+        context.clearColor(0.0, 0.6, 0.0, 1.0);
         context.scissor(60, 60, 40, 20);
         context.clear(gl.COLOR_BUFFER_BIT);
 
         context.bindFramebuffer(gl.FRAMEBUFFER, 3);
-        context.clearColor(0.0f, 0.0f, 0.6f, 1.0f);
+        context.clearColor(0.0, 0.0, 0.6, 1.0);
         context.scissor(20, 20, 100, 10);
         context.clear(gl.COLOR_BUFFER_BIT);
 
         context.bindFramebuffer(gl.FRAMEBUFFER, 1);
-        context.clearColor(0.6f, 0.0f, 0.6f, 1.0f);
+        context.clearColor(0.6, 0.0, 0.6, 1.0);
         context.scissor(20, 20, 5, 100);
         context.clear(gl.COLOR_BUFFER_BIT);
 
@@ -946,78 +958,96 @@ goog.scope(function() {
 
         if (this.m_config.colorType == gl.TEXTURE_2D)
         {
-            Texture2DShader shader(DataTypes() << fboSamplerType, glu::TYPE_FLOAT_VEC4);
-            deUint32 shaderID = context.createProgram(&shader);
+            /** @type {es3fFboTestUtil.Texture2DShader} */
+            var shader = new es3fFboTestUtil.Texture2DShader([fboSamplerType], gluShaderUtil.DataType.FLOAT_VEC4);
+            var shaderID = context.createProgram(shader);
 
             shader.setUniforms(context, shaderID);
 
             context.bindFramebuffer(gl.FRAMEBUFFER, 0);
             context.viewport(0, 0, context.getWidth(), context.getHeight());
-            sglr::drawQuad(context, shaderID, Vec3(-0.9f, -0.9f, 0.0f), Vec3(0.9f, 0.9f, 0.0f));
-            context.readPixels(dst, 0, 0, context.getWidth(), context.getHeight());
+            rrUtil.drawQuad(context, shaderID, [-0.9, -0.9, 0.0], [0.9, 0.9, 0.0]);
+            dst.readViewport(context, [0, 0, context.getWidth(), context.getHeight()]);
         }
         else
-            readPixels(context, dst, 0, 0, width, height, colorFormat, Vec4(1.0f), Vec4(0.0f));
-    }
-
-    class SharedDepthStencilTest : public FboRenderCase
-    {
-    public:
-                        SharedDepthStencilTest        (Context& context, const FboConfig& config);
-        virtual            ~SharedDepthStencilTest        (void) {};
-
-        static bool        isConfigSupported            (const FboConfig& config);
-        void            render                        (sglr::Context& context, Surface& dst);
+            es3fFboTestUtil.readPixels(context, dst, 0, 0, width, height, colorFormat, [1.0, 1.0, 1.0, 1.0], [0.0, 0.0, 0.0, 0.0]);
     };
 
-    SharedDepthStencilTest::SharedDepthStencilTest (Context& context, const FboConfig& config)
-        : FboRenderCase    (context, config.getName().c_str(), "Shared depth/stencilbuffer", config)
+    /**
+     * @constructor
+     * @extends {es3fFboRenderTest.FboRenderCase}
+     * @param {es3fFboRenderTest.FboConfig} config
+     */
+    es3fFboRenderTest.SharedDepthStencilTest = function (config)
     {
-    }
+        es3fFboRenderTest.FboRenderCase = function (config.getName(), "Shared depth/stencilbuffer", config);
+    };
 
-    bool SharedDepthStencilTest::isConfigSupported (const FboConfig& config)
+    es3fFboRenderTest.SharedDepthStencilTest.prototype = Object.create(es3fFboRenderTest.FboRenderCase.prototype);
+    es3fFboRenderTest.SharedDepthStencilTest.prototype.constructor =
+        es3fFboRenderTest.SharedDepthStencilTest;
+
+    /**
+     * @param {es3fFboTestUtil.FboConfig} config
+     * @return {boolean}
+     */
+    es3fFboRenderTest.SharedDepthStencilTest.prototype.isConfigSupported = function (config)
     {
         return (config.buffers & (gl.DEPTH_BUFFER_BIT|gl.STENCIL_BUFFER_BIT)) != 0;
-    }
+    };
 
-    void SharedDepthStencilTest::render (sglr::Context& context, Surface& dst)
+    /**
+     * @param {?sglrGLContext|sglrReferenceContext} context
+     * @param {tcuSurface.Surface} dst
+     */
+    es3fFboRenderTest.SharedDepthStencilTest.prototype.render = function (context, dst)
     {
-        Texture2DShader    texShader        (DataTypes() << glu::TYPE_SAMPLER_2D, glu::TYPE_FLOAT_VEC4);
-        FlatColorShader    flatShader        (glu::TYPE_FLOAT_VEC4);
-        deUint32        texShaderID        = context.createProgram(&texShader);
-        deUint32        flatShaderID    = context.createProgram(&flatShader);
-        int                width            = 128;
-        int                height            = 128;
+        /** @type {es3fFboTestUtil.Texture2DShader} */
+        var texShader = new es3fFboTestUtil.Texture2DShader(gluShaderUtil.DataType.SAMPLER_2D, gluShaderUtil.DataType.FLOAT_VEC4);
+        /** @type {es3fFboTestUtil.FlatColorShader} */
+        var flatShader = new es3fFboTestUtil.FlatColorShader(gluShaderUtil.DataType.FLOAT_VEC4);
+        var        texShaderID        = context.createProgram(texShader);
+        var        flatShaderID    = context.createProgram(flatShader);
+        var                width            = 128;
+        var                height            = 128;
     //    bool            depth            = (this.m_config.buffers & gl.DEPTH_BUFFER_BIT) != 0;
-        bool            stencil            = (this.m_config.buffers & gl.STENCIL_BUFFER_BIT) != 0;
+        /**@type {boolean} */ var  stencil   = (this.m_config.buffers & gl.STENCIL_BUFFER_BIT) != 0;
 
         // Textures
-        deUint32 metaballsTex    = 5;
-        deUint32 quadsTex        = 6;
-        createMetaballsTex2D(context, metaballsTex, gl.RGB, gl.UNSIGNED_BYTE, 64, 64);
-        createQuadsTex2D(context, quadsTex, gl.RGB, gl.UNSIGNED_BYTE, 64, 64);
+        var metaballsTex    = 5;
+        var quadsTex        = 6;
+        es3fFboRenderTest.createMetaballsTex2D(context, metaballsTex, gl.RGB, gl.UNSIGNED_BYTE, 64, 64);
+        es3fFboRenderTest.createQuadsTex2D(context, quadsTex, gl.RGB, gl.UNSIGNED_BYTE, 64, 64);
 
         context.viewport(0, 0, width, height);
 
         // Fbo A
-        Framebuffer fboA(context, this.m_config, width, height);
+        /** @type {es3fFboRenderTest.Framebuffer} */ var fboA = new es3fFboRenderTest.Framebuffer(
+            context, this.m_config, width, height
+        );
+
         fboA.checkCompleteness();
 
         // Fbo B
-        FboConfig cfg = this.m_config;
-        cfg.buffers                &= ~(gl.DEPTH_BUFFER_BIT|gl.STENCIL_BUFFER_BIT);
-        cfg.depthStencilType     = gl.NONE;
-        cfg.depthStencilFormat     = gl.NONE;
-        Framebuffer fboB(context, cfg, width, height);
+        /** @type {es3fFboRenderTest.FboConfig} */ var cfg = this.m_config;
+
+        cfg.buffers = deMath.binaryOp(
+            cfg.buffers,
+            deMath.binaryNot(gl.DEPTH_BUFFER_BIT|gl.STENCIL_BUFFER_BIT),
+            deMath.BinaryOp.AND);
+        cfg.depthStencilType = gl.NONE;
+        cfg.depthStencilFormat = gl.NONE;
+        /** @type {es3fFboRenderTest.Framebuffer} */ var fboB =
+            new es3fFboRenderTest.Framebuffer(context, cfg, width, height);
 
         // Bind depth/stencil buffers from fbo A to fbo B
         context.bindFramebuffer(gl.FRAMEBUFFER, fboB.getFramebuffer());
-        for (int ndx = 0; ndx < 2; ndx++)
+        for (var ndx = 0; ndx < 2; ndx++)
         {
-            deUint32    bit        = ndx ? gl.STENCIL_BUFFER_BIT : gl.DEPTH_BUFFER_BIT;
-            deUint32    point    = ndx ? gl.STENCIL_ATTACHMENT : gl.DEPTH_ATTACHMENT;
+            var    bit        = ndx ? gl.STENCIL_BUFFER_BIT : gl.DEPTH_BUFFER_BIT;
+            var    point    = ndx ? gl.STENCIL_ATTACHMENT : gl.DEPTH_ATTACHMENT;
 
-            if ((this.m_config.buffers & bit) == 0)
+            if (deMath.binaryOp(this.m_config.buffers, bit, deMath.BinaryOp.AND) == 0)
                 continue;
 
             switch (this.m_config.depthStencilType)
@@ -1025,7 +1055,7 @@ goog.scope(function() {
                 case gl.TEXTURE_2D:        context.framebufferTexture2D(gl.FRAMEBUFFER, point, gl.TEXTURE_2D, fboA.getDepthStencilBuffer(), 0);    break;
                 case gl.RENDERBUFFER:    context.framebufferRenderbuffer(gl.FRAMEBUFFER, point, gl.RENDERBUFFER, fboA.getDepthStencilBuffer());    break;
                 default:
-                    TCU_FAIL("Not implemented");
+                    testFailed("Not implemented");
             }
         }
 
@@ -1033,7 +1063,7 @@ goog.scope(function() {
         texShader.setUniforms(context, texShaderID);
 
         // Clear color to red and stencil to 1 in fbo B.
-        context.clearColor(1.0f, 0.0f, 0.0f, 1.0f);
+        context.clearColor(1.0, 0.0, 0.0, 1.0);
         context.clearStencil(1);
         context.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT|gl.STENCIL_BUFFER_BIT);
 
@@ -1042,7 +1072,7 @@ goog.scope(function() {
         // Render quad to fbo A
         context.bindFramebuffer(gl.FRAMEBUFFER, fboA.getFramebuffer());
         context.bindTexture(gl.TEXTURE_2D, quadsTex);
-        sglr::drawQuad(context, texShaderID, Vec3(-1.0f, -1.0f, 0.0f), Vec3(1.0f, 1.0f, 0.0f));
+        rrUtil.drawQuad(context, texShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
 
         if (stencil)
         {
@@ -1057,7 +1087,7 @@ goog.scope(function() {
         // Render metaballs to fbo B
         context.bindFramebuffer(gl.FRAMEBUFFER, fboB.getFramebuffer());
         context.bindTexture(gl.TEXTURE_2D, metaballsTex);
-        sglr::drawQuad(context, texShaderID, Vec3(-1.0f, -1.0f, -1.0f), Vec3(1.0f, 1.0f, 1.0f));
+        rrUtil.drawQuad(context, texShaderID, [-1.0, -1.0, -1.0], [1.0, 1.0, 1.0]);
 
         context.disable(gl.DEPTH_TEST);
 
@@ -1067,8 +1097,8 @@ goog.scope(function() {
             context.enable(gl.STENCIL_TEST);
             context.stencilFunc(gl.EQUAL, 0, 0xffu);
             context.useProgram(flatShaderID);
-            flatShader.setColor(context, flatShaderID, Vec4(0.0f, 1.0f, 0.0f, 1.0f));
-            sglr::drawQuad(context, flatShaderID, Vec3(-1.0f, -1.0f, 0.0f), Vec3(+1.0f, +1.0f, 0.0f));
+            flatShader.setColor(context, flatShaderID, [0.0, 1.0, 0.0, 1.0]);
+            rrUtil.drawQuad(context, flatShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
             context.disable(gl.STENCIL_TEST);
         }
 
@@ -1078,145 +1108,19 @@ goog.scope(function() {
             context.bindFramebuffer(gl.FRAMEBUFFER, 0);
             context.viewport(0, 0, context.getWidth(), context.getHeight());
             context.bindTexture(gl.TEXTURE_2D, fboA.getColorBuffer());
-            sglr::drawQuad(context, texShaderID, Vec3(-1.0f, -1.0f, 0.0f), Vec3(0.0f, 1.0f, 0.0f));
+            rrUtil.drawQuad(context, texShaderID, [-1.0, -1.0, 0.0], [0.0, 1.0, 0.0]);
             context.bindTexture(gl.TEXTURE_2D, fboB.getColorBuffer());
-            sglr::drawQuad(context, texShaderID, Vec3(0.0f, -1.0f, 0.0f), Vec3(1.0f, 1.0f, 0.0f));
+            rrUtil.drawQuad(context, texShaderID, [0.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
 
-            context.readPixels(dst, 0, 0, context.getWidth(), context.getHeight());
+            dst.readViewport(context, [0, 0, context.getWidth(), context.getHeight()]);
         }
         else
         {
             // Read results from fbo B
-            readPixels(context, dst, 0, 0, width, height, glu::mapGLInternalFormat(this.m_config.colorFormat), Vec4(1.0f), Vec4(0.0f));
+            es3fFboTestUtil.readPixels(context, dst, 0, 0, width, height,
+                gluShaderUtil.mapGLInternalFormat(this.m_config.colorFormat), [1.0, 1.0, 1.0, 1.0], [0.0, 0.0, 0.0, 0.0]);
         }
-    }
-
-    #if 0
-    class TexSubImageAfterRenderTest : public FboRenderCase
-    {
-    public:
-                        TexSubImageAfterRenderTest        (Context& context, const FboConfig& config);
-        virtual            ~TexSubImageAfterRenderTest        (void) {}
-
-        void            render                            (sglr::Context& context, Surface& dst);
     };
-
-    TexSubImageAfterRenderTest::TexSubImageAfterRenderTest (Context& context, const FboConfig& config)
-        : FboRenderCase(context, (string("after_render_") + config.getName()).c_str(), "TexSubImage after rendering to texture", config)
-    {
-    }
-
-    void TexSubImageAfterRenderTest::render (sglr::Context& context, Surface& dst)
-    {
-        using sglr::TexturedQuadOp;
-
-        bool isRGBA = true;
-
-        Surface fourQuads(Surface::PIXELFORMAT_RGB, 64, 64);
-        tcu::SurfaceUtil::fillWithFourQuads(fourQuads);
-
-        Surface metaballs(isRGBA ? Surface::PIXELFORMAT_RGBA : Surface::PIXELFORMAT_RGB, 64, 64);
-        tcu::SurfaceUtil::fillWithMetaballs(metaballs, 5, 3);
-
-        deUint32 fourQuadsTex = 1;
-        context.bindTexture(gl.TEXTURE_2D, fourQuadsTex);
-        context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-        context.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, fourQuads);
-
-        context.bindFramebuffer(gl.FRAMEBUFFER, 1);
-
-        deUint32 fboTex = 2;
-        context.bindTexture(gl.TEXTURE_2D, fboTex);
-        context.texImage2D(gl.TEXTURE_2D, 0, isRGBA ? gl.RGBA : gl.RGB, 128, 128);
-        context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-        context.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, fboTex, 0);
-
-        // Render to fbo
-        context.viewport(0, 0, 128, 128);
-        context.bindTexture(gl.TEXTURE_2D, fourQuadsTex);
-        context.draw(TexturedQuadOp(-1.0f, -1.0f, 1.0f, 1.0f, 0));
-
-        // Update texture using TexSubImage2D
-        context.bindTexture(gl.TEXTURE_2D, fboTex);
-        context.texSubImage2D(gl.TEXTURE_2D, 0, 32, 32, metaballs);
-
-        // Draw to screen
-        context.bindFramebuffer(gl.FRAMEBUFFER, 0);
-        context.viewport(0, 0, context.getWidth(), context.getHeight());
-        context.draw(TexturedQuadOp(-1.0f, -1.0f, 1.0f, 1.0f, 0));
-        context.readPixels(dst, 0, 0, context.getWidth(), context.getHeight());
-    }
-
-    class TexSubImageBetweenRenderTest : public FboRenderCase
-    {
-    public:
-                        TexSubImageBetweenRenderTest        (Context& context, const FboConfig& config);
-        virtual            ~TexSubImageBetweenRenderTest        (void) {}
-
-        void            render                                (sglr::Context& context, Surface& dst);
-    };
-
-    TexSubImageBetweenRenderTest::TexSubImageBetweenRenderTest (Context& context, const FboConfig& config)
-        : FboRenderCase(context, (string("between_render_") + config.getName()).c_str(), "TexSubImage between rendering calls", config)
-    {
-    }
-
-    void TexSubImageBetweenRenderTest::render (sglr::Context& context, Surface& dst)
-    {
-        using sglr::TexturedQuadOp;
-        using sglr::BlendTextureOp;
-
-        bool isRGBA = true;
-
-        Surface fourQuads(Surface::PIXELFORMAT_RGB, 64, 64);
-        tcu::SurfaceUtil::fillWithFourQuads(fourQuads);
-
-        Surface metaballs(isRGBA ? Surface::PIXELFORMAT_RGBA : Surface::PIXELFORMAT_RGB, 64, 64);
-        tcu::SurfaceUtil::fillWithMetaballs(metaballs, 5, 3);
-
-        Surface metaballs2(Surface::PIXELFORMAT_RGBA, 64, 64);
-        tcu::SurfaceUtil::fillWithMetaballs(metaballs2, 5, 4);
-
-        deUint32 metaballsTex = 3;
-        context.bindTexture(gl.TEXTURE_2D, metaballsTex);
-        context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-        context.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, metaballs2);
-
-        deUint32 fourQuadsTex = 1;
-        context.bindTexture(gl.TEXTURE_2D, fourQuadsTex);
-        context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-        context.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, fourQuads);
-
-        context.bindFramebuffer(gl.FRAMEBUFFER, 1);
-
-        deUint32 fboTex = 2;
-        context.bindTexture(gl.TEXTURE_2D, fboTex);
-        context.texImage2D(gl.TEXTURE_2D, 0, isRGBA ? gl.RGBA : gl.RGB, 128, 128);
-        context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-        context.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, fboTex, 0);
-
-        // Render to fbo
-        context.viewport(0, 0, 128, 128);
-        context.bindTexture(gl.TEXTURE_2D, fourQuadsTex);
-        context.draw(TexturedQuadOp(-1.0f, -1.0f, 1.0f, 1.0f, 0));
-
-        // Update texture using TexSubImage2D
-        context.bindTexture(gl.TEXTURE_2D, fboTex);
-        context.texSubImage2D(gl.TEXTURE_2D, 0, 32, 32, metaballs);
-
-        // Render again to fbo
-        context.bindTexture(gl.TEXTURE_2D, metaballsTex);
-        context.draw(BlendTextureOp(0));
-
-        // Draw to screen
-        context.bindFramebuffer(gl.FRAMEBUFFER, 0);
-        context.viewport(0, 0, context.getWidth(), context.getHeight());
-        context.bindTexture(gl.TEXTURE_2D, fboTex);
-        context.draw(TexturedQuadOp(-1.0f, -1.0f, 1.0f, 1.0f, 0));
-
-        context.readPixels(dst, 0, 0, context.getWidth(), context.getHeight());
-    }
-    #endif
 
     class ResizeTest : public FboRenderCase
     {
@@ -1227,57 +1131,72 @@ goog.scope(function() {
         void            render                    (sglr::Context& context, Surface& dst);
     };
 
-    ResizeTest::ResizeTest (Context& context, const FboConfig& config)
-        : FboRenderCase    (context, config.getName().c_str(), "Resize framebuffer", config)
+    /**
+     * @constructor
+     * @extends {es3fFboRenderTest.FboRenderCase}
+     * @param {es3fFboRenderTest.FboConfig} config
+     */
+    es3fFboRenderTest.ResizeTest = function (config)
     {
-    }
+        es3fFboRenderTest.FboRenderCase.call(this, config.getName(), "Resize framebuffer", config);
+    };
 
-    void ResizeTest::render (sglr::Context& context, Surface& dst)
+    es3fFboRenderTest.ResizeTest.prototype = Object.create(es3fFboRenderTest.FboRenderCase.prototype);
+    es3fFboRenderTest.ResizeTest.prototype.constructor = es3fFboRenderTest.ResizeTest;
+
+    /**
+     * @param {?sglrGLContext|sglrReferenceContext} context
+     * @param {tcuSurface.Surface} dst
+     */
+    es3fFboRenderTest.ResizeTest.prototype.render = function (context, dst)
     {
-        tcu::TextureFormat        colorFormat            = glu::mapGLInternalFormat(this.m_config.colorFormat);
-        glu::DataType            fboSamplerType        = glu::getSampler2DType(colorFormat);
-        glu::DataType            fboOutputType        = getFragmentOutputType(colorFormat);
-        tcu::TextureFormatInfo    fboRangeInfo        = tcu::getTextureFormatInfo(colorFormat);
-        Vec4                    fboOutScale            = fboRangeInfo.valueMax - fboRangeInfo.valueMin;
-        Vec4                    fboOutBias            = fboRangeInfo.valueMin;
+        /** @type {tcuTexture.TextureFormat} */ var colorFormat = gluTextureUtil.mapGLInternalFormat(this.m_config.colorFormat);
+        /** @type {gluShaderUtil.DataType} */ var fboSamplerType = gluTextureUtil.getSampler2DType(colorFormat);
+        /** @type {gluShaderUtil.DataType} */ var fboOutputType = es3fFboTestUtil.getFragmentOutputType(colorFormat);
+        /** @type {tcuTextureUtil.TextureFormatInfo} */ var fboRangeInfo = tcuTextureUtil.getTextureFormatInfo(colorFormat);
+        var fboOutScale = deMath.sub(fboRangeInfo.valueMax, fboRangeInfo.valueMin);
+        var fboOutBias = fboRangeInfo.valueMin;
 
-        Texture2DShader            texToFboShader        (DataTypes() << glu::TYPE_SAMPLER_2D, fboOutputType);
-        Texture2DShader            texFromFboShader    (DataTypes() << fboSamplerType, glu::TYPE_FLOAT_VEC4);
-        FlatColorShader            flatShader            (fboOutputType);
-        deUint32                texToFboShaderID    = context.createProgram(&texToFboShader);
-        deUint32                texFromFboShaderID    = context.createProgram(&texFromFboShader);
-        deUint32                flatShaderID        = context.createProgram(&flatShader);
+        /** @type {es3fFboTestUtil.Texture2DShader} */ var texToFboShader = new es3fFboTestUtil.Texture2DShader([gluShaderUtil.DataType.SAMPLER_2D], fboOutputType);
+        /** @type {es3fFboTestUtil.Texture2DShader} */ var texFromFboShader = new es3fFboTestUtil.Texture2DShader([fboSamplerType], gluShaderUtil.DataType.FLOAT_VEC4);
 
-        deUint32                quadsTex            = 1;
-        deUint32                metaballsTex        = 2;
-        bool                    depth                = (this.m_config.buffers & gl.DEPTH_BUFFER_BIT)        != 0;
-        bool                    stencil                = (this.m_config.buffers & gl.STENCIL_BUFFER_BIT)    != 0;
-        int                        initialWidth        = 128;
-        int                        initialHeight        = 128;
-        int                        newWidth            = 64;
-        int                        newHeight            = 32;
+        /** @type {es3fFboTestUtil.FlatColorShader} */
+        var flatShader = new es3fFboTestUtil.FlatColorShader(fboOutputType);
+        /** @type {number} */ var texToFboShaderID = context.createProgram(texToFboShader);
+        /** @type {number} */ var flatShaderID = context.createProgram(texFromFboShader);
+
+        var                quadsTex            = 1;
+        var                metaballsTex        = 2;
+        var                    depth                = deMath.binaryOp(this.m_config.buffers, gl.DEPTH_BUFFER_BIT, deMath.BinaryOP.AND) != 0;
+        var                    stencil                = deMath.binaryOp(this.m_config.buffers, gl.STENCIL_BUFFER_BIT, deMath.BinaryOP.AND) != 0;
+        var                        initialWidth        = 128;
+        var                        initialHeight        = 128;
+        var                        newWidth            = 64;
+        var                        newHeight            = 32;
 
         texToFboShader.setOutScaleBias(fboOutScale, fboOutBias);
         texFromFboShader.setTexScaleBias(0, fboRangeInfo.lookupScale, fboRangeInfo.lookupBias);
 
-        createQuadsTex2D(context, quadsTex, gl.RGB, gl.UNSIGNED_BYTE, 64, 64);
-        createMetaballsTex2D(context, metaballsTex, gl.RGB, gl.UNSIGNED_BYTE, 32, 32);
+        es3fFboRenderTest.createQuadsTex2D(context, quadsTex, gl.RGB, gl.UNSIGNED_BYTE, 64, 64);
+        es3fFboRenderTest.createMetaballsTex2D(context, metaballsTex, gl.RGB, gl.UNSIGNED_BYTE, 32, 32);
 
-        Framebuffer fbo(context, this.m_config, initialWidth, initialHeight);
+        /** @type {es3fFboRenderTest.Framebuffer} */ var fbo = new es3fFboRenderTest.Framebuffer(
+            context, this.m_config, initialWidth, initialHeight
+        );
         fbo.checkCompleteness();
 
         // Setup shaders
         texToFboShader.setUniforms    (context, texToFboShaderID);
         texFromFboShader.setUniforms(context, texFromFboShaderID);
-        flatShader.setColor            (context, flatShaderID, Vec4(0.0f, 1.0f, 0.0f, 1.0f) * fboOutScale + fboOutBias);
+        flatShader.setColor            (context, flatShaderID, deMath.add(deMath.multiply([0.0, 1.0, 0.0, 1.0], fboOutScale), fboOutBias)));
 
         // Render quads
         context.bindFramebuffer(gl.FRAMEBUFFER, fbo.getFramebuffer());
         context.viewport(0, 0, initialWidth, initialHeight);
-        clearColorBuffer(context, colorFormat, tcu::Vec4(0.0f, 0.0f, 0.0f, 1.0f));
+        es3fFboTestUtil.clearColorBuffer(context, colorFormat, [0.0, 0.0, 0.0, 1.0]);
         context.clear(gl.DEPTH_BUFFER_BIT|gl.STENCIL_BUFFER_BIT);
         context.bindTexture(gl.TEXTURE_2D, quadsTex);
-        sglr::drawQuad(context, texToFboShaderID, Vec3(-1.0f, -1.0f, 0.0f), Vec3(1.0f, 1.0f, 0.0f));
+        rrUtil.drawQuad(context, texToFboShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
 
         if (fbo.getConfig().colorType == gl.TEXTURE_2D)
         {
@@ -1285,7 +1204,7 @@ goog.scope(function() {
             context.bindFramebuffer(gl.FRAMEBUFFER, 0);
             context.viewport(0, 0, context.getWidth(), context.getHeight());
             context.bindTexture(gl.TEXTURE_2D, fbo.getColorBuffer());
-            sglr::drawQuad(context, texFromFboShaderID, Vec3(-1.0f, -1.0f, 0.0f), Vec3(1.0f, 1.0f, 0.0f));
+            rrUtil.drawQuad(context, texFromFboShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
 
             // Restore binding
             context.bindFramebuffer(gl.FRAMEBUFFER, fbo.getFramebuffer());
@@ -1305,7 +1224,7 @@ goog.scope(function() {
                 break;
 
             default:
-                DE_ASSERT(DE_FALSE);
+                throw new Error('Color type unsuppoerted');
         }
 
         if (depth || stencil)
@@ -1323,22 +1242,22 @@ goog.scope(function() {
                     break;
 
                 default:
-                    DE_ASSERT(false);
+                    throw new Error('Depth / stencil type unsupported');
             }
         }
 
         // Render to resized fbo
         context.viewport(0, 0, newWidth, newHeight);
-        clearColorBuffer(context, colorFormat, tcu::Vec4(1.0f, 0.0f, 0.0f, 1.0f));
+        es3fFboTestUtil.clearColorBuffer(context, colorFormat, [1.0, 0.0, 0.0, 1.0]);
         context.clear(gl.DEPTH_BUFFER_BIT|gl.STENCIL_BUFFER_BIT);
 
         context.enable(gl.DEPTH_TEST);
 
         context.bindTexture(gl.TEXTURE_2D, metaballsTex);
-        sglr::drawQuad(context, texToFboShaderID, Vec3(-1.0f, -1.0f, 0.0f), Vec3(+1.0f, +1.0f, 0.0f));
+        rrUtil.drawQuad(context, texToFboShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
 
         context.bindTexture(gl.TEXTURE_2D, quadsTex);
-        sglr::drawQuad(context, texToFboShaderID, Vec3(0.0f, 0.0f, -1.0f), Vec3(+1.0f, +1.0f, 1.0f));
+        rrUtil.drawQuad(context, texToFboShaderID, [0.0, 0.0, -1.0], [1.0, 1.0, 1.0]);
 
         context.disable(gl.DEPTH_TEST);
 
@@ -1352,7 +1271,7 @@ goog.scope(function() {
 
             context.enable(gl.STENCIL_TEST);
             context.stencilFunc(gl.EQUAL, 1, 0xffu);
-            sglr::drawQuad(context, flatShaderID, Vec3(-1.0f, -1.0f, 0.0f), Vec3(+1.0f, +1.0f, 0.0f));
+            rrUtil.drawQuad((context, flatShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
             context.disable(gl.STENCIL_TEST);
         }
 
@@ -1361,12 +1280,12 @@ goog.scope(function() {
             context.bindFramebuffer(gl.FRAMEBUFFER, 0);
             context.viewport(0, 0, context.getWidth(), context.getHeight());
             context.bindTexture(gl.TEXTURE_2D, fbo.getColorBuffer());
-            sglr::drawQuad(context, texFromFboShaderID, Vec3(-0.5f, -0.5f, 0.0f), Vec3(0.5f, 0.5f, 0.0f));
-            context.readPixels(dst, 0, 0, context.getWidth(), context.getHeight());
+            rrUtil.drawQuad(context, texFromFboShaderID, [-0.5, -0.5, 0.0], [0.5, 0.5, 0.0]);
+            dst.readViewport(context, [0, 0, context.getWidth(), context.getHeight()]);
         }
         else
-            readPixels(context, dst, 0, 0, newWidth, newHeight, colorFormat, fboRangeInfo.lookupScale, fboRangeInfo.lookupBias);
-    }
+            es3fFboTestUtil.readPixels(context, dst, 0, 0, newWidth, newHeight, colorFormat, fboRangeInfo.lookupScale, fboRangeInfo.lookupBias);
+    };
 
     class RecreateBuffersTest : public FboRenderCase
     {
@@ -1381,39 +1300,56 @@ goog.scope(function() {
         bool            this.m_rebind;
     };
 
-    RecreateBuffersTest::RecreateBuffersTest (Context& context, const FboConfig& config, deUint32 buffers, bool rebind)
-        : FboRenderCase        (context, (string(config.getName()) + (rebind ? "" : "_no_rebind")).c_str(), "Recreate buffers", config)
-        , this.m_buffers            (buffers)
-        , this.m_rebind            (rebind)
+    /**
+     * @constructor
+     * @extends {es3fFboRenderTest.FboRenderCase}
+     * @param {es3fFboRenderTest.FboConfig} config
+     * @param {number} buffers
+     * @param {boolean} rebind
+     */
+    es3fFboRenderTest.RecreateBuffersTest = function (config, buffers, rebind)
     {
-    }
+        es3fFboRenderTest.FboRenderCase.call(this, config.getName() + (rebind ? "" : "_no_rebind"), "Recreate buffers", config);
+        this.m_buffers = buffers;
+        this.m_rebind  = rebind;
+    };
 
-    void RecreateBuffersTest::render (sglr::Context& ctx, Surface& dst)
+    es3fFboRenderTest.RecreateBuffersTest.prototype = Object.create(es3fFboRenderTest.FboRenderCase.prototype);
+    es3fFboRenderTest.RecreateBuffersTest.prototype.construtor = es3fFboRenderTest.RecreateBuffersTest;
+
+    /**
+     * @param {?sglrGLContext|sglrReferenceContext} ctx
+     * @param {tcuSurface.Surface} dst
+     */
+    es3fFboRenderTest.RecreateBuffersTest.prototype.render = function (ctx, dst)
     {
-        tcu::TextureFormat        colorFormat            = glu::mapGLInternalFormat(this.m_config.colorFormat);
-        glu::DataType            fboSamplerType        = glu::getSampler2DType(colorFormat);
-        glu::DataType            fboOutputType        = getFragmentOutputType(colorFormat);
-        tcu::TextureFormatInfo    fboRangeInfo        = tcu::getTextureFormatInfo(colorFormat);
-        Vec4                    fboOutScale            = fboRangeInfo.valueMax - fboRangeInfo.valueMin;
-        Vec4                    fboOutBias            = fboRangeInfo.valueMin;
+        /** @type {tcuTexture.TextureFormat} */ var colorFormat = gluTextureUtil.mapGLInternalFormat(this.m_config.colorFormat);
+        /** @type {gluShaderUtil.DataType} */ var fboSamplerType = gluTextureUtil.getSampler2DType(colorFormat);
+        /** @type {gluShaderUtil.DataType} */ var fboOutputType = es3fFboTestUtil.getFragmentOutputType(colorFormat);
+        /** @type {tcuTextureUtil.TextureFormatInfo} */ var fboRangeInfo = tcuTextureUtil.getTextureFormatInfo(colorFormat);
+        var fboOutScale = deMath.sub(fboRangeInfo.valueMax, fboRangeInfo.valueMin);
+        var fboOutBias = fboRangeInfo.valueMin;
 
-        Texture2DShader            texToFboShader        (DataTypes() << glu::TYPE_SAMPLER_2D, fboOutputType);
-        Texture2DShader            texFromFboShader    (DataTypes() << fboSamplerType, glu::TYPE_FLOAT_VEC4);
-        FlatColorShader            flatShader            (fboOutputType);
-        deUint32                texToFboShaderID    = ctx.createProgram(&texToFboShader);
-        deUint32                texFromFboShaderID    = ctx.createProgram(&texFromFboShader);
-        deUint32                flatShaderID        = ctx.createProgram(&flatShader);
+        /** @type {es3fFboTestUtil.Texture2DShader} */ var texToFboShader = new es3fFboTestUtil.Texture2DShader([gluShaderUtil.DataType.SAMPLER_2D], fboOutputType);
+        /** @type {es3fFboTestUtil.Texture2DShader} */ var texFromFboShader = new es3fFboTestUtil.Texture2DShader([fboSamplerType], gluShaderUtil.DataType.FLOAT_VEC4);
 
-        int                        width                = 128;
-        int                        height                = 128;
-        deUint32                metaballsTex        = 1;
-        deUint32                quadsTex            = 2;
-        bool                    stencil                = (this.m_config.buffers & gl.STENCIL_BUFFER_BIT) != 0;
+        /** @type {es3fFboTestUtil.FlatColorShader} */
+        var flatShader = new es3fFboTestUtil.FlatColorShader(fboOutputType);
+        /** @type {number} */ var texToFboShaderID = context.createProgram(texToFboShader);
+        /** @type {number} */ var texFromFboShaderID = context.createProgram(texFromFboShader);
+        /** @type {number} */ var flatShaderID = context.createProgram(flatShader);
 
-        createQuadsTex2D(ctx, quadsTex, gl.RGB, gl.UNSIGNED_BYTE, 64, 64);
-        createMetaballsTex2D(ctx, metaballsTex, gl.RGB, gl.UNSIGNED_BYTE, 64, 64);
+        var                        width                = 128;
+        var                        height                = 128;
+        var                metaballsTex        = 1;
+        var                quadsTex            = 2;
+        var                    stencil                = deMath.binaryOp(this.m_config.buffers, gl.STENCIL_BUFFER_BIT, deMath.BinaryOp.AND) != 0;
 
-        Framebuffer fbo(ctx, this.m_config, width, height);
+        es3fFboRenderTest.createQuadsTex2D(ctx, quadsTex, gl.RGB, gl.UNSIGNED_BYTE, 64, 64);
+        es3fFboRenderTest.createMetaballsTex2D(ctx, metaballsTex, gl.RGB, gl.UNSIGNED_BYTE, 64, 64);
+
+        /** @type {es3fFboRenderTest.Framebuffer} */
+        var fbo = new es3fFboRenderTest.Framebuffer(ctx, this.m_config, width, height);
         fbo.checkCompleteness();
 
         // Setup shaders
@@ -1421,25 +1357,25 @@ goog.scope(function() {
         texFromFboShader.setTexScaleBias(0, fboRangeInfo.lookupScale, fboRangeInfo.lookupBias);
         texToFboShader.setUniforms    (ctx, texToFboShaderID);
         texFromFboShader.setUniforms(ctx, texFromFboShaderID);
-        flatShader.setColor            (ctx, flatShaderID, Vec4(0.0f, 0.0f, 1.0f, 1.0f) * fboOutScale + fboOutBias);
+        flatShader.setColor            (ctx, flatShaderID, deMath.add(deMath.multiply([0.0, 0.0, 1.0, 1.0], fboOutScale), fboOutBias));
 
         // Draw scene
         ctx.bindFramebuffer(gl.FRAMEBUFFER, fbo.getFramebuffer());
         ctx.viewport(0, 0, width, height);
-        clearColorBuffer(ctx, colorFormat, tcu::Vec4(1.0f, 0.0f, 0.0f, 1.0f));
+        es3fFboTestUtil.clearColorBuffer(ctx, colorFormat, [1.0, 0.0, 0.0, 1.0]);
         ctx.clear(gl.DEPTH_BUFFER_BIT|gl.STENCIL_BUFFER_BIT);
 
         ctx.enable(gl.DEPTH_TEST);
 
         ctx.bindTexture(gl.TEXTURE_2D, quadsTex);
-        sglr::drawQuad(ctx, texToFboShaderID, Vec3(-1.0f, -1.0f, 0.0f), Vec3(1.0f, 1.0f, 0.0f));
+        rrUtil.drawQuad(ctx, texToFboShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
 
         ctx.disable(gl.DEPTH_TEST);
 
         if (stencil)
         {
             ctx.enable(gl.SCISSOR_TEST);
-            ctx.scissor(width/4, height/4, width/2, height/2);
+            ctx.scissor(Math.floor(width/4), Math.floor(height/4), Math.floor(width/2), Math.floor(height/2));
             ctx.clearStencil(1);
             ctx.clear(gl.STENCIL_BUFFER_BIT);
             ctx.disable(gl.SCISSOR_TEST);
@@ -1447,30 +1383,35 @@ goog.scope(function() {
 
         // Recreate buffers
         if (!this.m_rebind)
-            ctx.bindFramebuffer(gl.FRAMEBUFFER, 0);
+            ctx.bindFramebuffer(gl.FRAMEBUFFER, null);
 
-        DE_ASSERT((this.m_buffers & (gl.DEPTH_BUFFER_BIT|gl.STENCIL_BUFFER_BIT)) == 0 ||
-                  (this.m_buffers & (gl.DEPTH_BUFFER_BIT|gl.STENCIL_BUFFER_BIT)) == (this.m_config.buffers & (gl.DEPTH_BUFFER_BIT|gl.STENCIL_BUFFER_BIT)));
+        assertMsgOptions(
+            deMath.binaryOp(this.m_buffers, deMath.binaryOp(gl.DEPTH_BUFFER_BIT, gl.STENCIL_BUFFER_BIT, deMath.BiaryOp.OR), deMath.BinaryOp.AND) == 0 ||
+            deMath.binaryOp(this.m_buffers, deMath.binaryOp(gl.DEPTH_BUFFER_BIT, gl.STENCIL_BUFFER_BIT, deMath.BinaryOP.OR), deMath.BinaryOp.AND) ==
+            deMath.binaryOp(this.m_config.buffers, deMath.binaryOp(gl.DEPTH_BUFFER_BIT, gl.STENCIL_BUFFER_BIT, deMath.BinaryOP.OR), deMath.BinaryOp.AND),
+            'Depth/stencil buffers are not disabled or not equal to the config\'s depth/stencil buffer state',
+            false, true
+        );
 
         // Recreate.
-        for (int ndx = 0; ndx < 2; ndx++)
+        for (var ndx = 0; ndx < 2; ndx++)
         {
-            deUint32    bit        = ndx == 0 ? gl.COLOR_BUFFER_BIT
+            var    bit        = ndx == 0 ? gl.COLOR_BUFFER_BIT
                                            : (gl.DEPTH_BUFFER_BIT|gl.STENCIL_BUFFER_BIT);
-            deUint32    type    = ndx == 0 ? fbo.getConfig().colorType
+            var    type    = ndx == 0 ? fbo.getConfig().colorType
                                            : fbo.getConfig().depthStencilType;
-            deUint32    format    = ndx == 0 ? fbo.getConfig().colorFormat
+            var    format    = ndx == 0 ? fbo.getConfig().colorFormat
                                            : fbo.getConfig().depthStencilFormat;
-            deUint32    buf        = ndx == 0 ? fbo.getColorBuffer()
+            var    buf        = ndx == 0 ? fbo.getColorBuffer()
                                            : fbo.getDepthStencilBuffer();
 
-            if ((this.m_buffers & bit) == 0)
+            if (deMath.binaryOp(this.m_buffers, bit, deMath.BinaryOp.AND) == 0)
                 continue;
 
             switch (type)
             {
                 case gl.TEXTURE_2D:
-                    ctx.deleteTextures(1, &buf);
+                    ctx.deleteTexture(buf);
                     ctx.bindTexture(gl.TEXTURE_2D, buf);
                     ctx.texImage2D(gl.TEXTURE_2D, 0, format, width, height);
                     ctx.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
@@ -1478,33 +1419,33 @@ goog.scope(function() {
                     break;
 
                 case gl.RENDERBUFFER:
-                    ctx.deleteRenderbuffers(1, &buf);
+                    ctx.deleteRenderbuffer(buf);
                     ctx.bindRenderbuffer(gl.RENDERBUFFER, buf);
                     ctx.renderbufferStorage(gl.RENDERBUFFER, format, width, height);
                     break;
 
                 default:
-                    DE_ASSERT(false);
+                    throw new Error('Unsupported buffer type');
             }
         }
 
         // Rebind.
         if (this.m_rebind)
         {
-            for (int ndx = 0; ndx < 3; ndx++)
+            for (var ndx = 0; ndx < 3; ndx++)
             {
-                deUint32    bit        = ndx == 0 ? gl.COLOR_BUFFER_BIT    :
+                var    bit        = ndx == 0 ? gl.COLOR_BUFFER_BIT    :
                                       ndx == 1 ? gl.DEPTH_BUFFER_BIT    :
                                       ndx == 2 ? gl.STENCIL_BUFFER_BIT    : 0;
-                deUint32    point    = ndx == 0 ? gl.COLOR_ATTACHMENT0    :
+                var    point    = ndx == 0 ? gl.COLOR_ATTACHMENT0    :
                                       ndx == 1 ? gl.DEPTH_ATTACHMENT    :
                                       ndx == 2 ? gl.STENCIL_ATTACHMENT    : 0;
-                deUint32    type    = ndx == 0 ? fbo.getConfig().colorType
+                var    type    = ndx == 0 ? fbo.getConfig().colorType
                                                : fbo.getConfig().depthStencilType;
-                deUint32    buf        = ndx == 0 ? fbo.getColorBuffer()
+                var    buf        = ndx == 0 ? fbo.getColorBuffer()
                                                : fbo.getDepthStencilBuffer();
 
-                if ((this.m_buffers & bit) == 0)
+                if (deMath.binaryOp(this.m_buffers, bit, deMath.BinaryOp.AND) == 0)
                     continue;
 
                 switch (type)
@@ -1518,7 +1459,7 @@ goog.scope(function() {
                         break;
 
                     default:
-                        DE_ASSERT(false);
+                        throw new Error('Invalid buffer type');
                 }
             }
         }
@@ -1527,11 +1468,12 @@ goog.scope(function() {
             ctx.bindFramebuffer(gl.FRAMEBUFFER, fbo.getFramebuffer());
 
         ctx.clearStencil(0);
-        ctx.clear(this.m_buffers & (gl.DEPTH_BUFFER_BIT|gl.STENCIL_BUFFER_BIT)); // \note Clear only buffers that were re-created
-        if (this.m_buffers & gl.COLOR_BUFFER_BIT)
+        ctx.clear(
+            deMath.binaryOp(this.m_buffers, deMath.binaryOp(gl.DEPTH_BUFFER_BIT, gl.STENCIL_BUFFER_BIT, deMath.BiaryOp.OR), deMath.BinaryOp.AND)); // \note Clear only buffers that were re-created
+        if (deMath.binaryOp(this.m_buffers, gl.COLOR_BUFFER_BIT, deMath.BinaryOp.AND)
         {
             // Clearing of integer buffers is undefined so do clearing by rendering flat color.
-            sglr::drawQuad(ctx, flatShaderID, Vec3(-1.0f, -1.0f, 0.0f), Vec3(1.0f, 1.0f, 0.0f));
+            rrUtil.drawQuad(ctx, flatShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
         }
 
         ctx.enable(gl.DEPTH_TEST);
@@ -1543,7 +1485,7 @@ goog.scope(function() {
             ctx.stencilFunc(gl.EQUAL, 0, 0xffu);
         }
         ctx.bindTexture(gl.TEXTURE_2D, metaballsTex);
-        sglr::drawQuad(ctx, texToFboShaderID, Vec3(-1.0f, -1.0f, 1.0f), Vec3(1.0f, 1.0f, -1.0f));
+        rrUtil.drawQuad(ctx, texToFboShaderID, [-1.0, -1.0, 1.0], [1.0, 1.0, -1.0]);
         if (stencil)
             ctx.disable(gl.STENCIL_TEST);
 
@@ -1557,265 +1499,307 @@ goog.scope(function() {
             // Draw to screen
             ctx.bindTexture(gl.TEXTURE_2D, fbo.getColorBuffer());
             ctx.viewport(0, 0, ctx.getWidth(), ctx.getHeight());
-            sglr::drawQuad(ctx, texFromFboShaderID, Vec3(-1.0f, -1.0f, 0.0f), Vec3(1.0f, 1.0f, 0.0f));
+            rrUtil.drawQuad(ctx, texFromFboShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
 
             // Read from screen
-            ctx.readPixels(dst, 0, 0, ctx.getWidth(), ctx.getHeight());
+            dst.readViewport(ctx, [0, 0, ctx.getWidth(), ctx.getHeight()]);
         }
         else
         {
             // Read from fbo
-            readPixels(ctx, dst, 0, 0, width, height, colorFormat, fboRangeInfo.lookupScale, fboRangeInfo.lookupBias);
+            es3fFboTestUtil.readPixels(ctx, dst, 0, 0, width, height, colorFormat, fboRangeInfo.lookupScale, fboRangeInfo.lookupBias);
         }
-    }
+    };
 
     // FboGroups
 
-    FboRenderTestGroup::FboRenderTestGroup (Context& context)
-        : TestCaseGroup(context, "render", "Rendering Tests")
+    /**
+     * @constructor
+     * @extends {tcuTestCase.DeqpTest}
+     */
+    es3fFboRenderTest.FboRenderTestGroup = function ()
     {
-    }
+        tcuTestCase.DeqpTest.call(this, "render", "Rendering Tests");
+    };
 
-    FboRenderTestGroup::~FboRenderTestGroup (void)
-    {
-    }
+    es3fFboRenderTest.FboRenderTestGroup.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
+    es3fFboRenderTest.FboRenderTestGroup.prototype.constructor = es3fFboRenderTest.FboRenderTestGroup;
 
-    void FboRenderTestGroup::init (void)
+    /**
+     * init
+     */
+    es3fFboRenderTest.FboRenderTestGroup.prototype.init = function ()
     {
-        static const deUint32 objectTypes[] =
-        {
+        var objectTypes = [
             gl.TEXTURE_2D,
             gl.RENDERBUFFER
-        };
+        ];
 
-        enum FormatType
-        {
-            FORMATTYPE_FLOAT = 0,
-            FORMATTYPE_FIXED,
-            FORMATTYPE_INT,
-            FORMATTYPE_UINT,
-
-            FORMATTYPE_LAST
+        /**
+         * @enum {number}
+         */
+        var FormatType = {
+            FLOAT: 0,
+            INT: 1,
+            UINT: 2
         };
 
         // Required by specification.
-        static const struct
-        {
-            deUint32    format;
-            FormatType    type;
-        } colorFormats[] =
-        {
-            { gl.RGBA32F,            FORMATTYPE_FLOAT    },
-            { gl.RGBA32I,            FORMATTYPE_INT        },
-            { gl.RGBA32UI,            FORMATTYPE_UINT        },
-            { gl.RGBA16F,            FORMATTYPE_FLOAT    },
-            { gl.RGBA16I,            FORMATTYPE_INT        },
-            { gl.RGBA16UI,            FORMATTYPE_UINT        },
-            { gl.RGB16F,            FORMATTYPE_FLOAT    },
-            { gl.RGBA8,                FORMATTYPE_FIXED    },
-            { gl.RGBA8I,            FORMATTYPE_INT        },
-            { gl.RGBA8UI,            FORMATTYPE_UINT        },
-            { gl.SRGB8_ALPHA8,        FORMATTYPE_FIXED    },
-            { gl.RGB10_A2,            FORMATTYPE_FIXED    },
-            { gl.RGB10_A2UI,        FORMATTYPE_UINT        },
-            { gl.RGBA4,                FORMATTYPE_FIXED    },
-            { gl.RGB5_A1,            FORMATTYPE_FIXED    },
-            { gl.RGB8,                FORMATTYPE_FIXED    },
-            { gl.RGB565,            FORMATTYPE_FIXED    },
-            { gl.R11F_G11F_B10F,    FORMATTYPE_FLOAT    },
-            { gl.RG32F,                FORMATTYPE_FLOAT    },
-            { gl.RG32I,                FORMATTYPE_INT        },
-            { gl.RG32UI,            FORMATTYPE_UINT        },
-            { gl.RG16F,                FORMATTYPE_FLOAT    },
-            { gl.RG16I,                FORMATTYPE_INT        },
-            { gl.RG16UI,            FORMATTYPE_UINT        },
-            { gl.RG8,                FORMATTYPE_FLOAT    },
-            { gl.RG8I,                FORMATTYPE_INT        },
-            { gl.RG8UI,                FORMATTYPE_UINT        },
-            { gl.R32F,                FORMATTYPE_FLOAT    },
-            { gl.R32I,                FORMATTYPE_INT        },
-            { gl.R32UI,                FORMATTYPE_UINT        },
-            { gl.R16F,                FORMATTYPE_FLOAT    },
-            { gl.R16I,                FORMATTYPE_INT        },
-            { gl.R16UI,                FORMATTYPE_UINT        },
-            { gl.R8,                FORMATTYPE_FLOAT    },
-            { gl.R8I,                FORMATTYPE_INT        },
-            { gl.R8UI,                FORMATTYPE_UINT        }
-        };
+        /** @typedef {number: format, FormatType: type} */ var ColorFormatStruct;
 
-        static const struct
-        {
-            deUint32    format;
-            bool        depth;
-            bool        stencil;
-        } depthStencilFormats[] =
-        {
-            { gl.DEPTH_COMPONENT32F,    true,    false    },
-            { gl.DEPTH_COMPONENT24,        true,    false    },
-            { gl.DEPTH_COMPONENT16,        true,    false    },
-            { gl.DEPTH32F_STENCIL8,        true,    true    },
-            { gl.DEPTH24_STENCIL8,        true,    true    },
-            { gl.STENCIL_INDEX8,        false,    true    }
-        };
+        /** @type {Array<ColorFormatStruct>} */ var colorFormats = [
+            { format: gl.RGBA32F, type:            FormatType.FLOAT    },
+            { format: gl.RGBA32I, type:            FormatType.INT        },
+            { format: gl.RGBA32UI, type:            FormatType.UINT        },
+            { format: gl.RGBA16F, type:            FormatType.FLOAT    },
+            { format: gl.RGBA16I, type:            FormatType.INT        },
+            { format: gl.RGBA16UI, type:            FormatType.UINT        },
+            { format: gl.RGB16F, type:            FormatType.FLOAT    },
+            { format: gl.RGBA8, type:                FormatType.FIXED    },
+            { format: gl.RGBA8I, type:            FormatType.INT        },
+            { format: gl.RGBA8UI, type:            FormatType.UINT        },
+            { format: gl.SRGB8_ALPHA8, type:        FormatType.FIXED    },
+            { format: gl.RGB10_A2, type:            FormatType.FIXED    },
+            { format: gl.RGB10_A2UI, type:        FormatType.UINT        },
+            { format: gl.RGBA4, type:                FormatType.FIXED    },
+            { format: gl.RGB5_A1, type:            FormatType.FIXED    },
+            { format: gl.RGB8, type:                FormatType.FIXED    },
+            { format: gl.RGB565, type:            FormatType.FIXED    },
+            { format: gl.R11F_G11F_B10F, type:    FormatType.FLOAT    },
+            { format: gl.RG32F, type:                FormatType.FLOAT    },
+            { format: gl.RG32I, type:                FormatType.INT        },
+            { format: gl.RG32UI, type:            FormatType.UINT        },
+            { format: gl.RG16F, type:                FormatType.FLOAT    },
+            { format: gl.RG16I, type:                FormatType.INT        },
+            { format: gl.RG16UI, type:            FormatType.UINT        },
+            { format: gl.RG8, type:                FormatType.FLOAT    },
+            { format: gl.RG8I, type:                FormatType.INT        },
+            { format: gl.RG8UI, type:                FormatType.UINT        },
+            { format: gl.R32F, type:                FormatType.FLOAT    },
+            { format: gl.R32I, type:                FormatType.INT        },
+            { format: gl.R32UI, type:                FormatType.UINT        },
+            { format: gl.R16F, type:                FormatType.FLOAT    },
+            { format: gl.R16I, type:                FormatType.INT        },
+            { format: gl.R16UI, type:                FormatType.UINT        },
+            { format: gl.R8, type:                FormatType.FLOAT    },
+            { format: gl.R8I, type:                FormatType.INT        },
+            { format: gl.R8UI, type:                FormatType.UINT        }
+        ];
 
-        using namespace FboCases;
+        /** @typedef {number: format, boolean: depth, boolean: stencil} */ var DepthStencilFormatStruct;
+
+        /** @type {Array<DepthStencilFormatStruct>} */ var depthStencilFormats = [
+            { format: gl.DEPTH_COMPONENT32F, depth:    true, stencil:    false    },
+            { format: gl.DEPTH_COMPONENT24, depth:        true, stencil:    false    },
+            { format: gl.DEPTH_COMPONENT16, depth:        true, stencil:    false    },
+            { format: gl.DEPTH32F_STENCIL8, depth:        true, stencil:    true    },
+            { format: gl.DEPTH24_STENCIL8, depth:        true, stencil:    true    },
+            { format: gl.STENCIL_INDEX8, depth:        false, stencil:    true    }
+        ];
+
+        /** @type {es3fFboRenderTest.FboConfig} */ var config;
+        var    colorType;
+        var    stencilType;
+        var    colorFmt;
+        var        depth;
+        var        stencil;
+        var    depthStencilType;
+        var    depthStencilFormat;
 
         // .stencil_clear
-        tcu::TestCaseGroup* stencilClearGroup = new tcu::TestCaseGroup(this.m_testCtx, "stencil_clear", "Stencil buffer clears");
-        addChild(stencilClearGroup);
-        for (int fmtNdx = 0; fmtNdx < DE_LENGTH_OF_ARRAY(depthStencilFormats); fmtNdx++)
+        /** @type {tcuTestCase.DeqpTest} */ var stencilClearGroup = new tcuTestCase.DeqpTest("stencil_clear", "Stencil buffer clears");
+        this.addChild(stencilClearGroup);
+        for (var fmtNdx = 0; fmtNdx < depthStencilFormats.length; fmtNdx++)
         {
-            deUint32    colorType    = gl.TEXTURE_2D;
-            deUint32    stencilType    = gl.RENDERBUFFER;
-            deUint32    colorFmt    = gl.RGBA8;
+            colorType    = gl.TEXTURE_2D;
+            stencilType    = gl.RENDERBUFFER;
+            colorFmt    = gl.RGBA8;
 
             if (!depthStencilFormats[fmtNdx].stencil)
                 continue;
 
-            FboConfig config(gl.COLOR_BUFFER_BIT|gl.STENCIL_BUFFER_BIT, colorType, colorFmt, stencilType, depthStencilFormats[fmtNdx].format);
-            stencilClearGroup->addChild(new StencilClearsTest(this.m_context, config));
+            config = new es3fFboRenderTest.FboConfig(gl.COLOR_BUFFER_BIT|gl.STENCIL_BUFFER_BIT,
+                colorType, colorFmt, stencilType, depthStencilFormats[fmtNdx].format
+            );
+            stencilClearGroup.addChild(new es3fFboRenderTest.StencilClearsTest(config));
         }
 
         // .shared_colorbuffer_clear
-        tcu::TestCaseGroup* sharedColorbufferClearGroup = new tcu::TestCaseGroup(this.m_testCtx, "shared_colorbuffer_clear", "Shader colorbuffer clears");
-        addChild(sharedColorbufferClearGroup);
-        for (int colorFmtNdx = 0; colorFmtNdx < DE_LENGTH_OF_ARRAY(colorFormats); colorFmtNdx++)
+        /** @type {tcuTestCase.DeqpTest} */ var sharedColorbufferClearGroup =
+            new tcuTestCase.DeqpTest("shared_colorbuffer_clear", "Shader colorbuffer clears"
+        );
+        this.addChild(sharedColorbufferClearGroup);
+        for (var colorFmtNdx = 0; colorFmtNdx < colorFormats.length; colorFmtNdx++)
         {
             // Clearing of integer buffers is undefined.
-            if (colorFormats[colorFmtNdx].type == FORMATTYPE_INT || colorFormats[colorFmtNdx].type == FORMATTYPE_UINT)
+            if (colorFormats[colorFmtNdx].type == FormatType.INT || colorFormats[colorFmtNdx].type == FormatType.UINT)
                 continue;
 
-            for (int typeNdx = 0; typeNdx < DE_LENGTH_OF_ARRAY(objectTypes); typeNdx++)
+            for (var typeNdx = 0; typeNdx < objectTypes.length; typeNdx++)
             {
-                FboConfig config(gl.COLOR_BUFFER_BIT, objectTypes[typeNdx], colorFormats[colorFmtNdx].format, gl.NONE, gl.NONE);
-                sharedColorbufferClearGroup->addChild(new SharedColorbufferClearsTest(this.m_context, config));
+                config = new es3fFboRenderTest.FboConfig(gl.COLOR_BUFFER_BIT, objectTypes[typeNdx], colorFormats[colorFmtNdx].format, gl.NONE, gl.NONE);
+                sharedColorbufferClearGroup.addChild(new es3fFboRenderTest.SharedColorbufferClearsTest(config));
             }
         }
 
         // .shared_colorbuffer
-        tcu::TestCaseGroup* sharedColorbufferGroup = new tcu::TestCaseGroup(this.m_testCtx, "shared_colorbuffer", "Shared colorbuffer tests");
-        addChild(sharedColorbufferGroup);
-        for (int colorFmtNdx = 0; colorFmtNdx < DE_LENGTH_OF_ARRAY(colorFormats); colorFmtNdx++)
+        /** @type {tcuTestCase.DeqpTest} */ var sharedColorbufferGroup =
+            new tcuTestCase.DeqpTest("shared_colorbuffer", "Shared colorbuffer tests"
+        );
+        this.addChild(sharedColorbufferGroup);
+        for (var colorFmtNdx = 0; colorFmtNdx < colorFormats.length; colorFmtNdx++)
         {
-            deUint32    depthStencilType    = gl.RENDERBUFFER;
-            deUint32    depthStencilFormat    = gl.DEPTH24_STENCIL8;
+            depthStencilType    = gl.RENDERBUFFER;
+            depthStencilFormat    = gl.DEPTH24_STENCIL8;
 
             // Blending with integer buffers and fp32 targets is not supported.
-            if (colorFormats[colorFmtNdx].type == FORMATTYPE_INT    ||
-                colorFormats[colorFmtNdx].type == FORMATTYPE_UINT    ||
+            if (colorFormats[colorFmtNdx].type == FormatType.INT    ||
+                colorFormats[colorFmtNdx].type == FormatType.UINT    ||
                 colorFormats[colorFmtNdx].format == gl.RGBA32F        ||
                 colorFormats[colorFmtNdx].format == gl.RGB32F        ||
                 colorFormats[colorFmtNdx].format == gl.RG32F        ||
                 colorFormats[colorFmtNdx].format == gl.R32F)
                 continue;
 
-            for (int typeNdx = 0; typeNdx < DE_LENGTH_OF_ARRAY(objectTypes); typeNdx++)
+            for (var typeNdx = 0; typeNdx < objectTypes.length; typeNdx++)
             {
-                FboConfig colorOnlyConfig            (gl.COLOR_BUFFER_BIT,                                            objectTypes[typeNdx], colorFormats[colorFmtNdx].format, gl.NONE, gl.NONE);
-                FboConfig colorDepthConfig            (gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT,                        objectTypes[typeNdx], colorFormats[colorFmtNdx].format, depthStencilType, depthStencilFormat);
-                FboConfig colorDepthStencilConfig    (gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT|gl.STENCIL_BUFFER_BIT,    objectTypes[typeNdx], colorFormats[colorFmtNdx].format, depthStencilType, depthStencilFormat);
+                /** @type {es3fFboRenderTest.FboConfig} */ var colorOnlyConfig  =
+                    new es3fFboRenderTest.FboConfig(gl.COLOR_BUFFER_BIT,
+                        objectTypes[typeNdx], colorFormats[colorFmtNdx].format, gl.NONE, gl.NONE
+                    );
+                /** @type {es3fFboRenderTest.FboConfig} */ var colorDepthConfig  =
+                    new es3fFboRenderTest.FboConfig(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT,
+                        objectTypes[typeNdx], colorFormats[colorFmtNdx].format, depthStencilType, depthStencilFormat
+                    );
+                /** @type {es3fFboRenderTest.FboConfig} */ var colorDepthStencilConfig =
+                    new es3fFboRenderTest.FboConfig(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT|gl.STENCIL_BUFFER_BIT,
+                        objectTypes[typeNdx], colorFormats[colorFmtNdx].format, depthStencilType, depthStencilFormat
+                    );
 
-                sharedColorbufferGroup->addChild(new SharedColorbufferTest(this.m_context, colorOnlyConfig));
-                sharedColorbufferGroup->addChild(new SharedColorbufferTest(this.m_context, colorDepthConfig));
-                sharedColorbufferGroup->addChild(new SharedColorbufferTest(this.m_context, colorDepthStencilConfig));
+                sharedColorbufferGroup.addChild(new SharedColorbufferTest(colorOnlyConfig));
+                sharedColorbufferGroup.addChild(new SharedColorbufferTest(colorDepthConfig));
+                sharedColorbufferGroup.addChild(new SharedColorbufferTest(colorDepthStencilConfig));
             }
         }
 
         // .shared_depth_stencil
-        tcu::TestCaseGroup* sharedDepthStencilGroup = new tcu::TestCaseGroup(this.m_testCtx, "shared_depth_stencil", "Shared depth and stencil buffers");
-        addChild(sharedDepthStencilGroup);
-        for (int fmtNdx = 0; fmtNdx < DE_LENGTH_OF_ARRAY(depthStencilFormats); fmtNdx++)
+        /** @type {tcuTestCase.DeqpTest} */ var sharedDepthStencilGroup =
+            new tcuTestCase.DeqpTest("shared_depth_stencil", "Shared depth and stencil buffers"
+        );
+        this.addChild(sharedDepthStencilGroup);
+        for (var fmtNdx = 0; fmtNdx < depthStencilFormats.length; fmtNdx++)
         {
-            deUint32    colorType        = gl.TEXTURE_2D;
-            deUint32    colorFmt        = gl.RGBA8;
-            bool        depth            = depthStencilFormats[fmtNdx].depth;
-            bool        stencil            = depthStencilFormats[fmtNdx].stencil;
+            colorType        = gl.TEXTURE_2D;
+            colorFmt        = gl.RGBA8;
+            depth            = depthStencilFormats[fmtNdx].depth;
+            stencil            = depthStencilFormats[fmtNdx].stencil;
 
             if (!depth)
                 continue; // Not verified.
 
             // Depth and stencil: both rbo and textures
-            for (int typeNdx = 0; typeNdx < DE_LENGTH_OF_ARRAY(objectTypes); typeNdx++)
+            for (var typeNdx = 0; typeNdx < objectTypes.length; typeNdx++)
             {
-                FboConfig config(gl.COLOR_BUFFER_BIT|(depth ? gl.DEPTH_BUFFER_BIT : 0)|(stencil ? gl.STENCIL_BUFFER_BIT : 0), colorType, colorFmt, objectTypes[typeNdx], depthStencilFormats[fmtNdx].format);
-                sharedDepthStencilGroup->addChild(new SharedDepthStencilTest(this.m_context, config));
+                config = new es3fFboRenderTest.FboConfig(
+                    gl.COLOR_BUFFER_BIT | (depth ? gl.DEPTH_BUFFER_BIT : 0) | (stencil ? gl.STENCIL_BUFFER_BIT : 0),
+                    colorType, colorFmt, objectTypes[typeNdx], depthStencilFormats[fmtNdx].format
+                );
+                sharedDepthStencilGroup.addChild(new es3fFboRenderTest.SharedDepthStencilTest(config));
             }
         }
 
         // .resize
-        tcu::TestCaseGroup* resizeGroup = new tcu::TestCaseGroup(this.m_testCtx, "resize", "FBO resize tests");
-        addChild(resizeGroup);
-        for (int colorFmtNdx = 0; colorFmtNdx < DE_LENGTH_OF_ARRAY(colorFormats); colorFmtNdx++)
+        /** @type {tcuTestCase.DeqpTest} */ var resizeGroup =
+            new tcuTestCase.DeqpTest("resize", "FBO resize tests"
+        );
+        this.addChild(resizeGroup);
+        for (var colorFmtNdx = 0; colorFmtNdx < colorFormats.length; colorFmtNdx++)
         {
-            deUint32 colorFormat = colorFormats[colorFmtNdx].format;
+            colorFormat = colorFormats[colorFmtNdx].format;
 
             // Color-only.
-            for (int typeNdx = 0; typeNdx < DE_LENGTH_OF_ARRAY(objectTypes); typeNdx++)
+            for (var typeNdx = 0; typeNdx < objectTypes.length; typeNdx++)
             {
-                FboConfig config(gl.COLOR_BUFFER_BIT, objectTypes[typeNdx], colorFormat, gl.NONE, gl.NONE);
-                resizeGroup->addChild(new ResizeTest(this.m_context, config));
+                config = new es3fFboRenderTest.FboConfig(
+                    gl.COLOR_BUFFER_BIT, objectTypes[typeNdx], colorFormat, gl.NONE, gl.NONE
+                );
+                resizeGroup.addChild(new es3fFboRenderTest.ResizeTest(config));
             }
 
             // For selected color formats tests depth & stencil variants.
             if (colorFormat == gl.RGBA8 || colorFormat == gl.RGBA16F)
             {
-                for (int depthStencilFmtNdx = 0; depthStencilFmtNdx < DE_LENGTH_OF_ARRAY(depthStencilFormats); depthStencilFmtNdx++)
+                for (var depthStencilFmtNdx = 0; depthStencilFmtNdx < depthStencilFormats.length; depthStencilFmtNdx++)
                 {
-                    deUint32    colorType        = gl.TEXTURE_2D;
-                    bool        depth            = depthStencilFormats[depthStencilFmtNdx].depth;
-                    bool        stencil            = depthStencilFormats[depthStencilFmtNdx].stencil;
+                    colorType        = gl.TEXTURE_2D;
+                    depth            = depthStencilFormats[depthStencilFmtNdx].depth;
+                    stencil            = depthStencilFormats[depthStencilFmtNdx].stencil;
 
                     // Depth and stencil: both rbo and textures
-                    for (int typeNdx = 0; typeNdx < DE_LENGTH_OF_ARRAY(objectTypes); typeNdx++)
+                    for (var typeNdx = 0; typeNdx < objectTypes.length; typeNdx++)
                     {
                         if (!depth && objectTypes[typeNdx] != gl.RENDERBUFFER)
                             continue; // Not supported.
 
-                        FboConfig config(gl.COLOR_BUFFER_BIT|(depth ? gl.DEPTH_BUFFER_BIT : 0)|(stencil ? gl.STENCIL_BUFFER_BIT : 0),
-                                         colorType, colorFormat,
-                                         objectTypes[typeNdx], depthStencilFormats[depthStencilFmtNdx].format);
-                        resizeGroup->addChild(new ResizeTest(this.m_context, config));
+                        config = new es3fFboRenderTest.FboConfig(
+                            gl.COLOR_BUFFER_BIT|(depth ? gl.DEPTH_BUFFER_BIT : 0)|(stencil ? gl.STENCIL_BUFFER_BIT : 0),
+                            colorType, colorFormat, objectTypes[typeNdx], depthStencilFormats[depthStencilFmtNdx].format
+                        );
+                        resizeGroup.addChild(new es3fFboRenderTest.ResizeTest(config));
                     }
                 }
             }
         }
 
         // .recreate_color
-        tcu::TestCaseGroup* recreateColorGroup = new tcu::TestCaseGroup(this.m_testCtx, "recreate_color", "Recreate colorbuffer tests");
-        addChild(recreateColorGroup);
-        for (int colorFmtNdx = 0; colorFmtNdx < DE_LENGTH_OF_ARRAY(colorFormats); colorFmtNdx++)
+        /** @type {tcuTestCase.DeqpTest} */ var recreateColorGroup =
+            new tcuTestCase.DeqpTest("recreate_color", "Recreate colorbuffer tests"
+        );
+        this.addChild(recreateColorGroup);
+        for (var colorFmtNdx = 0; colorFmtNdx < colorFormats.length; colorFmtNdx++)
         {
-            deUint32    colorFormat            = colorFormats[colorFmtNdx].format;
-            deUint32    depthStencilFormat    = gl.DEPTH24_STENCIL8;
-            deUint32    depthStencilType    = gl.RENDERBUFFER;
+            colorFormat            = colorFormats[colorFmtNdx].format;
+            depthStencilFormat    = gl.DEPTH24_STENCIL8;
+            depthStencilType    = gl.RENDERBUFFER;
 
             // Color-only.
-            for (int typeNdx = 0; typeNdx < DE_LENGTH_OF_ARRAY(objectTypes); typeNdx++)
+            for (var typeNdx = 0; typeNdx < objectTypes.length; typeNdx++)
             {
-                FboConfig config(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT|gl.STENCIL_BUFFER_BIT, objectTypes[typeNdx], colorFormat, depthStencilType, depthStencilFormat);
-                recreateColorGroup->addChild(new RecreateBuffersTest(this.m_context, config, gl.COLOR_BUFFER_BIT, true /* rebind */));
+                config = new es3fFboRenderTest.FboConfig(
+                    gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT,
+                    objectTypes[typeNdx], colorFormat, depthStencilType, depthStencilFormat
+                );
+                recreateColorGroup.addChild(new es3fFboRenderTest.RecreateBuffersTest(config, gl.COLOR_BUFFER_BIT, true /* rebind */));
             }
         }
 
         // .recreate_depth_stencil
-        tcu::TestCaseGroup* recreateDepthStencilGroup = new tcu::TestCaseGroup(this.m_testCtx, "recreate_depth_stencil", "Recreate depth and stencil buffers");
-        addChild(recreateDepthStencilGroup);
-        for (int fmtNdx = 0; fmtNdx < DE_LENGTH_OF_ARRAY(depthStencilFormats); fmtNdx++)
+        /** @type {tcuTestCase.DeqpTest} */ var recreateDepthStencilGroup =
+            new tcuTestCase.DeqpTest("recreate_depth_stencil", "Recreate depth and stencil buffers"
+        );
+        this.addChild(recreateDepthStencilGroup);
+        for (var fmtNdx = 0; fmtNdx < depthStencilFormats.length; fmtNdx++)
         {
-            deUint32    colorType        = gl.TEXTURE_2D;
-            deUint32    colorFmt        = gl.RGBA8;
-            bool        depth            = depthStencilFormats[fmtNdx].depth;
-            bool        stencil            = depthStencilFormats[fmtNdx].stencil;
+            colorType        = gl.TEXTURE_2D;
+            colorFmt        = gl.RGBA8;
+            depth            = depthStencilFormats[fmtNdx].depth;
+            stencil            = depthStencilFormats[fmtNdx].stencil;
 
             // Depth and stencil: both rbo and textures
-            for (int typeNdx = 0; typeNdx < DE_LENGTH_OF_ARRAY(objectTypes); typeNdx++)
+            for (var typeNdx = 0; typeNdx < objectTypes.length; typeNdx++)
             {
                 if (!depth && objectTypes[typeNdx] != gl.RENDERBUFFER)
                     continue;
 
-                FboConfig config(gl.COLOR_BUFFER_BIT|(depth ? gl.DEPTH_BUFFER_BIT : 0)|(stencil ? gl.STENCIL_BUFFER_BIT : 0), colorType, colorFmt, objectTypes[typeNdx], depthStencilFormats[fmtNdx].format);
-                recreateDepthStencilGroup->addChild(new RecreateBuffersTest(this.m_context, config, (depth ? gl.DEPTH_BUFFER_BIT : 0)|(stencil ? gl.STENCIL_BUFFER_BIT : 0), true /* rebind */));
+                config = new es3fFboRenderTest.FboConfig(
+                    gl.COLOR_BUFFER_BIT | (depth ? gl.DEPTH_BUFFER_BIT : 0) | (stencil ? gl.STENCIL_BUFFER_BIT : 0),
+                    colorType, colorFmt, objectTypes[typeNdx], depthStencilFormats[fmtNdx].format
+                );
+                recreateDepthStencilGroup.addChild(new es3fFboRenderTest.RecreateBuffersTest(
+                    config, (depth ? gl.DEPTH_BUFFER_BIT : 0)|(stencil ? gl.STENCIL_BUFFER_BIT : 0),
+                    true /* rebind */)
+                );
             }
         }
-    }
+    };
 };
