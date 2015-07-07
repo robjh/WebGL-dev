@@ -73,10 +73,10 @@ goog.scope(function() {
             // tcuTestCase.runTestCases();
 
             // temp code to test the tempalte changing
-            var add = glsBuiltinPrecisionTests.SamplingFactory(1);
-            add.genFixeds();
-            add.genRandom();
-            console.log(add);
+            var Sig_ = new glsBuiltinPrecisionTests.Signature(1.0,1,true);
+            var funcCase = new glsBuiltinPrecisionTests.FuncCase(Sig_, context, name, new glsBuiltinPrecisionTests.FuncBase());
+            funcCase.runTest();
+            console.log(funcCase);
         }
         catch (err) {
             bufferedLogToConsole('Exception: ' + err);

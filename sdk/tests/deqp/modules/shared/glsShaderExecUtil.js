@@ -40,7 +40,7 @@
       */
       glsShaderExecUtil.Symbol = function(name, varType) {
          /** @type {string} */ this.m_name = name === undefined ? undefined : name;
-         /** @type {gluVarType.VarType} */ this.m_varType ==== undefined ? undefined :  varType;
+         /** @type {gluVarType.VarType} */ this.m_varType === undefined ? undefined :  varType;
      };
 
 
@@ -110,7 +110,7 @@
 // 	std::vector<Symbol>			m_outputs;
 // };
 //
-// inline tcu::TestLog& operator<< (tcu::TestLog& log, const ShaderExecutor* executor) { executor->log(log);	return log; }
+// inline tcu::TestLog& operator<< (tcu::TestLog& log, const ShaderExecutor* executor) { executor.log(log);	return log; }
 // inline tcu::TestLog& operator<< (tcu::TestLog& log, const ShaderExecutor& executor) { executor.log(log);	return log; }
 
     /**
@@ -130,7 +130,7 @@
      */
     glsShaderExecUtil.generateVertexShader = function(shaderSpec) {
     	/** @type{boolean} */ var usesInout	= true; //glslVersionUsesInOutQualifiers(shaderSpec.version);
-    	/** @type{string} */ var in	= usesInout ? 'in' : 'attribute';
+    	/** @type{string} */ var in_ = usesInout ? 'in' : 'attribute';
     	/** @type{string} */ var out = usesInout ? 'out' : 'varying';
     	/** @type{string} */ var src = '';
 
@@ -140,7 +140,7 @@
     		src += (shaderSpec.globalDeclarations + '\n');
 
     	for (var i = 0; i < shaderSpec.inputs.length; ++i)
-    		src += (in + ' ' + gluVarType.declareVariable(shaderSpec.inputs[i].varType, shaderSpec.inputs.name) + ';\n';
+    		src += (in_ + ' ' + gluVarType.declareVariable(shaderSpec.inputs[i].varType, shaderSpec.inputs.name) + ';\n');
 
     	for (var i = 0; i < shaderSpec.outputs.length; i++)	{
     		DE_ASSERT(output.varType.isBasicType());
@@ -148,12 +148,12 @@
     		if (gluShaderUtil.isDataTypeBoolOrBVec(output.varType.getBasicType())) {
     			/** @type{number} */ var vecSize = gluShaderUtil.getDataTypeScalarSize(output.varType.getBasicType());
     			/** @type{gluShaderUtil.DataType} */ var intBaseType = vecSize > 1 ? gluShaderUtil.getDataTypeVector(gluShaderUtil.DataType.INT, vecSize) : gluShaderUtil.DataType.INT;
-    			/** @type{gluVarType.Type} */ var intType(intBaseType, gluShaderUtil.precision.PRECISION_HIGHP);
+    			/** @type{gluVarType.Type} */ var intType = new gluVarType.Type(intBaseType, gluShaderUtil.precision.PRECISION_HIGHP);
 
-    			src += ('flat ' + out + ' ' + gluVarType.declareVariable(intType, 'o_' + output->name) + ';\n');
+    			src += ('flat ' + out + ' ' + gluVarType.declareVariable(intType, 'o_' + output.name) + ';\n');
     		}
     		else
-    			src += ('flat ' + out + ' ' + gluVarType.declareVariable(output->varType, output->name) + ';\n');
+    			src += ('flat ' + out + ' ' + gluVarType.declareVariable(output.varType, output.name) + ';\n');
     	}
 
     	src += '\n'
@@ -169,21 +169,21 @@
     	}
 
     	// Operation - indented to correct level.
-    	{
-    		std::istringstream	opSrc	(shaderSpec.source);
-    		std::string			line;
-
-    		while (std::getline(opSrc, line))
-    			src += ('\t' + line + '\n');
-    	}
+    	// {
+    	// 	std::istringstream	opSrc	(shaderSpec.source);
+    	// 	std::string			line;
+        //
+    	// 	while (std::getline(opSrc, line))
+    	// 		src += ('\t' + line + '\n');
+    	// }
 
     	// Assignments to outputs.
     	for (var i = 0; i < shaderSpec.outputs.length; i++)	{
     		if (gluShaderUtil.isDataTypeBoolOrBVec(output.varType.getBasicType())) {
-    			/** @type{number} */ var vecSize = gluShaderUtil.getDataTypeScalarSize(output->varType.getBasicType());
+    			/** @type{number} */ var vecSize = gluShaderUtil.getDataTypeScalarSize(output.varType.getBasicType());
     			/** @type{gluShaderUtil.DataType} */ var intBaseType = vecSize > 1 ? gluShaderUtil.getDataTypeVector(gluShaderUtil.DataType.INT, vecSize) : gluShaderUtil.DataType.INT;
 
-    			src += ('\to_' + output.name + ' = ' + glu::getDataTypeName(intBaseType) + '(' + output.name + ');\n');
+    			src += ('\to_' + output.name + ' = ' + gluShaderUtil.getDataTypeName(intBaseType) + '(' + output.name + ');\n');
     		}
     	}
 
@@ -210,22 +210,22 @@
 // 		<< "layout(points, max_vertices = 1) out;\n";
 //
 // 	for (vector<Symbol>::const_iterator input = shaderSpec.inputs.begin(); input != shaderSpec.inputs.end(); ++input)
-// 		src << "flat in " << gluVarType.declareVariable(input->varType, "geom_" + input->name) << "[];\n";
+// 		src << "flat in " << gluVarType.declareVariable(input.varType, "geom_" + input.name) << "[];\n";
 //
 // 	for (vector<Symbol>::const_iterator output = shaderSpec.outputs.begin(); output != shaderSpec.outputs.end(); ++output)
 // 	{
-// 		DE_ASSERT(output->varType.isBasicType());
+// 		DE_ASSERT(output.varType.isBasicType());
 //
-// 		if (gluShaderUtil.isDataTypeBoolOrBVec(output->varType.getBasicType()))
+// 		if (gluShaderUtil.isDataTypeBoolOrBVec(output.varType.getBasicType()))
 // 		{
-// 			/** @type{number} */ var				vecSize		= gluShaderUtil.getDataTypeScalarSize(output->varType.getBasicType());
+// 			/** @type{number} */ var				vecSize		= gluShaderUtil.getDataTypeScalarSize(output.varType.getBasicType());
 // 			/** @type{gluShaderUtil.DataType} */ var 	intBaseType	= vecSize > 1 ? gluShaderUtil.getDataTypeVector(gluShaderUtil.DataType.INT, vecSize) : gluShaderUtil.DataType.INT;
 // 			/** @type{gluVarType.VarType} */ var 	intType		(intBaseType, gluShaderUtil.precision.PRECISION_HIGHP);
 //
-// 			src << "flat out " << gluVarType.declareVariable(intType, "o_" + output->name) << ";\n";
+// 			src << "flat out " << gluVarType.declareVariable(intType, "o_" + output.name) << ";\n";
 // 		}
 // 		else
-// 			src << "flat out " << gluVarType.declareVariable(output->varType, output->name) << ";\n";
+// 			src << "flat out " << gluVarType.declareVariable(output.varType, output.name) << ";\n";
 // 	}
 //
 // 	src << "\n"
@@ -235,13 +235,13 @@
 //
 // 	// Fetch input variables
 // 	for (vector<Symbol>::const_iterator input = shaderSpec.inputs.begin(); input != shaderSpec.inputs.end(); ++input)
-// 		src << "\t" << gluVarType.declareVariable(input->varType, input->name) << " = geom_" << input->name << "[0];\n";
+// 		src << "\t" << gluVarType.declareVariable(input.varType, input.name) << " = geom_" << input.name << "[0];\n";
 //
 // 	// Declare necessary output variables (bools).
 // 	for (vector<Symbol>::const_iterator output = shaderSpec.outputs.begin(); output != shaderSpec.outputs.end(); ++output)
 // 	{
-// 		if (gluShaderUtil.isDataTypeBoolOrBVec(output->varType.getBasicType()))
-// 			src << "\t" << gluVarType.declareVariable(output->varType, output->name) << ";\n";
+// 		if (gluShaderUtil.isDataTypeBoolOrBVec(output.varType.getBasicType()))
+// 			src << "\t" << gluVarType.declareVariable(output.varType, output.name) << ";\n";
 // 	}
 //
 // 	src << "\n";
@@ -258,12 +258,12 @@
 // 	// Assignments to outputs.
 // 	for (vector<Symbol>::const_iterator output = shaderSpec.outputs.begin(); output != shaderSpec.outputs.end(); ++output)
 // 	{
-// 		if (gluShaderUtil.isDataTypeBoolOrBVec(output->varType.getBasicType()))
+// 		if (gluShaderUtil.isDataTypeBoolOrBVec(output.varType.getBasicType()))
 // 		{
-// 			/** @type{number} */ var				vecSize		= gluShaderUtil.getDataTypeScalarSize(output->varType.getBasicType());
+// 			/** @type{number} */ var				vecSize		= gluShaderUtil.getDataTypeScalarSize(output.varType.getBasicType());
 // 			/** @type{gluShaderUtil.DataType} */ var 	intBaseType	= vecSize > 1 ? gluShaderUtil.getDataTypeVector(gluShaderUtil.DataType.INT, vecSize) : gluShaderUtil.DataType.INT;
 //
-// 			src << "\to_" << output->name << " = " << glu::getDataTypeName(intBaseType) << "(" << output->name << ");\n";
+// 			src << "\to_" << output.name << " = " << gluShaderUtil.getDataTypeName(intBaseType) << "(" << output.name << ");\n";
 // 		}
 // 	}
 //
@@ -347,7 +347,7 @@
     		/** @type{glsShaderExecUtil.Symbol} */ var output = shaderSpec.outputs[outNdx];
     		/** @type{number} */ var location = outLocationMap[output.name];
     		/** @type{string} */ var outVarName	= 'o_' + output.name;
-    		glu::VariableDeclaration	decl		(output.varType, outVarName, glu::STORAGE_OUT, glu::INTERPOLATION_LAST, glu::Layout(location));
+    		// glu::VariableDeclaration	decl		(output.varType, outVarName, glu::STORAGE_OUT, glu::INTERPOLATION_LAST, glu::Layout(location));
 
     		TCU_CHECK_INTERNAL(output.varType.isBasicType());
 
@@ -379,7 +379,7 @@
     			}
     		}
     		else
-    			src += glu::VariableDeclaration(output.varType, output.name, glu::STORAGE_OUT, glu::INTERPOLATION_LAST, location) << ";\n";
+    			src += '';//glu::VariableDeclaration(output.varType, output.name, glu::STORAGE_OUT, glu::INTERPOLATION_LAST, location) << ";\n";
     	}
 
     	src += '\nvoid main (void)\n{\n';
@@ -392,13 +392,13 @@
     	}
 
     	// Operation - indented to correct level.
-    	{
-    		std::istringstream	opSrc	(shaderSpec.source);
-    		/** @type{number} */ var line;
-
-    		while (std::getline(opSrc, line))
-    			src += ('\t' << line << '\n');
-    	}
+    	// {
+    	// 	std::istringstream	opSrc	(shaderSpec.source);
+    	// 	/** @type{number} */ var line;
+        //
+    	// 	while (std::getline(opSrc, line))
+    	// 		src += ('\t' << line << '\n');
+    	// }
 
     	for (var i = 0; i < shaderSpec.outputs.length; i++) {
     		if (useIntOutputs && gluShaderUtil.isDataTypeFloatOrVec(shaderSpec.outputs[i].varType.getBasicType()))
@@ -415,7 +415,7 @@
     			/** @type{number} */ var vecSize = gluShaderUtil.getDataTypeScalarSize(shaderSpec.outputs[i].varType.getBasicType());
     			/** @type{gluShaderUtil.DataType} */ var intBaseType = vecSize > 1 ? gluShaderUtil.getDataTypeVector(gluShaderUtil.DataType.INT, vecSize) : gluShaderUtil.DataType.INT;
 
-    			src += ('\to_' + shaderSpec.outputs[i].name + ' = ' + glu::getDataTypeName(intBaseType) + '(' + shaderSpec.outputs[i].name + ');\n');
+    			src += ('\to_' + shaderSpec.outputs[i].name + ' = ' + gluShaderUtil.getDataTypeName(intBaseType) + '(' + shaderSpec.outputs[i].name + ');\n');
     		}
     	}
 
@@ -435,9 +435,9 @@
      */
     glsShaderExecUtil.VertexProcessorExecutor = function(renderCtx, shaderSpec, sources) {
         glsShaderExecUtil.ShaderExecutor.call(this, renderCtx, shaderSpec);
-        /** @type{gluShaderProgram.ShaderProgram} */ this.m_program = new gluShaderProgram.ShaderProgram(renderCtx,
-						 glu::ProgramSources(sources) << getTFVaryings(shaderSpec.outputs.begin(), shaderSpec.outputs.end())
-													  << glu::TransformFeedbackMode(GL_INTERLEAVED_ATTRIBS));
+        // /** @type{gluShaderProgram.ShaderProgram} */ this.m_program = new gluShaderProgram.ShaderProgram(renderCtx,
+		// 				 glu::ProgramSources(sources) << getTFVaryings(shaderSpec.outputs.begin(), shaderSpec.outputs.end())
+		// 											  << glu::TransformFeedbackMode(GL_INTERLEAVED_ATTRIBS));
     };
 
     /**
@@ -462,33 +462,33 @@
      * @param{*} outputs
      */
     glsShaderExecUtil.VertexProcessorExecutor.prototype.execute = function(numValues, inputs, outputs) {
-    	const glw::Functions&					gl					= m_renderCtx.getFunctions();
+    	// const glw::Functions&					gl					= m_renderCtx.getFunctions();
     	/** @type{boolean} */ var useTFObject			= true; //isContextTypeES(m_renderCtx.getType()) || (isContextTypeGLCore(m_renderCtx.getType()) && m_renderCtx.getType().getMajorVersion() >= 4);
     	/** @type{gluDrawUtil.VertexArrayBinding} */ var vertexArrays;
-    	de::UniquePtr<glu::TransformFeedback>	transformFeedback	(useTFObject ? new glu::TransformFeedback(m_renderCtx) : DE_NULL);
-    	glu::Buffer								outputBuffer		(m_renderCtx);
+    	// de::UniquePtr<glu::TransformFeedback>	transformFeedback	(useTFObject ? new glu::TransformFeedback(m_renderCtx) : DE_NULL);
+    	// glu::Buffer								outputBuffer		(m_renderCtx);
     	/** @type{number} */ var outputBufferStride	= glsShaderExecUtil.computeTotalScalarSize(m_outputs) * 4;
 
     	// Setup inputs.
     	for (var inputNdx = 0; inputNdx < this.m_inputs.length; inputNdx++) {
     		/** @type{glsShaderExecUtil.Symbol} */ var symbol = this.m_inputs[inputNdx];
-    		const void*			ptr			= inputs[inputNdx];
-    		const glu::DataType	basicType	= symbol.varType.getBasicType();
-    		/** @type{number} */ var			vecSize		= glu::getDataTypeScalarSize(basicType);
+    		// const void*			ptr			= inputs[inputNdx];
+    		// const glu::DataType	basicType	= symbol.varType.getBasicType();
+    		/** @type{number} */ var			vecSize		= gluShaderUtil.getDataTypeScalarSize(basicType);
 
     		if (gluShaderUtil.isDataTypeFloatOrVec(basicType))
-    			vertexArrays.push_back(glu::va::Float(symbol.name, vecSize, numValues, 0, (const float*)ptr));
+    			vertexArrays.push(0);//glu::va::Float(symbol.name, vecSize, numValues, 0, (const float*)ptr));
     		else if (gluShaderUtil.isDataTypeIntOrIVec(basicType))
-    			vertexArrays.push_back(glu::va::Int32(symbol.name, vecSize, numValues, 0, (const deInt32*)ptr));
+    			vertexArrays.push(0);//glu::va::Int32(symbol.name, vecSize, numValues, 0, (const deInt32*)ptr));
     		else if (gluShaderUtil.isDataTypeUintOrUVec(basicType))
-    			vertexArrays.push_back(glu::va::Uint32(symbol.name, vecSize, numValues, 0, (const deUint32*)ptr));
+    			vertexArrays.push(0);//glu::va::Uint32(symbol.name, vecSize, numValues, 0, (const deUint32*)ptr));
     		else if (gluShaderUtil.isDataTypeMatrix(basicType)) {
-    			/** @type{number} */ var numRows	= glu::getDataTypeMatrixNumRows(basicType);
-    			/** @type{number} */ var numCols	= glu::getDataTypeMatrixNumColumns(basicType);
-    			/** @type{number} */ var stride	= numRows * numCols * sizeof(float);
+    			/** @type{number} */ var numRows	= gluShaderUtil.getDataTypeMatrixNumRows(basicType);
+    			/** @type{number} */ var numCols	= gluShaderUtil.getDataTypeMatrixNumColumns(basicType);
+    			/** @type{number} */ var stride	= numRows * numCols * 4;//sizeof(float);
 
-    			for (int colNdx = 0; colNdx < numCols; ++colNdx)
-    				vertexArrays.push_back(glu::va::Float(symbol.name, colNdx, numRows, numValues, stride, ((const float*)ptr) + colNdx * numRows));
+    			for (var colNdx = 0; colNdx < numCols; ++colNdx)
+    				vertexArrays.push(0);//glu::va::Float(symbol.name, colNdx, numRows, numValues, stride, ((const float*)ptr) + colNdx * numRows));
     		}
     		else
     			DE_ASSERT(false);
@@ -496,36 +496,36 @@
 
     	// Setup TF outputs.
     	if (useTFObject)
-    		gl.bindTransformFeedback(GL_TRANSFORM_FEEDBACK, **transformFeedback);
-    	gl.bindBuffer(GL_TRANSFORM_FEEDBACK_BUFFER, *outputBuffer);
+    		gl.bindTransformFeedback(GL_TRANSFORM_FEEDBACK/*, **transformFeedback*/);
+    	gl.bindBuffer(GL_TRANSFORM_FEEDBACK_BUFFER/*, *outputBuffer*/);
     	gl.bufferData(GL_TRANSFORM_FEEDBACK_BUFFER, outputBufferStride*numValues, DE_NULL, GL_STREAM_READ);
-    	gl.bindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, *outputBuffer);
+    	gl.bindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0/*, *outputBuffer*/);
     	GLU_EXPECT_NO_ERROR(gl.getError(), "Error in TF setup");
 
     	// Draw with rasterization disabled.
     	gl.beginTransformFeedback(GL_POINTS);
     	gl.enable(GL_RASTERIZER_DISCARD);
-    	glu::draw(m_renderCtx, m_program.getProgram(), (int)vertexArrays.size(), vertexArrays.empty() ? DE_NULL : &vertexArrays[0],
-    			  glu::pr::Points(numValues));
+    	// glu::draw(m_renderCtx, m_program.getProgram(), (int)vertexArrays.size(), vertexArrays.empty() ? DE_NULL : &vertexArrays[0],
+    	// 		  glu::pr::Points(numValues));
     	gl.disable(GL_RASTERIZER_DISCARD);
     	gl.endTransformFeedback();
     	GLU_EXPECT_NO_ERROR(gl.getError(), "Error in draw");
 
     	// Read back data.
     	{
-    		const void*	srcPtr		= gl.mapBufferRange(GL_TRANSFORM_FEEDBACK_BUFFER, 0, outputBufferStride*numValues, GL_MAP_READ_BIT);
+    		// const void*	srcPtr		= gl.mapBufferRange(GL_TRANSFORM_FEEDBACK_BUFFER, 0, outputBufferStride*numValues, GL_MAP_READ_BIT);
     		/** @type{number} */ var curOffset	= 0; // Offset in buffer in bytes.
 
     		GLU_EXPECT_NO_ERROR(gl.getError(), "glMapBufferRange(GL_TRANSFORM_FEEDBACK_BUFFER)");
     		TCU_CHECK(srcPtr != DE_NULL);
 
-    		for (var outputNdx = 0; outputNdx < (int)m_outputs.size(); outputNdx++) {
+    		for (var outputNdx = 0; outputNdx < m_outputs.length; outputNdx++) {
     			/** @type{glsShaderExecUtil.Symbol} */ var symbol = m_outputs[outputNdx];
-    			void*				dstPtr		= outputs[outputNdx];
+    			/*void* */var				dstPtr		= outputs[outputNdx];
     			/** @type{number} */ var			scalarSize	= symbol.varType.getScalarSize();
 
     			for (var ndx = 0; ndx < numValues; ndx++)
-    				deMemcpy((deUint32*)dstPtr + scalarSize*ndx, (const deUint8*)srcPtr + curOffset + ndx*outputBufferStride, scalarSize*4);
+    				deMemcpy(/*(deUint32*)*/dstPtr + scalarSize*ndx, /*(const deUint8*)*/srcPtr + curOffset + ndx*outputBufferStride, scalarSize*4);
 
     			curOffset += scalarSize*4;
     		}
@@ -542,7 +542,7 @@
 
 
 
-
+/*
 template<typename Iterator>
 struct SymbolNameIterator
 {
@@ -557,10 +557,10 @@ struct SymbolNameIterator
 
 	inline std::string operator* (void) const
 	{
-		if (gluShaderUtil.isDataTypeBoolOrBVec(symbolIter->varType.getBasicType()))
-			return "o_" + symbolIter->name;
+		if (gluShaderUtil.isDataTypeBoolOrBVec(symbolIter.varType.getBasicType()))
+			return "o_" + symbolIter.name;
 		else
-			return symbolIter->name;
+			return symbolIter.name;
 	}
 };
 
@@ -578,10 +578,7 @@ VertexProcessorExecutor::VertexProcessorExecutor (const glu::RenderContext& rend
 {
 }
 
-VertexProcessorExecutor::~VertexProcessorExecutor (void)
-{
-}
-
+*/
 
 
     /**
@@ -603,33 +600,33 @@ VertexProcessorExecutor::~VertexProcessorExecutor (void)
      * @param{Array<*>} outputs
      */
     glsShaderExecUtil.VertexProcessorExecutor.prototype.execute = function(numValues, inputs, outputs) {
-    	const glw::Functions&					gl					= m_renderCtx.getFunctions();
+    	// const glw::Functions&					gl					= m_renderCtx.getFunctions();
     	/** @type{boolean} */ var useTFObject			= true; //isContextTypeES(m_renderCtx.getType()) || (isContextTypeGLCore(m_renderCtx.getType()) && m_renderCtx.getType().getMajorVersion() >= 4);
     	/** @type{Array<gluDrawUtil.VertexArrayBinding>} */ var vertexArrays = [];
-    	de::UniquePtr<glu::TransformFeedback>	transformFeedback	(useTFObject ? new glu::TransformFeedback(m_renderCtx) : DE_NULL);
-    	glu::Buffer								outputBuffer		(m_renderCtx);
+    	// de::UniquePtr<glu::TransformFeedback>	transformFeedback	(useTFObject ? new glu::TransformFeedback(m_renderCtx) : DE_NULL);
+    	// glu::Buffer								outputBuffer		(m_renderCtx);
     	/** @type{number} */ var outputBufferStride = glsShaderExecUtil.computeTotalScalarSize(this.m_outputs)*4;
 
     	// Setup inputs.
-    	for (var inputNdx = 0; inputNdx < (int)m_inputs.size(); inputNdx++) {
+    	for (var inputNdx = 0; inputNdx < this.m_inputs.length; inputNdx++) {
     		/** @type{glsShaderExecUtil.Symbol} */ var		symbol		= m_inputs[inputNdx];
-    		const void* ptr = inputs[inputNdx];
+    		/*const void* */var ptr = inputs[inputNdx];
     		/** @type{gluShaderUtil.DataType} */ var basicType	= symbol.varType.getBasicType();
     		/** @type{number} */ var vecSize = gluShaderUtil.getDataTypeScalarSize(basicType);
 
     		if (gluShaderUtil.isDataTypeFloatOrVec(basicType))
-    			vertexArrays.push(glu::va::Float(symbol.name, vecSize, numValues, 0, (const float*)ptr));
+    			vertexArrays.push(0);//glu::va::Float(symbol.name, vecSize, numValues, 0, (const float*)ptr));
     		else if (gluShaderUtil.isDataTypeIntOrIVec(basicType))
-    			vertexArrays.push(glu::va::Int32(symbol.name, vecSize, numValues, 0, (const deInt32*)ptr));
+    			vertexArrays.push(0);//glu::va::Int32(symbol.name, vecSize, numValues, 0, (const deInt32*)ptr));
     		else if (gluShaderUtil.isDataTypeUintOrUVec(basicType))
-    			vertexArrays.push(glu::va::Uint32(symbol.name, vecSize, numValues, 0, (const deUint32*)ptr));
+    			vertexArrays.push(0);//glu::va::Uint32(symbol.name, vecSize, numValues, 0, (const deUint32*)ptr));
     		else if (gluShaderUtil.isDataTypeMatrix(basicType))	{
     			/** @type{number} */ var numRows	= gluShaderUtil.getDataTypeMatrixNumRows(basicType);
     			/** @type{number} */ var numCols	= gluShaderUtil.getDataTypeMatrixNumColumns(basicType);
-    			/** @type{number} */ var stride	= numRows * numCols * sizeof(float);
+    			/** @type{number} */ var stride	= numRows * numCols * 4;//sizeof(float);
 
-    			for (int colNdx = 0; colNdx < numCols; ++colNdx)
-    				vertexArrays.push(glu::va::Float(symbol.name, colNdx, numRows, numValues, stride, ((const float*)ptr) + colNdx * numRows));
+    			for (var colNdx = 0; colNdx < numCols; ++colNdx)
+    				vertexArrays.push(0);//glu::va::Float(symbol.name, colNdx, numRows, numValues, stride, ((const float*)ptr) + colNdx * numRows));
     		}
     		else
     			DE_ASSERT(false);
@@ -637,24 +634,24 @@ VertexProcessorExecutor::~VertexProcessorExecutor (void)
 
     	// Setup TF outputs.
     	if (useTFObject)
-    		gl.bindTransformFeedback(GL_TRANSFORM_FEEDBACK, **transformFeedback);
-    	gl.bindBuffer(GL_TRANSFORM_FEEDBACK_BUFFER, *outputBuffer);
+    		gl.bindTransformFeedback(GL_TRANSFORM_FEEDBACK/*, **transformFeedback*/);
+    	// gl.bindBuffer(GL_TRANSFORM_FEEDBACK_BUFFER, *outputBuffer);
     	gl.bufferData(GL_TRANSFORM_FEEDBACK_BUFFER, outputBufferStride*numValues, DE_NULL, GL_STREAM_READ);
-    	gl.bindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, *outputBuffer);
+    	// gl.bindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, *outputBuffer);
     	GLU_EXPECT_NO_ERROR(gl.getError(), "Error in TF setup");
 
     	// Draw with rasterization disabled.
     	gl.beginTransformFeedback(GL_POINTS);
     	gl.enable(GL_RASTERIZER_DISCARD);
-    	gluDrawUtil.draw(m_renderCtx, m_program.getProgram(), (int)vertexArrays.size(), vertexArrays.empty() ? DE_NULL : &vertexArrays[0],
-    			  glu::pr::Points(numValues));
+    	// gluDrawUtil.draw(m_renderCtx, m_program.getProgram(), (int)vertexArrays.size(), vertexArrays.empty() ? DE_NULL : &vertexArrays[0],
+    	// 		  glu::pr::Points(numValues));
     	gl.disable(GL_RASTERIZER_DISCARD);
     	gl.endTransformFeedback();
     	GLU_EXPECT_NO_ERROR(gl.getError(), "Error in draw");
 
     	// Read back data.
     	{
-    		const void*	srcPtr		= gl.mapBufferRange(GL_TRANSFORM_FEEDBACK_BUFFER, 0, outputBufferStride*numValues, GL_MAP_READ_BIT);
+    		// const void*	srcPtr		= gl.mapBufferRange(GL_TRANSFORM_FEEDBACK_BUFFER, 0, outputBufferStride*numValues, GL_MAP_READ_BIT);
     		/** @type{number} */ var curOffset	= 0; // Offset in buffer in bytes.
 
     		GLU_EXPECT_NO_ERROR(gl.getError(), "glMapBufferRange(GL_TRANSFORM_FEEDBACK_BUFFER)");
@@ -662,11 +659,11 @@ VertexProcessorExecutor::~VertexProcessorExecutor (void)
 
     		for (var outputNdx = 0; outputNdx < this.m_outputs.length; outputNdx++) {
     			/** @type{glsShaderExecUtil.Symbol} */ var		symbol		= m_outputs[outputNdx];
-    			void*				dstPtr		= outputs[outputNdx];
+    			/*void* */var				dstPtr		= outputs[outputNdx];
     			/** @type{number} */ var scalarSize	= symbol.varType.getScalarSize();
 
     			for (var ndx = 0; ndx < numValues; ndx++)
-    				deMemcpy((deUint32*)dstPtr + scalarSize*ndx, (const deUint8*)srcPtr + curOffset + ndx*outputBufferStride, scalarSize*4);
+    				deMemcpy(dstPtr + scalarSize*ndx, srcPtr + curOffset + ndx*outputBufferStride, scalarSize*4);
 
     			curOffset += scalarSize*4;
     		}
@@ -690,15 +687,15 @@ VertexProcessorExecutor::~VertexProcessorExecutor (void)
  * @param{glsShaderExecUtil.ShaderSpec} shaderSpec
  */
 glsShaderExecUtil.VertexShaderExecutor = function(shaderSpec) {
-    glsShaderExecUtil.VertexProcessorExecutor.call(this, shaderSpec, )
+    glsShaderExecUtil.VertexProcessorExecutor.call(this, shaderSpec );
 };
 
-VertexShaderExecutor::VertexShaderExecutor (const glu::RenderContext& renderCtx, const ShaderSpec& shaderSpec)
-	: VertexProcessorExecutor	(renderCtx, shaderSpec,
-								 glu::ProgramSources() << glu::VertexSource(generateVertexShader(shaderSpec))
-													   << glu::FragmentSource(generateEmptyFragmentSource(shaderSpec.version)))
-{
-}
+// VertexShaderExecutor::VertexShaderExecutor (const glu::RenderContext& renderCtx, const ShaderSpec& shaderSpec)
+// 	: VertexProcessorExecutor	(renderCtx, shaderSpec,
+// 								 glu::ProgramSources() << glu::VertexSource(generateVertexShader(shaderSpec))
+// 													   << glu::FragmentSource(generateEmptyFragmentSource(shaderSpec.version)))
+// {
+// }
 
 // GeometryShaderExecutor
 
@@ -728,251 +725,252 @@ VertexShaderExecutor::VertexShaderExecutor (const glu::RenderContext& renderCtx,
 // }
 
 // FragmentShaderExecutor
-
-class FragmentShaderExecutor : public ShaderExecutor
-{
-public:
-								FragmentShaderExecutor	(const glu::RenderContext& renderCtx, const ShaderSpec& shaderSpec);
-								~FragmentShaderExecutor	(void);
-
-	bool						isOk					(void) const				{ return m_program.isOk();			}
-	void						log						(tcu::TestLog& dst) const	{ dst << m_program;					}
-	deUint32					getProgram				(void) const				{ return m_program.getProgram();	}
-
-	void						execute					(int numValues, const void* const* inputs, void* const* outputs);
-
-protected:
-	std::vector<const Symbol*>	m_outLocationSymbols;
-	std::map<std::string, int>	m_outLocationMap;
-	glu::ShaderProgram			m_program;
-};
-
-static std::map<std::string, int> generateLocationMap (const std::vector<Symbol>& symbols, std::vector<const Symbol*>& locationSymbols)
-{
-	std::map<std::string, int>	ret;
-	int							location	= 0;
-
-	locationSymbols.clear();
-
-	for (std::vector<Symbol>::const_iterator it = symbols.begin(); it != symbols.end(); ++it)
-	{
-		/** @type{number} */ var	numLocations	= glu::getDataTypeNumLocations(it->varType.getBasicType());
-
-		TCU_CHECK_INTERNAL(!de::contains(ret, it->name));
-		de::insert(ret, it->name, location);
-		location += numLocations;
-
-		for (var ndx = 0; ndx < numLocations; ++ndx)
-			locationSymbols.push_back(&*it);
-	}
-
-	return ret;
-}
-
-inline bool hasFloatRenderTargets (const glu::RenderContext& renderCtx)
-{
-	glu::ContextType type = renderCtx.getType();
-	return glu::isContextTypeGLCore(type);
-}
-
-FragmentShaderExecutor::FragmentShaderExecutor (const glu::RenderContext& renderCtx, const ShaderSpec& shaderSpec)
-	: ShaderExecutor		(renderCtx, shaderSpec)
-	, m_outLocationSymbols	()
-	, m_outLocationMap		(generateLocationMap(m_outputs, m_outLocationSymbols))
-	, m_program				(renderCtx,
-							 glu::ProgramSources() << glu::VertexSource(generatePassthroughVertexShader(shaderSpec, "a_", ""))
-												   << glu::FragmentSource(generateFragmentShader(shaderSpec, !hasFloatRenderTargets(renderCtx), m_outLocationMap)))
-{
-}
-
-FragmentShaderExecutor::~FragmentShaderExecutor (void)
-{
-}
-
-inline int queryInt (const glw::Functions& gl, deUint32 pname)
-{
-	int value = 0;
-	gl.getIntegerv(pname, &value);
-	return value;
-}
-
-static tcu::TextureFormat getRenderbufferFormatForOutput (const glu::VarType& outputType, bool useIntOutputs)
-{
-	const tcu::TextureFormat::ChannelOrder channelOrderMap[] =
-	{
-		tcu::TextureFormat::R,
-		tcu::TextureFormat::RG,
-		tcu::TextureFormat::RGBA,	// No RGB variants available.
-		tcu::TextureFormat::RGBA
-	};
-
-	/** @type{gluShaderUtil.DataType} */ var 				basicType		= outputType.getBasicType();
-	/** @type{number} */ var numComps = glu::getDataTypeNumComponents(basicType);
-	/** @type{tcuTexture.ChannelType} */ var channelType;
-
-	switch (glu::getDataTypeScalarType(basicType))
-	{
-		case gluShaderUtil.DataType.UINT:	channelType = tcu::TextureFormat::UNSIGNED_INT32;												break;
-		case gluShaderUtil.DataType.INT:		channelType = tcu::TextureFormat::SIGNED_INT32;													break;
-		case glu::TYPE_BOOL:	channelType = tcu::TextureFormat::SIGNED_INT32;													break;
-		case glu::TYPE_FLOAT:	channelType = useIntOutputs ? tcu::TextureFormat::UNSIGNED_INT32 : tcu::TextureFormat::FLOAT;	break;
-		default:
-			throw tcu::InternalError("Invalid output type");
-	}
-
-	DE_ASSERT(de::inRange<int>(numComps, 1, DE_LENGTH_OF_ARRAY(channelOrderMap)));
-
-	return tcu::TextureFormat(channelOrderMap[numComps-1], channelType);
-}
-
-void FragmentShaderExecutor::execute (int numValues, const void* const* inputs, void* const* outputs)
-{
-	const glw::Functions&			gl					= m_renderCtx.getFunctions();
-	const bool						useIntOutputs		= !hasFloatRenderTargets(m_renderCtx);
-	/** @type{number} */ var						maxRenderbufferSize	= queryInt(gl, GL_MAX_RENDERBUFFER_SIZE);
-	/** @type{number} */ var						framebufferW		= de::min(maxRenderbufferSize, numValues);
-	/** @type{number} */ var						framebufferH		= (numValues / framebufferW) + ((numValues % framebufferW != 0) ? 1 : 0);
-
-	glu::Framebuffer				framebuffer			(m_renderCtx);
-	glu::RenderbufferVector			renderbuffers		(m_renderCtx, m_outLocationSymbols.size());
-
-	vector<glu::VertexArrayBinding>	vertexArrays;
-	vector<tcu::Vec2>				positions			(numValues);
-
-	if (framebufferH > maxRenderbufferSize)
-		throw tcu::NotSupportedError("Value count is too high for maximum supported renderbuffer size");
-
-	// Compute positions - 1px points are used to drive fragment shading.
-	for (int valNdx = 0; valNdx < numValues; valNdx++)
-	{
-		/** @type{number} */ var		ix		= valNdx % framebufferW;
-		/** @type{number} */ var		iy		= valNdx / framebufferW;
-		const float		fx		= -1.0f + 2.0f*((float(ix) + 0.5f) / float(framebufferW));
-		const float		fy		= -1.0f + 2.0f*((float(iy) + 0.5f) / float(framebufferH));
-
-		positions[valNdx] = tcu::Vec2(fx, fy);
-	}
-
-	// Vertex inputs.
-	vertexArrays.push_back(glu::va::Float("a_position", 2, numValues, 0, (const float*)&positions[0]));
-
-	for (var inputNdx = 0; inputNdx < (int)m_inputs.size(); inputNdx++)
-	{
-		/** @type{glsShaderExecUtil.Symbol} */ var		symbol		= m_inputs[inputNdx];
-		const std::string	attribName	= "a_" + symbol.name;
-		const void*			ptr			= inputs[inputNdx];
-		/** @type{gluShaderUtil.DataType} */ var basicType	= symbol.varType.getBasicType();
-		/** @type{number} */ var			vecSize		= gluShaderUtil.getDataTypeScalarSize(basicType);
-
-		if (gluShaderUtil.isDataTypeFloatOrVec(basicType))
-			vertexArrays.push_back(glu::va::Float(attribName, vecSize, numValues, 0, (const float*)ptr));
-		else if (gluShaderUtil.isDataTypeIntOrIVec(basicType))
-			vertexArrays.push_back(glu::va::Int32(attribName, vecSize, numValues, 0, (const deInt32*)ptr));
-		else if (gluShaderUtil.isDataTypeUintOrUVec(basicType))
-			vertexArrays.push_back(glu::va::Uint32(attribName, vecSize, numValues, 0, (const deUint32*)ptr));
-		else if (gluShaderUtil.isDataTypeMatrix(basicType))
-		{
-			int		numRows	= gluShaderUtil.getDataTypeMatrixNumRows(basicType);
-			int		numCols	= gluShaderUtil.getDataTypeMatrixNumColumns(basicType);
-			int		stride	= numRows * numCols * sizeof(float);
-
-			for (int colNdx = 0; colNdx < numCols; ++colNdx)
-				vertexArrays.push_back(glu::va::Float(attribName, colNdx, numRows, numValues, stride, ((const float*)ptr) + colNdx * numRows));
-		}
-		else
-			DE_ASSERT(false);
-	}
-
-	// Construct framebuffer.
-	gl.bindFramebuffer(GL_FRAMEBUFFER, *framebuffer);
-
-	for (int outNdx = 0; outNdx < (int)m_outLocationSymbols.size(); ++outNdx)
-	{
-		/** @type{glsShaderExecUtil.Symbol} */ var	output			= *m_outLocationSymbols[outNdx];
-		const deUint32	renderbuffer	= renderbuffers[outNdx];
-		const deUint32	format			= glu::getInternalFormat(getRenderbufferFormatForOutput(output.varType, useIntOutputs));
-
-		gl.bindRenderbuffer(GL_RENDERBUFFER, renderbuffer);
-		gl.renderbufferStorage(GL_RENDERBUFFER, format, framebufferW, framebufferH);
-		gl.framebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+outNdx, GL_RENDERBUFFER, renderbuffer);
-	}
-	gl.bindRenderbuffer(GL_RENDERBUFFER, 0);
-	GLU_EXPECT_NO_ERROR(gl.getError(), "Failed to set up framebuffer object");
-	TCU_CHECK(gl.checkFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
-
-	{
-		vector<deUint32> drawBuffers(m_outLocationSymbols.size());
-		for (var ndx = 0; ndx < (int)m_outLocationSymbols.size(); ndx++)
-			drawBuffers[ndx] = GL_COLOR_ATTACHMENT0+ndx;
-		gl.drawBuffers((int)drawBuffers.size(), &drawBuffers[0]);
-		GLU_EXPECT_NO_ERROR(gl.getError(), "glDrawBuffers()");
-	}
-
-	// Render
-	gl.viewport(0, 0, framebufferW, framebufferH);
-	glu::draw(m_renderCtx, m_program.getProgram(), (int)vertexArrays.size(), &vertexArrays[0],
-			  glu::pr::Points(numValues));
-	GLU_EXPECT_NO_ERROR(gl.getError(), "Error in draw");
-
-	// Read back pixels.
-	{
-		tcu::TextureLevel	tmpBuf;
-
-		// \todo [2013-08-07 pyry] Some fast-paths could be added here.
-
-		for (int outNdx = 0; outNdx < (int)m_outputs.size(); ++outNdx)
-		{
-			/** @type{glsShaderExecUtil.Symbol} */ var				output			= m_outputs[outNdx];
-			/** @type{number} */ var					outSize			= output.varType.getScalarSize();
-			/** @type{number} */ var					outVecSize		= glu::getDataTypeNumComponents(output.varType.getBasicType());
-			/** @type{number} */ var					outNumLocs		= glu::getDataTypeNumLocations(output.varType.getBasicType());
-			deUint32*					dstPtrBase		= static_cast<deUint32*>(outputs[outNdx]);
-			const tcu::TextureFormat	format			= getRenderbufferFormatForOutput(output.varType, useIntOutputs);
-			const tcu::TextureFormat	readFormat		(tcu::TextureFormat::RGBA, format.type);
-			/** @type{number} */ var					outLocation		= de::lookup(m_outLocationMap, output.name);
-
-			tmpBuf.setStorage(readFormat, framebufferW, framebufferH);
-
-			for (int locNdx = 0; locNdx < outNumLocs; ++locNdx)
-			{
-				gl.readBuffer(GL_COLOR_ATTACHMENT0 + outLocation + locNdx);
-				glu::readPixels(m_renderCtx, 0, 0, tmpBuf.getAccess());
-				GLU_EXPECT_NO_ERROR(gl.getError(), "Reading pixels");
-
-				if (outSize == 4 && outNumLocs == 1)
-					deMemcpy(dstPtrBase, tmpBuf.getAccess().getDataPtr(), numValues*outVecSize*4);
-				else
-				{
-					for (int valNdx = 0; valNdx < numValues; valNdx++)
-					{
-						const deUint32* srcPtr = (const deUint32*)tmpBuf.getAccess().getDataPtr() + valNdx*4;
-						deUint32*		dstPtr = &dstPtrBase[outSize*valNdx + outVecSize*locNdx];
-						deMemcpy(dstPtr, srcPtr, outVecSize*4);
-					}
-				}
-			}
-		}
-	}
-
-	// \todo [2013-08-07 pyry] Clear draw buffers & viewport?
-	gl.bindFramebuffer(GL_FRAMEBUFFER, 0);
-}
-
-// Shared utilities for compute and tess executors
-
-static deUint32 getVecStd430ByteAlignment (glu::DataType type)
-{
-	switch (gluShaderUtil.getDataTypeScalarSize(type))
-	{
-		case 1:		return 4u;
-		case 2:		return 8u;
-		case 3:		return 16u;
-		case 4:		return 16u;
-		default:
-			DE_ASSERT(false);
-			return 0u;
-	}
-}
+// TODO: port this
+// class FragmentShaderExecutor : public ShaderExecutor
+// {
+// public:
+// 								FragmentShaderExecutor	(const glu::RenderContext& renderCtx, const ShaderSpec& shaderSpec);
+// 								~FragmentShaderExecutor	(void);
+//
+// 	bool						isOk					(void) const				{ return m_program.isOk();			}
+// 	void						log						(tcu::TestLog& dst) const	{ dst << m_program;					}
+// 	deUint32					getProgram				(void) const				{ return m_program.getProgram();	}
+//
+// 	void						execute					(int numValues, const void* const* inputs, void* const* outputs);
+//
+// protected:
+// 	std::vector<const Symbol*>	m_outLocationSymbols;
+// 	std::map<std::string, int>	m_outLocationMap;
+// 	glu::ShaderProgram			m_program;
+// };
+//
+// static std::map<std::string, int> generateLocationMap (const std::vector<Symbol>& symbols, std::vector<const Symbol*>& locationSymbols)
+// {
+// 	std::map<std::string, int>	ret;
+// 	int							location	= 0;
+//
+// 	locationSymbols.clear();
+//
+// 	for (std::vector<Symbol>::const_iterator it = symbols.begin(); it != symbols.end(); ++it)
+// 	{
+// 		/** @type{number} */ var	numLocations	= glu::getDataTypeNumLocations(it.varType.getBasicType());
+//
+// 		TCU_CHECK_INTERNAL(!de::contains(ret, it.name));
+// 		de::insert(ret, it.name, location);
+// 		location += numLocations;
+//
+// 		for (var ndx = 0; ndx < numLocations; ++ndx)
+// 			locationSymbols.push(&*it);
+// 	}
+//
+// 	return ret;
+// }
+//
+// inline bool hasFloatRenderTargets (const glu::RenderContext& renderCtx)
+// {
+// 	glu::ContextType type = renderCtx.getType();
+// 	return glu::isContextTypeGLCore(type);
+// }
+//
+// FragmentShaderExecutor::FragmentShaderExecutor (const glu::RenderContext& renderCtx, const ShaderSpec& shaderSpec)
+// 	: ShaderExecutor		(renderCtx, shaderSpec)
+// 	, m_outLocationSymbols	()
+// 	, m_outLocationMap		(generateLocationMap(m_outputs, m_outLocationSymbols))
+// 	, m_program				(renderCtx,
+// 							 glu::ProgramSources() << glu::VertexSource(generatePassthroughVertexShader(shaderSpec, "a_", ""))
+// 												   << glu::FragmentSource(generateFragmentShader(shaderSpec, !hasFloatRenderTargets(renderCtx), m_outLocationMap)))
+// {
+// }
+//
+// FragmentShaderExecutor::~FragmentShaderExecutor (void)
+// {
+// }
+//
+// inline int queryInt (const glw::Functions& gl, deUint32 pname)
+// {
+// 	int value = 0;
+// 	gl.getIntegerv(pname, &value);
+// 	return value;
+// }
+//
+// static tcu::TextureFormat getRenderbufferFormatForOutput (const glu::VarType& outputType, bool useIntOutputs)
+// {
+// 	const tcu::TextureFormat::ChannelOrder channelOrderMap[] =
+// 	{
+// 		tcu::TextureFormat::R,
+// 		tcu::TextureFormat::RG,
+// 		tcu::TextureFormat::RGBA,	// No RGB variants available.
+// 		tcu::TextureFormat::RGBA
+// 	};
+//
+// 	/** @type{gluShaderUtil.DataType} */ var 				basicType		= outputType.getBasicType();
+// 	/** @type{number} */ var numComps = glu::getDataTypeNumComponents(basicType);
+// 	/** @type{tcuTexture.ChannelType} */ var channelType;
+//
+// 	switch (glu::getDataTypeScalarType(basicType))
+// 	{
+// 		case gluShaderUtil.DataType.UINT:	channelType = tcu::TextureFormat::UNSIGNED_INT32;												break;
+// 		case gluShaderUtil.DataType.INT:		channelType = tcu::TextureFormat::SIGNED_INT32;													break;
+// 		case glu::TYPE_BOOL:	channelType = tcu::TextureFormat::SIGNED_INT32;													break;
+// 		case glu::TYPE_FLOAT:	channelType = useIntOutputs ? tcu::TextureFormat::UNSIGNED_INT32 : tcu::TextureFormat::FLOAT;	break;
+// 		default:
+// 			throw tcu::InternalError("Invalid output type");
+// 	}
+//
+// 	DE_ASSERT(de::inRange<int>(numComps, 1, DE_LENGTH_OF_ARRAY(channelOrderMap)));
+//
+// 	return tcu::TextureFormat(channelOrderMap[numComps-1], channelType);
+// }
+//
+// void FragmentShaderExecutor::execute (int numValues, const void* const* inputs, void* const* outputs)
+// {
+// 	const glw::Functions&			gl					= m_renderCtx.getFunctions();
+// 	const bool						useIntOutputs		= !hasFloatRenderTargets(m_renderCtx);
+// 	/** @type{number} */ var						maxRenderbufferSize	= queryInt(gl, GL_MAX_RENDERBUFFER_SIZE);
+// 	/** @type{number} */ var						framebufferW		= de::min(maxRenderbufferSize, numValues);
+// 	/** @type{number} */ var						framebufferH		= (numValues / framebufferW) + ((numValues % framebufferW != 0) ? 1 : 0);
+//
+// 	glu::Framebuffer				framebuffer			(m_renderCtx);
+// 	glu::RenderbufferVector			renderbuffers		(m_renderCtx, m_outLocationSymbols.size());
+//
+// 	vector<glu::VertexArrayBinding>	vertexArrays;
+// 	vector<tcu::Vec2>				positions			(numValues);
+//
+// 	if (framebufferH > maxRenderbufferSize)
+// 		throw tcu::NotSupportedError("Value count is too high for maximum supported renderbuffer size");
+//
+// 	// Compute positions - 1px points are used to drive fragment shading.
+// 	for (int valNdx = 0; valNdx < numValues; valNdx++)
+// 	{
+// 		/** @type{number} */ var		ix		= valNdx % framebufferW;
+// 		/** @type{number} */ var		iy		= valNdx / framebufferW;
+// 		const float		fx		= -1.0f + 2.0f*((float(ix) + 0.5f) / float(framebufferW));
+// 		const float		fy		= -1.0f + 2.0f*((float(iy) + 0.5f) / float(framebufferH));
+//
+// 		positions[valNdx] = tcu::Vec2(fx, fy);
+// 	}
+//
+// 	// Vertex inputs.
+// 	vertexArrays.push(glu::va::Float("a_position", 2, numValues, 0, (const float*)&positions[0]));
+//
+// 	for (var inputNdx = 0; inputNdx < (int)m_inputs.size(); inputNdx++)
+// 	{
+// 		/** @type{glsShaderExecUtil.Symbol} */ var		symbol		= m_inputs[inputNdx];
+// 		const std::string	attribName	= "a_" + symbol.name;
+// 		const void*			ptr			= inputs[inputNdx];
+// 		/** @type{gluShaderUtil.DataType} */ var basicType	= symbol.varType.getBasicType();
+// 		/** @type{number} */ var			vecSize		= gluShaderUtil.getDataTypeScalarSize(basicType);
+//
+// 		if (gluShaderUtil.isDataTypeFloatOrVec(basicType))
+// 			vertexArrays.push(glu::va::Float(attribName, vecSize, numValues, 0, (const float*)ptr));
+// 		else if (gluShaderUtil.isDataTypeIntOrIVec(basicType))
+// 			vertexArrays.push(glu::va::Int32(attribName, vecSize, numValues, 0, (const deInt32*)ptr));
+// 		else if (gluShaderUtil.isDataTypeUintOrUVec(basicType))
+// 			vertexArrays.push(glu::va::Uint32(attribName, vecSize, numValues, 0, (const deUint32*)ptr));
+// 		else if (gluShaderUtil.isDataTypeMatrix(basicType))
+// 		{
+// 			int		numRows	= gluShaderUtil.getDataTypeMatrixNumRows(basicType);
+// 			int		numCols	= gluShaderUtil.getDataTypeMatrixNumColumns(basicType);
+// 			int		stride	= numRows * numCols * sizeof(float);
+//
+// 			for (int colNdx = 0; colNdx < numCols; ++colNdx)
+// 				vertexArrays.push(glu::va::Float(attribName, colNdx, numRows, numValues, stride, ((const float*)ptr) + colNdx * numRows));
+// 		}
+// 		else
+// 			DE_ASSERT(false);
+// 	}
+//
+// 	// Construct framebuffer.
+// 	gl.bindFramebuffer(GL_FRAMEBUFFER, *framebuffer);
+//
+// 	for (int outNdx = 0; outNdx < (int)m_outLocationSymbols.size(); ++outNdx)
+// 	{
+// 		/** @type{glsShaderExecUtil.Symbol} */ var	output			= *m_outLocationSymbols[outNdx];
+// 		const deUint32	renderbuffer	= renderbuffers[outNdx];
+// 		const deUint32	format			= glu::getInternalFormat(getRenderbufferFormatForOutput(output.varType, useIntOutputs));
+//
+// 		gl.bindRenderbuffer(GL_RENDERBUFFER, renderbuffer);
+// 		gl.renderbufferStorage(GL_RENDERBUFFER, format, framebufferW, framebufferH);
+// 		gl.framebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+outNdx, GL_RENDERBUFFER, renderbuffer);
+// 	}
+// 	gl.bindRenderbuffer(GL_RENDERBUFFER, 0);
+// 	GLU_EXPECT_NO_ERROR(gl.getError(), "Failed to set up framebuffer object");
+// 	TCU_CHECK(gl.checkFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
+//
+// 	{
+// 		vector<deUint32> drawBuffers(m_outLocationSymbols.size());
+// 		for (var ndx = 0; ndx < (int)m_outLocationSymbols.size(); ndx++)
+// 			drawBuffers[ndx] = GL_COLOR_ATTACHMENT0+ndx;
+// 		gl.drawBuffers((int)drawBuffers.size(), &drawBuffers[0]);
+// 		GLU_EXPECT_NO_ERROR(gl.getError(), "glDrawBuffers()");
+// 	}
+//
+// 	// Render
+// 	gl.viewport(0, 0, framebufferW, framebufferH);
+// 	glu::draw(m_renderCtx, m_program.getProgram(), (int)vertexArrays.size(), &vertexArrays[0],
+// 			  glu::pr::Points(numValues));
+// 	GLU_EXPECT_NO_ERROR(gl.getError(), "Error in draw");
+//
+// 	// Read back pixels.
+// 	{
+// 		tcu::TextureLevel	tmpBuf;
+//
+// 		// \todo [2013-08-07 pyry] Some fast-paths could be added here.
+//
+// 		for (int outNdx = 0; outNdx < (int)m_outputs.size(); ++outNdx)
+// 		{
+// 			/** @type{glsShaderExecUtil.Symbol} */ var				output			= m_outputs[outNdx];
+// 			/** @type{number} */ var					outSize			= output.varType.getScalarSize();
+// 			/** @type{number} */ var					outVecSize		= glu::getDataTypeNumComponents(output.varType.getBasicType());
+// 			/** @type{number} */ var					outNumLocs		= glu::getDataTypeNumLocations(output.varType.getBasicType());
+// 			deUint32*					dstPtrBase		= static_cast<deUint32*>(outputs[outNdx]);
+// 			const tcu::TextureFormat	format			= getRenderbufferFormatForOutput(output.varType, useIntOutputs);
+// 			const tcu::TextureFormat	readFormat		(tcu::TextureFormat::RGBA, format.type);
+// 			/** @type{number} */ var					outLocation		= de::lookup(m_outLocationMap, output.name);
+//
+// 			tmpBuf.setStorage(readFormat, framebufferW, framebufferH);
+//
+// 			for (int locNdx = 0; locNdx < outNumLocs; ++locNdx)
+// 			{
+// 				gl.readBuffer(GL_COLOR_ATTACHMENT0 + outLocation + locNdx);
+// 				glu::readPixels(m_renderCtx, 0, 0, tmpBuf.getAccess());
+// 				GLU_EXPECT_NO_ERROR(gl.getError(), "Reading pixels");
+//
+// 				if (outSize == 4 && outNumLocs == 1)
+// 					deMemcpy(dstPtrBase, tmpBuf.getAccess().getDataPtr(), numValues*outVecSize*4);
+// 				else
+// 				{
+// 					for (int valNdx = 0; valNdx < numValues; valNdx++)
+// 					{
+// 						const deUint32* srcPtr = (const deUint32*)tmpBuf.getAccess().getDataPtr() + valNdx*4;
+// 						deUint32*		dstPtr = &dstPtrBase[outSize*valNdx + outVecSize*locNdx];
+// 						deMemcpy(dstPtr, srcPtr, outVecSize*4);
+// 					}
+// 				}
+// 			}
+// 		}
+// 	}
+//
+// 	// \todo [2013-08-07 pyry] Clear draw buffers & viewport?
+// 	gl.bindFramebuffer(GL_FRAMEBUFFER, 0);
+// }
+//
+// // Shared utilities for compute and tess executors
+//
+// static deUint32 getVecStd430ByteAlignment (glu::DataType type)
+// {
+// 	switch (gluShaderUtil.getDataTypeScalarSize(type))
+// 	{
+// 		case 1:		return 4u;
+// 		case 2:		return 8u;
+// 		case 3:		return 16u;
+// 		case 4:		return 16u;
+// 		default:
+// 			DE_ASSERT(false);
+// 			return 0u;
+// 	}
+// }
+// TODO port this END
 
 // class BufferIoExecutor : public ShaderExecutor
 // {
@@ -1077,8 +1075,8 @@ static deUint32 getVecStd430ByteAlignment (glu::DataType type)
 // 	deUint32	maxAlignment	= 0;
 // 	deUint32	curOffset		= 0;
 //
-// 	DE_ASSERT(layout->empty());
-// 	layout->resize(symbols.size());
+// 	DE_ASSERT(layout.empty());
+// 	layout.resize(symbols.size());
 //
 // 	for (size_t varNdx = 0; varNdx < symbols.size(); varNdx++)
 // 	{
@@ -1120,8 +1118,8 @@ static deUint32 getVecStd430ByteAlignment (glu::DataType type)
 // 	{
 // 		const deUint32	totalSize	= (deUint32)deAlign32(curOffset, maxAlignment);
 //
-// 		for (vector<VarLayout>::iterator varIter = layout->begin(); varIter != layout->end(); ++varIter)
-// 			varIter->stride = totalSize;
+// 		for (vector<VarLayout>::iterator varIter = layout.begin(); varIter != layout.end(); ++varIter)
+// 			varIter.stride = totalSize;
 // 	}
 // }
 //
@@ -1262,7 +1260,7 @@ static deUint32 getVecStd430ByteAlignment (glu::DataType type)
 // 	{
 // 		glu::StructType inputStruct("Inputs");
 // 		for (vector<Symbol>::const_iterator symIter = spec.inputs.begin(); symIter != spec.inputs.end(); ++symIter)
-// 			inputStruct.addMember(symIter->name.c_str(), symIter->varType);
+// 			inputStruct.addMember(symIter.name.c_str(), symIter.varType);
 // 		src << gluVarType.declareVariable(&inputStruct) << ";\n";
 // 	}
 //
@@ -1270,7 +1268,7 @@ static deUint32 getVecStd430ByteAlignment (glu::DataType type)
 // 	{
 // 		glu::StructType outputStruct("Outputs");
 // 		for (vector<Symbol>::const_iterator symIter = spec.outputs.begin(); symIter != spec.outputs.end(); ++symIter)
-// 			outputStruct.addMember(symIter->name.c_str(), symIter->varType);
+// 			outputStruct.addMember(symIter.name.c_str(), symIter.varType);
 // 		src << gluVarType.declareVariable(&outputStruct) << ";\n";
 // 	}
 //
@@ -1294,10 +1292,10 @@ static deUint32 getVecStd430ByteAlignment (glu::DataType type)
 // void BufferIoExecutor::generateExecBufferIo (std::ostream& src, const ShaderSpec& spec, const char* invocationNdxName)
 // {
 // 	for (vector<Symbol>::const_iterator symIter = spec.inputs.begin(); symIter != spec.inputs.end(); ++symIter)
-// 		src << "\t" << gluVarType.declareVariable(symIter->varType, symIter->name) << " = inputs[" << invocationNdxName << "]." << symIter->name << ";\n";
+// 		src << "\t" << gluVarType.declareVariable(symIter.varType, symIter.name) << " = inputs[" << invocationNdxName << "]." << symIter.name << ";\n";
 //
 // 	for (vector<Symbol>::const_iterator symIter = spec.outputs.begin(); symIter != spec.outputs.end(); ++symIter)
-// 		src << "\t" << gluVarType.declareVariable(symIter->varType, symIter->name) << ";\n";
+// 		src << "\t" << gluVarType.declareVariable(symIter.varType, symIter.name) << ";\n";
 //
 // 	src << "\n";
 //
@@ -1311,7 +1309,7 @@ static deUint32 getVecStd430ByteAlignment (glu::DataType type)
 //
 // 	src << "\n";
 // 	for (vector<Symbol>::const_iterator symIter = spec.outputs.begin(); symIter != spec.outputs.end(); ++symIter)
-// 		src << "\toutputs[" << invocationNdxName << "]." << symIter->name << " = " << symIter->name << ";\n";
+// 		src << "\toutputs[" << invocationNdxName << "]." << symIter.name << " = " << symIter.name << ";\n";
 // }
 //
 // // ComputeShaderExecutor
@@ -1404,29 +1402,29 @@ static deUint32 getVecStd430ByteAlignment (glu::DataType type)
 // }
 
 // Tessellation utils
-
-static std::string generateVertexShaderForTess (glu::GLSLVersion version)
-{
-	std::ostringstream	src;
-
-	src << glu::getGLSLVersionDeclaration(version) << "\n";
-
-	src << "void main (void)\n{\n"
-		<< "	gl_Position = vec4(gl_VertexID/2, gl_VertexID%2, 0.0, 1.0);\n"
-		<< "}\n";
-
-	return src.str();
-}
-
-class CheckTessSupport
-{
-public:
-	inline CheckTessSupport (const glu::RenderContext& renderCtx)
-	{
-		if (renderCtx.getType().getAPI().getProfile() == glu::PROFILE_ES)
-			checkExtension(renderCtx, "GL_EXT_tessellation_shader");
-	}
-};
+// TODO validate if this method should be ported
+// static std::string generateVertexShaderForTess (glu::GLSLVersion version)
+// {
+// 	std::ostringstream	src;
+//
+// 	src << glu::getGLSLVersionDeclaration(version) << "\n";
+//
+// 	src << "void main (void)\n{\n"
+// 		<< "	gl_Position = vec4(gl_VertexID/2, gl_VertexID%2, 0.0, 1.0);\n"
+// 		<< "}\n";
+//
+// 	return src.str();
+// }
+//
+// class CheckTessSupport
+// {
+// public:
+// 	inline CheckTessSupport (const glu::RenderContext& renderCtx)
+// 	{
+// 		if (renderCtx.getType().getAPI().getProfile() == glu::PROFILE_ES)
+// 			checkExtension(renderCtx, "GL_EXT_tessellation_shader");
+// 	}
+// };
 
 // TessControlExecutor
 
@@ -1638,25 +1636,25 @@ public:
 // }
 
 // Utilities
-
-ShaderExecutor* createExecutor (const glu::RenderContext& renderCtx, glu::ShaderType shaderType, const ShaderSpec& shaderSpec)
-{
-	switch (shaderType)
-	{
-		case glu::SHADERTYPE_VERTEX:					return new VertexShaderExecutor		(renderCtx, shaderSpec);
-		// case glu::SHADERTYPE_TESSELLATION_CONTROL:		return new TessControlExecutor		(renderCtx, shaderSpec);
-		// case glu::SHADERTYPE_TESSELLATION_EVALUATION:	return new TessEvaluationExecutor	(renderCtx, shaderSpec);
-		// case glu::SHADERTYPE_GEOMETRY:					return new GeometryShaderExecutor	(renderCtx, shaderSpec);
-		case glu::SHADERTYPE_FRAGMENT:					return new FragmentShaderExecutor	(renderCtx, shaderSpec);
-		// case glu::SHADERTYPE_COMPUTE:					return new ComputeShaderExecutor	(renderCtx, shaderSpec);
-		default:
-			throw tcu::InternalError("Unsupported shader type");
-	}
-}
-
-} // ShaderExecUtil
-} // gls
-} // deqp
+// TODO: port this
+// ShaderExecutor* createExecutor (const glu::RenderContext& renderCtx, glu::ShaderType shaderType, const ShaderSpec& shaderSpec)
+// {
+// 	switch (shaderType)
+// 	{
+// 		case glu::SHADERTYPE_VERTEX:					return new VertexShaderExecutor		(renderCtx, shaderSpec);
+// 		// case glu::SHADERTYPE_TESSELLATION_CONTROL:		return new TessControlExecutor		(renderCtx, shaderSpec);
+// 		// case glu::SHADERTYPE_TESSELLATION_EVALUATION:	return new TessEvaluationExecutor	(renderCtx, shaderSpec);
+// 		// case glu::SHADERTYPE_GEOMETRY:					return new GeometryShaderExecutor	(renderCtx, shaderSpec);
+// 		case glu::SHADERTYPE_FRAGMENT:					return new FragmentShaderExecutor	(renderCtx, shaderSpec);
+// 		// case glu::SHADERTYPE_COMPUTE:					return new ComputeShaderExecutor	(renderCtx, shaderSpec);
+// 		default:
+// 			throw tcu::InternalError("Unsupported shader type");
+// 	}
+// }
+//
+// } // ShaderExecUtil
+// } // gls
+// } // deqp
 
 
 

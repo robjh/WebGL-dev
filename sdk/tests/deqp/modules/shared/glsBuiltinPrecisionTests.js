@@ -69,6 +69,13 @@ goog.scope(function() {
      */
 
     /**
+     * @param{number} value
+     */
+    glsBuiltinPrecisionTests.isFloat = function(t) {
+        return (Math.abs(t % 1) != 0);
+ 	};
+
+    /**
      * @constructor
      * @param{*=} t
      */
@@ -122,6 +129,31 @@ goog.scope(function() {
         this.d = A3 === undefined ? new glsBuiltinPrecisionTests.Void() : A3;
     };
 
+    /**
+     * Returns true for all other types except Void
+     * @param{} T
+     */
+    glsBuiltinPrecisionTests.isTypeValid = function(T) {
+        if (T.isVoid) {
+            return false;
+        } else {
+            return true;
+        }
+    };
+
+    template <typename In>
+    /**
+     * Returns true for all other types except Void
+     * @param{*} In
+     * @return{number}
+     */
+    glsBuiltinPrecisionTests.numInputs = function(In) {
+    	return (!glsBuiltinPrecisionTests.isTypeValid(In.In0) ? 0 :
+    			!glsBuiltinPrecisionTests.isTypeValid(In.In1) ? 1 :
+    			!glsBuiltinPrecisionTests.isTypeValid(In.In2) ? 2 :
+    			!glsBuiltinPrecisionTests.isTypeValid(In.In3) ? 3 :
+    			4);
+    };
 
     /**
      * template<typename In0_ = Void, typename In1_ = Void, typename In2_ = Void, typename In3_ = Void>
@@ -137,7 +169,6 @@ goog.scope(function() {
         this.In2 = In2_ === undefined ? new glsBuiltinPrecisionTests.Void() : In2_;
         this.In3 = In3_ === undefined ? new glsBuiltinPrecisionTests.Void() : In3_;
     };
-
 
     /**
      * template<typename Out0_, typename Out1_ = Void>
@@ -487,7 +518,7 @@ goog.scope(function() {
      */
     glsBuiltinPrecisionTests.Variable.prototype.getName = function() {
         return this.m_name;
-    }
+    };
 
     /**
      */
@@ -1235,6 +1266,35 @@ goog.scope(function() {
     /************************************/
 
     /**
+     * template<typename In>
+     * @constructor
+     * @param{*} In
+     */
+    glsBuiltinPrecisionTests.Inputs = function(In) {
+    	// vector<typename In::In0>	in0;
+    	// vector<typename In::In1>	in1;
+    	// vector<typename In::In2>	in2;
+    	// vector<typename In::In3>	in3;
+        this.in0 = In.In0;
+        this.in1 = In.In1;
+        this.in2 = In.In2;
+        this.in3 = In.In3;
+    };
+
+    /**
+     * template<typename Out>
+     * @constructor
+     * @param{number} size
+     * @param{*} Out
+     */
+    glsBuiltinPrecisionTests.Outputs = function(size, Out) {
+    	// Outputs	(size_t size) : out0(size), out1(size) {}
+    	this.out0 = new Out(size);
+    	this.out1 = new Out(size);
+    };
+
+
+    /**
      * template<typename In, typename Out>
      * @constructor
      * @param{*} In
@@ -1264,12 +1324,12 @@ goog.scope(function() {
      */
     glsBuiltinPrecisionTests.SamplingFactory = function(T) {
         if (typeof T == 'boolean') {
-            return new glsBuiltinPrecisionTests.DefaultSamplingBool();
+            return new glsBuiltinPrecisionTests.DefaultSamplingBool(T);
         } else if (typeof T == 'number') {
             if (Math.abs(T % 1) != 0) {
-                return new glsBuiltinPrecisionTests.DefaultSamplingFloat();
+                return new glsBuiltinPrecisionTests.DefaultSamplingFloat(T);
             } else {
-                return new glsBuiltinPrecisionTests.DefaultSamplingInt();
+                return new glsBuiltinPrecisionTests.DefaultSamplingInt(T);
             }
         } else if (Array.isArray(T)) {
             if (T.length > 0 && Array.isArray(T[0])) {
@@ -1312,9 +1372,10 @@ goog.scope(function() {
      * template <>  :  public Sampling<Void>
      * @constructor
      * @extends{glsBuiltinPrecisionTests.Sampling}
+     * @param{typename} T
      */
-     glsBuiltinPrecisionTests.DefaultSamplingVoid = function() {
-         glsBuiltinPrecisionTests.Sampling.call(this);
+     glsBuiltinPrecisionTests.DefaultSamplingVoid = function(T) {
+         glsBuiltinPrecisionTests.Sampling.call(this, T);
      };
 
     /**
@@ -1350,8 +1411,10 @@ goog.scope(function() {
      * template <>  :  public Sampling<int>
      * @constructor
      * @extends{glsBuiltinPrecisionTests.Sampling}
+     * @param{typename} T
      */
-    glsBuiltinPrecisionTests.DefaultSamplingInt = function() {
+    glsBuiltinPrecisionTests.DefaultSamplingInt = function(T) {
+        glsBuiltinPrecisionTests.Sampling.call(this, T);
     };
 
     /**
@@ -1407,9 +1470,10 @@ goog.scope(function() {
      * template <>  :  public Sampling<float>
      * @constructor
      * @extends{glsBuiltinPrecisionTests.Sampling}
+     * @param{typename} T
      */
-    glsBuiltinPrecisionTests.DefaultSamplingFloat = function(){
-        glsBuiltinPrecisionTests.Sampling.call(this);
+    glsBuiltinPrecisionTests.DefaultSamplingFloat = function(T){
+        glsBuiltinPrecisionTests.Sampling.call(this, T);
     };
 
     /**
@@ -1429,8 +1493,8 @@ goog.scope(function() {
     	/** type{number} */ var minRoot			= deCbrt(minExp - 0.5 - (haveSubnormal ? 1.0 : 0.0));
     	/** type{number} */ var maxRoot			= deCbrt(maxExp + 0.5);
     	/** type{number} */ var fractionBits	= format.getFractionBits();
-    	/** type{number} */ var exp				= int(deRoundEven(dePow(rnd.getDouble(minRoot, maxRoot),
-    															3.0)));
+    	/** type{number} */ var exp				= deRoundEven(dePow(rnd.getDouble(minRoot, maxRoot),
+    															3.0));
     	/** type{number} */ var base			= 0.0; // integral power of two
     	/** type{number} */ var quantum			= 0.0; // smallest representable difference in the binade
     	/** type{number} */ var significand		= 0.0; // Significand.
@@ -1469,7 +1533,7 @@ goog.scope(function() {
     		default: // Random (evenly distributed) significand.
     		{
     			/** type{number} */ var intFraction = rnd.getUint64() & ((1 << fractionBits) - 1);
-    			significand = float(intFraction) * quantum;
+    			significand = intFraction * quantum;
     		}
     	}
 
@@ -1604,24 +1668,16 @@ goog.scope(function() {
 
     /**
      * template<typename In>
-     * @param{In} In
      * @constructor
      * @extends{glsBuiltinPrecisionTests.Samplings}
+     * @param{In} In
      */
      glsBuiltinPrecisionTests.Samplings = function(In) {
-    //      /** @type{glsBuiltinPrecisionTests.Samplings} */ this.in0_ = new In.In0;
-    //
-	// Samplings	(const Sampling<typename In::In0>&	in0_,
-	// 			 const Sampling<typename In::In1>&	in1_,
-	// 			 const Sampling<typename In::In2>&	in2_,
-	// 			 const Sampling<typename In::In3>&	in3_)
-	// 	: in0 (in0_), in1 (in1_), in2 (in2_), in3 (in3_) {}
-    //
-	// const Sampling<typename In::In0>&	in0;
-	// const Sampling<typename In::In1>&	in1;
-	// const Sampling<typename In::In2>&	in2;
-	// const Sampling<typename In::In3>&	in3;
-};
+        this.in0 = glsBuiltinPrecisionTests.SamplingFactory(In.In0);
+        this.in1 = glsBuiltinPrecisionTests.SamplingFactory(In.In1);
+        this.in2 = glsBuiltinPrecisionTests.SamplingFactory(In.In2);
+        this.in3 = glsBuiltinPrecisionTests.SamplingFactory(In.In3);
+    };
 
 
     /**
@@ -1631,14 +1687,8 @@ goog.scope(function() {
      * @extends{glsBuiltinPrecisionTests.Samplings}
      */
      glsBuiltinPrecisionTests.DefaultSamplings = function(In) {
-	DefaultSamplings	(void)
-		: Samplings<In>(glsBuiltinPrecisionTests.instance<DefaultSampling<typename In::In0> >(),
-						glsBuiltinPrecisionTests.instance<DefaultSampling<typename In::In1> >(),
-						glsBuiltinPrecisionTests.instance<DefaultSampling<typename In::In2> >(),
-						glsBuiltinPrecisionTests.instance<DefaultSampling<typename In::In3> >()) {}
-};
-
-
+    	glsBuiltinPrecisionTests.Samplings.call(this,In);
+    };
 
     /**
      * @constructor
@@ -1697,6 +1747,113 @@ goog.scope(function() {
     glsBuiltinPrecisionTests.PrecisionCase.prototype.constructor = glsBuiltinPrecisionTests.PrecisionCase;
 
     /**
+     * template <typename T>
+     * @param{*} val1
+     * @param{*} val2
+     * @return{boolean}
+     */
+    glsBuiltinPrecisionTests.inputLess = function (val1, val2) {
+        if (val1 === undefined || val2 === undefined) {
+            return false;
+        }
+
+        if (typeof val1 == 'number' && glsBuiltinPrecisionTests.isFloat(val1)) {
+            return glsBuiltinPrecisionTests.inputLessFloat(val1, val2);
+        } else if (Array.isArray(val1)) {
+            if (Array.isArray(val1[0])) {
+                return glsBuiltinPrecisionTests.InputLessMatrix(val1, val2);
+            } else {
+                return glsBuiltinPrecisionTests.inputLessVector(val1, val2);
+            }
+        }
+	    return false;
+    };
+
+    /**
+     * @param{number} val1
+     * @param{number} val2
+     * @return{boolean}
+     */
+    glsBuiltinPrecisionTests.inputLessFloat = function(val1, val2) {
+    	if (isNaN(val1))
+    	   return false;
+    	if (isNaN(val2))
+    		return true;
+    	return val1 < val2;
+    };
+
+    /**
+     * @param{Array<number>} val1
+     * @param{Array<number>} val2
+     * @return{boolean}
+     */
+    glsBuiltinPrecisionTests.inputLessVector = function(val1, val2) {
+		for (var ndx = 0; ndx < val1.length; ++ndx) {
+			if (glsBuiltinPrecisionTests.inputLessFloat(vec1[ndx], vec2[ndx]))
+				return true;
+			if (glsBuiltinPrecisionTests.inputLessFloat(vec2[ndx], vec1[ndx]))
+				return false;
+		}
+		return false;
+    };
+
+    /**
+     * @param{Arrray<Array<number>>} mat1
+     * @param{Arrray<Array<number>>} mat2
+     * @return{boolean}
+     */
+    glsBuiltinPrecisionTests.InputLessMatrix = function(mat1, mat2) {
+		for (var col = 0; col < mat1.length; ++col)	{
+			if (glsBuiltinPrecisionTests.inputLessVector(mat1[col], mat2[col]))
+				return true;
+			if (glsBuiltinPrecisionTests.inputLessVector(mat2[col], mat1[col]))
+				return false;
+		}
+		return false;
+	};
+
+    /**
+     * template <typename In>
+     * @constructor
+     * @extends{glsBuiltinPrecisionTests.Tuple4}
+     * @param{*} in0
+     * @param{*} in1
+     * @param{*} in2
+     * @param{*} in3
+     */
+    glsBuiltinPrecisionTests.InTuple = function(in0, in1, in2, in3){
+        glsBuiltinPrecisionTests.Tuple4.call(this, in0, in1, in2, in3);
+    };
+
+    glsBuiltinPrecisionTests.InTuple.prototype = Object.create(glsBuiltinPrecisionTests.Tuple4.prototype);
+    glsBuiltinPrecisionTests.InTuple.prototype.constructor = glsBuiltinPrecisionTests.InTuple;
+
+    /**
+     * template <typename In>
+     * InputLess<InTuple<In> >
+     * @constructor
+     * @extends{glsBuiltinPrecisionTests.Tuple4}
+     * @param{*} In
+     */
+    glsBuiltinPrecisionTests.InputLess = function(in1, in2) {
+        if (glsBuiltinPrecisionTests.inputLess(in1.a, in2.a))
+			return true;
+		if (glsBuiltinPrecisionTests.inputLess(in2.a, in1.a))
+			return false;
+		if (glsBuiltinPrecisionTests.inputLess(in1.b, in2.b))
+			return true;
+		if (glsBuiltinPrecisionTests.inputLess(in2.b, in1.b))
+			return false;
+		if (glsBuiltinPrecisionTests.inputLess(in1.c, in2.c))
+			return true;
+		if (glsBuiltinPrecisionTests.inputLess(in2.c, in1.c))
+			return false;
+		if (glsBuiltinPrecisionTests.inputLess(in1.d, in2.d))
+			return true;
+		return false;
+    };
+
+    /**
      * template<typename In>: return Inputs<In>
      * @param{*} In
      * @param{glsBuiltinPrecisionTests.Samplings} samplings Samplings<In>
@@ -1706,59 +1863,56 @@ goog.scope(function() {
      * @param{deRandom.Random} rnd
      * @return{glsBuiltinPrecisionTests.Inputs}
      */
-     glsBuiltinPrecisionTests.generateInputs = function (samplings, floatFormat, intPrecision, numSamples, rnd){
-	// Inputs<In>									ret;
-	// Inputs<In>									fixedInputs;
-	// set<InTuple<In>, InputLess<InTuple<In> > >	seenInputs;
-    //
-	// samplings.in0.genFixeds(floatFormat, fixedInputs.in0);
-	// samplings.in1.genFixeds(floatFormat, fixedInputs.in1);
-	// samplings.in2.genFixeds(floatFormat, fixedInputs.in2);
-	// samplings.in3.genFixeds(floatFormat, fixedInputs.in3);
-    //
-	// for (size_t ndx0 = 0; ndx0 < fixedInputs.in0.size(); ++ndx0)
-	// {
-	// 	for (size_t ndx1 = 0; ndx1 < fixedInputs.in1.size(); ++ndx1)
-	// 	{
-	// 		for (size_t ndx2 = 0; ndx2 < fixedInputs.in2.size(); ++ndx2)
-	// 		{
-	// 			for (size_t ndx3 = 0; ndx3 < fixedInputs.in3.size(); ++ndx3)
-	// 			{
-	// 				const InTuple<In>	tuple	(fixedInputs.in0[ndx0],
-	// 											 fixedInputs.in1[ndx1],
-	// 											 fixedInputs.in2[ndx2],
-	// 											 fixedInputs.in3[ndx3]);
-    //
-	// 				seenInputs.insert(tuple);
-	// 				ret.in0.push_back(tuple.a);
-	// 				ret.in1.push_back(tuple.b);
-	// 				ret.in2.push_back(tuple.c);
-	// 				ret.in3.push_back(tuple.d);
-	// 			}
-	// 		}
-	// 	}
-	// }
-    //
-	// for (size_t ndx = 0; ndx < numSamples; ++ndx)
-	// {
-	// 	const typename In::In0	in0		= samplings.in0.genRandom(floatFormat, intPrecision, rnd);
-	// 	const typename In::In1	in1		= samplings.in1.genRandom(floatFormat, intPrecision, rnd);
-	// 	const typename In::In2	in2		= samplings.in2.genRandom(floatFormat, intPrecision, rnd);
-	// 	const typename In::In3	in3		= samplings.in3.genRandom(floatFormat, intPrecision, rnd);
-	// 	const InTuple<In>		tuple	(in0, in1, in2, in3);
-    //
-	// 	if (de::contains(seenInputs, tuple))
-	// 		continue;
-    //
-	// 	seenInputs.insert(tuple);
-	// 	ret.in0.push_back(in0);
-	// 	ret.in1.push_back(in1);
-	// 	ret.in2.push_back(in2);
-	// 	ret.in3.push_back(in3);
-	// }
-    //
-	// return ret;
-};
+    glsBuiltinPrecisionTests.generateInputs = function (In, samplings, floatFormat, intPrecision, numSamples, rnd){
+    	/*Inputs<In>*/ var ret = new glsBuiltinPrecisionTests.Inputs(In);
+    	/*Inputs<In>*/ var fixedInputs = new glsBuiltinPrecisionTests.Inputs(In);
+    	// set<InTuple<In>, InputLess<InTuple<In> > >	seenInputs;
+        /** @type{Array<glsBuiltinPrecisionTests.InTuple,glsBuiltinPrecisionTests.InputLess>} */
+        var seenInputs = [];
+
+    	samplings.in0.genFixeds(floatFormat, fixedInputs.in0);
+    	samplings.in1.genFixeds(floatFormat, fixedInputs.in1);
+    	samplings.in2.genFixeds(floatFormat, fixedInputs.in2);
+    	samplings.in3.genFixeds(floatFormat, fixedInputs.in3);
+
+    	for (var ndx0 = 0; ndx0 < fixedInputs.in0.length; ++ndx0) {
+    		for (var ndx1 = 0; ndx1 < fixedInputs.in1.length; ++ndx1) {
+    			for (var ndx2 = 0; ndx2 < fixedInputs.in2.length; ++ndx2) {
+    				for (var ndx3 = 0; ndx3 < fixedInputs.in3.length; ++ndx3) {
+    					var tuple = glsBuiltinPrecisionTests.InTuple(fixedInputs.in0[ndx0],
+    												 fixedInputs.in1[ndx1],
+    												 fixedInputs.in2[ndx2],
+    												 fixedInputs.in3[ndx3]);
+
+    					seenInputs.push(tuple);
+    					ret.in0.push(tuple.a);
+    					ret.in1.push(tuple.b);
+    					ret.in2.push(tuple.c);
+    					ret.in3.push(tuple.d);
+    				}
+    			}
+    		}
+    	}
+
+    	for (var ndx = 0; ndx < numSamples; ++ndx) {
+    		var in0 = samplings.in0.genRandom(floatFormat, intPrecision, rnd);
+    		var in1 = samplings.in1.genRandom(floatFormat, intPrecision, rnd);
+    		var in2 = samplings.in2.genRandom(floatFormat, intPrecision, rnd);
+    		var in3 = samplings.in3.genRandom(floatFormat, intPrecision, rnd);
+    		var tuple = new glsBuiltinPrecisionTests.InTuple(in0, in1, in2, in3);
+
+    		// if (de::contains(seenInputs, tuple))
+    		// 	continue;
+
+    		seenInputs.push(tuple);
+    		ret.in0.push_back(in0);
+    		ret.in1.push_back(in1);
+    		ret.in2.push_back(in2);
+    		ret.in3.push_back(in3);
+    	}
+
+    	return ret;
+    };
 
 
     /**
@@ -1771,8 +1925,7 @@ goog.scope(function() {
         glsBuiltinPrecisionTests.PrecisionCase.call(this, context, name, func.getRequiredExtension());
     };
 
-    glsBuiltinPrecisionTests.FuncCaseBase.prototype = Object.create(glsBuiltinPrecisionTests.PrecisionCase.prototype);
-    glsBuiltinPrecisionTests.FuncCaseBase.prototype.constructor = glsBuiltinPrecisionTests.FuncCaseBase;
+
 
     glsBuiltinPrecisionTests.FuncCaseBase.prototype.iterate = function() {
 
@@ -1784,7 +1937,7 @@ goog.scope(function() {
 	    return tcuTestCase.IterateResult.STOP;
     };
 
-    glsBuiltinPrecisionTests.FuncCaseBase.prototype = Object.create(glsBuiltinPrecisionTests.FuncBase.prototype);
+    glsBuiltinPrecisionTests.FuncCaseBase.prototype = Object.create(glsBuiltinPrecisionTests.PrecisionCase.prototype);
     glsBuiltinPrecisionTests.FuncCaseBase.prototype.constructor = glsBuiltinPrecisionTests.FuncCaseBase;
 
     /**
@@ -1810,12 +1963,15 @@ goog.scope(function() {
         this.Out = new glsBuiltinPrecisionTests.OutTypes(this.Ret);
     };
 
+    glsBuiltinPrecisionTests.FuncCase.prototype = Object.create(glsBuiltinPrecisionTests.FuncCaseBase.prototype);
+    glsBuiltinPrecisionTests.FuncCase.prototype.constructor = glsBuiltinPrecisionTests.FuncCase;
+
     /**
      * Samplings<In>
      * @return{glsBuiltinPrecisionTests.Samplings}
      */
     glsBuiltinPrecisionTests.FuncCase.prototype.getSamplings = function()	{
-        return glsBuiltinPrecisionTests.instance(new glsBuiltinPrecisionTests.DefaultSamplings(this.In));
+        return new glsBuiltinPrecisionTests.DefaultSamplings(this.In);
     };
 
     /**
@@ -1823,11 +1979,12 @@ goog.scope(function() {
      * @param{glsBuiltinPrecisionTests.Signature} Sig_
      */
     glsBuiltinPrecisionTests.FuncCase.prototype.runTest = function(Sig_) {
-        /** @type{glsBuiltinPrecisionTests.Inputs} */ var inputs = (generateInputs(getSamplings(),
-    												m_ctx.floatFormat,
-    												m_ctx.precision,
-    												m_ctx.numRandoms,
-    												m_rnd));
+        /** @type{glsBuiltinPrecisionTests.Inputs} */ var inputs = (glsBuiltinPrecisionTests.generateInputs(
+                                                    this.getSamplings(),
+    												this.m_ctx.floatFormat,
+    												this.m_ctx.precision,
+    												this.m_ctx.numRandoms,
+    												this.m_rnd));
 	// const Inputs<In>	inputs
 	// Variables<In, Out>	variables;
     //
@@ -1851,8 +2008,7 @@ goog.scope(function() {
 
 
 
-    glsBuiltinPrecisionTests.FuncCase.prototype = Object.create(glsBuiltinPrecisionTests.FuncCaseBase.prototype);
-    glsBuiltinPrecisionTests.FuncCase.prototype.constructor = glsBuiltinPrecisionTests.FuncCase;
+
 
 
     /**
