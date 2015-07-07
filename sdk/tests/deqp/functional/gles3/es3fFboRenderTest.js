@@ -20,6 +20,7 @@
 
 'use strict';
 goog.provide('functional.gles3.es3fFboRenderTest');
+goog.require('functional.gles3.es3fFboTestUtil');
 goog.require('framework.common.tcuLogImage');
 goog.require('framework.common.tcuRGBA');
 goog.require('framework.common.tcuSurface');
@@ -28,30 +29,17 @@ goog.require('framework.common.tcuTexture');
 goog.require('framework.delibs.debase.deMath');
 goog.require('framework.delibs.debase.deRandom');
 goog.require('framework.delibs.debase.deString');
-goog.require('framework.delibs.debase.deUtil');
-goog.require('framework.opengl.gluDrawUtil');
-goog.require('framework.opengl.gluShaderProgram');
 goog.require('framework.opengl.gluShaderUtil');
-goog.require('framework.opengl.gluTexture');
-goog.require('framework.opengl.gluVarType');
+goog.require('framework.opengl.gluTextureUtil');
 goog.require('framework.opengl.simplereference.sglrGLContext');
 goog.require('framework.opengl.simplereference.sglrReferenceContext');
-goog.require('framework.opengl.simplereference.sglrShaderProgram');
-goog.require('framework.referencerenderer.rrFragmentOperations');
-goog.require('framework.referencerenderer.rrGenericVector');
-goog.require('framework.referencerenderer.rrShadingContext');
-goog.require('framework.referencerenderer.rrVertexAttrib');
-goog.require('framework.referencerenderer.rrVertexPacket');
-goog.require('modules.shared.glsDrawTests');
 
 goog.scope(function() {
 
     var es3fFboRenderTest = functional.gles3.es3fFboRenderTest;
-    var gluDrawUtil = framework.opengl.gluDrawUtil;
+    var es3fFboTestUtil = functional.gles3.es3fFboTestUtil;
     var gluShaderUtil = framework.opengl.gluShaderUtil;
-    var gluShaderProgram = framework.opengl.gluShaderProgram;
-    var gluTexture = framework.opengl.gluTexture;
-    var gluVarType = framework.opengl.gluVarType;
+    var gluTextureUtil = framework.opengl.gluTextureUtil;
     var tcuLogImage = framework.common.tcuLogImage;
     var tcuRGBA = framework.common.tcuRGBA;
     var tcuTestCase = framework.common.tcuTestCase;
@@ -60,16 +48,8 @@ goog.scope(function() {
     var deMath = framework.delibs.debase.deMath;
     var deString = framework.delibs.debase.deString;
     var deRandom = framework.delibs.debase.deRandom;
-    var deUtil = framework.delibs.debase.deUtil;
-    var glsDrawTests = modules.shared.glsDrawTests;
-    var sglrShaderProgram = framework.opengl.simplereference.sglrShaderProgram;
     var sglrGLContext = framework.opengl.simplereference.sglrGLContext;
     var sglrReferenceContext = framework.opengl.simplereference.sglrReferenceContext;
-    var rrFragmentOperations = framework.referencerenderer.rrFragmentOperations;
-    var rrGenericVector = framework.referencerenderer.rrGenericVector;
-    var rrShadingContext = framework.referencerenderer.rrShadingContext;
-    var rrVertexAttrib = framework.referencerenderer.rrVertexAttrib;
-    var rrVertexPacket = framework.referencerenderer.rrVertexPacket;
 
     /**
      * @constructor
@@ -121,6 +101,7 @@ goog.scope(function() {
             default:
                 testFailed('Unknown type');
         }
+        return 'Should not get to this point';
     };
 
     /**
@@ -129,8 +110,8 @@ goog.scope(function() {
     es3fFboRenderTest.FboConfig.prototype.getName = function() {
         var name = '';
 
-        assertMsgOptions(this.buffers & gl.COLOR_BUFFER_BIT, 'Color buffer is not specified', false, true);
-        name += es3fFboRenderTest.getTypeName(this.colorType) + '_' + es3fFboRenderTest.getFormatName(colorFormat);
+        assertMsgOptions((this.buffers & gl.COLOR_BUFFER_BIT) != 0, 'Color buffer is not specified', false, true);
+        name += es3fFboRenderTest.getTypeName(this.colorType) + '_' + es3fFboTestUtil.getFormatName(this.colorFormat);
 
         if (this.buffers & gl.DEPTH_BUFFER_BIT)
             name += '_depth';
@@ -138,7 +119,7 @@ goog.scope(function() {
             name += '_stencil';
 
         if (this.buffers & (gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT))
-            name += '_' + es3fFboRenderTest.getTypeName(this.depthStencilType) + '_' + es3fFboRenderTest.getFormatName(this.depthStencilFormat);
+            name += '_' + es3fFboRenderTest.getTypeName(this.depthStencilType) + '_' + es3fFboTestUtil.getFormatName(this.depthStencilFormat);
 
         return name;
     };
@@ -175,18 +156,17 @@ goog.scope(function() {
     };
 
     /**
-     * @param {?sglrGLContext|sglrReferenceContext} context
+     * @param {?sglrGLContext.GLContext|sglrReferenceContext.ReferenceContext} context
      * @param {string} name
      * @return {boolean}
      */
     es3fFboRenderTest.isExtensionSupported = function(context, name) {
-        var extensions = context.getString(gl.EXTENSIONS); //TODO: check this function in sglrReferenceContext
+        /** @type {Array<string>} */ var extensions = context.getSupportedExtensions(); //TODO: check this function in sglrReferenceContext.ReferenceContext
         var extension = '';
 
-        var lines = extensions.split('\n');
         var line_number = 0;
-        while (line_number < lines.length) {
-            extension = lines[line_number];
+        while (line_number < extensions.length) {
+            extension = extensions[line_number];
             if (extension == name)
                 return true;
         }
@@ -195,7 +175,7 @@ goog.scope(function() {
     };
 
     /**
-     * @param {?sglrGLContext|sglrReferenceContext} context
+     * @param {?sglrGLContext.GLContext|sglrReferenceContext.ReferenceContext} context
      * @param {Array<string>} requiredExts
      * @return {boolean}
      */
@@ -204,7 +184,7 @@ goog.scope(function() {
             return true;
 
         for (var extNdx = 0; extNdx < requiredExts.length; extNdx++) {
-            extension = requiredExts[extNdx];
+            var extension = requiredExts[extNdx];
 
             if (es3fFboRenderTest.isExtensionSupported(context, extension))
                 return true;
@@ -231,7 +211,7 @@ goog.scope(function() {
     };
 
     /**
-     * @param {?sglrGLContext|sglrReferenceContext} context
+     * @param {?sglrGLContext.GLContext|sglrReferenceContext.ReferenceContext} context
      * @param {number} sizedFormat
      */
     es3fFboRenderTest.checkColorFormatSupport = function(context, sizedFormat) {
@@ -247,36 +227,36 @@ goog.scope(function() {
 
     /**
      * @constructor
-     * @param {?sglrGLContext|sglrReferenceContext} context
+     * @param {?sglrGLContext.GLContext|sglrReferenceContext.ReferenceContext} context
      * @param {es3fFboRenderTest.FboConfig} config
      * @param {number} width
      * @param {number} height
-     * @param {WebGLBuffer} fbo
-     * @param {WebGLBuffer} colorBufferName
-     * @param {WebGLBuffer} depthStencilBufferName
+     * @param {WebGLFramebuffer|sglrReferenceContext.Framebuffer} fbo
+     * @param {WebGLRenderbuffer|WebGLTexture|sglrReferenceContext.TextureContainer} colorBufferName
+     * @param {WebGLRenderbuffer|WebGLTexture|sglrReferenceContext.TextureContainer} depthStencilBufferName
      */
     es3fFboRenderTest.Framebuffer = function(context, config, width, height, fbo, colorBufferName, depthStencilBufferName) {
         this.m_config = config;
         this.m_context = context;
         this.m_framebuffer = fbo;
-        this.m_colorBuffer = 0;
-        this.m_depthStencilBuffer = 0;
+        this.m_colorBuffer = null;
+        this.m_depthStencilBuffer = null;
         // Verify that color format is supported
         es3fFboRenderTest.checkColorFormatSupport(context, config.colorFormat);
 
-        if (this.m_framebuffer == 0)
+        if (!this.m_framebuffer)
             this.m_framebuffer = context.createFramebuffer();
         context.bindFramebuffer(gl.FRAMEBUFFER, this.m_framebuffer);
 
         if (this.m_config.buffers & (gl.COLOR_BUFFER_BIT)) {
             switch (this.m_config.colorType) {
                 case gl.TEXTURE_2D:
-                    this.m_colorBuffer = this.createTex2D(colorBufferName, this.m_config.colorFormat, width, height);
+                    this.m_colorBuffer = this.createTex2D(/** @type {WebGLTexture} */ (colorBufferName), this.m_config.colorFormat, width, height);
                     context.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.m_colorBuffer, 0);
                     break;
 
                 case gl.RENDERBUFFER:
-                    this.m_colorBuffer = this.createRbo(colorBufferName, this.m_config.colorFormat, width, height);
+                    this.m_colorBuffer = this.createRbo(/** @type {WebGLRenderbuffer} */ (colorBufferName), this.m_config.colorFormat, width, height);
                     context.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, this.m_colorBuffer);
                     break;
 
@@ -287,8 +267,8 @@ goog.scope(function() {
 
         if (this.m_config.buffers & (gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT)) {
             switch (this.m_config.depthStencilType) {
-                case gl.TEXTURE_2D: this.m_depthStencilBuffer = this.createTex2D(depthStencilBufferName, this.m_config.depthStencilFormat, width, height); break;
-                case gl.RENDERBUFFER: this.m_depthStencilBuffer = this.createRbo(depthStencilBufferName, this.m_config.depthStencilFormat, width, height); break;
+                case gl.TEXTURE_2D: this.m_depthStencilBuffer = this.createTex2D(/** @type {WebGLTexture} */ (depthStencilBufferName), this.m_config.depthStencilFormat, width, height); break;
+                case gl.RENDERBUFFER: this.m_depthStencilBuffer = this.createRbo(/** @type {WebGLRenderbuffer} */ (depthStencilBufferName), this.m_config.depthStencilFormat, width, height); break;
                 default:
                     testFailed('Unsupported type');
             }
@@ -309,7 +289,7 @@ goog.scope(function() {
             }
         }
 
-        context.bindFramebuffer(gl.FRAMEBUFFER, 0);
+        context.bindFramebuffer(gl.FRAMEBUFFER, null);
     };
 
     /**
@@ -318,17 +298,17 @@ goog.scope(function() {
     es3fFboRenderTest.Framebuffer.prototype.getConfig = function() { return this.m_config; };
 
     /**
-     * @return {number}
+     * @return {?WebGLFramebuffer|framework.opengl.simplereference.sglrReferenceContext.Framebuffer}
      */
     es3fFboRenderTest.Framebuffer.prototype.getFramebuffer = function() { return this.m_framebuffer; };
 
     /**
-     * @return {number}
+     * @return {?WebGLRenderbuffer|WebGLTexture}
      */
     es3fFboRenderTest.Framebuffer.prototype.getColorBuffer = function() { return this.m_colorBuffer; };
 
     /**
-     * @return {number}
+     * @return {?WebGLRenderbuffer|WebGLTexture}
      */
     es3fFboRenderTest.Framebuffer.prototype.getDepthStencilBuffer = function() { return this.m_depthStencilBuffer; };
 
@@ -336,7 +316,7 @@ goog.scope(function() {
      * dinit
      */
     es3fFboRenderTest.Framebuffer.prototype.deinit = function() {
-        this.m_context.deleteFramebuffer(this.m_framebuffer);
+        this.m_context.deleteFramebuffer(/** @type {WebGLFramebuffer} */ (this.m_framebuffer));
         this.destroyBuffer(this.m_colorBuffer, this.m_config.colorType);
         this.destroyBuffer(this.m_depthStencilBuffer, this.m_config.depthStencilType);
     };
@@ -353,11 +333,11 @@ goog.scope(function() {
     };
 
     /**
-     * @param {WebGLTexture} name
+     * @param {?WebGLTexture|sglrReferenceContext.TextureContainer} name
      * @param {number} format
      * @param {number} width
      * @param {number} height
-     * @return {WebGLTexture}
+     * @return {WebGLTexture|sglrReferenceContext.TextureContainer}
      */
     es3fFboRenderTest.Framebuffer.prototype.createTex2D = function(name, format, width, height) {
         if (!name)
@@ -409,8 +389,8 @@ goog.scope(function() {
     };
 
     /**
-     * @param {?sglrGLContext|sglrReferenceContext} context
-     * @param {WebGLTexture} name
+     * @param {?sglrGLContext.GLContext|sglrReferenceContext.ReferenceContext} context
+     * @param {WebGLTexture|sglrReferenceContext.TextureContainer} name
      * @param {number} format
      * @param {number} dataType
      * @param {number} width
@@ -428,7 +408,7 @@ goog.scope(function() {
     };
 
     /**
-     * @param {?sglrGLContext|sglrReferenceContext} context
+     * @param {?sglrGLContext.GLContext|sglrReferenceContext.ReferenceContext} context
      * @param {WebGLTexture} name
      * @param {number} format
      * @param {number} dataType
@@ -463,7 +443,7 @@ goog.scope(function() {
 
     /**
      * Must be overridden
-     * @param {?sglrGLContext|sglrReferenceContext} fboContext
+     * @param {?sglrGLContext.GLContext|sglrReferenceContext.ReferenceContext} fboContext
      * @param {tcuSurface.Surface} dst
      */
     es3fFboRenderTest.FboRenderCase.prototype.render = function(fboContext, dst) { throw new Error('Must override'); };
@@ -492,9 +472,9 @@ goog.scope(function() {
         /** @type {number} */ var refError;
 
         // Render using GLES3
-        /** @type {sglrGLContext|sglrReferenceContext} */ var context;
+        /** @type {sglrGLContext.GLContext|sglrReferenceContext.ReferenceContext} */ var context;
         try {
-            context = new sglrGLContext.GLContext(gl, [x, y, width, height]);
+            context = new sglrGLContext.GLContext.GLContext(gl, [x, y, width, height]);
 
             context.clearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
             context.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
@@ -516,8 +496,8 @@ goog.scope(function() {
 
         // Render reference image
 
-        /** @type {sglrReferenceContext.ReferenceContextBuffers} */
-        var buffers = new sglrReferenceContext.ReferenceContextBuffers(
+        /** @type {sglrReferenceContext.ReferenceContext.ReferenceContextBuffers} */
+        var buffers = new sglrReferenceContext.ReferenceContext.ReferenceContextBuffers(
             new tcuTexture.PixelFormat(
                 [8, 8, 8],
                 gl.getParameter(gl.ALPHA_BITS) ? 8 : 0
@@ -527,8 +507,8 @@ goog.scope(function() {
             gl.canvas.width,
             gl.canvas.height
         );
-        context = new sglrReferenceContext.ReferenceContext(
-            new sglrReferenceContext.ReferenceContextLimits(gl),
+        context = new sglrReferenceContext.ReferenceContext.ReferenceContext(
+            new sglrReferenceContext.ReferenceContext.ReferenceContextLimits(gl),
             buffers.getColorbuffer(), buffers.getDepthbuffer(), buffers.getStencilbuffer()
         );
 
@@ -587,7 +567,7 @@ goog.scope(function() {
     es3fFboRenderTest.StencilClearsTest.prototype.constructor = es3fFboRenderTest.StencilClearsTest;
 
     /**
-     * @param {?sglrGLContext|sglrReferenceContext} context
+     * @param {?sglrGLContext.GLContext|sglrReferenceContext.ReferenceContext} context
      * @param {tcuSurface.Surface} dst
      */
     es3fFboRenderTest.StencilClearsTest.prototype.render = function(context, dst) {
@@ -652,7 +632,7 @@ goog.scope(function() {
         context.disable(gl.STENCIL_TEST);
 
         if (fbo.getConfig().colorType == gl.TEXTURE_2D) {
-            context.bindFramebuffer(gl.FRAMEBUFFER, 0);
+            context.bindFramebuffer(gl.FRAMEBUFFER, null);
             context.bindTexture(gl.TEXTURE_2D, fbo.getColorBuffer());
             context.viewport(0, 0, context.getWidth(), context.getHeight());
 
@@ -677,7 +657,7 @@ goog.scope(function() {
     es3fFboRenderTest.SharedColorbufferTest.prototype.constructor = es3fFboRenderTest.SharedColorbufferTest;
 
     /**
-     * @param {?sglrGLContext|sglrReferenceContext} context
+     * @param {?sglrGLContext.GLContext|sglrReferenceContext.ReferenceContext} context
      * @param {tcuSurface.Surface} dst
      */
     es3fFboRenderTest.SharedColorbufferTest.protoype.render = function(context, dst) {
@@ -812,7 +792,7 @@ goog.scope(function() {
         es3fFboRenderTest.SharedColorbufferClearsTest;
 
     /**
-     * @param {?sglrGLContext|sglrReferenceContext} context
+     * @param {?sglrGLContext.GLContext|sglrReferenceContext.ReferenceContext} context
      * @param {tcuSurface.Surface} dst
      */
     es3fFboRenderTest.SharedColorbufferClearsTest.prototype.render = function(context, dst) {
@@ -889,7 +869,7 @@ goog.scope(function() {
 
             shader.setUniforms(context, shaderID);
 
-            context.bindFramebuffer(gl.FRAMEBUFFER, 0);
+            context.bindFramebuffer(gl.FRAMEBUFFER, null);
             context.viewport(0, 0, context.getWidth(), context.getHeight());
             rrUtil.drawQuad(context, shaderID, [-0.9, -0.9, 0.0], [0.9, 0.9, 0.0]);
             dst.readViewport(context, [0, 0, context.getWidth(), context.getHeight()]);
@@ -919,7 +899,7 @@ goog.scope(function() {
     };
 
     /**
-     * @param {?sglrGLContext|sglrReferenceContext} context
+     * @param {?sglrGLContext.GLContext|sglrReferenceContext.ReferenceContext} context
      * @param {tcuSurface.Surface} dst
      */
     es3fFboRenderTest.SharedDepthStencilTest.prototype.render = function(context, dst) {
@@ -1022,7 +1002,7 @@ goog.scope(function() {
 
         if (this.m_config.colorType == gl.TEXTURE_2D) {
             // Render both to screen
-            context.bindFramebuffer(gl.FRAMEBUFFER, 0);
+            context.bindFramebuffer(gl.FRAMEBUFFER, null);
             context.viewport(0, 0, context.getWidth(), context.getHeight());
             context.bindTexture(gl.TEXTURE_2D, fboA.getColorBuffer());
             rrUtil.drawQuad(context, texShaderID, [-1.0, -1.0, 0.0], [0.0, 1.0, 0.0]);
@@ -1050,7 +1030,7 @@ goog.scope(function() {
     es3fFboRenderTest.ResizeTest.prototype.constructor = es3fFboRenderTest.ResizeTest;
 
     /**
-     * @param {?sglrGLContext|sglrReferenceContext} context
+     * @param {?sglrGLContext.GLContext|sglrReferenceContext.ReferenceContext} context
      * @param {tcuSurface.Surface} dst
      */
     es3fFboRenderTest.ResizeTest.prototype.render = function(context, dst) {
@@ -1104,7 +1084,7 @@ goog.scope(function() {
 
         if (fbo.getConfig().colorType == gl.TEXTURE_2D) {
             // Render fbo to screen
-            context.bindFramebuffer(gl.FRAMEBUFFER, 0);
+            context.bindFramebuffer(gl.FRAMEBUFFER, null);
             context.viewport(0, 0, context.getWidth(), context.getHeight());
             context.bindTexture(gl.TEXTURE_2D, fbo.getColorBuffer());
             rrUtil.drawQuad(context, texFromFboShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]);
@@ -1175,7 +1155,7 @@ goog.scope(function() {
         }
 
         if (this.m_config.colorType == gl.TEXTURE_2D) {
-            context.bindFramebuffer(gl.FRAMEBUFFER, 0);
+            context.bindFramebuffer(gl.FRAMEBUFFER, null);
             context.viewport(0, 0, context.getWidth(), context.getHeight());
             context.bindTexture(gl.TEXTURE_2D, fbo.getColorBuffer());
             rrUtil.drawQuad(context, texFromFboShaderID, [-0.5, -0.5, 0.0], [0.5, 0.5, 0.0]);
@@ -1201,7 +1181,7 @@ goog.scope(function() {
     es3fFboRenderTest.RecreateBuffersTest.prototype.construtor = es3fFboRenderTest.RecreateBuffersTest;
 
     /**
-     * @param {?sglrGLContext|sglrReferenceContext} ctx
+     * @param {?sglrGLContext.GLContext|sglrReferenceContext.ReferenceContext} ctx
      * @param {tcuSurface.Surface} dst
      */
     es3fFboRenderTest.RecreateBuffersTest.prototype.render = function(ctx, dst) {
@@ -1367,7 +1347,7 @@ goog.scope(function() {
 
         if (fbo.getConfig().colorType == gl.TEXTURE_2D) {
             // Unbind fbo
-            ctx.bindFramebuffer(gl.FRAMEBUFFER, 0);
+            ctx.bindFramebuffer(gl.FRAMEBUFFER, null);
 
             // Draw to screen
             ctx.bindTexture(gl.TEXTURE_2D, fbo.getColorBuffer());
