@@ -134,15 +134,16 @@ goog.scope(function() {
      * @param{} T
      */
     glsBuiltinPrecisionTests.isTypeValid = function(T) {
-        if (T.isVoid) {
-            return false;
-        } else {
+        if (T.isVoid === undefined) {
             return true;
+        } else {
+            return false;
         }
     };
 
-    template <typename In>
+
     /**
+     * template <typename In>
      * Returns true for all other types except Void
      * @param{*} In
      * @return{number}
@@ -1980,6 +1981,7 @@ goog.scope(function() {
      */
     glsBuiltinPrecisionTests.FuncCase.prototype.runTest = function(Sig_) {
         /** @type{glsBuiltinPrecisionTests.Inputs} */ var inputs = (glsBuiltinPrecisionTests.generateInputs(
+                                                    this.In,
                                                     this.getSamplings(),
     												this.m_ctx.floatFormat,
     												this.m_ctx.precision,
@@ -2004,6 +2006,28 @@ goog.scope(function() {
 	// 	this->testStatement(variables, inputs, *stmt);
 	// }
 };
+
+
+
+    /**
+     * template <typename Sig>
+     * @param{glsBuiltinPrecisionTests.Context} context
+     * @param{string} name
+     * @param{glsBuiltinPrecisionTests.Func} func
+     * @param{glsBuiltinPrecisionTests.Signature} Sig_
+     * @return{glsBuiltinPrecisionTests.PrecisionCase}
+     */
+     glsBuiltinPrecisionTests.createFuncCase (context, name, /*Func<Sig>&*/	func, Sig_) {
+    	switch (func.getOutParamIndex()) {
+    		case -1:
+    			return new glsBuiltinPrecisionTests.FuncCase(Sig_, context, name, func);
+    		case 1:
+    			return new glsBuiltinPrecisionTests.InOutFuncCase(Sig_, context, name, func);
+    		default:
+    			DE_ASSERT(!"Impossible");
+    	}
+    	return null;
+    };
 
 
 
