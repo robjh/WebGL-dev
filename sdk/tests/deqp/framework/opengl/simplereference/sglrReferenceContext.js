@@ -61,11 +61,15 @@ goog.scope(function() {
 
     //TODO: Implement automatic error checking in sglrReferenceContext, optional on creation.
 
+    /** @typedef {WebGLRenderbuffer|WebGLTexture|sglrReferenceContext.Renderbuffer|sglrReferenceContext.TextureContainer} */ sglrReferenceContext.AnyRenderbuffer;
+
+    /** @typedef {WebGLFramebuffer|sglrReferenceContext.Framebuffer} */ sglrReferenceContext.AnyFramebuffer;
+
     /**
-    * @param {number} error
-    * @param {number} message
-    * @throws {Error}
-    */
+     * @param {number} error
+     * @param {number} message
+     * @throws {Error}
+     */
     sglrReferenceContext.GLU_EXPECT_NO_ERROR = function(error, message) {
         if (error !== gl.NONE) {
             console.log('Assertion failed message:' + message);

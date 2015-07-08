@@ -26,6 +26,7 @@ goog.require('framework.common.tcuRGBA');
 goog.require('framework.common.tcuSurface');
 goog.require('framework.common.tcuTestCase');
 goog.require('framework.common.tcuTexture');
+goog.require('framework.common.tcuTextureUtil');
 goog.require('framework.delibs.debase.deMath');
 goog.require('framework.delibs.debase.deRandom');
 goog.require('framework.delibs.debase.deString');
@@ -45,6 +46,7 @@ goog.scope(function() {
     var tcuTestCase = framework.common.tcuTestCase;
     var tcuSurface = framework.common.tcuSurface;
     var tcuTexture = framework.common.tcuTexture;
+    var tcuTextureUtil = framework.common.tcuTextureUtil;
     var deMath = framework.delibs.debase.deMath;
     var deString = framework.delibs.debase.deString;
     var deRandom = framework.delibs.debase.deRandom;
@@ -231,9 +233,9 @@ goog.scope(function() {
      * @param {es3fFboRenderTest.FboConfig} config
      * @param {number} width
      * @param {number} height
-     * @param {WebGLFramebuffer|sglrReferenceContext.Framebuffer} fbo
-     * @param {WebGLRenderbuffer|WebGLTexture|sglrReferenceContext.TextureContainer} colorBufferName
-     * @param {WebGLRenderbuffer|WebGLTexture|sglrReferenceContext.TextureContainer} depthStencilBufferName
+     * @param {sglrReferenceContext.AnyFramebuffer} fbo
+     * @param {sglrReferenceContext.AnyRenderbuffer} colorBufferName
+     * @param {sglrReferenceContext.AnyRenderbuffer} depthStencilBufferName
      */
     es3fFboRenderTest.Framebuffer = function(context, config, width, height, fbo, colorBufferName, depthStencilBufferName) {
         this.m_config = config;
@@ -298,17 +300,17 @@ goog.scope(function() {
     es3fFboRenderTest.Framebuffer.prototype.getConfig = function() { return this.m_config; };
 
     /**
-     * @return {?WebGLFramebuffer|framework.opengl.simplereference.sglrReferenceContext.Framebuffer}
+     * @return {?sglrReferenceContext.AnyFramebuffer}
      */
     es3fFboRenderTest.Framebuffer.prototype.getFramebuffer = function() { return this.m_framebuffer; };
 
     /**
-     * @return {?WebGLRenderbuffer|WebGLTexture}
+     * @return {?sglrReferenceContext.AnyRenderbuffer}
      */
     es3fFboRenderTest.Framebuffer.prototype.getColorBuffer = function() { return this.m_colorBuffer; };
 
     /**
-     * @return {?WebGLRenderbuffer|WebGLTexture}
+     * @return {?sglrReferenceContext.AnyRenderbuffer}
      */
     es3fFboRenderTest.Framebuffer.prototype.getDepthStencilBuffer = function() { return this.m_depthStencilBuffer; };
 
@@ -337,7 +339,7 @@ goog.scope(function() {
      * @param {number} format
      * @param {number} width
      * @param {number} height
-     * @return {WebGLTexture|sglrReferenceContext.TextureContainer}
+     * @return {?WebGLTexture|sglrReferenceContext.TextureContainer}
      */
     es3fFboRenderTest.Framebuffer.prototype.createTex2D = function(name, format, width, height) {
         if (!name)
@@ -359,11 +361,11 @@ goog.scope(function() {
     };
 
     /**
-     * @param {WebGLRenderbuffer} name
+     * @param {?WebGLRenderbuffer|sglrReferenceContext.Renderbuffer} name
      * @param {number} format
      * @param {number} width
      * @param {number} height
-     * @return {WebGLRenderbuffer}
+     * @return {?WebGLRenderbuffer|sglrReferenceContext.Renderbuffer}
      */
     es3fFboRenderTest.Framebuffer.prototype.createRbo = function(name, format, width, height) {
         if (!name)
@@ -376,14 +378,14 @@ goog.scope(function() {
     };
 
     /**
-     * @param {WebGLRenderbuffer|WebGLTexture} name
+     * @param {?sglrReferenceContext.AnyRenderbuffer} name
      * @param {number} type
      */
     es3fFboRenderTest.Framebuffer.prototype.destroyBuffer = function(name, type) {
         if (type == gl.TEXTURE_2D || type == gl.TEXTURE_CUBE_MAP)
-            this.m_context.deleteTexture(name);
+            this.m_context.deleteTexture(/** @type {?WebGLTexture} */ (name));
         else if (type == gl.RENDERBUFFER)
-            this.m_context.deleteRenderbuffer(name);
+            this.m_context.deleteRenderbuffer(/** @type {?WebGLRenderbuffer} */ (name));
         else
             assertMsgOptions(type == gl.NONE, 'Invalid buffer type', false, true);
     };
