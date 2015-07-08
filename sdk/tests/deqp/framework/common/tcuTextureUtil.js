@@ -240,8 +240,8 @@ tcuTextureUtil.fillWithMetaballs = function(dst, numBalls, seed) {
         var p = [x / dst.getWidth(), y / dst.getHeight()];
 
         var sum = 0.0;
-        for (var pointNdx = 0; pointNdx < points.length; i++) {
-            var d = deMath.subtract(p, points[i]);
+        for (var pointNdx = 0; pointNdx < points.length; pointNdx++) {
+            var d = deMath.subtract(p, points[pointNdx]);
             var f = 0.01 / (d[0] * d[0] + d[1] * d[1]);
 
             sum += f;
