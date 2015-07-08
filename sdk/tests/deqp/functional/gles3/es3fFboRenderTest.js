@@ -60,6 +60,8 @@ goog.scope(function() {
         framework.opengl.simplereference.sglrReferenceContext;
     var rrUtil = framework.referencerenderer.rrUtil;
 
+    /** @type {WebGL2RenderingContext} */ var gl;
+
     /**
      * @constructor
      */
@@ -2337,4 +2339,28 @@ goog.scope(function() {
         }
     };
 
+    /**
+     * Create and execute the test cases
+     * @param {WebGL2RenderingContext} context
+     */
+    es3fFboRenderTest.run = function(context) {
+        gl = context;
+        //Set up Test Root parameters
+        var state = tcuTestCase.runner;
+
+        state.setRoot(new es3fFboRenderTest.FboRenderTestGroup());
+
+        //Set up name and description of this test series.
+        setCurrentTestName(state.testCases.fullName());
+        description(state.testCases.getDescription());
+
+        try {
+            //Run test cases
+            tcuTestCase.runTestCases();
+        }
+        catch (err) {
+            testFailedOptions('Failed to run tests', false);
+            tcuTestCase.runner.terminate();
+        }
+    };
 });
