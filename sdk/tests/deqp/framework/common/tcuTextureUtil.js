@@ -22,12 +22,14 @@
 goog.provide('framework.common.tcuTextureUtil');
 goog.require('framework.common.tcuTexture');
 goog.require('framework.delibs.debase.deMath');
+goog.require('framework.delibs.debase.deRandom');
 
 goog.scope(function() {
 
 var tcuTextureUtil = framework.common.tcuTextureUtil;
 var tcuTexture = framework.common.tcuTexture;
 var deMath = framework.delibs.debase.deMath;
+var deRandom = framework.delibs.debase.deRandom;
 
 var DE_ASSERT = function(x) {
     if (!x)
@@ -203,18 +205,17 @@ tcuTextureUtil.fillWithComponentGradients = function(access, minVal, maxVal) {
 /**
  * @param {tcuTexture.PixelBufferAccess} dst
  */
-tcuTextureUtil.fillWithRGBAQuads = function (dst)
-{
+tcuTextureUtil.fillWithRGBAQuads = function(dst) {
     checkMessage(dst.getDepth() == 1, 'Depth must be 1');
-    var width    = dst.getWidth();
-    var height    = dst.getHeight();
-    var    left    = width/2;
-    var top        = height/2;
+    var width = dst.getWidth();
+    var height = dst.getHeight();
+    var left = width / 2;
+    var top = height / 2;
 
-    tcuTextureUtil.clear(tcuTextureUtil.getSubregion(dst, 0,        0,        0, left,        top,        1),    [1.0, 0.0, 0.0, 1.0]);
-    tcuTextureUtil.clear(tcuTextureUtil.getSubregion(dst, left,    0,        0, width-left,    top,        1),    [0.0, 1.0, 0.0, 1.0]);
-    tcuTextureUtil.clear(tcuTextureUtil.getSubregion(dst, 0,        top,    0, left,        height-top,    1), [0.0, 0.0, 1.0, 0.0]);
-    tcuTextureUtil.clear(tcuTextureUtil.getSubregion(dst, left,    top,    0, width-left,    height-top, 1), [0.5, 0.5, 0.5, 1.0]);
+    tcuTextureUtil.getSubregion(dst, 0, 0, 0, left, top, 1).clear([1.0, 0.0, 0.0, 1.0]);
+    tcuTextureUtil.getSubregion(dst, left, 0, 0, width - left, top, 1).clear([0.0, 1.0, 0.0, 1.0]);
+    tcuTextureUtil.getSubregion(dst, 0, top, 0, left, height - top, 1).clear([0.0, 0.0, 1.0, 0.0]);
+    tcuTextureUtil.getSubregion(dst, left, top, 0, width - left, height - top, 1).clear([0.5, 0.5, 0.5, 1.0]);
 };
 
 // \todo [2012-11-13 pyry] There is much better metaballs code in CL SIR value generators.
@@ -223,29 +224,25 @@ tcuTextureUtil.fillWithRGBAQuads = function (dst)
  * @param {number} numBalls
  * @param {number} seed
  */
-tcuTextureUtil.fillWithMetaballs = function (dst, numBalls, seed)
-{
+tcuTextureUtil.fillWithMetaballs = function(dst, numBalls, seed) {
     checkMessage(dst.getDepth() == 1, 'Depth must be 1');
     var points = [];
     var rnd = new deRandom.Random(seed);
 
-    for (var i = 0; i < numBalls; i++)
-    {
+    for (var i = 0; i < numBalls; i++) {
         var x = rnd.getFloat();
         var y = rnd.getFloat();
         points[i] = [x, y];
     }
 
     for (var y = 0; y < dst.getHeight(); y++)
-    for (var x = 0; x < dst.getWidth(); x++)
-    {
-        var p = [x/dst.getWidth(), y/dst.getHeight()];
+    for (var x = 0; x < dst.getWidth(); x++) {
+        var p = [x / dst.getWidth(), y / dst.getHeight()];
 
         var sum = 0.0;
-        for (var pointNdx = 0; pointNdx < points.length; i++)
-        {
-            var d = deMath.sub(p, points[i]);
-            var f = 0.01 / (d[0]*d[0] + d[1]*d[1]);
+        for (var pointNdx = 0; pointNdx < points.length; i++) {
+            var d = deMath.subtract(p, points[i]);
+            var f = 0.01 / (d[0] * d[0] + d[1] * d[1]);
 
             sum += f;
         }
