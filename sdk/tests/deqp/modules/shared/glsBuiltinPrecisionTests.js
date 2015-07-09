@@ -28,6 +28,7 @@ goog.require('framework.common.tcuFloatFormat');
 goog.require('framework.delibs.debase.deRandom');
 goog.require('modules.shared.glsShaderExecUtil');
 goog.require('framework.opengl.simplereference.sglrGLContext');
+goog.require('framework.delibs.debase.deMath');
 
 goog.scope(function() {
 
@@ -40,6 +41,7 @@ goog.scope(function() {
     var deRandom = framework.delibs.debase.deRandom;
     var glsShaderExecUtil = modules.shared.glsShaderExecUtil;
     var sglrGLContext = framework.opengl.simplereference.sglrGLContext;
+    var deMath = framework.delibs.debase.deMath;
 
 // public:
 // 	Interval			roundOut		(const Interval& x, bool roundUnderOverflow) const;
@@ -904,7 +906,7 @@ goog.scope(function() {
         // TODO: port macros
 		// TCU_INTERVAL_APPLY_MONOTONE1(ret, arg0, iarg0, val,
 		// 							 TCU_SET_INTERVAL(val, point,
-		// 											  point = this->applyPoint(ctx, arg0)));
+		// 											  point = this.applyPoint(ctx, arg0)));
 
 		ret.operatorOrAssignBinary(this.innerExtrema(ctx, iarg0));
 		ret.operatorAddAssignBinary((this.getCodomain().operatorOrBinary(NaN)));
@@ -994,7 +996,7 @@ goog.scope(function() {
      * @extends{glsBuiltinPrecisionTests.PrimitiveFunc}
      */
     glsBuiltinPrecisionTests.FloatFunc2 = function() {
-        /** @type{glsBuiltinPrecisionTests.Signature} */ var Sig = new glsBuiltinPrecisionTests.Signature(1.10, 1, true, [0]);
+        /** @type{glsBuiltinPrecisionTests.Signature} */ var Sig = new glsBuiltinPrecisionTests.Signature(1.1, 1.1, 1.1);
         glsBuiltinPrecisionTests.PrimitiveFunc.call(this, Sig);
     };
 
@@ -1300,10 +1302,10 @@ goog.scope(function() {
     	// vector<typename In::In1>	in1;
     	// vector<typename In::In2>	in2;
     	// vector<typename In::In3>	in3;
-        this.in0 = In.In0;
-        this.in1 = In.In1;
-        this.in2 = In.In2;
-        this.in3 = In.In3;
+        this.in0 = [];
+        this.in1 = [];
+        this.in2 = [];
+        this.in3 = [];
     };
 
     /**
@@ -1314,8 +1316,8 @@ goog.scope(function() {
      */
     glsBuiltinPrecisionTests.Outputs = function(size, Out) {
     	// Outputs	(size_t size) : out0(size), out1(size) {}
-    	this.out0 = new Out(size);
-    	this.out1 = new Out(size);
+    	this.out0 = [];
+    	this.out1 = [];
     };
 
 
@@ -1411,12 +1413,12 @@ goog.scope(function() {
             }
         } else if (Array.isArray(T)) {
             if (T.length > 0 && Array.isArray(T[0])) {
-
+                return new glsBuiltinPrecisionTests.DefaultSamplingMatrix(T);
             } else {
-
+                return new glsBuiltinPrecisionTests.DefaultSamplingVector(T);
             }
-
         }
+        return new glsBuiltinPrecisionTests.DefaultSamplingVoid(T);
     };
 
     /**
@@ -1436,7 +1438,7 @@ goog.scope(function() {
      * @return{*}
      */
     glsBuiltinPrecisionTests.Sampling.prototype.genRandom = function(T, fmt, precision, random){
-        return new T();
+        return T;
     };
 
     /**
@@ -1456,11 +1458,13 @@ goog.scope(function() {
          glsBuiltinPrecisionTests.Sampling.call(this, T);
      };
 
+     glsBuiltinPrecisionTests.DefaultSamplingVoid.prototype = Object.create(glsBuiltinPrecisionTests.Sampling.prototype);
+     glsBuiltinPrecisionTests.DefaultSamplingVoid.prototype.constructor = glsBuiltinPrecisionTests.DefaultSamplingVoid;
+
     /**
      * template <>  :  public Sampling<Void>
      * @param{tcuFloatFormat.FloatFormat} fmt
      * @param{Array<glsBuiltinPrecisionTests.Void>} dst
-     * @param{debase.deRandom} random
      */
     glsBuiltinPrecisionTests.DefaultSamplingVoid.prototype.genFixeds = function(fmt, dst) {
         dst.push(new glsBuiltinPrecisionTests.Void());
@@ -1470,10 +1474,14 @@ goog.scope(function() {
      * template <>  :  public Sampling<bool>
      * @constructor
      * @extends{glsBuiltinPrecisionTests.Sampling}
+     * @param{*} T
      */
-    glsBuiltinPrecisionTests.DefaultSamplingBool = function() {
-        glsBuiltinPrecisionTests.Sampling.call(this);
+    glsBuiltinPrecisionTests.DefaultSamplingBool = function(T) {
+        glsBuiltinPrecisionTests.Sampling.call(this, T);
     };
+
+    glsBuiltinPrecisionTests.DefaultSamplingBool.prototype = Object.create(glsBuiltinPrecisionTests.Sampling.prototype);
+    glsBuiltinPrecisionTests.DefaultSamplingBool.prototype.constructor = glsBuiltinPrecisionTests.DefaultSamplingBool;
 
     /**
      * template <>  :  public Sampling<bool>
@@ -1494,6 +1502,9 @@ goog.scope(function() {
     glsBuiltinPrecisionTests.DefaultSamplingInt = function(T) {
         glsBuiltinPrecisionTests.Sampling.call(this, T);
     };
+
+    glsBuiltinPrecisionTests.DefaultSamplingInt.prototype = Object.create(glsBuiltinPrecisionTests.Sampling.prototype);
+    glsBuiltinPrecisionTests.DefaultSamplingInt.prototype.constructor = glsBuiltinPrecisionTests.DefaultSamplingInt;
 
     /**
      * template <>  :  public Sampling<int>
@@ -1554,12 +1565,15 @@ goog.scope(function() {
         glsBuiltinPrecisionTests.Sampling.call(this, T);
     };
 
+    glsBuiltinPrecisionTests.DefaultSamplingFloat.prototype = Object.create(glsBuiltinPrecisionTests.Sampling.prototype);
+    glsBuiltinPrecisionTests.DefaultSamplingFloat.prototype.constructor = glsBuiltinPrecisionTests.DefaultSamplingFloat;
+
     /**
      * Generate a random float from a reasonable general-purpose distribution.
      * template <>  :  public Sampling<float>
      * @param{tcuFloatFormat.FloatFormat} format
      * @param{gluShaderUtil.precision} prec
-     * @param{debase.deRandom} rnd
+     * @param{deRandom.Random} rnd
      */
     glsBuiltinPrecisionTests.DefaultSamplingFloat.prototype.genRandom = function(format, prec, rnd) {
     	/** type{number} */ var minExp			= format.getMinExp();
@@ -1568,10 +1582,10 @@ goog.scope(function() {
 
     	// Choose exponent so that the cumulative distribution is cubic.
     	// This makes the probability distribution quadratic, with the peak centered on zero.
-    	/** type{number} */ var minRoot			= deCbrt(minExp - 0.5 - (haveSubnormal ? 1.0 : 0.0));
-    	/** type{number} */ var maxRoot			= deCbrt(maxExp + 0.5);
+    	/** type{number} */ var minRoot			= deMath.deCbrt(minExp - 0.5 - (haveSubnormal ? 1.0 : 0.0));
+    	/** type{number} */ var maxRoot			= deMath.deCbrt(maxExp + 0.5);
     	/** type{number} */ var fractionBits	= format.getFractionBits();
-    	/** type{number} */ var exp				= deRoundEven(dePow(rnd.getDouble(minRoot, maxRoot),
+    	/** type{number} */ var exp				= deMath.rint(Math.pow(rnd.getFloat(minRoot, maxRoot),
     															3.0));
     	/** type{number} */ var base			= 0.0; // integral power of two
     	/** type{number} */ var quantum			= 0.0; // smallest representable difference in the binade
@@ -1590,12 +1604,12 @@ goog.scope(function() {
 
     	if (exp >= minExp) {
     		// Normal number
-    		base = deFloatLdExp(1.0, exp);
-    		quantum = deFloatLdExp(1.0, exp - fractionBits);
+    		base = deMath.deFloatLdExp(1.0, exp);
+    		quantum = deMath.deFloatLdExp(1.0, exp - fractionBits);
     	} else {
     		// Subnormal
     		base = 0.0;
-    		quantum = deFloatLdExp(1.0, minExp - fractionBits);
+    		quantum = deMath.deFloatLdExp(1.0, minExp - fractionBits);
     	}
 
     	switch (rnd.getInt(0, 16)) {
@@ -1610,7 +1624,7 @@ goog.scope(function() {
     			break;
     		default: // Random (evenly distributed) significand.
     		{
-    			/** type{number} */ var intFraction = rnd.getUint64() & ((1 << fractionBits) - 1);
+    			/** type{number} */ var intFraction = rnd.getInt() & ((1 << fractionBits) - 1);
     			significand = intFraction * quantum;
     		}
     	}
@@ -1629,11 +1643,11 @@ goog.scope(function() {
     	/** @type{number} */ var minExp			= format.getMinExp();
     	/** @type{number} */ var maxExp			= format.getMaxExp();
     	/** @type{number} */ var fractionBits	= format.getFractionBits();
-        // DE_INLINE double	deCbrt	(double a)	{ return deSign(a) * dePow(deAbs(a), 1.0 / 3.0); }
+        // DE_INLINE double	deMath.deCbrt	(double a)	{ return deSign(a) * dePow(deAbs(a), 1.0 / 3.0); }
         // DE_INLINE double	deSign				(double x)						{ return deIsNaN(x) ? x : (double)((x > 0.0) - (x < 0.0)); }
-    	/** @type{number} */ var minQuantum		= deFloatLdExp(1.0, minExp - fractionBits);
-    	/** @type{number} */ var minNormalized	= deFloatLdExp(1.0, minExp);
-    	/** @type{number} */ var maxQuantum		= deFloatLdExp(1.0, maxExp - fractionBits);
+    	/** @type{number} */ var minQuantum		= deMath.deFloatLdExp(1.0, minExp - fractionBits);
+    	/** @type{number} */ var minNormalized	= deMath.deFloatLdExp(1.0, minExp);
+    	/** @type{number} */ var maxQuantum		= deMath.deFloatLdExp(1.0, maxExp - fractionBits);
 
     	// NaN
     	dst.push(NaN);
@@ -1658,90 +1672,134 @@ goog.scope(function() {
     		dst.push(sign * 2.0);
 
     		// Largest number
-    		dst.push(sign * (deFloatLdExp(1.0, maxExp) +
-    							  (deFloatLdExp(1.0, maxExp) - maxQuantum)));
+    		dst.push(sign * (deMath.deFloatLdExp(1.0, maxExp) +
+    							  (deMath.deFloatLdExp(1.0, maxExp) - maxQuantum)));
 
     		dst.push(sign * Number.POSITIVE_INFINITY);
     	}
     };
 
-// template <typename T, int Size>
-// class DefaultSampling<Vector<T, Size> > : public Sampling<Vector<T, Size> >
-// {
-// public:
-// 	typedef Vector<T, Size>		Value;
-//
-// 	Value	genRandom	(const FloatFormat& fmt, Precision prec, Random& rnd) const
-// 	{
-// 		Value ret;
-//
-// 		for (int ndx = 0; ndx < Size; ++ndx)
-// 			ret[ndx] = instance<DefaultSampling<T> >().genRandom(fmt, prec, rnd);
-//
-// 		return ret;
-// 	}
-//
-// 	void	genFixeds	(const FloatFormat& fmt, vector<Value>& dst) const
-// 	{
-// 		vector<T> scalars;
-//
-// 		instance<DefaultSampling<T> >().genFixeds(fmt, scalars);
-//
-// 		for (size_t scalarNdx = 0; scalarNdx < scalars.size(); ++scalarNdx)
-// 			dst.push_back(Value(scalars[scalarNdx]));
-// 	}
-//
-// 	double	getWeight	(void) const
-// 	{
-// 		return dePow(instance<DefaultSampling<T> >().getWeight(), Size);
-// 	}
-// };
-//
+    /**
+     * template <typename T, int Size>
+     * @constructor
+     * @extends{glsBuiltinPrecisionTests.Sampling}
+     * @param{*} T
+     * @param{number} size
+     */
+    glsBuiltinPrecisionTests.DefaultSamplingVector = function(T, size){
+        glsBuiltinPrecisionTests.Sampling.call(this, T);
+        this.size = size;
+    };
+
+    glsBuiltinPrecisionTests.DefaultSamplingVector.prototype = Object.create(glsBuiltinPrecisionTests.Sampling.prototype);
+    glsBuiltinPrecisionTests.DefaultSamplingVector.prototype.constructor = glsBuiltinPrecisionTests.DefaultSamplingVector;
+
+    /**
+     * @param{tcuFloatFormat.FloatFormat} fmt
+     * @param{gluShaderUtil.precision} prec
+     * @param{deRandom.Random} rnd
+     * @return{Array<*>}
+     */
+    glsBuiltinPrecisionTests.DefaultSamplingVector.prototype.genRandom = function(fmt, prec, rnd) {
+		/* @type{Array<*>} */ var ret = [];
+
+		for (var ndx = 0; ndx < this.size; ++ndx)
+			ret[ndx] = glsBuiltinPrecisionTests.SamplingFactory(this.typename).genRandom(fmt, prec, rnd);
+
+		return ret;
+	};
+
+    /**
+     * @param{tcuFloatFormat.FloatFormat} fmt
+     * @param{Array<*>} dst
+     */
+    glsBuiltinPrecisionTests.DefaultSamplingVector.prototype.genFixeds = function(fmt, dst) {
+		/** @type{Array<*>} */ scalars = [];
+
+		glsBuiltinPrecisionTests.SamplingFactory(this.typename).genFixeds(fmt, scalars);
+
+		for (var scalarNdx = 0; scalarNdx < scalars.length; ++scalarNdx)
+			dst.push([scalars[scalarNdx]]);
+	};
+
+    /**
+     * @param{tcuFloatFormat.FloatFormat} fmt
+     * @param{Array<*>} dst
+     */
+    glsBuiltinPrecisionTests.DefaultSamplingVector.prototype.getWeight = function() {
+		return Math.pow(glsBuiltinPrecisionTests.SamplingFactory(this.typename).getWeight(), this.size);
+	};
+
+    /**
+     * template <typename T, int Rows, int Columns>
+     * @constructor
+     * @extends{glsBuiltinPrecisionTests.Sampling}
+     * @param{*} T
+     * @param{number} rows
+     * @param{number} cols
+     */
+    glsBuiltinPrecisionTests.DefaultSamplingMatrix = function(T, rows, cols){
+        glsBuiltinPrecisionTests.Sampling.call(this, T);
+        this.rows = rows;
+        this.cols = cols;
+    };
+
+    glsBuiltinPrecisionTests.DefaultSamplingMatrix.prototype = Object.create(glsBuiltinPrecisionTests.Sampling.prototype);
+    glsBuiltinPrecisionTests.DefaultSamplingMatrix.prototype.constructor = glsBuiltinPrecisionTests.DefaultSamplingMatrix;
+
 // template <typename T, int Rows, int Columns>
 // class DefaultSampling<Matrix<T, Rows, Columns> > : public Sampling<Matrix<T, Rows, Columns> >
 // {
 // public:
 // 	typedef Matrix<T, Rows, Columns>		Value;
 //
-// 	Value	genRandom	(const FloatFormat& fmt, Precision prec, Random& rnd) const
-// 	{
-// 		Value ret;
-//
-// 		for (int rowNdx = 0; rowNdx < Rows; ++rowNdx)
-// 			for (int colNdx = 0; colNdx < Columns; ++colNdx)
-// 				ret(rowNdx, colNdx) = instance<DefaultSampling<T> >().genRandom(fmt, prec, rnd);
-//
-// 		return ret;
-// 	}
-//
-// 	void	genFixeds	(const FloatFormat& fmt, vector<Value>& dst) const
-// 	{
-// 		vector<T> scalars;
-//
-// 		instance<DefaultSampling<T> >().genFixeds(fmt, scalars);
-//
-// 		for (size_t scalarNdx = 0; scalarNdx < scalars.size(); ++scalarNdx)
-// 			dst.push_back(Value(scalars[scalarNdx]));
-//
-// 		if (Columns == Rows)
-// 		{
-// 			Value	mat	(0.0);
-// 			T		x	= T(1.0);
-// 			mat[0][0] = x;
-// 			for (int ndx = 0; ndx < Columns; ++ndx)
-// 			{
-// 				mat[Columns-1-ndx][ndx] = x;
-// 				x *= T(2.0);
-// 			}
-// 			dst.push_back(mat);
-// 		}
-// 	}
-//
-// 	double	getWeight	(void) const
-// 	{
-// 		return dePow(instance<DefaultSampling<T> >().getWeight(), Rows * Columns);
-// 	}
-// };
+    /**
+     * template <typename T, int Rows, int Columns>
+     * @param{tcuFloatFormat.FloatFormat} fmt
+     * @param{gluShaderUtil.precision} prec
+     * @param{deRandom.Random} rnd
+     * @return{Array<Array<*>>}
+     */
+    glsBuiltinPrecisionTests.DefaultSamplingMatrix.prototype.genRandom = function(fmt, prec, rnd) {
+        /** @type{Array<Array<*>>} */ var ret =[[]];
+
+    	for (var rowNdx = 0; rowNdx < this.rows; ++rowNdx)
+    		for (var colNdx = 0; colNdx < this.cols; ++colNdx)
+    			ret[rowNdx][colNdx] = glsBuiltinPrecisionTests.SamplingFactory(this.typename).genRandom(fmt, prec, rnd);
+
+    	return ret;
+    };
+
+    /**
+     * @param{tcuFloatFormat.FloatFormat} fmt
+     * @param{Array<*>} dst
+     */
+    glsBuiltinPrecisionTests.DefaultSamplingMatrix.prototype.genFixeds = function(fmt, dst)	{
+		/** @type{Array<*>} */ var scalars = [];
+
+		glsBuiltinPrecisionTests.SamplingFactory(this.typename).genFixeds(fmt, scalars);
+
+		for (var scalarNdx = 0; scalarNdx < scalars.length; ++scalarNdx)
+			dst.push([scalars[scalarNdx]]);
+
+		if (this.cols == this.rows)	{
+			var	mat	= [[0.0]];
+			var	x = new this.typename(1.0);
+			mat[0][0] = x;
+			for (var ndx = 0; ndx < this.cols; ++ndx) {
+				mat[Columns-1-ndx][ndx] = x;
+				x *= T(2.0);
+			}
+			dst.push(mat);
+		}
+	};
+
+    /**
+     * @return{number}
+     */
+    glsBuiltinPrecisionTests.DefaultSamplingMatrix.prototype.getWeight = function()	{
+		return Math.pow(glsBuiltinPrecisionTests.SamplingFactory(this.typename).getWeight(), this.rows * this.cols);
+    };
 
 
     /**
@@ -1779,7 +1837,7 @@ goog.scope(function() {
         /** @type{string} */ this.m_extension = extension === undefined ? '' : extension;
         /** @type{glsBuiltinPrecisionTests.Context} */ this.m_ctx	= context;
         /** @type{*} */ this.m_status;
-		/** @type{*} */ this.m_rnd	= 0; //	(0xdeadbeefu + context.testContext.getCommandLine().getBaseSeed())
+		/** @type{*} */ this.m_rnd	= new deRandom.Random(); //	(0xdeadbeefu + context.testContext.getCommandLine().getBaseSeed())
 		/** @type{*} */ this.m_extension = extension;
         tcuTestCase.DeqpTest.call(this, name, extension);
     };
@@ -1811,8 +1869,209 @@ goog.scope(function() {
      * @param{glsBuiltinPrecisionTests.Inputs} inputs Inputs<In>
      * @param{glsBuiltinPrecisionTests.Statement} stmt
      */
-    glsBuiltinPrecisionTests.PrecisionCase.prototype.testStatement = function(variables, inputs, stmt){};
+    glsBuiltinPrecisionTests.PrecisionCase.prototype.testStatement = function(variables, inputs, stmt){
+    	using namespace ShaderExecUtil;
 
+    	typedef typename 	In::In0		In0;
+    	typedef typename 	In::In1		In1;
+    	typedef typename 	In::In2		In2;
+    	typedef typename 	In::In3		In3;
+    	typedef typename 	Out::Out0	Out0;
+    	typedef typename 	Out::Out1	Out1;
+
+    	/** @type{number} */ var fmt = this.getFormat();
+    	/** @type{number} */ var inCount = glsBuiltinPrecisionTests.numInputs(this.In);
+    	/** @type{number} */ var outCount = glsBuiltinPrecisionTests.numOutputs(this.Out);
+    	/** @type{number} */ var numValues = (inCount > 0) ? inputs.in0.length : 1;
+    	/** @type{glsBuiltinPrecisionTests.Outputs} */ var outputs = new glsBuiltinPrecisionTests.Outputs(this.Out, numValues);
+    	/** @type{glsShaderExecUtil.ShaderSpec} */ var spec;
+    	/** @type{tcuFloatFormat.FloatFormat} */ var highpFmt = this.m_ctx.highpFormat;
+    	/** @type{number} */ var maxMsgs		= 100;
+    	/** @type{number} */ var numErrors	= 0;
+    	/** @type{glsBuiltinPrecisionTests.Environment} */ var env; 		// Hoisted out of the inner loop for optimization.
+
+    	switch (inCount) {
+    		case 4: DE_ASSERT(inputs.in3.length == numValues);
+    		case 3: DE_ASSERT(inputs.in2.length == numValues);
+    		case 2: DE_ASSERT(inputs.in1.length == numValues);
+    		case 1: DE_ASSERT(inputs.in0.length == numValues);
+    		default: break;
+    	}
+
+        // TODO: print this to Log
+    	// Print out the statement and its definitions
+    	// log() << TestLog::Message << "Statement: " << stmt << TestLog::EndMessage;
+    	// {
+    	// 	ostringstream	oss;
+    	// 	FuncSet			funcs;
+        //
+    	// 	stmt.getUsedFuncs(funcs);
+    	// 	for (FuncSet::const_iterator it = funcs.begin(); it != funcs.end(); ++it)
+    	// 	{
+    	// 		(*it).printDefinition(oss);
+    	// 	}
+    	// 	if (!funcs.empty())
+    	// 		log() << TestLog::Message << "Reference definitions:\n" << oss.str()
+    	// 			  << TestLog::EndMessage;
+    	// }
+
+    	// Initialize ShaderSpec from precision, variables and statement.
+    	// {
+    	// 	ostringstream os;
+    	// 	os << "precision " << glu::getPrecisionName(m_ctx.precision) << " float;\n";
+    	// 	spec.globalDeclarations = os.str();
+    	// }
+
+    	spec.version = getContextTypeGLSLVersion(getRenderContext().getType());
+
+    	if (!this.m_extension.empty())
+    		spec.globalDeclarations = '#extension ' + this.m_extension + ' : require\n';
+
+    	spec.inputs.length = inCount;
+
+    	switch (inCount) {
+    		case 4: spec.inputs[3] = makeSymbol(*variables.in3);
+    		case 3:	spec.inputs[2] = makeSymbol(*variables.in2);
+    		case 2:	spec.inputs[1] = makeSymbol(*variables.in1);
+    		case 1:	spec.inputs[0] = makeSymbol(*variables.in0);
+    		default: break;
+    	}
+
+    	spec.outputs.length = outCount;
+
+    	switch (outCount) {
+    		case 2:	spec.outputs[1] = makeSymbol(*variables.out1);
+    		case 1:	spec.outputs[0] = makeSymbol(*variables.out0);
+    		default: break;
+    	}
+
+    	spec.source = stmt;
+
+    	// Run the shader with inputs.
+    	{
+    		/** @type{glsShaderExecUtil.ShaderExecutor} */
+            var executor = glsShaderExecUtil.createExecutor(getRenderContext(), this.m_ctx.shaderType, spec);
+    		/** @type{Array<*>} */ var inputArr	=
+    		[
+    			inputs.in0.front(), inputs.in1.front(), inputs.in2.front(), inputs.in3.front()
+    		];
+    		/** @type{Array<*>} */ var outputArr =
+    		[
+    			outputs.out0.front(), outputs.out1.front()
+    		];
+
+    		// executor.log(log());
+    		if (!executor.isOk())
+    			TCU_FAIL("Shader compilation failed");
+
+    		executor.useProgram();
+    		executor.execute(numValues, inputArr, outputArr);
+    	}
+
+    	// Initialize environment with dummy values so we don't need to bind in inner loop.
+    	{
+    		const typename Traits<In0>::IVal		in0;
+    		const typename Traits<In1>::IVal		in1;
+    		const typename Traits<In2>::IVal		in2;
+    		const typename Traits<In3>::IVal		in3;
+    		const typename Traits<Out0>::IVal		reference0;
+    		const typename Traits<Out1>::IVal		reference1;
+
+    		env.bind(variables.in0, in0);
+    		env.bind(variables.in1, in1);
+    		env.bind(variables.in2, in2);
+    		env.bind(variables.in3, in3);
+    		env.bind(variables.out0, reference0);
+    		env.bind(variables.out1, reference1);
+    	}
+
+    	// For each input tuple, compute output reference interval and compare
+    	// shader output to the reference.
+    	for (var valueNdx = 0; valueNdx < numValues; valueNdx++) {
+    		/** @type{boolean} */ var result = true;
+    		typename Traits<Out0>::IVal	reference0;
+    		typename Traits<Out1>::IVal	reference1;
+
+    		env.lookup(variables.in0) = convert<In0>(fmt, round(fmt, inputs.in0[valueNdx]));
+    		env.lookup(variables.in1) = convert<In1>(fmt, round(fmt, inputs.in1[valueNdx]));
+    		env.lookup(variables.in2) = convert<In2>(fmt, round(fmt, inputs.in2[valueNdx]));
+    		env.lookup(variables.in3) = convert<In3>(fmt, round(fmt, inputs.in3[valueNdx]));
+
+    		{
+    			EvalContext	ctx (fmt, m_ctx.precision, env);
+    			stmt.execute(ctx);
+    		}
+
+    		switch (outCount) {
+    			case 2:
+    				reference1 = convert<Out1>(highpFmt, env.lookup(*variables.out1));
+    				if (!this.m_status.check(contains(reference1, outputs.out1[valueNdx]),
+    									"Shader output 1 is outside acceptable range"))
+    					result = false;
+    			case 1:
+    				reference0 = convert<Out0>(highpFmt, env.lookup(*variables.out0));
+    				if (!this.m_status.check(contains(reference0, outputs.out0[valueNdx]),
+    									"Shader output 0 is outside acceptable range"))
+    					result = false;
+    			default: break;
+    		}
+
+    		if (!result)
+    			++numErrors;
+
+    		if ((!result && numErrors <= maxMsgs) || GLS_LOG_ALL_RESULTS) {
+    			/** @type{string} */ var builder = '';//	= log().message();
+
+    			builder += (result ? 'Passed' : 'Failed') << ' sample:\n';
+
+    			if (inCount > 0) {
+    				builder += '\t' + variables.in0.getName() + ' = '
+    						+ valueToString(highpFmt, inputs.in0[valueNdx]) + '\n';
+    			}
+
+    			if (inCount > 1) {
+    				builder += '\t' + variables.in1.getName() + ' = '
+    						+ valueToString(highpFmt, inputs.in1[valueNdx]) + '\n';
+    			}
+
+    			if (inCount > 2) {
+    				builder += '\t' + variables.in2.getName() + ' = '
+    						+ valueToString(highpFmt, inputs.in2[valueNdx]) + '\n';
+    			}
+
+    			if (inCount > 3) {
+    				builder += '\t' + variables.in3.getName() + ' = '
+    						+ valueToString(highpFmt, inputs.in3[valueNdx]) + '\n';
+    			}
+
+    			if (outCount > 0) {
+    				builder += '\t' + variables.out0.getName() + ' = '
+    						+ valueToString(highpFmt, outputs.out0[valueNdx]) + '\n'
+    						+ '\tExpected range: '
+    						+ intervalToString<typename Out::Out0>(highpFmt, reference0) + '\n';
+    			}
+
+    			if (outCount > 1) {
+    				builder += '\t' + variables.out1.getName() + ' = '
+    						+ valueToString(highpFmt, outputs.out1[valueNdx]) + '\n'
+    						+ '\tExpected range: '
+    						+ intervalToString<typename Out::Out1>(highpFmt, reference1) + '\n';
+    			}
+
+    			bufferedLogToConsole(builder);
+    		}
+    	}
+
+    	if (numErrors > maxMsgs) {
+    		bufferedLogToConsole('(Skipped ' + (numErrors - maxMsgs) + ' messages.)');
+    	}
+
+    	if (numErrors == 0)	{
+    		bufferedLogToConsole('All ' + numValues + ' inputs passed.');
+    	} else {
+    		bufferedLogToConsole(numErrors + '/' + numValues + ' inputs failed.');
+    	}
+    };
 
     /**
      * template <typename In, typename Out>
@@ -1957,7 +2216,7 @@ goog.scope(function() {
     		for (var ndx1 = 0; ndx1 < fixedInputs.in1.length; ++ndx1) {
     			for (var ndx2 = 0; ndx2 < fixedInputs.in2.length; ++ndx2) {
     				for (var ndx3 = 0; ndx3 < fixedInputs.in3.length; ++ndx3) {
-    					var tuple = glsBuiltinPrecisionTests.InTuple(fixedInputs.in0[ndx0],
+    					var tuple = new glsBuiltinPrecisionTests.InTuple(fixedInputs.in0[ndx0],
     												 fixedInputs.in1[ndx1],
     												 fixedInputs.in2[ndx2],
     												 fixedInputs.in3[ndx3]);
@@ -1983,10 +2242,10 @@ goog.scope(function() {
     		// 	continue;
 
     		seenInputs.push(tuple);
-    		ret.in0.push_back(in0);
-    		ret.in1.push_back(in1);
-    		ret.in2.push_back(in2);
-    		ret.in3.push_back(in3);
+    		ret.in0.push(in0);
+    		ret.in1.push(in1);
+    		ret.in2.push(in2);
+    		ret.in3.push(in3);
     	}
 
     	return ret;
@@ -2008,7 +2267,9 @@ goog.scope(function() {
 
     glsBuiltinPrecisionTests.FuncCaseBase.prototype.iterate = function() {
 
-        assertMsgOptions(this.m_extension !== undefined && !sglrGLContext.isExtensionSupported(gl, this.m_extension), 'Unsupported extension: ' + m_extension, false, true);
+        assertMsgOptions(!(this.m_extension !== undefined && this.m_extension.trim() !== '')
+            && !sglrGLContext.isExtensionSupported(gl, this.m_extension),
+                'Unsupported extension: ' + this.m_extension, false, true);
 
 	    this.runTest();
 
@@ -2064,25 +2325,42 @@ goog.scope(function() {
     												this.m_ctx.precision,
     												this.m_ctx.numRandoms,
     												this.m_rnd));
-	// const Inputs<In>	inputs
-	// Variables<In, Out>	variables;
-    //
-	// variables.out0	= variable<Ret>("out0");
-	// variables.out1	= variable<Void>("out1");
-	// variables.in0	= variable<Arg0>("in0");
-	// variables.in1	= variable<Arg1>("in1");
-	// variables.in2	= variable<Arg2>("in2");
-	// variables.in3	= variable<Arg3>("in3");
-    //
-	// {
-	// 	ExprP<Ret>	expr	= applyVar(m_func,
-	// 								   variables.in0, variables.in1,
-	// 								   variables.in2, variables.in3);
-	// 	StatementP	stmt	= variableAssignment(variables.out0, expr);
-    //
-	// 	this->testStatement(variables, inputs, *stmt);
-	// }
-};
+
+        var variables = new glsBuiltinPrecisionTests.Variables(this.In, this.Out);
+    	// Variables<In, Out>	variables;
+        //
+    	variables.out0	= new glsBuiltinPrecisionTests.Variable(this.Ret, "out0");
+    	variables.out1	= new glsBuiltinPrecisionTests.Variable(glsBuiltinPrecisionTests.Void, "out1");
+    	variables.in0	= new glsBuiltinPrecisionTests.Variable(this.Arg0, "in0");
+    	variables.in1	= new glsBuiltinPrecisionTests.Variable(this.Arg1, "in1");
+    	variables.in2	= new glsBuiltinPrecisionTests.Variable(this.Arg2, "in2");
+    	variables.in3	= new glsBuiltinPrecisionTests.Variable(this.Arg3, "in3");
+        //
+    	// {
+    	// 	ExprP<Ret>	expr	= applyVar(m_func,
+    	// 								   variables.in0, variables.in1,
+    	// 								   variables.in2, variables.in3);
+    	// 	StatementP	stmt	= variableAssignment(variables.out0, expr);
+        //
+    	// 	this.testStatement(variables, inputs, *stmt);
+    	// }
+    };
+
+    /**
+     * template <typename Sig>
+     * return ExprP<typename Sig::Ret>
+     * @param{glsBuiltinPrecisionTests.Func} func
+     * @param{glsBuiltinPrecisionTests.VariableP} arg0
+     * @param{glsBuiltinPrecisionTests.VariableP} arg1
+     * @param{glsBuiltinPrecisionTests.VariableP} arg2
+     * @param{glsBuiltinPrecisionTests.VariableP} arg3
+     * @return{glsBuiltinPrecisionTests.ExprP}
+     */
+     glsBuiltinPrecisionTests.applyVar = function(func, arg0, arg1, arg2, arg3){
+    	return exprP(new ApplyVar<Sig>(func, arg0, arg1, arg2, arg3));
+    };
+
+
 
 
 
