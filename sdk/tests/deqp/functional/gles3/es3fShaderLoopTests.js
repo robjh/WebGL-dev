@@ -20,16 +20,17 @@
 
 'use strict';
 goog.provide('functional.gles3.es3fShaderLoopTests');
-// goog.require('framework.common.tcuImageCompare');
-// goog.require('framework.common.tcuTestCase');
-// goog.require('framework.delibs.debase.deMath');
-// goog.require('framework.opengl.gluShaderUtil');
-// goog.require('framework.opengl.gluTexture');
-// goog.require('modules.shared.glsShaderRenderCase');
+goog.require('framework.common.tcuTestCase');
+goog.require('framework.delibs.debase.deMath');
+goog.require('framework.opengl.gluShaderUtil');
+goog.require('modules.shared.glsShaderRenderCase');
 
 goog.scope(function() {
 	var es3fShaderLoopTests = functional.gles3.es3fShaderLoopTests;
-
+	var tcuTestCase = framework.common.tcuTestCase;
+	var deMath = framework.delibs.debase.deMath;
+	var gluShaderUtil = framework.opengl.gluShaderUtil;
+	var glsShaderRenderCase = modules.shared.glsShaderRenderCase;
 // Repeated with for, while, do-while. Examples given as 'for' loops.
 // Repeated for const, uniform, dynamic loops.
 
@@ -70,7 +71,7 @@ es3fShaderLoopTests.LoopCase = {
  * @return {string}
  */
 es3fShaderLoopTests.getLoopCaseName = function(loopCase) {
-	/** @typr {Array<string>} */ var s_names = [
+	/** @type {Array<string>} */ var s_names = [
 		'empty_body',
 		'infinite_with_unconditional_break_first',
 		'infinite_with_unconditional_break_last',
@@ -126,7 +127,7 @@ es3fShaderLoopTests.LoopType = {
  * @return {string}
  */
 es3fShaderLoopTests.getLoopTypeName = function(loopType) {
-	/** @typr {Array<string>} */ var s_names = [
+	/** @type {Array<string>} */ var s_names = [
 		'for',
 		'while',
 		'do_while'
@@ -151,11 +152,11 @@ es3fShaderLoopTests.LoopCountType = {
  * @return {string}
  */
 es3fShaderLoopTests.getLoopCountTypeName = function(countType) {
-	/** @typr {Array<string>} */ var s_names =	{
+	/** @type {Array<string>} */ var s_names =	[
 		'constant',
 		'uniform',
 		'dynamic'
-	};
+	];
 
 	// DE_STATIC_ASSERT(DE_LENGTH_OF_ARRAY(s_names) == es3fShaderLoopTests.LoopCountType.LOOPCOUNT_LAST);
 	// DE_ASSERT(deInBounds32((int)countType, 0, es3fShaderLoopTests.LoopCountType.LOOPCOUNT_LAST));
@@ -206,7 +207,7 @@ es3fShaderLoopTests.evalLoop3Iters = function(c) {
  * @param {number} numIters
  * @return {glsShaderRenderCase.ShaderEvalFunc}
  */
-es3fShaderLoopTests.getLoopEvalFunc = function(numIters) = {
+es3fShaderLoopTests.getLoopEvalFunc = function(numIters) {
 	switch (numIters % 4) {
 		case 0: return es3fShaderLoopTests.evalLoop0Iters;
 		case 1:	return es3fShaderLoopTests.evalLoop1Iters;
@@ -230,7 +231,7 @@ es3fShaderLoopTests.getLoopEvalFunc = function(numIters) = {
  * @param {string} fragShaderSource
  */
 es3fShaderLoopTests.ShaderLoopCase = function(name, description, isVertexCase, evalFunc, vertShaderSource, fragShaderSource) {
-	glsShaderRenderCase.ShaderRenderCase.call(name, description, isVertexCase, evalFunc);
+	glsShaderRenderCase.ShaderRenderCase.call(this, name, description, isVertexCase, evalFunc);
 	/** @type {string} */ this.m_vertShaderSource = vertShaderSource;
 	/** @type {string} */ this.m_fragShaderSource = fragShaderSource;
 };
@@ -244,13 +245,13 @@ es3fShaderLoopTests.ShaderLoopCase.prototype.constructor = es3fShaderLoopTests.S
  * @param {string} caseName
  * @param {string} description
  * @param {boolean} isVertexCase
- * @param {LoopType} loopType
- * @param {LoopCountType} loopCountType
- * @param {Precision} loopCountPrecision
- * @param {DataType} loopCountDataType
+ * @param {es3fShaderLoopTests.LoopType} loopType
+ * @param {es3fShaderLoopTests.LoopCountType} loopCountType
+ * @param {gluShaderUtil.precision} loopCountPrecision
+ * @param {gluShaderUtil.DataType} loopCountDataType
  * @return {es3fShaderLoopTests.ShaderLoopCase}
  */
-es3fShaderLoopTests.createGenericLoopCase = function(caseName, description, bool isVertexCase, loopType, loopCountType, loopCountPrecision, loopCountDataType) {
+es3fShaderLoopTests.createGenericLoopCase = function(caseName, description, isVertexCase, loopType, loopCountType, loopCountPrecision, loopCountDataType) {
 	/** @type {string} */ var vtx = '';
 	/** @type {string} */ var frag = '';
 	/** @type {string} */ var op = ''; // isVertexCase ? vtx : frag;
@@ -285,11 +286,11 @@ es3fShaderLoopTests.createGenericLoopCase = function(caseName, description, bool
 
 	if (isIntCounter) {
 		if (loopCountType == es3fShaderLoopTests.LoopCountType.LOOPCOUNT_UNIFORM || loopCountType == es3fShaderLoopTests.LoopCountType.LOOPCOUNT_DYNAMIC)
-			op += 'uniform ' + gluShaderUtil.getPrecisionName(loopCountPrecision) + ' int ' + getIntUniformName(numLoopIters) + ';\n';
+			op += 'uniform ' + gluShaderUtil.getPrecisionName(loopCountPrecision) + ' int ' + glsShaderRenderCase.getIntUniformName(numLoopIters) + ';\n';
 	}
 	else {
 		if (loopCountType == es3fShaderLoopTests.LoopCountType.LOOPCOUNT_UNIFORM || loopCountType == es3fShaderLoopTests.LoopCountType.LOOPCOUNT_DYNAMIC)
-			op += 'uniform ' + gluShaderUtil.getPrecisionName(loopCountPrecision) + ' float ' + getFloatFractionUniformName(numLoopIters) + ';\n';
+			op += 'uniform ' + gluShaderUtil.getPrecisionName(loopCountPrecision) + ' float ' + glsShaderRenderCase.getFloatFractionUniformName(numLoopIters) + ';\n';
 
 		if (numLoopIters != 1)
 			op += 'uniform ' + gluShaderUtil.getPrecisionName(loopCountPrecision) + ' float uf_one;\n';
@@ -336,11 +337,11 @@ es3fShaderLoopTests.createGenericLoopCase = function(caseName, description, bool
 
 	if (isIntCounter) {
 		if (loopCountType == es3fShaderLoopTests.LoopCountType.LOOPCOUNT_CONSTANT)
-			iterMaxStr = /** @type {string} */ (numLoopIters);
+			iterMaxStr = '' + numLoopIters;
 		else if (loopCountType == es3fShaderLoopTests.LoopCountType.LOOPCOUNT_UNIFORM)
-			iterMaxStr = getIntUniformName(numLoopIters);
+			iterMaxStr = glsShaderRenderCase.getIntUniformName(numLoopIters);
 		else if (loopCountType == es3fShaderLoopTests.LoopCountType.LOOPCOUNT_DYNAMIC)
-			iterMaxStr = getIntUniformName(numLoopIters) + '*one';
+			iterMaxStr = glsShaderRenderCase.getIntUniformName(numLoopIters) + '*one';
 		else
 			throw new Error('Unhandled case.');
 	}
@@ -366,9 +367,9 @@ es3fShaderLoopTests.createGenericLoopCase = function(caseName, description, bool
 		if (loopCountType == es3fShaderLoopTests.LoopCountType.LOOPCOUNT_CONSTANT)
 			incrementStr = 'ndx += ' + Math.floor(1.0 / numLoopIters);
 		else if (loopCountType == es3fShaderLoopTests.LoopCountType.LOOPCOUNT_UNIFORM)
-			incrementStr = 'ndx += ' + getFloatFractionUniformName(numLoopIters);
+			incrementStr = 'ndx += ' + glsShaderRenderCase.getFloatFractionUniformName(numLoopIters);
 		else if (loopCountType == es3fShaderLoopTests.LoopCountType.LOOPCOUNT_DYNAMIC)
-			incrementStr = 'ndx += ' + getFloatFractionUniformName(numLoopIters) + '*one';
+			incrementStr = 'ndx += ' + glsShaderRenderCase.getFloatFractionUniformName(numLoopIters) + '*one';
 		else
 			throw new Error('Unhandled case.');
 	}
@@ -425,7 +426,7 @@ es3fShaderLoopTests.createGenericLoopCase = function(caseName, description, bool
 	// Create the case.
 	/** @type {glsShaderRenderCase.ShaderEvalFunc} */
 	var evalFunc = es3fShaderLoopTests.getLoopEvalFunc(numLoopIters);
-	return new es3fShaderLoopTests.ShaderLoopCase(caseName, description, isVertexCase, evalFunc, vertexShaderSource, fragmentShaderSource);
+	return new es3fShaderLoopTests.ShaderLoopCase(caseName, description, isVertexCase, evalFunc, vtx, frag);
 };
 
 // \todo [petri] Generalize to float as well?
@@ -434,15 +435,52 @@ es3fShaderLoopTests.createGenericLoopCase = function(caseName, description, bool
  * @param {string} caseName
  * @param {string} description
  * @param {boolean} isVertexCase
- * @param {LoopCase} loopCase
- * @param {LoopType} loopType
- * @param {LoopCountType} loopCountType
+ * @param {es3fShaderLoopTests.LoopCase} loopCase
+ * @param {es3fShaderLoopTests.LoopType} loopType
+ * @param {es3fShaderLoopTests.LoopCountType} loopCountType
  * @return {es3fShaderLoopTests.ShaderLoopCase}
  */
 es3fShaderLoopTests.createSpecialLoopCase = function(caseName, description, isVertexCase, loopCase, loopType, loopCountType) {
-	/** @type {string} */ vtx = '';
-	/** @type {string} */ frag = '';
-	/** @type {string} */ op = ''; // isVertexCase ? vtx : frag;
+	/** @type {string} */ var vtx = '';
+	/** @type {string} */ var frag = '';
+	/** @type {string} */ var op = ''; // isVertexCase ? vtx : frag;
+
+	// Handle all loop types.
+	/** @type {string} */ var counterPrecisionStr = 'mediump';
+	/** @type {string} */ var forLoopStr = '';
+	/** @type {string} */ var whileLoopStr = '';
+	/** @type {string} */ var doWhileLoopPreStr = '';
+	/** @type {string} */ var doWhileLoopPostStr = '';
+
+	/** @type {number} */ var iterCount = 3; // value to use in loop
+	/** @type {number} */ var numIters = 3; // actual number of iterations
+
+	// Constants.
+	/** @type {string} */ var oneStr = '';
+	/** @type {string} */ var twoStr = '';
+	/** @type {string} */ var threeStr = '';
+	/** @type {string} */ var iterCountStr = '';
+
+	if (loopCountType == es3fShaderLoopTests.LoopCountType.LOOPCOUNT_CONSTANT) {
+		oneStr			= '1';
+		twoStr			= '2';
+		threeStr		= '3';
+		iterCountStr	= '' + iterCount;
+	}
+	else if (loopCountType == es3fShaderLoopTests.LoopCountType.LOOPCOUNT_UNIFORM) {
+		oneStr			= 'ui_one';
+		twoStr			= 'ui_two';
+		threeStr		= 'ui_three';
+		iterCountStr	= '' + glsShaderRenderCase.getIntUniformName(iterCount);
+	}
+	else if (loopCountType == es3fShaderLoopTests.LoopCountType.LOOPCOUNT_DYNAMIC) {
+		oneStr			= 'one*ui_one';
+		twoStr			= 'one*ui_two';
+		threeStr		= 'one*ui_three';
+		iterCountStr	= 'one*' + glsShaderRenderCase.getIntUniformName(iterCount);
+	}
+	else
+		throw new Error('Unhandled error.');
 
 	vtx += '#version 300 es\n';
 	frag += '#version 300 es\n';
@@ -463,7 +501,7 @@ es3fShaderLoopTests.createSpecialLoopCase = function(caseName, description, isVe
 		vtx += 'out mediump vec4 v_coords;\n';
 		frag += 'in mediump vec4 v_coords;\n';
 
-		if (loopCountType == es3fShaderLoopTests.LoopCountType.LOOPCOUNT_DYNAMI {
+		if (loopCountType == es3fShaderLoopTests.LoopCountType.LOOPCOUNT_DYNAMIC) {
 			vtx += 'out mediump float v_one;\n';
 			frag += 'in mediump float v_one;\n';
 		}
@@ -472,16 +510,13 @@ es3fShaderLoopTests.createSpecialLoopCase = function(caseName, description, isVe
 	if (loopCase == es3fShaderLoopTests.LoopCase.LOOPCASE_SELECT_ITERATION_COUNT)
 		op += 'uniform bool ub_true;\n';
 
-	op += 'uniform ${COUNTER_PRECISION} int ui_zero, ui_one, ui_two, ui_three, ui_four, ui_five, ui_six;\n';
+	op += 'uniform ' + counterPrecisionStr + ' int ui_zero, ui_one, ui_two, ui_three, ui_four, ui_five, ui_six;\n';
 	if (loopCase == es3fShaderLoopTests.LoopCase.LOOPCASE_101_ITERATIONS)
-		op += 'uniform ${COUNTER_PRECISION} int ui_oneHundredOne;\n';
+		op += 'uniform ' + counterPrecisionStr + ' int ui_oneHundredOne;\n';
 
 	vtx += isVertexCase ? op : '';
 	frag += isVertexCase ? '' : op;
 	op = '';
-
-	/** @type {number} */ var iterCount = 3;	// value to use in loop
-	/** @type {number} */ var numIters = 3;	// actual number of iterations
 
 	vtx += '\n';
 	vtx += 'void main()\n';
@@ -494,9 +529,9 @@ es3fShaderLoopTests.createSpecialLoopCase = function(caseName, description, isVe
 
 	if (loopCountType == es3fShaderLoopTests.LoopCountType.LOOPCOUNT_DYNAMIC) {
 		if (isVertexCase)
-			vtx += '	${COUNTER_PRECISION} int one = int(a_one + 0.5);\n';
+			vtx += '	' + counterPrecisionStr + ' int one = int(a_one + 0.5);\n';
 		else
-			frag += '	${COUNTER_PRECISION} int one = int(v_one + 0.5);\n';
+			frag += '	' + counterPrecisionStr + ' int one = int(v_one + 0.5);\n';
 	}
 
 	if (isVertexCase)
@@ -507,19 +542,13 @@ es3fShaderLoopTests.createSpecialLoopCase = function(caseName, description, isVe
 	// Read array.
 	op += '	mediump vec4 res = coords;\n';
 
-	// Handle all loop types.
-	/** @type {string} */ var counterPrecisionStr = 'mediump';
-	/** @type {string} */ var forLoopStr = '';
-	/** @type {string} */ var whileLoopStr = '';
-	/** @type {string} */ var doWhileLoopPreStr = '';
-	/** @type {string} */ var doWhileLoopPostStr = '';
 
-	if (loopType == LOOPTYPE_FOR) {
-		switch (loopCase)
-		{
+
+	if (loopType == es3fShaderLoopTests.LoopType.LOOPTYPE_FOR) {
+		switch (loopCase) {
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_EMPTY_BODY:
 				numIters = 0;
-				op += '	${FOR_LOOP} {}\n';
+				op += '	' + forLoopStr + ' {}\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_INFINITE_WITH_UNCONDITIONAL_BREAK_FIRST:
@@ -534,163 +563,161 @@ es3fShaderLoopTests.createSpecialLoopCase = function(caseName, description, isVe
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_INFINITE_WITH_CONDITIONAL_BREAK:
 				numIters = 2;
-				op += '	${COUNTER_PRECISION} int i = 0;\n';
-				op += '	for (;;) { res = res.yzwx; if (i == ${ONE}) break; i++; }\n';
+				op += '	' + counterPrecisionStr + ' int i = 0;\n';
+				op += '	for (;;) { res = res.yzwx; if (i == ' + oneStr + ') break; i++; }\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_SINGLE_STATEMENT:
-				op += '	${FOR_LOOP} res = res.yzwx;\n';
+				op += '	' + forLoopStr + ' res = res.yzwx;\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_COMPOUND_STATEMENT:
 				iterCount	= 2;
 				numIters	= 2 * iterCount;
-				op += '	${FOR_LOOP} { res = res.yzwx; res = res.yzwx; }\n';
+				op += '	' + forLoopStr + ' { res = res.yzwx; res = res.yzwx; }\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_SEQUENCE_STATEMENT:
 				iterCount	= 2;
 				numIters	= 2 * iterCount;
-				op += '	${FOR_LOOP} res = res.yzwx, res = res.yzwx;\n';
+				op += '	' + forLoopStr + ' res = res.yzwx, res = res.yzwx;\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_NO_ITERATIONS:
 				iterCount	= 0;
 				numIters	= 0;
-				op += '	${FOR_LOOP} res = res.yzwx;\n';
+				op += '	' + forLoopStr + ' res = res.yzwx;\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_SINGLE_ITERATION:
 				iterCount	= 1;
 				numIters	= 1;
-				op += '	${FOR_LOOP} res = res.yzwx;\n';
+				op += '	' + forLoopStr + ' res = res.yzwx;\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_SELECT_ITERATION_COUNT:
-				op += '	for (int i = 0; i < (ub_true ? ${ITER_COUNT} : 0); i++) res = res.yzwx;\n';
+				op += '	for (int i = 0; i < (ub_true ? ' + iterCountStr + ' : 0); i++) res = res.yzwx;\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_CONDITIONAL_CONTINUE:
 				numIters = iterCount - 1;
-				op += '	${FOR_LOOP} { if (i == ${TWO}) continue; res = res.yzwx; }\n';
+				op += '	' + forLoopStr + ' { if (i == ' + twoStr + ') continue; res = res.yzwx; }\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_UNCONDITIONAL_CONTINUE:
-				op += '	${FOR_LOOP} { res = res.yzwx; continue; }\n';
+				op += '	' + forLoopStr + ' { res = res.yzwx; continue; }\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_ONLY_CONTINUE:
 				numIters = 0;
-				op += '	${FOR_LOOP} { continue; }\n';
+				op += '	' + forLoopStr + ' { continue; }\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_DOUBLE_CONTINUE:
 				numIters = iterCount - 1;
-				op += '	${FOR_LOOP} { if (i == ${TWO}) continue; res = res.yzwx; continue; }\n';
+				op += '	' + forLoopStr + ' { if (i == ' + twoStr + ') continue; res = res.yzwx; continue; }\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_CONDITIONAL_BREAK:
 				numIters = 2;
-				op += '	${FOR_LOOP} { if (i == ${TWO}) break; res = res.yzwx; }\n';
+				op += '	' + forLoopStr + ' { if (i == ' + twoStr + ') break; res = res.yzwx; }\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_UNCONDITIONAL_BREAK:
 				numIters = 1;
-				op += '	${FOR_LOOP} { res = res.yzwx; break; }\n';
+				op += '	' + forLoopStr + ' { res = res.yzwx; break; }\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_PRE_INCREMENT:
-				op += '	for (int i = 0; i < ${ITER_COUNT}; ++i) { res = res.yzwx; }\n';
+				op += '	for (int i = 0; i < ' + iterCountStr + '; ++i) { res = res.yzwx; }\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_POST_INCREMENT:
-				op += '	${FOR_LOOP} { res = res.yzwx; }\n';
+				op += '	' + forLoopStr + ' { res = res.yzwx; }\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_MIXED_BREAK_CONTINUE:
 				numIters	= 2;
 				iterCount	= 5;
-				op += '	${FOR_LOOP} { if (i == 0) continue; else if (i == 3) break; res = res.yzwx; }\n';
+				op += '	' + forLoopStr + ' { if (i == 0) continue; else if (i == 3) break; res = res.yzwx; }\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_VECTOR_COUNTER:
-				op += '	for (${COUNTER_PRECISION} ivec4 i = ivec4(0, 1, ${ITER_COUNT}, 0); i.x < i.z; i.x += i.y) { res = res.yzwx; }\n';
+				op += '	for (' + counterPrecisionStr + ' ivec4 i = ivec4(0, 1, ' + iterCountStr + ', 0); i.x < i.z; i.x += i.y) { res = res.yzwx; }\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_101_ITERATIONS:
 				numIters = iterCount = 101;
-				op += '	${FOR_LOOP} res = res.yzwx;\n';
+				op += '	' + forLoopStr + ' res = res.yzwx;\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_SEQUENCE:
 				iterCount	= 5;
 				numIters	= 5;
-				op += '	${COUNTER_PRECISION} int i;\n';
-				op += '	for (i = 0; i < ${TWO}; i++) { res = res.yzwx; }\n';
-				op += '	for (; i < ${ITER_COUNT}; i++) { res = res.yzwx; }\n';
+				op += '	' + counterPrecisionStr + ' int i;\n';
+				op += '	for (i = 0; i < ' + twoStr + '; i++) { res = res.yzwx; }\n';
+				op += '	for (; i < ' + iterCountStr + '; i++) { res = res.yzwx; }\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_NESTED:
 				numIters = 2 * iterCount;
-				op += '	for (${COUNTER_PRECISION} int i = 0; i < ${TWO}; i++)\n';
+				op += '	for (' + counterPrecisionStr + ' int i = 0; i < ' + twoStr + '; i++)\n';
 				op += '	{\n';
-				op += '		for (${COUNTER_PRECISION} int j = 0; j < ${ITER_COUNT}; j++)\n';
+				op += '		for (' + counterPrecisionStr + ' int j = 0; j < ' + iterCountStr + '; j++)\n';
 				op += '			res = res.yzwx;\n';
 				op += '	}\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_NESTED_SEQUENCE:
 				numIters = 3 * iterCount;
-				op += '	for (${COUNTER_PRECISION} int i = 0; i < ${ITER_COUNT}; i++)\n';
+				op += '	for (' + counterPrecisionStr + ' int i = 0; i < ' + iterCountStr + '; i++)\n';
 				op += '	{\n';
-				op += '		for (${COUNTER_PRECISION} int j = 0; j < ${TWO}; j++)\n';
+				op += '		for (' + counterPrecisionStr + ' int j = 0; j < ' + twoStr + '; j++)\n';
 				op += '			res = res.yzwx;\n';
-				op += '		for (${COUNTER_PRECISION} int j = 0; j < ${ONE}; j++)\n';
+				op += '		for (' + counterPrecisionStr + ' int j = 0; j < ' + oneStr + '; j++)\n';
 				op += '			res = res.yzwx;\n';
 				op += '	}\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_NESTED_TRICKY_DATAFLOW_1:
 				numIters = 2;
-				op += '	${FOR_LOOP}\n';
+				op += '	' + forLoopStr + '\n';
 				op += '	{\n';
 				op += '		res = coords; // ignore outer loop effect \n';
-				op += '		for (${COUNTER_PRECISION} int j = 0; j < ${TWO}; j++)\n';
+				op += '		for (' + counterPrecisionStr + ' int j = 0; j < ' + twoStr + '; j++)\n';
 				op += '			res = res.yzwx;\n';
 				op += '	}\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_NESTED_TRICKY_DATAFLOW_2:
 				numIters = iterCount;
-				op += '	${FOR_LOOP}\n';
+				op += '	' + forLoopStr + '\n';
 				op += '	{\n';
 				op += '		res = coords.wxyz;\n';
-				op += '		for (${COUNTER_PRECISION} int j = 0; j < ${TWO}; j++)\n';
+				op += '		for (' + counterPrecisionStr + ' int j = 0; j < ' + twoStr + '; j++)\n';
 				op += '			res = res.yzwx;\n';
 				op += '		coords = res;\n';
 				op += '	}\n';
 				break;
 
 			default:
-				DE_ASSERT(false);
+				throw new Error('Error');
 		}
 
 		if (loopCountType == es3fShaderLoopTests.LoopCountType.LOOPCOUNT_CONSTANT)
-			forLoopStr = string('for (') + counterPrecisionStr + ' int i = 0; i < ' + de::toString(iterCount) + '; i++)';
+			forLoopStr = 'for (' + counterPrecisionStr + ' int i = 0; i < ' + iterCount + '; i++)';
 		else if (loopCountType == es3fShaderLoopTests.LoopCountType.LOOPCOUNT_UNIFORM)
-			forLoopStr = string('for (') + counterPrecisionStr + ' int i = 0; i < ' + getIntUniformName(iterCount) + '; i++)';
+			forLoopStr = 'for (' + counterPrecisionStr + ' int i = 0; i < ' + glsShaderRenderCase.getIntUniformName(iterCount) + '; i++)';
 		else if (loopCountType == es3fShaderLoopTests.LoopCountType.LOOPCOUNT_DYNAMIC)
-			forLoopStr = string('for (') + counterPrecisionStr + ' int i = 0; i < one*' + getIntUniformName(iterCount) + '; i++)';
+			forLoopStr = 'for (' + counterPrecisionStr + ' int i = 0; i < one*' + glsShaderRenderCase.getIntUniformName(iterCount) + '; i++)';
 		else
-			DE_ASSERT(false);
+			throw new Error('Error');
 	}
-	else if (loopType == LOOPTYPE_WHILE)
-	{
-		switch (loopCase)
-		{
+	else if (loopType == es3fShaderLoopTests.LoopType.LOOPTYPE_WHILE) {
+		switch (loopCase) {
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_EMPTY_BODY:
 				numIters = 0;
-				op += '	${WHILE_LOOP} {}\n';
+				op += '	' + whileLoopStr + ' {}\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_INFINITE_WITH_UNCONDITIONAL_BREAK_FIRST:
@@ -705,175 +732,174 @@ es3fShaderLoopTests.createSpecialLoopCase = function(caseName, description, isVe
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_INFINITE_WITH_CONDITIONAL_BREAK:
 				numIters = 2;
-				op += '	${COUNTER_PRECISION} int i = 0;\n';
-				op += '	while (true) { res = res.yzwx; if (i == ${ONE}) break; i++; }\n';
+				op += '	' + counterPrecisionStr + ' int i = 0;\n';
+				op += '	while (true) { res = res.yzwx; if (i == ' + oneStr + ') break; i++; }\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_SINGLE_STATEMENT:
-				op += '	${WHILE_LOOP} res = res.yzwx;\n';
+				op += '	' + whileLoopStr + ' res = res.yzwx;\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_COMPOUND_STATEMENT:
 				iterCount	= 2;
 				numIters	= 2 * iterCount;
-				op += '	${WHILE_LOOP} { res = res.yzwx; res = res.yzwx; }\n';
+				op += '	' + whileLoopStr + ' { res = res.yzwx; res = res.yzwx; }\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_SEQUENCE_STATEMENT:
 				iterCount	= 2;
 				numIters	= 2 * iterCount;
-				op += '	${WHILE_LOOP} res = res.yzwx, res = res.yzwx;\n';
+				op += '	' + whileLoopStr + ' res = res.yzwx, res = res.yzwx;\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_NO_ITERATIONS:
 				iterCount	= 0;
 				numIters	= 0;
-				op += '	${WHILE_LOOP} res = res.yzwx;\n';
+				op += '	' + whileLoopStr + ' res = res.yzwx;\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_SINGLE_ITERATION:
 				iterCount	= 1;
 				numIters	= 1;
-				op += '	${WHILE_LOOP} res = res.yzwx;\n';
+				op += '	' + whileLoopStr + ' res = res.yzwx;\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_SELECT_ITERATION_COUNT:
-				op += '	${COUNTER_PRECISION} int i = 0;\n';
-				op += '	while (i < (ub_true ? ${ITER_COUNT} : 0)) { res = res.yzwx; i++; }\n';
+				op += '	' + counterPrecisionStr + ' int i = 0;\n';
+				op += '	while (i < (ub_true ? ' + iterCountStr + ' : 0)) { res = res.yzwx; i++; }\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_CONDITIONAL_CONTINUE:
 				numIters = iterCount - 1;
-				op += '	${WHILE_LOOP} { if (i == ${TWO}) continue; res = res.yzwx; }\n';
+				op += '	' + whileLoopStr + ' { if (i == ' + twoStr + ') continue; res = res.yzwx; }\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_UNCONDITIONAL_CONTINUE:
-				op += '	${WHILE_LOOP} { res = res.yzwx; continue; }\n';
+				op += '	' + whileLoopStr + ' { res = res.yzwx; continue; }\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_ONLY_CONTINUE:
 				numIters = 0;
-				op += '	${WHILE_LOOP} { continue; }\n';
+				op += '	' + whileLoopStr + ' { continue; }\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_DOUBLE_CONTINUE:
 				numIters = iterCount - 1;
-				op += '	${WHILE_LOOP} { if (i == ${ONE}) continue; res = res.yzwx; continue; }\n';
+				op += '	' + whileLoopStr + ' { if (i == ' + oneStr + ') continue; res = res.yzwx; continue; }\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_CONDITIONAL_BREAK:
 				numIters = 2;
-				op += '	${WHILE_LOOP} { if (i == ${THREE}) break; res = res.yzwx; }\n';
+				op += '	' + whileLoopStr + ' { if (i == ' + threeStr + ') break; res = res.yzwx; }\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_UNCONDITIONAL_BREAK:
 				numIters = 1;
-				op += '	${WHILE_LOOP} { res = res.yzwx; break; }\n';
+				op += '	' + whileLoopStr + ' { res = res.yzwx; break; }\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_PRE_INCREMENT:
 				numIters = iterCount - 1;
-				op += '	${COUNTER_PRECISION} int i = 0;\n';
-				op += '	while (++i < ${ITER_COUNT}) { res = res.yzwx; }\n';
+				op += '	' + counterPrecisionStr + ' int i = 0;\n';
+				op += '	while (++i < ' + iterCountStr + ') { res = res.yzwx; }\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_POST_INCREMENT:
-				op += '	${COUNTER_PRECISION} int i = 0;\n';
-				op += '	while (i++ < ${ITER_COUNT}) { res = res.yzwx; }\n';
+				op += '	' + counterPrecisionStr + ' int i = 0;\n';
+				op += '	while (i++ < ' + iterCountStr + ') { res = res.yzwx; }\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_MIXED_BREAK_CONTINUE:
 				numIters	= 2;
 				iterCount	= 5;
-				op += '	${WHILE_LOOP} { if (i == 0) continue; else if (i == 3) break; res = res.yzwx; }\n';
+				op += '	' + whileLoopStr + ' { if (i == 0) continue; else if (i == 3) break; res = res.yzwx; }\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_VECTOR_COUNTER:
-				op += '	${COUNTER_PRECISION} ivec4 i = ivec4(0, 1, ${ITER_COUNT}, 0);\n';
+				op += '	' + counterPrecisionStr + ' ivec4 i = ivec4(0, 1, ' + iterCountStr + ', 0);\n';
 				op += '	while (i.x < i.z) { res = res.yzwx; i.x += i.y; }\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_101_ITERATIONS:
 				numIters = iterCount = 101;
-				op += '	${WHILE_LOOP} res = res.yzwx;\n';
+				op += '	' + whileLoopStr + ' res = res.yzwx;\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_SEQUENCE:
 				iterCount	= 6;
 				numIters	= iterCount - 1;
-				op += '	${COUNTER_PRECISION} int i = 0;\n';
-				op += '	while (i++ < ${TWO}) { res = res.yzwx; }\n';
-				op += '	while (i++ < ${ITER_COUNT}) { res = res.yzwx; }\n'; // \note skips one iteration
+				op += '	' + counterPrecisionStr + ' int i = 0;\n';
+				op += '	while (i++ < ' + twoStr + ') { res = res.yzwx; }\n';
+				op += '	while (i++ < ' + iterCountStr + ') { res = res.yzwx; }\n'; // \note skips one iteration
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_NESTED:
 				numIters = 2 * iterCount;
-				op += '	${COUNTER_PRECISION} int i = 0;\n';
-				op += '	while (i++ < ${TWO})\n';
+				op += '	' + counterPrecisionStr + ' int i = 0;\n';
+				op += '	while (i++ < ' + twoStr + ')\n';
 				op += '	{\n';
-				op += '		${COUNTER_PRECISION} int j = 0;\n';
-				op += '		while (j++ < ${ITER_COUNT})\n';
+				op += '		' + counterPrecisionStr + ' int j = 0;\n';
+				op += '		while (j++ < ' + iterCountStr + ')\n';
 				op += '			res = res.yzwx;\n';
 				op += '	}\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_NESTED_SEQUENCE:
 				numIters = 2 * iterCount;
-				op += '	${COUNTER_PRECISION} int i = 0;\n';
-				op += '	while (i++ < ${ITER_COUNT})\n';
+				op += '	' + counterPrecisionStr + ' int i = 0;\n';
+				op += '	while (i++ < ' + iterCountStr + ')\n';
 				op += '	{\n';
-				op += '		${COUNTER_PRECISION} int j = 0;\n';
-				op += '		while (j++ < ${ONE})\n';
+				op += '		' + counterPrecisionStr + ' int j = 0;\n';
+				op += '		while (j++ < ' + oneStr + ')\n';
 				op += '			res = res.yzwx;\n';
-				op += '		while (j++ < ${THREE})\n'; // \note skips one iteration
+				op += '		while (j++ < ' + threeStr + ')\n'; // \note skips one iteration
 				op += '			res = res.yzwx;\n';
 				op += '	}\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_NESTED_TRICKY_DATAFLOW_1:
 				numIters = 2;
-				op += '	${WHILE_LOOP}\n';
+				op += '	' + whileLoopStr + '\n';
 				op += '	{\n';
 				op += '		res = coords; // ignore outer loop effect \n';
-				op += '		${COUNTER_PRECISION} int j = 0;\n';
-				op += '		while (j++ < ${TWO})\n';
+				op += '		' + counterPrecisionStr + ' int j = 0;\n';
+				op += '		while (j++ < ' + twoStr + ')\n';
 				op += '			res = res.yzwx;\n';
 				op += '	}\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_NESTED_TRICKY_DATAFLOW_2:
 				numIters = iterCount;
-				op += '	${WHILE_LOOP}\n';
+				op += '	' + whileLoopStr + '\n';
 				op += '	{\n';
 				op += '		res = coords.wxyz;\n';
-				op += '		${COUNTER_PRECISION} int j = 0;\n';
-				op += '		while (j++ < ${TWO})\n';
+				op += '		' + counterPrecisionStr + ' int j = 0;\n';
+				op += '		while (j++ < ' + twoStr + ')\n';
 				op += '			res = res.yzwx;\n';
 				op += '		coords = res;\n';
 				op += '	}\n';
 				break;
 
 			default:
-				DE_ASSERT(false);
+				throw new Error('Error');
 		}
 
 		if (loopCountType == es3fShaderLoopTests.LoopCountType.LOOPCOUNT_CONSTANT)
-			whileLoopStr = string('\t') + counterPrecisionStr + ' int i = 0;\n' + '	while(i++ < ' + de::toString(iterCount) + ')';
+			whileLoopStr = '\t' + counterPrecisionStr + ' int i = 0;\n' + '	while(i++ < ' + iterCount + ')';
 		else if (loopCountType == es3fShaderLoopTests.LoopCountType.LOOPCOUNT_UNIFORM)
-			whileLoopStr = string('\t') + counterPrecisionStr + ' int i = 0;\n' + '	while(i++ < ' + getIntUniformName(iterCount) + ')';
+			whileLoopStr = '\t' + counterPrecisionStr + ' int i = 0;\n' + '	while(i++ < ' + glsShaderRenderCase.getIntUniformName(iterCount) + ')';
 		else if (loopCountType == es3fShaderLoopTests.LoopCountType.LOOPCOUNT_DYNAMIC)
-			whileLoopStr = string('\t') + counterPrecisionStr + ' int i = 0;\n' + '	while(i++ < one*' + getIntUniformName(iterCount) + ')';
+			whileLoopStr = '\t' + counterPrecisionStr + ' int i = 0;\n' + '	while(i++ < one*' + glsShaderRenderCase.getIntUniformName(iterCount) + ')';
 		else
-			DE_ASSERT(false);
+			throw new Error('Error');
 	}
-	else
-	{
-		DE_ASSERT(loopType == LOOPTYPE_DO_WHILE);
+	else {
+		assertMsgOptions(loopType == es3fShaderLoopTests.LoopType.LOOPTYPE_DO_WHILE, 'Not DO_WHILE', false, true);
 
 		switch (loopCase) {
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_EMPTY_BODY:
 				numIters = 0;
-				op += '	${DO_WHILE_PRE} {} ${DO_WHILE_POST}\n';
+				op += '	' + doWhileLoopPreStr + ' {} ' + doWhileLoopPostStr + '\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_INFINITE_WITH_UNCONDITIONAL_BREAK_FIRST:
@@ -888,24 +914,24 @@ es3fShaderLoopTests.createSpecialLoopCase = function(caseName, description, isVe
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_INFINITE_WITH_CONDITIONAL_BREAK:
 				numIters = 2;
-				op += '	${COUNTER_PRECISION} int i = 0;\n';
-				op += '	do { res = res.yzwx; if (i == ${ONE}) break; i++; } while (true);\n';
+				op += '	' + counterPrecisionStr + ' int i = 0;\n';
+				op += '	do { res = res.yzwx; if (i == ' + oneStr + ') break; i++; } while (true);\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_SINGLE_STATEMENT:
-				op += '	${DO_WHILE_PRE} res = res.yzwx; ${DO_WHILE_POST}\n';
+				op += '	' + doWhileLoopPreStr + ' res = res.yzwx; ' + doWhileLoopPostStr + '\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_COMPOUND_STATEMENT:
 				iterCount	= 2;
 				numIters	= 2 * iterCount;
-				op += '	${DO_WHILE_PRE} { res = res.yzwx; res = res.yzwx; } ${DO_WHILE_POST}\n';
+				op += '	' + doWhileLoopPreStr + ' { res = res.yzwx; res = res.yzwx; } ' + doWhileLoopPostStr + '\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_SEQUENCE_STATEMENT:
 				iterCount	= 2;
 				numIters	= 2 * iterCount;
-				op += '	${DO_WHILE_PRE} res = res.yzwx, res = res.yzwx; ${DO_WHILE_POST}\n';
+				op += '	' + doWhileLoopPreStr + ' res = res.yzwx, res = res.yzwx; ' + doWhileLoopPostStr + '\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_NO_ITERATIONS:
@@ -915,142 +941,142 @@ es3fShaderLoopTests.createSpecialLoopCase = function(caseName, description, isVe
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_SINGLE_ITERATION:
 				iterCount	= 1;
 				numIters	= 1;
-				op += '	${DO_WHILE_PRE} res = res.yzwx; ${DO_WHILE_POST}\n';
+				op += '	' + doWhileLoopPreStr + ' res = res.yzwx; ' + doWhileLoopPostStr + '\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_SELECT_ITERATION_COUNT:
-				op += '	${COUNTER_PRECISION} int i = 0;\n';
-				op += '	do { res = res.yzwx; } while (++i < (ub_true ? ${ITER_COUNT} : 0));\n';
+				op += '	' + counterPrecisionStr + ' int i = 0;\n';
+				op += '	do { res = res.yzwx; } while (++i < (ub_true ? ' + iterCountStr + ' : 0));\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_CONDITIONAL_CONTINUE:
 				numIters = iterCount - 1;
-				op += '	${DO_WHILE_PRE} { if (i == ${TWO}) continue; res = res.yzwx; } ${DO_WHILE_POST}\n';
+				op += '	' + doWhileLoopPreStr + ' { if (i == ' + twoStr + ') continue; res = res.yzwx; } ' + doWhileLoopPostStr + '\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_UNCONDITIONAL_CONTINUE:
-				op += '	${DO_WHILE_PRE} { res = res.yzwx; continue; } ${DO_WHILE_POST}\n';
+				op += '	' + doWhileLoopPreStr + ' { res = res.yzwx; continue; } ' + doWhileLoopPostStr + '\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_ONLY_CONTINUE:
 				numIters = 0;
-				op += '	${DO_WHILE_PRE} { continue; } ${DO_WHILE_POST}\n';
+				op += '	' + doWhileLoopPreStr + ' { continue; } ' + doWhileLoopPostStr + '\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_DOUBLE_CONTINUE:
 				numIters = iterCount - 1;
-				op += '	${DO_WHILE_PRE} { if (i == ${TWO}) continue; res = res.yzwx; continue; } ${DO_WHILE_POST}\n';
+				op += '	' + doWhileLoopPreStr + ' { if (i == ' + twoStr + ') continue; res = res.yzwx; continue; } ' + doWhileLoopPostStr + '\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_CONDITIONAL_BREAK:
 				numIters = 2;
-				op += '	${DO_WHILE_PRE} { res = res.yzwx; if (i == ${ONE}) break; } ${DO_WHILE_POST}\n';
+				op += '	' + doWhileLoopPreStr + ' { res = res.yzwx; if (i == ' + oneStr + ') break; } ' + doWhileLoopPostStr + '\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_UNCONDITIONAL_BREAK:
 				numIters = 1;
-				op += '	${DO_WHILE_PRE} { res = res.yzwx; break; } ${DO_WHILE_POST}\n';
+				op += '	' + doWhileLoopPreStr + ' { res = res.yzwx; break; } ' + doWhileLoopPostStr + '\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_PRE_INCREMENT:
-				op += '	${COUNTER_PRECISION} int i = 0;\n';
-				op += '	do { res = res.yzwx; } while (++i < ${ITER_COUNT});\n';
+				op += '	' + counterPrecisionStr + ' int i = 0;\n';
+				op += '	do { res = res.yzwx; } while (++i < ' + iterCountStr + ');\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_POST_INCREMENT:
 				numIters = iterCount + 1;
-				op += '	${COUNTER_PRECISION} int i = 0;\n';
-				op += '	do { res = res.yzwx; } while (i++ < ${ITER_COUNT});\n';
+				op += '	' + counterPrecisionStr + ' int i = 0;\n';
+				op += '	do { res = res.yzwx; } while (i++ < ' + iterCountStr + ');\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_MIXED_BREAK_CONTINUE:
 				numIters	= 2;
 				iterCount	= 5;
-				op += '	${DO_WHILE_PRE} { if (i == 0) continue; else if (i == 3) break; res = res.yzwx; } ${DO_WHILE_POST}\n';
+				op += '	' + doWhileLoopPreStr + ' { if (i == 0) continue; else if (i == 3) break; res = res.yzwx; } ' + doWhileLoopPostStr + '\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_VECTOR_COUNTER:
-				op += '	${COUNTER_PRECISION} ivec4 i = ivec4(0, 1, ${ITER_COUNT}, 0);\n';
+				op += '	' + counterPrecisionStr + ' ivec4 i = ivec4(0, 1, ' + iterCountStr + ', 0);\n';
 				op += '	do { res = res.yzwx; } while ((i.x += i.y) < i.z);\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_101_ITERATIONS:
 				numIters = iterCount = 101;
-				op += '	${DO_WHILE_PRE} res = res.yzwx; ${DO_WHILE_POST}\n';
+				op += '	' + doWhileLoopPreStr + ' res = res.yzwx; ' + doWhileLoopPostStr + '\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_SEQUENCE:
 				iterCount	= 5;
 				numIters	= 5;
-				op += '	${COUNTER_PRECISION} int i = 0;\n';
-				op += '	do { res = res.yzwx; } while (++i < ${TWO});\n';
-				op += '	do { res = res.yzwx; } while (++i < ${ITER_COUNT});\n';
+				op += '	' + counterPrecisionStr + ' int i = 0;\n';
+				op += '	do { res = res.yzwx; } while (++i < ' + twoStr + ');\n';
+				op += '	do { res = res.yzwx; } while (++i < ' + iterCountStr + ');\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_NESTED:
 				numIters = 2 * iterCount;
-				op += '	${COUNTER_PRECISION} int i = 0;\n';
+				op += '	' + counterPrecisionStr + ' int i = 0;\n';
 				op += '	do\n';
 				op += '	{\n';
-				op += '		${COUNTER_PRECISION} int j = 0;\n';
+				op += '		' + counterPrecisionStr + ' int j = 0;\n';
 				op += '		do\n';
 				op += '			res = res.yzwx;\n';
-				op += '		while (++j < ${ITER_COUNT});\n';
-				op += '	} while (++i < ${TWO});\n';
+				op += '		while (++j < ' + iterCountStr + ');\n';
+				op += '	} while (++i < ' + twoStr + ');\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_NESTED_SEQUENCE:
 				numIters = 3 * iterCount;
-				op += '	${COUNTER_PRECISION} int i = 0;\n';
+				op += '	' + counterPrecisionStr + ' int i = 0;\n';
 				op += '	do\n';
 				op += '	{\n';
-				op += '		${COUNTER_PRECISION} int j = 0;\n';
+				op += '		' + counterPrecisionStr + ' int j = 0;\n';
 				op += '		do\n';
 				op += '			res = res.yzwx;\n';
-				op += '		while (++j < ${TWO});\n';
+				op += '		while (++j < ' + twoStr + ');\n';
 				op += '		do\n';
 				op += '			res = res.yzwx;\n';
-				op += '		while (++j < ${THREE});\n';
-				op += '	} while (++i < ${ITER_COUNT});\n';
+				op += '		while (++j < ' + threeStr + ');\n';
+				op += '	} while (++i < ' + iterCountStr + ');\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_NESTED_TRICKY_DATAFLOW_1:
 				numIters = 2;
-				op += '	${DO_WHILE_PRE}\n';
+				op += '	' + doWhileLoopPreStr + '\n';
 				op += '	{\n';
 				op += '		res = coords; // ignore outer loop effect \n';
-				op += '		${COUNTER_PRECISION} int j = 0;\n';
+				op += '		' + counterPrecisionStr + ' int j = 0;\n';
 				op += '		do\n';
 				op += '			res = res.yzwx;\n';
-				op += '		while (++j < ${TWO});\n';
-				op += '	} ${DO_WHILE_POST}\n';
+				op += '		while (++j < ' + twoStr + ');\n';
+				op += '	} ' + doWhileLoopPostStr + '\n';
 				break;
 
 			case es3fShaderLoopTests.LoopCase.LOOPCASE_NESTED_TRICKY_DATAFLOW_2:
 				numIters = iterCount;
-				op += '	${DO_WHILE_PRE}\n';
+				op += '	' + doWhileLoopPreStr + '\n';
 				op += '	{\n';
 				op += '		res = coords.wxyz;\n';
-				op += '		${COUNTER_PRECISION} int j = 0;\n';
-				op += '		while (j++ < ${TWO})\n';
+				op += '		' + counterPrecisionStr + ' int j = 0;\n';
+				op += '		while (j++ < ' + twoStr + ')\n';
 				op += '			res = res.yzwx;\n';
 				op += '		coords = res;\n';
-				op += '	} ${DO_WHILE_POST}\n';
+				op += '	} ' + doWhileLoopPostStr + '\n';
 				break;
 
 			default:
 				throw new Error('LOOPCASE not handled.');
 		}
 
-		doWhileLoopPreStr = string('\t') + counterPrecisionStr + ' int i = 0;\n' + '\tdo ';
+		doWhileLoopPreStr = '\t' + counterPrecisionStr + ' int i = 0;\n' + '\tdo ';
 		if (loopCountType == es3fShaderLoopTests.LoopCountType.LOOPCOUNT_CONSTANT)
-			doWhileLoopPostStr = string(' while (++i < ') + de::toString(iterCount) + ');\n';
+			doWhileLoopPostStr = ' while (++i < ' + iterCount + ');\n';
 		else if (loopCountType == es3fShaderLoopTests.LoopCountType.LOOPCOUNT_UNIFORM)
-			doWhileLoopPostStr = string(' while (++i < ') + getIntUniformName(iterCount) + ');\n';
+			doWhileLoopPostStr = ' while (++i < ' + glsShaderRenderCase.getIntUniformName(iterCount) + ');\n';
 		else if (loopCountType == es3fShaderLoopTests.LoopCountType.LOOPCOUNT_DYNAMIC)
-			doWhileLoopPostStr = string(' while (++i < one*') + getIntUniformName(iterCount) + ');\n';
+			doWhileLoopPostStr = ' while (++i < one*' + glsShaderRenderCase.getIntUniformName(iterCount) + ');\n';
 		else
-			DE_ASSERT(false);
+			throw new Error("Error");
 	}
 
 	vtx += isVertexCase ? op : '';
@@ -1073,144 +1099,126 @@ es3fShaderLoopTests.createSpecialLoopCase = function(caseName, description, isVe
 	vtx += '}\n';
 	frag += '}\n';
 
-	// Constants.
-	/** @type {string} */ var oneStr = '';
-	/** @type {string} */ var twoStr = '';
-	/** @type {string} */ var threeStr = '';
-	/** @type {string} */ var iterCountStr = '';
 
-	if (loopCountType == es3fShaderLoopTests.LoopCountType.LOOPCOUNT_CONSTANT) {
-		oneStr			= '1';
-		twoStr			= '2';
-		threeStr		= '3';
-		iterCountStr	= de::toString(iterCount);
-	}
-	else if (loopCountType == es3fShaderLoopTests.LoopCountType.LOOPCOUNT_UNIFORM) {
-		oneStr			= 'ui_one';
-		twoStr			= 'ui_two';
-		threeStr		= 'ui_three';
-		iterCountStr	= getIntUniformName(iterCount);
-	}
-	else if (loopCountType == es3fShaderLoopTests.LoopCountType.LOOPCOUNT_DYNAMIC) {
-		oneStr			= 'one*ui_one';
-		twoStr			= 'one*ui_two';
-		threeStr		= 'one*ui_three';
-		iterCountStr	= string('one*') + getIntUniformName(iterCount);
-	}
-	else
-		throw new Error('Unhandled error.');
 
-	// Fill in shader templates.
-	map<string, string> params;
-	params.insert(pair<string, string>('ITER_COUNT', iterCountStr));
-	params.insert(pair<string, string>('COUNTER_PRECISION', counterPrecisionStr));
-	params.insert(pair<string, string>('FOR_LOOP', forLoopStr));
-	params.insert(pair<string, string>('WHILE_LOOP', whileLoopStr));
-	params.insert(pair<string, string>('DO_WHILE_PRE', doWhileLoopPreStr));
-	params.insert(pair<string, string>('DO_WHILE_POST', doWhileLoopPostStr));
-	params.insert(pair<string, string>('ONE', oneStr));
-	params.insert(pair<string, string>('TWO', twoStr));
-	params.insert(pair<string, string>('THREE', threeStr));
-
-	StringTemplate vertTemplate(vtx.str().c_str());
-	StringTemplate fragTemplate(frag.str().c_str());
-	string vertexShaderSource = vertTemplate.specialize(params);
-	string fragmentShaderSource = fragTemplate.specialize(params);
 
 	// Create the case.
-	ShaderEvalFunc evalFunc = getLoopEvalFunc(numIters);
-	return new ShaderLoopCase(context, caseName, description, isVertexCase, evalFunc, vertexShaderSource.c_str(), fragmentShaderSource.c_str());
+	/** @type {glsShaderRenderCase.ShaderEvalFunc} */ var evalFunc = es3fShaderLoopTests.getLoopEvalFunc(numIters);
+	return new es3fShaderLoopTests.ShaderLoopCase(caseName, description, isVertexCase, evalFunc, vtx, frag);
 };
 
 // ShaderLoopTests.
 
-ShaderLoopTests::ShaderLoopTests(Context& context)
-	: TestCaseGroup(context, 'loops', 'Loop Tests')
-{
-}
+/**
+ * @constructor
+ * @extends {tcuTestCase.DeqpTest}
+ */
+es3fShaderLoopTests.ShaderLoopTests = function() {
+	tcuTestCase.DeqpTest.call(this, 'loops', 'Loop Tests');
+};
 
-ShaderLoopTests::~ShaderLoopTests (void)
-{
-}
+es3fShaderLoopTests.ShaderLoopTests.prototype = Object.create(tcuTestCase.DeqpTest.prototype);
+es3fShaderLoopTests.ShaderLoopTests.prototype.constructor = es3fShaderLoopTests.ShaderLoopTests;
 
-void ShaderLoopTests::init (void)
-{
+es3fShaderLoopTests.ShaderLoopTests.prototype.init = function() {
+	var testGroup = tcuTestCase.runner.testCases;
 	// Loop cases.
 
-	static const ShaderType s_shaderTypes[] =
-	{
-		SHADERTYPE_VERTEX,
-		SHADERTYPE_FRAGMENT
-	};
+	/** @type {Array<gluShaderUtil.ShaderType>} */ var s_shaderTypes = [
+		gluShaderUtil.ShaderType.VERTEX,
+		gluShaderUtil.ShaderType.FRAGMENT
+	];
 
-	static const DataType s_countDataType[] =
-	{
-		TYPE_INT,
-		TYPE_FLOAT
-	};
+	/** @type {Array<gluShaderUtil.DataType>} */ var s_countDataType = [
+		gluShaderUtil.DataType.INT,
+		gluShaderUtil.DataType.FLOAT
+	];
 
-	for (int loopType = 0; loopType < LOOPTYPE_LAST; loopType++)
-	{
-		const char* loopTypeName = getLoopTypeName((LoopType)loopType);
+	/** @type {gluShaderUtil.ShaderType} */ var shaderType;
+	/** @type {string} */ var shaderTypeName;
+	/** @type {boolean} */ var isVertexCase;
+	/** @type {string} */ var name;
+	/** @type {string} */ var desc;
 
-		for (int loopCountType = 0; loopCountType < es3fShaderLoopTests.LoopCountType.LOOPCOUNT_LAST; loopCountType++)
-		{
-			const char* loopCountName = getLoopCountTypeName((LoopCountType)loopCountType);
+	for (var loopType in es3fShaderLoopTests.LoopType) {
+		/** @type {string} */ var loopTypeName = es3fShaderLoopTests.getLoopTypeName(es3fShaderLoopTests.LoopType[loopType]);
 
-			string groupName = string(loopTypeName) + '_' + string(loopCountName) + '_iterations';
-			string groupDesc = string('Loop tests with ') + loopCountName + ' loop counter.';
-			TestCaseGroup* group = new TestCaseGroup(m_context, groupName.c_str(), groupDesc.c_str());
-			addChild(group);
+		for (var loopCountType in es3fShaderLoopTests.LoopCountType) {
+			/** @type {string} */ var loopCountName = es3fShaderLoopTests.getLoopCountTypeName(es3fShaderLoopTests.LoopCountType[loopCountType]);
+
+			/** @type {string} */ var groupName = loopTypeName + '_' + loopCountName + '_iterations';
+			/** @type {string} */ var groupDesc = 'Loop tests with ' + loopCountName + ' loop counter.';
+
+			/** @type {tcuTestCase.DeqpTest} */ var group = tcuTestCase.newTest(groupName, groupDesc);
+	        testGroup.addChild(group);
 
 			// Generic cases.
 
-			for (int precision = 0; precision < PRECISION_LAST; precision++)
-			{
-				const char* precisionName = getPrecisionName((Precision)precision);
+			for (var precision in gluShaderUtil.precision) {
+				/** @type {string} */ var precisionName = gluShaderUtil.getPrecisionName(gluShaderUtil.precision[precision]);
 
-				for (int dataTypeNdx = 0; dataTypeNdx < DE_LENGTH_OF_ARRAY(s_countDataType); dataTypeNdx++)
-				{
-					DataType loopDataType = s_countDataType[dataTypeNdx];
-					const char* dataTypeName = getDataTypeName(loopDataType);
+				for (var dataTypeNdx = 0; dataTypeNdx < s_countDataType.length; dataTypeNdx++) {
+					/** @type {gluShaderUtil.DataType} */ var loopDataType = s_countDataType[dataTypeNdx];
+					/** @type {string} */ var dataTypeName = gluShaderUtil.getDataTypeName(loopDataType);
 
-					for (int shaderTypeNdx = 0; shaderTypeNdx < DE_LENGTH_OF_ARRAY(s_shaderTypes); shaderTypeNdx++)
-					{
-						ShaderType	shaderType		= s_shaderTypes[shaderTypeNdx];
-						const char*	shaderTypeName	= getShaderTypeName(shaderType);
-						bool		isVertexCase	= (shaderType == SHADERTYPE_VERTEX);
+					for (var shaderTypeNdx = 0; shaderTypeNdx < s_shaderTypes.length; shaderTypeNdx++) {
+						shaderType = s_shaderTypes[shaderTypeNdx];
+						shaderTypeName = gluShaderUtil.getShaderTypeName(shaderType);
+						isVertexCase	= (shaderType == gluShaderUtil.ShaderType.VERTEX);
 
-						string name = string('basic_') + precisionName + '_' + dataTypeName + '_' + shaderTypeName;
-						string desc = string(loopTypeName) + ' loop with ' + precisionName + dataTypeName + ' ' + loopCountName + ' iteration count in ' + shaderTypeName + ' shader.';
-						group->addChild(createGenericLoopCase(m_context, name.c_str(), desc.c_str(), isVertexCase, (LoopType)loopType, (LoopCountType)loopCountType, (Precision)precision, loopDataType));
+
+						name = 'basic_' + precisionName + '_' + dataTypeName + '_' + shaderTypeName;
+						desc = loopTypeName + ' loop with ' + precisionName + dataTypeName + ' ' + loopCountName + ' iteration count in ' + shaderTypeName + ' shader.';
+						group.addChild(es3fShaderLoopTests.createGenericLoopCase(name, desc, isVertexCase, es3fShaderLoopTests.LoopType[loopType], es3fShaderLoopTests.LoopCountType[loopCountType], gluShaderUtil.precision[precision], loopDataType));
 					}
 				}
 			}
 
 			// Special cases.
 
-			for (int loopCase = 0; loopCase < LOOPCASE_LAST; loopCase++)
-			{
-				const char* loopCaseName = getLoopCaseName((LoopCase)loopCase);
+			for (var loopCase in es3fShaderLoopTests.LoopCase) {
+				/** @type {string} */ var loopCaseName = es3fShaderLoopTests.getLoopCaseName(es3fShaderLoopTests.LoopCase[loopCase]);
 
 				// no-iterations not possible with do-while.
-				if ((loopCase == es3fShaderLoopTests.LoopCase.LOOPCASE_NO_ITERATIONS) && (loopType == LOOPTYPE_DO_WHILE))
+				if ((loopCase == es3fShaderLoopTests.LoopCase.LOOPCASE_NO_ITERATIONS) && (loopType == es3fShaderLoopTests.LoopType.LOOPTYPE_DO_WHILE))
 					continue;
 
-				for (int shaderTypeNdx = 0; shaderTypeNdx < DE_LENGTH_OF_ARRAY(s_shaderTypes); shaderTypeNdx++)
-				{
-					ShaderType	shaderType		= s_shaderTypes[shaderTypeNdx];
-					const char*	shaderTypeName	= getShaderTypeName(shaderType);
-					bool		isVertexCase	= (shaderType == SHADERTYPE_VERTEX);
+				for (var shaderTypeNdx = 0; shaderTypeNdx < s_shaderTypes.length; shaderTypeNdx++) {
+					shaderType = s_shaderTypes[shaderTypeNdx];
+					shaderTypeName = gluShaderUtil.getShaderTypeName(shaderType);
+					isVertexCase	= (shaderType == gluShaderUtil.ShaderType.VERTEX);
 
-					string name = string(loopCaseName) + '_' + shaderTypeName;
-					string desc = string(loopCaseName) + ' loop with ' + loopTypeName + ' iteration count in ' + shaderTypeName + ' shader.';
-					group->addChild(createSpecialLoopCase(m_context, name.c_str(), desc.c_str(), isVertexCase, (LoopCase)loopCase, (LoopType)loopType, (LoopCountType)loopCountType));
+					name = loopCaseName + '_' + shaderTypeName;
+					desc = loopCaseName + ' loop with ' + loopTypeName + ' iteration count in ' + shaderTypeName + ' shader.';
+					group.addChild(es3fShaderLoopTests.createSpecialLoopCase(name, desc, isVertexCase, es3fShaderLoopTests.LoopCase[loopCase], es3fShaderLoopTests.LoopType[loopType], es3fShaderLoopTests.LoopCountType[loopCountType]));
 				}
 			}
 		}
 	}
-}
+};
 
-} // Functional
-} // gles3
-} // deqp
+/**
+* Run test
+* @param {WebGL2RenderingContext} context
+*/
+es3fShaderLoopTests.run = function(context) {
+	gl = context;
+	//Set up Test Root parameters
+	var state = tcuTestCase.runner;
+	state.setRoot(new es3fShaderLoopTests.ShaderLoopTests());
+
+	//Set up name and description of this test series.
+	setCurrentTestName(state.testCases.fullName());
+	description(state.testCases.getDescription());
+
+	try {
+		//Run test cases
+		tcuTestCase.runTestCases();
+	}
+	catch (err) {
+		testFailedOptions('Failed to es3fShaderLoopTests.run tests', false);
+		tcuTestCase.runner.terminate();
+	}
+};
+
+});
