@@ -33,7 +33,11 @@ goog.scope(function() {
     var tcuTestCase = framework.common.tcuTestCase;
     var gluShaderProgram = framework.opengl.gluShaderProgram;
 
-    es3fBuiltinPrecisionTests.createBuiltinPrecisionTests = function() {
+    /**
+     * @param{*} context
+     * @return{tcuTestCase.DeqpTest}
+     */
+    es3fBuiltinPrecisionTests.createBuiltinPrecisionTests = function(context) {
         /** @type {tcuTestCase.DeqpTest} */
         var group = tcuTestCase.newTest('precision', 'Builtin precision tests');
 
@@ -43,7 +47,7 @@ goog.scope(function() {
     	shaderTypes.push(gluShaderProgram.shaderType.VERTEX);
     	shaderTypes.push(gluShaderProgram.shaderType.FRAGMENT);
 
-    	// glsBuiltinPrecisionTests.addBuiltinPrecisionTests(es3Cases, shaderTypes, group);
+    	glsBuiltinPrecisionTests.addBuiltinPrecisionTests(es3Cases, shaderTypes, group);
     	return group;
     };
 
@@ -52,33 +56,26 @@ goog.scope(function() {
      * @param {WebGL2RenderingContext} context
      */
     es3fBuiltinPrecisionTests.run = function(context) {
-        // gl = context;
-        //Set up root Test
-        // var state = tcuTestCase.runner;
+        gl = context;
+        // Set up root Test
+        var state = tcuTestCase.runner;
 
-        // var test = es3fBuiltinPrecisionTests.createBuiltinPrecisionTests();
-        // var testName = test.fullName();
-        // var testDescription = test.getDescription() === undefined ? '' : test.getDescription();
-        //
-        // state.testName = testName;
-        // state.setRoot(test);
-        // //Set up name and description of this test series.
-        // setCurrentTestName(testName);
-        // description(testDescription);
+        var test = es3fBuiltinPrecisionTests.createBuiltinPrecisionTests(context);
+        var testName = test.fullName();
+        var testDescription = test.getDescription() === undefined ? '' : test.getDescription();
+
+        state.testName = testName;
+        state.setRoot(test);
+        //Set up name and description of this test series.
+        setCurrentTestName(testName);
+        description(testDescription);
 
         try {
             //Create test cases
-            // test.init();
+            test.init();
             //Run test cases
-            // tcuTestCase.runTestCases();
-
-            // temp code to test the tempalte changing
-            var Sig_ = new glsBuiltinPrecisionTests.Signature(1.0,1,true);
-            var funcCase = new glsBuiltinPrecisionTests.FuncCase(Sig_, context, name, new glsBuiltinPrecisionTests.FuncBase());
-            funcCase.runTest();
-            console.log(funcCase);
-        }
-        catch (err) {
+            tcuTestCase.runTestCases();
+        } catch (err) {
             bufferedLogToConsole('Exception: ' + err);
             testFailedOptions('Failed to es3fAttribLocationTests.run tests', false);
             tcuTestCase.runner.terminate();
