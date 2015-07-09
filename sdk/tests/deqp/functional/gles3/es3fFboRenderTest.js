@@ -191,8 +191,9 @@ goog.scope(function() {
         var line_number = 0;
         while (line_number < extensions.length) {
             extension = extensions[line_number];
-            if (extension == name)
+            if (('gl.' + extension) == name)
                 return true;
+            line_number++;
         }
 
         return false;
@@ -437,7 +438,7 @@ goog.scope(function() {
             name = this.m_context.createTexture();
 
         this.m_context.bindTexture(gl.TEXTURE_2D, name);
-        this.m_context.texImage2D(gl.TEXTURE_2D, 0, format, width, height);
+        this.m_context.texStorage2D(gl.TEXTURE_2D, 1, format, width, height);
 
         if (!deMath.deIsPowerOfTwo32(width) ||
             !deMath.deIsPowerOfTwo32(height)) {
@@ -636,15 +637,18 @@ goog.scope(function() {
             gles3Error = context.getError();
         }
         catch (e) {
-            if (e instanceof es3fFboTestUtil.FboIncompleteException &&
-               e.getReason() == gl.FRAMEBUFFER_UNSUPPORTED) {
-                // Mark test case as unsupported
-                bufferedLogToConsole(e + ': ' + e.getReason());
-                testFailed('Not supported');
-                return tcuTestCase.IterateResult.STOP;
+            if (e instanceof es3fFboTestUtil.FboIncompleteException) {
+                e.message = WebGLTestUtils.glEnumToString(gl, e.getReason());
+                if(e.getReason() == gl.FRAMEBUFFER_UNSUPPORTED) {
+                    // Mark test case as unsupported
+                    bufferedLogToConsole(e + ': ' + e.message);
+                    testFailed('Not supported');
+                    return tcuTestCase.IterateResult.STOP;
+                }
             }
 
-            throw e; // Propagate error
+            // Propagate error
+            throw e;
         }
 
         // Render reference image
@@ -684,8 +688,8 @@ goog.scope(function() {
         if (!errorCodesOk) {
             bufferedLogToConsole(
                 'Error code mismatch: got ' +
-                WebGLTestUtils.glEnumToString(gles3Error) + ', expected ' +
-                WebGLTestUtils.glEnumToString(refError)
+                WebGLTestUtils.glEnumToString(gl, gles3Error) + ', expected ' +
+                WebGLTestUtils.glEnumToString(gl, refError)
             );
             failReason = 'Got unexpected error';
         }
@@ -721,6 +725,11 @@ goog.scope(function() {
             reference.getAccess(), result.getAccess(),
             threshold, tcuImageCompare.CompareLogMode.RESULT
         );
+    };
+
+    es3fFboRenderTest.FboRenderCase.prototype.deinit = function() {
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        gl.bindRenderbuffer(gl.RENDERBUFFER, null);
     };
 
     // FboCases
@@ -1111,8 +1120,8 @@ goog.scope(function() {
         // Single colorbuffer
         if (this.m_config.colorType == gl.TEXTURE_2D) {
             context.bindTexture(gl.TEXTURE_2D, colorbuffer);
-            context.texImage2D(
-                gl.TEXTURE_2D, 0, this.m_config.colorFormat, width, height
+            context.texStorage2D(
+                gl.TEXTURE_2D, 1, this.m_config.colorFormat, width, height
             );
             context.texParameteri(
                 gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST
@@ -1534,8 +1543,8 @@ goog.scope(function() {
         switch (fbo.getConfig().colorType) {
             case gl.TEXTURE_2D:
                 context.bindTexture(gl.TEXTURE_2D, fbo.getColorBuffer());
-                context.texImage2D(
-                    gl.TEXTURE_2D, 0, fbo.getConfig().colorFormat,
+                context.texStorage2D(
+                    gl.TEXTURE_2D, 1, fbo.getConfig().colorFormat,
                     newWidth, newHeight
                 );
                 break;
@@ -1558,8 +1567,8 @@ goog.scope(function() {
                     context.bindTexture(
                         gl.TEXTURE_2D, fbo.getDepthStencilBuffer()
                     );
-                    context.texImage2D(
-                        gl.TEXTURE_2D, 0, fbo.getConfig().depthStencilFormat,
+                    context.texStorage2D(
+                        gl.TEXTURE_2D, 1, fbo.getConfig().depthStencilFormat,
                         newWidth, newHeight
                     );
                     break;
@@ -1804,7 +1813,7 @@ goog.scope(function() {
                 case gl.TEXTURE_2D:
                     ctx.deleteTexture(/** @type {WebGLTexture} */ (buf));
                     ctx.bindTexture(gl.TEXTURE_2D, buf);
-                    ctx.texImage2D(gl.TEXTURE_2D, 0, format, width, height);
+                    ctx.texStorage2D(gl.TEXTURE_2D, 1, format, width, height);
                     ctx.texParameteri(
                         gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST
                     );
