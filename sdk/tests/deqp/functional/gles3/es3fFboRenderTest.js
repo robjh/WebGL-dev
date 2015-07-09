@@ -1110,7 +1110,9 @@ goog.scope(function() {
 
         var width = 128;
         var height = 128;
-        var colorbuffer = 1;
+        var colorbuffer = this.m_config.colorType == gl.TEXTURE_2D?
+            context.createTexture() :
+            context.createRenderbuffer();
 
         // Check for format support.
         es3fFboRenderTest.checkColorFormatSupport(
@@ -1141,8 +1143,14 @@ goog.scope(function() {
         }
 
         // Multiple framebuffers sharing the colorbuffer
-        for (var fbo = 1; fbo <= 3; fbo++) {
-            context.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+        var fbo = [
+            context.createFramebuffer(),
+            context.createFramebuffer(),
+            context.createFramebuffer()
+        ];
+
+        for (var fboi = 1; fboi <= fbo.length; fboi++) {
+            context.bindFramebuffer(gl.FRAMEBUFFER, fbo[fboi]);
 
             if (this.m_config.colorType == gl.TEXTURE_2D)
                 context.framebufferTexture2D(
@@ -1156,7 +1164,7 @@ goog.scope(function() {
                 );
         }
 
-        context.bindFramebuffer(gl.FRAMEBUFFER, 1);
+        context.bindFramebuffer(gl.FRAMEBUFFER, fbo[1]);
 
         // Check completeness
 
@@ -1171,7 +1179,7 @@ goog.scope(function() {
 
         context.enable(gl.SCISSOR_TEST);
 
-        context.bindFramebuffer(gl.FRAMEBUFFER, 2);
+        context.bindFramebuffer(gl.FRAMEBUFFER, fbo[2]);
         context.clearColor(0.6, 0.0, 0.0, 1.0);
         context.scissor(10, 10, 64, 64);
         context.clear(gl.COLOR_BUFFER_BIT);
@@ -1179,12 +1187,12 @@ goog.scope(function() {
         context.scissor(60, 60, 40, 20);
         context.clear(gl.COLOR_BUFFER_BIT);
 
-        context.bindFramebuffer(gl.FRAMEBUFFER, 3);
+        context.bindFramebuffer(gl.FRAMEBUFFER, fbo[3]);
         context.clearColor(0.0, 0.0, 0.6, 1.0);
         context.scissor(20, 20, 100, 10);
         context.clear(gl.COLOR_BUFFER_BIT);
 
-        context.bindFramebuffer(gl.FRAMEBUFFER, 1);
+        context.bindFramebuffer(gl.FRAMEBUFFER, fbo[1]);
         context.clearColor(0.6, 0.0, 0.6, 1.0);
         context.scissor(20, 20, 5, 100);
         context.clear(gl.COLOR_BUFFER_BIT);
@@ -1213,6 +1221,16 @@ goog.scope(function() {
                 context, dst, 0, 0, width, height, colorFormat,
                 [1.0, 1.0, 1.0, 1.0], [0.0, 0.0, 0.0, 0.0]
             );
+
+        //delete FBOs
+        for (fboi = 0; fboi < fbo.length; fboi++)
+            context.deleteFramebuffer(fbo[fboi]);
+
+        //delete Texture/Renderbuffer
+        if (this.m_config.colorType == gl.TEXTURE_2D)
+            context.deleteTexture(colorbuffer);
+        else
+            context.deleteRenderbuffer(colorbuffer);
     };
 
     /**
