@@ -1181,6 +1181,11 @@ goog.scope(function() {
     sglrReferenceContext.ReferenceContext.prototype.createFramebuffer = function() { return new sglrReferenceContext.Framebuffer(); };
 
     /**
+    * @param {sglrReferenceContext.Framebuffer} fbo
+    */
+    sglrReferenceContext.ReferenceContext.prototype.deleteFramebuffer = function(fbo) { /*empty*/ };
+
+    /**
     * @param {number} target
     * @param {sglrReferenceContext.Renderbuffer} rbo
     */
@@ -1195,6 +1200,11 @@ goog.scope(function() {
     * @return {sglrReferenceContext.Renderbuffer}
     */
     sglrReferenceContext.ReferenceContext.prototype.createRenderbuffer = function() { return new sglrReferenceContext.Renderbuffer(); };
+
+    /**
+    * @param {sglrReferenceContext.Renderbuffer} rbo
+    */
+    sglrReferenceContext.ReferenceContext.prototype.deleteRenderbuffer = function(rbo) { /*empty*/ };
 
     /**
     * @param {number} pname
@@ -2008,8 +2018,10 @@ goog.scope(function() {
     /**
     * @return {Array<string>}
     */
-    sglrReferenceContext.ReferenceContext.getSupportedExtensions = function() {
-        return gl.getSupportedExtensions(); //TODO: Let's just return the context's supported extensions for now
+    sglrReferenceContext.ReferenceContext.prototype.getSupportedExtensions = function() {
+        var extensions = gl.getSupportedExtensions(); //TODO: Let's just return the context's supported extensions for now
+        extensions.push('EXT_color_buffer_float');
+        return extensions;
     };
 
     /** transpose matrix 'x' of 'size' columns and rows

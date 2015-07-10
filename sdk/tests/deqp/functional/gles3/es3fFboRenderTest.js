@@ -438,7 +438,10 @@ goog.scope(function() {
             name = this.m_context.createTexture();
 
         this.m_context.bindTexture(gl.TEXTURE_2D, name);
-        this.m_context.texStorage2D(gl.TEXTURE_2D, 1, format, width, height);
+        this.m_context.texImage2D(
+            gl.TEXTURE_2D, 0, format, width, height,
+            0, gl.RGBA, gl.UNSIGNED_BYTE, null
+        );
 
         if (!deMath.deIsPowerOfTwo32(width) ||
             !deMath.deIsPowerOfTwo32(height)) {
@@ -579,7 +582,7 @@ goog.scope(function() {
     /**
      * Must be overridden
      * @param {?sglrGLContext.GLContext|sglrReferenceContext.ReferenceContext}
-     * fboContext
+     *      fboContext
      * @param {tcuSurface.Surface} dst
      */
     es3fFboRenderTest.FboRenderCase.prototype.render = function(
@@ -610,8 +613,8 @@ goog.scope(function() {
         /** @type {tcuSurface.Surface} */
         var refFrame = new tcuSurface.Surface(width, height);
 
-        /** @type {number} */ var gles3Error;
-        /** @type {number} */ var refError;
+        /** @type {number} */ var gles3Error = 0;
+        /** @type {number} */ var refError = 0;
 
         // Render using GLES3
         /**
@@ -620,7 +623,7 @@ goog.scope(function() {
          */
         var context;
 
-        try {
+        /*try {
             context = new sglrGLContext.GLContext(gl, [x, y, width, height]);
 
             context.clearColor(
@@ -649,7 +652,7 @@ goog.scope(function() {
 
             // Propagate error
             throw e;
-        }
+        }*/
 
         // Render reference image
 
@@ -661,8 +664,8 @@ goog.scope(function() {
             ),
             /** @type {number} */ (gl.getParameter(gl.DEPTH_BITS)),
             /** @type {number} */ (gl.getParameter(gl.STENCIL_BITS)),
-            gl.canvas.width,
-            gl.canvas.height
+            width,
+            height
         );
         context = new sglrReferenceContext.ReferenceContext(
             new sglrReferenceContext.ReferenceContextLimits(gl),
@@ -1122,8 +1125,9 @@ goog.scope(function() {
         // Single colorbuffer
         if (this.m_config.colorType == gl.TEXTURE_2D) {
             context.bindTexture(gl.TEXTURE_2D, colorbuffer);
-            context.texStorage2D(
-                gl.TEXTURE_2D, 1, this.m_config.colorFormat, width, height
+            context.texImage2D(
+                gl.TEXTURE_2D, 0, this.m_config.colorFormat, width, height,
+                0, gl.RGBA, gl.UNSIGNED_BYTE, null
             );
             context.texParameteri(
                 gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST
@@ -1561,9 +1565,9 @@ goog.scope(function() {
         switch (fbo.getConfig().colorType) {
             case gl.TEXTURE_2D:
                 context.bindTexture(gl.TEXTURE_2D, fbo.getColorBuffer());
-                context.texStorage2D(
-                    gl.TEXTURE_2D, 1, fbo.getConfig().colorFormat,
-                    newWidth, newHeight
+                context.texImage2D(
+                    gl.TEXTURE_2D, 0, fbo.getConfig().colorFormat,
+                    newWidth, newHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, null
                 );
                 break;
 
@@ -1585,9 +1589,9 @@ goog.scope(function() {
                     context.bindTexture(
                         gl.TEXTURE_2D, fbo.getDepthStencilBuffer()
                     );
-                    context.texStorage2D(
-                        gl.TEXTURE_2D, 1, fbo.getConfig().depthStencilFormat,
-                        newWidth, newHeight
+                    context.texImage2D(
+                        gl.TEXTURE_2D, 0, fbo.getConfig().depthStencilFormat,
+                        newWidth, newHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, null
                     );
                     break;
 
@@ -1831,7 +1835,10 @@ goog.scope(function() {
                 case gl.TEXTURE_2D:
                     ctx.deleteTexture(/** @type {WebGLTexture} */ (buf));
                     ctx.bindTexture(gl.TEXTURE_2D, buf);
-                    ctx.texStorage2D(gl.TEXTURE_2D, 1, format, width, height);
+                    ctx.texImage2D(
+                        gl.TEXTURE_2D, 0, format, width, height,
+                        0, gl.RGBA, gl.UNSIGNED_BYTE, null
+                    );
                     ctx.texParameteri(
                         gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST
                     );
