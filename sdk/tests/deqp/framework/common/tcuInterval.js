@@ -105,7 +105,7 @@
     };
 
     /**
-     * @param{*} func
+     * @param{tcuInterval.DoubleIntervalFunc1} func
      * @param{tcuInterval.Interval} arg0
      * @return{tcuInterval.Interval}
      */

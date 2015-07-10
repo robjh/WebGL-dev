@@ -187,6 +187,38 @@ goog.scope(function() {
     };
 
     /**
+     * template<typename T>
+     * @constructor
+     * @param{*=} T
+     */
+    glsBuiltinPrecisionTests.Environment = function(T) {
+        // /** @type{*} */ this.typename = T;
+        /** @type{Object} */ this.m_map = {};
+    };
+
+    /**
+     * template<typename T>
+     * @param{glsBuiltinPrecisionTests.Variable} variable
+     * @param{tcuInterval.Interval} value
+     */
+    glsBuiltinPrecisionTests.Environment.prototype.bind = function(variable, /*Traits<T>::IVal&*/value) {
+        /** @type{number} */ var data = value;
+        this.m_map[variable.getName()] = value;
+    };
+
+    /**
+     * template<typename T>
+     * @param{glsBuiltinPrecisionTests.Variable} variable
+     * @return{tcuInterval.Interval}
+     */
+    glsBuiltinPrecisionTests.Environment.prototype.lookup = function(variable) {
+    	/** @type{number} */ var data = this.m_map[variable.getName()];
+
+    		// return *reinterpret_cast<typename Traits<T>::IVal*>(data);
+            return data;
+    };
+
+    /**
      * @constructor
      * @param{tcuFloatFormat.FloatFormat} format_
      * @param{gluShaderUtil.precision} floatPrecision_
@@ -199,6 +231,29 @@ goog.scope(function() {
 		this.env = env_;
 		this.callDepth = callDepth_ === undefined ? 0 : callDepth_;
     };
+
+    /**
+     * template <typename T> : return Traits<T>::IVal
+     * @param{*} T typename
+     * @param{tcuFloatFormat.FloatFormat} fmt
+     * @param{tcuInterval.Interval} value Traits<T>::IVal&
+     * @return{tcuInterval.Interval}
+     */
+     glsBuiltinPrecisionTests.convert = function(T, fmt, value) {
+    	return new glsBuiltinPrecisionTests.traitsFactory(T).doConvert(fmt, value);
+    };
+
+    /**
+     * Returns true iff every element of `ival` contains the corresponding element of `value`.
+     * template <typename T> : return boolean
+     * @param{tcuInterval.Interval} ival Traits<T>::IVal&
+     * @param{*} value
+     * @return{boolean}
+     */
+     glsBuiltinPrecisionTests.contains = function(ival, value) {
+    	return new glsBuiltinPrecisionTests.traitsFactory(T).doContains(ival, value);
+    };
+
 
     /**
      * @param{*} T
@@ -1870,14 +1925,14 @@ goog.scope(function() {
      * @param{glsBuiltinPrecisionTests.Statement} stmt
      */
     glsBuiltinPrecisionTests.PrecisionCase.prototype.testStatement = function(variables, inputs, stmt){
-    	using namespace ShaderExecUtil;
-
-    	typedef typename 	In::In0		In0;
-    	typedef typename 	In::In1		In1;
-    	typedef typename 	In::In2		In2;
-    	typedef typename 	In::In3		In3;
-    	typedef typename 	Out::Out0	Out0;
-    	typedef typename 	Out::Out1	Out1;
+    	// using namespace ShaderExecUtil;
+        //
+    	// typedef typename 	In::In0		In0;
+    	// typedef typename 	In::In1		In1;
+    	// typedef typename 	In::In2		In2;
+    	// typedef typename 	In::In3		In3;
+    	// typedef typename 	Out::Out0	Out0;
+    	// typedef typename 	Out::Out1	Out1;
 
     	/** @type{number} */ var fmt = this.getFormat();
     	/** @type{number} */ var inCount = glsBuiltinPrecisionTests.numInputs(this.In);
@@ -1888,7 +1943,7 @@ goog.scope(function() {
     	/** @type{tcuFloatFormat.FloatFormat} */ var highpFmt = this.m_ctx.highpFormat;
     	/** @type{number} */ var maxMsgs		= 100;
     	/** @type{number} */ var numErrors	= 0;
-    	/** @type{glsBuiltinPrecisionTests.Environment} */ var env; 		// Hoisted out of the inner loop for optimization.
+    	/** @type{glsBuiltinPrecisionTests.Environment} */ var env = new glsBuiltinPrecisionTests.Environment(); 		// Hoisted out of the inner loop for optimization.
 
     	switch (inCount) {
     		case 4: DE_ASSERT(inputs.in3.length == numValues);
@@ -1930,18 +1985,18 @@ goog.scope(function() {
     	spec.inputs.length = inCount;
 
     	switch (inCount) {
-    		case 4: spec.inputs[3] = makeSymbol(*variables.in3);
-    		case 3:	spec.inputs[2] = makeSymbol(*variables.in2);
-    		case 2:	spec.inputs[1] = makeSymbol(*variables.in1);
-    		case 1:	spec.inputs[0] = makeSymbol(*variables.in0);
+    		case 4: spec.inputs[3] = makeSymbol(variables.in3);
+    		case 3:	spec.inputs[2] = makeSymbol(variables.in2);
+    		case 2:	spec.inputs[1] = makeSymbol(variables.in1);
+    		case 1:	spec.inputs[0] = makeSymbol(variables.in0);
     		default: break;
     	}
 
     	spec.outputs.length = outCount;
 
     	switch (outCount) {
-    		case 2:	spec.outputs[1] = makeSymbol(*variables.out1);
-    		case 1:	spec.outputs[0] = makeSymbol(*variables.out0);
+    		case 2:	spec.outputs[1] = makeSymbol(variables.out1);
+    		case 1:	spec.outputs[0] = makeSymbol(variables.out0);
     		default: break;
     	}
 
@@ -1970,12 +2025,19 @@ goog.scope(function() {
 
     	// Initialize environment with dummy values so we don't need to bind in inner loop.
     	{
-    		const typename Traits<In0>::IVal		in0;
-    		const typename Traits<In1>::IVal		in1;
-    		const typename Traits<In2>::IVal		in2;
-    		const typename Traits<In3>::IVal		in3;
-    		const typename Traits<Out0>::IVal		reference0;
-    		const typename Traits<Out1>::IVal		reference1;
+    		// const typename Traits<In0>::IVal		in0;
+    		// const typename Traits<In1>::IVal		in1;
+    		// const typename Traits<In2>::IVal		in2;
+    		// const typename Traits<In3>::IVal		in3;
+    		// const typename Traits<Out0>::IVal		reference0;
+    		// const typename Traits<Out1>::IVal		reference1;
+
+            /** @type{tcuInterval.Interval} */ var in0 = new tcuInterval.interval(this.In0);
+            /** @type{tcuInterval.Interval} */ var in1 = new tcuInterval.interval(this.In1);
+            /** @type{tcuInterval.Interval} */ var in2 = new tcuInterval.interval(this.In2);
+            /** @type{tcuInterval.Interval} */ var in3 = new tcuInterval.interval(this.In3);
+            /** @type{tcuInterval.Interval} */ var reference0 = new tcuInterval.interval(this.Out0);
+            /** @type{tcuInterval.Interval} */ var reference1 = new tcuInterval.interval(this.Out1);
 
     		env.bind(variables.in0, in0);
     		env.bind(variables.in1, in1);
@@ -1989,28 +2051,33 @@ goog.scope(function() {
     	// shader output to the reference.
     	for (var valueNdx = 0; valueNdx < numValues; valueNdx++) {
     		/** @type{boolean} */ var result = true;
-    		typename Traits<Out0>::IVal	reference0;
-    		typename Traits<Out1>::IVal	reference1;
+    		/** @type{tcuInterval.Interval} */ var reference0 = new tcuInterval.interval(this.Out0);
+    		/** @type{tcuInterval.Interval} */ var reference1 = new tcuInterval.interval(this.Out1);
 
-    		env.lookup(variables.in0) = convert<In0>(fmt, round(fmt, inputs.in0[valueNdx]));
-    		env.lookup(variables.in1) = convert<In1>(fmt, round(fmt, inputs.in1[valueNdx]));
-    		env.lookup(variables.in2) = convert<In2>(fmt, round(fmt, inputs.in2[valueNdx]));
-    		env.lookup(variables.in3) = convert<In3>(fmt, round(fmt, inputs.in3[valueNdx]));
+            var in0_ = env.lookup(variables.in0);
+    		var in1_ = env.lookup(variables.in1);
+    		var in2_ = env.lookup(variables.in2);
+    		var in3_ = env.lookup(variables.in3);
+
+    		in0_ = glsBuiltinPrecisionTests.convert(this.In0, fmt, deMath.rint(fmt, inputs.in0[valueNdx]));
+    		in1_ = glsBuiltinPrecisionTests.convert(this.In1, fmt, deMath.rint(fmt, inputs.in1[valueNdx]));
+    		in2_ = glsBuiltinPrecisionTests.convert(this.In2, fmt, deMath.rint(fmt, inputs.in2[valueNdx]));
+    		in3_ = glsBuiltinPrecisionTests.convert(this.In3, fmt, deMath.rint(fmt, inputs.in3[valueNdx]));
 
     		{
-    			EvalContext	ctx (fmt, m_ctx.precision, env);
+    			EvalContext	ctx (fmt, this.m_ctx.precision, env);
     			stmt.execute(ctx);
     		}
 
     		switch (outCount) {
     			case 2:
-    				reference1 = convert<Out1>(highpFmt, env.lookup(*variables.out1));
-    				if (!this.m_status.check(contains(reference1, outputs.out1[valueNdx]),
+    				reference1 = glsBuiltinPrecisionTests.convert(this.Out1, highpFmt, env.lookup(variables.out1));
+    				if (!this.m_status.check(glsBuiltinPrecisionTests.contains(reference1, outputs.out1[valueNdx]),
     									"Shader output 1 is outside acceptable range"))
     					result = false;
     			case 1:
-    				reference0 = convert<Out0>(highpFmt, env.lookup(*variables.out0));
-    				if (!this.m_status.check(contains(reference0, outputs.out0[valueNdx]),
+    				reference0 = glsBuiltinPrecisionTests.convert(this.Out0, highpFmt, env.lookup(variables.out0));
+    				if (!this.m_status.check(glsBuiltinPrecisionTests.contains(reference0, outputs.out0[valueNdx]),
     									"Shader output 0 is outside acceptable range"))
     					result = false;
     			default: break;
@@ -2019,7 +2086,7 @@ goog.scope(function() {
     		if (!result)
     			++numErrors;
 
-    		if ((!result && numErrors <= maxMsgs) || GLS_LOG_ALL_RESULTS) {
+    		if ((!result && numErrors <= maxMsgs) || /*GLS_LOG_ALL_RESULTS*/ false) {
     			/** @type{string} */ var builder = '';//	= log().message();
 
     			builder += (result ? 'Passed' : 'Failed') << ' sample:\n';
