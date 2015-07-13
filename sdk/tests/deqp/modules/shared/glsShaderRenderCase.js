@@ -51,10 +51,10 @@ goog.scope(function() {
     var tcuSurface = framework.common.tcuSurface;
     var gluShaderProgram = framework.opengl.gluShaderProgram;
 
-    /** @type {number} */ glsShaderRenderCase.GRID_SIZE = 64;
-    /** @type {number} */ glsShaderRenderCase.MAX_RENDER_WIDTH = 128;
-    /** @type {number} */ glsShaderRenderCase.MAX_RENDER_HEIGHT = 112;
-    /** @type {Array<number>} */ glsShaderRenderCase.DEFAULT_CLEAR_COLOR = [0.125, 0.25, 0.5, 1.0];
+    /** @const {number} */ glsShaderRenderCase.GRID_SIZE = 64;
+    /** @const {number} */ glsShaderRenderCase.MAX_RENDER_WIDTH = 128;
+    /** @const {number} */ glsShaderRenderCase.MAX_RENDER_HEIGHT = 112;
+    /** @const {Array<number>} */ glsShaderRenderCase.DEFAULT_CLEAR_COLOR = [0.125, 0.25, 0.5, 1.0];
 
     /**
      * @param  {Array<number>} a
@@ -143,7 +143,7 @@ goog.scope(function() {
         return this.m_binding;
     };
 
-    /** @enum {number} */
+    /** @const {{string: number}} */
     glsShaderRenderCase.Limits = {
 		MAX_USER_ATTRIBS: 4,
 		MAX_TEXTURES: 4
@@ -491,7 +491,7 @@ goog.scope(function() {
     glsShaderRenderCase.ShaderRenderCase.prototype.constructor = glsShaderRenderCase.ShaderRenderCase;
 
     glsShaderRenderCase.ShaderRenderCase.prototype.deinit = function() {
-        delete this.m_program;
+        delete this.m_program; // TODO
         this.m_program = null;
     };
 
@@ -515,7 +515,7 @@ goog.scope(function() {
     	catch (exception) {
     		// Clean up.
     		this.deinit();
-    		throw new Error(exception);
+    		throw exception;
     	}
     };
 
@@ -882,7 +882,7 @@ goog.scope(function() {
 
     	for (var i = 0; i < s_boolUniforms.length; i++) {
     		uniLoc = gl.getUniformLocation(programID, s_boolUniforms[i].name);
-    		if (uniLoc != -1)
+    		if (uniLoc != null)
     			gl.uniform1i(uniLoc, s_boolUniforms[i].value ? 1 : 0);
     	}
 
@@ -909,7 +909,7 @@ goog.scope(function() {
     		arr[2] = uni.value[2] ? 1 : 0;
     		arr[3] = uni.value[3] ? 1 : 0;
     		uniLoc = gl.getUniformLocation(programID, uni.name);
-    		if (uniLoc != -1)
+    		if (uniLoc != null)
     			gl.uniform4iv(uniLoc, new Int32Array(arr));
     	}
 
@@ -939,7 +939,7 @@ goog.scope(function() {
 
     	for (var i = 0; i < s_intUniforms.length; i++) {
     		uniLoc = gl.getUniformLocation(programID, s_intUniforms[i].name);
-    		if (uniLoc != -1)
+    		if (uniLoc != null)
     			gl.uniform1i(uniLoc, s_intUniforms[i].value);
     	}
 
@@ -964,7 +964,7 @@ goog.scope(function() {
 
     	for (var i = 0; i < s_ivec2Uniforms.length; i++) {
     		uniLoc = gl.getUniformLocation(programID, s_ivec2Uniforms[i].name);
-    		if (uniLoc != -1)
+    		if (uniLoc != null)
     			gl.uniform2iv(uniLoc, new Int32Array(s_ivec2Uniforms[i].value));
     	}
 
@@ -989,7 +989,7 @@ goog.scope(function() {
 
     	for (var i = 0; i < s_ivec3Uniforms.length; i++) {
     		uniLoc = gl.getUniformLocation(programID, s_ivec3Uniforms[i].name);
-    		if (uniLoc != -1)
+    		if (uniLoc != null)
     			gl.uniform3iv(uniLoc, new Int32Array(s_ivec3Uniforms[i].value));
     	}
 
@@ -1013,7 +1013,7 @@ goog.scope(function() {
 
     	for (var i = 0; i < s_ivec4Uniforms.length; i++) {
     		uniLoc = gl.getUniformLocation(programID, s_ivec4Uniforms[i].name);
-    		if (uniLoc != -1)
+    		if (uniLoc != null)
     			gl.uniform4iv(uniLoc, new Int32Array(s_ivec4Uniforms[i].value));
     	}
 
@@ -1047,7 +1047,7 @@ goog.scope(function() {
 
     	for (var i = 0; i < s_floatUniforms.length; i++) {
     		uniLoc = gl.getUniformLocation(programID, s_floatUniforms[i].name);
-    		if (uniLoc != -1)
+    		if (uniLoc != null)
     			gl.uniform1f(uniLoc, s_floatUniforms[i].value);
     	}
 
@@ -1070,7 +1070,7 @@ goog.scope(function() {
 
     	for (var i = 0; i < s_vec2Uniforms.length; i++) {
     		uniLoc = gl.getUniformLocation(programID, s_vec2Uniforms[i].name);
-    		if (uniLoc != -1)
+    		if (uniLoc != null)
     			gl.uniform2fv(uniLoc, new Float32Array(s_vec2Uniforms[i].value));
     	}
 
@@ -1093,7 +1093,7 @@ goog.scope(function() {
 
     	for (var i = 0; i < s_vec3Uniforms.length; i++) {
     		uniLoc = gl.getUniformLocation(programID, s_vec3Uniforms[i].name);
-    		if (uniLoc != -1)
+    		if (uniLoc != null)
     			gl.uniform3fv(uniLoc, new Float32Array(s_vec3Uniforms[i].value));
     	}
 
@@ -1119,7 +1119,7 @@ goog.scope(function() {
 
     	for (var i = 0; i < s_vec4Uniforms.length; i++) {
     		uniLoc = gl.getUniformLocation(programID, s_vec4Uniforms[i].name);
-    		if (uniLoc != -1)
+    		if (uniLoc != null)
     			gl.uniform4fv(uniLoc, new Float32Array(s_vec4Uniforms[i].value));
     	}
     };

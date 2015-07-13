@@ -190,18 +190,16 @@ goog.scope(function() {
      * @param {Array<number>} constCoords
      */
     es3fShaderIndexingTests.ShaderIndexingCase.prototype.setupUniforms = function(programID, constCoords) {
-
-        // TODO: DE_UNREF(constCoords);
         /** @type {(Array<number>|number)} */ var arr = [];
         /** @type {Array<number>} */ var array1d = [];
         /** @type {?WebGLUniformLocation} */ var arrLoc = gl.getUniformLocation(programID, 'u_arr');
-        if (arrLoc != -1) {
+        if (arrLoc != null) {
             if (this.m_varType === gluShaderUtil.DataType.FLOAT) {
                 arr[0] = constCoords[0];
                 arr[1] = constCoords[0] * 0.5;
                 arr[2] = constCoords[0] * 0.25;
                 arr[3] = constCoords[0] * 0.125;
-                gl.uniform1fv(arrLoc, new Float32Array(arr));
+                gl.uniform1fv(arrLoc, arr);
             }
             else if (this.m_varType === gluShaderUtil.DataType.FLOAT_VEC2) {
                 arr[0] = deMath.swizzle(constCoords, [0, 1]);
@@ -210,7 +208,7 @@ goog.scope(function() {
                 arr[3] = deMath.scale(deMath.swizzle(constCoords, [0, 1]), 0.125);
                 for (var i = 0; i < arr.length; i++)
                     array1d = array1d.concat(arr[i]);
-                gl.uniform2fv(arrLoc, new Float32Array(array1d));
+                gl.uniform2fv(arrLoc, array1d);
             }
             else if (this.m_varType === gluShaderUtil.DataType.FLOAT_VEC3) {
                 arr[0] = deMath.swizzle(constCoords, [0, 1, 2]);
@@ -219,7 +217,7 @@ goog.scope(function() {
                 arr[3] = deMath.scale(deMath.swizzle(constCoords, [0, 1, 2]), 0.125);
                 for (var i = 0; i < arr.length; i++)
                     array1d = array1d.concat(arr[i]);
-                gl.uniform3fv(arrLoc, new Float32Array(array1d));
+                gl.uniform3fv(arrLoc, array1d);
             }
             else if (this.m_varType === gluShaderUtil.DataType.FLOAT_VEC4) {
                 arr[0] = deMath.swizzle(constCoords, [0,1,2,3]);
@@ -228,7 +226,7 @@ goog.scope(function() {
                 arr[3] = deMath.scale(deMath.swizzle(constCoords, [0, 1, 2, 3]), 0.125);
                 for (var i = 0; i < arr.length; i++)
                     array1d = array1d.concat(arr[i]);
-                gl.uniform4fv(arrLoc, new Float32Array(array1d));
+                gl.uniform4fv(arrLoc, array1d);
             }
             else
                 throw new Error('u_arr should not have location assigned in this test case');
@@ -342,7 +340,6 @@ goog.scope(function() {
     };
 
     /**
-     * [function description]
      * @param {string} caseName
      * @param {string} description
      * @param {boolean} isVertexCase
