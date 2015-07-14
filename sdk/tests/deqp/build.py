@@ -79,7 +79,8 @@ targets = {
     'negativeshaderapi' : 'functional.gles3.es3fNegativeShaderApiTests',
     'rasterizerdiscard' : 'functional.gles3.es3fRasterizerDiscardTests',
     'buffercopy' : 'functional.gles3.es3fBufferCopyTests',
-    'shaderindexing' : 'functional.gles3.es3fShaderIndexingTests'
+    'shaderindexing' : 'functional.gles3.es3fShaderIndexingTests',
+    'shaderloop' : 'functional.gles3.es3fShaderLoopTests'
 }
 
 total_errors = 0
