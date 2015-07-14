@@ -733,7 +733,7 @@ deMath.greaterThanEqual = function(a, b) {
 deMath.toIVec = function(a) {
     /** @type {Array<number>} */ var res = [];
     for (var i = 0; i < a.length; i++)
-        res.push(Math.floor(a[i] * 255));
+        res.push(deMath.clamp(Math.floor(a[i] * 255), 0, 255));
     return res;
 };
 

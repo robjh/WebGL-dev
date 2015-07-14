@@ -1106,7 +1106,7 @@ goog.scope(function() {
                     throw new Error('Unrecognized target: ' + target);
             }
         } else {
-            if (!texture.textureType) {
+            if (texture.textureType == null) {
                 texture.init(target);
             } else {
                 // Validate type.
@@ -1152,6 +1152,11 @@ goog.scope(function() {
     * @return {sglrReferenceContext.TextureContainer}
     */
     sglrReferenceContext.ReferenceContext.prototype.createTexture = function() { return new sglrReferenceContext.TextureContainer(); };
+
+    /**
+    * @param {sglrReferenceContext.Texture} texture
+    */
+    sglrReferenceContext.ReferenceContext.prototype.deleteTexture = function(texture) { /*empty*/ };
 
     /**
     * @param {number} target

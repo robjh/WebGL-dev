@@ -1712,11 +1712,11 @@ tcuTexture.PixelBufferAccess.prototype.setPixel = function(color, x, y, z) {
     // Quick paths
     if (z == 0) {
         if (this.m_rgba8View) {
-            color = deMath.scale(color, 255);
+            color = deMath.toIVec(color);
             this.m_rgba8View.write(x, y, color, 4);
             return;
         } else if (this.m_rgb8View) {
-            color = deMath.scale(color, 255);
+            color = deMath.toIVec(color);
             this.m_rgb8View.write(x, y, color, 3);
             return;
         }
