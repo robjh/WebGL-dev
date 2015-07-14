@@ -78,7 +78,8 @@ targets = {
     'negativestateapi' : 'functional.gles3.es3fNegativeStateApiTests',
     'negativeshaderapi' : 'functional.gles3.es3fNegativeShaderApiTests',
     'rasterizerdiscard' : 'functional.gles3.es3fRasterizerDiscardTests',
-    'buffercopy' : 'functional.gles3.es3fBufferCopyTests'
+    'buffercopy' : 'functional.gles3.es3fBufferCopyTests',
+    'shaderindexing' : 'functional.gles3.es3fShaderIndexingTests'
 }
 
 total_errors = 0
