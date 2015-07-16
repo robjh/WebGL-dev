@@ -29,38 +29,6 @@
      var tcuInterval = framework.common.tcuInterval;
      var deMath = framework.delibs.debase.deMath;
 
-    // #define TCU_INFINITY	(::std::numeric_limits<float>::infinity())
-    // #define TCU_NAN			(::std::numeric_limits<float>::quiet_NaN())
-
-//     /**
-//      * @enum
-//      */
-//     tcuInterval.deRoundingMode = {
-//     	DE_ROUNDINGMODE_TO_NEAREST : 0,
-//     	DE_ROUNDINGMODE_TO_ZERO : 1,
-//     	DE_ROUNDINGMODE_TO_POSITIVE_INF : 2,
-//     	DE_ROUNDINGMODE_TO_NEGATIVE_INF : 3
-//     };
-//     // RAII context for temporarily changing the rounding mode
-//     /**
-//      * @constructor
-//      * @param{tcuInterval.deRoundingMode} mode
-//      */
-//     tcuInterval.ScopedRoundingMode = function (mode) {
-// public:
-// 							ScopedRoundingMode	(deRoundingMode mode)
-// 								: m_oldMode (deGetRoundingMode()) { deSetRoundingMode(mode); }
-//
-// 							ScopedRoundingMode	(void) : m_oldMode (deGetRoundingMode()) {}
-//
-// 							~ScopedRoundingMode	(void)	{ deSetRoundingMode(m_oldMode); }
-//
-// private:
-// 							ScopedRoundingMode	(const ScopedRoundingMode&);
-// 	ScopedRoundingMode&		operator=			(const ScopedRoundingMode&);
-//
-// 	const deRoundingMode	m_oldMode;
-// };
 
     /**
      * @typedef {function(number):number}
@@ -93,53 +61,68 @@
     tcuInterval.DoubleIntervalFunc3;
 
     /**
-     * @param{*} func
+     * @param{function(number): number} func
      * @param{tcuInterval.Interval} arg0
      * @return{tcuInterval.Interval}
      */
-    tcuInterval.applyMonotone = function(/*DoubleFunc1& */func, arg0) {
-    	/** @type{tcuInterval.Interval} */ var ret = new tcuInterval.Interval();
-    	// TCU_INTERVAL_APPLY_MONOTONE1(ret, x, arg0, val,
-    	// 							TCU_SET_INTERVAL(val, point, point = func(x)));
-    	return ret;
+    tcuInterval.applyMonotone1p = function(func, arg0) {
+        /**
+         * @param {number=} x
+         * @param {number=} y
+         * @return {number}
+         */
+        var body = function(x, y) {
+            x = x || 0;
+            return func(x);
+        };
+        return tcuInterval.applyMonotone1(arg0, 
+            function(x) { return tcuInterval.setInterval(body, x); });
     };
 
     /**
-     * @param{tcuInterval.DoubleIntervalFunc1} func
+     * @param{function(number): tcuInterval.Interval} func
      * @param{tcuInterval.Interval} arg0
      * @return{tcuInterval.Interval}
      */
-    tcuInterval.applyMonotone = function(/*DoubleIntervalFunc1& */func, arg0) {
-    	return new tcuInterval.Interval(func(arg0.lo()), func(arg0.hi()));
+    tcuInterval.applyMonotone1i = function(func, arg0) {
+    	return tcuInterval.withIntervals(func(arg0.lo()), func(arg0.hi()));
     };
 
     /**
-     * @param{*} func
+     * @param{function(number, number): number} func
      * @param{tcuInterval.Interval} arg0
      * @param{tcuInterval.Interval} arg1
      * @return{tcuInterval.Interval}
      */
-    tcuInterval.applyMonotone = function(/*DoubleFunc2& */func, arg0, arg1) {
-	    /** @type{tcuInterval.Interval} */ var ret = new tcuInterval.Interval();
-
-	    // TCU_INTERVAL_APPLY_MONOTONE2(ret, x, arg0, y, arg1, val,
-		// 						 TCU_SET_INTERVAL(val, point, point = func(x, y)));
-        return ret;
+    tcuInterval.applyMonotone2p = function(func, arg0, arg1) {
+        /**
+         * @param {number=} x
+         * @param {number=} y
+         * @return {number}
+         */
+        var body = function(x, y) {
+            x = x || 0;
+            y = y || 0;
+            return func(x, y);
+        };
+        return tcuInterval.applyMonotone2(arg0, arg1,
+            function(x, y) { return tcuInterval.setInterval(body, x, y); });
     };
 
     /**
-     * @param{*} func
+     * @param{function(number, number): tcuInterval.Interval} func
      * @param{tcuInterval.Interval} arg0
      * @param{tcuInterval.Interval} arg1
      * @return{tcuInterval.Interval}
      */
-    tcuInterval.applyMonotone = function(/*DoubleIntervalFunc2& */func, arg0, arg1) {
+    tcuInterval.applyMonotone2i = function(func, arg0, arg1) {
 		/** @type{number} */ var lo0 = arg0.lo();
         /** @type{number} */ var hi0 = arg0.hi();
         /** @type{number} */ var lo1 = arg1.lo();
         /** @type{number} */ var hi1 = arg1.hi();
-	      return new tcuInterval.Interval(new tcuInterval.Interval(func(lo0, lo1), func(lo0, hi1)),
-					new tcuInterval.Interval(func(hi0, lo1), func(hi0, hi1)));
+        var a = tcuInterval.withIntervals(func(lo0, lo1), func(lo0, hi1));
+        var b = tcuInterval.withIntervals(func(hi0, lo1), func(hi0, hi1));
+        return tcuInterval.withIntervals(a, b);
     };
 
 
@@ -208,7 +191,7 @@
     };
 
     /**
-     * @return{number}
+     * @return{boolean}
      */
     tcuInterval.Interval.prototype.hasNaN = function() {
         return this.m_hasNaN;
@@ -218,7 +201,7 @@
      * @return{tcuInterval.Interval}
      */
     tcuInterval.Interval.prototype.nan = function() {
-        return this.m_hasNaN ? NaN : new tcuInterval.Interval();
+        return this.m_hasNaN ? new tcuInterval.Interval(NaN) : new tcuInterval.Interval();
     };
 
     /**
@@ -239,7 +222,7 @@
      * @return{boolean}
      */
     tcuInterval.Interval.prototype.isOrdinary = function () {
-        return !this.hasNaN() && !this.empty() && isFinite();
+        return !this.hasNaN() && !this.empty() && this.isFinite();
     };
 
     /**
@@ -308,7 +291,7 @@
      * @return{tcuInterval.Interval}
      */
     tcuInterval.Interval.prototype.operatorNegative = function () {
-        /** @type{tcuInterval.Interval} */ var temp = this.operatorOrBinary(other);
+        /** @type{tcuInterval.Interval} */ var temp = new tcuInterval.Interval();
         temp.m_hasNaN = this.m_hasNaN;
         temp.m_lo = -this.m_lo;
         temp.m_hi = -this.m_hi;
@@ -316,7 +299,7 @@
     };
 
     /**
-     * @param{boolean} nan
+     * @param{boolean=} nan
      * @return{tcuInterval.Interval}
      */
     tcuInterval.unbounded = function(nan) {
@@ -334,7 +317,7 @@
 
     /**
      * @param{tcuInterval.Interval} other
-     * @return{number}
+     * @return{boolean}
      */
     tcuInterval.Interval.prototype.operatorCompare = function(other) {
 		return ((this.m_hasNaN == other.m_hasNaN) &&
@@ -346,7 +329,7 @@
      * @param{tcuInterval.Interval} x
      * @return{tcuInterval.Interval}
      */
-    tcuInterval.Interval.prototype.operatorPositive = function(x) {
+    tcuInterval.Interval.operatorPositive = function(x) {
         return x;
     }
 
@@ -354,9 +337,9 @@
      * @param{tcuInterval.Interval} x
      * @return{tcuInterval.Interval}
      */
-    tcuInterval.Interval.prototype.exp2 = function (x) {
+    tcuInterval.Interval.exp2 = function (x) {
         // std::pow
-        return tcuInterval.applyMonotone(Math.pow, 2.0, x);
+        return tcuInterval.applyMonotone2p(Math.pow, new tcuInterval.Interval(2), x);
     };
 
 
@@ -364,17 +347,18 @@
      * @param{tcuInterval.Interval} x
      * @return{tcuInterval.Interval}
      */
-    tcuInterval.Interval.prototype.exp = function(x) {
+    tcuInterval.Interval.exp = function(x) {
         // std::exp
-        return applyMonotone(Math.exp, x);
+        return tcuInterval.applyMonotone1p(Math.exp, x);
     };
 
     /**
      * @param{tcuInterval.Interval} x
      * @return{tcuInterval.Interval}
      */
-    tcuInterval.Interval.prototype.sign = function(x) {
+    tcuInterval.Interval.sign = function(x) {
         // TODO
+        throw new Error('Unimplemented');
     };
 
     /**
@@ -382,13 +366,13 @@
      * @param{tcuInterval.Interval} y
      * @return{tcuInterval.Interval}
      */
-    tcuInterval.Interval.prototype.operatorSum = function(x, y) {
+    tcuInterval.Interval.operatorSum = function(x, y) {
     	/** @type{tcuInterval.Interval} */ var ret = new tcuInterval.Interval();
 
     	if (!x.empty() && !y.empty())
-    		TCU_SET_INTERVAL_BOUNDS(ret, p, p = x.lo() + y.lo(), p = x.hi() + y.hi());
+            ret = tcuInterval.setIntervalBounds(function(dummy) {return x.lo() + y.lo();}, function(dummy) {return x.hi() + y.hi();} );
     	if (x.hasNaN() || y.hasNaN())
-    		ret.operatorOrAssignBinary(NaN);
+    		ret.operatorOrAssignBinary(new tcuInterval.Interval(NaN));
 
     	return ret;
     };
@@ -398,11 +382,19 @@
      * @param{tcuInterval.Interval} y
      * @return{tcuInterval.Interval}
      */
-    tcuInterval.Interval.prototype.operatorSub = function(x, y) {
+    tcuInterval.Interval.operatorSub = function(x, y) {
     	/** @type{tcuInterval.Interval} */ var ret = new tcuInterval.Interval();
 
-    	// TCU_INTERVAL_APPLY_MONOTONE2(ret, xp, x, yp, y, val,
-    	// 							 TCU_SET_INTERVAL(val, point, point = xp - yp));
+        /**
+         * @param {number=} x
+         * @param {number=} y
+         * @return {tcuInterval.Interval}
+         */
+        var body = function(x, y) {
+            return new tcuInterval.Interval(x - y);
+        };
+
+        ret = tcuInterval.applyMonotone2(x, y, body);
     	return ret;
     };
 
@@ -411,11 +403,20 @@
      * @param{tcuInterval.Interval} y
      * @return{tcuInterval.Interval}
      */
-    tcuInterval.Interval.prototype.operatorMul = function (x, y) {
+    tcuInterval.Interval.operatorMul = function (x, y) {
     	/** @type{tcuInterval.Interval} */ var ret = new tcuInterval.Interval();
 
-    	// TCU_INTERVAL_APPLY_MONOTONE2(ret, xp, x, yp, y, val,
-    	// 							 TCU_SET_INTERVAL(val, point, point = xp * yp));
+        /**
+         * @param {number=} x
+         * @param {number=} y
+         * @return {tcuInterval.Interval}
+         */
+        var body = function(x, y) {
+            return new tcuInterval.Interval(x * y);
+        };
+
+        ret = tcuInterval.applyMonotone2(x, y, body);
+
     	return ret;
     };
 
@@ -424,16 +425,24 @@
      * @param{tcuInterval.Interval} den
      * @return{tcuInterval.Interval}
      */
-    tcuInterval.Interval.prototype.operatorDiv = function (nom, den) {
-    	if (den.contains(0.0)) {
+    tcuInterval.Interval.operatorDiv = function (nom, den) {
+    	if (den.contains(new tcuInterval.Interval(0))) {
     		// \todo [2014-03-21 lauri] Non-inf endpoint when one den endpoint is
     		// zero and nom doesn't cross zero?
     		return tcuInterval.unbounded();
     	} else {
     		/** @type{tcuInterval.Interval} */ var ret = new tcuInterval.Interval();
+            /**
+             * @param {number=} x
+             * @param {number=} y
+             * @return {tcuInterval.Interval}
+             */
+            var body = function(x, y) {
+                return new tcuInterval.Interval(x / y);
+            };
 
-    		// TCU_INTERVAL_APPLY_MONOTONE2(ret, nomp, nom, denp, den, val,
-    		// 							 TCU_SET_INTERVAL(val, point, point = nomp / denp));
+            ret = tcuInterval.applyMonotone2(nom, den, body);
+
     		return ret;
     	}
     };
@@ -444,10 +453,10 @@
      */
     tcuInterval.Interval.prototype.abs = function(x){
         //std::abs
-        /** @type{tcuInterval.Interval} */ var mono = applyMonotone(Math.abs, x);
-
-    	if (x.contains(0.0))
-    		return new tcuInterval.Interval(0.0, mono);
+        /** @type{tcuInterval.Interval} */ var mono = tcuInterval.applyMonotone1p(Math.abs, x);
+        var zero = new tcuInterval.Interval(0);
+    	if (x.contains(zero))
+    		return tcuInterval.withIntervals(zero, mono);
 
     	return mono;
     };
@@ -456,75 +465,92 @@
      * @param{tcuInterval.Interval} x
      * @return{tcuInterval.Interval}
      */
-    tcuInterval.Interval.prototype.inverseSqrt = function(x) {
-	    return 1.0 / Math.sqrt(x);
-    };
-//
-
-    /**
-     * @param{tcuInterval.Interval} x
-     * @param{tcuInterval.Interval} y
-     * @return{tcuInterval.Interval}
-     */
-    tcuInterval.Interval.prototype.operatorAddAssign = function (x, y) {
-        return (x.operatorSum(y));
+    tcuInterval.Interval.sqrt = function(x) {
+        return tcuInterval.applyMonotone1p(Math.sqrt, x);
     };
 
     /**
      * @param{tcuInterval.Interval} x
-     * @param{tcuInterval.Interval} y
      * @return{tcuInterval.Interval}
      */
-    tcuInterval.Interval.prototype.operatorSubAssign = function (x, y) {
-        return (x.operatorSub(y));
+    tcuInterval.Interval.inverseSqrt = function(x) {
+        var ret = new tcuInterval.Interval(1);
+        ret =  tcuInterval.Interval.operatorDiv(ret, tcuInterval.Interval.sqrt(x));
+	    return ret;
     };
 
-    /**
-     * @param{tcuInterval.Interval} x
-     * @param{tcuInterval.Interval} y
-     * @return{tcuInterval.Interval}
-     */
-    tcuInterval.Interval.prototype.operatorMulAssign = function (x, y) {
-        return (x.operatorMul(y));
-    };
+/**
+ * @param {function(number=, number=): number} setLow
+ * @param {function(number=, number=): number} setHigh
+ * @param {number=} arg0
+ * @param {number=} arg1
+ * @return {tcuInterval.Interval}
+ */
+tcuInterval.setIntervalBounds = function(setLow, setHigh, arg0, arg1) {
+    // TODO: No support for rounding modes. Originally, setLow() was rounded down and setHigh() rounded up
+    var lo = new tcuInterval.Interval(setLow(arg0, arg1));
+    var hi = new tcuInterval.Interval(setHigh(arg0, arg1));
+    return lo.operatorOrBinary(hi);
+};
 
-    /**
-     * @param{tcuInterval.Interval} x
-     * @param{tcuInterval.Interval} y
-     * @return{tcuInterval.Interval}
-     */
-    tcuInterval.Interval.prototype.operatorDivAssign = function (x, y) {
-        return (x.operatorDiv(y));
-    };
+/**
+ * @param {function(number=, number=): number} set
+ * @param {number=} arg0
+ * @param {number=} arg1
+ * @return {tcuInterval.Interval}
+ */
+tcuInterval.setInterval = function(set, arg0, arg1) {
+    return tcuInterval.setIntervalBounds(set, set, arg0, arg1);
+};
 
+/**
+ * @param {tcuInterval.Interval} arg
+ * @param {function(number): tcuInterval.Interval} body
+ * @return {tcuInterval.Interval}
+ */
+tcuInterval.applyMonotone1 = function(arg, body) {
+    var ret = new tcuInterval.Interval();
 
-// std::ostream&	operator<<	(std::ostream& os, const Interval& interval);
+    if (!arg.empty()) {
+        var lo = body(arg.lo());
+        var hi = body(arg.hi());
+        ret = lo.operatorOrBinary(hi);
+    }
 
+    if (arg.hasNaN()) {
+        ret = ret.operatorOrBinary(new tcuInterval.Interval(NaN));
+    }
 
-// TODO implement
-// #define TCU_SET_INTERVAL_BOUNDS(DST, VAR, SETLOW, SETHIGH) do	\
-// {																\
-// 	::tcu::ScopedRoundingMode	VAR##_ctx_;						\
-// 	::tcu::Interval&			VAR##_dst_	= (DST);			\
-// 	::tcu::Interval				VAR##_lo_;						\
-// 	::tcu::Interval				VAR##_hi_;						\
-// 																\
-// 	{															\
-// 		::tcu::Interval&	VAR	= VAR##_lo_;					\
-// 		::deSetRoundingMode(DE_ROUNDINGMODE_TO_NEGATIVE_INF);	\
-// 		SETLOW;													\
-// 	}															\
-// 	{															\
-// 		::tcu::Interval&	VAR	= VAR##_hi_;					\
-// 		::deSetRoundingMode(DE_ROUNDINGMODE_TO_POSITIVE_INF);	\
-// 		SETHIGH;												\
-// 	}															\
-// 																\
-// 	VAR##_dst_ = VAR##_lo_ | VAR##_hi_;							\
-// } while (::deGetFalse())
+    return ret;
+};
 
-// #define TCU_SET_INTERVAL(DST, VAR, BODY)						\
-// 	TCU_SET_INTERVAL_BOUNDS(DST, VAR, BODY, BODY)
+/**
+ * TODO: Check if this function works properly
+ * @param {tcuInterval.Interval} arg0
+ * @param {tcuInterval.Interval} arg1
+ * @param {function(number, number): tcuInterval.Interval} body
+ * @return {tcuInterval.Interval}
+ */
+tcuInterval.applyMonotone2 = function(arg0, arg1, body) {
+    var ret = new tcuInterval.Interval();
+
+    if (!arg0.empty() && !arg1.empty()) {
+        var lo0 = body(arg0.lo(), arg1.lo());
+        var lo1 = body(arg0.lo(), arg1.hi());
+        var hi0 = body(arg0.hi(), arg1.lo());
+        var hi1 = body(arg0.hi(), arg1.hi());
+        var a = lo0.operatorOrBinary(hi0);
+        var b = lo1.operatorOrBinary(hi1);
+        ret = a.operatorOrBinary(b);
+    }
+
+    if (arg0.hasNaN() || arg1.hasNaN()) {
+        ret = ret.operatorOrBinary(new tcuInterval.Interval(NaN));
+    }
+
+    return ret;
+};
+
 //
 // //! Set the interval DST to the image of BODY on ARG, assuming that BODY on
 // //! ARG is a monotone function. In practice, BODY is evaluated on both the

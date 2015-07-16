@@ -39,8 +39,8 @@
       * @param {gluVarType.VarType=} varType
       */
       glsShaderExecUtil.Symbol = function(name, varType) {
-         /** @type {string} */ this.m_name = name === undefined ? undefined : name;
-         /** @type {gluVarType.VarType} */ this.m_varType === undefined ? undefined :  varType;
+         /** @type {string} */ this.m_name = name;
+         /** @type {gluVarType.VarType} */ this.m_varType = varType;
      };
 
 
@@ -582,9 +582,8 @@ VertexProcessorExecutor::VertexProcessorExecutor (const glu::RenderContext& rend
 
 
     /**
-     * template<typename Iterator>
-     * @param{Array{*}}
-     * @return{number}
+     * @param{Array<*>} arr
+     * @return {number}
      */
     glsShaderExecUtil.computeTotalScalarSize = function(arr) {
     	/** @type{number} */ var size = 0;

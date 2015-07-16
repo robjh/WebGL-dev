@@ -344,15 +344,6 @@ deMath.rint = function(a) {
 };
 
 /**
- * @param {number} a
- * @return {number}
- */
-deMath.logToFloor = function(a)  {
-    assertMsgOptions(a > 0, 'Value is less or equal than zero', false, true);
-	return 31 - deMath.clz32(a);
-};
-
-/**
  * Find intersection of two rectangles
  * @param {goog.NumberArray} a Array [x, y, width, height]
  * @param {goog.NumberArray} b Array [x, y, width, height]
@@ -779,7 +770,7 @@ deMath.addScalarToVector = function(a, b) {
  * @param {number} exponent
  * @return {number}
  */
-deMath.deFloatLdExp = function(a, exponent)	{
+deMath.deLdExp = function(a, exponent)	{
     return deMath.ldexp(a, exponent);
 };
 
@@ -797,7 +788,7 @@ deMath.frexp = function(value) {
        bits = ((data.getUint32(0) >>> 20) & 0x7FF) - 64;
    }
    var exponent = bits - 1022,
-       mantissa = ldexp(value, -exponent);
+       mantissa = deMath.ldexp(value, -exponent);
    return [mantissa, exponent];
 };
 
@@ -828,6 +819,20 @@ deMath.deCbrt = function(a) {
  */
 deMath.deSign = function(x) {
     return isNaN(x) ? x : ((x > 0.0) - (x < 0.0)); 
+};
+
+deMath.deFractExp = function(x) {
+    var result = {
+        significand: x,
+        exponent: 0
+    };
+
+    if (isFinite(x)) {
+        var r = deMath.frexp(x);
+        result.exponent = r[1] - 1;
+        result.significand = r[0] * 2;
+    }
+    return result;
 };
 
 });

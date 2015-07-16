@@ -29,6 +29,8 @@ goog.require('framework.delibs.debase.deRandom');
 goog.require('modules.shared.glsShaderExecUtil');
 goog.require('framework.opengl.simplereference.sglrGLContext');
 goog.require('framework.delibs.debase.deMath');
+goog.require('framework.delibs.debase.deUtil');
+
 
 goog.scope(function() {
 
@@ -42,6 +44,7 @@ goog.scope(function() {
     var glsShaderExecUtil = modules.shared.glsShaderExecUtil;
     var sglrGLContext = framework.opengl.simplereference.sglrGLContext;
     var deMath = framework.delibs.debase.deMath;
+    var deUtil = framework.delibs.debase.deUtil;
 
 // public:
 // 	Interval			roundOut		(const Interval& x, bool roundUnderOverflow) const;
@@ -73,9 +76,10 @@ goog.scope(function() {
 
     /**
      * @param{number} value
+     * @return {boolean}
      */
-    glsBuiltinPrecisionTests.isFloat = function(t) {
-        return (Math.abs(t % 1) != 0);
+    glsBuiltinPrecisionTests.isFloat = function(value) {
+        return value % 1 !== 0;
  	};
 
     /**
@@ -86,13 +90,22 @@ goog.scope(function() {
         this.isVoid = true;
 	};
 
+
+    var valueToString = function(fmt, val) {
+        return val.doPrintValue(fmt, val);
+    };
+
+    var intervalToString = function(fmt, ival) {
+        return ival.doPrintIVal(fmt, ival);
+    };
+
     /**
      * @constructor
-     * @param{*} R
-     * @param{*} P0
-     * @param{*} P1
-     * @param{*} P2
-     * @param{*} P3
+     * @param{string=} R
+     * @param{string=} P0
+     * @param{string=} P1
+     * @param{string=} P2
+     * @param{string=} P3
      */
     glsBuiltinPrecisionTests.Signature = function (R, P0, P1, P2, P3) {
         this.Ret = R;
@@ -101,17 +114,15 @@ goog.scope(function() {
         this.Arg2 = P2 === undefined ? new glsBuiltinPrecisionTests.Void() : P2;
         this.Arg3 = P3 === undefined ? new glsBuiltinPrecisionTests.Void() : P3;
 
-        this.IRet = new glsBuiltinPrecisionTests.Traits(this.Ret).traitsFactory();
-        this.IArg0 = new glsBuiltinPrecisionTests.Traits(this.Arg0).traitsFactory();
-        this.IArg1 = new glsBuiltinPrecisionTests.Traits(this.Arg1).traitsFactory();
-        this.IArg2 = new glsBuiltinPrecisionTests.Traits(this.Arg2).traitsFactory();
-        this.IArg3 = new glsBuiltinPrecisionTests.Traits(this.Arg3).traitsFactory();
+        this.IRet = glsBuiltinPrecisionTests.Traits.traitsFactory(R);
+        this.IArg0 = glsBuiltinPrecisionTests.Traits.traitsFactory(P0);
+        this.IArg1 = glsBuiltinPrecisionTests.Traits.traitsFactory(P1);
+        this.IArg2 = glsBuiltinPrecisionTests.Traits.traitsFactory(P2);
+        this.IArg3 = glsBuiltinPrecisionTests.Traits.traitsFactory(P3);
 
         this.Args = new glsBuiltinPrecisionTests.Tuple4(this.Arg0, this.Arg1, this.Arg2, this.Arg3);
         this.IArgs = new glsBuiltinPrecisionTests.Tuple4(this.IArg0, this.IArg1, this.IArg2, this.IArg3);
         this.ArgExprs = new glsBuiltinPrecisionTests.Tuple4(this.IArg0, this.IArg1, this.IArg2, this.IArg3);
-
-    	// typedef Tuple4<	ExprP<Arg0>,	ExprP<Arg1>,	ExprP<Arg2>,	ExprP<Arg3> >	ArgExprs;
     };
 
     /**
@@ -121,10 +132,10 @@ goog.scope(function() {
 
     /**
      * @constructor
-     * @param{tcuInterval.Interval} A0
-     * @param{tcuInterval.Interval} A1
-     * @param{tcuInterval.Interval} A2
-     * @param{tcuInterval.Interval} A3
+     * @param{*} A0
+     * @param{*} A1
+     * @param{*} A2
+     * @param{*} A3
      */
     glsBuiltinPrecisionTests.Tuple4 = function(A0, A1, A2, A3) {
         this.a = A0 === undefined ? new glsBuiltinPrecisionTests.Void() : A0;
@@ -135,7 +146,7 @@ goog.scope(function() {
 
     /**
      * Returns true for all other types except Void
-     * @param{} T
+     * @param{*} T
      */
     glsBuiltinPrecisionTests.isTypeValid = function(T) {
         if (T.isVoid === undefined) {
@@ -187,35 +198,26 @@ goog.scope(function() {
     };
 
     /**
-     * template<typename T>
      * @constructor
-     * @param{*=} T
      */
-    glsBuiltinPrecisionTests.Environment = function(T) {
-        // /** @type{*} */ this.typename = T;
+    glsBuiltinPrecisionTests.Environment = function() {
         /** @type{Object} */ this.m_map = {};
     };
 
     /**
-     * template<typename T>
      * @param{glsBuiltinPrecisionTests.Variable} variable
-     * @param{tcuInterval.Interval} value
+     * @param{*} value
      */
-    glsBuiltinPrecisionTests.Environment.prototype.bind = function(variable, /*Traits<T>::IVal&*/value) {
-        /** @type{number} */ var data = value;
-        this.m_map[variable.getName()] = value;
+    glsBuiltinPrecisionTests.Environment.prototype.bind = function(variable, value) {
+        this.m_map[variable.getName()] = deUtil.clone(value);
     };
 
     /**
-     * template<typename T>
      * @param{glsBuiltinPrecisionTests.Variable} variable
-     * @return{tcuInterval.Interval}
+     * @return{*}
      */
     glsBuiltinPrecisionTests.Environment.prototype.lookup = function(variable) {
-    	/** @type{number} */ var data = this.m_map[variable.getName()];
-
-    		// return *reinterpret_cast<typename Traits<T>::IVal*>(data);
-            return data;
+    	return this.m_map[variable.getName()];
     };
 
     /**
@@ -233,58 +235,55 @@ goog.scope(function() {
     };
 
     /**
-     * template <typename T> : return Traits<T>::IVal
-     * @param{*} T typename
+     * @param{string} T typename
      * @param{tcuFloatFormat.FloatFormat} fmt
-     * @param{tcuInterval.Interval} value Traits<T>::IVal&
+     * @param{*} value
      * @return{tcuInterval.Interval}
      */
      glsBuiltinPrecisionTests.convert = function(T, fmt, value) {
-    	return new glsBuiltinPrecisionTests.traitsFactory(T).doConvert(fmt, value);
+    	return glsBuiltinPrecisionTests.Traits.traitsFactory(T).doConvert(fmt, value);
     };
 
     /**
-     * Returns true iff every element of `ival` contains the corresponding element of `value`.
-     * template <typename T> : return boolean
-     * @param{tcuInterval.Interval} ival Traits<T>::IVal&
+     * Returns true if every element of `ival` contains the corresponding element of `value`.
+     * @param{string} T typename
+     * @param{*} ival
      * @param{*} value
      * @return{boolean}
      */
-     glsBuiltinPrecisionTests.contains = function(ival, value) {
-    	return new glsBuiltinPrecisionTests.traitsFactory(T).doContains(ival, value);
+     glsBuiltinPrecisionTests.contains = function(T, ival, value) {
+    	return glsBuiltinPrecisionTests.Traits.traitsFactory(T).doContains(ival, value);
     };
 
 
     /**
-     * @param{*} T
+     * @param{string} typename
+     * @constructor
      */
-    glsBuiltinPrecisionTests.Traits = function(T) {
-        this.typename = T;
+    glsBuiltinPrecisionTests.Traits = function(typename) {
+        this.typename = typename;
     };
 
     /**
-     * @param{*} T
+     * @param{string=} typename
      */
-    glsBuiltinPrecisionTests.Traits.prototype.traitsFactory = function() {
-        if (Array.isArray(this.typename)) {
-            return new glsBuiltinPrecisionTests.ContainerTraits();
-        } else if (typeof this.typename === 'boolean') {
-            return new glsBuiltinPrecisionTests.TraitsBool();
-        } else if (glsBuiltinPrecisionTests.isFloat(this.typename)) {
-            return new glsBuiltinPrecisionTests.TraitsFloat();
-        } else if (typeof this.typename === 'number') {
-            return new glsBuiltinPrecisionTests.TraitsInt();
+    glsBuiltinPrecisionTests.Traits.traitsFactory = function(typename) {
+        switch (typename) {
+            case 'array' : return new glsBuiltinPrecisionTests.ContainerTraits('float');
+            case 'boolean' : return new glsBuiltinPrecisionTests.TraitsBool();
+            case 'float' :  return new glsBuiltinPrecisionTests.TraitsFloat();
+            case 'int' :  return new glsBuiltinPrecisionTests.TraitsInt();
+            default: return null;
         }
     };
 
     /**
      * @constructor
      * @extends{glsBuiltinPrecisionTests.Traits}
-     * @param{*} typename
+     * @param{string} typename
      */
-    glsBuiltinPrecisionTests.ScalarTraits = function(t) {
-        glsBuiltinPrecisionTests.Traits.call(this);
-        // typedef 	Interval IVal;
+    glsBuiltinPrecisionTests.ScalarTraits = function(typename) {
+        glsBuiltinPrecisionTests.Traits.call(this, typename);
         /** type{tcuInterval.Interval} */ this.iVal;
     };
 
@@ -298,7 +297,7 @@ goog.scope(function() {
     glsBuiltinPrecisionTests.ScalarTraits.prototype.doMakeIVal = function(value) {
 		// Thankfully all scalar types have a well-defined conversion to `double`,
 		// hence Interval can represent their ranges without problems.
-		return new tcuInterval.Interval(value); // TODO: cast to double
+		return new tcuInterval.Interval(/** @type {number} */ (value));
 	};
 
     /**
@@ -312,11 +311,11 @@ goog.scope(function() {
 
     /**
      * @param{tcuInterval.Interval} a
-     * @param{*} value
+     * @param{number} value
      * @return{boolean}
      */
     glsBuiltinPrecisionTests.ScalarTraits.prototype.doContains = function(a, value)	{
-		return a.contains(value);//TODO cast to double
+		return a.contains(new tcuInterval.Interval(value));
 	};
 
     /**
@@ -330,11 +329,11 @@ goog.scope(function() {
 
     /**
      * @param{tcuFloatFormat.FloatFormat} fmt
-     * @param{*} value
+     * @param{number} value
      * @return{tcuInterval.Interval}
      */
     glsBuiltinPrecisionTests.ScalarTraits.prototype.doRound	= function(fmt, value) {
-		return fmt.roundOut(value, false);//TODO cast to double
+		return fmt.roundOut(new tcuInterval.Interval(value), false);//TODO cast to double
 	};
 
 
@@ -342,9 +341,9 @@ goog.scope(function() {
     /**
      * @constructor
      * @extends{glsBuiltinPrecisionTests.ScalarTraits}
-     * @param{*} typename
      */
-    glsBuiltinPrecisionTests.TraitsFloat = function(t) {
+    glsBuiltinPrecisionTests.TraitsFloat = function() {
+        glsBuiltinPrecisionTests.ScalarTraits.call(this, 'float');
     };
 
     glsBuiltinPrecisionTests.TraitsFloat.prototype = Object.create(glsBuiltinPrecisionTests.ScalarTraits.prototype);
@@ -355,7 +354,7 @@ goog.scope(function() {
      * @param{tcuInterval.Interval} ival
      */
     glsBuiltinPrecisionTests.TraitsFloat.prototype.doPrintIVal = function(fmt, ival) {
-		bufferedLogToConsole(fmt.intervalToHex(ival));
+		return fmt.intervalToHex(ival);
 	};
 
     /**
@@ -363,7 +362,7 @@ goog.scope(function() {
      * @param{number} value
      */
     glsBuiltinPrecisionTests.TraitsFloat.prototype.doPrintValue	= function(fmt, value) {
-		bufferedLogToConsole(fmt.floatToHex(value));
+		return fmt.floatToHex(value);
 	};
 
     glsBuiltinPrecisionTests.TraitsFloat.prototype = Object.create(glsBuiltinPrecisionTests.ScalarTraits.prototype);
@@ -373,7 +372,9 @@ goog.scope(function() {
      * @constructor
      * @extends{glsBuiltinPrecisionTests.ScalarTraits}
      */
-    glsBuiltinPrecisionTests.TraitsBool = function() {};
+    glsBuiltinPrecisionTests.TraitsBool = function() {
+        glsBuiltinPrecisionTests.ScalarTraits.call(this, 'boolean');
+    };
 
     glsBuiltinPrecisionTests.TraitsBool.prototype = Object.create(glsBuiltinPrecisionTests.ScalarTraits.prototype);
     glsBuiltinPrecisionTests.TraitsBool.prototype.constructor = glsBuiltinPrecisionTests.TraitsBool;
@@ -384,22 +385,24 @@ goog.scope(function() {
      */
     glsBuiltinPrecisionTests.TraitsBool.prototype.doPrintIVal = function(fmt, ival) {
         /** type{string} */ var os = '{';
-		if (ival.contains(false))
+        var ifalse = new tcuInterval.Interval(0);
+        var itrue = new tcuInterval.Interval(1);
+		if (ival.contains(ifalse))
 			os += 'false';
-		if (ival.contains(false) && ival.contains(true))
+		if (ival.contains(ifalse) && ival.contains(itrue))
 			os += ', ';
-		if (ival.contains(true))
+		if (ival.contains(itrue))
 			os += 'true';
 		os += '}';
-        bufferedLogToConsole(os);
+        return os;
 	};
 
     /**
      * @param{tcuFloatFormat.FloatFormat} fmt
-     * @param{number} value
+     * @param{boolean} value
      */
     glsBuiltinPrecisionTests.TraitsBool.prototype.doPrintValue	= function(fmt, value) {
-		bufferedLogToConsole(value ? 'true' : 'false');
+		return value ? 'true' : 'false';
 	};
 
 
@@ -408,7 +411,9 @@ goog.scope(function() {
      * @constructor
      * @extends{glsBuiltinPrecisionTests.ScalarTraits}
      */
-    glsBuiltinPrecisionTests.TraitsInt = function() {};
+    glsBuiltinPrecisionTests.TraitsInt = function() {
+        glsBuiltinPrecisionTests.ScalarTraits.call(this, 'int');
+    };
 
     glsBuiltinPrecisionTests.TraitsInt.prototype = Object.create(glsBuiltinPrecisionTests.ScalarTraits.prototype);
     glsBuiltinPrecisionTests.TraitsInt.prototype.constructor = glsBuiltinPrecisionTests.TraitsInt;
@@ -418,7 +423,7 @@ goog.scope(function() {
      * @param{tcuInterval.Interval} ival
      */
     glsBuiltinPrecisionTests.TraitsInt.prototype.doPrintIVal = function(fmt, ival) {
-		bufferedLogToConsole('[' + (ival.lo()) + ', ' + (ival.hi()) + ']');
+		return '[' + (ival.lo()) + ', ' + (ival.hi()) + ']';
 	};
 
     /**
@@ -426,7 +431,7 @@ goog.scope(function() {
      * @param{number} value
      */
     glsBuiltinPrecisionTests.TraitsInt.prototype.doPrintValue	= function(fmt, value) {
-		bufferedLogToConsole(value);
+		return value.toString(10);
 	};
 
 
@@ -438,10 +443,12 @@ goog.scope(function() {
      * template <typename T, typename I>
      * @constructor
      * @extends{glsBuiltinPrecisionTests.Traits}
-     * @param{*} T
+     * @param{string} elementType
      */
-    glsBuiltinPrecisionTests.ContainerTraits = function(T) {
-        glsBuiltinPrecisionTests.Traits.call(this);
+    glsBuiltinPrecisionTests.ContainerTraits = function(elementType) {
+        glsBuiltinPrecisionTests.Traits.call(this, 'container');
+        this.elementType = elementType;
+        this.subTraits = glsBuiltinPrecisionTests.Traits.traitsFactory(elementType);
     };
 
     glsBuiltinPrecisionTests.ContainerTraits.prototype = Object.create(glsBuiltinPrecisionTests.Traits.prototype);
@@ -451,40 +458,40 @@ goog.scope(function() {
     // typedef				I				IVal;
 
     /**
-     * @param{*} value can be a vector or matrix
-     * @return{tcuInterval.Interval}
+     * @param{Array<number>} value can be a vector or matrix
+     * @return{Array<*>}
      */
     glsBuiltinPrecisionTests.ContainerTraits.prototype.doMakeIVal = function(value) {
-    	/** @type{Array<tcuInterval.Interval>}	*/ var ret = [];
+    	/** @type{Array<*>}	*/ var ret = [];
 
-		for (var ndx = 0; ndx < T.SIZE; ++ndx)
-			ret[ndx] = makeIVal(value[ndx]);
+		for (var ndx = 0; ndx < value.length; ++ndx)
+			ret[ndx] = this.subTraits.doMakeIVal(value[ndx]);
 
 		return ret;
 	};
 
     /**
-     * @param{tcuInterval.Interval} a
-     * @param{tcuInterval.Interval} b
-     * @return{tcuInterval.Interval}
+     * @param{Array<*>} a
+     * @param{Array<*>} b
+     * @return{Array<*>}
      */
     glsBuiltinPrecisionTests.ContainerTraits.prototype.doUnion = function (a, b) {
-    	/** @type{Array<tcuInterval.Interval>}	*/ var ret = [];
+    	/** @type{Array<*>}	*/ var ret = [];
 
-		for (var ndx = 0; ndx < T.SIZE; ++ndx)
-			ret[ndx] = unionIVal<Element>(a[ndx], b[ndx]);
+		for (var ndx = 0; ndx < a.length; ++ndx)
+			ret[ndx] = this.subTraits.doUnion(a[ndx], b[ndx]);
 
 		return ret;
 	};
 
     /**
-     * @param{tcuInterval.Interval} ival
+     * @param{Array<*>} ival
      * @param{*} value
      * @return{boolean}
      */
     glsBuiltinPrecisionTests.ContainerTraits.prototype.doContains = function(ival, value) {
-		for (var ndx = 0; ndx < T.SIZE; ++ndx)
-			if (!this.contains(ival[ndx], value[ndx]))
+		for (var ndx = 0; ndx < value.length; ++ndx)
+			if (!this.subTraits.doContains(ival[ndx], value[ndx]))
 				return false;
 
 		return true;
@@ -492,64 +499,64 @@ goog.scope(function() {
 
     /**
      * @param{tcuFloatFormat.FloatFormat} fmt
-     * @param{tcuInterval.Interval} ival
+     * @param{Array<*>} ival
      */
     glsBuiltinPrecisionTests.ContainerTraits.prototype.doPrintIVal = function(fmt, ival) {
 		/** @type{string} */ var os = '(';
 
-		for (var ndx = 0; ndx < T.SIZE; ++ndx)	{
+		for (var ndx = 0; ndx < ival.length; ++ndx)	{
 			if (ndx > 0)
 				os += ', ';
-			this.printIVal<Element>(fmt, ival[ndx], os);
+			os += ival[ndx].doPrintIVal(fmt, ival[ndx]);
 		}
 
 		os += ')';
-        bufferedLogToConsole(os);
+        return os;
 	};
 
     /**
      * @param{tcuFloatFormat.FloatFormat} fmt
-     * @param{tcuInterval.Interval} ival
+     * @param{Array<*>} value
      */
     glsBuiltinPrecisionTests.ContainerTraits.prototype.doPrintValue	= function(fmt, value) {
-		/** @type{string} */ var os = /*dataTypeNameOf<T>() +*/ '(';
+		/** @type{string} */ var os = this.elementType + '(';
 
-		for (var ndx = 0; ndx < T.SIZE; ++ndx)
+		for (var ndx = 0; ndx < value.length; ++ndx)
 		{
 			if (ndx > 0)
 				os += ', ';
 
-			printValue<Element>(fmt, value[ndx], os);
+			os += value[ndx].doPrintValue(fmt, value[ndx]);
 		}
 
 		os += ')';
-        bufferedLogToConsole(os);
+        return os;
 	};
 
     /**
      * @param{tcuFloatFormat.FloatFormat} fmt
-     * @param{tcuInterval.Interval} value
-     * @return{tcuInterval.Interval}
+     * @param{Array<*>} value
+     * @return{Array<*>}
      */
     glsBuiltinPrecisionTests.ContainerTraits.prototype.doConvert = function(fmt, value) {
-		/** @type{Array<tcuInterval.Interval>}	*/ var ret = [];
+		/** @type{Array<*>}	*/ var ret = [];
 
-		for (var ndx = 0; ndx < T.SIZE; ++ndx)
-			ret[ndx] = this.convert<Element>(fmt, value[ndx]);
+		for (var ndx = 0; ndx < value.length; ++ndx)
+			ret[ndx] = this.subTraits.doConvert(fmt, value[ndx]);
 
 		return ret;
 	};
 
     /**
      * @param{tcuFloatFormat.FloatFormat} fmt
-     * @param{*} value
-     * @return{tcuInterval.Interval}
+     * @param{Array<*>} value
+     * @return{Array<*>}
      */
     glsBuiltinPrecisionTests.ContainerTraits.prototype.doRound = function(fmt, value) {
-    	/** @type{Array<tcuInterval.Interval>}	*/ var ret;
+    	/** @type{Array<*>}	*/ var ret;
 
-		for (var ndx = 0; ndx < T.SIZE; ++ndx)
-			ret[ndx] = this.round(fmt, value[ndx]);
+		for (var ndx = 0; ndx < value.length; ++ndx)
+			ret[ndx] = this.subTraits.doRound(fmt, value[ndx]);
 
 		return ret;
 	};
@@ -590,7 +597,7 @@ goog.scope(function() {
      */
     glsBuiltinPrecisionTests.Variable = function(typename, name) {
         glsBuiltinPrecisionTests.ExprP.call(this, typename);
-        this.m_name;
+        this.m_name = name;
     };
 
     /**
@@ -2064,10 +2071,7 @@ goog.scope(function() {
     		in2_ = glsBuiltinPrecisionTests.convert(this.In2, fmt, deMath.rint(fmt, inputs.in2[valueNdx]));
     		in3_ = glsBuiltinPrecisionTests.convert(this.In3, fmt, deMath.rint(fmt, inputs.in3[valueNdx]));
 
-    		{
-    			EvalContext	ctx (fmt, this.m_ctx.precision, env);
-    			stmt.execute(ctx);
-    		}
+			stmt.execute(new glsBuiltinPrecisionTests.EvalContext(fmt, this.m_ctx.precision, env));
 
     		switch (outCount) {
     			case 2:
@@ -2115,14 +2119,14 @@ goog.scope(function() {
     				builder += '\t' + variables.out0.getName() + ' = '
     						+ valueToString(highpFmt, outputs.out0[valueNdx]) + '\n'
     						+ '\tExpected range: '
-    						+ intervalToString<typename Out::Out0>(highpFmt, reference0) + '\n';
+    						+ intervalToString(highpFmt, reference0) + '\n';
     			}
 
     			if (outCount > 1) {
     				builder += '\t' + variables.out1.getName() + ' = '
     						+ valueToString(highpFmt, outputs.out1[valueNdx]) + '\n'
     						+ '\tExpected range: '
-    						+ intervalToString<typename Out::Out1>(highpFmt, reference1) + '\n';
+    						+ intervalToString(highpFmt, reference1) + '\n';
     			}
 
     			bufferedLogToConsole(builder);
@@ -2768,10 +2772,10 @@ goog.scope(function() {
     }
 
     /**
-     * @return {Array<CaseFactories>}
+     * @return {glsBuiltinPrecisionTests.CaseFactories}
      */
     glsBuiltinPrecisionTests.createES3BuiltinCases = function() {
-    	/** @type{CaseFactories} */ var funcs = new glsBuiltinPrecisionTests.BuiltinFuncs();
+    	/** @type{glsBuiltinPrecisionTests.CaseFactories} */ var funcs = new glsBuiltinPrecisionTests.BuiltinFuncs();
 
     	glsBuiltinPrecisionTests.addScalarFactory(glsBuiltinPrecisionTests.Add,funcs);
 	// addScalarFactory<Sub>(*funcs);

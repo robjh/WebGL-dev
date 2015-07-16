@@ -42,7 +42,7 @@ goog.scope(function() {
         var group = tcuTestCase.newTest('precision', 'Builtin precision tests');
 
         /** @type{Array<gluShaderProgram.shaderType>} */ var shaderTypes = [];
-        /** @type{glsBuiltinPrecisionTests.CaseFactories} */ var es3Cases = glsBuiltinPrecisionTests.createES3BuiltinCases();
+        var es3Cases = glsBuiltinPrecisionTests.createES3BuiltinCases();
 
     	shaderTypes.push(gluShaderProgram.shaderType.VERTEX);
     	shaderTypes.push(gluShaderProgram.shaderType.FRAGMENT);
