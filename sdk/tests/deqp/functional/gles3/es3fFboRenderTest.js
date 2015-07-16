@@ -689,7 +689,7 @@ goog.scope(function() {
         var errorCodesOk = (gles3Error == refError);
 
         if (!errorCodesOk) {
-            bufferedLogToConsole(
+            bufferedLogToConsole (
                 'Error code mismatch: got ' +
                 WebGLTestUtils.glEnumToString(gl, gles3Error) + ', expected ' +
                 WebGLTestUtils.glEnumToString(gl, refError)
@@ -816,9 +816,11 @@ goog.scope(function() {
         es3fFboRenderTest.createQuadsTex2D(
             context, quadsTex, gl.RGBA, gl.UNSIGNED_BYTE, width, height
         );
+        //TODO: Remove - tcuLogImage.logImageWithInfo(quadsTex.texture.getLevel(0), "Quads");
         es3fFboRenderTest.createMetaballsTex2D(
             context, metaballsTex, gl.RGBA, gl.UNSIGNED_BYTE, width, height
         );
+        //TODO: Remove - tcuLogImage.logImageWithInfo(metaballsTex.texture.getLevel(0), "Metaballs");
 
         /** @type {es3fFboRenderTest.Framebuffer} */
         var fbo = new es3fFboRenderTest.Framebuffer(
@@ -855,6 +857,9 @@ goog.scope(function() {
             context, texToFboShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]
         );
 
+        /*TODO: Remove - dst.readViewport(context, [0, 0, width, height])
+        tcuLogImage.logImageWithInfo(dst.getAccess(), "Quads tex stenciled");*/
+
         context.bindTexture(gl.TEXTURE_2D, metaballsTex);
         context.stencilFunc(gl.EQUAL, 2, 0xff);
 
@@ -862,6 +867,9 @@ goog.scope(function() {
         rrUtil.drawQuad(
             context, texToFboShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]
         );
+
+        /*TODO: Remove - dst.readViewport(context, [0,0,width, height])
+        tcuLogImage.logImageWithInfo(dst.getAccess(), "Metaballs tex stenciled");*/
 
         context.disable(gl.STENCIL_TEST);
 

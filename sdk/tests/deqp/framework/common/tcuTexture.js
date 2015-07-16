@@ -1422,7 +1422,7 @@ tcuTexture.ConstPixelBufferAccess.prototype.getPixelInt = function(x, y, z) {
 
         case tcuTexture.ChannelType.FLOAT_UNSIGNED_INT_24_8_REV: {
             DE_ASSERT(this.m_format.order == tcuTexture.ChannelOrder.DS);
-            var u32array = new Uint32Array(this.m_data, offset + 4, 1);
+            var u32array = new Uint32Array(this.m_data, this.m_offset + offset + 4, 1);
             return [pixel, 0, 0, ub(u32array[0], 0, 8)];
         }
 
@@ -2001,7 +2001,7 @@ tcuTexture.PixelBufferAccess.prototype.setPixStencil = function(stencil, x, y, z
             break;
 
         case tcuTexture.ChannelType.FLOAT_UNSIGNED_INT_24_8_REV: {
-            var u32array = new Uint32Array(this.m_data, offset + 4, 1);
+            var u32array = new Uint32Array(this.m_data, this.m_offset + offset + 4, 1);
             u32array[0] = pu(stencil, 0, 8);
             break;
         }
