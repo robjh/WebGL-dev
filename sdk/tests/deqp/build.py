@@ -80,7 +80,8 @@ targets = {
     'rasterizerdiscard' : 'functional.gles3.es3fRasterizerDiscardTests',
     'buffercopy' : 'functional.gles3.es3fBufferCopyTests',
     'shaderindexing' : 'functional.gles3.es3fShaderIndexingTests',
-    'shaderloop' : 'functional.gles3.es3fShaderLoopTests'
+    'shaderloop' : 'functional.gles3.es3fShaderLoopTests',
+    'shaderstruct' : 'functional.gles3.es3fShaderStructTests'
 }
 
 total_errors = 0
@@ -245,4 +246,3 @@ def main(argv):
 
 if __name__ == '__main__':
     main(sys.argv[1:])
-

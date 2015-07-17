@@ -78,10 +78,10 @@ goog.scope(function() {
      * @return {gluTexture.Type}
      */
     glsShaderRenderCase.getTextureType = function(tex) {
-        if (tex.getType() > 0)
-            return tex.getType();
-        else
+        if (tex === null || tex.getType() <= 0)
             return gluTexture.Type.TYPE_NONE;
+        else
+            return tex.getType();
     };
 
     /**
@@ -397,7 +397,7 @@ goog.scope(function() {
      * @param {Array<number>} coords
      */
     glsShaderRenderCase.ShaderEvalContext.prototype.texture2D = function(unitNdx, coords) {
-        if (this.textures[unitNdx].tex2D)
+        if (this.textures.length > 0 && this.textures[unitNdx].tex2D)
             return this.textures[unitNdx].tex2D.getView().sample(this.textures[unitNdx].sampler, coords, 0.0);
         else
             return [0.0, 0.0, 0.0, 1.0];
