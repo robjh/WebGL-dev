@@ -31,6 +31,7 @@ goog.require('framework.common.tcuTextureUtil');
 goog.require('framework.delibs.debase.deMath');
 goog.require('framework.delibs.debase.deRandom');
 goog.require('framework.delibs.debase.deString');
+goog.require('framework.delibs.debase.deUtil');
 goog.require('framework.opengl.gluShaderUtil');
 goog.require('framework.opengl.gluTextureUtil');
 goog.require('framework.opengl.simplereference.sglrGLContext');
@@ -53,8 +54,9 @@ goog.scope(function() {
     var tcuTexture = framework.common.tcuTexture;
     var tcuTextureUtil = framework.common.tcuTextureUtil;
     var deMath = framework.delibs.debase.deMath;
-    var deString = framework.delibs.debase.deString;
     var deRandom = framework.delibs.debase.deRandom;
+    var deString = framework.delibs.debase.deString;
+    var deUtil = framework.delibs.debase.deUtil;
     var sglrGLContext = framework.opengl.simplereference.sglrGLContext;
     var sglrReferenceContext =
         framework.opengl.simplereference.sglrReferenceContext;
@@ -103,6 +105,24 @@ goog.scope(function() {
         fboConfig.width = width_;
         fboConfig.height = height_;
         fboConfig.samples = samples_;
+
+        return fboConfig;
+    };
+
+    /**
+     * @param {es3fFboRenderTest.FboConfig}
+     * @return {es3fFboRenderTest.FboConfig}
+     */
+    es3fFboRenderTest.copyFboConfig = function(config) {
+        var fboConfig = new es3fFboRenderTest.FboConfig();
+        fboConfig.buffers = config.buffers;
+        fboConfig.colorType = config.colorType;
+        fboConfig.colorFormat = config.colorFormat;
+        fboConfig.depthStencilType = config.depthStencilType;
+        fboConfig.depthStencilFormat = config.depthStencilFormat;
+        fboConfig.width = config.width;
+        fboConfig.height = config.height;
+        fboConfig.samples = config.samples;
 
         return fboConfig;
     };
@@ -623,7 +643,7 @@ goog.scope(function() {
          */
         var context;
 
-        /*try {
+        try {
             context = new sglrGLContext.GLContext(gl, [x, y, width, height]);
 
             context.clearColor(
@@ -636,7 +656,7 @@ goog.scope(function() {
                 gl.STENCIL_BUFFER_BIT
             );
 
-            this.render(context, gles3Frame); // Call actual render func
+            //TODO: Uncomment - this.render(context, gles3Frame); // Call actual render func
             gles3Error = context.getError();
         }
         catch (e) {
@@ -652,7 +672,7 @@ goog.scope(function() {
 
             // Propagate error
             throw e;
-        }*/
+        }
 
         // Render reference image
 
@@ -696,6 +716,9 @@ goog.scope(function() {
             );
             failReason = 'Got unexpected error';
         }
+
+        // TODO: Remove
+        gles3Frame.setSize(refFrame.getWidth(), refFrame.getHeight());
 
         // Compare images
         var imagesOk = this.compare(refFrame, gles3Frame);
@@ -967,7 +990,9 @@ goog.scope(function() {
 
         // Fbo B - don't create colorbuffer
 
-        /** @type {es3fFboRenderTest.FboConfig} */ var cfg = this.m_config;
+        /** @type {es3fFboRenderTest.FboConfig} */
+        var cfg = es3fFboRenderTest.copyFboConfig(this.m_config);
+
         cfg.buffers = deMath.binaryOp(
             cfg.buffers,
             deMath.binaryNot(gl.COLOR_BUFFER_BIT),
@@ -1082,7 +1107,7 @@ goog.scope(function() {
                 context, dst, 0, 0, width, height,
                 gluTextureUtil.mapGLInternalFormat(
                     fboA.getConfig().colorFormat
-                ), [1.0], [0.0]
+                ), [1.0, 1.0, 1.0, 1.0], [0.0, 0.0, 0.0, 0.0]
             );
     };
 
@@ -1324,7 +1349,8 @@ goog.scope(function() {
         fboA.checkCompleteness();
 
         // Fbo B
-        /** @type {es3fFboRenderTest.FboConfig} */ var cfg = this.m_config;
+        /** @type {es3fFboRenderTest.FboConfig} */
+        var cfg = es3fFboRenderTest.copyFboConfig(this.m_config);
 
         cfg.buffers = deMath.binaryOp(
             cfg.buffers,
@@ -1555,6 +1581,9 @@ goog.scope(function() {
         rrUtil.drawQuad(
             context, texToFboShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]
         );
+        /*TODO: Remove - */
+        dst.readViewport(context, [0, 0, context.getWidth(), context.getHeight()]);
+        tcuLogImage.logImageWithInfo(dst.getAccess(), "First render of quads texture");
 
         if (fbo.getConfig().colorType == gl.TEXTURE_2D) {
             // Render fbo to screen
@@ -1564,7 +1593,9 @@ goog.scope(function() {
             rrUtil.drawQuad(
                 context, texFromFboShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]
             );
-
+            /*TODO: Remove - */
+            dst.readViewport(context, [0, 0, context.getWidth(), context.getHeight()]);
+            tcuLogImage.logImageWithInfo(dst.getAccess(), "Same render of quads texture to main buffer");
             // Restore binding
             context.bindFramebuffer(gl.FRAMEBUFFER, fbo.getFramebuffer());
         }
@@ -1632,6 +1663,10 @@ goog.scope(function() {
             context, texToFboShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]
         );
 
+        /*TODO: Remove - */
+        dst.readViewport(context, [0, 0, context.getWidth(), context.getHeight()]);
+        tcuLogImage.logImageWithInfo(dst.getAccess(), "First render of metaballs texture");
+
         context.bindTexture(gl.TEXTURE_2D, quadsTex);
         rrUtil.drawQuad(
             context, texToFboShaderID, [0.0, 0.0, -1.0], [1.0, 1.0, 1.0]
@@ -1664,6 +1699,8 @@ goog.scope(function() {
             dst.readViewport(
                 context, [0, 0, context.getWidth(), context.getHeight()]
             );
+            /*TODO: Remove - */
+            tcuLogImage.logImageWithInfo(dst.getAccess(), "First render of quads texture");
         } else
             es3fFboTestUtil.readPixels(
                 context, dst, 0, 0, newWidth, newHeight, colorFormat,

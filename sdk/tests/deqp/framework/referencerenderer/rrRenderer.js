@@ -430,8 +430,7 @@ void FragmentProcessor::render (const rr::MultisamplePixelBufferAccess& msColorB
                 for (var i = 0; i < fragments.length; i++) {
                     var frag = fragments[i];
                     if (frag.isAlive) {
-                        var fragSampleNdx = 1;
-                        var dstColor = colorBuffer.getPixel(fragSampleNdx, frag.pixelCoord[0], frag.pixelCoord[1]);
+                        var dstColor = colorBuffer.getPixel(0, frag.pixelCoord[0], frag.pixelCoord[1]);
 
                         /* TODO: Check frag.value and frag.value1 types */
                         frag.clampedBlendSrcColor = deMath.clampVector(frag.value, 0, 1);
