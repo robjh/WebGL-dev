@@ -51,10 +51,14 @@ goog.scope(function() {
     var tcuSurface = framework.common.tcuSurface;
     var gluShaderProgram = framework.opengl.gluShaderProgram;
 
+    /** @typedef {function(glsShaderRenderCase.ShaderEvalContext)} */ glsShaderRenderCase.ShaderEvalFunc;
+
     /** @const {number} */ glsShaderRenderCase.GRID_SIZE = 64;
     /** @const {number} */ glsShaderRenderCase.MAX_RENDER_WIDTH = 128;
     /** @const {number} */ glsShaderRenderCase.MAX_RENDER_HEIGHT = 112;
     /** @const {Array<number>} */ glsShaderRenderCase.DEFAULT_CLEAR_COLOR = [0.125, 0.25, 0.5, 1.0];
+    /** @const {number} */ glsShaderRenderCase.MAX_USER_ATTRIBS = 4;
+    /** @const {number} */ glsShaderRenderCase.MAX_TEXTURES = 4;
 
     /**
      * @param  {Array<number>} a
@@ -141,12 +145,6 @@ goog.scope(function() {
     /** @return {(gluTexture.Texture2D|gluTexture.TextureCube|gluTexture.Texture2DArray|gluTexture.Texture3D)} */
     glsShaderRenderCase.TextureBinding.prototype.getBinding = function() {
         return this.m_binding;
-    };
-
-    /** @const {{string: number}} */
-    glsShaderRenderCase.Limits = {
-        MAX_USER_ATTRIBS: 4,
-        MAX_TEXTURES: 4
     };
 
     /**
@@ -340,7 +338,7 @@ goog.scope(function() {
         /** @type {glsShaderRenderCase.QuadGrid} */ this.quadGrid = quadGrid_;
 
         /** @type {Array<glsShaderRenderCase.TextureBinding>} */ var bindings = this.quadGrid.getTextures();
-        assertMsgOptions(bindings.length <= glsShaderRenderCase.Limits.MAX_TEXTURES, 'Too many bindings.', false, true);
+        assertMsgOptions(bindings.length <= glsShaderRenderCase.MAX_TEXTURES, 'Too many bindings.', false, true);
 
         // Fill in texture array.
         for (var ndx = 0; ndx < bindings.length; ndx++) {
@@ -385,7 +383,7 @@ goog.scope(function() {
 
         // Compute user attributes.
         /** @type {number} */ var numAttribs = this.quadGrid.getNumUserAttribs();
-        assertMsgOptions(numAttribs <= glsShaderRenderCase.Limits.MAX_USER_ATTRIBS, 'numAttribs out of range', false, true);
+        assertMsgOptions(numAttribs <= glsShaderRenderCase.MAX_USER_ATTRIBS, 'numAttribs out of range', false, true);
         for (var attribNdx = 0; attribNdx < numAttribs; attribNdx++)
             this.in_[attribNdx] = this.quadGrid.getUserAttrib(attribNdx, sx, sy);
     };
@@ -440,8 +438,7 @@ goog.scope(function() {
      * @param  {glsShaderRenderCase.ShaderEvalFunc=} evalFunc
      */
     glsShaderRenderCase.ShaderEvaluator = function(evalFunc) {
-        evalFunc = evalFunc === undefined ? null :  evalFunc;
-        /** @type {?glsShaderRenderCase.ShaderEvalFunc} */ this.m_evalFunc = evalFunc;
+        /** @type {?glsShaderRenderCase.ShaderEvalFunc} */ this.m_evalFunc = evalFunc === undefined ? null :  evalFunc;
     };
 
     /**
@@ -451,7 +448,7 @@ goog.scope(function() {
         assertMsgOptions(this.m_evalFunc !== null, 'No evaluation function specified.', false, true);
         this.m_evalFunc(ctx);
     };
-    /** @typedef {function(glsShaderRenderCase.ShaderEvalContext)} */ glsShaderRenderCase.ShaderEvalFunc;
+
     /**
      * @constructor
      * @extends {tcuTestCase.DeqpTest}
@@ -495,8 +492,10 @@ goog.scope(function() {
     };
 
     glsShaderRenderCase.ShaderRenderCase.prototype.init = function() {
+        this.postinit();
+    };
 
-
+    glsShaderRenderCase.ShaderRenderCase.prototype.postinit = function() {
         if (this.m_vertShaderSource.length === 0 || this.m_fragShaderSource.length === 0) {
             assertMsgOptions(this.m_vertShaderSource.length === 0 && this.m_fragShaderSource.length === 0, 'No shader source.', false, true);
             this.setupShaderData();
@@ -558,6 +557,7 @@ goog.scope(function() {
 
         return tcuTestCase.IterateResult.STOP;
     };
+
     glsShaderRenderCase.ShaderRenderCase.prototype.setupShaderData = function() {};
 
     /**
