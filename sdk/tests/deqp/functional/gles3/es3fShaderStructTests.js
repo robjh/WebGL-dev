@@ -99,7 +99,7 @@ goog.scope(function() {
 	es3fShaderStructTests.ShaderStructCase.prototype.setupUniforms = function(programID, constCoords) {
 		glsShaderRenderCase.ShaderRenderCase.prototype.setupUniforms.call(this, programID, constCoords);
 		if (this.m_setupUniforms)
-			this.m_setupUniforms(gl, programID, constCoords);
+			this.m_setupUniforms(programID, constCoords);
 	};
 
 	/**
@@ -1198,20 +1198,20 @@ goog.scope(function() {
 		}
 
 		UniformStructCase('basic', "Basic struct usage", false,
-			'${HEADER}' +
-			'uniform int ui_one;' +
+			'${HEADER}\n' +
+			'uniform int ui_one;\n' +
 			'' +
-			'struct S {' +
-			'	mediump float	a;' +
-			'	mediump vec3	b;' +
-			'	int				c;' +
-			'};' +
-			'uniform S s;' +
+			'struct S {\n' +
+			'	mediump float	a;\n' +
+			'	mediump vec3	b;\n' +
+			'	int				c;\n' +
+			'};\n' +
+			'uniform S s;\n' +
 			'' +
-			'void main (void)' +
-			'{' +
-			'	${DST} = vec4(s.a, s.b.x, s.b.y, s.c);' +
-			'	${ASSIGN_POS}' +
+			'void main (void)\n' +
+			'{\n' +
+			'	${DST} = vec4(s.a, s.b.x, s.b.y, s.c);\n' +
+			'	${ASSIGN_POS}\n' +
 			'}',
 			function(programID, constCoords) {
 				es3fShaderStructTests.setUniform1f(programID, "s.a", constCoords[0]);
@@ -1225,25 +1225,25 @@ goog.scope(function() {
 			});
 
 		UniformStructCase('nested', "Nested struct", false,
-			'${HEADER}' +
-			'uniform int ui_zero;' +
-			'uniform int ui_one;' +
+			'${HEADER}\n' +
+			'uniform int ui_zero;\n' +
+			'uniform int ui_one;\n' +
 			'' +
-			'struct T {' +
-			'	int				a;' +
-			'	mediump vec2	b;' +
-			'};' +
-			'struct S {' +
-			'	mediump float	a;' +
-			'	T				b;' +
-			'	int				c;' +
-			'};' +
-			'uniform S s;' +
+			'struct T {\n' +
+			'	int				a;\n' +
+			'	mediump vec2	b;\n' +
+			'};\n' +
+			'struct S {\n' +
+			'	mediump float	a;\n' +
+			'	T				b;\n' +
+			'	int				c;\n' +
+			'};\n' +
+			'uniform S s;\n' +
 			'' +
-			'void main (void)' +
-			'{' +
-			'	${DST} = vec4(s.a, s.b.b, s.b.a + s.c);' +
-			'	${ASSIGN_POS}' +
+			'void main (void)\n' +
+			'{\n' +
+			'	${DST} = vec4(s.a, s.b.b, s.b.a + s.c);\n' +
+			'	${ASSIGN_POS}\n' +
 			'}',
 			function(programID, constCoords) {
 				es3fShaderStructTests.setUniform1f(programID, "s.a", constCoords[0]);
@@ -1258,20 +1258,20 @@ goog.scope(function() {
 			});
 
 		UniformStructCase('array_member', "Struct with array member", false,
-			'${HEADER}' +
-			'uniform int ui_one;' +
+			'${HEADER}\n' +
+			'uniform int ui_one;\n' +
 			'' +
-			'struct S {' +
-			'	mediump float	a;' +
-			'	mediump float	b[3];' +
-			'	int				c;' +
-			'};' +
-			'uniform S s;' +
+			'struct S {\n' +
+			'	mediump float	a;\n' +
+			'	mediump float	b[3];\n' +
+			'	int				c;\n' +
+			'};\n' +
+			'uniform S s;\n' +
 			'' +
-			'void main (void)' +
-			'{' +
-			'	${DST} = vec4(s.a, s.b[0], s.b[1], s.c);' +
-			'	${ASSIGN_POS}' +
+			'void main (void)\n' +
+			'{\n' +
+			'	${DST} = vec4(s.a, s.b[0], s.b[1], s.c);\n' +
+			'	${ASSIGN_POS}\n' +
 			'}',
 			function(programID, constCoords){
 				es3fShaderStructTests.setUniform1f(programID, "s.a", constCoords[3]);
@@ -1290,22 +1290,22 @@ goog.scope(function() {
 			});
 
 		UniformStructCase('array_member_dynamic_index', "Struct with array member, dynamic indexing", false,
-			'${HEADER}' +
-			'uniform int ui_zero;' +
-			'uniform int ui_one;' +
-			'uniform int ui_two;' +
+			'${HEADER}\n' +
+			'uniform int ui_zero;\n' +
+			'uniform int ui_one;\n' +
+			'uniform int ui_two;\n' +
 			'' +
-			'struct S {' +
-			'    mediump float    a;' +
-			'    mediump float    b[3];' +
-			'    int                c;' +
-			'};' +
-			'uniform S s;' +
+			'struct S {\n' +
+			'    mediump float    a;\n' +
+			'    mediump float    b[3];\n' +
+			'    int                c;\n' +
+			'};\n' +
+			'uniform S s;\n' +
 			'' +
-			'void main (void)' +
-			'{' +
-			'    ${DST} = vec4(s.b[ui_one], s.b[ui_zero], s.b[ui_two], s.c);' +
-			'    ${ASSIGN_POS}' +
+			'void main (void)\n' +
+			'{\n' +
+			'    ${DST} = vec4(s.b[ui_one], s.b[ui_zero], s.b[ui_two], s.c);\n' +
+			'    ${ASSIGN_POS}\n' +
 			'}',
 			function(programID, constCoords) {
 				es3fShaderStructTests.setUniform1f(programID, "s.a", constCoords[3]);
@@ -1324,21 +1324,21 @@ goog.scope(function() {
 			});
 
 		UniformStructCase('struct_array', "Struct array", false,
-			'${HEADER}' +
-			'uniform int ui_zero;' +
-			'uniform int ui_one;' +
-			'uniform int ui_two;' +
+			'${HEADER}\n' +
+			'uniform int ui_zero;\n' +
+			'uniform int ui_one;\n' +
+			'uniform int ui_two;\n' +
 			'' +
-			'struct S {' +
-			'    mediump float    a;' +
-			'    mediump int        b;' +
-			'};' +
-			'uniform S s[3];' +
+			'struct S {\n' +
+			'    mediump float    a;\n' +
+			'    mediump int        b;\n' +
+			'};\n' +
+			'uniform S s[3];\n' +
 			'' +
-			'void main (void)' +
-			'{' +
-			'    ${DST} = vec4(s[2].a, s[1].a, s[0].a, s[2].b - s[1].b + s[0].b);' +
-			'    ${ASSIGN_POS}' +
+			'void main (void)\n' +
+			'{\n' +
+			'    ${DST} = vec4(s[2].a, s[1].a, s[0].a, s[2].b - s[1].b + s[0].b);\n' +
+			'    ${ASSIGN_POS}\n' +
 			'}',
 			function(programID, constCoords) {
 				es3fShaderStructTests.setUniform1f(programID, "s[0].a", constCoords[0]);
@@ -1355,21 +1355,21 @@ goog.scope(function() {
 			});
 
 		UniformStructCase('struct_array_dynamic_index', "Struct array with dynamic indexing", false,
-			'${HEADER}' +
-			'uniform int ui_zero;' +
-			'uniform int ui_one;' +
-			'uniform int ui_two;' +
+			'${HEADER}\n' +
+			'uniform int ui_zero;\n' +
+			'uniform int ui_one;\n' +
+			'uniform int ui_two;\n' +
 			'' +
-			'struct S {' +
-			'    mediump float    a;' +
-			'    mediump int        b;' +
-			'};' +
-			'uniform S s[3];' +
+			'struct S {\n' +
+			'    mediump float    a;\n' +
+			'    mediump int        b;\n' +
+			'};\n' +
+			'uniform S s[3];\n' +
 			'' +
-			'void main (void)' +
-			'{' +
-			'    ${DST} = vec4(s[ui_two].a, s[ui_one].a, s[ui_zero].a, s[ui_two].b - s[ui_one].b + s[ui_zero].b);' +
-			'    ${ASSIGN_POS}' +
+			'void main (void)\n' +
+			'{\n' +
+			'    ${DST} = vec4(s[ui_two].a, s[ui_one].a, s[ui_zero].a, s[ui_two].b - s[ui_one].b + s[ui_zero].b);\n' +
+			'    ${ASSIGN_POS}\n' +
 			'}',
 			function(programID, constCoords) {
 				es3fShaderStructTests.setUniform1f(programID, "s[0].a", constCoords[0]);
@@ -1386,26 +1386,26 @@ goog.scope(function() {
 			});
 
 		UniformStructCase('nested_struct_array', "Nested struct array", false,
-			'${HEADER}' +
-			'struct T {' +
-			'    mediump float    a;' +
-			'    mediump vec2    b[2];' +
-			'};' +
-			'struct S {' +
-			'    mediump float    a;' +
-			'    T                b[3];' +
-			'    int                c;' +
-			'};' +
-			'uniform S s[2];' +
+			'${HEADER}\n' +
+			'struct T {\n' +
+			'    mediump float    a;\n' +
+			'    mediump vec2    b[2];\n' +
+			'};\n' +
+			'struct S {\n' +
+			'    mediump float    a;\n' +
+			'    T                b[3];\n' +
+			'    int                c;\n' +
+			'};\n' +
+			'uniform S s[2];\n' +
 			'' +
-			'void main (void)' +
-			'{' +
-			'    mediump float r = (s[0].b[1].b[0].x + s[1].b[2].b[1].y) * s[0].b[0].a; // (z + z) * 0.5' +
-			'    mediump float g = s[1].b[0].b[0].y * s[0].b[2].a * s[1].b[2].a; // x * 0.25 * 4' +
-			'    mediump float b = (s[0].b[2].b[1].y + s[0].b[1].b[0].y + s[1].a) * s[0].b[1].a; // (w + w + w) * 0.333' +
-			'    mediump float a = float(s[0].c) + s[1].b[2].a - s[1].b[1].a; // 0 + 4.0 - 3.0' +
-			'    ${DST} = vec4(r, g, b, a);' +
-			'    ${ASSIGN_POS}' +
+			'void main (void)\n' +
+			'{\n' +
+			'    mediump float r = (s[0].b[1].b[0].x + s[1].b[2].b[1].y) * s[0].b[0].a; // (z + z) * 0.5\n' +
+			'    mediump float g = s[1].b[0].b[0].y * s[0].b[2].a * s[1].b[2].a; // x * 0.25 * 4\n' +
+			'    mediump float b = (s[0].b[2].b[1].y + s[0].b[1].b[0].y + s[1].a) * s[0].b[1].a; // (w + w + w) * 0.333\n' +
+			'    mediump float a = float(s[0].c) + s[1].b[2].a - s[1].b[1].a; // 0 + 4.0 - 3.0\n' +
+			'    ${DST} = vec4(r, g, b, a);\n' +
+			'    ${ASSIGN_POS}\n' +
 			'}',
 			function(programID, constCoords) {
 				/** @type {Array<number>} */ var arr = [];
@@ -1441,30 +1441,30 @@ goog.scope(function() {
 			});
 
 		UniformStructCase('nested_struct_array_dynamic_index', "Nested struct array with dynamic indexing", false,
-			'${HEADER}' +
-			'uniform int ui_zero;' +
-			'uniform int ui_one;' +
-			'uniform int ui_two;' +
+			'${HEADER}\n' +
+			'uniform int ui_zero;\n' +
+			'uniform int ui_one;\n' +
+			'uniform int ui_two;\n' +
 			'' +
-			'struct T {' +
-			'    mediump float    a;' +
-			'    mediump vec2    b[2];' +
-			'};' +
-			'struct S {' +
-			'    mediump float    a;' +
-			'    T                b[3];' +
-			'    int                c;' +
-			'};' +
-			'uniform S s[2];' +
+			'struct T {\n' +
+			'    mediump float    a;\n' +
+			'    mediump vec2    b[2];\n' +
+			'};\n' +
+			'struct S {\n' +
+			'    mediump float    a;\n' +
+			'    T                b[3];\n' +
+			'    int                c;\n' +
+			'};\n' +
+			'uniform S s[2];\n' +
 			'' +
-			'void main (void)' +
-			'{' +
-			'    mediump float r = (s[0].b[ui_one].b[ui_one-1].x + s[ui_one].b[ui_two].b[ui_zero+1].y) * s[0].b[0].a; // (z + z) * 0.5' +
-			'    mediump float g = s[ui_two-1].b[ui_two-2].b[ui_zero].y * s[0].b[ui_two].a * s[ui_one].b[2].a; // x * 0.25 * 4' +
-			'    mediump float b = (s[ui_zero].b[ui_one+1].b[1].y + s[0].b[ui_one*ui_one].b[0].y + s[ui_one].a) * s[0].b[ui_two-ui_one].a; // (w + w + w) * 0.333' +
-			'    mediump float a = float(s[ui_zero].c) + s[ui_one-ui_zero].b[ui_two].a - s[ui_zero+ui_one].b[ui_two-ui_one].a; // 0 + 4.0 - 3.0' +
-			'    ${DST} = vec4(r, g, b, a);' +
-			'    ${ASSIGN_POS}' +
+			'void main (void)\n' +
+			'{\n' +
+			'    mediump float r = (s[0].b[ui_one].b[ui_one-1].x + s[ui_one].b[ui_two].b[ui_zero+1].y) * s[0].b[0].a; // (z + z) * 0.5\n' +
+			'    mediump float g = s[ui_two-1].b[ui_two-2].b[ui_zero].y * s[0].b[ui_two].a * s[ui_one].b[2].a; // x * 0.25 * 4\n' +
+			'    mediump float b = (s[ui_zero].b[ui_one+1].b[1].y + s[0].b[ui_one*ui_one].b[0].y + s[ui_one].a) * s[0].b[ui_two-ui_one].a; // (w + w + w) * 0.333\n' +
+			'    mediump float a = float(s[ui_zero].c) + s[ui_one-ui_zero].b[ui_two].a - s[ui_zero+ui_one].b[ui_two-ui_one].a; // 0 + 4.0 - 3.0\n' +
+			'    ${DST} = vec4(r, g, b, a);\n' +
+			'    ${ASSIGN_POS}\n' +
 			'}',
 			function(programID, constCoords){
 				/** @type {Array<number>} */ var arr = [];
@@ -1500,28 +1500,28 @@ goog.scope(function() {
 			});
 
 		UniformStructCase('loop_struct_array', "Struct array usage in loop", false,
-			'${HEADER}' +
-			'uniform int ui_zero;' +
-			'uniform int ui_one;' +
-			'uniform int ui_two;' +
+			'${HEADER}\n' +
+			'uniform int ui_zero;\n' +
+			'uniform int ui_one;\n' +
+			'uniform int ui_two;\n' +
 			'' +
-			'struct S {' +
-			'    mediump float    a;' +
-			'    mediump int        b;' +
-			'};' +
-			'uniform S s[3];' +
+			'struct S {\n' +
+			'    mediump float    a;\n' +
+			'    mediump int        b;\n' +
+			'};\n' +
+			'uniform S s[3];\n' +
 			'' +
-			'void main (void)' +
-			'{' +
-			'    mediump float rgb[3];' +
-			'    int alpha = 0;' +
-			'    for (int i = 0; i < 3; i++)' +
-			'    {' +
-			'        rgb[i] = s[2-i].a;' +
-			'        alpha += s[i].b;' +
-			'    }' +
-			'    ${DST} = vec4(rgb[0], rgb[1], rgb[2], alpha);' +
-			'    ${ASSIGN_POS}' +
+			'void main (void)\n' +
+			'{\n' +
+			'    mediump float rgb[3];\n' +
+			'    int alpha = 0;\n' +
+			'    for (int i = 0; i < 3; i++)\n' +
+			'    {\n' +
+			'        rgb[i] = s[2-i].a;\n' +
+			'        alpha += s[i].b;\n' +
+			'    }\n' +
+			'    ${DST} = vec4(rgb[0], rgb[1], rgb[2], alpha);\n' +
+			'    ${ASSIGN_POS}\n' +
 			'}',
 			function(programID, constCoords) {
 				es3fShaderStructTests.setUniform1f(programID, "s[0].a", constCoords[0]);
@@ -1538,47 +1538,47 @@ goog.scope(function() {
 			});
 
 		UniformStructCase('loop_nested_struct_array', "Nested struct array usage in loop", false,
-			'${HEADER}' +
-			'uniform int ui_zero;' +
-			'uniform int ui_one;' +
-			'uniform int ui_two;' +
-			'uniform mediump float uf_two;' +
-			'uniform mediump float uf_three;' +
-			'uniform mediump float uf_four;' +
-			'uniform mediump float uf_half;' +
-			'uniform mediump float uf_third;' +
-			'uniform mediump float uf_fourth;' +
-			'uniform mediump float uf_sixth;' +
+			'${HEADER}\n' +
+			'uniform int ui_zero;\n' +
+			'uniform int ui_one;\n' +
+			'uniform int ui_two;\n' +
+			'uniform mediump float uf_two;\n' +
+			'uniform mediump float uf_three;\n' +
+			'uniform mediump float uf_four;\n' +
+			'uniform mediump float uf_half;\n' +
+			'uniform mediump float uf_third;\n' +
+			'uniform mediump float uf_fourth;\n' +
+			'uniform mediump float uf_sixth;\n' +
 			'' +
-			'struct T {' +
-			'    mediump float    a;' +
-			'    mediump vec2    b[2];' +
-			'};' +
-			'struct S {' +
-			'    mediump float    a;' +
-			'    T                b[3];' +
-			'    int                c;' +
-			'};' +
-			'uniform S s[2];' +
+			'struct T {\n' +
+			'    mediump float    a;\n' +
+			'    mediump vec2    b[2];\n' +
+			'};\n' +
+			'struct S {\n' +
+			'    mediump float    a;\n' +
+			'    T                b[3];\n' +
+			'    int                c;\n' +
+			'};\n' +
+			'uniform S s[2];\n' +
 			'' +
-			'void main (void)' +
-			'{' +
-			'    mediump float r = 0.0; // (x*3 + y*3) / 6.0' +
-			'    mediump float g = 0.0; // (y*3 + z*3) / 6.0' +
-			'    mediump float b = 0.0; // (z*3 + w*3) / 6.0' +
-			'    mediump float a = 1.0;' +
-			'    for (int i = 0; i < 2; i++)' +
-			'    {' +
-			'        for (int j = 0; j < 3; j++)' +
-			'        {' +
-			'            r += s[0].b[j].b[i].y;' +
-			'            g += s[i].b[j].b[0].x;' +
-			'            b += s[i].b[j].b[1].x;' +
-			'            a *= s[i].b[j].a;' +
-			'        }' +
-			'    }' +
-			'    ${DST} = vec4(r*uf_sixth, g*uf_sixth, b*uf_sixth, a);' +
-			'    ${ASSIGN_POS}' +
+			'void main (void)\n' +
+			'{\n' +
+			'    mediump float r = 0.0; // (x*3 + y*3) / 6.0\n' +
+			'    mediump float g = 0.0; // (y*3 + z*3) / 6.0\n' +
+			'    mediump float b = 0.0; // (z*3 + w*3) / 6.0\n' +
+			'    mediump float a = 1.0;\n' +
+			'    for (int i = 0; i < 2; i++)\n' +
+			'    {\n' +
+			'        for (int j = 0; j < 3; j++)\n' +
+			'        {\n' +
+			'            r += s[0].b[j].b[i].y;\n' +
+			'            g += s[i].b[j].b[0].x;\n' +
+			'            b += s[i].b[j].b[1].x;\n' +
+			'            a *= s[i].b[j].a;\n' +
+			'        }\n' +
+			'    }\n' +
+			'    ${DST} = vec4(r*uf_sixth, g*uf_sixth, b*uf_sixth, a);\n' +
+			'    ${ASSIGN_POS}\n' +
 			'}',
 			function(programID, constCoords) {
 				/** @type {Array<number>} */ var arr = [];
@@ -1614,29 +1614,29 @@ goog.scope(function() {
 			});
 
 		UniformStructCase('dynamic_loop_struct_array', "Struct array usage in dynamic loop", false,
-			'${HEADER}' +
-			'uniform int ui_zero;' +
-			'uniform int ui_one;' +
-			'uniform int ui_two;' +
-			'uniform int ui_three;' +
+			'${HEADER}\n' +
+			'uniform int ui_zero;\n' +
+			'uniform int ui_one;\n' +
+			'uniform int ui_two;\n' +
+			'uniform int ui_three;\n' +
 			'' +
-			'struct S {' +
-			'    mediump float    a;' +
-			'    mediump int        b;' +
-			'};' +
-			'uniform S s[3];' +
+			'struct S {\n' +
+			'    mediump float    a;\n' +
+			'    mediump int        b;\n' +
+			'};\n' +
+			'uniform S s[3];\n' +
 			'' +
-			'void main (void)' +
-			'{' +
-			'    mediump float rgb[3];' +
-			'    int alpha = 0;' +
-			'    for (int i = 0; i < ui_three; i++)' +
-			'    {' +
-			'        rgb[i] = s[2-i].a;' +
-			'        alpha += s[i].b;' +
-			'    }' +
-			'    ${DST} = vec4(rgb[0], rgb[1], rgb[2], alpha);' +
-			'    ${ASSIGN_POS}' +
+			'void main (void)\n' +
+			'{\n' +
+			'    mediump float rgb[3];\n' +
+			'    int alpha = 0;\n' +
+			'    for (int i = 0; i < ui_three; i++)\n' +
+			'    {\n' +
+			'        rgb[i] = s[2-i].a;\n' +
+			'        alpha += s[i].b;\n' +
+			'    }\n' +
+			'    ${DST} = vec4(rgb[0], rgb[1], rgb[2], alpha);\n' +
+			'    ${ASSIGN_POS}\n' +
 			'}',
 			function(programID, constCoords) {
 				es3fShaderStructTests.setUniform1f(programID, "s[0].a", constCoords[0]);
@@ -1653,48 +1653,48 @@ goog.scope(function() {
 			});
 
 		UniformStructCase('dynamic_loop_nested_struct_array', "Nested struct array usage in dynamic loop", false,
-			'${HEADER}' +
-			'uniform int ui_zero;' +
-			'uniform int ui_one;' +
-			'uniform int ui_two;' +
-			'uniform int ui_three;' +
-			'uniform mediump float uf_two;' +
-			'uniform mediump float uf_three;' +
-			'uniform mediump float uf_four;' +
-			'uniform mediump float uf_half;' +
-			'uniform mediump float uf_third;' +
-			'uniform mediump float uf_fourth;' +
-			'uniform mediump float uf_sixth;' +
+			'${HEADER}\n' +
+			'uniform int ui_zero;\n' +
+			'uniform int ui_one;\n' +
+			'uniform int ui_two;\n' +
+			'uniform int ui_three;\n' +
+			'uniform mediump float uf_two;\n' +
+			'uniform mediump float uf_three;\n' +
+			'uniform mediump float uf_four;\n' +
+			'uniform mediump float uf_half;\n' +
+			'uniform mediump float uf_third;\n' +
+			'uniform mediump float uf_fourth;\n' +
+			'uniform mediump float uf_sixth;\n' +
 			'' +
-			'struct T {' +
-			'    mediump float    a;' +
-			'    mediump vec2    b[2];' +
-			'};' +
-			'struct S {' +
-			'    mediump float    a;' +
-			'    T                b[3];' +
-			'    int                c;' +
-			'};' +
-			'uniform S s[2];' +
+			'struct T {\n' +
+			'    mediump float    a;\n' +
+			'    mediump vec2    b[2];\n' +
+			'};\n' +
+			'struct S {\n' +
+			'    mediump float    a;\n' +
+			'    T                b[3];\n' +
+			'    int                c;\n' +
+			'};\n' +
+			'uniform S s[2];\n' +
 			'' +
-			'void main (void)' +
-			'{' +
-			'    mediump float r = 0.0; // (x*3 + y*3) / 6.0' +
-			'    mediump float g = 0.0; // (y*3 + z*3) / 6.0' +
-			'    mediump float b = 0.0; // (z*3 + w*3) / 6.0' +
-			'    mediump float a = 1.0;' +
-			'    for (int i = 0; i < ui_two; i++)' +
-			'    {' +
-			'        for (int j = 0; j < ui_three; j++)' +
-			'        {' +
-			'            r += s[0].b[j].b[i].y;' +
-			'            g += s[i].b[j].b[0].x;' +
-			'            b += s[i].b[j].b[1].x;' +
-			'            a *= s[i].b[j].a;' +
-			'        }' +
-			'    }' +
-			'    ${DST} = vec4(r*uf_sixth, g*uf_sixth, b*uf_sixth, a);' +
-			'    ${ASSIGN_POS}' +
+			'void main (void)\n' +
+			'{\n' +
+			'    mediump float r = 0.0; // (x*3 + y*3) / 6.0\n' +
+			'    mediump float g = 0.0; // (y*3 + z*3) / 6.0\n' +
+			'    mediump float b = 0.0; // (z*3 + w*3) / 6.0\n' +
+			'    mediump float a = 1.0;\n' +
+			'    for (int i = 0; i < ui_two; i++)\n' +
+			'    {\n' +
+			'        for (int j = 0; j < ui_three; j++)\n' +
+			'        {\n' +
+			'            r += s[0].b[j].b[i].y;\n' +
+			'            g += s[i].b[j].b[0].x;\n' +
+			'            b += s[i].b[j].b[1].x;\n' +
+			'            a *= s[i].b[j].a;\n' +
+			'        }\n' +
+			'    }\n' +
+			'    ${DST} = vec4(r*uf_sixth, g*uf_sixth, b*uf_sixth, a);\n' +
+			'    ${ASSIGN_POS}\n' +
 			'}',
 			function(programID, constCoords) {
 				/** @type {Array<number>} */ var arr = [];
@@ -1730,20 +1730,20 @@ goog.scope(function() {
 			});
 
 		UniformStructCase('sampler', "Sampler in struct", true,
-			'${HEADER}' +
-			'uniform int ui_one;' +
+			'${HEADER}\n' +
+			'uniform int ui_one;\n' +
 			'' +
-			'struct S {' +
-			'    mediump float    a;' +
-			'    mediump vec3    b;' +
-			'    sampler2D        c;' +
-			'};' +
-			'uniform S s;' +
+			'struct S {\n' +
+			'    mediump float    a;\n' +
+			'    mediump vec3    b;\n' +
+			'    sampler2D        c;\n' +
+			'};\n' +
+			'uniform S s;\n' +
 			'' +
-			'void main (void)' +
-			'{' +
-			'    ${DST} = vec4(texture(s.c, ${COORDS}.xy * s.b.xy + s.b.z).rgb, s.a);' +
-			'    ${ASSIGN_POS}' +
+			'void main (void)\n' +
+			'{\n' +
+			'    ${DST} = vec4(texture(s.c, ${COORDS}.xy * s.b.xy + s.b.z).rgb, s.a);\n' +
+			'    ${ASSIGN_POS}\n' +
 			'}',
 			function(programID, constCoords) {
 				es3fShaderStructTests.setUniform1f(programID, "s.a", 1.0);
@@ -1759,25 +1759,25 @@ goog.scope(function() {
 			});
 
 		UniformStructCase('sampler_nested', "Sampler in nested struct", true,
-			'${HEADER}' +
-			'uniform int ui_zero;' +
-			'uniform int ui_one;' +
+			'${HEADER}\n' +
+			'uniform int ui_zero;\n' +
+			'uniform int ui_one;\n' +
 			'' +
-			'struct T {' +
-			'    sampler2D        a;' +
-			'    mediump vec2    b;' +
-			'};' +
-			'struct S {' +
-			'    mediump float    a;' +
-			'    T                b;' +
-			'    int                c;' +
-			'};' +
-			'uniform S s;' +
+			'struct T {\n' +
+			'    sampler2D        a;\n' +
+			'    mediump vec2    b;\n' +
+			'};\n' +
+			'struct S {\n' +
+			'    mediump float    a;\n' +
+			'    T                b;\n' +
+			'    int                c;\n' +
+			'};\n' +
+			'uniform S s;\n' +
 			'' +
-			'void main (void)' +
-			'{' +
-			'    ${DST} = vec4(texture(s.b.a, ${COORDS}.xy * s.b.b + s.a).rgb, s.c);' +
-			'    ${ASSIGN_POS}' +
+			'void main (void)\n' +
+			'{\n' +
+			'    ${DST} = vec4(texture(s.b.a, ${COORDS}.xy * s.b.b + s.a).rgb, s.c);\n' +
+			'    ${ASSIGN_POS}\n' +
 			'}',
 			function(programID, constCoords) {
 				es3fShaderStructTests.setUniform1f(programID, "s.a", 0.5);
@@ -1793,20 +1793,20 @@ goog.scope(function() {
 			});
 
 		UniformStructCase('sampler_array', "Sampler in struct array", true,
-			'${HEADER}' +
-			'uniform int ui_one;' +
+			'${HEADER}\n' +
+			'uniform int ui_one;\n' +
 			'' +
-			'struct S {' +
-			'    mediump float    a;' +
-			'    mediump vec3    b;' +
-			'    sampler2D        c;' +
-			'};' +
-			'uniform S s[2];' +
+			'struct S {\n' +
+			'    mediump float    a;\n' +
+			'    mediump vec3    b;\n' +
+			'    sampler2D        c;\n' +
+			'};\n' +
+			'uniform S s[2];\n' +
 			'' +
-			'void main (void)' +
-			'{' +
-			'    ${DST} = vec4(texture(s[1].c, ${COORDS}.xy * s[0].b.xy + s[1].b.z).rgb, s[0].a);' +
-			'    ${ASSIGN_POS}' +
+			'void main (void)\n' +
+			'{\n' +
+			'    ${DST} = vec4(texture(s[1].c, ${COORDS}.xy * s[0].b.xy + s[1].b.z).rgb, s[0].a);\n' +
+			'    ${ASSIGN_POS}\n' +
 			'}',
 			function(programID, constCoords) {
 				es3fShaderStructTests.setUniform1f(programID, "s[0].a", 1.0);
@@ -1824,27 +1824,27 @@ goog.scope(function() {
 			});
 
 		UniformStructCase('equal', "Struct equality", false,
-			'${HEADER}' +
-			'uniform mediump float uf_one;' +
-			'uniform int ui_two;' +
+			'${HEADER}\n' +
+			'uniform mediump float uf_one;\n' +
+			'uniform int ui_two;\n' +
 			'' +
-			'struct S {' +
-			'    mediump float    a;' +
-			'    mediump vec3    b;' +
-			'    int                c;' +
-			'};' +
-			'uniform S a;' +
-			'uniform S b;' +
-			'uniform S c;' +
+			'struct S {\n' +
+			'    mediump float    a;\n' +
+			'    mediump vec3    b;\n' +
+			'    int                c;\n' +
+			'};\n' +
+			'uniform S a;\n' +
+			'uniform S b;\n' +
+			'uniform S c;\n' +
 			'' +
-			'void main (void)' +
-			'{' +
-			'    S d = S(uf_one, vec3(0.0, floor(${COORDS}.y+1.0), 2.0), ui_two);' +
-			'    ${DST} = vec4(0.0, 0.0, 0.0, 1.0);' +
-			'    if (a == b) ${DST}.x = 1.0;' +
-			'    if (a == c) ${DST}.y = 1.0;' +
-			'    if (a == d) ${DST}.z = 1.0;' +
-			'    ${ASSIGN_POS}' +
+			'void main (void)\n' +
+			'{\n' +
+			'    S d = S(uf_one, vec3(0.0, floor(${COORDS}.y+1.0), 2.0), ui_two);\n' +
+			'    ${DST} = vec4(0.0, 0.0, 0.0, 1.0);\n' +
+			'    if (a == b) ${DST}.x = 1.0;\n' +
+			'    if (a == c) ${DST}.y = 1.0;\n' +
+			'    if (a == d) ${DST}.z = 1.0;\n' +
+			'    ${ASSIGN_POS}\n' +
 			'}',
 			function(programID, constCoords) {
 				es3fShaderStructTests.setUniform1f(programID, "a.a", 1.0);
@@ -1865,27 +1865,27 @@ goog.scope(function() {
 			});
 
 		UniformStructCase('not_equal', "Struct equality", false,
-			'${HEADER}' +
-			'uniform mediump float uf_one;' +
-			'uniform int ui_two;' +
+			'${HEADER}\n' +
+			'uniform mediump float uf_one;\n' +
+			'uniform int ui_two;\n' +
 			'' +
-			'struct S {' +
-			'    mediump float    a;' +
-			'    mediump vec3    b;' +
-			'    int                c;' +
-			'};' +
-			'uniform S a;' +
-			'uniform S b;' +
-			'uniform S c;' +
+			'struct S {\n' +
+			'    mediump float    a;\n' +
+			'    mediump vec3    b;\n' +
+			'    int                c;\n' +
+			'};\n' +
+			'uniform S a;\n' +
+			'uniform S b;\n' +
+			'uniform S c;\n' +
 			'' +
-			'void main (void)' +
-			'{' +
-			'    S d = S(uf_one, vec3(0.0, floor(${COORDS}.y+1.0), 2.0), ui_two);' +
-			'    ${DST} = vec4(0.0, 0.0, 0.0, 1.0);' +
-			'    if (a != b) ${DST}.x = 1.0;' +
-			'    if (a != c) ${DST}.y = 1.0;' +
-			'    if (a != d) ${DST}.z = 1.0;' +
-			'    ${ASSIGN_POS}' +
+			'void main (void)\n' +
+			'{\n' +
+			'    S d = S(uf_one, vec3(0.0, floor(${COORDS}.y+1.0), 2.0), ui_two);\n' +
+			'    ${DST} = vec4(0.0, 0.0, 0.0, 1.0);\n' +
+			'    if (a != b) ${DST}.x = 1.0;\n' +
+			'    if (a != c) ${DST}.y = 1.0;\n' +
+			'    if (a != d) ${DST}.z = 1.0;\n' +
+			'    ${ASSIGN_POS}\n' +
 			'}',
 			function(programID, constCoords) {
 				es3fShaderStructTests.setUniform1f(programID, "a.a", 1.0);

@@ -185,10 +185,10 @@ deMath.scale = function(a, b) {
  * @return {Array<number>} Result array
  */
 deMath.addScalar= function(a, b) {
-    if (Array.isArray(a))
+    if (!Array.isArray(a))
         throw new Error('First argument must be an array.');
-    if (typeof b === 'number')
-        throw new Error('Second argument must be an array.');
+    if (typeof b !== 'number')
+        throw new Error('Second argument must be a number.');
     var dst = [];
     for (var i = 0; i < a.length; i++)
         dst.push(a[i] + b);
