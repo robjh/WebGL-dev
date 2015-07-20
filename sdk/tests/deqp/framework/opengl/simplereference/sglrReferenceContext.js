@@ -2026,6 +2026,7 @@ goog.scope(function() {
     sglrReferenceContext.ReferenceContext.prototype.getSupportedExtensions = function() {
         var extensions = gl.getSupportedExtensions(); //TODO: Let's just return the context's supported extensions for now
         extensions.push('EXT_color_buffer_float');
+        extensions.push('EXT_color_buffer_half_float');
         return extensions;
     };
 

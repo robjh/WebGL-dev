@@ -110,7 +110,7 @@ goog.scope(function() {
     };
 
     /**
-     * @param {es3fFboRenderTest.FboConfig}
+     * @param {es3fFboRenderTest.FboConfig} config
      * @return {es3fFboRenderTest.FboConfig}
      */
     es3fFboRenderTest.copyFboConfig = function(config) {
@@ -839,11 +839,10 @@ goog.scope(function() {
         es3fFboRenderTest.createQuadsTex2D(
             context, quadsTex, gl.RGBA, gl.UNSIGNED_BYTE, width, height
         );
-        //TODO: Remove - tcuLogImage.logImageWithInfo(quadsTex.texture.getLevel(0), "Quads");
+
         es3fFboRenderTest.createMetaballsTex2D(
             context, metaballsTex, gl.RGBA, gl.UNSIGNED_BYTE, width, height
         );
-        //TODO: Remove - tcuLogImage.logImageWithInfo(metaballsTex.texture.getLevel(0), "Metaballs");
 
         /** @type {es3fFboRenderTest.Framebuffer} */
         var fbo = new es3fFboRenderTest.Framebuffer(
@@ -880,9 +879,6 @@ goog.scope(function() {
             context, texToFboShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]
         );
 
-        /*TODO: Remove - dst.readViewport(context, [0, 0, width, height])
-        tcuLogImage.logImageWithInfo(dst.getAccess(), "Quads tex stenciled");*/
-
         context.bindTexture(gl.TEXTURE_2D, metaballsTex);
         context.stencilFunc(gl.EQUAL, 2, 0xff);
 
@@ -890,9 +886,6 @@ goog.scope(function() {
         rrUtil.drawQuad(
             context, texToFboShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]
         );
-
-        /*TODO: Remove - dst.readViewport(context, [0,0,width, height])
-        tcuLogImage.logImageWithInfo(dst.getAccess(), "Metaballs tex stenciled");*/
 
         context.disable(gl.STENCIL_TEST);
 
@@ -1581,9 +1574,6 @@ goog.scope(function() {
         rrUtil.drawQuad(
             context, texToFboShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]
         );
-        /*TODO: Remove - */
-        dst.readViewport(context, [0, 0, context.getWidth(), context.getHeight()]);
-        tcuLogImage.logImageWithInfo(dst.getAccess(), "First render of quads texture");
 
         if (fbo.getConfig().colorType == gl.TEXTURE_2D) {
             // Render fbo to screen
@@ -1593,9 +1583,6 @@ goog.scope(function() {
             rrUtil.drawQuad(
                 context, texFromFboShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]
             );
-            /*TODO: Remove - */
-            dst.readViewport(context, [0, 0, context.getWidth(), context.getHeight()]);
-            tcuLogImage.logImageWithInfo(dst.getAccess(), "Same render of quads texture to main buffer");
             // Restore binding
             context.bindFramebuffer(gl.FRAMEBUFFER, fbo.getFramebuffer());
         }
@@ -1663,10 +1650,6 @@ goog.scope(function() {
             context, texToFboShaderID, [-1.0, -1.0, 0.0], [1.0, 1.0, 0.0]
         );
 
-        /*TODO: Remove - */
-        dst.readViewport(context, [0, 0, context.getWidth(), context.getHeight()]);
-        tcuLogImage.logImageWithInfo(dst.getAccess(), "First render of metaballs texture");
-
         context.bindTexture(gl.TEXTURE_2D, quadsTex);
         rrUtil.drawQuad(
             context, texToFboShaderID, [0.0, 0.0, -1.0], [1.0, 1.0, 1.0]
@@ -1699,8 +1682,6 @@ goog.scope(function() {
             dst.readViewport(
                 context, [0, 0, context.getWidth(), context.getHeight()]
             );
-            /*TODO: Remove - */
-            tcuLogImage.logImageWithInfo(dst.getAccess(), "First render of quads texture");
         } else
             es3fFboTestUtil.readPixels(
                 context, dst, 0, 0, newWidth, newHeight, colorFormat,
