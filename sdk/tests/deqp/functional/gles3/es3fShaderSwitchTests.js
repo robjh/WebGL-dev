@@ -30,6 +30,7 @@ goog.scope(function() {
     var glsShaderRenderCase = modules.shared.glsShaderRenderCase;
     var tcuTestCase = framework.common.tcuTestCase;
     var tcuStringTemplate = framework.common.tcuStringTemplate;
+
     /**
      * @constructor
      * @extends {glsShaderRenderCase.ShaderRenderCase}
@@ -464,12 +465,7 @@ goog.scope(function() {
             '}\n');
 
         // Negative cases.
-        // TODO
-        // ShaderLibrary library(m_testCtx, m_context.getRenderContext(), m_context.getContextInfo());
-        // vector<tcu::TestNode*> negativeCases = library.loadShaderFile("shaders/switch.test");
-        //
-        // for (vector<tcu::TestNode*>::iterator i = negativeCases.begin(); i != negativeCases.end(); i++)
-        //     addChild(*i);
+        // This is being tested somwhere else: data/gles3/shaders/switch.html
     };
 
     /**
