@@ -77,8 +77,13 @@ targets = {
     'negativevertexarrayapi': 'functional.gles3.es3fNegativeVertexArrayApiTests',
     'negativestateapi' : 'functional.gles3.es3fNegativeStateApiTests',
     'negativeshaderapi' : 'functional.gles3.es3fNegativeShaderApiTests',
+    'rasterizerdiscard' : 'functional.gles3.es3fRasterizerDiscardTests',
     'buffercopy' : 'functional.gles3.es3fBufferCopyTests',
-    'fborender' : 'functional.gles3.es3fFboRenderTest'
+    'shaderindexing' : 'functional.gles3.es3fShaderIndexingTests',
+    'shaderloop' : 'functional.gles3.es3fShaderLoopTests',
+    'shaderstruct' : 'functional.gles3.es3fShaderStructTests',
+    'shaderswitch' : 'functional.gles3.es3fShaderSwitchTests',
+	'fborender' : 'functional.gles3.es3fFboRenderTest'
 }
 
 total_errors = 0

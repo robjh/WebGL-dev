@@ -1,3 +1,5 @@
+*.dep
+*.compiled
 .htaccess
 *.Makefile
 *.gypcmd
