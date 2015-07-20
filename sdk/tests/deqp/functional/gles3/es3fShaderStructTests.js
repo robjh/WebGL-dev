@@ -1936,7 +1936,6 @@ goog.scope(function() {
         //Set up name and description of this test series.
         setCurrentTestName(state.testCases.fullName());
         description(state.testCases.getDescription());
-		debugger;
         try {
             //Run test cases
             tcuTestCase.runTestCases();

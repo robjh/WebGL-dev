@@ -81,7 +81,8 @@ targets = {
     'buffercopy' : 'functional.gles3.es3fBufferCopyTests',
     'shaderindexing' : 'functional.gles3.es3fShaderIndexingTests',
     'shaderloop' : 'functional.gles3.es3fShaderLoopTests',
-    'shaderstruct' : 'functional.gles3.es3fShaderStructTests'
+    'shaderstruct' : 'functional.gles3.es3fShaderStructTests',
+    'shaderswitch' : 'functional.gles3.es3fShaderSwitchTests'
 }
 
 total_errors = 0
