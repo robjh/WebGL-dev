@@ -108,555 +108,717 @@ goog.scope(function() {
 
         /** @type {Array<MagFilterModes>} */
         var magFilterModes = [
-       		{ name: "nearest",	mode: gl.NEAREST },
-       		{ name: "linear",		mode: gl.LINEAR }
-       	];
+               { name: "nearest",    mode: gl.NEAREST },
+               { name: "linear",        mode: gl.LINEAR }
+        ];
 
         /** @typedef {{width: number, height: number}} */
         var Sizes2D = {};
 
         /** @type {Array<Sizes2D>} */
-       	var sizes2D = [
-       		{ width:  4, height:	  8 },
-       		{ width: 32, height:	 64 },
-       		{ width:128, height:	128	},
-       		{ width:  3, height:	  7 },
-       		{ width: 31, height:	 55 },
-       		{ width:127, height:	 99 }
-       	];
+           var sizes2D = [
+               { width:  4, height:      8 },
+               { width: 32, height:     64 },
+               { width:128, height:    128    },
+               { width:  3, height:      7 },
+               { width: 31, height:     55 },
+               { width:127, height:     99 }
+        ];
 
         /** @typedef {{width: number, height: number}} */
         var SizesCube = {};
 
         /** @type {Array<SizesCube>} */
-       	var sizesCube = [
-       		{ width:  8, height:   8 },
-       		{ width: 64, height:  64 },
-       		{ width:128, height: 128 },
-       		{ width:  7, height:   7 },
-       		{ width: 63, height:  63 }
-       	];
+           var sizesCube = [
+               { width:  8, height:   8 },
+               { width: 64, height:  64 },
+               { width:128, height: 128 },
+               { width:  7, height:   7 },
+               { width: 63, height:  63 }
+        ];
 
-       	/** @typedef {{width: number, height: number, numLayers: number}} */
+           /** @typedef {{width: number, height: number, numLayers: number}} */
         var Sizes2DArray = {};
 
         /** @type {Array<sizes2DArray>} */
-       	var sizes2DArray = [
-       		{ width:   4, height:   8, numLayers:   8 },
-       		{ width:  32, height:  64, numLayers:  16 },
-       		{ width: 128, height:  32, numLayers:  64 },
-       		{ width:   3, height:   7, numLayers:   5 },
-       		{ width:  63, height:  63, numLayers:  63 }
-       	];
+           var sizes2DArray = [
+               { width:   4, height:   8, numLayers:   8 },
+               { width:  32, height:  64, numLayers:  16 },
+               { width: 128, height:  32, numLayers:  64 },
+               { width:   3, height:   7, numLayers:   5 },
+               { width:  63, height:  63, numLayers:  63 }
+        ];
 
         /** @typedef {{width: number, height: number, depth: number}} */
-       	var Sizes3D = {};
+           var Sizes3D = {};
 
         /** @type {Array<Sizes3D>} */
         var sizes3D = [
-       	    { width:   4, height:   8, depth:   8 },
-       		{ width:  32, height:  64, depth:  16 },
-       		{ width: 128, height:  32, depth:  64 },
-       		{ width:   3, height:   7, depth:   5 },
-       		{ width:  63, height:  63, depth:  63 }
-       	];
+               { width:   4, height:   8, depth:   8 },
+               { width:  32, height:  64, depth:  16 },
+               { width: 128, height:  32, depth:  64 },
+               { width:   3, height:   7, depth:   5 },
+               { width:  63, height:  63, depth:  63 }
+        ];
 
         /** @typedef {{name: string, format: number}} */
         var FilterableFormatsByType = {};
 
         /** @type {Array<FilterableFormatsByType>} */
         var filterableFormatsByType = [
-       		{ name: "rgba16f", format:		gl.RGBA16F			},
-       		{ name: "r11f_g11f_b10f", format:	gl.R11F_G11F_B10F	},
-       		{ name: "rgb9_e5", format:		gl.RGB9_E5			},
-       		{ name: "rgba8", format:			gl.RGBA8			},
-       		{ name: "rgba8_snorm", format:	gl.RGBA8_SNORM		},
-       		{ name: "rgb565", format:			gl.RGB565			},
-       		{ name: "rgba4", format:			gl.RGBA4			},
-       		{ name: "rgb5_a1", format:		gl.RGB5_A1			},
-       		{ name: "srgb8_alpha8", format:	gl.SRGB8_ALPHA8		},
-       		{ name: "rgb10_a2", format:		gl.RGB10_A2			}
-       	];
+               { name: "rgba16f", format:        gl.RGBA16F            },
+               { name: "r11f_g11f_b10f", format:    gl.R11F_G11F_B10F    },
+               { name: "rgb9_e5", format:        gl.RGB9_E5            },
+               { name: "rgba8", format:            gl.RGBA8            },
+               { name: "rgba8_snorm", format:    gl.RGBA8_SNORM        },
+               { name: "rgb565", format:            gl.RGB565            },
+               { name: "rgba4", format:            gl.RGBA4            },
+               { name: "rgb5_a1", format:        gl.RGB5_A1            },
+               { name: "srgb8_alpha8", format:    gl.SRGB8_ALPHA8        },
+               { name: "rgb10_a2", format:        gl.RGB10_A2            }
+        ];
 
-       	// 2D texture filtering.
+           // 2D texture filtering.
 
- 		/** @type {tcuTestCase.DeqpTest} */
+         /** @type {tcuTestCase.DeqpTest} */
         var group2D = new tcuTestCase.DeqpTest("2d", "2D Texture Filtering");
- 		this.addChild(group2D);
+         this.addChild(group2D);
 
- 		// Formats.
- 		/** @type {tcuTestCase.DeqpTest} */
+         // Formats.
+         /** @type {tcuTestCase.DeqpTest} */
         var formatsGroup = new tcuTestCase.DeqpTest(
             "formats", "2D Texture Formats");
 
         group2D.addChild(formatsGroup);
 
         for (var fmtNdx = 0; fmtNdx < filterableFormatsByType.length; fmtNdx++)
- 		{
- 			for (var filterNdx = 0;
+         {
+             for (var filterNdx = 0;
                 filterNdx < minFilterModes.length;
                 filterNdx++)
- 			{
- 				/** @type {number} */
-                var minFilter	= minFilterModes[filterNdx].mode;
- 				/** @type {string} */
+             {
+                 /** @type {number} */
+                var minFilter    = minFilterModes[filterNdx].mode;
+                 /** @type {string} */
                 var filterName = minFilterModes[filterNdx].name;
- 				/** @type {number} */
-                var	format		= filterableFormatsByType[fmtNdx].format;
- 				/** @type {string} */
+                 /** @type {number} */
+                var    format        = filterableFormatsByType[fmtNdx].format;
+                 /** @type {string} */
                 var formatName = filterableFormatsByType[fmtNdx].name;
- 				var isMipmap = minFilter != gl.NEAREST &&
+                 var isMipmap = minFilter != gl.NEAREST &&
                     minFilter != gl.LINEAR;
- 				/** @type {number} */
-                var	magFilter = isMipmap ? gl.LINEAR : minFilter;
- 				/** @type {string} */
-                var	name = formatName + "_" + filterName;
- 				/** @type {number} */
-                var	wrapS = gl.REPEAT;
- 				/** @type {number} */
+                 /** @type {number} */
+                var    magFilter = isMipmap ? gl.LINEAR : minFilter;
+                 /** @type {string} */
+                var    name = formatName + "_" + filterName;
+                 /** @type {number} */
+                var    wrapS = gl.REPEAT;
+                 /** @type {number} */
                 var wrapT = gl.REPEAT;
- 				/** @type {number} */ var width		= 64;
- 				/** @type {number} */ var height		= 64;
+                 /** @type {number} */ var width        = 64;
+                 /** @type {number} */ var height        = 64;
 
- 				formatsGroup.addChild(
+                 formatsGroup.addChild(
                     new es3fTextureFilteringTests.Texture2DFilteringCase(
                         name, "", minFilter, magFilter, wrapS, wrapT,
- 						format, width, height
+                         format, width, height
                     )
                 );
- 			}
- 		}
+             }
+         }
 
- 		// ETC1 format.
-		/** @type {Array<string>} */ var filenames;
-		for (var i = 0; i <= 7; i++)
-			filenames.push("data/etc1/photo_helsinki_mip_" + i + ".pkm");
+         // ETC1 format.
+        /** @type {Array<string>} */ var filenames;
+        for (var i = 0; i <= 7; i++)
+            filenames.push("data/etc1/photo_helsinki_mip_" + i + ".pkm");
 
-		for (var filterNdx = 0; filterNdx < minFilterModes.length; filterNdx++)
-		{
-			/** @type {number} */
-            var minFilter	= minFilterModes[filterNdx].mode;
-			/** @type {string} */
-            var filterName	= minFilterModes[filterNdx].name;
-			var	isMipmap	= minFilter != gl.NEAREST && minFilter != gl.LINEAR;
-			/** @type {number} */
-            var magFilter	= isMipmap ? gl.LINEAR : minFilter;
-			/** @type {string} */
-            var name		= "etc1_rgb8_" + filterName;
-			/** @type {number} */
-            var wrapS		= gl.REPEAT;
-			/** @type {number} */
-            var wrapT		= gl.REPEAT;
+        for (var filterNdx = 0; filterNdx < minFilterModes.length; filterNdx++)
+        {
+            /** @type {number} */
+            var minFilter    = minFilterModes[filterNdx].mode;
+            /** @type {string} */
+            var filterName    = minFilterModes[filterNdx].name;
+            var isMipmap    = minFilter != gl.NEAREST &&
+                minFilter != gl.LINEAR;
+            /** @type {number} */
+            var magFilter    = isMipmap ? gl.LINEAR : minFilter;
+            /** @type {string} */
+            var name        = "etc1_rgb8_" + filterName;
+            /** @type {number} */
+            var wrapS        = gl.REPEAT;
+            /** @type {number} */
+            var wrapT        = gl.REPEAT;
 
-			formatsGroup.addChild(
+            formatsGroup.addChild(
                 new es3fTextureFilteringTests.Texture2DFilteringCase(
                     name, "", minFilter, magFilter, wrapS, wrapT, filenames
                 )
             );
-		}
+        }
 
- 		// Sizes.
- 		/** @type {tcuTestCase.DeqpTest} */
+        // Sizes.
+        /** @type {tcuTestCase.DeqpTest} */
         var sizesGroup = new tcuTestCase.DeqpTest("sizes", "Texture Sizes");
- 		group2D.addChild(sizesGroup);
- 		for (var sizeNdx = 0; sizeNdx < sizes2D.length; sizeNdx++)
- 		{
- 			for (var filterNdx = 0; filterNdx < minFilterModes.length; filterNdx++)
- 			{
- 				/** @type {number} */
-                var	minFilter	= minFilterModes[filterNdx].mode;
- 				/** @type {string} */
-                var filterName	= minFilterModes[filterNdx].name;
- 				/** @type {number} */
-                var	format		= gl.RGBA8;
+        group2D.addChild(sizesGroup);
+        for (var sizeNdx = 0; sizeNdx < sizes2D.length; sizeNdx++)
+        {
+            for (var filterNdx = 0; filterNdx < minFilterModes.length; filterNdx++)
+            {
+                /** @type {number} */
+                var    minFilter    = minFilterModes[filterNdx].mode;
+                /** @type {string} */
+                var filterName    = minFilterModes[filterNdx].name;
+                /** @type {number} */
+                var    format        = gl.RGBA8;
                 /** @type {boolean} */
- 				var isMipmap	= minFilter != gl.NEAREST && minFilter != gl.LINEAR;
- 				/** @type {number} */
-                var	magFilter	= isMipmap ? gl.LINEAR : minFilter;
- 				/** @type {number} */
-                var	wrapS		= gl.REPEAT;
- 				/** @type {number} */
-                var	wrapT		= gl.REPEAT;
- 				/** @type {number} */
-                var	width		= sizes2D[sizeNdx].width;
- 				/** @type {number} */
-                var	height		= sizes2D[sizeNdx].height;
- 				/** @type {string} */
-                var	name		= '' + width + "x" + height + "_" + filterName;
+                var isMipmap    = minFilter != gl.NEAREST && minFilter != gl.LINEAR;
+                /** @type {number} */
+                var    magFilter    = isMipmap ? gl.LINEAR : minFilter;
+                /** @type {number} */
+                var    wrapS        = gl.REPEAT;
+                /** @type {number} */
+                var    wrapT        = gl.REPEAT;
+                /** @type {number} */
+                var    width        = sizes2D[sizeNdx].width;
+                /** @type {number} */
+                var    height        = sizes2D[sizeNdx].height;
+                /** @type {string} */
+                var    name        = '' + width + "x" + height + "_" + filterName;
 
- 				sizesGroup.addChild(
+                sizesGroup.addChild(
                     new es3fTextureFilteringTests.Texture2DFilteringCase(
                         name, "", minFilter, magFilter, wrapS, wrapT,
                         format, width, height
                     )
                 );
- 			}
- 		}
+            }
+        }
 
- 		// Wrap modes.
- 		tcu::TestCaseGroup* combinationsGroup = new tcu::TestCaseGroup(m_testCtx, "combinations", "Filter and wrap mode combinations");
- 		group2D->addChild(combinationsGroup);
- 		for (int minFilterNdx = 0; minFilterNdx < DE_LENGTH_OF_ARRAY(minFilterModes); minFilterNdx++)
- 		{
- 			for (int magFilterNdx = 0; magFilterNdx < DE_LENGTH_OF_ARRAY(magFilterModes); magFilterNdx++)
- 			{
- 				for (int wrapSNdx = 0; wrapSNdx < DE_LENGTH_OF_ARRAY(wrapModes); wrapSNdx++)
- 				{
- 					for (int wrapTNdx = 0; wrapTNdx < DE_LENGTH_OF_ARRAY(wrapModes); wrapTNdx++)
- 					{
- 						deUint32		minFilter	= minFilterModes[minFilterNdx].mode;
- 						deUint32		magFilter	= magFilterModes[magFilterNdx].mode;
- 						deUint32		format		= gl.RGBA8;
- 						deUint32		wrapS		= wrapModes[wrapSNdx].mode;
- 						deUint32		wrapT		= wrapModes[wrapTNdx].mode;
- 						int				width		= 63;
- 						int				height		= 57;
- 						string			name		= string(minFilterModes[minFilterNdx].name) + "_" + magFilterModes[magFilterNdx].name + "_" + wrapModes[wrapSNdx].name + "_" + wrapModes[wrapTNdx].name;
+        // Wrap modes.
+        /** @type {tcuTestCase.DeqpTest} */
+        var combinationsGroup = new tcuTestCase.DeqpTest(
+            "combinations", "Filter and wrap mode combinations"
+        );
+        group2D.addChild(combinationsGroup);
 
- 						combinationsGroup->addChild(new Texture2DFilteringCase(m_testCtx, m_context.getRenderContext(), m_context.getContextInfo(),
- 																			   name.c_str(), "",
- 																			   minFilter, magFilter,
- 																			   wrapS, wrapT,
- 																			   format,
- 																			   width, height));
- 					}
- 				}
- 			}
- 		}
+        for (var minFilterNdx = 0;
+            minFilterNdx < minFilterModes.length;
+            minFilterNdx++)
+        {
+            for (var magFilterNdx = 0;
+                magFilterNdx < magFilterModes.length;
+                magFilterNdx++)
+            {
+                for (var wrapSNdx = 0; wrapSNdx < wrapModes.length; wrapSNdx++)
+                {
+                    for (var wrapTNdx = 0;
+                        wrapTNdx < wrapModes.length;
+                        wrapTNdx++)
+                    {
+                        /** @type {number} */
+                        var minFilter = minFilterModes[minFilterNdx].mode;
+                        /** @type {number} */
+                        var magFilter = magFilterModes[magFilterNdx].mode;
+                        /** @type {number} */
+                        var format = gl.RGBA8;
+                        /** @type {number} */
+                        var wrapS = wrapModes[wrapSNdx].mode;
+                        /** @type {number} */
+                        var wrapT = wrapModes[wrapTNdx].mode;
+                        /** @type {number} */
+                        var width = 63;
+                        /** @type {number} */
+                        var height = 57;
+                        /** @type {string} */
+                        var name = minFilterModes[minFilterNdx].name + "_" +
+                            magFilterModes[magFilterNdx].name + "_" +
+                            wrapModes[wrapSNdx].name + "_" +
+                            wrapModes[wrapTNdx].name;
 
-       	// Cube map texture filtering.
+                        combinationsGroup.addChild(
+                            new
+                            es3fTextureFilteringTests.Texture2DFilteringCase(
+                                name, "", minFilter, magFilter, wrapS, wrapT,
+                                format, width, height
+                            )
+                        );
+                    }
+                }
+            }
+        }
 
- 		tcu::TestCaseGroup* groupCube = new tcu::TestCaseGroup(m_testCtx, "cube", "Cube Map Texture Filtering");
- 		addChild(groupCube);
+        // Cube map texture filtering.
 
- 		// Formats.
- 		tcu::TestCaseGroup* formatsGroup = new tcu::TestCaseGroup(m_testCtx, "formats", "2D Texture Formats");
- 		groupCube->addChild(formatsGroup);
- 		for (int fmtNdx = 0; fmtNdx < DE_LENGTH_OF_ARRAY(filterableFormatsByType); fmtNdx++)
- 		{
- 			for (int filterNdx = 0; filterNdx < DE_LENGTH_OF_ARRAY(minFilterModes); filterNdx++)
- 			{
- 				deUint32		minFilter	= minFilterModes[filterNdx].mode;
- 				const char*		filterName	= minFilterModes[filterNdx].name;
- 				deUint32		format		= filterableFormatsByType[fmtNdx].format;
- 				const char*		formatName	= filterableFormatsByType[fmtNdx].name;
- 				bool			isMipmap	= minFilter != gl.NEAREST && minFilter != gl.LINEAR;
- 				deUint32		magFilter	= isMipmap ? gl.LINEAR : minFilter;
- 				string			name		= string(formatName) + "_" + filterName;
- 				deUint32		wrapS		= gl.REPEAT;
- 				deUint32		wrapT		= gl.REPEAT;
- 				int				width		= 64;
- 				int				height		= 64;
+        /** @type {tcuTestCase.DeqpTest} */
+        var groupCube = new tcuTestCase.DeqpTest(
+            "cube", "Cube Map Texture Filtering"
+        );
+        this.addChild(groupCube);
 
- 				formatsGroup->addChild(new TextureCubeFilteringCase(m_testCtx, m_context.getRenderContext(), m_context.getContextInfo(),
- 																	name.c_str(), "",
- 																	minFilter, magFilter,
- 																	wrapS, wrapT,
- 																	false /* always sample exterior as well */,
- 																	format,
- 																	width, height));
- 			}
- 		}
+        // Formats.
+        /** @type {tcuTestCase.DeqpTest} */
+        formatsGroup = new tcuTestCase.DeqpTest(
+            "formats", "2D Texture Formats"
+        );
+        groupCube.addChild(formatsGroup);
+        for (var fmtNdx = 0; fmtNdx < filterableFormatsByType.length; fmtNdx++)
+        {
+            for (var filterNdx = 0;
+                filterNdx < minFilterModes.length;
+                filterNdx++)
+            {
+                /** @type {number} */
+                var minFilter = minFilterModes[filterNdx].mode;
+                var filterName = minFilterModes[filterNdx].name;
+                /** @type {number} */
+                var format = filterableFormatsByType[fmtNdx].format;
+                var formatName = filterableFormatsByType[fmtNdx].name;
+                var isMipmap = minFilter != gl.NEAREST &&
+                    minFilter != gl.LINEAR;
+                /** @type {number} */
+                var magFilter = isMipmap ? gl.LINEAR : minFilter;
+                var name = formatName + "_" + filterName;
+                /** @type {number} */
+                var wrapS = gl.REPEAT;
+                /** @type {number} */
+                var wrapT = gl.REPEAT;
+                /** @type {number} */ var width = 64;
+                /** @type {number} */ var height = 64;
 
- 		// ETC1 format.
+                formatsGroup.addChild(
+                    new es3fTextureFilteringTests.TextureCubeFilteringCase(
+                        name, "", minFilter, magFilter, wrapS, wrapT,
+                        false /* always sample exterior as well */,
+                        format, width, height
+                    )
+                );
+            }
+        }
 
-		static const char* faceExt[] = { "neg_x", "pos_x", "neg_y", "pos_y", "neg_z", "pos_z" };
+        // ETC1 format.
 
-		const int		numLevels	= 7;
-		vector<string>	filenames;
-		for (int level = 0; level < numLevels; level++)
-			for (int face = 0; face < tcu::CUBEFACE_LAST; face++)
-				filenames.push_back(string("data/etc1/skybox_") + faceExt[face] + "_mip_" + de::toString(level) + ".pkm");
+        var faceExt = [
+            "neg_x", "pos_x", "neg_y", "pos_y", "neg_z", "pos_z"
+        ];
 
-		for (int filterNdx = 0; filterNdx < DE_LENGTH_OF_ARRAY(minFilterModes); filterNdx++)
-		{
-			deUint32		minFilter	= minFilterModes[filterNdx].mode;
-			const char*		filterName	= minFilterModes[filterNdx].name;
-			bool			isMipmap	= minFilter != gl.NEAREST && minFilter != gl.LINEAR;
-			deUint32		magFilter	= isMipmap ? gl.LINEAR : minFilter;
-			string			name		= string("etc1_rgb8_") + filterName;
-			deUint32		wrapS		= gl.REPEAT;
-			deUint32		wrapT		= gl.REPEAT;
+        var numLevels = 7;
+        var filenames;
+        for (var level = 0; level < numLevels; level++)
+            for (var face = 0;
+                face < Object.keys(tcuTexture.CubeFace).length;
+                face++)
+                filenames.push(
+                    "data/etc1/skybox_" + faceExt[face] +
+                    "_mip_" + level + ".pkm"
+                );
 
-			formatsGroup->addChild(new TextureCubeFilteringCase(m_testCtx, m_context.getRenderContext(), m_context.getContextInfo(),
-																name.c_str(), "",
-																minFilter, magFilter,
-																wrapS, wrapT,
-																false /* always sample exterior as well */,
-																filenames));
-		}
+        for (var filterNdx = 0; filterNdx < minFilterModes.length; filterNdx++)
+        {
+            /** @type {number} */
+            var minFilter = minFilterModes[filterNdx].mode;
+            var filterName = minFilterModes[filterNdx].name;
+            var isMipmap = minFilter != gl.NEAREST && minFilter != gl.LINEAR;
+            /** @type {number} */
+            var magFilter = isMipmap ? gl.LINEAR : minFilter;
+            var name = "etc1_rgb8_" + filterName;
+            /** @type {number} */
+            var wrapS = gl.REPEAT;
+            /** @type {number} */
+            var wrapT = gl.REPEAT;
 
- 		// Sizes.
- 		tcu::TestCaseGroup* sizesGroup = new tcu::TestCaseGroup(m_testCtx, "sizes", "Texture Sizes");
- 		groupCube->addChild(sizesGroup);
- 		for (int sizeNdx = 0; sizeNdx < DE_LENGTH_OF_ARRAY(sizesCube); sizeNdx++)
- 		{
- 			for (int filterNdx = 0; filterNdx < DE_LENGTH_OF_ARRAY(minFilterModes); filterNdx++)
- 			{
- 				deUint32		minFilter	= minFilterModes[filterNdx].mode;
- 				const char*		filterName	= minFilterModes[filterNdx].name;
- 				deUint32		format		= gl.RGBA8;
- 				bool			isMipmap	= minFilter != gl.NEAREST && minFilter != gl.LINEAR;
- 				deUint32		magFilter	= isMipmap ? gl.LINEAR : minFilter;
- 				deUint32		wrapS		= gl.REPEAT;
- 				deUint32		wrapT		= gl.REPEAT;
- 				int				width		= sizesCube[sizeNdx].width;
- 				int				height		= sizesCube[sizeNdx].height;
- 				string			name		= de::toString(width) + "x" + de::toString(height) + "_" + filterName;
+            formatsGroup.addChild(
+                new es3fTextureFilteringTests.TextureCubeFilteringCase(
+                    name, "", minFilter, magFilter,
+                    wrapS, wrapT, false /* always sample exterior as well */,
+                    filenames
+                )
+            );
+        }
 
- 				sizesGroup->addChild(new TextureCubeFilteringCase(m_testCtx, m_context.getRenderContext(), m_context.getContextInfo(),
- 																  name.c_str(), "",
- 																  minFilter, magFilter,
- 																  wrapS, wrapT,
- 																  false,
- 																  format,
- 																  width, height));
- 			}
- 		}
+        // Sizes.
+        /** @type {tcuTestCase.DeqpTest} */
+        sizesGroup = new tcuTestCase.DeqpTest(
+            "sizes", "Texture Sizes"
+        );
+        groupCube.addChild(sizesGroup);
+        for (var sizeNdx = 0; sizeNdx < sizesCube.length; sizeNdx++)
+        {
+            for (var filterNdx = 0;
+                filterNdx < minFilterModes.length;
+                filterNdx++)
+            {
+                /** @type {number} */
+                var minFilter = minFilterModes[filterNdx].mode;
+                var filterName = minFilterModes[filterNdx].name;
+                /** @type {number} */ var format = gl.RGBA8;
+                var isMipmap = minFilter != gl.NEAREST &&
+                    minFilter != gl.LINEAR;
+                /** @type {number} */
+                var magFilter = isMipmap ? gl.LINEAR : minFilter;
+                /** @type {number} */ var wrapS = gl.REPEAT;
+                /** @type {number} */ var wrapT = gl.REPEAT;
+                /** @type {number} */ var width = sizesCube[sizeNdx].width;
+                /** @type {number} */ var height = sizesCube[sizeNdx].height;
+                var name = '' + width + "x" + height + "_" + filterName;
 
- 		// Filter/wrap mode combinations.
- 		tcu::TestCaseGroup* combinationsGroup = new tcu::TestCaseGroup(m_testCtx, "combinations", "Filter and wrap mode combinations");
- 		groupCube->addChild(combinationsGroup);
- 		for (int minFilterNdx = 0; minFilterNdx < DE_LENGTH_OF_ARRAY(minFilterModes); minFilterNdx++)
- 		{
- 			for (int magFilterNdx = 0; magFilterNdx < DE_LENGTH_OF_ARRAY(magFilterModes); magFilterNdx++)
- 			{
- 				for (int wrapSNdx = 0; wrapSNdx < DE_LENGTH_OF_ARRAY(wrapModes); wrapSNdx++)
- 				{
- 					for (int wrapTNdx = 0; wrapTNdx < DE_LENGTH_OF_ARRAY(wrapModes); wrapTNdx++)
- 					{
- 						deUint32		minFilter	= minFilterModes[minFilterNdx].mode;
- 						deUint32		magFilter	= magFilterModes[magFilterNdx].mode;
- 						deUint32		format		= gl.RGBA8;
- 						deUint32		wrapS		= wrapModes[wrapSNdx].mode;
- 						deUint32		wrapT		= wrapModes[wrapTNdx].mode;
- 						int				width		= 63;
- 						int				height		= 63;
- 						string			name		= string(minFilterModes[minFilterNdx].name) + "_" + magFilterModes[magFilterNdx].name + "_" + wrapModes[wrapSNdx].name + "_" + wrapModes[wrapTNdx].name;
+                sizesGroup.addChild(
+                    new es3fTextureFilteringTests.TextureCubeFilteringCase(
+                        name, "", minFilter, magFilter, wrapS, wrapT,
+                        false, format, width, height
+                    )
+                );
+            }
+        }
 
- 						combinationsGroup->addChild(new TextureCubeFilteringCase(m_testCtx, m_context.getRenderContext(), m_context.getContextInfo(),
- 																				 name.c_str(), "",
- 																				 minFilter, magFilter,
- 																				 wrapS, wrapT,
- 																				 false,
- 																				 format,
- 																				 width, height));
- 					}
- 				}
- 			}
- 		}
+        // Filter/wrap mode combinations.
+        /** @type {tcuTestCase.DeqpTest} */
+        combinationsGroup = new tcuTestCase.DeqpTest(
+            "combinations", "Filter and wrap mode combinations"
+        );
+        groupCube.addChild(combinationsGroup);
+        for (var minFilterNdx = 0;
+            minFilterNdx < minFilterModes.length;
+            minFilterNdx++)
+        {
+            for (var magFilterNdx = 0;
+                magFilterNdx < magFilterModes.length;
+                magFilterNdx++)
+            {
+                for (var wrapSNdx = 0; wrapSNdx < wrapModes.length; wrapSNdx++)
+                {
+                    for (var wrapTNdx = 0;
+                        wrapTNdx < wrapModes.length;
+                        wrapTNdx++)
+                    {
+                        /** @type {number} */
+                        var minFilter = minFilterModes[minFilterNdx].mode;
+                        /** @type {number} */
+                        var magFilter = magFilterModes[magFilterNdx].mode;
+                        /** @type {number} */ var format = gl.RGBA8;
+                        /** @type {number} */
+                        var wrapS = wrapModes[wrapSNdx].mode;
+                        /** @type {number} */
+                        var wrapT = wrapModes[wrapTNdx].mode;
+                        /** @type {number} */ var width = 63;
+                        /** @type {number} */ varheight = 63;
+                        var name = minFilterModes[minFilterNdx].name + "_" +
+                            magFilterModes[magFilterNdx].name + "_" +
+                            wrapModes[wrapSNdx].name + "_" +
+                            wrapModes[wrapTNdx].name;
 
- 		// Cases with no visible cube edges.
- 		tcu::TestCaseGroup* onlyFaceInteriorGroup = new tcu::TestCaseGroup(m_testCtx, "no_edges_visible", "Don't sample anywhere near a face's edges");
- 		groupCube->addChild(onlyFaceInteriorGroup);
+                        combinationsGroup.addChild(
+                            new es3fTextureFilteringTests.
+                            TextureCubeFilteringCase(
+                                name, "", minFilter, magFilter, wrapS, wrapT,
+                                false, format, width, height
+                            )
+                        );
+                    }
+                }
+            }
+        }
 
- 		for (int isLinearI = 0; isLinearI <= 1; isLinearI++)
- 		{
- 			bool		isLinear	= isLinearI != 0;
- 			deUint32	filter		= isLinear ? gl.LINEAR : gl.NEAREST;
+        // Cases with no visible cube edges.
+        /** @type {tcuTestCase.DeqpTest} */
+        var onlyFaceInteriorGroup = new tcuTestCase.DeqpTest(
+            "no_edges_visible", "Don't sample anywhere near a face's edges"
+        );
+        groupCube.addChild(onlyFaceInteriorGroup);
 
- 			onlyFaceInteriorGroup->addChild(new TextureCubeFilteringCase(m_testCtx, m_context.getRenderContext(), m_context.getContextInfo(),
- 																		 isLinear ? "linear" : "nearest", "",
- 																		 filter, filter,
- 																		 gl.REPEAT, gl.REPEAT,
- 																		 true,
- 																		 gl.RGBA8,
- 																		 63, 63));
- 		}
+        for (int isLinearI = 0; isLinearI <= 1; isLinearI++)
+        {
+            var isLinear = isLinearI != 0;
+            var filter = isLinear ? gl.LINEAR : gl.NEAREST;
 
-     	// 2D array texture filtering.
+            onlyFaceInteriorGroup.addChild(
+                new es3fTextureFilteringTests.TextureCubeFilteringCase(
+                    isLinear ? "linear" : "nearest", "",
+                    filter, filter, gl.REPEAT, gl.REPEAT,
+                    true, gl.RGBA8, 63, 63
+                )
+            );
+        }
 
- 		tcu::TestCaseGroup* const group2DArray = new tcu::TestCaseGroup(m_testCtx, "2d_array", "2D Array Texture Filtering");
- 		addChild(group2DArray);
+        // 2D array texture filtering.
 
- 		// Formats.
- 		tcu::TestCaseGroup* const formatsGroup = new tcu::TestCaseGroup(m_testCtx, "formats", "2D Array Texture Formats");
- 		group2DArray->addChild(formatsGroup);
- 		for (int fmtNdx = 0; fmtNdx < DE_LENGTH_OF_ARRAY(filterableFormatsByType); fmtNdx++)
- 		{
- 			for (int filterNdx = 0; filterNdx < DE_LENGTH_OF_ARRAY(minFilterModes); filterNdx++)
- 			{
- 				deUint32		minFilter	= minFilterModes[filterNdx].mode;
- 				const char*		filterName	= minFilterModes[filterNdx].name;
- 				deUint32		format		= filterableFormatsByType[fmtNdx].format;
- 				const char*		formatName	= filterableFormatsByType[fmtNdx].name;
- 				bool			isMipmap	= minFilter != gl.NEAREST && minFilter != gl.LINEAR;
- 				deUint32		magFilter	= isMipmap ? gl.LINEAR : minFilter;
- 				string			name		= string(formatName) + "_" + filterName;
- 				deUint32		wrapS		= gl.REPEAT;
- 				deUint32		wrapT		= gl.REPEAT;
- 				int				width		= 128;
- 				int				height		= 128;
- 				int				numLayers	= 8;
+        /** @type {tcuTestCase.DeqpTest} */
+        group2DArray = new tcuTestCase.DeqpTest(
+            "2d_array", "2D Array Texture Filtering"
+        );
+        this.addChild(group2DArray);
 
- 				formatsGroup->addChild(new Texture2DArrayFilteringCase(m_context,
- 																	   name.c_str(), "",
- 																	   minFilter, magFilter,
- 																	   wrapS, wrapT,
- 																	   format,
- 																	   width, height, numLayers));
- 			}
- 		}
+        // Formats.
+        /** @type {tcuTestCase.DeqpTest} */
+        formatsGroup = new tcuTestCase.DeqpTest(
+            "formats", "2D Array Texture Formats"
+        );
+        group2DArray.addChild(formatsGroup);
+        for (var fmtNdx = 0; fmtNdx < filterableFormatsByType.length; fmtNdx++)
+        {
+            for (var filterNdx = 0;
+                filterNdx < minFilterModes.length;
+                filterNdx++)
+            {
+                /** @type {number} */
+                var minFilter = minFilterModes[filterNdx].mode;
+                var filterName = minFilterModes[filterNdx].name;
+                /** @type {number} */
+                var format = filterableFormatsByType[fmtNdx].format;
+                var formatName = filterableFormatsByType[fmtNdx].name;
+                var isMipmap = minFilter != gl.NEAREST &&
+                    minFilter != gl.LINEAR;
+                /** @type {number} */
+                var magFilter = isMipmap ? gl.LINEAR : minFilter;
+                var name = string(formatName) + "_" + filterName;
+                /** @type {number} */ var wrapS = gl.REPEAT;
+                /** @type {number} */ var wrapT = gl.REPEAT;
+                /** @type {number} */ var width = 128;
+                /** @type {number} */ var height = 128;
+                /** @type {number} */ var numLayers = 8;
 
- 		// Sizes.
- 		tcu::TestCaseGroup* sizesGroup = new tcu::TestCaseGroup(m_testCtx, "sizes", "Texture Sizes");
- 		group2DArray->addChild(sizesGroup);
- 		for (int sizeNdx = 0; sizeNdx < DE_LENGTH_OF_ARRAY(sizes2DArray); sizeNdx++)
- 		{
- 			for (int filterNdx = 0; filterNdx < DE_LENGTH_OF_ARRAY(minFilterModes); filterNdx++)
- 			{
- 				deUint32		minFilter	= minFilterModes[filterNdx].mode;
- 				const char*		filterName	= minFilterModes[filterNdx].name;
- 				deUint32		format		= gl.RGBA8;
- 				bool			isMipmap	= minFilter != gl.NEAREST && minFilter != gl.LINEAR;
- 				deUint32		magFilter	= isMipmap ? gl.LINEAR : minFilter;
- 				deUint32		wrapS		= gl.REPEAT;
- 				deUint32		wrapT		= gl.REPEAT;
- 				int				width		= sizes2DArray[sizeNdx].width;
- 				int				height		= sizes2DArray[sizeNdx].height;
- 				int				numLayers	= sizes2DArray[sizeNdx].numLayers;
- 				string			name		= de::toString(width) + "x" + de::toString(height) + "x" + de::toString(numLayers) + "_" + filterName;
+                formatsGroup.addChild(
+                    new es3fTextureFilteringTests.Texture2DArrayFilteringCase(
+                        name, "", minFilter, magFilter, wrapS, wrapT,
+                        format, width, height, numLayers
+                    )
+                );
+            }
+        }
 
- 				sizesGroup->addChild(new Texture2DArrayFilteringCase(m_context,
- 																	 name.c_str(), "",
- 																	 minFilter, magFilter,
- 																	 wrapS, wrapT,
- 																	 format,
- 																	 width, height, numLayers));
- 			}
- 		}
+        // Sizes.
+        /** @type {tcuTestCase.DeqpTest} */
+        sizesGroup = new tcuTestCase.DeqpTest("sizes", "Texture Sizes");
+        group2DArray.addChild(sizesGroup);
+        for (var sizeNdx = 0; sizeNdx < sizes2DArray.length; sizeNdx++)
+        {
+            for (var filterNdx = 0;
+                filterNdx < minFilterModes.length;
+                filterNdx++)
+            {
+                /** @type {number} */
+                var minFilter = minFilterModes[filterNdx].mode;
+                var filterName = minFilterModes[filterNdx].name;
+                /** @type {number} */ var format = gl.RGBA8;
+                var isMipmap = minFilter != gl.NEAREST &&
+                    minFilter != gl.LINEAR;
+                /** @type {number} */
+                var magFilter = isMipmap ? gl.LINEAR : minFilter;
+                /** @type {number} */ var wrapS = gl.REPEAT;
+                /** @type {number} */ var wrapT = gl.REPEAT;
+                /** @type {number} */ var width = sizes2DArray[sizeNdx].width;
+                /** @type {number} */ var height = sizes2DArray[sizeNdx].height;
+                /** @type {number} */
+                var numLayers = sizes2DArray[sizeNdx].numLayers;
+                var name = '' + width + "x" + height + "x" +
+                    numLayers + "_" + filterName;
 
- 		// Wrap modes.
- 		tcu::TestCaseGroup* const combinationsGroup = new tcu::TestCaseGroup(m_testCtx, "combinations", "Filter and wrap mode combinations");
- 		group2DArray->addChild(combinationsGroup);
- 		for (int minFilterNdx = 0; minFilterNdx < DE_LENGTH_OF_ARRAY(minFilterModes); minFilterNdx++)
- 		{
- 			for (int magFilterNdx = 0; magFilterNdx < DE_LENGTH_OF_ARRAY(magFilterModes); magFilterNdx++)
- 			{
- 				for (int wrapSNdx = 0; wrapSNdx < DE_LENGTH_OF_ARRAY(wrapModes); wrapSNdx++)
- 				{
- 					for (int wrapTNdx = 0; wrapTNdx < DE_LENGTH_OF_ARRAY(wrapModes); wrapTNdx++)
- 					{
- 						deUint32		minFilter	= minFilterModes[minFilterNdx].mode;
- 						deUint32		magFilter	= magFilterModes[magFilterNdx].mode;
- 						deUint32		format		= gl.RGBA8;
- 						deUint32		wrapS		= wrapModes[wrapSNdx].mode;
- 						deUint32		wrapT		= wrapModes[wrapTNdx].mode;
- 						int				width		= 123;
- 						int				height		= 107;
- 						int				numLayers	= 7;
- 						string			name		= string(minFilterModes[minFilterNdx].name) + "_" + magFilterModes[magFilterNdx].name + "_" + wrapModes[wrapSNdx].name + "_" + wrapModes[wrapTNdx].name;
+                sizesGroup.addChild(
+                    new es3fTextureFilteringTests.Texture2DArrayFilteringCase(
+                        name, "", minFilter, magFilter, wrapS, wrapT,
+                        format, width, height, numLayers
+                    )
+                );
+            }
+        }
 
- 						combinationsGroup->addChild(new Texture2DArrayFilteringCase(m_context,
- 																					name.c_str(), "",
- 																					minFilter, magFilter,
- 																					wrapS, wrapT,
- 																					format,
- 																					width, height, numLayers));
- 					}
- 				}
- 			}
- 		}
+        // Wrap modes.
+        /** @type {tcuTestCase.DeqpTest} */
+        combinationsGroup = new tcuTestCase.DeqpTest(
+            "combinations", "Filter and wrap mode combinations"
+        );
+        group2DArray.addChild(combinationsGroup);
+        for (var minFilterNdx = 0;
+            minFilterNdx < minFilterModes.length;
+            minFilterNdx++)
+        {
+            for (var magFilterNdx = 0;
+                magFilterNdx < magFilterModes.length;
+                magFilterNdx++)
+            {
+                for (var wrapSNdx = 0;
+                    wrapSNdx < wrapModes.length;
+                    wrapSNdx++)
+                {
+                    for (var wrapTNdx = 0;
+                        wrapTNdx < wrapModes.length;
+                        wrapTNdx++)
+                    {
+                        /** @type {number} */
+                        var minFilter = minFilterModes[minFilterNdx].mode;
+                        /** @type {number} */
+                        var magFilter = magFilterModes[magFilterNdx].mode;
+                        /** @type {number} */ var format = gl.RGBA8;
+                        /** @type {number} */
+                        var wrapS = wrapModes[wrapSNdx].mode;
+                        /** @type {number} */
+                        var wrapT = wrapModes[wrapTNdx].mode;
+                        /** @type {number} */ var width = 123;
+                        /** @type {number} */ var height = 107;
+                        /** @type {number} */ var numLayers = 7;
+                        var name = minFilterModes[minFilterNdx].name + "_" +
+                            magFilterModes[magFilterNdx].name + "_" +
+                            wrapModes[wrapSNdx].name + "_" +
+                            wrapModes[wrapTNdx].name;
 
-       	// 3D texture filtering.
+                        combinationsGroup.addChild(
+                            new es3fTextureFilteringTests.
+                            Texture2DArrayFilteringCase(
+                                name, "", minFilter, magFilter,
+                                wrapS, wrapT, format,
+                                width, height, numLayers
+                            )
+                        );
+                    }
+                }
+            }
+        }
 
- 		tcu::TestCaseGroup* group3D = new tcu::TestCaseGroup(m_testCtx, "3d", "3D Texture Filtering");
- 		addChild(group3D);
+        // 3D texture filtering.
 
- 		// Formats.
- 		tcu::TestCaseGroup* formatsGroup = new tcu::TestCaseGroup(m_testCtx, "formats", "3D Texture Formats");
- 		group3D->addChild(formatsGroup);
- 		for (int fmtNdx = 0; fmtNdx < DE_LENGTH_OF_ARRAY(filterableFormatsByType); fmtNdx++)
- 		{
- 			for (int filterNdx = 0; filterNdx < DE_LENGTH_OF_ARRAY(minFilterModes); filterNdx++)
- 			{
- 				deUint32		minFilter	= minFilterModes[filterNdx].mode;
- 				const char*		filterName	= minFilterModes[filterNdx].name;
- 				deUint32		format		= filterableFormatsByType[fmtNdx].format;
- 				const char*		formatName	= filterableFormatsByType[fmtNdx].name;
- 				bool			isMipmap	= minFilter != gl.NEAREST && minFilter != gl.LINEAR;
- 				deUint32		magFilter	= isMipmap ? gl.LINEAR : minFilter;
- 				string			name		= string(formatName) + "_" + filterName;
- 				deUint32		wrapS		= gl.REPEAT;
- 				deUint32		wrapT		= gl.REPEAT;
- 				deUint32		wrapR		= gl.REPEAT;
- 				int				width		= 64;
- 				int				height		= 64;
- 				int				depth		= 64;
+        /** @type {tcuTestCase.DeqpTest} */
+        var group3D = new tcuTestCase.DeqpTest(
+            "3d", "3D Texture Filtering"
+        );
+        this.addChild(group3D);
 
- 				formatsGroup->addChild(new Texture3DFilteringCase(m_context,
- 																  name.c_str(), "",
- 																  minFilter, magFilter,
- 																  wrapS, wrapT, wrapR,
- 																  format,
- 																  width, height, depth));
- 			}
- 		}
+        // Formats.
+        /** @type {tcuTestCase.DeqpTest} */
+        formatsGroup = new tcuTestCase.DeqpTest(
+            "formats", "3D Texture Formats"
+        );
+        group3D.addChild(formatsGroup);
+        for (var fmtNdx = 0; fmtNdx < filterableFormatsByType.length; fmtNdx++)
+        {
+            for (var filterNdx = 0;
+                filterNdx < minFilterModes.length;
+                filterNdx++)
+            {
+                /** @type {number} */
+                var minFilter = minFilterModes[filterNdx].mode;
+                var filterName = minFilterModes[filterNdx].name;
+                /** @type {number} */
+                var format = filterableFormatsByType[fmtNdx].format;
+                var formatName = filterableFormatsByType[fmtNdx].name;
+                var isMipmap = minFilter != gl.NEAREST &&
+                    minFilter != gl.LINEAR;
+                /** @type {number} */
+                var magFilter = isMipmap ? gl.LINEAR : minFilter;
+                var name = formatName + "_" + filterName;
+                /** @type {number} */ var wrapS = gl.REPEAT;
+                /** @type {number} */ var wrapT = gl.REPEAT;
+                /** @type {number} */ var wrapR = gl.REPEAT;
+                /** @type {number} */ var width = 64;
+                /** @type {number} */ var height = 64;
+                /** @type {number} */ var depth = 64;
 
- 		// Sizes.
- 		tcu::TestCaseGroup* sizesGroup = new tcu::TestCaseGroup(m_testCtx, "sizes", "Texture Sizes");
- 		group3D->addChild(sizesGroup);
- 		for (int sizeNdx = 0; sizeNdx < DE_LENGTH_OF_ARRAY(sizes3D); sizeNdx++)
- 		{
- 			for (int filterNdx = 0; filterNdx < DE_LENGTH_OF_ARRAY(minFilterModes); filterNdx++)
- 			{
- 				deUint32		minFilter	= minFilterModes[filterNdx].mode;
- 				const char*		filterName	= minFilterModes[filterNdx].name;
- 				deUint32		format		= gl.RGBA8;
- 				bool			isMipmap	= minFilter != gl.NEAREST && minFilter != gl.LINEAR;
- 				deUint32		magFilter	= isMipmap ? gl.LINEAR : minFilter;
- 				deUint32		wrapS		= gl.REPEAT;
- 				deUint32		wrapT		= gl.REPEAT;
- 				deUint32		wrapR		= gl.REPEAT;
- 				int				width		= sizes3D[sizeNdx].width;
- 				int				height		= sizes3D[sizeNdx].height;
- 				int				depth		= sizes3D[sizeNdx].depth;
- 				string			name		= de::toString(width) + "x" + de::toString(height) + "x" + de::toString(depth) + "_" + filterName;
+                formatsGroup.addChild(
+                    new es3fTextureFilteringTests.Texture3DFilteringCase(
+                        name, "", minFilter, magFilter,
+                        wrapS, wrapT, wrapR, format,
+                        width, height, depth
+                    )
+                );
+            }
+        }
 
- 				sizesGroup->addChild(new Texture3DFilteringCase(m_context,
- 																name.c_str(), "",
- 																minFilter, magFilter,
- 																wrapS, wrapT, wrapR,
- 																format,
- 																width, height, depth));
- 			}
- 		}
+        // Sizes.
+        /** @type {tcuTestCase.DeqpTest} */
+        sizesGroup = new tcuTestCase.DeqpTest(
+            "sizes", "Texture Sizes"
+        );
+        group3D.addChild(sizesGroup);
+        for (var sizeNdx = 0; sizeNdx < sizes3D.length; sizeNdx++)
+        {
+            for (var filterNdx = 0; filterNdx < minFilterModes.length; filterNdx++)
+            {
+                /** @type {number} */
+                var minFilter = minFilterModes[filterNdx].mode;
+                var filterName = minFilterModes[filterNdx].name;
+                /** @type {number} */ var format = gl.RGBA8;
+                var isMipmap =
+                    minFilter != gl.NEAREST && minFilter != gl.LINEAR;
+                /** @type {number} */ var magFilter =
+                    isMipmap ? gl.LINEAR : minFilter;
+                /** @type {number} */ var wrapS = gl.REPEAT;
+                /** @type {number} */ var wrapT = gl.REPEAT;
+                /** @type {number} */ var wrapR = gl.REPEAT;
+                /** @type {number} */ var width = sizes3D[sizeNdx].width;
+                /** @type {number} */ var height = sizes3D[sizeNdx].height;
+                /** @type {number} */ var depth = sizes3D[sizeNdx].depth;
+                var name = '' + width + "x" + height + "x" + depth +
+                    "_" + filterName;
 
- 		// Wrap modes.
- 		tcu::TestCaseGroup* combinationsGroup = new tcu::TestCaseGroup(m_testCtx, "combinations", "Filter and wrap mode combinations");
- 		group3D->addChild(combinationsGroup);
- 		for (int minFilterNdx = 0; minFilterNdx < DE_LENGTH_OF_ARRAY(minFilterModes); minFilterNdx++)
- 		{
- 			for (int magFilterNdx = 0; magFilterNdx < DE_LENGTH_OF_ARRAY(magFilterModes); magFilterNdx++)
- 			{
- 				for (int wrapSNdx = 0; wrapSNdx < DE_LENGTH_OF_ARRAY(wrapModes); wrapSNdx++)
- 				{
- 					for (int wrapTNdx = 0; wrapTNdx < DE_LENGTH_OF_ARRAY(wrapModes); wrapTNdx++)
- 					{
- 						for (int wrapRNdx = 0; wrapRNdx < DE_LENGTH_OF_ARRAY(wrapModes); wrapRNdx++)
- 						{
- 							deUint32		minFilter	= minFilterModes[minFilterNdx].mode;
- 							deUint32		magFilter	= magFilterModes[magFilterNdx].mode;
- 							deUint32		format		= gl.RGBA8;
- 							deUint32		wrapS		= wrapModes[wrapSNdx].mode;
- 							deUint32		wrapT		= wrapModes[wrapTNdx].mode;
- 							deUint32		wrapR		= wrapModes[wrapRNdx].mode;
- 							int				width		= 63;
- 							int				height		= 57;
- 							int				depth		= 67;
- 							string			name		= string(minFilterModes[minFilterNdx].name) + "_" + magFilterModes[magFilterNdx].name + "_" + wrapModes[wrapSNdx].name + "_" + wrapModes[wrapTNdx].name + "_" + wrapModes[wrapRNdx].name;
+                sizesGroup.addChild(
+                    new es3fTextureFilteringTests.Texture3DFilteringCase(
+                        name, "", minFilter, magFilter,
+                        wrapS, wrapT, wrapR, format,
+                        width, height, depth
+                    )
+                );
+            }
+        }
 
- 							combinationsGroup->addChild(new Texture3DFilteringCase(m_context,
- 																				   name.c_str(), "",
- 																				   minFilter, magFilter,
- 																				   wrapS, wrapT, wrapR,
- 																				   format,
- 																				   width, height, depth));
- 						}
- 					}
- 				}
- 			}
- 		}
+        // Wrap modes.
+        /** @type {tcuTestCase.DeqpTest} */
+        combinationsGroup = new tcuTestCase.DeqpTest(
+            "combinations", "Filter and wrap mode combinations"
+        );
+        group3D.addChild(combinationsGroup);
+        for (var minFilterNdx = 0;
+            minFilterNdx < minFilterModes.length;
+            minFilterNdx++)
+        {
+            for (var magFilterNdx = 0;
+                magFilterNdx < magFilterModes.length;
+                magFilterNdx++)
+            {
+                for (var wrapSNdx = 0;
+                    wrapSNdx < wrapModes.length;
+                    wrapSNdx++)
+                {
+                    for (var wrapTNdx = 0;
+                        wrapTNdx < wrapModes.length;
+                        wrapTNdx++)
+                    {
+                        for (var wrapRNdx = 0;
+                            wrapRNdx < wrapModes.length;
+                            wrapRNdx++)
+                        {
+                            /** @type {number} */
+                            var minFilter = minFilterModes[minFilterNdx].mode;
+                            /** @type {number} */
+                            var magFilter = magFilterModes[magFilterNdx].mode;
+                            /** @type {number} */
+                            var format = gl.RGBA8;
+                            /** @type {number} */
+                            var wrapS = wrapModes[wrapSNdx].mode;
+                            /** @type {number} */
+                            var wrapT = wrapModes[wrapTNdx].mode;
+                            /** @type {number} */
+                            var wrapR = wrapModes[wrapRNdx].mode;
+                            /** @type {number} */ var width = 63;
+                            /** @type {number} */ var height = 57;
+                            /** @type {number} */ var depth = 67;
+                            var name = minFilterModes[minFilterNdx].name + "_" +
+                                magFilterModes[magFilterNdx].name + "_" +
+                                wrapModes[wrapSNdx].name + "_" +
+                                wrapModes[wrapTNdx].name + "_" +
+                                wrapModes[wrapRNdx].name;
+
+                            combinationsGroup.addChild(
+                                new
+                                es3fTextureFilteringTests.
+                                Texture3DFilteringCase(
+                                    name, "", minFilter, magFilter,
+                                    wrapS, wrapT, wrapR, format,
+                                    width, height, depth
+                                )
+                            );
+                        }
+                    }
+                }
+            }
+        }
     };
 
     /**
