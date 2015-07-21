@@ -656,7 +656,7 @@ goog.scope(function() {
                 gl.STENCIL_BUFFER_BIT
             );
 
-            //TODO: Uncomment - this.render(context, gles3Frame); // Call actual render func
+            this.render(context, gles3Frame); // Call actual render func
             gles3Error = context.getError();
         }
         catch (e) {

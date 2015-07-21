@@ -535,8 +535,8 @@ rrRenderer.getIndexOfCorner = function(isTop, isRight, vertexPackets) {
  * @return {number}
  */
 rrRenderer.calculateDepth = function(x, y, depths) {
-    var d1 = x * depths[0] + (1 - x) * depths[1];
-    var d2 = x * depths[2] + (1 - x) * depths[3];
+    var d1 = x * depths[1] + (1 - x) * depths[0];
+    var d2 = x * depths[3] + (1 - x) * depths[2];
     var d = y * d1 + (1 - y) * d2;
     return d;
 };
