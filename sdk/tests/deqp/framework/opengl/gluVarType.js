@@ -544,4 +544,11 @@ goog.scope(function() {
         return str;
     };
 
+    /**
+     * @return {gluVarType.VarType}
+     */
+    gluVarType.getVarTypeOf = function(T, precision) {
+        bufferedLogToConsole('Warning. Dummy function');
+        return gluVarType.newTypeBasic(gluShaderUtil.DataType.FLOAT, gluShaderUtil.precision.PRECISION_HIGHP);
+    };
 });
