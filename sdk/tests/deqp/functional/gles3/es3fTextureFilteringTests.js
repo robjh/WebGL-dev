@@ -55,6 +55,16 @@ goog.scope(function() {
 
     /** @type {WebGL2RenderingContext} */ var gl;
 
+    var TEX2D_VIEWPORT_WIDTH = 64,
+    var TEX2D_VIEWPORT_HEIGHT = 64,
+    var TEX2D_MIN_VIEWPORT_WIDTH = 64,
+    var TEX2D_MIN_VIEWPORT_HEIGHT = 64,
+
+    var TEX3D_VIEWPORT_WIDTH = 64,
+    var TEX3D_VIEWPORT_HEIGHT = 64,
+    var TEX3D_MIN_VIEWPORT_WIDTH = 64,
+    var TEX3D_MIN_VIEWPORT_HEIGHT = 64
+
     /**
      * @constructor
      * @extends {tcuTestCase.DeqpTest}
@@ -68,6 +78,328 @@ goog.scope(function() {
 
     es3fTextureFilteringTests.TextureFilteringTests.prototype.constructor =
         es3fTextureFilteringTests.TextureFilteringTests;
+
+    /**
+     * @constructor
+     * @extends {tcuTestCase.DeqpTest}
+     * @param {string} name
+     * @param {string} desc
+     * @param {number} minFilter
+     * @param {number} magFilter
+     * @param {number} wrapS
+     * @param {number} wrapT
+     * @param {number} internalFormat
+     * @param {number} width
+     * @param {number} height
+     */
+    es3fTextureFilteringTests.Texture2DFilteringCase = function (
+        name, desc, minFilter, magFilter, wrapS, wrapT,
+        internalFormat, width, height) {
+        tcuTestCase.DeqpTest.call(this, name, desc);
+        this.m_minFilter = minFilter;
+        this.m_magFilter = magFilter;
+        this.m_wrapS = wrapS;
+        this.m_wrapT = wrapT;
+        this.m_internalFormat = internalFormat;
+        this.m_width = width;
+        this.m_height = height;
+        this.m_renderer = ; //TODO: check -> renderCtx, testCtx, glu::GLSL_VERSION_300_ES, glu::PRECISION_HIGHP)
+        this.m_caseNdx = 0;
+        /** @type {Array<gluTexture.Texture2D>} */ this.m_textures = [];
+        /** @type {Array<string>} */ this.m_filenames = [];
+    };
+
+    /**
+     * @param {string} name
+     * @param {string} desc
+     * @param {number} minFilter
+     * @param {number} magFilter
+     * @param {number} wrapS
+     * @param {number} wrapT
+     * @param {Array<string>} filenames
+     * @return {es3fTextureFilteringTests.Texture2DFilteringCase}
+     */
+    es3fTextureFilteringTests.newTexture2DFilteringCaseFromFiles = function(
+        name, desc, minFilter, magFilter, wrapS, wrapT, filenames
+    ) {
+        var t2dcase = new es3fTextureFilteringTests.Texture2DFilteringCase(
+            name, desc, minFilter, magFilter, wrapS, wrapT, gl.NONE, 0, 0
+        );
+
+        t2dcase.m_filenames = filenames;
+    };
+
+    es3fTextureFilteringTests.Texture2DFilteringCase.prototype =
+        Object.create(tcuTestCase.DeqpTest.prototype);
+    es3fTextureFilteringTests.Texture2DFilteringCase.prototype.constructor =
+        es3fTextureFilteringTests.Texture2DFilteringCase;
+
+    /**
+     * @constructor
+     * @param {gluTexture.Texture2D} tex_
+     * @param {Array<number>} minCoord_
+     * @param {Array<number>} maxCoord
+     */
+    es3fTextureFilteringTests.Texture2DFilteringCase.FilterCase = function(
+        tex_, minCoord_, maxCoord_
+    ) {
+        this.texture = tex_;
+        this.minCoord = minCoord_;
+        this.maxCoord = maxCoord_;
+    };
+
+    /**
+     * init
+     */
+    es3fTextureFilteringTests.Texture2DFilteringCase.prototype.init =
+    function () {
+        try
+        {
+            if (this.m_filenames.length > 0)
+            {
+                this.m_textures.push(
+                    0
+                    /* TODO: gluTexture.Texture2D.create(
+                    m_testCtx.getArchive(), (int)m_filenames.size(),
+                    m_filenames)*/
+                );
+            }
+            else
+            {
+                // Create 2 textures.
+                for (var ndx = 0; ndx < 2; ndx++)
+                    this.m_textures.push(
+                        gluTexture.texture2DFromInternalFormat(
+                            this.m_internalFormat, this.m_width, this.m_height
+                        )
+                    );
+
+                var mipmaps = true;
+                var numLevels = mipmaps ? deMath.logToFloor(
+                    Math.max(this.m_width, this.m_height)
+                ) + 1 : 1;
+
+                /** @type {tcuTexture.TextureFormatInfo} */ var fmtInfo =
+                    tcuTexture.getTextureFormatInfo(
+                        this.m_textures[0].getRefTexture().getFormat()
+                    );
+                /** @type {Array<number>} */ var cBias = fmtInfo.valueMin;
+                /** @type {Array<number>} */
+                var cScale = fmtInfo.valueMax - fmtInfo.valueMin;
+
+                // Fill first gradient texture.
+                for (int levelNdx = 0; levelNdx < numLevels; levelNdx++)
+                {
+                    /** @type {Array<number>} */ var gMin = deMath.add(
+                        deMath.multiply([0.0, 0.0, 0.0, 1.0], cScale), cBias
+                    );
+                    /** @type {Array<number>} */ var gMax = deMath.add(
+                        deMath.multiply([1.0, 1.0, 1.0, 0.0], cScale), cBias
+                    );
+
+                    this.m_textures[0].getRefTexture().allocLevel(levelNdx);
+                    tcuTextureUtil.fillWithComponentGradients(
+                        this.m_textures[0].getRefTexture().getLevel(levelNdx),
+                        gMin, gMax
+                    );
+                }
+
+                // Fill second with grid texture.
+                for (var levelNdx = 0; levelNdx < numLevels; levelNdx++)
+                {
+                    /** @type {number} */ var step = 0x00ffffff / numLevels;
+                    /** @type {number} */ var rgb = step * levelNdx;
+                    /** @type {number} */ var colorA = deMath.binaryOp(
+                        0xff000000, rgb, deMath.BinaryOp.OR
+                    );
+                    /** @type {number} */ var colorB = deMath.binaryOp(
+                        0xff000000, deMath.binaryNot(rgb), deMath.BinaryOp.OR
+                    );
+
+                    this.m_textures[1].getRefTexture().allocLevel(levelNdx);
+                    tcuTextureUtil.fillWithGrid(
+                        this.m_textures[1].getRefTexture().getLevel(levelNdx),
+                        4,
+                        deMath.add(deMath.multiply(
+                            new tcuRGBA.RGBA(colorA).toVec(), cScale), cBias
+                        ),
+                        deMath.add(deMath.multiply(
+                            new tcuRGBA.RGBA(colorB).toVec(), cScale), cBias
+                        );
+                    );
+                }
+
+                // Upload.
+                for (var i = 0; i < this.m_textures.length; i++)
+                    this.m_textures[i].upload();
+            }
+
+            // Compute cases.
+            /** @typedef {{texNdx: number, lodX: number, lodY: number, oX: number, oY: number}} */
+            var Cases = {};
+
+            /** @type {Array<Cases>} */
+            var cases = [
+                {
+                    texNdx: 0,  lodX:  1.6,  lodY:  2.9,  oX:  -1.0,  oY:  -2.7
+                }, {
+                    texNdx: 0,  lodX:  -2.0, lodY:   -1.35, oX:   -0.2, oY:   0.7
+                }, {
+                    texNdx: 1,  lodX:  0.14,  lodY:  0.275,  oX:  -1.5, oY:   -1.1
+                }, {
+                    texNdx: 1,  lodX:  -0.92, lodY:   -2.64, oX:   0.4, oY:   -0.1
+                }
+            ];
+
+            var viewportW = deMath.min(
+                TEX2D_VIEWPORT_WIDTH, 0/** TODO: gl.getRenderTarget().getWidth() */
+            );
+            var viewportH = deMath.min(
+                TEX2D_VIEWPORT_HEIGHT,0 /** TODO: gl.getRenderTarget().getHeight() */
+            );
+
+            for (var caseNdx = 0; caseNdx < cases.length; caseNdx++)
+            {
+                /** @type {number} */ var texNdx = deMath.clamp(
+                    cases[caseNdx].texNdx, 0, this.m_textures.length - 1
+                );
+                /** @type {number} */ var lodX = cases[caseNdx].lodX;
+                /** @type {number} */ var lodY = cases[caseNdx].lodY;
+                /** @type {number} */ var oX = cases[caseNdx].oX;
+                /** @type {number} */ var oY = cases[caseNdx].oY;
+                /** @type {number} */ var sX = Math.exp(lodX) * viewportW /
+                    this.m_textures[texNdx].getRefTexture().getWidth();
+                /** @type {number} */ var sY = Math.exp(lodY) * viewportH /
+                    this.m_textures[texNdx].getRefTexture().getHeight();
+
+                this.m_cases.push(
+                    new
+                    es3fTextureFilteringTests.Texture2DFilteringCase.FilterCase(
+                        this.m_textures[texNdx], [oX, oY], [oX + sX, oY + sY]
+                    )
+                );
+            }
+
+            this.m_caseNdx = 0;
+            testPassed("");
+        }
+        catch (e)
+        {
+            // Clean up to save memory.
+            this.deinit();
+            throw e;
+        }
+    };
+
+    /**
+     * deinit TODO:
+     */
+    es3fTextureFilteringTests.Texture2DFilteringCase.prototype.deinit = function
+    (){
+        /*for (var i = 0; i < this.m_textures.length; i++)
+
+        this.m_textures.clear();
+
+        this.m_renderer.clear();
+        this.m_cases.clear();*/
+    };
+
+    /**
+     * @return {tcuTestCase.IterateResult}
+     */
+    es3fTextureFilteringTests.Texture2DFilteringCase.iterate = function ()
+    {
+        /** @type {glsTextureTestUtil.RandomViewport} */ var viewport =
+        new glsTextureTestUtil.RandomViewport(
+             gl.canvas, TEX2D_VIEWPORT_WIDTH,
+             TEX2D_VIEWPORT_HEIGHT, deString.deStringHash(this.getName()) ^
+             deMath.deMathHash(this.m_caseNdx)
+        );
+        /** @type {tcuTexture.TextureFormat} */ var texFmt =
+            this.m_textures[0].getRefTexture().getFormat();
+
+        /** @type {tcuTexture.TextureFormatInfo} */ var fmtInfo =
+            tcuTexture.getTextureFormatInfo(texFmt);
+        var curCase = this.m_cases[m_caseNdx];
+        bufferedLogToConsole("Test " + this.m_caseNdx);
+        var refParams = new glsTextureTestUtil.ReferenceParams(
+            glsTextureTestUtil.textureType.TEXTURETYPE_2D
+        );
+        var rendered = tcuSurface.Surface(viewport.width, viewport.height);
+        var texCoord = [0, 0];
+
+        if (viewport.width < TEX2D_MIN_VIEWPORT_WIDTH || viewport.height < TEX2D_MIN_VIEWPORT_HEIGHT)
+            throw new Error("Too small render target");
+
+        // Setup params for reference.
+        refParams.sampler        = gluTextureUtil.mapGLSampler(
+            this.m_wrapS, m_wrapT, m_minFilter, m_magFilter
+        );
+        refParams.samplerType    = glsTextureTestUtil.getSamplerType(texFmt);
+        refParams.lodMode        = glsTextureTestUtil.lodMode.EXACT;
+        refParams.colorBias        = fmtInfo.lookupBias;
+        refParams.colorScale    = fmtInfo.lookupScale;
+
+        // Compute texture coordinates.
+        bufferedLogToConsole("Texture coordinates: " + curCase.minCoord + " -> " + curCase.maxCoord);
+        texCoord = glsTextureTestUtil.computeQuadTexCoord2D(curCase.minCoord, curCase.maxCoord);
+
+        gl.bindTexture    (gl.TEXTURE_2D, curCase.texture.getGLTexture());
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER,    this.m_minFilter);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER,    this.m_magFilter);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S,        this.m_wrapS);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T,        this.m_wrapT);
+
+        gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height);
+        //TODO: m_renderer.renderQuad(0, &texCoord[0], refParams);
+        rendered.readViewport(gl, viewport.x, viewport.y, rendered.getAccess());
+
+        /** @type {boolean} */ var isNearestOnly =
+            this.m_minFilter == gl.NEAREST && this.m_magFilter == gl.NEAREST;
+        /** @type {tcuPixelFormat.PixelFormat} */ var pixelFormat = this.getRenderTarget().getPixelFormat();
+        //(iVec4)
+        var colorBits = deMath.max(
+            glsTextureTestUtil.getBitsVec(pixelFormat) -
+            (isNearestOnly ? 1 : 2),
+            [0, 0, 0, 0]
+        ); // 1 inaccurate bit if nearest only, 2 otherwise
+
+        /** @type {tcuTexLookupVerifier.LodPrecision} */ tcu::LodPrecision        lodPrecision;
+        tcu::LookupPrecision    lookupPrecision;
+
+        lodPrecision.derivateBits        = 18;
+        lodPrecision.lodBits            = 6;
+        lookupPrecision.colorThreshold    = tcu::computeFixedPointThreshold(colorBits) / refParams.colorScale;
+        lookupPrecision.coordBits        = tcu::IVec3(20,20,0);
+        lookupPrecision.uvwBits            = tcu::IVec3(7,7,0);
+        lookupPrecision.colorMask        = getCompareMask(pixelFormat);
+
+        const bool isHighQuality = verifyTextureResult(m_testCtx, rendered.getAccess(), curCase.texture->getRefTexture(),
+                                                       &texCoord[0], refParams, lookupPrecision, lodPrecision, pixelFormat);
+
+        if (!isHighQuality)
+        {
+            // Evaluate against lower precision requirements.
+            lodPrecision.lodBits    = 4;
+            lookupPrecision.uvwBits    = tcu::IVec3(4,4,0);
+
+            m_testCtx.getLog() << TestLog::Message << "Warning: Verification against high precision requirements failed, trying with lower requirements." << TestLog::EndMessage;
+
+            const bool isOk = verifyTextureResult(m_testCtx, rendered.getAccess(), curCase.texture->getRefTexture(),
+                                                  &texCoord[0], refParams, lookupPrecision, lodPrecision, pixelFormat);
+
+            if (!isOk)
+            {
+                m_testCtx.getLog() << TestLog::Message << "ERROR: Verification against low precision requirements failed, failing test case." << TestLog::EndMessage;
+                m_testCtx.setTestResult(QP_TEST_RESULT_FAIL, "Image verification failed");
+            }
+            else if (m_testCtx.getTestResult() == QP_TEST_RESULT_PASS)
+                m_testCtx.setTestResult(QP_TEST_RESULT_QUALITY_WARNING, "Low-quality filtering result");
+        }
+
+        m_caseNdx += 1;
+        return m_caseNdx < (int)m_cases.size() ? CONTINUE : STOP;
+    }
 
     /**
      * init
