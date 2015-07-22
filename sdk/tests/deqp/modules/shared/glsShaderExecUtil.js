@@ -53,8 +53,8 @@ goog.scope(function() {
       */
       glsShaderExecUtil.Symbol = function(name, varType) {
         name = name === undefined ? '<unnamed>' : name;
-         /** @type {string} */ this.m_name = name;
-         /** @type {gluVarType.VarType} */ this.m_varType = varType || null;
+         /** @type {string} */ this.name = name;
+         /** @type {gluVarType.VarType} */ this.varType = varType || null;
      };
 
 
@@ -141,7 +141,7 @@ goog.scope(function() {
     		src += (shaderSpec.globalDeclarations + '\n');
 
     	for (var i = 0; i < shaderSpec.inputs.length; ++i)
-    		src += (in_ + ' ' + gluVarType.declareVariable(shaderSpec.inputs[i].varType, shaderSpec.inputs.name) + ';\n');
+    		src += (in_ + ' ' + gluVarType.declareVariable(shaderSpec.inputs[i].varType, shaderSpec.inputs[i].name) + ';\n');
 
     	for (var i = 0; i < shaderSpec.outputs.length; i++)	{
             var output = shaderSpec.outputs[i];
@@ -161,8 +161,8 @@ goog.scope(function() {
     	src += '\n'
     		+ 'void main (void)\n'
     		+ '{\n'
-    		+ '	gl.Position = vec4(0.0);\n'
-    		+ '	gl.PointSize = 1.0;\n\n';
+    		+ '	gl_Position = vec4(0.0);\n'
+    		+ '	gl_PointSize = 1.0;\n\n';
 
     	// Declare necessary output variables (bools).
     	for (var i = 0; i < shaderSpec.outputs.length; i++)	{
@@ -170,14 +170,9 @@ goog.scope(function() {
     			src += ('\t' + gluVarType.declareVariable(shaderSpec.outputs[i].varType, shaderSpec.outputs[i].name) + ';\n');
     	}
 
-    	// Operation - indented to correct level.
-    	// {
-    	// 	std::istringstream	opSrc	(shaderSpec.source);
-    	// 	std::string			line;
-        //
-    	// 	while (std::getline(opSrc, line))
-    	// 		src += ('\t' + line + '\n');
-    	// }
+    	//Operation - indented to correct level.
+        // TODO: Add indenting
+        src += shaderSpec.source.print();
 
     	// Assignments to outputs.
     	for (var i = 0; i < shaderSpec.outputs.length; i++)	{
@@ -233,7 +228,7 @@ goog.scope(function() {
 // 	src << "\n"
 // 		<< "void main (void)\n"
 // 		<< "{\n"
-// 		<< "	gl.Position = gl.in[0].gl.Position;\n\n";
+// 		<< "	gl_Position = gl.in[0].gl_Position;\n\n";
 //
 // 	// Fetch input variables
 // 	for (vector<Symbol>::const_iterator input = shaderSpec.inputs.begin(); input != shaderSpec.inputs.end(); ++input)
@@ -316,7 +311,7 @@ goog.scope(function() {
     	}
 
     	src += '\nvoid main (void)\n{\n'
-    		+ '	gl.Position = a_position;\n'
+    		+ '	gl_Position = a_position;\n'
     		+ '	gl.PointSize = 1.0;\n';
 
     	for (var i = 0; i <  shaderSpec.inputs.length; i++)
@@ -608,19 +603,20 @@ VertexProcessorExecutor::VertexProcessorExecutor (const glu::RenderContext& rend
     	// const glw::Functions&					gl					= m_renderCtx.getFunctions();
     	/** @type{boolean} */ var useTFObject			= true; //isContextTypeES(m_renderCtx.getType()) || (isContextTypeGLCore(m_renderCtx.getType()) && m_renderCtx.getType().getMajorVersion() >= 4);
     	/** @type{Array<gluDrawUtil.VertexArrayBinding>} */ var vertexArrays = [];
-    	// de::UniquePtr<glu::TransformFeedback>	transformFeedback	(useTFObject ? new glu::TransformFeedback(m_renderCtx) : DE_NULL);
-    	// glu::Buffer								outputBuffer		(m_renderCtx);
+    	var transformFeedback = gl.createTransformFeedback();
+    	var outputBuffer = gl.createBuffer();
+
     	/** @type{number} */ var outputBufferStride = glsShaderExecUtil.computeTotalScalarSize(this.m_outputs)*4;
 
     	// Setup inputs.
     	for (var inputNdx = 0; inputNdx < this.m_inputs.length; inputNdx++) {
-    		/** @type{glsShaderExecUtil.Symbol} */ var		symbol		= m_inputs[inputNdx];
+    		/** @type{glsShaderExecUtil.Symbol} */ var		symbol		= this.m_inputs[inputNdx];
     		/*const void* */var ptr = inputs[inputNdx];
     		/** @type{gluShaderUtil.DataType} */ var basicType	= symbol.varType.getBasicType();
     		/** @type{number} */ var vecSize = gluShaderUtil.getDataTypeScalarSize(basicType);
 
     		if (gluShaderUtil.isDataTypeFloatOrVec(basicType))
-    			vertexArrays.push(0);//glu::va::Float(symbol.name, vecSize, numValues, 0, (const float*)ptr));
+                vertexArrays.push(gluDrawUtil.newFloatVertexArrayBinding(symbol.name, vecSize, numValues, 0, ptr))
     		else if (gluShaderUtil.isDataTypeIntOrIVec(basicType))
     			vertexArrays.push(0);//glu::va::Int32(symbol.name, vecSize, numValues, 0, (const deInt32*)ptr));
     		else if (gluShaderUtil.isDataTypeUintOrUVec(basicType))
@@ -639,48 +635,46 @@ VertexProcessorExecutor::VertexProcessorExecutor (const glu::RenderContext& rend
 
     	// Setup TF outputs.
     	if (useTFObject)
-    		gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK/*, **transformFeedback*/);
-    	// gl.bindBuffer(gl.TRANSFORM_FEEDBACK_BUFFER, *outputBuffer);
-    	gl.bufferData(gl.TRANSFORM_FEEDBACK_BUFFER, outputBufferStride*numValues, DE_NULL, gl.STREAM_READ);
-    	// gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, *outputBuffer);
-    	GLU_EXPECT_NO_ERROR(gl.getError(), "Error in TF setup");
+    		gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, transformFeedback);
+    	gl.bindBuffer(gl.TRANSFORM_FEEDBACK_BUFFER, outputBuffer);
+        // TODO: Usage should be STREAM_READ but Chrome fails
+    	//gl.bufferData(gl.TRANSFORM_FEEDBACK_BUFFER, outputBufferStride*numValues, gl.STREAM_READ);
+        gl.bufferData(gl.TRANSFORM_FEEDBACK_BUFFER, outputBufferStride*numValues, gl.STREAM_DRAW);
+    	gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, outputBuffer);
 
     	// Draw with rasterization disabled.
     	gl.beginTransformFeedback(gl.POINTS);
     	gl.enable(gl.RASTERIZER_DISCARD);
-    	// gluDrawUtil.draw(m_renderCtx, m_program.getProgram(), (int)vertexArrays.size(), vertexArrays.empty() ? DE_NULL : &vertexArrays[0],
-    	// 		  glu::pr::Points(numValues));
+    	gluDrawUtil.draw(gl, this.m_program.getProgram(), vertexArrays, 
+    			  new gluDrawUtil.PrimitiveList(gluDrawUtil.primitiveType.POINTS, numValues));
     	gl.disable(gl.RASTERIZER_DISCARD);
     	gl.endTransformFeedback();
-    	GLU_EXPECT_NO_ERROR(gl.getError(), "Error in draw");
 
     	// Read back data.
-    	{
-    		// const void*	srcPtr		= gl.mapBufferRange(gl.TRANSFORM_FEEDBACK_BUFFER, 0, outputBufferStride*numValues, gl.MAP_READ_BIT);
-    		/** @type{number} */ var curOffset	= 0; // Offset in buffer in bytes.
+        var result = new ArrayBuffer(outputBufferStride*numValues);
+        gl.getBufferSubData(gl.TRANSFORM_FEEDBACK_BUFFER, 0, result);
+		// const void*	srcPtr		= gl.mapBufferRange(gl.TRANSFORM_FEEDBACK_BUFFER, 0, outputBufferStride*numValues, gl.MAP_READ_BIT);
+		/** @type{number} */ var curOffset	= 0; // Offset in buffer in bytes.
 
-    		GLU_EXPECT_NO_ERROR(gl.getError(), "glMapBufferRange(gl.TRANSFORM_FEEDBACK_BUFFER)");
-    		TCU_CHECK(srcPtr != DE_NULL);
 
-    		for (var outputNdx = 0; outputNdx < this.m_outputs.length; outputNdx++) {
-    			/** @type{glsShaderExecUtil.Symbol} */ var		symbol		= m_outputs[outputNdx];
-    			/*void* */var				dstPtr		= outputs[outputNdx];
-    			/** @type{number} */ var scalarSize	= symbol.varType.getScalarSize();
+		for (var outputNdx = 0; outputNdx < this.m_outputs.length; outputNdx++) {
+			/** @type{glsShaderExecUtil.Symbol} */ var		symbol		= this.m_outputs[outputNdx];
+			/** @type{number} */ var scalarSize	= symbol.varType.getScalarSize();
+            /*void* */var               dstPtr      = new Uint8Array(scalarSize * numValues * 4);
 
-    			for (var ndx = 0; ndx < numValues; ndx++)
-    				deMemcpy(dstPtr + scalarSize*ndx, srcPtr + curOffset + ndx*outputBufferStride, scalarSize*4);
+			for (var ndx = 0; ndx < numValues; ndx++) {
+                for (var j = 0; j < scalarSize*4; j++) {
+                    dstPtr[scalarSize*ndx + j] = result[curOffset + ndx*outputBufferStride + j];
+                }
+            }
+            outputs[outputNdx] = dstPtr;
 
-    			curOffset += scalarSize*4;
-    		}
-
-    		gl.unmapBuffer(gl.TRANSFORM_FEEDBACK_BUFFER);
-    		GLU_EXPECT_NO_ERROR(gl.getError(), "glUnmapBuffer()");
-    	}
+			curOffset += scalarSize*4;
+		}
 
     	if (useTFObject)
-    		gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, 0);
-    	gl.bindBuffer(gl.TRANSFORM_FEEDBACK_BUFFER, 0);
-    	GLU_EXPECT_NO_ERROR(gl.getError(), "Restore state");
+    		gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, null);
+    	gl.bindBuffer(gl.TRANSFORM_FEEDBACK_BUFFER, null);
     };
 
 // VertexShaderExecutor
@@ -1386,7 +1380,7 @@ setParentClass(glsShaderExecUtil.VertexShaderExecutor, glsShaderExecUtil.VertexP
 // 	src << glu::getGLSLVersionDeclaration(version) << "\n";
 //
 // 	src << "void main (void)\n{\n"
-// 		<< "	gl.Position = vec4(gl.VertexID/2, gl.VertexID%2, 0.0, 1.0);\n"
+// 		<< "	gl_Position = vec4(gl.VertexID/2, gl.VertexID%2, 0.0, 1.0);\n"
 // 		<< "}\n";
 //
 // 	return src.str();
@@ -1462,7 +1456,7 @@ setParentClass(glsShaderExecUtil.VertexShaderExecutor, glsShaderExecUtil.VertexP
 // 	src << "layout(triangles, ccw) in;\n";
 //
 // 	src << "\nvoid main (void)\n{\n"
-// 		<< "\tgl.Position = vec4(gl.TessCoord.xy, 0.0, 1.0);\n"
+// 		<< "\tgl_Position = vec4(gl.TessCoord.xy, 0.0, 1.0);\n"
 // 		<< "}\n";
 //
 // 	return src.str();
@@ -1561,7 +1555,7 @@ setParentClass(glsShaderExecUtil.VertexShaderExecutor, glsShaderExecUtil.VertexP
 // 	declareBufferBlocks(src, shaderSpec);
 //
 // 	src << "void main (void)\n{\n"
-// 		<< "\tgl.Position = vec4(gl.TessCoord.x, 0.0, 0.0, 1.0);\n"
+// 		<< "\tgl_Position = vec4(gl.TessCoord.x, 0.0, 0.0, 1.0);\n"
 // 		<< "\thighp uint invocationId = uint(gl.PrimitiveID) + (gl.TessCoord.x > 0.5 ? 1u : 0u);\n";
 //
 // 	generateExecBufferIo(src, shaderSpec, "invocationId");

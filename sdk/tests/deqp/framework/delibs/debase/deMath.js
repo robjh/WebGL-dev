@@ -775,6 +775,15 @@ deMath.deLdExp = function(a, exponent)	{
 };
 
 /**
+ * @param {number} a
+ * @param {number} exponent
+ * @return {number}
+ */
+deMath.deFloatLdExp = function(a, exponent)  {
+    return deMath.ldexp(a, exponent);
+};
+
+/**
  * @param {number} value
  * @return {Array<number>}
  */

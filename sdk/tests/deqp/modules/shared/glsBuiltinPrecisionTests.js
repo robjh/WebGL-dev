@@ -305,6 +305,10 @@ var setParentClass = function(child, parent) {
         }
     };
 
+    glsBuiltinPrecisionTests.round = function(T, fmt, value) {
+        var traits = glsBuiltinPrecisionTests.Traits.traitsFactory(T);
+        return traits.doRound(fmt, value);
+    }
     /**
      * @constructor
      * @extends{glsBuiltinPrecisionTests.Traits}
@@ -630,6 +634,10 @@ var setParentClass = function(child, parent) {
         return this.doPrint();             
     };
 
+    glsBuiltinPrecisionTests.Statement.prototype.toString = function() {
+        return this.print();             
+    };
+
     /**
      * Output the functions that this expression refers to
      * @param{glsBuiltinPrecisionTests.FuncSet} dst
@@ -696,7 +704,7 @@ var setParentClass = function(child, parent) {
         else
             os += this.m_variable.getName();
 
-        os += " = " + this.m_value + ";\n";
+        os += " = " + this.m_value.printExpr() + ";\n";
 
         return os;
     };
@@ -741,9 +749,14 @@ var setParentClass = function(child, parent) {
     };
 
     /**
+     * @return {string}
      */
     glsBuiltinPrecisionTests.Variable.prototype.doPrintExpr = function() {
         return this.m_name;
+    };
+
+    glsBuiltinPrecisionTests.Variable.prototype.toString = function() {
+        return this.doPrintExpr();
     };
 
     /**
@@ -778,12 +791,18 @@ var setParentClass = function(child, parent) {
     glsBuiltinPrecisionTests.ExprBase = function() {};
 
     /**
+     * @return {string}
      */
     glsBuiltinPrecisionTests.ExprBase.prototype.printExpr = function (){
         return this.doPrintExpr();
     };
 
+    glsBuiltinPrecisionTests.ExprBase.prototype.toString = function () {
+        return this.printExpr();
+    };
+
     /**
+     * @return {string}
      */
     glsBuiltinPrecisionTests.ExprBase.prototype.doPrintExpr = function (){
         throw new Error('Virtual function. Please override.');
@@ -1705,16 +1724,13 @@ var setParentClass = function(child, parent) {
      * @param{glsBuiltinPrecisionTests.Sampling}
      */
     glsBuiltinPrecisionTests.SamplingFactory = function(T) {
-        if (typeof T == 'boolean') {
-            return new glsBuiltinPrecisionTests.DefaultSamplingBool(T);
-        } else if (typeof T == 'number') {
-            if (Math.abs(T % 1) != 0) {
-                return new glsBuiltinPrecisionTests.DefaultSamplingFloat(T);
-            } else {
-                return new glsBuiltinPrecisionTests.DefaultSamplingInt(T);
-            }
-        } else if (Array.isArray(T)) {
-            if (T.length > 0 && Array.isArray(T[0])) {
+        switch(T) {
+            case 'boolean' : return new glsBuiltinPrecisionTests.DefaultSamplingBool(T)
+            case 'float' : return new glsBuiltinPrecisionTests.DefaultSamplingFloat(T);
+            case 'int' : return new glsBuiltinPrecisionTests.DefaultSamplingInt(T);
+        }
+        if (T instanceof Array) {
+            if (T.length > 0 && T[0] instanceof Array) {
                 return new glsBuiltinPrecisionTests.DefaultSamplingMatrix(T);
             } else {
                 return new glsBuiltinPrecisionTests.DefaultSamplingVector(T);
@@ -1766,10 +1782,10 @@ var setParentClass = function(child, parent) {
     /**
      * template <>  :  public Sampling<Void>
      * @param{tcuFloatFormat.FloatFormat} fmt
-     * @param{Array<glsBuiltinPrecisionTests.Void>} dst
+     * @param{Array<number>} dst
      */
     glsBuiltinPrecisionTests.DefaultSamplingVoid.prototype.genFixeds = function(fmt, dst) {
-        dst.push(new glsBuiltinPrecisionTests.Void());
+        dst.push(NaN);
     };
 
     /**
@@ -2274,12 +2290,12 @@ var setParentClass = function(child, parent) {
     		// const typename Traits<Out0>::IVal		reference0;
     		// const typename Traits<Out1>::IVal		reference1;
 
-            /** @type{tcuInterval.Interval} */ var in0 = new tcuInterval.interval(this.In0);
-            /** @type{tcuInterval.Interval} */ var in1 = new tcuInterval.interval(this.In1);
-            /** @type{tcuInterval.Interval} */ var in2 = new tcuInterval.interval(this.In2);
-            /** @type{tcuInterval.Interval} */ var in3 = new tcuInterval.interval(this.In3);
-            /** @type{tcuInterval.Interval} */ var reference0 = new tcuInterval.interval(this.Out0);
-            /** @type{tcuInterval.Interval} */ var reference1 = new tcuInterval.interval(this.Out1);
+            /** @type{tcuInterval.Interval} */ var in0 = new tcuInterval.Interval();
+            /** @type{tcuInterval.Interval} */ var in1 = new tcuInterval.Interval();
+            /** @type{tcuInterval.Interval} */ var in2 = new tcuInterval.Interval();
+            /** @type{tcuInterval.Interval} */ var in3 = new tcuInterval.Interval();
+            /** @type{tcuInterval.Interval} */ var reference0 = new tcuInterval.Interval();
+            /** @type{tcuInterval.Interval} */ var reference1 = new tcuInterval.Interval();
 
     		env.bind(variables.in0, in0);
     		env.bind(variables.in1, in1);
@@ -2293,18 +2309,18 @@ var setParentClass = function(child, parent) {
     	// shader output to the reference.
     	for (var valueNdx = 0; valueNdx < numValues; valueNdx++) {
     		/** @type{boolean} */ var result = true;
-    		/** @type{tcuInterval.Interval} */ var reference0 = new tcuInterval.interval(this.Out0);
-    		/** @type{tcuInterval.Interval} */ var reference1 = new tcuInterval.interval(this.Out1);
+    		/** @type{tcuInterval.Interval} */ var reference0 = new tcuInterval.Interval();
+    		/** @type{tcuInterval.Interval} */ var reference1 = new tcuInterval.Interval();
 
             var in0_ = env.lookup(variables.in0);
     		var in1_ = env.lookup(variables.in1);
     		var in2_ = env.lookup(variables.in2);
     		var in3_ = env.lookup(variables.in3);
 
-    		in0_ = glsBuiltinPrecisionTests.convert(this.In0, fmt, deMath.rint(fmt, inputs.in0[valueNdx]));
-    		in1_ = glsBuiltinPrecisionTests.convert(this.In1, fmt, deMath.rint(fmt, inputs.in1[valueNdx]));
-    		in2_ = glsBuiltinPrecisionTests.convert(this.In2, fmt, deMath.rint(fmt, inputs.in2[valueNdx]));
-    		in3_ = glsBuiltinPrecisionTests.convert(this.In3, fmt, deMath.rint(fmt, inputs.in3[valueNdx]));
+    		in0_ = glsBuiltinPrecisionTests.convert(this.Arg0, fmt, glsBuiltinPrecisionTests.round(this.Arg0, fmt, inputs.in0[valueNdx]));
+    		in1_ = glsBuiltinPrecisionTests.convert(this.Arg1, fmt, glsBuiltinPrecisionTests.round(this.Arg1, fmt, inputs.in1[valueNdx]));
+    		in2_ = glsBuiltinPrecisionTests.convert(this.Arg2, fmt, glsBuiltinPrecisionTests.round(this.Arg2, fmt, inputs.in2[valueNdx]));
+    		in3_ = glsBuiltinPrecisionTests.convert(this.Arg3, fmt, glsBuiltinPrecisionTests.round(this.Arg3, fmt, inputs.in3[valueNdx]));
 
 			stmt.execute(new glsBuiltinPrecisionTests.EvalContext(fmt, this.m_ctx.precision, env));
 

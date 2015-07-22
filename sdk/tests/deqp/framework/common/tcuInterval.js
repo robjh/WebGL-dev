@@ -230,7 +230,7 @@
      * @return{tcuInterval.Interval}
      */
     tcuInterval.Interval.prototype.operatorOrBinary = function (other) {
-        /** @type{tcuInterval.Interval} */ var temp = this.operatorOrBinary(other);
+        /** @type{tcuInterval.Interval} */ var temp = new tcuInterval.Interval();
         temp.m_hasNaN = this.m_hasNaN || other.m_hasNaN;
         temp.m_lo = Math.min(this.m_lo, other.m_lo);
         temp.m_hi = Math.max(this.m_hi, other.m_hi);
@@ -241,7 +241,7 @@
      * @param{tcuInterval.Interval} other
      */
     tcuInterval.Interval.prototype.operatorOrAssignBinary = function(other) {
-        /** @type{tcuInterval.Interval} */ var temp = this.operatorOrBinary(other);
+        /** @type{tcuInterval.Interval} */ var temp = new tcuInterval.Interval();
 		this.m_hasNaN = temp.m_hasNaN;
         this.m_lo = temp.m_lo;
         this.m_hi = temp.m_hi;
@@ -252,7 +252,7 @@
      * @return{tcuInterval.Interval}
      */
     tcuInterval.Interval.prototype.operatorAndBinary = function (other) {
-        /** @type{tcuInterval.Interval} */ var temp = this.operatorOrBinary(other);
+        /** @type{tcuInterval.Interval} */ var temp = new tcuInterval.Interval();
         temp.m_hasNaN = this.m_hasNaN && other.m_hasNaN;
         temp.m_lo = Math.min(this.m_lo, other.m_lo);
         temp.m_hi = Math.max(this.m_hi, other.m_hi);
