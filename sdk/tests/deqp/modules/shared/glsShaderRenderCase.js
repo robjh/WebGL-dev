@@ -174,8 +174,8 @@ goog.scope(function() {
         /** @type Array<number>} */ var viewportScale = [width, height, 0, 0];
         for (var y = 0; y < gridSize + 1; y++)
         for (var x = 0; x < gridSize + 1; x++) {
-            /** @type {number} */ var sx = Math.floor(x / gridSize);
-            /** @type {number} */ var sy = Math.floor(y / gridSize);
+            /** @type {number} */ var sx = x / gridSize;
+            /** @type {number} */ var sy = y / gridSize;
             /** @type {number} */ var fx = 2.0 * sx - 1.0;
             /** @type {number} */ var fy = 2.0 * sy - 1.0;
             /** @type {number} */ var vtxNdx = ((y * (gridSize + 1)) + x);
