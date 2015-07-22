@@ -174,8 +174,8 @@ goog.scope(function() {
         /** @type Array<number>} */ var viewportScale = [width, height, 0, 0];
         for (var y = 0; y < gridSize + 1; y++)
         for (var x = 0; x < gridSize + 1; x++) {
-            /** @type {number} */ var sx = x / gridSize;
-            /** @type {number} */ var sy = y / gridSize;
+            /** @type {number} */ var sx = Math.floor(x / gridSize);
+            /** @type {number} */ var sy = Math.floor(y / gridSize);
             /** @type {number} */ var fx = 2.0 * sx - 1.0;
             /** @type {number} */ var fy = 2.0 * sy - 1.0;
             /** @type {number} */ var vtxNdx = ((y * (gridSize + 1)) + x);
@@ -649,10 +649,10 @@ goog.scope(function() {
         /** @type {number} */ var yOffsetMax = gl.drawingBufferHeight - height;
 
         /** @type {number} */ var hash = deString.deStringHash(this.m_vertShaderSource) + deString.deStringHash(this.m_fragShaderSource);
-        /** @type {deRandom.deRandom} */ var rnd = new deRandom.deRandom();
+        /** @type {deRandom.Random} */ var rnd = new deRandom.Random(hash);
 
-        /** @type {number} */ var xOffset = deRandom.deRandom_getInt(rnd, [0, xOffsetMax]);
-        /** @type {number} */ var yOffset = deRandom.deRandom_getInt(rnd, [0, yOffsetMax]);
+        /** @type {number} */ var xOffset = rnd.getInt(0, xOffsetMax);
+        /** @type {number} */ var yOffset = rnd.getInt(0, yOffsetMax);
 
         gl.viewport(xOffset, yOffset, width, height);
 
